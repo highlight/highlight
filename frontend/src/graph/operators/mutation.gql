@@ -965,6 +965,84 @@ mutation DeleteMetricMonitor($metric_monitor_id: ID!, $project_id: ID!) {
 	}
 }
 
+mutation CreateAlert(
+	$project_id: ID!
+	$name: String!
+	$product_type: ProductType!
+	$function_type: MetricAggregator!
+	$function_column: String
+	$query: String
+	$group_by_key: String
+	$below_threshold: Boolean
+	$threshold_value: Float
+	$threshold_window: Int
+	$threshold_cooldown: Int
+) {
+	createAlert(
+		project_id: $project_id
+		name: $name
+		product_type: $product_type
+		function_type: $function_type
+		function_column: $function_column
+		query: $query
+		group_by_key: $group_by_key
+		below_threshold: $below_threshold
+		threshold_value: $threshold_value
+		threshold_window: $threshold_window
+		threshold_cooldown: $threshold_cooldown
+	) {
+		id
+		name
+		product_type
+	}
+}
+
+mutation UpdateAlert(
+	$project_id: ID!
+	$alert_id: ID!
+	$name: String!
+	$product_type: ProductType!
+	$function_type: MetricAggregator!
+	$function_column: String
+	$query: String
+	$group_by_key: String
+	$below_threshold: Boolean
+	$threshold_value: Float
+	$threshold_window: Int
+	$threshold_cooldown: Int
+) {
+	updateAlert(
+		project_id: $project_id
+		alert_id: $alert_id
+		name: $name
+		product_type: $product_type
+		function_type: $function_type
+		function_column: $function_column
+		query: $query
+		group_by_key: $group_by_key
+		below_threshold: $below_threshold
+		threshold_value: $threshold_value
+		threshold_window: $threshold_window
+		threshold_cooldown: $threshold_cooldown
+	) {
+		id
+		name
+		product_type
+	}
+}
+
+mutation UpdateAlertDisabled(
+	$project_id: ID!
+	$alert_id: ID!
+	$disabled: Boolean!
+) {
+	updateAlertDisabled(
+		project_id: $project_id
+		alert_id: $alert_id
+		disabled: $disabled
+	)
+}
+
 mutation UpdateAdminAndCreateWorkspace(
 	$admin_and_workspace_details: AdminAndWorkspaceDetails!
 ) {

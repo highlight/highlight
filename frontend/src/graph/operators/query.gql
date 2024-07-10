@@ -1864,6 +1864,32 @@ query GetAlertsPagePayload($project_id: ID!) {
 		Type
 		query
 	}
+	alerts(project_id: $project_id) {
+		id
+		updated_at
+		name
+		product_type
+		disabled
+	}
+}
+
+query GetAlert($id: ID!) {
+	alert(id: $id) {
+		id
+		updated_at
+		name
+		product_type
+		function_type
+		function_column
+		query
+		group_by_key
+		disabled
+		last_admin_to_edit_id
+		below_threshold
+		threshold_value
+		threshold_window
+		threshold_cooldown
+	}
 }
 
 query GetMetricMonitors($project_id: ID!, $metric_name: String!) {

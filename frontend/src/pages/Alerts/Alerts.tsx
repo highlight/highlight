@@ -5,6 +5,7 @@ import {
 	Box,
 	Container,
 	Heading,
+	IconSolidChartBar,
 	IconSolidCheveronDown,
 	IconSolidCheveronRight,
 	IconSolidDiscord,
@@ -14,7 +15,9 @@ import {
 	IconSolidLogs,
 	IconSolidMicrosoftTeams,
 	IconSolidPlayCircle,
+	IconSolidPlus,
 	IconSolidRefresh,
+	IconSolidTraces,
 	Menu,
 	Stack,
 	Tag,
@@ -36,12 +39,15 @@ import React from 'react'
 import { RiMailFill, RiSlackFill } from 'react-icons/ri'
 import { useNavigate } from 'react-router-dom'
 
+import { Button } from '@/components/Button'
 import { Link } from '@/components/Link'
 import {
 	DiscordChannel,
 	MicrosoftTeamsChannel,
+	ProductType,
 	SanitizedSlackChannel,
 } from '@/graph/generated/schemas'
+import useFeatureFlag, { Feature } from '@/hooks/useFeatureFlag/useFeatureFlag'
 
 import styles from './Alerts.module.css'
 
@@ -55,6 +61,7 @@ export enum ALERT_TYPE {
 	RageClick,
 	MetricMonitor,
 	Logs,
+	Dynamic,
 }
 
 export enum ALERT_NAMES {
@@ -66,6 +73,7 @@ export enum ALERT_NAMES {
 	RAGE_CLICK_ALERT = 'Rage Clicks',
 	METRIC_MONITOR = 'Metric Monitor',
 	LOG_ALERT = 'Logs',
+	ALERT = 'Alert',
 }
 
 export interface AlertConfiguration {
@@ -155,6 +163,14 @@ export const ALERT_CONFIGURATIONS: { [key: string]: AlertConfiguration } = {
 		icon: <IconSolidLogs />,
 		supportsExcludeRules: true,
 	},
+	ALERT: {
+		name: ALERT_NAMES['ALERT'],
+		canControlThreshold: true,
+		type: ALERT_TYPE.Dynamic,
+		description: 'Get alerted when alert conditions are met.',
+		icon: <IconSolidLogs />,
+		supportsExcludeRules: true,
+	},
 } as const
 
 export default function AlertsPage() {
@@ -196,8 +212,8 @@ function formatAlertDataForTable(alert: any, config: AlertConfiguration) {
 		WebhookDestinations:
 			alert?.WebhookDestinations || alert?.webhook_destinations || [],
 		configuration: config,
-		type: config.name,
-		name: alert?.Name || config.name,
+		type: alert?.product_type || config.name,
+		name: alert?.name || alert?.Name || config.name,
 		key: alert?.id,
 	}
 }
@@ -213,9 +229,12 @@ function AlertsPageLoaded({
 }) {
 	const { project_id } = useParams<{ project_id: string }>()
 	const navigate = useNavigate()
+	const metricAlertsEnabled = useFeatureFlag(Feature.MetricAlerts)
 
 	const navigateToAlert = (record: any) => {
-		if (record.type === ALERT_NAMES['METRIC_MONITOR']) {
+		if (record.configuration.name === ALERT_NAMES['ALERT']) {
+			navigate(`/${project_id}/alerts/${record.id}/edit`)
+		} else if (record.type === ALERT_NAMES['METRIC_MONITOR']) {
 			navigate(`/${project_id}/alerts/monitor/${record.id}`)
 		} else if (record.type === ALERT_NAMES['LOG_ALERT']) {
 			navigate(`/${project_id}/alerts/logs/${record.id}`)
@@ -291,6 +310,9 @@ function AlertsPageLoaded({
 				),
 			)
 			.sort((a, b) => a.name.localeCompare(b.name)),
+		...(alertsPayload?.alerts || []).map((alert) =>
+			formatAlertDataForTable(alert, ALERT_CONFIGURATIONS['ALERT']),
+		),
 	]
 
 	return (
@@ -316,7 +338,21 @@ function AlertsPageLoaded({
 							<Text weight="bold" size="small" color="strong">
 								All alerts
 							</Text>
-							<NewAlertMenu />
+							{metricAlertsEnabled ? (
+								<Button
+									trackingId="alerts-page-add-alert-button"
+									onClick={() =>
+										navigate(`/${project_id}/alerts/new`)
+									}
+									iconLeft={<IconSolidPlus />}
+									kind="secondary"
+									emphasis="low"
+								>
+									Add Alert
+								</Button>
+							) : (
+								<NewAlertMenu />
+							)}
 						</Box>
 						{alertsPayload && (
 							<Stack gap="6">
@@ -380,35 +416,7 @@ const AlertRow = ({ record, navigateToAlert }: AlertRowProps) => {
 						height: '28px',
 					}}
 				>
-					{record.type === ALERT_CONFIGURATIONS['LOG_ALERT'].name ? (
-						<IconSolidLogs
-							size="16"
-							color={
-								record.disabled
-									? vars.theme.static.content.weak
-									: vars.theme.static.content.moderate
-							}
-						/>
-					) : record.type ===
-					  ALERT_CONFIGURATIONS['ERROR_ALERT'].name ? (
-						<IconSolidLightningBolt
-							size="20"
-							color={
-								record.disabled
-									? vars.theme.static.content.weak
-									: vars.theme.static.content.moderate
-							}
-						/>
-					) : (
-						<IconSolidPlayCircle
-							size="20"
-							color={
-								record.disabled
-									? vars.theme.static.content.weak
-									: vars.theme.static.content.moderate
-							}
-						/>
-					)}
+					<AlertIcon type={record.type} disabled={record.disabled} />
 				</Box>
 			</Stack>
 			<Stack width="full" gap="12">
@@ -597,6 +605,25 @@ const AlertRow = ({ record, navigateToAlert }: AlertRowProps) => {
 			</Stack>
 		</Box>
 	)
+}
+
+const AlertIcon = ({ type, disabled }: { type: string; disabled: boolean }) => {
+	const color = disabled
+		? vars.theme.static.content.weak
+		: vars.theme.static.content.moderate
+
+	switch (type) {
+		case ProductType.Errors:
+			return <IconSolidLightningBolt size="20" color={color} />
+		case ProductType.Logs:
+			return <IconSolidLogs size="16" color={color} />
+		case ProductType.Traces:
+			return <IconSolidTraces size="20" color={color} />
+		case ProductType.Metrics:
+			return <IconSolidChartBar size="20" color={color} />
+		default:
+			return <IconSolidPlayCircle size="20" color={color} />
+	}
 }
 
 function NewAlertMenu() {
