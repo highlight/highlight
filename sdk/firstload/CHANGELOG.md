@@ -1,5 +1,11 @@
 # highlight.run
 
+## 9.0.4
+
+### Patch Changes
+
+-   0a245b208: default to jpeg canvas recording when webp not supported
+
 ## 9.0.3
 
 ### Patch Changes

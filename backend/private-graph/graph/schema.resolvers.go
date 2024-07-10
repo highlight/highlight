@@ -27,6 +27,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/marketplacemetering"
 	"github.com/aws/smithy-go/ptr"
 	"github.com/clearbit/clearbit-go/clearbit"
+	"github.com/google/uuid"
 	"github.com/highlight-run/highlight/backend/alerts"
 	"github.com/highlight-run/highlight/backend/alerts/integrations/discord"
 	microsoft_teams "github.com/highlight-run/highlight/backend/alerts/integrations/microsoft-teams"
@@ -3308,28 +3309,24 @@ func (r *mutationResolver) UpdateMetricMonitor(ctx context.Context, metricMonito
 }
 
 // CreateAlert is the resolver for the createAlert field.
-func (r *mutationResolver) CreateAlert(ctx context.Context, projectID int, name string, productType modelInputs.ProductType, functionType modelInputs.MetricAggregator, query *string, groupByKey *string, disabled *bool, belowThreshold *bool, thresholdCount *int, thresholdWindow *int, thresholdCooldown *int) (*model.Alert, error) {
+func (r *mutationResolver) CreateAlert(ctx context.Context, projectID int, name string, productType modelInputs.ProductType, functionType modelInputs.MetricAggregator, functionColumn *string, query *string, groupByKey *string, belowThreshold *bool, thresholdValue *float64, thresholdWindow *int, thresholdCooldown *int) (*model.Alert, error) {
 	_, err := r.isUserInProject(ctx, projectID)
 	admin, _ := r.getCurrentAdmin(ctx)
 	if err != nil {
 		return nil, err
 	}
 
-	disabledVar := disabled
-	if disabledVar == nil {
-		disabledVar = pointy.Bool(false)
-	}
-
 	newAlert := &model.Alert{
 		ProjectID:         projectID,
+		MetricId:          uuid.New().String(),
 		Name:              name,
 		ProductType:       productType,
 		FunctionType:      functionType,
+		FunctionColumn:    functionColumn,
 		Query:             query,
 		GroupByKey:        groupByKey,
-		Disabled:          *disabledVar,
 		BelowThreshold:    belowThreshold,
-		ThresholdCount:    thresholdCount,
+		ThresholdValue:    thresholdValue,
 		ThresholdWindow:   thresholdWindow,
 		ThresholdCooldown: thresholdCooldown,
 		LastAdminToEditID: admin.ID,
@@ -3347,7 +3344,7 @@ func (r *mutationResolver) CreateAlert(ctx context.Context, projectID int, name 
 }
 
 // UpdateAlert is the resolver for the updateAlert field.
-func (r *mutationResolver) UpdateAlert(ctx context.Context, projectID int, alertID int, name *string, productType *modelInputs.ProductType, functionType *modelInputs.MetricAggregator, query *string, groupByKey *string, disabled *bool, belowThreshold *bool, thresholdCount *int, thresholdWindow *int, thresholdCooldown *int) (*model.Alert, error) {
+func (r *mutationResolver) UpdateAlert(ctx context.Context, projectID int, alertID int, name *string, productType *modelInputs.ProductType, functionType *modelInputs.MetricAggregator, functionColumn *string, query *string, groupByKey *string, belowThreshold *bool, thresholdValue *float64, thresholdWindow *int, thresholdCooldown *int) (*model.Alert, error) {
 	project, err := r.isUserInProject(ctx, projectID)
 	admin, _ := r.getCurrentAdmin(ctx)
 	if err != nil {
@@ -3355,38 +3352,18 @@ func (r *mutationResolver) UpdateAlert(ctx context.Context, projectID int, alert
 	}
 
 	alertUpdates := map[string]interface{}{
+		"MetricId":          uuid.New().String(),
 		"LastAdminToEditID": admin.ID,
-	}
-
-	if name != nil {
-		alertUpdates["Name"] = *name
-	}
-	if productType != nil {
-		alertUpdates["ProductType"] = *productType
-	}
-	if functionType != nil {
-		alertUpdates["FunctionType"] = *functionType
-	}
-	if query != nil {
-		alertUpdates["Query"] = *query
-	}
-	if groupByKey != nil {
-		alertUpdates["GroupByKey"] = *groupByKey
-	}
-	if disabled != nil {
-		alertUpdates["Disabled"] = *disabled
-	}
-	if belowThreshold != nil {
-		alertUpdates["BelowThreshold"] = *belowThreshold
-	}
-	if thresholdCount != nil {
-		alertUpdates["ThresholdCount"] = *thresholdCount
-	}
-	if thresholdWindow != nil {
-		alertUpdates["ThresholdWindow"] = *thresholdWindow
-	}
-	if thresholdCooldown != nil {
-		alertUpdates["ThresholdCooldown"] = *thresholdCooldown
+		"Name":              name,
+		"ProductType":       productType,
+		"FunctionType":      functionType,
+		"FunctionColumn":    functionColumn,
+		"Query":             query,
+		"GroupByKey":        groupByKey,
+		"BelowThreshold":    belowThreshold,
+		"ThresholdValue":    thresholdValue,
+		"ThresholdWindow":   thresholdWindow,
+		"ThresholdCooldown": thresholdCooldown,
 	}
 
 	alert := &model.Alert{}
@@ -7603,6 +7580,15 @@ func (r *queryResolver) IsIntegratedWith(ctx context.Context, integrationType mo
 		return workspace.VercelAccessToken != nil, nil
 	} else if integrationType == modelInputs.IntegrationTypeDiscord {
 		return workspace.DiscordGuildId != nil, nil
+	} else if integrationType == modelInputs.IntegrationTypeHeroku {
+		projectMapping := &model.IntegrationProjectMapping{}
+		if err := r.DB.WithContext(ctx).Where(&model.IntegrationProjectMapping{
+			ProjectID:       projectID,
+			IntegrationType: integrationType,
+		}).Take(&projectMapping).Error; err != nil {
+			return false, nil
+		}
+		return projectMapping != nil, nil
 	} else {
 		workspaceMapping := &model.IntegrationWorkspaceMapping{}
 		if err := r.DB.WithContext(ctx).Where(&model.IntegrationWorkspaceMapping{
@@ -8828,22 +8814,13 @@ func (r *queryResolver) AiQuerySuggestion(ctx context.Context, timeZone string, 
 	// switch on the product type to get the keys and values
 	switch productType {
 	case modelInputs.ProductTypeTraces:
-		keys = append(keys, lo.Map(lo.Keys(clickhouse.TracesTableConfig.KeysToColumns),
-			func(key modelInputs.ReservedTraceKey, _ int) string {
-				return key.String()
-			})...)
+		keys = append(keys, lo.Keys(clickhouse.TracesTableConfig.KeysToColumns)...)
 	case modelInputs.ProductTypeLogs:
-		keys = append(keys, lo.Map(lo.Keys(clickhouse.LogsTableConfig.KeysToColumns),
-			func(key modelInputs.ReservedLogKey, _ int) string {
-				return key.String()
-			})...)
+		keys = append(keys, lo.Keys(clickhouse.LogsTableConfig.KeysToColumns)...)
 	case modelInputs.ProductTypeSessions:
 		keys = append(keys, lo.Keys(clickhouse.SessionsTableConfig.KeysToColumns)...)
 	case modelInputs.ProductTypeErrors:
-		keys = append(keys, lo.Map(lo.Keys(clickhouse.ErrorGroupsTableConfig.KeysToColumns),
-			func(key modelInputs.ReservedErrorGroupKey, _ int) string {
-				return key.String()
-			})...)
+		keys = append(keys, lo.Keys(clickhouse.ErrorGroupsTableConfig.KeysToColumns)...)
 	}
 
 	loc, err := time.LoadLocation(timeZone)
@@ -10101,76 +10078,3 @@ type sessionCommentResolver struct{ *Resolver }
 type subscriptionResolver struct{ *Resolver }
 type timelineIndicatorEventResolver struct{ *Resolver }
 type visualizationResolver struct{ *Resolver }
-
-// !!! WARNING !!!
-// The code below was going to be deleted when updating resolvers. It has been copied here so you have
-// one last chance to move it out of harms way if you want. There are two reasons this happens:
-//   - When renaming or deleting a resolver the old code will be put in here. You can safely delete
-//     it when you're done.
-//   - You have helper methods in this file. Move them out to keep these resolver files clean.
-func (r *errorAlertResolver) Name(ctx context.Context, obj *model.ErrorAlert) (*string, error) {
-	panic(fmt.Errorf("not implemented: Name - Name"))
-}
-func (r *errorAlertResolver) CountThreshold(ctx context.Context, obj *model.ErrorAlert) (int, error) {
-	panic(fmt.Errorf("not implemented: CountThreshold - CountThreshold"))
-}
-func (r *errorAlertResolver) ThresholdWindow(ctx context.Context, obj *model.ErrorAlert) (*int, error) {
-	panic(fmt.Errorf("not implemented: ThresholdWindow - ThresholdWindow"))
-}
-func (r *errorAlertResolver) LastAdminToEditID(ctx context.Context, obj *model.ErrorAlert) (*int, error) {
-	panic(fmt.Errorf("not implemented: LastAdminToEditID - LastAdminToEditID"))
-}
-func (r *errorAlertResolver) Type(ctx context.Context, obj *model.ErrorAlert) (string, error) {
-	panic(fmt.Errorf("not implemented: Type - Type"))
-}
-func (r *errorAlertResolver) Frequency(ctx context.Context, obj *model.ErrorAlert) (int, error) {
-	panic(fmt.Errorf("not implemented: Frequency - Frequency"))
-}
-func (r *errorAlertResolver) Disabled(ctx context.Context, obj *model.ErrorAlert) (bool, error) {
-	panic(fmt.Errorf("not implemented: Disabled - disabled"))
-}
-func (r *errorAlertResolver) Default(ctx context.Context, obj *model.ErrorAlert) (bool, error) {
-	panic(fmt.Errorf("not implemented: Default - default"))
-}
-func (r *logAlertResolver) Name(ctx context.Context, obj *model.LogAlert) (string, error) {
-	panic(fmt.Errorf("not implemented: Name - Name"))
-}
-func (r *logAlertResolver) CountThreshold(ctx context.Context, obj *model.LogAlert) (int, error) {
-	panic(fmt.Errorf("not implemented: CountThreshold - CountThreshold"))
-}
-func (r *logAlertResolver) ThresholdWindow(ctx context.Context, obj *model.LogAlert) (int, error) {
-	panic(fmt.Errorf("not implemented: ThresholdWindow - ThresholdWindow"))
-}
-func (r *logAlertResolver) LastAdminToEditID(ctx context.Context, obj *model.LogAlert) (*int, error) {
-	panic(fmt.Errorf("not implemented: LastAdminToEditID - LastAdminToEditID"))
-}
-func (r *logAlertResolver) Type(ctx context.Context, obj *model.LogAlert) (string, error) {
-	panic(fmt.Errorf("not implemented: Type - Type"))
-}
-func (r *logAlertResolver) Disabled(ctx context.Context, obj *model.LogAlert) (bool, error) {
-	panic(fmt.Errorf("not implemented: Disabled - disabled"))
-}
-func (r *logAlertResolver) Default(ctx context.Context, obj *model.LogAlert) (bool, error) {
-	panic(fmt.Errorf("not implemented: Default - default"))
-}
-func (r *sessionAlertResolver) Name(ctx context.Context, obj *model.SessionAlert) (*string, error) {
-	panic(fmt.Errorf("not implemented: Name - Name"))
-}
-func (r *sessionAlertResolver) CountThreshold(ctx context.Context, obj *model.SessionAlert) (int, error) {
-	panic(fmt.Errorf("not implemented: CountThreshold - CountThreshold"))
-}
-func (r *sessionAlertResolver) ThresholdWindow(ctx context.Context, obj *model.SessionAlert) (*int, error) {
-	panic(fmt.Errorf("not implemented: ThresholdWindow - ThresholdWindow"))
-}
-func (r *sessionAlertResolver) LastAdminToEditID(ctx context.Context, obj *model.SessionAlert) (*int, error) {
-	panic(fmt.Errorf("not implemented: LastAdminToEditID - LastAdminToEditID"))
-}
-func (r *sessionAlertResolver) Type(ctx context.Context, obj *model.SessionAlert) (string, error) {
-	panic(fmt.Errorf("not implemented: Type - Type"))
-}
-func (r *sessionAlertResolver) Disabled(ctx context.Context, obj *model.SessionAlert) (bool, error) {
-	panic(fmt.Errorf("not implemented: Disabled - disabled"))
-}
-func (r *sessionAlertResolver) Default(ctx context.Context, obj *model.SessionAlert) (bool, error) {
-	panic(fmt.Errorf("not implemented: Default - default"))
-}

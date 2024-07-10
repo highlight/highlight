@@ -3386,6 +3386,236 @@ export type DeleteMetricMonitorMutationOptions = Apollo.BaseMutationOptions<
 	Types.DeleteMetricMonitorMutation,
 	Types.DeleteMetricMonitorMutationVariables
 >
+export const CreateAlertDocument = gql`
+	mutation CreateAlert(
+		$project_id: ID!
+		$name: String!
+		$product_type: ProductType!
+		$function_type: MetricAggregator!
+		$function_column: String
+		$query: String
+		$group_by_key: String
+		$below_threshold: Boolean
+		$threshold_value: Float
+		$threshold_window: Int
+		$threshold_cooldown: Int
+	) {
+		createAlert(
+			project_id: $project_id
+			name: $name
+			product_type: $product_type
+			function_type: $function_type
+			function_column: $function_column
+			query: $query
+			group_by_key: $group_by_key
+			below_threshold: $below_threshold
+			threshold_value: $threshold_value
+			threshold_window: $threshold_window
+			threshold_cooldown: $threshold_cooldown
+		) {
+			id
+			name
+			product_type
+		}
+	}
+`
+export type CreateAlertMutationFn = Apollo.MutationFunction<
+	Types.CreateAlertMutation,
+	Types.CreateAlertMutationVariables
+>
+
+/**
+ * __useCreateAlertMutation__
+ *
+ * To run a mutation, you first call `useCreateAlertMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useCreateAlertMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [createAlertMutation, { data, loading, error }] = useCreateAlertMutation({
+ *   variables: {
+ *      project_id: // value for 'project_id'
+ *      name: // value for 'name'
+ *      product_type: // value for 'product_type'
+ *      function_type: // value for 'function_type'
+ *      function_column: // value for 'function_column'
+ *      query: // value for 'query'
+ *      group_by_key: // value for 'group_by_key'
+ *      below_threshold: // value for 'below_threshold'
+ *      threshold_value: // value for 'threshold_value'
+ *      threshold_window: // value for 'threshold_window'
+ *      threshold_cooldown: // value for 'threshold_cooldown'
+ *   },
+ * });
+ */
+export function useCreateAlertMutation(
+	baseOptions?: Apollo.MutationHookOptions<
+		Types.CreateAlertMutation,
+		Types.CreateAlertMutationVariables
+	>,
+) {
+	return Apollo.useMutation<
+		Types.CreateAlertMutation,
+		Types.CreateAlertMutationVariables
+	>(CreateAlertDocument, baseOptions)
+}
+export type CreateAlertMutationHookResult = ReturnType<
+	typeof useCreateAlertMutation
+>
+export type CreateAlertMutationResult =
+	Apollo.MutationResult<Types.CreateAlertMutation>
+export type CreateAlertMutationOptions = Apollo.BaseMutationOptions<
+	Types.CreateAlertMutation,
+	Types.CreateAlertMutationVariables
+>
+export const UpdateAlertDocument = gql`
+	mutation UpdateAlert(
+		$project_id: ID!
+		$alert_id: ID!
+		$name: String!
+		$product_type: ProductType!
+		$function_type: MetricAggregator!
+		$function_column: String
+		$query: String
+		$group_by_key: String
+		$below_threshold: Boolean
+		$threshold_value: Float
+		$threshold_window: Int
+		$threshold_cooldown: Int
+	) {
+		updateAlert(
+			project_id: $project_id
+			alert_id: $alert_id
+			name: $name
+			product_type: $product_type
+			function_type: $function_type
+			function_column: $function_column
+			query: $query
+			group_by_key: $group_by_key
+			below_threshold: $below_threshold
+			threshold_value: $threshold_value
+			threshold_window: $threshold_window
+			threshold_cooldown: $threshold_cooldown
+		) {
+			id
+			name
+			product_type
+		}
+	}
+`
+export type UpdateAlertMutationFn = Apollo.MutationFunction<
+	Types.UpdateAlertMutation,
+	Types.UpdateAlertMutationVariables
+>
+
+/**
+ * __useUpdateAlertMutation__
+ *
+ * To run a mutation, you first call `useUpdateAlertMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useUpdateAlertMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [updateAlertMutation, { data, loading, error }] = useUpdateAlertMutation({
+ *   variables: {
+ *      project_id: // value for 'project_id'
+ *      alert_id: // value for 'alert_id'
+ *      name: // value for 'name'
+ *      product_type: // value for 'product_type'
+ *      function_type: // value for 'function_type'
+ *      function_column: // value for 'function_column'
+ *      query: // value for 'query'
+ *      group_by_key: // value for 'group_by_key'
+ *      below_threshold: // value for 'below_threshold'
+ *      threshold_value: // value for 'threshold_value'
+ *      threshold_window: // value for 'threshold_window'
+ *      threshold_cooldown: // value for 'threshold_cooldown'
+ *   },
+ * });
+ */
+export function useUpdateAlertMutation(
+	baseOptions?: Apollo.MutationHookOptions<
+		Types.UpdateAlertMutation,
+		Types.UpdateAlertMutationVariables
+	>,
+) {
+	return Apollo.useMutation<
+		Types.UpdateAlertMutation,
+		Types.UpdateAlertMutationVariables
+	>(UpdateAlertDocument, baseOptions)
+}
+export type UpdateAlertMutationHookResult = ReturnType<
+	typeof useUpdateAlertMutation
+>
+export type UpdateAlertMutationResult =
+	Apollo.MutationResult<Types.UpdateAlertMutation>
+export type UpdateAlertMutationOptions = Apollo.BaseMutationOptions<
+	Types.UpdateAlertMutation,
+	Types.UpdateAlertMutationVariables
+>
+export const UpdateAlertDisabledDocument = gql`
+	mutation UpdateAlertDisabled(
+		$project_id: ID!
+		$alert_id: ID!
+		$disabled: Boolean!
+	) {
+		updateAlertDisabled(
+			project_id: $project_id
+			alert_id: $alert_id
+			disabled: $disabled
+		)
+	}
+`
+export type UpdateAlertDisabledMutationFn = Apollo.MutationFunction<
+	Types.UpdateAlertDisabledMutation,
+	Types.UpdateAlertDisabledMutationVariables
+>
+
+/**
+ * __useUpdateAlertDisabledMutation__
+ *
+ * To run a mutation, you first call `useUpdateAlertDisabledMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useUpdateAlertDisabledMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [updateAlertDisabledMutation, { data, loading, error }] = useUpdateAlertDisabledMutation({
+ *   variables: {
+ *      project_id: // value for 'project_id'
+ *      alert_id: // value for 'alert_id'
+ *      disabled: // value for 'disabled'
+ *   },
+ * });
+ */
+export function useUpdateAlertDisabledMutation(
+	baseOptions?: Apollo.MutationHookOptions<
+		Types.UpdateAlertDisabledMutation,
+		Types.UpdateAlertDisabledMutationVariables
+	>,
+) {
+	return Apollo.useMutation<
+		Types.UpdateAlertDisabledMutation,
+		Types.UpdateAlertDisabledMutationVariables
+	>(UpdateAlertDisabledDocument, baseOptions)
+}
+export type UpdateAlertDisabledMutationHookResult = ReturnType<
+	typeof useUpdateAlertDisabledMutation
+>
+export type UpdateAlertDisabledMutationResult =
+	Apollo.MutationResult<Types.UpdateAlertDisabledMutation>
+export type UpdateAlertDisabledMutationOptions = Apollo.BaseMutationOptions<
+	Types.UpdateAlertDisabledMutation,
+	Types.UpdateAlertDisabledMutationVariables
+>
 export const UpdateAdminAndCreateWorkspaceDocument = gql`
 	mutation UpdateAdminAndCreateWorkspace(
 		$admin_and_workspace_details: AdminAndWorkspaceDetails!
@@ -12353,6 +12583,13 @@ export const GetAlertsPagePayloadDocument = gql`
 			Type
 			query
 		}
+		alerts(project_id: $project_id) {
+			id
+			updated_at
+			name
+			product_type
+			disabled
+		}
 	}
 	${DiscordChannelFragmentFragmentDoc}
 	${MicrosoftTeamsChannelFragmentFragmentDoc}
@@ -12406,6 +12643,73 @@ export type GetAlertsPagePayloadLazyQueryHookResult = ReturnType<
 export type GetAlertsPagePayloadQueryResult = Apollo.QueryResult<
 	Types.GetAlertsPagePayloadQuery,
 	Types.GetAlertsPagePayloadQueryVariables
+>
+export const GetAlertDocument = gql`
+	query GetAlert($id: ID!) {
+		alert(id: $id) {
+			id
+			updated_at
+			name
+			product_type
+			function_type
+			function_column
+			query
+			group_by_key
+			disabled
+			last_admin_to_edit_id
+			below_threshold
+			threshold_value
+			threshold_window
+			threshold_cooldown
+		}
+	}
+`
+
+/**
+ * __useGetAlertQuery__
+ *
+ * To run a query within a React component, call `useGetAlertQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetAlertQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetAlertQuery({
+ *   variables: {
+ *      id: // value for 'id'
+ *   },
+ * });
+ */
+export function useGetAlertQuery(
+	baseOptions: Apollo.QueryHookOptions<
+		Types.GetAlertQuery,
+		Types.GetAlertQueryVariables
+	>,
+) {
+	return Apollo.useQuery<Types.GetAlertQuery, Types.GetAlertQueryVariables>(
+		GetAlertDocument,
+		baseOptions,
+	)
+}
+export function useGetAlertLazyQuery(
+	baseOptions?: Apollo.LazyQueryHookOptions<
+		Types.GetAlertQuery,
+		Types.GetAlertQueryVariables
+	>,
+) {
+	return Apollo.useLazyQuery<
+		Types.GetAlertQuery,
+		Types.GetAlertQueryVariables
+	>(GetAlertDocument, baseOptions)
+}
+export type GetAlertQueryHookResult = ReturnType<typeof useGetAlertQuery>
+export type GetAlertLazyQueryHookResult = ReturnType<
+	typeof useGetAlertLazyQuery
+>
+export type GetAlertQueryResult = Apollo.QueryResult<
+	Types.GetAlertQuery,
+	Types.GetAlertQueryVariables
 >
 export const GetMetricMonitorsDocument = gql`
 	query GetMetricMonitors($project_id: ID!, $metric_name: String!) {

@@ -1560,6 +1560,7 @@ enum AlertState {
 	Normal
 	Pending
 	Alerting
+	AlertingSilently
 	NoData
 	Error
 }
@@ -1583,9 +1584,11 @@ type AlertDestination {
 type Alert {
 	id: ID!
 	updated_at: Timestamp!
+	metric_id: String!
 	name: String!
 	product_type: ProductType!
 	function_type: MetricAggregator!
+	function_column: String
 	query: String
 	group_by_key: String
 	disabled: Boolean!
@@ -1594,7 +1597,7 @@ type Alert {
 
 	# threshold alerts
 	below_threshold: Boolean
-	threshold_count: Int
+	threshold_value: Float
 	threshold_window: Int
 	threshold_cooldown: Int
 }
@@ -1606,7 +1609,7 @@ type AlertStateChange {
 	State: AlertState!
 	PreviousState: AlertState!
 	Title: String!
-	GroupByKey: String
+	GroupByKey: String!
 }
 
 type SanitizedSlackChannel {
@@ -2766,11 +2769,11 @@ type Mutation {
 		name: String!
 		product_type: ProductType!
 		function_type: MetricAggregator!
+		function_column: String
 		query: String
 		group_by_key: String
-		disabled: Boolean
 		below_threshold: Boolean
-		threshold_count: Int
+		threshold_value: Float
 		threshold_window: Int
 		threshold_cooldown: Int # TODO(spenny): add destinations
 	): Alert
@@ -2780,11 +2783,11 @@ type Mutation {
 		name: String
 		product_type: ProductType
 		function_type: MetricAggregator
+		function_column: String
 		query: String
 		group_by_key: String
-		disabled: Boolean
 		below_threshold: Boolean
-		threshold_count: Int
+		threshold_value: Float
 		threshold_window: Int
 		threshold_cooldown: Int # TODO(spenny): add destinations
 	): Alert

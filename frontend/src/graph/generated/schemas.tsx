@@ -133,15 +133,17 @@ export type Alert = {
 	below_threshold?: Maybe<Scalars['Boolean']>
 	destinations: Array<Maybe<AlertDestination>>
 	disabled: Scalars['Boolean']
+	function_column?: Maybe<Scalars['String']>
 	function_type: MetricAggregator
 	group_by_key?: Maybe<Scalars['String']>
 	id: Scalars['ID']
 	last_admin_to_edit_id?: Maybe<Scalars['ID']>
+	metric_id: Scalars['String']
 	name: Scalars['String']
 	product_type: ProductType
 	query?: Maybe<Scalars['String']>
 	threshold_cooldown?: Maybe<Scalars['Int']>
-	threshold_count?: Maybe<Scalars['Int']>
+	threshold_value?: Maybe<Scalars['Float']>
 	threshold_window?: Maybe<Scalars['Int']>
 	updated_at: Scalars['Timestamp']
 }
@@ -165,6 +167,7 @@ export enum AlertDestinationType {
 
 export enum AlertState {
 	Alerting = 'Alerting',
+	AlertingSilently = 'AlertingSilently',
 	Error = 'Error',
 	NoData = 'NoData',
 	Normal = 'Normal',
@@ -174,7 +177,7 @@ export enum AlertState {
 export type AlertStateChange = {
 	__typename?: 'AlertStateChange'
 	AlertID: Scalars['ID']
-	GroupByKey?: Maybe<Scalars['String']>
+	GroupByKey: Scalars['String']
 	PreviousState: AlertState
 	State: AlertState
 	Title: Scalars['String']
@@ -1293,7 +1296,7 @@ export type MutationChangeProjectMembershipArgs = {
 
 export type MutationCreateAlertArgs = {
 	below_threshold?: InputMaybe<Scalars['Boolean']>
-	disabled?: InputMaybe<Scalars['Boolean']>
+	function_column?: InputMaybe<Scalars['String']>
 	function_type: MetricAggregator
 	group_by_key?: InputMaybe<Scalars['String']>
 	name: Scalars['String']
@@ -1301,7 +1304,7 @@ export type MutationCreateAlertArgs = {
 	project_id: Scalars['ID']
 	query?: InputMaybe<Scalars['String']>
 	threshold_cooldown?: InputMaybe<Scalars['Int']>
-	threshold_count?: InputMaybe<Scalars['Int']>
+	threshold_value?: InputMaybe<Scalars['Float']>
 	threshold_window?: InputMaybe<Scalars['Int']>
 }
 
@@ -1759,7 +1762,7 @@ export type MutationUpdateAdminAndCreateWorkspaceArgs = {
 export type MutationUpdateAlertArgs = {
 	alert_id: Scalars['ID']
 	below_threshold?: InputMaybe<Scalars['Boolean']>
-	disabled?: InputMaybe<Scalars['Boolean']>
+	function_column?: InputMaybe<Scalars['String']>
 	function_type?: InputMaybe<MetricAggregator>
 	group_by_key?: InputMaybe<Scalars['String']>
 	name?: InputMaybe<Scalars['String']>
@@ -1767,7 +1770,7 @@ export type MutationUpdateAlertArgs = {
 	project_id: Scalars['ID']
 	query?: InputMaybe<Scalars['String']>
 	threshold_cooldown?: InputMaybe<Scalars['Int']>
-	threshold_count?: InputMaybe<Scalars['Int']>
+	threshold_value?: InputMaybe<Scalars['Float']>
 	threshold_window?: InputMaybe<Scalars['Int']>
 }
 

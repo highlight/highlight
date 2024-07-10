@@ -1,9 +1,9 @@
 import {
-	IconSolidDatabase,
+	IconSolidChartBar,
 	IconSolidLightningBolt,
 	IconSolidLogs,
 	IconSolidPlayCircle,
-	IconSolidSparkles,
+	IconSolidTraces,
 } from '@highlight-run/ui/components'
 
 import { MetricAggregator, ProductType } from '@/graph/generated/schemas'
@@ -20,10 +20,10 @@ export const PRODUCTS: ProductType[] = [
 
 export const PRODUCT_ICONS = [
 	<IconSolidLogs key="logs" />,
-	<IconSolidSparkles key="traces" />,
+	<IconSolidTraces key="traces" />,
 	<IconSolidPlayCircle key="sessions" />,
 	<IconSolidLightningBolt key="errors" />,
-	<IconSolidDatabase key="metrics" />,
+	<IconSolidChartBar key="metrics" />,
 ]
 
 export const NUMERIC_FUNCTION_TYPES: MetricAggregator[] = [
