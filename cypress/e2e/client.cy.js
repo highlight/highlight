@@ -1,6 +1,19 @@
 import { decompressPushPayload } from './util'
 
 describe('client recording spec', () => {
+	cy.intercept('*', (req) => {
+		// Attach an onResponse handler
+		req.on('response', (res) => {
+			// Check if the response status code indicates a failure
+			if (res.statusCode >= 400 && res.statusCode <= 599) {
+				// Log the failing request URL and status code
+				cy.log(
+					`Request to ${req.url} failed with status code ${res.statusCode}`,
+				)
+			}
+		})
+	})
+
 	it('fetch requests are recorded', () => {
 		let events = []
 		cy.intercept('POST', '/public', (req) => {
@@ -11,6 +24,16 @@ describe('client recording spec', () => {
 				}
 			})
 		})
+		cy.log(
+			`::: REACT_APP_PRIVATE_GRAPH_URI: ${Cypress.env(
+				'REACT_APP_PRIVATE_GRAPH_URI',
+			)}`,
+		)
+		cy.log(
+			`::: REACT_APP_PUBLIC_GRAPH_URI: ${Cypress.env(
+				'REACT_APP_PUBLIC_GRAPH_URI',
+			)}`,
+		)
 		cy.visit('/')
 		cy.window().then((win) => {
 			// delay can be long because the client test might run first, and waiting for vite to have the dev bundle ready can take a while.
