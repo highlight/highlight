@@ -6,7 +6,6 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
-	"github.com/highlight-run/highlight/backend/env"
 	"io"
 	"math/big"
 	"net/http"
@@ -15,6 +14,8 @@ import (
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/highlight-run/highlight/backend/env"
 
 	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/service/marketplacemetering"
@@ -2354,32 +2355,30 @@ func (r *Resolver) RemoveGitHubFromWorkspace(ctx context.Context, workspace *mod
 }
 
 func (r *Resolver) RemoveIntegrationFromWorkspaceAndProjects(ctx context.Context, workspace *model.Workspace, integrationType modelInputs.IntegrationType) error {
-	workspaceMapping := &model.IntegrationWorkspaceMapping{}
-	if err := r.DB.WithContext(ctx).Where(&model.IntegrationWorkspaceMapping{
-		WorkspaceID:     workspace.ID,
-		IntegrationType: integrationType,
-	}).Take(&workspaceMapping).Error; err != nil {
-		return e.Wrap(err, fmt.Sprintf("workspace does not have a %s integration", integrationType))
-	}
+	return r.DB.Transaction(func(tx *gorm.DB) error {
+		if err := tx.WithContext(ctx).Exec(`
+			DELETE FROM integration_workspace_mappings
+			WHERE integration_type = ?
+			AND workspace_id = ?
+		`, integrationType, workspace.ID).Error; err != nil {
+			return err
+		}
 
-	if err := r.DB.WithContext(ctx).Raw(`
-		DELETE FROM integration_project_mappings ipm
-		WHERE ipm.integration_type = ?
-		AND EXISTS (
-			SELECT *
-			FROM projects p
-			WHERE p.workspace_id = ?
-			AND ipm.project_id = p.id
-		)
-	`, integrationType, workspace.ID).Error; err != nil {
-		return err
-	}
+		if err := tx.WithContext(ctx).Exec(`
+			DELETE FROM integration_project_mappings ipm
+			WHERE ipm.integration_type = ?
+			AND EXISTS (
+				SELECT *
+				FROM projects p
+				WHERE p.workspace_id = ?
+				AND ipm.project_id = p.id
+			)
+		`, integrationType, workspace.ID).Error; err != nil {
+			return err
+		}
 
-	if err := r.DB.WithContext(ctx).Delete(workspaceMapping).Error; err != nil {
-		return e.Wrap(err, fmt.Sprintf("error deleting workspace %s integration", integrationType))
-	}
-
-	return nil
+		return nil
+	})
 }
 
 func (r *Resolver) RemoveDiscordFromWorkspace(ctx context.Context, workspace *model.Workspace) error {

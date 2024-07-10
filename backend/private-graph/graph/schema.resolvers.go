@@ -7580,6 +7580,15 @@ func (r *queryResolver) IsIntegratedWith(ctx context.Context, integrationType mo
 		return workspace.VercelAccessToken != nil, nil
 	} else if integrationType == modelInputs.IntegrationTypeDiscord {
 		return workspace.DiscordGuildId != nil, nil
+	} else if integrationType == modelInputs.IntegrationTypeHeroku {
+		projectMapping := &model.IntegrationProjectMapping{}
+		if err := r.DB.WithContext(ctx).Where(&model.IntegrationProjectMapping{
+			ProjectID:       projectID,
+			IntegrationType: integrationType,
+		}).Take(&projectMapping).Error; err != nil {
+			return false, nil
+		}
+		return projectMapping != nil, nil
 	} else {
 		workspaceMapping := &model.IntegrationWorkspaceMapping{}
 		if err := r.DB.WithContext(ctx).Where(&model.IntegrationWorkspaceMapping{
