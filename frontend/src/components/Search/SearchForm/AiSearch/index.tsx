@@ -38,7 +38,7 @@ type DateSuggestion = {
 	selectedPreset?: DateRangePreset
 }
 
-export const AiSearch: React.FC<any> = ({}) => {
+export const AiSearch: React.FC = () => {
 	const {
 		setAiMode,
 		aiQuery,
@@ -52,6 +52,8 @@ export const AiSearch: React.FC<any> = ({}) => {
 		endDate,
 		selectedPreset,
 		updateSearchTime,
+		setQuery,
+		setPendingDates,
 	} = useSearchContext()
 	const [submitted, setSubmitted] = useState(false)
 	const displayError = !!aiSuggestionError && submitted
@@ -67,6 +69,11 @@ export const AiSearch: React.FC<any> = ({}) => {
 		setSubmitted(true)
 	}
 
+	const exitAiMode = () => {
+		setAiMode(false)
+		setAiQuery('')
+	}
+
 	const searchSubmittedQuery = () => {
 		if (aiSuggestion) {
 			onSubmit(aiSuggestion.query)
@@ -75,8 +82,19 @@ export const AiSearch: React.FC<any> = ({}) => {
 				dateSuggestion.endDate,
 				dateSuggestion.selectedPreset,
 			)
-			setAiMode(false)
-			setAiQuery('')
+			exitAiMode()
+		}
+	}
+
+	const setSubmittedQuery = () => {
+		if (aiSuggestion) {
+			setQuery(aiSuggestion.query)
+			setPendingDates(
+				dateSuggestion.startDate,
+				dateSuggestion.endDate,
+				dateSuggestion.selectedPreset,
+			)
+			exitAiMode()
 		}
 	}
 
@@ -236,7 +254,7 @@ export const AiSearch: React.FC<any> = ({}) => {
 							submitQuery(aiQuery)
 						}
 						if (e.key === 'Escape') {
-							setAiMode(false)
+							exitAiMode()
 						}
 					}}
 					style={{
@@ -268,7 +286,7 @@ export const AiSearch: React.FC<any> = ({}) => {
 								>
 									<Combobox.Item
 										className={styles.comboboxItem}
-										onClick={() => searchSubmittedQuery()}
+										onClick={searchSubmittedQuery}
 										store={comboboxStore}
 									>
 										<Stack
@@ -284,9 +302,7 @@ export const AiSearch: React.FC<any> = ({}) => {
 									</Combobox.Item>
 									<Combobox.Item
 										className={styles.comboboxItem}
-										// TODO: be able to just copy query and dates over
-										// without running query
-										onClick={() => searchSubmittedQuery()}
+										onClick={setSubmittedQuery}
 										store={comboboxStore}
 									>
 										<Stack
@@ -340,7 +356,7 @@ export const AiSearch: React.FC<any> = ({}) => {
 								</Combobox.Item>
 								<Combobox.Item
 									className={styles.comboboxItem}
-									onClick={() => setAiMode(false)}
+									onClick={exitAiMode}
 									store={comboboxStore}
 								>
 									<Stack
@@ -374,7 +390,7 @@ export const AiSearch: React.FC<any> = ({}) => {
 						<>
 							<Button
 								trackingId="cancel-ai-search"
-								onClick={() => setAiMode(false)}
+								onClick={exitAiMode}
 								kind="secondary"
 								emphasis="medium"
 							>

@@ -141,12 +141,32 @@ const SearchForm: React.FC<SearchFormProps> = ({
 }) => {
 	const navigate = useNavigate()
 	const { projectId } = useProjectId()
-	const { query, setQuery, onSubmit, aiMode } = useSearchContext()
+	const {
+		query,
+		setQuery,
+		onSubmit,
+		aiMode,
+		pendingStartDate,
+		pendingEndDate,
+		pendingSelectedPreset,
+		setPendingDates,
+	} = useSearchContext()
 
 	const handleQueryChange = (query?: string) => {
 		const updatedQuery = query ?? ''
 		setQuery(updatedQuery)
 		onSubmit(updatedQuery)
+	}
+
+	const handleDatesChange = (
+		start: Date,
+		end: Date,
+		preset?: DateRangePreset,
+	) => {
+		onDatesChange(start, end, preset)
+		onSubmit(query)
+
+		setPendingDates()
 	}
 
 	const { SegmentMenu, SegmentModals } = useSavedSegments({
@@ -161,11 +181,14 @@ const SearchForm: React.FC<SearchFormProps> = ({
 			emphasis="medium"
 			iconLeft={<IconSolidClock />}
 			selectedValue={{
-				startDate,
-				endDate,
-				selectedPreset,
+				startDate: pendingStartDate || startDate,
+				endDate: pendingEndDate || endDate,
+				selectedPreset:
+					pendingStartDate && pendingEndDate
+						? pendingSelectedPreset
+						: selectedPreset,
 			}}
-			onDatesChange={onDatesChange}
+			onDatesChange={handleDatesChange}
 			presets={presets}
 			minDate={minDate}
 			disabled={timeMode === 'permalink'}
@@ -326,14 +349,15 @@ export const Search: React.FC<{
 	enableAIMode,
 }) => {
 	const {
+		aiMode,
 		disabled,
-		initialQuery,
 		query,
 		queryParts,
 		tokenGroups,
 		onSubmit,
 		setQuery,
 		setAiMode,
+		syncPendingDates,
 	} = useSearchContext()
 	const { project_id } = useParams()
 	const [_, setSortColumn] = useQueryParam(SORT_COLUMN, StringParam)
@@ -359,6 +383,13 @@ export const Search: React.FC<{
 	const { debouncedValue, setDebouncedValue } = useDebounce<string>(
 		activePart.value,
 	)
+
+	useEffect(() => {
+		if (inputRef.current) {
+			inputRef.current.focus()
+		}
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [aiMode])
 
 	useEffect(() => {
 		if (showErrors && !hasErrors) {
@@ -425,6 +456,7 @@ export const Search: React.FC<{
 	const isDirty = query !== ''
 
 	const submitQuery = (query: string) => {
+		syncPendingDates()
 		onSubmit(query)
 	}
 
@@ -508,12 +540,6 @@ export const Search: React.FC<{
 		showValues,
 		startDate,
 	])
-
-	useEffect(() => {
-		// necessary to update the combobox with the URL state
-		setQuery(initialQuery.trim() === '' ? '' : initialQuery)
-		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [initialQuery])
 
 	useEffect(() => {
 		// Ensure the cursor is placed in the correct position after update the

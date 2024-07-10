@@ -1,4 +1,5 @@
 import { ApolloError } from '@apollo/client'
+import { DateRangePreset } from '@highlight-run/ui/components'
 import { createContext } from '@util/context/context'
 import { useState } from 'react'
 import { StringParam, useQueryParam } from 'use-query-params'
@@ -49,6 +50,15 @@ interface SearchContext extends Partial<ReturnType<typeof useSearchTime>> {
 	aiSuggestion?: AiSuggestion
 	aiSuggestionLoading?: boolean
 	aiSuggestionError?: ApolloError
+	pendingStartDate?: Date
+	pendingEndDate?: Date
+	pendingSelectedPreset?: DateRangePreset
+	setPendingDates: (
+		start?: Date,
+		end?: Date,
+		preset?: DateRangePreset,
+	) => void
+	syncPendingDates: () => void
 }
 
 export const [useSearchContext, SearchContextProvider] =
@@ -104,6 +114,39 @@ export const SearchContext: React.FC<Props> = ({
 	const { queryParts, tokens } = parseSearch(query)
 	const tokenGroups = buildTokenGroups(tokens)
 
+	const [pendingStartDate, setPendingStartDate] = useState<Date>()
+	const [pendingEndDate, setPendingEndDate] = useState<Date>()
+	const [pendingSelectedPreset, setPendingSelectedPreset] =
+		useState<DateRangePreset>()
+
+	const setPendingDates = (
+		start?: Date,
+		end?: Date,
+		preset?: DateRangePreset,
+	) => {
+		setPendingStartDate(start)
+		setPendingEndDate(end)
+		setPendingSelectedPreset(preset)
+	}
+
+	const syncPendingDates = () => {
+		const newStartDate = pendingStartDate ?? searchTimeContext.startDate!
+		const newEndDate = pendingEndDate ?? searchTimeContext.endDate!
+		// don't fallback to preset if pending dates are set
+		const newPreset =
+			pendingStartDate && pendingEndDate
+				? pendingSelectedPreset
+				: searchTimeContext.selectedPreset
+
+		searchTimeContext.updateSearchTime?.(
+			newStartDate,
+			newEndDate,
+			newPreset,
+		)
+
+		setPendingDates()
+	}
+
 	return (
 		<SearchContextProvider
 			value={{
@@ -131,6 +174,11 @@ export const SearchContext: React.FC<Props> = ({
 				aiSuggestion,
 				aiSuggestionLoading,
 				aiSuggestionError,
+				pendingStartDate,
+				pendingEndDate,
+				pendingSelectedPreset,
+				setPendingDates,
+				syncPendingDates,
 				...searchTimeContext,
 			}}
 		>
