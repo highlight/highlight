@@ -7,10 +7,6 @@ import Firebase from 'firebase/compat/app'
 
 import { AUTH_MODE, PRIVATE_GRAPH_URI } from '@/constants'
 
-export function GetAuthMode(): string {
-	return AUTH_MODE
-}
-
 interface User {
 	email: string | null
 
