@@ -140,7 +140,6 @@ jobs:
                   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
                   NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
                   NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-                  REACT_APP_OTLP_ENDPOINT: 'http://localhost:8318'
 
     e2e-cypress:
         # non-blocking since we will just test prod client
@@ -200,7 +199,6 @@ jobs:
                   COMMIT_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
                   REF: ${{ github.ref }}
                   REPO: ${{ github.event.pull_request.head.repo.full_name }}
-                  REACT_APP_OTLP_ENDPOINT: 'http://localhost:8318'
               run: |
                   export RUN_SESSION_SCREENSHOT_LAMBDA=false
                   if [[ "$REF" != "refs/heads/main" && "$REPO" == "highlight/highlight" ]]; then
