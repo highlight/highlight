@@ -3478,7 +3478,8 @@ func (r *Resolver) GetSlackChannelsFromSlack(ctx context.Context, workspaceId in
 		existingChannels, _ := workspace.IntegratedSlackChannels()
 
 		getConversationsParam := slack.GetConversationsParameters{
-			Limit: 1000,
+			ExcludeArchived: true,
+			Limit:           1000,
 			// public_channel is for public channels in the Slack workspace
 			// private is for private channels in the Slack workspace that the Bot is included in
 			// mpim is for multi-person conversations in the Slack workspace that the Bot is included in
