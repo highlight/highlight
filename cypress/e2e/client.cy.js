@@ -1,23 +1,21 @@
 import { decompressPushPayload } from './util'
 
 describe('client recording spec', () => {
-	cy.intercept('*', (req) => {
-		// Attach an onResponse handler
-		req.on('response', (res) => {
-			// Check if the response status code indicates a failure
-			if (res.statusCode >= 400 && res.statusCode <= 599) {
-				// Log the failing request URL and status code
-				cy.log(
-					`Request to ${req.url} failed with status code ${res.statusCode}`,
-				)
-			}
-		})
-	})
-
 	it('fetch requests are recorded', () => {
 		let events = []
 		cy.intercept('POST', '/public', (req) => {
 			req.alias = req.body.operationName
+
+			req.on('response', (res) => {
+				// Check if the response status code indicates a failure
+				if (res.statusCode >= 400 && res.statusCode <= 599) {
+					// Log the failing request URL and status code
+					cy.log(
+						`Request to ${req.url} failed with status code ${res.statusCode}`,
+					)
+				}
+			})
+
 			req.continue(() => {
 				if (Array.isArray(req.body.variables.events?.events)) {
 					events.push(...req.body.variables.events.events)
@@ -74,14 +72,20 @@ describe('client recording spec', () => {
 
 					// TODO: See if we can make this dynamic based on the Cypress baseUrl
 					win.eval(
-						`fetch(new URL('http://localhost:3000/index.html'))`,
+						`fetch(new URL('${Cypress.config(
+							'baseUrl',
+						)}/index.html'))`,
 					)
 					win.eval(
-						`fetch(new URL('http://localhost:3000/index.html'), {method: 'POST'})`,
+						`fetch(new URL('${Cypress.config(
+							'baseUrl',
+						)}/index.html'), {method: 'POST'})`,
 					)
-					win.eval(`fetch('http://localhost:3000/index.html')`)
+					win.eval(`fetch('${Cypress.config('baseUrl')}/index.html')`)
 					win.eval(
-						`fetch('http://localhost:3000/index.html', {method: 'POST'})`,
+						`fetch('${Cypress.config(
+							'baseUrl',
+						)}/index.html', {method: 'POST'})`,
 					)
 					win.eval(`H.track('MyTrackEvent', {'foo': 'bar'})`)
 				})
