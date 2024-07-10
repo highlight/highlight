@@ -261,10 +261,6 @@ const LogsPageInner = ({ timeMode, logCursor, presetDefault }: Props) => {
 		} as AiSuggestion
 	}, [aiData])
 
-	const enableAiQueryBuilder =
-		aiQueryBuilderFlag &&
-		workspaceSettings?.workspaceSettings?.ai_query_builder
-
 	return (
 		<SearchContext
 			initialQuery={query}
@@ -307,7 +303,11 @@ const LogsPageInner = ({ timeMode, logCursor, presetDefault }: Props) => {
 						timeMode={timeMode}
 						savedSegmentType={SavedSegmentEntityType.Log}
 						textAreaRef={textAreaRef}
-						enableAIMode={enableAiQueryBuilder}
+						enableAIMode={
+							workspaceSettings?.workspaceSettings
+								?.ai_query_builder
+						}
+						aiSupportedSearch={aiQueryBuilderFlag}
 					/>
 					<LogsCount
 						startDate={searchTimeContext.startDate}
