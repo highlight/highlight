@@ -346,7 +346,7 @@ jobs:
                   yarn install >> /tmp/highlight.log 2>&1;
                   yarn build:sdk >> /tmp/highlight.log 2>&1;
                   popd;
-
+                              
                   # run python backend functional tests
                   pushd ./e2e/tests
                   export HIGHLIGHT_OAUTH_CLIENT_ID=abc123
