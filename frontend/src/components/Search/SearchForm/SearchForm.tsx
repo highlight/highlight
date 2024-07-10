@@ -819,48 +819,29 @@ export const Search: React.FC<{
 								className={styles.comboboxGroup}
 								store={comboboxStore}
 							>
-								{enableAIMode ? (
-									<Combobox.Item
-										className={styles.comboboxItem}
-										onClick={() => setAiMode(true)}
-										store={comboboxStore}
+								<Combobox.Item
+									className={styles.comboboxItem}
+									onClick={() =>
+										enableAIMode
+											? setAiMode(true)
+											: navigate(
+													`/w/${workspaceId}/harold-ai`,
+											  )
+									}
+									store={comboboxStore}
+								>
+									<Stack
+										direction="row"
+										gap="4"
+										align="center"
 									>
-										<Stack
-											direction="row"
-											gap="4"
-											align="center"
-										>
-											<IconSolidSparkles />
-											<Text color="weak" size="small">
-												Generate query from plain
-												English (Harold AI)
-											</Text>
-										</Stack>
-									</Combobox.Item>
-								) : (
-									<Combobox.Item
-										className={styles.comboboxItem}
-										onClick={() =>
-											navigate(
-												`/w/${workspaceId}/harold-ai`,
-											)
-										}
-										store={comboboxStore}
-									>
-										<Stack
-											direction="row"
-											gap="4"
-											align="center"
-										>
-											<IconSolidSparkles />
-											<Text color="weak" size="small">
-												Enable AI-powered Query Builder
-												to generate queries from plain
-												English
-											</Text>
-										</Stack>
-									</Combobox.Item>
-								)}
+										<IconSolidSparkles />
+										<Text color="weak" size="small">
+											Generate query from plain English
+											(Harold AI)
+										</Text>
+									</Stack>
+								</Combobox.Item>
 							</Combobox.Group>
 						)}
 						{activePart.value?.length > 0 && (
