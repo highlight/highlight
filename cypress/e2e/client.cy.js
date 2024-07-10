@@ -49,15 +49,16 @@ describe('client recording spec', () => {
 						'workerStartAbs',
 					])
 
+					// TODO: See if we can make this dynamic based on the Cypress baseUrl
 					win.eval(
-						`fetch(new URL('https://localhost:3000/index.html'))`,
+						`fetch(new URL('http://localhost:3000/index.html'))`,
 					)
 					win.eval(
-						`fetch(new URL('https://localhost:3000/index.html'), {method: 'POST'})`,
+						`fetch(new URL('http://localhost:3000/index.html'), {method: 'POST'})`,
 					)
-					win.eval(`fetch('https://localhost:3000/index.html')`)
+					win.eval(`fetch('http://localhost:3000/index.html')`)
 					win.eval(
-						`fetch('https://localhost:3000/index.html', {method: 'POST'})`,
+						`fetch('http://localhost:3000/index.html', {method: 'POST'})`,
 					)
 					win.eval(`H.track('MyTrackEvent', {'foo': 'bar'})`)
 				})
