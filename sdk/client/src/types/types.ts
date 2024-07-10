@@ -61,8 +61,8 @@ export declare type SamplingStrategy = {
 	canvasInitialSnapshotDelay?: number
 	/**
 	 * Settings for canvas data serialization. Defaults to {"image/webp", 0.9} for browsers
-	 * that support WebP and {"image/jpeg", 0.6} for others. Can be overridden to any format
-	 * or compression ratio supported by [`toDataURL`](http://mdn.io/toDataURL).
+	 * that support WebP and {"image/jpeg", 0.6} for others. Can be overridden to any type
+	 * or quality value supported by [`toDataURL`](http://mdn.io/toDataURL).
 	 */
 	dataUrlOptions?: Partial<{
 		type: string
