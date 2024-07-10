@@ -257,6 +257,7 @@ export const PlayerPage = () => {
 		page,
 		disablePolling: !searchTimeContext.selectedPreset,
 		sortDesc: sessionFeedConfiguration.sortOrder === 'Descending',
+		presetSelected: !!searchTimeContext.selectedPreset,
 	})
 
 	const handleSubmit = useCallback(
