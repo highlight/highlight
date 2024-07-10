@@ -6,32 +6,12 @@ describe('client recording spec', () => {
 		cy.intercept('POST', '/public', (req) => {
 			req.alias = req.body.operationName
 
-			req.on('response', (res) => {
-				// Check if the response status code indicates a failure
-				if (res.statusCode >= 400 && res.statusCode <= 599) {
-					// Log the failing request URL and status code
-					cy.log(
-						`Request to ${req.url} failed with status code ${res.statusCode}`,
-					)
-				}
-			})
-
 			req.continue(() => {
 				if (Array.isArray(req.body.variables.events?.events)) {
 					events.push(...req.body.variables.events.events)
 				}
 			})
 		})
-		cy.log(
-			`::: REACT_APP_PRIVATE_GRAPH_URI: ${Cypress.env(
-				'REACT_APP_PRIVATE_GRAPH_URI',
-			)}`,
-		)
-		cy.log(
-			`::: REACT_APP_PUBLIC_GRAPH_URI: ${Cypress.env(
-				'REACT_APP_PUBLIC_GRAPH_URI',
-			)}`,
-		)
 		cy.visit('/')
 		cy.window().then((win) => {
 			// delay can be long because the client test might run first, and waiting for vite to have the dev bundle ready can take a while.
@@ -70,23 +50,13 @@ describe('client recording spec', () => {
 						'workerStartAbs',
 					])
 
-					// TODO: See if we can make this dynamic based on the Cypress baseUrl
+					const baseUrl = Cypress.config('baseUrl')
+					win.eval(`fetch(new URL('${baseUrl}/index.html'))`)
 					win.eval(
-						`fetch(new URL('${Cypress.config(
-							'baseUrl',
-						)}/index.html'))`,
+						`fetch(new URL('${baseUrl}/index.html'), {method: 'POST'})`,
 					)
-					win.eval(
-						`fetch(new URL('${Cypress.config(
-							'baseUrl',
-						)}/index.html'), {method: 'POST'})`,
-					)
-					win.eval(`fetch('${Cypress.config('baseUrl')}/index.html')`)
-					win.eval(
-						`fetch('${Cypress.config(
-							'baseUrl',
-						)}/index.html', {method: 'POST'})`,
-					)
+					win.eval(`fetch('${baseUrl}/index.html')`)
+					win.eval(`fetch('${baseUrl}/index.html', {method: 'POST'})`)
 					win.eval(`H.track('MyTrackEvent', {'foo': 'bar'})`)
 				})
 
