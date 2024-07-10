@@ -20,13 +20,13 @@ def main():
             data = re.sub('firebase', auth, data)
         if private:
             data = re.sub('http://localhost:8082/private', private, data)
-            data = re.sub('https://pri.highlight.io', private, data)
+            data = re.sub('https://pri\.highlight\.io', private, data)
         if public:
             data = re.sub('http://localhost:8082/public', public, data)
-            data = re.sub('https://pub.highlight.run', private, data)
+            data = re.sub('https://pub\.highlight\.run', private, data)
         if frontend:
             data = re.sub('http://localhost:3000', frontend, data)
-            data = re.sub('https://app.highlight.io', frontend, data)
+            data = re.sub('https://app\.highlight\.io', frontend, data)
 
     try:
         with open(CONSTANTS_FILE, 'w') as f:
