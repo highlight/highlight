@@ -293,6 +293,11 @@ func (o *Handler) HandleTrace(w http.ResponseWriter, r *http.Request) {
 						projectTraceMetrics[fields.projectID][fields.sessionID] = append(projectTraceMetrics[fields.projectID][fields.sessionID], metric)
 					}
 					// process unknown events as trace events
+
+					// for ruby SDKs, only process the first event to avoid duplicates
+					if fields.attrs["process.runtime.name"] == "ruby" && fields.attrs["telemetry.sdk.name"] == "opentelemetry" {
+						break
+					}
 				}
 
 				// skip logrus spans
