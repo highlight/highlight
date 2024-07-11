@@ -52,6 +52,7 @@
 			"outputs": ["src/graph/generated/**"]
 		},
 		"typegen": {
+			"cache": false,
 			"dependsOn": ["^typegen"],
 			"inputs": [
 				"src/**/*.tsx",
