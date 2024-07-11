@@ -10,12 +10,13 @@ import {
 	shouldNetworkRequestBeTraced,
 } from './utils'
 
-interface BrowserXHR extends XMLHttpRequest {
+export interface BrowserXHR extends XMLHttpRequest {
 	_method: string
 	_url: string
 	_requestHeaders: Headers
 	_responseSize?: number
 	_shouldRecordHeaderAndBody: boolean
+	_body?: any
 }
 
 /**
@@ -99,6 +100,7 @@ export const XHRListener = (
 			if (postData) {
 				const bodyData = getBodyData(postData, requestModel.url)
 				if (bodyData) {
+					this._body = bodyData
 					requestModel['body'] = getBodyThatShouldBeRecorded(
 						bodyData,
 						bodyKeysToRedact,

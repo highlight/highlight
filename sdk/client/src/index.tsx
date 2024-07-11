@@ -88,6 +88,7 @@ import {
 	SNAPSHOT_SETTINGS,
 	VISIBILITY_DEBOUNCE_MS,
 } from './constants/sessions'
+import { getDefaultDataURLOptions } from './utils/utils'
 
 export const HighlightWarning = (context: string, msg: any) => {
 	console.warn(`Highlight Warning: (${context}): `, { output: msg })
@@ -126,6 +127,8 @@ export type HighlightClassOptions = {
 	sessionSecureID: string // Introduced in firstLoad 3.0.1
 	storageMode?: 'sessionStorage' | 'localStorage'
 	sendMode?: 'webworker' | 'local'
+	enableOtelTracing?: HighlightOptions['enableOtelTracing']
+	otlpEndpoint?: HighlightOptions['otlpEndpoint']
 }
 
 /**
@@ -341,6 +344,7 @@ export class Highlight {
 			canvasFactor: 0.5,
 			canvasMaxSnapshotDimension: 360,
 			canvasClearWebGLBuffer: true,
+			dataUrlOptions: getDefaultDataURLOptions(),
 			...(options.samplingStrategy ?? {
 				canvas: 2,
 			}),
@@ -721,10 +725,7 @@ SessionSecureID: ${this.sessionData.sessionSecureID}`,
 							this.samplingStrategy.canvasClearWebGLBuffer,
 						initialSnapshotDelay:
 							this.samplingStrategy.canvasInitialSnapshotDelay,
-						dataURLOptions: {
-							type: 'image/webp',
-							quality: 0.9,
-						},
+						dataURLOptions: this.samplingStrategy.dataUrlOptions,
 						maxSnapshotDimension:
 							this.samplingStrategy.canvasMaxSnapshotDimension,
 					},

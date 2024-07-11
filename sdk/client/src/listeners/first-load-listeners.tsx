@@ -8,8 +8,6 @@ import { HighlightClassOptions } from '../index'
 import stringify from 'json-stringify-safe'
 import { DEFAULT_URL_BLOCKLIST } from './network-listener/utils/network-sanitizer'
 import {
-	Request,
-	Response,
 	RequestResponsePair,
 	WebSocketEvent,
 	WebSocketRequest,
@@ -139,6 +137,11 @@ export class FirstLoadListeners {
 				{ enablePromisePatch: this.enablePromisePatch },
 			),
 		)
+		if (this.options.enableOtelTracing) {
+			import('@highlight-run/client/src/otel').then(({ shutdown }) => {
+				this.listeners.push(shutdown)
+			})
+		}
 		FirstLoadListeners.setupNetworkListener(this, this.options)
 	}
 
