@@ -54,6 +54,7 @@ import {
 } from '@/graph/generated/hooks'
 import { ProductType, SavedSegmentEntityType } from '@/graph/generated/schemas'
 import { useDebounce } from '@/hooks/useDebounce'
+import { useApplicationContext } from '@/routers/AppRouter/context/ApplicationContext'
 import { formatNumber } from '@/util/numbers'
 
 import { AiSearch } from './AiSearch'
@@ -117,6 +118,7 @@ export type SearchFormProps = {
 	loading?: boolean
 	creatables?: { [key: string]: Creatable }
 	enableAIMode?: boolean
+	aiSupportedSearch?: boolean
 }
 
 const SearchForm: React.FC<SearchFormProps> = ({
@@ -138,6 +140,7 @@ const SearchForm: React.FC<SearchFormProps> = ({
 	loading,
 	creatables,
 	enableAIMode,
+	aiSupportedSearch,
 }) => {
 	const navigate = useNavigate()
 	const { projectId } = useProjectId()
@@ -186,6 +189,7 @@ const SearchForm: React.FC<SearchFormProps> = ({
 			hasAdditonalActions={!hideCreateAlert || !hideDatePicker}
 			creatables={creatables}
 			enableAIMode={enableAIMode}
+			aiSupportedSearch={aiSupportedSearch}
 		/>
 	)
 
@@ -314,6 +318,7 @@ export const Search: React.FC<{
 	hasAdditonalActions?: boolean
 	creatables?: { [key: string]: Creatable }
 	enableAIMode?: boolean
+	aiSupportedSearch?: boolean
 }> = ({
 	startDate,
 	endDate,
@@ -324,6 +329,7 @@ export const Search: React.FC<{
 	hasAdditonalActions,
 	creatables,
 	enableAIMode,
+	aiSupportedSearch,
 }) => {
 	const {
 		disabled,
@@ -335,6 +341,9 @@ export const Search: React.FC<{
 		setQuery,
 		setAiMode,
 	} = useSearchContext()
+	const navigate = useNavigate()
+	const { currentWorkspace } = useApplicationContext()
+	const workspaceId = currentWorkspace?.id
 	const { project_id } = useParams()
 	const [_, setSortColumn] = useQueryParam(SORT_COLUMN, StringParam)
 	const [__, setSortDirection] = useQueryParam(SORT_DIRECTION, StringParam)
@@ -359,6 +368,12 @@ export const Search: React.FC<{
 	const { debouncedValue, setDebouncedValue } = useDebounce<string>(
 		activePart.value,
 	)
+
+	useEffect(() => {
+		// necessary to update the combobox with the URL state
+		setQuery(initialQuery.trim() === '' ? '' : initialQuery)
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [initialQuery])
 
 	useEffect(() => {
 		if (showErrors && !hasErrors) {
@@ -508,12 +523,6 @@ export const Search: React.FC<{
 		showValues,
 		startDate,
 	])
-
-	useEffect(() => {
-		// necessary to update the combobox with the URL state
-		setQuery(initialQuery.trim() === '' ? '' : initialQuery)
-		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [initialQuery])
 
 	useEffect(() => {
 		// Ensure the cursor is placed in the correct position after update the
@@ -779,14 +788,20 @@ export const Search: React.FC<{
 					sameWidth
 				>
 					<Box cssClass={styles.comboboxResults}>
-						{enableAIMode && activePart.text === '' && (
+						{aiSupportedSearch && activePart.text === '' && (
 							<Combobox.Group
 								className={styles.comboboxGroup}
 								store={comboboxStore}
 							>
 								<Combobox.Item
 									className={styles.comboboxItem}
-									onClick={() => setAiMode(true)}
+									onClick={() =>
+										enableAIMode
+											? setAiMode(true)
+											: navigate(
+													`/w/${workspaceId}/harold-ai`,
+											  )
+									}
 									store={comboboxStore}
 								>
 									<Stack
