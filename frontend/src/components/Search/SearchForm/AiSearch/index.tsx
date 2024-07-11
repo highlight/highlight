@@ -9,7 +9,6 @@ import {
 	IconSolidExclamation,
 	IconSolidLoading,
 	IconSolidPencil,
-	IconSolidPencilAlt,
 	IconSolidRefresh,
 	IconSolidSparkles,
 	IconSolidX,
@@ -52,8 +51,6 @@ export const AiSearch: React.FC = () => {
 		endDate,
 		selectedPreset,
 		updateSearchTime,
-		setQuery,
-		setPendingDates,
 	} = useSearchContext()
 	const [submitted, setSubmitted] = useState(false)
 	const displayError = !!aiSuggestionError && submitted
@@ -78,18 +75,6 @@ export const AiSearch: React.FC = () => {
 		if (aiSuggestion) {
 			onSubmit(aiSuggestion.query)
 			updateSearchTime!(
-				dateSuggestion.startDate,
-				dateSuggestion.endDate,
-				dateSuggestion.selectedPreset,
-			)
-			exitAiMode()
-		}
-	}
-
-	const setSubmittedQuery = () => {
-		if (aiSuggestion) {
-			setQuery(aiSuggestion.query)
-			setPendingDates(
 				dateSuggestion.startDate,
 				dateSuggestion.endDate,
 				dateSuggestion.selectedPreset,
@@ -297,22 +282,6 @@ export const AiSearch: React.FC = () => {
 											<IconSolidCheck />
 											<Text color="weak" size="small">
 												Accept query
-											</Text>
-										</Stack>
-									</Combobox.Item>
-									<Combobox.Item
-										className={styles.comboboxItem}
-										onClick={setSubmittedQuery}
-										store={comboboxStore}
-									>
-										<Stack
-											direction="row"
-											gap="4"
-											align="center"
-										>
-											<IconSolidPencilAlt />
-											<Text color="weak" size="small">
-												Edit query
 											</Text>
 										</Stack>
 									</Combobox.Item>

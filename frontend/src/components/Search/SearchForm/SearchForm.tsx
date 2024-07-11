@@ -144,32 +144,12 @@ const SearchForm: React.FC<SearchFormProps> = ({
 }) => {
 	const navigate = useNavigate()
 	const { projectId } = useProjectId()
-	const {
-		query,
-		setQuery,
-		onSubmit,
-		aiMode,
-		pendingStartDate,
-		pendingEndDate,
-		pendingSelectedPreset,
-		setPendingDates,
-	} = useSearchContext()
+	const { query, setQuery, onSubmit, aiMode } = useSearchContext()
 
 	const handleQueryChange = (query?: string) => {
 		const updatedQuery = query ?? ''
 		setQuery(updatedQuery)
 		onSubmit(updatedQuery)
-	}
-
-	const handleDatesChange = (
-		start: Date,
-		end: Date,
-		preset?: DateRangePreset,
-	) => {
-		onDatesChange(start, end, preset)
-		onSubmit(query)
-
-		setPendingDates()
 	}
 
 	const { SegmentMenu, SegmentModals } = useSavedSegments({
@@ -184,14 +164,11 @@ const SearchForm: React.FC<SearchFormProps> = ({
 			emphasis="medium"
 			iconLeft={<IconSolidClock />}
 			selectedValue={{
-				startDate: pendingStartDate || startDate,
-				endDate: pendingEndDate || endDate,
-				selectedPreset:
-					pendingStartDate && pendingEndDate
-						? pendingSelectedPreset
-						: selectedPreset,
+				startDate,
+				endDate,
+				selectedPreset,
 			}}
-			onDatesChange={handleDatesChange}
+			onDatesChange={onDatesChange}
 			presets={presets}
 			minDate={minDate}
 			disabled={timeMode === 'permalink'}
@@ -363,7 +340,6 @@ export const Search: React.FC<{
 		onSubmit,
 		setQuery,
 		setAiMode,
-		syncPendingDates,
 	} = useSearchContext()
 	const navigate = useNavigate()
 	const { currentWorkspace } = useApplicationContext()
@@ -465,7 +441,6 @@ export const Search: React.FC<{
 	const isDirty = query !== ''
 
 	const submitQuery = (query: string) => {
-		syncPendingDates()
 		onSubmit(query)
 	}
 
