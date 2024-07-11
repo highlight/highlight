@@ -817,23 +817,22 @@ export const Search: React.FC<{
 										py="8"
 										cssClass={{
 											display: 'inline-block',
-											width: '100%',
 										}}
 									>
-										<Text
-											color="weak"
-											size="small"
-											display="inline-block"
-										>
-											Show all results for{' '}
-										</Text>
 										<Text
 											size="small"
 											family="monospace"
 											color="secondaryContentText"
-											break="all"
 											display="inline-block"
+											break="all"
 										>
+											<Text
+												color="weak"
+												size="small"
+												display="inline-block"
+											>
+												Show all results for{' '}
+											</Text>
 											&lsquo;
 											{activePart.key === BODY_KEY
 												? activePart.value
