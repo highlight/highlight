@@ -1,5 +1,11 @@
 # highlight.run
 
+## 9.1.0
+
+### Minor Changes
+
+-   463e99106: add browser OTEL tracing
+
 ## 9.0.4
 
 ### Patch Changes
