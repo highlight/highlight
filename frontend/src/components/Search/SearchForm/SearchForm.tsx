@@ -21,6 +21,7 @@ import {
 import { useProjectId } from '@hooks/useProjectId'
 import { useParams } from '@util/react-router/useParams'
 import clsx from 'clsx'
+import { useApplicationContext } from '@/routers/AppRouter/context/ApplicationContext'
 import moment from 'moment'
 import React, { useEffect, useRef, useState } from 'react'
 import TextareaAutosize from 'react-autosize-textarea'
@@ -51,6 +52,7 @@ import {
 import {
 	useGetKeysLazyQuery,
 	useGetKeyValuesLazyQuery,
+	useGetWorkspaceSettingsQuery,
 } from '@/graph/generated/hooks'
 import { ProductType, SavedSegmentEntityType } from '@/graph/generated/schemas'
 import { useDebounce } from '@/hooks/useDebounce'
@@ -472,6 +474,13 @@ export const Search: React.FC<{
 		}
 	}, [activePart.key, activePart.value, setDebouncedValue])
 
+	// const { currentWorkspace } = useApplicationContext()
+
+	// const { data: workspaceSettings } = useGetWorkspaceSettingsQuery({
+	// 	variables: { workspace_id: String(currentWorkspace?.id) },
+	// 	skip: !currentWorkspace?.id,
+	// })
+
 	useEffect(() => {
 		if (!showValues) {
 			return
@@ -786,7 +795,18 @@ export const Search: React.FC<{
 							>
 								<Combobox.Item
 									className={styles.comboboxItem}
-									onClick={() => setAiMode(true)}
+									onClick={() => {
+										// if (
+										// 	workspaceSettings?.workspaceSettings
+										// 		?.ai_query_builder
+										// ) {
+										// 	setAiMode(true)
+										// } else {
+										// 	console.log(
+										// 		"you don't have access bro",
+										// 	)
+										// }
+									}}
 									store={comboboxStore}
 								>
 									<Stack
