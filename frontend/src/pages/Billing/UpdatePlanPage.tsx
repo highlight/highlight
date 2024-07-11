@@ -1,3 +1,4 @@
+import EnterpriseFeatureButton from '@components/Billing/EnterpriseFeatureButton'
 import { Modal } from '@components/Modal/ModalV2'
 import Switch from '@components/Switch/Switch'
 import { toast } from '@components/Toaster'
@@ -69,12 +70,14 @@ import * as style from './UpdatePlanPage.css'
 // TODO(vkorolik) billing for metrics ingest
 const RETENTION_OPTIONS = {
 	Sessions: [
+		RetentionPeriod.SevenDays,
 		RetentionPeriod.ThreeMonths,
 		RetentionPeriod.SixMonths,
 		RetentionPeriod.TwelveMonths,
 		RetentionPeriod.TwoYears,
 	],
 	Errors: [
+		RetentionPeriod.SevenDays,
 		RetentionPeriod.ThreeMonths,
 		RetentionPeriod.SixMonths,
 		RetentionPeriod.TwelveMonths,
@@ -498,15 +501,20 @@ const ProductCard = ({
 							</Menu.Button>
 							<Menu.List>
 								{RETENTION_OPTIONS[productType].map((rp) => (
-									<Menu.Item
-										key={rp}
-										onClick={() => {
+									<EnterpriseFeatureButton
+										setting="enable_business_retention"
+										name="Custom Data Retention"
+										key="Custom Data Retention"
+										fn={async () => {
 											setRetentionPeriod(rp)
 											setHasChanges(true)
 										}}
+										variant="basic"
 									>
-										{RETENTION_PERIOD_LABELS[rp]}
-									</Menu.Item>
+										<Menu.Item key={rp}>
+											{RETENTION_PERIOD_LABELS[rp]}
+										</Menu.Item>
+									</EnterpriseFeatureButton>
 								))}
 							</Menu.List>
 						</Menu>

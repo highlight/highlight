@@ -280,10 +280,10 @@ type Workspace struct {
 	MonthlyErrorsLimit          *int
 	MonthlyLogsLimit            *int
 	MonthlyTracesLimit          *int
-	RetentionPeriod             *modelInputs.RetentionPeriod
-	ErrorsRetentionPeriod       *modelInputs.RetentionPeriod
-	LogsRetentionPeriod         *modelInputs.RetentionPeriod
-	TracesRetentionPeriod       *modelInputs.RetentionPeriod
+	RetentionPeriod             *modelInputs.RetentionPeriod `gorm:"default:SevenDays"`
+	ErrorsRetentionPeriod       *modelInputs.RetentionPeriod `gorm:"default:SevenDays"`
+	LogsRetentionPeriod         *modelInputs.RetentionPeriod `gorm:"default:ThirtyDays"`
+	TracesRetentionPeriod       *modelInputs.RetentionPeriod `gorm:"default:ThirtyDays"`
 	SessionsMaxCents            *int
 	ErrorsMaxCents              *int
 	LogsMaxCents                *int

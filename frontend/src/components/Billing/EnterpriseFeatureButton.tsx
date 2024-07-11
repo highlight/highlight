@@ -8,15 +8,6 @@ import { useApplicationContext } from '@routers/AppRouter/context/ApplicationCon
 import analytics from '@util/analytics'
 import { PropsWithChildren, useCallback, useState } from 'react'
 
-type Feature =
-	| 'Session Download'
-	| 'Session CSV Report'
-	| 'Multiple Projects'
-	| 'Custom Team Invites'
-	| 'Custom Team Dashboards'
-	| 'Billing Limits'
-	| 'Ingestion Sampling'
-
 const FEATURE_DESCRIPTIONS = {
 	'Session Download': 'download a video .MP4 playback of the session.',
 	'Session CSV Report':
@@ -26,7 +17,11 @@ const FEATURE_DESCRIPTIONS = {
 	'Custom Team Dashboards': 'allow creating more than 2 dashboards.',
 	'Billing Limits': 'limit spending for all highlight data.',
 	'Ingestion Sampling': 'control data ingestion rates and sample data.',
-} as { [K in Feature]: string }
+	'Custom Data Retention':
+		'control data retention beyond the standard 7 days.',
+} as const
+
+type Feature = keyof typeof FEATURE_DESCRIPTIONS
 
 interface Props {
 	setting: keyof AllWorkspaceSettings
