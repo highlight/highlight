@@ -13,6 +13,7 @@ type Feature =
 	| 'Session CSV Report'
 	| 'Multiple Projects'
 	| 'Custom Team Invites'
+	| 'Custom Team Dashboards'
 	| 'Billing Limits'
 	| 'Ingestion Sampling'
 
@@ -22,6 +23,7 @@ const FEATURE_DESCRIPTIONS = {
 		'download a CSV report aggregating all sessions in the results feed.',
 	'Multiple Projects': 'create more than 1 project to segment your data.',
 	'Custom Team Invites': 'allow manually inviting more than 15 team members.',
+	'Custom Team Dashboards': 'allow creating more than 2 dashboards.',
 	'Billing Limits': 'limit spending for all highlight data.',
 	'Ingestion Sampling': 'control data ingestion rates and sample data.',
 } as { [K in Feature]: string }

@@ -48,7 +48,9 @@ const NewProjectPage = ({ workspace_id }: { workspace_id?: string }) => {
 	const [
 		createProject,
 		{ loading: projectLoading, data: projectData, error: projectError },
-	] = useCreateProjectMutation()
+	] = useCreateProjectMutation({
+		refetchQueries: [namedOperations.Query.GetWorkspaceSettings],
+	})
 
 	const [
 		createWorkspace,
