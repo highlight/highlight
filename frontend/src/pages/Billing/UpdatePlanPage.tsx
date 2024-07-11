@@ -561,9 +561,9 @@ const UpdatePlanPage = ({
 
 	const formStore = Form.useStore<UpdatePlanForm>({
 		defaultValues: {
-			sessionsRetention: RetentionPeriod.ThreeMonths,
+			sessionsRetention: RetentionPeriod.SevenDays,
 			sessionsLimitCents: undefined,
-			errorsRetention: RetentionPeriod.ThreeMonths,
+			errorsRetention: RetentionPeriod.SevenDays,
 			errorsLimitCents: undefined,
 			logsRetention: RetentionPeriod.ThirtyDays,
 			logsLimitCents: undefined,
