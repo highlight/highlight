@@ -49,16 +49,13 @@ describe('client recording spec', () => {
 						'workerStartAbs',
 					])
 
+					const baseUrl = Cypress.config('baseUrl')
+					win.eval(`fetch(new URL('${baseUrl}/index.html'))`)
 					win.eval(
-						`fetch(new URL('https://localhost:3000/index.html'))`,
+						`fetch(new URL('${baseUrl}/index.html'), {method: 'POST'})`,
 					)
-					win.eval(
-						`fetch(new URL('https://localhost:3000/index.html'), {method: 'POST'})`,
-					)
-					win.eval(`fetch('https://localhost:3000/index.html')`)
-					win.eval(
-						`fetch('https://localhost:3000/index.html', {method: 'POST'})`,
-					)
+					win.eval(`fetch('${baseUrl}/index.html')`)
+					win.eval(`fetch('${baseUrl}/index.html', {method: 'POST'})`)
 					win.eval(`H.track('MyTrackEvent', {'foo': 'bar'})`)
 				})
 

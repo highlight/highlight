@@ -7,3 +7,5 @@ export const FRONTEND_URI =
 	import.meta.env.REACT_APP_FRONTEND_URI ||
 	window.location.protocol + '//' + window.location.host
 export const AUTH_MODE = import.meta.env.REACT_APP_AUTH_MODE
+export const OTLP_ENDPOINT =
+	import.meta.env.REACT_APP_OTLP_ENDPOINT || 'https://otel.highlight.io:4318'

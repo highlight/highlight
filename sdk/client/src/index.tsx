@@ -127,6 +127,8 @@ export type HighlightClassOptions = {
 	sessionSecureID: string // Introduced in firstLoad 3.0.1
 	storageMode?: 'sessionStorage' | 'localStorage'
 	sendMode?: 'webworker' | 'local'
+	enableOtelTracing?: HighlightOptions['enableOtelTracing']
+	otlpEndpoint?: HighlightOptions['otlpEndpoint']
 }
 
 /**
