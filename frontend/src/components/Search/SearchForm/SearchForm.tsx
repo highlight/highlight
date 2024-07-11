@@ -332,8 +332,8 @@ export const Search: React.FC<{
 	aiSupportedSearch,
 }) => {
 	const {
-		aiMode,
 		disabled,
+		initialQuery,
 		query,
 		queryParts,
 		tokenGroups,
@@ -370,11 +370,10 @@ export const Search: React.FC<{
 	)
 
 	useEffect(() => {
-		if (inputRef.current) {
-			inputRef.current.focus()
-		}
+		// necessary to update the combobox with the URL state
+		setQuery(initialQuery.trim() === '' ? '' : initialQuery)
 		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [aiMode])
+	}, [initialQuery])
 
 	useEffect(() => {
 		if (showErrors && !hasErrors) {
