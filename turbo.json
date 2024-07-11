@@ -48,10 +48,12 @@
 			"outputs": ["dist/**"]
 		},
 		"codegen": {
+			"cache": false,
 			"inputs": ["../**/*.gql", "../**/*.graphqls"],
 			"outputs": ["src/graph/generated/**"]
 		},
 		"typegen": {
+			"cache": false,
 			"dependsOn": ["^typegen"],
 			"inputs": [
 				"src/**/*.tsx",
@@ -77,6 +79,7 @@
 			"cache": false
 		},
 		"build": {
+			"cache": false,
 			"dependsOn": ["codegen", "typegen", "^build"],
 			"outputs": [
 				"lib/**",
@@ -98,6 +101,7 @@
 				"REACT_APP_PUBLIC_GRAPH_URI",
 				"REACT_APP_STRIPE_API_PK",
 				"REACT_APP_VERCEL_INTEGRATION_NAME",
+				"REACT_APP_OTLP_ENDPOINT",
 
 				"CLICKUP_CLIENT_ID",
 				"DEMO_PROJECT_ID",
@@ -127,6 +131,7 @@
 				"REACT_APP_PUBLIC_GRAPH_URI",
 				"REACT_APP_STRIPE_API_PK",
 				"REACT_APP_VERCEL_INTEGRATION_NAME",
+				"REACT_APP_OTLP_ENDPOINT",
 
 				"CLICKUP_CLIENT_ID",
 				"DEMO_PROJECT_ID",

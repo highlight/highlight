@@ -227,6 +227,14 @@ export declare type HighlightOptions = {
 	 * are not available (ie. Figma plugins).
 	 */
 	sendMode?: 'webworker' | 'local'
+	/**
+	 * Specifies whether to enable OpenTelemetry tracing on the client.
+	 */
+	enableOtelTracing?: boolean
+	/**
+	 * OTLP endpoint for OpenTelemetry tracing.
+	 */
+	otlpEndpoint?: string
 }
 
 export declare interface HighlightPublicInterface {

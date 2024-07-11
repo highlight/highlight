@@ -17,7 +17,7 @@ export const sanitizeResource = <T extends Request | Response>(
 	}
 }
 
-const sanitizeHeaders = (
+export const sanitizeHeaders = (
 	headersToRedact: string[],
 	headers?: Headers,
 	headersToRecord?: string[],

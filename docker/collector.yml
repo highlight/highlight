@@ -19,12 +19,30 @@ receivers:
                 endpoint: '0.0.0.0:4318'
                 max_request_body_size: 0
                 include_metadata: true
+    otlp/https:
+        protocols:
+            http:
+                endpoint: '0.0.0.0:8318'
+                max_request_body_size: 0
+                include_metadata: true
                 cors:
                     allowed_origins:
-                        - '*'
+                        - 'https://*'
                     allowed_headers:
                         - 'X-Highlight-Request'
+                        - 'Origin'
+                        - 'Content-Type'
+                        - 'Accept'
+                        - 'Access-Control-Request-Headers'
+                        - 'Access-Control-Request-Method'
+                        - 'Access-Control-Allow-Origin'
+                        - 'Referer'
+                        - 'Traceparent'
+                        - 'Tracestate'
                     max_age: 7200
+                tls:
+                    cert_file: '/server.crt'
+                    key_file: '/server.key'
 exporters:
     logging:
         sampling_initial: 60
@@ -65,15 +83,15 @@ service:
     extensions: [headers_setter, health_check]
     pipelines:
         traces:
-            receivers: [otlp]
+            receivers: [otlp, otlp/https]
             processors: [batch]
             exporters: [otlphttp, logging]
         metrics:
-            receivers: [otlp]
+            receivers: [otlp, otlp/https]
             processors: [batch]
             exporters: [otlphttp, logging]
         logs:
-            receivers: [otlp, fluentforward, tcplog, syslog]
+            receivers: [otlp, otlp/https, fluentforward, tcplog, syslog]
             processors: [batch]
             exporters: [otlphttp, logging]
 extensions:

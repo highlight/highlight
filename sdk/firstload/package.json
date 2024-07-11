@@ -70,7 +70,10 @@
 	},
 	"size-limit": [
 		{
-			"path": "dist/**.js",
+			"path": [
+				"dist/*.js",
+				"!dist/*.umd.js"
+			],
 			"limit": "256 kB",
 			"brotli": true
 		}
