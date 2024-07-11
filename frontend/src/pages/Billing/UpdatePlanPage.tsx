@@ -1191,7 +1191,7 @@ type Plan = {
 	name: string
 	descriptions: string[]
 	icon: React.ReactNode
-	price: number | 'Custom'
+	price: number | '400+' | 'Custom'
 }
 
 const PLAN_BASE_FEES = {
@@ -1241,7 +1241,7 @@ const PLANS = {
 				color={vars.theme.static.content.default}
 			/>
 		),
-		price: 400,
+		price: '400+',
 	},
 	[PlanType.Enterprise]: {
 		type: PlanType.Enterprise,
@@ -1295,7 +1295,8 @@ const PlanCard = ({
 		workspace_id: string
 	}>()
 	const current = plan.type === currentPlanType
-	const enterprise = plan.type === PlanType.Enterprise
+	const enterprise =
+		plan.type === PlanType.Business || plan.type === PlanType.Enterprise
 	const free = plan.type === PlanType.Free
 	return (
 		<Stack
