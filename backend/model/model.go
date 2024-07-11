@@ -469,11 +469,12 @@ type AllWorkspaceSettings struct {
 	StoreIP                   bool    `gorm:"default:false"`
 	CanShowBillingIssueBanner bool    `gorm:"default:true"`
 
+	EnableUnlimitedDashboards bool `gorm:"default:false"`
+	EnableUnlimitedProjects   bool `gorm:"default:false"`
+	EnableUnlimitedRetention  bool `gorm:"default:false"`
+	EnableUnlimitedSeats      bool `gorm:"default:false"`
+
 	EnableBillingLimits      bool `gorm:"default:false"` // old plans grandfathered in to true
-	EnableBusinessDashboards bool `gorm:"default:false"`
-	EnableBusinessProjects   bool `gorm:"default:false"`
-	EnableBusinessRetention  bool `gorm:"default:false"`
-	EnableBusinessSeats      bool `gorm:"default:false"`
 	EnableDataDeletion       bool `gorm:"default:true"`
 	EnableGrafanaDashboard   bool `gorm:"default:false"`
 	EnableIngestSampling     bool `gorm:"default:false"`
