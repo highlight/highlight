@@ -699,7 +699,6 @@ SessionSecureID: ${this.sessionData.sessionSecureID}`,
 			emit.bind(this)
 
 			const alreadyRecording = !!this._recordStop
-
 			// if we were already recording, stop recording to reset rrweb state (eg. reset _sid)
 			if (this._recordStop) {
 				this._recordStop()
