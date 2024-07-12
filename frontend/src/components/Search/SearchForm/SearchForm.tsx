@@ -831,7 +831,7 @@ export const Search: React.FC<{
 												size="small"
 												display="inline-block"
 											>
-												Show all results for{' '}
+												Show all results for &nbsp;
 											</Text>
 											&lsquo;
 											{activePart.key === BODY_KEY
