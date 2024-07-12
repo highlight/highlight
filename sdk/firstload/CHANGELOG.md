@@ -1,5 +1,11 @@
 # highlight.run
 
+## 9.0.5
+
+### Patch Changes
+
+-   e239b1a02: fix cross-origin iframe recording
+
 ## 9.0.4
 
 ### Patch Changes
