@@ -40,6 +40,7 @@ import {
 import { UserInteractionInstrumentation } from './user-interaction'
 import { parse } from 'graphql'
 import { getResponseBody } from '../listeners/network-listener/utils/fetch-listener'
+import { ZoneContextManager } from '@opentelemetry/context-zone'
 
 export type BrowserTracingConfig = {
 	projectId: string | number
@@ -190,7 +191,9 @@ export const setupBrowserTracing = (config: BrowserTracingConfig) => {
 		],
 	})
 
-	provider.register()
+	provider.register({
+		contextManager: new ZoneContextManager(),
+	})
 }
 
 type CustomSpanProcessorConfig = BufferConfig & {
