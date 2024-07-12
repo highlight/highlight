@@ -216,7 +216,6 @@ export const BarChart = ({
 								key={key}
 								dataKey={key}
 								fill={getColor(idx, key, strokeColors)}
-								maxBarSize={30}
 								isAnimationActive={false}
 								stackId={
 									viewConfig.display === 'Stacked' ? 1 : idx
