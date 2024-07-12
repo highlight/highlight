@@ -34,6 +34,7 @@ import {
 	ALERT_CONDITION_OPTIONS,
 	AlertCondition,
 } from '@/pages/Alerts/constants'
+import { DestinationInput } from '@/pages/Alerts/DestinationInput'
 import { Combobox } from '@/pages/Graphing/Combobox'
 import Graph, { getViewConfig } from '@/pages/Graphing/components/Graph'
 import {
@@ -567,6 +568,10 @@ export const AlertForm: React.FC = () => {
 											searchConfig={searchOptionsConfig}
 										/>
 									</LabeledRow>
+								</SidebarSection>
+								<Divider className="m-0" />
+								<SidebarSection>
+									<DestinationInput />
 								</SidebarSection>
 							</Form>
 						</Box>
