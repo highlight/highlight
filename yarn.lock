@@ -14377,7 +14377,7 @@ __metadata:
     graphql: "npm:^15.7.2"
     happy-dom: "npm:^14.7.1"
     highlight.io: "workspace:*"
-    highlight.run: "workspace:*"
+    highlight.run: "file:../sdk/firstload"
     js-cookie: "npm:^3.0.1"
     jsonc-parser: "npm:^3.2.0"
     less: "npm:^4.1.3"
@@ -43385,6 +43385,13 @@ __metadata:
   version: 10.7.3
   resolution: "highlight.js@npm:10.7.3"
   checksum: 10/db8d10a541936b058e221dbde77869664b2b45bca75d660aa98065be2cd29f3924755fbc7348213f17fd931aefb6e6597448ba6fe82afba6d8313747a91983ee
+  languageName: node
+  linkType: hard
+
+"highlight.run@file:../sdk/firstload::locator=%40highlight-run%2Ffrontend%40workspace%3Afrontend":
+  version: 9.1.0
+  resolution: "highlight.run@file:../sdk/firstload#../sdk/firstload::hash=3c2f6e&locator=%40highlight-run%2Ffrontend%40workspace%3Afrontend"
+  checksum: 10/fb98f3a7fd50865a4778d27f7c09c90e8f56b045a0929e48ad60ba1117a86bd684757ad1dbf7c79c137599a334a6a658c60f053cdd21729ffb270a04c4b418c9
   languageName: node
   linkType: hard
 
