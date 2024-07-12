@@ -13,7 +13,7 @@ when using our unpkg.com script.
 
 ## Salesforce Installation Instructions
 
-To install highlight.io in a Salesforce application, follow the [normal highlight HTML installation instructions](../7_other.md) 
+To install highlight.io in a Salesforce application, follow the [normal highlight HTML installation instructions](../8_other.md) 
 while performing additional steps to set up the [content security policy](./content-security-policy.md) 
 to allow execution of the highlight script.
 
@@ -22,7 +22,7 @@ to allow execution of the highlight script.
 1. Navigate to Setup -> Digital Experiences -> and select the Builder of your choice
 2. Open the Head Markup editor in Builder | Settings | Advanced
 3. Add the `<script src="https://unpkg.com/highlight.run"></script>` tag.
-4. Add another `<script></script>` with the `H.init` contents as described on our [normal highlight HTML installation instructions](../7_other.md).
+4. Add another `<script></script>` with the `H.init` contents as described on our [normal highlight HTML installation instructions](../8_other.md).
 5. Save the contents of the Head Markup.
 
 ![](/images/docs/salesforce/step1.png)
