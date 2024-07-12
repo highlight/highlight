@@ -164,7 +164,7 @@
     "display": "standalone",
     "theme_color": "#5629c6",
     "background_color": "#ffffff"
-  },  
+  },
   "storybookCompatibility": {
     "testStories": true,
   },
@@ -374,7 +374,7 @@
       ],
     },
     "highlight.run": {
-      "version": "latest"
+      "version": "^9.0.4"
     },
     // TODO: create a library for this
     // Might need a shim entry point for .css?
