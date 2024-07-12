@@ -3,6 +3,7 @@ package store
 import (
 	"context"
 	"errors"
+	"fmt"
 	"gorm.io/gorm"
 	"time"
 
@@ -11,7 +12,7 @@ import (
 )
 
 func (store *Store) GetProjectAssetTransform(ctx context.Context, projectID int, scheme string) (*model.ProjectAssetTransform, error) {
-	return redis.CachedEval(ctx, store.Redis, "project-asset-transform", 250*time.Millisecond, time.Minute, func() (*model.ProjectAssetTransform, error) {
+	return redis.CachedEval(ctx, store.Redis, fmt.Sprintf("project-asset-transform-%d-%s", projectID, scheme), 250*time.Millisecond, time.Minute, func() (*model.ProjectAssetTransform, error) {
 		var config model.ProjectAssetTransform
 		if err := store.DB.
 			WithContext(ctx).

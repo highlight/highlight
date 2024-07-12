@@ -477,7 +477,14 @@ func getOrCreateUrls(ctx context.Context, projectId int, originalUrls []string, 
 			parsedUrl.Scheme = transform.DestinationScheme
 			parsedUrl.Host = transform.DestinationHost
 			assetURL = parsedUrl.String()
-			log.WithContext(ctx).WithField("u", u).WithField("transform", transform).WithField("assetURL", assetURL).WithField("assetKey", assetKey).Info("using project transform url")
+			log.WithContext(ctx).
+				WithField("u", u).
+				WithField("transform", transform).
+				WithField("assetURL", assetURL).
+				WithField("assetKey", assetKey).
+				WithField("projectId", projectId).
+				WithField("scheme", parsedUrl.Scheme).
+				Info("using project transform url")
 		}
 		urlMap[u] = assetValue{assetKey, assetURL}
 	}
