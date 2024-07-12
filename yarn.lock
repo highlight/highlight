@@ -14486,7 +14486,7 @@ __metadata:
     tsconfig-paths: "npm:^4.2.0"
     tslib: "npm:2.5.3"
     typescript: "npm:4.8.4"
-    webpack: "npm:^5.86.0"
+    webpack: "npm:^5.93.0"
     webpack-cli: "npm:^5.1.4"
     webpack-livereload-plugin: "npm:^3.0.2"
   languageName: unknown
