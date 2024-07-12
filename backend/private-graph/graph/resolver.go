@@ -3477,31 +3477,37 @@ func (r *Resolver) GetSlackChannelsFromSlack(ctx context.Context, workspaceId in
 		slackClient := slack.New(*workspace.SlackAccessToken)
 		existingChannels, _ := workspace.IntegratedSlackChannels()
 
-		getConversationsParam := slack.GetConversationsParameters{
-			ExcludeArchived: true,
-			Limit:           1000,
-			// public_channel is for public channels in the Slack workspace
-			// private is for private channels in the Slack workspace that the Bot is included in
-			// mpim is for multi-person conversations in the Slack workspace that the Bot is included in
-			Types: []string{"public_channel", "private_channel", "mpim"},
-		}
 		allSlackChannelsFromAPI := []slack.Channel{}
 
-		// Slack paginates the channels/people listing.
-		for {
-			channels, cursor, err := slackClient.GetConversations(&getConversationsParam)
-			getConversationsParam.Cursor = cursor
-			if err != nil {
-				return nil, e.Wrap(err, "error getting Slack channels from Slack.")
+		// public_channel is for public channels in the Slack workspace
+		// private is for private channels in the Slack workspace that the Bot is included in
+		// mpim is for multi-person conversations in the Slack workspace that the Bot is included in
+		// Because the Slack API applies a limit before filtering, it's more performant (fewer iterations)
+		// to request data for each channel separately.
+		channelTypes := []string{"public_channel", "private_channel", "mpim"}
+		for _, channelType := range channelTypes {
+			getConversationsParam := slack.GetConversationsParameters{
+				ExcludeArchived: true,
+				Limit:           1000,
+				Types:           []string{channelType},
 			}
 
-			allSlackChannelsFromAPI = append(allSlackChannelsFromAPI, channels...)
+			// Slack paginates the channels/people listing.
+			for {
+				channels, cursor, err := slackClient.GetConversations(&getConversationsParam)
+				getConversationsParam.Cursor = cursor
+				if err != nil {
+					return nil, e.Wrap(err, "error getting Slack channels from Slack.")
+				}
 
-			if getConversationsParam.Cursor == "" {
-				break
+				allSlackChannelsFromAPI = append(allSlackChannelsFromAPI, channels...)
+
+				if getConversationsParam.Cursor == "" {
+					break
+				}
+				// delay the next slack call to avoid getting rate limited
+				time.Sleep(time.Second)
 			}
-			// delay the next slack call to avoid getting rate limited
-			time.Sleep(time.Second)
 		}
 
 		// We need to get the users in the Slack channel in order to get their name.
