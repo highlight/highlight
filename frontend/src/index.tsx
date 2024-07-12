@@ -307,22 +307,24 @@ const AuthenticationRoleRouter = () => {
 	)
 
 	const fetchAdmin = useCallback(async () => {
-		if (loading || !user) {
-			return
-		}
+		H.startSpan('adminFetch', async () => {
+			if (loading || !user) {
+				return
+			}
 
-		const variables: any = {}
-		if (workspaceId) {
-			variables.workspace_id = workspaceId
-		} else if (projectId) {
-			variables.project_id = projectId
-		}
+			const variables: any = {}
+			if (workspaceId) {
+				variables.workspace_id = workspaceId
+			} else if (projectId) {
+				variables.project_id = projectId
+			}
 
-		if (!called) {
-			await getAdminQuery({ variables })
-		} else {
-			await refetch!()
-		}
+			if (!called) {
+				await getAdminQuery({ variables })
+			} else {
+				await refetch!()
+			}
+		})
 	}, [called, getAdminQuery, loading, projectId, refetch, user, workspaceId])
 
 	useEffect(() => {

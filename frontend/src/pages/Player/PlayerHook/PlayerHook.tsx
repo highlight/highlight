@@ -26,10 +26,8 @@ import {
 import { useTimelineIndicators } from '@pages/Player/TimelineIndicatorsContext/TimelineIndicatorsContext'
 import useLocalStorage from '@rehooks/local-storage'
 import { customEvent, viewportResizeDimension } from '@rrweb/types'
-import analytics from '@util/analytics'
 import { indexedDBFetch, indexedDBString } from '@util/db'
 import log from '@util/log'
-import { timerEnd, timerStart } from '@util/timer/timer'
 import useMapRef from '@util/useMapRef'
 import { H } from 'highlight.run'
 import _ from 'lodash'
@@ -516,25 +514,23 @@ export const usePlayer = (
 				return Promise.resolve()
 			}
 
-			timerStart('timelineChangeTime')
-			return new Promise<void>((r) =>
-				ensureChunksLoaded(
-					newTime,
-					undefined,
-					ReplayerState.Playing,
-				).then(() => {
-					// Log how long it took to move to the new time.
-					const timelineChangeTime = timerEnd('timelineChangeTime')
-					analytics.track('Session play', {
-						time,
-						duration: timelineChangeTime,
-						secure_id: state.session_secure_id,
-					})
-					r()
-				}),
-			)
+			return new Promise<void>((r) => {
+				H.startSpan(
+					'timelineChangeTime',
+					{ attributes: { action: 'play' } },
+					async () => {
+						return ensureChunksLoaded(
+							newTime,
+							undefined,
+							ReplayerState.Playing,
+						).then(() => {
+							r()
+						})
+					},
+				)
+			})
 		},
-		[ensureChunksLoaded, state.sessionEndTime, state.session_secure_id],
+		[ensureChunksLoaded, state.sessionEndTime],
 	)
 
 	const pause = useCallback(
@@ -545,22 +541,18 @@ export const usePlayer = (
 			}
 			return new Promise<void>((r) => {
 				if (time !== undefined) {
-					timerStart('timelineChangeTime')
-					dispatch({ type: PlayerActionType.setTime, time })
-					ensureChunksLoaded(
-						time,
-						undefined,
-						ReplayerState.Paused,
-					).then(() => {
-						// Log how long it took to move to the new time.
-						const timelineChangeTime =
-							timerEnd('timelineChangeTime')
-						analytics.track('Session pause', {
+					H.startManualSpan('timelineChangeTime', async (span) => {
+						span.setAttribute('action', 'pause')
+						dispatch({ type: PlayerActionType.setTime, time })
+
+						await ensureChunksLoaded(
 							time,
-							duration: timelineChangeTime,
-							secure_id: state.session_secure_id,
+							undefined,
+							ReplayerState.Paused,
+						).then(() => {
+							span.end()
+							r()
 						})
-						r()
 					})
 				} else {
 					dispatch({ type: PlayerActionType.pause })
@@ -568,7 +560,7 @@ export const usePlayer = (
 				}
 			})
 		},
-		[ensureChunksLoaded, state.session_secure_id],
+		[ensureChunksLoaded],
 	)
 
 	const seek = useCallback(
@@ -577,8 +569,12 @@ export const usePlayer = (
 				time: time,
 				state: target.current.state,
 			}
-			return new Promise<void>((r) => {
-				timerStart('timelineChangeTime')
+			return new Promise<void>(async (r) => {
+				const span = H.startManualSpan('timelineChangeTime', (span) => {
+					span.setAttribute('action', 'seek')
+					return span
+				})
+
 				if (skipInactive) {
 					const inactivityEnd = getInactivityEnd(time)
 					if (inactivityEnd) {
@@ -596,18 +592,17 @@ export const usePlayer = (
 					state.replayerState === ReplayerState.Paused
 						? ReplayerState.Paused
 						: ReplayerState.Playing
-				log('PlayerHook.tsx', 'seeking to', { time, desiredState })
-				dispatch({ type: PlayerActionType.setTime, time })
-				ensureChunksLoaded(time, undefined, desiredState).then(() => {
-					// Log how long it took to move to the new time.
-					const timelineChangeTime = timerEnd('timelineChangeTime')
-					analytics.track('Session seek', {
-						time,
-						duration: timelineChangeTime,
-						secure_id: state.session_secure_id,
-					})
-					r()
+				log('PlayerHook.tsx', 'seeking to', {
+					time,
+					desiredState,
 				})
+				dispatch({ type: PlayerActionType.setTime, time })
+				await ensureChunksLoaded(time, undefined, desiredState).then(
+					() => {
+						span.end()
+						r()
+					},
+				)
 			})
 		},
 		[
@@ -615,7 +610,6 @@ export const usePlayer = (
 			getInactivityEnd,
 			skipInactive,
 			state.replayerState,
-			state.session_secure_id,
 		],
 	)
 

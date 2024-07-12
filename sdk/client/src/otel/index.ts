@@ -250,6 +250,11 @@ class CustomSpanProcessor extends BatchSpanProcessorBase<CustomSpanProcessorConf
 	}
 }
 
+export const BROWSER_TRACER_NAME = 'highlight-browser'
+export const getTracer = () => {
+	return provider.getTracer(BROWSER_TRACER_NAME)
+}
+
 export const shutdown = async () => {
 	if (provider === undefined) {
 		return
