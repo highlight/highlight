@@ -33,7 +33,10 @@ Installing highlight.io in javascript will automatically instrument frontend err
     <DocsCard title="SvelteKit"  href="./3_client-sdk/6_sveltekit.md">
         {"Get started in your SvelteKit app"}
     </DocsCard>
-    <DocsCard title="Other HTML"  href="./3_client-sdk/7_other.md">
+    <DocsCard title="Electron"  href="./3_client-sdk/7_electron.md">
+        {"Get started in your Electron app"}
+    </DocsCard>
+    <DocsCard title="Other HTML"  href="./3_client-sdk/8_other.md">
         {"Get started in any HTML/JS app"}
     </DocsCard>
 </DocsCardGroup>

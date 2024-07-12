@@ -154,7 +154,7 @@ const LogsPageInner = ({ timeMode, logCursor, presetDefault }: Props) => {
 
 	const { data: workspaceSettings } = useGetWorkspaceSettingsQuery({
 		variables: { workspace_id: String(currentWorkspace?.id) },
-		skip: !currentWorkspace?.id,
+		skip: !currentWorkspace?.id || !aiQueryBuilderFlag,
 	})
 
 	const searchTimeContext = useSearchTime({
