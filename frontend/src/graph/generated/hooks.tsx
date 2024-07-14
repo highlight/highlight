@@ -3488,6 +3488,7 @@ export const UpdateAlertDocument = gql`
 		$threshold_value: Float
 		$threshold_window: Int
 		$threshold_cooldown: Int
+		$destinations: [AlertDestinationInput!]
 	) {
 		updateAlert(
 			project_id: $project_id
@@ -3502,6 +3503,7 @@ export const UpdateAlertDocument = gql`
 			threshold_value: $threshold_value
 			threshold_window: $threshold_window
 			threshold_cooldown: $threshold_cooldown
+			destinations: $destinations
 		) {
 			id
 			name
@@ -3539,6 +3541,7 @@ export type UpdateAlertMutationFn = Apollo.MutationFunction<
  *      threshold_value: // value for 'threshold_value'
  *      threshold_window: // value for 'threshold_window'
  *      threshold_cooldown: // value for 'threshold_cooldown'
+ *      destinations: // value for 'destinations'
  *   },
  * });
  */
@@ -12592,6 +12595,12 @@ export const GetAlertsPagePayloadDocument = gql`
 			name
 			product_type
 			disabled
+			destinations {
+				id
+				destination_type
+				type_id
+				type_name
+			}
 		}
 	}
 	${DiscordChannelFragmentFragmentDoc}
@@ -12664,6 +12673,12 @@ export const GetAlertDocument = gql`
 			threshold_value
 			threshold_window
 			threshold_cooldown
+			destinations {
+				id
+				destination_type
+				type_id
+				type_name
+			}
 		}
 	}
 `

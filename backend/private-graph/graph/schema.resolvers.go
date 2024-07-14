@@ -3385,7 +3385,29 @@ func (r *mutationResolver) UpdateAlert(ctx context.Context, projectID int, alert
 		return nil, updateErr
 	}
 
-	// TODO(spenny): create/delete destinations
+	if err := r.DB.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
+		if err := tx.Where(&model.AlertDestination{AlertID: alert.ID}).Delete(&model.AlertDestination{}).Error; err != nil {
+			return err
+		}
+
+		alertDestinations := []*model.AlertDestination{}
+		for _, d := range destinations {
+			alertDestinations = append(alertDestinations, &model.AlertDestination{
+				AlertID:         alert.ID,
+				DestinationType: d.DestinationType,
+				TypeID:          d.TypeID,
+				TypeName:        d.TypeName,
+			})
+		}
+
+		if err := r.DB.WithContext(ctx).Create(alertDestinations).Error; err != nil {
+			return err
+		}
+
+		return nil
+	}); err != nil {
+		return nil, err
+	}
 
 	// TODO(spenny): send edit message to destinations
 

@@ -1870,6 +1870,12 @@ query GetAlertsPagePayload($project_id: ID!) {
 		name
 		product_type
 		disabled
+		destinations {
+			id
+			destination_type
+			type_id
+			type_name
+		}
 	}
 }
 
@@ -1889,6 +1895,12 @@ query GetAlert($id: ID!) {
 		threshold_value
 		threshold_window
 		threshold_cooldown
+		destinations {
+			id
+			destination_type
+			type_id
+			type_name
+		}
 	}
 }
 

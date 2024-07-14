@@ -1012,6 +1012,7 @@ mutation UpdateAlert(
 	$threshold_value: Float
 	$threshold_window: Int
 	$threshold_cooldown: Int
+	$destinations: [AlertDestinationInput!]
 ) {
 	updateAlert(
 		project_id: $project_id
@@ -1026,6 +1027,7 @@ mutation UpdateAlert(
 		threshold_value: $threshold_value
 		threshold_window: $threshold_window
 		threshold_cooldown: $threshold_cooldown
+		destinations: $destinations
 	) {
 		id
 		name

@@ -228,6 +228,7 @@ export const AlertForm: React.FC = () => {
 			setThresholdCooldown(
 				data.alert.threshold_cooldown ?? DEFAULT_COOLDOWN,
 			)
+			setDestinations(data.alert.destinations as AlertDestinationInput[])
 		},
 	})
 

@@ -1056,6 +1056,9 @@ export type UpdateAlertMutationVariables = Types.Exact<{
 	threshold_value?: Types.Maybe<Types.Scalars['Float']>
 	threshold_window?: Types.Maybe<Types.Scalars['Int']>
 	threshold_cooldown?: Types.Maybe<Types.Scalars['Int']>
+	destinations?: Types.Maybe<
+		Array<Types.AlertDestinationInput> | Types.AlertDestinationInput
+	>
 }>
 
 export type UpdateAlertMutation = { __typename?: 'Mutation' } & {
@@ -4359,7 +4362,19 @@ export type GetAlertsPagePayloadQuery = { __typename?: 'Query' } & {
 			{ __typename?: 'Alert' } & Pick<
 				Types.Alert,
 				'id' | 'updated_at' | 'name' | 'product_type' | 'disabled'
-			>
+			> & {
+					destinations: Array<
+						Types.Maybe<
+							{ __typename?: 'AlertDestination' } & Pick<
+								Types.AlertDestination,
+								| 'id'
+								| 'destination_type'
+								| 'type_id'
+								| 'type_name'
+							>
+						>
+					>
+				}
 		>
 	>
 }
@@ -4385,7 +4400,16 @@ export type GetAlertQuery = { __typename?: 'Query' } & {
 		| 'threshold_value'
 		| 'threshold_window'
 		| 'threshold_cooldown'
-	>
+	> & {
+			destinations: Array<
+				Types.Maybe<
+					{ __typename?: 'AlertDestination' } & Pick<
+						Types.AlertDestination,
+						'id' | 'destination_type' | 'type_id' | 'type_name'
+					>
+				>
+			>
+		}
 }
 
 export type GetMetricMonitorsQueryVariables = Types.Exact<{

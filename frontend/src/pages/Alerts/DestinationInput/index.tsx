@@ -31,6 +31,11 @@ type Channel = {
 	enabled?: boolean
 }
 
+type ChannelOption = {
+	label: string
+	value: string
+}
+
 const DESTINATION_CHANNELS: Channel[] = [
 	{
 		id: AlertDestinationType.Slack,
@@ -64,18 +69,88 @@ type Props = {
 	setDestinations: (destinations: AlertDestinationInput[]) => void
 }
 
-export const DestinationInput: React.FC<Props> = ({ setDestinations }) => {
+export const DestinationInput: React.FC<Props> = ({
+	destinations,
+	setDestinations,
+}) => {
 	const { alertsPayload, slackUrl } = useAlertsContext()
 	const { slackLoading, syncSlack } = useSlackSync()
 
 	const [selectedChannelIds, setSelectedChannelIds] = useState<string[]>([])
 	const [slackSearchQuery, setSlackSearchQuery] = useState('')
 
-	const [selectedSlackChannels, setSelectedSlackChannels] = useState([])
-	const [selectedDiscordChannels, setSelectedDiscordChannels] = useState([])
-	const [selectedTeamsChannels, setSelectedTeamsChannels] = useState([])
-	const [selectedEmails, setSelectedEmails] = useState([])
-	const [selectedWebhooks, setSelectedWebhooks] = useState([])
+	const [selectedSlackChannels, setSelectedSlackChannels] = useState<
+		ChannelOption[]
+	>([])
+	const [selectedDiscordChannels, setSelectedDiscordChannels] = useState<
+		ChannelOption[]
+	>([])
+	const [selectedTeamsChannels, setSelectedTeamsChannels] = useState<
+		ChannelOption[]
+	>([])
+	const [selectedEmails, setSelectedEmails] = useState<ChannelOption[]>([])
+	const [selectedWebhooks, setSelectedWebhooks] = useState<ChannelOption[]>(
+		[],
+	)
+
+	// load in initial channels
+	useEffect(() => {
+		const selectedChannels: { [key: string]: boolean } = {}
+		const slackChannels: ChannelOption[] = []
+		const discordChannels: ChannelOption[] = []
+		const teamsChannels: ChannelOption[] = []
+		const emails: ChannelOption[] = []
+		const webhooks: ChannelOption[] = []
+
+		destinations.forEach((destination) => {
+			switch (destination.destination_type) {
+				case AlertDestinationType.Slack:
+					selectedChannels[AlertDestinationType.Slack] = true
+					slackChannels.push({
+						label: destination.type_name,
+						value: destination.type_id,
+					})
+					break
+				case AlertDestinationType.Discord:
+					selectedChannels[AlertDestinationType.Discord] = true
+					discordChannels.push({
+						label: destination.type_name,
+						value: destination.type_id,
+					})
+					break
+				case AlertDestinationType.MicrosoftTeams:
+					selectedChannels[AlertDestinationType.MicrosoftTeams] = true
+					teamsChannels.push({
+						label: destination.type_name,
+						value: destination.type_id,
+					})
+					break
+				case AlertDestinationType.Email:
+					selectedChannels[AlertDestinationType.Email] = true
+					emails.push({
+						label: destination.type_name,
+						value: destination.type_id,
+					})
+					break
+				case AlertDestinationType.Webhook:
+					selectedChannels[AlertDestinationType.Webhook] = true
+					webhooks.push({
+						label: destination.type_name,
+						value: destination.type_id,
+					})
+					break
+			}
+		})
+
+		setSelectedChannelIds(Object.keys(selectedChannels))
+		setSelectedSlackChannels(slackChannels)
+		setSelectedDiscordChannels(discordChannels)
+		setSelectedTeamsChannels(teamsChannels)
+		setSelectedEmails(emails)
+		setSelectedWebhooks(webhooks)
+
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [])
 
 	// keep destinations in sync with local state
 	useEffect(() => {
@@ -323,10 +398,10 @@ export const DestinationInput: React.FC<Props> = ({ setDestinations }) => {
 }
 
 const convertOptionsToDestinations = (
-	options: any,
+	options: ChannelOption[],
 	destinationType: AlertDestinationType,
 ) => {
-	return options.map((v: any) => ({
+	return options.map((v: ChannelOption) => ({
 		destination_type: destinationType,
 		type_name: v.label ?? v.value,
 		type_id: v.value,
