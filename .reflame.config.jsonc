@@ -353,6 +353,12 @@
         }
       },
     },
+    "highlight.run": {
+      "sourceDirectory": "sdk/firstload/dist",
+      "exports": {
+        ".": "./index.js",
+      },
+    },
   },
   // NPM packages listed here will be installed by Reflame every time you update this file.
   //
@@ -372,9 +378,6 @@
       "entryPoints": [
         "/createRuntimeFn"
       ],
-    },
-    "highlight.run": {
-      "version": "latest"
     },
     // TODO: create a library for this
     // Might need a shim entry point for .css?
