@@ -977,6 +977,7 @@ mutation CreateAlert(
 	$threshold_value: Float
 	$threshold_window: Int
 	$threshold_cooldown: Int
+	$destinations: [AlertDestinationInput!]!
 ) {
 	createAlert(
 		project_id: $project_id
@@ -990,6 +991,7 @@ mutation CreateAlert(
 		threshold_value: $threshold_value
 		threshold_window: $threshold_window
 		threshold_cooldown: $threshold_cooldown
+		destinations: $destinations
 	) {
 		id
 		name

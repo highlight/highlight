@@ -96,6 +96,12 @@ type AdminAndWorkspaceDetails struct {
 	PromoCode                   *string `json:"promo_code,omitempty"`
 }
 
+type AlertDestinationInput struct {
+	DestinationType AlertDestinationType `json:"destination_type"`
+	TypeID          string               `json:"type_id"`
+	TypeName        string               `json:"type_name"`
+}
+
 type AlertStateChange struct {
 	ID            int        `json:"id"`
 	Timestamp     time.Time  `json:"timestamp"`

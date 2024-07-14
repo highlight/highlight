@@ -27,6 +27,7 @@ import {
 } from '@/graph/generated/hooks'
 import { namedOperations } from '@/graph/generated/operations'
 import { MetricAggregator, ProductType } from '@/graph/generated/schemas'
+import { AlertDestinationInput } from '@/graph/generated/schemas'
 import { useProjectId } from '@/hooks/useProjectId'
 import { useSearchTime } from '@/hooks/useSearchTime'
 import { FREQUENCIES } from '@/pages/Alerts/AlertConfigurationCard/AlertConfigurationConstants'
@@ -144,6 +145,10 @@ export const AlertForm: React.FC = () => {
 	const [thresholdCooldown, setThresholdCooldown] =
 		useState<number>(DEFAULT_COOLDOWN)
 
+	const [destinations, setDestinations] = useState<AlertDestinationInput[]>(
+		[],
+	)
+
 	const viewConfig = getViewConfig(
 		'Line chart',
 		LINE_DISPLAY[0],
@@ -166,6 +171,7 @@ export const AlertForm: React.FC = () => {
 			threshold_value: thresholdValue,
 			threshold_window: thresholdWindow,
 			threshold_cooldown: thresholdCooldown,
+			destinations,
 		}
 
 		if (isEdit) {
@@ -571,7 +577,10 @@ export const AlertForm: React.FC = () => {
 								</SidebarSection>
 								<Divider className="m-0" />
 								<SidebarSection>
-									<DestinationInput />
+									<DestinationInput
+										destinations={destinations}
+										setDestinations={setDestinations}
+									/>
 								</SidebarSection>
 							</Form>
 						</Box>

@@ -3399,6 +3399,7 @@ export const CreateAlertDocument = gql`
 		$threshold_value: Float
 		$threshold_window: Int
 		$threshold_cooldown: Int
+		$destinations: [AlertDestinationInput!]!
 	) {
 		createAlert(
 			project_id: $project_id
@@ -3412,6 +3413,7 @@ export const CreateAlertDocument = gql`
 			threshold_value: $threshold_value
 			threshold_window: $threshold_window
 			threshold_cooldown: $threshold_cooldown
+			destinations: $destinations
 		) {
 			id
 			name
@@ -3448,6 +3450,7 @@ export type CreateAlertMutationFn = Apollo.MutationFunction<
  *      threshold_value: // value for 'threshold_value'
  *      threshold_window: // value for 'threshold_window'
  *      threshold_cooldown: // value for 'threshold_cooldown'
+ *      destinations: // value for 'destinations'
  *   },
  * });
  */

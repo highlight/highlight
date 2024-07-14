@@ -10,10 +10,13 @@ import {
 	Menu,
 } from '@highlight-run/ui/components'
 import * as React from 'react'
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 
-import { AlertDestinationType } from '@/graph/generated/schemas'
+import {
+	AlertDestinationInput,
+	AlertDestinationType,
+} from '@/graph/generated/schemas'
 import { useSlackSync } from '@/hooks/useSlackSync'
 import SlackLoadOrConnect from '@/pages/Alerts/AlertConfigurationCard/SlackLoadOrConnect'
 import { useAlertsContext } from '@/pages/Alerts/AlertsContext/AlertsContext'
@@ -56,18 +59,58 @@ const DESTINATION_CHANNELS: Channel[] = [
 	},
 ]
 
-export const DestinationInput: React.FC = ({}) => {
+type Props = {
+	destinations: AlertDestinationInput[]
+	setDestinations: (destinations: AlertDestinationInput[]) => void
+}
+
+export const DestinationInput: React.FC<Props> = ({ setDestinations }) => {
 	const { alertsPayload, slackUrl } = useAlertsContext()
 	const { slackLoading, syncSlack } = useSlackSync()
 
 	const [selectedChannelIds, setSelectedChannelIds] = useState<string[]>([])
 	const [slackSearchQuery, setSlackSearchQuery] = useState('')
 
-	const [selectedSlackChannels, setSelectedSlackChannels] = useState()
-	const [selectedDiscordChannels, setSelectedDiscordChannels] = useState()
-	const [selectedTeamsChannels, setSelectedTeamsChannels] = useState()
-	const [selectedEmails, setSelectedEmails] = useState()
-	const [selectedWebhooks, setSelectedWebhooks] = useState()
+	const [selectedSlackChannels, setSelectedSlackChannels] = useState([])
+	const [selectedDiscordChannels, setSelectedDiscordChannels] = useState([])
+	const [selectedTeamsChannels, setSelectedTeamsChannels] = useState([])
+	const [selectedEmails, setSelectedEmails] = useState([])
+	const [selectedWebhooks, setSelectedWebhooks] = useState([])
+
+	// keep destinations in sync with local state
+	useEffect(() => {
+		const newDestinations = [
+			...convertOptionsToDestinations(
+				selectedSlackChannels,
+				AlertDestinationType.Slack,
+			),
+			...convertOptionsToDestinations(
+				selectedDiscordChannels,
+				AlertDestinationType.Discord,
+			),
+			...convertOptionsToDestinations(
+				selectedTeamsChannels,
+				AlertDestinationType.MicrosoftTeams,
+			),
+			...convertOptionsToDestinations(
+				selectedEmails,
+				AlertDestinationType.Email,
+			),
+			...convertOptionsToDestinations(
+				selectedWebhooks,
+				AlertDestinationType.Webhook,
+			),
+		]
+
+		setDestinations(newDestinations)
+	}, [
+		selectedDiscordChannels,
+		selectedEmails,
+		selectedSlackChannels,
+		selectedTeamsChannels,
+		selectedWebhooks,
+		setDestinations,
+	])
 
 	const possibleChannels = useMemo(
 		() =>
@@ -86,9 +129,9 @@ export const DestinationInput: React.FC = ({}) => {
 		() =>
 			(alertsPayload?.slack_channel_suggestion ?? []).map(
 				({ webhook_channel, webhook_channel_id }) => ({
+					id: webhook_channel_id!,
 					displayValue: webhook_channel!,
 					value: webhook_channel_id!,
-					id: webhook_channel_id!,
 				}),
 			),
 		[alertsPayload?.slack_channel_suggestion],
@@ -98,9 +141,9 @@ export const DestinationInput: React.FC = ({}) => {
 		() =>
 			(alertsPayload?.discord_channel_suggestions ?? []).map(
 				({ name, id }) => ({
+					id,
 					displayValue: name,
 					value: id,
-					id: id,
 				}),
 			),
 		[alertsPayload?.discord_channel_suggestions],
@@ -110,9 +153,9 @@ export const DestinationInput: React.FC = ({}) => {
 		() =>
 			(alertsPayload?.microsoft_teams_channel_suggestions ?? []).map(
 				({ name, id }) => ({
+					id,
 					displayValue: name,
 					value: id,
-					id: id,
 				}),
 			),
 		[alertsPayload?.microsoft_teams_channel_suggestions],
@@ -121,9 +164,9 @@ export const DestinationInput: React.FC = ({}) => {
 	const emails = useMemo(
 		() =>
 			(alertsPayload?.admins ?? []).map((wa) => ({
+				id: wa.admin!.email,
 				displayValue: wa.admin!.email,
 				value: wa.admin!.email,
-				id: wa.admin!.email,
 			})),
 		[alertsPayload?.admins],
 	)
@@ -144,15 +187,7 @@ export const DestinationInput: React.FC = ({}) => {
 						onSearch={(value) => {
 							setSlackSearchQuery(value)
 						}}
-						onChange={(values) => {
-							setSelectedSlackChannels(
-								values.map((v: any) => ({
-									webhook_channel_name: v.label,
-									webhook_channel_id: v.value,
-									...v,
-								})),
-							)
-						}}
+						onChange={setSelectedSlackChannels}
 						notFoundContent={
 							<SlackLoadOrConnect
 								isLoading={slackLoading}
@@ -181,15 +216,7 @@ export const DestinationInput: React.FC = ({}) => {
 						placeholder="Select Discord channels"
 						options={discordChannels}
 						optionFilterProp="label"
-						onChange={(values) => {
-							setSelectedDiscordChannels(
-								values.map((v: any) => ({
-									name: v.label,
-									id: v.value,
-									...v,
-								})),
-							)
-						}}
+						onChange={setSelectedDiscordChannels}
 						notFoundContent={
 							discordChannels.length === 0 ? (
 								<Link to="/integrations">
@@ -218,15 +245,7 @@ export const DestinationInput: React.FC = ({}) => {
 						placeholder="Select Microsoft Teams channels"
 						options={microsoftTeamsChannels}
 						optionFilterProp="label"
-						onChange={(values) => {
-							setSelectedTeamsChannels(
-								values.map((v: any) => ({
-									name: v.label,
-									id: v.value,
-									...v,
-								})),
-							)
-						}}
+						onChange={setSelectedTeamsChannels}
 						notFoundContent={
 							microsoftTeamsChannels.length === 0 ? (
 								<Link to="/integrations">
@@ -246,7 +265,7 @@ export const DestinationInput: React.FC = ({}) => {
 			{selectedChannelIds.includes(AlertDestinationType.Email) && (
 				<LabeledRow
 					label="Emails to notifiy"
-					name={AlertDestinationType.Slack}
+					name={AlertDestinationType.Email}
 				>
 					<Select
 						aria-label="Emails to notify"
@@ -256,6 +275,7 @@ export const DestinationInput: React.FC = ({}) => {
 						notFoundContent={<p>No email suggestions</p>}
 						className={styles.selectContainer}
 						mode="multiple"
+						labelInValue
 						value={selectedEmails}
 					/>
 				</LabeledRow>
@@ -263,7 +283,7 @@ export const DestinationInput: React.FC = ({}) => {
 			{selectedChannelIds.includes(AlertDestinationType.Webhook) && (
 				<LabeledRow
 					label="Webhooks to notifiy"
-					name={AlertDestinationType.Slack}
+					name={AlertDestinationType.Webhook}
 				>
 					<Select
 						aria-label="Webhooks to notify"
@@ -272,6 +292,7 @@ export const DestinationInput: React.FC = ({}) => {
 						notFoundContent={null}
 						className={styles.selectContainer}
 						mode="tags"
+						labelInValue
 						value={selectedWebhooks}
 					/>
 				</LabeledRow>
@@ -299,4 +320,15 @@ export const DestinationInput: React.FC = ({}) => {
 			)}
 		</>
 	)
+}
+
+const convertOptionsToDestinations = (
+	options: any,
+	destinationType: AlertDestinationType,
+) => {
+	return options.map((v: any) => ({
+		destination_type: destinationType,
+		type_name: v.label ?? v.value,
+		type_id: v.value,
+	}))
 }

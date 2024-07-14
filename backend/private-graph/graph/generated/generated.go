@@ -836,7 +836,7 @@ type ComplexityRoot struct {
 		ChangeAdminRole                       func(childComplexity int, workspaceID int, adminID int, newRole string) int
 		ChangeProjectMembership               func(childComplexity int, workspaceID int, adminID int, projectIds []int) int
 		CreateAdmin                           func(childComplexity int) int
-		CreateAlert                           func(childComplexity int, projectID int, name string, productType model.ProductType, functionType model.MetricAggregator, functionColumn *string, query *string, groupByKey *string, belowThreshold *bool, thresholdValue *float64, thresholdWindow *int, thresholdCooldown *int) int
+		CreateAlert                           func(childComplexity int, projectID int, name string, productType model.ProductType, functionType model.MetricAggregator, functionColumn *string, query *string, groupByKey *string, belowThreshold *bool, thresholdValue *float64, thresholdWindow *int, thresholdCooldown *int, destinations []*model.AlertDestinationInput) int
 		CreateCloudflareProxy                 func(childComplexity int, workspaceID int, proxySubdomain string) int
 		CreateErrorAlert                      func(childComplexity int, projectID int, name string, countThreshold int, thresholdWindow int, slackChannels []*model.SanitizedSlackChannelInput, discordChannels []*model.DiscordChannelInput, microsoftTeamsChannels []*model.MicrosoftTeamsChannelInput, webhookDestinations []*model.WebhookDestinationInput, emails []*string, query string, regexGroups []*string, frequency int, defaultArg *bool) int
 		CreateErrorComment                    func(childComplexity int, projectID int, errorGroupSecureID string, text string, textForEmail string, taggedAdmins []*model.SanitizedAdminInput, taggedSlackUsers []*model.SanitizedSlackChannelInput, errorURL string, authorName string, issueTitle *string, issueDescription *string, issueTeamID *string, issueTypeID *string, integrations []*model.IntegrationType) int
@@ -898,7 +898,7 @@ type ComplexityRoot struct {
 		TestErrorEnhancement                  func(childComplexity int, errorObjectID int, githubRepoPath string, githubPrefix *string, buildPrefix *string, saveError *bool) int
 		UpdateAdminAboutYouDetails            func(childComplexity int, adminDetails model.AdminAboutYouDetails) int
 		UpdateAdminAndCreateWorkspace         func(childComplexity int, adminAndWorkspaceDetails model.AdminAndWorkspaceDetails) int
-		UpdateAlert                           func(childComplexity int, projectID int, alertID int, name *string, productType *model.ProductType, functionType *model.MetricAggregator, functionColumn *string, query *string, groupByKey *string, belowThreshold *bool, thresholdValue *float64, thresholdWindow *int, thresholdCooldown *int) int
+		UpdateAlert                           func(childComplexity int, projectID int, alertID int, name *string, productType *model.ProductType, functionType *model.MetricAggregator, functionColumn *string, query *string, groupByKey *string, belowThreshold *bool, thresholdValue *float64, thresholdWindow *int, thresholdCooldown *int, destinations []*model.AlertDestinationInput) int
 		UpdateAlertDisabled                   func(childComplexity int, projectID int, alertID int, disabled bool) int
 		UpdateAllowMeterOverage               func(childComplexity int, workspaceID int, allowMeterOverage bool) int
 		UpdateAllowedEmailOrigins             func(childComplexity int, workspaceID int, allowedAutoJoinEmailOrigins string) int
@@ -1783,8 +1783,8 @@ type MutationResolver interface {
 	SyncSlackIntegration(ctx context.Context, projectID int) (*model.SlackSyncResponse, error)
 	CreateMetricMonitor(ctx context.Context, projectID int, name string, aggregator model.MetricAggregator, periodMinutes *int, threshold float64, units *string, metricToMonitor string, slackChannels []*model.SanitizedSlackChannelInput, discordChannels []*model.DiscordChannelInput, webhookDestinations []*model.WebhookDestinationInput, emails []*string, filters []*model.MetricTagFilterInput) (*model1.MetricMonitor, error)
 	UpdateMetricMonitor(ctx context.Context, metricMonitorID int, projectID int, name *string, aggregator *model.MetricAggregator, periodMinutes *int, threshold *float64, units *string, metricToMonitor *string, slackChannels []*model.SanitizedSlackChannelInput, discordChannels []*model.DiscordChannelInput, webhookDestinations []*model.WebhookDestinationInput, emails []*string, disabled *bool, filters []*model.MetricTagFilterInput) (*model1.MetricMonitor, error)
-	CreateAlert(ctx context.Context, projectID int, name string, productType model.ProductType, functionType model.MetricAggregator, functionColumn *string, query *string, groupByKey *string, belowThreshold *bool, thresholdValue *float64, thresholdWindow *int, thresholdCooldown *int) (*model1.Alert, error)
-	UpdateAlert(ctx context.Context, projectID int, alertID int, name *string, productType *model.ProductType, functionType *model.MetricAggregator, functionColumn *string, query *string, groupByKey *string, belowThreshold *bool, thresholdValue *float64, thresholdWindow *int, thresholdCooldown *int) (*model1.Alert, error)
+	CreateAlert(ctx context.Context, projectID int, name string, productType model.ProductType, functionType model.MetricAggregator, functionColumn *string, query *string, groupByKey *string, belowThreshold *bool, thresholdValue *float64, thresholdWindow *int, thresholdCooldown *int, destinations []*model.AlertDestinationInput) (*model1.Alert, error)
+	UpdateAlert(ctx context.Context, projectID int, alertID int, name *string, productType *model.ProductType, functionType *model.MetricAggregator, functionColumn *string, query *string, groupByKey *string, belowThreshold *bool, thresholdValue *float64, thresholdWindow *int, thresholdCooldown *int, destinations []*model.AlertDestinationInput) (*model1.Alert, error)
 	UpdateAlertDisabled(ctx context.Context, projectID int, alertID int, disabled bool) (bool, error)
 	DeleteAlert(ctx context.Context, projectID int, alertID int) (bool, error)
 	CreateErrorAlert(ctx context.Context, projectID int, name string, countThreshold int, thresholdWindow int, slackChannels []*model.SanitizedSlackChannelInput, discordChannels []*model.DiscordChannelInput, microsoftTeamsChannels []*model.MicrosoftTeamsChannelInput, webhookDestinations []*model.WebhookDestinationInput, emails []*string, query string, regexGroups []*string, frequency int, defaultArg *bool) (*model1.ErrorAlert, error)
@@ -5653,7 +5653,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.CreateAlert(childComplexity, args["project_id"].(int), args["name"].(string), args["product_type"].(model.ProductType), args["function_type"].(model.MetricAggregator), args["function_column"].(*string), args["query"].(*string), args["group_by_key"].(*string), args["below_threshold"].(*bool), args["threshold_value"].(*float64), args["threshold_window"].(*int), args["threshold_cooldown"].(*int)), true
+		return e.complexity.Mutation.CreateAlert(childComplexity, args["project_id"].(int), args["name"].(string), args["product_type"].(model.ProductType), args["function_type"].(model.MetricAggregator), args["function_column"].(*string), args["query"].(*string), args["group_by_key"].(*string), args["below_threshold"].(*bool), args["threshold_value"].(*float64), args["threshold_window"].(*int), args["threshold_cooldown"].(*int), args["destinations"].([]*model.AlertDestinationInput)), true
 
 	case "Mutation.createCloudflareProxy":
 		if e.complexity.Mutation.CreateCloudflareProxy == nil {
@@ -6397,7 +6397,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.UpdateAlert(childComplexity, args["project_id"].(int), args["alert_id"].(int), args["name"].(*string), args["product_type"].(*model.ProductType), args["function_type"].(*model.MetricAggregator), args["function_column"].(*string), args["query"].(*string), args["group_by_key"].(*string), args["below_threshold"].(*bool), args["threshold_value"].(*float64), args["threshold_window"].(*int), args["threshold_cooldown"].(*int)), true
+		return e.complexity.Mutation.UpdateAlert(childComplexity, args["project_id"].(int), args["alert_id"].(int), args["name"].(*string), args["product_type"].(*model.ProductType), args["function_type"].(*model.MetricAggregator), args["function_column"].(*string), args["query"].(*string), args["group_by_key"].(*string), args["below_threshold"].(*bool), args["threshold_value"].(*float64), args["threshold_window"].(*int), args["threshold_cooldown"].(*int), args["destinations"].([]*model.AlertDestinationInput)), true
 
 	case "Mutation.updateAlertDisabled":
 		if e.complexity.Mutation.UpdateAlertDisabled == nil {
@@ -11358,6 +11358,7 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 	inputUnmarshalMap := graphql.BuildUnmarshalerMap(
 		ec.unmarshalInputAdminAboutYouDetails,
 		ec.unmarshalInputAdminAndWorkspaceDetails,
+		ec.unmarshalInputAlertDestinationInput,
 		ec.unmarshalInputClickUpProjectMappingInput,
 		ec.unmarshalInputClickhouseQuery,
 		ec.unmarshalInputDashboardMetricConfigInput,
@@ -13084,6 +13085,12 @@ type AlertDestination {
 	type_name: String!
 }
 
+input AlertDestinationInput {
+	destination_type: AlertDestinationType!
+	type_id: String!
+	type_name: String!
+}
+
 type Alert {
 	id: ID!
 	updated_at: Timestamp!
@@ -14278,7 +14285,8 @@ type Mutation {
 		below_threshold: Boolean
 		threshold_value: Float
 		threshold_window: Int
-		threshold_cooldown: Int # TODO(spenny): add destinations
+		threshold_cooldown: Int
+		destinations: [AlertDestinationInput!]!
 	): Alert
 	updateAlert(
 		project_id: ID!
@@ -14292,7 +14300,8 @@ type Mutation {
 		below_threshold: Boolean
 		threshold_value: Float
 		threshold_window: Int
-		threshold_cooldown: Int # TODO(spenny): add destinations
+		threshold_cooldown: Int
+		destinations: [AlertDestinationInput!]
 	): Alert
 	updateAlertDisabled(
 		project_id: ID!
@@ -14714,6 +14723,15 @@ func (ec *executionContext) field_Mutation_createAlert_args(ctx context.Context,
 		}
 	}
 	args["threshold_cooldown"] = arg10
+	var arg11 []*model.AlertDestinationInput
+	if tmp, ok := rawArgs["destinations"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("destinations"))
+		arg11, err = ec.unmarshalNAlertDestinationInput2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐAlertDestinationInputᚄ(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["destinations"] = arg11
 	return args, nil
 }
 
@@ -17639,6 +17657,15 @@ func (ec *executionContext) field_Mutation_updateAlert_args(ctx context.Context,
 		}
 	}
 	args["threshold_cooldown"] = arg11
+	var arg12 []*model.AlertDestinationInput
+	if tmp, ok := rawArgs["destinations"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("destinations"))
+		arg12, err = ec.unmarshalOAlertDestinationInput2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐAlertDestinationInputᚄ(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["destinations"] = arg12
 	return args, nil
 }
 
@@ -48465,7 +48492,7 @@ func (ec *executionContext) _Mutation_createAlert(ctx context.Context, field gra
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().CreateAlert(rctx, fc.Args["project_id"].(int), fc.Args["name"].(string), fc.Args["product_type"].(model.ProductType), fc.Args["function_type"].(model.MetricAggregator), fc.Args["function_column"].(*string), fc.Args["query"].(*string), fc.Args["group_by_key"].(*string), fc.Args["below_threshold"].(*bool), fc.Args["threshold_value"].(*float64), fc.Args["threshold_window"].(*int), fc.Args["threshold_cooldown"].(*int))
+		return ec.resolvers.Mutation().CreateAlert(rctx, fc.Args["project_id"].(int), fc.Args["name"].(string), fc.Args["product_type"].(model.ProductType), fc.Args["function_type"].(model.MetricAggregator), fc.Args["function_column"].(*string), fc.Args["query"].(*string), fc.Args["group_by_key"].(*string), fc.Args["below_threshold"].(*bool), fc.Args["threshold_value"].(*float64), fc.Args["threshold_window"].(*int), fc.Args["threshold_cooldown"].(*int), fc.Args["destinations"].([]*model.AlertDestinationInput))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -48551,7 +48578,7 @@ func (ec *executionContext) _Mutation_updateAlert(ctx context.Context, field gra
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().UpdateAlert(rctx, fc.Args["project_id"].(int), fc.Args["alert_id"].(int), fc.Args["name"].(*string), fc.Args["product_type"].(*model.ProductType), fc.Args["function_type"].(*model.MetricAggregator), fc.Args["function_column"].(*string), fc.Args["query"].(*string), fc.Args["group_by_key"].(*string), fc.Args["below_threshold"].(*bool), fc.Args["threshold_value"].(*float64), fc.Args["threshold_window"].(*int), fc.Args["threshold_cooldown"].(*int))
+		return ec.resolvers.Mutation().UpdateAlert(rctx, fc.Args["project_id"].(int), fc.Args["alert_id"].(int), fc.Args["name"].(*string), fc.Args["product_type"].(*model.ProductType), fc.Args["function_type"].(*model.MetricAggregator), fc.Args["function_column"].(*string), fc.Args["query"].(*string), fc.Args["group_by_key"].(*string), fc.Args["below_threshold"].(*bool), fc.Args["threshold_value"].(*float64), fc.Args["threshold_window"].(*int), fc.Args["threshold_cooldown"].(*int), fc.Args["destinations"].([]*model.AlertDestinationInput))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -82360,6 +82387,47 @@ func (ec *executionContext) unmarshalInputAdminAndWorkspaceDetails(ctx context.C
 	return it, nil
 }
 
+func (ec *executionContext) unmarshalInputAlertDestinationInput(ctx context.Context, obj interface{}) (model.AlertDestinationInput, error) {
+	var it model.AlertDestinationInput
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"destination_type", "type_id", "type_name"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "destination_type":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("destination_type"))
+			data, err := ec.unmarshalNAlertDestinationType2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐAlertDestinationType(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.DestinationType = data
+		case "type_id":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("type_id"))
+			data, err := ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.TypeID = data
+		case "type_name":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("type_name"))
+			data, err := ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.TypeName = data
+		}
+	}
+
+	return it, nil
+}
+
 func (ec *executionContext) unmarshalInputClickUpProjectMappingInput(ctx context.Context, obj interface{}) (model.ClickUpProjectMappingInput, error) {
 	var it model.ClickUpProjectMappingInput
 	asMap := map[string]interface{}{}
@@ -98990,6 +99058,28 @@ func (ec *executionContext) marshalNAlertDestination2ᚕᚖgithubᚗcomᚋhighli
 	return ret
 }
 
+func (ec *executionContext) unmarshalNAlertDestinationInput2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐAlertDestinationInputᚄ(ctx context.Context, v interface{}) ([]*model.AlertDestinationInput, error) {
+	var vSlice []interface{}
+	if v != nil {
+		vSlice = graphql.CoerceList(v)
+	}
+	var err error
+	res := make([]*model.AlertDestinationInput, len(vSlice))
+	for i := range vSlice {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
+		res[i], err = ec.unmarshalNAlertDestinationInput2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐAlertDestinationInput(ctx, vSlice[i])
+		if err != nil {
+			return nil, err
+		}
+	}
+	return res, nil
+}
+
+func (ec *executionContext) unmarshalNAlertDestinationInput2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐAlertDestinationInput(ctx context.Context, v interface{}) (*model.AlertDestinationInput, error) {
+	res, err := ec.unmarshalInputAlertDestinationInput(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
 func (ec *executionContext) unmarshalNAlertDestinationType2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐAlertDestinationType(ctx context.Context, v interface{}) (model.AlertDestinationType, error) {
 	var res model.AlertDestinationType
 	err := res.UnmarshalGQL(v)
@@ -104621,6 +104711,26 @@ func (ec *executionContext) marshalOAlertDestination2ᚖgithubᚗcomᚋhighlight
 		return graphql.Null
 	}
 	return ec._AlertDestination(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalOAlertDestinationInput2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐAlertDestinationInputᚄ(ctx context.Context, v interface{}) ([]*model.AlertDestinationInput, error) {
+	if v == nil {
+		return nil, nil
+	}
+	var vSlice []interface{}
+	if v != nil {
+		vSlice = graphql.CoerceList(v)
+	}
+	var err error
+	res := make([]*model.AlertDestinationInput, len(vSlice))
+	for i := range vSlice {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
+		res[i], err = ec.unmarshalNAlertDestinationInput2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐAlertDestinationInput(ctx, vSlice[i])
+		if err != nil {
+			return nil, err
+		}
+	}
+	return res, nil
 }
 
 func (ec *executionContext) marshalOAlertStateChange2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐAlertStateChange(ctx context.Context, sel ast.SelectionSet, v *model.AlertStateChange) graphql.Marshaler {

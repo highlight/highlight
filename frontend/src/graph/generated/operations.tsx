@@ -1029,6 +1029,9 @@ export type CreateAlertMutationVariables = Types.Exact<{
 	threshold_value?: Types.Maybe<Types.Scalars['Float']>
 	threshold_window?: Types.Maybe<Types.Scalars['Int']>
 	threshold_cooldown?: Types.Maybe<Types.Scalars['Int']>
+	destinations:
+		| Array<Types.AlertDestinationInput>
+		| Types.AlertDestinationInput
 }>
 
 export type CreateAlertMutation = { __typename?: 'Mutation' } & {
