@@ -437,8 +437,7 @@ export const Header: React.FC<Props> = ({ fullyIntegrated }) => {
 							justifyContent="flex-end"
 							alignItems="center"
 							gap="12"
-							style={{ zIndex: 20000 }}
-							width="full"
+							style={{ zIndex: 20000, minWidth: 400 }}
 						>
 							{!!projectId &&
 								!fullyIntegrated &&

@@ -9,7 +9,7 @@ export const IconSolidTraces = ({ size = '1em', ...props }: IconProps) => {
 			width={size}
 			height={size}
 			fill="none"
-			viewBox="0 0 16 14"
+			viewBox="0 0 14 14"
 			focusable="false"
 			{...props}
 		>
