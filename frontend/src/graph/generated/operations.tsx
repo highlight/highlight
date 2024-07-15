@@ -1081,6 +1081,16 @@ export type UpdateAlertDisabledMutation = { __typename?: 'Mutation' } & Pick<
 	'updateAlertDisabled'
 >
 
+export type DeleteAlertMutationVariables = Types.Exact<{
+	project_id: Types.Scalars['ID']
+	alert_id: Types.Scalars['ID']
+}>
+
+export type DeleteAlertMutation = { __typename?: 'Mutation' } & Pick<
+	Types.Mutation,
+	'deleteAlert'
+>
+
 export type UpdateAdminAndCreateWorkspaceMutationVariables = Types.Exact<{
 	admin_and_workspace_details: Types.AdminAndWorkspaceDetails
 }>
@@ -5506,6 +5516,7 @@ export const namedOperations = {
 		CreateAlert: 'CreateAlert' as const,
 		UpdateAlert: 'UpdateAlert' as const,
 		UpdateAlertDisabled: 'UpdateAlertDisabled' as const,
+		DeleteAlert: 'DeleteAlert' as const,
 		UpdateAdminAndCreateWorkspace: 'UpdateAdminAndCreateWorkspace' as const,
 		UpdateAdminAboutYouDetails: 'UpdateAdminAboutYouDetails' as const,
 		UpdateErrorAlert: 'UpdateErrorAlert' as const,

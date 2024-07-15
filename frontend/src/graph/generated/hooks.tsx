@@ -3622,6 +3622,54 @@ export type UpdateAlertDisabledMutationOptions = Apollo.BaseMutationOptions<
 	Types.UpdateAlertDisabledMutation,
 	Types.UpdateAlertDisabledMutationVariables
 >
+export const DeleteAlertDocument = gql`
+	mutation DeleteAlert($project_id: ID!, $alert_id: ID!) {
+		deleteAlert(project_id: $project_id, alert_id: $alert_id)
+	}
+`
+export type DeleteAlertMutationFn = Apollo.MutationFunction<
+	Types.DeleteAlertMutation,
+	Types.DeleteAlertMutationVariables
+>
+
+/**
+ * __useDeleteAlertMutation__
+ *
+ * To run a mutation, you first call `useDeleteAlertMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useDeleteAlertMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [deleteAlertMutation, { data, loading, error }] = useDeleteAlertMutation({
+ *   variables: {
+ *      project_id: // value for 'project_id'
+ *      alert_id: // value for 'alert_id'
+ *   },
+ * });
+ */
+export function useDeleteAlertMutation(
+	baseOptions?: Apollo.MutationHookOptions<
+		Types.DeleteAlertMutation,
+		Types.DeleteAlertMutationVariables
+	>,
+) {
+	return Apollo.useMutation<
+		Types.DeleteAlertMutation,
+		Types.DeleteAlertMutationVariables
+	>(DeleteAlertDocument, baseOptions)
+}
+export type DeleteAlertMutationHookResult = ReturnType<
+	typeof useDeleteAlertMutation
+>
+export type DeleteAlertMutationResult =
+	Apollo.MutationResult<Types.DeleteAlertMutation>
+export type DeleteAlertMutationOptions = Apollo.BaseMutationOptions<
+	Types.DeleteAlertMutation,
+	Types.DeleteAlertMutationVariables
+>
 export const UpdateAdminAndCreateWorkspaceDocument = gql`
 	mutation UpdateAdminAndCreateWorkspace(
 		$admin_and_workspace_details: AdminAndWorkspaceDetails!

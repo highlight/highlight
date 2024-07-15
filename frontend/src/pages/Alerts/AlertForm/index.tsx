@@ -1,7 +1,7 @@
+import { Button } from '@components/Button'
 import { toast } from '@components/Toaster'
 import {
 	Box,
-	Button,
 	DateRangePicker,
 	DEFAULT_TIME_PRESETS,
 	Form,
@@ -22,6 +22,7 @@ import { SearchContext } from '@/components/Search/SearchContext'
 import { Search } from '@/components/Search/SearchForm/SearchForm'
 import {
 	useCreateAlertMutation,
+	useDeleteAlertMutation,
 	useGetAlertQuery,
 	useUpdateAlertMutation,
 } from '@/graph/generated/hooks'
@@ -118,6 +119,9 @@ export const AlertForm: React.FC = () => {
 			namedOperations.Query.GetAlertsPagePayload,
 		],
 	})
+	const [deleteAlertMutation] = useDeleteAlertMutation({
+		refetchQueries: [namedOperations.Query.GetAlertsPagePayload],
+	})
 
 	const navigate = useNavigate()
 
@@ -158,7 +162,7 @@ export const AlertForm: React.FC = () => {
 		LINE_NULL_HANDLING[2],
 	)
 
-	const onSave = async () => {
+	const onSave = () => {
 		const formVariables = {
 			project_id: projectId,
 			name: alertName,
@@ -178,30 +182,58 @@ export const AlertForm: React.FC = () => {
 		}
 
 		if (isEdit) {
-			await updateAlert({
+			updateAlert({
 				variables: {
 					alert_id: alert_id!,
 					...formVariables,
 				},
-			}).catch(() => {
-				toast.error(`Failed to updated alert`)
-				return
 			})
+				.then(() => {
+					toast.success(`${alertName} updated`).then(() => {
+						navigate(`/${projectId}/alerts`)
+					})
+				})
+				.catch(() => {
+					toast.error(`Failed to updated alert`)
+				})
 		} else {
-			await createAlert({
+			createAlert({
 				variables: {
 					...formVariables,
 				},
-			}).catch(() => {
-				toast.error(`Failed to created alert`)
-				return
 			})
+				.then(() => {
+					toast.success(`${alertName} created`).then(() => {
+						navigate(`/${projectId}/alerts`)
+					})
+				})
+				.catch(() => {
+					toast.error(`Failed to created alert`)
+				})
+		}
+	}
+
+	const onDelete = () => {
+		if (!projectId || !alert_id) {
+			return
 		}
 
-		toast
-			.success(`${alertName} ${isEdit ? 'updated' : 'created'}`)
-			.then(() => {
-				navigate(`/${projectId}/alerts`)
+		deleteAlertMutation({
+			variables: {
+				project_id: projectId!,
+				alert_id: alert_id!,
+			},
+		})
+			.then((resp) => {
+				if (resp.data?.deleteAlert) {
+					toast.success(`Alert deleted!`)
+					navigate(`/${projectId}/alerts`)
+				} else {
+					toast.error(`Failed to delete alert!`)
+				}
+			})
+			.catch(() => {
+				toast.error(`Failed to delete alert!`)
 			})
 	}
 
@@ -309,10 +341,27 @@ export const AlertForm: React.FC = () => {
 								emphasis="low"
 								kind="secondary"
 								onClick={() => navigate(`/${projectId}/alerts`)}
+								trackingId="CancelAlert"
 							>
 								Cancel
 							</Button>
-							<Button disabled={disableSave} onClick={onSave}>
+							{isEdit && (
+								<Button
+									kind="danger"
+									size="small"
+									emphasis="low"
+									onClick={onDelete}
+									trackingId="DeleteAlert"
+								>
+									Delete Alert
+								</Button>
+							)}
+
+							<Button
+								disabled={disableSave}
+								onClick={onSave}
+								trackingId="SaveAlert"
+							>
 								Save&nbsp;
 							</Button>
 						</Box>

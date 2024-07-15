@@ -1047,6 +1047,10 @@ mutation UpdateAlertDisabled(
 	)
 }
 
+mutation DeleteAlert($project_id: ID!, $alert_id: ID!) {
+	deleteAlert(project_id: $project_id, alert_id: $alert_id)
+}
+
 mutation UpdateAdminAndCreateWorkspace(
 	$admin_and_workspace_details: AdminAndWorkspaceDetails!
 ) {
