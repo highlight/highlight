@@ -65,12 +65,12 @@ const DESTINATION_CHANNELS: Channel[] = [
 ]
 
 type Props = {
-	destinations: AlertDestinationInput[]
+	initialDestinations: AlertDestinationInput[]
 	setDestinations: (destinations: AlertDestinationInput[]) => void
 }
 
 export const DestinationInput: React.FC<Props> = ({
-	destinations,
+	initialDestinations,
 	setDestinations,
 }) => {
 	const { alertsPayload, slackUrl } = useAlertsContext()
@@ -93,7 +93,7 @@ export const DestinationInput: React.FC<Props> = ({
 		[],
 	)
 
-	// load in initial channels
+	// load in initial destinations
 	useEffect(() => {
 		const selectedChannels: { [key: string]: boolean } = {}
 		const slackChannels: ChannelOption[] = []
@@ -102,7 +102,7 @@ export const DestinationInput: React.FC<Props> = ({
 		const emails: ChannelOption[] = []
 		const webhooks: ChannelOption[] = []
 
-		destinations.forEach((destination) => {
+		initialDestinations.forEach((destination) => {
 			switch (destination.destination_type) {
 				case AlertDestinationType.Slack:
 					selectedChannels[AlertDestinationType.Slack] = true
@@ -148,9 +148,7 @@ export const DestinationInput: React.FC<Props> = ({
 		setSelectedTeamsChannels(teamsChannels)
 		setSelectedEmails(emails)
 		setSelectedWebhooks(webhooks)
-
-		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [])
+	}, [initialDestinations])
 
 	// keep destinations in sync with local state
 	useEffect(() => {

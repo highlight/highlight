@@ -145,6 +145,9 @@ export const AlertForm: React.FC = () => {
 	const [thresholdCooldown, setThresholdCooldown] =
 		useState<number>(DEFAULT_COOLDOWN)
 
+	const [initialDestinations, setInitialDestinations] = useState<
+		AlertDestinationInput[]
+	>([])
 	const [destinations, setDestinations] = useState<AlertDestinationInput[]>(
 		[],
 	)
@@ -227,6 +230,9 @@ export const AlertForm: React.FC = () => {
 			setThresholdWindow(data.alert.threshold_window ?? DEFAULT_WINDOW)
 			setThresholdCooldown(
 				data.alert.threshold_cooldown ?? DEFAULT_COOLDOWN,
+			)
+			setInitialDestinations(
+				data.alert.destinations as AlertDestinationInput[],
 			)
 			setDestinations(data.alert.destinations as AlertDestinationInput[])
 		},
@@ -579,7 +585,9 @@ export const AlertForm: React.FC = () => {
 								<Divider className="m-0" />
 								<SidebarSection>
 									<DestinationInput
-										destinations={destinations}
+										initialDestinations={
+											initialDestinations
+										}
 										setDestinations={setDestinations}
 									/>
 								</SidebarSection>
