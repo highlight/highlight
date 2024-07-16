@@ -185,8 +185,11 @@ export const setupBrowserTracing = (config: BrowserTracingConfig) => {
 		],
 	})
 
+	const contextManager = new StackContextManager()
+	contextManager.enable()
+
 	provider.register({
-		contextManager: new StackContextManager(),
+		contextManager,
 		propagator: new CompositePropagator({
 			propagators: [
 				new W3CBaggagePropagator(),
