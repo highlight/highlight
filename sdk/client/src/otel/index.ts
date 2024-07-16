@@ -1,7 +1,3 @@
-// Tried to use @opentelemetry/context-zone to handle this, but it was erroring
-// saying "Zone is not defined" so we had to import zone.js directly.
-import 'zone.js'
-
 import {
 	CompositePropagator,
 	W3CBaggagePropagator,
@@ -11,10 +7,10 @@ import {
 	BatchSpanProcessor,
 	BufferConfig,
 	ConsoleSpanExporter,
-	getElementXPath,
 	ReadableSpan,
 	SimpleSpanProcessor,
 	SpanExporter,
+	StackContextManager,
 	WebTracerProvider,
 } from '@opentelemetry/sdk-trace-web'
 import { DocumentLoadInstrumentation } from '@opentelemetry/instrumentation-document-load'
@@ -44,8 +40,7 @@ import {
 } from '../listeners/network-listener/utils/utils'
 import { parse } from 'graphql'
 import { getResponseBody } from '../listeners/network-listener/utils/fetch-listener'
-import { ZoneContextManager } from '@opentelemetry/context-zone-peer-dep'
-import { UserInteractionInstrumentation } from '@opentelemetry/instrumentation-user-interaction'
+import { UserInteractionInstrumentation } from './user-interaction'
 
 export type BrowserTracingConfig = {
 	projectId: string | number
@@ -191,7 +186,7 @@ export const setupBrowserTracing = (config: BrowserTracingConfig) => {
 	})
 
 	provider.register({
-		contextManager: new ZoneContextManager(),
+		contextManager: new StackContextManager(),
 		propagator: new CompositePropagator({
 			propagators: [
 				new W3CBaggagePropagator(),

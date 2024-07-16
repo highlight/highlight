@@ -14235,12 +14235,10 @@ __metadata:
     "@graphql-codegen/typescript-graphql-request": "npm:^6.0.1"
     "@graphql-codegen/typescript-operations": "npm:^4.0.1"
     "@opentelemetry/api": "npm:^1.8.0"
-    "@opentelemetry/context-zone-peer-dep": "npm:^1.25.1"
     "@opentelemetry/exporter-trace-otlp-http": "npm:^0.51.1"
     "@opentelemetry/instrumentation": "npm:^0.51.1"
     "@opentelemetry/instrumentation-document-load": "npm:^0.38.0"
     "@opentelemetry/instrumentation-fetch": "npm:^0.51.1"
-    "@opentelemetry/instrumentation-user-interaction": "npm:^0.38.0"
     "@opentelemetry/instrumentation-xml-http-request": "npm:^0.51.1"
     "@opentelemetry/otlp-exporter-base": "npm:^0.49.1"
     "@opentelemetry/resources": "npm:^1.24.1"
@@ -14378,7 +14376,7 @@ __metadata:
     graphql: "npm:^15.7.2"
     happy-dom: "npm:^14.7.1"
     highlight.io: "workspace:*"
-    highlight.run: "file:../sdk/firstload"
+    highlight.run: "workspace:*"
     js-cookie: "npm:^3.0.1"
     jsonc-parser: "npm:^3.2.0"
     less: "npm:^4.1.3"
@@ -17396,16 +17394,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@opentelemetry/context-zone-peer-dep@npm:^1.25.1":
-  version: 1.25.1
-  resolution: "@opentelemetry/context-zone-peer-dep@npm:1.25.1"
-  peerDependencies:
-    "@opentelemetry/api": ">=1.0.0 <1.10.0"
-    zone.js: ^0.10.2 || ^0.11.0 || ^0.12.0 || ^0.13.0 || ^0.14.0
-  checksum: 10/9ba70c766f549687f7e8344492b122853657dcc95fcff8f6fe18b6671a44b2a7753f6be720c9cd09fa821941e6ef5694874cea4b6172fee63e910087c75ff070
-  languageName: node
-  linkType: hard
-
 "@opentelemetry/core@npm:1.22.0":
   version: 1.22.0
   resolution: "@opentelemetry/core@npm:1.22.0"
@@ -17969,20 +17957,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@opentelemetry/instrumentation-user-interaction@npm:^0.38.0":
-  version: 0.38.0
-  resolution: "@opentelemetry/instrumentation-user-interaction@npm:0.38.0"
-  dependencies:
-    "@opentelemetry/core": "npm:^1.8.0"
-    "@opentelemetry/instrumentation": "npm:^0.51.0"
-    "@opentelemetry/sdk-trace-web": "npm:^1.8.0"
-  peerDependencies:
-    "@opentelemetry/api": ^1.3.0
-    zone.js: ^0.11.4 || ^0.13.0 || ^0.14.0
-  checksum: 10/ba851a1daed471142e8ca8830c884ee0e6f46531477f0752d69f774b3a966873662ce7d06ef5e5cbd04505b8c229b71d7b5dbd7fa458984d42335cffb32aca7e
-  languageName: node
-  linkType: hard
-
 "@opentelemetry/instrumentation-winston@npm:^0.35.0":
   version: 0.35.0
   resolution: "@opentelemetry/instrumentation-winston@npm:0.35.0"
@@ -18350,7 +18324,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@opentelemetry/sdk-trace-web@npm:1.24.1, @opentelemetry/sdk-trace-web@npm:^1.15.0, @opentelemetry/sdk-trace-web@npm:^1.24.1, @opentelemetry/sdk-trace-web@npm:^1.8.0":
+"@opentelemetry/sdk-trace-web@npm:1.24.1, @opentelemetry/sdk-trace-web@npm:^1.15.0, @opentelemetry/sdk-trace-web@npm:^1.24.1":
   version: 1.24.1
   resolution: "@opentelemetry/sdk-trace-web@npm:1.24.1"
   dependencies:
@@ -43376,13 +43350,6 @@ __metadata:
   version: 10.7.3
   resolution: "highlight.js@npm:10.7.3"
   checksum: 10/db8d10a541936b058e221dbde77869664b2b45bca75d660aa98065be2cd29f3924755fbc7348213f17fd931aefb6e6597448ba6fe82afba6d8313747a91983ee
-  languageName: node
-  linkType: hard
-
-"highlight.run@file:../sdk/firstload::locator=%40highlight-run%2Ffrontend%40workspace%3Afrontend":
-  version: 9.1.0
-  resolution: "highlight.run@file:../sdk/firstload#../sdk/firstload::hash=552887&locator=%40highlight-run%2Ffrontend%40workspace%3Afrontend"
-  checksum: 10/18e96942d9d71e11a3f5cf1a6356cc427f1d9e34fbbfebabf0c71ca2cab1d5a300dc5a564b7e6ba46270f81395db4dfbd8699656b77f58df34c0ca4c68b0df44
   languageName: node
   linkType: hard
 
