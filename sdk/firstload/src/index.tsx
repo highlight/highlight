@@ -32,9 +32,7 @@ import { initializeWebSocketListener } from './listeners/web-socket'
 import { listenToChromeExtensionMessage } from './browserExtension/extensionListener.js'
 import { setItem } from '@highlight-run/client/src/utils/storage.js'
 import { ErrorMessageType } from '@highlight-run/client/src/types/shared-types'
-// TODO: Confirm these imports don't change bundle size
 import type { Context, Span, SpanOptions, Tracer } from '@opentelemetry/api'
-import { wrap } from 'module'
 
 enum MetricCategory {
 	Device = 'Device',
