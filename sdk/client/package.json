@@ -65,8 +65,7 @@
 		"json-stringify-safe": "^5.0.1",
 		"rrweb": "workspace:*",
 		"stacktrace-js": "2.0.2",
-		"web-vitals": "^3.5.0",
-		"zone.js": "^0.14.7"
+		"web-vitals": "^3.5.0"
 	},
 	"size-limit": [
 		{

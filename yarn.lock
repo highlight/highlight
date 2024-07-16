@@ -14264,7 +14264,6 @@ __metadata:
     vite: "npm:^5.2.12"
     vitest: "npm:^1.6.0"
     web-vitals: "npm:^3.5.0"
-    zone.js: "npm:^0.14.7"
   languageName: unknown
   linkType: soft
 
@@ -69175,13 +69174,6 @@ __metadata:
   version: 3.22.3
   resolution: "zod@npm:3.22.3"
   checksum: 10/3aad6e6b61ddceaeb887dccc5f747903e619b09dfd208f6dc30eef15edf3942b8e6cd97a08e080c9c8723575446941edb823a8881c512e00e8dd3085f20659cc
-  languageName: node
-  linkType: hard
-
-"zone.js@npm:^0.14.7":
-  version: 0.14.7
-  resolution: "zone.js@npm:0.14.7"
-  checksum: 10/ae4d677cf390e68205cf0573b3ef424f551ecaa6d197928d455f16114a8336cd74673c16c6738abc11ef5796fd30f464f8959c3b1527ce64ca2190475076c3b6
   languageName: node
   linkType: hard
 
