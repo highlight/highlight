@@ -14235,7 +14235,7 @@ __metadata:
     "@graphql-codegen/typescript-graphql-request": "npm:^6.0.1"
     "@graphql-codegen/typescript-operations": "npm:^4.0.1"
     "@opentelemetry/api": "npm:^1.8.0"
-    "@opentelemetry/context-zone": "npm:^1.24.1"
+    "@opentelemetry/context-zone-peer-dep": "npm:^1.25.1"
     "@opentelemetry/exporter-trace-otlp-http": "npm:^0.51.1"
     "@opentelemetry/instrumentation": "npm:^0.51.1"
     "@opentelemetry/instrumentation-document-load": "npm:^0.38.0"
@@ -14266,6 +14266,7 @@ __metadata:
     vite: "npm:^5.2.12"
     vitest: "npm:^1.6.0"
     web-vitals: "npm:^3.5.0"
+    zone.js: "npm:^0.14.7"
   languageName: unknown
   linkType: soft
 
@@ -17395,23 +17396,13 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@opentelemetry/context-zone-peer-dep@npm:1.24.1":
-  version: 1.24.1
-  resolution: "@opentelemetry/context-zone-peer-dep@npm:1.24.1"
+"@opentelemetry/context-zone-peer-dep@npm:^1.25.1":
+  version: 1.25.1
+  resolution: "@opentelemetry/context-zone-peer-dep@npm:1.25.1"
   peerDependencies:
-    "@opentelemetry/api": ">=1.0.0 <1.9.0"
-    zone.js: ^0.10.2 || ^0.11.0 || ^0.13.0 || ^0.14.0
-  checksum: 10/72d5d44c2c045ef46a48163db5e1934d7d67f23025ab43839ca7cdf75c06be0a1d88ec96f8aae891137ccadabdf33a94fce94d5225881efce19bf102993fc9b3
-  languageName: node
-  linkType: hard
-
-"@opentelemetry/context-zone@npm:^1.24.1":
-  version: 1.24.1
-  resolution: "@opentelemetry/context-zone@npm:1.24.1"
-  dependencies:
-    "@opentelemetry/context-zone-peer-dep": "npm:1.24.1"
-    zone.js: "npm:^0.11.0 || ^0.13.0 || ^0.14.0"
-  checksum: 10/d692cb96b98232e8f36aa66b51fb28bc6f7d7a240d50408f7405b377a5b3dc8e71b3d53c6a11362cd0ac1752401e4b81401ace8772314fc9dc1455c623a33ab3
+    "@opentelemetry/api": ">=1.0.0 <1.10.0"
+    zone.js: ^0.10.2 || ^0.11.0 || ^0.12.0 || ^0.13.0 || ^0.14.0
+  checksum: 10/9ba70c766f549687f7e8344492b122853657dcc95fcff8f6fe18b6671a44b2a7753f6be720c9cd09fa821941e6ef5694874cea4b6172fee63e910087c75ff070
   languageName: node
   linkType: hard
 
@@ -43390,8 +43381,8 @@ __metadata:
 
 "highlight.run@file:../sdk/firstload::locator=%40highlight-run%2Ffrontend%40workspace%3Afrontend":
   version: 9.1.0
-  resolution: "highlight.run@file:../sdk/firstload#../sdk/firstload::hash=3c2f6e&locator=%40highlight-run%2Ffrontend%40workspace%3Afrontend"
-  checksum: 10/fb98f3a7fd50865a4778d27f7c09c90e8f56b045a0929e48ad60ba1117a86bd684757ad1dbf7c79c137599a334a6a658c60f053cdd21729ffb270a04c4b418c9
+  resolution: "highlight.run@file:../sdk/firstload#../sdk/firstload::hash=552887&locator=%40highlight-run%2Ffrontend%40workspace%3Afrontend"
+  checksum: 10/18e96942d9d71e11a3f5cf1a6356cc427f1d9e34fbbfebabf0c71ca2cab1d5a300dc5a564b7e6ba46270f81395db4dfbd8699656b77f58df34c0ca4c68b0df44
   languageName: node
   linkType: hard
 
@@ -69220,10 +69211,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"zone.js@npm:^0.11.0 || ^0.13.0 || ^0.14.0":
-  version: 0.14.6
-  resolution: "zone.js@npm:0.14.6"
-  checksum: 10/28ea85186ce27e9d15b419bab6e9fda73a1cb0f6eba7b891277e2d30bb491fe40c3a575d09c630151275abae6a83a408d7a2fb99676bd0d2ec6dc94f00771279
+"zone.js@npm:^0.14.7":
+  version: 0.14.7
+  resolution: "zone.js@npm:0.14.7"
+  checksum: 10/ae4d677cf390e68205cf0573b3ef424f551ecaa6d197928d455f16114a8336cd74673c16c6738abc11ef5796fd30f464f8959c3b1527ce64ca2190475076c3b6
   languageName: node
   linkType: hard
 

@@ -2,8 +2,6 @@ node_modules
 tmp
 **/.DS_Store
 dist
-# TODO: Remove this + all the files from the repo
-!sdk/firstload/dist
 esm
 out
 build

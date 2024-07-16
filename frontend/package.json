@@ -33,7 +33,7 @@
 		"framer-motion": "^6.3.15",
 		"graphql": "^15.7.2",
 		"highlight.io": "workspace:*",
-		"highlight.run": "file:../sdk/firstload",
+		"highlight.run": "workspace:*",
 		"js-cookie": "^3.0.1",
 		"lodash": "^4.17.21",
 		"lottie-react": "^2.1.0",
