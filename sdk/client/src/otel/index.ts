@@ -1,3 +1,7 @@
+// Tried to use @opentelemetry/context-zone to handle this, but it was erroring
+// saying "Zone is not defined" so we had to import zone.js directly.
+import 'zone.js'
+
 import {
 	CompositePropagator,
 	W3CBaggagePropagator,
@@ -7,6 +11,7 @@ import {
 	BatchSpanProcessor,
 	BufferConfig,
 	ConsoleSpanExporter,
+	getElementXPath,
 	ReadableSpan,
 	SimpleSpanProcessor,
 	SpanExporter,
@@ -37,10 +42,10 @@ import {
 	shouldNetworkRequestBeRecorded,
 	shouldNetworkRequestBeTraced,
 } from '../listeners/network-listener/utils/utils'
-import { UserInteractionInstrumentation } from './user-interaction'
 import { parse } from 'graphql'
 import { getResponseBody } from '../listeners/network-listener/utils/fetch-listener'
-import { ZoneContextManager } from '@opentelemetry/context-zone'
+import { ZoneContextManager } from '@opentelemetry/context-zone-peer-dep'
+import { UserInteractionInstrumentation } from '@opentelemetry/instrumentation-user-interaction'
 
 export type BrowserTracingConfig = {
 	projectId: string | number
@@ -85,15 +90,6 @@ export const setupBrowserTracing = (config: BrowserTracingConfig) => {
 		}),
 	})
 
-	provider.register({
-		propagator: new CompositePropagator({
-			propagators: [
-				new W3CBaggagePropagator(),
-				new W3CTraceContextPropagator(),
-			],
-		}),
-	})
-
 	// Export spans to console for debugging
 	if (isDebug) {
 		provider.addSpanProcessor(
@@ -116,8 +112,11 @@ export const setupBrowserTracing = (config: BrowserTracingConfig) => {
 	})
 	provider.addSpanProcessor(spanProcessor)
 
-	// Can customize by passing a config object as 2nd param.
-	provider.addSpanProcessor(new BatchSpanProcessor(exporter))
+	provider.addSpanProcessor(
+		new BatchSpanProcessor(exporter, {
+			maxExportBatchSize: 15,
+		}),
+	)
 
 	registerInstrumentations({
 		instrumentations: [
@@ -193,6 +192,12 @@ export const setupBrowserTracing = (config: BrowserTracingConfig) => {
 
 	provider.register({
 		contextManager: new ZoneContextManager(),
+		propagator: new CompositePropagator({
+			propagators: [
+				new W3CBaggagePropagator(),
+				new W3CTraceContextPropagator(),
+			],
+		}),
 	})
 }
 
