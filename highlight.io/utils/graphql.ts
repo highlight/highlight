@@ -12,7 +12,7 @@ const graphcms = new GraphQLClient(
 export const GraphQLRequest = async <T extends any>(
 	doc: string,
 	variables?: Variables,
-	delay: boolean = true,
+	delay: boolean = false,
 ): Promise<T> => {
 	if (!process.env.GRAPHCMS_TOKEN) {
 		console.warn(

@@ -37,6 +37,8 @@ type TraceColumnType =
 	| 'session'
 	| 'duration'
 	| 'boolean'
+	| 'metric_name'
+	| 'metric_value'
 export type TraceCustomColumn = CustomColumn<TraceColumnType>
 
 export type ValidCustomColumn = CustomColumn<any>

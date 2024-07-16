@@ -1,4 +1,3 @@
-import Select from '@components/Select/Select'
 import { useGetClickUpFoldersQuery } from '@graph/hooks'
 import { Form } from '@highlight-run/ui/components'
 import { ContainerSelectionProps } from '@pages/IntegrationsPage/IssueTrackerIntegrations'
@@ -6,7 +5,7 @@ import useLocalStorage from '@rehooks/local-storage'
 import { useParams } from '@util/react-router/useParams'
 import { useEffect, useMemo } from 'react'
 
-import * as style from '../style.css'
+import { OptionDropdown } from '@/pages/Graphing/OptionDropdown'
 
 const ClickUpListSelector: React.FC<ContainerSelectionProps> = ({
 	setSelectionId,
@@ -52,17 +51,13 @@ const ClickUpListSelector: React.FC<ContainerSelectionProps> = ({
 	}, [selectedClickUpListId, clickUpListOptions, setClickUpListId])
 
 	return (
-		<Form.NamedSection label="ClickUp List" name="clickupList">
-			<Select
-				aria-label="ClickUp List"
-				placeholder="Choose a list to create the task in"
-				options={clickUpListOptions}
-				onChange={setClickUpListId}
-				value={'' + selectedClickUpListId}
-				notFoundContent={<p>No lists found</p>}
-				loading={loading}
-				className={style.selectContainer}
-				disabled={disabled}
+		<Form.NamedSection label="List" name="clickupList">
+			<OptionDropdown
+				options={clickUpListOptions.map((o) => o.id)}
+				labels={clickUpListOptions.map((o) => o.displayValue)}
+				selection={selectedClickUpListId}
+				setSelection={setClickUpListId}
+				disabled={disabled || loading}
 			/>
 		</Form.NamedSection>
 	)

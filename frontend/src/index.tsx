@@ -3,7 +3,7 @@ import '@highlight-run/ui/styles.css'
 import './index.css'
 import './style/tailwind.css'
 import './__generated/antd.css'
-import 'rrweb/dist/rrweb.min.css'
+import 'rrweb/dist/style.css'
 
 import { ApolloError, ApolloProvider } from '@apollo/client'
 import { AuthContextProvider, AuthRole } from '@authentication/AuthContext'
@@ -21,7 +21,7 @@ import {
 	useGetAdminRoleLazyQuery,
 	useGetProjectLazyQuery,
 } from '@graph/hooks'
-import { Admin } from '@graph/schemas'
+import { Admin, WorkspaceAdminRole } from '@graph/schemas'
 import { ErrorBoundary } from '@highlight-run/react'
 import useLocalStorage from '@rehooks/local-storage'
 import { AppRouter } from '@routers/AppRouter/AppRouter'
@@ -47,7 +47,7 @@ import {
 import { QueryParamProvider } from 'use-query-params'
 import { ReactRouter6Adapter } from 'use-query-params/adapters/react-router-6'
 
-import { PUBLIC_GRAPH_URI } from '@/constants'
+import { OTLP_ENDPOINT, PUBLIC_GRAPH_URI } from '@/constants'
 import { SIGN_IN_ROUTE } from '@/pages/Auth/AuthRouter'
 import { authRedirect } from '@/pages/Auth/utils'
 import { onlyAllowHighlightStaff } from '@/util/authorization/authorizationUtils'
@@ -114,14 +114,16 @@ const options: HighlightOptions = {
 	enableCanvasRecording: true,
 	samplingStrategy: {
 		canvas: 1,
-		canvasMaxSnapshotDimension: 480,
 		canvasFactor: 0.5,
+		canvasMaxSnapshotDimension: 480,
 	},
 	inlineStylesheet: true,
 	inlineImages: true,
 	sessionShortcut: 'alt+1,command+`,alt+esc',
 	version: import.meta.env.REACT_APP_COMMIT_SHA ?? '1.0.0',
 	serviceName: 'frontend',
+	enableOtelTracing: true,
+	otlpEndpoint: OTLP_ENDPOINT,
 }
 const favicon = document.querySelector("link[rel~='icon']") as any
 if (dev) {
@@ -241,6 +243,7 @@ const AuthenticationRoleRouter = () => {
 		adminError: ApolloError | undefined,
 		adminData: Admin | undefined | null,
 		adminRole: string | undefined,
+		roleData: WorkspaceAdminRole | undefined,
 		called: boolean,
 		loading: boolean,
 		refetch: typeof wRefetch | typeof pRefetch | typeof sRefetch
@@ -249,6 +252,7 @@ const AuthenticationRoleRouter = () => {
 		adminError = adminWError
 		adminData = adminWData?.admin_role?.admin
 		adminRole = adminWData?.admin_role?.role
+		roleData = adminWData?.admin_role ?? undefined
 		called = wCalled
 		loading = wLoading
 		refetch = wRefetch
@@ -257,6 +261,7 @@ const AuthenticationRoleRouter = () => {
 		adminError = adminPError
 		adminData = adminPData?.admin_role_by_project?.admin
 		adminRole = adminPData?.admin_role_by_project?.role
+		roleData = adminPData?.admin_role_by_project ?? undefined
 		called = pCalled
 		loading = pLoading
 		refetch = pRefetch
@@ -279,13 +284,27 @@ const AuthenticationRoleRouter = () => {
 	const isAuthLoading = authRole === AuthRole.LOADING
 	const isLoggedIn = authRole === AuthRole.AUTHENTICATED
 
-	useEffect(() => {
-		if (adminData && user) {
-			setAuthRole(AuthRole.AUTHENTICATED)
-		} else if (adminError) {
-			setAuthRole(AuthRole.UNAUTHENTICATED)
-		}
-	}, [adminData, adminError, user])
+	auth.onAuthStateChanged(
+		async (user) => {
+			if (!firebaseInitialized.current) {
+				// Only call this logic when we are initializing Firebase, otherwise,
+				// let the signIn/signOut handlers set it.
+				setUser(user)
+
+				if (!user) {
+					// If Firebase initialized without a user they need to authenticate,
+					// so set them as unauthenticated and disable the loading state.
+					setAuthRole(AuthRole.UNAUTHENTICATED)
+					setLoadingState(AppLoadingState.LOADED)
+				}
+			}
+
+			firebaseInitialized.current = true
+		},
+		(error) => {
+			H.consumeError(error)
+		},
+	)
 
 	const fetchAdmin = useCallback(async () => {
 		if (loading || !user) {
@@ -307,6 +326,14 @@ const AuthenticationRoleRouter = () => {
 	}, [called, getAdminQuery, loading, projectId, refetch, user, workspaceId])
 
 	useEffect(() => {
+		if (adminData && user) {
+			setAuthRole(AuthRole.AUTHENTICATED)
+		} else if (adminError) {
+			setAuthRole(AuthRole.UNAUTHENTICATED)
+		}
+	}, [adminData, adminError, user])
+
+	useEffect(() => {
 		const fetch = async () => {
 			if (user) {
 				await fetchAdmin()
@@ -318,31 +345,6 @@ const AuthenticationRoleRouter = () => {
 		// different parts of the app) or when the Firebase user changes.
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [getAdminQuery, user])
-
-	useEffect(() => {
-		return auth.onAuthStateChanged(
-			async (user) => {
-				if (!firebaseInitialized.current) {
-					// Only call this logic when we are initializing Firebase, otherwise,
-					// let the signIn/signOut handlers set it.
-					setUser(user)
-
-					if (!user) {
-						// If Firebase initialized without a user they need to authenticate,
-						// so set them as unauthenticated and disable the loading state.
-						setAuthRole(AuthRole.UNAUTHENTICATED)
-						setLoadingState(AppLoadingState.LOADED)
-					}
-				}
-
-				firebaseInitialized.current = true
-			},
-			(error) => {
-				H.consumeError(error)
-			},
-		)
-		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [])
 
 	useEffect(() => {
 		// Wait until auth is finished loading otherwise this request can fail.
@@ -361,7 +363,7 @@ const AuthenticationRoleRouter = () => {
 
 				analytics.identify(adminData.id, {
 					'Project ID': data.project?.id,
-					'Workspace ID': data.workspace?.id,
+					'Workspace ID': data.project?.workspace?.id,
 				})
 			},
 		})
@@ -373,6 +375,8 @@ const AuthenticationRoleRouter = () => {
 		true,
 	)
 
+	const isProjectLevelMember = !!roleData?.projectIds?.length
+
 	return (
 		<AuthContextProvider
 			value={{
@@ -383,6 +387,7 @@ const AuthenticationRoleRouter = () => {
 				isLoggedIn,
 				isHighlightAdmin:
 					onlyAllowHighlightStaff(adminData) && enableStaffView,
+				isProjectLevelMember,
 				fetchAdmin,
 				signIn: async (user: typeof auth.currentUser) => {
 					analytics.track('Authenticated')

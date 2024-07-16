@@ -6,10 +6,10 @@ import (
 	"database/sql"
 	"encoding/json"
 	"fmt"
+	"github.com/highlight-run/highlight/backend/env"
 	"io"
 	"math"
 	"net/http"
-	"os"
 	"strings"
 	"time"
 
@@ -259,7 +259,7 @@ func MatchErrorTag(ctx context.Context, db *gorm.DB, c Client, query string) ([]
 func New() Client {
 	return &HuggingfaceModelClient{
 		client: &http.Client{},
-		url:    os.Getenv("HUGGINGFACE_MODEL_URL"),
-		token:  os.Getenv("HUGGINGFACE_API_TOKEN"),
+		url:    env.Config.HuggingfaceModelUrl,
+		token:  env.Config.HuggingfaceApiToken,
 	}
 }

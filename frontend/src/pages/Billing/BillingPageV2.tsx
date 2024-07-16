@@ -1,3 +1,4 @@
+import { CalendlyButton } from '@components/CalendlyModal/CalendlyButton'
 import LoadingBox from '@components/LoadingBox'
 import { toast } from '@components/Toaster'
 import { USD } from '@dinero.js/currencies'
@@ -7,7 +8,6 @@ import {
 	Callout,
 	Heading,
 	IconProps,
-	IconSolidArrowSmRight,
 	IconSolidCheveronDown,
 	IconSolidCheveronRight,
 	IconSolidExclamation,
@@ -26,7 +26,6 @@ import {
 import { vars } from '@highlight-run/ui/vars'
 import { BarChart } from '@pages/Graphing/components/BarChart'
 import { TIMESTAMP_KEY } from '@pages/Graphing/components/Graph'
-import { getPlanChangeEmail } from '@util/billing/billing'
 import { dinero, toDecimal } from 'dinero.js'
 import moment from 'moment'
 import React, { useEffect } from 'react'
@@ -80,6 +79,12 @@ type UsageCardProps = {
 	billingPeriodEnd?: moment.Moment
 }
 
+const UsageRangeOptions = ['Monthly', 'Weekly', 'Daily'] as const
+
+const BucketCount = 12
+const DaysInWeek = 7
+const WeeksInMonth = 4
+
 const UsageCard = ({
 	productIcon,
 	productType,
@@ -88,6 +93,7 @@ const UsageCard = ({
 	billingLimitCents,
 	usageAmount,
 	usageLimitAmount,
+	planType,
 	includedQuantity,
 	isPaying,
 	enableBillingLimits,
@@ -104,13 +110,20 @@ const UsageCard = ({
 		start: moment.Moment
 		end: moment.Moment
 	}>({
-		start: (billingPeriodEnd ?? moment()).subtract(3, 'months'),
-		end: billingPeriodEnd ?? moment(),
+		start: (moment(billingPeriodEnd) ?? moment()).subtract(3, 'months'),
+		end: moment(billingPeriodEnd) ?? moment(),
 	})
 
-	const setUsageRange = (option: 'Monthly' | 'Weekly') => {
+	const setUsageRange = (option: 'Monthly' | 'Weekly' | 'Daily') => {
 		setRange({
-			start: moment().subtract(option === 'Monthly' ? 12 : 3, 'months'),
+			start: moment().subtract(
+				option === 'Monthly'
+					? BucketCount * DaysInWeek * WeeksInMonth
+					: option === 'Weekly'
+					? BucketCount * DaysInWeek
+					: BucketCount,
+				'days',
+			),
 			end: moment(),
 		})
 	}
@@ -200,8 +213,8 @@ const UsageCard = ({
 										{usageAmount.toLocaleString()}{' '}
 										{productType.toLocaleLowerCase()}
 									</b>{' '}
-									this month. 300000 are included in the free
-									tier.
+									this month. {includedQuantity} are included
+									on the {planType} tier.
 								</Text>
 							</Box>
 						</Tooltip>
@@ -232,6 +245,7 @@ const UsageCard = ({
 					</Tooltip>
 					{enableBillingLimits ? (
 						<Tooltip
+							maxWidth={177}
 							delayed
 							trigger={
 								<Badge
@@ -244,11 +258,15 @@ const UsageCard = ({
 									iconEnd={
 										<IconSolidInformationCircle size={12} />
 									}
-								></Badge>
+								/>
 							}
 						>
-							{productType} will not be recorded once this billing
-							limit is reached.
+							<Box padding="4">
+								<Text size="xSmall" color="moderate">
+									<b>{productType}</b> will not be recorded
+									once this billing limit is reached.
+								</Text>
+							</Box>
 						</Tooltip>
 					) : null}
 					{billingLimitCents === 0 ? (
@@ -293,9 +311,18 @@ const UsageCard = ({
 							</Text>
 						)}
 						{isOverage && (
-							<Tooltip delayed trigger={<IconSolidExclamation />}>
-								{productType} have exceeded your billing limit
-								and are not being recorded.
+							<Tooltip
+								maxWidth={177}
+								delayed
+								trigger={<IconSolidExclamation size={12} />}
+							>
+								<Box padding="4">
+									<Text size="xSmall" color="moderate">
+										<b>{productType}</b> have exceeded your
+										billing limit and are not being
+										recorded.
+									</Text>
+								</Box>
 							</Tooltip>
 						)}
 					</Box>
@@ -353,18 +380,19 @@ const UsageCard = ({
 								{usageRange.end.diff(usageRange.start, 'day') >
 								100
 									? 'Monthly'
-									: 'Weekly'}
+									: usageRange.end.diff(
+											usageRange.start,
+											'day',
+									  ) > 40
+									? 'Weekly'
+									: 'Daily'}
 							</Text>
 						</Menu.Button>
 						<Menu.List>
-							{['Monthly', 'Weekly'].map((option) => (
+							{UsageRangeOptions.map((option) => (
 								<Menu.Item
 									key={option}
-									onClick={() =>
-										setUsageRange(
-											option as 'Monthly' | 'Weekly',
-										)
-									}
+									onClick={() => setUsageRange(option)}
 								>
 									<Box display="flex" alignItems="center">
 										<Text size="xSmall" color="moderate">
@@ -598,25 +626,17 @@ const BillingPageV2 = ({}: BillingPageProps) => {
 				<Stack>
 					<Heading level="h4">Billing plans</Heading>
 					{isAWSMP ? null : (
-						<Box display="inline-flex">
+						<Box display="inline-flex" gap="4" alignItems="center">
 							<Text size="small" color="weak">
 								Prices are flexible around your needs. Custom
-								quote?{' '}
-								<a
-									href={getPlanChangeEmail({
-										workspaceID: workspace_id,
-										planType: PlanType.Enterprise,
-									})}
-								>
-									<Box
-										display="inline-flex"
-										alignItems="center"
-									>
-										Reach out to sales{' '}
-										<IconSolidArrowSmRight />
-									</Box>
-								</a>
+								quote?
 							</Text>
+							<CalendlyButton
+								text="Book a call."
+								size="xSmall"
+								emphasis="low"
+								howCanWeHelp="Custom quote"
+							/>
 						</Box>
 					)}
 					{billingIssue ? (
@@ -799,7 +819,7 @@ const BillingPageV2 = ({}: BillingPageProps) => {
 													?.next_invoice_date ??
 													data?.workspace
 														?.billing_period_end,
-										  ).add(-1, 'month')
+										  )
 										: undefined
 								}
 								{...product}
@@ -897,6 +917,7 @@ const BillingPageV2 = ({}: BillingPageProps) => {
 									>
 										{hasExtras && (
 											<Tooltip
+												maxWidth={177}
 												delayed
 												trigger={
 													<IconSolidInformationCircle
@@ -904,20 +925,28 @@ const BillingPageV2 = ({}: BillingPageProps) => {
 													/>
 												}
 											>
-												Includes a{' '}
-												{data?.billingDetails.plan
-													.interval === 'Annual'
-													? 'yearly'
-													: 'monthly'}{' '}
-												base charge of{' '}
-												{baseAmountFormatted}
-												{discountPercent
-													? ` with a ${discountPercent}% discount`
-													: ''}
-												{discountAmount
-													? ` with a ${discountAmountFormatted} discount`
-													: ''}
-												.
+												<Box padding="4">
+													<Text
+														size="xSmall"
+														color="moderate"
+													>
+														Includes a{' '}
+														{data?.billingDetails
+															.plan.interval ===
+														'Annual'
+															? 'yearly'
+															: 'monthly'}{' '}
+														base charge of{' '}
+														{baseAmountFormatted}
+														{discountPercent
+															? ` with a ${discountPercent}% discount`
+															: ''}
+														{discountAmount
+															? ` with a ${discountAmountFormatted} discount`
+															: ''}
+														.
+													</Text>
+												</Box>
 											</Tooltip>
 										)}
 										<Text color="p11" weight="bold">

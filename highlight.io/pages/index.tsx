@@ -237,7 +237,7 @@ const Home: NextPage = () => {
 							</div>
 						</div>
 						<div className="relative flex flex-col items-center mt-8 mb-28">
-							<CalendlyModal />
+							<CalendlyModal className="px-3 hover:bg-white/10" />
 						</div>
 						<FeatureCarousel />
 					</div>

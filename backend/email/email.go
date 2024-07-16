@@ -4,7 +4,7 @@ import (
 	"context"
 	"crypto/sha256"
 	"fmt"
-	"os"
+	"github.com/highlight-run/highlight/backend/env"
 	"strconv"
 	"time"
 
@@ -27,7 +27,7 @@ var (
 	SendGridOutboundEmail                = "notifications@notify.highlight.io"
 	SessionCommentMentionsAsmId          = 20950
 	ErrorCommentMentionsAsmId            = 20994
-	frontendUri                          = os.Getenv("REACT_APP_FRONTEND_URI")
+	frontendUri                          = env.Config.FrontendUri
 )
 
 type EmailType string
@@ -107,14 +107,14 @@ func GetOptOutToken(adminID int, previous bool) string {
 		now = now.AddDate(0, -1, 0)
 	}
 	h := sha256.New()
-	preHash := strconv.Itoa(adminID) + now.Format("2006-01") + os.Getenv("EMAIL_OPT_OUT_SALT")
+	preHash := strconv.Itoa(adminID) + now.Format("2006-01") + env.Config.EmailOptOutSalt
 	h.Write([]byte(preHash))
 	return fmt.Sprintf("%x", h.Sum(nil))
 }
 
 func GetSubscriptionUrl(adminId int, previous bool) string {
 	token := GetOptOutToken(adminId, previous)
-	return fmt.Sprintf("%s/subscriptions?admin_id=%d&token=%s", os.Getenv("REACT_APP_FRONTEND_URI"), adminId, token)
+	return fmt.Sprintf("%s/subscriptions?admin_id=%d&token=%s", env.Config.FrontendUri, adminId, token)
 }
 
 func getApproachingLimitMessage(productType string, workspaceId int) string {
@@ -133,8 +133,8 @@ func getExceededLimitMessage(productType string, workspaceId int) string {
 }
 
 func getOverageMessage(productType string, workspaceId int) string {
-	return fmt.Sprintf(`Your %s usage has exceeded the included amount - extra %s are now incurring a charge for the rest of the month.<br>
-		If you'd like to check the exact charge for the month',
+	return fmt.Sprintf(`Your %s usage has exceeded the included amount - extra %s are now incurring a charge.<br>
+		If you'd like to check the exact charge for the month,
 		please visit the subscription details page <a href="%s/w/%d/current-plan">here</a>.`,
 		productType, productType, frontendUri, workspaceId)
 }

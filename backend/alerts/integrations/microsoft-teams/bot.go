@@ -1,9 +1,9 @@
 package microsoft_teams
 
 import (
-	"os"
 	"strings"
 
+	"github.com/highlight-run/highlight/backend/env"
 	"github.com/infracloudio/msbotbuilder-go/core"
 	"github.com/infracloudio/msbotbuilder-go/core/activity"
 	"github.com/infracloudio/msbotbuilder-go/schema"
@@ -76,22 +76,16 @@ func (bot *MicrosoftTeamsBot) makeChannelMessageActivity(channelId string) schem
 }
 
 func NewMicrosoftTeamsBot(tenantID string) (*MicrosoftTeamsBot, error) {
-	var (
-		ok          bool
-		botPassword string
-		botID       string
-	)
-	if botPassword, ok = os.LookupEnv("MICROSOFT_TEAMS_BOT_PASSWORD"); !ok || botPassword == "" {
+	if env.Config.MicrosoftTeamsBotId == "" {
+		return nil, errors.New("MICROSOFT_TEAMS_BOT_ID not set")
+	}
+	if env.Config.MicrosoftTeamsBotPassword == "" {
 		return nil, errors.New("MICROSOFT_TEAMS_BOT_PASSWORD not set")
 	}
 
-	if botID, ok = os.LookupEnv("MICROSOFT_TEAMS_BOT_ID"); !ok || botID == "" {
-		return nil, errors.New("MICROSOFT_TEAMS_BOT_ID not set")
-	}
-
 	setting := core.AdapterSetting{
-		AppID:       botID,
-		AppPassword: botPassword,
+		AppID:       env.Config.MicrosoftTeamsBotId,
+		AppPassword: env.Config.MicrosoftTeamsBotPassword,
 	}
 
 	adapter, err := core.NewBotAdapter(setting)
@@ -99,5 +93,5 @@ func NewMicrosoftTeamsBot(tenantID string) (*MicrosoftTeamsBot, error) {
 		return nil, errors.Wrap(err, "Error creating adapter: error creating microsoft teams bot")
 	}
 
-	return &MicrosoftTeamsBot{adapter, tenantID, botID}, nil
+	return &MicrosoftTeamsBot{adapter, tenantID, env.Config.MicrosoftTeamsBotId}, nil
 }

@@ -1,25 +1,28 @@
-import { useId } from 'react'
+import { useId, useState } from 'react'
 import {
 	Bar,
 	BarChart as RechartsBarChart,
 	BarProps,
 	CartesianGrid,
+	ReferenceArea,
 	ResponsiveContainer,
 	Tooltip,
 	XAxis,
 	YAxis,
 } from 'recharts'
+import { CategoricalChartFunc } from 'recharts/types/chart/generateCategoricalChart'
 
 import {
+	AxisConfig,
 	CustomXAxisTick,
 	CustomYAxisTick,
 	getColor,
 	getCustomTooltip,
 	getTickFormatter,
-	GROUP_KEY,
 	InnerChartProps,
 	isActive,
 	SeriesInfo,
+	TIMESTAMP_KEY,
 } from '@/pages/Graphing/components/Graph'
 
 export type BarDisplay = 'Grouped' | 'Stacked'
@@ -27,7 +30,7 @@ export const BAR_DISPLAY: BarDisplay[] = ['Grouped', 'Stacked']
 
 export type BarChartConfig = {
 	type: 'Bar chart'
-	showLegend: true
+	showLegend: boolean
 	display?: BarDisplay
 }
 
@@ -64,20 +67,71 @@ export const BarChart = ({
 	data,
 	xAxisMetric,
 	yAxisMetric,
+	yAxisFunction,
 	series,
 	spotlight,
 	strokeColors,
 	viewConfig,
-	onMouseDown,
-	onMouseMove,
-	onMouseUp,
+	setTimeRange,
 	children,
-}: React.PropsWithChildren<InnerChartProps<BarChartConfig> & SeriesInfo>) => {
+	showXAxis,
+	showYAxis,
+	showGrid,
+}: React.PropsWithChildren<
+	InnerChartProps<BarChartConfig> & SeriesInfo & AxisConfig
+>) => {
 	const xAxisTickFormatter = getTickFormatter(xAxisMetric, data)
 	const yAxisTickFormatter = getTickFormatter(yAxisMetric, data)
 
 	// used to give svg masks an id unique to the page
 	const id = useId()
+
+	const [refAreaStart, setRefAreaStart] = useState<number | undefined>()
+	const [refAreaEnd, setRefAreaEnd] = useState<number | undefined>()
+
+	const referenceArea =
+		refAreaStart && refAreaEnd ? (
+			<ReferenceArea
+				x1={refAreaStart}
+				x2={refAreaEnd}
+				strokeOpacity={0.3}
+			/>
+		) : null
+
+	const allowDrag =
+		setTimeRange !== undefined && xAxisMetric === TIMESTAMP_KEY
+
+	const onMouseDown: CategoricalChartFunc | undefined = allowDrag
+		? (e) => {
+				if (e.activeLabel !== undefined) {
+					setRefAreaStart(Number(e.activeLabel))
+				}
+		  }
+		: undefined
+
+	const onMouseMove: CategoricalChartFunc | undefined = allowDrag
+		? (e) => {
+				if (refAreaStart !== undefined && e.activeLabel !== undefined) {
+					setRefAreaEnd(Number(e.activeLabel))
+				}
+		  }
+		: undefined
+
+	const onMouseUp: CategoricalChartFunc | undefined = allowDrag
+		? () => {
+				if (refAreaStart !== undefined && refAreaEnd !== undefined) {
+					const startDate = Math.min(refAreaStart, refAreaEnd)
+					const endDate = Math.max(refAreaStart, refAreaEnd)
+
+					setTimeRange(
+						new Date(startDate * 1000),
+						new Date(endDate * 1000),
+					)
+				}
+				setRefAreaStart(undefined)
+				setRefAreaEnd(undefined)
+		  }
+		: undefined
 
 	return (
 		<ResponsiveContainer>
@@ -88,6 +142,7 @@ export const BarChart = ({
 				onMouseMove={onMouseMove}
 				onMouseUp={onMouseUp}
 			>
+				{referenceArea}
 				{children}
 				<XAxis
 					dataKey={xAxisMetric}
@@ -104,12 +159,17 @@ export const BarChart = ({
 					tickLine={{ visibility: 'hidden' }}
 					axisLine={{ visibility: 'hidden' }}
 					height={12}
-					type={xAxisMetric === GROUP_KEY ? 'category' : 'number'}
 					domain={['dataMin', 'dataMax']}
+					hide={showXAxis === false}
 				/>
 
 				<Tooltip
-					content={getCustomTooltip(xAxisMetric, yAxisMetric)}
+					content={getCustomTooltip(
+						xAxisMetric,
+						yAxisMetric,
+						yAxisFunction,
+					)}
+					wrapperStyle={{ zIndex: 100 }}
 					cursor={{ fill: '#C8C7CB', fillOpacity: 0.5 }}
 					isAnimationActive={false}
 				/>
@@ -129,13 +189,16 @@ export const BarChart = ({
 					tickCount={7}
 					width={32}
 					type="number"
+					hide={showYAxis === false}
 				/>
 
-				<CartesianGrid
-					strokeDasharray=""
-					vertical={false}
-					stroke="var(--color-gray-200)"
-				/>
+				{showGrid && (
+					<CartesianGrid
+						strokeDasharray=""
+						vertical={false}
+						stroke="var(--color-gray-200)"
+					/>
+				)}
 
 				{series.length > 0 &&
 					series.map((key, idx) => {
@@ -152,8 +215,7 @@ export const BarChart = ({
 							<Bar
 								key={key}
 								dataKey={key}
-								fill={strokeColors?.at(idx) ?? getColor(idx)}
-								maxBarSize={30}
+								fill={getColor(idx, key, strokeColors)}
 								isAnimationActive={false}
 								stackId={
 									viewConfig.display === 'Stacked' ? 1 : idx

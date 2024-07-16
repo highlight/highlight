@@ -21,7 +21,7 @@ var store *Store
 
 func TestMain(m *testing.M) {
 	dbName := "highlight_testing_db"
-	testLogger := log.WithContext(context.TODO()).WithFields(log.Fields{"DB_HOST": os.Getenv("PSQL_HOST"), "DB_NAME": dbName})
+	testLogger := log.WithContext(context.TODO())
 
 	db, err := util.CreateAndMigrateTestDB(dbName)
 	if err != nil {
@@ -39,12 +39,12 @@ func TestMain(m *testing.M) {
 }
 
 func teardown(t *testing.T) {
-	err := util.ClearTablesInDB(store.db)
+	err := util.ClearTablesInDB(store.DB)
 	if err != nil {
 		t.Fatal(e.Wrap(err, "error clearing database"))
 	}
 
-	err = store.redis.FlushDB(context.TODO())
+	err = store.Redis.FlushDB(context.TODO())
 	if err != nil {
 		t.Fatal(e.Wrap(err, "error clearing database"))
 	}

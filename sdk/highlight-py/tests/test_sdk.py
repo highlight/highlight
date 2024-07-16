@@ -1,9 +1,11 @@
 import logging
+import time
 
-import highlight_io
 import pytest
 from opentelemetry.sdk._logs._internal.export import BatchLogRecordProcessor
 from opentelemetry.sdk.trace.export import BatchSpanProcessor
+
+import highlight_io
 
 
 @pytest.fixture(params=[None, [], ["Flask"]])
@@ -91,6 +93,23 @@ def test_test_decorator(mock_trace):
         return "yo"
 
     my_func()
+    h.flush()
+
+    assert mock_trace.call_args_list[0].args[1:] == ("highlight.log",)
+
+
+@pytest.mark.parametrize("debug", [False, True])
+@pytest.mark.parametrize("disable_export_error_logging", [False, True])
+def test_no_errors(mock_trace, debug, disable_export_error_logging):
+    logger = logging.getLogger()
+    logger.setLevel(logging.INFO)
+    h = highlight_io.H(
+        "1",
+        debug=debug,
+        disable_export_error_logging=disable_export_error_logging,
+        otlp_endpoint="http://foo:4318",
+    )
+    logger.info(f"hey there!")
     h.flush()
 
     assert mock_trace.call_args_list[0].args[1:] == ("highlight.log",)

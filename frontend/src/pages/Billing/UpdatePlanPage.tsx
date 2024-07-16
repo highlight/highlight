@@ -5,6 +5,7 @@ import { USD } from '@dinero.js/currencies'
 import {
 	Badge,
 	Box,
+	Callout,
 	Form,
 	IconProps,
 	IconSolidChatAlt,
@@ -61,6 +62,7 @@ import {
 } from '@/pages/Billing/utils/utils'
 import { useParams } from '@/util/react-router/useParams'
 
+import { CalendlyButton } from '../../components/CalendlyModal/CalendlyButton'
 import * as style from './UpdatePlanPage.css'
 
 // TODO(vkorolik) billing for metrics ingest
@@ -83,6 +85,7 @@ const RETENTION_OPTIONS = {
 } as const
 
 const RETENTION_MULTIPLIER = {
+	[RetentionPeriod.SevenDays]: 1,
 	[RetentionPeriod.ThirtyDays]: 1,
 	[RetentionPeriod.ThreeMonths]: 1,
 	[RetentionPeriod.SixMonths]: 1.5,
@@ -1179,7 +1182,7 @@ type Plan = {
 	name: string
 	descriptions: string[]
 	icon: React.ReactNode
-	price: number
+	price: number | 'Custom'
 }
 
 const PLAN_BASE_FEES = {
@@ -1218,18 +1221,21 @@ const PLANS = {
 		type: PlanType.Enterprise,
 		name: 'Enterprise (Cloud)',
 		descriptions: [
-			'Robust availability for large-scale demanding teams',
+			'MP4 video export for sessions',
+			'Reporting and analysis for sessions and more',
+			'Robust availability for large-scale teams',
 			'Support for SSO, RBAC, and other organizational requirements',
 		],
 		icon: <IconSolidServer size="24" color="#E93D82" />,
-		price: 1000,
+		price: 'Custom',
 	},
 	'Self-host': {
 		type: PlanType.Enterprise,
 		name: 'Enterprise (Self-hosted)',
 		descriptions: [
-			'Highly-available on-prem / cloud-prem deployments',
+			'Highly-available on-prem deployments',
 			'Bring your own infrastructure',
+			'Customized data storage and retention',
 			'Govern data in your environment',
 		],
 		icon: (
@@ -1238,7 +1244,7 @@ const PLANS = {
 				color={vars.theme.static.content.default}
 			/>
 		),
-		price: 3000,
+		price: 'Custom',
 	},
 } as { [plan in PlanType | 'Self-host']: Plan }
 
@@ -1266,11 +1272,15 @@ const PlanCard = ({
 	setSelectedPlanType,
 	setStep,
 	currentPlanType,
+	howCanWeHelp,
+	onClick,
 }: {
 	plan: Plan
 	setSelectedPlanType: (step: PlanType) => void
 	setStep: (step: PlanSelectStep) => void
 	currentPlanType?: PlanType
+	howCanWeHelp?: string
+	onClick?: () => void
 }) => {
 	const { workspace_id } = useParams<{
 		workspace_id: string
@@ -1293,43 +1303,62 @@ const PlanCard = ({
 				{plan.name}
 			</Text>
 			<h3 style={{ fontWeight: 700 }}>
-				${plan.price}
-				{plan.price >= 1000 ? '+' : ''}
+				{plan.price === 'Custom' ? plan.price : `${plan.price}`}
 			</h3>
-			<Text size="xxSmall" color="weak" cssClass={style.priceSubtitle}>
-				per month
-			</Text>
-			<Button
-				trackingId={`planSelect-${plan.name}`}
-				kind="secondary"
-				size="small"
-				emphasis="high"
-				disabled={current}
-				iconLeft={enterprise ? <IconSolidChatAlt /> : undefined}
-				onClick={() => {
-					if (free || enterprise) {
-						window.open(
-							getPlanChangeEmail({
-								workspaceID: workspace_id,
-								planType: plan.type,
-							}),
-						)
-					} else if (isOnPrem) {
-						window.open(
-							'https://app.highlight.io/sign_up?ref=hobby',
-						)
-					} else {
-						setSelectedPlanType(plan.type)
-						setStep('Configure plan')
+			{plan.price === 'Custom' ? null : (
+				<Text
+					size="xxSmall"
+					color="weak"
+					cssClass={style.priceSubtitle}
+				>
+					per month
+				</Text>
+			)}
+			{enterprise ? (
+				<CalendlyButton
+					text="Talk to sales"
+					howCanWeHelp={
+						howCanWeHelp ??
+						`I'd like to explore an enterprise plan.`
 					}
-				}}
-			>
-				{enterprise
-					? 'Talk to sales'
-					: current
-					? 'Current plan'
-					: 'Select plan'}
-			</Button>
+					kind="secondary"
+					size="small"
+					emphasis="high"
+					disabled={current}
+					iconLeft={enterprise ? <IconSolidChatAlt /> : undefined}
+					onClick={onClick}
+				/>
+			) : (
+				<Button
+					trackingId={`planSelect-${plan.name}`}
+					kind="secondary"
+					size="small"
+					emphasis="high"
+					disabled={current}
+					onClick={() => {
+						if (onClick) {
+							onClick()
+						}
+						if (free) {
+							window.open(
+								getPlanChangeEmail({
+									workspaceID: workspace_id,
+									planType: plan.type,
+								}),
+							)
+						} else if (isOnPrem) {
+							window.open(
+								'https://app.highlight.io/sign_up?ref=hobby',
+							)
+						} else {
+							setSelectedPlanType(plan.type)
+							setStep('Configure plan')
+						}
+					}}
+				>
+					{current ? 'Current plan' : 'Select plan'}
+				</Button>
+			)}
 			<Stack>
 				{plan.descriptions.map((d) => (
 					<Box
@@ -1354,23 +1383,39 @@ const PlanCard = ({
 export const PlanComparisonPage: React.FC<{
 	setSelectedPlanType: (plan: PlanType) => void
 	setStep: (step: PlanSelectStep) => void
-}> = ({ setSelectedPlanType, setStep }) => {
+	title?: string
+	description?: string
+	enterprise?: true
+	onClick?: () => void
+	howCanWeHelp?: string
+}> = ({
+	setSelectedPlanType,
+	setStep,
+	title,
+	description,
+	enterprise,
+	onClick,
+	howCanWeHelp,
+}) => {
 	const { workspace_id } = useParams<{
 		workspace_id: string
 	}>()
-	const { data, loading } = useGetBillingDetailsQuery({
+	const { data } = useGetBillingDetailsQuery({
 		variables: {
 			workspace_id: workspace_id!,
 		},
 	})
 
-	if (loading) {
-		return null
-	}
-
 	return (
-		<Box height="full" margin="auto" p="32">
-			<Stack gap="48">
+		<Box height="full" margin="auto" p="12">
+			<Stack gap="12">
+				{title ? (
+					<Callout title={title}>
+						<Box mb="6">
+							<Text color="moderate">{description}</Text>
+						</Box>
+					</Callout>
+				) : null}
 				<Box
 					display="flex"
 					gap="12"
@@ -1383,6 +1428,11 @@ export const PlanComparisonPage: React.FC<{
 				>
 					{Object.entries(PLANS)
 						.filter(([name]) => !isOnPrem || name !== 'Free')
+						.filter(
+							([, plan]) =>
+								!enterprise ||
+								plan.type === PlanType.Enterprise,
+						)
 						.map(([, plan]) => (
 							<PlanCard
 								currentPlanType={data?.billingDetails.plan.type}
@@ -1390,6 +1440,8 @@ export const PlanComparisonPage: React.FC<{
 								setSelectedPlanType={setSelectedPlanType}
 								setStep={setStep}
 								key={plan.name}
+								howCanWeHelp={howCanWeHelp}
+								onClick={onClick}
 							/>
 						))}
 				</Box>
@@ -1397,6 +1449,7 @@ export const PlanComparisonPage: React.FC<{
 					display="flex"
 					flexDirection="column"
 					gap="12"
+					mt="16"
 					alignItems="stretch"
 					justifyContent="space-between"
 					m="auto"

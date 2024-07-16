@@ -8,13 +8,13 @@ import (
 
 func (store *Store) CreateErrorGroupActivityLog(ctx context.Context,
 	params model.ErrorGroupActivityLog) error {
-	return store.db.WithContext(ctx).Create(&params).Error
+	return store.DB.WithContext(ctx).Create(&params).Error
 }
 
-func (store *Store) GetErrorGroupActivityLogs(errorGroupID int) ([]model.ErrorGroupActivityLog, error) {
+func (store *Store) GetErrorGroupActivityLogs(ctx context.Context, errorGroupID int) ([]model.ErrorGroupActivityLog, error) {
 	errorGroupActivityLogs := []model.ErrorGroupActivityLog{}
 
-	err := store.db.WithContext(context.TODO()).Where(&model.ErrorGroupActivityLog{
+	err := store.DB.WithContext(ctx).Where(&model.ErrorGroupActivityLog{
 		ErrorGroupID: errorGroupID,
 	}).Find(&errorGroupActivityLogs).Error
 

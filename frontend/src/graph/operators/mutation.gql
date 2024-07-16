@@ -89,11 +89,33 @@ mutation ChangeAdminRole(
 		workspace_id: $workspace_id
 		admin_id: $admin_id
 		new_role: $new_role
-	)
+	) {
+		workspaceId
+		admin {
+			id
+		}
+		role
+		projectIds
+	}
 }
 
-mutation DeleteAdminFromProject($project_id: ID!, $admin_id: ID!) {
-	deleteAdminFromProject(project_id: $project_id, admin_id: $admin_id)
+mutation ChangeProjectMembership(
+	$workspace_id: ID!
+	$admin_id: ID!
+	$project_ids: [ID!]!
+) {
+	changeProjectMembership(
+		workspace_id: $workspace_id
+		admin_id: $admin_id
+		project_ids: $project_ids
+	) {
+		workspaceId
+		admin {
+			id
+		}
+		role
+		projectIds
+	}
 }
 
 mutation DeleteAdminFromWorkspace($workspace_id: ID!, $admin_id: ID!) {
@@ -307,15 +329,18 @@ mutation EditWorkspaceSettings(
 	$workspace_id: ID!
 	$ai_application: Boolean
 	$ai_insights: Boolean
+	$ai_query_builder: Boolean
 ) {
 	editWorkspaceSettings(
 		workspace_id: $workspace_id
 		ai_application: $ai_application
 		ai_insights: $ai_insights
+		ai_query_builder: $ai_query_builder
 	) {
 		workspace_id
 		ai_application
 		ai_insights
+		ai_query_builder
 	}
 }
 
@@ -940,6 +965,92 @@ mutation DeleteMetricMonitor($metric_monitor_id: ID!, $project_id: ID!) {
 	}
 }
 
+mutation CreateAlert(
+	$project_id: ID!
+	$name: String!
+	$product_type: ProductType!
+	$function_type: MetricAggregator!
+	$function_column: String
+	$query: String
+	$group_by_key: String
+	$below_threshold: Boolean
+	$threshold_value: Float
+	$threshold_window: Int
+	$threshold_cooldown: Int
+	$destinations: [AlertDestinationInput!]!
+) {
+	createAlert(
+		project_id: $project_id
+		name: $name
+		product_type: $product_type
+		function_type: $function_type
+		function_column: $function_column
+		query: $query
+		group_by_key: $group_by_key
+		below_threshold: $below_threshold
+		threshold_value: $threshold_value
+		threshold_window: $threshold_window
+		threshold_cooldown: $threshold_cooldown
+		destinations: $destinations
+	) {
+		id
+		name
+		product_type
+	}
+}
+
+mutation UpdateAlert(
+	$project_id: ID!
+	$alert_id: ID!
+	$name: String!
+	$product_type: ProductType!
+	$function_type: MetricAggregator!
+	$function_column: String
+	$query: String
+	$group_by_key: String
+	$below_threshold: Boolean
+	$threshold_value: Float
+	$threshold_window: Int
+	$threshold_cooldown: Int
+	$destinations: [AlertDestinationInput!]
+) {
+	updateAlert(
+		project_id: $project_id
+		alert_id: $alert_id
+		name: $name
+		product_type: $product_type
+		function_type: $function_type
+		function_column: $function_column
+		query: $query
+		group_by_key: $group_by_key
+		below_threshold: $below_threshold
+		threshold_value: $threshold_value
+		threshold_window: $threshold_window
+		threshold_cooldown: $threshold_cooldown
+		destinations: $destinations
+	) {
+		id
+		name
+		product_type
+	}
+}
+
+mutation UpdateAlertDisabled(
+	$project_id: ID!
+	$alert_id: ID!
+	$disabled: Boolean!
+) {
+	updateAlertDisabled(
+		project_id: $project_id
+		alert_id: $alert_id
+		disabled: $disabled
+	)
+}
+
+mutation DeleteAlert($project_id: ID!, $alert_id: ID!) {
+	deleteAlert(project_id: $project_id, alert_id: $alert_id)
+}
+
 mutation UpdateAdminAndCreateWorkspace(
 	$admin_and_workspace_details: AdminAndWorkspaceDetails!
 ) {
@@ -1437,4 +1548,11 @@ mutation UpsertGraph($graph: GraphInput!) {
 
 mutation DeleteGraph($id: ID!) {
 	deleteGraph(id: $id)
+}
+
+mutation CreateCloudflareProxy($workspace_id: ID!, $proxy_subdomain: String!) {
+	createCloudflareProxy(
+		workspace_id: $workspace_id
+		proxy_subdomain: $proxy_subdomain
+	)
 }

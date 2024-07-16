@@ -59,6 +59,15 @@ export declare type SamplingStrategy = {
 	 * Time (in milliseconds) to wait before the initial snapshot of canvas/video elements.
 	 */
 	canvasInitialSnapshotDelay?: number
+	/**
+	 * Settings for canvas data serialization. Defaults to {"image/webp", 0.9} for browsers
+	 * that support WebP and {"image/jpeg", 0.6} for others. Can be overridden to any type
+	 * or quality value supported by [`toDataURL`](http://mdn.io/toDataURL).
+	 */
+	dataUrlOptions?: Partial<{
+		type: string
+		quality: number
+	}>
 }
 
 export declare type HighlightOptions = {
@@ -218,6 +227,14 @@ export declare type HighlightOptions = {
 	 * are not available (ie. Figma plugins).
 	 */
 	sendMode?: 'webworker' | 'local'
+	/**
+	 * Specifies whether to enable OpenTelemetry tracing on the client.
+	 */
+	enableOtelTracing?: boolean
+	/**
+	 * OTLP endpoint for OpenTelemetry tracing.
+	 */
+	otlpEndpoint?: string
 }
 
 export declare interface HighlightPublicInterface {

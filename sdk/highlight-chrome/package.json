@@ -1,0 +1,51 @@
+{
+  "name": "@highlight-run/chrome",
+  "displayName": "@highlight-run/chrome",
+  "version": "0.0.1",
+  "author": "Highlight.io",
+  "description": "Open source, fullstack monitoring. Capture frontend errors, record server side logs, and visualize what broke with session replay.",
+  "type": "module",
+  "keywords": [
+    "chrome-extension",
+    "vanilla",
+    "vite",
+    "create-chrome-ext"
+  ],
+  "homepage": "https://github.com/highlight/highlight#readme",
+  "bugs": {
+    "url": "https://github.com/highlight/highlight/issues",
+    "email": "support@highlight.io"
+  },
+  "license": "Apache-2.0",
+  "repository": {
+    "repository": {
+      "type": "git",
+      "url": "https://github.com/highlight/highlight.git"
+    }
+  },
+  "engines": {
+    "node": ">=14.18.0"
+  },
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "preview": "vite preview",
+    "fmt": "prettier --write '**/*.{ts,json,css,scss,md}'",
+    "zip": "yarn build && node src/zip.js"
+  },
+  "devDependencies": {
+    "@crxjs/vite-plugin": "^2.0.0-beta.23",
+    "@types/chrome": "^0.0.268",
+    "@vitejs/plugin-react-swc": "^3.7.0",
+    "gulp": "^5.0.0",
+    "gulp-zip": "^6.0.0",
+    "prettier": "^3.3.2",
+    "typescript": "^5.5.2",
+    "vite": "^5.3.2"
+  },
+  "dependencies": {
+    "@highlight-run/react": "workspace:*",
+    "@highlight-run/ui": "workspace:*",
+    "highlight.run": "workspace:*"
+  }
+}

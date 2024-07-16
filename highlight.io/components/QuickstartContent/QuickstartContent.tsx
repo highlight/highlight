@@ -28,6 +28,7 @@ import { RubyRailsContent } from './backend/ruby/rails'
 import { RustActixContent } from './backend/rust/actix'
 import { RustOtherContent } from './backend/rust/other'
 import { AngularContent } from './frontend/angular'
+import { ElectronContext } from './frontend/electron'
 import { GatsbyContent } from './frontend/gatsby'
 import { NextContent } from './frontend/next'
 import { OtherContext } from './frontend/other'
@@ -41,6 +42,7 @@ import { FluentForwardContent } from './logging/fluentd'
 import { GoFiberLogContent } from './logging/go/fiber'
 import { GoOtherLogContent } from './logging/go/other'
 import { HostingFlyIOLogContent } from './logging/hosting/fly-io'
+import { HostingHerokuLogContent } from './logging/hosting/heroku'
 import { HostingRenderLogContent } from './logging/hosting/render'
 import { HostingVercelLogContent } from './logging/hosting/vercel'
 import { HTTPContent } from './logging/http'
@@ -63,6 +65,7 @@ import { SystemdContent } from './logging/systemd'
 import { DevDeploymentContent } from './self-host/dev-deploy'
 import { SelfHostContent } from './self-host/self-host'
 import { DotNetOTLPTracingContent } from './traces/dot-net'
+import { DotNet4OTLPTracingContent } from './traces/dot-net-4'
 import { GoTracesContent } from './traces/go/go'
 import { GormTracesContent } from './traces/go/gorm'
 import { JSManualTracesContent } from './traces/node-js/manual'
@@ -79,7 +82,6 @@ import { PythonManualTracesContent } from './traces/python/manual'
 import { PythonAITracesContent } from './traces/python/python-ai'
 import { PythonLibrariesTracesContent } from './traces/python/python-libraries'
 import { RustTracesContent } from './traces/rust'
-import { HostingHerokuLogContent } from './logging/hosting/heroku'
 
 export type QuickStartOptions = {
 	title: string
@@ -114,6 +116,7 @@ export type QuickStartStep = {
 
 export enum QuickStartType {
 	Angular = 'angular',
+	Electron = 'electron',
 	React = 'react',
 	Remix = 'remix',
 	SvelteKit = 'svelte-kit',
@@ -171,6 +174,7 @@ export enum QuickStartType {
 	HostingHeroku = 'heroku',
 	OTLP = 'otlp',
 	OTLPDotNet = 'dot-net',
+	OTLPDotNet4 = 'dot-net-4',
 }
 
 export const quickStartContent = {
@@ -190,6 +194,7 @@ export const quickStartContent = {
 			[QuickStartType.Vue]: VueContent,
 			[QuickStartType.SvelteKit]: SvelteKitContent,
 			[QuickStartType.Gatsby]: GatsbyContent,
+			[QuickStartType.Electron]: ElectronContext,
 			[QuickStartType.Other]: OtherContext,
 		},
 	},
@@ -271,12 +276,14 @@ export const quickStartContent = {
 			subtitle: 'ASP C# .NET Applications',
 			logoUrl: siteUrl('/images/quickstart/dotnet.svg'),
 			[QuickStartType.OTLPDotNet]: DotNetOTLPTracingContent,
+			[QuickStartType.OTLPDotNet4]: DotNet4OTLPTracingContent,
 		},
 		otlp: {
 			title: 'OpenTelemetry',
 			subtitle: 'OpenTelemetry Protocol (OTLP)',
 			[QuickStartType.OTLP]: OTLPErrorMonitoringContent,
 			[QuickStartType.OTLPDotNet]: DotNetOTLPTracingContent,
+			[QuickStartType.OTLPDotNet4]: DotNet4OTLPTracingContent,
 		},
 	},
 	'backend-logging': {
@@ -366,12 +373,14 @@ export const quickStartContent = {
 			subtitle: 'ASP C# .NET Applications',
 			logoUrl: siteUrl('/images/quickstart/dotnet.svg'),
 			[QuickStartType.OTLPDotNet]: DotNetOTLPTracingContent,
+			[QuickStartType.OTLPDotNet4]: DotNet4OTLPTracingContent,
 		},
 		otlp: {
 			title: 'OpenTelemetry',
 			subtitle: 'OpenTelemetry Protocol (OTLP)',
 			[QuickStartType.OTLP]: OTLPLoggingContent,
 			[QuickStartType.OTLPDotNet]: DotNetOTLPTracingContent,
+			[QuickStartType.OTLPDotNet4]: DotNet4OTLPTracingContent,
 		},
 	},
 	traces: {
@@ -422,12 +431,14 @@ export const quickStartContent = {
 			subtitle: 'ASP C# .NET Applications',
 			logoUrl: siteUrl('/images/quickstart/dotnet.svg'),
 			[QuickStartType.OTLPDotNet]: DotNetOTLPTracingContent,
+			[QuickStartType.OTLPDotNet4]: DotNet4OTLPTracingContent,
 		},
 		otlp: {
 			title: 'OpenTelemetry',
 			subtitle: 'OpenTelemetry Protocol (OTLP)',
 			[QuickStartType.OTLP]: OTLPTracesContent,
 			[QuickStartType.OTLPDotNet]: DotNetOTLPTracingContent,
+			[QuickStartType.OTLPDotNet4]: DotNet4OTLPTracingContent,
 		},
 		rust: {
 			title: 'Rust',

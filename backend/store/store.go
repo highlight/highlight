@@ -11,21 +11,21 @@ import (
 )
 
 type Store struct {
-	db                 *gorm.DB
-	redis              *redis.Client
-	integrationsClient *integrations.Client
-	storageClient      storage.Client
-	dataSyncQueue      kafka_queue.MessageQueue
-	clickhouseClient   *clickhouse.Client
+	DB                 *gorm.DB
+	Redis              *redis.Client
+	IntegrationsClient *integrations.Client
+	StorageClient      storage.Client
+	DataSyncQueue      kafka_queue.MessageQueue
+	ClickhouseClient   *clickhouse.Client
 }
 
 func NewStore(db *gorm.DB, redis *redis.Client, integrationsClient *integrations.Client, storageClient storage.Client, dataSyncQueue kafka_queue.MessageQueue, clickhouseClient *clickhouse.Client) *Store {
 	return &Store{
-		db:                 db,
-		redis:              redis,
-		integrationsClient: integrationsClient,
-		storageClient:      storageClient,
-		dataSyncQueue:      dataSyncQueue,
-		clickhouseClient:   clickhouseClient,
+		DB:                 db,
+		Redis:              redis,
+		IntegrationsClient: integrationsClient,
+		StorageClient:      storageClient,
+		DataSyncQueue:      dataSyncQueue,
+		ClickhouseClient:   clickhouseClient,
 	}
 }

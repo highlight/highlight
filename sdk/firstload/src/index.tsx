@@ -24,6 +24,7 @@ import configureElectronHighlight from './environments/electron.js'
 import firstloadVersion from './__generated/version.js'
 import {
 	getPreviousSessionData,
+	getSessionSecureID,
 	type SessionData,
 } from '@highlight-run/client/src/utils/sessionStorage/highlightSession.js'
 import { initializeFetchListener } from './listeners/fetch'
@@ -111,6 +112,26 @@ const H: HighlightPublicInterface = {
 				return { sessionSecureID }
 			}
 			init_called = true
+
+			if (options?.enableOtelTracing) {
+				import('@highlight-run/client/src/otel').then(
+					({ setupBrowserTracing }) => {
+						setupBrowserTracing({
+							endpoint: options?.otlpEndpoint,
+							projectId: projectID,
+							sessionSecureId: sessionSecureID,
+							environment: options?.environment ?? 'production',
+							networkRecordingOptions:
+								typeof options?.networkRecording === 'object'
+									? options.networkRecording
+									: undefined,
+							tracingOrigins: options?.tracingOrigins,
+							serviceName:
+								options?.serviceName ?? 'highlight-browser',
+						})
+					},
+				)
+			}
 
 			initializeFetchListener()
 			initializeWebSocketListener()
@@ -371,14 +392,12 @@ const H: HighlightPublicInterface = {
 	},
 	getSessionURL: () => {
 		return new Promise<string>((resolve, reject) => {
-			H.onHighlightReady(() => {
-				const res = highlight_obj.getCurrentSessionURL()
-				if (res) {
-					resolve(res)
-				} else {
-					reject(new Error('Unable to get session URL'))
-				}
-			})
+			const res = getSessionSecureID()
+			if (res) {
+				resolve(res)
+			} else {
+				reject(new Error('Unable to get session URL'))
+			}
 		})
 	},
 	getSessionDetails: () => {

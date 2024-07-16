@@ -231,5 +231,6 @@ export const useGetTraces = ({
 		fetchMoreForward,
 		fetchMoreBackward,
 		refetch,
+		sampled: data?.traces.sampled,
 	}
 }

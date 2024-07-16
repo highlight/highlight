@@ -249,7 +249,7 @@ const DevToolsWindowV2: React.FC<
 											>
 												<Box
 													display="flex"
-													justifyContent="space-between"
+													justifyContent="flex-start"
 													align="center"
 													width="full"
 													gap="4"
@@ -264,23 +264,18 @@ const DevToolsWindowV2: React.FC<
 															size={16}
 														/>
 													</Box>
-													<Form.Input
-														name={
-															formStore.names
-																.search
-														}
-														placeholder="Search"
-														size="xSmall"
-														outline={false}
-														onKeyDown={(e: any) => {
-															if (
-																e.code ===
-																'Escape'
-															) {
-																e.target?.blur()
+													<Box width="full">
+														<Form.Input
+															name={
+																formStore.names
+																	.search
 															}
-														}}
-													/>
+															placeholder="Search"
+															size="xSmall"
+															outline={false}
+															width="100%"
+														/>
+													</Box>
 												</Box>
 											</Form>
 										</Box>

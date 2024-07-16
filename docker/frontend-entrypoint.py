@@ -10,17 +10,23 @@ def main():
     private = os.environ.get('REACT_APP_PRIVATE_GRAPH_URI')
     public = os.environ.get('REACT_APP_PUBLIC_GRAPH_URI')
     frontend = os.environ.get('REACT_APP_FRONTEND_URI')
+    auth = os.environ.get('REACT_APP_AUTH_MODE')
     use_ssl = os.environ.get('SSL') != 'false'
-    print("replacing", {"private": private, "public": public, "frontend": frontend})
+    print("replacing", {"private": private, "public": public, "frontend": frontend, "auth": auth})
 
     with open(CONSTANTS_FILE, 'r') as f:
         data = f.read()
+        if auth:
+            data = re.sub('firebase', auth, data)
         if private:
             data = re.sub('http://localhost:8082/private', private, data)
+            data = re.sub('https://pri\.highlight\.io', private, data)
         if public:
             data = re.sub('http://localhost:8082/public', public, data)
+            data = re.sub('https://pub\.highlight\.run', public, data)
         if frontend:
             data = re.sub('http://localhost:3000', frontend, data)
+            data = re.sub('https://app\.highlight\.io', frontend, data)
 
     try:
         with open(CONSTANTS_FILE, 'w') as f:

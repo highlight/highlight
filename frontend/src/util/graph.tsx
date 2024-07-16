@@ -80,30 +80,8 @@ const authLink = setContext((_, { headers }) => {
 
 const cache = new InMemoryCache({
 	typePolicies: {
-		Session: {
-			keyFields: ['secure_id'],
-		},
-		ErrorGroup: {
-			// avoid caching error groups because they can change as new error objects match
-			keyFields: false,
-			merge: false,
-		},
-		ErrorObject: {
-			keyFields: ['id'],
-		},
-		DashboardPayload: {
-			fields: {
-				metrics_histogram: {
-					keyArgs: ['project_id', 'metric_name', 'params'],
-				},
-			},
-		},
-		HistogramPayload: {
-			fields: {
-				metrics_histogram: {
-					keyArgs: ['project_id', 'metric_name', 'params'],
-				},
-			},
+		WorkspaceAdminRole: {
+			keyFields: ['workspaceId', 'admin', ['id']],
 		},
 		Query: {
 			fields: {
@@ -114,9 +92,13 @@ const cache = new InMemoryCache({
 					'params',
 					['query', 'date_range', ['start_date', 'end_date']],
 				]),
-				error_groups_clickhouse: {
-					keyArgs: ['project_id', 'count', 'query', 'page'],
-				},
+				traces: relayStylePagination([
+					'project_id',
+					'at',
+					'direction',
+					'params',
+					['query', 'date_range', ['start_date', 'end_date']],
+				]),
 				visualization: {
 					read(_, { args, toReference }) {
 						return toReference({

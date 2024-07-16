@@ -1,15 +1,18 @@
 import {
+	Badge,
 	Box,
 	DEFAULT_TIME_PRESETS,
+	IconSolidInformationCircle,
 	IconSolidLoading,
 	presetStartDate,
 	Text,
+	Tooltip,
 } from '@highlight-run/ui/components'
 import { vars } from '@highlight-run/ui/vars'
 import { useParams } from '@util/react-router/useParams'
 import { sumBy } from 'lodash'
 import moment from 'moment'
-import React, { useEffect, useRef } from 'react'
+import React, { useEffect, useMemo, useRef, useState } from 'react'
 import { Helmet } from 'react-helmet'
 import { useNavigate } from 'react-router-dom'
 import { StringParam, useQueryParam } from 'use-query-params'
@@ -20,6 +23,7 @@ import {
 	useRelatedResource,
 } from '@/components/RelatedResources/hooks'
 import {
+	AiSuggestion,
 	SearchContext,
 	SORT_COLUMN,
 	SORT_DIRECTION,
@@ -33,7 +37,11 @@ import {
 	QueryParam,
 	SearchForm,
 } from '@/components/Search/SearchForm/SearchForm'
-import { useGetTracesMetricsQuery } from '@/graph/generated/hooks'
+import {
+	useGetAiQuerySuggestionLazyQuery,
+	useGetMetricsQuery,
+	useGetWorkspaceSettingsQuery,
+} from '@/graph/generated/hooks'
 import {
 	MetricAggregator,
 	MetricColumn,
@@ -42,12 +50,14 @@ import {
 	SortDirection,
 	Trace,
 } from '@/graph/generated/schemas'
+import useFeatureFlag, { Feature } from '@/hooks/useFeatureFlag/useFeatureFlag'
 import { useNumericProjectId } from '@/hooks/useProjectId'
 import { useSearchTime } from '@/hooks/useSearchTime'
+import { TIMESTAMP_KEY } from '@/pages/Graphing/components/Graph'
 import LogsHistogram from '@/pages/LogsPage/LogsHistogram/LogsHistogram'
-import { LatencyChart } from '@/pages/Traces/LatencyChart'
 import { TracesList } from '@/pages/Traces/TracesList'
 import { useGetTraces } from '@/pages/Traces/useGetTraces'
+import { useApplicationContext } from '@/routers/AppRouter/context/ApplicationContext'
 import analytics from '@/util/analytics'
 import { formatNumber } from '@/util/numbers'
 
@@ -57,29 +67,26 @@ export type TracesOutletContext = Partial<Trace>[]
 
 export const TracesPage: React.FC = () => {
 	const { projectId } = useNumericProjectId()
+	const { currentWorkspace } = useApplicationContext()
 	const navigate = useNavigate()
 	const {
 		trace_id,
 		span_id,
 		trace_cursor: traceCursor,
 	} = useParams<{ trace_id: string; span_id: string; trace_cursor: string }>()
+	const aiQueryBuilderFlag = useFeatureFlag(Feature.AiQueryBuilder)
 	const textAreaRef = useRef<HTMLTextAreaElement | null>(null)
 	const [query, setQuery] = useQueryParam('query', QueryParam)
 	const [sortColumn] = useQueryParam(SORT_COLUMN, StringParam)
 	const [sortDirection] = useQueryParam(SORT_DIRECTION, StringParam)
-	const {
-		startDate,
-		endDate,
-		selectedPreset,
-		updateSearchTime,
-		rebaseSearchTime,
-	} = useSearchTime({
+	const [aiMode, setAiMode] = useState(false)
+	const searchTimeContext = useSearchTime({
 		presets: DEFAULT_TIME_PRESETS,
 		initialPreset: FixedRangePreset,
 	})
 	const minDate = presetStartDate(DEFAULT_TIME_PRESETS[5])
 	const timeMode: TIME_MODE = 'fixed-range' // TODO: Support permalink mode
-	const skipPolling = !selectedPreset || !!sortColumn
+	const skipPolling = !searchTimeContext.selectedPreset || !!sortColumn
 
 	const {
 		traceEdges,
@@ -89,40 +96,59 @@ export const TracesPage: React.FC = () => {
 		loading,
 		loadingAfter,
 		fetchMoreForward,
+		sampled,
 	} = useGetTraces({
 		query,
 		projectId,
 		traceCursor,
-		startDate,
-		endDate,
+		startDate: searchTimeContext.startDate,
+		endDate: searchTimeContext.endDate,
 		skipPolling,
 		sortColumn,
 		sortDirection: sortDirection as SortDirection,
 	})
 
-	const { data: metricsData, loading: metricsLoading } =
-		useGetTracesMetricsQuery({
-			variables: {
-				project_id: projectId!,
-				column: MetricColumn.Duration,
-				group_by: [],
-				params: {
-					query,
-					date_range: {
-						start_date: moment(startDate).format(TIME_FORMAT),
-						end_date: moment(endDate).format(TIME_FORMAT),
-					},
+	const [
+		getAiQuerySuggestion,
+		{ data: aiData, error: aiError, loading: aiLoading },
+	] = useGetAiQuerySuggestionLazyQuery({
+		fetchPolicy: 'network-only',
+	})
+
+	const { data: workspaceSettings } = useGetWorkspaceSettingsQuery({
+		variables: { workspace_id: String(currentWorkspace?.id) },
+		skip: !currentWorkspace?.id || !aiQueryBuilderFlag,
+	})
+
+	const { data: metricsData, loading: metricsLoading } = useGetMetricsQuery({
+		variables: {
+			product_type: ProductType.Traces,
+			project_id: projectId!,
+			column: MetricColumn.Duration,
+			group_by: [],
+			params: {
+				query,
+				date_range: {
+					start_date: moment(searchTimeContext.startDate).format(
+						TIME_FORMAT,
+					),
+					end_date: moment(searchTimeContext.endDate).format(
+						TIME_FORMAT,
+					),
 				},
-				metric_types: [
-					MetricAggregator.Count,
-					MetricAggregator.Avg,
-					MetricAggregator.P50,
-					MetricAggregator.P90,
-				],
 			},
-			skip: !projectId,
-			fetchPolicy: 'cache-and-network',
-		})
+			metric_types: [
+				MetricAggregator.Count,
+				MetricAggregator.Avg,
+				MetricAggregator.P50,
+				MetricAggregator.P90,
+			],
+			bucket_by: TIMESTAMP_KEY,
+			bucket_count: 45,
+		},
+		skip: !projectId,
+		fetchPolicy: 'cache-and-network',
+	})
 
 	const fetchMoreWhenScrolled = React.useCallback(
 		(containerRefElement?: HTMLDivElement | null) => {
@@ -138,20 +164,8 @@ export const TracesPage: React.FC = () => {
 		[fetchMoreForward],
 	)
 
-	const histogramBuckets = metricsData?.traces_metrics.buckets
-		.filter(
-			(b) =>
-				b.metric_type === MetricAggregator.Count &&
-				b.metric_value !== undefined &&
-				b.metric_value !== null,
-		)
-		.map((b) => ({
-			bucketId: b.bucket_id,
-			counts: [{ level: 'traces', count: b.metric_value! }],
-		}))
-
 	const totalCount = sumBy(
-		metricsData?.traces_metrics.buckets.filter(
+		metricsData?.metrics.buckets.filter(
 			(b) => b.metric_type === MetricAggregator.Count,
 		),
 		(b) => b.metric_value ?? 0,
@@ -162,11 +176,11 @@ export const TracesPage: React.FC = () => {
 		p50: number | undefined
 		p90: number | undefined
 	}[] = []
-	for (let i = 0; i < metricsData?.traces_metrics.bucket_count; i++) {
+	for (let i = 0; i < metricsData?.metrics.bucket_count; i++) {
 		metricsBuckets.push({ avg: undefined, p50: undefined, p90: undefined })
 	}
 
-	metricsData?.traces_metrics.buckets.forEach((b) => {
+	metricsData?.metrics.buckets.forEach((b) => {
 		if (b.metric_value === undefined || b.metric_value === null) {
 			return
 		}
@@ -230,8 +244,47 @@ export const TracesPage: React.FC = () => {
 		}
 	}, [navigate, projectId, resource])
 
+	const onAiSubmit = (aiQuery: string) => {
+		if (projectId && aiQuery.length) {
+			getAiQuerySuggestion({
+				variables: {
+					query: aiQuery,
+					project_id: projectId,
+					product_type: ProductType.Traces,
+					time_zone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+				},
+			})
+		}
+	}
+
+	const aiSuggestion = useMemo(() => {
+		const { query, date_range = {} } = aiData?.ai_query_suggestion ?? {}
+
+		return {
+			query,
+			dateRange: {
+				startDate: date_range.start_date
+					? new Date(date_range.start_date)
+					: undefined,
+				endDate: date_range.end_date
+					? new Date(date_range.end_date)
+					: undefined,
+			},
+		} as AiSuggestion
+	}, [aiData])
+
 	return (
-		<SearchContext initialQuery={query} onSubmit={setQuery}>
+		<SearchContext
+			initialQuery={query}
+			onSubmit={setQuery}
+			aiMode={aiMode}
+			setAiMode={setAiMode}
+			onAiSubmit={onAiSubmit}
+			aiSuggestion={aiSuggestion}
+			aiSuggestionLoading={aiLoading}
+			aiSuggestionError={aiError}
+			{...searchTimeContext}
+		>
 			<Helmet>
 				<title>Traces</title>
 			</Helmet>
@@ -255,27 +308,119 @@ export const TracesPage: React.FC = () => {
 					overflow="hidden"
 				>
 					<SearchForm
-						startDate={startDate}
-						endDate={endDate}
+						startDate={searchTimeContext.startDate}
+						endDate={searchTimeContext.endDate}
 						presets={DEFAULT_TIME_PRESETS}
 						minDate={minDate}
-						selectedPreset={selectedPreset}
+						selectedPreset={searchTimeContext.selectedPreset}
 						timeMode={timeMode}
 						hideCreateAlert
-						onDatesChange={updateSearchTime}
+						onDatesChange={searchTimeContext.updateSearchTime}
 						productType={ProductType.Traces}
 						savedSegmentType={SavedSegmentEntityType.Trace}
 						textAreaRef={textAreaRef}
+						enableAIMode={
+							workspaceSettings?.workspaceSettings
+								?.ai_query_builder
+						}
+						aiSupportedSearch={aiQueryBuilderFlag}
 					/>
 					<Box
 						display="flex"
 						borderBottom="dividerWeak"
 						justifyContent="space-between"
-						style={{ height: 85 }}
 					>
 						<Box
 							width="full"
 							borderRight="dividerWeak"
+							position="relative"
+						>
+							<Box
+								alignItems="center"
+								display="flex"
+								flexDirection="row"
+								px="8"
+								pt="4"
+								pb="6"
+								gap="8"
+							>
+								{metricsLoading ? (
+									<Box py="4">
+										<HistogramLoading />
+									</Box>
+								) : (
+									<>
+										<Badge
+											size="medium"
+											shape="basic"
+											variant="outlineGray"
+											label={`
+												${sampled ? '~' : ''}${formatNumber(totalCount)} Trace${
+												totalCount !== 1 ? 's' : ''
+											}
+											`}
+											iconEnd={
+												sampled ? (
+													<Tooltip
+														trigger={
+															<IconSolidInformationCircle />
+														}
+													>
+														<Box p="4">
+															<Text color="weak">
+																Data is sampled
+																when custom
+																sorting is
+																applied, so
+																results are
+																approximate.
+															</Text>
+														</Box>
+													</Tooltip>
+												) : undefined
+											}
+										/>
+										<Text size="xSmall" color="weak">
+											{searchTimeContext.selectedPreset ? (
+												<>
+													{moment(
+														searchTimeContext.startDate,
+													).format(
+														'M/D/YY h:mm:ss A',
+													)}{' '}
+													to Now
+												</>
+											) : (
+												<>
+													{moment(
+														searchTimeContext.startDate,
+													).format(
+														'M/D/YY h:mm:ss',
+													)}{' '}
+													to{' '}
+													{moment(
+														searchTimeContext.endDate,
+													).format('h:mm:ss A')}
+												</>
+											)}
+										</Text>
+									</>
+								)}
+							</Box>
+							<LogsHistogram
+								startDate={searchTimeContext.startDate}
+								endDate={searchTimeContext.endDate}
+								onDatesChange={
+									searchTimeContext.updateSearchTime
+								}
+								metrics={metricsData}
+								loading={metricsLoading}
+								series={[MetricAggregator.Count]}
+							/>
+						</Box>
+						<Box
+							width="full"
+							cssClass={styles.chart}
 							position="relative"
 						>
 							<Box
@@ -288,78 +433,37 @@ export const TracesPage: React.FC = () => {
 								style={{ height: 28 }}
 							>
 								{metricsLoading ? (
-									<HistogramLoading />
+									<HistogramLoading
+										cssClass={styles.chartText}
+										style={{
+											top: 6,
+										}}
+									/>
 								) : (
-									<>
-										<Text size="xSmall" color="weak">
-											{formatNumber(totalCount)} Trace
-											{totalCount !== 1 ? 's' : ''}
-										</Text>
-										<Box
-											borderRight="dividerWeak"
-											style={{ width: 0, height: 20 }}
-										/>
-										<Text size="xSmall" color="weak">
-											{selectedPreset ? (
-												<>
-													{moment(startDate).format(
-														'M/D/YY h:mm:ss A',
-													)}{' '}
-													to Now
-												</>
-											) : (
-												<>
-													{moment(startDate).format(
-														'M/D/YY h:mm:ss',
-													)}{' '}
-													to{' '}
-													{moment(endDate).format(
-														'h:mm:ss A',
-													)}
-												</>
-											)}
-										</Text>
-									</>
+									<Text
+										cssClass={styles.chartText}
+										size="xSmall"
+										color="weak"
+									>
+										Latency
+									</Text>
 								)}
 							</Box>
+
 							<LogsHistogram
-								startDate={startDate}
-								endDate={endDate}
-								onDatesChange={updateSearchTime}
-								histogramBuckets={histogramBuckets}
-								bucketCount={
-									metricsData?.traces_metrics.bucket_count
+								startDate={searchTimeContext.startDate}
+								endDate={searchTimeContext.endDate}
+								onDatesChange={
+									searchTimeContext.updateSearchTime
 								}
+								metrics={metricsData}
 								loading={metricsLoading}
-								barColor="#6F6E77"
-							/>
-						</Box>
-						<Box
-							width="full"
-							px="10"
-							py="4"
-							cssClass={styles.chart}
-							position="relative"
-						>
-							{metricsLoading ? (
-								<HistogramLoading
-									cssClass={styles.chartText}
-									style={{
-										top: 6,
-									}}
-								/>
-							) : (
-								<Text
-									cssClass={styles.chartText}
-									size="xSmall"
-									color="weak"
-								>
-									Latency
-								</Text>
-							)}
-							<LatencyChart
-								loading={metricsLoading}
-								metricsBuckets={metricsBuckets}
+								series={[
+									MetricAggregator.P90,
+									MetricAggregator.P50,
+									MetricAggregator.Avg,
+								]}
+								lineChart
 							/>
 						</Box>
 					</Box>
@@ -368,7 +472,9 @@ export const TracesPage: React.FC = () => {
 						loading={loading}
 						numMoreTraces={moreTraces}
 						traceEdges={traceEdges}
-						handleAdditionalTracesDateChange={rebaseSearchTime}
+						handleAdditionalTracesDateChange={
+							searchTimeContext.rebaseSearchTime
+						}
 						resetMoreTraces={clearMoreTraces}
 						fetchMoreWhenScrolled={fetchMoreWhenScrolled}
 						loadingAfter={loadingAfter}

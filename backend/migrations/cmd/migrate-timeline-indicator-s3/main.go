@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"github.com/highlight-run/highlight/backend/env"
 	"os"
 
 	"golang.org/x/sync/errgroup"
@@ -34,7 +35,7 @@ func createFile(name string) (*os.File, error) {
 func main() {
 	ctx := context.Background()
 	log.WithContext(ctx).Info("ZANE_MIGRATION setting up db")
-	db, err := model.SetupDB(ctx, os.Getenv("PSQL_DB"))
+	db, err := model.SetupDB(ctx, env.Config.SQLDatabase)
 	if err != nil {
 		log.WithContext(ctx).Fatalf("ZANE_MIGRATION error setting up db: %+v", err)
 	}

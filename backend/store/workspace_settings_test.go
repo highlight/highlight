@@ -13,7 +13,7 @@ func TestGetAllWorkspaceSettings(t *testing.T) {
 	defer teardown(t)
 
 	s := model.AllWorkspaceSettings{WorkspaceID: 1}
-	store.db.Create(&s)
+	store.DB.Create(&s)
 
 	newSettings, err := store.GetAllWorkspaceSettings(context.Background(), 1)
 	assert.NoError(t, err)
@@ -26,7 +26,7 @@ func TestGetAllWorkspaceSettings(t *testing.T) {
 
 func BenchmarkStore_GetAllWorkspaceSettings(b *testing.B) {
 	s := model.AllWorkspaceSettings{WorkspaceID: 1}
-	store.db.Create(&s)
+	store.DB.Create(&s)
 	for i := 0; i < b.N; i++ {
 		_, _ = store.GetAllWorkspaceSettings(context.Background(), 1)
 	}

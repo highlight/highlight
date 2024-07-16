@@ -2,11 +2,10 @@ import { useAuthContext } from '@authentication/AuthContext'
 import { DEMO_WORKSPACE_PROXY_APPLICATION_ID } from '@components/DemoWorkspaceButton/DemoWorkspaceButton'
 import ProjectPicker from '@components/Header/components/ProjectPicker/ProjectPicker'
 import { betaTag, linkStyle } from '@components/Header/styles.css'
+import { useBillingHook } from '@components/Header/useBillingHook'
 import { LinkButton } from '@components/LinkButton'
 import {
 	useGetBillingDetailsForProjectQuery,
-	useGetProjectQuery,
-	useGetSubscriptionDetailsQuery,
 	useGetSystemConfigurationQuery,
 	useGetWorkspacesQuery,
 } from '@graph/hooks'
@@ -19,7 +18,6 @@ import {
 	IconSolidArrowSmRight,
 	IconSolidAtSymbol,
 	IconSolidChartBar,
-	IconSolidChartPie,
 	IconSolidChat,
 	IconSolidCheck,
 	IconSolidCog,
@@ -32,9 +30,9 @@ import {
 	IconSolidOfficeBuilding,
 	IconSolidPlayCircle,
 	IconSolidPlusSm,
-	IconSolidSparkles,
 	IconSolidSpeakerphone,
 	IconSolidSwitchHorizontal,
+	IconSolidTraces,
 	IconSolidUserCircle,
 	IconSolidViewGridAdd,
 	Menu,
@@ -64,13 +62,14 @@ import clsx from 'clsx'
 import moment from 'moment'
 import React, { useEffect, useMemo } from 'react'
 import { FaDiscord, FaGithub } from 'react-icons/fa'
-import { Link, useLocation, useNavigate } from 'react-router-dom'
+import { Link, matchRoutes, useLocation, useNavigate } from 'react-router-dom'
 import { useSessionStorage } from 'react-use'
 
 import { useGetWorkspaceSettingsQuery } from '@/graph/generated/hooks'
 import { useIsSettingsPath } from '@/hooks/useIsSettingsPath'
 import { generateRandomColor } from '@/util/color'
 
+import { CalendlyButton } from '../CalendlyModal/CalendlyButton'
 import { CommandBar as CommandBarV1 } from './CommandBar/CommandBar'
 import styles from './Header.module.css'
 
@@ -78,38 +77,72 @@ type Props = {
 	fullyIntegrated?: boolean
 }
 
-export const useBillingHook = ({
-	workspace_id,
-	project_id,
-}: {
-	workspace_id?: string
-	project_id?: string
-}) => {
-	const { isAuthLoading, isLoggedIn } = useAuthContext()
-	const { data: projectData } = useGetProjectQuery({
-		variables: { id: project_id || '' },
-		skip: !project_id?.length || !!workspace_id?.length,
-	})
+const useProjectRedirectLink = () => {
+	const location = useLocation()
+	const { projectId } = useProjectId()
+	const { projectId: localStorageProjectId } = useLocalStorageProjectId()
+	const { allProjects, currentWorkspace } = useApplicationContext()
+	const workspaceId = currentWorkspace?.id
+	const localStorageProject = allProjects?.find(
+		(p) => String(p?.id) === String(localStorageProjectId),
+	)
+	const verificationPaths = [
+		{ path: '/:project_id/setup/*' },
+		{ path: '/:project_id/setup/backend/*' },
+		{ path: '/:project_id/setup/backend-logging/*' },
+		{ path: '/:project_id/setup/traces/*' },
+		{ path: '/:project_id/setup/alerts/*' },
+	]
+	const updateBackToPath = (projectId: string | number) => {
+		const match = matchRoutes(verificationPaths, location)?.at(0)
+		const routePath = match?.route?.path
 
-	const {
-		loading: subscriptionLoading,
-		data: subscriptionData,
-		refetch: refetchSubscription,
-	} = useGetSubscriptionDetailsQuery({
-		variables: {
-			workspace_id: workspace_id || projectData?.workspace?.id || '',
-		},
-		skip:
-			isAuthLoading ||
-			!isLoggedIn ||
-			(!workspace_id?.length && !projectData?.workspace?.id),
-	})
-
-	return {
-		loading: subscriptionLoading,
-		subscriptionData: subscriptionData,
-		refetchSubscription: refetchSubscription,
+		switch (routePath) {
+			case '/:project_id/setup/backend/*':
+				return `/${projectId}/errors`
+			case '/:project_id/setup/backend-logging/*':
+				return `/${projectId}/logs`
+			case '/:project_id/setup/traces/*':
+				return `/${projectId}/traces`
+			case '/:project_id/setup/alerts/*':
+				return `/${projectId}/alerts`
+			default:
+				return `/${projectId}/sessions`
+		}
 	}
+
+	const getProjectRedirectLink = () => {
+		const isWorkspaceTab =
+			workspaceId &&
+			matchRoutes([{ path: '/w/:workspace_id/*' }], location)?.at(0)
+				?.params?.workspace_id === workspaceId
+
+		if (!localStorageProject) {
+			if (allProjects && allProjects.length === 0 && isWorkspaceTab) {
+				return `/w/${workspaceId}/new`
+			}
+			if (isWorkspaceTab && allProjects) {
+				return `/${allProjects[0]?.id}/sessions`
+			}
+
+			if (projectId && projectId !== 'demo') {
+				return updateBackToPath(projectId)
+			}
+		}
+		//if user in workspace tab and have not slected any of the projects. setting default to first project.
+		//if user does not have any projects. ideally we need to force the user to create atleast one project if they are trying to click on go back to project.
+		if (
+			isWorkspaceTab &&
+			(!projectId || projectId == 'demo') &&
+			allProjects?.length
+		) {
+			return `/${allProjects[0]?.id}/sessions`
+		}
+		return updateBackToPath(localStorageProjectId || projectId)
+	}
+	const goBackPath = getProjectRedirectLink()
+
+	return goBackPath
 }
 
 export const Header: React.FC<Props> = ({ fullyIntegrated }) => {
@@ -118,7 +151,6 @@ export const Header: React.FC<Props> = ({ fullyIntegrated }) => {
 	const { projectId } = useProjectId()
 	const { projectId: localStorageProjectId } = useLocalStorageProjectId()
 	const { isLoggedIn, signOut } = useAuthContext()
-	const showAnalytics = useFeatureFlag(Feature.Analytics)
 	const showMetrics = useFeatureFlag(Feature.Metrics)
 	const { allProjects, currentWorkspace } = useApplicationContext()
 	const workspaceId = currentWorkspace?.id
@@ -126,8 +158,7 @@ export const Header: React.FC<Props> = ({ fullyIntegrated }) => {
 		(p) => String(p?.id) === String(localStorageProjectId),
 	)
 
-	const goBackPath =
-		location.state?.previousPath ?? `/${localStorageProjectId}/sessions`
+	const goBackPath = useProjectRedirectLink()
 	const parts = location.pathname.split('/')
 	const currentPage = parts.length >= 3 ? parts[2] : undefined
 	const isSetup = parts.indexOf('setup') !== -1
@@ -141,6 +172,8 @@ export const Header: React.FC<Props> = ({ fullyIntegrated }) => {
 		workspaceSettingsData?.workspaceSettings?.enable_grafana_dashboard
 
 	const { toggleShowKeyboardShortcutsGuide } = useGlobalContext()
+
+	const { isProjectLevelMember } = useAuthContext()
 
 	const pages = [
 		{
@@ -157,7 +190,7 @@ export const Header: React.FC<Props> = ({ fullyIntegrated }) => {
 		},
 		{
 			key: 'traces',
-			icon: IconSolidSparkles,
+			icon: IconSolidTraces,
 		},
 		{
 			key: 'metrics',
@@ -227,7 +260,7 @@ export const Header: React.FC<Props> = ({ fullyIntegrated }) => {
 				>
 					{isSetup || (isSettings && localStorageProjectId) ? (
 						<LinkButton
-							to={goBackPath}
+							to={goBackPath || '/'}
 							kind="secondary"
 							emphasis="low"
 							trackingId="setup_back-button"
@@ -314,33 +347,6 @@ export const Header: React.FC<Props> = ({ fullyIntegrated }) => {
 											kind="secondary"
 										/>
 										<Menu.List>
-											{showAnalytics && (
-												<Link
-													to={`/${projectId}/dashboards`}
-													className={linkStyle}
-												>
-													<Menu.Item>
-														<Box
-															display="flex"
-															alignItems="center"
-															gap="4"
-														>
-															<IconSolidChartBar
-																size={14}
-																color={
-																	vars.theme
-																		.interactive
-																		.fill
-																		.secondary
-																		.content
-																		.text
-																}
-															/>
-															Dashboards
-														</Box>
-													</Menu.Item>
-												</Link>
-											)}
 											<Link
 												to={`/${projectId}/integrations`}
 												className={linkStyle}
@@ -366,33 +372,6 @@ export const Header: React.FC<Props> = ({ fullyIntegrated }) => {
 													</Box>
 												</Menu.Item>
 											</Link>
-											{showAnalytics && (
-												<Link
-													to={`/${projectId}/analytics`}
-													className={linkStyle}
-												>
-													<Menu.Item>
-														<Box
-															display="flex"
-															alignItems="center"
-															gap="4"
-														>
-															<IconSolidChartPie
-																size={14}
-																color={
-																	vars.theme
-																		.interactive
-																		.fill
-																		.secondary
-																		.content
-																		.text
-																}
-															/>
-															Analytics
-														</Box>
-													</Menu.Item>
-												</Link>
-											)}
 											<Link
 												to={`/${projectId}/setup`}
 												className={linkStyle}
@@ -458,8 +437,7 @@ export const Header: React.FC<Props> = ({ fullyIntegrated }) => {
 							justifyContent="flex-end"
 							alignItems="center"
 							gap="12"
-							style={{ zIndex: 20000 }}
-							width="full"
+							style={{ zIndex: 20000, minWidth: 400 }}
 						>
 							{!!projectId &&
 								!fullyIntegrated &&
@@ -485,6 +463,7 @@ export const Header: React.FC<Props> = ({ fullyIntegrated }) => {
 								)}
 							{!isSetup && !isSettings && (
 								<Box display="flex" alignItems="center" gap="4">
+									<CalendlyButton />
 									<Box>
 										<ButtonIcon
 											cssClass={styles.button}
@@ -549,31 +528,33 @@ export const Header: React.FC<Props> = ({ fullyIntegrated }) => {
 											}
 										/>
 										<Menu.List>
-											<Link
-												to={`/w/${workspaceId}/team`}
-												className={linkStyle}
-											>
-												<Menu.Item>
-													<Box
-														display="flex"
-														alignItems="center"
-														gap="4"
-													>
-														<IconSolidOfficeBuilding
-															size={14}
-															color={
-																vars.theme
-																	.interactive
-																	.fill
-																	.secondary
-																	.content
-																	.text
-															}
-														/>
-														Workspace settings
-													</Box>
-												</Menu.Item>
-											</Link>
+											{!isProjectLevelMember && (
+												<Link
+													to={`/w/${workspaceId}/team`}
+													className={linkStyle}
+												>
+													<Menu.Item>
+														<Box
+															display="flex"
+															alignItems="center"
+															gap="4"
+														>
+															<IconSolidOfficeBuilding
+																size={14}
+																color={
+																	vars.theme
+																		.interactive
+																		.fill
+																		.secondary
+																		.content
+																		.text
+																}
+															/>
+															Workspace settings
+														</Box>
+													</Menu.Item>
+												</Link>
+											)}
 											<Link
 												to={`/w/${workspaceId}/account/${
 													auth.googleProvider
@@ -755,33 +736,35 @@ export const Header: React.FC<Props> = ({ fullyIntegrated }) => {
 																</Box>
 															</Menu.Item>
 														</Link>
-														<Link
-															to={`/${workspaceId}/settings`}
-															className={
-																linkStyle
-															}
-														>
-															<Menu.Item>
-																<Box
-																	display="flex"
-																	alignItems="center"
-																	gap="4"
-																>
-																	<IconSolidCog
-																		size={
-																			14
-																		}
-																		color={
-																			vars
-																				.color
-																				.n9
-																		}
-																	/>
-																	Workspace
-																	settings
-																</Box>
-															</Menu.Item>
-														</Link>
+														{!isProjectLevelMember && (
+															<Link
+																to={`/${workspaceId}/settings`}
+																className={
+																	linkStyle
+																}
+															>
+																<Menu.Item>
+																	<Box
+																		display="flex"
+																		alignItems="center"
+																		gap="4"
+																	>
+																		<IconSolidCog
+																			size={
+																				14
+																			}
+																			color={
+																				vars
+																					.color
+																					.n9
+																			}
+																		/>
+																		Workspace
+																		settings
+																	</Box>
+																</Menu.Item>
+															</Link>
+														)}
 													</Menu.List>
 												</Menu>
 											</Menu.Item>
@@ -927,17 +910,17 @@ const BillingBanner: React.FC = () => {
 	useEffect(() => {
 		if (
 			!hasReportedTrialExtension &&
-			data?.workspace_for_project?.trial_extension_enabled
+			data?.project?.workspace?.trial_extension_enabled
 		) {
 			analytics.track('TrialExtensionEnabled', {
 				projectId,
-				workspace_id: data?.workspace_for_project.id,
+				workspace_id: data?.project?.workspace.id,
 			})
 			setHasReportedTrialExtension(true)
 		}
 	}, [
-		data?.workspace_for_project?.id,
-		data?.workspace_for_project?.trial_extension_enabled,
+		data?.project?.workspace?.id,
+		data?.project?.workspace?.trial_extension_enabled,
 		hasReportedTrialExtension,
 		projectId,
 		setHasReportedTrialExtension,
@@ -972,7 +955,7 @@ const BillingBanner: React.FC = () => {
 	}
 
 	let bannerMessage: string | React.ReactNode = ''
-	const hasTrial = isProjectWithinTrial(data?.workspace_for_project)
+	const hasTrial = isProjectWithinTrial(data?.project?.workspace)
 
 	const records = getQuotaPercents(data)
 
@@ -1010,7 +993,7 @@ const BillingBanner: React.FC = () => {
 
 	if (hasTrial) {
 		bannerMessage = getTrialEndDateMessage(
-			data?.workspace_for_project?.trial_end_date,
+			data?.project?.workspace?.trial_end_date,
 		)
 	}
 

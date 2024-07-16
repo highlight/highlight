@@ -5,7 +5,6 @@ import {
 	filterMentionedSlackUsers,
 	parseAdminSuggestions,
 } from '@components/Comment/utils/utils'
-import { RadioGroup } from '@components/RadioGroup/RadioGroup'
 import { toast } from '@components/Toaster'
 import {
 	useCreateErrorCommentForExistingIssueMutation,
@@ -27,6 +26,8 @@ import {
 	Box,
 	ButtonIcon,
 	Form,
+	IconSolidCheveronDown,
+	IconSolidCheveronUp,
 	IconSolidClickUp,
 	IconSolidGithub,
 	IconSolidGitlab,
@@ -39,6 +40,8 @@ import {
 	IconSolidX,
 	Menu,
 	Stack,
+	Tag,
+	TagSwitchGroup,
 	Text,
 } from '@highlight-run/ui/components'
 import { useIsProjectIntegratedWith } from '@pages/IntegrationsPage/components/common/useIsProjectIntegratedWith'
@@ -67,6 +70,7 @@ import {
 
 import { Coordinates2D } from '../../PlayerCommentCanvas/PlayerCommentCanvas'
 import usePlayerConfiguration from '../../PlayerHook/utils/usePlayerConfiguration'
+import * as style from './NewCommentForm.css'
 
 interface Props {
 	commentTime: number
@@ -150,6 +154,8 @@ export const NewCommentForm = ({
 		url: '',
 		title: '',
 	})
+
+	const [moreOptions, setMoreOptions] = useState(false)
 
 	const integrationMap = useMemo(() => {
 		const ret: { [key: string]: IssueTrackerIntegration } = {}
@@ -266,6 +272,7 @@ export const NewCommentForm = ({
 	}
 
 	const onCreateSessionComment = async () => {
+		console.log('onCreateSessionComment')
 		analytics.track('Create Comment', {
 			numHighlightAdminMentions: mentionedAdmins.length,
 			numSlackMentions: mentionedSlackUsers.length,
@@ -581,32 +588,23 @@ export const NewCommentForm = ({
 						<Stack direction="column" gap="12" p="12">
 							{/* ClickUp doesn't support searching issues, so we don't need to show this section. */}
 							{integrationName !== 'ClickUp' && (
-								<Box
-									px="12"
-									py="8"
-									gap="12"
-									display="flex"
-									align="center"
-								>
-									<RadioGroup
-										labels={['Create Issue', 'Link Issue']}
-										selectedLabel={
-											mode ===
-											NewIntegrationIssueType.CreateIssue
-												? 'Create Issue'
-												: 'Link Issue'
-										}
-										onSelect={(label: string) =>
-											setMode(
-												label === 'Create Issue'
-													? NewIntegrationIssueType.CreateIssue
-													: NewIntegrationIssueType.LinkIssue,
-											)
-										}
-										labelStyle={{ width: '100%' }}
-										wrapperStyle={{ width: '100%' }}
-									/>
-								</Box>
+								<TagSwitchGroup
+									cssClass={style.switchGroup}
+									options={['Create Issue', 'Link Issue']}
+									defaultValue={
+										mode ===
+										NewIntegrationIssueType.CreateIssue
+											? 'Create Issue'
+											: 'Link Issue'
+									}
+									onChange={(label: string | number) => {
+										setMode(
+											label === 'Create Issue'
+												? NewIntegrationIssueType.CreateIssue
+												: NewIntegrationIssueType.LinkIssue,
+										)
+									}}
+								/>
 							)}
 							{mode === NewIntegrationIssueType.LinkIssue && (
 								<SearchIssues
@@ -634,13 +632,34 @@ export const NewCommentForm = ({
 										disabled={isCreatingComment}
 									/>
 
-									<Form.Input
-										name="issueDescription"
-										label="Description"
-										// @ts-expect-error
-										as="textarea"
-										disabled={isCreatingComment}
-									/>
+									<Tag
+										onClick={() =>
+											setMoreOptions(!moreOptions)
+										}
+										kind="primary"
+										emphasis="low"
+										shape="basic"
+										iconRight={
+											moreOptions ? (
+												<IconSolidCheveronUp />
+											) : (
+												<IconSolidCheveronDown />
+											)
+										}
+										className={style.moreOptionsTag}
+									>
+										Additional options
+									</Tag>
+
+									{moreOptions && (
+										<Form.Input
+											name="issueDescription"
+											label="Description"
+											// @ts-expect-error
+											as="textarea"
+											disabled={isCreatingComment}
+										/>
+									)}
 								</>
 							)}
 						</Stack>

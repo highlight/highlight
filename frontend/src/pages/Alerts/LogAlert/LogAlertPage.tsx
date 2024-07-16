@@ -5,7 +5,7 @@ import {
 	useCreateLogAlertMutation,
 	useDeleteLogAlertMutation,
 	useGetLogAlertQuery,
-	useGetLogsHistogramQuery,
+	useGetMetricsQuery,
 	useUpdateLogAlertMutation,
 } from '@graph/hooks'
 import {
@@ -49,10 +49,11 @@ import { SearchContext } from '@/components/Search/SearchContext'
 import { TIME_FORMAT } from '@/components/Search/SearchForm/constants'
 import { Search } from '@/components/Search/SearchForm/SearchForm'
 import { namedOperations } from '@/graph/generated/operations'
-import { ProductType } from '@/graph/generated/schemas'
+import { MetricAggregator, ProductType } from '@/graph/generated/schemas'
 import { useSearchTime } from '@/hooks/useSearchTime'
 import SlackLoadOrConnect from '@/pages/Alerts/AlertConfigurationCard/SlackLoadOrConnect'
 import AlertTitleField from '@/pages/Alerts/components/AlertTitleField/AlertTitleField'
+import { TIMESTAMP_KEY } from '@/pages/Graphing/components/Graph'
 import analytics from '@/util/analytics'
 
 import * as styles from './styles.css'
@@ -351,8 +352,9 @@ export const LogAlertPage = () => {
 	)
 
 	const { data: histogramData, loading: histogramLoading } =
-		useGetLogsHistogramQuery({
+		useGetMetricsQuery({
 			variables: {
+				product_type: ProductType.Logs,
 				project_id: project_id!,
 				params: {
 					query: submittedQuery,
@@ -361,6 +363,11 @@ export const LogAlertPage = () => {
 						end_date: moment(endDate).format(TIME_FORMAT),
 					},
 				},
+				column: '',
+				metric_types: MetricAggregator.Count,
+				group_by: 'level',
+				bucket_by: TIMESTAMP_KEY,
+				bucket_count: 48,
 			},
 			skip: !projectId,
 		})
@@ -482,19 +489,11 @@ export const LogAlertPage = () => {
 											startDate={startDate}
 											endDate={endDate}
 											onDatesChange={updateSearchTime}
-											onLevelChange={() => {}}
 											outline
 											threshold={threshold}
 											belowThreshold={belowThreshold}
 											frequencySeconds={frequency}
-											histogramBuckets={
-												histogramData?.logs_histogram
-													.buckets
-											}
-											bucketCount={
-												histogramData?.logs_histogram
-													.totalCount
-											}
+											metrics={histogramData}
 											loading={histogramLoading}
 										/>
 									</Box>

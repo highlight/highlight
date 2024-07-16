@@ -94,6 +94,7 @@ class H(object):
         service_name: str = "",
         service_version: str = "",
         environment: str = "",
+        disable_export_error_logging: bool = False,
         debug: bool = False,
         **kwargs,
     ):
@@ -135,6 +136,15 @@ class H(object):
             )
             handler.setFormatter(formatter)
             root.addHandler(handler)
+
+        if disable_export_error_logging:
+            for logger_name in (
+                "opentelemetry.exporter.otlp.proto.http._log_exporter",
+                "opentelemetry.exporter.otlp.proto.http.trace_exporter",
+                "opentelemetry.sdk._logs._internal.export",
+                "opentelemetry.sdk.trace.export",
+            ):
+                logging.getLogger(logger_name).setLevel(logging.FATAL)
 
         logger = logging.getLogger("highlight_io")
 
@@ -470,7 +480,7 @@ class H(object):
 
         def factory(*args, **kwargs) -> LogRecord:
             span = otel_trace.get_current_span()
-            if span != INVALID_SPAN:
+            if span != INVALID_SPAN and span.is_recording():
                 manager = contextlib.nullcontext(enter_result=span)
             else:
                 manager = self.trace("highlight.log")

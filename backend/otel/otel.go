@@ -190,6 +190,7 @@ func (o *Handler) HandleTrace(w http.ResponseWriter, r *http.Request) {
 				}
 
 				fields, err := extractFields(r.Context(), extractFieldsParams{
+					headers:  r.Header,
 					resource: &resource,
 					span:     &span,
 					curTime:  curTime,
@@ -208,6 +209,7 @@ func (o *Handler) HandleTrace(w http.ResponseWriter, r *http.Request) {
 					}
 					event := events.At(l)
 					fields, err := extractFields(r.Context(), extractFieldsParams{
+						headers:  r.Header,
 						resource: &resource,
 						span:     &span,
 						event:    &event,
@@ -289,8 +291,12 @@ func (o *Handler) HandleTrace(w http.ResponseWriter, r *http.Request) {
 							projectTraceMetrics[fields.projectID] = make(map[string][]*model.MetricInput)
 						}
 						projectTraceMetrics[fields.projectID][fields.sessionID] = append(projectTraceMetrics[fields.projectID][fields.sessionID], metric)
-					} else {
-						lg(ctx, fields).Warnf("otel received unknown event %s", event.Name())
+					}
+					// process unknown events as trace events
+
+					// for ruby SDKs, only process the first event to avoid duplicates
+					if fields.attrs["process.runtime.name"] == "ruby" && fields.attrs["telemetry.sdk.name"] == "opentelemetry" {
+						break
 					}
 				}
 
@@ -435,6 +441,7 @@ func (o *Handler) HandleLog(w http.ResponseWriter, r *http.Request) {
 				logRecord := logRecords.At(k)
 
 				fields, err := extractFields(r.Context(), extractFieldsParams{
+					headers:                r.Header,
 					resource:               &resource,
 					logRecord:              &logRecord,
 					curTime:                curTime,

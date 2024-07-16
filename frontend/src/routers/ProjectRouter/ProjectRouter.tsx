@@ -1,6 +1,5 @@
 import 'firebase/compat/auth'
 
-import { ApolloError } from '@apollo/client'
 import { useAuthContext } from '@authentication/AuthContext'
 import { ErrorState } from '@components/ErrorState/ErrorState'
 import { Header } from '@components/Header/Header'
@@ -9,7 +8,6 @@ import {
 	AppLoadingState,
 	useAppLoadingContext,
 } from '@context/AppLoadingContext'
-import { useGetProjectDropdownOptionsQuery } from '@graph/hooks'
 import { Maybe, Project, Workspace } from '@graph/schemas'
 import {
 	useLocalStorageProjectId,
@@ -23,7 +21,6 @@ import {
 } from '@pages/Player/context/PlayerUIContext'
 import { HighlightEvent } from '@pages/Player/HighlightEvent'
 import { usePlayerFullscreen } from '@pages/Player/utils/PlayerHooks'
-import useLocalStorage from '@rehooks/local-storage'
 import { GlobalContextProvider } from '@routers/ProjectRouter/context/GlobalContext'
 import { auth } from '@util/auth'
 import { setIndexedDBEnabled } from '@util/db'
@@ -33,6 +30,7 @@ import { Route, Routes } from 'react-router-dom'
 import { useToggle } from 'react-use'
 
 import { PRIVATE_GRAPH_URI } from '@/constants'
+import { useApplicationContext } from '@/routers/AppRouter/context/ApplicationContext'
 import {
 	useClientIntegration,
 	useLogsIntegration,
@@ -43,7 +41,6 @@ import commonStyles from '../../Common.module.css'
 import ApplicationRouter from './ApplicationRouter'
 
 export const ProjectRouter = () => {
-	const { isLoggedIn } = useAuthContext()
 	const [showKeyboardShortcutsGuide, toggleShowKeyboardShortcutsGuide] =
 		useToggle(false)
 	const [showBanner, toggleShowBanner] = useToggle(false)
@@ -53,10 +50,7 @@ export const ProjectRouter = () => {
 	const { setProjectId: setLocalStorageProjectId } =
 		useLocalStorageProjectId()
 
-	const { data, error } = useGetProjectDropdownOptionsQuery({
-		variables: { project_id: projectId! },
-		skip: !isLoggedIn || !projectId, // Higher level routers decide when guests are allowed to hit this router
-	})
+	const { currentProject, joinableWorkspaces } = useApplicationContext()
 
 	// Can we avoid calling these if we are viewing a shared session?
 	const clientIntegration = useClientIntegration()
@@ -106,12 +100,11 @@ export const ProjectRouter = () => {
 	}, [setLoadingState])
 
 	// if the user can join this workspace, give them that option via the ErrorState
-	const joinableWorkspace = data?.joinable_workspaces
+	const joinableWorkspace = joinableWorkspaces
 		?.filter((w) => w?.projects.map((p) => p?.id).includes(projectId))
 		?.pop()
 
-	const [rightPanelView, setRightPanelView] = useLocalStorage<RightPanelView>(
-		'active-right-panel-view',
+	const [rightPanelView, setRightPanelView] = useState<RightPanelView>(
 		RightPanelView.Session,
 	)
 
@@ -124,10 +117,7 @@ export const ProjectRouter = () => {
 	const [searchItem, setSearchItem] = useState<string | undefined>('')
 
 	const [selectedRightPanelTab, setSelectedRightPanelTab] =
-		useLocalStorage<RightPlayerTab>(
-			'tabs-PlayerRightPanel-active-tab',
-			RightPlayerTab.Events,
-		)
+		useState<RightPlayerTab>(RightPlayerTab.Events)
 
 	const { isPlayerFullscreen, setIsPlayerFullscreen, playerCenterPanelRef } =
 		usePlayerFullscreen()
@@ -172,7 +162,7 @@ export const ProjectRouter = () => {
 									})}
 								>
 									<ApplicationOrError
-										error={error}
+										error={!currentProject}
 										joinableWorkspace={joinableWorkspace}
 									/>
 								</div>
@@ -201,7 +191,7 @@ function ApplicationOrError({
 	joinableWorkspace,
 	error,
 }: {
-	error: ApolloError | undefined
+	error: boolean
 	joinableWorkspace: JoinableWorkspace | undefined
 }) {
 	const { isLoggedIn } = useAuthContext()

@@ -15,10 +15,10 @@ func TestGetProjectFilterSettings(t *testing.T) {
 	defer teardown(t)
 
 	workspace := model.Workspace{}
-	store.db.Create(&workspace)
+	store.DB.Create(&workspace)
 
 	project := model.Project{WorkspaceID: workspace.ID}
-	store.db.Create(&project)
+	store.DB.Create(&project)
 
 	originalSettings, err := store.GetProjectFilterSettings(ctx, project.ID)
 	assert.NoError(t, err)
@@ -34,13 +34,13 @@ func TestUpdateProjectFilterSettings(t *testing.T) {
 	defer teardown(t)
 
 	workspace := model.Workspace{}
-	store.db.Create(&workspace)
+	store.DB.Create(&workspace)
 
 	settings := model.AllWorkspaceSettings{WorkspaceID: workspace.ID}
-	store.db.Create(&settings)
+	store.DB.Create(&settings)
 
 	project := model.Project{WorkspaceID: workspace.ID}
-	store.db.Create(&project)
+	store.DB.Create(&project)
 
 	originalSettings, err := store.UpdateProjectFilterSettings(ctx, project.ID, UpdateProjectFilterSettingsParams{
 		FilterSessionsWithoutError: ptr.Bool(true),
@@ -64,16 +64,16 @@ func TestFindProjectsWithAutoResolveSetting(t *testing.T) {
 	defer teardown(t)
 
 	workspace := model.Workspace{}
-	store.db.Create(&workspace)
+	store.DB.Create(&workspace)
 
 	settings := model.AllWorkspaceSettings{WorkspaceID: workspace.ID}
-	store.db.Create(&settings)
+	store.DB.Create(&settings)
 
 	project1 := model.Project{WorkspaceID: workspace.ID}
-	store.db.Create(&project1)
+	store.DB.Create(&project1)
 
 	project2 := model.Project{WorkspaceID: workspace.ID}
-	store.db.Create(&project2)
+	store.DB.Create(&project2)
 
 	_, err := store.GetProjectFilterSettings(ctx, project1.ID)
 	assert.NoError(t, err)
@@ -87,7 +87,7 @@ func TestFindProjectsWithAutoResolveSetting(t *testing.T) {
 	})
 	assert.NoError(t, err)
 
-	projectFilterSettings, _ := store.FindProjectsWithAutoResolveSetting()
+	projectFilterSettings, _ := store.FindProjectsWithAutoResolveSetting(ctx)
 
 	assert.Len(t, projectFilterSettings, 1)
 	assert.Equal(t, projectFilterSettings[0].ID, projectWithAutoResolveSetting.ID)

@@ -1,5 +1,41 @@
 # highlight.run
 
+## 9.0.5
+
+### Patch Changes
+
+-   e239b1a02: fix cross-origin iframe recording
+
+## 9.0.4
+
+### Patch Changes
+
+-   0a245b208: default to jpeg canvas recording when webp not supported
+
+## 9.0.3
+
+### Patch Changes
+
+-   50c74161e: add screen measurements to session viewport data
+
+## 9.0.2
+
+### Patch Changes
+
+-   fd011e719: ensure getSessionURL correctly returns session url
+
+## 9.0.1
+
+### Patch Changes
+
+-   2ced0e269: fix inlineImages video recording showing incorrect solution and breaking videos on load
+
+## 9.0.0
+
+### Major Changes
+
+-   e7eb5f581: updates rrweb to 2.0.15 with LWC support
+
 ## 8.13.0
 
 ### Minor Changes

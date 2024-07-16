@@ -16,6 +16,8 @@ import (
 	"github.com/samber/lo"
 	"go.openly.dev/pointy"
 	"golang.org/x/oauth2/clientcredentials"
+	"golang.org/x/text/cases"
+	"golang.org/x/text/language"
 )
 
 // Make sure Datasource implements required interfaces. This is important to do
@@ -94,6 +96,8 @@ type QueryKey struct {
 	Type string
 }
 
+type QueryKeyValue string
+
 type KeyType string
 
 const (
@@ -101,8 +105,37 @@ const (
 	KeyTypeNumeric KeyType = "Numeric"
 )
 
+func getValidResources() map[string]bool {
+	return map[string]bool{
+		"traces":   true,
+		"logs":     true,
+		"errors":   true,
+		"sessions": true,
+	}
+}
+
+func getValidGraphQLQuery() map[string]bool {
+	return map[string]bool{
+		"values": true,
+		"keys":   true,
+	}
+}
+
 func (d *Datasource) CallResource(ctx context.Context, req *backend.CallResourceRequest, sender backend.CallResourceResponseSender) error {
-	if req.Path != "traces-keys" && req.Path != "logs-keys" && req.Path != "errors-keys" && req.Path != "sessions-keys" {
+	reqPathParts := strings.Split(req.Path, "-")
+	if len(reqPathParts) != 2 {
+		return sender.Send(&backend.CallResourceResponse{
+			Status: http.StatusNotFound,
+		})
+	}
+
+	resource := reqPathParts[0]
+	graphQLQuery := reqPathParts[1]
+
+	validResources := getValidResources()
+	validGraphQLQuery := getValidGraphQLQuery()
+
+	if !validResources[resource] || !validGraphQLQuery[graphQLQuery] {
 		return sender.Send(&backend.CallResourceResponse{
 			Status: http.StatusNotFound,
 		})
@@ -120,26 +153,34 @@ func (d *Datasource) CallResource(ctx context.Context, req *backend.CallResource
 	}
 
 	queryParams := u.Query()
-
 	query := queryParams.Get("query")
-	keyType := KeyType(queryParams.Get("type"))
+
+	caser := cases.Title(language.AmericanEnglish)
+	productType := caser.String(resource)
 
 	vars := map[string]interface{}{
-		"project_id": ID(strconv.Itoa(dataSourceSettings.ProjectId)),
+		"product_type": ProductType(productType),
+		"project_id":   ID(strconv.Itoa(dataSourceSettings.ProjectId)),
 		"date_range": DateRangeRequiredInput{
 			StartDate: time.Now().AddDate(0, -1, 0),
 			EndDate:   time.Now(),
 		},
-		"query": &query,
-		"type":  &keyType,
+	}
+
+	if graphQLQuery == "keys" {
+		keyType := KeyType(queryParams.Get("type"))
+		vars["type"] = &keyType
+		vars["query"] = &query
+	} else if graphQLQuery == "values" {
+		vars["query"] = query
 	}
 
 	var body []byte
 
-	switch req.Path {
-	case "traces-keys":
+	switch graphQLQuery {
+	case "keys":
 		var q struct {
-			TracesKeys []QueryKey `graphql:"traces_keys(project_id: $project_id, date_range: $date_range, query: $query, type: $type)"`
+			Keys []QueryKey `graphql:"keys(project_id: $project_id, date_range: $date_range, product_type: $product_type, query: $query, type: $type)"`
 		}
 
 		err = d.Client.Query(ctx, &q, vars)
@@ -147,14 +188,13 @@ func (d *Datasource) CallResource(ctx context.Context, req *backend.CallResource
 			return err
 		}
 
-		body, err = json.Marshal(q.TracesKeys)
+		body, err = json.Marshal(q.Keys)
 		if err != nil {
 			return err
 		}
-
-	case "logs-keys":
+	case "values":
 		var q struct {
-			LogsKeys []QueryKey `graphql:"logs_keys(project_id: $project_id, date_range: $date_range, query: $query, type: $type)"`
+			Values []QueryKeyValue `graphql:"key_values(project_id: $project_id, date_range: $date_range, product_type: $product_type, key_name: $query)"`
 		}
 
 		err = d.Client.Query(ctx, &q, vars)
@@ -162,37 +202,7 @@ func (d *Datasource) CallResource(ctx context.Context, req *backend.CallResource
 			return err
 		}
 
-		body, err = json.Marshal(q.LogsKeys)
-		if err != nil {
-			return err
-		}
-
-	case "errors-keys":
-		var q struct {
-			ErrorsKeys []QueryKey `graphql:"errors_keys(project_id: $project_id, date_range: $date_range, query: $query, type: $type)"`
-		}
-
-		err = d.Client.Query(ctx, &q, vars)
-		if err != nil {
-			return err
-		}
-
-		body, err = json.Marshal(q.ErrorsKeys)
-		if err != nil {
-			return err
-		}
-
-	case "sessions-keys":
-		var q struct {
-			SessionsKeys []QueryKey `graphql:"sessions_keys(project_id: $project_id, date_range: $date_range, query: $query, type: $type)"`
-		}
-
-		err = d.Client.Query(ctx, &q, vars)
-		if err != nil {
-			return err
-		}
-
-		body, err = json.Marshal(q.SessionsKeys)
+		body, err = json.Marshal(q.Values)
 		if err != nil {
 			return err
 		}
@@ -314,7 +324,7 @@ const (
 	TableSessions Table = "sessions"
 )
 
-func (d *Datasource) queryLogLines(ctx context.Context, productType ProductType, from time.Time, to time.Time, input queryInput, dataSourceSettings DataSourceSettings) backend.DataResponse {
+func (d *Datasource) queryLogLines(ctx context.Context, productType ProductType, from time.Time, to time.Time, refId string, input queryInput, dataSourceSettings DataSourceSettings) backend.DataResponse {
 	var result struct {
 		LogLines []LogLine `graphql:"log_lines(product_type: $product_type, project_id: $project_id, params: $params)"`
 	}
@@ -345,7 +355,7 @@ func (d *Datasource) queryLogLines(ctx context.Context, productType ProductType,
 	}
 
 	frame := data.NewFrame(
-		"response",
+		refId,
 		data.NewField("timestamp", nil, timestamps),
 		data.NewField("body", nil, bodies),
 		data.NewField("severity", nil, severities),
@@ -364,7 +374,7 @@ func (d *Datasource) queryLogLines(ctx context.Context, productType ProductType,
 	return response
 }
 
-func (d *Datasource) queryMetrics(ctx context.Context, productType ProductType, from time.Time, to time.Time, input queryInput, dataSourceSettings DataSourceSettings) backend.DataResponse {
+func (d *Datasource) queryMetrics(ctx context.Context, productType ProductType, from time.Time, to time.Time, refId string, input queryInput, dataSourceSettings DataSourceSettings) backend.DataResponse {
 	var result struct {
 		MetricsBuckets MetricsBuckets `graphql:"metrics(product_type: $product_type, project_id: $project_id, params: $params, column: $column, metric_types: $metric_types, group_by: $group_by, bucket_by: $bucket_by, bucket_count: $bucket_count, limit: $limit, limit_aggregator: $limit_aggregator, limit_column: $limit_column)"`
 	}
@@ -411,7 +421,7 @@ func (d *Datasource) queryMetrics(ctx context.Context, productType ProductType, 
 		bucketMaxs[bucket.BucketID] = pointy.Float64(bucket.BucketMax)
 	}
 
-	frame := data.NewFrame("response")
+	frame := data.NewFrame(refId)
 
 	if input.BucketBy == "Timestamp" {
 		timeValues := lo.Map(bucketIds, func(i uint64, _ int) time.Time {
@@ -458,6 +468,7 @@ func (d *Datasource) queryMetrics(ctx context.Context, productType ProductType, 
 func (d *Datasource) query(ctx context.Context, pCtx backend.PluginContext, query backend.DataQuery) backend.DataResponse {
 	from := query.TimeRange.From
 	to := query.TimeRange.To
+	refId := query.RefID
 
 	var input queryInput
 	err := json.Unmarshal(query.JSON, &input)
@@ -484,9 +495,9 @@ func (d *Datasource) query(ctx context.Context, pCtx backend.PluginContext, quer
 	}
 
 	if input.Metric == "None" {
-		return d.queryLogLines(ctx, productType, from, to, input, dataSourceSettings)
+		return d.queryLogLines(ctx, productType, from, to, refId, input, dataSourceSettings)
 	} else {
-		return d.queryMetrics(ctx, productType, from, to, input, dataSourceSettings)
+		return d.queryMetrics(ctx, productType, from, to, refId, input, dataSourceSettings)
 	}
 }
 

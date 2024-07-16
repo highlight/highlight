@@ -6,11 +6,11 @@ import (
 	"database/sql/driver"
 	"encoding/json"
 	"fmt"
-	"os"
-	"regexp"
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/highlight-run/highlight/backend/env"
 
 	Email "github.com/highlight-run/highlight/backend/email"
 	modelInputs "github.com/highlight-run/highlight/backend/private-graph/graph/model"
@@ -33,24 +33,6 @@ import (
 	e "github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 )
-
-var (
-	env     = os.Getenv("ENVIRONMENT")
-	DevEnv  = "dev"
-	TestEnv = "test"
-)
-
-func IsDevEnv() bool {
-	return env == DevEnv
-}
-
-func IsTestEnv() bool {
-	return env == TestEnv
-}
-
-func IsDevOrTestEnv() bool {
-	return IsTestEnv() || IsDevEnv()
-}
 
 var (
 	DB                *gorm.DB
@@ -175,6 +157,7 @@ var Models = []interface{}{
 	&ErrorFingerprint{},
 	&EventChunk{},
 	&SavedAsset{},
+	&ProjectAssetTransform{},
 	&Dashboard{},
 	&DashboardMetric{},
 	&DashboardMetricFilter{},
@@ -201,6 +184,8 @@ var Models = []interface{}{
 	&ErrorTag{},
 	&Graph{},
 	&Visualization{},
+	&Alert{},
+	&AlertDestination{},
 }
 
 func init() {
@@ -265,6 +250,7 @@ type Workspace struct {
 	LinearAccessToken           *string
 	VercelAccessToken           *string
 	VercelTeamID                *string
+	CloudflareProxy             *string
 	Projects                    []Project
 	MigratedFromProjectID       *int // Column can be removed after migration is done
 	HubspotCompanyID            *int
@@ -339,17 +325,20 @@ func (w *Workspace) AdminEmailAddresses(db *gorm.DB) ([]struct {
 }
 
 type WorkspaceAdmin struct {
-	AdminID     int        `gorm:"primaryKey"`
-	WorkspaceID int        `gorm:"primaryKey"`
-	CreatedAt   time.Time  `json:"created_at" deep:"-"`
-	UpdatedAt   time.Time  `json:"updated_at" deep:"-"`
-	DeletedAt   *time.Time `json:"deleted_at" deep:"-"`
-	Role        *string    `json:"role" gorm:"default:ADMIN"`
+	AdminID     int           `gorm:"primaryKey"`
+	WorkspaceID int           `gorm:"primaryKey"`
+	CreatedAt   time.Time     `json:"created_at" deep:"-"`
+	UpdatedAt   time.Time     `json:"updated_at" deep:"-"`
+	DeletedAt   *time.Time    `json:"deleted_at" deep:"-"`
+	Role        *string       `json:"role" gorm:"default:ADMIN"`
+	ProjectIds  pq.Int32Array `gorm:"type:integer[]"`
 }
 
 type WorkspaceAdminRole struct {
-	Admin *Admin
-	Role  string
+	WorkspaceId int
+	Admin       *Admin
+	Role        string
+	ProjectIds  []int
 }
 
 type WorkspaceInviteLink struct {
@@ -359,6 +348,7 @@ type WorkspaceInviteLink struct {
 	InviteeRole    *string
 	ExpirationDate *time.Time
 	Secret         *string
+	ProjectIds     pq.Int32Array `gorm:"type:integer[]"`
 }
 
 type WorkspaceAccessRequest struct {
@@ -384,11 +374,11 @@ type Project struct {
 	FrontTokenExpiresAt *time.Time
 	BillingEmail        *string
 	Secret              *string    `json:"-"`
-	Admins              []Admin    `gorm:"many2many:project_admins;"`
 	TrialEndDate        *time.Time `json:"trial_end_date"`
 	// Manual monthly session limit override
 	MonthlySessionLimit *int
 	WorkspaceID         int
+	Workspace           *Workspace
 	FreeTier            bool           `gorm:"default:false"`
 	ExcludedUsers       pq.StringArray `json:"excluded_users" gorm:"type:text[]"`
 	ErrorFilters        pq.StringArray `gorm:"type:text[]"`
@@ -450,9 +440,10 @@ type ProjectFilterSettings struct {
 
 type AllWorkspaceSettings struct {
 	Model
-	WorkspaceID   int  `gorm:"uniqueIndex"`
-	AIApplication bool `gorm:"default:true"`
-	AIInsights    bool `gorm:"default:false"`
+	WorkspaceID    int  `gorm:"uniqueIndex"`
+	AIApplication  bool `gorm:"default:true"`
+	AIInsights     bool `gorm:"default:false"`
+	AIQueryBuilder bool `gorm:"default:false"`
 
 	// use embeddings to group errors in this workspace
 	ErrorEmbeddingsGroup bool `gorm:"default:true"`
@@ -470,6 +461,7 @@ type AllWorkspaceSettings struct {
 	EnableDataDeletion        bool    `gorm:"default:true"`
 	CanShowBillingIssueBanner bool    `gorm:"default:true"`
 	EnableGrafanaDashboard    bool    `gorm:"default:false"`
+	EnableProjectLevelAccess  bool    `gorm:"default:false"`
 }
 
 type HasSecret interface {
@@ -650,7 +642,6 @@ type Admin struct {
 	PhotoURL                  *string          `json:"photo_url"`
 	UID                       *string          `gorm:"uniqueIndex"`
 	Organizations             []Organization   `gorm:"many2many:organization_admins;"`
-	Projects                  []Project        `gorm:"many2many:project_admins;"`
 	SessionComments           []SessionComment `gorm:"many2many:session_comment_admins;"`
 	ErrorComments             []ErrorComment   `gorm:"many2many:error_comment_admins;"`
 	Workspaces                []Workspace      `gorm:"many2many:workspace_admins;"`
@@ -1224,6 +1215,7 @@ type CommentSlackThread struct {
 
 type SessionInterval struct {
 	Model
+	ID              int64  `gorm:"primary_key;type:bigint;autoIncrement" json:"id" deep:"-"`
 	SessionSecureID string `gorm:"index" json:"secure_id"`
 	StartTime       time.Time
 	EndTime         time.Time
@@ -1263,6 +1255,13 @@ type SavedAsset struct {
 	OriginalUrl string `gorm:"uniqueIndex:idx_saved_assets_project_id_original_url_date"`
 	Date        string `gorm:"uniqueIndex:idx_saved_assets_project_id_original_url_date"`
 	HashVal     string `gorm:"index:idx_project_id_hash_val"`
+}
+
+type ProjectAssetTransform struct {
+	ProjectID         int    `gorm:"primary_key:not null"`
+	SourceScheme      string `gorm:"primary_key:not null"`
+	DestinationScheme string
+	DestinationHost   string
 }
 
 type VercelIntegrationConfig struct {
@@ -1417,30 +1416,13 @@ type VisualizationsResponse struct {
 
 func SetupDB(ctx context.Context, dbName string) (*gorm.DB, error) {
 	var (
-		host     = os.Getenv("PSQL_HOST")
-		port     = os.Getenv("PSQL_PORT")
-		username = os.Getenv("PSQL_USER")
-		password = os.Getenv("PSQL_PASSWORD")
+		host     = env.Config.SQLHost
+		port     = env.Config.SQLPort
+		username = env.Config.SQLUser
+		password = env.Config.SQLPassword
 		sslmode  = "disable"
 	)
 
-	databaseURL, ok := os.LookupEnv("DATABASE_URL")
-	if ok {
-		re, err := regexp.Compile(`(?m)^(?:postgres://)([^:]*)(?::)([^@]*)(?:@)([^:]*)(?::)([^/]*)(?:/)(.*)`)
-		if err != nil {
-			log.WithContext(ctx).Error(e.Wrap(err, "failed to compile regex"))
-		} else {
-			matched := re.FindAllStringSubmatch(databaseURL, -1)
-			if len(matched) > 0 && len(matched[0]) > 5 {
-				username = matched[0][1]
-				password = matched[0][2]
-				host = matched[0][3]
-				port = matched[0][4]
-				dbName = matched[0][5]
-				sslmode = "require"
-			}
-		}
-	}
 	log.WithContext(ctx).Printf("setting up db @ %s\n", host)
 	psqlConf := fmt.Sprintf(
 		"host=%s port=%s user=%s dbname=%s password=%s sslmode=%s",
@@ -1453,13 +1435,9 @@ func SetupDB(ctx context.Context, dbName string) (*gorm.DB, error) {
 
 	var err error
 
-	logLevel := logger.Silent
-	if os.Getenv("HIGHLIGHT_DEBUG_MODE") == "blame-GARAGE-spike-typic-neckline-santiago-tore-keep-becalm-preach-fiber-pomade-escheat-crone-tasmania" {
-		logLevel = logger.Info
-	}
 	DB, err = gorm.Open(postgres.Open(psqlConf), &gorm.Config{
 		DisableForeignKeyConstraintWhenMigrating: true,
-		Logger:                                   logger.Default.LogMode(logLevel),
+		Logger:                                   logger.Default.LogMode(logger.Silent),
 		PrepareStmt:                              true,
 		SkipDefaultTransaction:                   true,
 		CreateBatchSize:                          5000, // Postgres only allows 65535 parameters per insert - this would allow 5000 records with 13 inserted fields each.
@@ -1856,7 +1834,7 @@ func (e *ErrorGroup) GetSlackAttachment(attachment *slack.Attachment) error {
 	errorType := e.Type
 	errorState := e.State
 
-	frontendURL := os.Getenv("REACT_APP_FRONTEND_URI")
+	frontendURL := env.Config.FrontendUri
 	errorURL := fmt.Sprintf("%s/%d/errors/%s", frontendURL, e.ProjectID, e.SecureID)
 
 	fields := []*slack.TextBlockObject{
@@ -1894,7 +1872,7 @@ func (s *Session) GetSlackAttachment(attachment *slack.Attachment) error {
 	sessionTotalDuration := formatDuration(time.Duration(s.Length * 10e5).Round(time.Second))
 	sessionDateStr := fmt.Sprintf("<!date^%d^{date} {time}|%s>", s.CreatedAt.Unix(), s.CreatedAt.Format(time.RFC1123))
 
-	frontendURL := os.Getenv("REACT_APP_FRONTEND_URI")
+	frontendURL := env.Config.FrontendUri
 	sessionURL := fmt.Sprintf("%s/%d/sessions/%s", frontendURL, s.ProjectID, s.SecureID)
 	sessionImg := ""
 	userProps, err := s.GetUserProperties()
@@ -1941,6 +1919,36 @@ func (s *Session) GetUserProperties() (map[string]string, error) {
 }
 
 type Alert struct {
+	Model
+	ProjectID         int
+	MetricId          string
+	Name              string
+	ProductType       modelInputs.ProductType
+	FunctionType      modelInputs.MetricAggregator
+	FunctionColumn    *string
+	Query             *string
+	GroupByKey        *string
+	Disabled          bool                `gorm:"default:false"`
+	LastAdminToEditID int                 `gorm:"last_admin_to_edit_id"`
+	Destinations      []*AlertDestination `gorm:"foreignKey:AlertID"`
+
+	// fields for threshold alert
+	BelowThreshold    *bool
+	ThresholdValue    *float64
+	ThresholdWindow   *int
+	ThresholdCooldown *int
+}
+
+type AlertDestination struct {
+	Model
+	AlertID         int
+	DestinationType modelInputs.AlertDestinationType
+	TypeID          string
+	TypeName        string
+	Authorization   *string // webhooks may have this
+}
+
+type AlertDeprecated struct {
 	ProjectID            int
 	ExcludedEnvironments *string
 	CountThreshold       int
@@ -1957,7 +1965,7 @@ type Alert struct {
 
 type ErrorAlert struct {
 	Model
-	Alert
+	AlertDeprecated
 	RegexGroups *string
 	Query       string
 	AlertIntegrations
@@ -2028,7 +2036,7 @@ func (obj *ErrorAlert) GetRegexGroups() ([]*string, error) {
 
 type SessionAlert struct {
 	Model
-	Alert
+	AlertDeprecated
 	TrackProperties *string
 	UserProperties  *string
 	ExcludeRules    *string
@@ -2058,7 +2066,7 @@ type Service struct {
 
 type LogAlert struct {
 	Model
-	Alert
+	AlertDeprecated
 	Query          string
 	BelowThreshold bool
 	AlertIntegrations
@@ -2081,7 +2089,7 @@ type SavedSegment struct {
 	ProjectID  int                                `gorm:"index:idx_saved_segment,priority:1" json:"project_id"`
 }
 
-func (obj *Alert) GetExcludedEnvironments() ([]*string, error) {
+func (obj *AlertDeprecated) GetExcludedEnvironments() ([]*string, error) {
 	if obj == nil {
 		return nil, e.New("empty session alert object for excluded environments")
 	}
@@ -2096,7 +2104,7 @@ func (obj *Alert) GetExcludedEnvironments() ([]*string, error) {
 	return sanitizedExcludedEnvironments, nil
 }
 
-func (obj *Alert) GetChannelsToNotify() ([]*modelInputs.SanitizedSlackChannel, error) {
+func (obj *AlertDeprecated) GetChannelsToNotify() ([]*modelInputs.SanitizedSlackChannel, error) {
 	if obj == nil {
 		return nil, e.New("empty session alert object for channels to notify")
 	}
@@ -2111,11 +2119,11 @@ func (obj *Alert) GetChannelsToNotify() ([]*modelInputs.SanitizedSlackChannel, e
 	return sanitizedChannels, nil
 }
 
-func (obj *Alert) GetName() string {
+func (obj *AlertDeprecated) GetName() string {
 	return obj.Name
 }
 
-func (obj *Alert) GetEmailsToNotify() ([]*string, error) {
+func (obj *AlertDeprecated) GetEmailsToNotify() ([]*string, error) {
 	if obj == nil {
 		return nil, e.New("empty session alert object for emails to notify")
 	}
@@ -2125,7 +2133,7 @@ func (obj *Alert) GetEmailsToNotify() ([]*string, error) {
 	return emailsToNotify, err
 }
 
-func (obj *Alert) GetDailyErrorEventFrequency(db *gorm.DB, id int) ([]*int64, error) {
+func (obj *AlertDeprecated) GetDailyErrorEventFrequency(db *gorm.DB, id int) ([]*int64, error) {
 	var dailyAlerts []*int64
 	if err := db.Raw(`
 		SELECT COUNT(e.id)
@@ -2146,7 +2154,7 @@ func (obj *Alert) GetDailyErrorEventFrequency(db *gorm.DB, id int) ([]*int64, er
 	return dailyAlerts, nil
 }
 
-func (obj *Alert) GetDailySessionEventFrequency(db *gorm.DB, id int) ([]*int64, error) {
+func (obj *AlertDeprecated) GetDailySessionEventFrequency(db *gorm.DB, id int) ([]*int64, error) {
 	var dailyAlerts []*int64
 	if err := db.Raw(`
 		SELECT COUNT(e.id)
@@ -2167,7 +2175,7 @@ func (obj *Alert) GetDailySessionEventFrequency(db *gorm.DB, id int) ([]*int64, 
 	return dailyAlerts, nil
 }
 
-func (obj *Alert) GetDailyLogEventFrequency(db *gorm.DB, id int) ([]*int64, error) {
+func (obj *AlertDeprecated) GetDailyLogEventFrequency(db *gorm.DB, id int) ([]*int64, error) {
 	var dailyAlerts []*int64
 	if err := db.Raw(`
 		SELECT COUNT(e.id)
@@ -2341,7 +2349,7 @@ func SendWelcomeSlackMessage(ctx context.Context, obj IAlert, input *SendWelcome
 		slackClient = slack.New(*input.Workspace.SlackAccessToken)
 	}
 
-	frontendURL := os.Getenv("REACT_APP_FRONTEND_URI")
+	frontendURL := env.Config.FrontendUri
 	alertUrl := fmt.Sprintf("%s/%d/%s/%d", frontendURL, input.Project.Model.ID, input.URLSlug, input.ID)
 	if !input.IncludeEditLink {
 		alertUrl = ""
@@ -2410,14 +2418,16 @@ func SendWelcomeSlackMessage(ctx context.Context, obj IAlert, input *SendWelcome
 	return nil
 }
 
-type TableConfig[TReservedKey ~string] struct {
+type TableConfig struct {
 	TableName        string
 	BodyColumn       string
 	SeverityColumn   string
 	AttributesColumn string
-	KeysToColumns    map[TReservedKey]string
-	ReservedKeys     []TReservedKey
-	SelectColumns    []string
-	DefaultFilter    string
-	IgnoredFilters   map[string]bool
+	// AttributesList set when AttributesColumn is an array of k,v pairs of attributes
+	AttributesList bool
+	KeysToColumns  map[string]string
+	ReservedKeys   []string
+	SelectColumns  []string
+	DefaultFilter  string
+	IgnoredFilters map[string]bool
 }

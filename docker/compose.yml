@@ -92,9 +92,10 @@ services:
         logging: *local-logging
         restart: on-failure
         build:
-            dockerfile: collector.Dockerfile
+            dockerfile: ./docker/collector.Dockerfile
             pull: true
             target: collector
+            context: ..
             args:
                 - IN_DOCKER_GO
                 - SSL
@@ -104,6 +105,7 @@ services:
         ports:
             - '0.0.0.0:4317:4317'
             - '0.0.0.0:4318:4318'
+            - '0.0.0.0:8318:8318'
             - '0.0.0.0:4319:4319'
             - '0.0.0.0:6513:6513'
             - '0.0.0.0:6514:6514'

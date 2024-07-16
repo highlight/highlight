@@ -15,3 +15,7 @@
 ## 0.2.1
 
 - Ensure `message` on logs is always a string.
+
+## 0.2.2
+
+- Fix duplicate errors recorded on traces.

@@ -1,8 +1,5 @@
-import {
-	addCustomEvent as rrwebAddCustomEvent,
-	getRecordSequentialIdPlugin,
-	record,
-} from 'rrweb'
+import { addCustomEvent as rrwebAddCustomEvent, record } from 'rrweb'
+import { getRecordSequentialIdPlugin } from '@rrweb/rrweb-plugin-sequential-id-record'
 import { eventWithTime, listenerHandler } from '@rrweb/types'
 import { FirstLoadListeners } from './listeners/first-load-listeners'
 import {
@@ -39,7 +36,10 @@ import stringify from 'json-stringify-safe'
 import { print } from 'graphql'
 import { determineMaskInputOptions } from './utils/privacy'
 
-import { ViewportResizeListener } from './listeners/viewport-resize-listener'
+import {
+	ViewportResizeListener,
+	type ViewportResizeListenerArgs,
+} from './listeners/viewport-resize-listener'
 import { SegmentIntegrationListener } from './listeners/segment-integration-listener'
 import { ClickListener } from './listeners/click-listener/click-listener'
 import { FocusListener } from './listeners/focus-listener/focus-listener'
@@ -88,6 +88,7 @@ import {
 	SNAPSHOT_SETTINGS,
 	VISIBILITY_DEBOUNCE_MS,
 } from './constants/sessions'
+import { getDefaultDataURLOptions } from './utils/utils'
 
 export const HighlightWarning = (context: string, msg: any) => {
 	console.warn(`Highlight Warning: (${context}): `, { output: msg })
@@ -126,6 +127,8 @@ export type HighlightClassOptions = {
 	sessionSecureID: string // Introduced in firstLoad 3.0.1
 	storageMode?: 'sessionStorage' | 'localStorage'
 	sendMode?: 'webworker' | 'local'
+	enableOtelTracing?: HighlightOptions['enableOtelTracing']
+	otlpEndpoint?: HighlightOptions['otlpEndpoint']
 }
 
 /**
@@ -341,6 +344,7 @@ export class Highlight {
 			canvasFactor: 0.5,
 			canvasMaxSnapshotDimension: 360,
 			canvasClearWebGLBuffer: true,
+			dataUrlOptions: getDefaultDataURLOptions(),
 			...(options.samplingStrategy ?? {
 				canvas: 2,
 			}),
@@ -694,6 +698,7 @@ SessionSecureID: ${this.sessionData.sessionSecureID}`,
 			}
 			emit.bind(this)
 
+			const alreadyRecording = !!this._recordStop
 			// if we were already recording, stop recording to reset rrweb state (eg. reset _sid)
 			if (this._recordStop) {
 				this._recordStop()
@@ -703,6 +708,7 @@ SessionSecureID: ${this.sessionData.sessionSecureID}`,
 			const [maskAllInputs, maskInputOptions] = determineMaskInputOptions(
 				this.privacySetting,
 			)
+
 			this._recordStop = record({
 				ignoreClass: 'highlight-ignore',
 				blockClass: 'highlight-block',
@@ -721,10 +727,7 @@ SessionSecureID: ${this.sessionData.sessionSecureID}`,
 							this.samplingStrategy.canvasClearWebGLBuffer,
 						initialSnapshotDelay:
 							this.samplingStrategy.canvasInitialSnapshotDelay,
-						dataURLOptions: {
-							type: 'image/webp',
-							quality: 0.9,
-						},
+						dataURLOptions: this.samplingStrategy.dataUrlOptions,
 						maxSnapshotDimension:
 							this.samplingStrategy.canvasMaxSnapshotDimension,
 					},
@@ -746,16 +749,10 @@ SessionSecureID: ${this.sessionData.sessionSecureID}`,
 						  }
 						: undefined,
 			})
+
 			// recordStop is not part of listeners because we do not actually want to stop rrweb
 			// rrweb has some bugs that make the stop -> restart workflow broken (eg iframe listeners)
-			const viewport = {
-				height: window.innerHeight,
-				width: window.innerWidth,
-			}
-			this.addCustomEvent('Viewport', viewport)
-			this.submitViewportMetrics(viewport)
-
-			if (!this._recordStop) {
+			if (!alreadyRecording) {
 				if (this.options.recordCrossOriginIframe) {
 					this._setupCrossOriginIframeParent()
 				}
@@ -921,10 +918,12 @@ SessionSecureID: ${this.sessionData.sessionSecureID}`,
 			)
 
 			this.listeners.push(
-				ViewportResizeListener((viewport) => {
-					this.addCustomEvent('Viewport', viewport)
-					this.submitViewportMetrics(viewport)
-				}),
+				ViewportResizeListener(
+					(viewport: ViewportResizeListenerArgs) => {
+						this.addCustomEvent('Viewport', viewport)
+						this.submitViewportMetrics(viewport)
+					},
+				),
 			)
 			this.listeners.push(
 				ClickListener((clickTarget, event) => {
@@ -1092,10 +1091,9 @@ SessionSecureID: ${this.sessionData.sessionSecureID}`,
 	submitViewportMetrics({
 		height,
 		width,
-	}: {
-		height: number
-		width: number
-	}) {
+		availHeight,
+		availWidth,
+	}: ViewportResizeListenerArgs) {
 		this.recordMetric([
 			{
 				name: MetricName.ViewportHeight,
@@ -1106,6 +1104,18 @@ SessionSecureID: ${this.sessionData.sessionSecureID}`,
 			{
 				name: MetricName.ViewportWidth,
 				value: width,
+				category: MetricCategory.Device,
+				group: window.location.href,
+			},
+			{
+				name: MetricName.ScreenHeight,
+				value: availHeight,
+				category: MetricCategory.Device,
+				group: window.location.href,
+			},
+			{
+				name: MetricName.ScreenWidth,
+				value: availWidth,
 				category: MetricCategory.Device,
 				group: window.location.href,
 			},
