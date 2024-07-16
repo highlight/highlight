@@ -1029,6 +1029,9 @@ export type CreateAlertMutationVariables = Types.Exact<{
 	threshold_value?: Types.Maybe<Types.Scalars['Float']>
 	threshold_window?: Types.Maybe<Types.Scalars['Int']>
 	threshold_cooldown?: Types.Maybe<Types.Scalars['Int']>
+	destinations:
+		| Array<Types.AlertDestinationInput>
+		| Types.AlertDestinationInput
 }>
 
 export type CreateAlertMutation = { __typename?: 'Mutation' } & {
@@ -1053,6 +1056,9 @@ export type UpdateAlertMutationVariables = Types.Exact<{
 	threshold_value?: Types.Maybe<Types.Scalars['Float']>
 	threshold_window?: Types.Maybe<Types.Scalars['Int']>
 	threshold_cooldown?: Types.Maybe<Types.Scalars['Int']>
+	destinations?: Types.Maybe<
+		Array<Types.AlertDestinationInput> | Types.AlertDestinationInput
+	>
 }>
 
 export type UpdateAlertMutation = { __typename?: 'Mutation' } & {
@@ -1073,6 +1079,16 @@ export type UpdateAlertDisabledMutationVariables = Types.Exact<{
 export type UpdateAlertDisabledMutation = { __typename?: 'Mutation' } & Pick<
 	Types.Mutation,
 	'updateAlertDisabled'
+>
+
+export type DeleteAlertMutationVariables = Types.Exact<{
+	project_id: Types.Scalars['ID']
+	alert_id: Types.Scalars['ID']
+}>
+
+export type DeleteAlertMutation = { __typename?: 'Mutation' } & Pick<
+	Types.Mutation,
+	'deleteAlert'
 >
 
 export type UpdateAdminAndCreateWorkspaceMutationVariables = Types.Exact<{
@@ -4356,7 +4372,19 @@ export type GetAlertsPagePayloadQuery = { __typename?: 'Query' } & {
 			{ __typename?: 'Alert' } & Pick<
 				Types.Alert,
 				'id' | 'updated_at' | 'name' | 'product_type' | 'disabled'
-			>
+			> & {
+					destinations: Array<
+						Types.Maybe<
+							{ __typename?: 'AlertDestination' } & Pick<
+								Types.AlertDestination,
+								| 'id'
+								| 'destination_type'
+								| 'type_id'
+								| 'type_name'
+							>
+						>
+					>
+				}
 		>
 	>
 }
@@ -4382,7 +4410,16 @@ export type GetAlertQuery = { __typename?: 'Query' } & {
 		| 'threshold_value'
 		| 'threshold_window'
 		| 'threshold_cooldown'
-	>
+	> & {
+			destinations: Array<
+				Types.Maybe<
+					{ __typename?: 'AlertDestination' } & Pick<
+						Types.AlertDestination,
+						'id' | 'destination_type' | 'type_id' | 'type_name'
+					>
+				>
+			>
+		}
 }
 
 export type GetMetricMonitorsQueryVariables = Types.Exact<{
@@ -5479,6 +5516,7 @@ export const namedOperations = {
 		CreateAlert: 'CreateAlert' as const,
 		UpdateAlert: 'UpdateAlert' as const,
 		UpdateAlertDisabled: 'UpdateAlertDisabled' as const,
+		DeleteAlert: 'DeleteAlert' as const,
 		UpdateAdminAndCreateWorkspace: 'UpdateAdminAndCreateWorkspace' as const,
 		UpdateAdminAboutYouDetails: 'UpdateAdminAboutYouDetails' as const,
 		UpdateErrorAlert: 'UpdateErrorAlert' as const,

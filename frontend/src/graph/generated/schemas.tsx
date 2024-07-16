@@ -157,6 +157,12 @@ export type AlertDestination = {
 	type_name: Scalars['String']
 }
 
+export type AlertDestinationInput = {
+	destination_type: AlertDestinationType
+	type_id: Scalars['String']
+	type_name: Scalars['String']
+}
+
 export enum AlertDestinationType {
 	Discord = 'Discord',
 	Email = 'Email',
@@ -1296,6 +1302,7 @@ export type MutationChangeProjectMembershipArgs = {
 
 export type MutationCreateAlertArgs = {
 	below_threshold?: InputMaybe<Scalars['Boolean']>
+	destinations: Array<AlertDestinationInput>
 	function_column?: InputMaybe<Scalars['String']>
 	function_type: MetricAggregator
 	group_by_key?: InputMaybe<Scalars['String']>
@@ -1762,6 +1769,7 @@ export type MutationUpdateAdminAndCreateWorkspaceArgs = {
 export type MutationUpdateAlertArgs = {
 	alert_id: Scalars['ID']
 	below_threshold?: InputMaybe<Scalars['Boolean']>
+	destinations?: InputMaybe<Array<AlertDestinationInput>>
 	function_column?: InputMaybe<Scalars['String']>
 	function_type?: InputMaybe<MetricAggregator>
 	group_by_key?: InputMaybe<Scalars['String']>

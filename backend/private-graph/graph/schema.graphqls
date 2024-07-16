@@ -1581,6 +1581,12 @@ type AlertDestination {
 	type_name: String!
 }
 
+input AlertDestinationInput {
+	destination_type: AlertDestinationType!
+	type_id: String!
+	type_name: String!
+}
+
 type Alert {
 	id: ID!
 	updated_at: Timestamp!
@@ -2775,7 +2781,8 @@ type Mutation {
 		below_threshold: Boolean
 		threshold_value: Float
 		threshold_window: Int
-		threshold_cooldown: Int # TODO(spenny): add destinations
+		threshold_cooldown: Int
+		destinations: [AlertDestinationInput!]!
 	): Alert
 	updateAlert(
 		project_id: ID!
@@ -2789,7 +2796,8 @@ type Mutation {
 		below_threshold: Boolean
 		threshold_value: Float
 		threshold_window: Int
-		threshold_cooldown: Int # TODO(spenny): add destinations
+		threshold_cooldown: Int
+		destinations: [AlertDestinationInput!]
 	): Alert
 	updateAlertDisabled(
 		project_id: ID!

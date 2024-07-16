@@ -3309,7 +3309,7 @@ func (r *mutationResolver) UpdateMetricMonitor(ctx context.Context, metricMonito
 }
 
 // CreateAlert is the resolver for the createAlert field.
-func (r *mutationResolver) CreateAlert(ctx context.Context, projectID int, name string, productType modelInputs.ProductType, functionType modelInputs.MetricAggregator, functionColumn *string, query *string, groupByKey *string, belowThreshold *bool, thresholdValue *float64, thresholdWindow *int, thresholdCooldown *int) (*model.Alert, error) {
+func (r *mutationResolver) CreateAlert(ctx context.Context, projectID int, name string, productType modelInputs.ProductType, functionType modelInputs.MetricAggregator, functionColumn *string, query *string, groupByKey *string, belowThreshold *bool, thresholdValue *float64, thresholdWindow *int, thresholdCooldown *int, destinations []*modelInputs.AlertDestinationInput) (*model.Alert, error) {
 	_, err := r.isUserInProject(ctx, projectID)
 	admin, _ := r.getCurrentAdmin(ctx)
 	if err != nil {
@@ -3332,11 +3332,24 @@ func (r *mutationResolver) CreateAlert(ctx context.Context, projectID int, name 
 		LastAdminToEditID: admin.ID,
 	}
 
-	if err := r.DB.WithContext(ctx).Create(newAlert).Error; err != nil {
+	createdAlert := &model.Alert{}
+	if err := r.DB.WithContext(ctx).Clauses(clause.Returning{}).Create(newAlert).Scan(&createdAlert).Error; err != nil {
 		return nil, err
 	}
 
-	// TODO(spenny): create destinations
+	alertDestinations := []*model.AlertDestination{}
+	for _, d := range destinations {
+		alertDestinations = append(alertDestinations, &model.AlertDestination{
+			AlertID:         createdAlert.ID,
+			DestinationType: d.DestinationType,
+			TypeID:          d.TypeID,
+			TypeName:        d.TypeName,
+		})
+	}
+
+	if err := r.DB.WithContext(ctx).Create(alertDestinations).Error; err != nil {
+		return nil, err
+	}
 
 	// TODO(spenny): send new message to destinations
 
@@ -3344,7 +3357,7 @@ func (r *mutationResolver) CreateAlert(ctx context.Context, projectID int, name 
 }
 
 // UpdateAlert is the resolver for the updateAlert field.
-func (r *mutationResolver) UpdateAlert(ctx context.Context, projectID int, alertID int, name *string, productType *modelInputs.ProductType, functionType *modelInputs.MetricAggregator, functionColumn *string, query *string, groupByKey *string, belowThreshold *bool, thresholdValue *float64, thresholdWindow *int, thresholdCooldown *int) (*model.Alert, error) {
+func (r *mutationResolver) UpdateAlert(ctx context.Context, projectID int, alertID int, name *string, productType *modelInputs.ProductType, functionType *modelInputs.MetricAggregator, functionColumn *string, query *string, groupByKey *string, belowThreshold *bool, thresholdValue *float64, thresholdWindow *int, thresholdCooldown *int, destinations []*modelInputs.AlertDestinationInput) (*model.Alert, error) {
 	project, err := r.isUserInProject(ctx, projectID)
 	admin, _ := r.getCurrentAdmin(ctx)
 	if err != nil {
@@ -3372,7 +3385,29 @@ func (r *mutationResolver) UpdateAlert(ctx context.Context, projectID int, alert
 		return nil, updateErr
 	}
 
-	// TODO(spenny): create/delete destinations
+	if err := r.DB.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
+		if err := tx.Where(&model.AlertDestination{AlertID: alert.ID}).Delete(&model.AlertDestination{}).Error; err != nil {
+			return err
+		}
+
+		alertDestinations := []*model.AlertDestination{}
+		for _, d := range destinations {
+			alertDestinations = append(alertDestinations, &model.AlertDestination{
+				AlertID:         alert.ID,
+				DestinationType: d.DestinationType,
+				TypeID:          d.TypeID,
+				TypeName:        d.TypeName,
+			})
+		}
+
+		if err := r.DB.WithContext(ctx).Create(alertDestinations).Error; err != nil {
+			return err
+		}
+
+		return nil
+	}); err != nil {
+		return nil, err
+	}
 
 	// TODO(spenny): send edit message to destinations
 

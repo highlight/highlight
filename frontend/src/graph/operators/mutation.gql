@@ -977,6 +977,7 @@ mutation CreateAlert(
 	$threshold_value: Float
 	$threshold_window: Int
 	$threshold_cooldown: Int
+	$destinations: [AlertDestinationInput!]!
 ) {
 	createAlert(
 		project_id: $project_id
@@ -990,6 +991,7 @@ mutation CreateAlert(
 		threshold_value: $threshold_value
 		threshold_window: $threshold_window
 		threshold_cooldown: $threshold_cooldown
+		destinations: $destinations
 	) {
 		id
 		name
@@ -1010,6 +1012,7 @@ mutation UpdateAlert(
 	$threshold_value: Float
 	$threshold_window: Int
 	$threshold_cooldown: Int
+	$destinations: [AlertDestinationInput!]
 ) {
 	updateAlert(
 		project_id: $project_id
@@ -1024,6 +1027,7 @@ mutation UpdateAlert(
 		threshold_value: $threshold_value
 		threshold_window: $threshold_window
 		threshold_cooldown: $threshold_cooldown
+		destinations: $destinations
 	) {
 		id
 		name
@@ -1041,6 +1045,10 @@ mutation UpdateAlertDisabled(
 		alert_id: $alert_id
 		disabled: $disabled
 	)
+}
+
+mutation DeleteAlert($project_id: ID!, $alert_id: ID!) {
+	deleteAlert(project_id: $project_id, alert_id: $alert_id)
 }
 
 mutation UpdateAdminAndCreateWorkspace(
