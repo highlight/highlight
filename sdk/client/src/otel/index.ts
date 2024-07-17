@@ -5,11 +5,9 @@ import {
 } from '@opentelemetry/core'
 import {
 	BatchSpanProcessor,
-	BufferConfig,
 	ConsoleSpanExporter,
 	ReadableSpan,
 	SimpleSpanProcessor,
-	SpanExporter,
 	StackContextManager,
 	WebTracerProvider,
 } from '@opentelemetry/sdk-trace-web'
@@ -68,7 +66,7 @@ export const setupBrowserTracing = (config: BrowserTracingConfig) => {
 		'https://pub.highlight.run'
 
 	const urlBlocklist = [
-		...(config.urlBlocklist ?? []),
+		...(config.networkRecordingOptions?.urlBlocklist ?? []),
 		...DEFAULT_URL_BLOCKLIST,
 	]
 	const isDebug = import.meta.env.DEBUG === 'true'
@@ -100,18 +98,10 @@ export const setupBrowserTracing = (config: BrowserTracingConfig) => {
 		compression: 'gzip' as any,
 	})
 
-	const spanProcessor = new CustomSpanProcessor(exporter, {
-		backendUrl,
-		urlBlocklist,
-		tracingOrigins: config.tracingOrigins,
+	const spanProcessor = new CustomBatchSpanProcessor(exporter, {
+		maxExportBatchSize: 15,
 	})
 	provider.addSpanProcessor(spanProcessor)
-
-	provider.addSpanProcessor(
-		new BatchSpanProcessor(exporter, {
-			maxExportBatchSize: 15,
-		}),
-	)
 
 	registerInstrumentations({
 		instrumentations: [
@@ -126,6 +116,18 @@ export const setupBrowserTracing = (config: BrowserTracingConfig) => {
 				) => {
 					const url = (span as any).attributes['http.url']
 					const method = request.method ?? 'GET'
+					const shouldRecord = shouldRecordRequest(
+						url,
+						backendUrl,
+						config.tracingOrigins,
+						urlBlocklist,
+					)
+
+					if (!shouldRecord) {
+						span.setAttribute('highlight.record', false)
+						removeTraceHeaders(request)
+						return
+					}
 
 					span.updateName(getSpanName(url, method, request.body))
 
@@ -159,6 +161,20 @@ export const setupBrowserTracing = (config: BrowserTracingConfig) => {
 					xhr: XMLHttpRequest,
 				) => {
 					const browserXhr = xhr as BrowserXHR
+					const shouldRecord = shouldRecordRequest(
+						browserXhr._url,
+						backendUrl,
+						config.tracingOrigins,
+						urlBlocklist,
+					)
+
+					if (!shouldRecord) {
+						span.setAttribute('highlight.record', false)
+						browserXhr.setRequestHeader('traceparent', '')
+						browserXhr.setRequestHeader('tracestate', '')
+						return
+					}
+
 					const spanName = getSpanName(
 						browserXhr._url,
 						browserXhr._method,
@@ -199,60 +215,13 @@ export const setupBrowserTracing = (config: BrowserTracingConfig) => {
 	})
 }
 
-type CustomSpanProcessorConfig = BufferConfig & {
-	backendUrl?: string
-	urlBlocklist?: string[]
-	tracingOrigins?: boolean | (string | RegExp)[]
-}
-
-class CustomSpanProcessor extends BatchSpanProcessorBase<CustomSpanProcessorConfig> {
-	private backendUrl: string
-	private urlBlocklist: string[]
-	private tracingOrigins: boolean | (string | RegExp)[]
-
-	constructor(exporter: SpanExporter, config: CustomSpanProcessorConfig) {
-		super(exporter)
-
-		this.backendUrl = config.backendUrl ?? ''
-		this.urlBlocklist = config.urlBlocklist ?? DEFAULT_URL_BLOCKLIST
-		this.tracingOrigins = config.tracingOrigins ?? false
-	}
-
-	onStart(): void {
-		// Do nothing. Types required us to implement this method.
-	}
-
+class CustomBatchSpanProcessor extends BatchSpanProcessor {
 	onEnd(span: ReadableSpan): void {
-		const url = span.attributes['http.url']
-
-		if (typeof url === 'string') {
-			const shouldRecordHeaderAndBody = !this.urlBlocklist.some(
-				(blockedUrl) => url.toLowerCase().includes(blockedUrl),
-			)
-
-			const shouldRecord = shouldNetworkRequestBeRecorded(
-				url,
-				this.backendUrl,
-				this.tracingOrigins,
-			)
-
-			const shouldRecordNetworkRequest = shouldNetworkRequestBeTraced(
-				url,
-				this.tracingOrigins,
-			)
-
-			if (
-				!shouldRecordHeaderAndBody ||
-				!shouldRecord ||
-				!shouldRecordNetworkRequest
-			) {
-				span.spanContext().traceFlags = 0 // prevents span from being recorded
-			}
+		if (span.attributes['highlight.record'] === false) {
+			return // don't record spans that are marked as not to be recorded
 		}
-	}
 
-	onShutdown(): void {
-		// Do nothing. Types required us to implement this method.
+		super.onEnd(span)
 	}
 }
 
@@ -338,4 +307,55 @@ const enhanceSpanWithHttpRequestAttributes = (
 		'http.request.headers': JSON.stringify(sanitizedHeaders),
 		'http.request.body': stringBody,
 	})
+}
+
+const shouldRecordRequest = (
+	url: string,
+	backendUrl: string,
+	tracingOrigins: BrowserTracingConfig['tracingOrigins'],
+	urlBlocklist: string[],
+) => {
+	const shouldRecordHeaderAndBody = !urlBlocklist?.some((blockedUrl) =>
+		url.toLowerCase().includes(blockedUrl),
+	)
+	if (!shouldRecordHeaderAndBody) {
+		return false
+	}
+
+	// TODO: Check on this logic. shouldNetworkRequestBeRecorded also calls
+	// shouldNetworkRequestBeTraced, but it returns true for all non-Highlight
+	// resources. Following existing patterns here, but we may want to decouple
+	// these two functions and refactor some of the request filtering logic.
+	const shouldRecord = shouldNetworkRequestBeRecorded(
+		url,
+		backendUrl,
+		tracingOrigins,
+	)
+	if (!shouldRecord) {
+		return false
+	}
+
+	return shouldNetworkRequestBeTraced(url, tracingOrigins)
+}
+
+const removeTraceHeaders = (request: Request | RequestInit) => {
+	if (request.headers instanceof Headers) {
+		request.headers.delete('traceparent')
+		request.headers.delete('tracestate')
+	} else if (Array.isArray(request.headers)) {
+		let i = 0
+		while (i < request.headers.length) {
+			if (
+				request.headers[i][0] === 'traceparent' ||
+				request.headers[i][0] === 'tracestate'
+			) {
+				request.headers.splice(i, 1)
+			} else {
+				i++
+			}
+		}
+	} else if (typeof request.headers === 'object') {
+		delete request.headers['traceparent']
+		delete request.headers['tracestate']
+	}
 }
