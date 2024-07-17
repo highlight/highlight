@@ -14,3 +14,8 @@ export const menuButtonInner = style({
 globalStyle(`${menuButton} > div`, {
 	width: '100%',
 })
+
+export const menuList = style({
+	maxHeight: '300px',
+	overflowY: 'auto',
+})
