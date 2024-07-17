@@ -13,7 +13,7 @@ import {
 } from '@opentelemetry/instrumentation-user-interaction'
 import { SpanData } from '@opentelemetry/instrumentation-user-interaction/build/src/internal-types'
 
-const DEFAULT_EVENT_NAMES = ['click', 'input', 'submit', 'scroll']
+const DEFAULT_EVENT_NAMES = ['click', 'input', 'submit'] as const
 
 function defaultShouldPreventSpanCreation() {
 	return false
