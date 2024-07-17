@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.Web;
 using OpenTelemetry;
 using OpenTelemetry.Exporter;
+using OpenTelemetry.Logs;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
@@ -47,6 +48,7 @@ namespace cs
 
         private static TracerProvider _tracerProvider;
         private static MeterProvider _meterProvider;
+        private static LoggerFactory _loggerFactory;
 
         public static Dictionary<string, string> GetHighlightContext()
         {
@@ -138,12 +140,21 @@ namespace cs
                    options.Protocol = ExportProtocol;
                })
                .Build();
+
+            _loggerFactory = LoggerFactory.Create(builder =>
+            {
+                builder.AddOpenTelemetry(logging =>
+                {
+                    logging.AddConsoleExporter();
+                });
+            });
         }
         
         public static void Unregister()
         {
             _tracerProvider.Dispose();
             _meterProvider.Dispose();
+            _loggerFactory.Dispose();
         }
     }
 }
