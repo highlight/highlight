@@ -179,7 +179,11 @@ namespace cs
             {
                 builder.AddOpenTelemetry(logging =>
                 {
-                    logging.AddConsoleExporter();
+                    logging.AddOtlpExporter(options =>
+                    {
+                        options.Endpoint = new Uri(MetricsEndpoint);
+                        options.Protocol = ExportProtocol;
+                    });
                 });
             });
         }
