@@ -6810,6 +6810,10 @@ body {
 ._4e4xu50 > div {
   width: 100%;
 }
+._4e4xu52 {
+  max-height: 300px;
+  overflow-y: auto;
+}
 ._1b4bur70 {
   height: 40px;
 }
