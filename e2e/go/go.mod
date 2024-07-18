@@ -5,7 +5,7 @@ go 1.22.2
 replace github.com/highlight/highlight/sdk/highlight-go => ../../sdk/highlight-go
 
 require (
-	github.com/gofiber/fiber/v2 v2.52.2
+	github.com/gofiber/fiber/v2 v2.52.5
 	github.com/highlight/highlight/sdk/highlight-go v0.10.2
 	github.com/labstack/echo/v4 v4.11.4
 	github.com/pkg/errors v0.9.1
@@ -20,6 +20,7 @@ require (
 	github.com/golang-jwt/jwt v3.2.2+incompatible // indirect
 	github.com/google/uuid v1.6.0 // indirect
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.19.1 // indirect
+	github.com/huandu/go-assert v1.1.6 // indirect
 	github.com/klauspost/compress v1.17.7 // indirect
 	github.com/labstack/gommon v0.4.2 // indirect
 	github.com/mattn/go-colorable v0.1.13 // indirect
