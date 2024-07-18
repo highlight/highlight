@@ -283,7 +283,8 @@ const getSpanName = (
 	body: Request['body'] | BrowserXHR['_body'],
 ) => {
 	let parsedBody
-	const pathname = new URL(url).pathname
+	const urlObject = new URL(url)
+	const pathname = urlObject.pathname
 	let spanName = `${method} - ${pathname}`
 
 	try {
@@ -297,7 +298,9 @@ const getSpanName = (
 					: undefined
 
 			if (queryName) {
-				spanName = `${queryName} (GraphQL: ${pathname})`
+				spanName = `${queryName} (GraphQL: ${
+					urlObject.host + urlObject.pathname
+				})`
 			}
 		}
 	} catch {
