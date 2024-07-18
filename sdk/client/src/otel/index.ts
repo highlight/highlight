@@ -21,7 +21,6 @@ import {
 	SEMRESATTRS_DEPLOYMENT_ENVIRONMENT,
 	SEMRESATTRS_SERVICE_NAME,
 } from '@opentelemetry/semantic-conventions'
-import { BatchSpanProcessorBase } from '@opentelemetry/sdk-trace-base/build/src/export/BatchSpanProcessorBase'
 import * as api from '@opentelemetry/api'
 import {
 	BrowserXHR,
@@ -53,6 +52,7 @@ export type BrowserTracingConfig = {
 }
 
 let provider: WebTracerProvider
+const RECORD_ATTRIBUTE = 'highlight.record'
 
 export const setupBrowserTracing = (config: BrowserTracingConfig) => {
 	if (provider !== undefined) {
@@ -105,7 +105,13 @@ export const setupBrowserTracing = (config: BrowserTracingConfig) => {
 
 	registerInstrumentations({
 		instrumentations: [
-			new DocumentLoadInstrumentation(),
+			new DocumentLoadInstrumentation({
+				applyCustomAttributesOnSpan: {
+					documentLoad: assignDocumentDurations,
+					documentFetch: assignDocumentDurations,
+					resourceFetch: assignResourceFetchDurations,
+				},
+			}),
 			new UserInteractionInstrumentation(),
 			new FetchInstrumentation({
 				propagateTraceHeaderCorsUrls: /.*/,
@@ -114,21 +120,13 @@ export const setupBrowserTracing = (config: BrowserTracingConfig) => {
 					request,
 					response,
 				) => {
-					const url = (span as any).attributes['http.url']
-					const method = request.method ?? 'GET'
-					const shouldRecord = shouldRecordRequest(
-						url,
-						backendUrl,
-						config.tracingOrigins,
-						urlBlocklist,
-					)
-
-					if (!shouldRecord) {
-						span.setAttribute('highlight.record', false)
-						removeTraceHeaders(request)
+					const readableSpan = span as unknown as ReadableSpan
+					if (readableSpan.attributes[RECORD_ATTRIBUTE] === false) {
 						return
 					}
 
+					const url = readableSpan.attributes['http.url'] as string
+					const method = request.method ?? 'GET'
 					span.updateName(getSpanName(url, method, request.body))
 
 					if (!(response instanceof Response)) {
@@ -156,22 +154,10 @@ export const setupBrowserTracing = (config: BrowserTracingConfig) => {
 			}),
 			new XMLHttpRequestInstrumentation({
 				propagateTraceHeaderCorsUrls: /.*/,
-				applyCustomAttributesOnSpan: (
-					span: api.Span,
-					xhr: XMLHttpRequest,
-				) => {
+				applyCustomAttributesOnSpan: (span, xhr) => {
 					const browserXhr = xhr as BrowserXHR
-					const shouldRecord = shouldRecordRequest(
-						browserXhr._url,
-						backendUrl,
-						config.tracingOrigins,
-						urlBlocklist,
-					)
-
-					if (!shouldRecord) {
-						span.setAttribute('highlight.record', false)
-						browserXhr.setRequestHeader('traceparent', '')
-						browserXhr.setRequestHeader('tracestate', '')
+					const readableSpan = span as unknown as ReadableSpan
+					if (readableSpan.attributes[RECORD_ATTRIBUTE] === false) {
 						return
 					}
 
@@ -209,7 +195,11 @@ export const setupBrowserTracing = (config: BrowserTracingConfig) => {
 		propagator: new CompositePropagator({
 			propagators: [
 				new W3CBaggagePropagator(),
-				new W3CTraceContextPropagator(),
+				new CustomTraceContextPropagator({
+					backendUrl,
+					tracingOrigins: config.tracingOrigins,
+					urlBlocklist,
+				}),
 			],
 		}),
 	})
@@ -217,11 +207,59 @@ export const setupBrowserTracing = (config: BrowserTracingConfig) => {
 
 class CustomBatchSpanProcessor extends BatchSpanProcessor {
 	onEnd(span: ReadableSpan): void {
-		if (span.attributes['highlight.record'] === false) {
+		if (span.attributes[RECORD_ATTRIBUTE] === false) {
 			return // don't record spans that are marked as not to be recorded
 		}
 
 		super.onEnd(span)
+	}
+}
+
+type CustomTraceContextPropagatorConfig = {
+	backendUrl: string
+	tracingOrigins: BrowserTracingConfig['tracingOrigins']
+	urlBlocklist: string[]
+}
+
+class CustomTraceContextPropagator extends W3CTraceContextPropagator {
+	private backendUrl: string
+	private tracingOrigins: BrowserTracingConfig['tracingOrigins']
+	private urlBlocklist: string[]
+
+	constructor(config: CustomTraceContextPropagatorConfig) {
+		super()
+
+		this.backendUrl = config.backendUrl
+		this.tracingOrigins = config.tracingOrigins
+		this.urlBlocklist = config.urlBlocklist
+	}
+
+	inject(
+		context: api.Context,
+		carrier: unknown,
+		setter: api.TextMapSetter,
+	): void {
+		const span = api.trace.getSpan(context)
+		if (!span) {
+			return
+		}
+
+		const url = (span as unknown as ReadableSpan).attributes['http.url']
+		if (typeof url === 'string') {
+			const shouldRecord = shouldRecordRequest(
+				url,
+				this.backendUrl,
+				this.tracingOrigins,
+				this.urlBlocklist,
+			)
+
+			if (!shouldRecord) {
+				span.setAttribute(RECORD_ATTRIBUTE, false) // used later to avoid additional processing
+				return // return early to prevent headers from being injected
+			}
+		}
+
+		super.inject(context, carrier, setter)
 	}
 }
 
@@ -338,24 +376,120 @@ const shouldRecordRequest = (
 	return shouldNetworkRequestBeTraced(url, tracingOrigins)
 }
 
-const removeTraceHeaders = (request: Request | RequestInit) => {
-	if (request.headers instanceof Headers) {
-		request.headers.delete('traceparent')
-		request.headers.delete('tracestate')
-	} else if (Array.isArray(request.headers)) {
-		let i = 0
-		while (i < request.headers.length) {
-			if (
-				request.headers[i][0] === 'traceparent' ||
-				request.headers[i][0] === 'tracestate'
-			) {
-				request.headers.splice(i, 1)
-			} else {
-				i++
-			}
+const assignDocumentDurations = (span: api.Span) => {
+	const readableSpan = span as unknown as ReadableSpan
+	const events = readableSpan.events
+
+	const durations = {
+		unload: calculateDuration('unloadEventStart', 'unloadEventEnd', events),
+		dom_interactive: calculateDuration(
+			'domInteractive',
+			'fetchStart',
+			events,
+		),
+		dom_content_loaded: calculateDuration(
+			'domContentLoadedEventEnd',
+			'domContentLoadedEventStart',
+			events,
+		),
+		dom_complete: calculateDuration('fetchStart', 'domComplete', events),
+		load_event: calculateDuration('loadEventStart', 'loadEventEnd', events),
+		first_paint: calculateDuration('fetchStart', 'firstPaint', events),
+		first_contentful_paint: calculateDuration(
+			'fetchStart',
+			'firstContentfulPaint',
+			events,
+		),
+		domain_lookup: calculateDuration(
+			'domainLookupStart',
+			'domainLookupEnd',
+			events,
+		),
+		connect: calculateDuration('connectStart', 'connectEnd', events),
+		request: calculateDuration('requestStart', 'requestEnd', events),
+		response: calculateDuration('responseStart', 'responseEnd', events),
+	}
+
+	Object.entries(durations).forEach(([key, value]) => {
+		if (value > 0) {
+			span.setAttribute(`timings.${key}.ns`, value)
+			span.setAttribute(
+				`timings.${key}.readable`,
+				humanizeDuration(value),
+			)
 		}
-	} else if (typeof request.headers === 'object') {
-		delete request.headers['traceparent']
-		delete request.headers['tracestate']
+	})
+}
+
+type TimeEvent = {
+	name: string
+	time: [number, number] // seconds since epoch, nano seconds
+}
+
+function calculateDuration(
+	startEventName: string,
+	endEventName: string,
+	events: TimeEvent[],
+) {
+	const startEvent = events.find((e) => e.name === startEventName)
+	const endEvent = events.find((e) => e.name === endEventName)
+
+	if (!startEvent || !endEvent) {
+		return 0
+	}
+
+	const startNs = startEvent.time[0] * 1e9 + startEvent.time[1]
+	const endNs = endEvent.time[0] * 1e9 + endEvent.time[1]
+	return endNs - startNs
+}
+
+const assignResourceFetchDurations = (
+	span: api.Span,
+	resource: PerformanceResourceTiming,
+) => {
+	const durations = {
+		domain_lookup: resource.domainLookupEnd - resource.domainLookupStart,
+		connect: resource.connectEnd - resource.connectStart,
+		request: resource.responseEnd - resource.requestStart,
+		response: resource.responseEnd - resource.responseStart,
+	}
+
+	Object.entries(durations).forEach(([key, value]) => {
+		if (value > 0) {
+			span.setAttribute(`timings.${key}.ns`, value)
+			span.setAttribute(
+				`timings.${key}.readable`,
+				humanizeDuration(value),
+			)
+		}
+	})
+}
+
+// Transform a raw value to a human readable string with nanosecond precision.
+// Use the highest unit that results in a value greater than 1.
+const humanizeDuration = (nanoseconds: number): string => {
+	const microsecond = 1000
+	const millisecond = microsecond * 1000
+	const second = millisecond * 1000
+	const minute = second * 60
+	const hour = minute * 60
+
+	if (nanoseconds >= hour) {
+		const hours = nanoseconds / hour
+		return `${Number(hours.toFixed(1))}h`
+	} else if (nanoseconds >= minute) {
+		const minutes = nanoseconds / minute
+		return `${Number(minutes.toFixed(1))}m`
+	} else if (nanoseconds >= second) {
+		const seconds = nanoseconds / second
+		return `${Number(seconds.toFixed(1))}s`
+	} else if (nanoseconds >= millisecond) {
+		const milliseconds = nanoseconds / millisecond
+		return `${Number(milliseconds.toFixed(1))}ms`
+	} else if (nanoseconds >= microsecond) {
+		const microseconds = nanoseconds / microsecond
+		return `${Number(microseconds.toFixed(1))}µs`
+	} else {
+		return `${Number(nanoseconds.toFixed(1))}ns`
 	}
 }
