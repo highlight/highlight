@@ -1,5 +1,11 @@
 # highlight.run
 
+## 9.1.1
+
+### Patch Changes
+
+-   05fbf19aa: report performance resource timings in nanoseconds
+
 ## 9.1.0
 
 ### Minor Changes
