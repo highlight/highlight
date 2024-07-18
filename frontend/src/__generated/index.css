@@ -8016,6 +8016,20 @@ body {
 ._10o9hoe2:focus {
   background-color: var(--_1pyqka91m);
 }
+.ca168k0 {
+  background-color: var(--_1pyqka96);
+  border-radius: 4px;
+  color: inherit !important;
+  display: inline-block;
+  padding: 0 4px;
+}
+.ca168k1 {
+  border-bottom: none !important;
+}
+.ca168k2 {
+  border-bottom: 1px solid var(--_1pyqka9k) !important;
+  background-color: var(--_1pyqka92);
+}
 .rcvc2q0 {
   background-color: transparent;
   cursor: ew-resize;

@@ -20,7 +20,7 @@ import * as styles from './styles.css'
 
 export const DEFAULT_COLUMN_SIZE = '1fr'
 
-type CustomColumn<T> = {
+export type CustomColumn<T> = {
 	id: string
 	label: string
 	type: T
@@ -40,6 +40,9 @@ type TraceColumnType =
 	| 'metric_name'
 	| 'metric_value'
 export type TraceCustomColumn = CustomColumn<TraceColumnType>
+
+type SessionColumnType = 'string' | 'datetime' | 'session'
+export type SessionCustomColumn = CustomColumn<SessionColumnType>
 
 export type ValidCustomColumn = CustomColumn<any>
 

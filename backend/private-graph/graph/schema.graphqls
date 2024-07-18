@@ -894,7 +894,6 @@ type ErrorObjectNode {
 	event: String!
 	timestamp: Timestamp!
 	session: ErrorObjectNodeSession
-	errorGroupSecureID: String!
 	serviceVersion: String!
 	serviceName: String!
 }
@@ -2052,7 +2051,8 @@ type Query {
 	error_group(secure_id: String!, use_clickhouse: Boolean): ErrorGroup
 	error_object(id: ID!): ErrorObject
 	error_objects(
-		error_group_secure_id: String!
+		project_id: String
+		error_group_secure_id: String
 		count: Int!
 		params: QueryInput!
 		page: Int

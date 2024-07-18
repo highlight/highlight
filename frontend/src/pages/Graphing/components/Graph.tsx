@@ -26,6 +26,7 @@ import moment from 'moment'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 
 import { loadingIcon } from '@/components/Button/style.css'
+import { useRelatedResource } from '@/components/RelatedResources/hooks'
 import { TIME_FORMAT } from '@/components/Search/SearchForm/constants'
 import { useGetMetricsLazyQuery } from '@/graph/generated/hooks'
 import { GetMetricsQuery } from '@/graph/generated/operations'
@@ -60,6 +61,9 @@ export const VIEW_LABELS = ['Line chart', 'Bar chart / histogram', 'Table']
 
 export const TIMESTAMP_KEY = 'Timestamp'
 export const GROUP_KEY = 'Group'
+export const BUCKET_MIN_KEY = 'BucketMin'
+export const BUCKET_MAX_KEY = 'BucketMax'
+export const NO_GROUP_PLACEHOLDER = '<empty>'
 const MAX_LABEL_CHARS = 100
 
 export type PieChartConfig = {
@@ -102,6 +106,11 @@ export interface ChartProps<TConfig> {
 	onExpand?: () => void
 	onEdit?: () => void
 	setTimeRange?: (startDate: Date, endDate: Date) => void
+	loadExemplars?: (
+		bucketMin: number | undefined,
+		bucketMax: number | undefined,
+		group: string | undefined,
+	) => void
 }
 
 export interface InnerChartProps<TConfig> {
@@ -114,6 +123,11 @@ export interface InnerChartProps<TConfig> {
 	viewConfig: TConfig
 	disabled?: boolean
 	setTimeRange?: (startDate: Date, endDate: Date) => void
+	loadExemplars?: (
+		bucketMin: number | undefined,
+		bucketMax: number | undefined,
+		group: string | undefined,
+	) => void
 }
 
 export interface SeriesInfo {
@@ -413,11 +427,13 @@ export const useGraphData = (
 
 				for (const b of metrics.metrics.buckets) {
 					const seriesKey = hasGroups
-						? b.group.join(' ') || '<empty>'
+						? b.group.join(' ') || NO_GROUP_PLACEHOLDER
 						: b.metric_type
 					data[b.bucket_id][xAxisMetric] =
 						(b.bucket_min + b.bucket_max) / 2
 					data[b.bucket_id][seriesKey] = b.metric_value
+					data[b.bucket_id][BUCKET_MIN_KEY] = b.bucket_min
+					data[b.bucket_id][BUCKET_MAX_KEY] = b.bucket_max
 				}
 			} else {
 				data = []
@@ -437,13 +453,12 @@ export const useGraphSeries = (
 	data: any[] | undefined,
 	xAxisMetric: string,
 ) => {
-	const series = useMemo(
-		() =>
-			_.uniq(data?.flatMap((d) => Object.keys(d))).filter(
-				(key) => key !== xAxisMetric,
-			),
-		[data, xAxisMetric],
-	)
+	const series = useMemo(() => {
+		const excluded = [xAxisMetric, BUCKET_MIN_KEY, BUCKET_MAX_KEY]
+		return _.uniq(data?.flatMap((d) => Object.keys(d))).filter(
+			(key) => !excluded.includes(key),
+		)
+	}, [data, xAxisMetric])
 	return series
 }
 
@@ -484,6 +499,68 @@ const Graph = ({
 	const [pollInterval, setPollInterval] = useState<number>(0)
 	const [fetchStart, setFetchStart] = useState<Date>()
 	const [fetchEnd, setFetchEnd] = useState<Date>()
+
+	const { set } = useRelatedResource()
+
+	const loadExemplars = (
+		bucketMin: number | undefined,
+		bucketMax: number | undefined,
+		group: string | undefined,
+	) => {
+		let relatedResourceType: 'logs' | 'errors' | 'sessions' | 'traces'
+		switch (productType) {
+			case ProductType.Errors:
+				relatedResourceType = 'errors'
+				break
+			case ProductType.Logs:
+				relatedResourceType = 'logs'
+				break
+			case ProductType.Sessions:
+				relatedResourceType = 'sessions'
+				break
+			case ProductType.Traces:
+				relatedResourceType = 'traces'
+				break
+			default:
+				return
+		}
+
+		console.log('groupByKey', groupByKey)
+
+		let relatedResourceQuery = query
+		if (groupByKey !== undefined) {
+			if (relatedResourceQuery !== '') {
+				relatedResourceQuery += ' '
+			}
+			if (group !== NO_GROUP_PLACEHOLDER) {
+				relatedResourceQuery += `${groupByKey}="${group}"`
+			} else {
+				relatedResourceQuery += `${groupByKey} not exists`
+			}
+		}
+		if (![undefined, TIMESTAMP_KEY].includes(bucketByKey)) {
+			if (relatedResourceQuery !== '') {
+				relatedResourceQuery += ' '
+			}
+			relatedResourceQuery += `${bucketByKey}>=${bucketMin} ${bucketByKey}<${bucketMax}`
+		}
+
+		let startDateStr = moment(startDate).toISOString()
+		let endDateStr = moment(endDate).toISOString()
+		if (bucketByKey === TIMESTAMP_KEY && bucketMin && bucketMax) {
+			startDateStr = new Date(bucketMin * 1000).toISOString()
+			endDateStr = new Date(bucketMax * 1000).toISOString()
+		}
+
+		console.log('loadExemplars', bucketByKey, bucketMin, bucketMax)
+
+		set({
+			type: relatedResourceType,
+			query: relatedResourceQuery,
+			startDate: startDateStr,
+			endDate: endDateStr,
+		})
+	}
 
 	const [
 		getMetrics,
@@ -593,14 +670,7 @@ const Graph = ({
 	const yAxisFunction = functionType
 
 	const data = useGraphData(metrics, xAxisMetric)
-
-	const series = useMemo(
-		() =>
-			_.uniq(data?.flatMap((d) => Object.keys(d))).filter(
-				(key) => key !== xAxisMetric,
-			),
-		[data, xAxisMetric],
-	)
+	const series = useGraphSeries(data, xAxisMetric)
 
 	const [spotlight, setSpotlight] = useState<number | undefined>()
 
@@ -651,6 +721,7 @@ const Graph = ({
 						series={series}
 						spotlight={spotlight}
 						setTimeRange={setTimeRange}
+						loadExemplars={loadExemplars}
 					>
 						{children}
 					</LineChart>
@@ -667,6 +738,7 @@ const Graph = ({
 						series={series}
 						spotlight={spotlight}
 						setTimeRange={setTimeRange}
+						loadExemplars={loadExemplars}
 					>
 						{children}
 					</BarChart>
@@ -875,13 +947,14 @@ const Graph = ({
 													}
 													align="left"
 												>
-													{key || '<empty>'}
+													{key ||
+														NO_GROUP_PLACEHOLDER}
 												</Text>
 											</Box>
 										</>
 									}
 								>
-									{key || '<empty>'}
+									{key || NO_GROUP_PLACEHOLDER}
 								</Tooltip>
 							</Button>
 						)

@@ -12,17 +12,12 @@ import (
 	"gorm.io/gorm/clause"
 )
 
-// Number of results per page
-const LIMIT = 10
-
-func (store *Store) ListErrorObjects(ctx context.Context, errorGroup model.ErrorGroup, ids []int64, totalCount int64) (privateModel.ErrorObjectResults, error) {
+func (store *Store) ListErrorObjects(ctx context.Context, ids []int64, totalCount int64) (privateModel.ErrorObjectResults, error) {
 
 	var errorObjects []model.ErrorObject
 
 	query := store.DB.WithContext(ctx).
-		Where(&model.ErrorObject{ErrorGroupID: errorGroup.ID}).
 		Where("id IN (?)", ids).
-		Limit(LIMIT + 1).
 		Order("error_objects.timestamp DESC")
 
 	if err := query.Find(&errorObjects).Error; err != nil {
@@ -64,13 +59,12 @@ func (store *Store) ListErrorObjects(ctx context.Context, errorGroup model.Error
 
 	for _, errorObject := range errorObjects {
 		node := &privateModel.ErrorObjectNode{
-			ID:                 errorObject.ID,
-			CreatedAt:          errorObject.CreatedAt,
-			Event:              errorObject.Event,
-			Timestamp:          errorObject.Timestamp,
-			ServiceVersion:     errorObject.ServiceVersion,
-			ServiceName:        errorObject.ServiceName,
-			ErrorGroupSecureID: errorGroup.SecureID,
+			ID:             errorObject.ID,
+			CreatedAt:      errorObject.CreatedAt,
+			Event:          errorObject.Event,
+			Timestamp:      errorObject.Timestamp,
+			ServiceVersion: errorObject.ServiceVersion,
+			ServiceName:    errorObject.ServiceName,
 		}
 
 		// Attach the session we preloaded earlier to this error_object

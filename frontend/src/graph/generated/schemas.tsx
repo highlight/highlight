@@ -635,7 +635,6 @@ export type ErrorObject = {
 export type ErrorObjectNode = {
 	__typename?: 'ErrorObjectNode'
 	createdAt: Scalars['Timestamp']
-	errorGroupSecureID: Scalars['String']
 	event: Scalars['String']
 	id: Scalars['ID']
 	serviceName: Scalars['String']
@@ -2392,9 +2391,10 @@ export type QueryError_Object_For_LogArgs = {
 
 export type QueryError_ObjectsArgs = {
 	count: Scalars['Int']
-	error_group_secure_id: Scalars['String']
+	error_group_secure_id?: InputMaybe<Scalars['String']>
 	page?: InputMaybe<Scalars['Int']>
 	params: QueryInput
+	project_id?: InputMaybe<Scalars['String']>
 }
 
 export type QueryError_Resolution_SuggestionArgs = {

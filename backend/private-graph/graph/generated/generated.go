@@ -488,14 +488,13 @@ type ComplexityRoot struct {
 	}
 
 	ErrorObjectNode struct {
-		CreatedAt          func(childComplexity int) int
-		ErrorGroupSecureID func(childComplexity int) int
-		Event              func(childComplexity int) int
-		ID                 func(childComplexity int) int
-		ServiceName        func(childComplexity int) int
-		ServiceVersion     func(childComplexity int) int
-		Session            func(childComplexity int) int
-		Timestamp          func(childComplexity int) int
+		CreatedAt      func(childComplexity int) int
+		Event          func(childComplexity int) int
+		ID             func(childComplexity int) int
+		ServiceName    func(childComplexity int) int
+		ServiceVersion func(childComplexity int) int
+		Session        func(childComplexity int) int
+		Timestamp      func(childComplexity int) int
 	}
 
 	ErrorObjectNodeSession struct {
@@ -1024,7 +1023,7 @@ type ComplexityRoot struct {
 		ErrorIssue                       func(childComplexity int, errorGroupSecureID string) int
 		ErrorObject                      func(childComplexity int, id int) int
 		ErrorObjectForLog                func(childComplexity int, logCursor string) int
-		ErrorObjects                     func(childComplexity int, errorGroupSecureID string, count int, params model.QueryInput, page *int) int
+		ErrorObjects                     func(childComplexity int, projectID *string, errorGroupSecureID *string, count int, params model.QueryInput, page *int) int
 		ErrorResolutionSuggestion        func(childComplexity int, errorObjectID int) int
 		ErrorTags                        func(childComplexity int) int
 		Errors                           func(childComplexity int, sessionSecureID string) int
@@ -1842,7 +1841,7 @@ type QueryResolver interface {
 	ErrorsHistogram(ctx context.Context, projectID int, params model.QueryInput, histogramOptions model.DateHistogramOptions) (*model1.ErrorsHistogram, error)
 	ErrorGroup(ctx context.Context, secureID string, useClickhouse *bool) (*model1.ErrorGroup, error)
 	ErrorObject(ctx context.Context, id int) (*model1.ErrorObject, error)
-	ErrorObjects(ctx context.Context, errorGroupSecureID string, count int, params model.QueryInput, page *int) (*model.ErrorObjectResults, error)
+	ErrorObjects(ctx context.Context, projectID *string, errorGroupSecureID *string, count int, params model.QueryInput, page *int) (*model.ErrorObjectResults, error)
 	ErrorObjectForLog(ctx context.Context, logCursor string) (*model1.ErrorObject, error)
 	ErrorInstance(ctx context.Context, errorGroupSecureID string, errorObjectID *int, params *model.QueryInput) (*model1.ErrorInstance, error)
 	EnhancedUserDetails(ctx context.Context, sessionSecureID string) (*model.EnhancedUserDetailsResult, error)
@@ -4133,13 +4132,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.ErrorObjectNode.CreatedAt(childComplexity), true
-
-	case "ErrorObjectNode.errorGroupSecureID":
-		if e.complexity.ErrorObjectNode.ErrorGroupSecureID == nil {
-			break
-		}
-
-		return e.complexity.ErrorObjectNode.ErrorGroupSecureID(childComplexity), true
 
 	case "ErrorObjectNode.event":
 		if e.complexity.ErrorObjectNode.Event == nil {
@@ -7452,7 +7444,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Query.ErrorObjects(childComplexity, args["error_group_secure_id"].(string), args["count"].(int), args["params"].(model.QueryInput), args["page"].(*int)), true
+		return e.complexity.Query.ErrorObjects(childComplexity, args["project_id"].(*string), args["error_group_secure_id"].(*string), args["count"].(int), args["params"].(model.QueryInput), args["page"].(*int)), true
 
 	case "Query.error_resolution_suggestion":
 		if e.complexity.Query.ErrorResolutionSuggestion == nil {
@@ -12397,7 +12389,6 @@ type ErrorObjectNode {
 	event: String!
 	timestamp: Timestamp!
 	session: ErrorObjectNodeSession
-	errorGroupSecureID: String!
 	serviceVersion: String!
 	serviceName: String!
 }
@@ -13555,7 +13546,8 @@ type Query {
 	error_group(secure_id: String!, use_clickhouse: Boolean): ErrorGroup
 	error_object(id: ID!): ErrorObject
 	error_objects(
-		error_group_secure_id: String!
+		project_id: String
+		error_group_secure_id: String
 		count: Int!
 		params: QueryInput!
 		page: Int
@@ -19328,42 +19320,51 @@ func (ec *executionContext) field_Query_error_object_for_log_args(ctx context.Co
 func (ec *executionContext) field_Query_error_objects_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
-	var arg0 string
+	var arg0 *string
+	if tmp, ok := rawArgs["project_id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("project_id"))
+		arg0, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["project_id"] = arg0
+	var arg1 *string
 	if tmp, ok := rawArgs["error_group_secure_id"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("error_group_secure_id"))
-		arg0, err = ec.unmarshalNString2string(ctx, tmp)
+		arg1, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["error_group_secure_id"] = arg0
-	var arg1 int
+	args["error_group_secure_id"] = arg1
+	var arg2 int
 	if tmp, ok := rawArgs["count"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("count"))
-		arg1, err = ec.unmarshalNInt2int(ctx, tmp)
+		arg2, err = ec.unmarshalNInt2int(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["count"] = arg1
-	var arg2 model.QueryInput
+	args["count"] = arg2
+	var arg3 model.QueryInput
 	if tmp, ok := rawArgs["params"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("params"))
-		arg2, err = ec.unmarshalNQueryInput2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐQueryInput(ctx, tmp)
+		arg3, err = ec.unmarshalNQueryInput2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐQueryInput(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["params"] = arg2
-	var arg3 *int
+	args["params"] = arg3
+	var arg4 *int
 	if tmp, ok := rawArgs["page"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("page"))
-		arg3, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
+		arg4, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["page"] = arg3
+	args["page"] = arg4
 	return args, nil
 }
 
@@ -35931,50 +35932,6 @@ func (ec *executionContext) fieldContext_ErrorObjectNode_session(ctx context.Con
 	return fc, nil
 }
 
-func (ec *executionContext) _ErrorObjectNode_errorGroupSecureID(ctx context.Context, field graphql.CollectedField, obj *model.ErrorObjectNode) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_ErrorObjectNode_errorGroupSecureID(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.ErrorGroupSecureID, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(string)
-	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_ErrorObjectNode_errorGroupSecureID(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "ErrorObjectNode",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type String does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
 func (ec *executionContext) _ErrorObjectNode_serviceVersion(ctx context.Context, field graphql.CollectedField, obj *model.ErrorObjectNode) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_ErrorObjectNode_serviceVersion(ctx, field)
 	if err != nil {
@@ -36282,8 +36239,6 @@ func (ec *executionContext) fieldContext_ErrorObjectResults_error_objects(ctx co
 				return ec.fieldContext_ErrorObjectNode_timestamp(ctx, field)
 			case "session":
 				return ec.fieldContext_ErrorObjectNode_session(ctx, field)
-			case "errorGroupSecureID":
-				return ec.fieldContext_ErrorObjectNode_errorGroupSecureID(ctx, field)
 			case "serviceVersion":
 				return ec.fieldContext_ErrorObjectNode_serviceVersion(ctx, field)
 			case "serviceName":
@@ -54382,7 +54337,7 @@ func (ec *executionContext) _Query_error_objects(ctx context.Context, field grap
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().ErrorObjects(rctx, fc.Args["error_group_secure_id"].(string), fc.Args["count"].(int), fc.Args["params"].(model.QueryInput), fc.Args["page"].(*int))
+		return ec.resolvers.Query().ErrorObjects(rctx, fc.Args["project_id"].(*string), fc.Args["error_group_secure_id"].(*string), fc.Args["count"].(int), fc.Args["params"].(model.QueryInput), fc.Args["page"].(*int))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -87087,11 +87042,6 @@ func (ec *executionContext) _ErrorObjectNode(ctx context.Context, sel ast.Select
 			}
 		case "session":
 			out.Values[i] = ec._ErrorObjectNode_session(ctx, field, obj)
-		case "errorGroupSecureID":
-			out.Values[i] = ec._ErrorObjectNode_errorGroupSecureID(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				out.Invalids++
-			}
 		case "serviceVersion":
 			out.Values[i] = ec._ErrorObjectNode_serviceVersion(ctx, field, obj)
 			if out.Values[i] == graphql.Null {

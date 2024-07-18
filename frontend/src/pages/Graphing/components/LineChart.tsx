@@ -14,6 +14,8 @@ import { CategoricalChartFunc } from 'recharts/types/chart/generateCategoricalCh
 
 import {
 	AxisConfig,
+	BUCKET_MAX_KEY,
+	BUCKET_MIN_KEY,
 	CustomXAxisTick,
 	CustomYAxisTick,
 	getColor,
@@ -51,6 +53,7 @@ export const LineChart = ({
 	spotlight,
 	viewConfig,
 	setTimeRange,
+	loadExemplars,
 	children,
 	showXAxis,
 	showYAxis,
@@ -88,8 +91,7 @@ export const LineChart = ({
 			/>
 		) : null
 
-	const allowDrag =
-		setTimeRange !== undefined && xAxisMetric === TIMESTAMP_KEY
+	const allowDrag = setTimeRange !== undefined
 
 	const onMouseDown: CategoricalChartFunc | undefined = allowDrag
 		? (e) => {
@@ -109,7 +111,12 @@ export const LineChart = ({
 
 	const onMouseUp: CategoricalChartFunc | undefined = allowDrag
 		? () => {
-				if (refAreaStart !== undefined && refAreaEnd !== undefined) {
+				if (
+					refAreaStart !== undefined &&
+					refAreaEnd !== undefined &&
+					refAreaStart !== refAreaEnd &&
+					xAxisMetric === TIMESTAMP_KEY
+				) {
 					const startDate = Math.min(refAreaStart, refAreaEnd)
 					const endDate = Math.max(refAreaStart, refAreaEnd)
 
@@ -234,6 +241,35 @@ export const LineChart = ({
 							return null
 						}
 
+						const ActiveDot = (props: any) => {
+							console.log('props', props)
+							const { cx, cy, fill } = props
+
+							if (cy === null) {
+								return
+							}
+
+							return (
+								<svg
+									x={cx - 3}
+									y={cy - 3}
+									onMouseDown={() => {
+										loadExemplars &&
+											loadExemplars(
+												props.payload[BUCKET_MIN_KEY],
+												props.payload[BUCKET_MAX_KEY],
+												props.dataKey,
+											)
+									}}
+									cursor="pointer"
+								>
+									<g transform="translate(3 3)">
+										<circle r="3" fill={fill} />
+									</g>
+								</svg>
+							)
+						}
+
 						return (
 							<Area
 								isAnimationActive={false}
@@ -255,6 +291,7 @@ export const LineChart = ({
 								connectNulls={
 									viewConfig.nullHandling === 'Connected'
 								}
+								activeDot={<ActiveDot />}
 								dot={<CustomizedDot />}
 							/>
 						)

@@ -10,11 +10,12 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/highlight-run/highlight/backend/env"
 	"net/url"
 	"runtime"
 	"strings"
 	"time"
+
+	"github.com/highlight-run/highlight/backend/env"
 
 	"golang.org/x/text/cases"
 	"golang.org/x/text/language"
@@ -214,6 +215,10 @@ func SendSessionAlerts(ctx context.Context, db *gorm.DB, mailClient *sendgrid.Cl
 
 		templateData["userProperties"] = propertyArray
 	default:
+		return
+	}
+
+	if lambdaClient == nil {
 		return
 	}
 

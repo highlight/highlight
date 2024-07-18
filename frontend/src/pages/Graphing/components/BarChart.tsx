@@ -2,7 +2,6 @@ import { useId, useState } from 'react'
 import {
 	Bar,
 	BarChart as RechartsBarChart,
-	BarProps,
 	CartesianGrid,
 	ReferenceArea,
 	ResponsiveContainer,
@@ -14,6 +13,8 @@ import { CategoricalChartFunc } from 'recharts/types/chart/generateCategoricalCh
 
 import {
 	AxisConfig,
+	BUCKET_MAX_KEY,
+	BUCKET_MIN_KEY,
 	CustomXAxisTick,
 	CustomYAxisTick,
 	getColor,
@@ -34,34 +35,55 @@ export type BarChartConfig = {
 	display?: BarDisplay
 }
 
-const RoundedBar = (id: string, isLast: boolean) => (props: BarProps) => {
-	const { fill, x, y, width, height } = props
-	return (
-		<>
-			<rect
-				x={x}
-				y={y}
-				width={width}
-				height={Math.max((height ?? 0) - 1.5, 0)}
-				stroke="none"
-				fill={fill}
-				clipPath={`url(#barmask-${id}-${x})`}
-			/>
-			{isLast && (
-				<clipPath id={`barmask-${id}-${x}`}>
-					<rect
-						rx={Math.min((width ?? 0) / 3, 5)}
-						x={x}
-						y={y}
-						width={width}
-						height="10000"
-						fill="white"
-					/>
-				</clipPath>
-			)}
-		</>
-	)
-}
+const RoundedBar =
+	(
+		id: string,
+		isLast: boolean,
+		loadExemplars:
+			| ((
+					bucketMin: number | undefined,
+					bucketMax: number | undefined,
+					group: string | undefined,
+			  ) => void)
+			| undefined,
+	) =>
+	(props: any) => {
+		const { fill, x, y, width, height } = props
+		return (
+			<>
+				<rect
+					x={x}
+					y={y}
+					width={width}
+					height={Math.max((height ?? 0) - 1.5, 0)}
+					stroke="none"
+					fill={fill}
+					clipPath={`url(#barmask-${id}-${x})`}
+					onMouseDown={() => {
+						loadExemplars &&
+							loadExemplars(
+								props[BUCKET_MIN_KEY],
+								props[BUCKET_MAX_KEY],
+								props.dataKey,
+							)
+					}}
+					cursor="pointer"
+				/>
+				{isLast && (
+					<clipPath id={`barmask-${id}-${x}`}>
+						<rect
+							rx={Math.min((width ?? 0) / 3, 5)}
+							x={x}
+							y={y}
+							width={width}
+							height="10000"
+							fill="white"
+						/>
+					</clipPath>
+				)}
+			</>
+		)
+	}
 
 export const BarChart = ({
 	data,
@@ -73,6 +95,7 @@ export const BarChart = ({
 	strokeColors,
 	viewConfig,
 	setTimeRange,
+	loadExemplars,
 	children,
 	showXAxis,
 	showYAxis,
@@ -98,8 +121,7 @@ export const BarChart = ({
 			/>
 		) : null
 
-	const allowDrag =
-		setTimeRange !== undefined && xAxisMetric === TIMESTAMP_KEY
+	const allowDrag = setTimeRange !== undefined
 
 	const onMouseDown: CategoricalChartFunc | undefined = allowDrag
 		? (e) => {
@@ -119,7 +141,12 @@ export const BarChart = ({
 
 	const onMouseUp: CategoricalChartFunc | undefined = allowDrag
 		? () => {
-				if (refAreaStart !== undefined && refAreaEnd !== undefined) {
+				if (
+					refAreaStart !== undefined &&
+					refAreaEnd !== undefined &&
+					refAreaStart !== refAreaEnd &&
+					xAxisMetric === TIMESTAMP_KEY
+				) {
 					const startDate = Math.min(refAreaStart, refAreaEnd)
 					const endDate = Math.max(refAreaStart, refAreaEnd)
 
@@ -127,6 +154,7 @@ export const BarChart = ({
 						new Date(startDate * 1000),
 						new Date(endDate * 1000),
 					)
+				} else if (refAreaStart !== undefined) {
 				}
 				setRefAreaStart(undefined)
 				setRefAreaEnd(undefined)
@@ -220,7 +248,7 @@ export const BarChart = ({
 								stackId={
 									viewConfig.display === 'Stacked' ? 1 : idx
 								}
-								shape={RoundedBar(id, isLastBar)}
+								shape={RoundedBar(id, isLastBar, loadExemplars)}
 							/>
 						)
 					})}
