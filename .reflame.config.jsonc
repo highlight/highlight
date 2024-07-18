@@ -374,7 +374,7 @@
       ],
     },
     "highlight.run": {
-      "version": "latest"
+      "version": "^9.1.0"
     },
     // TODO: create a library for this
     // Might need a shim entry point for .css?
