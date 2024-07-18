@@ -360,7 +360,7 @@ const shouldRecordRequest = (
 		return false
 	}
 
-	// TODO: Check on this logic. shouldNetworkRequestBeRecorded also calls
+	// Potential future refactor: shouldNetworkRequestBeRecorded also calls
 	// shouldNetworkRequestBeTraced, but it returns true for all non-Highlight
 	// resources. Following existing patterns here, but we may want to decouple
 	// these two functions and refactor some of the request filtering logic.
