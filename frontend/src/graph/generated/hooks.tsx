@@ -3399,6 +3399,7 @@ export const CreateAlertDocument = gql`
 		$threshold_value: Float
 		$threshold_window: Int
 		$threshold_cooldown: Int
+		$destinations: [AlertDestinationInput!]!
 	) {
 		createAlert(
 			project_id: $project_id
@@ -3412,6 +3413,7 @@ export const CreateAlertDocument = gql`
 			threshold_value: $threshold_value
 			threshold_window: $threshold_window
 			threshold_cooldown: $threshold_cooldown
+			destinations: $destinations
 		) {
 			id
 			name
@@ -3448,6 +3450,7 @@ export type CreateAlertMutationFn = Apollo.MutationFunction<
  *      threshold_value: // value for 'threshold_value'
  *      threshold_window: // value for 'threshold_window'
  *      threshold_cooldown: // value for 'threshold_cooldown'
+ *      destinations: // value for 'destinations'
  *   },
  * });
  */
@@ -3485,6 +3488,7 @@ export const UpdateAlertDocument = gql`
 		$threshold_value: Float
 		$threshold_window: Int
 		$threshold_cooldown: Int
+		$destinations: [AlertDestinationInput!]
 	) {
 		updateAlert(
 			project_id: $project_id
@@ -3499,6 +3503,7 @@ export const UpdateAlertDocument = gql`
 			threshold_value: $threshold_value
 			threshold_window: $threshold_window
 			threshold_cooldown: $threshold_cooldown
+			destinations: $destinations
 		) {
 			id
 			name
@@ -3536,6 +3541,7 @@ export type UpdateAlertMutationFn = Apollo.MutationFunction<
  *      threshold_value: // value for 'threshold_value'
  *      threshold_window: // value for 'threshold_window'
  *      threshold_cooldown: // value for 'threshold_cooldown'
+ *      destinations: // value for 'destinations'
  *   },
  * });
  */
@@ -3615,6 +3621,54 @@ export type UpdateAlertDisabledMutationResult =
 export type UpdateAlertDisabledMutationOptions = Apollo.BaseMutationOptions<
 	Types.UpdateAlertDisabledMutation,
 	Types.UpdateAlertDisabledMutationVariables
+>
+export const DeleteAlertDocument = gql`
+	mutation DeleteAlert($project_id: ID!, $alert_id: ID!) {
+		deleteAlert(project_id: $project_id, alert_id: $alert_id)
+	}
+`
+export type DeleteAlertMutationFn = Apollo.MutationFunction<
+	Types.DeleteAlertMutation,
+	Types.DeleteAlertMutationVariables
+>
+
+/**
+ * __useDeleteAlertMutation__
+ *
+ * To run a mutation, you first call `useDeleteAlertMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useDeleteAlertMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [deleteAlertMutation, { data, loading, error }] = useDeleteAlertMutation({
+ *   variables: {
+ *      project_id: // value for 'project_id'
+ *      alert_id: // value for 'alert_id'
+ *   },
+ * });
+ */
+export function useDeleteAlertMutation(
+	baseOptions?: Apollo.MutationHookOptions<
+		Types.DeleteAlertMutation,
+		Types.DeleteAlertMutationVariables
+	>,
+) {
+	return Apollo.useMutation<
+		Types.DeleteAlertMutation,
+		Types.DeleteAlertMutationVariables
+	>(DeleteAlertDocument, baseOptions)
+}
+export type DeleteAlertMutationHookResult = ReturnType<
+	typeof useDeleteAlertMutation
+>
+export type DeleteAlertMutationResult =
+	Apollo.MutationResult<Types.DeleteAlertMutation>
+export type DeleteAlertMutationOptions = Apollo.BaseMutationOptions<
+	Types.DeleteAlertMutation,
+	Types.DeleteAlertMutationVariables
 >
 export const UpdateAdminAndCreateWorkspaceDocument = gql`
 	mutation UpdateAdminAndCreateWorkspace(
@@ -12589,6 +12643,12 @@ export const GetAlertsPagePayloadDocument = gql`
 			name
 			product_type
 			disabled
+			destinations {
+				id
+				destination_type
+				type_id
+				type_name
+			}
 		}
 	}
 	${DiscordChannelFragmentFragmentDoc}
@@ -12661,6 +12721,12 @@ export const GetAlertDocument = gql`
 			threshold_value
 			threshold_window
 			threshold_cooldown
+			destinations {
+				id
+				destination_type
+				type_id
+				type_name
+			}
 		}
 	}
 `

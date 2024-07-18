@@ -86,60 +86,40 @@ const ProjectPicker = () => {
 		: currentProject?.name
 
 	return (
-		<div>
-			<div>
-				<Menu>
-					<Menu.Button
-						kind="secondary"
-						emphasis="medium"
-						size="small"
-						iconLeft={
-							isWorkspaceLevel ? (
-								<IconSolidArrowSmLeft size={14} />
-							) : (
-								<IconSolidBriefcase size={14} />
-							)
-						}
-					>
-						{isInDemoProject ? (
-							<Link to={SIGN_UP_ROUTE} className={linkStyle}>
-								<Text lines="1">{headerDisplayValue}</Text>
-							</Link>
+		<Box>
+			<Menu>
+				<Menu.Button
+					kind="secondary"
+					emphasis="medium"
+					size="small"
+					iconLeft={
+						isWorkspaceLevel ? (
+							<IconSolidArrowSmLeft size={14} />
 						) : (
+							<IconSolidBriefcase size={14} />
+						)
+					}
+				>
+					{isInDemoProject ? (
+						<Link to={SIGN_UP_ROUTE} className={linkStyle}>
 							<Text lines="1">{headerDisplayValue}</Text>
-						)}
-					</Menu.Button>
-					{!isInDemoProject && (
-						<Menu.List>
-							{projectOptions}
-							{projectId && (
-								<>
-									<Menu.Divider />
-									{!isProjectLevelMember && (
-										<Link
-											to={`/w/${currentWorkspace?.id}/new`}
-											state={{
-												previousLocation: location,
-											}}
-											className={linkStyle}
-										>
-											<Menu.Item>
-												<Box
-													display="flex"
-													alignItems="center"
-													gap="4"
-												>
-													<IconSolidPlusSm
-														size={14}
-														color={vars.color.n9}
-													/>
-													Create new project
-												</Box>
-											</Menu.Item>
-										</Link>
-									)}
+						</Link>
+					) : (
+						<Text lines="1">{headerDisplayValue}</Text>
+					)}
+				</Menu.Button>
+				{!isInDemoProject && (
+					<Menu.List>
+						{projectOptions}
+						{projectId && (
+							<>
+								<Menu.Divider />
+								{!isProjectLevelMember && (
 									<Link
-										to={`/${projectId}/settings/sessions`}
+										to={`/w/${currentWorkspace?.id}/new`}
+										state={{
+											previousLocation: location,
+										}}
 										className={linkStyle}
 									>
 										<Menu.Item>
@@ -148,21 +128,39 @@ const ProjectPicker = () => {
 												alignItems="center"
 												gap="4"
 											>
-												<IconSolidCog
+												<IconSolidPlusSm
 													size={14}
 													color={vars.color.n9}
 												/>
-												Project settings
+												Create new project
 											</Box>
 										</Menu.Item>
 									</Link>
-								</>
-							)}
-						</Menu.List>
-					)}
-				</Menu>
-			</div>
-		</div>
+								)}
+								<Link
+									to={`/${projectId}/settings/sessions`}
+									className={linkStyle}
+								>
+									<Menu.Item>
+										<Box
+											display="flex"
+											alignItems="center"
+											gap="4"
+										>
+											<IconSolidCog
+												size={14}
+												color={vars.color.n9}
+											/>
+											Project settings
+										</Box>
+									</Menu.Item>
+								</Link>
+							</>
+						)}
+					</Menu.List>
+				)}
+			</Menu>
+		</Box>
 	)
 }
 

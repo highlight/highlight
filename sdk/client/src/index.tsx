@@ -698,6 +698,7 @@ SessionSecureID: ${this.sessionData.sessionSecureID}`,
 			}
 			emit.bind(this)
 
+			const alreadyRecording = !!this._recordStop
 			// if we were already recording, stop recording to reset rrweb state (eg. reset _sid)
 			if (this._recordStop) {
 				this._recordStop()
@@ -707,6 +708,7 @@ SessionSecureID: ${this.sessionData.sessionSecureID}`,
 			const [maskAllInputs, maskInputOptions] = determineMaskInputOptions(
 				this.privacySetting,
 			)
+
 			this._recordStop = record({
 				ignoreClass: 'highlight-ignore',
 				blockClass: 'highlight-block',
@@ -747,10 +749,10 @@ SessionSecureID: ${this.sessionData.sessionSecureID}`,
 						  }
 						: undefined,
 			})
+
 			// recordStop is not part of listeners because we do not actually want to stop rrweb
 			// rrweb has some bugs that make the stop -> restart workflow broken (eg iframe listeners)
-
-			if (!this._recordStop) {
+			if (!alreadyRecording) {
 				if (this.options.recordCrossOriginIframe) {
 					this._setupCrossOriginIframeParent()
 				}

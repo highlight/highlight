@@ -42,6 +42,8 @@ import { useNavigate } from 'react-router-dom'
 import { Button } from '@/components/Button'
 import { Link } from '@/components/Link'
 import {
+	AlertDestination,
+	AlertDestinationType,
 	DiscordChannel,
 	MicrosoftTeamsChannel,
 	ProductType,
@@ -196,21 +198,57 @@ export default function AlertsPage() {
 }
 
 function formatAlertDataForTable(alert: any, config: AlertConfiguration) {
+	const slackChannels =
+		alert?.ChannelsToNotify || alert?.channels_to_notify || []
+	const discordChannels =
+		alert?.DiscordChannelsToNotify ||
+		alert?.discord_channels_to_notify ||
+		[]
+	const microsoftTeamsChannels =
+		alert?.MicrosoftTeamsChennelsToNotify ||
+		alert?.microsoft_teams_channels_to_notify ||
+		[]
+	const emails = alert?.EmailsToNotify || alert?.emails_to_notify || []
+	const webhookDestinations =
+		alert?.WebhookDestinations || alert?.webhook_destinations || []
+
+	const destinations = alert.destinations || []
+	destinations.forEach((destination: AlertDestination) => {
+		switch (destination.destination_type) {
+			case AlertDestinationType.Slack:
+				slackChannels.push({
+					webhook_channel: destination.type_name,
+					webhook_channel_id: destination.type_id,
+				})
+				break
+			case AlertDestinationType.Discord:
+				discordChannels.push({
+					id: destination.type_id,
+					name: destination.type_name,
+				})
+				break
+			case AlertDestinationType.MicrosoftTeams:
+				microsoftTeamsChannels.push({
+					id: destination.type_id,
+					name: destination.type_name,
+				})
+				break
+			case AlertDestinationType.Email:
+				emails.push(destination.type_name)
+				break
+			case AlertDestinationType.Webhook:
+				webhookDestinations.push(destination.type_name)
+				break
+		}
+	})
+
 	return {
 		...alert,
-		ChannelsToNotify:
-			alert?.ChannelsToNotify || alert?.channels_to_notify || [],
-		DiscordChannelsToNotify:
-			alert?.DiscordChannelsToNotify ||
-			alert?.discord_channels_to_notify ||
-			[],
-		MicrosoftTeamsChennelsToNotify:
-			alert?.MicrosoftTeamsChennelsToNotify ||
-			alert?.microsoft_teams_channels_to_notify ||
-			[],
-		EmailsToNotify: alert?.EmailsToNotify || alert?.emails_to_notify || [],
-		WebhookDestinations:
-			alert?.WebhookDestinations || alert?.webhook_destinations || [],
+		ChannelsToNotify: slackChannels,
+		DiscordChannelsToNotify: discordChannels,
+		MicrosoftTeamsChennelsToNotify: microsoftTeamsChannels,
+		EmailsToNotify: emails,
+		WebhookDestinations: webhookDestinations,
 		configuration: config,
 		type: alert?.product_type || config.name,
 		name: alert?.name || alert?.Name || config.name,
