@@ -32,6 +32,7 @@ import { initializeWebSocketListener } from './listeners/web-socket'
 import { listenToChromeExtensionMessage } from './browserExtension/extensionListener.js'
 import { setItem } from '@highlight-run/client/src/utils/storage.js'
 import { ErrorMessageType } from '@highlight-run/client/src/types/shared-types'
+import type { Context, Span, SpanOptions, Tracer } from '@opentelemetry/api'
 
 enum MetricCategory {
 	Device = 'Device',
@@ -68,6 +69,8 @@ let onHighlightReadyTimeout: number | undefined = undefined
 let highlight_obj: Highlight
 let first_load_listeners: FirstLoadListeners
 let init_called = false
+type Callback = (span: Span) => any
+let getTracer: () => Tracer
 const H: HighlightPublicInterface = {
 	options: undefined,
 	init: (projectID?: string | number, options?: HighlightOptions) => {
@@ -115,7 +118,7 @@ const H: HighlightPublicInterface = {
 
 			if (options?.enableOtelTracing) {
 				import('@highlight-run/client/src/otel').then(
-					({ setupBrowserTracing }) => {
+					({ setupBrowserTracing, getTracer: otelGetTracer }) => {
 						setupBrowserTracing({
 							endpoint: options?.otlpEndpoint,
 							projectId: projectID,
@@ -129,6 +132,7 @@ const H: HighlightPublicInterface = {
 							serviceName:
 								options?.serviceName ?? 'highlight-browser',
 						})
+						getTracer = otelGetTracer
 					},
 				)
 			}
@@ -388,6 +392,78 @@ const H: HighlightPublicInterface = {
 			)
 		} catch (e) {
 			HighlightWarning('metrics', e)
+		}
+	},
+	startSpan: (
+		name: string,
+		options: SpanOptions | ((span: Span) => any),
+		context?: Context | ((span: Span) => any),
+		fn?: (span: Span) => any,
+	): any => {
+		const tracer = getTracer()
+
+		if (!tracer) {
+			return
+		}
+
+		const wrapCallback = async (
+			span: Span,
+			callback: (span: Span) => any,
+		) => {
+			try {
+				const result = await callback(span)
+				return result
+			} finally {
+				span.end()
+			}
+		}
+
+		if (fn === undefined && context === undefined) {
+			return tracer.startActiveSpan(name, (span) =>
+				wrapCallback(span, options as Callback),
+			)
+		} else if (fn === undefined) {
+			return tracer.startActiveSpan(
+				name,
+				options as SpanOptions,
+				(span) => wrapCallback(span, context as Callback),
+			)
+		} else {
+			return tracer.startActiveSpan(
+				name,
+				options as SpanOptions,
+				context as Context,
+				(span) => wrapCallback(span, fn),
+			)
+		}
+	},
+	startManualSpan: (
+		name: string,
+		options: SpanOptions | ((span: Span) => any),
+		context?: Context | ((span: Span) => any),
+		fn?: (span: Span) => any,
+	): any => {
+		if (typeof getTracer !== 'function') {
+			return
+		}
+
+		const tracer = getTracer()
+
+		if (fn === undefined && context === undefined) {
+			return tracer.startActiveSpan(name, options as Callback)
+		} else if (fn === undefined) {
+			return tracer.startActiveSpan(
+				name,
+				options as SpanOptions,
+				context as Callback,
+			)
+		} else {
+			return tracer.startActiveSpan(
+				name,
+				options as SpanOptions,
+				context as Context,
+				fn,
+			)
 		}
 	},
 	getSessionURL: () => {

@@ -11,6 +11,7 @@ def main():
     public = os.environ.get('REACT_APP_PUBLIC_GRAPH_URI')
     frontend = os.environ.get('REACT_APP_FRONTEND_URI')
     auth = os.environ.get('REACT_APP_AUTH_MODE')
+    otel = os.environ.get('REACT_APP_OTLP_ENDPOINT')
     use_ssl = os.environ.get('SSL') != 'false'
     print("replacing", {"private": private, "public": public, "frontend": frontend, "auth": auth})
 
@@ -27,6 +28,10 @@ def main():
         if frontend:
             data = re.sub('http://localhost:3000', frontend, data)
             data = re.sub('https://app\.highlight\.io', frontend, data)
+        if otel:
+            data = re.sub('http://localhost:4317', otel, data)
+            data = re.sub('https://localhost:8317', otel, data)
+            data = re.sub('https://otel\.highlight\.io:4318', otel, data)
 
     try:
         with open(CONSTANTS_FILE, 'w') as f:

@@ -1,5 +1,12 @@
 # highlight.run
 
+## 9.1.0
+
+### Minor Changes
+
+-   463e99106: add browser OTEL tracing
+-   8fd0e8f92: add `startSpan` and `startManualSpan` methods
+
 ## 9.0.5
 
 ### Patch Changes

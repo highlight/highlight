@@ -13,14 +13,7 @@ import {
 } from '@opentelemetry/instrumentation-user-interaction'
 import { SpanData } from '@opentelemetry/instrumentation-user-interaction/build/src/internal-types'
 
-enum AttributeNames {
-	EVENT_TYPE = 'event_type',
-	TARGET_ELEMENT = 'target_element',
-	TARGET_XPATH = 'target_xpath',
-	HTTP_URL = 'http.url',
-}
-
-const DEFAULT_EVENT_NAMES = ['click', 'input', 'submit', 'scroll']
+const DEFAULT_EVENT_NAMES = ['click', 'input', 'submit'] as const
 
 function defaultShouldPreventSpanCreation() {
 	return false
@@ -355,22 +348,6 @@ export class UserInteractionInstrumentation extends InstrumentationBase {
 		return window.EventTarget
 			? [EventTarget.prototype]
 			: [Node.prototype, Window.prototype]
-	}
-
-	/**
-	 * Will try to end span when such span still exists.
-	 * @param span
-	 * @param endTime
-	 * @private
-	 */
-	private _tryToEndSpan(span: api.Span, endTime?: api.HrTime) {
-		if (span) {
-			const spanData = this._spansData.get(span)
-			if (spanData) {
-				span.end(endTime)
-				this._spansData.delete(span)
-			}
-		}
 	}
 
 	/**

@@ -12,6 +12,7 @@ interface ImportMetaEnv {
 	readonly REACT_APP_PUBLIC_GRAPH_URI: string
 	readonly REACT_APP_STRIPE_API_PK: string
 	readonly REACT_APP_VERCEL_INTEGRATION_NAME: string
+	readonly REACT_APP_OTLP_ENDPOINT: string
 
 	readonly CLICKUP_CLIENT_ID: string
 	readonly DEMO_PROJECT_ID: string
