@@ -600,7 +600,7 @@ export const Header: React.FC<Props> = ({ fullyIntegrated }) => {
 														emphasis="low"
 														kind="secondary"
 														onClick={(e: any) =>
-															e.preventDefault()
+															e.stopPropagation()
 														}
 													>
 														<Box
