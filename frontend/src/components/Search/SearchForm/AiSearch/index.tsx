@@ -231,7 +231,6 @@ export const AiSearch: React.FC<Props> = ({ panelView, placeholder }) => {
 				}}
 				style={{
 					paddingLeft: panelView ? 8 : 40,
-					top: 6,
 				}}
 				autoFocus
 				data-hl-record
@@ -239,9 +238,6 @@ export const AiSearch: React.FC<Props> = ({ panelView, placeholder }) => {
 			{!aiSuggestionLoading && submitted && (
 				<Combobox.Popover
 					className={styles.comboboxPopover}
-					style={{
-						left: 6,
-					}}
 					store={comboboxStore}
 					gutter={10}
 					open
@@ -352,32 +348,40 @@ export const AiSearch: React.FC<Props> = ({ panelView, placeholder }) => {
 					minDate={moment().subtract(1, 'year').toDate()}
 					disabled
 				/>
-				<Box
-					alignItems="stretch"
+				<Stack
+					alignItems="flex-end"
 					display="flex"
 					width="full"
+					p="2"
+					gap="0"
 					flexGrow={1}
-					position="relative"
 					cssClass={clsx(styles.container, {
 						[styles.containerError]: !!displayError,
 					})}
 				>
-					<Stack
+					<Box
+						background="white"
+						borderTopLeftRadius="5"
+						borderTopRightRadius="5"
 						width="full"
-						alignItems="flex-end"
-						p="2"
-						gap="0"
-						borderRadius="5"
 					>
-						<Box cssClass={styles.comboboxContainer} width="full">
-							{ComboboxComponent}
-						</Box>
-						<Box display="flex" gap="4" p="4">
-							{CancelButton}
-							{GenerateButton}
-						</Box>
+						{ComboboxComponent}
+					</Box>
+					<Box borderBottom="dividerWeak" width="full" />
+					<Stack
+						flexDirection="row"
+						borderBottomLeftRadius="5"
+						borderBottomRightRadius="5"
+						justifyContent="space-between"
+						py="6"
+						pl="8"
+						pr="4"
+						gap="4"
+					>
+						{CancelButton}
+						{GenerateButton}
 					</Stack>
-				</Box>
+				</Stack>
 			</Stack>
 		)
 	}

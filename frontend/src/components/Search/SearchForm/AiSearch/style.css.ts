@@ -7,7 +7,7 @@ import { styledVerticalScrollbar } from '@/style/common.css'
 
 export const container = style({
 	position: 'relative',
-	zIndex: 1,
+	zIndex: 10,
 
 	selectors: {
 		'&:after': {
@@ -35,13 +35,6 @@ export const searchIcon = style({
 	position: 'absolute',
 	top: 12,
 	left: 14,
-})
-
-export const comboboxContainer = style({
-	background: vars.theme.static.surface.default,
-	borderTopLeftRadius: 5,
-	borderTopRightRadius: 5,
-	borderBottom: vars.border.dividerWeak,
 })
 
 export const combobox = style([
