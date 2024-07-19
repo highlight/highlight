@@ -37,16 +37,22 @@ export const searchIcon = style({
 	left: 14,
 })
 
+export const comboboxContainer = style({
+	background: vars.theme.static.surface.default,
+	borderTopLeftRadius: 5,
+	borderTopRightRadius: 5,
+	borderBottom: vars.border.dividerWeak,
+})
+
 export const combobox = style([
 	sprinkles({
 		p: '6',
 	}),
-	typographyStyles.family.monospace,
-	typographyStyles.size.small,
 	{
 		background: 'transparent',
 		border: 0,
 		caretColor: vars.theme.static.content.default,
+		color: vars.theme.static.content.default,
 		display: 'flex',
 		fontFeatureSettings: '"tnum" off', // disable tabular numbers
 		fontWeight: '500 !important',

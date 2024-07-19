@@ -37,7 +37,12 @@ type DateSuggestion = {
 	selectedPreset?: DateRangePreset
 }
 
-export const AiSearch: React.FC = () => {
+type Props = {
+	placeholder: string
+	panelView?: boolean
+}
+
+export const AiSearch: React.FC<Props> = ({ panelView, placeholder }) => {
 	const {
 		setAiMode,
 		aiQuery,
@@ -163,6 +168,220 @@ export const AiSearch: React.FC = () => {
 		return {} as DateSuggestion
 	}, [aiSuggestion, endDate, selectedPreset, startDate])
 
+	const ComboboxComponent = (
+		<>
+			{displayTags && (
+				<Box
+					cssClass={styles.comboboxTagsContainer}
+					style={{
+						left: 2,
+						paddingLeft: panelView ? 8 : 38,
+					}}
+				>
+					{aiSuggestionTokenGroups.map((tokenGroup, index) => {
+						if (tokenGroup.tokens.length === 0) {
+							return null
+						}
+
+						return (
+							<QueryPart
+								key={index}
+								typeaheadOpen={false}
+								cursorIndex={0}
+								index={index}
+								tokenGroup={tokenGroup}
+								showValues={false}
+								showErrors={false}
+							/>
+						)
+					})}
+				</Box>
+			)}
+			<Combobox
+				store={comboboxStore}
+				disabled={submitted}
+				name="aiSearch"
+				placeholder={placeholder}
+				className={clsx(styles.combobox, {
+					[styles.comboboxError]: displayError,
+					[styles.comboboxWithTags]: displayTags,
+				})}
+				render={
+					<TextareaAutosize
+						ref={inputRef}
+						style={{
+							resize: 'none',
+							overflowY: 'hidden',
+						}}
+						spellCheck={false}
+					/>
+				}
+				value={getValue()}
+				onChange={(e) => {
+					setAiQuery(e.target.value)
+				}}
+				onKeyDown={(e) => {
+					if (e.key === 'Enter') {
+						e.preventDefault()
+						submitQuery(aiQuery)
+					}
+					if (e.key === 'Escape') {
+						exitAiMode()
+					}
+				}}
+				style={{
+					paddingLeft: panelView ? 8 : 40,
+					top: 6,
+				}}
+				autoFocus
+				data-hl-record
+			/>
+			{!aiSuggestionLoading && submitted && (
+				<Combobox.Popover
+					className={styles.comboboxPopover}
+					style={{
+						left: 6,
+					}}
+					store={comboboxStore}
+					gutter={10}
+					open
+					sameWidth
+				>
+					<Box cssClass={styles.comboboxResults}>
+						{!displayError && (
+							<Combobox.Group
+								className={styles.comboboxGroup}
+								store={comboboxStore}
+							>
+								<Combobox.Item
+									className={styles.comboboxItem}
+									onClick={searchSubmittedQuery}
+									store={comboboxStore}
+								>
+									<Stack
+										direction="row"
+										gap="4"
+										align="center"
+									>
+										<IconSolidCheck />
+										<Text color="weak" size="small">
+											Accept query
+										</Text>
+									</Stack>
+								</Combobox.Item>
+							</Combobox.Group>
+						)}
+						<Combobox.Group
+							className={styles.comboboxGroup}
+							store={comboboxStore}
+						>
+							<Combobox.Item
+								className={styles.comboboxItem}
+								onClick={() => setSubmitted(false)}
+								store={comboboxStore}
+							>
+								<Stack direction="row" gap="4" align="center">
+									<IconSolidPencil />
+									<Text color="weak" size="small">
+										Edit prompt
+									</Text>
+								</Stack>
+							</Combobox.Item>
+							<Combobox.Item
+								className={styles.comboboxItem}
+								onClick={() => submitQuery(aiQuery)}
+								store={comboboxStore}
+							>
+								<Stack direction="row" gap="4" align="center">
+									<IconSolidRefresh />
+									<Text color="weak" size="small">
+										Regenerate prompt
+									</Text>
+								</Stack>
+							</Combobox.Item>
+							<Combobox.Item
+								className={styles.comboboxItem}
+								onClick={exitAiMode}
+								store={comboboxStore}
+							>
+								<Stack direction="row" gap="4" align="center">
+									<IconSolidX />
+									<Text color="weak" size="small">
+										Cancel
+									</Text>
+								</Stack>
+							</Combobox.Item>
+						</Combobox.Group>
+					</Box>
+				</Combobox.Popover>
+			)}
+		</>
+	)
+
+	const CancelButton = (
+		<Button
+			trackingId="cancel-ai-search"
+			onClick={exitAiMode}
+			kind="secondary"
+			emphasis="medium"
+		>
+			Cancel
+		</Button>
+	)
+
+	const GenerateButton = (
+		<Button
+			trackingId="generate-query-ai-search"
+			onClick={() => submitQuery(aiQuery)}
+			disabled={displayTags || !aiQuery || aiSuggestionLoading}
+			loading={aiSuggestionLoading}
+		>
+			Generate&nbsp;Query
+		</Button>
+	)
+
+	if (panelView) {
+		return (
+			<Stack alignItems="flex-start" width="full" p="8" gap="8">
+				<DateRangePicker
+					emphasis="high"
+					iconLeft={<IconSolidClock />}
+					selectedValue={dateSuggestion}
+					onDatesChange={() => null}
+					presets={DEFAULT_TIME_PRESETS}
+					minDate={moment().subtract(1, 'year').toDate()}
+					disabled
+				/>
+				<Box
+					alignItems="stretch"
+					display="flex"
+					width="full"
+					flexGrow={1}
+					position="relative"
+					cssClass={clsx(styles.container, {
+						[styles.containerError]: !!displayError,
+					})}
+				>
+					<Stack
+						width="full"
+						alignItems="flex-end"
+						p="2"
+						gap="0"
+						borderRadius="5"
+					>
+						<Box cssClass={styles.comboboxContainer} width="full">
+							{ComboboxComponent}
+						</Box>
+						<Box display="flex" gap="4" p="4">
+							{CancelButton}
+							{GenerateButton}
+						</Box>
+					</Stack>
+				</Box>
+			</Stack>
+		)
+	}
+
 	return (
 		<Box
 			alignItems="stretch"
@@ -183,199 +402,26 @@ export const AiSearch: React.FC = () => {
 				position="relative"
 				margin="auto"
 			>
-				{displayTags && (
-					<Box
-						cssClass={styles.comboboxTagsContainer}
-						style={{
-							left: 2,
-							paddingLeft: 38,
-						}}
-					>
-						{aiSuggestionTokenGroups.map((tokenGroup, index) => {
-							if (tokenGroup.tokens.length === 0) {
-								return null
-							}
-
-							return (
-								<QueryPart
-									key={index}
-									typeaheadOpen={false}
-									cursorIndex={0}
-									index={index}
-									tokenGroup={tokenGroup}
-									showValues={false}
-									showErrors={false}
-								/>
-							)
-						})}
-					</Box>
-				)}
-				<Combobox
-					store={comboboxStore}
-					disabled={submitted}
-					name="aiSearch"
-					placeholder="e.g. 'logs with level error in the last 24 hours'"
-					className={clsx(styles.combobox, {
-						[styles.comboboxError]: displayError,
-						[styles.comboboxWithTags]: displayTags,
-					})}
-					render={
-						<TextareaAutosize
-							ref={inputRef}
-							style={{
-								resize: 'none',
-								overflowY: 'hidden',
-							}}
-							spellCheck={false}
-						/>
-					}
-					value={getValue()}
-					onChange={(e) => {
-						setAiQuery(e.target.value)
-					}}
-					onKeyDown={(e) => {
-						if (e.key === 'Enter') {
-							e.preventDefault()
-							submitQuery(aiQuery)
-						}
-						if (e.key === 'Escape') {
-							exitAiMode()
-						}
-					}}
-					style={{
-						paddingLeft: 40,
-						top: 6,
-					}}
-					autoFocus
-					data-hl-record
-				/>
+				{ComboboxComponent}
 			</Box>
 
-			<Box>
-				{!aiSuggestionLoading && submitted && (
-					<Combobox.Popover
-						className={styles.comboboxPopover}
-						style={{
-							left: 6,
-						}}
-						store={comboboxStore}
-						gutter={10}
-						open
-						sameWidth
-					>
-						<Box cssClass={styles.comboboxResults}>
-							{!displayError && (
-								<Combobox.Group
-									className={styles.comboboxGroup}
-									store={comboboxStore}
-								>
-									<Combobox.Item
-										className={styles.comboboxItem}
-										onClick={searchSubmittedQuery}
-										store={comboboxStore}
-									>
-										<Stack
-											direction="row"
-											gap="4"
-											align="center"
-										>
-											<IconSolidCheck />
-											<Text color="weak" size="small">
-												Accept query
-											</Text>
-										</Stack>
-									</Combobox.Item>
-								</Combobox.Group>
-							)}
-							<Combobox.Group
-								className={styles.comboboxGroup}
-								store={comboboxStore}
-							>
-								<Combobox.Item
-									className={styles.comboboxItem}
-									onClick={() => setSubmitted(false)}
-									store={comboboxStore}
-								>
-									<Stack
-										direction="row"
-										gap="4"
-										align="center"
-									>
-										<IconSolidPencil />
-										<Text color="weak" size="small">
-											Edit prompt
-										</Text>
-									</Stack>
-								</Combobox.Item>
-								<Combobox.Item
-									className={styles.comboboxItem}
-									onClick={() => submitQuery(aiQuery)}
-									store={comboboxStore}
-								>
-									<Stack
-										direction="row"
-										gap="4"
-										align="center"
-									>
-										<IconSolidRefresh />
-										<Text color="weak" size="small">
-											Regenerate prompt
-										</Text>
-									</Stack>
-								</Combobox.Item>
-								<Combobox.Item
-									className={styles.comboboxItem}
-									onClick={exitAiMode}
-									store={comboboxStore}
-								>
-									<Stack
-										direction="row"
-										gap="4"
-										align="center"
-									>
-										<IconSolidX />
-										<Text color="weak" size="small">
-											Cancel
-										</Text>
-									</Stack>
-								</Combobox.Item>
-							</Combobox.Group>
-						</Box>
-					</Combobox.Popover>
+			<Box display="flex" pr="8" py="6" gap="6">
+				{displayTags ? (
+					<DateRangePicker
+						emphasis="medium"
+						iconLeft={<IconSolidClock />}
+						selectedValue={dateSuggestion}
+						onDatesChange={() => null}
+						presets={DEFAULT_TIME_PRESETS}
+						minDate={moment().subtract(1, 'year').toDate()}
+						disabled
+					/>
+				) : (
+					<>
+						{CancelButton}
+						{GenerateButton}
+					</>
 				)}
-
-				<Box display="flex" pr="8" py="6" gap="6">
-					{displayTags ? (
-						<DateRangePicker
-							emphasis="medium"
-							iconLeft={<IconSolidClock />}
-							selectedValue={dateSuggestion}
-							onDatesChange={() => null}
-							presets={DEFAULT_TIME_PRESETS}
-							minDate={moment().subtract(1, 'year').toDate()}
-							disabled
-						/>
-					) : (
-						<>
-							<Button
-								trackingId="cancel-ai-search"
-								onClick={exitAiMode}
-								kind="secondary"
-								emphasis="medium"
-							>
-								Cancel
-							</Button>
-							<Button
-								trackingId="generate-query-ai-search"
-								onClick={() => submitQuery(aiQuery)}
-								disabled={!aiQuery || aiSuggestionLoading}
-								loading={aiSuggestionLoading}
-							>
-								Generate&nbsp;Query
-							</Button>
-						</>
-					)}
-				</Box>
 			</Box>
 		</Box>
 	)

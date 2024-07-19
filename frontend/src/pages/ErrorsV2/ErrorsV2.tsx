@@ -9,6 +9,7 @@ import LoadingBox from '@components/LoadingBox'
 import { PreviousNextGroup } from '@components/PreviousNextGroup/PreviousNextGroup'
 import { toast } from '@components/Toaster'
 import {
+	useGetAiQuerySuggestionLazyQuery,
 	useGetAlertsPagePayloadQuery,
 	useGetErrorGroupQuery,
 	useMarkErrorGroupAsViewedMutation,
@@ -52,7 +53,7 @@ import {
 } from 'use-query-params'
 
 import { DEMO_PROJECT_ID } from '@/components/DemoWorkspaceButton/DemoWorkspaceButton'
-import { SearchContext } from '@/components/Search/SearchContext'
+import { AiSuggestion, SearchContext } from '@/components/Search/SearchContext'
 import { useRetentionPresets } from '@/components/Search/SearchForm/hooks'
 import { START_PAGE } from '@/components/SearchPagination/SearchPagination'
 import { GetErrorGroupQuery } from '@/graph/generated/operations'
@@ -93,12 +94,21 @@ export default function ErrorsV2() {
 	const [query, setQuery] = useQueryParam('query', ERROR_QUERY_PARAM)
 	const [page, setPage] = useQueryParam('page', PAGE_PARAM)
 
+	const [aiMode, setAiMode] = useState(false)
+
 	const { presets } = useRetentionPresets(ProductType.Errors)
 	const initialPreset = presets[5] ?? presets.at(-1)
 
 	const searchTimeContext = useSearchTime({
 		presets: presets,
 		initialPreset: initialPreset,
+	})
+
+	const [
+		getAiQuerySuggestion,
+		{ data: aiData, error: aiError, loading: aiLoading },
+	] = useGetAiQuerySuggestionLazyQuery({
+		fetchPolicy: 'network-only',
 	})
 
 	const handleSubmit = useCallback(
@@ -154,6 +164,35 @@ export default function ErrorsV2() {
 	const handleMouseUp = useCallback(() => {
 		setDragging(false)
 	}, [])
+
+	const onAiSubmit = (aiQuery: string) => {
+		if (project_id && aiQuery.length) {
+			getAiQuerySuggestion({
+				variables: {
+					query: aiQuery,
+					project_id: project_id,
+					product_type: ProductType.Errors,
+					time_zone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+				},
+			})
+		}
+	}
+
+	const aiSuggestion = useMemo(() => {
+		const { query, date_range = {} } = aiData?.ai_query_suggestion ?? {}
+
+		return {
+			query,
+			dateRange: {
+				startDate: date_range.start_date
+					? new Date(date_range.start_date)
+					: undefined,
+				endDate: date_range.end_date
+					? new Date(date_range.end_date)
+					: undefined,
+			},
+		} as AiSuggestion
+	}, [aiData])
 
 	useEffect(() => {
 		if (dragging) {
@@ -243,6 +282,12 @@ export default function ErrorsV2() {
 			page={page}
 			setPage={setPage}
 			pollingExpired={getErrorsData.pollingExpired}
+			aiMode={aiMode}
+			setAiMode={setAiMode}
+			onAiSubmit={onAiSubmit}
+			aiSuggestion={aiSuggestion}
+			aiSuggestionLoading={aiLoading}
+			aiSuggestionError={aiError}
 			{...searchTimeContext}
 		>
 			<Helmet>
