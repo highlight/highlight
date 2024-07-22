@@ -226,7 +226,9 @@ const LogsTableInner = ({
 						selectedColumns={selectedColumns}
 						setSelectedColumns={setSelectedColumns}
 						standardColumns={HIGHLIGHT_STANDARD_COLUMNS}
-						attributeAccessor="logAttributes"
+						attributeAccessor={(row: LogEdge) =>
+							row.node.logAttributes
+						}
 					/>
 				),
 			})
