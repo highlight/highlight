@@ -25,6 +25,7 @@ import _ from 'lodash'
 import moment from 'moment'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 
+import { useAuthContext } from '@/authentication/AuthContext'
 import { loadingIcon } from '@/components/Button/style.css'
 import { useRelatedResource } from '@/components/RelatedResources/hooks'
 import { TIME_FORMAT } from '@/components/Search/SearchForm/constants'
@@ -502,6 +503,8 @@ const Graph = ({
 
 	const { set } = useRelatedResource()
 
+	const { isHighlightAdmin } = useAuthContext()
+
 	const loadExemplars = (
 		bucketMin: number | undefined,
 		bucketMax: number | undefined,
@@ -717,7 +720,9 @@ const Graph = ({
 						series={series}
 						spotlight={spotlight}
 						setTimeRange={setTimeRange}
-						loadExemplars={loadExemplars}
+						loadExemplars={
+							isHighlightAdmin ? loadExemplars : undefined
+						}
 					>
 						{children}
 					</LineChart>
@@ -734,7 +739,9 @@ const Graph = ({
 						series={series}
 						spotlight={spotlight}
 						setTimeRange={setTimeRange}
-						loadExemplars={loadExemplars}
+						loadExemplars={
+							isHighlightAdmin ? loadExemplars : undefined
+						}
 					>
 						{children}
 					</BarChart>

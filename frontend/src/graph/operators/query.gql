@@ -2251,6 +2251,7 @@ query GetErrorGroupInstances(
 				fingerprint
 				excluded
 			}
+			errorGroupSecureID
 		}
 		totalCount
 	}
