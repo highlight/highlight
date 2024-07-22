@@ -26,10 +26,11 @@ import {
 import classNames from 'classnames'
 import { PrimaryButton } from '../../components/common/Buttons/PrimaryButton'
 import {
+	businessPrices,
 	enterprisePrices,
 	freePrices,
+	payAsYouGoPrices,
 	Prices,
-	professionalPrices,
 	selfHostPrices,
 } from '../../components/Pricing/estimator_details'
 
@@ -40,7 +41,7 @@ const retentionOptions = [
 	'1 year',
 	'2 years',
 ] as const
-type Retention = typeof retentionOptions[number]
+type Retention = (typeof retentionOptions)[number]
 const retentionMultipliers: Record<Retention, number> = {
 	'30 days': 1,
 	'3 months': 1,
@@ -52,10 +53,11 @@ const retentionMultipliers: Record<Retention, number> = {
 const tierOptions = [
 	'Free',
 	'PayAsYouGo',
+	'Business',
 	'Enterprise',
 	'SelfHostedEnterprise',
 ] as const
-type TierName = typeof tierOptions[number]
+type TierName = (typeof tierOptions)[number]
 
 type PricingTier = {
 	label: string
@@ -100,20 +102,52 @@ const priceTiers: Record<TierName, PricingTier> = {
 		label: 'Pay-as-you-go',
 		id: 'PayAsYouGo',
 		subText: 'Starts at',
-		prices: professionalPrices,
+		prices: payAsYouGoPrices,
 		icon: <HiPuzzle className="text-[#0090FF] w-8 h-8 -translate-x-1" />,
 		features: [
 			{
 				feature: `Filters for data ingest`,
 			},
 			{
-				feature: 'Dozens of integrations',
+				feature: 'All integrations',
 			},
 			{
-				feature: 'Cheaper with higher volume',
+				feature: 'Up to 3 dashboards per workspace',
 			},
 			{
-				feature: 'Alerts and notifications',
+				feature: '7 day retention',
+			},
+			{
+				feature: 'Up to 15 seats',
+			},
+		],
+		calculateUsage: true,
+		buttonLabel: 'Start free trial',
+		buttonLink: 'https://app.highlight.io/sign_up',
+	},
+	Business: {
+		label: 'Business',
+		id: 'business',
+		subText: 'Starts at',
+		prices: businessPrices,
+		icon: <HiPuzzle className="text-[#0090FF] w-8 h-8 -translate-x-1" />,
+		features: [
+			{
+				feature: `Everything in Pay-as-you-go`,
+			},
+			{
+				feature: `Multiple Projects`,
+				tooltip: `The ability to separate your data into different projects in a single billing account.`,
+			},
+			{
+				feature: 'Multiple Dashboards per Project',
+				tooltip: `The ability to create multiple dashboards in the metrics product.`,
+			},
+			{
+				feature: 'Custom retention policies, per product',
+			},
+			{
+				feature: 'Unlimited seats',
 			},
 		],
 		calculateUsage: true,
@@ -186,7 +220,7 @@ const priceTiers: Record<TierName, PricingTier> = {
 
 const PricingPage: NextPage = () => {
 	const [estimatorCategory, setEstimatorCategory] = useState<
-		'PayAsYouGo' | 'Enterprise' | 'SelfHostedEnterprise'
+		'PayAsYouGo' | 'Enterprise' | 'SelfHostedEnterprise' | 'Business'
 	>('PayAsYouGo')
 
 	//Allows for the selection of the tier from the dropdown
