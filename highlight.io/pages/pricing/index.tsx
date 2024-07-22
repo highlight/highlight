@@ -127,7 +127,7 @@ const priceTiers: Record<TierName, PricingTier> = {
 	},
 	Business: {
 		label: 'Business',
-		id: 'business',
+		id: 'Business',
 		subText: 'Starts at',
 		prices: businessPrices,
 		icon: <HiPuzzle className="text-[#0090FF] w-8 h-8 -translate-x-1" />,
@@ -137,14 +137,14 @@ const priceTiers: Record<TierName, PricingTier> = {
 			},
 			{
 				feature: `Multiple Projects`,
-				tooltip: `The ability to separate your data into different projects in a single billing account.`,
+				tooltip: `Separate your data into different projects in a single billing account.`,
 			},
 			{
 				feature: 'Multiple Dashboards per Project',
-				tooltip: `The ability to create multiple dashboards in the metrics product.`,
+				tooltip: `Create multiple dashboards in the metrics product.`,
 			},
 			{
-				feature: 'Custom retention policies, per product',
+				feature: 'Custom retention policies',
 			},
 			{
 				feature: 'Unlimited seats',
@@ -305,7 +305,7 @@ const PlanTable = ({
 	return (
 		<div className="flex flex-col items-center w-full gap-6 mx-auto mt-16">
 			{/* Pricing */}
-			<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 justify-center">
+			<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 justify-center">
 				{Object.entries(priceTiers).map(
 					([name, tier]) =>
 						!tier.hidden && (
@@ -317,7 +317,7 @@ const PlanTable = ({
 						),
 				)}
 
-				<div className="md:col-span-2 lg:col-span-3 ">
+				<div className="md:col-span-2 lg:col-span-4 ">
 					<SFECard setEstimatorCategory={setEstimatorCategory} />
 				</div>
 			</div>
