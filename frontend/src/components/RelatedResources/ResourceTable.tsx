@@ -140,8 +140,6 @@ const TableInner = <T, TCol extends string>({
 						columnRenderers[column.type as string] ??
 						columnRenderers['string']
 
-					console.log('row2', ColumnRenderer)
-
 					return (
 						<ColumnRenderer
 							first={first}

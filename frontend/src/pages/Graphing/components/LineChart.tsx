@@ -242,7 +242,6 @@ export const LineChart = ({
 						}
 
 						const ActiveDot = (props: any) => {
-							console.log('props', props)
 							const { cx, cy, fill } = props
 
 							if (cy === null) {
