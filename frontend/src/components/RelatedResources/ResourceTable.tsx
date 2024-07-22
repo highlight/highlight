@@ -10,10 +10,7 @@ import {
 	Table,
 	Text,
 } from '@highlight-run/ui/components'
-import {
-	DEFAULT_LOG_COLUMNS,
-	HIGHLIGHT_STANDARD_COLUMNS,
-} from '@pages/LogsPage/LogsTable/CustomColumns/columns'
+import { HIGHLIGHT_STANDARD_COLUMNS } from '@pages/LogsPage/LogsTable/CustomColumns/columns'
 import { FullScreenContainer } from '@pages/LogsPage/LogsTable/FullScreenContainer'
 import {
 	ColumnDef,
@@ -33,17 +30,19 @@ import {
 import { CustomColumn } from '@/components/CustomColumnPopover'
 import { NoResourcesFound } from '@/components/RelatedResources/NoResourcesFound'
 import { SearchExpression } from '@/components/Search/Parser/listener'
-import { ColumnRenderers } from '@/pages/Traces/CustomColumns/renderers'
+import { ColumnRenderMap } from '@/pages/LogsPage/LogsTable/CustomColumns/renderers'
 
 import * as styles from './ResourceTable.css'
 
-type Props<T> = {
+type Props<T, TCol extends string> = {
 	loading: boolean
 	error: ApolloError | undefined
-	resourceType: 'logs' | 'traces' | 'sessions' | 'errors'
-} & TableInnerProps<T>
+	resourceType: 'traces' | 'sessions' | 'errors'
+} & TableInnerProps<T, TCol>
 
-export const ResourceTable = <T,>(props: Props<T>) => {
+export const ResourceTable = <T, TCol extends string>(
+	props: Props<T, TCol>,
+) => {
 	if (props.loading) {
 		return (
 			<FullScreenContainer>
@@ -94,27 +93,29 @@ export const ResourceTable = <T,>(props: Props<T>) => {
 	return <TableInner {...props} />
 }
 
-type TableInnerProps<T> = {
+type TableInnerProps<T, TCol extends string> = {
 	loadingAfter: boolean
 	resources: T[]
 	query: string
 	queryParts: SearchExpression[]
 	fetchMoreWhenScrolled: (target: HTMLDivElement) => void
 	bodyHeight: string
-	selectedColumns?: CustomColumn<string>[]
+	selectedColumns: CustomColumn<T, TCol>[]
+	columnRenderers: ColumnRenderMap
 }
 
 const LOADING_AFTER_HEIGHT = 28
 
-const TableInner = <T,>({
+const TableInner = <T, TCol extends string>({
 	resources,
 	loadingAfter,
 	query,
 	queryParts,
 	bodyHeight,
 	fetchMoreWhenScrolled,
-	selectedColumns = DEFAULT_LOG_COLUMNS,
-}: TableInnerProps<T>) => {
+	selectedColumns,
+	columnRenderers,
+}: TableInnerProps<T, TCol>) => {
 	const bodyRef = useRef<HTMLDivElement>(null)
 
 	const columnHelper = createColumnHelper<T>()
@@ -124,21 +125,26 @@ const TableInner = <T,>({
 		const columnHeaders: ColumnHeader[] = []
 		const columns: ColumnDef<T, any>[] = []
 
-		selectedColumns.forEach((column) => {
+		selectedColumns.forEach((column, index) => {
+			const first = index === 0
+
 			gridColumns.push(column.size)
 			columnHeaders.push({
 				id: column.id,
 				component: column.label,
 			})
 
-			// @ts-ignore
-			const accessor = columnHelper.accessor(`${column.accessKey}`, {
+			const accessor = columnHelper.accessor(column.accessor, {
 				cell: ({ row, getValue }) => {
-					const ColumnRenderer: React.FC<ColumnRendererProps> =
-						ColumnRenderers[column.type] || ColumnRenderers.string
+					const ColumnRenderer =
+						columnRenderers[column.type as string] ??
+						columnRenderers['string']
+
+					console.log('row2', ColumnRenderer)
 
 					return (
 						<ColumnRenderer
+							first={first}
 							key={column.id}
 							row={row}
 							getValue={getValue}
@@ -146,6 +152,7 @@ const TableInner = <T,>({
 						/>
 					)
 				},
+				id: column.id,
 			})
 
 			columns.push(accessor)

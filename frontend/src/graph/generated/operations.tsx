@@ -4892,6 +4892,7 @@ export type GetErrorObjectsQuery = { __typename?: 'Query' } & {
 					| 'timestamp'
 					| 'serviceVersion'
 					| 'serviceName'
+					| 'errorGroupSecureID'
 				> & {
 						session?: Types.Maybe<
 							{ __typename?: 'ErrorObjectNodeSession' } & Pick<

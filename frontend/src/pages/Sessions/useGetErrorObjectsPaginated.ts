@@ -41,8 +41,11 @@ export const useGetErrorObjectsPaginated = ({
 
 	const fetchMoreForward = useCallback(async () => {
 		const last = data?.error_objects.error_objects.at(-1)
-
-		if (last === undefined) {
+		if (
+			last === undefined ||
+			data?.error_objects.totalCount === undefined ||
+			data?.error_objects.totalCount <= PAGE_SIZE
+		) {
 			return
 		}
 
@@ -65,15 +68,22 @@ export const useGetErrorObjectsPaginated = ({
 				return {
 					error_objects: {
 						...prevResult.error_objects,
-						edges: [
+						error_objects: [
 							...prevResult.error_objects.error_objects,
 							...fetchMoreResult.error_objects.error_objects,
 						],
+						totalCount: fetchMoreResult.error_objects.totalCount,
 					},
 				}
 			},
 		})
-	}, [data?.error_objects.error_objects, fetchMore, query, startDate])
+	}, [
+		data?.error_objects.error_objects,
+		data?.error_objects.totalCount,
+		fetchMore,
+		query,
+		startDate,
+	])
 
 	return {
 		errorObjects: data?.error_objects.error_objects as ErrorObjectNode[],

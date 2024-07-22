@@ -1,11 +1,12 @@
 import { SessionCustomColumn } from '@/components/CustomColumnPopover'
+import { Session } from '@/graph/generated/schemas'
 
 const CREATED_AT_COLUMN: SessionCustomColumn = {
 	id: 'created_at',
 	label: 'Timestamp',
-	type: 'session',
+	type: 'datetime',
 	size: '2fr',
-	accessKey: 'created_at',
+	accessor: (row: Session) => row.created_at,
 }
 
 const COUNTRY_COLUMN: SessionCustomColumn = {
@@ -13,7 +14,7 @@ const COUNTRY_COLUMN: SessionCustomColumn = {
 	label: 'Country',
 	type: 'string',
 	size: '1fr',
-	accessKey: 'country',
+	accessor: (row: Session) => row.country,
 }
 
 const IDENTIFIER_COLUMN: SessionCustomColumn = {
@@ -21,7 +22,7 @@ const IDENTIFIER_COLUMN: SessionCustomColumn = {
 	label: 'Identifier',
 	type: 'string',
 	size: '1fr',
-	accessKey: 'identifier',
+	accessor: (row: Session) => row.identifier,
 }
 
 const SECURE_ID_COLUMN: SessionCustomColumn = {
@@ -29,7 +30,15 @@ const SECURE_ID_COLUMN: SessionCustomColumn = {
 	label: 'Secure ID',
 	type: 'session',
 	size: '2fr',
-	accessKey: 'secure_id',
+	accessor: (row: Session) => row.secure_id,
+}
+
+const ACTIVE_LENGTH_COLUMN: SessionCustomColumn = {
+	id: 'active_length',
+	label: 'Active Length',
+	type: 'duration',
+	size: '1fr',
+	accessor: (row: Session) => row.active_length,
 }
 
 export const DEFAULT_SESSION_COLUMNS = [
@@ -37,4 +46,5 @@ export const DEFAULT_SESSION_COLUMNS = [
 	IDENTIFIER_COLUMN,
 	COUNTRY_COLUMN,
 	CREATED_AT_COLUMN,
+	ACTIVE_LENGTH_COLUMN,
 ]

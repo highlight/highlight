@@ -12,7 +12,6 @@ import {
 import React from 'react'
 
 import { useRelatedResource } from '@/components/RelatedResources/hooks'
-import { Trace } from '@/graph/generated/schemas'
 import { ColumnRendererProps } from '@/pages/LogsPage/LogsTable/CustomColumns/renderers'
 import { getTraceDurationString } from '@/pages/Traces/utils'
 import analytics from '@/util/analytics'
@@ -25,7 +24,6 @@ type PaddingProps = {
 type ColumnWrapperProps = {
 	children: React.ReactNode
 	first: boolean
-	row: any
 	paddingProps?: PaddingProps
 	onClick?: () => void
 }
@@ -34,11 +32,8 @@ const ColumnWrapper: React.FC<ColumnWrapperProps> = ({
 	children,
 	first,
 	paddingProps,
-	row,
 	onClick,
 }) => {
-	const { set } = useRelatedResource()
-
 	if (!first) {
 		return (
 			<Table.Cell onClick={onClick} {...paddingProps}>
@@ -47,21 +42,8 @@ const ColumnWrapper: React.FC<ColumnWrapperProps> = ({
 		)
 	}
 
-	const viewTrace = (trace: Trace) => {
-		set({
-			type: 'trace',
-			id: trace.traceID,
-			spanID: trace.spanID,
-		})
-
-		analytics.track('traces_trace-row_click')
-	}
-
 	return (
-		<Table.Cell
-			onClick={() => viewTrace(row.original.node)}
-			{...paddingProps}
-		>
+		<Table.Cell onClick={onClick} {...paddingProps}>
 			<Box
 				display="flex"
 				alignItems="center"
@@ -90,7 +72,6 @@ const EmptyState: React.FC = () => (
 )
 
 const StringColumnRenderer: React.FC<ColumnRendererProps> = ({
-	row,
 	getValue,
 	first,
 }) => {
@@ -101,7 +82,7 @@ const StringColumnRenderer: React.FC<ColumnRendererProps> = ({
 	const color = first ? 'strong' : undefined
 
 	return (
-		<ColumnWrapper first={first} row={row}>
+		<ColumnWrapper first={first}>
 			{value ? (
 				<Text lines="1" color={color} title={value}>
 					{value}
@@ -113,60 +94,31 @@ const StringColumnRenderer: React.FC<ColumnRendererProps> = ({
 	)
 }
 
-const BooleanColumnRenderer: React.FC<ColumnRendererProps> = ({
-	row,
+const ErrorObjectColumnRenderer: React.FC<ColumnRendererProps> = ({
 	getValue,
 	first,
 }) => {
 	const value = getValue()
 
-	return (
-		<ColumnWrapper first={first} row={row}>
-			{value != null ? (
-				<Text lines="1">{value.toString()}</Text>
-			) : (
-				<Text color="secondaryContentOnDisabled">empty</Text>
-			)}
-		</ColumnWrapper>
-	)
-}
+	const color = first ? 'strong' : undefined
 
-const SessionColumnRenderer: React.FC<ColumnRendererProps> = ({
-	row,
-	getValue,
-	first,
-}) => {
 	const { set } = useRelatedResource()
-	const secureSessionID = getValue()
-	const onClick = secureSessionID
-		? () => {
-				set({
-					type: 'session',
-					secureId: secureSessionID,
-				})
+	const onClick = () => {
+		set({
+			type: 'error',
+			secureId: value.secureId,
+			instanceId: value.id,
+		})
 
-				analytics.track('traces_session-column_click')
-		  }
-		: undefined
-	const paddingProps = secureSessionID
-		? { pt: '4' as const, pb: '0' as const }
-		: undefined
+		analytics.track('session-column_click')
+	}
 
 	return (
-		<ColumnWrapper
-			first={first}
-			row={row}
-			onClick={onClick}
-			paddingProps={paddingProps}
-		>
-			{secureSessionID ? (
-				<Tag
-					kind="secondary"
-					shape="basic"
-					iconLeft={<IconSolidPlayCircle />}
-				>
-					<Text lines="1">{secureSessionID}</Text>
-				</Tag>
+		<ColumnWrapper first={first} onClick={onClick}>
+			{value.event ? (
+				<Text lines="1" color={color} title={value.event}>
+					{value.event}
+				</Text>
 			) : (
 				<EmptyState />
 			)}
@@ -175,14 +127,13 @@ const SessionColumnRenderer: React.FC<ColumnRendererProps> = ({
 }
 
 const DateTimeColumnRenderer: React.FC<ColumnRendererProps> = ({
-	row,
 	getValue,
 	first,
 }) => {
 	const date = getValue()
 
 	return (
-		<ColumnWrapper first={first} row={row}>
+		<ColumnWrapper first={first}>
 			{date ? (
 				<Text lines="1">
 					{new Date(date).toLocaleDateString('en-US', {
@@ -202,13 +153,12 @@ const DateTimeColumnRenderer: React.FC<ColumnRendererProps> = ({
 }
 
 const DurationRenderer: React.FC<ColumnRendererProps> = ({
-	row,
 	getValue,
 	first,
 }) => {
-	const duration = getTraceDurationString(getValue())
+	const duration = getTraceDurationString(getValue() * 1e6)
 	return (
-		<ColumnWrapper first={first} row={row}>
+		<ColumnWrapper first={first}>
 			{duration ? (
 				<Text lines="1" title={duration}>
 					{duration}
@@ -220,12 +170,51 @@ const DurationRenderer: React.FC<ColumnRendererProps> = ({
 	)
 }
 
-export const TraceColumnRenderers = {
-	boolean: BooleanColumnRenderer,
+const SessionColumnRenderer: React.FC<ColumnRendererProps> = ({
+	getValue,
+	first,
+}) => {
+	const { set } = useRelatedResource()
+	const secureSessionID = getValue()
+	const onClick = secureSessionID
+		? () => {
+				set({
+					type: 'session',
+					secureId: secureSessionID,
+				})
+
+				analytics.track('session-column_click')
+		  }
+		: undefined
+	const paddingProps = secureSessionID
+		? { pt: '4' as const, pb: '0' as const }
+		: undefined
+
+	return (
+		<ColumnWrapper
+			first={first}
+			onClick={onClick}
+			paddingProps={paddingProps}
+		>
+			{secureSessionID ? (
+				<Tag
+					kind="secondary"
+					shape="basic"
+					iconLeft={<IconSolidPlayCircle />}
+				>
+					<Text lines="1">{secureSessionID}</Text>
+				</Tag>
+			) : (
+				<EmptyState />
+			)}
+		</ColumnWrapper>
+	)
+}
+
+export const ErrorObjectColumnRenderers = {
 	datetime: DateTimeColumnRenderer,
 	duration: DurationRenderer,
 	session: SessionColumnRenderer,
+	error_object: ErrorObjectColumnRenderer,
 	string: StringColumnRenderer,
-	metric_name: StringColumnRenderer,
-	metric_value: StringColumnRenderer,
 }

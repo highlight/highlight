@@ -55,16 +55,33 @@ func (store *Store) ListErrorObjects(ctx context.Context, ids []int64, totalCoun
 		sessionMap[session.ID] = session
 	}
 
+	var errorGroupIds []int
+	for _, errorObject := range errorObjects {
+		errorGroupIds = append(errorGroupIds, errorObject.ErrorGroupID)
+	}
+
+	var errorGroups []model.ErrorGroup
+	err = store.DB.WithContext(ctx).Where("id IN (?)", errorGroupIds).Find(&errorGroups).Error
+	if err != nil {
+		return privateModel.ErrorObjectResults{}, errors.New("Failed to preload error groups for error objects")
+	}
+
+	errorGroupMap := make(map[int]model.ErrorGroup)
+	for _, errorGroup := range errorGroups {
+		errorGroupMap[errorGroup.ID] = errorGroup
+	}
+
 	nodes := []*privateModel.ErrorObjectNode{}
 
 	for _, errorObject := range errorObjects {
 		node := &privateModel.ErrorObjectNode{
-			ID:             errorObject.ID,
-			CreatedAt:      errorObject.CreatedAt,
-			Event:          errorObject.Event,
-			Timestamp:      errorObject.Timestamp,
-			ServiceVersion: errorObject.ServiceVersion,
-			ServiceName:    errorObject.ServiceName,
+			ID:                 errorObject.ID,
+			CreatedAt:          errorObject.CreatedAt,
+			Event:              errorObject.Event,
+			Timestamp:          errorObject.Timestamp,
+			ServiceVersion:     errorObject.ServiceVersion,
+			ServiceName:        errorObject.ServiceName,
+			ErrorGroupSecureID: errorGroupMap[errorObject.ErrorGroupID].SecureID,
 		}
 
 		// Attach the session we preloaded earlier to this error_object

@@ -20,6 +20,7 @@ import {
 	getColor,
 	getCustomTooltip,
 	getTickFormatter,
+	GROUP_KEY,
 	InnerChartProps,
 	isActive,
 	SeriesInfo,
@@ -64,7 +65,7 @@ const RoundedBar =
 							loadExemplars(
 								props[BUCKET_MIN_KEY],
 								props[BUCKET_MAX_KEY],
-								props.dataKey,
+								props[GROUP_KEY] ?? props.dataKey,
 							)
 					}}
 					cursor="pointer"

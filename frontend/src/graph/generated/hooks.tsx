@@ -14414,6 +14414,7 @@ export const GetErrorObjectsDocument = gql`
 					fingerprint
 					excluded
 				}
+				errorGroupSecureID
 			}
 			totalCount
 		}

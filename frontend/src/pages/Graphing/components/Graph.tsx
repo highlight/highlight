@@ -525,14 +525,12 @@ const Graph = ({
 				return
 		}
 
-		console.log('groupByKey', groupByKey)
-
 		let relatedResourceQuery = query
 		if (groupByKey !== undefined) {
 			if (relatedResourceQuery !== '') {
 				relatedResourceQuery += ' '
 			}
-			if (group !== NO_GROUP_PLACEHOLDER) {
+			if (group !== NO_GROUP_PLACEHOLDER && group !== '') {
 				relatedResourceQuery += `${groupByKey}="${group}"`
 			} else {
 				relatedResourceQuery += `${groupByKey} not exists`
@@ -551,8 +549,6 @@ const Graph = ({
 			startDateStr = new Date(bucketMin * 1000).toISOString()
 			endDateStr = new Date(bucketMax * 1000).toISOString()
 		}
-
-		console.log('loadExemplars', bucketByKey, bucketMin, bucketMax)
 
 		set({
 			type: relatedResourceType,

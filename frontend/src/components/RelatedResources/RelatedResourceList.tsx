@@ -12,10 +12,14 @@ import { SearchForm } from '@/components/Search/SearchForm/SearchForm'
 import { parseSearch } from '@/components/Search/utils'
 import { ProductType } from '@/graph/generated/schemas'
 import { useNumericProjectId } from '@/hooks/useProjectId'
+import { DEFAULT_ERROR_OBJECT_COLUMNS } from '@/pages/ErrorsV2/CustomColumns/columns'
+import { ErrorObjectColumnRenderers } from '@/pages/ErrorsV2/CustomColumns/renderers'
 import { DEFAULT_SESSION_COLUMNS } from '@/pages/Sessions/CustomColumns/columns'
+import { SessionColumnRenderers } from '@/pages/Sessions/CustomColumns/renderers'
 import { useGetErrorObjectsPaginated } from '@/pages/Sessions/useGetErrorObjectsPaginated'
 import { useGetSessionsPaginated } from '@/pages/Sessions/useGetSessionsPaginated'
 import { DEFAULT_TRACE_COLUMNS } from '@/pages/Traces/CustomColumns/columns'
+import { TraceColumnRenderers } from '@/pages/Traces/CustomColumns/renderers'
 import { useGetTraces } from '@/pages/Traces/useGetTraces'
 
 export const RelatedResourceList: React.FC<{
@@ -118,6 +122,8 @@ export const RelatedResourceList: React.FC<{
 					fetchMoreWhenScrolled={fetchMoreWhenScrolled}
 					bodyHeight="calc(100% - 56px)"
 					resources={errorObjects}
+					selectedColumns={DEFAULT_ERROR_OBJECT_COLUMNS}
+					columnRenderers={ErrorObjectColumnRenderers}
 				/>
 			)
 			break
@@ -135,6 +141,7 @@ export const RelatedResourceList: React.FC<{
 					fetchMoreWhenScrolled={fetchMoreWhenScrolled}
 					bodyHeight="calc(100% - 56px)"
 					resources={sessions}
+					columnRenderers={SessionColumnRenderers}
 				/>
 			)
 			break
@@ -144,6 +151,7 @@ export const RelatedResourceList: React.FC<{
 				<ResourceTable
 					resourceType={resource.type}
 					selectedColumns={DEFAULT_TRACE_COLUMNS}
+					columnRenderers={TraceColumnRenderers}
 					query={query}
 					queryParts={queryParts}
 					loading={tracesLoading}

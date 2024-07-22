@@ -343,13 +343,14 @@ type ErrorMetadata struct {
 }
 
 type ErrorObjectNode struct {
-	ID             int                     `json:"id"`
-	CreatedAt      time.Time               `json:"createdAt"`
-	Event          string                  `json:"event"`
-	Timestamp      time.Time               `json:"timestamp"`
-	Session        *ErrorObjectNodeSession `json:"session,omitempty"`
-	ServiceVersion string                  `json:"serviceVersion"`
-	ServiceName    string                  `json:"serviceName"`
+	ID                 int                     `json:"id"`
+	CreatedAt          time.Time               `json:"createdAt"`
+	Event              string                  `json:"event"`
+	Timestamp          time.Time               `json:"timestamp"`
+	Session            *ErrorObjectNodeSession `json:"session,omitempty"`
+	ServiceVersion     string                  `json:"serviceVersion"`
+	ServiceName        string                  `json:"serviceName"`
+	ErrorGroupSecureID string                  `json:"errorGroupSecureID"`
 }
 
 type ErrorObjectNodeSession struct {

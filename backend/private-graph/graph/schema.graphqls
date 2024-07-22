@@ -896,6 +896,7 @@ type ErrorObjectNode {
 	session: ErrorObjectNodeSession
 	serviceVersion: String!
 	serviceName: String!
+	errorGroupSecureID: String!
 }
 
 enum ServiceStatus {

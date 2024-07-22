@@ -183,7 +183,9 @@ const LogsTableInner = ({
 			}),
 		)
 
-		selectedColumns.forEach((column) => {
+		selectedColumns.forEach((column, index) => {
+			const first = index === 0
+
 			gridColumns.push(column.size)
 			columnHeaders.push({
 				id: column.id,
@@ -199,6 +201,7 @@ const LogsTableInner = ({
 
 					return (
 						<ColumnRenderer
+							first={first}
 							key={column.id}
 							row={row}
 							getValue={getValue}
@@ -223,7 +226,7 @@ const LogsTableInner = ({
 						selectedColumns={selectedColumns}
 						setSelectedColumns={setSelectedColumns}
 						standardColumns={HIGHLIGHT_STANDARD_COLUMNS}
-						attributePrefix="logAttributes"
+						attributeAccessor="logAttributes"
 					/>
 				),
 			})

@@ -1,7 +1,7 @@
 import { TraceEdge } from '@graph/schemas'
 
 const AccessKeyAccessor = function (accessKey: string) {
-	return `node.${accessKey}`
+	return (row: TraceEdge) => row.node.traceAttributes[accessKey]
 }
 
 const MetricNameAccessor = () => {

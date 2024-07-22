@@ -635,6 +635,7 @@ export type ErrorObject = {
 export type ErrorObjectNode = {
 	__typename?: 'ErrorObjectNode'
 	createdAt: Scalars['Timestamp']
+	errorGroupSecureID: Scalars['String']
 	event: Scalars['String']
 	id: Scalars['ID']
 	serviceName: Scalars['String']

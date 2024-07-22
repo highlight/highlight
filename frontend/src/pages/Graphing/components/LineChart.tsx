@@ -258,7 +258,7 @@ export const LineChart = ({
 											loadExemplars(
 												props.payload[BUCKET_MIN_KEY],
 												props.payload[BUCKET_MAX_KEY],
-												props.dataKey,
+												props.dataKey ?? props.Group,
 											)
 									}}
 									cursor="pointer"

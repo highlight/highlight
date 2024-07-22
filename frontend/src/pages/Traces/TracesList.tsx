@@ -1,6 +1,5 @@
 import { Box, Callout, Stack, Table, Text } from '@highlight-run/ui/components'
-import { ColumnAccessors } from '@pages/Traces/CustomColumns/accessors'
-import { ColumnRenderers } from '@pages/Traces/CustomColumns/renderers'
+import { TraceColumnRenderers } from '@pages/Traces/CustomColumns/renderers'
 import useLocalStorage from '@rehooks/local-storage'
 import {
 	ColumnDef,
@@ -174,17 +173,12 @@ export const TracesList: React.FC<Props> = ({
 				},
 			})
 
-			const accessorFn = (
-				ColumnAccessors[column.type as keyof typeof ColumnAccessors] ||
-				ColumnAccessors.accessKey
-			)(column.accessKey)
-
-			// @ts-ignore
-			const accessor = columnHelper.accessor(accessorFn, {
+			const accessor = columnHelper.accessor(column.accessor, {
 				id: column.id,
 				cell: ({ row, getValue }) => {
 					const ColumnRenderer =
-						ColumnRenderers[column.type] || ColumnRenderers.string
+						TraceColumnRenderers[column.type] ||
+						TraceColumnRenderers.string
 
 					return (
 						<ColumnRenderer
@@ -192,6 +186,7 @@ export const TracesList: React.FC<Props> = ({
 							row={row}
 							getValue={getValue}
 							first={first}
+							queryParts={[]}
 						/>
 					)
 				},
@@ -211,7 +206,9 @@ export const TracesList: React.FC<Props> = ({
 					selectedColumns={selectedColumns}
 					setSelectedColumns={setSelectedColumns}
 					standardColumns={HIGHLIGHT_STANDARD_COLUMNS}
-					attributePrefix="traceAttributes"
+					attributeAccessor={(row: TraceEdge) =>
+						row.node.traceAttributes
+					}
 				/>
 			),
 		})
