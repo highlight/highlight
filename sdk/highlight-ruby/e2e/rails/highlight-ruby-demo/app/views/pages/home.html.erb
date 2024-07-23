@@ -1,0 +1,6 @@
+<h1>Highlight Ruby Demo</h1>
+
+<%# a button that sends a POST request to /traces and creates a trace on the backend %>
+<%= turbo_frame_tag "trace_frame" do %>
+  <%= button_to 'Create Trace', traces_path, method: :post, data: { turbo_frame: "trace_frame" } %>
+<% end %>
