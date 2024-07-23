@@ -17,12 +17,12 @@ const COUNTRY_COLUMN: SessionCustomColumn = {
 	accessor: (row: Session) => row.country,
 }
 
-const IDENTIFIER_COLUMN: SessionCustomColumn = {
-	id: 'identifier',
-	label: 'Identifier',
+const EMAIL_COLUMN: SessionCustomColumn = {
+	id: 'email',
+	label: 'Email',
 	type: 'string',
 	size: '1fr',
-	accessor: (row: Session) => row.identifier,
+	accessor: (row: Session) => row.email,
 }
 
 const SECURE_ID_COLUMN: SessionCustomColumn = {
@@ -43,7 +43,7 @@ const ACTIVE_LENGTH_COLUMN: SessionCustomColumn = {
 
 export const DEFAULT_SESSION_COLUMNS = [
 	SECURE_ID_COLUMN,
-	IDENTIFIER_COLUMN,
+	EMAIL_COLUMN,
 	COUNTRY_COLUMN,
 	CREATED_AT_COLUMN,
 	ACTIVE_LENGTH_COLUMN,

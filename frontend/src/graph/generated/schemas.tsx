@@ -3321,6 +3321,7 @@ export type Session = {
 	created_at: Scalars['Timestamp']
 	deviceMemory?: Maybe<Scalars['Int']>
 	direct_download_url?: Maybe<Scalars['String']>
+	email?: Maybe<Scalars['String']>
 	enable_recording_network_contents?: Maybe<Scalars['Boolean']>
 	enable_strict_privacy?: Maybe<Scalars['Boolean']>
 	environment?: Maybe<Scalars['String']>

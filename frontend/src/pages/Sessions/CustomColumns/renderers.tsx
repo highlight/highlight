@@ -9,8 +9,10 @@ import {
 } from '@highlight-run/ui/components'
 import React from 'react'
 
+import { useRelatedResource } from '@/components/RelatedResources/hooks'
 import { ColumnRendererProps } from '@/pages/LogsPage/LogsTable/CustomColumns/renderers'
 import { getTraceDurationString } from '@/pages/Traces/utils'
+import analytics from '@/util/analytics'
 
 type PaddingProps = {
 	pt: BoxProps['p']
@@ -90,6 +92,37 @@ const StringColumnRenderer: React.FC<ColumnRendererProps> = ({
 	)
 }
 
+const SessionColumnRenderer: React.FC<ColumnRendererProps> = ({
+	getValue,
+	first,
+}) => {
+	const { set } = useRelatedResource()
+	let value = getValue()
+	if (typeof value === 'object') {
+		value = JSON.stringify(value)
+	}
+	const onClick = () => {
+		set({
+			type: 'session',
+			secureId: value,
+		})
+
+		analytics.track('session-column_click')
+	}
+
+	return (
+		<ColumnWrapper first={first} onClick={onClick}>
+			{value ? (
+				<Text lines="1" title={value}>
+					{value}
+				</Text>
+			) : (
+				<EmptyState />
+			)}
+		</ColumnWrapper>
+	)
+}
+
 const DateTimeColumnRenderer: React.FC<ColumnRendererProps> = ({
 	getValue,
 	first,
@@ -137,6 +170,6 @@ const DurationRenderer: React.FC<ColumnRendererProps> = ({
 export const SessionColumnRenderers = {
 	datetime: DateTimeColumnRenderer,
 	duration: DurationRenderer,
-	session: StringColumnRenderer,
+	session: SessionColumnRenderer,
 	string: StringColumnRenderer,
 }
