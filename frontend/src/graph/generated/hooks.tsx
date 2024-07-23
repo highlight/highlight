@@ -7677,7 +7677,6 @@ export const GetSessionsDocument = gql`
 				last_user_interaction_time
 				is_public
 				excluded
-				email
 			}
 			totalCount
 		}
