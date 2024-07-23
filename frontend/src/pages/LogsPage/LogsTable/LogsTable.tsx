@@ -2,7 +2,7 @@ import { ApolloError } from '@apollo/client'
 import { Button } from '@components/Button'
 import {
 	CustomColumnPopover,
-	LogCustomColumn,
+	SerializedColumn,
 } from '@components/CustomColumnPopover'
 import { AdditionalFeedResults } from '@components/FeedResults/FeedResults'
 import { Link } from '@components/Link'
@@ -126,8 +126,8 @@ type LogsTableInnerProps = {
 	bodyHeight: string
 	clearMoreLogs?: () => void
 	handleAdditionalLogsDateChange?: () => void
-	selectedColumns?: LogCustomColumn[]
-	setSelectedColumns?: (columns: LogCustomColumn[]) => void
+	selectedColumns?: SerializedColumn[]
+	setSelectedColumns?: (columns: SerializedColumn[]) => void
 	pollingExpired?: boolean
 }
 
@@ -193,11 +193,19 @@ const LogsTableInner = ({
 				showActions: !!setSelectedColumns,
 			})
 
-			// @ts-ignore
-			const accessor = columnHelper.accessor(`node.${column.accessKey}`, {
+			const accessorFn =
+				column.id in HIGHLIGHT_STANDARD_COLUMNS
+					? HIGHLIGHT_STANDARD_COLUMNS[column.id].accessor
+					: (`node.logAttributes.${column.id}` as `node.logAttributes.${string}`)
+
+			const columnType =
+				column.id in HIGHLIGHT_STANDARD_COLUMNS
+					? HIGHLIGHT_STANDARD_COLUMNS[column.id].type
+					: 'string'
+
+			const accessor = columnHelper.accessor(accessorFn, {
 				cell: ({ row, getValue }) => {
-					const ColumnRenderer =
-						ColumnRenderers[column.type] || ColumnRenderers.string
+					const ColumnRenderer = ColumnRenderers[columnType]
 
 					return (
 						<ColumnRenderer
@@ -209,6 +217,7 @@ const LogsTableInner = ({
 						/>
 					)
 				},
+				id: column.id,
 			})
 
 			columns.push(accessor)

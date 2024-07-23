@@ -20,6 +20,7 @@ import {
 import {
 	CustomColumnPopover,
 	DEFAULT_COLUMN_SIZE,
+	SerializedColumn,
 } from '@/components/CustomColumnPopover'
 import { AdditionalFeedResults } from '@/components/FeedResults/FeedResults'
 import { LinkButton } from '@/components/LinkButton'
@@ -78,10 +79,9 @@ export const TracesList: React.FC<Props> = ({
 	const { integrated } = useTracesIntegration()
 	const { resource } = useRelatedResource()
 	const trace = resource as RelatedTrace
-	const [selectedColumns, setSelectedColumns] = useLocalStorage(
-		`highlight-traces-table-columns`,
-		DEFAULT_TRACE_COLUMNS,
-	)
+	const [selectedColumns, setSelectedColumns] = useLocalStorage<
+		SerializedColumn[]
+	>(`highlight-traces-table-columns`, DEFAULT_TRACE_COLUMNS)
 	const [windowSize, setWindowSize] = useLocalStorage(
 		'highlight-traces-window-size',
 		window.innerWidth,
@@ -173,12 +173,20 @@ export const TracesList: React.FC<Props> = ({
 				},
 			})
 
-			const accessor = columnHelper.accessor(column.accessor, {
+			const accessorFn =
+				column.id in HIGHLIGHT_STANDARD_COLUMNS
+					? HIGHLIGHT_STANDARD_COLUMNS[column.id].accessor
+					: (`node.traceAttributes.${column.id}` as `node.traceAttributes.${string}`)
+
+			const columnType =
+				column.id in HIGHLIGHT_STANDARD_COLUMNS
+					? HIGHLIGHT_STANDARD_COLUMNS[column.id].type
+					: 'string'
+
+			const accessor = columnHelper.accessor(accessorFn, {
 				id: column.id,
 				cell: ({ row, getValue }) => {
-					const ColumnRenderer =
-						TraceColumnRenderers[column.type] ||
-						TraceColumnRenderers.string
+					const ColumnRenderer = TraceColumnRenderers[columnType]
 
 					return (
 						<ColumnRenderer

@@ -57,13 +57,17 @@ export type ErrorObjectCustomColumn = CustomColumn<
 >
 
 export type ValidCustomColumn = CustomColumn<any, any>
+export type SerializedColumn = Pick<
+	CustomColumn<any, any>,
+	'id' | 'size' | 'label'
+>
 
 type Props<T> = {
 	attributeAccessor: (row: T) => any
 	productType: ProductType
-	selectedColumns: ValidCustomColumn[]
-	standardColumns: Record<string, ValidCustomColumn>
-	setSelectedColumns: (columns: ValidCustomColumn[]) => void
+	selectedColumns: SerializedColumn[]
+	standardColumns: Record<string, SerializedColumn>
+	setSelectedColumns: (columns: SerializedColumn[]) => void
 }
 
 export const CustomColumnPopover = <T,>({
@@ -106,7 +110,7 @@ export const CustomColumnPopover = <T,>({
 			acc[column.id] = column
 
 			return acc
-		}, {} as Record<string, ValidCustomColumn>)
+		}, {} as Record<string, SerializedColumn>)
 
 		const defaultColumnHash = {
 			...seletedColumnHash,
@@ -145,7 +149,7 @@ export const CustomColumnPopover = <T,>({
 			acc[column.id] = column
 
 			return acc
-		}, {} as Record<string, ValidCustomColumn>)
+		}, {} as Record<string, SerializedColumn>)
 	}, [selectedColumns, columnOptions])
 
 	const handleColumnValueChange = (updatedValue: string[]) => {
