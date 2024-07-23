@@ -283,7 +283,8 @@ const getSpanName = (
 	body: Request['body'] | BrowserXHR['_body'],
 ) => {
 	let parsedBody
-	const pathname = new URL(url).pathname
+	const urlObject = new URL(url)
+	const pathname = urlObject.pathname
 	let spanName = `${method} - ${pathname}`
 
 	try {
@@ -297,7 +298,9 @@ const getSpanName = (
 					: undefined
 
 			if (queryName) {
-				spanName = `${queryName} (GraphQL: ${pathname})`
+				spanName = `${queryName} (GraphQL: ${
+					urlObject.host + urlObject.pathname
+				})`
 			}
 		}
 	} catch {
@@ -448,10 +451,11 @@ const assignResourceFetchDurations = (
 	resource: PerformanceResourceTiming,
 ) => {
 	const durations = {
-		domain_lookup: resource.domainLookupEnd - resource.domainLookupStart,
-		connect: resource.connectEnd - resource.connectStart,
-		request: resource.responseEnd - resource.requestStart,
-		response: resource.responseEnd - resource.responseStart,
+		domain_lookup:
+			(resource.domainLookupEnd - resource.domainLookupStart) * 1e6,
+		connect: (resource.connectEnd - resource.connectStart) * 1e6,
+		request: (resource.responseEnd - resource.requestStart) * 1e6,
+		response: (resource.responseEnd - resource.responseStart) * 1e6,
 	}
 
 	Object.entries(durations).forEach(([key, value]) => {
