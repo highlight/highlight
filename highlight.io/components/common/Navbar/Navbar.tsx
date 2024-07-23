@@ -126,7 +126,7 @@ const Navbar = ({
 				isLaunchWeek ? (
 					<LaunchWeekBanner />
 				) : (
-					<LivestreamBanner />
+					<HFSBanner />
 				)
 			) : null}
 			<div
