@@ -8,7 +8,6 @@ export const AI_SEARCH_PLACEHOLDERS = {
 	[ProductType.Logs]: "e.g. 'logs with level error in the last 24 hours'",
 	[ProductType.Traces]: "e.g. 'traces with errors from 5-6am'",
 	[ProductType.Errors]: "e.g. 'errors in Chrome from yesterday'",
-	[ProductType.Metrics]:
-		"e.g. 'metrics with value > 100 in the last 5 minutes'",
+	[ProductType.Metrics]: 'TODO: if/when implemented for metrics',
 	[ProductType.Sessions]: "e.g. 'sessions with rage clicks this week'",
 }

@@ -19,7 +19,7 @@ import {
 import { vars } from '@highlight-run/ui/vars'
 import clsx from 'clsx'
 import moment from 'moment'
-import React, { useMemo, useRef, useState } from 'react'
+import React, { useEffect, useMemo, useRef, useState } from 'react'
 import TextareaAutosize from 'react-autosize-textarea'
 
 import { Button } from '@/components/Button'
@@ -57,7 +57,7 @@ export const AiSearch: React.FC<Props> = ({ panelView, placeholder }) => {
 		selectedPreset,
 		updateSearchTime,
 	} = useSearchContext()
-	const [submitted, setSubmitted] = useState(false)
+	const [submitted, setSubmitted] = useState<boolean>(false)
 	const displayError = !!aiSuggestionError && submitted
 	const displayTags = !aiSuggestionLoading && !displayError && submitted
 
@@ -65,6 +65,13 @@ export const AiSearch: React.FC<Props> = ({ panelView, placeholder }) => {
 	const comboboxStore = useComboboxStore({
 		defaultValue: aiQuery,
 	})
+
+	useEffect(() => {
+		if (submitted) {
+			comboboxStore.setActiveId(comboboxStore.next())
+		}
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [submitted])
 
 	const submitQuery = (query: string) => {
 		onAiSubmit(query)
