@@ -175,7 +175,7 @@ export const AiSearch: React.FC<Props> = ({ panelView, placeholder }) => {
 					cssClass={styles.comboboxTagsContainer}
 					style={{
 						left: 2,
-						paddingLeft: panelView ? 8 : 38,
+						paddingLeft: 36,
 					}}
 				>
 					{aiSuggestionTokenGroups.map((tokenGroup, index) => {
@@ -230,7 +230,7 @@ export const AiSearch: React.FC<Props> = ({ panelView, placeholder }) => {
 					}
 				}}
 				style={{
-					paddingLeft: panelView ? 8 : 40,
+					paddingLeft: 36,
 				}}
 				autoFocus
 				data-hl-record
@@ -365,6 +365,7 @@ export const AiSearch: React.FC<Props> = ({ panelView, placeholder }) => {
 						borderTopRightRadius="5"
 						width="full"
 					>
+						<Icon />
 						{ComboboxComponent}
 					</Box>
 					<Box borderBottom="dividerWeak" width="full" />
