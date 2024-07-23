@@ -140,7 +140,7 @@ const priceTiers: Record<TierName, PricingTier> = {
 				tooltip: `Separate your data into different projects in a single billing account.`,
 			},
 			{
-				feature: 'Multiple Dashboards per Project',
+				feature: 'Multiple Dashboards',
 				tooltip: `Create multiple dashboards in the metrics product.`,
 			},
 			{
