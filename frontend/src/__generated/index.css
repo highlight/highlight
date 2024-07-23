@@ -6314,7 +6314,7 @@ body {
 }
 ._1k082jh0 {
   position: relative;
-  z-index: 1;
+  z-index: 10;
 }
 ._1k082jh0:after {
   content: "";
@@ -6335,33 +6335,15 @@ body {
   left: 14px;
 }
 ._1k082jh4 {
-  font-family:
-    IBM Plex Mono,
-    Menlo,
-    DejaVu Sans Mono,
-    Bitstream Vera Sans Mono,
-    Courier,
-    monospace;
-  font-size: 13px;
-  line-height: 20px;
   background: transparent;
   border: 0;
   caret-color: var(--_1pyqka9b);
+  color: var(--_1pyqka9b);
   display: flex;
   font-feature-settings: "tnum" off;
   font-weight: 500 !important;
   pointer-events: auto;
   width: 100%;
-}
-._1k082jh4::before {
-  content: "";
-  margin-bottom: -0.4056em;
-  display: table;
-}
-._1k082jh4::after {
-  content: "";
-  margin-top: -0.4056em;
-  display: table;
 }
 ._1k082jh4:focus {
   outline: 0;
