@@ -465,6 +465,7 @@ const getCustomTooltip =
 						key={idx}
 						justifyContent="space-between"
 						gap="4"
+						cssClass={style.tooltipRow}
 					>
 						<Box
 							display="flex"

@@ -6666,26 +6666,28 @@ body {
 }
 .dg2vg69 {
   line-height: 16px;
-  max-width: 300px;
 }
 .dg2vg6a {
+  max-width: 350px;
+}
+.dg2vg6b {
   height: 16px;
   width: 16px;
 }
-.dg2vg6b {
+.dg2vg6c {
   border-radius: 50%;
   width: 8px;
   height: 8px;
   flex-shrink: 0;
   flex-grow: 0;
 }
-.dg2vg6c {
+.dg2vg6d {
   pointer-events: none;
 }
-.dg2vg6d {
+.dg2vg6e {
   width: min-content;
 }
-.dg2vg6e {
+.dg2vg6f {
   user-select: none;
 }
 ._11t98zr0 {
