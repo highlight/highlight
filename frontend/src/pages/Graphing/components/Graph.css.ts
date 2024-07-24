@@ -71,11 +71,17 @@ export const tooltipText = style({
 	maxWidth: '300px',
 })
 
+export const exemplarButton = style({
+	height: '16px',
+	width: '16px',
+})
+
 export const tooltipDot = style({
 	borderRadius: '50%',
-	marginRight: '4px',
 	width: 8,
 	height: 8,
+	flexShrink: 0,
+	flexGrow: 0,
 })
 
 export const disabled = style({

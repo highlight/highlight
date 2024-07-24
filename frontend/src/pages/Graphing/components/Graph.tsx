@@ -2,6 +2,7 @@ import {
 	Badge,
 	Box,
 	Button,
+	ButtonIcon,
 	DateRangePreset,
 	IconSolidArrowsExpand,
 	IconSolidChartSquareBar,
@@ -9,6 +10,7 @@ import {
 	IconSolidDocumentReport,
 	IconSolidDotsHorizontal,
 	IconSolidDuplicate,
+	IconSolidExternalLink,
 	IconSolidLoading,
 	IconSolidPencil,
 	IconSolidTable,
@@ -17,13 +19,14 @@ import {
 	presetStartDate,
 	Stack,
 	Text,
+	Tooltip,
 } from '@highlight-run/ui/components'
 import { vars } from '@highlight-run/ui/vars'
 import clsx from 'clsx'
 import _ from 'lodash'
 import moment from 'moment'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { ReferenceArea, Tooltip } from 'recharts'
+import { ReferenceArea, Tooltip as RechartsTooltip } from 'recharts'
 import { CategoricalChartState } from 'recharts/types/chart/types'
 
 import { useAuthContext } from '@/authentication/AuthContext'
@@ -179,14 +182,34 @@ export const useGraphCallbacks = (
 	const chartRef = useRef<HTMLDivElement>(null)
 	const tooltipRef = useRef<HTMLDivElement>(null)
 
+	const [mouseMoveState, setMouseMoveState] =
+		useState<CategoricalChartState>()
 	const [frozenTooltip, setFrozenTooltip] = useState<CategoricalChartState>()
 
 	const allowDrag = setTimeRange !== undefined
 
 	const onMouseDown = allowDrag
 		? (e: CategoricalChartState) => {
-				if (frozenTooltip) {
+				if (frozenTooltip || !loadExemplars) {
 					return
+				}
+
+				const tooltipRect = tooltipRef.current?.getBoundingClientRect()
+				const chartRect = chartRef.current?.getBoundingClientRect()
+				if (
+					chartRect !== undefined &&
+					tooltipRect !== undefined &&
+					frozenTooltip === undefined
+				) {
+					e.chartX = tooltipRect.x - chartRect.x
+					e.chartY = tooltipRect.y - chartRect.y
+					e.activePayload = e.activePayload?.filter(
+						(v) => ![undefined, null].includes(v.value),
+					)
+
+					if (e.activePayload && e.activePayload.length > 0) {
+						setFrozenTooltip(e)
+					}
 				}
 
 				if (e.activeLabel !== undefined && !frozenTooltip) {
@@ -195,36 +218,14 @@ export const useGraphCallbacks = (
 		  }
 		: undefined
 
-	const onClick = (e: CategoricalChartState) => {
-		if (frozenTooltip || !loadExemplars) {
-			setFrozenTooltip(undefined)
-			return
-		}
-
-		const tooltipRect = tooltipRef.current?.getBoundingClientRect()
-		const chartRect = chartRef.current?.getBoundingClientRect()
-		if (
-			chartRect !== undefined &&
-			tooltipRect !== undefined &&
-			frozenTooltip === undefined
-		) {
-			e.chartX = tooltipRect.x - chartRect.x
-			e.chartY = tooltipRect.y - chartRect.y
-			e.activePayload = e.activePayload?.filter(
-				(v) => ![undefined, null].includes(v.value),
-			)
-
-			if (e.activePayload && e.activePayload.length > 0) {
-				setFrozenTooltip(e)
-			}
-		}
-	}
-
 	const onMouseMove = allowDrag
 		? (e: CategoricalChartState) => {
 				if (frozenTooltip) {
 					return
 				}
+
+				setMouseMoveState(e)
+
 				if (refAreaStart !== undefined && e.activeLabel !== undefined) {
 					setRefAreaEnd(Number(e.activeLabel))
 				}
@@ -263,7 +264,7 @@ export const useGraphCallbacks = (
 	}
 
 	const tooltip = (
-		<Tooltip
+		<RechartsTooltip
 			content={getCustomTooltip(
 				xAxisMetric,
 				yAxisMetric,
@@ -292,12 +293,19 @@ export const useGraphCallbacks = (
 		/>
 	)
 
+	const tooltipCanFreeze =
+		loadExemplars &&
+		!frozenTooltip &&
+		mouseMoveState?.activePayload?.find(
+			(p) => ![undefined, null].includes(p.value),
+		)
+
 	return {
 		referenceArea,
 		tooltip,
 		chartRef,
+		tooltipCanFreeze,
 		onMouseDown,
-		onClick,
 		onMouseMove,
 		onMouseUp,
 		onMouseLeave,
@@ -363,7 +371,8 @@ const timeMetrics = {
 export const getTickFormatter = (metric: string, data?: any[] | undefined) => {
 	if (metric === 'Timestamp') {
 		if (data === undefined) {
-			return (value: any) => moment(value * 1000).format('MM/DD HH:mm:ss')
+			return (value: any) =>
+				moment(value * 1000).format('MMM D, h:mm:ss A')
 		}
 
 		const start = data.at(0).Timestamp * 1000
@@ -408,6 +417,9 @@ export const getTickFormatter = (metric: string, data?: any[] | undefined) => {
 			if (result.length > maxChars) {
 				result = result.substring(0, maxChars - 3) + '...'
 			}
+			if (result === '') {
+				result = NO_GROUP_PLACEHOLDER
+			}
 			return result
 		}
 	} else {
@@ -415,7 +427,7 @@ export const getTickFormatter = (metric: string, data?: any[] | undefined) => {
 	}
 }
 
-export const getCustomTooltip =
+const getCustomTooltip =
 	(
 		xAxisMetric: string,
 		yAxisMetric: string,
@@ -451,45 +463,66 @@ export const getCustomTooltip =
 				{payload.map((p: any, idx: number) => (
 					<Box
 						display="flex"
-						flexDirection="row"
-						alignItems="center"
 						key={idx}
-						style={{ pointerEvents: 'auto', cursor: 'pointer' }}
-						onClick={() => {
-							console.log('sup', p)
-							loadExemplars &&
-								loadExemplars(
-									p.payload[BUCKET_MIN_KEY],
-									p.payload[BUCKET_MAX_KEY],
-									p.dataKey || p.payload[GROUP_KEY],
-								)
-						}}
+						justifyContent="space-between"
+						gap="4"
 					>
 						<Box
-							style={{
-								backgroundColor: p.color,
-							}}
-							cssClass={style.tooltipDot}
-						></Box>
-						<Text
-							lines="1"
-							size="xxSmall"
-							weight="medium"
-							color="default"
-							cssClass={style.tooltipText}
+							display="flex"
+							flexDirection="row"
+							alignItems="center"
+							gap="4"
 						>
-							{p.name ? p.name + ': ' : yAxisFunction + ': '}
-							&nbsp;
-						</Text>
-						<Text
-							lines="1"
-							size="xxSmall"
-							weight="medium"
-							color="default"
-							cssClass={style.tooltipText}
-						>
-							{isValid && getTickFormatter(yAxisMetric)(p.value)}
-						</Text>
+							<Box
+								style={{
+									backgroundColor: p.color,
+								}}
+								cssClass={style.tooltipDot}
+							></Box>
+							<Badge
+								size="small"
+								shape="basic"
+								label={
+									isValid &&
+									getTickFormatter(yAxisMetric)(p.value)
+								}
+							>
+								<Text
+									lines="1"
+									size="xSmall"
+									weight="medium"
+									color="default"
+									cssClass={style.tooltipText}
+								></Text>
+							</Badge>
+							<Text
+								lines="1"
+								size="xSmall"
+								weight="medium"
+								color="default"
+								cssClass={style.tooltipText}
+							>
+								{p.name ? p.name : yAxisFunction}
+							</Text>
+						</Box>
+						{frozenTooltip && (
+							<ButtonIcon
+								icon={<IconSolidExternalLink size={16} />}
+								size="minimal"
+								shape="square"
+								emphasis="low"
+								kind="secondary"
+								cssClass={style.exemplarButton}
+								onClick={() => {
+									loadExemplars &&
+										loadExemplars(
+											p.payload[BUCKET_MIN_KEY],
+											p.payload[BUCKET_MAX_KEY],
+											p.dataKey || p.payload[GROUP_KEY],
+										)
+								}}
+							/>
+						)}
 					</Box>
 				))}
 			</Box>
@@ -940,7 +973,9 @@ const Graph = ({
 	}
 
 	const showLegend =
-		viewConfig.showLegend && series.join('') !== yAxisFunction
+		viewConfig.showLegend &&
+		series.join('') !== yAxisFunction &&
+		series.join('') !== ''
 	return (
 		<Box
 			position="relative"

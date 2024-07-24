@@ -77,8 +77,8 @@ export const LineChart = ({
 		referenceArea,
 		tooltip,
 		chartRef,
+		tooltipCanFreeze,
 		onMouseDown,
-		onClick,
 		onMouseMove,
 		onMouseUp,
 		onMouseLeave,
@@ -95,10 +95,10 @@ export const LineChart = ({
 			<AreaChart
 				data={filledData}
 				onMouseDown={onMouseDown}
-				onClick={onClick}
 				onMouseMove={onMouseMove}
 				onMouseUp={onMouseUp}
 				onMouseLeave={onMouseLeave}
+				style={tooltipCanFreeze ? { cursor: 'pointer' } : undefined}
 			>
 				{referenceArea}
 				{children}

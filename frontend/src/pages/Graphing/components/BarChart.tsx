@@ -86,8 +86,8 @@ export const BarChart = ({
 		referenceArea,
 		tooltip,
 		chartRef,
+		tooltipCanFreeze,
 		onMouseDown,
-		onClick,
 		onMouseMove,
 		onMouseUp,
 		onMouseLeave,
@@ -105,10 +105,10 @@ export const BarChart = ({
 				data={data}
 				barCategoryGap={1}
 				onMouseDown={onMouseDown}
-				onClick={onClick}
 				onMouseMove={onMouseMove}
 				onMouseUp={onMouseUp}
 				onMouseLeave={onMouseLeave}
+				style={tooltipCanFreeze ? { cursor: 'pointer' } : undefined}
 			>
 				{referenceArea}
 				{children}

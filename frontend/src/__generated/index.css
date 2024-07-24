@@ -6669,18 +6669,23 @@ body {
   max-width: 300px;
 }
 .dg2vg6a {
-  border-radius: 50%;
-  margin-right: 4px;
-  width: 8px;
-  height: 8px;
+  height: 16px;
+  width: 16px;
 }
 .dg2vg6b {
-  pointer-events: none;
+  border-radius: 50%;
+  width: 8px;
+  height: 8px;
+  flex-shrink: 0;
+  flex-grow: 0;
 }
 .dg2vg6c {
-  width: min-content;
+  pointer-events: none;
 }
 .dg2vg6d {
+  width: min-content;
+}
+.dg2vg6e {
   user-select: none;
 }
 ._11t98zr0 {
