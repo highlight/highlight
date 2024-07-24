@@ -17,13 +17,14 @@ import {
 	presetStartDate,
 	Stack,
 	Text,
-	Tooltip,
 } from '@highlight-run/ui/components'
 import { vars } from '@highlight-run/ui/vars'
 import clsx from 'clsx'
 import _ from 'lodash'
 import moment from 'moment'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { ReferenceArea, Tooltip } from 'recharts'
+import { CategoricalChartState } from 'recharts/types/chart/types'
 
 import { useAuthContext } from '@/authentication/AuthContext'
 import { loadingIcon } from '@/components/Button/style.css'
@@ -106,12 +107,8 @@ export interface ChartProps<TConfig> {
 	onDelete?: () => void
 	onExpand?: () => void
 	onEdit?: () => void
-	setTimeRange?: (startDate: Date, endDate: Date) => void
-	loadExemplars?: (
-		bucketMin: number | undefined,
-		bucketMax: number | undefined,
-		group: string | undefined,
-	) => void
+	setTimeRange?: SetTimeRange
+	loadExemplars?: LoadExemplars
 }
 
 export interface InnerChartProps<TConfig> {
@@ -123,12 +120,8 @@ export interface InnerChartProps<TConfig> {
 	loading?: boolean
 	viewConfig: TConfig
 	disabled?: boolean
-	setTimeRange?: (startDate: Date, endDate: Date) => void
-	loadExemplars?: (
-		bucketMin: number | undefined,
-		bucketMax: number | undefined,
-		group: string | undefined,
-	) => void
+	setTimeRange?: SetTimeRange
+	loadExemplars?: LoadExemplars
 }
 
 export interface SeriesInfo {
@@ -143,6 +136,14 @@ export interface AxisConfig {
 	showGrid?: boolean
 }
 
+export type LoadExemplars = (
+	bucketMin: number | undefined,
+	bucketMax: number | undefined,
+	group: string | undefined,
+) => void
+
+export type SetTimeRange = (startDate: Date, endDate: Date) => void
+
 const strokeColors = [
 	'#0090FF',
 	'#D6409F',
@@ -155,6 +156,153 @@ const strokeColors = [
 	'#46A758',
 	'#3E63DD',
 ]
+
+export const useGraphCallbacks = (
+	xAxisMetric: string,
+	yAxisMetric: string,
+	yAxisFunction: string,
+	setTimeRange?: SetTimeRange,
+	loadExemplars?: LoadExemplars,
+) => {
+	const [refAreaStart, setRefAreaStart] = useState<number | undefined>()
+	const [refAreaEnd, setRefAreaEnd] = useState<number | undefined>()
+
+	const referenceArea =
+		refAreaStart && refAreaEnd ? (
+			<ReferenceArea
+				x1={refAreaStart}
+				x2={refAreaEnd}
+				strokeOpacity={0.3}
+			/>
+		) : null
+
+	const chartRef = useRef<HTMLDivElement>(null)
+	const tooltipRef = useRef<HTMLDivElement>(null)
+
+	const [frozenTooltip, setFrozenTooltip] = useState<CategoricalChartState>()
+
+	const allowDrag = setTimeRange !== undefined
+
+	const onMouseDown = allowDrag
+		? (e: CategoricalChartState) => {
+				if (frozenTooltip) {
+					return
+				}
+
+				if (e.activeLabel !== undefined && !frozenTooltip) {
+					setRefAreaStart(Number(e.activeLabel))
+				}
+		  }
+		: undefined
+
+	const onClick = (e: CategoricalChartState) => {
+		if (frozenTooltip || !loadExemplars) {
+			setFrozenTooltip(undefined)
+			return
+		}
+
+		const tooltipRect = tooltipRef.current?.getBoundingClientRect()
+		const chartRect = chartRef.current?.getBoundingClientRect()
+		if (
+			chartRect !== undefined &&
+			tooltipRect !== undefined &&
+			frozenTooltip === undefined
+		) {
+			e.chartX = tooltipRect.x - chartRect.x
+			e.chartY = tooltipRect.y - chartRect.y
+			e.activePayload = e.activePayload?.filter(
+				(v) => ![undefined, null].includes(v.value),
+			)
+
+			if (e.activePayload && e.activePayload.length > 0) {
+				setFrozenTooltip(e)
+			}
+		}
+	}
+
+	const onMouseMove = allowDrag
+		? (e: CategoricalChartState) => {
+				if (frozenTooltip) {
+					return
+				}
+				if (refAreaStart !== undefined && e.activeLabel !== undefined) {
+					setRefAreaEnd(Number(e.activeLabel))
+				}
+		  }
+		: undefined
+
+	const onMouseUp = allowDrag
+		? () => {
+				if (frozenTooltip) {
+					return
+				}
+
+				if (
+					refAreaStart !== undefined &&
+					refAreaEnd !== undefined &&
+					refAreaStart !== refAreaEnd &&
+					xAxisMetric === TIMESTAMP_KEY
+				) {
+					const startDate = Math.min(refAreaStart, refAreaEnd)
+					const endDate = Math.max(refAreaStart, refAreaEnd)
+
+					setTimeRange(
+						new Date(startDate * 1000),
+						new Date(endDate * 1000),
+					)
+				}
+				setRefAreaStart(undefined)
+				setRefAreaEnd(undefined)
+		  }
+		: undefined
+
+	const onMouseLeave = () => {
+		setFrozenTooltip(undefined)
+		setRefAreaStart(undefined)
+		setRefAreaEnd(undefined)
+	}
+
+	const tooltip = (
+		<Tooltip
+			content={getCustomTooltip(
+				xAxisMetric,
+				yAxisMetric,
+				yAxisFunction,
+				frozenTooltip,
+				tooltipRef,
+				onMouseLeave,
+				loadExemplars,
+			)}
+			cursor={
+				frozenTooltip
+					? false
+					: { stroke: '#C8C7CB', strokeDasharray: 4 }
+			}
+			isAnimationActive={false}
+			wrapperStyle={{
+				zIndex: 100,
+				pointerEvents: 'auto',
+				...(frozenTooltip && { visibility: 'visible' }),
+				...(frozenTooltip && {
+					transform: `translate(${frozenTooltip.chartX}px, ${frozenTooltip.chartY}px)`,
+				}),
+			}}
+			payload={frozenTooltip?.activePayload}
+			active={frozenTooltip ? true : undefined}
+		/>
+	)
+
+	return {
+		referenceArea,
+		tooltip,
+		chartRef,
+		onMouseDown,
+		onClick,
+		onMouseMove,
+		onMouseUp,
+		onMouseLeave,
+	}
+}
 
 export const getColor = (
 	idx: number,
@@ -268,11 +416,29 @@ export const getTickFormatter = (metric: string, data?: any[] | undefined) => {
 }
 
 export const getCustomTooltip =
-	(xAxisMetric: string, yAxisMetric: string, yAxisFunction: string) =>
+	(
+		xAxisMetric: string,
+		yAxisMetric: string,
+		yAxisFunction: string,
+		frozenTooltip?: CategoricalChartState | undefined,
+		tooltipRef?: React.MutableRefObject<HTMLDivElement | null>,
+		onMouseLeave?: () => void,
+		loadExemplars?: LoadExemplars,
+	) =>
 	({ active, payload, label }: any) => {
+		if (frozenTooltip !== undefined) {
+			active = true
+			payload = frozenTooltip.activePayload
+			label = frozenTooltip.activeLabel
+		}
+
 		const isValid = active && payload && payload.length
 		return (
-			<Box cssClass={style.tooltipWrapper}>
+			<Box
+				cssClass={style.tooltipWrapper}
+				ref={tooltipRef}
+				onMouseLeave={onMouseLeave}
+			>
 				<Text
 					lines="1"
 					size="xxSmall"
@@ -288,6 +454,16 @@ export const getCustomTooltip =
 						flexDirection="row"
 						alignItems="center"
 						key={idx}
+						style={{ pointerEvents: 'auto', cursor: 'pointer' }}
+						onClick={() => {
+							console.log('sup', p)
+							loadExemplars &&
+								loadExemplars(
+									p.payload[BUCKET_MIN_KEY],
+									p.payload[BUCKET_MAX_KEY],
+									p.dataKey || p.payload[GROUP_KEY],
+								)
+						}}
 					>
 						<Box
 							style={{

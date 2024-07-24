@@ -1,30 +1,24 @@
 import { vars } from '@highlight-run/ui/vars'
-import { useMemo, useState } from 'react'
+import { useMemo } from 'react'
 import {
 	Area,
 	AreaChart,
 	CartesianGrid,
-	ReferenceArea,
 	ResponsiveContainer,
-	Tooltip,
 	XAxis,
 	YAxis,
 } from 'recharts'
-import { CategoricalChartFunc } from 'recharts/types/chart/generateCategoricalChart'
 
 import {
 	AxisConfig,
-	BUCKET_MAX_KEY,
-	BUCKET_MIN_KEY,
 	CustomXAxisTick,
 	CustomYAxisTick,
 	getColor,
-	getCustomTooltip,
 	getTickFormatter,
 	InnerChartProps,
 	isActive,
 	SeriesInfo,
-	TIMESTAMP_KEY,
+	useGraphCallbacks,
 } from '@/pages/Graphing/components/Graph'
 
 export type LineNullHandling = 'Hidden' | 'Connected' | 'Zero'
@@ -79,64 +73,32 @@ export const LineChart = ({
 		return filled
 	}, [data, viewConfig.nullHandling, series])
 
-	const [refAreaStart, setRefAreaStart] = useState<number | undefined>()
-	const [refAreaEnd, setRefAreaEnd] = useState<number | undefined>()
-
-	const referenceArea =
-		refAreaStart && refAreaEnd ? (
-			<ReferenceArea
-				x1={refAreaStart}
-				x2={refAreaEnd}
-				strokeOpacity={0.3}
-			/>
-		) : null
-
-	const allowDrag = setTimeRange !== undefined
-
-	const onMouseDown: CategoricalChartFunc | undefined = allowDrag
-		? (e) => {
-				if (e.activeLabel !== undefined) {
-					setRefAreaStart(Number(e.activeLabel))
-				}
-		  }
-		: undefined
-
-	const onMouseMove: CategoricalChartFunc | undefined = allowDrag
-		? (e) => {
-				if (refAreaStart !== undefined && e.activeLabel !== undefined) {
-					setRefAreaEnd(Number(e.activeLabel))
-				}
-		  }
-		: undefined
-
-	const onMouseUp: CategoricalChartFunc | undefined = allowDrag
-		? () => {
-				if (
-					refAreaStart !== undefined &&
-					refAreaEnd !== undefined &&
-					refAreaStart !== refAreaEnd &&
-					xAxisMetric === TIMESTAMP_KEY
-				) {
-					const startDate = Math.min(refAreaStart, refAreaEnd)
-					const endDate = Math.max(refAreaStart, refAreaEnd)
-
-					setTimeRange(
-						new Date(startDate * 1000),
-						new Date(endDate * 1000),
-					)
-				}
-				setRefAreaStart(undefined)
-				setRefAreaEnd(undefined)
-		  }
-		: undefined
+	const {
+		referenceArea,
+		tooltip,
+		chartRef,
+		onMouseDown,
+		onClick,
+		onMouseMove,
+		onMouseUp,
+		onMouseLeave,
+	} = useGraphCallbacks(
+		xAxisMetric,
+		yAxisMetric,
+		yAxisFunction,
+		setTimeRange,
+		loadExemplars,
+	)
 
 	return (
-		<ResponsiveContainer height="100%" width="100%">
+		<ResponsiveContainer height="100%" width="100%" ref={chartRef}>
 			<AreaChart
 				data={filledData}
 				onMouseDown={onMouseDown}
+				onClick={onClick}
 				onMouseMove={onMouseMove}
 				onMouseUp={onMouseUp}
+				onMouseLeave={onMouseLeave}
 			>
 				{referenceArea}
 				{children}
@@ -159,16 +121,7 @@ export const LineChart = ({
 					hide={showXAxis === false}
 				/>
 
-				<Tooltip
-					content={getCustomTooltip(
-						xAxisMetric,
-						yAxisMetric,
-						yAxisFunction,
-					)}
-					cursor={{ stroke: '#C8C7CB', strokeDasharray: 4 }}
-					isAnimationActive={false}
-					wrapperStyle={{ zIndex: 100 }}
-				/>
+				{tooltip}
 
 				<YAxis
 					fontSize={10}
@@ -249,19 +202,7 @@ export const LineChart = ({
 							}
 
 							return (
-								<svg
-									x={cx - 3}
-									y={cy - 3}
-									onMouseDown={() => {
-										loadExemplars &&
-											loadExemplars(
-												props.payload[BUCKET_MIN_KEY],
-												props.payload[BUCKET_MAX_KEY],
-												props.dataKey ?? props.Group,
-											)
-									}}
-									cursor="pointer"
-								>
+								<svg x={cx - 3} y={cy - 3}>
 									<g transform="translate(3 3)">
 										<circle r="3" fill={fill} />
 									</g>

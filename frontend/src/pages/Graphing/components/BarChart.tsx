@@ -1,30 +1,23 @@
-import { useId, useState } from 'react'
+import { useId } from 'react'
 import {
 	Bar,
 	BarChart as RechartsBarChart,
 	CartesianGrid,
-	ReferenceArea,
 	ResponsiveContainer,
-	Tooltip,
 	XAxis,
 	YAxis,
 } from 'recharts'
-import { CategoricalChartFunc } from 'recharts/types/chart/generateCategoricalChart'
 
 import {
 	AxisConfig,
-	BUCKET_MAX_KEY,
-	BUCKET_MIN_KEY,
 	CustomXAxisTick,
 	CustomYAxisTick,
 	getColor,
-	getCustomTooltip,
 	getTickFormatter,
-	GROUP_KEY,
 	InnerChartProps,
 	isActive,
 	SeriesInfo,
-	TIMESTAMP_KEY,
+	useGraphCallbacks,
 } from '@/pages/Graphing/components/Graph'
 
 export type BarDisplay = 'Grouped' | 'Stacked'
@@ -36,55 +29,34 @@ export type BarChartConfig = {
 	display?: BarDisplay
 }
 
-const RoundedBar =
-	(
-		id: string,
-		isLast: boolean,
-		loadExemplars:
-			| ((
-					bucketMin: number | undefined,
-					bucketMax: number | undefined,
-					group: string | undefined,
-			  ) => void)
-			| undefined,
-	) =>
-	(props: any) => {
-		const { fill, x, y, width, height } = props
-		return (
-			<>
-				<rect
-					x={x}
-					y={y}
-					width={width}
-					height={Math.max((height ?? 0) - 1.5, 0)}
-					stroke="none"
-					fill={fill}
-					clipPath={`url(#barmask-${id}-${x})`}
-					onMouseDown={() => {
-						loadExemplars &&
-							loadExemplars(
-								props[BUCKET_MIN_KEY],
-								props[BUCKET_MAX_KEY],
-								props[GROUP_KEY] ?? props.dataKey,
-							)
-					}}
-					cursor="pointer"
-				/>
-				{isLast && (
-					<clipPath id={`barmask-${id}-${x}`}>
-						<rect
-							rx={Math.min((width ?? 0) / 3, 5)}
-							x={x}
-							y={y}
-							width={width}
-							height="10000"
-							fill="white"
-						/>
-					</clipPath>
-				)}
-			</>
-		)
-	}
+const RoundedBar = (id: string, isLast: boolean) => (props: any) => {
+	const { fill, x, y, width, height } = props
+	return (
+		<>
+			<rect
+				x={x}
+				y={y}
+				width={width}
+				height={Math.max((height ?? 0) - 1.5, 0)}
+				stroke="none"
+				fill={fill}
+				clipPath={`url(#barmask-${id}-${x})`}
+			/>
+			{isLast && (
+				<clipPath id={`barmask-${id}-${x}`}>
+					<rect
+						rx={Math.min((width ?? 0) / 3, 5)}
+						x={x}
+						y={y}
+						width={width}
+						height="10000"
+						fill="white"
+					/>
+				</clipPath>
+			)}
+		</>
+	)
+}
 
 export const BarChart = ({
 	data,
@@ -110,66 +82,33 @@ export const BarChart = ({
 	// used to give svg masks an id unique to the page
 	const id = useId()
 
-	const [refAreaStart, setRefAreaStart] = useState<number | undefined>()
-	const [refAreaEnd, setRefAreaEnd] = useState<number | undefined>()
-
-	const referenceArea =
-		refAreaStart && refAreaEnd ? (
-			<ReferenceArea
-				x1={refAreaStart}
-				x2={refAreaEnd}
-				strokeOpacity={0.3}
-			/>
-		) : null
-
-	const allowDrag = setTimeRange !== undefined
-
-	const onMouseDown: CategoricalChartFunc | undefined = allowDrag
-		? (e) => {
-				if (e.activeLabel !== undefined) {
-					setRefAreaStart(Number(e.activeLabel))
-				}
-		  }
-		: undefined
-
-	const onMouseMove: CategoricalChartFunc | undefined = allowDrag
-		? (e) => {
-				if (refAreaStart !== undefined && e.activeLabel !== undefined) {
-					setRefAreaEnd(Number(e.activeLabel))
-				}
-		  }
-		: undefined
-
-	const onMouseUp: CategoricalChartFunc | undefined = allowDrag
-		? () => {
-				if (
-					refAreaStart !== undefined &&
-					refAreaEnd !== undefined &&
-					refAreaStart !== refAreaEnd &&
-					xAxisMetric === TIMESTAMP_KEY
-				) {
-					const startDate = Math.min(refAreaStart, refAreaEnd)
-					const endDate = Math.max(refAreaStart, refAreaEnd)
-
-					setTimeRange(
-						new Date(startDate * 1000),
-						new Date(endDate * 1000),
-					)
-				} else if (refAreaStart !== undefined) {
-				}
-				setRefAreaStart(undefined)
-				setRefAreaEnd(undefined)
-		  }
-		: undefined
+	const {
+		referenceArea,
+		tooltip,
+		chartRef,
+		onMouseDown,
+		onClick,
+		onMouseMove,
+		onMouseUp,
+		onMouseLeave,
+	} = useGraphCallbacks(
+		xAxisMetric,
+		yAxisMetric,
+		yAxisFunction,
+		setTimeRange,
+		loadExemplars,
+	)
 
 	return (
-		<ResponsiveContainer>
+		<ResponsiveContainer ref={chartRef}>
 			<RechartsBarChart
 				data={data}
 				barCategoryGap={1}
 				onMouseDown={onMouseDown}
+				onClick={onClick}
 				onMouseMove={onMouseMove}
 				onMouseUp={onMouseUp}
+				onMouseLeave={onMouseLeave}
 			>
 				{referenceArea}
 				{children}
@@ -192,7 +131,7 @@ export const BarChart = ({
 					hide={showXAxis === false}
 				/>
 
-				<Tooltip
+				{/* <Tooltip
 					content={getCustomTooltip(
 						xAxisMetric,
 						yAxisMetric,
@@ -201,7 +140,8 @@ export const BarChart = ({
 					wrapperStyle={{ zIndex: 100 }}
 					cursor={{ fill: '#C8C7CB', fillOpacity: 0.5 }}
 					isAnimationActive={false}
-				/>
+				/> */}
+				{tooltip}
 
 				<YAxis
 					fontSize={10}
@@ -249,7 +189,7 @@ export const BarChart = ({
 								stackId={
 									viewConfig.display === 'Stacked' ? 1 : idx
 								}
-								shape={RoundedBar(id, isLastBar, loadExemplars)}
+								shape={RoundedBar(id, isLastBar)}
 							/>
 						)
 					})}
