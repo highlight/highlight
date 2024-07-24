@@ -8,6 +8,17 @@
 
     <%= stylesheet_link_tag "application", "data-turbo-track": "reload" %>
     <%= javascript_importmap_tags %>
+
+    <script src="https://unpkg.com/highlight.run"></script>
+    <script>
+      H.init('1jdkoe52', {
+        environment: 'dev',
+        networkRecording: {
+          enabled: true,
+          recordHeadersAndBody: true,
+        },
+      });
+    </script>
   </head>
 
   <body>

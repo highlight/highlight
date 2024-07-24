@@ -2,6 +2,7 @@ require 'opentelemetry/sdk'
 require 'opentelemetry/exporter/otlp'
 require 'opentelemetry/instrumentation/all'
 require 'opentelemetry/semantic_conventions'
+require 'active_support/logger_silence'
 require 'logger'
 
 module Highlight
@@ -29,11 +30,17 @@ module Highlight
       @otlp_endpoint = otlp_endpoint
 
       OpenTelemetry::SDK.configure do |c|
-        c.add_span_processor(OpenTelemetry::SDK::Trace::Export::BatchSpanProcessor.new(
-                               OpenTelemetry::Exporter::OTLP::Exporter.new(
-                                 endpoint: "#{@otlp_endpoint}/v1/traces", compression: 'gzip'
-                               ), schedule_delay: 1000, max_export_batch_size: 128, max_queue_size: 1024
-                             ))
+        c.add_span_processor(
+          OpenTelemetry::SDK::Trace::Export::BatchSpanProcessor.new(
+            OpenTelemetry::Exporter::OTLP::Exporter.new(
+              endpoint: "#{@otlp_endpoint}/v1/traces",
+              compression: 'gzip'
+            ),
+            schedule_delay: 1000,
+            max_export_batch_size: 128,
+            max_queue_size: 1024,
+          )
+        )
 
         c.resource = OpenTelemetry::SDK::Resources::Resource.create(
           OpenTelemetry::SemanticConventions::Resource::DEPLOYMENT_ENVIRONMENT => environment
@@ -46,21 +53,50 @@ module Highlight
       @tracer = @tracer_provider.tracer('highlight-tracer')
     end
 
+    def initialized?
+      defined?(@tracer_provider)
+    end
+
     def flush
+      return unless initialized?
       @tracer_provider.force_flush
     end
 
     def trace(session_id, request_id, attrs = {})
-      @tracer.in_span('highlight-ctx', attributes: {
-        HIGHLIGHT_PROJECT_ATTRIBUTE => @project_id,
+      return unless initialized?
+
+      start_span('highlight-ctx', {
         HIGHLIGHT_SESSION_ATTRIBUTE => session_id,
         HIGHLIGHT_TRACE_ATTRIBUTE => request_id
-      }.merge(attrs).compact) do |_span|
-        yield
+      }.merge(attrs).compact) do |span|
+        yield span
+      end
+    end
+
+    def start_span(name, attrs = {})
+      return unless initialized?
+
+      parent_context = OpenTelemetry::Trace.current_span.context
+
+      unless parent_context.nil?
+        parent_session_id = parent_context[HIGHLIGHT_SESSION_ATTRIBUTE]
+      end
+
+      attributes = {
+        HIGHLIGHT_PROJECT_ATTRIBUTE => @project_id,
+        HIGHLIGHT_SESSION_ATTRIBUTE => parent_session_id,
+      }.merge(attrs).compact
+
+      if block_given?
+        @tracer.in_span(name, attributes: attributes) { |span| yield span }
+      else
+        @tracer.in_span(name, attributes: attributes) { |_| }
       end
     end
 
     def record_exception(e, attrs = {})
+      return unless initialized?
+
       span = OpenTelemetry::Trace.current_span
       return unless span
 
@@ -69,6 +105,8 @@ module Highlight
 
     # rubocop:disable Metrics/AbcSize
     def record_log(session_id, request_id, level, message, attrs = {})
+      return unless initialized?
+
       caller_info = caller[0].split(':', 3)
       function = caller_info[2]
       if function
@@ -123,10 +161,16 @@ module Highlight
   end
 
   class Logger < ::Logger
-    def add(severity, message = nil, progname = nil)
-      # https://github.com/ruby/logger/blob/master/lib/logger.rb
+    include ActiveSupport::LoggerSilence
+
+    def initialize(*args)
+      super
+      @local_level = nil # Ensure compatibility with LoggerSilence
+    end
+
+    def add(severity, message = nil, progname = nil, &block)
       severity ||= UNKNOWN
-      return true if @logdev.nil? or severity < level # rubocop:disable Style/AndOr
+      return true if @logdev.nil? || severity < level
 
       progname = @progname if progname.nil?
       if message.nil?
@@ -137,16 +181,35 @@ module Highlight
           progname = @progname
         end
       end
-      super
+      super(severity, message, progname, &block)
       H.instance.record_log(nil, nil, severity, message)
     end
   end
 
   module Integrations
     module Rails
+      def self.included(base)
+        base.extend(ClassMethods)
+        base.helper_method(:highlight_headers)
+      end
+
       def with_highlight_context(&block)
-        highlight_headers = H.parse_headers(request.headers)
+        set_highlight_headers
         H.instance.trace(highlight_headers.session_id, highlight_headers.request_id, &block)
+      end
+
+      private
+
+      def set_highlight_headers
+        @highlight_headers = H.parse_headers(request.headers)
+      end
+
+      # Optional: If you want it accessible in views
+      def highlight_headers
+        @highlight_headers
+      end
+
+      module ClassMethods
       end
     end
   end
