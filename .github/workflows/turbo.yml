@@ -12,10 +12,6 @@ jobs:
         name: Build Yarn Turborepo
         timeout-minutes: 30
         runs-on: codebuild-highlight-github-actions-runner-${{ github.run_id }}-${{ github.run_attempt }}
-        # configures turborepo Remote Caching
-        env:
-            TURBO_TOKEN: ${{ secrets.TURBO_TOKEN }}
-            TURBO_TEAM: ${{ secrets.TURBO_TEAM }}
         steps:
             - name: Checkout
               uses: actions/checkout@v4
