@@ -11,7 +11,11 @@ jobs:
     yarn-monorepo:
         name: Build Yarn Turborepo
         timeout-minutes: 30
-        runs-on: codebuild-highlight-github-actions-runner-${{ github.run_id }}-${{ github.run_attempt }}
+        runs-on: buildjet-4vcpu-ubuntu-2204
+        # configures turborepo Remote Caching
+        env:
+            TURBO_TOKEN: ${{ secrets.TURBO_TOKEN }}
+            TURBO_TEAM: ${{ secrets.TURBO_TEAM }}
         steps:
             - name: Checkout
               uses: actions/checkout@v4
@@ -39,11 +43,11 @@ jobs:
             - name: Setup Node.js environment
               uses: actions/setup-node@v4
               with:
-                  node-version: 20.15.1
+                  node-version: lts/*
                   cache: 'yarn'
 
             - name: Install js dependencies
-              run: yarn cache clean --all && yarn install --inline-builds
+              run: yarn
 
             - name: Check generated files for Reflame
               run: yarn reflame-check
