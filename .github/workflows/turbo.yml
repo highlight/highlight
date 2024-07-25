@@ -43,7 +43,7 @@ jobs:
                   cache: 'yarn'
 
             - name: Install js dependencies
-              run: yarn install --inline-builds
+              run: yarn cache clean --all && yarn install --inline-builds
 
             - name: Check generated files for Reflame
               run: yarn reflame-check
