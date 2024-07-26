@@ -76,20 +76,36 @@ func sendSessionAlert(ctx context.Context, slackAccessToken string, alertInput *
 	bodyBlockSet = append(bodyBlockSet, slack.NewSectionBlock(queryBlock, nil, nil))
 
 	// session
+	sessionString := fmt.Sprintf("*Session* <%s|#%s>", alertInput.SessionInput.SessionLink, alertInput.SessionInput.SecureID)
+
+	sessionBlock := slack.NewTextBlockObject(slack.MarkdownType, sessionString, false, false)
+	bodyBlockSet = append(bodyBlockSet, slack.NewSectionBlock(sessionBlock, nil, nil))
+
+	// user identifier
 	sessionUserIdentifier := alertInput.SessionInput.Identifier
 	if sessionUserIdentifier == "" {
 		sessionUserIdentifier = "_unidentified_ user"
 	}
 
-	sessionText := fmt.Sprintf("#%s (%s)", alertInput.SessionInput.SecureID, sessionUserIdentifier)
-	sessionString := fmt.Sprintf("*Session* <%s|%s>", alertInput.SessionInput.SessionLink, sessionText)
-
-	sessionBlock := slack.NewTextBlockObject(slack.MarkdownType, sessionString, false, false)
-	bodyBlockSet = append(bodyBlockSet, slack.NewSectionBlock(sessionBlock, nil, nil))
+	identifierBlock := slack.NewTextBlockObject(slack.MarkdownType, fmt.Sprintf("*User Identifier*: %s", sessionUserIdentifier), false, false)
+	bodyBlockSet = append(bodyBlockSet, slack.NewSectionBlock(identifierBlock, nil, nil))
 
 	// action buttons
 	var actionBlocks []slack.BlockElement
-	button := slack.NewButtonBlockElement(
+	sessionButton := slack.NewButtonBlockElement(
+		"",
+		"click",
+		slack.NewTextBlockObject(
+			slack.PlainTextType,
+			"View Session",
+			false,
+			false,
+		),
+	)
+	sessionButton.URL = alertInput.SessionInput.SessionLink
+	actionBlocks = append(actionBlocks, sessionButton)
+
+	moreSessionsButton := slack.NewButtonBlockElement(
 		"",
 		"click",
 		slack.NewTextBlockObject(
@@ -99,8 +115,8 @@ func sendSessionAlert(ctx context.Context, slackAccessToken string, alertInput *
 			false,
 		),
 	)
-	button.URL = alertInput.SessionInput.MoreSessionsLink
-	actionBlocks = append(actionBlocks, button)
+	moreSessionsButton.URL = alertInput.SessionInput.MoreSessionsLink
+	actionBlocks = append(actionBlocks, moreSessionsButton)
 
 	bodyBlockSet = append(bodyBlockSet, slack.NewActionBlock("", actionBlocks...))
 
