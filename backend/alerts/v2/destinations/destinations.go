@@ -1,6 +1,8 @@
 package destinationsV2
 
 import (
+	"time"
+
 	"github.com/highlight-run/highlight/backend/model"
 	modelInputs "github.com/highlight-run/highlight/backend/private-graph/graph/model"
 )
@@ -39,11 +41,15 @@ type ErrorInput struct {
 }
 
 type LogInput struct {
-	LogsLink string
+	LogsLink  string
+	StartDate time.Time
+	EndDate   time.Time
 }
 
 type TraceInput struct {
 	TracesLink string
+	StartDate  time.Time
+	EndDate    time.Time
 }
 
 type MetricInput struct {

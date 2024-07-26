@@ -105,7 +105,7 @@ func SendAlerts(ctx context.Context, db *gorm.DB, mailClient *sendgrid.Client, l
 		case modelInputs.AlertDestinationTypeEmail:
 			emailV2.SendAlerts(ctx, lambdaClient, &alertInput, destinations)
 		case modelInputs.AlertDestinationTypeWebhook:
-			webhookV2.SendAlerts(ctx, lambdaClient, &alertInput, destinations)
+			webhookV2.SendAlerts(ctx, &alertInput, destinations)
 		default:
 			log.WithContext(ctx).WithFields(
 				log.Fields{
@@ -227,7 +227,9 @@ func buildLogAlertInput(ctx context.Context, db *gorm.DB, alertInput *destinatio
 		alertInput.Alert.ProjectID, queryStr, startDateStr, endDateStr)
 
 	return &destinationsV2.LogInput{
-		LogsLink: logsURL,
+		LogsLink:  logsURL,
+		StartDate: start,
+		EndDate:   end,
 	}
 }
 
@@ -245,6 +247,8 @@ func buildTraceAlertInput(ctx context.Context, db *gorm.DB, alertInput *destinat
 
 	return &destinationsV2.TraceInput{
 		TracesLink: tracesURL,
+		StartDate:  start,
+		EndDate:    end,
 	}
 }
 
