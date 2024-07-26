@@ -124,7 +124,7 @@ func sendSessionAlert(ctx context.Context, discordGuildId string, alertInput *de
 		Components: []discordgo.MessageComponent{actionButtons},
 	}
 
-	deliverMessage(ctx, discordGuildId, &messageSend, destinations)
+	deliverAlerts(ctx, discordGuildId, &messageSend, destinations)
 }
 
 func sendErrorAlert(ctx context.Context, discordGuildId string, alertInput *destinationsV2.AlertInput, destinations []model.AlertDestination) {
@@ -205,7 +205,7 @@ func sendErrorAlert(ctx context.Context, discordGuildId string, alertInput *dest
 		Components: []discordgo.MessageComponent{actionButtons},
 	}
 
-	deliverMessage(ctx, discordGuildId, &messageSend, destinations)
+	deliverAlerts(ctx, discordGuildId, &messageSend, destinations)
 }
 
 func sendLogAlert(ctx context.Context, discordGuildId string, alertInput *destinationsV2.AlertInput, destinations []model.AlertDestination) {
@@ -269,7 +269,7 @@ func sendLogAlert(ctx context.Context, discordGuildId string, alertInput *destin
 		Components: []discordgo.MessageComponent{actionButtons},
 	}
 
-	deliverMessage(ctx, discordGuildId, &messageSend, destinations)
+	deliverAlerts(ctx, discordGuildId, &messageSend, destinations)
 }
 
 func sendTraceAlert(ctx context.Context, discordGuildId string, alertInput *destinationsV2.AlertInput, destinations []model.AlertDestination) {
@@ -333,7 +333,7 @@ func sendTraceAlert(ctx context.Context, discordGuildId string, alertInput *dest
 		Components: []discordgo.MessageComponent{actionButtons},
 	}
 
-	deliverMessage(ctx, discordGuildId, &messageSend, destinations)
+	deliverAlerts(ctx, discordGuildId, &messageSend, destinations)
 }
 
 func sendMetricAlert(ctx context.Context, discordGuildId string, alertInput *destinationsV2.AlertInput, destinations []model.AlertDestination) {
@@ -397,10 +397,10 @@ func sendMetricAlert(ctx context.Context, discordGuildId string, alertInput *des
 		Components: []discordgo.MessageComponent{actionButtons},
 	}
 
-	deliverMessage(ctx, discordGuildId, &messageSend, destinations)
+	deliverAlerts(ctx, discordGuildId, &messageSend, destinations)
 }
 
-func deliverMessage(ctx context.Context, discordGuildId string, messageSend *discordgo.MessageSend, destinations []model.AlertDestination) {
+func deliverAlerts(ctx context.Context, discordGuildId string, messageSend *discordgo.MessageSend, destinations []model.AlertDestination) {
 	bot, err := discord.NewDiscordBot(discordGuildId)
 	if err != nil {
 		log.WithContext(ctx).Error(errors.Wrap(err, "couldn't create new discord bot"))
@@ -408,15 +408,12 @@ func deliverMessage(ctx context.Context, discordGuildId string, messageSend *dis
 	}
 
 	for _, destination := range destinations {
-		channelId := destination.TypeID
-
-		go func() {
+		go func(channelId string) {
 			_, err := bot.Session.ChannelMessageSendComplex(channelId, messageSend)
 			if err != nil {
 				log.WithContext(ctx).Error(errors.Wrap(err, "couldn't send discord alert"))
 				return
 			}
-		}()
-
+		}(destination.TypeID)
 	}
 }
