@@ -90,7 +90,12 @@ func SendAlerts(ctx context.Context, db *gorm.DB, mailClient *sendgrid.Client, l
 			}
 			slackV2.SendAlerts(ctx, project.Workspace.SlackAccessToken, &alertInput, destinations)
 		case modelInputs.AlertDestinationTypeDiscord:
-			discordV2.SendAlerts(ctx, lambdaClient, &alertInput, destinations)
+			project := model.Project{}
+			if err := db.WithContext(ctx).Model(&model.Project{}).Preload("Workspace").Where(&model.Project{Model: model.Model{ID: alert.ProjectID}}).Take(&project).Error; err != nil {
+				log.WithContext(ctx).Error(e.Wrap(err, "error querying discord access token"))
+				continue
+			}
+			discordV2.SendAlerts(ctx, project.Workspace.DiscordGuildId, &alertInput, destinations)
 		case modelInputs.AlertDestinationTypeMicrosoftTeams:
 			microsoftteamsV2.SendAlerts(ctx, lambdaClient, &alertInput, destinations)
 		case modelInputs.AlertDestinationTypeEmail:
