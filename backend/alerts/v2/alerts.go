@@ -216,8 +216,8 @@ func buildLogAlertInput(ctx context.Context, db *gorm.DB, alertInput *destinatio
 
 	end := time.Now().Add(-time.Minute)
 	start := end.Add(-time.Duration(*alertInput.Alert.ThresholdWindow) * time.Second)
-	startDateStr := url.QueryEscape(start.Format("2006-01-02T15:04:05.000Z"))
-	endDateStr := url.QueryEscape(end.Format("2006-01-02T15:04:05.000Z"))
+	startDateStr := url.QueryEscape(start.Format(time.RFC3339))
+	endDateStr := url.QueryEscape(end.Format(time.RFC3339))
 
 	logsURL := fmt.Sprintf("%s/%d/logs?query=%s&start_date=%s&end_date=%s", frontendURL,
 		alertInput.Alert.ProjectID, queryStr, startDateStr, endDateStr)
@@ -233,8 +233,8 @@ func buildTraceAlertInput(ctx context.Context, db *gorm.DB, alertInput *destinat
 
 	end := time.Now().Add(-time.Minute)
 	start := end.Add(-time.Duration(*alertInput.Alert.ThresholdWindow) * time.Second)
-	startDateStr := url.QueryEscape(start.Format("2006-01-02T15:04:05.000Z"))
-	endDateStr := url.QueryEscape(end.Format("2006-01-02T15:04:05.000Z"))
+	startDateStr := url.QueryEscape(start.Format(time.RFC3339))
+	endDateStr := url.QueryEscape(end.Format(time.RFC3339))
 
 	tracesURL := fmt.Sprintf("%s/%d/traces?query=%s&start_date=%s&end_date=%s", frontendURL,
 		alertInput.Alert.ProjectID, queryStr, startDateStr, endDateStr)
