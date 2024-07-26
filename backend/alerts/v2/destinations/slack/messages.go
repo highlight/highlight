@@ -495,10 +495,7 @@ func deliverAlerts(ctx context.Context, slackAccessToken string, destinations []
 	}
 
 	for _, destination := range destinations {
-		slackChannelId := destination.TypeID
-		slackChannelName := destination.TypeName
-
-		go func() {
+		go func(channelId string, channelName string) {
 			defer func() {
 				if rec := recover(); rec != nil {
 					buf := make([]byte, 64<<10)
@@ -506,13 +503,13 @@ func deliverAlerts(ctx context.Context, slackAccessToken string, destinations []
 					log.WithContext(ctx).Errorf("panic: %+v\n%s", rec, buf)
 				}
 			}()
-			if strings.Contains(slackChannelName, "#") {
-				_, _, _, err := slackClient.JoinConversation(slackChannelId)
+			if strings.Contains(channelName, "#") {
+				_, _, _, err := slackClient.JoinConversation(channelId)
 				if err != nil {
 					log.WithContext(ctx).Error(errors.Wrap(err, "couldn't join slack channel"))
 				}
 			}
-			_, _, err := slackClient.PostMessage(slackChannelId, slack.MsgOptionText(previewText, false), slack.MsgOptionBlocks(headerBlockSet...), slack.MsgOptionAttachments(*attachment),
+			_, _, err := slackClient.PostMessage(channelId, slack.MsgOptionText(previewText, false), slack.MsgOptionBlocks(headerBlockSet...), slack.MsgOptionAttachments(*attachment),
 				slack.MsgOptionDisableLinkUnfurl(),  /** Disables showing a preview of any links that are in the Slack message.*/
 				slack.MsgOptionDisableMediaUnfurl(), /** Disables showing a preview of any links that are in the Slack message.*/
 			)
@@ -520,6 +517,6 @@ func deliverAlerts(ctx context.Context, slackAccessToken string, destinations []
 				log.WithContext(ctx).Error(errors.Wrap(err, "couldn't send slack alert"))
 				return
 			}
-		}()
+		}(destination.TypeID, destination.TypeName)
 	}
 }
