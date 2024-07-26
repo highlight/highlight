@@ -599,7 +599,6 @@ func main() {
 			go w.GetPublicWorker(kafkaqueue.TopicTypeDataSync)(ctx)
 			go w.GetPublicWorker(kafkaqueue.TopicTypeTraces)(ctx)
 			go w.StartLogAlertWatcher(ctx)
-			go w.StartMetricMonitorWatcher(ctx)
 			go w.StartMetricAlertWatcher(ctx)
 			go w.StartSessionDeleteJob(ctx)
 			go func() {
