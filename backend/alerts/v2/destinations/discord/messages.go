@@ -86,7 +86,12 @@ func sendSessionAlert(ctx context.Context, discordGuildId string, alertInput *de
 
 	fields := []*discordgo.MessageEmbedField{
 		{
-			Name:   "Identifier",
+			Name:   "Session",
+			Value:  fmt.Sprintf("[#%s](%s)", alertInput.SessionInput.SecureID, alertInput.SessionInput.SessionLink),
+			Inline: true,
+		},
+		{
+			Name:   "User Identifier",
 			Value:  sessionUserIdentifier,
 			Inline: true,
 		},
