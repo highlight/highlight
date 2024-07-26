@@ -231,7 +231,7 @@ func sendErrorAlert(ctx context.Context, slackAccessToken string, alertInput *de
 	}
 
 	if stackTraceBlock != nil {
-		highlightLogo := *slack.NewImageBlockElement("https://app.highlight.io/logo192.png", "Highlight logo")
+		highlightLogo := *slack.NewImageBlockElement("https://beta.highlight.io/logo192.png", "Highlight logo")
 		bodyBlockSet = append(bodyBlockSet, slack.NewContextBlock("", highlightLogo, stackTraceBlock))
 	}
 
@@ -479,13 +479,6 @@ func deliverAlerts(ctx context.Context, slackAccessToken string, destinations []
 	}
 
 	for _, destination := range destinations {
-		log.WithContext(ctx).WithFields(
-			log.Fields{
-				"destinationType": destination.DestinationType,
-				"destinationID":   destination.TypeID,
-				"destinationName": destination.TypeName,
-			}).Info("sending slack alert to destination")
-
 		slackChannelId := destination.TypeID
 		slackChannelName := destination.TypeName
 
@@ -512,6 +505,5 @@ func deliverAlerts(ctx context.Context, slackAccessToken string, destinations []
 				return
 			}
 		}()
-
 	}
 }
