@@ -61,7 +61,7 @@ func sendSessionAlert(ctx context.Context, microsoftTeamsTenantId string, alertI
 		MoreSessionsLink: alertInput.SessionInput.MoreSessionsLink,
 	}
 
-	deliverMessage(ctx, microsoftTeamsTenantId, microsoftteamsV2_templates.SessionAlertMessageTemplate, messagePayload, destinations)
+	deliverAlerts(ctx, microsoftTeamsTenantId, microsoftteamsV2_templates.SessionAlertMessageTemplate, messagePayload, destinations)
 }
 
 func sendErrorAlert(ctx context.Context, microsoftTeamsTenantId string, alertInput *destinationsV2.AlertInput, destinations []model.AlertDestination) {
@@ -107,7 +107,7 @@ func sendErrorAlert(ctx context.Context, microsoftTeamsTenantId string, alertInp
 		SnoozeLink:      routing.AttachQueryParam(ctx, alertInput.ErrorInput.ErrorLink, "action", "snooze"),
 	}
 
-	deliverMessage(ctx, microsoftTeamsTenantId, microsoftteamsV2_templates.ErrorAlertMessageTemplate, messagePayload, destinations)
+	deliverAlerts(ctx, microsoftTeamsTenantId, microsoftteamsV2_templates.ErrorAlertMessageTemplate, messagePayload, destinations)
 }
 
 func sendLogAlert(ctx context.Context, microsoftTeamsTenantId string, alertInput *destinationsV2.AlertInput, destinations []model.AlertDestination) {
@@ -157,7 +157,7 @@ func sendLogAlert(ctx context.Context, microsoftTeamsTenantId string, alertInput
 		LogsLink:  alertInput.LogInput.LogsLink,
 	}
 
-	deliverMessage(ctx, microsoftTeamsTenantId, microsoftteamsV2_templates.LogAlertMessageTemplate, messagePayload, destinations)
+	deliverAlerts(ctx, microsoftTeamsTenantId, microsoftteamsV2_templates.LogAlertMessageTemplate, messagePayload, destinations)
 }
 
 func sendTraceAlert(ctx context.Context, microsoftTeamsTenantId string, alertInput *destinationsV2.AlertInput, destinations []model.AlertDestination) {
@@ -207,7 +207,7 @@ func sendTraceAlert(ctx context.Context, microsoftTeamsTenantId string, alertInp
 		TracesLink: alertInput.TraceInput.TracesLink,
 	}
 
-	deliverMessage(ctx, microsoftTeamsTenantId, microsoftteamsV2_templates.TraceAlertMessageTemplate, messagePayload, destinations)
+	deliverAlerts(ctx, microsoftTeamsTenantId, microsoftteamsV2_templates.TraceAlertMessageTemplate, messagePayload, destinations)
 }
 
 func sendMetricAlert(ctx context.Context, microsoftTeamsTenantId string, alertInput *destinationsV2.AlertInput, destinations []model.AlertDestination) {
@@ -257,10 +257,10 @@ func sendMetricAlert(ctx context.Context, microsoftTeamsTenantId string, alertIn
 		MetricsLink: alertInput.MetricInput.DashboardLink,
 	}
 
-	deliverMessage(ctx, microsoftTeamsTenantId, microsoftteamsV2_templates.MetricAlertMessageTemplate, messagePayload, destinations)
+	deliverAlerts(ctx, microsoftTeamsTenantId, microsoftteamsV2_templates.MetricAlertMessageTemplate, messagePayload, destinations)
 }
 
-func deliverMessage(ctx context.Context, microsoftTeamsTenantId string, messageTemplate []byte, messagePayload interface{}, destinations []model.AlertDestination) {
+func deliverAlerts(ctx context.Context, microsoftTeamsTenantId string, messageTemplate []byte, messagePayload interface{}, destinations []model.AlertDestination) {
 	bot, err := microsoft_teams.NewMicrosoftTeamsBot(microsoftTeamsTenantId)
 	if err != nil {
 		log.WithContext(ctx).Error(errors.Wrap(err, "couldn't create new microsoft teams bot"))
@@ -268,15 +268,13 @@ func deliverMessage(ctx context.Context, microsoftTeamsTenantId string, messageT
 	}
 
 	for _, destination := range destinations {
-		channelId := destination.TypeID
-
-		go func() {
+		go func(channelId string) {
 			err := bot.SendMessageWithAdaptiveCard(channelId, messageTemplate, messagePayload)
 			if err != nil {
 				log.WithContext(ctx).Error(errors.Wrap(err, "couldn't send microsoft teams alert"))
 				return
 			}
-		}()
+		}(destination.TypeID)
 
 	}
 }
