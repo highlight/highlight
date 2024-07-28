@@ -412,7 +412,6 @@ func deliverAlerts(ctx context.Context, discordGuildId string, messageSend *disc
 			_, err := bot.Session.ChannelMessageSendComplex(channelId, messageSend)
 			if err != nil {
 				log.WithContext(ctx).Error(errors.Wrap(err, "couldn't send discord alert"))
-				return
 			}
 		}(destination.TypeID)
 	}

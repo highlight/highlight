@@ -9,6 +9,11 @@ import {
 	SessionInsightsEmail,
 	TrackEventPropertiesAlertEmail,
 	TrackUserPropertiesAlertEmail,
+	SessionsAlertV2Email,
+	ErrorsAlertV2Email,
+	LogsAlertV2Email,
+	TracesAlertV2Email,
+	MetricsAlertV2Email,
 } from '../emails'
 
 export const handler = async (event?: APIGatewayEvent) => {
@@ -50,6 +55,16 @@ const getEmailTemplate = (template: string) => {
 			return TrackEventPropertiesAlertEmail
 		case 'track-user-properties-alert':
 			return TrackUserPropertiesAlertEmail
+		case 'sessions-alert':
+			return SessionsAlertV2Email
+		case 'errors-alert':
+			return ErrorsAlertV2Email
+		case 'logs-alert':
+			return LogsAlertV2Email
+		case 'traces-alert':
+			return TracesAlertV2Email
+		case 'metrics-alert':
+			return MetricsAlertV2Email
 		default:
 			console.error('No email template found for ', template)
 	}
