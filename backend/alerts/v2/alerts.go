@@ -43,11 +43,20 @@ func SendAlerts(ctx context.Context, db *gorm.DB, mailClient *sendgrid.Client, l
 		destinationsByType[destination.DestinationType] = append(destinationsByType[destination.DestinationType], destination)
 	}
 
+	var project model.Project
+	if err := db.WithContext(ctx).Model(&model.Project{}).Preload("Workspace").Where(&model.Project{Model: model.Model{ID: alert.ProjectID}}).Take(&project).Error; err != nil {
+		log.WithContext(ctx).Error(e.Wrap(err, "error querying project"))
+		return
+	}
+
+	frontendURL := env.Config.FrontendUri
 	alertInput := destinationsV2.AlertInput{
-		Alert:      alert,
-		AlertValue: value,
-		Group:      alertGroup,
-		GroupValue: alertGroupValue,
+		Alert:       alert,
+		AlertLink:   fmt.Sprintf("%s/alerts/%d/%d", frontendURL, alert.ProjectID, alert.ID),
+		AlertValue:  value,
+		Group:       alertGroup,
+		GroupValue:  alertGroupValue,
+		ProjectName: *project.Name,
 	}
 
 	switch alert.ProductType {
@@ -82,28 +91,13 @@ func SendAlerts(ctx context.Context, db *gorm.DB, mailClient *sendgrid.Client, l
 	for _, destinations := range destinationsByType {
 		switch destinations[0].DestinationType {
 		case modelInputs.AlertDestinationTypeSlack:
-			project := model.Project{}
-			if err := db.WithContext(ctx).Model(&model.Project{}).Preload("Workspace").Where(&model.Project{Model: model.Model{ID: alert.ProjectID}}).Take(&project).Error; err != nil {
-				log.WithContext(ctx).Error(e.Wrap(err, "error querying slack access token"))
-				continue
-			}
 			slackV2.SendAlerts(ctx, project.Workspace.SlackAccessToken, &alertInput, destinations)
 		case modelInputs.AlertDestinationTypeDiscord:
-			project := model.Project{}
-			if err := db.WithContext(ctx).Model(&model.Project{}).Preload("Workspace").Where(&model.Project{Model: model.Model{ID: alert.ProjectID}}).Take(&project).Error; err != nil {
-				log.WithContext(ctx).Error(e.Wrap(err, "error querying discord access token"))
-				continue
-			}
 			discordV2.SendAlerts(ctx, project.Workspace.DiscordGuildId, &alertInput, destinations)
 		case modelInputs.AlertDestinationTypeMicrosoftTeams:
-			project := model.Project{}
-			if err := db.WithContext(ctx).Model(&model.Project{}).Preload("Workspace").Where(&model.Project{Model: model.Model{ID: alert.ProjectID}}).Take(&project).Error; err != nil {
-				log.WithContext(ctx).Error(e.Wrap(err, "error querying microsoft teams access token"))
-				continue
-			}
 			microsoftteamsV2.SendAlerts(ctx, project.Workspace.MicrosoftTeamsTenantId, &alertInput, destinations)
 		case modelInputs.AlertDestinationTypeEmail:
-			emailV2.SendAlerts(ctx, lambdaClient, &alertInput, destinations)
+			emailV2.SendAlerts(ctx, mailClient, lambdaClient, &alertInput, destinations)
 		case modelInputs.AlertDestinationTypeWebhook:
 			webhookV2.SendAlerts(ctx, &alertInput, destinations)
 		default:
