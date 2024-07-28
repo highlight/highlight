@@ -354,9 +354,9 @@ type ErrorObjectNode struct {
 	Event              string                  `json:"event"`
 	Timestamp          time.Time               `json:"timestamp"`
 	Session            *ErrorObjectNodeSession `json:"session,omitempty"`
-	ErrorGroupSecureID string                  `json:"errorGroupSecureID"`
 	ServiceVersion     string                  `json:"serviceVersion"`
 	ServiceName        string                  `json:"serviceName"`
+	ErrorGroupSecureID string                  `json:"errorGroupSecureID"`
 }
 
 type ErrorObjectNodeSession struct {

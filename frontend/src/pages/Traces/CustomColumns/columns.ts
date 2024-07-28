@@ -5,7 +5,7 @@ const SPAN_NAME_COLUMN: TraceCustomColumn = {
 	label: 'Span',
 	type: 'string',
 	size: '2fr',
-	accessKey: 'spanName',
+	accessor: (row) => row.node.spanName,
 }
 
 const SERVICE_NAME_COLUMN: TraceCustomColumn = {
@@ -13,7 +13,7 @@ const SERVICE_NAME_COLUMN: TraceCustomColumn = {
 	label: 'Service',
 	type: 'string',
 	size: '1fr',
-	accessKey: 'serviceName',
+	accessor: (row) => row.node.serviceName,
 }
 
 const SERVICE_VERSION_COLUMN: TraceCustomColumn = {
@@ -21,7 +21,7 @@ const SERVICE_VERSION_COLUMN: TraceCustomColumn = {
 	label: 'Version',
 	type: 'string',
 	size: '1fr',
-	accessKey: 'serviceVersion',
+	accessor: (row) => row.node.serviceVersion,
 }
 
 const TRACE_ID_COLUMN: TraceCustomColumn = {
@@ -29,7 +29,7 @@ const TRACE_ID_COLUMN: TraceCustomColumn = {
 	label: 'Trace ID',
 	type: 'string',
 	size: '2fr',
-	accessKey: 'traceID',
+	accessor: (row) => row.node.traceID,
 }
 
 const PARENT_SPAN_ID_COLUMN: TraceCustomColumn = {
@@ -37,7 +37,7 @@ const PARENT_SPAN_ID_COLUMN: TraceCustomColumn = {
 	label: 'Parent Span ID',
 	type: 'string',
 	size: '1fr',
-	accessKey: 'parentSpanID',
+	accessor: (row) => row.node.parentSpanID,
 }
 
 const SPAN_ID_COLUMN: TraceCustomColumn = {
@@ -45,7 +45,7 @@ const SPAN_ID_COLUMN: TraceCustomColumn = {
 	label: 'Span ID',
 	type: 'string',
 	size: '1fr',
-	accessKey: 'spanID',
+	accessor: (row) => row.node.spanID,
 }
 
 const SECURE_SESSION_ID_COLUMN: TraceCustomColumn = {
@@ -53,7 +53,7 @@ const SECURE_SESSION_ID_COLUMN: TraceCustomColumn = {
 	label: 'Secure Session ID',
 	type: 'session',
 	size: '2fr',
-	accessKey: 'secureSessionID',
+	accessor: (row) => row.node.secureSessionID,
 }
 
 const HAS_ERRORS_COLUMN: TraceCustomColumn = {
@@ -61,7 +61,7 @@ const HAS_ERRORS_COLUMN: TraceCustomColumn = {
 	label: 'Has Errors',
 	type: 'boolean',
 	size: '1fr',
-	accessKey: 'hasErrors',
+	accessor: (row) => row.node.hasErrors,
 }
 
 const TIMESTAMP_COLUMN: TraceCustomColumn = {
@@ -69,7 +69,7 @@ const TIMESTAMP_COLUMN: TraceCustomColumn = {
 	label: 'Timestamp',
 	type: 'datetime',
 	size: '1.2fr',
-	accessKey: 'timestamp',
+	accessor: (row) => row.node.timestamp,
 }
 
 const DURATION_COLUMN: TraceCustomColumn = {
@@ -77,7 +77,7 @@ const DURATION_COLUMN: TraceCustomColumn = {
 	label: 'Duration',
 	type: 'duration',
 	size: '1fr',
-	accessKey: 'duration',
+	accessor: (row) => row.node.duration,
 }
 
 const ENVIRONMENT_COLUMN: TraceCustomColumn = {
@@ -85,7 +85,7 @@ const ENVIRONMENT_COLUMN: TraceCustomColumn = {
 	label: 'Environment',
 	type: 'string',
 	size: '1fr',
-	accessKey: 'environment',
+	accessor: (row) => row.node.environment,
 }
 
 const SPAN_KIND_COLUMN: TraceCustomColumn = {
@@ -93,7 +93,7 @@ const SPAN_KIND_COLUMN: TraceCustomColumn = {
 	label: 'Span Kind',
 	type: 'string',
 	size: '1fr',
-	accessKey: 'spanKind',
+	accessor: (row) => row.node.spanKind,
 }
 
 const METRIC_NAME_COLUMN: TraceCustomColumn = {
@@ -101,7 +101,7 @@ const METRIC_NAME_COLUMN: TraceCustomColumn = {
 	label: 'Metric',
 	type: 'metric_name',
 	size: '1fr',
-	accessKey: 'metric_name',
+	accessor: (row) => row.node.events?.at(0)?.attributes['metric.name'],
 }
 
 const METRIC_VALUE_COLUMN: TraceCustomColumn = {
@@ -109,7 +109,7 @@ const METRIC_VALUE_COLUMN: TraceCustomColumn = {
 	label: 'Metric Value',
 	type: 'metric_value',
 	size: '1fr',
-	accessKey: 'metric_value',
+	accessor: (row) => row.node.events?.at(0)?.attributes['metric.value'],
 }
 
 export const DEFAULT_TRACE_COLUMNS = [

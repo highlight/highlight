@@ -746,7 +746,7 @@ func (client *Client) QueryErrorObjectsHistogram(ctx context.Context, projectId 
 	return bucketTimes, totals, nil
 }
 
-func (client *Client) QueryErrorObjects(ctx context.Context, projectId int, errorGroupId int, count int, params modelInputs.QueryInput, page *int) ([]int64, int64, error) {
+func (client *Client) QueryErrorObjects(ctx context.Context, projectId int, errorGroupId *int, count int, params modelInputs.QueryInput, page *int) ([]int64, int64, error) {
 	pageInt := 1
 	if page != nil {
 		pageInt = *page
@@ -757,7 +757,10 @@ func (client *Client) QueryErrorObjects(ctx context.Context, projectId int, erro
 	if err != nil {
 		return nil, 0, err
 	}
-	sb.Where(sb.Equal("ErrorGroupID", errorGroupId))
+
+	if errorGroupId != nil {
+		sb.Where(sb.Equal("ErrorGroupID", *errorGroupId))
+	}
 
 	sb.Select("ID, count() OVER() AS total")
 	sb.OrderBy("Timestamp DESC")

@@ -19,17 +19,17 @@ import { copyToClipboard } from '@util/string'
 import * as React from 'react'
 import { useMemo } from 'react'
 
-import { ValidCustomColumn } from '@/components/CustomColumnPopover'
+import { SerializedColumn } from '@/components/CustomColumnPopover'
 import { Modal } from '@/components/Modal/ModalV2'
 import { SortDirection } from '@/graph/generated/schemas'
 import analytics from '@/util/analytics'
 
 type Props = {
-	selectedColumns: ValidCustomColumn[]
-	setSelectedColumns: (columns: ValidCustomColumn[]) => void
+	selectedColumns: SerializedColumn[]
+	setSelectedColumns: (columns: SerializedColumn[]) => void
 	columnId: string
 	trackingId: string
-	standardColumns: Record<string, ValidCustomColumn>
+	standardColumns: Record<string, SerializedColumn>
 	sortColumn: string | null | undefined
 	sortDirection: string | null | undefined
 	onSort?: (direction?: SortDirection | null) => void
@@ -95,7 +95,7 @@ export const CustomColumnActions: React.FC<Props> = ({
 		setLabelModalOpen(true)
 	}
 
-	const handleLabelUpdateSubmit = (column: ValidCustomColumn) => {
+	const handleLabelUpdateSubmit = (column: SerializedColumn) => {
 		const newColumns = [...selectedColumns]
 		newColumns[columnIndex] = column
 		setSelectedColumns(newColumns)
@@ -233,8 +233,8 @@ export const CustomColumnActions: React.FC<Props> = ({
 
 type LabelModalProps = {
 	onHideModal: () => void
-	column: ValidCustomColumn
-	handleSubmit: (column: ValidCustomColumn) => void
+	column: SerializedColumn
+	handleSubmit: (column: SerializedColumn) => void
 }
 
 const LabelModal: React.FC<LabelModalProps> = ({

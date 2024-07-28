@@ -1,11 +1,13 @@
 import { LogCustomColumn } from '@components/CustomColumnPopover'
 
+import { LogEdge } from '@/graph/generated/schemas'
+
 const TIMESTAMP_COLUMN: LogCustomColumn = {
 	id: 'timestamp',
 	label: 'Timestamp',
 	type: 'datetime',
 	size: '175px',
-	accessKey: 'timestamp',
+	accessor: (row: LogEdge) => row.node.timestamp,
 }
 
 const LEVEL_COLUMN: LogCustomColumn = {
@@ -13,7 +15,7 @@ const LEVEL_COLUMN: LogCustomColumn = {
 	label: 'Level',
 	type: 'level',
 	size: '75px',
-	accessKey: 'level',
+	accessor: (row: LogEdge) => row.node.level,
 }
 
 const BODY_COLUMN: LogCustomColumn = {
@@ -21,7 +23,7 @@ const BODY_COLUMN: LogCustomColumn = {
 	label: 'Body',
 	type: 'body',
 	size: '5fr',
-	accessKey: 'message',
+	accessor: (row: LogEdge) => row.node.message,
 }
 
 const SERVICE_NAME_COLUMN: LogCustomColumn = {
@@ -29,7 +31,7 @@ const SERVICE_NAME_COLUMN: LogCustomColumn = {
 	label: 'Service',
 	type: 'string',
 	size: '1fr',
-	accessKey: 'serviceName',
+	accessor: (row: LogEdge) => row.node.serviceName,
 }
 
 const SERVICE_VERSION_COLUMN: LogCustomColumn = {
@@ -37,7 +39,7 @@ const SERVICE_VERSION_COLUMN: LogCustomColumn = {
 	label: 'Version',
 	type: 'string',
 	size: '1fr',
-	accessKey: 'serviceVersion',
+	accessor: (row: LogEdge) => row.node.serviceVersion,
 }
 
 const SECURE_SESSION_ID_COLUMN: LogCustomColumn = {
@@ -45,7 +47,7 @@ const SECURE_SESSION_ID_COLUMN: LogCustomColumn = {
 	label: 'Secure Session ID',
 	type: 'session',
 	size: '2fr',
-	accessKey: 'secureSessionID',
+	accessor: (row: LogEdge) => row.node.secureSessionID,
 }
 
 const TRACE_ID_COLUMN: LogCustomColumn = {
@@ -53,7 +55,7 @@ const TRACE_ID_COLUMN: LogCustomColumn = {
 	label: 'Trace ID',
 	type: 'string',
 	size: '2fr',
-	accessKey: 'traceID',
+	accessor: (row: LogEdge) => row.node.traceID,
 }
 
 const ENVIRONMENT_COLUMN: LogCustomColumn = {
@@ -61,7 +63,7 @@ const ENVIRONMENT_COLUMN: LogCustomColumn = {
 	label: 'Environment',
 	type: 'string',
 	size: '1fr',
-	accessKey: 'environment',
+	accessor: (row: LogEdge) => row.node.environment,
 }
 
 const SPAN_ID_COLUMN: LogCustomColumn = {
@@ -69,7 +71,7 @@ const SPAN_ID_COLUMN: LogCustomColumn = {
 	label: 'Span ID',
 	type: 'string',
 	size: '1fr',
-	accessKey: 'spanID',
+	accessor: (row: LogEdge) => row.node.spanID,
 }
 
 const SOURCE_COLUMN: LogCustomColumn = {
@@ -77,7 +79,7 @@ const SOURCE_COLUMN: LogCustomColumn = {
 	label: 'Source',
 	type: 'string',
 	size: '1fr',
-	accessKey: 'source',
+	accessor: (row: LogEdge) => row.node.source,
 }
 
 export const DEFAULT_LOG_COLUMNS = [TIMESTAMP_COLUMN, LEVEL_COLUMN, BODY_COLUMN]
