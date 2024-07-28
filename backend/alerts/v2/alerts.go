@@ -43,11 +43,20 @@ func SendAlerts(ctx context.Context, db *gorm.DB, mailClient *sendgrid.Client, l
 		destinationsByType[destination.DestinationType] = append(destinationsByType[destination.DestinationType], destination)
 	}
 
+	var project model.Project
+	if err := db.WithContext(ctx).Model(&model.Project{}).Preload("Workspace").Where(&model.Project{Model: model.Model{ID: alert.ProjectID}}).Take(&project).Error; err != nil {
+		log.WithContext(ctx).Error(e.Wrap(err, "error querying project"))
+		return
+	}
+
+	frontendURL := env.Config.FrontendUri
 	alertInput := destinationsV2.AlertInput{
-		Alert:      alert,
-		AlertValue: value,
-		Group:      alertGroup,
-		GroupValue: alertGroupValue,
+		Alert:       alert,
+		AlertLink:   fmt.Sprintf("%s/alerts/%d/%d", frontendURL, alert.ProjectID, alert.ID),
+		AlertValue:  value,
+		Group:       alertGroup,
+		GroupValue:  alertGroupValue,
+		ProjectName: *project.Name,
 	}
 
 	switch alert.ProductType {
@@ -82,21 +91,15 @@ func SendAlerts(ctx context.Context, db *gorm.DB, mailClient *sendgrid.Client, l
 	for _, destinations := range destinationsByType {
 		switch destinations[0].DestinationType {
 		case modelInputs.AlertDestinationTypeSlack:
-			// get slack access token
-			project := model.Project{}
-			if err := db.WithContext(ctx).Model(&model.Project{}).Preload("Workspace").Where(&model.Project{Model: model.Model{ID: alert.ProjectID}}).Take(&project).Error; err != nil {
-				log.WithContext(ctx).Error(e.Wrap(err, "error querying slack access token"))
-				continue
-			}
 			slackV2.SendAlerts(ctx, project.Workspace.SlackAccessToken, &alertInput, destinations)
 		case modelInputs.AlertDestinationTypeDiscord:
-			discordV2.SendAlerts(ctx, lambdaClient, &alertInput, destinations)
+			discordV2.SendAlerts(ctx, project.Workspace.DiscordGuildId, &alertInput, destinations)
 		case modelInputs.AlertDestinationTypeMicrosoftTeams:
-			microsoftteamsV2.SendAlerts(ctx, lambdaClient, &alertInput, destinations)
+			microsoftteamsV2.SendAlerts(ctx, project.Workspace.MicrosoftTeamsTenantId, &alertInput, destinations)
 		case modelInputs.AlertDestinationTypeEmail:
-			emailV2.SendAlerts(ctx, lambdaClient, &alertInput, destinations)
+			emailV2.SendAlerts(ctx, mailClient, lambdaClient, &alertInput, destinations)
 		case modelInputs.AlertDestinationTypeWebhook:
-			webhookV2.SendAlerts(ctx, lambdaClient, &alertInput, destinations)
+			webhookV2.SendAlerts(ctx, &alertInput, destinations)
 		default:
 			log.WithContext(ctx).WithFields(
 				log.Fields{
@@ -211,14 +214,16 @@ func buildLogAlertInput(ctx context.Context, db *gorm.DB, alertInput *destinatio
 
 	end := time.Now().Add(-time.Minute)
 	start := end.Add(-time.Duration(*alertInput.Alert.ThresholdWindow) * time.Second)
-	startDateStr := url.QueryEscape(start.Format("2006-01-02T15:04:05.000Z"))
-	endDateStr := url.QueryEscape(end.Format("2006-01-02T15:04:05.000Z"))
+	startDateStr := url.QueryEscape(start.Format(time.RFC3339))
+	endDateStr := url.QueryEscape(end.Format(time.RFC3339))
 
 	logsURL := fmt.Sprintf("%s/%d/logs?query=%s&start_date=%s&end_date=%s", frontendURL,
 		alertInput.Alert.ProjectID, queryStr, startDateStr, endDateStr)
 
 	return &destinationsV2.LogInput{
-		LogsLink: logsURL,
+		LogsLink:  logsURL,
+		StartDate: start,
+		EndDate:   end,
 	}
 }
 
@@ -228,14 +233,16 @@ func buildTraceAlertInput(ctx context.Context, db *gorm.DB, alertInput *destinat
 
 	end := time.Now().Add(-time.Minute)
 	start := end.Add(-time.Duration(*alertInput.Alert.ThresholdWindow) * time.Second)
-	startDateStr := url.QueryEscape(start.Format("2006-01-02T15:04:05.000Z"))
-	endDateStr := url.QueryEscape(end.Format("2006-01-02T15:04:05.000Z"))
+	startDateStr := url.QueryEscape(start.Format(time.RFC3339))
+	endDateStr := url.QueryEscape(end.Format(time.RFC3339))
 
 	tracesURL := fmt.Sprintf("%s/%d/traces?query=%s&start_date=%s&end_date=%s", frontendURL,
 		alertInput.Alert.ProjectID, queryStr, startDateStr, endDateStr)
 
 	return &destinationsV2.TraceInput{
 		TracesLink: tracesURL,
+		StartDate:  start,
+		EndDate:    end,
 	}
 }
 
