@@ -272,7 +272,6 @@ func deliverAlerts(ctx context.Context, microsoftTeamsTenantId string, messageTe
 			err := bot.SendMessageWithAdaptiveCard(channelId, messageTemplate, messagePayload)
 			if err != nil {
 				log.WithContext(ctx).Error(errors.Wrap(err, "couldn't send microsoft teams alert"))
-				return
 			}
 		}(destination.TypeID)
 

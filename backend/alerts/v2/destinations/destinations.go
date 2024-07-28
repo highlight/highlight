@@ -9,9 +9,11 @@ import (
 
 type AlertInput struct {
 	Alert        *model.Alert
+	AlertLink    string
 	AlertValue   float64
 	Group        string
 	GroupValue   string
+	ProjectName  string
 	SessionInput *SessionInput
 	ErrorInput   *ErrorInput
 	LogInput     *LogInput
