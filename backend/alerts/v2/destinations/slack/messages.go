@@ -515,7 +515,6 @@ func deliverAlerts(ctx context.Context, slackAccessToken string, destinations []
 			)
 			if err != nil {
 				log.WithContext(ctx).Error(errors.Wrap(err, "couldn't send slack alert"))
-				return
 			}
 		}(destination.TypeID, destination.TypeName)
 	}

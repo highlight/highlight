@@ -246,7 +246,7 @@ function formatAlertDataForTable(alert: any, config: AlertConfiguration) {
 		...alert,
 		ChannelsToNotify: slackChannels,
 		DiscordChannelsToNotify: discordChannels,
-		MicrosoftTeamsChennelsToNotify: microsoftTeamsChannels,
+		MicrosoftTeamsChannelsToNotify: microsoftTeamsChannels,
 		EmailsToNotify: emails,
 		WebhookDestinations: webhookDestinations,
 		configuration: config,
