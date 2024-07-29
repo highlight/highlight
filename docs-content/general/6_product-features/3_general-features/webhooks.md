@@ -15,11 +15,18 @@ Here's an example of a payload that is sent.
 
 ```json
 {
-  "Event": "ERROR_ALERT",
+  "AlertName": "New errors alert",
+  "Event": "ERRORS_ALERT",
   "ErrorCount": 1,
   "ErrorTitle": "Oh no! An error occurred",
-  "SessionURL": "https://app.highlight.io/1/sessions/",
   "ErrorURL": "https://app.highlight.io/1/errors/sqavrqpCyrkOdDoYjMF7iM0Md2WT/instances/11493",
+  "ErrorResolveURL": "https://app.highlight.io/1/errors/sqavrqpCyrkOdDoYjMF7iM0Md2WT/instances/11493?action=resolved",
+  "ErrorIgnoreURL": "https://app.highlight.io/1/errors/sqavrqpCyrkOdDoYjMF7iM0Md2WT/instances/11493?action=ignored",
+  "ErrorSnoozeURL": "https://app.highlight.io/1/errors/sqavrqpCyrkOdDoYjMF7iM0Md2WT/instances/11493?action=snooze",
+  "Query": "environment=production",
+  "SecureSessionID": "abc123",
+  "SessionURL": "https://app.highlight.io/1/sessions/abc123",
+  "SessionExcluded": false,
   "UserIdentifier": "vadim@highlight.io",
   "VisitedURL": "https://app.highlight.io/1/alerts"
 }
