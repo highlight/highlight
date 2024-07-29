@@ -6,6 +6,22 @@ require 'active_support/logger_silence'
 require 'logger'
 
 module Highlight
+  module Tracing
+    class BaggageSpanProcessor < OpenTelemetry::SDK::Trace::SpanProcessor
+      def on_start(span, parent_context)
+        span.add_attributes(OpenTelemetry::Baggage.values(context: parent_context))
+      end
+    end
+  end
+
+  def self.start_span(name, attrs = {})
+    if block_given?
+      H.instance.start_span(name, attrs) { |span| yield span }
+    else
+      H.instance.start_span(name, attrs) { |_| }
+    end
+  end
+
   class H
     HIGHLIGHT_REQUEST_HEADER = 'X-Highlight-Request'.freeze
     OTLP_HTTP = 'https://otel.highlight.io:4318'.freeze
@@ -30,6 +46,8 @@ module Highlight
       @otlp_endpoint = otlp_endpoint
 
       OpenTelemetry::SDK.configure do |c|
+        c.add_span_processor(Highlight::Tracing::BaggageSpanProcessor.new)
+
         c.add_span_processor(
           OpenTelemetry::SDK::Trace::Export::BatchSpanProcessor.new(
             OpenTelemetry::Exporter::OTLP::Exporter.new(
@@ -65,10 +83,11 @@ module Highlight
     def trace(session_id, request_id, attrs = {})
       return unless initialized?
 
-      start_span('highlight-ctx', {
-        HIGHLIGHT_SESSION_ATTRIBUTE => session_id,
-        HIGHLIGHT_TRACE_ATTRIBUTE => request_id
-      }.merge(attrs).compact) do |span|
+      start_span('highlight-ctx', attrs) do |span|
+        # These are passed along by the BaggageSpanProcessor to child spans
+        OpenTelemetry::Baggage.set_value(HIGHLIGHT_SESSION_ATTRIBUTE, session_id)
+        OpenTelemetry::Baggage.set_value(HIGHLIGHT_TRACE_ATTRIBUTE, request_id)
+
         yield span
       end
     end
@@ -76,15 +95,8 @@ module Highlight
     def start_span(name, attrs = {})
       return unless initialized?
 
-      parent_context = OpenTelemetry::Trace.current_span.context
-
-      unless parent_context.nil?
-        parent_session_id = parent_context[HIGHLIGHT_SESSION_ATTRIBUTE]
-      end
-
       attributes = {
         HIGHLIGHT_PROJECT_ATTRIBUTE => @project_id,
-        HIGHLIGHT_SESSION_ATTRIBUTE => parent_session_id,
       }.merge(attrs).compact
 
       if block_given?
@@ -204,7 +216,6 @@ module Highlight
         @highlight_headers = H.parse_headers(request.headers)
       end
 
-      # Optional: If you want it accessible in views
       def highlight_headers
         @highlight_headers
       end

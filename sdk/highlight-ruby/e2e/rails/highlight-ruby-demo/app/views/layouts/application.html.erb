@@ -1,24 +1,29 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <title>HighlightRubyDemo</title>
+    <title>Highlight Ruby Demo</title>
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <%= csrf_meta_tags %>
     <%= csp_meta_tag %>
-
-    <%= stylesheet_link_tag "application", "data-turbo-track": "reload" %>
-    <%= javascript_importmap_tags %>
 
     <script src="https://unpkg.com/highlight.run"></script>
     <script>
       H.init('1jdkoe52', {
         environment: 'dev',
+        tracingOrigins: true,
+        serviceName: 'highlight-ruby-demo-frontend',
+        backendUrl: 'https://localhost:8082/public',
         networkRecording: {
           enabled: true,
           recordHeadersAndBody: true,
         },
+        enableOtelTracing: true,
+        otlpEndpoint: 'http://localhost:4318',
       });
     </script>
+
+    <%= stylesheet_link_tag "application", "data-turbo-track": "reload" %>
+    <%= javascript_importmap_tags %>
   </head>
 
   <body>
