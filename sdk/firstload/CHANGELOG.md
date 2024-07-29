@@ -1,5 +1,12 @@
 # highlight.run
 
+## 9.1.1
+
+### Patch Changes
+
+-   05fbf19aa: report performance resource timings in nanoseconds
+-   24c5b00b6: fix span renaming of GraphQL requests
+
 ## 9.1.0
 
 ### Minor Changes

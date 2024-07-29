@@ -2400,9 +2400,10 @@ export type QueryError_Object_For_LogArgs = {
 
 export type QueryError_ObjectsArgs = {
 	count: Scalars['Int']
-	error_group_secure_id: Scalars['String']
+	error_group_secure_id?: InputMaybe<Scalars['String']>
 	page?: InputMaybe<Scalars['Int']>
 	params: QueryInput
+	project_id?: InputMaybe<Scalars['String']>
 }
 
 export type QueryError_Resolution_SuggestionArgs = {
@@ -3328,6 +3329,7 @@ export type Session = {
 	created_at: Scalars['Timestamp']
 	deviceMemory?: Maybe<Scalars['Int']>
 	direct_download_url?: Maybe<Scalars['String']>
+	email?: Maybe<Scalars['String']>
 	enable_recording_network_contents?: Maybe<Scalars['Boolean']>
 	enable_strict_privacy?: Maybe<Scalars['Boolean']>
 	environment?: Maybe<Scalars['String']>

@@ -2238,7 +2238,7 @@ query GetSystemConfiguration {
 	}
 }
 
-query GetErrorObjects(
+query GetErrorGroupInstances(
 	$errorGroupSecureID: String!
 	$count: Int!
 	$params: QueryInput!
@@ -2255,7 +2255,6 @@ query GetErrorObjects(
 			createdAt
 			event
 			timestamp
-			errorGroupSecureID
 			serviceVersion
 			serviceName
 			session {
@@ -2264,6 +2263,38 @@ query GetErrorObjects(
 				fingerprint
 				excluded
 			}
+			errorGroupSecureID
+		}
+		totalCount
+	}
+}
+
+query GetErrorObjects(
+	$project_id: String!
+	$count: Int!
+	$params: QueryInput!
+	$page: Int
+) {
+	error_objects(
+		project_id: $project_id
+		count: $count
+		params: $params
+		page: $page
+	) {
+		error_objects {
+			id
+			createdAt
+			event
+			timestamp
+			serviceVersion
+			serviceName
+			session {
+				secureID
+				email
+				fingerprint
+				excluded
+			}
+			errorGroupSecureID
 		}
 		totalCount
 	}

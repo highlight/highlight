@@ -218,6 +218,10 @@ func SendSessionAlerts(ctx context.Context, db *gorm.DB, mailClient *sendgrid.Cl
 		return
 	}
 
+	if lambdaClient == nil {
+		return
+	}
+
 	emailHtml, err := lambdaClient.FetchReactEmailHTML(ctx, alertType, templateData)
 	if err != nil {
 		log.WithContext(ctx).Error(errors.Wrap(err, "error fetching email html"))

@@ -38,6 +38,7 @@ import {
 	useSearchContext,
 } from '@/components/Search/SearchContext'
 import {
+	AI_SEARCH_PLACEHOLDERS,
 	TIME_FORMAT,
 	TIME_MODE,
 } from '@/components/Search/SearchForm/constants'
@@ -214,54 +215,69 @@ const SearchForm: React.FC<SearchFormProps> = ({
 	if (isPanelView) {
 		return (
 			<>
-				{SegmentModals}
-				<Stack alignItems="flex-start" gap="8" width="full" p="8">
-					<Stack
-						flexDirection="row"
-						justifyContent="space-between"
-						width="full"
-					>
-						{DatePickerComponent}
-						{ActionsComponent}
-					</Stack>
-					<Stack
-						gap="0"
-						border="dividerWeak"
-						borderRadius="6"
-						width="full"
-					>
-						<Box
-							background="white"
-							borderTopLeftRadius="4"
-							borderTopRightRadius="4"
-						>
-							{SearchComponent}
-						</Box>
-						<Box borderBottom="dividerWeak" />
+				{aiMode ? (
+					<AiSearch
+						placeholder={AI_SEARCH_PLACEHOLDERS[productType]}
+						panelView
+					/>
+				) : (
+					<>
+						{SegmentModals}
 						<Stack
-							flexDirection="row"
-							borderBottomLeftRadius="4"
-							borderBottomRightRadius="4"
-							justifyContent="space-between"
-							py="6"
-							pl="8"
-							pr="4"
+							alignItems="flex-start"
+							gap="8"
+							width="full"
+							p="8"
 						>
-							<Box display="flex" alignItems="center">
-								{loading ? (
-									<LoadingBox />
-								) : (
-									resultCount != null && (
-										<Text color="weak">
-											{formatNumber(resultCount)} results
-										</Text>
-									)
-								)}
-							</Box>
-							{SegmentMenu}
+							<Stack
+								flexDirection="row"
+								justifyContent="space-between"
+								width="full"
+							>
+								{DatePickerComponent}
+								{ActionsComponent}
+							</Stack>
+							<Stack
+								gap="0"
+								border="dividerWeak"
+								borderRadius="6"
+								width="full"
+							>
+								<Box
+									background="white"
+									borderTopLeftRadius="4"
+									borderTopRightRadius="4"
+								>
+									{SearchComponent}
+								</Box>
+								<Box borderBottom="dividerWeak" />
+								<Stack
+									flexDirection="row"
+									borderBottomLeftRadius="4"
+									borderBottomRightRadius="4"
+									justifyContent="space-between"
+									py="6"
+									pl="8"
+									pr="4"
+								>
+									<Box display="flex" alignItems="center">
+										{loading ? (
+											<LoadingBox />
+										) : (
+											resultCount != null && (
+												<Text color="weak">
+													{formatNumber(resultCount)}{' '}
+													results
+												</Text>
+											)
+										)}
+									</Box>
+									{SegmentMenu}
+								</Stack>
+							</Stack>
 						</Stack>
-					</Stack>
-				</Stack>
+					</>
+				)}
 			</>
 		)
 	}
@@ -279,7 +295,9 @@ const SearchForm: React.FC<SearchFormProps> = ({
 				borderBottom="dividerWeak"
 			>
 				{aiMode ? (
-					<AiSearch />
+					<AiSearch
+						placeholder={AI_SEARCH_PLACEHOLDERS[productType]}
+					/>
 				) : (
 					<>
 						{SearchComponent}
