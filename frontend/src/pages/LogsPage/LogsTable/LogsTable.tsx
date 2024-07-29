@@ -2,7 +2,7 @@ import { ApolloError } from '@apollo/client'
 import { Button } from '@components/Button'
 import {
 	CustomColumnPopover,
-	LogCustomColumn,
+	SerializedColumn,
 } from '@components/CustomColumnPopover'
 import { AdditionalFeedResults } from '@components/FeedResults/FeedResults'
 import { Link } from '@components/Link'
@@ -126,8 +126,8 @@ type LogsTableInnerProps = {
 	bodyHeight: string
 	clearMoreLogs?: () => void
 	handleAdditionalLogsDateChange?: () => void
-	selectedColumns?: LogCustomColumn[]
-	setSelectedColumns?: (columns: LogCustomColumn[]) => void
+	selectedColumns?: SerializedColumn[]
+	setSelectedColumns?: (columns: SerializedColumn[]) => void
 	pollingExpired?: boolean
 }
 
@@ -183,7 +183,9 @@ const LogsTableInner = ({
 			}),
 		)
 
-		selectedColumns.forEach((column) => {
+		selectedColumns.forEach((column, index) => {
+			const first = index === 0
+
 			gridColumns.push(column.size)
 			columnHeaders.push({
 				id: column.id,
@@ -191,14 +193,23 @@ const LogsTableInner = ({
 				showActions: !!setSelectedColumns,
 			})
 
-			// @ts-ignore
-			const accessor = columnHelper.accessor(`node.${column.accessKey}`, {
+			const accessorFn =
+				column.id in HIGHLIGHT_STANDARD_COLUMNS
+					? HIGHLIGHT_STANDARD_COLUMNS[column.id].accessor
+					: (`node.logAttributes.${column.id}` as `node.logAttributes.${string}`)
+
+			const columnType =
+				column.id in HIGHLIGHT_STANDARD_COLUMNS
+					? HIGHLIGHT_STANDARD_COLUMNS[column.id].type
+					: 'string'
+
+			const accessor = columnHelper.accessor(accessorFn, {
 				cell: ({ row, getValue }) => {
-					const ColumnRenderer =
-						ColumnRenderers[column.type] || ColumnRenderers.string
+					const ColumnRenderer = ColumnRenderers[columnType]
 
 					return (
 						<ColumnRenderer
+							first={first}
 							key={column.id}
 							row={row}
 							getValue={getValue}
@@ -206,6 +217,7 @@ const LogsTableInner = ({
 						/>
 					)
 				},
+				id: column.id,
 			})
 
 			columns.push(accessor)
@@ -223,7 +235,9 @@ const LogsTableInner = ({
 						selectedColumns={selectedColumns}
 						setSelectedColumns={setSelectedColumns}
 						standardColumns={HIGHLIGHT_STANDARD_COLUMNS}
-						attributePrefix="logAttributes"
+						attributeAccessor={(row: LogEdge) =>
+							row.node.logAttributes
+						}
 					/>
 				),
 			})

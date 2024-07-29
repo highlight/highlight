@@ -23,10 +23,10 @@ import FeatureDropdown from './FeatureDropdown'
 const LaunchWeekBanner = () => {
 	const bannerMessage = (
 		<div className={styles.launchWeekText}>
-			Launch Week 5 is here.{' '}
+			Launch Week 6 is here.{' '}
 			<a
 				target="_blank"
-				href="https://www.highlight.io/blog/tag/launch-week-5"
+				href="https://www.youtube.com/playlist?list=PLtIz-bpzHkhhXNuWXTohSbozKz3t-WjOR"
 				rel="noreferrer"
 			>
 				Follow along
@@ -110,8 +110,8 @@ const Navbar = ({
 	}
 
 	const isLaunchWeek = moment().isBetween(
-		'2024-04-29T16:00:00Z',
-		'2024-05-04T16:00:00Z',
+		'2024-07-29T16:00:00Z',
+		'2024-08-03T16:00:00Z',
 	)
 
 	useEffect(() => {

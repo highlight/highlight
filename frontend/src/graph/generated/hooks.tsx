@@ -14371,8 +14371,8 @@ export type GetSystemConfigurationQueryResult = Apollo.QueryResult<
 	Types.GetSystemConfigurationQuery,
 	Types.GetSystemConfigurationQueryVariables
 >
-export const GetErrorObjectsDocument = gql`
-	query GetErrorObjects(
+export const GetErrorGroupInstancesDocument = gql`
+	query GetErrorGroupInstances(
 		$errorGroupSecureID: String!
 		$count: Int!
 		$params: QueryInput!
@@ -14389,7 +14389,6 @@ export const GetErrorObjectsDocument = gql`
 				createdAt
 				event
 				timestamp
-				errorGroupSecureID
 				serviceVersion
 				serviceName
 				session {
@@ -14398,6 +14397,91 @@ export const GetErrorObjectsDocument = gql`
 					fingerprint
 					excluded
 				}
+				errorGroupSecureID
+			}
+			totalCount
+		}
+	}
+`
+
+/**
+ * __useGetErrorGroupInstancesQuery__
+ *
+ * To run a query within a React component, call `useGetErrorGroupInstancesQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetErrorGroupInstancesQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetErrorGroupInstancesQuery({
+ *   variables: {
+ *      errorGroupSecureID: // value for 'errorGroupSecureID'
+ *      count: // value for 'count'
+ *      params: // value for 'params'
+ *      page: // value for 'page'
+ *   },
+ * });
+ */
+export function useGetErrorGroupInstancesQuery(
+	baseOptions: Apollo.QueryHookOptions<
+		Types.GetErrorGroupInstancesQuery,
+		Types.GetErrorGroupInstancesQueryVariables
+	>,
+) {
+	return Apollo.useQuery<
+		Types.GetErrorGroupInstancesQuery,
+		Types.GetErrorGroupInstancesQueryVariables
+	>(GetErrorGroupInstancesDocument, baseOptions)
+}
+export function useGetErrorGroupInstancesLazyQuery(
+	baseOptions?: Apollo.LazyQueryHookOptions<
+		Types.GetErrorGroupInstancesQuery,
+		Types.GetErrorGroupInstancesQueryVariables
+	>,
+) {
+	return Apollo.useLazyQuery<
+		Types.GetErrorGroupInstancesQuery,
+		Types.GetErrorGroupInstancesQueryVariables
+	>(GetErrorGroupInstancesDocument, baseOptions)
+}
+export type GetErrorGroupInstancesQueryHookResult = ReturnType<
+	typeof useGetErrorGroupInstancesQuery
+>
+export type GetErrorGroupInstancesLazyQueryHookResult = ReturnType<
+	typeof useGetErrorGroupInstancesLazyQuery
+>
+export type GetErrorGroupInstancesQueryResult = Apollo.QueryResult<
+	Types.GetErrorGroupInstancesQuery,
+	Types.GetErrorGroupInstancesQueryVariables
+>
+export const GetErrorObjectsDocument = gql`
+	query GetErrorObjects(
+		$project_id: String!
+		$count: Int!
+		$params: QueryInput!
+		$page: Int
+	) {
+		error_objects(
+			project_id: $project_id
+			count: $count
+			params: $params
+			page: $page
+		) {
+			error_objects {
+				id
+				createdAt
+				event
+				timestamp
+				serviceVersion
+				serviceName
+				session {
+					secureID
+					email
+					fingerprint
+					excluded
+				}
+				errorGroupSecureID
 			}
 			totalCount
 		}
@@ -14416,7 +14500,7 @@ export const GetErrorObjectsDocument = gql`
  * @example
  * const { data, loading, error } = useGetErrorObjectsQuery({
  *   variables: {
- *      errorGroupSecureID: // value for 'errorGroupSecureID'
+ *      project_id: // value for 'project_id'
  *      count: // value for 'count'
  *      params: // value for 'params'
  *      page: // value for 'page'
