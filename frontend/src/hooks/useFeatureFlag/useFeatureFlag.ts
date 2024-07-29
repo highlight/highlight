@@ -32,7 +32,7 @@ export const FeatureConfig: { [key: number]: Config } = {
 	},
 	[Feature.MetricAlerts]: {
 		workspace: true,
-		percent: 0,
+		percent: 100,
 	},
 	[Feature.Metrics]: {
 		workspace: true,
