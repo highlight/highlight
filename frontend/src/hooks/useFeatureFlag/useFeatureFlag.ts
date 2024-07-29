@@ -32,11 +32,7 @@ export const FeatureConfig: { [key: number]: Config } = {
 	},
 	[Feature.MetricAlerts]: {
 		workspace: true,
-		percent: 0,
-		workspaceOverride: new Set<string>([
-			// Highlight
-			'1',
-		]),
+		percent: 100,
 	},
 	[Feature.Metrics]: {
 		workspace: true,
