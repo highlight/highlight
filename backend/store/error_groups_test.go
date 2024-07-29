@@ -21,7 +21,7 @@ func TestListErrorObjectsNoData(t *testing.T) {
 	store.DB.Create(&errorGroup)
 
 	// No error objects
-	results, err := store.ListErrorObjects(context.TODO(), errorGroup, make([]int64, 0), 0)
+	results, err := store.ListErrorObjects(context.TODO(), make([]int64, 0), 0)
 	assert.NoError(t, err)
 
 	assert.Equal(t, privateModel.ErrorObjectResults{
@@ -44,7 +44,7 @@ func TestListErrorObjectsOneObjectNoSession(t *testing.T) {
 	}
 	store.DB.Create(&errorObject)
 	ids := []int64{int64(errorObject.ID)}
-	results, err := store.ListErrorObjects(context.TODO(), errorGroup, ids, 71)
+	results, err := store.ListErrorObjects(context.TODO(), ids, 71)
 	assert.NoError(t, err)
 
 	assert.Len(t, results.ErrorObjects, 1)
@@ -55,7 +55,6 @@ func TestListErrorObjectsOneObjectNoSession(t *testing.T) {
 	assert.WithinDuration(t, errorObject.CreatedAt, node.CreatedAt, 10*time.Second)
 	assert.Equal(t, errorObject.Event, node.Event)
 	assert.WithinDuration(t, errorObject.Timestamp, node.Timestamp, 10*time.Second)
-	assert.Equal(t, errorGroup.SecureID, node.ErrorGroupSecureID)
 	assert.Nil(t, node.Session)
 
 	assert.Equal(t, int64(71), results.TotalCount)
@@ -85,7 +84,7 @@ func TestListErrorObjectsOneObjectWithSession(t *testing.T) {
 	}
 	store.DB.Create(&errorObject)
 	ids := []int64{int64(errorObject.ID)}
-	results, err := store.ListErrorObjects(context.TODO(), errorGroup, ids, 1)
+	results, err := store.ListErrorObjects(context.TODO(), ids, 1)
 	assert.NoError(t, err)
 
 	assert.Len(t, results.ErrorObjects, 1)
@@ -96,7 +95,6 @@ func TestListErrorObjectsOneObjectWithSession(t *testing.T) {
 	assert.WithinDuration(t, errorObject.CreatedAt, node.CreatedAt, 10*time.Second)
 	assert.Equal(t, errorObject.Event, node.Event)
 	assert.Equal(t, errorObject.ServiceVersion, node.ServiceVersion)
-	assert.Equal(t, errorGroup.SecureID, node.ErrorGroupSecureID)
 	assert.Equal(t, &privateModel.ErrorObjectNodeSession{
 		SecureID:    session.SecureID,
 		Email:       session.Email,

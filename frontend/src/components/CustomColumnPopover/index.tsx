@@ -13,23 +13,29 @@ import React, { useEffect, useMemo, useState } from 'react'
 import LoadingBox from '@/components/LoadingBox'
 import { TIME_FORMAT } from '@/components/Search/SearchForm/constants'
 import { FixedRangePreset } from '@/components/Search/SearchForm/SearchForm'
-import { ProductType } from '@/graph/generated/schemas'
+import {
+	ErrorObjectNode,
+	LogEdge,
+	ProductType,
+	Session,
+	TraceEdge,
+} from '@/graph/generated/schemas'
 import { useSearchTime } from '@/hooks/useSearchTime'
 
 import * as styles from './styles.css'
 
 export const DEFAULT_COLUMN_SIZE = '1fr'
 
-type CustomColumn<T> = {
+export type CustomColumn<T, TIn> = {
 	id: string
 	label: string
-	type: T
+	type: TIn
 	size: string
-	accessKey: string
+	accessor: (row: T) => any
 }
 
 type LogColumnType = 'string' | 'datetime' | 'session' | 'level' | 'body'
-export type LogCustomColumn = CustomColumn<LogColumnType>
+export type LogCustomColumn = CustomColumn<LogEdge, LogColumnType>
 
 type TraceColumnType =
 	| 'string'
@@ -39,25 +45,38 @@ type TraceColumnType =
 	| 'boolean'
 	| 'metric_name'
 	| 'metric_value'
-export type TraceCustomColumn = CustomColumn<TraceColumnType>
+export type TraceCustomColumn = CustomColumn<TraceEdge, TraceColumnType>
 
-export type ValidCustomColumn = CustomColumn<any>
+type SessionColumnType = 'string' | 'datetime' | 'session' | 'duration'
+export type SessionCustomColumn = CustomColumn<Session, SessionColumnType>
 
-type Props = {
-	attributePrefix: string
+type ErrorObjectColumnType = 'string' | 'datetime' | 'session' | 'error_object'
+export type ErrorObjectCustomColumn = CustomColumn<
+	ErrorObjectNode,
+	ErrorObjectColumnType
+>
+
+export type ValidCustomColumn = CustomColumn<any, any>
+export type SerializedColumn = Pick<
+	CustomColumn<any, any>,
+	'id' | 'size' | 'label'
+>
+
+type Props<T> = {
+	attributeAccessor: (row: T) => any
 	productType: ProductType
-	selectedColumns: ValidCustomColumn[]
-	standardColumns: Record<string, ValidCustomColumn>
-	setSelectedColumns: (columns: ValidCustomColumn[]) => void
+	selectedColumns: SerializedColumn[]
+	standardColumns: Record<string, SerializedColumn>
+	setSelectedColumns: (columns: SerializedColumn[]) => void
 }
 
-export const CustomColumnPopover: React.FC<Props> = ({
-	attributePrefix,
+export const CustomColumnPopover = <T,>({
+	attributeAccessor,
 	productType,
 	selectedColumns,
 	standardColumns,
 	setSelectedColumns,
-}) => {
+}: Props<T>) => {
 	const { project_id } = useParams()
 	const [query, setQuery] = useState<string>('')
 	const debouncedQuery = useDebouncedValue(query) || ''
@@ -91,7 +110,7 @@ export const CustomColumnPopover: React.FC<Props> = ({
 			acc[column.id] = column
 
 			return acc
-		}, {} as Record<string, ValidCustomColumn>)
+		}, {} as Record<string, SerializedColumn>)
 
 		const defaultColumnHash = {
 			...seletedColumnHash,
@@ -119,7 +138,7 @@ export const CustomColumnPopover: React.FC<Props> = ({
 				label: key.name,
 				type: 'string',
 				size: DEFAULT_COLUMN_SIZE,
-				accessKey: `${attributePrefix}.${key.name}`,
+				accessor: (row: T) => attributeAccessor(row)[key.name],
 			} as ValidCustomColumn
 		})
 		// eslint-disable-next-line react-hooks/exhaustive-deps
@@ -130,7 +149,7 @@ export const CustomColumnPopover: React.FC<Props> = ({
 			acc[column.id] = column
 
 			return acc
-		}, {} as Record<string, ValidCustomColumn>)
+		}, {} as Record<string, SerializedColumn>)
 	}, [selectedColumns, columnOptions])
 
 	const handleColumnValueChange = (updatedValue: string[]) => {

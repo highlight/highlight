@@ -4872,8 +4872,45 @@ export type GetSystemConfigurationQuery = { __typename?: 'Query' } & {
 	>
 }
 
-export type GetErrorObjectsQueryVariables = Types.Exact<{
+export type GetErrorGroupInstancesQueryVariables = Types.Exact<{
 	errorGroupSecureID: Types.Scalars['String']
+	count: Types.Scalars['Int']
+	params: Types.QueryInput
+	page?: Types.Maybe<Types.Scalars['Int']>
+}>
+
+export type GetErrorGroupInstancesQuery = { __typename?: 'Query' } & {
+	error_objects: { __typename?: 'ErrorObjectResults' } & Pick<
+		Types.ErrorObjectResults,
+		'totalCount'
+	> & {
+			error_objects: Array<
+				{ __typename?: 'ErrorObjectNode' } & Pick<
+					Types.ErrorObjectNode,
+					| 'id'
+					| 'createdAt'
+					| 'event'
+					| 'timestamp'
+					| 'serviceVersion'
+					| 'serviceName'
+					| 'errorGroupSecureID'
+				> & {
+						session?: Types.Maybe<
+							{ __typename?: 'ErrorObjectNodeSession' } & Pick<
+								Types.ErrorObjectNodeSession,
+								| 'secureID'
+								| 'email'
+								| 'fingerprint'
+								| 'excluded'
+							>
+						>
+					}
+			>
+		}
+}
+
+export type GetErrorObjectsQueryVariables = Types.Exact<{
+	project_id: Types.Scalars['String']
 	count: Types.Scalars['Int']
 	params: Types.QueryInput
 	page?: Types.Maybe<Types.Scalars['Int']>
@@ -4891,9 +4928,9 @@ export type GetErrorObjectsQuery = { __typename?: 'Query' } & {
 					| 'createdAt'
 					| 'event'
 					| 'timestamp'
-					| 'errorGroupSecureID'
 					| 'serviceVersion'
 					| 'serviceName'
+					| 'errorGroupSecureID'
 				> & {
 						session?: Types.Maybe<
 							{ __typename?: 'ErrorObjectNodeSession' } & Pick<
@@ -5447,6 +5484,7 @@ export const namedOperations = {
 		GetErrorResolutionSuggestion: 'GetErrorResolutionSuggestion' as const,
 		GetWorkspaceSettings: 'GetWorkspaceSettings' as const,
 		GetSystemConfiguration: 'GetSystemConfiguration' as const,
+		GetErrorGroupInstances: 'GetErrorGroupInstances' as const,
 		GetErrorObjects: 'GetErrorObjects' as const,
 		GetServices: 'GetServices' as const,
 		GetServiceByName: 'GetServiceByName' as const,

@@ -45,10 +45,13 @@ import {
 	DEMO_PROJECT_ID,
 	DEMO_WORKSPACE_PROXY_APPLICATION_ID,
 } from '@/components/DemoWorkspaceButton/DemoWorkspaceButton'
-import { SearchContext } from '@/components/Search/SearchContext'
+import { AiSuggestion, SearchContext } from '@/components/Search/SearchContext'
 import { useRetentionPresets } from '@/components/Search/SearchForm/hooks'
 import { START_PAGE } from '@/components/SearchPagination/SearchPagination'
-import { useGetBillingDetailsForProjectQuery } from '@/graph/generated/hooks'
+import {
+	useGetAiQuerySuggestionLazyQuery,
+	useGetBillingDetailsForProjectQuery,
+} from '@/graph/generated/hooks'
 import { PlanType, ProductType } from '@/graph/generated/schemas'
 import { useSearchTime } from '@/hooks/useSearchTime'
 import { useSessionFeedConfiguration } from '@/pages/Sessions/SessionsFeedV3/hooks/useSessionFeedConfiguration'
@@ -241,12 +244,21 @@ export const PlayerPage = () => {
 	const [page, setPage] = useQueryParam('page', PAGE_PARAM)
 	const sessionFeedConfiguration = useSessionFeedConfiguration()
 
+	const [aiMode, setAiMode] = useState(false)
+
 	const { presets } = useRetentionPresets(ProductType.Sessions)
 	const initialPreset = presets[5] ?? presets.at(-1)
 
 	const searchTimeContext = useSearchTime({
 		presets: presets,
 		initialPreset: initialPreset,
+	})
+
+	const [
+		getAiQuerySuggestion,
+		{ data: aiData, error: aiError, loading: aiLoading },
+	] = useGetAiQuerySuggestionLazyQuery({
+		fetchPolicy: 'network-only',
 	})
 
 	const getSessionsData = useGetSessions({
@@ -267,6 +279,35 @@ export const PlayerPage = () => {
 		},
 		[setPage, setQuery],
 	)
+
+	const onAiSubmit = (aiQuery: string) => {
+		if (projectId && aiQuery.length) {
+			getAiQuerySuggestion({
+				variables: {
+					query: aiQuery,
+					project_id: projectId,
+					product_type: ProductType.Sessions,
+					time_zone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+				},
+			})
+		}
+	}
+
+	const aiSuggestion = useMemo(() => {
+		const { query, date_range = {} } = aiData?.ai_query_suggestion ?? {}
+
+		return {
+			query,
+			dateRange: {
+				startDate: date_range.start_date
+					? new Date(date_range.start_date)
+					: undefined,
+				endDate: date_range.end_date
+					? new Date(date_range.end_date)
+					: undefined,
+			},
+		} as AiSuggestion
+	}, [aiData])
 
 	const tabTitle = !!session
 		? `Sessions: ${getDisplayName(session)}`
@@ -290,6 +331,12 @@ export const PlayerPage = () => {
 						page={page}
 						setPage={setPage}
 						pollingExpired={getSessionsData.pollingExpired}
+						aiMode={aiMode}
+						setAiMode={setAiMode}
+						onAiSubmit={onAiSubmit}
+						aiSuggestion={aiSuggestion}
+						aiSuggestionLoading={aiLoading}
+						aiSuggestionError={aiError}
 						{...searchTimeContext}
 					>
 						<Helmet>

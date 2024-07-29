@@ -14,7 +14,7 @@ import {
 	GetErrorGroupsQueryVariables,
 } from '@/graph/generated/operations'
 
-export const useGetErrors = ({
+export const useGetErrorGroups = ({
 	query,
 	project_id,
 	startDate,

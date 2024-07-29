@@ -106,13 +106,7 @@ const priceTiers: Record<TierName, PricingTier> = {
 		icon: <HiPuzzle className="text-[#0090FF] w-8 h-8 -translate-x-1" />,
 		features: [
 			{
-				feature: `Filters for data ingest`,
-			},
-			{
-				feature: 'All integrations',
-			},
-			{
-				feature: 'Up to 3 dashboards per workspace',
+				feature: 'Up to 3 dashboards',
 				tooltip: `Create up to 3 dashboards in the metrics product.`,
 			},
 			{
@@ -123,7 +117,7 @@ const priceTiers: Record<TierName, PricingTier> = {
 				feature: 'Up to 15 seats',
 			},
 			{
-				feature: '7 day retention',
+				feature: 'Up to 7 day retention',
 			},
 		],
 		calculateUsage: true,
@@ -138,20 +132,24 @@ const priceTiers: Record<TierName, PricingTier> = {
 		icon: <HiPuzzle className="text-[#0090FF] w-8 h-8 -translate-x-1" />,
 		features: [
 			{
-				feature: `Everything in pay-as-you-go`,
+				feature: 'Unlimited dashboards',
 			},
 			{
 				feature: `Unlimited projects`,
 				tooltip: `Separate your data into different projects in a single billing account.`,
 			},
 			{
-				feature: 'Unlimited dashboards',
+				feature: 'Unlimited seats',
 			},
 			{
 				feature: 'Custom retention policies',
 			},
 			{
-				feature: 'Unlimited seats',
+				feature: `Filters for data ingest`,
+				tooltip: `Ability to filter out data before it is ingested to mitigate costs.`,
+			},
+			{
+				feature: `Everything in pay-as-you-go`,
 			},
 		],
 		calculateUsage: true,
@@ -178,24 +176,22 @@ const priceTiers: Record<TierName, PricingTier> = {
 					'Secure user management to ensure you can manage your team with your existing tooling.',
 			},
 			{
-				feature: 'Custom Compliance Reporting',
+				feature: 'Custom MSAs & SLAs',
 				tooltip:
 					'Custom contracts to abide by your compliance requirements; we handle these on a case-by-case basis.',
 			},
 			{
-				feature: 'RBAC & Audit Logs',
+				feature: 'RBAC & audit logs',
 				tooltip:
 					'Infrastructure for auditing and adding fine-grained access controls.',
 			},
 			{
-				feature: 'Data Export',
+				feature: 'Data export & user reporting',
 				tooltip:
 					'Recurring or one-off exports of your observability data for offline analysis.',
 			},
 			{
-				feature: 'Aggregate user reporting',
-				tooltip:
-					'Recurring or one-off exports of your user data for offline analysis.',
+				feature: 'Everything in Business',
 			},
 		],
 		contactUs: true,
