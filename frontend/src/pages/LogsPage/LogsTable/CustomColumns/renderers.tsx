@@ -13,9 +13,15 @@ import { useNavigate } from 'react-router-dom'
 
 import { LogTimestamp } from '@/pages/LogsPage/LogsTable/LogTimestamp'
 
-type ColumnRendererProps = {
+export type ColumnRenderMap = {
+	[K: string]: React.FC<ColumnRendererProps>
+	string: React.FC<ColumnRendererProps>
+}
+
+export type ColumnRendererProps = {
 	row: any
 	getValue: () => any
+	first: boolean
 	queryParts: SearchExpression[]
 }
 

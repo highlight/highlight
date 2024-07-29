@@ -10,11 +10,12 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/highlight-run/highlight/backend/env"
 	"net/url"
 	"runtime"
 	"strings"
 	"time"
+
+	"github.com/highlight-run/highlight/backend/env"
 
 	"golang.org/x/text/cases"
 	"golang.org/x/text/language"
@@ -214,6 +215,10 @@ func SendSessionAlerts(ctx context.Context, db *gorm.DB, mailClient *sendgrid.Cl
 
 		templateData["userProperties"] = propertyArray
 	default:
+		return
+	}
+
+	if lambdaClient == nil {
 		return
 	}
 
@@ -491,7 +496,7 @@ func sendSlackAlert(ctx context.Context, db *gorm.DB, obj *model.AlertDeprecated
 		bodyBlockSet = append(bodyBlockSet, slack.NewSectionBlock(eventBlock, nil, nil))
 		bodyBlockSet = append(bodyBlockSet, slack.NewActionBlock("", actionBlocks...))
 		if stackTraceBlock != nil {
-			highlightLogo := *slack.NewImageBlockElement("https://app.highlight.io/logo192.png", "Highlight logo")
+			highlightLogo := *slack.NewImageBlockElement("https://beta.highlight.io/logo192.png", "Highlight logo")
 			bodyBlockSet = append(bodyBlockSet, slack.NewContextBlock("", highlightLogo, stackTraceBlock))
 		}
 	case model.AlertType.NEW_USER:

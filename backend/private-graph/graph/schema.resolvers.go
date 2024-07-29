@@ -5457,15 +5457,39 @@ func (r *queryResolver) ErrorObject(ctx context.Context, id int) (*model.ErrorOb
 }
 
 // ErrorObjects is the resolver for the error_objects field.
-func (r *queryResolver) ErrorObjects(ctx context.Context, errorGroupSecureID string, count int, params modelInputs.QueryInput, page *int) (*modelInputs.ErrorObjectResults, error) {
-	errorGroup, err := r.canAdminViewErrorGroup(ctx, errorGroupSecureID)
-	if err != nil {
-		return nil, err
+func (r *queryResolver) ErrorObjects(ctx context.Context, projectID *string, errorGroupSecureID *string, count int, params modelInputs.QueryInput, page *int) (*modelInputs.ErrorObjectResults, error) {
+	if projectID == nil && errorGroupSecureID == nil {
+		return nil, e.New("error_objects requires either projectID or errorGroupSecureID")
 	}
 
-	ids, total, err := r.ClickhouseClient.QueryErrorObjects(ctx, errorGroup.ProjectID, errorGroup.ID, count, params, page)
+	var projectIdDeref int
+	if projectID != nil {
+		var err error
+		projectIdDeref, err = strconv.Atoi(*projectID)
+		if err != nil {
+			return nil, err
+		}
 
-	results, err := r.Store.ListErrorObjects(ctx, *errorGroup, ids, total)
+		_, err = r.isUserInProjectOrDemoProject(ctx, projectIdDeref)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	var errorGroupId *int
+	if errorGroupSecureID != nil {
+		errorGroup, err := r.canAdminViewErrorGroup(ctx, *errorGroupSecureID)
+		if err != nil {
+			return nil, err
+		}
+
+		projectIdDeref = errorGroup.ProjectID
+		errorGroupId = &errorGroup.ID
+	}
+
+	ids, total, err := r.ClickhouseClient.QueryErrorObjects(ctx, projectIdDeref, errorGroupId, count, params, page)
+
+	results, err := r.Store.ListErrorObjects(ctx, ids, total)
 	return &results, err
 }
 
@@ -5502,7 +5526,7 @@ func (r *queryResolver) ErrorInstance(ctx context.Context, errorGroupSecureID st
 			return nil, e.Wrap(err, "error reading error object for instance")
 		}
 	} else if params != nil {
-		ids, _, err := r.ClickhouseClient.QueryErrorObjects(ctx, errorGroup.ProjectID, errorGroup.ID, 1, *params, nil)
+		ids, _, err := r.ClickhouseClient.QueryErrorObjects(ctx, errorGroup.ProjectID, &errorGroup.ID, 1, *params, nil)
 		if err != nil {
 			return nil, err
 		}

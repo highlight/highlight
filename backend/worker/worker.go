@@ -35,7 +35,6 @@ import (
 
 	log_alerts "github.com/highlight-run/highlight/backend/jobs/log-alerts"
 	metric_alerts "github.com/highlight-run/highlight/backend/jobs/metric-alerts"
-	metric_monitor "github.com/highlight-run/highlight/backend/jobs/metric-monitor"
 	kafkaqueue "github.com/highlight-run/highlight/backend/kafka-queue"
 	journey_handlers "github.com/highlight-run/highlight/backend/lambda-functions/journeys/handlers"
 	"github.com/highlight-run/highlight/backend/model"
@@ -1103,10 +1102,6 @@ func (w *Worker) MigrateDB(ctx context.Context) {
 	}
 }
 
-func (w *Worker) StartMetricMonitorWatcher(ctx context.Context) {
-	metric_monitor.WatchMetricMonitors(ctx, w.Resolver.DB, w.Resolver.ClickhouseClient, w.Resolver.MailClient, w.Resolver.RH)
-}
-
 func (w *Worker) StartLogAlertWatcher(ctx context.Context) {
 	log_alerts.WatchLogAlerts(ctx, w.Resolver.DB, w.Resolver.MailClient, w.Resolver.RH, w.Resolver.Redis, w.Resolver.ClickhouseClient, w.Resolver.LambdaClient)
 }
@@ -1342,7 +1337,7 @@ func (w *Worker) GetHandler(ctx context.Context, handlerFlag util.Handler) func(
 	case util.MigrateDB:
 		return w.MigrateDB
 	case util.MetricMonitors:
-		return w.StartMetricMonitorWatcher
+		return w.StartMetricAlertWatcher
 	case util.LogAlerts:
 		return w.StartLogAlertWatcher
 	case util.BackfillStackFrames:

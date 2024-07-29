@@ -8,7 +8,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 
 import { TIME_FORMAT } from '@/components/Search/SearchForm/constants'
 
-const initialWindowInfo: PageInfo = {
+export const initialWindowInfo: PageInfo = {
 	hasNextPage: true,
 	hasPreviousPage: true,
 	startCursor: '', // unused but needed for typedef
@@ -26,6 +26,7 @@ export const useGetTraces = ({
 	skipPolling,
 	sortColumn,
 	sortDirection,
+	skip,
 }: {
 	query: string
 	projectId: string | undefined
@@ -35,6 +36,7 @@ export const useGetTraces = ({
 	skipPolling?: boolean
 	sortColumn?: string | null | undefined
 	sortDirection?: Types.SortDirection | null | undefined
+	skip?: boolean
 }) => {
 	// The backend can only tell us page info about a single page.
 	// It has no idea what pages have already been loaded.
@@ -70,6 +72,7 @@ export const useGetTraces = ({
 			},
 		},
 		fetchPolicy: 'cache-and-network',
+		skip,
 	})
 
 	const [moreDataQuery] = useGetTracesLazyQuery({

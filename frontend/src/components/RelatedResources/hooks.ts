@@ -6,8 +6,22 @@ import { useSearchParams } from 'react-router-dom'
 import { PlayerSearchParameters } from '@/pages/Player/PlayerHook/utils'
 
 type RelatedResourceCommon = {
-	type: 'error' | 'session' | 'trace' | 'logs'
+	type:
+		| 'error'
+		| 'session'
+		| 'trace'
+		| 'logs'
+		| 'errors'
+		| 'sessions'
+		| 'traces'
 	canGoBack?: boolean
+}
+
+type QueryableResource = {
+	type: 'logs' | 'errors' | 'sessions' | 'traces'
+	query: string
+	startDate: string
+	endDate: string
 }
 
 export type RelatedError = RelatedResourceCommon & {
@@ -30,19 +44,35 @@ export type RelatedTrace = RelatedResourceCommon & {
 	spanID?: string
 }
 
-export type RelatedLogs = RelatedResourceCommon & {
-	type: 'logs'
-	query: string
-	startDate: string
-	endDate: string
-	logCursor?: string
-}
+export type RelatedLogs = RelatedResourceCommon &
+	QueryableResource & {
+		type: 'logs'
+		logCursor?: string
+	}
+
+export type RelatedTraces = RelatedResourceCommon &
+	QueryableResource & {
+		type: 'traces'
+	}
+
+export type RelatedErrors = RelatedResourceCommon &
+	QueryableResource & {
+		type: 'errors'
+	}
+
+export type RelatedSessions = RelatedResourceCommon &
+	QueryableResource & {
+		type: 'sessions'
+	}
 
 export type RelatedResource =
 	| RelatedError
 	| RelatedSession
 	| RelatedTrace
 	| RelatedLogs
+	| RelatedTraces
+	| RelatedErrors
+	| RelatedSessions
 
 const LOCAL_STORAGE_WIDTH_KEY = 'related-resource-panel-width'
 export const RELATED_RESOURCE_PARAM = 'related_resource'

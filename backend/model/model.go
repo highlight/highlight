@@ -51,6 +51,7 @@ const (
 
 // TODO(et) - replace this with generated SessionAlertType
 var AlertType = struct {
+	// deprecated alerts
 	ERROR            string
 	NEW_USER         string
 	TRACK_PROPERTIES string
@@ -59,7 +60,14 @@ var AlertType = struct {
 	RAGE_CLICK       string
 	NEW_SESSION      string
 	LOG              string
+	// new alerts
+	SESSIONS string
+	ERRORS   string
+	LOGS     string
+	TRACES   string
+	METRICS  string
 }{
+	// deprecated alerts
 	ERROR:            "ERROR_ALERT",
 	NEW_USER:         "NEW_USER_ALERT",
 	TRACK_PROPERTIES: "TRACK_PROPERTIES_ALERT",
@@ -68,6 +76,12 @@ var AlertType = struct {
 	RAGE_CLICK:       "RAGE_CLICK_ALERT",
 	NEW_SESSION:      "NEW_SESSION_ALERT",
 	LOG:              "LOG",
+	// new alerts
+	SESSIONS: "SESSIONS_ALERT",
+	ERRORS:   "ERRORS_ALERT",
+	LOGS:     "LOGS_ALERT",
+	TRACES:   "TRACES_ALERT",
+	METRICS:  "METRICS_ALERT",
 }
 
 var AdminRole = struct {

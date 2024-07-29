@@ -1,6 +1,5 @@
 import { Box, Callout, Stack, Table, Text } from '@highlight-run/ui/components'
-import { ColumnAccessors } from '@pages/Traces/CustomColumns/accessors'
-import { ColumnRenderers } from '@pages/Traces/CustomColumns/renderers'
+import { TraceColumnRenderers } from '@pages/Traces/CustomColumns/renderers'
 import useLocalStorage from '@rehooks/local-storage'
 import {
 	ColumnDef,
@@ -21,6 +20,7 @@ import {
 import {
 	CustomColumnPopover,
 	DEFAULT_COLUMN_SIZE,
+	SerializedColumn,
 } from '@/components/CustomColumnPopover'
 import { AdditionalFeedResults } from '@/components/FeedResults/FeedResults'
 import { LinkButton } from '@/components/LinkButton'
@@ -79,10 +79,9 @@ export const TracesList: React.FC<Props> = ({
 	const { integrated } = useTracesIntegration()
 	const { resource } = useRelatedResource()
 	const trace = resource as RelatedTrace
-	const [selectedColumns, setSelectedColumns] = useLocalStorage(
-		`highlight-traces-table-columns`,
-		DEFAULT_TRACE_COLUMNS,
-	)
+	const [selectedColumns, setSelectedColumns] = useLocalStorage<
+		SerializedColumn[]
+	>(`highlight-traces-table-columns`, DEFAULT_TRACE_COLUMNS)
 	const [windowSize, setWindowSize] = useLocalStorage(
 		'highlight-traces-window-size',
 		window.innerWidth,
@@ -174,17 +173,20 @@ export const TracesList: React.FC<Props> = ({
 				},
 			})
 
-			const accessorFn = (
-				ColumnAccessors[column.type as keyof typeof ColumnAccessors] ||
-				ColumnAccessors.accessKey
-			)(column.accessKey)
+			const accessorFn =
+				column.id in HIGHLIGHT_STANDARD_COLUMNS
+					? HIGHLIGHT_STANDARD_COLUMNS[column.id].accessor
+					: (`node.traceAttributes.${column.id}` as `node.traceAttributes.${string}`)
 
-			// @ts-ignore
+			const columnType =
+				column.id in HIGHLIGHT_STANDARD_COLUMNS
+					? HIGHLIGHT_STANDARD_COLUMNS[column.id].type
+					: 'string'
+
 			const accessor = columnHelper.accessor(accessorFn, {
 				id: column.id,
 				cell: ({ row, getValue }) => {
-					const ColumnRenderer =
-						ColumnRenderers[column.type] || ColumnRenderers.string
+					const ColumnRenderer = TraceColumnRenderers[columnType]
 
 					return (
 						<ColumnRenderer
@@ -192,6 +194,7 @@ export const TracesList: React.FC<Props> = ({
 							row={row}
 							getValue={getValue}
 							first={first}
+							queryParts={[]}
 						/>
 					)
 				},
@@ -211,7 +214,9 @@ export const TracesList: React.FC<Props> = ({
 					selectedColumns={selectedColumns}
 					setSelectedColumns={setSelectedColumns}
 					standardColumns={HIGHLIGHT_STANDARD_COLUMNS}
-					attributePrefix="traceAttributes"
+					attributeAccessor={(row: TraceEdge) =>
+						row.node.traceAttributes
+					}
 				/>
 			),
 		})
