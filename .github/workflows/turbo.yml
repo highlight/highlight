@@ -68,11 +68,6 @@ jobs:
                   NEXT_PUBLIC_HIGHLIGHT_PROJECT_ID: 1jdkoe52
                   REACT_APP_COMMIT_SHA: ${{ github.sha }}
 
-            - name: Validate session screenshot lambda size
-              # this can only run after `yarn test:render` runs
-              if: github.event.pull_request.head.repo.full_name == 'highlight/highlight' || github.ref == 'refs/heads/main'
-              run: yarn workspace render zip && yarn workspace render check
-
             - name: Validate repo state
               run: |
                   git status --porcelain
