@@ -1066,6 +1066,7 @@ func (r *Resolver) InitializeSessionImpl(ctx context.Context, input *kafka_queue
 	if err != nil {
 		return nil, e.Wrapf(err, "An unsupported verboseID was used: %s, %s", input.ProjectVerboseID, input.ClientConfig)
 	}
+	initSpan.SetAttribute("project_id", projectID)
 
 	existingSession, err := r.getExistingSession(ctx, projectID, input.SessionSecureID)
 	if err != nil {
@@ -1133,6 +1134,7 @@ func (r *Resolver) InitializeSessionImpl(ctx context.Context, input *kafka_queue
 
 	// mark recording-less sessions as processed so they are considered excluded
 	if input.DisableSessionRecording != nil && *input.DisableSessionRecording {
+		initSpan.SetAttribute("disable_session_recording", true)
 		session.Processed = &model.T
 	}
 
