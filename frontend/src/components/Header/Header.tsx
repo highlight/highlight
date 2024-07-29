@@ -14,6 +14,7 @@ import {
 	Badge,
 	Box,
 	ButtonIcon,
+	IconProps,
 	IconSolidArrowSmLeft,
 	IconSolidArrowSmRight,
 	IconSolidAtSymbol,
@@ -175,7 +176,12 @@ export const Header: React.FC<Props> = ({ fullyIntegrated }) => {
 
 	const { isProjectLevelMember } = useAuthContext()
 
-	const pages = [
+	const pages: {
+		key: string
+		icon: ({ size, ...props }: IconProps) => JSX.Element
+		isBeta?: boolean
+		hidden?: boolean
+	}[] = [
 		{
 			key: 'sessions',
 			icon: IconSolidPlayCircle,
@@ -195,7 +201,6 @@ export const Header: React.FC<Props> = ({ fullyIntegrated }) => {
 		{
 			key: 'metrics',
 			icon: IconSolidChartBar,
-			isBeta: true,
 			hidden: !showMetrics,
 		},
 		{
