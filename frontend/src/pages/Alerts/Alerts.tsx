@@ -246,7 +246,7 @@ function formatAlertDataForTable(alert: any, config: AlertConfiguration) {
 		...alert,
 		ChannelsToNotify: slackChannels,
 		DiscordChannelsToNotify: discordChannels,
-		MicrosoftTeamsChennelsToNotify: microsoftTeamsChannels,
+		MicrosoftTeamsChannelsToNotify: microsoftTeamsChannels,
 		EmailsToNotify: emails,
 		WebhookDestinations: webhookDestinations,
 		configuration: config,
@@ -536,36 +536,34 @@ const AlertRow = ({ record, navigateToAlert }: AlertRowProps) => {
 										iconLeft={<RiSlackFill />}
 										onClick={() => navigateToAlert(record)}
 									>
-										{`${channel.webhook_channel}`}
+										{channel.webhook_channel}
 									</Tag>
 								))}
-								{getAlertNotifyField(record, 'Discord').map(
-									(channel: DiscordChannel) => (
-										<Tag
-											key={channel.id}
-											kind="secondary"
-											size="medium"
-											shape="basic"
-											emphasis="medium"
-											disabled={record.disabled}
-											iconLeft={
-												<IconSolidDiscord
-													size={12}
-													fill={
-														vars.theme.interactive
-															.fill.secondary
-															.content.text
-													}
-												/>
-											}
-											onClick={() =>
-												navigateToAlert(record)
-											}
-										>
-											{`${channel.name}`}
-										</Tag>
-									),
-								)}
+								{getAlertNotifyField(
+									record,
+									'DiscordChannelsToNotify',
+								).map((channel: DiscordChannel) => (
+									<Tag
+										key={channel.id}
+										kind="secondary"
+										size="medium"
+										shape="basic"
+										emphasis="medium"
+										disabled={record.disabled}
+										iconLeft={
+											<IconSolidDiscord
+												size={12}
+												fill={
+													vars.theme.interactive.fill
+														.secondary.content.text
+												}
+											/>
+										}
+										onClick={() => navigateToAlert(record)}
+									>
+										{channel.name}
+									</Tag>
+								))}
 								{getAlertNotifyField(
 									record,
 									'MicrosoftTeamsChannelsToNotify',
@@ -588,7 +586,7 @@ const AlertRow = ({ record, navigateToAlert }: AlertRowProps) => {
 										}
 										onClick={() => navigateToAlert(record)}
 									>
-										{`${channel.name}`}
+										{channel.name}
 									</Tag>
 								))}
 								{getAlertNotifyField(
@@ -605,7 +603,7 @@ const AlertRow = ({ record, navigateToAlert }: AlertRowProps) => {
 										iconLeft={<RiMailFill />}
 										onClick={() => navigateToAlert(record)}
 									>
-										{`${email}`}
+										{email}
 									</Tag>
 								))}
 								{getAlertNotifyField(

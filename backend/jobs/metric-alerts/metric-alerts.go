@@ -5,6 +5,7 @@ import (
 	"strings"
 	"time"
 
+	alertsV2 "github.com/highlight-run/highlight/backend/alerts/v2"
 	"github.com/highlight-run/highlight/backend/clickhouse"
 	"github.com/highlight-run/highlight/backend/lambda"
 	modelInputs "github.com/highlight-run/highlight/backend/private-graph/graph/model"
@@ -176,6 +177,11 @@ func processMetricAlert(ctx context.Context, DB *gorm.DB, MailClient *sendgrid.C
 		thresholdValue = *alert.ThresholdValue
 	}
 
+	groupByKey := ""
+	if len(groupBy) > 0 {
+		groupByKey = groupBy[0]
+	}
+
 	stateChanges := []modelInputs.AlertStateChange{}
 	if saveMetricState {
 		results, err := ccClient.AggregateMetricStates(ctx, alert.MetricId, curDate, thresholdWindow, alert.FunctionType)
@@ -188,17 +194,13 @@ func processMetricAlert(ctx context.Context, DB *gorm.DB, MailClient *sendgrid.C
 				alertCondition = result.Value <= thresholdValue
 			}
 
-			log.WithContext(ctx).WithFields(log.Fields{
-				"id":              alert.ID,
-				"query":           alert.Query,
-				"time":            curDate.Format(time.RFC3339),
-				"value":           result.Value,
-				"thresholdValue":  thresholdValue,
-				"thresholdWindow": thresholdWindow,
-				"alerting":        alertCondition,
-			}).Info("evaluated log alert from saved state")
+			alertStateChange := getAlertStateChange(curDate, alertCondition, alert.ID, result.GroupByKey, lastAlerts, cooldown)
 
-			stateChanges = append(stateChanges, getAlertStateChange(curDate, alertCondition, alert.ID, result.GroupByKey, lastAlerts, cooldown))
+			if alertStateChange.State == modelInputs.AlertStateAlerting {
+				alertsV2.SendAlerts(ctx, DB, MailClient, lambdaClient, alert, groupByKey, result.GroupByKey, result.Value)
+			}
+
+			stateChanges = append(stateChanges, alertStateChange)
 		}
 	} else {
 		for _, bucket := range buckets.Buckets {
@@ -211,17 +213,13 @@ func processMetricAlert(ctx context.Context, DB *gorm.DB, MailClient *sendgrid.C
 				alertCondition = value <= thresholdValue
 			}
 
-			log.WithContext(ctx).WithFields(log.Fields{
-				"id":              alert.ID,
-				"query":           alert.Query,
-				"time":            curDate.Format(time.RFC3339),
-				"value":           value,
-				"thresholdValue":  thresholdValue,
-				"thresholdWindow": thresholdWindow,
-				"alerting":        alertCondition,
-			}).Info("evaluated log alert from saved state")
+			alertStateChange := getAlertStateChange(curDate, alertCondition, alert.ID, strings.Join(bucket.Group, "."), lastAlerts, cooldown)
 
-			stateChanges = append(stateChanges, getAlertStateChange(curDate, alertCondition, alert.ID, strings.Join(bucket.Group, "."), lastAlerts, cooldown))
+			if alertStateChange.State == modelInputs.AlertStateAlerting {
+				alertsV2.SendAlerts(ctx, DB, MailClient, lambdaClient, alert, groupByKey, bucket.Group[0], value)
+			}
+
+			stateChanges = append(stateChanges, alertStateChange)
 		}
 	}
 
