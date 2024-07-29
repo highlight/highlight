@@ -12,7 +12,7 @@ import {
 } from '@highlight-run/ui/components'
 import { useParams } from '@util/react-router/useParams'
 import { Divider } from 'antd'
-import React, { PropsWithChildren, useMemo, useState } from 'react'
+import React, { PropsWithChildren, useEffect, useMemo, useState } from 'react'
 import { Helmet } from 'react-helmet'
 import { useNavigate } from 'react-router-dom'
 import { useDebounce } from 'react-use'
@@ -89,9 +89,14 @@ const EditorBackground = () => {
 	)
 }
 
+const FREQUENCY_OPTIONS = FREQUENCIES.filter((freq) => Number(freq.value) >= 60)
+
+const MINUTE = 60
+const WEEK = 7 * 24 * 60 * MINUTE
+
 const DEFAULT_THRESHOLD = 1
-const DEFAULT_WINDOW = 60 * 30
-const DEFAULT_COOLDOWN = 60 * 30
+const DEFAULT_WINDOW = MINUTE * 30
+const DEFAULT_COOLDOWN = MINUTE * 30
 
 export const AlertForm: React.FC = () => {
 	const { projectId } = useProjectId()
@@ -130,6 +135,9 @@ export const AlertForm: React.FC = () => {
 	const [functionType, setFunctionType] = useState(FUNCTION_TYPES[0])
 	const [functionColumn, setFunctionColumn] = useState('')
 
+	const isErrorAlert = productType === ProductType.Errors
+	const isSessionAlert = productType === ProductType.Sessions
+
 	const [query, setQuery] = useState('')
 	const [debouncedQuery, setDebouncedQuery] = useState('')
 	useDebounce(
@@ -155,6 +163,40 @@ export const AlertForm: React.FC = () => {
 	const [destinations, setDestinations] = useState<AlertDestinationInput[]>(
 		[],
 	)
+
+	useEffect(() => {
+		if (isErrorAlert) {
+			// locked error settings -> group by secure_id
+			setGroupByEnabled(true)
+			setGroupByKey('secure_id')
+		} else {
+			setGroupByEnabled(false)
+			setGroupByKey('')
+		}
+	}, [isErrorAlert])
+
+	useEffect(() => {
+		if (isSessionAlert) {
+			// locked session settings
+			// group by session_id
+			setGroupByEnabled(true)
+			setGroupByKey('secure_id')
+			// only above threshold
+			setBelowThreshold(false)
+			// alert per session
+			setThresholdValue(DEFAULT_THRESHOLD)
+			// don't alert on sessions more than once
+			setThresholdWindow(MINUTE)
+			setThresholdCooldown(WEEK)
+		} else {
+			setGroupByEnabled(false)
+			setGroupByKey('')
+			setBelowThreshold(false)
+			setThresholdValue(DEFAULT_THRESHOLD)
+			setThresholdWindow(DEFAULT_WINDOW)
+			setThresholdCooldown(DEFAULT_COOLDOWN)
+		}
+	}, [isSessionAlert])
 
 	const viewConfig = getViewConfig(
 		'Line chart',
@@ -534,104 +576,128 @@ export const AlertForm: React.FC = () => {
 									</LabeledRow>
 								</SidebarSection>
 								<Divider className="m-0" />
-								<SidebarSection>
-									<LabeledRow
-										label="Alert conditions"
-										name="alertConditions"
-									>
-										<OptionDropdown<AlertCondition>
-											options={ALERT_CONDITION_OPTIONS}
-											selection={
-												belowThreshold
-													? AlertCondition.Below
-													: AlertCondition.Above
-											}
-											setSelection={(option) => {
-												setBelowThreshold(
-													option ==
-														AlertCondition.Below,
-												)
-											}}
-										/>
-									</LabeledRow>
-									<Stack direction="row" gap="12">
-										<LabeledRow
-											label="Alert threshold"
-											name="thresholdValue"
-										>
-											<Input
-												name="thresholdValue"
-												type="number"
-												value={thresholdValue}
-												onChange={(e) => {
-													setThresholdValue(
-														Number(e.target.value),
-													)
-												}}
-											/>
-										</LabeledRow>
-										<LabeledRow
-											label="Alert window"
-											name="thresholdWindow"
-										>
-											<OptionDropdown<string>
-												options={FREQUENCIES.map(
-													(f) => f.value,
-												)}
-												labels={FREQUENCIES.map(
-													(f) => f.displayValue,
-												)}
-												selection={String(
-													thresholdWindow,
-												)}
-												setSelection={(option) => {
-													setThresholdWindow(
-														Number(option),
-													)
-												}}
-											/>
-										</LabeledRow>
-									</Stack>
-									<LabeledRow
-										label="Cooldown"
-										name="thresholdCooldown"
-									>
-										<OptionDropdown<string>
-											options={FREQUENCIES.map(
-												(f) => f.value,
-											)}
-											labels={FREQUENCIES.map(
-												(f) => f.displayValue,
-											)}
-											selection={String(
-												thresholdCooldown,
-											)}
-											setSelection={(option) => {
-												setThresholdCooldown(
-													Number(option),
-												)
-											}}
-										/>
-									</LabeledRow>
-								</SidebarSection>
-								<Divider className="m-0" />
-								<SidebarSection>
-									<LabeledRow
-										label="Group by"
-										name="groupBy"
-										enabled={groupByEnabled}
-										setEnabled={setGroupByEnabled}
-										tooltip="A categorical field for grouping results into separate series."
-									>
-										<Combobox
-											selection={groupByKey}
-											setSelection={setGroupByKey}
-											label="groupBy"
-											searchConfig={searchOptionsConfig}
-										/>
-									</LabeledRow>
-								</SidebarSection>
-								<Divider className="m-0" />
+								{!isSessionAlert && (
+									<>
+										<SidebarSection>
+											<LabeledRow
+												label="Alert conditions"
+												name="alertConditions"
+											>
+												<OptionDropdown<AlertCondition>
+													options={
+														ALERT_CONDITION_OPTIONS
+													}
+													selection={
+														belowThreshold
+															? AlertCondition.Below
+															: AlertCondition.Above
+													}
+													setSelection={(option) => {
+														setBelowThreshold(
+															option ==
+																AlertCondition.Below,
+														)
+													}}
+												/>
+											</LabeledRow>
+											<Stack direction="row" gap="12">
+												<LabeledRow
+													label="Alert threshold"
+													name="thresholdValue"
+												>
+													<Input
+														name="thresholdValue"
+														type="number"
+														value={thresholdValue}
+														onChange={(e) => {
+															setThresholdValue(
+																Number(
+																	e.target
+																		.value,
+																),
+															)
+														}}
+													/>
+												</LabeledRow>
+												<LabeledRow
+													label="Alert window"
+													name="thresholdWindow"
+												>
+													<OptionDropdown<string>
+														options={FREQUENCY_OPTIONS.map(
+															(f) => f.value,
+														)}
+														labels={FREQUENCY_OPTIONS.map(
+															(f) =>
+																f.displayValue,
+														)}
+														selection={String(
+															thresholdWindow,
+														)}
+														setSelection={(
+															option,
+														) => {
+															setThresholdWindow(
+																Number(option),
+															)
+														}}
+													/>
+												</LabeledRow>
+											</Stack>
+											<LabeledRow
+												label="Cooldown"
+												name="thresholdCooldown"
+											>
+												<OptionDropdown<string>
+													options={FREQUENCY_OPTIONS.map(
+														(f) => f.value,
+													)}
+													labels={FREQUENCY_OPTIONS.map(
+														(f) => f.displayValue,
+													)}
+													selection={String(
+														thresholdCooldown,
+													)}
+													setSelection={(option) => {
+														setThresholdCooldown(
+															Number(option),
+														)
+													}}
+												/>
+											</LabeledRow>
+										</SidebarSection>
+										<Divider className="m-0" />
+										{!isErrorAlert && (
+											<>
+												<SidebarSection>
+													<LabeledRow
+														label="Group by"
+														name="groupBy"
+														enabled={groupByEnabled}
+														setEnabled={
+															setGroupByEnabled
+														}
+														tooltip="A categorical field for grouping results into separate series."
+													>
+														<Combobox
+															selection={
+																groupByKey
+															}
+															setSelection={
+																setGroupByKey
+															}
+															label="groupBy"
+															searchConfig={
+																searchOptionsConfig
+															}
+														/>
+													</LabeledRow>
+												</SidebarSection>
+												<Divider className="m-0" />
+											</>
+										)}
+									</>
+								)}
 								<SidebarSection>
 									<DestinationInput
 										initialDestinations={
