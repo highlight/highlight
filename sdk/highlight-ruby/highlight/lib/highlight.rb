@@ -83,11 +83,14 @@ module Highlight
     def trace(session_id, request_id, attrs = {})
       return unless initialized?
 
-      start_span('highlight-ctx', attrs) do |span|
-        # These are passed along by the BaggageSpanProcessor to child spans
-        OpenTelemetry::Baggage.set_value(HIGHLIGHT_SESSION_ATTRIBUTE, session_id)
-        OpenTelemetry::Baggage.set_value(HIGHLIGHT_TRACE_ATTRIBUTE, request_id)
+      # TODO: Need to figure out why propogation isn't working for associating
+      # spans.
 
+      # Passed along by the BaggageSpanProcessor to child spans as attributes
+      OpenTelemetry::Baggage.set_value(HIGHLIGHT_SESSION_ATTRIBUTE, session_id)
+      OpenTelemetry::Baggage.set_value(HIGHLIGHT_TRACE_ATTRIBUTE, request_id)
+
+      start_span('highlight-ctx', attrs) do |span|
         yield span
       end
     end
@@ -147,7 +150,10 @@ module Highlight
     def self.parse_headers(headers)
       if headers && headers[HIGHLIGHT_REQUEST_HEADER]
         session_id, request_id = headers[HIGHLIGHT_REQUEST_HEADER].split('/')
-        return HighlightHeaders.new(session_id, request_id)
+        traceparent = headers['traceparent']
+        trace_id = traceparent&.split('-')&.second || request_id
+        puts "trace_id: #{trace_id}"
+        return HighlightHeaders.new(session_id, trace_id)
       end
       HighlightHeaders.new(nil, nil)
     end
@@ -169,6 +175,12 @@ module Highlight
       else
         'UNKNOWN'
       end
+    end
+
+    private
+
+    def trace_id_from_headers(headers)
+      return headers.traceparent&.split('-')&.first
     end
   end
 

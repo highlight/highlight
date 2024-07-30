@@ -19,6 +19,11 @@ receivers:
                 endpoint: '0.0.0.0:4318'
                 max_request_body_size: 0
                 include_metadata: true
+                cors:
+                    allowed_origins:
+                        # got an error using '*', but these rules are equivalent
+                        - 'https://*'
+                        - 'http://*'
     otlp/https:
         protocols:
             http:
@@ -36,6 +41,8 @@ receivers:
                         - 'Access-Control-Request-Headers'
                         - 'Access-Control-Request-Method'
                         - 'Access-Control-Allow-Origin'
+                        - 'Access-Control-Allow-Methods'
+                        - 'Access-Control-Max-Age'
                         - 'Referer'
                         - 'Traceparent'
                         - 'Tracestate'
