@@ -71,7 +71,7 @@ require (
 	github.com/oschwald/geoip2-golang v1.11.0
 	github.com/pkg/errors v0.9.1
 	github.com/redis/go-redis/v9 v9.5.1
-	github.com/rs/cors v1.10.1
+	github.com/rs/cors v1.11.0
 	github.com/rs/xid v1.5.0
 	github.com/samber/lo v1.39.0
 	github.com/sashabaranov/go-openai v1.25.0
@@ -244,6 +244,6 @@ require (
 	golang.org/x/time v0.5.0 // indirect
 	google.golang.org/appengine v1.6.8 // indirect
 	google.golang.org/genproto v0.0.0-20240617180043-68d350f18fd4 // indirect
-	google.golang.org/grpc v1.64.0 // indirect
+	google.golang.org/grpc v1.64.1 // indirect
 	google.golang.org/protobuf v1.34.2 // indirect
 )
