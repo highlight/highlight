@@ -3,22 +3,24 @@ title: How to Use OpenTelemetry to Monitor Next.js Applications
 createdAt: 2024-07-26T12:00:00Z
 readingTime: 10
 authorFirstName: Chris
-authorLastName: Schmitz
-authorTitle: Software Engineer @ Highlight
-authorTwitter: 'https://twitter.com/ccschmitz'
-authorLinkedIn: 'https://www.linkedin.com/in/ccschmitz'
-authorGithub: 'https://github.com/ccschmitz'
-authorWebsite: ''
-authorPFP: 'https://www.highlight.io/_next/image?url=https%3A%2F%2Fmedia.graphassets.com%2FViK27IG7TCe0YDK20tFy&w=3840&q=75'
+authorLastName: Griffing
+authorTitle: Technical Developer Advocate
+authorTwitter: 'https://x.com/cmgriffing'
+authorLinkedIn: 'https://www.linkedin.com/in/cmgriffing'
+authorGithub: 'https://github.com/cmgriffing'
+authorWebsite: 'https://chrisgriffing.com'
+authorPFP: 'https://chrisgriffing.com/static/3053e1631c1e5e072c0c872f7c59f801/6e63d/selfportrait.jpg'
 tags: OpenTelemetry
 metaTitle: Learn how to leverage OpenTelemetry to find and fix errors and performance issues in your Next.js applications.
 ---
 
-<!-- TODO: Write intro because this portion was broken up from the original What is OTEL article -->
+Observability is key to monitoring and improving your web application's performance. Integrating OpenTelemetry with your Next.js app provides valuable insights into its behavior. This blog post guides you through configuring Next.js to push data to your Collector using OpenTelemetry.
+
+We'll cover two integration methods: Vercel's @vercel/otel package and manual setup. Both have their benefits and considerations. By the end, you'll understand how to set up OpenTelemetry in your Next.js app, use default and custom spans, and see how Highlight can enhance your observability. Let's get started!
 
 ## Next.js Integration
 
-With all of that out of the way, we can finally get to configuring Next.js to push data to our Collector. Luckily, Next has a [great article](https://nextjs.org/docs/app/building-your-application/optimizing/open-telemetry) about this process. There are basically 2 ways of integrating OpenTelemetry with Next, a package made by vercel and doing so manually.
+Assuming you have your OpenTelemetry collector configured (check out my previous post if you need help with this), we work on configuring Next.js to push data to our Collector. Luckily, Next has a [great article](https://nextjs.org/docs/app/building-your-application/optimizing/open-telemetry) about this process. There are basically 2 ways of integrating OpenTelemetry with Next, a package made by vercel and doing so manually.
 
 One big thing to remember is that this functionality is still experimental in Next. So, you will have to enable the instrumentation hook:
 
@@ -210,7 +212,7 @@ sdk.start();
 
 While this is not official, it does seem like there is a way to get a manual configuration to play nicely with the Edge runtime. Since Vercel is using CloudFlare workers, according to [this HackerNews comment by Lee Robinson](https://news.ycombinator.com/item?id=29003514), we can use their `waitUntil` API.
 
-At Highlight, the waitUntil API is polyfilled to support the edge runtime, so you don't have to do anything extra.
+At Highlight, the `waitUntil` API is polyfilled to support the edge runtime, so you don't have to do anything extra.
 
 \[IMAGE GOES HERE\]
 

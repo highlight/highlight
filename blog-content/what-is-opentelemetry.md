@@ -3,22 +3,22 @@ title: What is OpenTelemetry and Why Should I Care?
 createdAt: 2024-07-26T12:00:00Z
 readingTime: 10
 authorFirstName: Chris
-authorLastName: Schmitz
-authorTitle: Software Engineer @ Highlight
-authorTwitter: 'https://twitter.com/ccschmitz'
-authorLinkedIn: 'https://www.linkedin.com/in/ccschmitz'
-authorGithub: 'https://github.com/ccschmitz'
-authorWebsite: ''
-authorPFP: 'https://www.highlight.io/_next/image?url=https%3A%2F%2Fmedia.graphassets.com%2FViK27IG7TCe0YDK20tFy&w=3840&q=75'
+authorLastName: Griffing
+authorTitle: Technical Developer Advocate
+authorTwitter: 'https://x.com/cmgriffing'
+authorLinkedIn: 'https://www.linkedin.com/in/cmgriffing'
+authorGithub: 'https://github.com/cmgriffing'
+authorWebsite: 'https://chrisgriffing.com'
+authorPFP: 'https://chrisgriffing.com/static/3053e1631c1e5e072c0c872f7c59f801/6e63d/selfportrait.jpg'
 tags: OpenTelemetry
 metaTitle: Learn about OpenTelemetry and how it can give you superpowers monitoring your web applications allowing to find and fix bugs and performance problems easily.
 ---
 
-OpenTelemetry is a really cool project from the CNCF. In this post, we will cover the origins of OpenTelemetry, also known as OTEL, as well as what it looks like to spin up your own collector and wire that into Next.js. By the end of it, you should have a pretty good understanding about why you should be using OpenTelemetry and how you can use Highlight to simplify the process while also getting some things that are not currently supported out of the box.
+OpenTelemetry is a really cool project from the [CNCF](https://www.cncf.io/). In this post, we will cover the origins of OpenTelemetry, also known as OTEL, as well as what it looks like to spin up your own collector. By the end of it, you should have a pretty good understanding about what OpenTelemetry is and how to start collecting OTEL data in your applications. In a future post we'll cover (TODO: link to other article) instrumenting a Next.js app how you can use Highlight to simplify the process while getting additional insights.
 
 If you would prefer a video of this content, please feel free to check out our YouTube video about the subject.
 
-{{YOUTUBE LINK OR EMBED GOES HERE}}
+<iframe width="100" height="100" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen title="What is OpenTelemetry?" src="https://youtu.be/ASgosEzG4Pw"></iframe>
 
 ## What's Missing?
 
@@ -182,4 +182,8 @@ This can all be a bit much so it might be worth it to visualize the pipeline pro
 
 \[IMAGE GOES HERE\]
 
-<!-- TODO: Add closing of this article and reference to the next article -->
+## Wrapping Up
+
+OpenTelemetry offers a powerful, unified approach to gathering telemetry data across your applications. By leveraging it, you can gain deep insights into your application's performance and fix bugs faster. While this article covered the basics, there's much more to explore. Check out our [How to Use OpenTelemetry to Monitor Next.js Applications](asdf) for an overview of instrumenting a Next.js app and how Highlight can streamline instrumentation while providing actionable insights based on your data.
+
+Happy monitoring!
