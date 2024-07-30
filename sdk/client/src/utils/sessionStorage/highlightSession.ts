@@ -31,13 +31,16 @@ export const setSessionData = function (sessionData: SessionData | null) {
 		return
 	}
 	setItem(SESSION_STORAGE_KEYS.SESSION_DATA, JSON.stringify(sessionData))
-	setSessionSecureID(sessionData.sessionSecureID)
 }
 
 export const getSessionSecureID = function () {
-	return getItem(SESSION_STORAGE_KEYS.SESSION_SECURE_ID) ?? ''
+	const data = getPreviousSessionData()
+	return data?.sessionSecureID ?? ''
 }
 
 export const setSessionSecureID = function (sessionSecureID: string) {
-	return setItem(SESSION_STORAGE_KEYS.SESSION_SECURE_ID, sessionSecureID)
+	const data =
+		getPreviousSessionData() ?? ({ sessionSecureID } as SessionData)
+	data.sessionSecureID = sessionSecureID
+	return setSessionData(data)
 }

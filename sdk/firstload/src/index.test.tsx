@@ -54,6 +54,7 @@ describe('should work outside of the browser in unit test', () => {
 		setSessionData({
 			sessionSecureID: 'foo',
 			projectID: 1,
+			lastPushTime: new Date().getTime(),
 		})
 		setSessionSecureID('foo')
 		expect(await highlight.getSessionURL()).toBe(
