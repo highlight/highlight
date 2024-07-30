@@ -10,7 +10,7 @@ import { Stack } from '../Stack/Stack'
 import { Text } from '../Text/Text'
 import * as styles from './styles.css'
 
-type SelectContext = {
+type ISelectContext = {
 	checkType?: 'checkmark' | 'checkbox'
 	multi?: boolean
 	options?: Option[]
@@ -20,7 +20,7 @@ type SelectContext = {
 	onValueChange?: (value: Option | Option[]) => void
 }
 
-const SelectContext = React.createContext<SelectContext>({
+const SelectContext = React.createContext<ISelectContext>({
 	checkType: 'checkmark',
 	multi: false,
 })
@@ -36,7 +36,7 @@ const useSelectContext = () => {
 }
 
 const SelectProvider: React.FC<
-	React.PropsWithChildren<Omit<SelectContext, 'setValue' | 'setOptions'>>
+	React.PropsWithChildren<Omit<ISelectContext, 'setValue' | 'setOptions'>>
 > = ({
 	children,
 	checkType,
@@ -94,7 +94,7 @@ export type SelectProps = Ariakit.SelectProps & {
 	renderValue?: (
 		value: Ariakit.SelectStoreState['value'] | Option,
 	) => React.ReactElement | string | null
-	onValueChange?: SelectContext['onValueChange']
+	onValueChange?: ISelectContext['onValueChange']
 }
 
 type Option = {

@@ -228,7 +228,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
 	},
 )
 
-type FormSelectProps = Ariakit.FormInputProps &
+type FormSelectProps = Omit<Ariakit.FormInputProps, 'onChange'> &
 	React.PropsWithChildren<HasLabel> &
 	Pick<SelectProps, 'options' | 'filterable'> & {
 		onChange?: SelectProps['onValueChange']
