@@ -26,10 +26,11 @@ import {
 import classNames from 'classnames'
 import { PrimaryButton } from '../../components/common/Buttons/PrimaryButton'
 import {
+	businessPrices,
 	enterprisePrices,
 	freePrices,
+	payAsYouGoPrices,
 	Prices,
-	professionalPrices,
 	selfHostPrices,
 } from '../../components/Pricing/estimator_details'
 
@@ -52,6 +53,7 @@ const retentionMultipliers: Record<Retention, number> = {
 const tierOptions = [
 	'Free',
 	'PayAsYouGo',
+	'Business',
 	'Enterprise',
 	'SelfHostedEnterprise',
 ] as const
@@ -100,20 +102,54 @@ const priceTiers: Record<TierName, PricingTier> = {
 		label: 'Pay-as-you-go',
 		id: 'PayAsYouGo',
 		subText: 'Starts at',
-		prices: professionalPrices,
+		prices: payAsYouGoPrices,
 		icon: <HiPuzzle className="text-[#0090FF] w-8 h-8 -translate-x-1" />,
 		features: [
 			{
+				feature: 'Up to 3 dashboards',
+				tooltip: `Create up to 3 dashboards in the metrics product.`,
+			},
+			{
+				feature: 'Up to 2 projects',
+				tooltip: `Create up to 2 projects for separating web app data.`,
+			},
+			{
+				feature: 'Up to 15 seats',
+			},
+			{
+				feature: 'Up to 7 day retention',
+			},
+		],
+		calculateUsage: true,
+		buttonLabel: 'Start free trial',
+		buttonLink: 'https://app.highlight.io/sign_up',
+	},
+	Business: {
+		label: 'Business',
+		id: 'Business',
+		subText: 'Starts at',
+		prices: businessPrices,
+		icon: <HiPuzzle className="text-[#0090FF] w-8 h-8 -translate-x-1" />,
+		features: [
+			{
+				feature: 'Unlimited dashboards',
+			},
+			{
+				feature: `Unlimited projects`,
+				tooltip: `Separate your data into different projects in a single billing account.`,
+			},
+			{
+				feature: 'Unlimited seats',
+			},
+			{
+				feature: 'Custom retention policies',
+			},
+			{
 				feature: `Filters for data ingest`,
+				tooltip: `Ability to filter out data before it is ingested to mitigate costs.`,
 			},
 			{
-				feature: 'Dozens of integrations',
-			},
-			{
-				feature: 'Cheaper with higher volume',
-			},
-			{
-				feature: 'Alerts and notifications',
+				feature: `Everything in pay-as-you-go`,
 			},
 		],
 		calculateUsage: true,
@@ -140,27 +176,22 @@ const priceTiers: Record<TierName, PricingTier> = {
 					'Secure user management to ensure you can manage your team with your existing tooling.',
 			},
 			{
-				feature: 'Custom Compliance',
+				feature: 'Custom MSAs & SLAs',
 				tooltip:
 					'Custom contracts to abide by your compliance requirements; we handle these on a case-by-case basis.',
 			},
 			{
-				feature: 'RBAC & Audit Logs',
+				feature: 'RBAC & audit logs',
 				tooltip:
 					'Infrastructure for auditing and adding fine-grained access controls.',
 			},
 			{
-				feature: 'Data Export',
+				feature: 'Data export & user reporting',
 				tooltip:
 					'Recurring or one-off exports of your observability data for offline analysis.',
 			},
 			{
-				feature: 'Grafana Integration',
-				tooltip:
-					'Exposure to a Grafana instance for visualization of traces/metrics/logs',
-			},
-			{
-				feature: 'Aggregate user reporting',
+				feature: 'Everything in Business',
 			},
 		],
 		contactUs: true,
@@ -186,7 +217,7 @@ const priceTiers: Record<TierName, PricingTier> = {
 
 const PricingPage: NextPage = () => {
 	const [estimatorCategory, setEstimatorCategory] = useState<
-		'PayAsYouGo' | 'Enterprise' | 'SelfHostedEnterprise'
+		'PayAsYouGo' | 'Enterprise' | 'SelfHostedEnterprise' | 'Business'
 	>('PayAsYouGo')
 
 	//Allows for the selection of the tier from the dropdown
@@ -271,7 +302,7 @@ const PlanTable = ({
 	return (
 		<div className="flex flex-col items-center w-full gap-6 mx-auto mt-16">
 			{/* Pricing */}
-			<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 justify-center">
+			<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 justify-center">
 				{Object.entries(priceTiers).map(
 					([name, tier]) =>
 						!tier.hidden && (
@@ -283,7 +314,7 @@ const PlanTable = ({
 						),
 				)}
 
-				<div className="md:col-span-2 lg:col-span-3 ">
+				<div className="md:col-span-2 lg:col-span-4 ">
 					<SFECard setEstimatorCategory={setEstimatorCategory} />
 				</div>
 			</div>

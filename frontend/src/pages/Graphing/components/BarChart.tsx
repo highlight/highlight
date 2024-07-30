@@ -1,28 +1,23 @@
-import { useId, useState } from 'react'
+import { useId } from 'react'
 import {
 	Bar,
 	BarChart as RechartsBarChart,
-	BarProps,
 	CartesianGrid,
-	ReferenceArea,
 	ResponsiveContainer,
-	Tooltip,
 	XAxis,
 	YAxis,
 } from 'recharts'
-import { CategoricalChartFunc } from 'recharts/types/chart/generateCategoricalChart'
 
 import {
 	AxisConfig,
 	CustomXAxisTick,
 	CustomYAxisTick,
 	getColor,
-	getCustomTooltip,
 	getTickFormatter,
 	InnerChartProps,
 	isActive,
 	SeriesInfo,
-	TIMESTAMP_KEY,
+	useGraphCallbacks,
 } from '@/pages/Graphing/components/Graph'
 
 export type BarDisplay = 'Grouped' | 'Stacked'
@@ -34,7 +29,7 @@ export type BarChartConfig = {
 	display?: BarDisplay
 }
 
-const RoundedBar = (id: string, isLast: boolean) => (props: BarProps) => {
+const RoundedBar = (id: string, isLast: boolean) => (props: any) => {
 	const { fill, x, y, width, height } = props
 	return (
 		<>
@@ -73,6 +68,7 @@ export const BarChart = ({
 	strokeColors,
 	viewConfig,
 	setTimeRange,
+	loadExemplars,
 	children,
 	showXAxis,
 	showYAxis,
@@ -86,61 +82,33 @@ export const BarChart = ({
 	// used to give svg masks an id unique to the page
 	const id = useId()
 
-	const [refAreaStart, setRefAreaStart] = useState<number | undefined>()
-	const [refAreaEnd, setRefAreaEnd] = useState<number | undefined>()
-
-	const referenceArea =
-		refAreaStart && refAreaEnd ? (
-			<ReferenceArea
-				x1={refAreaStart}
-				x2={refAreaEnd}
-				strokeOpacity={0.3}
-			/>
-		) : null
-
-	const allowDrag =
-		setTimeRange !== undefined && xAxisMetric === TIMESTAMP_KEY
-
-	const onMouseDown: CategoricalChartFunc | undefined = allowDrag
-		? (e) => {
-				if (e.activeLabel !== undefined) {
-					setRefAreaStart(Number(e.activeLabel))
-				}
-		  }
-		: undefined
-
-	const onMouseMove: CategoricalChartFunc | undefined = allowDrag
-		? (e) => {
-				if (refAreaStart !== undefined && e.activeLabel !== undefined) {
-					setRefAreaEnd(Number(e.activeLabel))
-				}
-		  }
-		: undefined
-
-	const onMouseUp: CategoricalChartFunc | undefined = allowDrag
-		? () => {
-				if (refAreaStart !== undefined && refAreaEnd !== undefined) {
-					const startDate = Math.min(refAreaStart, refAreaEnd)
-					const endDate = Math.max(refAreaStart, refAreaEnd)
-
-					setTimeRange(
-						new Date(startDate * 1000),
-						new Date(endDate * 1000),
-					)
-				}
-				setRefAreaStart(undefined)
-				setRefAreaEnd(undefined)
-		  }
-		: undefined
+	const {
+		referenceArea,
+		tooltip,
+		chartRef,
+		tooltipCanFreeze,
+		onMouseDown,
+		onMouseMove,
+		onMouseUp,
+		onMouseLeave,
+	} = useGraphCallbacks(
+		xAxisMetric,
+		yAxisMetric,
+		yAxisFunction,
+		setTimeRange,
+		loadExemplars,
+	)
 
 	return (
-		<ResponsiveContainer>
+		<ResponsiveContainer ref={chartRef}>
 			<RechartsBarChart
 				data={data}
 				barCategoryGap={1}
 				onMouseDown={onMouseDown}
 				onMouseMove={onMouseMove}
 				onMouseUp={onMouseUp}
+				onMouseLeave={onMouseLeave}
+				style={tooltipCanFreeze ? { cursor: 'pointer' } : undefined}
 			>
 				{referenceArea}
 				{children}
@@ -163,7 +131,7 @@ export const BarChart = ({
 					hide={showXAxis === false}
 				/>
 
-				<Tooltip
+				{/* <Tooltip
 					content={getCustomTooltip(
 						xAxisMetric,
 						yAxisMetric,
@@ -172,7 +140,8 @@ export const BarChart = ({
 					wrapperStyle={{ zIndex: 100 }}
 					cursor={{ fill: '#C8C7CB', fillOpacity: 0.5 }}
 					isAnimationActive={false}
-				/>
+				/> */}
+				{tooltip}
 
 				<YAxis
 					fontSize={10}

@@ -150,7 +150,6 @@ const features: Feature[] = [
 		feature3: 'User analytics',
 		featureImage3: <HiUsers className="h-[20px] w-[20px]" />,
 		link: '/metrics',
-		beta: true,
 	},
 	{
 		name: 'Self-Hosting',

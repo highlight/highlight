@@ -5,11 +5,12 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/highlight-run/highlight/backend/env"
 	"io"
 	"net/http"
 	"strings"
 	"time"
+
+	"github.com/highlight-run/highlight/backend/env"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	v4 "github.com/aws/aws-sdk-go-v2/aws/signer/v4"
@@ -168,14 +169,22 @@ func (s *Client) GetSessionInsightRequest(ctx context.Context, url string, proje
 type ReactEmailTemplate string
 
 const (
+	// deprecated emails
 	ReactEmailTemplateErrorAlert      ReactEmailTemplate = "error-alert"
 	ReactEmailTemplateLogAlert        ReactEmailTemplate = "log-alert"
 	ReactEmailTemplateNewSessionAlert ReactEmailTemplate = "new-session-alert"
 	ReactEmailTemplateNewUserAlert    ReactEmailTemplate = "new-user-alert"
 	ReactEmailTemplateRageClickAlert  ReactEmailTemplate = "rage-click-alert"
-	ReactEmailTemplateSessionInsights ReactEmailTemplate = "session-insights"
 	ReactEmailTemplateTrackEventAlert ReactEmailTemplate = "track-event-properties-alert"
 	ReactEmailTemplateTrackUserAlert  ReactEmailTemplate = "track-user-properties-alert"
+	// new alert emails
+	ReactEmailTemplateSessionsAlert ReactEmailTemplate = "sessions-alert"
+	ReactEmailTemplateErrorsAlert   ReactEmailTemplate = "errors-alert"
+	ReactEmailTemplateLogsAlert     ReactEmailTemplate = "logs-alert"
+	ReactEmailTemplateTracesAlert   ReactEmailTemplate = "traces-alert"
+	ReactEmailTemplateMetricsAlert  ReactEmailTemplate = "metrics-alert"
+	// session insights
+	ReactEmailTemplateSessionInsights ReactEmailTemplate = "session-insights"
 )
 
 func (s *Client) GetSessionInsightEmailHtml(ctx context.Context, toEmail string, unsubscribeUrl string, data utils.SessionInsightsData) (string, error) {

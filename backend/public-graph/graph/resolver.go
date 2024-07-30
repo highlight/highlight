@@ -7,7 +7,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/highlight-run/highlight/backend/env"
 	"hash/fnv"
 	"io"
 	"net/http"
@@ -18,6 +17,8 @@ import (
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/highlight-run/highlight/backend/env"
 
 	"go.opentelemetry.io/otel/codes"
 	semconv "go.opentelemetry.io/otel/semconv/v1.25.0"
@@ -939,7 +940,9 @@ func GetLocationFromIP(ctx context.Context, ip string) (location *Location, err 
 	url := fmt.Sprintf("http://geolocation-db.com/json/%s", ip)
 	method := "GET"
 
-	client := &http.Client{}
+	client := &http.Client{
+		Timeout: 3 * time.Second,
+	}
 	req, err := http.NewRequest(method, url, nil)
 	if err != nil {
 		return nil, err
@@ -1063,6 +1066,7 @@ func (r *Resolver) InitializeSessionImpl(ctx context.Context, input *kafka_queue
 	if err != nil {
 		return nil, e.Wrapf(err, "An unsupported verboseID was used: %s, %s", input.ProjectVerboseID, input.ClientConfig)
 	}
+	initSpan.SetAttribute("project_id", projectID)
 
 	existingSession, err := r.getExistingSession(ctx, projectID, input.SessionSecureID)
 	if err != nil {
@@ -1130,6 +1134,7 @@ func (r *Resolver) InitializeSessionImpl(ctx context.Context, input *kafka_queue
 
 	// mark recording-less sessions as processed so they are considered excluded
 	if input.DisableSessionRecording != nil && *input.DisableSessionRecording {
+		initSpan.SetAttribute("disable_session_recording", true)
 		session.Processed = &model.T
 	}
 

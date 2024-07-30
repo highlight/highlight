@@ -223,7 +223,27 @@ func (r *Resolver) getCustomVerifiedAdminEmailDomain(admin *model.Admin) (string
 	}
 
 	// this is just the top 10 email domains as of June 6, 2016, and protonmail.com
-	if map[string]bool{"gmail.com": true, "yahoo.com": true, "hotmail.com": true, "aol.com": true, "hotmail.co.uk": true, "protonmail.com": true, "hotmail.fr": true, "msn.com": true, "yahoo.fr": true, "wanadoo.fr": true, "orange.fr": true}[strings.ToLower(domain)] {
+	if map[string]bool{
+		"gmail.com":      true,
+		"yahoo.com":      true,
+		"hotmail.com":    true,
+		"aol.com":        true,
+		"hotmail.co.uk":  true,
+		"protonmail.com": true,
+		"hotmail.fr":     true,
+		"msn.com":        true,
+		"yahoo.fr":       true,
+		"wanadoo.fr":     true,
+		"orange.fr":      true,
+		"qq.com":         true,
+		"icloud.com":     true,
+		"live.com":       true,
+		"me.com":         true,
+		"proton.me":      true,
+		"duck.com":       true,
+		"mail.ru":        true,
+		"163.com":        true,
+	}[strings.ToLower(domain)] {
 		return "", nil
 	}
 

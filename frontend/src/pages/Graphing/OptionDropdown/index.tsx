@@ -53,7 +53,7 @@ export const OptionDropdown = <T extends string>({
 					<IconSolidCheveronDown />
 				</Box>
 			</Menu.Button>
-			<Menu.List>
+			<Menu.List cssClass={style.menuList}>
 				{options.map((p, idx) => {
 					let innerContent: React.ReactNode = (
 						<Stack

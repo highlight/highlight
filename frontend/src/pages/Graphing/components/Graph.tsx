@@ -2,6 +2,7 @@ import {
 	Badge,
 	Box,
 	Button,
+	ButtonIcon,
 	DateRangePreset,
 	IconSolidArrowsExpand,
 	IconSolidChartSquareBar,
@@ -9,6 +10,7 @@ import {
 	IconSolidDocumentReport,
 	IconSolidDotsHorizontal,
 	IconSolidDuplicate,
+	IconSolidExternalLink,
 	IconSolidLoading,
 	IconSolidPencil,
 	IconSolidTable,
@@ -24,8 +26,11 @@ import clsx from 'clsx'
 import _ from 'lodash'
 import moment from 'moment'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { ReferenceArea, Tooltip as RechartsTooltip } from 'recharts'
+import { CategoricalChartState } from 'recharts/types/chart/types'
 
 import { loadingIcon } from '@/components/Button/style.css'
+import { useRelatedResource } from '@/components/RelatedResources/hooks'
 import { TIME_FORMAT } from '@/components/Search/SearchForm/constants'
 import { useGetMetricsLazyQuery } from '@/graph/generated/hooks'
 import { GetMetricsQuery } from '@/graph/generated/operations'
@@ -60,6 +65,9 @@ export const VIEW_LABELS = ['Line chart', 'Bar chart / histogram', 'Table']
 
 export const TIMESTAMP_KEY = 'Timestamp'
 export const GROUP_KEY = 'Group'
+export const BUCKET_MIN_KEY = 'BucketMin'
+export const BUCKET_MAX_KEY = 'BucketMax'
+export const NO_GROUP_PLACEHOLDER = '<empty>'
 const MAX_LABEL_CHARS = 100
 
 export type PieChartConfig = {
@@ -101,7 +109,8 @@ export interface ChartProps<TConfig> {
 	onDelete?: () => void
 	onExpand?: () => void
 	onEdit?: () => void
-	setTimeRange?: (startDate: Date, endDate: Date) => void
+	setTimeRange?: SetTimeRange
+	loadExemplars?: LoadExemplars
 }
 
 export interface InnerChartProps<TConfig> {
@@ -113,7 +122,8 @@ export interface InnerChartProps<TConfig> {
 	loading?: boolean
 	viewConfig: TConfig
 	disabled?: boolean
-	setTimeRange?: (startDate: Date, endDate: Date) => void
+	setTimeRange?: SetTimeRange
+	loadExemplars?: LoadExemplars
 }
 
 export interface SeriesInfo {
@@ -128,6 +138,14 @@ export interface AxisConfig {
 	showGrid?: boolean
 }
 
+export type LoadExemplars = (
+	bucketMin: number | undefined,
+	bucketMax: number | undefined,
+	group: string | undefined,
+) => void
+
+export type SetTimeRange = (startDate: Date, endDate: Date) => void
+
 const strokeColors = [
 	'#0090FF',
 	'#D6409F',
@@ -140,6 +158,158 @@ const strokeColors = [
 	'#46A758',
 	'#3E63DD',
 ]
+
+export const useGraphCallbacks = (
+	xAxisMetric: string,
+	yAxisMetric: string,
+	yAxisFunction: string,
+	setTimeRange?: SetTimeRange,
+	loadExemplars?: LoadExemplars,
+) => {
+	const [refAreaStart, setRefAreaStart] = useState<number | undefined>()
+	const [refAreaEnd, setRefAreaEnd] = useState<number | undefined>()
+
+	const referenceArea =
+		refAreaStart && refAreaEnd ? (
+			<ReferenceArea
+				x1={refAreaStart}
+				x2={refAreaEnd}
+				strokeOpacity={0.3}
+			/>
+		) : null
+
+	const chartRef = useRef<HTMLDivElement>(null)
+	const tooltipRef = useRef<HTMLDivElement>(null)
+
+	const [mouseMoveState, setMouseMoveState] =
+		useState<CategoricalChartState>()
+	const [frozenTooltip, setFrozenTooltip] = useState<CategoricalChartState>()
+
+	const allowDrag = setTimeRange !== undefined
+
+	const onMouseDown = allowDrag
+		? (e: CategoricalChartState) => {
+				if (frozenTooltip || !loadExemplars) {
+					return
+				}
+
+				const tooltipRect = tooltipRef.current?.getBoundingClientRect()
+				const chartRect = chartRef.current?.getBoundingClientRect()
+				if (
+					chartRect !== undefined &&
+					tooltipRect !== undefined &&
+					frozenTooltip === undefined
+				) {
+					e.chartX = tooltipRect.x - chartRect.x
+					e.chartY = tooltipRect.y - chartRect.y
+					e.activePayload = e.activePayload?.filter(
+						(v) => ![undefined, null].includes(v.value),
+					)
+
+					if (e.activePayload && e.activePayload.length > 0) {
+						setFrozenTooltip(e)
+					}
+				}
+
+				if (e.activeLabel !== undefined && !frozenTooltip) {
+					setRefAreaStart(Number(e.activeLabel))
+				}
+		  }
+		: undefined
+
+	const onMouseMove = allowDrag
+		? (e: CategoricalChartState) => {
+				if (frozenTooltip) {
+					return
+				}
+
+				setMouseMoveState(e)
+
+				if (refAreaStart !== undefined && e.activeLabel !== undefined) {
+					setRefAreaEnd(Number(e.activeLabel))
+				}
+		  }
+		: undefined
+
+	const onMouseUp = allowDrag
+		? () => {
+				if (frozenTooltip) {
+					return
+				}
+
+				if (
+					refAreaStart !== undefined &&
+					refAreaEnd !== undefined &&
+					refAreaStart !== refAreaEnd &&
+					xAxisMetric === TIMESTAMP_KEY
+				) {
+					const startDate = Math.min(refAreaStart, refAreaEnd)
+					const endDate = Math.max(refAreaStart, refAreaEnd)
+
+					setTimeRange(
+						new Date(startDate * 1000),
+						new Date(endDate * 1000),
+					)
+				}
+				setRefAreaStart(undefined)
+				setRefAreaEnd(undefined)
+		  }
+		: undefined
+
+	const onMouseLeave = () => {
+		setFrozenTooltip(undefined)
+		setRefAreaStart(undefined)
+		setRefAreaEnd(undefined)
+	}
+
+	const tooltip = (
+		<RechartsTooltip
+			content={getCustomTooltip(
+				xAxisMetric,
+				yAxisMetric,
+				yAxisFunction,
+				frozenTooltip,
+				tooltipRef,
+				onMouseLeave,
+				loadExemplars,
+			)}
+			cursor={
+				frozenTooltip
+					? false
+					: { stroke: '#C8C7CB', strokeDasharray: 4 }
+			}
+			isAnimationActive={false}
+			wrapperStyle={{
+				zIndex: 100,
+				pointerEvents: 'auto',
+				...(frozenTooltip && { visibility: 'visible' }),
+				...(frozenTooltip && {
+					transform: `translate(${frozenTooltip.chartX}px, ${frozenTooltip.chartY}px)`,
+				}),
+			}}
+			payload={frozenTooltip?.activePayload}
+			active={frozenTooltip ? true : undefined}
+		/>
+	)
+
+	const tooltipCanFreeze =
+		loadExemplars &&
+		!frozenTooltip &&
+		mouseMoveState?.activePayload?.find(
+			(p) => ![undefined, null].includes(p.value),
+		)
+
+	return {
+		referenceArea,
+		tooltip,
+		chartRef,
+		tooltipCanFreeze,
+		onMouseDown,
+		onMouseMove,
+		onMouseUp,
+		onMouseLeave,
+	}
+}
 
 export const getColor = (
 	idx: number,
@@ -200,7 +370,8 @@ const timeMetrics = {
 export const getTickFormatter = (metric: string, data?: any[] | undefined) => {
 	if (metric === 'Timestamp') {
 		if (data === undefined) {
-			return (value: any) => moment(value * 1000).format('MM/DD HH:mm:ss')
+			return (value: any) =>
+				moment(value * 1000).format('MMM D, h:mm:ss A')
 		}
 
 		const start = data.at(0).Timestamp * 1000
@@ -245,6 +416,9 @@ export const getTickFormatter = (metric: string, data?: any[] | undefined) => {
 			if (result.length > maxChars) {
 				result = result.substring(0, maxChars - 3) + '...'
 			}
+			if (result === '') {
+				result = NO_GROUP_PLACEHOLDER
+			}
 			return result
 		}
 	} else {
@@ -252,12 +426,30 @@ export const getTickFormatter = (metric: string, data?: any[] | undefined) => {
 	}
 }
 
-export const getCustomTooltip =
-	(xAxisMetric: string, yAxisMetric: string, yAxisFunction: string) =>
+const getCustomTooltip =
+	(
+		xAxisMetric: string,
+		yAxisMetric: string,
+		yAxisFunction: string,
+		frozenTooltip?: CategoricalChartState | undefined,
+		tooltipRef?: React.MutableRefObject<HTMLDivElement | null>,
+		onMouseLeave?: () => void,
+		loadExemplars?: LoadExemplars,
+	) =>
 	({ active, payload, label }: any) => {
+		if (frozenTooltip !== undefined) {
+			active = true
+			payload = frozenTooltip.activePayload
+			label = frozenTooltip.activeLabel
+		}
+
 		const isValid = active && payload && payload.length
 		return (
-			<Box cssClass={style.tooltipWrapper}>
+			<Box
+				cssClass={style.tooltipWrapper}
+				ref={tooltipRef}
+				onMouseLeave={onMouseLeave}
+			>
 				<Text
 					lines="1"
 					size="xxSmall"
@@ -270,35 +462,67 @@ export const getCustomTooltip =
 				{payload.map((p: any, idx: number) => (
 					<Box
 						display="flex"
-						flexDirection="row"
-						alignItems="center"
 						key={idx}
+						justifyContent="space-between"
+						gap="4"
+						cssClass={style.tooltipRow}
 					>
 						<Box
-							style={{
-								backgroundColor: p.color,
-							}}
-							cssClass={style.tooltipDot}
-						></Box>
-						<Text
-							lines="1"
-							size="xxSmall"
-							weight="medium"
-							color="default"
-							cssClass={style.tooltipText}
+							display="flex"
+							flexDirection="row"
+							alignItems="center"
+							gap="4"
 						>
-							{p.name ? p.name + ': ' : yAxisFunction + ': '}
-							&nbsp;
-						</Text>
-						<Text
-							lines="1"
-							size="xxSmall"
-							weight="medium"
-							color="default"
-							cssClass={style.tooltipText}
-						>
-							{isValid && getTickFormatter(yAxisMetric)(p.value)}
-						</Text>
+							<Box
+								style={{
+									backgroundColor: p.color,
+								}}
+								cssClass={style.tooltipDot}
+							></Box>
+							<Badge
+								size="small"
+								shape="basic"
+								label={
+									isValid &&
+									getTickFormatter(yAxisMetric)(p.value)
+								}
+							>
+								<Text
+									lines="1"
+									size="xSmall"
+									weight="medium"
+									color="default"
+									cssClass={style.tooltipText}
+								></Text>
+							</Badge>
+							<Text
+								lines="1"
+								size="xSmall"
+								weight="medium"
+								color="default"
+								cssClass={style.tooltipText}
+							>
+								{p.name ? p.name : yAxisFunction}
+							</Text>
+						</Box>
+						{frozenTooltip && (
+							<ButtonIcon
+								icon={<IconSolidExternalLink size={16} />}
+								size="minimal"
+								shape="square"
+								emphasis="low"
+								kind="secondary"
+								cssClass={style.exemplarButton}
+								onClick={() => {
+									loadExemplars &&
+										loadExemplars(
+											p.payload[BUCKET_MIN_KEY],
+											p.payload[BUCKET_MAX_KEY],
+											p.dataKey || p.payload[GROUP_KEY],
+										)
+								}}
+							/>
+						)}
 					</Box>
 				))}
 			</Box>
@@ -413,11 +637,13 @@ export const useGraphData = (
 
 				for (const b of metrics.metrics.buckets) {
 					const seriesKey = hasGroups
-						? b.group.join(' ') || '<empty>'
+						? b.group.join(' ') || NO_GROUP_PLACEHOLDER
 						: b.metric_type
 					data[b.bucket_id][xAxisMetric] =
 						(b.bucket_min + b.bucket_max) / 2
 					data[b.bucket_id][seriesKey] = b.metric_value
+					data[b.bucket_id][BUCKET_MIN_KEY] = b.bucket_min
+					data[b.bucket_id][BUCKET_MAX_KEY] = b.bucket_max
 				}
 			} else {
 				data = []
@@ -437,13 +663,12 @@ export const useGraphSeries = (
 	data: any[] | undefined,
 	xAxisMetric: string,
 ) => {
-	const series = useMemo(
-		() =>
-			_.uniq(data?.flatMap((d) => Object.keys(d))).filter(
-				(key) => key !== xAxisMetric,
-			),
-		[data, xAxisMetric],
-	)
+	const series = useMemo(() => {
+		const excluded = [xAxisMetric, BUCKET_MIN_KEY, BUCKET_MAX_KEY]
+		return _.uniq(data?.flatMap((d) => Object.keys(d))).filter(
+			(key) => !excluded.includes(key),
+		)
+	}, [data, xAxisMetric])
 	return series
 }
 
@@ -484,6 +709,64 @@ const Graph = ({
 	const [pollInterval, setPollInterval] = useState<number>(0)
 	const [fetchStart, setFetchStart] = useState<Date>()
 	const [fetchEnd, setFetchEnd] = useState<Date>()
+
+	const { set } = useRelatedResource()
+
+	const loadExemplars = (
+		bucketMin: number | undefined,
+		bucketMax: number | undefined,
+		group: string | undefined,
+	) => {
+		let relatedResourceType: 'logs' | 'errors' | 'sessions' | 'traces'
+		switch (productType) {
+			case ProductType.Errors:
+				relatedResourceType = 'errors'
+				break
+			case ProductType.Logs:
+				relatedResourceType = 'logs'
+				break
+			case ProductType.Sessions:
+				relatedResourceType = 'sessions'
+				break
+			case ProductType.Traces:
+				relatedResourceType = 'traces'
+				break
+			default:
+				return
+		}
+
+		let relatedResourceQuery = query
+		if (groupByKey !== undefined) {
+			if (relatedResourceQuery !== '') {
+				relatedResourceQuery += ' '
+			}
+			if (group !== NO_GROUP_PLACEHOLDER && group !== '') {
+				relatedResourceQuery += `${groupByKey}="${group}"`
+			} else {
+				relatedResourceQuery += `${groupByKey} not exists`
+			}
+		}
+		if (![undefined, TIMESTAMP_KEY].includes(bucketByKey)) {
+			if (relatedResourceQuery !== '') {
+				relatedResourceQuery += ' '
+			}
+			relatedResourceQuery += `${bucketByKey}>=${bucketMin} ${bucketByKey}<${bucketMax}`
+		}
+
+		let startDateStr = moment(startDate).toISOString()
+		let endDateStr = moment(endDate).toISOString()
+		if (bucketByKey === TIMESTAMP_KEY && bucketMin && bucketMax) {
+			startDateStr = new Date(bucketMin * 1000).toISOString()
+			endDateStr = new Date(bucketMax * 1000).toISOString()
+		}
+
+		set({
+			type: relatedResourceType,
+			query: relatedResourceQuery,
+			startDate: startDateStr,
+			endDate: endDateStr,
+		})
+	}
 
 	const [
 		getMetrics,
@@ -593,14 +876,7 @@ const Graph = ({
 	const yAxisFunction = functionType
 
 	const data = useGraphData(metrics, xAxisMetric)
-
-	const series = useMemo(
-		() =>
-			_.uniq(data?.flatMap((d) => Object.keys(d))).filter(
-				(key) => key !== xAxisMetric,
-			),
-		[data, xAxisMetric],
-	)
+	const series = useGraphSeries(data, xAxisMetric)
 
 	const [spotlight, setSpotlight] = useState<number | undefined>()
 
@@ -651,6 +927,7 @@ const Graph = ({
 						series={series}
 						spotlight={spotlight}
 						setTimeRange={setTimeRange}
+						loadExemplars={loadExemplars}
 					>
 						{children}
 					</LineChart>
@@ -667,6 +944,7 @@ const Graph = ({
 						series={series}
 						spotlight={spotlight}
 						setTimeRange={setTimeRange}
+						loadExemplars={loadExemplars}
 					>
 						{children}
 					</BarChart>
@@ -689,7 +967,9 @@ const Graph = ({
 	}
 
 	const showLegend =
-		viewConfig.showLegend && series.join('') !== yAxisFunction
+		viewConfig.showLegend &&
+		series.join('') !== yAxisFunction &&
+		series.join('') !== ''
 	return (
 		<Box
 			position="relative"
@@ -875,13 +1155,14 @@ const Graph = ({
 													}
 													align="left"
 												>
-													{key || '<empty>'}
+													{key ||
+														NO_GROUP_PLACEHOLDER}
 												</Text>
 											</Box>
 										</>
 									}
 								>
-									{key || '<empty>'}
+									{key || NO_GROUP_PLACEHOLDER}
 								</Tooltip>
 							</Button>
 						)
