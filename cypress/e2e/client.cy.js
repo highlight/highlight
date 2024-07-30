@@ -57,6 +57,22 @@ describe('client recording spec', () => {
 					win.eval(`fetch('${baseUrl}/index.html')`)
 					win.eval(`fetch('${baseUrl}/index.html', {method: 'POST'})`)
 					win.eval(`H.track('MyTrackEvent', {'foo': 'bar'})`)
+
+					const result = win.eval(`H.getSessionURL()`)
+					const session = result.substring(
+						0,
+						result.lastIndexOf('/') + 1,
+					)
+					const prefix = result.substring(
+						result.lastIndexOf('/') + 1,
+						result.length,
+					)
+
+					expect(prefix).to.eq('https://app.highlight.io/1/sessions')
+					expect(session).to.neq(
+						'https://app.highlight.io/1/sessions',
+					)
+					expect(session.length).to.eq(28)
 				})
 
 			cy.wait('@PushPayloadCompressed')
