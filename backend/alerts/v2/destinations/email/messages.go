@@ -67,7 +67,7 @@ func sendSessionAlert(ctx context.Context, mailClient *sendgrid.Client, lambdaCl
 
 func sendErrorAlert(ctx context.Context, mailClient *sendgrid.Client, lambdaClient *lambda.Client, alertInput *destinationsV2.AlertInput, destinations []model.AlertDestination) {
 	emailData := &EmailData{
-		SubjectLine: "Error subject line",
+		SubjectLine: fmt.Sprintf("%s fired!", alertInput.Alert.Name),
 		Template:    lambda.ReactEmailTemplateErrorsAlert,
 		TemplateData: map[string]interface{}{
 			"alertLink":       alertInput.AlertLink,
