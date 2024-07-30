@@ -9,6 +9,7 @@ import (
 
 	"github.com/hashicorp/go-retryablehttp"
 	destinationsV2 "github.com/highlight-run/highlight/backend/alerts/v2/destinations"
+	"github.com/highlight-run/highlight/backend/env"
 	"github.com/highlight-run/highlight/backend/model"
 	modelInputs "github.com/highlight-run/highlight/backend/private-graph/graph/model"
 	"github.com/highlight-run/highlight/backend/routing"
@@ -222,6 +223,73 @@ func sendMetricAlert(ctx context.Context, alertInput *destinationsV2.AlertInput,
 		Threshold:      *alertInput.Alert.ThresholdValue,
 		BelowThreshold: *alertInput.Alert.BelowThreshold,
 		DashboardURL:   alertInput.MetricInput.DashboardLink,
+	}
+
+	sendAlerts(ctx, messagePayload, destinations)
+}
+
+func SendNotifications(ctx context.Context, notificationInput destinationsV2.NotificationInput, destinations []model.AlertDestination) {
+	switch notificationInput.NotificationType {
+	case destinationsV2.NotificationTypeAlertCreated:
+		sendAlertCreatedNotification(ctx, notificationInput, destinations)
+	case destinationsV2.NotificationTypeAlertUpdated:
+		sendAlertUpdatedNotification(ctx, notificationInput, destinations)
+	default:
+		log.WithContext(ctx).WithFields(
+			log.Fields{
+				"destinationType":  "discord",
+				"notificationType": notificationInput.NotificationType,
+			}).Error("Invalid notification type")
+	}
+}
+
+type AlertCreatedPayload struct {
+	Event     string
+	AlertUrl  string
+	AlertName string
+	AdminName string
+}
+
+func sendAlertCreatedNotification(ctx context.Context, notificationInput destinationsV2.NotificationInput, destinations []model.AlertDestination) {
+	frontendURL := env.Config.FrontendUri
+	alertURL := fmt.Sprintf("%s/%d/alerts/%d", frontendURL, notificationInput.AlertUpsertInput.Alert.ProjectID, notificationInput.AlertUpsertInput.Alert.ID)
+
+	name := notificationInput.AlertUpsertInput.Admin.Name
+	if name == nil {
+		name = notificationInput.AlertUpsertInput.Admin.Email
+	}
+
+	messagePayload := AlertCreatedPayload{
+		Event:     "ALERT_CREATED",
+		AlertUrl:  alertURL,
+		AlertName: notificationInput.AlertUpsertInput.Alert.Name,
+		AdminName: *name,
+	}
+
+	sendAlerts(ctx, messagePayload, destinations)
+}
+
+type AlertUpdatedPayload struct {
+	Event     string
+	AlertUrl  string
+	AlertName string
+	AdminName string
+}
+
+func sendAlertUpdatedNotification(ctx context.Context, notificationInput destinationsV2.NotificationInput, destinations []model.AlertDestination) {
+	frontendURL := env.Config.FrontendUri
+	alertURL := fmt.Sprintf("%s/alerts/%d", frontendURL, notificationInput.AlertUpsertInput.Alert.ID)
+
+	name := notificationInput.AlertUpsertInput.Admin.Name
+	if name == nil {
+		name = notificationInput.AlertUpsertInput.Admin.Email
+	}
+
+	messagePayload := AlertCreatedPayload{
+		Event:     "ALERT_UPDATED",
+		AlertUrl:  alertURL,
+		AlertName: notificationInput.AlertUpsertInput.Alert.Name,
+		AdminName: *name,
 	}
 
 	sendAlerts(ctx, messagePayload, destinations)

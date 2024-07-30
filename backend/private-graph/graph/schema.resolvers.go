@@ -32,6 +32,8 @@ import (
 	"github.com/highlight-run/highlight/backend/alerts/integrations/discord"
 	microsoft_teams "github.com/highlight-run/highlight/backend/alerts/integrations/microsoft-teams"
 	"github.com/highlight-run/highlight/backend/alerts/integrations/webhook"
+	alertsV2 "github.com/highlight-run/highlight/backend/alerts/v2"
+	destinationsV2 "github.com/highlight-run/highlight/backend/alerts/v2/destinations"
 	"github.com/highlight-run/highlight/backend/apolloio"
 	"github.com/highlight-run/highlight/backend/clickhouse"
 	"github.com/highlight-run/highlight/backend/clickup"
@@ -3310,7 +3312,7 @@ func (r *mutationResolver) UpdateMetricMonitor(ctx context.Context, metricMonito
 
 // CreateAlert is the resolver for the createAlert field.
 func (r *mutationResolver) CreateAlert(ctx context.Context, projectID int, name string, productType modelInputs.ProductType, functionType modelInputs.MetricAggregator, functionColumn *string, query *string, groupByKey *string, belowThreshold *bool, thresholdValue *float64, thresholdWindow *int, thresholdCooldown *int, destinations []*modelInputs.AlertDestinationInput) (*model.Alert, error) {
-	_, err := r.isUserInProject(ctx, projectID)
+	project, err := r.isUserInProject(ctx, projectID)
 	admin, _ := r.getCurrentAdmin(ctx)
 	if err != nil {
 		return nil, err
@@ -3351,7 +3353,18 @@ func (r *mutationResolver) CreateAlert(ctx context.Context, projectID int, name 
 		return nil, err
 	}
 
-	// TODO(spenny): send new message to destinations
+	if len(alertDestinations) > 0 {
+		notificationInput := destinationsV2.NotificationInput{
+			NotificationType: destinationsV2.NotificationTypeAlertCreated,
+			WorkspaceID:      project.WorkspaceID,
+			AlertUpsertInput: &destinationsV2.AlertUpsertInput{
+				Alert: createdAlert,
+				Admin: admin,
+			},
+		}
+
+		alertsV2.SendNotifications(ctx, r.DB, r.MailClient, r.LambdaClient, notificationInput, alertDestinations)
+	}
 
 	return newAlert, nil
 }
@@ -3384,13 +3397,12 @@ func (r *mutationResolver) UpdateAlert(ctx context.Context, projectID int, alert
 	if updateErr != nil {
 		return nil, updateErr
 	}
-
+	alertDestinations := []*model.AlertDestination{}
 	if err := r.DB.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
 		if err := tx.Where(&model.AlertDestination{AlertID: alert.ID}).Delete(&model.AlertDestination{}).Error; err != nil {
 			return err
 		}
 
-		alertDestinations := []*model.AlertDestination{}
 		for _, d := range destinations {
 			alertDestinations = append(alertDestinations, &model.AlertDestination{
 				AlertID:         alert.ID,
@@ -3409,7 +3421,18 @@ func (r *mutationResolver) UpdateAlert(ctx context.Context, projectID int, alert
 		return nil, err
 	}
 
-	// TODO(spenny): send edit message to destinations
+	if len(alertDestinations) > 0 {
+		notificationInput := destinationsV2.NotificationInput{
+			NotificationType: destinationsV2.NotificationTypeAlertUpdated,
+			WorkspaceID:      project.WorkspaceID,
+			AlertUpsertInput: &destinationsV2.AlertUpsertInput{
+				Alert: alert,
+				Admin: admin,
+			},
+		}
+
+		alertsV2.SendNotifications(ctx, r.DB, r.MailClient, r.LambdaClient, notificationInput, alertDestinations)
+	}
 
 	return alert, nil
 }
