@@ -83,6 +83,7 @@ import {
 import { getItem, removeItem, setItem, setStorageMode } from './utils/storage'
 import {
 	FIRST_SEND_FREQUENCY,
+	HIGHLIGHT_URL,
 	MAX_SESSION_LENGTH,
 	SEND_FREQUENCY,
 	SNAPSHOT_SETTINGS,
@@ -138,8 +139,6 @@ type HighlightClassOptionsInternal = Omit<
 	HighlightClassOptions,
 	'firstloadVersion'
 >
-
-const HIGHLIGHT_URL = 'app.highlight.run'
 
 export class Highlight {
 	options!: HighlightClassOptions

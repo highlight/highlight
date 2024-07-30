@@ -19,6 +19,7 @@ import {
 
 import { FirstLoadListeners } from '@highlight-run/client/src/listeners/first-load-listeners.js'
 import { GenerateSecureID } from '@highlight-run/client/src/utils/secure-id.js'
+import { HIGHLIGHT_URL } from '@highlight-run/client/src/constants/sessions.js'
 import { HighlightSegmentMiddleware } from './integrations/segment.js'
 import configureElectronHighlight from './environments/electron.js'
 import firstloadVersion from './__generated/version.js'
@@ -470,9 +471,12 @@ const H: HighlightPublicInterface = {
 	},
 	getSessionURL: () => {
 		return new Promise<string>((resolve, reject) => {
-			const res = getSessionSecureID()
-			if (res) {
-				resolve(res)
+			const data = getPreviousSessionData()
+			const sessionSecureID = getSessionSecureID()
+			if (data && sessionSecureID) {
+				resolve(
+					`https://${HIGHLIGHT_URL}/${data.projectID}/sessions/${sessionSecureID}`,
+				)
 			} else {
 				reject(new Error('Unable to get session URL'))
 			}
