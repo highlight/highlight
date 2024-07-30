@@ -26,7 +26,7 @@ If you haven't already, you need to install our client javascript bundle in the 
 
 ### Turn on `tracingOrigins`
 
-Set the `tracingOrigins` option to an array of patterns matching the location of your backend. You may also simply specify `true`, which will default `tracingOrigins` to all subdomains/domains of the url for your frontend app.
+Set the `tracingOrigins` option to an array of patterns matching the location of your backend. You may also simply specify `true`, which will default `tracingOrigins` to all subdomains/domains of the url for your frontend app. If your application makes cross-origin requests that you would like to trace, you will have to explicitly include those.
 
 ```javascript
 H.init("<YOUR_PROJECT_ID>", {
