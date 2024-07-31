@@ -2427,6 +2427,7 @@ export type QueryErrors_Histogram_ClickhouseArgs = {
 }
 
 export type QueryErrors_Key_ValuesArgs = {
+	count?: InputMaybe<Scalars['Int']>
 	date_range: DateRangeRequiredInput
 	key_name: Scalars['String']
 	project_id: Scalars['ID']
@@ -2545,6 +2546,7 @@ export type QueryJira_ProjectsArgs = {
 }
 
 export type QueryKey_ValuesArgs = {
+	count?: InputMaybe<Scalars['Int']>
 	date_range: DateRangeRequiredInput
 	key_name: Scalars['String']
 	product_type: ProductType
@@ -2604,6 +2606,7 @@ export type QueryLogs_HistogramArgs = {
 }
 
 export type QueryLogs_Key_ValuesArgs = {
+	count?: InputMaybe<Scalars['Int']>
 	date_range: DateRangeRequiredInput
 	key_name: Scalars['String']
 	project_id: Scalars['ID']
@@ -2841,6 +2844,7 @@ export type QuerySessions_Histogram_ClickhouseArgs = {
 }
 
 export type QuerySessions_Key_ValuesArgs = {
+	count?: InputMaybe<Scalars['Int']>
 	date_range: DateRangeRequiredInput
 	key_name: Scalars['String']
 	project_id: Scalars['ID']
@@ -2917,6 +2921,7 @@ export type QueryTracesIntegrationArgs = {
 }
 
 export type QueryTraces_Key_ValuesArgs = {
+	count?: InputMaybe<Scalars['Int']>
 	date_range: DateRangeRequiredInput
 	key_name: Scalars['String']
 	project_id: Scalars['ID']
