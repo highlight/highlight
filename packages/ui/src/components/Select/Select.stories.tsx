@@ -1,5 +1,6 @@
 import * as Ariakit from '@ariakit/react'
 import { Meta } from '@storybook/react'
+import { useState } from 'react'
 
 import { Badge } from '../Badge/Badge'
 import { IconSolidX } from '../icons'
@@ -61,28 +62,50 @@ export const MultiSelectTags = () => {
 }
 
 export const MultiSelectWithCheckbox = () => {
-	return <Select checkbox options={OPTIONS} />
+	return (
+		<Select
+			checkType="checkbox"
+			defaultValue={['Jay', 'Vadim']}
+			options={OPTIONS.map((option) => ({
+				name: option,
+				value: option,
+			}))}
+		/>
+	)
 }
 
-// export const Filterable = () => {
-// 	return <Select options={OPTIONS} />
-// }
+export const Filterable = () => {
+	return (
+		<Select
+			defaultValue={['Jay']}
+			filterable
+			options={OPTIONS.map((option) => ({
+				name: option,
+				value: option,
+			}))}
+		/>
+	)
+}
 
-// export const FilterableMultiSelectWithCheckboxes = () => {
-// 	const [value, setValue] = useState(['Jay', 'Vadim'])
+export const FilterableMultiSelectWithCheckboxes = () => {
+	const [value, setValue] = useState(['Jay', 'Vadim'])
+	const options = OPTIONS.map((option) => ({
+		name: option,
+		value: option,
+	}))
 
-// 	return (
-// 		<Select
-// 			options={OPTIONS}
-// 			checkbox
-// 			value={value}
-// 			setValue={(newValue) => setValue(newValue)}
-// 			renderValue={(values) => {
-// 				return <>{Number(values.length)} selected</>
-// 			}}
-// 		/>
-// 	)
-// }
+	return (
+		<Select
+			options={options}
+			checkType="checkbox"
+			value={value}
+			onChange={(newValue) => setValue(newValue)}
+			renderValue={(values) => {
+				return <>{Number(values.length)} selected</>
+			}}
+		/>
+	)
+}
 
 // type User = {
 // 	name: string
@@ -117,9 +140,10 @@ const SelectTag: React.FC<{ children: string }> = ({ children }) => {
 				e.preventDefault()
 				e.stopPropagation()
 
-				const newValue = (value as string[]).filter(
-					(v) => v !== children,
-				)
+				const newValue = Array.isArray(value)
+					? value.filter((v) => v !== children)
+					: ''
+
 				selectStore.setValue(newValue)
 			}}
 		/>

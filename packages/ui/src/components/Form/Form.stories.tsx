@@ -45,7 +45,6 @@ export const Basic = () => {
 							)
 						}}
 					/>
-
 					<Form.Input
 						type="number"
 						name="issueNumber"

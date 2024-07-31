@@ -12,6 +12,8 @@ import { useParams } from '@util/react-router/useParams'
 import Checkbox, { CheckboxChangeEvent } from 'antd/es/checkbox'
 import React, { useState } from 'react'
 
+import { getEmailDomain } from '@/util/email'
+
 import styles from './AutoJoinForm.module.css'
 
 export const AutoJoinForm: React.FC = () => {
@@ -83,7 +85,7 @@ export const AutoJoinForm: React.FC = () => {
 						checked={autoJoinDomains.length > 0}
 						onChange={handleCheckboxChange}
 					/>
-					<Text>Auto-approved email domains</Text>
+					<Text>Auto-approved email domainz</Text>
 				</Box>
 				<Select
 					placeholder={`${adminsEmailDomain}, acme.corp, piedpiper.com`}
@@ -101,15 +103,4 @@ export const AutoJoinForm: React.FC = () => {
 			</div>
 		</Tooltip>
 	)
-}
-
-const getEmailDomain = (email?: string) => {
-	if (!email) {
-		return ''
-	}
-	if (!email.includes('@')) {
-		return ''
-	}
-	const [, domain] = email.split('@')
-	return domain
 }
