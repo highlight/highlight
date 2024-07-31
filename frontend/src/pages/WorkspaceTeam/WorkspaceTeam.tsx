@@ -127,7 +127,7 @@ const TabContentContainer = ({
 	return (
 		<EnterpriseFeatureButton
 			setting="enable_business_seats"
-			name="Custom Team Invites"
+			name="More than 15 team members"
 			fn={toggleInviteModal}
 			variant="basic"
 		>

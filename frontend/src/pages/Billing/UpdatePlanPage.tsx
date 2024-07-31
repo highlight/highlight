@@ -172,6 +172,7 @@ type ProductCardProps = {
 	usageAmount: number
 	predictedUsageAmount: number
 	setHasChanges: (changes: boolean) => void
+	setStep: (step: PlanSelectStep) => void
 }
 
 interface UpdatePlanForm {
@@ -262,6 +263,7 @@ const ProductCard = ({
 	includedQuantity,
 	usageAmount,
 	predictedUsageAmount,
+	setStep,
 }: ProductCardProps) => {
 	const unitCost = BASE_UNIT_COST_CENTS[productType]
 	const unitCostCents =
@@ -509,6 +511,9 @@ const ProductCard = ({
 											setRetentionPeriod(rp)
 											setHasChanges(true)
 										}}
+										onShowModal={() =>
+											setStep('Custom Data Retention')
+										}
 										variant="basic"
 									>
 										<Menu.Item key={rp}>
@@ -538,6 +543,7 @@ export type PlanSelectStep =
 	| 'Select plan'
 	| 'Configure plan'
 	| 'Enter payment details'
+	| 'Custom Data Retention'
 	| null
 
 type BillingPageProps = {
@@ -639,10 +645,6 @@ const UpdatePlanPage = ({
 			setHasChanges(true)
 		}
 	}, [isPaying, loading, setHasChanges])
-
-	if (loading) {
-		return null
-	}
 
 	const nextInvoiceDate = tryCastDate(data?.workspace?.next_invoice_date)
 	const billingPeriodEnd = tryCastDate(data?.workspace?.billing_period_end)
@@ -890,6 +892,7 @@ const UpdatePlanPage = ({
 						predictedUsageAmount={predictedSessionsUsage}
 						includedQuantity={includedSessions}
 						planType={selectedPlanType}
+						setStep={setStep}
 					/>
 					<Box borderBottom="divider" />
 					<ProductCard
@@ -921,6 +924,7 @@ const UpdatePlanPage = ({
 						predictedUsageAmount={predictedErrorsUsage}
 						includedQuantity={includedErrors}
 						planType={selectedPlanType}
+						setStep={setStep}
 					/>
 					<Box borderBottom="divider" />
 					<ProductCard
@@ -952,6 +956,7 @@ const UpdatePlanPage = ({
 						predictedUsageAmount={predictedLogsUsage}
 						includedQuantity={includedLogs}
 						planType={selectedPlanType}
+						setStep={setStep}
 					/>
 					<Box borderBottom="divider" />
 					<ProductCard
@@ -983,6 +988,7 @@ const UpdatePlanPage = ({
 						predictedUsageAmount={predictedTracesUsage}
 						includedQuantity={includedTraces}
 						planType={selectedPlanType}
+						setStep={setStep}
 					/>
 					<Box borderBottom="divider" />
 					{selectedPlanType === PlanType.Free ? null : (
@@ -1423,8 +1429,8 @@ export const PlanComparisonPage: React.FC<{
 				{title ? (
 					<Callout title={title}>
 						<Box mb="6">
-							<Text color="moderate">
-								Upgrade to {description}
+							<Text size="small" color="moderate">
+								Upgrade your plan to {description}
 							</Text>
 						</Box>
 					</Callout>
@@ -1634,6 +1640,18 @@ export const UpdatePlanModal: React.FC<{
 		}
 	}, [step])
 	if (step === null) return null
+	if (step === 'Custom Data Retention') {
+		return (
+			<EnterpriseFeatureButton
+				setting="enable_business_retention"
+				name="Custom Data Retention"
+				key="Custom Data Retention"
+				fn={async () => undefined}
+				variant="basic"
+				shown
+			></EnterpriseFeatureButton>
+		)
+	}
 	return (
 		<Modal
 			justifyContent="space-between"

@@ -130,7 +130,7 @@ export default function DashboardOverview() {
 										</Text>
 										<EnterpriseFeatureButton
 											setting="enable_business_dashboards"
-											name="Custom Team Dashboards"
+											name="More than 2 dashboards"
 											fn={async () => {
 												setShowModal(true)
 											}}

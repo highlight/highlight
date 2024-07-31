@@ -253,9 +253,10 @@ export const ProjectProductFilters: React.FC<{
 			size="small"
 			emphasis="medium"
 			iconRight={<IconSolidPencil />}
-			disabled={!canEditIngestion}
 			onClick={async () => {
-				navigate(product.toLowerCase())
+				if (canEditIngestion) {
+					navigate(product.toLowerCase())
+				}
 			}}
 		>
 			Edit
@@ -513,7 +514,7 @@ const FilterPaywall: React.FC<
 	return (
 		<EnterpriseFeatureButton
 			setting={setting}
-			name="Billing Limits"
+			name="Ingestion Limits"
 			fn={showEditIngestionUpgrade}
 			variant="basic"
 		>

@@ -117,37 +117,37 @@ const ProjectPicker = () => {
 								<Menu.Divider />
 								{!isProjectLevelMember && (
 									<Menu.Item>
-											{/*TODO(vkorolik) limit all EnterpriseFeatureButton actions on backend*/}
-											<EnterpriseFeatureButton
-												setting="enable_business_projects"
-												name="Multiple Projects"
-												fn={async () =>
-													navigate(
-														`/w/${currentWorkspace?.id}/new`,
-														{
-															state: {
-																previousLocation:
-																	location,
-															},
+										{/*TODO(vkorolik) limit all EnterpriseFeatureButton actions on backend*/}
+										<EnterpriseFeatureButton
+											setting="enable_business_projects"
+											name="More than 1 project"
+											fn={async () =>
+												navigate(
+													`/w/${currentWorkspace?.id}/new`,
+													{
+														state: {
+															previousLocation:
+																location,
 														},
-													)
-												}
-												variant="basic"
-												className={linkStyle}
+													},
+												)
+											}
+											variant="basic"
+											className={linkStyle}
+										>
+											<Box
+												display="flex"
+												alignItems="center"
+												gap="4"
 											>
-												<Box
-													display="flex"
-													alignItems="center"
-													gap="4"
-												>
-													<IconSolidPlusSm
-														size={14}
-														color={vars.color.n9}
-													/>
-													Create new project
-												</Box>
-											</EnterpriseFeatureButton>
-										</Menu.Item>
+												<IconSolidPlusSm
+													size={14}
+													color={vars.color.n9}
+												/>
+												Create new project
+											</Box>
+										</EnterpriseFeatureButton>
+									</Menu.Item>
 								)}
 								<Link
 									to={`/${projectId}/settings/sessions`}
