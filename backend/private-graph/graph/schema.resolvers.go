@@ -9486,7 +9486,7 @@ func (r *queryResolver) TracesKeyValues(ctx context.Context, projectID int, keyN
 		return nil, err
 	}
 
-	return r.ClickhouseClient.TracesKeyValues(ctx, project.ID, keyName, dateRange.StartDate, dateRange.EndDate, nil)
+	return r.ClickhouseClient.TracesKeyValues(ctx, project.ID, keyName, dateRange.StartDate, dateRange.EndDate, count)
 }
 
 // ErrorsKeys is the resolver for the errors_keys field.
