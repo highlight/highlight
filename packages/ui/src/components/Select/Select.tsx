@@ -3,9 +3,10 @@ import { matchSorter } from 'match-sorter'
 import React, { useEffect, useMemo } from 'react'
 import { useState } from 'react'
 
+import { Badge } from '../Badge/Badge'
 import { Box } from '../Box/Box'
 import { Button } from '../Button/Button'
-import { IconSolidCheck, IconSolidCheckCircle } from '../icons'
+import { IconSolidCheck, IconSolidCheckCircle, IconSolidX } from '../icons'
 import { Stack } from '../Stack/Stack'
 import { Text } from '../Text/Text'
 import * as styles from './styles.css'
@@ -22,9 +23,11 @@ type InitialOptions = string[] | Option[]
 type SingleValue = string | number | Option | undefined
 type Value = SingleValue | SingleValue[]
 
+// TODO: Handle loading state
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type SelectProviderProps<T = any> = {
 	checkType?: 'checkmark' | 'checkbox'
+	displayMode?: 'normal' | 'tags'
 	options?: InitialOptions
 	value?: T
 	setOptions?: (options: T) => void
@@ -35,6 +38,7 @@ type SelectProviderProps<T = any> = {
 
 const SelectContext = React.createContext<SelectProviderProps>({
 	checkType: 'checkmark',
+	displayMode: 'normal',
 })
 
 const useSelectContext = () => {
@@ -49,11 +53,11 @@ const useSelectContext = () => {
 
 const SelectProvider = <T,>({
 	children,
-	checkType,
 	options: opts,
 	value: valueProp,
 	onChange,
 	onValueChange,
+	...props
 }: React.PropsWithChildren<
 	Omit<SelectProviderProps<T>, 'setValue' | 'setOptions'>
 >) => {
@@ -88,11 +92,11 @@ const SelectProvider = <T,>({
 	return (
 		<SelectContext.Provider
 			value={{
-				checkType,
 				options,
 				value,
 				setOptions,
 				setValue: handleSetValue,
+				...props,
 			}}
 		>
 			{children}
@@ -104,6 +108,7 @@ const SelectProvider = <T,>({
 export type SelectProps<T = any> = Omit<Ariakit.SelectProps, 'value'> & {
 	checkType?: SelectProviderProps['checkType']
 	defaultValue?: T
+	displayMode?: SelectProviderProps['displayMode']
 	filterable?: boolean
 	trigger?: React.ComponentType
 	options?: SelectProviderProps['options']
@@ -119,6 +124,7 @@ export type SelectProps<T = any> = Omit<Ariakit.SelectProps, 'value'> & {
 export const Select = <T,>({
 	checkType,
 	children,
+	displayMode,
 	filterable,
 	store,
 	value,
@@ -127,20 +133,27 @@ export const Select = <T,>({
 	onValueChange,
 	...props
 }: SelectProps<T>) => {
-	store = store ?? Ariakit.useSelectStore()
+	store =
+		store ??
+		Ariakit.useSelectStore({
+			defaultValue: valueToString(props.defaultValue),
+		})
 	value = value ?? props.defaultValue
 	options = valueToOptions(options) as Option[]
+
+	const providerProps = {
+		checkType,
+		displayMode,
+		options,
+		value: valueToString(value),
+		onChange,
+		onValueChange,
+	}
 
 	if (filterable) {
 		if (options) {
 			return (
-				<SelectProvider
-					checkType={checkType}
-					value={valueToOptions(value)}
-					options={options}
-					onChange={onChange}
-					onValueChange={onValueChange}
-				>
+				<SelectProvider {...providerProps}>
 					<FilterableSelect
 						{...props}
 						options={options}
@@ -152,12 +165,7 @@ export const Select = <T,>({
 	}
 
 	return (
-		<SelectProvider
-			checkType={checkType}
-			value={valueToOptions(value)}
-			options={options}
-			onValueChange={onValueChange}
-		>
+		<SelectProvider {...providerProps}>
 			<Provider store={store} options={options}>
 				<Trigger {...props} />
 				<Popover>
@@ -187,12 +195,21 @@ const Trigger: React.FC<Omit<SelectProps, 'value' | 'setValue'>> = ({
 	const Component = trigger ?? SelectTrigger
 	const store = Ariakit.useSelectContext()!
 	const value = store.useState('value')
+	const { displayMode } = useSelectContext()
 
 	const renderSelectValue = (
 		selectValue: Ariakit.SelectStoreState['value'],
 	) => {
 		if (renderValue) {
 			return renderValue(selectValue)
+		}
+
+		if (displayMode === 'tags') {
+			return Array.isArray(selectValue) ? (
+				selectValue.map((v) => <SelectTag key={v}>{v}</SelectTag>)
+			) : (
+				<SelectTag>{selectValue}</SelectTag>
+			)
 		}
 
 		const isArray = Array.isArray(selectValue)
@@ -310,7 +327,7 @@ export const ItemCheck: React.FC<Ariakit.SelectItemCheckProps> = ({
 	children,
 	...props
 }) => {
-	const checkType = useSelectContext().checkType
+	const { checkType } = useSelectContext()
 
 	if (checkType === 'checkbox') {
 		return (
@@ -447,7 +464,7 @@ const singleValueToOption = (value: SingleValue) => {
 	}
 }
 
-const valueToString = (value: Value) => {
+const valueToString = (value: any) => {
 	if (Array.isArray(value)) {
 		return value.map(singleValueToString)
 	}
@@ -470,6 +487,29 @@ const valueToOptions = (value: any | undefined) => {
 
 const itemsToOptions = (items: Ariakit.SelectStoreState['items']) => {
 	return valueToOptions(items.map((item) => item.value))
+}
+
+const SelectTag: React.FC<{ children: string }> = ({ children }) => {
+	const selectStore = Ariakit.useSelectContext()!
+	const value = selectStore.useState('value')
+
+	return (
+		<Badge
+			cursor="pointer"
+			label={children}
+			iconEnd={<IconSolidX />}
+			onMouseDown={(e) => {
+				e.preventDefault()
+				e.stopPropagation()
+
+				const newValue = Array.isArray(value)
+					? value.filter((v) => v !== children)
+					: ''
+
+				selectStore.setValue(newValue)
+			}}
+		/>
+	)
 }
 
 Select.Label = Label

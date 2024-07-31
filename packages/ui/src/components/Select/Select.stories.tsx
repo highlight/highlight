@@ -1,9 +1,6 @@
-import * as Ariakit from '@ariakit/react'
 import { Meta } from '@storybook/react'
 import { useState } from 'react'
 
-import { Badge } from '../Badge/Badge'
-import { IconSolidX } from '../icons'
 import { Text } from '../Text/Text'
 import { Select } from './Select'
 
@@ -41,22 +38,7 @@ export const MultiSelect = () => {
 
 export const MultiSelectTags = () => {
 	return (
-		<Select
-			defaultValue={['Jay', 'Vadim']}
-			renderValue={(values) => {
-				if (!values.length) {
-					return 'None selected'
-				}
-
-				return (
-					<>
-						{(values as string[]).map((value) => (
-							<SelectTag key={value}>{value}</SelectTag>
-						))}
-					</>
-				)
-			}}
-		>
+		<Select defaultValue={['Jay', 'Vadim']} displayMode="tags">
 			<Options />
 		</Select>
 	)
@@ -129,26 +111,3 @@ const Options = () => (
 		))}
 	</>
 )
-
-const SelectTag: React.FC<{ children: string }> = ({ children }) => {
-	const selectStore = Ariakit.useSelectContext()!
-	const value = selectStore.useState('value')
-
-	return (
-		<Badge
-			cursor="pointer"
-			label={children}
-			iconEnd={<IconSolidX />}
-			onMouseDown={(e) => {
-				e.preventDefault()
-				e.stopPropagation()
-
-				const newValue = Array.isArray(value)
-					? value.filter((v) => v !== children)
-					: ''
-
-				selectStore.setValue(newValue)
-			}}
-		/>
-	)
-}
