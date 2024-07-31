@@ -2514,6 +2514,7 @@ export type GetSessionsQuery = { __typename?: 'Query' } & {
 					| 'last_user_interaction_time'
 					| 'is_public'
 					| 'excluded'
+					| 'email'
 				> & {
 						fields?: Types.Maybe<
 							Array<

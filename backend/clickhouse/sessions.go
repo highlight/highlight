@@ -538,7 +538,7 @@ var SessionsJoinedTableConfig = model.TableConfig{
 		modelInputs.ReservedSessionKeySample.String():     true,
 		modelInputs.ReservedSessionKeyViewedByMe.String(): true,
 	},
-	DefaultFilter: "NOT excluded",
+	DefaultFilter: "excluded=false",
 }
 
 var SessionsSampleableTableConfig = SampleableTableConfig{
