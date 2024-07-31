@@ -4,6 +4,7 @@ import { useState } from 'react'
 
 import { Badge } from '../Badge/Badge'
 import { IconSolidX } from '../icons'
+import { Text } from '../Text/Text'
 import { Select } from './Select'
 
 export default {
@@ -100,24 +101,26 @@ export const FilterableMultiSelectWithCheckboxes = () => {
 			checkType="checkbox"
 			value={value}
 			onChange={(newValue) => setValue(newValue)}
-			renderValue={(values) => {
-				return <>{Number(values.length)} selected</>
-			}}
+			renderValue={(values) => (
+				<Text color="secondaryContentText">
+					{Number(values.length)} selected
+				</Text>
+			)}
 		/>
 	)
 }
 
-// type User = {
-// 	name: string
-// 	value: number
-// }
-// const users: User[] = OPTIONS.map((name, i) => ({
-// 	name,
-// 	value: i + 1,
-// }))
-// export const SelectWithObjectValues = () => {
-// 	return <Select value={users[0]} options={users} />
-// }
+type User = {
+	name: string
+	value: number
+}
+const users: User[] = OPTIONS.map((name, i) => ({
+	name,
+	value: i + 1,
+}))
+export const SelectWithObjectValuesAndTypes = () => {
+	return <Select<User> value={users[0]} options={users} />
+}
 
 const Options = () => (
 	<>

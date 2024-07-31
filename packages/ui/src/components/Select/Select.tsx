@@ -10,9 +10,22 @@ import { Stack } from '../Stack/Stack'
 import { Text } from '../Text/Text'
 import * as styles from './styles.css'
 
+type Option = {
+	name: string
+	value: string | number
+	[key: string]: any // eslint-disable-line @typescript-eslint/no-explicit-any
+}
+
+// Accept strings or options. Strings will be converted to options.
+type InitialOptions = string[] | Option[]
+
+type SingleValue = string | number | Option | undefined
+type Value = SingleValue | SingleValue[]
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 type SelectProviderProps<T = any> = {
 	checkType?: 'checkmark' | 'checkbox'
-	options?: T
+	options?: InitialOptions
 	value?: T
 	setOptions?: (options: T) => void
 	setValue?: (value: T) => void
@@ -44,7 +57,7 @@ const SelectProvider = <T,>({
 }: React.PropsWithChildren<
 	Omit<SelectProviderProps<T>, 'setValue' | 'setOptions'>
 >) => {
-	opts = opts ?? ([] as any) // TODO: improve types
+	opts = (opts ?? []).map(singleValueToOption)
 	const [value, setValue] = useState(valueProp)
 	const [options, setOptions] = useState(opts)
 	const isMulti = Array.isArray(value)
@@ -52,11 +65,11 @@ const SelectProvider = <T,>({
 	const handleSetValue = (newValue: string | string[]) => {
 		let newInternalValue: T
 		if (isMulti) {
-			newInternalValue = (options as any[]).filter((option) =>
+			newInternalValue = options.filter((option) =>
 				(newValue as string[]).some((val) => val === option.value),
 			) as T
 		} else {
-			newInternalValue = (options as any[]).find(
+			newInternalValue = options.find(
 				(option) => option.value === newValue,
 			) as T
 		}
@@ -87,14 +100,15 @@ const SelectProvider = <T,>({
 	)
 }
 
-export type SelectProps = Ariakit.SelectProps & {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export type SelectProps<T = any> = Omit<Ariakit.SelectProps, 'value'> & {
 	checkType?: SelectProviderProps['checkType']
-	defaultValue?: Value
+	defaultValue?: T
 	filterable?: boolean
 	trigger?: React.ComponentType
-	options?: Option[]
+	options?: SelectProviderProps['options']
 	store?: Ariakit.SelectProviderProps['store']
-	value?: Value
+	value?: T
 	renderValue?: (
 		value: Ariakit.SelectStoreState['value'] | Option,
 	) => React.ReactElement | string | null
@@ -102,79 +116,7 @@ export type SelectProps = Ariakit.SelectProps & {
 	onValueChange?: SelectProviderProps['onValueChange']
 }
 
-type Option = {
-	name: string
-	value: string | number
-	[key: string]: any // eslint-disable-line @typescript-eslint/no-explicit-any
-}
-
-type SelectComponent = React.FC<SelectProps> & {
-	Label: typeof Label
-	Group: typeof Group
-	GroupLabel: typeof GroupLabel
-	Option: typeof Option
-	Popover: typeof Popover
-	Separator: typeof Separator
-	SelectTriggerButton: typeof SelectTriggerButton
-	useContext: typeof Ariakit.useSelectContext
-	useStore: typeof Ariakit.useSelectStore
-}
-
-type SingleValue = string | number | Option | undefined
-type Value = SingleValue | SingleValue[]
-
-const isOption = (value: SingleValue): value is Option => {
-	return typeof value === 'object'
-}
-
-const optionToString = (option: Option) => {
-	return String(option.value)
-}
-
-const singleValueToString = (value: SingleValue) => {
-	if (isOption(value)) {
-		return optionToString(value)
-	}
-
-	return String(value)
-}
-
-const singleValueToOption = (value: SingleValue) => {
-	if (isOption(value)) {
-		return value
-	}
-
-	return {
-		name: String(value),
-		value: String(value),
-	}
-}
-
-const valueToString = (value: Value) => {
-	if (Array.isArray(value)) {
-		return value.map(singleValueToString)
-	}
-
-	return singleValueToString(value)
-}
-
-const valueToOptions = (value: Value | undefined) => {
-	if (value === undefined) {
-		return undefined
-	}
-
-	if (Array.isArray(value)) {
-		return value.map(singleValueToOption)
-	}
-
-	return singleValueToOption(value)
-}
-
-const itemsToOptions = (items: Ariakit.SelectStoreState['items']) => {
-	return valueToOptions(items.map((item) => item.value)) as Option[]
-}
-
-export const Select: SelectComponent = ({
+export const Select = <T,>({
 	checkType,
 	children,
 	filterable,
@@ -184,7 +126,7 @@ export const Select: SelectComponent = ({
 	onChange,
 	onValueChange,
 	...props
-}) => {
+}: SelectProps<T>) => {
 	store = store ?? Ariakit.useSelectStore()
 	value = value ?? props.defaultValue
 	options = valueToOptions(options) as Option[]
@@ -273,8 +215,6 @@ export const Provider: React.FC<ProviderProps> = ({ children, ...props }) => {
 	const items = props.store.useState('items')
 
 	useEffect(() => {
-		console.log('items', value)
-
 		if (setOptions && !props.options) {
 			setOptions(itemsToOptions(items))
 		}
@@ -478,6 +418,58 @@ export const FilterableSelect: React.FC<FilterableSelectProps> = ({
 			</Select>
 		</Ariakit.ComboboxProvider>
 	)
+}
+
+const isOption = (value: SingleValue): value is Option => {
+	return typeof value === 'object'
+}
+
+const optionToString = (option: Option) => {
+	return String(option.value)
+}
+
+const singleValueToString = (value: SingleValue) => {
+	if (isOption(value)) {
+		return optionToString(value)
+	}
+
+	return String(value)
+}
+
+const singleValueToOption = (value: SingleValue) => {
+	if (isOption(value)) {
+		return value
+	}
+
+	return {
+		name: String(value),
+		value: String(value),
+	}
+}
+
+const valueToString = (value: Value) => {
+	if (Array.isArray(value)) {
+		return value.map(singleValueToString)
+	}
+
+	return singleValueToString(value)
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const valueToOptions = (value: any | undefined) => {
+	if (value === undefined) {
+		return undefined
+	}
+
+	if (Array.isArray(value)) {
+		return value.map(singleValueToOption)
+	}
+
+	return singleValueToOption(value)
+}
+
+const itemsToOptions = (items: Ariakit.SelectStoreState['items']) => {
+	return valueToOptions(items.map((item) => item.value))
 }
 
 Select.Label = Label
