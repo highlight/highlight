@@ -6,7 +6,12 @@ import { useState } from 'react'
 import { Badge } from '../Badge/Badge'
 import { Box } from '../Box/Box'
 import { Button } from '../Button/Button'
-import { IconSolidCheck, IconSolidCheckCircle, IconSolidX } from '../icons'
+import {
+	IconSolidCheck,
+	IconSolidCheckCircle,
+	IconSolidSelector,
+	IconSolidX,
+} from '../icons'
 import { Stack } from '../Stack/Stack'
 import { Text } from '../Text/Text'
 import * as styles from './styles.css'
@@ -21,7 +26,6 @@ type Option = {
 type InitialOptions = string[] | Option[]
 
 type SingleValue = string | number | Option | undefined
-type Value = SingleValue | SingleValue[]
 
 // TODO: Handle loading state
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -69,8 +73,8 @@ const SelectProvider = <T,>({
 	const handleSetValue = (newValue: string | string[]) => {
 		let newInternalValue: T
 		if (isMulti) {
-			newInternalValue = options.filter((option) =>
-				(newValue as string[]).some((val) => val === option.value),
+			newInternalValue = (newValue as string[]).map((option) =>
+				options.find((o) => o.value === option),
 			) as T
 		} else {
 			newInternalValue = options.find(
@@ -205,6 +209,13 @@ const Trigger: React.FC<Omit<SelectProps, 'value' | 'setValue'>> = ({
 		}
 
 		if (displayMode === 'tags') {
+			if (
+				!selectValue ||
+				(Array.isArray(selectValue) && !selectValue.length)
+			) {
+				return 'Select...'
+			}
+
 			return Array.isArray(selectValue) ? (
 				selectValue.map((v) => <SelectTag key={v}>{v}</SelectTag>)
 			) : (
@@ -269,7 +280,9 @@ export const SelectTrigger: React.FC<SelectTriggerProps> = ({
 					)}
 				</Stack>
 
-				{!hideArrow && <Ariakit.SelectArrow />}
+				{!hideArrow && (
+					<Ariakit.SelectArrow render={<IconSolidSelector />} />
+				)}
 			</Stack>
 		</Ariakit.Select>
 	)
@@ -283,7 +296,7 @@ export const SelectTriggerButton: React.FC<SelectTriggerProps> = ({
 		<Ariakit.Select {...props} render={<Button />}>
 			<Stack direction="row" gap="4" align="center">
 				{children}
-				<Ariakit.SelectArrow />
+				<Ariakit.SelectArrow render={<IconSolidSelector />} />
 			</Stack>
 		</Ariakit.Select>
 	)
@@ -384,11 +397,6 @@ export const GroupLabel: React.FC<GroupLabelProps> = ({
 	)
 }
 
-type SeparatorProps = Ariakit.SelectSeparatorProps
-export const Separator: React.FC<SeparatorProps> = ({ ...props }) => {
-	return <Ariakit.SelectSeparator {...props} />
-}
-
 type FilterableSelectProps = SelectProps & {
 	options: Option[]
 }
@@ -464,6 +472,7 @@ const singleValueToOption = (value: SingleValue) => {
 	}
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const valueToString = (value: any) => {
 	if (Array.isArray(value)) {
 		return value.map(singleValueToString)
@@ -496,6 +505,9 @@ const SelectTag: React.FC<{ children: string }> = ({ children }) => {
 	return (
 		<Badge
 			cursor="pointer"
+			shape="basic"
+			variant="white"
+			size="medium"
 			label={children}
 			iconEnd={<IconSolidX />}
 			onMouseDown={(e) => {
@@ -515,7 +527,6 @@ const SelectTag: React.FC<{ children: string }> = ({ children }) => {
 Select.Label = Label
 Select.Group = Group
 Select.GroupLabel = GroupLabel
-Select.Separator = Separator
 Select.Option = Option
 Select.Popover = Popover
 Select.SelectTriggerButton = SelectTriggerButton
