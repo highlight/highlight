@@ -606,7 +606,7 @@ const ControlSettings = ({ setShowSettingsPopover }: ControlSettingsProps) => {
 					alignItems="center"
 					justifyContent="flex-end"
 				>
-					<Badge size="small" label="Annual" />
+					<Badge size="small" label="Business" />
 				</Box>
 			</EnterpriseFeatureButton>
 		</>

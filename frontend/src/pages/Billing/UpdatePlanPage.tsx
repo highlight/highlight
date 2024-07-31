@@ -1197,7 +1197,7 @@ type Plan = {
 	name: string
 	descriptions: string[]
 	icon: React.ReactNode
-	price: number | '400+' | 'Custom'
+	price: number | '800+' | 'Custom'
 }
 
 const PLAN_BASE_FEES = {
@@ -1247,7 +1247,7 @@ const PLANS = {
 				color={vars.theme.static.content.default}
 			/>
 		),
-		price: '400+',
+		price: '800+',
 	},
 	[PlanType.Enterprise]: {
 		type: PlanType.Enterprise,
