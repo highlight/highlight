@@ -27,11 +27,11 @@ type InitialOptions = string[] | Option[]
 
 type SingleValue = string | number | Option | undefined
 
-// TODO: Handle loading state
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type SelectProviderProps<T = any> = {
 	checkType?: 'checkmark' | 'checkbox'
 	displayMode?: 'normal' | 'tags'
+	loading?: boolean
 	options?: InitialOptions
 	value?: T
 	setOptions?: (options: T) => void
@@ -43,6 +43,7 @@ type SelectProviderProps<T = any> = {
 const SelectContext = React.createContext<SelectProviderProps>({
 	checkType: 'checkmark',
 	displayMode: 'normal',
+	loading: false,
 })
 
 const useSelectContext = () => {
@@ -114,6 +115,7 @@ export type SelectProps<T = any> = Omit<Ariakit.SelectProps, 'value'> & {
 	defaultValue?: T
 	displayMode?: SelectProviderProps['displayMode']
 	filterable?: boolean
+	loading?: SelectProviderProps['loading']
 	trigger?: React.ComponentType
 	options?: SelectProviderProps['options']
 	store?: Ariakit.SelectProviderProps['store']
@@ -130,6 +132,7 @@ export const Select = <T,>({
 	children,
 	displayMode,
 	filterable,
+	loading,
 	store,
 	value,
 	options,
@@ -148,6 +151,7 @@ export const Select = <T,>({
 	const providerProps = {
 		checkType,
 		displayMode,
+		loading,
 		options,
 		value: valueToString(value),
 		onChange,
@@ -199,7 +203,11 @@ const Trigger: React.FC<Omit<SelectProps, 'value' | 'setValue'>> = ({
 	const Component = trigger ?? SelectTrigger
 	const store = Ariakit.useSelectContext()!
 	const value = store.useState('value')
-	const { displayMode } = useSelectContext()
+	const { displayMode, loading } = useSelectContext()
+
+	if (loading) {
+		props.disabled = true
+	}
 
 	const renderSelectValue = (
 		selectValue: Ariakit.SelectStoreState['value'],
@@ -231,7 +239,11 @@ const Trigger: React.FC<Omit<SelectProps, 'value' | 'setValue'>> = ({
 		return selectValue
 	}
 
-	return <Component {...props}>{renderSelectValue(value)}</Component>
+	return (
+		<Component style={{ opacity: loading ? 0.8 : 1 }} {...props}>
+			{renderSelectValue(value)}
+		</Component>
+	)
 }
 
 type ProviderProps = Ariakit.SelectProviderProps & {
