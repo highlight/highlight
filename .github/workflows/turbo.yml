@@ -112,13 +112,13 @@ jobs:
               if: github.ref == 'refs/heads/main'
               run: yarn publish:ai
 
-            - name: Publish render lambda
-              if: github.ref == 'refs/heads/main'
-              run: yarn publish:render
-
             - name: Publish session-insights-email lambda
               if: github.ref == 'refs/heads/main'
               run: yarn publish:react-email-templates
+
+            - name: Publish render lambda
+              if: github.ref == 'refs/heads/main'
+              run: yarn publish:render
 
             - name: Publish changesets
               if: github.ref == 'refs/heads/main'
