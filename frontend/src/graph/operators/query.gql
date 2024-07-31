@@ -2529,14 +2529,12 @@ query GetKeyValues(
 	$project_id: ID!
 	$key_name: String!
 	$date_range: DateRangeRequiredInput!
-	$count: Int!
 ) {
 	key_values(
 		product_type: $product_type
 		project_id: $project_id
 		key_name: $key_name
 		date_range: $date_range
-		count: $count
 	)
 }
 

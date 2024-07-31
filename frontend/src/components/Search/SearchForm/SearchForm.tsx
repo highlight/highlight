@@ -525,7 +525,6 @@ export const Search: React.FC<{
 					start_date: moment(startDate).format(TIME_FORMAT),
 					end_date: moment(endDate).format(TIME_FORMAT),
 				},
-				count: 25,
 			},
 			fetchPolicy: 'cache-first',
 			onCompleted: (data) => {
