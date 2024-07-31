@@ -10,6 +10,7 @@ import (
 	microsoft_teams "github.com/highlight-run/highlight/backend/alerts/integrations/microsoft-teams"
 	destinationsV2 "github.com/highlight-run/highlight/backend/alerts/v2/destinations"
 	microsoftteamsV2_templates "github.com/highlight-run/highlight/backend/alerts/v2/destinations/microsoft-teams/templates"
+	"github.com/highlight-run/highlight/backend/env"
 	"github.com/highlight-run/highlight/backend/model"
 	modelInputs "github.com/highlight-run/highlight/backend/private-graph/graph/model"
 	"github.com/highlight-run/highlight/backend/routing"
@@ -258,6 +259,64 @@ func sendMetricAlert(ctx context.Context, microsoftTeamsTenantId string, alertIn
 	}
 
 	deliverAlerts(ctx, microsoftTeamsTenantId, microsoftteamsV2_templates.MetricAlertMessageTemplate, messagePayload, destinations)
+}
+
+func SendNotifications(ctx context.Context, microsoftTeamsTenantId *string, notificationInput destinationsV2.NotificationInput, destinations []model.AlertDestination) {
+	if microsoftTeamsTenantId == nil {
+		log.WithContext(ctx).Error("microsoft teams access token is nil")
+		return
+	}
+
+	switch notificationInput.NotificationType {
+	case destinationsV2.NotificationTypeAlertCreated:
+		sendAlertCreatedNotification(ctx, *microsoftTeamsTenantId, notificationInput, destinations)
+	case destinationsV2.NotificationTypeAlertUpdated:
+		sendAlertUpdatedNotification(ctx, *microsoftTeamsTenantId, notificationInput, destinations)
+	default:
+		log.WithContext(ctx).WithFields(
+			log.Fields{
+				"destinationType":  "discord",
+				"notificationType": notificationInput.NotificationType,
+			}).Error("Invalid notification type")
+	}
+}
+
+func sendAlertCreatedNotification(ctx context.Context, microsoftTeamsTenantId string, notificationInput destinationsV2.NotificationInput, destinations []model.AlertDestination) {
+	name := notificationInput.AlertUpsertInput.Admin.Name
+	if name == nil {
+		name = notificationInput.AlertUpsertInput.Admin.Email
+	}
+
+	frontendURL := env.Config.FrontendUri
+	alertURL := fmt.Sprintf("%s/%d/alerts/%d", frontendURL, notificationInput.AlertUpsertInput.Alert.ProjectID, notificationInput.AlertUpsertInput.Alert.ID)
+
+	messagePayload := microsoftteamsV2_templates.AlertUpsertPayload{
+		AlertName:   notificationInput.AlertUpsertInput.Alert.Name,
+		AlertUrl:    alertURL,
+		AdminName:   *name,
+		AlertAction: "created",
+	}
+
+	deliverAlerts(ctx, microsoftTeamsTenantId, microsoftteamsV2_templates.AlertUpsertMessageTemplate, messagePayload, destinations)
+}
+
+func sendAlertUpdatedNotification(ctx context.Context, microsoftTeamsTenantId string, notificationInput destinationsV2.NotificationInput, destinations []model.AlertDestination) {
+	name := notificationInput.AlertUpsertInput.Admin.Name
+	if name == nil {
+		name = notificationInput.AlertUpsertInput.Admin.Email
+	}
+
+	frontendURL := env.Config.FrontendUri
+	alertURL := fmt.Sprintf("%s/%d/alerts/%d", frontendURL, notificationInput.AlertUpsertInput.Alert.ProjectID, notificationInput.AlertUpsertInput.Alert.ID)
+
+	messagePayload := microsoftteamsV2_templates.AlertUpsertPayload{
+		AlertName:   notificationInput.AlertUpsertInput.Alert.Name,
+		AlertUrl:    alertURL,
+		AdminName:   *name,
+		AlertAction: "updated",
+	}
+
+	deliverAlerts(ctx, microsoftTeamsTenantId, microsoftteamsV2_templates.AlertUpsertMessageTemplate, messagePayload, destinations)
 }
 
 func deliverAlerts(ctx context.Context, microsoftTeamsTenantId string, messageTemplate []byte, messagePayload interface{}, destinations []model.AlertDestination) {

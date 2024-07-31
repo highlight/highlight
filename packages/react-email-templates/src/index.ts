@@ -14,6 +14,7 @@ import {
 	LogsAlertV2Email,
 	TracesAlertV2Email,
 	MetricsAlertV2Email,
+	AlertUpsertEmail,
 } from '../emails'
 
 export const handler = async (event?: APIGatewayEvent) => {
@@ -65,6 +66,8 @@ const getEmailTemplate = (template: string) => {
 			return TracesAlertV2Email
 		case 'metrics-alert':
 			return MetricsAlertV2Email
+		case 'alert-upsert':
+			return AlertUpsertEmail
 		default:
 			console.error('No email template found for ', template)
 	}
