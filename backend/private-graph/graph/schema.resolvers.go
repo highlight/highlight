@@ -9097,7 +9097,7 @@ And specifically, for the %s product, you can refer to the following documentati
 		toSave.DateRange.EndDate = &endDate
 	}
 
-	if toSave.Query == "" {
+	if toSave.Query == "" && toSave.DateRange.StartDate == nil && toSave.DateRange.EndDate == nil {
 		return nil, openai_client.MalformedPromptError
 	}
 
