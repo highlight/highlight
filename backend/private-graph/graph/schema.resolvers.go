@@ -8701,7 +8701,7 @@ func (r *queryResolver) MetricTagValues(ctx context.Context, projectID int, metr
 		return nil, err
 	}
 
-	return r.ClickhouseClient.TracesKeyValues(ctx, projectID, tagName, time.Now().Add(-30*24*time.Hour), time.Now())
+	return r.ClickhouseClient.TracesKeyValues(ctx, projectID, tagName, time.Now().Add(-30*24*time.Hour), time.Now(), nil)
 }
 
 // MetricsTimeline is the resolver for the metrics_timeline field.
@@ -8917,7 +8917,7 @@ func (r *queryResolver) AiQuerySuggestion(ctx context.Context, timeZone string, 
 		if key == "HighlightType" {
 			continue
 		}
-		keys = append(keys, key)
+		count := 10
 		vals, err := r.KeyValues(
 			ctx,
 			productType,
@@ -8927,6 +8927,7 @@ func (r *queryResolver) AiQuerySuggestion(ctx context.Context, timeZone string, 
 				StartDate: sevenDaysAgo,
 				EndDate:   time.Now(),
 			},
+			&count,
 		)
 		if err != nil {
 			return nil, err
@@ -9119,7 +9120,7 @@ And specifically, for the %s product, you can refer to the following documentati
 		toSave.DateRange.EndDate = &endDate
 	}
 
-	if toSave.Query == "" {
+	if toSave.Query == "" && toSave.DateRange.StartDate == nil && toSave.DateRange.EndDate == nil {
 		return nil, openai_client.MalformedPromptError
 	}
 
@@ -9230,12 +9231,12 @@ func (r *queryResolver) LogsKeys(ctx context.Context, projectID int, dateRange m
 }
 
 // LogsKeyValues is the resolver for the logs_key_values field.
-func (r *queryResolver) LogsKeyValues(ctx context.Context, projectID int, keyName string, dateRange modelInputs.DateRangeRequiredInput) ([]string, error) {
+func (r *queryResolver) LogsKeyValues(ctx context.Context, projectID int, keyName string, dateRange modelInputs.DateRangeRequiredInput, count *int) ([]string, error) {
 	project, err := r.isUserInProjectOrDemoProject(ctx, projectID)
 	if err != nil {
 		return nil, err
 	}
-	return r.ClickhouseClient.LogsKeyValues(ctx, project.ID, keyName, dateRange.StartDate, dateRange.EndDate)
+	return r.ClickhouseClient.LogsKeyValues(ctx, project.ID, keyName, dateRange.StartDate, dateRange.EndDate, count)
 }
 
 // LogsErrorObjects is the resolver for the logs_error_objects field.
@@ -9502,13 +9503,13 @@ func (r *queryResolver) TracesKeys(ctx context.Context, projectID int, dateRange
 }
 
 // TracesKeyValues is the resolver for the traces_key_values field.
-func (r *queryResolver) TracesKeyValues(ctx context.Context, projectID int, keyName string, dateRange modelInputs.DateRangeRequiredInput) ([]string, error) {
+func (r *queryResolver) TracesKeyValues(ctx context.Context, projectID int, keyName string, dateRange modelInputs.DateRangeRequiredInput, count *int) ([]string, error) {
 	project, err := r.isUserInProjectOrDemoProject(ctx, projectID)
 	if err != nil {
 		return nil, err
 	}
 
-	return r.ClickhouseClient.TracesKeyValues(ctx, project.ID, keyName, dateRange.StartDate, dateRange.EndDate)
+	return r.ClickhouseClient.TracesKeyValues(ctx, project.ID, keyName, dateRange.StartDate, dateRange.EndDate, count)
 }
 
 // ErrorsKeys is the resolver for the errors_keys field.
@@ -9533,13 +9534,13 @@ func (r *queryResolver) ErrorsKeys(ctx context.Context, projectID int, dateRange
 }
 
 // ErrorsKeyValues is the resolver for the errors_key_values field.
-func (r *queryResolver) ErrorsKeyValues(ctx context.Context, projectID int, keyName string, dateRange modelInputs.DateRangeRequiredInput) ([]string, error) {
+func (r *queryResolver) ErrorsKeyValues(ctx context.Context, projectID int, keyName string, dateRange modelInputs.DateRangeRequiredInput, count *int) ([]string, error) {
 	project, err := r.isUserInProjectOrDemoProject(ctx, projectID)
 	if err != nil {
 		return nil, err
 	}
 
-	return r.ClickhouseClient.ErrorsKeyValues(ctx, project.ID, keyName, dateRange.StartDate, dateRange.EndDate)
+	return r.ClickhouseClient.ErrorsKeyValues(ctx, project.ID, keyName, dateRange.StartDate, dateRange.EndDate, count)
 }
 
 // ErrorsMetrics is the resolver for the errors_metrics field.
@@ -9563,13 +9564,13 @@ func (r *queryResolver) SessionsKeys(ctx context.Context, projectID int, dateRan
 }
 
 // SessionsKeyValues is the resolver for the sessions_key_values field.
-func (r *queryResolver) SessionsKeyValues(ctx context.Context, projectID int, keyName string, dateRange modelInputs.DateRangeRequiredInput) ([]string, error) {
+func (r *queryResolver) SessionsKeyValues(ctx context.Context, projectID int, keyName string, dateRange modelInputs.DateRangeRequiredInput, count *int) ([]string, error) {
 	project, err := r.isUserInProjectOrDemoProject(ctx, projectID)
 	if err != nil {
 		return nil, err
 	}
 
-	return r.ClickhouseClient.SessionsKeyValues(ctx, project.ID, keyName, dateRange.StartDate, dateRange.EndDate)
+	return r.ClickhouseClient.SessionsKeyValues(ctx, project.ID, keyName, dateRange.StartDate, dateRange.EndDate, count)
 }
 
 // SessionsMetrics is the resolver for the sessions_metrics field.
@@ -9627,22 +9628,22 @@ func (r *queryResolver) Keys(ctx context.Context, productType modelInputs.Produc
 }
 
 // KeyValues is the resolver for the key_values field.
-func (r *queryResolver) KeyValues(ctx context.Context, productType modelInputs.ProductType, projectID int, keyName string, dateRange modelInputs.DateRangeRequiredInput) ([]string, error) {
+func (r *queryResolver) KeyValues(ctx context.Context, productType modelInputs.ProductType, projectID int, keyName string, dateRange modelInputs.DateRangeRequiredInput, count *int) ([]string, error) {
 	switch productType {
 	case modelInputs.ProductTypeMetrics:
 		project, err := r.isUserInProjectOrDemoProject(ctx, projectID)
 		if err != nil {
 			return nil, err
 		}
-		return r.ClickhouseClient.MetricsKeyValues(ctx, project.ID, keyName, dateRange.StartDate, dateRange.EndDate)
+		return r.ClickhouseClient.MetricsKeyValues(ctx, project.ID, keyName, dateRange.StartDate, dateRange.EndDate, count)
 	case modelInputs.ProductTypeTraces:
-		return r.TracesKeyValues(ctx, projectID, keyName, dateRange)
+		return r.TracesKeyValues(ctx, projectID, keyName, dateRange, count)
 	case modelInputs.ProductTypeLogs:
-		return r.LogsKeyValues(ctx, projectID, keyName, dateRange)
+		return r.LogsKeyValues(ctx, projectID, keyName, dateRange, count)
 	case modelInputs.ProductTypeSessions:
-		return r.SessionsKeyValues(ctx, projectID, keyName, dateRange)
+		return r.SessionsKeyValues(ctx, projectID, keyName, dateRange, count)
 	case modelInputs.ProductTypeErrors:
-		return r.ErrorsKeyValues(ctx, projectID, keyName, dateRange)
+		return r.ErrorsKeyValues(ctx, projectID, keyName, dateRange, count)
 	default:
 		return nil, e.Errorf("invalid product type %s", productType)
 	}

@@ -626,9 +626,14 @@ func (client *Client) QuerySessionCustomMetrics(ctx context.Context, projectId i
 	return metrics, nil
 }
 
-func (client *Client) SessionsKeyValues(ctx context.Context, projectID int, keyName string, startDate time.Time, endDate time.Time) ([]string, error) {
+func (client *Client) SessionsKeyValues(ctx context.Context, projectID int, keyName string, startDate time.Time, endDate time.Time, limit *int) ([]string, error) {
 	if booleanKeys[keyName] {
 		return []string{"true", "false"}, nil
+	}
+
+	limitCount := 10
+	if limit != nil {
+		limitCount = *limit
 	}
 
 	sb := sqlbuilder.NewSelectBuilder()
@@ -641,7 +646,7 @@ func (client *Client) SessionsKeyValues(ctx context.Context, projectID int, keyN
 			sb.Between("SessionCreatedAt", startDate, endDate))).
 		GroupBy("1").
 		OrderBy("count() DESC").
-		Limit(10).
+		Limit(limitCount).
 		BuildWithFlavor(sqlbuilder.ClickHouse)
 
 	rows, err := client.conn.Query(ctx, sql, args...)
