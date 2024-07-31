@@ -76,6 +76,11 @@ jobs:
                   NEXT_PUBLIC_HIGHLIGHT_PROJECT_ID: 1jdkoe52
                   REACT_APP_COMMIT_SHA: ${{ github.sha }}
 
+            - name: Build render
+              run: doppler run -- yarn build:render
+              env:
+                  DOPPLER_TOKEN: ${{ secrets.DOPPLER_PROD_RENDER_SECRET }}
+
             - name: Validate repo state
               run: |
                   git status --porcelain
