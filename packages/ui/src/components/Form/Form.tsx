@@ -230,9 +230,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
 
 type FormSelectProps = Omit<Ariakit.FormInputProps, 'onChange'> &
 	React.PropsWithChildren<HasLabel> &
-	Pick<SelectProps, 'options' | 'filterable'> & {
-		onChange?: SelectProps['onValueChange']
-	}
+	Omit<SelectProps, 'name'>
 
 export const Select = ({
 	children,
@@ -242,7 +240,13 @@ export const Select = ({
 	name,
 	options,
 	filterable,
+	checkType,
+	defaultValue,
+	displayMode,
+	loading,
+	trigger,
 	onChange,
+	renderValue,
 	...props
 }: FormSelectProps) => {
 	const form = Ariakit.useFormContext()!
@@ -262,16 +266,22 @@ export const Select = ({
 				name={name}
 				render={
 					<UISelect
-						defaultValue={value}
-						onValueChange={(value) => {
+						value={value}
+						options={options}
+						filterable={filterable}
+						checkType={checkType}
+						defaultValue={defaultValue}
+						displayMode={displayMode}
+						loading={loading}
+						trigger={trigger}
+						renderValue={renderValue}
+						onChange={(value) => {
 							form.setValue(name, value)
 
 							if (onChange) {
 								onChange(value)
 							}
 						}}
-						options={options}
-						filterable={filterable}
 					/>
 				}
 				{...props}

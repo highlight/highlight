@@ -71,20 +71,33 @@ const SelectProvider = <T,>({
 	const [options, setOptions] = useState(opts)
 	const isMulti = Array.isArray(value)
 
+	/* eslint-disable @typescript-eslint/no-explicit-any */
 	const handleSetValue = (newValue: string | string[]) => {
-		let newInternalValue: T
+		let newInternalValue: any
 		if (options?.length) {
 			if (isMulti) {
-				newInternalValue = (newValue as string[]).map((option) =>
-					options.find((o) => o.value === option),
-				) as T
+				newInternalValue = [...value]
+				;(newValue as string[]).forEach((option) => {
+					const foundOption = options.find((o) => o.value === option)
+					const isSelected = newInternalValue.some(
+						(v: any) => v.value === foundOption?.value,
+					)
+
+					if (foundOption && !isSelected) {
+						newInternalValue.push(foundOption)
+					}
+				})
+
+				newInternalValue = newInternalValue.filter((item: any) =>
+					newValue.includes(item.value),
+				)
 			} else {
 				newInternalValue = options.find(
-					(option) => option.value === newValue,
-				) as T
+					(option) => String(option.value) === newValue,
+				)
 			}
 		} else {
-			newInternalValue = newValue as T
+			newInternalValue = newValue
 		}
 
 		setValue(newInternalValue)
@@ -93,6 +106,7 @@ const SelectProvider = <T,>({
 			onChange(newInternalValue)
 		}
 	}
+	/* eslint-enable @typescript-eslint/no-explicit-any */
 
 	return (
 		<SelectContext.Provider

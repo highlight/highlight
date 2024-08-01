@@ -62,7 +62,7 @@ export const MultiSelectWithCheckbox = () => {
 export const Filterable = () => {
 	return (
 		<Select
-			defaultValue={['Jay']}
+			defaultValue={'Jay'}
 			filterable
 			options={OPTIONS.map((option) => ({
 				name: option,
