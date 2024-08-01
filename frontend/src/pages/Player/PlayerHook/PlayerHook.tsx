@@ -961,19 +961,9 @@ export const usePlayer = (
 			undefined,
 			getLastLoadedEventTimestamp() - state.time < LOOKAHEAD_MS,
 		).then()
-	}, [
-		state.time,
-		ensureChunksLoaded,
-		state.sessionMetadata.startTime,
-		state.replayerState,
-		skipInactive,
-		getInactivityEnd,
-		play,
-		state.session_secure_id,
-		sessionSecureId,
-		chunkEventsRef,
-		getLastLoadedEventTimestamp,
-	])
+		// only trigger the lookahead check when the player time advances
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [state.time])
 
 	useEffect(() => {
 		if (
