@@ -1,3 +1,4 @@
+import EnterpriseFeatureButton from '@components/Billing/EnterpriseFeatureButton'
 import { Modal } from '@components/Modal/ModalV2'
 import Switch from '@components/Switch/Switch'
 import { toast } from '@components/Toaster'
@@ -57,6 +58,7 @@ import {
 	RetentionPeriod,
 } from '@/graph/generated/schemas'
 import {
+	PLANS_WITH_ENTERPRISE_FEATURES,
 	RETENTION_PERIOD_LABELS,
 	tryCastDate,
 } from '@/pages/Billing/utils/utils'
@@ -65,15 +67,19 @@ import { useParams } from '@/util/react-router/useParams'
 import { CalendlyButton } from '../../components/CalendlyModal/CalendlyButton'
 import * as style from './UpdatePlanPage.css'
 
+const STANDARD_RETENTION = RetentionPeriod.SevenDays
+
 // TODO(vkorolik) billing for metrics ingest
 const RETENTION_OPTIONS = {
 	Sessions: [
+		RetentionPeriod.SevenDays,
 		RetentionPeriod.ThreeMonths,
 		RetentionPeriod.SixMonths,
 		RetentionPeriod.TwelveMonths,
 		RetentionPeriod.TwoYears,
 	],
 	Errors: [
+		RetentionPeriod.SevenDays,
 		RetentionPeriod.ThreeMonths,
 		RetentionPeriod.SixMonths,
 		RetentionPeriod.TwelveMonths,
@@ -168,6 +174,7 @@ type ProductCardProps = {
 	usageAmount: number
 	predictedUsageAmount: number
 	setHasChanges: (changes: boolean) => void
+	setStep: (step: PlanSelectStep) => void
 }
 
 interface UpdatePlanForm {
@@ -258,6 +265,7 @@ const ProductCard = ({
 	includedQuantity,
 	usageAmount,
 	predictedUsageAmount,
+	setStep,
 }: ProductCardProps) => {
 	const unitCost = BASE_UNIT_COST_CENTS[productType]
 	const unitCostCents =
@@ -495,17 +503,52 @@ const ProductCard = ({
 									<IconSolidCheveronDown />
 								</Box>
 							</Menu.Button>
-							<Menu.List>
+							<Menu.List style={{ minWidth: 320 }}>
 								{RETENTION_OPTIONS[productType].map((rp) => (
-									<Menu.Item
-										key={rp}
-										onClick={() => {
+									<EnterpriseFeatureButton
+										setting="enable_business_retention"
+										name="Custom Data Retention"
+										key="Custom Data Retention"
+										fn={async () => {
 											setRetentionPeriod(rp)
 											setHasChanges(true)
 										}}
+										onShowModal={() =>
+											setStep('Custom Data Retention')
+										}
+										variant="basic"
 									>
-										{RETENTION_PERIOD_LABELS[rp]}
-									</Menu.Item>
+										<Menu.Item key={rp}>
+											<Box
+												color="secondaryContentText"
+												display="inline-flex"
+												alignItems="center"
+												gap="6"
+												flexGrow={1}
+											>
+												<Text lines="1">
+													{
+														RETENTION_PERIOD_LABELS[
+															rp
+														]
+													}
+												</Text>
+											</Box>
+											{rp ===
+											STANDARD_RETENTION ? null : (
+												<Box
+													display="flex"
+													alignItems="center"
+													justifyContent="flex-end"
+												>
+													<Badge
+														size="small"
+														label="Business"
+													/>
+												</Box>
+											)}
+										</Menu.Item>
+									</EnterpriseFeatureButton>
 								))}
 							</Menu.List>
 						</Menu>
@@ -529,6 +572,7 @@ export type PlanSelectStep =
 	| 'Select plan'
 	| 'Configure plan'
 	| 'Enter payment details'
+	| 'Custom Data Retention'
 	| null
 
 type BillingPageProps = {
@@ -552,9 +596,9 @@ const UpdatePlanPage = ({
 
 	const formStore = Form.useStore<UpdatePlanForm>({
 		defaultValues: {
-			sessionsRetention: RetentionPeriod.ThreeMonths,
+			sessionsRetention: RetentionPeriod.SevenDays,
 			sessionsLimitCents: undefined,
-			errorsRetention: RetentionPeriod.ThreeMonths,
+			errorsRetention: RetentionPeriod.SevenDays,
 			errorsLimitCents: undefined,
 			logsRetention: RetentionPeriod.ThirtyDays,
 			logsLimitCents: undefined,
@@ -630,10 +674,6 @@ const UpdatePlanPage = ({
 			setHasChanges(true)
 		}
 	}, [isPaying, loading, setHasChanges])
-
-	if (loading) {
-		return null
-	}
 
 	const nextInvoiceDate = tryCastDate(data?.workspace?.next_invoice_date)
 	const billingPeriodEnd = tryCastDate(data?.workspace?.billing_period_end)
@@ -881,6 +921,7 @@ const UpdatePlanPage = ({
 						predictedUsageAmount={predictedSessionsUsage}
 						includedQuantity={includedSessions}
 						planType={selectedPlanType}
+						setStep={setStep}
 					/>
 					<Box borderBottom="divider" />
 					<ProductCard
@@ -912,6 +953,7 @@ const UpdatePlanPage = ({
 						predictedUsageAmount={predictedErrorsUsage}
 						includedQuantity={includedErrors}
 						planType={selectedPlanType}
+						setStep={setStep}
 					/>
 					<Box borderBottom="divider" />
 					<ProductCard
@@ -943,6 +985,7 @@ const UpdatePlanPage = ({
 						predictedUsageAmount={predictedLogsUsage}
 						includedQuantity={includedLogs}
 						planType={selectedPlanType}
+						setStep={setStep}
 					/>
 					<Box borderBottom="divider" />
 					<ProductCard
@@ -974,6 +1017,7 @@ const UpdatePlanPage = ({
 						predictedUsageAmount={predictedTracesUsage}
 						includedQuantity={includedTraces}
 						planType={selectedPlanType}
+						setStep={setStep}
 					/>
 					<Box borderBottom="divider" />
 					{selectedPlanType === PlanType.Free ? null : (
@@ -1182,7 +1226,7 @@ type Plan = {
 	name: string
 	descriptions: string[]
 	icon: React.ReactNode
-	price: number | 'Custom'
+	price: number | '800+' | 'Custom'
 }
 
 const PLAN_BASE_FEES = {
@@ -1209,7 +1253,7 @@ const PLANS = {
 	},
 	[PlanType.Graduated]: {
 		type: PlanType.Graduated,
-		name: 'Pay as you go (Cloud)',
+		name: 'Developer',
 		descriptions: [
 			'Monitoring for your production application',
 			'Flexible billing that scales as you grow',
@@ -1217,26 +1261,14 @@ const PLANS = {
 		icon: <IconSolidPuzzle size="24" color="#0090FF" />,
 		price: 50,
 	},
-	[PlanType.Enterprise]: {
-		type: PlanType.Enterprise,
-		name: 'Enterprise (Cloud)',
+	[PlanType.Business]: {
+		type: PlanType.Business,
+		name: 'Business',
 		descriptions: [
+			'Unlimited projects, user seats, and dashboards',
+			'Configurable spend limits and data retention',
+			'Reporting and analytics for sessions and more',
 			'MP4 video export for sessions',
-			'Reporting and analysis for sessions and more',
-			'Robust availability for large-scale teams',
-			'Support for SSO, RBAC, and other organizational requirements',
-		],
-		icon: <IconSolidServer size="24" color="#E93D82" />,
-		price: 'Custom',
-	},
-	'Self-host': {
-		type: PlanType.Enterprise,
-		name: 'Enterprise (Self-hosted)',
-		descriptions: [
-			'Highly-available on-prem deployments',
-			'Bring your own infrastructure',
-			'Customized data storage and retention',
-			'Govern data in your environment',
 		],
 		icon: (
 			<IconSolidOfficeBuilding
@@ -1244,6 +1276,18 @@ const PLANS = {
 				color={vars.theme.static.content.default}
 			/>
 		),
+		price: '800+',
+	},
+	[PlanType.Enterprise]: {
+		type: PlanType.Enterprise,
+		name: 'Enterprise',
+		descriptions: [
+			'Highly-available on-prem deployments',
+			'Customized data storage and retention',
+			'Robust availability for large-scale teams',
+			'Support for SSO, RBAC, and other organizational requirements',
+		],
+		icon: <IconSolidServer size="24" color="#E93D82" />,
 		price: 'Custom',
 	},
 } as { [plan in PlanType | 'Self-host']: Plan }
@@ -1286,7 +1330,8 @@ const PlanCard = ({
 		workspace_id: string
 	}>()
 	const current = plan.type === currentPlanType
-	const enterprise = plan.type === PlanType.Enterprise
+	const enterprise =
+		plan.type === PlanType.Business || plan.type === PlanType.Enterprise
 	const free = plan.type === PlanType.Free
 	return (
 		<Stack
@@ -1303,7 +1348,7 @@ const PlanCard = ({
 				{plan.name}
 			</Text>
 			<h3 style={{ fontWeight: 700 }}>
-				{plan.price === 'Custom' ? plan.price : `${plan.price}`}
+				{plan.price === 'Custom' ? plan.price : `$${plan.price}`}
 			</h3>
 			{plan.price === 'Custom' ? null : (
 				<Text
@@ -1366,6 +1411,7 @@ const PlanCard = ({
 							display: 'grid',
 							gap: 4,
 							gridTemplateColumns: '14px 1fr',
+							alignItems: 'center',
 						}}
 						key={d}
 					>
@@ -1412,7 +1458,9 @@ export const PlanComparisonPage: React.FC<{
 				{title ? (
 					<Callout title={title}>
 						<Box mb="6">
-							<Text color="moderate">{description}</Text>
+							<Text size="small" color="moderate">
+								Upgrade your plan to {description}
+							</Text>
 						</Box>
 					</Callout>
 				) : null}
@@ -1431,11 +1479,14 @@ export const PlanComparisonPage: React.FC<{
 						.filter(
 							([, plan]) =>
 								!enterprise ||
-								plan.type === PlanType.Enterprise,
+								PLANS_WITH_ENTERPRISE_FEATURES.has(plan.type),
 						)
 						.map(([, plan]) => (
 							<PlanCard
-								currentPlanType={data?.billingDetails.plan.type}
+								currentPlanType={
+									data?.billingDetails.plan.type ??
+									PlanType.Free
+								}
 								plan={plan}
 								setSelectedPlanType={setSelectedPlanType}
 								setStep={setStep}
@@ -1618,6 +1669,18 @@ export const UpdatePlanModal: React.FC<{
 		}
 	}, [step])
 	if (step === null) return null
+	if (step === 'Custom Data Retention') {
+		return (
+			<EnterpriseFeatureButton
+				setting="enable_business_retention"
+				name="Custom Data Retention"
+				key="Custom Data Retention"
+				fn={async () => undefined}
+				variant="basic"
+				shown
+			></EnterpriseFeatureButton>
+		)
+	}
 	return (
 		<Modal
 			justifyContent="space-between"

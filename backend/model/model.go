@@ -280,10 +280,10 @@ type Workspace struct {
 	MonthlyErrorsLimit          *int
 	MonthlyLogsLimit            *int
 	MonthlyTracesLimit          *int
-	RetentionPeriod             *modelInputs.RetentionPeriod
-	ErrorsRetentionPeriod       *modelInputs.RetentionPeriod
-	LogsRetentionPeriod         *modelInputs.RetentionPeriod
-	TracesRetentionPeriod       *modelInputs.RetentionPeriod
+	RetentionPeriod             *modelInputs.RetentionPeriod `gorm:"default:SevenDays"`
+	ErrorsRetentionPeriod       *modelInputs.RetentionPeriod `gorm:"default:SevenDays"`
+	LogsRetentionPeriod         *modelInputs.RetentionPeriod `gorm:"default:ThirtyDays"`
+	TracesRetentionPeriod       *modelInputs.RetentionPeriod `gorm:"default:ThirtyDays"`
 	SessionsMaxCents            *int
 	ErrorsMaxCents              *int
 	LogsMaxCents                *int
@@ -467,15 +467,22 @@ type AllWorkspaceSettings struct {
 	ErrorEmbeddingsThreshold  float64 `gorm:"default:0.2"`
 	ReplaceAssets             bool    `gorm:"default:false"`
 	StoreIP                   bool    `gorm:"default:false"`
-	EnableSessionExport       bool    `gorm:"default:false"`
-	EnableIngestSampling      bool    `gorm:"default:false"`
-	EnableUnlistedSharing     bool    `gorm:"default:true"`
-	EnableNetworkTraces       bool    `gorm:"default:true"`
-	EnableBillingLimits       bool    `gorm:"default:false"` // old plans grandfathered in to true
-	EnableDataDeletion        bool    `gorm:"default:true"`
 	CanShowBillingIssueBanner bool    `gorm:"default:true"`
-	EnableGrafanaDashboard    bool    `gorm:"default:false"`
-	EnableProjectLevelAccess  bool    `gorm:"default:false"`
+
+	EnableUnlimitedDashboards bool `gorm:"default:false"`
+	EnableUnlimitedProjects   bool `gorm:"default:false"`
+	EnableUnlimitedRetention  bool `gorm:"default:false"`
+	EnableUnlimitedSeats      bool `gorm:"default:false"`
+
+	EnableBillingLimits      bool `gorm:"default:false"` // old plans grandfathered in to true
+	EnableGrafanaDashboard   bool `gorm:"default:false"`
+	EnableIngestSampling     bool `gorm:"default:false"`
+	EnableProjectLevelAccess bool `gorm:"default:false"`
+	EnableSessionExport      bool `gorm:"default:false"`
+
+	EnableDataDeletion    bool `gorm:"default:true"`
+	EnableNetworkTraces   bool `gorm:"default:true"`
+	EnableUnlistedSharing bool `gorm:"default:true"`
 }
 
 type HasSecret interface {

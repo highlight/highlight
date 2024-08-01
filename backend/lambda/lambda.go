@@ -185,6 +185,8 @@ const (
 	ReactEmailTemplateMetricsAlert  ReactEmailTemplate = "metrics-alert"
 	// session insights
 	ReactEmailTemplateSessionInsights ReactEmailTemplate = "session-insights"
+	// notifications
+	ReactEmailTemplateAlertUpsert ReactEmailTemplate = "alert-upsert"
 )
 
 func (s *Client) GetSessionInsightEmailHtml(ctx context.Context, toEmail string, unsubscribeUrl string, data utils.SessionInsightsData) (string, error) {

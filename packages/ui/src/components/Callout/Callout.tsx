@@ -86,7 +86,7 @@ export const Callout: React.FC<Props> = ({
 						justifyContent="space-between"
 					>
 						<Box mt="6">
-							<Text color="strong" weight="bold" size="medium">
+							<Text color="strong" weight="bold" size="small">
 								{title}
 							</Text>
 						</Box>

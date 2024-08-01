@@ -11,6 +11,7 @@ import { SessionsAlertV2Email } from './sessions-alert-v2'
 import { TracesAlertV2Email } from './traces-alert-v2'
 import { ErrorsAlertV2Email } from './errors-alert-v2'
 import { MetricsAlertV2Email } from './metrics-alert-v2'
+import { AlertUpsertEmail } from './alert-upsert'
 
 export {
 	ErrorAlertEmail,
@@ -26,4 +27,5 @@ export {
 	LogsAlertV2Email,
 	TracesAlertV2Email,
 	MetricsAlertV2Email,
+	AlertUpsertEmail,
 }

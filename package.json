@@ -35,6 +35,7 @@
 		"build:all": "yarn turbo run build",
 		"build:backend": "cd backend && go build",
 		"build:frontend": "yarn turbo run build --filter @highlight-run/frontend...",
+		"build:render": "yarn turbo run build --filter=render",
 		"build:sdk": "yarn turbo run build --filter highlight.run --filter @highlight-run/client --filter @highlight-run/cloudflare --filter @highlight-run/react --filter @highlight-run/apollo... --filter @highlight-run/next... --filter @highlight-run/nest... --filter @highlight-run/pino... --filter @highlight-run/remix...",
 		"cy:run": "cypress run",
 		"cy:run:chrome": "cypress run --headed --browser chrome",

@@ -1,3 +1,4 @@
+import EnterpriseFeatureButton from '@components/Billing/EnterpriseFeatureButton'
 import { Button } from '@components/Button'
 import LoadingBox from '@components/LoadingBox'
 import { TIME_FORMAT } from '@components/Search/SearchForm/constants'
@@ -12,6 +13,7 @@ import {
 } from '@graph/hooks'
 import { namedOperations } from '@graph/operations'
 import {
+	AllWorkspaceSettings,
 	MetricAggregator,
 	MetricColumn,
 	PlanType,
@@ -33,7 +35,6 @@ import {
 	Stack,
 	Tag,
 	Text,
-	Tooltip,
 } from '@highlight-run/ui/components'
 import { vars } from '@highlight-run/ui/vars'
 import { useProjectId } from '@hooks/useProjectId'
@@ -41,7 +42,6 @@ import { BarChart } from '@pages/Graphing/components/BarChart'
 import { TIMESTAMP_KEY } from '@pages/Graphing/components/Graph'
 import { useApplicationContext } from '@routers/AppRouter/context/ApplicationContext'
 import analytics from '@util/analytics'
-import { showSupportMessage } from '@util/window'
 import { groupBy, upperFirst } from 'lodash'
 import moment from 'moment'
 import React from 'react'
@@ -170,22 +170,9 @@ export const ProjectProductFilters: React.FC<{
 
 	const query = formStore.useValue('exclusionQuery') ?? ''
 	const canEditIngestion =
-		billingDetails?.billingDetailsForProject?.plan.type !== PlanType.Free
+		workspaceSettingsData?.workspaceSettings?.enable_ingest_filtering
 	const canEditSampling =
 		workspaceSettingsData?.workspaceSettings?.enable_ingest_sampling
-
-	const showEditSamplingUpgrade = React.useCallback(async () => {
-		analytics.track('Project Sampling Upgrade', {
-			product,
-			workspaceId: currentWorkspace?.id,
-		})
-		await toast.warning(
-			'Setting up ingest sampling is only available on enterprise plans.',
-		)
-		await showSupportMessage(
-			'Hi! I would like to use the ingest sampling feature.',
-		)
-	}, [currentWorkspace?.id, product])
 
 	// loads data from the backend into the form state and the query builder context
 	const resetConfig = React.useCallback(() => {
@@ -259,38 +246,6 @@ export const ProjectProductFilters: React.FC<{
 		navigate(`/${projectId}/settings/filters`)
 	}
 
-	const sampling = (
-		<Box
-			display="flex"
-			width="full"
-			gap="8"
-			onClick={canEditSampling ? undefined : showEditSamplingUpgrade}
-		>
-			<Box width="full" display="flex" flexDirection="column" gap="4">
-				<Form.Label
-					label="Sampling %"
-					name={formStore.names.samplingPercent}
-				/>
-				<Form.Input
-					disabled={!canEditSampling}
-					name={formStore.names.samplingPercent}
-					type="number"
-				/>
-			</Box>
-			<Box width="full" display="flex" flexDirection="column" gap="4">
-				<Form.Label
-					label="Max ingest per minute"
-					name={formStore.names.minuteRateLimit}
-				/>
-				<Form.Input
-					disabled={!canEditSampling}
-					name={formStore.names.minuteRateLimit}
-					type="number"
-				/>
-			</Box>
-		</Box>
-	)
-
 	const edit = (
 		<Button
 			trackingId={`project-filters-${product}-edit`}
@@ -298,9 +253,10 @@ export const ProjectProductFilters: React.FC<{
 			size="small"
 			emphasis="medium"
 			iconRight={<IconSolidPencil />}
-			disabled={!canEditIngestion}
 			onClick={async () => {
-				navigate(product.toLowerCase())
+				if (canEditIngestion) {
+					navigate(product.toLowerCase())
+				}
 			}}
 		>
 			Edit
@@ -351,10 +307,7 @@ export const ProjectProductFilters: React.FC<{
 						<Text>{label} filters</Text>
 						{view ? null : (
 							<FilterPaywall
-								paywalled={
-									billingDetails?.billingDetailsForProject
-										?.plan.type === PlanType.Free
-								}
+								setting="enable_ingest_filtering"
 								product={product}
 							>
 								{save}
@@ -389,7 +342,7 @@ export const ProjectProductFilters: React.FC<{
 						</Box>
 						{view ? (
 							<FilterPaywall
-								paywalled={!canEditIngestion}
+								setting="enable_ingest_filtering"
 								product={product}
 							>
 								{edit}
@@ -453,24 +406,59 @@ export const ProjectProductFilters: React.FC<{
 					<Box display="flex" width="full">
 						{view ? null : (
 							<Stack display="flex" width="full" gap="8">
-								{canEditSampling ? (
-									sampling
-								) : (
-									<Tooltip trigger={sampling}>
+								<EnterpriseFeatureButton
+									setting="enable_ingest_sampling"
+									name="Ingestion Sampling"
+									fn={async () => {}}
+									variant="basic"
+								>
+									<Box display="flex" width="full" gap="8">
 										<Box
+											width="full"
 											display="flex"
-											alignItems="center"
-											justifyContent="center"
-											p="4"
-											onClick={showEditSamplingUpgrade}
+											flexDirection="column"
+											gap="4"
 										>
-											<Text>
-												Available to customers on an
-												enterprise plan
-											</Text>
+											<Form.Label
+												label="Sampling %"
+												name={
+													formStore.names
+														.samplingPercent
+												}
+											/>
+											<Form.Input
+												disabled={!canEditSampling}
+												name={
+													formStore.names
+														.samplingPercent
+												}
+												type="number"
+											/>
 										</Box>
-									</Tooltip>
-								)}
+										<Box
+											width="full"
+											display="flex"
+											flexDirection="column"
+											gap="4"
+										>
+											<Form.Label
+												label="Max ingest per minute"
+												name={
+													formStore.names
+														.minuteRateLimit
+												}
+											/>
+											<Form.Input
+												disabled={!canEditSampling}
+												name={
+													formStore.names
+														.minuteRateLimit
+												}
+												type="number"
+											/>
+										</Box>
+									</Box>
+								</EnterpriseFeatureButton>
 								<Callout>
 									<Box
 										display="flex"
@@ -503,8 +491,11 @@ export const ProjectProductFilters: React.FC<{
 }
 
 const FilterPaywall: React.FC<
-	React.PropsWithChildren<{ product: ProductType; paywalled: boolean }>
-> = ({ product, paywalled, children }) => {
+	React.PropsWithChildren<{
+		product: ProductType
+		setting: keyof AllWorkspaceSettings
+	}>
+> = ({ product, setting, children }) => {
 	const navigate = useNavigate()
 	const { currentWorkspace } = useApplicationContext()
 
@@ -517,32 +508,18 @@ const FilterPaywall: React.FC<
 			'Setting up ingest filters is only available on paying plans.',
 			{ duration: 3000 },
 		)
-		navigate(`/w/${currentWorkspace?.id}/current-plan/update-plan`)
+		navigate(`/w/${currentWorkspace?.id}/current-plan`)
 	}, [currentWorkspace?.id, navigate, product])
 
-	if (!paywalled) {
-		return <>{children}</>
-	}
 	return (
-		<Tooltip
-			trigger={
-				<Box display="inline-flex" onClick={showEditIngestionUpgrade}>
-					{children}
-				</Box>
-			}
+		<EnterpriseFeatureButton
+			setting={setting}
+			name="Ingestion Limits"
+			fn={showEditIngestionUpgrade}
+			variant="basic"
 		>
-			<Box display="flex" alignItems="center" justifyContent="center">
-				<Box
-					display="flex"
-					alignItems="center"
-					justifyContent="center"
-					p="4"
-					onClick={showEditIngestionUpgrade}
-				>
-					<Text>Available to paid customers</Text>
-				</Box>
-			</Box>
-		</Tooltip>
+			{children}
+		</EnterpriseFeatureButton>
 	)
 }
 
