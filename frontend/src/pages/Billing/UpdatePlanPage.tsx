@@ -67,6 +67,8 @@ import { useParams } from '@/util/react-router/useParams'
 import { CalendlyButton } from '../../components/CalendlyModal/CalendlyButton'
 import * as style from './UpdatePlanPage.css'
 
+const STANDARD_RETENTION = RetentionPeriod.SevenDays
+
 // TODO(vkorolik) billing for metrics ingest
 const RETENTION_OPTIONS = {
 	Sessions: [
@@ -501,7 +503,7 @@ const ProductCard = ({
 									<IconSolidCheveronDown />
 								</Box>
 							</Menu.Button>
-							<Menu.List>
+							<Menu.List style={{ minWidth: 320 }}>
 								{RETENTION_OPTIONS[productType].map((rp) => (
 									<EnterpriseFeatureButton
 										setting="enable_business_retention"
@@ -517,7 +519,34 @@ const ProductCard = ({
 										variant="basic"
 									>
 										<Menu.Item key={rp}>
-											{RETENTION_PERIOD_LABELS[rp]}
+											<Box
+												color="secondaryContentText"
+												display="inline-flex"
+												alignItems="center"
+												gap="6"
+												flexGrow={1}
+											>
+												<Text lines="1">
+													{
+														RETENTION_PERIOD_LABELS[
+															rp
+														]
+													}
+												</Text>
+											</Box>
+											{rp ===
+											STANDARD_RETENTION ? null : (
+												<Box
+													display="flex"
+													alignItems="center"
+													justifyContent="flex-end"
+												>
+													<Badge
+														size="small"
+														label="Business"
+													/>
+												</Box>
+											)}
 										</Menu.Item>
 									</EnterpriseFeatureButton>
 								))}
