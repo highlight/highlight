@@ -1,6 +1,8 @@
 import { Meta } from '@storybook/react'
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 
+import { Button } from '../Button/Button'
+import { Stack } from '../Stack/Stack'
 import { Text } from '../Text/Text'
 import { Select } from './Select'
 
@@ -70,25 +72,37 @@ export const Filterable = () => {
 	)
 }
 
+const DEFAULT_VALUE = ['Jay', 'Vadim']
 export const FilterableMultiSelectWithCheckboxes = () => {
-	const [value, setValue] = useState(['Jay', 'Vadim'])
-	const options = OPTIONS.map((option) => ({
-		name: option,
-		value: option,
-	}))
+	const [value, setValue] = useState(DEFAULT_VALUE)
+	const options = useMemo(
+		() =>
+			OPTIONS.map((option) => ({
+				name: option,
+				value: option,
+			})),
+		[],
+	)
 
 	return (
-		<Select
-			options={options}
-			checkType="checkbox"
-			value={value}
-			onChange={(newValue) => setValue(newValue)}
-			renderValue={(values) => (
-				<Text color="secondaryContentText">
-					{Number(values.length)} selected
-				</Text>
-			)}
-		/>
+		<Stack gap="10" style={{ width: 250 }}>
+			<Select
+				filterable
+				options={options}
+				checkType="checkbox"
+				value={value}
+				onChange={(newValue: string[]) => {
+					setValue(newValue)
+				}}
+				renderValue={(values) => (
+					<Text color="secondaryContentText">
+						{Number(values.length)} selected
+					</Text>
+				)}
+			/>
+
+			<Button onClick={() => setValue(DEFAULT_VALUE)}>Reset</Button>
+		</Stack>
 	)
 }
 
@@ -101,7 +115,7 @@ const users: User[] = OPTIONS.map((name, i) => ({
 	value: i + 1,
 }))
 export const SelectWithObjectValuesAndTypes = () => {
-	return <Select<User> value={users[0]} options={users} />
+	return <Select<User> defaultValue={users[0]} options={users} />
 }
 
 const Options = () => (

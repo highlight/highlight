@@ -1,4 +1,5 @@
 import * as Ariakit from '@ariakit/react'
+import { isEqual } from 'lodash'
 import { matchSorter } from 'match-sorter'
 import React, { useEffect, useMemo } from 'react'
 import { useState } from 'react'
@@ -30,6 +31,7 @@ type SingleValue = string | number | Option | undefined
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type SelectProviderProps<T = any> = {
 	checkType?: 'checkmark' | 'checkbox'
+	defaultValue?: T
 	displayMode?: 'normal' | 'tags'
 	loading?: boolean
 	options?: InitialOptions
@@ -37,7 +39,6 @@ type SelectProviderProps<T = any> = {
 	setOptions?: (options: T) => void
 	setValue?: (value: T) => void
 	onChange?: (value: T) => void
-	onValueChange?: (value: T) => void
 }
 
 const SelectContext = React.createContext<SelectProviderProps>({
@@ -61,7 +62,6 @@ const SelectProvider = <T,>({
 	options: opts,
 	value: valueProp,
 	onChange,
-	onValueChange,
 	...props
 }: React.PropsWithChildren<
 	Omit<SelectProviderProps<T>, 'setValue' | 'setOptions'>
@@ -73,21 +73,21 @@ const SelectProvider = <T,>({
 
 	const handleSetValue = (newValue: string | string[]) => {
 		let newInternalValue: T
-		if (isMulti) {
-			newInternalValue = (newValue as string[]).map((option) =>
-				options.find((o) => o.value === option),
-			) as T
+		if (options?.length) {
+			if (isMulti) {
+				newInternalValue = (newValue as string[]).map((option) =>
+					options.find((o) => o.value === option),
+				) as T
+			} else {
+				newInternalValue = options.find(
+					(option) => option.value === newValue,
+				) as T
+			}
 		} else {
-			newInternalValue = options.find(
-				(option) => option.value === newValue,
-			) as T
+			newInternalValue = newValue as T
 		}
 
 		setValue(newInternalValue)
-
-		if (onValueChange) {
-			onValueChange(newInternalValue)
-		}
 
 		if (onChange) {
 			onChange(newInternalValue)
@@ -110,7 +110,10 @@ const SelectProvider = <T,>({
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-export type SelectProps<T = any> = Omit<Ariakit.SelectProps, 'value'> & {
+export type SelectProps<T = any> = Omit<
+	Ariakit.SelectProps,
+	'defaultValue' | 'value' | 'onChange'
+> & {
 	checkType?: SelectProviderProps['checkType']
 	defaultValue?: T
 	displayMode?: SelectProviderProps['displayMode']
@@ -121,10 +124,9 @@ export type SelectProps<T = any> = Omit<Ariakit.SelectProps, 'value'> & {
 	store?: Ariakit.SelectProviderProps['store']
 	value?: T
 	renderValue?: (
-		value: Ariakit.SelectStoreState['value'] | Option,
+		value: Ariakit.SelectStoreState['value'],
 	) => React.ReactElement | string | null
 	onChange?: SelectProviderProps['onChange']
-	onValueChange?: SelectProviderProps['onValueChange']
 }
 
 export const Select = <T,>({
@@ -134,42 +136,55 @@ export const Select = <T,>({
 	filterable,
 	loading,
 	store,
-	value,
+	value: valueProp,
 	options,
 	onChange,
-	onValueChange,
 	...props
 }: SelectProps<T>) => {
+	const value = valueProp ?? props.defaultValue
+	options = valueToOptions(options) as Option[]
 	store =
 		store ??
 		Ariakit.useSelectStore({
-			defaultValue: valueToString(props.defaultValue),
+			defaultValue: props.defaultValue
+				? valueToString(props.defaultValue)
+				: undefined,
 		})
-	value = value ?? props.defaultValue
-	options = valueToOptions(options) as Option[]
 
 	const providerProps = {
 		checkType,
+		defaultValue: props.defaultValue,
 		displayMode,
 		loading,
 		options,
-		value: valueToString(value),
+		value: valueToOptions(value),
 		onChange,
-		onValueChange,
 	}
 
-	if (filterable) {
-		if (options) {
-			return (
-				<SelectProvider {...providerProps}>
-					<FilterableSelect
-						{...props}
-						options={options}
-						store={store}
-					/>
-				</SelectProvider>
-			)
+	useEffect(() => {
+		if (store && valueProp) {
+			const storeValue = store.getState().value
+			const stringValue = valueToString(valueProp)
+
+			if (!isEqual(stringValue, storeValue)) {
+				store.setValue(stringValue)
+			}
 		}
+	}, [valueProp])
+
+	if (filterable) {
+		return (
+			<FilterableSelect
+				checkType={checkType}
+				displayMode={displayMode}
+				loading={loading}
+				options={options}
+				store={store}
+				value={value}
+				onChange={onChange}
+				{...props}
+			/>
+		)
 	}
 
 	return (
@@ -247,8 +262,8 @@ const Trigger: React.FC<Omit<SelectProps, 'value' | 'setValue'>> = ({
 }
 
 type ProviderProps = Ariakit.SelectProviderProps & {
-	options: Option[] | undefined
 	store: Ariakit.SelectStore<Ariakit.SelectStoreState['value']>
+	options?: Option[] | undefined
 }
 export const Provider: React.FC<ProviderProps> = ({ children, ...props }) => {
 	const { value, setOptions, setValue } = useSelectContext()
@@ -258,7 +273,7 @@ export const Provider: React.FC<ProviderProps> = ({ children, ...props }) => {
 		if (setOptions && !props.options) {
 			setOptions(itemsToOptions(items))
 		}
-	}, [items, value])
+	}, [items])
 
 	return (
 		<Ariakit.SelectProvider
@@ -417,7 +432,6 @@ export const FilterableSelect: React.FC<FilterableSelectProps> = ({
 	...props
 }) => {
 	const [searchValue, setSearchValue] = useState('')
-	const store = Ariakit.useSelectStore()
 
 	const matches = useMemo(
 		() => matchSorter(options, searchValue, { keys: ['name', 'value'] }),
@@ -429,13 +443,14 @@ export const FilterableSelect: React.FC<FilterableSelectProps> = ({
 			resetValueOnHide
 			setValue={(v) => setSearchValue(v)}
 		>
-			<Select store={store} {...props}>
+			<Select {...props}>
 				<Box px="4" pb="4">
 					<Ariakit.Combobox
 						autoSelect
 						placeholder="Search..."
 						className={styles.combobox}
-						onSelect={() => setSearchValue('')}
+						value={searchValue}
+						onChange={(e) => setSearchValue(e.target.value)}
 					/>
 				</Box>
 
@@ -446,6 +461,7 @@ export const FilterableSelect: React.FC<FilterableSelectProps> = ({
 								key={option.value}
 								value={String(option.value)}
 								render={<Ariakit.ComboboxItem />}
+								onClick={() => setSearchValue('')}
 							>
 								{option.name}
 							</Option>
@@ -462,7 +478,7 @@ const isOption = (value: SingleValue): value is Option => {
 }
 
 const optionToString = (option: Option) => {
-	return String(option.value)
+	return String(option.name)
 }
 
 const singleValueToString = (value: SingleValue) => {
