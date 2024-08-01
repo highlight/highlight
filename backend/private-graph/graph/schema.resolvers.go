@@ -4107,9 +4107,10 @@ func (r *mutationResolver) UpdateSessionIsPublic(ctx context.Context, sessionSec
 	if !settings.EnableUnlistedSharing {
 		return nil, AuthorizationError
 	}
-	if err := r.DB.WithContext(ctx).Model(session).Updates(&model.Session{
-		IsPublic: isPublic,
-	}).Error; err != nil {
+	if err := r.DB.WithContext(ctx).
+		Model(session).
+		Select("IsPublic").
+		Updates(&model.Session{IsPublic: isPublic}).Error; err != nil {
 		return nil, e.Wrap(err, "error updating session is_public")
 	}
 

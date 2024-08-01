@@ -1075,3 +1075,75 @@ func TestAdminEmailAddresses(t *testing.T) {
 		}
 	})
 }
+
+func TestUpdateSessionIsPublic(t *testing.T) {
+	util.RunTestWithDBWipe(t, DB, func(t *testing.T) {
+		admin := model.Admin{UID: ptr.String("TestUpdateSessionIsPublic")}
+		if err := DB.Create(&admin).Error; err != nil {
+			t.Fatal(e.Wrap(err, "error inserting admin"))
+		}
+
+		workspace := model.Workspace{
+			Name: ptr.String("test1"),
+		}
+		if err := DB.Create(&workspace).Error; err != nil {
+			t.Fatal(e.Wrap(err, "error inserting workspace"))
+		}
+
+		if err := DB.Create(&model.WorkspaceAdmin{
+			WorkspaceID: workspace.ID, AdminID: admin.ID,
+		}).Error; err != nil {
+			t.Fatal(e.Wrap(err, "error inserting workspace"))
+		}
+
+		settings := model.AllWorkspaceSettings{
+			WorkspaceID:           workspace.ID,
+			EnableUnlistedSharing: true,
+		}
+		if err := DB.Create(&settings).Error; err != nil {
+			t.Fatal(e.Wrap(err, "error inserting workspace settings"))
+		}
+
+		project := model.Project{
+			Name:        ptr.String("p1"),
+			WorkspaceID: workspace.ID,
+		}
+		if err := DB.Create(&project).Error; err != nil {
+			t.Fatal(e.Wrap(err, "error inserting project"))
+		}
+
+		// test logic
+		ctx := context.Background()
+		ctx = context.WithValue(ctx, model.ContextKeys.UID, *admin.UID)
+
+		r := &mutationResolver{Resolver: &Resolver{DB: DB, Store: store.NewStore(DB, redis.NewClient(), integrations.NewIntegrationsClient(DB), &storage.FilesystemClient{}, &kafka_queue.MockMessageQueue{}, nil)}}
+
+		session := model.Session{ProjectID: project.ID, SecureID: "abc123"}
+		if err := DB.Create(&session).Error; err != nil {
+			t.Fatal(e.Wrap(err, "error inserting sessions"))
+		}
+
+		if err := DB.Model(&model.Session{}).Where(&model.Session{SecureID: "abc123"}).Take(&session).Error; err != nil {
+			t.Fatal(e.Wrap(err, "error reading sessions"))
+		}
+		assert.False(t, session.IsPublic)
+
+		s, err := r.UpdateSessionIsPublic(ctx, session.SecureID, true)
+		assert.NoError(t, err)
+		assert.True(t, s.IsPublic)
+
+		if err := DB.Model(&model.Session{}).Where(&model.Session{SecureID: "abc123"}).Take(&session).Error; err != nil {
+			t.Fatal(e.Wrap(err, "error reading sessions"))
+		}
+		assert.True(t, session.IsPublic)
+
+		s, err = r.UpdateSessionIsPublic(ctx, session.SecureID, false)
+		assert.NoError(t, err)
+		assert.False(t, s.IsPublic)
+
+		if err := DB.Model(&model.Session{}).Where(&model.Session{SecureID: "abc123"}).Take(&session).Error; err != nil {
+			t.Fatal(e.Wrap(err, "error reading sessions"))
+		}
+		assert.False(t, session.IsPublic)
+	})
+}
