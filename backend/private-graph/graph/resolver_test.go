@@ -1084,10 +1084,15 @@ func TestUpdateSessionIsPublic(t *testing.T) {
 		}
 
 		workspace := model.Workspace{
-			Name:   ptr.String("test1"),
-			Admins: []model.Admin{admin},
+			Name: ptr.String("test1"),
 		}
 		if err := DB.Create(&workspace).Error; err != nil {
+			t.Fatal(e.Wrap(err, "error inserting workspace"))
+		}
+
+		if err := DB.Create(&model.WorkspaceAdmin{
+			WorkspaceID: workspace.ID, AdminID: admin.ID,
+		}).Error; err != nil {
 			t.Fatal(e.Wrap(err, "error inserting workspace"))
 		}
 
