@@ -72,6 +72,32 @@ export const Filterable = () => {
 	)
 }
 
+export const Creatable = () => {
+	return (
+		<Stack gap="20">
+			<Select
+				filterable
+				onCreate={(value) => alert(value)}
+				defaultValue={'Jay'}
+				options={OPTIONS.map((option) => ({
+					name: option,
+					value: option,
+				}))}
+			/>
+
+			<Select
+				creatable
+				filterable
+				defaultValue={['Jay', 'Vadim']}
+				options={OPTIONS.map((option) => ({
+					name: option,
+					value: option,
+				}))}
+			/>
+		</Stack>
+	)
+}
+
 const DEFAULT_VALUE = ['Jay', 'Vadim']
 export const FilterableMultiSelectWithCheckboxes = () => {
 	const [value, setValue] = useState(DEFAULT_VALUE)

@@ -59,16 +59,13 @@ const useSelectContext = () => {
 
 const SelectProvider = <T,>({
 	children,
-	options: opts,
+	options,
 	value: valueProp,
 	onChange,
 	...props
-}: React.PropsWithChildren<
-	Omit<SelectProviderProps<T>, 'setValue' | 'setOptions'>
->) => {
-	opts = (opts ?? []).map(singleValueToOption)
+}: React.PropsWithChildren<Omit<SelectProviderProps<T>, 'setValue'>>) => {
+	options = (options ?? []).map(singleValueToOption)
 	const [value, setValue] = useState(valueProp)
-	const [options, setOptions] = useState(opts)
 	const isMulti = Array.isArray(value)
 
 	/* eslint-disable @typescript-eslint/no-explicit-any */
@@ -113,7 +110,6 @@ const SelectProvider = <T,>({
 			value={{
 				options,
 				value,
-				setOptions,
 				setValue: handleSetValue,
 				...props,
 			}}
@@ -129,6 +125,7 @@ export type SelectProps<T = any> = Omit<
 	'defaultValue' | 'value' | 'onChange'
 > & {
 	checkType?: SelectProviderProps['checkType']
+	creatable?: boolean
 	defaultValue?: T
 	displayMode?: SelectProviderProps['displayMode']
 	filterable?: boolean
@@ -141,22 +138,29 @@ export type SelectProps<T = any> = Omit<
 		value: Ariakit.SelectStoreState['value'],
 	) => React.ReactElement | string | null
 	onChange?: SelectProviderProps['onChange']
+	onCreate?: (newOptionValue: string) => void
 }
 
 export const Select = <T,>({
 	checkType,
 	children,
+	creatable,
 	displayMode,
 	filterable,
 	loading,
 	store,
 	value: valueProp,
-	options,
+	options: optionsProp,
 	onChange,
+	onCreate,
 	...props
 }: SelectProps<T>) => {
 	const value = valueProp ?? props.defaultValue
-	options = valueToOptions(options) as Option[]
+	const [options, setOptions] = useState(
+		valueToOptions(optionsProp) as Option[],
+	)
+	creatable = creatable || !!onCreate
+
 	store =
 		store ??
 		Ariakit.useSelectStore({
@@ -175,6 +179,26 @@ export const Select = <T,>({
 		onChange,
 	}
 
+	const handleCreateOption = (newOptionValue: string) => {
+		setOptions([
+			...options,
+			{ name: newOptionValue, value: newOptionValue },
+		])
+
+		const storeValue = store.getState().value
+		const isMulti = Array.isArray(storeValue)
+
+		if (isMulti) {
+			store.setValue([...storeValue, newOptionValue])
+		} else {
+			store.setValue(newOptionValue)
+		}
+
+		if (onCreate) {
+			onCreate(newOptionValue)
+		}
+	}
+
 	useEffect(() => {
 		if (store && valueProp) {
 			const storeValue = store.getState().value
@@ -191,6 +215,7 @@ export const Select = <T,>({
 			<FilterableSelect
 				checkType={checkType}
 				displayMode={displayMode}
+				handleCreateOption={creatable ? handleCreateOption : undefined}
 				loading={loading}
 				options={options}
 				store={store}
@@ -440,9 +465,11 @@ export const GroupLabel: React.FC<GroupLabelProps> = ({
 
 type FilterableSelectProps = SelectProps & {
 	options: Option[]
+	handleCreateOption?: (newOptionValue: string) => void
 }
 export const FilterableSelect: React.FC<FilterableSelectProps> = ({
 	options,
+	handleCreateOption,
 	...props
 }) => {
 	const [searchValue, setSearchValue] = useState('')
@@ -450,6 +477,15 @@ export const FilterableSelect: React.FC<FilterableSelectProps> = ({
 	const matches = useMemo(
 		() => matchSorter(options, searchValue, { keys: ['name', 'value'] }),
 		[options, searchValue],
+	)
+
+	const hasExactMatch = useMemo(
+		() =>
+			matchSorter(matches, searchValue, {
+				keys: ['name', 'value'],
+				threshold: matchSorter.rankings.CASE_SENSITIVE_EQUAL,
+			}).length > 0,
+		[matches, searchValue],
 	)
 
 	return (
@@ -469,6 +505,18 @@ export const FilterableSelect: React.FC<FilterableSelectProps> = ({
 				</Box>
 
 				<Ariakit.ComboboxList>
+					{searchValue && !hasExactMatch && handleCreateOption && (
+						<Ariakit.ComboboxItem
+							// className={styles.createOption}
+							value={searchValue}
+							onClick={() => {
+								handleCreateOption(searchValue)
+								setSearchValue('')
+							}}
+						>
+							Create &quot;{searchValue}&quot;
+						</Ariakit.ComboboxItem>
+					)}
 					{matches.map((option) => {
 						return (
 							<Option
@@ -488,7 +536,7 @@ export const FilterableSelect: React.FC<FilterableSelectProps> = ({
 }
 
 const isOption = (value: SingleValue): value is Option => {
-	return typeof value === 'object'
+	return value !== null && typeof value === 'object'
 }
 
 const optionToString = (option: Option) => {
