@@ -29,7 +29,6 @@ export const Modal: React.FC<
 		maxHeight?: string
 		title?: React.ReactNode
 		footer?: React.ReactNode
-		key?: string
 	}>
 > = ({
 	children,
@@ -42,7 +41,6 @@ export const Modal: React.FC<
 	onClose,
 	title,
 	footer,
-	key,
 }) => {
 	const portalRoot = document.getElementById('portal')!
 	return createPortal(
