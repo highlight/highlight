@@ -416,6 +416,15 @@ export const usePlayer = (
 					}
 					promises.push(loadEventChunk(i))
 				}
+
+				if (promises.length > MAX_CHUNK_COUNT) {
+					console.warn('large number of chunks requested', {
+						startIdx,
+						endIdx,
+						current: chunkEventsRef.current,
+					})
+					break
+				}
 			}
 			log(
 				'PlayerHook.tsx:ensureChunksLoaded',
