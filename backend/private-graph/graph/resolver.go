@@ -1475,6 +1475,7 @@ func (r *Resolver) updateBillingDetails(ctx context.Context, workspace *model.Wo
 	// Make previous billing history email records inactive (so new active records can be added)
 	if err := r.DB.WithContext(ctx).Model(&model.BillingEmailHistory{}).
 		Where(model.BillingEmailHistory{Active: true, WorkspaceID: workspace.ID}).
+		Where("type not in ?", Email.OneTimeBillingNotifications).
 		Updates(map[string]interface{}{
 			"Active":      false,
 			"WorkspaceID": workspace.ID,
