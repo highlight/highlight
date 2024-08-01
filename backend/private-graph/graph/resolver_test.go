@@ -1075,3 +1075,38 @@ func TestAdminEmailAddresses(t *testing.T) {
 		}
 	})
 }
+
+func TestUpdateSessionIsPublic(t *testing.T) {
+	util.RunTestWithDBWipe(t, DB, func(t *testing.T) {
+		ctx := context.TODO()
+		r := &mutationResolver{Resolver: &Resolver{DB: DB, Store: store.NewStore(DB, redis.NewClient(), integrations.NewIntegrationsClient(DB), &storage.FilesystemClient{}, &kafka_queue.MockMessageQueue{}, nil)}}
+
+		session := model.Session{ProjectID: 1, SecureID: "abc123"}
+		if err := DB.Create(&session).Error; err != nil {
+			t.Fatal(e.Wrap(err, "error inserting sessions"))
+		}
+
+		if err := DB.Model(&session).Where(&session).Take(&session).Error; err != nil {
+			t.Fatal(e.Wrap(err, "error reading sessions"))
+		}
+		assert.False(t, session.IsPublic)
+
+		s, err := r.UpdateSessionIsPublic(ctx, session.SecureID, true)
+		assert.NoError(t, err)
+		assert.True(t, s.IsPublic)
+
+		if err := DB.Model(&session).Where(&session).Take(&session).Error; err != nil {
+			t.Fatal(e.Wrap(err, "error reading sessions"))
+		}
+		assert.True(t, session.IsPublic)
+
+		s, err = r.UpdateSessionIsPublic(ctx, session.SecureID, false)
+		assert.NoError(t, err)
+		assert.True(t, s.IsPublic)
+
+		if err := DB.Model(&session).Where(&session).Take(&session).Error; err != nil {
+			t.Fatal(e.Wrap(err, "error reading sessions"))
+		}
+		assert.False(t, session.IsPublic)
+	})
+}
