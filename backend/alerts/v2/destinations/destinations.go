@@ -7,6 +7,25 @@ import (
 	modelInputs "github.com/highlight-run/highlight/backend/private-graph/graph/model"
 )
 
+type NotificationType string
+
+const (
+	NotificationTypeAlertCreated NotificationType = "alert_created"
+	NotificationTypeAlertUpdated NotificationType = "alert_updated"
+)
+
+type NotificationInput struct {
+	NotificationType NotificationType
+	WorkspaceID      int
+	AlertUpsertInput *AlertUpsertInput
+}
+
+type AlertUpsertInput struct {
+	Alert *model.Alert
+	Admin *model.Admin
+}
+
+// specific to alert notifications
 type AlertInput struct {
 	Alert        *model.Alert
 	AlertLink    string

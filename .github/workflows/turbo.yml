@@ -55,6 +55,14 @@ jobs:
             - name: Check formatting
               run: yarn format-check
 
+            - name: Configure AWS credentials
+              if: github.event.pull_request.head.repo.full_name == 'highlight/highlight' || github.ref == 'refs/heads/main'
+              uses: aws-actions/configure-aws-credentials@v4
+              with:
+                  aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+                  aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+                  aws-region: us-east-2
+
             - name: Install Doppler CLI
               uses: dopplerhq/cli-action@v3
 
@@ -67,6 +75,11 @@ jobs:
                   GRAPHCMS_TOKEN: ${{ secrets.GRAPHCMS_TOKEN }}
                   NEXT_PUBLIC_HIGHLIGHT_PROJECT_ID: 1jdkoe52
                   REACT_APP_COMMIT_SHA: ${{ github.sha }}
+
+            - name: Build render
+              run: doppler run -- yarn build:render
+              env:
+                  DOPPLER_TOKEN: ${{ secrets.DOPPLER_PROD_RENDER_SECRET }}
 
             - name: Validate repo state
               run: |
@@ -104,13 +117,13 @@ jobs:
               if: github.ref == 'refs/heads/main'
               run: yarn publish:ai
 
-            - name: Publish render lambda
-              if: github.ref == 'refs/heads/main'
-              run: yarn publish:render
-
             - name: Publish session-insights-email lambda
               if: github.ref == 'refs/heads/main'
               run: yarn publish:react-email-templates
+
+            - name: Publish render lambda
+              if: github.ref == 'refs/heads/main'
+              run: yarn publish:render
 
             - name: Publish changesets
               if: github.ref == 'refs/heads/main'

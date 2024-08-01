@@ -13,6 +13,7 @@ import (
 
 	"github.com/highlight-run/highlight/backend/alerts/integrations/discord"
 	destinationsV2 "github.com/highlight-run/highlight/backend/alerts/v2/destinations"
+	"github.com/highlight-run/highlight/backend/env"
 	"github.com/highlight-run/highlight/backend/model"
 	modelInputs "github.com/highlight-run/highlight/backend/private-graph/graph/model"
 	"github.com/highlight-run/highlight/backend/routing"
@@ -395,6 +396,70 @@ func sendMetricAlert(ctx context.Context, discordGuildId string, alertInput *des
 	messageSend := discordgo.MessageSend{
 		Embeds:     []*discordgo.MessageEmbed{embed},
 		Components: []discordgo.MessageComponent{actionButtons},
+	}
+
+	deliverAlerts(ctx, discordGuildId, &messageSend, destinations)
+}
+
+func SendNotifications(ctx context.Context, discordGuildId *string, notificationInput destinationsV2.NotificationInput, destinations []model.AlertDestination) {
+	if discordGuildId == nil {
+		log.WithContext(ctx).Error("discord access token is nil")
+		return
+	}
+
+	switch notificationInput.NotificationType {
+	case destinationsV2.NotificationTypeAlertCreated:
+		sendAlertCreatedNotification(ctx, *discordGuildId, notificationInput, destinations)
+	case destinationsV2.NotificationTypeAlertUpdated:
+		sendAlertUpdatedNotification(ctx, *discordGuildId, notificationInput, destinations)
+	default:
+		log.WithContext(ctx).WithFields(
+			log.Fields{
+				"destinationType":  "discord",
+				"notificationType": notificationInput.NotificationType,
+			}).Error("Invalid notification type")
+	}
+}
+
+func sendAlertCreatedNotification(ctx context.Context, discordGuildId string, notificationInput destinationsV2.NotificationInput, destinations []model.AlertDestination) {
+	embed := newMessageEmbed()
+
+	name := notificationInput.AlertUpsertInput.Admin.Name
+	if name == nil {
+		name = notificationInput.AlertUpsertInput.Admin.Email
+	}
+
+	frontendURL := env.Config.FrontendUri
+	alertURL := fmt.Sprintf("%s/%d/alerts/%d", frontendURL, notificationInput.AlertUpsertInput.Alert.ProjectID, notificationInput.AlertUpsertInput.Alert.ID)
+	alertLink := fmt.Sprintf("[%s](%s)", notificationInput.AlertUpsertInput.Alert.Name, alertURL)
+
+	embed.Title = "👋 Alert created"
+	embed.Description = fmt.Sprintf("%s has created the alert \"%s\".", *name, alertLink)
+
+	messageSend := discordgo.MessageSend{
+		Embeds: []*discordgo.MessageEmbed{embed},
+	}
+
+	deliverAlerts(ctx, discordGuildId, &messageSend, destinations)
+}
+
+func sendAlertUpdatedNotification(ctx context.Context, discordGuildId string, notificationInput destinationsV2.NotificationInput, destinations []model.AlertDestination) {
+	embed := newMessageEmbed()
+
+	name := notificationInput.AlertUpsertInput.Admin.Name
+	if name == nil {
+		name = notificationInput.AlertUpsertInput.Admin.Email
+	}
+
+	frontendURL := env.Config.FrontendUri
+	alertURL := fmt.Sprintf("%s/%d/alerts/%d", frontendURL, notificationInput.AlertUpsertInput.Alert.ProjectID, notificationInput.AlertUpsertInput.Alert.ID)
+	alertLink := fmt.Sprintf("[%s](%s)", notificationInput.AlertUpsertInput.Alert.Name, alertURL)
+
+	embed.Title = "👋 Alert updated"
+	embed.Description = fmt.Sprintf("%s has updated the alert \"%s\".", *name, alertLink)
+
+	messageSend := discordgo.MessageSend{
+		Embeds: []*discordgo.MessageEmbed{embed},
 	}
 
 	deliverAlerts(ctx, discordGuildId, &messageSend, destinations)

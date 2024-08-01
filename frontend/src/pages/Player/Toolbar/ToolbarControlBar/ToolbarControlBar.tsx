@@ -11,10 +11,7 @@ import Popover from '@components/Popover/Popover'
 import { Skeleton } from '@components/Skeleton/Skeleton'
 import Switch from '@components/Switch/Switch'
 import { toast } from '@components/Toaster'
-import {
-	useExportSessionMutation,
-	useGetWorkspaceSettingsQuery,
-} from '@graph/hooks'
+import { useExportSessionMutation } from '@graph/hooks'
 import { namedOperations } from '@graph/operations'
 import {
 	Badge,
@@ -409,10 +406,6 @@ const ControlSettings = ({ setShowSettingsPopover }: ControlSettingsProps) => {
 	const { projectId } = useProjectId()
 	const [showSessionSettings, setShowSessionSettings] = useState(true)
 	const { currentWorkspace } = useApplicationContext()
-	const { data: workspaceSettingsData } = useGetWorkspaceSettingsQuery({
-		variables: { workspace_id: String(currentWorkspace?.id) },
-		skip: !currentWorkspace?.id,
-	})
 	const {
 		showHistogram,
 		setShowHistogram,
@@ -593,10 +586,7 @@ const ControlSettings = ({ setShowSettingsPopover }: ControlSettingsProps) => {
 			</button>
 
 			<EnterpriseFeatureButton
-				enabled={
-					!!workspaceSettingsData?.workspaceSettings
-						?.enable_session_export
-				}
+				setting="enable_session_export"
 				name="Session Download"
 				fn={exportSession}
 				className={clsx(style.settingsButton, style.downloadButton)}
@@ -616,7 +606,7 @@ const ControlSettings = ({ setShowSettingsPopover }: ControlSettingsProps) => {
 					alignItems="center"
 					justifyContent="flex-end"
 				>
-					<Badge size="small" label="Annual" />
+					<Badge size="small" label="Business" />
 				</Box>
 			</EnterpriseFeatureButton>
 		</>

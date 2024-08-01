@@ -1,8 +1,9 @@
-import { Button } from '@components/Button'
+import EnterpriseFeatureButton from '@components/Billing/EnterpriseFeatureButton'
 import { toast } from '@components/Toaster'
 import {
 	Badge,
 	Box,
+	Button,
 	Callout,
 	Container,
 	Heading,
@@ -166,14 +167,27 @@ export const DashboardOverview: React.FC = () => {
 										>
 											All dashboards
 										</Text>
-										<Button
-											trackingId="create-dashboard"
-											onClick={() => {
+										<EnterpriseFeatureButton
+											setting="enable_business_dashboards"
+											name="More than 2 dashboards"
+											fn={async () => {
 												setShowModal(true)
 											}}
+											variant="basic"
 										>
-											Create new dashboard
-										</Button>
+											<Box mt="8">
+												<Stack
+													mb="8"
+													align="center"
+													justify="space-between"
+													direction="row"
+												>
+													<Button>
+														Create new dashboard
+													</Button>
+												</Stack>
+											</Box>
+										</EnterpriseFeatureButton>
 									</Box>
 									<Table withSearch>
 										<Table.Search
@@ -200,7 +214,6 @@ export const DashboardOverview: React.FC = () => {
 										</Text>
 										<Box display="flex" gap="4">
 											<Button
-												trackingId="dashboard-previous-page"
 												disabled={!hasPrev || loading}
 												onClick={() => {
 													setPage((p) => p - 1)
@@ -211,7 +224,6 @@ export const DashboardOverview: React.FC = () => {
 												Previous
 											</Button>
 											<Button
-												trackingId="dashboard-next-page"
 												disabled={!hasNext || loading}
 												onClick={() => {
 													setPage((p) => p + 1)

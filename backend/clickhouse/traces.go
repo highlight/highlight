@@ -500,8 +500,8 @@ func (client *Client) TracesKeys(ctx context.Context, projectID int, startDate t
 	return traceKeys, nil
 }
 
-func (client *Client) TracesKeyValues(ctx context.Context, projectID int, keyName string, startDate time.Time, endDate time.Time) ([]string, error) {
-	return KeyValuesAggregated(ctx, client, TraceKeyValuesTable, projectID, keyName, startDate, endDate)
+func (client *Client) TracesKeyValues(ctx context.Context, projectID int, keyName string, startDate time.Time, endDate time.Time, limit *int) ([]string, error) {
+	return KeyValuesAggregated(ctx, client, TraceKeyValuesTable, projectID, keyName, startDate, endDate, limit)
 }
 
 func TraceMatchesQuery(trace *TraceRow, filters listener.Filters) bool {

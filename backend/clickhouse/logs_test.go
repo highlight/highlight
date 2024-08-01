@@ -1195,7 +1195,7 @@ func TestLogKeyValues(t *testing.T) {
 	}
 	assert.NoError(t, client.BatchWriteLogRows(ctx, rows))
 
-	values, err := client.LogsKeyValues(ctx, 1, "workspace_id", now, now)
+	values, err := client.LogsKeyValues(ctx, 1, "workspace_id", now, now, nil)
 	assert.NoError(t, err)
 
 	expected := []string{"3", "2", "4"}
@@ -1227,7 +1227,7 @@ func TestLogKeyValuesLevel(t *testing.T) {
 
 	assert.NoError(t, client.BatchWriteLogRows(ctx, rows))
 
-	values, err := client.LogsKeyValues(ctx, 1, "level", now, now)
+	values, err := client.LogsKeyValues(ctx, 1, "level", now, now, nil)
 	assert.NoError(t, err)
 
 	expected := []string{"info", "warn"}

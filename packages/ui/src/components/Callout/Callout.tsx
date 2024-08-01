@@ -82,7 +82,7 @@ export const Callout: React.FC<Props> = ({
 				{title && (
 					<Box display="flex" position="relative">
 						<Box mt="6">
-							<Text color="strong" weight="bold" size="medium">
+							<Text color="strong" weight="bold" size="small">
 								{title}
 							</Text>
 						</Box>

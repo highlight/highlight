@@ -10,6 +10,7 @@ import (
 
 	destinationsV2 "github.com/highlight-run/highlight/backend/alerts/v2/destinations"
 	Email "github.com/highlight-run/highlight/backend/email"
+	"github.com/highlight-run/highlight/backend/env"
 	"github.com/highlight-run/highlight/backend/lambda"
 	"github.com/highlight-run/highlight/backend/model"
 	modelInputs "github.com/highlight-run/highlight/backend/private-graph/graph/model"
@@ -67,7 +68,7 @@ func sendSessionAlert(ctx context.Context, mailClient *sendgrid.Client, lambdaCl
 
 func sendErrorAlert(ctx context.Context, mailClient *sendgrid.Client, lambdaClient *lambda.Client, alertInput *destinationsV2.AlertInput, destinations []model.AlertDestination) {
 	emailData := &EmailData{
-		SubjectLine: "Error subject line",
+		SubjectLine: fmt.Sprintf("%s fired!", alertInput.Alert.Name),
 		Template:    lambda.ReactEmailTemplateErrorsAlert,
 		TemplateData: map[string]interface{}{
 			"alertLink":       alertInput.AlertLink,
@@ -191,6 +192,67 @@ func sendMetricAlert(ctx context.Context, mailClient *sendgrid.Client, lambdaCli
 			"projectName":    alertInput.ProjectName,
 			"query":          query,
 			"thresholdValue": thresholdValue,
+		},
+	}
+
+	deliverAlerts(ctx, mailClient, lambdaClient, emailData, destinations)
+}
+
+func SendNotifications(ctx context.Context, mailClient *sendgrid.Client, lambdaClient *lambda.Client, notificationInput destinationsV2.NotificationInput, destinations []model.AlertDestination) {
+	switch notificationInput.NotificationType {
+	case destinationsV2.NotificationTypeAlertCreated:
+		sendAlertCreatedNotification(ctx, mailClient, lambdaClient, notificationInput, destinations)
+	case destinationsV2.NotificationTypeAlertUpdated:
+		sendAlertUpdatedNotification(ctx, mailClient, lambdaClient, notificationInput, destinations)
+	default:
+		log.WithContext(ctx).WithFields(
+			log.Fields{
+				"destinationType":  "discord",
+				"notificationType": notificationInput.NotificationType,
+			}).Error("Invalid notification type")
+	}
+}
+
+func sendAlertCreatedNotification(ctx context.Context, mailClient *sendgrid.Client, lambdaClient *lambda.Client, notificationInput destinationsV2.NotificationInput, destinations []model.AlertDestination) {
+	name := notificationInput.AlertUpsertInput.Admin.Name
+	if name == nil {
+		name = notificationInput.AlertUpsertInput.Admin.Email
+	}
+
+	frontendURL := env.Config.FrontendUri
+	alertUrl := fmt.Sprintf("%s/%d/alerts/%d", frontendURL, notificationInput.AlertUpsertInput.Alert.ProjectID, notificationInput.AlertUpsertInput.Alert.ID)
+
+	emailData := &EmailData{
+		SubjectLine: "New alert created!",
+		Template:    lambda.ReactEmailTemplateAlertUpsert,
+		TemplateData: map[string]interface{}{
+			"adminName":   *name,
+			"alertAction": "created",
+			"alertLink":   alertUrl,
+			"alertName":   notificationInput.AlertUpsertInput.Alert.Name,
+		},
+	}
+
+	deliverAlerts(ctx, mailClient, lambdaClient, emailData, destinations)
+}
+
+func sendAlertUpdatedNotification(ctx context.Context, mailClient *sendgrid.Client, lambdaClient *lambda.Client, notificationInput destinationsV2.NotificationInput, destinations []model.AlertDestination) {
+	name := notificationInput.AlertUpsertInput.Admin.Name
+	if name == nil {
+		name = notificationInput.AlertUpsertInput.Admin.Email
+	}
+
+	frontendURL := env.Config.FrontendUri
+	alertUrl := fmt.Sprintf("%s/%d/alerts/%d", frontendURL, notificationInput.AlertUpsertInput.Alert.ProjectID, notificationInput.AlertUpsertInput.Alert.ID)
+
+	emailData := &EmailData{
+		SubjectLine: "Alert updated!",
+		Template:    lambda.ReactEmailTemplateAlertUpsert,
+		TemplateData: map[string]interface{}{
+			"adminName":   *name,
+			"alertAction": "updated",
+			"alertLink":   alertUrl,
+			"alertName":   notificationInput.AlertUpsertInput.Alert.Name,
 		},
 	}
 
