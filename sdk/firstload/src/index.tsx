@@ -469,44 +469,38 @@ const H: HighlightPublicInterface = {
 			)
 		}
 	},
-	getSessionURL: () => {
-		return new Promise<string>((resolve, reject) => {
-			const data = getPreviousSessionData()
-			const sessionSecureID = getSessionSecureID()
-			if (data && sessionSecureID) {
-				resolve(
-					`https://${HIGHLIGHT_URL}/${data.projectID}/sessions/${sessionSecureID}`,
-				)
-			} else {
-				reject(new Error('Unable to get session URL'))
-			}
-		})
+	getSessionURL: async () => {
+		const data = getPreviousSessionData()
+		const sessionSecureID = getSessionSecureID()
+		if (data && sessionSecureID) {
+			return `https://${HIGHLIGHT_URL}/${data.projectID}/sessions/${sessionSecureID}`
+		} else {
+			throw new Error('Unable to get session URL')
+		}
 	},
-	getSessionDetails: () => {
-		return new Promise<SessionDetails>((resolve, reject) => {
-			H.onHighlightReady(() => {
-				const baseUrl = highlight_obj.getCurrentSessionURL()
-				if (baseUrl) {
-					const currentSessionTimestamp =
-						highlight_obj.getCurrentSessionTimestamp()
-					const now = new Date().getTime()
-					const url = new URL(baseUrl)
-					const urlWithTimestamp = new URL(baseUrl)
-					urlWithTimestamp.searchParams.set(
-						'ts',
-						// The delta between when the session recording started and now.
-						((now - currentSessionTimestamp) / 1000).toString(),
-					)
+	getSessionDetails: async () => {
+		const baseUrl = await H.getSessionURL()
+		const sessionData = getPreviousSessionData()
+		if (!baseUrl) {
+			throw new Error('Could not get session URL')
+		}
+		const currentSessionTimestamp = sessionData?.sessionStartTime
+		if (!currentSessionTimestamp) {
+			throw new Error('Could not get session start timestamp')
+		}
+		const now = new Date().getTime()
+		const url = new URL(baseUrl)
+		const urlWithTimestamp = new URL(baseUrl)
+		urlWithTimestamp.searchParams.set(
+			'ts',
+			// The delta between when the session recording started and now.
+			((now - currentSessionTimestamp) / 1000).toString(),
+		)
 
-					resolve({
-						url: url.toString(),
-						urlWithTimestamp: urlWithTimestamp.toString(),
-					})
-				} else {
-					reject(new Error('Could not get session URL'))
-				}
-			})
-		})
+		return {
+			url: url.toString(),
+			urlWithTimestamp: urlWithTimestamp.toString(),
+		} as SessionDetails
 	},
 	getRecordingState: () => {
 		return highlight_obj?.state ?? 'NotRecording'
