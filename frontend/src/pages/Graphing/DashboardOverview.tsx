@@ -1,12 +1,14 @@
+import { Button } from '@components/Button'
 import { toast } from '@components/Toaster'
 import {
 	Badge,
 	Box,
-	Button,
+	Callout,
 	Container,
 	Heading,
 	IconSolidChartBar,
 	IconSolidDotsHorizontal,
+	IconSolidPlay,
 	IconSolidTrash,
 	Menu,
 	Stack,
@@ -19,6 +21,7 @@ import { Helmet } from 'react-helmet'
 import { useNavigate } from 'react-router-dom'
 import { useDebounce } from 'react-use'
 
+import { LinkButton } from '@/components/LinkButton'
 import LoadingBox from '@/components/LoadingBox'
 import { SearchEmptyState } from '@/components/SearchEmptyState/SearchEmptyState'
 import {
@@ -36,7 +39,11 @@ import * as style from './DashboardOverview.css'
 
 const ITEMS_PER_PAGE = 10
 
-export default function DashboardOverview() {
+const METRICS_DOCS_LINK =
+	'https://www.highlight.io/docs/general/product-features/metrics/overview'
+const WALKTHROUGH_LINK = 'https://www.youtube.com/watch?v=MzJMCcgf6iU'
+
+export const DashboardOverview: React.FC = () => {
 	const { projectId } = useProjectId()
 
 	const [query, setQuery] = useState('')
@@ -112,6 +119,38 @@ export default function DashboardOverview() {
 										Metrics allow you to visualize what's
 										happening in your app.
 									</Text>
+									<Callout
+										title="Want to learn more about
+												Metrics?"
+										icon={false}
+									>
+										<Stack gap="16">
+											<Text>
+												Be sure to take a look at the
+												docs, or watch the walkthrought
+												video!
+											</Text>
+											<Stack flexDirection="row" gap="8">
+												<LinkButton
+													kind="secondary"
+													emphasis="high"
+													trackingId="dashboard-watch-walkthrough"
+													to={WALKTHROUGH_LINK}
+													iconLeft={<IconSolidPlay />}
+												>
+													Watch walkthrough
+												</LinkButton>
+												<LinkButton
+													trackingId="dashboard-read-docs"
+													kind="secondary"
+													emphasis="low"
+													to={METRICS_DOCS_LINK}
+												>
+													Read docs
+												</LinkButton>
+											</Stack>
+										</Stack>
+									</Callout>
 								</Stack>
 								<Stack gap="8" width="full">
 									<Box
@@ -128,6 +167,7 @@ export default function DashboardOverview() {
 											All dashboards
 										</Text>
 										<Button
+											trackingId="create-dashboard"
 											onClick={() => {
 												setShowModal(true)
 											}}
@@ -160,6 +200,7 @@ export default function DashboardOverview() {
 										</Text>
 										<Box display="flex" gap="4">
 											<Button
+												trackingId="dashboard-previous-page"
 												disabled={!hasPrev || loading}
 												onClick={() => {
 													setPage((p) => p - 1)
@@ -170,6 +211,7 @@ export default function DashboardOverview() {
 												Previous
 											</Button>
 											<Button
+												trackingId="dashboard-next-page"
 												disabled={!hasNext || loading}
 												onClick={() => {
 													setPage((p) => p + 1)
