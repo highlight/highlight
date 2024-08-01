@@ -1,5 +1,4 @@
 import { useAuthContext } from '@authentication/AuthContext'
-import Select from '@components/Select/Select'
 import { toast } from '@components/Toaster'
 import Tooltip from '@components/Tooltip/Tooltip'
 import {
@@ -7,7 +6,7 @@ import {
 	useUpdateAllowedEmailOriginsMutation,
 } from '@graph/hooks'
 import { namedOperations } from '@graph/operations'
-import { Box, Text } from '@highlight-run/ui/components'
+import { Box, Select, Text } from '@highlight-run/ui/components'
 import { useParams } from '@util/react-router/useParams'
 import Checkbox, { CheckboxChangeEvent } from 'antd/es/checkbox'
 import React, { useState } from 'react'
@@ -72,6 +71,7 @@ export const AutoJoinForm: React.FC = () => {
 	const handleSelectChange = (domains: string[]) => {
 		onChangeMsg(domains, 'Successfully updated auto-join email domains!')
 	}
+	console.log('::: data', loading, autoJoinDomains, adminDomains)
 
 	return (
 		<Tooltip
@@ -88,17 +88,14 @@ export const AutoJoinForm: React.FC = () => {
 					<Text>Auto-approved email domainz</Text>
 				</Box>
 				<Select
-					placeholder={`${adminsEmailDomain}, acme.corp, piedpiper.com`}
-					className={styles.select}
+					creatable
+					filterable
+					displayMode="tags"
 					loading={loading}
+					placeholder={`${adminsEmailDomain}, acme.corp, piedpiper.com`}
 					value={autoJoinDomains}
-					mode="tags"
-					onChange={handleSelectChange}
-					options={adminDomains.map((emailOrigin) => ({
-						displayValue: emailOrigin,
-						id: emailOrigin,
-						value: emailOrigin,
-					}))}
+					onChange={(value) => handleSelectChange(value)}
+					options={adminDomains}
 				/>
 			</div>
 		</Tooltip>
