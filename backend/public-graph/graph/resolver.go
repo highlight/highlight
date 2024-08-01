@@ -964,7 +964,6 @@ func GetLocationFromIP(ctx context.Context, ip string) (location *Location, err 
 
 	location = &Location{
 		City:      record.City.Names["en"],
-		State:     record.Subdivisions[0].Names["en"],
 		Postal:    record.Postal.Code,
 		Latitude:  record.Location.Latitude,
 		Longitude: record.Location.Longitude,
