@@ -3,7 +3,6 @@ package graph
 import (
 	"compress/gzip"
 	"context"
-	_ "embed"
 	"encoding/base64"
 	"encoding/json"
 	"errors"
