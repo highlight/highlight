@@ -1189,7 +1189,7 @@ func TestQueryResolver_updateBillingDetails(t *testing.T) {
 		assert.False(t, hs.Active)
 
 		hs = model.BillingEmailHistory{}
-		if err := DB.Debug().Model(&model.BillingEmailHistory{}).Where(&model.BillingEmailHistory{Type: email.BillingSessionOverage}).Take(&hs).Error; err != nil {
+		if err := DB.Model(&model.BillingEmailHistory{}).Where(&model.BillingEmailHistory{Type: email.BillingSessionOverage}).Take(&hs).Error; err != nil {
 			t.Fatal(e.Wrap(err, "error querying BillingEmailHistory"))
 		}
 		assert.True(t, hs.Active)
