@@ -383,8 +383,8 @@ GEM
     regexp_parser (2.9.0)
     reline (0.4.3)
       io-console (~> 0.5)
-    rexml (3.2.8)
-      strscan (>= 3.0.9)
+    rexml (3.3.2)
+      strscan
     ruby2_keywords (0.0.5)
     rubyzip (2.3.2)
     selenium-webdriver (4.18.1)
