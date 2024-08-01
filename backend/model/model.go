@@ -475,13 +475,14 @@ type AllWorkspaceSettings struct {
 	EnableUnlimitedSeats      bool `gorm:"default:false"`
 
 	EnableBillingLimits      bool `gorm:"default:false"` // old plans grandfathered in to true
-	EnableDataDeletion       bool `gorm:"default:true"`
 	EnableGrafanaDashboard   bool `gorm:"default:false"`
 	EnableIngestSampling     bool `gorm:"default:false"`
-	EnableNetworkTraces      bool `gorm:"default:true"`
 	EnableProjectLevelAccess bool `gorm:"default:false"`
 	EnableSessionExport      bool `gorm:"default:false"`
-	EnableUnlistedSharing    bool `gorm:"default:true"`
+
+	EnableDataDeletion    bool `gorm:"default:true"`
+	EnableNetworkTraces   bool `gorm:"default:true"`
+	EnableUnlistedSharing bool `gorm:"default:true"`
 }
 
 type HasSecret interface {
