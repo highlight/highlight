@@ -19,11 +19,10 @@ const FEATURE_DESCRIPTIONS = {
 	'More than 15 team members':
 		'allow manually inviting more than 15 team members.',
 	'More than 2 dashboards': 'allow creating more than 2 dashboards.',
-	'Billing Limits': 'limit spending for all highlight data.',
 	'Ingestion Limits': 'control data ingestion filters.',
 	'Ingestion Sampling': 'control data ingestion rates and sample data.',
 	'Custom Data Retention':
-		'control data retention beyond the standard 7 days.',
+		'control data retention beyond the standard retention.',
 } as const
 
 type Feature = keyof typeof FEATURE_DESCRIPTIONS
