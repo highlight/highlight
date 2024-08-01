@@ -75,6 +75,58 @@ import (
 	"gorm.io/gorm/clause"
 )
 
+// EnableBusinessDashboards is the resolver for the enable_business_dashboards field.
+func (r *allWorkspaceSettingsResolver) EnableBusinessDashboards(ctx context.Context, obj *model.AllWorkspaceSettings) (bool, error) {
+	w, err := r.isUserInWorkspaceReadOnly(ctx, obj.WorkspaceID)
+	if err != nil {
+		return false, err
+	}
+
+	var numDashboards int64
+	if err := r.DB.Raw(`
+		SELECT v.id
+		FROM visualizations v
+		INNER JOIN projects p ON p.id = v.project_id
+		INNER JOIN workspaces w ON w.id = p.workspace_id
+		WHERE w.id = ?;
+	`, w.ID).Count(&numDashboards).Error; err != nil {
+		return false, e.Wrap(err, "error querying workspace visualizations")
+	}
+
+	return obj.EnableUnlimitedDashboards || numDashboards < 2, nil
+}
+
+// EnableBusinessProjects is the resolver for the enable_business_projects field.
+func (r *allWorkspaceSettingsResolver) EnableBusinessProjects(ctx context.Context, obj *model.AllWorkspaceSettings) (bool, error) {
+	return obj.EnableUnlimitedProjects, nil
+}
+
+// EnableBusinessRetention is the resolver for the enable_business_retention field.
+func (r *allWorkspaceSettingsResolver) EnableBusinessRetention(ctx context.Context, obj *model.AllWorkspaceSettings) (bool, error) {
+	return obj.EnableUnlimitedRetention, nil
+}
+
+// EnableBusinessSeats is the resolver for the enable_business_seats field.
+func (r *allWorkspaceSettingsResolver) EnableBusinessSeats(ctx context.Context, obj *model.AllWorkspaceSettings) (bool, error) {
+	w, err := r.isUserInWorkspaceReadOnly(ctx, obj.WorkspaceID)
+	if err != nil {
+		return false, err
+	}
+
+	numAdmins := r.DB.Model(w).Association("Admins").Count()
+	return obj.EnableUnlimitedSeats || numAdmins < 15, nil
+}
+
+// EnableIngestFiltering is the resolver for the enable_ingest_filtering field.
+func (r *allWorkspaceSettingsResolver) EnableIngestFiltering(ctx context.Context, obj *model.AllWorkspaceSettings) (bool, error) {
+	w, err := r.isUserInWorkspaceReadOnly(ctx, obj.WorkspaceID)
+	if err != nil {
+		return false, err
+	}
+
+	return w.PlanTier != modelInputs.PlanTypeFree.String(), nil
+}
+
 // Author is the resolver for the author field.
 func (r *commentReplyResolver) Author(ctx context.Context, obj *model.CommentReply) (*modelInputs.SanitizedAdmin, error) {
 	admin := &model.Admin{}
@@ -10083,6 +10135,11 @@ func (r *visualizationResolver) UpdatedByAdmin(ctx context.Context, obj *model.V
 	}, nil
 }
 
+// AllWorkspaceSettings returns generated.AllWorkspaceSettingsResolver implementation.
+func (r *Resolver) AllWorkspaceSettings() generated.AllWorkspaceSettingsResolver {
+	return &allWorkspaceSettingsResolver{r}
+}
+
 // CommentReply returns generated.CommentReplyResolver implementation.
 func (r *Resolver) CommentReply() generated.CommentReplyResolver { return &commentReplyResolver{r} }
 
@@ -10143,6 +10200,7 @@ func (r *Resolver) TimelineIndicatorEvent() generated.TimelineIndicatorEventReso
 // Visualization returns generated.VisualizationResolver implementation.
 func (r *Resolver) Visualization() generated.VisualizationResolver { return &visualizationResolver{r} }
 
+type allWorkspaceSettingsResolver struct{ *Resolver }
 type commentReplyResolver struct{ *Resolver }
 type errorAlertResolver struct{ *Resolver }
 type errorCommentResolver struct{ *Resolver }

@@ -9,6 +9,7 @@ import type { sprinkles } from '@highlight-run/ui/sprinkles'
 import { vars } from '@highlight-run/ui/vars'
 import clsx from 'clsx'
 import React from 'react'
+import { createPortal } from 'react-dom'
 
 import { styledVerticalScrollbar } from '@/style/common.css'
 
@@ -41,7 +42,8 @@ export const Modal: React.FC<
 	title,
 	footer,
 }) => {
-	return (
+	const portalRoot = document.getElementById('portal')!
+	return createPortal(
 		<Box
 			width="screen"
 			display="flex"
@@ -117,6 +119,8 @@ export const Modal: React.FC<
 				</Box>
 				{footer}
 			</Stack>
-		</Box>
+		</Box>,
+		portalRoot,
+		'modal',
 	)
 }

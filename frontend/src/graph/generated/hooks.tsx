@@ -14258,12 +14258,20 @@ export const GetWorkspaceSettingsDocument = gql`
 			ai_application
 			ai_query_builder
 			ai_insights
-			enable_session_export
-			enable_unlisted_sharing
-			enable_ingest_sampling
+			enable_billing_limits
+			enable_business_dashboards
+			enable_business_projects
+			enable_business_retention
+			enable_business_seats
 			enable_data_deletion
 			enable_grafana_dashboard
+			enable_ingest_filtering
+			enable_ingest_sampling
+			enable_network_traces
 			enable_project_level_access
+			enable_project_level_access
+			enable_session_export
+			enable_unlisted_sharing
 		}
 	}
 `

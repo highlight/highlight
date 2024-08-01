@@ -1,46 +1,86 @@
 import { CalendlyModal } from '@components/CalendlyModal/CalendlyButton'
 import { Modal } from '@components/Modal/ModalV2'
+import {
+	useGetBillingDetailsQuery,
+	useGetWorkspaceSettingsQuery,
+} from '@graph/hooks'
+import { AllWorkspaceSettings } from '@graph/schemas'
 import { Box } from '@highlight-run/ui/components'
 import PlanComparisonPage from '@pages/Billing/PlanComparisonPage'
+import { useApplicationContext } from '@routers/AppRouter/context/ApplicationContext'
 import analytics from '@util/analytics'
 import { PropsWithChildren, useCallback, useState } from 'react'
 
-type Feature = 'Session Download' | 'Session CSV Report'
-
 const FEATURE_DESCRIPTIONS = {
-	'Session Download': 'Download a video .MP4 playback of the session.',
+	'Session Download': 'download a video .MP4 playback of the session.',
 	'Session CSV Report':
-		'Download a CSV report aggregating all sessions in the results feed.',
-} as { [K in Feature]: string }
+		'download a CSV report aggregating all sessions in the results feed.',
+	'More than 1 project': 'create more than 1 project to segment your data.',
+	'More than 15 team members':
+		'allow manually inviting more than 15 team members.',
+	'More than 2 dashboards': 'allow creating more than 2 dashboards.',
+	'Ingestion Limits': 'control data ingestion filters.',
+	'Ingestion Sampling': 'control data ingestion rates and sample data.',
+	'Custom Data Retention':
+		'control data retention beyond the standard retention.',
+} as const
+
+type Feature = keyof typeof FEATURE_DESCRIPTIONS
 
 interface Props {
-	enabled: boolean | 'force'
+	setting: keyof AllWorkspaceSettings
 	name: Feature
 	fn: () => Promise<any>
+	onShowModal?: () => void
+	onClose?: () => void
 	className?: string
 	variant?: 'basic'
+	shown?: true
 }
 
 export default function EnterpriseFeatureButton({
-	enabled,
+	setting,
 	name,
 	fn,
 	children,
 	className,
 	variant,
+	onShowModal,
+	onClose,
+	shown,
 }: PropsWithChildren<Props>) {
+	const { currentWorkspace } = useApplicationContext()
+	const { data, loading } = useGetWorkspaceSettingsQuery({
+		variables: {
+			workspace_id: currentWorkspace?.id || '',
+		},
+		skip: !currentWorkspace?.id,
+	})
+
+	// prefetch the query used by subpages
+	useGetBillingDetailsQuery({
+		variables: {
+			workspace_id: currentWorkspace?.id || '',
+		},
+		skip: !currentWorkspace?.id,
+	})
+
 	const [showPlanModal, setShowPlanModal] = useState<
-		'features' | 'calendly'
-	>()
+		'features' | 'calendly' | undefined
+	>(shown ? 'features' : undefined)
 
 	const checkFeature = useCallback(async () => {
-		if (!enabled) {
+		if (loading || !data?.workspaceSettings) return
+		if (!data.workspaceSettings[setting]) {
 			analytics.track(`enterprise-request-${name}`)
+			if (onShowModal) {
+				onShowModal()
+			}
 			setShowPlanModal('features')
 			return
 		}
 		await fn()
-	}, [enabled, fn, name])
+	}, [loading, data?.workspaceSettings, setting, fn, name, onShowModal])
 
 	let action: JSX.Element
 	if (variant === 'basic') {
@@ -62,7 +102,10 @@ export default function EnterpriseFeatureButton({
 			<>
 				{action}
 				<Modal
-					onClose={() => setShowPlanModal(undefined)}
+					onClose={() => {
+						setShowPlanModal(undefined)
+						if (onClose) onClose()
+					}}
 					title="Upgrade Plan"
 				>
 					<Box
@@ -70,12 +113,14 @@ export default function EnterpriseFeatureButton({
 						display="flex"
 						justifyContent="center"
 						flexDirection="column"
-						style={{ maxWidth: 740 }}
+						style={{ maxWidth: 640 }}
 					>
 						<PlanComparisonPage
 							setSelectedPlanType={() => {}}
 							setStep={() => {}}
-							title={`${name} is only available on enterprise plans.`}
+							title={`${name} ${
+								name.endsWith('s') ? 'are' : 'is'
+							} not available on your current plan.`}
 							description={FEATURE_DESCRIPTIONS[name]}
 							howCanWeHelp={`I would like to use the ${name} feature.`}
 							enterprise

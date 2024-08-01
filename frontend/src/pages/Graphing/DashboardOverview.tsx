@@ -1,3 +1,4 @@
+import EnterpriseFeatureButton from '@components/Billing/EnterpriseFeatureButton'
 import { toast } from '@components/Toaster'
 import {
 	Badge,
@@ -127,13 +128,27 @@ export default function DashboardOverview() {
 										>
 											All dashboards
 										</Text>
-										<Button
-											onClick={() => {
+										<EnterpriseFeatureButton
+											setting="enable_business_dashboards"
+											name="More than 2 dashboards"
+											fn={async () => {
 												setShowModal(true)
 											}}
+											variant="basic"
 										>
-											Create new dashboard
-										</Button>
+											<Box mt="8">
+												<Stack
+													mb="8"
+													align="center"
+													justify="space-between"
+													direction="row"
+												>
+													<Button>
+														Create new dashboard
+													</Button>
+												</Stack>
+											</Box>
+										</EnterpriseFeatureButton>
 									</Box>
 									<Table withSearch>
 										<Table.Search
