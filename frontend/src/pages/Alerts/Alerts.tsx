@@ -36,6 +36,7 @@ import SvgTargetIcon from '@icons/TargetIcon'
 import SvgUserPlusIcon from '@icons/UserPlusIcon'
 import { AlertEnableSwitch } from '@pages/Alerts/AlertEnableSwitch/AlertEnableSwitch'
 import { useAlertsContext } from '@pages/Alerts/AlertsContext/AlertsContext'
+import useLocalStorage from '@rehooks/local-storage'
 import { useParams } from '@util/react-router/useParams'
 import React from 'react'
 import { RiMailFill, RiSlackFill } from 'react-icons/ri'
@@ -271,6 +272,10 @@ function AlertsPageLoaded({
 }: {
 	alertsPayload: GetAlertsPagePayloadQuery | undefined
 }) {
+	const [visible, setVisible] = useLocalStorage<boolean>(
+		'display-alerts-docs-callout',
+		true,
+	)
 	const { project_id } = useParams<{ project_id: string }>()
 	const navigate = useNavigate()
 	const metricAlertsEnabled = useFeatureFlag(Feature.MetricAlerts)
@@ -398,38 +403,41 @@ function AlertsPageLoaded({
 								<NewAlertMenu />
 							)}
 						</Box>
-						<Callout
-							title="Want to learn more about
+						{visible && (
+							<Callout
+								title="Want to learn more about
 												Alerts?"
-							icon={false}
-						>
-							<Stack gap="16">
-								<Text>
-									Be sure to take a look at the docs, and the
-									walkthrough coming soon!
-								</Text>
-								<Stack flexDirection="row" gap="8">
-									<LinkButton
-										kind="secondary"
-										emphasis="high"
-										trackingId="alerts-watch-walkthrough"
-										to={WALKTHROUGH_LINK}
-										iconLeft={<IconSolidPlay />}
-										disabled
-									>
-										Watch walkthrough
-									</LinkButton>
-									<LinkButton
-										trackingId="alerts-read-docs"
-										kind="secondary"
-										emphasis="low"
-										to={ALERTS_DOCS_LINK}
-									>
-										Read docs
-									</LinkButton>
+								icon={false}
+								handleCloseClick={() => setVisible(false)}
+							>
+								<Stack gap="16">
+									<Text>
+										Be sure to take a look at the docs, and
+										the walkthrough coming soon!
+									</Text>
+									<Stack flexDirection="row" gap="8">
+										<LinkButton
+											kind="secondary"
+											emphasis="high"
+											trackingId="alerts-watch-walkthrough"
+											to={WALKTHROUGH_LINK}
+											iconLeft={<IconSolidPlay />}
+											disabled
+										>
+											Watch walkthrough
+										</LinkButton>
+										<LinkButton
+											trackingId="alerts-read-docs"
+											kind="secondary"
+											emphasis="low"
+											to={ALERTS_DOCS_LINK}
+										>
+											Read docs
+										</LinkButton>
+									</Stack>
 								</Stack>
-							</Stack>
-						</Callout>
+							</Callout>
+						)}
 						{alertsPayload && (
 							<Stack gap="6">
 								{alertsAsTableRows.length > 0 ? (

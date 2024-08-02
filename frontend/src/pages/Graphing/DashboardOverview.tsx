@@ -16,6 +16,7 @@ import {
 	Table,
 	Text,
 } from '@highlight-run/ui/components'
+import useLocalStorage from '@rehooks/local-storage'
 import moment from 'moment'
 import React, { useState } from 'react'
 import { Helmet } from 'react-helmet'
@@ -46,6 +47,10 @@ const WALKTHROUGH_LINK = 'https://www.youtube.com/watch?v=MzJMCcgf6iU'
 
 export const DashboardOverview: React.FC = () => {
 	const { projectId } = useProjectId()
+	const [visible, setVisible] = useLocalStorage<boolean>(
+		'display-dashboard-docs-callout',
+		true,
+	)
 
 	const [query, setQuery] = useState('')
 	const [debouncedQuery, setDebouncedQuery] = useState('')
@@ -120,38 +125,48 @@ export const DashboardOverview: React.FC = () => {
 										Metrics allow you to visualize what's
 										happening in your app.
 									</Text>
-									<Callout
-										title="Want to learn more about
+									{visible && (
+										<Callout
+											title="Want to learn more about
 												Metrics?"
-										icon={false}
-									>
-										<Stack gap="16">
-											<Text>
-												Be sure to take a look at the
-												docs, or watch the walkthrough
-												video!
-											</Text>
-											<Stack flexDirection="row" gap="8">
-												<LinkButton
-													kind="secondary"
-													emphasis="high"
-													trackingId="dashboard-watch-walkthrough"
-													to={WALKTHROUGH_LINK}
-													iconLeft={<IconSolidPlay />}
+											icon={false}
+											handleCloseClick={() =>
+												setVisible(false)
+											}
+										>
+											<Stack gap="16">
+												<Text>
+													Be sure to take a look at
+													the docs, or watch the
+													walkthrough video!
+												</Text>
+												<Stack
+													flexDirection="row"
+													gap="8"
 												>
-													Watch walkthrough
-												</LinkButton>
-												<LinkButton
-													trackingId="dashboard-read-docs"
-													kind="secondary"
-													emphasis="low"
-													to={METRICS_DOCS_LINK}
-												>
-													Read docs
-												</LinkButton>
+													<LinkButton
+														kind="secondary"
+														emphasis="high"
+														trackingId="dashboard-watch-walkthrough"
+														to={WALKTHROUGH_LINK}
+														iconLeft={
+															<IconSolidPlay />
+														}
+													>
+														Watch walkthrough
+													</LinkButton>
+													<LinkButton
+														trackingId="dashboard-read-docs"
+														kind="secondary"
+														emphasis="low"
+														to={METRICS_DOCS_LINK}
+													>
+														Read docs
+													</LinkButton>
+												</Stack>
 											</Stack>
-										</Stack>
-									</Callout>
+										</Callout>
+									)}
 								</Stack>
 								<Stack gap="8" width="full">
 									<Box
