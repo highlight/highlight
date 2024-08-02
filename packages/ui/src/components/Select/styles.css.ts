@@ -8,6 +8,8 @@ export const select = style([
 		backgroundColor: 'white',
 		border: 'secondary',
 		borderRadius: '6',
+		display: 'block',
+		width: 'full',
 	}),
 	{
 		height: 28,

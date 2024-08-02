@@ -1,6 +1,7 @@
 import { Meta } from '@storybook/react'
 import { useMemo, useState } from 'react'
 
+import { Box } from '../Box/Box'
 import { Button } from '../Button/Button'
 import { Stack } from '../Stack/Stack'
 import { Text } from '../Text/Text'
@@ -9,6 +10,13 @@ import { Select } from './Select'
 export default {
 	title: 'Components/Select',
 	component: Select,
+	decorators: [
+		(Story) => (
+			<Box style={{ width: 300 }}>
+				<Story />
+			</Box>
+		),
+	],
 } as Meta<typeof Select>
 
 const OPTIONS = [
@@ -111,7 +119,7 @@ export const FilterableMultiSelectWithCheckboxes = () => {
 	)
 
 	return (
-		<Stack gap="10" style={{ width: 250 }}>
+		<Stack gap="10">
 			<Select
 				filterable
 				options={options}
