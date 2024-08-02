@@ -128,7 +128,7 @@ export const DashboardOverview: React.FC = () => {
 										<Stack gap="16">
 											<Text>
 												Be sure to take a look at the
-												docs, or watch the walkthrought
+												docs, or watch the walkthrough
 												video!
 											</Text>
 											<Stack flexDirection="row" gap="8">
