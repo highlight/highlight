@@ -452,7 +452,7 @@ func (client *Client) ReadLogsHistogram(ctx context.Context, projectID int, para
 	return histogram, err
 }
 
-func (client *Client) ReadLogsMetrics(ctx context.Context, projectID int, params modelInputs.QueryInput, column string, metricTypes []modelInputs.MetricAggregator, groupBy []string, nBuckets *int, bucketBy string, limit *int, limitAggregator *modelInputs.MetricAggregator, limitColumn *string) (*modelInputs.MetricsBuckets, error) {
+func (client *Client) ReadLogsMetrics(ctx context.Context, projectID int, params modelInputs.QueryInput, column string, metricTypes []modelInputs.MetricAggregator, groupBy []string, nBuckets *int, bucketBy string, bucketWindow *int, limit *int, limitAggregator *modelInputs.MetricAggregator, limitColumn *string) (*modelInputs.MetricsBuckets, error) {
 	return client.ReadMetrics(ctx, ReadMetricsInput{
 		SampleableConfig: LogsSampleableTableConfig,
 		ProjectIDs:       []int{projectID},
@@ -461,6 +461,7 @@ func (client *Client) ReadLogsMetrics(ctx context.Context, projectID int, params
 		MetricTypes:      metricTypes,
 		GroupBy:          groupBy,
 		BucketCount:      nBuckets,
+		BucketWindow:     bucketWindow,
 		BucketBy:         bucketBy,
 		Limit:            limit,
 		LimitAggregator:  limitAggregator,

@@ -2556,6 +2556,7 @@ query GetMetrics(
 	$group_by: [String!]!
 	$bucket_by: String!
 	$bucket_count: Int
+	$bucket_window: Int
 	$limit: Int
 	$limit_aggregator: MetricAggregator
 	$limit_column: String
@@ -2568,6 +2569,7 @@ query GetMetrics(
 		metric_types: $metric_types
 		group_by: $group_by
 		bucket_by: $bucket_by
+		bucket_window: $bucket_window
 		bucket_count: $bucket_count
 		limit: $limit
 		limit_aggregator: $limit_aggregator
