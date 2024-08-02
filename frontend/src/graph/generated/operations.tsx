@@ -2556,6 +2556,7 @@ export type GetSessionUsersReportsQuery = { __typename?: 'Query' } & {
 		{ __typename?: 'SessionsReportRow' } & Pick<
 			Types.SessionsReportRow,
 			| 'key'
+			| 'email'
 			| 'num_sessions'
 			| 'num_days_visited'
 			| 'num_months_visited'
