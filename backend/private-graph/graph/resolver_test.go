@@ -8,6 +8,7 @@ import (
 	"strconv"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/highlight-run/highlight/backend/clickhouse"
 	"github.com/highlight-run/highlight/backend/integrations"
@@ -1152,8 +1153,13 @@ func TestUpdateSessionIsPublic(t *testing.T) {
 // ensure that invite link email is checked case-insensitively with admin email
 func TestQueryResolver_updateBillingDetails(t *testing.T) {
 	util.RunTestWithDBWipe(t, DB, func(t *testing.T) {
+		start := time.Now().AddDate(0, 0, 1)
+		end := start.AddDate(0, 1, 0)
 		workspace := model.Workspace{
-			Name: ptr.String("test1"),
+			Name:               ptr.String("test1"),
+			NextInvoiceDate:    &end,
+			BillingPeriodStart: &start,
+			BillingPeriodEnd:   &end,
 		}
 		if err := DB.Create(&workspace).Error; err != nil {
 			t.Fatal(e.Wrap(err, "error inserting workspace"))
@@ -1179,7 +1185,7 @@ func TestQueryResolver_updateBillingDetails(t *testing.T) {
 		ctx := context.Background()
 		r := &queryResolver{Resolver: &Resolver{DB: DB, Redis: redis.NewClient()}}
 
-		err := r.updateBillingDetails(ctx, &workspace, &planDetails{})
+		err := r.updateBillingDetails(ctx, workspace.ID, &planDetails{})
 		assert.NoError(t, err)
 
 		hs = model.BillingEmailHistory{}
