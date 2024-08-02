@@ -1078,7 +1078,7 @@ func TestAdminEmailAddresses(t *testing.T) {
 
 func TestUpdateSessionIsPublic(t *testing.T) {
 	util.RunTestWithDBWipe(t, DB, func(t *testing.T) {
-		admin := model.Admin{UID: ptr.String("TestUpdateSessionIsPublic")}
+		admin := model.Admin{UID: ptr.String("a1b2c3")}
 		if err := DB.Create(&admin).Error; err != nil {
 			t.Fatal(e.Wrap(err, "error inserting admin"))
 		}
