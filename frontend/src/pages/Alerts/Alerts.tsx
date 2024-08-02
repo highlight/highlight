@@ -3,6 +3,7 @@ import { SearchEmptyState } from '@components/SearchEmptyState/SearchEmptyState'
 import { GetAlertsPagePayloadQuery } from '@graph/operations'
 import {
 	Box,
+	Callout,
 	Container,
 	Heading,
 	IconSolidChartBar,
@@ -14,6 +15,7 @@ import {
 	IconSolidLightningBolt,
 	IconSolidLogs,
 	IconSolidMicrosoftTeams,
+	IconSolidPlay,
 	IconSolidPlayCircle,
 	IconSolidPlus,
 	IconSolidRefresh,
@@ -41,6 +43,7 @@ import { useNavigate } from 'react-router-dom'
 
 import { Button } from '@/components/Button'
 import { Link } from '@/components/Link'
+import { LinkButton } from '@/components/LinkButton'
 import {
 	AlertDestination,
 	AlertDestinationType,
@@ -174,6 +177,9 @@ export const ALERT_CONFIGURATIONS: { [key: string]: AlertConfiguration } = {
 		supportsExcludeRules: true,
 	},
 } as const
+const WALKTHROUGH_LINK = 'TODO'
+const ALERTS_DOCS_LINK =
+	'https://www.highlight.io/docs/general/product-features/general-features/alerts'
 
 export default function AlertsPage() {
 	const { alertsPayload, loading } = useAlertsContext()
@@ -392,6 +398,38 @@ function AlertsPageLoaded({
 								<NewAlertMenu />
 							)}
 						</Box>
+						<Callout
+							title="Want to learn more about
+												Alerts?"
+							icon={false}
+						>
+							<Stack gap="16">
+								<Text>
+									Be sure to take a look at the docs, and the
+									walkthrough coming soon!
+								</Text>
+								<Stack flexDirection="row" gap="8">
+									<LinkButton
+										kind="secondary"
+										emphasis="high"
+										trackingId="alerts-watch-walkthrough"
+										to={WALKTHROUGH_LINK}
+										iconLeft={<IconSolidPlay />}
+										disabled
+									>
+										Watch walkthrough
+									</LinkButton>
+									<LinkButton
+										trackingId="alerts-read-docs"
+										kind="secondary"
+										emphasis="low"
+										to={ALERTS_DOCS_LINK}
+									>
+										Read docs
+									</LinkButton>
+								</Stack>
+							</Stack>
+						</Callout>
 						{alertsPayload && (
 							<Stack gap="6">
 								{alertsAsTableRows.length > 0 ? (
