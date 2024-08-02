@@ -57,7 +57,6 @@ import analytics from '@util/analytics'
 import { auth } from '@util/auth'
 import { isProjectWithinTrial } from '@util/billing/billing'
 import { titleCaseString } from '@util/string'
-import { showSupportMessage } from '@util/window'
 import { Divider } from 'antd'
 import clsx from 'clsx'
 import moment from 'moment'
@@ -775,7 +774,11 @@ export const Header: React.FC<Props> = ({ fullyIntegrated }) => {
 											</Menu.Item>
 											<Menu.Item
 												onClick={() => {
-													showSupportMessage()
+													window.open(
+														`mailto:sales@highlight.run?subject=Highlight Support` +
+															`&body=I need some help with my project ID ${projectId}.`,
+														'_blank',
+													)
 												}}
 											>
 												<Box
