@@ -1,5 +1,11 @@
 # highlight.run
 
+## 9.1.2
+
+### Patch Changes
+
+-   50dba067f: fix otel webjs startSpan crashing when otel code has not loaded
+
 ## 9.1.1
 
 ### Patch Changes
