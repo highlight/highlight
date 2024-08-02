@@ -144,7 +144,7 @@ export const SignIn: React.FC<Props> = ({ setResolver }) => {
 								? `You're invited to join ‘${workspaceInvite.workspace_name}’`
 								: 'Welcome back.'}
 						</Heading>
-						{AUTH_MODE !== 'oauth 2.0' ? (
+						{AUTH_MODE !== 'oauth' ? (
 							<Text>
 								New here?{' '}
 								<Link to={SIGN_UP_ROUTE} state={{ email }}>
@@ -156,7 +156,7 @@ export const SignIn: React.FC<Props> = ({ setResolver }) => {
 					</Stack>
 				</Box>
 			</AuthHeader>
-			{AUTH_MODE === 'oauth 2.0' ? null : (
+			{AUTH_MODE === 'oauth' ? null : (
 				<AuthBody>
 					<Stack gap="12">
 						<Form.Input
@@ -189,7 +189,7 @@ export const SignIn: React.FC<Props> = ({ setResolver }) => {
 						id="email-password-signin"
 					>
 						Sign in
-						{AUTH_MODE === 'oauth 2.0' ? <>{' with SSO'}</> : null}
+						{AUTH_MODE === 'oauth' ? <>{' with SSO'}</> : null}
 					</Button>
 					{AUTH_MODE !== 'firebase' ? null : (
 						<>

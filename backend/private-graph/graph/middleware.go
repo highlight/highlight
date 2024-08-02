@@ -35,7 +35,7 @@ const (
 	Simple   AuthMode = "Simple"
 	Firebase AuthMode = "Firebase"
 	Password AuthMode = "Password"
-	OAuth    AuthMode = "OAuth 2.0"
+	OAuth    AuthMode = "OAuth"
 )
 
 func GetEnvAuthMode() AuthMode {

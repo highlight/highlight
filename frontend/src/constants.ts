@@ -10,7 +10,7 @@ export const AUTH_MODE =
 	import.meta.env.REACT_APP_AUTH_MODE.toString().toLowerCase() as
 		| 'simple'
 		| 'password'
-		| 'oauth 2.0'
+		| 'oauth'
 		| 'firebase'
 export const OTLP_ENDPOINT =
 	import.meta.env.REACT_APP_OTLP_ENDPOINT || 'https://otel.highlight.io:4318'
