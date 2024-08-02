@@ -507,14 +507,16 @@ export const FilterableSelect: React.FC<FilterableSelectProps> = ({
 				<Ariakit.ComboboxList>
 					{searchValue && !hasExactMatch && handleCreateOption && (
 						<Ariakit.ComboboxItem
-							// className={styles.createOption}
+							className={styles.item}
 							value={searchValue}
 							onClick={() => {
 								handleCreateOption(searchValue)
 								setSearchValue('')
 							}}
 						>
-							Create &quot;{searchValue}&quot;
+							{/* item check only needed for spacing */}
+							<ItemCheck />
+							{searchValue}
 						</Ariakit.ComboboxItem>
 					)}
 					{matches.map((option) => {
