@@ -1457,6 +1457,22 @@ type planDetails struct {
 }
 
 func (r *Resolver) updateBillingDetails(ctx context.Context, workspaceID int, details *planDetails) error {
+	updates := map[string]interface{}{
+		"PlanTier":           string(details.tier),
+		"UnlimitedMembers":   details.unlimitedMembers,
+		"BillingPeriodStart": details.billingPeriodStart,
+		"BillingPeriodEnd":   details.billingPeriodEnd,
+		"NextInvoiceDate":    details.nextInvoiceDate,
+		"TrialEndDate":       nil,
+	}
+
+	if err := r.DB.WithContext(ctx).
+		Model(&model.Workspace{}).
+		Where(model.Workspace{Model: model.Model{ID: workspaceID}}).
+		Updates(updates).Error; err != nil {
+		return e.Wrapf(err, "BILLING_ERROR error updating workspace fields for workspace %d", workspaceID)
+	}
+
 	var workspace model.Workspace
 	if err := r.DB.WithContext(ctx).
 		Model(&model.Workspace{}).
@@ -1482,22 +1498,6 @@ func (r *Resolver) updateBillingDetails(ctx context.Context, workspaceID int, de
 			"DeletedAt":   time.Now(),
 		}).Error; err != nil {
 		return e.Wrapf(err, "BILLING_ERROR error updating BillingEmailHistory objects for workspace %d", workspace.ID)
-	}
-
-	updates := map[string]interface{}{
-		"PlanTier":           string(details.tier),
-		"UnlimitedMembers":   details.unlimitedMembers,
-		"BillingPeriodStart": details.billingPeriodStart,
-		"BillingPeriodEnd":   details.billingPeriodEnd,
-		"NextInvoiceDate":    details.nextInvoiceDate,
-		"TrialEndDate":       nil,
-	}
-
-	if err := r.DB.WithContext(ctx).
-		Model(&model.Workspace{}).
-		Where(model.Workspace{Model: model.Model{ID: workspaceID}}).
-		Updates(updates).Error; err != nil {
-		return e.Wrapf(err, "BILLING_ERROR error updating workspace fields for workspace %d", workspaceID)
 	}
 
 	// clear redis cache for stripe customer data

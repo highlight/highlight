@@ -1157,9 +1157,9 @@ func TestQueryResolver_updateBillingDetails(t *testing.T) {
 		end := start.AddDate(0, 1, 0)
 		workspace := model.Workspace{
 			Name:               ptr.String("test1"),
-			NextInvoiceDate:    &end,
 			BillingPeriodStart: &start,
 			BillingPeriodEnd:   &end,
+			NextInvoiceDate:    &end,
 		}
 		if err := DB.Create(&workspace).Error; err != nil {
 			t.Fatal(e.Wrap(err, "error inserting workspace"))
@@ -1185,7 +1185,9 @@ func TestQueryResolver_updateBillingDetails(t *testing.T) {
 		ctx := context.Background()
 		r := &queryResolver{Resolver: &Resolver{DB: DB, Redis: redis.NewClient()}}
 
-		err := r.updateBillingDetails(ctx, workspace.ID, &planDetails{})
+		err := r.updateBillingDetails(ctx, workspace.ID, &planDetails{
+			modelInputs.PlanTypeEnterprise, true, &start, &end, &end,
+		})
 		assert.NoError(t, err)
 
 		hs = model.BillingEmailHistory{}
