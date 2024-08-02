@@ -362,7 +362,7 @@ switch (AUTH_MODE) {
 	case 'password':
 		auth = new PasswordAuth()
 		break
-	case 'oauth 2.0':
+	case 'oauth':
 		auth = new OAuth()
 		break
 	default:
