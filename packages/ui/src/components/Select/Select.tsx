@@ -66,18 +66,19 @@ const SelectProvider = <T,>({
 }: React.PropsWithChildren<Omit<SelectProviderProps<T>, 'setValue'>>) => {
 	options = (options ?? []).map(singleValueToOption)
 	const [value, setValue] = useState(valueProp)
-	const isMulti = Array.isArray(value)
 
 	/* eslint-disable @typescript-eslint/no-explicit-any */
 	const handleSetValue = (newValue: string | string[]) => {
 		let newInternalValue: any
 		if (options?.length) {
-			if (isMulti) {
+			if (Array.isArray(newValue) && Array.isArray(value)) {
 				newInternalValue = [...value]
 				;(newValue as string[]).forEach((option) => {
-					const foundOption = options.find((o) => o.value === option)
-					const isSelected = newInternalValue.some(
-						(v: any) => v.value === foundOption?.value,
+					const foundOption = options.find((o) =>
+						optionsMatch(o, option),
+					)
+					const isSelected = newInternalValue.some((v: any) =>
+						optionsMatch(v, foundOption),
 					)
 
 					if (foundOption && !isSelected) {
@@ -85,12 +86,12 @@ const SelectProvider = <T,>({
 					}
 				})
 
-				newInternalValue = newInternalValue.filter((item: any) =>
-					newValue.includes(item.value),
+				newInternalValue = newInternalValue.filter((option: Option) =>
+					newValue.some((v) => optionsMatch(v, option)),
 				)
 			} else {
-				newInternalValue = options.find(
-					(option) => String(option.value) === newValue,
+				newInternalValue = options.find((option) =>
+					optionsMatch(option, newValue as string),
 				)
 			}
 		} else {
@@ -165,7 +166,7 @@ export const Select = <T,>({
 		store ??
 		Ariakit.useSelectStore({
 			defaultValue: props.defaultValue
-				? valueToString(props.defaultValue)
+				? anyOptionsToStringValue(props.defaultValue)
 				: undefined,
 		})
 
@@ -175,8 +176,9 @@ export const Select = <T,>({
 		displayMode,
 		loading,
 		options,
-		value: valueToOptions(value),
+		value: valueToOptions(value) as any,
 		onChange,
+		setOptions,
 	}
 
 	const handleCreateOption = (newOptionValue: string) => {
@@ -202,13 +204,23 @@ export const Select = <T,>({
 	useEffect(() => {
 		if (store && valueProp) {
 			const storeValue = store.getState().value
-			const stringValue = valueToString(valueProp)
+			const stringValue = anyOptionsToStringValue(valueProp)
 
 			if (!isEqual(stringValue, storeValue)) {
 				store.setValue(stringValue)
 			}
 		}
 	}, [valueProp])
+
+	useEffect(() => {
+		if (store && optionsProp) {
+			const newOptions = valueToOptions(optionsProp)
+
+			if (Array.isArray(newOptions) && !isEqual(newOptions, options)) {
+				setOptions(newOptions)
+			}
+		}
+	}, [optionsProp])
 
 	if (filterable) {
 		return (
@@ -257,10 +269,21 @@ const Trigger: React.FC<Omit<SelectProps, 'value' | 'setValue'>> = ({
 	const Component = trigger ?? SelectTrigger
 	const store = Ariakit.useSelectContext()!
 	const value = store.useState('value')
-	const { displayMode, loading } = useSelectContext()
+	const { displayMode, loading, options } = useSelectContext()
 
 	if (loading) {
 		props.disabled = true
+	}
+
+	const displayValueForItemValue = (
+		v: string | string[],
+	): string | string[] => {
+		if (Array.isArray(v)) {
+			return v.map(displayValueForItemValue) as string[]
+		}
+
+		const option = options?.find((option) => optionsMatch(option, v))
+		return isOption(option) ? option.name : v
 	}
 
 	const renderSelectValue = (
@@ -270,32 +293,47 @@ const Trigger: React.FC<Omit<SelectProps, 'value' | 'setValue'>> = ({
 			return renderValue(selectValue)
 		}
 
+		const displayValue = displayValueForItemValue(selectValue)
+
 		if (displayMode === 'tags') {
 			if (
-				!selectValue ||
-				(Array.isArray(selectValue) && !selectValue.length)
+				!displayValue ||
+				(Array.isArray(displayValue) && !displayValue.length)
 			) {
 				return 'Select...'
 			}
 
-			return Array.isArray(selectValue) ? (
-				selectValue.map((v) => <SelectTag key={v}>{v}</SelectTag>)
+			return Array.isArray(displayValue) ? (
+				displayValue.map((v) => <SelectTag key={v}>{v}</SelectTag>)
 			) : (
-				<SelectTag>{selectValue}</SelectTag>
+				<SelectTag>{displayValue}</SelectTag>
 			)
 		}
 
-		const isArray = Array.isArray(selectValue)
-		if (isArray) {
-			return selectValue.length ? selectValue.join(', ') : 'Select...'
+		if (Array.isArray(displayValue)) {
+			return displayValue.length ? displayValue.join(', ') : 'Select...'
 		}
 
-		return selectValue
+		return displayValue
+	}
+
+	const renderPlaceholderValue = (placeholder?: string) => {
+		if (placeholder) {
+			return (
+				<Text color="secondaryContentOnEnabled">
+					{props.placeholder}
+				</Text>
+			)
+		}
+
+		return 'Select...'
 	}
 
 	return (
 		<Component style={{ opacity: loading ? 0.8 : 1 }} {...props}>
-			{renderSelectValue(value)}
+			{value
+				? renderSelectValue(value)
+				: renderPlaceholderValue(props.placeholder)}
 		</Component>
 	)
 }
@@ -316,7 +354,7 @@ export const Provider: React.FC<ProviderProps> = ({ children, ...props }) => {
 
 	return (
 		<Ariakit.SelectProvider
-			value={valueToString(value)}
+			value={anyOptionsToStringValue(value)}
 			setValue={setValue}
 			{...props}
 		>
@@ -375,19 +413,23 @@ export const Label: React.FC<LableProps> = ({ children, ...props }) => {
 
 export const Option: React.FC<Ariakit.SelectItemProps> = ({
 	children,
+	value,
 	...props
 }) => {
-	let value = props.value
+	const valuesToMatch = [value]
 
-	if (!value && typeof children === 'string') {
-		value = children
+	if (typeof children === 'string') {
+		valuesToMatch.push(children)
+
+		if (value === undefined) {
+			value = children
+		}
 	}
 
 	const storeValue = Ariakit.useSelectContext()!.useState('value')
-	const selected =
-		Array.isArray(storeValue) && value
-			? storeValue.includes(value)
-			: storeValue === value
+	const selected = Array.isArray(storeValue)
+		? valuesToMatch.some((v) => storeValue.includes(v!))
+		: valuesToMatch.includes(storeValue)
 
 	return (
 		<Ariakit.SelectItem
@@ -565,15 +607,6 @@ const singleValueToOption = (value: SingleValue) => {
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-const valueToString = (value: any) => {
-	if (Array.isArray(value)) {
-		return value.map(singleValueToString)
-	}
-
-	return singleValueToString(value)
-}
-
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const valueToOptions = (value: any | undefined) => {
 	if (value === undefined) {
 		return undefined
@@ -587,7 +620,55 @@ const valueToOptions = (value: any | undefined) => {
 }
 
 const itemsToOptions = (items: Ariakit.SelectStoreState['items']) => {
-	return valueToOptions(items.map((item) => item.value))
+	console.log('items', items)
+	return valueToOptions(
+		items.map((item) => ({ name: item.value, value: item.value })),
+	)
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const optionToStringValue = (option: any | undefined) => {
+	if (option === undefined) {
+		return ''
+	}
+
+	if (isOption(option)) {
+		return String(option.value)
+	} else {
+		return String(option)
+	}
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const anyOptionsToStringValue = (options: any[] | any | undefined) => {
+	if (Array.isArray(options)) {
+		return options.map(optionToStringValue)
+	}
+
+	return optionToStringValue(options)
+}
+
+const optionsMatch = (
+	option: string | number | Option,
+	searchValue: string | number | Option | undefined,
+): boolean => {
+	if (searchValue === undefined) {
+		return false
+	}
+
+	if (isOption(option) && isOption(searchValue)) {
+		const optionValues = [option.value, option.name].map(String)
+		const searchValues = [searchValue.value, searchValue.name].map(String)
+		return optionValues.some((v) => searchValues.includes(v))
+	} else if (isOption(option)) {
+		const optionValues = [option.value, option.name].map(String)
+		return optionValues.includes(String(searchValue))
+	} else if (isOption(searchValue)) {
+		const searchValues = [searchValue.value, searchValue.name].map(String)
+		return searchValues.includes(String(option))
+	}
+
+	return String(option) === String(searchValue)
 }
 
 const SelectTag: React.FC<{ children: string }> = ({ children }) => {
