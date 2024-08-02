@@ -398,11 +398,13 @@ const H: HighlightPublicInterface = {
 		name: string,
 		options: SpanOptions | ((span: Span) => any),
 		context?: Context | ((span: Span) => any),
-		fn?: (span: Span) => any,
+		fn?: (span?: Span) => any,
 	): any => {
-		const tracer = getTracer()
-
+		const tracer = typeof getTracer === 'function' ? getTracer() : undefined
 		if (!tracer) {
+			if (typeof fn === 'function') {
+				return fn()
+			}
 			return
 		}
 
