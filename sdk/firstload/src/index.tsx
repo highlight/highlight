@@ -475,7 +475,9 @@ const H: HighlightPublicInterface = {
 		if (data && sessionSecureID) {
 			return `https://${HIGHLIGHT_URL}/${data.projectID}/sessions/${sessionSecureID}`
 		} else {
-			throw new Error('Unable to get session URL')
+			throw new Error(
+				`Unable to get session URL: ${data?.projectID}, ${sessionSecureID}}`,
+			)
 		}
 	},
 	getSessionDetails: async () => {

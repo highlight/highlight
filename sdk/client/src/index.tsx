@@ -1258,6 +1258,7 @@ SessionSecureID: ${this.sessionData.sessionSecureID}`,
 			await this._sendPayload({ sendFn })
 			this.hasPushedData = true
 			this.sessionData.lastPushTime = Date.now()
+			setSessionData(this.sessionData)
 		} catch (e) {
 			if (this._isOnLocalHost) {
 				console.error(e)
