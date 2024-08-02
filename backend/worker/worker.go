@@ -1111,32 +1111,13 @@ func (w *Worker) StartMetricAlertWatcher(ctx context.Context) {
 }
 
 func (w *Worker) StartSessionDeleteJob(ctx context.Context) {
-	retentionEnv := env.Config.SessionRetentionDays
-	if retentionEnv == "" {
-		log.WithContext(ctx).Info("SESSION_RETENTION_DAYS not set, skipping SessionDeleteJob")
-		return
-	}
-	sessionRetentionDays, err := strconv.Atoi(env.Config.SessionRetentionDays)
-	if err != nil {
-		log.WithContext(ctx).Error("Error parsing SESSION_RETENTION_DAYS, skipping SessionDeleteJob")
-		return
-	}
-	if sessionRetentionDays <= 0 {
-		log.WithContext(ctx).Error("sessionRetentionDays <= 0, skipping SessionDeleteJob")
-		return
-	}
-
-	w.doSessionDeleteLoop(ctx, sessionRetentionDays)
-}
-
-func (w *Worker) doSessionDeleteLoop(ctx context.Context, sessionRetentionDays int) {
 	log.WithContext(ctx).Info("Starting SessionDeleteJob")
 
 	deleteHandlers := delete_handlers.InitHandlers(w.Resolver.DB, w.Resolver.ClickhouseClient, nil, w.Resolver.StorageClient)
 
-	deleteHandlers.ProcessRetentionDeletions(ctx, sessionRetentionDays)
+	deleteHandlers.ProcessRetentionDeletions(ctx)
 	for range time.Tick(time.Hour * 24) {
-		deleteHandlers.ProcessRetentionDeletions(ctx, sessionRetentionDays)
+		deleteHandlers.ProcessRetentionDeletions(ctx)
 	}
 }
 
@@ -1354,6 +1335,8 @@ func (w *Worker) GetHandler(ctx context.Context, handlerFlag util.Handler) func(
 		return w.GetPublicWorker(kafkaqueue.TopicTypeTraces)
 	case util.AutoResolveStaleErrors:
 		return w.AutoResolveStaleErrors
+	case util.StartSessionDeleteJob:
+		return w.StartSessionDeleteJob
 	case "":
 		// no handler provided defaults to the session worker
 		return w.Start

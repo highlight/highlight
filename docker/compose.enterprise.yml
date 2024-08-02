@@ -71,6 +71,14 @@ services:
             - -runtime=worker
             - -worker-handler=public-worker-traces
 
+    backend-session-cleanup-worker:
+        extends: backend-session-worker
+        container_name: backend-session-cleanup-worker
+        command:
+            - /build/backend
+            - -runtime=worker
+            - -worker-handler=start-session-delete-job
+
     frontend:
         container_name: frontend
         image: ${FRONTEND_IMAGE_NAME-ghcr.io/highlight/highlight-frontend:latest}
