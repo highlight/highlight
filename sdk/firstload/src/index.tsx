@@ -403,7 +403,7 @@ const H: HighlightPublicInterface = {
 		const tracer = typeof getTracer === 'function' ? getTracer() : undefined
 		if (!tracer) {
 			if (typeof fn === 'function') {
-				return await fn()
+				return fn()
 			}
 			return
 		}
