@@ -14633,6 +14633,7 @@ __metadata:
     classnames: "npm:^2.5.1"
     css-tree: "npm:^2.3.1"
     esbuild-css-modules-plugin: "npm:^3.1.2"
+    highlight.run: "workspace:*"
     tsup: "npm:^8.1.0"
     typescript: "npm:^5.5.2"
   peerDependencies:

@@ -18,6 +18,9 @@
 	"installConfig": {
 		"hoistingLimits": "workspaces"
 	},
+	"dependencies": {
+		"highlight.run": "workspace:*"
+	},
 	"devDependencies": {
 		"@types/node": "^20.14.7",
 		"@types/react": "^18.3.3",
