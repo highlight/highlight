@@ -11,10 +11,15 @@ export type SessionData = {
 	userObject?: Object
 }
 
-export const getPreviousSessionData = (): SessionData | undefined => {
+const getSessionData = (): SessionData | undefined => {
 	let storedSessionData = JSON.parse(
 		getItem(SESSION_STORAGE_KEYS.SESSION_DATA) || '{}',
 	)
+	return storedSessionData as SessionData
+}
+
+export const getPreviousSessionData = (): SessionData | undefined => {
+	let storedSessionData = getSessionData()
 	if (
 		storedSessionData &&
 		storedSessionData.lastPushTime &&
@@ -26,18 +31,25 @@ export const getPreviousSessionData = (): SessionData | undefined => {
 
 export const setSessionData = function (sessionData: SessionData | null) {
 	if (sessionData === null) {
-		removeItem(SESSION_STORAGE_KEYS.SESSION_DATA)
-		// preserve SESSION_STORAGE_KEYS.SESSION_SECURE_ID as that is used by network listeners
+		// preserve sessionSecureID as that is used by network listeners
+		setItem(
+			SESSION_STORAGE_KEYS.SESSION_DATA,
+			JSON.stringify({
+				sessionSecureID: getSessionData()?.sessionSecureID,
+			}),
+		)
 		return
 	}
 	setItem(SESSION_STORAGE_KEYS.SESSION_DATA, JSON.stringify(sessionData))
-	setSessionSecureID(sessionData.sessionSecureID)
 }
 
 export const getSessionSecureID = function () {
-	return getItem(SESSION_STORAGE_KEYS.SESSION_SECURE_ID) ?? ''
+	const data = getSessionData()
+	return data?.sessionSecureID ?? ''
 }
 
 export const setSessionSecureID = function (sessionSecureID: string) {
-	return setItem(SESSION_STORAGE_KEYS.SESSION_SECURE_ID, sessionSecureID)
+	const data = getSessionData() ?? ({ sessionSecureID } as SessionData)
+	data.sessionSecureID = sessionSecureID
+	return setSessionData(data)
 }

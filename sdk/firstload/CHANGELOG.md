@@ -1,5 +1,11 @@
 # highlight.run
 
+## 9.1.3
+
+### Patch Changes
+
+-   efdf6b66a: fix highlight.run getSessionUrl only returning session ID
+
 ## 9.1.2
 
 ### Patch Changes
