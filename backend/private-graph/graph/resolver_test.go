@@ -2,11 +2,13 @@ package graph
 
 import (
 	"context"
+	"github.com/highlight-run/highlight/backend/email"
 	"github.com/highlight-run/highlight/backend/env"
 	"os"
 	"strconv"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/highlight-run/highlight/backend/clickhouse"
 	"github.com/highlight-run/highlight/backend/integrations"
@@ -1145,5 +1147,59 @@ func TestUpdateSessionIsPublic(t *testing.T) {
 			t.Fatal(e.Wrap(err, "error reading sessions"))
 		}
 		assert.False(t, session.IsPublic)
+	})
+}
+
+// ensure that invite link email is checked case-insensitively with admin email
+func TestQueryResolver_updateBillingDetails(t *testing.T) {
+	util.RunTestWithDBWipe(t, DB, func(t *testing.T) {
+		start := time.Now().AddDate(0, 0, 1)
+		end := start.AddDate(0, 1, 0)
+		workspace := model.Workspace{
+			Name:               ptr.String("test1"),
+			BillingPeriodStart: &start,
+			BillingPeriodEnd:   &end,
+			NextInvoiceDate:    &end,
+		}
+		if err := DB.Create(&workspace).Error; err != nil {
+			t.Fatal(e.Wrap(err, "error inserting workspace"))
+		}
+
+		hs := model.BillingEmailHistory{
+			Active: true, WorkspaceID: workspace.ID,
+			Type: email.BillingTracesUsage80Percent,
+		}
+		if err := DB.Create(&hs).Error; err != nil {
+			t.Fatal(e.Wrap(err, "error inserting BillingEmailHistory"))
+		}
+
+		hs2 := model.BillingEmailHistory{
+			Active: true, WorkspaceID: workspace.ID,
+			Type: email.BillingSessionOverage,
+		}
+		if err := DB.Create(&hs2).Error; err != nil {
+			t.Fatal(e.Wrap(err, "error inserting BillingEmailHistory"))
+		}
+
+		// test logic
+		ctx := context.Background()
+		r := &queryResolver{Resolver: &Resolver{DB: DB, Redis: redis.NewClient()}}
+
+		err := r.updateBillingDetails(ctx, workspace.ID, &planDetails{
+			modelInputs.PlanTypeEnterprise, true, &start, &end, &end,
+		})
+		assert.NoError(t, err)
+
+		hs = model.BillingEmailHistory{}
+		if err := DB.Model(&model.BillingEmailHistory{}).Where(&model.BillingEmailHistory{Type: email.BillingTracesUsage80Percent}).Take(&hs).Error; err != nil {
+			t.Fatal(e.Wrap(err, "error querying BillingEmailHistory"))
+		}
+		assert.False(t, hs.Active)
+
+		hs = model.BillingEmailHistory{}
+		if err := DB.Model(&model.BillingEmailHistory{}).Where(&model.BillingEmailHistory{Type: email.BillingSessionOverage}).Take(&hs).Error; err != nil {
+			t.Fatal(e.Wrap(err, "error querying BillingEmailHistory"))
+		}
+		assert.True(t, hs.Active)
 	})
 }
