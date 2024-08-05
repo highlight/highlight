@@ -87,20 +87,14 @@ export const Creatable = () => {
 				filterable
 				onCreate={(value) => alert(value)}
 				defaultValue={'Jay'}
-				options={OPTIONS.map((option) => ({
-					name: option,
-					value: option,
-				}))}
+				options={OPTIONS}
 			/>
 
 			<Select
 				creatable
 				filterable
 				defaultValue={['Jay', 'Vadim']}
-				options={OPTIONS.map((option) => ({
-					name: option,
-					value: option,
-				}))}
+				options={OPTIONS}
 			/>
 		</Stack>
 	)

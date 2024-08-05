@@ -223,7 +223,7 @@ export const Select = <T,>({
 			const newOptions = valueToOptions(optionsProp)
 
 			if (Array.isArray(newOptions) && !isEqual(newOptions, options)) {
-				setOptions(newOptions)
+				setOptions(valueToOptions(newOptions) as Option[])
 			}
 		}
 	}, [optionsProp])
