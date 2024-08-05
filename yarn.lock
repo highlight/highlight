@@ -43113,6 +43113,17 @@ __metadata:
   languageName: node
   linkType: hard
 
+"happy-dom@npm:^14.12.0":
+  version: 14.12.3
+  resolution: "happy-dom@npm:14.12.3"
+  dependencies:
+    entities: "npm:^4.5.0"
+    webidl-conversions: "npm:^7.0.0"
+    whatwg-mimetype: "npm:^3.0.0"
+  checksum: 10/3c254614d41807a7734637a75efd678d7cca41f330a13daec685bc5d4e4a298c687c8cdcbb826afa85f3b76489beacf22ae53e99a6a31181282600eecf7e924e
+  languageName: node
+  linkType: hard
+
 "happy-dom@npm:^14.7.1":
   version: 14.7.1
   resolution: "happy-dom@npm:14.7.1"
@@ -60688,6 +60699,7 @@ __metadata:
     "@typescript-eslint/eslint-plugin": "npm:^5.23.0"
     "@typescript-eslint/parser": "npm:^5.23.0"
     eslint: "npm:^8.15.0"
+    happy-dom: "npm:^14.12.0"
     puppeteer: "npm:^17.1.3"
     rrweb-snapshot: "workspace:*"
     turbo: "npm:^2.0.5"
@@ -60751,6 +60763,7 @@ __metadata:
     "@types/jsdom": "npm:^20.0.0"
     "@types/node": "npm:^18.15.11"
     "@types/puppeteer": "npm:^5.4.4"
+    postcss: "npm:^8.4.38"
     puppeteer: "npm:^17.1.3"
     ts-node: "npm:^7.0.1"
     tslib: "npm:^1.9.3"
