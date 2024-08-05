@@ -1,9 +1,9 @@
-import React, { useEffect } from 'react'
+import { useEffect } from 'react'
 
 import Cookies from 'js-cookie'
-import { H } from 'highlight.run'
 import type { HighlightOptions } from 'highlight.run'
-import { SESSION_STORAGE_KEYS } from '@highlight-run/client/src/utils/sessionStorage/sessionStorageKeys'
+import { H } from 'highlight.run'
+import { SESSION_SECURE_ID } from './constants'
 
 export { H } from 'highlight.run'
 
@@ -30,10 +30,7 @@ export function HighlightInit({
 			}
 
 			if (sessionSecureID) {
-				Cookies.set(
-					SESSION_STORAGE_KEYS.SESSION_SECURE_ID,
-					sessionSecureID,
-				)
+				Cookies.set(SESSION_SECURE_ID, sessionSecureID)
 			}
 		}
 	}, [projectId, highlightOptions])
