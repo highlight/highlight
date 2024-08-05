@@ -1,6 +1,9 @@
 import { H } from '.'
 import { HighlightPublicInterface } from '../../client/src/types/types'
-import { setSessionSecureID } from '@highlight-run/client/src/utils/sessionStorage/highlightSession'
+import {
+	setSessionData,
+	setSessionSecureID,
+} from '@highlight-run/client/src/utils/sessionStorage/highlightSession'
 
 describe('should work outside of the browser in unit test', () => {
 	let highlight: HighlightPublicInterface
@@ -48,7 +51,12 @@ describe('should work outside of the browser in unit test', () => {
 	})
 
 	it('should handle getSessionURL', async () => {
-		setSessionSecureID('https://app.highlight.io/1/sessions/foo')
+		setSessionData({
+			sessionSecureID: 'foo',
+			projectID: 1,
+			lastPushTime: new Date().getTime(),
+		})
+		setSessionSecureID('foo')
 		expect(await highlight.getSessionURL()).toBe(
 			'https://app.highlight.io/1/sessions/foo',
 		)

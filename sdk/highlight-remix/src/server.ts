@@ -1,6 +1,6 @@
 import { H, NodeOptions } from '@highlight-run/node'
 import type { DataFunctionArgs } from '@remix-run/node'
-import { SESSION_STORAGE_KEYS } from '@highlight-run/client/src/utils/sessionStorage/sessionStorageKeys'
+import { SESSION_SECURE_ID } from './constants'
 
 export { H } from '@highlight-run/node'
 
@@ -11,10 +11,7 @@ export function HandleError(nodeOptions: NodeOptions) {
 		if (error instanceof Error) {
 			const cookies = parseCookies(request.headers.get('Cookie') ?? '')
 
-			H.consumeError(
-				error,
-				cookies[SESSION_STORAGE_KEYS.SESSION_SECURE_ID],
-			)
+			H.consumeError(error, cookies[SESSION_SECURE_ID])
 		}
 	}
 }
