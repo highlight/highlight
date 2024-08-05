@@ -247,9 +247,9 @@ export class UserInteractionInstrumentation extends InstrumentationBase {
 					// Don't capture mousemove events too frequently
 					if (
 						event?.type === 'mousemove' &&
-						Date.now() - lastEventTimestamp < 100
+						Date.now() - lastEventTimestamp < 1000 / 60
 					) {
-						return
+						return original.call(this, type, listener, useCapture)
 					}
 
 					lastEventTimestamp = Date.now()
