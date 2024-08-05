@@ -176,7 +176,7 @@ export const Select = <T,>({
 		displayMode,
 		loading,
 		options,
-		value: valueToOptions(value) as any,
+		value: valueToOptions(value) as any, // eslint-disable-line @typescript-eslint/no-explicit-any
 		onChange,
 		setOptions,
 	}
@@ -583,18 +583,6 @@ const isOption = (value: SingleValue): value is Option => {
 	return value !== null && typeof value === 'object'
 }
 
-const optionToString = (option: Option) => {
-	return String(option.name)
-}
-
-const singleValueToString = (value: SingleValue) => {
-	if (isOption(value)) {
-		return optionToString(value)
-	}
-
-	return String(value)
-}
-
 const singleValueToOption = (value: SingleValue) => {
 	if (isOption(value)) {
 		return value
@@ -620,7 +608,6 @@ const valueToOptions = (value: any | undefined) => {
 }
 
 const itemsToOptions = (items: Ariakit.SelectStoreState['items']) => {
-	console.log('items', items)
 	return valueToOptions(
 		items.map((item) => ({ name: item.value, value: item.value })),
 	)
