@@ -80,11 +80,7 @@ export const Callout: React.FC<Props> = ({
 
 			<Box gap="16" display="flex" flexDirection="column" width="full">
 				{title && (
-					<Box
-						alignItems="flex-start"
-						display="flex"
-						justifyContent="space-between"
-					>
+					<Box display="flex" position="relative">
 						<Box mt="6">
 							<Text color="strong" weight="bold" size="small">
 								{title}
@@ -92,7 +88,10 @@ export const Callout: React.FC<Props> = ({
 						</Box>
 
 						{handleCloseClick && (
-							<Box flexShrink={0}>
+							<Box
+								flexShrink={0}
+								style={{ position: 'absolute', right: '0' }}
+							>
 								<ButtonIcon
 									kind="secondary"
 									emphasis="low"
