@@ -774,9 +774,12 @@ export const Header: React.FC<Props> = ({ fullyIntegrated }) => {
 												</Menu>
 											</Menu.Item>
 											<Menu.Item
-												onClick={() => {
-													showSupportMessage()
-												}}
+												onClick={async () =>
+													await showSupportMessage(
+														`Read out on Discord if you need technical help. For sales / billing questions, 
+														please send us an email at sales@highlight.run.`,
+													)
+												}
 											>
 												<Box
 													display="flex"

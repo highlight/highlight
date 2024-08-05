@@ -79,7 +79,12 @@ func (s *SearchListener) getAttributeFilterExpr(op Operator, value any) sqlbuild
 		postfix = ")"
 	}
 	if s.attributesList {
-		return sqlbuilder.Buildf(fmt.Sprintf("notEmpty(arrayFilter((k, v) -> k = %%s AND %sv%s %s %%s, %s))", prefix, postfix, op, s.attributesColumn), s.currentKey, value)
+		// For NOT EXISTS queries, return true if there is no matching key in the array.
+		if value == "" {
+			return sqlbuilder.Buildf(fmt.Sprintf("empty(arrayFilter((k, v) -> k = %%s, %s))", s.attributesColumn), s.currentKey)
+		} else {
+			return sqlbuilder.Buildf(fmt.Sprintf("notEmpty(arrayFilter((k, v) -> k = %%s AND %sv%s %s %%s, %s))", prefix, postfix, op, s.attributesColumn), s.currentKey, value)
+		}
 	}
 	return sqlbuilder.Buildf(prefix+s.attributesColumn+fmt.Sprintf("[%%s]%s %s %%s", postfix, op), s.currentKey, value)
 }

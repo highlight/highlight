@@ -5,6 +5,7 @@ import { CircularSpinner } from '@components/Loading/Loading'
 import Modal from '@components/Modal/Modal'
 import { toast } from '@components/Toaster'
 import { useSendAdminWorkspaceInviteMutation } from '@graph/hooks'
+import { namedOperations } from '@graph/operations'
 import { AdminRole } from '@graph/schemas'
 import { Box, Stack, Text } from '@highlight-run/ui/components'
 import { getWorkspaceInvitationLink } from '@pages/WorkspaceTeam/utils'
@@ -64,6 +65,7 @@ function InviteMemberModal({
 		},
 	] = useSendAdminWorkspaceInviteMutation({
 		fetchPolicy: 'no-cache',
+		refetchQueries: [namedOperations.Query.GetWorkspaceSettings],
 	})
 
 	const onSubmit = (e: { preventDefault: () => void }) => {

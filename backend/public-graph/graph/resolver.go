@@ -20,6 +20,7 @@ import (
 	"time"
 
 	"github.com/highlight-run/highlight/backend/env"
+	"github.com/highlight-run/highlight/backend/geolocation"
 	"github.com/oschwald/geoip2-golang"
 
 	"go.opentelemetry.io/otel/codes"
@@ -940,7 +941,7 @@ func GetLocationFromIP(ctx context.Context, ip string) (location *Location, err 
 		util.ResourceName("getLocationFromIP"))
 	defer s.Finish()
 
-	db, err := geoip2.Open("geolocation/GeoLite2-City.mmdb")
+	db, err := geoip2.FromBytes(geolocation.GeoLiteCityMMDB)
 	if err != nil {
 		return nil, err
 	}

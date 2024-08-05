@@ -37,3 +37,5 @@ export const SNAPSHOT_SETTINGS = {
 
 // Debounce duplicate visibility events
 export const VISIBILITY_DEBOUNCE_MS = 100
+
+export const HIGHLIGHT_URL = 'app.highlight.io'
