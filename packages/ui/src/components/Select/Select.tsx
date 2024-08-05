@@ -156,6 +156,7 @@ export const Select = <T,>({
 	onCreate,
 	...props
 }: SelectProps<T>) => {
+	const [searchValue, setSearchValue] = useState('')
 	const value = valueProp ?? props.defaultValue
 	const [options, setOptions] = useState(
 		valueToOptions(optionsProp) as Option[],
@@ -190,11 +191,16 @@ export const Select = <T,>({
 		const storeValue = store.getState().value
 		const isMulti = Array.isArray(storeValue)
 
-		if (isMulti) {
-			store.setValue([...storeValue, newOptionValue])
-		} else {
-			store.setValue(newOptionValue)
-		}
+		// Wrapping in a timeout as a hack to wait until setOptions has finished
+		// updating the options before updating the store value. Need to do this
+		// because of how handleSetValue callback works.
+		setTimeout(() => {
+			if (isMulti) {
+				store.setValue([...storeValue, newOptionValue])
+			} else {
+				store.setValue(newOptionValue)
+			}
+		})
 
 		if (onCreate) {
 			onCreate(newOptionValue)
@@ -222,38 +228,91 @@ export const Select = <T,>({
 		}
 	}, [optionsProp])
 
-	if (filterable) {
-		return (
-			<FilterableSelect
-				checkType={checkType}
-				displayMode={displayMode}
-				handleCreateOption={creatable ? handleCreateOption : undefined}
-				loading={loading}
-				options={options}
-				store={store}
-				value={value}
-				onChange={onChange}
-				{...props}
-			/>
-		)
-	}
+	const matches = useMemo(
+		() =>
+			filterable
+				? matchSorter(options, searchValue, { keys: ['name', 'value'] })
+				: options,
+		[options, searchValue],
+	)
 
-	return (
+	const hasExactMatch = useMemo(
+		() =>
+			filterable
+				? matchSorter(matches, searchValue, {
+						keys: ['name', 'value'],
+						threshold: matchSorter.rankings.CASE_SENSITIVE_EQUAL,
+				  }).length > 0
+				: false,
+		[matches, searchValue],
+	)
+
+	return filterable ? (
+		<Ariakit.ComboboxProvider
+			resetValueOnHide
+			setValue={(v) => setSearchValue(v)}
+		>
+			<SelectProvider {...providerProps}>
+				<Provider store={store} options={options}>
+					<Trigger {...props} />
+					<Popover>
+						<Box px="4" pb="4">
+							<Ariakit.Combobox
+								autoSelect
+								placeholder="Search..."
+								className={styles.combobox}
+								value={searchValue}
+								onChange={(e) => setSearchValue(e.target.value)}
+							/>
+						</Box>
+
+						<Ariakit.ComboboxList>
+							{searchValue && !hasExactMatch && creatable && (
+								<Ariakit.ComboboxItem
+									className={styles.item}
+									value={searchValue}
+									onClick={() => {
+										handleCreateOption(searchValue)
+										setSearchValue('')
+									}}
+								>
+									{/* item check only needed for spacing */}
+									<ItemCheck />
+									{searchValue}
+								</Ariakit.ComboboxItem>
+							)}
+
+							{matches.map((option) => {
+								return (
+									<Option
+										key={option.value}
+										value={String(option.value)}
+										render={<Ariakit.ComboboxItem />}
+										onClick={() => setSearchValue('')}
+									>
+										{option.name}
+									</Option>
+								)
+							})}
+						</Ariakit.ComboboxList>
+					</Popover>
+				</Provider>
+			</SelectProvider>
+		</Ariakit.ComboboxProvider>
+	) : (
 		<SelectProvider {...providerProps}>
 			<Provider store={store} options={options}>
 				<Trigger {...props} />
 				<Popover>
 					{Array.isArray(options)
-						? options.map((option) => {
-								return (
-									<Option
-										key={option.value}
-										value={String(option.value)}
-									>
-										{option.name}
-									</Option>
-								)
-						  })
+						? options.map((option) => (
+								<Option
+									key={option.value}
+									value={String(option.value)}
+								>
+									{option.name}
+								</Option>
+						  ))
 						: children}
 				</Popover>
 			</Provider>
@@ -502,80 +561,6 @@ export const GroupLabel: React.FC<GroupLabelProps> = ({
 		<Ariakit.SelectGroupLabel {...props}>
 			{children}
 		</Ariakit.SelectGroupLabel>
-	)
-}
-
-type FilterableSelectProps = SelectProps & {
-	options: Option[]
-	handleCreateOption?: (newOptionValue: string) => void
-}
-export const FilterableSelect: React.FC<FilterableSelectProps> = ({
-	options,
-	handleCreateOption,
-	...props
-}) => {
-	const [searchValue, setSearchValue] = useState('')
-
-	const matches = useMemo(
-		() => matchSorter(options, searchValue, { keys: ['name', 'value'] }),
-		[options, searchValue],
-	)
-
-	const hasExactMatch = useMemo(
-		() =>
-			matchSorter(matches, searchValue, {
-				keys: ['name', 'value'],
-				threshold: matchSorter.rankings.CASE_SENSITIVE_EQUAL,
-			}).length > 0,
-		[matches, searchValue],
-	)
-
-	return (
-		<Ariakit.ComboboxProvider
-			resetValueOnHide
-			setValue={(v) => setSearchValue(v)}
-		>
-			<Select {...props}>
-				<Box px="4" pb="4">
-					<Ariakit.Combobox
-						autoSelect
-						placeholder="Search..."
-						className={styles.combobox}
-						value={searchValue}
-						onChange={(e) => setSearchValue(e.target.value)}
-					/>
-				</Box>
-
-				<Ariakit.ComboboxList>
-					{searchValue && !hasExactMatch && handleCreateOption && (
-						<Ariakit.ComboboxItem
-							className={styles.item}
-							value={searchValue}
-							onClick={() => {
-								handleCreateOption(searchValue)
-								setSearchValue('')
-							}}
-						>
-							{/* item check only needed for spacing */}
-							<ItemCheck />
-							{searchValue}
-						</Ariakit.ComboboxItem>
-					)}
-					{matches.map((option) => {
-						return (
-							<Option
-								key={option.value}
-								value={String(option.value)}
-								render={<Ariakit.ComboboxItem />}
-								onClick={() => setSearchValue('')}
-							>
-								{option.name}
-							</Option>
-						)
-					})}
-				</Ariakit.ComboboxList>
-			</Select>
-		</Ariakit.ComboboxProvider>
 	)
 }
 
