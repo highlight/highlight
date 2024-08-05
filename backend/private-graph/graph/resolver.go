@@ -746,7 +746,7 @@ func (r *Resolver) canAdminModifyErrorGroup(ctx context.Context, errorGroupSecur
 
 func (r *Resolver) _doesAdminOwnSession(ctx context.Context, sessionSecureId string) (session *model.Session, ownsSession bool, err error) {
 	if session, err = r.Store.GetSessionFromSecureID(ctx, sessionSecureId); err != nil {
-		return nil, false, AuthorizationError
+		return nil, false, err
 	}
 	_, err = r.isUserInProjectOrDemoProject(ctx, session.ProjectID)
 	if err != nil {

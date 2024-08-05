@@ -1117,6 +1117,7 @@ func TestUpdateSessionIsPublic(t *testing.T) {
 		// test logic
 		ctx := context.Background()
 		ctx = context.WithValue(ctx, model.ContextKeys.UID, *admin.UID)
+		assert.NoError(t, redis.NewClient().FlushDB(ctx))
 
 		r := &mutationResolver{Resolver: &Resolver{DB: DB, Store: store.NewStore(DB, redis.NewClient(), integrations.NewIntegrationsClient(DB), &storage.FilesystemClient{}, &kafka_queue.MockMessageQueue{}, nil)}}
 
