@@ -1372,7 +1372,7 @@ func (r *Resolver) updateAWSMPBillingDetails(ctx context.Context, workspaceID in
 	log.WithContext(ctx).WithField("workspace_id", workspace.ID).WithField("customer", *customer).Info("billing update for aws mp")
 	now := time.Now()
 	end := time.Now().AddDate(0, 1, 0)
-	if err := r.updateBillingDetails(ctx, workspace, &planDetails{
+	if err := r.updateBillingDetails(ctx, workspace.ID, &planDetails{
 		tier:               pricing.AWSMPProducts[*customer.ProductCode],
 		unlimitedMembers:   true,
 		billingPeriodStart: &now,
@@ -1437,7 +1437,7 @@ func (r *Resolver) updateStripeBillingDetails(ctx context.Context, stripeCustome
 		return e.Wrapf(err, "BILLING_ERROR error retrieving workspace for customer %s", stripeCustomerID)
 	}
 
-	if err := r.updateBillingDetails(ctx, &workspace, &details); err != nil {
+	if err := r.updateBillingDetails(ctx, workspace.ID, &details); err != nil {
 		return e.Wrap(err, "BILLING_ERROR error updating billing details for stripe usage")
 	}
 
@@ -1456,7 +1456,7 @@ type planDetails struct {
 	nextInvoiceDate    *time.Time
 }
 
-func (r *Resolver) updateBillingDetails(ctx context.Context, workspace *model.Workspace, details *planDetails) error {
+func (r *Resolver) updateBillingDetails(ctx context.Context, workspaceID int, details *planDetails) error {
 	updates := map[string]interface{}{
 		"PlanTier":           string(details.tier),
 		"UnlimitedMembers":   details.unlimitedMembers,
@@ -1466,15 +1466,32 @@ func (r *Resolver) updateBillingDetails(ctx context.Context, workspace *model.Wo
 		"TrialEndDate":       nil,
 	}
 
-	if err := r.DB.WithContext(ctx).Model(&model.Workspace{}).
-		Where(model.Workspace{Model: model.Model{ID: workspace.ID}}).
+	if err := r.DB.WithContext(ctx).
+		Model(&model.Workspace{}).
+		Where(model.Workspace{Model: model.Model{ID: workspaceID}}).
 		Updates(updates).Error; err != nil {
-		return e.Wrapf(err, "BILLING_ERROR error updating workspace fields for workspace %d", workspace.ID)
+		return e.Wrapf(err, "BILLING_ERROR error updating workspace fields for workspace %d", workspaceID)
 	}
 
-	// Make previous billing history email records inactive (so new active records can be added)
+	var workspace model.Workspace
+	if err := r.DB.WithContext(ctx).
+		Model(&model.Workspace{}).
+		Where(model.Workspace{Model: model.Model{ID: workspaceID}}).
+		Take(&workspace).Error; err != nil {
+		return e.Wrapf(err, "BILLING_ERROR error querying workspace %d", workspaceID)
+	}
+
+	// Make previous billing history email records inactive (so new active records can be added) once we start a new billing period
+	bpStart := time.Now().Truncate(time.Hour * 24 * 30)
+	if workspace.NextInvoiceDate != nil {
+		bpStart = (*workspace.NextInvoiceDate).AddDate(0, -1, 0)
+	} else if workspace.BillingPeriodStart != nil {
+		bpStart = *workspace.BillingPeriodStart
+	}
 	if err := r.DB.WithContext(ctx).Model(&model.BillingEmailHistory{}).
 		Where(model.BillingEmailHistory{Active: true, WorkspaceID: workspace.ID}).
+		Where("type not in ?", Email.OneTimeBillingNotifications).
+		Where("created_at < ?", bpStart).
 		Updates(map[string]interface{}{
 			"Active":      false,
 			"WorkspaceID": workspace.ID,

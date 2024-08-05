@@ -52,6 +52,13 @@ const (
 	BillingInvalidPayment         EmailType = "BillingInvalidPayment"
 )
 
+var OneTimeBillingNotifications = []EmailType{
+	BillingSessionOverage,
+	BillingErrorsOverage,
+	BillingLogsOverage,
+	BillingTracesOverage,
+}
+
 func SendReactEmailAlert(ctx context.Context, MailClient *sendgrid.Client, email string, html string, subjectLine string) error {
 	to := &mail.Email{Address: email}
 	from := mail.NewEmail("Highlight", SendGridOutboundEmail)
