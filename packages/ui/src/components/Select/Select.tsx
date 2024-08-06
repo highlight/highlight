@@ -540,7 +540,15 @@ export const Option: React.FC<OptionProps> = ({
 			{...props}
 		>
 			<ItemCheck checked={selected} />
-			{children ? children : <Text>{value}</Text>}
+			{children ? (
+				typeof children === 'string' ? (
+					<Text>{children}</Text>
+				) : (
+					children
+				)
+			) : (
+				<Text>{value}</Text>
+			)}
 		</Ariakit.SelectItem>
 	)
 }
