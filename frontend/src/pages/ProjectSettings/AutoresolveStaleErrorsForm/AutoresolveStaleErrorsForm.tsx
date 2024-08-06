@@ -103,7 +103,7 @@ export const AutoresolveStaleErrorsForm = () => {
 										Number(option.value),
 									)
 								}
-								// disabled={!enableAutoResolveStaleErrors}
+								disabled={!enableAutoResolveStaleErrors}
 								options={DAY_VALUES.map((day) => ({
 									name: `${day} day${day === 1 ? '' : 's'}`,
 									value: day,
