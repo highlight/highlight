@@ -96,7 +96,7 @@ const H: HighlightPublicInterface = {
 
 			let previousSession = getPreviousSessionData()
 			let sessionSecureID = GenerateSecureID()
-			if (previousSession?.sessionSecureID) {
+			if (previousSession?.sessionSecureID && !previousSession.active) {
 				sessionSecureID = previousSession.sessionSecureID
 			} else {
 				const sessionData: SessionData = {

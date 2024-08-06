@@ -5,6 +5,7 @@ import { SESSION_PUSH_THRESHOLD } from '../../constants/sessions'
 export type SessionData = {
 	sessionSecureID: string
 	projectID: number
+	active?: boolean // true when a tab is actively recording to indicate another session should start
 	sessionStartTime?: number
 	lastPushTime?: number
 	userIdentifier?: string
@@ -29,7 +30,7 @@ export const getPreviousSessionData = (): SessionData | undefined => {
 	}
 }
 
-export const setSessionData = function (sessionData: SessionData | null) {
+export const setSessionData = function (sessionData: SessionData) {
 	if (sessionData === null) {
 		// preserve sessionSecureID as that is used by network listeners
 		setItem(
@@ -46,10 +47,4 @@ export const setSessionData = function (sessionData: SessionData | null) {
 export const getSessionSecureID = function () {
 	const data = getSessionData()
 	return data?.sessionSecureID ?? ''
-}
-
-export const setSessionSecureID = function (sessionSecureID: string) {
-	const data = getSessionData() ?? ({ sessionSecureID } as SessionData)
-	data.sessionSecureID = sessionSecureID
-	return setSessionData(data)
 }

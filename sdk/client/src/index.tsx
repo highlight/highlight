@@ -59,7 +59,6 @@ import {
 	getPreviousSessionData,
 	SessionData,
 	setSessionData,
-	setSessionSecureID,
 } from './utils/sessionStorage/highlightSession'
 import type { HighlightClientRequestWorker } from './workers/highlight-client-worker'
 import HighlightClientWorker from './workers/highlight-client-worker?worker&inline'
@@ -244,7 +243,8 @@ export class Highlight {
 		// only fetch session data from local storage on the first `initialize` call
 		if (
 			!this.sessionData?.sessionSecureID &&
-			storedSessionData?.sessionSecureID
+			storedSessionData?.sessionSecureID &&
+			!storedSessionData?.active
 		) {
 			this.sessionData = storedSessionData
 			this.options.sessionSecureID = storedSessionData.sessionSecureID
@@ -530,10 +530,11 @@ export class Highlight {
 			if (!sessionData?.sessionStartTime) {
 				this._recordingStartTime = new Date().getTime()
 				sessionData.sessionStartTime = this._recordingStartTime
-				setSessionData(sessionData)
 			} else {
 				this._recordingStartTime = sessionData?.sessionStartTime
 			}
+			// To handle the 'Duplicate Tab' function, remove id from storage until page unload
+			setSessionData({ ...sessionData, active: true })
 
 			let clientID = getItem(LOCAL_STORAGE_KEYS['CLIENT_ID'])
 
@@ -541,9 +542,6 @@ export class Highlight {
 				clientID = GenerateSecureID()
 				setItem(LOCAL_STORAGE_KEYS['CLIENT_ID'], clientID)
 			}
-
-			// To handle the 'Duplicate Tab' function, remove id from storage until page unload
-			setSessionData(null)
 
 			// Duplicate of logic inside FirstLoadListeners.setupNetworkListener,
 			// needed for initializeSession
@@ -632,10 +630,6 @@ SessionSecureID: ${this.sessionData.sessionSecureID}`,
 					recordingStartTime: this._recordingStartTime,
 				},
 			})
-
-			// store the secure ID for network patches without updating full session data until tab close
-			// to make sure new tabs create new sessions
-			setSessionSecureID(this.sessionData.sessionSecureID)
 
 			if (this.sessionData.userIdentifier) {
 				this.identify(
@@ -1067,7 +1061,7 @@ SessionSecureID: ${this.sessionData.sessionSecureID}`,
 
 		const unloadListener = () => {
 			this.addCustomEvent('Page Unload', '')
-			setSessionData(this.sessionData)
+			setSessionData({ ...this.sessionData, active: false })
 		}
 		window.addEventListener('beforeunload', unloadListener)
 		this.listeners.push(() =>
@@ -1081,7 +1075,7 @@ SessionSecureID: ${this.sessionData.sessionSecureID}`,
 		if (isOnIOS) {
 			const unloadListener = () => {
 				this.addCustomEvent('Page Unload', '')
-				setSessionData(this.sessionData)
+				setSessionData({ ...this.sessionData, active: false })
 			}
 			window.addEventListener('pagehide', unloadListener)
 			this.listeners.push(() =>
@@ -1265,7 +1259,12 @@ SessionSecureID: ${this.sessionData.sessionSecureID}`,
 			await this._sendPayload({ sendFn })
 			this.hasPushedData = true
 			this.sessionData.lastPushTime = Date.now()
-			setSessionData(this.sessionData)
+
+			const sessionData = getPreviousSessionData() ?? ({} as SessionData)
+			setSessionData({
+				...sessionData,
+				lastPushTime: this.sessionData.lastPushTime,
+			})
 		} catch (e) {
 			if (this._isOnLocalHost) {
 				console.error(e)
