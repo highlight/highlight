@@ -281,11 +281,15 @@ export const Select = ({
 						trigger={trigger}
 						renderValue={renderValue}
 						onCreate={onCreate}
-						onChange={(value) => {
-							form.setValue(name, value)
+						// Using `onChange` causes a bug with Ariakit because it expects the
+						// `onChange` to receive an event rather than the option we pass
+						// when calling `handleSetValue`. We will either need to rename this
+						// prop or...?
+						onChange={(option) => {
+							form.setValue(name, option.value)
 
 							if (onChange) {
-								onChange(value)
+								onChange(option)
 							}
 						}}
 					/>
