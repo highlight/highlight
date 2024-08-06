@@ -100,6 +100,7 @@ export interface ChartProps<TConfig> {
 	groupByKey?: string
 	bucketByKey?: string
 	bucketCount?: number
+	bucketByWindow?: number
 	limit?: number
 	limitFunctionType?: MetricAggregator
 	limitMetric?: string
@@ -685,6 +686,7 @@ const Graph = ({
 	functionType,
 	groupByKey,
 	bucketByKey,
+	bucketByWindow,
 	bucketCount,
 	limit,
 	limitFunctionType,
@@ -832,6 +834,7 @@ const Graph = ({
 				group_by: groupByKey !== undefined ? [groupByKey] : [],
 				bucket_by:
 					bucketByKey !== undefined ? bucketByKey : TIMESTAMP_KEY,
+				bucket_window: bucketByWindow,
 				bucket_count: queriedBucketCount,
 				limit: limit,
 				limit_aggregator: limitFunctionType,
@@ -856,6 +859,7 @@ const Graph = ({
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [
 		bucketByKey,
+		bucketByWindow,
 		fetchEnd,
 		fetchStart,
 		functionType,

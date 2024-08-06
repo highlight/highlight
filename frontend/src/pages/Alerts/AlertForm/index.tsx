@@ -456,7 +456,7 @@ export const AlertForm: React.FC = () => {
 										}
 										setTimeRange={updateSearchTime}
 										bucketByKey="Timestamp"
-										bucketCount={50}
+										bucketByWindow={thresholdWindow}
 									>
 										<ReferenceLine
 											y={thresholdValue}
