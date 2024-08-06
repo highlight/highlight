@@ -429,7 +429,7 @@ const Trigger: React.FC<Omit<SelectProps, 'value' | 'setValue'>> = ({
 				renderSelectValue(value)
 			) : (
 				<Text color="secondaryContentOnEnabled">
-					{props.placeholder} ?? Select...
+					{props.placeholder ?? 'Select...'}
 				</Text>
 			)}
 		</Component>

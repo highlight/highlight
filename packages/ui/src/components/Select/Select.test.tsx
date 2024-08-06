@@ -1,4 +1,5 @@
-import { render, screen, within } from '@testing-library/react'
+import { userEvent } from '@storybook/test'
+import { act, render, screen, waitFor } from '@testing-library/react'
 
 import { Select } from './Select'
 
@@ -14,6 +15,18 @@ describe('Select', () => {
 		)
 
 		const combobox = screen.getByRole('combobox')
-		await within(combobox).findByText('Jay')
+		await waitFor(() => combobox.textContent === 'Jay')
+
+		act(() => {
+			userEvent.click(combobox)
+		})
+
+		const options = await screen.findAllByRole('option')
+		expect(options.map((o) => o.textContent)).toEqual([
+			'Jay',
+			'Vadim',
+			'Zane',
+			'Spenny',
+		])
 	})
 })
