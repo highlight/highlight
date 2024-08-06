@@ -55,6 +55,7 @@ describe('should work outside of the browser in unit test', () => {
 			sessionSecureID: 'foo',
 			projectID: 1,
 			lastPushTime: new Date().getTime(),
+			sessionStartTime: new Date().getTime(),
 		})
 		setSessionSecureID('foo')
 		expect(await highlight.getSessionURL()).toBe(
@@ -62,7 +63,7 @@ describe('should work outside of the browser in unit test', () => {
 		)
 	})
 
-	it('should handle getSessionDetails', () => {
-		highlight.getSessionDetails()
+	it('should handle getSessionDetails', async () => {
+		await highlight.getSessionDetails()
 	})
 })
