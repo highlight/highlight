@@ -48,8 +48,10 @@ export const MultiSelect = () => {
 
 export const MultiSelectTags = () => {
 	return (
-		<Select defaultValue={['Jay', 'Vadim']} displayMode="tags">
-			<Options />
+		<Select defaultValue={['jay', 'vadim']} displayMode="tags">
+			<Select.Option value="jay">Jay Khatri</Select.Option>
+			<Select.Option value="vadim">Vadim Korolik</Select.Option>
+			<Select.Option value="julian">Julian Schneider</Select.Option>
 		</Select>
 	)
 }

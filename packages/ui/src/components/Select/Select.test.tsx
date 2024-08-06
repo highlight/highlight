@@ -1,11 +1,19 @@
-import { render, screen } from '@testing-library/react'
+import { render, screen, within } from '@testing-library/react'
 
 import { Select } from './Select'
 
 describe('Select', () => {
-	it('exists', async () => {
-		render(<Select>Testing</Select>)
+	it('renders a select correctly', async () => {
+		render(
+			<Select defaultValue="jay">
+				<Select.Option value="jay">Jay</Select.Option>
+				<Select.Option value="vadim">Vadim</Select.Option>
+				<Select.Option value="zane">Zane</Select.Option>
+				<Select.Option value="spenny">Spenny</Select.Option>
+			</Select>,
+		)
 
-		await screen.findByText('Testing')
+		const combobox = screen.getByRole('combobox')
+		await within(combobox).findByText('Jay')
 	})
 })

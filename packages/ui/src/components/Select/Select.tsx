@@ -296,7 +296,6 @@ export const Select = <T,>({
 									{searchValue}
 								</Ariakit.ComboboxItem>
 							)}
-
 							{matches.map((option) => {
 								return (
 									<Option
@@ -319,7 +318,7 @@ export const Select = <T,>({
 			<Provider store={store} options={options}>
 				<Trigger {...props} />
 				<Popover>
-					{Array.isArray(options)
+					{Array.isArray(optionsProp)
 						? options.map((option) => (
 								<Option
 									key={option.value}
@@ -349,15 +348,40 @@ const Trigger: React.FC<Omit<SelectProps, 'value' | 'setValue'>> = ({
 		props.disabled = true
 	}
 
-	const displayValueForItemValue = (
-		v: string | string[],
-	): string | string[] => {
-		if (Array.isArray(v)) {
-			return v.map(displayValueForItemValue) as string[]
+	const optionsForItems = (opts: string | string[]) => {
+		const items = store.getState().items
+
+		// If we have no options or items yet, use the passed in options.
+		if (!options?.length && !items.length) {
+			return Array.isArray(opts)
+				? opts.map(stringOrNumberToOption)
+				: stringOrNumberToOption(opts)
 		}
 
-		const option = options?.find((option) => optionsMatch(option, v))
-		return isOption(option) ? option.name ?? option.children : v
+		// If no options are passed in via props, use the items registered by
+		// rendering Option components.
+		if (!options?.length) {
+			const arrayOpts = Array.isArray(opts) ? opts : [opts]
+			const matchingItems = items.filter((item) =>
+				arrayOpts.some((opt) => optionsMatch(item.value!, opt)),
+			)
+
+			if (Array.isArray(opts)) {
+				return itemsToOptions(matchingItems)
+			} else {
+				return itemToOption(matchingItems[0])
+			}
+		}
+
+		const findOption = (value: string | number): Option => {
+			const foundOption = options.find((option) =>
+				optionsMatch(option, value),
+			) as Option | undefined
+
+			return foundOption ?? stringOrNumberToOption(value)
+		}
+
+		return Array.isArray(opts) ? opts.map(findOption) : findOption(opts)
 	}
 
 	const renderSelectValue = (
@@ -367,47 +391,47 @@ const Trigger: React.FC<Omit<SelectProps, 'value' | 'setValue'>> = ({
 			return renderValue(selectValue)
 		}
 
-		const displayValue = displayValueForItemValue(selectValue)
+		const selectedOptions = optionsForItems(selectValue)
 
 		if (displayMode === 'tags') {
 			if (
-				!displayValue ||
-				(Array.isArray(displayValue) && !displayValue.length)
+				!selectedOptions ||
+				(Array.isArray(selectedOptions) && !selectedOptions.length)
 			) {
 				return 'Select...'
 			}
 
-			return Array.isArray(displayValue) ? (
-				displayValue.map((v) => <SelectTag key={v}>{v}</SelectTag>)
+			return Array.isArray(selectedOptions) ? (
+				selectedOptions.map((o) => (
+					<SelectTag key={o.value} value={o.value}>
+						{o.name}
+					</SelectTag>
+				))
 			) : (
-				<SelectTag>{displayValue}</SelectTag>
+				<SelectTag value={selectedOptions.value}>
+					{selectedOptions.name}
+				</SelectTag>
 			)
 		}
 
-		if (Array.isArray(displayValue)) {
-			return displayValue.length ? displayValue.join(', ') : 'Select...'
+		if (Array.isArray(selectedOptions)) {
+			return selectedOptions.length
+				? selectedOptions.map((o) => o.name).join(', ')
+				: 'Select...'
 		}
 
-		return displayValue
-	}
-
-	const renderPlaceholderValue = (placeholder?: string) => {
-		if (placeholder) {
-			return (
-				<Text color="secondaryContentOnEnabled">
-					{props.placeholder}
-				</Text>
-			)
-		}
-
-		return 'Select...'
+		return selectedOptions.name
 	}
 
 	return (
 		<Component style={{ opacity: props.disabled ? 0.7 : 1 }} {...props}>
-			{value
-				? renderSelectValue(value)
-				: renderPlaceholderValue(props.placeholder)}
+			{value ? (
+				renderSelectValue(value)
+			) : (
+				<Text color="secondaryContentOnEnabled">
+					{props.placeholder} ?? Select...
+				</Text>
+			)}
 		</Component>
 	)
 }
@@ -421,7 +445,7 @@ export const Provider: React.FC<ProviderProps> = ({ children, ...props }) => {
 	const items = props.store.useState('items')
 
 	useEffect(() => {
-		if (setOptions && !props.options) {
+		if (setOptions && !props.options && items.length) {
 			// If we have no options passed, create them from the items which were
 			// registered by the Option component.
 			setOptions(itemsToOptions(items))
@@ -600,7 +624,7 @@ const singleValueToOption = (value: SingleValue) => {
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const valueToOptions = (value: any | undefined) => {
 	if (value === undefined) {
-		return undefined
+		return
 	}
 
 	if (Array.isArray(value)) {
@@ -624,7 +648,21 @@ const optionToStringValue = (option: any | undefined) => {
 }
 
 const itemsToOptions = (items: Ariakit.SelectStoreState['items']) => {
-	return items.map((item) => ({ name: item.value, value: item.value }))
+	return items.map(itemToOption)
+}
+
+const itemToOption = (item: Ariakit.SelectStoreState['items'][0]): Option => {
+	return {
+		name: String(item.element?.innerText ?? item.value),
+		value: item.value!,
+	}
+}
+
+const stringOrNumberToOption = (value: string | number): Option => {
+	return {
+		name: String(value),
+		value,
+	}
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -659,9 +697,13 @@ const optionsMatch = (
 	return String(option) === String(searchValue)
 }
 
-const SelectTag: React.FC<{ children: string }> = ({ children }) => {
+const SelectTag: React.FC<{ children: string; value: string | number }> = ({
+	children,
+	value,
+}) => {
 	const selectStore = Ariakit.useSelectContext()!
-	const value = selectStore.useState('value')
+	const selectValue = selectStore.useState('value')
+	const name = children
 
 	return (
 		<Badge
@@ -669,14 +711,16 @@ const SelectTag: React.FC<{ children: string }> = ({ children }) => {
 			shape="basic"
 			variant="white"
 			size="medium"
-			label={children}
+			label={name}
 			iconEnd={<IconSolidX />}
 			onMouseDown={(e) => {
 				e.preventDefault()
 				e.stopPropagation()
 
-				const newValue = Array.isArray(value)
-					? value.filter((v) => v !== children)
+				const newValue = Array.isArray(selectValue)
+					? selectValue.filter(
+							(v) => !optionsMatch(v, { name, value }),
+					  )
 					: ''
 
 				selectStore.setValue(newValue)
