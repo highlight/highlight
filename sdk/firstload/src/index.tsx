@@ -67,6 +67,7 @@ let onHighlightReadyQueue: {
 }[] = []
 let onHighlightReadyTimeout: number | undefined = undefined
 
+let sessionSecureID: string
 let highlight_obj: Highlight
 let first_load_listeners: FirstLoadListeners
 let init_called = false
@@ -95,13 +96,14 @@ const H: HighlightPublicInterface = {
 			}
 
 			let previousSession = getPreviousSessionData()
-			let sessionSecureID = GenerateSecureID()
+			sessionSecureID = GenerateSecureID()
 			if (previousSession?.sessionSecureID && !previousSession.active) {
 				sessionSecureID = previousSession.sessionSecureID
 			} else {
 				const sessionData: SessionData = {
 					...previousSession,
 					projectID: +projectID,
+					payloadID: 1,
 					sessionSecureID,
 				}
 
@@ -474,19 +476,16 @@ const H: HighlightPublicInterface = {
 		}
 	},
 	getSessionURL: async () => {
-		const data = getPreviousSessionData()
-		const sessionSecureID = getSessionSecureID()
-		if (data && sessionSecureID) {
+		const data = getPreviousSessionData(sessionSecureID)
+		if (data) {
 			return `https://${HIGHLIGHT_URL}/${data.projectID}/sessions/${sessionSecureID}`
 		} else {
-			throw new Error(
-				`Unable to get session URL: ${data?.projectID}, ${sessionSecureID}}`,
-			)
+			throw new Error(`Unable to get session URL: ${sessionSecureID}}`)
 		}
 	},
 	getSessionDetails: async () => {
 		const baseUrl = await H.getSessionURL()
-		const sessionData = getPreviousSessionData()
+		const sessionData = getPreviousSessionData(sessionSecureID)
 		if (!baseUrl) {
 			throw new Error('Could not get session URL')
 		}

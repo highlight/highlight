@@ -183,7 +183,6 @@ export class Highlight {
 	hasPushedData!: boolean
 	reloaded!: boolean
 	_hasPreviouslyInitialized!: boolean
-	_payloadId!: number
 	_recordStop!: listenerHandler | undefined
 
 	static create(options: HighlightClassOptions): Highlight {
@@ -260,6 +259,7 @@ export class Highlight {
 			this.sessionData = {
 				sessionSecureID: this.options.sessionSecureID,
 				projectID: 0,
+				payloadID: 1,
 				sessionStartTime: Date.now(),
 			}
 		}
@@ -311,7 +311,6 @@ export class Highlight {
 		this.sessionData.sessionSecureID = GenerateSecureID()
 		this.sessionData.sessionStartTime = Date.now()
 		this.options.sessionSecureID = this.sessionData.sessionSecureID
-		this._payloadId = 0
 		this.stopRecording()
 		this._firstLoadListeners = new FirstLoadListeners(this.options)
 		await this.initialize()
@@ -402,8 +401,6 @@ export class Highlight {
 		this._eventBytesSinceSnapshot = 0
 		this._lastSnapshotTime = new Date().getTime()
 		this._lastVisibilityChangeTime = new Date().getTime()
-		this._payloadId = Number(getItem(SESSION_STORAGE_KEYS.PAYLOAD_ID)) ?? 1
-		setItem(SESSION_STORAGE_KEYS.PAYLOAD_ID, this._payloadId.toString())
 	}
 
 	identify(user_identifier: string, user_object = {}, source?: Source) {
@@ -1259,12 +1256,7 @@ SessionSecureID: ${this.sessionData.sessionSecureID}`,
 			await this._sendPayload({ sendFn })
 			this.hasPushedData = true
 			this.sessionData.lastPushTime = Date.now()
-
-			const sessionData = getPreviousSessionData() ?? ({} as SessionData)
-			setSessionData({
-				...sessionData,
-				lastPushTime: this.sessionData.lastPushTime,
-			})
+			setSessionData({ ...this.sessionData, active: true })
 		} catch (e) {
 			if (this._isOnLocalHost) {
 				console.error(e)
@@ -1343,7 +1335,7 @@ SessionSecureID: ${this.sessionData.sessionSecureID}`,
 		if (sendFn) {
 			await sendFn({
 				session_secure_id: this.sessionData.sessionSecureID,
-				payload_id: this._payloadId.toString(),
+				payload_id: this.sessionData.payloadID.toString(),
 				events: { events } as ReplayEventsInput,
 				messages: stringify({ messages: messages }),
 				resources: JSON.stringify({ resources: resources }),
@@ -1358,7 +1350,7 @@ SessionSecureID: ${this.sessionData.sessionSecureID}`,
 			this._worker.postMessage({
 				message: {
 					type: MessageType.AsyncEvents,
-					id: this._payloadId,
+					id: this.sessionData.payloadID++,
 					events,
 					messages,
 					errors,
@@ -1371,8 +1363,7 @@ SessionSecureID: ${this.sessionData.sessionSecureID}`,
 				},
 			})
 		}
-		this._payloadId++
-		setItem(SESSION_STORAGE_KEYS.PAYLOAD_ID, this._payloadId.toString())
+		setSessionData({ ...this.sessionData, active: true })
 
 		// If sendFn throws an exception, the data below will not be cleared, and it will be re-uploaded on the next PushPayload.
 		FirstLoadListeners.clearRecordedNetworkResources(
