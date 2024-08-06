@@ -423,7 +423,7 @@ export const Provider: React.FC<ProviderProps> = ({ children, ...props }) => {
 		if (setOptions && !props.options) {
 			// If we have no options passed, create them from the items which were
 			// registered by the Option component.
-			setOptions(itemsToOptions(items))
+			setOptions(valueToOptions(items))
 		}
 	}, [items])
 
@@ -606,12 +606,6 @@ const valueToOptions = (value: any | undefined) => {
 	}
 
 	return singleValueToOption(value)
-}
-
-const itemsToOptions = (items: Ariakit.SelectStoreState['items']) => {
-	return valueToOptions(
-		items.map((item) => ({ name: item.value, value: item.value })),
-	)
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
