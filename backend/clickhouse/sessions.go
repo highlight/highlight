@@ -124,6 +124,7 @@ var defaultSessionsKeys = []*modelInputs.QueryKey{
 	{Name: string(modelInputs.ReservedSessionKeyLength), Type: modelInputs.KeyTypeNumeric},
 	{Name: string(modelInputs.ReservedSessionKeyPagesVisited), Type: modelInputs.KeyTypeNumeric},
 	{Name: string(modelInputs.ReservedSessionKeySample), Type: modelInputs.KeyTypeCreatable},
+	{Name: string(modelInputs.ReservedSessionKeySecureID), Type: modelInputs.KeyTypeString},
 	{Name: string(modelInputs.ReservedSessionKeyViewedByAnyone), Type: modelInputs.KeyTypeBoolean},
 	{Name: string(modelInputs.ReservedSessionKeyViewedByMe), Type: modelInputs.KeyTypeBoolean},
 }
@@ -537,6 +538,7 @@ var SessionsJoinedTableConfig = model.TableConfig{
 		modelInputs.ReservedSessionKeySample.String():     true,
 		modelInputs.ReservedSessionKeyViewedByMe.String(): true,
 	},
+	DefaultFilter: "excluded=false",
 }
 
 var SessionsSampleableTableConfig = SampleableTableConfig{
@@ -546,7 +548,7 @@ var SessionsSampleableTableConfig = SampleableTableConfig{
 	},
 }
 
-func (client *Client) ReadSessionsMetrics(ctx context.Context, projectID int, params modelInputs.QueryInput, column string, metricTypes []modelInputs.MetricAggregator, groupBy []string, nBuckets *int, bucketBy string, limit *int, limitAggregator *modelInputs.MetricAggregator, limitColumn *string) (*modelInputs.MetricsBuckets, error) {
+func (client *Client) ReadSessionsMetrics(ctx context.Context, projectID int, params modelInputs.QueryInput, column string, metricTypes []modelInputs.MetricAggregator, groupBy []string, nBuckets *int, bucketBy string, bucketWindow *int, limit *int, limitAggregator *modelInputs.MetricAggregator, limitColumn *string) (*modelInputs.MetricsBuckets, error) {
 	return client.ReadMetrics(ctx, ReadMetricsInput{
 		SampleableConfig: SessionsSampleableTableConfig,
 		ProjectIDs:       []int{projectID},
@@ -555,6 +557,7 @@ func (client *Client) ReadSessionsMetrics(ctx context.Context, projectID int, pa
 		MetricTypes:      metricTypes,
 		GroupBy:          groupBy,
 		BucketCount:      nBuckets,
+		BucketWindow:     bucketWindow,
 		BucketBy:         bucketBy,
 		Limit:            limit,
 		LimitAggregator:  limitAggregator,
@@ -624,9 +627,14 @@ func (client *Client) QuerySessionCustomMetrics(ctx context.Context, projectId i
 	return metrics, nil
 }
 
-func (client *Client) SessionsKeyValues(ctx context.Context, projectID int, keyName string, startDate time.Time, endDate time.Time) ([]string, error) {
+func (client *Client) SessionsKeyValues(ctx context.Context, projectID int, keyName string, startDate time.Time, endDate time.Time, limit *int) ([]string, error) {
 	if booleanKeys[keyName] {
 		return []string{"true", "false"}, nil
+	}
+
+	limitCount := 10
+	if limit != nil {
+		limitCount = *limit
 	}
 
 	sb := sqlbuilder.NewSelectBuilder()
@@ -639,7 +647,7 @@ func (client *Client) SessionsKeyValues(ctx context.Context, projectID int, keyN
 			sb.Between("SessionCreatedAt", startDate, endDate))).
 		GroupBy("1").
 		OrderBy("count() DESC").
-		Limit(10).
+		Limit(limitCount).
 		BuildWithFlavor(sqlbuilder.ClickHouse)
 
 	rows, err := client.conn.Query(ctx, sql, args...)

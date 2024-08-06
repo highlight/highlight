@@ -35,7 +35,6 @@ import (
 
 	log_alerts "github.com/highlight-run/highlight/backend/jobs/log-alerts"
 	metric_alerts "github.com/highlight-run/highlight/backend/jobs/metric-alerts"
-	metric_monitor "github.com/highlight-run/highlight/backend/jobs/metric-monitor"
 	kafkaqueue "github.com/highlight-run/highlight/backend/kafka-queue"
 	journey_handlers "github.com/highlight-run/highlight/backend/lambda-functions/journeys/handlers"
 	"github.com/highlight-run/highlight/backend/model"
@@ -1103,10 +1102,6 @@ func (w *Worker) MigrateDB(ctx context.Context) {
 	}
 }
 
-func (w *Worker) StartMetricMonitorWatcher(ctx context.Context) {
-	metric_monitor.WatchMetricMonitors(ctx, w.Resolver.DB, w.Resolver.ClickhouseClient, w.Resolver.MailClient, w.Resolver.RH)
-}
-
 func (w *Worker) StartLogAlertWatcher(ctx context.Context) {
 	log_alerts.WatchLogAlerts(ctx, w.Resolver.DB, w.Resolver.MailClient, w.Resolver.RH, w.Resolver.Redis, w.Resolver.ClickhouseClient, w.Resolver.LambdaClient)
 }
@@ -1116,32 +1111,13 @@ func (w *Worker) StartMetricAlertWatcher(ctx context.Context) {
 }
 
 func (w *Worker) StartSessionDeleteJob(ctx context.Context) {
-	retentionEnv := env.Config.SessionRetentionDays
-	if retentionEnv == "" {
-		log.WithContext(ctx).Info("SESSION_RETENTION_DAYS not set, skipping SessionDeleteJob")
-		return
-	}
-	sessionRetentionDays, err := strconv.Atoi(env.Config.SessionRetentionDays)
-	if err != nil {
-		log.WithContext(ctx).Error("Error parsing SESSION_RETENTION_DAYS, skipping SessionDeleteJob")
-		return
-	}
-	if sessionRetentionDays <= 0 {
-		log.WithContext(ctx).Error("sessionRetentionDays <= 0, skipping SessionDeleteJob")
-		return
-	}
-
-	w.doSessionDeleteLoop(ctx, sessionRetentionDays)
-}
-
-func (w *Worker) doSessionDeleteLoop(ctx context.Context, sessionRetentionDays int) {
 	log.WithContext(ctx).Info("Starting SessionDeleteJob")
 
 	deleteHandlers := delete_handlers.InitHandlers(w.Resolver.DB, w.Resolver.ClickhouseClient, nil, w.Resolver.StorageClient)
 
-	deleteHandlers.ProcessRetentionDeletions(ctx, sessionRetentionDays)
+	deleteHandlers.ProcessRetentionDeletions(ctx)
 	for range time.Tick(time.Hour * 24) {
-		deleteHandlers.ProcessRetentionDeletions(ctx, sessionRetentionDays)
+		deleteHandlers.ProcessRetentionDeletions(ctx)
 	}
 }
 
@@ -1342,7 +1318,7 @@ func (w *Worker) GetHandler(ctx context.Context, handlerFlag util.Handler) func(
 	case util.MigrateDB:
 		return w.MigrateDB
 	case util.MetricMonitors:
-		return w.StartMetricMonitorWatcher
+		return w.StartMetricAlertWatcher
 	case util.LogAlerts:
 		return w.StartLogAlertWatcher
 	case util.BackfillStackFrames:
@@ -1359,6 +1335,8 @@ func (w *Worker) GetHandler(ctx context.Context, handlerFlag util.Handler) func(
 		return w.GetPublicWorker(kafkaqueue.TopicTypeTraces)
 	case util.AutoResolveStaleErrors:
 		return w.AutoResolveStaleErrors
+	case util.StartSessionDeleteJob:
+		return w.StartSessionDeleteJob
 	case "":
 		// no handler provided defaults to the session worker
 		return w.Start

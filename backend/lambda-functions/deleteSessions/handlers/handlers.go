@@ -3,8 +3,10 @@ package handlers
 import (
 	"context"
 	"fmt"
-	"github.com/highlight-run/highlight/backend/env"
+	"strconv"
 	"time"
+
+	"github.com/highlight-run/highlight/backend/env"
 
 	"github.com/openlyinc/pointy"
 	log "github.com/sirupsen/logrus"
@@ -241,7 +243,22 @@ func (h *handlers) DeleteSessions(ctx context.Context, projectId int, startDate 
 	}
 }
 
-func (h *handlers) ProcessRetentionDeletions(ctx context.Context, retentionDays int) {
+func (h *handlers) ProcessRetentionDeletions(ctx context.Context) {
+	retentionEnv := env.Config.SessionRetentionDays
+	if retentionEnv == "" {
+		log.WithContext(ctx).Info("SESSION_RETENTION_DAYS not set, skipping SessionDeleteJob")
+		return
+	}
+	sessionRetentionDays, err := strconv.Atoi(env.Config.SessionRetentionDays)
+	if err != nil {
+		log.WithContext(ctx).Error("Error parsing SESSION_RETENTION_DAYS, skipping SessionDeleteJob")
+		return
+	}
+	if sessionRetentionDays <= 0 {
+		log.WithContext(ctx).Error("sessionRetentionDays <= 0, skipping SessionDeleteJob")
+		return
+	}
+
 	var projectIds []int
 	if err := h.db.Model(&model.Project{}).Select("id").Find(&projectIds).Error; err != nil {
 		log.WithContext(ctx).Error(err)
@@ -249,7 +266,7 @@ func (h *handlers) ProcessRetentionDeletions(ctx context.Context, retentionDays 
 	}
 
 	now := time.Now()
-	endDate := now.AddDate(0, 0, -1*retentionDays)
+	endDate := now.AddDate(0, 0, -1*sessionRetentionDays)
 	startDate := endDate.AddDate(-10, 0, 0)
 
 	for _, id := range projectIds {

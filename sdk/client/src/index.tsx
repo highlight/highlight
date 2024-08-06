@@ -83,6 +83,7 @@ import {
 import { getItem, removeItem, setItem, setStorageMode } from './utils/storage'
 import {
 	FIRST_SEND_FREQUENCY,
+	HIGHLIGHT_URL,
 	MAX_SESSION_LENGTH,
 	SEND_FREQUENCY,
 	SNAPSHOT_SETTINGS,
@@ -138,8 +139,6 @@ type HighlightClassOptionsInternal = Omit<
 	HighlightClassOptions,
 	'firstloadVersion'
 >
-
-const HIGHLIGHT_URL = 'app.highlight.run'
 
 export class Highlight {
 	options!: HighlightClassOptions
@@ -527,17 +526,13 @@ export class Highlight {
 				return
 			}
 
-			const recordingStartTime = getItem(
-				SESSION_STORAGE_KEYS.RECORDING_START_TIME,
-			)
-			if (!recordingStartTime) {
+			const sessionData = getPreviousSessionData() ?? ({} as SessionData)
+			if (!sessionData?.sessionStartTime) {
 				this._recordingStartTime = new Date().getTime()
-				setItem(
-					SESSION_STORAGE_KEYS.RECORDING_START_TIME,
-					this._recordingStartTime.toString(),
-				)
+				sessionData.sessionStartTime = this._recordingStartTime
+				setSessionData(sessionData)
 			} else {
-				this._recordingStartTime = parseInt(recordingStartTime, 10)
+				this._recordingStartTime = sessionData?.sessionStartTime
 			}
 
 			let clientID = getItem(LOCAL_STORAGE_KEYS['CLIENT_ID'])
@@ -1263,6 +1258,7 @@ SessionSecureID: ${this.sessionData.sessionSecureID}`,
 			await this._sendPayload({ sendFn })
 			this.hasPushedData = true
 			this.sessionData.lastPushTime = Date.now()
+			setSessionData(this.sessionData)
 		} catch (e) {
 			if (this._isOnLocalHost) {
 				console.error(e)

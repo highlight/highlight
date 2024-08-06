@@ -2514,6 +2514,7 @@ export type GetSessionsQuery = { __typename?: 'Query' } & {
 					| 'last_user_interaction_time'
 					| 'is_public'
 					| 'excluded'
+					| 'email'
 				> & {
 						fields?: Types.Maybe<
 							Array<
@@ -4851,12 +4852,19 @@ export type GetWorkspaceSettingsQuery = { __typename?: 'Query' } & {
 			| 'ai_application'
 			| 'ai_query_builder'
 			| 'ai_insights'
-			| 'enable_session_export'
-			| 'enable_unlisted_sharing'
-			| 'enable_ingest_sampling'
+			| 'enable_billing_limits'
+			| 'enable_business_dashboards'
+			| 'enable_business_projects'
+			| 'enable_business_retention'
+			| 'enable_business_seats'
 			| 'enable_data_deletion'
 			| 'enable_grafana_dashboard'
+			| 'enable_ingest_filtering'
+			| 'enable_ingest_sampling'
+			| 'enable_network_traces'
 			| 'enable_project_level_access'
+			| 'enable_session_export'
+			| 'enable_unlisted_sharing'
 		>
 	>
 }
@@ -4872,8 +4880,45 @@ export type GetSystemConfigurationQuery = { __typename?: 'Query' } & {
 	>
 }
 
-export type GetErrorObjectsQueryVariables = Types.Exact<{
+export type GetErrorGroupInstancesQueryVariables = Types.Exact<{
 	errorGroupSecureID: Types.Scalars['String']
+	count: Types.Scalars['Int']
+	params: Types.QueryInput
+	page?: Types.Maybe<Types.Scalars['Int']>
+}>
+
+export type GetErrorGroupInstancesQuery = { __typename?: 'Query' } & {
+	error_objects: { __typename?: 'ErrorObjectResults' } & Pick<
+		Types.ErrorObjectResults,
+		'totalCount'
+	> & {
+			error_objects: Array<
+				{ __typename?: 'ErrorObjectNode' } & Pick<
+					Types.ErrorObjectNode,
+					| 'id'
+					| 'createdAt'
+					| 'event'
+					| 'timestamp'
+					| 'serviceVersion'
+					| 'serviceName'
+					| 'errorGroupSecureID'
+				> & {
+						session?: Types.Maybe<
+							{ __typename?: 'ErrorObjectNodeSession' } & Pick<
+								Types.ErrorObjectNodeSession,
+								| 'secureID'
+								| 'email'
+								| 'fingerprint'
+								| 'excluded'
+							>
+						>
+					}
+			>
+		}
+}
+
+export type GetErrorObjectsQueryVariables = Types.Exact<{
+	project_id: Types.Scalars['String']
 	count: Types.Scalars['Int']
 	params: Types.QueryInput
 	page?: Types.Maybe<Types.Scalars['Int']>
@@ -4891,9 +4936,9 @@ export type GetErrorObjectsQuery = { __typename?: 'Query' } & {
 					| 'createdAt'
 					| 'event'
 					| 'timestamp'
-					| 'errorGroupSecureID'
 					| 'serviceVersion'
 					| 'serviceName'
+					| 'errorGroupSecureID'
 				> & {
 						session?: Types.Maybe<
 							{ __typename?: 'ErrorObjectNodeSession' } & Pick<
@@ -5184,6 +5229,7 @@ export type GetMetricsQueryVariables = Types.Exact<{
 	group_by: Array<Types.Scalars['String']> | Types.Scalars['String']
 	bucket_by: Types.Scalars['String']
 	bucket_count?: Types.Maybe<Types.Scalars['Int']>
+	bucket_window?: Types.Maybe<Types.Scalars['Int']>
 	limit?: Types.Maybe<Types.Scalars['Int']>
 	limit_aggregator?: Types.Maybe<Types.MetricAggregator>
 	limit_column?: Types.Maybe<Types.Scalars['String']>
@@ -5447,6 +5493,7 @@ export const namedOperations = {
 		GetErrorResolutionSuggestion: 'GetErrorResolutionSuggestion' as const,
 		GetWorkspaceSettings: 'GetWorkspaceSettings' as const,
 		GetSystemConfiguration: 'GetSystemConfiguration' as const,
+		GetErrorGroupInstances: 'GetErrorGroupInstances' as const,
 		GetErrorObjects: 'GetErrorObjects' as const,
 		GetServices: 'GetServices' as const,
 		GetServiceByName: 'GetServiceByName' as const,

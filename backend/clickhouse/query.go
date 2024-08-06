@@ -42,6 +42,7 @@ type ReadMetricsInput struct {
 	MetricTypes      []modelInputs.MetricAggregator
 	GroupBy          []string
 	BucketCount      *int
+	BucketWindow     *int
 	BucketBy         string
 	Limit            *int
 	LimitAggregator  *modelInputs.MetricAggregator
@@ -305,10 +306,15 @@ func KeysAggregated(ctx context.Context, client *Client, tableName string, proje
 	return keys, rows.Err()
 }
 
-func KeyValuesAggregated(ctx context.Context, client *Client, tableName string, projectID int, keyName string, startDate time.Time, endDate time.Time) ([]string, error) {
+func KeyValuesAggregated(ctx context.Context, client *Client, tableName string, projectID int, keyName string, startDate time.Time, endDate time.Time, limit *int) ([]string, error) {
 	chCtx := clickhouse.Context(ctx, clickhouse.WithSettings(clickhouse.Settings{
 		"max_rows_to_read": KeyValuesMaxRows,
 	}))
+
+	limitCount := 500
+	if limit != nil {
+		limitCount = *limit
+	}
 
 	sb := sqlbuilder.NewSelectBuilder()
 	sb.Select("Value, sum(Count)").
@@ -319,7 +325,7 @@ func KeyValuesAggregated(ctx context.Context, client *Client, tableName string, 
 		Where(fmt.Sprintf("Day <= toStartOfDay(%s)", sb.Var(endDate))).
 		GroupBy("1").
 		OrderBy("2 DESC, 1").
-		Limit(500)
+		Limit(limitCount)
 
 	sql, args := sb.BuildWithFlavor(sqlbuilder.ClickHouse)
 
@@ -701,19 +707,6 @@ func (client *Client) ReadMetrics(ctx context.Context, input ReadMetricsInput) (
 		return nil, errors.New("no metric types provided")
 	}
 
-	nBuckets := 48
-	if input.BucketBy == modelInputs.MetricBucketByNone.String() {
-		nBuckets = 1
-	} else if input.BucketCount != nil {
-		nBuckets = *input.BucketCount
-	}
-	if nBuckets > 1000 {
-		nBuckets = 1000
-	}
-	if nBuckets < 1 {
-		nBuckets = 1
-	}
-
 	if input.Params.DateRange == nil {
 		input.Params.DateRange = &modelInputs.DateRangeRequiredInput{
 			StartDate: time.Now().Add(-time.Hour * 24 * 30),
@@ -723,6 +716,23 @@ func (client *Client) ReadMetrics(ctx context.Context, input ReadMetricsInput) (
 	startTimestamp := input.Params.DateRange.StartDate.Unix()
 	endTimestamp := input.Params.DateRange.EndDate.Unix()
 	useSampling := input.SampleableConfig.useSampling(input.Params.DateRange.EndDate.Sub(input.Params.DateRange.StartDate)) && input.SavedMetricState == nil
+
+	nBuckets := 48
+	if input.BucketWindow == nil {
+		if input.BucketBy == modelInputs.MetricBucketByNone.String() {
+			nBuckets = 1
+		} else if input.BucketCount != nil {
+			nBuckets = *input.BucketCount
+		}
+		if nBuckets > 1000 {
+			nBuckets = 1000
+		}
+		if nBuckets < 1 {
+			nBuckets = 1
+		}
+	} else {
+		nBuckets = int((endTimestamp - startTimestamp) / int64(*input.BucketWindow))
+	}
 
 	keysToColumns := input.SampleableConfig.tableConfig.KeysToColumns
 

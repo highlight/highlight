@@ -1,5 +1,23 @@
 # highlight.run
 
+## 9.1.4
+
+### Patch Changes
+
+-   3e99f48ca: fix otel webjs event monkeypatch breaking mouse event listeners
+
+## 9.1.3
+
+### Patch Changes
+
+-   efdf6b66a: fix highlight.run getSessionUrl only returning session ID
+
+## 9.1.2
+
+### Patch Changes
+
+-   50dba067f: fix otel webjs startSpan crashing when otel code has not loaded
+
 ## 9.1.1
 
 ### Patch Changes

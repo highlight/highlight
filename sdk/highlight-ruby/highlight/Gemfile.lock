@@ -235,7 +235,7 @@ GEM
     unicode-display_width (2.4.2)
 
 PLATFORMS
-  ruby
+  x86_64-linux
 
 DEPENDENCIES
   highlight_io!

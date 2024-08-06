@@ -65,7 +65,7 @@ import { useSearchTime } from '@/hooks/useSearchTime'
 import ErrorIssueButton from '@/pages/ErrorsV2/ErrorIssueButton/ErrorIssueButton'
 import ErrorShareButton from '@/pages/ErrorsV2/ErrorShareButton/ErrorShareButton'
 import { ErrorStateSelect } from '@/pages/ErrorsV2/ErrorStateSelect/ErrorStateSelect'
-import { useGetErrors } from '@/pages/ErrorsV2/useGetErrors'
+import { useGetErrorGroups } from '@/pages/ErrorsV2/useGetErrorGroups'
 import usePlayerConfiguration from '@/pages/Player/PlayerHook/utils/usePlayerConfiguration'
 import { useApplicationContext } from '@/routers/AppRouter/context/ApplicationContext'
 import { useIntegratedLocalStorage } from '@/util/integrated'
@@ -119,7 +119,7 @@ export default function ErrorsV2() {
 		[setPage, setQuery],
 	)
 
-	const getErrorsData = useGetErrors({
+	const getErrorsData = useGetErrorGroups({
 		query,
 		project_id,
 		startDate: searchTimeContext.startDate,

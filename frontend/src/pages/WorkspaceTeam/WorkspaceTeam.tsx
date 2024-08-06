@@ -1,3 +1,4 @@
+import EnterpriseFeatureButton from '@components/Billing/EnterpriseFeatureButton'
 import { Button } from '@components/Button'
 import { useGetWorkspaceAdminsQuery } from '@graph/hooks'
 import { AdminRole, Project, WorkspaceAdminRole } from '@graph/schemas'
@@ -124,24 +125,30 @@ const TabContentContainer = ({
 	toggleInviteModal: any
 }) => {
 	return (
-		<Box mt="8">
-			<Stack
-				mb="8"
-				align="center"
-				justify="space-between"
-				direction="row"
-			>
-				<h4 className={styles.tabTitle}>{title}</h4>
-				<Button
-					trackingId="WorkspaceTeamInviteMember"
-					iconLeft={<IconSolidUserAdd />}
-					onClick={toggleInviteModal}
+		<EnterpriseFeatureButton
+			setting="enable_business_seats"
+			name="More than 15 team members"
+			fn={toggleInviteModal}
+			variant="basic"
+		>
+			<Box mt="8">
+				<Stack
+					mb="8"
+					align="center"
+					justify="space-between"
+					direction="row"
 				>
-					Invite users
-				</Button>
-			</Stack>
-			{children}
-		</Box>
+					<h4 className={styles.tabTitle}>{title}</h4>
+					<Button
+						trackingId="WorkspaceTeamInviteMember"
+						iconLeft={<IconSolidUserAdd />}
+					>
+						Invite users
+					</Button>
+				</Stack>
+				{children}
+			</Box>
+		</EnterpriseFeatureButton>
 	)
 }
 

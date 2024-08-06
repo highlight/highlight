@@ -7731,6 +7731,7 @@ export const GetSessionsDocument = gql`
 				last_user_interaction_time
 				is_public
 				excluded
+				email
 			}
 			totalCount
 		}
@@ -14257,12 +14258,20 @@ export const GetWorkspaceSettingsDocument = gql`
 			ai_application
 			ai_query_builder
 			ai_insights
-			enable_session_export
-			enable_unlisted_sharing
-			enable_ingest_sampling
+			enable_billing_limits
+			enable_business_dashboards
+			enable_business_projects
+			enable_business_retention
+			enable_business_seats
 			enable_data_deletion
 			enable_grafana_dashboard
+			enable_ingest_filtering
+			enable_ingest_sampling
+			enable_network_traces
 			enable_project_level_access
+			enable_project_level_access
+			enable_session_export
+			enable_unlisted_sharing
 		}
 	}
 `
@@ -14371,8 +14380,8 @@ export type GetSystemConfigurationQueryResult = Apollo.QueryResult<
 	Types.GetSystemConfigurationQuery,
 	Types.GetSystemConfigurationQueryVariables
 >
-export const GetErrorObjectsDocument = gql`
-	query GetErrorObjects(
+export const GetErrorGroupInstancesDocument = gql`
+	query GetErrorGroupInstances(
 		$errorGroupSecureID: String!
 		$count: Int!
 		$params: QueryInput!
@@ -14389,7 +14398,6 @@ export const GetErrorObjectsDocument = gql`
 				createdAt
 				event
 				timestamp
-				errorGroupSecureID
 				serviceVersion
 				serviceName
 				session {
@@ -14398,6 +14406,91 @@ export const GetErrorObjectsDocument = gql`
 					fingerprint
 					excluded
 				}
+				errorGroupSecureID
+			}
+			totalCount
+		}
+	}
+`
+
+/**
+ * __useGetErrorGroupInstancesQuery__
+ *
+ * To run a query within a React component, call `useGetErrorGroupInstancesQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetErrorGroupInstancesQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetErrorGroupInstancesQuery({
+ *   variables: {
+ *      errorGroupSecureID: // value for 'errorGroupSecureID'
+ *      count: // value for 'count'
+ *      params: // value for 'params'
+ *      page: // value for 'page'
+ *   },
+ * });
+ */
+export function useGetErrorGroupInstancesQuery(
+	baseOptions: Apollo.QueryHookOptions<
+		Types.GetErrorGroupInstancesQuery,
+		Types.GetErrorGroupInstancesQueryVariables
+	>,
+) {
+	return Apollo.useQuery<
+		Types.GetErrorGroupInstancesQuery,
+		Types.GetErrorGroupInstancesQueryVariables
+	>(GetErrorGroupInstancesDocument, baseOptions)
+}
+export function useGetErrorGroupInstancesLazyQuery(
+	baseOptions?: Apollo.LazyQueryHookOptions<
+		Types.GetErrorGroupInstancesQuery,
+		Types.GetErrorGroupInstancesQueryVariables
+	>,
+) {
+	return Apollo.useLazyQuery<
+		Types.GetErrorGroupInstancesQuery,
+		Types.GetErrorGroupInstancesQueryVariables
+	>(GetErrorGroupInstancesDocument, baseOptions)
+}
+export type GetErrorGroupInstancesQueryHookResult = ReturnType<
+	typeof useGetErrorGroupInstancesQuery
+>
+export type GetErrorGroupInstancesLazyQueryHookResult = ReturnType<
+	typeof useGetErrorGroupInstancesLazyQuery
+>
+export type GetErrorGroupInstancesQueryResult = Apollo.QueryResult<
+	Types.GetErrorGroupInstancesQuery,
+	Types.GetErrorGroupInstancesQueryVariables
+>
+export const GetErrorObjectsDocument = gql`
+	query GetErrorObjects(
+		$project_id: String!
+		$count: Int!
+		$params: QueryInput!
+		$page: Int
+	) {
+		error_objects(
+			project_id: $project_id
+			count: $count
+			params: $params
+			page: $page
+		) {
+			error_objects {
+				id
+				createdAt
+				event
+				timestamp
+				serviceVersion
+				serviceName
+				session {
+					secureID
+					email
+					fingerprint
+					excluded
+				}
+				errorGroupSecureID
 			}
 			totalCount
 		}
@@ -14416,7 +14509,7 @@ export const GetErrorObjectsDocument = gql`
  * @example
  * const { data, loading, error } = useGetErrorObjectsQuery({
  *   variables: {
- *      errorGroupSecureID: // value for 'errorGroupSecureID'
+ *      project_id: // value for 'project_id'
  *      count: // value for 'count'
  *      params: // value for 'params'
  *      page: // value for 'page'
@@ -15162,6 +15255,7 @@ export const GetMetricsDocument = gql`
 		$group_by: [String!]!
 		$bucket_by: String!
 		$bucket_count: Int
+		$bucket_window: Int
 		$limit: Int
 		$limit_aggregator: MetricAggregator
 		$limit_column: String
@@ -15174,6 +15268,7 @@ export const GetMetricsDocument = gql`
 			metric_types: $metric_types
 			group_by: $group_by
 			bucket_by: $bucket_by
+			bucket_window: $bucket_window
 			bucket_count: $bucket_count
 			limit: $limit
 			limit_aggregator: $limit_aggregator
@@ -15213,6 +15308,7 @@ export const GetMetricsDocument = gql`
  *      group_by: // value for 'group_by'
  *      bucket_by: // value for 'bucket_by'
  *      bucket_count: // value for 'bucket_count'
+ *      bucket_window: // value for 'bucket_window'
  *      limit: // value for 'limit'
  *      limit_aggregator: // value for 'limit_aggregator'
  *      limit_column: // value for 'limit_column'

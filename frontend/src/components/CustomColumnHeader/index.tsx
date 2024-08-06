@@ -9,7 +9,7 @@ import {
 import { useMemo, useRef } from 'react'
 
 import { CustomColumnActions } from '@/components/CustomColumnActions'
-import { ValidCustomColumn } from '@/components/CustomColumnPopover'
+import { SerializedColumn } from '@/components/CustomColumnPopover'
 import { SortDirection } from '@/graph/generated/schemas'
 
 export type ColumnHeader = {
@@ -22,9 +22,9 @@ export type ColumnHeader = {
 
 type Props = {
 	header: ColumnHeader
-	selectedColumns: ValidCustomColumn[]
-	setSelectedColumns: (columns: ValidCustomColumn[]) => void
-	standardColumns: Record<string, ValidCustomColumn>
+	selectedColumns: SerializedColumn[]
+	setSelectedColumns: (columns: SerializedColumn[]) => void
+	standardColumns: Record<string, SerializedColumn>
 	trackingIdPrefix: string
 	sortColumn?: string | null
 	sortDirection?: string | null

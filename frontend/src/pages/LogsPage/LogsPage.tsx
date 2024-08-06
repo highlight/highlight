@@ -20,7 +20,10 @@ import React, { useEffect, useMemo, useRef, useState } from 'react'
 import { Helmet } from 'react-helmet'
 import { useQueryParam } from 'use-query-params'
 
-import { DEFAULT_COLUMN_SIZE } from '@/components/CustomColumnPopover'
+import {
+	DEFAULT_COLUMN_SIZE,
+	SerializedColumn,
+} from '@/components/CustomColumnPopover'
 import { AiSuggestion, SearchContext } from '@/components/Search/SearchContext'
 import {
 	TIME_FORMAT,
@@ -99,10 +102,9 @@ const LogsPageInner = ({ timeMode, logCursor, presetDefault }: Props) => {
 		fetchPolicy: 'network-only',
 	})
 
-	const [selectedColumns, setSelectedColumns] = useLocalStorage(
-		`highlight-logs-table-columns`,
-		DEFAULT_LOG_COLUMNS,
-	)
+	const [selectedColumns, setSelectedColumns] = useLocalStorage<
+		SerializedColumn[]
+	>(`highlight-logs-table-columns`, DEFAULT_LOG_COLUMNS)
 	const [windowSize, setWindowSize] = useLocalStorage(
 		'highlight-logs-window-size',
 		window.innerWidth,

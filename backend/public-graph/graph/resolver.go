@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"hash/fnv"
 	"io"
+	"net"
 	"net/http"
 	"net/mail"
 	url2 "net/url"
@@ -19,6 +20,8 @@ import (
 	"time"
 
 	"github.com/highlight-run/highlight/backend/env"
+	"github.com/highlight-run/highlight/backend/geolocation"
+	"github.com/oschwald/geoip2-golang"
 
 	"go.opentelemetry.io/otel/codes"
 	semconv "go.opentelemetry.io/otel/semconv/v1.25.0"
@@ -937,44 +940,38 @@ func GetLocationFromIP(ctx context.Context, ip string) (location *Location, err 
 	s, _ := util.StartSpanFromContext(ctx, "public-graph.GetLocationFromIP",
 		util.ResourceName("getLocationFromIP"))
 	defer s.Finish()
-	url := fmt.Sprintf("http://geolocation-db.com/json/%s", ip)
-	method := "GET"
 
-	client := &http.Client{
-		Timeout: 3 * time.Second,
+	db, err := geoip2.FromBytes(geolocation.GeoLiteCityMMDB)
+	if err != nil {
+		return nil, err
 	}
-	req, err := http.NewRequest(method, url, nil)
+	defer db.Close()
+
+	hostIP, _, err := net.SplitHostPort(ip)
+	if err != nil {
+		hostIP = ip
+	}
+
+	parsedIP := net.ParseIP(hostIP)
+	if parsedIP == nil {
+		return nil, fmt.Errorf("invalid IP address: %s", ip)
+	}
+
+	record, err := db.City(parsedIP)
 	if err != nil {
 		return nil, err
 	}
 
-	res, err := client.Do(req)
-	if err != nil {
-		return nil, err
+	location = &Location{
+		City:      record.City.Names["en"],
+		Postal:    record.Postal.Code,
+		Latitude:  record.Location.Latitude,
+		Longitude: record.Location.Longitude,
+		Country:   record.Country.IsoCode,
 	}
 
-	defer res.Body.Close()
-
-	body, err := io.ReadAll(res.Body)
-	if err != nil {
-		return nil, err
-	}
-
-	err = json.Unmarshal(body, &location)
-	if err != nil {
-		return nil, err
-	}
-
-	// long and lat should be float
-	switch location.Longitude.(type) {
-	case float64:
-	default:
-		location.Longitude = float64(0)
-	}
-	switch location.Latitude.(type) {
-	case float64:
-	default:
-		location.Latitude = float64(0)
+	if len(record.Subdivisions) > 0 {
+		location.State = record.Subdivisions[0].Names["en"]
 	}
 
 	return location, nil
@@ -1066,6 +1063,7 @@ func (r *Resolver) InitializeSessionImpl(ctx context.Context, input *kafka_queue
 	if err != nil {
 		return nil, e.Wrapf(err, "An unsupported verboseID was used: %s, %s", input.ProjectVerboseID, input.ClientConfig)
 	}
+	initSpan.SetAttribute("project_id", projectID)
 
 	existingSession, err := r.getExistingSession(ctx, projectID, input.SessionSecureID)
 	if err != nil {
@@ -1133,6 +1131,7 @@ func (r *Resolver) InitializeSessionImpl(ctx context.Context, input *kafka_queue
 
 	// mark recording-less sessions as processed so they are considered excluded
 	if input.DisableSessionRecording != nil && *input.DisableSessionRecording {
+		initSpan.SetAttribute("disable_session_recording", true)
 		session.Processed = &model.T
 	}
 

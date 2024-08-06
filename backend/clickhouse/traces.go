@@ -452,7 +452,7 @@ func (client *Client) ReadTrace(ctx context.Context, projectID int, traceID stri
 	return traces, nil
 }
 
-func (client *Client) ReadTracesMetrics(ctx context.Context, projectID int, params modelInputs.QueryInput, column string, metricTypes []modelInputs.MetricAggregator, groupBy []string, nBuckets *int, bucketBy string, limit *int, limitAggregator *modelInputs.MetricAggregator, limitColumn *string) (*modelInputs.MetricsBuckets, error) {
+func (client *Client) ReadTracesMetrics(ctx context.Context, projectID int, params modelInputs.QueryInput, column string, metricTypes []modelInputs.MetricAggregator, groupBy []string, nBuckets *int, bucketBy string, bucketWindow *int, limit *int, limitAggregator *modelInputs.MetricAggregator, limitColumn *string) (*modelInputs.MetricsBuckets, error) {
 	return client.ReadMetrics(ctx, ReadMetricsInput{
 		SampleableConfig: TracesSampleableTableConfig,
 		ProjectIDs:       []int{projectID},
@@ -461,6 +461,7 @@ func (client *Client) ReadTracesMetrics(ctx context.Context, projectID int, para
 		MetricTypes:      metricTypes,
 		GroupBy:          groupBy,
 		BucketCount:      nBuckets,
+		BucketWindow:     bucketWindow,
 		BucketBy:         bucketBy,
 		Limit:            limit,
 		LimitAggregator:  limitAggregator,
@@ -500,8 +501,8 @@ func (client *Client) TracesKeys(ctx context.Context, projectID int, startDate t
 	return traceKeys, nil
 }
 
-func (client *Client) TracesKeyValues(ctx context.Context, projectID int, keyName string, startDate time.Time, endDate time.Time) ([]string, error) {
-	return KeyValuesAggregated(ctx, client, TraceKeyValuesTable, projectID, keyName, startDate, endDate)
+func (client *Client) TracesKeyValues(ctx context.Context, projectID int, keyName string, startDate time.Time, endDate time.Time, limit *int) ([]string, error) {
+	return KeyValuesAggregated(ctx, client, TraceKeyValuesTable, projectID, keyName, startDate, endDate, limit)
 }
 
 func TraceMatchesQuery(trace *TraceRow, filters listener.Filters) bool {

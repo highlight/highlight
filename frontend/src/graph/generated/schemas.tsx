@@ -215,9 +215,16 @@ export type AllWorkspaceSettings = {
 	ai_application: Scalars['Boolean']
 	ai_insights: Scalars['Boolean']
 	ai_query_builder: Scalars['Boolean']
+	enable_billing_limits: Scalars['Boolean']
+	enable_business_dashboards: Scalars['Boolean']
+	enable_business_projects: Scalars['Boolean']
+	enable_business_retention: Scalars['Boolean']
+	enable_business_seats: Scalars['Boolean']
 	enable_data_deletion: Scalars['Boolean']
 	enable_grafana_dashboard: Scalars['Boolean']
+	enable_ingest_filtering: Scalars['Boolean']
 	enable_ingest_sampling: Scalars['Boolean']
+	enable_network_traces: Scalars['Boolean']
 	enable_project_level_access: Scalars['Boolean']
 	enable_session_export: Scalars['Boolean']
 	enable_unlisted_sharing: Scalars['Boolean']
@@ -2012,6 +2019,7 @@ export type Plan = {
 
 export enum PlanType {
 	Basic = 'Basic',
+	Business = 'Business',
 	Enterprise = 'Enterprise',
 	Free = 'Free',
 	Graduated = 'Graduated',
@@ -2400,9 +2408,10 @@ export type QueryError_Object_For_LogArgs = {
 
 export type QueryError_ObjectsArgs = {
 	count: Scalars['Int']
-	error_group_secure_id: Scalars['String']
+	error_group_secure_id?: InputMaybe<Scalars['String']>
 	page?: InputMaybe<Scalars['Int']>
 	params: QueryInput
+	project_id?: InputMaybe<Scalars['String']>
 }
 
 export type QueryError_Resolution_SuggestionArgs = {
@@ -2426,6 +2435,7 @@ export type QueryErrors_Histogram_ClickhouseArgs = {
 }
 
 export type QueryErrors_Key_ValuesArgs = {
+	count?: InputMaybe<Scalars['Int']>
 	date_range: DateRangeRequiredInput
 	key_name: Scalars['String']
 	project_id: Scalars['ID']
@@ -2441,6 +2451,7 @@ export type QueryErrors_KeysArgs = {
 export type QueryErrors_MetricsArgs = {
 	bucket_by: Scalars['String']
 	bucket_count?: InputMaybe<Scalars['Int']>
+	bucket_window?: InputMaybe<Scalars['Int']>
 	column: Scalars['String']
 	group_by: Array<Scalars['String']>
 	limit?: InputMaybe<Scalars['Int']>
@@ -2544,6 +2555,7 @@ export type QueryJira_ProjectsArgs = {
 }
 
 export type QueryKey_ValuesArgs = {
+	count?: InputMaybe<Scalars['Int']>
 	date_range: DateRangeRequiredInput
 	key_name: Scalars['String']
 	product_type: ProductType
@@ -2603,6 +2615,7 @@ export type QueryLogs_HistogramArgs = {
 }
 
 export type QueryLogs_Key_ValuesArgs = {
+	count?: InputMaybe<Scalars['Int']>
 	date_range: DateRangeRequiredInput
 	key_name: Scalars['String']
 	project_id: Scalars['ID']
@@ -2618,6 +2631,7 @@ export type QueryLogs_KeysArgs = {
 export type QueryLogs_MetricsArgs = {
 	bucket_by: Scalars['String']
 	bucket_count?: InputMaybe<Scalars['Int']>
+	bucket_window?: InputMaybe<Scalars['Int']>
 	column: Scalars['String']
 	group_by: Array<Scalars['String']>
 	limit?: InputMaybe<Scalars['Int']>
@@ -2657,6 +2671,7 @@ export type QueryMetric_TagsArgs = {
 export type QueryMetricsArgs = {
 	bucket_by: Scalars['String']
 	bucket_count?: InputMaybe<Scalars['Int']>
+	bucket_window?: InputMaybe<Scalars['Int']>
 	column: Scalars['String']
 	group_by: Array<Scalars['String']>
 	limit?: InputMaybe<Scalars['Int']>
@@ -2840,6 +2855,7 @@ export type QuerySessions_Histogram_ClickhouseArgs = {
 }
 
 export type QuerySessions_Key_ValuesArgs = {
+	count?: InputMaybe<Scalars['Int']>
 	date_range: DateRangeRequiredInput
 	key_name: Scalars['String']
 	project_id: Scalars['ID']
@@ -2855,6 +2871,7 @@ export type QuerySessions_KeysArgs = {
 export type QuerySessions_MetricsArgs = {
 	bucket_by: Scalars['String']
 	bucket_count?: InputMaybe<Scalars['Int']>
+	bucket_window?: InputMaybe<Scalars['Int']>
 	column: Scalars['String']
 	group_by: Array<Scalars['String']>
 	limit?: InputMaybe<Scalars['Int']>
@@ -2916,6 +2933,7 @@ export type QueryTracesIntegrationArgs = {
 }
 
 export type QueryTraces_Key_ValuesArgs = {
+	count?: InputMaybe<Scalars['Int']>
 	date_range: DateRangeRequiredInput
 	key_name: Scalars['String']
 	project_id: Scalars['ID']
@@ -2931,6 +2949,7 @@ export type QueryTraces_KeysArgs = {
 export type QueryTraces_MetricsArgs = {
 	bucket_by?: InputMaybe<Scalars['String']>
 	bucket_count?: InputMaybe<Scalars['Int']>
+	bucket_window?: InputMaybe<Scalars['Int']>
 	column: Scalars['String']
 	group_by: Array<Scalars['String']>
 	limit?: InputMaybe<Scalars['Int']>
@@ -3328,6 +3347,7 @@ export type Session = {
 	created_at: Scalars['Timestamp']
 	deviceMemory?: Maybe<Scalars['Int']>
 	direct_download_url?: Maybe<Scalars['String']>
+	email?: Maybe<Scalars['String']>
 	enable_recording_network_contents?: Maybe<Scalars['Boolean']>
 	enable_strict_privacy?: Maybe<Scalars['Boolean']>
 	environment?: Maybe<Scalars['String']>

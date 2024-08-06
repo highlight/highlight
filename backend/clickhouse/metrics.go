@@ -39,7 +39,7 @@ var MetricsSampleableTableConfig = SampleableTableConfig{
 	},
 }
 
-func (client *Client) ReadEventMetrics(ctx context.Context, projectID int, params modelInputs.QueryInput, column string, metricTypes []modelInputs.MetricAggregator, groupBy []string, nBuckets *int, bucketBy string, limit *int, limitAggregator *modelInputs.MetricAggregator, limitColumn *string) (*modelInputs.MetricsBuckets, error) {
+func (client *Client) ReadEventMetrics(ctx context.Context, projectID int, params modelInputs.QueryInput, column string, metricTypes []modelInputs.MetricAggregator, groupBy []string, nBuckets *int, bucketBy string, bucketWindow *int, limit *int, limitAggregator *modelInputs.MetricAggregator, limitColumn *string) (*modelInputs.MetricsBuckets, error) {
 	params.Query = params.Query + " " + modelInputs.ReservedTraceKeyMetricName.String() + "=" + column
 	return client.ReadMetrics(ctx, ReadMetricsInput{
 		SampleableConfig: MetricsSampleableTableConfig,
@@ -49,6 +49,7 @@ func (client *Client) ReadEventMetrics(ctx context.Context, projectID int, param
 		MetricTypes:      metricTypes,
 		GroupBy:          groupBy,
 		BucketCount:      nBuckets,
+		BucketWindow:     bucketWindow,
 		BucketBy:         bucketBy,
 		Limit:            limit,
 		LimitAggregator:  limitAggregator,
@@ -83,8 +84,8 @@ func (client *Client) MetricsKeys(ctx context.Context, projectID int, startDate 
 	return metricKeys, nil
 }
 
-func (client *Client) MetricsKeyValues(ctx context.Context, projectID int, keyName string, startDate time.Time, endDate time.Time) ([]string, error) {
-	return KeyValuesAggregated(ctx, client, TraceKeyValuesTable, projectID, keyName, startDate, endDate)
+func (client *Client) MetricsKeyValues(ctx context.Context, projectID int, keyName string, startDate time.Time, endDate time.Time, limit *int) ([]string, error) {
+	return KeyValuesAggregated(ctx, client, TraceKeyValuesTable, projectID, keyName, startDate, endDate, limit)
 }
 
 func (client *Client) MetricsLogLines(ctx context.Context, projectID int, params modelInputs.QueryInput) ([]*modelInputs.LogLine, error) {
