@@ -220,10 +220,24 @@ export const Select = <T,>({
 
 	useEffect(() => {
 		if (store && optionsProp) {
-			const newOptions = valueToOptions(optionsProp)
+			const { value } = store.getState()
+			let newOptions = valueToOptions(optionsProp) as Option[]
 
-			if (Array.isArray(newOptions) && !isEqual(newOptions, options)) {
-				setOptions(valueToOptions(newOptions) as Option[])
+			if (Array.isArray(newOptions) && Array.isArray(value)) {
+				const missingOptions = value
+					.filter(
+						(v) =>
+							!newOptions.some((option) =>
+								optionsMatch(option, v),
+							),
+					)
+					.map((v) => ({ name: v, value: v }))
+
+				if (missingOptions.length) {
+					newOptions = [...newOptions, ...missingOptions]
+				}
+
+				setOptions(newOptions)
 			}
 		}
 	}, [optionsProp])
@@ -407,6 +421,8 @@ export const Provider: React.FC<ProviderProps> = ({ children, ...props }) => {
 
 	useEffect(() => {
 		if (setOptions && !props.options) {
+			// If we have no options passed, create them from the items which were
+			// registered by the Option component.
 			setOptions(itemsToOptions(items))
 		}
 	}, [items])

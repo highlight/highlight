@@ -176,6 +176,21 @@ export const DynamicOptionsAndCustomTypes = () => {
 	)
 }
 
+export const CustomValuesWithOptions = () => {
+	const [value, setValue] = useState(['Simone', 'Jay', 'Suni'])
+
+	return (
+		<Stack gap="10">
+			<Text>
+				Reconciles when the selected values do not exist within the
+				options passed to the component.
+			</Text>
+
+			<Select value={value} options={OPTIONS} onChange={setValue} />
+		</Stack>
+	)
+}
+
 const Options = () => (
 	<>
 		{OPTIONS.map((option) => (

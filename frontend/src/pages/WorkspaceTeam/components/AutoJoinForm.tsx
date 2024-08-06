@@ -9,7 +9,6 @@ import { namedOperations } from '@graph/operations'
 import { Box, Select, Text } from '@highlight-run/ui/components'
 import { useParams } from '@util/react-router/useParams'
 import Checkbox, { CheckboxChangeEvent } from 'antd/es/checkbox'
-import { uniq } from 'lodash'
 import React, { useState } from 'react'
 
 import { getEmailDomain } from '@/util/email'
@@ -47,7 +46,7 @@ export const AutoJoinForm: React.FC = () => {
 
 	const onChangeMsg = (domains: string[], msg: string) => {
 		setAutoJoinDomains(domains)
-		setAdminDomains(uniq([...adminDomains, ...domains]))
+		setAdminDomains(adminDomains)
 
 		if (workspace_id) {
 			updateAllowedEmailOrigins({
