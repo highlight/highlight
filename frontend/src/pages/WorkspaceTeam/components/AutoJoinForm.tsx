@@ -86,7 +86,7 @@ export const AutoJoinForm: React.FC = () => {
 						checked={autoJoinDomains.length > 0}
 						onChange={handleCheckboxChange}
 					/>
-					<Text>Auto-approved email domainz</Text>
+					<Text>Auto-approved email domains</Text>
 				</Box>
 				<Select
 					creatable
