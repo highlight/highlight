@@ -542,12 +542,24 @@ export const Option: React.FC<OptionProps> = ({
 			<ItemCheck checked={selected} />
 			{children ? (
 				typeof children === 'string' ? (
-					<Text>{children}</Text>
+					<Text
+						size="small"
+						weight="medium"
+						color="secondaryContentOnEnabled"
+					>
+						{children}
+					</Text>
 				) : (
 					children
 				)
 			) : (
-				<Text>{value}</Text>
+				<Text
+					size="small"
+					weight="medium"
+					color="secondaryContentOnEnabled"
+				>
+					{value}
+				</Text>
 			)}
 		</Ariakit.SelectItem>
 	)
