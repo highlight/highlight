@@ -70,7 +70,7 @@ let onHighlightReadyTimeout: number | undefined = undefined
 let highlight_obj: Highlight
 let first_load_listeners: FirstLoadListeners
 let init_called = false
-type Callback = (span: Span) => any
+type Callback = (span?: Span) => any
 let getTracer: () => Tracer
 const H: HighlightPublicInterface = {
 	options: undefined,
@@ -397,14 +397,18 @@ const H: HighlightPublicInterface = {
 	},
 	startSpan: (
 		name: string,
-		options: SpanOptions | ((span: Span) => any),
-		context?: Context | ((span: Span) => any),
+		options: SpanOptions | ((span?: Span) => any),
+		context?: Context | ((span?: Span) => any),
 		fn?: (span?: Span) => any,
 	): any => {
 		const tracer = typeof getTracer === 'function' ? getTracer() : undefined
 		if (!tracer) {
-			if (typeof fn === 'function') {
-				return fn()
+			if (fn === undefined && context === undefined) {
+				;(options as Callback)()
+			} else if (fn === undefined) {
+				;(context as Callback)()
+			} else {
+				fn()
 			}
 			return
 		}
