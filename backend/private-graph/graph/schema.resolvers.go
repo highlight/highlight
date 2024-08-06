@@ -9007,7 +9007,7 @@ func (r *queryResolver) AiQuerySuggestion(ctx context.Context, timeZone string, 
 	log.WithContext(ctx).Infof("search specific doc: %s", searchSpecificDoc)
 
 	systemPrompt := fmt.Sprintf(`
-You are a simple system used by an observabiliity product in which, 
+You are a simple system used by an observability product in which, 
 given a %s query in english, you output a structured query that the system 
 can use to parse (which ultimately queries an internal database).
 
@@ -9030,10 +9030,6 @@ In terms of the keys and values you can use in the 'query' field, try not to use
 
 %s
 
-You have the following keys to work with:
-
-%s
-
 And here are the key/values that you can use for each respective key. If the below section is empty, be creative:
 
 %s
@@ -9045,7 +9041,7 @@ The 'query' syntax documentation is as follows:
 
 And specifically, for the %s product, you can refer to the following documentation:
 %s
-`, productType, now, openai_client.IrrelevantQueryFunctionalityIndicator, strings.Join(keys, ", "), strings.Join(keyVals, ", "), prompts.SearchSyntaxDocs, productType, searchSpecificDoc)
+`, productType, now, openai_client.IrrelevantQueryFunctionalityIndicator, strings.Join(keyVals, ", "), prompts.SearchSyntaxDocs, productType, searchSpecificDoc)
 
 	yesterday := time.Now().In(loc).AddDate(0, 0, -1)
 	yesterdayAt2PM := time.Date(yesterday.Year(), yesterday.Month(), yesterday.Day(), 14, 0, 0, 0, yesterday.Location()).Format(time.RFC3339)
@@ -9124,6 +9120,46 @@ And specifically, for the %s product, you can refer to the following documentati
 				{
 					Role:    openai.ChatMessageRoleAssistant,
 					Content: examples[2].response,
+				},
+				{
+					Role:    openai.ChatMessageRoleUser,
+					Content: examples[3].request,
+				},
+				{
+					Role:    openai.ChatMessageRoleAssistant,
+					Content: examples[3].response,
+				},
+				{
+					Role:    openai.ChatMessageRoleUser,
+					Content: examples[4].request,
+				},
+				{
+					Role:    openai.ChatMessageRoleAssistant,
+					Content: examples[4].response,
+				},
+				{
+					Role:    openai.ChatMessageRoleUser,
+					Content: examples[5].request,
+				},
+				{
+					Role:    openai.ChatMessageRoleAssistant,
+					Content: examples[5].response,
+				},
+				{
+					Role:    openai.ChatMessageRoleUser,
+					Content: examples[6].request,
+				},
+				{
+					Role:    openai.ChatMessageRoleAssistant,
+					Content: examples[6].response,
+				},
+				{
+					Role:    openai.ChatMessageRoleUser,
+					Content: examples[7].request,
+				},
+				{
+					Role:    openai.ChatMessageRoleAssistant,
+					Content: examples[7].response,
 				},
 				{
 					Role:    openai.ChatMessageRoleUser,
