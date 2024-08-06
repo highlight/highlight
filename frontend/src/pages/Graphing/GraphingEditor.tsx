@@ -5,6 +5,7 @@ import {
 	DateRangePicker,
 	DEFAULT_TIME_PRESETS,
 	Form,
+	IconSolidClock,
 	Input,
 	presetStartDate,
 	Text,
@@ -76,7 +77,7 @@ const SidebarSection = (props: PropsWithChildren) => {
 	)
 }
 
-const EditorBackground = () => {
+const BackgroundPattern = () => {
 	return (
 		<svg width="100%" height="100%">
 			<defs>
@@ -100,6 +101,34 @@ const EditorBackground = () => {
 				fill="url(#polka-dots)"
 			/>
 		</svg>
+	)
+}
+
+export const GraphBackgroundWrapper = ({ children }: PropsWithChildren) => {
+	return (
+		<Box display="flex" position="relative" height="full" width="full">
+			<Box
+				position="absolute"
+				width="full"
+				height="full"
+				cssClass={style.graphBackground}
+			>
+				<BackgroundPattern />
+			</Box>
+
+			<Box cssClass={style.graphWrapper} shadow="small">
+				<Box
+					px="16"
+					py="12"
+					width="full"
+					height="full"
+					border="divider"
+					borderRadius="8"
+				>
+					{children}
+				</Box>
+			</Box>
+		</Box>
 	)
 }
 
@@ -366,7 +395,8 @@ export const GraphingEditor: React.FC = () => {
 						</Text>
 						<Box display="flex" gap="4">
 							<DateRangePicker
-								emphasis="low"
+								iconLeft={<IconSolidClock size={14} />}
+								emphasis="medium"
 								kind="secondary"
 								selectedValue={{
 									startDate,
@@ -404,79 +434,44 @@ export const GraphingEditor: React.FC = () => {
 						display="flex"
 						flexDirection="row"
 						justifyContent="space-between"
-						cssClass={style.editGraphPanel}
+						height="full"
 					>
-						<Box
-							display="flex"
-							position="relative"
-							height="full"
-							cssClass={style.previewWindow}
-						>
-							<Box
-								position="absolute"
-								width="full"
-								height="full"
-								cssClass={style.graphBackground}
-							>
-								<EditorBackground />
-							</Box>
-
-							<Box cssClass={style.graphWrapper} shadow="small">
-								<Box
-									px="16"
-									py="12"
-									width="full"
-									height="full"
-									border="divider"
-									borderRadius="8"
-								>
-									<Graph
-										title={
-											metricViewTitle ||
-											tempMetricViewTitle?.current
-										}
-										viewConfig={viewConfig}
-										productType={productType}
-										projectId={projectId}
-										startDate={startDate}
-										selectedPreset={selectedPreset}
-										endDate={endDate}
-										query={debouncedQuery}
-										metric={metric}
-										functionType={functionType}
-										bucketByKey={
-											bucketByEnabled
-												? bucketByKey
-												: undefined
-										}
-										bucketCount={
-											bucketByEnabled
-												? bucketCount
-												: undefined
-										}
-										groupByKey={
-											groupByEnabled
-												? groupByKey
-												: undefined
-										}
-										limit={
-											groupByEnabled ? limit : undefined
-										}
-										limitFunctionType={
-											groupByEnabled
-												? limitFunctionType
-												: undefined
-										}
-										limitMetric={
-											groupByEnabled
-												? limitMetric
-												: undefined
-										}
-										setTimeRange={updateSearchTime}
-									/>
-								</Box>
-							</Box>
-						</Box>
+						<GraphBackgroundWrapper>
+							<Graph
+								title={
+									metricViewTitle ||
+									tempMetricViewTitle?.current
+								}
+								viewConfig={viewConfig}
+								productType={productType}
+								projectId={projectId}
+								startDate={startDate}
+								selectedPreset={selectedPreset}
+								endDate={endDate}
+								query={debouncedQuery}
+								metric={metric}
+								functionType={functionType}
+								bucketByKey={
+									bucketByEnabled ? bucketByKey : undefined
+								}
+								bucketCount={
+									bucketByEnabled ? bucketCount : undefined
+								}
+								groupByKey={
+									groupByEnabled ? groupByKey : undefined
+								}
+								limit={groupByEnabled ? limit : undefined}
+								limitFunctionType={
+									groupByEnabled
+										? limitFunctionType
+										: undefined
+								}
+								limitMetric={
+									groupByEnabled ? limitMetric : undefined
+								}
+								setTimeRange={updateSearchTime}
+							/>
+						</GraphBackgroundWrapper>
 						<Box
 							display="flex"
 							borderLeft="dividerWeak"
@@ -484,6 +479,7 @@ export const GraphingEditor: React.FC = () => {
 							cssClass={style.editGraphSidebar}
 							overflowY="auto"
 							overflowX="hidden"
+							flexShrink={0}
 						>
 							<Form className={style.editGraphSidebar}>
 								<SidebarSection>

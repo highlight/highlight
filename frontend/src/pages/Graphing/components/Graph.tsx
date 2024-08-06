@@ -928,6 +928,7 @@ const Graph = ({
 						spotlight={spotlight}
 						setTimeRange={setTimeRange}
 						loadExemplars={loadExemplars}
+						showGrid
 					>
 						{children}
 					</LineChart>
@@ -945,6 +946,7 @@ const Graph = ({
 						spotlight={spotlight}
 						setTimeRange={setTimeRange}
 						loadExemplars={loadExemplars}
+						showGrid
 					>
 						{children}
 					</BarChart>

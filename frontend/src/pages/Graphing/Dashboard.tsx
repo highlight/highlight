@@ -21,6 +21,7 @@ import {
 	Form,
 	IconSolidChartBar,
 	IconSolidCheveronRight,
+	IconSolidClock,
 	IconSolidPlus,
 	IconSolidTemplate,
 	presetStartDate,
@@ -277,8 +278,9 @@ export const Dashboard = () => {
 							) : (
 								<>
 									<DateRangePicker
-										emphasis="low"
+										emphasis="medium"
 										kind="secondary"
+										iconLeft={<IconSolidClock size={14} />}
 										selectedValue={{
 											startDate,
 											endDate,
@@ -292,9 +294,11 @@ export const Dashboard = () => {
 									/>
 									<HeaderDivider />
 									<Button
-										emphasis="low"
+										emphasis="medium"
 										kind="secondary"
-										iconLeft={<IconSolidTemplate />}
+										iconLeft={
+											<IconSolidTemplate size={14} />
+										}
 										onClick={() => {
 											setEditing(true)
 										}}
@@ -302,9 +306,9 @@ export const Dashboard = () => {
 										Edit dashboard
 									</Button>
 									<Button
-										emphasis="low"
+										emphasis="medium"
 										kind="secondary"
-										iconLeft={<IconSolidPlus />}
+										iconLeft={<IconSolidPlus size={14} />}
 										onClick={() => {
 											navigate({
 												pathname: 'new',
