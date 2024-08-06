@@ -9085,6 +9085,30 @@ And specifically, for the %s product, you can refer to the following documentati
 		},
 	}
 
+	messages := []openai.ChatCompletionMessage{
+		{
+			Role:    openai.ChatMessageRoleSystem,
+			Content: systemPrompt,
+		},
+	}
+
+	for _, example := range examples {
+		messages = append(messages, openai.ChatCompletionMessage{
+			Role:    openai.ChatMessageRoleUser,
+			Content: example.request,
+		})
+
+		messages = append(messages, openai.ChatCompletionMessage{
+			Role:    openai.ChatMessageRoleAssistant,
+			Content: example.response,
+		})
+	}
+
+	messages = append(messages, openai.ChatCompletionMessage{
+		Role:    openai.ChatMessageRoleUser,
+		Content: query,
+	})
+
 	resp, err := r.OpenAiClient.CreateChatCompletion(
 		ctx,
 		openai.ChatCompletionRequest{
@@ -9092,80 +9116,7 @@ And specifically, for the %s product, you can refer to the following documentati
 			ResponseFormat: &openai.ChatCompletionResponseFormat{
 				Type: openai.ChatCompletionResponseFormatTypeJSONObject,
 			},
-			Messages: []openai.ChatCompletionMessage{
-				{
-					Role:    openai.ChatMessageRoleSystem,
-					Content: systemPrompt,
-				},
-				{
-					Role:    openai.ChatMessageRoleUser,
-					Content: examples[0].request,
-				},
-				{
-					Role:    openai.ChatMessageRoleAssistant,
-					Content: examples[0].response,
-				},
-				{
-					Role:    openai.ChatMessageRoleUser,
-					Content: examples[1].request,
-				},
-				{
-					Role:    openai.ChatMessageRoleAssistant,
-					Content: examples[1].response,
-				},
-				{
-					Role:    openai.ChatMessageRoleUser,
-					Content: examples[2].request,
-				},
-				{
-					Role:    openai.ChatMessageRoleAssistant,
-					Content: examples[2].response,
-				},
-				{
-					Role:    openai.ChatMessageRoleUser,
-					Content: examples[3].request,
-				},
-				{
-					Role:    openai.ChatMessageRoleAssistant,
-					Content: examples[3].response,
-				},
-				{
-					Role:    openai.ChatMessageRoleUser,
-					Content: examples[4].request,
-				},
-				{
-					Role:    openai.ChatMessageRoleAssistant,
-					Content: examples[4].response,
-				},
-				{
-					Role:    openai.ChatMessageRoleUser,
-					Content: examples[5].request,
-				},
-				{
-					Role:    openai.ChatMessageRoleAssistant,
-					Content: examples[5].response,
-				},
-				{
-					Role:    openai.ChatMessageRoleUser,
-					Content: examples[6].request,
-				},
-				{
-					Role:    openai.ChatMessageRoleAssistant,
-					Content: examples[6].response,
-				},
-				{
-					Role:    openai.ChatMessageRoleUser,
-					Content: examples[7].request,
-				},
-				{
-					Role:    openai.ChatMessageRoleAssistant,
-					Content: examples[7].response,
-				},
-				{
-					Role:    openai.ChatMessageRoleUser,
-					Content: query,
-				},
-			},
+			Messages: messages,
 		},
 	)
 
@@ -9180,11 +9131,13 @@ And specifically, for the %s product, you can refer to the following documentati
 	}
 
 	log.WithContext(ctx).
-		WithField("response", resp.Choices[0].Message.Content).
-		Info("AI suggestion generated.")
-
-	log.WithContext(ctx).
-		Info(fmt.Sprintf(systemPrompt))
+		WithFields(
+			log.Fields{
+				"request":  query,
+				"response": resp.Choices[0].Message.Content,
+			},
+		).
+		Info("AI query suggestion generated.")
 
 	// Define the structs inline
 	var toSaveString struct {
