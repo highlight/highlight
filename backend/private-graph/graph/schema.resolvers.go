@@ -9030,7 +9030,7 @@ In terms of the keys and values you can use in the 'query' field, try not to use
 
 %s
 
-And here are the key/values that you can use for each respective key. If the below section is empty, be creative:
+And here are the key/values that you can use for each respective key. You are limited to these keys, but can be creative with the values:
 
 %s
 
