@@ -1114,22 +1114,19 @@ func TestUpdateSessionIsPublic(t *testing.T) {
 			t.Fatal(e.Wrap(err, "error inserting project"))
 		}
 
+		session := model.Session{ProjectID: project.ID, SecureID: "abc123"}
+		if err := DB.Create(&session).Error; err != nil {
+			t.Fatal(e.Wrap(err, "error inserting sessions"))
+		}
+		assert.False(t, session.IsPublic)
+
 		// test logic
 		ctx := context.Background()
 		ctx = context.WithValue(ctx, model.ContextKeys.UID, *admin.UID)
 		assert.NoError(t, redis.NewClient().FlushDB(ctx))
 
 		r := &mutationResolver{Resolver: &Resolver{DB: DB, Store: store.NewStore(DB, redis.NewClient(), integrations.NewIntegrationsClient(DB), &storage.FilesystemClient{}, &kafka_queue.MockMessageQueue{}, nil)}}
-
-		session := model.Session{ProjectID: project.ID, SecureID: "abc123"}
-		if err := DB.Create(&session).Error; err != nil {
-			t.Fatal(e.Wrap(err, "error inserting sessions"))
-		}
-
-		if err := DB.Model(&model.Session{}).Where(&model.Session{SecureID: "abc123"}).Take(&session).Error; err != nil {
-			t.Fatal(e.Wrap(err, "error reading sessions"))
-		}
-		assert.False(t, session.IsPublic)
+		_ = r.Store.Redis.FlushDB(ctx)
 
 		s, err := r.UpdateSessionIsPublic(ctx, session.SecureID, true)
 		assert.NoError(t, err)
