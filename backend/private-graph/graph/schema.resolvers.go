@@ -9060,6 +9060,10 @@ And specifically, for the %s product, you can refer to the following documentati
 			response: fmt.Sprintf(`{"query":"status_code=500","date_range":{"start_date":"%s","end_date":""}}`, sevenDaysBack),
 		},
 		{
+			request:  "Filter out debug logs",
+			response: `{"query":"level!=debug","date_range":{"start_date":"","end_date":""}}`,
+		},
+		{
 			request:  "Show me all the error logs from last week to yesterday at 2pm",
 			response: fmt.Sprintf(`{"query":"level=error","date_range":{"start_date":"%s","end_date":"%s"}}`, sevenDaysBack, yesterdayAt2PM),
 		},
@@ -9074,6 +9078,10 @@ And specifically, for the %s product, you can refer to the following documentati
 		{
 			request:  "logs that have 'panic' in the message",
 			response: `{"query":"message=*panic*","date_range":{"start_date":"","end_date":""}}`,
+		},
+		{
+			request:  "logs with a number in the trace_id",
+			response: `{"query":"trace_id=/.+\d.+/","date_range":{"start_date":"","end_date":""}}`,
 		},
 		{
 			request:  openai_client.IrrelevantQuery,
