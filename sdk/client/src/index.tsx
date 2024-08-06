@@ -688,7 +688,13 @@ SessionSecureID: ${this.sessionData.sessionSecureID}`,
 				])
 			}
 
-			const emit = (event: eventWithTime) => {
+			const emit = (
+				event: eventWithTime,
+				isCheckout?: boolean | undefined,
+			) => {
+				if (isCheckout) {
+					this.logger.log('received isCheckout emit', { event })
+				}
 				this.events.push(event)
 			}
 			emit.bind(this)
@@ -731,6 +737,7 @@ SessionSecureID: ${this.sessionData.sessionSecureID}`,
 					return !this.options.recordCrossOriginIframe
 				},
 				inlineImages: this.inlineImages,
+				collectFonts: this.inlineImages,
 				inlineStylesheet: this.inlineStylesheet,
 				plugins: [getRecordSequentialIdPlugin()],
 				logger:
@@ -1390,7 +1397,11 @@ SessionSecureID: ${this.sessionData.sessionSecureID}`,
 	}
 
 	private takeFullSnapshot() {
-		record.takeFullSnapshot()
+		this.logger.log(`taking full snapshot`, {
+			bytesSinceSnapshot: this._eventBytesSinceSnapshot,
+			lastSnapshotTime: this._lastSnapshotTime,
+		})
+		record.takeFullSnapshot(true)
 		this._eventBytesSinceSnapshot = 0
 		this._lastSnapshotTime = new Date().getTime()
 	}
