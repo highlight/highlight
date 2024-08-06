@@ -88,25 +88,24 @@ export const AutoresolveStaleErrorsForm = () => {
 						<Box display="flex">
 							<Label
 								label="Auto-resolve errors not seen in"
-								name="Auto-resolve errors not seen in"
+								name="auto-resolve-not-seen-in"
 							/>
 						</Box>
 						<Box>
 							<Form.Select
-								name="Auto-resolve errors not seen in"
+								name="auto-resolve-not-seen-in"
 								value={
 									data?.projectSettings
 										?.autoResolveStaleErrorsDayInterval
 								}
 								onChange={(option) =>
 									setAutoResolveStaleErrorsDayInterval(
-										option.value,
+										Number(option.value),
 									)
 								}
-								disabled={!enableAutoResolveStaleErrors}
+								// disabled={!enableAutoResolveStaleErrors}
 								options={DAY_VALUES.map((day) => ({
 									name: `${day} day${day === 1 ? '' : 's'}`,
-									id: day,
 									value: day,
 								}))}
 							/>

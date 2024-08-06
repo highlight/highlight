@@ -128,6 +128,7 @@ export type SelectProps<T = any> = Omit<
 	checkType?: SelectProviderProps['checkType']
 	creatable?: boolean
 	defaultValue?: T
+	disabled?: boolean
 	displayMode?: SelectProviderProps['displayMode']
 	filterable?: boolean
 	loading?: SelectProviderProps['loading']
@@ -403,7 +404,7 @@ const Trigger: React.FC<Omit<SelectProps, 'value' | 'setValue'>> = ({
 	}
 
 	return (
-		<Component style={{ opacity: loading ? 0.8 : 1 }} {...props}>
+		<Component style={{ opacity: props.disabled ? 0.7 : 1 }} {...props}>
 			{value
 				? renderSelectValue(value)
 				: renderPlaceholderValue(props.placeholder)}

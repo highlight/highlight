@@ -191,6 +191,18 @@ export const CustomValuesWithOptions = () => {
 	)
 }
 
+export const Disabled = () => {
+	const [enabled, setEnabled] = useState(false)
+	return (
+		<Stack>
+			<Select options={OPTIONS} disabled={!enabled} />
+			<Button onClick={() => setEnabled(!enabled)}>
+				{enabled ? 'Disable' : 'Enable'}
+			</Button>
+		</Stack>
+	)
+}
+
 const Options = () => (
 	<>
 		{OPTIONS.map((option) => (
