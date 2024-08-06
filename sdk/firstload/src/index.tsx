@@ -25,7 +25,6 @@ import configureElectronHighlight from './environments/electron.js'
 import firstloadVersion from './__generated/version.js'
 import {
 	getPreviousSessionData,
-	getSessionSecureID,
 	type SessionData,
 } from '@highlight-run/client/src/utils/sessionStorage/highlightSession.js'
 import { initializeFetchListener } from './listeners/fetch'
@@ -97,7 +96,7 @@ const H: HighlightPublicInterface = {
 
 			let previousSession = getPreviousSessionData()
 			sessionSecureID = GenerateSecureID()
-			if (previousSession?.sessionSecureID && !previousSession.active) {
+			if (previousSession?.sessionSecureID) {
 				sessionSecureID = previousSession.sessionSecureID
 			} else {
 				const sessionData: SessionData = {

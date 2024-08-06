@@ -59,6 +59,7 @@ import {
 	getPreviousSessionData,
 	SessionData,
 	setSessionData,
+	setSessionSecureID,
 } from './utils/sessionStorage/highlightSession'
 import type { HighlightClientRequestWorker } from './workers/highlight-client-worker'
 import HighlightClientWorker from './workers/highlight-client-worker?worker&inline'
@@ -242,8 +243,7 @@ export class Highlight {
 		// only fetch session data from local storage on the first `initialize` call
 		if (
 			!this.sessionData?.sessionSecureID &&
-			storedSessionData?.sessionSecureID &&
-			!storedSessionData?.active
+			storedSessionData?.sessionSecureID
 		) {
 			this.sessionData = storedSessionData
 			this.options.sessionSecureID = storedSessionData.sessionSecureID
@@ -523,15 +523,18 @@ export class Highlight {
 				return
 			}
 
-			const sessionData = getPreviousSessionData() ?? ({} as SessionData)
-			if (!sessionData?.sessionStartTime) {
+			this.sessionData =
+				getPreviousSessionData(this.sessionData.sessionSecureID) ??
+				({} as SessionData)
+			if (!this.sessionData?.sessionStartTime) {
 				this._recordingStartTime = new Date().getTime()
-				sessionData.sessionStartTime = this._recordingStartTime
+				this.sessionData.sessionStartTime = this._recordingStartTime
 			} else {
-				this._recordingStartTime = sessionData?.sessionStartTime
+				this._recordingStartTime = this.sessionData?.sessionStartTime
 			}
 			// To handle the 'Duplicate Tab' function, remove id from storage until page unload
-			setSessionData({ ...sessionData, active: true })
+			setSessionSecureID('')
+			setSessionData(this.sessionData)
 
 			let clientID = getItem(LOCAL_STORAGE_KEYS['CLIENT_ID'])
 
@@ -1058,7 +1061,8 @@ SessionSecureID: ${this.sessionData.sessionSecureID}`,
 
 		const unloadListener = () => {
 			this.addCustomEvent('Page Unload', '')
-			setSessionData({ ...this.sessionData, active: false })
+			setSessionSecureID(this.sessionData.sessionSecureID)
+			setSessionData(this.sessionData)
 		}
 		window.addEventListener('beforeunload', unloadListener)
 		this.listeners.push(() =>
@@ -1072,7 +1076,8 @@ SessionSecureID: ${this.sessionData.sessionSecureID}`,
 		if (isOnIOS) {
 			const unloadListener = () => {
 				this.addCustomEvent('Page Unload', '')
-				setSessionData({ ...this.sessionData, active: false })
+				setSessionSecureID(this.sessionData.sessionSecureID)
+				setSessionData(this.sessionData)
 			}
 			window.addEventListener('pagehide', unloadListener)
 			this.listeners.push(() =>
@@ -1256,7 +1261,7 @@ SessionSecureID: ${this.sessionData.sessionSecureID}`,
 			await this._sendPayload({ sendFn })
 			this.hasPushedData = true
 			this.sessionData.lastPushTime = Date.now()
-			setSessionData({ ...this.sessionData, active: true })
+			setSessionData(this.sessionData)
 		} catch (e) {
 			if (this._isOnLocalHost) {
 				console.error(e)
@@ -1363,7 +1368,7 @@ SessionSecureID: ${this.sessionData.sessionSecureID}`,
 				},
 			})
 		}
-		setSessionData({ ...this.sessionData, active: true })
+		setSessionData(this.sessionData)
 
 		// If sendFn throws an exception, the data below will not be cleared, and it will be re-uploaded on the next PushPayload.
 		FirstLoadListeners.clearRecordedNetworkResources(

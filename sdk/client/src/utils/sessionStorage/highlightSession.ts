@@ -6,7 +6,6 @@ export type SessionData = {
 	sessionSecureID: string
 	projectID: number
 	payloadID: number
-	active?: boolean // true when a tab is actively recording to indicate another session should start
 	sessionStartTime?: number
 	lastPushTime?: number
 	userIdentifier?: string
@@ -19,6 +18,10 @@ const getSessionDataKey = (sessionID: string): string => {
 
 export const getSessionSecureID = (): string => {
 	return getItem(SESSION_STORAGE_KEYS.SESSION_ID) ?? ''
+}
+
+export const setSessionSecureID = (secureID: string) => {
+	setItem(SESSION_STORAGE_KEYS.SESSION_ID, secureID)
 }
 
 const getSessionData = (sessionID: string): SessionData | undefined => {
@@ -48,6 +51,5 @@ export const getPreviousSessionData = (
 export const setSessionData = function (sessionData?: SessionData) {
 	if (!sessionData?.sessionSecureID) return
 	const secureID = sessionData.sessionSecureID!
-	setItem(SESSION_STORAGE_KEYS.SESSION_ID, secureID)
 	setItem(getSessionDataKey(secureID), JSON.stringify(sessionData))
 }
