@@ -597,20 +597,17 @@ const LogAlertForm = () => {
 								)
 							}
 						>
-							<option value="" disabled>
+							<Form.Option value="" disabled>
 								Select alert frequency
-							</option>
+							</Form.Option>
 							{FREQUENCIES.filter(
 								(freq) =>
 									Number(freq.value) >=
 									LOG_ALERT_MINIMUM_FREQUENCY,
 							).map((freq: any) => (
-								<option
-									key={freq.id}
-									value={Number(freq.value)}
-								>
+								<Form.Option key={freq.id} value={freq.value}>
 									{freq.displayValue}
-								</option>
+								</Form.Option>
 							))}
 						</Form.Select>
 					</Column>

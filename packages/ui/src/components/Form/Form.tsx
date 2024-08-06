@@ -6,7 +6,7 @@ import { Badge } from '../Badge/Badge'
 import { Box } from '../Box/Box'
 import { Button, ButtonProps } from '../Button/Button'
 import { IconSolidCheveronDown, IconSolidCheveronUp } from '../icons'
-import { Select as UISelect, SelectProps } from '../Select/Select'
+import { OptionProps, Select as UISelect, SelectProps } from '../Select/Select'
 import { Stack } from '../Stack/Stack'
 import { Text } from '../Text/Text'
 import * as styles from './styles.css'
@@ -228,9 +228,9 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
 	},
 )
 
-type FormSelectProps = Omit<Ariakit.FormInputProps, 'onChange'> &
+type FormSelectProps = Ariakit.FormInputProps &
 	React.PropsWithChildren<HasLabel> &
-	Omit<SelectProps, 'name'>
+	Omit<SelectProps, 'name' | 'onChange'>
 
 export const Select = ({
 	children,
@@ -247,7 +247,7 @@ export const Select = ({
 	displayMode,
 	loading,
 	trigger,
-	onChange,
+	onValueChange,
 	onCreate,
 	renderValue,
 	...props
@@ -285,11 +285,11 @@ export const Select = ({
 						// `onChange` to receive an event rather than the option we pass
 						// when calling `handleSetValue`. We will either need to rename this
 						// prop or...?
-						onChange={(option) => {
+						onValueChange={(option) => {
 							form.setValue(name, option.value)
 
-							if (onChange) {
-								onChange(option)
+							if (onValueChange) {
+								onValueChange(option)
 							}
 						}}
 					/>
@@ -302,9 +302,7 @@ export const Select = ({
 	)
 }
 
-type FormOptionProps = Ariakit.SelectItemProps
-
-export const Option: React.FC<FormOptionProps> = ({ children, ...props }) => {
+export const Option: React.FC<OptionProps> = ({ children, ...props }) => {
 	return <UISelect.Option {...props}>{children}</UISelect.Option>
 }
 

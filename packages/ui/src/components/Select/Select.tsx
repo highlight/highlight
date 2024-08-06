@@ -38,7 +38,7 @@ type SelectProviderProps<T = any> = {
 	value?: T
 	setOptions?: (options: T) => void
 	setValue?: (value: T) => void
-	onChange?: (value: T) => void
+	onValueChange?: (value: T) => void
 }
 
 const SelectContext = React.createContext<SelectProviderProps>({
@@ -61,7 +61,7 @@ const SelectProvider = <T,>({
 	children,
 	options,
 	value: valueProp,
-	onChange,
+	onValueChange,
 	...props
 }: React.PropsWithChildren<Omit<SelectProviderProps<T>, 'setValue'>>) => {
 	options = (options ?? []).map(singleValueToOption)
@@ -100,8 +100,8 @@ const SelectProvider = <T,>({
 
 		setValue(newInternalValue)
 
-		if (onChange) {
-			onChange(newInternalValue)
+		if (onValueChange) {
+			onValueChange(newInternalValue)
 		}
 	}
 	/* eslint-enable @typescript-eslint/no-explicit-any */
@@ -123,7 +123,7 @@ const SelectProvider = <T,>({
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export type SelectProps<T = any> = Omit<
 	Ariakit.SelectProps,
-	'defaultValue' | 'value' | 'onChange'
+	'defaultValue' | 'value'
 > & {
 	checkType?: SelectProviderProps['checkType']
 	creatable?: boolean
@@ -139,7 +139,7 @@ export type SelectProps<T = any> = Omit<
 	renderValue?: (
 		value: Ariakit.SelectStoreState['value'],
 	) => React.ReactElement | string | null
-	onChange?: SelectProviderProps['onChange']
+	onValueChange?: SelectProviderProps['onValueChange']
 	onCreate?: (newOptionValue: string) => void
 }
 
@@ -153,7 +153,7 @@ export const Select = <T,>({
 	store,
 	value: valueProp,
 	options: optionsProp,
-	onChange,
+	onValueChange,
 	onCreate,
 	...props
 }: SelectProps<T>) => {
@@ -179,7 +179,7 @@ export const Select = <T,>({
 		loading,
 		options,
 		value: valueToOptions(value) as any, // eslint-disable-line @typescript-eslint/no-explicit-any
-		onChange,
+		onValueChange,
 		setOptions,
 	}
 
@@ -357,7 +357,7 @@ const Trigger: React.FC<Omit<SelectProps, 'value' | 'setValue'>> = ({
 		}
 
 		const option = options?.find((option) => optionsMatch(option, v))
-		return isOption(option) ? option.name : v
+		return isOption(option) ? option.name ?? option.children : v
 	}
 
 	const renderSelectValue = (
@@ -424,7 +424,7 @@ export const Provider: React.FC<ProviderProps> = ({ children, ...props }) => {
 		if (setOptions && !props.options) {
 			// If we have no options passed, create them from the items which were
 			// registered by the Option component.
-			setOptions(valueToOptions(items))
+			setOptions(itemsToOptions(items))
 		}
 	}, [items])
 
@@ -487,7 +487,8 @@ export const Label: React.FC<LableProps> = ({ children, ...props }) => {
 	return <Ariakit.SelectLabel {...props}>{children}</Ariakit.SelectLabel>
 }
 
-export const Option: React.FC<Ariakit.SelectItemProps> = ({
+export type OptionProps = Ariakit.SelectItemProps
+export const Option: React.FC<OptionProps> = ({
 	children,
 	value,
 	...props
@@ -620,6 +621,10 @@ const optionToStringValue = (option: any | undefined) => {
 	} else {
 		return String(option)
 	}
+}
+
+const itemsToOptions = (items: Ariakit.SelectStoreState['items']) => {
+	return items.map((item) => ({ name: item.value, value: item.value }))
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any

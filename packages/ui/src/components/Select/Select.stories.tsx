@@ -1,5 +1,5 @@
 import { Meta } from '@storybook/react'
-import { useMemo, useState } from 'react'
+import { useState } from 'react'
 
 import { Box } from '../Box/Box'
 import { Button } from '../Button/Button'
@@ -111,7 +111,7 @@ export const FilterableMultiSelectWithCheckboxes = () => {
 				options={OPTIONS}
 				checkType="checkbox"
 				value={value}
-				onChange={(newValue: string[]) => {
+				onValueChange={(newValue: string[]) => {
 					setValue(newValue)
 				}}
 				renderValue={(values) => (
@@ -148,7 +148,7 @@ export const DynamicOptionsAndCustomTypes = () => {
 				value={value}
 				options={options}
 				placeholder="Select a user..."
-				onChange={(newValue) => {
+				onValueChange={(newValue) => {
 					setValue(newValue)
 				}}
 			/>
@@ -178,7 +178,7 @@ export const CustomValuesWithOptions = () => {
 				options passed to the component.
 			</Text>
 
-			<Select value={value} options={OPTIONS} onChange={setValue} />
+			<Select value={value} options={OPTIONS} onValueChange={setValue} />
 		</Stack>
 	)
 }

@@ -98,7 +98,7 @@ export const AutoresolveStaleErrorsForm = () => {
 									data?.projectSettings
 										?.autoResolveStaleErrorsDayInterval
 								}
-								onChange={(option) => {
+								onValueChange={(option) => {
 									setAutoResolveStaleErrorsDayInterval(
 										option.value,
 									)
