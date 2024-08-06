@@ -239,6 +239,8 @@ export const Select = ({
 	optional,
 	name,
 	options,
+	creatable,
+	disabled,
 	filterable,
 	checkType,
 	defaultValue,
@@ -246,6 +248,7 @@ export const Select = ({
 	loading,
 	trigger,
 	onChange,
+	onCreate,
 	renderValue,
 	...props
 }: FormSelectProps) => {
@@ -277,9 +280,9 @@ export const Select = ({
 						loading={loading}
 						trigger={trigger}
 						renderValue={renderValue}
+						onCreate={onCreate}
 						onChange={(value) => {
 							form.setValue(name, value)
-						onCreate={onCreate}
 
 							if (onChange) {
 								onChange(value)
