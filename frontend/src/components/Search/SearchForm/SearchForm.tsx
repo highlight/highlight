@@ -201,8 +201,8 @@ const SearchForm: React.FC<SearchFormProps> = ({
 			trackingId="logs_create-alert_click"
 			onClick={() => {
 				navigate({
-					pathname: `/${projectId}/alerts/logs/new`,
-					search: location.search,
+					pathname: `/${projectId}/alerts/new`,
+					search: `${location.search}&source=${productType}`,
 				})
 			}}
 			emphasis="medium"
