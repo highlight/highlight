@@ -103,20 +103,12 @@ export const Creatable = () => {
 const DEFAULT_VALUE = ['Jay', 'Vadim']
 export const FilterableMultiSelectWithCheckboxes = () => {
 	const [value, setValue] = useState(DEFAULT_VALUE)
-	const options = useMemo(
-		() =>
-			OPTIONS.map((option) => ({
-				name: option,
-				value: option,
-			})),
-		[],
-	)
 
 	return (
 		<Stack gap="10">
 			<Select
 				filterable
-				options={options}
+				options={OPTIONS}
 				checkType="checkbox"
 				value={value}
 				onChange={(newValue: string[]) => {

@@ -1,4 +1,5 @@
 import { Meta } from '@storybook/react'
+import { useEffect, useState } from 'react'
 
 import { Box } from '../Box/Box'
 import { Form } from '../Form/Form'
@@ -11,6 +12,7 @@ const meta = {
 export default meta
 
 const ISSUE_TYPES = ['Bug', 'Feature Request', 'Other']
+const PRIORITIES = ['Low', 'Medium', 'High']
 
 export const Basic = () => {
 	const formStore = Form.useStore({
@@ -22,6 +24,14 @@ export const Basic = () => {
 		},
 	})
 	const values = formStore.useState('values')
+	const [priority, setPriority] = useState<typeof PRIORITIES[0]>()
+
+	useEffect(() => {
+		setTimeout(() => {
+			// Simulate loading
+			setPriority(PRIORITIES[1])
+		}, 500)
+	}, [])
 
 	return (
 		<Box style={{ width: 500 }}>
@@ -36,14 +46,12 @@ export const Basic = () => {
 						name="issueType"
 						label="Issue Type"
 						options={ISSUE_TYPES}
-						onChange={(value) => {
-							formStore.setValue(
-								'issueType',
-								Array.isArray(value)
-									? value[0].value
-									: value.value,
-							)
-						}}
+					/>
+					<Form.Select
+						name="priority"
+						label="Priority"
+						options={PRIORITIES}
+						value={priority}
 					/>
 					<Form.Input
 						type="number"

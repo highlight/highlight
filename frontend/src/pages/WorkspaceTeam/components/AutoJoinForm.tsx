@@ -95,7 +95,7 @@ export const AutoJoinForm: React.FC = () => {
 					loading={loading}
 					placeholder={`${adminsEmailDomain}, acme.corp, piedpiper.com`}
 					value={autoJoinDomains}
-					onChange={(value) => handleSelectChange(value)}
+					onChange={(option) => handleSelectChange(option.value)}
 					options={adminDomains}
 				/>
 			</div>

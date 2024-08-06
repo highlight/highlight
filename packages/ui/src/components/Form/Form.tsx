@@ -250,7 +250,7 @@ export const Select = ({
 	...props
 }: FormSelectProps) => {
 	const form = Ariakit.useFormContext()!
-	const value = form.useValue(name)
+	const value = props.value ?? form.useValue(name)
 
 	return (
 		<Stack direction="column" gap="4">
@@ -268,6 +268,8 @@ export const Select = ({
 					<UISelect
 						value={value}
 						options={options}
+						creatable={creatable}
+						disabled={disabled}
 						filterable={filterable}
 						checkType={checkType}
 						defaultValue={defaultValue}
@@ -277,6 +279,7 @@ export const Select = ({
 						renderValue={renderValue}
 						onChange={(value) => {
 							form.setValue(name, value)
+						onCreate={onCreate}
 
 							if (onChange) {
 								onChange(value)
