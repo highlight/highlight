@@ -27,8 +27,8 @@
 		"@types/react-dom": "^18.3.0",
 		"classnames": "^2.5.1",
 		"css-tree": "^2.3.1",
-		"esbuild-css-modules-plugin": "^3.1.2",
-		"tsup": "^8.1.0",
+		"esbuild-css-modules-plugin": "^2.7.1",
+		"tsup": "^8.2.4",
 		"typescript": "^5.5.2"
 	},
 	"files": [
