@@ -1,5 +1,12 @@
 # @highlight-run/next
 
+## 7.5.16
+
+### Patch Changes
+
+-   Updated dependencies [b09f21e4b]
+    -   @highlight-run/react@3.2.4
+
 ## 7.5.15
 
 ### Patch Changes
