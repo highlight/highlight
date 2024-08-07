@@ -1,14 +1,15 @@
 {
 	"name": "@highlight-run/react",
-	"version": "3.2.3",
+	"version": "3.2.4",
 	"description": "The official Highlight SDK for React",
 	"license": "Apache-2.0",
 	"peerDependencies": {
+		"highlight.run": "workspace:*",
 		"react": ">=16",
 		"react-dom": ">=16"
 	},
-	"main": "./dist/src/index.js",
-	"module": "./dist/src/index.mjs",
+	"main": "./dist/index.js",
+	"module": "./dist/index.mjs",
 	"types": "./dist/index.d.ts",
 	"scripts": {
 		"typegen": "tsup src/index.tsx --dts-only",
@@ -24,8 +25,8 @@
 		"@types/react-dom": "^18.3.0",
 		"classnames": "^2.5.1",
 		"css-tree": "^2.3.1",
-		"esbuild-css-modules-plugin": "^3.1.2",
-		"tsup": "^8.1.0",
+		"esbuild-css-modules-plugin": "^2.7.1",
+		"tsup": "^8.2.4",
 		"typescript": "^5.5.2"
 	},
 	"files": [
