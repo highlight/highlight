@@ -1,14 +1,13 @@
 import { Meta } from '@storybook/react'
 import { useState } from 'react'
 
+import { Box } from '../Box/Box'
+import { Button } from '../Button/Button'
 import {
 	IconSolidArrowsExpand,
 	IconSolidLightningBolt,
 	IconSolidTraces,
-} from '@/components/icons'
-
-import { Box } from '../Box/Box'
-import { Button } from '../Button/Button'
+} from '../icons'
 import { Stack } from '../Stack/Stack'
 import { Text } from '../Text/Text'
 import { Select } from './Select'
