@@ -14,7 +14,7 @@ import { useParams } from '@util/react-router/useParams'
 import { Divider } from 'antd'
 import React, { PropsWithChildren, useEffect, useMemo, useState } from 'react'
 import { Helmet } from 'react-helmet'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import { useDebounce } from 'react-use'
 import { ReferenceArea, ReferenceLine } from 'recharts'
 
@@ -103,6 +103,7 @@ export const AlertForm: React.FC = () => {
 	const { alert_id } = useParams<{
 		alert_id: string
 	}>()
+	const [searchParams] = useSearchParams()
 
 	const isEdit = alert_id !== undefined
 
@@ -131,14 +132,16 @@ export const AlertForm: React.FC = () => {
 	const navigate = useNavigate()
 
 	const [alertName, setAlertName] = useState('')
-	const [productType, setProductType] = useState(PRODUCTS[0])
+	const [productType, setProductType] = useState(
+		(searchParams.get('source') as ProductType) || PRODUCTS[0],
+	)
 	const [functionType, setFunctionType] = useState(FUNCTION_TYPES[0])
 	const [functionColumn, setFunctionColumn] = useState('')
 
 	const isErrorAlert = productType === ProductType.Errors
 	const isSessionAlert = productType === ProductType.Sessions
 
-	const [query, setQuery] = useState('')
+	const [query, setQuery] = useState(searchParams.get('query') ?? '')
 	const [debouncedQuery, setDebouncedQuery] = useState('')
 	useDebounce(
 		() => {
