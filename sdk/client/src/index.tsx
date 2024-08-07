@@ -525,7 +525,7 @@ export class Highlight {
 
 			this.sessionData =
 				getPreviousSessionData(this.sessionData.sessionSecureID) ??
-				({} as SessionData)
+				this.sessionData
 			if (!this.sessionData?.sessionStartTime) {
 				this._recordingStartTime = new Date().getTime()
 				this.sessionData.sessionStartTime = this._recordingStartTime
