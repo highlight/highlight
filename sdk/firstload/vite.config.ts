@@ -24,7 +24,7 @@ export default defineConfig({
 			name: 'H',
 			fileName: 'index',
 		},
-		minify: true,
+		minify: 'terser',
 		sourcemap: true,
 		emptyOutDir: false,
 		rollupOptions: {

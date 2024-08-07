@@ -15,7 +15,7 @@ export default defineConfig({
 		},
 		minify: 'terser',
 		emptyOutDir: false,
-		sourcemap: false,
+		sourcemap: true,
 		rollupOptions: {
 			treeshake: 'smallest',
 			output: {

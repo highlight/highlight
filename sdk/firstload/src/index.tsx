@@ -2,8 +2,10 @@ import {
 	type AmplitudeAPI,
 	setupAmplitudeIntegration,
 } from './integrations/amplitude.js'
-import { SESSION_STORAGE_KEYS } from '@highlight-run/client/src/utils/sessionStorage/sessionStorageKeys.js'
-import type { Highlight, HighlightClassOptions } from '@highlight-run/client'
+import type {
+	Highlight,
+	HighlightClassOptions,
+} from '@highlight-run/client/src'
 import type {
 	HighlightOptions,
 	HighlightPublicInterface,
@@ -26,6 +28,8 @@ import firstloadVersion from './__generated/version.js'
 import {
 	getPreviousSessionData,
 	type SessionData,
+	setSessionData,
+	setSessionSecureID,
 } from '@highlight-run/client/src/utils/sessionStorage/highlightSession.js'
 import { initializeFetchListener } from './listeners/fetch'
 import { initializeWebSocketListener } from './listeners/web-socket'
@@ -98,18 +102,6 @@ const H: HighlightPublicInterface = {
 			sessionSecureID = GenerateSecureID()
 			if (previousSession?.sessionSecureID) {
 				sessionSecureID = previousSession.sessionSecureID
-			} else {
-				const sessionData: SessionData = {
-					...previousSession,
-					projectID: +projectID,
-					payloadID: 1,
-					sessionSecureID,
-				}
-
-				setItem(
-					SESSION_STORAGE_KEYS.SESSION_DATA,
-					JSON.stringify(sessionData),
-				)
 			}
 
 			// `init` was already called, do not reinitialize
@@ -141,7 +133,7 @@ const H: HighlightPublicInterface = {
 
 			initializeFetchListener()
 			initializeWebSocketListener()
-			import('@highlight-run/client').then(async ({ Highlight }) => {
+			import('@highlight-run/client/src').then(async ({ Highlight }) => {
 				highlight_obj = new Highlight(
 					client_options,
 					first_load_listeners,
