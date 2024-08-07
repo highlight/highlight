@@ -13,7 +13,7 @@ export default defineConfig({
 			name: '@highlight-run/client',
 			fileName: 'index',
 		},
-		minify: 'terser',
+		minify: true,
 		emptyOutDir: false,
 		sourcemap: true,
 		rollupOptions: {
