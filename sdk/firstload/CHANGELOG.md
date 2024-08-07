@@ -1,5 +1,11 @@
 # highlight.run
 
+## 9.1.4
+
+### Patch Changes
+
+-   3e99f48ca: fix otel webjs event monkeypatch breaking mouse event listeners
+
 ## 9.1.3
 
 ### Patch Changes

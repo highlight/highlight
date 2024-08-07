@@ -15255,6 +15255,7 @@ export const GetMetricsDocument = gql`
 		$group_by: [String!]!
 		$bucket_by: String!
 		$bucket_count: Int
+		$bucket_window: Int
 		$limit: Int
 		$limit_aggregator: MetricAggregator
 		$limit_column: String
@@ -15267,6 +15268,7 @@ export const GetMetricsDocument = gql`
 			metric_types: $metric_types
 			group_by: $group_by
 			bucket_by: $bucket_by
+			bucket_window: $bucket_window
 			bucket_count: $bucket_count
 			limit: $limit
 			limit_aggregator: $limit_aggregator
@@ -15306,6 +15308,7 @@ export const GetMetricsDocument = gql`
  *      group_by: // value for 'group_by'
  *      bucket_by: // value for 'bucket_by'
  *      bucket_count: // value for 'bucket_count'
+ *      bucket_window: // value for 'bucket_window'
  *      limit: // value for 'limit'
  *      limit_aggregator: // value for 'limit_aggregator'
  *      limit_column: // value for 'limit_column'
