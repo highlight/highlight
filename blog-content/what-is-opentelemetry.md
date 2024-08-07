@@ -25,7 +25,7 @@ If you would prefer a video of this content, please feel free to check out our Y
 There are several things that we won't be addressing in this post for the sake of brevity.
 
 - Scaling the collector - We haven't explained what the collector even is, yet. Butthe scope of this post won't cover how you might want to prepare your collector for production-level traffic and usage.
-- Client Setup - Client-side telemetry is still very experimental and most OTEL-compatible services implement their own custom way of handling this.
+- Client Setup - Client-side telemetry is still very experimental and most OTEL-compatible services implement their own custom way of handling this. If you are interested in participating in the discovery process please checkout [this link](https://docs.google.com/document/d/16Vsdh-DM72AfMg_FIt9yT9ExEWF4A_vRbQ3jRNBe09w).
 - User Sessions - OpenTelemetry has the idea of spans and traces, but those are often just a part of a user's session on your site. Highlight does a great job of grouping your traces under one session so that you can understand a user's flow through your whole site rather than just a page or request at a time.
 - Logging - The Node SDK lists logs as still being in development, so we will not be digging into them in this article.
 
