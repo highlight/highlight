@@ -1,6 +1,5 @@
 import React, { ErrorInfo } from 'react'
 import { ReportDialog, ReportDialogOptions } from './ReportDialog/ReportDialog'
-import { H } from 'highlight.run'
 
 export type FallbackRender = (errorData: {
 	error: Error
@@ -196,15 +195,19 @@ function captureReactErrorBoundaryError(
 	errorInfo: ErrorInfo,
 ): void {
 	const component = getComponentNameFromStack(errorInfo.componentStack ?? '')
-	console.error(
-		'Highlight ErrorBoundary caught an exception while rendering React component',
-		{ error },
-	)
-	H.consume(error, {
-		payload: { component },
-		source: component,
-		type: 'React.ErrorBoundary',
-	})
+	if (!window.H) {
+		console.warn('You need to install highlight.run.')
+	} else {
+		console.error(
+			'Highlight ErrorBoundary caught an exception while rendering React component',
+			{ error },
+		)
+		window.H.consume(error, {
+			payload: { component },
+			source: component,
+			type: 'React.ErrorBoundary',
+		})
+	}
 }
 
 function getComponentNameFromStack(componentStack: string): string | undefined {
