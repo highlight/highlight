@@ -4,7 +4,7 @@
 
 ### Patch Changes
 
--   b09f21e4b: ensure sdk depends on compatible version of highlight.run
+-   b09f21e4b: correct styling issue with error boundary and make highlight.run a peer dependency
 
 ## 3.2.3
 
