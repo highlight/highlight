@@ -9077,7 +9077,7 @@ And specifically, for the %s product, you can refer to the following documentati
 		},
 		{
 			request:  "logs with a number in the trace_id",
-			response: `{"query":"trace_id=/.+\d.+/","date_range":{"start_date":"","end_date":""}}`,
+			response: `{"query":"trace_id=/.*\d.*/","date_range":{"start_date":"","end_date":""}}`,
 		},
 		{
 			request:  openai_client.IrrelevantQuery,
