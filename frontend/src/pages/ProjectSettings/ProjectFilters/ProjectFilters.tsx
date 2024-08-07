@@ -3,7 +3,6 @@ import { Button } from '@components/Button'
 import LoadingBox from '@components/LoadingBox'
 import { TIME_FORMAT } from '@components/Search/SearchForm/constants'
 import { SearchForm } from '@components/Search/SearchForm/SearchForm'
-import { toast } from '@components/Toaster'
 import {
 	useEditProjectSettingsMutation,
 	useGetBillingDetailsForProjectQuery,
@@ -41,7 +40,6 @@ import { useProjectId } from '@hooks/useProjectId'
 import { BarChart } from '@pages/Graphing/components/BarChart'
 import { TIMESTAMP_KEY } from '@pages/Graphing/components/Graph'
 import { useApplicationContext } from '@routers/AppRouter/context/ApplicationContext'
-import analytics from '@util/analytics'
 import { groupBy, upperFirst } from 'lodash'
 import moment from 'moment'
 import React from 'react'
@@ -495,27 +493,12 @@ const FilterPaywall: React.FC<
 		product: ProductType
 		setting: keyof AllWorkspaceSettings
 	}>
-> = ({ product, setting, children }) => {
-	const navigate = useNavigate()
-	const { currentWorkspace } = useApplicationContext()
-
-	const showEditIngestionUpgrade = React.useCallback(async () => {
-		analytics.track('Project Ingestion Upgrade', {
-			product,
-			workspaceId: currentWorkspace?.id,
-		})
-		await toast.warning(
-			'Setting up ingest filters is only available on paying plans.',
-			{ duration: 3000 },
-		)
-		navigate(`/w/${currentWorkspace?.id}/current-plan`)
-	}, [currentWorkspace?.id, navigate, product])
-
+> = ({ setting, children }) => {
 	return (
 		<EnterpriseFeatureButton
 			setting={setting}
 			name="Ingestion Limits"
-			fn={showEditIngestionUpgrade}
+			fn={async () => undefined}
 			variant="basic"
 		>
 			{children}
