@@ -399,7 +399,6 @@ const Trigger: React.FC<Omit<SelectProps, 'value' | 'setValue'>> = ({
 		return Array.isArray(opts) ? opts.map(findOption) : findOption(opts)
 	}
 
-	// TODO: Handle longer text values and truncate?
 	const renderSelectValue = (
 		selectValue: Ariakit.SelectStoreState['value'],
 	) => {
