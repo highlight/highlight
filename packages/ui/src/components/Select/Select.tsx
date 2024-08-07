@@ -417,16 +417,27 @@ const Trigger: React.FC<Omit<SelectProps, 'value' | 'setValue'>> = ({
 				return 'Select...'
 			}
 
-			return Array.isArray(selectedOptions) ? (
-				selectedOptions.map((o) => (
-					<SelectTag key={o.value} value={o.value}>
-						{o.name}
-					</SelectTag>
-				))
-			) : (
-				<SelectTag value={selectedOptions.value}>
-					{selectedOptions.name}
-				</SelectTag>
+			return (
+				<Stack
+					direction="row"
+					align="center"
+					gap="6"
+					flexWrap={'wrap'}
+					whiteSpace={'normal'}
+					width="full"
+				>
+					{Array.isArray(selectedOptions) ? (
+						selectedOptions.map((o) => (
+							<SelectTag key={o.value} value={o.value}>
+								{o.name}
+							</SelectTag>
+						))
+					) : (
+						<SelectTag value={selectedOptions.value}>
+							{selectedOptions.name}
+						</SelectTag>
+					)}
+				</Stack>
 			)
 		}
 
@@ -440,7 +451,6 @@ const Trigger: React.FC<Omit<SelectProps, 'value' | 'setValue'>> = ({
 	}
 
 	return (
-		// TODO: If tags, render multiple lines, otherwise truncate
 		<Component style={{ opacity: props.disabled ? 0.7 : 1 }} {...props}>
 			{value ? (
 				renderSelectValue(value)
@@ -507,16 +517,23 @@ export const SelectTrigger: React.FC<SelectTriggerProps> = ({
 				return true
 			}}
 		>
-			<Stack direction="row" align="center" justify="space-between">
-				<Stack direction="row" align="center" gap="6">
-					{typeof children === 'string' ? (
-						<Text color="secondaryContentOnEnabled">
-							{children}
-						</Text>
-					) : (
-						children
-					)}
-				</Stack>
+			<Stack
+				direction="row"
+				align="center"
+				justify="space-between"
+				width="full"
+			>
+				{typeof children === 'string' ? (
+					<Text
+						color="secondaryContentOnEnabled"
+						lines="1"
+						align="left"
+					>
+						{children}
+					</Text>
+				) : (
+					children
+				)}
 
 				<Stack direction="row" align="center" gap="6">
 					{clearable && (isMulti ? value.length > 0 : !!value) && (

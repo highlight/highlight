@@ -5,14 +5,16 @@ import { vars } from '@/vars'
 
 export const select = style([
 	sprinkles({
+		alignItems: 'center',
 		backgroundColor: 'white',
 		border: 'secondary',
 		borderRadius: '6',
-		display: 'block',
+		display: 'flex',
+		py: '2',
 		width: 'full',
 	}),
 	{
-		height: 28,
+		minHeight: 28,
 	},
 ])
 

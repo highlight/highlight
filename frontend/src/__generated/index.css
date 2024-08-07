@@ -5064,7 +5064,7 @@ body {
   }
 }
 ._4k88201 {
-  height: 28px;
+  min-height: 28px;
 }
 ._4k88203[data-active-item] {
   background-color: var(--_1pyqka91x);
