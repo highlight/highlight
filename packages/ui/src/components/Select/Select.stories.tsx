@@ -1,6 +1,12 @@
 import { Meta } from '@storybook/react'
 import { useState } from 'react'
 
+import {
+	IconSolidArrowsExpand,
+	IconSolidLightningBolt,
+	IconSolidTraces,
+} from '@/components/icons'
+
 import { Box } from '../Box/Box'
 import { Button } from '../Button/Button'
 import { Stack } from '../Stack/Stack'
@@ -194,6 +200,71 @@ export const Disabled = () => {
 				{enabled ? 'Disable' : 'Enable'}
 			</Button>
 		</Stack>
+	)
+}
+
+const METRIC_TYPES = [
+	{
+		name: 'Traces',
+		value: 'traces',
+		icon: <IconSolidTraces />,
+	},
+	{
+		name: 'Errors',
+		value: 'errors',
+		icon: <IconSolidLightningBolt />,
+	},
+] as const
+export const ClearableWithCustomValueAndOptionRendering = () => {
+	return (
+		<Select
+			clearable
+			defaultValue={METRIC_TYPES[0]}
+			renderValue={(value) => {
+				const metrics = METRIC_TYPES.filter((m) =>
+					value.includes(m.value),
+				)
+
+				if (!metrics.length) {
+					return <>Select...</>
+				}
+
+				return (
+					<>
+						{metrics.map((metric) => (
+							<Text
+								key={metric.value}
+								color="secondaryContentOnEnabled"
+							>
+								<Stack direction="row" gap="6" align="center">
+									{metric.icon}
+									{metric.value}
+								</Stack>
+							</Text>
+						))}
+					</>
+				)
+			}}
+		>
+			{METRIC_TYPES.map((metric) => (
+				<Select.Option key={metric.value} value={metric.value}>
+					<Stack
+						direction="row"
+						justifyContent="space-between"
+						width="full"
+						align="center"
+					>
+						<Text color="secondaryContentOnEnabled">
+							<Stack direction="row" align="center" gap="6">
+								{metric.icon}
+								{metric.name}
+							</Stack>
+						</Text>
+						<IconSolidArrowsExpand />
+					</Stack>
+				</Select.Option>
+			))}
+		</Select>
 	)
 }
 

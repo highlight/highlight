@@ -1,17 +1,19 @@
 import * as Ariakit from '@ariakit/react'
 import { isEqual } from 'lodash'
 import { matchSorter } from 'match-sorter'
-import React, { useEffect, useMemo } from 'react'
+import React, { useEffect, useMemo, useRef } from 'react'
 import { useState } from 'react'
 
 import { Badge } from '../Badge/Badge'
 import { Box } from '../Box/Box'
 import { Button } from '../Button/Button'
+import { ButtonIcon } from '../ButtonIcon/ButtonIcon'
 import {
 	IconSolidCheck,
 	IconSolidCheckCircle,
 	IconSolidSelector,
 	IconSolidX,
+	IconSolidXCircle,
 } from '../icons'
 import { Stack } from '../Stack/Stack'
 import { Text } from '../Text/Text'
@@ -28,9 +30,13 @@ type InitialOptions = string[] | Option[]
 
 type SingleValue = string | number | Option | undefined
 
+// Potential future refactoring: improve types and allow any shape of options,
+// including string(s).
+//
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type SelectProviderProps<T = any> = {
 	checkType?: 'checkmark' | 'checkbox'
+	clearable?: boolean
 	defaultValue?: T
 	displayMode?: 'normal' | 'tags'
 	loading?: boolean
@@ -126,6 +132,7 @@ export type SelectProps<T = any> = Omit<
 	'defaultValue' | 'value'
 > & {
 	checkType?: SelectProviderProps['checkType']
+	clearable?: boolean
 	creatable?: boolean
 	defaultValue?: T
 	disabled?: boolean
@@ -146,6 +153,7 @@ export type SelectProps<T = any> = Omit<
 export const Select = <T,>({
 	checkType,
 	children,
+	clearable,
 	creatable,
 	displayMode,
 	filterable,
@@ -174,6 +182,7 @@ export const Select = <T,>({
 
 	const providerProps = {
 		checkType,
+		clearable,
 		defaultValue: props.defaultValue,
 		displayMode,
 		loading,
@@ -293,7 +302,13 @@ export const Select = <T,>({
 								>
 									{/* item check only needed for spacing */}
 									<ItemCheck />
-									{searchValue}
+									<Text
+										size="small"
+										weight="medium"
+										color="secondaryContentOnEnabled"
+									>
+										{searchValue}
+									</Text>
 								</Ariakit.ComboboxItem>
 							)}
 							{matches.map((option) => {
@@ -384,6 +399,7 @@ const Trigger: React.FC<Omit<SelectProps, 'value' | 'setValue'>> = ({
 		return Array.isArray(opts) ? opts.map(findOption) : findOption(opts)
 	}
 
+	// TODO: Handle longer text values and truncate?
 	const renderSelectValue = (
 		selectValue: Ariakit.SelectStoreState['value'],
 	) => {
@@ -424,6 +440,7 @@ const Trigger: React.FC<Omit<SelectProps, 'value' | 'setValue'>> = ({
 	}
 
 	return (
+		// TODO: If tags, render multiple lines, otherwise truncate
 		<Component style={{ opacity: props.disabled ? 0.7 : 1 }} {...props}>
 			{value ? (
 				renderSelectValue(value)
@@ -471,8 +488,25 @@ export const SelectTrigger: React.FC<SelectTriggerProps> = ({
 	hideArrow,
 	...props
 }) => {
+	const { clearable, value, setValue } = useSelectContext()
+	const isMulti = Array.isArray(value)
+	const clearRef = useRef<HTMLButtonElement>(null)
+
 	return (
-		<Ariakit.Select className={styles.select} {...props}>
+		<Ariakit.Select
+			className={styles.select}
+			{...props}
+			toggleOnPress={(e) => {
+				if (
+					clearRef.current?.contains(e.target as Node) ||
+					clearRef.current === e.target
+				) {
+					return false
+				}
+
+				return true
+			}}
+		>
 			<Stack direction="row" align="center" justify="space-between">
 				<Stack direction="row" align="center" gap="6">
 					{typeof children === 'string' ? (
@@ -484,9 +518,29 @@ export const SelectTrigger: React.FC<SelectTriggerProps> = ({
 					)}
 				</Stack>
 
-				{!hideArrow && (
-					<Ariakit.SelectArrow render={<IconSolidSelector />} />
-				)}
+				<Stack direction="row" align="center" gap="6">
+					{clearable && (isMulti ? value.length > 0 : !!value) && (
+						<ButtonIcon
+							ref={clearRef}
+							icon={<IconSolidXCircle />}
+							onClick={(e) => {
+								e.preventDefault()
+								e.stopPropagation()
+
+								Array.isArray(value)
+									? setValue!([])
+									: setValue!(undefined)
+							}}
+							size="xSmall"
+							emphasis="none"
+							kind="secondary"
+						/>
+					)}
+
+					{!hideArrow && (
+						<Ariakit.SelectArrow render={<IconSolidSelector />} />
+					)}
+				</Stack>
 			</Stack>
 		</Ariakit.Select>
 	)
