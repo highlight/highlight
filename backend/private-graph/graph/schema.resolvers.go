@@ -9007,7 +9007,7 @@ func (r *queryResolver) AiQuerySuggestion(ctx context.Context, timeZone string, 
 	log.WithContext(ctx).Infof("search specific doc: %s", searchSpecificDoc)
 
 	systemPrompt := fmt.Sprintf(`
-You are a simple system used by an observabiliity product in which, 
+You are a simple system used by an observability product in which, 
 given a %s query in english, you output a structured query that the system 
 can use to parse (which ultimately queries an internal database).
 
@@ -9030,11 +9030,7 @@ In terms of the keys and values you can use in the 'query' field, try not to use
 
 %s
 
-You have the following keys to work with:
-
-%s
-
-And here are the key/values that you can use for each respective key. If the below section is empty, be creative:
+And here are the key/values that you can use for each respective key. You are limited to these keys, but can be creative with the values:
 
 %s
 
@@ -9045,7 +9041,7 @@ The 'query' syntax documentation is as follows:
 
 And specifically, for the %s product, you can refer to the following documentation:
 %s
-`, productType, now, openai_client.IrrelevantQueryFunctionalityIndicator, strings.Join(keys, ", "), strings.Join(keyVals, ", "), prompts.SearchSyntaxDocs, productType, searchSpecificDoc)
+`, productType, now, openai_client.IrrelevantQueryFunctionalityIndicator, strings.Join(keyVals, ", "), prompts.SearchSyntaxDocs, productType, searchSpecificDoc)
 
 	yesterday := time.Now().In(loc).AddDate(0, 0, -1)
 	yesterdayAt2PM := time.Date(yesterday.Year(), yesterday.Month(), yesterday.Day(), 14, 0, 0, 0, yesterday.Location()).Format(time.RFC3339)
@@ -9058,6 +9054,10 @@ And specifically, for the %s product, you can refer to the following documentati
 		{
 			request:  "Show me all the 500 errors in the last 7 days",
 			response: fmt.Sprintf(`{"query":"status_code=500","date_range":{"start_date":"%s","end_date":""}}`, sevenDaysBack),
+		},
+		{
+			request:  "Filter out debug logs",
+			response: `{"query":"level!=debug","date_range":{"start_date":"","end_date":""}}`,
 		},
 		{
 			request:  "Show me all the error logs from last week to yesterday at 2pm",
@@ -9076,10 +9076,38 @@ And specifically, for the %s product, you can refer to the following documentati
 			response: `{"query":"message=*panic*","date_range":{"start_date":"","end_date":""}}`,
 		},
 		{
+			request:  "logs with a number in the trace_id",
+			response: `{"query":"trace_id=/.*\d.*/","date_range":{"start_date":"","end_date":""}}`,
+		},
+		{
 			request:  openai_client.IrrelevantQuery,
 			response: `{"query":"","date_range":{"start_date":"","end_date":""}}`,
 		},
 	}
+
+	messages := []openai.ChatCompletionMessage{
+		{
+			Role:    openai.ChatMessageRoleSystem,
+			Content: systemPrompt,
+		},
+	}
+
+	for _, example := range examples {
+		messages = append(messages, openai.ChatCompletionMessage{
+			Role:    openai.ChatMessageRoleUser,
+			Content: example.request,
+		})
+
+		messages = append(messages, openai.ChatCompletionMessage{
+			Role:    openai.ChatMessageRoleAssistant,
+			Content: example.response,
+		})
+	}
+
+	messages = append(messages, openai.ChatCompletionMessage{
+		Role:    openai.ChatMessageRoleUser,
+		Content: query,
+	})
 
 	resp, err := r.OpenAiClient.CreateChatCompletion(
 		ctx,
@@ -9088,40 +9116,7 @@ And specifically, for the %s product, you can refer to the following documentati
 			ResponseFormat: &openai.ChatCompletionResponseFormat{
 				Type: openai.ChatCompletionResponseFormatTypeJSONObject,
 			},
-			Messages: []openai.ChatCompletionMessage{
-				{
-					Role:    openai.ChatMessageRoleSystem,
-					Content: systemPrompt,
-				},
-				{
-					Role:    openai.ChatMessageRoleUser,
-					Content: examples[0].request,
-				},
-				{
-					Role:    openai.ChatMessageRoleAssistant,
-					Content: examples[0].response,
-				},
-				{
-					Role:    openai.ChatMessageRoleUser,
-					Content: examples[1].request,
-				},
-				{
-					Role:    openai.ChatMessageRoleAssistant,
-					Content: examples[1].response,
-				},
-				{
-					Role:    openai.ChatMessageRoleUser,
-					Content: examples[2].request,
-				},
-				{
-					Role:    openai.ChatMessageRoleAssistant,
-					Content: examples[2].response,
-				},
-				{
-					Role:    openai.ChatMessageRoleUser,
-					Content: query,
-				},
-			},
+			Messages: messages,
 		},
 	)
 
@@ -9136,11 +9131,13 @@ And specifically, for the %s product, you can refer to the following documentati
 	}
 
 	log.WithContext(ctx).
-		WithField("response", resp.Choices[0].Message.Content).
-		Info("AI suggestion generated.")
-
-	log.WithContext(ctx).
-		Info(fmt.Sprintf(systemPrompt))
+		WithFields(
+			log.Fields{
+				"request":  query,
+				"response": resp.Choices[0].Message.Content,
+			},
+		).
+		Info("AI query suggestion generated.")
 
 	// Define the structs inline
 	var toSaveString struct {
