@@ -2,6 +2,7 @@ import React, { useMemo, useRef, useState } from 'react'
 
 import classnames from 'classnames'
 import styles from './styles.module.css'
+import { H } from 'highlight.run'
 
 export interface ReportDialogOptions {
 	user?: {
@@ -63,8 +64,8 @@ export function ReportDialog({
 	}, [name, email, verbatim])
 
 	React.useEffect(() => {
-		if (window?.H?.consumeError && error) {
-			window.H.consumeError(error)
+		if (error) {
+			H.consumeError(error)
 		}
 	}, [error])
 
@@ -72,18 +73,12 @@ export function ReportDialog({
 		event.preventDefault()
 		setSendingReport(true)
 
-		if (window?.H?.addSessionFeedback) {
-			window.H.addSessionFeedback({
-				verbatim,
-				userName: name,
-				userEmail: email,
-				timestampOverride: reportDialogOpenTime.current,
-			})
-		} else {
-			console.warn(
-				'Highlight is not initialized. Make sure highlight.run is installed and running.',
-			)
-		}
+		H.addSessionFeedback({
+			verbatim,
+			userName: name,
+			userEmail: email,
+			timestampOverride: reportDialogOpenTime.current,
+		})
 		// fake a loading state because addSessionFeedback is async
 		new Promise((r) => window.setTimeout(r, 300)).then(() => {
 			setSendingReport(false)
