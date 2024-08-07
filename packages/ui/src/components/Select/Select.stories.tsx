@@ -57,7 +57,11 @@ export const MultiSelectTags = () => {
 		<Select defaultValue={['jay', 'vadim']} displayMode="tags">
 			<Select.Option value="jay">Jay Khatri</Select.Option>
 			<Select.Option value="vadim">Vadim Korolik</Select.Option>
+			<Select.Option value="spenny">Spencer Amarantides</Select.Option>
 			<Select.Option value="julian">Julian Schneider</Select.Option>
+			<Select.Option value="zane">Zane Mayberry</Select.Option>
+			<Select.Option value="mike">Michael Overhulse</Select.Option>
+			<Select.Option value="chris">Chris Schmitz</Select.Option>
 		</Select>
 	)
 }
