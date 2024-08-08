@@ -177,5 +177,8 @@
 		"webpack": "5.76.0",
 		"xml2js": "0.5.0",
 		"zod": "3.22.3"
+	},
+	"dependencies": {
+		"react-hot-toast": "^2.4.1"
 	}
 }
