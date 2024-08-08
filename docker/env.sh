@@ -11,7 +11,7 @@ fi
 # setup env
 $(cat .env | grep -vE '^#' | grep -E '\S+' | sed -e 's/^/export /')
 export IN_DOCKER=true
-export OBJECT_STORAGE_FS=/tmp/highlight-data
+export OBJECT_STORAGE_FS=/highlight-data
 export BACKEND_HEALTH_URI=$(echo "$REACT_APP_PUBLIC_GRAPH_URI" | sed -e 's/\/public/\/health/')
 export LICENSE_KEY=$LICENSE_KEY_OVERRIDE
 export BUILD_ARGS="--build-arg DOPPLER_TOKEN=${DOPPLER_TOKEN}"
