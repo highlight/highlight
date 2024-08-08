@@ -8071,10 +8071,10 @@ body {
   height: 40px;
 }
 .gw96js1 {
-  height: calc(100% - 40px);
+  height: 100%;
 }
 .gw96js2 {
-  width: calc(100% - 320px);
+  width: calc(100%);
 }
 .gw96js3 {
   z-index: 0;
@@ -8089,8 +8089,8 @@ body {
   height: 28px;
 }
 .gw96js7 {
-  width: 720px;
-  height: 360px;
+  width: 860px;
+  height: 540px;
   margin: auto;
   z-index: 1;
   background-color: #ffffff;

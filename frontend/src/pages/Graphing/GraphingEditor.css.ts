@@ -6,11 +6,11 @@ export const editGraphHeader = style({
 })
 
 export const editGraphPanel = style({
-	height: 'calc(100% - 40px)',
+	height: '100%',
 })
 
 export const previewWindow = style({
-	width: 'calc(100% - 320px)',
+	width: 'calc(100%)',
 })
 
 export const graphBackground = style({
@@ -30,8 +30,8 @@ export const input = style({
 })
 
 export const graphWrapper = style({
-	width: 720,
-	height: 360,
+	width: 860,
+	height: 540,
 	margin: 'auto',
 	zIndex: 1,
 	backgroundColor: vars.color.white,
