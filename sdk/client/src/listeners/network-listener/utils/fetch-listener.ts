@@ -40,13 +40,7 @@ export const FetchListener = (
 			return originalFetch.call(this, input, init)
 		}
 
-		let traceId: string | undefined
-		if (otelEnabled) {
-			const context = getActiveSpan()
-			traceId = (context as any)?._spanContext?.traceId
-		}
-
-		const [sessionSecureID, requestId] = createNetworkRequestId(traceId)
+		const [sessionSecureID, requestId] = createNetworkRequestId(otelEnabled)
 		if (shouldNetworkRequestBeTraced(url, tracingOrigins)) {
 			init = init || {}
 			// Pre-existing headers could be one of three different formats; this reads all of them.

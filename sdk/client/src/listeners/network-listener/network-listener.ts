@@ -45,6 +45,7 @@ export const NetworkListener = ({
 		urlBlocklist,
 		bodyKeysToRedact,
 		bodyKeysToRecord,
+		otelEnabled,
 	)
 	const removeFetchListener = FetchListener(
 		fetchCallback,
