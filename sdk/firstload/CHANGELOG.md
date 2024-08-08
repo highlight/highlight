@@ -1,5 +1,12 @@
 # highlight.run
 
+## 9.1.5
+
+### Patch Changes
+
+-   5b0b5a503: update rrweb to ^2.0.0-alpha.17
+    ensure multiple tabs report data to distinct sessions
+
 ## 9.1.4
 
 ### Patch Changes

@@ -1,5 +1,12 @@
 # @highlight-run/react
 
+## 3.2.5
+
+### Patch Changes
+
+-   Updated dependencies [5b0b5a503]
+    -   highlight.run@9.1.5
+
 ## 3.2.4
 
 ### Patch Changes
