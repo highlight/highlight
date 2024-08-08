@@ -90,6 +90,7 @@ import {
 	VISIBILITY_DEBOUNCE_MS,
 } from './constants/sessions'
 import { getDefaultDataURLOptions } from './utils/utils'
+import { getTracer, setupBrowserTracing } from './otel'
 
 export const HighlightWarning = (context: string, msg: any) => {
 	console.warn(`Highlight Warning: (${context}): `, { output: msg })
@@ -1428,6 +1429,8 @@ export {
 	GenerateSecureID,
 	MetricCategory,
 	getPreviousSessionData,
+	setupBrowserTracing,
+	getTracer,
 }
 export type {
 	AmplitudeIntegrationOptions,
