@@ -56,7 +56,7 @@ def fetch(
     secure_id: str,
     copy_errors: bool = False,
     store: bool = False,
-    fs_root: str = "/highlight-data",
+    fs_root: str = "/tmp/highlight-data",
 ):
     s3 = boto3.Session().resource("s3")
     b = s3.Bucket(bucket)
@@ -321,7 +321,7 @@ def main():
         "--fs-root",
         type=str,
         help="where the local session files are stored",
-        default="/highlight-data",
+        default="/tmp/highlight-data",
     )
 
     args = vars(parser.parse_args())
