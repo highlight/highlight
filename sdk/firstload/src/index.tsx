@@ -174,6 +174,8 @@ const H: HighlightPublicInterface = {
 				sessionSecureID: sessionSecureID,
 				storageMode: options?.storageMode,
 				sendMode: options?.sendMode,
+				enableOtelTracing: options?.enableOtelTracing,
+				otlpEndpoint: options?.otlpEndpoint,
 			}
 			first_load_listeners = new FirstLoadListeners(client_options)
 			if (!options?.manualStart) {

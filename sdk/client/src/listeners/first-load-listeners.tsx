@@ -178,7 +178,6 @@ export class FirstLoadListeners {
 			sThis.networkBodyKeysToRedact = []
 			sThis.urlBlocklist = []
 			sThis.networkBodyKeysToRecord = []
-			sThis.networkBodyKeysToRecord = []
 		} else if (typeof options?.networkRecording === 'boolean') {
 			sThis.disableNetworkRecording = !options.networkRecording
 			sThis.enableRecordingNetworkContents = false
@@ -267,8 +266,8 @@ export class FirstLoadListeners {
 					backendUrl: sThis._backendUrl,
 					tracingOrigins: sThis.tracingOrigins,
 					urlBlocklist: sThis.urlBlocklist,
-					sessionSecureID: options.sessionSecureID,
 					bodyKeysToRecord: sThis.networkBodyKeysToRecord,
+					otelEnabled: !!options.enableOtelTracing,
 				}),
 			)
 		}

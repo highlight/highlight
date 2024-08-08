@@ -3115,6 +3115,13 @@ func (r *Resolver) submitFrontendNetworkMetric(ctx context.Context, sessionObj *
 			continue
 		}
 		requestHeaders, _ := re.RequestResponsePairs.Request.HeadersRaw.(map[string]interface{})
+
+		// if traceparent header is set, this means otel is enabled in the client
+		// and we don't want to create a new trace.
+		if _, ok := requestHeaders["traceparent"]; ok {
+			continue
+		}
+
 		responseHeaders, _ := re.RequestResponsePairs.Response.HeadersRaw.(map[string]interface{})
 		userAgent, _ := requestHeaders["User-Agent"].(string)
 		requestBody, ok := re.RequestResponsePairs.Request.Body.(string)

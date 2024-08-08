@@ -13,6 +13,7 @@ import {
 
 import { NetworkListenerCallback } from '../network-listener'
 import { getBodyThatShouldBeRecorded } from './xhr-listener'
+import { getActiveSpan } from '../../../otel'
 
 export interface HighlightFetchWindow extends WindowOrWorkerGlobalScope {
 	_originalFetch: WindowOrWorkerGlobalScope['fetch']
@@ -27,8 +28,9 @@ export const FetchListener = (
 	backendUrl: string,
 	tracingOrigins: boolean | (string | RegExp)[],
 	urlBlocklist: string[],
-	bodyKeysToRedact?: string[],
-	bodyKeysToRecord?: string[],
+	bodyKeysToRedact: string[],
+	bodyKeysToRecord: string[] | undefined,
+	otelEnabled: boolean,
 ) => {
 	const originalFetch = window._fetchProxy
 
@@ -38,7 +40,13 @@ export const FetchListener = (
 			return originalFetch.call(this, input, init)
 		}
 
-		const [sessionSecureID, requestId] = createNetworkRequestId()
+		let traceId: string | undefined
+		if (otelEnabled) {
+			const context = getActiveSpan()
+			traceId = (context as any)?._spanContext?.traceId
+		}
+
+		const [sessionSecureID, requestId] = createNetworkRequestId(traceId)
 		if (shouldNetworkRequestBeTraced(url, tracingOrigins)) {
 			init = init || {}
 			// Pre-existing headers could be one of three different formats; this reads all of them.

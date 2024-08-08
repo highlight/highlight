@@ -299,9 +299,9 @@ function makeId(length: number) {
 	return result
 }
 
-export const createNetworkRequestId = () => {
+export const createNetworkRequestId = (requestId?: string) => {
 	// Long enough to avoid collisions, not long enough to be unguessable
-	return [getSessionSecureID(), makeId(10)]
+	return [getSessionSecureID(), requestId ?? makeId(10)]
 }
 
 export const getHighlightRequestHeader = (
