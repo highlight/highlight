@@ -2,8 +2,10 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Web;
+using Microsoft.Extensions.Logging;
 using OpenTelemetry;
 using OpenTelemetry.Exporter;
+using OpenTelemetry.Logs;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
@@ -34,6 +36,7 @@ namespace cs
         public static readonly String ServiceName = "highlight-dot-net-example";
 
         public static readonly String TracesEndpoint = OtlpEndpoint + "/v1/traces";
+        public static readonly String LogsEndpoint = OtlpEndpoint + "/v1/logs";
         public static readonly String MetricsEndpoint = OtlpEndpoint + "/v1/metrics";
 
         public static readonly OtlpExportProtocol ExportProtocol = OtlpExportProtocol.HttpProtobuf;
@@ -47,6 +50,7 @@ namespace cs
 
         private static TracerProvider _tracerProvider;
         private static MeterProvider _meterProvider;
+        private static ILoggerFactory _loggerFactory;
 
         public static Dictionary<string, string> GetHighlightContext()
         {
@@ -138,12 +142,25 @@ namespace cs
                    options.Protocol = ExportProtocol;
                })
                .Build();
+
+            _loggerFactory = LoggerFactory.Create(builder =>
+            {
+                builder.AddOpenTelemetry(logging =>
+                {
+                    logging.AddOtlpExporter(options =>
+                    {
+                        options.Endpoint = new Uri(LogsEndpoint);
+                        options.Protocol = ExportProtocol;
+                    });;
+                });
+            });
         }
         
         public static void Unregister()
         {
             _tracerProvider.Dispose();
             _meterProvider.Dispose();
+            _loggerFactory.Dispose();
         }
     }
 }
