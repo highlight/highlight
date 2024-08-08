@@ -273,7 +273,7 @@ const PostPage = ({
 	params.set('role', post.author?.title || '')
 
 	const metaImageURL = `https://${
-		process.env.NEXT_PUBLIC_VERCEL_URL
+		process.env.NEXT_PUBLIC_VERCEL_PROJECT_PRODUCTION_URL
 	}/api/og/blog/${post.slug}?${params.toString()}`
 
 	return (
