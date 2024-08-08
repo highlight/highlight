@@ -30,7 +30,7 @@ type Feature = keyof typeof FEATURE_DESCRIPTIONS
 interface Props {
 	setting: keyof AllWorkspaceSettings
 	name: Feature
-	fn: () => Promise<any>
+	fn: () => any
 	onShowModal?: () => void
 	onClose?: () => void
 	className?: string

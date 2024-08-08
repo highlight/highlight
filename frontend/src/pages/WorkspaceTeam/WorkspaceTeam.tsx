@@ -61,13 +61,14 @@ const WorkspaceTeam = () => {
 					<Authorization allowedRoles={[AdminRole.Admin]}>
 						<AutoJoinForm />
 					</Authorization>
-					<InviteMemberModal
-						workspaceId={workspace_id}
-						workspaceName={data?.workspace?.name}
-						workspaceInviteLinks={data?.workspace_invite_links}
-						showModal={showModal}
-						toggleShowModal={toggleShowModal}
-					/>
+					{showModal ? (
+						<InviteMemberModal
+							workspaceId={workspace_id}
+							workspaceName={data?.workspace?.name}
+							workspaceInviteLinks={data?.workspace_invite_links}
+							toggleShowModal={toggleShowModal}
+						/>
+					) : null}
 				</div>
 
 				<Tabs<MemberKeyType>
@@ -122,33 +123,34 @@ const TabContentContainer = ({
 }: {
 	children: any
 	title: string
-	toggleInviteModal: any
+	toggleInviteModal: React.Dispatch<React.SetStateAction<boolean>>
 }) => {
 	return (
-		<EnterpriseFeatureButton
-			setting="enable_business_seats"
-			name="More than 15 team members"
-			fn={toggleInviteModal}
-			variant="basic"
-		>
-			<Box mt="8">
-				<Stack
-					mb="8"
-					align="center"
-					justify="space-between"
-					direction="row"
+		<Box mt="8">
+			<Stack
+				mb="8"
+				align="center"
+				justify="space-between"
+				direction="row"
+			>
+				<h4 className={styles.tabTitle}>{title}</h4>
+				<EnterpriseFeatureButton
+					setting="enable_business_seats"
+					name="More than 15 team members"
+					fn={() => toggleInviteModal((shown) => !shown)}
+					variant="basic"
 				>
-					<h4 className={styles.tabTitle}>{title}</h4>
 					<Button
 						trackingId="WorkspaceTeamInviteMember"
 						iconLeft={<IconSolidUserAdd />}
+						onClick={() => console.log('invite users button')}
 					>
 						Invite users
 					</Button>
-				</Stack>
-				{children}
-			</Box>
-		</EnterpriseFeatureButton>
+				</EnterpriseFeatureButton>
+			</Stack>
+			{children}
+		</Box>
 	)
 }
 
