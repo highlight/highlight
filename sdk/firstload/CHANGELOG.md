@@ -1,5 +1,11 @@
 # highlight.run
 
+## 9.1.6
+
+### Patch Changes
+
+-   f7fb74a44: add XHR request fallback is sendBeacon fails
+
 ## 9.1.5
 
 ### Patch Changes
