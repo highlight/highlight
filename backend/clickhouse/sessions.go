@@ -548,7 +548,7 @@ var SessionsSampleableTableConfig = SampleableTableConfig{
 	},
 }
 
-func (client *Client) ReadSessionsMetrics(ctx context.Context, projectID int, params modelInputs.QueryInput, column string, metricTypes []modelInputs.MetricAggregator, groupBy []string, nBuckets *int, bucketBy string, limit *int, limitAggregator *modelInputs.MetricAggregator, limitColumn *string) (*modelInputs.MetricsBuckets, error) {
+func (client *Client) ReadSessionsMetrics(ctx context.Context, projectID int, params modelInputs.QueryInput, column string, metricTypes []modelInputs.MetricAggregator, groupBy []string, nBuckets *int, bucketBy string, bucketWindow *int, limit *int, limitAggregator *modelInputs.MetricAggregator, limitColumn *string) (*modelInputs.MetricsBuckets, error) {
 	return client.ReadMetrics(ctx, ReadMetricsInput{
 		SampleableConfig: SessionsSampleableTableConfig,
 		ProjectIDs:       []int{projectID},
@@ -557,6 +557,7 @@ func (client *Client) ReadSessionsMetrics(ctx context.Context, projectID int, pa
 		MetricTypes:      metricTypes,
 		GroupBy:          groupBy,
 		BucketCount:      nBuckets,
+		BucketWindow:     bucketWindow,
 		BucketBy:         bucketBy,
 		Limit:            limit,
 		LimitAggregator:  limitAggregator,

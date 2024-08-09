@@ -18,10 +18,11 @@ export const row = style({
 		},
 
 		// Borders
-		[`${tableStyles.table}:not(${tableStyles.noBorder}) &`]: {
-			borderLeft: BORDER,
-			borderRight: BORDER,
-		},
+		[`${tableStyles.table}:not(${tableStyles.noBorder}) ${bodyStyles.body} &, ${tableStyles.table}:not(${tableStyles.noBorder}) ${headStyles.head} &`]:
+			{
+				borderLeft: BORDER,
+				borderRight: BORDER,
+			},
 		[`${tableStyles.noBorder} ${bodyStyles.body} &:last-of-type`]: {
 			borderBottom: 0,
 		},

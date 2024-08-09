@@ -746,7 +746,7 @@ func (r *Resolver) canAdminModifyErrorGroup(ctx context.Context, errorGroupSecur
 
 func (r *Resolver) _doesAdminOwnSession(ctx context.Context, sessionSecureId string) (session *model.Session, ownsSession bool, err error) {
 	if session, err = r.Store.GetSessionFromSecureID(ctx, sessionSecureId); err != nil {
-		return nil, false, AuthorizationError
+		return nil, false, err
 	}
 	_, err = r.isUserInProjectOrDemoProject(ctx, session.ProjectID)
 	if err != nil {
@@ -3666,7 +3666,7 @@ func GetMetricTimeline(ctx context.Context, ccClient *clickhouse.Client, project
 	metrics, err := ccClient.ReadEventMetrics(ctx, projectID, modelInputs.QueryInput{
 		Query:     strings.Join(parts, " "),
 		DateRange: params.DateRange,
-	}, metricName, []modelInputs.MetricAggregator{agg}, params.Groups, pointy.Int(numBuckets), string(modelInputs.MetricBucketByTimestamp), nil, nil, nil)
+	}, metricName, []modelInputs.MetricAggregator{agg}, params.Groups, pointy.Int(numBuckets), string(modelInputs.MetricBucketByTimestamp), nil, nil, nil, nil)
 	if err != nil {
 		return nil, err
 	}
