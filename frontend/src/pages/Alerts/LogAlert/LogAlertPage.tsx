@@ -565,7 +565,7 @@ const LogAlertForm = () => {
 				</Box>
 				<Box borderTop="dividerWeak" width="full" />
 				<Column.Container gap="12">
-					<Column>
+					<Column span="6">
 						<Form.Input
 							name={formStore.names.threshold}
 							type="number"
@@ -586,7 +586,7 @@ const LogAlertForm = () => {
 						/>
 					</Column>
 
-					<Column>
+					<Column span="6">
 						<Form.Select
 							label="Alert frequency"
 							name={formStore.names.frequency}
