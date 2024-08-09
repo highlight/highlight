@@ -11,6 +11,15 @@ describe('should work outside of the browser in unit test', () => {
 	beforeEach(() => {
 		vi.useFakeTimers()
 		highlight = H
+
+		setSessionSecureID('foo')
+		setSessionData({
+			sessionSecureID: 'foo',
+			projectID: 1,
+			payloadID: 1,
+			lastPushTime: new Date().getTime(),
+			sessionStartTime: new Date().getTime(),
+		})
 	})
 
 	afterEach(() => {
@@ -51,19 +60,15 @@ describe('should work outside of the browser in unit test', () => {
 	})
 
 	it('should handle getSessionURL', async () => {
-		setSessionData({
-			sessionSecureID: 'foo',
-			projectID: 1,
-			lastPushTime: new Date().getTime(),
-			sessionStartTime: new Date().getTime(),
-		})
-		setSessionSecureID('foo')
 		expect(await highlight.getSessionURL()).toBe(
 			'https://app.highlight.io/1/sessions/foo',
 		)
 	})
 
 	it('should handle getSessionDetails', async () => {
-		await highlight.getSessionDetails()
+		expect(await highlight.getSessionDetails()).toEqual({
+			url: 'https://app.highlight.io/1/sessions/foo',
+			urlWithTimestamp: 'https://app.highlight.io/1/sessions/foo?ts=0',
+		})
 	})
 })

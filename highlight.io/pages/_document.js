@@ -35,6 +35,13 @@ class HighlightDocument extends Document {
 						src="//js.hs-scripts.com/20473940.js"
 					></Script>
 					<Script
+						id="zoho-pagesense-loader"
+						async
+						defer
+						strategy="afterInteractive"
+						src="https://cdn.pagesense.io/js/highlight/5bfbb7acc3624ec09db9d79caef92b07.js"
+					></Script>
+					<Script
 						id="cb-script"
 						src="https://tag.clearbitscripts.com/v1/pk_07d68634b41ba01ce3e518b6120f201e/tags.js"
 						referrerPolicy="strict-origin-when-cross-origin"

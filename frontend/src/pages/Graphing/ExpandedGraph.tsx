@@ -5,6 +5,7 @@ import {
 	DEFAULT_TIME_PRESETS,
 	IconSolidChartBar,
 	IconSolidCheveronRight,
+	IconSolidClock,
 	presetStartDate,
 	Stack,
 	Tag,
@@ -19,6 +20,7 @@ import { useProjectId } from '@/hooks/useProjectId'
 import { useSearchTime } from '@/hooks/useSearchTime'
 import Graph, { getViewConfig } from '@/pages/Graphing/components/Graph'
 import { HeaderDivider } from '@/pages/Graphing/Dashboard'
+import { GraphBackgroundWrapper } from '@/pages/Graphing/GraphingEditor'
 import { useParams } from '@/util/react-router/useParams'
 
 import * as style from './Dashboard.css'
@@ -107,8 +109,9 @@ export const ExpandedGraph = () => {
 						</Stack>
 						<Box display="flex" gap="4">
 							<DateRangePicker
-								emphasis="low"
+								emphasis="medium"
 								kind="secondary"
+								iconLeft={<IconSolidClock size={14} />}
 								selectedValue={{
 									startDate,
 									endDate,
@@ -131,7 +134,7 @@ export const ExpandedGraph = () => {
 									})
 								}}
 							>
-								Cancel
+								Back
 							</Button>
 						</Box>
 					</Box>
@@ -141,14 +144,7 @@ export const ExpandedGraph = () => {
 						justifyContent="space-between"
 						height="full"
 					>
-						<Box
-							display="flex"
-							position="relative"
-							width="full"
-							height="full"
-							px="12"
-							py="16"
-						>
+						<GraphBackgroundWrapper>
 							<Graph
 								title={g.title}
 								viewConfig={getViewConfig(
@@ -174,7 +170,7 @@ export const ExpandedGraph = () => {
 								limitMetric={g.limitMetric ?? undefined}
 								setTimeRange={updateSearchTime}
 							/>
-						</Box>
+						</GraphBackgroundWrapper>
 					</Box>
 				</Box>
 			</Box>

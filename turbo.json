@@ -11,14 +11,13 @@
 			"outputs": ["dist/**/*.d.ts"]
 		},
 		"highlight.run#typegen": {
-			"dependsOn": ["@highlight-run/client#typegen"],
+			"dependsOn": [
+				"rrweb#build",
+				"@rrweb/rrweb-plugin-sequential-id-record#build",
+				"@rrweb/types#build"
+			],
 			"inputs": ["src/**/*.tsx", "src/**/*.ts", "tsconfig.json"],
 			"outputs": ["dist/**/*.d.ts"]
-		},
-		"highlight.run#build": {
-			"dependsOn": ["typegen", "@highlight-run/client#build"],
-			"inputs": ["src/**/*.tsx", "src/**/*.ts", "tsconfig.json"],
-			"outputs": ["dist/**"]
 		},
 		"highlight.io#build": {
 			"dependsOn": ["^build"],

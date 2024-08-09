@@ -2,8 +2,10 @@ import {
 	type AmplitudeAPI,
 	setupAmplitudeIntegration,
 } from './integrations/amplitude.js'
-import { SESSION_STORAGE_KEYS } from '@highlight-run/client/src/utils/sessionStorage/sessionStorageKeys.js'
-import type { Highlight, HighlightClassOptions } from '@highlight-run/client'
+import type {
+	Highlight,
+	HighlightClassOptions,
+} from '@highlight-run/client/src'
 import type {
 	HighlightOptions,
 	HighlightPublicInterface,
@@ -25,8 +27,9 @@ import configureElectronHighlight from './environments/electron.js'
 import firstloadVersion from './__generated/version.js'
 import {
 	getPreviousSessionData,
-	getSessionSecureID,
 	type SessionData,
+	setSessionData,
+	setSessionSecureID,
 } from '@highlight-run/client/src/utils/sessionStorage/highlightSession.js'
 import { initializeFetchListener } from './listeners/fetch'
 import { initializeWebSocketListener } from './listeners/web-socket'
@@ -67,6 +70,7 @@ let onHighlightReadyQueue: {
 }[] = []
 let onHighlightReadyTimeout: number | undefined = undefined
 
+let sessionSecureID: string
 let highlight_obj: Highlight
 let first_load_listeners: FirstLoadListeners
 let init_called = false
@@ -95,20 +99,9 @@ const H: HighlightPublicInterface = {
 			}
 
 			let previousSession = getPreviousSessionData()
-			let sessionSecureID = GenerateSecureID()
+			sessionSecureID = GenerateSecureID()
 			if (previousSession?.sessionSecureID) {
 				sessionSecureID = previousSession.sessionSecureID
-			} else {
-				const sessionData: SessionData = {
-					...previousSession,
-					projectID: +projectID,
-					sessionSecureID,
-				}
-
-				setItem(
-					SESSION_STORAGE_KEYS.SESSION_DATA,
-					JSON.stringify(sessionData),
-				)
 			}
 
 			// `init` was already called, do not reinitialize
@@ -140,7 +133,7 @@ const H: HighlightPublicInterface = {
 
 			initializeFetchListener()
 			initializeWebSocketListener()
-			import('@highlight-run/client').then(async ({ Highlight }) => {
+			import('@highlight-run/client/src').then(async ({ Highlight }) => {
 				highlight_obj = new Highlight(
 					client_options,
 					first_load_listeners,
@@ -474,19 +467,16 @@ const H: HighlightPublicInterface = {
 		}
 	},
 	getSessionURL: async () => {
-		const data = getPreviousSessionData()
-		const sessionSecureID = getSessionSecureID()
-		if (data && sessionSecureID) {
+		const data = getPreviousSessionData(sessionSecureID)
+		if (data) {
 			return `https://${HIGHLIGHT_URL}/${data.projectID}/sessions/${sessionSecureID}`
 		} else {
-			throw new Error(
-				`Unable to get session URL: ${data?.projectID}, ${sessionSecureID}}`,
-			)
+			throw new Error(`Unable to get session URL: ${sessionSecureID}}`)
 		}
 	},
 	getSessionDetails: async () => {
 		const baseUrl = await H.getSessionURL()
-		const sessionData = getPreviousSessionData()
+		const sessionData = getPreviousSessionData(sessionSecureID)
 		if (!baseUrl) {
 			throw new Error('Could not get session URL')
 		}
