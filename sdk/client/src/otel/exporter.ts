@@ -1,9 +1,7 @@
-import { OTLPTraceExporter } from '@opentelemetry/exporter-trace-otlp-http/build/src/platform/browser'
+import { OTLPTraceExporter } from '@opentelemetry/exporter-trace-otlp-http'
 import type { ReadableSpan } from '@opentelemetry/sdk-trace-web'
 
-type ExporterConfig = ConstructorParameters<typeof OTLPTraceExporter>[0] & {
-	compression: 'gzip' | 'none'
-}
+type ExporterConfig = ConstructorParameters<typeof OTLPTraceExporter>[0]
 type SendOnErrorCallback = Parameters<OTLPTraceExporter['send']>[2]
 
 // This custom exporter is a temporary workaround for an issue we are having
