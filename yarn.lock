@@ -13999,6 +13999,16 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@grpc/grpc-js@npm:^1.11.1":
+  version: 1.11.1
+  resolution: "@grpc/grpc-js@npm:1.11.1"
+  dependencies:
+    "@grpc/proto-loader": "npm:^0.7.13"
+    "@js-sdsl/ordered-map": "npm:^4.4.2"
+  checksum: 10/28fb8d0bbccc0a8f9f73899e6f982e5e762e8f0c009eb9234d4067021f96896479be76463f8a02b80d13ecfd52817ae6d0a189f6cfe22fd32df0505bf577a720
+  languageName: node
+  linkType: hard
+
 "@grpc/grpc-js@npm:^1.7.1, @grpc/grpc-js@npm:~1.9.0":
   version: 1.9.14
   resolution: "@grpc/grpc-js@npm:1.9.14"
@@ -14034,7 +14044,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@grpc/proto-loader@npm:^0.7.8":
+"@grpc/proto-loader@npm:^0.7.13, @grpc/proto-loader@npm:^0.7.8":
   version: 0.7.13
   resolution: "@grpc/proto-loader@npm:0.7.13"
   dependencies:
@@ -15959,6 +15969,13 @@ __metadata:
     "@jridgewell/resolve-uri": "npm:^3.0.3"
     "@jridgewell/sourcemap-codec": "npm:^1.4.10"
   checksum: 10/bceeb631a95ae0307ffa637a8b7a7fe87adc576381d0a618b7a315a65428b7e7ee70b51bf6be128387c85a60ab8e214528d57184b9ff1b049d8cd483ca2c21e8
+  languageName: node
+  linkType: hard
+
+"@js-sdsl/ordered-map@npm:^4.4.2":
+  version: 4.4.2
+  resolution: "@js-sdsl/ordered-map@npm:4.4.2"
+  checksum: 10/ac64e3f0615ecc015461c9f527f124d2edaa9e68de153c1e270c627e01e83d046522d7e872692fd57a8c514578b539afceff75831c0d8b2a9a7a347fbed35af4
   languageName: node
   linkType: hard
 
@@ -43671,6 +43688,7 @@ __metadata:
   resolution: "highlight@workspace:."
   dependencies:
     "@changesets/cli": "npm:^2.26.2"
+    "@grpc/grpc-js": "npm:^1.11.1"
     "@types/node": "npm:^20.12.12"
     "@typescript-eslint/eslint-plugin": "npm:^6.1.0"
     all-contributors-cli: "npm:^6.26.0"
