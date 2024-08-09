@@ -6825,6 +6825,7 @@ func (r *queryResolver) SessionUsersReport(ctx context.Context, projectID int, p
 
 	q := fmt.Sprintf(`
 select coalesce(email.Value, nullif(IP, ''), device.Value, Identifier) as key,
+       any(email.Value)                                                as email,
        count(distinct ID)                                              as num_sessions,
        count(distinct date_trunc('day', CreatedAt))                    as num_days_visited,
        count(distinct date_trunc('month', CreatedAt))                  as num_months_visited,
@@ -6864,7 +6865,7 @@ group by 1 order by num_sessions desc;
 	var results []*modelInputs.SessionsReportRow
 	for rows.Next() {
 		var result modelInputs.SessionsReportRow
-		if err := rows.Scan(&result.Key, &result.NumSessions, &result.NumDaysVisited, &result.NumMonthsVisited, &result.AvgActiveLengthMins, &result.MaxActiveLengthMins, &result.TotalActiveLengthMins, &result.AvgLengthMins, &result.MaxLengthMins, &result.TotalLengthMins, &result.Location); err != nil {
+		if err := rows.Scan(&result.Key, &result.Email, &result.NumSessions, &result.NumDaysVisited, &result.NumMonthsVisited, &result.AvgActiveLengthMins, &result.MaxActiveLengthMins, &result.TotalActiveLengthMins, &result.AvgLengthMins, &result.MaxLengthMins, &result.TotalLengthMins, &result.Location); err != nil {
 			return nil, err
 		}
 		results = append(results, &result)

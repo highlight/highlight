@@ -830,6 +830,7 @@ type SessionQuery struct {
 
 type SessionsReportRow struct {
 	Key                   string  `json:"key"`
+	Email                 string  `json:"email"`
 	NumSessions           uint64  `json:"num_sessions"`
 	NumDaysVisited        uint64  `json:"num_days_visited"`
 	NumMonthsVisited      uint64  `json:"num_months_visited"`
