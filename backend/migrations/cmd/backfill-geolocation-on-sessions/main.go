@@ -31,6 +31,10 @@ func main() {
 
 	var sessions []model.Session
 
+	kafkaDataSyncProducer := kafka_queue.New(ctx,
+		kafka_queue.GetTopic(kafka_queue.GetTopicOptions{Type: kafka_queue.TopicTypeDataSync}),
+		kafka_queue.Producer, &kafka_queue.ConfigOverride{Async: pointy.Bool(true)})
+
 	inner := func(tx *gorm.DB, batch int) error {
 		for _, session := range sessions {
 			location, err := publicGraph.GetLocationFromIP(ctx, session.IP)
@@ -58,12 +62,8 @@ func main() {
 				continue
 			}
 
-			kafkaDataSyncProducer := kafka_queue.New(ctx,
-				kafka_queue.GetTopic(kafka_queue.GetTopicOptions{Type: kafka_queue.TopicTypeDataSync}),
-				kafka_queue.Producer, &kafka_queue.ConfigOverride{Async: pointy.Bool(true)})
-
 			if err := kafkaDataSyncProducer.Submit(ctx, strconv.Itoa(session.ID), &kafka_queue.Message{Type: kafka_queue.SessionDataSync, SessionDataSync: &kafka_queue.SessionDataSyncArgs{SessionID: session.ID}}); err != nil {
-				log.WithContext(ctx).Fatal(err)
+				log.WithContext(ctx).Errorf("Error syncing session to Clickhouse - session_id:%d : %v\n", session.ID, err)
 			}
 		}
 
