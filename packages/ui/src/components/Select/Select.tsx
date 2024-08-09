@@ -1,7 +1,7 @@
 import * as Ariakit from '@ariakit/react'
 import { isEqual } from 'lodash'
 import { matchSorter } from 'match-sorter'
-import React, { useEffect, useMemo, useRef } from 'react'
+import React, { useEffect, useMemo, useRef, useTransition } from 'react'
 import { useState } from 'react'
 
 import { Badge } from '../Badge/Badge'
@@ -19,19 +19,19 @@ import { Stack } from '../Stack/Stack'
 import { Text } from '../Text/Text'
 import * as styles from './styles.css'
 
-type Option = {
+export type SelectOption = {
 	name: string
 	value: string | number
 	[key: string]: any // eslint-disable-line @typescript-eslint/no-explicit-any
 }
 
 // Accept strings or options. Strings will be converted to options.
-type InitialOptions = string[] | Option[]
+type InitialOptions = string[] | SelectOption[]
 
-type SingleValue = string | number | Option | undefined
+type SingleValue = string | number | SelectOption | undefined
 
 // Potential future refactoring: improve types and allow any shape of options,
-// including string(s).
+// including string(s). Also, make default SelectOption for callbacks.
 //
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type SelectProviderProps<T = any> = {
@@ -39,6 +39,8 @@ type SelectProviderProps<T = any> = {
 	clearable?: boolean
 	defaultValue?: T
 	displayMode?: 'normal' | 'tags'
+	internallyUpdating?: boolean
+	internalUpdate?: boolean
 	loading?: boolean
 	options?: InitialOptions
 	value?: T
@@ -75,8 +77,12 @@ const SelectProvider = <T,>({
 
 	/* eslint-disable @typescript-eslint/no-explicit-any */
 	const handleSetValue = (newValue: string | string[]) => {
+		const noValue = Array.isArray(value) ? value.length === 0 : !value
+		// Avoid triggering the callback if we haven't initialized yet.
+		const shouldTriggerCallback = options.length || noValue
+
 		let newInternalValue: any
-		if (options?.length) {
+		if (options.length) {
 			if (Array.isArray(newValue) && Array.isArray(value)) {
 				newInternalValue = [...value]
 				;(newValue as string[]).forEach((option) => {
@@ -92,8 +98,9 @@ const SelectProvider = <T,>({
 					}
 				})
 
-				newInternalValue = newInternalValue.filter((option: Option) =>
-					newValue.some((v) => optionsMatch(v, option)),
+				newInternalValue = newInternalValue.filter(
+					(option: SelectOption) =>
+						newValue.some((v) => optionsMatch(v, option)),
 				)
 			} else {
 				newInternalValue = options.find((option) =>
@@ -101,12 +108,14 @@ const SelectProvider = <T,>({
 				)
 			}
 		} else {
-			newInternalValue = newValue
+			newInternalValue = Array.isArray(newValue)
+				? newValue.map(stringOrNumberToOption)
+				: stringOrNumberToOption(newValue)
 		}
 
 		setValue(newInternalValue)
 
-		if (onValueChange) {
+		if (onValueChange && shouldTriggerCallback) {
 			onValueChange(newInternalValue)
 		}
 	}
@@ -165,10 +174,12 @@ export const Select = <T,>({
 	onCreate,
 	...props
 }: SelectProps<T>) => {
+	const internalUpdateRef = React.useRef(false)
+	const [internallyUpdating, setInternallyUpdating] = useState(false)
 	const [searchValue, setSearchValue] = useState('')
 	const value = valueProp ?? props.defaultValue
 	const [options, setOptions] = useState(
-		valueToOptions(optionsProp) as Option[],
+		valueToOptions(optionsProp) as SelectOption[],
 	)
 	creatable = creatable || !!onCreate
 
@@ -185,11 +196,16 @@ export const Select = <T,>({
 		clearable,
 		defaultValue: props.defaultValue,
 		displayMode,
+		internallyUpdating,
 		loading,
 		options,
 		value: valueToOptions(value) as any, // eslint-disable-line @typescript-eslint/no-explicit-any
 		onValueChange,
 		setOptions,
+	}
+
+	const setStoreInternally = async (newOptions: string | string[]) => {
+		store.setValue(newOptions)
 	}
 
 	const handleCreateOption = (newOptionValue: string) => {
@@ -206,9 +222,9 @@ export const Select = <T,>({
 		// because of how handleSetValue callback works.
 		setTimeout(() => {
 			if (isMulti) {
-				store.setValue([...storeValue, newOptionValue])
+				setStoreInternally([...storeValue, newOptionValue])
 			} else {
-				store.setValue(newOptionValue)
+				setStoreInternally(newOptionValue)
 			}
 		})
 
@@ -223,7 +239,7 @@ export const Select = <T,>({
 			const stringValue = anyOptionsToStringValue(valueProp)
 
 			if (!isEqual(stringValue, storeValue)) {
-				store.setValue(stringValue)
+				setStoreInternally(stringValue)
 			}
 		}
 	}, [valueProp])
@@ -231,7 +247,7 @@ export const Select = <T,>({
 	useEffect(() => {
 		if (store && optionsProp) {
 			const { value } = store.getState()
-			let newOptions = valueToOptions(optionsProp) as Option[]
+			let newOptions = valueToOptions(optionsProp) as SelectOption[]
 
 			if (Array.isArray(newOptions) && Array.isArray(value)) {
 				const missingOptions = value
@@ -388,10 +404,10 @@ const Trigger: React.FC<Omit<SelectProps, 'value' | 'setValue'>> = ({
 			}
 		}
 
-		const findOption = (value: string | number): Option => {
+		const findOption = (value: string | number): SelectOption => {
 			const foundOption = options.find((option) =>
 				optionsMatch(option, value),
-			) as Option | undefined
+			) as SelectOption | undefined
 
 			return foundOption ?? stringOrNumberToOption(value)
 		}
@@ -464,7 +480,7 @@ const Trigger: React.FC<Omit<SelectProps, 'value' | 'setValue'>> = ({
 
 type ProviderProps = Ariakit.SelectProviderProps & {
 	store: Ariakit.SelectStore<Ariakit.SelectStoreState['value']>
-	options?: Option[] | undefined
+	options?: SelectOption[] | undefined
 }
 export const Provider: React.FC<ProviderProps> = ({ children, ...props }) => {
 	const { value, setOptions, setValue } = useSelectContext()
@@ -581,6 +597,9 @@ export const Label: React.FC<LableProps> = ({ children, ...props }) => {
 	return <Ariakit.SelectLabel {...props}>{children}</Ariakit.SelectLabel>
 }
 
+// Could improve the types by allow value to receive a number as well as a
+// string. Would probably need to do something with manually registering items
+// in options because Ariakit.SelectItem only accepts a string value.
 export type OptionProps = Ariakit.SelectItemProps
 export const Option: React.FC<OptionProps> = ({
 	children,
@@ -696,7 +715,7 @@ export const GroupLabel: React.FC<GroupLabelProps> = ({
 	)
 }
 
-const isOption = (value: SingleValue): value is Option => {
+const isOption = (value: SingleValue): value is SelectOption => {
 	return value !== null && typeof value === 'object'
 }
 
@@ -741,14 +760,16 @@ const itemsToOptions = (items: Ariakit.SelectStoreState['items']) => {
 	return items.map(itemToOption)
 }
 
-const itemToOption = (item: Ariakit.SelectStoreState['items'][0]): Option => {
+const itemToOption = (
+	item: Ariakit.SelectStoreState['items'][0],
+): SelectOption => {
 	return {
 		name: String(item.element?.innerText ?? item.value),
 		value: item.value!,
 	}
 }
 
-const stringOrNumberToOption = (value: string | number): Option => {
+const stringOrNumberToOption = (value: string | number): SelectOption => {
 	return {
 		name: String(value),
 		value,
@@ -765,8 +786,8 @@ const anyOptionsToStringValue = (options: any[] | any | undefined) => {
 }
 
 const optionsMatch = (
-	option: string | number | Option,
-	searchValue: string | number | Option | undefined,
+	option: string | number | SelectOption,
+	searchValue: string | number | SelectOption | undefined,
 ): boolean => {
 	if (searchValue === undefined) {
 		return false
