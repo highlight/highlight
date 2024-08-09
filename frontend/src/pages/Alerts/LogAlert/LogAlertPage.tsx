@@ -559,7 +559,7 @@ const LogAlertForm = () => {
 					<Text size="large" weight="bold" color="strong">
 						Alert conditions
 					</Text>
-					<Menu>
+					<Menu placement="bottom-end">
 						<ThresholdTypeConfiguration />
 					</Menu>
 				</Box>
@@ -589,27 +589,14 @@ const LogAlertForm = () => {
 					<Column>
 						<Form.Select
 							label="Alert frequency"
-							name={formStore.names.frequency.toString()}
-							onChange={(e) =>
-								formStore.setValue(
-									formStore.names.frequency,
-									e.target.value,
-								)
-							}
-						>
-							<Form.Option value="" disabled>
-								Select alert frequency
-							</Form.Option>
-							{FREQUENCIES.filter(
+							name={formStore.names.frequency}
+							placeholder="Select alert frequency"
+							options={FREQUENCIES.filter(
 								(freq) =>
 									Number(freq.value) >=
 									LOG_ALERT_MINIMUM_FREQUENCY,
-							).map((freq: any) => (
-								<Form.Option key={freq.id} value={freq.value}>
-									{freq.displayValue}
-								</Form.Option>
-							))}
-						</Form.Select>
+							)}
+						/>
 					</Column>
 				</Column.Container>
 			</Stack>

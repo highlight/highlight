@@ -70,8 +70,11 @@ export const AutoJoinForm: React.FC = () => {
 		}
 	}
 
-	const handleSelectChange = (domains: string[]) => {
-		onChangeMsg(domains, 'Successfully updated auto-join email domains!')
+	const handleSelectChange = (domains: { name: string; value: string }[]) => {
+		onChangeMsg(
+			domains.map((d) => d.value),
+			'Successfully updated auto-join email domains!',
+		)
 	}
 
 	return (
@@ -95,7 +98,7 @@ export const AutoJoinForm: React.FC = () => {
 					loading={loading}
 					placeholder={`${adminsEmailDomain}, acme.corp, piedpiper.com`}
 					value={autoJoinDomains}
-					onValueChange={(option) => handleSelectChange(option.value)}
+					onValueChange={(option) => handleSelectChange(option)}
 					options={adminDomains}
 				/>
 			</div>
