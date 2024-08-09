@@ -14,7 +14,7 @@ tags: OpenTelemetry
 metaTitle: Learn about OpenTelemetry and how it can give you superpowers monitoring your web applications allowing to find and fix bugs and performance problems easily.
 ---
 
-OpenTelemetry is a really cool project from the [CNCF](https://www.cncf.io/). In this post, we will cover the origins of OpenTelemetry, also known as OTEL, as well as what it looks like to spin up your own collector. By the end of it, you should have a pretty good understanding about what OpenTelemetry is and how to start collecting OTEL data in your applications. In a future post we'll cover (TODO: link to other article) instrumenting a Next.js app how you can use Highlight to simplify the process while getting additional insights.
+OpenTelemetry is a really cool project from the [CNCF](https://www.cncf.io/). In this post, we will cover the origins of OpenTelemetry, also known as OTEL, as well as what it looks like to spin up your own collector. By the end of it, you should have a pretty good understanding about what OpenTelemetry is and how to start collecting OTEL data in your applications. Check out [our article on instrumenting a Next.js app](/blog/how-to-use-opentelemetry-to-monitor-nextjs-apps) to collect OpenTelemetry data and how you can use Highlight to simplify the process while getting additional insights.
 
 If you would prefer a video of this content, please feel free to check out our YouTube video about the subject.
 
