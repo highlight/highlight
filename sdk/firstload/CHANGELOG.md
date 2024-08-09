@@ -1,5 +1,11 @@
 # highlight.run
 
+## 9.2.0
+
+### Minor Changes
+
+-   ac7f7f03e: stop recording if pushpayload cannot keep up with uploading data
+
 ## 9.1.5
 
 ### Patch Changes
