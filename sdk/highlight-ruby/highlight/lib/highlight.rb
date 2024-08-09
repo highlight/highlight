@@ -2,9 +2,26 @@ require 'opentelemetry/sdk'
 require 'opentelemetry/exporter/otlp'
 require 'opentelemetry/instrumentation/all'
 require 'opentelemetry/semantic_conventions'
+require 'active_support/logger_silence'
 require 'logger'
 
 module Highlight
+  module Tracing
+    class BaggageSpanProcessor < OpenTelemetry::SDK::Trace::SpanProcessor
+      def on_start(span, parent_context)
+        span.add_attributes(OpenTelemetry::Baggage.values(context: parent_context))
+      end
+    end
+  end
+
+  def self.start_span(name, attrs = {})
+    if block_given?
+      H.instance.start_span(name, attrs) { |span| yield span }
+    else
+      H.instance.start_span(name, attrs) { |_| }
+    end
+  end
+
   class H
     HIGHLIGHT_REQUEST_HEADER = 'X-Highlight-Request'.freeze
     OTLP_HTTP = 'https://otel.highlight.io:4318'.freeze
@@ -29,11 +46,19 @@ module Highlight
       @otlp_endpoint = otlp_endpoint
 
       OpenTelemetry::SDK.configure do |c|
-        c.add_span_processor(OpenTelemetry::SDK::Trace::Export::BatchSpanProcessor.new(
-                               OpenTelemetry::Exporter::OTLP::Exporter.new(
-                                 endpoint: "#{@otlp_endpoint}/v1/traces", compression: 'gzip'
-                               ), schedule_delay: 1000, max_export_batch_size: 128, max_queue_size: 1024
-                             ))
+        c.add_span_processor(Highlight::Tracing::BaggageSpanProcessor.new)
+
+        c.add_span_processor(
+          OpenTelemetry::SDK::Trace::Export::BatchSpanProcessor.new(
+            OpenTelemetry::Exporter::OTLP::Exporter.new(
+              endpoint: "#{@otlp_endpoint}/v1/traces",
+              compression: 'gzip'
+            ),
+            schedule_delay: 1000,
+            max_export_batch_size: 128,
+            max_queue_size: 1024,
+          )
+        )
 
         c.resource = OpenTelemetry::SDK::Resources::Resource.create(
           OpenTelemetry::SemanticConventions::Resource::DEPLOYMENT_ENVIRONMENT => environment
@@ -46,21 +71,47 @@ module Highlight
       @tracer = @tracer_provider.tracer('highlight-tracer')
     end
 
+    def initialized?
+      defined?(@tracer_provider)
+    end
+
     def flush
+      return unless initialized?
       @tracer_provider.force_flush
     end
 
     def trace(session_id, request_id, attrs = {})
-      @tracer.in_span('highlight-ctx', attributes: {
+      return unless initialized?
+
+      # TODO: Need to figure out why propogation isn't working for associating
+      # spans.
+
+      # Passed along by the BaggageSpanProcessor to child spans as attributes
+      OpenTelemetry::Baggage.set_value(HIGHLIGHT_SESSION_ATTRIBUTE, session_id)
+      OpenTelemetry::Baggage.set_value(HIGHLIGHT_TRACE_ATTRIBUTE, request_id)
+
+      start_span('highlight-ctx', attrs) do |span|
+        yield span
+      end
+    end
+
+    def start_span(name, attrs = {})
+      return unless initialized?
+
+      attributes = {
         HIGHLIGHT_PROJECT_ATTRIBUTE => @project_id,
-        HIGHLIGHT_SESSION_ATTRIBUTE => session_id,
-        HIGHLIGHT_TRACE_ATTRIBUTE => request_id
-      }.merge(attrs).compact) do |_span|
-        yield
+      }.merge(attrs).compact
+
+      if block_given?
+        @tracer.in_span(name, attributes: attributes) { |span| yield span }
+      else
+        @tracer.in_span(name, attributes: attributes) { |_| }
       end
     end
 
     def record_exception(e, attrs = {})
+      return unless initialized?
+
       span = OpenTelemetry::Trace.current_span
       return unless span
 
@@ -69,6 +120,8 @@ module Highlight
 
     # rubocop:disable Metrics/AbcSize
     def record_log(session_id, request_id, level, message, attrs = {})
+      return unless initialized?
+
       caller_info = caller[0].split(':', 3)
       function = caller_info[2]
       if function
@@ -97,7 +150,10 @@ module Highlight
     def self.parse_headers(headers)
       if headers && headers[HIGHLIGHT_REQUEST_HEADER]
         session_id, request_id = headers[HIGHLIGHT_REQUEST_HEADER].split('/')
-        return HighlightHeaders.new(session_id, request_id)
+        traceparent = headers['traceparent']
+        trace_id = traceparent&.split('-')&.second || request_id
+        puts "trace_id: #{trace_id}"
+        return HighlightHeaders.new(session_id, trace_id)
       end
       HighlightHeaders.new(nil, nil)
     end
@@ -120,13 +176,25 @@ module Highlight
         'UNKNOWN'
       end
     end
+
+    private
+
+    def trace_id_from_headers(headers)
+      return headers.traceparent&.split('-')&.first
+    end
   end
 
   class Logger < ::Logger
-    def add(severity, message = nil, progname = nil)
-      # https://github.com/ruby/logger/blob/master/lib/logger.rb
+    include ActiveSupport::LoggerSilence
+
+    def initialize(*args)
+      super
+      @local_level = nil # Ensure compatibility with LoggerSilence
+    end
+
+    def add(severity, message = nil, progname = nil, &block)
       severity ||= UNKNOWN
-      return true if @logdev.nil? or severity < level # rubocop:disable Style/AndOr
+      return true if @logdev.nil? || severity < level
 
       progname = @progname if progname.nil?
       if message.nil?
@@ -137,16 +205,34 @@ module Highlight
           progname = @progname
         end
       end
-      super
+      super(severity, message, progname, &block)
       H.instance.record_log(nil, nil, severity, message)
     end
   end
 
   module Integrations
     module Rails
+      def self.included(base)
+        base.extend(ClassMethods)
+        base.helper_method(:highlight_headers)
+      end
+
       def with_highlight_context(&block)
-        highlight_headers = H.parse_headers(request.headers)
+        set_highlight_headers
         H.instance.trace(highlight_headers.session_id, highlight_headers.request_id, &block)
+      end
+
+      private
+
+      def set_highlight_headers
+        @highlight_headers = H.parse_headers(request.headers)
+      end
+
+      def highlight_headers
+        @highlight_headers
+      end
+
+      module ClassMethods
       end
     end
   end
