@@ -632,7 +632,7 @@ const SessionAlertForm = ({
 							<Text size="large" weight="bold" color="strong">
 								Alert conditions
 							</Text>
-							<Menu>
+							<Menu placement="bottom-end">
 								<ThresholdTypeConfiguration />
 							</Menu>
 						</Box>
@@ -663,19 +663,9 @@ const SessionAlertForm = ({
 									<Form.Select
 										label="Alert threshold window"
 										name={formStore.names.threshold_window}
-									>
-										<option value="" disabled>
-											Select alert threshold window
-										</option>
-										{FREQUENCIES.map((freq: any) => (
-											<option
-												key={freq.id}
-												value={Number(freq.value)}
-											>
-												{freq.displayValue}
-											</option>
-										))}
-									</Form.Select>
+										placeholder="Select alert threshold window"
+										options={FREQUENCIES}
+									/>
 								</Column>
 							</Column.Container>
 						)}

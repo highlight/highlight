@@ -1,5 +1,4 @@
 import { useAuthContext } from '@authentication/AuthContext'
-import { getEmailDomain } from '@components/AutoJoinEmailsInput'
 import { Button } from '@components/Button'
 import { toast } from '@components/Toaster'
 import {
@@ -31,6 +30,7 @@ import { useNavigate } from 'react-router-dom'
 
 import { AdminRole } from '@/graph/generated/schemas'
 import { authRedirect } from '@/pages/Auth/utils'
+import { getEmailDomain } from '@/util/email'
 
 import * as authRouterStyles from './AuthRouter.css'
 import * as styles from './InviteTeam.css'

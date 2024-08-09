@@ -44,7 +44,7 @@ export const iconVariants = recipe({
 		},
 		kind: {
 			primary: {
-				color: vars.theme.interactive.fill.primary.content.onEnabled,
+				color: vars.theme.interactive.fill.primary.content.text,
 			},
 			secondary: {
 				color: vars.theme.interactive.fill.secondary.content.onEnabled,

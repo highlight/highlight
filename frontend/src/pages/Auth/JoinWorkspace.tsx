@@ -4,7 +4,6 @@ import useLocalStorage from '@rehooks/local-storage'
 import { useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 
-import { getEmailDomain } from '@/components/AutoJoinEmailsInput'
 import { Button } from '@/components/Button'
 import {
 	AppLoadingState,
@@ -18,6 +17,7 @@ import {
 import { AuthBody, AuthFooter, AuthHeader } from '@/pages/Auth/Layout'
 import { Landing } from '@/pages/Landing/Landing'
 import { ABOUT_YOU_ROUTE } from '@/routers/AppRouter/AppRouter'
+import { getEmailDomain } from '@/util/email'
 import { showSupportMessage } from '@/util/window'
 
 import * as styles from './AdminForm.css'

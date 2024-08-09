@@ -5,6 +5,8 @@ import { Divider } from 'antd'
 import Checkbox, { CheckboxChangeEvent } from 'antd/es/checkbox'
 import React from 'react'
 
+import { getEmailDomain } from '@/util/email'
+
 import styles from './AutoJoinInput.module.css'
 
 const COMMON_EMAIL_PROVIDERS = ['gmail', 'yahoo', 'hotmail']
@@ -56,15 +58,4 @@ export const AutoJoinInput: React.FC<Props> = ({
 			</div>
 		</Tooltip>
 	)
-}
-
-const getEmailDomain = (email?: string) => {
-	if (!email) {
-		return ''
-	}
-	if (!email.includes('@')) {
-		return ''
-	}
-	const [, domain] = email.split('@')
-	return domain
 }

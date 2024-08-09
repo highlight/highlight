@@ -452,7 +452,7 @@ const ErrorAlertForm = ({ hideRegexExpression }: ErrorAlertFormProps) => {
 						<Text size="large" weight="bold" color="strong">
 							Alert conditions
 						</Text>
-						<Menu>
+						<Menu placement="bottom-end">
 							<ThresholdTypeConfiguration />
 						</Menu>
 					</Box>
@@ -505,46 +505,17 @@ const ErrorAlertForm = ({ hideRegexExpression }: ErrorAlertFormProps) => {
 							<Form.Select
 								label="Alert threshold window"
 								name={formStore.names.threshold_window}
-								onChange={(e) =>
-									formStore.setValue(
-										formStore.names.threshold_window,
-										e.target.value,
-									)
-								}
-							>
-								<option value="" disabled>
-									Select alert threshold window
-								</option>
-								{FREQUENCIES.map((freq: any) => (
-									<option
-										key={freq.id}
-										value={Number(freq.value)}
-									>
-										{freq.displayValue}
-									</option>
-								))}
-							</Form.Select>
+								placeholder="Select alert threshold window"
+								options={FREQUENCIES}
+							/>
 						</Column>
 					</Column.Container>
 					<Form.Select
 						label="Alert frequency"
 						name={formStore.names.frequency}
-						onChange={(e) =>
-							formStore.setValue(
-								formStore.names.frequency,
-								e.target.value,
-							)
-						}
-					>
-						<option value="" disabled>
-							Select alert frequency
-						</option>
-						{FREQUENCIES.map((freq: any) => (
-							<option key={freq.id} value={Number(freq.value)}>
-								{freq.displayValue}
-							</option>
-						))}
-					</Form.Select>
+						placeholder="Selet alert frequency"
+						options={FREQUENCIES}
+					/>
 				</Stack>
 				<AlertNotifyForm />
 			</Box>
