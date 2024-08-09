@@ -37,6 +37,7 @@ import (
 )
 
 var DB *gorm.DB
+var Store *store.Store
 
 // Gets run once; M.run() calls the tests in this file.
 func TestMain(m *testing.M) {
@@ -44,7 +45,8 @@ func TestMain(m *testing.M) {
 	testLogger := log.WithContext(context.TODO())
 	var err error
 	DB, err = util.CreateAndMigrateTestDB(dbName)
-	SetupAuthClient(context.Background(), Simple, nil, nil)
+	Store = store.NewStore(DB, redis.NewClient(), integrations.NewIntegrationsClient(DB), &storage.FilesystemClient{}, &kafka_queue.MockMessageQueue{}, nil)
+	SetupAuthClient(context.Background(), Store, Simple, nil, nil)
 	if err != nil {
 		testLogger.Error(e.Wrap(err, "error creating testdb"))
 	}
@@ -557,7 +559,7 @@ func TestResolver_canAdminViewSession(t *testing.T) {
 			if err := redisClient.Cache.Delete(ctx, "session-secure-abc123"); err != nil {
 				t.Fatal(err)
 			}
-			r := &queryResolver{Resolver: &Resolver{DB: DB, Store: store.NewStore(DB, redisClient, integrations.NewIntegrationsClient(DB), &storage.FilesystemClient{}, &kafka_queue.MockMessageQueue{}, nil)}}
+			r := &queryResolver{Resolver: &Resolver{DB: DB, Store: Store}}
 
 			w := model.Workspace{}
 			if err := DB.Create(&w).Error; err != nil {
@@ -1125,7 +1127,7 @@ func TestUpdateSessionIsPublic(t *testing.T) {
 		ctx = context.WithValue(ctx, model.ContextKeys.UID, *admin.UID)
 		assert.NoError(t, redis.NewClient().FlushDB(ctx))
 
-		r := &mutationResolver{Resolver: &Resolver{DB: DB, Store: store.NewStore(DB, redis.NewClient(), integrations.NewIntegrationsClient(DB), &storage.FilesystemClient{}, &kafka_queue.MockMessageQueue{}, nil)}}
+		r := &mutationResolver{Resolver: &Resolver{DB: DB, Store: Store}}
 		_ = r.Store.Redis.FlushDB(ctx)
 
 		s, err := r.UpdateSessionIsPublic(ctx, session.SecureID, true)
