@@ -14,7 +14,7 @@ export const Meta = ({
 }) => {
 	const img =
 		absoluteImageUrl ||
-		`https://${process.env.NEXT_PUBLIC_VERCEL_URL}${MetaImage.src}`
+		`https://${process.env.NEXT_PUBLIC_VERCEL_PROJECT_PRODUCTION_URL}${MetaImage.src}`
 	return (
 		<Head>
 			<title>{title}</title>

@@ -6,7 +6,7 @@ import type {
 	GetStaticPathsResult,
 	GetStaticProps,
 } from 'next/types'
-import React, { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { loadPostsFromGithub } from '.'
 
 import { ElementNode } from '@graphcms/rich-text-types'
@@ -27,10 +27,10 @@ import Footer from '../../components/common/Footer/Footer'
 import { Meta } from '../../components/common/Head/Meta'
 import { Section } from '../../components/common/Section/Section'
 import { Typography } from '../../components/common/Typography/Typography'
+import { Callout } from '../../components/Docs/Callout/Callout'
 import { HighlightCodeBlock } from '../../components/Docs/HighlightCodeBlock/HighlightCodeBlock'
 import homeStyles from '../../components/Home/Home.module.scss'
 import { getBlogPaths } from '../../shared/blog'
-import { Callout } from '../../components/Docs/Callout/Callout'
 
 const NUM_SUGGESTED_POSTS = 3
 
@@ -202,9 +202,9 @@ export const getStaticProps: GetStaticProps = async ({ params }) => {
 			params.set('lname', suggestedPost.author?.lastName || '')
 			params.set('role', suggestedPost.author?.title || '')
 
-			suggestedPost.image.url = `https://${
-				process.env.NEXT_PUBLIC_VERCEL_URL || 'www.highlight.io'
-			}/api/og/blog/${suggestedPost.slug}?${params.toString()}`
+			suggestedPost.image.url = `/api/og/blog/${
+				suggestedPost.slug
+			}?${params.toString()}`
 		}
 
 		suggestedPosts.push(suggestedPost)
@@ -273,7 +273,7 @@ const PostPage = ({
 	params.set('role', post.author?.title || '')
 
 	const metaImageURL = `https://${
-		process.env.NEXT_PUBLIC_VERCEL_URL
+		process.env.NEXT_PUBLIC_VERCEL_PROJECT_PRODUCTION_URL
 	}/api/og/blog/${post.slug}?${params.toString()}`
 
 	return (

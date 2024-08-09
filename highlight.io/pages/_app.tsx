@@ -52,7 +52,7 @@ function MyApp({ Component, pageProps }: AppProps) {
 			<Meta
 				title="highlight.io: The open source monitoring platform."
 				description="highlight.io is the open source monitoring platform that gives you the visibility you need."
-				absoluteImageUrl={`https://${process.env.NEXT_PUBLIC_VERCEL_URL}${MetaImage.src}`}
+				absoluteImageUrl={`https://${process.env.NEXT_PUBLIC_VERCEL_PROJECT_PRODUCTION_URL}${MetaImage.src}`}
 			/>
 			<Component {...pageProps} />
 			<SpeedInsights />
