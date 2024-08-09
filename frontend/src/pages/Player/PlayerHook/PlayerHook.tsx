@@ -416,6 +416,15 @@ export const usePlayer = (
 					}
 					promises.push(loadEventChunk(i))
 				}
+
+				if (promises.length > MAX_CHUNK_COUNT) {
+					console.warn('large number of chunks requested', {
+						startIdx,
+						endIdx,
+						current: chunkEventsRef.current,
+					})
+					break
+				}
 			}
 			log(
 				'PlayerHook.tsx:ensureChunksLoaded',
@@ -961,19 +970,9 @@ export const usePlayer = (
 			undefined,
 			getLastLoadedEventTimestamp() - state.time < LOOKAHEAD_MS,
 		).then()
-	}, [
-		state.time,
-		ensureChunksLoaded,
-		state.sessionMetadata.startTime,
-		state.replayerState,
-		skipInactive,
-		getInactivityEnd,
-		play,
-		state.session_secure_id,
-		sessionSecureId,
-		chunkEventsRef,
-		getLastLoadedEventTimestamp,
-	])
+		// only trigger the lookahead check when the player time advances
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [state.time])
 
 	useEffect(() => {
 		if (
