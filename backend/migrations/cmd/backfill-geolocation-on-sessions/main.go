@@ -2,8 +2,11 @@ package main
 
 import (
 	"context"
+	"strconv"
 
 	"github.com/highlight-run/highlight/backend/env"
+	kafka_queue "github.com/highlight-run/highlight/backend/kafka-queue"
+	"go.openly.dev/pointy"
 	"gorm.io/gorm"
 
 	log "github.com/sirupsen/logrus"
@@ -31,12 +34,7 @@ func main() {
 	inner := func(tx *gorm.DB, batch int) error {
 		for _, session := range sessions {
 			location, err := publicGraph.GetLocationFromIP(ctx, session.IP)
-			if err != nil {
-				log.WithContext(ctx).Errorf("Error fetching geolocation for session_id:%d : %v\n", session.ID, err)
-				continue
-			}
-
-			if location == nil {
+			if err != nil || location == nil {
 				log.WithContext(ctx).Errorf("Error fetching geolocation for session_id:%d : %v\n", session.ID, err)
 				continue
 			}
@@ -58,6 +56,14 @@ func main() {
 			}).Error; err != nil {
 				log.WithContext(ctx).Errorf("Error updating session_id:%d : %v\n", session.ID, err)
 				continue
+			}
+
+			kafkaDataSyncProducer := kafka_queue.New(ctx,
+				kafka_queue.GetTopic(kafka_queue.GetTopicOptions{Type: kafka_queue.TopicTypeDataSync}),
+				kafka_queue.Producer, &kafka_queue.ConfigOverride{Async: pointy.Bool(true)})
+
+			if err := kafkaDataSyncProducer.Submit(ctx, strconv.Itoa(session.ID), &kafka_queue.Message{Type: kafka_queue.SessionDataSync, SessionDataSync: &kafka_queue.SessionDataSyncArgs{SessionID: session.ID}}); err != nil {
+				log.WithContext(ctx).Fatal(err)
 			}
 		}
 
