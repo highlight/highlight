@@ -38,4 +38,7 @@ export const SNAPSHOT_SETTINGS = {
 // Debounce duplicate visibility events
 export const VISIBILITY_DEBOUNCE_MS = 100
 
+// Max allowed time to upload to public graph before triggering recording kill switch
+export const UPLOAD_TIMEOUT = 1000 * 15
+
 export const HIGHLIGHT_URL = 'app.highlight.io'

@@ -235,6 +235,12 @@ export class Highlight {
 					e.data.response.tag,
 					e.data.response.payload,
 				)
+			} else if (e.data.response?.type === MessageType.Stop) {
+				HighlightWarning(
+					'Stopping recording due to worker failure',
+					e.data.response,
+				)
+				this.stopRecording(false)
 			}
 		}
 

@@ -17,6 +17,7 @@ export enum MessageType {
 	Metrics,
 	Feedback,
 	CustomEvent,
+	Stop,
 }
 
 export type InitializeMessage = {
@@ -85,6 +86,12 @@ export type CustomEventResponse = {
 	payload: any
 }
 
+export type StopEventResponse = {
+	type: MessageType.Stop
+	requestStart: number
+	asyncEventsResponse: AsyncEventsResponse
+}
+
 export type HighlightClientWorkerParams = {
 	message:
 		| InitializeMessage
@@ -96,5 +103,5 @@ export type HighlightClientWorkerParams = {
 }
 
 export type HighlightClientWorkerResponse = {
-	response?: AsyncEventsResponse | CustomEventResponse
+	response?: AsyncEventsResponse | CustomEventResponse | StopEventResponse
 }
