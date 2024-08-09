@@ -1,7 +1,7 @@
 ---
 title: What is OpenTelemetry and Why Should I Care?
-createdAt: 2024-07-26T12:00:00Z
-readingTime: 10
+createdAt: 2024-08-07T12:00:00Z
+readingTime: 6
 authorFirstName: Chris
 authorLastName: Griffing
 authorTitle: Technical Developer Advocate

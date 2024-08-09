@@ -1,7 +1,7 @@
 ---
 title: How to Use OpenTelemetry to Monitor Next.js Applications
-createdAt: 2024-07-26T12:00:00Z
-readingTime: 10
+createdAt: 2024-08-08T12:00:00Z
+readingTime: 6
 authorFirstName: Chris
 authorLastName: Griffing
 authorTitle: Technical Developer Advocate
