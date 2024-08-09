@@ -41,7 +41,7 @@ const retentionOptions = [
 	'1 year',
 	'2 years',
 ] as const
-type Retention = typeof retentionOptions[number]
+type Retention = (typeof retentionOptions)[number]
 const retentionMultipliers: Record<Retention, number> = {
 	'30 days': 1,
 	'3 months': 1,
@@ -57,7 +57,7 @@ const tierOptions = [
 	'Enterprise',
 	'SelfHostedEnterprise',
 ] as const
-type TierName = typeof tierOptions[number]
+type TierName = (typeof tierOptions)[number]
 
 type PricingTier = {
 	label: string
@@ -92,7 +92,7 @@ const priceTiers: Record<TierName, PricingTier> = {
 				feature: 'AI error grouping',
 			},
 			{
-				feature: 'Unlimited seats',
+				feature: 'Up to 15 seats',
 			},
 		],
 		buttonLabel: 'Start free trial',
@@ -149,7 +149,7 @@ const priceTiers: Record<TierName, PricingTier> = {
 				tooltip: `Ability to filter out data before it is ingested to mitigate costs.`,
 			},
 			{
-				feature: `Everything in pay-as-you-go`,
+				feature: `Everything in Pay-as-you-go`,
 			},
 		],
 		calculateUsage: true,
@@ -165,11 +165,6 @@ const priceTiers: Record<TierName, PricingTier> = {
 			<HiOfficeBuilding className="text-white w-8 h-8 -translate-x-1" />
 		),
 		features: [
-			{
-				feature: 'Volume discounts',
-				tooltip:
-					'At higher volumes, we can heavily discount usage; reach out to learn more.',
-			},
 			{
 				feature: 'SAML & SSO',
 				tooltip:
