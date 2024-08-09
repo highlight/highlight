@@ -9,3 +9,4 @@ export const FRONTEND_URI =
 export const AUTH_MODE = import.meta.env.REACT_APP_AUTH_MODE
 export const OTLP_ENDPOINT =
 	import.meta.env.REACT_APP_OTLP_ENDPOINT || 'https://otel.highlight.io:4318'
+export const DISABLE_ANALYTICS = import.meta.env.REACT_APP_DISABLE_ANALYTICS
