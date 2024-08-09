@@ -7,6 +7,7 @@ var graphBackground = "gw96js3";
 var graphWrapper = "gw96js7";
 var input = "gw96js6";
 var previewWindow = "gw96js2";
+var tagSwitch = "gw96js8";
 export {
   editGraphHeader,
   editGraphPanel,
@@ -15,5 +16,6 @@ export {
   graphBackground,
   graphWrapper,
   input,
-  previewWindow
+  previewWindow,
+  tagSwitch
 };

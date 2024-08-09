@@ -756,6 +756,7 @@ export type Graph = {
 	__typename?: 'Graph'
 	bucketByKey?: Maybe<Scalars['String']>
 	bucketCount?: Maybe<Scalars['Int']>
+	bucketInterval?: Maybe<Scalars['Int']>
 	display?: Maybe<Scalars['String']>
 	functionType: MetricAggregator
 	groupByKey?: Maybe<Scalars['String']>
@@ -775,6 +776,7 @@ export type GraphInput = {
 	afterGraphId?: InputMaybe<Scalars['ID']>
 	bucketByKey?: InputMaybe<Scalars['String']>
 	bucketCount?: InputMaybe<Scalars['Int']>
+	bucketInterval?: InputMaybe<Scalars['Int']>
 	display?: InputMaybe<Scalars['String']>
 	functionType: MetricAggregator
 	groupByKey?: InputMaybe<Scalars['String']>

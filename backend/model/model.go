@@ -1413,6 +1413,7 @@ type Graph struct {
 	GroupByKey        *string
 	BucketByKey       *string
 	BucketCount       *int
+	BucketInterval    *int
 	Limit             *int
 	LimitFunctionType *modelInputs.MetricAggregator
 	LimitMetric       *string

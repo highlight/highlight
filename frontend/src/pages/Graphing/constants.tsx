@@ -9,6 +9,7 @@ import {
 import { MetricAggregator, ProductType } from '@/graph/generated/schemas'
 
 export const DEFAULT_BUCKET_COUNT = 50
+export const DEFAULT_BUCKET_INTERVAL = 300
 
 export const PRODUCTS: ProductType[] = [
 	ProductType.Logs,

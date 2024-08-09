@@ -15363,6 +15363,7 @@ export const GetVisualizationDocument = gql`
 				groupByKey
 				bucketByKey
 				bucketCount
+				bucketInterval
 				limit
 				limitFunctionType
 				limitMetric
@@ -15457,6 +15458,7 @@ export const GetVisualizationsDocument = gql`
 					groupByKey
 					bucketByKey
 					bucketCount
+					bucketInterval
 					limit
 					limitFunctionType
 					limitMetric

@@ -411,6 +411,7 @@ type GraphInput struct {
 	GroupByKey        *string           `json:"groupByKey,omitempty"`
 	BucketByKey       *string           `json:"bucketByKey,omitempty"`
 	BucketCount       *int              `json:"bucketCount,omitempty"`
+	BucketInterval    *int              `json:"bucketInterval,omitempty"`
 	Limit             *int              `json:"limit,omitempty"`
 	LimitFunctionType *MetricAggregator `json:"limitFunctionType,omitempty"`
 	LimitMetric       *string           `json:"limitMetric,omitempty"`
