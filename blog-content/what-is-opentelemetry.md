@@ -18,7 +18,7 @@ OpenTelemetry is a really cool project from the [CNCF](https://www.cncf.io/). In
 
 If you would prefer a video of this content, please feel free to check out our YouTube video about the subject.
 
-<iframe width="740" height="416" src="https://www.youtube.com/embed/ASgosEzG4Pw?si=HatSH1-IxJE7HwCv" title="What is OpenTelemetry" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen style="margin: 0 auto"></iframe>
+<iframe width="740" height="416" src="https://www.youtube.com/embed/ASgosEzG4Pw?si=HatSH1-IxJE7HwCv" title="What is OpenTelemetry" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen style={{ margin: "0 auto" }}></iframe>
 
 ## What's Missing?
 
