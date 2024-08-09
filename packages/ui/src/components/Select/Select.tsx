@@ -79,7 +79,7 @@ const SelectProvider = <T,>({
 	const handleSetValue = (newValue: string | string[]) => {
 		const noValue = Array.isArray(value) ? value.length === 0 : !value
 		// Avoid triggering the callback if we haven't initialized yet.
-		const shouldTriggerCallback = options.length || noValue
+		const noCallback = (!options.length && noValue) || props.loading
 
 		let newInternalValue: any
 		if (options.length) {
@@ -115,7 +115,7 @@ const SelectProvider = <T,>({
 
 		setValue(newInternalValue)
 
-		if (onValueChange && shouldTriggerCallback) {
+		if (onValueChange && !noCallback) {
 			onValueChange(newInternalValue)
 		}
 	}
