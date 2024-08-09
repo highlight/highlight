@@ -3105,6 +3105,14 @@ func (r *Resolver) SendSessionInitAlert(ctx context.Context, workspace *model.Wo
 
 func (r *Resolver) submitFrontendNetworkMetric(ctx context.Context, sessionObj *model.Session, resources []NetworkResource) error {
 	for _, re := range resources {
+		requestHeaders, _ := re.RequestResponsePairs.Request.HeadersRaw.(map[string]interface{})
+
+		// if traceparent header is set, this means otel is enabled in the client
+		// and we don't want to create a new trace.
+		if _, ok := requestHeaders["traceparent"]; ok {
+			continue
+		}
+
 		method := re.RequestResponsePairs.Request.Method
 		if method == "" {
 			method = http.MethodGet
@@ -3114,7 +3122,7 @@ func (r *Resolver) submitFrontendNetworkMetric(ctx context.Context, sessionObj *
 		if url, err := url2.Parse(re.Name); err == nil && url.Host == "pub.highlight.io" {
 			continue
 		}
-		requestHeaders, _ := re.RequestResponsePairs.Request.HeadersRaw.(map[string]interface{})
+
 		responseHeaders, _ := re.RequestResponsePairs.Response.HeadersRaw.(map[string]interface{})
 		userAgent, _ := requestHeaders["User-Agent"].(string)
 		requestBody, ok := re.RequestResponsePairs.Request.Body.(string)

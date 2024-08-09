@@ -22,7 +22,7 @@ type NetworkListenerArguments = {
 	backendUrl: string
 	tracingOrigins: boolean | (string | RegExp)[]
 	urlBlocklist: string[]
-	sessionSecureID: string
+	otelEnabled: boolean
 } & Pick<NetworkRecordingOptions, 'bodyKeysToRecord'>
 
 export const NetworkListener = ({
@@ -35,8 +35,8 @@ export const NetworkListener = ({
 	backendUrl,
 	tracingOrigins,
 	urlBlocklist,
-	sessionSecureID,
 	bodyKeysToRecord,
+	otelEnabled,
 }: NetworkListenerArguments) => {
 	const removeXHRListener = XHRListener(
 		xhrCallback,
@@ -45,6 +45,7 @@ export const NetworkListener = ({
 		urlBlocklist,
 		bodyKeysToRedact,
 		bodyKeysToRecord,
+		otelEnabled,
 	)
 	const removeFetchListener = FetchListener(
 		fetchCallback,
@@ -53,6 +54,7 @@ export const NetworkListener = ({
 		urlBlocklist,
 		bodyKeysToRedact,
 		bodyKeysToRecord,
+		otelEnabled,
 	)
 
 	const removeWebSocketListener = !disableWebSocketRecording
