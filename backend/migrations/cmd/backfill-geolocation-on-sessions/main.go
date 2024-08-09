@@ -64,7 +64,13 @@ func main() {
 		return nil
 	}
 
-	if err := db.Debug().Where("country = ? AND state = ? AND created_at >= ? AND IP != ?", "", "", "2024-07-19 00:00:00", "").Order("id").FindInBatches(&sessions, batchSize, inner).Error; err != nil {
+	if err := db.Debug().
+		Joins("JOIN projects AS p ON p.id = sessions.project_id").
+		Joins("JOIN all_workspace_settings AS aw ON aw.workspace_id = p.workspace_id").
+		Where("aw.store_ip = ? AND sessions.country = ? AND sessions.state = ? AND sessions.created_at >= ? AND sessions.IP != ?", true, "", "", "2024-07-19 00:00:00", "").
+		Order("id").
+		FindInBatches(&sessions, batchSize, inner).
+		Error; err != nil {
 		log.WithContext(ctx).Fatalf("failed: %v", err)
 	}
 }
