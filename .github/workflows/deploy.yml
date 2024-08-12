@@ -320,7 +320,7 @@ jobs:
                   container-name: highlight-backend
                   image: ${{ steps.login-ecr.outputs.registry }}/highlight-production-ecr-repo:${{ github.sha }}.arm64
             - name: Deploy to Amazon ECS private-graph service
-              uses: aws-actions/amazon-ecs-deploy-task-definition@v1
+              uses: aws-actions/amazon-ecs-deploy-task-definition@v2
               with:
                   task-definition: ${{ steps.image-private-graph.outputs.task-definition }}
                   service: private-graph-service
@@ -334,7 +334,7 @@ jobs:
                   container-name: highlight-backend
                   image: ${{ steps.login-ecr.outputs.registry }}/highlight-production-ecr-repo:${{ github.sha }}.arm64
             - name: Deploy to Amazon ECS public-graph service
-              uses: aws-actions/amazon-ecs-deploy-task-definition@v1
+              uses: aws-actions/amazon-ecs-deploy-task-definition@v2
               with:
                   task-definition: ${{ steps.image-public-graph.outputs.task-definition }}
                   service: public-graph-service
@@ -348,7 +348,7 @@ jobs:
                   container-name: highlight-backend
                   image: ${{ steps.login-ecr.outputs.registry }}/highlight-production-ecr-repo:${{ github.sha }}.arm64
             - name: Deploy to Amazon ECS worker service
-              uses: aws-actions/amazon-ecs-deploy-task-definition@v1
+              uses: aws-actions/amazon-ecs-deploy-task-definition@v2
               with:
                   task-definition: ${{ steps.image-worker.outputs.task-definition }}
                   service: session-worker
@@ -362,7 +362,7 @@ jobs:
                   container-name: highlight-backend
                   image: ${{ steps.login-ecr.outputs.registry }}/highlight-production-ecr-repo:${{ github.sha }}.arm64
             - name: Deploy to Amazon ECS metric monitor service
-              uses: aws-actions/amazon-ecs-deploy-task-definition@v1
+              uses: aws-actions/amazon-ecs-deploy-task-definition@v2
               with:
                   task-definition: ${{ steps.image-metric-monitor.outputs.task-definition }}
                   service: metric-monitor
@@ -376,7 +376,7 @@ jobs:
                   container-name: highlight-backend
                   image: ${{ steps.login-ecr.outputs.registry }}/highlight-production-ecr-repo:${{ github.sha }}.arm64
             - name: Deploy to Amazon ECS log alerts service
-              uses: aws-actions/amazon-ecs-deploy-task-definition@v1
+              uses: aws-actions/amazon-ecs-deploy-task-definition@v2
               with:
                   task-definition: ${{ steps.image-log-alerts.outputs.task-definition }}
                   service: log-alerts-service
@@ -390,7 +390,7 @@ jobs:
                   container-name: highlight-backend
                   image: ${{ steps.login-ecr.outputs.registry }}/highlight-production-ecr-repo:${{ github.sha }}.arm64
             - name: Deploy to Amazon ECS public worker (main topic) service
-              uses: aws-actions/amazon-ecs-deploy-task-definition@v1
+              uses: aws-actions/amazon-ecs-deploy-task-definition@v2
               with:
                   task-definition: ${{ steps.image-public-worker-main.outputs.task-definition }}
                   service: public-worker-main-service
@@ -404,7 +404,7 @@ jobs:
                   container-name: highlight-backend
                   image: ${{ steps.login-ecr.outputs.registry }}/highlight-production-ecr-repo:${{ github.sha }}.arm64
             - name: Deploy to Amazon ECS public worker (batched topic) service
-              uses: aws-actions/amazon-ecs-deploy-task-definition@v1
+              uses: aws-actions/amazon-ecs-deploy-task-definition@v2
               with:
                   task-definition: ${{ steps.image-public-worker-batched.outputs.task-definition }}
                   service: public-worker-batched-service
@@ -418,7 +418,7 @@ jobs:
                   container-name: highlight-backend
                   image: ${{ steps.login-ecr.outputs.registry }}/highlight-production-ecr-repo:${{ github.sha }}.arm64
             - name: Deploy to Amazon ECS public worker (datasync topic) service
-              uses: aws-actions/amazon-ecs-deploy-task-definition@v1
+              uses: aws-actions/amazon-ecs-deploy-task-definition@v2
               with:
                   task-definition: ${{ steps.image-public-worker-datasync.outputs.task-definition }}
                   service: public-worker-datasync-service
@@ -432,7 +432,7 @@ jobs:
                   container-name: highlight-backend
                   image: ${{ steps.login-ecr.outputs.registry }}/highlight-production-ecr-repo:${{ github.sha }}.arm64
             - name: Deploy to Amazon ECS public worker (traces topic) service
-              uses: aws-actions/amazon-ecs-deploy-task-definition@v1
+              uses: aws-actions/amazon-ecs-deploy-task-definition@v2
               with:
                   task-definition: ${{ steps.image-public-worker-traces.outputs.task-definition }}
                   service: public-worker-traces-service
@@ -482,7 +482,7 @@ jobs:
                   image: ${{ steps.login-ecr.outputs.registry }}/highlight-collector:${{ github.sha }}.arm64
             - name: Deploy to Amazon ECS opentelemetry collector service
               if: steps.filter.outputs.otel-changed == 'true'
-              uses: aws-actions/amazon-ecs-deploy-task-definition@v1
+              uses: aws-actions/amazon-ecs-deploy-task-definition@v2
               with:
                   task-definition: ${{ steps.image-opentelemetry-collector.outputs.task-definition }}
                   service: opentelemetry-collector-service
