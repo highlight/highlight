@@ -1,10 +1,10 @@
 # highlight.run
 
-## 9.1.6
+## 9.2.0
 
-### Patch Changes
+### Minor Changes
 
--   fb062dfcf: use trace ID as request ID in network listeners
+-   d67bd4425: stop recording if pushpayload cannot keep up with uploading data
 
 ## 9.1.5
 

@@ -1,11 +1,11 @@
 # @highlight-run/react
 
-## 3.2.6
+## 4.0.0
 
 ### Patch Changes
 
--   Updated dependencies [fb062dfcf]
-    -   highlight.run@9.1.6
+-   Updated dependencies [d67bd4425]
+    -   highlight.run@9.2.0
 
 ## 3.2.5
 

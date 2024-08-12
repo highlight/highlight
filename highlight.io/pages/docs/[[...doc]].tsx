@@ -839,7 +839,7 @@ export default function DocPage({
 				}
 				description={description}
 				absoluteImageUrl={`https://${
-					process.env.NEXT_PUBLIC_VERCEL_URL
+					process.env.NEXT_PUBLIC_VERCEL_PROJECT_PRODUCTION_URL
 				}/api/og/doc${relPath?.replace('.md', '')}`}
 				canonical={`/docs/${slug}`}
 			/>

@@ -4,10 +4,10 @@
 
 ### Patch Changes
 
--   Updated dependencies [fb062dfcf]
-    -   highlight.run@9.1.6
+-   Updated dependencies [d67bd4425]
+    -   highlight.run@9.2.0
     -   @highlight-run/node@3.9.0
-    -   @highlight-run/react@3.2.6
+    -   @highlight-run/react@4.0.0
 
 ## 7.5.17
 
