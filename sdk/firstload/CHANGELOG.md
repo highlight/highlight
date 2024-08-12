@@ -1,5 +1,11 @@
 # highlight.run
 
+## 9.2.2
+
+### Patch Changes
+
+-   0067ea6b5: use trace ID as request ID in network listeners
+
 ## 9.2.0
 
 ### Minor Changes
