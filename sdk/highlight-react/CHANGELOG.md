@@ -5,7 +5,7 @@
 ### Patch Changes
 
 -   Updated dependencies [0067ea6b5]
-    -   highlight.run@9.2.2
+    -   highlight.run@9.2.1
 
 ## 4.0.0
 
