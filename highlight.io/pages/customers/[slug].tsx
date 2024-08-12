@@ -194,7 +194,7 @@ const CustomerPage = ({
 	params.set('role', customer.primaryQuote.author.title)
 
 	const metaImageURL = `https://${
-		process.env.NEXT_PUBLIC_VERCEL_URL
+		process.env.NEXT_PUBLIC_VERCEL_PROJECT_PRODUCTION_URL
 	}/api/og/customer/${customer.slug}?${params.toString()}`
 
 	return (
