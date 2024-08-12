@@ -25,7 +25,6 @@ import (
 const timeFormat = "2006-01-02T15:04:05.000Z"
 
 var fieldMap = map[string]string{
-	"fingerprint":       "Fingerprint",
 	"pages_visited":     "PagesVisited",
 	"viewed_by_me":      "ViewedByAdmins",
 	"created_at":        "CreatedAt",
@@ -68,7 +67,6 @@ var fieldMap = map[string]string{
 
 type ClickhouseSession struct {
 	ID                 int64
-	Fingerprint        int32
 	ProjectID          int32
 	PagesVisited       int32
 	ViewedByAdmins     clickhouse.ArraySet
@@ -190,7 +188,6 @@ func (client *Client) WriteSessions(ctx context.Context, sessions []*model.Sessi
 
 		chs := ClickhouseSession{
 			ID:                 int64(session.ID),
-			Fingerprint:        int32(session.Fingerprint),
 			ProjectID:          int32(session.ProjectID),
 			PagesVisited:       int32(session.PagesVisited),
 			ViewedByAdmins:     viewedByAdmins,
@@ -241,7 +238,7 @@ func (client *Client) WriteSessions(ctx context.Context, sessions []*model.Sessi
 				NewStruct(new(ClickhouseSession)).
 				InsertInto(SessionsTable, chSessions...).
 				BuildWithFlavor(sqlbuilder.ClickHouse)
-			sessionsSql, sessionsArgs = replaceTimestampInserts(sessionsSql, sessionsArgs, map[int]bool{7: true, 8: true}, MicroSeconds)
+			sessionsSql, sessionsArgs = replaceTimestampInserts(sessionsSql, sessionsArgs, map[int]bool{6: true, 7: true}, MicroSeconds)
 			return client.conn.Exec(chCtx, sessionsSql, sessionsArgs...)
 		})
 	}
@@ -499,7 +496,7 @@ var SessionsJoinedTableConfig = model.TableConfig{
 	TableName:        SessionsJoinedTable,
 	AttributesColumn: "SessionAttributePairs",
 	AttributesList:   true,
-	BodyColumn:       `concat(coalesce(nullif(arrayFilter((k, v) -> k = 'email', SessionAttributePairs) [1].2,''), nullif(Identifier, ''), nullif(toString(Fingerprint), ''), 'unidentified'), ': ', City, if(City != '', ', ', ''), Country)`,
+	BodyColumn:       `concat(coalesce(nullif(arrayFilter((k, v) -> k = 'email', SessionAttributePairs) [1].2,''), nullif(Identifier, ''), nullif(arrayFilter((k, v) -> k = 'device_id', SessionAttributePairs) [1].2, ''), 'unidentified'), ': ', City, if(City != '', ', ', ''), Country)`,
 	KeysToColumns: map[string]string{
 		string(modelInputs.ReservedSessionKeyActiveLength):       "ActiveLength",
 		string(modelInputs.ReservedSessionKeyServiceVersion):     "AppVersion",
@@ -510,7 +507,6 @@ var SessionsJoinedTableConfig = model.TableConfig{
 		string(modelInputs.ReservedSessionKeyCountry):            "Country",
 		string(modelInputs.ReservedSessionKeyEnvironment):        "Environment",
 		string(modelInputs.ReservedSessionKeyExcluded):           "Excluded",
-		string(modelInputs.ReservedSessionKeyDeviceID):           "Fingerprint",
 		string(modelInputs.ReservedSessionKeyFirstTime):          "FirstTime",
 		string(modelInputs.ReservedSessionKeyHasComments):        "HasComments",
 		string(modelInputs.ReservedSessionKeyHasErrors):          "HasErrors",
