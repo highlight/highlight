@@ -1,7 +1,7 @@
 import * as Ariakit from '@ariakit/react'
 import { isEqual } from 'lodash'
 import { matchSorter } from 'match-sorter'
-import React, { useEffect, useMemo, useRef, useTransition } from 'react'
+import React, { useEffect, useMemo, useRef } from 'react'
 import { useState } from 'react'
 
 import { Badge } from '../Badge/Badge'
@@ -39,8 +39,6 @@ type SelectProviderProps<T = any> = {
 	clearable?: boolean
 	defaultValue?: T
 	displayMode?: 'normal' | 'tags'
-	internallyUpdating?: boolean
-	internalUpdate?: boolean
 	loading?: boolean
 	options?: InitialOptions
 	value?: T
@@ -174,8 +172,6 @@ export const Select = <T,>({
 	onCreate,
 	...props
 }: SelectProps<T>) => {
-	const internalUpdateRef = React.useRef(false)
-	const [internallyUpdating, setInternallyUpdating] = useState(false)
 	const [searchValue, setSearchValue] = useState('')
 	const value = valueProp ?? props.defaultValue
 	const [options, setOptions] = useState(
@@ -196,7 +192,6 @@ export const Select = <T,>({
 		clearable,
 		defaultValue: props.defaultValue,
 		displayMode,
-		internallyUpdating,
 		loading,
 		options,
 		value: valueToOptions(value) as any, // eslint-disable-line @typescript-eslint/no-explicit-any
