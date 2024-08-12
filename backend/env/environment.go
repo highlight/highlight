@@ -8,6 +8,7 @@ import (
 	"github.com/samber/lo"
 	log "github.com/sirupsen/logrus"
 	"io"
+	"net/url"
 	"os"
 	"reflect"
 	"strconv"
@@ -88,6 +89,10 @@ type Configuration struct {
 	LinearClientSecret          string `mapstructure:"LINEAR_CLIENT_SECRET"`
 	MicrosoftTeamsBotId         string `mapstructure:"MICROSOFT_TEAMS_BOT_ID"`
 	MicrosoftTeamsBotPassword   string `mapstructure:"MICROSOFT_TEAMS_BOT_PASSWORD"`
+	OAuthClientID               string `mapstructure:"OAUTH_CLIENT_ID"`
+	OAuthClientSecret           string `mapstructure:"OAUTH_CLIENT_SECRET"`
+	OAuthProviderUrl            string `mapstructure:"OAUTH_PROVIDER_URL"`
+	OAuthRedirectUrl            string `mapstructure:"OAUTH_REDIRECT_URL"`
 	OTLPDogfoodEndpoint         string `mapstructure:"OTLP_DOGFOOD_ENDPOINT"`
 	OTLPEndpoint                string `mapstructure:"OTLP_ENDPOINT"`
 	ObjectStorageFS             string `mapstructure:"OBJECT_STORAGE_FS"`
@@ -167,6 +172,14 @@ func GetEnterpriseEnvPublicKey() string {
 		return string(data)
 	}
 	return Config.EnterpriseEnvPublicKey
+}
+
+func GetFrontendDomain() (string, error) {
+	u, err := url.Parse(Config.FrontendUri)
+	if err != nil {
+		return "", err
+	}
+	return u.Host, nil
 }
 
 func IsDevEnv() bool {

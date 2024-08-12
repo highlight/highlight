@@ -5,12 +5,12 @@ if [[ "$LICENSE_KEY" == "" ]]; then
     exit 1
 fi
 
-echo "Encrypting using license key ${LICENSE_KEY}"
-NOW=$(date -d "+1 year" -Iseconds)
+NOW=$(date -d "+1 year" -Iseconds 2>/dev/null || date -v "+1y" -Iseconds)
 OUTPUT="../backend/env.enc"
 
 # set env vars from doppler
-export -n DOPPLER_CONFIG
+export DOPPLER_CONFIG
+echo "Encrypting with doppler config ${DOPPLER_CONFIG} using license key ${LICENSE_KEY}"
 doppler secrets download --format=env-no-quotes --no-file \
     | grep -vE '^#' | grep -E '\S+' | grep -f env.enterprise.keys \
     | while IFS='=' read -r key value; do echo "$key=$(echo -n "$value" | base64 -w0)"; done \
