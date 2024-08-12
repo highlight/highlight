@@ -151,7 +151,6 @@ module Highlight
         session_id, request_id = headers[HIGHLIGHT_REQUEST_HEADER].split('/')
         traceparent = headers['traceparent']
         trace_id = traceparent&.split('-')&.second || request_id
-        puts "::: trace_id: #{trace_id}"
         return HighlightHeaders.new(session_id, trace_id)
       end
       HighlightHeaders.new(nil, nil)
