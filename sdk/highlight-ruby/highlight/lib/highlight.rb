@@ -64,6 +64,8 @@ module Highlight
           OpenTelemetry::SemanticConventions::Resource::DEPLOYMENT_ENVIRONMENT => environment
         )
 
+        c.use_all
+
         yield c if block_given?
       end
 
@@ -83,10 +85,7 @@ module Highlight
     def trace(session_id, request_id, attrs = {})
       return unless initialized?
 
-      # TODO: Need to figure out why propogation isn't working for associating
-      # spans.
-
-      # Passed along by the BaggageSpanProcessor to child spans as attributes
+      # Passed along by the BaggageSpanProcessor to child spans as attributes.
       OpenTelemetry::Baggage.set_value(HIGHLIGHT_SESSION_ATTRIBUTE, session_id)
       OpenTelemetry::Baggage.set_value(HIGHLIGHT_TRACE_ATTRIBUTE, request_id)
 
@@ -152,7 +151,7 @@ module Highlight
         session_id, request_id = headers[HIGHLIGHT_REQUEST_HEADER].split('/')
         traceparent = headers['traceparent']
         trace_id = traceparent&.split('-')&.second || request_id
-        puts "trace_id: #{trace_id}"
+        puts "::: trace_id: #{trace_id}"
         return HighlightHeaders.new(session_id, trace_id)
       end
       HighlightHeaders.new(nil, nil)
