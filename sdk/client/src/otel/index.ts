@@ -268,6 +268,14 @@ export const getTracer = () => {
 	return provider.getTracer(BROWSER_TRACER_NAME)
 }
 
+export const getActiveSpan = () => {
+	return api.trace.getActiveSpan()
+}
+
+export const getActiveSpanContext = () => {
+	return api.context.active()
+}
+
 export const shutdown = async () => {
 	if (provider === undefined) {
 		return
