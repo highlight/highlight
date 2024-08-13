@@ -86,6 +86,6 @@ func main() {
 	}
 
 	// Sleep to ensure kafka queue is flushed
-	log.WithContext(ctx).Info("waiting for kafka queue to be flushed")
+	log.WithContext(ctx).Info("Waiting for kafka queue to be flushed")
 	time.Sleep(15 * time.Second)
 }
