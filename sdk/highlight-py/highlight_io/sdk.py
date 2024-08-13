@@ -6,7 +6,7 @@ import sys
 import traceback
 import typing
 
-from opentelemetry import trace as otel_trace, _logs
+from opentelemetry import trace as otel_trace, _logs, context
 from opentelemetry._logs.severity import std_to_otel
 from opentelemetry.baggage import set_baggage, get_baggage
 from opentelemetry.context import Context, attach, get_current
@@ -14,6 +14,7 @@ from opentelemetry.exporter.otlp.proto.http import Compression
 from opentelemetry.exporter.otlp.proto.http._log_exporter import OTLPLogExporter
 from opentelemetry.exporter.otlp.proto.http.trace_exporter import OTLPSpanExporter
 from opentelemetry.instrumentation.logging import LoggingInstrumentor
+from opentelemetry.propagate import extract
 from opentelemetry.sdk._logs import (
     LoggerProvider,
     LogRecord,
@@ -297,6 +298,15 @@ class H(object):
             except Exception as e:
                 self.record_exception(e, attributes=attributes)
                 raise
+
+    @staticmethod
+    def propagate_context(carrier: dict, fn: typing.Callable):
+        ctx = extract(carrier)
+        token = context.attach(ctx)
+        try:
+            fn()
+        finally:
+            context.detach(token)
 
     @staticmethod
     def record_http_error(
