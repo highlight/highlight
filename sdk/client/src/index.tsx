@@ -90,6 +90,7 @@ import {
 	VISIBILITY_DEBOUNCE_MS,
 } from './constants/sessions'
 import { getDefaultDataURLOptions } from './utils/utils'
+import { getTracer, setupBrowserTracing } from './otel'
 
 export const HighlightWarning = (context: string, msg: any) => {
 	console.warn(`Highlight Warning: (${context}): `, { output: msg })
@@ -235,6 +236,12 @@ export class Highlight {
 					e.data.response.tag,
 					e.data.response.payload,
 				)
+			} else if (e.data.response?.type === MessageType.Stop) {
+				HighlightWarning(
+					'Stopping recording due to worker failure',
+					e.data.response,
+				)
+				this.stopRecording(false)
 			}
 		}
 
@@ -1428,6 +1435,8 @@ export {
 	GenerateSecureID,
 	MetricCategory,
 	getPreviousSessionData,
+	setupBrowserTracing,
+	getTracer,
 }
 export type {
 	AmplitudeIntegrationOptions,

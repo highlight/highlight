@@ -8,6 +8,7 @@ import * as styles from './styles.css'
 export type Props = React.PropsWithChildren &
 	styles.Variants & {
 		as?: BoxProps['as']
+		align?: BoxProps['textAlign']
 		color?: BoxProps['color']
 		decoration?: BoxProps['textDecoration']
 		display?: BoxProps['display']

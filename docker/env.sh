@@ -11,7 +11,6 @@ fi
 # setup env
 $(cat .env | grep -vE '^#' | grep -E '\S+' | sed -e 's/^/export /')
 export IN_DOCKER=true
-export OBJECT_STORAGE_FS=/tmp/highlight-data
 export BACKEND_HEALTH_URI=$(echo "$REACT_APP_PUBLIC_GRAPH_URI" | sed -e 's/\/public/\/health/')
 export LICENSE_KEY=$LICENSE_KEY_OVERRIDE
 export BUILD_ARGS="--build-arg DOPPLER_TOKEN=${DOPPLER_TOKEN}"
@@ -44,9 +43,6 @@ else
     export PSQL_HOST=localhost
     export REDIS_EVENTS_STAGING_ENDPOINT=localhost:6379
 fi
-
-# setup session storage directory
-mkdir -p ${OBJECT_STORAGE_FS}
 
 # setup path to include go installed binaries
 export PATH=${PATH}:$(go env GOPATH)/bin
