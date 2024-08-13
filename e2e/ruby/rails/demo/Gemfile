@@ -70,4 +70,4 @@ group :test do
   gem "selenium-webdriver"
 end
 
-gem "highlight_io", path: "../../../highlight"
+gem "highlight_io", path: "../../../../sdk/highlight-ruby/highlight"
