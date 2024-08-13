@@ -22,24 +22,24 @@ Create a server plugin:
 
 ```typescript
 // server/plugins/highlight.ts
-import { H, type NodeOptions } from "@highlight-run/node"
+import { H, type NodeOptions } from '@highlight-run/node'
 
 export default defineNitroPlugin((nitro) => {
-  const highlightConfig: NodeOptions = {
-    projectID: process.env.HIGHLIGHT_PROJECT_ID,
-  }
+	const highlightConfig: NodeOptions = {
+		projectID: process.env.HIGHLIGHT_PROJECT_ID,
+	}
 
-  if (!H.isInitialized()) {
-    H.init(highlightConfig)
-  }
+	if (!H.isInitialized()) {
+		H.init(highlightConfig)
+	}
 
-  nitro.hooks.hook("error", async (error, { event }) => {
-    const headers = event?.node.req.headers!
-    const parsed = H.parseHeaders(headers)
-    if (parsed !== undefined) {
-      H.consumeError(error, parsed?.secureSessionId, parsed?.requestId)
-    }
-  })
+	nitro.hooks.hook('error', async (error, { event }) => {
+		const headers = event?.node.req.headers!
+		const parsed = H.parseHeaders(headers)
+		if (parsed !== undefined) {
+			H.consumeError(error, parsed?.secureSessionId, parsed?.requestId)
+		}
+	})
 })
 ```
 
@@ -50,9 +50,10 @@ Create a test API route:
 ```typescript
 // server/api/test-error.ts
 export default defineEventHandler(() => {
-  throw new Error('Test server-side error')
+	throw new Error('Test server-side error')
 })
 ```
+
 Test with:
 
 ```bash
