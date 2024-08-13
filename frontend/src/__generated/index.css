@@ -7898,16 +7898,12 @@ body {
   -webkit-line-clamp: 1;
   line-clamp: 1;
 }
-.izessr0 {
-  padding-left: 8px;
-  height: 100%;
-}
-.izessr1:focus,
-.izessr1:active,
-.izessr1:hover {
+.izessr0:focus,
+.izessr0:active,
+.izessr0:hover {
   background-color: #e9e8ea;
 }
-.izessr3 {
+.izessr2 {
   border-bottom: 2px solid var(--_1pyqka9l);
 }
 ._1eq64x70 {
@@ -7916,7 +7912,6 @@ body {
   display: flex;
   flex-direction: column;
   z-index: 5;
-  position: relative;
 }
 ._1eq64x71 {
   transform: rotate(90deg);
