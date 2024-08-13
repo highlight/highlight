@@ -22,13 +22,11 @@ const batchSize = 100
 // `doppler run -- go run backend/migrations/cmd/backfill-geolocation-on-sessions/main.go`
 func main() {
 	ctx := context.Background()
-	log.WithContext(ctx).Info("setting up db")
+	log.WithContext(ctx).Info("Setting up db...")
 	db, err := model.SetupDB(ctx, env.Config.SQLDatabase)
 	if err != nil {
-		log.WithContext(ctx).Fatalf("error setting up db: %+v", err)
+		log.WithContext(ctx).Fatalf("Error setting up db: %+v", err)
 	}
-
-	log.WithContext(ctx).Infof("starting query")
 
 	var sessions []model.Session
 
