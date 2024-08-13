@@ -297,16 +297,16 @@ export declare interface HighlightPublicInterface {
 	 * @param callbackFn The function to run in the span.
 	 */
 	startSpan: {
-		<F extends (span: Span) => ReturnType<F>>(
+		<F extends (span?: Span) => ReturnType<F>>(
 			name: string,
 			fn: F,
 		): ReturnType<F>
-		<F extends (span: Span) => ReturnType<F>>(
+		<F extends (span?: Span) => ReturnType<F>>(
 			name: string,
 			options: SpanOptions,
 			fn: F,
 		): ReturnType<F>
-		<F extends (span: Span) => ReturnType<F>>(
+		<F extends (span?: Span) => ReturnType<F>>(
 			name: string,
 			options: SpanOptions,
 			context: Context,

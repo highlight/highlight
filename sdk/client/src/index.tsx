@@ -90,6 +90,7 @@ import {
 	VISIBILITY_DEBOUNCE_MS,
 } from './constants/sessions'
 import { getDefaultDataURLOptions } from './utils/utils'
+import { getTracer, setupBrowserTracing } from './otel'
 
 export const HighlightWarning = (context: string, msg: any) => {
 	console.warn(`Highlight Warning: (${context}): `, { output: msg })
@@ -184,7 +185,6 @@ export class Highlight {
 	hasPushedData!: boolean
 	reloaded!: boolean
 	_hasPreviouslyInitialized!: boolean
-	_payloadId!: number
 	_recordStop!: listenerHandler | undefined
 
 	static create(options: HighlightClassOptions): Highlight {
@@ -236,6 +236,12 @@ export class Highlight {
 					e.data.response.tag,
 					e.data.response.payload,
 				)
+			} else if (e.data.response?.type === MessageType.Stop) {
+				HighlightWarning(
+					'Stopping recording due to worker failure',
+					e.data.response,
+				)
+				this.stopRecording(false)
 			}
 		}
 
@@ -260,6 +266,7 @@ export class Highlight {
 			this.sessionData = {
 				sessionSecureID: this.options.sessionSecureID,
 				projectID: 0,
+				payloadID: 1,
 				sessionStartTime: Date.now(),
 			}
 		}
@@ -311,7 +318,6 @@ export class Highlight {
 		this.sessionData.sessionSecureID = GenerateSecureID()
 		this.sessionData.sessionStartTime = Date.now()
 		this.options.sessionSecureID = this.sessionData.sessionSecureID
-		this._payloadId = 0
 		this.stopRecording()
 		this._firstLoadListeners = new FirstLoadListeners(this.options)
 		await this.initialize()
@@ -402,8 +408,6 @@ export class Highlight {
 		this._eventBytesSinceSnapshot = 0
 		this._lastSnapshotTime = new Date().getTime()
 		this._lastVisibilityChangeTime = new Date().getTime()
-		this._payloadId = Number(getItem(SESSION_STORAGE_KEYS.PAYLOAD_ID)) ?? 1
-		setItem(SESSION_STORAGE_KEYS.PAYLOAD_ID, this._payloadId.toString())
 	}
 
 	identify(user_identifier: string, user_object = {}, source?: Source) {
@@ -526,14 +530,18 @@ export class Highlight {
 				return
 			}
 
-			const sessionData = getPreviousSessionData() ?? ({} as SessionData)
-			if (!sessionData?.sessionStartTime) {
+			this.sessionData =
+				getPreviousSessionData(this.sessionData.sessionSecureID) ??
+				this.sessionData
+			if (!this.sessionData?.sessionStartTime) {
 				this._recordingStartTime = new Date().getTime()
-				sessionData.sessionStartTime = this._recordingStartTime
-				setSessionData(sessionData)
+				this.sessionData.sessionStartTime = this._recordingStartTime
 			} else {
-				this._recordingStartTime = sessionData?.sessionStartTime
+				this._recordingStartTime = this.sessionData?.sessionStartTime
 			}
+			// To handle the 'Duplicate Tab' function, remove id from storage until page unload
+			setSessionSecureID('')
+			setSessionData(this.sessionData)
 
 			let clientID = getItem(LOCAL_STORAGE_KEYS['CLIENT_ID'])
 
@@ -541,9 +549,6 @@ export class Highlight {
 				clientID = GenerateSecureID()
 				setItem(LOCAL_STORAGE_KEYS['CLIENT_ID'], clientID)
 			}
-
-			// To handle the 'Duplicate Tab' function, remove id from storage until page unload
-			setSessionData(null)
 
 			// Duplicate of logic inside FirstLoadListeners.setupNetworkListener,
 			// needed for initializeSession
@@ -633,10 +638,6 @@ SessionSecureID: ${this.sessionData.sessionSecureID}`,
 				},
 			})
 
-			// store the secure ID for network patches without updating full session data until tab close
-			// to make sure new tabs create new sessions
-			setSessionSecureID(this.sessionData.sessionSecureID)
-
 			if (this.sessionData.userIdentifier) {
 				this.identify(
 					this.sessionData.userIdentifier,
@@ -688,7 +689,13 @@ SessionSecureID: ${this.sessionData.sessionSecureID}`,
 				])
 			}
 
-			const emit = (event: eventWithTime) => {
+			const emit = (
+				event: eventWithTime,
+				isCheckout?: boolean | undefined,
+			) => {
+				if (isCheckout) {
+					this.logger.log('received isCheckout emit', { event })
+				}
 				this.events.push(event)
 			}
 			emit.bind(this)
@@ -731,6 +738,7 @@ SessionSecureID: ${this.sessionData.sessionSecureID}`,
 					return !this.options.recordCrossOriginIframe
 				},
 				inlineImages: this.inlineImages,
+				collectFonts: this.inlineImages,
 				inlineStylesheet: this.inlineStylesheet,
 				plugins: [getRecordSequentialIdPlugin()],
 				logger:
@@ -1060,6 +1068,7 @@ SessionSecureID: ${this.sessionData.sessionSecureID}`,
 
 		const unloadListener = () => {
 			this.addCustomEvent('Page Unload', '')
+			setSessionSecureID(this.sessionData.sessionSecureID)
 			setSessionData(this.sessionData)
 		}
 		window.addEventListener('beforeunload', unloadListener)
@@ -1074,6 +1083,7 @@ SessionSecureID: ${this.sessionData.sessionSecureID}`,
 		if (isOnIOS) {
 			const unloadListener = () => {
 				this.addCustomEvent('Page Unload', '')
+				setSessionSecureID(this.sessionData.sessionSecureID)
 				setSessionData(this.sessionData)
 			}
 			window.addEventListener('pagehide', unloadListener)
@@ -1337,7 +1347,7 @@ SessionSecureID: ${this.sessionData.sessionSecureID}`,
 		if (sendFn) {
 			await sendFn({
 				session_secure_id: this.sessionData.sessionSecureID,
-				payload_id: this._payloadId.toString(),
+				payload_id: this.sessionData.payloadID.toString(),
 				events: { events } as ReplayEventsInput,
 				messages: stringify({ messages: messages }),
 				resources: JSON.stringify({ resources: resources }),
@@ -1352,7 +1362,7 @@ SessionSecureID: ${this.sessionData.sessionSecureID}`,
 			this._worker.postMessage({
 				message: {
 					type: MessageType.AsyncEvents,
-					id: this._payloadId,
+					id: this.sessionData.payloadID++,
 					events,
 					messages,
 					errors,
@@ -1365,8 +1375,7 @@ SessionSecureID: ${this.sessionData.sessionSecureID}`,
 				},
 			})
 		}
-		this._payloadId++
-		setItem(SESSION_STORAGE_KEYS.PAYLOAD_ID, this._payloadId.toString())
+		setSessionData(this.sessionData)
 
 		// If sendFn throws an exception, the data below will not be cleared, and it will be re-uploaded on the next PushPayload.
 		FirstLoadListeners.clearRecordedNetworkResources(
@@ -1390,7 +1399,11 @@ SessionSecureID: ${this.sessionData.sessionSecureID}`,
 	}
 
 	private takeFullSnapshot() {
-		record.takeFullSnapshot()
+		this.logger.log(`taking full snapshot`, {
+			bytesSinceSnapshot: this._eventBytesSinceSnapshot,
+			lastSnapshotTime: this._lastSnapshotTime,
+		})
+		record.takeFullSnapshot(true)
 		this._eventBytesSinceSnapshot = 0
 		this._lastSnapshotTime = new Date().getTime()
 	}
@@ -1422,6 +1435,8 @@ export {
 	GenerateSecureID,
 	MetricCategory,
 	getPreviousSessionData,
+	setupBrowserTracing,
+	getTracer,
 }
 export type {
 	AmplitudeIntegrationOptions,

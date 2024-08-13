@@ -348,6 +348,7 @@ func main() {
 	)
 
 	integrationsClient := integrations.NewIntegrationsClient(db)
+	dataStore := store.NewStore(db, redisClient, integrationsClient, storageClient, kafkaDataSyncProducer, clickhouseClient)
 
 	oai := &openai_client.OpenAiImpl{}
 	if err := oai.InitClient(env.Config.OpenAIApiKey); err != nil {
@@ -376,11 +377,11 @@ func main() {
 		IntegrationsClient:     integrationsClient,
 		OpenAiClient:           oai,
 		ClickhouseClient:       clickhouseClient,
-		Store:                  store.NewStore(db, redisClient, integrationsClient, storageClient, kafkaDataSyncProducer, clickhouseClient),
+		Store:                  dataStore,
 		DataSyncQueue:          kafkaDataSyncProducer,
 		TracesQueue:            kafkaTracesProducer,
 	}
-	private.SetupAuthClient(ctx, private.GetEnvAuthMode(), oauthSrv, privateResolver.Query().APIKeyToOrgID)
+	private.SetupAuthClient(ctx, dataStore, private.GetEnvAuthMode(), oauthSrv, privateResolver.Query().APIKeyToOrgID)
 	r := chi.NewMux()
 	// Common middlewares for both the client/main graphs.
 	errorLogger := httplog.NewLogger(fmt.Sprintf("%v-service", runtimeParsed), httplog.Options{
@@ -442,8 +443,7 @@ func main() {
 			r.Get("/assets/{project_id}/{hash_val}", privateResolver.AssetHandler)
 			r.Get("/project-token/{project_id}", privateResolver.ProjectJWTHandler)
 
-			r.Get("/validate-token", privateResolver.ValidateAuthToken)
-			r.Post("/login", privateResolver.Login)
+			private.AuthClient.SetupListeners(r)
 
 			privateServer := ghandler.New(privategen.NewExecutableSchema(
 				privategen.Config{
@@ -501,7 +501,7 @@ func main() {
 			Redis:             redisClient,
 			Clickhouse:        clickhouseClient,
 			RH:                &rh,
-			Store:             store.NewStore(db, redisClient, integrationsClient, storageClient, kafkaDataSyncProducer, clickhouseClient),
+			Store:             dataStore,
 			LambdaClient:      lambdaClient,
 			SessionCache:      sessionCache,
 		}
@@ -572,7 +572,7 @@ func main() {
 			Redis:             redisClient,
 			Clickhouse:        clickhouseClient,
 			RH:                &rh,
-			Store:             store.NewStore(db, redisClient, integrationsClient, storageClient, kafkaDataSyncProducer, clickhouseClient),
+			Store:             dataStore,
 			LambdaClient:      lambdaClient,
 			SessionCache:      sessionCache,
 		}

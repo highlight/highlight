@@ -23,10 +23,11 @@ export const menuList = style({
 export const menuItemVariants = recipe({
 	base: [
 		sprinkles({
+			alignItems: 'center',
+			display: 'flex',
+			flexDirection: 'row',
 			px: '8',
 			py: '4',
-			display: 'flex',
-			alignItems: 'center',
 		}),
 		{
 			minHeight: 20,

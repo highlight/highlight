@@ -1,4 +1,5 @@
 import { Avatar } from '@components/Avatar/Avatar'
+import { Button } from '@components/Button'
 import { useSearchContext } from '@components/Search/SearchContext'
 import { TableList, TableListItem } from '@components/TableList/TableList'
 import { toast } from '@components/Toaster'
@@ -7,8 +8,7 @@ import { GetEnhancedUserDetailsQuery } from '@graph/operations'
 import { Maybe, Session, SocialLink, SocialType } from '@graph/schemas'
 import {
 	Box,
-	ButtonIcon,
-	IconSolidExternalLink,
+	IconSolidCheveronRight,
 	IconSolidQuestionMarkCircle,
 	Tag,
 	Text,
@@ -293,14 +293,16 @@ export const MetadataBox = React.memo(() => {
 						</Box>
 					)}
 				</Box>
-				<ButtonIcon
+				<Button
+					size="small"
 					kind="secondary"
 					emphasis="low"
-					shape="square"
-					size="small"
-					icon={<IconSolidExternalLink />}
+					iconRight={<IconSolidCheveronRight />}
 					onClick={searchIdentifier}
-				/>
+					trackingId="session-metadata-identifier-search"
+				>
+					Sessions
+				</Button>
 			</Box>
 			<Box display="flex" pt="4" pb="8" px="8">
 				<RelatedResourceButtons
