@@ -89,7 +89,7 @@ module Highlight
       OpenTelemetry::Baggage.set_value(HIGHLIGHT_SESSION_ATTRIBUTE, session_id)
       OpenTelemetry::Baggage.set_value(HIGHLIGHT_TRACE_ATTRIBUTE, request_id)
 
-      start_span('highlight-ctx', attrs) do |span|
+      start_span('highlight.span', attrs) do |span|
         yield span
       end
     end
@@ -128,7 +128,7 @@ module Highlight
         function.delete_prefix!('in `')
         function.delete_suffix!('"')
       end
-      @tracer.in_span('highlight-ctx', attributes: {
+      @tracer.in_span('highlight.log', attributes: {
         HIGHLIGHT_PROJECT_ATTRIBUTE => @project_id,
         HIGHLIGHT_SESSION_ATTRIBUTE => session_id,
         HIGHLIGHT_TRACE_ATTRIBUTE => request_id
