@@ -8,7 +8,7 @@ updatedAt: 2024-08-13T18:48:40.767Z
 
 ## Overview
 
-Our Node.js SDK integrates seamlessly with Nuxt.js, providing both frontend session replays and server-side monitoring capabilities.
+Our Node.js SDK integrates seamlessly with [Nuxt.js](https://nuxt.com), providing both frontend session replays and server-side monitoring capabilities.
 
 ## Installation
 
@@ -24,7 +24,7 @@ Create a server plugin:
 // server/plugins/highlight.ts
 import { H, type NodeOptions } from '@highlight-run/node'
 
-export default defineNitroPlugin((nitro) => {
+export default defineNitroPlugin((nitroApp) => {
 	const highlightConfig: NodeOptions = {
 		projectID: process.env.HIGHLIGHT_PROJECT_ID,
 	}
@@ -32,6 +32,21 @@ export default defineNitroPlugin((nitro) => {
 	if (!H.isInitialized()) {
 		H.init(highlightConfig)
 	}
+
+	nitro.hooks.hook("request", (event) => {
+		const headers = event?.node.req.headers
+		const parsed = H.parseHeaders(headers)
+		if (parsed) {
+			H.startActiveSpan(`${event.method} ${event.path}`, {
+				secureSessionId: parsed.secureSessionId,
+				requestId: parsed.requestId,
+			})
+		}
+	})
+
+	nitro.hooks.hook('afterResponse', () => {
+		H.endActiveSpans()
+	})
 
 	nitro.hooks.hook('error', async (error, { event }) => {
 		const headers = event?.node.req.headers!
