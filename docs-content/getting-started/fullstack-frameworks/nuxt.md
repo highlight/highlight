@@ -42,3 +42,21 @@ export default defineNitroPlugin((nitro) => {
   })
 })
 ```
+
+## Validation
+
+Create a test API route:
+
+```typescript
+// server/api/test-error.ts
+export default defineEventHandler(() => {
+  throw new Error('Test server-side error')
+})
+```
+Test with:
+
+```bash
+curl http://localhost:3000/api/test-error
+```
+
+Check your Highlight dashboard for the log at https://app.highlight.io/sessions.
