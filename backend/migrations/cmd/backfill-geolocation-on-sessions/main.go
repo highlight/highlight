@@ -65,12 +65,13 @@ func main() {
 
 			if err := kafkaDataSyncProducer.Submit(ctx, strconv.Itoa(session.ID), &kafka_queue.Message{Type: kafka_queue.SessionDataSync, SessionDataSync: &kafka_queue.SessionDataSyncArgs{SessionID: session.ID}}); err != nil {
 				log.WithContext(ctx).Errorf("Error syncing session to Clickhouse - session_id:%d : %v\n", session.ID, err)
+				continue
 			}
+
+			log.WithContext(ctx).Infof("Finished session_id:%d", session.ID)
 		}
 
-		// Sleep to ensure kafka queue is flushed
-		time.Sleep(30 * time.Second)
-
+		log.WithContext(ctx).Infof("Finished batch %d", batch)
 		return nil
 	}
 
@@ -83,4 +84,8 @@ func main() {
 		Error; err != nil {
 		log.WithContext(ctx).Fatalf("failed: %v", err)
 	}
+
+	// Sleep to ensure kafka queue is flushed
+	log.WithContext(ctx).Info("waiting for kafka queue to be flushed")
+	time.Sleep(15 * time.Second)
 }
