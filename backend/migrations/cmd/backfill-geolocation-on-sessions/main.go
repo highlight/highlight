@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"strconv"
+	"time"
 
 	"github.com/highlight-run/highlight/backend/env"
 	kafka_queue "github.com/highlight-run/highlight/backend/kafka-queue"
@@ -66,6 +67,9 @@ func main() {
 				log.WithContext(ctx).Errorf("Error syncing session to Clickhouse - session_id:%d : %v\n", session.ID, err)
 			}
 		}
+
+		// Sleep to ensure kafka queue is flushed
+		time.Sleep(30 * time.Second)
 
 		return nil
 	}
