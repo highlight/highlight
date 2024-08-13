@@ -3557,6 +3557,7 @@ export type SessionsReportRow = {
 	__typename?: 'SessionsReportRow'
 	avg_active_length_mins: Scalars['Float']
 	avg_length_mins: Scalars['Float']
+	email: Scalars['String']
 	key: Scalars['String']
 	location: Scalars['String']
 	max_active_length_mins: Scalars['Float']

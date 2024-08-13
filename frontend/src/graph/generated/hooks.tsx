@@ -7862,6 +7862,7 @@ export const GetSessionUsersReportsDocument = gql`
 	query GetSessionUsersReports($project_id: ID!, $params: QueryInput!) {
 		session_users_report(project_id: $project_id, params: $params) {
 			key
+			email
 			num_sessions
 			num_days_visited
 			num_months_visited
