@@ -631,8 +631,7 @@ export const AlertForm: React.FC = () => {
 															(f) => f.value,
 														)}
 														labels={FREQUENCY_OPTIONS.map(
-															(f) =>
-																f.displayValue,
+															(f) => f.name,
 														)}
 														selection={String(
 															thresholdWindow,
@@ -656,7 +655,7 @@ export const AlertForm: React.FC = () => {
 														(f) => f.value,
 													)}
 													labels={FREQUENCY_OPTIONS.map(
-														(f) => f.displayValue,
+														(f) => f.name,
 													)}
 													selection={String(
 														thresholdCooldown,

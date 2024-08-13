@@ -83,6 +83,7 @@ export const inputVariants = recipe({
 		},
 	},
 	defaultVariants: {
+		size: 'small',
 		outline: true,
 		truncate: false,
 	},

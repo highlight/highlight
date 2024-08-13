@@ -3150,7 +3150,6 @@ export enum ReservedSessionKey {
 	City = 'city',
 	Completed = 'completed',
 	Country = 'country',
-	DeviceId = 'device_id',
 	Environment = 'environment',
 	Excluded = 'excluded',
 	FirstTime = 'first_time',
