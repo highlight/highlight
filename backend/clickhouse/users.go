@@ -88,7 +88,7 @@ func (client *Client) ReadUsersMetrics(ctx context.Context, projectID int, param
 
 // get keys from sessions but with different default values
 func (client *Client) UsersKeys(ctx context.Context, projectID int, startDate time.Time, endDate time.Time, query *string, typeArg *modelInputs.KeyType) ([]*modelInputs.QueryKey, error) {
-	userKeys, err := KeysAggregated(ctx, client, SessionKeysTable, projectID, startDate, endDate, query, typeArg)
+	userKeys, err := KeysAggregated(ctx, client, UsersKeysTable, projectID, startDate, endDate, query, typeArg)
 	if err != nil {
 		return nil, err
 	}
