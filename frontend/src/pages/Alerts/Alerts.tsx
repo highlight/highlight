@@ -15,7 +15,6 @@ import {
 	IconSolidLightningBolt,
 	IconSolidLogs,
 	IconSolidMicrosoftTeams,
-	IconSolidPlay,
 	IconSolidPlayCircle,
 	IconSolidPlus,
 	IconSolidRefresh,
@@ -178,7 +177,7 @@ export const ALERT_CONFIGURATIONS: { [key: string]: AlertConfiguration } = {
 		supportsExcludeRules: true,
 	},
 } as const
-const WALKTHROUGH_LINK = 'TODO'
+
 const ALERTS_DOCS_LINK =
 	'https://www.highlight.io/docs/general/product-features/general-features/alerts'
 
@@ -374,7 +373,9 @@ function AlertsPageLoaded({
 						</Heading>
 						<Text weight="medium" size="small" color="default">
 							Manage all the alerts for your currently selected
-							project.
+							project. Get notified when errors occur or important
+							metric conditions are met. Learn more about building
+							alerts <a href={ALERTS_DOCS_LINK}>here</a>.
 						</Text>
 					</Stack>
 					<Stack gap="8" width="full">
@@ -412,29 +413,19 @@ function AlertsPageLoaded({
 							>
 								<Stack gap="16">
 									<Text>
-										Be sure to take a look at the docs, and
-										the walkthrough coming soon!
+										Be sure to take a look at the docs, or
+										watch the walkthrough video!
 									</Text>
-									<Stack flexDirection="row" gap="8">
+									<Box>
 										<LinkButton
 											kind="secondary"
 											emphasis="high"
-											trackingId="alerts-watch-walkthrough"
-											to={WALKTHROUGH_LINK}
-											iconLeft={<IconSolidPlay />}
-											disabled
-										>
-											Watch walkthrough
-										</LinkButton>
-										<LinkButton
 											trackingId="alerts-read-docs"
-											kind="secondary"
-											emphasis="low"
 											to={ALERTS_DOCS_LINK}
 										>
-											Read docs
+											Learn more
 										</LinkButton>
-									</Stack>
+									</Box>
 								</Stack>
 							</Callout>
 						)}
