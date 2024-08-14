@@ -69,14 +69,14 @@ public class HighlightConfig
     public static readonly OtlpProtocol Protocol = OtlpProtocol.HttpProtobuf;
     public static readonly OtlpExportProtocol ExportProtocol = OtlpExportProtocol.HttpProtobuf;
     public static readonly String HighlightHeader = "x-highlight-request";
-    
-    private static Random _random = new Random();
 
     public static readonly Dictionary<string, object> ResourceAttributes = new()
     {
         ["highlight.project_id"] = ProjectId,
         ["service.name"] = ServiceName,
     };
+
+    private static Random _random = new Random();
 
     public static Dictionary<string, string> GetHighlightContext()
     {
