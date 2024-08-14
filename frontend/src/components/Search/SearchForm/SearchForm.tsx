@@ -526,7 +526,7 @@ export const Search: React.FC<{
 					end_date: moment(endDate).format(TIME_FORMAT),
 				},
 				query: debouncedValue,
-				count: 10,
+				count: 25,
 			},
 			fetchPolicy: 'cache-first',
 			onCompleted: (data) => {
