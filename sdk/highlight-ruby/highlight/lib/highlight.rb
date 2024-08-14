@@ -3,9 +3,14 @@ require 'opentelemetry/exporter/otlp'
 require 'opentelemetry/instrumentation/all'
 require 'opentelemetry/semantic_conventions'
 require 'active_support/logger_silence'
+require 'date'
+require 'json'
 require 'logger'
+require 'securerandom'
 
 module Highlight
+  HighlightHeaders = Struct.new('HighlightHeaders', :session_id, :request_id)
+
   module Tracing
     class BaggageSpanProcessor < OpenTelemetry::SDK::Trace::SpanProcessor
       def on_start(span, parent_context)
@@ -89,6 +94,15 @@ module Highlight
       OpenTelemetry::Baggage.set_value(HIGHLIGHT_SESSION_ATTRIBUTE, session_id)
       OpenTelemetry::Baggage.set_value(HIGHLIGHT_TRACE_ATTRIBUTE, request_id)
 
+      attrs = {
+        HIGHLIGHT_SESSION_ATTRIBUTE => session_id,
+        HIGHLIGHT_TRACE_ATTRIBUTE => request_id,
+      }.merge(attrs).compact
+      puts "vadim"
+      puts session_id
+      puts request_id
+      puts attrs
+
       start_span('highlight.span', attrs) do |span|
         yield span
       end
@@ -145,7 +159,6 @@ module Highlight
     end
     # rubocop:enable Metrics/AbcSize
 
-    HighlightHeaders = Struct.new('HighlightHeaders', :session_id, :request_id)
     def self.parse_headers(headers)
       if headers && headers[HIGHLIGHT_REQUEST_HEADER]
         session_id, request_id = headers[HIGHLIGHT_REQUEST_HEADER].split('/')
@@ -224,6 +237,29 @@ module Highlight
 
       def set_highlight_headers
         @highlight_headers = H.parse_headers(request.headers)
+        return unless @highlight_headers.session_id == nil
+
+        sessionID = request.cookies["sessionID"].presence || SecureRandom.alphanumeric(28)
+
+        sessionDataKey = "sessionData_#{sessionID}"
+        @sessionData = request.cookies[sessionDataKey] || {
+          :sessionSecureID => sessionID,
+          :projectID => @project_id,
+          :payloadID => 1,
+          :sessionStartTime => DateTime.now.strftime('%Q'),
+          :lastPushTime => DateTime.now.strftime('%Q'),
+        }
+
+        cookies[:sessionID] = {
+          :value => sessionID,
+          :expires => 15.minutes.from_now,
+        }
+        cookies[sessionDataKey] = {
+          :value => @sessionData.to_json,
+          :expires => 15.minutes.from_now,
+        }
+
+        @highlight_headers = HighlightHeaders.new(sessionID, nil)
       end
 
       def highlight_headers
