@@ -56,6 +56,53 @@ enum HeardAbout {
 	other = 'Other',
 }
 
+const ROLE_OPTIONS = [
+	{
+		name: 'Select your role',
+		value: '',
+	},
+	{
+		name: 'Product',
+		value: 'Product',
+	},
+	{
+		name: 'Engineering',
+		value: 'Engineer',
+	},
+	{
+		name: 'Founder',
+		value: 'Founder',
+	},
+	{
+		name: 'Business / Finance',
+		value: 'Sales',
+	},
+]
+
+const TEAM_SIZE_OPTIONS = [
+	{
+		name: 'Select your team size',
+		value: '',
+	},
+].concat(
+	Object.entries(TeamSize).map(([k, v]) => ({
+		name: v,
+		value: k,
+	})),
+)
+
+const HEARD_ABOUT_OPTIONS = [
+	{
+		name: 'Select how you heard about us',
+		value: '',
+	},
+].concat(
+	Object.entries(HeardAbout).map(([k, v]) => ({
+		name: v,
+		value: k,
+	})),
+)
+
 export const AdminForm: React.FC = () => {
 	const [showPromoCodeField, setShowPromoCodeField] = useState(false)
 	const { setLoadingState } = useAppLoadingContext()
@@ -254,45 +301,22 @@ export const AdminForm: React.FC = () => {
 							name={formStore.names.role}
 							label="Role"
 							required
-						>
-							<option value="" disabled>
-								Select your role
-							</option>
-							<option value="Product">Product</option>
-							<option value="Engineer">Engineering</option>
-							<option value="Founder">Founder</option>
-							<option value="Sales">Business / Finance</option>
-						</Form.Select>
+							options={ROLE_OPTIONS}
+						/>
 						<Form.Select
 							className={styles.select}
 							name={formStore.names.teamSize}
 							label="Team Size"
 							required
-						>
-							<option value="" disabled>
-								Select your team size
-							</option>
-							{Object.entries(TeamSize).map(([k, v]) => (
-								<option value={k} key={k}>
-									{v}
-								</option>
-							))}
-						</Form.Select>
+							options={TEAM_SIZE_OPTIONS}
+						/>
 						<Form.Select
 							className={styles.select}
 							name={formStore.names.heardAbout}
 							label="Where did you hear about us?"
 							required
-						>
-							<option value="" disabled>
-								Select how you heard about us
-							</option>
-							{Object.entries(HeardAbout).map(([k, v]) => (
-								<option value={k} key={k}>
-									{v}
-								</option>
-							))}
-						</Form.Select>
+							options={HEARD_ABOUT_OPTIONS}
+						/>
 						{!inWorkspace &&
 							(showPromoCodeField ? (
 								<Form.Input
