@@ -1,5 +1,15 @@
 # highlight.run
 
+## 9.3.0
+
+### Minor Changes
+
+-   b825152a6: add cookie session persistence
+
+### Patch Changes
+
+-   effc3e339: update otel webjs network span naming
+
 ## 9.2.1
 
 ### Patch Changes
