@@ -7129,6 +7129,8 @@ func (r *queryResolver) UsageHistory(ctx context.Context, workspaceID int, produ
 			Query:     "",
 			DateRange: dateRange,
 		})
+	default:
+		return nil, errors.New(fmt.Sprintf("invalid product type: %v", productType))
 	}
 
 	if err != nil {
