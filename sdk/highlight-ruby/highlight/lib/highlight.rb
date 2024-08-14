@@ -98,10 +98,6 @@ module Highlight
         HIGHLIGHT_SESSION_ATTRIBUTE => session_id,
         HIGHLIGHT_TRACE_ATTRIBUTE => request_id,
       }.merge(attrs).compact
-      puts "vadim"
-      puts session_id
-      puts request_id
-      puts attrs
 
       start_span('highlight.span', attrs) do |span|
         yield span
