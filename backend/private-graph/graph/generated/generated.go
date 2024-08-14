@@ -1421,6 +1421,7 @@ type ComplexityRoot struct {
 	SessionsReportRow struct {
 		AvgActiveLengthMins   func(childComplexity int) int
 		AvgLengthMins         func(childComplexity int) int
+		Email                 func(childComplexity int) int
 		Key                   func(childComplexity int) int
 		Location              func(childComplexity int) int
 		MaxActiveLengthMins   func(childComplexity int) int
@@ -10254,6 +10255,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.SessionsReportRow.AvgLengthMins(childComplexity), true
 
+	case "SessionsReportRow.email":
+		if e.complexity.SessionsReportRow.Email == nil {
+			break
+		}
+
+		return e.complexity.SessionsReportRow.Email(childComplexity), true
+
 	case "SessionsReportRow.key":
 		if e.complexity.SessionsReportRow.Key == nil {
 			break
@@ -11673,6 +11681,7 @@ type SessionInterval {
 
 type SessionsReportRow {
 	key: String!
+	email: String!
 	num_sessions: UInt64!
 	num_days_visited: UInt64!
 	num_months_visited: UInt64!
@@ -57684,6 +57693,8 @@ func (ec *executionContext) fieldContext_Query_sessions_report(ctx context.Conte
 			switch field.Name {
 			case "key":
 				return ec.fieldContext_SessionsReportRow_key(ctx, field)
+			case "email":
+				return ec.fieldContext_SessionsReportRow_email(ctx, field)
 			case "num_sessions":
 				return ec.fieldContext_SessionsReportRow_num_sessions(ctx, field)
 			case "num_days_visited":
@@ -57763,6 +57774,8 @@ func (ec *executionContext) fieldContext_Query_session_users_report(ctx context.
 			switch field.Name {
 			case "key":
 				return ec.fieldContext_SessionsReportRow_key(ctx, field)
+			case "email":
+				return ec.fieldContext_SessionsReportRow_email(ctx, field)
 			case "num_sessions":
 				return ec.fieldContext_SessionsReportRow_num_sessions(ctx, field)
 			case "num_days_visited":
@@ -73454,6 +73467,50 @@ func (ec *executionContext) _SessionsReportRow_key(ctx context.Context, field gr
 }
 
 func (ec *executionContext) fieldContext_SessionsReportRow_key(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "SessionsReportRow",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _SessionsReportRow_email(ctx context.Context, field graphql.CollectedField, obj *model.SessionsReportRow) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_SessionsReportRow_email(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Email, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_SessionsReportRow_email(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "SessionsReportRow",
 		Field:      field,
@@ -97419,6 +97476,11 @@ func (ec *executionContext) _SessionsReportRow(ctx context.Context, sel ast.Sele
 			out.Values[i] = graphql.MarshalString("SessionsReportRow")
 		case "key":
 			out.Values[i] = ec._SessionsReportRow_key(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "email":
+			out.Values[i] = ec._SessionsReportRow_email(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}

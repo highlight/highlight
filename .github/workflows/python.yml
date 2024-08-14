@@ -24,7 +24,7 @@ jobs:
               run: pipx install poetry
             - uses: actions/setup-python@v4
               with:
-                  python-version: '3.10'
+                  python-version: '3.12'
                   cache: 'poetry'
             - run: poetry install --all-extras
             - name: Lint
@@ -42,7 +42,7 @@ jobs:
             - name: Validate PyProject
               working-directory: ./e2e/python/setuptools
               run: |
-                  python -m pip install -U pip-tools;
+                  python -m pip install -U pip pip-tools;
                   python -m piptools compile --upgrade pyproject.toml;
             - name: Publish
               if: github.ref == 'refs/heads/main'

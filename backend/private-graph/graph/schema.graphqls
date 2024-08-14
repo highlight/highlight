@@ -96,6 +96,7 @@ type SessionInterval {
 
 type SessionsReportRow {
 	key: String!
+	email: String!
 	num_sessions: UInt64!
 	num_days_visited: UInt64!
 	num_months_visited: UInt64!
