@@ -33,7 +33,7 @@ public class HighlightTraceProcessor : BaseProcessor<Activity>
 
         // Replace with your project ID and service name.
         public static readonly String ProjectId = "1";
-        public static readonly String ServiceName = "highlight-dot-net-example";
+        public static readonly String ServiceName = "highlight-dot-net-backend";
 
         public static readonly String TracesEndpoint = OtlpEndpoint + "/v1/traces";
         public static readonly String MetricsEndpoint = OtlpEndpoint + "/v1/metrics";
