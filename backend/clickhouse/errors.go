@@ -705,13 +705,18 @@ func (client *Client) ReadWorkspaceErrorCounts(ctx context.Context, projectIDs [
 		})
 }
 
-func (client *Client) ErrorsKeyValues(ctx context.Context, projectID int, keyName string, startDate time.Time, endDate time.Time, limit *int) ([]string, error) {
+func (client *Client) ErrorsKeyValues(ctx context.Context, projectID int, keyName string, startDate time.Time, endDate time.Time, query *string, limit *int) ([]string, error) {
 	limitCount := 10
 	if limit != nil {
 		limitCount = *limit
 	}
 
-	return client.QueryErrorFieldValues(ctx, projectID, limitCount, keyName, "", startDate, endDate)
+	searchQuery := ""
+	if query != nil {
+		searchQuery = *query
+	}
+
+	return client.QueryErrorFieldValues(ctx, projectID, limitCount, keyName, searchQuery, startDate, endDate)
 }
 
 func (client *Client) QueryErrorObjectsHistogram(ctx context.Context, projectId int, params modelInputs.QueryInput, options modelInputs.DateHistogramOptions) ([]time.Time, []int64, error) {

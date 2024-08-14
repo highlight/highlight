@@ -15185,12 +15185,16 @@ export const GetKeyValuesDocument = gql`
 		$project_id: ID!
 		$key_name: String!
 		$date_range: DateRangeRequiredInput!
+		$query: String!
+		$count: Int!
 	) {
 		key_values(
 			product_type: $product_type
 			project_id: $project_id
 			key_name: $key_name
 			date_range: $date_range
+			query: $query
+			count: $count
 		)
 	}
 `
@@ -15211,6 +15215,8 @@ export const GetKeyValuesDocument = gql`
  *      project_id: // value for 'project_id'
  *      key_name: // value for 'key_name'
  *      date_range: // value for 'date_range'
+ *      query: // value for 'query'
+ *      count: // value for 'count'
  *   },
  * });
  */

@@ -2334,6 +2334,7 @@ type Query {
 		project_id: ID!
 		key_name: String!
 		date_range: DateRangeRequiredInput!
+		query: String
 		count: Int
 	): [String!]!
 	logs_error_objects(log_cursors: [String!]!): [ErrorObject!]!
@@ -2392,6 +2393,7 @@ type Query {
 		project_id: ID!
 		key_name: String!
 		date_range: DateRangeRequiredInput!
+		query: String
 		count: Int
 	): [String!]!
 	errors_keys(
@@ -2404,6 +2406,7 @@ type Query {
 		project_id: ID!
 		key_name: String!
 		date_range: DateRangeRequiredInput!
+		query: String
 		count: Int
 	): [String!]!
 	errors_metrics(
@@ -2429,6 +2432,7 @@ type Query {
 		project_id: ID!
 		key_name: String!
 		date_range: DateRangeRequiredInput!
+		query: String
 		count: Int
 	): [String!]!
 	sessions_metrics(
@@ -2470,6 +2474,7 @@ type Query {
 		project_id: ID!
 		key_name: String!
 		date_range: DateRangeRequiredInput!
+		query: String
 		count: Int
 	): [String!]!
 	visualization(id: ID!): Visualization!
