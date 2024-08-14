@@ -47,9 +47,6 @@ export const EmptyDevToolsCallout = ({
 		>
 			<Callout
 				border
-				style={{
-					maxWidth: '340px',
-				}}
 				title={
 					!requestTypes.length && filter?.length
 						? `Can't find what you're looking for?`
@@ -77,9 +74,7 @@ export const EmptyDevToolsCallout = ({
 									? ' with status ' +
 									  buildList(requestStatuses)
 									: ''
-							}.`}
-						</Text>
-						<Text color="n11">
+							}. `}
 							If you expected to see data here, please make sure{' '}
 							<code>networkRecording</code> is set to{' '}
 							<code>true</code>.

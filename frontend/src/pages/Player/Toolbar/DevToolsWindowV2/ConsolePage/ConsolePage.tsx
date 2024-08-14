@@ -153,7 +153,7 @@ export const ConsolePage = ({
 	])
 
 	return (
-		<Box cssClass={styles.consoleBox}>
+		<Box height="full">
 			{loading || !isPlayerReady ? (
 				<LoadingBox />
 			) : messagesToRender?.length ? (
@@ -181,7 +181,9 @@ export const ConsolePage = ({
 					)}
 				/>
 			) : (
-				<EmptyDevToolsCallout kind={Tab.Console} filter={filter} />
+				<Box p="8" height="full">
+					<EmptyDevToolsCallout kind={Tab.Console} filter={filter} />
+				</Box>
 			)}
 		</Box>
 	)
@@ -208,6 +210,7 @@ const MessageRow = React.memo(function ({
 			)}
 			borderBottom="dividerWeak"
 			py="8"
+			pl="8"
 			style={{
 				opacity: past ? 1 : 0.4,
 			}}
