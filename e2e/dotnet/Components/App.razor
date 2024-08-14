@@ -1,0 +1,41 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <base href="/"/>
+
+    <meta name="traceparent" content="<%= traceparent_context %>">
+
+    @* use the localhost endpoint for testing against firstload dev *@
+    <script src="http://localhost:8877/dist/index.umd.cjs"></script>
+    @* <script src="https://unpkg.com/highlight.run"></script> *@
+    <script>
+        H.init('1jdkoe52', {
+            environment: 'dev',
+            tracingOrigins: true,
+            serviceName: 'highlight-dot-net-frontend',
+            backendUrl: 'https://localhost:8082/public',
+            networkRecording: {
+                enabled: true,
+                recordHeadersAndBody: true,
+            },
+            enableOtelTracing: true,
+            otlpEndpoint: 'http://localhost:4318',
+        });
+    </script>
+    
+    <link rel="stylesheet" href="bootstrap/bootstrap.min.css"/>
+    <link rel="stylesheet" href="app.css"/>
+    <link rel="stylesheet" href="dotnet.styles.css"/>
+    <link rel="icon" type="image/png" href="favicon.png"/>
+    <HeadOutlet/>
+</head>
+
+<body>
+<Routes/>
+<script src="_framework/blazor.web.js"></script>
+</body>
+
+</html>
