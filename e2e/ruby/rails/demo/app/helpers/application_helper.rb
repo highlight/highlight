@@ -8,6 +8,6 @@ module ApplicationHelper
 
     hex_trace_id = trace_id&.unpack('H*').first
     hex_span_id = span_id&.unpack('H*').first
-    "00-#{hex_trace_id}-#{hex_span_id}-00"
+    "00-#{hex_trace_id}-#{hex_span_id}-01"
   end
 end

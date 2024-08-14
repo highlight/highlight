@@ -65,6 +65,8 @@ module Highlight
         )
 
         c.resource = OpenTelemetry::SDK::Resources::Resource.create(
+          HIGHLIGHT_PROJECT_ATTRIBUTE => @project_id,
+          OpenTelemetry::SemanticConventions::Resource::SERVICE_NAME => environment,
           OpenTelemetry::SemanticConventions::Resource::DEPLOYMENT_ENVIRONMENT => environment
         )
 
@@ -86,34 +88,27 @@ module Highlight
       @tracer_provider.force_flush
     end
 
-    def trace(session_id, request_id, attrs = {})
+    def trace(session_id, request_id, attrs = {}, name: 'highlight.span')
       return unless initialized?
 
       # Passed along by the BaggageSpanProcessor to child spans as attributes.
-      OpenTelemetry::Baggage.set_value(HIGHLIGHT_SESSION_ATTRIBUTE, session_id)
-      OpenTelemetry::Baggage.set_value(HIGHLIGHT_TRACE_ATTRIBUTE, request_id)
+      ctx = OpenTelemetry::Baggage.set_value(HIGHLIGHT_SESSION_ATTRIBUTE, session_id || '')
+      ctx = OpenTelemetry::Baggage.set_value(HIGHLIGHT_TRACE_ATTRIBUTE, request_id || '', context: ctx)
 
-      attrs = {
-        HIGHLIGHT_SESSION_ATTRIBUTE => session_id,
-        HIGHLIGHT_TRACE_ATTRIBUTE => request_id,
-      }.merge(attrs).compact
-
-      start_span('highlight.span', attrs) do |span|
-        yield span
+      OpenTelemetry::Context.with_current(ctx) do
+        start_span(name, attrs) do |span|
+          yield span
+        end
       end
     end
 
     def start_span(name, attrs = {})
       return unless initialized?
 
-      attributes = {
-        HIGHLIGHT_PROJECT_ATTRIBUTE => @project_id,
-      }.merge(attrs).compact
-
       if block_given?
-        @tracer.in_span(name, attributes: attributes) { |span| yield span }
+        @tracer.in_span(name, attributes: attrs) { |span| yield span }
       else
-        @tracer.in_span(name, attributes: attributes) { |_| }
+        @tracer.in_span(name, attributes: attrs) { |_| }
       end
     end
 
@@ -138,7 +133,6 @@ module Highlight
         function.delete_suffix!('"')
       end
       @tracer.in_span('highlight.log', attributes: {
-        HIGHLIGHT_PROJECT_ATTRIBUTE => @project_id,
         HIGHLIGHT_SESSION_ATTRIBUTE => session_id,
         HIGHLIGHT_TRACE_ATTRIBUTE => request_id
       }.compact) do |span|
@@ -223,7 +217,7 @@ module Highlight
 
       def with_highlight_context(&block)
         set_highlight_headers
-        H.instance.trace(highlight_headers.session_id, highlight_headers.request_id, &block)
+        H.instance.trace(highlight_headers.session_id, highlight_headers.request_id, name: "#{request.method.upcase} #{request.path}", &block)
       end
 
       private
