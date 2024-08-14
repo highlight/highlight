@@ -9633,6 +9633,36 @@ func (r *queryResolver) SessionsMetrics(ctx context.Context, projectID int, para
 	return r.ClickhouseClient.ReadSessionsMetrics(ctx, project.ID, params, column, metricTypes, groupBy, bucketCount, bucketBy, bucketWindow, limit, limitAggregator, limitColumn)
 }
 
+// UsersKeys is the resolver for the users_keys field.
+func (r *queryResolver) UsersKeys(ctx context.Context, projectID int, dateRange modelInputs.DateRangeRequiredInput, query *string, typeArg *modelInputs.KeyType) ([]*modelInputs.QueryKey, error) {
+	project, err := r.isUserInProjectOrDemoProject(ctx, projectID)
+	if err != nil {
+		return nil, err
+	}
+
+	return r.ClickhouseClient.UsersKeys(ctx, project.ID, dateRange.StartDate, dateRange.EndDate, query, typeArg)
+}
+
+// UsersKeyValues is the resolver for the users_key_values field.
+func (r *queryResolver) UsersKeyValues(ctx context.Context, projectID int, keyName string, dateRange modelInputs.DateRangeRequiredInput, count *int) ([]string, error) {
+	project, err := r.isUserInProjectOrDemoProject(ctx, projectID)
+	if err != nil {
+		return nil, err
+	}
+
+	return r.ClickhouseClient.UsersKeyValues(ctx, project.ID, keyName, dateRange.StartDate, dateRange.EndDate, count)
+}
+
+// UsersMetrics is the resolver for the users_metrics field.
+func (r *queryResolver) UsersMetrics(ctx context.Context, projectID int, params modelInputs.QueryInput, column string, metricTypes []modelInputs.MetricAggregator, groupBy []string, bucketBy string, bucketCount *int, bucketWindow *int, limit *int, limitAggregator *modelInputs.MetricAggregator, limitColumn *string) (*modelInputs.MetricsBuckets, error) {
+	project, err := r.isUserInProjectOrDemoProject(ctx, projectID)
+	if err != nil {
+		return nil, err
+	}
+
+	return r.ClickhouseClient.ReadUsersMetrics(ctx, project.ID, params, column, metricTypes, groupBy, bucketCount, bucketBy, bucketWindow, limit, limitAggregator, limitColumn)
+}
+
 // Metrics is the resolver for the metrics field.
 func (r *queryResolver) Metrics(ctx context.Context, productType modelInputs.ProductType, projectID int, params modelInputs.QueryInput, column string, metricTypes []modelInputs.MetricAggregator, groupBy []string, bucketBy string, bucketCount *int, bucketWindow *int, limit *int, limitAggregator *modelInputs.MetricAggregator, limitColumn *string) (*modelInputs.MetricsBuckets, error) {
 	switch productType {
@@ -9650,6 +9680,8 @@ func (r *queryResolver) Metrics(ctx context.Context, productType modelInputs.Pro
 		return r.SessionsMetrics(ctx, projectID, params, column, metricTypes, groupBy, bucketBy, bucketCount, bucketWindow, limit, limitAggregator, limitColumn)
 	case modelInputs.ProductTypeErrors:
 		return r.ErrorsMetrics(ctx, projectID, params, column, metricTypes, groupBy, bucketBy, bucketCount, bucketWindow, limit, limitAggregator, limitColumn)
+	case modelInputs.ProductTypeUsers:
+		return r.UsersMetrics(ctx, projectID, params, column, metricTypes, groupBy, bucketBy, bucketCount, bucketWindow, limit, limitAggregator, limitColumn)
 	default:
 		return nil, e.Errorf("invalid product type %s", productType)
 	}
@@ -9672,6 +9704,8 @@ func (r *queryResolver) Keys(ctx context.Context, productType modelInputs.Produc
 		return r.SessionsKeys(ctx, projectID, dateRange, query, typeArg)
 	case modelInputs.ProductTypeErrors:
 		return r.ErrorsKeys(ctx, projectID, dateRange, query, typeArg)
+	case modelInputs.ProductTypeUsers:
+		return r.UsersKeys(ctx, projectID, dateRange, query, typeArg)
 	default:
 		return nil, e.Errorf("invalid product type %s", productType)
 	}
@@ -9694,6 +9728,8 @@ func (r *queryResolver) KeyValues(ctx context.Context, productType modelInputs.P
 		return r.SessionsKeyValues(ctx, projectID, keyName, dateRange, count)
 	case modelInputs.ProductTypeErrors:
 		return r.ErrorsKeyValues(ctx, projectID, keyName, dateRange, count)
+	case modelInputs.ProductTypeUsers:
+		return r.UsersKeyValues(ctx, projectID, keyName, dateRange, count)
 	default:
 		return nil, e.Errorf("invalid product type %s", productType)
 	}

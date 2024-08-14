@@ -1975,6 +1975,7 @@ const (
 	ProductTypeLogs     ProductType = "Logs"
 	ProductTypeTraces   ProductType = "Traces"
 	ProductTypeMetrics  ProductType = "Metrics"
+	ProductTypeUsers    ProductType = "Users"
 )
 
 var AllProductType = []ProductType{
@@ -1983,11 +1984,12 @@ var AllProductType = []ProductType{
 	ProductTypeLogs,
 	ProductTypeTraces,
 	ProductTypeMetrics,
+	ProductTypeUsers,
 }
 
 func (e ProductType) IsValid() bool {
 	switch e {
-	case ProductTypeSessions, ProductTypeErrors, ProductTypeLogs, ProductTypeTraces, ProductTypeMetrics:
+	case ProductTypeSessions, ProductTypeErrors, ProductTypeLogs, ProductTypeTraces, ProductTypeMetrics, ProductTypeUsers:
 		return true
 	}
 	return false
@@ -2418,6 +2420,85 @@ func (e *ReservedTraceKey) UnmarshalGQL(v interface{}) error {
 }
 
 func (e ReservedTraceKey) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+type ReservedUserKey string
+
+const (
+	ReservedUserKeyActiveLength    ReservedUserKey = "active_length"
+	ReservedUserKeyBrowserName     ReservedUserKey = "browser_name"
+	ReservedUserKeyBrowserVersion  ReservedUserKey = "browser_version"
+	ReservedUserKeyCity            ReservedUserKey = "city"
+	ReservedUserKeyCompleted       ReservedUserKey = "completed"
+	ReservedUserKeyCountry         ReservedUserKey = "country"
+	ReservedUserKeyEnvironment     ReservedUserKey = "environment"
+	ReservedUserKeyFirstTime       ReservedUserKey = "first_time"
+	ReservedUserKeyHasComments     ReservedUserKey = "has_comments"
+	ReservedUserKeyHasErrors       ReservedUserKey = "has_errors"
+	ReservedUserKeyHasRageClicks   ReservedUserKey = "has_rage_clicks"
+	ReservedUserKeyIdentifier      ReservedUserKey = "identifier"
+	ReservedUserKeyIP              ReservedUserKey = "ip"
+	ReservedUserKeyLength          ReservedUserKey = "length"
+	ReservedUserKeyOsName          ReservedUserKey = "os_name"
+	ReservedUserKeyOsVersion       ReservedUserKey = "os_version"
+	ReservedUserKeyPagesVisited    ReservedUserKey = "pages_visited"
+	ReservedUserKeySecureSessionID ReservedUserKey = "secure_session_id"
+	ReservedUserKeyServiceVersion  ReservedUserKey = "service_version"
+	ReservedUserKeySessionID       ReservedUserKey = "session_id"
+	ReservedUserKeyState           ReservedUserKey = "state"
+)
+
+var AllReservedUserKey = []ReservedUserKey{
+	ReservedUserKeyActiveLength,
+	ReservedUserKeyBrowserName,
+	ReservedUserKeyBrowserVersion,
+	ReservedUserKeyCity,
+	ReservedUserKeyCompleted,
+	ReservedUserKeyCountry,
+	ReservedUserKeyEnvironment,
+	ReservedUserKeyFirstTime,
+	ReservedUserKeyHasComments,
+	ReservedUserKeyHasErrors,
+	ReservedUserKeyHasRageClicks,
+	ReservedUserKeyIdentifier,
+	ReservedUserKeyIP,
+	ReservedUserKeyLength,
+	ReservedUserKeyOsName,
+	ReservedUserKeyOsVersion,
+	ReservedUserKeyPagesVisited,
+	ReservedUserKeySecureSessionID,
+	ReservedUserKeyServiceVersion,
+	ReservedUserKeySessionID,
+	ReservedUserKeyState,
+}
+
+func (e ReservedUserKey) IsValid() bool {
+	switch e {
+	case ReservedUserKeyActiveLength, ReservedUserKeyBrowserName, ReservedUserKeyBrowserVersion, ReservedUserKeyCity, ReservedUserKeyCompleted, ReservedUserKeyCountry, ReservedUserKeyEnvironment, ReservedUserKeyFirstTime, ReservedUserKeyHasComments, ReservedUserKeyHasErrors, ReservedUserKeyHasRageClicks, ReservedUserKeyIdentifier, ReservedUserKeyIP, ReservedUserKeyLength, ReservedUserKeyOsName, ReservedUserKeyOsVersion, ReservedUserKeyPagesVisited, ReservedUserKeySecureSessionID, ReservedUserKeyServiceVersion, ReservedUserKeySessionID, ReservedUserKeyState:
+		return true
+	}
+	return false
+}
+
+func (e ReservedUserKey) String() string {
+	return string(e)
+}
+
+func (e *ReservedUserKey) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = ReservedUserKey(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid ReservedUserKey", str)
+	}
+	return nil
+}
+
+func (e ReservedUserKey) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(e.String()))
 }
 

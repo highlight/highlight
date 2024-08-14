@@ -2034,6 +2034,7 @@ export enum ProductType {
 	Metrics = 'Metrics',
 	Sessions = 'Sessions',
 	Traces = 'Traces',
+	Users = 'Users',
 }
 
 export type Project = {
@@ -2207,6 +2208,9 @@ export type Query = {
 	usageHistory: UsageHistory
 	userFingerprintCount?: Maybe<UserFingerprintCount>
 	user_properties_alerts: Array<Maybe<SessionAlert>>
+	users_key_values: Array<Scalars['String']>
+	users_keys: Array<QueryKey>
+	users_metrics: MetricsBuckets
 	vercel_project_mappings: Array<VercelProjectMapping>
 	vercel_projects: Array<VercelProject>
 	visualization: Visualization
@@ -2983,6 +2987,34 @@ export type QueryUser_Properties_AlertsArgs = {
 	project_id: Scalars['ID']
 }
 
+export type QueryUsers_Key_ValuesArgs = {
+	count?: InputMaybe<Scalars['Int']>
+	date_range: DateRangeRequiredInput
+	key_name: Scalars['String']
+	project_id: Scalars['ID']
+}
+
+export type QueryUsers_KeysArgs = {
+	date_range: DateRangeRequiredInput
+	project_id: Scalars['ID']
+	query?: InputMaybe<Scalars['String']>
+	type?: InputMaybe<KeyType>
+}
+
+export type QueryUsers_MetricsArgs = {
+	bucket_by: Scalars['String']
+	bucket_count?: InputMaybe<Scalars['Int']>
+	bucket_window?: InputMaybe<Scalars['Int']>
+	column: Scalars['String']
+	group_by: Array<Scalars['String']>
+	limit?: InputMaybe<Scalars['Int']>
+	limit_aggregator?: InputMaybe<MetricAggregator>
+	limit_column?: InputMaybe<Scalars['String']>
+	metric_types: Array<MetricAggregator>
+	params: QueryInput
+	project_id: Scalars['ID']
+}
+
 export type QueryVercel_Project_MappingsArgs = {
 	project_id: Scalars['ID']
 }
@@ -3195,6 +3227,30 @@ export enum ReservedTraceKey {
 	Timestamp = 'timestamp',
 	TraceId = 'trace_id',
 	TraceState = 'trace_state',
+}
+
+export enum ReservedUserKey {
+	ActiveLength = 'active_length',
+	BrowserName = 'browser_name',
+	BrowserVersion = 'browser_version',
+	City = 'city',
+	Completed = 'completed',
+	Country = 'country',
+	Environment = 'environment',
+	FirstTime = 'first_time',
+	HasComments = 'has_comments',
+	HasErrors = 'has_errors',
+	HasRageClicks = 'has_rage_clicks',
+	Identifier = 'identifier',
+	Ip = 'ip',
+	Length = 'length',
+	OsName = 'os_name',
+	OsVersion = 'os_version',
+	PagesVisited = 'pages_visited',
+	SecureSessionId = 'secure_session_id',
+	ServiceVersion = 'service_version',
+	SessionId = 'session_id',
+	State = 'state',
 }
 
 export enum RetentionPeriod {
