@@ -4,6 +4,7 @@ import {
 	IconSolidLogs,
 	IconSolidPlayCircle,
 	IconSolidTraces,
+	IconSolidUser,
 } from '@highlight-run/ui/components'
 
 import { MetricAggregator, ProductType } from '@/graph/generated/schemas'
@@ -16,6 +17,7 @@ export const PRODUCTS: ProductType[] = [
 	ProductType.Sessions,
 	ProductType.Errors,
 	ProductType.Metrics,
+	ProductType.Users,
 ]
 
 export const PRODUCT_ICONS = [
@@ -24,6 +26,7 @@ export const PRODUCT_ICONS = [
 	<IconSolidPlayCircle key="sessions" />,
 	<IconSolidLightningBolt key="errors" />,
 	<IconSolidChartBar key="metrics" />,
+	<IconSolidUser key="users" />,
 ]
 
 export const NUMERIC_FUNCTION_TYPES: MetricAggregator[] = [

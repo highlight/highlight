@@ -5,7 +5,7 @@ SELECT
   CreatedAt as Timestamp,
   SecureID as SessionSecureID,
   Identifier,
-  ProjectID,
+  ProjectID as ProjectId,
   City,
   State,
   Country,
@@ -34,4 +34,5 @@ SELECT
   ) as SessionAttributes
 FROM sessions
 WHERE Identified = true
-  AND Excluded = false;
+  AND Excluded = false
+GROUP BY SessionID;
