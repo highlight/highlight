@@ -5858,34 +5858,10 @@ body {
   animation-timing-function: linear;
 }
 ._17v45he0 {
-  border-radius: 6px;
-  border: var(--_1pyqka91o) solid 1px;
-  cursor: pointer;
-  display: block;
-  padding: 4px 6px;
-  font-size: 13px;
-  color: var(--_1pyqka9c);
-  outline: 0;
-  width: 100%;
-  appearance: none;
-  background-image: url('data:image/svg+xml;utf-8,<svg xmlns="http://www.w3.org/2000/svg" width="1.1em" height="1.1em" fill="none" viewBox="0 0 20 20" focusable="false" > <path fill="grey" fillRule="evenodd" d="M5.293 7.293a1 1 0 0 1 1.414 0L10 10.586l3.293-3.293a1 1 0 1 1 1.414 1.414l-4 4a1 1 0 0 1-1.414 0l-4-4a1 1 0 0 1 0-1.414Z" clipRule="evenodd" /> </svg>');
-  background-repeat: no-repeat;
-  background-position: right 6px center;
-}
-._17v45he0::placeholder {
-  color: var(--_1pyqka9x);
-}
-._17v45he0:disabled {
-  background: #e9e8ea;
-}
-._17v45he0:focus {
-  border: var(--_1pyqka91q) solid 1px;
-}
-._17v45he1 {
   border-top: 0;
 }
-._17v45he1:focus,
-._17v45he1:hover {
+._17v45he0:focus,
+._17v45he0:hover {
   border-top: 0 !important;
 }
 ._1ta0zd10 {

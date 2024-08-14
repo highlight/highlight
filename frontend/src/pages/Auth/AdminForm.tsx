@@ -279,7 +279,6 @@ export const AdminForm: React.FC = () => {
 						/>
 
 						<Form.Select
-							className={styles.select}
 							name={formStore.names.role}
 							label="Role"
 							required
@@ -287,7 +286,6 @@ export const AdminForm: React.FC = () => {
 							placeholder="Select your role"
 						/>
 						<Form.Select
-							className={styles.select}
 							name={formStore.names.teamSize}
 							label="Team Size"
 							required
@@ -295,7 +293,6 @@ export const AdminForm: React.FC = () => {
 							placeholder="Select your team size"
 						/>
 						<Form.Select
-							className={styles.select}
 							name={formStore.names.heardAbout}
 							label="Where did you hear about us?"
 							required
