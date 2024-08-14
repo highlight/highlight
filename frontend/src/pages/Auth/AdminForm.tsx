@@ -58,10 +58,6 @@ enum HeardAbout {
 
 const ROLE_OPTIONS = [
 	{
-		name: 'Select your role',
-		value: '',
-	},
-	{
 		name: 'Product',
 		value: 'Product',
 	},
@@ -79,29 +75,15 @@ const ROLE_OPTIONS = [
 	},
 ]
 
-const TEAM_SIZE_OPTIONS = [
-	{
-		name: 'Select your team size',
-		value: '',
-	},
-].concat(
-	Object.entries(TeamSize).map(([k, v]) => ({
-		name: v,
-		value: k,
-	})),
-)
+const TEAM_SIZE_OPTIONS = Object.entries(TeamSize).map(([k, v]) => ({
+	name: v,
+	value: k,
+}))
 
-const HEARD_ABOUT_OPTIONS = [
-	{
-		name: 'Select how you heard about us',
-		value: '',
-	},
-].concat(
-	Object.entries(HeardAbout).map(([k, v]) => ({
-		name: v,
-		value: k,
-	})),
-)
+const HEARD_ABOUT_OPTIONS = Object.entries(HeardAbout).map(([k, v]) => ({
+	name: v,
+	value: k,
+}))
 
 export const AdminForm: React.FC = () => {
 	const [showPromoCodeField, setShowPromoCodeField] = useState(false)
@@ -302,6 +284,7 @@ export const AdminForm: React.FC = () => {
 							label="Role"
 							required
 							options={ROLE_OPTIONS}
+							placeholder="Select your role"
 						/>
 						<Form.Select
 							className={styles.select}
@@ -309,6 +292,7 @@ export const AdminForm: React.FC = () => {
 							label="Team Size"
 							required
 							options={TEAM_SIZE_OPTIONS}
+							placeholder="Select your team size"
 						/>
 						<Form.Select
 							className={styles.select}
@@ -316,6 +300,7 @@ export const AdminForm: React.FC = () => {
 							label="Where did you hear about us?"
 							required
 							options={HEARD_ABOUT_OPTIONS}
+							placeholder="Select how you heard about us"
 						/>
 						{!inWorkspace &&
 							(showPromoCodeField ? (
