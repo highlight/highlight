@@ -2,7 +2,6 @@ require 'opentelemetry/sdk'
 require 'opentelemetry/exporter/otlp'
 require 'opentelemetry/instrumentation/all'
 require 'opentelemetry/semantic_conventions'
-require 'active_support/logger_silence'
 require 'date'
 require 'json'
 require 'logger'
@@ -192,11 +191,9 @@ module Highlight
   end
 
   class Logger < ::Logger
-    include ActiveSupport::LoggerSilence
-
     def initialize(*args)
       super
-      @local_level = nil # Ensure compatibility with LoggerSilence
+      @local_level = nil
     end
 
     def add(severity, message = nil, progname = nil, &block)
