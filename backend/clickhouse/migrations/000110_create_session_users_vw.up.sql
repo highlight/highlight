@@ -31,8 +31,11 @@ SELECT
       (k, kv)->substring(kv, length(k) + 2),
       arrayZip(FieldKeys, FieldKeyValues)
     )
-  ) as SessionAttributes
+  ) as SessionAttributes,
+  arrayMap((kv) -> (
+    arrayStringConcat(arraySlice(splitByChar('_', kv), 2, length(splitByChar('_', kv)) - 2), '_'),
+      splitByChar('_', kv)[length(splitByChar('_', kv))]
+  ), FieldKeyValues) as SessionAttributePairs
 FROM sessions
 WHERE Identified = true
-  AND Excluded = false
-GROUP BY SessionID;
+  AND Excluded = false;

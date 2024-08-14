@@ -14,9 +14,6 @@ import (
 const UsersTableName = "session_users_vw"
 const UsersKeysTable = SessionKeysTable
 
-const usersAttributeColumn = "SessionAttributes"
-const usersBodyColumn = "Identifier"
-
 // These keys show up as recommendations, not in fields table due to high cardinality or post processing booleans
 var defaultUsersKeys = []*modelInputs.QueryKey{
 	{Name: string(modelInputs.ReservedUserKeyActiveLength), Type: modelInputs.KeyTypeNumeric},
@@ -56,8 +53,9 @@ var reservedUserKeys = lo.Map(modelInputs.AllReservedUserKey, func(key modelInpu
 
 var usersTableConfig = model.TableConfig{
 	TableName:        UsersTableName,
-	AttributesColumn: usersAttributeColumn,
-	BodyColumn:       usersBodyColumn,
+	AttributesColumn: "SessionAttributePairs",
+	AttributesList:   true,
+	BodyColumn:       "Identifier",
 	KeysToColumns:    userKeysToColumns,
 	ReservedKeys:     reservedUserKeys,
 }
