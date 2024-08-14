@@ -16,7 +16,7 @@ jobs:
         runs-on: ubuntu-latest
         strategy:
             matrix:
-                ruby: ['3.0', head]
+                ruby: ['3.0', '3.3']
         defaults:
             run:
                 working-directory: ./sdk/highlight-ruby/highlight
