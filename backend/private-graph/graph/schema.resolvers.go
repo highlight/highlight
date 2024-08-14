@@ -9834,6 +9834,8 @@ func (r *queryResolver) LogLines(ctx context.Context, productType modelInputs.Pr
 		return r.ClickhouseClient.SessionsLogLines(ctx, project.ID, params)
 	case modelInputs.ProductTypeErrors:
 		return r.ClickhouseClient.ErrorsLogLines(ctx, project.ID, params)
+	case modelInputs.ProductTypeUsers:
+		return r.ClickhouseClient.UsersLogLines(ctx, project.ID, params)
 	default:
 		return nil, e.Errorf("invalid product type %s", productType)
 	}

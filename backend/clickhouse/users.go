@@ -68,13 +68,15 @@ var UsersSampleableTableConfig = SampleableTableConfig{
 }
 
 func (client *Client) ReadUsersMetrics(ctx context.Context, projectID int, params modelInputs.QueryInput, column string, metricTypes []modelInputs.MetricAggregator, groupBy []string, nBuckets *int, bucketBy string, bucketWindow *int, limit *int, limitAggregator *modelInputs.MetricAggregator, limitColumn *string) (*modelInputs.MetricsBuckets, error) {
+	userGroupBy := append(groupBy, "Identifier")
+
 	return client.ReadMetrics(ctx, ReadMetricsInput{
 		SampleableConfig: UsersSampleableTableConfig,
 		ProjectIDs:       []int{projectID},
 		Params:           params,
 		Column:           column,
 		MetricTypes:      metricTypes,
-		GroupBy:          groupBy,
+		GroupBy:          userGroupBy,
 		BucketCount:      nBuckets,
 		BucketWindow:     bucketWindow,
 		BucketBy:         bucketBy,
@@ -108,4 +110,8 @@ func (client *Client) UsersKeys(ctx context.Context, projectID int, startDate ti
 // get values from sessions
 func (client *Client) UsersKeyValues(ctx context.Context, projectID int, keyName string, startDate time.Time, endDate time.Time, limit *int) ([]string, error) {
 	return client.SessionsKeyValues(ctx, projectID, keyName, startDate, endDate, limit)
+}
+
+func (client *Client) UsersLogLines(ctx context.Context, projectID int, params modelInputs.QueryInput) ([]*modelInputs.LogLine, error) {
+	return logLines(ctx, client, usersTableConfig, projectID, params)
 }
