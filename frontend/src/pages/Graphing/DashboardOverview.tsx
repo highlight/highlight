@@ -204,7 +204,7 @@ export const DashboardOverview: React.FC = () => {
 											</Box>
 										</EnterpriseFeatureButton>
 									</Box>
-									<Table withSearch>
+									<Table>
 										<Table.Search
 											placeholder="Search..."
 											handleChange={(e) => {

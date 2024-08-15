@@ -311,7 +311,7 @@ export const ServicesTable: React.FC = () => {
 				)}
 			</Stack>
 			<Stack direction="column" gap="4" align="center" paddingRight="4">
-				<Table withSearch>
+				<Table>
 					<Table.Search handleChange={handleQueryChange} />
 					<Table.Head>
 						<Table.Row gridColumns={gridColumns}>

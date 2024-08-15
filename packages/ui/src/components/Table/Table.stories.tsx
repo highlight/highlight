@@ -123,7 +123,7 @@ export const WithSearch = () => {
 	const gridColumns = COLUMNS.map((column) => column.width)
 
 	return (
-		<Table withSearch>
+		<Table>
 			<Table.Search handleChange={() => null} placeholder="Search..." />
 			<Table.Head>
 				<Table.Row gridColumns={gridColumns}>
@@ -156,7 +156,7 @@ export const NoBordersWithSearch = () => {
 	const gridColumns = COLUMNS.map((column) => column.width)
 
 	return (
-		<Table noBorder withSearch>
+		<Table noBorder>
 			<Table.Search handleChange={() => null} placeholder="Search..." />
 			<Table.Head>
 				<Table.Row gridColumns={gridColumns}>

@@ -12,5 +12,3 @@ export const table = style({
 export const noBorder = style({
 	border: 0,
 })
-
-export const withSearch = style({})
