@@ -9,7 +9,7 @@ Gem::Specification.new do |spec|
   spec.summary       = 'The Highlight SDK for Ruby'
   spec.homepage      = 'https://www.highlight.io'
   spec.license       = 'MIT'
-  spec.required_ruby_version = Gem::Requirement.new('>= 2.6.0')
+  spec.required_ruby_version = Gem::Requirement.new('>= 3.0.0')
 
   spec.metadata['homepage_uri'] = spec.homepage
 
@@ -23,8 +23,8 @@ Gem::Specification.new do |spec|
   spec.require_paths = ['lib']
 
   spec.add_runtime_dependency 'grpc', '~> 1.52'
-  spec.add_runtime_dependency 'opentelemetry-exporter-otlp', '~> 0.24.0'
-  spec.add_runtime_dependency 'opentelemetry-instrumentation-all', '~> 0.32.0'
-  spec.add_runtime_dependency 'opentelemetry-sdk', '~> 1.2'
-  spec.add_runtime_dependency 'opentelemetry-semantic_conventions', '~> 1.8.0'
+  spec.add_runtime_dependency 'opentelemetry-exporter-otlp', '~> 0.28.1'
+  spec.add_runtime_dependency 'opentelemetry-instrumentation-all', '~> 0.62.1'
+  spec.add_runtime_dependency 'opentelemetry-sdk', '~> 1.5.0'
+  spec.add_runtime_dependency 'opentelemetry-semantic_conventions', '~> 1.10.1'
 end

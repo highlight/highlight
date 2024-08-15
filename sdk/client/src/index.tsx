@@ -80,7 +80,13 @@ import {
 	IFRAME_PARENT_READY,
 	IFRAME_PARENT_RESPONSE,
 } from './types/iframe'
-import { getItem, removeItem, setItem, setStorageMode } from './utils/storage'
+import {
+	getItem,
+	removeItem,
+	setCookieWriteEnabled,
+	setItem,
+	setStorageMode,
+} from './utils/storage'
 import {
 	FIRST_SEND_FREQUENCY,
 	HIGHLIGHT_URL,
@@ -128,6 +134,7 @@ export type HighlightClassOptions = {
 	sessionShortcut?: SessionShortcutOptions
 	sessionSecureID: string // Introduced in firstLoad 3.0.1
 	storageMode?: 'sessionStorage' | 'localStorage'
+	skipCookieSessionDataLoad?: true
 	sendMode?: 'webworker' | 'local'
 	enableOtelTracing?: HighlightOptions['enableOtelTracing']
 	otlpEndpoint?: HighlightOptions['otlpEndpoint']
@@ -214,6 +221,7 @@ export class Highlight {
 			)
 			setStorageMode(options.storageMode)
 		}
+		setCookieWriteEnabled(!options?.skipCookieSessionDataLoad)
 
 		this._worker =
 			new HighlightClientWorker() as HighlightClientRequestWorker

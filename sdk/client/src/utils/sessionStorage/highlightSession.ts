@@ -1,5 +1,5 @@
 import { SESSION_STORAGE_KEYS } from './sessionStorageKeys'
-import { getItem, removeItem, setItem } from '../storage'
+import { cookieStorage, getItem, removeItem, setItem } from '../storage'
 import { SESSION_PUSH_THRESHOLD } from '../../constants/sessions'
 
 export type SessionData = {
@@ -52,4 +52,16 @@ export const setSessionData = function (sessionData?: SessionData) {
 	if (!sessionData?.sessionSecureID) return
 	const secureID = sessionData.sessionSecureID!
 	setItem(getSessionDataKey(secureID), JSON.stringify(sessionData))
+}
+
+export const loadCookieSessionData = function () {
+	const sessionSecureID = cookieStorage.getItem(
+		SESSION_STORAGE_KEYS.SESSION_ID,
+	)
+	setSessionSecureID(sessionSecureID)
+	const sessionDataKey = getSessionDataKey(sessionSecureID)
+	const sessionDataStr = cookieStorage.getItem(sessionDataKey)
+	try {
+		setSessionData(JSON.parse(sessionDataStr) as SessionData)
+	} catch (e) {}
 }

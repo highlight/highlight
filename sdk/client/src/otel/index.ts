@@ -293,7 +293,7 @@ const getSpanName = (
 	let parsedBody
 	const urlObject = new URL(url)
 	const pathname = urlObject.pathname
-	let spanName = `${method} - ${pathname}`
+	let spanName = `${method.toUpperCase()} - ${pathname}`
 
 	try {
 		parsedBody = typeof body === 'string' ? JSON.parse(body) : body

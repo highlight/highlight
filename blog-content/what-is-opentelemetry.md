@@ -184,6 +184,6 @@ This can all be a bit much so it might be worth it to visualize the pipeline pro
 
 ## Wrapping Up
 
-OpenTelemetry offers a powerful, unified approach to gathering telemetry data across your applications. By leveraging it, you can gain deep insights into your application's performance and fix bugs faster. While this article covered the basics, there's much more to explore. Check out our [How to Use OpenTelemetry to Monitor Next.js Applications](/blog/how-to-use-opentelemetry-to-monitor-nextjs-apps.md) for an overview of instrumenting a Next.js app and how Highlight can streamline instrumentation while providing actionable insights based on your data.
+OpenTelemetry offers a powerful, unified approach to gathering telemetry data across your applications. By leveraging it, you can gain deep insights into your application's performance and fix bugs faster. While this article covered the basics, there's much more to explore. Check out our [How to Use OpenTelemetry to Monitor Next.js Applications](/blog/how-to-use-opentelemetry-to-monitor-nextjs-apps) for an overview of instrumenting a Next.js app and how Highlight can streamline instrumentation while providing actionable insights based on your data.
 
 Happy monitoring!

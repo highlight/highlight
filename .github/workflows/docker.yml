@@ -16,6 +16,8 @@ jobs:
                 container: ['frontend', 'backend']
         runs-on: buildjet-4vcpu-ubuntu-2204
         timeout-minutes: 30
+        # does not work for open source builds as doppler is required
+        if: github.event.pull_request.head.repo.full_name == 'highlight/highlight' || github.ref == 'refs/heads/main' || github.event_name == 'release'
         env:
             IMAGE_NAME: highlight-${{ matrix.container }}
             TURBO_TOKEN: ${{ secrets.TURBO_TOKEN }}
@@ -28,14 +30,12 @@ jobs:
                   submodules: recursive
 
             - name: Login to Docker Hub
-              if: github.event.pull_request.head.repo.full_name == 'highlight/highlight' || github.ref == 'refs/heads/main' || github.event_name == 'release'
               uses: docker/login-action@v3
               with:
                   username: ${{ secrets.DOCKERHUB_USERNAME }}
                   password: ${{ secrets.DOCKERHUB_TOKEN }}
 
             - name: Login to GitHub Docker
-              if: github.event.pull_request.head.repo.full_name == 'highlight/highlight' || github.ref == 'refs/heads/main' || github.event_name == 'release'
               uses: docker/login-action@v3
               with:
                   registry: ghcr.io

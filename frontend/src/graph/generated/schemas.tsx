@@ -2439,6 +2439,7 @@ export type QueryErrors_Key_ValuesArgs = {
 	date_range: DateRangeRequiredInput
 	key_name: Scalars['String']
 	project_id: Scalars['ID']
+	query?: InputMaybe<Scalars['String']>
 }
 
 export type QueryErrors_KeysArgs = {
@@ -2560,6 +2561,7 @@ export type QueryKey_ValuesArgs = {
 	key_name: Scalars['String']
 	product_type: ProductType
 	project_id: Scalars['ID']
+	query?: InputMaybe<Scalars['String']>
 }
 
 export type QueryKeysArgs = {
@@ -2619,6 +2621,7 @@ export type QueryLogs_Key_ValuesArgs = {
 	date_range: DateRangeRequiredInput
 	key_name: Scalars['String']
 	project_id: Scalars['ID']
+	query?: InputMaybe<Scalars['String']>
 }
 
 export type QueryLogs_KeysArgs = {
@@ -2859,6 +2862,7 @@ export type QuerySessions_Key_ValuesArgs = {
 	date_range: DateRangeRequiredInput
 	key_name: Scalars['String']
 	project_id: Scalars['ID']
+	query?: InputMaybe<Scalars['String']>
 }
 
 export type QuerySessions_KeysArgs = {
@@ -2937,6 +2941,7 @@ export type QueryTraces_Key_ValuesArgs = {
 	date_range: DateRangeRequiredInput
 	key_name: Scalars['String']
 	project_id: Scalars['ID']
+	query?: InputMaybe<Scalars['String']>
 }
 
 export type QueryTraces_KeysArgs = {
@@ -3557,6 +3562,7 @@ export type SessionsReportRow = {
 	__typename?: 'SessionsReportRow'
 	avg_active_length_mins: Scalars['Float']
 	avg_length_mins: Scalars['Float']
+	email: Scalars['String']
 	key: Scalars['String']
 	location: Scalars['String']
 	max_active_length_mins: Scalars['Float']
