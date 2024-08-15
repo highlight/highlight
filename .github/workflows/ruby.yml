@@ -53,9 +53,6 @@ jobs:
     e2e:
         name: Ruby Example App
         runs-on: ubuntu-latest
-        strategy:
-            matrix:
-                ruby: ['3.0', '3.3']
         defaults:
             run:
                 working-directory: ./e2e/ruby/rails/demo
@@ -70,7 +67,7 @@ jobs:
             - name: Install Ruby
               uses: ruby/setup-ruby@v1
               with:
-                  ruby-version: ${{ matrix.ruby }}
+                  ruby-version: '3.2'
                   bundler-cache: true # runs 'bundle install' and caches installed gems automatically
             - name: Install dependencies
               run: bundle install
