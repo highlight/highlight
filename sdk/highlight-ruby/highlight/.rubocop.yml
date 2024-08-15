@@ -1,5 +1,5 @@
 AllCops:
-    TargetRubyVersion: 2.6
+    TargetRubyVersion: 3.0
 
 Style/FrozenStringLiteralComment:
     Enabled: false
@@ -11,4 +11,10 @@ Metrics/MethodLength:
     Enabled: false
 
 Naming/MethodParameterName:
+    Enabled: false
+
+Metrics/AbcSize:
+    Enabled: false
+
+Metrics/ClassLength:
     Enabled: false

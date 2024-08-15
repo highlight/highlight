@@ -33,6 +33,8 @@ receivers:
                         - 'Access-Control-Request-Headers'
                         - 'Access-Control-Request-Method'
                         - 'Access-Control-Allow-Origin'
+                        - 'Access-Control-Allow-Methods'
+                        - 'Access-Control-Max-Age'
                         - 'Referer'
                         - 'Traceparent'
                         - 'Tracestate'
