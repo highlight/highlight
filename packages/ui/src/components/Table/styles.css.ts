@@ -1,6 +1,16 @@
 import { style } from '@vanilla-extract/css'
 
-// Needed as a selector in other styles
-export const table = style({})
-export const noBorder = style({})
+import { vars } from '@/vars'
+
+export const BORDER = `1px solid ${vars.theme.static.divider.weak}`
+
+export const table = style({
+	border: BORDER,
+	borderRadius: vars.borderRadius['8'],
+})
+
+export const noBorder = style({
+	border: 0,
+})
+
 export const withSearch = style({})
