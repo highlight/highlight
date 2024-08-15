@@ -120,7 +120,6 @@ module Highlight
       span.record_exception(e, attributes: attrs)
     end
 
-    # rubocop:disable Metrics/AbcSize
     def record_log(session_id, request_id, level, message, attrs = {})
       return unless initialized?
 
@@ -145,7 +144,6 @@ module Highlight
         }.merge(attrs))
       end
     end
-    # rubocop:enable Metrics/AbcSize
 
     def self.parse_headers(headers)
       if headers && headers[HIGHLIGHT_REQUEST_HEADER]
@@ -226,11 +224,11 @@ module Highlight
         @highlight_headers = H.parse_headers(request.headers)
         return unless @highlight_headers.session_id.nil?
 
-        sessionID = request.cookies['sessionID'].presence || SecureRandom.alphanumeric(28)
+        session_id = request.cookies['sessionID'].presence || SecureRandom.alphanumeric(28)
 
-        sessionDataKey = "sessionData_#{sessionID}"
-        @sessionData = request.cookies[sessionDataKey] || {
-          sessionSecureID: sessionID,
+        session_data_key = "sessionData_#{session_id}"
+        @session_data = request.cookies[session_data_key] || {
+          sessionSecureID: session_id,
           projectID: @project_id,
           payloadID: 1,
           sessionStartTime: DateTime.now.strftime('%Q'),
@@ -238,15 +236,15 @@ module Highlight
         }
 
         cookies[:sessionID] = {
-          value: sessionID,
+          value: session_id,
           expires: 15.minutes.from_now
         }
-        cookies[sessionDataKey] = {
-          value: @sessionData.to_json,
+        cookies[session_data_key] = {
+          value: @session_data.to_json,
           expires: 15.minutes.from_now
         }
 
-        @highlight_headers = HighlightHeaders.new(sessionID, nil)
+        @highlight_headers = HighlightHeaders.new(session_id, nil)
       end
 
       def highlight_headers
