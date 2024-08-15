@@ -623,7 +623,7 @@ func (client *Client) QuerySessionCustomMetrics(ctx context.Context, projectId i
 	return metrics, nil
 }
 
-func (client *Client) SessionsKeyValues(ctx context.Context, projectID int, keyName string, startDate time.Time, endDate time.Time, limit *int) ([]string, error) {
+func (client *Client) SessionsKeyValues(ctx context.Context, projectID int, keyName string, startDate time.Time, endDate time.Time, query *string, limit *int) ([]string, error) {
 	if booleanKeys[keyName] {
 		return []string{"true", "false"}, nil
 	}
@@ -633,6 +633,11 @@ func (client *Client) SessionsKeyValues(ctx context.Context, projectID int, keyN
 		limitCount = *limit
 	}
 
+	searchQuery := ""
+	if query != nil {
+		searchQuery = *query
+	}
+
 	sb := sqlbuilder.NewSelectBuilder()
 	sql, args := sb.
 		Select("Value").
@@ -640,6 +645,7 @@ func (client *Client) SessionsKeyValues(ctx context.Context, projectID int, keyN
 		Where(sb.And(
 			sb.Equal("ProjectID", projectID),
 			sb.Equal("Name", keyName),
+			fmt.Sprintf("Value ILIKE %s", sb.Var("%"+searchQuery+"%")),
 			sb.Between("SessionCreatedAt", startDate, endDate))).
 		GroupBy("1").
 		OrderBy("count() DESC").

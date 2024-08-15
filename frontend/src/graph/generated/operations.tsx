@@ -5214,6 +5214,8 @@ export type GetKeyValuesQueryVariables = Types.Exact<{
 	project_id: Types.Scalars['ID']
 	key_name: Types.Scalars['String']
 	date_range: Types.DateRangeRequiredInput
+	query: Types.Scalars['String']
+	count: Types.Scalars['Int']
 }>
 
 export type GetKeyValuesQuery = { __typename?: 'Query' } & Pick<
