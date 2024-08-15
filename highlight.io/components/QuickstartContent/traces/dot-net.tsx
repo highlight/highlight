@@ -156,11 +156,11 @@ public class HighlightLogEnricher : ILogEventEnricher
 
 public class HighlightConfig
 {
-    // For highlight.io cloud, use https://otel.highlight.io:4318
-    public static readonly String OtlpEndpoint = "http://localhost:4318";
+	// For highlight.io self-hosted, update to your collector endpoint
+    public static readonly String OtlpEndpoint = "https://otel.highlight.io:4318";
 
     // Replace with your project ID and service name.
-    public static readonly String ProjectId = "1";
+    public static readonly String ProjectId = "<YOUR_PROJECT_ID>";
     public static readonly String ServiceName = "highlight-dot-net-backend";
 
     public static readonly String TracesEndpoint = OtlpEndpoint + "/v1/traces";

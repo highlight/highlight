@@ -41,17 +41,14 @@ export const DotNet4OTLPTracingContent: QuickStartContent = {
     <meta name="traceparent" content="@GetTraceParentContext()">
     <script src="https://unpkg.com/highlight.run"></script>
     <script>
-        H.init('1jdkoe52', {
-            environment: 'dev',
-            tracingOrigins: true,
+        H.init('<YOUR_PROJECT_ID>>', {
             serviceName: 'highlight-dot-net-frontend',
-            backendUrl: 'https://localhost:8082/public',
+            tracingOrigins: true,
+            enableOtelTracing: true,
             networkRecording: {
                 enabled: true,
                 recordHeadersAndBody: true,
             },
-            enableOtelTracing: true,
-            otlpEndpoint: 'http://localhost:4318',
         });
     </script>
     @* your standard head contents here... *@
@@ -120,12 +117,12 @@ public class HighlightTraceProcessor : BaseProcessor<Activity>
 
     public class HighlightConfig
     {
-        // For highlight.io cloud, use https://otel.highlight.io:4318
-        public static readonly String OtlpEndpoint = "http://localhost:4318";
+		// For highlight.io self-hosted, update to your collector endpoint
+		public static readonly String OtlpEndpoint = "https://otel.highlight.io:4318";
 
-        // Replace with your project ID and service name.
-        public static readonly String ProjectId = "1";
-        public static readonly String ServiceName = "highlight-dot-net-backend";
+		// Replace with your project ID and service name.
+		public static readonly String ProjectId = "<YOUR_PROJECT_ID>";
+		public static readonly String ServiceName = "highlight-dot-net-backend";
 
         public static readonly String TracesEndpoint = OtlpEndpoint + "/v1/traces";
         public static readonly String MetricsEndpoint = OtlpEndpoint + "/v1/metrics";
