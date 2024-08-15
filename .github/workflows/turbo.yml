@@ -94,6 +94,7 @@ jobs:
               id: changesets-version
               uses: changesets/action@v1
               with:
+                  branch: main
                   version: yarn changeset version
               env:
                   GITHUB_TOKEN: ${{ secrets.HIGHLIGHT_GITHUB_TOKEN }}
@@ -132,6 +133,7 @@ jobs:
               id: changesets-publish
               uses: changesets/action@v1
               with:
+                  branch: main
                   publish: yarn publish:turbo
               env:
                   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
