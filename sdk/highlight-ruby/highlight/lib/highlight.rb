@@ -18,9 +18,9 @@ module Highlight
     end
   end
 
-  def self.start_span(name, attrs = {})
+  def self.start_span(name, attrs = {}, &block)
     if block_given?
-      H.instance.start_span(name, attrs) { |span| yield span }
+      H.instance.start_span(name, attrs, &block)
     else
       H.instance.start_span(name, attrs) { |_| }
     end
@@ -60,7 +60,7 @@ module Highlight
             ),
             schedule_delay: 1000,
             max_export_batch_size: 128,
-            max_queue_size: 1024,
+            max_queue_size: 1024
           )
         )
 
@@ -85,10 +85,11 @@ module Highlight
 
     def flush
       return unless initialized?
+
       @tracer_provider.force_flush
     end
 
-    def trace(session_id, request_id, attrs = {}, name: 'highlight.span')
+    def trace(session_id, request_id, attrs = {}, name: 'highlight.span', &block)
       return unless initialized?
 
       # Passed along by the BaggageSpanProcessor to child spans as attributes.
@@ -96,17 +97,15 @@ module Highlight
       ctx = OpenTelemetry::Baggage.set_value(HIGHLIGHT_TRACE_ATTRIBUTE, request_id || '', context: ctx)
 
       OpenTelemetry::Context.with_current(ctx) do
-        start_span(name, attrs) do |span|
-          yield span
-        end
+        start_span(name, attrs, &block)
       end
     end
 
-    def start_span(name, attrs = {})
+    def start_span(name, attrs = {}, &block)
       return unless initialized?
 
       if block_given?
-        @tracer.in_span(name, attributes: attrs) { |span| yield span }
+        @tracer.in_span(name, attributes: attrs, &block)
       else
         @tracer.in_span(name, attributes: attrs) { |_| }
       end
@@ -180,7 +179,7 @@ module Highlight
     private
 
     def trace_id_from_headers(headers)
-      return headers.traceparent&.split('-')&.first
+      headers.traceparent&.split('-')&.first
     end
   end
 
@@ -217,33 +216,34 @@ module Highlight
 
       def with_highlight_context(&block)
         set_highlight_headers
-        H.instance.trace(highlight_headers.session_id, highlight_headers.request_id, name: "#{request.method.upcase} #{request.path}", &block)
+        H.instance.trace(highlight_headers.session_id, highlight_headers.request_id,
+                         name: "#{request.method.upcase} #{request.path}", &block)
       end
 
       private
 
       def set_highlight_headers
         @highlight_headers = H.parse_headers(request.headers)
-        return unless @highlight_headers.session_id == nil
+        return unless @highlight_headers.session_id.nil?
 
-        sessionID = request.cookies["sessionID"].presence || SecureRandom.alphanumeric(28)
+        sessionID = request.cookies['sessionID'].presence || SecureRandom.alphanumeric(28)
 
         sessionDataKey = "sessionData_#{sessionID}"
         @sessionData = request.cookies[sessionDataKey] || {
-          :sessionSecureID => sessionID,
-          :projectID => @project_id,
-          :payloadID => 1,
-          :sessionStartTime => DateTime.now.strftime('%Q'),
-          :lastPushTime => DateTime.now.strftime('%Q'),
+          sessionSecureID: sessionID,
+          projectID: @project_id,
+          payloadID: 1,
+          sessionStartTime: DateTime.now.strftime('%Q'),
+          lastPushTime: DateTime.now.strftime('%Q')
         }
 
         cookies[:sessionID] = {
-          :value => sessionID,
-          :expires => 15.minutes.from_now,
+          value: sessionID,
+          expires: 15.minutes.from_now
         }
         cookies[sessionDataKey] = {
-          :value => @sessionData.to_json,
-          :expires => 15.minutes.from_now,
+          value: @sessionData.to_json,
+          expires: 15.minutes.from_now
         }
 
         @highlight_headers = HighlightHeaders.new(sessionID, nil)

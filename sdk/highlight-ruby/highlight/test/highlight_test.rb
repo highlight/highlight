@@ -48,8 +48,9 @@ class HighlightTest < Minitest::Test
   def test_trace_processor
     mock = MiniTest::Mock.new
     mock.expect :on_start, true do |span, parent_context|
-      span.attributes == { 'some.attribute' => 12 }
-      OpenTelemetry::Baggage.values(context: parent_context) == {"highlight.session_id"=>1, "highlight.trace_id"=>""}
+      span.attributes
+      OpenTelemetry::Baggage.values(context: parent_context) == { 'highlight.session_id' => 1,
+                                                                  'highlight.trace_id' => '' }
     end
     mock.expect :on_finish, true do |span|
       span.attributes == { 'some.attribute' => 12 }
