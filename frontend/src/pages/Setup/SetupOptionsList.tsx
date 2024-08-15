@@ -1,15 +1,16 @@
 import { LinkButton } from '@components/LinkButton'
 import { Box, Stack, Text } from '@highlight-run/ui/components'
 import { Header } from '@pages/Setup/Header'
-import {
-	QuickStartContent,
-	quickStartContent,
-	QuickStartOptions,
-} from 'highlight.io'
 import * as React from 'react'
 import { Navigate, useLocation, useMatch } from 'react-router-dom'
 
 import analytics from '@/util/analytics'
+
+import {
+	type QuickStartContent,
+	type QuickStartOptions,
+	quickStartContent,
+} from '../../../../highlight.io/components/QuickstartContent/QuickstartContent'
 
 export type OptionListItem = {
 	name: string

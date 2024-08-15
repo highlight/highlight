@@ -12,7 +12,6 @@ import { Header } from '@pages/Setup/Header'
 import analytics from '@util/analytics'
 import { isOnPrem } from '@util/onPrem/onPremUtils'
 import clsx from 'clsx'
-import { QuickStartContent, quickStartContent } from 'highlight.io'
 import * as React from 'react'
 import ReactMarkdown from 'react-markdown'
 import { useMatch } from 'react-router-dom'
@@ -20,6 +19,10 @@ import { useMatch } from 'react-router-dom'
 import { PUBLIC_GRAPH_URI } from '@/constants'
 import { useApplicationContext } from '@/routers/AppRouter/context/ApplicationContext'
 
+import {
+	type QuickStartContent,
+	quickStartContent,
+} from '../../../../highlight.io/components/QuickstartContent/QuickstartContent'
 import * as styles from './SetupDocs.css'
 
 export type OptionListItem = {
