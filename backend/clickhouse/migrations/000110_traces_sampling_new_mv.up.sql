@@ -65,4 +65,4 @@ CREATE MATERIALIZED VIEW IF NOT EXISTS traces_sampling_new_mv TO traces_sampling
     `Links.Attributes` Array(Map(LowCardinality(String), String))
 ) AS
 SELECT *
-FROM default.traces;
+FROM traces;
