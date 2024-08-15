@@ -27,16 +27,14 @@ import configureElectronHighlight from './environments/electron.js'
 import firstloadVersion from './__generated/version.js'
 import {
 	getPreviousSessionData,
-	type SessionData,
-	setSessionData,
-	setSessionSecureID,
+	loadCookieSessionData,
 } from '@highlight-run/client/src/utils/sessionStorage/highlightSession.js'
 import { initializeFetchListener } from './listeners/fetch'
 import { initializeWebSocketListener } from './listeners/web-socket'
 import { listenToChromeExtensionMessage } from './browserExtension/extensionListener.js'
-import { setItem } from '@highlight-run/client/src/utils/storage.js'
 import { ErrorMessageType } from '@highlight-run/client/src/types/shared-types'
 import type { Context, Span, SpanOptions, Tracer } from '@opentelemetry/api'
+import { setCookieWriteEnabled } from '@highlight-run/client/src/utils/storage'
 
 enum MetricCategory {
 	Device = 'Device',
@@ -98,6 +96,12 @@ const H: HighlightPublicInterface = {
 				return
 			}
 
+			if (!options?.skipCookieSessionDataLoad) {
+				loadCookieSessionData()
+			} else {
+				setCookieWriteEnabled(false)
+			}
+
 			let previousSession = getPreviousSessionData()
 			sessionSecureID = GenerateSecureID()
 			if (previousSession?.sessionSecureID) {
@@ -148,36 +152,12 @@ const H: HighlightPublicInterface = {
 			)
 
 			const client_options: HighlightClassOptions = {
+				...options,
 				organizationID: projectID,
-				debug: options?.debug,
-				backendUrl: options?.backendUrl,
-				tracingOrigins: options?.tracingOrigins,
-				disableNetworkRecording: options?.disableNetworkRecording,
-				networkRecording: options?.networkRecording,
-				disableBackgroundRecording: options?.disableBackgroundRecording,
-				disableConsoleRecording: options?.disableConsoleRecording,
-				disableSessionRecording: options?.disableSessionRecording,
-				reportConsoleErrors: options?.reportConsoleErrors,
-				consoleMethodsToRecord: options?.consoleMethodsToRecord,
-				privacySetting: options?.privacySetting,
-				enableSegmentIntegration: options?.enableSegmentIntegration,
-				enableCanvasRecording: options?.enableCanvasRecording,
-				enablePerformanceRecording: options?.enablePerformanceRecording,
-				enablePromisePatch: options?.enablePromisePatch,
-				samplingStrategy: options?.samplingStrategy,
-				inlineImages: options?.inlineImages,
-				inlineStylesheet: options?.inlineStylesheet,
-				recordCrossOriginIframe: options?.recordCrossOriginIframe,
 				firstloadVersion,
 				environment: options?.environment || 'production',
 				appVersion: options?.version,
-				serviceName: options?.serviceName,
-				sessionShortcut: options?.sessionShortcut,
 				sessionSecureID: sessionSecureID,
-				storageMode: options?.storageMode,
-				sendMode: options?.sendMode,
-				enableOtelTracing: options?.enableOtelTracing,
-				otlpEndpoint: options?.otlpEndpoint,
 			}
 			first_load_listeners = new FirstLoadListeners(client_options)
 			if (!options?.manualStart) {
