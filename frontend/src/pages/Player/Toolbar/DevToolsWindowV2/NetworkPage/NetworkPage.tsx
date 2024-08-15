@@ -307,12 +307,14 @@ export const NetworkPage = ({
 				</Box>
 			) : (
 				resourcesToRender.length === 0 && (
-					<EmptyDevToolsCallout
-						kind={Tab.Network}
-						filter={filter}
-						requestTypes={requestTypes}
-						requestStatuses={requestStatuses}
-					/>
+					<Box p="8" height="full">
+						<EmptyDevToolsCallout
+							kind={Tab.Network}
+							filter={filter}
+							requestTypes={requestTypes}
+							requestStatuses={requestStatuses}
+						/>
+					</Box>
 				)
 			)}
 		</Box>

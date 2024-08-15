@@ -27,7 +27,7 @@ class HighlightTest < Minitest::Test
   def test_trace
     mock = MiniTest::Mock.new
     mock.expect :in_span, true do |attributes:|
-      attributes == { 'highlight.project_id' => 'qe9y4yg1', 'highlight.session_id' => 1, 'some.attribute' => 12 }
+      attributes == { 'some.attribute' => 12 }
     end
 
     begin
@@ -39,6 +39,29 @@ class HighlightTest < Minitest::Test
           raise 'ruby test error handler!'
         end
         Highlight::H.instance.flush
+      end
+    ensure
+      assert_mock mock
+    end
+  end
+
+  def test_trace_processor
+    mock = MiniTest::Mock.new
+    mock.expect :on_start, true do |span, parent_context|
+      span.attributes
+      OpenTelemetry::Baggage.values(context: parent_context) == { 'highlight.session_id' => 1,
+                                                                  'highlight.trace_id' => '' }
+    end
+    mock.expect :on_finish, true do |span|
+      span.attributes == { 'some.attribute' => 12 }
+    end
+
+    begin
+      Highlight::Tracing::BaggageSpanProcessor.stub :new, mock do
+        Highlight::H.new('qe9y4yg1', environment: 'ci-test')
+        Highlight::H.instance.trace(1, nil, { 'some.attribute' => 12 }) do
+          puts 'ruby test trace!'
+        end
       end
     ensure
       assert_mock mock

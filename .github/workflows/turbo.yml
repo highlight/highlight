@@ -77,6 +77,8 @@ jobs:
                   REACT_APP_COMMIT_SHA: ${{ github.sha }}
 
             - name: Build render
+              # does not work for open source builds as doppler is required
+              if: github.event.pull_request.head.repo.full_name == 'highlight/highlight' || github.ref == 'refs/heads/main' || github.event_name == 'release'
               run: doppler run -- yarn build:render
               env:
                   DOPPLER_TOKEN: ${{ secrets.DOPPLER_PROD_RENDER_SECRET }}
@@ -92,9 +94,10 @@ jobs:
               id: changesets-version
               uses: changesets/action@v1
               with:
+                  branch: main
                   version: yarn changeset version
               env:
-                  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+                  GITHUB_TOKEN: ${{ secrets.HIGHLIGHT_GITHUB_TOKEN }}
                   NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
                   NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
@@ -130,6 +133,7 @@ jobs:
               id: changesets-publish
               uses: changesets/action@v1
               with:
+                  branch: main
                   publish: yarn publish:turbo
               env:
                   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
