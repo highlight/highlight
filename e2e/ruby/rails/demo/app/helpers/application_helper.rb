@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module ApplicationHelper
   def traceparent_context
     current_trace = OpenTelemetry::Trace.current_span
@@ -6,8 +8,8 @@ module ApplicationHelper
 
     return '00-00-00-00' if trace_id.blank?
 
-    hex_trace_id = trace_id&.unpack('H*').first
-    hex_span_id = span_id&.unpack('H*').first
+    hex_trace_id = trace_id&.unpack1('H*')
+    hex_span_id = span_id&.unpack1('H*')
     "00-#{hex_trace_id}-#{hex_span_id}-01"
   end
 end

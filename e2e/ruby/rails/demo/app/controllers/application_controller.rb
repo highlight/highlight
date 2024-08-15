@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'highlight'
 
 class ApplicationController < ActionController::Base
