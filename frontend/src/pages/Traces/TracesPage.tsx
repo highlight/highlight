@@ -71,9 +71,15 @@ export const TracesPage: React.FC = () => {
 	const navigate = useNavigate()
 	const {
 		trace_id,
+		timestamp,
 		span_id,
 		trace_cursor: traceCursor,
-	} = useParams<{ trace_id: string; span_id: string; trace_cursor: string }>()
+	} = useParams<{
+		trace_id: string
+		timestamp: string
+		span_id: string
+		trace_cursor: string
+	}>()
 	const aiQueryBuilderFlag = useFeatureFlag(Feature.AiQueryBuilder)
 	const textAreaRef = useRef<HTMLTextAreaElement | null>(null)
 	const [query, setQuery] = useQueryParam('query', QueryParam)
@@ -217,6 +223,7 @@ export const TracesPage: React.FC = () => {
 			resources: traceEdges.map((edge) => ({
 				type: 'trace',
 				id: edge.node.traceID,
+				timestamp: edge.node.timestamp,
 				spanID: edge.node.spanID,
 			})),
 		})
@@ -225,10 +232,11 @@ export const TracesPage: React.FC = () => {
 	// Temporary workaround to preserve functionality for linking to a trace.
 	// Eventually we can delete both of these useEffects + params in the router.
 	useEffect(() => {
-		if (trace_id) {
+		if (trace_id && timestamp) {
 			set({
 				type: 'trace',
 				id: trace_id,
+				timestamp: timestamp,
 				spanID: span_id,
 			})
 		}

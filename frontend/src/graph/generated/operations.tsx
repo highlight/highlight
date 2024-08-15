@@ -5047,6 +5047,7 @@ export type MatchErrorTagQuery = { __typename?: 'Query' } & {
 export type GetTraceQueryVariables = Types.Exact<{
 	project_id: Types.Scalars['ID']
 	trace_id: Types.Scalars['String']
+	timestamp: Types.Scalars['Timestamp']
 	session_secure_id?: Types.Maybe<Types.Scalars['String']>
 }>
 
