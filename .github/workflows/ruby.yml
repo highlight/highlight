@@ -40,7 +40,7 @@ jobs:
             - name: Rubocop
               run: bundle exec rubocop
             - name: Publish to RubyGems
-              if: github.ref == 'refs/heads/main' && steps.filter.outputs.ruby-changed == 'true'
+              if: github.ref == 'refs/heads/main' && matrix.ruby == '3.3' && steps.filter.outputs.ruby-changed == 'true'
               run: |
                   mkdir -p $HOME/.gem
                   touch $HOME/.gem/credentials
@@ -58,12 +58,6 @@ jobs:
                 working-directory: ./e2e/ruby/rails/demo
         steps:
             - uses: actions/checkout@v4
-            - uses: dorny/paths-filter@v2
-              id: filter
-              with:
-                  filters: |
-                      ruby-changed:
-                        - 'sdk/highlight-ruby/**'
             - name: Install Ruby
               uses: ruby/setup-ruby@v1
               with:
