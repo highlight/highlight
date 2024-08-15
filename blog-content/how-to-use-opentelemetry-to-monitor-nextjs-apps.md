@@ -230,7 +230,12 @@ As mentioned earlier, the official Node.js SDK's support for logging is under de
 
 The big thing that sets Highlight apart is top notch Session Replay. Highlight puts in a lot of effort to tie client-side events and spans to your server-side traces. This gives you the ability to see the path your users are taking through your application. Don't worry every effort is made to scrub any personal data from the replay, which is another thing Highlight's Collector adds for you without any extra effort on your part.
 
-![Preview of session replay in Highlight](/images/blog/how-to-use-opentelemetry-to-monitor-nextjs-apps/highlight-session.gif)
+<video controls autoplay="autoplay" loop muted>
+  <source
+    src="/videos/blog/session-replay-demo.mp4"
+    type="video/mp4"
+  />
+</video>
 
 ## Wrapping Up
 
