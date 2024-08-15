@@ -95,6 +95,7 @@ jobs:
               id: changesets-version
               uses: changesets/action@v1
               with:
+                  branch: main
                   version: yarn changeset version
               env:
                   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
