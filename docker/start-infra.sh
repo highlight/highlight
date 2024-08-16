@@ -5,10 +5,12 @@ source env.sh
 # startup the infra
 
 SERVICES="clickhouse kafka postgres redis zookeeper collector"
+BUILD_ARGS="--build-arg OTEL_COLLECTOR_ALPINE_IMAGE_NAME=${OTEL_COLLECTOR_ALPINE_IMAGE_NAME} \
+            --build-arg OTEL_COLLECTOR_IMAGE_NAME=${OTEL_COLLECTOR_IMAGE_NAME}"
 
 docker compose pull $SERVICES
-docker compose build --pull $SERVICES
-docker compose up --detach --wait --remove-orphans --build $SERVICES
+docker compose build --pull $BUILD_ARGS $SERVICES
+docker compose up --detach --wait --remove-orphans $SERVICES
 
 if [[ "$*" != *"--go-docker"* ]]; then
   pushd ../backend
