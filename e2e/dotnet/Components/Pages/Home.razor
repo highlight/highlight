@@ -8,8 +8,6 @@
 
 Welcome to your new app.
 
-
-
 @if (traceId == null)
 {
     <p>
@@ -23,6 +21,16 @@ else
         <li>SpanID: @spanId</li>
     </ul>
 }
+
+<h2>Traces</h2>
+<button onclick="fetch('/api/traces')">Submit</button>
+
+<h2>Logs</h2>
+<button onclick="fetch('/api/logs')">Submit</button>
+
+<h2>Errors</h2>
+<button onclick="fetch('/api/errors')">Submit</button>
+
 
 @code {
     private ActivitySource? tracer;

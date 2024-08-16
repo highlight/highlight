@@ -193,7 +193,7 @@ def test_express_error(express_app, oauth_api):
 def test_dotnet_error(dotnet_app, oauth_api):
     start = datetime.utcnow() - timedelta(minutes=1)
     r = requests.get(
-        f"http://localhost:5249/error",
+        f"http://localhost:5249/api/errors",
         headers={"x-highlight-request": "a1b2c30001/aaa111"},
         timeout=30,
     )
@@ -242,7 +242,7 @@ def test_dotnet_error(dotnet_app, oauth_api):
 def test_dotnet_logs(dotnet_app, oauth_api):
     start = datetime.utcnow() - timedelta(minutes=1)
     r = requests.get(
-        f"http://localhost:5249/weatherforecast",
+        f"http://localhost:5249/api/traces",
         headers={"x-highlight-request": "a1b2c30002/aaa112"},
         timeout=30,
     )
@@ -298,7 +298,7 @@ def test_dotnet_logs(dotnet_app, oauth_api):
 def test_dotnet_traces(dotnet_app, oauth_api):
     start = datetime.utcnow() - timedelta(minutes=1)
     r = requests.get(
-        f"http://localhost:5249/weatherforecast",
+        f"http://localhost:5249/api/traces",
         headers={"x-highlight-request": "a1b2c30002/aaa112"},
         timeout=30,
     )
