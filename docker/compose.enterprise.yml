@@ -25,9 +25,9 @@ services:
                     '-k',
                     'http://localhost:8082/private/health',
                 ]
-            interval: 5s
+            interval: 1s
             timeout: 5s
-            retries: 5
+            retries: 30
         command:
             - /build/backend
             - -runtime=graph
