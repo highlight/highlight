@@ -10,6 +10,9 @@ Style/Documentation:
 Metrics/MethodLength:
     Enabled: false
 
+Metrics/CyclomaticComplexity:
+    Max: 8
+
 Naming/MethodParameterName:
     Enabled: false
 

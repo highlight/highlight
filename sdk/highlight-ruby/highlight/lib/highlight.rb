@@ -26,6 +26,18 @@ module Highlight
     end
   end
 
+  def self.log(level, message, attrs = {})
+    H.instance.record_log(nil, nil, level, message, attrs)
+  end
+
+  def self.exception(error, attrs = {})
+    H.instance.record_exception(error, attrs)
+  end
+
+  def self.traceparent_meta
+    Helpers.traceparent_meta
+  end
+
   class H
     HIGHLIGHT_REQUEST_HEADER = 'X-Highlight-Request'.freeze
     OTLP_HTTP = 'https://otel.highlight.io:4318'.freeze
@@ -130,6 +142,7 @@ module Highlight
         function.delete_prefix!('in `')
         function.delete_suffix!('"')
       end
+
       @tracer.in_span('highlight.log', attributes: {
         HIGHLIGHT_SESSION_ATTRIBUTE => session_id,
         HIGHLIGHT_TRACE_ATTRIBUTE => request_id
@@ -253,6 +266,23 @@ module Highlight
 
       module ClassMethods
       end
+    end
+  end
+
+  module Helpers
+    if defined?(ActionView)
+      include ActionView::Helpers
+      extend ActionView::Helpers::TagHelper
+    end
+
+    def self.traceparent_meta
+      current_trace = OpenTelemetry::Trace.current_span
+      trace_id = current_trace&.context&.trace_id
+      span_id = current_trace&.context&.span_id
+      hex_trace_id = trace_id&.unpack1('H*') || '00000000000000000000000000000000'
+      hex_span_id = span_id&.unpack1('H*') || '0000000000000000'
+
+      tag(:meta, name: 'traceparent', content: "00-#{hex_trace_id}-#{hex_span_id}-01")
     end
   end
 end
