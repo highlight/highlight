@@ -270,8 +270,10 @@ module Highlight
   end
 
   module Helpers
-    include ActionView::Helpers
-    extend ActionView::Helpers::TagHelper
+    if defined?(ActionView)
+      include ActionView::Helpers
+      extend ActionView::Helpers::TagHelper
+    end
 
     def self.traceparent_meta
       current_trace = OpenTelemetry::Trace.current_span
