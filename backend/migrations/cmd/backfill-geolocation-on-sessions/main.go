@@ -65,8 +65,6 @@ func main() {
 				log.WithContext(ctx).Errorf("Error syncing session to Clickhouse - session_id:%d : %v\n", session.ID, err)
 				continue
 			}
-
-			log.WithContext(ctx).Infof("Finished session_id:%d", session.ID)
 		}
 
 		log.WithContext(ctx).Infof("Finished batch %d", batch)
