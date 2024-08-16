@@ -16,7 +16,7 @@ import { FetchInstrumentation } from '@opentelemetry/instrumentation-fetch'
 import { registerInstrumentations } from '@opentelemetry/instrumentation'
 import { XMLHttpRequestInstrumentation } from '@opentelemetry/instrumentation-xml-http-request'
 import { Resource } from '@opentelemetry/resources'
-import { OTLPTraceExporter } from '@opentelemetry/exporter-trace-otlp-http'
+import { OTLPTraceExporterBrowserWithXhrRetry } from './exporter'
 import {
 	SEMRESATTRS_DEPLOYMENT_ENVIRONMENT,
 	SEMRESATTRS_SERVICE_NAME,
@@ -90,7 +90,7 @@ export const setupBrowserTracing = (config: BrowserTracingConfig) => {
 		)
 	}
 
-	const exporter = new OTLPTraceExporter({
+	const exporter = new OTLPTraceExporterBrowserWithXhrRetry({
 		url: endpoint + '/v1/traces',
 		concurrencyLimit: 10,
 		// Using any because we were getting an error importing CompressionAlgorithm
