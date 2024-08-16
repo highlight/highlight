@@ -5100,10 +5100,17 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@cloudflare/workers-types@npm:4.20230214.0":
+  version: 4.20230214.0
+  resolution: "@cloudflare/workers-types@npm:4.20230214.0"
+  checksum: 10/c3fdeda2914e4679130fdd61d7adf32e6ae1d37cf5952b736392f48523c162fb5d93cdd9f7234c609b9464cd1cf4008cbeb10e75f466fabf3808e3f9c15bca04
+  languageName: node
+  linkType: hard
+
 "@cloudflare/workers-types@npm:^4.20230115.0, @cloudflare/workers-types@npm:^4.20231016.0":
-  version: 4.20231016.0
-  resolution: "@cloudflare/workers-types@npm:4.20231016.0"
-  checksum: 10/2ed6541dda3eef7160474fc7e4d4e88a6f4bf263f78638ba7f9f33be472cf3da05900c0d22bba023371b556432e03ef459a02e13f83df94e5fc3457153804fa5
+  version: 4.20240815.0
+  resolution: "@cloudflare/workers-types@npm:4.20240815.0"
+  checksum: 10/7b3b2c18ecac20738c4cca7c8bdb6b41858cec18b9be74abf365f928a8b6bd6f34edc1bc0c24a4766ae9837ee6eb81ef55bf1d9ef1aee4e0e7c1b4b39cbe956c
   languageName: node
   linkType: hard
 
@@ -10200,7 +10207,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@highlight-run/opentelemetry-sdk-workers@workspace:opentelemetry-sdk-workers/packages/opentelemetry-sdk-workers"
   dependencies:
-    "@cloudflare/workers-types": "npm:^4.20230115.0"
+    "@cloudflare/workers-types": "npm:4.20230214.0"
     "@opentelemetry/api": "npm:^1.8.0"
     "@opentelemetry/core": "npm:^1.22.0"
     "@opentelemetry/instrumentation": "npm:^0.49.1"
