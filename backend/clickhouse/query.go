@@ -306,7 +306,7 @@ func KeysAggregated(ctx context.Context, client *Client, tableName string, proje
 	return keys, rows.Err()
 }
 
-func KeyValuesAggregated(ctx context.Context, client *Client, tableName string, projectID int, keyName string, startDate time.Time, endDate time.Time, limit *int) ([]string, error) {
+func KeyValuesAggregated(ctx context.Context, client *Client, tableName string, projectID int, keyName string, startDate time.Time, endDate time.Time, query *string, limit *int) ([]string, error) {
 	chCtx := clickhouse.Context(ctx, clickhouse.WithSettings(clickhouse.Settings{
 		"max_rows_to_read": KeyValuesMaxRows,
 	}))
@@ -316,11 +316,17 @@ func KeyValuesAggregated(ctx context.Context, client *Client, tableName string, 
 		limitCount = *limit
 	}
 
+	searchQuery := ""
+	if query != nil {
+		searchQuery = *query
+	}
+
 	sb := sqlbuilder.NewSelectBuilder()
 	sb.Select("Value, sum(Count)").
 		From(tableName).
 		Where(sb.Equal("ProjectId", projectID)).
 		Where(sb.Equal("Key", keyName)).
+		Where(fmt.Sprintf("Value ILIKE %s", sb.Var("%"+searchQuery+"%"))).
 		Where(fmt.Sprintf("Day >= toStartOfDay(%s)", sb.Var(startDate))).
 		Where(fmt.Sprintf("Day <= toStartOfDay(%s)", sb.Var(endDate))).
 		GroupBy("1").

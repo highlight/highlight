@@ -1,0 +1,31 @@
+<h1>Highlight Ruby Demo</h1>
+
+<h2>Controller</h2>
+<p>
+  <%= @data %>
+</p>
+
+<h2>Traces</h2>
+
+<%= turbo_frame_tag "trace_frame" do %>
+  <%= button_to 'Create Trace', traces_path, method: :post, data: { turbo_frame: "trace_frame" } %>
+<% end %>
+
+<%# should update this to allow sending a custom project ID value from a form input %>
+<%= turbo_frame_tag "trace_frame_2" do %>
+  <%= button_to 'Create Trace for Project 2', custom_project_id_traces_path, method: :post, data: { turbo_frame: "trace_frame_2" } %>
+<% end %>
+
+<h2>Logs</h2>
+
+<%# similar to above, create a button that sends a post reqest to /logs %>
+<%= turbo_frame_tag "log_frame" do %>
+  <%= button_to 'Create Log', logs_path, method: :post, data: { turbo_frame: "log_frame" } %>
+<% end %>
+
+<h2>Errors</h2>
+
+<%# similar to above, create a button that sends a post reqest to /errors %>
+<%= turbo_frame_tag "error_frame" do %>
+  <%= button_to 'Create Error', errors_path, method: :post, data: { turbo_frame: "error_frame" } %>
+<% end %>

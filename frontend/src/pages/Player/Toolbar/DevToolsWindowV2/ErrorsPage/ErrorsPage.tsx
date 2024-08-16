@@ -156,7 +156,9 @@ const ErrorsPage = ({
 			{loading || !isPlayerReady ? (
 				<LoadingBox />
 			) : !session || !errorsToRender.length ? (
-				<EmptyDevToolsCallout kind={Tab.Errors} filter={filter} />
+				<Box p="8" height="full">
+					<EmptyDevToolsCallout kind={Tab.Errors} filter={filter} />
+				</Box>
 			) : (
 				<Virtuoso
 					ref={virtuoso}

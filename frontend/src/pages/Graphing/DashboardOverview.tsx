@@ -9,7 +9,6 @@ import {
 	Heading,
 	IconSolidChartBar,
 	IconSolidDotsHorizontal,
-	IconSolidPlay,
 	IconSolidTrash,
 	Menu,
 	Stack,
@@ -43,7 +42,6 @@ const ITEMS_PER_PAGE = 10
 
 const METRICS_DOCS_LINK =
 	'https://www.highlight.io/docs/general/product-features/metrics/overview'
-const WALKTHROUGH_LINK = 'https://www.youtube.com/watch?v=MzJMCcgf6iU'
 
 export const DashboardOverview: React.FC = () => {
 	const { projectId } = useProjectId()
@@ -123,7 +121,10 @@ export const DashboardOverview: React.FC = () => {
 										color="default"
 									>
 										Metrics allow you to visualize what's
-										happening in your app.
+										happening in your app. Understand error
+										rates, APM trends, and user engagement.
+										Learn more about building dashboards{' '}
+										<a href={METRICS_DOCS_LINK}>here</a>.
 									</Text>
 									{visible && (
 										<Callout
@@ -140,30 +141,16 @@ export const DashboardOverview: React.FC = () => {
 													the docs, or watch the
 													walkthrough video!
 												</Text>
-												<Stack
-													flexDirection="row"
-													gap="8"
-												>
+												<Box>
 													<LinkButton
 														kind="secondary"
 														emphasis="high"
-														trackingId="dashboard-watch-walkthrough"
-														to={WALKTHROUGH_LINK}
-														iconLeft={
-															<IconSolidPlay />
-														}
-													>
-														Watch walkthrough
-													</LinkButton>
-													<LinkButton
 														trackingId="dashboard-read-docs"
-														kind="secondary"
-														emphasis="low"
 														to={METRICS_DOCS_LINK}
 													>
-														Read docs
+														Learn more
 													</LinkButton>
-												</Stack>
+												</Box>
 											</Stack>
 										</Callout>
 									)}
@@ -204,7 +191,7 @@ export const DashboardOverview: React.FC = () => {
 											</Box>
 										</EnterpriseFeatureButton>
 									</Box>
-									<Table withSearch>
+									<Table>
 										<Table.Search
 											placeholder="Search..."
 											handleChange={(e) => {

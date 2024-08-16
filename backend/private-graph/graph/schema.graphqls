@@ -96,6 +96,7 @@ type SessionInterval {
 
 type SessionsReportRow {
 	key: String!
+	email: String!
 	num_sessions: UInt64!
 	num_days_visited: UInt64!
 	num_months_visited: UInt64!
@@ -1038,7 +1039,6 @@ enum ReservedSessionKey {
 	city
 	completed
 	country
-	device_id
 	environment
 	excluded
 	first_time
@@ -2334,6 +2334,7 @@ type Query {
 		project_id: ID!
 		key_name: String!
 		date_range: DateRangeRequiredInput!
+		query: String
 		count: Int
 	): [String!]!
 	logs_error_objects(log_cursors: [String!]!): [ErrorObject!]!
@@ -2392,6 +2393,7 @@ type Query {
 		project_id: ID!
 		key_name: String!
 		date_range: DateRangeRequiredInput!
+		query: String
 		count: Int
 	): [String!]!
 	errors_keys(
@@ -2404,6 +2406,7 @@ type Query {
 		project_id: ID!
 		key_name: String!
 		date_range: DateRangeRequiredInput!
+		query: String
 		count: Int
 	): [String!]!
 	errors_metrics(
@@ -2429,6 +2432,7 @@ type Query {
 		project_id: ID!
 		key_name: String!
 		date_range: DateRangeRequiredInput!
+		query: String
 		count: Int
 	): [String!]!
 	sessions_metrics(
@@ -2470,6 +2474,7 @@ type Query {
 		project_id: ID!
 		key_name: String!
 		date_range: DateRangeRequiredInput!
+		query: String
 		count: Int
 	): [String!]!
 	visualization(id: ID!): Visualization!

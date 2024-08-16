@@ -80,7 +80,13 @@ import {
 	IFRAME_PARENT_READY,
 	IFRAME_PARENT_RESPONSE,
 } from './types/iframe'
-import { getItem, removeItem, setItem, setStorageMode } from './utils/storage'
+import {
+	getItem,
+	removeItem,
+	setCookieWriteEnabled,
+	setItem,
+	setStorageMode,
+} from './utils/storage'
 import {
 	FIRST_SEND_FREQUENCY,
 	HIGHLIGHT_URL,
@@ -90,6 +96,7 @@ import {
 	VISIBILITY_DEBOUNCE_MS,
 } from './constants/sessions'
 import { getDefaultDataURLOptions } from './utils/utils'
+import { getTracer, setupBrowserTracing } from './otel'
 
 export const HighlightWarning = (context: string, msg: any) => {
 	console.warn(`Highlight Warning: (${context}): `, { output: msg })
@@ -127,6 +134,7 @@ export type HighlightClassOptions = {
 	sessionShortcut?: SessionShortcutOptions
 	sessionSecureID: string // Introduced in firstLoad 3.0.1
 	storageMode?: 'sessionStorage' | 'localStorage'
+	skipCookieSessionDataLoad?: true
 	sendMode?: 'webworker' | 'local'
 	enableOtelTracing?: HighlightOptions['enableOtelTracing']
 	otlpEndpoint?: HighlightOptions['otlpEndpoint']
@@ -213,6 +221,7 @@ export class Highlight {
 			)
 			setStorageMode(options.storageMode)
 		}
+		setCookieWriteEnabled(!options?.skipCookieSessionDataLoad)
 
 		this._worker =
 			new HighlightClientWorker() as HighlightClientRequestWorker
@@ -235,6 +244,12 @@ export class Highlight {
 					e.data.response.tag,
 					e.data.response.payload,
 				)
+			} else if (e.data.response?.type === MessageType.Stop) {
+				HighlightWarning(
+					'Stopping recording due to worker failure',
+					e.data.response,
+				)
+				this.stopRecording(false)
 			}
 		}
 
@@ -1428,6 +1443,8 @@ export {
 	GenerateSecureID,
 	MetricCategory,
 	getPreviousSessionData,
+	setupBrowserTracing,
+	getTracer,
 }
 export type {
 	AmplitudeIntegrationOptions,

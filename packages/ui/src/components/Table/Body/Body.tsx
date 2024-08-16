@@ -1,7 +1,6 @@
 import React from 'react'
 
 import { Box, BoxProps } from '../../Box/Box'
-import * as styles from './styles.css'
 
 export interface Props extends Omit<BoxProps, 'cssClass'> {
 	children: React.ReactNode
@@ -12,7 +11,7 @@ export interface Props extends Omit<BoxProps, 'cssClass'> {
 export const Body = React.forwardRef<unknown, Props>(
 	({ children, ...boxProps }, ref) => {
 		return (
-			<Box ref={ref} cssClass={styles.body} {...boxProps}>
+			<Box ref={ref} {...boxProps}>
 				{children}
 			</Box>
 		)

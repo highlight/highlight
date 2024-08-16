@@ -128,7 +128,7 @@ func GraphQLErrorPresenter(service string) func(ctx context.Context, e error) *g
 				"locations":  t.Locations,
 			}).Errorf("%s graphql request failed", service)
 		default:
-			gqlerr = gqlerror.Errorf(e.Error())
+			gqlerr = gqlerror.Errorf("%s", e.Error())
 			log.WithContext(ctx).WithError(e).WithFields(log.Fields{
 				"error": e,
 				"path":  graphql.GetPath(ctx),

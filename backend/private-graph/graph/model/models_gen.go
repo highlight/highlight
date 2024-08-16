@@ -830,6 +830,7 @@ type SessionQuery struct {
 
 type SessionsReportRow struct {
 	Key                   string  `json:"key"`
+	Email                 string  `json:"email"`
 	NumSessions           uint64  `json:"num_sessions"`
 	NumDaysVisited        uint64  `json:"num_days_visited"`
 	NumMonthsVisited      uint64  `json:"num_months_visited"`
@@ -2259,7 +2260,6 @@ const (
 	ReservedSessionKeyCity               ReservedSessionKey = "city"
 	ReservedSessionKeyCompleted          ReservedSessionKey = "completed"
 	ReservedSessionKeyCountry            ReservedSessionKey = "country"
-	ReservedSessionKeyDeviceID           ReservedSessionKey = "device_id"
 	ReservedSessionKeyEnvironment        ReservedSessionKey = "environment"
 	ReservedSessionKeyExcluded           ReservedSessionKey = "excluded"
 	ReservedSessionKeyFirstTime          ReservedSessionKey = "first_time"
@@ -2293,7 +2293,6 @@ var AllReservedSessionKey = []ReservedSessionKey{
 	ReservedSessionKeyCity,
 	ReservedSessionKeyCompleted,
 	ReservedSessionKeyCountry,
-	ReservedSessionKeyDeviceID,
 	ReservedSessionKeyEnvironment,
 	ReservedSessionKeyExcluded,
 	ReservedSessionKeyFirstTime,
@@ -2322,7 +2321,7 @@ var AllReservedSessionKey = []ReservedSessionKey{
 
 func (e ReservedSessionKey) IsValid() bool {
 	switch e {
-	case ReservedSessionKeyActiveLength, ReservedSessionKeyBrowserName, ReservedSessionKeyBrowserVersion, ReservedSessionKeyCity, ReservedSessionKeyCompleted, ReservedSessionKeyCountry, ReservedSessionKeyDeviceID, ReservedSessionKeyEnvironment, ReservedSessionKeyExcluded, ReservedSessionKeyFirstTime, ReservedSessionKeyHasComments, ReservedSessionKeyHasErrors, ReservedSessionKeyHasRageClicks, ReservedSessionKeyIdentified, ReservedSessionKeyIdentifier, ReservedSessionKeyIP, ReservedSessionKeyLength, ReservedSessionKeyNormalness, ReservedSessionKeyOsName, ReservedSessionKeyOsVersion, ReservedSessionKeyPagesVisited, ReservedSessionKeySample, ReservedSessionKeySecureID, ReservedSessionKeyServiceVersion, ReservedSessionKeyState, ReservedSessionKeyViewedByAnyone, ReservedSessionKeyViewedByMe, ReservedSessionKeyWithinBillingQuota, ReservedSessionKeyLocState, ReservedSessionKeyProcessed, ReservedSessionKeyViewed:
+	case ReservedSessionKeyActiveLength, ReservedSessionKeyBrowserName, ReservedSessionKeyBrowserVersion, ReservedSessionKeyCity, ReservedSessionKeyCompleted, ReservedSessionKeyCountry, ReservedSessionKeyEnvironment, ReservedSessionKeyExcluded, ReservedSessionKeyFirstTime, ReservedSessionKeyHasComments, ReservedSessionKeyHasErrors, ReservedSessionKeyHasRageClicks, ReservedSessionKeyIdentified, ReservedSessionKeyIdentifier, ReservedSessionKeyIP, ReservedSessionKeyLength, ReservedSessionKeyNormalness, ReservedSessionKeyOsName, ReservedSessionKeyOsVersion, ReservedSessionKeyPagesVisited, ReservedSessionKeySample, ReservedSessionKeySecureID, ReservedSessionKeyServiceVersion, ReservedSessionKeyState, ReservedSessionKeyViewedByAnyone, ReservedSessionKeyViewedByMe, ReservedSessionKeyWithinBillingQuota, ReservedSessionKeyLocState, ReservedSessionKeyProcessed, ReservedSessionKeyViewed:
 		return true
 	}
 	return false
