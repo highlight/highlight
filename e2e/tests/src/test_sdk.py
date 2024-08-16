@@ -295,7 +295,7 @@ def test_dotnet_logs(dotnet_app, oauth_api):
     )
 
 
-def test_dotnet_traces(oauth_api):
+def test_dotnet_traces(dotnet_app, oauth_api):
     start = datetime.utcnow() - timedelta(minutes=1)
     r = requests.get(
         f"http://localhost:5249/api/traces",
