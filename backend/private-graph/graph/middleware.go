@@ -11,6 +11,7 @@ import (
 
 	"github.com/99designs/gqlgen/graphql/handler/transport"
 	"github.com/go-oauth2/oauth2/v4"
+	"github.com/highlight-run/highlight/backend/enterprise"
 	"github.com/highlight-run/highlight/backend/env"
 	"github.com/highlight-run/highlight/backend/model"
 	"github.com/highlight-run/highlight/backend/oauth"
@@ -54,6 +55,11 @@ func GetEnvAuthMode() AuthMode {
 func SetupAuthClient(ctx context.Context, store *store.Store, authMode AuthMode, oauthServer *oauth.Server, wsTokenHandler APITokenHandler) {
 	OAuthServer = oauthServer
 	workspaceTokenHandler = wsTokenHandler
+
+	log.WithContext(ctx).WithField("mode", authMode).Info("configuring private graph auth client")
+	if authMode != Password {
+		enterprise.RequireEnterprise(ctx)
+	}
 	if authMode == Firebase {
 		AuthClient = NewFirebaseClient(ctx)
 	} else if authMode == Simple {
