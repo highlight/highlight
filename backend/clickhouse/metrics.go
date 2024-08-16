@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/aws/smithy-go/ptr"
 	"github.com/highlight-run/highlight/backend/model"
 	"github.com/openlyinc/pointy"
 
@@ -16,6 +17,7 @@ const MetricNamesTable = "trace_metrics"
 var metricsTableConfig = model.TableConfig{
 	AttributesColumn: TracesTableNoDefaultConfig.AttributesColumn,
 	BodyColumn:       TracesTableNoDefaultConfig.BodyColumn,
+	MetricColumn:     ptr.String("MetricValue"),
 	KeysToColumns:    TracesTableNoDefaultConfig.KeysToColumns,
 	ReservedKeys:     TracesTableNoDefaultConfig.ReservedKeys,
 	SelectColumns:    TracesTableNoDefaultConfig.SelectColumns,
@@ -25,6 +27,7 @@ var metricsTableConfig = model.TableConfig{
 var metricsSamplingTableConfig = model.TableConfig{
 	AttributesColumn: metricsTableConfig.AttributesColumn,
 	BodyColumn:       metricsTableConfig.BodyColumn,
+	MetricColumn:     metricsTableConfig.MetricColumn,
 	KeysToColumns:    metricsTableConfig.KeysToColumns,
 	ReservedKeys:     metricsTableConfig.ReservedKeys,
 	SelectColumns:    metricsTableConfig.SelectColumns,
