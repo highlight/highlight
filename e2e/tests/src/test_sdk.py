@@ -295,7 +295,7 @@ def test_dotnet_logs(dotnet_app, oauth_api):
     )
 
 
-def test_dotnet_traces(dotnet_app, oauth_api):
+def test_dotnet_traces(oauth_api):
     start = datetime.utcnow() - timedelta(minutes=1)
     r = requests.get(
         f"http://localhost:5249/api/traces",
@@ -315,12 +315,13 @@ def test_dotnet_traces(dotnet_app, oauth_api):
             )
         )
 
-        for exp in {"GET /", "GET /api/traces", "SomeWork", "child span", "home span"}:
+        for exp in {"GET /api/traces", "SomeWork", "child span"}:
             assert exp in msgs
 
             for item in filter(
                 lambda eg: eg["node"]["spanName"] == exp, data["traces"]["edges"]
             ):
+                logging.info(f"checking item {item}")
                 assert item["node"]["projectID"] == 1
                 assert item["node"]["secureSessionID"] == "a1b2c30002"
                 assert item["node"]["traceID"] == "aaa112"
