@@ -87,6 +87,104 @@ export const Default = () => {
 	)
 }
 
+export const NoBorders = () => {
+	const gridColumns = COLUMNS.map((column) => column.width)
+
+	return (
+		<Table noBorder>
+			<Table.Head>
+				<Table.Row gridColumns={gridColumns}>
+					{COLUMNS.map((column) => (
+						<Table.Header key={column.name}>
+							{column.name}
+						</Table.Header>
+					))}
+				</Table.Row>
+			</Table.Head>
+			<Table.Body>
+				{DATA.map((row: DefaultData) => (
+					<Table.Row gridColumns={gridColumns} key={row.name}>
+						{COLUMNS.map((column) => (
+							<Table.Cell
+								key={column.name}
+								icon={column.dataFormat?.icon}
+							>
+								{column.renderData(row)}
+							</Table.Cell>
+						))}
+					</Table.Row>
+				))}
+			</Table.Body>
+		</Table>
+	)
+}
+
+export const WithSearch = () => {
+	const gridColumns = COLUMNS.map((column) => column.width)
+
+	return (
+		<Table>
+			<Table.Search handleChange={() => null} placeholder="Search..." />
+			<Table.Head>
+				<Table.Row gridColumns={gridColumns}>
+					{COLUMNS.map((column) => (
+						<Table.Header key={column.name}>
+							{column.name}
+						</Table.Header>
+					))}
+				</Table.Row>
+			</Table.Head>
+			<Table.Body>
+				{DATA.map((row: DefaultData) => (
+					<Table.Row gridColumns={gridColumns} key={row.name}>
+						{COLUMNS.map((column) => (
+							<Table.Cell
+								key={column.name}
+								icon={column.dataFormat?.icon}
+							>
+								{column.renderData(row)}
+							</Table.Cell>
+						))}
+					</Table.Row>
+				))}
+			</Table.Body>
+		</Table>
+	)
+}
+
+export const NoBordersWithSearch = () => {
+	const gridColumns = COLUMNS.map((column) => column.width)
+
+	return (
+		<Table noBorder>
+			<Table.Search handleChange={() => null} placeholder="Search..." />
+			<Table.Head>
+				<Table.Row gridColumns={gridColumns}>
+					{COLUMNS.map((column) => (
+						<Table.Header key={column.name}>
+							{column.name}
+						</Table.Header>
+					))}
+				</Table.Row>
+			</Table.Head>
+			<Table.Body>
+				{DATA.map((row: DefaultData) => (
+					<Table.Row gridColumns={gridColumns} key={row.name}>
+						{COLUMNS.map((column) => (
+							<Table.Cell
+								key={column.name}
+								icon={column.dataFormat?.icon}
+							>
+								{column.renderData(row)}
+							</Table.Cell>
+						))}
+					</Table.Row>
+				))}
+			</Table.Body>
+		</Table>
+	)
+}
+
 export const CustomContent = () => {
 	const gridColumns = COLUMNS.map((column) => column.width)
 
