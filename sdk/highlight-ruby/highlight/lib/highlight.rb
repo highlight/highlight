@@ -281,7 +281,6 @@ module Highlight
       span_id = current_trace&.context&.span_id
       hex_trace_id = trace_id&.unpack1('H*') || '00000000000000000000000000000000'
       hex_span_id = span_id&.unpack1('H*') || '0000000000000000'
-      traceparent = "00-#{hex_trace_id}-#{hex_span_id}-01"
 
       tag(:meta, name: 'traceparent', content: "00-#{hex_trace_id}-#{hex_span_id}-01")
     end
