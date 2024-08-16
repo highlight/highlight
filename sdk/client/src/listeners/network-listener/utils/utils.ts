@@ -307,10 +307,10 @@ export const createNetworkRequestId = (useOtelTraceId?: boolean) => {
 	if (useOtelTraceId) {
 		const context = getActiveSpan()
 		const traceId = context?.spanContext().traceId
-		return [getSessionSecureID(), traceId ?? requestId]
+		return [getSessionSecureID({ local: true }), traceId ?? requestId]
 	}
 
-	return [getSessionSecureID(), requestId]
+	return [getSessionSecureID({ local: true }), requestId]
 }
 
 export const getHighlightRequestHeader = (
