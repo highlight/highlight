@@ -17,7 +17,6 @@ export const Search: React.FC<Props> = ({ placeholder, handleChange }) => {
 
 	return (
 		<Box
-			width="full"
 			display="flex"
 			alignItems="center"
 			justifyContent="flex-start"
