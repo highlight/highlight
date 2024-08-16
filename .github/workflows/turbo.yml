@@ -90,14 +90,15 @@ jobs:
                   git status --porcelain
                   popd
 
-            - name: Update changesets
+            - name: Release changesets
+              if: github.ref == 'refs/heads/main'
               id: changesets-version
               uses: changesets/action@v1
               with:
                   branch: main
                   version: yarn changeset version
               env:
-                  GITHUB_TOKEN: ${{ secrets.HIGHLIGHT_GITHUB_TOKEN }}
+                  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
                   NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
                   NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
