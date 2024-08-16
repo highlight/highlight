@@ -40,9 +40,9 @@ jobs:
                   go-version-file: './sdk/highlight-go/go.mod'
                   cache-dependency-path: './sdk/highlight-go/go.sum'
             - name: Run linter
-              uses: golangci/golangci-lint-action@v4
+              uses: golangci/golangci-lint-action@v6
               with:
-                  args: --config ./.golangci.yaml --timeout 5m
+                  args: -v --config ./.golangci.yaml
                   working-directory: sdk/highlight-go
                   version: latest
 
