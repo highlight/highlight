@@ -1,4 +1,4 @@
-FROM ${OTEL_COLLECTOR_ALPINE_IMAGE_NAME} AS collector-build
+FROM alpine:3.20.2 AS collector-build
 
 COPY ./docker/collector.yml /collector.yml
 COPY ./docker/configure-collector.sh /configure-collector.sh
@@ -7,7 +7,7 @@ ARG IN_DOCKER_GO
 ARG SSL
 RUN /configure-collector.sh
 
-FROM ${OTEL_COLLECTOR_IMAGE_NAME} AS collector
+FROM otel/opentelemetry-collector-contrib:0.107.0 AS collector
 
 COPY ./backend/localhostssl/server.crt /server.crt
 COPY ./backend/localhostssl/server.key /server.key
