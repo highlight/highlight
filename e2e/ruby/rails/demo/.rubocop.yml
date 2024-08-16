@@ -1,3 +1,5 @@
+inherit_from: '../../../../sdk/highlight-ruby/highlight/.rubocop.yml'
+
 AllCops:
     TargetRubyVersion: 3.0
 
