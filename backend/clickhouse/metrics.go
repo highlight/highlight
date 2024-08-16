@@ -75,16 +75,16 @@ func (client *Client) ReadWorkspaceMetricCounts(ctx context.Context, projectIDs 
 }
 
 func (client *Client) MetricsKeys(ctx context.Context, projectID int, startDate time.Time, endDate time.Time, query *string, typeArg *modelInputs.KeyType) ([]*modelInputs.QueryKey, error) {
-	table := TraceKeysTable
 	if typeArg != nil && *typeArg == modelInputs.KeyTypeNumeric {
-		table = MetricNamesTable
-	}
-	metricKeys, err := KeysAggregated(ctx, client, table, projectID, startDate, endDate, query, typeArg)
-	if err != nil {
-		return nil, err
+		metricKeys, err := KeysAggregated(ctx, client, MetricNamesTable, projectID, startDate, endDate, query, typeArg)
+		if err != nil {
+			return nil, err
+		}
+
+		return metricKeys, nil
 	}
 
-	return metricKeys, nil
+	return client.TracesKeys(ctx, projectID, startDate, endDate, query, typeArg)
 }
 
 func (client *Client) MetricsKeyValues(ctx context.Context, projectID int, keyName string, startDate time.Time, endDate time.Time, query *string, limit *int) ([]string, error) {
