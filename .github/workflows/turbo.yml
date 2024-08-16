@@ -91,7 +91,7 @@ jobs:
                   popd
 
             - name: Release changesets
-              # if: github.ref == 'refs/heads/main'
+              if: github.ref == 'refs/heads/main'
               id: changesets-version
               uses: changesets/action@v1
               with:
