@@ -406,7 +406,7 @@ func (client *Client) ReadTrace(ctx context.Context, projectID int, traceID stri
 		Select(selectTraceColumns).
 		Where(sb.Equal("ProjectId", projectID)).
 		Where(sb.Equal("TraceId", traceID)).
-		Where(sb.Equal("farmHash64(TraceId)", fmt.Sprintf("farmHash64(%s)", sb.Var(traceID)))).
+		Where(fmt.Sprintf("farmHash64(TraceId) = farmHash64(%s)", sb.Var(traceID))).
 		Where(sb.GreaterEqualThan("Timestamp", timestamp.Add(-1*time.Hour))).
 		Where(sb.LessEqualThan("Timestamp", timestamp.Add(time.Hour)))
 
