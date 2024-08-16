@@ -129,7 +129,6 @@
 		"ansi-color@^0.2.1": "patch:ansi-color@npm%3A0.2.1#./.yarn/patches/ansi-color-npm-0.2.1-f7243d10a4.patch",
 		"ansi-regex": "3.0.1",
 		"axios": "0.28.0",
-		"braces": "2.3.1",
 		"cross-fetch": "3.1.5",
 		"deep-object-diff": "1.1.9",
 		"degenerator": "5.0.1",
