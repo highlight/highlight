@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <%= csrf_meta_tags %>
     <%= csp_meta_tag %>
-    <meta name="traceparent" content="<%= traceparent_context %>">
+    <%= Highlight.traceparent_meta %>
 
     <%# use the localhost endpoint for testing against firstload dev %>
     <%# <script src="http://localhost:8877/dist/index.umd.cjs"></script> %>
