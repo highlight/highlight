@@ -2,10 +2,8 @@
 
 class ErrorsController < ApplicationController
   def create
-    begin
-      1/0
-    rescue => e
-      Highlight.exception(e, { foo: 'bar' })
-    end
+    1 / 0
+  rescue StandardError => e
+    Highlight.exception(e, { foo: 'bar' })
   end
 end
