@@ -315,7 +315,7 @@ def test_dotnet_traces(dotnet_app, oauth_api):
             )
         )
 
-        for exp in {"GET /weatherforecast", "SomeWork", "child span"}:
+        for exp in {"GET /", "GET /api/traces", "SomeWork", "child span", "home span"}:
             assert exp in msgs
 
             for item in filter(
