@@ -796,6 +796,10 @@ const Graph = ({
 		setFetchEnd(moment().toDate())
 	}, [selectedPreset, startDate, endDate])
 
+	const xAxisMetric = bucketByKey !== undefined ? bucketByKey : GROUP_KEY
+	const yAxisMetric = functionType === MetricAggregator.Count ? '' : metric
+	const yAxisFunction = functionType
+
 	// set the fetch dates and poll interval when selected date changes
 	useEffect(() => {
 		rebaseFetchTime()
@@ -829,7 +833,7 @@ const Graph = ({
 					},
 					query: query,
 				},
-				column: metric,
+				column: yAxisMetric,
 				metric_types: [functionType],
 				group_by: groupByKey !== undefined ? [groupByKey] : [],
 				bucket_by:
@@ -868,16 +872,12 @@ const Graph = ({
 		limit,
 		limitFunctionType,
 		limitMetric,
-		metric,
+		yAxisMetric,
 		productType,
 		projectId,
 		queriedBucketCount,
 		query,
 	])
-
-	const xAxisMetric = bucketByKey !== undefined ? bucketByKey : GROUP_KEY
-	const yAxisMetric = functionType === MetricAggregator.Count ? '' : metric
-	const yAxisFunction = functionType
 
 	const data = useGraphData(metrics, xAxisMetric)
 	const series = useGraphSeries(data, xAxisMetric)
