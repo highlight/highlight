@@ -47,17 +47,16 @@
 			"outputs": ["dist/**"]
 		},
 		"codegen": {
-			"cache": false,
 			"inputs": ["../**/*.gql", "../**/*.graphqls"],
 			"outputs": ["src/graph/generated/**"]
 		},
 		"typegen": {
-			"cache": false,
 			"dependsOn": ["^typegen"],
 			"inputs": [
 				"src/**/*.tsx",
 				"src/**/*.ts",
 				"tsconfig.json",
+				"tsconfig.tsbuildinfo",
 				"./**/*.graphqls"
 			],
 			"outputs": [
@@ -78,7 +77,6 @@
 			"cache": false
 		},
 		"build": {
-			"cache": false,
 			"dependsOn": ["codegen", "typegen", "^build"],
 			"outputs": [
 				"lib/**",
