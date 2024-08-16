@@ -17,13 +17,7 @@ services:
             test:
                 [
                     'CMD-SHELL',
-                    'curl',
-                    '-k',
-                    'https://localhost:8082/private/health',
-                    '||',
-                    'curl',
-                    '-k',
-                    'http://localhost:8082/private/health',
+                    'curl -k https://localhost:8082/health || curl -k http://localhost:8082/health',
                 ]
             interval: 1s
             timeout: 5s
