@@ -53,13 +53,21 @@ Backend changes are dependent on the underlying language/framework used on the s
 
 Below are solutions for what we support today. If you'd like us to support a new framework, feel free to shoot us a message at [support@highlight.io](mailto:support@highlight.io) or drop us a note in our [discord](https://discord.gg/yxaXEAqgwN).
 
-- [Go Backend Integration](4_backend-sdk/go)
+- [Go Backend Integration](4_backend-sdk/01_go)
 
-- [JS Backend Integration](4_backend-sdk/js)
+- [Java Backend Integration](4_backend-sdk/02_java)
 
-- [Python Backend Integration](4_backend-sdk/python)
+- [JS Backend Integration](4_backend-sdk/03_js)
 
-- [Java Backend Integration](4_backend-sdk/java)
+- [JS Backend Integration](4_backend-sdk/04_php)
+
+- [Python Backend Integration](4_backend-sdk/05_python)
+
+- [Python Backend Integration](4_backend-sdk/06_ruby)
+
+- [Python Backend Integration](4_backend-sdk/07_rust)
+
+- [Python Backend Integration](4_backend-sdk/08_dotnet.md)
 
 ## Distributed Tracing
 

@@ -1,9 +1,46 @@
-﻿<!DOCTYPE html>
+﻿@using OpenTelemetry.Trace
+@functions {
+    // set the `traceparent` meta tag to the current active span to propagate context to the client
+    string GetTraceParentContext()
+    {
+        var currentTrace = Tracer.CurrentSpan;
+        if (!currentTrace.IsRecording)
+        {
+            return "00-00-00-00";
+        }
+        
+        var traceId = currentTrace.Context.TraceId;
+        var spanId = currentTrace.Context.SpanId;
+
+        return $"00-{traceId.ToHexString()}-{spanId.ToHexString()}-01";
+    }
+}
+<!DOCTYPE html>
 <html>
 <head>
     <meta charset="utf-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>@ViewBag.Title - My ASP.NET Application</title>
+
+    <meta name="traceparent" content="@GetTraceParentContext()">
+
+    @* use the localhost endpoint for testing against firstload dev *@
+    @* <script src="http://localhost:8877/dist/index.umd.cjs"></script> *@
+    <script src="https://unpkg.com/highlight.run"></script>
+    <script>
+        H.init('1jdkoe52', {
+            environment: 'dev',
+            tracingOrigins: true,
+            serviceName: 'highlight-dot-net-frontend',
+            backendUrl: 'https://localhost:8082/public',
+            networkRecording: {
+                enabled: true,
+                recordHeadersAndBody: true,
+            },
+            enableOtelTracing: true,
+            otlpEndpoint: 'http://localhost:4318',
+        });
+    </script>
 </head>
 <body>
 <div class="navbar navbar-inverse navbar-fixed-top">

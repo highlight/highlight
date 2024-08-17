@@ -1,0 +1,62 @@
+﻿@using OpenTelemetry.Trace
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <base href="/"/>
+
+    <meta name="traceparent" content="@_traceParentContext">
+
+    @* use the localhost endpoint for testing against firstload dev *@
+    @* <script src="http://localhost:8877/dist/index.umd.cjs"></script> *@
+    <script src="https://unpkg.com/highlight.run"></script>
+    <script>
+        H.init('1jdkoe52', {
+            environment: 'dev',
+            tracingOrigins: true,
+            serviceName: 'highlight-dot-net-frontend',
+            backendUrl: 'https://localhost:8082/public',
+            networkRecording: {
+                enabled: true,
+                recordHeadersAndBody: true,
+            },
+            enableOtelTracing: true,
+            otlpEndpoint: 'http://localhost:4318',
+        });
+    </script>
+    
+    <link rel="stylesheet" href="bootstrap/bootstrap.min.css"/>
+    <link rel="stylesheet" href="app.css"/>
+    <link rel="stylesheet" href="dotnet.styles.css"/>
+    <link rel="icon" type="image/png" href="favicon.png"/>
+    <HeadOutlet/>
+</head>
+
+<body>
+<Routes/>
+<script src="_framework/blazor.web.js"></script>
+</body>
+
+</html>
+
+@code
+{
+    private string? _traceParentContext;
+
+    // set the `traceparent` meta tag to the current active span to propagate context to the client
+    protected override void OnInitialized()
+    {
+        var currentTrace = Tracer.CurrentSpan;
+        if (!currentTrace.IsRecording)
+        {
+            _traceParentContext = "00-00-00-00";
+        }
+        
+        var traceId = currentTrace.Context.TraceId;
+        var spanId = currentTrace.Context.SpanId;
+
+        _traceParentContext = $"00-{traceId.ToHexString()}-{spanId.ToHexString()}-01";
+    }
+}

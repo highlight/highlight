@@ -12,14 +12,14 @@ slug: nodejs
   </div>
   <div className="right">
     <h6>Just getting started?</h6>
-    <p>Check out our [getting started guide](../getting-started/4_backend-sdk/js/1_overview.md) to get up and running quickly.</p>
+    <p>Check out our [getting started guide](../getting-started/4_backend-sdk/03_js/1_overview.md) to get up and running quickly.</p>
   </div>
 </section>
 
 <section className="section">
   <div className="left">
     <h3>H.init</h3>
-    <p>H.init() initializes the Highlight backend SDK. If you are not using any of the provided handlers for [Express](../getting-started/4_backend-sdk/js/express.md), it is required to call this method before recording backend errors or metrics.</p>
+    <p>H.init() initializes the Highlight backend SDK. If you are not using any of the provided handlers for [Express](../getting-started/4_backend-sdk/03_js/express.md), it is required to call this method before recording backend errors or metrics.</p>
     <h6>Method Parameters</h6>
     <aside className="parameter">
       <h5>options<code>NodeOptions</code> <code>required</code></h5>
