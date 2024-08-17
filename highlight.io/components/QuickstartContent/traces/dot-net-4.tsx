@@ -2,11 +2,66 @@ import { verifyErrors } from '../backend/shared-snippets'
 import { verifyLogs } from '../logging/shared-snippets'
 import { QuickStartContent } from '../QuickstartContent'
 import { verifyTraces } from './shared-snippets'
+import { siteUrl } from '../../../utils/urls'
 
 export const DotNet4OTLPTracingContent: QuickStartContent = {
 	title: 'Error Monitoring / Logging / Tracing in .NET 4.x via the OpenTelemetry Protocol (OTLP)',
 	subtitle: `Error Monitoring / Logging / Tracing in .NET 4.x via the OpenTelemetry Protocol (OTLP).`,
 	entries: [
+		{
+			title: 'Set up your highlight.io browser SDK.',
+			content: `The installation differs from the normal [frontend getting started guide](${siteUrl(
+				'/docs/getting-started/frontend/other',
+			)}) in the configuration of the .NET trace propagation. 
+			The TraceParentContext value is set based on the server trace context so that
+			client side tracing can carry the existing trace ID and session context.
+			Update your \`Views/Shared/_Layout.cshtml\` HTML template entrypoint based on the following:`,
+			code: [
+				{
+					text: `@using OpenTelemetry.Trace
+@functions {
+    // set the \`traceparent\` meta tag to the current active span to propagate context to the client
+    string GetTraceParentContext()
+    {
+        var currentTrace = Tracer.CurrentSpan;
+        if (!currentTrace.IsRecording)
+        {
+            return "00-00-00-00";
+        }
+        
+        var traceId = currentTrace.Context.TraceId;
+        var spanId = currentTrace.Context.SpanId;
+
+        return $"00-{traceId.ToHexString()}-{spanId.ToHexString()}-01";
+    }
+}
+<!DOCTYPE html>
+<html>
+<head>
+    <meta name="traceparent" content="@GetTraceParentContext()">
+    <script src="https://unpkg.com/highlight.run"></script>
+    <script>
+        H.init('<YOUR_PROJECT_ID>>', {
+            serviceName: 'highlight-dot-net-frontend',
+            tracingOrigins: true,
+            enableOtelTracing: true,
+            networkRecording: {
+                enabled: true,
+                recordHeadersAndBody: true,
+            },
+        });
+    </script>
+    @* your standard head contents here... *@
+</head>
+<body>
+	@* your standard body contents here... *@
+	@RenderSection("scripts", required: false)
+</body>
+</html>`,
+					language: 'html',
+				},
+			],
+		},
 		{
 			title: '.NET supports OpenTelemetry instrumentation out of the box.',
 			content:
@@ -44,7 +99,9 @@ using OpenTelemetry.Trace;
 
 namespace cs
 {
-    public class HighlightTraceProcessor : BaseProcessor<Activity>
+using System.Linq;
+
+public class HighlightTraceProcessor : BaseProcessor<Activity>
     {
         public override void OnStart(Activity data)
         {
@@ -60,12 +117,12 @@ namespace cs
 
     public class HighlightConfig
     {
-        // For highlight.io self-hosted, update to your collector endpoint
-        public static readonly String OtlpEndpoint = "https://otel.highlight.io:4318";
+		// For highlight.io self-hosted, update to your collector endpoint
+		public static readonly String OtlpEndpoint = "https://otel.highlight.io:4318";
 
-        // Replace with your project ID and service name.
-        public static readonly String ProjectId = "<YOUR_PROJECT_ID>";
-        public static readonly String ServiceName = "highlight-dot-net-example";
+		// Replace with your project ID and service name.
+		public static readonly String ProjectId = "<YOUR_PROJECT_ID>";
+		public static readonly String ServiceName = "highlight-dot-net-backend";
 
         public static readonly String TracesEndpoint = OtlpEndpoint + "/v1/traces";
         public static readonly String MetricsEndpoint = OtlpEndpoint + "/v1/metrics";
@@ -78,6 +135,8 @@ namespace cs
             { "highlight.project_id", ProjectId },
             { "service.name", ServiceName },
         };
+        
+        private static Random _random = new Random();
 
         private static TracerProvider _tracerProvider;
         private static MeterProvider _meterProvider;
@@ -120,17 +179,11 @@ namespace cs
                 var value = httpRequest.Headers[header];
                 activity.SetTag($"http.request.header.{header}", value);
             }
-            
-            var headerValue = httpRequest.Headers.Get(HighlightHeader);
-            if (headerValue == null) return;
-            var parts = headerValue.Split('/');
-            if (parts.Length < 2) return;
-            activity.SetTag("highlight.session_id", parts[0]);
-            activity.SetTag("highlight.trace_id", parts[1]);
-            Baggage.SetBaggage(new[]
-            {
-                new KeyValuePair<string, string>(HighlightHeader, headerValue)
-            });
+
+            var (sessionID, requestID) = ExtractContext(httpRequest);
+            activity.SetTag("highlight.session_id", sessionID);
+            activity.SetTag("highlight.trace_id", requestID);
+            Baggage.SetBaggage(new[] { new KeyValuePair<string, string>(HighlightHeader, $"{sessionID}/{requestID}") });
         }
 
         private static void EnrichWithHttpResponse(Activity activity, HttpResponse httpResponse)
@@ -142,6 +195,35 @@ namespace cs
                 var value = httpResponse.Headers[header];
                 activity.SetTag($"http.request.header.{header}", value);
             }
+        }
+        private static (string, string) ExtractContext(HttpRequest httpRequest)
+        {
+            var headerValue = httpRequest.Headers[HighlightHeader];
+            if (headerValue.Length > 0)
+            {
+                var parts = headerValue.Split('/');
+                if (parts?.Length >= 2)
+                {
+                    return (parts[0], parts[1]);
+                }
+            }
+
+            var sessionID = httpRequest.Cookies["sessionID"]?.Value ?? new string(Enumerable
+                .Repeat("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789", 28).Select(s => s[_random.Next(s.Length)]).ToArray());
+
+            var sessionDataKey = $"sessionData_{sessionID}";
+            var start = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
+            var sessionData = httpRequest.Cookies[sessionDataKey]?.Value ?? $"{{\\"sessionSecureID\\":\\"{sessionID}\\",\\"projectID\\":\\"{ProjectId}\\",\\"payloadID\\":1,\\"sessionStartTime\\":{start},\\"lastPushTime\\":{start}}}";
+
+            httpRequest.RequestContext.HttpContext.Response.SetCookie(new HttpCookie("sessionID", sessionID)
+            {
+                Expires = DateTimeOffset.Now.AddMinutes(15).DateTime
+            });
+            httpRequest.RequestContext.HttpContext.Response.SetCookie(new HttpCookie(sessionDataKey, sessionData)
+            {
+                Expires = DateTimeOffset.Now.AddMinutes(15).DateTime
+            });
+            return (sessionID, "");
         }
 
         public static void Register()

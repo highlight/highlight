@@ -17,7 +17,7 @@ def query(
     api_url, oauth_token = oauth_api
     exc: Optional[Exception] = None
     # retry up for up to N seconds in case the data needs time to populate
-    for _ in range(60):
+    for _ in range(600):
         try:
             if variables_fn:
                 variables = variables_fn(datetime.utcnow())
@@ -45,6 +45,6 @@ def query(
             return j["data"]
         except Exception as e:
             exc = e
-            time.sleep(0.5)
+            time.sleep(0.1)
     else:
         raise exc

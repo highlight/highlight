@@ -1,14 +1,13 @@
 using System.Diagnostics;
 using dotnet;
-using OpenTelemetry.Trace;
+using dotnet.Components;
 using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
-builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+builder.Services.AddRazorComponents()
+    .AddInteractiveServerComponents();
 
 Log.Logger = new LoggerConfiguration()
     .Enrich.WithMachineName()
@@ -28,13 +27,20 @@ HighlightConfig.Configure(builder);
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
+if (!app.Environment.IsDevelopment())
 {
-    app.UseSwagger();
-    app.UseSwaggerUI();
+    app.UseExceptionHandler("/Error", createScopeForErrors: true);
+    // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
+    app.UseHsts();
 }
 
 app.UseHttpsRedirection();
+
+app.UseStaticFiles();
+app.UseAntiforgery();
+
+app.MapRazorComponents<App>()
+    .AddInteractiveServerRenderMode();
 
 var summaries = new[]
 {
@@ -50,8 +56,8 @@ var activityListener = new ActivityListener
 };
 ActivitySource.AddActivityListener(activityListener);
 
-app.MapGet("/weatherforecast", () =>
-    {
+app.MapGet("/api/traces",
+    () => {
         Log.Warning("stormy weather ahead");
         using var span = tracer.StartActivity("SomeWork")!;
         span.SetTag("mystring", "value");
@@ -62,38 +68,39 @@ app.MapGet("/weatherforecast", () =>
         var childSpan = tracer.StartActivity("child span")!;
         Log.Information("clear skies now");
         var forecast = Enumerable.Range(1, 5).Select(index =>
-                new WeatherForecast
-                (
-                    DateOnly.FromDateTime(DateTime.Now.AddDays(index)),
-                    Random.Shared.Next(-20, 55),
-                    summaries[Random.Shared.Next(summaries.Length)]
+                new WeatherForecast(
+                DateOnly.FromDateTime(DateTime.Now.AddDays(index)),
+                Random.Shared.Next(-20, 55),
+                summaries[Random.Shared.Next(summaries.Length)]
                 ))
             .ToArray();
 
         childSpan.SetTag("forecast", forecast[0].Summary);
-        childSpan.SetStatus(Status.Ok);
+        childSpan.SetStatus(ActivityStatusCode.Ok);
         childSpan.Stop();
-        
+
         Trace.TraceWarning("forecast incoming");
         return forecast;
     })
-    .WithName("GetWeatherForecast")
-    .WithOpenApi();
+    .WithName("GetTraces");
+
+app.MapGet("/api/logs",
+    () => {
+        Log.Warning("just a warning log");
+        Log.Information("info log here");
+        return "hello";
+    })
+    .WithName("GetLogs");
 
 
-app.MapGet("/error", () =>
-    {
+app.MapGet("/api/errors",
+    () => {
         Log.Warning("going to throw an exception");
-        
+
         using var span = tracer.StartActivity("ShouldThrow")!;
         throw new Exception("oh no, a random error occurred " + Guid.NewGuid());
     })
-    .WithName("GetError")
-    .WithOpenApi();
-
-app.MapGet("/", () => "Hello World!")
-    .WithName("GetRoot")
-    .WithOpenApi();
+    .WithName("GetErrors");
 
 app.Run();
 
@@ -101,3 +108,4 @@ record WeatherForecast(DateOnly Date, int TemperatureC, string? Summary)
 {
     public int TemperatureF => 32 + (int)(TemperatureC / 0.5556);
 }
+

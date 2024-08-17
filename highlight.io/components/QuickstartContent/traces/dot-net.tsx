@@ -2,11 +2,74 @@ import { verifyErrors } from '../backend/shared-snippets'
 import { verifyLogs } from '../logging/shared-snippets'
 import { QuickStartContent } from '../QuickstartContent'
 import { verifyTraces } from './shared-snippets'
+import { siteUrl } from '../../../utils/urls'
 
 export const DotNetOTLPTracingContent: QuickStartContent = {
 	title: 'Error Monitoring / Logging / Tracing in .NET 6.x / 8.x via the OpenTelemetry Protocol (OTLP)',
 	subtitle: `Error Monitoring / Logging / Tracing in .NET 6.x / 8.x via the OpenTelemetry Protocol (OTLP).`,
 	entries: [
+		{
+			title: 'Set up your highlight.io browser SDK.',
+			content: `The installation differs from the normal [frontend getting started guide](${siteUrl(
+				'/docs/getting-started/frontend/other',
+			)}) in the configuration of the .NET trace propagation. 
+			The _traceParentContext value is set based on the server trace context so that
+			client side tracing can carry the existing trace ID and session context.
+			Update your \`Components/App.razor\` HTML template entrypoint based on the following:`,
+			code: [
+				{
+					text: `@using OpenTelemetry.Trace
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta name="traceparent" content="@_traceParentContext">
+    <script src="https://unpkg.com/highlight.run"></script>
+    <script>
+        H.init('<YOUR_PROJECT_ID>>', {
+            serviceName: 'highlight-dot-net-frontend',
+            tracingOrigins: true,
+            enableOtelTracing: true,
+            networkRecording: {
+                enabled: true,
+                recordHeadersAndBody: true,
+            },
+        });
+    </script>
+    @* your standard head contents here... *@
+</head>
+
+<body>
+	@* your standard body contents here... *@
+	<Routes/>
+	<script src="_framework/blazor.web.js"></script>
+</body>
+
+</html>
+
+@code
+{
+    private string? _traceParentContext;
+
+    // set the \`traceparent\` meta tag to the current active span to propagate context to the client
+    protected override void OnInitialized()
+    {
+        var currentTrace = Tracer.CurrentSpan;
+        if (!currentTrace.IsRecording)
+        {
+            _traceParentContext = "00-00-00-00";
+        }
+        
+        var traceId = currentTrace.Context.TraceId;
+        var spanId = currentTrace.Context.SpanId;
+
+        _traceParentContext = $"00-{traceId.ToHexString()}-{spanId.ToHexString()}-01";
+    }
+}`,
+					language: 'html',
+				},
+			],
+		},
 		{
 			title: '.NET supports OpenTelemetry instrumentation out of the box.',
 			content:
@@ -93,12 +156,12 @@ public class HighlightLogEnricher : ILogEventEnricher
 
 public class HighlightConfig
 {
-    // For highlight.io self-hosted, update to your collector endpoint
-    private static readonly String OtlpEndpoint = "https://otel.highlight.io:4318";
+	// For highlight.io self-hosted, update to your collector endpoint
+    public static readonly String OtlpEndpoint = "https://otel.highlight.io:4318";
 
     // Replace with your project ID and service name.
     public static readonly String ProjectId = "<YOUR_PROJECT_ID>";
-    public static readonly String ServiceName = "highlight-dot-net-example";
+    public static readonly String ServiceName = "highlight-dot-net-backend";
 
     public static readonly String TracesEndpoint = OtlpEndpoint + "/v1/traces";
     public static readonly String LogsEndpoint = OtlpEndpoint + "/v1/logs";
@@ -113,6 +176,8 @@ public class HighlightConfig
         ["highlight.project_id"] = ProjectId,
         ["service.name"] = ServiceName,
     };
+
+    private static Random _random = new Random();
 
     public static Dictionary<string, string> GetHighlightContext()
     {
@@ -151,18 +216,13 @@ public class HighlightConfig
             var header = httpRequest.Headers.ElementAt(i);
             activity.SetTag($"http.request.header.{header.Key}", header.Value);
         }
-        
-        var headerValues = httpRequest.Headers[HighlightHeader];
-        if (headerValues.Count < 1) return;
-        var headerValue = headerValues[0];
-        if (headerValue == null) return;
-        var parts = headerValue.Split("/");
-        if (parts.Length < 2) return;
-        activity.SetTag("highlight.session_id", parts?[0]);
-        activity.SetTag("highlight.trace_id", parts?[1]);
+
+        var (sessionID, requestID) = ExtractContext(httpRequest);
+        activity.SetTag("highlight.session_id", sessionID);
+        activity.SetTag("highlight.trace_id", requestID);
         Baggage.SetBaggage(new KeyValuePair<string, string>[]
         {
-            new(HighlightHeader, headerValue)
+            new(HighlightHeader, $"{sessionID}/{requestID}")
         });
     }
 
@@ -177,6 +237,35 @@ public class HighlightConfig
             activity.SetTag($"http.response.header.{header.Key}", header.Value);
         }
     }
+
+    private static (string, string) ExtractContext(HttpRequest httpRequest)
+    {
+        var headerValues = httpRequest.Headers[HighlightHeader];
+        if (headerValues is [not null, ..])
+        {
+            var parts = headerValues[0]?.Split("/");
+            if (parts?.Length >= 2)
+            {
+                return (parts[0], parts[1]);
+            }
+        }
+
+        var sessionID = httpRequest.Cookies["sessionID"] ?? new string(Enumerable
+            .Repeat("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789", 28).Select(s => s[_random.Next(s.Length)]).ToArray());
+
+        var sessionDataKey = $"sessionData_{sessionID}";
+        var start = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
+        var sessionData = httpRequest.Cookies[sessionDataKey] ?? $"{{\\"sessionSecureID\\":\\"{sessionID}\\",\\"projectID\\":\\"{ProjectId}\\",\\"payloadID\\":1,\\"sessionStartTime\\":{start},\\"lastPushTime\\":{start}}}";
+
+        var opts = new CookieOptions
+        {
+            Expires = DateTimeOffset.Now.AddMinutes(15)
+        };
+        httpRequest.HttpContext.Response.Cookies.Append("sessionID", sessionID, opts);
+        httpRequest.HttpContext.Response.Cookies.Append(sessionDataKey, sessionData, opts);
+        return (sessionID, "");
+    }
+
 
     public static void Configure(WebApplicationBuilder builder)
     {
@@ -224,6 +313,42 @@ public class HighlightConfig
 		},
 		{
 			title: 'Bootstrap Highlight with your ASP application object.',
+			content:
+				'Update your `Program.cs` application entrypoint to initialize highlight.',
+			code: [
+				{
+					text: `using System.Diagnostics;
+using dotnet;
+using OpenTelemetry.Trace;
+using Serilog;
+
+var builder = WebApplication.CreateBuilder(args);
+// configure your web application
+
+// create a Serilog logger with Highlight export
+Log.Logger = new LoggerConfiguration()
+    .Enrich.WithMachineName()
+    .Enrich.With<HighlightLogEnricher>()
+    .Enrich.FromLogContext()
+    .WriteTo.Async(async =>
+        async.OpenTelemetry(options =>
+        {
+            options.Endpoint = HighlightConfig.LogsEndpoint;
+            options.Protocol = HighlightConfig.Protocol;
+            options.ResourceAttributes = HighlightConfig.ResourceAttributes;
+        })
+    )
+    .CreateLogger();
+
+// Initialize trace, error, and log export
+HighlightConfig.Configure(builder);
+var app = builder.Build();`,
+					language: 'csharp',
+				},
+			],
+		},
+		{
+			title: 'Configure HTML template rendering to propagate trace context to the client.',
 			content:
 				'Update your `Program.cs` application entrypoint to initialize highlight.',
 			code: [
