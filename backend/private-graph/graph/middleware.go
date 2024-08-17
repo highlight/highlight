@@ -5,6 +5,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"github.com/samber/lo"
 	"io"
 	"net/http"
 	"strings"
@@ -29,6 +30,7 @@ var (
 )
 
 var HighlightAdminEmailDomains = []string{"@highlight.run", "@highlight.io"}
+var EnterpriseAuthModes = []AuthMode{Firebase, OAuth}
 
 type AuthMode = string
 
@@ -57,7 +59,7 @@ func SetupAuthClient(ctx context.Context, store *store.Store, authMode AuthMode,
 	workspaceTokenHandler = wsTokenHandler
 
 	log.WithContext(ctx).WithField("mode", authMode).Info("configuring private graph auth client")
-	if authMode != Password {
+	if lo.Contains(EnterpriseAuthModes, authMode) {
 		enterprise.RequireEnterprise(ctx)
 	}
 	if authMode == Firebase {
