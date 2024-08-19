@@ -1,5 +1,19 @@
 # highlight.run
 
+## 9.3.0
+
+### Minor Changes
+
+-   0a8a9ffdc: add cookie session persistence
+
+### Patch Changes
+
+-   d2e00028a: correctly set x-highlight-request on outgoing fetch/xhr requests with duplicate tab recording.
+    the sessionID in the x-highlight-request would not be set correctly after recent changes
+    corrected the multi-tab behavior to clear the local storage sessionID value to ensure
+    new tabs started unique sessions. corrects bug affecting >=9.1.5
+-   0a8a9ffdc: update otel webjs network span naming
+
 ## 9.2.2
 
 ### Patch Changes
