@@ -781,6 +781,8 @@ func (client *Client) ReadMetrics(ctx context.Context, input ReadMetricsInput) (
 	if !isCountDistinct {
 		if reservedCol, found := keysToColumns[strings.ToLower(input.Column)]; found {
 			metricExpr = fmt.Sprintf("toFloat64(%s)", reservedCol)
+		} else if input.SampleableConfig.tableConfig.MetricColumn != nil {
+			metricExpr = *input.SampleableConfig.tableConfig.MetricColumn
 		} else {
 			metricExpr = fmt.Sprintf("toFloat64OrNull(%s)", col)
 		}
