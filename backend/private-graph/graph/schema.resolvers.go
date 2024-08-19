@@ -4940,6 +4940,7 @@ func (r *mutationResolver) UpsertGraph(ctx context.Context, graph modelInputs.Gr
 		GroupByKey:        graph.GroupByKey,
 		BucketByKey:       graph.BucketByKey,
 		BucketCount:       graph.BucketCount,
+		BucketInterval:    graph.BucketInterval,
 		Limit:             graph.Limit,
 		LimitFunctionType: graph.LimitFunctionType,
 		LimitMetric:       graph.LimitMetric,
