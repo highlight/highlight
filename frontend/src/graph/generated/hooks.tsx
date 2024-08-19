@@ -14817,11 +14817,13 @@ export const GetTraceDocument = gql`
 	query GetTrace(
 		$project_id: ID!
 		$trace_id: String!
+		$timestamp: Timestamp!
 		$session_secure_id: String
 	) {
 		trace(
 			project_id: $project_id
 			trace_id: $trace_id
+			timestamp: $timestamp
 			session_secure_id: $session_secure_id
 		) {
 			trace {
@@ -14879,6 +14881,7 @@ export const GetTraceDocument = gql`
  *   variables: {
  *      project_id: // value for 'project_id'
  *      trace_id: // value for 'trace_id'
+ *      timestamp: // value for 'timestamp'
  *      session_secure_id: // value for 'session_secure_id'
  *   },
  * });

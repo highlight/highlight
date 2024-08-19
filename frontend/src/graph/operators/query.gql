@@ -2382,11 +2382,13 @@ query MatchErrorTag($query: String!) {
 query GetTrace(
 	$project_id: ID!
 	$trace_id: String!
+	$timestamp: Timestamp!
 	$session_secure_id: String
 ) {
 	trace(
 		project_id: $project_id
 		trace_id: $trace_id
+		timestamp: $timestamp
 		session_secure_id: $session_secure_id
 	) {
 		trace {

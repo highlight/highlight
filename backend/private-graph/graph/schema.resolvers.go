@@ -9470,7 +9470,7 @@ func (r *queryResolver) MatchErrorTag(ctx context.Context, query string) ([]*mod
 }
 
 // Trace is the resolver for the trace field.
-func (r *queryResolver) Trace(ctx context.Context, projectID int, traceID string, sessionSecureID *string) (*modelInputs.TracePayload, error) {
+func (r *queryResolver) Trace(ctx context.Context, projectID int, traceID string, timestamp time.Time, sessionSecureID *string) (*modelInputs.TracePayload, error) {
 	if _, err := r.canAdminViewSession(ctx, pointy.StringValue(sessionSecureID, "")); err != nil {
 		_, err = r.isUserInProjectOrDemoProject(ctx, projectID)
 		if err != nil {
@@ -9478,7 +9478,7 @@ func (r *queryResolver) Trace(ctx context.Context, projectID int, traceID string
 		}
 	}
 
-	trace, err := r.ClickhouseClient.ReadTrace(ctx, projectID, traceID)
+	trace, err := r.ClickhouseClient.ReadTrace(ctx, projectID, traceID, timestamp)
 	if err != nil {
 		return nil, err
 	}
