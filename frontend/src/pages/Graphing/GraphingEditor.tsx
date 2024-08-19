@@ -295,6 +295,13 @@ export const GraphingEditor: React.FC = () => {
 			setBucketByKey(g.bucketByKey ?? '')
 			setBucketCount(g.bucketCount ?? DEFAULT_BUCKET_COUNT)
 			setBucketInterval(g.bucketInterval ?? DEFAULT_BUCKET_INTERVAL)
+			setBucketBySetting(
+				g.bucketInterval
+					? 'Interval'
+					: g.bucketCount
+					? 'Count'
+					: 'None',
+			)
 		},
 	})
 
