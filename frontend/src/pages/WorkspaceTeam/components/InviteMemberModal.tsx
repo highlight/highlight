@@ -27,13 +27,11 @@ import Button from '../../../components/Button/Button/Button'
 import styles from './InviteMemberModal.module.css'
 
 function InviteMemberModal({
-	showModal,
 	toggleShowModal,
 	workspaceId,
 	workspaceName,
 	workspaceInviteLinks,
 }: {
-	showModal: boolean
 	toggleShowModal: (value: boolean) => void
 	workspaceId?: string
 	workspaceName?: string
@@ -101,10 +99,9 @@ function InviteMemberModal({
 
 	return (
 		<Modal
-			destroyOnClose
 			centered
 			title="Invite Member"
-			visible={showModal}
+			visible
 			width={600}
 			onCancel={() => {
 				toggleShowModal(false)

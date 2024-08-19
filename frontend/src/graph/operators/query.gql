@@ -599,6 +599,7 @@ query GetSessionsHistogram(
 query GetSessionUsersReports($project_id: ID!, $params: QueryInput!) {
 	session_users_report(project_id: $project_id, params: $params) {
 		key
+		email
 		num_sessions
 		num_days_visited
 		num_months_visited
@@ -2381,11 +2382,13 @@ query MatchErrorTag($query: String!) {
 query GetTrace(
 	$project_id: ID!
 	$trace_id: String!
+	$timestamp: Timestamp!
 	$session_secure_id: String
 ) {
 	trace(
 		project_id: $project_id
 		trace_id: $trace_id
+		timestamp: $timestamp
 		session_secure_id: $session_secure_id
 	) {
 		trace {
@@ -2538,12 +2541,16 @@ query GetKeyValues(
 	$project_id: ID!
 	$key_name: String!
 	$date_range: DateRangeRequiredInput!
+	$query: String!
+	$count: Int!
 ) {
 	key_values(
 		product_type: $product_type
 		project_id: $project_id
 		key_name: $key_name
 		date_range: $date_range
+		query: $query
+		count: $count
 	)
 }
 

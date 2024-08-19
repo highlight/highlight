@@ -27,20 +27,8 @@ export const ButtonVariants = () => {
 						>
 							{size.map(($size, kdx) => (
 								<Button
-									iconLeft={
-										jdx % emphasis.length !== 0 ? (
-											<IconSolidCheveronDown />
-										) : (
-											<></>
-										)
-									}
-									iconRight={
-										jdx % emphasis.length === 0 ? (
-											<IconSolidSave />
-										) : (
-											<></>
-										)
-									}
+									iconLeft={<IconSolidCheveronDown />}
+									iconRight={<IconSolidSave />}
 									size={$size}
 									kind={$kind}
 									emphasis={$emphasis}
@@ -54,13 +42,7 @@ export const ButtonVariants = () => {
 								emphasis={$emphasis}
 								key={`b-${idx}-${jdx}-d`}
 								size={size[size.length - 1]}
-								iconLeft={
-									jdx % emphasis.length !== 0 ? (
-										<IconSolidCheveronDown />
-									) : (
-										<></>
-									)
-								}
+								iconLeft={<IconSolidCheveronDown />}
 								disabled
 							>
 								{$emphasis}|{$kind}|disabled

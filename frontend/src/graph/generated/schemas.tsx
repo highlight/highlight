@@ -2441,6 +2441,7 @@ export type QueryErrors_Key_ValuesArgs = {
 	date_range: DateRangeRequiredInput
 	key_name: Scalars['String']
 	project_id: Scalars['ID']
+	query?: InputMaybe<Scalars['String']>
 }
 
 export type QueryErrors_KeysArgs = {
@@ -2562,6 +2563,7 @@ export type QueryKey_ValuesArgs = {
 	key_name: Scalars['String']
 	product_type: ProductType
 	project_id: Scalars['ID']
+	query?: InputMaybe<Scalars['String']>
 }
 
 export type QueryKeysArgs = {
@@ -2621,6 +2623,7 @@ export type QueryLogs_Key_ValuesArgs = {
 	date_range: DateRangeRequiredInput
 	key_name: Scalars['String']
 	project_id: Scalars['ID']
+	query?: InputMaybe<Scalars['String']>
 }
 
 export type QueryLogs_KeysArgs = {
@@ -2861,6 +2864,7 @@ export type QuerySessions_Key_ValuesArgs = {
 	date_range: DateRangeRequiredInput
 	key_name: Scalars['String']
 	project_id: Scalars['ID']
+	query?: InputMaybe<Scalars['String']>
 }
 
 export type QuerySessions_KeysArgs = {
@@ -2918,6 +2922,7 @@ export type QueryTopUsersArgs = {
 export type QueryTraceArgs = {
 	project_id: Scalars['ID']
 	session_secure_id?: InputMaybe<Scalars['String']>
+	timestamp: Scalars['Timestamp']
 	trace_id: Scalars['String']
 }
 
@@ -2939,6 +2944,7 @@ export type QueryTraces_Key_ValuesArgs = {
 	date_range: DateRangeRequiredInput
 	key_name: Scalars['String']
 	project_id: Scalars['ID']
+	query?: InputMaybe<Scalars['String']>
 }
 
 export type QueryTraces_KeysArgs = {
@@ -3152,7 +3158,6 @@ export enum ReservedSessionKey {
 	City = 'city',
 	Completed = 'completed',
 	Country = 'country',
-	DeviceId = 'device_id',
 	Environment = 'environment',
 	Excluded = 'excluded',
 	FirstTime = 'first_time',
@@ -3560,6 +3565,7 @@ export type SessionsReportRow = {
 	__typename?: 'SessionsReportRow'
 	avg_active_length_mins: Scalars['Float']
 	avg_length_mins: Scalars['Float']
+	email: Scalars['String']
 	key: Scalars['String']
 	location: Scalars['String']
 	max_active_length_mins: Scalars['Float']

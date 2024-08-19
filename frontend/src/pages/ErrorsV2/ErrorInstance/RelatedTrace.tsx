@@ -14,16 +14,18 @@ export const RelatedTrace: React.FC<Props> = ({ data }) => {
 	const { isLoggedIn } = useAuthContext()
 	const { set } = useRelatedResource()
 	const traceId = data?.error_instance?.error_object?.trace_id
+	const timestamp = data?.error_instance?.error_object?.timestamp
 
 	return (
 		<Tag
 			onClick={() => {
-				if (!traceId) {
+				if (!traceId || !timestamp) {
 					return
 				}
 
 				set({
 					id: traceId,
+					timestamp: timestamp,
 					type: 'trace',
 				})
 

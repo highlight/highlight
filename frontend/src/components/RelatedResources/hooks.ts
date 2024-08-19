@@ -41,6 +41,7 @@ export type RelatedSession = RelatedResourceCommon & {
 export type RelatedTrace = RelatedResourceCommon & {
 	type: 'trace'
 	id: string
+	timestamp: string
 	spanID?: string
 }
 

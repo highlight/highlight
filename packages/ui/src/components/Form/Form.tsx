@@ -6,6 +6,7 @@ import { Badge } from '../Badge/Badge'
 import { Box } from '../Box/Box'
 import { Button, ButtonProps } from '../Button/Button'
 import { IconSolidCheveronDown, IconSolidCheveronUp } from '../icons'
+import { OptionProps, Select as UISelect, SelectProps } from '../Select/Select'
 import { Stack } from '../Stack/Stack'
 import { Text } from '../Text/Text'
 import * as styles from './styles.css'
@@ -15,8 +16,8 @@ type FormComponent = React.FC<Props> & {
 	Input: typeof Input
 	Error: typeof Error
 	Submit: typeof Submit
-	Field: typeof Field
 	Select: typeof Select
+	Option: typeof Option
 	NamedSection: typeof NamedSection
 	Label: typeof Label
 	useStore: typeof Ariakit.useFormStore
@@ -227,64 +228,68 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
 	},
 )
 
-type FormFieldProps = Ariakit.FormFieldProps &
-	React.PropsWithChildren &
-	Variants &
-	HasLabel & {
-		cssClass?: ClassValue | ClassValue[]
-	}
-
-export const Field = ({
-	children,
-	label,
-	cssClass,
-	size,
-	collapsed,
-	truncate,
-	outline,
-	...props
-}: FormFieldProps) => {
-	return (
-		<NamedSection label={label} name={props.name}>
-			<Ariakit.FormField
-				className={clsx(
-					styles.inputVariants({
-						size,
-						collapsed,
-						outline,
-						truncate,
-					}),
-					cssClass,
-				)}
-				{...props}
-			>
-				{children}
-			</Ariakit.FormField>
-		</NamedSection>
-	)
-}
-
 type FormSelectProps = Ariakit.FormInputProps &
-	React.PropsWithChildren<HasLabel>
+	React.PropsWithChildren<HasLabel> &
+	Omit<SelectProps, 'name' | 'onChange'>
 
 export const Select = ({
 	children,
 	label = '',
 	tag,
 	optional,
+	name,
+	options,
+	creatable,
+	disabled,
+	filterable,
+	checkType,
+	defaultValue,
+	displayMode,
+	loading,
+	trigger,
+	onValueChange,
+	onCreate,
+	renderValue,
 	...props
 }: FormSelectProps) => {
+	const form = Ariakit.useFormContext()!
+	const value = props.value ?? form.useValue(name)
+
 	return (
 		<Stack direction="column" gap="4">
-			<Label
-				label={label}
-				name={props.name}
-				tag={tag}
-				optional={optional}
-			/>
+			{label.trim() !== '' && (
+				<Label
+					label={label}
+					name={name}
+					tag={tag}
+					optional={optional}
+				/>
+			)}
 			<Ariakit.FormInput
-				render={<select />}
-				className={styles.select}
+				name={name}
+				render={
+					<UISelect
+						value={value}
+						options={options}
+						creatable={creatable}
+						disabled={disabled}
+						filterable={filterable}
+						checkType={checkType}
+						defaultValue={defaultValue}
+						displayMode={displayMode}
+						loading={loading}
+						trigger={trigger}
+						renderValue={renderValue}
+						onCreate={onCreate}
+						onValueChange={(option) => {
+							form.setValue(name, option.value)
+
+							if (onValueChange) {
+								onValueChange(option)
+							}
+						}}
+					/>
+				}
 				{...props}
 			>
 				{children}
@@ -293,12 +298,16 @@ export const Select = ({
 	)
 }
 
+export const Option: React.FC<OptionProps> = ({ children, ...props }) => {
+	return <UISelect.Option {...props}>{children}</UISelect.Option>
+}
+
 Form.Input = Input
 Form.Error = Error
 Form.Submit = Submit
-Form.Field = Field
 Form.Label = Label
 Form.Select = Select
+Form.Option = Option
 Form.NamedSection = NamedSection
 Form.useStore = Ariakit.useFormStore
 Form.useContext = Ariakit.useFormContext

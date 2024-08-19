@@ -2557,6 +2557,7 @@ export type GetSessionUsersReportsQuery = { __typename?: 'Query' } & {
 		{ __typename?: 'SessionsReportRow' } & Pick<
 			Types.SessionsReportRow,
 			| 'key'
+			| 'email'
 			| 'num_sessions'
 			| 'num_days_visited'
 			| 'num_months_visited'
@@ -5046,6 +5047,7 @@ export type MatchErrorTagQuery = { __typename?: 'Query' } & {
 export type GetTraceQueryVariables = Types.Exact<{
 	project_id: Types.Scalars['ID']
 	trace_id: Types.Scalars['String']
+	timestamp: Types.Scalars['Timestamp']
 	session_secure_id?: Types.Maybe<Types.Scalars['String']>
 }>
 
@@ -5213,6 +5215,8 @@ export type GetKeyValuesQueryVariables = Types.Exact<{
 	project_id: Types.Scalars['ID']
 	key_name: Types.Scalars['String']
 	date_range: Types.DateRangeRequiredInput
+	query: Types.Scalars['String']
+	count: Types.Scalars['Int']
 }>
 
 export type GetKeyValuesQuery = { __typename?: 'Query' } & Pick<
