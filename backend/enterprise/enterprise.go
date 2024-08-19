@@ -31,6 +31,8 @@ import (
 const UpdateInterval = time.Minute
 const UpdateErrorsAbort = 10
 
+var isEnterprise = false
+
 func Start(ctx context.Context) error {
 	environ, err := GetEnvironment(GetEncryptedEnvironmentFilePath(), GetEncryptedEnvironmentDigestFilePath())
 	if err != nil {
@@ -39,6 +41,7 @@ func Start(ctx context.Context) error {
 			return e.Wrap(err, "highlight enterprise mode configured but failed to start license checker")
 		}
 	} else {
+		isEnterprise = true
 		log.WithContext(ctx).
 			WithField("environment_valid_until", environ.EnterpriseEnvExpiration).
 			Info("welcome to highlight.io enterprise")
@@ -51,6 +54,12 @@ func Start(ctx context.Context) error {
 
 	go CheckForUpdatesLoop(context.Background())
 	return nil
+}
+
+func RequireEnterprise(ctx context.Context) {
+	if !isEnterprise {
+		log.WithContext(ctx).Fatal("Enterprise license required when none was found.")
+	}
 }
 
 func HasUpdates(client *retryablehttp.Client) (bool, error) {

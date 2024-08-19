@@ -5,12 +5,14 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"github.com/samber/lo"
 	"io"
 	"net/http"
 	"strings"
 
 	"github.com/99designs/gqlgen/graphql/handler/transport"
 	"github.com/go-oauth2/oauth2/v4"
+	"github.com/highlight-run/highlight/backend/enterprise"
 	"github.com/highlight-run/highlight/backend/env"
 	"github.com/highlight-run/highlight/backend/model"
 	"github.com/highlight-run/highlight/backend/oauth"
@@ -28,6 +30,7 @@ var (
 )
 
 var HighlightAdminEmailDomains = []string{"@highlight.run", "@highlight.io"}
+var EnterpriseAuthModes = []AuthMode{Firebase, OAuth}
 
 type AuthMode = string
 
@@ -54,6 +57,11 @@ func GetEnvAuthMode() AuthMode {
 func SetupAuthClient(ctx context.Context, store *store.Store, authMode AuthMode, oauthServer *oauth.Server, wsTokenHandler APITokenHandler) {
 	OAuthServer = oauthServer
 	workspaceTokenHandler = wsTokenHandler
+
+	log.WithContext(ctx).WithField("mode", authMode).Info("configuring private graph auth client")
+	if lo.Contains(EnterpriseAuthModes, authMode) {
+		enterprise.RequireEnterprise(ctx)
+	}
 	if authMode == Firebase {
 		AuthClient = NewFirebaseClient(ctx)
 	} else if authMode == Simple {
