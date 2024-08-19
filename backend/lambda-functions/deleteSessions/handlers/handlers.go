@@ -14,6 +14,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/highlight-run/highlight/backend/clickhouse"
 	"github.com/highlight-run/highlight/backend/email"
+	"github.com/highlight-run/highlight/backend/enterprise"
 	"github.com/highlight-run/highlight/backend/lambda-functions/deleteSessions/utils"
 	"github.com/highlight-run/highlight/backend/model"
 	modelInputs "github.com/highlight-run/highlight/backend/private-graph/graph/model"
@@ -258,6 +259,7 @@ func (h *handlers) ProcessRetentionDeletions(ctx context.Context) {
 		log.WithContext(ctx).Error("sessionRetentionDays <= 0, skipping SessionDeleteJob")
 		return
 	}
+	enterprise.RequireEnterprise(ctx)
 
 	var projectIds []int
 	if err := h.db.Model(&model.Project{}).Select("id").Find(&projectIds).Error; err != nil {

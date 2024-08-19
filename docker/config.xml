@@ -3,6 +3,37 @@
         <allowed_path>/backups/</allowed_path>
         <remove_backup_files_after_failure>true</remove_backup_files_after_failure>
     </backups>
-    <global_profiler_cpu_time_period_ns>1000000000</global_profiler_cpu_time_period_ns>
-    <global_profiler_real_time_period_ns>1000000000</global_profiler_real_time_period_ns>
+    <asynchronous_metric_log>
+        <ttl>event_date + INTERVAL 1 HOUR DELETE</ttl>
+    </asynchronous_metric_log>
+    <metric_log>
+        <ttl>event_date + INTERVAL 1 HOUR DELETE</ttl>
+    </metric_log>
+    <query_log>
+        <ttl>event_date + INTERVAL 1 HOUR DELETE</ttl>
+    </query_log>
+    <query_thread_log>
+        <ttl>event_date + INTERVAL 1 HOUR DELETE</ttl>
+    </query_thread_log>
+    <trace_log>
+        <ttl>event_date + INTERVAL 1 HOUR DELETE</ttl>
+    </trace_log>
+    <crash_log>
+        <ttl>event_date + INTERVAL 1 MONTH DELETE</ttl>
+    </crash_log>
+    <text_log>
+        <ttl>event_date + INTERVAL 1 MONTH DELETE</ttl>
+    </text_log>
+    <backup_log>
+        <ttl>event_date + INTERVAL 1 MONTH DELETE</ttl>
+    </backup_log>
+    <part_log>
+        <ttl>event_date + INTERVAL 1 HOUR DELETE</ttl>
+    </part_log>
+    <processors_profile_log>
+        <ttl>event_date + INTERVAL 1 HOUR DELETE</ttl>
+    </processors_profile_log>
+    <query_views_log>
+        <ttl>event_date + INTERVAL 1 HOUR DELETE</ttl>
+    </query_views_log>
 </clickhouse>

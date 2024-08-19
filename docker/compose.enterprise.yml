@@ -1,22 +1,15 @@
 # Highlight.io services for the enterprise deployment.
 services:
-    backend-session-worker:
+    backend:
         image: ${BACKEND_IMAGE_NAME-ghcr.io/highlight/highlight-backend:latest}
         restart: on-failure
-        volumes:
+        volumes: &volumes
             - highlight-data:/highlight-data
             - ../backend/env.enc:/build/env.enc
             - ../backend/env.enc.dgst:/build/env.enc.dgst
             - ../backend/localhostssl/server.key:/build/localhostssl/server.key
             - ../backend/localhostssl/server.crt:/build/localhostssl/server.crt
         env_file: .env
-        container_name: backend-session-worker
-        command:
-            - /build/backend
-            - -runtime=worker
-
-    backend:
-        extends: backend-session-worker
         ports:
             - '0.0.0.0:8082:8082'
         container_name: backend
@@ -24,20 +17,27 @@ services:
             test:
                 [
                     'CMD-SHELL',
-                    'curl',
-                    '-k',
-                    'https://localhost:8082',
-                    '||',
-                    'curl',
-                    '-k',
-                    'localhost:8082',
+                    'curl -k https://localhost:8082/health || curl -k http://localhost:8082/health',
                 ]
-            interval: 5s
+            interval: 1s
             timeout: 5s
-            retries: 5
+            retries: 30
         command:
             - /build/backend
             - -runtime=graph
+
+    backend-session-worker:
+        image: ${BACKEND_IMAGE_NAME-ghcr.io/highlight/highlight-backend:latest}
+        restart: on-failure
+        depends_on:
+            backend:
+                condition: service_healthy
+        volumes: *volumes
+        env_file: .env
+        container_name: backend-session-worker
+        command:
+            - /build/backend
+            - -runtime=worker
 
     backend-public-worker-main:
         extends: backend-session-worker

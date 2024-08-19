@@ -5,7 +5,7 @@ x-local-logging: &local-logging
 services:
     zookeeper:
         logging: *local-logging
-        image: confluentinc/cp-zookeeper
+        image: ${ZOOKEEPER_IMAGE_NAME}
         container_name: zookeeper
         restart: on-failure
         volumes:
@@ -17,7 +17,7 @@ services:
 
     kafka:
         logging: *local-logging
-        image: confluentinc/cp-kafka
+        image: ${KAFKA_IMAGE_NAME}
         container_name: kafka
         volumes:
             - kafka-data:/var/lib/kafka/data
@@ -44,7 +44,7 @@ services:
     redis:
         logging: *local-logging
         container_name: redis
-        image: redis
+        image: ${REDIS_IMAGE_NAME}
         restart: on-failure
         volumes:
             - redis-data:/data
@@ -59,7 +59,7 @@ services:
         logging: *local-logging
         container_name: postgres
         # a postgres image with pgvector installed
-        image: ankane/pgvector
+        image: ${POSTGRES_IMAGE_NAME}
         restart: on-failure
         ports:
             - '0.0.0.0:5432:5432'
@@ -77,7 +77,7 @@ services:
     clickhouse:
         logging: *local-logging
         container_name: clickhouse
-        image: clickhouse/clickhouse-server
+        image: ${CLICKHOUSE_IMAGE_NAME}
         restart: on-failure
         ports:
             - '0.0.0.0:8123:8123'
