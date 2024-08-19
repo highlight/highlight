@@ -38,6 +38,7 @@ export const TraceContext = createContext<TraceContext>({} as TraceContext)
 type Props = {
 	projectId: string
 	traceId?: string
+	timestamp?: string
 	secureSessionId?: string
 	spanId?: string
 }
@@ -46,6 +47,7 @@ export const TraceProvider: React.FC<React.PropsWithChildren<Props>> = ({
 	children,
 	projectId,
 	traceId,
+	timestamp,
 	secureSessionId,
 	spanId,
 }) => {
@@ -57,6 +59,7 @@ export const TraceProvider: React.FC<React.PropsWithChildren<Props>> = ({
 		variables: {
 			project_id: projectId!,
 			trace_id: traceId!,
+			timestamp: timestamp!,
 			session_secure_id: secureSessionId,
 		},
 		onCompleted: (data) => {
@@ -70,7 +73,7 @@ export const TraceProvider: React.FC<React.PropsWithChildren<Props>> = ({
 				}
 			}
 		},
-		skip: !projectId || !traceId,
+		skip: !projectId || !traceId || !timestamp,
 		fetchPolicy: 'cache-and-network',
 	})
 

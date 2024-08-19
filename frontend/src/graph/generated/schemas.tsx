@@ -2920,6 +2920,7 @@ export type QueryTopUsersArgs = {
 export type QueryTraceArgs = {
 	project_id: Scalars['ID']
 	session_secure_id?: InputMaybe<Scalars['String']>
+	timestamp: Scalars['Timestamp']
 	trace_id: Scalars['String']
 }
 

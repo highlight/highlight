@@ -51,6 +51,7 @@ const ColumnWrapper: React.FC<ColumnWrapperProps> = ({
 		set({
 			type: 'trace',
 			id: trace.traceID,
+			timestamp: trace.timestamp,
 			spanID: trace.spanID,
 		})
 
