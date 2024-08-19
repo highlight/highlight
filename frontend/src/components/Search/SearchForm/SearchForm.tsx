@@ -410,8 +410,8 @@ export const Search: React.FC<{
 		!!activePart.value?.length
 
 	let visibleItems: SearchResult[] = showValues
-		? getVisibleValues(activePart, values)
-		: getVisibleKeys(query, activePart, keys)
+		? getVisibleValues(values)
+		: getVisibleKeys(keys)
 
 	// Show operators when we have an exact match for a key
 	const keyMatch = visibleItems.find((item) => item.name === activePart.text)
@@ -451,8 +451,7 @@ export const Search: React.FC<{
 		)
 	}
 
-	// Limit number of items shown.
-	visibleItems.length = Math.min(MAX_ITEMS, visibleItems.length)
+	visibleItems = visibleItems.slice(0, MAX_ITEMS)
 
 	const showResults = loading || visibleItems.length > 0 || showValueSelect
 	const isDirty = query !== ''
@@ -894,7 +893,7 @@ export const Search: React.FC<{
 								</Combobox.Item>
 							</Combobox.Group>
 						)}
-						{visibleItems.length > 0 && (
+						{!loading && visibleItems.length > 0 && (
 							<Combobox.Group
 								className={styles.comboboxGroup}
 								store={comboboxStore}
@@ -1053,49 +1052,17 @@ const getActivePart = (
 	}
 }
 
-const getVisibleKeys = (
-	queryText: string,
-	activeQueryPart?: SearchExpression,
-	keys?: Keys,
-) => {
-	const startingNewPart = queryText.endsWith(' ')
-
-	return (
-		keys?.filter(
-			(key) =>
-				// If it's a new part, don't filter results.
-				startingNewPart ||
-				// Only filter for body queries
-				(activeQueryPart?.key === BODY_KEY &&
-					// Don't filter if no query part
-					(!activeQueryPart.value?.length ||
-						startingNewPart ||
-						// Filter empty results
-						(key.name.length > 0 &&
-							// Only show results that contain the part
-							key.name.indexOf(activeQueryPart.value) > -1))),
-		) || []
-	)
+const getVisibleKeys = (keys?: Keys) => {
+	return keys || []
 }
 
-const getVisibleValues = (
-	activeQueryPart?: SearchExpression,
-	values?: string[],
-): SearchResult[] => {
-	const activePart = activeQueryPart?.value ?? ''
-	const filteredValues =
-		values?.filter(
-			(v) =>
-				// Don't filter if no value has been typed
-				!activePart.length ||
-				// Return values that match the query part
-				v.indexOf(activePart) > -1,
-		) || []
-
-	return filteredValues.map((value) => ({
-		name: value,
-		type: 'Value',
-	}))
+const getVisibleValues = (values?: string[]): SearchResult[] => {
+	return (
+		values?.map((value) => ({
+			name: value,
+			type: 'Value',
+		})) || []
+	)
 }
 
 const getSearchResultBadgeText = (key: SearchResult) => {
