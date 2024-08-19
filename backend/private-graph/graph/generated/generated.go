@@ -587,6 +587,7 @@ type ComplexityRoot struct {
 	Graph struct {
 		BucketByKey       func(childComplexity int) int
 		BucketCount       func(childComplexity int) int
+		BucketInterval    func(childComplexity int) int
 		Display           func(childComplexity int) int
 		FunctionType      func(childComplexity int) int
 		GroupByKey        func(childComplexity int) int
@@ -4578,6 +4579,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Graph.BucketCount(childComplexity), true
+
+	case "Graph.bucketInterval":
+		if e.complexity.Graph.BucketInterval == nil {
+			break
+		}
+
+		return e.complexity.Graph.BucketInterval(childComplexity), true
 
 	case "Graph.display":
 		if e.complexity.Graph.Display == nil {
@@ -13560,6 +13568,7 @@ type Graph {
 	groupByKey: String
 	bucketByKey: String
 	bucketCount: Int
+	bucketInterval: Int
 	limit: Int
 	limitFunctionType: MetricAggregator
 	limitMetric: String
@@ -13594,6 +13603,7 @@ input GraphInput {
 	groupByKey: String
 	bucketByKey: String
 	bucketCount: Int
+	bucketInterval: Int
 	limit: Int
 	limitFunctionType: MetricAggregator
 	limitMetric: String
@@ -39105,6 +39115,47 @@ func (ec *executionContext) fieldContext_Graph_bucketCount(ctx context.Context, 
 	return fc, nil
 }
 
+func (ec *executionContext) _Graph_bucketInterval(ctx context.Context, field graphql.CollectedField, obj *model1.Graph) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Graph_bucketInterval(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.BucketInterval, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*int)
+	fc.Result = res
+	return ec.marshalOInt2ᚖint(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Graph_bucketInterval(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Graph",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Graph_limit(ctx context.Context, field graphql.CollectedField, obj *model1.Graph) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Graph_limit(ctx, field)
 	if err != nil {
@@ -52126,6 +52177,8 @@ func (ec *executionContext) fieldContext_Mutation_upsertGraph(ctx context.Contex
 				return ec.fieldContext_Graph_bucketByKey(ctx, field)
 			case "bucketCount":
 				return ec.fieldContext_Graph_bucketCount(ctx, field)
+			case "bucketInterval":
+				return ec.fieldContext_Graph_bucketInterval(ctx, field)
 			case "limit":
 				return ec.fieldContext_Graph_limit(ctx, field)
 			case "limitFunctionType":
@@ -65131,6 +65184,8 @@ func (ec *executionContext) fieldContext_Query_graph(ctx context.Context, field 
 				return ec.fieldContext_Graph_bucketByKey(ctx, field)
 			case "bucketCount":
 				return ec.fieldContext_Graph_bucketCount(ctx, field)
+			case "bucketInterval":
+				return ec.fieldContext_Graph_bucketInterval(ctx, field)
 			case "limit":
 				return ec.fieldContext_Graph_limit(ctx, field)
 			case "limitFunctionType":
@@ -78936,6 +78991,8 @@ func (ec *executionContext) fieldContext_Visualization_graphs(ctx context.Contex
 				return ec.fieldContext_Graph_bucketByKey(ctx, field)
 			case "bucketCount":
 				return ec.fieldContext_Graph_bucketCount(ctx, field)
+			case "bucketInterval":
+				return ec.fieldContext_Graph_bucketInterval(ctx, field)
 			case "limit":
 				return ec.fieldContext_Graph_limit(ctx, field)
 			case "limitFunctionType":
@@ -83619,7 +83676,7 @@ func (ec *executionContext) unmarshalInputGraphInput(ctx context.Context, obj in
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"id", "visualizationId", "afterGraphId", "type", "title", "productType", "query", "metric", "functionType", "groupByKey", "bucketByKey", "bucketCount", "limit", "limitFunctionType", "limitMetric", "display", "nullHandling"}
+	fieldsInOrder := [...]string{"id", "visualizationId", "afterGraphId", "type", "title", "productType", "query", "metric", "functionType", "groupByKey", "bucketByKey", "bucketCount", "bucketInterval", "limit", "limitFunctionType", "limitMetric", "display", "nullHandling"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -83710,6 +83767,13 @@ func (ec *executionContext) unmarshalInputGraphInput(ctx context.Context, obj in
 				return it, err
 			}
 			it.BucketCount = data
+		case "bucketInterval":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("bucketInterval"))
+			data, err := ec.unmarshalOInt2ᚖint(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.BucketInterval = data
 		case "limit":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("limit"))
 			data, err := ec.unmarshalOInt2ᚖint(ctx, v)
@@ -88671,6 +88735,8 @@ func (ec *executionContext) _Graph(ctx context.Context, sel ast.SelectionSet, ob
 			out.Values[i] = ec._Graph_bucketByKey(ctx, field, obj)
 		case "bucketCount":
 			out.Values[i] = ec._Graph_bucketCount(ctx, field, obj)
+		case "bucketInterval":
+			out.Values[i] = ec._Graph_bucketInterval(ctx, field, obj)
 		case "limit":
 			out.Values[i] = ec._Graph_limit(ctx, field, obj)
 		case "limitFunctionType":

@@ -393,6 +393,10 @@ export const Dashboard = () => {
 																g.bucketByKey ??
 																undefined
 															}
+															bucketByWindow={
+																g.bucketInterval ??
+																undefined
+															}
 															bucketCount={
 																g.bucketCount ??
 																undefined

@@ -2612,6 +2612,7 @@ query GetVisualization($id: ID!) {
 			groupByKey
 			bucketByKey
 			bucketCount
+			bucketInterval
 			limit
 			limitFunctionType
 			limitMetric
@@ -2656,6 +2657,7 @@ query GetVisualizations(
 				groupByKey
 				bucketByKey
 				bucketCount
+				bucketInterval
 				limit
 				limitFunctionType
 				limitMetric

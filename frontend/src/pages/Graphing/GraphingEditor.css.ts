@@ -36,3 +36,7 @@ export const graphWrapper = style({
 	zIndex: 1,
 	backgroundColor: vars.color.white,
 })
+
+export const tagSwitch = style({
+	width: '100%',
+})
