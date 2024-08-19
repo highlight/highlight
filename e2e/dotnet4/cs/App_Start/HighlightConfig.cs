@@ -7,10 +7,14 @@ using OpenTelemetry.Exporter;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
+using Serilog;
+using Serilog.Core;
+using Serilog.Events;
+using Serilog.Sinks.OpenTelemetry;
+using System.Linq;
 
 namespace cs
 {
-using System.Linq;
 
 public class HighlightTraceProcessor : BaseProcessor<Activity>
     {
@@ -25,6 +29,17 @@ public class HighlightTraceProcessor : BaseProcessor<Activity>
             base.OnStart(data);
         }
     }
+    public class HighlightLogEnricher : ILogEventEnricher
+    {
+        public void Enrich(LogEvent logEvent, ILogEventPropertyFactory pf)
+        {
+            var ctx = HighlightConfig.GetHighlightContext();
+            foreach (var entry in ctx)
+            {
+                logEvent.AddOrUpdateProperty(pf.CreateProperty(entry.Key, entry.Value));
+            }
+        }
+    }
 
     public class HighlightConfig
     {
@@ -37,8 +52,10 @@ public class HighlightTraceProcessor : BaseProcessor<Activity>
 
         public static readonly String TracesEndpoint = OtlpEndpoint + "/v1/traces";
         public static readonly String MetricsEndpoint = OtlpEndpoint + "/v1/metrics";
+        public static readonly string LogsEndpoint = OtlpEndpoint + "/v1/logs";
 
         public static readonly OtlpExportProtocol ExportProtocol = OtlpExportProtocol.HttpProtobuf;
+        public static readonly OtlpProtocol SerilogExportProtocol = OtlpProtocol.HttpProtobuf;
         public static readonly String HighlightHeader = "x-highlight-request";
 
         public static readonly Dictionary<string, object> ResourceAttributes = new Dictionary<string, object>
@@ -51,6 +68,8 @@ public class HighlightTraceProcessor : BaseProcessor<Activity>
 
         private static TracerProvider _tracerProvider;
         private static MeterProvider _meterProvider;
+        private static Logger _loggerFactory;
+
 
         public static Dictionary<string, string> GetHighlightContext()
         {
@@ -90,7 +109,7 @@ public class HighlightTraceProcessor : BaseProcessor<Activity>
                 var value = httpRequest.Headers[header];
                 activity.SetTag($"http.request.header.{header}", value);
             }
-
+            
             var (sessionID, requestID) = ExtractContext(httpRequest);
             activity.SetTag("highlight.session_id", sessionID);
             activity.SetTag("highlight.trace_id", requestID);
@@ -110,7 +129,7 @@ public class HighlightTraceProcessor : BaseProcessor<Activity>
         private static (string, string) ExtractContext(HttpRequest httpRequest)
         {
             var headerValue = httpRequest.Headers[HighlightHeader];
-            if (headerValue.Length > 0)
+            if (headerValue?.Length > 0)
             {
                 var parts = headerValue.Split('/');
                 if (parts?.Length >= 2)
@@ -136,41 +155,72 @@ public class HighlightTraceProcessor : BaseProcessor<Activity>
             });
             return (sessionID, "");
         }
+        
+        public static Logger getLogger()
+        {
+            return _loggerFactory;
+        }
 
         public static void Register()
         {
-           _tracerProvider = Sdk.CreateTracerProviderBuilder()
-                .SetResourceBuilder(ResourceBuilder.CreateDefault().AddAttributes(ResourceAttributes))
-                .AddAspNetInstrumentation(options =>
+            _tracerProvider = Sdk.CreateTracerProviderBuilder()
+                 .SetResourceBuilder(ResourceBuilder.CreateDefault().AddAttributes(ResourceAttributes))
+                 .AddAspNetInstrumentation(options =>
+                 {
+                     options.RecordException = true;
+                     options.EnrichWithHttpRequest = EnrichWithHttpRequest;
+                     options.EnrichWithHttpResponse = EnrichWithHttpResponse;
+                 })
+                 .AddSource(ServiceName)
+                 .AddProcessor(new HighlightTraceProcessor())
+                 .AddOtlpExporter(exporterOptions =>
+                 {
+                     exporterOptions.Endpoint = new Uri(TracesEndpoint);
+                     exporterOptions.Protocol = ExportProtocol;
+                 })
+                 .Build();
+
+            _meterProvider = Sdk.CreateMeterProviderBuilder()
+                .AddMeter(ServiceName)
+                .AddAspNetInstrumentation()
+                .AddOtlpExporter(options =>
                 {
-                    options.RecordException = true;
-                    options.EnrichWithHttpRequest = EnrichWithHttpRequest;
-                    options.EnrichWithHttpResponse = EnrichWithHttpResponse;
-                })
-                .AddSource(ServiceName)
-                .AddProcessor(new HighlightTraceProcessor())
-                .AddOtlpExporter(exporterOptions =>
-                {
-                    exporterOptions.Endpoint = new Uri(TracesEndpoint);
-                    exporterOptions.Protocol = ExportProtocol;
+                    options.Endpoint = new Uri(MetricsEndpoint);
+                    options.Protocol = ExportProtocol;
                 })
                 .Build();
-
-           _meterProvider = Sdk.CreateMeterProviderBuilder()
-               .AddMeter(ServiceName)
-               .AddAspNetInstrumentation()
-               .AddOtlpExporter(options =>
-               {
-                   options.Endpoint = new Uri(MetricsEndpoint);
-                   options.Protocol = ExportProtocol;
-               })
-               .Build();
+            _loggerFactory = new LoggerConfiguration()
+                .Enrich.WithThreadName()
+                .Enrich.WithThreadId()
+                .Enrich.With<HighlightLogEnricher>()
+                .Enrich.FromLogContext()
+                .WriteTo.OpenTelemetry(options =>
+            {
+                options.Endpoint = LogsEndpoint;
+                options.Protocol = SerilogExportProtocol;
+                options.IncludedData =
+                    IncludedData.SpanIdField
+                    | IncludedData.TraceIdField
+                    | IncludedData.MessageTemplateTextAttribute;
+                options.ResourceAttributes = new Dictionary<string, object>
+                {
+                    ["service.name"] = ServiceName,
+                    ["highlight.project_id"] = ProjectId,
+                    ["highlight.session_id"] = IncludedData.SpanIdField,
+                    ["highlight.trace_id"] = IncludedData.TraceIdField
+                };
+                options.BatchingOptions.BatchSizeLimit = 700;
+                options.BatchingOptions.BufferingTimeLimit = TimeSpan.FromSeconds(1);
+                options.BatchingOptions.QueueLimit = 10;
+            })
+         .CreateLogger();
         }
-        
+
         public static void Unregister()
         {
             _tracerProvider.Dispose();
             _meterProvider.Dispose();
+            _loggerFactory.Dispose();
         }
     }
 }
