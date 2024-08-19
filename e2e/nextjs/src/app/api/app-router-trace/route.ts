@@ -1,8 +1,8 @@
 // app/api/app-router-trace/route.ts
-import { NextRequest } from 'next/server'
 import { withAppRouterHighlight } from '@/app/_utils/app-router-highlight.config'
-import { H } from '@highlight-run/next/server'
 import logger from '@/highlight.logger'
+import { H } from '@highlight-run/next/server'
+import { NextRequest } from 'next/server'
 
 export const GET = withAppRouterHighlight(async function GET(
 	request: NextRequest,

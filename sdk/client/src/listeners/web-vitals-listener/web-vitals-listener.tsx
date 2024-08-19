@@ -1,4 +1,4 @@
-import { onCLS, onFCP, onFID, onLCP, onTTFB, onINP, Metric } from 'web-vitals'
+import { Metric, onCLS, onFCP, onFID, onINP, onLCP, onTTFB } from 'web-vitals'
 
 export const WebVitalsListener = (callback: (metric: Metric) => void) => {
 	onCLS(callback)

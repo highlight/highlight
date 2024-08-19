@@ -1,12 +1,12 @@
-import { ApolloServerHighlightPlugin } from './apollo'
-import { gql } from 'apollo-server'
 import { ApolloServer } from '@apollo/server'
 import { startStandaloneServer } from '@apollo/server/standalone'
+import { gql } from 'apollo-server'
 import {
-	startMockOtelServer,
-	getResourceSpans,
 	getOtlpEndpoint,
+	getResourceSpans,
+	startMockOtelServer,
 } from 'mock-otel-server'
+import { ApolloServerHighlightPlugin } from './apollo'
 
 const SESSION_ID = '123456'
 const TRACE_ID = '78910'

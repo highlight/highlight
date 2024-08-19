@@ -1,7 +1,7 @@
 import { NextConfig } from 'next'
 import { Rewrite } from 'next/dist/lib/load-custom-routes'
-import HighlightWebpackPlugin from './highlight-webpack-plugin.js'
 import { WebpackConfigContext } from 'next/dist/server/config-shared'
+import HighlightWebpackPlugin from './highlight-webpack-plugin.js'
 
 interface HighlightConfigOptionsDefault {
 	uploadSourceMaps: boolean

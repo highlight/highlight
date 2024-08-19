@@ -1,8 +1,8 @@
-import { basename, join } from "path";
-import { cwd } from "process";
+import fetch from "cross-fetch";
 import { readFileSync, statSync } from "fs";
 import { globSync } from "glob";
-import fetch from "cross-fetch";
+import { basename, join } from "path";
+import { cwd } from "process";
 
 const VERIFY_API_KEY_QUERY = `
   query ApiKeyToOrgID($api_key: String!) {

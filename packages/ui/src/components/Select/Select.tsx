@@ -1,8 +1,7 @@
 import * as Ariakit from '@ariakit/react'
 import { isEqual } from 'lodash'
 import { matchSorter } from 'match-sorter'
-import React, { useEffect, useMemo, useRef } from 'react'
-import { useState } from 'react'
+import React, { useEffect, useMemo, useRef, useState } from 'react'
 
 import { Badge } from '../Badge/Badge'
 import { Box } from '../Box/Box'

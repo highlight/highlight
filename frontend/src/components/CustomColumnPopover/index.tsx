@@ -8,7 +8,7 @@ import {
 import { useDebouncedValue } from '@hooks/useDebouncedValue'
 import { useParams } from '@util/react-router/useParams'
 import moment from 'moment'
-import React, { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 
 import LoadingBox from '@/components/LoadingBox'
 import { TIME_FORMAT } from '@/components/Search/SearchForm/constants'

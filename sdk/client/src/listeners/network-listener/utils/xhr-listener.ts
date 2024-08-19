@@ -9,7 +9,6 @@ import {
 	shouldNetworkRequestBeRecorded,
 	shouldNetworkRequestBeTraced,
 } from './utils'
-import { getActiveSpan } from '../../../otel'
 
 export interface BrowserXHR extends XMLHttpRequest {
 	_method: string

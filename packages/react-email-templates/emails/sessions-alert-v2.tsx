@@ -1,7 +1,6 @@
 import { Text } from '@react-email/components'
 import * as React from 'react'
 
-import { EmailHtml, HighlightLogo } from '../components/common'
 import {
 	AlertContainer,
 	Break,
@@ -9,9 +8,10 @@ import {
 	Footer,
 	highlightedTextStyle,
 	Subtitle,
-	Title,
 	textStyle,
+	Title,
 } from '../components/alerts'
+import { EmailHtml, HighlightLogo } from '../components/common'
 
 export interface SessionsAlertV2EmailProps {
 	alertName?: string

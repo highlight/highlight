@@ -85,7 +85,7 @@ export const SEARCH_OPERATORS = [
 	...CONTAINS_OPERATOR,
 	...MATCHES_OPERATOR,
 ] as const
-export type SearchOperator = typeof SEARCH_OPERATORS[number]
+export type SearchOperator = (typeof SEARCH_OPERATORS)[number]
 
 type Creatable = {
 	label: string

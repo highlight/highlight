@@ -8,9 +8,9 @@ import {
 	Injectable,
 	NestInterceptor,
 } from '@nestjs/common'
+import api from '@opentelemetry/api'
 import { finalize, Observable, throwError } from 'rxjs'
 import { catchError } from 'rxjs/operators'
-import api from '@opentelemetry/api'
 
 @Injectable()
 export class HighlightLogger

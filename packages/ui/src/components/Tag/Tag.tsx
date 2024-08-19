@@ -4,7 +4,7 @@ import React from 'react'
 
 import { Box } from '../Box/Box'
 import { IconProps } from '../icons'
-import { Props as TextProps, Text } from '../Text/Text'
+import { Text, Props as TextProps } from '../Text/Text'
 import * as styles from './styles.css'
 
 export type Props = ButtonProps &
