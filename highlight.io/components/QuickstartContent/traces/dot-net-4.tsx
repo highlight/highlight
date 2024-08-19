@@ -1,8 +1,8 @@
+import { siteUrl } from '../../../utils/urls'
 import { verifyErrors } from '../backend/shared-snippets'
 import { verifyLogs } from '../logging/shared-snippets'
 import { QuickStartContent } from '../QuickstartContent'
 import { verifyTraces } from './shared-snippets'
-import { siteUrl } from '../../../utils/urls'
 
 export const DotNet4OTLPTracingContent: QuickStartContent = {
 	title: 'Error Monitoring / Logging / Tracing in .NET 4.x via the OpenTelemetry Protocol (OTLP)',
