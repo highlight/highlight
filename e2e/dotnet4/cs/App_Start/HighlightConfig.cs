@@ -55,6 +55,7 @@ public class HighlightTraceProcessor : BaseProcessor<Activity>
         public static readonly string LogsEndpoint = OtlpEndpoint + "/v1/logs";
 
         public static readonly OtlpExportProtocol ExportProtocol = OtlpExportProtocol.HttpProtobuf;
+        public static readonly OtlpProtocol SerilogExportProtocol = OtlpProtocol.HttpProtobuf;
         public static readonly String HighlightHeader = "x-highlight-request";
 
         public static readonly Dictionary<string, object> ResourceAttributes = new Dictionary<string, object>
@@ -196,12 +197,11 @@ public class HighlightTraceProcessor : BaseProcessor<Activity>
                 .WriteTo.OpenTelemetry(options =>
             {
                 options.Endpoint = LogsEndpoint;
-                options.Protocol = OtlpProtocol.HttpProtobuf;
+                options.Protocol = SerilogExportProtocol;
                 options.IncludedData =
                     IncludedData.SpanIdField
                     | IncludedData.TraceIdField
-                    | IncludedData.MessageTemplateTextAttribute
-                    | IncludedData.MessageTemplateMD5HashAttribute;
+                    | IncludedData.MessageTemplateTextAttribute;
                 options.ResourceAttributes = new Dictionary<string, object>
                 {
                     ["service.name"] = ServiceName,
