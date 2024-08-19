@@ -2446,6 +2446,7 @@ type TableConfig struct {
 	AttributesColumn string
 	// AttributesList set when AttributesColumn is an array of k,v pairs of attributes
 	AttributesList bool
+	MetricColumn   *string
 	KeysToColumns  map[string]string
 	ReservedKeys   []string
 	SelectColumns  []string
