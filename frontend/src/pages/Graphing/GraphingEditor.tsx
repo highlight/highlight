@@ -546,6 +546,21 @@ export const GraphingEditor: React.FC = () => {
 								<Divider className="m-0" />
 								<SidebarSection>
 									<LabeledRow
+										label="Source"
+										name="source"
+										tooltip="The resource being queried, one of the four highlight.io resources."
+									>
+										<OptionDropdown<ProductType>
+											options={PRODUCTS}
+											selection={productType}
+											setSelection={setProductType}
+											icons={PRODUCT_ICONS}
+										/>
+									</LabeledRow>
+								</SidebarSection>
+								<Divider className="m-0" />
+								<SidebarSection>
+									<LabeledRow
 										label="View type"
 										name="viewType"
 									>
@@ -581,21 +596,6 @@ export const GraphingEditor: React.FC = () => {
 											}
 										/>
 									)}
-								</SidebarSection>
-								<Divider className="m-0" />
-								<SidebarSection>
-									<LabeledRow
-										label="Source"
-										name="source"
-										tooltip="The resource being queried, one of the four highlight.io resources."
-									>
-										<OptionDropdown<ProductType>
-											options={PRODUCTS}
-											selection={productType}
-											setSelection={setProductType}
-											icons={PRODUCT_ICONS}
-										/>
-									</LabeledRow>
 								</SidebarSection>
 								<Divider className="m-0" />
 								<SidebarSection>
