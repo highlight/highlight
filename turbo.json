@@ -51,7 +51,7 @@
 			"outputs": ["src/graph/generated/**"]
 		},
 		"typegen": {
-			"dependsOn": ["^typegen"],
+			"dependsOn": ["^typegen", "codegen"],
 			"inputs": [
 				"src/**/*.tsx",
 				"src/**/*.ts",
@@ -77,7 +77,7 @@
 			"cache": false
 		},
 		"build": {
-			"dependsOn": ["codegen", "typegen", "^build"],
+			"dependsOn": ["^build", "typegen"],
 			"outputs": [
 				"lib/**",
 				"es/**",
@@ -115,7 +115,7 @@
 			]
 		},
 		"dev": {
-			"dependsOn": ["typegen", "^build"],
+			"dependsOn": ["^build", "typegen"],
 			"env": [
 				"REACT_APP_AUTH_MODE",
 				"REACT_APP_COMMIT_SHA",
