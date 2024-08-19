@@ -1,8 +1,8 @@
+import { siteUrl } from '../../../utils/urls'
 import { verifyErrors } from '../backend/shared-snippets'
 import { verifyLogs } from '../logging/shared-snippets'
 import { QuickStartContent } from '../QuickstartContent'
 import { verifyTraces } from './shared-snippets'
-import { siteUrl } from '../../../utils/urls'
 
 export const DotNet4OTLPTracingContent: QuickStartContent = {
 	title: 'Error Monitoring / Logging / Tracing in .NET 4.x via the OpenTelemetry Protocol (OTLP)',
@@ -75,6 +75,8 @@ export const DotNet4OTLPTracingContent: QuickStartContent = {
 				{
 					text: `dotnet add package OpenTelemetry.Exporter.OpenTelemetryProtocol
 dotnet add package OpenTelemetry.Instrumentation.AspNet			
+dotnet add package Serilog			
+dotnet add package Serilog.Sinks.OpenTelemetry			
 `,
 					language: 'bash',
 				},
@@ -96,10 +98,14 @@ using OpenTelemetry.Exporter;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
+using Serilog;
+using Serilog.Core;
+using Serilog.Events;
+using Serilog.Sinks.OpenTelemetry;
+using System.Linq;
 
 namespace cs
 {
-using System.Linq;
 
 public class HighlightTraceProcessor : BaseProcessor<Activity>
     {
@@ -114,6 +120,18 @@ public class HighlightTraceProcessor : BaseProcessor<Activity>
             base.OnStart(data);
         }
     }
+    
+	public class HighlightLogEnricher : ILogEventEnricher
+    {
+        public void Enrich(LogEvent logEvent, ILogEventPropertyFactory pf)
+        {
+            var ctx = HighlightConfig.GetHighlightContext();
+            foreach (var entry in ctx)
+            {
+                logEvent.AddOrUpdateProperty(pf.CreateProperty(entry.Key, entry.Value));
+            }
+        }
+    }
 
     public class HighlightConfig
     {
@@ -126,8 +144,10 @@ public class HighlightTraceProcessor : BaseProcessor<Activity>
 
         public static readonly String TracesEndpoint = OtlpEndpoint + "/v1/traces";
         public static readonly String MetricsEndpoint = OtlpEndpoint + "/v1/metrics";
+        public static readonly string LogsEndpoint = OtlpEndpoint + "/v1/logs";
 
         public static readonly OtlpExportProtocol ExportProtocol = OtlpExportProtocol.HttpProtobuf;
+        public static readonly OtlpProtocol SerilogExportProtocol = OtlpProtocol.HttpProtobuf;
         public static readonly String HighlightHeader = "x-highlight-request";
 
         public static readonly Dictionary<string, object> ResourceAttributes = new Dictionary<string, object>
@@ -140,6 +160,7 @@ public class HighlightTraceProcessor : BaseProcessor<Activity>
 
         private static TracerProvider _tracerProvider;
         private static MeterProvider _meterProvider;
+        private static Logger _loggerFactory;
 
         public static Dictionary<string, string> GetHighlightContext()
         {
@@ -199,7 +220,7 @@ public class HighlightTraceProcessor : BaseProcessor<Activity>
         private static (string, string) ExtractContext(HttpRequest httpRequest)
         {
             var headerValue = httpRequest.Headers[HighlightHeader];
-            if (headerValue.Length > 0)
+            if (headerValue?.Length > 0)
             {
                 var parts = headerValue.Split('/');
                 if (parts?.Length >= 2)
@@ -224,6 +245,11 @@ public class HighlightTraceProcessor : BaseProcessor<Activity>
                 Expires = DateTimeOffset.Now.AddMinutes(15).DateTime
             });
             return (sessionID, "");
+        }
+        
+        public static Logger getLogger()
+        {
+            return _loggerFactory;
         }
 
         public static void Register()
@@ -254,12 +280,35 @@ public class HighlightTraceProcessor : BaseProcessor<Activity>
                    options.Protocol = ExportProtocol;
                })
                .Build();
+               
+		   _loggerFactory = new LoggerConfiguration()
+                .Enrich.With<HighlightLogEnricher>()
+                .Enrich.FromLogContext()
+                .WriteTo.OpenTelemetry(options =>
+            {
+                options.Endpoint = LogsEndpoint;
+                options.Protocol = SerilogExportProtocol;
+                options.IncludedData =
+                    IncludedData.SpanIdField
+                    | IncludedData.TraceIdField
+                    | IncludedData.MessageTemplateTextAttribute;
+                options.ResourceAttributes = new Dictionary<string, object>
+                {
+                    ["service.name"] = ServiceName,
+                    ["highlight.project_id"] = ProjectId
+                };
+                options.BatchingOptions.BatchSizeLimit = 700;
+                options.BatchingOptions.BufferingTimeLimit = TimeSpan.FromSeconds(1);
+                options.BatchingOptions.QueueLimit = 10;
+            })
+         .CreateLogger();
         }
         
         public static void Unregister()
         {
             _tracerProvider.Dispose();
             _meterProvider.Dispose();
+            _loggerFactory.Dispose();
         }
     }
 }`,
