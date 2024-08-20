@@ -20,7 +20,13 @@ export default defineConfig({
 		target: 'es6',
 		lib: {
 			formats: ['es', 'umd'],
-			entry: resolvePath(__dirname, 'src/index.tsx'),
+			entry: {
+				H: resolvePath(__dirname, 'src/index.tsx'),
+				HighlightSegmentMiddleware: resolvePath(
+					__dirname,
+					'src/integrations/segment.ts',
+				),
+			},
 			name: 'H',
 			fileName: 'index',
 		},

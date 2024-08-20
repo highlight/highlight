@@ -5,6 +5,13 @@
 		<title>unpkg.com highlight.run bundle</title>
 		<script src="https://unpkg.com/highlight.run"></script>
 		<script>
+			console.log('debug', {
+				window,
+				H,
+				HighlightSegmentMiddleware,
+			})
+		</script>
+		<script>
 			// should print console warning
 			H.stop()
 			H.init('1', {
