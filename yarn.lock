@@ -9753,7 +9753,7 @@ __metadata:
     gulp: "npm:^5.0.0"
     gulp-zip: "npm:^6.0.0"
     highlight.run: "workspace:*"
-    prettier: "npm:^3.3.2"
+    prettier: "npm:^3.3.3"
     typescript: "npm:^5.5.2"
     vite: "npm:^5.3.2"
   languageName: unknown
@@ -9792,7 +9792,7 @@ __metadata:
     js-cookie: "npm:^3.0.5"
     json-stringify-safe: "npm:^5.0.1"
     npm-run-all: "npm:^4.1.5"
-    prettier: "npm:^3.1.0"
+    prettier: "npm:^3.3.3"
     rrweb: "workspace:*"
     size-limit: "npm:^8.1.0"
     stacktrace-js: "npm:2.0.2"
@@ -9923,7 +9923,7 @@ __metadata:
     postcss-custom-properties: "npm:^12.1.7"
     postcss-nesting: "npm:^11.2.2"
     postinstall-postinstall: "npm:^2.1.0"
-    prettier: "npm:^2.7.1"
+    prettier: "npm:^3.3.3"
     query-string: "npm:6.14.1"
     randomcolor: "npm:^0.6.2"
     rc-slider: "npm:^10.1.1"
@@ -10007,7 +10007,7 @@ __metadata:
     identity-obj-proxy: "npm:3.0.0"
     jest: "npm:^29.5.0"
     jest-environment-jsdom: "npm:^29.5.0"
-    prettier: "npm:^2.8.7"
+    prettier: "npm:^3.3.3"
     react: "npm:17.0.2"
     react-dom: "npm:17.0.2"
     replace-in-file-webpack-plugin: "npm:^1.0.6"
@@ -34751,7 +34751,7 @@ __metadata:
     pino-http-send: "npm:^0.4.2"
     pino-pretty: "npm:^10.3.1"
     postcss: "npm:^8.4.35"
-    prettier: "npm:^2.8.4"
+    prettier: "npm:^3.3.3"
     prettier-plugin-organize-imports: "npm:^3.2.2"
     pretty-quick: "npm:^3.1.3"
     react: "npm:^18.3.1"
@@ -34836,7 +34836,7 @@ __metadata:
     npm-run-all: "npm:^4.1.5"
     patch-package: "npm:^6.4.7"
     postcss-modules: "npm:^4.3.1"
-    prettier: "npm:^2.7.1"
+    prettier: "npm:^3.3.3"
     pretty-quick: "npm:^3.1.3"
     readdirp: "npm:^3.6.0"
     turbo: "npm:^2.0.6"
@@ -41993,7 +41993,7 @@ __metadata:
     eslint-config-prettier: "npm:^9.0.0"
     eslint-plugin-prettier: "npm:^5.0.0"
     jest: "npm:^29.5.0"
-    prettier: "npm:^3.0.0"
+    prettier: "npm:^3.3.3"
     reflect-metadata: "npm:^0.2.0"
     rxjs: "npm:^7.8.1"
     source-map-support: "npm:^0.5.21"
@@ -45042,7 +45042,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"prettier@npm:^2, prettier@npm:^2.1.2, prettier@npm:^2.7.1, prettier@npm:^2.8.4, prettier@npm:^2.8.7":
+"prettier@npm:^2, prettier@npm:^2.1.2, prettier@npm:^2.7.1":
   version: 2.8.8
   resolution: "prettier@npm:2.8.8"
   bin:
@@ -45051,12 +45051,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"prettier@npm:^3.0.0, prettier@npm:^3.1.0, prettier@npm:^3.1.1, prettier@npm:^3.3.2":
-  version: 3.3.2
-  resolution: "prettier@npm:3.3.2"
+"prettier@npm:^3.1.1, prettier@npm:^3.3.3":
+  version: 3.3.3
+  resolution: "prettier@npm:3.3.3"
   bin:
     prettier: bin/prettier.cjs
-  checksum: 10/83214e154afa5aa9b664c2506640212323eb1376b13379b2413dc351b7de0687629dca3f00ff2ec895ebd7e3a2adb7d7e231b6c77606e2358137f2150807405b
+  checksum: 10/5beac1f30b5b40162532b8e2f7c3a4eb650910a2695e9c8512a62ffdc09dae93190c29db9107fa7f26d1b6c71aad3628ecb9b5de1ecb0911191099be109434d7
   languageName: node
   linkType: hard
 
