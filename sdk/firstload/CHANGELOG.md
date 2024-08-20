@@ -1,5 +1,13 @@
 # highlight.run
 
+## 9.3.1
+
+### Patch Changes
+
+-   262a07314: revert postcss changes to css parsing in rrweb
+    https://github.com/rrweb-io/rrweb/pull/1458 introduced
+    a new CSS parser which causes issues with certain large CSS files
+
 ## 9.3.0
 
 ### Minor Changes
