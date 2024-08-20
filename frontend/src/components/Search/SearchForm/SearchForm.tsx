@@ -880,7 +880,7 @@ export const Search: React.FC<{
 								</Combobox.Item>
 							</Combobox.Group>
 						)}
-						{loading && visibleItems.length === 0 && (
+						{loading && (
 							<Combobox.Group
 								className={styles.comboboxGroup}
 								store={comboboxStore}
