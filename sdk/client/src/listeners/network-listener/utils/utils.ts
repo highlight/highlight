@@ -1,7 +1,7 @@
+import { getActiveSpan } from '../../../otel'
+import { getSessionSecureID } from '../../../utils/sessionStorage/highlightSession'
 import { RequestResponsePair } from './models'
 import { sanitizeResource } from './network-sanitizer'
-import { getSessionSecureID } from '../../../utils/sessionStorage/highlightSession'
-import { getActiveSpan } from '../../../otel'
 
 export const HIGHLIGHT_REQUEST_HEADER = 'X-Highlight-Request'
 

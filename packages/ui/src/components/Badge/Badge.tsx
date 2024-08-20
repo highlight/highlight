@@ -1,7 +1,7 @@
 import React from 'react'
 
 import { Box, BoxProps } from '../Box/Box'
-import { Props as TextProps, Text } from '../Text/Text'
+import { Text, Props as TextProps } from '../Text/Text'
 import * as styles from './styles.css'
 
 export type Props = styles.Variants & {

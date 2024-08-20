@@ -102,7 +102,7 @@ export const MetadataBox = React.memo(() => {
 							keyDisplayValue: 'IP',
 							valueDisplayValue: session?.ip,
 						},
-				  ]
+					]
 				: []),
 			{
 				keyDisplayValue: 'Browser',
@@ -110,7 +110,7 @@ export const MetadataBox = React.memo(() => {
 					session?.browser_name && session?.browser_version
 						? `${session.browser_name} ${getMajorVersion(
 								session.browser_version,
-						  )}`
+							)}`
 						: undefined,
 			},
 			{
@@ -119,7 +119,7 @@ export const MetadataBox = React.memo(() => {
 					session?.os_name && session?.os_version
 						? `${session.os_name} ${getMajorVersion(
 								session.os_version,
-						  )}`
+							)}`
 						: undefined,
 			},
 			{

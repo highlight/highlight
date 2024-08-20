@@ -24,7 +24,7 @@ export const Basic = () => {
 		},
 	})
 	const values = formStore.useState('values')
-	const [priority, setPriority] = useState<typeof PRIORITIES[0]>()
+	const [priority, setPriority] = useState<(typeof PRIORITIES)[0]>()
 
 	useEffect(() => {
 		setTimeout(() => {

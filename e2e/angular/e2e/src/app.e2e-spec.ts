@@ -1,8 +1,8 @@
 import {
 	browser,
-	element,
 	by,
 	ExpectedConditions as EC,
+	element,
 	logging,
 } from 'protractor'
 

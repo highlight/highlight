@@ -57,7 +57,7 @@ export const verifyError: (name: string, code?: string) => QuickStartStep = (
 						language: `js`,
 					},
 				],
-		  }
+			}
 		: []),
 })
 

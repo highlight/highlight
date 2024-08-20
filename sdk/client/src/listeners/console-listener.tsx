@@ -1,7 +1,7 @@
-import { ConsoleMessage } from '../types/shared-types'
-import { ConsoleMethods } from '../types/client'
-import { patch, stringify } from '../utils/utils'
 import ErrorStackParser from 'error-stack-parser'
+import { ConsoleMethods } from '../types/client'
+import { ConsoleMessage } from '../types/shared-types'
+import { patch, stringify } from '../utils/utils'
 
 export type StringifyOptions = {
 	// limit of string length
@@ -120,7 +120,7 @@ export function ConsoleListener(
 								typeof o === 'object'
 									? stringify(o, logOptions.stringifyOptions)
 									: o,
-						  )
+							)
 						: data
 								.filter((o) => typeof o !== 'object')
 								.map((o) => `${o}`)

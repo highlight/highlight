@@ -1,19 +1,18 @@
 import {
+	Request as HighlightRequest,
+	Response as HighlightResponse,
+	RequestResponsePair,
+} from './models'
+import {
 	HIGHLIGHT_REQUEST_HEADER,
 	createNetworkRequestId,
 	getHighlightRequestHeader,
 	shouldNetworkRequestBeRecorded,
 	shouldNetworkRequestBeTraced,
 } from './utils'
-import {
-	Request as HighlightRequest,
-	Response as HighlightResponse,
-	RequestResponsePair,
-} from './models'
 
 import { NetworkListenerCallback } from '../network-listener'
 import { getBodyThatShouldBeRecorded } from './xhr-listener'
-import { getActiveSpan } from '../../../otel'
 
 export interface HighlightFetchWindow extends WindowOrWorkerGlobalScope {
 	_originalFetch: WindowOrWorkerGlobalScope['fetch']

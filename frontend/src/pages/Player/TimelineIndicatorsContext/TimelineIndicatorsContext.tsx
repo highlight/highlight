@@ -88,13 +88,13 @@ export const useTimelineIndicators = (
 											type: r.Type,
 											sid: r.SID,
 											data: r.data,
-										} as Pick<
+										}) as Pick<
 											TimelineIndicatorEvent,
 											| 'timestamp'
 											| 'data'
 											| 'type'
 											| 'sid'
-										>),
+										>,
 								) ?? [],
 							)
 						})

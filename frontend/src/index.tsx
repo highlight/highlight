@@ -1,9 +1,9 @@
 import '@fontsource/poppins'
 import '@highlight-run/ui/styles.css'
+import 'rrweb/dist/style.css'
+import './__generated/antd.css'
 import './index.css'
 import './style/tailwind.css'
-import './__generated/antd.css'
-import 'rrweb/dist/style.css'
 
 import { ApolloError, ApolloProvider } from '@apollo/client'
 import { AuthContextProvider, AuthRole } from '@authentication/AuthContext'
@@ -383,7 +383,7 @@ const AuthenticationRoleRouter = () => {
 		<AuthContextProvider
 			value={{
 				role: authRole,
-				admin: isLoggedIn ? adminData ?? undefined : undefined,
+				admin: isLoggedIn ? (adminData ?? undefined) : undefined,
 				workspaceRole: adminRole || undefined,
 				isAuthLoading,
 				isLoggedIn,

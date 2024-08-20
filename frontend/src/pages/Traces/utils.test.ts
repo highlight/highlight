@@ -105,7 +105,7 @@ const flattenSpans = (spans: any) => {
 						spanID: span.spanID,
 						children: flattenSpans(span.children),
 					},
-			  ]
+				]
 			: [...acc, { spanID: span.spanID }]
 	}, [])
 }

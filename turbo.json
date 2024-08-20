@@ -47,17 +47,16 @@
 			"outputs": ["dist/**"]
 		},
 		"codegen": {
-			"cache": false,
 			"inputs": ["../**/*.gql", "../**/*.graphqls"],
 			"outputs": ["src/graph/generated/**"]
 		},
 		"typegen": {
-			"cache": false,
-			"dependsOn": ["^typegen"],
+			"dependsOn": ["^typegen", "codegen"],
 			"inputs": [
 				"src/**/*.tsx",
 				"src/**/*.ts",
 				"tsconfig.json",
+				"tsconfig.tsbuildinfo",
 				"./**/*.graphqls"
 			],
 			"outputs": [
@@ -78,8 +77,7 @@
 			"cache": false
 		},
 		"build": {
-			"cache": false,
-			"dependsOn": ["codegen", "typegen", "^build"],
+			"dependsOn": ["^build", "typegen"],
 			"outputs": [
 				"lib/**",
 				"es/**",
@@ -117,7 +115,7 @@
 			]
 		},
 		"dev": {
-			"dependsOn": ["typegen", "^build"],
+			"dependsOn": ["^build", "typegen"],
 			"env": [
 				"REACT_APP_AUTH_MODE",
 				"REACT_APP_COMMIT_SHA",

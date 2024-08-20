@@ -39,7 +39,7 @@ export const ErrorSettingsForm = () => {
 											...currentProjectSettings.projectSettings,
 											error_json_paths: paths,
 										},
-								  }
+									}
 								: currentProjectSettings,
 						)
 					}}

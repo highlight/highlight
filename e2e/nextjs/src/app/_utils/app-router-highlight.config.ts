@@ -2,9 +2,9 @@
 
 import { context, propagation, SpanContext, trace } from '@opentelemetry/api'
 
+import { highlightConfig } from '@/instrumentation'
 import { AppRouterHighlight, H, HighlightEnv } from '@highlight-run/next/server'
 import { TraceState } from '@opentelemetry/core'
-import { highlightConfig } from '@/instrumentation'
 
 type HighlightHandler = ReturnType<typeof AppRouterHighlight>
 type HandlerFunction = Parameters<HighlightHandler>[0]

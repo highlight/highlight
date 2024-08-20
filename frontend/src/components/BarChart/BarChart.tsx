@@ -36,7 +36,7 @@ const BarChart = ({
 			{data.map((num, ind) => {
 				const barHeight = num
 					? Math.max((height - 4) * (num / max), 8)
-					: minBarHeight ?? 0
+					: (minBarHeight ?? 0)
 				return (
 					<Tooltip
 						key={ind}

@@ -214,6 +214,7 @@ export const AiSearch: React.FC<Props> = ({ panelView, placeholder }) => {
 					[styles.comboboxWithTags]: displayTags,
 				})}
 				render={
+					// @ts-ignore onPointerEnterCapture, onPointerLeaveCapture ignored by autoresize lib
 					<TextareaAutosize
 						ref={inputRef}
 						style={{

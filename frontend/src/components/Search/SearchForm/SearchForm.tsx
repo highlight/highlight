@@ -85,7 +85,7 @@ export const SEARCH_OPERATORS = [
 	...CONTAINS_OPERATOR,
 	...MATCHES_OPERATOR,
 ] as const
-export type SearchOperator = typeof SEARCH_OPERATORS[number]
+export type SearchOperator = (typeof SEARCH_OPERATORS)[number]
 
 type Creatable = {
 	label: string
@@ -447,7 +447,7 @@ export const Search: React.FC<{
 				({
 					name: operator,
 					type: 'Operator',
-				} as SearchResult),
+				}) as SearchResult,
 		)
 	}
 
@@ -728,6 +728,7 @@ export const Search: React.FC<{
 						[styles.comboboxNotEmpty]: query.length > 0,
 					})}
 					render={
+						// @ts-ignore onPointerEnterCapture, onPointerLeaveCapture ignored by autoresize lib
 						<TextareaAutosize
 							ref={inputRef}
 							style={{ resize: 'none', overflowY: 'hidden' }}
@@ -821,7 +822,7 @@ export const Search: React.FC<{
 											? setAiMode(true)
 											: navigate(
 													`/w/${workspaceId}/harold-ai`,
-											  )
+												)
 									}
 									store={comboboxStore}
 								>

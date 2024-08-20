@@ -1,5 +1,5 @@
-import { redirect } from 'next/navigation'
 import logger from '@/highlight.logger'
+import { redirect } from 'next/navigation'
 
 type Props = {
 	searchParams: { shouldRedirect?: boolean }

@@ -1,6 +1,6 @@
-import type { AppRouter } from '../../../pages/api/trpc/[trpc]'
-import { createTRPCNext } from '@trpc/next'
 import { httpBatchLink } from '@trpc/client'
+import { createTRPCNext } from '@trpc/next'
+import type { AppRouter } from '../../../pages/api/trpc/[trpc]'
 
 // See: https://trpc.io/docs/nextjs/setup#4-create-trpc-hooks
 

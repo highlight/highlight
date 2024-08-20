@@ -3,9 +3,6 @@ import '@highlight-run/ui/styles.css'
 import './index.css'
 
 import { ErrorBoundary } from '@highlight-run/react'
-import React from 'react'
-import { createRoot } from 'react-dom/client'
-import { H } from 'highlight.run'
 import {
   Badge,
   Box,
@@ -21,6 +18,8 @@ import {
   Text,
 } from '@highlight-run/ui/components'
 import { vars } from '@highlight-run/ui/vars'
+import React from 'react'
+import { createRoot } from 'react-dom/client'
 
 document.body.className = 'highlight-light-theme'
 

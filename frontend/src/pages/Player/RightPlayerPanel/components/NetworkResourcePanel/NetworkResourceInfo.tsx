@@ -131,13 +131,13 @@ export const NetworkResourceInfo = ({
 							</>
 						),
 					},
-			  ]),
+				]),
 	]
 
 	const showRequestMetrics =
 		selectedNetworkResource &&
 		REQUEST_INITIATOR_TYPES.indexOf(
-			selectedNetworkResource.initiatorType as typeof REQUEST_INITIATOR_TYPES[number],
+			selectedNetworkResource.initiatorType as (typeof REQUEST_INITIATOR_TYPES)[number],
 		) > -1
 
 	if (selectedNetworkResource?.requestResponsePairs) {
@@ -223,7 +223,7 @@ export const NetworkResourceInfo = ({
 												JSON.stringify(
 													parsedRequestBody[key],
 												),
-										  ),
+											),
 							})
 						}
 					})

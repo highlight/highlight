@@ -26,8 +26,11 @@ import {
 	useUpdateAlertMutation,
 } from '@/graph/generated/hooks'
 import { namedOperations } from '@/graph/generated/operations'
-import { MetricAggregator, ProductType } from '@/graph/generated/schemas'
-import { AlertDestinationInput } from '@/graph/generated/schemas'
+import {
+	AlertDestinationInput,
+	MetricAggregator,
+	ProductType,
+} from '@/graph/generated/schemas'
 import { useProjectId } from '@/hooks/useProjectId'
 import { useSearchTime } from '@/hooks/useSearchTime'
 import { FREQUENCIES } from '@/pages/Alerts/AlertConfigurationCard/AlertConfigurationConstants'

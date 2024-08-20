@@ -7,12 +7,7 @@
 		"plugin:react-hooks/recommended",
 		"plugin:tailwindcss/recommended"
 	],
-	"plugins": [
-		"simple-import-sort",
-		"unused-imports",
-		"import",
-		"tailwindcss"
-	],
+	"plugins": ["unused-imports", "import", "tailwindcss"],
 	"env": {
 		"commonjs": true,
 		"es6": true,
@@ -158,8 +153,6 @@
 					}
 				]
 			}
-		],
-		"simple-import-sort/imports": "error",
-		"simple-import-sort/exports": "error"
+		]
 	}
 }

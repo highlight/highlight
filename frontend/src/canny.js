@@ -18,7 +18,7 @@
 			'complete' === d.readyState
 				? l()
 				: w.attachEvent
-				? w.attachEvent('onload', l)
-				: w.addEventListener('load', l, !1)
+					? w.attachEvent('onload', l)
+					: w.addEventListener('load', l, !1)
 	}
 })(window, document, 'canny-jssdk', 'script')

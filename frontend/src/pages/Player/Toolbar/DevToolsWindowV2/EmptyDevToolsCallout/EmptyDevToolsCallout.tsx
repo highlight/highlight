@@ -54,9 +54,9 @@ export const EmptyDevToolsCallout = ({
 								kind === Tab.Console
 									? 'console messages'
 									: kind === Tab.Network
-									? 'network requests'
-									: kind.toLocaleLowerCase()
-						  }.`
+										? 'network requests'
+										: kind.toLocaleLowerCase()
+							}.`
 				}
 				icon={IconSolidInformationCircle}
 			>
@@ -72,7 +72,7 @@ export const EmptyDevToolsCallout = ({
 							}${
 								!requestStatuses?.includes(RequestStatus.All)
 									? ' with status ' +
-									  buildList(requestStatuses)
+										buildList(requestStatuses)
 									: ''
 							}. `}
 							If you expected to see data here, please make sure{' '}

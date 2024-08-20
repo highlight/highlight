@@ -12,8 +12,12 @@ import {
 	useGetSessionsHistogramQuery,
 	useGetWorkspaceSettingsQuery,
 } from '@graph/hooks'
-import { SavedSegmentEntityType } from '@graph/schemas'
-import { Maybe, ProductType, Session } from '@graph/schemas'
+import {
+	Maybe,
+	ProductType,
+	SavedSegmentEntityType,
+	Session,
+} from '@graph/schemas'
 import {
 	Box,
 	ButtonIcon,

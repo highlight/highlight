@@ -1,7 +1,7 @@
+import { H } from '@highlight-run/nest';
+import { HttpService } from '@nestjs/axios';
 import { Injectable, Logger } from '@nestjs/common';
 import { firstValueFrom } from 'rxjs';
-import { HttpService } from '@nestjs/axios';
-import { H } from '@highlight-run/nest';
 
 @Injectable()
 export class AppService {

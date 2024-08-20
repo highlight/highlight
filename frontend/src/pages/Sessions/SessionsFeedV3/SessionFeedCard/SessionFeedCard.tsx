@@ -348,14 +348,14 @@ export const SessionFeedCard = React.memo(
 											? formatDatetime(
 													session.created_at,
 													configuration.datetimeFormat,
-											  )
+												)
 											: `${new Date(
 													session.created_at,
-											  ).toLocaleString('en-us', {
+												).toLocaleString('en-us', {
 													day: 'numeric',
 													month: 'long',
 													year: 'numeric',
-											  })}`}
+												})}`}
 									</Tag>
 								</Box>
 							</Box>

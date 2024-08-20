@@ -50,11 +50,11 @@ export const ErrorFeedCard = ({ errorGroup, onClick }: Props) => {
 					? {
 							pathname: location.pathname,
 							search: location.search,
-					  }
+						}
 					: {
 							pathname: `/${projectId}/errors/${errorGroup?.secure_id}`,
 							search: location.search,
-					  }
+						}
 			}
 			onClick={onClick}
 		>
