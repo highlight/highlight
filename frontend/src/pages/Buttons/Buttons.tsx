@@ -416,6 +416,7 @@ export const Buttons = () => {
 						className={commonStyles.submitButton}
 						onClick={() => {
 							H.track('thisIsInvalid', {
+								// @ts-expect-error
 								invalidProperty: { nestedProperty: true },
 							})
 						}}
