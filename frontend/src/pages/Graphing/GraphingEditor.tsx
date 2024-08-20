@@ -341,7 +341,7 @@ export const GraphingEditor: React.FC = () => {
 	const [limit, setLimit] = useState(10)
 	const [limitMetric, setLimitMetric] = useState('')
 
-	const [bucketBySetting, setBucketBySetting] = useState(BUCKET_BY_OPTIONS[0])
+	const [bucketBySetting, setBucketBySetting] = useState(BUCKET_BY_OPTIONS[2])
 	const [bucketByKey, setBucketByKey] = useState(TIMESTAMP_KEY)
 	const [bucketCount, setBucketCount] = useState(DEFAULT_BUCKET_COUNT)
 	const [bucketInterval, setBucketInterval] = useState(
@@ -730,7 +730,7 @@ export const GraphingEditor: React.FC = () => {
 									<LabeledRow
 										label="Bucket by"
 										name="bucketBy"
-										tooltip="A numeric field for bucketing results along the X-axis. Timestamp for time series charts, numeric fields for histograms, can be disabled to aggregate all results within the time range."
+										tooltip="The method for determining the bucket sizes - can be a fixed interval or fixed count."
 									>
 										<TagSwitchGroup
 											options={BUCKET_BY_OPTIONS}
@@ -744,24 +744,48 @@ export const GraphingEditor: React.FC = () => {
 										/>
 									</LabeledRow>
 									{bucketBySetting === 'Count' && (
-										<LabeledRow
-											label="Buckets"
-											name="bucketCount"
-											tooltip="The number of X-axis buckets. A higher value will display smaller, more granular buckets."
-										>
-											<Input
-												type="number"
+										<>
+											<LabeledRow
+												label="Bucket field"
+												name="bucketField"
+												tooltip="A numeric field for bucketing results along the X-axis. Timestamp for time series charts, numeric fields for histograms, can be disabled to aggregate all results within the time range."
+											>
+												<Combobox
+													selection={bucketByKey}
+													setSelection={
+														setBucketByKey
+													}
+													label="bucketBy"
+													searchConfig={
+														searchOptionsConfig
+													}
+													defaultKeys={[
+														TIMESTAMP_KEY,
+													]}
+													onlyNumericKeys
+												/>
+											</LabeledRow>
+											<LabeledRow
+												label="Buckets"
 												name="bucketCount"
-												placeholder="Enter bucket count"
-												value={bucketCount}
-												onChange={(e) => {
-													setBucketCount(
-														Number(e.target.value),
-													)
-												}}
-												cssClass={style.input}
-											/>
-										</LabeledRow>
+												tooltip="The number of X-axis buckets. A higher value will display smaller, more granular buckets."
+											>
+												<Input
+													type="number"
+													name="bucketCount"
+													placeholder="Enter bucket count"
+													value={bucketCount}
+													onChange={(e) => {
+														setBucketCount(
+															Number(
+																e.target.value,
+															),
+														)
+													}}
+													cssClass={style.input}
+												/>
+											</LabeledRow>
+										</>
 									)}
 									{bucketBySetting === 'Interval' && (
 										<LabeledRow
