@@ -1,5 +1,14 @@
 # @highlight-run/next
 
+## 7.5.22
+
+### Patch Changes
+
+-   Updated dependencies [262a07314]
+    -   highlight.run@9.3.1
+    -   @highlight-run/node@3.9.0
+    -   @highlight-run/react@5.0.1
+
 ## 7.5.21
 
 ### Patch Changes
