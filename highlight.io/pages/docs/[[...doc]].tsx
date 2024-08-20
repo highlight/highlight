@@ -68,6 +68,13 @@ export interface DocPath {
 	content: string
 }
 
+type DocLink = {
+	metadata: any
+	simple_path: string
+	array_path: string[]
+	hasContent: boolean
+}
+
 type DocData = {
 	markdownText: MDXRemoteSerializeResult | null
 	markdownTextOG?: string
@@ -75,7 +82,7 @@ type DocData = {
 	quickstartContent?: QuickStartContent
 	slug: string
 	toc: TocEntry
-	docOptions: DocPath[]
+	docOptions: DocLink[]
 	metadata?: {
 		title: string
 		metaTitle?: string
@@ -454,7 +461,14 @@ export const getStaticProps: GetStaticProps<DocData> = async (context) => {
 			slug: currentDoc.simple_path,
 			relPath: currentDoc.rel_path,
 			docIndex: currentDocIndex,
-			docOptions: docPaths,
+			docOptions: docPaths.map((d) => {
+				return {
+					metadata: d.metadata,
+					simple_path: d.simple_path,
+					array_path: d.array_path,
+					hasContent: d.content != '',
+				}
+			}),
 			isSdkDoc: currentDoc.isSdkDoc,
 			toc,
 			redirect,
@@ -633,7 +647,7 @@ const TableOfContents = ({
 	toc: TocEntry
 	openParent: boolean
 	openTopLevel?: boolean
-	docPaths: DocPath[]
+	docPaths: DocLink[]
 	onNavigate?: () => void
 }) => {
 	const hasChildren = !!toc?.children.length
@@ -751,7 +765,7 @@ const TableOfContents = ({
 
 const getBreadcrumbs = (
 	metadata: any,
-	docOptions: DocPath[],
+	docOptions: DocLink[],
 	docIndex: number,
 ) => {
 	const trail: { title: string; path: string; hasContent: boolean }[] = [
@@ -772,7 +786,7 @@ const getBreadcrumbs = (
 			trail.push({
 				title: nextBreadcrumb?.metadata?.title,
 				path: `/docs/${nextBreadcrumb?.simple_path}`,
-				hasContent: nextBreadcrumb?.content != '',
+				hasContent: nextBreadcrumb?.hasContent || false,
 			})
 		})
 	}
