@@ -134,7 +134,7 @@ export const SettingsRouter = () => {
 						title: 'Authentication',
 						panelContent: <Auth />,
 					},
-			  ]
+				]
 			: []),
 		...[
 			{
@@ -156,7 +156,7 @@ export const SettingsRouter = () => {
 				? allProjects.map((project) => ({
 						key: project?.id,
 						title: project?.name,
-				  }))
+					}))
 				: [],
 		[allProjects],
 	)

@@ -131,7 +131,7 @@ export const NetworkResourceInfo = ({
 							</>
 						),
 					},
-			  ]),
+				]),
 	]
 
 	const showRequestMetrics =
@@ -223,7 +223,7 @@ export const NetworkResourceInfo = ({
 												JSON.stringify(
 													parsedRequestBody[key],
 												),
-										  ),
+											),
 							})
 						}
 					})

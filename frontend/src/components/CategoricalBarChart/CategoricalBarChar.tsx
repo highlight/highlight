@@ -71,7 +71,7 @@ const CategoricalBarChart = ({
 					(keyName) =>
 						keyName !== xAxisDataKeyName &&
 						keyName !== '__typename',
-			  )
+				)
 			: []
 	const yAxisKeys = allYAxisKeys.slice(0, MAX_LEGEND_ITEMS)
 	const gridColor = 'none'

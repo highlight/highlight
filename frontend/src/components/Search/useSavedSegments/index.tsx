@@ -429,11 +429,11 @@ export const useSavedSegments = ({
 				? {
 						kind: 'primary' as const,
 						emphasis: 'high' as const,
-				  }
+					}
 				: {
 						kind: 'secondary' as const,
 						emphasis: 'medium' as const,
-				  }
+					}
 
 		return (
 			<Menu>

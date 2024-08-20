@@ -215,7 +215,7 @@ export const useGraphCallbacks = (
 				if (e.activeLabel !== undefined && !frozenTooltip) {
 					setRefAreaStart(Number(e.activeLabel))
 				}
-		  }
+			}
 		: undefined
 
 	const onMouseMove = allowDrag
@@ -229,7 +229,7 @@ export const useGraphCallbacks = (
 				if (refAreaStart !== undefined && e.activeLabel !== undefined) {
 					setRefAreaEnd(Number(e.activeLabel))
 				}
-		  }
+			}
 		: undefined
 
 	const onMouseUp = allowDrag
@@ -254,7 +254,7 @@ export const useGraphCallbacks = (
 				}
 				setRefAreaStart(undefined)
 				setRefAreaEnd(undefined)
-		  }
+			}
 		: undefined
 
 	const onMouseLeave = () => {
@@ -1142,7 +1142,7 @@ const Graph = ({
 																idx,
 																key,
 																strokeColors,
-														  )
+															)
 														: undefined,
 												}}
 												cssClass={style.legendDot}

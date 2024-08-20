@@ -537,7 +537,7 @@ const PriceCalculator = ({
 											'Pay-As-You-Go',
 											'Enterprise',
 											'Self-Hosted Enterprise',
-									  ]
+										]
 									: ['']
 							}
 							value={pricingTier.label}
@@ -775,7 +775,7 @@ const CalculatorRowDesktop = ({
 											'6 months',
 											'1 year',
 											'2 years',
-									  ]
+										]
 									: ['30 days']
 							}
 							title="Retention: "

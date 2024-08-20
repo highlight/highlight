@@ -55,13 +55,13 @@ export default function handleRequest(
 				responseStatusCode,
 				responseHeaders,
 				remixContext,
-		  )
+			)
 		: handleBrowserRequest(
 				request,
 				responseStatusCode,
 				responseHeaders,
 				remixContext,
-		  )
+			)
 }
 
 function handleBotRequest(

@@ -57,7 +57,7 @@ export const ErrorFiltersForm = () => {
 												...currentProjectSettings.projectSettings,
 												error_filters: patterns,
 											},
-									  }
+										}
 									: currentProjectSettings,
 							)
 						}}

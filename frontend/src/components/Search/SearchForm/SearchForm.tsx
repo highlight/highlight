@@ -447,7 +447,7 @@ export const Search: React.FC<{
 				({
 					name: operator,
 					type: 'Operator',
-				} as SearchResult),
+				}) as SearchResult,
 		)
 	}
 
@@ -822,7 +822,7 @@ export const Search: React.FC<{
 											? setAiMode(true)
 											: navigate(
 													`/w/${workspaceId}/harold-ai`,
-											  )
+												)
 									}
 									store={comboboxStore}
 								>

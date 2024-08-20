@@ -90,7 +90,7 @@ export const CustomColumnHeader: React.FC<Props> = ({
 				header.showActions
 					? {
 							padding: '6px 4px 6px 8px',
-					  }
+						}
 					: {}
 			}
 			ref={headerRef}

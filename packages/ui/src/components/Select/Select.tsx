@@ -277,7 +277,7 @@ export const Select = <T,>({
 				? matchSorter(matches, searchValue, {
 						keys: ['name', 'value'],
 						threshold: matchSorter.rankings.CASE_SENSITIVE_EQUAL,
-				  }).length > 0
+					}).length > 0
 				: false,
 		[matches, searchValue],
 	)
@@ -352,7 +352,7 @@ export const Select = <T,>({
 								>
 									{option.name}
 								</Option>
-						  ))
+							))
 						: children}
 				</Popover>
 			</Provider>
@@ -406,7 +406,7 @@ const Trigger: React.FC<Omit<SelectProps, 'value' | 'setValue'>> = ({
 						? ({
 								name: option,
 								value: option,
-						  } as SelectOption)
+							} as SelectOption)
 						: option,
 				)
 				.find((option) => optionsMatch(option, value)) as
@@ -835,7 +835,7 @@ const SelectTag: React.FC<{ children: string; value: string | number }> = ({
 				const newValue = Array.isArray(selectValue)
 					? selectValue.filter(
 							(v) => !optionsMatch(v, { name, value }),
-					  )
+						)
 					: ''
 
 				selectStore.setValue(newValue)

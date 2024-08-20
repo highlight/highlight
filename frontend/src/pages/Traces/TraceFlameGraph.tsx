@@ -380,8 +380,8 @@ export const TraceFlameGraph: React.FC = () => {
 							const x = isFirstTick
 								? outsidePadding
 								: isLastTick
-								? tick.x - outsidePadding
-								: tick.x
+									? tick.x - outsidePadding
+									: tick.x
 
 							return (
 								<g
@@ -405,8 +405,8 @@ export const TraceFlameGraph: React.FC = () => {
 											isFirstTick
 												? 'start'
 												: isLastTick
-												? 'end'
-												: 'middle'
+													? 'end'
+													: 'middle'
 										}
 									>
 										{tick.time}

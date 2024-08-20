@@ -258,8 +258,8 @@ export const SnippetTab = () => {
 								tab.key === currentTabKey
 									? '#EBFF5E'
 									: tab.key === currentHoverKey
-									? '#23B6E2'
-									: '#72E4FC'
+										? '#23B6E2'
+										: '#72E4FC'
 							}
 							// @ts-ignore
 							secondaryColor={

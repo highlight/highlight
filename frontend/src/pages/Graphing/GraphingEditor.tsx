@@ -299,8 +299,8 @@ export const GraphingEditor: React.FC = () => {
 				g.bucketInterval
 					? 'Interval'
 					: g.bucketCount
-					? 'Count'
-					: 'None',
+						? 'Count'
+						: 'None',
 			)
 		},
 	})

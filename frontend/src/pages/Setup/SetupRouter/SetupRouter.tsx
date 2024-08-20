@@ -63,16 +63,16 @@ export const SetupRouter = () => {
 		area === 'backend'
 			? serverIntegration
 			: area === 'client'
-			? clientIntegration
-			: area === 'backend-logging'
-			? logsIntegration
-			: area === 'alerts'
-			? alertsIntegration
-			: area === 'team'
-			? teamIntegration
-			: area === 'traces'
-			? tracesIntegration
-			: undefined
+				? clientIntegration
+				: area === 'backend-logging'
+					? logsIntegration
+					: area === 'alerts'
+						? alertsIntegration
+						: area === 'team'
+							? teamIntegration
+							: area === 'traces'
+								? tracesIntegration
+								: undefined
 	const { projectId } = useProjectId()
 	const { data } = useGetProjectQuery({ variables: { id: projectId! } })
 	const projectVerboseId = data?.project?.verbose_id

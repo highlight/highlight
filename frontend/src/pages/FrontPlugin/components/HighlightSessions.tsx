@@ -61,8 +61,8 @@ export function HighlightSessions() {
 	const recipient =
 		frontContext?.type === 'singleConversation'
 			? frontContext?.conversation?.recipient?.name ||
-			  email ||
-			  'recipient'
+				email ||
+				'recipient'
 			: email || 'recipient'
 
 	useEffect(() => {

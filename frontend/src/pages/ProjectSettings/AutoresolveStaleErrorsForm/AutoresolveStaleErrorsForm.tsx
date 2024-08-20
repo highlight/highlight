@@ -26,7 +26,7 @@ export const AutoresolveStaleErrorsForm = () => {
 							...currentProjectSettings.projectSettings,
 							autoResolveStaleErrorsDayInterval: interval,
 						},
-				  }
+					}
 				: currentProjectSettings,
 		)
 	}

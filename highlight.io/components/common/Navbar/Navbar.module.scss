@@ -224,7 +224,9 @@
 	font-weight: 400;
 	font-size: 16px;
 	margin: 0 !important;
-	transition: opacity 0.2s ease, color 0.2s ease;
+	transition:
+		opacity 0.2s ease,
+		color 0.2s ease;
 	cursor: pointer;
 
 	&:hover {
@@ -305,7 +307,9 @@
 	height: 52px;
 	padding-left: var(--size-small);
 	padding-right: var(--size-small);
-	transition: all 0.2s ease, color 0.2s ease;
+	transition:
+		all 0.2s ease,
+		color 0.2s ease;
 	border: 1px solid var(--color-secondary-200);
 	cursor: pointer;
 

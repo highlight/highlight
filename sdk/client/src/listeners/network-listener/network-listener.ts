@@ -62,7 +62,7 @@ export const NetworkListener = ({
 				webSocketRequestCallback,
 				webSocketEventCallback,
 				urlBlocklist,
-		  )
+			)
 		: () => {}
 
 	return () => {

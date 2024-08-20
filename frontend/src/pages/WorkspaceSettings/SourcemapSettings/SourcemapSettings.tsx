@@ -191,8 +191,8 @@ const SourcemapSettings = () => {
 							query.length
 								? 'Nothing to see here'
 								: needToSelectVersion
-								? 'Select a version'
-								: 'No sourcemap data yet 😔'
+									? 'Select a version'
+									: 'No sourcemap data yet 😔'
 						}
 					/>
 				</Card>

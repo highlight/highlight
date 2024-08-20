@@ -302,7 +302,7 @@ const ProductCard = ({
 			? Math.max(
 					Math.min(predictedCostCents, limitCents),
 					currentCostCents,
-			  )
+				)
 			: predictedCostCents
 
 	const totalCostFormatted =
@@ -663,7 +663,7 @@ const UpdatePlanPage = ({
 				? await stripe.redirectToCheckout({
 						sessionId:
 							stripeData.createOrUpdateStripeSubscription ?? '',
-				  })
+					})
 				: { error: 'Error: could not load stripe client.' }
 		})()
 	}
@@ -686,7 +686,7 @@ const UpdatePlanPage = ({
 		(nextBillingDate.getTime() - Date.now()) / (1000 * 3600 * 24),
 	)
 
-	const sessionsUsage = isPaying ? data?.billingDetails.meter ?? 0 : 0
+	const sessionsUsage = isPaying ? (data?.billingDetails.meter ?? 0) : 0
 	const predictedSessionsUsage = Math.ceil(
 		sessionsUsage +
 			daysUntilNextBillingDate *
@@ -715,7 +715,7 @@ const UpdatePlanPage = ({
 	}
 	predictedSessionsCost = Math.max(predictedSessionsCost, actualSessionsCost)
 
-	const errorsUsage = isPaying ? data?.billingDetails.errorsMeter ?? 0 : 0
+	const errorsUsage = isPaying ? (data?.billingDetails.errorsMeter ?? 0) : 0
 	const predictedErrorsUsage = Math.ceil(
 		errorsUsage +
 			daysUntilNextBillingDate *
@@ -744,7 +744,7 @@ const UpdatePlanPage = ({
 	}
 	predictedErrorsCost = Math.max(predictedErrorsCost, actualErrorsCost)
 
-	const logsUsage = isPaying ? data?.billingDetails.logsMeter ?? 0 : 0
+	const logsUsage = isPaying ? (data?.billingDetails.logsMeter ?? 0) : 0
 	const predictedLogsUsage = Math.ceil(
 		logsUsage +
 			daysUntilNextBillingDate *
@@ -773,7 +773,7 @@ const UpdatePlanPage = ({
 	}
 	predictedLogsCost = Math.max(predictedLogsCost, actualLogsCost)
 
-	const tracesUsage = isPaying ? data?.billingDetails.tracesMeter ?? 0 : 0
+	const tracesUsage = isPaying ? (data?.billingDetails.tracesMeter ?? 0) : 0
 	const predictedTracesUsage = Math.ceil(
 		tracesUsage +
 			daysUntilNextBillingDate *

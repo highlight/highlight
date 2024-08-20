@@ -120,7 +120,7 @@ export function ConsoleListener(
 								typeof o === 'object'
 									? stringify(o, logOptions.stringifyOptions)
 									: o,
-						  )
+							)
 						: data
 								.filter((o) => typeof o !== 'object')
 								.map((o) => `${o}`)

@@ -128,7 +128,7 @@ export const useResizePlayer = (
 		? Math.max(
 				playerStyles.MIN_CENTER_COLUMN_WIDTH,
 				centerColumnSize.width ?? 0,
-		  )
+			)
 		: 0
 
 	const resizePlayer = useCallback(

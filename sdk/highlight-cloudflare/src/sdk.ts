@@ -147,12 +147,12 @@ export const H: HighlightInterface = {
 			...(secureSessionId
 				? {
 						['highlight.session_id']: secureSessionId,
-				  }
+					}
 				: {}),
 			...(requestId
 				? {
 						['highlight.trace_id']: requestId,
-				  }
+					}
 				: {}),
 		})
 		for (const t of tags || []) {

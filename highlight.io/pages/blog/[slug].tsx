@@ -82,7 +82,7 @@ const components = {
 										{c.props.children.map
 											? c?.props?.children?.map(
 													(e: any) => e,
-											  )
+												)
 											: c?.props?.children}
 									</li>
 								</ol>
@@ -116,7 +116,7 @@ const components = {
 										{c.props.children.map
 											? c?.props?.children?.map(
 													(e: any) => e,
-											  )
+												)
 											: c?.props?.children}
 									</li>
 								</ul>
@@ -138,7 +138,7 @@ const components = {
 				<HighlightCodeBlock
 					language={
 						props.className
-							? props.className.split('language-').pop() ?? 'js'
+							? (props.className.split('language-').pop() ?? 'js')
 							: 'js'
 					}
 					text={props.children}

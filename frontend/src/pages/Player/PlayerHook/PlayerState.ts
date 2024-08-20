@@ -732,7 +732,7 @@ const processSessionMetadata = (
 							active: interval.active,
 						}
 					},
-			  )
+				)
 			: s.replayer.getActivityIntervals()
 	const sm: playerMetaData = parsedSessionIntervalsData
 		? {
@@ -751,7 +751,7 @@ const processSessionMetadata = (
 						].endTime,
 					).getTime() -
 					new Date(parsedSessionIntervalsData[0].startTime).getTime(),
-		  }
+			}
 		: s.replayer.getMetaData()
 
 	const sessionIntervals = getSessionIntervals(sm, parsedSessionIntervalsData)
@@ -761,7 +761,7 @@ const processSessionMetadata = (
 		s.onSessionPayloadLoadedPayload.timelineIndicatorEvents.length > 0
 			? toHighlightEvents(
 					s.onSessionPayloadLoadedPayload.timelineIndicatorEvents,
-			  )
+				)
 			: events
 	s.sessionIntervals = getCommentsInSessionIntervalsRelative(
 		addEventsToSessionIntervals(
