@@ -61011,7 +61011,6 @@ __metadata:
     "@types/jsdom": "npm:^20.0.0"
     "@types/node": "npm:^18.15.11"
     "@types/puppeteer": "npm:^5.4.4"
-    postcss: "npm:^8.4.38"
     puppeteer: "npm:^17.1.3"
     ts-node: "npm:^7.0.1"
     tslib: "npm:^1.9.3"
