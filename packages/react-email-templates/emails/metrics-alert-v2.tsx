@@ -1,7 +1,6 @@
-import { Column, Text, Row } from '@react-email/components'
+import { Column, Row, Text } from '@react-email/components'
 import * as React from 'react'
 
-import { EmailHtml, HighlightLogo } from '../components/common'
 import {
 	AlertContainer,
 	Break,
@@ -12,6 +11,7 @@ import {
 	textStyle,
 	Title,
 } from '../components/alerts'
+import { EmailHtml, HighlightLogo } from '../components/common'
 
 export interface MetricsAlertV2EmailProps {
 	alertLink?: string

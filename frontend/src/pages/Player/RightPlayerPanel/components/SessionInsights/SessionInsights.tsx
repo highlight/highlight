@@ -116,10 +116,10 @@ const SessionInsights = () => {
 																	relativeTime:
 																		timeSinceStart,
 																},
-														  )
+															)
 														: MillisToMinutesAndSeconds(
 																timeSinceStart,
-														  )}
+															)}
 												</Tag>
 											</Box>
 											<Box overflowWrap="breakWord">

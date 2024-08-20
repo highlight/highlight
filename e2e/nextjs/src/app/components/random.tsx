@@ -1,7 +1,7 @@
 'use client'
 
-import React, { useCallback, useRef, useState } from 'react'
 import { H } from '@highlight-run/next/client'
+import { useCallback, useRef, useState } from 'react'
 
 export const Random = () => {
 	const [value, setValue] = useState<number>(0)

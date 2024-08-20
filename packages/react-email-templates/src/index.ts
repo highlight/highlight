@@ -1,20 +1,20 @@
 import { render } from '@react-email/render'
 import { APIGatewayEvent } from 'aws-lambda'
 import {
+	AlertUpsertEmail,
 	ErrorAlertEmail,
+	ErrorsAlertV2Email,
 	LogAlertEmail,
+	LogsAlertV2Email,
+	MetricsAlertV2Email,
 	NewSessionAlertEmail,
 	NewUserAlertEmail,
 	RageClickAlertEmail,
 	SessionInsightsEmail,
+	SessionsAlertV2Email,
+	TracesAlertV2Email,
 	TrackEventPropertiesAlertEmail,
 	TrackUserPropertiesAlertEmail,
-	SessionsAlertV2Email,
-	ErrorsAlertV2Email,
-	LogsAlertV2Email,
-	TracesAlertV2Email,
-	MetricsAlertV2Email,
-	AlertUpsertEmail,
 } from '../emails'
 
 export const handler = async (event?: APIGatewayEvent) => {

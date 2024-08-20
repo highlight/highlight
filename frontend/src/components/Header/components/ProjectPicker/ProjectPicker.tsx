@@ -48,7 +48,7 @@ const ProjectPicker = () => {
 							isSelected
 								? {
 										backgroundColor: vars.color.n2,
-								  }
+									}
 								: undefined
 						}
 					>
@@ -77,14 +77,14 @@ const ProjectPicker = () => {
 						</Box>
 					</Menu.Item>
 				)
-		  })
+			})
 		: []
 
 	const headerDisplayValue = isWorkspaceLevel
 		? 'Back to Project'
 		: isInDemoProject
-		? DEMO_PROJECT_NAME
-		: currentProject?.name
+			? DEMO_PROJECT_NAME
+			: currentProject?.name
 
 	return (
 		<Box>

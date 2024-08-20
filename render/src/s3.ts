@@ -3,9 +3,9 @@ import {
 	PutObjectCommand,
 	S3Client,
 } from '@aws-sdk/client-s3'
+import { readFileSync, statSync } from 'fs'
 import { Readable } from 'stream'
 import * as zlib from 'zlib'
-import { readFileSync, statSync } from 'fs'
 
 const DATA_BUCKET = 'highlight-session-data'
 const RENDER_BUCKET = 'highlight-session-render'

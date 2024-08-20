@@ -104,7 +104,7 @@ export function hookConsole(
 				const message = options.serializeConsoleAttributes
 					? data.map((o) =>
 							typeof o === 'object' ? safeStringify(o) : o,
-					  )
+						)
 					: data
 							.filter((d) => typeof d !== 'object')
 							.map((o) => `${o}`)

@@ -1,23 +1,23 @@
 import { ConsoleListener } from './console-listener'
 import { ErrorListener } from './error-listener'
 
-import { ConsoleMessage, ErrorMessage } from '../types/shared-types'
-import { ALL_CONSOLE_METHODS, ConsoleMethods } from '../types/client'
+import stringify from 'json-stringify-safe'
 import { ERRORS_TO_IGNORE, ERROR_PATTERNS_TO_IGNORE } from '../constants/errors'
 import { HighlightClassOptions } from '../index'
-import stringify from 'json-stringify-safe'
-import { DEFAULT_URL_BLOCKLIST } from './network-listener/utils/network-sanitizer'
+import { shutdown } from '../otel'
+import { ALL_CONSOLE_METHODS, ConsoleMethods } from '../types/client'
+import { ConsoleMessage, ErrorMessage } from '../types/shared-types'
+import { NetworkListener } from './network-listener/network-listener'
 import {
 	RequestResponsePair,
 	WebSocketEvent,
 	WebSocketRequest,
 } from './network-listener/utils/models'
-import { NetworkListener } from './network-listener/network-listener'
+import { DEFAULT_URL_BLOCKLIST } from './network-listener/utils/network-sanitizer'
 import {
 	matchPerformanceTimingsWithRequestResponsePair,
 	shouldNetworkRequestBeRecorded,
 } from './network-listener/utils/utils'
-import { shutdown } from '../otel'
 
 // Note: This class is used by both firstload and client. When constructed in client, it will match the current
 // codebase. When constructed in firstload, it will match the codebase at the time the npm package was published.

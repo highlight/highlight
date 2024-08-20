@@ -1,8 +1,14 @@
+import * as api from '@opentelemetry/api'
 import {
 	CompositePropagator,
 	W3CBaggagePropagator,
 	W3CTraceContextPropagator,
 } from '@opentelemetry/core'
+import { registerInstrumentations } from '@opentelemetry/instrumentation'
+import { DocumentLoadInstrumentation } from '@opentelemetry/instrumentation-document-load'
+import { FetchInstrumentation } from '@opentelemetry/instrumentation-fetch'
+import { XMLHttpRequestInstrumentation } from '@opentelemetry/instrumentation-xml-http-request'
+import { Resource } from '@opentelemetry/resources'
 import {
 	BatchSpanProcessor,
 	ConsoleSpanExporter,
@@ -11,22 +17,12 @@ import {
 	StackContextManager,
 	WebTracerProvider,
 } from '@opentelemetry/sdk-trace-web'
-import { DocumentLoadInstrumentation } from '@opentelemetry/instrumentation-document-load'
-import { FetchInstrumentation } from '@opentelemetry/instrumentation-fetch'
-import { registerInstrumentations } from '@opentelemetry/instrumentation'
-import { XMLHttpRequestInstrumentation } from '@opentelemetry/instrumentation-xml-http-request'
-import { Resource } from '@opentelemetry/resources'
-import { OTLPTraceExporterBrowserWithXhrRetry } from './exporter'
 import {
 	SEMRESATTRS_DEPLOYMENT_ENVIRONMENT,
 	SEMRESATTRS_SERVICE_NAME,
 } from '@opentelemetry/semantic-conventions'
-import * as api from '@opentelemetry/api'
-import {
-	BrowserXHR,
-	getBodyThatShouldBeRecorded,
-} from '../listeners/network-listener/utils/xhr-listener'
-import type { NetworkRecordingOptions } from '../types/client'
+import { parse } from 'graphql'
+import { getResponseBody } from '../listeners/network-listener/utils/fetch-listener'
 import {
 	DEFAULT_URL_BLOCKLIST,
 	sanitizeHeaders,
@@ -35,8 +31,12 @@ import {
 	shouldNetworkRequestBeRecorded,
 	shouldNetworkRequestBeTraced,
 } from '../listeners/network-listener/utils/utils'
-import { parse } from 'graphql'
-import { getResponseBody } from '../listeners/network-listener/utils/fetch-listener'
+import {
+	BrowserXHR,
+	getBodyThatShouldBeRecorded,
+} from '../listeners/network-listener/utils/xhr-listener'
+import type { NetworkRecordingOptions } from '../types/client'
+import { OTLPTraceExporterBrowserWithXhrRetry } from './exporter'
 import { UserInteractionInstrumentation } from './user-interaction'
 
 export type BrowserTracingConfig = {

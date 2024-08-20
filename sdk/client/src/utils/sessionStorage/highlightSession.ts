@@ -1,6 +1,6 @@
-import { SESSION_STORAGE_KEYS } from './sessionStorageKeys'
-import { cookieStorage, getItem, removeItem, setItem } from '../storage'
 import { SESSION_PUSH_THRESHOLD } from '../../constants/sessions'
+import { cookieStorage, getItem, removeItem, setItem } from '../storage'
+import { SESSION_STORAGE_KEYS } from './sessionStorageKeys'
 
 export type SessionData = {
 	sessionSecureID: string

@@ -1,7 +1,7 @@
+import { HttpModule } from '@nestjs/axios';
 import { Test, TestingModule } from '@nestjs/testing';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
-import { HttpModule } from '@nestjs/axios';
 
 describe('AppController', () => {
   let appController: AppController;

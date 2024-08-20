@@ -148,8 +148,8 @@ export default function ComparisonTable(props: { competitor: Competitor }) {
 											j == 0
 												? 'rounded-tl-lg'
 												: j == section.rows.length - 1
-												? 'rounded-bl-lg'
-												: ''
+													? 'rounded-bl-lg'
+													: ''
 										}`}
 									>
 										{row.highlight == 1 ? (
@@ -181,8 +181,8 @@ export default function ComparisonTable(props: { competitor: Competitor }) {
 											j == 0
 												? 'rounded-tr-lg'
 												: j == section.rows.length - 1
-												? 'rounded-br-lg'
-												: ''
+													? 'rounded-br-lg'
+													: ''
 										}`}
 									>
 										{row.competitor ? (

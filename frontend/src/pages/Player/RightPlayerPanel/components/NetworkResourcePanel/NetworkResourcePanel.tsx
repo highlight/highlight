@@ -273,7 +273,7 @@ function NetworkResourceDetails({
 								? moment(resource.timestamp).format('h:mm:ss A')
 								: MillisToMinutesAndSeconds(
 										resource.relativeStartTime,
-								  )
+									)
 						}
 						size="medium"
 						shape="basic"
@@ -505,7 +505,7 @@ function WebSocketDetails({
 								? moment(resource.timestamp).format('h:mm:ss A')
 								: MillisToMinutesAndSeconds(
 										resource.relativeStartTime,
-								  )
+									)
 						}
 						size="medium"
 						shape="basic"

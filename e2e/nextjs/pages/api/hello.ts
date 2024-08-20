@@ -1,6 +1,6 @@
 // Next.js API route support: https://nextjs.org/docs/api-routes/introduction
-import { logger, withHighlight } from './winston.config'
 import { NextApiRequest, NextApiResponse } from 'next'
+import { logger, withHighlight } from './winston.config'
 
 function handler(req: NextApiRequest, res: NextApiResponse) {
 	const user = {

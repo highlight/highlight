@@ -49,6 +49,9 @@ jobs:
             - name: Install js dependencies
               run: yarn
 
+            - name: Check check for duplicate deps
+              run: yarn dedupe --check
+
             - name: Check generated files for Reflame
               run: yarn reflame-check
 

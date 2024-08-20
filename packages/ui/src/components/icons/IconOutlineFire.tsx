@@ -1,5 +1,3 @@
-import React from 'react'
-
 import { IconProps } from './types'
 
 export const IconOutlineFire = ({ size = '1em', ...props }: IconProps) => {

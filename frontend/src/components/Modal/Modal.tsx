@@ -40,7 +40,7 @@ const Modal: React.FC<React.PropsWithChildren<Props>> = ({
 				paddingBottom: minimalPaddingSize,
 				paddingLeft: minimalPaddingSize,
 				paddingRight: minimalPaddingSize,
-		  }
+			}
 		: {}
 
 	return (

@@ -9,7 +9,9 @@
 	background: #6c37f4;
 	transform-origin: top center;
 	border-bottom: 1px solid var(--accents-2);
-	transition: transform 0.2s ease, height 0.3s ease;
+	transition:
+		transform 0.2s ease,
+		height 0.3s ease;
 	color: var(--text-primary);
 	z-index: 200;
 	line-height: 18px;

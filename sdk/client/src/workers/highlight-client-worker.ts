@@ -1,3 +1,21 @@
+import { compressSync, strToU8 } from 'fflate'
+import { GraphQLClient } from 'graphql-request'
+import stringify from 'json-stringify-safe'
+import { UPLOAD_TIMEOUT } from '../constants/sessions'
+import {
+	getSdk,
+	PushPayloadMutationVariables,
+	Sdk,
+} from '../graph/generated/operations'
+import { ReplayEventsInput } from '../graph/generated/schemas'
+import { Logger } from '../logger'
+import { MetricCategory } from '../types/client'
+import { getGraphQLRequestWrapper } from '../utils/graph'
+import {
+	MAX_PUBLIC_GRAPH_RETRY_ATTEMPTS,
+	NON_SERIALIZABLE_PROPS,
+	PROPERTY_MAX_LENGTH,
+} from './constants'
 import {
 	AsyncEventsMessage,
 	AsyncEventsResponse,
@@ -8,26 +26,7 @@ import {
 	MessageType,
 	MetricsMessage,
 	PropertiesMessage,
-	PropertyType,
 } from './types'
-import stringify from 'json-stringify-safe'
-import {
-	getSdk,
-	PushPayloadMutationVariables,
-	Sdk,
-} from '../graph/generated/operations'
-import { ReplayEventsInput } from '../graph/generated/schemas'
-import { GraphQLClient } from 'graphql-request'
-import { getGraphQLRequestWrapper } from '../utils/graph'
-import {
-	MAX_PUBLIC_GRAPH_RETRY_ATTEMPTS,
-	NON_SERIALIZABLE_PROPS,
-	PROPERTY_MAX_LENGTH,
-} from './constants'
-import { Logger } from '../logger'
-import { MetricCategory } from '../types/client'
-import { compressSync, strToU8 } from 'fflate'
-import { UPLOAD_TIMEOUT } from '../constants/sessions'
 
 export interface HighlightClientRequestWorker {
 	postMessage: (message: HighlightClientWorkerParams) => void

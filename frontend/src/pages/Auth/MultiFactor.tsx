@@ -92,9 +92,8 @@ export const MultiFactor: React.FC<Props> = ({ resolver }) => {
 				const multiFactorAssertion =
 					firebase.auth.PhoneMultiFactorGenerator.assertion(cred)
 
-				const { user } = await resolver.resolveSignIn(
-					multiFactorAssertion,
-				)
+				const { user } =
+					await resolver.resolveSignIn(multiFactorAssertion)
 
 				signIn(user)
 			} catch (error: any) {

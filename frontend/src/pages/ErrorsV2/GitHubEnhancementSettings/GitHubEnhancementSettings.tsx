@@ -101,12 +101,12 @@ export const GitHubEnhancementSettings: React.FC<Props> = ({
 					? {
 							title: 'Manage Integration',
 							to: `/${errorObject.project_id}/integrations`,
-					  }
+						}
 					: {
 							title: 'Connect to GitHub',
 							iconLeft: <IconSolidGithub />,
 							onClick: () => setIntegrationModalVisible(true),
-					  },
+						},
 			] as StepAction[],
 		},
 	]

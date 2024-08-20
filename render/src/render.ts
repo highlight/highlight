@@ -1,10 +1,10 @@
-import { mkdtemp, readFileSync } from 'fs'
-import { promisify } from 'util'
-import path from 'path'
-import { tmpdir } from 'os'
 import chromium from '@sparticuz/chromium'
+import { mkdtemp, readFileSync } from 'fs'
+import { tmpdir } from 'os'
+import path from 'path'
 import puppeteer, { Browser } from 'puppeteer-core'
 import { PuppeteerScreenRecorder } from 'puppeteer-screen-recorder'
+import { promisify } from 'util'
 
 const getHtml = (rrwebStyle: string, rrwebJs: string): string => {
 	return `<html lang="en">

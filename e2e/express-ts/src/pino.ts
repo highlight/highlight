@@ -1,6 +1,5 @@
-import pino from 'pino'
-import { CONSTANTS } from './constants'
 import { H } from '@highlight-run/node'
+import pino from 'pino'
 import { config } from './instrumentation'
 
 export function startPino() {

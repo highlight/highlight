@@ -149,7 +149,7 @@ const EventDetails = React.memo(({ event }: { event: HighlightEvent }) => {
 							? playerTimeToSessionAbsoluteTime({
 									sessionStartTime: sessionMetadata.startTime,
 									relativeTime: timeSinceStart,
-							  })
+								})
 							: MillisToMinutesAndSeconds(timeSinceStart)}
 					</Text>
 				</Tag>

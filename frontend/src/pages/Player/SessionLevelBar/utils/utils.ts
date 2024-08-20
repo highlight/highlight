@@ -70,7 +70,7 @@ export const getBrowserExtensionScriptURLs = (events: HighlightEvent[]) => {
 		src && src.startsWith('chrome-extension://')
 
 	elementEvents.forEach((event) => {
-		const node = event.data.node as any
+		const node = (event.data as { node: any }).node
 		node.childNodes?.forEach((childNode: any) => {
 			childNode.childNodes?.forEach((grandChildNode: any) => {
 				if (

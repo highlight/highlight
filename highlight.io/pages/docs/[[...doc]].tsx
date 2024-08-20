@@ -448,7 +448,7 @@ export const getStaticProps: GetStaticProps<DocData> = async (context) => {
 						mdxOptions: {
 							remarkPlugins: [remarkGfm],
 						},
-				  })
+					})
 				: null,
 			markdownTextOG: newContent,
 			slug: currentDoc.simple_path,
@@ -832,10 +832,10 @@ export default function DocPage({
 					metadata?.metaTitle?.length
 						? metadata?.metaTitle
 						: metadata?.title?.length
-						? metadata?.title === 'Welcome to Highlight'
-							? 'Documentation'
-							: metadata?.title
-						: ''
+							? metadata?.title === 'Welcome to Highlight'
+								? 'Documentation'
+								: metadata?.title
+							: ''
 				}
 				description={description}
 				absoluteImageUrl={`https://${
@@ -959,8 +959,8 @@ export default function DocPage({
 							{metadata?.heading
 								? metadata.heading
 								: metadata?.title
-								? metadata.title
-								: ''}
+									? metadata.title
+									: ''}
 						</h3>
 						{isSdkDoc ? (
 							<DocSection content={markdownTextOG || ''} />
@@ -1051,12 +1051,12 @@ export default function DocPage({
 															<HighlightCodeBlock
 																language={
 																	props.className
-																		? props.className
+																		? (props.className
 																				.split(
 																					'language-',
 																				)
 																				.pop() ??
-																		  'js'
+																			'js')
 																		: 'js'
 																}
 																text={

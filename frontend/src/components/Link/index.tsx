@@ -1,6 +1,6 @@
 import clsx from 'clsx'
 import React from 'react'
-import { Link as ReactRouterLink, LinkProps } from 'react-router-dom'
+import { LinkProps, Link as ReactRouterLink } from 'react-router-dom'
 
 import * as styles from './styles.css'
 
