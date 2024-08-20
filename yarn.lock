@@ -19867,7 +19867,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/minimatch@npm:^3.0.3, @types/minimatch@npm:^3.0.5":
+"@types/minimatch@npm:^3.0.5":
   version: 3.0.5
   resolution: "@types/minimatch@npm:3.0.5"
   checksum: 10/c41d136f67231c3131cf1d4ca0b06687f4a322918a3a5adddc87ce90ed9dbd175a3610adee36b106ae68c0b92c637c35e02b58c8a56c424f71d30993ea220b92
@@ -23254,13 +23254,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"array-differ@npm:^3.0.0":
-  version: 3.0.0
-  resolution: "array-differ@npm:3.0.0"
-  checksum: 10/117edd9df5c1530bd116c6e8eea891d4bd02850fd89b1b36e532b6540e47ca620a373b81feca1c62d1395d9ae601516ba538abe5e8172d41091da2c546b05fb7
-  languageName: node
-  linkType: hard
-
 "array-differ@npm:^4.0.0":
   version: 4.0.0
   resolution: "array-differ@npm:4.0.0"
@@ -23440,7 +23433,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"arrify@npm:^2.0.0, arrify@npm:^2.0.1":
+"arrify@npm:^2.0.0":
   version: 2.0.1
   resolution: "arrify@npm:2.0.1"
   checksum: 10/067c4c1afd182806a82e4c1cb8acee16ab8b5284fbca1ce29408e6e91281c36bb5b612f6ddfbd40a0f7a7e0c75bf2696eb94c027f6e328d6e9c52465c98e4209
@@ -31683,7 +31676,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"execa@npm:4.1.0, execa@npm:^4.0.0":
+"execa@npm:4.1.0":
   version: 4.1.0
   resolution: "execa@npm:4.1.0"
   dependencies:
@@ -34736,7 +34729,6 @@ __metadata:
     graphql: "npm:^16.8.1"
     graphql-request: "npm:^6.1.0"
     gray-matter: "npm:^4.0.3"
-    husky: "npm:^8.0.3"
     js-cookie: "npm:^3.0.5"
     js-yaml: "npm:^4.1.0"
     lodash.debounce: "npm:^4.0.8"
@@ -34753,7 +34745,6 @@ __metadata:
     postcss: "npm:^8.4.35"
     prettier: "npm:^3.3.3"
     prettier-plugin-organize-imports: "npm:^3.2.2"
-    pretty-quick: "npm:^3.1.3"
     react: "npm:^18.3.1"
     react-aria: "npm:^3.20.0"
     react-calendly: "npm:^4.3.0"
@@ -34829,7 +34820,7 @@ __metadata:
     eslint-plugin-jest: "npm:^27.9.0"
     eslint-plugin-tsdoc: "npm:^0.2.17"
     fflate: "npm:^0.8.1"
-    husky: "npm:^8.0.1"
+    husky: "npm:^9.1.4"
     hygen: "npm:^6.2.7"
     knip: "npm:^5.16.0"
     node-gyp: "npm:^10.0.1"
@@ -34837,7 +34828,7 @@ __metadata:
     patch-package: "npm:^6.4.7"
     postcss-modules: "npm:^4.3.1"
     prettier: "npm:^3.3.3"
-    pretty-quick: "npm:^3.1.3"
+    pretty-quick: "npm:^4.0.0"
     readdirp: "npm:^3.6.0"
     turbo: "npm:^2.0.6"
     typescript: "npm:^5.5.2"
@@ -35340,12 +35331,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"husky@npm:^8.0.1, husky@npm:^8.0.3":
-  version: 8.0.3
-  resolution: "husky@npm:8.0.3"
+"husky@npm:^9.1.4":
+  version: 9.1.4
+  resolution: "husky@npm:9.1.4"
   bin:
-    husky: lib/bin.js
-  checksum: 10/b754cf70fdc97c3b60fec5b80056b9c11436464953b1691bf2b5dcf0081fb6685d2c5f47abb8b2b1c49f504aabea5321fdd6496f8b755d9f6e7525a493406abb
+    husky: bin.js
+  checksum: 10/c43aa7cbf98246d4f347bc3da807049555b5003af7c6e1658c5cea44a9743b4d0683c72973a4fe02a4ccceb81031a664ecaa7a1a86efe4d37a80a0af17c988ea
   languageName: node
   linkType: hard
 
@@ -35508,10 +35499,17 @@ __metadata:
   languageName: node
   linkType: hard
 
-"ignore@npm:^5.1.1, ignore@npm:^5.1.4, ignore@npm:^5.1.8, ignore@npm:^5.2.0, ignore@npm:^5.2.4, ignore@npm:^5.3.1":
+"ignore@npm:^5.1.1, ignore@npm:^5.1.8, ignore@npm:^5.2.0, ignore@npm:^5.2.4, ignore@npm:^5.3.1":
   version: 5.3.1
   resolution: "ignore@npm:5.3.1"
   checksum: 10/0a884c2fbc8c316f0b9f92beaf84464253b73230a4d4d286697be45fca081199191ca33e1c2e82d9e5f851f5e9a48a78e25a35c951e7eb41e59f150db3530065
+  languageName: node
+  linkType: hard
+
+"ignore@npm:^5.3.0":
+  version: 5.3.2
+  resolution: "ignore@npm:5.3.2"
+  checksum: 10/cceb6a457000f8f6a50e1196429750d782afce5680dd878aa4221bd79972d68b3a55b4b1458fc682be978f4d3c6a249046aa0880637367216444ab7b014cfc98
   languageName: node
   linkType: hard
 
@@ -41680,7 +41678,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"mri@npm:1.2.0, mri@npm:^1.1.0, mri@npm:^1.1.5, mri@npm:^1.2.0":
+"mri@npm:1.2.0, mri@npm:^1.1.0, mri@npm:^1.2.0":
   version: 1.2.0
   resolution: "mri@npm:1.2.0"
   checksum: 10/6775a1d2228bb9d191ead4efc220bd6be64f943ad3afd4dcb3b3ac8fc7b87034443f666e38805df38e8d047b29f910c3cc7810da0109af83e42c82c73bd3f6bc
@@ -41772,19 +41770,6 @@ __metadata:
     array-union: "npm:^3.0.1"
     minimatch: "npm:^3.0.4"
   checksum: 10/fc438ca94b0322f8bf9e4c3f20e53439fc9ff017674362c879059559688c3c7ba8e5e46c5d66fe69810f595ed40b0131731dffa8202b59face744cd03fc6dea0
-  languageName: node
-  linkType: hard
-
-"multimatch@npm:^4.0.0":
-  version: 4.0.0
-  resolution: "multimatch@npm:4.0.0"
-  dependencies:
-    "@types/minimatch": "npm:^3.0.3"
-    array-differ: "npm:^3.0.0"
-    array-union: "npm:^2.1.0"
-    arrify: "npm:^2.0.1"
-    minimatch: "npm:^3.0.4"
-  checksum: 10/bdb6a98dad4e919d9a1a2a0db872f44fa2337315f2fd5827d91ae005cf22f4425782bdfa97c10b80d567f0cb3c226c31f4e85f8f6a4a4be4facf9af0de1bb0c2
   languageName: node
   linkType: hard
 
@@ -44137,7 +44122,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"picomatch@npm:3.0.1":
+"picomatch@npm:3.0.1, picomatch@npm:^3.0.1":
   version: 3.0.1
   resolution: "picomatch@npm:3.0.1"
   checksum: 10/65ac837fedbd0640586f7c214f6c7481e1e12f41cdcd22a95eb6a2914d1773707ed0f0b5bd2d1e39b5ec7860b43a4c9150152332a3884cd8dd1d419b2a2fa5b5
@@ -45107,21 +45092,22 @@ __metadata:
   languageName: node
   linkType: hard
 
-"pretty-quick@npm:^3.1.3":
-  version: 3.1.3
-  resolution: "pretty-quick@npm:3.1.3"
+"pretty-quick@npm:^4.0.0":
+  version: 4.0.0
+  resolution: "pretty-quick@npm:4.0.0"
   dependencies:
-    chalk: "npm:^3.0.0"
-    execa: "npm:^4.0.0"
-    find-up: "npm:^4.1.0"
-    ignore: "npm:^5.1.4"
-    mri: "npm:^1.1.5"
-    multimatch: "npm:^4.0.0"
+    execa: "npm:^5.1.1"
+    find-up: "npm:^5.0.0"
+    ignore: "npm:^5.3.0"
+    mri: "npm:^1.2.0"
+    picocolors: "npm:^1.0.0"
+    picomatch: "npm:^3.0.1"
+    tslib: "npm:^2.6.2"
   peerDependencies:
-    prettier: ">=2.0.0"
+    prettier: ^3.0.0
   bin:
-    pretty-quick: bin/pretty-quick.js
-  checksum: 10/95fb5df5a1b5168481c4723d9b4313e3632dcd5f5d45bbba1283005f44543e8b7fd32992d61d116116c83ff9745852f2bb6ea4eb92d8f979c877fffb0d50505a
+    pretty-quick: lib/cli.mjs
+  checksum: 10/df92a7ff9a485beb1d47d59c2a2ccb73f753e0133c59e99c56f3ded473fcf75b442fd9e4d53df13fd586c45bbc3e161531bd9d790f7d50f8d0b0a28fbd95c4a3
   languageName: node
   linkType: hard
 
