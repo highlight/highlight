@@ -14,4 +14,4 @@ RUN apk del mono-dev git bash automake autoconf findutils make pkgconf libtool g
 
 ENV FRONTEND_URI="http://localhost:5249/"
 ENV BACKEND_URI="http://localhost:5249/"
-CMD ["xsp4", "--address=0.0.0.0", "--port=5249"]
+CMD ["xsp4", "--address=0.0.0.0", "--port=5249", "--nonstop"]
