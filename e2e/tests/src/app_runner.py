@@ -123,7 +123,6 @@ def run_example_in_docker(example_name: str):
         [
             "docker",
             "run",
-            "--rm",
             "-d",
             "-p",
             f"{frontend_port}:{frontend_port}",
@@ -158,7 +157,14 @@ def run_example_in_docker(example_name: str):
             raise Exception("app not ready")
     finally:
         proc = run(
-            docker_bin, ["docker", "stop", docker_container], cwd=e2e_dir, env=env
+            docker_bin, ["docker", "logs", docker_container], cwd=e2e_dir, env=env
+        )
+        stdout, stderr = proc.communicate()
+        assert not proc.returncode, stderr
+        logging.info("docker container logs: %s, %s", stdout, stderr)
+
+        proc = run(
+            docker_bin, ["docker", "rm", "-f", docker_container], cwd=e2e_dir, env=env
         )
         _, stderr = proc.communicate()
         assert not proc.returncode, stderr
