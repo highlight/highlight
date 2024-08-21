@@ -3,6 +3,7 @@ FROM ${IMAGE_BASE_NAME} AS dotnet-4
 
 WORKDIR /highlight/e2e/dotnet4
 COPY ./dotnet4 .
+WORKDIR /highlight/e2e/dotnet4/cs
 
 RUN apk update && apk add --no-cache build-base
 RUN echo "@testing http://dl-4.alpinelinux.org/alpine/edge/testing" >> /etc/apk/repositories \
@@ -10,4 +11,4 @@ RUN echo "@testing http://dl-4.alpinelinux.org/alpine/edge/testing" >> /etc/apk/
 
 ENV FRONTEND_URI="http://localhost:5249/"
 ENV BACKEND_URI="http://localhost:5249/"
-CMD ["mono", "cs"]
+CMD ["xsp4", "--address=127.0.0.1", "--port=5249"]
