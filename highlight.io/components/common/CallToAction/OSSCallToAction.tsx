@@ -18,21 +18,21 @@ export const OSSCallToAction = () => {
 				<h3 className="text-center leading-normal">
 					Join our{' '}
 					<span className={styles.highlightedText}>
-						Observability in Next.js
+						Fullstack Monitoring for .NET Applications
 					</span>{' '}
 					livestream.
 				</h3>
 				<div className="text-center px-2 md:px-16 mt-6">
 					<Typography type="copy1" className="leading-relaxed">
-						If you’re curious about Evaluating LLMs in Production ,
-						join us on Tuesday, July 2nd at 1pm PDT for a full
-						walkthrough.
+						Join us September 5th at 1pm PDT to learn how to
+						leverage OpenTelemetry to get fullstack visibility into
+						everything happening in your .NET applications.
 					</Typography>
 				</div>
 				<div className="flex justify-center mt-8">
 					<div className="flex flex-col lg:flex-row justify-center gap-4 w-full px-5 md:w-auto">
 						<PrimaryButton
-							href="https://lu.ma/bvnkoy5v"
+							href="https://lu.ma/51zg6p43?utm_source=highlight-oss-cta"
 							target="_blank"
 							rel="noreferrer"
 							className="md:max-w-[180px]"
