@@ -228,6 +228,7 @@ function stringifyProperties(
 				console.warn(
 					`Uploading pushPayload took too long, stopping recording to avoid OOM.`,
 				)
+				// TODO(vkorolik) multiple failures needed
 				clearInterval(int)
 
 				worker.postMessage({
