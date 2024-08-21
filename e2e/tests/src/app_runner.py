@@ -146,11 +146,13 @@ def run_example_in_docker(example_name: str):
     logging.info("started docker container: %s", docker_container)
 
     try:
-        for _ in range(60):
+        for _ in range(180):
             try:
                 r = requests.get(f"http://localhost:{frontend_port}/")
                 if r.ok:
                     break
+                else:
+                    logging.debug('bad response %d: %s', r.status_code, r.text)
             except requests.RequestException:
                 pass
             time.sleep(1)
