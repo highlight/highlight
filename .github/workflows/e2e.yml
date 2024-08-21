@@ -285,5 +285,5 @@ jobs:
                   password: ${{ secrets.DOCKERHUB_TOKEN }}
 
             - name: Start docker containers & run sdk e2e test
-              working-directory: ./e2e/tests
+              working-directory: ./e2e/tests/src
               run: poetry run python app_runner.py
