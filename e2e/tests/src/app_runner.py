@@ -146,7 +146,7 @@ def run_example_in_docker(example_name: str):
     logging.info("started docker container: %s", docker_container)
 
     try:
-        for _ in range(180):
+        for _ in range(60):
             try:
                 r = requests.get(f"http://localhost:{frontend_port}/")
                 if r.ok:
