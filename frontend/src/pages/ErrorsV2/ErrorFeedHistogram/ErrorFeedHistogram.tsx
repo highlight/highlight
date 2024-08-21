@@ -12,13 +12,18 @@ export const ErrorFeedHistogram: React.FC<{
 }> = React.memo(({ readonly }) => {
 	const { project_id } = useParams<{ project_id: string }>()
 
-	const { query, startDate, endDate, histogramBucketSize, updateSearchTime } =
-		useSearchContext()
+	const {
+		initialQuery,
+		startDate,
+		endDate,
+		histogramBucketSize,
+		updateSearchTime,
+	} = useSearchContext()
 
 	const { loading, data } = useGetErrorsHistogramQuery({
 		variables: {
 			params: {
-				query,
+				query: initialQuery,
 				date_range: {
 					start_date: roundFeedDate(
 						startDate!.toISOString(),
