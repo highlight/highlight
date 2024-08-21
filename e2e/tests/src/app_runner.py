@@ -92,7 +92,8 @@ def run_example_in_docker(example_name: str):
         env=env,
         stream=True,
     )
-    assert not proc.returncode
+    _, stderr = proc.communicate()
+    assert not proc.returncode, stderr
 
     proc = run(
         docker_bin,
