@@ -54,7 +54,7 @@ export const SessionsHistogram: React.FC<{ readonly?: boolean }> = React.memo(
 		}>()
 
 		const {
-			query,
+			initialQuery,
 			histogramBucketSize,
 			startDate,
 			endDate,
@@ -65,7 +65,7 @@ export const SessionsHistogram: React.FC<{ readonly?: boolean }> = React.memo(
 			variables: {
 				project_id: project_id!,
 				params: {
-					query,
+					query: initialQuery,
 					date_range: {
 						start_date: roundFeedDate(
 							startDate!.toISOString(),
