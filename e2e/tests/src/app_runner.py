@@ -113,9 +113,11 @@ def run_example_in_docker(example_name: str):
     docker_env = {
         e.split("=", 1)[0]: e.split("=", 1)[1] for e in docker_env.split("\n") if e
     }
+    frontend_uri, backend_uri = (
+        docker_env[key] for key in ("FRONTEND_URI", "BACKEND_URI")
+    )
     backend_port, frontend_port = (
-        docker_env[key].split(":")[-1].split("/")[0]
-        for key in ("FRONTEND_URI", "BACKEND_URI")
+        e.split(":")[-1].split("/")[0] for e in (frontend_uri, backend_uri)
     )
     logging.info("frontend port: %s backend port: %s", backend_port, frontend_port)
 
@@ -148,11 +150,11 @@ def run_example_in_docker(example_name: str):
     try:
         for _ in range(60):
             try:
-                r = requests.get(f"http://localhost:{frontend_port}/")
+                r = requests.get(frontend_uri)
                 if r.ok:
                     break
                 else:
-                    logging.debug('bad response %d: %s', r.status_code, r.text)
+                    logging.debug("bad response %d: %s", r.status_code, r.text)
             except requests.RequestException:
                 pass
             time.sleep(1)

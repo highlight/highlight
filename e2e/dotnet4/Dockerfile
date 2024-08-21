@@ -12,6 +12,6 @@ WORKDIR /highlight/e2e/dotnet4
 COPY ./dotnet4 .
 WORKDIR /highlight/e2e/dotnet4/cs
 
-ENV FRONTEND_URI="http://localhost:5249/"
+ENV FRONTEND_URI="http://localhost:5249/Home"
 ENV BACKEND_URI="http://localhost:5249/"
 CMD ["xsp4", "-v", "--address=0.0.0.0", "--port=5249", "--nonstop", "--printlog", "--loglevels=All"]
