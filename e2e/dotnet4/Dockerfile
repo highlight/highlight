@@ -9,6 +9,6 @@ RUN echo "@testing http://dl-4.alpinelinux.org/alpine/edge/testing" >> /etc/apk/
     && apk add --update mono@testing  \
     && rm -rf /var/cache/apk/*
 
-ENV FRONTEND_URI="http://localhost:5000/"
-ENV BACKEND_URI="http://localhost:5000/"
+ENV FRONTEND_URI="http://localhost:5249/"
+ENV BACKEND_URI="http://localhost:5249/"
 CMD ["mono", "run"]
