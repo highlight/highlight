@@ -201,7 +201,9 @@ export const AdminForm: React.FC = () => {
 			)
 
 			await fetchAdmin() // updates admin in auth context
-			navigate(INVITE_TEAM_ROUTE)
+			navigate(
+				`${INVITE_TEAM_ROUTE}${inWorkspace ? '' : '?new_workspace=1'}`,
+			)
 		} catch (e: any) {
 			if (import.meta.env.DEV) {
 				console.error(e)

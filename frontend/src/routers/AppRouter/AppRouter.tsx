@@ -107,6 +107,7 @@ export const AppRouter = () => {
 	const workspaceId = workspaceMatch?.params.workspace_id
 	const workspaceInviteMatch = useMatch('/w/:workspace_id/invite/:invite')
 	const inviteMatch = useMatch('/invite/:invite')
+	const inviteTeamMatch = useMatch(INVITE_TEAM_ROUTE)
 	const joinWorkspaceMatch = useMatch('/join_workspace')
 	const firebaseMatch = useMatch(FIREBASE_CALLBACK_ROUTE)
 	const isFirebasePage = !!firebaseMatch
@@ -168,6 +169,7 @@ export const AppRouter = () => {
 		if (
 			admin &&
 			!admin.about_you_details_filled &&
+			!inviteTeamMatch &&
 			!isVercelIntegrationFlow &&
 			!isInvitePage &&
 			!isFirebasePage &&
@@ -193,6 +195,7 @@ export const AppRouter = () => {
 		isVercelIntegrationFlow,
 		navigate,
 		inviteCode,
+		inviteTeamMatch,
 		isInvitePage,
 		projectId,
 		isJoinWorkspacePage,
