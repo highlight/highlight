@@ -260,6 +260,15 @@ function stringifyProperties(
 		}, 100)
 		try {
 			await Promise.all([pushPayload, pushMetrics])
+			if (
+				numberOfFailedPushPayloads &&
+				performance.now() - requestStart <= UPLOAD_TIMEOUT
+			) {
+				console.warn(
+					`pushPayload succeeded after #${numberOfFailedPushPayloads} failures, resetting stop switch.`,
+				)
+				numberOfFailedPushPayloads = 0
+			}
 		} finally {
 			requestStart = 0
 			clearInterval(int)
