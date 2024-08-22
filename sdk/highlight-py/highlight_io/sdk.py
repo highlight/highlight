@@ -90,7 +90,7 @@ class H(object):
         disabled_integrations: typing.List[str] = None,
         otlp_endpoint: str = "",
         instrument_logging: bool = True,
-        log_level=logging.DEBUG,
+        log_level=logging.INFO,
         service_name: str = "",
         service_version: str = "",
         environment: str = "",
@@ -430,6 +430,7 @@ class H(object):
             attributes[SpanAttributes.CODE_NAMESPACE] = record.module
             attributes[SpanAttributes.CODE_FILEPATH] = record.pathname
             attributes[SpanAttributes.CODE_LINENO] = record.lineno
+            attributes["logger"] = record.name
             attributes["highlight.trace_id"] = request_id
             attributes["highlight.session_id"] = session_id
             if isinstance(record.args, dict):
@@ -474,7 +475,9 @@ class H(object):
             return
 
         LoggingInstrumentor().instrument(
-            set_logging_format=True, log_hook=self.log_hook, log_level=log_level
+            set_logging_format=True,
+            log_hook=self.log_hook,
+            log_level=log_level,
         )
         otel_factory = logging.getLogRecordFactory()
 
