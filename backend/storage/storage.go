@@ -54,7 +54,7 @@ var (
 const (
 	MIME_TYPE_JSON          = "application/json"
 	CONTENT_ENCODING_BROTLI = "br"
-	MAX_DOWNLOAD_SIZE       = 10 * 1024 * 1024 // 10MB
+	MAX_DOWNLOAD_SIZE       = 32 * 1024 * 1024 // 32GB
 )
 
 type PayloadType string
