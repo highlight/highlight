@@ -223,12 +223,18 @@ module Highlight
       def self.included(base)
         base.extend(ClassMethods)
         base.helper_method(:highlight_headers)
+        base.around_action(:with_highlight_context)
       end
 
       def with_highlight_context(&block)
         set_highlight_headers
-        H.instance.trace(highlight_headers.session_id, highlight_headers.request_id,
-                         name: "#{request.method.upcase} #{request.path}", &block)
+
+        H.instance.trace(
+          highlight_headers.session_id,
+          highlight_headers.request_id,
+          name: "#{request.method.upcase} #{request.path}",
+          &block
+        )
       end
 
       private
@@ -283,6 +289,16 @@ module Highlight
       hex_span_id = span_id&.unpack1('H*') || '0000000000000000'
 
       tag(:meta, name: 'traceparent', content: "00-#{hex_trace_id}-#{hex_span_id}-01")
+    end
+  end
+
+  if defined?(::Rails::Railtie)
+    class Railtie < ::Rails::Railtie
+      config.after_initialize do
+        ActiveSupport.on_load(:action_controller) do
+          include ::Highlight::Integrations::Rails
+        end
+      end
     end
   end
 end
