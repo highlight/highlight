@@ -3,6 +3,7 @@ import { QuickStartContent } from '../../QuickstartContent'
 import { frontendInstallSnippet } from '../shared-snippets'
 import {
 	customError,
+	customTrace,
 	initializeSdk,
 	installSdk,
 	setUpLogging,
@@ -16,23 +17,6 @@ export const RubyRailsContent: QuickStartContent = {
 		frontendInstallSnippet,
 		installSdk,
 		initializeSdk,
-		{
-			title: 'Add the Highlight controller action.',
-			content:
-				'`with_highlight_context` can be used as a Rails `around_action` to wrap any controller actions to automatically record errors.',
-			code: [
-				{
-					text: `require "highlight"
-
-class ApplicationController < ActionController::Base
-  include Highlight::Integrations::Rails
-
-  around_action :with_highlight_context
-end`,
-					language: 'ruby',
-				},
-			],
-		},
 		{
 			title: 'Verify your errors are being recorded.',
 			content:
@@ -49,6 +33,7 @@ end`,
 			],
 		},
 		customError,
+		customTrace,
 		setUpLogging('rails'),
 	],
 }
