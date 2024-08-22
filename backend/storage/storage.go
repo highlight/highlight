@@ -54,6 +54,7 @@ var (
 const (
 	MIME_TYPE_JSON          = "application/json"
 	CONTENT_ENCODING_BROTLI = "br"
+	MAX_DOWNLOAD_SIZE       = 10 * 1024 * 1024 // 10MB
 )
 
 type PayloadType string
@@ -657,6 +658,16 @@ func (s *S3Client) GetRawData(ctx context.Context, sessionId, projectId int, pay
 	for idx, object := range output.Contents {
 		idx := idx
 		object := object
+
+		if object.Size != nil && *object.Size > MAX_DOWNLOAD_SIZE {
+			log.WithContext(ctx).WithFields(log.Fields{
+				"bucket": prefix,
+				"file":   object.Key,
+				"size":   *object.Size,
+			}).Warn("Skipping large s3 file")
+			continue
+		}
+
 		g.Go(func() error {
 			var result []redis.Z
 			output, err := s.S3ClientEast2.GetObject(ctx, &s3.GetObjectInput{
