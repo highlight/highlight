@@ -161,7 +161,7 @@ class H(object):
         )
         self._log_handler = LogHandler(self, level=log_level)
         if instrument_logging:
-            self._instrument_logging()
+            self._instrument_logging(log_level=log_level)
 
         class HighlightSpanProcessor(SpanProcessor):
             def on_start(
@@ -469,12 +469,12 @@ class H(object):
             )
             self.log.emit(r)
 
-    def _instrument_logging(self):
+    def _instrument_logging(self, log_level):
         if H._logging_instrumented:
             return
 
         LoggingInstrumentor().instrument(
-            set_logging_format=True, log_hook=self.log_hook
+            set_logging_format=True, log_hook=self.log_hook, log_level=log_level
         )
         otel_factory = logging.getLogRecordFactory()
 
