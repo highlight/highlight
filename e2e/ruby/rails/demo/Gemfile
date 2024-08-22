@@ -72,6 +72,6 @@ group :test do
   gem 'selenium-webdriver'
 end
 
-gem 'highlight_io', path: '../../../../sdk/highlight-ruby/highlight', require: false
+gem 'highlight_io', path: '../../../../sdk/highlight-ruby/highlight'
 
 gem 'rubocop', '~> 1.65'
