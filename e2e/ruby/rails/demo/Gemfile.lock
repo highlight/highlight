@@ -1,7 +1,7 @@
 PATH
   remote: ../../../../sdk/highlight-ruby/highlight
   specs:
-    highlight_io (0.3.1)
+    highlight_io (0.4.0)
       grpc (~> 1.65)
       opentelemetry-exporter-otlp (~> 0.28.1)
       opentelemetry-instrumentation-all (~> 0.62.1)

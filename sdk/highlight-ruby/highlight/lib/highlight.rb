@@ -18,6 +18,10 @@ module Highlight
     end
   end
 
+  def self.init(project_id, environment: '', otlp_endpoint: OTLP_HTTP, &block)
+    H.new(project_id, environment: environment, otlp_endpoint: otlp_endpoint, &block)
+  end
+
   def self.start_span(name, attrs = {}, &block)
     if block_given?
       H.instance.start_span(name, attrs, &block)
@@ -195,6 +199,8 @@ module Highlight
   end
 
   class Logger < ::Logger
+    include ActiveSupport::LoggerSilence if defined?(::ActiveSupport::LoggerSilence)
+
     def initialize(*args)
       super
       @local_level = nil
@@ -223,12 +229,18 @@ module Highlight
       def self.included(base)
         base.extend(ClassMethods)
         base.helper_method(:highlight_headers)
+        base.around_action(:with_highlight_context)
       end
 
       def with_highlight_context(&block)
         set_highlight_headers
-        H.instance.trace(highlight_headers.session_id, highlight_headers.request_id,
-                         name: "#{request.method.upcase} #{request.path}", &block)
+
+        H.instance.trace(
+          highlight_headers.session_id,
+          highlight_headers.request_id,
+          name: "#{request.method.upcase} #{request.path}",
+          &block
+        )
       end
 
       private
@@ -283,6 +295,16 @@ module Highlight
       hex_span_id = span_id&.unpack1('H*') || '0000000000000000'
 
       tag(:meta, name: 'traceparent', content: "00-#{hex_trace_id}-#{hex_span_id}-01")
+    end
+  end
+
+  if defined?(::Rails::Railtie)
+    class Railtie < ::Rails::Railtie
+      config.after_initialize do
+        ActiveSupport.on_load(:action_controller) do
+          include ::Highlight::Integrations::Rails
+        end
+      end
     end
   end
 end

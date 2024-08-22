@@ -16,7 +16,7 @@ export const RubyRailsLogContent: QuickStartContent = {
 				{
 					text: `require "highlight"
 
-Highlight::H.new("<YOUR_PROJECT_ID>", environment: "production") do |c|
+Highlight.init("<YOUR_PROJECT_ID>", environment: "production") do |c|
   c.service_name = "my-rails-app"
   c.service_version = "git-sha"
 end
