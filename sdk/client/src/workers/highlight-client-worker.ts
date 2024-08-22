@@ -110,6 +110,7 @@ function stringifyProperties(
 	let backend: string
 	let sessionSecureID: string
 	let numberOfFailedRequests: number = 0
+	let numberOfFailedPushPayloads: number = 0
 	let debug: boolean = false
 	let recordingStartTime: number = 0
 	let logger = new Logger(false, '[worker]')
@@ -226,24 +227,35 @@ function stringifyProperties(
 				performance.now() - requestStart > UPLOAD_TIMEOUT
 			) {
 				console.warn(
-					`Uploading pushPayload took too long, stopping recording to avoid OOM.`,
+					`Uploading pushPayload took too long, failure number #${numberOfFailedPushPayloads}.`,
 				)
-				// TODO(vkorolik) multiple failures needed
+				numberOfFailedPushPayloads += 1
 				clearInterval(int)
 
-				worker.postMessage({
-					response: {
-						type: MessageType.Stop,
-						requestStart,
-						asyncEventsResponse: response,
-					},
-				})
+				if (
+					numberOfFailedPushPayloads >=
+					MAX_PUBLIC_GRAPH_RETRY_ATTEMPTS
+				) {
+					console.warn(
+						`Uploading pushPayload took too long, stopping recording to avoid OOM.`,
+					)
 
-				processPropertiesMessage({
-					type: MessageType.Properties,
-					propertiesObject: { stopReason: 'Push Payload Timeout' },
-					propertyType: { type: 'track' },
-				})
+					worker.postMessage({
+						response: {
+							type: MessageType.Stop,
+							requestStart,
+							asyncEventsResponse: response,
+						},
+					})
+
+					processPropertiesMessage({
+						type: MessageType.Properties,
+						propertiesObject: {
+							stopReason: 'Push Payload Timeout',
+						},
+						propertyType: { type: 'track' },
+					})
+				}
 			}
 		}, 100)
 		try {
