@@ -28,6 +28,7 @@ export const RubyOtherContent: QuickStartContent = {
 					text: `require "highlight"
 
 Highlight.start_span('my-span') do
+  span.add_attribute({ key: "value" })
   # your code here
 end`,
 					language: 'ruby',
@@ -36,7 +37,6 @@ end`,
 		},
 		verifyErrors,
 		customError,
-		customTrace,
 		setUpLogging('other'),
 	],
 }

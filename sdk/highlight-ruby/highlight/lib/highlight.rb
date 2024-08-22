@@ -18,6 +18,10 @@ module Highlight
     end
   end
 
+  def self.init(project_id, environment: '', otlp_endpoint: OTLP_HTTP, &block)
+    H.new(project_id, environment: environment, otlp_endpoint: otlp_endpoint, &block)
+  end
+
   def self.start_span(name, attrs = {}, &block)
     if block_given?
       H.instance.start_span(name, attrs, &block)

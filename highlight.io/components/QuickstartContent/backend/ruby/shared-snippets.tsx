@@ -17,12 +17,12 @@ bundle install`,
 export const initializeSdk: QuickStartStep = {
 	title: 'Initialize the Highlight Ruby SDK.',
 	content:
-		"`Highlight::H.new` initializes the SDK and allows you to call the singleton `Highlight`. Setting your project ID also lets Highlight record errors for background tasks and processes that aren't associated with a frontend session.",
+		"`Highlight.init` initializes the SDK. Setting your project ID also lets Highlight record errors for background tasks and processes that aren't associated with a frontend session.",
 	code: [
 		{
 			text: `require "highlight"
 
-Highlight::H.new("<YOUR_PROJECT_ID>", environment: "production") do |c|
+Highlight.init("<YOUR_PROJECT_ID>", environment: "production") do |c|
   c.service_name = "my-app"
   c.service_version = "1.0.0"
 end`,
