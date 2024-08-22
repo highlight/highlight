@@ -195,6 +195,10 @@ module Highlight
   end
 
   class Logger < ::Logger
+    if defined?(::ActiveSupport::LoggerSilence)
+      include ActiveSupport::LoggerSilence
+    end
+
     def initialize(*args)
       super
       @local_level = nil
