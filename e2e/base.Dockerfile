@@ -1,4 +1,4 @@
-FROM --platform=$BUILDPLATFORM python:bullseye
+FROM --platform=$BUILDPLATFORM python:bookworm
 
 WORKDIR /highlight
 RUN python -m pip install -U pip setuptools
