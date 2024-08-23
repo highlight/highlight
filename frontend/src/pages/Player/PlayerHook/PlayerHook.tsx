@@ -544,6 +544,7 @@ export const usePlayer = (
 						span.setAttribute('action', 'pause')
 						dispatch({ type: PlayerActionType.setTime, time })
 
+						// spenny: is this not performant?
 						await ensureChunksLoaded(
 							time,
 							undefined,

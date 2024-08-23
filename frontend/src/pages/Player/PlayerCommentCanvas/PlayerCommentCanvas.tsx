@@ -60,12 +60,13 @@ const PlayerCommentCanvas = ({
 		Coordinates2D | undefined
 	>(undefined)
 
+	const searchParams = new URLSearchParams(location.search)
+	const commentId = searchParams.get(PlayerSearchParameters.commentId)
+	const hasMuted = searchParams.get(PlayerSearchParameters.muted) === '1'
+
 	const [muteSessionCommentThread] = useMuteSessionCommentThreadMutation()
 
 	useEffect(() => {
-		const searchParams = new URLSearchParams(location.search)
-		const commentId = searchParams.get(PlayerSearchParameters.commentId)
-
 		if (commentId) {
 			// Show comments on the timeline indicators if deep linked.
 			if (!selectedTimelineAnnotationTypes.includes('Comments')) {
@@ -75,7 +76,7 @@ const PlayerCommentCanvas = ({
 				])
 			}
 		}
-		const hasMuted = searchParams.get(PlayerSearchParameters.muted) === '1'
+		
 
 		if (commentId && hasMuted) {
 			muteSessionCommentThread({
@@ -92,9 +93,8 @@ const PlayerCommentCanvas = ({
 				toast.success('Muted notifications for the comment thread.')
 			})
 		}
-
 		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [location.search])
+	}, [commentId, hasMuted])
 
 	// Set size of the button to be the same as the replayer. This allows us to intercept any clicks on replayer.
 	const width = replayer?.wrapper.getBoundingClientRect().width

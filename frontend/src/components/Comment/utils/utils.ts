@@ -70,7 +70,7 @@ export const useNavigateToComment = (comment: ParsedSessionComment) => {
 
 	return () => {
 		const urlSearchParams = new URLSearchParams(window.location.search)
-		urlSearchParams.append(PlayerSearchParameters.commentId, comment?.id)
+		urlSearchParams.set(PlayerSearchParameters.commentId, comment?.id)
 
 		navigate(`${location.pathname}?${urlSearchParams.toString()}`, {
 			replace: true,
