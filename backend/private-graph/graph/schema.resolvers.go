@@ -5817,7 +5817,11 @@ func (r *queryResolver) Resources(ctx context.Context, sessionSecureID string) (
 	}
 
 	resourceSize := size.Of(resources)
-	log.WithContext(ctx).WithField("size", resourceSize).Info("[Resourses] Fetched resources size")
+	log.WithContext(ctx).WithFields(
+		log.Fields{
+			"size":            resourceSize,
+			"sessionSecureID": sessionSecureID,
+		}).Info("[Resources] Fetched resources size")
 
 	if resourceSize > MaxDownloadSize {
 		return nil, fmt.Errorf("resource size (%v) exceeds max download size", resourceSize)
