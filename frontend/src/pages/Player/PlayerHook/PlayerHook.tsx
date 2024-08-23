@@ -545,14 +545,14 @@ export const usePlayer = (
 						dispatch({ type: PlayerActionType.setTime, time })
 
 						// spenny: is this not performant?
-						await ensureChunksLoaded(
-							time,
-							undefined,
-							ReplayerState.Paused,
-						).then(() => {
-							span.end()
-							r()
-						})
+						// await ensureChunksLoaded(
+						// 	time,
+						// 	undefined,
+						// 	ReplayerState.Paused,
+						// ).then(() => {
+						// 	span.end()
+						// 	r()
+						// })
 					})
 				} else {
 					dispatch({ type: PlayerActionType.pause })
