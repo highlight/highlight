@@ -180,12 +180,10 @@ if __name__ == "__main__":
     apps = [
         "dotnet",
         "dotnet4",
-        "express",
-        "express-ts",
-        # "go",
-        # "nextjs",
-        # "python",
-        # "ruby",
+        "go",
+        "nextjs",
+        "python",
+        "ruby",
     ]
     for app in apps:
         run_example_in_docker(app)
