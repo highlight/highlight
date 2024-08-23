@@ -1,4 +1,5 @@
-FROM --platform=$BUILDPLATFORM python:bookworm
+ARG IMAGE_BASE_NAME="ghcr.io/highlight/sdk:latest"
+FROM ${IMAGE_BASE_NAME}
 
 WORKDIR /highlight
 RUN python -m pip install -U pip setuptools

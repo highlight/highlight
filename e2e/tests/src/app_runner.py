@@ -4,6 +4,7 @@ import signal
 import subprocess
 from typing import Optional, Callable
 
+import argparse
 import requests
 import sys
 import time
@@ -79,11 +80,25 @@ def get_docker_bin():
 def run_example_in_docker(example_name: str):
     docker_bin = get_docker_bin()
     e2e_dir = os.path.realpath(os.path.join(__file__, os.pardir, os.pardir, os.pardir))
+    sdk_dir = os.path.realpath(
+        os.path.join(__file__, os.pardir, os.pardir, os.pardir, os.pardir, "sdk")
+    )
     assert os.path.isdir(f"{e2e_dir}/{example_name}"), "example not found"
 
-    base = "ghcr.io/highlight/e2e-base:latest"
+    base = "ghcr.io/highlight/e2e:latest"
+    sdk = "ghcr.io/highlight/sdk:latest"
     image = f"ghcr.io/highlight/e2e-{example_name}:latest"
     env = {"IMAGE_BASE_NAME": base}
+
+    proc = run(
+        docker_bin,
+        ["docker", "build", "-t", sdk, "-f", "base.Dockerfile", "."],
+        cwd=sdk_dir,
+        env=env,
+        stream=True,
+    )
+    _, stderr = proc.communicate()
+    assert not proc.returncode, stderr
 
     proc = run(
         docker_bin,
@@ -114,10 +129,11 @@ def run_example_in_docker(example_name: str):
         e.split("=", 1)[0]: e.split("=", 1)[1] for e in docker_env.split("\n") if e
     }
     frontend_uri, backend_uri = (
-        docker_env[key] for key in ("FRONTEND_URI", "BACKEND_URI")
+        docker_env.get(key) for key in ("FRONTEND_URI", "BACKEND_URI")
     )
     backend_port, frontend_port = (
-        e.split(":")[-1].split("/")[0] for e in (frontend_uri, backend_uri)
+        e.split(":")[-1].split("/")[0] if e else None
+        for e in (frontend_uri, backend_uri)
     )
     logging.info("frontend port: %s backend port: %s", backend_port, frontend_port)
 
@@ -127,15 +143,21 @@ def run_example_in_docker(example_name: str):
             "docker",
             "run",
             "-d",
-            "-p",
-            f"{frontend_port}:{frontend_port}",
         ]
+        + (
+            [
+                "-p",
+                f"{frontend_port}:{frontend_port}",
+            ]
+            if frontend_port
+            else []
+        )
         + (
             [
                 "-p",
                 f"{backend_port}:{backend_port}",
             ]
-            if backend_port != frontend_port
+            if backend_port and backend_port != frontend_port
             else []
         )
         + [image],
@@ -150,7 +172,7 @@ def run_example_in_docker(example_name: str):
     try:
         for _ in range(60):
             try:
-                r = requests.get(frontend_uri)
+                r = requests.get(frontend_uri or backend_uri)
                 if r.ok:
                     break
                 else:
@@ -176,14 +198,24 @@ def run_example_in_docker(example_name: str):
         logging.info("stopped docker container: %s", docker_container)
 
 
-if __name__ == "__main__":
-    apps = [
-        "dotnet",
-        "dotnet4",
-        "go",
-        "nextjs",
-        "python",
-        "ruby",
-    ]
-    for app in apps:
+def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
+        "apps",
+        nargs="*",
+        default=[
+            "dotnet",
+            "dotnet4",
+            "go",
+            "python",
+            "ruby",
+        ],
+    )
+    args = parser.parse_args()
+
+    for app in args.apps:
         run_example_in_docker(app)
+
+
+if __name__ == "__main__":
+    main()

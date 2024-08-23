@@ -1,4 +1,4 @@
-ARG IMAGE_BASE_NAME="ghcr.io/highlight/e2e-base:latest"
+ARG IMAGE_BASE_NAME="ghcr.io/highlight/e2e:latest"
 FROM ${IMAGE_BASE_NAME}
 
 WORKDIR /opt/dotnet

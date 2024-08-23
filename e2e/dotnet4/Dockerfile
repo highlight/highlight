@@ -1,4 +1,4 @@
-ARG IMAGE_BASE_NAME="ghcr.io/highlight/e2e-base:latest"
+ARG IMAGE_BASE_NAME="ghcr.io/highlight/e2e:latest"
 FROM ${IMAGE_BASE_NAME}
 
 RUN gpg --homedir /tmp --no-default-keyring --keyring /usr/share/keyrings/mono-official-archive-keyring.gpg --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys 3FA7E0328081BFF6A14DA29AA6A19B38D3D831EF

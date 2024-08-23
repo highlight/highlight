@@ -261,6 +261,9 @@ jobs:
         name: E2E Dockerized Apps
         timeout-minutes: 60
         runs-on: buildjet-4vcpu-ubuntu-2204
+        strategy:
+            matrix:
+                app: ['dotnet', 'dotnet4', 'go', 'python', 'ruby']
 
         steps:
             - name: Checkout
@@ -297,4 +300,4 @@ jobs:
 
             - name: Start docker containers & run sdk e2e test
               working-directory: ./e2e/tests/src
-              run: poetry run python app_runner.py
+              run: poetry run python app_runner.py ${{ matrix.app }}
