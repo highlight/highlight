@@ -1,6 +1,4 @@
-FROM --platform=$BUILDPLATFORM python:alpine
-
-RUN apk update && apk add --no-cache build-base
+FROM --platform=$BUILDPLATFORM python:bookworm
 
 WORKDIR /highlight
 RUN python -m pip install -U pip setuptools
