@@ -1,5 +1,5 @@
 ARG IMAGE_BASE_NAME="ghcr.io/highlight/e2e-base:latest"
-FROM ${IMAGE_BASE_NAME} AS dotnet-8
+FROM ${IMAGE_BASE_NAME}
 
 WORKDIR /opt/dotnet
 RUN apt update && apt install -y build-essential wget libc6 libgcc1 libgssapi-krb5-2 libstdc++6 zlib1g
