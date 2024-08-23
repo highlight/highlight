@@ -42,6 +42,18 @@ const COMMON_EMAIL_PROVIDERS = [
 	'fastmail',
 	'protonmail',
 	'hey.com',
+	'aol',
+	'msn',
+	'wanadoo',
+	'orange',
+	'qq.com',
+	'icloud',
+	'live.com',
+	'me.com',
+	'proton.me',
+	'duck.com',
+	'mail.ru',
+	'163.com',
 ] as const
 
 export const InviteTeamForm: React.FC = () => {
