@@ -866,30 +866,30 @@ export const usePlayer = (
 	}, [onFrame])
 
 	// "Subscribes" the time with the Replayer when the Player is playing.
-	useEffect(() => {
-		if (
-			(state.replayerState === ReplayerState.Playing ||
-				state.isLiveMode) &&
-			!animationFrameID.current
-		) {
-			animationFrameID.current = requestAnimationFrame(frameAction)
-		} else if (
-			!(state.replayerState === ReplayerState.Playing || state.isLiveMode)
-		) {
-			cancelAnimationFrame(animationFrameID.current)
-			animationFrameID.current = 0
-		}
-		return () => {
-			cancelAnimationFrame(animationFrameID.current)
-			animationFrameID.current = 0
-		}
-	}, [
-		frameAction,
-		sessionSecureId,
-		state.isLiveMode,
-		state.replayer,
-		state.replayerState,
-	])
+	// useEffect(() => {
+	// 	if (
+	// 		(state.replayerState === ReplayerState.Playing ||
+	// 			state.isLiveMode) &&
+	// 		!animationFrameID.current
+	// 	) {
+	// 		animationFrameID.current = requestAnimationFrame(frameAction)
+	// 	} else if (
+	// 		!(state.replayerState === ReplayerState.Playing || state.isLiveMode)
+	// 	) {
+	// 		cancelAnimationFrame(animationFrameID.current)
+	// 		animationFrameID.current = 0
+	// 	}
+	// 	return () => {
+	// 		cancelAnimationFrame(animationFrameID.current)
+	// 		animationFrameID.current = 0
+	// 	}
+	// }, [
+	// 	frameAction,
+	// 	sessionSecureId,
+	// 	state.isLiveMode,
+	// 	state.replayer,
+	// 	state.replayerState,
+	// ])
 
 	useEffect(() => {
 		setPlayerTimeToPersistance(state.time)

@@ -212,14 +212,14 @@ export const NetworkPage = ({
 
 	useLayoutEffect(() => {
 		if (autoScroll && state === ReplayerState.Playing) {
-			scrollFunction(currentResourceIdx)
+			// scrollFunction(currentResourceIdx)
 		}
 	}, [currentResourceIdx, scrollFunction, autoScroll, state])
 
 	useLayoutEffect(() => {
 		// scroll network events on player timeline click
 		if (autoScroll && state === ReplayerState.Paused) {
-			scrollFunction(currentResourceIdx)
+			// scrollFunction(currentResourceIdx)
 		}
 	}, [autoScroll, currentResourceIdx, scrollFunction, state, time])
 
