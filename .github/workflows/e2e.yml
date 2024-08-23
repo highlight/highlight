@@ -11,7 +11,7 @@ jobs:
     e2e-cypress:
         name: E2E Client Cypress
         timeout-minutes: 60
-        runs-on: buildjet-4vcpu-ubuntu-2204
+        runs-on: codebuild-highlight-github-actions-runner-${{ github.run_id }}-${{ github.run_attempt }}
 
         steps:
             - name: Checkout
@@ -154,7 +154,7 @@ jobs:
     e2e-frontend-backend:
         name: E2E Frontend / Backend
         timeout-minutes: 60
-        runs-on: buildjet-4vcpu-ubuntu-2204
+        runs-on: codebuild-highlight-github-actions-runner-${{ github.run_id }}-${{ github.run_attempt }}
 
         steps:
             - name: Checkout
@@ -260,7 +260,7 @@ jobs:
     e2e-docker:
         name: E2E Dockerized Apps
         timeout-minutes: 60
-        runs-on: buildjet-4vcpu-ubuntu-2204
+        runs-on: codebuild-highlight-github-actions-runner-${{ github.run_id }}-${{ github.run_attempt }}
         strategy:
             matrix:
                 app: ['dotnet', 'dotnet4', 'go', 'python', 'ruby']
