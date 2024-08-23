@@ -89,7 +89,7 @@ export const InviteTeamForm: React.FC = () => {
 
 	const formStore = Form.useStore({
 		defaultValues: {
-			autoJoinDomain: true,
+			autoJoinDomain: false,
 			inviteEmails: '',
 			numTeamEmails: 1,
 		},
