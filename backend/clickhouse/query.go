@@ -771,10 +771,11 @@ func (client *Client) ReadMetrics(ctx context.Context, input ReadMetricsInput) (
 		return nil, err
 	}
 
-	fieldsToLoad := []string{"email", "device_id"}
+	// Base fields for sessions queries, needed if body filter is used - should clean this up, maybe make these top-level?
+	attributeFields := []string{"email", "device_id"}
 	for _, f := range filters {
-		if f.Column == config.AttributesColumn && f.Key != "" {
-			fieldsToLoad = append(fieldsToLoad, f.Key)
+		if f.Column == config.AttributesColumn {
+			attributeFields = append(attributeFields, f.Key)
 		}
 	}
 
@@ -783,7 +784,7 @@ func (client *Client) ReadMetrics(ctx context.Context, input ReadMetricsInput) (
 	var col string
 	if col = keysToColumns[strings.ToLower(input.Column)]; col == "" {
 		col = getAttributeFilterCol(input.SampleableConfig, fromSb.Var(input.Column), "")
-		fieldsToLoad = append(fieldsToLoad, input.Column)
+		attributeFields = append(attributeFields, input.Column)
 	}
 	var metricExpr = col
 	if !isCountDistinct {
@@ -808,7 +809,7 @@ func (client *Client) ReadMetrics(ctx context.Context, input ReadMetricsInput) (
 		}
 		if metricType == modelInputs.MetricAggregatorCountDistinctKey {
 			metricExpr = getAttributeFilterCol(input.SampleableConfig, highlight.TraceKeyAttribute, "")
-			fieldsToLoad = append(fieldsToLoad, highlight.TraceKeyAttribute)
+			attributeFields = append(attributeFields, highlight.TraceKeyAttribute)
 			config.DefaultFilter = ""
 		}
 	}
@@ -822,7 +823,7 @@ func (client *Client) ReadMetrics(ctx context.Context, input ReadMetricsInput) (
 			bucketExpr = fmt.Sprintf("toFloat64(%s)", col)
 		} else {
 			bucketExpr = getAttributeFilterCol(input.SampleableConfig, fromSb.Var(input.BucketBy), "toFloat64OrNull")
-			fieldsToLoad = append(fieldsToLoad, input.BucketBy)
+			attributeFields = append(attributeFields, input.BucketBy)
 		}
 	}
 
@@ -859,7 +860,7 @@ func (client *Client) ReadMetrics(ctx context.Context, input ReadMetricsInput) (
 			groupCol = fmt.Sprintf("toString(%s)", col)
 		} else {
 			groupCol = getAttributeFilterCol(input.SampleableConfig, fromSb.Var(group), "toString")
-			fieldsToLoad = append(fieldsToLoad, group)
+			attributeFields = append(attributeFields, group)
 		}
 		selectCols = append(selectCols, fromSb.As(groupCol, fmt.Sprintf("g%d", idx)))
 	}
@@ -899,7 +900,7 @@ func (client *Client) ReadMetrics(ctx context.Context, input ReadMetricsInput) (
 		if topCol, found := keysToColumns[col]; found {
 			col = topCol
 		} else {
-			fieldsToLoad = append(fieldsToLoad, col)
+			attributeFields = append(attributeFields, col)
 			col = getAttributeFilterCol(input.SampleableConfig, innerSb.Var(col), "toFloat64OrNull")
 		}
 		limitFn = getFnStr(*input.LimitAggregator, col, false, false)
@@ -915,7 +916,7 @@ func (client *Client) ReadMetrics(ctx context.Context, input ReadMetricsInput) (
 				Where(joinSb.In("ProjectID", input.ProjectIDs)).
 				Where(joinSb.GreaterEqualThan("SessionCreatedAt", startTimestamp)).
 				Where(joinSb.LessEqualThan("SessionCreatedAt", endTimestamp)).
-				Where(joinSb.In("Name", fieldsToLoad)).
+				Where(joinSb.In("Name", attributeFields)).
 				GroupBy("SessionID")
 			innerSb.JoinWithOption(sqlbuilder.InnerJoin, innerSb.BuilderAs(joinSb, "join"), "ID = SessionID")
 		}
@@ -953,12 +954,13 @@ func (client *Client) ReadMetrics(ctx context.Context, input ReadMetricsInput) (
 
 	if config.AttributesTable != "" {
 		joinSb := sqlbuilder.NewSelectBuilder()
+		// Columns are specific to fields table right now, could be config driven in future
 		joinSb.From(config.AttributesTable).
 			Select(fmt.Sprintf("SessionID, groupArray(tuple(Name, Value)) AS %s", config.AttributesColumn)).
 			Where(joinSb.In("ProjectID", input.ProjectIDs)).
 			Where(joinSb.GreaterEqualThan("SessionCreatedAt", startTimestamp)).
 			Where(joinSb.LessEqualThan("SessionCreatedAt", endTimestamp)).
-			Where(joinSb.In("Name", fieldsToLoad)).
+			Where(joinSb.In("Name", attributeFields)).
 			GroupBy("SessionID")
 		fromSb.JoinWithOption(sqlbuilder.InnerJoin, fromSb.BuilderAs(joinSb, "join"), "ID = SessionID")
 	}
