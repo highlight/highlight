@@ -494,9 +494,9 @@ var reservedSessionKeys = lo.Map(modelInputs.AllReservedSessionKey, func(key mod
 
 var SessionsJoinedTableConfig = model.TableConfig{
 	TableName:        SessionsJoinedTable,
-	AttributesColumn: "SessionAttributePairs",
-	AttributesList:   true,
-	BodyColumn:       `concat(coalesce(nullif(arrayFilter((k, v) -> k = 'email', SessionAttributePairs) [1].2,''), nullif(Identifier, ''), nullif(arrayFilter((k, v) -> k = 'device_id', SessionAttributePairs) [1].2, ''), 'unidentified'), ': ', City, if(City != '', ', ', ''), Country)`,
+	AttributesColumn: "RelevantFields",
+	AttributesTable:  "fields",
+	BodyColumn:       `concat(coalesce(nullif(arrayFilter((k, v) -> k = 'email', RelevantFields) [1].2,''), nullif(Identifier, ''), nullif(arrayFilter((k, v) -> k = 'device_id', RelevantFields) [1].2, ''), 'unidentified'), ': ', City, if(City != '', ', ', ''), Country)`,
 	KeysToColumns: map[string]string{
 		string(modelInputs.ReservedSessionKeyActiveLength):       "ActiveLength",
 		string(modelInputs.ReservedSessionKeyServiceVersion):     "AppVersion",
