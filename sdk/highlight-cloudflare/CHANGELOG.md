@@ -1,5 +1,12 @@
 # @highlight-run/cloudflare
 
+## 2.1.7
+
+### Patch Changes
+
+-   Updated dependencies [2339697]
+    -   @highlight-run/opentelemetry-sdk-workers@1.0.7
+
 ## 2.1.6
 
 ### Patch Changes

@@ -1,5 +1,17 @@
 # @highlight-run/remix
 
+## 2.0.54
+
+### Patch Changes
+
+-   2339697: update opentelemetry dependencies
+-   Updated dependencies [be38f68]
+-   Updated dependencies [2339697]
+-   Updated dependencies [bbbaeb1]
+    -   highlight.run@9.3.2
+    -   @highlight-run/node@3.9.1
+    -   @highlight-run/react@5.0.2
+
 ## 2.0.53
 
 ### Patch Changes
