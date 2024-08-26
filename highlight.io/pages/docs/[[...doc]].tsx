@@ -326,6 +326,34 @@ interface TocEntry {
 	children: TocEntry[]
 }
 
+// Filter quickStartContent to only include the keys that are needed for the current doc
+function getFilteredQuickStartContent(
+	newContent: string,
+	quickStartContent: any,
+) {
+	const regex = /\{(\w+(?:\["[^"]+"\])+)\}/
+	const match = newContent.match(regex)
+
+	if (match) {
+		const keyString = match[1]
+		const quickStartContentMatches = keyString
+			.split(/\["|\"]/)
+			.filter((key) => key && key !== 'quickStartContent')
+
+		const getFilteredValue = (obj: any, keys: string[]) =>
+			keys.reduce((acc, key) => acc?.[key] ?? null, obj)
+
+		const filteredQuickStartContent = quickStartContentMatches.reduceRight(
+			(obj, key) => ({ [key]: obj }),
+			getFilteredValue(quickStartContent, quickStartContentMatches),
+		)
+
+		return filteredQuickStartContent
+	} else {
+		return quickStartContent
+	}
+}
+
 export const getStaticProps: GetStaticProps<DocData> = async (context) => {
 	logger.info(
 		{ params: context?.params },
@@ -449,7 +477,15 @@ export const getStaticProps: GetStaticProps<DocData> = async (context) => {
 				? await serialize(newerContent, {
 						scope: {
 							path: currentDoc.rel_path,
-							quickStartContent,
+							// Only filter quickStartContent if it exists in the markdown
+							quickStartContent: newContent.includes(
+								'quickStartContent',
+							)
+								? getFilteredQuickStartContent(
+										newContent,
+										quickStartContent,
+									)
+								: null,
 							roadmapData: roadmapData,
 						},
 						mdxOptions: {
