@@ -91,9 +91,12 @@ def dismiss_dependabot(alert_id):
             "-H",
             "X-GitHub-Api-Version: 2022-11-28",
             f"/repos/{REPO}/dependabot/alerts/{alert_id}",
-            "-f", "state=dismissed",
-            "-f", "dismissed_reason=tolerable_risk",
-            "-f", "dismissed_comment=Not used in production; end-to-end test."
+            "-f",
+            "state=dismissed",
+            "-f",
+            "dismissed_reason=tolerable_risk",
+            "-f",
+            "dismissed_comment=Not used in production; end-to-end test.",
         ]
     )
 
