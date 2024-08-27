@@ -3171,27 +3171,23 @@ export enum ReservedErrorsJoinedKey {
 }
 
 export enum ReservedEventKey {
-	ActiveLength = 'active_length',
 	BrowserName = 'browser_name',
 	BrowserVersion = 'browser_version',
 	City = 'city',
-	Completed = 'completed',
 	Country = 'country',
 	Environment = 'environment',
 	Event = 'event',
-	FirstTime = 'first_time',
-	HasComments = 'has_comments',
-	HasErrors = 'has_errors',
-	HasRageClicks = 'has_rage_clicks',
+	FirstSession = 'first_session',
 	Identified = 'identified',
 	Identifier = 'identifier',
 	Ip = 'ip',
-	Length = 'length',
 	OsName = 'os_name',
 	OsVersion = 'os_version',
-	PagesVisited = 'pages_visited',
 	SecureSessionId = 'secure_session_id',
 	ServiceVersion = 'service_version',
+	SessionActiveLength = 'session_active_length',
+	SessionLength = 'session_length',
+	SessionPagesVisited = 'session_pages_visited',
 	State = 'state',
 }
 

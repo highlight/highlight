@@ -21,39 +21,39 @@ const EventKeysTable = "event_keys"
 const EventKeyValuesTable = "event_key_values"
 
 var eventKeysToColumns = map[string]string{
-	string(modelInputs.ReservedEventKeyActiveLength):    "ActiveLength",
-	string(modelInputs.ReservedEventKeyServiceVersion):  "AppVersion",
-	string(modelInputs.ReservedEventKeyBrowserName):     "BrowserName",
-	string(modelInputs.ReservedEventKeyBrowserVersion):  "BrowserVersion",
-	string(modelInputs.ReservedEventKeyCity):            "City",
-	string(modelInputs.ReservedEventKeyCompleted):       "Processed",
-	string(modelInputs.ReservedEventKeyCountry):         "Country",
-	string(modelInputs.ReservedEventKeyEnvironment):     "Environment",
-	string(modelInputs.ReservedEventKeyEvent):           "Event",
-	string(modelInputs.ReservedEventKeyFirstTime):       "FirstTime",
-	string(modelInputs.ReservedEventKeyHasComments):     "HasComments",
-	string(modelInputs.ReservedEventKeyHasErrors):       "HasErrors",
-	string(modelInputs.ReservedEventKeyHasRageClicks):   "HasRageClicks",
-	string(modelInputs.ReservedEventKeyIdentified):      "Identified",
-	string(modelInputs.ReservedEventKeyIdentifier):      "Identifier",
-	string(modelInputs.ReservedEventKeyIP):              "IP",
-	string(modelInputs.ReservedEventKeyLength):          "Length",
-	string(modelInputs.ReservedEventKeyOsName):          "OSName",
-	string(modelInputs.ReservedEventKeyOsVersion):       "OSVersion",
-	string(modelInputs.ReservedEventKeyPagesVisited):    "PagesVisited",
-	string(modelInputs.ReservedEventKeySecureSessionID): "SecureSessionId",
-	string(modelInputs.ReservedEventKeyState):           "State",
+	string(modelInputs.ReservedEventKeyBrowserName):         "BrowserName",
+	string(modelInputs.ReservedEventKeyBrowserVersion):      "BrowserVersion",
+	string(modelInputs.ReservedEventKeyCity):                "City",
+	string(modelInputs.ReservedEventKeyCountry):             "Country",
+	string(modelInputs.ReservedEventKeyEnvironment):         "Environment",
+	string(modelInputs.ReservedEventKeyEvent):               "Event",
+	string(modelInputs.ReservedEventKeyFirstSession):        "FirstSession",
+	string(modelInputs.ReservedEventKeyIdentified):          "Identified",
+	string(modelInputs.ReservedEventKeyIdentifier):          "Identifier",
+	string(modelInputs.ReservedEventKeyIP):                  "IP",
+	string(modelInputs.ReservedEventKeyServiceVersion):      "ServiceVersion",
+	string(modelInputs.ReservedEventKeySessionActiveLength): "SessionActiveLength",
+	string(modelInputs.ReservedEventKeySessionLength):       "SessionLength",
+	string(modelInputs.ReservedEventKeySessionPagesVisited): "SessionPagesVisited",
+	string(modelInputs.ReservedEventKeyOsName):              "OSName",
+	string(modelInputs.ReservedEventKeyOsVersion):           "OSVersion",
+	string(modelInputs.ReservedEventKeySecureSessionID):     "SecureSessionId",
+	string(modelInputs.ReservedEventKeyState):               "State",
 }
 
 var defaultEventKeys = []*modelInputs.QueryKey{
-	{Name: string(modelInputs.ReservedEventKeySecureSessionID), Type: modelInputs.KeyTypeString},
+	{Name: string(modelInputs.ReservedEventKeyFirstSession), Type: modelInputs.KeyTypeBoolean},
 	{Name: string(modelInputs.ReservedEventKeyIdentified), Type: modelInputs.KeyTypeBoolean},
-	{Name: string(modelInputs.ReservedEventKeyFirstTime), Type: modelInputs.KeyTypeBoolean},
+	{Name: string(modelInputs.ReservedEventKeyIP), Type: modelInputs.KeyTypeString},
+	{Name: string(modelInputs.ReservedEventKeySecureSessionID), Type: modelInputs.KeyTypeString},
+	{Name: string(modelInputs.ReservedEventKeySessionActiveLength), Type: modelInputs.KeyTypeNumeric},
+	{Name: string(modelInputs.ReservedEventKeySessionLength), Type: modelInputs.KeyTypeNumeric},
+	{Name: string(modelInputs.ReservedEventKeySessionPagesVisited), Type: modelInputs.KeyTypeNumeric},
 }
 
 var eventBooleanKeys = map[string]bool{
-	string(modelInputs.ReservedEventKeyFirstTime):  true,
-	string(modelInputs.ReservedEventKeyIdentified): true,
+	string(modelInputs.ReservedEventKeyFirstSession): true,
+	string(modelInputs.ReservedEventKeyIdentified):   true,
 }
 
 var reservedEventKeys = lo.Map(modelInputs.AllReservedEventKey, func(key modelInputs.ReservedEventKey, _ int) string {

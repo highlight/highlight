@@ -12704,25 +12704,21 @@ enum ReservedSessionKey {
 }
 
 enum ReservedEventKey {
-	active_length
 	browser_name
 	browser_version
 	city
-	completed
 	country
 	environment
 	event
-	first_time
-	has_comments
-	has_errors
-	has_rage_clicks
+	first_session
 	identified
 	identifier
 	ip
-	length
+	session_active_length
+	session_length
+	session_pages_visited
 	os_name
 	os_version
-	pages_visited
 	secure_session_id
 	service_version
 	state
