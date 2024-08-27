@@ -273,7 +273,12 @@ func main() {
 	mpm := marketplacemetering.NewFromConfig(cfg)
 
 	var storageClient storage.Client
-	if env.IsInDocker() {
+	if env.IsProduction() || env.Config.AwsRoleArn != "" {
+		log.WithContext(ctx).Info("using S3 for object storage")
+		if storageClient, err = storage.NewS3Client(ctx); err != nil {
+			log.WithContext(ctx).Fatalf("error creating s3 storage client: %v", err)
+		}
+	} else {
 		log.WithContext(ctx).Info("in docker: using filesystem for object storage")
 		fsRoot := "/tmp"
 		if env.Config.ObjectStorageFS != "" {
@@ -281,14 +286,6 @@ func main() {
 		}
 		if storageClient, err = storage.NewFSClient(ctx, env.Config.PrivateGraphUri, fsRoot); err != nil {
 			log.WithContext(ctx).Fatalf("error creating filesystem storage client: %v", err)
-		}
-	} else {
-		log.WithContext(ctx).Info("using S3 for object storage")
-		if env.Config.AwsAccessKeyID == "" || env.Config.AwsSecretAccessKey == "" {
-			log.WithContext(ctx).Fatalf("please specify object storage env variables in order to proceed")
-		}
-		if storageClient, err = storage.NewS3Client(ctx); err != nil {
-			log.WithContext(ctx).Fatalf("error creating s3 storage client: %v", err)
 		}
 	}
 
