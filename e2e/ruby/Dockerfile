@@ -10,10 +10,10 @@ ENV PATH="/usr/local/rvm/rubies/ruby-3.3.4/bin:${PATH}"
 RUN gem install bundle
 
 WORKDIR /highlight/e2e/ruby/rails/demo
-COPY ./ruby/rails/demo/Gemfile .
-COPY ./ruby/rails/demo/Gemfile.lock .
+COPY ./rails/demo/Gemfile .
+COPY ./rails/demo/Gemfile.lock .
 RUN bundle install
-COPY ./ruby/rails/demo .
+COPY ./rails/demo .
 
 ENV FRONTEND_URI="http://localhost:3000/"
 ENV BACKEND_URI="http://localhost:3000/"

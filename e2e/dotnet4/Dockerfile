@@ -6,7 +6,7 @@ RUN echo "deb [signed-by=/usr/share/keyrings/mono-official-archive-keyring.gpg] 
 RUN apt update && apt install -y mono-complete mono-xsp4 nuget
 
 WORKDIR /highlight/e2e/dotnet4
-COPY ./dotnet4 .
+COPY . .
 RUN nuget restore
 WORKDIR /highlight/e2e/dotnet4/cs
 RUN xbuild

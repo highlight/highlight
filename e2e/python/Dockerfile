@@ -2,10 +2,10 @@ ARG IMAGE_BASE_NAME="ghcr.io/highlight/e2e:latest"
 FROM ${IMAGE_BASE_NAME}
 
 WORKDIR /highlight/e2e/python
-COPY ./python/pyproject.toml .
-COPY ./python/poetry.lock .
+COPY ./pyproject.toml .
+COPY ./poetry.lock .
 RUN poetry install --all-extras
-COPY ./python .
+COPY . .
 WORKDIR /highlight/e2e/python/highlight_flask
 
 ENV PYTHONPATH=/highlight/e2e/python/highlight_flask

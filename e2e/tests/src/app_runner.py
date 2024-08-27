@@ -80,48 +80,20 @@ def get_docker_bin():
 def run_example_in_docker(example_name: str):
     docker_bin = get_docker_bin()
     e2e_dir = os.path.realpath(os.path.join(__file__, os.pardir, os.pardir, os.pardir))
-    sdk_dir = os.path.realpath(
-        os.path.join(__file__, os.pardir, os.pardir, os.pardir, os.pardir, "sdk")
-    )
     assert os.path.isdir(f"{e2e_dir}/{example_name}"), "example not found"
 
-    base = "ghcr.io/highlight/e2e:latest"
-    sdk = "ghcr.io/highlight/sdk:latest"
-    image = f"ghcr.io/highlight/e2e-{example_name}:latest"
-    env = {"IMAGE_BASE_NAME": base}
+    for container in ("sdk", "base", example_name):
+        proc = run(
+            docker_bin,
+            ["docker", "compose", "build", container],
+            cwd=e2e_dir,
+            stream=True,
+        )
+        _, stderr = proc.communicate()
+        assert not proc.returncode, stderr
 
     proc = run(
-        docker_bin,
-        ["docker", "build", "-t", sdk, "-f", "base.Dockerfile", "."],
-        cwd=sdk_dir,
-        env=env,
-        stream=True,
-    )
-    _, stderr = proc.communicate()
-    assert not proc.returncode, stderr
-
-    proc = run(
-        docker_bin,
-        ["docker", "build", "-t", base, "-f", "base.Dockerfile", "."],
-        cwd=e2e_dir,
-        env=env,
-        stream=True,
-    )
-    _, stderr = proc.communicate()
-    assert not proc.returncode, stderr
-
-    proc = run(
-        docker_bin,
-        ["docker", "build", "-t", image, "-f", f"{example_name}/Dockerfile", "."],
-        cwd=e2e_dir,
-        env=env,
-        stream=True,
-    )
-    _, stderr = proc.communicate()
-    assert not proc.returncode, stderr
-
-    proc = run(
-        docker_bin, ["docker", "run", "--rm", image, "env"], cwd=e2e_dir, env=env
+        docker_bin, ["docker", "compose", "run", example_name, "env"], cwd=e2e_dir
     )
     docker_env, stderr = proc.communicate()
     assert not proc.returncode, stderr
@@ -141,6 +113,7 @@ def run_example_in_docker(example_name: str):
         docker_bin,
         [
             "docker",
+            "compose",
             "run",
             "-d",
         ]
@@ -160,9 +133,8 @@ def run_example_in_docker(example_name: str):
             if backend_port and backend_port != frontend_port
             else []
         )
-        + [image],
+        + [example_name],
         cwd=e2e_dir,
-        env=env,
     )
     docker_container, stderr = proc.communicate()
     assert not proc.returncode, stderr
@@ -183,15 +155,15 @@ def run_example_in_docker(example_name: str):
         else:
             raise Exception("app not ready")
     finally:
-        proc = run(
-            docker_bin, ["docker", "logs", docker_container], cwd=e2e_dir, env=env
-        )
+        proc = run(docker_bin, ["docker", "compose", "logs", example_name], cwd=e2e_dir)
         stdout, stderr = proc.communicate()
         assert not proc.returncode, stderr
         logging.info("docker container logs: %s, %s", stdout, stderr)
 
         proc = run(
-            docker_bin, ["docker", "rm", "-f", docker_container], cwd=e2e_dir, env=env
+            docker_bin,
+            ["docker", "compose", "rm", "-f", example_name],
+            cwd=e2e_dir,
         )
         _, stderr = proc.communicate()
         assert not proc.returncode, stderr

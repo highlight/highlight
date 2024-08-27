@@ -7,12 +7,12 @@ RUN rm -rf /usr/local/go && tar -C /usr/local -xzf go1.23.0.linux-amd64.tar.gz
 ENV PATH=/usr/local/go/bin:${PATH}
 
 WORKDIR /highlight/e2e/go
-COPY ./go/go.mod .
-COPY ./go/go.sum .
+COPY ./go.mod .
+COPY ./go.sum .
 RUN go mod download github.com/highlight/highlight/sdk/highlight-go
 RUN go mod download
 
-COPY ./go .
+COPY . .
 
 ARG TARGETARCH
 ARG TARGETOS

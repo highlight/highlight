@@ -9,7 +9,7 @@ RUN ./dotnet-install.sh --version latest --channel 8.0
 ENV PATH=/root/.dotnet:${PATH}
 
 WORKDIR /highlight/e2e/dotnet
-COPY ./dotnet .
+COPY . .
 
 ENV FRONTEND_URI="http://localhost:5249/"
 ENV BACKEND_URI="http://localhost:5249/"

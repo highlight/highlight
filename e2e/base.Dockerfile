@@ -10,4 +10,4 @@ COPY ./tests/pyproject.toml ./pyproject.toml
 COPY ./tests/poetry.lock ./poetry.lock
 RUN poetry install --all-extras
 
-CMD ["pytest"]
+CMD ["poetry", "run", "pytest"]
