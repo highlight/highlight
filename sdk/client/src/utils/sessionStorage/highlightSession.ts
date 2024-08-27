@@ -26,8 +26,10 @@ export const getSessionSecureID = (props?: { local?: true }): string => {
 }
 
 export const setSessionSecureID = (secureID: string) => {
-	sessionSecureID = secureID
-	setItem(SESSION_STORAGE_KEYS.SESSION_ID, sessionSecureID)
+	if (secureID) {
+		sessionSecureID = secureID
+		setItem(SESSION_STORAGE_KEYS.SESSION_ID, sessionSecureID)
+	}
 }
 
 const getSessionData = (sessionID: string): SessionData | undefined => {
