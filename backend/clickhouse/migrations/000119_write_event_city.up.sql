@@ -7,7 +7,7 @@ CREATE MATERIALIZED VIEW IF NOT EXISTS event_city_mv TO event_key_values (
 ) AS
 SELECT ProjectID as ProjectId,
     'city' AS Key,
-    toStartOfDay(Timestamp) AS Day,
+    toStartOfDay(CreatedAt) AS Day,
     City AS Value,
     count() AS Count
 FROM sessions

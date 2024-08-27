@@ -7,7 +7,7 @@ CREATE MATERIALIZED VIEW IF NOT EXISTS event_environment_mv TO event_key_values 
 ) AS
 SELECT ProjectID as ProjectId,
     'environment' AS Key,
-    toStartOfDay(Timestamp) AS Day,
+    toStartOfDay(CreatedAt) AS Day,
     Environment AS Value,
     count() AS Count
 FROM sessions

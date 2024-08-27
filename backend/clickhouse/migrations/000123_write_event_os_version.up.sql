@@ -7,7 +7,7 @@ CREATE MATERIALIZED VIEW IF NOT EXISTS event_os_version_mv TO event_key_values (
 ) AS
 SELECT ProjectID as ProjectId,
     'os_version' AS Key,
-    toStartOfDay(Timestamp) AS Day,
+    toStartOfDay(CreatedAt) AS Day,
     OSVersion AS Value,
     count() AS Count
 FROM sessions

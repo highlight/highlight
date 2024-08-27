@@ -2,13 +2,12 @@ CREATE MATERIALIZED VIEW IF NOT EXISTS event_attributes_mv TO event_key_values (
     `ProjectId` UInt32,
     `Key` String,
     `Day` DateTime,
-    `Value` String
+    `Value` String,
     `Count` UInt64
 ) AS
-SELECT ProjectId AS ProjectId,
+SELECT ProjectID AS ProjectId,
     arrayJoin(Attributes).1 AS Key,
-    Timestamp AS EventTimestamp,
-    UUID AS EventUUID,
+    toStartOfDay(Timestamp) AS Day,
     arrayJoin(Attributes).2 AS Value
 FROM session_events
 WHERE (

@@ -7,7 +7,7 @@ CREATE MATERIALIZED VIEW IF NOT EXISTS event_browser_name_mv TO event_key_values
 ) AS
 SELECT ProjectID as ProjectId,
     'browser_name' AS Key,
-    toStartOfDay(Timestamp) AS Day,
+    toStartOfDay(CreatedAt) AS Day,
     BrowserName AS Value,
     count() AS Count
 FROM sessions

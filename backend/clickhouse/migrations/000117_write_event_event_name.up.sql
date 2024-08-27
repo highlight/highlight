@@ -5,7 +5,7 @@ CREATE MATERIALIZED VIEW IF NOT EXISTS event_event_name_mv TO event_key_values (
     `Value` String,
     `Count` UInt64
 ) AS
-SELECT ProjectId,
+SELECT ProjectID as ProjectId,
     'event' AS Key,
     toStartOfDay(Timestamp) AS Day,
     Event AS Value,
