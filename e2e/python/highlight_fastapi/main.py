@@ -6,6 +6,7 @@ import random
 from fastapi import FastAPI, Request, HTTPException, APIRouter
 from work import add
 import redis
+import boto
 import boto3
 import os
 
@@ -36,12 +37,7 @@ try:
     aws_region = os.getenv("E2E_AWS_REGION", "us-east-2")
     sqs_queue_url = os.getenv("SQS_QUEUE_URL")
 
-    s3 = boto3.client(
-        "s3",
-        aws_access_key_id=aws_key,
-        aws_secret_access_key=aws_secret,
-        region_name=aws_region,
-    )
+    s3 = boto.connect_s3(aws_key, aws_secret)
     sqs = boto3.client(
         "sqs",
         aws_access_key_id=aws_key,

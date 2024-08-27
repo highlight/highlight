@@ -6,7 +6,8 @@ COPY ./python/pyproject.toml .
 COPY ./python/poetry.lock .
 RUN poetry install --all-extras
 COPY ./python .
-WORKDIR /highlight/e2e/python/highlight_fastapi
+WORKDIR /highlight/e2e/python/highlight_flask
 
-ENV BACKEND_URI="http://localhost:8000/"
-CMD ["poetry", "run", "python", "main.py"]
+ENV PYTHONPATH=/highlight/e2e/python/highlight_flask
+ENV BACKEND_URI="http://localhost:5000/"
+CMD ["poetry", "run", "flask", "run", "-h", "0.0.0.0"]
