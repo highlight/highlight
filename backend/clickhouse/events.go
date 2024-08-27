@@ -16,29 +16,32 @@ import (
 
 const SessionEventsTable = "session_events"
 const SessionEventsView = "session_events_vw"
+const EventKeysTable = "event_keys"
+const EventKeyValuesTable = "event_key_values"
 
 var eventKeysToColumns = map[string]string{
-	string(modelInputs.ReservedEventKeyActiveLength):   "ActiveLength",
-	string(modelInputs.ReservedEventKeyServiceVersion): "AppVersion",
-	string(modelInputs.ReservedEventKeyBrowserName):    "BrowserName",
-	string(modelInputs.ReservedEventKeyBrowserVersion): "BrowserVersion",
-	string(modelInputs.ReservedEventKeyCity):           "City",
-	string(modelInputs.ReservedEventKeyCompleted):      "Processed",
-	string(modelInputs.ReservedEventKeyCountry):        "Country",
-	string(modelInputs.ReservedEventKeyEnvironment):    "Environment",
-	string(modelInputs.ReservedEventKeyFirstTime):      "FirstTime",
-	string(modelInputs.ReservedEventKeyHasComments):    "HasComments",
-	string(modelInputs.ReservedEventKeyHasErrors):      "HasErrors",
-	string(modelInputs.ReservedEventKeyHasRageClicks):  "HasRageClicks",
-	string(modelInputs.ReservedEventKeyIdentified):     "Identified",
-	string(modelInputs.ReservedEventKeyIdentifier):     "Identifier",
-	string(modelInputs.ReservedEventKeyIP):             "IP",
-	string(modelInputs.ReservedEventKeyLength):         "Length",
-	string(modelInputs.ReservedEventKeyOsName):         "OSName",
-	string(modelInputs.ReservedEventKeyOsVersion):      "OSVersion",
-	string(modelInputs.ReservedEventKeyPagesVisited):   "PagesVisited",
-	string(modelInputs.ReservedEventKeySecureID):       "SecureID",
-	string(modelInputs.ReservedEventKeyState):          "State",
+	string(modelInputs.ReservedEventKeyActiveLength):    "ActiveLength",
+	string(modelInputs.ReservedEventKeyServiceVersion):  "AppVersion",
+	string(modelInputs.ReservedEventKeyBrowserName):     "BrowserName",
+	string(modelInputs.ReservedEventKeyBrowserVersion):  "BrowserVersion",
+	string(modelInputs.ReservedEventKeyCity):            "City",
+	string(modelInputs.ReservedEventKeyCompleted):       "Processed",
+	string(modelInputs.ReservedEventKeyCountry):         "Country",
+	string(modelInputs.ReservedEventKeyEnvironment):     "Environment",
+	string(modelInputs.ReservedEventKeyEvent):           "Event",
+	string(modelInputs.ReservedEventKeyFirstTime):       "FirstTime",
+	string(modelInputs.ReservedEventKeyHasComments):     "HasComments",
+	string(modelInputs.ReservedEventKeyHasErrors):       "HasErrors",
+	string(modelInputs.ReservedEventKeyHasRageClicks):   "HasRageClicks",
+	string(modelInputs.ReservedEventKeyIdentified):      "Identified",
+	string(modelInputs.ReservedEventKeyIdentifier):      "Identifier",
+	string(modelInputs.ReservedEventKeyIP):              "IP",
+	string(modelInputs.ReservedEventKeyLength):          "Length",
+	string(modelInputs.ReservedEventKeyOsName):          "OSName",
+	string(modelInputs.ReservedEventKeyOsVersion):       "OSVersion",
+	string(modelInputs.ReservedEventKeyPagesVisited):    "PagesVisited",
+	string(modelInputs.ReservedEventKeySessionSecureID): "SessionSecureId",
+	string(modelInputs.ReservedEventKeyState):           "State",
 }
 
 var reservedEventKeys = lo.Map(modelInputs.AllReservedEventKey, func(key modelInputs.ReservedEventKey, _ int) string {
@@ -128,18 +131,16 @@ func (client *Client) ReadWorkspaceEventCounts(ctx context.Context, projectIDs [
 }
 
 func (client *Client) EventsKeys(ctx context.Context, projectID int, startDate time.Time, endDate time.Time, query *string, typeArg *modelInputs.KeyType) ([]*modelInputs.QueryKey, error) {
-	// eventKeys, err := KeysAggregated(ctx, client, SessionEventsView, projectID, startDate, endDate, query, typeArg)
-	// if err != nil {
-	// 	return nil, err
-	// }
+	eventKeys, err := KeysAggregated(ctx, client, EventKeysTable, projectID, startDate, endDate, query, typeArg)
+	if err != nil {
+		return nil, err
+	}
 
-	// return eventKeys, nil
-	return nil, nil
+	return eventKeys, nil
 }
 
 func (client *Client) EventsKeyValues(ctx context.Context, projectID int, keyName string, startDate time.Time, endDate time.Time, query *string, limit *int) ([]string, error) {
-	// return KeyValuesAggregated(ctx, client, TraceKeyValuesTable, projectID, keyName, startDate, endDate, query, limit)
-	return nil, nil
+	return KeyValuesAggregated(ctx, client, EventKeyValuesTable, projectID, keyName, startDate, endDate, query, limit)
 }
 
 func (client *Client) EventsLogLines(ctx context.Context, projectID int, params modelInputs.QueryInput) ([]*modelInputs.LogLine, error) {

@@ -2199,27 +2199,28 @@ func (e ReservedErrorsJoinedKey) MarshalGQL(w io.Writer) {
 type ReservedEventKey string
 
 const (
-	ReservedEventKeyActiveLength   ReservedEventKey = "active_length"
-	ReservedEventKeyBrowserName    ReservedEventKey = "browser_name"
-	ReservedEventKeyBrowserVersion ReservedEventKey = "browser_version"
-	ReservedEventKeyCity           ReservedEventKey = "city"
-	ReservedEventKeyCompleted      ReservedEventKey = "completed"
-	ReservedEventKeyCountry        ReservedEventKey = "country"
-	ReservedEventKeyEnvironment    ReservedEventKey = "environment"
-	ReservedEventKeyFirstTime      ReservedEventKey = "first_time"
-	ReservedEventKeyHasComments    ReservedEventKey = "has_comments"
-	ReservedEventKeyHasErrors      ReservedEventKey = "has_errors"
-	ReservedEventKeyHasRageClicks  ReservedEventKey = "has_rage_clicks"
-	ReservedEventKeyIdentified     ReservedEventKey = "identified"
-	ReservedEventKeyIdentifier     ReservedEventKey = "identifier"
-	ReservedEventKeyIP             ReservedEventKey = "ip"
-	ReservedEventKeyLength         ReservedEventKey = "length"
-	ReservedEventKeyOsName         ReservedEventKey = "os_name"
-	ReservedEventKeyOsVersion      ReservedEventKey = "os_version"
-	ReservedEventKeyPagesVisited   ReservedEventKey = "pages_visited"
-	ReservedEventKeySecureID       ReservedEventKey = "secure_id"
-	ReservedEventKeyServiceVersion ReservedEventKey = "service_version"
-	ReservedEventKeyState          ReservedEventKey = "state"
+	ReservedEventKeyActiveLength    ReservedEventKey = "active_length"
+	ReservedEventKeyBrowserName     ReservedEventKey = "browser_name"
+	ReservedEventKeyBrowserVersion  ReservedEventKey = "browser_version"
+	ReservedEventKeyCity            ReservedEventKey = "city"
+	ReservedEventKeyCompleted       ReservedEventKey = "completed"
+	ReservedEventKeyCountry         ReservedEventKey = "country"
+	ReservedEventKeyEnvironment     ReservedEventKey = "environment"
+	ReservedEventKeyEvent           ReservedEventKey = "event"
+	ReservedEventKeyFirstTime       ReservedEventKey = "first_time"
+	ReservedEventKeyHasComments     ReservedEventKey = "has_comments"
+	ReservedEventKeyHasErrors       ReservedEventKey = "has_errors"
+	ReservedEventKeyHasRageClicks   ReservedEventKey = "has_rage_clicks"
+	ReservedEventKeyIdentified      ReservedEventKey = "identified"
+	ReservedEventKeyIdentifier      ReservedEventKey = "identifier"
+	ReservedEventKeyIP              ReservedEventKey = "ip"
+	ReservedEventKeyLength          ReservedEventKey = "length"
+	ReservedEventKeyOsName          ReservedEventKey = "os_name"
+	ReservedEventKeyOsVersion       ReservedEventKey = "os_version"
+	ReservedEventKeyPagesVisited    ReservedEventKey = "pages_visited"
+	ReservedEventKeySessionSecureID ReservedEventKey = "session_secure_id"
+	ReservedEventKeyServiceVersion  ReservedEventKey = "service_version"
+	ReservedEventKeyState           ReservedEventKey = "state"
 )
 
 var AllReservedEventKey = []ReservedEventKey{
@@ -2230,6 +2231,7 @@ var AllReservedEventKey = []ReservedEventKey{
 	ReservedEventKeyCompleted,
 	ReservedEventKeyCountry,
 	ReservedEventKeyEnvironment,
+	ReservedEventKeyEvent,
 	ReservedEventKeyFirstTime,
 	ReservedEventKeyHasComments,
 	ReservedEventKeyHasErrors,
@@ -2241,14 +2243,14 @@ var AllReservedEventKey = []ReservedEventKey{
 	ReservedEventKeyOsName,
 	ReservedEventKeyOsVersion,
 	ReservedEventKeyPagesVisited,
-	ReservedEventKeySecureID,
+	ReservedEventKeySessionSecureID,
 	ReservedEventKeyServiceVersion,
 	ReservedEventKeyState,
 }
 
 func (e ReservedEventKey) IsValid() bool {
 	switch e {
-	case ReservedEventKeyActiveLength, ReservedEventKeyBrowserName, ReservedEventKeyBrowserVersion, ReservedEventKeyCity, ReservedEventKeyCompleted, ReservedEventKeyCountry, ReservedEventKeyEnvironment, ReservedEventKeyFirstTime, ReservedEventKeyHasComments, ReservedEventKeyHasErrors, ReservedEventKeyHasRageClicks, ReservedEventKeyIdentified, ReservedEventKeyIdentifier, ReservedEventKeyIP, ReservedEventKeyLength, ReservedEventKeyOsName, ReservedEventKeyOsVersion, ReservedEventKeyPagesVisited, ReservedEventKeySecureID, ReservedEventKeyServiceVersion, ReservedEventKeyState:
+	case ReservedEventKeyActiveLength, ReservedEventKeyBrowserName, ReservedEventKeyBrowserVersion, ReservedEventKeyCity, ReservedEventKeyCompleted, ReservedEventKeyCountry, ReservedEventKeyEnvironment, ReservedEventKeyEvent, ReservedEventKeyFirstTime, ReservedEventKeyHasComments, ReservedEventKeyHasErrors, ReservedEventKeyHasRageClicks, ReservedEventKeyIdentified, ReservedEventKeyIdentifier, ReservedEventKeyIP, ReservedEventKeyLength, ReservedEventKeyOsName, ReservedEventKeyOsVersion, ReservedEventKeyPagesVisited, ReservedEventKeySessionSecureID, ReservedEventKeyServiceVersion, ReservedEventKeyState:
 		return true
 	}
 	return false

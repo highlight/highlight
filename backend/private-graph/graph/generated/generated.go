@@ -12711,6 +12711,7 @@ enum ReservedEventKey {
 	completed
 	country
 	environment
+	event
 	first_time
 	has_comments
 	has_errors
@@ -12722,7 +12723,7 @@ enum ReservedEventKey {
 	os_name
 	os_version
 	pages_visited
-	secure_id
+	session_secure_id
 	service_version
 	state
 }

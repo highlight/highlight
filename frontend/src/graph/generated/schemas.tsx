@@ -3178,6 +3178,7 @@ export enum ReservedEventKey {
 	Completed = 'completed',
 	Country = 'country',
 	Environment = 'environment',
+	Event = 'event',
 	FirstTime = 'first_time',
 	HasComments = 'has_comments',
 	HasErrors = 'has_errors',
@@ -3189,8 +3190,8 @@ export enum ReservedEventKey {
 	OsName = 'os_name',
 	OsVersion = 'os_version',
 	PagesVisited = 'pages_visited',
-	SecureId = 'secure_id',
 	ServiceVersion = 'service_version',
+	SessionSecureId = 'session_secure_id',
 	State = 'state',
 }
 
