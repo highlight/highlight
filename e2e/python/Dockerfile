@@ -8,5 +8,5 @@ RUN poetry install --all-extras
 COPY ./python .
 WORKDIR /highlight/e2e/python/highlight_fastapi
 
-ENV BACKEND_URI="http://localhost:3456/"
+ENV BACKEND_URI="http://localhost:8000/"
 CMD ["poetry", "run", "python", "main.py"]
