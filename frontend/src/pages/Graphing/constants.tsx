@@ -1,5 +1,6 @@
 import {
 	IconSolidChartBar,
+	IconSolidClock,
 	IconSolidLightningBolt,
 	IconSolidLogs,
 	IconSolidPlayCircle,
@@ -17,6 +18,7 @@ export const PRODUCTS: ProductType[] = [
 	ProductType.Sessions,
 	ProductType.Errors,
 	ProductType.Metrics,
+	ProductType.Events,
 ]
 
 export const PRODUCT_ICONS = [
@@ -25,6 +27,7 @@ export const PRODUCT_ICONS = [
 	<IconSolidPlayCircle key="sessions" />,
 	<IconSolidLightningBolt key="errors" />,
 	<IconSolidChartBar key="metrics" />,
+	<IconSolidClock key="events" />,
 ]
 
 export const NUMERIC_FUNCTION_TYPES: MetricAggregator[] = [

@@ -1976,6 +1976,7 @@ const (
 	ProductTypeLogs     ProductType = "Logs"
 	ProductTypeTraces   ProductType = "Traces"
 	ProductTypeMetrics  ProductType = "Metrics"
+	ProductTypeEvents   ProductType = "Events"
 )
 
 var AllProductType = []ProductType{
@@ -1984,11 +1985,12 @@ var AllProductType = []ProductType{
 	ProductTypeLogs,
 	ProductTypeTraces,
 	ProductTypeMetrics,
+	ProductTypeEvents,
 }
 
 func (e ProductType) IsValid() bool {
 	switch e {
-	case ProductTypeSessions, ProductTypeErrors, ProductTypeLogs, ProductTypeTraces, ProductTypeMetrics:
+	case ProductTypeSessions, ProductTypeErrors, ProductTypeLogs, ProductTypeTraces, ProductTypeMetrics, ProductTypeEvents:
 		return true
 	}
 	return false
@@ -2191,6 +2193,85 @@ func (e *ReservedErrorsJoinedKey) UnmarshalGQL(v interface{}) error {
 }
 
 func (e ReservedErrorsJoinedKey) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+type ReservedEventKey string
+
+const (
+	ReservedEventKeyActiveLength   ReservedEventKey = "active_length"
+	ReservedEventKeyBrowserName    ReservedEventKey = "browser_name"
+	ReservedEventKeyBrowserVersion ReservedEventKey = "browser_version"
+	ReservedEventKeyCity           ReservedEventKey = "city"
+	ReservedEventKeyCompleted      ReservedEventKey = "completed"
+	ReservedEventKeyCountry        ReservedEventKey = "country"
+	ReservedEventKeyEnvironment    ReservedEventKey = "environment"
+	ReservedEventKeyFirstTime      ReservedEventKey = "first_time"
+	ReservedEventKeyHasComments    ReservedEventKey = "has_comments"
+	ReservedEventKeyHasErrors      ReservedEventKey = "has_errors"
+	ReservedEventKeyHasRageClicks  ReservedEventKey = "has_rage_clicks"
+	ReservedEventKeyIdentified     ReservedEventKey = "identified"
+	ReservedEventKeyIdentifier     ReservedEventKey = "identifier"
+	ReservedEventKeyIP             ReservedEventKey = "ip"
+	ReservedEventKeyLength         ReservedEventKey = "length"
+	ReservedEventKeyOsName         ReservedEventKey = "os_name"
+	ReservedEventKeyOsVersion      ReservedEventKey = "os_version"
+	ReservedEventKeyPagesVisited   ReservedEventKey = "pages_visited"
+	ReservedEventKeySecureID       ReservedEventKey = "secure_id"
+	ReservedEventKeyServiceVersion ReservedEventKey = "service_version"
+	ReservedEventKeyState          ReservedEventKey = "state"
+)
+
+var AllReservedEventKey = []ReservedEventKey{
+	ReservedEventKeyActiveLength,
+	ReservedEventKeyBrowserName,
+	ReservedEventKeyBrowserVersion,
+	ReservedEventKeyCity,
+	ReservedEventKeyCompleted,
+	ReservedEventKeyCountry,
+	ReservedEventKeyEnvironment,
+	ReservedEventKeyFirstTime,
+	ReservedEventKeyHasComments,
+	ReservedEventKeyHasErrors,
+	ReservedEventKeyHasRageClicks,
+	ReservedEventKeyIdentified,
+	ReservedEventKeyIdentifier,
+	ReservedEventKeyIP,
+	ReservedEventKeyLength,
+	ReservedEventKeyOsName,
+	ReservedEventKeyOsVersion,
+	ReservedEventKeyPagesVisited,
+	ReservedEventKeySecureID,
+	ReservedEventKeyServiceVersion,
+	ReservedEventKeyState,
+}
+
+func (e ReservedEventKey) IsValid() bool {
+	switch e {
+	case ReservedEventKeyActiveLength, ReservedEventKeyBrowserName, ReservedEventKeyBrowserVersion, ReservedEventKeyCity, ReservedEventKeyCompleted, ReservedEventKeyCountry, ReservedEventKeyEnvironment, ReservedEventKeyFirstTime, ReservedEventKeyHasComments, ReservedEventKeyHasErrors, ReservedEventKeyHasRageClicks, ReservedEventKeyIdentified, ReservedEventKeyIdentifier, ReservedEventKeyIP, ReservedEventKeyLength, ReservedEventKeyOsName, ReservedEventKeyOsVersion, ReservedEventKeyPagesVisited, ReservedEventKeySecureID, ReservedEventKeyServiceVersion, ReservedEventKeyState:
+		return true
+	}
+	return false
+}
+
+func (e ReservedEventKey) String() string {
+	return string(e)
+}
+
+func (e *ReservedEventKey) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = ReservedEventKey(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid ReservedEventKey", str)
+	}
+	return nil
+}
+
+func (e ReservedEventKey) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(e.String()))
 }
 

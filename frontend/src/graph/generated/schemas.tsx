@@ -2032,6 +2032,7 @@ export enum PlanType {
 
 export enum ProductType {
 	Errors = 'Errors',
+	Events = 'Events',
 	Logs = 'Logs',
 	Metrics = 'Metrics',
 	Sessions = 'Sessions',
@@ -2112,6 +2113,9 @@ export type Query = {
 	event_chunk_url: Scalars['String']
 	event_chunks: Array<EventChunk>
 	events?: Maybe<Array<Maybe<Scalars['Any']>>>
+	events_key_values: Array<Scalars['String']>
+	events_keys: Array<QueryKey>
+	events_metrics: MetricsBuckets
 	existing_logs_traces: Array<Scalars['String']>
 	field_suggestion?: Maybe<Array<Maybe<Field>>>
 	generate_zapier_access_token: Scalars['String']
@@ -2476,6 +2480,35 @@ export type QueryEvent_ChunksArgs = {
 
 export type QueryEventsArgs = {
 	session_secure_id: Scalars['String']
+}
+
+export type QueryEvents_Key_ValuesArgs = {
+	count?: InputMaybe<Scalars['Int']>
+	date_range: DateRangeRequiredInput
+	key_name: Scalars['String']
+	project_id: Scalars['ID']
+	query?: InputMaybe<Scalars['String']>
+}
+
+export type QueryEvents_KeysArgs = {
+	date_range: DateRangeRequiredInput
+	project_id: Scalars['ID']
+	query?: InputMaybe<Scalars['String']>
+	type?: InputMaybe<KeyType>
+}
+
+export type QueryEvents_MetricsArgs = {
+	bucket_by: Scalars['String']
+	bucket_count?: InputMaybe<Scalars['Int']>
+	bucket_window?: InputMaybe<Scalars['Int']>
+	column: Scalars['String']
+	group_by: Array<Scalars['String']>
+	limit?: InputMaybe<Scalars['Int']>
+	limit_aggregator?: InputMaybe<MetricAggregator>
+	limit_column?: InputMaybe<Scalars['String']>
+	metric_types: Array<MetricAggregator>
+	params: QueryInput
+	project_id: Scalars['ID']
 }
 
 export type QueryExisting_Logs_TracesArgs = {
@@ -3135,6 +3168,30 @@ export enum ReservedErrorsJoinedKey {
 	TraceId = 'trace_id',
 	Type = 'type',
 	VisitedUrl = 'visited_url',
+}
+
+export enum ReservedEventKey {
+	ActiveLength = 'active_length',
+	BrowserName = 'browser_name',
+	BrowserVersion = 'browser_version',
+	City = 'city',
+	Completed = 'completed',
+	Country = 'country',
+	Environment = 'environment',
+	FirstTime = 'first_time',
+	HasComments = 'has_comments',
+	HasErrors = 'has_errors',
+	HasRageClicks = 'has_rage_clicks',
+	Identified = 'identified',
+	Identifier = 'identifier',
+	Ip = 'ip',
+	Length = 'length',
+	OsName = 'os_name',
+	OsVersion = 'os_version',
+	PagesVisited = 'pages_visited',
+	SecureId = 'secure_id',
+	ServiceVersion = 'service_version',
+	State = 'state',
 }
 
 export enum ReservedLogKey {

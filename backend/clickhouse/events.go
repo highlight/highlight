@@ -15,31 +15,46 @@ import (
 )
 
 const SessionEventsTable = "session_events"
-const SessionEventsView = "session_events_view"
+const SessionEventsView = "session_events_vw"
 
-var eventsTableConfig = model.TableConfig{
-	// AttributesColumn: TracesTableNoDefaultConfig.AttributesColumn,
-	// BodyColumn:       TracesTableNoDefaultConfig.BodyColumn,
-	// MetricColumn:     ptr.String("MetricValue"),
-	// KeysToColumns:    TracesTableNoDefaultConfig.KeysToColumns,
-	// ReservedKeys:     TracesTableNoDefaultConfig.ReservedKeys,
-	// SelectColumns:    TracesTableNoDefaultConfig.SelectColumns,
-	// TableName:        TracesTableNoDefaultConfig.TableName,
+var eventKeysToColumns = map[string]string{
+	string(modelInputs.ReservedEventKeyActiveLength):   "ActiveLength",
+	string(modelInputs.ReservedEventKeyServiceVersion): "AppVersion",
+	string(modelInputs.ReservedEventKeyBrowserName):    "BrowserName",
+	string(modelInputs.ReservedEventKeyBrowserVersion): "BrowserVersion",
+	string(modelInputs.ReservedEventKeyCity):           "City",
+	string(modelInputs.ReservedEventKeyCompleted):      "Processed",
+	string(modelInputs.ReservedEventKeyCountry):        "Country",
+	string(modelInputs.ReservedEventKeyEnvironment):    "Environment",
+	string(modelInputs.ReservedEventKeyFirstTime):      "FirstTime",
+	string(modelInputs.ReservedEventKeyHasComments):    "HasComments",
+	string(modelInputs.ReservedEventKeyHasErrors):      "HasErrors",
+	string(modelInputs.ReservedEventKeyHasRageClicks):  "HasRageClicks",
+	string(modelInputs.ReservedEventKeyIdentified):     "Identified",
+	string(modelInputs.ReservedEventKeyIdentifier):     "Identifier",
+	string(modelInputs.ReservedEventKeyIP):             "IP",
+	string(modelInputs.ReservedEventKeyLength):         "Length",
+	string(modelInputs.ReservedEventKeyOsName):         "OSName",
+	string(modelInputs.ReservedEventKeyOsVersion):      "OSVersion",
+	string(modelInputs.ReservedEventKeyPagesVisited):   "PagesVisited",
+	string(modelInputs.ReservedEventKeySecureID):       "SecureID",
+	string(modelInputs.ReservedEventKeyState):          "State",
 }
 
-var eventsSamplingTableConfig = model.TableConfig{
-	// AttributesColumn: metricsTableConfig.AttributesColumn,
-	// BodyColumn:       metricsTableConfig.BodyColumn,
-	// MetricColumn:     metricsTableConfig.MetricColumn,
-	// KeysToColumns:    metricsTableConfig.KeysToColumns,
-	// ReservedKeys:     metricsTableConfig.ReservedKeys,
-	// SelectColumns:    metricsTableConfig.SelectColumns,
-	// TableName:        fmt.Sprintf("%s SAMPLE %d", TracesSamplingTable, SamplingRows),
+var reservedEventKeys = lo.Map(modelInputs.AllReservedEventKey, func(key modelInputs.ReservedEventKey, _ int) string {
+	return string(key)
+})
+
+var eventsTableConfig = model.TableConfig{
+	AttributesColumn: "Attributes",
+	BodyColumn:       "Event",
+	KeysToColumns:    eventKeysToColumns,
+	ReservedKeys:     reservedEventKeys,
+	TableName:        SessionEventsView,
 }
 
 var EventsSampleableTableConfig = SampleableTableConfig{
-	tableConfig:         eventsTableConfig,
-	samplingTableConfig: eventsSamplingTableConfig,
+	tableConfig: eventsTableConfig,
 	useSampling: func(d time.Duration) bool {
 		return false
 	},
@@ -82,7 +97,7 @@ func (client *Client) BatchWriteSessionEventRows(ctx context.Context, eventRows 
 	return batch.Send()
 }
 
-func (client *Client) EventMetrics(ctx context.Context, projectID int, params modelInputs.QueryInput, column string, metricTypes []modelInputs.MetricAggregator, groupBy []string, nBuckets *int, bucketBy string, bucketWindow *int, limit *int, limitAggregator *modelInputs.MetricAggregator, limitColumn *string) (*modelInputs.MetricsBuckets, error) {
+func (client *Client) ReadEventsMetrics(ctx context.Context, projectID int, params modelInputs.QueryInput, column string, metricTypes []modelInputs.MetricAggregator, groupBy []string, nBuckets *int, bucketBy string, bucketWindow *int, limit *int, limitAggregator *modelInputs.MetricAggregator, limitColumn *string) (*modelInputs.MetricsBuckets, error) {
 	return client.ReadMetrics(ctx, ReadMetricsInput{
 		SampleableConfig: EventsSampleableTableConfig,
 		ProjectIDs:       []int{projectID},
@@ -100,10 +115,9 @@ func (client *Client) EventMetrics(ctx context.Context, projectID int, params mo
 }
 
 func (client *Client) ReadWorkspaceEventCounts(ctx context.Context, projectIDs []int, params modelInputs.QueryInput) (*modelInputs.MetricsBuckets, error) {
-	params.Query = params.Query + " " + modelInputs.ReservedTraceKeyMetricValue.String() + " exists"
 	// 12 buckets - 12 months in a year, or 12 weeks in a quarter
 	return client.ReadMetrics(ctx, ReadMetricsInput{
-		SampleableConfig: MetricsSampleableTableConfig,
+		SampleableConfig: EventsSampleableTableConfig,
 		ProjectIDs:       projectIDs,
 		Params:           params,
 		Column:           "",
@@ -114,22 +128,20 @@ func (client *Client) ReadWorkspaceEventCounts(ctx context.Context, projectIDs [
 }
 
 func (client *Client) EventsKeys(ctx context.Context, projectID int, startDate time.Time, endDate time.Time, query *string, typeArg *modelInputs.KeyType) ([]*modelInputs.QueryKey, error) {
-	if typeArg != nil && *typeArg == modelInputs.KeyTypeNumeric {
-		metricKeys, err := KeysAggregated(ctx, client, MetricNamesTable, projectID, startDate, endDate, query, typeArg)
-		if err != nil {
-			return nil, err
-		}
+	// eventKeys, err := KeysAggregated(ctx, client, SessionEventsView, projectID, startDate, endDate, query, typeArg)
+	// if err != nil {
+	// 	return nil, err
+	// }
 
-		return metricKeys, nil
-	}
-
-	return client.TracesKeys(ctx, projectID, startDate, endDate, query, typeArg)
+	// return eventKeys, nil
+	return nil, nil
 }
 
-func (client *Client) EventssKeyValues(ctx context.Context, projectID int, keyName string, startDate time.Time, endDate time.Time, query *string, limit *int) ([]string, error) {
-	return KeyValuesAggregated(ctx, client, TraceKeyValuesTable, projectID, keyName, startDate, endDate, query, limit)
+func (client *Client) EventsKeyValues(ctx context.Context, projectID int, keyName string, startDate time.Time, endDate time.Time, query *string, limit *int) ([]string, error) {
+	// return KeyValuesAggregated(ctx, client, TraceKeyValuesTable, projectID, keyName, startDate, endDate, query, limit)
+	return nil, nil
 }
 
 func (client *Client) EventsLogLines(ctx context.Context, projectID int, params modelInputs.QueryInput) ([]*modelInputs.LogLine, error) {
-	return logLines(ctx, client, metricsTableConfig, projectID, params)
+	return logLines(ctx, client, eventsTableConfig, projectID, params)
 }
