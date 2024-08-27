@@ -1,4 +1,5 @@
 import os
+import shutil
 import subprocess
 
 import requests
@@ -72,6 +73,7 @@ def fetch_logos(root_path: str, emails: str):
 def edit_logo(path: str):
     file_name = os.path.basename(path)
     out_name = f"{file_name}.png"
+    # process-logo is a script from logo.scm - place this in your gimp scripts folder
     call = subprocess.check_call(
         [
             "gimp",
@@ -88,11 +90,29 @@ def edit_logo(path: str):
     os.remove(path)
 
 
-def main():
+def save_logos():
     with open("emails.csv") as f:
         img_path = os.path.realpath(os.path.join(__file__, os.pardir, "images"))
         for file in fetch_logos(img_path, f.read()):
             edit_logo(file)
+
+
+def extract_images():
+    img_path = os.path.realpath(os.path.join(__file__, os.pardir, "images"))
+    # walk img path and extract all files that are in subfolder to the parent dir
+    for root, d, files in os.walk(img_path):
+        for file in files:
+            if root != img_path:
+                domain = os.path.basename(root)
+                src = os.path.join(root, file)
+                dst = os.path.join(img_path, f'{domain}.logo.png')
+                shutil.copy(src, dst)
+                print(f"moved {src} to {dst}")
+
+def main():
+    # utility for copying files up to top level dir
+    # extract_images()
+    save_logos()
 
 
 if __name__ == "__main__":
