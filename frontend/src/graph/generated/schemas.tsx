@@ -3190,8 +3190,8 @@ export enum ReservedEventKey {
 	OsName = 'os_name',
 	OsVersion = 'os_version',
 	PagesVisited = 'pages_visited',
+	SecureSessionId = 'secure_session_id',
 	ServiceVersion = 'service_version',
-	SessionSecureId = 'session_secure_id',
 	State = 'state',
 }
 

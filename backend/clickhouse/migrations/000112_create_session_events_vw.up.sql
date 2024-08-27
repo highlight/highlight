@@ -8,7 +8,7 @@ SELECT
     session_events.Timestamp,
     session_events.Event,
     session_events.Attributes,
-    sessions.SecureID as SessionSecureId,
+    sessions.SecureID as SecureSessionId,
     sessions.Identified,
     sessions.Identifier,
     sessions.FirstTime,

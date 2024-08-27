@@ -3,6 +3,7 @@ package clickhouse
 import (
 	"context"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/google/uuid"
@@ -40,8 +41,19 @@ var eventKeysToColumns = map[string]string{
 	string(modelInputs.ReservedEventKeyOsName):          "OSName",
 	string(modelInputs.ReservedEventKeyOsVersion):       "OSVersion",
 	string(modelInputs.ReservedEventKeyPagesVisited):    "PagesVisited",
-	string(modelInputs.ReservedEventKeySessionSecureID): "SessionSecureId",
+	string(modelInputs.ReservedEventKeySecureSessionID): "SecureSessionId",
 	string(modelInputs.ReservedEventKeyState):           "State",
+}
+
+var defaultEventKeys = []*modelInputs.QueryKey{
+	{Name: string(modelInputs.ReservedEventKeySecureSessionID), Type: modelInputs.KeyTypeString},
+	{Name: string(modelInputs.ReservedEventKeyIdentified), Type: modelInputs.KeyTypeBoolean},
+	{Name: string(modelInputs.ReservedEventKeyFirstTime), Type: modelInputs.KeyTypeBoolean},
+}
+
+var eventBooleanKeys = map[string]bool{
+	string(modelInputs.ReservedEventKeyFirstTime):  true,
+	string(modelInputs.ReservedEventKeyIdentified): true,
 }
 
 var reservedEventKeys = lo.Map(modelInputs.AllReservedEventKey, func(key modelInputs.ReservedEventKey, _ int) string {
@@ -136,10 +148,25 @@ func (client *Client) EventsKeys(ctx context.Context, projectID int, startDate t
 		return nil, err
 	}
 
+	if query == nil || *query == "" {
+		eventKeys = append(eventKeys, defaultEventKeys...)
+	} else {
+		queryLower := strings.ToLower(*query)
+		for _, key := range defaultEventKeys {
+			if strings.Contains(key.Name, queryLower) {
+				eventKeys = append(eventKeys, key)
+			}
+		}
+	}
+
 	return eventKeys, nil
 }
 
 func (client *Client) EventsKeyValues(ctx context.Context, projectID int, keyName string, startDate time.Time, endDate time.Time, query *string, limit *int) ([]string, error) {
+	if eventBooleanKeys[keyName] {
+		return []string{"true", "false"}, nil
+	}
+
 	return KeyValuesAggregated(ctx, client, EventKeyValuesTable, projectID, keyName, startDate, endDate, query, limit)
 }
 

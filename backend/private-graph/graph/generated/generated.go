@@ -12723,7 +12723,7 @@ enum ReservedEventKey {
 	os_name
 	os_version
 	pages_visited
-	session_secure_id
+	secure_session_id
 	service_version
 	state
 }

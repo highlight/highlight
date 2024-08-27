@@ -2218,7 +2218,7 @@ const (
 	ReservedEventKeyOsName          ReservedEventKey = "os_name"
 	ReservedEventKeyOsVersion       ReservedEventKey = "os_version"
 	ReservedEventKeyPagesVisited    ReservedEventKey = "pages_visited"
-	ReservedEventKeySessionSecureID ReservedEventKey = "session_secure_id"
+	ReservedEventKeySecureSessionID ReservedEventKey = "secure_session_id"
 	ReservedEventKeyServiceVersion  ReservedEventKey = "service_version"
 	ReservedEventKeyState           ReservedEventKey = "state"
 )
@@ -2243,14 +2243,14 @@ var AllReservedEventKey = []ReservedEventKey{
 	ReservedEventKeyOsName,
 	ReservedEventKeyOsVersion,
 	ReservedEventKeyPagesVisited,
-	ReservedEventKeySessionSecureID,
+	ReservedEventKeySecureSessionID,
 	ReservedEventKeyServiceVersion,
 	ReservedEventKeyState,
 }
 
 func (e ReservedEventKey) IsValid() bool {
 	switch e {
-	case ReservedEventKeyActiveLength, ReservedEventKeyBrowserName, ReservedEventKeyBrowserVersion, ReservedEventKeyCity, ReservedEventKeyCompleted, ReservedEventKeyCountry, ReservedEventKeyEnvironment, ReservedEventKeyEvent, ReservedEventKeyFirstTime, ReservedEventKeyHasComments, ReservedEventKeyHasErrors, ReservedEventKeyHasRageClicks, ReservedEventKeyIdentified, ReservedEventKeyIdentifier, ReservedEventKeyIP, ReservedEventKeyLength, ReservedEventKeyOsName, ReservedEventKeyOsVersion, ReservedEventKeyPagesVisited, ReservedEventKeySessionSecureID, ReservedEventKeyServiceVersion, ReservedEventKeyState:
+	case ReservedEventKeyActiveLength, ReservedEventKeyBrowserName, ReservedEventKeyBrowserVersion, ReservedEventKeyCity, ReservedEventKeyCompleted, ReservedEventKeyCountry, ReservedEventKeyEnvironment, ReservedEventKeyEvent, ReservedEventKeyFirstTime, ReservedEventKeyHasComments, ReservedEventKeyHasErrors, ReservedEventKeyHasRageClicks, ReservedEventKeyIdentified, ReservedEventKeyIdentifier, ReservedEventKeyIP, ReservedEventKeyLength, ReservedEventKeyOsName, ReservedEventKeyOsVersion, ReservedEventKeyPagesVisited, ReservedEventKeySecureSessionID, ReservedEventKeyServiceVersion, ReservedEventKeyState:
 		return true
 	}
 	return false
