@@ -1,12 +1,11 @@
-#TODO(vkorolik) use with app_runner.py
 services:
-    zookeeper:
-        image: ${IMAGE_BASE_NAME}
-        container_name: zookeeper
-        restart: on-failure
-        volumes:
-            - zoo-data:/var/lib/zookeeper/data
-            - zoo-log:/var/lib/zookeeper/log
-        environment:
-            ZOOKEEPER_CLIENT_PORT: 2181
-            ZOOKEEPER_TICK_TIME: 2000
+    base:
+        image: ${BACKEND_IMAGE_NAME-ghcr.io/highlight/e2e:latest}
+    dotnet:
+        image: ${BACKEND_IMAGE_NAME-ghcr.io/highlight/dotnet:latest}
+        build:
+            context: .
+            dockerfile: Dockerfile.dotnet
+        container_name: dotnet
+        depends_on:
+            - base
