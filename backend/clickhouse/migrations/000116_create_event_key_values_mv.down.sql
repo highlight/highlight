@@ -1,0 +1,1 @@
+DROP VIEW IF EXISTS event_key_values_mv;
