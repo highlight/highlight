@@ -1,10 +1,17 @@
 DROP VIEW IF EXISTS session_events_vw;
 CREATE VIEW IF NOT EXISTS session_events_vw AS
 SELECT
-    session_events.*,
+    session_events.UUID,
+    session_events.ProjectID as ProjectId,
+    session_events.SessionID,
+    session_events.SessionCreatedAt,
+    session_events.Timestamp,
+    session_events.Event,
+    session_events.Attributes,
     sessions.SecureID,
     sessions.Identified,
     sessions.Identifier,
+    sessions.FirstTime,
     sessions.City,
     sessions.State,
     sessions.Country,
