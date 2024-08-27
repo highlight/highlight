@@ -204,10 +204,10 @@ def main():
         "apps",
         nargs="*",
         default=[
-            "dotnet",
-            "dotnet4",
-            "go",
-            "python",
+            # "dotnet",
+            # "dotnet4",
+            # "go",
+            # "python",
             "ruby",
         ],
     )
