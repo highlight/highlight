@@ -1,0 +1,30 @@
+DROP VIEW IF EXISTS session_events_vw;
+CREATE VIEW IF NOT EXISTS session_events_vw AS
+SELECT
+    session_events.*,
+    sessions.SecureID,
+    sessions.Identified,
+    sessions.Identifier,
+    sessions.City,
+    sessions.State,
+    sessions.Country,
+    sessions.OSName,
+    sessions.OSVersion,
+    sessions.BrowserName,
+    sessions.BrowserVersion,
+    sessions.IP,
+    sessions.Processed,
+    sessions.HasComments,
+    sessions.HasRageClicks,
+    sessions.HasErrors,
+    sessions.Length,
+    sessions.ActiveLength,
+    sessions.Environment,
+    sessions.AppVersion,
+    sessions.PagesVisited,
+    sessions.Excluded
+FROM session_events
+INNER JOIN sessions
+    ON sessions.ProjectID = session_events.ProjectID
+    AND sessions.CreatedAt = session_events.SessionCreatedAt
+    AND sessions.ID = session_events.SessionID
