@@ -155,14 +155,14 @@ def run_example_in_docker(example_name: str):
         else:
             raise Exception("app not ready")
     finally:
-        proc = run(docker_bin, ["docker", "compose", "logs", example_name], cwd=e2e_dir)
+        proc = run(docker_bin, ["docker", "logs", docker_container], cwd=e2e_dir)
         stdout, stderr = proc.communicate()
         assert not proc.returncode, stderr
         logging.info("docker container logs: %s, %s", stdout, stderr)
 
         proc = run(
             docker_bin,
-            ["docker", "compose", "rm", "-f", example_name],
+            ["docker", "rm", "-f", docker_container],
             cwd=e2e_dir,
         )
         _, stderr = proc.communicate()
