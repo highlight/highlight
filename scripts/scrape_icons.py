@@ -20,8 +20,8 @@ def get_domain_htmls(emails: str):
 
 def get_domain_logos(content: str):
     soup = BeautifulSoup(content, "html.parser")
-    for elem in soup.find_all():
-        url = elem.attrs.get("src") or elem.attrs.get("href")
+    for elem in soup.find_all("img"):
+        url = elem.attrs.get("src")
         if not url:
             continue
         if (
