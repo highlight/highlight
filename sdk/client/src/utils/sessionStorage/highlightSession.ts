@@ -26,10 +26,12 @@ export const getSessionSecureID = (props?: { local?: true }): string => {
 }
 
 export const setSessionSecureID = (secureID: string) => {
+	// for duplicate tab functionality, secureID is ''
+	// avoid clearing the local secureID used for network request instrumentation
 	if (secureID) {
 		sessionSecureID = secureID
-		setItem(SESSION_STORAGE_KEYS.SESSION_ID, sessionSecureID)
 	}
+	setItem(SESSION_STORAGE_KEYS.SESSION_ID, secureID)
 }
 
 const getSessionData = (sessionID: string): SessionData | undefined => {

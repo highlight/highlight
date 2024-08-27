@@ -1,5 +1,19 @@
 # @highlight-run/next
 
+## 7.5.23
+
+### Patch Changes
+
+-   2339697: update opentelemetry dependencies
+-   Updated dependencies [be38f68]
+-   Updated dependencies [2339697]
+-   Updated dependencies [bbbaeb1]
+    -   highlight.run@9.3.2
+    -   @highlight-run/node@3.9.1
+    -   @highlight-run/opentelemetry-sdk-workers@1.0.7
+    -   @highlight-run/react@5.0.2
+    -   @highlight-run/cloudflare@2.1.7
+
 ## 7.5.22
 
 ### Patch Changes
