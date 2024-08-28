@@ -938,9 +938,6 @@ SessionSecureID: ${this.sessionData.sessionSecureID}`,
 			)
 			this.listeners.push(
 				ClickListener((clickTarget, event) => {
-					if (clickTarget) {
-						this.addCustomEvent('Click', clickTarget)
-					}
 					let selector = null
 					let textContent = null
 					if (event && event.target) {
@@ -952,13 +949,11 @@ SessionSecureID: ${this.sessionData.sessionSecureID}`,
 							textContent = textContent.substring(0, 2000)
 						}
 					}
-					highlightThis.addProperties(
-						{
-							clickTextContent: textContent,
-							clickSelector: selector,
-						},
-						{ type: 'session' },
-					)
+					this.addCustomEvent('Click', {
+						clickTarget,
+						clickTextContent: textContent,
+						clickSelector: selector,
+					})
 				}),
 			)
 			this.listeners.push(
