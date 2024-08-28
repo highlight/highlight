@@ -1,0 +1,1 @@
+DROP TABLE IF EXISTS event_key_values;
