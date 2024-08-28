@@ -1,6 +1,6 @@
 ---
 title: Monitoring Browser Applications with OpenTelemetry
-createdAt: 2023-08-23T22:00:00Z
+createdAt: 2024-08-27T22:00:00Z
 readingTime: 5
 authorFirstName: Chris
 authorLastName: Schmitz
