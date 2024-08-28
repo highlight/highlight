@@ -8,7 +8,8 @@ CREATE MATERIALIZED VIEW IF NOT EXISTS event_attributes_mv TO event_key_values (
 SELECT ProjectID AS ProjectId,
     arrayJoin(Attributes).1 AS Key,
     toStartOfDay(Timestamp) AS Day,
-    arrayJoin(Attributes).2 AS Value
+    arrayJoin(Attributes).2 AS Value,
+    count() AS Count
 FROM session_events
 WHERE (
         Key NOT IN (

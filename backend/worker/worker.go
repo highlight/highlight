@@ -827,12 +827,12 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 			{
 				Timestamp:  landingPage.CreatedAt,
 				Event:      "landing_page",
-				Attributes: map[string]string{"value": landingPage.Value},
+				Attributes: map[string]string{"url": landingPage.Value},
 			},
 			{
 				Timestamp:  exitPage.CreatedAt,
 				Event:      "exit_page",
-				Attributes: map[string]string{"value": exitPage.Value},
+				Attributes: map[string]string{"url": exitPage.Value},
 			},
 		}
 
