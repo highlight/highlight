@@ -55,7 +55,9 @@ temp
 .env
 .rollup.cache
 
+scripts/emails.csv
 scripts/invoices.csv
+scripts/images
 sdk/highlightinc-highlight-datasource/grafana/
 
 google-chrome*
