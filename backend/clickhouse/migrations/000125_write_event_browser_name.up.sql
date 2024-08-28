@@ -10,7 +10,7 @@ SELECT ProjectID as ProjectId,
     toStartOfDay(CreatedAt) AS Day,
     BrowserName AS Value,
     count() AS Count
-FROM sessions FINAL
+FROM sessions
 WHERE (BrowserName != '')
 GROUP BY ProjectId,
     Key,

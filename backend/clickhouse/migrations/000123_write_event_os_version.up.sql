@@ -10,7 +10,7 @@ SELECT ProjectID as ProjectId,
     toStartOfDay(CreatedAt) AS Day,
     OSVersion AS Value,
     count() AS Count
-FROM sessions FINAL
+FROM sessions
 WHERE (OSVersion != '')
 GROUP BY ProjectId,
     Key,

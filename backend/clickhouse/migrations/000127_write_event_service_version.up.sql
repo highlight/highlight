@@ -10,7 +10,7 @@ SELECT ProjectID as ProjectId,
     toStartOfDay(CreatedAt) AS Day,
     AppVersion AS Value,
     count() AS Count
-FROM sessions FINAL
+FROM sessions
 WHERE (AppVersion != '')
 GROUP BY ProjectId,
     Key,

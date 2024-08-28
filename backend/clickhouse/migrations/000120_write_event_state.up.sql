@@ -10,7 +10,7 @@ SELECT ProjectID as ProjectId,
     toStartOfDay(CreatedAt) AS Day,
     State AS Value,
     count() AS Count
-FROM sessions FINAL
+FROM sessions
 WHERE (State != '')
 GROUP BY ProjectId,
     Key,
