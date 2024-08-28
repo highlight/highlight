@@ -51,6 +51,7 @@ import { OTLP_ENDPOINT, PUBLIC_GRAPH_URI } from '@/constants'
 import { SIGN_IN_ROUTE } from '@/pages/Auth/AuthRouter'
 import { authRedirect } from '@/pages/Auth/utils'
 import { onlyAllowHighlightStaff } from '@/util/authorization/authorizationUtils'
+import { omit } from 'lodash'
 
 document.body.className = 'highlight-light-theme'
 
@@ -366,6 +367,15 @@ const AuthenticationRoleRouter = () => {
 				analytics.identify(adminData.id, {
 					'Project ID': data.project?.id,
 					'Workspace ID': data.project?.workspace?.id,
+					...Object.entries(omit(adminData, ['__typename'])).reduce(
+						(acc, [key, value]) => {
+							if (value) {
+								acc[key] = value.toString()
+							}
+							return acc
+						},
+						{} as Record<string, string>,
+					),
 				})
 			},
 		})
