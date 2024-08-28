@@ -18,8 +18,11 @@ export const PRODUCTS: ProductType[] = [
 	ProductType.Sessions,
 	ProductType.Errors,
 	ProductType.Metrics,
-	ProductType.Events,
 ]
+
+export const PRODUCTS_WITH_EVENTS: ProductType[] = PRODUCTS.concat([
+	ProductType.Events,
+])
 
 export const PRODUCT_ICONS = [
 	<IconSolidLogs key="logs" />,
@@ -27,8 +30,11 @@ export const PRODUCT_ICONS = [
 	<IconSolidPlayCircle key="sessions" />,
 	<IconSolidLightningBolt key="errors" />,
 	<IconSolidChartBar key="metrics" />,
-	<IconSolidClock key="events" />,
 ]
+
+export const PRODUCT_ICONS_WITH_EVENTS = PRODUCT_ICONS.concat([
+	<IconSolidClock key="events" />,
+])
 
 export const NUMERIC_FUNCTION_TYPES: MetricAggregator[] = [
 	MetricAggregator.Min,
