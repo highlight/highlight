@@ -62,7 +62,9 @@ Here's how it works:
 3. **Server-Side Reception**: The Highlight server-side SDKs extract these headers and continue the trace, linking the server-side spans to the client-side trace.
 4. **Trace Completion**: As the request completes and returns to the client, the full trace, including both client and server spans, can be visualized in Highlight's UI.
 
-This connection between client and server traces provides end-to-end visibility, facilitates performance optimization, and enables error correlation.
+This connection between client and server traces provides end-to-end visibility and is the link required necessary for page speed insights and client/server error correlation.
+
+For server-side rendering where code executes on the server before HTML is sent to the browser, the [trace context is propagated through a `<meta>` tag](#handling-server-initiated-traces) that is added to the HTML.
 
 ### Example Client-Server Trace Lifecycle
 
