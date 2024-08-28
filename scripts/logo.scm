@@ -1,0 +1,7 @@
+(define (process-logo in out)
+  (let* ((image (car (gimp-file-load RUN-NONINTERACTIVE in in)))
+          (drawable (car (gimp-image-get-active-layer image))))
+    (gimp-drawable-desaturate drawable 0)
+    (gimp-drawable-brightness-contrast drawable 1.0 1.0)
+    (gimp-file-save RUN-NONINTERACTIVE image drawable out out)
+    (gimp-image-delete image)))

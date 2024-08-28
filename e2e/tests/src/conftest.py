@@ -1,59 +1,12 @@
 import logging
 import os
-import signal
 import subprocess
-import time
-from typing import Optional, Callable
 
 import pytest
 import requests
 from semver import VersionInfo
 
-
-def run(bin_dir: str, args: list[str], cwd: Optional[str] = None):
-    return subprocess.Popen(
-        args,
-        env=os.environ | {"PATH": f'{os.environ["PATH"]}:{bin_dir}'},
-        stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE,
-        text=True,
-        cwd=os.path.realpath(
-            os.path.join(os.path.dirname(__file__), os.pardir, os.pardir, cwd or "")
-        ),
-    )
-
-
-def run_and_poll(
-    node_bin: str,
-    args: list[str],
-    request: Optional[Callable[[], requests.Response]],
-    pre: Optional[Callable[[], None]] = None,
-    cwd: Optional[str] = None,
-):
-    if pre:
-        pre()
-    proc = run(node_bin, args, cwd=cwd)
-    try:
-        for _ in range(60):
-            try:
-                r = request()
-                if r.ok:
-                    break
-            except requests.RequestException:
-                pass
-            time.sleep(1)
-        else:
-            raise Exception("app not ready")
-        yield proc
-    finally:
-        proc.send_signal(signal.SIGINT)
-        proc.terminate()
-        stdout, stderr = proc.communicate()
-        logging.info("app output")
-        for line in stdout.splitlines():
-            logging.info(line)
-        for line in stderr.splitlines():
-            logging.info(line)
+from app_runner import run, run_and_poll
 
 
 @pytest.fixture(scope="session")

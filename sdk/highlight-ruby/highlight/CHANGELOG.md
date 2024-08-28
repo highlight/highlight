@@ -19,3 +19,9 @@
 ## 0.2.2
 
 - Fix duplicate errors recorded on traces.
+
+## 0.4.0
+
+- Add `H.init` alias
+- Auto instrument Rails requests and eliminate need for `around_action`
+- Fix warning about incompatibility with `ActiveSupport::LoggerSilence`

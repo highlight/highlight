@@ -1,5 +1,5 @@
 import { Box, Dialog } from '@highlight-run/ui/components'
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef } from 'react'
 
 import { useRelatedResource } from '@/components/RelatedResources/hooks'
 import {
@@ -26,7 +26,7 @@ type PanelComponent = React.FC<Props> & {
 
 export const Panel: PanelComponent = ({ children, open }) => {
 	const dragHandleRef = useRef<HTMLDivElement>(null)
-	const [dragging, setDragging] = useState(false)
+	const dragging = useRef(false)
 	const { remove, panelWidth, setPanelWidth } = useRelatedResource()
 	const dialogStore = Dialog.useStore({
 		open,
@@ -39,7 +39,7 @@ export const Panel: PanelComponent = ({ children, open }) => {
 
 	const handleMouseMove = useCallback(
 		(e: MouseEvent) => {
-			if (!dragging) {
+			if (!dragging.current) {
 				return
 			}
 
@@ -53,27 +53,24 @@ export const Panel: PanelComponent = ({ children, open }) => {
 				Math.min(Math.max(newWidth, MIN_PANEL_WIDTH), MAX_PANEL_WIDTH),
 			)
 		},
-		[dragging, setPanelWidth],
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+		[],
 	)
 
 	const handleMouseUp = useCallback(() => {
-		setDragging(false)
+		dragging.current = false
 	}, [])
 
 	useEffect(() => {
-		if (dragging) {
-			window.addEventListener('mousemove', handleMouseMove, true)
-			window.addEventListener('mouseup', handleMouseUp, true)
-		} else {
-			window.removeEventListener('mousemove', handleMouseMove, true)
-			window.removeEventListener('mouseup', handleMouseUp, true)
-		}
+		window.addEventListener('mousemove', handleMouseMove, true)
+		window.addEventListener('mouseup', handleMouseUp, true)
 
 		return () => {
 			window.removeEventListener('mousemove', handleMouseMove, true)
 			window.removeEventListener('mouseup', handleMouseUp, true)
 		}
-	}, [dragging, handleMouseMove, handleMouseUp])
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [])
 
 	return (
 		<Dialog
@@ -93,7 +90,7 @@ export const Panel: PanelComponent = ({ children, open }) => {
 				cssClass={styles.panelDragHandle}
 				onMouseDown={(e) => {
 					e.preventDefault()
-					setDragging(true)
+					dragging.current = true
 				}}
 			/>
 
