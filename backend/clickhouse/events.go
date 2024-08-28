@@ -44,7 +44,6 @@ var eventKeysToColumns = map[string]string{
 var defaultEventKeys = []*modelInputs.QueryKey{
 	{Name: string(modelInputs.ReservedEventKeyFirstSession), Type: modelInputs.KeyTypeBoolean},
 	{Name: string(modelInputs.ReservedEventKeyIdentified), Type: modelInputs.KeyTypeBoolean},
-	{Name: string(modelInputs.ReservedEventKeyIP), Type: modelInputs.KeyTypeString},
 	{Name: string(modelInputs.ReservedEventKeySecureSessionID), Type: modelInputs.KeyTypeString},
 	{Name: string(modelInputs.ReservedEventKeySessionActiveLength), Type: modelInputs.KeyTypeNumeric},
 	{Name: string(modelInputs.ReservedEventKeySessionLength), Type: modelInputs.KeyTypeNumeric},
