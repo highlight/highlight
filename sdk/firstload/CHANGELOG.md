@@ -1,5 +1,14 @@
 # highlight.run
 
+## 9.3.2
+
+### Patch Changes
+
+-   be38f68: make client kill switch less likely to trigger by requiring multiple failures
+-   2339697: update opentelemetry dependencies
+-   bbbaeb1: ensure duplicate tab functionality does not break x-highlight-request header
+    corrects issue introduced in 9.3.0 with the x-highlight-request missing the session id
+
 ## 9.3.1
 
 ### Patch Changes

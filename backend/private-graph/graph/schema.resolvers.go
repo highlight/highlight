@@ -21,6 +21,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/DmitriyVTitov/size"
 	"github.com/PaesslerAG/jsonpath"
 	mpeTypes "github.com/aws/aws-sdk-go-v2/service/marketplaceentitlementservice/types"
 	"github.com/aws/aws-sdk-go-v2/service/marketplacemetering"
@@ -5815,6 +5816,17 @@ func (r *queryResolver) Resources(ctx context.Context, sessionSecureID string) (
 		return nil, e.Wrap(err, "error getting resources from redis")
 	}
 
+	resourceSize := size.Of(resources)
+	log.WithContext(ctx).WithFields(
+		log.Fields{
+			"size":            resourceSize,
+			"sessionSecureID": sessionSecureID,
+		}).Info("[Resources] Fetched resources size")
+
+	if resourceSize > MaxDownloadSize {
+		return nil, fmt.Errorf("resource size (%v) exceeds max download size", resourceSize)
+	}
+
 	return resources, nil
 }
 
@@ -9240,16 +9252,6 @@ func (r *queryResolver) SessionLogs(ctx context.Context, projectID int, params m
 	}
 
 	return r.ClickhouseClient.ReadSessionLogs(ctx, project.ID, params)
-}
-
-// LogsTotalCount is the resolver for the logs_total_count field.
-func (r *queryResolver) LogsTotalCount(ctx context.Context, projectID int, params modelInputs.QueryInput) (uint64, error) {
-	project, err := r.isUserInProjectOrDemoProject(ctx, projectID)
-	if err != nil {
-		return 0, err
-	}
-
-	return r.ClickhouseClient.ReadLogsTotalCount(ctx, project.ID, params)
 }
 
 // LogsHistogram is the resolver for the logs_histogram field.
