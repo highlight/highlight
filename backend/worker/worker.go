@@ -1202,14 +1202,14 @@ func (w *Worker) RefreshMaterializedViews(ctx context.Context) {
 		count, _ := w.Resolver.ClickhouseClient.ReadLogsDailySum(ctx, lo.Map(workspace.Projects, func(p model.Project, index int) int {
 			return p.ID
 		}), backend.DateRangeRequiredInput{
-			StartDate: time.Now().Add(-time.Hour * 24 * 30),
+			StartDate: time.Now().AddDate(0, 0, -1),
 			EndDate:   time.Now(),
 		})
 		c.LogCount = int64(count)
 		count, _ = w.Resolver.ClickhouseClient.ReadTracesDailySum(ctx, lo.Map(workspace.Projects, func(p model.Project, index int) int {
 			return p.ID
 		}), backend.DateRangeRequiredInput{
-			StartDate: time.Now().Add(-time.Hour * 24 * 30),
+			StartDate: time.Now().AddDate(0, 0, -1),
 			EndDate:   time.Now(),
 		})
 		c.TraceCount = int64(count)
