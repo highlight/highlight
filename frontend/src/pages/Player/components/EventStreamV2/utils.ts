@@ -42,7 +42,7 @@ export const getFilteredEvents = (
 						/**
 						 * For user properties, we allow for searching by the key.
 						 */
-						const matchedKey = searchTokens.some((searchToken) => {
+						const matchedKey = searchTokens.every((searchToken) => {
 							return keys.some((key) =>
 								key.toLocaleLowerCase().includes(searchToken),
 							)
@@ -52,7 +52,7 @@ export const getFilteredEvents = (
 							matchedKey ||
 							keys.some((key) => {
 								if (typeof userObject[key] === 'string') {
-									return searchTokens.some((searchToken) => {
+									return searchTokens.every((searchToken) => {
 										return userObject[key]
 											.toLowerCase()
 											.includes(searchToken)
@@ -74,7 +74,7 @@ export const getFilteredEvents = (
 						/**
 						 * For track properties, we allow for searching by the key.
 						 */
-						const matchedKey = searchTokens.some((searchToken) => {
+						const matchedKey = searchTokens.every((searchToken) => {
 							return keys.some((key) =>
 								key.toLocaleLowerCase().includes(searchToken),
 							)
@@ -84,7 +84,7 @@ export const getFilteredEvents = (
 							matchedKey ||
 							keys.some((key) => {
 								if (typeof trackProperties[key] === 'string') {
-									return searchTokens.some((searchToken) => {
+									return searchTokens.every((searchToken) => {
 										return trackProperties[key]
 											.toLowerCase()
 											.includes(searchToken)
@@ -105,7 +105,7 @@ export const getFilteredEvents = (
 
 						return keys.some((key) => {
 							if (typeof userObject[key] === 'string') {
-								return searchTokens.some((searchToken) => {
+								return searchTokens.every((searchToken) => {
 									return userObject[key]
 										.toLowerCase()
 										.includes(searchToken)
@@ -123,7 +123,7 @@ export const getFilteredEvents = (
 						viewportPayload,
 					) as (keyof ViewportResizeListenerArgs)[]
 					return keys.some((key) => {
-						return searchTokens.some((searchToken) => {
+						return searchTokens.every((searchToken) => {
 							return (
 								key.toLowerCase().includes(searchToken) ||
 								viewportPayload[key]
@@ -140,7 +140,7 @@ export const getFilteredEvents = (
 						}[]
 					}
 					return vitals.some(({ name, value }) => {
-						return searchTokens.some((searchToken) => {
+						return searchTokens.every((searchToken) => {
 							return (
 								name.toLowerCase().includes(searchToken) ||
 								value.toString().includes(searchToken)
@@ -152,7 +152,7 @@ export const getFilteredEvents = (
 				case 'TabHidden':
 					return true
 				default:
-					return searchTokens.some((searchToken) => {
+					return searchTokens.every((searchToken) => {
 						return (event.data.payload as string)
 							.toLowerCase()
 							.includes(searchToken)
