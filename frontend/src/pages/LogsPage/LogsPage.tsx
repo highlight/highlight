@@ -42,7 +42,6 @@ import {
 	useGetMetricsQuery,
 	useGetWorkspaceSettingsQuery,
 } from '@/graph/generated/hooks'
-import useFeatureFlag, { Feature } from '@/hooks/useFeatureFlag/useFeatureFlag'
 import { useNumericProjectId } from '@/hooks/useProjectId'
 import { useSearchTime } from '@/hooks/useSearchTime'
 import { TIMESTAMP_KEY } from '@/pages/Graphing/components/Graph'
@@ -87,7 +86,6 @@ const LogsPageInner = ({ timeMode, logCursor, presetDefault }: Props) => {
 		project_id: string
 	}>()
 	const { currentWorkspace } = useApplicationContext()
-	const aiQueryBuilderFlag = useFeatureFlag(Feature.AiQueryBuilder)
 	const [aiMode, setAiMode] = useState(false)
 	const [query, setQuery] = useQueryParam('query', QueryParam)
 	const queryParts = useMemo(() => {
@@ -156,7 +154,7 @@ const LogsPageInner = ({ timeMode, logCursor, presetDefault }: Props) => {
 
 	const { data: workspaceSettings } = useGetWorkspaceSettingsQuery({
 		variables: { workspace_id: String(currentWorkspace?.id) },
-		skip: !currentWorkspace?.id || !aiQueryBuilderFlag,
+		skip: !currentWorkspace?.id,
 	})
 
 	const searchTimeContext = useSearchTime({
@@ -309,7 +307,7 @@ const LogsPageInner = ({ timeMode, logCursor, presetDefault }: Props) => {
 							workspaceSettings?.workspaceSettings
 								?.ai_query_builder
 						}
-						aiSupportedSearch={aiQueryBuilderFlag}
+						aiSupportedSearch
 					/>
 					<LogsCount
 						startDate={searchTimeContext.startDate}
