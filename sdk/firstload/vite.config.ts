@@ -44,6 +44,7 @@ export default defineConfig({
 			output: {
 				exports: 'named',
 			},
+			cache: false,
 		},
 	},
 })

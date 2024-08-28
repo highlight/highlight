@@ -123,7 +123,7 @@ const PlayerPageBase: React.FC<{ playerRef: RefObject<HTMLDivElement> }> = ({
 	useEffect(() => analytics.page('Session'), [sessionSecureId])
 
 	const dragHandleRef = useRef<HTMLDivElement>(null)
-	const [dragging, setDragging] = useState(false)
+	const dragging = useRef(false)
 
 	const [leftPanelWidth, setLeftPanelWidth] = useLocalStorage(
 		LOCAL_STORAGE_PANEL_WIDTH_KEY,
@@ -132,7 +132,7 @@ const PlayerPageBase: React.FC<{ playerRef: RefObject<HTMLDivElement> }> = ({
 
 	const handleMouseMove = useCallback(
 		(e: MouseEvent) => {
-			if (!dragging) {
+			if (!dragging.current) {
 				return
 			}
 
@@ -143,27 +143,24 @@ const PlayerPageBase: React.FC<{ playerRef: RefObject<HTMLDivElement> }> = ({
 				Math.min(Math.max(e.clientX, MIN_PANEL_WIDTH), MAX_PANEL_WIDTH),
 			)
 		},
-		[dragging, setLeftPanelWidth],
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+		[],
 	)
 
 	const handleMouseUp = useCallback(() => {
-		setDragging(false)
+		dragging.current = false
 	}, [])
 
 	useEffect(() => {
-		if (dragging) {
-			window.addEventListener('mousemove', handleMouseMove, true)
-			window.addEventListener('mouseup', handleMouseUp, true)
-		} else {
-			window.removeEventListener('mousemove', handleMouseMove, true)
-			window.removeEventListener('mouseup', handleMouseUp, true)
-		}
+		window.addEventListener('mousemove', handleMouseMove, true)
+		window.addEventListener('mouseup', handleMouseUp, true)
 
 		return () => {
 			window.removeEventListener('mousemove', handleMouseMove, true)
 			window.removeEventListener('mouseup', handleMouseUp, true)
 		}
-	}, [dragging, handleMouseMove, handleMouseUp])
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [])
 
 	const showLeftPanel =
 		showLeftPanelPreference && (isLoggedIn || projectId === DEMO_PROJECT_ID)
@@ -184,7 +181,7 @@ const PlayerPageBase: React.FC<{ playerRef: RefObject<HTMLDivElement> }> = ({
 					cssClass={style.panelDragHandle}
 					onMouseDown={(e) => {
 						e.preventDefault()
-						setDragging(true)
+						dragging.current = true
 					}}
 				/>
 				<SessionFeedV3 />

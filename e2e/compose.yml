@@ -1,0 +1,50 @@
+services:
+    sdk:
+        image: ${IMAGE_NAME_SDK-ghcr.io/highlight/sdk:latest}
+        build:
+            context: ../sdk
+            dockerfile: base.Dockerfile
+        container_name: sdk
+    base:
+        image: ${IMAGE_NAME_BASE-ghcr.io/highlight/e2e:latest}
+        build:
+            context: .
+            dockerfile: base.Dockerfile
+            args:
+                IMAGE_NAME_SDK: ${IMAGE_NAME_SDK-ghcr.io/highlight/sdk:latest}
+        container_name: base
+    dotnet:
+        image: ${IMAGE_NAME-ghcr.io/highlight/e2e-dotnet:latest}
+        build:
+            context: dotnet
+            args:
+                IMAGE_NAME_BASE: ${IMAGE_NAME_BASE-ghcr.io/highlight/e2e:latest}
+        container_name: dotnet
+    dotnet4:
+        image: ${IMAGE_NAME-ghcr.io/highlight/e2e-dotnet4:latest}
+        build:
+            context: dotnet4
+            args:
+                IMAGE_NAME_BASE: ${IMAGE_NAME_BASE-ghcr.io/highlight/e2e:latest}
+        container_name: dotnet4
+    go:
+        image: ${IMAGE_NAME-ghcr.io/highlight/e2e-go:latest}
+        build:
+            context: go
+            args:
+                IMAGE_NAME_BASE: ${IMAGE_NAME_BASE-ghcr.io/highlight/e2e:latest}
+        container_name: go
+    python:
+        image: ${IMAGE_NAME-ghcr.io/highlight/e2e-python:latest}
+        build:
+            context: python
+            args:
+                IMAGE_NAME_BASE: ${IMAGE_NAME_BASE-ghcr.io/highlight/e2e:latest}
+        container_name: python
+    ruby:
+        image: ${IMAGE_NAME-ghcr.io/highlight/e2e-ruby:latest}
+        build:
+            context: ruby
+            args:
+                IMAGE_NAME_BASE: ${IMAGE_NAME_BASE-ghcr.io/highlight/e2e:latest}
+        container_name: ruby

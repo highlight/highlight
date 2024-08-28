@@ -2136,10 +2136,6 @@ query GetSessionLogs($project_id: ID!, $params: QueryInput!) {
 	}
 }
 
-query GetLogsTotalCount($project_id: ID!, $params: QueryInput!) {
-	logs_total_count(project_id: $project_id, params: $params)
-}
-
 query GetLogsHistogram($project_id: ID!, $params: QueryInput!) {
 	logs_histogram(project_id: $project_id, params: $params) {
 		totalCount
