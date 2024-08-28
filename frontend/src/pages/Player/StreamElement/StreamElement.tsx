@@ -52,8 +52,10 @@ export const getEventRenderDetails = (
 			case 'Focus':
 			case 'Segment':
 				try {
-					const keys = Object.keys(JSON.parse(payload))
-					details.displayValue = `{${keys.join(', ')}}`
+					const event = JSON.parse(payload)
+					details.displayValue =
+						event['segment-event'] ??
+						`{${Object.keys(event).join(', ')}}`
 				} catch {
 					details.displayValue = payload
 				}
