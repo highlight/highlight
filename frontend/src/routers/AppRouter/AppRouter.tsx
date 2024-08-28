@@ -30,7 +30,6 @@ import { ProjectRouter } from '@routers/ProjectRouter/ProjectRouter'
 import { WorkspaceRouter } from '@routers/ProjectRouter/WorkspaceRouter'
 import analytics from '@util/analytics'
 import log from '@util/log'
-import { omit } from 'lodash'
 import { lazy, Suspense, useEffect } from 'react'
 import {
 	Navigate,
@@ -222,10 +221,7 @@ export const AppRouter = () => {
 				identifyMetadata.avatar = admin.photo_url
 			}
 
-			// `id` is a reserved keyword in rudderstack and it's recommended to use a
-			// static property for the user ID rather than something that could change
-			// over time, like an email address.
-			analytics.identify(admin.id, omit(identifyMetadata, ['id']))
+			analytics.identify(admin.id, identifyMetadata)
 		}
 	}, [admin])
 
