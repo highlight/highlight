@@ -1,0 +1,18 @@
+CREATE MATERIALIZED VIEW IF NOT EXISTS event_country_mv TO event_key_values (
+    `ProjectId` Int32,
+    `Key` LowCardinality(String),
+    `Day` DateTime,
+    `Value` String,
+    `Count` UInt64
+) AS
+SELECT ProjectID as ProjectId,
+    'country' AS Key,
+    toStartOfDay(CreatedAt) AS Day,
+    Country AS Value,
+    count() AS Count
+FROM sessions
+WHERE (Country != '')
+GROUP BY ProjectId,
+    Key,
+    Day,
+    Value;
