@@ -15,7 +15,7 @@ import { H } from 'highlight.run'
 
 // Max brotlied resource file allowed. Note that a brotli file with some binary data
 // has a compression ratio of >5x, so unbrotlied this file will take up much more memory.
-const RESOURCE_FILE_SIZE_LIMIT_BYTES = 64 * 1024 * 1024
+const RESOURCE_FILE_SIZE_LIMIT_BYTES = 32 * 1024 * 1024
 
 export const checkResourceLimit = async function (resources_url: string) {
 	const r = await fetch(resources_url, {
