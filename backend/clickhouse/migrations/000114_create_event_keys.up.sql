@@ -5,4 +5,4 @@ CREATE TABLE IF NOT EXISTS event_keys (
     `Count` UInt64,
     `Type` String
 ) ENGINE = SummingMergeTree
-ORDER BY (ProjectId, Key, Day) TTL Day + toIntervalDay(91);
+ORDER BY (ProjectId, Key, Day);
