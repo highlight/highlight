@@ -148,9 +148,9 @@ export const getFilteredEvents = (
 						})
 					})
 				case 'RageClicks':
-					return true
+					return false
 				case 'TabHidden':
-					return true
+					return false
 				default:
 					return searchTokens.every((searchToken) => {
 						return (event.data.payload as string)
