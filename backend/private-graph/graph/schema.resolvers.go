@@ -21,6 +21,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/DmitriyVTitov/size"
 	"github.com/PaesslerAG/jsonpath"
 	mpeTypes "github.com/aws/aws-sdk-go-v2/service/marketplaceentitlementservice/types"
 	"github.com/aws/aws-sdk-go-v2/service/marketplacemetering"
@@ -5813,6 +5814,17 @@ func (r *queryResolver) Resources(ctx context.Context, sessionSecureID string) (
 	resources, err := r.Redis.GetResources(ctx, s, s3Resources)
 	if err != nil {
 		return nil, e.Wrap(err, "error getting resources from redis")
+	}
+
+	resourceSize := size.Of(resources)
+	log.WithContext(ctx).WithFields(
+		log.Fields{
+			"size":            resourceSize,
+			"sessionSecureID": sessionSecureID,
+		}).Info("[Resources] Fetched resources size")
+
+	if resourceSize > MaxDownloadSize {
+		return nil, fmt.Errorf("resource size (%v) exceeds max download size", resourceSize)
 	}
 
 	return resources, nil

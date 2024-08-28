@@ -7,9 +7,4 @@ CREATE TABLE IF NOT EXISTS session_events (
     Event String,
     Attributes Map(LowCardinality(String), String)    
 ) ENGINE = MergeTree
-ORDER BY (
-    ProjectID,
-    SessionID,
-    SessionCreatedAt,
-    UUID
-)
+ORDER BY (ProjectID, SessionCreatedAt, SessionID)
