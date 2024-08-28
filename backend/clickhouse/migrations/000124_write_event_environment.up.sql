@@ -10,7 +10,7 @@ SELECT ProjectID as ProjectId,
     toStartOfDay(CreatedAt) AS Day,
     Environment AS Value,
     count() AS Count
-FROM sessions
+FROM sessions FINAL
 WHERE (Environment != '')
 GROUP BY ProjectId,
     Key,

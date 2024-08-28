@@ -28,7 +28,7 @@ SELECT
     sessions.AppVersion as ServiceVersion,
     sessions.State
 FROM session_events
-INNER JOIN sessions
+INNER JOIN sessions FINAL
     ON sessions.ProjectID = session_events.ProjectID
     AND sessions.CreatedAt = session_events.SessionCreatedAt
     AND sessions.ID = session_events.SessionID
