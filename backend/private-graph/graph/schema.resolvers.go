@@ -9242,16 +9242,6 @@ func (r *queryResolver) SessionLogs(ctx context.Context, projectID int, params m
 	return r.ClickhouseClient.ReadSessionLogs(ctx, project.ID, params)
 }
 
-// LogsTotalCount is the resolver for the logs_total_count field.
-func (r *queryResolver) LogsTotalCount(ctx context.Context, projectID int, params modelInputs.QueryInput) (uint64, error) {
-	project, err := r.isUserInProjectOrDemoProject(ctx, projectID)
-	if err != nil {
-		return 0, err
-	}
-
-	return r.ClickhouseClient.ReadLogsTotalCount(ctx, project.ID, params)
-}
-
 // LogsHistogram is the resolver for the logs_histogram field.
 func (r *queryResolver) LogsHistogram(ctx context.Context, projectID int, params modelInputs.QueryInput) (*modelInputs.LogsHistogram, error) {
 	project, err := r.isUserInProjectOrDemoProject(ctx, projectID)

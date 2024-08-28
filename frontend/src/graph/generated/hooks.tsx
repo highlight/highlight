@@ -13865,61 +13865,6 @@ export type GetSessionLogsQueryResult = Apollo.QueryResult<
 	Types.GetSessionLogsQuery,
 	Types.GetSessionLogsQueryVariables
 >
-export const GetLogsTotalCountDocument = gql`
-	query GetLogsTotalCount($project_id: ID!, $params: QueryInput!) {
-		logs_total_count(project_id: $project_id, params: $params)
-	}
-`
-
-/**
- * __useGetLogsTotalCountQuery__
- *
- * To run a query within a React component, call `useGetLogsTotalCountQuery` and pass it any options that fit your needs.
- * When your component renders, `useGetLogsTotalCountQuery` returns an object from Apollo Client that contains loading, error, and data properties
- * you can use to render your UI.
- *
- * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
- *
- * @example
- * const { data, loading, error } = useGetLogsTotalCountQuery({
- *   variables: {
- *      project_id: // value for 'project_id'
- *      params: // value for 'params'
- *   },
- * });
- */
-export function useGetLogsTotalCountQuery(
-	baseOptions: Apollo.QueryHookOptions<
-		Types.GetLogsTotalCountQuery,
-		Types.GetLogsTotalCountQueryVariables
-	>,
-) {
-	return Apollo.useQuery<
-		Types.GetLogsTotalCountQuery,
-		Types.GetLogsTotalCountQueryVariables
-	>(GetLogsTotalCountDocument, baseOptions)
-}
-export function useGetLogsTotalCountLazyQuery(
-	baseOptions?: Apollo.LazyQueryHookOptions<
-		Types.GetLogsTotalCountQuery,
-		Types.GetLogsTotalCountQueryVariables
-	>,
-) {
-	return Apollo.useLazyQuery<
-		Types.GetLogsTotalCountQuery,
-		Types.GetLogsTotalCountQueryVariables
-	>(GetLogsTotalCountDocument, baseOptions)
-}
-export type GetLogsTotalCountQueryHookResult = ReturnType<
-	typeof useGetLogsTotalCountQuery
->
-export type GetLogsTotalCountLazyQueryHookResult = ReturnType<
-	typeof useGetLogsTotalCountLazyQuery
->
-export type GetLogsTotalCountQueryResult = Apollo.QueryResult<
-	Types.GetLogsTotalCountQuery,
-	Types.GetLogsTotalCountQueryVariables
->
 export const GetLogsHistogramDocument = gql`
 	query GetLogsHistogram($project_id: ID!, $params: QueryInput!) {
 		logs_histogram(project_id: $project_id, params: $params) {
