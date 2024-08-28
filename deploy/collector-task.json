@@ -67,7 +67,7 @@
 		}
 	],
 	"family": "opentelemetry-collector-service",
-	"executionRoleArn": "arn:aws:iam::173971919437:role/ecsTaskExecutionRole",
+	"executionRoleArn": "arn:aws:iam::173971919437:role/HighlightAppProd",
 	"networkMode": "awsvpc",
 	"revision": 8,
 	"volumes": [],
