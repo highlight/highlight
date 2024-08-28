@@ -1,0 +1,1 @@
+DROP VIEW IF EXISTS session_events_vw;
