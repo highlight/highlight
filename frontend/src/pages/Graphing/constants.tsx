@@ -1,6 +1,6 @@
 import {
 	IconSolidChartBar,
-	IconSolidClock,
+	IconSolidFire,
 	IconSolidLightningBolt,
 	IconSolidLogs,
 	IconSolidPlayCircle,
@@ -33,7 +33,7 @@ export const PRODUCT_ICONS = [
 ]
 
 export const PRODUCT_ICONS_WITH_EVENTS = PRODUCT_ICONS.concat([
-	<IconSolidClock key="events" />,
+	<IconSolidFire key="events" />,
 ])
 
 export const NUMERIC_FUNCTION_TYPES: MetricAggregator[] = [
