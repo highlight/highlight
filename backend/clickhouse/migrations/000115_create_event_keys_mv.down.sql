@@ -1,1 +1,1 @@
-DROP VIEW IF EXISTS event_keys;
+DROP VIEW IF EXISTS event_keys_mv;
