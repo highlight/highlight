@@ -31,7 +31,7 @@ def hello():
         {"customer": request.headers.get("customer") or "unknown"},
     )
 
-    for idx in range(1000):
+    for idx in range(10):
         logging.info(f"hello {idx}")
         time.sleep(0.001)
         if random.randint(0, 100) == 1:
