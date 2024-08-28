@@ -12,6 +12,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/highlight-run/highlight/backend/clickhouse"
 	"github.com/highlight-run/highlight/backend/env"
 
 	"github.com/samber/lo"
@@ -811,12 +812,32 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 	}
 
 	if len(visitFields) >= 1 {
+		landingPage := visitFields[0]
+		exitPage := visitFields[len(visitFields)-1]
 		sessionProperties := map[string]string{
-			"landing_page": visitFields[0].Value,
-			"exit_page":    visitFields[len(visitFields)-1].Value,
+			"landing_page": landingPage.Value,
+			"exit_page":    exitPage.Value,
 		}
+
 		if err := w.PublicResolver.AppendProperties(ctx, s.ID, sessionProperties, pubgraph.PropertyType.SESSION); err != nil {
 			log.WithContext(ctx).Error(e.Wrapf(err, "[processSession] error appending properties for session %d", s.ID))
+		}
+
+		sessionEvents := []*clickhouse.SessionEventRow{
+			{
+				Timestamp:  landingPage.CreatedAt,
+				Event:      "landing_page",
+				Attributes: map[string]string{"url": landingPage.Value},
+			},
+			{
+				Timestamp:  exitPage.CreatedAt,
+				Event:      "exit_page",
+				Attributes: map[string]string{"url": exitPage.Value},
+			},
+		}
+
+		if err := w.PublicResolver.CreateSessionEvents(ctx, s.ID, sessionEvents); err != nil {
+			log.WithContext(ctx).Error(e.Wrapf(err, "error creating session events for session %d", s.ID))
 		}
 	}
 

@@ -77,6 +77,7 @@ const ALERT_PRODUCT_INFO = {
 	[ProductType.Logs]: false,
 	[ProductType.Traces]: false,
 	[ProductType.Metrics]: false,
+	[ProductType.Events]: false,
 }
 
 export const AlertForm: React.FC = () => {
