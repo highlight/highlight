@@ -44,6 +44,11 @@ export const getEventRenderDetails = (
 				break
 			case 'Navigate':
 			case 'Click':
+				details.displayValue =
+					payload.clickTextContent ??
+					payload.clickTarget ??
+					payload.clickSelector
+				break
 			case 'Focus':
 			case 'Segment':
 				try {
