@@ -1,6 +1,7 @@
 import { HighlightEvent } from '@pages/Player/HighlightEvent'
 import { eventWithTime } from '@rrweb/types'
 import { EventType } from 'rrweb'
+import { ViewportResizeListenerArgs } from '@highlight-run/client/src/listeners/viewport-resize-listener'
 
 // used in filter() type methods to fetch events we want
 export const usefulEvent = (e: eventWithTime): boolean => {
@@ -27,6 +28,9 @@ export const getFilteredEvents = (
 			event.type === EventType.Custom &&
 			eventTypeFilters.has(event.data.tag)
 		) {
+			if (!searchQuery) {
+				return true
+			}
 			switch (event.data.tag) {
 				case 'Identify':
 					try {
@@ -112,40 +116,47 @@ export const getFilteredEvents = (
 					} catch (e) {
 						return false
 					}
-				case 'Focus':
-					return searchTokens.some((searchToken) => {
-						return (event.data.payload as string)
-							.toLowerCase()
-							.includes(searchToken)
+				case 'Viewport':
+					const viewportPayload = event.data
+						.payload as ViewportResizeListenerArgs
+					const keys = Object.keys(
+						viewportPayload,
+					) as (keyof ViewportResizeListenerArgs)[]
+					return keys.some((key) => {
+						return searchTokens.some((searchToken) => {
+							return (
+								key.toLowerCase().includes(searchToken) ||
+								viewportPayload[key]
+									.toString()
+									.includes(searchToken)
+							)
+						})
 					})
-				case 'Navigate':
-					return searchTokens.some((searchToken) => {
-						return (event.data.payload as string)
-							.toLowerCase()
-							.includes(searchToken)
+				case 'Web Vitals':
+					const { vitals } = event.data.payload as {
+						vitals: {
+							name: string
+							value: number
+						}[]
+					}
+					return vitals.some(({ name, value }) => {
+						return searchTokens.some((searchToken) => {
+							return (
+								name.toLowerCase().includes(searchToken) ||
+								value.toString().includes(searchToken)
+							)
+						})
 					})
-				case 'Referrer':
-					return searchTokens.some((searchToken) => {
-						return (event.data.payload as string)
-							.toLowerCase()
-							.includes(searchToken)
-					})
-				case 'Click':
-					return searchTokens.some((searchToken) => {
-						return (event.data.payload as string)
-							.toLowerCase()
-							.includes(searchToken)
-					})
-				case 'Reload':
-					return searchTokens.some((searchToken) => {
-						return (event.data.payload as string)
-							.toLowerCase()
-							.includes(searchToken)
-					})
-				case 'Performance':
-					return false
-				default:
+				case 'RageClicks':
 					return true
+				case 'TabHidden':
+					return true
+				default:
+					return searchTokens.some((searchToken) => {
+						return (event.data.payload as string)
+							.toLowerCase()
+							.includes(searchToken)
+					})
 			}
 		}
 	})

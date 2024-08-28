@@ -25,7 +25,11 @@ export const getEventRenderDetails = (
 		details.title = e.data.tag
 		switch (e.data.tag) {
 			case 'Identify':
-				details.displayValue = JSON.parse(payload).user_identifier
+				const identifyPayload = JSON.parse(payload) ?? {}
+				details.displayValue =
+					identifyPayload.email ||
+					identifyPayload.name ||
+					identifyPayload.userIdentifier
 				break
 			case 'Track':
 				try {
