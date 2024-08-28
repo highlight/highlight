@@ -1,5 +1,6 @@
 {
 	"github": {
 		"silent": true
-	}
+	},
+	"installCommand": "yarn workspaces focus highlight.io --production"
 }
