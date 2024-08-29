@@ -6004,13 +6004,6 @@ body {
 ._1ukfp2a2:active {
   background: var(--_1pyqka9u);
 }
-._1vb6x0p0 {
-  text-decoration: none;
-  color: var(--_1pyqka9y);
-}
-._1vb6x0p0:hover {
-  color: var(--_1pyqka9y);
-}
 .ltrwrc0 {
   position: fixed;
   left: 100%;
@@ -7119,6 +7112,13 @@ body {
 ._2tuxi81 ol {
   padding: 0 0 0 1.5rem !important;
   margin: 0 0 1rem 0 !important;
+}
+._1vb6x0p0 {
+  text-decoration: none;
+  color: var(--_1pyqka9y);
+}
+._1vb6x0p0:hover {
+  color: var(--_1pyqka9y);
 }
 ._1bcldh0 {
   border-radius: 4px;
