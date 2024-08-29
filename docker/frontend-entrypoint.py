@@ -7,31 +7,29 @@ NGINX_CONFIG_FILE = "/etc/nginx/conf.d/default.conf"
 
 
 def main():
-    envs = (
-        "REACT_APP_PRIVATE_GRAPH_URI",
-        "REACT_APP_PUBLIC_GRAPH_URI",
-        "REACT_APP_FRONTEND_URI",
-        "REACT_APP_AUTH_MODE",
-        "REACT_APP_OTLP_ENDPOINT",
-        "REACT_APP_DISABLE_ANALYTICS",
-    )
+    envs = {
+        "REACT_APP_PRIVATE_GRAPH_URI": 'https://pri.highlight.io',
+        "REACT_APP_PUBLIC_GRAPH_URI": 'https://pub.highlight.io',
+        "REACT_APP_FRONTEND_URI": 'https://app.highlight.io',
+        "REACT_APP_AUTH_MODE": 'firebase',
+        "REACT_APP_OTLP_ENDPOINT": 'https://otel.highlight.io:4318',
+        "REACT_APP_DISABLE_ANALYTICS": 'false',
+    }
     use_ssl = os.environ.get("SSL") != "false"
 
     with open(CONSTANTS_FILE, "r") as f:
         data = f.read()
         print("read constants file", data, flush=True)
 
-    for key in envs:
+    for key, default in envs.items():
         env = os.environ.get(key)
         if env:
-            pattern = f"{key}: '.+',"
-            value = f"{key}: '{env}'"
             print(
                 "replacing",
-                {key: env, "pattern": pattern, "value": value},
+                {key: key, "default": default, "value": env},
                 flush=True,
             )
-            data = re.sub(pattern, value, data, flags=re.MULTILINE)
+            data = re.sub(default, env, data)
     try:
         with open(CONSTANTS_FILE, "w") as f:
             f.write(data)

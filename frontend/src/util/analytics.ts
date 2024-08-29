@@ -2,7 +2,7 @@ import { Metadata } from '@highlight-run/client'
 import { H } from 'highlight.run'
 import * as rudderanalytics from 'rudder-sdk-js'
 
-import { DISABLE_ANALYTICS } from '../constants'
+import { DISABLE_ANALYTICS } from '@/constants'
 import { omit } from 'lodash'
 
 // from https://www.rudderstack.com/docs/archive/javascript-sdk/1.1/faq/#what-is-the-reserved-keyword-error
@@ -17,7 +17,10 @@ const rudderstackReserved = [
 	'event',
 ]
 let rudderstackInitialized = false
-const isDisabled = DISABLE_ANALYTICS || false
+
+// necessary to ensure DISABLE_ANALYTICS value is not removed from constants.ts by tree-shaking
+console.debug(`highlight analytics`, { DISABLE_ANALYTICS })
+const isDisabled = DISABLE_ANALYTICS === 'true'
 
 const initialize = () => {
 	if (isDisabled) {
@@ -39,6 +42,8 @@ const initialize = () => {
 }
 
 const track = (event: string, metadata?: rudderanalytics.apiObject) => {
+	H.track(event, metadata as Metadata)
+
 	if (isDisabled) {
 		return
 	}
@@ -51,11 +56,12 @@ const track = (event: string, metadata?: rudderanalytics.apiObject) => {
 		},
 	])
 
-	H.track(event, metadata as Metadata)
 	rudderanalytics.track(event, omit(metadata, rudderstackReserved))
 }
 
 const identify = (email: string, traits?: rudderanalytics.apiObject) => {
+	H.identify(email, traits as Metadata)
+
 	if (isDisabled) {
 		return
 	}
@@ -69,8 +75,6 @@ const identify = (email: string, traits?: rudderanalytics.apiObject) => {
 		},
 	])
 	hsq.push(['trackPageView'])
-
-	H.identify(email, traits as Metadata)
 	// `id` is a reserved keyword in rudderstack and it's recommended to use a
 	// static property for the user ID rather than something that could change
 	// over time, like an email address.
