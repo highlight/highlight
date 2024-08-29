@@ -19,11 +19,12 @@ const rudderstackReserved = [
 let rudderstackInitialized = false
 
 // necessary to ensure DISABLE_ANALYTICS value is not removed from constants.ts by tree-shaking
-console.debug(`highlight analytics`, { DISABLE_ANALYTICS })
 const isDisabled = DISABLE_ANALYTICS === 'true'
+console.debug(`highlight analytics`, { DISABLE_ANALYTICS, isDisabled })
 
 const initialize = () => {
 	if (isDisabled) {
+		console.debug(`highlight analytics disabled`)
 		return
 	}
 
@@ -45,6 +46,7 @@ const track = (event: string, metadata?: rudderanalytics.apiObject) => {
 	H.track(event, metadata as Metadata)
 
 	if (isDisabled) {
+		console.debug(`highlight analytics disabled`)
 		return
 	}
 
@@ -63,6 +65,7 @@ const identify = (email: string, traits?: rudderanalytics.apiObject) => {
 	H.identify(email, traits as Metadata)
 
 	if (isDisabled) {
+		console.debug(`highlight analytics disabled`)
 		return
 	}
 
@@ -83,6 +86,7 @@ const identify = (email: string, traits?: rudderanalytics.apiObject) => {
 
 const page = (name: string, properties?: rudderanalytics.apiObject) => {
 	if (isDisabled) {
+		console.debug(`highlight analytics disabled`)
 		return
 	}
 

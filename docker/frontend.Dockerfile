@@ -28,6 +28,7 @@ COPY ../sdk/highlight-next/package.json ./sdk/highlight-next/package.json
 COPY ../sdk/highlight-node/package.json ./sdk/highlight-node/package.json
 COPY ../sdk/highlight-react/package.json ./sdk/highlight-react/package.json
 COPY ../sdk/highlight-remix/package.json ./sdk/highlight-remix/package.json
+COPY ../sdk/pino/package.json ./sdk/pino/package.json
 COPY ../sourcemap-uploader/package.json ./sourcemap-uploader/package.json
 RUN yarn install --immutable
 COPY ../backend/localhostssl ./backend/localhostssl
