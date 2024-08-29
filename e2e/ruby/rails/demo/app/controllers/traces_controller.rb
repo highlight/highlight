@@ -5,9 +5,14 @@ class TracesController < ApplicationController
     Highlight.start_span('example-trace-outer') do
       sleep 0.1
 
+      trace = Trace.new(name: 'trace', kind: 'internal')
       Highlight.start_span('example-trace-inner') do
         sleep 0.2
+
+        trace.save!
       end
+
+      trace.update!(name: 'trace-updated')
     end
   end
 
