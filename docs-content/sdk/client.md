@@ -19,7 +19,7 @@ slug: client
 
 <section className="section">
   <div className="left">
-    <h3>H.init</h3> 
+    <h3>H.init</h3>
     <p>This method is called to initialize Highlight in your application.</p>
     <h6>Method Parameters</h6>
     <aside className="parameter">
@@ -76,7 +76,7 @@ slug: client
           <p>Specifies how much of the content Highlight should redact during recording. There are 3 levels of privacy:
           1. 'strict' - Redact all text and images on the page. This is the safest way to ensure you are not recording any personally identifiable information without having to manually add annotations to elements you don't want to be recorded.
           2. 'default' - Highlight will redact any text or input data that matches common regex expressions and input names of personally identifiable information. No images or media will be redacted.
-          3. 'none' - All text and content will be recorded as it is displayed on the page.  
+          3. 'none' - All text and content will be recorded as it is displayed on the page.
           See [Privacy](../getting-started/3_client-sdk/7_replay-configuration/privacy.md) to learn more about the privacy options. The default value is 'default'.</p>
         </aside>
         <aside className="parameter">
@@ -111,6 +111,12 @@ slug: client
           <h5>inlineStylesheet <code>boolean</code> <code>optional</code></h5>
           <p>Specifies whether to inline CSS style tags into the recording. When not set, defaults to true which will inline stylesheets to make sure apps recorded from localhost or other non-public network endpoints can be replayed. Setting to false may help with CORS issues caused by fetching the stylesheet contents, as well as with performance issues caused by the inlining process.</p>
         </aside>
+        <aside className="parameter">
+          <h5>enableOtelTracing <code>boolean</code> <code>optional</code></h5>
+          <p>
+            Specifies whether the OpenTelemetry Browser instrumentation will be enabled for your project. Learn more in [Browser OpenTelemetry](../getting-started/3_client-sdk/7_replay-configuration/opentelemetry.md).
+          </p>
+        </aside>
       </article>
     </aside>
   </div>
@@ -125,7 +131,7 @@ slug: client
 
 <section className="section">
   <div className="left">
-    <h3>H.identify</h3> 
+    <h3>H.identify</h3>
     <p>This method is used to add an identity to a user for the session. You can learn more in [Identifying Users](../getting-started/3_client-sdk/7_replay-configuration/identifying-sessions.md).</p>
     <h6>Method Parameters</h6>
     <aside className="parameter">
@@ -150,7 +156,7 @@ slug: client
 
 <section className="section">
   <div className="left">
-    <h3>H.track</h3> 
+    <h3>H.track</h3>
     <p>This method is used to track events that happen during the session. You can learn more in [Tracking Events](../getting-started/3_client-sdk/7_replay-configuration/tracking-events.md).</p>
     <h6>Method Parameters</h6>
     <aside className="parameter">
@@ -174,7 +180,7 @@ slug: client
 
 <section className="section">
   <div className="left">
-    <h3>H.consumeError</h3> 
+    <h3>H.consumeError</h3>
     <p>This method is used to send a custom error to Highlight.</p>
     <h6>Method Parameters</h6>
     <aside className="parameter">
@@ -201,7 +207,7 @@ slug: client
 
 <section className="section">
   <div className="left">
-    <h3>H.metrics</h3> 
+    <h3>H.metrics</h3>
     <p>This method is used to submit custom metrics. </p>
     <h6>Method Parameters</h6>
     <aside className="parameter">
@@ -241,7 +247,7 @@ slug: client
 
 <section className="section">
   <div className="left">
-    <h3>H.getSessionDetails</h3> 
+    <h3>H.getSessionDetails</h3>
     <p>This method is used to get the Highlight session URL. This method provides the same URL as H.getSessionUrl() but this also gives you a URL for the exact time (relative to the session recording) the method is called. For example, an error is thrown in your app and you want to save the Highlight session URL to another app (Mixpanel, Sentry, Amplitude, etc.). If you just want a URL to the session, you can save url. If you want a URL that sets the player to the time of when the error is called, you can save urlWithTimestamp.</p>
     <aside className="parameter">
       <h5>Returns <code>Promise&lt;{url: string, urlWithTimestamp: string}&gt;</code></h5>
@@ -268,7 +274,7 @@ slug: client
 
 <section className="section">
   <div className="left">
-    <h3>H.getSessionURL</h3> 
+    <h3>H.getSessionURL</h3>
     <p>This method is used to get the Highlight session URL for the current recording session. This is useful to use if you'd like to send the session URL to another application. See H.getSessionDetails() if you want to get the URL with the current time.</p>
     <aside className="parameter">
       <h5>Returns<code>string<string></code></h5>
@@ -277,7 +283,7 @@ slug: client
   <div className="right">
     <code>
       const highlightSessionUrl = await H.getSessionURL();
- 
+
       thirdPartyApi.setMetadata({
           highlightSessionUrl
       });
@@ -287,7 +293,7 @@ slug: client
 
 <section className="section">
   <div className="left">
-    <h3>H.start</h3> 
+    <h3>H.start</h3>
     <p>This method is used to start Highlight if H.init() was called with manualStart set to true.</p>
     <h6>Method Parameters</h6>
     <aside className="parameter">
@@ -311,7 +317,7 @@ slug: client
       H.init("<YOUR_PROJECT_ID>", {
           manualStart: true
       });
- 
+
       // Elsewhere in your app
       H.start({
           silent: false
@@ -322,13 +328,13 @@ slug: client
 
 <section className="section">
   <div className="left">
-    <h3>H.stop</h3> 
+    <h3>H.stop</h3>
     <p>This method is used to stop Highlight from recording. Recording can be resumed later by calling H.start().</p>
   </div>
   <div className="right">
     <code>
       H.init("<YOUR_PROJECT_ID>");
- 
+
       // Elsewhere in your app
       H.stop();
     </code>
