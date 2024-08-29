@@ -147,6 +147,23 @@ export const getFilteredEvents = (
 							)
 						})
 					})
+				case 'Click':
+					const clickPayload = event.data.payload as {
+						clickTextContent?: string
+						clickTarget?: string
+						clickSelector?: string
+					}
+					return searchTokens.every((searchToken) => {
+						return [
+							clickPayload.clickTextContent,
+							clickPayload.clickTarget,
+							clickPayload.clickSelector,
+						].some((clickValue) => {
+							return clickValue
+								? clickValue.toLowerCase().includes(searchToken)
+								: false
+						})
+					})
 				case 'RageClicks':
 					return false
 				case 'TabHidden':
