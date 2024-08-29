@@ -178,7 +178,6 @@ export const Header: React.FC<Props> = ({ fullyIntegrated }) => {
 		key: string
 		icon: ({ size, ...props }: IconProps) => JSX.Element
 		isBeta?: boolean
-		hidden?: boolean
 	}[] = [
 		{
 			key: 'sessions',
@@ -293,9 +292,6 @@ export const Header: React.FC<Props> = ({ fullyIntegrated }) => {
 							{projectId && !isSettings && (
 								<Box display="flex" alignItems="center" gap="4">
 									{pages.map((p) => {
-										if (p.hidden) {
-											return null
-										}
 										return (
 											<LinkButton
 												iconLeft={
