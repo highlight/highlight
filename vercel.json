@@ -2,5 +2,5 @@
 	"github": {
 		"silent": true
 	},
-	"installCommand": "yarn workspaces focus --all --production"
+	"installCommand": "VERCEL_FORCE_NO_BUILD_CACHE=1 yarn workspaces focus highlight.io --production"
 }
