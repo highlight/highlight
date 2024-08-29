@@ -94,6 +94,10 @@ const parsed = H.parseHeaders(request.headers)
 H.consumeError(error, parsed.secureSessionId, parsed.requestId)
 ```
 
+### Context Propogation Using OpenTelemetry
+
+In addition to the `x-highlight-request` header, we are also working on a way of leveraging [OpenTelemetry's context propogation](https://opentelemetry.io/docs/concepts/context-propagation/) to connect resources across across distributed systems. Check out our [Client SDK OpenTelemetry docs](https://highlight.io/docs/getting-started/3_client-sdk/7_replay-configuration/opentelemetry.md) to learn more.
+
 ## Troubleshooting
 
 1.  Ensure `tracingOrigins` and `networkRecording` are properly set.
