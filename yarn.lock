@@ -9959,7 +9959,7 @@ __metadata:
     react-virtuoso: "npm:^2.13.1"
     recharts: "npm:^2.12.1"
     rrweb: "workspace:*"
-    rudder-sdk-js: "npm:2.20.0"
+    rudder-sdk-js: "npm:^2.48.17"
     source-map-explorer: "npm:^2.5.2"
     stylelint: "npm:^14.9.1"
     subscriptions-transport-ws: "npm:^0.11.0"
@@ -49316,10 +49316,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"rudder-sdk-js@npm:2.20.0, rudder-sdk-js@npm:^2.20.0":
-  version: 2.20.0
-  resolution: "rudder-sdk-js@npm:2.20.0"
-  checksum: 10/a9c0fd8befa7c72df003b7f20ac5e3ae028a8323b1494a973e184684ba628e9b35f32c378ca5a91f6312aebc22c21a7024922746c00315d4c472d410640322dc
+"rudder-sdk-js@npm:^2.20.0, rudder-sdk-js@npm:^2.48.17":
+  version: 2.48.17
+  resolution: "rudder-sdk-js@npm:2.48.17"
+  checksum: 10/d381d26ca5d0bab6d190fb2c896bec4a0eac00f4261664b4fa3ebfaf70b432993e872e9c5fdd18b93ae505ccde1dff6fec23311af7831daa08776492bd2e5ab5
   languageName: node
   linkType: hard
 
