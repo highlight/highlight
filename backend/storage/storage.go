@@ -22,6 +22,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/feature/cloudfront/sign"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	s3Types "github.com/aws/aws-sdk-go-v2/service/s3/types"
+	"github.com/aws/aws-sdk-go-v2/service/sts"
 	"github.com/aws/smithy-go/ptr"
 	"github.com/go-chi/chi"
 	"github.com/google/uuid"
@@ -539,6 +540,13 @@ func NewS3Client(ctx context.Context) (*S3Client, error) {
 	clientEast2 := s3.NewFromConfig(cfgEast2, func(o *s3.Options) {
 		o.UsePathStyle = true
 	})
+
+	// Create Amazon S3 API client using path style addressing.
+	stsClient := sts.NewFromConfig(cfgEast2, func(o *sts.Options) {})
+	_, err = stsClient.GetCallerIdentity(ctx, &sts.GetCallerIdentityInput{})
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to validate aws credentials for storage client")
+	}
 
 	return &S3Client{
 		S3ClientEast2:   clientEast2,

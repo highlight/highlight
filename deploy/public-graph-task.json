@@ -1,6 +1,6 @@
 {
 	"ipcMode": null,
-	"executionRoleArn": "arn:aws:iam::173971919437:role/ecsTaskExecutionRole",
+	"executionRoleArn": "arn:aws:iam::173971919437:role/HighlightAppProd",
 	"containerDefinitions": [
 		{
 			"dnsSearchDomains": null,
@@ -77,7 +77,7 @@
 	],
 	"placementConstraints": [],
 	"memory": "16384",
-	"taskRoleArn": "arn:aws:iam::173971919437:role/ecsTaskExecutionRole",
+	"taskRoleArn": "arn:aws:iam::173971919437:role/HighlightAppProd",
 	"compatibilities": ["EC2", "FARGATE"],
 	"taskDefinitionArn": "arn:aws:ecs:us-east-2:173971919437:task-definition/public-graph-task:65",
 	"family": "public-graph-task",
