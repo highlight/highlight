@@ -1,0 +1,30 @@
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
+
+    <PropertyGroup>
+        <TargetFramework>net8.0</TargetFramework>
+        <RootNamespace>highlight_dotnet</RootNamespace>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <IsPackable>true</IsPackable>
+        <Nullable>enable</Nullable>
+
+        <OutputType>library</OutputType>
+        <Version>0.1.0</Version>
+        <AssemblyVersion>0.1.0</AssemblyVersion>
+        <FileVersion>0.1.0</FileVersion>
+        <Company>highlight.io</Company>
+        <Authors>Vadim Korolik</Authors>
+        <Product>highlight.io</Product>
+        <Description>Session replay, error monitoring, logging, and tracing: stop guessing why bugs happen!</Description>
+        <Copyright>Copyright © 2024</Copyright>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <PackageReference Include="OpenTelemetry" Version="1.9.0" />
+      <PackageReference Include="OpenTelemetry.Exporter.OpenTelemetryProtocol" Version="1.9.0" />
+      <PackageReference Include="OpenTelemetry.Extensions.Hosting" Version="1.9.0" />
+      <PackageReference Include="OpenTelemetry.Instrumentation.AspNetCore" Version="1.9.0" />
+      <PackageReference Include="Serilog" Version="4.0.1" />
+      <PackageReference Include="Serilog.Sinks.OpenTelemetry" Version="4.0.0" />
+    </ItemGroup>
+
+</Project>
