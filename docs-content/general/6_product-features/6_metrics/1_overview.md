@@ -6,7 +6,7 @@ slug: overview
 
 <EmbeddedVideo 
   src="https://www.youtube.com/embed/MzJMCcgf6iU"
-  title="Metrics"
+  title="Metrics Tutorial"
   allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
 />
 
