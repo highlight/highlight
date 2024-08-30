@@ -1,6 +1,8 @@
+---
 toc: Service Latency
 title: How-to: Service Latency
 slug: service-latency
+---
 
 <EmbeddedVideo 
   src="https://youtu.be/Hb24x1_wDXQ"

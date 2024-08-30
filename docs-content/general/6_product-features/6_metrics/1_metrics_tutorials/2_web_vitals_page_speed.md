@@ -1,6 +1,8 @@
+---
 toc: Web Vitals & Page Speed
 title: How-to: Web Vitals & Page Speed
 slug: web-vitals-page-speed
+---
 
 <EmbeddedVideo 
   src="https://youtu.be/GMMdBR_61qw"
