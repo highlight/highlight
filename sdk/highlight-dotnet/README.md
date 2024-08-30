@@ -7,6 +7,7 @@ This directory contains the source code for the Highlight .NET Core SDK.
 1. Install the NuGet Package
 2. Set up the Highlight SDK with your ASP app.
 ```csharp
+HighlightConfig('<YOUR_PROJECT_ID>', '<YOUR_SERVICE_NAME>');
 HighlightConfig.Configure(builder);
 var app = builder.Build();
 ```

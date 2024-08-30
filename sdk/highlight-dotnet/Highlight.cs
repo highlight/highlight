@@ -55,32 +55,24 @@ public class HighlightLogEnricher : ILogEventEnricher
 
 public class HighlightConfig
 {
-    // For highlight.io cloud, use https://otel.highlight.io:4318
-    public static readonly String OtlpEndpoint = "http://localhost:4318";
+    public const OtlpProtocol Protocol = OtlpProtocol.HttpProtobuf;
+    public const OtlpExportProtocol ExportProtocol = OtlpExportProtocol.HttpProtobuf;
+    public const String HighlightHeader = "x-highlight-request";
+    
+    public static string? OtlpEndpoint;
+    public static string? ProjectId;
+    public static string? ServiceName;
+    public static string? TracesEndpoint;
+    public static string? LogsEndpoint;
+    public static string? MetricsEndpoint;
 
-    // Replace with your project ID and service name.
-    public static readonly String ProjectId = "1";
-    public static readonly String ServiceName = "highlight-dot-net-backend";
-
-    public static readonly String TracesEndpoint = OtlpEndpoint + "/v1/traces";
-    public static readonly String LogsEndpoint = OtlpEndpoint + "/v1/logs";
-    public static readonly String MetricsEndpoint = OtlpEndpoint + "/v1/metrics";
-
-    public static readonly OtlpProtocol Protocol = OtlpProtocol.HttpProtobuf;
-    public static readonly OtlpExportProtocol ExportProtocol = OtlpExportProtocol.HttpProtobuf;
-    public static readonly String HighlightHeader = "x-highlight-request";
-
-    public static readonly Dictionary<string, object> ResourceAttributes = new()
-    {
-        ["highlight.project_id"] = ProjectId,
-        ["service.name"] = ServiceName,
-    };
+    public static Dictionary<string, object?>? ResourceAttributes;
 
     private static Random _random = new Random();
 
-    public static Dictionary<string, string> GetHighlightContext()
+    public static Dictionary<string, string?> GetHighlightContext()
     {
-        var ctx = new Dictionary<string, string>
+        var ctx = new Dictionary<string, string?>
         {
             { "highlight.project_id", ProjectId },
             { "service.name", ServiceName },
@@ -89,7 +81,7 @@ public class HighlightConfig
         var headerValue = Baggage.GetBaggage(HighlightHeader);
         if (headerValue == null) return ctx;
 
-        var parts = headerValue.Split("/");
+        string?[] parts = headerValue.Split("/");
         if (parts.Length < 2) return ctx;
 
         ctx["highlight.session_id"] = parts[0];
@@ -109,19 +101,19 @@ public class HighlightConfig
         activity.SetTag("http.server_name", httpRequest.HttpContext.Request.Host.Host);
         activity.SetTag("http.url", httpRequest.Path);
         activity.SetTag("http.user_agent", httpRequest.Headers["User-Agent"]);
-        
+
         for (var i = 0; i < httpRequest.Headers.Count; i++)
         {
             var header = httpRequest.Headers.ElementAt(i);
             activity.SetTag($"http.request.header.{header.Key}", header.Value);
         }
 
-        var (sessionID, requestID) = ExtractContext(httpRequest);
-        activity.SetTag("highlight.session_id", sessionID);
-        activity.SetTag("highlight.trace_id", requestID);
+        var (sessionId, requestId) = ExtractContext(httpRequest);
+        activity.SetTag("highlight.session_id", sessionId);
+        activity.SetTag("highlight.trace_id", requestId);
         Baggage.SetBaggage(new KeyValuePair<string, string>[]
         {
-            new(HighlightHeader, $"{sessionID}/{requestID}")
+            new(HighlightHeader, $"{sessionId}/{requestId}")
         });
     }
 
@@ -129,7 +121,7 @@ public class HighlightConfig
     {
         activity.SetTag("http.status_code", httpResponse.StatusCode);
         activity.SetTag("http.response_content_length", httpResponse.ContentLength);
-        
+
         for (var i = 0; i < httpResponse.Headers.Count; i++)
         {
             var header = httpResponse.Headers.ElementAt(i);
@@ -149,29 +141,49 @@ public class HighlightConfig
             }
         }
 
-        var sessionID = httpRequest.Cookies["sessionID"] ?? new string(Enumerable
-            .Repeat("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789", 28).Select(s => s[_random.Next(s.Length)]).ToArray());
+        var sessionId = httpRequest.Cookies["sessionID"] ?? new string(Enumerable
+            .Repeat("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789", 28)
+            .Select(s => s[_random.Next(s.Length)]).ToArray());
 
-        var sessionDataKey = $"sessionData_{sessionID}";
+        var sessionDataKey = $"sessionData_{sessionId}";
         var start = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
-        var sessionData = httpRequest.Cookies[sessionDataKey] ?? $"{{\"sessionSecureID\":\"{sessionID}\",\"projectID\":\"{ProjectId}\",\"payloadID\":1,\"sessionStartTime\":{start},\"lastPushTime\":{start}}}";
+        var sessionData = httpRequest.Cookies[sessionDataKey] ??
+                          $"{{\"sessionSecureID\":\"{sessionId}\",\"projectID\":\"{ProjectId}\",\"payloadID\":1,\"sessionStartTime\":{start},\"lastPushTime\":{start}}}";
 
         var opts = new CookieOptions
         {
             Expires = DateTimeOffset.Now.AddMinutes(15)
         };
-        httpRequest.HttpContext.Response.Cookies.Append("sessionID", sessionID, opts);
+        httpRequest.HttpContext.Response.Cookies.Append("sessionID", sessionId, opts);
         httpRequest.HttpContext.Response.Cookies.Append(sessionDataKey, sessionData, opts);
-        return (sessionID, "");
+        return (sessionId, "");
     }
-
+    
+    public HighlightConfig(string? projectId, string? serviceName, string? otlpEndpoint = "https://otel.highlight.io:4318")
+    {
+        OtlpEndpoint = otlpEndpoint;
+        ProjectId = projectId;
+        ServiceName = serviceName;
+        TracesEndpoint = OtlpEndpoint + "/v1/traces";
+        LogsEndpoint = OtlpEndpoint + "/v1/logs";
+        MetricsEndpoint = OtlpEndpoint + "/v1/metrics";
+        ResourceAttributes = new Dictionary<string, object?>
+        {
+            ["highlight.project_id"] = ProjectId,
+            ["service.name"] = ServiceName,
+        };
+    }
 
     public static void Configure(WebApplicationBuilder builder)
     {
+        if (ResourceAttributes == null || LogsEndpoint == null || ServiceName == null || TracesEndpoint == null || MetricsEndpoint == null)
+        {
+            throw new Exception("HighlightConfig not initialized; please call HighlightConfig() first");
+        }
         builder.Logging.AddOpenTelemetry(options =>
         {
             options
-                .SetResourceBuilder(ResourceBuilder.CreateDefault().AddAttributes(ResourceAttributes))
+                .SetResourceBuilder(ResourceBuilder.CreateDefault().AddAttributes(ResourceAttributes!))
                 .AddProcessor(new HighlightLogProcessor())
                 .AddOtlpExporter(exporterOptions =>
                 {
@@ -181,7 +193,7 @@ public class HighlightConfig
         });
 
         builder.Services.AddOpenTelemetry()
-            .ConfigureResource(resource => resource.AddAttributes(ResourceAttributes))
+            .ConfigureResource(resource => resource.AddAttributes(ResourceAttributes!))
             .WithTracing(tracing => tracing
                 .AddSource(ServiceName)
                 .AddProcessor(new HighlightTraceProcessor())

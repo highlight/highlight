@@ -2,7 +2,7 @@
 
     <PropertyGroup>
         <TargetFramework>net8.0</TargetFramework>
-        <RootNamespace>highlight_dotnet</RootNamespace>
+        <RootNamespace>Highlight</RootNamespace>
         <ImplicitUsings>enable</ImplicitUsings>
         <IsPackable>true</IsPackable>
         <Nullable>enable</Nullable>
@@ -16,6 +16,12 @@
         <Product>highlight.io</Product>
         <Description>Session replay, error monitoring, logging, and tracing: stop guessing why bugs happen!</Description>
         <Copyright>Copyright © 2024</Copyright>
+        <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
+        <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
+        <PackageReadmeFile>README.md</PackageReadmeFile>
+        <PackageProjectUrl>https://highlight.io</PackageProjectUrl>
+        <PackageTags>highlight.io, session replay, error monitoring, logging, tracing</PackageTags>
+        <RepositoryUrl>https://github.com/highlight/highlight</RepositoryUrl>
     </PropertyGroup>
 
     <ItemGroup>
@@ -25,6 +31,7 @@
       <PackageReference Include="OpenTelemetry.Instrumentation.AspNetCore" Version="1.9.0" />
       <PackageReference Include="Serilog" Version="4.0.1" />
       <PackageReference Include="Serilog.Sinks.OpenTelemetry" Version="4.0.0" />
+      <None Include="README.md" Pack="true" PackagePath=""/>
     </ItemGroup>
 
 </Project>
