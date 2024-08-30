@@ -31,7 +31,7 @@ jobs:
             - name: Build solution and generate NuGet package
               run: dotnet pack -c Release -o out
 
-            - name: Push generated package to GitHub registry
+            - name: Push generated package to NuGet registry
               # if: github.ref == 'refs/heads/main'
               run: dotnet nuget push out/*.nupkg -k $NUGET_AUTH_TOKEN -s https://api.nuget.org/v3/index.json --skip-duplicate
               env:

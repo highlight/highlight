@@ -1,13 +1,16 @@
 using System.Diagnostics;
-using dotnet;
 using dotnet.Components;
+using Highlight;
 using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddRazorComponents()
-    .AddInteractiveServerComponents();
+    .AddInteractiveServerComponents()
+    .AddHighlightInstrumentation(options => options.ProjectId = '1');
+builder.Logging
+    .AddHighlightInstrumentation(options => options.ProjectId = '1');
 
 Log.Logger = new LoggerConfiguration()
     .Enrich.WithMachineName()
