@@ -9,7 +9,7 @@ using Serilog.Core;
 using Serilog.Events;
 using Serilog.Sinks.OpenTelemetry;
 
-namespace highlight_dotnet;
+namespace Highlight;
 
 public class HighlightTraceProcessor : BaseProcessor<Activity>
 {
