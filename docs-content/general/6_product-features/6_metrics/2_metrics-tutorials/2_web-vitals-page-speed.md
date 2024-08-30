@@ -12,7 +12,9 @@ slug: web-vitals-page-speed
 
 ## Overview
 
-This tutorial guides you through creating a graph to measure and analyze page speed over time. By following these steps, you'll be able to track your application's performance and gain insights into web vitals and other important metrics. Read more [here](../../../../getting-started/3_client-sdk/7_replay-configuration/opentelemetry.md) if you're interested in how Highlight's OpenTelemetry instrumentation captures this data, or [here](../../../../getting-started/2_frontend-backend-mapping.md) to learn more about how this is can relate to your backend instrumentation.
+This tutorial guides you through creating a graph to measure and analyze page speed over time. By following these steps, you'll be able to track your application's performance and gain insights into web vitals and other important metrics. 
+
+For more information, read more about [how Highlight's OpenTelemetry instrumentation captures this data](../../../../getting-started/3_client-sdk/7_replay-configuration/opentelemetry.md) and [how this is can relate to your backend instrumentation](../../../../getting-started/2_frontend-backend-mapping.md).
 
 ## Step-by-step Guide
 
