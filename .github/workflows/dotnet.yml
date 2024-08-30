@@ -38,4 +38,4 @@ jobs:
               # if: github.ref == 'refs/heads/main'
               run: dotnet nuget push out/*.nupkg --skip-duplicate --no-symbols true
               env:
-                  NUGET_API_KEY: ${{ secrets.NUGET_API_KEY }}
+                  NUGET_AUTH_TOKEN: ${{ secrets.NUGET_API_KEY }}
