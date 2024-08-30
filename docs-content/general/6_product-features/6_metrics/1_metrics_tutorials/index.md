@@ -1,5 +1,5 @@
 ---
 toc: Metrics Tutorials
-title: Metrics Tutorials Overview
+title: Metrics Tutorials
 slug: index
 ---
