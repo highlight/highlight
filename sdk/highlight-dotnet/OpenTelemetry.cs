@@ -275,10 +275,5 @@ namespace Highlight
                     });
             });
         }
-
-        public static void InstrumentSerilog()
-        {
-            // TODO(vkorolik): Implement logging setup.
-        }
     }
 }
