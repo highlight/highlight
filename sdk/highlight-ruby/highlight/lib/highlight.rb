@@ -260,8 +260,16 @@ module Highlight
       end
 
       def set_cookies(session_id, session_data_key)
-        cookies[:sessionID] = { value: session_id, expires: 15.minutes.from_now }
-        cookies[session_data_key] = { value: @session_data.to_json, expires: 15.minutes.from_now }
+        expiration = 15.minutes.from_now
+
+        cookies[:sessionID] = {
+          value: session_id,
+          expires: expiration
+        }
+        cookies[session_data_key] = {
+          value: @session_data.to_json,
+          expires: expiration
+        }
       end
 
       def highlight_headers
