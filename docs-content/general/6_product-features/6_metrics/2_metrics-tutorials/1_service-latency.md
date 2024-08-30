@@ -1,6 +1,6 @@
 ---
 toc: Service Latency
-title: How-to: Service Latency
+title: Creating Service Latency Metrics
 slug: service-latency
 ---
 

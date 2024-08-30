@@ -1,6 +1,6 @@
 ---
 toc: User Engagement
-title: How-to: User Engagement
+title: Creating User Engagement Metrics
 slug: user-engagement
 ---
 

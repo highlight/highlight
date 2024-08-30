@@ -16,13 +16,13 @@ Metrics are representations of your sessions, errors, logs, and traces that you 
 Learn more about how to use our metrics product with the following tutorial videos:
 
 <DocsCardGroup>
-    <DocsCard title="How-to: Service Latency"  href="./1_metrics_tutorials/1_service_latency.md">
+    <DocsCard title="How-to: Service Latency"  href="./2_metrics-tutorials/1_service-latency.md">
         {"Learn how to measure and analyze service latency for optimal performance."}
     </DocsCard>
-    <DocsCard title="How-to: Web Vitals & Page Speed"  href="./1_metrics_tutorials/2_web_vitals_page_speed.md">
+    <DocsCard title="How-to: Web Vitals & Page Speed"  href="./2_metrics-tutorials/2_web-vitals-page-speed.md">
         {"Discover how to optimize your website's web vitals and page speed for a better user experience."}
     </DocsCard>
-    <DocsCard title="How-to: User Engagement"  href="./1_metrics_tutorials/3_user_engagement.md">
+    <DocsCard title="How-to: User Engagement"  href="./2_metrics-tutorials/3_user-engagement.md">
         {"Explore methods to track and improve user engagement metrics for enhanced customer satisfaction."}
     </DocsCard>
 </DocsCardGroup>

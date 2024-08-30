@@ -1,6 +1,6 @@
 ---
 toc: Web Vitals & Page Speed
-title: How-to: Web Vitals & Page Speed
+title: Creating Web Vitals & Page Speed Metrics
 slug: web-vitals-page-speed
 ---
 
