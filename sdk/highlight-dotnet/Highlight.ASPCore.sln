@@ -1,6 +1,6 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "highlight-dotnet", "highlight-dotnet.csproj", "{F91C1201-D93B-4F13-B3BD-51D08213279F}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Highlight.ASPCore", "Highlight.ASPCore.csproj", "{F91C1201-D93B-4F13-B3BD-51D08213279F}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

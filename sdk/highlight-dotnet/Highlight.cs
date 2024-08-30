@@ -197,6 +197,12 @@ public class HighlightConfig
             .WithTracing(tracing => tracing
                 .AddSource(ServiceName)
                 .AddProcessor(new HighlightTraceProcessor())
+                .AddHttpClientInstrumentation()
+                .AddGrpcClientInstrumentation()
+                .AddSqlClientInstrumentation()
+                .AddEntityFrameworkCoreInstrumentation()
+                .AddQuartzInstrumentation()
+                .AddWcfInstrumentation()
                 .AddAspNetCoreInstrumentation(options =>
                 {
                     options.RecordException = true;
@@ -210,6 +216,9 @@ public class HighlightConfig
                 }))
             .WithMetrics(metrics => metrics
                 .AddMeter(ServiceName)
+                .AddHttpClientInstrumentation()
+                .AddRuntimeInstrumentation()
+                .AddProcessInstrumentation()
                 .AddAspNetCoreInstrumentation()
                 .AddOtlpExporter(options =>
                 {

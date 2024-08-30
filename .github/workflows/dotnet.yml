@@ -1,0 +1,39 @@
+name: .NET SDK
+
+on:
+    push:
+        branches: ['main']
+    pull_request:
+        types: [opened, synchronize]
+        paths:
+            - 'sdk/highlight-dotnet/**'
+            - '.github/workflows/dotnet.yml'
+
+concurrency: ${{ github.workflow }}-${{ github.ref }}
+jobs:
+    build-dotnet:
+        name: .NET SDK
+        runs-on: ubuntu-latest
+        defaults:
+            run:
+                working-directory: ./sdk/highlight-dotnet
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v4
+              with:
+                  submodules: recursive
+
+            - name: Setup .NET environment
+              uses: actions/setup-dotnet@v4
+              with:
+                  dotnet-version: 8.x
+              env:
+                  NUGET_API_TOKEN: ${{secrets.NUGET_API_TOKEN}}
+
+            - name: Build solution and generate NuGet package
+              run: dotnet pack -c Release -o out
+
+            - name: Push generated package to GitHub registry
+              run: dotnet nuget push ./<project>/out/*.nupkg --skip-duplicate --no-symbols true
+              env:
+                  NUGET_API_KEY: ${{ secrets.NUGET_API_KEY }}
