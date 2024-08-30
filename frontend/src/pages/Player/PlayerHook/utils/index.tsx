@@ -88,14 +88,14 @@ const getIntervalWithPercentages = (
 		idx,
 		percent: i.active
 			? // Round each interval size to a multiple of INACTIVE_THRESHOLD
-			  Math.round(
+				Math.round(
 					Math.max(
 						(i.duration * activePercent) /
 							activeDuration /
 							INACTIVE_THRESHOLD,
 						1,
 					),
-			  ) * INACTIVE_THRESHOLD
+				) * INACTIVE_THRESHOLD
 			: INACTIVE_THRESHOLD,
 	}))
 
@@ -175,7 +175,7 @@ export const useLinkLogCursor = () => {
 	const searchParams = new URLSearchParams(location.search)
 	const logCursor =
 		resource?.type === 'session'
-			? resource.log ?? null
+			? (resource.log ?? null)
 			: searchParams.get(PlayerSearchParameters.log)
 
 	return {

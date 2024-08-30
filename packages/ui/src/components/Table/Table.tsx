@@ -17,7 +17,6 @@ type Props = {
 	className?: string
 	height?: BoxProps['height']
 	noBorder?: boolean
-	withSearch?: boolean
 }
 
 const TableComponent: React.FC<Props> = ({
@@ -25,13 +24,11 @@ const TableComponent: React.FC<Props> = ({
 	className,
 	height,
 	noBorder,
-	withSearch,
 }) => {
 	return (
 		<Box
 			cssClass={clsx(styles.table, className, {
 				[styles.noBorder]: noBorder,
-				[styles.withSearch]: withSearch,
 			})}
 			height={height}
 			width="full"

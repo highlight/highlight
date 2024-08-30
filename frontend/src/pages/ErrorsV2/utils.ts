@@ -86,7 +86,7 @@ export const formatErrorGroupDate = function (date?: string) {
 					new Date().getFullYear() !== new Date(date).getFullYear()
 						? 'numeric'
 						: undefined,
-		  })}`
+			})}`
 		: ''
 }
 

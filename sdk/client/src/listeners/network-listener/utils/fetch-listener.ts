@@ -1,15 +1,15 @@
 import {
+	Request as HighlightRequest,
+	Response as HighlightResponse,
+	RequestResponsePair,
+} from './models'
+import {
 	HIGHLIGHT_REQUEST_HEADER,
 	createNetworkRequestId,
 	getHighlightRequestHeader,
 	shouldNetworkRequestBeRecorded,
 	shouldNetworkRequestBeTraced,
 } from './utils'
-import {
-	Request as HighlightRequest,
-	Response as HighlightResponse,
-	RequestResponsePair,
-} from './models'
 
 import { NetworkListenerCallback } from '../network-listener'
 import { getBodyThatShouldBeRecorded } from './xhr-listener'
@@ -27,8 +27,9 @@ export const FetchListener = (
 	backendUrl: string,
 	tracingOrigins: boolean | (string | RegExp)[],
 	urlBlocklist: string[],
-	bodyKeysToRedact?: string[],
-	bodyKeysToRecord?: string[],
+	bodyKeysToRedact: string[],
+	bodyKeysToRecord: string[] | undefined,
+	otelEnabled: boolean,
 ) => {
 	const originalFetch = window._fetchProxy
 
@@ -38,7 +39,7 @@ export const FetchListener = (
 			return originalFetch.call(this, input, init)
 		}
 
-		const [sessionSecureID, requestId] = createNetworkRequestId()
+		const [sessionSecureID, requestId] = createNetworkRequestId(otelEnabled)
 		if (shouldNetworkRequestBeTraced(url, tracingOrigins)) {
 			init = init || {}
 			// Pre-existing headers could be one of three different formats; this reads all of them.

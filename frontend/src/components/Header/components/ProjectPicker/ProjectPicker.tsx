@@ -1,3 +1,4 @@
+import EnterpriseFeatureButton from '@components/Billing/EnterpriseFeatureButton'
 import { linkStyle } from '@components/Header/styles.css'
 import {
 	Box,
@@ -47,7 +48,7 @@ const ProjectPicker = () => {
 							isSelected
 								? {
 										backgroundColor: vars.color.n2,
-								  }
+									}
 								: undefined
 						}
 					>
@@ -76,14 +77,14 @@ const ProjectPicker = () => {
 						</Box>
 					</Menu.Item>
 				)
-		  })
+			})
 		: []
 
 	const headerDisplayValue = isWorkspaceLevel
 		? 'Back to Project'
 		: isInDemoProject
-		? DEMO_PROJECT_NAME
-		: currentProject?.name
+			? DEMO_PROJECT_NAME
+			: currentProject?.name
 
 	return (
 		<Box>
@@ -115,14 +116,24 @@ const ProjectPicker = () => {
 							<>
 								<Menu.Divider />
 								{!isProjectLevelMember && (
-									<Link
-										to={`/w/${currentWorkspace?.id}/new`}
-										state={{
-											previousLocation: location,
-										}}
-										className={linkStyle}
-									>
-										<Menu.Item>
+									<Menu.Item>
+										<EnterpriseFeatureButton
+											setting="enable_business_projects"
+											name="More than 1 project"
+											fn={async () =>
+												navigate(
+													`/w/${currentWorkspace?.id}/new`,
+													{
+														state: {
+															previousLocation:
+																location,
+														},
+													},
+												)
+											}
+											variant="basic"
+											className={linkStyle}
+										>
 											<Box
 												display="flex"
 												alignItems="center"
@@ -134,8 +145,8 @@ const ProjectPicker = () => {
 												/>
 												Create new project
 											</Box>
-										</Menu.Item>
-									</Link>
+										</EnterpriseFeatureButton>
+									</Menu.Item>
 								)}
 								<Link
 									to={`/${projectId}/settings/sessions`}

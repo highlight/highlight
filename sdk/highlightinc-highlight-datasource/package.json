@@ -41,7 +41,7 @@
     "identity-obj-proxy": "3.0.0",
     "jest": "^29.5.0",
     "jest-environment-jsdom": "^29.5.0",
-    "prettier": "^2.8.7",
+    "prettier": "^3.3.3",
     "replace-in-file-webpack-plugin": "^1.0.6",
     "sass": "1.63.2",
     "sass-loader": "14.2.1",

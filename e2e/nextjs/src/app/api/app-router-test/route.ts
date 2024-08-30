@@ -1,10 +1,10 @@
 // app/api/app-router-test/route.ts
-import { NextRequest, NextResponse } from 'next/server'
-import { z } from 'zod'
 import { withAppRouterHighlight } from '@/app/_utils/app-router-highlight.config'
-import { Client } from 'pg'
-import { statfsSync } from 'node:fs'
 import logger from '@/highlight.logger'
+import { NextRequest, NextResponse } from 'next/server'
+import { statfsSync } from 'node:fs'
+import { Client } from 'pg'
+import { z } from 'zod'
 
 export const GET = withAppRouterHighlight(async function GET(
 	request: NextRequest,

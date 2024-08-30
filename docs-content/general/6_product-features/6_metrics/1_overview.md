@@ -5,7 +5,7 @@ slug: overview
 ---
 
 <EmbeddedVideo 
-  src="https://www.youtube.com/watch?v=Hb24x1_wDXQ"
+  src="https://www.youtube.com/embed/Hb24x1_wDXQ"
   title="Metrics"
   allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
 />

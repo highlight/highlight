@@ -1,17 +1,13 @@
-import {
-	isWrapped,
-	InstrumentationBase,
-	InstrumentationConfig,
-} from '@opentelemetry/instrumentation'
+import { InstrumentationBase, isWrapped } from '@opentelemetry/instrumentation'
 
 import * as api from '@opentelemetry/api'
-import { getElementXPath } from '@opentelemetry/sdk-trace-web'
 import {
 	EventName,
 	ShouldPreventSpanCreation,
 	UserInteractionInstrumentationConfig,
 } from '@opentelemetry/instrumentation-user-interaction'
 import { SpanData } from '@opentelemetry/instrumentation-user-interaction/build/src/internal-types'
+import { getElementXPath } from '@opentelemetry/sdk-trace-web'
 
 const DEFAULT_EVENT_NAMES = ['click', 'input', 'submit'] as const
 
@@ -247,9 +243,9 @@ export class UserInteractionInstrumentation extends InstrumentationBase {
 					// Don't capture mousemove events too frequently
 					if (
 						event?.type === 'mousemove' &&
-						Date.now() - lastEventTimestamp < 100
+						Date.now() - lastEventTimestamp < 1000 / 60
 					) {
-						return
+						return original.call(this, type, listener, useCapture)
 					}
 
 					lastEventTimestamp = Date.now()

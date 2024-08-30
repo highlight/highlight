@@ -1,5 +1,5 @@
-import { dirname, join } from 'path'
 import type { StorybookConfig } from '@storybook/react-vite'
+import { dirname, join } from 'path'
 
 const config: StorybookConfig = {
 	stories: ['../src/**/*.mdx', '../src/**/*.stories.@(ts|tsx)'],
@@ -12,9 +12,7 @@ const config: StorybookConfig = {
 		builder: getAbsolutePath('@storybook/builder-vite'),
 	},
 	framework: getAbsolutePath('@storybook/react-vite'),
-	docs: {
-		autodocs: 'tag',
-	},
+	docs: {},
 }
 
 export default config

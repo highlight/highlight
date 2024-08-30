@@ -109,12 +109,12 @@ export const useIntegration = <SettingsQueryOutput, UpdateMutationInput>(
 		? {
 				loading: true,
 				isIntegrated: undefined,
-		  }
+			}
 		: {
 				loading: false,
 				isIntegrated: data?.is_integrated ?? false,
 				...data!,
-		  }
+			}
 
 	return {
 		addIntegration,

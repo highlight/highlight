@@ -1,6 +1,6 @@
 // src/app/utils/edge-highlight.config.ts:
-import { EdgeHighlight, HighlightEnv } from '@highlight-run/next/server'
 import { highlightConfig } from '@/instrumentation'
+import { EdgeHighlight, HighlightEnv } from '@highlight-run/next/server'
 
 const env: HighlightEnv = {
 	...highlightConfig,

@@ -41,15 +41,15 @@ const LaunchWeekBanner = () => {
 const LivestreamBanner = () => {
 	return (
 		<Link
-			href="https://lu.ma/bvnkoy5v"
+			href="https://lu.ma/51zg6p43?utm_source=highlight-banner"
 			target="_blank"
 			rel="noreferrer"
-			className="hidden md:flex justify-center items-center w-full h-[40px] bg-color-primary-200 text-white hover:bg-opacity-90"
+			className="hidden md:flex text-center justify-center items-center w-full py-2.5 px-3 bg-color-primary-200 text-white hover:bg-opacity-90"
 		>
 			<Typography type="copy3">
-				Join our livestream: July 2nd at 1pm PDT on Evaluating LLMs with
-				OpenLLMetry. Register
-				<span className="font-semibold"> here</span>.
+				Join our livestream: Septemper 5th at 1pm PT on Fullstack
+				Monitoring for .NET Applications with OpenTelemetry. Register{' '}
+				<span className="font-semibold underline">here</span>.
 			</Typography>
 		</Link>
 	)
@@ -126,7 +126,7 @@ const Navbar = ({
 				isLaunchWeek ? (
 					<LaunchWeekBanner />
 				) : (
-					<HFSBanner />
+					<LivestreamBanner />
 				)
 			) : null}
 			<div

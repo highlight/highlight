@@ -143,11 +143,11 @@ export default function ErrorsV2() {
 	const navigation = useErrorPageNavigation(getErrorsData.errorGroupSecureIds)
 
 	const dragHandleRef = useRef<HTMLDivElement>(null)
-	const [dragging, setDragging] = useState(false)
+	const dragging = useRef(false)
 
 	const handleMouseMove = useCallback(
 		(e: MouseEvent) => {
-			if (!dragging) {
+			if (!dragging.current) {
 				return
 			}
 
@@ -158,11 +158,12 @@ export default function ErrorsV2() {
 				Math.min(Math.max(e.clientX, MIN_PANEL_WIDTH), MAX_PANEL_WIDTH),
 			)
 		},
-		[dragging, navigation],
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+		[],
 	)
 
 	const handleMouseUp = useCallback(() => {
-		setDragging(false)
+		dragging.current = false
 	}, [])
 
 	const onAiSubmit = (aiQuery: string) => {
@@ -195,19 +196,15 @@ export default function ErrorsV2() {
 	}, [aiData])
 
 	useEffect(() => {
-		if (dragging) {
-			window.addEventListener('mousemove', handleMouseMove, true)
-			window.addEventListener('mouseup', handleMouseUp, true)
-		} else {
-			window.removeEventListener('mousemove', handleMouseMove, true)
-			window.removeEventListener('mouseup', handleMouseUp, true)
-		}
+		window.addEventListener('mousemove', handleMouseMove, true)
+		window.addEventListener('mouseup', handleMouseUp, true)
 
 		return () => {
 			window.removeEventListener('mousemove', handleMouseMove, true)
 			window.removeEventListener('mouseup', handleMouseUp, true)
 		}
-	}, [dragging, handleMouseMove, handleMouseUp])
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [])
 
 	useAllHotKeys(navigation)
 
@@ -307,7 +304,7 @@ export default function ErrorsV2() {
 						cssClass={styles.panelDragHandle}
 						onMouseDown={(e) => {
 							e.preventDefault()
-							setDragging(true)
+							dragging.current = true
 						}}
 					/>
 					<SearchPanel />

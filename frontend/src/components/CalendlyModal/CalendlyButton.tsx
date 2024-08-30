@@ -14,8 +14,9 @@ import { getAttributionData } from '@util/attribution'
 import { isProjectWithinTrial } from '@util/billing/billing'
 import clsx from 'clsx'
 import { AnimatePresence, motion } from 'framer-motion'
-import React, { useState } from 'react'
+import { useState } from 'react'
 import { InlineWidget } from 'react-calendly'
+import { createPortal } from 'react-dom'
 import { useHotkeys } from 'react-hotkeys-hook'
 
 import { styledVerticalScrollbar } from '@/style/common.css'
@@ -78,7 +79,8 @@ export function CalendlyModal({
 	onClose: () => void
 	howCanWeHelp?: string
 }) {
-	return (
+	const portalRoot = document.getElementById('portal')!
+	return createPortal(
 		<AnimatePresence>
 			<motion.div
 				key="calendlyWrapper"
@@ -127,7 +129,8 @@ export function CalendlyModal({
 					</Stack>
 				</Box>
 			</motion.div>
-		</AnimatePresence>
+		</AnimatePresence>,
+		portalRoot,
 	)
 }
 

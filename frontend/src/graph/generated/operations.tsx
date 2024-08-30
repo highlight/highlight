@@ -2514,6 +2514,7 @@ export type GetSessionsQuery = { __typename?: 'Query' } & {
 					| 'last_user_interaction_time'
 					| 'is_public'
 					| 'excluded'
+					| 'email'
 				> & {
 						fields?: Types.Maybe<
 							Array<
@@ -2556,6 +2557,7 @@ export type GetSessionUsersReportsQuery = { __typename?: 'Query' } & {
 		{ __typename?: 'SessionsReportRow' } & Pick<
 			Types.SessionsReportRow,
 			| 'key'
+			| 'email'
 			| 'num_sessions'
 			| 'num_days_visited'
 			| 'num_months_visited'
@@ -4719,16 +4721,6 @@ export type GetSessionLogsQuery = { __typename?: 'Query' } & {
 	>
 }
 
-export type GetLogsTotalCountQueryVariables = Types.Exact<{
-	project_id: Types.Scalars['ID']
-	params: Types.QueryInput
-}>
-
-export type GetLogsTotalCountQuery = { __typename?: 'Query' } & Pick<
-	Types.Query,
-	'logs_total_count'
->
-
 export type GetLogsHistogramQueryVariables = Types.Exact<{
 	project_id: Types.Scalars['ID']
 	params: Types.QueryInput
@@ -4851,12 +4843,19 @@ export type GetWorkspaceSettingsQuery = { __typename?: 'Query' } & {
 			| 'ai_application'
 			| 'ai_query_builder'
 			| 'ai_insights'
-			| 'enable_session_export'
-			| 'enable_unlisted_sharing'
-			| 'enable_ingest_sampling'
+			| 'enable_billing_limits'
+			| 'enable_business_dashboards'
+			| 'enable_business_projects'
+			| 'enable_business_retention'
+			| 'enable_business_seats'
 			| 'enable_data_deletion'
 			| 'enable_grafana_dashboard'
+			| 'enable_ingest_filtering'
+			| 'enable_ingest_sampling'
+			| 'enable_network_traces'
 			| 'enable_project_level_access'
+			| 'enable_session_export'
+			| 'enable_unlisted_sharing'
 		>
 	>
 }
@@ -5038,6 +5037,7 @@ export type MatchErrorTagQuery = { __typename?: 'Query' } & {
 export type GetTraceQueryVariables = Types.Exact<{
 	project_id: Types.Scalars['ID']
 	trace_id: Types.Scalars['String']
+	timestamp: Types.Scalars['Timestamp']
 	session_secure_id?: Types.Maybe<Types.Scalars['String']>
 }>
 
@@ -5205,6 +5205,8 @@ export type GetKeyValuesQueryVariables = Types.Exact<{
 	project_id: Types.Scalars['ID']
 	key_name: Types.Scalars['String']
 	date_range: Types.DateRangeRequiredInput
+	query: Types.Scalars['String']
+	count: Types.Scalars['Int']
 }>
 
 export type GetKeyValuesQuery = { __typename?: 'Query' } & Pick<
@@ -5221,6 +5223,7 @@ export type GetMetricsQueryVariables = Types.Exact<{
 	group_by: Array<Types.Scalars['String']> | Types.Scalars['String']
 	bucket_by: Types.Scalars['String']
 	bucket_count?: Types.Maybe<Types.Scalars['Int']>
+	bucket_window?: Types.Maybe<Types.Scalars['Int']>
 	limit?: Types.Maybe<Types.Scalars['Int']>
 	limit_aggregator?: Types.Maybe<Types.MetricAggregator>
 	limit_column?: Types.Maybe<Types.Scalars['String']>
@@ -5267,6 +5270,7 @@ export type GetVisualizationQuery = { __typename?: 'Query' } & {
 					| 'groupByKey'
 					| 'bucketByKey'
 					| 'bucketCount'
+					| 'bucketInterval'
 					| 'limit'
 					| 'limitFunctionType'
 					| 'limitMetric'
@@ -5313,6 +5317,7 @@ export type GetVisualizationsQuery = { __typename?: 'Query' } & {
 								| 'groupByKey'
 								| 'bucketByKey'
 								| 'bucketCount'
+								| 'bucketInterval'
 								| 'limit'
 								| 'limitFunctionType'
 								| 'limitMetric'
@@ -5476,7 +5481,6 @@ export const namedOperations = {
 		GetEmailOptOuts: 'GetEmailOptOuts' as const,
 		GetLogs: 'GetLogs' as const,
 		GetSessionLogs: 'GetSessionLogs' as const,
-		GetLogsTotalCount: 'GetLogsTotalCount' as const,
 		GetLogsHistogram: 'GetLogsHistogram' as const,
 		GetLogsRelatedResources: 'GetLogsRelatedResources' as const,
 		GetProjectSettings: 'GetProjectSettings' as const,

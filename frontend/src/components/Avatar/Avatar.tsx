@@ -139,8 +139,8 @@ export const AdminAvatar = ({
 				.map((e) => (e[0] ? e[0].toUpperCase() : ''))
 				.join('')
 		: adminInfo?.email
-		? adminInfo.email[0].toUpperCase()
-		: 'YOU'
+			? adminInfo.email[0].toUpperCase()
+			: 'YOU'
 
 	return (
 		<div

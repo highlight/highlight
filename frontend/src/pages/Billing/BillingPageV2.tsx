@@ -120,8 +120,8 @@ const UsageCard = ({
 				option === 'Monthly'
 					? BucketCount * DaysInWeek * WeeksInMonth
 					: option === 'Weekly'
-					? BucketCount * DaysInWeek
-					: BucketCount,
+						? BucketCount * DaysInWeek
+						: BucketCount,
 				'days',
 			),
 			end: moment(),
@@ -147,7 +147,7 @@ const UsageCard = ({
 				retentionPeriod,
 				usageAmount,
 				includedQuantity,
-		  )
+			)
 		: 0
 
 	const costFormatted =
@@ -156,12 +156,12 @@ const UsageCard = ({
 	const limitFormatted =
 		billingLimitCents !== undefined
 			? '$ ' +
-			  toDecimal(
+				toDecimal(
 					dinero({
 						amount: Math.round(billingLimitCents),
 						currency: USD,
 					}),
-			  )
+				)
 			: undefined
 	const usageRatio = usageLimitAmount && usageAmount / usageLimitAmount
 	const isOverage = usageRatio ? usageRatio >= 1 : false
@@ -381,11 +381,11 @@ const UsageCard = ({
 								100
 									? 'Monthly'
 									: usageRange.end.diff(
-											usageRange.start,
-											'day',
-									  ) > 40
-									? 'Weekly'
-									: 'Daily'}
+												usageRange.start,
+												'day',
+										  ) > 40
+										? 'Weekly'
+										: 'Daily'}
 							</Text>
 						</Menu.Button>
 						<Menu.List>
@@ -569,7 +569,7 @@ const BillingPageV2 = ({}: BillingPageProps) => {
 						discountAmount,
 				),
 				0,
-		  )
+			)
 		: 0
 	const discountCents = productSubtotal + baseAmount - totalCents
 
@@ -578,19 +578,19 @@ const BillingPageV2 = ({}: BillingPageProps) => {
 		toDecimal(dinero({ amount: Math.round(totalCents), currency: USD }))
 
 	const sessionsSpendLimit = isPaying
-		? data?.workspace?.sessions_max_cents ?? undefined
+		? (data?.workspace?.sessions_max_cents ?? undefined)
 		: 0
 
 	const errorsSpendLimit = isPaying
-		? data?.workspace?.errors_max_cents ?? undefined
+		? (data?.workspace?.errors_max_cents ?? undefined)
 		: 0
 
 	const logsSpendLimit = isPaying
-		? data?.workspace?.logs_max_cents ?? undefined
+		? (data?.workspace?.logs_max_cents ?? undefined)
 		: 0
 
 	const tracesSpendLimit = isPaying
-		? data?.workspace?.traces_max_cents ?? undefined
+		? (data?.workspace?.traces_max_cents ?? undefined)
 		: 0
 
 	const hasExtras = baseAmount !== 0 || discountCents !== 0
@@ -608,7 +608,7 @@ const BillingPageV2 = ({}: BillingPageProps) => {
 	const discountUntilFormatted = data?.subscription_details.discount?.until
 		? `until ${moment(data.subscription_details.discount.until).format(
 				'MMMM Do, YYYY',
-		  )}`
+			)}`
 		: 'forever'
 
 	return (
@@ -617,7 +617,7 @@ const BillingPageV2 = ({}: BillingPageProps) => {
 				currentPlanType={
 					data?.billingDetails.plan.type === PlanType.Free
 						? PlanType.Graduated
-						: data?.billingDetails.plan.type ?? PlanType.Graduated
+						: (data?.billingDetails.plan.type ?? PlanType.Graduated)
 				}
 				step={step}
 				setStep={setStep}
@@ -690,12 +690,12 @@ const BillingPageV2 = ({}: BillingPageProps) => {
 									? isAWSMP
 										? 'AWS Marketplace'
 										: data?.billingDetails.plan.type ===
-										  PlanType.Graduated
-										? 'Pay as you go'
-										: data?.billingDetails.plan.type ===
-										  PlanType.UsageBased
-										? 'Usage based'
-										: data?.billingDetails.plan.type
+											  PlanType.Graduated
+											? 'Pay as you go'
+											: data?.billingDetails.plan.type ===
+												  PlanType.UsageBased
+												? 'Usage based'
+												: data?.billingDetails.plan.type
 									: 'Free'}
 							</Text>
 						</Box>
@@ -812,14 +812,14 @@ const BillingPageV2 = ({}: BillingPageProps) => {
 								billingIssues={billingIssue}
 								setStep={setStep}
 								billingPeriodEnd={
-									data?.workspace?.next_invoice_date ??
-									data?.workspace?.billing_period_end
+									(data?.workspace?.next_invoice_date ??
+									data?.workspace?.billing_period_end)
 										? moment(
 												data?.workspace
 													?.next_invoice_date ??
 													data?.workspace
 														?.billing_period_end,
-										  )
+											)
 										: undefined
 								}
 								{...product}

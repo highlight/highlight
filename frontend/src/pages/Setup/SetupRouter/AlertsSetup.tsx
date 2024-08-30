@@ -322,14 +322,14 @@ const PlatformPicker: React.FC = function () {
 										? 'Continue'
 										: 'Connect'
 									: option.name === 'Discord'
-									? data?.is_integrated_with_discord
-										? 'Continue'
-										: 'Connect'
-									: option.name === 'Microsoft Teams'
-									? data?.is_integrated_with_microsoft_teams
-										? 'Continue'
-										: 'Connect'
-									: 'Continue'}
+										? data?.is_integrated_with_discord
+											? 'Continue'
+											: 'Connect'
+										: option.name === 'Microsoft Teams'
+											? data?.is_integrated_with_microsoft_teams
+												? 'Continue'
+												: 'Connect'
+											: 'Continue'}
 							</Button>
 						</Box>
 					</Box>
@@ -447,7 +447,7 @@ const AlertPicker = function ({
 											webhook_channel_id: channelID,
 											webhook_channel_name: destination,
 										},
-								  ]
+									]
 								: [],
 						discord_channels:
 							platform === 'discord'
@@ -456,7 +456,7 @@ const AlertPicker = function ({
 											id: channelID,
 											name: destination,
 										},
-								  ]
+									]
 								: [],
 						microsoft_teams_channels:
 							platform === 'microsoft_teams'
@@ -465,7 +465,7 @@ const AlertPicker = function ({
 											id: channelID,
 											name: destination,
 										},
-								  ]
+									]
 								: [],
 						emails: emailDestination ? [emailDestination] : [],
 						environments: [],
@@ -705,17 +705,17 @@ const IntegrationCallout = function ({
 		type === 'slack'
 			? 'Slack'
 			: type === 'discord'
-			? 'Discord'
-			: 'Microsoft Teams'
+				? 'Discord'
+				: 'Microsoft Teams'
 	const integrateUrl =
 		type === 'slack'
 			? slackUrl
 			: type === 'discord'
-			? getDiscordOauthUrl(
-					projectId,
-					`/${projectId}/setup/alerts/discord`,
-			  )
-			: getMicrosoftTeamsUrl(projectId)
+				? getDiscordOauthUrl(
+						projectId,
+						`/${projectId}/setup/alerts/discord`,
+					)
+				: getMicrosoftTeamsUrl(projectId)
 	const icon = notificationOptions.find((n) => n.name === name)?.logo
 	return (
 		<Modal

@@ -1,7 +1,6 @@
-import Navbar from '../components/common/Navbar/Navbar'
 import { FooterCallToAction } from '../components/common/CallToAction/FooterCallToAction'
 import Footer from '../components/common/Footer/Footer'
-import React from 'react'
+import Navbar from '../components/common/Navbar/Navbar'
 import { Typography } from '../components/common/Typography/Typography'
 
 export default function Highlight404() {

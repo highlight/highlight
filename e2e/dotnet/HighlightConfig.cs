@@ -60,7 +60,7 @@ public class HighlightConfig
 
     // Replace with your project ID and service name.
     public static readonly String ProjectId = "1";
-    public static readonly String ServiceName = "highlight-dot-net-example";
+    public static readonly String ServiceName = "highlight-dot-net-backend";
 
     public static readonly String TracesEndpoint = OtlpEndpoint + "/v1/traces";
     public static readonly String LogsEndpoint = OtlpEndpoint + "/v1/logs";
@@ -75,6 +75,8 @@ public class HighlightConfig
         ["highlight.project_id"] = ProjectId,
         ["service.name"] = ServiceName,
     };
+
+    private static Random _random = new Random();
 
     public static Dictionary<string, string> GetHighlightContext()
     {
@@ -113,18 +115,13 @@ public class HighlightConfig
             var header = httpRequest.Headers.ElementAt(i);
             activity.SetTag($"http.request.header.{header.Key}", header.Value);
         }
-        
-        var headerValues = httpRequest.Headers[HighlightHeader];
-        if (headerValues.Count < 1) return;
-        var headerValue = headerValues[0];
-        if (headerValue == null) return;
-        var parts = headerValue.Split("/");
-        if (parts.Length < 2) return;
-        activity.SetTag("highlight.session_id", parts?[0]);
-        activity.SetTag("highlight.trace_id", parts?[1]);
+
+        var (sessionID, requestID) = ExtractContext(httpRequest);
+        activity.SetTag("highlight.session_id", sessionID);
+        activity.SetTag("highlight.trace_id", requestID);
         Baggage.SetBaggage(new KeyValuePair<string, string>[]
         {
-            new(HighlightHeader, headerValue)
+            new(HighlightHeader, $"{sessionID}/{requestID}")
         });
     }
 
@@ -139,6 +136,35 @@ public class HighlightConfig
             activity.SetTag($"http.response.header.{header.Key}", header.Value);
         }
     }
+
+    private static (string, string) ExtractContext(HttpRequest httpRequest)
+    {
+        var headerValues = httpRequest.Headers[HighlightHeader];
+        if (headerValues is [not null, ..])
+        {
+            var parts = headerValues[0]?.Split("/");
+            if (parts?.Length >= 2)
+            {
+                return (parts[0], parts[1]);
+            }
+        }
+
+        var sessionID = httpRequest.Cookies["sessionID"] ?? new string(Enumerable
+            .Repeat("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789", 28).Select(s => s[_random.Next(s.Length)]).ToArray());
+
+        var sessionDataKey = $"sessionData_{sessionID}";
+        var start = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
+        var sessionData = httpRequest.Cookies[sessionDataKey] ?? $"{{\"sessionSecureID\":\"{sessionID}\",\"projectID\":\"{ProjectId}\",\"payloadID\":1,\"sessionStartTime\":{start},\"lastPushTime\":{start}}}";
+
+        var opts = new CookieOptions
+        {
+            Expires = DateTimeOffset.Now.AddMinutes(15)
+        };
+        httpRequest.HttpContext.Response.Cookies.Append("sessionID", sessionID, opts);
+        httpRequest.HttpContext.Response.Cookies.Append(sessionDataKey, sessionData, opts);
+        return (sessionID, "");
+    }
+
 
     public static void Configure(WebApplicationBuilder builder)
     {

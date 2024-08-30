@@ -293,6 +293,21 @@
 		}
 	}
 
+	ol,
+	ul {
+		margin: var(--size-medium) 0;
+
+		ul,
+		ol {
+			margin: 0;
+		}
+
+		li {
+			font-size: 17px;
+			font-weight: 400 !important;
+		}
+	}
+
 	a {
 		color: var(--color-secondary-200);
 		font-weight: 600;
@@ -400,8 +415,7 @@
 
 .blogText {
 	p {
-		padding: var(--size-small) 0 !important;
-		margin: 0 !important;
+		margin: var(--size-small) 0;
 	}
 
 	b {

@@ -85,7 +85,9 @@
 	font-weight: 400;
 	font-size: 16px;
 	margin: 0 !important;
-	transition: opacity 0.2s ease, color 0.2s ease;
+	transition:
+		opacity 0.2s ease,
+		color 0.2s ease;
 	cursor: pointer;
 
 	&:hover {

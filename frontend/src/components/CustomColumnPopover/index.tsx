@@ -8,7 +8,7 @@ import {
 import { useDebouncedValue } from '@hooks/useDebouncedValue'
 import { useParams } from '@util/react-router/useParams'
 import moment from 'moment'
-import React, { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 
 import LoadingBox from '@/components/LoadingBox'
 import { TIME_FORMAT } from '@/components/Search/SearchForm/constants'
@@ -106,11 +106,14 @@ export const CustomColumnPopover = <T,>({
 	}, [debouncedQuery, startDate, endDate, productType, project_id, getKeys])
 
 	const defaultColumnOptions = useMemo(() => {
-		const seletedColumnHash = selectedColumns.reduce((acc, column) => {
-			acc[column.id] = column
+		const seletedColumnHash = selectedColumns.reduce(
+			(acc, column) => {
+				acc[column.id] = column
 
-			return acc
-		}, {} as Record<string, SerializedColumn>)
+				return acc
+			},
+			{} as Record<string, SerializedColumn>,
+		)
 
 		const defaultColumnHash = {
 			...seletedColumnHash,
@@ -145,11 +148,14 @@ export const CustomColumnPopover = <T,>({
 	}, [data, debouncedQuery, standardColumns])
 
 	const allColumnsHash = useMemo(() => {
-		return [...selectedColumns, ...columnOptions].reduce((acc, column) => {
-			acc[column.id] = column
+		return [...selectedColumns, ...columnOptions].reduce(
+			(acc, column) => {
+				acc[column.id] = column
 
-			return acc
-		}, {} as Record<string, SerializedColumn>)
+				return acc
+			},
+			{} as Record<string, SerializedColumn>,
+		)
 	}, [selectedColumns, columnOptions])
 
 	const handleColumnValueChange = (updatedValue: string[]) => {
@@ -169,7 +175,7 @@ export const CustomColumnPopover = <T,>({
 						{o.id}
 					</Text>
 				),
-		  }))
+			}))
 
 	return (
 		<ComboboxSelect

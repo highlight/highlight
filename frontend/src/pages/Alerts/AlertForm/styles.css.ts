@@ -1,4 +1,3 @@
-import { vars } from '@highlight-run/ui/vars'
 import { style } from '@vanilla-extract/css'
 
 export const editGraphHeader = style({
@@ -9,16 +8,8 @@ export const editGraphPanel = style({
 	height: 'calc(100% - 40px)',
 })
 
-export const previewWindow = style({
-	width: 'calc(100% - 320px)',
-})
-
 export const tagSwitch = style({
 	width: '100%',
-})
-
-export const graphBackground = style({
-	zIndex: 0,
 })
 
 export const editGraphSidebar = style({
@@ -31,12 +22,4 @@ export const editorLabel = style({
 
 export const input = style({
 	height: 28,
-})
-
-export const graphWrapper = style({
-	width: 720,
-	height: 360,
-	margin: 'auto',
-	zIndex: 1,
-	backgroundColor: vars.color.white,
 })

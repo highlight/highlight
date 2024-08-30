@@ -85,7 +85,7 @@ export const SEARCH_OPERATORS = [
 	...CONTAINS_OPERATOR,
 	...MATCHES_OPERATOR,
 ] as const
-export type SearchOperator = typeof SEARCH_OPERATORS[number]
+export type SearchOperator = (typeof SEARCH_OPERATORS)[number]
 
 type Creatable = {
 	label: string
@@ -201,8 +201,8 @@ const SearchForm: React.FC<SearchFormProps> = ({
 			trackingId="logs_create-alert_click"
 			onClick={() => {
 				navigate({
-					pathname: `/${projectId}/alerts/logs/new`,
-					search: location.search,
+					pathname: `/${projectId}/alerts/new`,
+					search: `${location.search}&source=${productType}`,
 				})
 			}}
 			emphasis="medium"
@@ -447,7 +447,7 @@ export const Search: React.FC<{
 				({
 					name: operator,
 					type: 'Operator',
-				} as SearchResult),
+				}) as SearchResult,
 		)
 	}
 
@@ -525,6 +525,8 @@ export const Search: React.FC<{
 					start_date: moment(startDate).format(TIME_FORMAT),
 					end_date: moment(endDate).format(TIME_FORMAT),
 				},
+				query: debouncedValue,
+				count: 25,
 			},
 			fetchPolicy: 'cache-first',
 			onCompleted: (data) => {
@@ -532,6 +534,7 @@ export const Search: React.FC<{
 			},
 		})
 	}, [
+		debouncedValue,
 		activePart.key,
 		creatables,
 		endDate,
@@ -725,6 +728,7 @@ export const Search: React.FC<{
 						[styles.comboboxNotEmpty]: query.length > 0,
 					})}
 					render={
+						// @ts-ignore onPointerEnterCapture, onPointerLeaveCapture ignored by autoresize lib
 						<TextareaAutosize
 							ref={inputRef}
 							style={{ resize: 'none', overflowY: 'hidden' }}
@@ -818,7 +822,7 @@ export const Search: React.FC<{
 											? setAiMode(true)
 											: navigate(
 													`/w/${workspaceId}/harold-ai`,
-											  )
+												)
 									}
 									store={comboboxStore}
 								>
@@ -846,35 +850,37 @@ export const Search: React.FC<{
 									onClick={submitAndBlur}
 									store={comboboxStore}
 								>
-									<Stack
-										direction="row"
-										gap="4"
-										align="center"
+									<Box
+										py="8"
+										cssClass={{
+											display: 'inline-block',
+										}}
 									>
-										<Text
-											lines="1"
-											color="weak"
-											size="small"
-										>
-											Show all results for
-										</Text>
-
 										<Text
 											size="small"
 											family="monospace"
 											color="secondaryContentText"
+											display="inline-block"
+											break="all"
 										>
+											<Text
+												color="weak"
+												size="small"
+												display="inline-block"
+											>
+												Show all results for &nbsp;
+											</Text>
 											&lsquo;
 											{activePart.key === BODY_KEY
 												? activePart.value
 												: activePart.text}
 											&rsquo;
 										</Text>
-									</Stack>
+									</Box>
 								</Combobox.Item>
 							</Combobox.Group>
 						)}
-						{loading && visibleItems.length === 0 && (
+						{loading && (
 							<Combobox.Group
 								className={styles.comboboxGroup}
 								store={comboboxStore}

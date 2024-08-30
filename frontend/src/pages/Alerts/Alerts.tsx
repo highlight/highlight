@@ -3,10 +3,10 @@ import { SearchEmptyState } from '@components/SearchEmptyState/SearchEmptyState'
 import { GetAlertsPagePayloadQuery } from '@graph/operations'
 import {
 	Box,
+	Callout,
 	Container,
 	Heading,
 	IconSolidChartBar,
-	IconSolidCheveronDown,
 	IconSolidCheveronRight,
 	IconSolidDiscord,
 	IconSolidExclamation,
@@ -18,7 +18,6 @@ import {
 	IconSolidPlus,
 	IconSolidRefresh,
 	IconSolidTraces,
-	Menu,
 	Stack,
 	Tag,
 	Text,
@@ -34,13 +33,14 @@ import SvgTargetIcon from '@icons/TargetIcon'
 import SvgUserPlusIcon from '@icons/UserPlusIcon'
 import { AlertEnableSwitch } from '@pages/Alerts/AlertEnableSwitch/AlertEnableSwitch'
 import { useAlertsContext } from '@pages/Alerts/AlertsContext/AlertsContext'
+import useLocalStorage from '@rehooks/local-storage'
 import { useParams } from '@util/react-router/useParams'
 import React from 'react'
 import { RiMailFill, RiSlackFill } from 'react-icons/ri'
 import { useNavigate } from 'react-router-dom'
 
 import { Button } from '@/components/Button'
-import { Link } from '@/components/Link'
+import { LinkButton } from '@/components/LinkButton'
 import {
 	AlertDestination,
 	AlertDestinationType,
@@ -49,7 +49,6 @@ import {
 	ProductType,
 	SanitizedSlackChannel,
 } from '@/graph/generated/schemas'
-import useFeatureFlag, { Feature } from '@/hooks/useFeatureFlag/useFeatureFlag'
 
 import styles from './Alerts.module.css'
 
@@ -175,6 +174,9 @@ export const ALERT_CONFIGURATIONS: { [key: string]: AlertConfiguration } = {
 	},
 } as const
 
+const ALERTS_DOCS_LINK =
+	'https://www.highlight.io/docs/general/product-features/general-features/alerts'
+
 export default function AlertsPage() {
 	const { alertsPayload, loading } = useAlertsContext()
 
@@ -265,9 +267,12 @@ function AlertsPageLoaded({
 }: {
 	alertsPayload: GetAlertsPagePayloadQuery | undefined
 }) {
+	const [visible, setVisible] = useLocalStorage<boolean>(
+		'display-alerts-docs-callout',
+		true,
+	)
 	const { project_id } = useParams<{ project_id: string }>()
 	const navigate = useNavigate()
-	const metricAlertsEnabled = useFeatureFlag(Feature.MetricAlerts)
 
 	const navigateToAlert = (record: any) => {
 		if (record.configuration.name === ALERT_NAMES['ALERT']) {
@@ -363,7 +368,9 @@ function AlertsPageLoaded({
 						</Heading>
 						<Text weight="medium" size="small" color="default">
 							Manage all the alerts for your currently selected
-							project.
+							project. Get notified when errors occur or important
+							metric conditions are met. Learn more about building
+							alerts <a href={ALERTS_DOCS_LINK}>here</a>.
 						</Text>
 					</Stack>
 					<Stack gap="8" width="full">
@@ -376,22 +383,43 @@ function AlertsPageLoaded({
 							<Text weight="bold" size="small" color="strong">
 								All alerts
 							</Text>
-							{metricAlertsEnabled ? (
-								<Button
-									trackingId="alerts-page-add-alert-button"
-									onClick={() =>
-										navigate(`/${project_id}/alerts/new`)
-									}
-									iconLeft={<IconSolidPlus />}
-									kind="secondary"
-									emphasis="low"
-								>
-									Add Alert
-								</Button>
-							) : (
-								<NewAlertMenu />
-							)}
+							<Button
+								trackingId="alerts-page-add-alert-button"
+								onClick={() =>
+									navigate(`/${project_id}/alerts/new`)
+								}
+								iconLeft={<IconSolidPlus />}
+								kind="secondary"
+								emphasis="low"
+							>
+								Add Alert
+							</Button>
 						</Box>
+						{visible && (
+							<Callout
+								title="Want to learn more about
+												Alerts?"
+								icon={false}
+								handleCloseClick={() => setVisible(false)}
+							>
+								<Stack gap="16">
+									<Text>
+										Be sure to take a look at the docs, or
+										watch the walkthrough video!
+									</Text>
+									<Box>
+										<LinkButton
+											kind="secondary"
+											emphasis="high"
+											trackingId="alerts-read-docs"
+											to={ALERTS_DOCS_LINK}
+										>
+											Learn more
+										</LinkButton>
+									</Box>
+								</Stack>
+							</Callout>
+						)}
 						{alertsPayload && (
 							<Stack gap="6">
 								{alertsAsTableRows.length > 0 ? (
@@ -660,50 +688,4 @@ const AlertIcon = ({ type, disabled }: { type: string; disabled: boolean }) => {
 		default:
 			return <IconSolidPlayCircle size="20" color={color} />
 	}
-}
-
-function NewAlertMenu() {
-	const { project_id } = useParams<{ project_id: string }>()
-
-	const NEW_ALERT_OPTIONS = [
-		{
-			title: 'Session alert',
-			icon: <IconSolidPlayCircle />,
-			href: `/${project_id}/alerts/session/new`,
-		},
-		{
-			title: 'Error alert',
-			icon: <IconSolidLightningBolt />,
-			href: `/${project_id}/alerts/errors/new`,
-		},
-		{
-			title: 'Log alert',
-			icon: <IconSolidLogs />,
-			href: `/${project_id}/alerts/logs/new`,
-		},
-	]
-	return (
-		<Menu>
-			<Menu.Button iconRight={<IconSolidCheveronDown />}>
-				Create new alert
-			</Menu.Button>
-			<Menu.List>
-				{NEW_ALERT_OPTIONS.map((option) => (
-					<Link key={option.title} to={option.href}>
-						<Menu.Item>
-							<Box
-								display="flex"
-								alignItems="center"
-								gap="4"
-								py="2"
-							>
-								{option.icon}
-								<Text>{option.title}</Text>
-							</Box>
-						</Menu.Item>
-					</Link>
-				))}
-			</Menu.List>
-		</Menu>
-	)
 }

@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	destinationsV2 "github.com/highlight-run/highlight/backend/alerts/v2/destinations"
+	"github.com/highlight-run/highlight/backend/env"
 	"github.com/highlight-run/highlight/backend/model"
 	modelInputs "github.com/highlight-run/highlight/backend/private-graph/graph/model"
 	"github.com/highlight-run/highlight/backend/routing"
@@ -487,6 +488,56 @@ func sendMetricAlert(ctx context.Context, slackAccessToken string, alertInput *d
 	deliverAlerts(ctx, slackAccessToken, destinations, previewText, headerBlockSet, attachment)
 }
 
+func SendNotifications(ctx context.Context, slackAccessToken *string, notificationInput destinationsV2.NotificationInput, destinations []model.AlertDestination) {
+	if slackAccessToken == nil {
+		log.WithContext(ctx).Error("slack access token is nil")
+		return
+	}
+
+	switch notificationInput.NotificationType {
+	case destinationsV2.NotificationTypeAlertCreated:
+		sendAlertCreatedNotification(ctx, *slackAccessToken, notificationInput, destinations)
+	case destinationsV2.NotificationTypeAlertUpdated:
+		sendAlertUpdatedNotification(ctx, *slackAccessToken, notificationInput, destinations)
+	default:
+		log.WithContext(ctx).WithFields(
+			log.Fields{
+				"destinationType":  "discord",
+				"notificationType": notificationInput.NotificationType,
+			}).Error("Invalid notification type")
+	}
+}
+
+func sendAlertCreatedNotification(ctx context.Context, slackAccessToken string, notificationInput destinationsV2.NotificationInput, destinations []model.AlertDestination) {
+	name := notificationInput.AlertUpsertInput.Admin.Name
+	if name == nil {
+		name = notificationInput.AlertUpsertInput.Admin.Email
+	}
+
+	frontendURL := env.Config.FrontendUri
+	alertURL := fmt.Sprintf("%s/%d/alerts/%d", frontendURL, notificationInput.AlertUpsertInput.Alert.ProjectID, notificationInput.AlertUpsertInput.Alert.ID)
+	alertLink := fmt.Sprintf("<%s|%s>", alertURL, notificationInput.AlertUpsertInput.Alert.Name)
+
+	message := fmt.Sprintf("👋 %s has created the alert \"%s\".", *name, alertLink)
+
+	deliverAlerts(ctx, slackAccessToken, destinations, message, nil, nil)
+}
+
+func sendAlertUpdatedNotification(ctx context.Context, slackAccessToken string, notificationInput destinationsV2.NotificationInput, destinations []model.AlertDestination) {
+	name := notificationInput.AlertUpsertInput.Admin.Name
+	if name == nil {
+		name = notificationInput.AlertUpsertInput.Admin.Email
+	}
+
+	frontendURL := env.Config.FrontendUri
+	alertURL := fmt.Sprintf("%s/%d/alerts/%d", frontendURL, notificationInput.AlertUpsertInput.Alert.ProjectID, notificationInput.AlertUpsertInput.Alert.ID)
+	alertLink := fmt.Sprintf("<%s|%s>", alertURL, notificationInput.AlertUpsertInput.Alert.Name)
+
+	message := fmt.Sprintf("👋 %s has updated the alert \"%s\".", *name, alertLink)
+
+	deliverAlerts(ctx, slackAccessToken, destinations, message, nil, nil)
+}
+
 func deliverAlerts(ctx context.Context, slackAccessToken string, destinations []model.AlertDestination, previewText string, headerBlockSet []slack.Block, attachment *slack.Attachment) {
 	slackClient := slack.New(slackAccessToken)
 	if slackClient == nil {
@@ -509,10 +560,34 @@ func deliverAlerts(ctx context.Context, slackAccessToken string, destinations []
 					log.WithContext(ctx).Error(errors.Wrap(err, "couldn't join slack channel"))
 				}
 			}
-			_, _, err := slackClient.PostMessage(channelId, slack.MsgOptionText(previewText, false), slack.MsgOptionBlocks(headerBlockSet...), slack.MsgOptionAttachments(*attachment),
+
+			var msgBlockOptions slack.MsgOption
+			if headerBlockSet != nil {
+				msgBlockOptions = slack.MsgOptionBlocks(headerBlockSet...)
+			}
+
+			var msgAttachmentOptions slack.MsgOption
+			if attachment != nil {
+				msgAttachmentOptions = slack.MsgOptionAttachments(*attachment)
+			}
+
+			opts := []slack.MsgOption{
+				slack.MsgOptionText(previewText, false),
+				msgBlockOptions,
+				msgAttachmentOptions,
 				slack.MsgOptionDisableLinkUnfurl(),  /** Disables showing a preview of any links that are in the Slack message.*/
-				slack.MsgOptionDisableMediaUnfurl(), /** Disables showing a preview of any links that are in the Slack message.*/
-			)
+				slack.MsgOptionDisableMediaUnfurl(), /** Disables showing a preview of any media that are in the Slack message.*/
+			}
+
+			// get rid of nil opts
+			var optsFiltered []slack.MsgOption
+			for _, opt := range opts {
+				if opt != nil {
+					optsFiltered = append(optsFiltered, opt)
+				}
+			}
+
+			_, _, err := slackClient.PostMessage(channelId, optsFiltered...)
 			if err != nil {
 				log.WithContext(ctx).Error(errors.Wrap(err, "couldn't send slack alert"))
 			}

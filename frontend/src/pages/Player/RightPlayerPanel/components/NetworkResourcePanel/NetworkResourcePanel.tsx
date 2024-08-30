@@ -22,6 +22,7 @@ import moment from 'moment'
 import React, { useCallback, useEffect, useMemo, useState } from 'react'
 import { useHotkeys } from 'react-hotkeys-hook'
 
+import { TIME_FORMAT } from '@/components/Search/SearchForm/constants'
 import { useActiveNetworkResourceId } from '@/hooks/useActiveNetworkResourceId'
 import { useProjectId } from '@/hooks/useProjectId'
 import { NetworkResourceErrors } from '@/pages/Player/RightPlayerPanel/components/NetworkResourcePanel/NetworkResourceErrors'
@@ -272,7 +273,7 @@ function NetworkResourceDetails({
 								? moment(resource.timestamp).format('h:mm:ss A')
 								: MillisToMinutesAndSeconds(
 										resource.relativeStartTime,
-								  )
+									)
 						}
 						size="medium"
 						shape="basic"
@@ -336,6 +337,7 @@ function NetworkResourceDetails({
 							projectId={projectId}
 							traceId={traceId}
 							secureSessionId={session?.secure_id}
+							timestamp={moment(timestamp).format(TIME_FORMAT)}
 						>
 							<NetworkResourceTrace />
 						</TraceProvider>
@@ -503,7 +505,7 @@ function WebSocketDetails({
 								? moment(resource.timestamp).format('h:mm:ss A')
 								: MillisToMinutesAndSeconds(
 										resource.relativeStartTime,
-								  )
+									)
 						}
 						size="medium"
 						shape="basic"

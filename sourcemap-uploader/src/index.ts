@@ -13,15 +13,15 @@ program
   .option(
     "-p, --path [string]",
     "Sets the directory of where the sourcemaps are",
-    "."
+    ".",
   )
   .option(
     "-bp, --basePath [string]",
-    "An optional base path for the uploaded sourcemaps"
+    "An optional base path for the uploaded sourcemaps",
   )
   .option(
     "-bu, --backendUrl [string]",
-    "An optional backend url for self-hosted deployments"
+    "An optional backend url for self-hosted deployments",
   )
   .action(uploadSourcemaps);
 

@@ -2,9 +2,9 @@ import express from 'express'
 import zlib from 'zlib'
 
 import {
+	IEvent,
 	IExportTraceServiceRequest,
 	IResourceSpans,
-	IEvent,
 	ISpan,
 } from '@opentelemetry/otlp-transformer'
 

@@ -96,6 +96,7 @@ type SessionInterval {
 
 type SessionsReportRow {
 	key: String!
+	email: String!
 	num_sessions: UInt64!
 	num_days_visited: UInt64!
 	num_months_visited: UInt64!
@@ -219,6 +220,7 @@ enum PlanType {
 	Enterprise
 	UsageBased
 	Graduated
+	Business
 }
 
 enum ProductType {
@@ -546,12 +548,19 @@ type AllWorkspaceSettings {
 	ai_application: Boolean!
 	ai_query_builder: Boolean!
 	ai_insights: Boolean!
-	enable_session_export: Boolean!
-	enable_unlisted_sharing: Boolean!
-	enable_ingest_sampling: Boolean!
+	enable_billing_limits: Boolean!
+	enable_business_dashboards: Boolean!
+	enable_business_projects: Boolean!
+	enable_business_retention: Boolean!
+	enable_business_seats: Boolean!
 	enable_data_deletion: Boolean!
 	enable_grafana_dashboard: Boolean!
+	enable_ingest_filtering: Boolean!
+	enable_ingest_sampling: Boolean!
+	enable_network_traces: Boolean!
 	enable_project_level_access: Boolean!
+	enable_session_export: Boolean!
+	enable_unlisted_sharing: Boolean!
 }
 
 type Account {
@@ -1030,7 +1039,6 @@ enum ReservedSessionKey {
 	city
 	completed
 	country
-	device_id
 	environment
 	excluded
 	first_time
@@ -1967,6 +1975,7 @@ type Graph {
 	groupByKey: String
 	bucketByKey: String
 	bucketCount: Int
+	bucketInterval: Int
 	limit: Int
 	limitFunctionType: MetricAggregator
 	limitMetric: String
@@ -2001,6 +2010,7 @@ input GraphInput {
 	groupByKey: String
 	bucketByKey: String
 	bucketCount: Int
+	bucketInterval: Int
 	limit: Int
 	limitFunctionType: MetricAggregator
 	limitMetric: String
@@ -2301,7 +2311,6 @@ type Query {
 		direction: SortDirection!
 	): LogConnection!
 	sessionLogs(project_id: ID!, params: QueryInput!): [LogEdge!]!
-	logs_total_count(project_id: ID!, params: QueryInput!): UInt64!
 	logs_histogram(project_id: ID!, params: QueryInput!): LogsHistogram!
 	logs_metrics(
 		project_id: ID!
@@ -2311,6 +2320,7 @@ type Query {
 		group_by: [String!]!
 		bucket_by: String!
 		bucket_count: Int
+		bucket_window: Int
 		limit: Int
 		limit_aggregator: MetricAggregator
 		limit_column: String
@@ -2325,6 +2335,8 @@ type Query {
 		project_id: ID!
 		key_name: String!
 		date_range: DateRangeRequiredInput!
+		query: String
+		count: Int
 	): [String!]!
 	logs_error_objects(log_cursors: [String!]!): [ErrorObject!]!
 	existing_logs_traces(
@@ -2349,6 +2361,7 @@ type Query {
 	trace(
 		project_id: ID!
 		trace_id: String!
+		timestamp: Timestamp!
 		session_secure_id: String
 	): TracePayload
 	traces(
@@ -2367,6 +2380,7 @@ type Query {
 		group_by: [String!]!
 		bucket_by: String
 		bucket_count: Int
+		bucket_window: Int
 		limit: Int
 		limit_aggregator: MetricAggregator
 		limit_column: String
@@ -2381,6 +2395,8 @@ type Query {
 		project_id: ID!
 		key_name: String!
 		date_range: DateRangeRequiredInput!
+		query: String
+		count: Int
 	): [String!]!
 	errors_keys(
 		project_id: ID!
@@ -2392,6 +2408,8 @@ type Query {
 		project_id: ID!
 		key_name: String!
 		date_range: DateRangeRequiredInput!
+		query: String
+		count: Int
 	): [String!]!
 	errors_metrics(
 		project_id: ID!
@@ -2401,6 +2419,7 @@ type Query {
 		group_by: [String!]!
 		bucket_by: String!
 		bucket_count: Int
+		bucket_window: Int
 		limit: Int
 		limit_aggregator: MetricAggregator
 		limit_column: String
@@ -2415,6 +2434,8 @@ type Query {
 		project_id: ID!
 		key_name: String!
 		date_range: DateRangeRequiredInput!
+		query: String
+		count: Int
 	): [String!]!
 	sessions_metrics(
 		project_id: ID!
@@ -2424,6 +2445,7 @@ type Query {
 		group_by: [String!]!
 		bucket_by: String!
 		bucket_count: Int
+		bucket_window: Int
 		limit: Int
 		limit_aggregator: MetricAggregator
 		limit_column: String
@@ -2437,6 +2459,7 @@ type Query {
 		group_by: [String!]!
 		bucket_by: String!
 		bucket_count: Int
+		bucket_window: Int
 		limit: Int
 		limit_aggregator: MetricAggregator
 		limit_column: String
@@ -2453,6 +2476,8 @@ type Query {
 		project_id: ID!
 		key_name: String!
 		date_range: DateRangeRequiredInput!
+		query: String
+		count: Int
 	): [String!]!
 	visualization(id: ID!): Visualization!
 	visualizations(

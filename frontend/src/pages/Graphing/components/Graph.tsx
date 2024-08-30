@@ -26,7 +26,7 @@ import clsx from 'clsx'
 import _ from 'lodash'
 import moment from 'moment'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { ReferenceArea, Tooltip as RechartsTooltip } from 'recharts'
+import { Tooltip as RechartsTooltip, ReferenceArea } from 'recharts'
 import { CategoricalChartState } from 'recharts/types/chart/types'
 
 import { loadingIcon } from '@/components/Button/style.css'
@@ -100,6 +100,7 @@ export interface ChartProps<TConfig> {
 	groupByKey?: string
 	bucketByKey?: string
 	bucketCount?: number
+	bucketByWindow?: number
 	limit?: number
 	limitFunctionType?: MetricAggregator
 	limitMetric?: string
@@ -214,7 +215,7 @@ export const useGraphCallbacks = (
 				if (e.activeLabel !== undefined && !frozenTooltip) {
 					setRefAreaStart(Number(e.activeLabel))
 				}
-		  }
+			}
 		: undefined
 
 	const onMouseMove = allowDrag
@@ -228,7 +229,7 @@ export const useGraphCallbacks = (
 				if (refAreaStart !== undefined && e.activeLabel !== undefined) {
 					setRefAreaEnd(Number(e.activeLabel))
 				}
-		  }
+			}
 		: undefined
 
 	const onMouseUp = allowDrag
@@ -253,7 +254,7 @@ export const useGraphCallbacks = (
 				}
 				setRefAreaStart(undefined)
 				setRefAreaEnd(undefined)
-		  }
+			}
 		: undefined
 
 	const onMouseLeave = () => {
@@ -685,6 +686,7 @@ const Graph = ({
 	functionType,
 	groupByKey,
 	bucketByKey,
+	bucketByWindow,
 	bucketCount,
 	limit,
 	limitFunctionType,
@@ -794,6 +796,10 @@ const Graph = ({
 		setFetchEnd(moment().toDate())
 	}, [selectedPreset, startDate, endDate])
 
+	const xAxisMetric = bucketByKey !== undefined ? bucketByKey : GROUP_KEY
+	const yAxisMetric = functionType === MetricAggregator.Count ? '' : metric
+	const yAxisFunction = functionType
+
 	// set the fetch dates and poll interval when selected date changes
 	useEffect(() => {
 		rebaseFetchTime()
@@ -827,11 +833,12 @@ const Graph = ({
 					},
 					query: query,
 				},
-				column: metric,
+				column: yAxisMetric,
 				metric_types: [functionType],
 				group_by: groupByKey !== undefined ? [groupByKey] : [],
 				bucket_by:
 					bucketByKey !== undefined ? bucketByKey : TIMESTAMP_KEY,
+				bucket_window: bucketByWindow,
 				bucket_count: queriedBucketCount,
 				limit: limit,
 				limit_aggregator: limitFunctionType,
@@ -856,6 +863,7 @@ const Graph = ({
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [
 		bucketByKey,
+		bucketByWindow,
 		fetchEnd,
 		fetchStart,
 		functionType,
@@ -864,16 +872,12 @@ const Graph = ({
 		limit,
 		limitFunctionType,
 		limitMetric,
-		metric,
+		yAxisMetric,
 		productType,
 		projectId,
 		queriedBucketCount,
 		query,
 	])
-
-	const xAxisMetric = bucketByKey !== undefined ? bucketByKey : GROUP_KEY
-	const yAxisMetric = functionType === MetricAggregator.Count ? '' : metric
-	const yAxisFunction = functionType
 
 	const data = useGraphData(metrics, xAxisMetric)
 	const series = useGraphSeries(data, xAxisMetric)
@@ -928,6 +932,7 @@ const Graph = ({
 						spotlight={spotlight}
 						setTimeRange={setTimeRange}
 						loadExemplars={loadExemplars}
+						showGrid
 					>
 						{children}
 					</LineChart>
@@ -945,6 +950,7 @@ const Graph = ({
 						spotlight={spotlight}
 						setTimeRange={setTimeRange}
 						loadExemplars={loadExemplars}
+						showGrid
 					>
 						{children}
 					</BarChart>
@@ -1136,7 +1142,7 @@ const Graph = ({
 																idx,
 																key,
 																strokeColors,
-														  )
+															)
 														: undefined,
 												}}
 												cssClass={style.legendDot}

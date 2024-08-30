@@ -70,6 +70,11 @@ export const RETENTION_PERIOD_LABELS: { [K in RetentionPeriod]: string } = {
 	[RetentionPeriod.ThreeYears]: '3 year retention',
 }
 
+export const PLANS_WITH_ENTERPRISE_FEATURES = new Set<PlanType>([
+	PlanType.Business,
+	PlanType.Enterprise,
+])
+
 type meterArgs = {
 	workspace: Maybe<Pick<Workspace, 'trial_end_date'>> | undefined
 	details:

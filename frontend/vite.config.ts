@@ -73,7 +73,7 @@ export default defineConfig(({ mode }) => {
 								__dirname,
 								'../backend/localhostssl/server.crt',
 							),
-					  },
+						},
 			// ensure hmr works when proxying frontend
 			strictPort: true,
 			hmr: {

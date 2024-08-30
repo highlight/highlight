@@ -51,6 +51,7 @@ const ColumnWrapper: React.FC<ColumnWrapperProps> = ({
 		set({
 			type: 'trace',
 			id: trace.traceID,
+			timestamp: trace.timestamp,
 			spanID: trace.spanID,
 		})
 
@@ -146,7 +147,7 @@ const SessionColumnRenderer: React.FC<ColumnRendererProps> = ({
 				})
 
 				analytics.track('traces_session-column_click')
-		  }
+			}
 		: undefined
 	const paddingProps = secureSessionID
 		? { pt: '4' as const, pb: '0' as const }

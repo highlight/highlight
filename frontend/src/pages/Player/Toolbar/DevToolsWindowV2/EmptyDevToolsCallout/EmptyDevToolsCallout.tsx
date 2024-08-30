@@ -47,9 +47,6 @@ export const EmptyDevToolsCallout = ({
 		>
 			<Callout
 				border
-				style={{
-					maxWidth: '340px',
-				}}
 				title={
 					!requestTypes.length && filter?.length
 						? `Can't find what you're looking for?`
@@ -57,9 +54,9 @@ export const EmptyDevToolsCallout = ({
 								kind === Tab.Console
 									? 'console messages'
 									: kind === Tab.Network
-									? 'network requests'
-									: kind.toLocaleLowerCase()
-						  }.`
+										? 'network requests'
+										: kind.toLocaleLowerCase()
+							}.`
 				}
 				icon={IconSolidInformationCircle}
 			>
@@ -75,11 +72,9 @@ export const EmptyDevToolsCallout = ({
 							}${
 								!requestStatuses?.includes(RequestStatus.All)
 									? ' with status ' +
-									  buildList(requestStatuses)
+										buildList(requestStatuses)
 									: ''
-							}.`}
-						</Text>
-						<Text color="n11">
+							}. `}
 							If you expected to see data here, please make sure{' '}
 							<code>networkRecording</code> is set to{' '}
 							<code>true</code>.

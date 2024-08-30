@@ -289,14 +289,14 @@ export const SessionAlertPage = () => {
 							exclude_rules: excludeRules
 								? formStore.getValue(
 										formStore.names.excludeRules,
-								  ) || []
+									) || []
 								: [],
 							user_properties: tracksUserProperties
 								? (
 										formStore.getValue(
 											formStore.names.userProperties,
 										) || []
-								  ).map((userProperty: any) => {
+									).map((userProperty: any) => {
 										const [id, name, value] =
 											userProperty.split(SEPARATOR, 3)
 										return {
@@ -304,14 +304,14 @@ export const SessionAlertPage = () => {
 											value,
 											name,
 										}
-								  })
+									})
 								: [],
 							track_properties: tracksSessionProperties
 								? (
 										formStore.getValue(
 											formStore.names.trackProperties,
 										) || []
-								  ).map((trackProperty: any) => {
+									).map((trackProperty: any) => {
 										const [id, name, value] =
 											trackProperty.split(SEPARATOR, 3)
 										return {
@@ -319,7 +319,7 @@ export const SessionAlertPage = () => {
 											value,
 											name,
 										}
-								  }) || []
+									}) || []
 								: [],
 							type: alertType,
 						}
@@ -585,13 +585,13 @@ const SessionAlertForm = ({
 		? []
 		: (userSuggestionsApiResponse?.property_suggestion || []).map(
 				(suggestion) => getPropertiesOption(suggestion),
-		  )
+			)
 
 	const trackPropertiesSuggestions = trackSuggestionsLoading
 		? []
 		: (trackSuggestionsApiResponse?.property_suggestion || []).map(
 				(suggestion) => getPropertiesOption(suggestion),
-		  )
+			)
 
 	const identifierSuggestions = identifierSuggestionsLoading
 		? []
@@ -606,7 +606,7 @@ const SessionAlertForm = ({
 					),
 					id: suggestion,
 				}),
-		  )
+			)
 
 	const handleUserPropertiesSearch = (query = '') => {
 		refetchUserSuggestions({ query, project_id: project_id })
@@ -632,7 +632,7 @@ const SessionAlertForm = ({
 							<Text size="large" weight="bold" color="strong">
 								Alert conditions
 							</Text>
-							<Menu>
+							<Menu placement="bottom-end">
 								<ThresholdTypeConfiguration />
 							</Menu>
 						</Box>
@@ -663,19 +663,9 @@ const SessionAlertForm = ({
 									<Form.Select
 										label="Alert threshold window"
 										name={formStore.names.threshold_window}
-									>
-										<option value="" disabled>
-											Select alert threshold window
-										</option>
-										{FREQUENCIES.map((freq: any) => (
-											<option
-												key={freq.id}
-												value={Number(freq.value)}
-											>
-												{freq.displayValue}
-											</option>
-										))}
-									</Form.Select>
+										placeholder="Select alert threshold window"
+										options={FREQUENCIES}
+									/>
 								</Column>
 							</Column.Container>
 						)}

@@ -1,18 +1,19 @@
 import { ConsoleListener } from './console-listener'
 import { ErrorListener } from './error-listener'
 
-import { ConsoleMessage, ErrorMessage } from '../types/shared-types'
-import { ALL_CONSOLE_METHODS, ConsoleMethods } from '../types/client'
+import stringify from 'json-stringify-safe'
 import { ERRORS_TO_IGNORE, ERROR_PATTERNS_TO_IGNORE } from '../constants/errors'
 import { HighlightClassOptions } from '../index'
-import stringify from 'json-stringify-safe'
-import { DEFAULT_URL_BLOCKLIST } from './network-listener/utils/network-sanitizer'
+import { shutdown } from '../otel'
+import { ALL_CONSOLE_METHODS, ConsoleMethods } from '../types/client'
+import { ConsoleMessage, ErrorMessage } from '../types/shared-types'
+import { NetworkListener } from './network-listener/network-listener'
 import {
 	RequestResponsePair,
 	WebSocketEvent,
 	WebSocketRequest,
 } from './network-listener/utils/models'
-import { NetworkListener } from './network-listener/network-listener'
+import { DEFAULT_URL_BLOCKLIST } from './network-listener/utils/network-sanitizer'
 import {
 	matchPerformanceTimingsWithRequestResponsePair,
 	shouldNetworkRequestBeRecorded,
@@ -138,9 +139,7 @@ export class FirstLoadListeners {
 			),
 		)
 		if (this.options.enableOtelTracing) {
-			import('@highlight-run/client/src/otel').then(({ shutdown }) => {
-				this.listeners.push(shutdown)
-			})
+			this.listeners.push(shutdown)
 		}
 		FirstLoadListeners.setupNetworkListener(this, this.options)
 	}
@@ -177,7 +176,6 @@ export class FirstLoadListeners {
 			sThis.networkHeadersToRedact = []
 			sThis.networkBodyKeysToRedact = []
 			sThis.urlBlocklist = []
-			sThis.networkBodyKeysToRecord = []
 			sThis.networkBodyKeysToRecord = []
 		} else if (typeof options?.networkRecording === 'boolean') {
 			sThis.disableNetworkRecording = !options.networkRecording
@@ -267,8 +265,8 @@ export class FirstLoadListeners {
 					backendUrl: sThis._backendUrl,
 					tracingOrigins: sThis.tracingOrigins,
 					urlBlocklist: sThis.urlBlocklist,
-					sessionSecureID: options.sessionSecureID,
 					bodyKeysToRecord: sThis.networkBodyKeysToRecord,
+					otelEnabled: !!options.enableOtelTracing,
 				}),
 			)
 		}

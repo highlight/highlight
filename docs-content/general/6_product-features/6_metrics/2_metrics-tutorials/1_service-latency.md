@@ -5,7 +5,7 @@ slug: service-latency
 ---
 
 <EmbeddedVideo 
-  src="https://youtu.be/Hb24x1_wDXQ"
+  src="https://www.youtube.com/embed/Hb24x1_wDXQ"
   title="Metrics Tutorial: Service Latency on Traces"
   allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
 />

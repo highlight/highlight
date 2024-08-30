@@ -271,7 +271,7 @@ const TimelineIndicatorsBarGraph = ({
 						identifier: serializeErrorIdentifier(error),
 						timestamp: toTS(error.relativeIntervalPercentage),
 						eventType: 'Errors',
-					} as SessionEvent),
+					}) as SessionEvent,
 			),
 			...(rageClicks.map((rageClick) => ({
 				relativeIntervalPercentage: rageClick.startPercentage,
@@ -334,7 +334,7 @@ const TimelineIndicatorsBarGraph = ({
 				? playerTimeToSessionAbsoluteTime({
 						sessionStartTime: start,
 						relativeTime: t,
-				  }).toString()
+					}).toString()
 				: formatTimeAsHMS(t),
 		[showPlayerAbsoluteTime, start],
 	)
@@ -728,8 +728,8 @@ const TimelineIndicatorsBarGraph = ({
 			const fontWeight = text.includes('h')
 				? 500
 				: text.includes('m')
-				? 450
-				: 400
+					? 450
+					: 400
 
 			const left = timeToProgress(timestamp) * canvasWidth
 
@@ -749,8 +749,8 @@ const TimelineIndicatorsBarGraph = ({
 			const borderLeftWidth = text.includes('h')
 				? 1
 				: text.includes('m')
-				? 0.75
-				: 0.5
+					? 0.75
+					: 0.5
 
 			tickProps.push({
 				className: clsx([style.timeTick, style.timeTickMajor]),
@@ -863,7 +863,7 @@ const TimelineIndicatorsBarGraph = ({
 					!toDelete.has(idx) &&
 					(belongsToInactive[idx] !== undefined
 						? numInactiveTicks[belongsToInactive[idx]] >
-						  INACTIVE_TICK_FREQUENCY
+							INACTIVE_TICK_FREQUENCY
 							? idx % INACTIVE_TICK_FREQUENCY === 0
 							: true
 						: true),
@@ -989,8 +989,8 @@ const TimelineIndicatorsBarGraph = ({
 						style.TIME_AXIS_HEIGHT +
 						(showHistogram
 							? style.SEPARATOR_HEIGHT +
-							  style.HISTOGRAM_AREA_HEIGHT +
-							  style.SESSION_MONITOR_HEIGHT
+								style.HISTOGRAM_AREA_HEIGHT +
+								style.SESSION_MONITOR_HEIGHT
 							: 0)
 					}
 				/>

@@ -7,7 +7,6 @@ export const devToolsWindowV2 = style({
 	display: 'flex',
 	flexDirection: 'column',
 	zIndex: 5,
-	position: 'relative',
 })
 
 export const switchInverted = style({

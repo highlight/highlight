@@ -1,8 +1,10 @@
+import EnterpriseFeatureButton from '@components/Billing/EnterpriseFeatureButton'
 import { toast } from '@components/Toaster'
 import {
 	Badge,
 	Box,
 	Button,
+	Callout,
 	Container,
 	Heading,
 	IconSolidChartBar,
@@ -13,12 +15,14 @@ import {
 	Table,
 	Text,
 } from '@highlight-run/ui/components'
+import useLocalStorage from '@rehooks/local-storage'
 import moment from 'moment'
 import React, { useState } from 'react'
 import { Helmet } from 'react-helmet'
 import { useNavigate } from 'react-router-dom'
 import { useDebounce } from 'react-use'
 
+import { LinkButton } from '@/components/LinkButton'
 import LoadingBox from '@/components/LoadingBox'
 import { SearchEmptyState } from '@/components/SearchEmptyState/SearchEmptyState'
 import {
@@ -36,8 +40,15 @@ import * as style from './DashboardOverview.css'
 
 const ITEMS_PER_PAGE = 10
 
-export default function DashboardOverview() {
+const METRICS_DOCS_LINK =
+	'https://www.highlight.io/docs/general/product-features/metrics/overview'
+
+export const DashboardOverview: React.FC = () => {
 	const { projectId } = useProjectId()
+	const [visible, setVisible] = useLocalStorage<boolean>(
+		'display-dashboard-docs-callout',
+		true,
+	)
 
 	const [query, setQuery] = useState('')
 	const [debouncedQuery, setDebouncedQuery] = useState('')
@@ -110,8 +121,39 @@ export default function DashboardOverview() {
 										color="default"
 									>
 										Metrics allow you to visualize what's
-										happening in your app.
+										happening in your app. Understand error
+										rates, APM trends, and user engagement.
+										Learn more about building dashboards{' '}
+										<a href={METRICS_DOCS_LINK}>here</a>.
 									</Text>
+									{visible && (
+										<Callout
+											title="Want to learn more about
+												Metrics?"
+											icon={false}
+											handleCloseClick={() =>
+												setVisible(false)
+											}
+										>
+											<Stack gap="16">
+												<Text>
+													Be sure to take a look at
+													the docs, or watch the
+													walkthrough video!
+												</Text>
+												<Box>
+													<LinkButton
+														kind="secondary"
+														emphasis="high"
+														trackingId="dashboard-read-docs"
+														to={METRICS_DOCS_LINK}
+													>
+														Learn more
+													</LinkButton>
+												</Box>
+											</Stack>
+										</Callout>
+									)}
 								</Stack>
 								<Stack gap="8" width="full">
 									<Box
@@ -127,15 +169,29 @@ export default function DashboardOverview() {
 										>
 											All dashboards
 										</Text>
-										<Button
-											onClick={() => {
+										<EnterpriseFeatureButton
+											setting="enable_business_dashboards"
+											name="More than 2 dashboards"
+											fn={async () => {
 												setShowModal(true)
 											}}
+											variant="basic"
 										>
-											Create new dashboard
-										</Button>
+											<Box mt="8">
+												<Stack
+													mb="8"
+													align="center"
+													justify="space-between"
+													direction="row"
+												>
+													<Button>
+														Create new dashboard
+													</Button>
+												</Stack>
+											</Box>
+										</EnterpriseFeatureButton>
 									</Box>
-									<Table withSearch>
+									<Table>
 										<Table.Search
 											placeholder="Search..."
 											handleChange={(e) => {

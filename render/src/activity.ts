@@ -1,6 +1,6 @@
+import chromium from '@sparticuz/chromium'
 import { APIGatewayEvent } from 'aws-lambda'
 import puppeteer, { Browser } from 'puppeteer-core'
-import chromium from '@sparticuz/chromium'
 
 const WIDTH = 340
 const HEIGHT = 170

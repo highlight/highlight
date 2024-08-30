@@ -1,11 +1,11 @@
 #!/usr/bin/env node
 // @ts-check
-import { ChildProcess, spawn } from 'node:child_process'
 import chalk from 'chalk'
-import { fileURLToPath } from 'node:url'
+import { ChildProcess, spawn } from 'node:child_process'
+import { on } from 'node:events'
 import { dirname, join } from 'node:path'
 import { createInterface } from 'node:readline'
-import { on } from 'node:events'
+import { fileURLToPath } from 'node:url'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = dirname(__filename)

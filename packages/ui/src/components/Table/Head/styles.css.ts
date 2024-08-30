@@ -1,4 +1,7 @@
 import { style } from '@vanilla-extract/css'
 
-// need for row styling
-export const head = style({})
+import * as tableStyles from '../styles.css'
+
+export const head = style({
+	borderBottom: tableStyles.BORDER,
+})

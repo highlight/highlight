@@ -1,9 +1,7 @@
-import {
-	type AmplitudeAPI,
-	setupAmplitudeIntegration,
-} from './integrations/amplitude.js'
-import { SESSION_STORAGE_KEYS } from '@highlight-run/client/src/utils/sessionStorage/sessionStorageKeys.js'
-import type { Highlight, HighlightClassOptions } from '@highlight-run/client'
+import type {
+	Highlight,
+	HighlightClassOptions,
+} from '@highlight-run/client/src'
 import type {
 	HighlightOptions,
 	HighlightPublicInterface,
@@ -13,26 +11,30 @@ import type {
 	SessionDetails,
 } from '@highlight-run/client/src/types/types.js'
 import {
+	type AmplitudeAPI,
+	setupAmplitudeIntegration,
+} from './integrations/amplitude.js'
+import {
 	type MixpanelAPI,
 	setupMixpanelIntegration,
 } from './integrations/mixpanel.js'
 
+import { HIGHLIGHT_URL } from '@highlight-run/client/src/constants/sessions.js'
 import { FirstLoadListeners } from '@highlight-run/client/src/listeners/first-load-listeners.js'
+import { ErrorMessageType } from '@highlight-run/client/src/types/shared-types'
 import { GenerateSecureID } from '@highlight-run/client/src/utils/secure-id.js'
-import { HighlightSegmentMiddleware } from './integrations/segment.js'
-import configureElectronHighlight from './environments/electron.js'
-import firstloadVersion from './__generated/version.js'
 import {
 	getPreviousSessionData,
-	getSessionSecureID,
-	type SessionData,
+	loadCookieSessionData,
 } from '@highlight-run/client/src/utils/sessionStorage/highlightSession.js'
+import { setCookieWriteEnabled } from '@highlight-run/client/src/utils/storage'
+import type { Context, Span, SpanOptions, Tracer } from '@opentelemetry/api'
+import firstloadVersion from './__generated/version.js'
+import { listenToChromeExtensionMessage } from './browserExtension/extensionListener.js'
+import configureElectronHighlight from './environments/electron.js'
+import { HighlightSegmentMiddleware } from './integrations/segment.js'
 import { initializeFetchListener } from './listeners/fetch'
 import { initializeWebSocketListener } from './listeners/web-socket'
-import { listenToChromeExtensionMessage } from './browserExtension/extensionListener.js'
-import { setItem } from '@highlight-run/client/src/utils/storage.js'
-import { ErrorMessageType } from '@highlight-run/client/src/types/shared-types'
-import type { Context, Span, SpanOptions, Tracer } from '@opentelemetry/api'
 
 enum MetricCategory {
 	Device = 'Device',
@@ -66,10 +68,11 @@ let onHighlightReadyQueue: {
 }[] = []
 let onHighlightReadyTimeout: number | undefined = undefined
 
+let sessionSecureID: string
 let highlight_obj: Highlight
 let first_load_listeners: FirstLoadListeners
 let init_called = false
-type Callback = (span: Span) => any
+type Callback = (span?: Span) => any
 let getTracer: () => Tracer
 const H: HighlightPublicInterface = {
 	options: undefined,
@@ -93,21 +96,16 @@ const H: HighlightPublicInterface = {
 				return
 			}
 
+			if (!options?.skipCookieSessionDataLoad) {
+				loadCookieSessionData()
+			} else {
+				setCookieWriteEnabled(false)
+			}
+
 			let previousSession = getPreviousSessionData()
-			let sessionSecureID = GenerateSecureID()
+			sessionSecureID = GenerateSecureID()
 			if (previousSession?.sessionSecureID) {
 				sessionSecureID = previousSession.sessionSecureID
-			} else {
-				const sessionData: SessionData = {
-					...previousSession,
-					projectID: +projectID,
-					sessionSecureID,
-				}
-
-				setItem(
-					SESSION_STORAGE_KEYS.SESSION_DATA,
-					JSON.stringify(sessionData),
-				)
 			}
 
 			// `init` was already called, do not reinitialize
@@ -116,9 +114,15 @@ const H: HighlightPublicInterface = {
 			}
 			init_called = true
 
-			if (options?.enableOtelTracing) {
-				import('@highlight-run/client/src/otel').then(
-					({ setupBrowserTracing, getTracer: otelGetTracer }) => {
+			initializeFetchListener()
+			initializeWebSocketListener()
+			import('@highlight-run/client/src').then(
+				async ({
+					Highlight,
+					setupBrowserTracing,
+					getTracer: otelGetTracer,
+				}) => {
+					if (options?.enableOtelTracing) {
 						setupBrowserTracing({
 							endpoint: options?.otlpEndpoint,
 							projectId: projectID,
@@ -133,53 +137,27 @@ const H: HighlightPublicInterface = {
 								options?.serviceName ?? 'highlight-browser',
 						})
 						getTracer = otelGetTracer
-					},
-				)
-			}
+					}
 
-			initializeFetchListener()
-			initializeWebSocketListener()
-			import('@highlight-run/client').then(async ({ Highlight }) => {
-				highlight_obj = new Highlight(
-					client_options,
-					first_load_listeners,
-				)
-				initializeFetchListener()
-				initializeWebSocketListener()
-				if (!options?.manualStart) {
-					await highlight_obj.initialize()
-				}
-			})
+					highlight_obj = new Highlight(
+						client_options,
+						first_load_listeners,
+					)
+					initializeFetchListener()
+					initializeWebSocketListener()
+					if (!options?.manualStart) {
+						await highlight_obj.initialize()
+					}
+				},
+			)
 
 			const client_options: HighlightClassOptions = {
+				...options,
 				organizationID: projectID,
-				debug: options?.debug,
-				backendUrl: options?.backendUrl,
-				tracingOrigins: options?.tracingOrigins,
-				disableNetworkRecording: options?.disableNetworkRecording,
-				networkRecording: options?.networkRecording,
-				disableBackgroundRecording: options?.disableBackgroundRecording,
-				disableConsoleRecording: options?.disableConsoleRecording,
-				disableSessionRecording: options?.disableSessionRecording,
-				reportConsoleErrors: options?.reportConsoleErrors,
-				consoleMethodsToRecord: options?.consoleMethodsToRecord,
-				privacySetting: options?.privacySetting,
-				enableSegmentIntegration: options?.enableSegmentIntegration,
-				enableCanvasRecording: options?.enableCanvasRecording,
-				enablePerformanceRecording: options?.enablePerformanceRecording,
-				enablePromisePatch: options?.enablePromisePatch,
-				samplingStrategy: options?.samplingStrategy,
-				inlineImages: options?.inlineImages,
-				inlineStylesheet: options?.inlineStylesheet,
-				recordCrossOriginIframe: options?.recordCrossOriginIframe,
 				firstloadVersion,
 				environment: options?.environment || 'production',
 				appVersion: options?.version,
-				serviceName: options?.serviceName,
-				sessionShortcut: options?.sessionShortcut,
 				sessionSecureID: sessionSecureID,
-				storageMode: options?.storageMode,
-				sendMode: options?.sendMode,
 			}
 			first_load_listeners = new FirstLoadListeners(client_options)
 			if (!options?.manualStart) {
@@ -396,13 +374,19 @@ const H: HighlightPublicInterface = {
 	},
 	startSpan: (
 		name: string,
-		options: SpanOptions | ((span: Span) => any),
-		context?: Context | ((span: Span) => any),
-		fn?: (span: Span) => any,
+		options: SpanOptions | ((span?: Span) => any),
+		context?: Context | ((span?: Span) => any),
+		fn?: (span?: Span) => any,
 	): any => {
-		const tracer = getTracer()
-
+		const tracer = typeof getTracer === 'function' ? getTracer() : undefined
 		if (!tracer) {
+			if (fn === undefined && context === undefined) {
+				;(options as Callback)()
+			} else if (fn === undefined) {
+				;(context as Callback)()
+			} else {
+				fn()
+			}
 			return
 		}
 
@@ -466,41 +450,37 @@ const H: HighlightPublicInterface = {
 			)
 		}
 	},
-	getSessionURL: () => {
-		return new Promise<string>((resolve, reject) => {
-			const res = getSessionSecureID()
-			if (res) {
-				resolve(res)
-			} else {
-				reject(new Error('Unable to get session URL'))
-			}
-		})
+	getSessionURL: async () => {
+		const data = getPreviousSessionData(sessionSecureID)
+		if (data) {
+			return `https://${HIGHLIGHT_URL}/${data.projectID}/sessions/${sessionSecureID}`
+		} else {
+			throw new Error(`Unable to get session URL: ${sessionSecureID}}`)
+		}
 	},
-	getSessionDetails: () => {
-		return new Promise<SessionDetails>((resolve, reject) => {
-			H.onHighlightReady(() => {
-				const baseUrl = highlight_obj.getCurrentSessionURL()
-				if (baseUrl) {
-					const currentSessionTimestamp =
-						highlight_obj.getCurrentSessionTimestamp()
-					const now = new Date().getTime()
-					const url = new URL(baseUrl)
-					const urlWithTimestamp = new URL(baseUrl)
-					urlWithTimestamp.searchParams.set(
-						'ts',
-						// The delta between when the session recording started and now.
-						((now - currentSessionTimestamp) / 1000).toString(),
-					)
+	getSessionDetails: async () => {
+		const baseUrl = await H.getSessionURL()
+		const sessionData = getPreviousSessionData(sessionSecureID)
+		if (!baseUrl) {
+			throw new Error('Could not get session URL')
+		}
+		const currentSessionTimestamp = sessionData?.sessionStartTime
+		if (!currentSessionTimestamp) {
+			throw new Error('Could not get session start timestamp')
+		}
+		const now = new Date().getTime()
+		const url = new URL(baseUrl)
+		const urlWithTimestamp = new URL(baseUrl)
+		urlWithTimestamp.searchParams.set(
+			'ts',
+			// The delta between when the session recording started and now.
+			((now - currentSessionTimestamp) / 1000).toString(),
+		)
 
-					resolve({
-						url: url.toString(),
-						urlWithTimestamp: urlWithTimestamp.toString(),
-					})
-				} else {
-					reject(new Error('Could not get session URL'))
-				}
-			})
-		})
+		return {
+			url: url.toString(),
+			urlWithTimestamp: urlWithTimestamp.toString(),
+		} as SessionDetails
 	},
 	getRecordingState: () => {
 		return highlight_obj?.state ?? 'NotRecording'
@@ -546,10 +526,10 @@ listenToChromeExtensionMessage()
 initializeFetchListener()
 initializeWebSocketListener()
 
-export type { HighlightOptions }
 export {
+	configureElectronHighlight,
 	H,
 	HighlightSegmentMiddleware,
 	MetricCategory,
-	configureElectronHighlight,
 }
+export type { HighlightOptions }

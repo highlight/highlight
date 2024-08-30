@@ -1,6 +1,10 @@
+import Cookies from 'js-cookie'
+import { SESSION_PUSH_THRESHOLD } from '../constants/sessions'
+
 type Mode = 'localStorage' | 'sessionStorage'
 
 let mode: Mode = 'localStorage'
+let cookieWriteEnabled: boolean = true
 
 class Storage {
 	private storage: { [key: string]: string } = {}
@@ -15,7 +19,30 @@ class Storage {
 	}
 }
 
+export class CookieStorage {
+	public getItem(key: string) {
+		return Cookies.get(key) ?? ''
+	}
+
+	public setItem(key: string, value: string) {
+		if (!cookieWriteEnabled) {
+			return
+		}
+		const expires = new Date()
+		expires.setTime(expires.getTime() + SESSION_PUSH_THRESHOLD)
+		Cookies.set(key, value, { expires })
+	}
+
+	public removeItem(key: string) {
+		if (!cookieWriteEnabled) {
+			return
+		}
+		Cookies.remove(key)
+	}
+}
+
 let globalStorage = new Storage()
+export const cookieStorage = new CookieStorage()
 
 const getPersistentStorage = () => {
 	try {
@@ -34,15 +61,21 @@ export const setStorageMode = (m: Mode) => {
 	mode = m
 }
 
+export const setCookieWriteEnabled = (enabled: boolean) => {
+	cookieWriteEnabled = enabled
+}
+
 export const getItem = (key: string) => {
 	return getPersistentStorage().getItem(key)
 }
 
 export const setItem = (key: string, value: string) => {
+	cookieStorage.setItem(key, value)
 	return getPersistentStorage().setItem(key, value)
 }
 
 export const removeItem = (key: string) => {
+	cookieStorage.removeItem(key)
 	return getPersistentStorage().removeItem(key)
 }
 

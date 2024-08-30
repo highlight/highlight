@@ -277,7 +277,7 @@ func TestEnhanceStackTrace(t *testing.T) {
 		"test reflame": {
 			stackFrameInput: []*publicModelInput.StackFrameInput{
 				{
-					FileName:     ptr.String("https://app.highlight.io/~r/chunks/X3XZGGFJ.js?~r_rid=G5Qjykm00SuMZ-DTpV_ckUGZvRg"),
+					FileName:     ptr.String("https://preview.highlight.io/~r/chunks/X3XZGGFJ.js?~r_rid=G5Qjykm00SuMZ-DTpV_ckUGZvRg"),
 					LineNumber:   ptr.Int(1),
 					ColumnNumber: ptr.Int(1656),
 				},

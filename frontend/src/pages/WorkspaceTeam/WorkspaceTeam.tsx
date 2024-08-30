@@ -1,3 +1,4 @@
+import EnterpriseFeatureButton from '@components/Billing/EnterpriseFeatureButton'
 import { Button } from '@components/Button'
 import { useGetWorkspaceAdminsQuery } from '@graph/hooks'
 import { AdminRole, Project, WorkspaceAdminRole } from '@graph/schemas'
@@ -60,13 +61,14 @@ const WorkspaceTeam = () => {
 					<Authorization allowedRoles={[AdminRole.Admin]}>
 						<AutoJoinForm />
 					</Authorization>
-					<InviteMemberModal
-						workspaceId={workspace_id}
-						workspaceName={data?.workspace?.name}
-						workspaceInviteLinks={data?.workspace_invite_links}
-						showModal={showModal}
-						toggleShowModal={toggleShowModal}
-					/>
+					{showModal ? (
+						<InviteMemberModal
+							workspaceId={workspace_id}
+							workspaceName={data?.workspace?.name}
+							workspaceInviteLinks={data?.workspace_invite_links}
+							toggleShowModal={toggleShowModal}
+						/>
+					) : null}
 				</div>
 
 				<Tabs<MemberKeyType>
@@ -121,7 +123,7 @@ const TabContentContainer = ({
 }: {
 	children: any
 	title: string
-	toggleInviteModal: any
+	toggleInviteModal: React.Dispatch<React.SetStateAction<boolean>>
 }) => {
 	return (
 		<Box mt="8">
@@ -132,13 +134,20 @@ const TabContentContainer = ({
 				direction="row"
 			>
 				<h4 className={styles.tabTitle}>{title}</h4>
-				<Button
-					trackingId="WorkspaceTeamInviteMember"
-					iconLeft={<IconSolidUserAdd />}
-					onClick={toggleInviteModal}
+				<EnterpriseFeatureButton
+					setting="enable_business_seats"
+					name="More than 15 team members"
+					fn={() => toggleInviteModal((shown) => !shown)}
+					variant="basic"
 				>
-					Invite users
-				</Button>
+					<Button
+						trackingId="WorkspaceTeamInviteMember"
+						iconLeft={<IconSolidUserAdd />}
+						onClick={() => console.log('invite users button')}
+					>
+						Invite users
+					</Button>
+				</EnterpriseFeatureButton>
 			</Stack>
 			{children}
 		</Box>

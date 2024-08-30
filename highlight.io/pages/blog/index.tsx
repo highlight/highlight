@@ -185,7 +185,7 @@ export const Blog = ({
 						maxRanking: matchSorter.rankings.CONTAINS,
 					},
 				],
-		  })
+			})
 		: posts
 
 	page = Math.ceil(Math.min(page, filteredPosts.length / itemsPerPage))

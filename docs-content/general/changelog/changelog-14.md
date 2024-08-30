@@ -17,7 +17,7 @@ This week, we made quite a lot of improvements to jitter/jank on the replay time
 
 ## New Python Guide Homepage
 
-Our python guides now have a new home; check them out [here](../../getting-started/4_backend-sdk/python/1_overview.md).
+Our python guides now have a new home; check them out [here](../../getting-started/4_backend-sdk/05_python/1_overview.md).
 
 ## More Logging Updates (🤫)
 

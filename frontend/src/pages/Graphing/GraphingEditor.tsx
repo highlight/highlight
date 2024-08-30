@@ -5,8 +5,10 @@ import {
 	DateRangePicker,
 	DEFAULT_TIME_PRESETS,
 	Form,
+	IconSolidClock,
 	Input,
 	presetStartDate,
+	TagSwitchGroup,
 	Text,
 } from '@highlight-run/ui/components'
 import { useParams } from '@util/react-router/useParams'
@@ -59,6 +61,7 @@ import { HeaderDivider } from '@/pages/Graphing/Dashboard'
 import { Combobox } from './Combobox'
 import {
 	DEFAULT_BUCKET_COUNT,
+	DEFAULT_BUCKET_INTERVAL,
 	FUNCTION_TYPES,
 	PRODUCT_ICONS,
 	PRODUCTS,
@@ -68,6 +71,9 @@ import { LabeledRow } from './LabeledRow'
 import { OptionDropdown } from './OptionDropdown'
 import { BarChartSettings, LineChartSettings, TableSettings } from './Settings'
 
+type BucketBy = 'None' | 'Interval' | 'Count'
+const BUCKET_BY_OPTIONS: BucketBy[] = ['None', 'Interval', 'Count']
+
 const SidebarSection = (props: PropsWithChildren) => {
 	return (
 		<Box p="12" width="full" display="flex" flexDirection="column" gap="12">
@@ -76,7 +82,7 @@ const SidebarSection = (props: PropsWithChildren) => {
 	)
 }
 
-const EditorBackground = () => {
+const BackgroundPattern = () => {
 	return (
 		<svg width="100%" height="100%">
 			<defs>
@@ -101,6 +107,48 @@ const EditorBackground = () => {
 			/>
 		</svg>
 	)
+}
+
+export const GraphBackgroundWrapper = ({ children }: PropsWithChildren) => {
+	return (
+		<Box display="flex" position="relative" height="full" width="full">
+			<Box
+				position="absolute"
+				width="full"
+				height="full"
+				cssClass={style.graphBackground}
+			>
+				<BackgroundPattern />
+			</Box>
+
+			<Box cssClass={style.graphWrapper} shadow="small">
+				<Box
+					px="16"
+					py="12"
+					width="full"
+					height="full"
+					border="divider"
+					borderRadius="8"
+				>
+					{children}
+				</Box>
+			</Box>
+		</Box>
+	)
+}
+
+const getBucketByKey = (
+	bucketBySetting: BucketBy,
+	bucketByKey: string,
+): string | undefined => {
+	switch (bucketBySetting) {
+		case 'Count':
+			return bucketByKey
+		case 'Interval':
+			return TIMESTAMP_KEY
+		default:
+			return undefined
+	}
 }
 
 export const GraphingEditor: React.FC = () => {
@@ -142,8 +190,10 @@ export const GraphingEditor: React.FC = () => {
 
 		const graphInput: GraphInput = {
 			visualizationId: dashboard_id!,
-			bucketByKey: bucketByEnabled ? bucketByKey : null,
-			bucketCount: bucketByEnabled ? bucketCount : null,
+			bucketByKey: getBucketByKey(bucketBySetting, bucketByKey) ?? null,
+			bucketCount: bucketBySetting === 'Count' ? bucketCount : null,
+			bucketInterval:
+				bucketBySetting === 'Interval' ? bucketInterval : null,
 			display,
 			functionType,
 			groupByKey: groupByEnabled ? groupByKey : null,
@@ -242,9 +292,16 @@ export const GraphingEditor: React.FC = () => {
 			setLimitFunctionType(g.limitFunctionType ?? FUNCTION_TYPES[0])
 			setLimit(g.limit ?? 10)
 			setLimitMetric(g.limitMetric ?? '')
-			setBucketByEnabled(g.bucketByKey !== null)
 			setBucketByKey(g.bucketByKey ?? '')
 			setBucketCount(g.bucketCount ?? DEFAULT_BUCKET_COUNT)
+			setBucketInterval(g.bucketInterval ?? DEFAULT_BUCKET_INTERVAL)
+			setBucketBySetting(
+				g.bucketInterval
+					? 'Interval'
+					: g.bucketCount
+						? 'Count'
+						: 'None',
+			)
 		},
 	})
 
@@ -284,9 +341,12 @@ export const GraphingEditor: React.FC = () => {
 	const [limit, setLimit] = useState(10)
 	const [limitMetric, setLimitMetric] = useState('')
 
-	const [bucketByEnabled, setBucketByEnabled] = useState(true)
+	const [bucketBySetting, setBucketBySetting] = useState(BUCKET_BY_OPTIONS[2])
 	const [bucketByKey, setBucketByKey] = useState(TIMESTAMP_KEY)
 	const [bucketCount, setBucketCount] = useState(DEFAULT_BUCKET_COUNT)
+	const [bucketInterval, setBucketInterval] = useState(
+		DEFAULT_BUCKET_INTERVAL,
+	)
 
 	tempMetricViewTitle.current = useMemo(() => {
 		let newViewTitle = ''
@@ -366,7 +426,8 @@ export const GraphingEditor: React.FC = () => {
 						</Text>
 						<Box display="flex" gap="4">
 							<DateRangePicker
-								emphasis="low"
+								iconLeft={<IconSolidClock size={14} />}
+								emphasis="medium"
 								kind="secondary"
 								selectedValue={{
 									startDate,
@@ -404,79 +465,52 @@ export const GraphingEditor: React.FC = () => {
 						display="flex"
 						flexDirection="row"
 						justifyContent="space-between"
-						cssClass={style.editGraphPanel}
+						height="full"
 					>
-						<Box
-							display="flex"
-							position="relative"
-							height="full"
-							cssClass={style.previewWindow}
-						>
-							<Box
-								position="absolute"
-								width="full"
-								height="full"
-								cssClass={style.graphBackground}
-							>
-								<EditorBackground />
-							</Box>
-
-							<Box cssClass={style.graphWrapper} shadow="small">
-								<Box
-									px="16"
-									py="12"
-									width="full"
-									height="full"
-									border="divider"
-									borderRadius="8"
-								>
-									<Graph
-										title={
-											metricViewTitle ||
-											tempMetricViewTitle?.current
-										}
-										viewConfig={viewConfig}
-										productType={productType}
-										projectId={projectId}
-										startDate={startDate}
-										selectedPreset={selectedPreset}
-										endDate={endDate}
-										query={debouncedQuery}
-										metric={metric}
-										functionType={functionType}
-										bucketByKey={
-											bucketByEnabled
-												? bucketByKey
-												: undefined
-										}
-										bucketCount={
-											bucketByEnabled
-												? bucketCount
-												: undefined
-										}
-										groupByKey={
-											groupByEnabled
-												? groupByKey
-												: undefined
-										}
-										limit={
-											groupByEnabled ? limit : undefined
-										}
-										limitFunctionType={
-											groupByEnabled
-												? limitFunctionType
-												: undefined
-										}
-										limitMetric={
-											groupByEnabled
-												? limitMetric
-												: undefined
-										}
-										setTimeRange={updateSearchTime}
-									/>
-								</Box>
-							</Box>
-						</Box>
+						<GraphBackgroundWrapper>
+							<Graph
+								title={
+									metricViewTitle ||
+									tempMetricViewTitle?.current
+								}
+								viewConfig={viewConfig}
+								productType={productType}
+								projectId={projectId}
+								startDate={startDate}
+								selectedPreset={selectedPreset}
+								endDate={endDate}
+								query={debouncedQuery}
+								metric={metric}
+								functionType={functionType}
+								bucketByKey={getBucketByKey(
+									bucketBySetting,
+									bucketByKey,
+								)}
+								bucketCount={
+									bucketBySetting === 'Count'
+										? bucketCount
+										: undefined
+								}
+								bucketByWindow={
+									bucketBySetting === 'Interval'
+										? bucketInterval
+										: undefined
+								}
+								groupByKey={
+									groupByEnabled ? groupByKey : undefined
+								}
+								limit={groupByEnabled ? limit : undefined}
+								limitFunctionType={
+									groupByEnabled
+										? limitFunctionType
+										: undefined
+								}
+								limitMetric={
+									groupByEnabled ? limitMetric : undefined
+								}
+								setTimeRange={updateSearchTime}
+							/>
+						</GraphBackgroundWrapper>
 						<Box
 							display="flex"
 							borderLeft="dividerWeak"
@@ -484,6 +518,7 @@ export const GraphingEditor: React.FC = () => {
 							cssClass={style.editGraphSidebar}
 							overflowY="auto"
 							overflowX="hidden"
+							flexShrink={0}
 						>
 							<Form className={style.editGraphSidebar}>
 								<SidebarSection>
@@ -695,32 +730,76 @@ export const GraphingEditor: React.FC = () => {
 									<LabeledRow
 										label="Bucket by"
 										name="bucketBy"
-										enabled={bucketByEnabled}
-										setEnabled={setBucketByEnabled}
-										tooltip="A numeric field for bucketing results along the X-axis. Timestamp for time series charts, numeric fields for histograms, can be disabled to aggregate all results within the time range."
+										tooltip="The method for determining the bucket sizes - can be a fixed interval or fixed count."
 									>
-										<Combobox
-											selection={bucketByKey}
-											setSelection={setBucketByKey}
-											label="bucketBy"
-											searchConfig={searchOptionsConfig}
-											defaultKeys={[TIMESTAMP_KEY]}
-											onlyNumericKeys
+										<TagSwitchGroup
+											options={BUCKET_BY_OPTIONS}
+											defaultValue={bucketBySetting}
+											onChange={(o: string | number) => {
+												setBucketBySetting(
+													o as BucketBy,
+												)
+											}}
+											cssClass={style.tagSwitch}
 										/>
 									</LabeledRow>
-									{bucketByEnabled && (
+									{bucketBySetting === 'Count' && (
+										<>
+											<LabeledRow
+												label="Bucket field"
+												name="bucketField"
+												tooltip="A numeric field for bucketing results along the X-axis. Timestamp for time series charts, numeric fields for histograms, can be disabled to aggregate all results within the time range."
+											>
+												<Combobox
+													selection={bucketByKey}
+													setSelection={
+														setBucketByKey
+													}
+													label="bucketBy"
+													searchConfig={
+														searchOptionsConfig
+													}
+													defaultKeys={[
+														TIMESTAMP_KEY,
+													]}
+													onlyNumericKeys
+												/>
+											</LabeledRow>
+											<LabeledRow
+												label="Buckets"
+												name="bucketCount"
+												tooltip="The number of X-axis buckets. A higher value will display smaller, more granular buckets."
+											>
+												<Input
+													type="number"
+													name="bucketCount"
+													placeholder="Enter bucket count"
+													value={bucketCount}
+													onChange={(e) => {
+														setBucketCount(
+															Number(
+																e.target.value,
+															),
+														)
+													}}
+													cssClass={style.input}
+												/>
+											</LabeledRow>
+										</>
+									)}
+									{bucketBySetting === 'Interval' && (
 										<LabeledRow
-											label="Buckets"
-											name="bucketCount"
+											label="Bucket interval (seconds)"
+											name="bucketInterval"
 											tooltip="The number of X-axis buckets. A higher value will display smaller, more granular buckets."
 										>
 											<Input
 												type="number"
-												name="bucketCount"
-												placeholder="Enter bucket count"
-												value={bucketCount}
+												name="bucketInterval"
+												placeholder="Enter bucket interval"
+												value={bucketInterval}
 												onChange={(e) => {
-													setBucketCount(
+													setBucketInterval(
 														Number(e.target.value),
 													)
 												}}

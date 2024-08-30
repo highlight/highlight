@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/aws/smithy-go/ptr"
 	"github.com/highlight-run/highlight/backend/model"
 	"github.com/openlyinc/pointy"
 
@@ -16,6 +17,7 @@ const MetricNamesTable = "trace_metrics"
 var metricsTableConfig = model.TableConfig{
 	AttributesColumn: TracesTableNoDefaultConfig.AttributesColumn,
 	BodyColumn:       TracesTableNoDefaultConfig.BodyColumn,
+	MetricColumn:     ptr.String("MetricValue"),
 	KeysToColumns:    TracesTableNoDefaultConfig.KeysToColumns,
 	ReservedKeys:     TracesTableNoDefaultConfig.ReservedKeys,
 	SelectColumns:    TracesTableNoDefaultConfig.SelectColumns,
@@ -25,6 +27,7 @@ var metricsTableConfig = model.TableConfig{
 var metricsSamplingTableConfig = model.TableConfig{
 	AttributesColumn: metricsTableConfig.AttributesColumn,
 	BodyColumn:       metricsTableConfig.BodyColumn,
+	MetricColumn:     metricsTableConfig.MetricColumn,
 	KeysToColumns:    metricsTableConfig.KeysToColumns,
 	ReservedKeys:     metricsTableConfig.ReservedKeys,
 	SelectColumns:    metricsTableConfig.SelectColumns,
@@ -39,7 +42,7 @@ var MetricsSampleableTableConfig = SampleableTableConfig{
 	},
 }
 
-func (client *Client) ReadEventMetrics(ctx context.Context, projectID int, params modelInputs.QueryInput, column string, metricTypes []modelInputs.MetricAggregator, groupBy []string, nBuckets *int, bucketBy string, limit *int, limitAggregator *modelInputs.MetricAggregator, limitColumn *string) (*modelInputs.MetricsBuckets, error) {
+func (client *Client) ReadEventMetrics(ctx context.Context, projectID int, params modelInputs.QueryInput, column string, metricTypes []modelInputs.MetricAggregator, groupBy []string, nBuckets *int, bucketBy string, bucketWindow *int, limit *int, limitAggregator *modelInputs.MetricAggregator, limitColumn *string) (*modelInputs.MetricsBuckets, error) {
 	params.Query = params.Query + " " + modelInputs.ReservedTraceKeyMetricName.String() + "=" + column
 	return client.ReadMetrics(ctx, ReadMetricsInput{
 		SampleableConfig: MetricsSampleableTableConfig,
@@ -49,6 +52,7 @@ func (client *Client) ReadEventMetrics(ctx context.Context, projectID int, param
 		MetricTypes:      metricTypes,
 		GroupBy:          groupBy,
 		BucketCount:      nBuckets,
+		BucketWindow:     bucketWindow,
 		BucketBy:         bucketBy,
 		Limit:            limit,
 		LimitAggregator:  limitAggregator,
@@ -71,20 +75,20 @@ func (client *Client) ReadWorkspaceMetricCounts(ctx context.Context, projectIDs 
 }
 
 func (client *Client) MetricsKeys(ctx context.Context, projectID int, startDate time.Time, endDate time.Time, query *string, typeArg *modelInputs.KeyType) ([]*modelInputs.QueryKey, error) {
-	table := TraceKeysTable
 	if typeArg != nil && *typeArg == modelInputs.KeyTypeNumeric {
-		table = MetricNamesTable
-	}
-	metricKeys, err := KeysAggregated(ctx, client, table, projectID, startDate, endDate, query, typeArg)
-	if err != nil {
-		return nil, err
+		metricKeys, err := KeysAggregated(ctx, client, MetricNamesTable, projectID, startDate, endDate, query, typeArg)
+		if err != nil {
+			return nil, err
+		}
+
+		return metricKeys, nil
 	}
 
-	return metricKeys, nil
+	return client.TracesKeys(ctx, projectID, startDate, endDate, query, typeArg)
 }
 
-func (client *Client) MetricsKeyValues(ctx context.Context, projectID int, keyName string, startDate time.Time, endDate time.Time) ([]string, error) {
-	return KeyValuesAggregated(ctx, client, TraceKeyValuesTable, projectID, keyName, startDate, endDate)
+func (client *Client) MetricsKeyValues(ctx context.Context, projectID int, keyName string, startDate time.Time, endDate time.Time, query *string, limit *int) ([]string, error) {
+	return KeyValuesAggregated(ctx, client, TraceKeyValuesTable, projectID, keyName, startDate, endDate, query, limit)
 }
 
 func (client *Client) MetricsLogLines(ctx context.Context, projectID int, params modelInputs.QueryInput) ([]*modelInputs.LogLine, error) {

@@ -27,8 +27,9 @@ export const XHRListener = (
 	backendUrl: string,
 	tracingOrigins: boolean | (string | RegExp)[],
 	urlBlocklist: string[],
-	bodyKeysToRedact?: string[],
-	bodyKeysToRecord?: string[],
+	bodyKeysToRedact: string[],
+	bodyKeysToRecord: string[] | undefined,
+	otelEnabled: boolean,
 ) => {
 	const XHR = XMLHttpRequest.prototype
 
@@ -78,7 +79,7 @@ export const XHRListener = (
 			return originalSend.apply(this, arguments)
 		}
 
-		const [sessionSecureID, requestId] = createNetworkRequestId()
+		const [sessionSecureID, requestId] = createNetworkRequestId(otelEnabled)
 		if (shouldNetworkRequestBeTraced(this._url, tracingOrigins)) {
 			this.setRequestHeader(
 				HIGHLIGHT_REQUEST_HEADER,

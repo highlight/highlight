@@ -17,31 +17,7 @@ const nextConfig = {
 		remotePatterns: [
 			{
 				protocol: 'https',
-				hostname: 'www.highlight.io',
-			},
-			{
-				protocol: 'https',
-				hostname: 'media.graphassets.com',
-			},
-			{
-				protocol: 'https',
-				hostname: 'lh3.googleusercontent.com',
-			},
-			{
-				protocol: 'https',
-				hostname: 'picsum.photos',
-			},
-			{
-				protocol: 'https',
-				hostname: 'firebasestorage.googleapis.com',
-			},
-			{
-				protocol: 'https',
-				hostname: 'ca.slack-edge.com',
-			},
-			{
-				protocol: 'https',
-				hostname: 'tamuhack.org',
+				hostname: '*',
 			},
 		],
 	},

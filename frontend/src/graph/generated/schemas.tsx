@@ -215,9 +215,16 @@ export type AllWorkspaceSettings = {
 	ai_application: Scalars['Boolean']
 	ai_insights: Scalars['Boolean']
 	ai_query_builder: Scalars['Boolean']
+	enable_billing_limits: Scalars['Boolean']
+	enable_business_dashboards: Scalars['Boolean']
+	enable_business_projects: Scalars['Boolean']
+	enable_business_retention: Scalars['Boolean']
+	enable_business_seats: Scalars['Boolean']
 	enable_data_deletion: Scalars['Boolean']
 	enable_grafana_dashboard: Scalars['Boolean']
+	enable_ingest_filtering: Scalars['Boolean']
 	enable_ingest_sampling: Scalars['Boolean']
+	enable_network_traces: Scalars['Boolean']
 	enable_project_level_access: Scalars['Boolean']
 	enable_session_export: Scalars['Boolean']
 	enable_unlisted_sharing: Scalars['Boolean']
@@ -749,6 +756,7 @@ export type Graph = {
 	__typename?: 'Graph'
 	bucketByKey?: Maybe<Scalars['String']>
 	bucketCount?: Maybe<Scalars['Int']>
+	bucketInterval?: Maybe<Scalars['Int']>
 	display?: Maybe<Scalars['String']>
 	functionType: MetricAggregator
 	groupByKey?: Maybe<Scalars['String']>
@@ -768,6 +776,7 @@ export type GraphInput = {
 	afterGraphId?: InputMaybe<Scalars['ID']>
 	bucketByKey?: InputMaybe<Scalars['String']>
 	bucketCount?: InputMaybe<Scalars['Int']>
+	bucketInterval?: InputMaybe<Scalars['Int']>
 	display?: InputMaybe<Scalars['String']>
 	functionType: MetricAggregator
 	groupByKey?: InputMaybe<Scalars['String']>
@@ -2012,6 +2021,7 @@ export type Plan = {
 
 export enum PlanType {
 	Basic = 'Basic',
+	Business = 'Business',
 	Enterprise = 'Enterprise',
 	Free = 'Free',
 	Graduated = 'Graduated',
@@ -2134,7 +2144,6 @@ export type Query = {
 	logs_key_values: Array<Scalars['String']>
 	logs_keys: Array<QueryKey>
 	logs_metrics: MetricsBuckets
-	logs_total_count: Scalars['UInt64']
 	match_error_tag?: Maybe<Array<Maybe<MatchedErrorTag>>>
 	metric_monitors: Array<Maybe<MetricMonitor>>
 	metric_tag_values: Array<Scalars['String']>
@@ -2427,9 +2436,11 @@ export type QueryErrors_Histogram_ClickhouseArgs = {
 }
 
 export type QueryErrors_Key_ValuesArgs = {
+	count?: InputMaybe<Scalars['Int']>
 	date_range: DateRangeRequiredInput
 	key_name: Scalars['String']
 	project_id: Scalars['ID']
+	query?: InputMaybe<Scalars['String']>
 }
 
 export type QueryErrors_KeysArgs = {
@@ -2442,6 +2453,7 @@ export type QueryErrors_KeysArgs = {
 export type QueryErrors_MetricsArgs = {
 	bucket_by: Scalars['String']
 	bucket_count?: InputMaybe<Scalars['Int']>
+	bucket_window?: InputMaybe<Scalars['Int']>
 	column: Scalars['String']
 	group_by: Array<Scalars['String']>
 	limit?: InputMaybe<Scalars['Int']>
@@ -2545,10 +2557,12 @@ export type QueryJira_ProjectsArgs = {
 }
 
 export type QueryKey_ValuesArgs = {
+	count?: InputMaybe<Scalars['Int']>
 	date_range: DateRangeRequiredInput
 	key_name: Scalars['String']
 	product_type: ProductType
 	project_id: Scalars['ID']
+	query?: InputMaybe<Scalars['String']>
 }
 
 export type QueryKeysArgs = {
@@ -2604,9 +2618,11 @@ export type QueryLogs_HistogramArgs = {
 }
 
 export type QueryLogs_Key_ValuesArgs = {
+	count?: InputMaybe<Scalars['Int']>
 	date_range: DateRangeRequiredInput
 	key_name: Scalars['String']
 	project_id: Scalars['ID']
+	query?: InputMaybe<Scalars['String']>
 }
 
 export type QueryLogs_KeysArgs = {
@@ -2619,17 +2635,13 @@ export type QueryLogs_KeysArgs = {
 export type QueryLogs_MetricsArgs = {
 	bucket_by: Scalars['String']
 	bucket_count?: InputMaybe<Scalars['Int']>
+	bucket_window?: InputMaybe<Scalars['Int']>
 	column: Scalars['String']
 	group_by: Array<Scalars['String']>
 	limit?: InputMaybe<Scalars['Int']>
 	limit_aggregator?: InputMaybe<MetricAggregator>
 	limit_column?: InputMaybe<Scalars['String']>
 	metric_types: Array<MetricAggregator>
-	params: QueryInput
-	project_id: Scalars['ID']
-}
-
-export type QueryLogs_Total_CountArgs = {
 	params: QueryInput
 	project_id: Scalars['ID']
 }
@@ -2658,6 +2670,7 @@ export type QueryMetric_TagsArgs = {
 export type QueryMetricsArgs = {
 	bucket_by: Scalars['String']
 	bucket_count?: InputMaybe<Scalars['Int']>
+	bucket_window?: InputMaybe<Scalars['Int']>
 	column: Scalars['String']
 	group_by: Array<Scalars['String']>
 	limit?: InputMaybe<Scalars['Int']>
@@ -2841,9 +2854,11 @@ export type QuerySessions_Histogram_ClickhouseArgs = {
 }
 
 export type QuerySessions_Key_ValuesArgs = {
+	count?: InputMaybe<Scalars['Int']>
 	date_range: DateRangeRequiredInput
 	key_name: Scalars['String']
 	project_id: Scalars['ID']
+	query?: InputMaybe<Scalars['String']>
 }
 
 export type QuerySessions_KeysArgs = {
@@ -2856,6 +2871,7 @@ export type QuerySessions_KeysArgs = {
 export type QuerySessions_MetricsArgs = {
 	bucket_by: Scalars['String']
 	bucket_count?: InputMaybe<Scalars['Int']>
+	bucket_window?: InputMaybe<Scalars['Int']>
 	column: Scalars['String']
 	group_by: Array<Scalars['String']>
 	limit?: InputMaybe<Scalars['Int']>
@@ -2900,6 +2916,7 @@ export type QueryTopUsersArgs = {
 export type QueryTraceArgs = {
 	project_id: Scalars['ID']
 	session_secure_id?: InputMaybe<Scalars['String']>
+	timestamp: Scalars['Timestamp']
 	trace_id: Scalars['String']
 }
 
@@ -2917,9 +2934,11 @@ export type QueryTracesIntegrationArgs = {
 }
 
 export type QueryTraces_Key_ValuesArgs = {
+	count?: InputMaybe<Scalars['Int']>
 	date_range: DateRangeRequiredInput
 	key_name: Scalars['String']
 	project_id: Scalars['ID']
+	query?: InputMaybe<Scalars['String']>
 }
 
 export type QueryTraces_KeysArgs = {
@@ -2932,6 +2951,7 @@ export type QueryTraces_KeysArgs = {
 export type QueryTraces_MetricsArgs = {
 	bucket_by?: InputMaybe<Scalars['String']>
 	bucket_count?: InputMaybe<Scalars['Int']>
+	bucket_window?: InputMaybe<Scalars['Int']>
 	column: Scalars['String']
 	group_by: Array<Scalars['String']>
 	limit?: InputMaybe<Scalars['Int']>
@@ -3132,7 +3152,6 @@ export enum ReservedSessionKey {
 	City = 'city',
 	Completed = 'completed',
 	Country = 'country',
-	DeviceId = 'device_id',
 	Environment = 'environment',
 	Excluded = 'excluded',
 	FirstTime = 'first_time',
@@ -3540,6 +3559,7 @@ export type SessionsReportRow = {
 	__typename?: 'SessionsReportRow'
 	avg_active_length_mins: Scalars['Float']
 	avg_length_mins: Scalars['Float']
+	email: Scalars['String']
 	key: Scalars['String']
 	location: Scalars['String']
 	max_active_length_mins: Scalars['Float']

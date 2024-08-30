@@ -57,6 +57,7 @@ export const LogDetails: React.FC<Props> = ({
 	const {
 		environment,
 		traceID,
+		timestamp,
 		spanID,
 		secureSessionID,
 		logAttributes,
@@ -323,11 +324,15 @@ export const LogDetails: React.FC<Props> = ({
 							emphasis="low"
 							trackingId="logs_related-trace_click"
 							onClick={() => {
-								if (!traceID) {
+								if (!traceID || !timestamp) {
 									return
 								}
 
-								set({ type: 'trace', id: traceID })
+								set({
+									type: 'trace',
+									id: traceID,
+									timestamp: timestamp,
+								})
 							}}
 						>
 							<Box

@@ -1,8 +1,14 @@
+import * as api from '@opentelemetry/api'
 import {
 	CompositePropagator,
 	W3CBaggagePropagator,
 	W3CTraceContextPropagator,
 } from '@opentelemetry/core'
+import { registerInstrumentations } from '@opentelemetry/instrumentation'
+import { DocumentLoadInstrumentation } from '@opentelemetry/instrumentation-document-load'
+import { FetchInstrumentation } from '@opentelemetry/instrumentation-fetch'
+import { XMLHttpRequestInstrumentation } from '@opentelemetry/instrumentation-xml-http-request'
+import { Resource } from '@opentelemetry/resources'
 import {
 	BatchSpanProcessor,
 	ConsoleSpanExporter,
@@ -11,22 +17,12 @@ import {
 	StackContextManager,
 	WebTracerProvider,
 } from '@opentelemetry/sdk-trace-web'
-import { DocumentLoadInstrumentation } from '@opentelemetry/instrumentation-document-load'
-import { FetchInstrumentation } from '@opentelemetry/instrumentation-fetch'
-import { registerInstrumentations } from '@opentelemetry/instrumentation'
-import { XMLHttpRequestInstrumentation } from '@opentelemetry/instrumentation-xml-http-request'
-import { Resource } from '@opentelemetry/resources'
-import { OTLPTraceExporter } from '@opentelemetry/exporter-trace-otlp-http'
 import {
 	SEMRESATTRS_DEPLOYMENT_ENVIRONMENT,
 	SEMRESATTRS_SERVICE_NAME,
 } from '@opentelemetry/semantic-conventions'
-import * as api from '@opentelemetry/api'
-import {
-	BrowserXHR,
-	getBodyThatShouldBeRecorded,
-} from '../listeners/network-listener/utils/xhr-listener'
-import type { NetworkRecordingOptions } from '../types/client'
+import { parse } from 'graphql'
+import { getResponseBody } from '../listeners/network-listener/utils/fetch-listener'
 import {
 	DEFAULT_URL_BLOCKLIST,
 	sanitizeHeaders,
@@ -35,8 +31,12 @@ import {
 	shouldNetworkRequestBeRecorded,
 	shouldNetworkRequestBeTraced,
 } from '../listeners/network-listener/utils/utils'
-import { parse } from 'graphql'
-import { getResponseBody } from '../listeners/network-listener/utils/fetch-listener'
+import {
+	BrowserXHR,
+	getBodyThatShouldBeRecorded,
+} from '../listeners/network-listener/utils/xhr-listener'
+import type { NetworkRecordingOptions } from '../types/client'
+import { OTLPTraceExporterBrowserWithXhrRetry } from './exporter'
 import { UserInteractionInstrumentation } from './user-interaction'
 
 export type BrowserTracingConfig = {
@@ -90,7 +90,7 @@ export const setupBrowserTracing = (config: BrowserTracingConfig) => {
 		)
 	}
 
-	const exporter = new OTLPTraceExporter({
+	const exporter = new OTLPTraceExporterBrowserWithXhrRetry({
 		url: endpoint + '/v1/traces',
 		concurrencyLimit: 10,
 		// Using any because we were getting an error importing CompressionAlgorithm
@@ -268,6 +268,14 @@ export const getTracer = () => {
 	return provider.getTracer(BROWSER_TRACER_NAME)
 }
 
+export const getActiveSpan = () => {
+	return api.trace.getActiveSpan()
+}
+
+export const getActiveSpanContext = () => {
+	return api.context.active()
+}
+
 export const shutdown = async () => {
 	if (provider === undefined) {
 		return
@@ -285,7 +293,7 @@ const getSpanName = (
 	let parsedBody
 	const urlObject = new URL(url)
 	const pathname = urlObject.pathname
-	let spanName = `${method} - ${pathname}`
+	let spanName = `${method.toUpperCase()} - ${pathname}`
 
 	try {
 		parsedBody = typeof body === 'string' ? JSON.parse(body) : body

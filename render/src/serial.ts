@@ -1,11 +1,11 @@
+import { exists, mkdir } from 'fs'
+import { tmpdir } from 'os'
+import path from 'path'
+import { promisify } from 'util'
+import { combineMP4s } from './ffmpeg'
+import { getSessionChunks, getSessionIntervals } from './pg'
 import { render, RenderConfig } from './render'
 import { getEvents } from './s3'
-import path from 'path'
-import { tmpdir } from 'os'
-import { promisify } from 'util'
-import { exists, mkdir } from 'fs'
-import { getSessionChunks, getSessionIntervals } from './pg'
-import { combineMP4s } from './ffmpeg'
 
 export async function serialRender(
 	project: number,

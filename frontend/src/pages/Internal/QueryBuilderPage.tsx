@@ -6,7 +6,7 @@ import 'react-awesome-query-builder/lib/css/styles.css'
 
 import JsonViewer from '@components/JsonViewer/JsonViewer'
 import React, { useState } from 'react'
-import { Builder, Query, Utils as QbUtils } from 'react-awesome-query-builder'
+import { Builder, Utils as QbUtils, Query } from 'react-awesome-query-builder'
 // types
 import {
 	BuilderProps,

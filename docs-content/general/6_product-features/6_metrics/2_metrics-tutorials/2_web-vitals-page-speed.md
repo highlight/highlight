@@ -5,7 +5,7 @@ slug: web-vitals-page-speed
 ---
 
 <EmbeddedVideo 
-  src="https://youtu.be/GMMdBR_61qw"
+  src="https://www.youtube.com/embed/GMMdBR_61qw"
   title="Metrics Tutorial: Measuring Page Speed & Web Vitals"
   allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
 />

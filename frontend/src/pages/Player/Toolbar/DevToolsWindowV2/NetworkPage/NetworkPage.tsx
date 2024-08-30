@@ -47,6 +47,7 @@ import TextHighlighter from '../../../../../components/TextHighlighter/TextHighl
 import Tooltip from '../../../../../components/Tooltip/Tooltip'
 import { ReplayerState, useReplayerContext } from '../../../ReplayerContext'
 import * as styles from './style.css'
+import { ApolloError } from '@apollo/client'
 
 export const NetworkPage = ({
 	time,
@@ -307,12 +308,14 @@ export const NetworkPage = ({
 				</Box>
 			) : (
 				resourcesToRender.length === 0 && (
-					<EmptyDevToolsCallout
-						kind={Tab.Network}
-						filter={filter}
-						requestTypes={requestTypes}
-						requestStatuses={requestStatuses}
-					/>
+					<Box p="8" height="full">
+						<EmptyDevToolsCallout
+							kind={Tab.Network}
+							filter={filter}
+							requestTypes={requestTypes}
+							requestStatuses={requestStatuses}
+						/>
+					</Box>
 				)
 			)}
 		</Box>
@@ -499,7 +502,7 @@ export const UnknownRequestStatusCode = ({
 const ResourceLoadingErrorCallout = function ({
 	error,
 }: {
-	error: LoadingError
+	error: LoadingError | ApolloError
 }) {
 	return (
 		<Box

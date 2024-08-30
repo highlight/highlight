@@ -5,6 +5,7 @@ import { CircularSpinner } from '@components/Loading/Loading'
 import Modal from '@components/Modal/Modal'
 import { toast } from '@components/Toaster'
 import { useSendAdminWorkspaceInviteMutation } from '@graph/hooks'
+import { namedOperations } from '@graph/operations'
 import { AdminRole } from '@graph/schemas'
 import { Box, Stack, Text } from '@highlight-run/ui/components'
 import { getWorkspaceInvitationLink } from '@pages/WorkspaceTeam/utils'
@@ -26,13 +27,11 @@ import Button from '../../../components/Button/Button/Button'
 import styles from './InviteMemberModal.module.css'
 
 function InviteMemberModal({
-	showModal,
 	toggleShowModal,
 	workspaceId,
 	workspaceName,
 	workspaceInviteLinks,
 }: {
-	showModal: boolean
 	toggleShowModal: (value: boolean) => void
 	workspaceId?: string
 	workspaceName?: string
@@ -64,6 +63,7 @@ function InviteMemberModal({
 		},
 	] = useSendAdminWorkspaceInviteMutation({
 		fetchPolicy: 'no-cache',
+		refetchQueries: [namedOperations.Query.GetWorkspaceSettings],
 	})
 
 	const onSubmit = (e: { preventDefault: () => void }) => {
@@ -99,10 +99,9 @@ function InviteMemberModal({
 
 	return (
 		<Modal
-			destroyOnClose
 			centered
 			title="Invite Member"
-			visible={showModal}
+			visible
 			width={600}
 			onCancel={() => {
 				toggleShowModal(false)

@@ -1,8 +1,8 @@
-import { basename, join } from "path";
-import { cwd } from "process";
+import fetch from "cross-fetch";
 import { readFileSync, statSync } from "fs";
 import { globSync } from "glob";
-import fetch from "cross-fetch";
+import { basename, join } from "path";
+import { cwd } from "process";
 
 const VERIFY_API_KEY_QUERY = `
   query ApiKeyToOrgID($api_key: String!) {
@@ -80,14 +80,14 @@ export const uploadSourcemaps = async ({
 
   if (fileList.length === 0) {
     console.error(
-      `Error: No source maps found in ${path}, is this the correct path?`
+      `Error: No source maps found in ${path}, is this the correct path?`,
     );
     console.info("Failed to upload source maps. Please see reason above.");
     return;
   }
 
   const s3Keys = fileList.map(({ name }) =>
-    getS3Key(organizationId, appVersion, basePath || "", name)
+    getS3Key(organizationId, appVersion, basePath || "", name),
   );
 
   const urlRes = await fetch(backend, {
@@ -126,8 +126,8 @@ export const uploadSourcemaps = async ({
 
   await Promise.all(
     fileList.map(({ path, name }, idx) =>
-      uploadFile(path, uploadUrls[idx], name)
-    )
+      uploadFile(path, uploadUrls[idx], name),
+    ),
   );
 };
 
@@ -135,7 +135,7 @@ const NextRouteGroupPattern = new RegExp(/(\(.+?\))\//gm);
 
 async function getAllSourceMapFiles(
   paths: string[],
-  { allowNoop }: { allowNoop?: boolean }
+  { allowNoop }: { allowNoop?: boolean },
 ) {
   const map: { path: string; name: string }[] = [];
 
@@ -161,7 +161,7 @@ async function getAllSourceMapFiles(
         }).length
       ) {
         throw new Error(
-          "No .js.map files found. Please double check that you have generated sourcemaps for your app."
+          "No .js.map files found. Please double check that you have generated sourcemaps for your app.",
         );
       }
 
@@ -176,7 +176,7 @@ async function getAllSourceMapFiles(
         });
         const routeGroupRemovedPath = file.replaceAll(
           new RegExp(/(\(.+?\))\//gm),
-          ""
+          "",
         );
         if (file !== routeGroupRemovedPath) {
           // also upload the file to a path without the route group for frontend errors
@@ -186,7 +186,7 @@ async function getAllSourceMapFiles(
           });
         }
       }
-    })
+    }),
   );
 
   return map;
@@ -196,7 +196,7 @@ function getS3Key(
   organizationId: string,
   version: string,
   basePath: string,
-  fileName: string
+  fileName: string,
 ) {
   // Setting up S3 upload parameters
   if (version === null || version === undefined || version === "" || !version) {

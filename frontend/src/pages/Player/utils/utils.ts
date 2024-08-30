@@ -48,7 +48,7 @@ export const getGraphQLResolverName = (
 ): null | string => {
 	if (
 		!REQUEST_INITIATOR_TYPES.includes(
-			resource.initiatorType as typeof REQUEST_INITIATOR_TYPES[number],
+			resource.initiatorType as (typeof REQUEST_INITIATOR_TYPES)[number],
 		)
 	) {
 		return null
@@ -128,7 +128,7 @@ export const useResizePlayer = (
 		? Math.max(
 				playerStyles.MIN_CENTER_COLUMN_WIDTH,
 				centerColumnSize.width ?? 0,
-		  )
+			)
 		: 0
 
 	const resizePlayer = useCallback(

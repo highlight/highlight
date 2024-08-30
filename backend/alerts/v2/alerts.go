@@ -251,3 +251,38 @@ func buildMetricAlertInput(ctx context.Context, db *gorm.DB, alertInput *destina
 		DashboardLink: fmt.Sprintf("%s/%d/metrics", env.Config.FrontendUri, alertInput.Alert.ProjectID),
 	}
 }
+
+func SendNotifications(ctx context.Context, db *gorm.DB, mailClient *sendgrid.Client, lambdaClient *lambda.Client, notificationInput destinationsV2.NotificationInput, destinations []*model.AlertDestination) {
+	destinationsByType := make(map[modelInputs.AlertDestinationType][]model.AlertDestination)
+	for _, destination := range destinations {
+		destinationsByType[destination.DestinationType] = append(destinationsByType[destination.DestinationType], *destination)
+	}
+
+	var workspace model.Workspace
+	if err := db.WithContext(ctx).Model(&model.Workspace{}).Where(&model.Project{Model: model.Model{ID: notificationInput.WorkspaceID}}).Take(&workspace).Error; err != nil {
+		log.WithContext(ctx).Error(e.Wrap(err, "error querying project"))
+		return
+	}
+
+	for _, destinations := range destinationsByType {
+		switch destinations[0].DestinationType {
+		case modelInputs.AlertDestinationTypeSlack:
+			slackV2.SendNotifications(ctx, workspace.SlackAccessToken, notificationInput, destinations)
+		case modelInputs.AlertDestinationTypeDiscord:
+			discordV2.SendNotifications(ctx, workspace.DiscordGuildId, notificationInput, destinations)
+		case modelInputs.AlertDestinationTypeMicrosoftTeams:
+			microsoftteamsV2.SendNotifications(ctx, workspace.MicrosoftTeamsTenantId, notificationInput, destinations)
+		case modelInputs.AlertDestinationTypeEmail:
+			emailV2.SendNotifications(ctx, mailClient, lambdaClient, notificationInput, destinations)
+		case modelInputs.AlertDestinationTypeWebhook:
+			webhookV2.SendNotifications(ctx, notificationInput, destinations)
+		default:
+			log.WithContext(ctx).WithFields(
+				log.Fields{
+					"workspaceID":      notificationInput.WorkspaceID,
+					"notificationType": notificationInput.NotificationType,
+					"destinationType":  destinations[0].DestinationType,
+				}).Error("invalid destination type")
+		}
+	}
+}

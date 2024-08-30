@@ -4,20 +4,20 @@
  * For more information, see https://remix.run/file-conventions/entry.server
  */
 
+import { H, HandleError } from '@highlight-run/remix/server'
 import type {
 	AppLoadContext,
 	DataFunctionArgs,
 	EntryContext,
 } from '@remix-run/node'
-import { H, HandleError } from '@highlight-run/remix/server'
 
-import { CONSTANTS } from '~/constants'
-import { PassThrough } from 'node:stream'
-import { RemixServer } from '@remix-run/react'
-import { Response } from '@remix-run/node'
-import isbot from 'isbot'
-import { renderToPipeableStream } from 'react-dom/server'
 import type { NodeOptions } from '@highlight-run/node'
+import { Response } from '@remix-run/node'
+import { RemixServer } from '@remix-run/react'
+import isbot from 'isbot'
+import { PassThrough } from 'node:stream'
+import { renderToPipeableStream } from 'react-dom/server'
+import { CONSTANTS } from '~/constants'
 
 const nodeOptions: NodeOptions = {
 	projectID: CONSTANTS.HIGHLIGHT_PROJECT_ID,
@@ -55,13 +55,13 @@ export default function handleRequest(
 				responseStatusCode,
 				responseHeaders,
 				remixContext,
-		  )
+			)
 		: handleBrowserRequest(
 				request,
 				responseStatusCode,
 				responseHeaders,
 				remixContext,
-		  )
+			)
 }
 
 function handleBotRequest(

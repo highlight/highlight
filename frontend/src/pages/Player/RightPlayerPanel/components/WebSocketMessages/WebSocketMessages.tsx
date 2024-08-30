@@ -104,20 +104,20 @@ const WebSocketRequestTypeIcon: { [k: string]: JSX.Element } = {
 
 const getWebSocketEventTime = (event: any, sessionStart: number) => {
 	return event.type === 'open'
-		? event.startTimeAbs ?? event.startTime + sessionStart
+		? (event.startTimeAbs ?? event.startTime + sessionStart)
 		: event.type === 'close'
-		? event.requestEndAbs ?? event.requestEnd + sessionStart
-		: event.timeStamp
+			? (event.requestEndAbs ?? event.requestEnd + sessionStart)
+			: event.timeStamp
 }
 
 const getWebSocketEventMessage = (event: any) => {
 	return event.type === 'open'
 		? 'Websocket connection has been opened'
 		: event.type === 'close'
-		? 'Websocket connection has been closed'
-		: event.type === 'error'
-		? 'Error'
-		: event.message
+			? 'Websocket connection has been closed'
+			: event.type === 'error'
+				? 'Error'
+				: event.message
 }
 
 const getWebSocketEventSize = (event: any) => {
@@ -156,13 +156,13 @@ const WebSocketRow = ({
 										resource,
 										playerStartTime,
 									),
-							  ).format('h:mm:ss A')
+								).format('h:mm:ss A')
 							: MillisToMinutesAndSeconds(
 									getWebSocketEventTime(
 										resource,
 										playerStartTime,
 									) - playerStartTime,
-							  )}
+								)}
 					</Text>
 				</Box>
 			</Box>

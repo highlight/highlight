@@ -312,7 +312,7 @@ const Day = ({ children, day, onMouseEnter, onMouseLeave }: Props) => {
 					day.range === 'will-be-range-end'
 						? '6'
 						: 'inherit',
-		  } as BoxProps)
+			} as BoxProps)
 		: {}
 
 	const dayProps: DPPropGetter & {

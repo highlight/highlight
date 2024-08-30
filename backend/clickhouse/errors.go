@@ -493,6 +493,7 @@ func (client *Client) QueryErrorFieldValues(ctx context.Context, projectId int, 
 	var table string
 	var mappedName string
 	var ok bool
+
 	// needed to support "Tag" for backwards compatibility (can remove with new query language)
 	fieldName = strings.ToLower(fieldName)
 
@@ -673,7 +674,7 @@ func ErrorMatchesQuery(errorObject *model2.BackendErrorObjectInput, filters list
 	return matchesQuery(errorObject, BackendErrorObjectInputConfig, filters, listener.OperatorAnd)
 }
 
-func (client *Client) ReadErrorsMetrics(ctx context.Context, projectID int, params modelInputs.QueryInput, column string, metricTypes []modelInputs.MetricAggregator, groupBy []string, nBuckets *int, bucketBy string, limit *int, limitAggregator *modelInputs.MetricAggregator, limitColumn *string) (*modelInputs.MetricsBuckets, error) {
+func (client *Client) ReadErrorsMetrics(ctx context.Context, projectID int, params modelInputs.QueryInput, column string, metricTypes []modelInputs.MetricAggregator, groupBy []string, nBuckets *int, bucketBy string, bucketWindow *int, limit *int, limitAggregator *modelInputs.MetricAggregator, limitColumn *string) (*modelInputs.MetricsBuckets, error) {
 	return client.ReadMetrics(ctx, ReadMetricsInput{
 		SampleableConfig: ErrorsSampleableTableConfig,
 		ProjectIDs:       []int{projectID},
@@ -682,6 +683,7 @@ func (client *Client) ReadErrorsMetrics(ctx context.Context, projectID int, para
 		MetricTypes:      metricTypes,
 		GroupBy:          groupBy,
 		BucketCount:      nBuckets,
+		BucketWindow:     bucketWindow,
 		BucketBy:         bucketBy,
 		Limit:            limit,
 		LimitAggregator:  limitAggregator,
@@ -703,8 +705,18 @@ func (client *Client) ReadWorkspaceErrorCounts(ctx context.Context, projectIDs [
 		})
 }
 
-func (client *Client) ErrorsKeyValues(ctx context.Context, projectID int, keyName string, startDate time.Time, endDate time.Time) ([]string, error) {
-	return client.QueryErrorFieldValues(ctx, projectID, 10, keyName, "", startDate, endDate)
+func (client *Client) ErrorsKeyValues(ctx context.Context, projectID int, keyName string, startDate time.Time, endDate time.Time, query *string, limit *int) ([]string, error) {
+	limitCount := 10
+	if limit != nil {
+		limitCount = *limit
+	}
+
+	searchQuery := ""
+	if query != nil {
+		searchQuery = *query
+	}
+
+	return client.QueryErrorFieldValues(ctx, projectID, limitCount, keyName, searchQuery, startDate, endDate)
 }
 
 func (client *Client) QueryErrorObjectsHistogram(ctx context.Context, projectId int, params modelInputs.QueryInput, options modelInputs.DateHistogramOptions) ([]time.Time, []int64, error) {

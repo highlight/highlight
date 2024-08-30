@@ -1,0 +1,304 @@
+name: End to End Example Apps
+
+on:
+    push:
+        branches: ['main']
+    pull_request:
+        types: [opened, synchronize]
+
+concurrency: ${{ github.workflow }}-${{ github.ref }}
+jobs:
+    e2e-cypress:
+        name: E2E Client Cypress
+        timeout-minutes: 60
+        runs-on: buildjet-4vcpu-ubuntu-2204
+
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v4
+              with:
+                  submodules: recursive
+
+            - name: Setup Node.js environment
+              uses: buildjet/setup-node@v4
+              with:
+                  node-version: lts/*
+                  cache: 'yarn'
+
+            - name: Setup Golang environment
+              uses: buildjet/setup-go@v5
+              with:
+                  go-version-file: 'backend/go.mod'
+                  cache-dependency-path: '**/go.sum'
+
+            - name: Install poetry
+              run: pipx install poetry
+
+            - name: Install python
+              uses: actions/setup-python@v4
+              with:
+                  python-version: '3.10'
+                  cache: 'poetry'
+
+            - name: Install dependencies
+              working-directory: ./e2e/tests
+              run: poetry install --all-extras
+
+            - name: Install ffmpeg
+              run: |
+                  curl -o ffmpeg.tar.xz https://johnvansickle.com/ffmpeg/builds/ffmpeg-git-amd64-static.tar.xz
+                  mkdir ~/bin
+                  tar -C ~/bin --strip-components=1 -xf ffmpeg.tar.xz
+                  ls ~/bin
+
+            - name: Login to Docker Hub
+              if: github.event.pull_request.head.repo.full_name == 'highlight/highlight' || github.ref == 'refs/heads/main'
+              uses: docker/login-action@v3
+              with:
+                  username: ${{ secrets.DOCKERHUB_USERNAME }}
+                  password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+            - name: Start docker containers & run cypress
+              env:
+                  COMMIT_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+                  REF: ${{ github.ref }}
+                  REPO: ${{ github.event.pull_request.head.repo.full_name }}
+              run: |
+                  export RUN_SESSION_SCREENSHOT_LAMBDA=false
+                  if [[ "$REF" != "refs/heads/main" && "$REPO" == "highlight/highlight" ]]; then
+                    export REACT_APP_COMMIT_SHA="${COMMIT_SHA}"
+                    export RUN_SESSION_SCREENSHOT_LAMBDA=true
+                  fi
+
+                  # start highlight
+                  pushd docker;
+                  source ./env.sh;
+                  ./start-infra.sh > /tmp/highlight.log 2>&1;
+                  docker compose exec -e PSQL_HOST -e PSQL_USER -e PSQL_DB postgres bash -c 'psql -h $PSQL_HOST -U $PSQL_USER $PSQL_DB < /root/init.sql' >> /tmp/highlight.log 2>&1;
+                  ./run-backend.sh >> /tmp/highlight.log 2>&1 &
+                  yarn install >> /tmp/highlight.log 2>&1;
+                  unset REACT_APP_IN_DOCKER;
+                  yarn build:frontend >> /tmp/highlight.log 2>&1;
+                  yarn workspace @highlight-run/apollo build >> /tmp/highlight.log 2>&1;
+                  yarn workspace @highlight-run/client dev &
+                  yarn workspace highlight.run dev &
+                  yarn workspace @highlight-run/frontend vite preview --port 3000 &
+                  popd;
+
+                  # run opentelemetry file watcher
+                  pushd e2e/opentelemetry/filelog;
+                  EXAMPLE_LOG_FILE_PATH=/tmp/highlight.log docker compose run -d file-collector;
+                  popd;
+
+                  # wait for highlight to be ready
+                  yarn dlx wait-on -l -s 3 http://127.0.0.1:3000/index.html http://127.0.0.1:8082/health;
+
+                  # run cypress tests
+                  yarn cy:run;
+
+                  # run python functional tests that ensure cypress session is correct
+                  pushd ./e2e/tests
+                  export HIGHLIGHT_OAUTH_CLIENT_ID=abc123
+                  export HIGHLIGHT_OAUTH_CLIENT_SECRET=def456
+                  poetry run pytest -k cypress .
+                  popd
+
+                  # look for containers that crashed
+                  num_crashed=$(docker ps -a -f status=exited | grep -E '\(' | grep -cvE '\(\d+\)' || true)
+                  if [ "$num_crashed" -gt 0 ]; then
+                    echo "$num_crashed containers crashed"
+                    docker ps -a -f status=exited
+                    exit 1
+                  fi
+
+            - name: Dump setup logs on failure
+              if: failure()
+              run: cat /tmp/highlight.log
+
+            - name: Dump docker container logs on failure
+              if: failure()
+              run: |
+                  cd docker;
+                  docker compose logs;
+
+            - name: Dump databases on failure
+              if: failure()
+              run: |
+                  cd docker;
+                  mkdir backups
+
+                  docker compose exec postgres bash -c "mkdir /backups";
+                  docker compose exec postgres bash -c "pg_dump -h localhost -U postgres -d postgres > /backups/postgres.sql";
+                  docker compose exec postgres bash -c "psql -h localhost -U postgres -d postgres -c 'select * from sessions;' > /backups/sessions.sql";
+                  docker compose exec postgres bash -c "cat /backups/postgres.sql" > ./backups/postgres.sql 2>&1;
+                  docker compose exec postgres bash -c "cat /backups/sessions.sql" > ./backups/sessions.sql 2>&1;
+
+                  docker compose exec clickhouse bash -c "mkdir /backups && chmod -R 777 /backups";
+                  docker compose exec clickhouse clickhouse-client --host clickhouse --query "BACKUP DATABASE default TO File('/backups/clickhouse.zip')";
+                  docker compose exec clickhouse bash -c "cat /backups/clickhouse.zip" > ./backups/clickhouse.zip 2>&1;
+
+            - name: Save database artifacts
+              if: failure()
+              uses: actions/upload-artifact@v4
+              with:
+                  name: db-dump
+                  path: docker/backups/*
+
+            - name: Save videos
+              uses: actions/upload-artifact@v4
+              if: failure()
+              with:
+                  name: cypress-videos
+                  path: cypress/videos
+
+    e2e-frontend-backend:
+        name: E2E Frontend / Backend
+        timeout-minutes: 60
+        runs-on: buildjet-4vcpu-ubuntu-2204
+
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v4
+              with:
+                  submodules: recursive
+
+            - name: Setup Node.js environment
+              uses: buildjet/setup-node@v4
+              with:
+                  node-version: lts/*
+                  cache: 'yarn'
+
+            - name: Setup Golang environment
+              uses: buildjet/setup-go@v5
+              with:
+                  go-version-file: 'backend/go.mod'
+                  cache-dependency-path: '**/go.sum'
+
+            - name: Setup .NET environment
+              uses: actions/setup-dotnet@v4
+              with:
+                  dotnet-version: 8.x
+
+            - name: Install poetry
+              run: pipx install poetry
+
+            - name: Install python
+              uses: actions/setup-python@v4
+              with:
+                  python-version: '3.10'
+                  cache: 'poetry'
+
+            - name: Install dependencies
+              working-directory: ./e2e/tests
+              run: poetry install --all-extras
+
+            - name: Login to Docker Hub
+              if: github.event.pull_request.head.repo.full_name == 'highlight/highlight' || github.ref == 'refs/heads/main'
+              uses: docker/login-action@v3
+              with:
+                  username: ${{ secrets.DOCKERHUB_USERNAME }}
+                  password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+            - name: Start docker containers & run sdk e2e test
+              run: |
+                  # start highlight
+                  pushd docker;
+                  source ./env.sh;
+                  ./start-infra.sh > /tmp/highlight.log 2>&1;
+                  docker compose exec -e PSQL_HOST -e PSQL_USER -e PSQL_DB postgres bash -c 'psql -h $PSQL_HOST -U $PSQL_USER $PSQL_DB < /root/init.sql' >> /tmp/highlight.log 2>&1;
+                  ./run-backend.sh >> /tmp/highlight.log 2>&1 &
+                  yarn install >> /tmp/highlight.log 2>&1;
+                  yarn build:sdk >> /tmp/highlight.log 2>&1;
+                  popd;
+
+                  # run python backend functional tests
+                  pushd ./e2e/tests
+                  export HIGHLIGHT_OAUTH_CLIENT_ID=abc123
+                  export HIGHLIGHT_OAUTH_CLIENT_SECRET=def456
+                  poetry run pytest -k "not cypress" .
+                  popd
+
+                  # look for containers that crashed
+                  num_crashed=$(docker ps -a -f status=exited | grep -E '\(' | grep -cvE '\(\d+\)' || true)
+                  if [ "$num_crashed" -gt 0 ]; then
+                    echo "$num_crashed containers crashed"
+                    docker ps -a -f status=exited
+                    exit 1
+                  fi
+
+            - name: Dump setup logs on failure
+              if: failure()
+              run: cat /tmp/highlight.log
+
+            - name: Dump docker container logs on failure
+              if: failure()
+              run: |
+                  cd docker;
+                  docker compose -f compose.yml -f compose.hobby.yml logs;
+
+            - name: Dump databases on failure
+              if: failure()
+              run: |
+                  cd docker;
+                  mkdir backups
+
+                  docker compose exec postgres bash -c "mkdir /backups";
+                  docker compose exec postgres bash -c "pg_dump -h localhost -U postgres postgres > /backups/postgres.sql";
+                  docker compose exec postgres bash -c "cat /backups/postgres.sql" > ./backups/postgres.sql 2>&1;
+
+                  docker compose exec clickhouse bash -c "mkdir /backups && chmod -R 777 /backups";
+                  docker compose exec clickhouse clickhouse-client --host clickhouse --query "BACKUP DATABASE default TO File('/backups/clickhouse.zip')";
+                  docker compose exec clickhouse bash -c "cat /backups/clickhouse.zip" > ./backups/clickhouse.zip 2>&1;
+
+            - name: Save database artifacts
+              if: failure()
+              uses: actions/upload-artifact@v4
+              with:
+                  name: db-dump
+                  path: docker/backups/*
+
+    e2e-docker:
+        name: E2E Dockerized Apps
+        timeout-minutes: 60
+        runs-on: buildjet-4vcpu-ubuntu-2204
+        strategy:
+            matrix:
+                app: ['dotnet', 'dotnet4', 'go', 'python', 'ruby']
+
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v4
+              with:
+                  submodules: recursive
+
+            - name: Install poetry
+              run: pipx install poetry
+
+            - name: Install python
+              uses: actions/setup-python@v4
+              with:
+                  python-version: '3.10'
+                  cache: 'poetry'
+
+            - name: Install dependencies
+              working-directory: ./e2e/tests
+              run: poetry install --all-extras
+
+            - name: Login to Docker Hub
+              if: github.event.pull_request.head.repo.full_name == 'highlight/highlight' || github.ref == 'refs/heads/main'
+              uses: docker/login-action@v3
+              with:
+                  username: ${{ secrets.DOCKERHUB_USERNAME }}
+                  password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+            - name: Login to GitHub Docker
+              if: github.event.pull_request.head.repo.full_name == 'highlight/highlight' || github.ref == 'refs/heads/main'
+              uses: docker/login-action@v3
+              with:
+                  registry: ghcr.io
+                  username: Vadman97
+                  password: ${{ secrets.GH_DOCKER_TOKEN }}
+
+            - name: Start docker containers & run sdk e2e test
+              working-directory: ./e2e/tests/src
+              run: poetry run python app_runner.py ${{ matrix.app }}

@@ -36,7 +36,7 @@ const LaunchPage = () => {
 			<Meta
 				title="Highlight.io Launch Week 4"
 				description="Discover error monitoring, logging, and session replay with highlight.io. Join us for Launch Week 4 and elevate your tech stack."
-				absoluteImageUrl={`https://${process.env.NEXT_PUBLIC_VERCEL_URL}${preview.src}`}
+				absoluteImageUrl={`https://${process.env.NEXT_PUBLIC_VERCEL_PROJECT_PRODUCTION_URL}${preview.src}`}
 				canonical="/launch/week-4"
 			/>
 			<Navbar hideBanner hideGitHubPopup bg="white" light />

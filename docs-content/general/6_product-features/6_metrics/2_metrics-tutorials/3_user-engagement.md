@@ -5,7 +5,7 @@ slug: user-engagement
 ---
 
 <EmbeddedVideo 
-  src="https://youtu.be/7BhzaEVqsS4"
+  src="https://www.youtube.com/embed/7BhzaEVqsS4"
   title="Metrics Tutorial: Measuring User Page Clicks"
   allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
 />

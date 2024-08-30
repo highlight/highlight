@@ -573,6 +573,7 @@ query GetSessions(
 			last_user_interaction_time
 			is_public
 			excluded
+			email
 		}
 		totalCount
 	}
@@ -598,6 +599,7 @@ query GetSessionsHistogram(
 query GetSessionUsersReports($project_id: ID!, $params: QueryInput!) {
 	session_users_report(project_id: $project_id, params: $params) {
 		key
+		email
 		num_sessions
 		num_days_visited
 		num_months_visited
@@ -2134,10 +2136,6 @@ query GetSessionLogs($project_id: ID!, $params: QueryInput!) {
 	}
 }
 
-query GetLogsTotalCount($project_id: ID!, $params: QueryInput!) {
-	logs_total_count(project_id: $project_id, params: $params)
-}
-
 query GetLogsHistogram($project_id: ID!, $params: QueryInput!) {
 	logs_histogram(project_id: $project_id, params: $params) {
 		totalCount
@@ -2222,12 +2220,20 @@ query GetWorkspaceSettings($workspace_id: ID!) {
 		ai_application
 		ai_query_builder
 		ai_insights
-		enable_session_export
-		enable_unlisted_sharing
-		enable_ingest_sampling
+		enable_billing_limits
+		enable_business_dashboards
+		enable_business_projects
+		enable_business_retention
+		enable_business_seats
 		enable_data_deletion
 		enable_grafana_dashboard
+		enable_ingest_filtering
+		enable_ingest_sampling
+		enable_network_traces
 		enable_project_level_access
+		enable_project_level_access
+		enable_session_export
+		enable_unlisted_sharing
 	}
 }
 
@@ -2372,11 +2378,13 @@ query MatchErrorTag($query: String!) {
 query GetTrace(
 	$project_id: ID!
 	$trace_id: String!
+	$timestamp: Timestamp!
 	$session_secure_id: String
 ) {
 	trace(
 		project_id: $project_id
 		trace_id: $trace_id
+		timestamp: $timestamp
 		session_secure_id: $session_secure_id
 	) {
 		trace {
@@ -2529,12 +2537,16 @@ query GetKeyValues(
 	$project_id: ID!
 	$key_name: String!
 	$date_range: DateRangeRequiredInput!
+	$query: String!
+	$count: Int!
 ) {
 	key_values(
 		product_type: $product_type
 		project_id: $project_id
 		key_name: $key_name
 		date_range: $date_range
+		query: $query
+		count: $count
 	)
 }
 
@@ -2547,6 +2559,7 @@ query GetMetrics(
 	$group_by: [String!]!
 	$bucket_by: String!
 	$bucket_count: Int
+	$bucket_window: Int
 	$limit: Int
 	$limit_aggregator: MetricAggregator
 	$limit_column: String
@@ -2559,6 +2572,7 @@ query GetMetrics(
 		metric_types: $metric_types
 		group_by: $group_by
 		bucket_by: $bucket_by
+		bucket_window: $bucket_window
 		bucket_count: $bucket_count
 		limit: $limit
 		limit_aggregator: $limit_aggregator
@@ -2594,6 +2608,7 @@ query GetVisualization($id: ID!) {
 			groupByKey
 			bucketByKey
 			bucketCount
+			bucketInterval
 			limit
 			limitFunctionType
 			limitMetric
@@ -2638,6 +2653,7 @@ query GetVisualizations(
 				groupByKey
 				bucketByKey
 				bucketCount
+				bucketInterval
 				limit
 				limitFunctionType
 				limitMetric

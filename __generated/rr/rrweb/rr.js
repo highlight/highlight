@@ -1,17 +1,11 @@
 // ../rrweb/packages/rrweb/dist/rrweb.js
 var __defProp = Object.defineProperty;
 var __defNormalProp = (obj, key, value) => key in obj ? __defProp(obj, key, { enumerable: true, configurable: true, writable: true, value }) : obj[key] = value;
-var __publicField = (obj, key, value) => {
-  __defNormalProp(obj, typeof key !== "symbol" ? key + "" : key, value);
-  return value;
-};
+var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "symbol" ? key + "" : key, value);
 var _a;
 var __defProp$1 = Object.defineProperty;
 var __defNormalProp$1 = (obj, key, value) => key in obj ? __defProp$1(obj, key, { enumerable: true, configurable: true, writable: true, value }) : obj[key] = value;
-var __publicField$1 = (obj, key, value) => {
-  __defNormalProp$1(obj, typeof key !== "symbol" ? key + "" : key, value);
-  return value;
-};
+var __publicField$1 = (obj, key, value) => __defNormalProp$1(obj, typeof key !== "symbol" ? key + "" : key, value);
 var NodeType$2 = /* @__PURE__ */ ((NodeType2) => {
   NodeType2[NodeType2["Document"] = 0] = "Document";
   NodeType2[NodeType2["DocumentType"] = 1] = "DocumentType";
@@ -98,6 +92,20 @@ function getUntaintedAccessor$1(key, instance, accessor) {
   untaintedAccessorCache$1[cacheKey] = untaintedAccessor;
   return untaintedAccessor.call(instance);
 }
+var untaintedMethodCache$1 = {};
+function getUntaintedMethod$1(key, instance, method) {
+  const cacheKey = `${key}.${String(method)}`;
+  if (untaintedMethodCache$1[cacheKey])
+    return untaintedMethodCache$1[cacheKey].bind(
+      instance
+    );
+  const untaintedPrototype = getUntaintedPrototype$1(key);
+  const untaintedMethod = untaintedPrototype[method];
+  if (typeof untaintedMethod !== "function")
+    return instance[method];
+  untaintedMethodCache$1[cacheKey] = untaintedMethod;
+  return untaintedMethod.bind(instance);
+}
 function childNodes$1(n2) {
   return getUntaintedAccessor$1("Node", n2, "childNodes");
 }
@@ -110,16 +118,48 @@ function parentElement$1(n2) {
 function textContent$1(n2) {
   return getUntaintedAccessor$1("Node", n2, "textContent");
 }
+function contains$1(n2, other) {
+  return getUntaintedMethod$1("Node", n2, "contains")(other);
+}
+function getRootNode$1(n2) {
+  return getUntaintedMethod$1("Node", n2, "getRootNode")();
+}
 function host$1(n2) {
   if (!n2 || !("host" in n2))
     return null;
   return getUntaintedAccessor$1("ShadowRoot", n2, "host");
+}
+function styleSheets$1(n2) {
+  return n2.styleSheets;
 }
 function shadowRoot$1(n2) {
   if (!n2 || !("shadowRoot" in n2))
     return null;
   return getUntaintedAccessor$1("Element", n2, "shadowRoot");
 }
+function querySelector$1(n2, selectors) {
+  return getUntaintedAccessor$1("Element", n2, "querySelector")(selectors);
+}
+function querySelectorAll$1(n2, selectors) {
+  return getUntaintedAccessor$1("Element", n2, "querySelectorAll")(selectors);
+}
+function mutationObserverCtor$1() {
+  return getUntaintedPrototype$1("MutationObserver").constructor;
+}
+var index$1 = {
+  childNodes: childNodes$1,
+  parentNode: parentNode$1,
+  parentElement: parentElement$1,
+  textContent: textContent$1,
+  contains: contains$1,
+  getRootNode: getRootNode$1,
+  host: host$1,
+  styleSheets: styleSheets$1,
+  shadowRoot: shadowRoot$1,
+  querySelector: querySelector$1,
+  querySelectorAll: querySelectorAll$1,
+  mutationObserver: mutationObserverCtor$1
+};
 function isElement(n2) {
   return n2.nodeType === n2.ELEMENT_NODE;
 }
@@ -127,9 +167,11 @@ function isShadowRoot(n2) {
   const hostEl = (
     // anchor and textarea elements also have a `host` property
     // but only shadow roots have a `mode` property
-    n2 && "host" in n2 && "mode" in n2 && host$1(n2) || null
+    n2 && "host" in n2 && "mode" in n2 && index$1.host(n2) || null
   );
-  return Boolean(hostEl && "shadowRoot" in hostEl && shadowRoot$1(hostEl) === n2);
+  return Boolean(
+    hostEl && "shadowRoot" in hostEl && index$1.shadowRoot(hostEl) === n2
+  );
 }
 function isNativeShadowDom(shadowRoot2) {
   return Object.prototype.toString.call(shadowRoot2) === "[object ShadowRoot]";
@@ -164,27 +206,43 @@ function escapeImportStatement(rule) {
 function stringifyStylesheet(s2) {
   try {
     const rules2 = s2.rules || s2.cssRules;
-    return rules2 ? fixBrowserCompatibilityIssuesInCSS(
-      Array.from(rules2, stringifyRule).join("")
-    ) : null;
+    if (!rules2) {
+      return null;
+    }
+    const stringifiedRules = Array.from(
+      rules2,
+      (rule) => stringifyRule(rule, s2.href)
+    ).join("");
+    return fixBrowserCompatibilityIssuesInCSS(stringifiedRules);
   } catch (error) {
     return null;
   }
 }
-function stringifyRule(rule) {
-  let importStringified;
+function stringifyRule(rule, sheetHref) {
   if (isCSSImportRule(rule)) {
+    let importStringified;
     try {
       importStringified = // for same-origin stylesheets,
       // we can access the imported stylesheet rules directly
       stringifyStylesheet(rule.styleSheet) || // work around browser issues with the raw string `@import url(...)` statement
       escapeImportStatement(rule);
     } catch (error) {
+      importStringified = rule.cssText;
     }
-  } else if (isCSSStyleRule(rule) && rule.selectorText.includes(":")) {
-    return fixSafariColons(rule.cssText);
+    if (rule.styleSheet.href) {
+      return absolutifyURLs(importStringified, rule.styleSheet.href);
+    }
+    return importStringified;
+  } else {
+    let ruleStringified = rule.cssText;
+    if (isCSSStyleRule(rule) && rule.selectorText.includes(":")) {
+      ruleStringified = fixSafariColons(ruleStringified);
+    }
+    if (sheetHref) {
+      return absolutifyURLs(ruleStringified, sheetHref);
+    }
+    return ruleStringified;
   }
-  return importStringified || rule.cssText;
 }
 function fixSafariColons(cssStringified) {
   const regex = /(\[(?:[\w-]+)[^\\])(:(?:[\w-]+)\])/gm;
@@ -340,6 +398,54 @@ function extractFileExtension(path, baseURL) {
   const match = url.pathname.match(regex);
   return (match == null ? void 0 : match[1]) ?? null;
 }
+function extractOrigin(url) {
+  let origin = "";
+  if (url.indexOf("//") > -1) {
+    origin = url.split("/").slice(0, 3).join("/");
+  } else {
+    origin = url.split("/")[0];
+  }
+  origin = origin.split("?")[0];
+  return origin;
+}
+var URL_IN_CSS_REF = /url\((?:(')([^']*)'|(")(.*?)"|([^)]*))\)/gm;
+var URL_PROTOCOL_MATCH = /^(?:[a-z+]+:)?\/\//i;
+var URL_WWW_MATCH = /^www\..*/i;
+var DATA_URI = /^(data:)([^,]*),(.*)/i;
+function absolutifyURLs(cssText, href) {
+  return (cssText || "").replace(
+    URL_IN_CSS_REF,
+    (origin, quote1, path1, quote2, path2, path3) => {
+      const filePath = path1 || path2 || path3;
+      const maybeQuote = quote1 || quote2 || "";
+      if (!filePath) {
+        return origin;
+      }
+      if (URL_PROTOCOL_MATCH.test(filePath) || URL_WWW_MATCH.test(filePath)) {
+        return `url(${maybeQuote}${filePath}${maybeQuote})`;
+      }
+      if (DATA_URI.test(filePath)) {
+        return `url(${maybeQuote}${filePath}${maybeQuote})`;
+      }
+      if (filePath[0] === "/") {
+        return `url(${maybeQuote}${extractOrigin(href) + filePath}${maybeQuote})`;
+      }
+      const stack = href.split("/");
+      const parts = filePath.split("/");
+      stack.pop();
+      for (const part of parts) {
+        if (part === ".") {
+          continue;
+        } else if (part === "..") {
+          stack.pop();
+        } else {
+          stack.push(part);
+        }
+      }
+      return `url(${maybeQuote}${stack.join("/")}${maybeQuote})`;
+    }
+  );
+}
 function obfuscateText(text) {
   text = text.replace(/[^ -~]+/g, "");
   text = (text == null ? void 0 : text.split(" ").map((word) => Math.random().toString(20).substr(2, word.length)).join(" ")) || "";
@@ -400,56 +506,8 @@ function getValidTagName$1(element) {
   }
   return processedTagName;
 }
-function extractOrigin(url) {
-  let origin = "";
-  if (url.indexOf("//") > -1) {
-    origin = url.split("/").slice(0, 3).join("/");
-  } else {
-    origin = url.split("/")[0];
-  }
-  origin = origin.split("?")[0];
-  return origin;
-}
 var canvasService;
 var canvasCtx;
-var URL_IN_CSS_REF = /url\((?:(')([^']*)'|(")(.*?)"|([^)]*))\)/gm;
-var URL_PROTOCOL_MATCH = /^(?:[a-z+]+:)?\/\//i;
-var URL_WWW_MATCH = /^www\..*/i;
-var DATA_URI = /^(data:)([^,]*),(.*)/i;
-function absoluteToStylesheet(cssText, href) {
-  return (cssText || "").replace(
-    URL_IN_CSS_REF,
-    (origin, quote1, path1, quote2, path2, path3) => {
-      const filePath = path1 || path2 || path3;
-      const maybeQuote = quote1 || quote2 || "";
-      if (!filePath) {
-        return origin;
-      }
-      if (URL_PROTOCOL_MATCH.test(filePath) || URL_WWW_MATCH.test(filePath)) {
-        return `url(${maybeQuote}${filePath}${maybeQuote})`;
-      }
-      if (DATA_URI.test(filePath)) {
-        return `url(${maybeQuote}${filePath}${maybeQuote})`;
-      }
-      if (filePath[0] === "/") {
-        return `url(${maybeQuote}${extractOrigin(href) + filePath}${maybeQuote})`;
-      }
-      const stack = href.split("/");
-      const parts = filePath.split("/");
-      stack.pop();
-      for (const part of parts) {
-        if (part === ".") {
-          continue;
-        } else if (part === "..") {
-          stack.pop();
-        } else {
-          stack.push(part);
-        }
-      }
-      return `url(${maybeQuote}${stack.join("/")}${maybeQuote})`;
-    }
-  );
-}
 var SRCSET_NOT_SPACES = /^[^ \t\n\r\u000c]+/;
 var SRCSET_COMMAS_OR_SPACES = /^[, \t\n\r\u000c]+/;
 function getAbsoluteSrcsetString(doc, attributeValue) {
@@ -543,7 +601,7 @@ function transformAttribute(doc, tagName, name, value) {
   } else if (name === "srcset") {
     return getAbsoluteSrcsetString(doc, value);
   } else if (name === "style") {
-    return absoluteToStylesheet(value, getHref(doc));
+    return absolutifyURLs(value, getHref(doc));
   } else if (tagName === "object" && name === "data") {
     return absoluteToDoc(doc, value);
   }
@@ -579,7 +637,7 @@ function classMatchesRegex(node, regex, checkAncestors) {
   if (node.nodeType !== node.ELEMENT_NODE) {
     if (!checkAncestors)
       return false;
-    return classMatchesRegex(parentNode$1(node), regex, checkAncestors);
+    return classMatchesRegex(index$1.parentNode(node), regex, checkAncestors);
   }
   for (let eIndex = node.classList.length; eIndex--; ) {
     const className = node.classList[eIndex];
@@ -589,19 +647,19 @@ function classMatchesRegex(node, regex, checkAncestors) {
   }
   if (!checkAncestors)
     return false;
-  return classMatchesRegex(parentNode$1(node), regex, checkAncestors);
+  return classMatchesRegex(index$1.parentNode(node), regex, checkAncestors);
 }
 function needMaskingText(node, maskTextClass, maskTextSelector, checkAncestors) {
   let el;
   if (isElement(node)) {
     el = node;
-    if (!childNodes$1(el).length) {
+    if (!index$1.childNodes(el).length) {
       return false;
     }
-  } else if (parentElement$1(node) === null) {
+  } else if (index$1.parentElement(node) === null) {
     return false;
   } else {
-    el = parentElement$1(node);
+    el = index$1.parentElement(node);
   }
   try {
     if (typeof maskTextClass === "string") {
@@ -761,7 +819,7 @@ function serializeNode(n2, options) {
     case n2.COMMENT_NODE:
       return {
         type: NodeType$2.Comment,
-        textContent: textContent$1(n2) || "",
+        textContent: index$1.textContent(n2) || "",
         rootId
       };
     default:
@@ -782,9 +840,9 @@ function serializeTextNode(n2, options) {
     privacySetting,
     rootId
   } = options;
-  const parent = parentNode$1(n2);
+  const parent = index$1.parentNode(n2);
   const parentTagName = parent && parent.tagName;
-  let text = textContent$1(n2);
+  let text = index$1.textContent(n2);
   const isStyle = parentTagName === "STYLE" ? true : void 0;
   const isScript = parentTagName === "SCRIPT" ? true : void 0;
   let textContentHandled = false;
@@ -800,7 +858,7 @@ function serializeTextNode(n2, options) {
         n2
       );
     }
-    text = absoluteToStylesheet(text, getHref(options.doc));
+    text = absolutifyURLs(text, getHref(options.doc));
     textContentHandled = true;
   }
   if (isScript) {
@@ -811,7 +869,7 @@ function serializeTextNode(n2, options) {
     textContentHandled = true;
   }
   if (!isStyle && !isScript && text && needsMask) {
-    text = maskTextFn ? maskTextFn(text, parentElement$1(n2)) : text.replace(/[\S]/g, "*");
+    text = maskTextFn ? maskTextFn(text, index$1.parentElement(n2)) : text.replace(/[\S]/g, "*");
   }
   const enableStrictPrivacy = privacySetting === "strict";
   const highlightOverwriteRecord = (_b = n2.parentElement) == null ? void 0 : _b.getAttribute("data-hl-record");
@@ -882,16 +940,16 @@ function serializeElementNode(n2, options) {
     if (cssText) {
       delete attributes.rel;
       delete attributes.href;
-      attributes._cssText = absoluteToStylesheet(cssText, stylesheet.href);
+      attributes._cssText = cssText;
     }
   }
   if (tagName === "style" && n2.sheet && // TODO: Currently we only try to get dynamic stylesheet when it is an empty style element
-  !(n2.innerText || textContent$1(n2) || "").trim().length) {
+  !(n2.innerText || index$1.textContent(n2) || "").trim().length) {
     const cssText = stringifyStylesheet(
       n2.sheet
     );
     if (cssText) {
-      attributes._cssText = absoluteToStylesheet(cssText, getHref(doc));
+      attributes._cssText = cssText;
     }
   }
   if (tagName === "input" || tagName === "textarea" || tagName === "select") {
@@ -917,6 +975,9 @@ function serializeElementNode(n2, options) {
     } else {
       delete attributes.selected;
     }
+  }
+  if (tagName === "dialog" && n2.open) {
+    attributes.rr_open_mode = n2.matches("dialog:modal") ? "modal" : "non-modal";
   }
   if (tagName === "canvas" && recordCanvas) {
     if (n2.__context === "2d") {
@@ -1185,7 +1246,7 @@ function serializeNodeWithId(n2, options) {
     }
     delete serializedNode.needBlock;
     delete serializedNode.needMask;
-    const shadowRootEl = shadowRoot$1(n2);
+    const shadowRootEl = index$1.shadowRoot(n2);
     if (shadowRootEl && isNativeShadowDom(shadowRootEl))
       serializedNode.isShadowHost = true;
   }
@@ -1222,7 +1283,7 @@ function serializeNodeWithId(n2, options) {
     if (serializedNode.type === NodeType$2.Element && serializedNode.tagName === "textarea" && serializedNode.attributes.value !== void 0)
       ;
     else {
-      for (const childN of Array.from(childNodes$1(n2))) {
+      for (const childN of Array.from(index$1.childNodes(n2))) {
         const serializedChildNode = serializeNodeWithId(childN, bypassOptions);
         if (serializedChildNode) {
           serializedNode.childNodes.push(serializedChildNode);
@@ -1230,8 +1291,8 @@ function serializeNodeWithId(n2, options) {
       }
     }
     let shadowRootEl = null;
-    if (isElement(n2) && (shadowRootEl = shadowRoot$1(n2))) {
-      for (const childN of Array.from(childNodes$1(shadowRootEl))) {
+    if (isElement(n2) && (shadowRootEl = index$1.shadowRoot(n2))) {
+      for (const childN of Array.from(index$1.childNodes(shadowRootEl))) {
         const serializedChildNode = serializeNodeWithId(childN, bypassOptions);
         if (serializedChildNode) {
           isNativeShadowDom(shadowRootEl) && (serializedChildNode.isShadow = true);
@@ -1240,7 +1301,7 @@ function serializeNodeWithId(n2, options) {
       }
     }
   }
-  const parent = parentNode$1(n2);
+  const parent = index$1.parentNode(n2);
   if (parent && isShadowRoot(parent) && isNativeShadowDom(parent)) {
     serializedNode.isShadow = true;
   }
@@ -1989,7 +2050,7 @@ function adaptCssForReplay(cssText, cache) {
   let result = cssText;
   if (selectors.length > 0) {
     const selectorMatcher = new RegExp(
-      selectors.filter((selector, index) => selectors.indexOf(selector) === index).sort((a2, b) => b.length - a2.length).map((selector) => {
+      selectors.filter((selector, index2) => selectors.indexOf(selector) === index2).sort((a2, b) => b.length - a2.length).map((selector) => {
         return escapeRegExp(selector);
       }).join("|"),
       "g"
@@ -2004,7 +2065,7 @@ function adaptCssForReplay(cssText, cache) {
   }
   if (medias.length > 0) {
     const mediaMatcher = new RegExp(
-      medias.filter((media, index) => medias.indexOf(media) === index).sort((a2, b) => b.length - a2.length).map((media) => {
+      medias.filter((media, index2) => medias.indexOf(media) === index2).sort((a2, b) => b.length - a2.length).map((media) => {
         return escapeRegExp(media);
       }).join("|"),
       "g"
@@ -2152,6 +2213,11 @@ function buildNode(n2, options) {
           node.loop = value;
         } else if (name === "rr_mediaVolume" && typeof value === "number") {
           node.volume = value;
+        } else if (name === "rr_open_mode") {
+          node.setAttribute(
+            "rr_open_mode",
+            value
+          );
         }
       }
       if (n2.isShadowHost) {
@@ -2312,16 +2378,10 @@ function rebuild(n2, options) {
 }
 var __defProp2 = Object.defineProperty;
 var __defNormalProp2 = (obj, key, value) => key in obj ? __defProp2(obj, key, { enumerable: true, configurable: true, writable: true, value }) : obj[key] = value;
-var __publicField2 = (obj, key, value) => {
-  __defNormalProp2(obj, typeof key !== "symbol" ? key + "" : key, value);
-  return value;
-};
+var __publicField2 = (obj, key, value) => __defNormalProp2(obj, typeof key !== "symbol" ? key + "" : key, value);
 var __defProp22 = Object.defineProperty;
 var __defNormalProp22 = (obj, key, value) => key in obj ? __defProp22(obj, key, { enumerable: true, configurable: true, writable: true, value }) : obj[key] = value;
-var __publicField22 = (obj, key, value) => {
-  __defNormalProp22(obj, typeof key !== "symbol" ? key + "" : key, value);
-  return value;
-};
+var __publicField22 = (obj, key, value) => __defNormalProp22(obj, typeof key !== "symbol" ? key + "" : key, value);
 var NodeType$1 = /* @__PURE__ */ ((NodeType2) => {
   NodeType2[NodeType2["Document"] = 0] = "Document";
   NodeType2[NodeType2["DocumentType"] = 1] = "DocumentType";
@@ -2691,7 +2751,9 @@ var BaseRRElement = class extends BaseRRNode {
     return style;
   }
   getAttribute(name) {
-    return this.attributes[name] || null;
+    if (this.attributes[name] === void 0)
+      return null;
+    return this.attributes[name];
   }
   setAttribute(name, attribute) {
     this.attributes[name] = attribute;
@@ -2750,6 +2812,31 @@ var BaseRRMediaElement = class extends BaseRRElement {
   }
   pause() {
     this.paused = true;
+  }
+};
+var BaseRRDialogElement = class extends BaseRRElement {
+  constructor() {
+    super(...arguments);
+    __publicField2(this, "tagName", "DIALOG");
+    __publicField2(this, "nodeName", "DIALOG");
+  }
+  get isModal() {
+    return this.getAttribute("rr_open_mode") === "modal";
+  }
+  get open() {
+    return this.getAttribute("open") !== null;
+  }
+  close() {
+    this.removeAttribute("open");
+    this.removeAttribute("rr_open_mode");
+  }
+  show() {
+    this.setAttribute("open", "");
+    this.setAttribute("rr_open_mode", "non-modal");
+  }
+  showModal() {
+    this.setAttribute("open", "");
+    this.setAttribute("rr_open_mode", "modal");
   }
 };
 var BaseRRText = class extends BaseRRNode {
@@ -3088,6 +3175,29 @@ function diffAfterUpdatingChildren(oldTree, newTree, replayer) {
           );
           break;
         }
+        case "DIALOG": {
+          const dialog = oldElement;
+          const rrDialog = newRRElement;
+          const wasOpen = dialog.open;
+          const wasModal = dialog.matches("dialog:modal");
+          const shouldBeOpen = rrDialog.open;
+          const shouldBeModal = rrDialog.isModal;
+          const modalChanged = wasModal !== shouldBeModal;
+          const openChanged = wasOpen !== shouldBeOpen;
+          if (modalChanged || wasOpen && openChanged)
+            dialog.close();
+          if (shouldBeOpen && (openChanged || modalChanged)) {
+            try {
+              if (shouldBeModal)
+                dialog.showModal();
+              else
+                dialog.show();
+            } catch (e2) {
+              console.warn(e2);
+            }
+          }
+          break;
+        }
       }
       break;
     }
@@ -3369,6 +3479,9 @@ var RRDocument = class _RRDocument extends BaseRRDocument {
       case "STYLE":
         element = new RRStyleElement(upperTagName);
         break;
+      case "DIALOG":
+        element = new RRDialogElement(upperTagName);
+        break;
       default:
         element = new RRElement(upperTagName);
         break;
@@ -3410,6 +3523,8 @@ var RRElement = class extends BaseRRElement {
   }
 };
 var RRMediaElement = class extends BaseRRMediaElement {
+};
+var RRDialogElement = class extends BaseRRDialogElement {
 };
 var RRCanvasElement = class extends RRElement {
   constructor() {
@@ -3748,14 +3863,37 @@ function host(n2) {
     return null;
   return getUntaintedAccessor("ShadowRoot", n2, "host");
 }
+function styleSheets(n2) {
+  return n2.styleSheets;
+}
 function shadowRoot(n2) {
   if (!n2 || !("shadowRoot" in n2))
     return null;
   return getUntaintedAccessor("Element", n2, "shadowRoot");
 }
+function querySelector(n2, selectors) {
+  return getUntaintedAccessor("Element", n2, "querySelector")(selectors);
+}
+function querySelectorAll(n2, selectors) {
+  return getUntaintedAccessor("Element", n2, "querySelectorAll")(selectors);
+}
 function mutationObserverCtor() {
   return getUntaintedPrototype("MutationObserver").constructor;
 }
+var index = {
+  childNodes,
+  parentNode,
+  parentElement,
+  textContent,
+  contains,
+  getRootNode,
+  host,
+  styleSheets,
+  shadowRoot,
+  querySelector,
+  querySelectorAll,
+  mutationObserver: mutationObserverCtor
+};
 function on(type, fn, target = document) {
   const options = { capture: true };
   target.addEventListener(type, fn, options);
@@ -3871,8 +4009,8 @@ function getWindowScroll(win) {
   var _a2, _b, _c, _d;
   const doc = win.document;
   return {
-    left: doc.scrollingElement ? doc.scrollingElement.scrollLeft : win.pageXOffset !== void 0 ? win.pageXOffset : doc.documentElement.scrollLeft || (doc == null ? void 0 : doc.body) && ((_a2 = parentElement(doc.body)) == null ? void 0 : _a2.scrollLeft) || ((_b = doc == null ? void 0 : doc.body) == null ? void 0 : _b.scrollLeft) || 0,
-    top: doc.scrollingElement ? doc.scrollingElement.scrollTop : win.pageYOffset !== void 0 ? win.pageYOffset : (doc == null ? void 0 : doc.documentElement.scrollTop) || (doc == null ? void 0 : doc.body) && ((_c = parentElement(doc.body)) == null ? void 0 : _c.scrollTop) || ((_d = doc == null ? void 0 : doc.body) == null ? void 0 : _d.scrollTop) || 0
+    left: doc.scrollingElement ? doc.scrollingElement.scrollLeft : win.pageXOffset !== void 0 ? win.pageXOffset : doc.documentElement.scrollLeft || (doc == null ? void 0 : doc.body) && ((_a2 = index.parentElement(doc.body)) == null ? void 0 : _a2.scrollLeft) || ((_b = doc == null ? void 0 : doc.body) == null ? void 0 : _b.scrollLeft) || 0,
+    top: doc.scrollingElement ? doc.scrollingElement.scrollTop : win.pageYOffset !== void 0 ? win.pageYOffset : (doc == null ? void 0 : doc.documentElement.scrollTop) || (doc == null ? void 0 : doc.body) && ((_c = index.parentElement(doc.body)) == null ? void 0 : _c.scrollTop) || ((_d = doc == null ? void 0 : doc.body) == null ? void 0 : _d.scrollTop) || 0
   };
 }
 function getWindowHeight() {
@@ -3885,7 +4023,7 @@ function closestElementOfNode(node) {
   if (!node) {
     return null;
   }
-  const el = node.nodeType === node.ELEMENT_NODE ? node : parentElement(node);
+  const el = node.nodeType === node.ELEMENT_NODE ? node : index.parentElement(node);
   return el;
 }
 var isCanvasNode = (node) => {
@@ -3943,7 +4081,7 @@ function isAncestorRemoved(target, mirror2) {
   if (!mirror2.has(id)) {
     return true;
   }
-  const parent = parentNode(target);
+  const parent = index.parentNode(target);
   if (parent && parent.nodeType === target.DOCUMENT_NODE) {
     return false;
   }
@@ -4042,7 +4180,7 @@ function hasShadowRoot(n2) {
   if (n2 instanceof BaseRRNode && "shadowRoot" in n2) {
     return Boolean(n2.shadowRoot);
   }
-  return Boolean(shadowRoot(n2));
+  return Boolean(index.shadowRoot(n2));
 }
 function getNestedRule(rules2, position) {
   const rule = rules2[position[0]];
@@ -4057,8 +4195,8 @@ function getNestedRule(rules2, position) {
 }
 function getPositionsAndIndex(nestedIndex) {
   const positions = [...nestedIndex];
-  const index = positions.pop();
-  return { positions, index };
+  const index2 = positions.pop();
+  return { positions, index: index2 };
 }
 function uniqueTextMutations(mutations) {
   const idSet = /* @__PURE__ */ new Set();
@@ -4114,8 +4252,8 @@ var StyleSheetMirror = class {
 function getShadowHost(n2) {
   var _a2;
   let shadowHost = null;
-  if ("getRootNode" in n2 && ((_a2 = getRootNode(n2)) == null ? void 0 : _a2.nodeType) === Node.DOCUMENT_FRAGMENT_NODE && host(getRootNode(n2)))
-    shadowHost = host(getRootNode(n2));
+  if ("getRootNode" in n2 && ((_a2 = index.getRootNode(n2)) == null ? void 0 : _a2.nodeType) === Node.DOCUMENT_FRAGMENT_NODE && index.host(index.getRootNode(n2)))
+    shadowHost = index.host(index.getRootNode(n2));
   return shadowHost;
 }
 function getRootShadowHost(n2) {
@@ -4130,13 +4268,13 @@ function shadowHostInDom(n2) {
   if (!doc)
     return false;
   const shadowHost = getRootShadowHost(n2);
-  return contains(doc, shadowHost);
+  return index.contains(doc, shadowHost);
 }
 function inDom(n2) {
   const doc = n2.ownerDocument;
   if (!doc)
     return false;
-  return contains(doc, n2) || shadowHostInDom(n2);
+  return index.contains(doc, n2) || shadowHostInDom(n2);
 }
 var utils = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
   __proto__: null,
@@ -4274,7 +4412,7 @@ var DoubleLinkedList = class {
       throw new Error("Position outside of list range");
     }
     let current = this.head;
-    for (let index = 0; index < position; index++) {
+    for (let index2 = 0; index2 < position; index2++) {
       current = (current == null ? void 0 : current.next) || null;
     }
     return current;
@@ -4398,7 +4536,7 @@ var MutationBuffer = class {
         return nextId;
       };
       const pushAdd = (n2) => {
-        const parent = parentNode(n2);
+        const parent = index.parentNode(n2);
         if (!parent || !inDom(n2) || parent.tagName === "TEXTAREA") {
           return;
         }
@@ -4435,7 +4573,7 @@ var MutationBuffer = class {
               );
             }
             if (hasShadowRoot(n2)) {
-              this.shadowDomManager.addShadowRoot(shadowRoot(n2), this.doc);
+              this.shadowDomManager.addShadowRoot(index.shadowRoot(n2), this.doc);
             }
           },
           onIframeLoad: (iframe, childSn) => {
@@ -4459,7 +4597,7 @@ var MutationBuffer = class {
         this.mirror.removeNodeFromMap(this.mapRemoves.shift());
       }
       for (const n2 of this.movedSet) {
-        if (isParentRemoved(this.removes, n2, this.mirror) && !this.movedSet.has(parentNode(n2))) {
+        if (isParentRemoved(this.removes, n2, this.mirror) && !this.movedSet.has(index.parentNode(n2))) {
           continue;
         }
         pushAdd(n2);
@@ -4477,7 +4615,7 @@ var MutationBuffer = class {
       while (addList.length) {
         let node = null;
         if (candidate) {
-          const parentId = this.mirror.getId(parentNode(candidate.value));
+          const parentId = this.mirror.getId(index.parentNode(candidate.value));
           const nextId = getNextId(candidate.value);
           if (parentId !== -1 && nextId !== -1) {
             node = candidate;
@@ -4489,7 +4627,7 @@ var MutationBuffer = class {
             const _node = tailNode;
             tailNode = tailNode.previous;
             if (_node) {
-              const parentId = this.mirror.getId(parentNode(_node.value));
+              const parentId = this.mirror.getId(index.parentNode(_node.value));
               const nextId = getNextId(_node.value);
               if (nextId === -1)
                 continue;
@@ -4498,9 +4636,9 @@ var MutationBuffer = class {
                 break;
               } else {
                 const unhandledNode = _node.value;
-                const parent = parentNode(unhandledNode);
+                const parent = index.parentNode(unhandledNode);
                 if (parent && parent.nodeType === Node.DOCUMENT_FRAGMENT_NODE) {
-                  const shadowHost = host(parent);
+                  const shadowHost = index.host(parent);
                   const parentId2 = this.mirror.getId(shadowHost);
                   if (parentId2 !== -1) {
                     node = _node;
@@ -4525,7 +4663,7 @@ var MutationBuffer = class {
         texts: this.texts.map((text) => {
           var _a2, _b;
           const n2 = text.node;
-          const parent = parentNode(n2);
+          const parent = index.parentNode(n2);
           if (parent && parent.tagName === "TEXTAREA") {
             this.genTextAreaValueMutation(parent);
           }
@@ -4586,8 +4724,8 @@ var MutationBuffer = class {
         this.attributeMap.set(textarea, item);
       }
       item.attributes.value = Array.from(
-        childNodes(textarea),
-        (cn) => textContent(cn) || ""
+        index.childNodes(textarea),
+        (cn) => index.textContent(cn) || ""
       ).join("");
     });
     __publicField(this, "processMutation", (m) => {
@@ -4596,7 +4734,7 @@ var MutationBuffer = class {
       }
       switch (m.type) {
         case "characterData": {
-          const value = textContent(m.target);
+          const value = index.textContent(m.target);
           if (!isBlocked(m.target, this.blockClass, this.blockSelector, false) && value !== m.oldValue) {
             this.texts.push({
               value: needMaskingText(
@@ -4696,6 +4834,12 @@ var MutationBuffer = class {
                   item.styleDiff[pname] = false;
                 }
               }
+            } else if (attributeName === "open" && target.tagName === "DIALOG") {
+              if (target.matches("dialog:modal")) {
+                item.attributes["rr_open_mode"] = "modal";
+              } else {
+                item.attributes["rr_open_mode"] = "non-modal";
+              }
             }
           }
           break;
@@ -4710,7 +4854,7 @@ var MutationBuffer = class {
           m.addedNodes.forEach((n2) => this.genAdds(n2, m.target));
           m.removedNodes.forEach((n2) => {
             const nodeId = this.mirror.getId(n2);
-            const parentId = isShadowRoot(m.target) ? this.mirror.getId(host(m.target)) : this.mirror.getId(m.target);
+            const parentId = isShadowRoot(m.target) ? this.mirror.getId(index.host(m.target)) : this.mirror.getId(m.target);
             if (isBlocked(m.target, this.blockClass, this.blockSelector, false) || isIgnored(n2, this.mirror, this.slimDOMOptions) || !isSerialized(n2, this.mirror)) {
               return;
             }
@@ -4758,9 +4902,9 @@ var MutationBuffer = class {
         this.droppedSet.delete(n2);
       }
       if (!isBlocked(n2, this.blockClass, this.blockSelector, false)) {
-        childNodes(n2).forEach((childN) => this.genAdds(childN));
+        index.childNodes(n2).forEach((childN) => this.genAdds(childN));
         if (hasShadowRoot(n2)) {
-          childNodes(shadowRoot(n2)).forEach((childN) => {
+          index.childNodes(index.shadowRoot(n2)).forEach((childN) => {
             this.processedNodeManager.add(childN, this);
             this.genAdds(childN, n2);
           });
@@ -4824,7 +4968,7 @@ var MutationBuffer = class {
 };
 function deepDelete(addsSet, n2) {
   addsSet.delete(n2);
-  childNodes(n2).forEach((childN) => deepDelete(addsSet, childN));
+  index.childNodes(n2).forEach((childN) => deepDelete(addsSet, childN));
 }
 function isParentRemoved(removes, n2, mirror2) {
   if (removes.length === 0)
@@ -4832,13 +4976,13 @@ function isParentRemoved(removes, n2, mirror2) {
   return _isParentRemoved(removes, n2, mirror2);
 }
 function _isParentRemoved(removes, n2, mirror2) {
-  let node = parentNode(n2);
+  let node = index.parentNode(n2);
   while (node) {
     const parentId = mirror2.getId(node);
     if (removes.some((r2) => r2.id === parentId)) {
       return true;
     }
-    node = parentNode(node);
+    node = index.parentNode(node);
   }
   return false;
 }
@@ -4848,7 +4992,7 @@ function isAncestorInSet(set, n2) {
   return _isAncestorInSet(set, n2);
 }
 function _isAncestorInSet(set, n2) {
-  const parent = parentNode(n2);
+  const parent = index.parentNode(n2);
   if (!parent) {
     return false;
   }
@@ -5150,7 +5294,7 @@ function initInputObserver({
     const userTriggered = event.isTrusted;
     const tagName = target && target.tagName;
     if (target && tagName === "OPTION") {
-      target = parentElement(target);
+      target = index.parentElement(target);
     }
     if (!target || !tagName || INPUT_TAGS.indexOf(tagName) < 0 || isBlocked(target, blockClass, blockSelector, true)) {
       return;
@@ -5263,12 +5407,12 @@ function getNestedCSSRulePositions(rule) {
       const rules2 = Array.from(
         childRule.parentRule.cssRules
       );
-      const index = rules2.indexOf(childRule);
-      pos.unshift(index);
+      const index2 = rules2.indexOf(childRule);
+      pos.unshift(index2);
     } else if (childRule.parentStyleSheet) {
       const rules2 = Array.from(childRule.parentStyleSheet.cssRules);
-      const index = rules2.indexOf(childRule);
-      pos.unshift(index);
+      const index2 = rules2.indexOf(childRule);
+      pos.unshift(index2);
     }
     return pos;
   }
@@ -5296,7 +5440,7 @@ function initStyleSheetObserver({ styleSheetRuleCb, mirror: mirror2, stylesheetM
   win.CSSStyleSheet.prototype.insertRule = new Proxy(insertRule, {
     apply: callbackWrapper(
       (target, thisArg, argumentsList) => {
-        const [rule, index] = argumentsList;
+        const [rule, index2] = argumentsList;
         const { id, styleId } = getIdAndStyleId(
           thisArg,
           mirror2,
@@ -5306,18 +5450,22 @@ function initStyleSheetObserver({ styleSheetRuleCb, mirror: mirror2, stylesheetM
           styleSheetRuleCb({
             id,
             styleId,
-            adds: [{ rule, index }]
+            adds: [{ rule, index: index2 }]
           });
         }
         return target.apply(thisArg, argumentsList);
       }
     )
   });
+  win.CSSStyleSheet.prototype.addRule = function(selector, styleBlock, index2 = this.cssRules.length) {
+    const rule = `${selector} { ${styleBlock} }`;
+    return win.CSSStyleSheet.prototype.insertRule.apply(this, [rule, index2]);
+  };
   const deleteRule = win.CSSStyleSheet.prototype.deleteRule;
   win.CSSStyleSheet.prototype.deleteRule = new Proxy(deleteRule, {
     apply: callbackWrapper(
       (target, thisArg, argumentsList) => {
-        const [index] = argumentsList;
+        const [index2] = argumentsList;
         const { id, styleId } = getIdAndStyleId(
           thisArg,
           mirror2,
@@ -5327,13 +5475,16 @@ function initStyleSheetObserver({ styleSheetRuleCb, mirror: mirror2, stylesheetM
           styleSheetRuleCb({
             id,
             styleId,
-            removes: [{ index }]
+            removes: [{ index: index2 }]
           });
         }
         return target.apply(thisArg, argumentsList);
       }
     )
   });
+  win.CSSStyleSheet.prototype.removeRule = function(index2) {
+    return win.CSSStyleSheet.prototype.deleteRule.apply(this, [index2]);
+  };
   let replace;
   if (win.CSSStyleSheet.prototype.replace) {
     replace = win.CSSStyleSheet.prototype.replace;
@@ -5409,7 +5560,7 @@ function initStyleSheetObserver({ styleSheetRuleCb, mirror: mirror2, stylesheetM
       {
         apply: callbackWrapper(
           (target, thisArg, argumentsList) => {
-            const [rule, index] = argumentsList;
+            const [rule, index2] = argumentsList;
             const { id, styleId } = getIdAndStyleId(
               thisArg.parentStyleSheet,
               mirror2,
@@ -5424,7 +5575,7 @@ function initStyleSheetObserver({ styleSheetRuleCb, mirror: mirror2, stylesheetM
                     rule,
                     index: [
                       ...getNestedCSSRulePositions(thisArg),
-                      index || 0
+                      index2 || 0
                       // defaults to 0
                     ]
                   }
@@ -5441,7 +5592,7 @@ function initStyleSheetObserver({ styleSheetRuleCb, mirror: mirror2, stylesheetM
       {
         apply: callbackWrapper(
           (target, thisArg, argumentsList) => {
-            const [index] = argumentsList;
+            const [index2] = argumentsList;
             const { id, styleId } = getIdAndStyleId(
               thisArg.parentStyleSheet,
               mirror2,
@@ -5452,7 +5603,7 @@ function initStyleSheetObserver({ styleSheetRuleCb, mirror: mirror2, stylesheetM
                 id,
                 styleId,
                 removes: [
-                  { index: [...getNestedCSSRulePositions(thisArg), index] }
+                  { index: [...getNestedCSSRulePositions(thisArg), index2] }
                 ]
               });
             }
@@ -5476,14 +5627,14 @@ function initStyleSheetObserver({ styleSheetRuleCb, mirror: mirror2, stylesheetM
 function initAdoptedStyleSheetObserver({
   mirror: mirror2,
   stylesheetManager
-}, host$12) {
+}, host2) {
   var _a2, _b, _c;
   let hostId = null;
-  if (host$12.nodeName === "#document")
-    hostId = mirror2.getId(host$12);
+  if (host2.nodeName === "#document")
+    hostId = mirror2.getId(host2);
   else
-    hostId = mirror2.getId(host(host$12));
-  const patchTarget = host$12.nodeName === "#document" ? (_a2 = host$12.defaultView) == null ? void 0 : _a2.Document : (_c = (_b = host$12.ownerDocument) == null ? void 0 : _b.defaultView) == null ? void 0 : _c.ShadowRoot;
+    hostId = mirror2.getId(index.host(host2));
+  const patchTarget = host2.nodeName === "#document" ? (_a2 = host2.defaultView) == null ? void 0 : _a2.Document : (_c = (_b = host2.ownerDocument) == null ? void 0 : _b.defaultView) == null ? void 0 : _c.ShadowRoot;
   const originalPropertyDescriptor = (patchTarget == null ? void 0 : patchTarget.prototype) ? Object.getOwnPropertyDescriptor(
     patchTarget == null ? void 0 : patchTarget.prototype,
     "adoptedStyleSheets"
@@ -5491,7 +5642,7 @@ function initAdoptedStyleSheetObserver({
   if (hostId === null || hostId === -1 || !patchTarget || !originalPropertyDescriptor)
     return () => {
     };
-  Object.defineProperty(host$12, "adoptedStyleSheets", {
+  Object.defineProperty(host2, "adoptedStyleSheets", {
     configurable: originalPropertyDescriptor.configurable,
     enumerable: originalPropertyDescriptor.enumerable,
     get() {
@@ -5511,7 +5662,7 @@ function initAdoptedStyleSheetObserver({
     }
   });
   return callbackWrapper(() => {
-    Object.defineProperty(host$12, "adoptedStyleSheets", {
+    Object.defineProperty(host2, "adoptedStyleSheets", {
       configurable: originalPropertyDescriptor.configurable,
       enumerable: originalPropertyDescriptor.enumerable,
       // eslint-disable-next-line @typescript-eslint/unbound-method
@@ -6252,7 +6403,7 @@ var ShadowDomManager = class {
       if (shadowRoot2.adoptedStyleSheets && shadowRoot2.adoptedStyleSheets.length > 0)
         this.bypassOptions.stylesheetManager.adoptStyleSheets(
           shadowRoot2.adoptedStyleSheets,
-          this.mirror.getId(host(shadowRoot2))
+          this.mirror.getId(index.host(shadowRoot2))
         );
       this.restoreHandlers.push(
         initAdoptedStyleSheetObserver(
@@ -6288,7 +6439,7 @@ var ShadowDomManager = class {
         function(original) {
           return function(option) {
             const sRoot = original.call(this, option);
-            const shadowRootEl = shadowRoot(this);
+            const shadowRootEl = index.shadowRoot(this);
             if (shadowRootEl && inDom(this))
               manager.addShadowRoot(shadowRootEl, doc);
             return sRoot;
@@ -6366,12 +6517,12 @@ var saveWebGLVar = (value, win, ctx) => {
     return;
   const name = value.constructor.name;
   const list = variableListFor$1(ctx, name);
-  let index = list.indexOf(value);
-  if (index === -1) {
-    index = list.length;
+  let index2 = list.indexOf(value);
+  if (index2 === -1) {
+    index2 = list.length;
     list.push(value);
   }
-  return index;
+  return index2;
 };
 function serializeArg(value, win, ctx) {
   if (value instanceof Array) {
@@ -6428,10 +6579,10 @@ function serializeArg(value, win, ctx) {
     };
   } else if (isInstanceOfWebGLObject(value, win) || typeof value === "object") {
     const name = value.constructor.name;
-    const index = saveWebGLVar(value, win, ctx);
+    const index2 = saveWebGLVar(value, win, ctx);
     return {
       rr_type: name,
-      index
+      index: index2
     };
   }
   return value;
@@ -6644,7 +6795,7 @@ function initCanvasWebGLMutationObserver(cb, win, blockClass, blockSelector) {
     handlers.forEach((h) => h());
   };
 }
-var encodedJs = "KGZ1bmN0aW9uKCkgewogICJ1c2Ugc3RyaWN0IjsKICB2YXIgY2hhcnMgPSAiQUJDREVGR0hJSktMTU5PUFFSU1RVVldYWVphYmNkZWZnaGlqa2xtbm9wcXJzdHV2d3h5ejAxMjM0NTY3ODkrLyI7CiAgdmFyIGxvb2t1cCA9IHR5cGVvZiBVaW50OEFycmF5ID09PSAidW5kZWZpbmVkIiA/IFtdIDogbmV3IFVpbnQ4QXJyYXkoMjU2KTsKICBmb3IgKHZhciBpID0gMDsgaSA8IGNoYXJzLmxlbmd0aDsgaSsrKSB7CiAgICBsb29rdXBbY2hhcnMuY2hhckNvZGVBdChpKV0gPSBpOwogIH0KICB2YXIgZW5jb2RlID0gZnVuY3Rpb24oYXJyYXlidWZmZXIpIHsKICAgIHZhciBieXRlcyA9IG5ldyBVaW50OEFycmF5KGFycmF5YnVmZmVyKSwgaTIsIGxlbiA9IGJ5dGVzLmxlbmd0aCwgYmFzZTY0ID0gIiI7CiAgICBmb3IgKGkyID0gMDsgaTIgPCBsZW47IGkyICs9IDMpIHsKICAgICAgYmFzZTY0ICs9IGNoYXJzW2J5dGVzW2kyXSA+PiAyXTsKICAgICAgYmFzZTY0ICs9IGNoYXJzWyhieXRlc1tpMl0gJiAzKSA8PCA0IHwgYnl0ZXNbaTIgKyAxXSA+PiA0XTsKICAgICAgYmFzZTY0ICs9IGNoYXJzWyhieXRlc1tpMiArIDFdICYgMTUpIDw8IDIgfCBieXRlc1tpMiArIDJdID4+IDZdOwogICAgICBiYXNlNjQgKz0gY2hhcnNbYnl0ZXNbaTIgKyAyXSAmIDYzXTsKICAgIH0KICAgIGlmIChsZW4gJSAzID09PSAyKSB7CiAgICAgIGJhc2U2NCA9IGJhc2U2NC5zdWJzdHJpbmcoMCwgYmFzZTY0Lmxlbmd0aCAtIDEpICsgIj0iOwogICAgfSBlbHNlIGlmIChsZW4gJSAzID09PSAxKSB7CiAgICAgIGJhc2U2NCA9IGJhc2U2NC5zdWJzdHJpbmcoMCwgYmFzZTY0Lmxlbmd0aCAtIDIpICsgIj09IjsKICAgIH0KICAgIHJldHVybiBiYXNlNjQ7CiAgfTsKICBjb25zdCBsYXN0QmxvYk1hcCA9IC8qIEBfX1BVUkVfXyAqLyBuZXcgTWFwKCk7CiAgY29uc3QgdHJhbnNwYXJlbnRCbG9iTWFwID0gLyogQF9fUFVSRV9fICovIG5ldyBNYXAoKTsKICBhc3luYyBmdW5jdGlvbiBnZXRUcmFuc3BhcmVudEJsb2JGb3Iod2lkdGgsIGhlaWdodCwgZGF0YVVSTE9wdGlvbnMpIHsKICAgIGNvbnN0IGlkID0gYCR7d2lkdGh9LSR7aGVpZ2h0fWA7CiAgICBpZiAoIk9mZnNjcmVlbkNhbnZhcyIgaW4gZ2xvYmFsVGhpcykgewogICAgICBpZiAodHJhbnNwYXJlbnRCbG9iTWFwLmhhcyhpZCkpCiAgICAgICAgcmV0dXJuIHRyYW5zcGFyZW50QmxvYk1hcC5nZXQoaWQpOwogICAgICBjb25zdCBvZmZzY3JlZW4gPSBuZXcgT2Zmc2NyZWVuQ2FudmFzKHdpZHRoLCBoZWlnaHQpOwogICAgICBvZmZzY3JlZW4uZ2V0Q29udGV4dCgiMmQiKTsKICAgICAgY29uc3QgYmxvYiA9IGF3YWl0IG9mZnNjcmVlbi5jb252ZXJ0VG9CbG9iKGRhdGFVUkxPcHRpb25zKTsKICAgICAgY29uc3QgYXJyYXlCdWZmZXIgPSBhd2FpdCBibG9iLmFycmF5QnVmZmVyKCk7CiAgICAgIGNvbnN0IGJhc2U2NCA9IGVuY29kZShhcnJheUJ1ZmZlcik7CiAgICAgIHRyYW5zcGFyZW50QmxvYk1hcC5zZXQoaWQsIGJhc2U2NCk7CiAgICAgIHJldHVybiBiYXNlNjQ7CiAgICB9IGVsc2UgewogICAgICByZXR1cm4gIiI7CiAgICB9CiAgfQogIGNvbnN0IHdvcmtlciA9IHNlbGY7CiAgbGV0IGxvZ0RlYnVnID0gZmFsc2U7CiAgY29uc3QgZGVidWcgPSAoLi4uYXJncykgPT4gewogICAgaWYgKGxvZ0RlYnVnKSB7CiAgICAgIGNvbnNvbGUuZGVidWcoLi4uYXJncyk7CiAgICB9CiAgfTsKICB3b3JrZXIub25tZXNzYWdlID0gYXN5bmMgZnVuY3Rpb24oZSkgewogICAgbG9nRGVidWcgPSAhIWUuZGF0YS5sb2dEZWJ1ZzsKICAgIGlmICgiT2Zmc2NyZWVuQ2FudmFzIiBpbiBnbG9iYWxUaGlzKSB7CiAgICAgIGNvbnN0IHsgaWQsIGJpdG1hcCwgd2lkdGgsIGhlaWdodCwgZHgsIGR5LCBkdywgZGgsIGRhdGFVUkxPcHRpb25zIH0gPSBlLmRhdGE7CiAgICAgIGNvbnN0IHRyYW5zcGFyZW50QmFzZTY0ID0gZ2V0VHJhbnNwYXJlbnRCbG9iRm9yKAogICAgICAgIHdpZHRoLAogICAgICAgIGhlaWdodCwKICAgICAgICBkYXRhVVJMT3B0aW9ucwogICAgICApOwogICAgICBjb25zdCBvZmZzY3JlZW4gPSBuZXcgT2Zmc2NyZWVuQ2FudmFzKHdpZHRoLCBoZWlnaHQpOwogICAgICBjb25zdCBjdHggPSBvZmZzY3JlZW4uZ2V0Q29udGV4dCgiMmQiKTsKICAgICAgY3R4LmRyYXdJbWFnZShiaXRtYXAsIDAsIDAsIHdpZHRoLCBoZWlnaHQpOwogICAgICBiaXRtYXAuY2xvc2UoKTsKICAgICAgY29uc3QgYmxvYiA9IGF3YWl0IG9mZnNjcmVlbi5jb252ZXJ0VG9CbG9iKGRhdGFVUkxPcHRpb25zKTsKICAgICAgY29uc3QgdHlwZSA9IGJsb2IudHlwZTsKICAgICAgY29uc3QgYXJyYXlCdWZmZXIgPSBhd2FpdCBibG9iLmFycmF5QnVmZmVyKCk7CiAgICAgIGNvbnN0IGJhc2U2NCA9IGVuY29kZShhcnJheUJ1ZmZlcik7CiAgICAgIGlmICghbGFzdEJsb2JNYXAuaGFzKGlkKSAmJiBhd2FpdCB0cmFuc3BhcmVudEJhc2U2NCA9PT0gYmFzZTY0KSB7CiAgICAgICAgZGVidWcoIltoaWdobGlnaHQtd29ya2VyXSBjYW52YXMgYml0bWFwIGlzIHRyYW5zcGFyZW50IiwgewogICAgICAgICAgaWQsCiAgICAgICAgICBiYXNlNjQKICAgICAgICB9KTsKICAgICAgICBsYXN0QmxvYk1hcC5zZXQoaWQsIGJhc2U2NCk7CiAgICAgICAgcmV0dXJuIHdvcmtlci5wb3N0TWVzc2FnZSh7IGlkLCBzdGF0dXM6ICJ0cmFuc3BhcmVudCIgfSk7CiAgICAgIH0KICAgICAgaWYgKGxhc3RCbG9iTWFwLmdldChpZCkgPT09IGJhc2U2NCkgewogICAgICAgIGRlYnVnKCJbaGlnaGxpZ2h0LXdvcmtlcl0gY2FudmFzIGJpdG1hcCBpcyB1bmNoYW5nZWQiLCB7CiAgICAgICAgICBpZCwKICAgICAgICAgIGJhc2U2NAogICAgICAgIH0pOwogICAgICAgIHJldHVybiB3b3JrZXIucG9zdE1lc3NhZ2UoeyBpZCwgc3RhdHVzOiAidW5jaGFuZ2VkIiB9KTsKICAgICAgfQogICAgICBjb25zdCBtc2cgPSB7CiAgICAgICAgaWQsCiAgICAgICAgdHlwZSwKICAgICAgICBiYXNlNjQsCiAgICAgICAgd2lkdGgsCiAgICAgICAgaGVpZ2h0LAogICAgICAgIGR4LAogICAgICAgIGR5LAogICAgICAgIGR3LAogICAgICAgIGRoCiAgICAgIH07CiAgICAgIGRlYnVnKCJbaGlnaGxpZ2h0LXdvcmtlcl0gY2FudmFzIGJpdG1hcCBwcm9jZXNzZWQiLCBtc2cpOwogICAgICB3b3JrZXIucG9zdE1lc3NhZ2UobXNnKTsKICAgICAgbGFzdEJsb2JNYXAuc2V0KGlkLCBiYXNlNjQpOwogICAgfSBlbHNlIHsKICAgICAgZGVidWcoIltoaWdobGlnaHQtd29ya2VyXSBubyBvZmZzY3JlZW5jYW52YXMgc3VwcG9ydCIsIHsKICAgICAgICBpZDogZS5kYXRhLmlkCiAgICAgIH0pOwogICAgICByZXR1cm4gd29ya2VyLnBvc3RNZXNzYWdlKHsgaWQ6IGUuZGF0YS5pZCwgc3RhdHVzOiAidW5zdXBwb3J0ZWQiIH0pOwogICAgfQogIH07Cn0pKCk7Ci8vIyBzb3VyY2VNYXBwaW5nVVJMPWltYWdlLWJpdG1hcC1kYXRhLXVybC13b3JrZXItS0tvQ2VrWjEuanMubWFwCg==";
+var encodedJs = "KGZ1bmN0aW9uKCkgewogICJ1c2Ugc3RyaWN0IjsKICB2YXIgY2hhcnMgPSAiQUJDREVGR0hJSktMTU5PUFFSU1RVVldYWVphYmNkZWZnaGlqa2xtbm9wcXJzdHV2d3h5ejAxMjM0NTY3ODkrLyI7CiAgdmFyIGxvb2t1cCA9IHR5cGVvZiBVaW50OEFycmF5ID09PSAidW5kZWZpbmVkIiA/IFtdIDogbmV3IFVpbnQ4QXJyYXkoMjU2KTsKICBmb3IgKHZhciBpID0gMDsgaSA8IGNoYXJzLmxlbmd0aDsgaSsrKSB7CiAgICBsb29rdXBbY2hhcnMuY2hhckNvZGVBdChpKV0gPSBpOwogIH0KICB2YXIgZW5jb2RlID0gZnVuY3Rpb24oYXJyYXlidWZmZXIpIHsKICAgIHZhciBieXRlcyA9IG5ldyBVaW50OEFycmF5KGFycmF5YnVmZmVyKSwgaTIsIGxlbiA9IGJ5dGVzLmxlbmd0aCwgYmFzZTY0ID0gIiI7CiAgICBmb3IgKGkyID0gMDsgaTIgPCBsZW47IGkyICs9IDMpIHsKICAgICAgYmFzZTY0ICs9IGNoYXJzW2J5dGVzW2kyXSA+PiAyXTsKICAgICAgYmFzZTY0ICs9IGNoYXJzWyhieXRlc1tpMl0gJiAzKSA8PCA0IHwgYnl0ZXNbaTIgKyAxXSA+PiA0XTsKICAgICAgYmFzZTY0ICs9IGNoYXJzWyhieXRlc1tpMiArIDFdICYgMTUpIDw8IDIgfCBieXRlc1tpMiArIDJdID4+IDZdOwogICAgICBiYXNlNjQgKz0gY2hhcnNbYnl0ZXNbaTIgKyAyXSAmIDYzXTsKICAgIH0KICAgIGlmIChsZW4gJSAzID09PSAyKSB7CiAgICAgIGJhc2U2NCA9IGJhc2U2NC5zdWJzdHJpbmcoMCwgYmFzZTY0Lmxlbmd0aCAtIDEpICsgIj0iOwogICAgfSBlbHNlIGlmIChsZW4gJSAzID09PSAxKSB7CiAgICAgIGJhc2U2NCA9IGJhc2U2NC5zdWJzdHJpbmcoMCwgYmFzZTY0Lmxlbmd0aCAtIDIpICsgIj09IjsKICAgIH0KICAgIHJldHVybiBiYXNlNjQ7CiAgfTsKICBjb25zdCBsYXN0QmxvYk1hcCA9IC8qIEBfX1BVUkVfXyAqLyBuZXcgTWFwKCk7CiAgY29uc3QgdHJhbnNwYXJlbnRCbG9iTWFwID0gLyogQF9fUFVSRV9fICovIG5ldyBNYXAoKTsKICBhc3luYyBmdW5jdGlvbiBnZXRUcmFuc3BhcmVudEJsb2JGb3Iod2lkdGgsIGhlaWdodCwgZGF0YVVSTE9wdGlvbnMpIHsKICAgIGNvbnN0IGlkID0gYCR7d2lkdGh9LSR7aGVpZ2h0fWA7CiAgICBpZiAoIk9mZnNjcmVlbkNhbnZhcyIgaW4gZ2xvYmFsVGhpcykgewogICAgICBpZiAodHJhbnNwYXJlbnRCbG9iTWFwLmhhcyhpZCkpIHJldHVybiB0cmFuc3BhcmVudEJsb2JNYXAuZ2V0KGlkKTsKICAgICAgY29uc3Qgb2Zmc2NyZWVuID0gbmV3IE9mZnNjcmVlbkNhbnZhcyh3aWR0aCwgaGVpZ2h0KTsKICAgICAgb2Zmc2NyZWVuLmdldENvbnRleHQoIjJkIik7CiAgICAgIGNvbnN0IGJsb2IgPSBhd2FpdCBvZmZzY3JlZW4uY29udmVydFRvQmxvYihkYXRhVVJMT3B0aW9ucyk7CiAgICAgIGNvbnN0IGFycmF5QnVmZmVyID0gYXdhaXQgYmxvYi5hcnJheUJ1ZmZlcigpOwogICAgICBjb25zdCBiYXNlNjQgPSBlbmNvZGUoYXJyYXlCdWZmZXIpOwogICAgICB0cmFuc3BhcmVudEJsb2JNYXAuc2V0KGlkLCBiYXNlNjQpOwogICAgICByZXR1cm4gYmFzZTY0OwogICAgfSBlbHNlIHsKICAgICAgcmV0dXJuICIiOwogICAgfQogIH0KICBjb25zdCB3b3JrZXIgPSBzZWxmOwogIGxldCBsb2dEZWJ1ZyA9IGZhbHNlOwogIGNvbnN0IGRlYnVnID0gKC4uLmFyZ3MpID0+IHsKICAgIGlmIChsb2dEZWJ1ZykgewogICAgICBjb25zb2xlLmRlYnVnKC4uLmFyZ3MpOwogICAgfQogIH07CiAgd29ya2VyLm9ubWVzc2FnZSA9IGFzeW5jIGZ1bmN0aW9uKGUpIHsKICAgIGxvZ0RlYnVnID0gISFlLmRhdGEubG9nRGVidWc7CiAgICBpZiAoIk9mZnNjcmVlbkNhbnZhcyIgaW4gZ2xvYmFsVGhpcykgewogICAgICBjb25zdCB7IGlkLCBiaXRtYXAsIHdpZHRoLCBoZWlnaHQsIGR4LCBkeSwgZHcsIGRoLCBkYXRhVVJMT3B0aW9ucyB9ID0gZS5kYXRhOwogICAgICBjb25zdCB0cmFuc3BhcmVudEJhc2U2NCA9IGdldFRyYW5zcGFyZW50QmxvYkZvcigKICAgICAgICB3aWR0aCwKICAgICAgICBoZWlnaHQsCiAgICAgICAgZGF0YVVSTE9wdGlvbnMKICAgICAgKTsKICAgICAgY29uc3Qgb2Zmc2NyZWVuID0gbmV3IE9mZnNjcmVlbkNhbnZhcyh3aWR0aCwgaGVpZ2h0KTsKICAgICAgY29uc3QgY3R4ID0gb2Zmc2NyZWVuLmdldENvbnRleHQoIjJkIik7CiAgICAgIGN0eC5kcmF3SW1hZ2UoYml0bWFwLCAwLCAwLCB3aWR0aCwgaGVpZ2h0KTsKICAgICAgYml0bWFwLmNsb3NlKCk7CiAgICAgIGNvbnN0IGJsb2IgPSBhd2FpdCBvZmZzY3JlZW4uY29udmVydFRvQmxvYihkYXRhVVJMT3B0aW9ucyk7CiAgICAgIGNvbnN0IHR5cGUgPSBibG9iLnR5cGU7CiAgICAgIGNvbnN0IGFycmF5QnVmZmVyID0gYXdhaXQgYmxvYi5hcnJheUJ1ZmZlcigpOwogICAgICBjb25zdCBiYXNlNjQgPSBlbmNvZGUoYXJyYXlCdWZmZXIpOwogICAgICBpZiAoIWxhc3RCbG9iTWFwLmhhcyhpZCkgJiYgYXdhaXQgdHJhbnNwYXJlbnRCYXNlNjQgPT09IGJhc2U2NCkgewogICAgICAgIGRlYnVnKCJbaGlnaGxpZ2h0LXdvcmtlcl0gY2FudmFzIGJpdG1hcCBpcyB0cmFuc3BhcmVudCIsIHsKICAgICAgICAgIGlkLAogICAgICAgICAgYmFzZTY0CiAgICAgICAgfSk7CiAgICAgICAgbGFzdEJsb2JNYXAuc2V0KGlkLCBiYXNlNjQpOwogICAgICAgIHJldHVybiB3b3JrZXIucG9zdE1lc3NhZ2UoeyBpZCwgc3RhdHVzOiAidHJhbnNwYXJlbnQiIH0pOwogICAgICB9CiAgICAgIGlmIChsYXN0QmxvYk1hcC5nZXQoaWQpID09PSBiYXNlNjQpIHsKICAgICAgICBkZWJ1ZygiW2hpZ2hsaWdodC13b3JrZXJdIGNhbnZhcyBiaXRtYXAgaXMgdW5jaGFuZ2VkIiwgewogICAgICAgICAgaWQsCiAgICAgICAgICBiYXNlNjQKICAgICAgICB9KTsKICAgICAgICByZXR1cm4gd29ya2VyLnBvc3RNZXNzYWdlKHsgaWQsIHN0YXR1czogInVuY2hhbmdlZCIgfSk7CiAgICAgIH0KICAgICAgY29uc3QgbXNnID0gewogICAgICAgIGlkLAogICAgICAgIHR5cGUsCiAgICAgICAgYmFzZTY0LAogICAgICAgIHdpZHRoLAogICAgICAgIGhlaWdodCwKICAgICAgICBkeCwKICAgICAgICBkeSwKICAgICAgICBkdywKICAgICAgICBkaAogICAgICB9OwogICAgICBkZWJ1ZygiW2hpZ2hsaWdodC13b3JrZXJdIGNhbnZhcyBiaXRtYXAgcHJvY2Vzc2VkIiwgbXNnKTsKICAgICAgd29ya2VyLnBvc3RNZXNzYWdlKG1zZyk7CiAgICAgIGxhc3RCbG9iTWFwLnNldChpZCwgYmFzZTY0KTsKICAgIH0gZWxzZSB7CiAgICAgIGRlYnVnKCJbaGlnaGxpZ2h0LXdvcmtlcl0gbm8gb2Zmc2NyZWVuY2FudmFzIHN1cHBvcnQiLCB7CiAgICAgICAgaWQ6IGUuZGF0YS5pZAogICAgICB9KTsKICAgICAgcmV0dXJuIHdvcmtlci5wb3N0TWVzc2FnZSh7IGlkOiBlLmRhdGEuaWQsIHN0YXR1czogInVuc3VwcG9ydGVkIiB9KTsKICAgIH0KICB9Owp9KSgpOwovLyMgc291cmNlTWFwcGluZ1VSTD1pbWFnZS1iaXRtYXAtZGF0YS11cmwtd29ya2VyLUJpWEpSZjQ3LmpzLm1hcAo=";
 var decodeBase64 = (base64) => Uint8Array.from(atob(base64), (c2) => c2.charCodeAt(0));
 var blob = typeof window !== "undefined" && window.Blob && new Blob([decodeBase64(encodedJs)], { type: "text/javascript;charset=utf-8" });
 function WorkerWrapper(options) {
@@ -7138,9 +7289,9 @@ var StylesheetManager = class {
         styleId = this.styleMirror.add(sheet);
         styles.push({
           styleId,
-          rules: Array.from(sheet.rules || CSSRule, (r2, index) => ({
-            rule: stringifyRule(r2),
-            index
+          rules: Array.from(sheet.rules || CSSRule, (r2, index2) => ({
+            rule: stringifyRule(r2, sheet.href),
+            index: index2
           }))
         });
       } else
@@ -7182,7 +7333,7 @@ var ProcessedNodeManager = class {
   }
 };
 var wrappedEmit;
-var takeFullSnapshot;
+var takeFullSnapshot$1;
 var canvasManager;
 var recording = false;
 try {
@@ -7336,7 +7487,7 @@ function record(options = {}) {
       const exceedCount = checkoutEveryNth && incrementalSnapshotCount >= checkoutEveryNth;
       const exceedTime = checkoutEveryNms && e2.timestamp - lastFullSnapshotEvent.timestamp > checkoutEveryNms;
       if (exceedCount || exceedTime) {
-        takeFullSnapshot(true);
+        takeFullSnapshot$1(true);
       }
     }
   };
@@ -7433,7 +7584,7 @@ function record(options = {}) {
     },
     mirror
   });
-  takeFullSnapshot = (isCheckout = false) => {
+  takeFullSnapshot$1 = (isCheckout = false) => {
     if (!recordDOM) {
       return;
     }
@@ -7474,7 +7625,7 @@ function record(options = {}) {
           stylesheetManager.trackLinkElement(n2);
         }
         if (hasShadowRoot(n2)) {
-          shadowDomManager.addShadowRoot(shadowRoot(n2), document);
+          shadowDomManager.addShadowRoot(index.shadowRoot(n2), document);
         }
       },
       onIframeLoad: (iframe, childSn) => {
@@ -7640,7 +7791,7 @@ function record(options = {}) {
       }
     });
     const init = () => {
-      takeFullSnapshot();
+      takeFullSnapshot$1();
       handlers.push(observe(document));
       recording = true;
     };
@@ -7701,7 +7852,7 @@ record.takeFullSnapshot = (isCheckout) => {
   if (!recording) {
     throw new Error("please take full snapshot after start recording");
   }
-  takeFullSnapshot(isCheckout);
+  takeFullSnapshot$1(isCheckout);
 };
 record.snapshotCanvas = async (element) => {
   if (!canvasManager) {
@@ -7966,8 +8117,8 @@ var Timer = class {
     if (!this.actions.length || this.actions[this.actions.length - 1].delay <= action.delay) {
       this.actions.push(action);
     } else {
-      const index = this.findActionIndex(action);
-      this.actions.splice(index, 0, action);
+      const index2 = this.findActionIndex(action);
+      this.actions.splice(index2, 0, action);
     }
     if (rafWasActive) {
       this.raf = requestAnimationFrame(this.rafCheck.bind(this));
@@ -8492,8 +8643,8 @@ function deserializeArg(imageMap, ctx, preload) {
       } else if ("index" in arg) {
         if (preload || ctx === null)
           return arg;
-        const { rr_type: name, index } = arg;
-        return variableListFor(ctx, name)[index];
+        const { rr_type: name, index: index2 } = arg;
+        return variableListFor(ctx, name)[index2];
       } else if ("args" in arg) {
         const { rr_type: name, args } = arg;
         const ctor = window[name];
@@ -8610,8 +8761,8 @@ async function canvasMutation$1({
     }
   );
   const args = await Promise.all(mutationArgsPromises);
-  args.forEach((args2, index) => {
-    const mutation = mutations[index];
+  args.forEach((args2, index2) => {
+    const mutation = mutations[index2];
     try {
       if (mutation.setter) {
         ctx[mutation.property] = mutation.args[0];
@@ -8872,6 +9023,45 @@ var MediaManager = class {
     this.mediaMap.clear();
   }
 };
+function applyDialogToTopLevel(node, attributeMutation) {
+  if (node.nodeName !== "DIALOG" || node instanceof BaseRRNode)
+    return;
+  const dialog = node;
+  const oldIsOpen = dialog.open;
+  const oldIsModalState = oldIsOpen && dialog.matches("dialog:modal");
+  const rrOpenMode = dialog.getAttribute("rr_open_mode");
+  const newIsOpen = typeof (attributeMutation == null ? void 0 : attributeMutation.attributes.open) === "string" || typeof dialog.getAttribute("open") === "string";
+  const newIsModalState = rrOpenMode === "modal";
+  const newIsNonModalState = rrOpenMode === "non-modal";
+  const modalStateChanged = oldIsModalState && newIsNonModalState || !oldIsModalState && newIsModalState;
+  if (oldIsOpen && !modalStateChanged)
+    return;
+  if (!dialog.isConnected) {
+    console.warn("dialog is not attached to the dom", dialog);
+    return;
+  }
+  if (oldIsOpen)
+    dialog.close();
+  if (!newIsOpen)
+    return;
+  if (newIsModalState)
+    dialog.showModal();
+  else
+    dialog.show();
+}
+function removeDialogFromTopLevel(node, attributeMutation) {
+  if (node.nodeName !== "DIALOG" || node instanceof BaseRRNode)
+    return;
+  const dialog = node;
+  if (!dialog.isConnected) {
+    console.warn("dialog is not attached to the dom", dialog);
+    return;
+  }
+  if (attributeMutation.attributes.open === null) {
+    dialog.removeAttribute("open");
+    dialog.removeAttribute("rr_open_mode");
+  }
+}
 var SKIP_TIME_INTERVAL = 5 * 1e3;
 var SKIP_TIME_MIN = 1 * 1e3;
 var SKIP_DURATION_LIMIT = 60 * 60 * 1e3;
@@ -9569,9 +9759,12 @@ var Replayer = class {
       );
     }
     this.legacy_missingNodeRetryMap = {};
-    const collected = [];
+    const collectedIframes = [];
+    const collectedDialogs = /* @__PURE__ */ new Set();
     const afterAppend = (builtNode, id) => {
-      this.collectIframeAndAttachDocument(collected, builtNode);
+      if (builtNode.nodeName === "DIALOG")
+        collectedDialogs.add(builtNode);
+      this.collectIframeAndAttachDocument(collectedIframes, builtNode);
       if (this.mediaManager.isSupportedMediaElement(builtNode)) {
         const { events } = this.service.state.context;
         this.mediaManager.addMediaElements(
@@ -9600,7 +9793,7 @@ var Replayer = class {
       mirror: this.mirror
     });
     afterAppend(this.iframe.contentDocument, event.data.node.id);
-    for (const { mutationInQueue, builtNode } of collected) {
+    for (const { mutationInQueue, builtNode } of collectedIframes) {
       this.attachDocumentToIframe(mutationInQueue, builtNode);
       this.newDocumentQueue = this.newDocumentQueue.filter(
         (m) => m !== mutationInQueue
@@ -9608,6 +9801,7 @@ var Replayer = class {
     }
     const { documentElement, head } = this.iframe.contentDocument;
     this.insertStyleRules(documentElement, head);
+    collectedDialogs.forEach((d) => applyDialogToTopLevel(d));
     if (!this.service.state.matches("playing")) {
       this.iframe.contentDocument.getElementsByTagName("html")[0].classList.add("rrweb-paused");
     }
@@ -9638,9 +9832,9 @@ var Replayer = class {
       documentElement.insertBefore(styleEl, head);
       styleEl.rules.push({
         source: IncrementalSource.StyleSheetRule,
-        adds: injectStylesRules.map((cssText, index) => ({
+        adds: injectStylesRules.map((cssText, index2) => ({
           rule: cssText,
-          index
+          index: index2
         }))
       });
     } else {
@@ -9656,9 +9850,12 @@ var Replayer = class {
   }
   attachDocumentToIframe(mutation, iframeEl) {
     const mirror2 = this.usingVirtualDom ? this.virtualDom.mirror : this.mirror;
-    const collected = [];
+    const collectedIframes = [];
+    const collectedDialogs = /* @__PURE__ */ new Set();
     const afterAppend = (builtNode, id) => {
-      this.collectIframeAndAttachDocument(collected, builtNode);
+      if (builtNode.nodeName === "DIALOG")
+        collectedDialogs.add(builtNode);
+      this.collectIframeAndAttachDocument(collectedIframes, builtNode);
       const sn = mirror2.getMeta(builtNode);
       if ((sn == null ? void 0 : sn.type) === NodeType$2.Element && (sn == null ? void 0 : sn.tagName.toUpperCase()) === "HTML") {
         const { documentElement, head } = iframeEl.contentDocument;
@@ -9686,12 +9883,13 @@ var Replayer = class {
       cache: this.cache
     });
     afterAppend(iframeEl.contentDocument, mutation.node.id);
-    for (const { mutationInQueue, builtNode } of collected) {
+    for (const { mutationInQueue, builtNode } of collectedIframes) {
       this.attachDocumentToIframe(mutationInQueue, builtNode);
       this.newDocumentQueue = this.newDocumentQueue.filter(
         (m) => m !== mutationInQueue
       );
     }
+    collectedDialogs.forEach((d) => applyDialogToTopLevel(d));
   }
   collectIframeAndAttachDocument(collected, builtNode) {
     if (isSerializedIframe(builtNode, this.mirror)) {
@@ -10178,6 +10376,7 @@ var Replayer = class {
       const afterAppend = (node, id) => {
         if (this.usingVirtualDom)
           return;
+        applyDialogToTopLevel(node);
         for (const plugin of this.config.plugins || []) {
           if (plugin.onBuild)
             plugin.onBuild(node, { id, replayer: this });
@@ -10205,11 +10404,20 @@ var Replayer = class {
         return;
       }
       const parentSn = mirror2.getMeta(parent);
-      if (parentSn && parentSn.type === NodeType$2.Element && parentSn.tagName === "textarea" && mutation.node.type === NodeType$2.Text) {
-        const childNodeArray = Array.isArray(parent.childNodes) ? parent.childNodes : Array.from(parent.childNodes);
-        for (const c2 of childNodeArray) {
-          if (c2.nodeType === parent.TEXT_NODE) {
-            parent.removeChild(c2);
+      if (parentSn && parentSn.type === NodeType$2.Element && mutation.node.type === NodeType$2.Text) {
+        const prospectiveSiblings = Array.isArray(parent.childNodes) ? parent.childNodes : Array.from(parent.childNodes);
+        if (parentSn.tagName === "textarea") {
+          for (const c2 of prospectiveSiblings) {
+            if (c2.nodeType === parent.TEXT_NODE) {
+              parent.removeChild(c2);
+            }
+          }
+        } else if (parentSn.tagName === "style" && prospectiveSiblings.length === 1) {
+          for (const cssText of prospectiveSiblings) {
+            if (cssText.nodeType === parent.TEXT_NODE && !mirror2.hasNode(cssText)) {
+              target.textContent = cssText.textContent;
+              parent.removeChild(cssText);
+            }
           }
         }
       } else if ((parentSn == null ? void 0 : parentSn.type) === NodeType$2.Document) {
@@ -10319,6 +10527,8 @@ var Replayer = class {
           const value = mutation.attributes[attributeName];
           if (value === null) {
             target.removeAttribute(attributeName);
+            if (attributeName === "open")
+              removeDialogFromTopLevel(target, mutation);
           } else if (typeof value === "string") {
             try {
               if (attributeName === "_cssText" && (target.nodeName === "LINK" || target.nodeName === "STYLE")) {
@@ -10366,6 +10576,9 @@ var Replayer = class {
                   attributeName,
                   value
                 );
+              }
+              if (attributeName === "rr_open_mode" && target.nodeName === "DIALOG") {
+                applyDialogToTopLevel(target, mutation);
               }
             } catch (error) {
               this.warn(
@@ -10485,12 +10698,12 @@ var Replayer = class {
     (_a2 = data.adds) == null ? void 0 : _a2.forEach(({ rule, index: nestedIndex }) => {
       try {
         if (Array.isArray(nestedIndex)) {
-          const { positions, index } = getPositionsAndIndex(nestedIndex);
+          const { positions, index: index2 } = getPositionsAndIndex(nestedIndex);
           const nestedRule = getNestedRule(styleSheet.cssRules, positions);
-          nestedRule.insertRule(rule, index);
+          nestedRule.insertRule(rule, index2);
         } else {
-          const index = nestedIndex === void 0 ? void 0 : Math.min(nestedIndex, styleSheet.cssRules.length);
-          styleSheet == null ? void 0 : styleSheet.insertRule(rule, index);
+          const index2 = nestedIndex === void 0 ? void 0 : Math.min(nestedIndex, styleSheet.cssRules.length);
+          styleSheet == null ? void 0 : styleSheet.insertRule(rule, index2);
         }
       } catch (e2) {
       }
@@ -10498,9 +10711,9 @@ var Replayer = class {
     (_b = data.removes) == null ? void 0 : _b.forEach(({ index: nestedIndex }) => {
       try {
         if (Array.isArray(nestedIndex)) {
-          const { positions, index } = getPositionsAndIndex(nestedIndex);
+          const { positions, index: index2 } = getPositionsAndIndex(nestedIndex);
           const nestedRule = getNestedRule(styleSheet.cssRules, positions);
-          nestedRule.deleteRule(index || 0);
+          nestedRule.deleteRule(index2 || 0);
         } else {
           styleSheet == null ? void 0 : styleSheet.deleteRule(nestedIndex);
         }
@@ -10708,6 +10921,7 @@ var Replayer = class {
 };
 var { addCustomEvent } = record;
 var { freezePage } = record;
+var { takeFullSnapshot } = record;
 export {
   EventType,
   IncrementalSource,
@@ -10719,6 +10933,7 @@ export {
   freezePage,
   _mirror as mirror,
   record,
+  takeFullSnapshot,
   utils
 };
 /*! *****************************************************************************

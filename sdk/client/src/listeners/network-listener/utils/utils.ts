@@ -1,6 +1,7 @@
+import { getActiveSpan } from '../../../otel'
+import { getSessionSecureID } from '../../../utils/sessionStorage/highlightSession'
 import { RequestResponsePair } from './models'
 import { sanitizeResource } from './network-sanitizer'
-import { getSessionSecureID } from '../../../utils/sessionStorage/highlightSession'
 
 export const HIGHLIGHT_REQUEST_HEADER = 'X-Highlight-Request'
 
@@ -299,9 +300,17 @@ function makeId(length: number) {
 	return result
 }
 
-export const createNetworkRequestId = () => {
+export const createNetworkRequestId = (useOtelTraceId?: boolean) => {
 	// Long enough to avoid collisions, not long enough to be unguessable
-	return [getSessionSecureID(), makeId(10)]
+	const requestId = makeId(10)
+
+	if (useOtelTraceId) {
+		const context = getActiveSpan()
+		const traceId = context?.spanContext().traceId
+		return [getSessionSecureID({ local: true }), traceId ?? requestId]
+	}
+
+	return [getSessionSecureID({ local: true }), requestId]
 }
 
 export const getHighlightRequestHeader = (

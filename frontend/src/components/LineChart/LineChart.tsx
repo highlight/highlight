@@ -342,7 +342,7 @@ export const CustomTooltip = ({
 											max_needs_improvement_value:
 												referenceLines![1].value,
 										}),
-								  )
+									)
 								: undefined}
 						</div>
 					)

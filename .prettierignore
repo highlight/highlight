@@ -19,7 +19,7 @@ scripts/venv
 .yarnrc.yml
 __generated
 .reflame.config.jsonc
+highlight.io/out
 opentelemetry-sdk-workers
 sdk/highlightinc-highlight-datasource/grafana/data
 sdk/highlight-php
-

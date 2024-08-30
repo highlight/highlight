@@ -26,9 +26,11 @@ async def read_root(request: Request):
     result = 1 / 0
     return {"Hello": "World"}
 
+
 def log_in_background():
     logging.info("logging in background task")
     return
+
 
 @app.get("/background")
 async def read_background(request: Request, background_tasks: BackgroundTasks):
@@ -36,6 +38,7 @@ async def read_background(request: Request, background_tasks: BackgroundTasks):
     background_tasks.add_task(log_in_background)
     logging.info("started a background task")
     return {"Hello": "World"}
+
 
 async def main():
     "Run scheduler and the API"
