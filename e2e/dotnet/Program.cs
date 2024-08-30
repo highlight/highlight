@@ -1,32 +1,33 @@
 using System.Diagnostics;
 using dotnet.Components;
-using Highlight;
 using Serilog;
 
+const string serviceName = "example-dotnet-backend";
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddRazorComponents()
-    .AddInteractiveServerComponents()
-    .AddHighlightInstrumentation(options => options.ProjectId = '1');
-builder.Logging
-    .AddHighlightInstrumentation(options => options.ProjectId = '1');
+    .AddInteractiveServerComponents();
 
+// Setup Highlight Instrumentation
+builder.Services
+    .AddHighlightInstrumentation(options => options.ProjectId = "1");
+builder.Logging
+    .AddHighlightInstrumentation(options => options.ProjectId = "1");
 Log.Logger = new LoggerConfiguration()
     .Enrich.WithMachineName()
-    .Enrich.With<HighlightLogEnricher>()
+    .Enrich.WithHighlight()
     .Enrich.FromLogContext()
     .WriteTo.Async(async =>
-        async.OpenTelemetry(options =>
+        async.HighlightOpenTelemetry(options =>
         {
-            options.Endpoint = HighlightConfig.LogsEndpoint;
-            options.Protocol = HighlightConfig.Protocol;
-            options.ResourceAttributes = HighlightConfig.ResourceAttributes;
+            options.ProjectId = "1";
+            options.ServiceName = serviceName;
+            options.OtlpEndpoint = "http://localhost:4318";
         })
     )
     .CreateLogger();
 
-HighlightConfig.Configure(builder);
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
@@ -50,7 +51,7 @@ var summaries = new[]
     "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
 };
 
-var tracer = new ActivitySource(HighlightConfig.ServiceName);
+var tracer = new ActivitySource(serviceName);
 var activityListener = new ActivityListener
 {
     ShouldListenTo = s => true,
