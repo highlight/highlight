@@ -1990,6 +1990,7 @@ type Visualization {
 	name: String!
 	updatedByAdmin: SanitizedAdmin
 	graphs: [Graph!]!
+	timePreset: String
 }
 
 type VisualizationsResponse {
@@ -2021,8 +2022,9 @@ input GraphInput {
 input VisualizationInput {
 	id: ID
 	projectId: ID!
-	name: String!
+	name: String
 	graphIds: [ID!]
+	timePreset: String
 }
 
 scalar Upload

@@ -1429,6 +1429,7 @@ type Visualization struct {
 	UpdatedByAdmin   *Admin        `gorm:"foreignKey:UpdatedByAdminId"`
 	GraphIds         pq.Int32Array `gorm:"type:integer[]"`
 	Graphs           []Graph
+	TimePreset       *string
 }
 
 type VisualizationsResponse struct {

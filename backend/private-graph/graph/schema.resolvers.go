@@ -4868,17 +4868,23 @@ func (r *mutationResolver) UpsertVisualization(ctx context.Context, visualizatio
 		return 0, err
 	}
 
-	graphIds := lo.Map(visualization.GraphIds, func(i int, _ int) int32 {
-		return int32(i)
-	})
-
 	toSave := model.Visualization{
 		Model:            model.Model{ID: id},
 		ProjectID:        visualization.ProjectID,
-		Name:             visualization.Name,
 		UpdatedByAdminId: &admin.ID,
-		GraphIds:         graphIds,
+		TimePreset:       visualization.TimePreset,
 	}
+
+	if visualization.Name != nil {
+		toSave.Name = *visualization.Name
+	}
+
+	if visualization.GraphIds != nil {
+		toSave.GraphIds = lo.Map(visualization.GraphIds, func(i int, _ int) int32 {
+			return int32(i)
+		})
+	}
+
 	if err := r.DB.WithContext(ctx).Save(&toSave).Error; err != nil {
 		return 0, err
 	}

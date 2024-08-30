@@ -23,6 +23,7 @@ import {
 	IconSolidClock,
 	IconSolidCog,
 	IconSolidPlus,
+	parsePreset,
 	presetStartDate,
 	Stack,
 	Tag,
@@ -30,7 +31,7 @@ import {
 } from '@highlight-run/ui/components'
 import { vars } from '@highlight-run/ui/vars'
 import clsx from 'clsx'
-import { useEffect, useId, useState } from 'react'
+import { useId, useState } from 'react'
 import { Helmet } from 'react-helmet'
 import { Link, useNavigate } from 'react-router-dom'
 
@@ -50,6 +51,8 @@ import Graph, { getViewConfig } from '@/pages/Graphing/components/Graph'
 import { useParams } from '@/util/react-router/useParams'
 
 import * as style from './Dashboard.css'
+import { DashboardSettingsModal } from '@/pages/Graphing/components/DashboardSettingsModal'
+import { StringParam, useQueryParams } from 'use-query-params'
 
 export const HeaderDivider = () => <Box cssClass={style.headerDivider} />
 
@@ -58,6 +61,10 @@ export const Dashboard = () => {
 		dashboard_id: string
 	}>()
 
+	const [, setParams] = useQueryParams({
+		relative_time: StringParam,
+	})
+
 	const sensors = useSensors(
 		useSensor(PointerSensor),
 		useSensor(KeyboardSensor, {
@@ -65,7 +72,8 @@ export const Dashboard = () => {
 		}),
 	)
 
-	const [name, setName] = useState('')
+	const [showModal, setShowModal] = useState(false)
+
 	const [graphs, setGraphs] =
 		useState<GetVisualizationQuery['visualization']['graphs']>()
 	const handleDragEnd = (event: any) => {
@@ -82,13 +90,13 @@ export const Dashboard = () => {
 			const newGraphs = arrayMove(graphs, oldIndex, newIndex)
 			setGraphs(newGraphs)
 
-			const graphIds = graphs?.map((g) => g.id)
+			const graphIds = newGraphs?.map((g) => g.id)
 			upsertViz({
 				variables: {
 					visualization: {
 						projectId,
+						name: data?.visualization.name,
 						id: dashboard_id,
-						name,
 						graphIds: graphIds,
 					},
 				},
@@ -129,14 +137,14 @@ export const Dashboard = () => {
 	const { projectId } = useProjectId()
 	const { data } = useGetVisualizationQuery({
 		variables: { id: dashboard_id! },
-	})
-
-	useEffect(() => {
-		if (data !== undefined) {
-			setName(data.visualization.name)
+		onCompleted: (data) => {
 			setGraphs(data.visualization.graphs)
-		}
-	}, [data])
+			const preset = data.visualization.timePreset
+			if (preset) {
+				updateSearchTime(new Date(), new Date(), parsePreset(preset))
+			}
+		},
+	})
 
 	const [upsertViz] = useUpsertVisualizationMutation()
 
@@ -159,6 +167,14 @@ export const Dashboard = () => {
 			<Helmet>
 				<title>Dashboard</title>
 			</Helmet>
+			<DashboardSettingsModal
+				showModal={showModal}
+				onHideModal={() => {
+					setShowModal(false)
+				}}
+				dashboardId={dashboard_id!}
+				settings={data?.visualization}
+			/>
 			<Box
 				background="n2"
 				padding="8"
@@ -204,7 +220,7 @@ export const Dashboard = () => {
 							/>
 
 							<Text size="small" weight="medium" color="default">
-								{name}
+								{data?.visualization.name}
 							</Text>
 						</Stack>
 						<Box display="flex" gap="4">
@@ -229,7 +245,9 @@ export const Dashboard = () => {
 									emphasis="medium"
 									kind="secondary"
 									iconLeft={<IconSolidCog size={14} />}
-									onClick={() => {}}
+									onClick={() => {
+										setShowModal(true)
+									}}
 								>
 									Settings
 								</Button>

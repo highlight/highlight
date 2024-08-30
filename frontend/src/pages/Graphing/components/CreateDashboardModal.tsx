@@ -71,7 +71,6 @@ const InnerModal = ({ loading, onHideModal, onSubmit }: ModalProps) => {
 	const formStore = Form.useStore({
 		defaultValues: {
 			name: '',
-			filters: '',
 		},
 	})
 
