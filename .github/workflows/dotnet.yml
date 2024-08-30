@@ -27,15 +27,12 @@ jobs:
               uses: actions/setup-dotnet@v4
               with:
                   dotnet-version: 8.x
-                  source-url: https://api.nuget.org/v3/index.json
-              env:
-                  NUGET_AUTH_TOKEN: ${{secrets.NUGET_API_KEY}}
 
             - name: Build solution and generate NuGet package
               run: dotnet pack -c Release -o out
 
             - name: Push generated package to GitHub registry
               # if: github.ref == 'refs/heads/main'
-              run: dotnet nuget push out/*.nupkg -k $NUGET_AUTH_TOKEN -s https://api.nuget.org/v3/index.json --skip-duplicate --no-symbols true
+              run: dotnet nuget push out/*.nupkg -k $NUGET_AUTH_TOKEN -s https://api.nuget.org/v3/index.json --skip-duplicate
               env:
                   NUGET_AUTH_TOKEN: ${{ secrets.NUGET_API_KEY }}
