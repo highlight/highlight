@@ -214,17 +214,12 @@ module Highlight
       severity ||= UNKNOWN
       return true if @logdev.nil? || severity < level
 
-      message = format_message(message, progname)
-      super(severity, message, progname, &block)
-      H.instance&.record_log(nil, nil, severity, message)
-    end
-
-    private
-
-    def format_message(message, progname)
+      progname ||= @progname
       message = yield if message.nil? && block_given?
       message = progname if message.nil?
-      message
+
+      super(severity, message, progname, &block)
+      H.instance&.record_log(nil, nil, severity, message)
     end
   end
 

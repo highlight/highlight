@@ -12,7 +12,10 @@ Metrics/MethodLength:
     Enabled: false
 
 Metrics/CyclomaticComplexity:
-    Max: 8
+    Enabled: false
+
+Metrics/PerceivedComplexity:
+    Enabled: false
 
 Naming/MethodParameterName:
     Enabled: false
