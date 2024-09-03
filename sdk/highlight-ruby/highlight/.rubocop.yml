@@ -1,5 +1,6 @@
 AllCops:
     TargetRubyVersion: 3.0
+    EnabledByDefault: true
 
 Style/FrozenStringLiteralComment:
     Enabled: false
