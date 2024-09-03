@@ -55,7 +55,12 @@ class HighlightTest < Minitest::Test
     Highlight::H.new('qe9y4yg1')
     Highlight::H.instance.record_log(nil, nil, Logger::INFO, 'ruby test record_log info!')
     Highlight.log(Logger::ERROR, 'ruby test record_log error!')
-    Highlight::H.instance.record_log('session123', 'request456', Logger::WARN, 'ruby test record_log with session and request!')
+    Highlight::H.instance.record_log(
+      'session123',
+      'request456',
+      Logger::WARN,
+      'ruby test record_log with session and request!'
+    )
     Highlight::H.instance.flush
   end
 
@@ -85,7 +90,7 @@ class HighlightTest < Minitest::Test
 
     OpenTelemetry::Trace::Tracer.stub :new, mock do
       Highlight.init(@project_id)
-      Highlight.start_span('test_span', { 'attr1' => 'value1' }) do |span|
+      Highlight.start_span('test_span', { 'attr1' => 'value1' }) do
         Highlight.log(Logger::INFO, 'ruby test start_span!')
       end
       Highlight::H.instance.flush
@@ -131,10 +136,9 @@ class HighlightTest < Minitest::Test
 
   def test_highlight_traceparent_meta
     Highlight.init(@project_id)
-
     meta_tag = Highlight.traceparent_meta
 
-    assert_match /<meta name="traceparent" content="00-[a-f0-9]{32}-[a-f0-9]{16}-01">/, meta_tag
+    assert_match(/<meta name="traceparent" content="00-[a-f0-9]{32}-[a-f0-9]{16}-01">/, meta_tag)
   end
 
   def test_parse_headers
@@ -145,17 +149,17 @@ class HighlightTest < Minitest::Test
 
     highlight_headers = Highlight::H.parse_headers(headers)
 
-    assert_equal 'session123', highlight_headers.session_id
-    assert_equal '0af7651916cd43dd8448eb211c80319c', highlight_headers.request_id
+    assert_equal('session123', highlight_headers.session_id)
+    assert_equal('0af7651916cd43dd8448eb211c80319c', highlight_headers.request_id)
   end
 
   def test_log_level_string
-    assert_equal 'INFO', Highlight::H.log_level_string(Logger::INFO)
-    assert_equal 'ERROR', Highlight::H.log_level_string(Logger::ERROR)
-    assert_equal 'WARN', Highlight::H.log_level_string(Logger::WARN)
-    assert_equal 'DEBUG', Highlight::H.log_level_string(Logger::DEBUG)
-    assert_equal 'FATAL', Highlight::H.log_level_string(Logger::FATAL)
-    assert_equal 'UNKNOWN', Highlight::H.log_level_string(Logger::UNKNOWN)
-    assert_equal 'UNKNOWN', Highlight::H.log_level_string(999) # Invalid level
+    assert_equal('INFO', Highlight::H.log_level_string(Logger::INFO))
+    assert_equal('ERROR', Highlight::H.log_level_string(Logger::ERROR))
+    assert_equal('WARN', Highlight::H.log_level_string(Logger::WARN))
+    assert_equal('DEBUG', Highlight::H.log_level_string(Logger::DEBUG))
+    assert_equal('FATAL', Highlight::H.log_level_string(Logger::FATAL))
+    assert_equal('UNKNOWN', Highlight::H.log_level_string(Logger::UNKNOWN))
+    assert_equal('UNKNOWN', Highlight::H.log_level_string(999)) # Invalid level
   end
 end
