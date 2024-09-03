@@ -14,9 +14,9 @@
         <FileAlignment>512</FileAlignment>
 
         <IsPackable>true</IsPackable>
-        <Version>0.1.0</Version>
-        <AssemblyVersion>0.1.0</AssemblyVersion>
-        <FileVersion>0.1.0</FileVersion>
+        <Version>0.1.3</Version>
+        <AssemblyVersion>0.1.3</AssemblyVersion>
+        <FileVersion>0.1.3</FileVersion>
         <Company>highlight.io</Company>
         <Authors>Vadim Korolik</Authors>
         <Product>highlight.io</Product>
@@ -162,14 +162,14 @@
         <Reference Include="OpenTelemetry.Resources.Azure, Version=1.0.0.52, Culture=neutral, PublicKeyToken=7bd6737fe5b67e3c, processorArchitecture=MSIL">
           <HintPath>packages\OpenTelemetry.Resources.Azure.1.0.0-beta.8\lib\netstandard2.0\OpenTelemetry.Resources.Azure.dll</HintPath>
         </Reference>
-        <Reference Include="OpenTelemetry.Resources.Host, Version=0.1.0.53, Culture=neutral, PublicKeyToken=7bd6737fe5b67e3c, processorArchitecture=MSIL">
-          <HintPath>packages\OpenTelemetry.Resources.Host.0.1.0-beta.2\lib\net462\OpenTelemetry.Resources.Host.dll</HintPath>
+        <Reference Include="OpenTelemetry.Resources.Host, Version=0.1.3.53, Culture=neutral, PublicKeyToken=7bd6737fe5b67e3c, processorArchitecture=MSIL">
+          <HintPath>packages\OpenTelemetry.Resources.Host.0.1.3-beta.2\lib\net462\OpenTelemetry.Resources.Host.dll</HintPath>
         </Reference>
-        <Reference Include="OpenTelemetry.Resources.Process, Version=0.1.0.55, Culture=neutral, PublicKeyToken=7bd6737fe5b67e3c, processorArchitecture=MSIL">
-          <HintPath>packages\OpenTelemetry.Resources.Process.0.1.0-beta.2\lib\net462\OpenTelemetry.Resources.Process.dll</HintPath>
+        <Reference Include="OpenTelemetry.Resources.Process, Version=0.1.3.55, Culture=neutral, PublicKeyToken=7bd6737fe5b67e3c, processorArchitecture=MSIL">
+          <HintPath>packages\OpenTelemetry.Resources.Process.0.1.3-beta.2\lib\net462\OpenTelemetry.Resources.Process.dll</HintPath>
         </Reference>
-        <Reference Include="OpenTelemetry.Resources.ProcessRuntime, Version=0.1.0.56, Culture=neutral, PublicKeyToken=7bd6737fe5b67e3c, processorArchitecture=MSIL">
-          <HintPath>packages\OpenTelemetry.Resources.ProcessRuntime.0.1.0-beta.2\lib\net462\OpenTelemetry.Resources.ProcessRuntime.dll</HintPath>
+        <Reference Include="OpenTelemetry.Resources.ProcessRuntime, Version=0.1.3.56, Culture=neutral, PublicKeyToken=7bd6737fe5b67e3c, processorArchitecture=MSIL">
+          <HintPath>packages\OpenTelemetry.Resources.ProcessRuntime.0.1.3-beta.2\lib\net462\OpenTelemetry.Resources.ProcessRuntime.dll</HintPath>
         </Reference>
         <Reference Include="OpenTelemetry.Shims.OpenTracing, Version=1.0.0.0, Culture=neutral, PublicKeyToken=7bd6737fe5b67e3c, processorArchitecture=MSIL">
           <HintPath>packages\OpenTelemetry.Shims.OpenTracing.1.9.0-beta.1\lib\net462\OpenTelemetry.Shims.OpenTracing.dll</HintPath>
@@ -194,7 +194,7 @@
         <Reference Include="System.Diagnostics.DiagnosticSource, Version=8.0.0.1, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
           <HintPath>packages\System.Diagnostics.DiagnosticSource.8.0.1\lib\net462\System.Diagnostics.DiagnosticSource.dll</HintPath>
         </Reference>
-        <Reference Include="System.Memory, Version=4.0.1.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
+        <Reference Include="System.Memory, Version=4.0.1.3, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
           <HintPath>packages\System.Memory.4.5.5\lib\net461\System.Memory.dll</HintPath>
         </Reference>
         <Reference Include="System.Net.Http" />
@@ -216,7 +216,7 @@
         <Reference Include="System.Text.Encodings.Web, Version=4.0.5.1, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
           <HintPath>packages\System.Text.Encodings.Web.4.7.2\lib\net461\System.Text.Encodings.Web.dll</HintPath>
         </Reference>
-        <Reference Include="System.Text.Json, Version=4.0.1.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
+        <Reference Include="System.Text.Json, Version=4.0.1.3, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
           <HintPath>packages\System.Text.Json.4.7.2\lib\net461\System.Text.Json.dll</HintPath>
         </Reference>
         <Reference Include="System.Threading.Channels, Version=8.0.0.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
