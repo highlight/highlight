@@ -1,6 +1,8 @@
 using System.Diagnostics;
 using Serilog;
 
+namespace Highlight.Example;
+
 public class Program
 {
     static void Main()

@@ -36,34 +36,6 @@ public static class HighlightSerilogExtensions
     }
 }
 
-namespace Microsoft.Extensions.DependencyInjection
-{
-using System;
-using Logging;
-
-public static class HighlightCollectionExtensions
-    {
-        public static IServiceCollection AddHighlightInstrumentation(this IServiceCollection services,
-            Action<Highlight.OpenTelemetry.Config> configure)
-        {
-            if (configure == null)
-                throw new ArgumentNullException(nameof(configure));
-            Highlight.OpenTelemetry.InstrumentServices(configure);
-            return services;
-        }
-
-        public static ILoggingBuilder AddHighlightInstrumentation(this ILoggingBuilder logging,
-            Action<Highlight.OpenTelemetry.Config> configure)
-        {
-            if (configure == null)
-                throw new ArgumentNullException(nameof(configure));
-            Highlight.OpenTelemetry.InstrumentLogging(logging, configure);
-            return logging;
-        }
-    }
-}
-
-
 namespace Highlight
 {
 using System;
@@ -124,9 +96,9 @@ public class TraceProcessor : BaseProcessor<Activity>
 
         public class Config
          {
-             public readonly string ProjectId, ServiceName, OtlpEndpoint;
-             public readonly string TracesEndpoint, LogsEndpoint, MetricsEndpoint;
-             public readonly Dictionary<string, object> ResourceAttributes;
+             public string ProjectId, ServiceName, OtlpEndpoint;
+             public string TracesEndpoint, LogsEndpoint, MetricsEndpoint;
+             public Dictionary<string, object> ResourceAttributes;
 
              public Config(string projectId, string serviceName, string otlpEndpoint = "https://otel.highlight.io:4318")
              {
@@ -144,8 +116,8 @@ public class TraceProcessor : BaseProcessor<Activity>
              }
          }
 
-        static readonly Config _config = new Config("", "");
-        static readonly Random _random = new Random();
+        static readonly Config Cfg = new Config("", "");
+        static readonly Random Random = new Random();
         
         static TracerProvider _tracerProvider;
         static MeterProvider _meterProvider;
@@ -154,8 +126,8 @@ public class TraceProcessor : BaseProcessor<Activity>
         {
             var ctx = new Dictionary<string, string>
             {
-                { "highlight.project_id", _config.ProjectId },
-                { "service.name", _config.ServiceName },
+                { "highlight.project_id", Cfg.ProjectId },
+                { "service.name", Cfg.ServiceName },
             };
 
             var headerValue = Baggage.GetBaggage(HighlightHeader);
@@ -219,11 +191,11 @@ public class TraceProcessor : BaseProcessor<Activity>
             }
 
             var sessionId = httpRequest.Cookies["sessionID"]?.Value ?? new string(Enumerable
-                .Repeat("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789", 28).Select(s => s[_random.Next(s.Length)]).ToArray());
+                .Repeat("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789", 28).Select(s => s[Random.Next(s.Length)]).ToArray());
 
             var sessionDataKey = $"sessionData_{sessionId}";
             var start = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
-            var sessionData = httpRequest.Cookies[sessionDataKey]?.Value ?? $"{{\"sessionSecureID\":\"{sessionId}\",\"projectID\":\"{_config.ProjectId}\",\"payloadID\":1,\"sessionStartTime\":{start},\"lastPushTime\":{start}}}";
+            var sessionData = httpRequest.Cookies[sessionDataKey]?.Value ?? $"{{\"sessionSecureID\":\"{sessionId}\",\"projectID\":\"{Cfg.ProjectId}\",\"payloadID\":1,\"sessionStartTime\":{start},\"lastPushTime\":{start}}}";
 
             httpRequest.RequestContext.HttpContext.Response.SetCookie(new HttpCookie("sessionID", sessionId)
             {
@@ -236,11 +208,11 @@ public class TraceProcessor : BaseProcessor<Activity>
             return (sessionId, "");
         }
 
-        public static void InstrumentServices(Action<Config> configure)
+        public static void Register(Action<Config> configure)
         {
-            configure(_config);
+            configure(Cfg);
             _tracerProvider = Sdk.CreateTracerProviderBuilder()
-                .SetResourceBuilder(ResourceBuilder.CreateDefault().AddAttributes(_config.ResourceAttributes))
+                .SetResourceBuilder(ResourceBuilder.CreateDefault().AddAttributes(Cfg.ResourceAttributes))
                 .AddHttpClientInstrumentation()
                 .AddGrpcClientInstrumentation()
                 .AddSqlClientInstrumentation()
@@ -252,23 +224,23 @@ public class TraceProcessor : BaseProcessor<Activity>
                     options.EnrichWithHttpRequest = EnrichWithHttpRequest;
                     options.EnrichWithHttpResponse = EnrichWithHttpResponse;
                 })
-                .AddSource(_config.ServiceName)
+                .AddSource(Cfg.ServiceName)
                 .AddProcessor(new TraceProcessor())
                 .AddOtlpExporter(exporterOptions =>
                 {
-                    exporterOptions.Endpoint = new Uri(_config.TracesEndpoint);
+                    exporterOptions.Endpoint = new Uri(Cfg.TracesEndpoint);
                     exporterOptions.Protocol = ExportProtocol;
                 })
                 .Build();
             _meterProvider = Sdk.CreateMeterProviderBuilder()
-                .AddMeter(_config.ServiceName)
+                .AddMeter(Cfg.ServiceName)
                 .AddHttpClientInstrumentation()
                 .AddRuntimeInstrumentation()
                 .AddProcessInstrumentation()
                 .AddAspNetInstrumentation()
                 .AddOtlpExporter(options =>
                 {
-                    options.Endpoint = new Uri(_config.MetricsEndpoint);
+                    options.Endpoint = new Uri(Cfg.MetricsEndpoint);
                     options.Protocol = ExportProtocol;
                 })
                 .Build();
@@ -276,15 +248,15 @@ public class TraceProcessor : BaseProcessor<Activity>
 
         public static void InstrumentLogging(ILoggingBuilder logging, Action<Config> configure)
         {
-            configure(_config);
+            configure(Cfg);
             logging.AddOpenTelemetry(options =>
             {
                 options
-                    .SetResourceBuilder(ResourceBuilder.CreateDefault().AddAttributes(_config.ResourceAttributes))
+                    .SetResourceBuilder(ResourceBuilder.CreateDefault().AddAttributes(Cfg.ResourceAttributes))
                     .AddProcessor(new LogProcessor())
                     .AddOtlpExporter(exporterOptions =>
                     {
-                        exporterOptions.Endpoint = new Uri(_config.LogsEndpoint);
+                        exporterOptions.Endpoint = new Uri(Cfg.LogsEndpoint);
                         exporterOptions.Protocol = ExportProtocol;
                     });
             });
