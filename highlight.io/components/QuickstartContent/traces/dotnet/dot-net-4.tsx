@@ -72,39 +72,36 @@ using System.Web.Mvc;
 using System.Web.Optimization;
 using System.Web.Routing;
 
-namespace cs
+public class MvcApplication : System.Web.HttpApplication
 {
-    public class MvcApplication : System.Web.HttpApplication
-    {
-        protected void Application_Start()
-        {
-            AreaRegistration.RegisterAllAreas();
-            FilterConfig.RegisterGlobalFilters(GlobalFilters.Filters);
-            RouteConfig.RegisterRoutes(RouteTable.Routes);
-            BundleConfig.RegisterBundles(BundleTable.Bundles);
-            
-            
-            Highlight.OpenTelemetry.Register(options =>
-            {
-                options.ProjectId = "<YOUR_PROJECT_ID>";
-                options.ServiceName = "example-dotnet-backend";
-            });
-            var logger = new LoggerConfiguration()
-                .Enrich.WithHighlight()
-                .WriteTo.HighlightOpenTelemetry(options =>
-                {
-                    options.ProjectId = "<YOUR_PROJECT_ID>";
-                    options.ServiceName = "example-dotnet-backend";
-                })
-                .CreateLogger();
-            logger.Information("Hello, World!");
-        }
-        
-        protected void Application_End()
-        {
-            Highlight.OpenTelemetry.Unregister();
-        }
-    }
+	protected void Application_Start()
+	{
+		AreaRegistration.RegisterAllAreas();
+		FilterConfig.RegisterGlobalFilters(GlobalFilters.Filters);
+		RouteConfig.RegisterRoutes(RouteTable.Routes);
+		BundleConfig.RegisterBundles(BundleTable.Bundles);
+		
+		
+		Highlight.OpenTelemetry.Register(options =>
+		{
+			options.ProjectId = "<YOUR_PROJECT_ID>";
+			options.ServiceName = "example-dotnet-backend";
+		});
+		var logger = new LoggerConfiguration()
+			.Enrich.WithHighlight()
+			.WriteTo.HighlightOpenTelemetry(options =>
+			{
+				options.ProjectId = "<YOUR_PROJECT_ID>";
+				options.ServiceName = "example-dotnet-backend";
+			})
+			.CreateLogger();
+		logger.Information("Hello, World!");
+	}
+	
+	protected void Application_End()
+	{
+		Highlight.OpenTelemetry.Unregister();
+	}
 }`,
 					language: 'csharp',
 				},

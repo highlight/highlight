@@ -8,8 +8,8 @@
         <ProjectGuid>{D5182278-9644-488F-A757-F17AB8B8E9DC}</ProjectGuid>
         <OutputType>Library</OutputType>
         <AppDesignerFolder>Properties</AppDesignerFolder>
-        <RootNamespace>Highlight</RootNamespace>
-        <AssemblyName>Highlight</AssemblyName>
+        <RootNamespace>Highlight.ASP4</RootNamespace>
+        <AssemblyName>Highlight.ASP4</AssemblyName>
         <TargetFrameworkVersion>v4.8</TargetFrameworkVersion>
         <FileAlignment>512</FileAlignment>
 
@@ -238,6 +238,9 @@
     </ItemGroup>
     <ItemGroup>
       <None Include="packages.config" />
+    </ItemGroup>
+    <ItemGroup>
+      <Content Include=".nuspec" />
     </ItemGroup>
     <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets"/>
     <Import Project="packages\Grpc.Core.2.44.0\build\net45\Grpc.Core.targets" Condition="Exists('packages\Grpc.Core.2.44.0\build\net45\Grpc.Core.targets')" />

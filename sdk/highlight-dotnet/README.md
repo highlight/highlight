@@ -7,22 +7,31 @@ This directory contains the source code for the Highlight .NET Core SDK.
 1. Install the NuGet Package
 2. Set up the Highlight SDK with your ASP app.
 ```csharp
-HighlightConfig('<YOUR_PROJECT_ID>', '<YOUR_SERVICE_NAME>');
-HighlightConfig.Configure(builder);
+using System.Diagnostics;
+using Serilog;
+
+var builder = WebApplication.CreateBuilder(args);
+// configure your web application
+
+// Initialize trace, error, metric, and log export
+builder.Services
+    .AddHighlightInstrumentation(options => options.ProjectId = "<YOUR_PROJECT_ID>");
+builder.Logging
+    .AddHighlightInstrumentation(options => options.ProjectId = "<YOUR_PROJECT_ID>");
+
 var app = builder.Build();
 ```
 3. Configure Serilog logging to export to highlight
 ```csharp
 Log.Logger = new LoggerConfiguration()
     .Enrich.WithMachineName()
-    .Enrich.With<HighlightLogEnricher>()
+    .Enrich.WithHighlight()
     .Enrich.FromLogContext()
     .WriteTo.Async(async =>
-        async.OpenTelemetry(options =>
+        async.HighlightOpenTelemetry(options =>
         {
-            options.Endpoint = HighlightConfig.LogsEndpoint;
-            options.Protocol = HighlightConfig.Protocol;
-            options.ResourceAttributes = HighlightConfig.ResourceAttributes;
+            options.ProjectId = "<YOUR_PROJECT_ID>";
+            options.ServiceName = "<YOUR_SERVICE_NAME>";
         })
     )
     .CreateLogger();
