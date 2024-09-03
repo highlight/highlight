@@ -51,9 +51,16 @@ jobs:
                   submodules: recursive
 
             - name: Setup .NET environment
-              uses: actions/setup-dotnet@v4
-              with:
-                  dotnet-version: 4.x
+              run: |
+                  gpg --homedir /tmp --no-default-keyring --keyring /usr/share/keyrings/mono-official-archive-keyring.gpg --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys 3FA7E0328081BFF6A14DA29AA6A19B38D3D831EF
+                  echo "deb [signed-by=/usr/share/keyrings/mono-official-archive-keyring.gpg] https://download.mono-project.com/repo/ubuntu stable-focal main" | tee /etc/apt/sources.list.d/mono-official-stable.list
+                  apt update && apt install -y mono-complete mono-xsp4 nuget
+
+            - name: NuGet Restore
+              run: nuget restore
+
+            - name: Build
+              run: xbuild
 
             - name: Build solution and generate NuGet package
               run: nuget pack
