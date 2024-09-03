@@ -112,7 +112,7 @@ namespace Highlight
 
         public record Config(
             string ProjectId,
-            string ServiceName,
+            string ServiceName = "backend",
             string OtlpEndpoint = "https://otel.highlight.io:4318")
         {
             public string ProjectId = ProjectId;
