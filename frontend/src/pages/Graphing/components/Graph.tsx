@@ -733,6 +733,9 @@ const Graph = ({
 			case ProductType.Traces:
 				relatedResourceType = 'traces'
 				break
+			case ProductType.Metrics:
+				relatedResourceType = 'sessions'
+				break
 			default:
 				return
 		}
