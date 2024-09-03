@@ -144,12 +144,11 @@ public class TraceProcessor : BaseProcessor<Activity>
              }
          }
 
-        static Config _config = new Config("", "");
-
+        static readonly Config _config = new Config("", "");
         static readonly Random _random = new Random();
+        
         static TracerProvider _tracerProvider;
         static MeterProvider _meterProvider;
-        static Logger _loggerFactory;
 
         public static Dictionary<string, string> GetHighlightContext()
         {
@@ -190,10 +189,10 @@ public class TraceProcessor : BaseProcessor<Activity>
                 activity.SetTag($"http.request.header.{header}", value);
             }
             
-            var (sessionID, requestID) = ExtractContext(httpRequest);
-            activity.SetTag("highlight.session_id", sessionID);
-            activity.SetTag("highlight.trace_id", requestID);
-            Baggage.SetBaggage(new[] { new KeyValuePair<string, string>(HighlightHeader, $"{sessionID}/{requestID}") });
+            var (sessionId, requestId) = ExtractContext(httpRequest);
+            activity.SetTag("highlight.session_id", sessionId);
+            activity.SetTag("highlight.trace_id", requestId);
+            Baggage.SetBaggage(new[] { new KeyValuePair<string, string>(HighlightHeader, $"{sessionId}/{requestId}") });
         }
 
         static void EnrichWithHttpResponse(Activity activity, HttpResponse httpResponse)
@@ -213,7 +212,7 @@ public class TraceProcessor : BaseProcessor<Activity>
             if (headerValue?.Length > 0)
             {
                 var parts = headerValue.Split('/');
-                if (parts?.Length >= 2)
+                if (parts.Length >= 2)
                 {
                     return (parts[0], parts[1]);
                 }
@@ -295,7 +294,6 @@ public class TraceProcessor : BaseProcessor<Activity>
         {
             _tracerProvider.Dispose();
             _meterProvider.Dispose();
-            _loggerFactory.Dispose();
         }
     }
 }
