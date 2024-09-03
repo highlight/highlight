@@ -7,11 +7,8 @@ This directory contains the source code for the Highlight .NET Core SDK.
 1. Install the NuGet Package
 2. Set up the Highlight SDK with your ASP app.
 ```csharp
-using System.Diagnostics;
-using Serilog;
-
-var builder = WebApplication.CreateBuilder(args);
 // configure your web application
+var builder = WebApplication.CreateBuilder(args);
 
 // Initialize trace, error, metric, and log export
 builder.Services
@@ -23,6 +20,7 @@ var app = builder.Build();
 ```
 3. Configure Serilog logging to export to highlight
 ```csharp
+// create a Serilog logger with highlight export
 Log.Logger = new LoggerConfiguration()
     .Enrich.WithMachineName()
     .Enrich.WithHighlight()
