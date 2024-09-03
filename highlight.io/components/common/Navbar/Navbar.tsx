@@ -47,7 +47,7 @@ const LivestreamBanner = () => {
 			className="hidden md:flex text-center justify-center items-center w-full py-2.5 px-3 bg-color-primary-200 text-white hover:bg-opacity-90"
 		>
 			<Typography type="copy3">
-				Join our livestream: Septemper 5th at 1pm PT on Fullstack
+				Join our livestream: September 5th at 1pm PT on Fullstack
 				Monitoring for .NET Applications with OpenTelemetry. Register{' '}
 				<span className="font-semibold underline">here</span>.
 			</Typography>
