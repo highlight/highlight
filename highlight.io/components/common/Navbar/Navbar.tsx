@@ -19,6 +19,7 @@ import '@docsearch/css'
 import moment from 'moment'
 import Banner from '../Banner/Banner'
 import FeatureDropdown from './FeatureDropdown'
+import InkeepSearchBar from './InkeepSearchBar'
 
 const LaunchWeekBanner = () => {
 	const bannerMessage = (
@@ -186,12 +187,13 @@ const Navbar = ({
 								</p>
 							</Typography>
 							{isDocsPage && (
-								<DocSearch
-									placeholder="Search the highlight.io docs"
-									appId="JGT9LI80J2"
-									indexName="highlight"
-									apiKey="ac336720d8f4f996abe3adee603a1c84"
-								/>
+								// <DocSearch
+								// 	placeholder="Search the highlight.io docs"
+								// 	appId="JGT9LI80J2"
+								// 	indexName="highlight"
+								// 	apiKey="ac336720d8f4f996abe3adee603a1c84"
+								// />
+								<InkeepSearchBar />
 							)}
 						</div>
 						<div
