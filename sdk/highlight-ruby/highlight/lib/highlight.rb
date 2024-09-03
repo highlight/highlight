@@ -32,14 +32,20 @@ module Highlight
     end
 
     def log(level, message, attrs = {})
-      H.instance.record_log(nil, nil, level, message, attrs)
+      return unless H.initialized?
+
+      H.instance&.record_log(nil, nil, level, message, attrs)
     end
 
     def exception(error, attrs = {})
-      H.instance.record_exception(error, attrs)
+      return unless H.initialized?
+
+      H.instance&.record_exception(error, attrs)
     end
 
     def traceparent_meta
+      return unless H.initialized?
+
       Helpers.traceparent_meta
     end
   end
@@ -135,8 +141,8 @@ module Highlight
       log_attributes = create_log_attributes(level, message, attrs)
 
       @tracer.in_span('highlight.log', attributes: {
-        HIGHLIGHT_SESSION_ATTRIBUTE => session_id,
-        HIGHLIGHT_TRACE_ATTRIBUTE => request_id
+        HIGHLIGHT_SESSION_ATTRIBUTE => session_id || '',
+        HIGHLIGHT_TRACE_ATTRIBUTE => request_id || ''
       }.compact) do |span|
         span.status = OpenTelemetry::Trace::Status.error(message) if [Logger::ERROR, Logger::FATAL].include?(level)
         span.add_event(LOG_EVENT, attributes: log_attributes)

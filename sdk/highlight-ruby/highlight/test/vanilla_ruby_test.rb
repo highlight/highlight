@@ -1,4 +1,5 @@
 require_relative './test_helper'
+require 'highlight'
 
 # This test is used to test the Highlight Ruby SDK without any external
 # dependencies.
