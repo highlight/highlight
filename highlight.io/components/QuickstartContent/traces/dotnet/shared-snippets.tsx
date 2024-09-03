@@ -22,7 +22,7 @@ export const downloadSnippet = (
 	return {
 		title: 'Install the highlight-io .NET SDK.',
 		content:
-			'Download the package from NuGet and save it to your project solution. ',
+			'Download [the highlight SDK package from NuGet](https://www.nuget.org/profiles/Highlight) and save it to your project solution. ',
 		code: [
 			{
 				key: 'dotnet',
