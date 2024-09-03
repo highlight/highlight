@@ -152,6 +152,11 @@ namespace Highlight
             return ctx;
         }
 
+        public static Config GetConfig()
+        {
+            return _config;
+        }
+
         private static void EnrichWithHttpRequest(Activity activity, HttpRequest httpRequest)
         {
             activity.SetTag("http.client_ip", httpRequest.HttpContext.Connection.RemoteIpAddress?.ToString());

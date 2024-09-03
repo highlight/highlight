@@ -141,6 +141,11 @@ public class TraceProcessor : BaseProcessor<Activity>
             return ctx;
         }
 
+        public static Config GetConfig()
+        {
+            return Cfg;
+        }
+
         static void EnrichWithHttpRequest(Activity activity, HttpRequest httpRequest)
         {
             activity.SetTag("http.client_ip", httpRequest.UserHostAddress);

@@ -1,5 +1,6 @@
 ﻿namespace Highlight.Example
 {
+using System.Diagnostics;
 using Serilog;
 
 public class Program : System.Web.HttpApplication
@@ -24,6 +25,23 @@ public class Program : System.Web.HttpApplication
             });
             
             logger.Information("Hello, World!");
+            
+            var tracer = new ActivitySource(Highlight.OpenTelemetry.GetConfig().ServiceName);
+            var activityListener = new ActivityListener
+            {
+                ShouldListenTo = s => true,
+                SampleUsingParentId = (ref ActivityCreationOptions<string> activityOptions) => ActivitySamplingResult.AllData,
+                Sample = (ref ActivityCreationOptions<ActivityContext> activityOptions) => ActivitySamplingResult.AllData
+            };
+            ActivitySource.AddActivityListener(activityListener);
+        
+            Log.Information("hello, world");
+            var span = tracer.StartActivity("my span");
+            if (span == null) return;
+
+            span.SetTag("mystring", "value");
+            span.SetStatus(ActivityStatusCode.Ok);
+            span.Stop();
         }
         
         protected void Application_End()

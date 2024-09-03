@@ -34,7 +34,7 @@ public class Program
 
         var app = builder.Build();
         
-        var tracer = new ActivitySource("example-dotnet-backend");
+        var tracer = new ActivitySource(Highlight.OpenTelemetry.GetConfig().ServiceName);
         var activityListener = new ActivityListener
         {
             ShouldListenTo = s => true,
@@ -47,6 +47,5 @@ public class Program
         using var span = tracer.StartActivity("my span")!;
         span.SetTag("mystring", "value");
         span.SetStatus(ActivityStatusCode.Ok);
-        span.Stop();
     }
 }
