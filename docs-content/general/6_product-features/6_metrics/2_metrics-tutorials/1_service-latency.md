@@ -30,7 +30,7 @@ By default, the graph will show a count of traces. However, for latency measurem
 
 ### 4. Group by Service Name
 
-To compare latency across different services, we'll group the data by service name. Check the "Group by" option and select "service name" from the dropdown menu.
+To compare latency across different services, we'll group the data by service name. Check the "Group by" option and select "service_name" from the dropdown menu.
 
 ### 5. Analyze the Results
 

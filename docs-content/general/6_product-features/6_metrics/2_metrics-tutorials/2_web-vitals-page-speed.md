@@ -40,7 +40,7 @@ Choose the P90 (90th percentile) function and apply it to the duration attribute
 
 ### 6. Apply Filters
 
-Filter for all spans with the name "document load". This will focus your graph on page load traces, giving you a clear picture of your application's loading performance.
+Filter for all spans with the name "documentLoad". This will focus your graph on page load traces, giving you a clear picture of your application's loading performance.
 
 ### 7. Analyze the Results
 
