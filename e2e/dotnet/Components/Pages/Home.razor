@@ -39,7 +39,7 @@ else
 
     protected override void OnInitialized()
     {
-        tracer = new ActivitySource(HighlightConfig.ServiceName);
+        tracer = new ActivitySource(Highlight.OpenTelemetry.GetConfig().ServiceName);
         var activityListener = new ActivityListener
         {
             ShouldListenTo = s => true,

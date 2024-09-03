@@ -11,21 +11,26 @@ builder.Services.AddRazorComponents()
 
 // Setup Highlight Instrumentation
 builder.Services
-    .AddHighlightInstrumentation(options => options.ProjectId = "1");
+    .AddHighlightInstrumentation(options => {
+        options.ProjectId = "1";
+        options.ServiceName = "example-dotnet-backend";
+        options.OtlpEndpoint = "http://localhost:4318";
+    });
 builder.Logging
-    .AddHighlightInstrumentation(options => options.ProjectId = "1");
+    .AddHighlightInstrumentation(options => {
+        options.ProjectId = "1";
+        options.ServiceName = "example-dotnet-backend";
+        options.OtlpEndpoint = "http://localhost:4318";
+    });
 Log.Logger = new LoggerConfiguration()
-    .Enrich.WithMachineName()
     .Enrich.WithHighlight()
     .Enrich.FromLogContext()
-    .WriteTo.Async(async =>
-        async.HighlightOpenTelemetry(options =>
-        {
-            options.ProjectId = "1";
-            options.ServiceName = serviceName;
-            options.OtlpEndpoint = "http://localhost:4318";
-        })
-    )
+    .WriteTo.HighlightOpenTelemetry(options =>
+                     {
+                         options.ProjectId = "1";
+                         options.ServiceName = serviceName;
+                         options.OtlpEndpoint = "http://localhost:4318";
+                     })
     .CreateLogger();
 
 var app = builder.Build();
