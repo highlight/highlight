@@ -1,10 +1,10 @@
-require 'opentelemetry/sdk'
-require 'opentelemetry/exporter/otlp'
-require 'opentelemetry/instrumentation/all'
-require 'opentelemetry/semantic_conventions'
 require 'date'
 require 'json'
 require 'logger'
+require 'opentelemetry/exporter/otlp'
+require 'opentelemetry/instrumentation/all'
+require 'opentelemetry/sdk'
+require 'opentelemetry/semantic_conventions'
 require 'securerandom'
 
 module Highlight
@@ -18,36 +18,34 @@ module Highlight
     end
   end
 
-  class << self
-    def init(project_id, environment: '', otlp_endpoint: H::OTLP_HTTP, &block)
-      H.new(project_id, environment: environment, otlp_endpoint: otlp_endpoint, &block)
+  def self.init(project_id, environment: '', otlp_endpoint: H::OTLP_HTTP, &block)
+    H.new(project_id, environment: environment, otlp_endpoint: otlp_endpoint, &block)
+  end
+
+  def self.start_span(name, attrs = {}, &block)
+    if H.initialized?
+      H.instance.start_span(name, attrs, &block)
+    elsif block_given?
+      yield(OpenTelemetry::Trace::Span::INVALID)
     end
+  end
 
-    def start_span(name, attrs = {}, &block)
-      if H.initialized?
-        H.instance.start_span(name, attrs, &block)
-      elsif block_given?
-        yield OpenTelemetry::Trace::Span::INVALID
-      end
-    end
+  def self.log(level, message, attrs = {})
+    return unless H.initialized?
 
-    def log(level, message, attrs = {})
-      return unless H.initialized?
+    H.instance&.record_log(nil, nil, level, message, attrs)
+  end
 
-      H.instance&.record_log(nil, nil, level, message, attrs)
-    end
+  def self.exception(error, attrs = {})
+    return unless H.initialized?
 
-    def exception(error, attrs = {})
-      return unless H.initialized?
+    H.instance&.record_exception(error, attrs)
+  end
 
-      H.instance&.record_exception(error, attrs)
-    end
+  def self.traceparent_meta
+    return unless H.initialized?
 
-    def traceparent_meta
-      return unless H.initialized?
-
-      Helpers.traceparent_meta
-    end
+    Helpers.traceparent_meta
   end
 
   class H
@@ -68,30 +66,29 @@ module Highlight
 
     class << self
       attr_reader :instance
+    end
 
-      def initialized?
-        !@instance.nil?
-      end
+    def self.initialized?
+      !@instance.nil?
+    end
 
-      def parse_headers(headers)
-        return HighlightHeaders.new(nil, nil) unless headers&.[](HIGHLIGHT_REQUEST_HEADER)
+    def self.parse_headers(headers)
+      return HighlightHeaders.new(nil, nil) unless headers&.[](HIGHLIGHT_REQUEST_HEADER)
 
-        session_id, request_id = headers[HIGHLIGHT_REQUEST_HEADER].split('/')
-        traceparent = headers['traceparent']
-        trace_id = traceparent&.split('-')&.[](1) || request_id
-        HighlightHeaders.new(session_id, trace_id)
-      end
+      session_id, request_id = headers[HIGHLIGHT_REQUEST_HEADER].split('/')
+      traceparent = headers['traceparent']
+      trace_id = traceparent&.split('-')&.[](1) || request_id
+      HighlightHeaders.new(session_id, trace_id)
+    end
 
-      def log_level_string(level)
-        case level
-        when Logger::UNKNOWN then 'UNKNOWN'
-        when Logger::FATAL then 'FATAL'
-        when Logger::ERROR then 'ERROR'
-        when Logger::WARN then 'WARN'
-        when Logger::INFO then 'INFO'
-        when Logger::DEBUG then 'DEBUG'
-        else 'UNKNOWN'
-        end
+    def self.log_level_string(level)
+      case level
+      when Logger::FATAL then 'FATAL'
+      when Logger::ERROR then 'ERROR'
+      when Logger::WARN then 'WARN'
+      when Logger::INFO then 'INFO'
+      when Logger::DEBUG then 'DEBUG'
+      else 'UNKNOWN'
       end
     end
 
@@ -126,7 +123,7 @@ module Highlight
     def start_span(name, attrs = {})
       return unless initialized?
 
-      @tracer.in_span(name, attributes: attrs) { |span| yield span if block_given? }
+      @tracer.in_span(name, attributes: attrs) { |span| yield(span) if block_given? }
     end
 
     def record_exception(e, attrs = {})
@@ -140,10 +137,13 @@ module Highlight
 
       log_attributes = create_log_attributes(level, message, attrs)
 
-      @tracer.in_span('highlight.log', attributes: {
-        HIGHLIGHT_SESSION_ATTRIBUTE => session_id || '',
-        HIGHLIGHT_TRACE_ATTRIBUTE => request_id || ''
-      }.compact) do |span|
+      @tracer.in_span(
+        'highlight.log',
+        attributes: {
+          HIGHLIGHT_SESSION_ATTRIBUTE => session_id || '',
+          HIGHLIGHT_TRACE_ATTRIBUTE => request_id || ''
+        }.compact
+      ) do |span|
         span.status = OpenTelemetry::Trace::Status.error(message) if [Logger::ERROR, Logger::FATAL].include?(level)
         span.add_event(LOG_EVENT, attributes: log_attributes)
       end
@@ -157,7 +157,7 @@ module Highlight
         c.add_span_processor(create_batch_span_processor)
         c.resource = create_resource(environment)
         c.use_all
-        yield c if block_given?
+        yield(c) if block_given?
       end
     end
 
@@ -189,16 +189,16 @@ module Highlight
       {
         LOG_SEVERITY_ATTRIBUTE => self.class.log_level_string(level),
         LOG_MESSAGE_ATTRIBUTE => message.to_s,
-        CODE_FILEPATH => caller_info[0],
+        CODE_FILEPATH => caller_info.first,
         CODE_LINENO => caller_info[1],
         CODE_FUNCTION => caller_info[2]
       }.merge(attrs)
     end
 
     def parse_caller_info
-      caller_info = caller[0].split(':', 3)
+      caller_info = caller.first.split(':', 3)
       function = caller_info[2]&.gsub(/^in `|'$/, '')
-      [caller_info[0], caller_info[1], function]
+      [caller_info.first, caller_info[1], function]
     end
   end
 
@@ -211,14 +211,14 @@ module Highlight
     end
 
     def add(severity, message = nil, progname = nil, &block)
-      severity ||= UNKNOWN
+      severity ||= ::Logger::UNKNOWN
       return true if @logdev.nil? || severity < level
 
       progname ||= @progname
       message = yield if message.nil? && block_given?
       message = progname if message.nil?
 
-      super(severity, message, progname, &block)
+      super
       H.instance&.record_log(nil, nil, severity, message)
     end
   end
@@ -260,22 +260,16 @@ module Highlight
           sessionSecureID: session_id,
           projectID: @project_id,
           payloadID: 1,
-          sessionStartTime: DateTime.now.strftime('%Q'),
-          lastPushTime: DateTime.now.strftime('%Q')
+          sessionStartTime: Time.now.strftime('%Q'),
+          lastPushTime: Time.now.strftime('%Q')
         }
       end
 
       def set_cookies(session_id, session_data_key)
         expiration = 15.minutes.from_now
 
-        cookies[:sessionID] = {
-          value: session_id,
-          expires: expiration
-        }
-        cookies[session_data_key] = {
-          value: @session_data.to_json,
-          expires: expiration
-        }
+        cookies[:sessionID] = { value: session_id, expires: expiration }
+        cookies[session_data_key] = { value: @session_data.to_json, expires: expiration }
       end
 
       def highlight_headers
@@ -297,8 +291,8 @@ module Highlight
       current_trace = OpenTelemetry::Trace.current_span
       trace_id = current_trace&.context&.trace_id
       span_id = current_trace&.context&.span_id
-      hex_trace_id = trace_id&.unpack1('H*') || '0' * 32
-      hex_span_id = span_id&.unpack1('H*') || '0' * 16
+      hex_trace_id = trace_id&.unpack1('H*') || ('0' * 32)
+      hex_span_id = span_id&.unpack1('H*') || ('0' * 16)
 
       "<meta name=\"traceparent\" content=\"00-#{hex_trace_id}-#{hex_span_id}-01\">"
     end

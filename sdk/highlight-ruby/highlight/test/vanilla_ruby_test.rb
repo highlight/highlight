@@ -1,4 +1,4 @@
-require_relative './test_helper'
+require_relative 'test_helper'
 require 'highlight'
 
 # This test is used to test the Highlight Ruby SDK without any external
@@ -10,12 +10,12 @@ class VanillaRubyTest < Minitest::Test
 
   def test_add
     result = @calculator.add(2, 3)
-    assert_equal 5, result
+    assert_equal(5, result)
   end
 
   def test_multiply
     result = @calculator.multiply(4, 5)
-    assert_equal 20, result
+    assert_equal(20, result)
   end
 end
 
