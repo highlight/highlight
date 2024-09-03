@@ -1,7 +1,10 @@
 inherit_from: '../../../../sdk/highlight-ruby/highlight/.rubocop.yml'
 
 AllCops:
+    SuggestExtensions: false
     TargetRubyVersion: 3.0
+    Ignore:
+        - 'db/schema.rb'
 
 Style/FrozenStringLiteralComment:
     Enabled: false
