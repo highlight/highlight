@@ -15,7 +15,10 @@ export const setupFrontendSnippet: string = `<script src="https://unpkg.com/high
         });
     </script>`
 
-export const downloadSnippet = (): QuickStartStep => {
+export const downloadSnippet = (
+	flavor?: 'ASPCore' | 'ASP4',
+): QuickStartStep => {
+	const pm = `${flavor === 'ASP4' ? 'nuget install' : 'dotnet add'}`
 	return {
 		title: 'Install the highlight-io .NET SDK.',
 		content:
@@ -23,7 +26,7 @@ export const downloadSnippet = (): QuickStartStep => {
 		code: [
 			{
 				key: 'dotnet',
-				text: `dotnet add Highlight.ASPCore`,
+				text: `${pm} Highlight.${flavor ?? 'ASPCore'}`,
 				language: 'bash',
 			},
 		],
