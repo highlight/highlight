@@ -116,7 +116,7 @@ module Highlight
       @project_id = project_id
       @otlp_endpoint = otlp_endpoint
 
-      configure_opentelemetry(environment, &block)
+      configure_opentelemetry(&block)
 
       @tracer_provider = OpenTelemetry.tracer_provider
       @tracer = @tracer_provider.tracer('highlight-tracer')
@@ -173,7 +173,7 @@ module Highlight
 
     private
 
-    def configure_opentelemetry(environment)
+    def configure_opentelemetry
       OpenTelemetry::SDK.configure do |c|
         c.add_span_processor(Highlight::Tracing::BaggageSpanProcessor.new)
         c.add_span_processor(create_batch_span_processor)

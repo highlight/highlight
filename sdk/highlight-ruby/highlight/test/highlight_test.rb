@@ -59,7 +59,7 @@ class HighlightTest < Minitest::Test
   end
 
   def test_trace
-    @highlight.trace('session123', 'request456', { 'some.attribute': 12 }, name: 'test_span') do |span|
+    @highlight.trace('session123', 'request456', { 'some.attribute': 12 }, name: 'test_span') do
       logger = Highlight::Logger.new(StringIO.new)
       logger.info('ruby test trace!')
     end
