@@ -541,6 +541,8 @@ def _build_resource(
         attrs[ResourceAttributes.DEPLOYMENT_ENVIRONMENT] = environment
     if environment:
         attrs["telemetry.distro.name"] = "highlight_io"
-        attrs["telemetry.distro.version"] = pkg_resources.get_distribution('highlight_io').version
+        attrs["telemetry.distro.version"] = pkg_resources.get_distribution(
+            "highlight_io"
+        ).version
 
     return Resource.create(attrs)
