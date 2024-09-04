@@ -99,11 +99,9 @@ class HighlightTest < Minitest::Test
   end
 
   def test_exception_handling
-    begin
-      raise(StandardError, 'Test error')
-    rescue StandardError => e
-      @highlight.record_exception(e, { custom_attr: 'test' })
-    end
+    raise(StandardError, 'Test error')
+  rescue StandardError => e
+    @highlight.record_exception(e, { custom_attr: 'test' })
   end
 
   def test_trace_processor
