@@ -96,7 +96,7 @@ public class TraceProcessor : BaseProcessor<Activity>
 
         public class Config
          {
-             public string ProjectId, ServiceName, OtlpEndpoint;
+             public string ProjectId, ServiceName;
              public string TracesEndpoint, LogsEndpoint, MetricsEndpoint;
              public Dictionary<string, object> ResourceAttributes;
 
@@ -104,7 +104,6 @@ public class TraceProcessor : BaseProcessor<Activity>
              {
                  ProjectId = projectId;
                  ServiceName = serviceName;
-                 OtlpEndpoint = otlpEndpoint;
                  TracesEndpoint = otlpEndpoint + "/v1/traces";
                  LogsEndpoint = otlpEndpoint + "/v1/logs";
                  MetricsEndpoint = otlpEndpoint + "/v1/metrics";

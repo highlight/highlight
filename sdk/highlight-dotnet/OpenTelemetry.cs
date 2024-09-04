@@ -110,23 +110,25 @@ namespace Highlight
         public const OtlpExportProtocol ExportProtocol = OtlpExportProtocol.HttpProtobuf;
         public const string HighlightHeader = "x-highlight-request";
 
-        public record Config(
-            string ProjectId,
-            string ServiceName = "backend",
-            string OtlpEndpoint = "https://otel.highlight.io:4318")
+        public class Config
         {
-            public string ProjectId = ProjectId;
-            public string ServiceName = ServiceName;
-            public string OtlpEndpoint = OtlpEndpoint;
-            public readonly string TracesEndpoint = OtlpEndpoint + "/v1/traces";
-            public readonly string LogsEndpoint = OtlpEndpoint + "/v1/logs";
-            public readonly string MetricsEndpoint = OtlpEndpoint + "/v1/metrics";
+            public string ProjectId, ServiceName;
+            public string TracesEndpoint, LogsEndpoint, MetricsEndpoint;
+            public Dictionary<string, object> ResourceAttributes;
 
-            public readonly Dictionary<string, object> ResourceAttributes = new()
+            public Config(string projectId, string serviceName, string otlpEndpoint = "https://otel.highlight.io:4318")
             {
-                ["highlight.project_id"] = ProjectId,
-                ["service.name"] = ServiceName,
-            };
+                ProjectId = projectId;
+                ServiceName = serviceName;
+                TracesEndpoint = otlpEndpoint + "/v1/traces";
+                LogsEndpoint = otlpEndpoint + "/v1/logs";
+                MetricsEndpoint = otlpEndpoint + "/v1/metrics";
+                ResourceAttributes = new Dictionary<string, object>
+                {
+                    ["highlight.project_id"] = ProjectId,
+                    ["service.name"] = ServiceName,
+                };
+            }
         }
 
         private static Config _config = new("", "");
