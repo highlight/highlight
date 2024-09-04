@@ -69,12 +69,19 @@ class HighlightTest < Minitest::Test
 
     trace_span = spans.last
     assert_equal('test_span', trace_span.name)
+
     expected_attributes = {
       'some.attribute' => 12,
       'highlight.session_id' => 'session123',
       'highlight.trace_id' => 'request456'
     }
     assert_equal(expected_attributes, trace_span.attributes)
+
+    trace_resource_attributes = trace_span.resource.attribute_enumerator.to_h
+    assert_equal(Highlight::H::SDK_NAME, trace_resource_attributes['telemetry.distro.name'])
+    assert_equal(Highlight::VERSION, trace_resource_attributes['telemetry.distro.version'])
+    assert_equal(@service_name, trace_resource_attributes['service.name'])
+    assert_equal(@service_version, trace_resource_attributes['service.version'])
   end
 
   def test_start_span

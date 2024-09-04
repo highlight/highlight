@@ -110,13 +110,13 @@ module Highlight
       end
     end
 
-    def initialize(project_id, environment: '', otlp_endpoint: OTLP_HTTP)
+    def initialize(project_id, environment: '', otlp_endpoint: OTLP_HTTP, &block)
       self.class.instance_variable_set(:@instance, self)
 
       @project_id = project_id
       @otlp_endpoint = otlp_endpoint
 
-      configure_opentelemetry(environment)
+      configure_opentelemetry(environment, &block)
 
       @tracer_provider = OpenTelemetry.tracer_provider
       @tracer = @tracer_provider.tracer('highlight-tracer')
