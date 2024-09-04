@@ -105,7 +105,9 @@ public class TraceProcessor : BaseProcessor<Activity>
             return new Dictionary<string, object>
             {
                 ["highlight.project_id"] = Cfg.ProjectId,
-                ["service.name"] = Cfg.ServiceName
+                ["service.name"] = Cfg.ServiceName,
+                ["telemetry.distro.name"] = "Highlight.ASP4",
+                ["telemetry.distro.version"] = "0.1.7",
             };
         }
 
