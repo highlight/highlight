@@ -61,6 +61,7 @@ export const getPreviousSessionData = (
 export const setSessionData = function (sessionData?: SessionData) {
 	if (!sessionData?.sessionSecureID) return
 	const secureID = sessionData.sessionSecureID!
+	setSessionSecureID(secureID)
 	setItem(getSessionDataKey(secureID), JSON.stringify(sessionData))
 }
 
