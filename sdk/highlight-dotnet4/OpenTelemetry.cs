@@ -19,13 +19,13 @@ public static class HighlightSerilogExtensions
         public static LoggerConfiguration HighlightOpenTelemetry(this LoggerSinkConfiguration loggerConfiguration,
             Action<Highlight.OpenTelemetry.Config> configure)
         {
-            Highlight.OpenTelemetry.Config config = new Highlight.OpenTelemetry.Config("", "");
+            Highlight.OpenTelemetry.Config config = new Highlight.OpenTelemetry.Config();
             configure(config);
             return loggerConfiguration.OpenTelemetry(options =>
             {
                 options.Protocol = Highlight.OpenTelemetry.Protocol;
-                options.Endpoint = config.LogsEndpoint;
-                options.ResourceAttributes = config.ResourceAttributes;
+                options.Endpoint = config.OtlpEndpoint + "/v1/logs";
+                options.ResourceAttributes = Highlight.OpenTelemetry.GetResourceAttributes();
             });
         }
 
@@ -94,28 +94,22 @@ public class TraceProcessor : BaseProcessor<Activity>
         public const OtlpProtocol SerilogExportProtocol = OtlpProtocol.HttpProtobuf;
         public const string HighlightHeader = "x-highlight-request";
 
-        public class Config
-         {
-             public string ProjectId, ServiceName;
-             public string TracesEndpoint, LogsEndpoint, MetricsEndpoint;
-             public Dictionary<string, object> ResourceAttributes;
+        public class Config {
+            public string ProjectId;
+            public string ServiceName;
+            public string OtlpEndpoint = "https://otel.highlight.io:4318";
+        }
+        
+        public static Dictionary<string, object> GetResourceAttributes()
+        {
+            return new Dictionary<string, object>
+            {
+                ["highlight.project_id"] = Cfg.ProjectId,
+                ["service.name"] = Cfg.ServiceName
+            };
+        }
 
-             public Config(string projectId, string serviceName, string otlpEndpoint = "https://otel.highlight.io:4318")
-             {
-                 ProjectId = projectId;
-                 ServiceName = serviceName;
-                 TracesEndpoint = otlpEndpoint + "/v1/traces";
-                 LogsEndpoint = otlpEndpoint + "/v1/logs";
-                 MetricsEndpoint = otlpEndpoint + "/v1/metrics";
-                 ResourceAttributes = new Dictionary<string, object>
-                 {
-                     ["highlight.project_id"] = ProjectId,
-                     ["service.name"] = ServiceName,
-                 };
-             }
-         }
-
-        static readonly Config Cfg = new Config("", "");
+        static readonly Config Cfg = new Config();
         static readonly Random Random = new Random();
         
         static TracerProvider _tracerProvider;
@@ -216,7 +210,7 @@ public class TraceProcessor : BaseProcessor<Activity>
         {
             configure(Cfg);
             _tracerProvider = Sdk.CreateTracerProviderBuilder()
-                .SetResourceBuilder(ResourceBuilder.CreateDefault().AddAttributes(Cfg.ResourceAttributes))
+                .SetResourceBuilder(ResourceBuilder.CreateDefault().AddAttributes(GetResourceAttributes()))
                 .AddHttpClientInstrumentation()
                 .AddGrpcClientInstrumentation()
                 .AddSqlClientInstrumentation()
@@ -232,7 +226,7 @@ public class TraceProcessor : BaseProcessor<Activity>
                 .AddProcessor(new TraceProcessor())
                 .AddOtlpExporter(exporterOptions =>
                 {
-                    exporterOptions.Endpoint = new Uri(Cfg.TracesEndpoint);
+                    exporterOptions.Endpoint = new Uri(Cfg.OtlpEndpoint + "/v1/traces");
                     exporterOptions.Protocol = ExportProtocol;
                 })
                 .Build();
@@ -244,7 +238,7 @@ public class TraceProcessor : BaseProcessor<Activity>
                 .AddAspNetInstrumentation()
                 .AddOtlpExporter(options =>
                 {
-                    options.Endpoint = new Uri(Cfg.MetricsEndpoint);
+                    options.Endpoint = new Uri(Cfg.OtlpEndpoint + "/v1/metrics");
                     options.Protocol = ExportProtocol;
                 })
                 .Build();
@@ -256,11 +250,11 @@ public class TraceProcessor : BaseProcessor<Activity>
             logging.AddOpenTelemetry(options =>
             {
                 options
-                    .SetResourceBuilder(ResourceBuilder.CreateDefault().AddAttributes(Cfg.ResourceAttributes))
+                    .SetResourceBuilder(ResourceBuilder.CreateDefault().AddAttributes(GetResourceAttributes()))
                     .AddProcessor(new LogProcessor())
                     .AddOtlpExporter(exporterOptions =>
                     {
-                        exporterOptions.Endpoint = new Uri(Cfg.LogsEndpoint);
+                        exporterOptions.Endpoint = new Uri(Cfg.OtlpEndpoint + "/v1/logs");
                         exporterOptions.Protocol = ExportProtocol;
                     });
             });

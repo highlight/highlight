@@ -17,13 +17,17 @@ namespace Serilog
         public static LoggerConfiguration HighlightOpenTelemetry(this LoggerSinkConfiguration loggerConfiguration,
             Action<Highlight.OpenTelemetry.Config> configure)
         {
-            Highlight.OpenTelemetry.Config config = new("", "");
+            Highlight.OpenTelemetry.Config config = new()
+            {
+                ProjectId = "",
+                ServiceName = ""
+            };
             configure(config);
             return loggerConfiguration.OpenTelemetry(options =>
             {
                 options.Protocol = Highlight.OpenTelemetry.Protocol;
-                options.Endpoint = config.LogsEndpoint;
-                options.ResourceAttributes = config.ResourceAttributes;
+                options.Endpoint = config.OtlpEndpoint + "/v1/logs";
+                options.ResourceAttributes = Highlight.OpenTelemetry.GetResourceAttributes();
             });
         }
 
@@ -110,30 +114,28 @@ namespace Highlight
         public const OtlpExportProtocol ExportProtocol = OtlpExportProtocol.HttpProtobuf;
         public const string HighlightHeader = "x-highlight-request";
 
-        public class Config
+        public class Config {
+            public required string ProjectId;
+            public required string ServiceName;
+            public string OtlpEndpoint = "https://otel.highlight.io:4318";
+        }
+        
+        public static Dictionary<string, object> GetResourceAttributes()
         {
-            public string ProjectId, ServiceName;
-            public string TracesEndpoint, LogsEndpoint, MetricsEndpoint;
-            public Dictionary<string, object> ResourceAttributes;
-
-            public Config(string projectId, string serviceName, string otlpEndpoint = "https://otel.highlight.io:4318")
+            return new Dictionary<string, object>
             {
-                ProjectId = projectId;
-                ServiceName = serviceName;
-                TracesEndpoint = otlpEndpoint + "/v1/traces";
-                LogsEndpoint = otlpEndpoint + "/v1/logs";
-                MetricsEndpoint = otlpEndpoint + "/v1/metrics";
-                ResourceAttributes = new Dictionary<string, object>
-                {
-                    ["highlight.project_id"] = ProjectId,
-                    ["service.name"] = ServiceName,
-                };
-            }
+                ["highlight.project_id"] = _config.ProjectId,
+                ["service.name"] = _config.ServiceName
+            };
         }
 
-        private static Config _config = new("", "");
+        static Config _config = new()
+        {
+            ProjectId = "",
+            ServiceName = "svc"
+        };
 
-        private static readonly Random Random = new Random();
+        static readonly Random Random = new();
 
         public static Dictionary<string, string?> GetHighlightContext()
         {
@@ -233,7 +235,7 @@ namespace Highlight
         {
             configure(_config);
             services.AddOpenTelemetry()
-                .ConfigureResource(resource => resource.AddAttributes(_config.ResourceAttributes))
+                .ConfigureResource(resource => resource.AddAttributes(GetResourceAttributes()))
                 .WithTracing(tracing => tracing
                     .AddSource(_config.ServiceName)
                     .AddProcessor(new TraceProcessor())
@@ -251,7 +253,7 @@ namespace Highlight
                     })
                     .AddOtlpExporter(options =>
                     {
-                        options.Endpoint = new Uri(_config.TracesEndpoint);
+                        options.Endpoint = new Uri(_config.OtlpEndpoint + "/v1/traces");
                         options.Protocol = ExportProtocol;
                     }))
                 .WithMetrics(metrics => metrics
@@ -262,7 +264,7 @@ namespace Highlight
                     .AddAspNetCoreInstrumentation()
                     .AddOtlpExporter(options =>
                     {
-                        options.Endpoint = new Uri(_config.MetricsEndpoint);
+                        options.Endpoint = new Uri(_config.OtlpEndpoint + "/v1/metrics");
                         options.Protocol = ExportProtocol;
                     }));
         }
@@ -273,11 +275,11 @@ namespace Highlight
             logging.AddOpenTelemetry(options =>
             {
                 options
-                    .SetResourceBuilder(ResourceBuilder.CreateDefault().AddAttributes(_config.ResourceAttributes))
+                    .SetResourceBuilder(ResourceBuilder.CreateDefault().AddAttributes(GetResourceAttributes()))
                     .AddProcessor(new LogProcessor())
                     .AddOtlpExporter(exporterOptions =>
                     {
-                        exporterOptions.Endpoint = new Uri(_config.LogsEndpoint);
+                        exporterOptions.Endpoint = new Uri(_config.OtlpEndpoint + "/v1/logs");
                         exporterOptions.Protocol = ExportProtocol;
                     });
             });
