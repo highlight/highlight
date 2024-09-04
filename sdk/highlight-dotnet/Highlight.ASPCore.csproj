@@ -1,0 +1,37 @@
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
+
+    <PropertyGroup>
+        <TargetFramework>net8.0</TargetFramework>
+        <RootNamespace>Highlight</RootNamespace>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <IsPackable>true</IsPackable>
+        <Nullable>enable</Nullable>
+
+        <OutputType>library</OutputType>
+        <Version>0.1.7</Version>
+        <AssemblyVersion>0.1.7</AssemblyVersion>
+        <FileVersion>0.1.7</FileVersion>
+        <Company>highlight.io</Company>
+        <Authors>Vadim Korolik</Authors>
+        <Product>highlight.io</Product>
+        <Description>Session replay, error monitoring, logging, and tracing: stop guessing why bugs happen!</Description>
+        <Copyright>Copyright © 2024</Copyright>
+        <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
+        <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
+        <PackageReadmeFile>README.md</PackageReadmeFile>
+        <PackageProjectUrl>https://highlight.io</PackageProjectUrl>
+        <PackageTags>highlight.io, session replay, error monitoring, logging, tracing</PackageTags>
+        <RepositoryUrl>https://github.com/highlight/highlight</RepositoryUrl>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <PackageReference Include="OpenTelemetry" Version="1.9.0" />
+      <PackageReference Include="OpenTelemetry.AutoInstrumentation" Version="1.7.0" />
+      <PackageReference Include="OpenTelemetry.Exporter.OpenTelemetryProtocol" Version="1.9.0" />
+      <PackageReference Include="OpenTelemetry.Extensions.Hosting" Version="1.9.0" />
+      <PackageReference Include="Serilog" Version="4.0.1" />
+      <PackageReference Include="Serilog.Sinks.OpenTelemetry" Version="4.0.0" />
+      <None Include="README.md" Pack="true" PackagePath=""/>
+    </ItemGroup>
+
+</Project>

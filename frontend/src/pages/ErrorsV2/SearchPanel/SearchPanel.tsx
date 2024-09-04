@@ -18,7 +18,6 @@ import { useSearchContext } from '@/components/Search/SearchContext'
 import { useRetentionPresets } from '@/components/Search/SearchForm/hooks'
 import { SearchForm } from '@/components/Search/SearchForm/SearchForm'
 import { useGetWorkspaceSettingsQuery } from '@/graph/generated/hooks'
-import useFeatureFlag, { Feature } from '@/hooks/useFeatureFlag/useFeatureFlag'
 import { ErrorFeedCard } from '@/pages/ErrorsV2/ErrorFeedCard/ErrorFeedCard'
 import { useErrorPageNavigation } from '@/pages/ErrorsV2/ErrorsV2'
 import { OverageCard } from '@/pages/Sessions/SessionsFeedV3/OverageCard/OverageCard'
@@ -31,7 +30,6 @@ export const SearchPanel = () => {
 	const { currentWorkspace } = useApplicationContext()
 	const { setShowLeftPanel } = useErrorPageNavigation()
 	const { showBanner } = useGlobalContext()
-	const aiQueryBuilderFlag = useFeatureFlag(Feature.AiQueryBuilder)
 	const {
 		results: errorGroups,
 		totalCount,
@@ -54,7 +52,7 @@ export const SearchPanel = () => {
 
 	const { data: workspaceSettings } = useGetWorkspaceSettingsQuery({
 		variables: { workspace_id: String(currentWorkspace?.id) },
-		skip: !currentWorkspace?.id || !aiQueryBuilderFlag,
+		skip: !currentWorkspace?.id,
 	})
 
 	useEffect(() => {
@@ -115,7 +113,7 @@ export const SearchPanel = () => {
 				enableAIMode={
 					workspaceSettings?.workspaceSettings?.ai_query_builder
 				}
-				aiSupportedSearch={aiQueryBuilderFlag}
+				aiSupportedSearch
 				hideCreateAlert
 				isPanelView
 			/>
