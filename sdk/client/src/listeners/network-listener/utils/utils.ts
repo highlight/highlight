@@ -1,5 +1,8 @@
 import { getActiveSpan } from '../../../otel'
-import { getSessionSecureID } from '../../../utils/sessionStorage/highlightSession'
+import {
+	getNetworkSessionSecureID,
+	getSessionSecureID,
+} from '../../../utils/sessionStorage/highlightSession'
 import { RequestResponsePair } from './models'
 import { sanitizeResource } from './network-sanitizer'
 
@@ -307,10 +310,10 @@ export const createNetworkRequestId = (useOtelTraceId?: boolean) => {
 	if (useOtelTraceId) {
 		const context = getActiveSpan()
 		const traceId = context?.spanContext().traceId
-		return [getSessionSecureID({ local: true }), traceId ?? requestId]
+		return [getNetworkSessionSecureID(), traceId ?? requestId]
 	}
 
-	return [getSessionSecureID({ local: true }), requestId]
+	return [getNetworkSessionSecureID(), requestId]
 }
 
 export const getHighlightRequestHeader = (
