@@ -79,6 +79,7 @@ module Highlight
     CODE_FILEPATH = OpenTelemetry::SemanticConventions::Trace::CODE_FILEPATH
     CODE_LINENO = OpenTelemetry::SemanticConventions::Trace::CODE_LINENO
     CODE_FUNCTION = OpenTelemetry::SemanticConventions::Trace::CODE_FUNCTION
+    DEPLOYMENT_ENVIRONMENT_ATTRIBUTE = OpenTelemetry::SemanticConventions::Resource::DEPLOYMENT_ENVIRONMENT
     HIGHLIGHT_SDK_VERSION_ATTRIBUTE = 'telemetry.distro.version'.freeze
     HIGHLIGHT_SDK_NAME_ATTRIBUTE = 'telemetry.distro.name'.freeze
 
@@ -115,6 +116,7 @@ module Highlight
 
       @project_id = project_id
       @otlp_endpoint = otlp_endpoint
+      @environment = environment
 
       configure_opentelemetry(&block)
 
@@ -199,7 +201,8 @@ module Highlight
       OpenTelemetry::SDK::Resources::Resource.create(
         HIGHLIGHT_PROJECT_ATTRIBUTE => @project_id,
         HIGHLIGHT_SDK_VERSION_ATTRIBUTE => Highlight::VERSION,
-        HIGHLIGHT_SDK_NAME_ATTRIBUTE => SDK_NAME
+        HIGHLIGHT_SDK_NAME_ATTRIBUTE => SDK_NAME,
+        DEPLOYMENT_ENVIRONMENT_ATTRIBUTE => @environment
       )
     end
 

@@ -82,6 +82,7 @@ class HighlightTest < Minitest::Test
     assert_equal(Highlight::VERSION, trace_resource_attributes['telemetry.distro.version'])
     assert_equal(@service_name, trace_resource_attributes['service.name'])
     assert_equal(@service_version, trace_resource_attributes['service.version'])
+    assert_equal(@environment, trace_resource_attributes['deployment.environment'])
   end
 
   def test_start_span
