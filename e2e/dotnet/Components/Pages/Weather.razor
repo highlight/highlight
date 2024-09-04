@@ -1,5 +1,6 @@
 ﻿@page "/weather"
 @using System.Diagnostics
+@using Highlight
 @using Serilog
 @attribute [StreamRendering]
 
@@ -46,7 +47,7 @@ else
 
     protected override async Task OnInitializedAsync()
     {
-        tracer = new ActivitySource(HighlightConfig.ServiceName);
+        tracer = new ActivitySource(Highlight.OpenTelemetry.GetConfig().ServiceName);
         var activityListener = new ActivityListener
         {
             ShouldListenTo = s => true,
