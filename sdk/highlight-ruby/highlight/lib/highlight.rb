@@ -60,6 +60,12 @@ module Highlight
     H.instance.flush
   end
 
+  def self.shutdown
+    return unless H.initialized?
+
+    H.instance.shutdown
+  end
+
   class H
     SDK_NAME = 'highlight-ruby'.freeze
     OTLP_HTTP = 'https://otel.highlight.io:4318'.freeze
@@ -124,6 +130,10 @@ module Highlight
       @tracer_provider&.force_flush
     end
 
+    def shutdown
+      @tracer_provider&.shutdown
+    end
+
     def trace(session_id, request_id, attrs = {}, name: 'highlight.span', &block)
       return unless initialized?
 
@@ -135,7 +145,7 @@ module Highlight
     def start_span(name, attrs = {})
       return unless initialized?
 
-      @tracer.in_span(name, attributes: attrs) { |span| yield(span) if block_given? }
+      @tracer.in_span(name, attributes: attrs.transform_keys(&:to_s)) { |span| yield(span) if block_given? }
     end
 
     def record_exception(e, attrs = {})
@@ -167,7 +177,7 @@ module Highlight
       OpenTelemetry::SDK.configure do |c|
         c.add_span_processor(Highlight::Tracing::BaggageSpanProcessor.new)
         c.add_span_processor(create_batch_span_processor)
-        c.resource = create_resource(environment)
+        c.resource = create_resource
         c.use_all
         yield(c) if block_given?
       end
@@ -185,13 +195,11 @@ module Highlight
       )
     end
 
-    def create_resource(environment)
+    def create_resource
       OpenTelemetry::SDK::Resources::Resource.create(
         HIGHLIGHT_PROJECT_ATTRIBUTE => @project_id,
         HIGHLIGHT_SDK_VERSION_ATTRIBUTE => Highlight::VERSION,
-        HIGHLIGHT_SDK_NAME_ATTRIBUTE => SDK_NAME,
-        OpenTelemetry::SemanticConventions::Resource::SERVICE_NAME => environment,
-        OpenTelemetry::SemanticConventions::Resource::DEPLOYMENT_ENVIRONMENT => environment
+        HIGHLIGHT_SDK_NAME_ATTRIBUTE => SDK_NAME
       )
     end
 

@@ -1,4 +1,5 @@
 require_relative 'test_helper'
+require 'opentelemetry/sdk'
 
 class HighlightTest < Minitest::Test
   def setup
@@ -6,18 +7,27 @@ class HighlightTest < Minitest::Test
     @environment = 'ci-test'
     @service_name = 'my-app'
     @service_version = '1.0.0'
-  end
 
-  def test_initialization
-    highlight =
-      Highlight::H.new(@project_id, environment: @environment) do |c|
+    @highlight =
+      Highlight.init(@project_id, environment: @environment) do |c|
         c.service_name = @service_name
         c.service_version = @service_version
       end
 
-    assert_equal(@project_id, highlight.instance_variable_get(:@project_id))
-    assert_equal(Highlight::H::OTLP_HTTP, highlight.instance_variable_get(:@otlp_endpoint))
-    assert(highlight.initialized?)
+    @memory_exporter = OpenTelemetry::SDK::Trace::Export::InMemorySpanExporter.new
+    span_processor = OpenTelemetry::SDK::Trace::Export::SimpleSpanProcessor.new(@memory_exporter)
+    OpenTelemetry.tracer_provider.add_span_processor(span_processor)
+  end
+
+  def teardown
+    Highlight.flush
+    Highlight.shutdown
+  end
+
+  def test_initialization
+    assert_equal(@project_id, @highlight.instance_variable_get(:@project_id))
+    assert_equal(Highlight::H::OTLP_HTTP, @highlight.instance_variable_get(:@otlp_endpoint))
+    assert(@highlight.initialized?)
 
     resource = OpenTelemetry.tracer_provider.resource
     resource_attributes = resource.attribute_enumerator.to_h
@@ -25,22 +35,7 @@ class HighlightTest < Minitest::Test
     assert_equal(Highlight::VERSION, resource_attributes['telemetry.distro.version'])
   end
 
-  def test_highlight_init
-    highlight =
-      Highlight.init(@project_id, environment: @environment) do |c|
-        c.service_name = @service_name
-        c.service_version = @service_version
-      end
-
-    assert_instance_of(Highlight::H, highlight)
-    assert_equal(@project_id, highlight.instance_variable_get(:@project_id))
-  end
-
   def test_logger
-    Highlight::H.new(@project_id, environment: @environment) do |c|
-      c.service_name = @service_name
-      c.service_version = @service_version
-    end
     logger = Highlight::Logger.new(StringIO.new)
 
     OpenTelemetry.stub(:handle_error, -> { raise('handle_error was called') }) do
@@ -49,14 +44,10 @@ class HighlightTest < Minitest::Test
       logger.error('ruby test log error!')
       logger.debug { 'ruby test log debug block!' }
       logger.info({ hash: 'ruby test log hash!' })
-      Highlight::H.instance.flush
     end
-
-    Highlight.flush
   end
 
   def test_record_log
-    Highlight::H.new('qe9y4yg1')
     Highlight::H.instance.record_log(nil, nil, Logger::INFO, 'ruby test record_log info!')
     Highlight.log(Logger::ERROR, 'ruby test record_log error!')
     Highlight::H.instance.record_log(
@@ -65,76 +56,72 @@ class HighlightTest < Minitest::Test
       Logger::WARN,
       'ruby test record_log with session and request!'
     )
-    Highlight::H.instance.flush
   end
 
   def test_trace
-    mock = Minitest::Mock.new
-    mock.expect(:in_span, true) do |name, attributes:|
-      name == 'test_span' && attributes == { 'some.attribute': 12 }
+    @highlight.trace('session123', 'request456', { 'some.attribute': 12 }, name: 'test_span') do |span|
+      logger = Highlight::Logger.new(StringIO.new)
+      logger.info('ruby test trace!')
     end
 
-    OpenTelemetry::Trace::Tracer.stub(:new, mock) do
-      highlight = Highlight::H.new(@project_id, environment: @environment)
-      highlight.trace('session123', 'request456', { 'some.attribute': 12 }, name: 'test_span') do
-        logger = Highlight::Logger.new(StringIO.new)
-        logger.info('ruby test trace!')
-      end
-      highlight.flush
-    end
+    spans = @memory_exporter.finished_spans
+    assert_equal(2, spans.length)
 
-    mock.verify
+    trace_span = spans.last
+    assert_equal('test_span', trace_span.name)
+    expected_attributes = {
+      'some.attribute' => 12,
+      'highlight.session_id' => 'session123',
+      'highlight.trace_id' => 'request456'
+    }
+    assert_equal(expected_attributes, trace_span.attributes)
   end
 
   def test_start_span
-    mock = Minitest::Mock.new
-    mock.expect(:in_span, true) do |name, attributes:|
-      name == 'test_span' && attributes == { attr1: 'value1' }
+    Highlight.start_span('test_span', { attr1: 'value1' }) do |span|
+      span.set_attribute('attr2', 'value2')
+      Highlight.log(Logger::INFO, 'ruby test start_span!')
     end
 
-    OpenTelemetry::Trace::Tracer.stub(:new, mock) do
-      Highlight.init(@project_id)
-      Highlight.start_span('test_span', { attr1: 'value1' }) do
-        Highlight.log(Logger::INFO, 'ruby test start_span!')
-      end
-      Highlight::H.instance.flush
-    end
+    spans = @memory_exporter.finished_spans
+    assert_equal(2, spans.length)
 
-    mock.verify
+    log_span = spans.first
+    log_span_events = log_span.events
+    assert_equal('highlight.log', log_span.name)
+    assert_equal(1, log_span_events.length)
+    assert_equal('log', log_span_events.first.name)
+    assert_equal('ruby test start_span!', log_span_events.first.attributes['log.message'])
+
+    test_span = spans.last
+    assert_equal('test_span', test_span.name)
+    assert_equal({ 'attr1' => 'value1', 'attr2' => 'value2' }, test_span.attributes)
   end
 
   def test_exception_handling
-    highlight = Highlight::H.new(@project_id)
-
     begin
       raise(StandardError, 'Test error')
     rescue StandardError => e
-      highlight.record_exception(e, { custom_attr: 'test' })
+      @highlight.record_exception(e, { custom_attr: 'test' })
     end
-
-    highlight.flush
   end
 
   def test_trace_processor
-    highlight = Highlight.init(@project_id, environment: @environment)
-    highlight.trace('session123', 'request456', { 'some.attribute' => 12 }) do
+    @highlight.trace('session123', 'request456', { 'some.attribute' => 12 }) do
       baggage = OpenTelemetry::Baggage.values(context: OpenTelemetry::Context.current)
       assert_equal(baggage['highlight.session_id'], 'session123')
       assert_equal(baggage['highlight.trace_id'], 'request456')
       puts('a test trace!')
     end
-    highlight.flush
   end
 
   def test_highlight_traceparent_meta
-    Highlight.init(@project_id)
     traceparent_content = Highlight.traceparent_meta
 
     assert_match(/00-[a-f0-9]{32}-[a-f0-9]{16}-01/, traceparent_content)
   end
 
   def test_highlight_traceparent_meta_tag
-    Highlight.init(@project_id)
     meta_tag = Highlight.traceparent_meta_tag
 
     assert_match(/<meta name="traceparent" content="00-[a-f0-9]{32}-[a-f0-9]{16}-01">/, meta_tag)
