@@ -128,7 +128,14 @@ class HighlightTest < Minitest::Test
 
   def test_highlight_traceparent_meta
     Highlight.init(@project_id)
-    meta_tag = Highlight.traceparent_meta
+    traceparent_content = Highlight.traceparent_meta
+
+    assert_match(/00-[a-f0-9]{32}-[a-f0-9]{16}-01/, traceparent_content)
+  end
+
+  def test_highlight_traceparent_meta_tag
+    Highlight.init(@project_id)
+    meta_tag = Highlight.traceparent_meta_tag
 
     assert_match(/<meta name="traceparent" content="00-[a-f0-9]{32}-[a-f0-9]{16}-01">/, meta_tag)
   end

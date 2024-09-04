@@ -48,6 +48,12 @@ module Highlight
     Helpers.traceparent_meta
   end
 
+  def self.traceparent_meta_tag
+    return unless H.initialized?
+
+    Helpers.traceparent_meta_tag
+  end
+
   def self.flush
     return unless H.initialized?
 
@@ -135,7 +141,7 @@ module Highlight
     def record_exception(e, attrs = {})
       return unless initialized?
 
-      OpenTelemetry::Trace.current_span&.record_exception(e, attributes: attrs)
+      OpenTelemetry::Trace.current_span&.record_exception(e, attributes: attrs.transform_keys(&:to_s))
     end
 
     def record_log(session_id, request_id, level, message, attrs = {})
@@ -198,7 +204,7 @@ module Highlight
         CODE_FILEPATH => caller_info.first,
         CODE_LINENO => caller_info[1],
         CODE_FUNCTION => caller_info[2]
-      }.merge(attrs)
+      }.merge(attrs).transform_keys(&:to_s)
     end
 
     def parse_caller_info
@@ -235,6 +241,7 @@ module Highlight
         base.extend(ClassMethods)
         base.helper_method(:highlight_headers)
         base.around_action(:with_highlight_context)
+        base.helper(ViewHelpers)
       end
 
       def with_highlight_context(&block)
@@ -284,6 +291,12 @@ module Highlight
 
       module ClassMethods
       end
+
+      module ViewHelpers
+        def highlight_traceparent_meta
+          tag.meta(name: 'traceparent', content: Helpers.traceparent_meta)
+        end
+      end
     end
   end
 
@@ -300,7 +313,11 @@ module Highlight
       hex_trace_id = trace_id&.unpack1('H*') || ('0' * 32)
       hex_span_id = span_id&.unpack1('H*') || ('0' * 16)
 
-      "<meta name=\"traceparent\" content=\"00-#{hex_trace_id}-#{hex_span_id}-01\">"
+      "00-#{hex_trace_id}-#{hex_span_id}-01"
+    end
+
+    def self.traceparent_meta_tag
+      "<meta name=\"traceparent\" content=\"#{traceparent_meta}\">"
     end
   end
 
