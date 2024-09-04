@@ -48,6 +48,12 @@ module Highlight
     Helpers.traceparent_meta
   end
 
+  def self.flush
+    return unless H.initialized?
+
+    H.instance.flush
+  end
+
   class H
     SDK_NAME = 'highlight-ruby'.freeze
     OTLP_HTTP = 'https://otel.highlight.io:4318'.freeze
@@ -73,7 +79,7 @@ module Highlight
     end
 
     def self.parse_headers(headers)
-      return HighlightHeaders.new(nil, nil) unless headers&.[](HIGHLIGHT_REQUEST_HEADER)
+      return HighlightHeaders.new(nil, nil) if headers.nil? || !headers.key?(HIGHLIGHT_REQUEST_HEADER)
 
       session_id, request_id = headers[HIGHLIGHT_REQUEST_HEADER].split('/')
       traceparent = headers['traceparent']

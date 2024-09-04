@@ -51,6 +51,8 @@ class HighlightTest < Minitest::Test
       logger.info({ hash: 'ruby test log hash!' })
       Highlight::H.instance.flush
     end
+
+    Highlight.flush
   end
 
   def test_record_log
@@ -114,26 +116,14 @@ class HighlightTest < Minitest::Test
   end
 
   def test_trace_processor
-    mock = Minitest::Mock.new
-    mock.expect(:on_start, true) do |span, parent_context|
-      span.attributes
-      OpenTelemetry::Baggage.values(context: parent_context) == {
-        'highlight.session_id': 'session123',
-        'highlight.trace_id': 'request456'
-      }
+    highlight = Highlight.init(@project_id, environment: @environment)
+    highlight.trace('session123', 'request456', { 'some.attribute' => 12 }) do
+      baggage = OpenTelemetry::Baggage.values(context: OpenTelemetry::Context.current)
+      assert_equal(baggage['highlight.session_id'], 'session123')
+      assert_equal(baggage['highlight.trace_id'], 'request456')
+      puts('a test trace!')
     end
-    mock.expect(:on_finish, true) do |span|
-      span.attributes == { 'some.attribute': 12 }
-    end
-
-    Highlight::Tracing::BaggageSpanProcessor.stub(:new, mock) do
-      highlight = Highlight::H.new(@project_id, environment: @environment)
-      highlight.trace('session123', 'request456', { 'some.attribute': 12 }) do
-        puts('ruby test trace!')
-      end
-    end
-
-    mock.verify
+    highlight.flush
   end
 
   def test_highlight_traceparent_meta
@@ -144,10 +134,9 @@ class HighlightTest < Minitest::Test
   end
 
   def test_parse_headers
-    headers = {
-      'X-Highlight-Request': 'session123/request456',
-      traceparent: '00-0af7651916cd43dd8448eb211c80319c-b7ad6b7169203331-01'
-    }
+    headers = {}
+    headers[Highlight::H::HIGHLIGHT_REQUEST_HEADER] = 'session123/request456'
+    headers['traceparent'] = '00-0af7651916cd43dd8448eb211c80319c-b7ad6b7169203331-01'
 
     highlight_headers = Highlight::H.parse_headers(headers)
 

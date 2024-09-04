@@ -8,6 +8,10 @@ class VanillaRubyTest < Minitest::Test
     @calculator = Calculator.new
   end
 
+  def teardown
+    Highlight.flush
+  end
+
   def test_add
     result = @calculator.add(2, 3)
     assert_equal(5, result)
