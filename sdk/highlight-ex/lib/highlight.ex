@@ -1,6 +1,19 @@
 defmodule Highlight do
   @moduledoc """
   Documentation for Highlight.
+
+  ## Install SDK
+
+    In your `mix.exs` file:
+
+    ```elixir
+    defp deps do
+      [
+        ...
+        {:highlight, "~> 0.1"}
+      ]
+    end
+    ```
   """
   require OpenTelemetry.Tracer, as: Tracer
   require Logger
