@@ -90,7 +90,6 @@ export const Dashboard = () => {
 				variables: {
 					visualization: {
 						projectId,
-						name: data?.visualization.name,
 						id: dashboard_id,
 						graphIds: graphIds,
 					},

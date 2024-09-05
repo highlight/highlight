@@ -47,7 +47,7 @@
 			"outputs": ["dist/**"]
 		},
 		"codegen": {
-			"inputs": ["../**/*.gql", "../**/*.graphqls"],
+			"inputs": ["./**/*.gql", "./**/*.graphqls"],
 			"outputs": ["src/graph/generated/**"]
 		},
 		"typegen": {
