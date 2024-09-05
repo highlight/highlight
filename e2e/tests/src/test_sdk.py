@@ -337,7 +337,7 @@ def test_dotnet_traces(dotnet_app, oauth_api):
             "project_id": "1",
             "direction": "DESC",
             "params": {
-                "query": "telemetry.sdk.language=dotnet",
+                "query": "telemetry.sdk.language=dotnet telemetry.distro.name=Highlight.ASPCore",
                 "date_range": {
                     "start_date": f'{start.isoformat(timespec="microseconds")}000-00:00',
                     "end_date": f'{ts.isoformat(timespec="microseconds")}000-00:00',
