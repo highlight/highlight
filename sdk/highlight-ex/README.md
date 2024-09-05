@@ -18,8 +18,8 @@ elixir -v
 You should see output similar to:
 
 ```sh
-Erlang/OTP 23 [erts-11.1.3] [source] [64-bit]
-Elixir 1.11.2 (compiled with Erlang/OTP 23)
+Erlang/OTP 25 [erts-11.1.3] [source] [64-bit]
+Elixir 1.13.4 (compiled with Erlang/OTP 25)
 ```
 
 ## Setting Up the Development Environment
