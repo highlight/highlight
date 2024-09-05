@@ -1615,6 +1615,7 @@ type ComplexityRoot struct {
 		ID             func(childComplexity int) int
 		Name           func(childComplexity int) int
 		ProjectID      func(childComplexity int) int
+		TimePreset     func(childComplexity int) int
 		UpdatedAt      func(childComplexity int) int
 		UpdatedByAdmin func(childComplexity int) int
 	}
@@ -11066,6 +11067,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Visualization.ProjectID(childComplexity), true
 
+	case "Visualization.timePreset":
+		if e.complexity.Visualization.TimePreset == nil {
+			break
+		}
+
+		return e.complexity.Visualization.TimePreset(childComplexity), true
+
 	case "Visualization.updatedAt":
 		if e.complexity.Visualization.UpdatedAt == nil {
 			break
@@ -13569,6 +13577,7 @@ type Visualization {
 	name: String!
 	updatedByAdmin: SanitizedAdmin
 	graphs: [Graph!]!
+	timePreset: String
 }
 
 type VisualizationsResponse {
@@ -13600,8 +13609,9 @@ input GraphInput {
 input VisualizationInput {
 	id: ID
 	projectId: ID!
-	name: String!
+	name: String
 	graphIds: [ID!]
+	timePreset: String
 }
 
 scalar Upload
@@ -64952,6 +64962,8 @@ func (ec *executionContext) fieldContext_Query_visualization(ctx context.Context
 				return ec.fieldContext_Visualization_updatedByAdmin(ctx, field)
 			case "graphs":
 				return ec.fieldContext_Visualization_graphs(ctx, field)
+			case "timePreset":
+				return ec.fieldContext_Visualization_timePreset(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Visualization", field.Name)
 		},
@@ -78916,6 +78928,47 @@ func (ec *executionContext) fieldContext_Visualization_graphs(ctx context.Contex
 	return fc, nil
 }
 
+func (ec *executionContext) _Visualization_timePreset(ctx context.Context, field graphql.CollectedField, obj *model1.Visualization) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Visualization_timePreset(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.TimePreset, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Visualization_timePreset(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Visualization",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _VisualizationsResponse_count(ctx context.Context, field graphql.CollectedField, obj *model1.VisualizationsResponse) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_VisualizationsResponse_count(ctx, field)
 	if err != nil {
@@ -79011,6 +79064,8 @@ func (ec *executionContext) fieldContext_VisualizationsResponse_results(ctx cont
 				return ec.fieldContext_Visualization_updatedByAdmin(ctx, field)
 			case "graphs":
 				return ec.fieldContext_Visualization_graphs(ctx, field)
+			case "timePreset":
+				return ec.fieldContext_Visualization_timePreset(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Visualization", field.Name)
 		},
@@ -84559,7 +84614,7 @@ func (ec *executionContext) unmarshalInputVisualizationInput(ctx context.Context
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"id", "projectId", "name", "graphIds"}
+	fieldsInOrder := [...]string{"id", "projectId", "name", "graphIds", "timePreset"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -84582,7 +84637,7 @@ func (ec *executionContext) unmarshalInputVisualizationInput(ctx context.Context
 			it.ProjectID = data
 		case "name":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("name"))
-			data, err := ec.unmarshalNString2string(ctx, v)
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -84594,6 +84649,13 @@ func (ec *executionContext) unmarshalInputVisualizationInput(ctx context.Context
 				return it, err
 			}
 			it.GraphIds = data
+		case "timePreset":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("timePreset"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.TimePreset = data
 		}
 	}
 
@@ -98933,6 +98995,8 @@ func (ec *executionContext) _Visualization(ctx context.Context, sel ast.Selectio
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&out.Invalids, 1)
 			}
+		case "timePreset":
+			out.Values[i] = ec._Visualization_timePreset(ctx, field, obj)
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}

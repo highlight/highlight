@@ -18,12 +18,12 @@ import {
 	Button,
 	DateRangePicker,
 	DEFAULT_TIME_PRESETS,
-	Form,
 	IconSolidChartBar,
 	IconSolidCheveronRight,
 	IconSolidClock,
+	IconSolidCog,
 	IconSolidPlus,
-	IconSolidTemplate,
+	parsePreset,
 	presetStartDate,
 	Stack,
 	Tag,
@@ -31,7 +31,7 @@ import {
 } from '@highlight-run/ui/components'
 import { vars } from '@highlight-run/ui/vars'
 import clsx from 'clsx'
-import { useEffect, useId, useState } from 'react'
+import { useId, useState } from 'react'
 import { Helmet } from 'react-helmet'
 import { Link, useNavigate } from 'react-router-dom'
 
@@ -51,6 +51,7 @@ import Graph, { getViewConfig } from '@/pages/Graphing/components/Graph'
 import { useParams } from '@/util/react-router/useParams'
 
 import * as style from './Dashboard.css'
+import { DashboardSettingsModal } from '@/pages/Graphing/components/DashboardSettingsModal'
 
 export const HeaderDivider = () => <Box cssClass={style.headerDivider} />
 
@@ -66,38 +67,78 @@ export const Dashboard = () => {
 		}),
 	)
 
-	const [editing, setEditing] = useState(false)
-	const [name, setName] = useState('')
+	const [showModal, setShowModal] = useState(false)
+
 	const [graphs, setGraphs] =
 		useState<GetVisualizationQuery['visualization']['graphs']>()
 	const handleDragEnd = (event: any) => {
 		const { active, over } = event
 
 		if (active.id !== over.id) {
-			setGraphs((graphs) => {
-				if (graphs === undefined) {
-					return undefined
-				}
+			if (graphs === undefined) {
+				return undefined
+			}
 
-				const oldIndex = graphs.findIndex((g) => g.id === active.id)
-				const newIndex = graphs.findIndex((g) => g.id === over.id)
+			const oldIndex = graphs.findIndex((g) => g.id === active.id)
+			const newIndex = graphs.findIndex((g) => g.id === over.id)
 
-				return arrayMove(graphs, oldIndex, newIndex)
+			const newGraphs = arrayMove(graphs, oldIndex, newIndex)
+			setGraphs(newGraphs)
+
+			const graphIds = newGraphs?.map((g) => g.id)
+			upsertViz({
+				variables: {
+					visualization: {
+						projectId,
+						id: dashboard_id,
+						graphIds: graphIds,
+					},
+				},
+				optimisticResponse: {
+					upsertVisualization: dashboard_id!,
+				},
+				update(cache) {
+					const vizId = cache.identify({
+						id: dashboard_id,
+						__typename: 'Visualization',
+					})
+					const graphs = graphIds?.map((gId) => ({
+						__ref: cache.identify({
+							id: gId,
+							__typename: 'Graph',
+						}),
+					}))
+					cache.modify({
+						id: vizId,
+						fields: {
+							name() {
+								return name
+							},
+							graphs() {
+								return graphs
+							},
+						},
+					})
+				},
 			})
+				.then(() => {
+					toast.success('Dashboard updated')
+				})
+				.catch(() => toast.error('Failed to update dashboard'))
 		}
 	}
 
 	const { projectId } = useProjectId()
 	const { data } = useGetVisualizationQuery({
 		variables: { id: dashboard_id! },
-	})
-
-	useEffect(() => {
-		if (data !== undefined) {
-			setName(data.visualization.name)
+		onCompleted: (data) => {
 			setGraphs(data.visualization.graphs)
-		}
-	}, [data])
+			const preset = data.visualization.timePreset
+			if (preset) {
+				updateSearchTime(new Date(), new Date(), parsePreset(preset))
+			}
+		},
+	})
 
 	const [upsertViz] = useUpsertVisualizationMutation()
 
@@ -120,6 +161,14 @@ export const Dashboard = () => {
 			<Helmet>
 				<title>Dashboard</title>
 			</Helmet>
+			<DashboardSettingsModal
+				showModal={showModal}
+				onHideModal={() => {
+					setShowModal(false)
+				}}
+				dashboardId={dashboard_id!}
+				settings={data?.visualization}
+			/>
 			<Box
 				background="n2"
 				padding="8"
@@ -163,163 +212,53 @@ export const Dashboard = () => {
 							<IconSolidCheveronRight
 								color={vars.theme.static.content.weak}
 							/>
-							{editing ? (
-								<Form autoComplete="off">
-									<Form.Input
-										name="name"
-										value={name}
-										onChange={(e) => {
-											setName(e.target.value)
-										}}
-										placeholder="Untitled dashboard"
-									></Form.Input>
-								</Form>
-							) : (
-								<Text
-									size="small"
-									weight="medium"
-									color="default"
-								>
-									{name}
-								</Text>
-							)}
+
+							<Text size="small" weight="medium" color="default">
+								{data?.visualization.name}
+							</Text>
 						</Stack>
 						<Box display="flex" gap="4">
-							{editing ? (
-								<>
-									<Button
-										emphasis="low"
-										kind="secondary"
-										onClick={() => {
-											if (data !== undefined) {
-												setName(
-													data?.visualization.name,
-												)
-												setGraphs(
-													data?.visualization.graphs,
-												)
-											}
-											setEditing(false)
-											toast.success(
-												'Canceled dashboard changes',
-											)
-										}}
-									>
-										Cancel
-									</Button>
-									<Button
-										emphasis="high"
-										kind="primary"
-										onClick={() => {
-											const graphIds = graphs?.map(
-												(g) => g.id,
-											)
-											upsertViz({
-												variables: {
-													visualization: {
-														projectId,
-														id: dashboard_id,
-														name,
-														graphIds: graphIds,
-													},
-												},
-												optimisticResponse: {
-													upsertVisualization:
-														dashboard_id!,
-												},
-												update(cache) {
-													const vizId =
-														cache.identify({
-															id: dashboard_id,
-															__typename:
-																'Visualization',
-														})
-													const graphs =
-														graphIds?.map(
-															(gId) => ({
-																__ref: cache.identify(
-																	{
-																		id: gId,
-																		__typename:
-																			'Graph',
-																	},
-																),
-															}),
-														)
-													cache.modify({
-														id: vizId,
-														fields: {
-															name() {
-																return name
-															},
-															graphs() {
-																return graphs
-															},
-														},
-													})
-												},
-											})
-												.then(() => {
-													toast.success(
-														'Dashboard updated',
-													)
-												})
-												.catch(() =>
-													toast.error(
-														'Failed to update dashboard',
-													),
-												)
-											setEditing(false)
-										}}
-									>
-										Save
-									</Button>
-								</>
-							) : (
-								<>
-									<DateRangePicker
-										emphasis="medium"
-										kind="secondary"
-										iconLeft={<IconSolidClock size={14} />}
-										selectedValue={{
-											startDate,
-											endDate,
-											selectedPreset,
-										}}
-										onDatesChange={updateSearchTime}
-										presets={DEFAULT_TIME_PRESETS}
-										minDate={presetStartDate(
-											DEFAULT_TIME_PRESETS[5],
-										)}
-									/>
-									<HeaderDivider />
-									<Button
-										emphasis="medium"
-										kind="secondary"
-										iconLeft={
-											<IconSolidTemplate size={14} />
-										}
-										onClick={() => {
-											setEditing(true)
-										}}
-									>
-										Edit dashboard
-									</Button>
-									<Button
-										emphasis="medium"
-										kind="secondary"
-										iconLeft={<IconSolidPlus size={14} />}
-										onClick={() => {
-											navigate({
-												pathname: 'new',
-												search: location.search,
-											})
-										}}
-									>
-										Add graph
-									</Button>
-								</>
-							)}
+							<>
+								<DateRangePicker
+									emphasis="medium"
+									kind="secondary"
+									iconLeft={<IconSolidClock size={14} />}
+									selectedValue={{
+										startDate,
+										endDate,
+										selectedPreset,
+									}}
+									onDatesChange={updateSearchTime}
+									presets={DEFAULT_TIME_PRESETS}
+									minDate={presetStartDate(
+										DEFAULT_TIME_PRESETS[5],
+									)}
+								/>
+								<HeaderDivider />
+								<Button
+									emphasis="medium"
+									kind="secondary"
+									iconLeft={<IconSolidCog size={14} />}
+									onClick={() => {
+										setShowModal(true)
+									}}
+								>
+									Settings
+								</Button>
+								<Button
+									emphasis="medium"
+									kind="secondary"
+									iconLeft={<IconSolidPlus size={14} />}
+									onClick={() => {
+										navigate({
+											pathname: 'new',
+											search: location.search,
+										})
+									}}
+								>
+									Add graph
+								</Button>
+							</>
 						</Box>
 					</Box>
 					{noGraphs ? (
@@ -338,11 +277,7 @@ export const Dashboard = () => {
 								width="full"
 								height="full"
 							>
-								<Box
-									cssClass={clsx(style.graphGrid, {
-										[style.gridEditing]: editing,
-									})}
-								>
+								<Box cssClass={clsx(style.graphGrid)}>
 									<DndContext
 										sensors={sensors}
 										collisionDetection={closestCenter}
@@ -351,7 +286,6 @@ export const Dashboard = () => {
 										<SortableContext
 											items={graphs ?? []}
 											strategy={rectSortingStrategy}
-											disabled={!editing}
 										>
 											{graphs?.map((g) => {
 												const isTemp =
@@ -360,7 +294,233 @@ export const Dashboard = () => {
 													<DashboardCard
 														id={g.id}
 														key={g.id}
-														editing={editing}
+														onClone={
+															isTemp
+																? undefined
+																: () => {
+																		const graphInput: GraphInput =
+																			{
+																				visualizationId:
+																					dashboard_id!,
+																				afterGraphId:
+																					g.id,
+																				bucketByKey:
+																					g.bucketByKey,
+																				bucketCount:
+																					g.bucketCount,
+																				display:
+																					g.display,
+																				functionType:
+																					g.functionType,
+																				groupByKey:
+																					g.groupByKey,
+																				limit: g.limit,
+																				limitFunctionType:
+																					g.limitFunctionType,
+																				limitMetric:
+																					g.limitMetric,
+																				metric: g.metric,
+																				nullHandling:
+																					g.nullHandling,
+																				productType:
+																					g.productType,
+																				query: g.query,
+																				title: g.title,
+																				type: g.type,
+																			}
+
+																		upsertGraph(
+																			{
+																				variables:
+																					{
+																						graph: graphInput,
+																					},
+																				optimisticResponse:
+																					{
+																						upsertGraph:
+																							{
+																								...graphInput,
+																								id: `temp-${tempId}`,
+																								__typename:
+																									'Graph',
+																							},
+																					},
+																				update(
+																					cache,
+																					result,
+																				) {
+																					const vizId =
+																						cache.identify(
+																							{
+																								id: dashboard_id,
+																								__typename:
+																									'Visualization',
+																							},
+																						)
+																					const afterGraphId =
+																						cache.identify(
+																							{
+																								id: g.id,
+																								__typename:
+																									'Graph',
+																							},
+																						)
+																					const graphId =
+																						cache.identify(
+																							{
+																								id: result
+																									.data
+																									?.upsertGraph
+																									.id,
+																								__typename:
+																									'Graph',
+																							},
+																						)
+																					cache.modify(
+																						{
+																							id: vizId,
+																							fields: {
+																								graphs(
+																									existing: any[] = [],
+																								) {
+																									const idx =
+																										existing.findIndex(
+																											(
+																												e,
+																											) =>
+																												e.__ref ===
+																												afterGraphId,
+																										)
+																									const clone =
+																										[
+																											...existing,
+																										]
+																									clone.splice(
+																										idx,
+																										0,
+																										{
+																											__ref: graphId,
+																										},
+																									)
+																									return clone
+																								},
+																							},
+																						},
+																					)
+																				},
+																			},
+																		)
+																			.then(
+																				() => {
+																					toast.success(
+																						`Metric view cloned`,
+																					)
+																				},
+																			)
+																			.catch(
+																				() => {
+																					toast.error(
+																						'Failed to clone metric view',
+																					)
+																				},
+																			)
+																	}
+														}
+														onDelete={
+															isTemp
+																? undefined
+																: () => {
+																		deleteGraph(
+																			{
+																				variables:
+																					{
+																						id: g.id,
+																					},
+																				optimisticResponse:
+																					{
+																						deleteGraph:
+																							true,
+																					},
+																				update(
+																					cache,
+																				) {
+																					const vizId =
+																						cache.identify(
+																							{
+																								id: dashboard_id,
+																								__typename:
+																									'Visualization',
+																							},
+																						)
+																					const graphId =
+																						cache.identify(
+																							{
+																								id: g.id,
+																								__typename:
+																									'Graph',
+																							},
+																						)
+																					cache.modify(
+																						{
+																							id: vizId,
+																							fields: {
+																								graphs(
+																									existing: any[] = [],
+																								) {
+																									const filtered =
+																										existing.filter(
+																											(
+																												e: any,
+																											) =>
+																												e.__ref !==
+																												graphId,
+																										)
+																									return filtered
+																								},
+																							},
+																						},
+																					)
+																				},
+																			},
+																		)
+																			.then(
+																				() =>
+																					toast.success(
+																						'Metric view deleted',
+																					),
+																			)
+																			.catch(
+																				() =>
+																					toast.error(
+																						'Failed to delete metric view',
+																					),
+																			)
+																	}
+														}
+														onExpand={
+															isTemp
+																? undefined
+																: () => {
+																		navigate(
+																			{
+																				pathname: `view/${g.id}`,
+																				search: location.search,
+																			},
+																		)
+																	}
+														}
+														onEdit={
+															isTemp
+																? undefined
+																: () => {
+																		navigate(
+																			{
+																				pathname: `edit/${g.id}`,
+																				search: location.search,
+																			},
+																		)
+																	}
+														}
 													>
 														<Graph
 															title={g.title}
@@ -417,234 +577,6 @@ export const Dashboard = () => {
 																g.limitMetric ??
 																undefined
 															}
-															onClone={
-																isTemp
-																	? undefined
-																	: () => {
-																			const graphInput: GraphInput =
-																				{
-																					visualizationId:
-																						dashboard_id!,
-																					afterGraphId:
-																						g.id,
-																					bucketByKey:
-																						g.bucketByKey,
-																					bucketCount:
-																						g.bucketCount,
-																					display:
-																						g.display,
-																					functionType:
-																						g.functionType,
-																					groupByKey:
-																						g.groupByKey,
-																					limit: g.limit,
-																					limitFunctionType:
-																						g.limitFunctionType,
-																					limitMetric:
-																						g.limitMetric,
-																					metric: g.metric,
-																					nullHandling:
-																						g.nullHandling,
-																					productType:
-																						g.productType,
-																					query: g.query,
-																					title: g.title,
-																					type: g.type,
-																				}
-
-																			upsertGraph(
-																				{
-																					variables:
-																						{
-																							graph: graphInput,
-																						},
-																					optimisticResponse:
-																						{
-																							upsertGraph:
-																								{
-																									...graphInput,
-																									id: `temp-${tempId}`,
-																									__typename:
-																										'Graph',
-																								},
-																						},
-																					update(
-																						cache,
-																						result,
-																					) {
-																						const vizId =
-																							cache.identify(
-																								{
-																									id: dashboard_id,
-																									__typename:
-																										'Visualization',
-																								},
-																							)
-																						const afterGraphId =
-																							cache.identify(
-																								{
-																									id: g.id,
-																									__typename:
-																										'Graph',
-																								},
-																							)
-																						const graphId =
-																							cache.identify(
-																								{
-																									id: result
-																										.data
-																										?.upsertGraph
-																										.id,
-																									__typename:
-																										'Graph',
-																								},
-																							)
-																						cache.modify(
-																							{
-																								id: vizId,
-																								fields: {
-																									graphs(
-																										existing: any[] = [],
-																									) {
-																										const idx =
-																											existing.findIndex(
-																												(
-																													e,
-																												) =>
-																													e.__ref ===
-																													afterGraphId,
-																											)
-																										const clone =
-																											[
-																												...existing,
-																											]
-																										clone.splice(
-																											idx,
-																											0,
-																											{
-																												__ref: graphId,
-																											},
-																										)
-																										return clone
-																									},
-																								},
-																							},
-																						)
-																					},
-																				},
-																			)
-																				.then(
-																					() => {
-																						toast.success(
-																							`Metric view cloned`,
-																						)
-																					},
-																				)
-																				.catch(
-																					() => {
-																						toast.error(
-																							'Failed to clone metric view',
-																						)
-																					},
-																				)
-																		}
-															}
-															onDelete={
-																isTemp
-																	? undefined
-																	: () => {
-																			deleteGraph(
-																				{
-																					variables:
-																						{
-																							id: g.id,
-																						},
-																					optimisticResponse:
-																						{
-																							deleteGraph:
-																								true,
-																						},
-																					update(
-																						cache,
-																					) {
-																						const vizId =
-																							cache.identify(
-																								{
-																									id: dashboard_id,
-																									__typename:
-																										'Visualization',
-																								},
-																							)
-																						const graphId =
-																							cache.identify(
-																								{
-																									id: g.id,
-																									__typename:
-																										'Graph',
-																								},
-																							)
-																						cache.modify(
-																							{
-																								id: vizId,
-																								fields: {
-																									graphs(
-																										existing: any[] = [],
-																									) {
-																										const filtered =
-																											existing.filter(
-																												(
-																													e: any,
-																												) =>
-																													e.__ref !==
-																													graphId,
-																											)
-																										return filtered
-																									},
-																								},
-																							},
-																						)
-																					},
-																				},
-																			)
-																				.then(
-																					() =>
-																						toast.success(
-																							'Metric view deleted',
-																						),
-																				)
-																				.catch(
-																					() =>
-																						toast.error(
-																							'Failed to delete metric view',
-																						),
-																				)
-																		}
-															}
-															onExpand={
-																isTemp
-																	? undefined
-																	: () => {
-																			navigate(
-																				{
-																					pathname: `view/${g.id}`,
-																					search: location.search,
-																				},
-																			)
-																		}
-															}
-															onEdit={
-																isTemp
-																	? undefined
-																	: () => {
-																			navigate(
-																				{
-																					pathname: `edit/${g.id}`,
-																					search: location.search,
-																				},
-																			)
-																		}
-															}
-															disabled={editing}
 															setTimeRange={
 																updateSearchTime
 															}

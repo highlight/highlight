@@ -5255,7 +5255,7 @@ export type GetVisualizationQueryVariables = Types.Exact<{
 export type GetVisualizationQuery = { __typename?: 'Query' } & {
 	visualization: { __typename?: 'Visualization' } & Pick<
 		Types.Visualization,
-		'id' | 'updatedAt' | 'projectId' | 'name'
+		'id' | 'updatedAt' | 'projectId' | 'name' | 'timePreset'
 	> & {
 			graphs: Array<
 				{ __typename?: 'Graph' } & Pick<
@@ -5302,7 +5302,7 @@ export type GetVisualizationsQuery = { __typename?: 'Query' } & {
 			results: Array<
 				{ __typename?: 'Visualization' } & Pick<
 					Types.Visualization,
-					'id' | 'updatedAt' | 'projectId' | 'name'
+					'id' | 'updatedAt' | 'projectId' | 'name' | 'timePreset'
 				> & {
 						graphs: Array<
 							{ __typename?: 'Graph' } & Pick<
