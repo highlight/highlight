@@ -3839,6 +3839,7 @@ export type Visualization = {
 	id: Scalars['ID']
 	name: Scalars['String']
 	projectId: Scalars['ID']
+	timePreset?: Maybe<Scalars['String']>
 	updatedAt: Scalars['Timestamp']
 	updatedByAdmin?: Maybe<SanitizedAdmin>
 }
@@ -3846,8 +3847,9 @@ export type Visualization = {
 export type VisualizationInput = {
 	graphIds?: InputMaybe<Array<Scalars['ID']>>
 	id?: InputMaybe<Scalars['ID']>
-	name: Scalars['String']
+	name?: InputMaybe<Scalars['String']>
 	projectId: Scalars['ID']
+	timePreset?: InputMaybe<Scalars['String']>
 }
 
 export type VisualizationsResponse = {

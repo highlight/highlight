@@ -86,6 +86,14 @@ export const presetValue = (preset: DateRangePreset) => {
 	return preset.value || `last_${preset.quantity}_${preset.unit}`
 }
 
+export const parsePreset = (presetValue: string): DateRangePreset => {
+	const [, quantity, unit] = presetValue.split('_')
+	return {
+		quantity: Number(quantity),
+		unit: unit as moment.DurationInputArg2,
+	}
+}
+
 export const presetStartDate = (preset: DateRangePreset): Date => {
 	return moment().subtract(preset.quantity, preset.unit).toDate()
 }

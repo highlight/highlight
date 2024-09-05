@@ -51,10 +51,6 @@ export const titleText = style({
 	display: 'flex',
 })
 
-export const hiddenMenu = style({
-	visibility: 'hidden',
-})
-
 export const tooltipWrapper = style({
 	backgroundColor: 'white',
 	border: vars.border.divider,

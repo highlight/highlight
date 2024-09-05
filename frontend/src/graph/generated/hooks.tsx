@@ -15307,6 +15307,7 @@ export const GetVisualizationDocument = gql`
 			updatedAt
 			projectId
 			name
+			timePreset
 			graphs {
 				id
 				type
@@ -15402,6 +15403,7 @@ export const GetVisualizationsDocument = gql`
 				updatedAt
 				projectId
 				name
+				timePreset
 				graphs {
 					id
 					type
