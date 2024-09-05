@@ -1,7 +1,14 @@
 inherit_from: '../../../../sdk/highlight-ruby/highlight/.rubocop.yml'
 
 AllCops:
+    SuggestExtensions: false
     TargetRubyVersion: 3.0
+    Exclude:
+        - 'db/**/*'
+        - 'spec/**/*'
+        - 'test/**/*'
+        - 'config/**/*'
+        - 'bin/**/*'
 
 Style/FrozenStringLiteralComment:
     Enabled: false
@@ -19,12 +26,6 @@ Metrics/AbcSize:
     Enabled: false
 
 Metrics/ClassLength:
-    Enabled: false
-
-Metrics/CyclomaticComplexity:
-    Enabled: false
-
-Metrics/PerceivedComplexity:
     Enabled: false
 
 Layout/LineLength:

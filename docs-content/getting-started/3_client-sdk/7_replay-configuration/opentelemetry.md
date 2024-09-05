@@ -50,5 +50,5 @@ Here's an example of how to include the trace context in your HTML:
 Some SDKs have helpers for generating this HTML. If you are using our Ruby SDK you can simple add the following code somewhere inside the `<head>` of your document.
 
 ```rb
-<%= Highlight.traceparent_meta %>
+<%= highlight_traceparent_meta %>
 ```

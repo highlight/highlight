@@ -106,7 +106,7 @@ Here is an example of what the meta tag looks like in the browser:
 Note that the Highlight server SDKs often have helpers to create this tag. Here's an example using the [Highlight Ruby SDK](https://www.highlight.io/docs/getting-started/backend-sdk/ruby/rails)
 
 ```rb
-<%= Highlight.traceparent_meta %>
+<%= highlight_traceparent_meta %>
 ```
 
 The browser OTeL instrumentation gathers timing information from `window.performance.timing` and creates spans for all the different timing events in the browser. This instrumentation parses the `<meta>` tag and associates all the spans it creates with trace data from the tag. This is illustrated in the screenshot of the flame graph below.
