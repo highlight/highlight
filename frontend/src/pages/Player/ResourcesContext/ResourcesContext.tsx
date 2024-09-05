@@ -11,6 +11,7 @@ import { useCallback, useEffect, useState } from 'react'
 import { BooleanParam, useQueryParam } from 'use-query-params'
 
 import { useSessionParams } from '@/pages/Sessions/utils'
+import { ApolloError } from '@apollo/client'
 
 export enum LoadingError {
 	NetworkResourcesTooLarge = 'payload too large.',
@@ -21,7 +22,7 @@ interface ResourcesContext {
 	resourcesLoading: boolean
 	loadResources: () => void
 	resources: NetworkResourceWithID[]
-	error?: LoadingError
+	error?: LoadingError | ApolloError
 }
 
 interface NetworkResource extends PerformanceResourceTiming {
@@ -100,7 +101,7 @@ export const useResources = (
 ): ResourcesContext => {
 	const { sessionSecureId: session_secure_id } = useSessionParams()
 	const [sessionSecureId, setSessionSecureId] = useState<string>()
-	const [error, setError] = useState<LoadingError>()
+	const [s3Error, setS3Error] = useState<LoadingError>()
 	const [downloadResources] = useQueryParam('downloadresources', BooleanParam)
 
 	const [resourcesLoading, setResourcesLoading] = useState(false)
@@ -109,7 +110,11 @@ export const useResources = (
 		session === undefined ||
 		!!session?.resources_url
 
-	const { data, loading: queryLoading } = useGetResourcesQuery({
+	const {
+		data,
+		loading: queryLoading,
+		error: redisError,
+	} = useGetResourcesQuery({
 		variables: {
 			session_secure_id: sessionSecureId ?? '',
 		},
@@ -125,7 +130,7 @@ export const useResources = (
 
 	const [resources, setResources] = useState<NetworkResourceWithID[]>([])
 	useEffect(() => {
-		setError(undefined)
+		setS3Error(undefined)
 		setResources(buildResources(data?.resources as NetworkResource[]))
 	}, [data?.resources])
 
@@ -156,7 +161,7 @@ export const useResources = (
 				if (!session.resources_url) return
 				const limit = await checkResourceLimit(session.resources_url)
 				if (limit) {
-					setError(LoadingError.NetworkResourcesTooLarge)
+					setS3Error(LoadingError.NetworkResourcesTooLarge)
 					H.consumeError(new Error(limit.error), undefined, {
 						fileSize: limit.fileSize.toString(),
 						limit: limit.sizeLimit.toString(),
@@ -172,11 +177,11 @@ export const useResources = (
 					response
 						.json()
 						.then((data) => {
-							setError(undefined)
+							setS3Error(undefined)
 							setResources(buildResources(data))
 						})
 						.catch((e) => {
-							setError(LoadingError.NetworkResourcesFetchFailed)
+							setS3Error(LoadingError.NetworkResourcesFetchFailed)
 							setResources([])
 							H.consumeError(
 								e,
@@ -198,7 +203,7 @@ export const useResources = (
 		loadResources,
 		resources,
 		resourcesLoading,
-		error,
+		error: redisError ?? s3Error,
 	}
 }
 

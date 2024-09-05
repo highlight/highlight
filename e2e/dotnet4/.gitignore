@@ -1,4 +1,7 @@
 packages
 cs/bin
 cs/obj
+cs/*.dll
+cs/*.dylib
+cs/*.so
 

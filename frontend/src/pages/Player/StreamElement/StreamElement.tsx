@@ -25,7 +25,11 @@ export const getEventRenderDetails = (
 		details.title = e.data.tag
 		switch (e.data.tag) {
 			case 'Identify':
-				details.displayValue = JSON.parse(payload).user_identifier
+				const identifyPayload = JSON.parse(payload) ?? {}
+				details.displayValue =
+					identifyPayload.email ||
+					identifyPayload.name ||
+					identifyPayload.userIdentifier
 				break
 			case 'Track':
 				try {
@@ -40,11 +44,18 @@ export const getEventRenderDetails = (
 				break
 			case 'Navigate':
 			case 'Click':
+				details.displayValue =
+					payload.clickTextContent ??
+					payload.clickTarget ??
+					payload.clickSelector
+				break
 			case 'Focus':
 			case 'Segment':
 				try {
-					const keys = Object.keys(JSON.parse(payload))
-					details.displayValue = `{${keys.join(', ')}}`
+					const event = JSON.parse(payload)
+					details.displayValue =
+						event['segment-event'] ??
+						`{${Object.keys(event).join(', ')}}`
 				} catch {
 					details.displayValue = payload
 				}

@@ -2144,7 +2144,6 @@ export type Query = {
 	logs_key_values: Array<Scalars['String']>
 	logs_keys: Array<QueryKey>
 	logs_metrics: MetricsBuckets
-	logs_total_count: Scalars['UInt64']
 	match_error_tag?: Maybe<Array<Maybe<MatchedErrorTag>>>
 	metric_monitors: Array<Maybe<MetricMonitor>>
 	metric_tag_values: Array<Scalars['String']>
@@ -2643,11 +2642,6 @@ export type QueryLogs_MetricsArgs = {
 	limit_aggregator?: InputMaybe<MetricAggregator>
 	limit_column?: InputMaybe<Scalars['String']>
 	metric_types: Array<MetricAggregator>
-	params: QueryInput
-	project_id: Scalars['ID']
-}
-
-export type QueryLogs_Total_CountArgs = {
 	params: QueryInput
 	project_id: Scalars['ID']
 }

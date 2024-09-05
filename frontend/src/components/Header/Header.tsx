@@ -42,7 +42,6 @@ import {
 	TextLink,
 } from '@highlight-run/ui/components'
 import { vars } from '@highlight-run/ui/vars'
-import useFeatureFlag, { Feature } from '@hooks/useFeatureFlag/useFeatureFlag'
 import { useLocalStorageProjectId, useProjectId } from '@hooks/useProjectId'
 import SvgHighlightLogoOnLight from '@icons/HighlightLogoOnLight'
 import SvgXIcon from '@icons/XIcon'
@@ -152,7 +151,6 @@ export const Header: React.FC<Props> = ({ fullyIntegrated }) => {
 	const { projectId } = useProjectId()
 	const { projectId: localStorageProjectId } = useLocalStorageProjectId()
 	const { isLoggedIn, signOut } = useAuthContext()
-	const showMetrics = useFeatureFlag(Feature.Metrics)
 	const { allProjects, currentWorkspace } = useApplicationContext()
 	const workspaceId = currentWorkspace?.id
 	const localStorageProject = allProjects?.find(
@@ -180,7 +178,6 @@ export const Header: React.FC<Props> = ({ fullyIntegrated }) => {
 		key: string
 		icon: ({ size, ...props }: IconProps) => JSX.Element
 		isBeta?: boolean
-		hidden?: boolean
 	}[] = [
 		{
 			key: 'sessions',
@@ -201,7 +198,6 @@ export const Header: React.FC<Props> = ({ fullyIntegrated }) => {
 		{
 			key: 'metrics',
 			icon: IconSolidChartBar,
-			hidden: !showMetrics,
 		},
 		{
 			key: 'alerts',
@@ -296,9 +292,6 @@ export const Header: React.FC<Props> = ({ fullyIntegrated }) => {
 							{projectId && !isSettings && (
 								<Box display="flex" alignItems="center" gap="4">
 									{pages.map((p) => {
-										if (p.hidden) {
-											return null
-										}
 										return (
 											<LinkButton
 												iconLeft={

@@ -50,7 +50,6 @@ import {
 	SortDirection,
 	Trace,
 } from '@/graph/generated/schemas'
-import useFeatureFlag, { Feature } from '@/hooks/useFeatureFlag/useFeatureFlag'
 import { useNumericProjectId } from '@/hooks/useProjectId'
 import { useSearchTime } from '@/hooks/useSearchTime'
 import { TIMESTAMP_KEY } from '@/pages/Graphing/components/Graph'
@@ -80,7 +79,6 @@ export const TracesPage: React.FC = () => {
 		span_id: string
 		trace_cursor: string
 	}>()
-	const aiQueryBuilderFlag = useFeatureFlag(Feature.AiQueryBuilder)
 	const textAreaRef = useRef<HTMLTextAreaElement | null>(null)
 	const [query, setQuery] = useQueryParam('query', QueryParam)
 	const [sortColumn] = useQueryParam(SORT_COLUMN, StringParam)
@@ -123,7 +121,7 @@ export const TracesPage: React.FC = () => {
 
 	const { data: workspaceSettings } = useGetWorkspaceSettingsQuery({
 		variables: { workspace_id: String(currentWorkspace?.id) },
-		skip: !currentWorkspace?.id || !aiQueryBuilderFlag,
+		skip: !currentWorkspace?.id,
 	})
 
 	const { data: metricsData, loading: metricsLoading } = useGetMetricsQuery({
@@ -331,7 +329,7 @@ export const TracesPage: React.FC = () => {
 							workspaceSettings?.workspaceSettings
 								?.ai_query_builder
 						}
-						aiSupportedSearch={aiQueryBuilderFlag}
+						aiSupportedSearch
 					/>
 					<Box
 						display="flex"

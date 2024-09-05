@@ -1,6 +1,6 @@
 {
 	"ipcMode": null,
-	"executionRoleArn": "arn:aws:iam::173971919437:role/ecsTaskExecutionRole",
+	"executionRoleArn": "arn:aws:iam::173971919437:role/HighlightAppProd",
 	"containerDefinitions": [
 		{
 			"dnsSearchDomains": null,
@@ -75,7 +75,7 @@
 	],
 	"placementConstraints": [],
 	"memory": "4096",
-	"taskRoleArn": "arn:aws:iam::173971919437:role/ecsTaskExecutionRole",
+	"taskRoleArn": "arn:aws:iam::173971919437:role/HighlightAppProd",
 	"compatibilities": ["EC2", "FARGATE"],
 	"taskDefinitionArn": "arn:aws:ecs:us-east-2:173971919437:task-definition/worker-task:40",
 	"family": "metric-monitor-task",
