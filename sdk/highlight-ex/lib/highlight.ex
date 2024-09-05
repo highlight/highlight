@@ -33,6 +33,7 @@ defmodule Highlight do
 
   def handle_logger_event(_event_name, measurements, metadata, _config) do
     message = metadata[:message] || "No message"
+
     Tracer.with_span "highlight.log" do
       Tracer.add_event(message, measurements)
     end
@@ -86,7 +87,7 @@ defmodule Highlight do
       {:"highlight.project_id", config.project_id},
       {:"telemetry.sdk.language", "erlang"},
       {:"telemetry.sdk.name", "opentelemetry"},
-      {:"telemetry.sdk.version", "1.4.0"},
+      {:"telemetry.sdk.version", "1.4.0"}
     ] ++
       if config.service_name do
         [{:"service.name", config.service_name}]

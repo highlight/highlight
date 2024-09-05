@@ -4,7 +4,7 @@ defmodule HighlightTest do
 
   test "records error" do
     Highlight.init()
-    
+
     try do
       throw("unexpected error")
     catch
