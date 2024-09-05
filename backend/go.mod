@@ -72,7 +72,7 @@ require (
 	github.com/oschwald/geoip2-golang v1.11.0
 	github.com/pkg/errors v0.9.1
 	github.com/redis/go-redis/v9 v9.5.1
-	github.com/rs/cors v1.10.1
+	github.com/rs/cors v1.11.0
 	github.com/rs/xid v1.5.0
 	github.com/samber/lo v1.39.0
 	github.com/sashabaranov/go-openai v1.25.0
@@ -216,7 +216,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/internal/s3shared v1.17.5 // indirect
 	github.com/aws/aws-sdk-go-v2/service/sfn v1.26.2
 	github.com/aws/aws-sdk-go-v2/service/sso v1.20.5 // indirect
-	github.com/aws/aws-sdk-go-v2/service/sts v1.28.6 // indirect
+	github.com/aws/aws-sdk-go-v2/service/sts v1.28.6
 	github.com/bwmarrin/discordgo v0.27.1
 	github.com/cpuguy83/go-md2man/v2 v2.0.4 // indirect
 	github.com/dghubble/sling v1.4.2 // indirect

@@ -1,5 +1,5 @@
 import LoadingBox from '@components/LoadingBox'
-import { useGetWebVitalsQuery } from '@graph/hooks'
+import { useGetSessionCommentsQuery, useGetWebVitalsQuery } from '@graph/hooks'
 import { Box, Form, IconSolidSearch } from '@highlight-run/ui/components'
 import { StreamEventV2 } from '@pages/Player/components/EventStreamV2/StreamEventV2/StreamEventV2'
 import {
@@ -65,9 +65,16 @@ const EventStreamV2 = function () {
 		},
 		skip: !session_secure_id,
 	})
+	const { data: commentsData } = useGetSessionCommentsQuery({
+		variables: {
+			session_secure_id: session_secure_id!,
+		},
+		skip: !session_secure_id,
+	})
 
 	useEffect(() => {
-		if (data?.web_vitals && data.web_vitals?.length > 0) {
+		const events = [...replayerEvents]
+		if (data?.web_vitals?.length) {
 			const webVitalEvent = {
 				data: {
 					payload: {
@@ -82,11 +89,29 @@ const EventStreamV2 = function () {
 				type: 5,
 				identifier: '-1',
 			}
-			setEvents([webVitalEvent, ...replayerEvents])
-		} else {
-			setEvents([...replayerEvents])
+			events.push(webVitalEvent)
 		}
-	}, [data?.web_vitals, replayerEvents])
+		if (commentsData?.session_comments) {
+			const comments = commentsData.session_comments.map((comment) => ({
+				data: {
+					payload: `${comment?.author?.email}: ${comment?.text}`,
+					tag: 'Comments',
+				},
+				timestamp:
+					sessionMetadata.startTime + (comment?.timestamp ?? 0),
+				type: 5,
+				identifier: comment?.id ?? '-1',
+			}))
+			events.push(...comments)
+		}
+		events.sort((a, b) => a.timestamp - b.timestamp)
+		setEvents(events)
+	}, [
+		commentsData?.session_comments,
+		data?.web_vitals,
+		replayerEvents,
+		sessionMetadata.startTime,
+	])
 
 	const filteredEvents = useMemo(() => {
 		const usefulEvents = events.filter(usefulEvent)

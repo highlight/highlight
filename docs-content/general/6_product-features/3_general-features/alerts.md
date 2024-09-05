@@ -5,6 +5,12 @@ createdAt: 2021-09-14T00:14:56.000Z
 updatedAt: 2024-07-29T12:00:00.000Z
 ---
 
+<EmbeddedVideo 
+  src="https://www.youtube.com/embed/l65h40vG3vg"
+  title="Alerts Tutorial: Introduction"
+  allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+/>
+
 Alerts are a way to keep your team in the loop as to what is happening on your app. Below is a description of the common components of Alerts, and more specific parameters are included in subsequent sections. To get started, visit [app.highlight.io/alerts](https://app.highlight.io/alerts). The basic parameters for an alert look like the following image:
 
 ![Alerts Form](/images/features/alertsForm.png)

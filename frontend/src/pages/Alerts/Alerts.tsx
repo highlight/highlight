@@ -7,7 +7,6 @@ import {
 	Container,
 	Heading,
 	IconSolidChartBar,
-	IconSolidCheveronDown,
 	IconSolidCheveronRight,
 	IconSolidDiscord,
 	IconSolidExclamation,
@@ -19,7 +18,6 @@ import {
 	IconSolidPlus,
 	IconSolidRefresh,
 	IconSolidTraces,
-	Menu,
 	Stack,
 	Tag,
 	Text,
@@ -42,7 +40,6 @@ import { RiMailFill, RiSlackFill } from 'react-icons/ri'
 import { useNavigate } from 'react-router-dom'
 
 import { Button } from '@/components/Button'
-import { Link } from '@/components/Link'
 import { LinkButton } from '@/components/LinkButton'
 import {
 	AlertDestination,
@@ -52,7 +49,6 @@ import {
 	ProductType,
 	SanitizedSlackChannel,
 } from '@/graph/generated/schemas'
-import useFeatureFlag, { Feature } from '@/hooks/useFeatureFlag/useFeatureFlag'
 
 import styles from './Alerts.module.css'
 
@@ -277,7 +273,6 @@ function AlertsPageLoaded({
 	)
 	const { project_id } = useParams<{ project_id: string }>()
 	const navigate = useNavigate()
-	const metricAlertsEnabled = useFeatureFlag(Feature.MetricAlerts)
 
 	const navigateToAlert = (record: any) => {
 		if (record.configuration.name === ALERT_NAMES['ALERT']) {
@@ -388,21 +383,17 @@ function AlertsPageLoaded({
 							<Text weight="bold" size="small" color="strong">
 								All alerts
 							</Text>
-							{metricAlertsEnabled ? (
-								<Button
-									trackingId="alerts-page-add-alert-button"
-									onClick={() =>
-										navigate(`/${project_id}/alerts/new`)
-									}
-									iconLeft={<IconSolidPlus />}
-									kind="secondary"
-									emphasis="low"
-								>
-									Add Alert
-								</Button>
-							) : (
-								<NewAlertMenu />
-							)}
+							<Button
+								trackingId="alerts-page-add-alert-button"
+								onClick={() =>
+									navigate(`/${project_id}/alerts/new`)
+								}
+								iconLeft={<IconSolidPlus />}
+								kind="secondary"
+								emphasis="low"
+							>
+								Add Alert
+							</Button>
 						</Box>
 						{visible && (
 							<Callout
@@ -697,50 +688,4 @@ const AlertIcon = ({ type, disabled }: { type: string; disabled: boolean }) => {
 		default:
 			return <IconSolidPlayCircle size="20" color={color} />
 	}
-}
-
-function NewAlertMenu() {
-	const { project_id } = useParams<{ project_id: string }>()
-
-	const NEW_ALERT_OPTIONS = [
-		{
-			title: 'Session alert',
-			icon: <IconSolidPlayCircle />,
-			href: `/${project_id}/alerts/session/new`,
-		},
-		{
-			title: 'Error alert',
-			icon: <IconSolidLightningBolt />,
-			href: `/${project_id}/alerts/errors/new`,
-		},
-		{
-			title: 'Log alert',
-			icon: <IconSolidLogs />,
-			href: `/${project_id}/alerts/logs/new`,
-		},
-	]
-	return (
-		<Menu>
-			<Menu.Button iconRight={<IconSolidCheveronDown />}>
-				Create new alert
-			</Menu.Button>
-			<Menu.List>
-				{NEW_ALERT_OPTIONS.map((option) => (
-					<Link key={option.title} to={option.href}>
-						<Menu.Item>
-							<Box
-								display="flex"
-								alignItems="center"
-								gap="4"
-								py="2"
-							>
-								{option.icon}
-								<Text>{option.title}</Text>
-							</Box>
-						</Menu.Item>
-					</Link>
-				))}
-			</Menu.List>
-		</Menu>
-	)
 }

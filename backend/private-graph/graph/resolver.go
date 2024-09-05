@@ -89,6 +89,7 @@ import (
 const ErrorGroupLookbackDays = 7
 const SessionActiveMetricName = "sessionActiveLength"
 const SessionProcessedMetricName = "sessionProcessed"
+const MaxDownloadSize = 32 * 1024 * 1024 // 32MB
 
 var AuthenticationError = errors.New("401 - AuthenticationError")
 var AuthorizationError = errors.New("403 - AuthorizationError")

@@ -1,5 +1,6 @@
 ﻿@page "/"
 @using System.Diagnostics
+@using Highlight
 @using Serilog
 
 <PageTitle>Home</PageTitle>
@@ -38,7 +39,7 @@ else
 
     protected override void OnInitialized()
     {
-        tracer = new ActivitySource(HighlightConfig.ServiceName);
+        tracer = new ActivitySource(Highlight.OpenTelemetry.GetConfig().ServiceName);
         var activityListener = new ActivityListener
         {
             ShouldListenTo = s => true,
