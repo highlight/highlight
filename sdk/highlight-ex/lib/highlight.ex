@@ -82,7 +82,12 @@ defmodule Highlight do
   end
 
   defp base_attributes(config) do
-    [{:"highlight.project_id", config.project_id}] ++
+    [
+      {:"highlight.project_id", config.project_id},
+      {:"telemetry.sdk.language", "erlang"},
+      {:"telemetry.sdk.name", "opentelemetry"},
+      {:"telemetry.sdk.version", "1.4.0"},
+    ] ++
       if config.service_name do
         [{:"service.name", config.service_name}]
       else
