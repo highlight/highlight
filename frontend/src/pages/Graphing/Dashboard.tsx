@@ -52,7 +52,6 @@ import { useParams } from '@/util/react-router/useParams'
 
 import * as style from './Dashboard.css'
 import { DashboardSettingsModal } from '@/pages/Graphing/components/DashboardSettingsModal'
-import { StringParam, useQueryParams } from 'use-query-params'
 
 export const HeaderDivider = () => <Box cssClass={style.headerDivider} />
 
@@ -60,10 +59,6 @@ export const Dashboard = () => {
 	const { dashboard_id } = useParams<{
 		dashboard_id: string
 	}>()
-
-	const [, setParams] = useQueryParams({
-		relative_time: StringParam,
-	})
 
 	const sensors = useSensors(
 		useSensor(PointerSensor),
