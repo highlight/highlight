@@ -48,7 +48,8 @@
 		},
 		"codegen": {
 			"inputs": ["./**/*.gql", "./**/*.graphqls"],
-			"outputs": ["src/graph/generated/**"]
+			"outputs": ["src/graph/generated/**"],
+			"cache": false
 		},
 		"typegen": {
 			"dependsOn": ["^typegen", "codegen"],
