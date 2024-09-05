@@ -139,8 +139,8 @@ func CreateTracerProvider(endpoint string, opts ...sdktrace.TracerProviderOption
 	}
 	conf.resourceAttributes = append(
 		conf.resourceAttributes,
-		semconv.TelemetryDistroName.String("github.com/highlight/highlight/sdk/highlight-go"),
-		semconv.TelemetryDistroVersion.String(Version),
+		semconv.TelemetryDistroName("github.com/highlight/highlight/sdk/highlight-go"),
+		semconv.TelemetryDistroVersion(Version),
 	)
 	resources, err := resource.New(context.Background(),
 		resource.WithFromEnv(),
