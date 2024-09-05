@@ -14,9 +14,9 @@ type InkeepSharedSettings = {
 
 const useInkeepSettings = (): InkeepSharedSettings => {
 	const baseSettings: InkeepBaseSettings = {
-		apiKey: process.env.NEXT_PUBLIC_INKEEP_API_KEY!,
-		integrationId: process.env.NEXT_PUBLIC_INKEEP_INTEGRATION_ID!,
-		organizationId: process.env.NEXT_PUBLIC_INKEEP_ORGANIZATION_ID!,
+		apiKey: '3721b3f00a2e161d2eb143932695e984a9db05ffb89bdb57',
+		integrationId: 'clxout8nk014hvhjs0jc5ccfb',
+		organizationId: 'org_k9k0yeE7ovNoTgrC',
 		primaryBrandColor: '#6C37F4',
 		organizationDisplayName: 'Highlight.io',
 		theme: {
