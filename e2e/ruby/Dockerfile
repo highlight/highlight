@@ -14,6 +14,7 @@ COPY ./rails/demo/Gemfile .
 COPY ./rails/demo/Gemfile.lock .
 RUN bundle install
 COPY ./rails/demo .
+RUN ./bin/rails db:migrate
 
 ENV FRONTEND_URI="http://localhost:3000/"
 ENV BACKEND_URI="http://localhost:3000/"
