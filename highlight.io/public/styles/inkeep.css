@@ -2,6 +2,7 @@
   border-radius: 40px;
   margin: 0 16px;
   border: 1px solid var(--divider-on-dark) !important;
+  background-color: var(--color-primary-background);
   width: fit-content;
 }
 
