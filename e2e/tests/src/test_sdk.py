@@ -329,7 +329,8 @@ def test_dotnet_traces(dotnet_app, oauth_api):
                 assert item["node"]["serviceVersion"] == ""
                 assert item["node"]["duration"] > 1000
                 assert (
-                    item["node"]["telemetry"]["distro"]["name"] == "Highlight.ASPCore"
+                    item["node"]["traceAttributes"]["telemetry"]["distro"]["name"]
+                    == "Highlight.ASPCore"
                 )
 
     query(
