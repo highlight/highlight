@@ -18,7 +18,7 @@
   display: inline-block;
   width: 20px;
   height: 20px;
-  background: #4950f6;
+  background: rgb(73, 80, 246);
   border-radius: 100%;
   transform: translate(-50%, -50%);
   opacity: .3;
@@ -84,7 +84,7 @@
 }
 .rr-player {
   position: relative;
-  background: #fff;
+  background: white;
   float: left;
   border-radius: 5px;
   box-shadow: 0 24px 48px #11103e1f;
