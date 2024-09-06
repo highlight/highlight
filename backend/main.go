@@ -226,7 +226,8 @@ func main() {
 	// setup highlight logrus hook
 	hlog.Init()
 
-	if err := enterprise.Start(ctx); err != nil {
+	isEnterprise, err := enterprise.Start(ctx)
+	if err != nil {
 		log.WithContext(ctx).WithError(err).Fatal("Failed to start highlight enterprise license checker.")
 	}
 
@@ -254,6 +255,14 @@ func main() {
 
 		if err != nil {
 			log.WithContext(ctx).Fatalf("Error migrating DB: %v", err)
+		}
+	}
+
+	if isEnterprise {
+		if err := model.EnableAllWorkspaceSettings(ctx, db); err != nil {
+			log.WithContext(ctx).
+				WithError(err).
+				Error("failed to enable all workspace settings for enterprise deploy")
 		}
 	}
 
