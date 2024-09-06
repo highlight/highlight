@@ -258,7 +258,7 @@ func main() {
 	}
 
 	var pricingClient *pricing.Client
-	if env.IsInDocker() {
+	if env.IsInDocker() && !env.IsDevOrTestEnv() {
 		pricingClient = pricing.NewNoopClient()
 	} else {
 		stripeClient := &client.API{}
