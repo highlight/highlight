@@ -26,6 +26,7 @@ orjson = "3.9.15"
 uvicorn = {extras = ["standard"], version = "^0.29.0"}
 highlight-io = {path = "../../sdk/highlight-py", develop = true}
 urllib3 = "2.2.2"
+justpy = "^0.14.0"
 
 [tool.poetry.group.dev.dependencies]
 black = "^24.4.2"
