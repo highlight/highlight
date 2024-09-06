@@ -328,6 +328,7 @@ def test_dotnet_traces(dotnet_app, oauth_api):
                 assert item["node"]["serviceName"] == "example-dotnet-backend"
                 assert item["node"]["serviceVersion"] == ""
                 assert item["node"]["duration"] > 1000
+                assert item["node"]["telemetry.distro.name"] == "Highlight.ASPCore"
 
     query(
         oauth_api,
