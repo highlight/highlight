@@ -753,14 +753,14 @@ func matchesQuery[TObj interface{}](row *TObj, config model.TableConfig, filters
 		switch filter.Operator {
 		case listener.OperatorAnd:
 			for _, childFilter := range filter.Filters {
-				if !matchesQuery(row, config, listener.Filters{childFilter}, filter.Operator) {
+				if !matchesQuery[TObj](row, config, listener.Filters{childFilter}, filter.Operator) {
 					return false
 				}
 			}
 		case listener.OperatorOr:
 			var anyMatch bool
 			for _, childFilter := range filter.Filters {
-				if matchesQuery(row, config, listener.Filters{childFilter}, filter.Operator) {
+				if matchesQuery[TObj](row, config, listener.Filters{childFilter}, filter.Operator) {
 					anyMatch = true
 					break
 				}
@@ -769,7 +769,7 @@ func matchesQuery[TObj interface{}](row *TObj, config model.TableConfig, filters
 				return false
 			}
 		case listener.OperatorNot:
-			return !matchesQuery(row, config, listener.Filters{filter.Filters[0]}, filter.Operator)
+			return !matchesQuery[TObj](row, config, listener.Filters{filter.Filters[0]}, filter.Operator)
 		default:
 			matches, err := matchFilter(row, config, filter)
 			if err != nil {
@@ -1333,32 +1333,39 @@ func (client *Client) ReadMetrics(ctx context.Context, input ReadMetricsInput) (
 	return metrics, err
 }
 
-func ReadFunnels(ctx context.Context, client *Client, sampleableConfig SampleableTableConfig, projectIDs []int, params modelInputs.FunnelQueryInput, groupBy []string) (*modelInputs.MetricsBuckets, error) {
-	useSampling := sampleableConfig.useSampling(params.DateRange.EndDate.Sub(params.DateRange.StartDate))
+type ReadFunnelsInput struct {
+	SampleableConfig SampleableTableConfig
+	ProjectIDs       []int
+	Params           modelInputs.FunnelQueryInput
+	GroupBy          []string
+}
+
+func (client *Client) ReadFunnels(ctx context.Context, input ReadFunnelsInput) (*modelInputs.MetricsBuckets, error) {
+	useSampling := input.SampleableConfig.useSampling(input.Params.DateRange.EndDate.Sub(input.Params.DateRange.StartDate))
 
 	var config model.TableConfig
 	if useSampling {
-		config = sampleableConfig.samplingTableConfig
+		config = input.SampleableConfig.samplingTableConfig
 	} else {
-		config = sampleableConfig.tableConfig
+		config = input.SampleableConfig.tableConfig
 	}
 
-	startTimestamp := params.DateRange.StartDate.Unix()
-	endTimestamp := params.DateRange.EndDate.Unix()
+	startTimestamp := input.Params.DateRange.StartDate.Unix()
+	endTimestamp := input.Params.DateRange.EndDate.Unix()
 
 	span, ctx := util.StartSpanFromContext(ctx, "clickhouse.readFunnels")
-	span.SetAttribute("project_ids", projectIDs)
-	span.SetAttribute("table", sampleableConfig.tableConfig.TableName)
+	span.SetAttribute("project_ids", input.Params)
+	span.SetAttribute("table", input.SampleableConfig.tableConfig.TableName)
 	defer span.Finish()
 
 	var steps []sqlbuilder.Builder
-	for idx, step := range params.Steps {
+	for idx, step := range input.Params.Steps {
 		// TODO(vkorolik) step.Column escaping
 		innerSb := sqlbuilder.NewSelectBuilder()
 		innerSb.
-			From(sampleableConfig.tableConfig.TableName).
+			From(input.SampleableConfig.tableConfig.TableName).
 			Select(strings.Join([]string{step.Column, `min(CreatedAt)`}, ", ")).
-			Where(innerSb.In("ProjectId", projectIDs)).
+			Where(innerSb.In("ProjectId", input.ProjectIDs)).
 			Where(innerSb.GreaterEqualThan("CreatedAt", startTimestamp)).
 			Where(innerSb.LessEqualThan("CreatedAt", endTimestamp))
 		parser.AssignSearchFilters(innerSb, step.Step, config)
@@ -1400,7 +1407,7 @@ func ReadFunnels(ctx context.Context, client *Client, sampleableConfig Sampleabl
 		if err := rows.Scan(&row.stepNum, &row.count); err != nil {
 			return nil, err
 		}
-		s := params.Steps[row.stepNum]
+		s := input.Params.Steps[row.stepNum]
 		metrics.Buckets = append(metrics.Buckets, &modelInputs.MetricBucket{
 			Group:       append(make([]string, 0), strings.Join([]string{s.Column, s.Step}, " ")),
 			MetricValue: ptr.Float64(float64(row.count)),

@@ -175,7 +175,7 @@ var PRIVATE_GRAPH_CORS_OPTIONS = cors.Options{
 
 func validateOrigin(_ *http.Request, origin string) bool {
 	isHighlightSubdomain := strings.HasSuffix(origin, ".highlight.io")
-	if origin == env.Config.FrontendUri || origin == env.Config.LandingStagingURL || isHighlightSubdomain {
+	if origin == env.Config.FrontendUri || origin == env.Config.LandingStagingURL || isHighlightSubdomain || strings.Contains(origin, "localhost") {
 		return true
 	}
 

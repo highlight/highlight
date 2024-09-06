@@ -9499,7 +9499,12 @@ func (r *queryResolver) Funnel(ctx context.Context, productType modelInputs.Prod
 		return nil, err
 	}
 
-	return clickhouse.ReadFunnels(ctx, r.ClickhouseClient, clickhouse.SessionsSampleableTableConfig, []int{project.ID}, params, groupBy)
+	return r.ClickhouseClient.ReadFunnels(ctx, clickhouse.ReadFunnelsInput{
+		SampleableConfig: clickhouse.SessionsSampleableTableConfig,
+		ProjectIDs:       []int{project.ID},
+		Params:           params,
+		GroupBy:          groupBy,
+	})
 }
 
 // Keys is the resolver for the keys field.
