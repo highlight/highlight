@@ -7,7 +7,7 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <PackageReference Include="Highlight.ASPCore" Version="0.1.6" />
+      <PackageReference Include="Highlight.ASPCore" Version="0.1.7" />
     </ItemGroup>
 
 </Project>
