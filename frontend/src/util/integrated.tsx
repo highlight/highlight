@@ -297,8 +297,8 @@ export const useAlertsIntegration = () => {
 				(data?.user_properties_alerts?.length ?? 0) >
 			0
 		) {
-			analytics.track('integrated-logs', { id: projectId })
-			analytics.trackGaEvent('integrated_logs')
+			analytics.track('integrated-alerts', { id: projectId })
+			analytics.trackGaEvent('integrated_alerts')
 
 			setLocalStorageIntegrated({
 				loading: false,
