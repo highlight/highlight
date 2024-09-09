@@ -189,7 +189,8 @@ export const useGraphCallbacks = (
 				if (
 					chartRect !== undefined &&
 					tooltipRect !== undefined &&
-					frozenTooltip === undefined
+					frozenTooltip === undefined &&
+					loadExemplars
 				) {
 					e.chartX = tooltipRect.x - chartRect.x
 					e.chartY = tooltipRect.y - chartRect.y
