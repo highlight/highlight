@@ -229,6 +229,7 @@ enum ProductType {
 	Logs
 	Traces
 	Metrics
+	Events
 }
 
 enum IngestReason {
@@ -1065,6 +1066,27 @@ enum ReservedSessionKey {
 	loc_state
 	processed
 	viewed
+}
+
+enum ReservedEventKey {
+	browser_name
+	browser_version
+	city
+	country
+	environment
+	event
+	first_session
+	identified
+	identifier
+	ip
+	os_name
+	os_version
+	secure_session_id
+	service_version
+	session_active_length
+	session_length
+	session_pages_visited
+	state
 }
 
 enum LogSource {
@@ -2440,6 +2462,32 @@ type Query {
 		count: Int
 	): [String!]!
 	sessions_metrics(
+		project_id: ID!
+		params: QueryInput!
+		column: String!
+		metric_types: [MetricAggregator!]!
+		group_by: [String!]!
+		bucket_by: String!
+		bucket_count: Int
+		bucket_window: Int
+		limit: Int
+		limit_aggregator: MetricAggregator
+		limit_column: String
+	): MetricsBuckets!
+	events_keys(
+		project_id: ID!
+		date_range: DateRangeRequiredInput!
+		query: String
+		type: KeyType
+	): [QueryKey!]!
+	events_key_values(
+		project_id: ID!
+		key_name: String!
+		date_range: DateRangeRequiredInput!
+		query: String
+		count: Int
+	): [String!]!
+	events_metrics(
 		project_id: ID!
 		params: QueryInput!
 		column: String!

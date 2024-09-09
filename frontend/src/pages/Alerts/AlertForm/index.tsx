@@ -31,6 +31,7 @@ import {
 	MetricAggregator,
 	ProductType,
 } from '@/graph/generated/schemas'
+import useFeatureFlag, { Feature } from '@/hooks/useFeatureFlag/useFeatureFlag'
 import { useProjectId } from '@/hooks/useProjectId'
 import { useSearchTime } from '@/hooks/useSearchTime'
 import { FREQUENCIES } from '@/pages/Alerts/AlertConfigurationCard/AlertConfigurationConstants'
@@ -43,7 +44,9 @@ import { Combobox } from '@/pages/Graphing/Combobox'
 import {
 	FUNCTION_TYPES,
 	PRODUCT_ICONS,
+	PRODUCT_ICONS_WITH_EVENTS,
 	PRODUCTS,
+	PRODUCTS_WITH_EVENTS,
 } from '@/pages/Graphing/constants'
 import { HeaderDivider } from '@/pages/Graphing/Dashboard'
 import { LabeledRow } from '@/pages/Graphing/LabeledRow'
@@ -77,6 +80,7 @@ const ALERT_PRODUCT_INFO = {
 	[ProductType.Logs]: false,
 	[ProductType.Traces]: false,
 	[ProductType.Metrics]: false,
+	[ProductType.Events]: false,
 }
 
 export const AlertForm: React.FC = () => {
@@ -85,6 +89,20 @@ export const AlertForm: React.FC = () => {
 		alert_id: string
 	}>()
 	const [searchParams] = useSearchParams()
+
+	const eventSearchEnabled = useFeatureFlag(Feature.EventSearch)
+	const { products, productIcons } = useMemo(() => {
+		if (!eventSearchEnabled) {
+			return {
+				products: PRODUCTS,
+				productIcons: PRODUCT_ICONS,
+			}
+		}
+		return {
+			products: PRODUCTS_WITH_EVENTS,
+			productIcons: PRODUCT_ICONS_WITH_EVENTS,
+		}
+	}, [eventSearchEnabled])
 
 	const isEdit = alert_id !== undefined
 
@@ -114,7 +132,7 @@ export const AlertForm: React.FC = () => {
 
 	const [alertName, setAlertName] = useState('')
 	const [productType, setProductType] = useState(
-		(searchParams.get('source') as ProductType) || PRODUCTS[0],
+		(searchParams.get('source') as ProductType) || products[0],
 	)
 	const [functionType, setFunctionType] = useState(MetricAggregator.Count)
 	const [functionColumn, setFunctionColumn] = useState('')
@@ -426,10 +444,10 @@ export const AlertForm: React.FC = () => {
 										tooltip="The resource being queried, one of the four highlight.io resources."
 									>
 										<OptionDropdown<ProductType>
-											options={PRODUCTS}
+											options={products}
 											selection={productType}
 											setSelection={setProductType}
-											icons={PRODUCT_ICONS}
+											icons={productIcons}
 										/>
 									</LabeledRow>
 									{ALERT_PRODUCT_INFO[productType] && (

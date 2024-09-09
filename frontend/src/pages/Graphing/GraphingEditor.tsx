@@ -35,6 +35,7 @@ import {
 	MetricAggregator,
 	ProductType,
 } from '@/graph/generated/schemas'
+import useFeatureFlag, { Feature } from '@/hooks/useFeatureFlag/useFeatureFlag'
 import { useProjectId } from '@/hooks/useProjectId'
 import { useSearchTime } from '@/hooks/useSearchTime'
 import { BAR_DISPLAY, BarDisplay } from '@/pages/Graphing/components/BarChart'
@@ -64,7 +65,9 @@ import {
 	DEFAULT_BUCKET_INTERVAL,
 	FUNCTION_TYPES,
 	PRODUCT_ICONS,
+	PRODUCT_ICONS_WITH_EVENTS,
 	PRODUCTS,
+	PRODUCTS_WITH_EVENTS,
 } from './constants'
 import * as style from './GraphingEditor.css'
 import { LabeledRow } from './LabeledRow'
@@ -156,6 +159,20 @@ export const GraphingEditor: React.FC = () => {
 		dashboard_id: string
 		graph_id: string
 	}>()
+
+	const eventSearchEnabled = useFeatureFlag(Feature.EventSearch)
+	const { products, productIcons } = useMemo(() => {
+		if (!eventSearchEnabled) {
+			return {
+				products: PRODUCTS,
+				productIcons: PRODUCT_ICONS,
+			}
+		}
+		return {
+			products: PRODUCTS_WITH_EVENTS,
+			productIcons: PRODUCT_ICONS_WITH_EVENTS,
+		}
+	}, [eventSearchEnabled])
 
 	const isEdit = graph_id !== undefined
 
@@ -307,7 +324,7 @@ export const GraphingEditor: React.FC = () => {
 
 	const { projectId } = useProjectId()
 
-	const [productType, setProductType] = useState(PRODUCTS[0])
+	const [productType, setProductType] = useState(products[0])
 	const [viewType, setViewType] = useState(VIEWS[0])
 	const [functionType, setFunctionType] = useState(FUNCTION_TYPES[0])
 	const [lineNullHandling, setLineNullHandling] = useState(
@@ -551,10 +568,10 @@ export const GraphingEditor: React.FC = () => {
 										tooltip="The resource being queried, one of the four highlight.io resources."
 									>
 										<OptionDropdown<ProductType>
-											options={PRODUCTS}
+											options={products}
 											selection={productType}
 											setSelection={setProductType}
-											icons={PRODUCT_ICONS}
+											icons={productIcons}
 										/>
 									</LabeledRow>
 								</SidebarSection>

@@ -70,6 +70,7 @@ import * as style from './UpdatePlanPage.css'
 const STANDARD_RETENTION = RetentionPeriod.SevenDays
 
 // TODO(vkorolik) billing for metrics ingest
+// TODO(spenny): better way to add new searches without needing to add a new billable product
 const RETENTION_OPTIONS = {
 	Sessions: [
 		RetentionPeriod.SevenDays,
@@ -88,6 +89,7 @@ const RETENTION_OPTIONS = {
 	Logs: [RetentionPeriod.ThirtyDays],
 	Traces: [RetentionPeriod.ThirtyDays],
 	Metrics: [RetentionPeriod.ThirtyDays],
+	Events: [],
 } as const
 
 const RETENTION_MULTIPLIER = {
@@ -106,6 +108,7 @@ const BASE_UNIT_COST_CENTS = {
 	Logs: 150,
 	Traces: 150,
 	Metrics: 150,
+	Events: 0,
 } as const
 
 const UNIT_QUANTITY = {
@@ -114,6 +117,7 @@ const UNIT_QUANTITY = {
 	Logs: 1_000_000,
 	Traces: 1_000_000,
 	Metrics: 1_000_000,
+	Events: 1_000,
 } as const
 
 export const getCostCents = (
