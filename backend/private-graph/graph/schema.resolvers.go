@@ -4847,10 +4847,10 @@ func (r *mutationResolver) TestErrorEnhancement(ctx context.Context, errorObject
 // UpsertVisualization is the resolver for the upsertVisualization field.
 func (r *mutationResolver) UpsertVisualization(ctx context.Context, visualization modelInputs.VisualizationInput) (int, error) {
 	id := 0
+	var viz model.Visualization
 	if visualization.ID != nil {
 		id = *visualization.ID
 
-		var viz model.Visualization
 		if err := r.DB.WithContext(ctx).Model(&viz).Where("id = ?", *visualization.ID).Find(&viz).Error; err != nil {
 			return 0, err
 		}
@@ -4869,17 +4869,29 @@ func (r *mutationResolver) UpsertVisualization(ctx context.Context, visualizatio
 		return 0, err
 	}
 
-	graphIds := lo.Map(visualization.GraphIds, func(i int, _ int) int32 {
-		return int32(i)
-	})
-
 	toSave := model.Visualization{
 		Model:            model.Model{ID: id},
 		ProjectID:        visualization.ProjectID,
-		Name:             visualization.Name,
 		UpdatedByAdminId: &admin.ID,
-		GraphIds:         graphIds,
+		Name:             viz.Name,
+		TimePreset:       viz.TimePreset,
+		GraphIds:         viz.GraphIds,
 	}
+
+	if visualization.Name != nil {
+		toSave.Name = *visualization.Name
+	}
+
+	if visualization.TimePreset != nil {
+		toSave.TimePreset = visualization.TimePreset
+	}
+
+	if visualization.GraphIds != nil {
+		toSave.GraphIds = lo.Map(visualization.GraphIds, func(i int, _ int) int32 {
+			return int32(i)
+		})
+	}
+
 	if err := r.DB.WithContext(ctx).Save(&toSave).Error; err != nil {
 		return 0, err
 	}

@@ -37,6 +37,7 @@ import { hookConsole } from './hooks.js'
 import log from './log.js'
 import { HIGHLIGHT_REQUEST_HEADER } from './sdk.js'
 import type { HighlightContext, NodeOptions } from './types.js'
+import * as packageJson from '../package.json'
 
 const OTLP_HTTP = 'https://otel.highlight.io:4318'
 const FIVE_MINUTES = 1000 * 60 * 5
@@ -220,6 +221,8 @@ export class Highlight {
 
 		const attributes: Attributes = options.attributes || {}
 		attributes['highlight.project_id'] = this._projectID
+		attributes['telemetry.distro.name'] = '@highlight-run/node'
+		attributes['telemetry.distro.version'] = packageJson.version
 
 		for (const [otelAttr, option] of Object.entries(OTEL_TO_OPTIONS)) {
 			if (options[option]) {

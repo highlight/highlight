@@ -181,8 +181,8 @@ function NetworkResourceDetails({
 	const timestamp = useMemo(() => {
 		// startTime used in highlight.run <8.8.0 for websocket events and <7.5.4 for requests
 		return resource.startTimeAbs
-			? resource.startTimeAbs - startTime
-			: new Date(resource.startTime).getTime()
+			? resource.startTimeAbs
+			: startTime + resource.startTime
 	}, [resource.startTime, resource.startTimeAbs, startTime])
 
 	useHotkeys(

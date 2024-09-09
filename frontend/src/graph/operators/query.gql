@@ -2597,6 +2597,7 @@ query GetVisualization($id: ID!) {
 		updatedAt
 		projectId
 		name
+		timePreset
 		graphs {
 			id
 			type
@@ -2642,6 +2643,7 @@ query GetVisualizations(
 			updatedAt
 			projectId
 			name
+			timePreset
 			graphs {
 				id
 				type

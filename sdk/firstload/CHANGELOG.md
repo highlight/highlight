@@ -1,5 +1,11 @@
 # highlight.run
 
+## 9.3.3
+
+### Patch Changes
+
+-   5cc0afd: correctly report clickTextContent as timeline events
+
 ## 9.3.2
 
 ### Patch Changes
