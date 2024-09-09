@@ -2332,13 +2332,20 @@ func (r *Resolver) AddTrackProperties(ctx context.Context, sessionID int, events
 				attributes[k] = fmt.Sprintf("%v", v)
 			}
 
-			// make event name the event key and delete from map
-			eventName := attributes["event"]
-			if eventName == "" {
+			// make event name the event key and delete from attributes
+			eventName := "unknown_event"
+			if attributes["event"] != "" {
+				eventName = attributes["event"]
+				delete(attributes, "event")
+			} else if attributes["segment-event"] != "" {
 				eventName = attributes["segment-event"]
 				delete(attributes, "segment-event")
 			} else {
-				delete(attributes, "event")
+				log.WithContext(ctx).WithFields(
+					log.Fields{
+						"sessionID":  sessionID,
+						"attributes": attributes,
+					}).Warn("writing unknown event")
 			}
 
 			sessionEvents = append(sessionEvents,
