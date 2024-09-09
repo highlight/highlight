@@ -29,7 +29,7 @@ var (
 	workspaceTokenHandler APITokenHandler
 )
 
-var HighlightAdminEmailDomains = []string{"@highlight.io"}
+var HighlightAdminEmailDomains = []string{"@highlight.run", "@highlight.io"}
 var EnterpriseAuthModes = []AuthMode{Firebase, OAuth}
 
 type AuthMode = string
