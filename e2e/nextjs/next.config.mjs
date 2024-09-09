@@ -3,7 +3,7 @@ import { withHighlightConfig } from '@highlight-run/next/config'
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-	productionBrowserSourceMaps: true,
+	productionBrowserSourceMaps: false,
 	experimental: {
 		serverComponentsExternalPackages: ['pino', 'pino-pretty'],
 	},
@@ -16,6 +16,11 @@ const nextConfig = {
 		}
 		return config
 	},
+	rewrites: async () => [
+		{ source: '/example', destination: 'https://www.google.com' },
+	],
 }
 
-export default withHighlightConfig(nextConfig)
+export default withHighlightConfig(nextConfig, {
+	apiKey: 'abc123',
+})
