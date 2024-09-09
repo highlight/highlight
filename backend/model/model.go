@@ -2441,6 +2441,29 @@ func SendWelcomeSlackMessage(ctx context.Context, obj IAlert, input *SendWelcome
 	return nil
 }
 
+// EnableAllWorkspaceSettings updates all rows to enable enterprise workspace features
+func EnableAllWorkspaceSettings(ctx context.Context, db *gorm.DB) error {
+	if err := db.WithContext(ctx).
+		Model(&AllWorkspaceSettings{}).
+		Where("1 = 1").
+		Updates(&AllWorkspaceSettings{
+			StoreIP:                   true,
+			CanShowBillingIssueBanner: false,
+			EnableUnlimitedDashboards: true,
+			EnableUnlimitedProjects:   true,
+			EnableUnlimitedRetention:  true,
+			EnableUnlimitedSeats:      true,
+			EnableBillingLimits:       true,
+			EnableGrafanaDashboard:    true,
+			EnableIngestSampling:      true,
+			EnableProjectLevelAccess:  true,
+			EnableSessionExport:       true,
+		}).Error; err != nil {
+		return e.Wrap(err, "failed to enable all workspace settings")
+	}
+	return nil
+}
+
 type TableConfig struct {
 	TableName        string
 	BodyColumn       string
