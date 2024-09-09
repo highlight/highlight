@@ -102,6 +102,7 @@ export interface ChartProps<TConfig> {
 	disabled?: boolean
 	setTimeRange?: SetTimeRange
 	loadExemplars?: LoadExemplars
+	variables?: Map<string, string>
 }
 
 export interface InnerChartProps<TConfig> {
@@ -666,6 +667,17 @@ export const useGraphSeries = (
 const POLL_INTERVAL_VALUE = 1000 * 60
 const LONGER_POLL_INTERVAL_VALUE = 1000 * 60 * 5
 
+const replaceVariables = (
+	text: string,
+	vars: Map<string, string> | undefined,
+) => {
+	vars?.forEach((value, key) => {
+		text = text?.replaceAll(`$${key}`, value)
+	})
+	console.log('replaceVariables', vars)
+	return text
+}
+
 const Graph = ({
 	productType,
 	projectId,
@@ -686,8 +698,10 @@ const Graph = ({
 	disabled,
 	setTimeRange,
 	selectedPreset,
+	variables,
 	children,
 }: React.PropsWithChildren<ChartProps<ViewConfig>>) => {
+	console.log('start!', variables)
 	const queriedBucketCount = bucketByKey !== undefined ? bucketCount : 1
 
 	const pollTimeout = useRef<number>()
@@ -720,7 +734,7 @@ const Graph = ({
 				return
 		}
 
-		let relatedResourceQuery = query
+		let relatedResourceQuery = replaceVariables(query, variables)
 		if (groupByKey !== undefined) {
 			if (relatedResourceQuery !== '') {
 				relatedResourceQuery += ' '
@@ -814,18 +828,25 @@ const Graph = ({
 						start_date: start.format(TIME_FORMAT),
 						end_date: end.format(TIME_FORMAT),
 					},
-					query: query,
+					query: replaceVariables(query, variables),
 				},
-				column: yAxisMetric,
+				column: replaceVariables(yAxisMetric, variables),
 				metric_types: [functionType],
-				group_by: groupByKey !== undefined ? [groupByKey] : [],
+				group_by:
+					groupByKey !== undefined
+						? [replaceVariables(groupByKey, variables)]
+						: [],
 				bucket_by:
-					bucketByKey !== undefined ? bucketByKey : TIMESTAMP_KEY,
+					bucketByKey !== undefined
+						? replaceVariables(bucketByKey, variables)
+						: TIMESTAMP_KEY,
 				bucket_window: bucketByWindow,
 				bucket_count: queriedBucketCount,
 				limit: limit,
 				limit_aggregator: limitFunctionType,
-				limit_column: limitMetric,
+				limit_column: limitMetric
+					? replaceVariables(limitMetric, variables)
+					: undefined,
 			},
 		}).then(() => {
 			// create another poll timeout if pollInterval is set
@@ -860,6 +881,8 @@ const Graph = ({
 		projectId,
 		queriedBucketCount,
 		query,
+		variables,
+		replaceVariables,
 	])
 
 	const data = useGraphData(metrics, xAxisMetric)

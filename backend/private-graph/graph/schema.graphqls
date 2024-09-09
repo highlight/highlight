@@ -1983,6 +1983,17 @@ type Graph {
 	nullHandling: String
 }
 
+enum VariableType {
+	PlainText
+	FieldValue
+}
+
+type Variable {
+	type: VariableType!
+	key: String!
+	defaultValue: String!
+}
+
 type Visualization {
 	id: ID!
 	updatedAt: Timestamp!
@@ -1991,6 +2002,7 @@ type Visualization {
 	updatedByAdmin: SanitizedAdmin
 	graphs: [Graph!]!
 	timePreset: String
+	variables: [Variable!]!
 }
 
 type VisualizationsResponse {
@@ -2019,12 +2031,19 @@ input GraphInput {
 	nullHandling: String
 }
 
+input VariableInput {
+	type: VariableType!
+	key: String!
+	defaultValue: String!
+}
+
 input VisualizationInput {
 	id: ID
 	projectId: ID!
 	name: String
 	graphIds: [ID!]
 	timePreset: String
+	variables: [VariableInput!]
 }
 
 scalar Upload

@@ -5257,6 +5257,12 @@ export type GetVisualizationQuery = { __typename?: 'Query' } & {
 		Types.Visualization,
 		'id' | 'updatedAt' | 'projectId' | 'name' | 'timePreset'
 	> & {
+			variables: Array<
+				{ __typename?: 'Variable' } & Pick<
+					Types.Variable,
+					'type' | 'key' | 'defaultValue'
+				>
+			>
 			graphs: Array<
 				{ __typename?: 'Graph' } & Pick<
 					Types.Graph,
@@ -5304,6 +5310,12 @@ export type GetVisualizationsQuery = { __typename?: 'Query' } & {
 					Types.Visualization,
 					'id' | 'updatedAt' | 'projectId' | 'name' | 'timePreset'
 				> & {
+						variables: Array<
+							{ __typename?: 'Variable' } & Pick<
+								Types.Variable,
+								'type' | 'key' | 'defaultValue'
+							>
+						>
 						graphs: Array<
 							{ __typename?: 'Graph' } & Pick<
 								Types.Graph,

@@ -3807,6 +3807,24 @@ export type UserPropertyInput = {
 	value: Scalars['String']
 }
 
+export type Variable = {
+	__typename?: 'Variable'
+	defaultValue: Scalars['String']
+	key: Scalars['String']
+	type: VariableType
+}
+
+export type VariableInput = {
+	defaultValue: Scalars['String']
+	key: Scalars['String']
+	type: VariableType
+}
+
+export enum VariableType {
+	FieldValue = 'FieldValue',
+	PlainText = 'PlainText',
+}
+
 export type VercelEnv = {
 	__typename?: 'VercelEnv'
 	configurationId: Scalars['String']
@@ -3842,6 +3860,7 @@ export type Visualization = {
 	timePreset?: Maybe<Scalars['String']>
 	updatedAt: Scalars['Timestamp']
 	updatedByAdmin?: Maybe<SanitizedAdmin>
+	variables: Array<Variable>
 }
 
 export type VisualizationInput = {
@@ -3850,6 +3869,7 @@ export type VisualizationInput = {
 	name?: InputMaybe<Scalars['String']>
 	projectId: Scalars['ID']
 	timePreset?: InputMaybe<Scalars['String']>
+	variables?: InputMaybe<Array<VariableInput>>
 }
 
 export type VisualizationsResponse = {

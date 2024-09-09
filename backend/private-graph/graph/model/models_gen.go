@@ -1001,6 +1001,18 @@ type UserPropertyInput struct {
 	Value string `json:"value"`
 }
 
+type Variable struct {
+	Type         VariableType `json:"type"`
+	Key          string       `json:"key"`
+	DefaultValue string       `json:"defaultValue"`
+}
+
+type VariableInput struct {
+	Type         VariableType `json:"type"`
+	Key          string       `json:"key"`
+	DefaultValue string       `json:"defaultValue"`
+}
+
 type VercelEnv struct {
 	ID              string `json:"id"`
 	Key             string `json:"key"`
@@ -1025,11 +1037,12 @@ type VercelProjectMappingInput struct {
 }
 
 type VisualizationInput struct {
-	ID         *int    `json:"id,omitempty"`
-	ProjectID  int     `json:"projectId"`
-	Name       *string `json:"name,omitempty"`
-	GraphIds   []int   `json:"graphIds,omitempty"`
-	TimePreset *string `json:"timePreset,omitempty"`
+	ID         *int             `json:"id,omitempty"`
+	ProjectID  int              `json:"projectId"`
+	Name       *string          `json:"name,omitempty"`
+	GraphIds   []int            `json:"graphIds,omitempty"`
+	TimePreset *string          `json:"timePreset,omitempty"`
+	Variables  []*VariableInput `json:"variables,omitempty"`
 }
 
 type WebSocketEvent struct {
@@ -2941,5 +2954,46 @@ func (e *SubscriptionInterval) UnmarshalGQL(v interface{}) error {
 }
 
 func (e SubscriptionInterval) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+type VariableType string
+
+const (
+	VariableTypePlainText  VariableType = "PlainText"
+	VariableTypeFieldValue VariableType = "FieldValue"
+)
+
+var AllVariableType = []VariableType{
+	VariableTypePlainText,
+	VariableTypeFieldValue,
+}
+
+func (e VariableType) IsValid() bool {
+	switch e {
+	case VariableTypePlainText, VariableTypeFieldValue:
+		return true
+	}
+	return false
+}
+
+func (e VariableType) String() string {
+	return string(e)
+}
+
+func (e *VariableType) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = VariableType(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid VariableType", str)
+	}
+	return nil
+}
+
+func (e VariableType) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(e.String()))
 }

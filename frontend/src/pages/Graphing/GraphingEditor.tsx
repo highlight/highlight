@@ -5,6 +5,7 @@ import {
 	DateRangePicker,
 	DEFAULT_TIME_PRESETS,
 	Form,
+	IconSolidAdjustments,
 	IconSolidClock,
 	Input,
 	presetStartDate,
@@ -21,7 +22,7 @@ import React, {
 	useState,
 } from 'react'
 import { Helmet } from 'react-helmet'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import { useDebounce } from 'react-use'
 
 import { SearchContext } from '@/components/Search/SearchContext'
@@ -70,6 +71,10 @@ import * as style from './GraphingEditor.css'
 import { LabeledRow } from './LabeledRow'
 import { OptionDropdown } from './OptionDropdown'
 import { BarChartSettings, LineChartSettings, TableSettings } from './Settings'
+import {
+	getQueryKey,
+	VariablesModal,
+} from '@/pages/Graphing/components/VariablesModal'
 
 type BucketBy = 'None' | 'Interval' | 'Count'
 const BUCKET_BY_OPTIONS: BucketBy[] = ['None', 'Interval', 'Count']
@@ -258,12 +263,20 @@ export const GraphingEditor: React.FC = () => {
 		})
 	}
 
-	const { loading: metaLoading } = useGetVisualizationQuery({
+	const { data, loading: metaLoading } = useGetVisualizationQuery({
 		variables: {
 			id: dashboard_id!,
 		},
-		skip: !isEdit,
 		onCompleted: (data) => {
+			const variables = new Map<string, string>()
+			data.visualization.variables.forEach((v) => {
+				variables.set(
+					v.key,
+					params.get(getQueryKey(v.key)) ?? v.defaultValue,
+				)
+			})
+			setVariables(variables)
+
 			const g = data.visualization.graphs.find((g) => g.id === graph_id)
 			if (g === undefined) {
 				return
@@ -348,6 +361,10 @@ export const GraphingEditor: React.FC = () => {
 		DEFAULT_BUCKET_INTERVAL,
 	)
 
+	const [params] = useSearchParams()
+	const [variables, setVariables] = useState<Map<string, string>>()
+	const [showVariablesModal, setShowVariablesModal] = useState(false)
+
 	tempMetricViewTitle.current = useMemo(() => {
 		let newViewTitle = ''
 		const stringifiedFunctionType = functionType?.toString() ?? ''
@@ -384,6 +401,8 @@ export const GraphingEditor: React.FC = () => {
 		}
 	}, [endDate, productType, startDate])
 
+	console.log('showVariablesModal', showVariablesModal)
+
 	if (metaLoading) {
 		return null
 	}
@@ -393,6 +412,14 @@ export const GraphingEditor: React.FC = () => {
 			<Helmet>
 				<title>{isEdit ? 'Edit' : 'Create'} Metric View</title>
 			</Helmet>
+			<VariablesModal
+				dashboardId={dashboard_id!}
+				showModal={showVariablesModal}
+				onHideModal={() => {
+					setShowVariablesModal(false)
+				}}
+				settings={data?.visualization}
+			/>
 			<Box
 				background="n2"
 				padding="8"
@@ -441,6 +468,16 @@ export const GraphingEditor: React.FC = () => {
 								)}
 							/>
 							<HeaderDivider />
+							<Button
+								emphasis="medium"
+								kind="secondary"
+								iconLeft={<IconSolidAdjustments size={14} />}
+								onClick={() => {
+									setShowVariablesModal(true)
+								}}
+							>
+								Variables
+							</Button>
 							<Button
 								emphasis="low"
 								kind="secondary"
@@ -509,6 +546,7 @@ export const GraphingEditor: React.FC = () => {
 									groupByEnabled ? limitMetric : undefined
 								}
 								setTimeRange={updateSearchTime}
+								variables={variables}
 							/>
 						</GraphBackgroundWrapper>
 						<Box

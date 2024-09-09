@@ -1430,6 +1430,7 @@ type Visualization struct {
 	GraphIds         pq.Int32Array `gorm:"type:integer[]"`
 	Graphs           []Graph
 	TimePreset       *string
+	Variables        string
 }
 
 type VisualizationsResponse struct {

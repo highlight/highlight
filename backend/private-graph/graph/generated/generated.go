@@ -1593,6 +1593,12 @@ type ComplexityRoot struct {
 		Value func(childComplexity int) int
 	}
 
+	Variable struct {
+		DefaultValue func(childComplexity int) int
+		Key          func(childComplexity int) int
+		Type         func(childComplexity int) int
+	}
+
 	VercelEnv struct {
 		ConfigurationID func(childComplexity int) int
 		ID              func(childComplexity int) int
@@ -1618,6 +1624,7 @@ type ComplexityRoot struct {
 		TimePreset     func(childComplexity int) int
 		UpdatedAt      func(childComplexity int) int
 		UpdatedByAdmin func(childComplexity int) int
+		Variables      func(childComplexity int) int
 	}
 
 	VisualizationsResponse struct {
@@ -2059,6 +2066,8 @@ type TimelineIndicatorEventResolver interface {
 }
 type VisualizationResolver interface {
 	UpdatedByAdmin(ctx context.Context, obj *model1.Visualization) (*model.SanitizedAdmin, error)
+
+	Variables(ctx context.Context, obj *model1.Visualization) ([]*model.Variable, error)
 }
 
 type executableSchema struct {
@@ -10983,6 +10992,27 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.UserProperty.Value(childComplexity), true
 
+	case "Variable.defaultValue":
+		if e.complexity.Variable.DefaultValue == nil {
+			break
+		}
+
+		return e.complexity.Variable.DefaultValue(childComplexity), true
+
+	case "Variable.key":
+		if e.complexity.Variable.Key == nil {
+			break
+		}
+
+		return e.complexity.Variable.Key(childComplexity), true
+
+	case "Variable.type":
+		if e.complexity.Variable.Type == nil {
+			break
+		}
+
+		return e.complexity.Variable.Type(childComplexity), true
+
 	case "VercelEnv.configurationId":
 		if e.complexity.VercelEnv.ConfigurationID == nil {
 			break
@@ -11087,6 +11117,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Visualization.UpdatedByAdmin(childComplexity), true
+
+	case "Visualization.variables":
+		if e.complexity.Visualization.Variables == nil {
+			break
+		}
+
+		return e.complexity.Visualization.Variables(childComplexity), true
 
 	case "VisualizationsResponse.count":
 		if e.complexity.VisualizationsResponse.Count == nil {
@@ -11468,6 +11505,7 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 		ec.unmarshalInputSortInput,
 		ec.unmarshalInputTrackPropertyInput,
 		ec.unmarshalInputUserPropertyInput,
+		ec.unmarshalInputVariableInput,
 		ec.unmarshalInputVercelProjectMappingInput,
 		ec.unmarshalInputVisualizationInput,
 		ec.unmarshalInputWebhookDestinationInput,
@@ -13570,6 +13608,17 @@ type Graph {
 	nullHandling: String
 }
 
+enum VariableType {
+	PlainText
+	FieldValue
+}
+
+type Variable {
+	type: VariableType!
+	key: String!
+	defaultValue: String!
+}
+
 type Visualization {
 	id: ID!
 	updatedAt: Timestamp!
@@ -13578,6 +13627,7 @@ type Visualization {
 	updatedByAdmin: SanitizedAdmin
 	graphs: [Graph!]!
 	timePreset: String
+	variables: [Variable!]!
 }
 
 type VisualizationsResponse {
@@ -13606,12 +13656,19 @@ input GraphInput {
 	nullHandling: String
 }
 
+input VariableInput {
+	type: VariableType!
+	key: String!
+	defaultValue: String!
+}
+
 input VisualizationInput {
 	id: ID
 	projectId: ID!
 	name: String
 	graphIds: [ID!]
 	timePreset: String
+	variables: [VariableInput!]
 }
 
 scalar Upload
@@ -64964,6 +65021,8 @@ func (ec *executionContext) fieldContext_Query_visualization(ctx context.Context
 				return ec.fieldContext_Visualization_graphs(ctx, field)
 			case "timePreset":
 				return ec.fieldContext_Visualization_timePreset(ctx, field)
+			case "variables":
+				return ec.fieldContext_Visualization_variables(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Visualization", field.Name)
 		},
@@ -78263,6 +78322,138 @@ func (ec *executionContext) fieldContext_UserProperty_value(ctx context.Context,
 	return fc, nil
 }
 
+func (ec *executionContext) _Variable_type(ctx context.Context, field graphql.CollectedField, obj *model.Variable) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Variable_type(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Type, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(model.VariableType)
+	fc.Result = res
+	return ec.marshalNVariableType2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐVariableType(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Variable_type(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Variable",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type VariableType does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Variable_key(ctx context.Context, field graphql.CollectedField, obj *model.Variable) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Variable_key(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Key, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Variable_key(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Variable",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Variable_defaultValue(ctx context.Context, field graphql.CollectedField, obj *model.Variable) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Variable_defaultValue(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.DefaultValue, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Variable_defaultValue(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Variable",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _VercelEnv_id(ctx context.Context, field graphql.CollectedField, obj *model.VercelEnv) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_VercelEnv_id(ctx, field)
 	if err != nil {
@@ -78969,6 +79160,58 @@ func (ec *executionContext) fieldContext_Visualization_timePreset(ctx context.Co
 	return fc, nil
 }
 
+func (ec *executionContext) _Visualization_variables(ctx context.Context, field graphql.CollectedField, obj *model1.Visualization) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Visualization_variables(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Visualization().Variables(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]*model.Variable)
+	fc.Result = res
+	return ec.marshalNVariable2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐVariableᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Visualization_variables(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Visualization",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "type":
+				return ec.fieldContext_Variable_type(ctx, field)
+			case "key":
+				return ec.fieldContext_Variable_key(ctx, field)
+			case "defaultValue":
+				return ec.fieldContext_Variable_defaultValue(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type Variable", field.Name)
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _VisualizationsResponse_count(ctx context.Context, field graphql.CollectedField, obj *model1.VisualizationsResponse) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_VisualizationsResponse_count(ctx, field)
 	if err != nil {
@@ -79066,6 +79309,8 @@ func (ec *executionContext) fieldContext_VisualizationsResponse_results(ctx cont
 				return ec.fieldContext_Visualization_graphs(ctx, field)
 			case "timePreset":
 				return ec.fieldContext_Visualization_timePreset(ctx, field)
+			case "variables":
+				return ec.fieldContext_Visualization_variables(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Visualization", field.Name)
 		},
@@ -84566,6 +84811,47 @@ func (ec *executionContext) unmarshalInputUserPropertyInput(ctx context.Context,
 	return it, nil
 }
 
+func (ec *executionContext) unmarshalInputVariableInput(ctx context.Context, obj interface{}) (model.VariableInput, error) {
+	var it model.VariableInput
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"type", "key", "defaultValue"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "type":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("type"))
+			data, err := ec.unmarshalNVariableType2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐVariableType(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Type = data
+		case "key":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("key"))
+			data, err := ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Key = data
+		case "defaultValue":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("defaultValue"))
+			data, err := ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.DefaultValue = data
+		}
+	}
+
+	return it, nil
+}
+
 func (ec *executionContext) unmarshalInputVercelProjectMappingInput(ctx context.Context, obj interface{}) (model.VercelProjectMappingInput, error) {
 	var it model.VercelProjectMappingInput
 	asMap := map[string]interface{}{}
@@ -84614,7 +84900,7 @@ func (ec *executionContext) unmarshalInputVisualizationInput(ctx context.Context
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"id", "projectId", "name", "graphIds", "timePreset"}
+	fieldsInOrder := [...]string{"id", "projectId", "name", "graphIds", "timePreset", "variables"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -84656,6 +84942,13 @@ func (ec *executionContext) unmarshalInputVisualizationInput(ctx context.Context
 				return it, err
 			}
 			it.TimePreset = data
+		case "variables":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("variables"))
+			data, err := ec.unmarshalOVariableInput2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐVariableInputᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Variables = data
 		}
 	}
 
@@ -98784,6 +99077,55 @@ func (ec *executionContext) _UserProperty(ctx context.Context, sel ast.Selection
 	return out
 }
 
+var variableImplementors = []string{"Variable"}
+
+func (ec *executionContext) _Variable(ctx context.Context, sel ast.SelectionSet, obj *model.Variable) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, variableImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("Variable")
+		case "type":
+			out.Values[i] = ec._Variable_type(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "key":
+			out.Values[i] = ec._Variable_key(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "defaultValue":
+			out.Values[i] = ec._Variable_defaultValue(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.processDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
 var vercelEnvImplementors = []string{"VercelEnv"}
 
 func (ec *executionContext) _VercelEnv(ctx context.Context, sel ast.SelectionSet, obj *model.VercelEnv) graphql.Marshaler {
@@ -98997,6 +99339,42 @@ func (ec *executionContext) _Visualization(ctx context.Context, sel ast.Selectio
 			}
 		case "timePreset":
 			out.Values[i] = ec._Visualization_timePreset(ctx, field, obj)
+		case "variables":
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Visualization_variables(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
+				return res
+			}
+
+			if field.Deferrable != nil {
+				dfs, ok := deferred[field.Deferrable.Label]
+				di := 0
+				if ok {
+					dfs.AddField(field)
+					di = len(dfs.Values) - 1
+				} else {
+					dfs = graphql.NewFieldSet([]graphql.CollectedField{field})
+					deferred[field.Deferrable.Label] = dfs
+				}
+				dfs.Concurrently(di, func(ctx context.Context) graphql.Marshaler {
+					return innerFunc(ctx, dfs)
+				})
+
+				// don't run the out.Concurrently() call below
+				out.Values[i] = graphql.Null
+				continue
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -104831,6 +105209,75 @@ func (ec *executionContext) unmarshalNUserPropertyInput2ᚖgithubᚗcomᚋhighli
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
+func (ec *executionContext) marshalNVariable2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐVariableᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.Variable) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNVariable2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐVariable(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
+}
+
+func (ec *executionContext) marshalNVariable2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐVariable(ctx context.Context, sel ast.SelectionSet, v *model.Variable) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._Variable(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalNVariableInput2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐVariableInput(ctx context.Context, v interface{}) (*model.VariableInput, error) {
+	res, err := ec.unmarshalInputVariableInput(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalNVariableType2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐVariableType(ctx context.Context, v interface{}) (model.VariableType, error) {
+	var res model.VariableType
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNVariableType2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐVariableType(ctx context.Context, sel ast.SelectionSet, v model.VariableType) graphql.Marshaler {
+	return v
+}
+
 func (ec *executionContext) marshalNVercelEnv2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐVercelEnvᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.VercelEnv) graphql.Marshaler {
 	ret := make(graphql.Array, len(v))
 	var wg sync.WaitGroup
@@ -107498,6 +107945,26 @@ func (ec *executionContext) marshalOUserProperty2ᚖgithubᚗcomᚋhighlightᚑr
 		return graphql.Null
 	}
 	return ec._UserProperty(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalOVariableInput2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐVariableInputᚄ(ctx context.Context, v interface{}) ([]*model.VariableInput, error) {
+	if v == nil {
+		return nil, nil
+	}
+	var vSlice []interface{}
+	if v != nil {
+		vSlice = graphql.CoerceList(v)
+	}
+	var err error
+	res := make([]*model.VariableInput, len(vSlice))
+	for i := range vSlice {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
+		res[i], err = ec.unmarshalNVariableInput2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐVariableInput(ctx, vSlice[i])
+		if err != nil {
+			return nil, err
+		}
+	}
+	return res, nil
 }
 
 func (ec *executionContext) marshalOWorkspace2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐWorkspace(ctx context.Context, sel ast.SelectionSet, v []*model1.Workspace) graphql.Marshaler {

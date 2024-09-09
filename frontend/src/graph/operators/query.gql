@@ -2598,6 +2598,11 @@ query GetVisualization($id: ID!) {
 		projectId
 		name
 		timePreset
+		variables {
+			type
+			key
+			defaultValue
+		}
 		graphs {
 			id
 			type
@@ -2644,6 +2649,11 @@ query GetVisualizations(
 			projectId
 			name
 			timePreset
+			variables {
+				type
+				key
+				defaultValue
+			}
 			graphs {
 				id
 				type

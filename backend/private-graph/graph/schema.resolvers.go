@@ -4876,6 +4876,15 @@ func (r *mutationResolver) UpsertVisualization(ctx context.Context, visualizatio
 		Name:             viz.Name,
 		TimePreset:       viz.TimePreset,
 		GraphIds:         viz.GraphIds,
+		Variables:        viz.Variables,
+	}
+
+	if visualization.Variables != nil {
+		bytes, err := json.Marshal(visualization.Variables)
+		if err != nil {
+			return 0, e.Wrapf(err, "error marshaling variables")
+		}
+		toSave.Variables = string(bytes)
 	}
 
 	if visualization.Name != nil {
@@ -10147,6 +10156,18 @@ func (r *visualizationResolver) UpdatedByAdmin(ctx context.Context, obj *model.V
 		Email:    email,
 		PhotoURL: obj.UpdatedByAdmin.PhotoURL,
 	}, nil
+}
+
+// Variables is the resolver for the variables field.
+func (r *visualizationResolver) Variables(ctx context.Context, obj *model.Visualization) ([]*modelInputs.Variable, error) {
+	if obj.Variables == "" {
+		return []*modelInputs.Variable{}, nil
+	}
+	variables := &[]*modelInputs.Variable{}
+	if err := json.Unmarshal([]byte(obj.Variables), variables); err != nil {
+		return nil, e.Wrapf(err, "error unmarshaling variables")
+	}
+	return *variables, nil
 }
 
 // AllWorkspaceSettings returns generated.AllWorkspaceSettingsResolver implementation.

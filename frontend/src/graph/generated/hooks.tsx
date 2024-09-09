@@ -15308,6 +15308,11 @@ export const GetVisualizationDocument = gql`
 			projectId
 			name
 			timePreset
+			variables {
+				type
+				key
+				defaultValue
+			}
 			graphs {
 				id
 				type
@@ -15404,6 +15409,11 @@ export const GetVisualizationsDocument = gql`
 				projectId
 				name
 				timePreset
+				variables {
+					type
+					key
+					defaultValue
+				}
 				graphs {
 					id
 					type

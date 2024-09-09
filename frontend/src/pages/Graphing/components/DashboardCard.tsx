@@ -5,8 +5,8 @@ import {
 	Button,
 	IconSolidArrowsExpand,
 	IconSolidDesktopComputer,
+	IconSolidDotsHorizontal,
 	IconSolidDuplicate,
-	IconSolidMenu,
 	IconSolidPencil,
 	IconSolidTrash,
 	Menu,
@@ -57,7 +57,9 @@ export const DashboardCard = ({
 			onMouseEnter={() => {
 				setGraphHover(true)
 			}}
-			onMouseLeave={() => {}}
+			onMouseLeave={() => {
+				setGraphHover(false)
+			}}
 		>
 			<Box
 				borderRadius="6"
@@ -103,7 +105,7 @@ export const DashboardCard = ({
 									size="xSmall"
 									emphasis="low"
 									kind="secondary"
-									iconLeft={<IconSolidMenu />}
+									iconLeft={<IconSolidDotsHorizontal />}
 									onClick={(e: any) => {
 										e.stopPropagation()
 									}}

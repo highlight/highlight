@@ -18,6 +18,7 @@ import {
 	Button,
 	DateRangePicker,
 	DEFAULT_TIME_PRESETS,
+	IconSolidAdjustments,
 	IconSolidChartBar,
 	IconSolidCheveronRight,
 	IconSolidClock,
@@ -33,7 +34,7 @@ import { vars } from '@highlight-run/ui/vars'
 import clsx from 'clsx'
 import { useId, useState } from 'react'
 import { Helmet } from 'react-helmet'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 
 import {
 	useDeleteGraphMutation,
@@ -52,6 +53,10 @@ import { useParams } from '@/util/react-router/useParams'
 
 import * as style from './Dashboard.css'
 import { DashboardSettingsModal } from '@/pages/Graphing/components/DashboardSettingsModal'
+import {
+	getQueryKey,
+	VariablesModal,
+} from '@/pages/Graphing/components/VariablesModal'
 
 export const HeaderDivider = () => <Box cssClass={style.headerDivider} />
 
@@ -67,10 +72,14 @@ export const Dashboard = () => {
 		}),
 	)
 
-	const [showModal, setShowModal] = useState(false)
+	const [showSettingsModal, setShowSettingsModal] = useState(false)
+	const [showVariablesModal, setShowVariablesModal] = useState(false)
+
+	const [params] = useSearchParams()
 
 	const [graphs, setGraphs] =
 		useState<GetVisualizationQuery['visualization']['graphs']>()
+	const [variables, setVariables] = useState<Map<string, string>>()
 	const handleDragEnd = (event: any) => {
 		const { active, over } = event
 
@@ -137,6 +146,14 @@ export const Dashboard = () => {
 			if (preset) {
 				updateSearchTime(new Date(), new Date(), parsePreset(preset))
 			}
+			const variables = new Map<string, string>()
+			data.visualization.variables.forEach((v) => {
+				variables.set(
+					v.key,
+					params.get(getQueryKey(v.key)) ?? v.defaultValue,
+				)
+			})
+			setVariables(variables)
 		},
 	})
 
@@ -162,11 +179,19 @@ export const Dashboard = () => {
 				<title>Dashboard</title>
 			</Helmet>
 			<DashboardSettingsModal
-				showModal={showModal}
+				showModal={showSettingsModal}
 				onHideModal={() => {
-					setShowModal(false)
+					setShowSettingsModal(false)
 				}}
 				dashboardId={dashboard_id!}
+				settings={data?.visualization}
+			/>
+			<VariablesModal
+				dashboardId={dashboard_id!}
+				showModal={showVariablesModal}
+				onHideModal={() => {
+					setShowVariablesModal(false)
+				}}
 				settings={data?.visualization}
 			/>
 			<Box
@@ -238,9 +263,21 @@ export const Dashboard = () => {
 								<Button
 									emphasis="medium"
 									kind="secondary"
+									iconLeft={
+										<IconSolidAdjustments size={14} />
+									}
+									onClick={() => {
+										setShowVariablesModal(true)
+									}}
+								>
+									Variables
+								</Button>
+								<Button
+									emphasis="medium"
+									kind="secondary"
 									iconLeft={<IconSolidCog size={14} />}
 									onClick={() => {
-										setShowModal(true)
+										setShowSettingsModal(true)
 									}}
 								>
 									Settings
@@ -579,6 +616,9 @@ export const Dashboard = () => {
 															}
 															setTimeRange={
 																updateSearchTime
+															}
+															variables={
+																variables
 															}
 														/>
 													</DashboardCard>
