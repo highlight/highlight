@@ -34,7 +34,7 @@ jobs:
 
             - name: Push generated package to NuGet registry
               if: github.ref == 'refs/heads/main'
-              run: dotnet nuget push out/*.nupkg -k $NUGET_AUTH_TOKEN -s https://api.nuget.org/v3/index.json
+              run: dotnet nuget push out/*.nupkg --skip-duplicate -k $NUGET_AUTH_TOKEN -s https://api.nuget.org/v3/index.json
               env:
                   NUGET_AUTH_TOKEN: ${{ secrets.NUGET_API_KEY }}
 
@@ -67,6 +67,6 @@ jobs:
 
             - name: Push generated package to NuGet registry
               if: github.ref == 'refs/heads/main'
-              run: nuget push *.nupkg -ApiKey $NUGET_AUTH_TOKEN -Source https://api.nuget.org/v3/index.json
+              run: nuget push *.nupkg -SkipDuplicate -ApiKey $NUGET_AUTH_TOKEN -Source https://api.nuget.org/v3/index.json
               env:
                   NUGET_AUTH_TOKEN: ${{ secrets.NUGET_API_KEY }}
