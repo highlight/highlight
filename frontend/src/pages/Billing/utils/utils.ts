@@ -122,6 +122,7 @@ export const getMeterAmounts = ({
 			[ProductType.Logs]: [0, undefined],
 			[ProductType.Traces]: [0, undefined],
 			[ProductType.Metrics]: [0, undefined],
+			[ProductType.Events]: [0, undefined],
 		}
 	}
 	const trialActive = workspace?.trial_end_date
@@ -159,6 +160,8 @@ export const getMeterAmounts = ({
 		[ProductType.Traces]: [tracesMeter, tracesQuota],
 		// TODO(vkorolik) billing for metrics ingest
 		[ProductType.Metrics]: [0, undefined],
+		// TODO(spenny): better way to add new searches without needing to add a new billable product
+		[ProductType.Events]: [0, undefined],
 	}
 }
 
