@@ -36,6 +36,9 @@ export const useGetLogs = ({
 	startDate,
 	endDate,
 	disablePolling,
+	sortColumn,
+	sortDirection,
+	disableRelatedResources,
 }: {
 	query: string
 	project_id: string | undefined
@@ -43,6 +46,9 @@ export const useGetLogs = ({
 	startDate: Date
 	endDate: Date
 	disablePolling?: boolean
+	sortColumn?: string
+	sortDirection?: Types.SortDirection
+	disableRelatedResources?: boolean
 }) => {
 	// The backend can only tell us page info about a single page.
 	// It has no idea what pages have already been loaded.
@@ -54,7 +60,6 @@ export const useGetLogs = ({
 	// Hence, we track the initial information (where "window" is effectively multiple pages) to ensure we aren't making requests unnecessarily.
 	const [windowInfo, setWindowInfo] = useState<PageInfo>(initialWindowInfo)
 	const [loadingAfter, setLoadingAfter] = useState(false)
-	const [loadingBefore, setLoadingBefore] = useState(false)
 
 	useEffect(() => {
 		setWindowInfo(initialWindowInfo)
@@ -70,6 +75,10 @@ export const useGetLogs = ({
 				date_range: {
 					start_date: moment(startDate).format(TIME_FORMAT),
 					end_date: moment(endDate).format(TIME_FORMAT),
+				},
+				sort: {
+					column: sortColumn ?? 'timestamp',
+					direction: sortDirection ?? Types.SortDirection.Desc,
 				},
 			},
 		},
@@ -157,7 +166,7 @@ export const useGetLogs = ({
 					.format(TIME_FORMAT),
 			},
 		},
-		skip: !data?.logs.edges.length,
+		skip: disableRelatedResources || !data?.logs.edges.length,
 	})
 
 	const fetchMoreForward = useCallback(async () => {
@@ -174,8 +183,19 @@ export const useGetLogs = ({
 
 		setLoadingAfter(true)
 
+		const cursorVariables =
+			sortDirection == Types.SortDirection.Asc
+				? {
+						after: '',
+						before: lastCursor,
+					}
+				: {
+						after: lastCursor,
+						before: '',
+					}
+
 		await fetchMore({
-			variables: { after: lastCursor },
+			variables: cursorVariables,
 			updateQuery: (prevResult, { fetchMoreResult }) => {
 				const newData = fetchMoreResult.logs.edges
 				setWindowInfo({
@@ -192,42 +212,7 @@ export const useGetLogs = ({
 				}
 			},
 		})
-	}, [data, fetchMore, loadingAfter, windowInfo])
-
-	const fetchMoreBackward = useCallback(async () => {
-		if (!windowInfo.hasPreviousPage || loadingBefore) {
-			return
-		}
-
-		const firstItem = data && data.logs.edges[0]
-		const firstCursor = firstItem?.cursor
-
-		if (!firstCursor) {
-			return
-		}
-
-		setLoadingBefore(true)
-
-		await fetchMore({
-			variables: { before: firstCursor },
-			updateQuery: (prevResult, { fetchMoreResult }) => {
-				const newData = fetchMoreResult.logs.edges
-				setWindowInfo({
-					...windowInfo,
-					hasPreviousPage:
-						fetchMoreResult.logs.pageInfo.hasPreviousPage,
-				})
-				setLoadingBefore(false)
-				return {
-					logs: {
-						...prevResult.logs,
-						edges: [...prevResult.logs.edges, ...newData],
-						pageInfo: fetchMoreResult.logs.pageInfo,
-					},
-				}
-			},
-		})
-	}, [data, fetchMore, loadingBefore, windowInfo])
+	}, [data, fetchMore, loadingAfter, sortDirection, windowInfo])
 
 	const existingTraceSet = new Set(logRelatedResources?.existing_logs_traces)
 
@@ -253,10 +238,8 @@ export const useGetLogs = ({
 		pollingExpired,
 		loading,
 		loadingAfter,
-		loadingBefore,
 		error,
 		fetchMoreForward,
-		fetchMoreBackward,
 		refetch,
 	}
 }
