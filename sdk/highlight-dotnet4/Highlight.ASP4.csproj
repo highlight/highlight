@@ -14,9 +14,9 @@
         <FileAlignment>512</FileAlignment>
 
         <IsPackable>true</IsPackable>
-        <Version>0.1.9</Version>
-        <AssemblyVersion>0.1.9</AssemblyVersion>
-        <FileVersion>0.1.9</FileVersion>
+        <Version>0.1.10</Version>
+        <AssemblyVersion>0.1.10</AssemblyVersion>
+        <FileVersion>0.1.10</FileVersion>
         <Company>highlight.io</Company>
         <Authors>Vadim Korolik</Authors>
         <Product>highlight.io</Product>
