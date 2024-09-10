@@ -12,7 +12,7 @@ import React from 'react'
 // @ts-ignore
 import { specific } from 'react-files-hooks'
 
-import { Button } from '@/components/Button'
+import { Button } from '@/components/Button/Button'
 import { styledHorizontalScrollbar } from '@/style/common.css'
 
 type Props = {

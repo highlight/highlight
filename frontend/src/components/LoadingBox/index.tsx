@@ -1,5 +1,5 @@
 // eslint-disable-next-line no-restricted-imports
-import { Button, ButtonProps } from '@components/Button'
+import { Button, ButtonProps } from '@/components/Button/Button'
 import { Box } from '@highlight-run/ui/components'
 import type { BoxProps } from '@highlight-run/ui/src/components/Box/Box'
 

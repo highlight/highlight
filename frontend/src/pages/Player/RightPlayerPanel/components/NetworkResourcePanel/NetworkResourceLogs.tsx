@@ -9,7 +9,7 @@ import React, { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { DateTimeParam, encodeQueryParams, StringParam } from 'use-query-params'
 
-import { Button } from '@/components/Button'
+import { Button } from '@/components/Button/Button'
 import { LinkButton } from '@/components/LinkButton'
 import { SearchContext } from '@/components/Search/SearchContext'
 import {

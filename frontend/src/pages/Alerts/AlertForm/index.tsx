@@ -1,4 +1,4 @@
-import { Button } from '@components/Button'
+import { Button } from '@/components/Button/Button'
 import { toast } from '@components/Toaster'
 import {
 	Box,

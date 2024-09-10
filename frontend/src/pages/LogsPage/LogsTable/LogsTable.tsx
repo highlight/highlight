@@ -1,5 +1,5 @@
 import { ApolloError } from '@apollo/client'
-import { Button } from '@components/Button'
+import { Button } from '@/components/Button/Button'
 import {
 	CustomColumnPopover,
 	SerializedColumn,

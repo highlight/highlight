@@ -39,7 +39,7 @@ import React from 'react'
 import { RiMailFill, RiSlackFill } from 'react-icons/ri'
 import { useNavigate } from 'react-router-dom'
 
-import { Button } from '@/components/Button'
+import { Button } from '@/components/Button/Button'
 import { LinkButton } from '@/components/LinkButton'
 import {
 	AlertDestination,

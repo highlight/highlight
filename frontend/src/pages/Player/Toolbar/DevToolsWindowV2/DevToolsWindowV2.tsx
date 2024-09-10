@@ -1,4 +1,4 @@
-import { Button } from '@components/Button'
+import { Button } from '@/components/Button/Button'
 import { LogLevel, LogSource } from '@graph/schemas'
 import {
 	Box,

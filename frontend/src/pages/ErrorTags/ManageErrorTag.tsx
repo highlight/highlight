@@ -1,4 +1,4 @@
-import { Button } from '@components/Button'
+import { Button } from '@/components/Button/Button'
 import { Box, Form, Heading, Stack, Table } from '@highlight-run/ui/components'
 
 import {

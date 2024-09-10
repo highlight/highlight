@@ -14,7 +14,7 @@ import { useCallback } from 'react'
 import { useHotkeys } from 'react-hotkeys-hook'
 import { Link, useNavigate } from 'react-router-dom'
 
-import { Button } from '@/components/Button'
+import { Button } from '@/components/Button/Button'
 import { PreviousNextGroup } from '@/components/PreviousNextGroup/PreviousNextGroup'
 import { useRelatedResource } from '@/components/RelatedResources/hooks'
 

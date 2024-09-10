@@ -1,4 +1,4 @@
-import { ButtonProps } from '@components/Button'
+import { ButtonProps } from '@/components/Button/Button'
 import { ButtonContent, buttonStyles } from '@highlight-run/ui/components'
 import analytics from '@util/analytics'
 import clsx from 'clsx'

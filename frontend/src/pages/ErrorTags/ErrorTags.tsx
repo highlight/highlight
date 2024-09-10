@@ -11,7 +11,7 @@ import {
 } from '@highlight-run/ui/components'
 import { useNavigate } from 'react-router-dom'
 
-import { Button } from '@/components/Button'
+import { Button } from '@/components/Button/Button'
 
 import styles from './ErrorTags.module.css'
 

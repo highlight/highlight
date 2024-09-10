@@ -1,7 +1,7 @@
 import { useApolloClient } from '@apollo/client'
 import { useAuthContext } from '@authentication/AuthContext'
 import { Avatar } from '@components/Avatar/Avatar'
-import { Button } from '@components/Button'
+import { Button } from '@/components/Button/Button'
 import JsonViewer from '@components/JsonViewer/JsonViewer'
 import LoadingBox from '@components/LoadingBox'
 import {

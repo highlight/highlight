@@ -1,5 +1,6 @@
+
 import EnterpriseFeatureButton from '@components/Billing/EnterpriseFeatureButton'
-import { Button } from '@components/Button'
+import { Button } from '@/components/Button/Button'
 import { useGetWorkspaceAdminsQuery } from '@graph/hooks'
 import { AdminRole, Project, WorkspaceAdminRole } from '@graph/schemas'
 import {

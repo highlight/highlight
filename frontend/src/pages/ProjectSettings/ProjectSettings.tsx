@@ -17,7 +17,7 @@ import { Helmet } from 'react-helmet'
 import { useNavigate } from 'react-router-dom'
 
 import BorderBox from '@/components/BorderBox/BorderBox'
-import { Button } from '@/components/Button'
+import { Button } from '@/components/Button/Button'
 import {
 	CircularSpinner,
 	LoadingRightPanel,

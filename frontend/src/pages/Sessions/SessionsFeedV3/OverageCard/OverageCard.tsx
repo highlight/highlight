@@ -1,4 +1,4 @@
-import { Button } from '@components/Button'
+import { Button } from '@/components/Button/Button'
 import { Box, Callout, Stack, Text } from '@highlight-run/ui/components'
 import { useNavigate } from 'react-router-dom'
 import { useSessionStorage } from 'react-use'

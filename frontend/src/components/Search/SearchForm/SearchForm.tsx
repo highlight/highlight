@@ -27,7 +27,7 @@ import TextareaAutosize from 'react-autosize-textarea'
 import { useNavigate } from 'react-router-dom'
 import { StringParam, useQueryParam, withDefault } from 'use-query-params'
 
-import { Button } from '@/components/Button'
+import { Button } from '@/components/Button/Button'
 import { LinkButton } from '@/components/LinkButton'
 import LoadingBox from '@/components/LoadingBox'
 import SearchGrammarParser from '@/components/Search/Parser/antlr/SearchGrammarParser'

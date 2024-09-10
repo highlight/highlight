@@ -22,7 +22,7 @@ import moment from 'moment'
 import React, { useEffect, useMemo, useRef, useState } from 'react'
 import TextareaAutosize from 'react-autosize-textarea'
 
-import { Button } from '@/components/Button'
+import { Button } from '@/components/Button/Button'
 import { loadingIcon } from '@/components/Button/style.css'
 import { useSearchContext } from '@/components/Search/SearchContext'
 import { QueryPart } from '@/components/Search/SearchForm/QueryPart'
