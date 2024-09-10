@@ -60,7 +60,7 @@ jobs:
               run: nuget restore
 
             - name: Build solution and generate NuGet package
-              run: nuget pack -Build -IncludeReferencedProjects -NonInteractive -Symbols -Prop Configuration=Release
+              run: nuget pack -NoDefaultExcludes -Build -IncludeReferencedProjects -NonInteractive -Symbols -Prop Configuration=Release
 
             - name: Push generated package to NuGet registry
               # if: github.ref == 'refs/heads/main'

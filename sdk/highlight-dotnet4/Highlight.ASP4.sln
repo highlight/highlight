@@ -5,8 +5,6 @@ VisualStudioVersion = 17.11.35222.181
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Highlight.ASP4", "Highlight.ASP4.csproj", "{D5182278-9644-488F-A757-F17AB8B8E9DC}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "highlight-dotnet4", "C:\Users\vkoro\source\repos\highlight-dotnet4\highlight-dotnet4.csproj", "{25A990F2-9E86-4AAB-B70C-40A4A3D13D9F}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
