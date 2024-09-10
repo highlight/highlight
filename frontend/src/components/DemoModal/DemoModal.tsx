@@ -65,6 +65,7 @@ export const DemoModal = () => {
 			...attribution,
 		})
 		analytics.track('demo-email-submit', { email, ...attribution })
+		analytics.trackGaEvent('demo_email_submit', { email, ...attribution })
 		setVisible(false)
 	}
 

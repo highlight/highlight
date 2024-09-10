@@ -78,6 +78,7 @@ const identify = (email: string, traits?: rudderanalytics.apiObject) => {
 		},
 	])
 	hsq.push(['trackPageView'])
+
 	// `id` is a reserved keyword in rudderstack and it's recommended to use a
 	// static property for the user ID rather than something that could change
 	// over time, like an email address.
@@ -93,11 +94,21 @@ const page = (name: string, properties?: rudderanalytics.apiObject) => {
 	rudderanalytics.page(name, omit(properties, rudderstackReserved))
 }
 
+const trackGaEvent = (event: string, properties?: Record<string, any>) => {
+	if (window.dataLayer) {
+		window.dataLayer.push({
+			event,
+			...properties,
+		})
+	}
+}
+
 const analytics = {
 	initialize,
 	track,
 	identify,
 	page,
+	trackGaEvent,
 }
 
 export default analytics
