@@ -5,7 +5,6 @@
         <version>0.1.9</version>
         <releaseNotes>Initial Release</releaseNotes>
         <projectUrl>https://highlight.io</projectUrl>
-        <targetFramework>net462</targetFramework>
         <description>Session replay, error monitoring, logging, and tracing: stop guessing why bugs happen!</description>
         <copyright>Copyright © 2024</copyright>
         <authors>Vadim Korolik</authors>
