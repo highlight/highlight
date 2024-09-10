@@ -2,9 +2,10 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd">
     <metadata>
         <id>Highlight.ASP4</id>
-        <version>0.1.8</version>
+        <version>0.1.9</version>
         <releaseNotes>Initial Release</releaseNotes>
         <projectUrl>https://highlight.io</projectUrl>
+        <targetFramework>net48</targetFramework>
         <description>Session replay, error monitoring, logging, and tracing: stop guessing why bugs happen!</description>
         <copyright>Copyright © 2024</copyright>
         <authors>Vadim Korolik</authors>
@@ -74,8 +75,7 @@
     </metadata>
     <files>
         <file src="README.md"/>
-        <file src="OpenTelemetry.cs"/>
         <file src="Example/Example.cs"/>
-        <file src="**\*.dll" exclude="**\GraphQL.*;**\Oracle*.dll;**\obj\**\*.*;**\itextsharp.dll;**\log4net.dll"/>
+        <file src="**\*.dll" exclude="**\obj\**\*.*" target="lib\net48" />
     </files>
 </package>
