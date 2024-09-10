@@ -25,7 +25,7 @@ export const buildSessionParams = ({
 	let searchQuery = query
 
 	if (session?.secure_id) {
-		searchQuery += `${ReservedLogKey.SecureSessionId}${DEFAULT_OPERATOR}${session.secure_id}`
+		searchQuery += ` ${ReservedLogKey.SecureSessionId}${DEFAULT_OPERATOR}${session.secure_id}`
 	}
 
 	return {
