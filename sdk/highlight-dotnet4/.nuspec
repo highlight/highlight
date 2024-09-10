@@ -75,6 +75,6 @@
     <files>
         <file src="README.md"/>
         <file src="Example\Example.cs"/>
-        <file target="lib\net462" />
+        <file src="**\*.dll" exclude="obj;bin;content;packages" target="lib\net462" />
     </files>
 </package>
