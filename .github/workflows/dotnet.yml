@@ -59,11 +59,9 @@ jobs:
             - name: NuGet Restore
               run: nuget restore
 
-            - name: Build
-              run: xbuild
-
             - name: Build solution and generate NuGet package
-              run: nuget pack -NoBuild -IncludeReferencedProjects -Prop Configuration=Release
+              run: nuget pack -Build -IncludeReferencedProjects -NonInteractive -Symbols -Prop Configuration=Release
+
             - name: Push generated package to NuGet registry
               # if: github.ref == 'refs/heads/main'
               run: nuget push *.nupkg -SkipDuplicate -ApiKey $NUGET_AUTH_TOKEN -SymbolApiKey $NUGET_AUTH_TOKEN -Source https://api.nuget.org/v3/index.json
