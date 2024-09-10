@@ -6,7 +6,7 @@ updatedAt: 2022-01-27T19:51:23.000Z
 ---
 
 ```hint
-Proxying is only available on an Annual Plan. If you would like use this, you will need to reach out to sales@highlight.io.
+Proxying is only available on our [Business Plan](https://highlight.io/pricing). If you would like use this, please reach out to sales@highlight.io.
 
 
 ```
