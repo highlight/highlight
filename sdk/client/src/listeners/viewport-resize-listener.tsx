@@ -18,7 +18,7 @@ export const ViewportResizeListener = (
 				availWidth: window.screen.availWidth,
 				colorDepth: window.screen.colorDepth,
 				pixelDepth: window.screen.pixelDepth,
-				orientation: window.screen.orientation.angle,
+				orientation: window.screen.orientation?.angle ?? 0,
 			})
 		}, DELAY)
 	}
