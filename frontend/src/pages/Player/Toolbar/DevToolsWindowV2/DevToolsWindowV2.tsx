@@ -4,6 +4,7 @@ import {
 	Box,
 	Callout,
 	Form,
+	IconSolidLogs,
 	IconSolidSearch,
 	IconSolidSwitchHorizontal,
 	Stack,
@@ -38,10 +39,11 @@ import { NetworkPage } from '@/pages/Player/Toolbar/DevToolsWindowV2/NetworkPage
 import { RequestStatusFilter } from '@/pages/Player/Toolbar/DevToolsWindowV2/RequestStatusFilter/RequestStatusFilter'
 import { RequestTypeFilter } from '@/pages/Player/Toolbar/DevToolsWindowV2/RequestTypeFilter/RequestTypeFilter'
 import { styledVerticalScrollbar } from '@/style/common.css'
+import { SearchContext } from '@/components/Search/SearchContext'
+import { useRelatedResource } from '@/components/RelatedResources/hooks'
 
 import { ConsolePage } from './ConsolePage/ConsolePage'
 import * as styles from './style.css'
-import { SearchContext } from '@/components/Search/SearchContext'
 
 const DEFAULT_LOG_SEARCH = `source=${LogSource.Frontend} `
 const LOG_CURSOR_LOG_SEARCH = `source=(${LogSource.Frontend} OR ${LogSource.Backend})`
@@ -54,6 +56,7 @@ const DevToolsWindowV2: React.FC<
 	const { logCursor } = useLinkLogCursor()
 	const { isPlayerFullscreen } = usePlayerUIContext()
 	const { isLiveMode, setIsLiveMode, time, session } = useReplayerContext()
+	const { set } = useRelatedResource()
 	const {
 		selectedDevToolsTab,
 		setSelectedDevToolsTab,
@@ -244,14 +247,42 @@ const DevToolsWindowV2: React.FC<
 											alignItems="center"
 										>
 											{showSearchComponent ? (
-												<Search
-													startDate={params.date_range.start_date.toDate()}
-													endDate={params.date_range.end_date.toDate()}
-													placeholder="Search..."
-													productType={
-														ProductType.Logs
-													}
-												/>
+												<>
+													<Search
+														startDate={params.date_range.start_date.toDate()}
+														endDate={params.date_range.end_date.toDate()}
+														placeholder="Search..."
+														productType={
+															ProductType.Logs
+														}
+													/>
+													<Button
+														size="xSmall"
+														kind="secondary"
+														trackingId="session_show-in-log-viewer_click"
+														cssClass={
+															styles.autoScroll
+														}
+														iconLeft={
+															<IconSolidLogs
+																width={12}
+																height={12}
+															/>
+														}
+														onClick={() => {
+															set({
+																type: 'logs',
+																query: params.query,
+																startDate:
+																	params.date_range.start_date.toISOString(),
+																endDate:
+																	params.date_range.end_date.toISOString(),
+															})
+														}}
+													>
+														Show in log viewer
+													</Button>
+												</>
 											) : (
 												<>
 													<Box
