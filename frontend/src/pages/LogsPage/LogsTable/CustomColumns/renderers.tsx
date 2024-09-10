@@ -1,6 +1,7 @@
 import { SearchExpression } from '@components/Search/Parser/listener'
 import {
 	Box,
+	IconSolidArrowCircleRight,
 	IconSolidPlayCircle,
 	Stack,
 	Table,
@@ -23,6 +24,7 @@ export type ColumnRendererProps = {
 	getValue: () => any
 	first: boolean
 	queryParts: SearchExpression[]
+	onClick?: (edge: any) => void
 }
 
 const EmptyState: React.FC = () => (
@@ -139,10 +141,34 @@ const BodyRenderer: React.FC<ColumnRendererProps> = ({
 	)
 }
 
+const GoToLogRenderer: React.FC<ColumnRendererProps> = ({ onClick, row }) => {
+	const handleClick = (e: any) => {
+		if (!!onClick) {
+			e.stopPropagation()
+			onClick(row.original)
+		}
+	}
+
+	return (
+		<Table.Cell alignItems="center" onClick={handleClick} py="0">
+			<Tag
+				shape="basic"
+				emphasis="low"
+				kind="secondary"
+				size="small"
+				iconRight={<IconSolidArrowCircleRight />}
+			>
+				Go to
+			</Tag>
+		</Table.Cell>
+	)
+}
+
 export const ColumnRenderers = {
 	body: BodyRenderer,
 	datetime: DateTimeColumnRenderer,
 	level: LevelRenderer,
 	session: SessionColumnRenderer,
 	string: StringColumnRenderer,
+	'go-to-log': GoToLogRenderer,
 }

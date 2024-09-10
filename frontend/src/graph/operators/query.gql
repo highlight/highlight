@@ -2125,17 +2125,6 @@ query GetLogs(
 	}
 }
 
-query GetSessionLogs($project_id: ID!, $params: QueryInput!) {
-	sessionLogs(project_id: $project_id, params: $params) {
-		cursor
-		node {
-			timestamp
-			level
-			message
-		}
-	}
-}
-
 query GetLogsHistogram($project_id: ID!, $params: QueryInput!) {
 	logs_histogram(project_id: $project_id, params: $params) {
 		totalCount
