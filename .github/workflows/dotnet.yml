@@ -64,6 +64,8 @@ jobs:
 
             - name: Push generated package to NuGet registry
               # if: github.ref == 'refs/heads/main'
-              run: nuget push *.nupkg -SkipDuplicate -ApiKey $NUGET_AUTH_TOKEN -SymbolApiKey $NUGET_AUTH_TOKEN -Source https://api.nuget.org/v3/index.json
+              run: |
+                  nuget push *.nupkg -SkipDuplicate -ApiKey $NUGET_AUTH_TOKEN -SymbolApiKey $NUGET_AUTH_TOKEN -Source https://api.nuget.org/v3/index.json
+                  nuget push *.snupkg -SkipDuplicate -ApiKey $NUGET_AUTH_TOKEN -SymbolApiKey $NUGET_AUTH_TOKEN -Source https://api.nuget.org/v3/index.json
               env:
                   NUGET_AUTH_TOKEN: ${{ secrets.NUGET_API_KEY }}
