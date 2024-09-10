@@ -35,6 +35,9 @@ Style/InlineComment:
 Style/MissingElse:
     Enabled: false
 
+Style/OpenStructUse:
+    Enabled: false
+
 Style/StringHashKeys:
     Enabled: false
 

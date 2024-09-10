@@ -1,3 +1,8 @@
+## 0.5.1
+
+- Fix bug with SDK controller instrumentation
+- Fix `Highlight::VERSION` error
+
 ## 0.5.0
 
 - Fix bug with SDK initialization

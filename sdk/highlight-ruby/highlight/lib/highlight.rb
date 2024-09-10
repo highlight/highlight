@@ -1,4 +1,5 @@
 require 'date'
+require 'highlight/version'
 require 'json'
 require 'logger'
 require 'opentelemetry/exporter/otlp'
@@ -256,6 +257,8 @@ module Highlight
       end
 
       def with_highlight_context(&block)
+        return yield unless H.initialized?
+
         set_highlight_headers
         H.instance.trace(
           highlight_headers.session_id,
