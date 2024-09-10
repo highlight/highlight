@@ -1,5 +1,16 @@
 # @highlight-run/next
 
+## 7.5.25
+
+### Patch Changes
+
+-   f3db07f: correctly update rewrites for /highlight-events proxy when existing rewrites are defined
+-   Updated dependencies [1e21c52]
+-   Updated dependencies [02f67d0]
+    -   @highlight-run/node@3.9.2
+    -   highlight.run@9.3.4
+    -   @highlight-run/react@5.0.4
+
 ## 7.5.24
 
 ### Patch Changes
