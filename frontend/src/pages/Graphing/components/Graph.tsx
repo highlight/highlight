@@ -180,7 +180,7 @@ export const useGraphCallbacks = (
 
 	const onMouseDown = allowDrag
 		? (e: CategoricalChartState) => {
-				if (frozenTooltip || !loadExemplars) {
+				if (frozenTooltip) {
 					return
 				}
 
@@ -189,7 +189,8 @@ export const useGraphCallbacks = (
 				if (
 					chartRect !== undefined &&
 					tooltipRect !== undefined &&
-					frozenTooltip === undefined
+					frozenTooltip === undefined &&
+					loadExemplars
 				) {
 					e.chartX = tooltipRect.x - chartRect.x
 					e.chartY = tooltipRect.y - chartRect.y
@@ -210,24 +211,17 @@ export const useGraphCallbacks = (
 
 	const onMouseMove = allowDrag
 		? (e: CategoricalChartState) => {
-				if (frozenTooltip) {
-					return
-				}
-
 				setMouseMoveState(e)
 
 				if (refAreaStart !== undefined && e.activeLabel !== undefined) {
 					setRefAreaEnd(Number(e.activeLabel))
+					setFrozenTooltip(undefined)
 				}
 			}
 		: undefined
 
 	const onMouseUp = allowDrag
 		? () => {
-				if (frozenTooltip) {
-					return
-				}
-
 				if (
 					refAreaStart !== undefined &&
 					refAreaEnd !== undefined &&
