@@ -10,6 +10,7 @@ import { LogCustomColumn } from '@/components/CustomColumnPopover'
 import { buildSessionParams } from '@/pages/LogsPage/utils'
 import analytics from '@/util/analytics'
 import { parseSearch } from '@/components/Search/utils'
+import { DEFAULT_LOG_COLUMNS } from '@/pages/LogsPage/LogsTable/CustomColumns/columns'
 
 import { useReplayerContext } from '../../../ReplayerContext'
 import { ConsoleTable } from '../ConsoleTable'
@@ -66,20 +67,7 @@ export const ConsolePage = ({
 
 	const selectedColumns = useMemo(() => {
 		return [
-			{
-				id: 'level',
-				label: 'Level',
-				type: 'level',
-				size: '75px',
-				accessKey: 'level',
-			},
-			{
-				id: 'message',
-				label: 'Body',
-				type: 'body',
-				size: '5fr',
-				accessKey: 'message',
-			},
+			...DEFAULT_LOG_COLUMNS,
 			{
 				id: 'go-to-log',
 				label: '',

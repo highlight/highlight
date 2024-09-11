@@ -183,19 +183,8 @@ export const useGetLogs = ({
 
 		setLoadingAfter(true)
 
-		const cursorVariables =
-			sortDirection == Types.SortDirection.Asc
-				? {
-						after: '',
-						before: lastCursor,
-					}
-				: {
-						after: lastCursor,
-						before: '',
-					}
-
 		await fetchMore({
-			variables: cursorVariables,
+			variables: { after: lastCursor },
 			updateQuery: (prevResult, { fetchMoreResult }) => {
 				const newData = fetchMoreResult.logs.edges
 				setWindowInfo({
@@ -212,7 +201,7 @@ export const useGetLogs = ({
 				}
 			},
 		})
-	}, [data, fetchMore, loadingAfter, sortDirection, windowInfo])
+	}, [data, fetchMore, loadingAfter, windowInfo])
 
 	const existingTraceSet = new Set(logRelatedResources?.existing_logs_traces)
 

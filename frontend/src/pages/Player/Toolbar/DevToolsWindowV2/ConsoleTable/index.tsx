@@ -192,21 +192,21 @@ const ConsoleTableInner = ({
 			})
 
 			// @ts-ignore
-			const accessor = columnHelper.accessor(`node.${column.accessKey}`, {
+			const accessor = columnHelper.accessor(column.accessor, {
 				cell: ({ row, getValue }) => {
-					const ColumnRenderer =
-						ColumnRenderers[column.type] || ColumnRenderers.string
-
+					const ColumnRenderer = ColumnRenderers[column.type]
 					return (
 						<ColumnRenderer
-							row={row}
+							key={column.id}
 							first={first}
+							row={row}
 							getValue={getValue}
 							queryParts={queryParts}
 							onClick={column.onClick}
 						/>
 					)
 				},
+				id: column.id,
 			})
 
 			columns.push(accessor)
@@ -288,10 +288,7 @@ const ConsoleTableInner = ({
 			<Table.Head>
 				<Table.Row gridColumns={columnData.gridColumns}>
 					{columnData.columnHeaders.map((header) => (
-						<Table.Header
-							key={header.id}
-							noPadding={header.noPadding}
-						>
+						<Table.Header key={header.id}>
 							<Box
 								display="flex"
 								alignItems="center"
@@ -315,6 +312,8 @@ const ConsoleTableInner = ({
 				{paddingTop > 0 && <Box style={{ height: paddingTop }} />}
 				{virtualRows.map((virtualRow) => {
 					const row = rows[virtualRow.index]
+					const isActive = row.index === lastActiveLogIndex
+					const isPast = row.index <= lastActiveLogIndex
 
 					return (
 						<ConsoleTableRow
@@ -325,7 +324,8 @@ const ConsoleTableInner = ({
 							virtualRowKey={virtualRow.key}
 							gridColumns={columnData.gridColumns}
 							queryParts={queryParts}
-							lastActiveLogIndex={lastActiveLogIndex}
+							isActive={isActive}
+							isPast={isPast}
 						/>
 					)
 				})}
@@ -360,86 +360,99 @@ type ConsoleTableRowProps = {
 	virtualRowKey: Key
 	gridColumns: string[]
 	queryParts: SearchExpression[]
-	lastActiveLogIndex: number
+	isActive: boolean
+	isPast: boolean
 }
 
-const ConsoleTableRow: React.FC<ConsoleTableRowProps> = ({
-	row,
-	rowVirtualizer,
-	expanded,
-	virtualRowKey,
-	queryParts,
-	gridColumns,
-	lastActiveLogIndex,
-}) => {
-	const attributesRow = (row: ConsoleTableRowProps['row']) => {
-		const log = row.original.node
-		const rowExpanded = row.getIsExpanded()
+const ConsoleTableRow = React.memo<ConsoleTableRowProps>(
+	({
+		row,
+		rowVirtualizer,
+		expanded,
+		virtualRowKey,
+		queryParts,
+		gridColumns,
+		isActive,
+		isPast,
+	}) => {
+		const attributesRow = (row: ConsoleTableRowProps['row']) => {
+			const log = row.original.node
+			const rowExpanded = row.getIsExpanded()
+
+			return (
+				<Table.Row
+					selected={expanded}
+					className={clsx(styles.attributesRow, {
+						[styles.currentRow]: isActive,
+					})}
+					gridColumns={['32px', '1fr']}
+				>
+					{rowExpanded && (
+						<>
+							<Table.Cell py="4" />
+							<Table.Cell py="4" borderTop="dividerWeak">
+								<LogDetails
+									matchedAttributes={findMatchingAttributes(
+										queryParts,
+										{
+											...log.logAttributes,
+											environment: log.environment,
+											level: log.level,
+											message: log.message,
+											secure_session_id:
+												log.secureSessionID,
+											service_name: log.serviceName,
+											service_version: log.serviceVersion,
+											source: log.source,
+											span_id: log.spanID,
+											trace_id: log.traceID,
+										},
+									)}
+									row={row}
+									queryParts={queryParts}
+								/>
+							</Table.Cell>
+						</>
+					)}
+				</Table.Row>
+			)
+		}
 
 		return (
-			<Table.Row
-				selected={expanded}
-				className={clsx(styles.attributesRow, {
-					[styles.currentRow]: row.index === lastActiveLogIndex,
-				})}
-				gridColumns={['32px', '1fr']}
+			<div
+				key={virtualRowKey}
+				data-index={virtualRowKey}
+				ref={rowVirtualizer.measureElement}
 			>
-				{rowExpanded && (
-					<>
-						<Table.Cell py="4" />
-						<Table.Cell py="4" borderTop="dividerWeak">
-							<LogDetails
-								matchedAttributes={findMatchingAttributes(
-									queryParts,
-									{
-										...log.logAttributes,
-										environment: log.environment,
-										level: log.level,
-										message: log.message,
-										secure_session_id: log.secureSessionID,
-										service_name: log.serviceName,
-										service_version: log.serviceVersion,
-										source: log.source,
-										span_id: log.spanID,
-										trace_id: log.traceID,
-									},
+				<Table.Row
+					gridColumns={gridColumns}
+					onClick={row.getToggleExpandedHandler()}
+					selected={expanded}
+					className={clsx(styles.dataRow, {
+						[styles.pastRow]: isPast,
+					})}
+				>
+					{row.getVisibleCells().map((cell: any) => {
+						return (
+							<React.Fragment key={cell.column.id}>
+								{flexRender(
+									cell.column.columnDef.cell,
+									cell.getContext(),
 								)}
-								row={row}
-								queryParts={queryParts}
-							/>
-						</Table.Cell>
-					</>
-				)}
-			</Table.Row>
+							</React.Fragment>
+						)
+					})}
+				</Table.Row>
+				{attributesRow(row)}
+			</div>
 		)
-	}
-
-	return (
-		<div
-			key={virtualRowKey}
-			data-index={virtualRowKey}
-			ref={rowVirtualizer.measureElement}
-		>
-			<Table.Row
-				gridColumns={gridColumns}
-				onClick={row.getToggleExpandedHandler()}
-				selected={expanded}
-				className={clsx(styles.dataRow, {
-					[styles.pastRow]: row.index <= lastActiveLogIndex,
-				})}
-			>
-				{row.getVisibleCells().map((cell: any) => {
-					return (
-						<React.Fragment key={cell.column.id}>
-							{flexRender(
-								cell.column.columnDef.cell,
-								cell.getContext(),
-							)}
-						</React.Fragment>
-					)
-				})}
-			</Table.Row>
-			{attributesRow(row)}
-		</div>
-	)
-}
+	},
+	(prevProps, nextProps) => {
+		return (
+			prevProps.virtualRowKey === nextProps.virtualRowKey &&
+			prevProps.expanded === nextProps.expanded &&
+			prevProps.isActive === nextProps.isActive &&
+			prevProps.isPast === nextProps.isPast
+		)
+	},
+)
