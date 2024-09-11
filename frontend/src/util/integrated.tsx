@@ -67,7 +67,7 @@ export const useClientIntegration = () => {
 	])
 
 	useEffect(() => {
-		if (data?.clientIntegration !== undefined) {
+		if (data?.clientIntegration !== undefined && admin?.email) {
 			if (
 				!localStorageIntegrated.integrated &&
 				data?.clientIntegration.integrated
@@ -125,7 +125,7 @@ export const useServerIntegration = () => {
 	])
 
 	useEffect(() => {
-		if (data?.serverIntegration !== undefined) {
+		if (data?.serverIntegration !== undefined && admin?.email) {
 			if (
 				!localStorageIntegrated.integrated &&
 				data?.serverIntegration.integrated
@@ -183,7 +183,7 @@ export const useLogsIntegration = () => {
 	])
 
 	useEffect(() => {
-		if (data?.logsIntegration !== undefined) {
+		if (data?.logsIntegration !== undefined && admin?.email) {
 			if (
 				!localStorageIntegrated.integrated &&
 				data?.logsIntegration.integrated
@@ -241,7 +241,7 @@ export const useTracesIntegration = () => {
 	])
 
 	useEffect(() => {
-		if (data?.tracesIntegration !== undefined) {
+		if (data?.tracesIntegration !== undefined && admin?.email) {
 			if (
 				!localStorageIntegrated.integrated &&
 				data?.tracesIntegration.integrated
@@ -299,16 +299,7 @@ export const useAlertsIntegration = () => {
 	])
 
 	useEffect(() => {
-		if (
-			(data?.log_alerts?.length ?? 0) +
-				(data?.error_alerts?.length ?? 0) +
-				(data?.new_session_alerts?.length ?? 0) +
-				(data?.rage_click_alerts?.length ?? 0) +
-				(data?.new_user_alerts?.length ?? 0) +
-				(data?.track_properties_alerts?.length ?? 0) +
-				(data?.user_properties_alerts?.length ?? 0) >
-			0
-		) {
+		if (admin?.email && (data?.alerts?.length ?? 0) > 0) {
 			analytics.track('integrated-alerts', { id: projectId })
 			analytics.trackGaEvent('integrated_alerts', {
 				email: admin?.email,
@@ -322,13 +313,7 @@ export const useAlertsIntegration = () => {
 		}
 	}, [
 		admin?.email,
-		data?.error_alerts?.length,
-		data?.log_alerts?.length,
-		data?.new_session_alerts?.length,
-		data?.new_user_alerts?.length,
-		data?.rage_click_alerts?.length,
-		data?.track_properties_alerts?.length,
-		data?.user_properties_alerts?.length,
+		data?.alerts?.length,
 		localStorageIntegrated.integrated,
 		projectId,
 		setLocalStorageIntegrated,
@@ -373,7 +358,7 @@ export const useTeamIntegration = () => {
 	])
 
 	useEffect(() => {
-		if ((data?.admins.length ?? 0) > 1) {
+		if (admin?.email && (data?.admins.length ?? 0) > 1) {
 			analytics.track('integrated-team', { id: projectId })
 			analytics.trackGaEvent('integrated_team', {
 				email: admin?.email,
