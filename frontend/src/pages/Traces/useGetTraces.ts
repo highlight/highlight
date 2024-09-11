@@ -24,8 +24,8 @@ export const useGetTraces = ({
 	startDate,
 	endDate,
 	skipPolling,
-	sortColumn,
-	sortDirection,
+	sortColumn = 'timestamp',
+	sortDirection = Types.SortDirection.Desc,
 	skip,
 }: {
 	query: string
@@ -34,8 +34,8 @@ export const useGetTraces = ({
 	startDate: Date
 	endDate: Date
 	skipPolling?: boolean
-	sortColumn?: string | null | undefined
-	sortDirection?: Types.SortDirection | null | undefined
+	sortColumn?: string | null
+	sortDirection?: Types.SortDirection | null
 	skip?: boolean
 }) => {
 	// The backend can only tell us page info about a single page.
@@ -57,7 +57,7 @@ export const useGetTraces = ({
 		variables: {
 			project_id: projectId!,
 			at: traceCursor,
-			direction: Types.SortDirection.Desc,
+			direction: sortDirection!,
 			params: {
 				query,
 				date_range: {
@@ -65,8 +65,8 @@ export const useGetTraces = ({
 					end_date: moment(endDate).format(TIME_FORMAT),
 				},
 				sort: {
-					column: sortColumn ?? 'timestamp',
-					direction: sortDirection ?? Types.SortDirection.Desc,
+					column: sortColumn!,
+					direction: sortDirection!,
 				},
 			},
 		},
@@ -120,7 +120,7 @@ export const useGetTraces = ({
 			() => ({
 				project_id: projectId!,
 				at: traceCursor,
-				direction: Types.SortDirection.Desc,
+				direction: sortDirection!,
 				params: {
 					query,
 					date_range: {
@@ -130,8 +130,8 @@ export const useGetTraces = ({
 						end_date: moment().format(TIME_FORMAT),
 					},
 					sort: {
-						column: sortColumn ?? 'timestamp',
-						direction: sortDirection ?? Types.SortDirection.Desc,
+						column: sortColumn!,
+						direction: sortDirection!,
 					},
 				},
 			}),

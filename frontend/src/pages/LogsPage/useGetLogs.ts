@@ -36,8 +36,8 @@ export const useGetLogs = ({
 	startDate,
 	endDate,
 	disablePolling,
-	sortColumn,
-	sortDirection,
+	sortColumn = 'timestamp',
+	sortDirection = Types.SortDirection.Desc,
 	disableRelatedResources,
 }: {
 	query: string
@@ -69,7 +69,7 @@ export const useGetLogs = ({
 		variables: {
 			project_id: project_id!,
 			at: logCursor,
-			direction: Types.SortDirection.Desc,
+			direction: sortDirection,
 			params: {
 				query,
 				date_range: {
@@ -77,8 +77,8 @@ export const useGetLogs = ({
 					end_date: moment(endDate).format(TIME_FORMAT),
 				},
 				sort: {
-					column: sortColumn ?? 'timestamp',
-					direction: sortDirection ?? Types.SortDirection.Desc,
+					column: sortColumn,
+					direction: sortDirection,
 				},
 			},
 		},
@@ -131,7 +131,7 @@ export const useGetLogs = ({
 			() => ({
 				project_id: project_id!,
 				at: logCursor,
-				direction: Types.SortDirection.Desc,
+				direction: sortDirection,
 				params: {
 					query,
 					date_range: {
@@ -142,7 +142,13 @@ export const useGetLogs = ({
 					},
 				},
 			}),
-			[logCursor, logResultMetadata.endDate, project_id, query],
+			[
+				logCursor,
+				logResultMetadata.endDate,
+				project_id,
+				query,
+				sortDirection,
+			],
 		),
 		moreDataQuery,
 		getResultCount: useCallback((result) => {
