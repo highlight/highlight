@@ -5,7 +5,6 @@
         <RootNamespace>Highlight</RootNamespace>
         <ImplicitUsings>enable</ImplicitUsings>
         <IsPackable>true</IsPackable>
-        <Nullable>enable</Nullable>
 
         <OutputType>library</OutputType>
         <Version>0.2.0-beta.4</Version>
@@ -25,7 +24,6 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="OpenTelemetry" Version="1.9.0" />
         <PackageReference Include="Grpc.Net.Client" Version="2.62.0" />
         <PackageReference Include="Grpc.Net.Common" Version="2.62.0" />
         <PackageReference Include="Microsoft.Extensions.Configuration.Binder" Version="8.0.1" />
