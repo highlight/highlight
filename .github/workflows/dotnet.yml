@@ -53,16 +53,13 @@ jobs:
             - name: Setup dotnet
               uses: actions/setup-dotnet@v4
               with:
-                  dotnet-version: 4.x
-
-            - name: dotnet restore
-              run: dotnet restore
+                  dotnet-version: 8.x
 
             - name: dotnet build
-              run: dotnet build --configuration Release --no-restore -p:Deterministic=true -p:BuildNumber=${{ github.run_number }}
+              run: dotnet build --configuration Release -p:Deterministic=true
 
             - name: dotnet pack
-              run: dotnet pack --configuration Release --no-restore --no-build  -p:PackTag=${{ github.ref_type == 'tag' && github.ref_name || '' }}
+              run: dotnet pack --configuration Release --no-restore --no-build
 
             - name: Push generated package to NuGet registry
               # if: github.ref == 'refs/heads/main'
