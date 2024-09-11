@@ -150,12 +150,17 @@ const strokeColors = [
 	'#3E63DD',
 ]
 
+interface TooltipSettings {
+	dashed?: boolean
+}
+
 export const useGraphCallbacks = (
 	xAxisMetric: string,
 	yAxisMetric: string,
 	yAxisFunction: string,
 	setTimeRange?: SetTimeRange,
 	loadExemplars?: LoadExemplars,
+	tooltipSettings?: TooltipSettings,
 ) => {
 	const [refAreaStart, setRefAreaStart] = useState<number | undefined>()
 	const [refAreaEnd, setRefAreaEnd] = useState<number | undefined>()
@@ -261,7 +266,12 @@ export const useGraphCallbacks = (
 			cursor={
 				frozenTooltip
 					? false
-					: { stroke: '#C8C7CB', strokeDasharray: 4 }
+					: {
+							stroke: '#C8C7CB',
+							strokeDasharray: tooltipSettings?.dashed
+								? 4
+								: undefined,
+						}
 			}
 			isAnimationActive={false}
 			wrapperStyle={{
