@@ -13,9 +13,9 @@
         <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
 
         <OutputType>library</OutputType>
-        <Version>0.2.0-beta.4</Version>
-        <AssemblyVersion>0.2.0-beta.4</AssemblyVersion>
-        <FileVersion>0.2.0-beta.4</FileVersion>
+        <Version>0.2.0-beta.6</Version>
+        <AssemblyVersion>0.2.0-beta.6</AssemblyVersion>
+        <FileVersion>0.2.0-beta.6</FileVersion>
         <Company>highlight.io</Company>
         <Authors>Vadim Korolik</Authors>
         <Product>highlight.io</Product>
@@ -86,6 +86,7 @@
         <PackageReference Include="System.Threading.Tasks.Extensions" Version="4.5.4" />
         <PackageReference Include="System.ValueTuple" Version="4.5.0" />
         <None Include="README.md" Pack="true" PackagePath=""/>
+      <None Include="packages.config" Pack="true" PackagePath=""/>
     </ItemGroup>
 
 </Project>
