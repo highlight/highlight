@@ -9258,16 +9258,6 @@ func (r *queryResolver) Logs(ctx context.Context, projectID int, params modelInp
 	})
 }
 
-// SessionLogs is the resolver for the sessionLogs field.
-func (r *queryResolver) SessionLogs(ctx context.Context, projectID int, params modelInputs.QueryInput) ([]*modelInputs.LogEdge, error) {
-	project, err := r.isUserInProjectOrDemoProject(ctx, projectID)
-	if err != nil {
-		return nil, err
-	}
-
-	return r.ClickhouseClient.ReadSessionLogs(ctx, project.ID, params)
-}
-
 // LogsHistogram is the resolver for the logs_histogram field.
 func (r *queryResolver) LogsHistogram(ctx context.Context, projectID int, params modelInputs.QueryInput) (*modelInputs.LogsHistogram, error) {
 	project, err := r.isUserInProjectOrDemoProject(ctx, projectID)

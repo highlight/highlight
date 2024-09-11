@@ -2177,7 +2177,6 @@ export type Query = {
 	serviceByName?: Maybe<Service>
 	services?: Maybe<ServiceConnection>
 	session?: Maybe<Session>
-	sessionLogs: Array<LogEdge>
 	session_comment_tags_for_project: Array<SessionCommentTag>
 	session_comments: Array<Maybe<SessionComment>>
 	session_comments_for_admin: Array<Maybe<SessionComment>>
@@ -2820,11 +2819,6 @@ export type QueryServicesArgs = {
 
 export type QuerySessionArgs = {
 	secure_id: Scalars['String']
-}
-
-export type QuerySessionLogsArgs = {
-	params: QueryInput
-	project_id: Scalars['ID']
 }
 
 export type QuerySession_Comment_Tags_For_ProjectArgs = {

@@ -2334,7 +2334,6 @@ type Query {
 		at: String
 		direction: SortDirection!
 	): LogConnection!
-	sessionLogs(project_id: ID!, params: QueryInput!): [LogEdge!]!
 	logs_histogram(project_id: ID!, params: QueryInput!): LogsHistogram!
 	logs_metrics(
 		project_id: ID!
