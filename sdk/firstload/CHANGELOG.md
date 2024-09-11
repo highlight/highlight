@@ -1,5 +1,48 @@
 # highlight.run
 
+## 9.3.4
+
+### Patch Changes
+
+-   02f67d0: Fix type error reporting screen orientation
+
+## 9.3.3
+
+### Patch Changes
+
+-   5cc0afd: correctly report clickTextContent as timeline events
+
+## 9.3.2
+
+### Patch Changes
+
+-   be38f68: make client kill switch less likely to trigger by requiring multiple failures
+-   2339697: update opentelemetry dependencies
+-   bbbaeb1: ensure duplicate tab functionality does not break x-highlight-request header
+    corrects issue introduced in 9.3.0 with the x-highlight-request missing the session id
+
+## 9.3.1
+
+### Patch Changes
+
+-   262a07314: revert postcss changes to css parsing in rrweb
+    https://github.com/rrweb-io/rrweb/pull/1458 introduced
+    a new CSS parser which causes issues with certain large CSS files
+
+## 9.3.0
+
+### Minor Changes
+
+-   0a8a9ffdc: add cookie session persistence
+
+### Patch Changes
+
+-   d2e00028a: correctly set x-highlight-request on outgoing fetch/xhr requests with duplicate tab recording.
+    the sessionID in the x-highlight-request would not be set correctly after recent changes
+    corrected the multi-tab behavior to clear the local storage sessionID value to ensure
+    new tabs started unique sessions. corrects bug affecting >=9.1.5
+-   0a8a9ffdc: update otel webjs network span naming
+
 ## 9.2.2
 
 ### Patch Changes

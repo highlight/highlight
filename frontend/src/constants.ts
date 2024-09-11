@@ -14,3 +14,4 @@ export const AUTH_MODE =
 		| 'firebase'
 export const OTLP_ENDPOINT =
 	import.meta.env.REACT_APP_OTLP_ENDPOINT || 'https://otel.highlight.io:4318'
+export const DISABLE_ANALYTICS = import.meta.env.REACT_APP_DISABLE_ANALYTICS

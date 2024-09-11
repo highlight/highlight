@@ -21,6 +21,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/DmitriyVTitov/size"
 	"github.com/PaesslerAG/jsonpath"
 	mpeTypes "github.com/aws/aws-sdk-go-v2/service/marketplaceentitlementservice/types"
 	"github.com/aws/aws-sdk-go-v2/service/marketplacemetering"
@@ -4846,10 +4847,10 @@ func (r *mutationResolver) TestErrorEnhancement(ctx context.Context, errorObject
 // UpsertVisualization is the resolver for the upsertVisualization field.
 func (r *mutationResolver) UpsertVisualization(ctx context.Context, visualization modelInputs.VisualizationInput) (int, error) {
 	id := 0
+	var viz model.Visualization
 	if visualization.ID != nil {
 		id = *visualization.ID
 
-		var viz model.Visualization
 		if err := r.DB.WithContext(ctx).Model(&viz).Where("id = ?", *visualization.ID).Find(&viz).Error; err != nil {
 			return 0, err
 		}
@@ -4868,17 +4869,29 @@ func (r *mutationResolver) UpsertVisualization(ctx context.Context, visualizatio
 		return 0, err
 	}
 
-	graphIds := lo.Map(visualization.GraphIds, func(i int, _ int) int32 {
-		return int32(i)
-	})
-
 	toSave := model.Visualization{
 		Model:            model.Model{ID: id},
 		ProjectID:        visualization.ProjectID,
-		Name:             visualization.Name,
 		UpdatedByAdminId: &admin.ID,
-		GraphIds:         graphIds,
+		Name:             viz.Name,
+		TimePreset:       viz.TimePreset,
+		GraphIds:         viz.GraphIds,
 	}
+
+	if visualization.Name != nil {
+		toSave.Name = *visualization.Name
+	}
+
+	if visualization.TimePreset != nil {
+		toSave.TimePreset = visualization.TimePreset
+	}
+
+	if visualization.GraphIds != nil {
+		toSave.GraphIds = lo.Map(visualization.GraphIds, func(i int, _ int) int32 {
+			return int32(i)
+		})
+	}
+
 	if err := r.DB.WithContext(ctx).Save(&toSave).Error; err != nil {
 		return 0, err
 	}
@@ -5813,6 +5826,17 @@ func (r *queryResolver) Resources(ctx context.Context, sessionSecureID string) (
 	resources, err := r.Redis.GetResources(ctx, s, s3Resources)
 	if err != nil {
 		return nil, e.Wrap(err, "error getting resources from redis")
+	}
+
+	resourceSize := size.Of(resources)
+	log.WithContext(ctx).WithFields(
+		log.Fields{
+			"size":            resourceSize,
+			"sessionSecureID": sessionSecureID,
+		}).Info("[Resources] Fetched resources size")
+
+	if resourceSize > MaxDownloadSize {
+		return nil, fmt.Errorf("resource size (%v) exceeds max download size", resourceSize)
 	}
 
 	return resources, nil
@@ -6954,6 +6978,8 @@ func (r *queryResolver) UsageHistory(ctx context.Context, workspaceID int, produ
 			Query:     "",
 			DateRange: dateRange,
 		})
+	default:
+		return nil, errors.New(fmt.Sprintf("invalid product type: %v", productType))
 	}
 
 	if err != nil {
@@ -9066,16 +9092,6 @@ func (r *queryResolver) SessionLogs(ctx context.Context, projectID int, params m
 	return r.ClickhouseClient.ReadSessionLogs(ctx, project.ID, params)
 }
 
-// LogsTotalCount is the resolver for the logs_total_count field.
-func (r *queryResolver) LogsTotalCount(ctx context.Context, projectID int, params modelInputs.QueryInput) (uint64, error) {
-	project, err := r.isUserInProjectOrDemoProject(ctx, projectID)
-	if err != nil {
-		return 0, err
-	}
-
-	return r.ClickhouseClient.ReadLogsTotalCount(ctx, project.ID, params)
-}
-
 // LogsHistogram is the resolver for the logs_histogram field.
 func (r *queryResolver) LogsHistogram(ctx context.Context, projectID int, params modelInputs.QueryInput) (*modelInputs.LogsHistogram, error) {
 	project, err := r.isUserInProjectOrDemoProject(ctx, projectID)
@@ -9459,6 +9475,36 @@ func (r *queryResolver) SessionsMetrics(ctx context.Context, projectID int, para
 	return r.ClickhouseClient.ReadSessionsMetrics(ctx, project.ID, params, column, metricTypes, groupBy, bucketCount, bucketBy, bucketWindow, limit, limitAggregator, limitColumn)
 }
 
+// EventsKeys is the resolver for the events_keys field.
+func (r *queryResolver) EventsKeys(ctx context.Context, projectID int, dateRange modelInputs.DateRangeRequiredInput, query *string, typeArg *modelInputs.KeyType) ([]*modelInputs.QueryKey, error) {
+	project, err := r.isUserInProjectOrDemoProject(ctx, projectID)
+	if err != nil {
+		return nil, err
+	}
+
+	return r.ClickhouseClient.EventsKeys(ctx, project.ID, dateRange.StartDate, dateRange.EndDate, query, typeArg)
+}
+
+// EventsKeyValues is the resolver for the events_key_values field.
+func (r *queryResolver) EventsKeyValues(ctx context.Context, projectID int, keyName string, dateRange modelInputs.DateRangeRequiredInput, query *string, count *int) ([]string, error) {
+	project, err := r.isUserInProjectOrDemoProject(ctx, projectID)
+	if err != nil {
+		return nil, err
+	}
+
+	return r.ClickhouseClient.EventsKeyValues(ctx, project.ID, keyName, dateRange.StartDate, dateRange.EndDate, query, count)
+}
+
+// EventsMetrics is the resolver for the events_metrics field.
+func (r *queryResolver) EventsMetrics(ctx context.Context, projectID int, params modelInputs.QueryInput, column string, metricTypes []modelInputs.MetricAggregator, groupBy []string, bucketBy string, bucketCount *int, bucketWindow *int, limit *int, limitAggregator *modelInputs.MetricAggregator, limitColumn *string) (*modelInputs.MetricsBuckets, error) {
+	project, err := r.isUserInProjectOrDemoProject(ctx, projectID)
+	if err != nil {
+		return nil, err
+	}
+
+	return r.ClickhouseClient.ReadEventsMetrics(ctx, project.ID, params, column, metricTypes, groupBy, bucketCount, bucketBy, bucketWindow, limit, limitAggregator, limitColumn)
+}
+
 // Metrics is the resolver for the metrics field.
 func (r *queryResolver) Metrics(ctx context.Context, productType modelInputs.ProductType, projectID int, params modelInputs.QueryInput, column string, metricTypes []modelInputs.MetricAggregator, groupBy []string, bucketBy string, bucketCount *int, bucketWindow *int, limit *int, limitAggregator *modelInputs.MetricAggregator, limitColumn *string) (*modelInputs.MetricsBuckets, error) {
 	switch productType {
@@ -9476,6 +9522,8 @@ func (r *queryResolver) Metrics(ctx context.Context, productType modelInputs.Pro
 		return r.SessionsMetrics(ctx, projectID, params, column, metricTypes, groupBy, bucketBy, bucketCount, bucketWindow, limit, limitAggregator, limitColumn)
 	case modelInputs.ProductTypeErrors:
 		return r.ErrorsMetrics(ctx, projectID, params, column, metricTypes, groupBy, bucketBy, bucketCount, bucketWindow, limit, limitAggregator, limitColumn)
+	case modelInputs.ProductTypeEvents:
+		return r.EventsMetrics(ctx, projectID, params, column, metricTypes, groupBy, bucketBy, bucketCount, bucketWindow, limit, limitAggregator, limitColumn)
 	default:
 		return nil, e.Errorf("invalid product type %s", productType)
 	}
@@ -9498,6 +9546,8 @@ func (r *queryResolver) Keys(ctx context.Context, productType modelInputs.Produc
 		return r.SessionsKeys(ctx, projectID, dateRange, query, typeArg)
 	case modelInputs.ProductTypeErrors:
 		return r.ErrorsKeys(ctx, projectID, dateRange, query, typeArg)
+	case modelInputs.ProductTypeEvents:
+		return r.EventsKeys(ctx, projectID, dateRange, query, typeArg)
 	default:
 		return nil, e.Errorf("invalid product type %s", productType)
 	}
@@ -9520,6 +9570,8 @@ func (r *queryResolver) KeyValues(ctx context.Context, productType modelInputs.P
 		return r.SessionsKeyValues(ctx, projectID, keyName, dateRange, query, count)
 	case modelInputs.ProductTypeErrors:
 		return r.ErrorsKeyValues(ctx, projectID, keyName, dateRange, query, count)
+	case modelInputs.ProductTypeEvents:
+		return r.EventsKeyValues(ctx, projectID, keyName, dateRange, query, count)
 	default:
 		return nil, e.Errorf("invalid product type %s", productType)
 	}
@@ -9624,6 +9676,8 @@ func (r *queryResolver) LogLines(ctx context.Context, productType modelInputs.Pr
 		return r.ClickhouseClient.SessionsLogLines(ctx, project.ID, params)
 	case modelInputs.ProductTypeErrors:
 		return r.ClickhouseClient.ErrorsLogLines(ctx, project.ID, params)
+	case modelInputs.ProductTypeEvents:
+		return r.ClickhouseClient.EventsLogLines(ctx, project.ID, params)
 	default:
 		return nil, e.Errorf("invalid product type %s", productType)
 	}

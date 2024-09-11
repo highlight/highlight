@@ -1,7 +1,3 @@
-import {
-	type AmplitudeAPI,
-	setupAmplitudeIntegration,
-} from './integrations/amplitude.js'
 import type {
 	Highlight,
 	HighlightClassOptions,
@@ -15,26 +11,30 @@ import type {
 	SessionDetails,
 } from '@highlight-run/client/src/types/types.js'
 import {
+	type AmplitudeAPI,
+	setupAmplitudeIntegration,
+} from './integrations/amplitude.js'
+import {
 	type MixpanelAPI,
 	setupMixpanelIntegration,
 } from './integrations/mixpanel.js'
 
-import { FirstLoadListeners } from '@highlight-run/client/src/listeners/first-load-listeners.js'
-import { GenerateSecureID } from '@highlight-run/client/src/utils/secure-id.js'
 import { HIGHLIGHT_URL } from '@highlight-run/client/src/constants/sessions.js'
-import { HighlightSegmentMiddleware } from './integrations/segment.js'
-import configureElectronHighlight from './environments/electron.js'
-import firstloadVersion from './__generated/version.js'
+import { FirstLoadListeners } from '@highlight-run/client/src/listeners/first-load-listeners.js'
+import { ErrorMessageType } from '@highlight-run/client/src/types/shared-types'
+import { GenerateSecureID } from '@highlight-run/client/src/utils/secure-id.js'
 import {
 	getPreviousSessionData,
 	loadCookieSessionData,
 } from '@highlight-run/client/src/utils/sessionStorage/highlightSession.js'
+import { setCookieWriteEnabled } from '@highlight-run/client/src/utils/storage'
+import type { Context, Span, SpanOptions, Tracer } from '@opentelemetry/api'
+import firstloadVersion from './__generated/version.js'
+import { listenToChromeExtensionMessage } from './browserExtension/extensionListener.js'
+import configureElectronHighlight from './environments/electron.js'
+import { HighlightSegmentMiddleware } from './integrations/segment.js'
 import { initializeFetchListener } from './listeners/fetch'
 import { initializeWebSocketListener } from './listeners/web-socket'
-import { listenToChromeExtensionMessage } from './browserExtension/extensionListener.js'
-import { ErrorMessageType } from '@highlight-run/client/src/types/shared-types'
-import type { Context, Span, SpanOptions, Tracer } from '@opentelemetry/api'
-import { setCookieWriteEnabled } from '@highlight-run/client/src/utils/storage'
 
 enum MetricCategory {
 	Device = 'Device',
@@ -526,10 +526,10 @@ listenToChromeExtensionMessage()
 initializeFetchListener()
 initializeWebSocketListener()
 
-export type { HighlightOptions }
 export {
+	configureElectronHighlight,
 	H,
 	HighlightSegmentMiddleware,
 	MetricCategory,
-	configureElectronHighlight,
 }
+export type { HighlightOptions }

@@ -2,6 +2,7 @@ import { Button } from '@components/Button'
 import { toast } from '@components/Toaster'
 import {
 	Box,
+	Callout,
 	DateRangePicker,
 	DEFAULT_TIME_PRESETS,
 	Form,
@@ -15,8 +16,6 @@ import { Divider } from 'antd'
 import React, { PropsWithChildren, useEffect, useMemo, useState } from 'react'
 import { Helmet } from 'react-helmet'
 import { useNavigate, useSearchParams } from 'react-router-dom'
-import { useDebounce } from 'react-use'
-import { ReferenceArea, ReferenceLine } from 'recharts'
 
 import { SearchContext } from '@/components/Search/SearchContext'
 import { Search } from '@/components/Search/SearchForm/SearchForm'
@@ -27,8 +26,12 @@ import {
 	useUpdateAlertMutation,
 } from '@/graph/generated/hooks'
 import { namedOperations } from '@/graph/generated/operations'
-import { MetricAggregator, ProductType } from '@/graph/generated/schemas'
-import { AlertDestinationInput } from '@/graph/generated/schemas'
+import {
+	AlertDestinationInput,
+	MetricAggregator,
+	ProductType,
+} from '@/graph/generated/schemas'
+import useFeatureFlag, { Feature } from '@/hooks/useFeatureFlag/useFeatureFlag'
 import { useProjectId } from '@/hooks/useProjectId'
 import { useSearchTime } from '@/hooks/useSearchTime'
 import { FREQUENCIES } from '@/pages/Alerts/AlertConfigurationCard/AlertConfigurationConstants'
@@ -38,20 +41,18 @@ import {
 } from '@/pages/Alerts/constants'
 import { DestinationInput } from '@/pages/Alerts/DestinationInput'
 import { Combobox } from '@/pages/Graphing/Combobox'
-import Graph, { getViewConfig } from '@/pages/Graphing/components/Graph'
-import {
-	LINE_DISPLAY,
-	LINE_NULL_HANDLING,
-} from '@/pages/Graphing/components/LineChart'
 import {
 	FUNCTION_TYPES,
 	PRODUCT_ICONS,
+	PRODUCT_ICONS_WITH_EVENTS,
 	PRODUCTS,
+	PRODUCTS_WITH_EVENTS,
 } from '@/pages/Graphing/constants'
 import { HeaderDivider } from '@/pages/Graphing/Dashboard'
 import { LabeledRow } from '@/pages/Graphing/LabeledRow'
 import { OptionDropdown } from '@/pages/Graphing/OptionDropdown'
 
+import { AlertGraph } from '../AlertGraph'
 import * as style from './styles.css'
 
 const SidebarSection = (props: PropsWithChildren) => {
@@ -59,33 +60,6 @@ const SidebarSection = (props: PropsWithChildren) => {
 		<Box p="12" width="full" display="flex" flexDirection="column" gap="12">
 			{props.children}
 		</Box>
-	)
-}
-
-const EditorBackground = () => {
-	return (
-		<svg width="100%" height="100%">
-			<defs>
-				<pattern
-					id="polka-dots"
-					x="0"
-					y="0"
-					width="14"
-					height="14"
-					patternUnits="userSpaceOnUse"
-				>
-					<circle fill="#e4e2e4" cx="7" cy="7" r="1" />
-				</pattern>
-			</defs>
-
-			<rect
-				x="0"
-				y="0"
-				width="100%"
-				height="100%"
-				fill="url(#polka-dots)"
-			/>
-		</svg>
 	)
 }
 
@@ -98,12 +72,37 @@ const DEFAULT_THRESHOLD = 1
 const DEFAULT_WINDOW = MINUTE * 30
 const DEFAULT_COOLDOWN = MINUTE * 30
 
+const ALERT_PRODUCT_INFO = {
+	[ProductType.Sessions]:
+		"Alerts once for every session that matches the condition's filters.",
+	[ProductType.Errors]:
+		'Alerts every time an error group matches the specified conditions.',
+	[ProductType.Logs]: false,
+	[ProductType.Traces]: false,
+	[ProductType.Metrics]: false,
+	[ProductType.Events]: false,
+}
+
 export const AlertForm: React.FC = () => {
 	const { projectId } = useProjectId()
 	const { alert_id } = useParams<{
 		alert_id: string
 	}>()
 	const [searchParams] = useSearchParams()
+
+	const eventSearchEnabled = useFeatureFlag(Feature.EventSearch)
+	const { products, productIcons } = useMemo(() => {
+		if (!eventSearchEnabled) {
+			return {
+				products: PRODUCTS,
+				productIcons: PRODUCT_ICONS,
+			}
+		}
+		return {
+			products: PRODUCTS_WITH_EVENTS,
+			productIcons: PRODUCT_ICONS_WITH_EVENTS,
+		}
+	}, [eventSearchEnabled])
 
 	const isEdit = alert_id !== undefined
 
@@ -133,23 +132,15 @@ export const AlertForm: React.FC = () => {
 
 	const [alertName, setAlertName] = useState('')
 	const [productType, setProductType] = useState(
-		(searchParams.get('source') as ProductType) || PRODUCTS[0],
+		(searchParams.get('source') as ProductType) || products[0],
 	)
-	const [functionType, setFunctionType] = useState(FUNCTION_TYPES[0])
+	const [functionType, setFunctionType] = useState(MetricAggregator.Count)
 	const [functionColumn, setFunctionColumn] = useState('')
 
 	const isErrorAlert = productType === ProductType.Errors
 	const isSessionAlert = productType === ProductType.Sessions
 
 	const [query, setQuery] = useState(searchParams.get('query') ?? '')
-	const [debouncedQuery, setDebouncedQuery] = useState('')
-	useDebounce(
-		() => {
-			setDebouncedQuery(query)
-		},
-		300,
-		[query],
-	)
 
 	const [groupByEnabled, setGroupByEnabled] = useState(false)
 	const [groupByKey, setGroupByKey] = useState('')
@@ -168,44 +159,32 @@ export const AlertForm: React.FC = () => {
 	)
 
 	useEffect(() => {
-		if (isErrorAlert) {
+		if (productType === ProductType.Sessions) {
+			// locked session settings -> group by secure_id
+			setGroupByEnabled(true)
+			setGroupByKey('secure_id')
+			// only alert once per session
+			setThresholdWindow(MINUTE)
+			setThresholdCooldown(WEEK)
+		} else if (productType === ProductType.Errors) {
 			// locked error settings -> group by secure_id
 			setGroupByEnabled(true)
 			setGroupByKey('secure_id')
+			setThresholdWindow(DEFAULT_WINDOW)
+			setThresholdCooldown(DEFAULT_COOLDOWN)
 		} else {
 			setGroupByEnabled(false)
 			setGroupByKey('')
-		}
-	}, [isErrorAlert])
-
-	useEffect(() => {
-		if (isSessionAlert) {
-			// locked session settings
-			// group by session_id
-			setGroupByEnabled(true)
-			setGroupByKey('secure_id')
-			// only above threshold
-			setBelowThreshold(false)
-			// alert per session
-			setThresholdValue(DEFAULT_THRESHOLD)
-			// don't alert on sessions more than once
-			setThresholdWindow(MINUTE)
-			setThresholdCooldown(WEEK)
-		} else {
-			setGroupByEnabled(false)
-			setGroupByKey('')
-			setBelowThreshold(false)
-			setThresholdValue(DEFAULT_THRESHOLD)
 			setThresholdWindow(DEFAULT_WINDOW)
 			setThresholdCooldown(DEFAULT_COOLDOWN)
 		}
-	}, [isSessionAlert])
 
-	const viewConfig = getViewConfig(
-		'Line chart',
-		LINE_DISPLAY[0],
-		LINE_NULL_HANDLING[2],
-	)
+		setBelowThreshold(false)
+		setThresholdValue(DEFAULT_THRESHOLD)
+		setQuery('')
+		setFunctionType(MetricAggregator.Count)
+		setFunctionColumn('')
+	}, [productType])
 
 	const onSave = () => {
 		const formVariables = {
@@ -217,7 +196,7 @@ export const AlertForm: React.FC = () => {
 				functionType === MetricAggregator.Count
 					? undefined
 					: functionColumn,
-			query: debouncedQuery,
+			query: query,
 			group_by_key: groupByEnabled ? groupByKey : undefined,
 			below_threshold: belowThreshold,
 			threshold_value: thresholdValue,
@@ -296,7 +275,6 @@ export const AlertForm: React.FC = () => {
 			setFunctionType(data.alert.function_type)
 			setFunctionColumn(data.alert.function_column ?? '')
 			setQuery(data.alert.query ?? '')
-			setDebouncedQuery(data.alert.query ?? '')
 			setAlertName(data.alert.name)
 			setGroupByEnabled(data.alert.group_by_key !== null)
 			setGroupByKey(data.alert.group_by_key ?? '')
@@ -417,72 +395,21 @@ export const AlertForm: React.FC = () => {
 						justifyContent="space-between"
 						cssClass={style.editGraphPanel}
 					>
-						<Box
-							display="flex"
-							position="relative"
-							height="full"
-							cssClass={style.previewWindow}
-						>
-							<Box
-								position="absolute"
-								width="full"
-								height="full"
-								cssClass={style.graphBackground}
-							>
-								<EditorBackground />
-							</Box>
-
-							<Box cssClass={style.graphWrapper} shadow="small">
-								<Box
-									px="16"
-									py="12"
-									width="full"
-									height="full"
-									border="divider"
-									borderRadius="8"
-								>
-									<Graph
-										title={alertName || 'Untitled alert'}
-										viewConfig={viewConfig}
-										productType={productType}
-										projectId={projectId}
-										startDate={startDate}
-										selectedPreset={selectedPreset}
-										endDate={endDate}
-										query={debouncedQuery}
-										metric={functionColumn}
-										functionType={functionType}
-										groupByKey={
-											groupByEnabled
-												? groupByKey
-												: undefined
-										}
-										setTimeRange={updateSearchTime}
-										bucketByKey="Timestamp"
-										bucketByWindow={thresholdWindow}
-									>
-										<ReferenceLine
-											y={thresholdValue}
-											stroke="red"
-										/>
-										{!belowThreshold && (
-											<ReferenceArea
-												y1={thresholdValue}
-												opacity={0.5}
-												isFront
-											/>
-										)}
-										{belowThreshold && (
-											<ReferenceArea
-												y2={thresholdValue}
-												opacity={0.5}
-												isFront
-											/>
-										)}
-									</Graph>
-								</Box>
-							</Box>
-						</Box>
+						<AlertGraph
+							alertName={alertName}
+							query={query}
+							productType={productType}
+							functionColumn={functionColumn}
+							functionType={functionType}
+							groupByKey={groupByEnabled ? groupByKey : undefined}
+							thresholdWindow={thresholdWindow}
+							thresholdValue={thresholdValue}
+							belowThreshold={belowThreshold}
+							startDate={startDate}
+							endDate={endDate}
+							selectedPreset={selectedPreset}
+							updateSearchTime={updateSearchTime}
+						/>
 						<Box
 							display="flex"
 							borderLeft="dividerWeak"
@@ -517,41 +444,61 @@ export const AlertForm: React.FC = () => {
 										tooltip="The resource being queried, one of the four highlight.io resources."
 									>
 										<OptionDropdown<ProductType>
-											options={PRODUCTS}
+											options={products}
 											selection={productType}
 											setSelection={setProductType}
-											icons={PRODUCT_ICONS}
+											icons={productIcons}
 										/>
 									</LabeledRow>
+									{ALERT_PRODUCT_INFO[productType] && (
+										<Callout
+											title={`${productType} alerts`}
+										>
+											<Box pb="8">
+												<Text>
+													{
+														ALERT_PRODUCT_INFO[
+															productType
+														]
+													}
+												</Text>
+											</Box>
+										</Callout>
+									)}
 								</SidebarSection>
 								<Divider className="m-0" />
+
 								<SidebarSection>
-									<LabeledRow
-										label="Function"
-										name="function"
-										tooltip="Determines how data points are aggregated. If the function requires a numeric field as input, one can be chosen."
-									>
-										<OptionDropdown<MetricAggregator>
-											options={FUNCTION_TYPES}
-											selection={functionType}
-											setSelection={setFunctionType}
-										/>
-										{functionType !==
-											MetricAggregator.Count && (
-											<Combobox
-												selection={functionColumn}
-												setSelection={setFunctionColumn}
-												label="metric"
-												searchConfig={
-													searchOptionsConfig
-												}
-												onlyNumericKeys={
-													functionType !==
-													MetricAggregator.CountDistinct
-												}
+									{!isSessionAlert && !isErrorAlert && (
+										<LabeledRow
+											label="Function"
+											name="function"
+											tooltip="Determines how data points are aggregated. If the function requires a numeric field as input, one can be chosen."
+										>
+											<OptionDropdown<MetricAggregator>
+												options={FUNCTION_TYPES}
+												selection={functionType}
+												setSelection={setFunctionType}
 											/>
-										)}
-									</LabeledRow>
+											{functionType !==
+												MetricAggregator.Count && (
+												<Combobox
+													selection={functionColumn}
+													setSelection={
+														setFunctionColumn
+													}
+													label="metric"
+													searchConfig={
+														searchOptionsConfig
+													}
+													onlyNumericKeys={
+														functionType !==
+														MetricAggregator.CountDistinct
+													}
+												/>
+											)}
+										</LabeledRow>
+									)}
 									<LabeledRow
 										label="Filters"
 										name="query"

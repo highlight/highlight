@@ -1,7 +1,7 @@
 import { NextConfig } from 'next'
 import { Rewrite } from 'next/dist/lib/load-custom-routes'
-import HighlightWebpackPlugin from './highlight-webpack-plugin.js'
 import { WebpackConfigContext } from 'next/dist/server/config-shared'
+import HighlightWebpackPlugin from './highlight-webpack-plugin.js'
 
 interface HighlightConfigOptionsDefault {
 	uploadSourceMaps: boolean
@@ -120,7 +120,13 @@ const getHighlightConfig = async (
 	let newRewrites = config.rewrites
 	if (defaultOpts.uploadSourceMaps || defaultOpts.configureHighlightProxy) {
 		newRewrites = async () => {
-			let re
+			let re:
+				| Rewrite[]
+				| {
+						beforeFiles: Rewrite[]
+						afterFiles: Rewrite[]
+						fallback: Rewrite[]
+				  }
 			if (!config.rewrites) {
 				re = new Array<Rewrite>()
 			} else {
@@ -134,19 +140,18 @@ const getHighlightConfig = async (
 
 			const highlightRewrite = {
 				source: '/highlight-events',
-				destination: 'https://pub.highlight.run',
+				destination: 'https://pub.highlight.io',
 			}
 
 			if (!re || Array.isArray(re)) {
-				return {
-					beforeFiles: defaultOpts.uploadSourceMaps
-						? [sourcemapRewrite]
-						: [],
-					afterFiles: defaultOpts.configureHighlightProxy
-						? (re ?? []).concat(highlightRewrite)
-						: [],
-					fallback: [],
+				re = re ?? []
+				if (defaultOpts.uploadSourceMaps) {
+					re.push(sourcemapRewrite)
 				}
+				if (defaultOpts.configureHighlightProxy) {
+					re.push(highlightRewrite)
+				}
+				return re
 			} else {
 				return {
 					beforeFiles: defaultOpts.uploadSourceMaps

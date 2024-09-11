@@ -1,12 +1,12 @@
 import { NetworkRecordingOptions } from '../../types/client'
 import { FetchListener } from './utils/fetch-listener'
 import { RequestResponsePair } from './utils/models'
-import { XHRListener } from './utils/xhr-listener'
 import {
 	WebSocketEventListenerCallback,
 	WebSocketListener,
 	WebSocketRequestListenerCallback,
 } from './utils/web-socket-listener'
+import { XHRListener } from './utils/xhr-listener'
 
 export type NetworkListenerCallback = (
 	requestResponsePair: RequestResponsePair,
@@ -62,7 +62,7 @@ export const NetworkListener = ({
 				webSocketRequestCallback,
 				webSocketEventCallback,
 				urlBlocklist,
-		  )
+			)
 		: () => {}
 
 	return () => {

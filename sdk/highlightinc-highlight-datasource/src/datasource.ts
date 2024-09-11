@@ -1,7 +1,7 @@
 import { CoreApp, DataSourceInstanceSettings, ScopedVars } from '@grafana/data';
 
-import { HighlightDataSourceOptions, HighlightQuery, HighlightVariableQuery, Table } from './types';
 import { DataSourceWithBackend, getTemplateSrv } from '@grafana/runtime';
+import { HighlightDataSourceOptions, HighlightQuery, HighlightVariableQuery, Table } from './types';
 
 export const tableOptions: { value: Table; label: string }[] = [
   { value: 'traces', label: 'traces' },

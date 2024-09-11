@@ -35,6 +35,7 @@ import {
 	MetricAggregator,
 	ProductType,
 } from '@/graph/generated/schemas'
+import useFeatureFlag, { Feature } from '@/hooks/useFeatureFlag/useFeatureFlag'
 import { useProjectId } from '@/hooks/useProjectId'
 import { useSearchTime } from '@/hooks/useSearchTime'
 import { BAR_DISPLAY, BarDisplay } from '@/pages/Graphing/components/BarChart'
@@ -64,7 +65,9 @@ import {
 	DEFAULT_BUCKET_INTERVAL,
 	FUNCTION_TYPES,
 	PRODUCT_ICONS,
+	PRODUCT_ICONS_WITH_EVENTS,
 	PRODUCTS,
+	PRODUCTS_WITH_EVENTS,
 } from './constants'
 import * as style from './GraphingEditor.css'
 import { LabeledRow } from './LabeledRow'
@@ -156,6 +159,20 @@ export const GraphingEditor: React.FC = () => {
 		dashboard_id: string
 		graph_id: string
 	}>()
+
+	const eventSearchEnabled = useFeatureFlag(Feature.EventSearch)
+	const { products, productIcons } = useMemo(() => {
+		if (!eventSearchEnabled) {
+			return {
+				products: PRODUCTS,
+				productIcons: PRODUCT_ICONS,
+			}
+		}
+		return {
+			products: PRODUCTS_WITH_EVENTS,
+			productIcons: PRODUCT_ICONS_WITH_EVENTS,
+		}
+	}, [eventSearchEnabled])
 
 	const isEdit = graph_id !== undefined
 
@@ -299,15 +316,15 @@ export const GraphingEditor: React.FC = () => {
 				g.bucketInterval
 					? 'Interval'
 					: g.bucketCount
-					? 'Count'
-					: 'None',
+						? 'Count'
+						: 'None',
 			)
 		},
 	})
 
 	const { projectId } = useProjectId()
 
-	const [productType, setProductType] = useState(PRODUCTS[0])
+	const [productType, setProductType] = useState(products[0])
 	const [viewType, setViewType] = useState(VIEWS[0])
 	const [functionType, setFunctionType] = useState(FUNCTION_TYPES[0])
 	const [lineNullHandling, setLineNullHandling] = useState(
@@ -341,7 +358,7 @@ export const GraphingEditor: React.FC = () => {
 	const [limit, setLimit] = useState(10)
 	const [limitMetric, setLimitMetric] = useState('')
 
-	const [bucketBySetting, setBucketBySetting] = useState(BUCKET_BY_OPTIONS[0])
+	const [bucketBySetting, setBucketBySetting] = useState(BUCKET_BY_OPTIONS[2])
 	const [bucketByKey, setBucketByKey] = useState(TIMESTAMP_KEY)
 	const [bucketCount, setBucketCount] = useState(DEFAULT_BUCKET_COUNT)
 	const [bucketInterval, setBucketInterval] = useState(
@@ -546,6 +563,21 @@ export const GraphingEditor: React.FC = () => {
 								<Divider className="m-0" />
 								<SidebarSection>
 									<LabeledRow
+										label="Source"
+										name="source"
+										tooltip="The resource being queried, one of the four highlight.io resources."
+									>
+										<OptionDropdown<ProductType>
+											options={products}
+											selection={productType}
+											setSelection={setProductType}
+											icons={productIcons}
+										/>
+									</LabeledRow>
+								</SidebarSection>
+								<Divider className="m-0" />
+								<SidebarSection>
+									<LabeledRow
 										label="View type"
 										name="viewType"
 									>
@@ -581,21 +613,6 @@ export const GraphingEditor: React.FC = () => {
 											}
 										/>
 									)}
-								</SidebarSection>
-								<Divider className="m-0" />
-								<SidebarSection>
-									<LabeledRow
-										label="Source"
-										name="source"
-										tooltip="The resource being queried, one of the four highlight.io resources."
-									>
-										<OptionDropdown<ProductType>
-											options={PRODUCTS}
-											selection={productType}
-											setSelection={setProductType}
-											icons={PRODUCT_ICONS}
-										/>
-									</LabeledRow>
 								</SidebarSection>
 								<Divider className="m-0" />
 								<SidebarSection>
@@ -730,7 +747,7 @@ export const GraphingEditor: React.FC = () => {
 									<LabeledRow
 										label="Bucket by"
 										name="bucketBy"
-										tooltip="A numeric field for bucketing results along the X-axis. Timestamp for time series charts, numeric fields for histograms, can be disabled to aggregate all results within the time range."
+										tooltip="The method for determining the bucket sizes - can be a fixed interval or fixed count."
 									>
 										<TagSwitchGroup
 											options={BUCKET_BY_OPTIONS}
@@ -744,24 +761,48 @@ export const GraphingEditor: React.FC = () => {
 										/>
 									</LabeledRow>
 									{bucketBySetting === 'Count' && (
-										<LabeledRow
-											label="Buckets"
-											name="bucketCount"
-											tooltip="The number of X-axis buckets. A higher value will display smaller, more granular buckets."
-										>
-											<Input
-												type="number"
+										<>
+											<LabeledRow
+												label="Bucket field"
+												name="bucketField"
+												tooltip="A numeric field for bucketing results along the X-axis. Timestamp for time series charts, numeric fields for histograms, can be disabled to aggregate all results within the time range."
+											>
+												<Combobox
+													selection={bucketByKey}
+													setSelection={
+														setBucketByKey
+													}
+													label="bucketBy"
+													searchConfig={
+														searchOptionsConfig
+													}
+													defaultKeys={[
+														TIMESTAMP_KEY,
+													]}
+													onlyNumericKeys
+												/>
+											</LabeledRow>
+											<LabeledRow
+												label="Buckets"
 												name="bucketCount"
-												placeholder="Enter bucket count"
-												value={bucketCount}
-												onChange={(e) => {
-													setBucketCount(
-														Number(e.target.value),
-													)
-												}}
-												cssClass={style.input}
-											/>
-										</LabeledRow>
+												tooltip="The number of X-axis buckets. A higher value will display smaller, more granular buckets."
+											>
+												<Input
+													type="number"
+													name="bucketCount"
+													placeholder="Enter bucket count"
+													value={bucketCount}
+													onChange={(e) => {
+														setBucketCount(
+															Number(
+																e.target.value,
+															),
+														)
+													}}
+													cssClass={style.input}
+												/>
+											</LabeledRow>
+										</>
 									)}
 									{bucketBySetting === 'Interval' && (
 										<LabeledRow

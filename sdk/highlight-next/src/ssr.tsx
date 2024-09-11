@@ -1,10 +1,10 @@
-import React, { useEffect } from 'react'
 import { HighlightOptions, H as localH } from 'highlight.run'
 import type { NextPageContext } from 'next'
 import NextError, { ErrorProps } from 'next/error.js'
+import React, { useEffect } from 'react'
 
-export { localH as H }
 export { ErrorBoundary } from '@highlight-run/react'
+export { localH as H }
 
 export interface HighlightInitProps extends HighlightOptions {
 	projectId?: string

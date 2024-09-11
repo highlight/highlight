@@ -10,7 +10,8 @@
 		"target": "ESNext",
 		"moduleResolution": "Node",
 		"skipLibCheck": true,
-		"strict": true
+		"strict": true,
+		"resolveJsonModule": true
 	},
 	"include": ["src"],
 	"references": [{

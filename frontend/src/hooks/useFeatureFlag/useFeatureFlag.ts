@@ -14,25 +14,19 @@ interface Config {
 }
 
 export enum Feature {
-	AiQueryBuilder,
-	MetricAlerts,
-	Metrics,
+	EventSearch,
 }
 
 // configures the criteria and percentage of population for which the feature is active.
 // can configure to rollout by project, workspace, or admin
 export const FeatureConfig: { [key: number]: Config } = {
-	[Feature.AiQueryBuilder]: {
+	[Feature.EventSearch]: {
 		workspace: true,
-		percent: 100,
-	},
-	[Feature.MetricAlerts]: {
-		workspace: true,
-		percent: 100,
-	},
-	[Feature.Metrics]: {
-		workspace: true,
-		percent: 100,
+		percent: 0,
+		workspaceOverride: new Set<string>([
+			// Highlight
+			'1',
+		]),
 	},
 } as const
 
@@ -82,8 +76,8 @@ export const isFeatureOn = async function (
 		(config.project
 			? projectId
 			: config.workspace
-			? workspaceId
-			: adminId) ?? 'demo',
+				? workspaceId
+				: adminId) ?? 'demo',
 		config.percent,
 	)
 }

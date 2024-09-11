@@ -4721,16 +4721,6 @@ export type GetSessionLogsQuery = { __typename?: 'Query' } & {
 	>
 }
 
-export type GetLogsTotalCountQueryVariables = Types.Exact<{
-	project_id: Types.Scalars['ID']
-	params: Types.QueryInput
-}>
-
-export type GetLogsTotalCountQuery = { __typename?: 'Query' } & Pick<
-	Types.Query,
-	'logs_total_count'
->
-
 export type GetLogsHistogramQueryVariables = Types.Exact<{
 	project_id: Types.Scalars['ID']
 	params: Types.QueryInput
@@ -5265,7 +5255,7 @@ export type GetVisualizationQueryVariables = Types.Exact<{
 export type GetVisualizationQuery = { __typename?: 'Query' } & {
 	visualization: { __typename?: 'Visualization' } & Pick<
 		Types.Visualization,
-		'id' | 'updatedAt' | 'projectId' | 'name'
+		'id' | 'updatedAt' | 'projectId' | 'name' | 'timePreset'
 	> & {
 			graphs: Array<
 				{ __typename?: 'Graph' } & Pick<
@@ -5312,7 +5302,7 @@ export type GetVisualizationsQuery = { __typename?: 'Query' } & {
 			results: Array<
 				{ __typename?: 'Visualization' } & Pick<
 					Types.Visualization,
-					'id' | 'updatedAt' | 'projectId' | 'name'
+					'id' | 'updatedAt' | 'projectId' | 'name' | 'timePreset'
 				> & {
 						graphs: Array<
 							{ __typename?: 'Graph' } & Pick<
@@ -5491,7 +5481,6 @@ export const namedOperations = {
 		GetEmailOptOuts: 'GetEmailOptOuts' as const,
 		GetLogs: 'GetLogs' as const,
 		GetSessionLogs: 'GetSessionLogs' as const,
-		GetLogsTotalCount: 'GetLogsTotalCount' as const,
 		GetLogsHistogram: 'GetLogsHistogram' as const,
 		GetLogsRelatedResources: 'GetLogsRelatedResources' as const,
 		GetProjectSettings: 'GetProjectSettings' as const,

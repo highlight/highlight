@@ -103,10 +103,10 @@ const ErrorSourcePreview: React.FC<
 								...baseLineStyles,
 							},
 							'data-line-number': lineNumber.toString(),
-					  }
+						}
 					: {
 							style: baseLineStyles,
-					  }
+						}
 			}}
 		>
 			{text.join('\n')}

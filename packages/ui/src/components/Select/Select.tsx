@@ -1,8 +1,7 @@
 import * as Ariakit from '@ariakit/react'
 import { isEqual } from 'lodash'
 import { matchSorter } from 'match-sorter'
-import React, { useEffect, useMemo, useRef } from 'react'
-import { useState } from 'react'
+import React, { useEffect, useMemo, useRef, useState } from 'react'
 
 import { Badge } from '../Badge/Badge'
 import { Box } from '../Box/Box'
@@ -70,21 +69,21 @@ const SelectProvider = <T,>({
 	onValueChange,
 	...props
 }: React.PropsWithChildren<Omit<SelectProviderProps<T>, 'setValue'>>) => {
-	options = (options ?? []).map(singleValueToOption)
+	const opts = (options ?? []).map(singleValueToOption)
 	const [value, setValue] = useState(valueProp)
 
 	/* eslint-disable @typescript-eslint/no-explicit-any */
 	const handleSetValue = (newValue: string | string[]) => {
 		const noValue = Array.isArray(value) ? value.length === 0 : !value
 		// Avoid triggering the callback if we haven't initialized yet.
-		const noCallback = (!options.length && noValue) || props.loading
+		const noCallback = (!opts.length && noValue) || props.loading
 
 		let newInternalValue: any
-		if (options.length) {
+		if (opts.length) {
 			if (Array.isArray(newValue) && Array.isArray(value)) {
 				newInternalValue = [...value]
 				;(newValue as string[]).forEach((option) => {
-					const foundOption = options.find((o) =>
+					const foundOption = opts.find((o) =>
 						optionsMatch(o, option),
 					)
 					const isSelected = newInternalValue.some((v: any) =>
@@ -101,7 +100,7 @@ const SelectProvider = <T,>({
 						newValue.some((v) => optionsMatch(v, option)),
 				)
 			} else {
-				newInternalValue = options.find((option) =>
+				newInternalValue = opts.find((option) =>
 					optionsMatch(option, newValue as string),
 				)
 			}
@@ -122,7 +121,7 @@ const SelectProvider = <T,>({
 	return (
 		<SelectContext.Provider
 			value={{
-				options,
+				options: opts,
 				value,
 				setValue: handleSetValue,
 				...props,
@@ -148,6 +147,7 @@ export type SelectProps<T = any> = Omit<
 	loading?: SelectProviderProps['loading']
 	trigger?: React.ComponentType
 	options?: SelectProviderProps['options']
+	placeholder?: string
 	store?: Ariakit.SelectProviderProps['store']
 	value?: T
 	renderValue?: (
@@ -200,7 +200,7 @@ export const Select = <T,>({
 	}
 
 	const setStoreInternally = async (newOptions: string | string[]) => {
-		store.setValue(newOptions)
+		store?.setValue(newOptions)
 	}
 
 	const handleCreateOption = (newOptionValue: string) => {
@@ -209,7 +209,7 @@ export const Select = <T,>({
 			{ name: newOptionValue, value: newOptionValue },
 		])
 
-		const storeValue = store.getState().value
+		const storeValue = store?.getState().value
 		const isMulti = Array.isArray(storeValue)
 
 		// Wrapping in a timeout as a hack to wait until setOptions has finished
@@ -277,7 +277,7 @@ export const Select = <T,>({
 				? matchSorter(matches, searchValue, {
 						keys: ['name', 'value'],
 						threshold: matchSorter.rankings.CASE_SENSITIVE_EQUAL,
-				  }).length > 0
+					}).length > 0
 				: false,
 		[matches, searchValue],
 	)
@@ -352,7 +352,7 @@ export const Select = <T,>({
 								>
 									{option.name}
 								</Option>
-						  ))
+							))
 						: children}
 				</Popover>
 			</Provider>
@@ -400,9 +400,18 @@ const Trigger: React.FC<Omit<SelectProps, 'value' | 'setValue'>> = ({
 		}
 
 		const findOption = (value: string | number): SelectOption => {
-			const foundOption = options.find((option) =>
-				optionsMatch(option, value),
-			) as SelectOption | undefined
+			const foundOption = (options ?? [])
+				.map((option) =>
+					typeof option === 'string'
+						? ({
+								name: option,
+								value: option,
+							} as SelectOption)
+						: option,
+				)
+				.find((option) => optionsMatch(option, value)) as
+				| SelectOption
+				| undefined
 
 			return foundOption ?? stringOrNumberToOption(value)
 		}
@@ -826,7 +835,7 @@ const SelectTag: React.FC<{ children: string; value: string | number }> = ({
 				const newValue = Array.isArray(selectValue)
 					? selectValue.filter(
 							(v) => !optionsMatch(v, { name, value }),
-					  )
+						)
 					: ''
 
 				selectStore.setValue(newValue)

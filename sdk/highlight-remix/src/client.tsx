@@ -1,8 +1,8 @@
 import { useEffect } from 'react'
 
-import Cookies from 'js-cookie'
 import type { HighlightOptions } from 'highlight.run'
 import { H } from 'highlight.run'
+import Cookies from 'js-cookie'
 import { SESSION_SECURE_ID } from './constants'
 
 export { H } from 'highlight.run'

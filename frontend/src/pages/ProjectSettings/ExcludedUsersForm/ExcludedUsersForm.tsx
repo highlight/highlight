@@ -54,7 +54,7 @@ export const ExcludedUsersForm = () => {
 					),
 					id: suggestion,
 				}),
-		  )
+			)
 
 	const handleIdentifierSearch = (query = '') => {
 		setIdentifierQuery(query)
@@ -122,7 +122,7 @@ export const ExcludedUsersForm = () => {
 														excluded_users:
 															validRegexes,
 													},
-											  }
+												}
 											: currentProjectSettings,
 								)
 							}}

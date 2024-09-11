@@ -1,5 +1,17 @@
 # @highlight-run/node
 
+## 3.9.2
+
+### Patch Changes
+
+-   1e21c52: report telemetry attributes on node.js sdks
+
+## 3.9.1
+
+### Patch Changes
+
+-   2339697: update opentelemetry dependencies
+
 ## 3.9.0
 
 ### Minor Changes

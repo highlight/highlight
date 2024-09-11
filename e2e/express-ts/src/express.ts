@@ -1,8 +1,7 @@
-import express from 'express'
 import { H, Handlers } from '@highlight-run/node'
-import { CONSTANTS } from './constants'
-import { config } from './instrumentation'
 import { context } from '@opentelemetry/api'
+import express from 'express'
+import { config } from './instrumentation'
 
 H.init(config)
 

@@ -1,6 +1,6 @@
 {
 	"name": "@highlight-run/nest",
-	"version": "3.6.0",
+	"version": "3.6.2",
 	"description": "Client for interfacing with Highlight in nestjs",
 	"main": "./dist/index.js",
 	"module": "./dist/index.mjs",

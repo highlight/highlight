@@ -12,6 +12,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/highlight-run/highlight/backend/clickhouse"
 	"github.com/highlight-run/highlight/backend/env"
 
 	"github.com/samber/lo"
@@ -811,12 +812,32 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 	}
 
 	if len(visitFields) >= 1 {
+		landingPage := visitFields[0]
+		exitPage := visitFields[len(visitFields)-1]
 		sessionProperties := map[string]string{
-			"landing_page": visitFields[0].Value,
-			"exit_page":    visitFields[len(visitFields)-1].Value,
+			"landing_page": landingPage.Value,
+			"exit_page":    exitPage.Value,
 		}
+
 		if err := w.PublicResolver.AppendProperties(ctx, s.ID, sessionProperties, pubgraph.PropertyType.SESSION); err != nil {
 			log.WithContext(ctx).Error(e.Wrapf(err, "[processSession] error appending properties for session %d", s.ID))
+		}
+
+		sessionEvents := []*clickhouse.SessionEventRow{
+			{
+				Timestamp:  landingPage.CreatedAt,
+				Event:      "landing_page",
+				Attributes: map[string]string{"url": landingPage.Value},
+			},
+			{
+				Timestamp:  exitPage.CreatedAt,
+				Event:      "exit_page",
+				Attributes: map[string]string{"url": exitPage.Value},
+			},
+		}
+
+		if err := w.PublicResolver.CreateSessionEvents(ctx, s.ID, sessionEvents); err != nil {
+			log.WithContext(ctx).Error(e.Wrapf(err, "error creating session events for session %d", s.ID))
 		}
 	}
 
@@ -1154,22 +1175,17 @@ func (w *Worker) RefreshMaterializedViews(ctx context.Context) {
 		log.WithContext(ctx).Fatal(e.Wrap(err, "Error refreshing daily_error_counts_view"))
 	}
 
+	// skip phonehome for highlight production deployment
+	if env.IsProduction() {
+		return
+	}
+
 	type AggregateSessionCount struct {
-		WorkspaceID                      int        `json:"workspace_id"`
-		SessionCount                     int64      `json:"session_count"`
-		ErrorCount                       int64      `json:"error_count"`
-		LogCount                         int64      `json:"log_count"`
-		SessionCountLastWeek             int64      `json:"session_count_last_week"`
-		ErrorCountLastWeek               int64      `json:"error_count_last_week"`
-		LogCountLastWeek                 int64      `json:"log_count_last_week"`
-		SessionCountLastDay              int64      `json:"session_count_last_day"`
-		ErrorCountLastDay                int64      `json:"error_count_last_day"`
-		LogCountLastDay                  int64      `json:"log_count_last_day"`
-		TrialEndDate                     *time.Time `json:"trial_end_date"`
-		PlanTier                         string     `json:"plan_tier"`
-		SessionReplayIntegrated          bool       `json:"session_replay_integrated"`
-		BackendErrorMonitoringIntegrated bool       `json:"backend_error_monitoring_integrated"`
-		BackendLoggingIntegrated         bool       `json:"backend_logging_integrated"`
+		WorkspaceID  int   `json:"workspace_id"`
+		SessionCount int64 `json:"session_count"`
+		ErrorCount   int64 `json:"error_count"`
+		LogCount     int64 `json:"log_count"`
+		TraceCount   int64 `json:"trace_count"`
 	}
 	var counts []*AggregateSessionCount
 
@@ -1197,51 +1213,27 @@ func (w *Worker) RefreshMaterializedViews(ctx context.Context) {
 	}
 
 	for idx, c := range counts {
+		c.SessionCount += errorResults[idx].SessionCount
 		c.ErrorCount += errorResults[idx].ErrorCount
-		c.ErrorCountLastWeek += errorResults[idx].ErrorCountLastWeek
-		c.ErrorCountLastDay += errorResults[idx].ErrorCountLastDay
 
 		workspace := &model.Workspace{}
 		if err := w.Resolver.DB.WithContext(ctx).Preload("Projects").Model(&model.Workspace{}).Where("id = ?", c.WorkspaceID).Take(&workspace).Error; err != nil {
 			continue
 		}
-		c.TrialEndDate = workspace.TrialEndDate
-		c.PlanTier = workspace.PlanTier
-		for t, ptr := range map[model.MarkBackendSetupType]*bool{
-			model.MarkBackendSetupTypeSession: &c.SessionReplayIntegrated,
-			model.MarkBackendSetupTypeError:   &c.BackendErrorMonitoringIntegrated,
-			model.MarkBackendSetupTypeLogs:    &c.BackendLoggingIntegrated,
-		} {
-			setupEvent := model.SetupEvent{}
-			if err := w.Resolver.DB.WithContext(ctx).Model(&model.SetupEvent{}).Joins("INNER JOIN projects p on p.id = project_id").Joins("INNER JOIN workspaces w on w.id = p.workspace_id").Where("w.id = ? AND type = ?", workspace.ID, t).Take(&setupEvent).Error; err == nil {
-				*ptr = setupEvent.ID != 0
-			}
-		}
-		for _, p := range workspace.Projects {
-			backendErrors, err := w.Resolver.Query().ServerIntegration(ctx, p.ID)
-			if err == nil && backendErrors.Integrated {
-				c.BackendErrorMonitoringIntegrated = c.BackendErrorMonitoringIntegrated || backendErrors.Integrated
-			}
-			logs, err := w.Resolver.Query().LogsIntegration(ctx, p.ID)
-			if err == nil && logs.Integrated {
-				c.BackendLoggingIntegrated = c.BackendLoggingIntegrated || logs.Integrated
-			}
-			count, _ := w.Resolver.ClickhouseClient.ReadLogsTotalCount(ctx, p.ID, backend.QueryInput{DateRange: &backend.DateRangeRequiredInput{
-				StartDate: time.Now().Add(-time.Hour * 24 * 30),
-				EndDate:   time.Now(),
-			}})
-			c.LogCount += int64(count)
-			countWeek, _ := w.Resolver.ClickhouseClient.ReadLogsTotalCount(ctx, p.ID, backend.QueryInput{DateRange: &backend.DateRangeRequiredInput{
-				StartDate: time.Now().Add(-time.Hour * 24 * 7),
-				EndDate:   time.Now(),
-			}})
-			c.LogCountLastWeek += int64(countWeek)
-			countDay, _ := w.Resolver.ClickhouseClient.ReadLogsTotalCount(ctx, p.ID, backend.QueryInput{DateRange: &backend.DateRangeRequiredInput{
-				StartDate: time.Now().Add(-time.Hour * 24),
-				EndDate:   time.Now(),
-			}})
-			c.LogCountLastDay += int64(countDay)
-		}
+		count, _ := w.Resolver.ClickhouseClient.ReadLogsDailySum(ctx, lo.Map(workspace.Projects, func(p model.Project, index int) int {
+			return p.ID
+		}), backend.DateRangeRequiredInput{
+			StartDate: time.Now().AddDate(0, 0, -1),
+			EndDate:   time.Now(),
+		})
+		c.LogCount = int64(count)
+		count, _ = w.Resolver.ClickhouseClient.ReadTracesDailySum(ctx, lo.Map(workspace.Projects, func(p model.Project, index int) int {
+			return p.ID
+		}), backend.DateRangeRequiredInput{
+			StartDate: time.Now().AddDate(0, 0, -1),
+			EndDate:   time.Now(),
+		})
+		c.TraceCount = int64(count)
 	}
 
 	for _, c := range counts {
@@ -1249,6 +1241,7 @@ func (w *Worker) RefreshMaterializedViews(ctx context.Context) {
 			attribute.Int64(phonehome.SessionCount, c.SessionCount),
 			attribute.Int64(phonehome.ErrorCount, c.ErrorCount),
 			attribute.Int64(phonehome.LogCount, c.LogCount),
+			attribute.Int64(phonehome.TraceCount, c.TraceCount),
 		})
 	}
 }

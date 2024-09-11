@@ -85,7 +85,7 @@ export const useWebSocket = (
 									(r) =>
 										({
 											...r,
-										} as Pick<
+										}) as Pick<
 											WebSocketEvent,
 											| 'message'
 											| 'name'
@@ -93,7 +93,7 @@ export const useWebSocket = (
 											| 'socketId'
 											| 'timeStamp'
 											| 'type'
-										>),
+										>,
 								) ?? [],
 							)
 						})

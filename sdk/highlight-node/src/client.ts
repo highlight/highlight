@@ -1,10 +1,3 @@
-import {
-	AlwaysOnSampler,
-	BufferConfig,
-	ReadableSpan,
-	Span,
-} from '@opentelemetry/sdk-trace-base'
-import { BatchSpanProcessorBase } from '@opentelemetry/sdk-trace-base/build/src/export/BatchSpanProcessorBase'
 import api, {
 	Attributes,
 	BaggageEntry,
@@ -12,31 +5,39 @@ import api, {
 	diag,
 	DiagConsoleLogger,
 	DiagLogLevel,
-	propagation,
 	Span as OtelSpan,
+	propagation,
 	SpanOptions,
 	trace,
 	Tracer,
 } from '@opentelemetry/api'
-import { AsyncLocalStorageContextManager } from '@opentelemetry/context-async-hooks'
-import { NodeSDK } from '@opentelemetry/sdk-node'
-import { OTLPTraceExporter } from '@opentelemetry/exporter-trace-otlp-http'
-import { CompressionAlgorithm } from '@opentelemetry/otlp-exporter-base'
 import { getNodeAutoInstrumentations } from '@opentelemetry/auto-instrumentations-node'
+import { AsyncLocalStorageContextManager } from '@opentelemetry/context-async-hooks'
+import { W3CBaggagePropagator } from '@opentelemetry/core'
+import { OTLPTraceExporter } from '@opentelemetry/exporter-trace-otlp-http'
+import { registerInstrumentations } from '@opentelemetry/instrumentation'
+import { CompressionAlgorithm } from '@opentelemetry/otlp-exporter-base'
+import { processDetectorSync, Resource } from '@opentelemetry/resources'
+import { NodeSDK } from '@opentelemetry/sdk-node'
+import {
+	AlwaysOnSampler,
+	BufferConfig,
+	ReadableSpan,
+	Span,
+} from '@opentelemetry/sdk-trace-base'
+import { BatchSpanProcessorBase } from '@opentelemetry/sdk-trace-base/build/src/export/BatchSpanProcessorBase'
 import {
 	SEMRESATTRS_DEPLOYMENT_ENVIRONMENT,
 	SEMRESATTRS_SERVICE_NAME,
 	SEMRESATTRS_SERVICE_VERSION,
 } from '@opentelemetry/semantic-conventions'
-import { processDetectorSync, Resource } from '@opentelemetry/resources'
-import { registerInstrumentations } from '@opentelemetry/instrumentation'
-import { W3CBaggagePropagator } from '@opentelemetry/core'
 import type { IncomingHttpHeaders } from 'http'
 import { clearInterval } from 'timers'
-import type { HighlightContext, NodeOptions } from './types.js'
 import { hookConsole } from './hooks.js'
 import log from './log.js'
 import { HIGHLIGHT_REQUEST_HEADER } from './sdk.js'
+import type { HighlightContext, NodeOptions } from './types.js'
+import * as packageJson from '../package.json'
 
 const OTLP_HTTP = 'https://otel.highlight.io:4318'
 const FIVE_MINUTES = 1000 * 60 * 5
@@ -220,6 +221,8 @@ export class Highlight {
 
 		const attributes: Attributes = options.attributes || {}
 		attributes['highlight.project_id'] = this._projectID
+		attributes['telemetry.distro.name'] = '@highlight-run/node'
+		attributes['telemetry.distro.version'] = packageJson.version
 
 		for (const [otelAttr, option] of Object.entries(OTEL_TO_OPTIONS)) {
 			if (options[option]) {
@@ -294,12 +297,12 @@ export class Highlight {
 			...(secureSessionId
 				? {
 						['highlight.session_id']: secureSessionId,
-				  }
+					}
 				: {}),
 			...(requestId
 				? {
 						['highlight.trace_id']: requestId,
-				  }
+					}
 				: {}),
 		})
 		for (const t of tags || []) {
@@ -332,12 +335,12 @@ export class Highlight {
 				...(secureSessionId
 					? {
 							['highlight.session_id']: secureSessionId,
-					  }
+						}
 					: {}),
 				...(requestId
 					? {
 							['highlight.trace_id']: requestId,
-					  }
+						}
 					: {}),
 			},
 			date,
@@ -439,7 +442,7 @@ export class Highlight {
 	}
 
 	setAttributes(attributes: Attributes) {
-		return this.otel.addResource(new Resource(attributes))
+		trace.getActiveSpan()?.setAttributes(attributes)
 	}
 
 	parseHeaders(headers: Headers | IncomingHttpHeaders): HighlightContext {

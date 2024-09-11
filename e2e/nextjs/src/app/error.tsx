@@ -2,8 +2,8 @@
 'use client' // Error components must be Client Components
 
 import {
-	appRouterSsrErrorHandler,
 	AppRouterErrorProps,
+	appRouterSsrErrorHandler,
 } from '@highlight-run/next/ssr'
 
 export default appRouterSsrErrorHandler(

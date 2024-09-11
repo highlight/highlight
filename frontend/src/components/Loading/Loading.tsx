@@ -17,6 +17,7 @@ export const CircularSpinner = ({ style }: { style?: React.CSSProperties }) => {
 	return (
 		<Spin
 			indicator={
+				// @ts-ignore onPointerEnterCapture, onPointerLeaveCapture ignored by autoresize lib
 				<LoadingOutlined
 					style={{
 						fontSize: 24,

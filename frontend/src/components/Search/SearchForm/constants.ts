@@ -10,4 +10,5 @@ export const AI_SEARCH_PLACEHOLDERS = {
 	[ProductType.Errors]: "e.g. 'errors in Chrome from yesterday'",
 	[ProductType.Metrics]: 'TODO: if/when implemented for metrics',
 	[ProductType.Sessions]: "e.g. 'sessions with rage clicks this week'",
+	[ProductType.Events]: 'TODO: if/when implemented for events',
 }

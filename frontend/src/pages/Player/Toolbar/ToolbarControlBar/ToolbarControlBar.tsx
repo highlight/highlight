@@ -179,8 +179,8 @@ export const ToolbarControlBar = () => {
 							isPlaybackComplete
 								? 'Restart'
 								: isPaused && !isLiveMode
-								? 'Play'
-								: 'Pause'
+									? 'Play'
+									: 'Pause'
 						}
 						shortcut="Space"
 					/>

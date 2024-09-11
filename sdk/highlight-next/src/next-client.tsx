@@ -1,9 +1,9 @@
-import { useEffect } from 'react'
 import { HighlightOptions, H as localH } from 'highlight.run'
 import Cookies from 'js-cookie'
+import { useEffect } from 'react'
 
-export { localH as H }
 export { ErrorBoundary } from '@highlight-run/react'
+export { localH as H }
 
 export interface Props extends HighlightOptions {
 	excludedHostnames?: string[]

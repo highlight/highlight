@@ -40,7 +40,10 @@ const EventDetails = React.memo(({ event }: { event: HighlightEvent }) => {
 		0,
 	)
 	const displayName = getTimelineEventDisplayName(details.title || '')
-	const payload = (event.data as { payload: any }).payload
+	let payload = (event.data as { payload: any }).payload
+	try {
+		payload = JSON.parse(payload)
+	} catch (e) {}
 
 	const eventIdx = eventsForTimelineIndicator.findIndex(
 		(e) => e.identifier === event.identifier,
@@ -149,7 +152,7 @@ const EventDetails = React.memo(({ event }: { event: HighlightEvent }) => {
 							? playerTimeToSessionAbsoluteTime({
 									sessionStartTime: sessionMetadata.startTime,
 									relativeTime: timeSinceStart,
-							  })
+								})
 							: MillisToMinutesAndSeconds(timeSinceStart)}
 					</Text>
 				</Tag>

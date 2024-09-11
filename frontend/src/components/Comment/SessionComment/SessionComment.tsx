@@ -67,7 +67,7 @@ export const SessionComment = ({
 							: {
 									default: 'white',
 									hover: 'secondarySelectedHover',
-							  }
+								}
 					}
 					boxShadow={isSelected ? 'innerSecondary' : undefined}
 					cursor={isClickable ? 'pointer' : undefined}

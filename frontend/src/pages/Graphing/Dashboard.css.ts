@@ -57,10 +57,6 @@ export const graphGrid = style({
 	},
 })
 
-export const gridEditing = style({
-	backgroundColor: vars.theme.static.surface.raised,
-})
-
 globalStyle(`${menuButton} > div`, {
 	width: '100%',
 })

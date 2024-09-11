@@ -12,8 +12,12 @@ import {
 	useGetSessionsHistogramQuery,
 	useGetWorkspaceSettingsQuery,
 } from '@graph/hooks'
-import { SavedSegmentEntityType } from '@graph/schemas'
-import { Maybe, ProductType, Session } from '@graph/schemas'
+import {
+	Maybe,
+	ProductType,
+	SavedSegmentEntityType,
+	Session,
+} from '@graph/schemas'
 import {
 	Box,
 	ButtonIcon,
@@ -32,7 +36,6 @@ import { AdditionalFeedResults } from '@/components/FeedResults/FeedResults'
 import { useSearchContext } from '@/components/Search/SearchContext'
 import { useRetentionPresets } from '@/components/Search/SearchForm/hooks'
 import { SearchForm } from '@/components/Search/SearchForm/SearchForm'
-import useFeatureFlag, { Feature } from '@/hooks/useFeatureFlag/useFeatureFlag'
 import usePlayerConfiguration from '@/pages/Player/PlayerHook/utils/usePlayerConfiguration'
 import { OverageCard } from '@/pages/Sessions/SessionsFeedV3/OverageCard/OverageCard'
 import { useApplicationContext } from '@/routers/AppRouter/context/ApplicationContext'
@@ -50,7 +53,7 @@ export const SessionsHistogram: React.FC<{ readonly?: boolean }> = React.memo(
 		}>()
 
 		const {
-			query,
+			initialQuery,
 			histogramBucketSize,
 			startDate,
 			endDate,
@@ -61,7 +64,7 @@ export const SessionsHistogram: React.FC<{ readonly?: boolean }> = React.memo(
 			variables: {
 				project_id: project_id!,
 				params: {
-					query,
+					query: initialQuery,
 					date_range: {
 						start_date: roundFeedDate(
 							startDate!.toISOString(),
@@ -132,7 +135,6 @@ export const SessionsHistogram: React.FC<{ readonly?: boolean }> = React.memo(
 export const SessionFeedV3 = React.memo(() => {
 	const { currentWorkspace } = useApplicationContext()
 	const sessionFeedConfiguration = useSessionFeedConfiguration()
-	const aiQueryBuilderFlag = useFeatureFlag(Feature.AiQueryBuilder)
 	const {
 		loading,
 		totalCount,
@@ -175,7 +177,7 @@ export const SessionFeedV3 = React.memo(() => {
 
 	const { data: workspaceSettings } = useGetWorkspaceSettingsQuery({
 		variables: { workspace_id: String(currentWorkspace?.id) },
-		skip: !currentWorkspace?.id || !aiQueryBuilderFlag,
+		skip: !currentWorkspace?.id,
 	})
 
 	const { presets, minDate } = useRetentionPresets(ProductType.Sessions)
@@ -221,7 +223,7 @@ export const SessionFeedV3 = React.memo(() => {
 					enableAIMode={
 						workspaceSettings?.workspaceSettings?.ai_query_builder
 					}
-					aiSupportedSearch={aiQueryBuilderFlag}
+					aiSupportedSearch
 					hideCreateAlert
 					isPanelView
 				/>

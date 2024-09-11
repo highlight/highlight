@@ -89,6 +89,7 @@ import (
 const ErrorGroupLookbackDays = 7
 const SessionActiveMetricName = "sessionActiveLength"
 const SessionProcessedMetricName = "sessionProcessed"
+const MaxDownloadSize = 32 * 1024 * 1024 // 32MB
 
 var AuthenticationError = errors.New("401 - AuthenticationError")
 var AuthorizationError = errors.New("403 - AuthorizationError")
@@ -502,18 +503,37 @@ func (r *Resolver) isUserInWorkspaceReadOnly(ctx context.Context, workspaceID in
 		Model: model.Model{
 			ID: workspace.ID,
 		},
-		Name:                        workspace.Name,
-		PlanTier:                    workspace.PlanTier,
+		AllowMeterOverage:           workspace.AllowMeterOverage,
 		AllowedAutoJoinEmailOrigins: workspace.AllowedAutoJoinEmailOrigins,
-		SlackWebhookChannel:         workspace.SlackWebhookChannel,
-		RetentionPeriod:             workspace.RetentionPeriod,
-		ErrorsRetentionPeriod:       workspace.ErrorsRetentionPeriod,
-		SessionsMaxCents:            workspace.SessionsMaxCents,
-		ErrorsMaxCents:              workspace.ErrorsMaxCents,
-		LogsMaxCents:                workspace.LogsMaxCents,
-		TracesMaxCents:              workspace.TracesMaxCents,
+		BillingPeriodEnd:            workspace.BillingPeriodEnd,
+		BillingPeriodStart:          workspace.BillingPeriodStart,
 		ClearbitEnabled:             workspace.ClearbitEnabled,
 		CloudflareProxy:             workspace.CloudflareProxy,
+		EligibleForTrialExtension:   workspace.EligibleForTrialExtension,
+		ErrorsMaxCents:              workspace.ErrorsMaxCents,
+		ErrorsRetentionPeriod:       workspace.ErrorsRetentionPeriod,
+		LogsMaxCents:                workspace.LogsMaxCents,
+		LogsRetentionPeriod:         workspace.LogsRetentionPeriod,
+		MonthlyErrorsLimit:          workspace.MonthlyErrorsLimit,
+		MonthlyLogsLimit:            workspace.MonthlyLogsLimit,
+		MonthlyMembersLimit:         workspace.MonthlyMembersLimit,
+		MonthlySessionLimit:         workspace.MonthlySessionLimit,
+		MonthlyTracesLimit:          workspace.MonthlyTracesLimit,
+		Name:                        workspace.Name,
+		NextInvoiceDate:             workspace.NextInvoiceDate,
+		PlanTier:                    workspace.PlanTier,
+		RetentionPeriod:             workspace.RetentionPeriod,
+		SessionsMaxCents:            workspace.SessionsMaxCents,
+		SlackWebhookChannel:         workspace.SlackWebhookChannel,
+		StripeErrorOveragePriceID:   workspace.StripeErrorOveragePriceID,
+		StripeLogOveragePriceID:     workspace.StripeLogOveragePriceID,
+		StripeSessionOveragePriceID: workspace.StripeSessionOveragePriceID,
+		StripeTracesOveragePriceID:  workspace.StripeTracesOveragePriceID,
+		TracesMaxCents:              workspace.TracesMaxCents,
+		TracesRetentionPeriod:       workspace.TracesRetentionPeriod,
+		TrialEndDate:                workspace.TrialEndDate,
+		TrialExtensionEnabled:       workspace.TrialExtensionEnabled,
+		UnlimitedMembers:            workspace.UnlimitedMembers,
 	}, nil
 }
 

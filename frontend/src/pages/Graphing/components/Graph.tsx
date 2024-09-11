@@ -4,18 +4,12 @@ import {
 	Button,
 	ButtonIcon,
 	DateRangePreset,
-	IconSolidArrowsExpand,
 	IconSolidChartSquareBar,
 	IconSolidChartSquareLine,
 	IconSolidDocumentReport,
-	IconSolidDotsHorizontal,
-	IconSolidDuplicate,
 	IconSolidExternalLink,
 	IconSolidLoading,
-	IconSolidPencil,
 	IconSolidTable,
-	IconSolidTrash,
-	Menu,
 	presetStartDate,
 	Stack,
 	Text,
@@ -26,7 +20,7 @@ import clsx from 'clsx'
 import _ from 'lodash'
 import moment from 'moment'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { ReferenceArea, Tooltip as RechartsTooltip } from 'recharts'
+import { Tooltip as RechartsTooltip, ReferenceArea } from 'recharts'
 import { CategoricalChartState } from 'recharts/types/chart/types'
 
 import { loadingIcon } from '@/components/Button/style.css'
@@ -106,10 +100,6 @@ export interface ChartProps<TConfig> {
 	limitMetric?: string
 	viewConfig: TConfig
 	disabled?: boolean
-	onClone?: () => void
-	onDelete?: () => void
-	onExpand?: () => void
-	onEdit?: () => void
 	setTimeRange?: SetTimeRange
 	loadExemplars?: LoadExemplars
 }
@@ -190,7 +180,7 @@ export const useGraphCallbacks = (
 
 	const onMouseDown = allowDrag
 		? (e: CategoricalChartState) => {
-				if (frozenTooltip || !loadExemplars) {
+				if (frozenTooltip) {
 					return
 				}
 
@@ -199,7 +189,8 @@ export const useGraphCallbacks = (
 				if (
 					chartRect !== undefined &&
 					tooltipRect !== undefined &&
-					frozenTooltip === undefined
+					frozenTooltip === undefined &&
+					loadExemplars
 				) {
 					e.chartX = tooltipRect.x - chartRect.x
 					e.chartY = tooltipRect.y - chartRect.y
@@ -215,29 +206,22 @@ export const useGraphCallbacks = (
 				if (e.activeLabel !== undefined && !frozenTooltip) {
 					setRefAreaStart(Number(e.activeLabel))
 				}
-		  }
+			}
 		: undefined
 
 	const onMouseMove = allowDrag
 		? (e: CategoricalChartState) => {
-				if (frozenTooltip) {
-					return
-				}
-
 				setMouseMoveState(e)
 
 				if (refAreaStart !== undefined && e.activeLabel !== undefined) {
 					setRefAreaEnd(Number(e.activeLabel))
+					setFrozenTooltip(undefined)
 				}
-		  }
+			}
 		: undefined
 
 	const onMouseUp = allowDrag
 		? () => {
-				if (frozenTooltip) {
-					return
-				}
-
 				if (
 					refAreaStart !== undefined &&
 					refAreaEnd !== undefined &&
@@ -254,7 +238,7 @@ export const useGraphCallbacks = (
 				}
 				setRefAreaStart(undefined)
 				setRefAreaEnd(undefined)
-		  }
+			}
 		: undefined
 
 	const onMouseLeave = () => {
@@ -694,18 +678,11 @@ const Graph = ({
 	title,
 	viewConfig,
 	disabled,
-	onClone,
-	onDelete,
-	onExpand,
-	onEdit,
 	setTimeRange,
 	selectedPreset,
 	children,
 }: React.PropsWithChildren<ChartProps<ViewConfig>>) => {
-	const [graphHover, setGraphHover] = useState(false)
 	const queriedBucketCount = bucketByKey !== undefined ? bucketCount : 1
-	const showMenu =
-		onDelete !== undefined || onExpand !== undefined || onEdit !== undefined
 
 	const pollTimeout = useRef<number>()
 	const [pollInterval, setPollInterval] = useState<number>(0)
@@ -985,12 +962,6 @@ const Graph = ({
 			flexDirection="column"
 			gap="8"
 			justifyContent="space-between"
-			onMouseEnter={() => {
-				setGraphHover(true)
-			}}
-			onMouseLeave={() => {
-				setGraphHover(false)
-			}}
 		>
 			<Box
 				display="flex"
@@ -1000,81 +971,6 @@ const Graph = ({
 				<Text size="small" color="default" cssClass={style.titleText}>
 					{title || 'Untitled metric view'}
 				</Text>
-				{showMenu && graphHover && !disabled && called && (
-					<Box
-						cssClass={clsx(style.titleText, {
-							[style.hiddenMenu]: !graphHover,
-						})}
-					>
-						{onExpand !== undefined && (
-							<Button
-								size="xSmall"
-								emphasis="low"
-								kind="secondary"
-								iconLeft={<IconSolidArrowsExpand />}
-								onClick={onExpand}
-							/>
-						)}
-						{onEdit !== undefined && (
-							<Button
-								size="xSmall"
-								emphasis="low"
-								kind="secondary"
-								iconLeft={<IconSolidPencil />}
-								onClick={onEdit}
-							/>
-						)}
-						{(onDelete || onClone) && (
-							<Menu>
-								<Menu.Button
-									size="medium"
-									emphasis="low"
-									kind="secondary"
-									iconLeft={<IconSolidDotsHorizontal />}
-									onClick={(e: any) => {
-										e.stopPropagation()
-									}}
-								/>
-								<Menu.List>
-									{onClone && (
-										<Menu.Item
-											onClick={(e) => {
-												e.stopPropagation()
-												onClone()
-											}}
-										>
-											<Box
-												display="flex"
-												alignItems="center"
-												gap="4"
-											>
-												<IconSolidDuplicate />
-												Clone metric view
-											</Box>
-										</Menu.Item>
-									)}
-									{onDelete && (
-										<Menu.Item
-											onClick={(e) => {
-												e.stopPropagation()
-												onDelete()
-											}}
-										>
-											<Box
-												display="flex"
-												alignItems="center"
-												gap="4"
-											>
-												<IconSolidTrash />
-												Delete metric view
-											</Box>
-										</Menu.Item>
-									)}
-								</Menu.List>
-							</Menu>
-						)}
-					</Box>
-				)}
 			</Box>
 			{called && (
 				<Box
@@ -1142,7 +1038,7 @@ const Graph = ({
 																idx,
 																key,
 																strokeColors,
-														  )
+															)
 														: undefined,
 												}}
 												cssClass={style.legendDot}

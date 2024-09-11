@@ -69,8 +69,8 @@ export const SessionExportForm = () => {
 								const status = se.error
 									? ExportStatus.Failure
 									: se.url
-									? ExportStatus.Success
-									: ExportStatus.InProgress
+										? ExportStatus.Success
+										: ExportStatus.InProgress
 								return (
 									<Table.Row
 										key={se.secure_id}
@@ -91,9 +91,9 @@ export const SessionExportForm = () => {
 													ExportStatus.Success
 														? 'green'
 														: status ===
-														  ExportStatus.Failure
-														? 'red'
-														: 'gray'
+															  ExportStatus.Failure
+															? 'red'
+															: 'gray'
 												}
 												label={status}
 											/>

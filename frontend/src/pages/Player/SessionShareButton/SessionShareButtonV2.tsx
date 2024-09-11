@@ -145,7 +145,7 @@ const SessionShareButtonV2 = () => {
 										shareTimestamp
 											? onGetLinkWithTimestamp(
 													time,
-											  ).toString()
+												).toString()
 											: onGetLink().toString(),
 										{
 											onCopyText:

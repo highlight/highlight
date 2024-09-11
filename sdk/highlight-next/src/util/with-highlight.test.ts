@@ -1,8 +1,8 @@
 import { NextApiHandler } from 'next'
 import { Highlight } from './with-highlight-nodejs-page-router'
 
-import { createNextApiHandler } from '@trpc/server/adapters/next'
 import * as trpc from '@trpc/server'
+import { createNextApiHandler } from '@trpc/server/adapters/next'
 
 describe('withHighlight', () => {
 	const withHighlight = Highlight({ projectID: 'test' })

@@ -8,13 +8,13 @@
 import CopyWebpackPlugin from 'copy-webpack-plugin';
 import ESLintPlugin from 'eslint-webpack-plugin';
 import ForkTsCheckerWebpackPlugin from 'fork-ts-checker-webpack-plugin';
-import LiveReloadPlugin from 'webpack-livereload-plugin';
 import path from 'path';
 import ReplaceInFileWebpackPlugin from 'replace-in-file-webpack-plugin';
 import { Configuration } from 'webpack';
+import LiveReloadPlugin from 'webpack-livereload-plugin';
 
-import { getPackageJson, getPluginJson, hasReadme, getEntries, isWSL } from './utils';
-import { SOURCE_DIR, DIST_DIR } from './constants';
+import { DIST_DIR, SOURCE_DIR } from './constants';
+import { getEntries, getPackageJson, getPluginJson, hasReadme, isWSL } from './utils';
 
 const pluginJson = getPluginJson();
 

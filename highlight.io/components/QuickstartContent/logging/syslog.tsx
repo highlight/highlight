@@ -1,5 +1,5 @@
 import { QuickStartContent } from '../QuickstartContent'
-import { curlExample, curlExampleRaw, verifyLogs } from './shared-snippets'
+import { verifyLogs } from './shared-snippets'
 
 export const SyslogContent: QuickStartContent = {
 	title: 'Shipping Syslog Structured Logs',

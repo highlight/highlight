@@ -57,73 +57,68 @@ const components = {
 	h4: (props: any) => <h6 className={styles.blogText}>{props.children}</h6>,
 	h5: (props: any) => <h6 className={styles.blogText}>{props.children}</h6>,
 	ol: (props: any) => {
-		// check if the type of props.children is an array.
+		if (!Array.isArray(props.children)) {
+			return null
+		}
+
 		return (
-			<>
-				{Array.isArray(props.children) &&
-					props?.children?.map((c: any, i: number) => {
-						return (
-							c.props &&
-							c.props.children && (
-								<ol
-									start={props.start}
-									style={{
-										paddingTop: 8,
-										paddingLeft: 16,
-									}}
-								>
-									<li
-										style={{
-											listStyleType: 'counter',
-											listStylePosition: 'outside',
-										}}
-										key={i}
-									>
-										{c.props.children.map
-											? c?.props?.children?.map(
-													(e: any) => e,
-											  )
-											: c?.props?.children}
-									</li>
-								</ol>
-							)
+			<ol
+				start={props.start}
+				style={{
+					paddingLeft: 40,
+				}}
+			>
+				{props.children.map((c: any, i: number) => {
+					return (
+						c.props &&
+						c.props.children && (
+							<li
+								style={{
+									listStyleType: 'decimal',
+									listStylePosition: 'outside',
+								}}
+								key={i}
+							>
+								{c.props.children.map
+									? c.props.children.map((e: any) => e)
+									: c.props.children}
+							</li>
 						)
-					})}
-			</>
+					)
+				})}
+			</ol>
 		)
 	},
 	ul: (props: any) => {
-		// check if the type of props.children is an array.
+		if (!Array.isArray(props.children)) {
+			return null
+		}
+
 		return (
-			<>
-				{Array.isArray(props.children) &&
-					props?.children?.map((c: any, i: number) => {
-						return (
-							c.props &&
-							c.props.children && (
-								<ul
-									style={{
-										paddingLeft: 40,
-									}}
-								>
-									<li
-										style={{
-											listStyleType: 'disc',
-											listStylePosition: 'outside',
-										}}
-										key={i}
-									>
-										{c.props.children.map
-											? c?.props?.children?.map(
-													(e: any) => e,
-											  )
-											: c?.props?.children}
-									</li>
-								</ul>
-							)
+			<ul
+				style={{
+					paddingLeft: 40,
+				}}
+			>
+				{props.children.map((c: any, i: number) => {
+					return (
+						c.props &&
+						c.props.children && (
+							<li
+								style={{
+									listStyleType: 'disc',
+									listStylePosition: 'outside',
+								}}
+								key={i}
+							>
+								{c.props.children.map
+									? c.props.children.map((e: any) => e)
+									: c.props.children}
+							</li>
 						)
-					})}
-			</>
+					)
+				})}
+			</ul>
 		)
 	},
 	code: (props: any) => {
@@ -138,7 +133,7 @@ const components = {
 				<HighlightCodeBlock
 					language={
 						props.className
-							? props.className.split('language-').pop() ?? 'js'
+							? (props.className.split('language-').pop() ?? 'js')
 							: 'js'
 					}
 					text={props.children}

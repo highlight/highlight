@@ -1,9 +1,9 @@
 import '@fontsource/poppins'
 import '@highlight-run/ui/styles.css'
+import 'rrweb/dist/style.css'
+import './__generated/antd.css'
 import './index.css'
 import './style/tailwind.css'
-import './__generated/antd.css'
-import 'rrweb/dist/style.css'
 
 import { ApolloError, ApolloProvider } from '@apollo/client'
 import { AuthContextProvider, AuthRole } from '@authentication/AuthContext'
@@ -51,6 +51,7 @@ import { OTLP_ENDPOINT, PUBLIC_GRAPH_URI } from '@/constants'
 import { SIGN_IN_ROUTE } from '@/pages/Auth/AuthRouter'
 import { authRedirect } from '@/pages/Auth/utils'
 import { onlyAllowHighlightStaff } from '@/util/authorization/authorizationUtils'
+import { omit } from 'lodash'
 
 document.body.className = 'highlight-light-theme'
 
@@ -366,6 +367,15 @@ const AuthenticationRoleRouter = () => {
 				analytics.identify(adminData.id, {
 					'Project ID': data.project?.id,
 					'Workspace ID': data.project?.workspace?.id,
+					...Object.entries(omit(adminData, ['__typename'])).reduce(
+						(acc, [key, value]) => {
+							if (value) {
+								acc[key] = value.toString()
+							}
+							return acc
+						},
+						{} as Record<string, string>,
+					),
 				})
 			},
 		})
@@ -383,7 +393,7 @@ const AuthenticationRoleRouter = () => {
 		<AuthContextProvider
 			value={{
 				role: authRole,
-				admin: isLoggedIn ? adminData ?? undefined : undefined,
+				admin: isLoggedIn ? (adminData ?? undefined) : undefined,
 				workspaceRole: adminRole || undefined,
 				isAuthLoading,
 				isLoggedIn,

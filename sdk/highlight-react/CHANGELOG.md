@@ -1,5 +1,44 @@
 # @highlight-run/react
 
+## 5.0.4
+
+### Patch Changes
+
+-   Updated dependencies [02f67d0]
+    -   highlight.run@9.3.4
+
+## 5.0.3
+
+### Patch Changes
+
+-   Updated dependencies [5cc0afd]
+    -   highlight.run@9.3.3
+
+## 5.0.2
+
+### Patch Changes
+
+-   Updated dependencies [be38f68]
+-   Updated dependencies [2339697]
+-   Updated dependencies [bbbaeb1]
+    -   highlight.run@9.3.2
+
+## 5.0.1
+
+### Patch Changes
+
+-   Updated dependencies [262a07314]
+    -   highlight.run@9.3.1
+
+## 5.0.0
+
+### Patch Changes
+
+-   Updated dependencies [d2e00028a]
+-   Updated dependencies [0a8a9ffdc]
+-   Updated dependencies [0a8a9ffdc]
+    -   highlight.run@9.3.0
+
 ## 4.0.2
 
 ### Patch Changes

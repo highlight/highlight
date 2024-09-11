@@ -1,0 +1,72 @@
+name: .NET SDK
+
+on:
+    push:
+        branches: ['main']
+    pull_request:
+        types: [opened, synchronize]
+        paths:
+            - 'sdk/highlight-dotnet/**'
+            - 'sdk/highlight-dotnet4/**'
+            - '.github/workflows/dotnet.yml'
+
+concurrency: ${{ github.workflow }}-${{ github.ref }}
+jobs:
+    build-dotnet:
+        name: ASP.NET Core SDK
+        runs-on: ubuntu-latest
+        defaults:
+            run:
+                working-directory: ./sdk/highlight-dotnet
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v4
+              with:
+                  submodules: recursive
+
+            - name: Setup .NET environment
+              uses: actions/setup-dotnet@v4
+              with:
+                  dotnet-version: 8.x
+
+            - name: Build solution and generate NuGet package
+              run: dotnet pack -c Release -o out
+
+            - name: Push generated package to NuGet registry
+              if: github.ref == 'refs/heads/main'
+              run: dotnet nuget push out/*.nupkg -k $NUGET_AUTH_TOKEN -s https://api.nuget.org/v3/index.json
+              env:
+                  NUGET_AUTH_TOKEN: ${{ secrets.NUGET_API_KEY }}
+
+    build-dotnet4:
+        name: ASP.NET4 SDK
+        runs-on: ubuntu-latest
+        defaults:
+            run:
+                working-directory: ./sdk/highlight-dotnet4
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v4
+              with:
+                  submodules: recursive
+
+            - name: Setup .NET environment
+              run: |
+                  sudo gpg --homedir /tmp --no-default-keyring --keyring /usr/share/keyrings/mono-official-archive-keyring.gpg --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys 3FA7E0328081BFF6A14DA29AA6A19B38D3D831EF
+                  echo "deb [signed-by=/usr/share/keyrings/mono-official-archive-keyring.gpg] https://download.mono-project.com/repo/ubuntu stable-focal main" | sudo tee /etc/apt/sources.list.d/mono-official-stable.list
+                  sudo apt update && sudo apt install -y mono-complete mono-xsp4 nuget
+
+            - name: NuGet Restore
+              run: nuget restore
+
+            - name: Build
+              run: xbuild
+
+            - name: Build solution and generate NuGet package
+              run: nuget pack
+
+            - name: Push generated package to NuGet registry
+              if: github.ref == 'refs/heads/main'
+              run: nuget push *.nupkg -ApiKey $NUGET_AUTH_TOKEN -Source https://api.nuget.org/v3/index.json
+              env:
+                  NUGET_AUTH_TOKEN: ${{ secrets.NUGET_API_KEY }}

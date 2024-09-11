@@ -133,14 +133,14 @@ export const IntegrationBar: React.FC<Props> = ({ integrationData }) => {
 		area === 'client'
 			? sessionData?.sessions.sessions[0]
 			: area === 'backend'
-			? errorGroupData?.error_groups.error_groups[0]
-			: undefined
+				? errorGroupData?.error_groups.error_groups[0]
+				: undefined
 	const alert =
 		area === 'alerts'
-			? alertsData?.new_session_alerts[0] ??
-			  alertsData?.error_alerts[0] ??
-			  alertsData?.log_alerts[0] ??
-			  undefined
+			? (alertsData?.new_session_alerts[0] ??
+				alertsData?.error_alerts[0] ??
+				alertsData?.log_alerts[0] ??
+				undefined)
 			: undefined
 	const path = buildResourcePath(area!, projectId, resource, alert)
 	const complete = path && integrated

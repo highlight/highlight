@@ -14,7 +14,7 @@ import { getAttributionData } from '@util/attribution'
 import { isProjectWithinTrial } from '@util/billing/billing'
 import clsx from 'clsx'
 import { AnimatePresence, motion } from 'framer-motion'
-import React, { useState } from 'react'
+import { useState } from 'react'
 import { InlineWidget } from 'react-calendly'
 import { createPortal } from 'react-dom'
 import { useHotkeys } from 'react-hotkeys-hook'
@@ -22,6 +22,7 @@ import { useHotkeys } from 'react-hotkeys-hook'
 import { styledVerticalScrollbar } from '@/style/common.css'
 
 import * as style from './styles.css'
+import { DEMO_PROJECT_ID } from '@components/DemoWorkspaceButton/DemoWorkspaceButton'
 
 interface Referrer {
 	utm_source?: string | null
@@ -149,6 +150,7 @@ export function CalendlyButton({
 		variables: {
 			project_id: projectId,
 		},
+		skip: !projectId || projectId === DEMO_PROJECT_ID,
 	})
 	const [calendlyOpen, setCalendlyOpen] = useState(false)
 	const hasTrial = isProjectWithinTrial(data?.project?.workspace)

@@ -73,6 +73,7 @@ export const useClientIntegration = () => {
 				data?.clientIntegration.integrated
 			) {
 				analytics.track('integrated-client', { id: projectId })
+				analytics.trackGaEvent('integrated_client')
 			}
 
 			setLocalStorageIntegrated({
@@ -127,6 +128,7 @@ export const useServerIntegration = () => {
 				data?.serverIntegration.integrated
 			) {
 				analytics.track('integrated-server', { id: projectId })
+				analytics.trackGaEvent('integrated_server')
 			}
 
 			setLocalStorageIntegrated({
@@ -181,6 +183,7 @@ export const useLogsIntegration = () => {
 				data?.logsIntegration.integrated
 			) {
 				analytics.track('integrated-logs', { id: projectId })
+				analytics.trackGaEvent('integrated_logs')
 			}
 
 			setLocalStorageIntegrated({
@@ -235,6 +238,7 @@ export const useTracesIntegration = () => {
 				data?.tracesIntegration.integrated
 			) {
 				analytics.track('integrated-traces', { id: projectId })
+				analytics.trackGaEvent('integrated_traces')
 			}
 
 			setLocalStorageIntegrated({
@@ -293,7 +297,8 @@ export const useAlertsIntegration = () => {
 				(data?.user_properties_alerts?.length ?? 0) >
 			0
 		) {
-			analytics.track('integrated-logs', { id: projectId })
+			analytics.track('integrated-alerts', { id: projectId })
+			analytics.trackGaEvent('integrated_alerts')
 
 			setLocalStorageIntegrated({
 				loading: false,
@@ -355,6 +360,7 @@ export const useTeamIntegration = () => {
 	useEffect(() => {
 		if ((data?.admins.length ?? 0) > 1) {
 			analytics.track('integrated-team', { id: projectId })
+			analytics.trackGaEvent('integrated_team')
 
 			setLocalStorageIntegrated({
 				loading: false,

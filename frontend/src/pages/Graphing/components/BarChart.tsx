@@ -1,8 +1,8 @@
 import { useId } from 'react'
 import {
 	Bar,
-	BarChart as RechartsBarChart,
 	CartesianGrid,
+	BarChart as RechartsBarChart,
 	ResponsiveContainer,
 	XAxis,
 	YAxis,

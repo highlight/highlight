@@ -35,7 +35,7 @@ const JiraProjectAndIssueTypeSelector: React.FC<ContainerSelectionProps> = ({
 	const selectedJiraProject = selectedJiraProjectId
 		? (data?.jira_projects || []).find(
 				(p) => p.id === selectedJiraProjectId,
-		  )
+			)
 		: null
 
 	const jiraIssueTypeOptions = (selectedJiraProject?.issueTypes || []).map(

@@ -1,8 +1,8 @@
-import { Text, Link } from '@react-email/components'
+import { Link, Text } from '@react-email/components'
 import * as React from 'react'
 
-import { EmailHtml, HighlightLogo } from '../components/common'
 import { Break, Footer, textStyle, Title } from '../components/alerts'
+import { EmailHtml, HighlightLogo } from '../components/common'
 
 export interface AlertUpsertEmailProps {
 	adminName?: string
