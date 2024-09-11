@@ -1,10 +1,14 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk.Web">
 
     <PropertyGroup>
-        <TargetFramework>net481</TargetFramework>
         <RootNamespace>Highlight</RootNamespace>
         <ImplicitUsings>enable</ImplicitUsings>
         <IsPackable>true</IsPackable>
+
+        <TargetFramework>net481</TargetFramework>
+        <LangVersion>8.0</LangVersion>
+        <Nullable>enable</Nullable>
+        <NullableContextOptions>enable</NullableContextOptions>
 
         <OutputType>library</OutputType>
         <Version>0.2.0-beta.4</Version>
