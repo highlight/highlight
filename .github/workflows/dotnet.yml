@@ -52,6 +52,8 @@ jobs:
 
             - name: Setup dotnet
               uses: actions/setup-dotnet@v4
+              with:
+                  dotnet-version: 4.6.2
 
             - name: dotnet restore
               run: dotnet restore
