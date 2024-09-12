@@ -22,8 +22,6 @@ import (
 	"golang.org/x/sync/errgroup"
 )
 
-const timeFormat = "2006-01-02T15:04:05.000Z"
-
 var fieldMap = map[string]string{
 	"pages_visited":     "PagesVisited",
 	"viewed_by_me":      "ViewedByAdmins",

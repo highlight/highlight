@@ -52,7 +52,6 @@ type ClickhouseErrorObject struct {
 
 const ErrorGroupsTable = "error_groups"
 const ErrorObjectsTable = "error_objects"
-const errorsTimeRangeField = "error-field_timestamp"
 
 func (client *Client) WriteErrorGroups(ctx context.Context, groups []*model.ErrorGroup) error {
 	chGroups := []interface{}{}
