@@ -186,11 +186,10 @@ func makeSelectBuilder(
 			return nil, err
 		}
 
-		sb.Where(sb.GreaterEqualThan("Timestamp", params.DateRange.StartDate))
-
 		// See https://dba.stackexchange.com/a/206811
 		if pagination.Direction == modelInputs.SortDirectionAsc {
 			sb.Where(sb.GreaterEqualThan("Timestamp", timestamp)).
+				Where(sb.LessEqualThan("Timestamp", params.DateRange.EndDate)).
 				Where(
 					sb.Or(
 						sb.GreaterThan("Timestamp", timestamp),
@@ -199,6 +198,7 @@ func makeSelectBuilder(
 				)
 		} else {
 			sb.Where(sb.LessEqualThan("Timestamp", timestamp)).
+				Where(sb.GreaterEqualThan("Timestamp", params.DateRange.StartDate)).
 				Where(
 					sb.Or(
 						sb.LessThan("Timestamp", timestamp),
@@ -221,11 +221,10 @@ func makeSelectBuilder(
 			return nil, err
 		}
 
-		sb.LessEqualThan("Timestamp", params.DateRange.EndDate)
-
 		// See https://dba.stackexchange.com/a/206811
 		if pagination.Direction == modelInputs.SortDirectionAsc {
 			sb.Where(sb.LessEqualThan("Timestamp", timestamp)).
+				Where(sb.GreaterEqualThan("Timestamp", params.DateRange.StartDate)).
 				Where(
 					sb.Or(
 						sb.LessThan("Timestamp", timestamp),
@@ -234,6 +233,7 @@ func makeSelectBuilder(
 				)
 		} else {
 			sb.Where(sb.GreaterEqualThan("Timestamp", timestamp)).
+				Where(sb.LessEqualThan("Timestamp", params.DateRange.EndDate)).
 				Where(
 					sb.Or(
 						sb.GreaterThan("Timestamp", timestamp),
