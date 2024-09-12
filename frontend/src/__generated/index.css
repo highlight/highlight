@@ -6602,6 +6602,17 @@ body {
   display: flex;
   align-items: center;
 }
+._7o1fd80 {
+  width: 100%;
+  height: 28px;
+  border-radius: 6px;
+}
+._7o1fd81 {
+  flex: 1;
+}
+._7o1fd82 {
+  line-height: 24px;
+}
 ._11t98zr0 {
   border-bottom: var(--_1pyqka9k) solid 1px;
 }

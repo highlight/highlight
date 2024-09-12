@@ -8,6 +8,7 @@ import {
 	IconSolidClock,
 	Input,
 	presetStartDate,
+	Select,
 	TagSwitchGroup,
 	Text,
 } from '@highlight-run/ui/components'
@@ -73,6 +74,7 @@ import * as style from './GraphingEditor.css'
 import { LabeledRow } from './LabeledRow'
 import { OptionDropdown } from './OptionDropdown'
 import { BarChartSettings, LineChartSettings, TableSettings } from './Settings'
+import { FREQUENCIES } from '@/pages/Alerts/AlertConfigurationCard/AlertConfigurationConstants'
 
 type BucketBy = 'None' | 'Interval' | 'Count'
 const BUCKET_BY_OPTIONS: BucketBy[] = ['None', 'Interval', 'Count']
@@ -229,6 +231,8 @@ export const GraphingEditor: React.FC = () => {
 			graphInput.id = graph_id
 		}
 
+		console.log('graphInput', graphInput)
+
 		upsertGraph({
 			variables: {
 				graph: graphInput,
@@ -365,6 +369,8 @@ export const GraphingEditor: React.FC = () => {
 	const [bucketInterval, setBucketInterval] = useState(
 		DEFAULT_BUCKET_INTERVAL,
 	)
+
+	console.log('bucketInterval', bucketInterval)
 
 	const [completed, setCompleted] = useState(!isEdit)
 
@@ -809,21 +815,18 @@ export const GraphingEditor: React.FC = () => {
 									)}
 									{bucketBySetting === 'Interval' && (
 										<LabeledRow
-											label="Bucket interval (seconds)"
+											label="Bucket interval"
 											name="bucketInterval"
 											tooltip="The number of X-axis buckets. A higher value will display smaller, more granular buckets."
 										>
-											<Input
-												type="number"
-												name="bucketInterval"
-												placeholder="Enter bucket interval"
+											<Select
+												options={FREQUENCIES}
 												value={bucketInterval}
-												onChange={(e) => {
+												onValueChange={(o) => {
 													setBucketInterval(
-														Number(e.target.value),
+														Number(o.value),
 													)
 												}}
-												cssClass={style.input}
 											/>
 										</LabeledRow>
 									)}
