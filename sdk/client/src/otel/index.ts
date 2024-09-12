@@ -28,6 +28,7 @@ import {
 	sanitizeHeaders,
 } from '../listeners/network-listener/utils/network-sanitizer'
 import {
+	DEFAULT_GRAPH_URI,
 	shouldNetworkRequestBeRecorded,
 	shouldNetworkRequestBeTraced,
 } from '../listeners/network-listener/utils/utils'
@@ -42,8 +43,8 @@ import { UserInteractionInstrumentation } from './user-interaction'
 export type BrowserTracingConfig = {
 	projectId: string | number
 	sessionSecureId: string
+	otlpEndpoint: string
 	backendUrl?: string
-	endpoint?: string
 	environment?: string
 	networkRecordingOptions?: NetworkRecordingOptions
 	serviceName?: string
@@ -63,14 +64,13 @@ export const setupBrowserTracing = (config: BrowserTracingConfig) => {
 	const backendUrl =
 		config.backendUrl ||
 		import.meta.env.REACT_APP_PUBLIC_GRAPH_URI ||
-		'https://pub.highlight.run'
+		DEFAULT_GRAPH_URI
 
 	const urlBlocklist = [
 		...(config.networkRecordingOptions?.urlBlocklist ?? []),
 		...DEFAULT_URL_BLOCKLIST,
 	]
 	const isDebug = import.meta.env.DEBUG === 'true'
-	const endpoint = config.endpoint ?? 'https://otel.highlight.io:4318'
 	const environment = config.environment ?? 'production'
 
 	provider = new WebTracerProvider({
@@ -91,7 +91,7 @@ export const setupBrowserTracing = (config: BrowserTracingConfig) => {
 	}
 
 	const exporter = new OTLPTraceExporterBrowserWithXhrRetry({
-		url: endpoint + '/v1/traces',
+		url: config.otlpEndpoint + '/v1/traces',
 		concurrencyLimit: 10,
 		// Using any because we were getting an error importing CompressionAlgorithm
 		// from @opentelemetry/otlp-exporter-base.
@@ -197,6 +197,7 @@ export const setupBrowserTracing = (config: BrowserTracingConfig) => {
 				new W3CBaggagePropagator(),
 				new CustomTraceContextPropagator({
 					backendUrl,
+					otlpEndpoint: config.otlpEndpoint,
 					tracingOrigins: config.tracingOrigins,
 					urlBlocklist,
 				}),
@@ -217,19 +218,20 @@ class CustomBatchSpanProcessor extends BatchSpanProcessor {
 
 type CustomTraceContextPropagatorConfig = {
 	backendUrl: string
+	otlpEndpoint: string
 	tracingOrigins: BrowserTracingConfig['tracingOrigins']
 	urlBlocklist: string[]
 }
 
 class CustomTraceContextPropagator extends W3CTraceContextPropagator {
-	private backendUrl: string
+	private highlightEndpoints: string[]
 	private tracingOrigins: BrowserTracingConfig['tracingOrigins']
 	private urlBlocklist: string[]
 
 	constructor(config: CustomTraceContextPropagatorConfig) {
 		super()
 
-		this.backendUrl = config.backendUrl
+		this.highlightEndpoints = [config.backendUrl, config.otlpEndpoint]
 		this.tracingOrigins = config.tracingOrigins
 		this.urlBlocklist = config.urlBlocklist
 	}
@@ -248,7 +250,7 @@ class CustomTraceContextPropagator extends W3CTraceContextPropagator {
 		if (typeof url === 'string') {
 			const shouldRecord = shouldRecordRequest(
 				url,
-				this.backendUrl,
+				this.highlightEndpoints,
 				this.tracingOrigins,
 				this.urlBlocklist,
 			)
@@ -360,7 +362,7 @@ const enhanceSpanWithHttpRequestAttributes = (
 
 const shouldRecordRequest = (
 	url: string,
-	backendUrl: string,
+	highlightEndpoints: string[],
 	tracingOrigins: BrowserTracingConfig['tracingOrigins'],
 	urlBlocklist: string[],
 ) => {
@@ -377,7 +379,7 @@ const shouldRecordRequest = (
 	// these two functions and refactor some of the request filtering logic.
 	const shouldRecord = shouldNetworkRequestBeRecorded(
 		url,
-		backendUrl,
+		highlightEndpoints,
 		tracingOrigins,
 	)
 	if (!shouldRecord) {

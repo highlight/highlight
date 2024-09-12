@@ -247,22 +247,28 @@ export const matchPerformanceTimingsWithRequestResponsePair = (
  * Returns true if the name is a Highlight network resource.
  * This is used to filter out Highlight requests/responses from showing up on end application's network resources.
  */
-const isHighlightNetworkResourceFilter = (name: string, backendUrl: string) =>
+const isHighlightNetworkResourceFilter = (
+	name: string,
+	highlightEndpoints: string[],
+) =>
 	name
 		.toLocaleLowerCase()
 		.includes(
 			import.meta.env.REACT_APP_PUBLIC_GRAPH_URI ?? 'highlight.io',
 		) ||
 	name.toLocaleLowerCase().includes('highlight.io') ||
-	name.toLocaleLowerCase().includes(backendUrl)
+	highlightEndpoints.some((backendUrl) =>
+		name.toLocaleLowerCase().includes(backendUrl),
+	)
+// TODO: Add OTeL endpoint to the filter
 
 export const shouldNetworkRequestBeRecorded = (
 	url: string,
-	highlightBackendUrl: string,
+	highlightEndpoints: string[],
 	tracingOrigins?: boolean | (string | RegExp)[],
 ) => {
 	return (
-		!isHighlightNetworkResourceFilter(url, highlightBackendUrl) ||
+		!isHighlightNetworkResourceFilter(url, highlightEndpoints) ||
 		shouldNetworkRequestBeTraced(url, tracingOrigins)
 	)
 }

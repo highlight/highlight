@@ -24,7 +24,7 @@ export interface BrowserXHR extends XMLHttpRequest {
  */
 export const XHRListener = (
 	callback: NetworkListenerCallback,
-	backendUrl: string,
+	highlightEndpoints: string[],
 	tracingOrigins: boolean | (string | RegExp)[],
 	urlBlocklist: string[],
 	bodyKeysToRedact: string[],
@@ -71,7 +71,7 @@ export const XHRListener = (
 		if (
 			!shouldNetworkRequestBeRecorded(
 				this._url,
-				backendUrl,
+				highlightEndpoints,
 				tracingOrigins,
 			)
 		) {
