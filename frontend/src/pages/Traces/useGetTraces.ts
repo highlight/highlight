@@ -28,33 +28,17 @@ export const useGetTraces = ({
 	startDate: Date
 	endDate: Date
 	skipPolling?: boolean
-<<<<<<< HEAD
-	sortColumn?: string | null
-	sortDirection?: Types.SortDirection | null
-=======
 	sortColumn?: string
 	sortDirection?: Types.SortDirection
->>>>>>> spenny/fix-logging-ordering
 	skip?: boolean
 }) => {
 	const [loadingAfter, setLoadingAfter] = useState(false)
-<<<<<<< HEAD
-
-	useEffect(() => {
-		setWindowInfo(initialWindowInfo)
-	}, [query, startDate, endDate])
-=======
->>>>>>> spenny/fix-logging-ordering
 
 	const { data, loading, error, refetch, fetchMore } = useGetTracesQuery({
 		variables: {
 			project_id: projectId!,
 			at: traceCursor,
-<<<<<<< HEAD
-			direction: sortDirection!,
-=======
 			direction: sortDirection,
->>>>>>> spenny/fix-logging-ordering
 			params: {
 				query,
 				date_range: {
@@ -62,13 +46,8 @@ export const useGetTraces = ({
 					end_date: moment(endDate).format(TIME_FORMAT),
 				},
 				sort: {
-<<<<<<< HEAD
-					column: sortColumn!,
-					direction: sortDirection!,
-=======
 					column: sortColumn,
 					direction: sortDirection,
->>>>>>> spenny/fix-logging-ordering
 				},
 			},
 		},
