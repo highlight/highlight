@@ -133,6 +133,26 @@ class HighlightTest < Minitest::Test
     assert_match(/<meta name="traceparent" content="00-[a-f0-9]{32}-[a-f0-9]{16}-01">/, meta_tag)
   end
 
+  def test_with_highlight_context_when_not_initialized
+    Highlight::H.instance_variable_set(:@instance, nil)
+
+    controller = OpenStruct.new(request: OpenStruct.new(method: 'GET', path: '/test', headers: {}), cookies: {})
+    controller.extend(Highlight::Integrations::Rails)
+
+    error = nil
+    begin
+      controller.with_highlight_context do
+        'Test action'
+      end
+    rescue StandardError => e
+      error = e
+    end
+    assert_equal(nil, error)
+
+    result = controller.with_highlight_context { 'Test result' }
+    assert_equal('Test result', result)
+  end
+
   def test_parse_headers
     headers = {}
     headers[Highlight::H::HIGHLIGHT_REQUEST_HEADER] = 'session123/request456'
