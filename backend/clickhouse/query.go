@@ -771,13 +771,7 @@ func (client *Client) ReadMetrics(ctx context.Context, input ReadMetricsInput) (
 		return nil, err
 	}
 
-	// Base fields for sessions queries, needed if body filter is used - should clean this up, maybe make these top-level?
-	attributeFields := []string{"email", "device_id"}
-	for _, f := range filters {
-		if f.Column == config.AttributesColumn {
-			attributeFields = append(attributeFields, f.Key)
-		}
-	}
+	attributeFields := getAttributeFields(SessionsJoinedTableConfig, filters)
 
 	applyBlockFilter(fromSb, input)
 
@@ -909,17 +903,7 @@ func (client *Client) ReadMetrics(ctx context.Context, input ReadMetricsInput) (
 			From(config.TableName).
 			Select(strings.Join(colStrs, ", "))
 
-		if config.AttributesTable != "" {
-			joinSb := sqlbuilder.NewSelectBuilder()
-			joinSb.From(config.AttributesTable).
-				Select(fmt.Sprintf("SessionID, groupArray(tuple(Name, Value)) AS %s", config.AttributesColumn)).
-				Where(joinSb.In("ProjectID", input.ProjectIDs)).
-				Where(joinSb.GreaterEqualThan("SessionCreatedAt", startTimestamp)).
-				Where(joinSb.LessEqualThan("SessionCreatedAt", endTimestamp)).
-				Where(joinSb.In("Name", attributeFields)).
-				GroupBy("SessionID")
-			innerSb.JoinWithOption(sqlbuilder.InnerJoin, innerSb.BuilderAs(joinSb, "join"), "ID = SessionID")
-		}
+		addAttributes(SessionsJoinedTableConfig, attributeFields, input.ProjectIDs, input.Params, innerSb)
 
 		innerSb.Where(innerSb.In("ProjectId", input.ProjectIDs)).
 			Where(innerSb.GreaterEqualThan("Timestamp", startTimestamp)).
@@ -952,18 +936,7 @@ func (client *Client) ReadMetrics(ctx context.Context, input ReadMetricsInput) (
 		groupByCols = append(groupByCols, strconv.Itoa(i))
 	}
 
-	if config.AttributesTable != "" {
-		joinSb := sqlbuilder.NewSelectBuilder()
-		// Columns are specific to fields table right now, could be config driven in future
-		joinSb.From(config.AttributesTable).
-			Select(fmt.Sprintf("SessionID, groupArray(tuple(Name, Value)) AS %s", config.AttributesColumn)).
-			Where(joinSb.In("ProjectID", input.ProjectIDs)).
-			Where(joinSb.GreaterEqualThan("SessionCreatedAt", startTimestamp)).
-			Where(joinSb.LessEqualThan("SessionCreatedAt", endTimestamp)).
-			Where(joinSb.In("Name", attributeFields)).
-			GroupBy("SessionID")
-		fromSb.JoinWithOption(sqlbuilder.InnerJoin, fromSb.BuilderAs(joinSb, "join"), "ID = SessionID")
-	}
+	addAttributes(config, attributeFields, input.ProjectIDs, input.Params, fromSb)
 
 	innerSb := fromSb
 	fromSb = sqlbuilder.NewSelectBuilder()
