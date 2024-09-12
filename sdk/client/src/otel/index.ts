@@ -28,7 +28,6 @@ import {
 	sanitizeHeaders,
 } from '../listeners/network-listener/utils/network-sanitizer'
 import {
-	DEFAULT_GRAPH_URI,
 	shouldNetworkRequestBeRecorded,
 	shouldNetworkRequestBeTraced,
 } from '../listeners/network-listener/utils/utils'
@@ -39,6 +38,7 @@ import {
 import type { NetworkRecordingOptions } from '../types/client'
 import { OTLPTraceExporterBrowserWithXhrRetry } from './exporter'
 import { UserInteractionInstrumentation } from './user-interaction'
+import { DEFAULT_GRAPH_URI } from 'index'
 
 export type BrowserTracingConfig = {
 	projectId: string | number
