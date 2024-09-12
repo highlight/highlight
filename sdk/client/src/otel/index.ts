@@ -38,7 +38,7 @@ import {
 import type { NetworkRecordingOptions } from '../types/client'
 import { OTLPTraceExporterBrowserWithXhrRetry } from './exporter'
 import { UserInteractionInstrumentation } from './user-interaction'
-import { DEFAULT_GRAPH_URI } from 'index'
+import { DEFAULT_GRAPH_URI } from '../index'
 
 export type BrowserTracingConfig = {
 	projectId: string | number
