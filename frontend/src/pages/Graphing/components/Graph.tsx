@@ -100,6 +100,7 @@ export interface ChartProps<TConfig> {
 	limitMetric?: string
 	viewConfig: TConfig
 	disabled?: boolean
+	height?: number
 	setTimeRange?: SetTimeRange
 	loadExemplars?: LoadExemplars
 }
@@ -688,6 +689,7 @@ const Graph = ({
 	title,
 	viewConfig,
 	disabled,
+	height,
 	setTimeRange,
 	selectedPreset,
 	children,
@@ -984,10 +986,11 @@ const Graph = ({
 			</Box>
 			{called && (
 				<Box
-					height="full"
-					maxHeight="screen"
+					style={{ height: height ?? '100%' }}
 					key={series.join(';')} // Hacky but recharts' ResponsiveContainer has issues when this height changes so just rerender the whole thing
-					cssClass={clsx({ [style.disabled]: disabled })}
+					cssClass={clsx({
+						[style.disabled]: disabled,
+					})}
 					position="relative"
 				>
 					{loading && (

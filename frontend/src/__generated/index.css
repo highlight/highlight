@@ -6615,10 +6615,8 @@ body {
 }
 ._11t98zr0 {
   border-bottom: var(--_1pyqka9k) solid 1px;
-  height: 280px;
 }
 ._11t98zr1 {
-  height: 100%;
   background-color: #ffffff;
 }
 ._11t98zr2 {
@@ -6798,7 +6796,6 @@ body {
   width: 100%;
   height: 100%;
   padding: 8px 28px;
-  grid-template-rows: repeat(auto-fill, 280px);
 }
 ._1a4jm566 > div {
   width: 100%;

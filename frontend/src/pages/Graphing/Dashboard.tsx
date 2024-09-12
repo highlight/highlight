@@ -580,6 +580,7 @@ export const Dashboard = () => {
 															setTimeRange={
 																updateSearchTime
 															}
+															height={280}
 														/>
 													</DashboardCard>
 												)
