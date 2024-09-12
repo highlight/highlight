@@ -275,12 +275,13 @@ export const GraphingEditor: React.FC = () => {
 		})
 	}
 
-	const { loading: metaLoading } = useGetVisualizationQuery({
+	useGetVisualizationQuery({
 		variables: {
 			id: dashboard_id!,
 		},
 		skip: !isEdit,
 		onCompleted: (data) => {
+			setCompleted(true)
 			const g = data.visualization.graphs.find((g) => g.id === graph_id)
 			if (g === undefined) {
 				return
@@ -365,6 +366,8 @@ export const GraphingEditor: React.FC = () => {
 		DEFAULT_BUCKET_INTERVAL,
 	)
 
+	const [completed, setCompleted] = useState(!isEdit)
+
 	tempMetricViewTitle.current = useMemo(() => {
 		let newViewTitle = ''
 		const stringifiedFunctionType = functionType?.toString() ?? ''
@@ -401,7 +404,7 @@ export const GraphingEditor: React.FC = () => {
 		}
 	}, [endDate, productType, startDate])
 
-	if (metaLoading) {
+	if (!completed) {
 		return null
 	}
 
