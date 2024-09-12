@@ -149,12 +149,19 @@ query GetAdmin {
 }
 """
 
-GET_SESSIONS_CLICKHOUSE = """
-query GetSessionsClickhouse($project_id: ID!, $count: Int!, $query: ClickhouseQuery!, $sort_desc: Boolean!, $sort_field: String, $page: Int) {
-  sessions_clickhouse(
+GET_SESSIONS = """
+query GetSessions(
+  $project_id: ID!
+  $count: Int!
+  $params: QueryInput!
+  $sort_desc: Boolean!
+  $sort_field: String
+  $page: Int
+) {
+  sessions(
     project_id: $project_id
     count: $count
-    query: $query
+    params: $params
     sort_field: $sort_field
     sort_desc: $sort_desc
     page: $page
@@ -190,7 +197,6 @@ query GetSessionsClickhouse($project_id: ID!, $count: Int!, $query: ClickhouseQu
         value
         type
         id
-        __typename
       }
       first_time
       user_properties
@@ -198,10 +204,9 @@ query GetSessionsClickhouse($project_id: ID!, $count: Int!, $query: ClickhouseQu
       last_user_interaction_time
       is_public
       excluded
-      __typename
+      email
     }
     totalCount
-    __typename
   }
 }
 """

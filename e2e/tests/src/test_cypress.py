@@ -4,7 +4,7 @@ from datetime import datetime, timedelta, timezone
 import requests
 
 from query_gql import (
-    GET_SESSIONS_CLICKHOUSE,
+    GET_SESSIONS,
     GET_SESSION,
     GET_SESSION_INTERVALS,
     GET_EVENT_CHUNKS,
@@ -43,21 +43,19 @@ def validate_session(data: dict[str, any]):
 def test_cypress_session_attributes(oauth_api):
     data = query(
         oauth_api,
-        "GetSessionsClickhouse",
-        GET_SESSIONS_CLICKHOUSE,
+        "GetSessions",
+        GET_SESSIONS,
         variables_fn=lambda ts: {
-            "query": {
-                "isAnd": True,
-                "rules": [],
-                "dateRange": {
+            "params": {
+                "query": "",
+                "date_range": {
                     "start_date": (datetime.now() - timedelta(days=1)).strftime(
-                        "%Y-%m-%dT%H:%M:%S.%fZ"
-                    ),
-                    # TODO(vkorolik) investigate why the filtering is not precise (time zone issue?)
+                    "%Y-%m-%dT%H:%M:%S.%fZ"
+                ),
                     "end_date": (datetime.now() + timedelta(days=1)).strftime(
-                        "%Y-%m-%dT%H:%M:%S.%fZ"
-                    ),
-                },
+                    "%Y-%m-%dT%H:%M:%S.%fZ"
+                ),
+                }
             },
             "count": 1_000,
             "page": 1,

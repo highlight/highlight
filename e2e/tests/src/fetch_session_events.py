@@ -6,7 +6,7 @@ import requests
 from query_gql import (
     GET_SESSION,
     GET_SESSION_INTERVALS,
-    GET_SESSIONS_CLICKHOUSE,
+    GET_SESSIONS,
     GET_EVENT_CHUNKS,
     GET_EVENT_CHUNK_URL,
 )
@@ -40,6 +40,10 @@ def perform_oauth_flow():
 
     return params["access_token"]
 
+  $params: QueryInput!
+  $sort_desc: Boolean!
+  $sort_field: String
+  $page: Int
 
 def main():
     auth = perform_oauth_flow()
@@ -47,24 +51,23 @@ def main():
     r = requests.post(
         API_URL,
         json={
-            "operationName": "GetSessionsClickhouse",
+            "operationName": "GetSessions",
             "variables": {
-                "query": {
-                    "isAnd": True,
-                    "rules": [],
-                    "dateRange": {
+                "project_id": PROJECT_ID,
+                "count": 1_000,
+                "page": 1,
+                "params": {
+                    "query": "",
+                    "date_range": {
                         "start_date": (datetime.now() - timedelta(days=90)).strftime(
                             "%Y-%m-%dT%H:%M:%S.%fZ"
                         ),
                         "end_date": datetime.now().strftime("%Y-%m-%dT%H:%M:%S.%fZ"),
-                    },
+                    }
                 },
-                "count": 1_000,
-                "page": 1,
-                "project_id": PROJECT_ID,
                 "sort_desc": True,
             },
-            "query": GET_SESSIONS_CLICKHOUSE,
+            "query": GET_SESSIONS,
         },
         headers={"Authorization": f"Bearer {auth}"},
     )
