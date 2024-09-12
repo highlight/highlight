@@ -96,7 +96,7 @@ export const useGetTraces = ({
 		GetTracesQueryVariables
 	>({
 		maxResults: MAX_TRACES,
-		skip: skipPolling || true,
+		skip: skipPolling,
 		variableFn: useCallback(
 			() => ({
 				project_id: projectId!,

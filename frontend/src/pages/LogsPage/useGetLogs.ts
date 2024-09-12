@@ -105,7 +105,7 @@ export const useGetLogs = ({
 		GetLogsQueryVariables
 	>({
 		maxResults: MAX_LOGS,
-		skip: disablePolling || true,
+		skip: disablePolling,
 		variableFn: useCallback(
 			() => ({
 				project_id: project_id!,
