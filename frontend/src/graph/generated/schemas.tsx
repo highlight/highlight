@@ -308,12 +308,6 @@ export type ClickUpTeam = {
 	spaces: Array<ClickUpSpace>
 }
 
-export type ClickhouseQuery = {
-	dateRange: DateRangeRequiredInput
-	isAnd: Scalars['Boolean']
-	rules: Array<Array<Scalars['String']>>
-}
-
 export type CommentReply = {
 	__typename?: 'CommentReply'
 	author: SanitizedAdmin
@@ -2096,7 +2090,6 @@ export type Query = {
 	error_field_suggestion?: Maybe<Array<Maybe<ErrorField>>>
 	error_group?: Maybe<ErrorGroup>
 	error_groups: ErrorResults
-	error_groups_clickhouse: ErrorResults
 	error_instance?: Maybe<ErrorInstance>
 	error_issue: Array<Maybe<ExternalAttachment>>
 	error_object?: Maybe<ErrorObject>
@@ -2106,7 +2099,6 @@ export type Query = {
 	error_tags?: Maybe<Array<Maybe<ErrorTag>>>
 	errors?: Maybe<Array<Maybe<ErrorObject>>>
 	errors_histogram: ErrorsHistogram
-	errors_histogram_clickhouse: ErrorsHistogram
 	errors_key_values: Array<Scalars['String']>
 	errors_keys: Array<QueryKey>
 	errors_metrics: MetricsBuckets
@@ -2383,13 +2375,6 @@ export type QueryError_GroupsArgs = {
 	project_id: Scalars['ID']
 }
 
-export type QueryError_Groups_ClickhouseArgs = {
-	count: Scalars['Int']
-	page?: InputMaybe<Scalars['Int']>
-	project_id: Scalars['ID']
-	query: ClickhouseQuery
-}
-
 export type QueryError_InstanceArgs = {
 	error_group_secure_id: Scalars['String']
 	error_object_id?: InputMaybe<Scalars['ID']>
@@ -2428,12 +2413,6 @@ export type QueryErrors_HistogramArgs = {
 	histogram_options: DateHistogramOptions
 	params: QueryInput
 	project_id: Scalars['ID']
-}
-
-export type QueryErrors_Histogram_ClickhouseArgs = {
-	histogram_options: DateHistogramOptions
-	project_id: Scalars['ID']
-	query: ClickhouseQuery
 }
 
 export type QueryErrors_Key_ValuesArgs = {

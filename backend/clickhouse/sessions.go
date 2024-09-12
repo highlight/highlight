@@ -142,8 +142,6 @@ const SessionsJoinedTable = "sessions_joined_vw"
 const SessionsTable = "sessions"
 const FieldsTable = "fields"
 const SessionKeysTable = "session_keys"
-const timeRangeField = "custom_created_at"
-const sampleField = "custom_sample"
 
 func (client *Client) WriteSessions(ctx context.Context, sessions []*model.Session) error {
 	chFields := []interface{}{}
