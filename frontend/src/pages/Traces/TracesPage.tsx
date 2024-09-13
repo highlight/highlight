@@ -108,7 +108,7 @@ export const TracesPage: React.FC = () => {
 		startDate: searchTimeContext.startDate,
 		endDate: searchTimeContext.endDate,
 		skipPolling,
-		sortColumn,
+		sortColumn: sortColumn || undefined,
 		sortDirection: sortDirection as SortDirection,
 	})
 
