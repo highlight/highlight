@@ -255,7 +255,7 @@ export const GraphingEditor: React.FC = () => {
 				cache.modify({
 					id: vizId,
 					fields: {
-						graphs(existing: any[] = []) {
+						graphs(existing = []) {
 							return existing.concat([{ __ref: graphId }])
 						},
 					},
