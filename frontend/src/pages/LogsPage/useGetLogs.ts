@@ -161,38 +161,43 @@ export const useGetLogs = ({
 
 	// eslint-disable-next-line react-hooks/exhaustive-deps
 	const fetchMoreForward = useCallback(
-		debounce(async () => {
-			const { hasNextPage, endCursor } = data?.logs.pageInfo || {}
-			if (!hasNextPage || loadingAfter || !endCursor) {
-				return
-			}
+		debounce(
+			async () => {
+				const { hasNextPage, endCursor } = data?.logs.pageInfo || {}
+				if (!hasNextPage || loadingAfter || !endCursor) {
+					return
+				}
 
-			setLoadingAfter(true)
+				setLoadingAfter(true)
 
-			await fetchMore({
-				variables: { after: endCursor },
-				updateQuery: (prevResult, { fetchMoreResult }) => {
-					return {
-						logs: {
-							...prevResult.logs,
-							edges: [
-								...prevResult.logs.edges,
-								...fetchMoreResult.logs.edges,
-							],
-							pageInfo: {
-								...prevResult.logs.pageInfo,
-								hasNextPage:
-									fetchMoreResult.logs.pageInfo.hasNextPage,
-								endCursor:
-									fetchMoreResult.logs.pageInfo.endCursor,
+				await fetchMore({
+					variables: { after: endCursor },
+					updateQuery: (prevResult, { fetchMoreResult }) => {
+						return {
+							logs: {
+								...prevResult.logs,
+								edges: [
+									...prevResult.logs.edges,
+									...fetchMoreResult.logs.edges,
+								],
+								pageInfo: {
+									...prevResult.logs.pageInfo,
+									hasNextPage:
+										fetchMoreResult.logs.pageInfo
+											.hasNextPage,
+									endCursor:
+										fetchMoreResult.logs.pageInfo.endCursor,
+								},
 							},
-						},
-					}
-				},
-			})
+						}
+					},
+				})
 
-			setLoadingAfter(false)
-		}, 500),
+				setLoadingAfter(false)
+			},
+			500,
+			{ leading: true },
+		),
 		[data, fetchMore, loadingAfter],
 	)
 
