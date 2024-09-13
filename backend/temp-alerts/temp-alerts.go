@@ -693,10 +693,10 @@ func SendSlackLogAlert(ctx context.Context, db *gorm.DB, obj *model.LogAlert, in
 
 	alertUrl := GetLogAlertURL(obj.ProjectID, obj.Query, input.StartDate, input.EndDate)
 
-	previewText := fmt.Sprintf("%s fired!", obj.Name)
+	previewText := fmt.Sprintf("%s Alert", obj.Name)
 
 	var headerBlockSet []slack.Block
-	headerBlock := slack.NewTextBlockObject(slack.MarkdownType, fmt.Sprintf("*%s* fired!", obj.Name), false, false)
+	headerBlock := slack.NewTextBlockObject(slack.MarkdownType, fmt.Sprintf("*%s* Alert", obj.Name), false, false)
 	headerBlockSet = append(headerBlockSet, slack.NewSectionBlock(headerBlock, nil, nil))
 
 	var bodyBlockSet []slack.Block
