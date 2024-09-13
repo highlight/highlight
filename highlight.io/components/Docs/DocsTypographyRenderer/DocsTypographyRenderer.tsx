@@ -141,7 +141,7 @@ export const DocsMarkdownRenderer = (
 									: c,
 							),
 							copyHeadingIcon(props?.children?.length ?? 0),
-						] || '',
+						],
 					)
 				)}
 			</>
