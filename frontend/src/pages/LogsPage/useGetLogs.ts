@@ -160,18 +160,11 @@ export const useGetLogs = ({
 	})
 
 	// eslint-disable-next-line react-hooks/exhaustive-deps
-	const fetchMoreForward = useCallback(
+	const fetchMoreLogs = useCallback(
 		debounce(
-			async () => {
-				const { hasNextPage, endCursor } = data?.logs.pageInfo || {}
-				if (!hasNextPage || loadingAfter || !endCursor) {
-					return
-				}
-
-				setLoadingAfter(true)
-
+			async (cursor: string) => {
 				await fetchMore({
-					variables: { after: endCursor },
+					variables: { after: cursor },
 					updateQuery: (prevResult, { fetchMoreResult }) => {
 						return {
 							logs: {
@@ -195,11 +188,22 @@ export const useGetLogs = ({
 
 				setLoadingAfter(false)
 			},
-			500,
-			{ leading: true },
+			300,
+			{ leading: true, trailing: false },
 		),
-		[data, fetchMore, loadingAfter],
+		[fetchMore],
 	)
+
+	const fetchMoreForward = useCallback(async () => {
+		const { hasNextPage, endCursor } = data?.logs.pageInfo || {}
+		if (!hasNextPage || loadingAfter || !endCursor) {
+			return
+		}
+
+		setLoadingAfter(true)
+		await fetchMoreLogs(endCursor)
+		setLoadingAfter(false)
+	}, [data?.logs.pageInfo, fetchMoreLogs, loadingAfter])
 
 	const existingTraceSet = new Set(logRelatedResources?.existing_logs_traces)
 

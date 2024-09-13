@@ -134,18 +134,11 @@ export const useGetTraces = ({
 	})
 
 	// eslint-disable-next-line react-hooks/exhaustive-deps
-	const fetchMoreForward = useCallback(
+	const fetchMoreTraces = useCallback(
 		debounce(
-			async () => {
-				const { hasNextPage, endCursor } = data?.traces.pageInfo || {}
-				if (!hasNextPage || loadingAfter || !endCursor) {
-					return
-				}
-
-				setLoadingAfter(true)
-
+			async (cursor: string) => {
 				await fetchMore({
-					variables: { after: endCursor },
+					variables: { after: cursor },
 					updateQuery: (prevResult, { fetchMoreResult }) => {
 						return {
 							traces: {
@@ -167,14 +160,23 @@ export const useGetTraces = ({
 						}
 					},
 				})
-
-				setLoadingAfter(false)
 			},
-			500,
-			{ leading: true },
+			300,
+			{ leading: true, trailing: false },
 		),
-		[data, fetchMore, loadingAfter],
+		[fetchMore],
 	)
+
+	const fetchMoreForward = useCallback(async () => {
+		const { hasNextPage, endCursor } = data?.traces.pageInfo || {}
+		if (!hasNextPage || loadingAfter || !endCursor) {
+			return
+		}
+
+		setLoadingAfter(true)
+		await fetchMoreTraces(endCursor)
+		setLoadingAfter(false)
+	}, [data?.traces.pageInfo, fetchMoreTraces, loadingAfter])
 
 	return {
 		traceEdges: (data?.traces.edges || []) as TraceEdge[],
