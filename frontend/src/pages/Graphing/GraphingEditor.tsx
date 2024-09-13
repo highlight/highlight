@@ -208,13 +208,14 @@ export const GraphingEditor: React.FC = () => {
 		const graphInput: GraphInput = {
 			visualizationId: dashboard_id!,
 			bucketByKey: getBucketByKey(bucketBySetting, bucketByKey) ?? null,
-			bucketCount: bucketBySetting === 'Count' ? bucketCount : null,
+			bucketCount:
+				bucketBySetting === 'Count' ? Number(bucketCount) : null,
 			bucketInterval:
-				bucketBySetting === 'Interval' ? bucketInterval : null,
+				bucketBySetting === 'Interval' ? Number(bucketInterval) : null,
 			display,
 			functionType,
 			groupByKey: groupByEnabled ? groupByKey : null,
-			limit: groupByEnabled ? limit : null,
+			limit: groupByEnabled ? Number(limit) : null,
 			limitFunctionType: groupByEnabled ? limitFunctionType : null,
 			limitMetric: groupByEnabled ? limitMetric : null,
 			metric,
@@ -355,13 +356,15 @@ export const GraphingEditor: React.FC = () => {
 	const [limitFunctionType, setLimitFunctionType] = useState(
 		FUNCTION_TYPES[0],
 	)
-	const [limit, setLimit] = useState(10)
+	const [limit, setLimit] = useState<number | string>(10)
 	const [limitMetric, setLimitMetric] = useState('')
 
 	const [bucketBySetting, setBucketBySetting] = useState(BUCKET_BY_OPTIONS[2])
 	const [bucketByKey, setBucketByKey] = useState(TIMESTAMP_KEY)
-	const [bucketCount, setBucketCount] = useState(DEFAULT_BUCKET_COUNT)
-	const [bucketInterval, setBucketInterval] = useState(
+	const [bucketCount, setBucketCount] = useState<number | string>(
+		DEFAULT_BUCKET_COUNT,
+	)
+	const [bucketInterval, setBucketInterval] = useState<number | string>(
 		DEFAULT_BUCKET_INTERVAL,
 	)
 
@@ -505,18 +508,20 @@ export const GraphingEditor: React.FC = () => {
 								)}
 								bucketCount={
 									bucketBySetting === 'Count'
-										? bucketCount
+										? Number(bucketCount)
 										: undefined
 								}
 								bucketByWindow={
 									bucketBySetting === 'Interval'
-										? bucketInterval
+										? Number(bucketInterval)
 										: undefined
 								}
 								groupByKey={
 									groupByEnabled ? groupByKey : undefined
 								}
-								limit={groupByEnabled ? limit : undefined}
+								limit={
+									groupByEnabled ? Number(limit) : undefined
+								}
 								limitFunctionType={
 									groupByEnabled
 										? limitFunctionType
@@ -701,11 +706,7 @@ export const GraphingEditor: React.FC = () => {
 													placeholder="Enter limit"
 													value={limit}
 													onChange={(e) => {
-														setLimit(
-															Number(
-																e.target.value,
-															),
-														)
+														setLimit(e.target.value)
 													}}
 													cssClass={style.input}
 												/>
@@ -794,9 +795,7 @@ export const GraphingEditor: React.FC = () => {
 													value={bucketCount}
 													onChange={(e) => {
 														setBucketCount(
-															Number(
-																e.target.value,
-															),
+															e.target.value,
 														)
 													}}
 													cssClass={style.input}
@@ -817,7 +816,7 @@ export const GraphingEditor: React.FC = () => {
 												value={bucketInterval}
 												onChange={(e) => {
 													setBucketInterval(
-														Number(e.target.value),
+														e.target.value,
 													)
 												}}
 												cssClass={style.input}
