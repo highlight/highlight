@@ -1,9 +1,9 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
-VisualStudioVersion = 17.11.35222.181
+VisualStudioVersion = 17.11.35303.130
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Highlight.ASP4", "Highlight.ASP4.csproj", "{D5182278-9644-488F-A757-F17AB8B8E9DC}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Highlight.ASP4", "Highlight.ASP4.csproj", "{D5B07A03-AE92-4903-9831-2FAD682DB66E}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -11,19 +11,15 @@ Global
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{D5182278-9644-488F-A757-F17AB8B8E9DC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{D5182278-9644-488F-A757-F17AB8B8E9DC}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{D5182278-9644-488F-A757-F17AB8B8E9DC}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{D5182278-9644-488F-A757-F17AB8B8E9DC}.Release|Any CPU.Build.0 = Release|Any CPU
-		{25A990F2-9E86-4AAB-B70C-40A4A3D13D9F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{25A990F2-9E86-4AAB-B70C-40A4A3D13D9F}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{25A990F2-9E86-4AAB-B70C-40A4A3D13D9F}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{25A990F2-9E86-4AAB-B70C-40A4A3D13D9F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D5B07A03-AE92-4903-9831-2FAD682DB66E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D5B07A03-AE92-4903-9831-2FAD682DB66E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D5B07A03-AE92-4903-9831-2FAD682DB66E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D5B07A03-AE92-4903-9831-2FAD682DB66E}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
-		SolutionGuid = {630E6DA0-ACEB-400B-8002-156C4FAE96BB}
+		SolutionGuid = {A17FD97E-79FC-4AFC-AFD1-74DEFF2013C1}
 	EndGlobalSection
 EndGlobal
