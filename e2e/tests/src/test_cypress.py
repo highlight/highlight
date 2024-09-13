@@ -50,12 +50,12 @@ def test_cypress_session_attributes(oauth_api):
                 "query": "",
                 "date_range": {
                     "start_date": (datetime.now() - timedelta(days=1)).strftime(
-                    "%Y-%m-%dT%H:%M:%S.%fZ"
-                ),
+                        "%Y-%m-%dT%H:%M:%S.%fZ"
+                    ),
                     "end_date": (datetime.now() + timedelta(days=1)).strftime(
-                    "%Y-%m-%dT%H:%M:%S.%fZ"
-                ),
-                }
+                        "%Y-%m-%dT%H:%M:%S.%fZ"
+                    ),
+                },
             },
             "count": 1_000,
             "page": 1,

@@ -40,6 +40,7 @@ def perform_oauth_flow():
 
     return params["access_token"]
 
+
 def main():
     auth = perform_oauth_flow()
 
@@ -58,7 +59,7 @@ def main():
                             "%Y-%m-%dT%H:%M:%S.%fZ"
                         ),
                         "end_date": datetime.now().strftime("%Y-%m-%dT%H:%M:%S.%fZ"),
-                    }
+                    },
                 },
                 "sort_desc": True,
             },
