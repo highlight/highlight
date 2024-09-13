@@ -1,5 +1,11 @@
 # highlight.run
 
+## 9.3.4
+
+### Patch Changes
+
+-   02f67d0: Fix type error reporting screen orientation
+
 ## 9.3.3
 
 ### Patch Changes

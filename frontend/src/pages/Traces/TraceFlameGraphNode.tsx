@@ -122,9 +122,11 @@ export const TraceFlameGraphNode = memo<Props>(
 				<g
 					transform={`translate(${offsetX}, ${offsetY})`}
 					onClick={() => setSelectedSpan(span)}
-					onMouseOver={() => setHoveredSpan(span)}
+					onMouseOver={(e) => e.buttons === 0 && setHoveredSpan(span)}
+					onMouseMove={(e) =>
+						e.buttons === 0 && setTooltipCoordinates(e)
+					}
 					onMouseOut={() => setHoveredSpan(undefined)}
-					onMouseMove={(e) => setTooltipCoordinates(e)}
 				>
 					<rect
 						key={span.spanID}

@@ -68,7 +68,7 @@ func sendSessionAlert(ctx context.Context, discordGuildId string, alertInput *de
 	embed.Color = GREEN_ALERT
 
 	// HEADER
-	embed.Title = fmt.Sprintf("%s fired!", alertInput.Alert.Name)
+	embed.Title = fmt.Sprintf("%s Alert", alertInput.Alert.Name)
 
 	// BODY
 	// description
@@ -214,7 +214,7 @@ func sendLogAlert(ctx context.Context, discordGuildId string, alertInput *destin
 	embed.Color = YELLOW_ALERT
 
 	// HEADER
-	embed.Title = fmt.Sprintf("%s fired!", alertInput.Alert.Name)
+	embed.Title = fmt.Sprintf("%s Alert", alertInput.Alert.Name)
 
 	// BODY
 	// log data
@@ -278,7 +278,7 @@ func sendTraceAlert(ctx context.Context, discordGuildId string, alertInput *dest
 	embed.Color = ORANGE_ALERT
 
 	// HEADER
-	embed.Title = fmt.Sprintf("%s fired!", alertInput.Alert.Name)
+	embed.Title = fmt.Sprintf("%s Alert", alertInput.Alert.Name)
 
 	// BODY
 	// trace data
@@ -342,7 +342,7 @@ func sendMetricAlert(ctx context.Context, discordGuildId string, alertInput *des
 	embed.Color = BLUE_ALERT
 
 	// HEADER
-	embed.Title = fmt.Sprintf("%s fired!", alertInput.Alert.Name)
+	embed.Title = fmt.Sprintf("%s Alert", alertInput.Alert.Name)
 
 	// BODY
 	// trace data
