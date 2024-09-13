@@ -14,7 +14,7 @@ from util import query
 
 
 def validate_sessions(data: dict[str, any]):
-    sessions = data["sessions_clickhouse"]["sessions"]
+    sessions = data["sessions"]["sessions"]
     assert sessions
 
 
@@ -65,7 +65,7 @@ def test_cypress_session_attributes(oauth_api):
         validator=validate_sessions,
     )
 
-    for session in data["sessions_clickhouse"]["sessions"]:
+    for session in data["sessions"]["sessions"]:
         query(
             oauth_api,
             "GetSession",

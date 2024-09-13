@@ -40,11 +40,6 @@ def perform_oauth_flow():
 
     return params["access_token"]
 
-  $params: QueryInput!
-  $sort_desc: Boolean!
-  $sort_field: String
-  $page: Int
-
 def main():
     auth = perform_oauth_flow()
 
@@ -71,7 +66,7 @@ def main():
         },
         headers={"Authorization": f"Bearer {auth}"},
     )
-    sessions = r.json()["data"]["sessions_clickhouse"]["sessions"]
+    sessions = r.json()["data"]["sessions"]["sessions"]
 
     for session in sessions:
         r = requests.post(
