@@ -55,6 +55,9 @@ jobs:
               with:
                   dotnet-version: 8.x
 
+            - name: NuGet restore
+              run: nuget restore
+
             - name: dotnet build
               run: dotnet build --configuration Release -p:Deterministic=true
 
