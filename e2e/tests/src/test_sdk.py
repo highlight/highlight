@@ -54,7 +54,7 @@ def test_next_js(next_app, oauth_api, endpoint, expected_error, success):
 
         query(
             oauth_api,
-            "GetErrorGroupsClickhouse",
+            "GetErrorGroups",
             GET_ERROR_GROUPS,
             variables_fn=lambda ts: {
                 "params": {
@@ -169,7 +169,7 @@ def test_express_error(express_app, oauth_api):
 
     query(
         oauth_api,
-        "GetErrorGroupsClickhouse",
+        "GetErrorGroups",
         GET_ERROR_GROUPS,
         variables_fn=lambda ts: {
             "params": {
@@ -217,7 +217,7 @@ def test_dotnet_error(dotnet_app, oauth_api):
 
     query(
         oauth_api,
-        "GetErrorGroupsClickhouse",
+        "GetErrorGroups",
         GET_ERROR_GROUPS,
         variables_fn=lambda ts: {
             "params": {
