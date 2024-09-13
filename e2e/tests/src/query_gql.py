@@ -1,15 +1,15 @@
 # TODO(vkorolik) parse queries from `query.gql`
-GET_ERROR_GROUPS_CLICKHOUSE = """
-query GetErrorGroupsClickhouse(
+GET_ERROR_GROUPS = """
+query GetErrorGroups(
 	$project_id: ID!
 	$count: Int!
-	$query: ClickhouseQuery!
+	$params: QueryInput!
 	$page: Int
 ) {
-	error_groups_clickhouse(
+	error_groups(
 		project_id: $project_id
 		count: $count
-		query: $query
+		params: $params
 		page: $page
 	) {
 		error_groups {
@@ -20,7 +20,8 @@ query GetErrorGroupsClickhouse(
 			type
 			event
 			state
-			state
+			first_occurrence
+			last_occurrence
 			snoozed_until
 			environments
 			stack_trace
