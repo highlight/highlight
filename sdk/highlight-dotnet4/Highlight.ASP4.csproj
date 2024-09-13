@@ -187,6 +187,7 @@
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
     <PropertyGroup>
         <Version>0.2.0-beta.7</Version>
+        <PackageVersion>0.2.0-beta.7</AssemblyVersion>
         <AssemblyVersion>0.2.0-beta.7</AssemblyVersion>
         <FileVersion>0.2.0-beta.7</FileVersion>
         <Company>highlight.io</Company>
