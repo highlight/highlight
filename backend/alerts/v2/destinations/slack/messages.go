@@ -224,15 +224,15 @@ func sendErrorAlert(ctx context.Context, slackAccessToken string, alertInput *de
 	var stackTraceBlock *slack.TextBlockObject
 
 	if err := json.Unmarshal([]byte(alertInput.ErrorInput.Stacktrace), &stackTrace); err == nil {
-		firstTrace := stackTrace[0]
+		fileLocation := "File unknown"
 
-		var fileLocation string
-		if firstTrace.LineNumber != nil {
-			fileLocation = fmt.Sprintf("%s:%d", *firstTrace.FileName, *firstTrace.LineNumber)
-		} else if firstTrace.FileName != nil {
-			fileLocation = *firstTrace.FileName
-		} else {
-			fileLocation = "File unknown"
+		if len(stackTrace) > 0 {
+			firstTrace := stackTrace[0]
+			if firstTrace.LineNumber != nil {
+				fileLocation = fmt.Sprintf("%s:%d", *firstTrace.FileName, *firstTrace.LineNumber)
+			} else if firstTrace.FileName != nil {
+				fileLocation = *firstTrace.FileName
+			}
 		}
 
 		if len(fileLocation) > ERROR_STACKTRACE_FILE_NAME_LENGTH_LIMIT {
