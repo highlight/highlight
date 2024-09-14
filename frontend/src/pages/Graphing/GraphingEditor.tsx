@@ -231,8 +231,6 @@ export const GraphingEditor: React.FC = () => {
 			graphInput.id = graph_id
 		}
 
-		console.log('graphInput', graphInput)
-
 		upsertGraph({
 			variables: {
 				graph: graphInput,
@@ -369,8 +367,6 @@ export const GraphingEditor: React.FC = () => {
 	const [bucketInterval, setBucketInterval] = useState(
 		DEFAULT_BUCKET_INTERVAL,
 	)
-
-	console.log('bucketInterval', bucketInterval)
 
 	const [completed, setCompleted] = useState(!isEdit)
 
