@@ -3,7 +3,8 @@ import type {
 	HighlightClassOptions,
 	RequestResponsePair,
 } from './client'
-import { FirstLoadListeners, GenerateSecureID } from './client'
+import { FirstLoadListeners } from './client/listeners/first-load-listeners'
+import { GenerateSecureID } from './client/utils/secure-id'
 import type {
 	HighlightOptions,
 	HighlightPublicInterface,
@@ -22,7 +23,7 @@ import {
 } from './integrations/mixpanel.js'
 
 import { HIGHLIGHT_URL } from './client/constants/sessions.js'
-import { ErrorMessageType } from './client/types/shared-types'
+import type { ErrorMessageType } from './client/types/shared-types'
 import {
 	getPreviousSessionData,
 	loadCookieSessionData,

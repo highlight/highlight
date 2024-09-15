@@ -10258,7 +10258,6 @@ __metadata:
     framer-motion: "npm:^6.3.15"
     graphql: "npm:^15.9.0"
     happy-dom: "npm:^15.10.2"
-    highlight.io: "workspace:*"
     highlight.run: "workspace:*"
     js-cookie: "npm:^3.0.1"
     jsonc-parser: "npm:^3.2.0"
@@ -10313,10 +10312,10 @@ __metadata:
     subscriptions-transport-ws: "npm:^0.11.0"
     tailwindcss: "npm:^3.1.8"
     typed-scss-modules: "npm:^3.4.0"
-    typescript: "npm:^5.7.3"
+    typescript: "npm:^5.8.2"
     use-query-params: "npm:^2.2.0"
     validator: "npm:13.7.0"
-    vite: "npm:^5.4.10"
+    vite: "npm:^5.4.16"
     vite-plugin-imp: "npm:^2.4.0"
     vite-plugin-svgr: "npm:^3.3.0"
     vite-tsconfig-paths: "npm:^4.3.2"
@@ -40115,7 +40114,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"highlight.io@workspace:*, highlight.io@workspace:highlight.io":
+"highlight.io@workspace:highlight.io":
   version: 0.0.0-use.local
   resolution: "highlight.io@workspace:highlight.io"
   dependencies:
@@ -63949,9 +63948,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"vite@npm:^5.0.0, vite@npm:^5.0.0 || ^4.1.4, vite@npm:^5.0.11, vite@npm:^5.2.12, vite@npm:^5.2.8, vite@npm:^5.3.1, vite@npm:^5.3.2, vite@npm:^5.4.10":
-  version: 5.4.12
-  resolution: "vite@npm:5.4.12"
+"vite@npm:^5.0.0, vite@npm:^5.0.0 || ^4.1.4, vite@npm:^5.0.11, vite@npm:^5.2.12, vite@npm:^5.2.8, vite@npm:^5.3.1, vite@npm:^5.3.2, vite@npm:^5.4.16":
+  version: 5.4.16
+  resolution: "vite@npm:5.4.16"
   dependencies:
     esbuild: "npm:^0.21.3"
     fsevents: "npm:~2.3.3"
@@ -63988,7 +63987,7 @@ __metadata:
       optional: true
   bin:
     vite: bin/vite.js
-  checksum: 10/16a2b486164717b51f8a22db750bba1d1d5be939e28d199a27a3c3f54cea484b3f2e8618eeafaec8b5075c011aa9aafd3e86b54411ba90555617190e626fe4ef
+  checksum: 10/c5010e3962b0a33d50b25296ae9c2f5a45b4b46977b67b9a4016918d932817bb8e46fa14b88d75f752641d4a89f1545966139b58b07dc2d6e3196250a0b239cd
   languageName: node
   linkType: hard
 
