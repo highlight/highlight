@@ -77,6 +77,7 @@
 		"public-gen": "cd backend && make public-gen",
 		"publish:ai": "yarn workspace @highlight-run/ai publish",
 		"publish:client": "yarn workspace scripts publish:client",
+		"publish:frontend": "yarn workspace @highlight-run/frontend publish",
 		"publish:react-email-templates": "yarn workspace emails publish",
 		"publish:render": "yarn workspace render publish",
 		"publish:turbo": "yarn workspaces foreach -R --no-private --from '@highlight-run/*' npm publish --access public --tolerate-republish && yarn workspace highlight.run npm publish --access public --tolerate-republish && yarn workspace @highlight-run/opentelemetry-sdk-workers npm publish --access public --tolerate-republish",
