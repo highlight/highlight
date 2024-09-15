@@ -17,7 +17,7 @@ COPY ../render/package.json ./render/package.json
 COPY ../rrweb ./rrweb
 COPY ../scripts/package.json ./scripts/package.json
 COPY ../sdk/client/package.json ./sdk/client/package.json
-COPY ../sdk/firstload/package.json ./sdk/firstload/package.json
+COPY ../sdk/highlight-run/package.json ./sdk/firstload/package.json
 COPY ../sdk/highlight-apollo/package.json ./sdk/highlight-apollo/package.json
 COPY ../sdk/highlight-cloudflare/package.json ./sdk/highlight-cloudflare/package.json
 COPY ../sdk/highlight-chrome/package.json ./sdk/highlight-chrome/package.json

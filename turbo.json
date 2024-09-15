@@ -1,7 +1,7 @@
 {
 	"$schema": "https://turborepo.org/schema.json",
 	"tasks": {
-		"@highlight-run/client#typegen": {
+		"highlight.run#typegen": {
 			"dependsOn": [
 				"rrweb#build",
 				"@rrweb/rrweb-plugin-sequential-id-record#build",
@@ -10,15 +10,10 @@
 			"inputs": ["src/**/*.tsx", "src/**/*.ts", "tsconfig.json"],
 			"outputs": ["dist/**/*.d.ts"]
 		},
-		"highlight.run#typegen": {
-			"dependsOn": [
-				"rrweb#build",
-				"@rrweb/rrweb-plugin-sequential-id-record#build",
-				"@rrweb/types#build",
-				"@highlight-run/client#typegen"
-			],
-			"inputs": ["src/**/*.tsx", "src/**/*.ts", "tsconfig.json"],
-			"outputs": ["dist/**/*.d.ts"]
+		"highlight.io#build": {
+			"dependsOn": ["^build"],
+			"outputs": [".next/**"],
+			"env": ["GRAPHCMS_TOKEN"]
 		},
 		"highlight.io#lint": {
 			"dependsOn": ["^build"]

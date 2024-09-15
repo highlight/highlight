@@ -10136,53 +10136,6 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@highlight-run/client@workspace:*, @highlight-run/client@workspace:sdk/client":
-  version: 0.0.0-use.local
-  resolution: "@highlight-run/client@workspace:sdk/client"
-  dependencies:
-    "@graphql-codegen/cli": "npm:^5.0.0"
-    "@graphql-codegen/typescript": "npm:^4.0.1"
-    "@graphql-codegen/typescript-graphql-request": "npm:^6.0.1"
-    "@graphql-codegen/typescript-operations": "npm:^4.0.1"
-    "@opentelemetry/api": "npm:^1.9.0"
-    "@opentelemetry/exporter-metrics-otlp-http": "npm:>=0.57.1"
-    "@opentelemetry/exporter-trace-otlp-http": "npm:>=0.57.1"
-    "@opentelemetry/instrumentation": "npm:>=0.57.1"
-    "@opentelemetry/instrumentation-document-load": "npm:>=0.44.0"
-    "@opentelemetry/instrumentation-fetch": "npm:>=0.57.1"
-    "@opentelemetry/instrumentation-user-interaction": "npm:>=0.44.0"
-    "@opentelemetry/instrumentation-xml-http-request": "npm:>=0.57.1"
-    "@opentelemetry/otlp-exporter-base": "npm:>=0.57.1"
-    "@opentelemetry/resources": "npm:^1.30.1"
-    "@opentelemetry/sdk-metrics": "npm:^1.30.1"
-    "@opentelemetry/sdk-trace-web": "npm:^1.30.1"
-    "@opentelemetry/semantic-conventions": "npm:^1.28.0"
-    "@rrweb/rrweb-plugin-sequential-id-record": "workspace:*"
-    "@rrweb/types": "workspace:*"
-    "@size-limit/file": "npm:^8.1.0"
-    "@types/js-cookie": "npm:^3.0.6"
-    "@types/json-stringify-safe": "npm:^5.0.3"
-    "@types/node": "npm:^16.3.1"
-    error-stack-parser: "npm:2.0.6"
-    fflate: "npm:^0.8.1"
-    graphql: "npm:^16.8.1"
-    graphql-request: "npm:^6.1.0"
-    graphql-tag: "npm:^2.12.6"
-    js-cookie: "npm:^3.0.5"
-    json-stringify-safe: "npm:^5.0.1"
-    npm-run-all: "npm:^4.1.5"
-    prettier: "npm:^3.3.3"
-    rrweb: "workspace:*"
-    size-limit: "npm:^8.1.0"
-    stacktrace-js: "npm:2.0.2"
-    typescript: "npm:^5.0.4"
-    vite: "npm:^5.2.12"
-    vitest: "npm:^1.6.0"
-    web-vitals: "npm:^3.5.0"
-    zone.js: "npm:^0.15.0"
-  languageName: unknown
-  linkType: soft
-
 "@highlight-run/cloudflare@workspace:*, @highlight-run/cloudflare@workspace:sdk/highlight-cloudflare":
   version: 0.0.0-use.local
   resolution: "@highlight-run/cloudflare@workspace:sdk/highlight-cloudflare"
@@ -10234,7 +10187,6 @@ __metadata:
     "@graphql-codegen/typescript": "npm:^2.8.1"
     "@graphql-codegen/typescript-operations": "npm:^1.17.14"
     "@graphql-codegen/typescript-react-apollo": "npm:^2.2.1"
-    "@highlight-run/client": "workspace:*"
     "@highlight-run/react": "workspace:*"
     "@highlight-run/react-mentions": "npm:4.4.2"
     "@highlight-run/sourcemap-uploader": "workspace:*"
@@ -19217,15 +19169,6 @@ __metadata:
   dependencies:
     "@sinonjs/commons": "npm:^1.7.0"
   checksum: 10/da50ddd68411617fcf72d9fb70b621aa2a6d17faa93a2769c7af390c88b40e045f84544db022dd1ac30a6db115d2a0f96473854d4a106b0174351f22d42910ce
-  languageName: node
-  linkType: hard
-
-"@size-limit/file@npm:^11.1.2":
-  version: 11.1.2
-  resolution: "@size-limit/file@npm:11.1.2"
-  peerDependencies:
-    size-limit: 11.1.2
-  checksum: 10/37baba93a2af2ba0358e7c8772ceb866c860c8e95c90b0e0c537533be2519ea626636e635720213938844db9185e45532e991ff4dcccc0aac21fa644cbb45780
   languageName: node
   linkType: hard
 
@@ -40266,25 +40209,59 @@ __metadata:
   languageName: node
   linkType: hard
 
-"highlight.run@workspace:*, highlight.run@workspace:sdk/firstload":
+"highlight.run@workspace:*, highlight.run@workspace:sdk/highlight-run":
   version: 0.0.0-use.local
-  resolution: "highlight.run@workspace:sdk/firstload"
+  resolution: "highlight.run@workspace:sdk/highlight-run"
   dependencies:
+    "@graphql-codegen/cli": "npm:^5.0.0"
+    "@graphql-codegen/typescript": "npm:^4.0.1"
+    "@graphql-codegen/typescript-graphql-request": "npm:^6.0.1"
+    "@graphql-codegen/typescript-operations": "npm:^4.0.1"
+    "@opentelemetry/api": "npm:^1.9.0"
+    "@opentelemetry/exporter-metrics-otlp-http": "npm:>=0.57.1"
+    "@opentelemetry/exporter-trace-otlp-http": "npm:>=0.57.1"
+    "@opentelemetry/instrumentation": "npm:>=0.57.1"
+    "@opentelemetry/instrumentation-document-load": "npm:>=0.44.0"
+    "@opentelemetry/instrumentation-fetch": "npm:>=0.57.1"
+    "@opentelemetry/instrumentation-user-interaction": "npm:>=0.44.0"
+    "@opentelemetry/instrumentation-xml-http-request": "npm:>=0.57.1"
+    "@opentelemetry/otlp-exporter-base": "npm:>=0.57.1"
+    "@opentelemetry/resources": "npm:^1.30.1"
+    "@opentelemetry/sdk-metrics": "npm:^1.30.1"
+    "@opentelemetry/sdk-trace-web": "npm:^1.30.1"
+    "@opentelemetry/semantic-conventions": "npm:^1.28.0"
     "@rollup/plugin-commonjs": "npm:^25.0.7"
     "@rollup/plugin-json": "npm:^6.1.0"
     "@rollup/plugin-node-resolve": "npm:^15.2.3"
     "@rollup/plugin-typescript": "npm:^11.1.6"
-    "@size-limit/file": "npm:^11.1.2"
+    "@rrweb/rrweb-plugin-sequential-id-record": "workspace:*"
+    "@rrweb/types": "workspace:*"
+    "@size-limit/file": "npm:^8.1.0"
     "@types/chrome": "npm:^0.0.268"
+    "@types/js-cookie": "npm:^3.0.6"
+    "@types/json-stringify-safe": "npm:^5.0.3"
+    "@types/node": "npm:^16.3.1"
     "@vitest/web-worker": "npm:^1.6.0"
+    error-stack-parser: "npm:2.0.6"
+    fflate: "npm:^0.8.1"
+    graphql: "npm:^16.8.1"
+    graphql-request: "npm:^6.1.0"
+    graphql-tag: "npm:^2.12.6"
+    js-cookie: "npm:^3.0.5"
+    json-stringify-safe: "npm:^5.0.1"
     npm-run-all: "npm:^4.1.5"
+    prettier: "npm:^3.3.3"
     readdirp: "npm:^3.6.0"
-    size-limit: "npm:^11.1.2"
+    rrweb: "workspace:*"
+    size-limit: "npm:^8.1.0"
+    stacktrace-js: "npm:2.0.2"
     tslib: "npm:^2.6.2"
-    typescript: "npm:^5.4.3"
+    typescript: "npm:^5.0.4"
     vite: "npm:^5.2.12"
     vitest: "npm:^1.6.0"
     vitest-canvas-mock: "npm:^0.3.3"
+    web-vitals: "npm:^3.5.0"
+    zone.js: "npm:^0.15.0"
   languageName: unknown
   linkType: soft
 
@@ -43687,7 +43664,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"jiti@npm:^1.17.1, jiti@npm:^1.17.2, jiti@npm:^1.18.2, jiti@npm:^1.19.1, jiti@npm:^1.20.0, jiti@npm:^1.21.0":
+"jiti@npm:^1.17.1, jiti@npm:^1.17.2, jiti@npm:^1.18.2, jiti@npm:^1.19.1, jiti@npm:^1.20.0":
   version: 1.21.6
   resolution: "jiti@npm:1.21.6"
   bin:
@@ -58469,23 +58446,6 @@ __metadata:
   version: 1.0.5
   resolution: "sisteransi@npm:1.0.5"
   checksum: 10/aba6438f46d2bfcef94cf112c835ab395172c75f67453fe05c340c770d3c402363018ae1ab4172a1026a90c47eaccf3af7b6ff6fa749a680c2929bd7fa2b37a4
-  languageName: node
-  linkType: hard
-
-"size-limit@npm:^11.1.2":
-  version: 11.1.2
-  resolution: "size-limit@npm:11.1.2"
-  dependencies:
-    bytes-iec: "npm:^3.1.1"
-    chokidar: "npm:^3.6.0"
-    globby: "npm:^14.0.1"
-    jiti: "npm:^1.21.0"
-    lilconfig: "npm:^3.1.1"
-    nanospinner: "npm:^1.1.0"
-    picocolors: "npm:^1.0.0"
-  bin:
-    size-limit: bin.js
-  checksum: 10/09457f8268c8affe4c263c4f836ca5aa53c6885ae53369483d290f67e93c662cb4f80fd5445ae8ff64a0d2faf0c2da07c29af1ae76a085e12698ba6d25b66d24
   languageName: node
   linkType: hard
 
