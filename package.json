@@ -60,7 +60,7 @@
 		"e2e:cloudflare": "yarn turbo run dev --filter cloudflare-worker...",
 		"e2e:express": "yarn turbo run dev --filter express...",
 		"e2e:nestjs": "yarn turbo run dev --filter nestjs",
-		"e2e:nextjs": "yarn turbo run dev --filter nextjs... --filter=!@highlight-run/client --filter=!highlight.run",
+		"e2e:nextjs": "yarn turbo run dev --filter nextjs... --filter=!highlight.run",
 		"e2e:remix": "yarn turbo run dev --filter remix...",
 		"enforce-size": "yarn turbo run enforce-size --filter @highlight-run/frontend...",
 		"format-check": "prettier --check --ignore-unknown .",
