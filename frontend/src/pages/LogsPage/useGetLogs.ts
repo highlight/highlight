@@ -5,10 +5,11 @@ import {
 } from '@graph/hooks'
 import { GetLogsQuery, GetLogsQueryVariables } from '@graph/operations'
 import * as Types from '@graph/schemas'
-import { LogEdge, PageInfo } from '@graph/schemas'
+import { LogEdge } from '@graph/schemas'
 import { usePollQuery } from '@util/search'
 import moment from 'moment'
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useMemo, useState } from 'react'
+import { debounce } from 'lodash'
 
 import { TIME_FORMAT } from '@/components/Search/SearchForm/constants'
 
@@ -20,13 +21,6 @@ export type LogEdgeWithResources = LogEdge & {
 	traceExist?: boolean
 }
 
-const initialWindowInfo: PageInfo = {
-	hasNextPage: true,
-	hasPreviousPage: true,
-	startCursor: '', // unused but needed for typedef
-	endCursor: '', // unused but needed for typedef
-}
-
 export const MAX_LOGS = 50
 
 export const useGetLogs = ({
@@ -36,6 +30,8 @@ export const useGetLogs = ({
 	startDate,
 	endDate,
 	disablePolling,
+	sortColumn = 'timestamp',
+	sortDirection = Types.SortDirection.Desc,
 }: {
 	query: string
 	project_id: string | undefined
@@ -43,33 +39,25 @@ export const useGetLogs = ({
 	startDate: Date
 	endDate: Date
 	disablePolling?: boolean
+	sortColumn?: string
+	sortDirection?: Types.SortDirection
 }) => {
-	// The backend can only tell us page info about a single page.
-	// It has no idea what pages have already been loaded.
-	//
-	// For example: say we make the initial request for 100 logs and hasNextPage=true and hasPreviousPage=false
-	// That means that we should not make any requests when going backwards.
-	//
-	// If the user scrolls forward to get the next 100 logs, the server will say that hasPreviousPage is `true` since we're on page 2.
-	// Hence, we track the initial information (where "window" is effectively multiple pages) to ensure we aren't making requests unnecessarily.
-	const [windowInfo, setWindowInfo] = useState<PageInfo>(initialWindowInfo)
 	const [loadingAfter, setLoadingAfter] = useState(false)
-	const [loadingBefore, setLoadingBefore] = useState(false)
-
-	useEffect(() => {
-		setWindowInfo(initialWindowInfo)
-	}, [query, startDate, endDate])
 
 	const { data, loading, error, refetch, fetchMore } = useGetLogsQuery({
 		variables: {
 			project_id: project_id!,
 			at: logCursor,
-			direction: Types.SortDirection.Desc,
+			direction: sortDirection,
 			params: {
 				query,
 				date_range: {
 					start_date: moment(startDate).format(TIME_FORMAT),
 					end_date: moment(endDate).format(TIME_FORMAT),
+				},
+				sort: {
+					column: sortColumn,
+					direction: sortDirection,
 				},
 			},
 		},
@@ -122,7 +110,7 @@ export const useGetLogs = ({
 			() => ({
 				project_id: project_id!,
 				at: logCursor,
-				direction: Types.SortDirection.Desc,
+				direction: sortDirection,
 				params: {
 					query,
 					date_range: {
@@ -131,9 +119,20 @@ export const useGetLogs = ({
 							.format(TIME_FORMAT),
 						end_date: moment().format(TIME_FORMAT),
 					},
+					sort: {
+						column: sortColumn,
+						direction: sortDirection,
+					},
 				},
 			}),
-			[logCursor, logResultMetadata.endDate, project_id, query],
+			[
+				logCursor,
+				logResultMetadata.endDate,
+				project_id,
+				query,
+				sortColumn,
+				sortDirection,
+			],
 		),
 		moreDataQuery,
 		getResultCount: useCallback((result) => {
@@ -160,74 +159,51 @@ export const useGetLogs = ({
 		skip: !data?.logs.edges.length,
 	})
 
+	// eslint-disable-next-line react-hooks/exhaustive-deps
+	const fetchMoreLogs = useCallback(
+		debounce(
+			async (cursor: string) => {
+				await fetchMore({
+					variables: { after: cursor },
+					updateQuery: (prevResult, { fetchMoreResult }) => {
+						return {
+							logs: {
+								...prevResult.logs,
+								edges: [
+									...prevResult.logs.edges,
+									...fetchMoreResult.logs.edges,
+								],
+								pageInfo: {
+									...prevResult.logs.pageInfo,
+									hasNextPage:
+										fetchMoreResult.logs.pageInfo
+											.hasNextPage,
+									endCursor:
+										fetchMoreResult.logs.pageInfo.endCursor,
+								},
+							},
+						}
+					},
+				})
+
+				setLoadingAfter(false)
+			},
+			300,
+			{ leading: true, trailing: false },
+		),
+		[fetchMore],
+	)
+
 	const fetchMoreForward = useCallback(async () => {
-		if (!windowInfo.hasNextPage || loadingAfter) {
-			return
-		}
-
-		const lastItem = data && data.logs.edges[data.logs.edges.length - 1]
-		const lastCursor = lastItem?.cursor
-
-		if (!lastCursor) {
+		const { hasNextPage, endCursor } = data?.logs.pageInfo || {}
+		if (!hasNextPage || loadingAfter || !endCursor) {
 			return
 		}
 
 		setLoadingAfter(true)
-
-		await fetchMore({
-			variables: { after: lastCursor },
-			updateQuery: (prevResult, { fetchMoreResult }) => {
-				const newData = fetchMoreResult.logs.edges
-				setWindowInfo({
-					...windowInfo,
-					hasNextPage: fetchMoreResult.logs.pageInfo.hasNextPage,
-				})
-				setLoadingAfter(false)
-				return {
-					logs: {
-						...prevResult.logs,
-						edges: [...prevResult.logs.edges, ...newData],
-						pageInfo: fetchMoreResult.logs.pageInfo,
-					},
-				}
-			},
-		})
-	}, [data, fetchMore, loadingAfter, windowInfo])
-
-	const fetchMoreBackward = useCallback(async () => {
-		if (!windowInfo.hasPreviousPage || loadingBefore) {
-			return
-		}
-
-		const firstItem = data && data.logs.edges[0]
-		const firstCursor = firstItem?.cursor
-
-		if (!firstCursor) {
-			return
-		}
-
-		setLoadingBefore(true)
-
-		await fetchMore({
-			variables: { before: firstCursor },
-			updateQuery: (prevResult, { fetchMoreResult }) => {
-				const newData = fetchMoreResult.logs.edges
-				setWindowInfo({
-					...windowInfo,
-					hasPreviousPage:
-						fetchMoreResult.logs.pageInfo.hasPreviousPage,
-				})
-				setLoadingBefore(false)
-				return {
-					logs: {
-						...prevResult.logs,
-						edges: [...prevResult.logs.edges, ...newData],
-						pageInfo: fetchMoreResult.logs.pageInfo,
-					},
-				}
-			},
-		})
-	}, [data, fetchMore, loadingBefore, windowInfo])
+		await fetchMoreLogs(endCursor)
+		setLoadingAfter(false)
+	}, [data?.logs.pageInfo, fetchMoreLogs, loadingAfter])
 
 	const existingTraceSet = new Set(logRelatedResources?.existing_logs_traces)
 
@@ -253,10 +229,8 @@ export const useGetLogs = ({
 		pollingExpired,
 		loading,
 		loadingAfter,
-		loadingBefore,
 		error,
 		fetchMoreForward,
-		fetchMoreBackward,
 		refetch,
 	}
 }

@@ -50,7 +50,7 @@ func sendSessionAlert(ctx context.Context, mailClient *sendgrid.Client, lambdaCl
 	}
 
 	emailData := &EmailData{
-		SubjectLine: fmt.Sprintf("%s fired!", alertInput.Alert.Name),
+		SubjectLine: fmt.Sprintf("%s Alert", alertInput.Alert.Name),
 		Template:    lambda.ReactEmailTemplateSessionsAlert,
 		TemplateData: map[string]interface{}{
 			"alertName":   alertInput.Alert.Name,
@@ -68,7 +68,7 @@ func sendSessionAlert(ctx context.Context, mailClient *sendgrid.Client, lambdaCl
 
 func sendErrorAlert(ctx context.Context, mailClient *sendgrid.Client, lambdaClient *lambda.Client, alertInput *destinationsV2.AlertInput, destinations []model.AlertDestination) {
 	emailData := &EmailData{
-		SubjectLine: fmt.Sprintf("%s fired!", alertInput.Alert.Name),
+		SubjectLine: fmt.Sprintf("%s Alert", alertInput.Alert.Name),
 		Template:    lambda.ReactEmailTemplateErrorsAlert,
 		TemplateData: map[string]interface{}{
 			"alertLink":       alertInput.AlertLink,
@@ -105,7 +105,7 @@ func sendLogAlert(ctx context.Context, mailClient *sendgrid.Client, lambdaClient
 	}
 
 	emailData := &EmailData{
-		SubjectLine: fmt.Sprintf("%s fired!", alertInput.Alert.Name),
+		SubjectLine: fmt.Sprintf("%s Alert", alertInput.Alert.Name),
 		Template:    lambda.ReactEmailTemplateLogsAlert,
 		TemplateData: map[string]interface{}{
 			"alertLink":      alertInput.AlertLink,
@@ -143,7 +143,7 @@ func sendTraceAlert(ctx context.Context, mailClient *sendgrid.Client, lambdaClie
 	}
 
 	emailData := &EmailData{
-		SubjectLine: fmt.Sprintf("%s fired!", alertInput.Alert.Name),
+		SubjectLine: fmt.Sprintf("%s Alert", alertInput.Alert.Name),
 		Template:    lambda.ReactEmailTemplateLogsAlert,
 		TemplateData: map[string]interface{}{
 			"alertLink":      alertInput.AlertLink,
@@ -181,7 +181,7 @@ func sendMetricAlert(ctx context.Context, mailClient *sendgrid.Client, lambdaCli
 	}
 
 	emailData := &EmailData{
-		SubjectLine: fmt.Sprintf("%s fired!", alertInput.Alert.Name),
+		SubjectLine: fmt.Sprintf("%s Alert", alertInput.Alert.Name),
 		Template:    lambda.ReactEmailTemplateLogsAlert,
 		TemplateData: map[string]interface{}{
 			"alertLink":      alertInput.AlertLink,

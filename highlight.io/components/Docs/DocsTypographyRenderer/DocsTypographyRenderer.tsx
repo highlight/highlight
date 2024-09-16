@@ -141,7 +141,7 @@ export const DocsMarkdownRenderer = (
 									: c,
 							),
 							copyHeadingIcon(props?.children?.length ?? 0),
-						] || '',
+						],
 					)
 				)}
 			</>
@@ -231,7 +231,7 @@ export const MethodParameterRenderer = (renderType: 'h5' | 'code' | 'a') => {
 									: c,
 							),
 							copyHeadingIcon(props?.children?.length ?? 0),
-						] || '',
+						],
 					)
 				)}
 			</>
@@ -339,7 +339,7 @@ export const getDocsTypographyRenderer = (
 									: c.value,
 							),
 							copyHeadingIcon(props?.node?.children?.length ?? 0),
-						] || '',
+						],
 					)
 				)}
 			</>

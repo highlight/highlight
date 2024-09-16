@@ -76,7 +76,7 @@ const ALERT_PRODUCT_INFO = {
 	[ProductType.Sessions]:
 		"Alerts once for every session that matches the condition's filters.",
 	[ProductType.Errors]:
-		'Alerts every time an error group matches the specified conditions.',
+		'Alerts every time an open error matches the specified conditions.',
 	[ProductType.Logs]: false,
 	[ProductType.Traces]: false,
 	[ProductType.Metrics]: false,

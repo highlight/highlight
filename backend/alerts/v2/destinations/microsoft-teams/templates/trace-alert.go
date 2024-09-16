@@ -16,7 +16,7 @@ var TraceAlertMessageTemplate = []byte(`{
 			"type":   "TextBlock",
 			"size":   "Large",
 			"weight": "Bolder",
-			"text":   "{{.AlertName}} fired!"
+			"text":   "{{.AlertName}} Alert"
 		},
 		{
 			"type":   "TextBlock",

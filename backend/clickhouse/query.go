@@ -187,14 +187,27 @@ func makeSelectBuilder(
 		}
 
 		// See https://dba.stackexchange.com/a/206811
-		sb.Where(sb.LessEqualThan("Timestamp", timestamp)).
-			Where(sb.GreaterEqualThan("Timestamp", params.DateRange.StartDate)).
-			Where(
-				sb.Or(
-					sb.LessThan("Timestamp", timestamp),
-					sb.LessThan("UUID", uuid),
-				),
-			).OrderBy(orderForward)
+		if pagination.Direction == modelInputs.SortDirectionAsc {
+			sb.Where(sb.GreaterEqualThan("Timestamp", timestamp)).
+				Where(sb.LessEqualThan("Timestamp", params.DateRange.EndDate)).
+				Where(
+					sb.Or(
+						sb.GreaterThan("Timestamp", timestamp),
+						sb.GreaterThan("UUID", uuid),
+					),
+				)
+		} else {
+			sb.Where(sb.LessEqualThan("Timestamp", timestamp)).
+				Where(sb.GreaterEqualThan("Timestamp", params.DateRange.StartDate)).
+				Where(
+					sb.Or(
+						sb.LessThan("Timestamp", timestamp),
+						sb.LessThan("UUID", uuid),
+					),
+				)
+		}
+
+		sb.OrderBy(orderForward)
 	} else if pagination.At != nil && len(*pagination.At) > 1 {
 		timestamp, uuid, err := decodeCursor(*pagination.At)
 		if err != nil {
@@ -208,15 +221,28 @@ func makeSelectBuilder(
 			return nil, err
 		}
 
-		sb.Where(sb.GreaterEqualThan("Timestamp", timestamp)).
-			Where(sb.LessEqualThan("Timestamp", params.DateRange.EndDate)).
-			Where(
-				sb.Or(
-					sb.GreaterThan("Timestamp", timestamp),
-					sb.GreaterThan("UUID", uuid),
-				),
-			).
-			OrderBy(orderBackward)
+		// See https://dba.stackexchange.com/a/206811
+		if pagination.Direction == modelInputs.SortDirectionAsc {
+			sb.Where(sb.LessEqualThan("Timestamp", timestamp)).
+				Where(sb.GreaterEqualThan("Timestamp", params.DateRange.StartDate)).
+				Where(
+					sb.Or(
+						sb.LessThan("Timestamp", timestamp),
+						sb.LessThan("UUID", uuid),
+					),
+				)
+		} else {
+			sb.Where(sb.GreaterEqualThan("Timestamp", timestamp)).
+				Where(sb.LessEqualThan("Timestamp", params.DateRange.EndDate)).
+				Where(
+					sb.Or(
+						sb.GreaterThan("Timestamp", timestamp),
+						sb.GreaterThan("UUID", uuid),
+					),
+				)
+		}
+
+		sb.OrderBy(orderBackward)
 	} else {
 		sb.Where(sb.LessEqualThan("Timestamp", params.DateRange.EndDate)).
 			Where(sb.GreaterEqualThan("Timestamp", params.DateRange.StartDate))
@@ -1156,7 +1182,6 @@ func getSortOrders(
 	backwardDirection := "ASC"
 	if paginationDirection == modelInputs.SortDirectionAsc || sortDirection == modelInputs.SortDirectionAsc {
 		forwardDirection = "ASC"
-	} else {
 		backwardDirection = "DESC"
 	}
 
