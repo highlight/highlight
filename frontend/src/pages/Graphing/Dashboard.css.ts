@@ -42,7 +42,6 @@ export const graphGrid = style({
 	width: '100%',
 	height: '100%',
 	padding: '8px 28px',
-	gridTemplateRows: 'repeat(auto-fill, 280px)',
 
 	'@media': {
 		[`(width <= 850px)`]: {

@@ -88,6 +88,7 @@ export const LineChart = ({
 		yAxisFunction,
 		setTimeRange,
 		loadExemplars,
+		{ dashed: true },
 	)
 
 	return (
