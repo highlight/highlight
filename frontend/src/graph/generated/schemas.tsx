@@ -2193,7 +2193,6 @@ export type Query = {
 	sessions_key_values: Array<Scalars['String']>
 	sessions_keys: Array<QueryKey>
 	sessions_metrics: MetricsBuckets
-	sessions_report: Array<SessionsReportRow>
 	slack_channel_suggestion: Array<SanitizedSlackChannel>
 	sourcemap_files: Array<S3File>
 	sourcemap_versions: Array<Scalars['String']>
@@ -2915,11 +2914,6 @@ export type QuerySessions_MetricsArgs = {
 	project_id: Scalars['ID']
 }
 
-export type QuerySessions_ReportArgs = {
-	project_id: Scalars['ID']
-	query: ClickhouseQuery
-}
-
 export type QuerySlack_Channel_SuggestionArgs = {
 	project_id: Scalars['ID']
 }
@@ -3614,7 +3608,9 @@ export type SessionsReportRow = {
 	avg_active_length_mins: Scalars['Float']
 	avg_length_mins: Scalars['Float']
 	email: Scalars['String']
+	first_session: Scalars['Timestamp']
 	key: Scalars['String']
+	last_session: Scalars['Timestamp']
 	location: Scalars['String']
 	max_active_length_mins: Scalars['Float']
 	max_length_mins: Scalars['Float']

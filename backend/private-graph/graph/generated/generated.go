@@ -1125,7 +1125,6 @@ type ComplexityRoot struct {
 		SessionsKeyValues                func(childComplexity int, projectID int, keyName string, dateRange model.DateRangeRequiredInput, query *string, count *int) int
 		SessionsKeys                     func(childComplexity int, projectID int, dateRange model.DateRangeRequiredInput, query *string, typeArg *model.KeyType) int
 		SessionsMetrics                  func(childComplexity int, projectID int, params model.QueryInput, column string, metricTypes []model.MetricAggregator, groupBy []string, bucketBy string, bucketCount *int, bucketWindow *int, limit *int, limitAggregator *model.MetricAggregator, limitColumn *string) int
-		SessionsReport                   func(childComplexity int, projectID int, query model.ClickhouseQuery) int
 		SlackChannelSuggestion           func(childComplexity int, projectID int) int
 		SourcemapFiles                   func(childComplexity int, projectID int, version *string) int
 		SourcemapVersions                func(childComplexity int, projectID int) int
@@ -1425,7 +1424,9 @@ type ComplexityRoot struct {
 		AvgActiveLengthMins   func(childComplexity int) int
 		AvgLengthMins         func(childComplexity int) int
 		Email                 func(childComplexity int) int
+		FirstSession          func(childComplexity int) int
 		Key                   func(childComplexity int) int
+		LastSession           func(childComplexity int) int
 		Location              func(childComplexity int) int
 		MaxActiveLengthMins   func(childComplexity int) int
 		MaxLengthMins         func(childComplexity int) int
@@ -1904,7 +1905,6 @@ type QueryResolver interface {
 	Sessions(ctx context.Context, projectID int, count int, params model.QueryInput, sortField *string, sortDesc bool, page *int) (*model1.SessionResults, error)
 	SessionsHistogramClickhouse(ctx context.Context, projectID int, query model.ClickhouseQuery, histogramOptions model.DateHistogramOptions) (*model1.SessionsHistogram, error)
 	SessionsHistogram(ctx context.Context, projectID int, params model.QueryInput, histogramOptions model.DateHistogramOptions) (*model1.SessionsHistogram, error)
-	SessionsReport(ctx context.Context, projectID int, query model.ClickhouseQuery) ([]*model.SessionsReportRow, error)
 	SessionUsersReport(ctx context.Context, projectID int, params model.QueryInput) ([]*model.SessionsReportRow, error)
 	BillingDetailsForProject(ctx context.Context, projectID int) (*model.BillingDetails, error)
 	BillingDetails(ctx context.Context, workspaceID int) (*model.BillingDetails, error)
@@ -8606,18 +8606,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Query.SessionsMetrics(childComplexity, args["project_id"].(int), args["params"].(model.QueryInput), args["column"].(string), args["metric_types"].([]model.MetricAggregator), args["group_by"].([]string), args["bucket_by"].(string), args["bucket_count"].(*int), args["bucket_window"].(*int), args["limit"].(*int), args["limit_aggregator"].(*model.MetricAggregator), args["limit_column"].(*string)), true
 
-	case "Query.sessions_report":
-		if e.complexity.Query.SessionsReport == nil {
-			break
-		}
-
-		args, err := ec.field_Query_sessions_report_args(context.TODO(), rawArgs)
-		if err != nil {
-			return 0, false
-		}
-
-		return e.complexity.Query.SessionsReport(childComplexity, args["project_id"].(int), args["query"].(model.ClickhouseQuery)), true
-
 	case "Query.slack_channel_suggestion":
 		if e.complexity.Query.SlackChannelSuggestion == nil {
 			break
@@ -10299,12 +10287,26 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.SessionsReportRow.Email(childComplexity), true
 
+	case "SessionsReportRow.first_session":
+		if e.complexity.SessionsReportRow.FirstSession == nil {
+			break
+		}
+
+		return e.complexity.SessionsReportRow.FirstSession(childComplexity), true
+
 	case "SessionsReportRow.key":
 		if e.complexity.SessionsReportRow.Key == nil {
 			break
 		}
 
 		return e.complexity.SessionsReportRow.Key(childComplexity), true
+
+	case "SessionsReportRow.last_session":
+		if e.complexity.SessionsReportRow.LastSession == nil {
+			break
+		}
+
+		return e.complexity.SessionsReportRow.LastSession(childComplexity), true
 
 	case "SessionsReportRow.location":
 		if e.complexity.SessionsReportRow.Location == nil {
@@ -11727,6 +11729,8 @@ type SessionsReportRow {
 	key: String!
 	email: String!
 	num_sessions: UInt64!
+	first_session: Timestamp!
+	last_session: Timestamp!
 	num_days_visited: UInt64!
 	num_months_visited: UInt64!
 	avg_active_length_mins: Float!
@@ -13821,11 +13825,6 @@ type Query {
 		params: QueryInput!
 		histogram_options: DateHistogramOptions!
 	): SessionsHistogram!
-	# deprecated - use session_users_report
-	sessions_report(
-		project_id: ID!
-		query: ClickhouseQuery!
-	): [SessionsReportRow!]!
 	session_users_report(
 		project_id: ID!
 		params: QueryInput!
@@ -22239,30 +22238,6 @@ func (ec *executionContext) field_Query_sessions_metrics_args(ctx context.Contex
 		}
 	}
 	args["limit_column"] = arg10
-	return args, nil
-}
-
-func (ec *executionContext) field_Query_sessions_report_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
-	var err error
-	args := map[string]interface{}{}
-	var arg0 int
-	if tmp, ok := rawArgs["project_id"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("project_id"))
-		arg0, err = ec.unmarshalNID2int(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["project_id"] = arg0
-	var arg1 model.ClickhouseQuery
-	if tmp, ok := rawArgs["query"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("query"))
-		arg1, err = ec.unmarshalNClickhouseQuery2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐClickhouseQuery(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["query"] = arg1
 	return args, nil
 }
 
@@ -58024,87 +57999,6 @@ func (ec *executionContext) fieldContext_Query_sessions_histogram(ctx context.Co
 	return fc, nil
 }
 
-func (ec *executionContext) _Query_sessions_report(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Query_sessions_report(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().SessionsReport(rctx, fc.Args["project_id"].(int), fc.Args["query"].(model.ClickhouseQuery))
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.([]*model.SessionsReportRow)
-	fc.Result = res
-	return ec.marshalNSessionsReportRow2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐSessionsReportRowᚄ(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_Query_sessions_report(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "Query",
-		Field:      field,
-		IsMethod:   true,
-		IsResolver: true,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			switch field.Name {
-			case "key":
-				return ec.fieldContext_SessionsReportRow_key(ctx, field)
-			case "email":
-				return ec.fieldContext_SessionsReportRow_email(ctx, field)
-			case "num_sessions":
-				return ec.fieldContext_SessionsReportRow_num_sessions(ctx, field)
-			case "num_days_visited":
-				return ec.fieldContext_SessionsReportRow_num_days_visited(ctx, field)
-			case "num_months_visited":
-				return ec.fieldContext_SessionsReportRow_num_months_visited(ctx, field)
-			case "avg_active_length_mins":
-				return ec.fieldContext_SessionsReportRow_avg_active_length_mins(ctx, field)
-			case "max_active_length_mins":
-				return ec.fieldContext_SessionsReportRow_max_active_length_mins(ctx, field)
-			case "total_active_length_mins":
-				return ec.fieldContext_SessionsReportRow_total_active_length_mins(ctx, field)
-			case "avg_length_mins":
-				return ec.fieldContext_SessionsReportRow_avg_length_mins(ctx, field)
-			case "max_length_mins":
-				return ec.fieldContext_SessionsReportRow_max_length_mins(ctx, field)
-			case "total_length_mins":
-				return ec.fieldContext_SessionsReportRow_total_length_mins(ctx, field)
-			case "location":
-				return ec.fieldContext_SessionsReportRow_location(ctx, field)
-			}
-			return nil, fmt.Errorf("no field named %q was found under type SessionsReportRow", field.Name)
-		},
-	}
-	defer func() {
-		if r := recover(); r != nil {
-			err = ec.Recover(ctx, r)
-			ec.Error(ctx, err)
-		}
-	}()
-	ctx = graphql.WithFieldContext(ctx, fc)
-	if fc.Args, err = ec.field_Query_sessions_report_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
-		ec.Error(ctx, err)
-		return fc, err
-	}
-	return fc, nil
-}
-
 func (ec *executionContext) _Query_session_users_report(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Query_session_users_report(ctx, field)
 	if err != nil {
@@ -58150,6 +58044,10 @@ func (ec *executionContext) fieldContext_Query_session_users_report(ctx context.
 				return ec.fieldContext_SessionsReportRow_email(ctx, field)
 			case "num_sessions":
 				return ec.fieldContext_SessionsReportRow_num_sessions(ctx, field)
+			case "first_session":
+				return ec.fieldContext_SessionsReportRow_first_session(ctx, field)
+			case "last_session":
+				return ec.fieldContext_SessionsReportRow_last_session(ctx, field)
 			case "num_days_visited":
 				return ec.fieldContext_SessionsReportRow_num_days_visited(ctx, field)
 			case "num_months_visited":
@@ -74062,6 +73960,94 @@ func (ec *executionContext) fieldContext_SessionsReportRow_num_sessions(ctx cont
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type UInt64 does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _SessionsReportRow_first_session(ctx context.Context, field graphql.CollectedField, obj *model.SessionsReportRow) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_SessionsReportRow_first_session(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.FirstSession, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(time.Time)
+	fc.Result = res
+	return ec.marshalNTimestamp2timeᚐTime(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_SessionsReportRow_first_session(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "SessionsReportRow",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Timestamp does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _SessionsReportRow_last_session(ctx context.Context, field graphql.CollectedField, obj *model.SessionsReportRow) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_SessionsReportRow_last_session(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.LastSession, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(time.Time)
+	fc.Result = res
+	return ec.marshalNTimestamp2timeᚐTime(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_SessionsReportRow_last_session(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "SessionsReportRow",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Timestamp does not have child fields")
 		},
 	}
 	return fc, nil
@@ -93318,28 +93304,6 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 			}
 
 			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
-		case "sessions_report":
-			field := field
-
-			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._Query_sessions_report(ctx, field)
-				if res == graphql.Null {
-					atomic.AddUint32(&fs.Invalids, 1)
-				}
-				return res
-			}
-
-			rrm := func(ctx context.Context) graphql.Marshaler {
-				return ec.OperationContext.RootResolverMiddleware(ctx,
-					func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
-			}
-
-			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
 		case "session_users_report":
 			field := field
 
@@ -98091,6 +98055,16 @@ func (ec *executionContext) _SessionsReportRow(ctx context.Context, sel ast.Sele
 			}
 		case "num_sessions":
 			out.Values[i] = ec._SessionsReportRow_num_sessions(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "first_session":
+			out.Values[i] = ec._SessionsReportRow_first_session(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "last_session":
+			out.Values[i] = ec._SessionsReportRow_last_session(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
