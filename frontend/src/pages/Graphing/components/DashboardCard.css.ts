@@ -36,12 +36,9 @@ export const graphCard = style({
 			},
 		},
 	},
-
-	height: '280px',
 })
 
 export const cardInner = style({
-	height: '100%',
 	backgroundColor: vars.color.white,
 })
 

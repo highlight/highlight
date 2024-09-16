@@ -1,13 +1,11 @@
 import {
 	Box,
-	IconSolidCheveronDown,
-	Menu,
+	Select,
+	SelectOption,
 	Stack,
-	Tooltip,
+	Text,
 } from '@highlight-run/ui/components'
 import React from 'react'
-
-import * as style from './styles.css'
 
 export const OptionDropdown = <T extends string>({
 	options,
@@ -15,7 +13,6 @@ export const OptionDropdown = <T extends string>({
 	setSelection,
 	icons,
 	labels,
-	tooltips,
 	disabled,
 }: {
 	options: T[]
@@ -23,68 +20,39 @@ export const OptionDropdown = <T extends string>({
 	setSelection: (option: T) => void
 	icons?: JSX.Element[]
 	labels?: string[]
-	tooltips?: React.ReactNode[]
 	disabled?: boolean
 }) => {
 	const selectedIndex = options.indexOf(selection)
 	const selectedIcon = icons?.at(selectedIndex)
 	const selectedLabel = labels?.at(selectedIndex)
 	return (
-		<Menu>
-			<Menu.Button
-				kind="secondary"
-				size="small"
-				emphasis="medium"
-				cssClass={style.menuButton}
+		<Box flex="stretch">
+			<Select<T>
+				value={selection}
+				renderValue={() => {
+					return (
+						<Text color="secondaryContentOnEnabled">
+							<Stack direction="row" alignItems="center" gap="4">
+								{selectedIcon}
+								{selectedLabel ?? selection}
+							</Stack>
+						</Text>
+					)
+				}}
+				onValueChange={(v: SelectOption) => setSelection(v.value as T)}
 				disabled={disabled}
 			>
-				<Box
-					width="full"
-					display="flex"
-					alignItems="center"
-					gap="4"
-					justifyContent="space-between"
-					cssClass={style.menuButtonInner}
-				>
-					<Stack direction="row" alignItems="center" gap="4">
-						{selectedIcon}
-						{selectedLabel ?? selection}
-					</Stack>
-					<IconSolidCheveronDown />
-				</Box>
-			</Menu.Button>
-			<Menu.List cssClass={style.menuList}>
-				{options.map((p, idx) => {
-					let innerContent: React.ReactNode = (
-						<Stack
-							direction="row"
-							alignItems="center"
-							gap="4"
-							width="full"
-						>
-							{icons?.at(idx)}
-							{labels?.at(idx) ?? p}
-						</Stack>
-					)
-					if (tooltips !== undefined) {
-						innerContent = (
-							<Tooltip placement="left" trigger={innerContent}>
-								{tooltips[idx]}
-							</Tooltip>
-						)
-					}
-					return (
-						<Menu.Item
-							key={p}
-							onClick={() => {
-								setSelection(p as T)
-							}}
-						>
-							{innerContent}
-						</Menu.Item>
-					)
-				})}
-			</Menu.List>
-		</Menu>
+				{options.map((option, i) => (
+					<Select.Option key={option} value={option}>
+						<Text color="secondaryContentOnEnabled">
+							<Stack direction="row" alignItems="center" gap="4">
+								{icons?.at(i)}
+								{labels?.at(i) ?? options?.at(i)}
+							</Stack>
+						</Text>
+					</Select.Option>
+				))}
+			</Select>
+		</Box>
 	)
 }

@@ -898,12 +898,16 @@ func (client *Client) ReadMetrics(ctx context.Context, input ReadMetricsInput) (
 		groupByIndexes := []string{}
 
 		for idx, group := range input.GroupBy {
+			var colStr string
 			if col, found := keysToColumns[group]; found {
-				colStrs = append(colStrs, col)
+				colStr = col
 			} else {
-				colStrs = append(colStrs, getAttributeFilterCol(input.SampleableConfig, innerSb.Var(group), "toString"))
+				colStr = getAttributeFilterCol(input.SampleableConfig, innerSb.Var(group), "toString")
 			}
-			groupByIndexes = append(groupByIndexes, strconv.Itoa(idx+1))
+			groupByIndex := fmt.Sprintf("g%d", idx)
+			colStrs = append(colStrs, innerSb.As(colStr, groupByIndex))
+			groupByIndexes = append(groupByIndexes, groupByIndex)
+			innerSb.Where(innerSb.NotEqual(groupByIndex, ""))
 		}
 
 		innerSb.
