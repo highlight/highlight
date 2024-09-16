@@ -41,6 +41,22 @@ const buildResources = (traces: TraceEdge[]) => {
 
 	traces?.forEach((trace: TraceEdge) => {
 		const start = moment(trace.node.timestamp)
+		let requestHeaders =
+				trace.node.traceAttributes.http?.request?.headers ??
+				trace.node.traceAttributes.http?.request?.header,
+			responseHeaders =
+				trace.node.traceAttributes.http?.response?.headers ??
+				trace.node.traceAttributes.http?.response?.header
+		try {
+			if (typeof requestHeaders === 'string') {
+				requestHeaders = JSON.parse(requestHeaders)
+			}
+		} catch (e) {}
+		try {
+			if (typeof responseHeaders === 'string') {
+				responseHeaders = JSON.parse(responseHeaders)
+			}
+		} catch (e) {}
 		const resource = {
 			startTimeAbs: start.toDate().getTime(),
 			responseEndAbs:
@@ -54,17 +70,17 @@ const buildResources = (traces: TraceEdge[]) => {
 				trace.node.traceAttributes.http?.response?.transfer?.size,
 			requestResponsePairs: {
 				request: {
-					sessionSecureID: trace.node.secureSessionID,
 					id: trace.node.traceAttributes.traceID,
+					body: trace.node.traceAttributes.http?.request?.body,
+					headers: requestHeaders,
+					sessionSecureID: trace.node.secureSessionID,
 					url: trace.node.traceAttributes.http?.url,
 					verb: trace.node.traceAttributes.http?.method,
-					body: trace.node.traceAttributes.http?.request?.body,
-					headers: trace.node.traceAttributes.http?.request?.headers,
 				},
 				response: {
-					status: trace.node.traceAttributes.http?.status_code,
 					body: trace.node.traceAttributes.http?.response?.body,
-					headers: trace.node.traceAttributes.http?.response?.headers,
+					headers: responseHeaders,
+					status: trace.node.traceAttributes.http?.status_code,
 					size: trace.node.traceAttributes.http?.response?.transfer
 						?.size,
 				},

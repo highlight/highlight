@@ -3248,13 +3248,13 @@ func (r *Resolver) submitFrontendNetworkMetric(ctx context.Context, sessionObj *
 		for requestHeader, requestHeaderValue := range requestHeaders {
 			str, ok := requestHeaderValue.(string)
 			if ok {
-				attributes = append(attributes, attribute.String(fmt.Sprintf("http.request.header.%s", requestHeader), str))
+				attributes = append(attributes, attribute.String(fmt.Sprintf("http.request.headers.%s", requestHeader), str))
 			}
 		}
 		for responseHeader, responseHeaderValue := range responseHeaders {
 			str, ok := responseHeaderValue.(string)
 			if ok {
-				attributes = append(attributes, attribute.String(fmt.Sprintf("http.response.header.%s", responseHeader), str))
+				attributes = append(attributes, attribute.String(fmt.Sprintf("http.response.headers.%s", responseHeader), str))
 			}
 		}
 		requestBodyJson := make(map[string]interface{})
