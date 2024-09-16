@@ -15,8 +15,8 @@ GROUP BY ProjectId,
     Day,
     Type;
 
-DROP TABLE session_keys;
 DROP VIEW session_keys_mv;
+DROP TABLE session_keys;
 
-RENAME TABLE session_keys_new TO session_keys;
 RENAME TABLE session_keys_new_mv TO session_keys_mv;
+RENAME TABLE session_keys_new TO session_keys;
