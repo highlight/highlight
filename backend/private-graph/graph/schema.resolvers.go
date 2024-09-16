@@ -6778,27 +6778,27 @@ select coalesce(
                nullif(IP, ''),
                nullif(arrayFilter((k, v) -> k = 'device_id', SessionAttributePairs)[1].2, ''),
                Identifier
-       )                                                                   as key,
-       min(arrayFilter((k, v) -> k = 'email', SessionAttributePairs)[1].2) as email,
-       min(CreatedAt)                                                      as first_session,
-       max(CreatedAt)                                                      as last_session,
-       count(distinct ID)                                                  as num_sessions,
-       count(distinct date_trunc('day', CreatedAt))                        as num_days_visited,
-       count(distinct date_trunc('month', CreatedAt))                      as num_months_visited,
-       avg(greatest(0, ActiveLength)) / 1000 / 60                          as avg_active_length_mins,
-       max(greatest(0, ActiveLength)) / 1000 / 60                          as max_active_length_mins,
-       sum(greatest(0, ActiveLength)) / 1000 / 60                          as total_active_length_mins,
-       avg(greatest(0, Length)) / 1000 / 60                                as avg_length_mins,
-       max(greatest(0, Length)) / 1000 / 60                                as max_length_mins,
-       sum(greatest(0, Length)) / 1000 / 60                                as total_length_mins,
-       max(City)                                                           as location
+       )                                                                       as key,
+       min(arrayFilter((k, v) -> k = 'email', SessionAttributePairs)[1].2)     as email,
+       min(CreatedAt)                                                          as first_session,
+       max(CreatedAt)                                                          as last_session,
+       count(distinct ID)                                                      as num_sessions,
+       count(distinct date_trunc('day', CreatedAt))                            as num_days_visited,
+       count(distinct date_trunc('month', CreatedAt))                          as num_months_visited,
+       avg(greatest(0, ActiveLength)) / 1000 / 60                              as avg_active_length_mins,
+       max(greatest(0, ActiveLength)) / 1000 / 60                              as max_active_length_mins,
+       sum(greatest(0, ActiveLength)) / 1000 / 60                              as total_active_length_mins,
+       avg(greatest(0, Length)) / 1000 / 60                                    as avg_length_mins,
+       max(greatest(0, Length)) / 1000 / 60                                    as max_length_mins,
+       sum(greatest(0, Length)) / 1000 / 60                                    as total_length_mins,
+       max(coalesce(nullif(City, ''), nullif(State, ''), nullif(Country, ''))) as location
 from sessions_joined_vw final
 WHERE ProjectID = %d
   AND NOT Excluded
   AND WithinBillingQuota
   AND ID in (%s)
 group by 1 order by num_sessions desc;
-`, project.ID, project.ID, project.ID, sql)
+`, project.ID, sql)
 	rows, err := r.ClickhouseClient.GetConn().Query(ctx, q, args...)
 	if err != nil {
 		return nil, err
