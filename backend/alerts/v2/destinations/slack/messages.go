@@ -54,11 +54,11 @@ func SendAlerts(ctx context.Context, slackAccessToken *string, alertInput *desti
 }
 
 func sendSessionAlert(ctx context.Context, slackAccessToken string, alertInput *destinationsV2.AlertInput, destinations []model.AlertDestination) {
-	previewText := fmt.Sprintf("%s fired!", alertInput.Alert.Name)
+	previewText := fmt.Sprintf("%s Alert", alertInput.Alert.Name)
 
 	// HEADER
 	var headerBlockSet []slack.Block
-	headerText := fmt.Sprintf("*%s* fired!", alertInput.Alert.Name)
+	headerText := fmt.Sprintf("*%s* Alert", alertInput.Alert.Name)
 	headerBlock := slack.NewTextBlockObject(slack.MarkdownType, headerText, false, false)
 	headerBlockSet = append(headerBlockSet, slack.NewSectionBlock(headerBlock, nil, nil))
 
@@ -224,15 +224,15 @@ func sendErrorAlert(ctx context.Context, slackAccessToken string, alertInput *de
 	var stackTraceBlock *slack.TextBlockObject
 
 	if err := json.Unmarshal([]byte(alertInput.ErrorInput.Stacktrace), &stackTrace); err == nil {
-		firstTrace := stackTrace[0]
+		fileLocation := "File unknown"
 
-		var fileLocation string
-		if firstTrace.LineNumber != nil {
-			fileLocation = fmt.Sprintf("%s:%d", *firstTrace.FileName, *firstTrace.LineNumber)
-		} else if firstTrace.FileName != nil {
-			fileLocation = *firstTrace.FileName
-		} else {
-			fileLocation = "File unknown"
+		if len(stackTrace) > 0 {
+			firstTrace := stackTrace[0]
+			if firstTrace.LineNumber != nil {
+				fileLocation = fmt.Sprintf("%s:%d", *firstTrace.FileName, *firstTrace.LineNumber)
+			} else if firstTrace.FileName != nil {
+				fileLocation = *firstTrace.FileName
+			}
 		}
 
 		if len(fileLocation) > ERROR_STACKTRACE_FILE_NAME_LENGTH_LIMIT {
@@ -261,11 +261,11 @@ func sendErrorAlert(ctx context.Context, slackAccessToken string, alertInput *de
 }
 
 func sendLogAlert(ctx context.Context, slackAccessToken string, alertInput *destinationsV2.AlertInput, destinations []model.AlertDestination) {
-	previewText := fmt.Sprintf("%s fired!", alertInput.Alert.Name)
+	previewText := fmt.Sprintf("%s Alert", alertInput.Alert.Name)
 
 	// HEADER
 	var headerBlockSet []slack.Block
-	headerText := fmt.Sprintf("*%s* fired!", alertInput.Alert.Name)
+	headerText := fmt.Sprintf("*%s* Alert", alertInput.Alert.Name)
 	if alertInput.GroupValue != "" {
 		headerText = fmt.Sprintf("*%s* fired for *%s*", alertInput.Alert.Name, alertInput.GroupValue)
 	}
@@ -337,11 +337,11 @@ func sendLogAlert(ctx context.Context, slackAccessToken string, alertInput *dest
 }
 
 func sendTraceAlert(ctx context.Context, slackAccessToken string, alertInput *destinationsV2.AlertInput, destinations []model.AlertDestination) {
-	previewText := fmt.Sprintf("%s fired!", alertInput.Alert.Name)
+	previewText := fmt.Sprintf("%s Alert", alertInput.Alert.Name)
 
 	// HEADER
 	var headerBlockSet []slack.Block
-	headerText := fmt.Sprintf("*%s* fired!", alertInput.Alert.Name)
+	headerText := fmt.Sprintf("*%s* Alert", alertInput.Alert.Name)
 	if alertInput.GroupValue != "" {
 		headerText = fmt.Sprintf("*%s* fired for *%s*", alertInput.Alert.Name, alertInput.GroupValue)
 	}
@@ -413,11 +413,11 @@ func sendTraceAlert(ctx context.Context, slackAccessToken string, alertInput *de
 }
 
 func sendMetricAlert(ctx context.Context, slackAccessToken string, alertInput *destinationsV2.AlertInput, destinations []model.AlertDestination) {
-	previewText := fmt.Sprintf("%s fired!", alertInput.Alert.Name)
+	previewText := fmt.Sprintf("%s Alert", alertInput.Alert.Name)
 
 	// HEADER
 	var headerBlockSet []slack.Block
-	headerText := fmt.Sprintf("*%s* fired!", alertInput.Alert.Name)
+	headerText := fmt.Sprintf("*%s* Alert", alertInput.Alert.Name)
 	if alertInput.GroupValue != "" {
 		headerText = fmt.Sprintf("*%s* fired for *%s*", alertInput.Alert.Name, alertInput.GroupValue)
 	}

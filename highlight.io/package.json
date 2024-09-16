@@ -13,12 +13,11 @@
 		"styles": "yarn typed-scss-modules ./ --watch --ignore '**/node_modules'"
 	},
 	"dependencies": {
-		"@docsearch/css": "3",
-		"@docsearch/js": "3",
 		"@graphcms/rich-text-react-renderer": "^0.6.1",
 		"@headlessui/react": "^1.7.4",
 		"@heroicons/react": "^2.0.13",
 		"@highlight-run/next": "workspace:*",
+		"@inkeep/uikit": "^0.3.8",
 		"@radix-ui/react-slider": "^1.1.0",
 		"@supabase/supabase-js": "^2.7.1",
 		"@vercel/og": "^0.6.2",

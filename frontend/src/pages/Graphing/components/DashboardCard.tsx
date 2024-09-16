@@ -5,8 +5,8 @@ import {
 	Button,
 	IconSolidArrowsExpand,
 	IconSolidDesktopComputer,
+	IconSolidDotsHorizontal,
 	IconSolidDuplicate,
-	IconSolidMenu,
 	IconSolidPencil,
 	IconSolidTrash,
 	Menu,
@@ -103,7 +103,7 @@ export const DashboardCard = ({
 									size="xSmall"
 									emphasis="low"
 									kind="secondary"
-									iconLeft={<IconSolidMenu />}
+									iconLeft={<IconSolidDotsHorizontal />}
 									onClick={(e: any) => {
 										e.stopPropagation()
 									}}
