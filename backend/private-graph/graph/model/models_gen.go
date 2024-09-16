@@ -197,6 +197,12 @@ type ClickUpTeam struct {
 	Spaces []*ClickUpSpace `json:"spaces"`
 }
 
+type ClickhouseQuery struct {
+	IsAnd     bool                    `json:"isAnd"`
+	Rules     [][]string              `json:"rules"`
+	DateRange *DateRangeRequiredInput `json:"dateRange"`
+}
+
 type DashboardDefinition struct {
 	ID                int                      `json:"id"`
 	UpdatedAt         time.Time                `json:"updated_at"`
