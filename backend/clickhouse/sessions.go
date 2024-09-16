@@ -494,9 +494,9 @@ var reservedSessionKeys = lo.Map(modelInputs.AllReservedSessionKey, func(key mod
 
 var SessionsJoinedTableConfig = model.TableConfig{
 	TableName:        SessionsJoinedTable,
-	AttributesColumn: "SessionAttributePairs",
-	AttributesList:   true,
-	BodyColumn:       `concat(coalesce(nullif(arrayFilter((k, v) -> k = 'email', SessionAttributePairs) [1].2,''), nullif(Identifier, ''), nullif(arrayFilter((k, v) -> k = 'device_id', SessionAttributePairs) [1].2, ''), 'unidentified'), ': ', City, if(City != '', ', ', ''), Country)`,
+	AttributesColumn: "RelevantFields",
+	AttributesTable:  "fields",
+	BodyColumn:       `concat(coalesce(nullif(arrayFilter((k, v) -> k = 'email', RelevantFields) [1].2,''), nullif(Identifier, ''), nullif(arrayFilter((k, v) -> k = 'device_id', RelevantFields) [1].2, ''), 'unidentified'), ': ', City, if(City != '', ', ', ''), Country)`,
 	KeysToColumns: map[string]string{
 		string(modelInputs.ReservedSessionKeyActiveLength):       "ActiveLength",
 		string(modelInputs.ReservedSessionKeyServiceVersion):     "AppVersion",
@@ -673,6 +673,31 @@ func (client *Client) GetConn() driver.Conn {
 	return client.conn
 }
 
+func getAttributeFields(config model.TableConfig, filters listener.Filters) []string {
+	attributeFields := []string{"email", "device_id"}
+	for _, f := range filters {
+		if f.Column == config.AttributesColumn {
+			attributeFields = append(attributeFields, f.Key)
+		}
+		attributeFields = append(attributeFields, getAttributeFields(config, f.Filters)...)
+	}
+	return attributeFields
+}
+
+func addAttributes(config model.TableConfig, attributeFields []string, projectIds []int, params modelInputs.QueryInput, sb *sqlbuilder.SelectBuilder) {
+	if config.AttributesTable != "" {
+		joinSb := sqlbuilder.NewSelectBuilder()
+		joinSb.From(config.AttributesTable).
+			Select(fmt.Sprintf("SessionID, groupArray(tuple(Name, Value)) AS %s", config.AttributesColumn)).
+			Where(joinSb.In("ProjectID", projectIds)).
+			Where(joinSb.GreaterEqualThan("SessionCreatedAt", params.DateRange.StartDate)).
+			Where(joinSb.LessEqualThan("SessionCreatedAt", params.DateRange.EndDate)).
+			Where(joinSb.In("Name", attributeFields)).
+			GroupBy("SessionID")
+		sb.JoinWithOption(sqlbuilder.InnerJoin, sb.BuilderAs(joinSb, "join"), "ID = SessionID")
+	}
+}
+
 func GetSessionsQueryImpl(admin *model.Admin, params modelInputs.QueryInput, projectId int, retentionDate time.Time, selectColumns string, groupBy *string, orderBy *string, limit *int, offset *int) (string, []interface{}, bool, error) {
 	sb := sqlbuilder.NewSelectBuilder()
 	sb.From(fmt.Sprintf("%s FINAL", SessionsJoinedTableConfig.TableName))
@@ -723,6 +748,9 @@ func GetSessionsQueryImpl(admin *model.Admin, params modelInputs.QueryInput, pro
 	if offset != nil {
 		sb = sb.Offset(*offset)
 	}
+
+	attributeFields := getAttributeFields(SessionsJoinedTableConfig, listener.GetFilters())
+	addAttributes(SessionsJoinedTableConfig, attributeFields, []int{projectId}, params, sb)
 
 	if useRandomSample {
 		sbOuter := sqlbuilder.NewSelectBuilder()
