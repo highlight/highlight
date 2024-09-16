@@ -58,9 +58,6 @@ jobs:
             - name: dotnet restore
               run: dotnet restore
 
-            - name: nuget restore
-              run: nuget restore
-
             - name: dotnet build
               run: dotnet build --configuration Release -p:Deterministic=true
 
