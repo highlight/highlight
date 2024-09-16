@@ -1,6 +1,6 @@
 import { useGetResourcesQuery } from '@graph/hooks'
 import { Session } from '@graph/schemas'
-import { RequestResponsePair } from '@highlight-run/client'
+import { RequestResponsePair } from 'highlight.run'
 import { RequestType } from '@pages/Player/Toolbar/DevToolsWindowV2/utils'
 import { getGraphQLResolverName } from '@pages/Player/utils/utils'
 import { createContext } from '@util/context/context'

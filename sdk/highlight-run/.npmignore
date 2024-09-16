@@ -1,0 +1,5 @@
+.rollup.cache
+.turbo
+*.map
+scripts
+tsconfig.tsbuildinfo
