@@ -17,7 +17,7 @@ import {
 import { Stack } from '../Stack/Stack'
 import { Text } from '../Text/Text'
 import * as styles from './styles.css'
-import { themeVars } from '@/theme'
+import { themeVars } from '../../theme'
 
 export type SelectOption = {
 	name: string
