@@ -100,6 +100,7 @@ export interface ChartProps<TConfig> {
 	limitMetric?: string
 	viewConfig: TConfig
 	disabled?: boolean
+	height?: number
 	setTimeRange?: SetTimeRange
 	loadExemplars?: LoadExemplars
 }
@@ -150,12 +151,17 @@ const strokeColors = [
 	'#3E63DD',
 ]
 
+interface TooltipSettings {
+	dashed?: boolean
+}
+
 export const useGraphCallbacks = (
 	xAxisMetric: string,
 	yAxisMetric: string,
 	yAxisFunction: string,
 	setTimeRange?: SetTimeRange,
 	loadExemplars?: LoadExemplars,
+	tooltipSettings?: TooltipSettings,
 ) => {
 	const [refAreaStart, setRefAreaStart] = useState<number | undefined>()
 	const [refAreaEnd, setRefAreaEnd] = useState<number | undefined>()
@@ -261,7 +267,12 @@ export const useGraphCallbacks = (
 			cursor={
 				frozenTooltip
 					? false
-					: { stroke: '#C8C7CB', strokeDasharray: 4 }
+					: {
+							stroke: '#C8C7CB',
+							strokeDasharray: tooltipSettings?.dashed
+								? 4
+								: undefined,
+						}
 			}
 			isAnimationActive={false}
 			wrapperStyle={{
@@ -678,6 +689,7 @@ const Graph = ({
 	title,
 	viewConfig,
 	disabled,
+	height,
 	setTimeRange,
 	selectedPreset,
 	children,
@@ -974,10 +986,11 @@ const Graph = ({
 			</Box>
 			{called && (
 				<Box
-					height="full"
-					maxHeight="screen"
+					style={{ height: height ?? '100%' }}
 					key={series.join(';')} // Hacky but recharts' ResponsiveContainer has issues when this height changes so just rerender the whole thing
-					cssClass={clsx({ [style.disabled]: disabled })}
+					cssClass={clsx({
+						[style.disabled]: disabled,
+					})}
 					position="relative"
 				>
 					{loading && (

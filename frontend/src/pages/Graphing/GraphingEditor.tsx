@@ -8,6 +8,7 @@ import {
 	IconSolidClock,
 	Input,
 	presetStartDate,
+	Select,
 	TagSwitchGroup,
 	Text,
 } from '@highlight-run/ui/components'
@@ -73,6 +74,7 @@ import * as style from './GraphingEditor.css'
 import { LabeledRow } from './LabeledRow'
 import { OptionDropdown } from './OptionDropdown'
 import { BarChartSettings, LineChartSettings, TableSettings } from './Settings'
+import { FREQUENCIES } from '@/pages/Alerts/AlertConfigurationCard/AlertConfigurationConstants'
 
 type BucketBy = 'None' | 'Interval' | 'Count'
 const BUCKET_BY_OPTIONS: BucketBy[] = ['None', 'Interval', 'Count']
@@ -275,12 +277,13 @@ export const GraphingEditor: React.FC = () => {
 		})
 	}
 
-	const { loading: metaLoading } = useGetVisualizationQuery({
+	useGetVisualizationQuery({
 		variables: {
 			id: dashboard_id!,
 		},
 		skip: !isEdit,
 		onCompleted: (data) => {
+			setCompleted(true)
 			const g = data.visualization.graphs.find((g) => g.id === graph_id)
 			if (g === undefined) {
 				return
@@ -365,6 +368,8 @@ export const GraphingEditor: React.FC = () => {
 		DEFAULT_BUCKET_INTERVAL,
 	)
 
+	const [completed, setCompleted] = useState(!isEdit)
+
 	tempMetricViewTitle.current = useMemo(() => {
 		let newViewTitle = ''
 		const stringifiedFunctionType = functionType?.toString() ?? ''
@@ -401,7 +406,7 @@ export const GraphingEditor: React.FC = () => {
 		}
 	}, [endDate, productType, startDate])
 
-	if (metaLoading) {
+	if (!completed) {
 		return null
 	}
 
@@ -806,21 +811,18 @@ export const GraphingEditor: React.FC = () => {
 									)}
 									{bucketBySetting === 'Interval' && (
 										<LabeledRow
-											label="Bucket interval (seconds)"
+											label="Bucket interval"
 											name="bucketInterval"
 											tooltip="The number of X-axis buckets. A higher value will display smaller, more granular buckets."
 										>
-											<Input
-												type="number"
-												name="bucketInterval"
-												placeholder="Enter bucket interval"
+											<Select
+												options={FREQUENCIES}
 												value={bucketInterval}
-												onChange={(e) => {
+												onValueChange={(o) => {
 													setBucketInterval(
-														Number(e.target.value),
+														Number(o.value),
 													)
 												}}
-												cssClass={style.input}
 											/>
 										</LabeledRow>
 									)}

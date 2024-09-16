@@ -104,9 +104,13 @@ export const useRelatedResource = () => {
 		const resourceParam = searchParams.get(RELATED_RESOURCE_PARAM)
 
 		if (resourceParam) {
-			const resource = JSON.parse(
-				decodeURIComponent(resourceParam),
-			) as RelatedResource
+			let innerString: string
+			try {
+				innerString = atob(resourceParam)
+			} catch {
+				innerString = decodeURIComponent(resourceParam)
+			}
+			const resource = JSON.parse(innerString) as RelatedResource
 
 			setResource(resource)
 		} else {
@@ -143,7 +147,7 @@ export const useRelatedResource = () => {
 
 			searchParams.set(
 				RELATED_RESOURCE_PARAM,
-				JSON.stringify(newResource), // setSearchParams encodes the string
+				btoa(JSON.stringify(newResource)), // setSearchParams encodes the string
 			)
 
 			setSearchParams(Object.fromEntries(searchParams.entries()))
