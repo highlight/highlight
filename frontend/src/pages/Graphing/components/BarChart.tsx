@@ -131,16 +131,6 @@ export const BarChart = ({
 					hide={showXAxis === false}
 				/>
 
-				{/* <Tooltip
-					content={getCustomTooltip(
-						xAxisMetric,
-						yAxisMetric,
-						yAxisFunction,
-					)}
-					wrapperStyle={{ zIndex: 100 }}
-					cursor={{ fill: '#C8C7CB', fillOpacity: 0.5 }}
-					isAnimationActive={false}
-				/> */}
 				{tooltip}
 
 				<YAxis

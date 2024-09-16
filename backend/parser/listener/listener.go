@@ -65,7 +65,7 @@ func NewSearchListener(sqlBuilder *sqlbuilder.SelectBuilder, tableConfig model.T
 		ops:              []*FilterOperation{},
 		sb:               sqlBuilder,
 		attributesColumn: tableConfig.AttributesColumn,
-		attributesList:   tableConfig.AttributesList,
+		attributesList:   tableConfig.AttributesTable != "",
 		tableConfig:      tableConfig,
 		IgnoredFilters:   map[string]string{},
 	}
