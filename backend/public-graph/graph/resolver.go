@@ -3285,6 +3285,7 @@ func (r *Resolver) submitFrontendWebsocketMetric(sessionObj *model.Session, even
 			attribute.String(highlight.SessionIDAttribute, sessionObj.SecureID),
 			attribute.String(highlight.RequestIDAttribute, event.SocketID),
 			attribute.String(highlight.TraceKeyAttribute, event.Name),
+			attribute.String("ws.type", event.Type),
 			semconv.DeploymentEnvironmentKey.String(sessionObj.Environment),
 			semconv.ServiceNameKey.String(sessionObj.ServiceName),
 			semconv.ServiceVersionKey.String(ptr.ToString(sessionObj.AppVersion)),

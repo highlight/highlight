@@ -40,7 +40,7 @@ const buildResources = (traces: TraceEdge[]) => {
 	const webSocketHash = {} as { [key: string]: NetworkResource }
 
 	traces?.forEach((trace: TraceEdge) => {
-		const start = moment(trace.node.startTime)
+		const start = moment(trace.node.timestamp)
 		const resource = {
 			startTimeAbs: start.toDate().getTime(),
 			responseEndAbs:
@@ -49,7 +49,7 @@ const buildResources = (traces: TraceEdge[]) => {
 				trace.node.traceAttributes.http?.response_content_length,
 			),
 			name: trace.node.traceAttributes.http?.url,
-			initiatorType: trace.node.traceAttributes.initiator_type,
+			initiatorType: trace.node.traceAttributes.initiator_type || 'fetch',
 			transferSize:
 				trace.node.traceAttributes.http?.response?.transfer?.size,
 			requestResponsePairs: {
@@ -70,6 +70,10 @@ const buildResources = (traces: TraceEdge[]) => {
 				},
 				urlBlocked: trace.node.traceAttributes.http?.blocked,
 			},
+			socketId: trace.node.traceID,
+			type:
+				trace.node.traceAttributes.ws?.type ||
+				trace.node.traceAttributes.http?.type,
 		} as unknown as NetworkResource
 		if (
 			resource.initiatorType === RequestType.WebSocket &&
