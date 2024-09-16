@@ -6,7 +6,7 @@ import requests
 from query_gql import (
     GET_SESSION,
     GET_SESSION_INTERVALS,
-    GET_SESSIONS,
+    GET_SESSIONS_CLICKHOUSE,
     GET_EVENT_CHUNKS,
     GET_EVENT_CHUNK_URL,
 )
@@ -47,27 +47,28 @@ def main():
     r = requests.post(
         API_URL,
         json={
-            "operationName": "GetSessions",
+            "operationName": "GetSessionsClickhouse",
             "variables": {
-                "project_id": PROJECT_ID,
-                "count": 1_000,
-                "page": 1,
-                "params": {
-                    "query": "",
-                    "date_range": {
+                "query": {
+                    "isAnd": True,
+                    "rules": [],
+                    "dateRange": {
                         "start_date": (datetime.now() - timedelta(days=90)).strftime(
                             "%Y-%m-%dT%H:%M:%S.%fZ"
                         ),
                         "end_date": datetime.now().strftime("%Y-%m-%dT%H:%M:%S.%fZ"),
                     },
                 },
+                "count": 1_000,
+                "page": 1,
+                "project_id": PROJECT_ID,
                 "sort_desc": True,
             },
-            "query": GET_SESSIONS,
+            "query": GET_SESSIONS_CLICKHOUSE,
         },
         headers={"Authorization": f"Bearer {auth}"},
     )
-    sessions = r.json()["data"]["sessions"]["sessions"]
+    sessions = r.json()["data"]["sessions_clickhouse"]["sessions"]
 
     for session in sessions:
         r = requests.post(

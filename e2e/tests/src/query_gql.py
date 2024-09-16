@@ -1,15 +1,15 @@
 # TODO(vkorolik) parse queries from `query.gql`
-GET_ERROR_GROUPS = """
-query GetErrorGroups(
+GET_ERROR_GROUPS_CLICKHOUSE = """
+query GetErrorGroupsClickhouse(
 	$project_id: ID!
 	$count: Int!
-	$params: QueryInput!
+	$query: ClickhouseQuery!
 	$page: Int
 ) {
-	error_groups(
+	error_groups_clickhouse(
 		project_id: $project_id
 		count: $count
-		params: $params
+		query: $query
 		page: $page
 	) {
 		error_groups {
@@ -20,8 +20,7 @@ query GetErrorGroups(
 			type
 			event
 			state
-			first_occurrence
-			last_occurrence
+			state
 			snoozed_until
 			environments
 			stack_trace
@@ -150,19 +149,12 @@ query GetAdmin {
 }
 """
 
-GET_SESSIONS = """
-query GetSessions(
-  $project_id: ID!
-  $count: Int!
-  $params: QueryInput!
-  $sort_desc: Boolean!
-  $sort_field: String
-  $page: Int
-) {
-  sessions(
+GET_SESSIONS_CLICKHOUSE = """
+query GetSessionsClickhouse($project_id: ID!, $count: Int!, $query: ClickhouseQuery!, $sort_desc: Boolean!, $sort_field: String, $page: Int) {
+  sessions_clickhouse(
     project_id: $project_id
     count: $count
-    params: $params
+    query: $query
     sort_field: $sort_field
     sort_desc: $sort_desc
     page: $page
@@ -198,6 +190,7 @@ query GetSessions(
         value
         type
         id
+        __typename
       }
       first_time
       user_properties
@@ -205,9 +198,10 @@ query GetSessions(
       last_user_interaction_time
       is_public
       excluded
-      email
+      __typename
     }
     totalCount
+    __typename
   }
 }
 """

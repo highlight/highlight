@@ -22,6 +22,8 @@ import (
 	"golang.org/x/sync/errgroup"
 )
 
+const timeFormat = "2006-01-02T15:04:05.000Z"
+
 var fieldMap = map[string]string{
 	"pages_visited":     "PagesVisited",
 	"viewed_by_me":      "ViewedByAdmins",
@@ -140,6 +142,8 @@ const SessionsJoinedTable = "sessions_joined_vw"
 const SessionsTable = "sessions"
 const FieldsTable = "fields"
 const SessionKeysTable = "session_keys"
+const timeRangeField = "custom_created_at"
+const sampleField = "custom_sample"
 
 func (client *Client) WriteSessions(ctx context.Context, sessions []*model.Session) error {
 	chFields := []interface{}{}
@@ -251,6 +255,153 @@ func (client *Client) WriteSessions(ctx context.Context, sessions []*model.Sessi
 	}
 
 	return g.Wait()
+}
+
+func GetSessionsQueryImplDeprecated(admin *model.Admin, query modelInputs.ClickhouseQuery, projectId int, retentionDate time.Time, selectColumns string, groupBy *string, orderBy *string, limit *int, offset *int) (string, []interface{}, bool, error) {
+	rules, err := deserializeRules(query.Rules)
+	if err != nil {
+		return "", nil, false, err
+	}
+
+	sampleRule, sampleRuleIdx, sampleRuleFound := lo.FindIndexOf(rules, func(r Rule) bool {
+		return r.Field == sampleField
+	})
+	if sampleRuleFound {
+		rules = append(rules[:sampleRuleIdx], rules[sampleRuleIdx+1:]...)
+	}
+	useRandomSample := sampleRuleFound && groupBy == nil
+
+	end := query.DateRange.EndDate.UTC()
+	start := query.DateRange.StartDate.UTC()
+	timeRangeRule := Rule{
+		Field: timeRangeField,
+		Op:    BetweenDate,
+		Val:   []string{fmt.Sprintf("%s_%s", start.Format(timeFormat), end.Format(timeFormat))},
+	}
+	rules = append(rules, timeRangeRule)
+
+	if useRandomSample {
+		salt, err := strconv.ParseUint(sampleRule.Val[0], 16, 64)
+		if err != nil {
+			return "", nil, false, err
+		}
+		selectColumns = fmt.Sprintf("%s, toUInt64(farmHash64(SecureID) %% %d) as hash", selectColumns, salt)
+		orderBy = pointy.String("hash")
+	}
+	sb := sqlbuilder.NewSelectBuilder()
+	sb.Select(selectColumns).
+		From("sessions FINAL").
+		Where(sb.And(sb.Equal("ProjectID", projectId),
+			"NOT Excluded",
+			"WithinBillingQuota"),
+			sb.GreaterThan("CreatedAt", retentionDate),
+		)
+
+	conditions, err := parseSessionRules(admin, query.IsAnd, rules, projectId, start, end, sb)
+	if err != nil {
+		return "", nil, false, err
+	}
+
+	sb = sb.Where(conditions)
+	if groupBy != nil {
+		sb = sb.GroupBy(*groupBy)
+	}
+	if orderBy != nil {
+		sb = sb.OrderBy(*orderBy)
+	}
+	if limit != nil {
+		sb = sb.Limit(*limit)
+	}
+	if offset != nil {
+		sb = sb.Offset(*offset)
+	}
+
+	if useRandomSample {
+		sbOuter := sqlbuilder.NewSelectBuilder()
+		sb = sbOuter.
+			Select("*").
+			From(sbOuter.BuilderAs(sb, "inner"))
+	}
+
+	sql, args := sb.BuildWithFlavor(sqlbuilder.ClickHouse)
+	return sql, args, useRandomSample, nil
+}
+
+func (client *Client) QuerySessionIdsDeprecated(ctx context.Context, admin *model.Admin, projectId int, count int, query modelInputs.ClickhouseQuery, sortField string, page *int, retentionDate time.Time) ([]int64, int64, bool, error) {
+	pageInt := 1
+	if page != nil {
+		pageInt = *page
+	}
+	offset := (pageInt - 1) * count
+
+	sql, args, sampleRuleFound, err := GetSessionsQueryImplDeprecated(admin, query, projectId, retentionDate, "ID, count() OVER() AS total", nil, pointy.String(sortField), pointy.Int(count), pointy.Int(offset))
+	if err != nil {
+		return nil, 0, false, err
+	}
+
+	rows, err := client.conn.Query(ctx, sql, args...)
+	if err != nil {
+		return nil, 0, false, err
+	}
+
+	var ids []int64
+	var total uint64
+	for rows.Next() {
+		var id int64
+		columns := []interface{}{&id, &total}
+		if sampleRuleFound {
+			var hash uint64
+			columns = append(columns, &hash)
+		}
+		if err := rows.Scan(columns...); err != nil {
+			return nil, 0, false, err
+		}
+		ids = append(ids, id)
+	}
+
+	return ids, int64(total), sampleRuleFound, nil
+}
+
+func (client *Client) QuerySessionHistogramDeprecated(ctx context.Context, admin *model.Admin, projectId int, query modelInputs.ClickhouseQuery, retentionDate time.Time, options modelInputs.DateHistogramOptions) ([]time.Time, []int64, []int64, []int64, error) {
+	aggFn, addFn, location, err := getClickhouseHistogramSettings(options)
+	if err != nil {
+		return nil, nil, nil, nil, err
+	}
+
+	selectCols := fmt.Sprintf("%s(CreatedAt, '%s') as time, count() as count, sum(if(HasErrors, 1, 0)) as has_errors", aggFn, location.String())
+
+	orderBy := fmt.Sprintf("1 WITH FILL FROM %s(?, '%s') TO %s(?, '%s') STEP 1", aggFn, location.String(), aggFn, location.String())
+
+	sql, args, _, err := GetSessionsQueryImplDeprecated(admin, query, projectId, retentionDate, selectCols, pointy.String("1"), &orderBy, nil, nil)
+	if err != nil {
+		return nil, nil, nil, nil, err
+	}
+	args = append(args, *options.Bounds.StartDate, *options.Bounds.EndDate)
+	sql = fmt.Sprintf("SELECT %s(makeDate(0, 0), time), count, has_errors from (%s)", addFn, sql)
+
+	rows, err := client.conn.Query(ctx, sql, args...)
+	if err != nil {
+		return nil, nil, nil, nil, err
+	}
+
+	bucketTimes := []time.Time{}
+	totals := []int64{}
+	withErrors := []int64{}
+	withoutErrors := []int64{}
+	for rows.Next() {
+		var time time.Time
+		var total uint64
+		var withError uint64
+		if err := rows.Scan(&time, &total, &withError); err != nil {
+			return nil, nil, nil, nil, err
+		}
+		bucketTimes = append(bucketTimes, time)
+		totals = append(totals, int64(total))
+		withErrors = append(withErrors, int64(withError))
+		withoutErrors = append(withoutErrors, int64(total-withError))
+	}
+
+	return bucketTimes, totals, withErrors, withoutErrors, nil
 }
 
 func (client *Client) QueryFieldNames(ctx context.Context, projectId int, start time.Time, end time.Time) ([]*model.Field, error) {

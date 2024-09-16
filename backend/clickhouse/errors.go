@@ -52,6 +52,7 @@ type ClickhouseErrorObject struct {
 
 const ErrorGroupsTable = "error_groups"
 const ErrorObjectsTable = "error_objects"
+const errorsTimeRangeField = "error-field_timestamp"
 
 func (client *Client) WriteErrorGroups(ctx context.Context, groups []*model.ErrorGroup) error {
 	chGroups := []interface{}{}
@@ -161,6 +162,74 @@ func (client *Client) WriteErrorObjects(ctx context.Context, objects []*model.Er
 	}
 
 	return nil
+}
+
+func getErrorQueryImplDeprecated(tableName string, selectColumns string, query modelInputs.ClickhouseQuery, projectId int, groupBy *string, orderBy *string, limit *int, offset *int) (string, []interface{}, error) {
+	rules, err := deserializeRules(query.Rules)
+	if err != nil {
+		return "", nil, err
+	}
+
+	end := query.DateRange.EndDate.UTC()
+	start := query.DateRange.StartDate.UTC()
+	timeRangeRule := Rule{
+		Field: errorsTimeRangeField,
+		Op:    BetweenDate,
+		Val:   []string{fmt.Sprintf("%s_%s", start.Format(timeFormat), end.Format(timeFormat))},
+	}
+	rules = append(rules, timeRangeRule)
+
+	sb, err := parseErrorRules(tableName, selectColumns, query.IsAnd, rules, projectId, start, end)
+	if err != nil {
+		return "", nil, err
+	}
+
+	if groupBy != nil {
+		sb.GroupBy(*groupBy)
+	}
+	if orderBy != nil {
+		sb.OrderBy(*orderBy)
+	}
+	if limit != nil {
+		sb.Limit(*limit)
+	}
+	if offset != nil {
+		sb.Offset(*offset)
+	}
+
+	sql, args := sb.BuildWithFlavor(sqlbuilder.ClickHouse)
+
+	return sql, args, nil
+}
+
+func (client *Client) QueryErrorGroupIdsDeprecated(ctx context.Context, projectId int, count int, query modelInputs.ClickhouseQuery, page *int) ([]int64, int64, error) {
+	pageInt := 1
+	if page != nil {
+		pageInt = *page
+	}
+	offset := (pageInt - 1) * count
+
+	sql, args, err := getErrorQueryImplDeprecated(ErrorGroupsTable, "ID, count() OVER() AS total", query, projectId, nil, pointy.String("UpdatedAt DESC, ID DESC"), pointy.Int(count), pointy.Int(offset))
+	if err != nil {
+		return nil, 0, err
+	}
+
+	rows, err := client.conn.Query(ctx, sql, args...)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	ids := []int64{}
+	var total uint64
+	for rows.Next() {
+		var id int64
+		if err := rows.Scan(&id, &total); err != nil {
+			return nil, 0, err
+		}
+		ids = append(ids, id)
+	}
+
+	return ids, int64(total), nil
 }
 
 func (client *Client) QueryErrorGroupFrequencies(ctx context.Context, projectId int, errorGroupIds []int, params modelInputs.ErrorGroupFrequenciesParamsInput) ([]*modelInputs.ErrorDistributionItem, error) {
@@ -472,6 +541,43 @@ func (client *Client) QueryErrorFieldValues(ctx context.Context, projectId int, 
 	}
 
 	return values, nil
+}
+
+func (client *Client) QueryErrorHistogramDeprecated(ctx context.Context, projectId int, query modelInputs.ClickhouseQuery, options modelInputs.DateHistogramOptions) ([]time.Time, []int64, error) {
+	aggFn, addFn, location, err := getClickhouseHistogramSettings(options)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	selectCols := fmt.Sprintf("%s(Timestamp, '%s') as time, count() as count", aggFn, location.String())
+
+	orderBy := fmt.Sprintf("1 WITH FILL FROM %s(?, '%s') TO %s(?, '%s') STEP 1", aggFn, location.String(), aggFn, location.String())
+
+	sql, args, err := getErrorQueryImplDeprecated(ErrorObjectsTable, selectCols, query, projectId, pointy.String("1"), &orderBy, nil, nil)
+	if err != nil {
+		return nil, nil, err
+	}
+	args = append(args, *options.Bounds.StartDate, *options.Bounds.EndDate)
+	sql = fmt.Sprintf("SELECT %s(makeDate(0, 0), time), count from (%s)", addFn, sql)
+
+	rows, err := client.conn.Query(ctx, sql, args...)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	bucketTimes := []time.Time{}
+	totals := []int64{}
+	for rows.Next() {
+		var time time.Time
+		var total uint64
+		if err := rows.Scan(&time, &total); err != nil {
+			return nil, nil, err
+		}
+		bucketTimes = append(bucketTimes, time)
+		totals = append(totals, int64(total))
+	}
+
+	return bucketTimes, totals, nil
 }
 
 var reservedErrorGroupKeys = lo.Map(modelInputs.AllReservedErrorGroupKey, func(key modelInputs.ReservedErrorGroupKey, _ int) string {
