@@ -3197,7 +3197,7 @@ func (r *Resolver) submitFrontendNetworkMetric(ctx context.Context, sessionObj *
 		responseHeaders, _ := re.RequestResponsePairs.Response.HeadersRaw.(map[string]interface{})
 		userAgent, _ := requestHeaders["User-Agent"].(string)
 		requestBody, ok := re.RequestResponsePairs.Request.Body.(string)
-		if !ok {
+		if re.RequestResponsePairs.Request.Body != nil && !ok {
 			bdBytes, err := json.Marshal(requestBody)
 			if err != nil {
 				log.WithContext(ctx).WithError(err).WithField("sessionID", sessionObj.ID).Error("failed to serialize network request body as json")
@@ -3206,7 +3206,7 @@ func (r *Resolver) submitFrontendNetworkMetric(ctx context.Context, sessionObj *
 			}
 		}
 		responseBody, ok := re.RequestResponsePairs.Response.Body.(string)
-		if !ok {
+		if re.RequestResponsePairs.Response.Body != nil && !ok {
 			bdBytes, err := json.Marshal(responseBody)
 			if err != nil {
 				log.WithContext(ctx).WithError(err).WithField("sessionID", sessionObj.ID).Error("failed to serialize network response body as json")
@@ -3224,6 +3224,7 @@ func (r *Resolver) submitFrontendNetworkMetric(ctx context.Context, sessionObj *
 			semconv.ServiceName(sessionObj.ServiceName),
 			semconv.ServiceVersion(ptr.ToString(sessionObj.AppVersion)),
 			semconv.HTTPURL(re.Name),
+			attribute.Bool("http.blocked", re.RequestResponsePairs.URLBlocked),
 			attribute.String("http.request.body", requestBody),
 			attribute.String("http.response.body", responseBody),
 			attribute.Float64("http.response.encoded.size", re.EncodedBodySize),
