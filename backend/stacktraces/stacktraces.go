@@ -19,6 +19,7 @@ const Javascript Language = "js"
 const Python Language = "python"
 const Golang Language = "golang"
 const DotNET Language = "dotnet"
+const Ruby Language = "ruby"
 
 // StructureOTELStackTrace processes a backend opentelemetry stacktrace into a structured ErrorTraces.
 // The operation returns the deepest frame first (reversing the order of the incoming stacktrace).
@@ -29,6 +30,7 @@ func StructureOTELStackTrace(stackTrace string) ([]*publicModel.ErrorTrace, erro
 	pyExcPattern := regexp.MustCompile(`^(\S.+)`)
 	pyUnderPattern := regexp.MustCompile(`^\s*[\^~]+\s*$`)
 	pyMultiPattern := regexp.MustCompile(`^During handling of the above exception, another exception occurred:$`)
+	rubyPattern := regexp.MustCompile(`\tfrom (.+):(\d+)( 0x[0-f]+)?`)
 	goLinePattern := regexp.MustCompile(`\t(.+):(\d+)( 0x[0-f]+)?`)
 	goFuncPattern := regexp.MustCompile(`^(.+)\.(.+?)(\([^()]*\))?$`)
 	goRecoveredPanicPattern := regexp.MustCompile(`^\s*runtime\.gopanic\s*$`)
@@ -116,6 +118,11 @@ func StructureOTELStackTrace(stackTrace string) ([]*publicModel.ErrorTrace, erro
 			line, _ := strconv.ParseInt(string(matches[2]), 10, 32)
 			frame.LineNumber = pointy.Int(int(line))
 			continue
+		} else if matches := rubyPattern.FindSubmatch([]byte(line)); matches != nil {
+			language = Ruby
+			frame.FileName = pointy.String(string(matches[1]))
+			line, _ := strconv.ParseInt(string(matches[2]), 10, 32)
+			frame.LineNumber = pointy.Int(int(line))
 		} else if matches := goRecoveredPanicPattern.FindSubmatch([]byte(line)); matches != nil {
 			language = Golang
 			frames = nil
@@ -147,7 +154,7 @@ func StructureOTELStackTrace(stackTrace string) ([]*publicModel.ErrorTrace, erro
 	}
 	// for otel non go/.net errors, stacktraces are sent top-down (top frame is most outer; bottom frame is most inner)
 	// our backend expects to store stack traces in the opposite order, so we have to reverse it before returning.
-	if language != Golang && language != DotNET {
+	if language != Golang && language != DotNET && language != Ruby {
 		for i, j := 0, len(frames)-1; i < j; i, j = i+1, j-1 {
 			frames[i], frames[j] = frames[j], frames[i]
 		}
