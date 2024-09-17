@@ -196,9 +196,11 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
 							style={{ top: 0, right: 0, bottom: 0 }}
 						>
 							<button
+								type="button"
 								className={styles.inputNumberButton}
-								onClick={() => {
-									inputRef.current?.stepUp()
+								onClick={(e) => {
+									const steps = e.shiftKey ? 10 : 1
+									inputRef.current?.stepUp(steps)
 									emitChange()
 								}}
 							>
@@ -209,9 +211,11 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
 							</button>
 							<Box cssClass={styles.inputNumberDivider} />
 							<button
+								type="button"
 								className={styles.inputNumberButton}
-								onClick={() => {
-									inputRef.current?.stepDown()
+								onClick={(e) => {
+									const steps = e.shiftKey ? 10 : 1
+									inputRef.current?.stepDown(steps)
 									emitChange()
 								}}
 							>
