@@ -4,7 +4,7 @@ import * as Types from '@graph/schemas'
 import { TraceEdge } from '@graph/schemas'
 import { usePollQuery } from '@util/search'
 import moment from 'moment'
-import { useCallback, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { debounce } from 'lodash'
 
 import { TIME_FORMAT } from '@/components/Search/SearchForm/constants'
@@ -18,6 +18,7 @@ export const useGetTraces = ({
 	startDate,
 	endDate,
 	skipPolling,
+	loadAll,
 	sortColumn = 'timestamp',
 	sortDirection = Types.SortDirection.Desc,
 	skip,
@@ -28,6 +29,7 @@ export const useGetTraces = ({
 	startDate: Date
 	endDate: Date
 	skipPolling?: boolean
+	loadAll?: boolean
 	sortColumn?: string
 	sortDirection?: Types.SortDirection
 	skip?: boolean
@@ -177,6 +179,12 @@ export const useGetTraces = ({
 		await fetchMoreTraces(endCursor)
 		setLoadingAfter(false)
 	}, [data?.traces.pageInfo, fetchMoreTraces, loadingAfter])
+
+	useEffect(() => {
+		if (loadAll && !loadingAfter) {
+			fetchMoreForward()
+		}
+	}, [fetchMoreForward, loadAll, loadingAfter])
 
 	return {
 		traceEdges: (data?.traces.edges || []) as TraceEdge[],

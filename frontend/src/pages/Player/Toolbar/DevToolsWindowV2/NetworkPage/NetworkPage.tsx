@@ -73,8 +73,6 @@ export const NetworkPage = ({
 		resources: parsedResources,
 		resourcesLoading: loading,
 		error: resourceLoadingError,
-		loadingAfter,
-		fetchMoreForward,
 	} = useResourcesContext()
 
 	const networkRange = useMemo(() => {
@@ -259,9 +257,6 @@ export const NetworkPage = ({
 								exit: (v) => v < 128,
 							}}
 							data={resourcesToRender}
-							onScroll={() =>
-								loadingAfter ? null : fetchMoreForward()
-							}
 							itemContent={(index, resource) => {
 								const requestId =
 									getHighlightRequestId(resource)
