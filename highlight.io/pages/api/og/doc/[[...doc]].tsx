@@ -9,6 +9,8 @@ export const config = {
 	runtime: 'edge',
 }
 
+// Used for generating og images for docs pages. Example usage:
+// https://highlight.io/api/og/doc/docs/getting-started/introduction/test
 const handler = withEdgeRouterHighlight(async function (req: NextRequest) {
 	const fontData = await font
 	const fontLightData = await fontLight
