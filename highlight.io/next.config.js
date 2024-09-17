@@ -101,7 +101,6 @@ const nextConfig = {
 					'/docs/getting-started/backend-logging/python/other',
 				permanent: true,
 			},
-			ighl,
 		]
 	},
 	async headers() {
