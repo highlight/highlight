@@ -186,7 +186,7 @@ export const useResources = (
 		sortColumn: 'timestamp',
 		skip: !session?.secure_id,
 		skipPolling: true,
-		loadAll: true,
+		limit: 1_000,
 	})
 
 	const [resources, setResources] = useState<NetworkResourceWithID[]>([])

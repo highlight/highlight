@@ -73,6 +73,8 @@ export const NetworkPage = ({
 		resources: parsedResources,
 		resourcesLoading: loading,
 		error: resourceLoadingError,
+		fetchMoreForward,
+		loadingAfter,
 	} = useResourcesContext()
 
 	const networkRange = useMemo(() => {
@@ -204,6 +206,20 @@ export const NetworkPage = ({
 		[],
 	)
 
+	const fetchMoreWhenScrolled = useCallback(
+		async (e: React.UIEventHandler<'div'>) => {
+			if (!loadingAfter) {
+				const { scrollHeight, scrollTop, clientHeight } = e.target
+				//once the user has scrolled within 100px of the bottom of the table, fetch more data if there is any
+				if (scrollHeight - scrollTop - clientHeight < 100) {
+					console.log('vadim', 'fetching more')
+					await fetchMoreForward()
+				}
+			}
+		},
+		[fetchMoreForward, loadingAfter],
+	)
+
 	useLayoutEffect(() => {
 		if (autoScroll && state === ReplayerState.Playing) {
 			scrollFunction(currentResourceIdx)
@@ -252,6 +268,7 @@ export const NetworkPage = ({
 									/>
 								),
 							}}
+							onScroll={fetchMoreWhenScrolled}
 							scrollSeekConfiguration={{
 								enter: (v) => v > 512,
 								exit: (v) => v < 128,

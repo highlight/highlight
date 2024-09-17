@@ -134,6 +134,7 @@ type Pagination struct {
 	At        *string
 	Direction modelInputs.SortDirection
 	CountOnly bool
+	Limit     *int
 }
 
 func (client *Client) ReadLogs(ctx context.Context, projectID int, params modelInputs.QueryInput, pagination Pagination) (*modelInputs.LogConnection, error) {
