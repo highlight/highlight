@@ -531,8 +531,8 @@ export const usePlayer = (
 				return Promise.resolve()
 			}
 
-			return new Promise<void>((r) => {
-				H.startSpan(
+			return new Promise<void>(async (r) => {
+				await H.startSpan(
 					'timelineChangeTime',
 					{ attributes: { action: 'play' } },
 					async () => {
@@ -556,21 +556,24 @@ export const usePlayer = (
 				time: time,
 				state: ReplayerState.Paused,
 			}
-			return new Promise<void>((r) => {
+			return new Promise<void>(async (r) => {
 				if (time !== undefined) {
-					H.startManualSpan('timelineChangeTime', async (span) => {
-						span.setAttribute('action', 'pause')
-						dispatch({ type: PlayerActionType.setTime, time })
+					await H.startManualSpan(
+						'timelineChangeTime',
+						async (span) => {
+							span?.setAttribute('action', 'pause')
+							dispatch({ type: PlayerActionType.setTime, time })
 
-						await ensureChunksLoaded(
-							time,
-							undefined,
-							ReplayerState.Paused,
-						).then(() => {
-							span.end()
-							r()
-						})
-					})
+							await ensureChunksLoaded(
+								time,
+								undefined,
+								ReplayerState.Paused,
+							).then(() => {
+								span?.end()
+								r()
+							})
+						},
+					)
 				} else {
 					dispatch({ type: PlayerActionType.pause })
 					r()
@@ -587,39 +590,40 @@ export const usePlayer = (
 				state: target.current.state,
 			}
 			return new Promise<void>(async (r) => {
-				const span = H.startManualSpan('timelineChangeTime', (span) => {
-					span.setAttribute('action', 'seek')
-					return span
-				})
+				await H.startManualSpan('timelineChangeTime', async (span) => {
+					span?.setAttribute('action', 'seek')
 
-				if (skipInactive) {
-					const inactivityEnd = getInactivityEnd(time)
-					if (inactivityEnd) {
-						log(
-							'PlayerHook.tsx',
-							'seeking to',
-							inactivityEnd,
-							'due to inactivity at seek requested for',
-							time,
-						)
-						time = inactivityEnd
+					if (skipInactive) {
+						const inactivityEnd = getInactivityEnd(time)
+						if (inactivityEnd) {
+							log(
+								'PlayerHook.tsx',
+								'seeking to',
+								inactivityEnd,
+								'due to inactivity at seek requested for',
+								time,
+							)
+							time = inactivityEnd
+						}
 					}
-				}
-				const desiredState =
-					state.replayerState === ReplayerState.Paused
-						? ReplayerState.Paused
-						: ReplayerState.Playing
-				log('PlayerHook.tsx', 'seeking to', {
-					time,
-					desiredState,
-				})
-				dispatch({ type: PlayerActionType.setTime, time })
-				await ensureChunksLoaded(time, undefined, desiredState).then(
-					() => {
-						span.end()
+					const desiredState =
+						state.replayerState === ReplayerState.Paused
+							? ReplayerState.Paused
+							: ReplayerState.Playing
+					log('PlayerHook.tsx', 'seeking to', {
+						time,
+						desiredState,
+					})
+					dispatch({ type: PlayerActionType.setTime, time })
+					await ensureChunksLoaded(
+						time,
+						undefined,
+						desiredState,
+					).then(() => {
+						span?.end()
 						r()
-					},
-				)
+					})
+				})
 			})
 		},
 		[
