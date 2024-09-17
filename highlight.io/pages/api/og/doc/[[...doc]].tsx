@@ -1,5 +1,6 @@
 import { ImageResponse } from '@vercel/og'
 import 'fs'
+import Image from 'next/image'
 import { NextRequest, URLPattern } from 'next/server'
 import { withEdgeRouterHighlight } from '../../../../highlight.edge.config'
 import { bug1, bug2, font, fontLight, logoOnDark } from '../util'
@@ -61,7 +62,7 @@ const handler = withEdgeRouterHighlight(async function (req: NextRequest) {
 					backgroundColor: '#0D0225',
 				}}
 			>
-				<img
+				<Image
 					alt={'logo'}
 					style={{
 						marginTop: 40,
@@ -70,7 +71,7 @@ const handler = withEdgeRouterHighlight(async function (req: NextRequest) {
 					width={180}
 					height={180}
 					src={`data:image/png;base64,${logoBase64}`}
-				/>
+				></Image>
 				<div
 					style={{
 						display: 'flex',
@@ -107,7 +108,7 @@ const handler = withEdgeRouterHighlight(async function (req: NextRequest) {
 						{title || 'Highlight Documentation'}
 					</div>
 				</div>
-				<img
+				<Image
 					alt={'bug1'}
 					style={{
 						position: 'absolute',
@@ -117,8 +118,8 @@ const handler = withEdgeRouterHighlight(async function (req: NextRequest) {
 					width={207.98 * 1.1}
 					height={255.91 * 1.1}
 					src={`data:image/png;base64,${bug1Base64}`}
-				/>
-				<img
+				></Image>
+				<Image
 					alt={'bug2'}
 					style={{
 						position: 'absolute',
@@ -128,7 +129,7 @@ const handler = withEdgeRouterHighlight(async function (req: NextRequest) {
 					width={308.49 * 1.2}
 					height={235.58 * 1.2}
 					src={`data:image/png;base64,${bug2Base64}`}
-				/>
+				></Image>
 			</div>
 		),
 		{
