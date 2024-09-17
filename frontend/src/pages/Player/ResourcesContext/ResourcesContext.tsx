@@ -42,7 +42,8 @@ const buildResources = (traces: TraceEdge[]) => {
 	traces?.forEach((trace: TraceEdge) => {
 		const start = moment(trace.node.timestamp)
 		const transferSize = Number(
-			trace.node.traceAttributes.http?.response?.transfer?.size ??
+			trace.node.traceAttributes.http?.response?.encoded?.size ??
+				trace.node.traceAttributes.http?.response?.transfer?.size ??
 				trace.node.traceAttributes.http?.response_content_length,
 		)
 		const requestBody =
