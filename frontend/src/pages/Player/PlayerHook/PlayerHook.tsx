@@ -314,13 +314,19 @@ export const usePlayer = (
 
 	const dispatchAction = useCallback(
 		(time: number, action: ReplayerState) => {
-			dispatch({
-				type: PlayerActionType.onChunksLoad,
-				showPlayerMouseTail,
-				time,
-				action: action,
-				playerRef,
-			})
+			H.startSpan(
+				'dispatchAction',
+				{ attributes: { time, action } },
+				() => {
+					dispatch({
+						type: PlayerActionType.onChunksLoad,
+						showPlayerMouseTail,
+						time,
+						action: action,
+						playerRef,
+					})
+				},
+			)
 		},
 		[playerRef, showPlayerMouseTail],
 	)
