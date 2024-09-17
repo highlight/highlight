@@ -9899,7 +9899,7 @@ __metadata:
     "@types/json-stringify-safe": "npm:^5.0.3"
     "@types/node": "npm:^16.3.1"
     error-stack-parser: "npm:2.0.6"
-    fflate: "npm:>=0.8.1"
+    fflate: "npm:^0.8.1"
     graphql: "npm:^16.8.1"
     graphql-request: "npm:^6.1.0"
     graphql-tag: "npm:^2.12.6"
@@ -10213,13 +10213,13 @@ __metadata:
     "@rollup/plugin-commonjs": "npm:^25.0.7"
     "@rollup/plugin-json": "npm:^6.0.1"
     "@rollup/plugin-node-resolve": "npm:^15.2.3"
-    "@rollup/plugin-terser": "npm:>=0.4.4"
+    "@rollup/plugin-terser": "npm:^0.4.4"
     "@rollup/plugin-typescript": "npm:^11.1.5"
     "@types/jest": "npm:^29.2.0"
     "@types/lru-cache": "npm:^7.10.10"
     "@types/node": "npm:17.0.13"
     check-dependencies: "npm:^2.0.0"
-    encoding: "npm:>=0.1.13"
+    encoding: "npm:^0.1.13"
     highlight.run: "workspace:*"
     jest: "npm:^29.2.2"
     rollup: "npm:^4.1.4"
@@ -16586,7 +16586,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@rollup/plugin-terser@npm:>=0.4.4, @rollup/plugin-terser@npm:^0.4.4":
+"@rollup/plugin-terser@npm:^0.4.4":
   version: 0.4.4
   resolution: "@rollup/plugin-terser@npm:0.4.4"
   dependencies:
@@ -31065,7 +31065,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"encoding@npm:>=0.1.13, encoding@npm:^0.1.13":
+"encoding@npm:^0.1.13":
   version: 0.1.13
   resolution: "encoding@npm:0.1.13"
   dependencies:
@@ -34568,13 +34568,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"fflate@npm:>=0.8.1, fflate@npm:^0.8.1, fflate@npm:~0.8.2":
-  version: 0.8.2
-  resolution: "fflate@npm:0.8.2"
-  checksum: 10/2bd26ba6d235d428de793c6a0cd1aaa96a06269ebd4e21b46c8fd1bd136abc631acf27e188d47c3936db090bf3e1ede11d15ce9eae9bffdc4bfe1b9dc66ca9cb
-  languageName: node
-  linkType: hard
-
 "fflate@npm:^0.4.4":
   version: 0.4.8
   resolution: "fflate@npm:0.4.8"
@@ -34593,6 +34586,13 @@ __metadata:
   version: 0.7.4
   resolution: "fflate@npm:0.7.4"
   checksum: 10/27f61b3536c3a23b0ccdab4b616103be0e8e7241924cda063486822c50ae11930eb1ce6e34dedbfccb2705d04a66380d04e28c67387e1dd48159d41ea14bfda5
+  languageName: node
+  linkType: hard
+
+"fflate@npm:^0.8.1, fflate@npm:~0.8.2":
+  version: 0.8.2
+  resolution: "fflate@npm:0.8.2"
+  checksum: 10/2bd26ba6d235d428de793c6a0cd1aaa96a06269ebd4e21b46c8fd1bd136abc631acf27e188d47c3936db090bf3e1ede11d15ce9eae9bffdc4bfe1b9dc66ca9cb
   languageName: node
   linkType: hard
 

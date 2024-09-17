@@ -60,7 +60,7 @@
 		"@opentelemetry/semantic-conventions": "^1.27.0",
 		"@rrweb/rrweb-plugin-sequential-id-record": "workspace:*",
 		"error-stack-parser": "2.0.6",
-		"fflate": ">=0.8.1",
+		"fflate": "^0.8.1",
 		"graphql": "^16.8.1",
 		"graphql-request": "^6.1.0",
 		"graphql-tag": "^2.12.6",
