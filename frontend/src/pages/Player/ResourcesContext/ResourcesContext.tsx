@@ -87,8 +87,9 @@ const buildResources = (traces: TraceEdge[]) => {
 					body: trace.node.traceAttributes.http?.response?.body,
 					headers: responseHeaders,
 					status:
-						trace.node.traceAttributes.http?.status_code ||
-						'Unknown',
+						trace.node.traceAttributes.http?.status_code === '0'
+							? 'Unknown'
+							: trace.node.traceAttributes.http?.status_code,
 					size: Number(
 						trace.node.traceAttributes.http?.response?.transfer
 							?.size,
