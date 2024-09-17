@@ -63,6 +63,15 @@ jobs:
                   NEXT_PUBLIC_HIGHLIGHT_PROJECT_ID: 1jdkoe52
                   REACT_APP_COMMIT_SHA: ${{ github.sha }}
 
+            - name: Build production frontend
+              # does not work for open source builds as doppler is required
+              if: github.event.pull_request.head.repo.full_name == 'highlight/highlight' || github.ref == 'refs/heads/main' || github.event_name == 'release'
+              run: doppler run -- yarn build:frontend
+              env:
+                  DOPPLER_TOKEN: ${{ secrets.DOPPLER_PROD_RENDER_SECRET }}
+                  GIT_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+                  PREVIEW: ${{ github.event.pull_request.head.repo.full_name == 'highlight/highlight' && github.ref != 'refs/heads/main' }}
+
             - name: Build render
               # does not work for open source builds as doppler is required
               if: github.event.pull_request.head.repo.full_name == 'highlight/highlight' || github.ref == 'refs/heads/main'
