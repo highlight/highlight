@@ -46,7 +46,7 @@ import {
 	viewportResizeDimension,
 } from '@rrweb/types'
 import analytics from '@util/analytics'
-import log from '@util/log'
+import log, { isVerboseLoggingEnabled } from '@util/log'
 import { timedCall } from '@util/perf/instrument'
 import { H } from 'highlight.run'
 import { throttle } from 'lodash'
@@ -565,7 +565,9 @@ const initReplayer = (
 		mouseTail: showPlayerMouseTail,
 		UNSAFE_replayCanvas: true,
 		liveMode: s.isLiveMode,
-		useVirtualDom: false,
+		useVirtualDom: true,
+		showWarning: isVerboseLoggingEnabled(),
+		showDebug: isVerboseLoggingEnabled(),
 		pauseAnimation: !PROJECTS_WITH_CSS_ANIMATIONS.includes(s.project_id),
 		logger: {
 			log: throttle(console.log, 100),
