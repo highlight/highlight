@@ -67,7 +67,7 @@ const handler = async function (req: NextRequest) {
 						width={650}
 						height={650}
 						src={`data:image/png;base64,${backDropBase64}`}
-					></Image>
+					/>
 					<svg
 						width="68"
 						height="68"
