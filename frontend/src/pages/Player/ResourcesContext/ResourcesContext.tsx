@@ -67,7 +67,7 @@ const buildResources = (traces: TraceEdge[]) => {
 			name: trace.node.traceAttributes.http?.url,
 			initiatorType: trace.node.traceAttributes.initiator_type || 'fetch',
 			transferSize:
-				trace.node.traceAttributes.http?.response?.transfer?.size,
+				trace.node.traceAttributes.http?.response?.transfer?.size ?? 0,
 			requestResponsePairs: {
 				request: {
 					id: trace.node.traceAttributes.traceID,
