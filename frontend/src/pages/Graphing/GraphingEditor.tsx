@@ -490,7 +490,7 @@ export const GraphingEditor: React.FC = () => {
 						display="flex"
 						flexDirection="row"
 						justifyContent="space-between"
-						height="full"
+						cssClass={style.editGraphPanel}
 					>
 						<GraphBackgroundWrapper>
 							<Graph

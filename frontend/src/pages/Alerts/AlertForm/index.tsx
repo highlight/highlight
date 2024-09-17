@@ -342,7 +342,7 @@ export const AlertForm: React.FC = () => {
 						py="6"
 					>
 						<Text size="small" weight="medium">
-							Create alert
+							{isEdit ? 'Edit' : 'Create'} alert
 						</Text>
 						<Box display="flex" gap="4">
 							<DateRangePicker
