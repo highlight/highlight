@@ -71,8 +71,9 @@ const buildResources = (traces: TraceEdge[]) => {
 				trace.node.traceAttributes.http?.response?.body
 					? 'fetch'
 					: 'other'),
-			transferSize:
-				trace.node.traceAttributes.http?.response?.transfer?.size ?? 0,
+			transferSize: Number(
+				trace.node.traceAttributes.http?.response?.transfer?.size,
+			),
 			requestResponsePairs: {
 				request: {
 					id: trace.node.traceID,
@@ -85,9 +86,13 @@ const buildResources = (traces: TraceEdge[]) => {
 				response: {
 					body: trace.node.traceAttributes.http?.response?.body,
 					headers: responseHeaders,
-					status: trace.node.traceAttributes.http?.status_code,
-					size: trace.node.traceAttributes.http?.response?.transfer
-						?.size,
+					status:
+						trace.node.traceAttributes.http?.status_code ||
+						'Unknown',
+					size: Number(
+						trace.node.traceAttributes.http?.response?.transfer
+							?.size,
+					),
 				},
 				urlBlocked: trace.node.traceAttributes.http?.blocked,
 			},
