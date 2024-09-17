@@ -38,7 +38,6 @@ import {
 import type { NetworkRecordingOptions } from '../types/client'
 import { OTLPTraceExporterBrowserWithXhrRetry } from './exporter'
 import { UserInteractionInstrumentation } from './user-interaction'
-import { DEFAULT_GRAPH_URI } from '../index'
 
 export type BrowserTracingConfig = {
 	projectId: string | number
@@ -64,7 +63,7 @@ export const setupBrowserTracing = (config: BrowserTracingConfig) => {
 	const backendUrl =
 		config.backendUrl ||
 		import.meta.env.REACT_APP_PUBLIC_GRAPH_URI ||
-		DEFAULT_GRAPH_URI
+		'https://pub.highlight.run'
 
 	const urlBlocklist = [
 		...(config.networkRecordingOptions?.urlBlocklist ?? []),

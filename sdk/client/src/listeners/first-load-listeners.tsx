@@ -3,11 +3,7 @@ import { ErrorListener } from './error-listener'
 
 import stringify from 'json-stringify-safe'
 import { ERRORS_TO_IGNORE, ERROR_PATTERNS_TO_IGNORE } from '../constants/errors'
-import {
-	DEFAULT_GRAPH_URI,
-	DEFAULT_OTLP_ENDPOINT,
-	HighlightClassOptions,
-} from '../index'
+import { HighlightClassOptions } from '../index'
 import { shutdown } from '../otel'
 import { ALL_CONSOLE_METHODS, ConsoleMethods } from '../types/client'
 import { ConsoleMessage, ErrorMessage } from '../types/shared-types'
@@ -162,8 +158,9 @@ export class FirstLoadListeners {
 		const _backendUrl =
 			options?.backendUrl ||
 			import.meta.env.REACT_APP_PUBLIC_GRAPH_URI ||
-			DEFAULT_GRAPH_URI
-		const otlpEndpoint = options.otlpEndpoint ?? DEFAULT_OTLP_ENDPOINT
+			'https://pub.highlight.run'
+		const otlpEndpoint =
+			options.otlpEndpoint ?? 'https://otel.highlight.io:4318'
 		sThis.highlightEndpoints = [_backendUrl, otlpEndpoint].filter(
 			Boolean,
 		) as string[]

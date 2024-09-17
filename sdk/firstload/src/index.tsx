@@ -36,9 +36,6 @@ import { HighlightSegmentMiddleware } from './integrations/segment.js'
 import { initializeFetchListener } from './listeners/fetch'
 import { initializeWebSocketListener } from './listeners/web-socket'
 
-export const DEFAULT_OTLP_ENDPOINT = 'https://otel.highlight.io:4318'
-export const DEFAULT_GRAPH_URI = 'https://pub.highlight.run'
-
 enum MetricCategory {
 	Device = 'Device',
 	WebVital = 'WebVital',
@@ -128,7 +125,8 @@ const H: HighlightPublicInterface = {
 					if (options?.enableOtelTracing) {
 						setupBrowserTracing({
 							otlpEndpoint:
-								options?.otlpEndpoint ?? DEFAULT_OTLP_ENDPOINT,
+								options?.otlpEndpoint ??
+								'https://otel.highlight.io:4318',
 							projectId: projectID,
 							sessionSecureId: sessionSecureID,
 							environment: options?.environment ?? 'production',

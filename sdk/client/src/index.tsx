@@ -106,9 +106,6 @@ enum LOCAL_STORAGE_KEYS {
 	CLIENT_ID = 'highlightClientID',
 }
 
-export const DEFAULT_GRAPH_URI = 'https://pub.highlight.run'
-export const DEFAULT_OTLP_ENDPOINT = 'https://otel.highlight.io:4318'
-
 export type HighlightClassOptions = {
 	organizationID: number | string
 	debug?: boolean | DebugOptions
@@ -365,7 +362,7 @@ export class Highlight {
 				canvas: 2,
 			}),
 		}
-		this._backendUrl = options?.backendUrl ?? DEFAULT_GRAPH_URI
+		this._backendUrl = options?.backendUrl ?? 'https://pub.highlight.run'
 
 		// If _backendUrl is a relative URL, convert it to an absolute URL
 		// so that it's usable from a web worker.
