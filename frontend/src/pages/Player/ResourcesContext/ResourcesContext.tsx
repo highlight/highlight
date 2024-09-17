@@ -41,6 +41,18 @@ const buildResources = (traces: TraceEdge[]) => {
 
 	traces?.forEach((trace: TraceEdge) => {
 		const start = moment(trace.node.timestamp)
+		const transferSize = Number(
+			trace.node.traceAttributes.http?.response?.transfer?.size ??
+				trace.node.traceAttributes.http?.response_content_length,
+		)
+		const requestBody =
+			trace.node.traceAttributes.http?.request?.body === 'undefined'
+				? undefined
+				: trace.node.traceAttributes.http?.request?.body
+		const responseBody =
+			trace.node.traceAttributes.http?.response?.body === 'undefined'
+				? undefined
+				: trace.node.traceAttributes.http?.response?.body
 		let requestHeaders =
 				trace.node.traceAttributes.http?.request?.headers ??
 				trace.node.traceAttributes.http?.request?.header,
@@ -67,33 +79,25 @@ const buildResources = (traces: TraceEdge[]) => {
 			name: trace.node.traceAttributes.http?.url,
 			initiatorType:
 				trace.node.traceAttributes.initiator_type ||
-				(trace.node.traceAttributes.http?.request?.body ||
-				trace.node.traceAttributes.http?.response?.body
-					? 'fetch'
-					: 'other'),
-			transferSize: Number(
-				trace.node.traceAttributes.http?.response?.transfer?.size,
-			),
+				(requestBody || responseBody ? 'fetch' : 'other'),
+			transferSize,
 			requestResponsePairs: {
 				request: {
 					id: trace.node.traceID,
-					body: trace.node.traceAttributes.http?.request?.body,
+					body: requestBody,
 					headers: requestHeaders,
 					sessionSecureID: trace.node.secureSessionID,
 					url: trace.node.traceAttributes.http?.url,
 					verb: trace.node.traceAttributes.http?.method,
 				},
 				response: {
-					body: trace.node.traceAttributes.http?.response?.body,
+					body: responseBody,
 					headers: responseHeaders,
 					status:
 						trace.node.traceAttributes.http?.status_code === '0'
 							? 'Unknown'
 							: trace.node.traceAttributes.http?.status_code,
-					size: Number(
-						trace.node.traceAttributes.http?.response?.transfer
-							?.size,
-					),
+					size: transferSize,
 				},
 				urlBlocked: trace.node.traceAttributes.http?.blocked,
 			},

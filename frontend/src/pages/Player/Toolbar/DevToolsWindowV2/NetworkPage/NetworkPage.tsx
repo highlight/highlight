@@ -212,7 +212,6 @@ export const NetworkPage = ({
 				const { scrollHeight, scrollTop, clientHeight } = e.target
 				//once the user has scrolled within 100px of the bottom of the table, fetch more data if there is any
 				if (scrollHeight - scrollTop - clientHeight < 100) {
-					console.log('vadim', 'fetching more')
 					await fetchMoreForward()
 				}
 			}

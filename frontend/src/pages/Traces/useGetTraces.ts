@@ -172,7 +172,6 @@ export const useGetTraces = ({
 
 	const fetchMoreForward = useCallback(async () => {
 		const { hasNextPage, endCursor } = data?.traces.pageInfo || {}
-		console.log('vadim', 'fetchMoreForward', { hasNextPage, endCursor })
 		if (!hasNextPage || loadingAfter || !endCursor) {
 			return
 		}
