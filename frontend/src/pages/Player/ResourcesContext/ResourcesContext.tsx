@@ -70,7 +70,7 @@ const buildResources = (traces: TraceEdge[]) => {
 				trace.node.traceAttributes.http?.response?.transfer?.size ?? 0,
 			requestResponsePairs: {
 				request: {
-					id: trace.node.traceAttributes.traceID,
+					id: trace.node.traceID,
 					body: trace.node.traceAttributes.http?.request?.body,
 					headers: requestHeaders,
 					sessionSecureID: trace.node.secureSessionID,
