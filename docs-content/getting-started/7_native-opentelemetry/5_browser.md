@@ -23,6 +23,7 @@ You can set these attributes when creating your trace provider:
 ```ts
 const provider = new WebTracerProvider({
   resource: new Resource({
+    // TODO: Explain how to get the project and session IDs.
     'highlight.project_id': 'your-project-id',
     'highlight.session_id': 'your-session-id',
     'service.name': 'your-service-name', // optional
