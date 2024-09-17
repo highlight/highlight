@@ -2469,12 +2469,11 @@ type TableConfig struct {
 	BodyColumn       string
 	SeverityColumn   string
 	AttributesColumn string
-	// AttributesList set when AttributesColumn is an array of k,v pairs of attributes
-	AttributesList bool
-	MetricColumn   *string
-	KeysToColumns  map[string]string
-	ReservedKeys   []string
-	SelectColumns  []string
-	DefaultFilter  string
-	IgnoredFilters map[string]bool
+	AttributesTable  string
+	MetricColumn     *string
+	KeysToColumns    map[string]string
+	ReservedKeys     []string
+	SelectColumns    []string
+	DefaultFilter    string
+	IgnoredFilters   map[string]bool
 }

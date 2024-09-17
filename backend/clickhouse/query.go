@@ -67,7 +67,7 @@ func readObjects[TObj interface{}](ctx context.Context, client *Client, config m
 	if pagination.At != nil && len(*pagination.At) > 1 {
 		// Create a "window" around the cursor
 		// https://stackoverflow.com/a/71738696
-		beforeSb, err := makeSelectBuilder(
+		beforeSb, _, err := makeSelectBuilder(
 			innerTableConfig,
 			innerSelect,
 			[]int{projectID},
@@ -80,7 +80,7 @@ func readObjects[TObj interface{}](ctx context.Context, client *Client, config m
 		}
 		beforeSb.Distinct().Limit(LogsLimit/2 + 1)
 
-		atSb, err := makeSelectBuilder(
+		atSb, _, err := makeSelectBuilder(
 			innerTableConfig,
 			innerSelect,
 			[]int{projectID},
@@ -93,7 +93,7 @@ func readObjects[TObj interface{}](ctx context.Context, client *Client, config m
 		}
 		atSb.Distinct()
 
-		afterSb, err := makeSelectBuilder(
+		afterSb, _, err := makeSelectBuilder(
 			innerTableConfig,
 			innerSelect,
 			[]int{projectID},
@@ -114,7 +114,7 @@ func readObjects[TObj interface{}](ctx context.Context, client *Client, config m
 			Where(sb.In(fmt.Sprintf("(%s)", strings.Join(innerSelect, ",")), ub)).
 			OrderBy(orderForward)
 	} else {
-		fromSb, err := makeSelectBuilder(
+		fromSb, _, err := makeSelectBuilder(
 			innerTableConfig,
 			innerSelect,
 			[]int{projectID},
@@ -171,7 +171,7 @@ func makeSelectBuilder(
 	projectIDs []int,
 	params modelInputs.QueryInput,
 	pagination Pagination,
-) (*sqlbuilder.SelectBuilder, error) {
+) (*sqlbuilder.SelectBuilder, listener.Filters, error) {
 	sb := sqlbuilder.NewSelectBuilder()
 
 	orderForward, orderBackward := getSortOrders(sb, pagination.Direction, config, params)
@@ -183,7 +183,7 @@ func makeSelectBuilder(
 	if pagination.After != nil && len(*pagination.After) > 1 {
 		timestamp, uuid, err := decodeCursor(*pagination.After)
 		if err != nil {
-			return nil, err
+			return nil, nil, err
 		}
 
 		// See https://dba.stackexchange.com/a/206811
@@ -211,14 +211,14 @@ func makeSelectBuilder(
 	} else if pagination.At != nil && len(*pagination.At) > 1 {
 		timestamp, uuid, err := decodeCursor(*pagination.At)
 		if err != nil {
-			return nil, err
+			return nil, nil, err
 		}
 		sb.Where(sb.Equal("Timestamp", timestamp)).
 			Where(sb.Equal("UUID", uuid))
 	} else if pagination.Before != nil && len(*pagination.Before) > 1 {
 		timestamp, uuid, err := decodeCursor(*pagination.Before)
 		if err != nil {
-			return nil, err
+			return nil, nil, err
 		}
 
 		// See https://dba.stackexchange.com/a/206811
@@ -252,9 +252,9 @@ func makeSelectBuilder(
 		}
 	}
 
-	parser.AssignSearchFilters(sb, params.Query, config)
+	filters := parser.AssignSearchFilters(sb, params.Query, config)
 
-	return sb, nil
+	return sb, filters, nil
 }
 
 func expandJSON(logAttributes map[string]string) map[string]interface{} {
@@ -619,7 +619,7 @@ func getFnStr(aggregator modelInputs.MetricAggregator, column string, useSamplin
 
 func getAttributeFilterCol(sampleableConfig SampleableTableConfig, value, op string) (column string) {
 	column = fmt.Sprintf("%s[%s]", sampleableConfig.tableConfig.AttributesColumn, value)
-	if sampleableConfig.tableConfig.AttributesList {
+	if sampleableConfig.tableConfig.AttributesTable != "" {
 		transform := "v"
 		if op != "" {
 			transform = fmt.Sprintf("%s(%s)", op, transform)
@@ -786,7 +786,7 @@ func (client *Client) ReadMetrics(ctx context.Context, input ReadMetricsInput) (
 			config.DefaultFilter = ""
 		}
 	}
-	fromSb, err = makeSelectBuilder(
+	fromSb, filters, err := makeSelectBuilder(
 		config,
 		nil,
 		input.ProjectIDs,
@@ -797,11 +797,14 @@ func (client *Client) ReadMetrics(ctx context.Context, input ReadMetricsInput) (
 		return nil, err
 	}
 
+	attributeFields := getAttributeFields(SessionsJoinedTableConfig, filters)
+
 	applyBlockFilter(fromSb, input)
 
 	var col string
 	if col = keysToColumns[strings.ToLower(input.Column)]; col == "" {
 		col = getAttributeFilterCol(input.SampleableConfig, fromSb.Var(input.Column), "")
+		attributeFields = append(attributeFields, input.Column)
 	}
 	var metricExpr = col
 	if !isCountDistinct {
@@ -826,6 +829,7 @@ func (client *Client) ReadMetrics(ctx context.Context, input ReadMetricsInput) (
 		}
 		if metricType == modelInputs.MetricAggregatorCountDistinctKey {
 			metricExpr = getAttributeFilterCol(input.SampleableConfig, highlight.TraceKeyAttribute, "")
+			attributeFields = append(attributeFields, highlight.TraceKeyAttribute)
 			config.DefaultFilter = ""
 		}
 	}
@@ -839,6 +843,7 @@ func (client *Client) ReadMetrics(ctx context.Context, input ReadMetricsInput) (
 			bucketExpr = fmt.Sprintf("toFloat64(%s)", col)
 		} else {
 			bucketExpr = getAttributeFilterCol(input.SampleableConfig, fromSb.Var(input.BucketBy), "toFloat64OrNull")
+			attributeFields = append(attributeFields, input.BucketBy)
 		}
 	}
 
@@ -875,6 +880,7 @@ func (client *Client) ReadMetrics(ctx context.Context, input ReadMetricsInput) (
 			groupCol = fmt.Sprintf("toString(%s)", col)
 		} else {
 			groupCol = getAttributeFilterCol(input.SampleableConfig, fromSb.Var(group), "toString")
+			attributeFields = append(attributeFields, group)
 		}
 		selectCols = append(selectCols, fromSb.As(groupCol, fmt.Sprintf("g%d", idx)))
 	}
@@ -910,17 +916,6 @@ func (client *Client) ReadMetrics(ctx context.Context, input ReadMetricsInput) (
 			innerSb.Where(innerSb.NotEqual(groupByIndex, ""))
 		}
 
-		innerSb.
-			From(config.TableName).
-			Select(strings.Join(colStrs, ", ")).
-			Where(innerSb.In("ProjectId", input.ProjectIDs)).
-			Where(innerSb.GreaterEqualThan("Timestamp", startTimestamp)).
-			Where(innerSb.LessEqualThan("Timestamp", endTimestamp))
-
-		applyBlockFilter(innerSb, input)
-
-		parser.AssignSearchFilters(innerSb, input.Params.Query, config)
-
 		limitFn := ""
 		col := ""
 		if input.LimitColumn != nil {
@@ -929,9 +924,24 @@ func (client *Client) ReadMetrics(ctx context.Context, input ReadMetricsInput) (
 		if topCol, found := keysToColumns[col]; found {
 			col = topCol
 		} else {
+			attributeFields = append(attributeFields, col)
 			col = getAttributeFilterCol(input.SampleableConfig, innerSb.Var(col), "toFloat64OrNull")
 		}
 		limitFn = getFnStr(*input.LimitAggregator, col, false, false)
+
+		innerSb.
+			From(config.TableName).
+			Select(strings.Join(colStrs, ", "))
+
+		addAttributes(SessionsJoinedTableConfig, attributeFields, input.ProjectIDs, input.Params, innerSb)
+
+		innerSb.Where(innerSb.In("ProjectId", input.ProjectIDs)).
+			Where(innerSb.GreaterEqualThan("Timestamp", startTimestamp)).
+			Where(innerSb.LessEqualThan("Timestamp", endTimestamp))
+
+		applyBlockFilter(innerSb, input)
+
+		parser.AssignSearchFilters(innerSb, input.Params.Query, config)
 
 		innerSb.GroupBy(groupByIndexes...).
 			OrderBy(limitFn).
@@ -955,6 +965,8 @@ func (client *Client) ReadMetrics(ctx context.Context, input ReadMetricsInput) (
 	for i := base; i < base+len(input.GroupBy); i++ {
 		groupByCols = append(groupByCols, strconv.Itoa(i))
 	}
+
+	addAttributes(config, attributeFields, input.ProjectIDs, input.Params, fromSb)
 
 	innerSb := fromSb
 	fromSb = sqlbuilder.NewSelectBuilder()
@@ -1094,7 +1106,7 @@ func logLines(ctx context.Context, client *Client, tableConfig model.TableConfig
 	body := formatColumn(tableConfig.BodyColumn, "Body")
 	severity := formatColumn(tableConfig.SeverityColumn, "Severity")
 	attributes := formatColumn(tableConfig.AttributesColumn, "Labels")
-	fromSb, err := makeSelectBuilder(
+	fromSb, _, err := makeSelectBuilder(
 		tableConfig,
 		[]string{"Timestamp", body, severity, attributes},
 		[]int{projectID},
