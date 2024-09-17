@@ -2,7 +2,6 @@ import { ImageResponse } from '@vercel/og'
 import { NextRequest, URLPattern } from 'next/server'
 import { withEdgeRouterHighlight } from '../../../../highlight.edge.config'
 import { backdrop, font, fontLight } from '../util'
-import Image from 'next/image'
 
 export const config = {
 	runtime: 'edge',
@@ -57,7 +56,7 @@ const handler = async function (req: NextRequest) {
 						paddingBottom: 50,
 					}}
 				>
-					<Image
+					<img
 						alt={'backdrop'}
 						style={{
 							position: 'absolute',
@@ -67,7 +66,7 @@ const handler = async function (req: NextRequest) {
 						width={650}
 						height={650}
 						src={`data:image/png;base64,${backDropBase64}`}
-					/>
+					></img>
 					<svg
 						width="68"
 						height="68"

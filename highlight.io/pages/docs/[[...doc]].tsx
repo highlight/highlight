@@ -46,7 +46,6 @@ import logger from '../../highlight.logger'
 import ChevronDown from '../../public/images/ChevronDownIcon'
 import Minus from '../../public/images/MinusIcon'
 import { readMarkdown, removeOrderingPrefix } from '../../shared/doc'
-import Image from 'next/image'
 
 const DOCS_CONTENT_PATH = path.join(process.cwd(), '../docs-content')
 const DOCS_GITHUB_LINK = `github.com/highlight/highlight/blob/main/docs-content`
@@ -1149,20 +1148,9 @@ export default function DocPage({
 												img: (props) => {
 													return (
 														<picture>
-															<Image
+															<img
 																{...props}
-																width={Number(
-																	props.width,
-																)}
-																height={Number(
-																	props.height,
-																)}
-																src={String(
-																	props.src,
-																)}
-																alt={String(
-																	props.alt,
-																)}
+																alt={props.alt}
 																className="border rounded-lg border-divider-on-dark"
 															/>
 														</picture>

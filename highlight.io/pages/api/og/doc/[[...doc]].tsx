@@ -1,6 +1,5 @@
 import { ImageResponse } from '@vercel/og'
 import 'fs'
-import Image from 'next/image'
 import { NextRequest, URLPattern } from 'next/server'
 import { withEdgeRouterHighlight } from '../../../../highlight.edge.config'
 import { bug1, bug2, font, fontLight, logoOnDark } from '../util'
@@ -9,8 +8,6 @@ export const config = {
 	runtime: 'edge',
 }
 
-// Used for generating og images for docs pages. Example usage:
-// https://highlight.io/api/og/doc/docs/getting-started/introduction/test
 const handler = withEdgeRouterHighlight(async function (req: NextRequest) {
 	const fontData = await font
 	const fontLightData = await fontLight
@@ -64,7 +61,7 @@ const handler = withEdgeRouterHighlight(async function (req: NextRequest) {
 					backgroundColor: '#0D0225',
 				}}
 			>
-				<Image
+				<img
 					alt={'logo'}
 					style={{
 						marginTop: 40,
@@ -110,7 +107,7 @@ const handler = withEdgeRouterHighlight(async function (req: NextRequest) {
 						{title || 'Highlight Documentation'}
 					</div>
 				</div>
-				<Image
+				<img
 					alt={'bug1'}
 					style={{
 						position: 'absolute',
@@ -121,7 +118,7 @@ const handler = withEdgeRouterHighlight(async function (req: NextRequest) {
 					height={255.91 * 1.1}
 					src={`data:image/png;base64,${bug1Base64}`}
 				/>
-				<Image
+				<img
 					alt={'bug2'}
 					style={{
 						position: 'absolute',
