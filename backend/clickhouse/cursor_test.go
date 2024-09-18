@@ -30,7 +30,7 @@ func TestGetConnectionAfter(t *testing.T) {
 
 	conn := getConnection(zeroEdges, Pagination{
 		After: ptr.String("cursor"),
-	})
+	}, LogsLimit)
 
 	assert.Equal(t, &lc{
 		Edges: zeroEdges,
@@ -44,7 +44,7 @@ func TestGetConnectionAfter(t *testing.T) {
 
 	conn = getConnection(oneEdge, Pagination{
 		After: ptr.String("cursor"),
-	})
+	}, LogsLimit)
 
 	assert.Equal(t, &lc{
 		Edges: oneEdge,
@@ -58,7 +58,7 @@ func TestGetConnectionAfter(t *testing.T) {
 
 	conn = getConnection(manyEdges, Pagination{
 		After: ptr.String("cursor"),
-	})
+	}, LogsLimit)
 
 	assert.Equal(t, &lc{
 		Edges: manyEdges[:LogsLimit],
@@ -90,7 +90,7 @@ func TestGetConnectionBefore(t *testing.T) {
 
 	conn := getConnection(zeroEdges, Pagination{
 		Before: ptr.String("cursor"),
-	})
+	}, LogsLimit)
 
 	assert.Equal(t, &lc{
 		Edges: zeroEdges,
@@ -104,7 +104,7 @@ func TestGetConnectionBefore(t *testing.T) {
 
 	conn = getConnection(oneEdge, Pagination{
 		Before: ptr.String("cursor"),
-	})
+	}, LogsLimit)
 
 	assert.Equal(t, &lc{
 		Edges: oneEdge,
@@ -118,7 +118,7 @@ func TestGetConnectionBefore(t *testing.T) {
 
 	conn = getConnection(manyEdges, Pagination{
 		Before: ptr.String("cursor"),
-	})
+	}, LogsLimit)
 
 	assert.Equal(t, &lc{
 		Edges: manyEdges[1:LogsLimit],
@@ -142,7 +142,7 @@ func TestGetConnectionNoPagination(t *testing.T) {
 
 	type lc = Connection[modelInputs.Log]
 
-	connection := getConnection(zeroEdges, Pagination{})
+	connection := getConnection(zeroEdges, Pagination{}, LogsLimit)
 
 	assert.Equal(t, &lc{
 		Edges: zeroEdges,
@@ -154,7 +154,7 @@ func TestGetConnectionNoPagination(t *testing.T) {
 		},
 	}, connection)
 
-	connection = getConnection(manyEdges, Pagination{})
+	connection = getConnection(manyEdges, Pagination{}, LogsLimit)
 
 	assert.Equal(t, &lc{
 		Edges: manyEdges[:LogsLimit],
