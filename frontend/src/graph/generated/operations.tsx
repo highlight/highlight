@@ -824,61 +824,6 @@ export type ReplyToErrorCommentMutation = { __typename?: 'Mutation' } & {
 	>
 }
 
-export type CreateErrorAlertMutationVariables = Types.Exact<{
-	project_id: Types.Scalars['ID']
-	name: Types.Scalars['String']
-	count_threshold: Types.Scalars['Int']
-	threshold_window: Types.Scalars['Int']
-	slack_channels:
-		| Array<Types.Maybe<Types.SanitizedSlackChannelInput>>
-		| Types.Maybe<Types.SanitizedSlackChannelInput>
-	discord_channels:
-		| Array<Types.DiscordChannelInput>
-		| Types.DiscordChannelInput
-	webhook_destinations:
-		| Array<Types.WebhookDestinationInput>
-		| Types.WebhookDestinationInput
-	microsoft_teams_channels:
-		| Array<Types.MicrosoftTeamsChannelInput>
-		| Types.MicrosoftTeamsChannelInput
-	emails:
-		| Array<Types.Maybe<Types.Scalars['String']>>
-		| Types.Maybe<Types.Scalars['String']>
-	regex_groups:
-		| Array<Types.Maybe<Types.Scalars['String']>>
-		| Types.Maybe<Types.Scalars['String']>
-	frequency: Types.Scalars['Int']
-	default?: Types.Maybe<Types.Scalars['Boolean']>
-	query: Types.Scalars['String']
-}>
-
-export type CreateErrorAlertMutation = { __typename?: 'Mutation' } & {
-	createErrorAlert?: Types.Maybe<
-		{ __typename?: 'ErrorAlert' } & Pick<
-			Types.ErrorAlert,
-			| 'id'
-			| 'EmailsToNotify'
-			| 'Name'
-			| 'CountThreshold'
-			| 'ThresholdWindow'
-			| 'LastAdminToEditID'
-			| 'RegexGroups'
-			| 'Frequency'
-			| 'disabled'
-			| 'Query'
-		> & {
-				ChannelsToNotify: Array<
-					Types.Maybe<
-						{ __typename?: 'SanitizedSlackChannel' } & Pick<
-							Types.SanitizedSlackChannel,
-							'webhook_channel' | 'webhook_channel_id'
-						>
-					>
-				>
-			}
-	>
-}
-
 export type CreateMetricMonitorMutationVariables = Types.Exact<{
 	project_id: Types.Scalars['ID']
 	name: Types.Scalars['String']
@@ -1025,6 +970,7 @@ export type CreateAlertMutationVariables = Types.Exact<{
 	function_column?: Types.Maybe<Types.Scalars['String']>
 	query?: Types.Maybe<Types.Scalars['String']>
 	group_by_key?: Types.Maybe<Types.Scalars['String']>
+	default?: Types.Maybe<Types.Scalars['Boolean']>
 	below_threshold?: Types.Maybe<Types.Scalars['Boolean']>
 	threshold_value?: Types.Maybe<Types.Scalars['Float']>
 	threshold_window?: Types.Maybe<Types.Scalars['Int']>
@@ -1213,16 +1159,6 @@ export type UpdateLogAlertMutation = { __typename?: 'Mutation' } & {
 	>
 }
 
-export type CreateLogAlertMutationVariables = Types.Exact<{
-	input: Types.LogAlertInput
-}>
-
-export type CreateLogAlertMutation = { __typename?: 'Mutation' } & {
-	createLogAlert?: Types.Maybe<
-		{ __typename?: 'LogAlert' } & Pick<Types.LogAlert, 'id'>
-	>
-}
-
 export type DeleteLogAlertMutationVariables = Types.Exact<{
 	project_id: Types.Scalars['ID']
 	id: Types.Scalars['ID']
@@ -1283,35 +1219,6 @@ export type UpdateErrorAlertIsDisabledMutationVariables = Types.Exact<{
 export type UpdateErrorAlertIsDisabledMutation = { __typename?: 'Mutation' } & {
 	updateErrorAlertIsDisabled?: Types.Maybe<
 		{ __typename?: 'ErrorAlert' } & Pick<Types.ErrorAlert, 'id'>
-	>
-}
-
-export type CreateSessionAlertMutationVariables = Types.Exact<{
-	input: Types.SessionAlertInput
-}>
-
-export type CreateSessionAlertMutation = { __typename?: 'Mutation' } & {
-	createSessionAlert?: Types.Maybe<
-		{ __typename?: 'SessionAlert' } & Pick<
-			Types.SessionAlert,
-			| 'id'
-			| 'EmailsToNotify'
-			| 'Name'
-			| 'ExcludedEnvironments'
-			| 'CountThreshold'
-			| 'ThresholdWindow'
-			| 'LastAdminToEditID'
-			| 'disabled'
-		> & {
-				ChannelsToNotify: Array<
-					Types.Maybe<
-						{ __typename?: 'SanitizedSlackChannel' } & Pick<
-							Types.SanitizedSlackChannel,
-							'webhook_channel' | 'webhook_channel_id'
-						>
-					>
-				>
-			}
 	>
 }
 
@@ -5553,7 +5460,6 @@ export const namedOperations = {
 		MuteErrorCommentThread: 'MuteErrorCommentThread' as const,
 		RemoveErrorIssue: 'RemoveErrorIssue' as const,
 		ReplyToErrorComment: 'ReplyToErrorComment' as const,
-		CreateErrorAlert: 'CreateErrorAlert' as const,
 		CreateMetricMonitor: 'CreateMetricMonitor' as const,
 		UpdateMetricMonitor: 'UpdateMetricMonitor' as const,
 		DeleteMetricMonitor: 'DeleteMetricMonitor' as const,
@@ -5567,13 +5473,11 @@ export const namedOperations = {
 		DeleteErrorAlert: 'DeleteErrorAlert' as const,
 		DeleteSessionAlert: 'DeleteSessionAlert' as const,
 		UpdateLogAlert: 'UpdateLogAlert' as const,
-		CreateLogAlert: 'CreateLogAlert' as const,
 		DeleteLogAlert: 'DeleteLogAlert' as const,
 		UpdateLogAlertIsDisabled: 'UpdateLogAlertIsDisabled' as const,
 		UpdateSessionAlertIsDisabled: 'UpdateSessionAlertIsDisabled' as const,
 		UpdateMetricMonitorIsDisabled: 'UpdateMetricMonitorIsDisabled' as const,
 		UpdateErrorAlertIsDisabled: 'UpdateErrorAlertIsDisabled' as const,
-		CreateSessionAlert: 'CreateSessionAlert' as const,
 		UpdateSessionAlert: 'UpdateSessionAlert' as const,
 		UpdateSessionIsPublic: 'UpdateSessionIsPublic' as const,
 		UpdateErrorGroupIsPublic: 'UpdateErrorGroupIsPublic' as const,

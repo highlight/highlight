@@ -3016,108 +3016,6 @@ export type ReplyToErrorCommentMutationOptions = Apollo.BaseMutationOptions<
 	Types.ReplyToErrorCommentMutation,
 	Types.ReplyToErrorCommentMutationVariables
 >
-export const CreateErrorAlertDocument = gql`
-	mutation CreateErrorAlert(
-		$project_id: ID!
-		$name: String!
-		$count_threshold: Int!
-		$threshold_window: Int!
-		$slack_channels: [SanitizedSlackChannelInput]!
-		$discord_channels: [DiscordChannelInput!]!
-		$webhook_destinations: [WebhookDestinationInput!]!
-		$microsoft_teams_channels: [MicrosoftTeamsChannelInput!]!
-		$emails: [String]!
-		$regex_groups: [String]!
-		$frequency: Int!
-		$default: Boolean
-		$query: String!
-	) {
-		createErrorAlert(
-			project_id: $project_id
-			count_threshold: $count_threshold
-			name: $name
-			slack_channels: $slack_channels
-			discord_channels: $discord_channels
-			microsoft_teams_channels: $microsoft_teams_channels
-			webhook_destinations: $webhook_destinations
-			emails: $emails
-			threshold_window: $threshold_window
-			regex_groups: $regex_groups
-			frequency: $frequency
-			default: $default
-			query: $query
-		) {
-			id
-			ChannelsToNotify {
-				webhook_channel
-				webhook_channel_id
-			}
-			EmailsToNotify
-			Name
-			CountThreshold
-			ThresholdWindow
-			LastAdminToEditID
-			RegexGroups
-			Frequency
-			disabled
-			Query
-		}
-	}
-`
-export type CreateErrorAlertMutationFn = Apollo.MutationFunction<
-	Types.CreateErrorAlertMutation,
-	Types.CreateErrorAlertMutationVariables
->
-
-/**
- * __useCreateErrorAlertMutation__
- *
- * To run a mutation, you first call `useCreateErrorAlertMutation` within a React component and pass it any options that fit your needs.
- * When your component renders, `useCreateErrorAlertMutation` returns a tuple that includes:
- * - A mutate function that you can call at any time to execute the mutation
- * - An object with fields that represent the current status of the mutation's execution
- *
- * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
- *
- * @example
- * const [createErrorAlertMutation, { data, loading, error }] = useCreateErrorAlertMutation({
- *   variables: {
- *      project_id: // value for 'project_id'
- *      name: // value for 'name'
- *      count_threshold: // value for 'count_threshold'
- *      threshold_window: // value for 'threshold_window'
- *      slack_channels: // value for 'slack_channels'
- *      discord_channels: // value for 'discord_channels'
- *      webhook_destinations: // value for 'webhook_destinations'
- *      microsoft_teams_channels: // value for 'microsoft_teams_channels'
- *      emails: // value for 'emails'
- *      regex_groups: // value for 'regex_groups'
- *      frequency: // value for 'frequency'
- *      default: // value for 'default'
- *      query: // value for 'query'
- *   },
- * });
- */
-export function useCreateErrorAlertMutation(
-	baseOptions?: Apollo.MutationHookOptions<
-		Types.CreateErrorAlertMutation,
-		Types.CreateErrorAlertMutationVariables
-	>,
-) {
-	return Apollo.useMutation<
-		Types.CreateErrorAlertMutation,
-		Types.CreateErrorAlertMutationVariables
-	>(CreateErrorAlertDocument, baseOptions)
-}
-export type CreateErrorAlertMutationHookResult = ReturnType<
-	typeof useCreateErrorAlertMutation
->
-export type CreateErrorAlertMutationResult =
-	Apollo.MutationResult<Types.CreateErrorAlertMutation>
-export type CreateErrorAlertMutationOptions = Apollo.BaseMutationOptions<
-	Types.CreateErrorAlertMutation,
-	Types.CreateErrorAlertMutationVariables
->
 export const CreateMetricMonitorDocument = gql`
 	mutation CreateMetricMonitor(
 		$project_id: ID!
@@ -3395,6 +3293,7 @@ export const CreateAlertDocument = gql`
 		$function_column: String
 		$query: String
 		$group_by_key: String
+		$default: Boolean
 		$below_threshold: Boolean
 		$threshold_value: Float
 		$threshold_window: Int
@@ -3409,6 +3308,7 @@ export const CreateAlertDocument = gql`
 			function_column: $function_column
 			query: $query
 			group_by_key: $group_by_key
+			default: $default
 			below_threshold: $below_threshold
 			threshold_value: $threshold_value
 			threshold_window: $threshold_window
@@ -3446,6 +3346,7 @@ export type CreateAlertMutationFn = Apollo.MutationFunction<
  *      function_column: // value for 'function_column'
  *      query: // value for 'query'
  *      group_by_key: // value for 'group_by_key'
+ *      default: // value for 'default'
  *      below_threshold: // value for 'below_threshold'
  *      threshold_value: // value for 'threshold_value'
  *      threshold_window: // value for 'threshold_window'
@@ -4039,55 +3940,6 @@ export type UpdateLogAlertMutationOptions = Apollo.BaseMutationOptions<
 	Types.UpdateLogAlertMutation,
 	Types.UpdateLogAlertMutationVariables
 >
-export const CreateLogAlertDocument = gql`
-	mutation CreateLogAlert($input: LogAlertInput!) {
-		createLogAlert(input: $input) {
-			id
-		}
-	}
-`
-export type CreateLogAlertMutationFn = Apollo.MutationFunction<
-	Types.CreateLogAlertMutation,
-	Types.CreateLogAlertMutationVariables
->
-
-/**
- * __useCreateLogAlertMutation__
- *
- * To run a mutation, you first call `useCreateLogAlertMutation` within a React component and pass it any options that fit your needs.
- * When your component renders, `useCreateLogAlertMutation` returns a tuple that includes:
- * - A mutate function that you can call at any time to execute the mutation
- * - An object with fields that represent the current status of the mutation's execution
- *
- * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
- *
- * @example
- * const [createLogAlertMutation, { data, loading, error }] = useCreateLogAlertMutation({
- *   variables: {
- *      input: // value for 'input'
- *   },
- * });
- */
-export function useCreateLogAlertMutation(
-	baseOptions?: Apollo.MutationHookOptions<
-		Types.CreateLogAlertMutation,
-		Types.CreateLogAlertMutationVariables
-	>,
-) {
-	return Apollo.useMutation<
-		Types.CreateLogAlertMutation,
-		Types.CreateLogAlertMutationVariables
-	>(CreateLogAlertDocument, baseOptions)
-}
-export type CreateLogAlertMutationHookResult = ReturnType<
-	typeof useCreateLogAlertMutation
->
-export type CreateLogAlertMutationResult =
-	Apollo.MutationResult<Types.CreateLogAlertMutation>
-export type CreateLogAlertMutationOptions = Apollo.BaseMutationOptions<
-	Types.CreateLogAlertMutation,
-	Types.CreateLogAlertMutationVariables
->
 export const DeleteLogAlertDocument = gql`
 	mutation DeleteLogAlert($project_id: ID!, $id: ID!) {
 		deleteLogAlert(project_id: $project_id, id: $id) {
@@ -4378,66 +4230,6 @@ export type UpdateErrorAlertIsDisabledMutationOptions =
 		Types.UpdateErrorAlertIsDisabledMutation,
 		Types.UpdateErrorAlertIsDisabledMutationVariables
 	>
-export const CreateSessionAlertDocument = gql`
-	mutation CreateSessionAlert($input: SessionAlertInput!) {
-		createSessionAlert(input: $input) {
-			id
-			ChannelsToNotify {
-				webhook_channel
-				webhook_channel_id
-			}
-			EmailsToNotify
-			Name
-			ExcludedEnvironments
-			CountThreshold
-			ThresholdWindow
-			LastAdminToEditID
-			disabled
-		}
-	}
-`
-export type CreateSessionAlertMutationFn = Apollo.MutationFunction<
-	Types.CreateSessionAlertMutation,
-	Types.CreateSessionAlertMutationVariables
->
-
-/**
- * __useCreateSessionAlertMutation__
- *
- * To run a mutation, you first call `useCreateSessionAlertMutation` within a React component and pass it any options that fit your needs.
- * When your component renders, `useCreateSessionAlertMutation` returns a tuple that includes:
- * - A mutate function that you can call at any time to execute the mutation
- * - An object with fields that represent the current status of the mutation's execution
- *
- * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
- *
- * @example
- * const [createSessionAlertMutation, { data, loading, error }] = useCreateSessionAlertMutation({
- *   variables: {
- *      input: // value for 'input'
- *   },
- * });
- */
-export function useCreateSessionAlertMutation(
-	baseOptions?: Apollo.MutationHookOptions<
-		Types.CreateSessionAlertMutation,
-		Types.CreateSessionAlertMutationVariables
-	>,
-) {
-	return Apollo.useMutation<
-		Types.CreateSessionAlertMutation,
-		Types.CreateSessionAlertMutationVariables
-	>(CreateSessionAlertDocument, baseOptions)
-}
-export type CreateSessionAlertMutationHookResult = ReturnType<
-	typeof useCreateSessionAlertMutation
->
-export type CreateSessionAlertMutationResult =
-	Apollo.MutationResult<Types.CreateSessionAlertMutation>
-export type CreateSessionAlertMutationOptions = Apollo.BaseMutationOptions<
-	Types.CreateSessionAlertMutation,
-	Types.CreateSessionAlertMutationVariables
->
 export const UpdateSessionAlertDocument = gql`
 	mutation UpdateSessionAlert($id: ID!, $input: SessionAlertInput!) {
 		updateSessionAlert(id: $id, input: $input) {

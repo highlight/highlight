@@ -2,7 +2,6 @@ import { Button } from '@components/Button'
 import Select from '@components/Select/Select'
 import { toast } from '@components/Toaster'
 import {
-	useCreateLogAlertMutation,
 	useDeleteLogAlertMutation,
 	useGetLogAlertQuery,
 	useGetMetricsQuery,
@@ -37,7 +36,6 @@ import { useLogAlertsContext } from '@pages/Alerts/LogAlert/context'
 import { AlertForm } from '@pages/Alerts/utils/AlertsUtils'
 import LogsHistogram from '@pages/LogsPage/LogsHistogram/LogsHistogram'
 import { useParams } from '@util/react-router/useParams'
-import { capitalize } from 'lodash'
 import moment from 'moment'
 import { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
@@ -77,12 +75,9 @@ export const LogAlertPage = () => {
 		alert_id: string
 	}>()
 
-	const isCreate = alert_id === undefined
-	const createStr = isCreate ? 'create' : 'update'
-
 	const { data, loading } = useGetLogAlertQuery({
 		variables: {
-			id: alert_id || 'never',
+			id: alert_id!,
 		},
 		skip: !alert_id,
 	})
@@ -158,15 +153,9 @@ export const LogAlertPage = () => {
 	}, [data, loading])
 
 	useEffect(() => {
-		analytics.page('Log Alert', { isCreate })
-	}, [isCreate])
-
-	const [createLogAlertMutation] = useCreateLogAlertMutation({
-		refetchQueries: [
-			namedOperations.Query.GetLogAlert,
-			namedOperations.Query.GetAlertsPagePayload,
-		],
+		analytics.page('Log Alert')
 	})
+
 	const [updateLogAlertMutation] = useUpdateLogAlertMutation({
 		refetchQueries: [
 			namedOperations.Query.GetLogAlert,
@@ -209,31 +198,29 @@ export const LogAlertPage = () => {
 				>
 					Cancel
 				</Button>
-				{!isCreate && (
-					<Button
-						kind="danger"
-						size="small"
-						emphasis="low"
-						trackingId="deleteLogMonitoringAlert"
-						onClick={() => {
-							deleteLogAlertMutation({
-								variables: {
-									project_id: project_id ?? '',
-									id: alert_id,
-								},
+				<Button
+					kind="danger"
+					size="small"
+					emphasis="low"
+					trackingId="deleteLogMonitoringAlert"
+					onClick={() => {
+						deleteLogAlertMutation({
+							variables: {
+								project_id: project_id ?? '',
+								id: alert_id!,
+							},
+						})
+							.then(() => {
+								toast.success(`Log alert deleted!`)
+								navigate(`/${project_id}/alerts`)
 							})
-								.then(() => {
-									toast.success(`Log alert deleted!`)
-									navigate(`/${project_id}/alerts`)
-								})
-								.catch(() => {
-									toast.error(`Failed to delete log alert!`)
-								})
-						}}
-					>
-						Delete Alert
-					</Button>
-				)}
+							.catch(() => {
+								toast.error(`Failed to delete log alert!`)
+							})
+					}}
+				>
+					Delete Alert
+				</Button>
 				<Button
 					kind="primary"
 					size="small"
@@ -311,41 +298,22 @@ export const LogAlertPage = () => {
 							return
 						}
 
-						if (isCreate) {
-							createLogAlertMutation({
-								variables: {
-									input,
-								},
+						updateLogAlertMutation({
+							variables: {
+								id: alert_id!,
+								input,
+							},
+						})
+							.then(() => {
+								toast.success(`Log alert updated!`)
+								navigate(`/${project_id}/alerts`)
 							})
-								.then(() => {
-									toast.success(`Log alert ${createStr}d!`)
-									navigate(`/${project_id}/alerts`)
-								})
-								.catch(() => {
-									toast.error(
-										`Failed to ${createStr} log alert!`,
-									)
-								})
-						} else {
-							updateLogAlertMutation({
-								variables: {
-									id: alert_id,
-									input,
-								},
+							.catch(() => {
+								toast.error(`Failed to update log alert!`)
 							})
-								.then(() => {
-									toast.success(`Log alert ${createStr}d!`)
-									navigate(`/${project_id}/alerts`)
-								})
-								.catch(() => {
-									toast.error(
-										`Failed to ${createStr} log alert!`,
-									)
-								})
-						}
 					}}
 				>
-					{capitalize(createStr)} alert
+					Update alert
 				</Button>
 			</Box>
 		</Box>
@@ -372,7 +340,7 @@ export const LogAlertPage = () => {
 			skip: !projectId,
 		})
 
-	const isLoading = !isCreate && !formValues.loaded
+	const isLoading = !formValues.loaded
 
 	return (
 		<Box width="full" background="raised" p="8">
