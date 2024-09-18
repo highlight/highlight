@@ -797,7 +797,7 @@ func (client *Client) ReadMetrics(ctx context.Context, input ReadMetricsInput) (
 		return nil, err
 	}
 
-	attributeFields := getAttributeFields(SessionsJoinedTableConfig, filters)
+	attributeFields := getAttributeFields(config, filters)
 
 	applyBlockFilter(fromSb, input)
 
@@ -933,7 +933,7 @@ func (client *Client) ReadMetrics(ctx context.Context, input ReadMetricsInput) (
 			From(config.TableName).
 			Select(strings.Join(colStrs, ", "))
 
-		addAttributes(SessionsJoinedTableConfig, attributeFields, input.ProjectIDs, input.Params, innerSb)
+		addAttributes(config, attributeFields, input.ProjectIDs, input.Params, innerSb)
 
 		innerSb.Where(innerSb.In("ProjectId", input.ProjectIDs)).
 			Where(innerSb.GreaterEqualThan("Timestamp", startTimestamp)).
