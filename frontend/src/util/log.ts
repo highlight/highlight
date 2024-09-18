@@ -3,9 +3,8 @@ const verboseLogging = window.localStorage.getItem(verboseLoggingKey)
 if (!verboseLogging) {
 	window.localStorage.setItem(verboseLoggingKey, 'false')
 }
-const verboseLoggingEnabled = verboseLogging === 'true'
+export const verboseLoggingEnabled = verboseLogging === 'true'
 const start = Date.now()
-export const isVerboseLoggingEnabled = () => verboseLoggingEnabled
 // Prints the statement to console log when running a development environment.
 export default function log(from: string, ...data: any[]) {
 	if (verboseLoggingEnabled) {
