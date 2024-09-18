@@ -24,7 +24,6 @@ import {
 	IconSolidCog,
 	IconSolidPlus,
 	parsePreset,
-	presetStartDate,
 	Stack,
 	Tag,
 	Text,
@@ -52,6 +51,7 @@ import { useParams } from '@/util/react-router/useParams'
 
 import * as style from './Dashboard.css'
 import { DashboardSettingsModal } from '@/pages/Graphing/components/DashboardSettingsModal'
+import { useRetentionPresets } from '@/components/Search/SearchForm/hooks'
 
 export const HeaderDivider = () => <Box cssClass={style.headerDivider} />
 
@@ -142,9 +142,11 @@ export const Dashboard = () => {
 
 	const [upsertViz] = useUpsertVisualizationMutation()
 
+	const { presets, minDate } = useRetentionPresets()
+
 	const { startDate, endDate, selectedPreset, updateSearchTime } =
 		useSearchTime({
-			presets: DEFAULT_TIME_PRESETS,
+			presets: presets,
 			initialPreset: DEFAULT_TIME_PRESETS[2],
 		})
 
@@ -229,10 +231,8 @@ export const Dashboard = () => {
 										selectedPreset,
 									}}
 									onDatesChange={updateSearchTime}
-									presets={DEFAULT_TIME_PRESETS}
-									minDate={presetStartDate(
-										DEFAULT_TIME_PRESETS[5],
-									)}
+									presets={presets}
+									minDate={minDate}
 								/>
 								<HeaderDivider />
 								<Button
