@@ -207,9 +207,10 @@ export const NetworkPage = ({
 	)
 
 	const fetchMoreWhenScrolled = useCallback(
-		async (e: React.UIEventHandler<'div'>) => {
+		async (e: React.UIEvent<'div'>) => {
 			if (!loadingAfter) {
-				const { scrollHeight, scrollTop, clientHeight } = e.target
+				const { scrollHeight, scrollTop, clientHeight } =
+					e.target as HTMLDivElement
 				//once the user has scrolled within 100px of the bottom of the table, fetch more data if there is any
 				if (scrollHeight - scrollTop - clientHeight < 100) {
 					await fetchMoreForward()
