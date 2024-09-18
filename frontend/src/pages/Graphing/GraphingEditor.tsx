@@ -636,21 +636,20 @@ export const GraphingEditor: React.FC = () => {
 											selection={functionType}
 											setSelection={setFunctionType}
 										/>
-										{functionType !==
-											MetricAggregator.Count && (
-											<Combobox
-												selection={metric}
-												setSelection={setMetric}
-												label="metric"
-												searchConfig={
-													searchOptionsConfig
-												}
-												onlyNumericKeys={
-													functionType !==
-													MetricAggregator.CountDistinct
-												}
-											/>
-										)}
+										<Combobox
+											selection={metric}
+											setSelection={setMetric}
+											label="metric"
+											searchConfig={searchOptionsConfig}
+											disabled={
+												functionType ===
+												MetricAggregator.Count
+											}
+											onlyNumericKeys={
+												functionType !==
+												MetricAggregator.CountDistinct
+											}
+										/>
 									</LabeledRow>
 									<LabeledRow
 										label="Filters"
@@ -730,20 +729,21 @@ export const GraphingEditor: React.FC = () => {
 														setLimitFunctionType
 													}
 												/>
-												{limitFunctionType !==
-													MetricAggregator.Count && (
-													<Combobox
-														selection={limitMetric}
-														setSelection={
-															setLimitMetric
-														}
-														label="limitMetric"
-														searchConfig={
-															searchOptionsConfig
-														}
-														onlyNumericKeys
-													/>
-												)}
+												<Combobox
+													selection={limitMetric}
+													setSelection={
+														setLimitMetric
+													}
+													label="limitMetric"
+													searchConfig={
+														searchOptionsConfig
+													}
+													disabled={
+														limitFunctionType ===
+														MetricAggregator.Count
+													}
+													onlyNumericKeys
+												/>
 											</LabeledRow>
 										</Box>
 									)}

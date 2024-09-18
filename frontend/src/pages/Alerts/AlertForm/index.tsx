@@ -488,23 +488,22 @@ export const AlertForm: React.FC = () => {
 												selection={functionType}
 												setSelection={setFunctionType}
 											/>
-											{functionType !==
-												MetricAggregator.Count && (
-												<Combobox
-													selection={functionColumn}
-													setSelection={
-														setFunctionColumn
-													}
-													label="metric"
-													searchConfig={
-														searchOptionsConfig
-													}
-													onlyNumericKeys={
-														functionType !==
-														MetricAggregator.CountDistinct
-													}
-												/>
-											)}
+											<Combobox
+												selection={functionColumn}
+												setSelection={setFunctionColumn}
+												label="metric"
+												searchConfig={
+													searchOptionsConfig
+												}
+												disabled={
+													functionType ===
+													MetricAggregator.Count
+												}
+												onlyNumericKeys={
+													functionType !==
+													MetricAggregator.CountDistinct
+												}
+											/>
 										</LabeledRow>
 									)}
 									<LabeledRow
