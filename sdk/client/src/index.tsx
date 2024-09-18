@@ -726,7 +726,6 @@ SessionSecureID: ${this.sessionData.sessionSecureID}`,
 				recordCrossOriginIframes: this.options.recordCrossOriginIframe,
 				privacySetting: this.privacySetting,
 				maskAllInputs,
-				slimDOMOptions: 'all',
 				maskInputOptions: maskInputOptions,
 				recordCanvas: this.enableCanvasRecording,
 				sampling: {
