@@ -8071,7 +8071,7 @@ body {
   height: 40px;
 }
 .gw96js1 {
-  height: 100%;
+  height: calc(100% - 40px);
 }
 .gw96js2 {
   width: calc(100%);

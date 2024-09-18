@@ -13,7 +13,7 @@ import {
 } from '@highlight-run/ui/components'
 import { useParams } from '@util/react-router/useParams'
 import { Divider } from 'antd'
-import React, { PropsWithChildren, useEffect, useMemo, useState } from 'react'
+import React, { PropsWithChildren, useMemo, useState } from 'react'
 import { Helmet } from 'react-helmet'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 
@@ -68,9 +68,12 @@ const FREQUENCY_OPTIONS = FREQUENCIES.filter((freq) => Number(freq.value) >= 60)
 const MINUTE = 60
 const WEEK = 7 * 24 * 60 * MINUTE
 
-const DEFAULT_THRESHOLD = 1
-const DEFAULT_WINDOW = MINUTE * 30
-const DEFAULT_COOLDOWN = MINUTE * 30
+export const SESSION_WINDOW = MINUTE
+export const SESSION_COOLDOWN = WEEK
+
+export const DEFAULT_THRESHOLD = 1
+export const DEFAULT_WINDOW = MINUTE * 30
+export const DEFAULT_COOLDOWN = MINUTE * 30
 
 const ALERT_PRODUCT_INFO = {
 	[ProductType.Sessions]:
@@ -158,15 +161,20 @@ export const AlertForm: React.FC = () => {
 		[],
 	)
 
-	useEffect(() => {
-		if (productType === ProductType.Sessions) {
+	const handleProductChange = (product: ProductType) => {
+		if (product === productType) {
+			return
+		}
+
+		setProductType(product)
+		if (product === ProductType.Sessions) {
 			// locked session settings -> group by secure_id
 			setGroupByEnabled(true)
 			setGroupByKey('secure_id')
 			// only alert once per session
-			setThresholdWindow(MINUTE)
-			setThresholdCooldown(WEEK)
-		} else if (productType === ProductType.Errors) {
+			setThresholdWindow(SESSION_WINDOW)
+			setThresholdCooldown(SESSION_COOLDOWN)
+		} else if (product === ProductType.Errors) {
 			// locked error settings -> group by secure_id
 			setGroupByEnabled(true)
 			setGroupByKey('secure_id')
@@ -184,7 +192,7 @@ export const AlertForm: React.FC = () => {
 		setQuery('')
 		setFunctionType(MetricAggregator.Count)
 		setFunctionColumn('')
-	}, [productType])
+	}
 
 	const onSave = () => {
 		const formVariables = {
@@ -342,7 +350,7 @@ export const AlertForm: React.FC = () => {
 						py="6"
 					>
 						<Text size="small" weight="medium">
-							Create alert
+							{isEdit ? 'Edit' : 'Create'} alert
 						</Text>
 						<Box display="flex" gap="4">
 							<DateRangePicker
@@ -446,7 +454,7 @@ export const AlertForm: React.FC = () => {
 										<OptionDropdown<ProductType>
 											options={products}
 											selection={productType}
-											setSelection={setProductType}
+											setSelection={handleProductChange}
 											icons={productIcons}
 										/>
 									</LabeledRow>

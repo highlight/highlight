@@ -51,30 +51,9 @@ const AlertsRouter = () => {
 					element={<Navigate to={`/${project_id}/alerts`} replace />}
 				/>
 				<Route
-					path="new/logs"
-					element={
-						<Navigate
-							to={`/${project_id}/alerts/logs/new`}
-							replace
-						/>
-					}
-				/>
-
-				<Route
-					path="new/errors"
-					element={
-						<Navigate
-							to={`/${project_id}/alerts/errors/new`}
-							replace
-						/>
-					}
-				/>
-				<Route path="session/new" element={<SessionAlertPage />} />
-				<Route
 					path="session/:alert_id"
 					element={<SessionAlertPage />}
 				/>
-				<Route path="errors/new" element={<ErrorAlertPage />} />
 				<Route path="errors/:alert_id" element={<ErrorAlertPage />} />
 			</Routes>
 		</AlertsContextProvider>
