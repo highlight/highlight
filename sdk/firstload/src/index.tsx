@@ -480,6 +480,7 @@ const H: HighlightPublicInterface = {
 		return {
 			url: url.toString(),
 			urlWithTimestamp: urlWithTimestamp.toString(),
+			sessionSecureID,
 		} as SessionDetails
 	},
 	getRecordingState: () => {

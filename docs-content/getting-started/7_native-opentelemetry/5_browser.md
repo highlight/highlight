@@ -14,8 +14,8 @@ If you want to send OpenTelemetry data to Highlight from [OTeL's Browser instrum
 
 In order to associate spans with your project and sessions in Highlight, you'll need to add a few attributes:
 
-* `highlight.project_id` - Allows us to associate traces with your project.
-* `highlight.session_id` - Allows us to associate traces with a specific session in your project.
+* `highlight.project_id` - Allows us to associate traces with your project. This can be accessed from [your Highlight account](https://app.highlight.io/setup).
+* `highlight.session_id` - Allows us to associate traces with a specific session in your project. This can be accessed as the `sessionSecureID` attribute of the object returned from [H.getSessionData()](https://highlight.io/docs/sdk/client#HgetSessionDetails).
 * `service.name` (optional) - Specify the service name you want to assign on your traces. This makes it easier to filter to all traces from this instrumentation.
 
 You can set these attributes when creating your trace provider:
@@ -23,7 +23,6 @@ You can set these attributes when creating your trace provider:
 ```ts
 const provider = new WebTracerProvider({
   resource: new Resource({
-    // TODO: Explain how to get the project and session IDs.
     'highlight.project_id': 'your-project-id',
     'highlight.session_id': 'your-session-id',
     'service.name': 'your-service-name', // optional
