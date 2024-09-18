@@ -263,14 +263,22 @@ export const shouldNetworkRequestBeRecorded = (
 ) => {
 	return (
 		!isHighlightNetworkResourceFilter(url, highlightBackendUrl) ||
-		shouldNetworkRequestBeTraced(url, tracingOrigins)
+		shouldNetworkRequestBeTraced(url, tracingOrigins ?? [], [])
 	)
 }
 
 export const shouldNetworkRequestBeTraced = (
 	url: string,
-	tracingOrigins?: boolean | (string | RegExp)[],
+	tracingOrigins: boolean | (string | RegExp)[],
+	urlBlocklist: string[],
 ) => {
+	if (
+		urlBlocklist.some((blockedUrl) =>
+			url.toLowerCase().includes(blockedUrl),
+		)
+	) {
+		return false
+	}
 	let patterns: (string | RegExp)[] = []
 	if (tracingOrigins === true) {
 		patterns = ['localhost', /^\//]
