@@ -362,7 +362,7 @@ export class Highlight {
 				canvas: 2,
 			}),
 		}
-		this._backendUrl = options?.backendUrl ?? 'https://pub.highlight.run'
+		this._backendUrl = options?.backendUrl ?? 'https://pub.highlight.io'
 
 		// If _backendUrl is a relative URL, convert it to an absolute URL
 		// so that it's usable from a web worker.
