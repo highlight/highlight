@@ -248,9 +248,9 @@ slug: client
 <section className="section">
   <div className="left">
     <h3>H.startSpan</h3>
-    <p><b>Note:</b> You must set <code>enableOtelTracing: true</code> when calling <code>H.init</code> for this method to do anything.</p>
+    <p><b>Note:</b> You must set <code inline>enableOtelTracing: true</code> when calling <code inline>H.init</code> for this method to do anything.</p>
     <p>This method is used to start a new span. Spans created with this method are automatically ended after the callback function completes, whether it returns normally or throws an error.</p>
-    <p>Check out <code>startManualSpan</code> if you want to have more control over when the span is ended.</p>
+    <p>Check out <code inline>startManualSpan</code> if you want to have more control over when the span is ended.</p>
     <h6>Method Parameters</h6>
     <aside className="parameter">
       <h5>name<code>string</code> <code>required</code></h5>
@@ -287,8 +287,8 @@ slug: client
 <section className="section">
   <div className="left">
     <h3>H.startManualSpan</h3>
-    <p><b>Note:</b> You must set <code>enableOtelTracing: true</code> when calling <code>H.init</code> for this method to do anything.</p>
-    <p>This method is used to start a new manual span. Use this when you don't want the span to be ended automatically. You need to end these spans by calling <code>span.end()</code></p>
+    <p><b>Note:</b> You must set <code inline>enableOtelTracing: true</code> when calling <code inline>H.init</code> for this method to do anything.</p>
+    <p>This method is used to start a new manual span. Use this when you don't want the span to be ended automatically. You need to end these spans by calling <code inline>span.end()</code></p>
     <h6>Method Parameters</h6>
     <aside className="parameter">
       <h5>name<code>string</code> <code>required</code></h5>
@@ -329,7 +329,7 @@ slug: client
 <section className="section">
   <div className="left">
     <h3>H.getSessionDetails</h3>
-    <p>This method is used to get the Highlight session URL. This method provides the same URL as H.getSessionUrl() but this also gives you a URL for the exact time (relative to the session recording) the method is called. For example, an error is thrown in your app and you want to save the Highlight session URL to another app (Mixpanel, Sentry, Amplitude, etc.). If you just want a URL to the session, you can save url. If you want a URL that sets the player to the time of when the error is called, you can save urlWithTimestamp.</p>
+    <p>This method is used to get the Highlight session URL. This method provides the same URL as <a href="#HgetSessionDetails">H.getSessionUrl()</a> but this also gives you a URL for the exact time (relative to the session recording) the method is called. For example, an error is thrown in your app and you want to save the Highlight session URL to another app (Mixpanel, Sentry, Amplitude, etc.). If you just want a URL to the session, you can save url. If you want a URL that sets the player to the time of when the error is called, you can save urlWithTimestamp.</p>
     <aside className="parameter">
       <h5>Returns <code>Promise&lt;{url: string, urlWithTimestamp: string}&gt;</code></h5>
       <article className="innerParameterContainer">
@@ -356,7 +356,7 @@ slug: client
 <section className="section">
   <div className="left">
     <h3>H.getSessionURL</h3>
-    <p>This method is used to get the Highlight session URL for the current recording session. This is useful to use if you'd like to send the session URL to another application. See H.getSessionDetails() if you want to get the URL with the current time.</p>
+    <p>This method is used to get the Highlight session URL for the current recording session. This is useful to use if you'd like to send the session URL to another application. See <a href="#HgetSessionDetails">H.getSessionDetails()</a> if you want to get the URL with the current time.</p>
     <aside className="parameter">
       <h5>Returns<code>string<string></code></h5>
     </aside>
