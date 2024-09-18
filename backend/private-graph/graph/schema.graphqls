@@ -98,6 +98,8 @@ type SessionsReportRow {
 	key: String!
 	email: String!
 	num_sessions: UInt64!
+	first_session: Timestamp!
+	last_session: Timestamp!
 	num_days_visited: UInt64!
 	num_months_visited: UInt64!
 	avg_active_length_mins: Float!
@@ -2192,11 +2194,6 @@ type Query {
 		params: QueryInput!
 		histogram_options: DateHistogramOptions!
 	): SessionsHistogram!
-	# deprecated - use session_users_report
-	sessions_report(
-		project_id: ID!
-		query: ClickhouseQuery!
-	): [SessionsReportRow!]!
 	session_users_report(
 		project_id: ID!
 		params: QueryInput!
