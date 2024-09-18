@@ -13,7 +13,7 @@ import {
 } from '@highlight-run/ui/components'
 import { useParams } from '@util/react-router/useParams'
 import { Divider } from 'antd'
-import React, { PropsWithChildren, useEffect, useMemo, useState } from 'react'
+import React, { PropsWithChildren, useMemo, useState } from 'react'
 import { Helmet } from 'react-helmet'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 
@@ -161,15 +161,20 @@ export const AlertForm: React.FC = () => {
 		[],
 	)
 
-	useEffect(() => {
-		if (productType === ProductType.Sessions) {
+	const handleProductChange = (product: ProductType) => {
+		if (product === productType) {
+			return
+		}
+
+		setProductType(product)
+		if (product === ProductType.Sessions) {
 			// locked session settings -> group by secure_id
 			setGroupByEnabled(true)
 			setGroupByKey('secure_id')
 			// only alert once per session
 			setThresholdWindow(SESSION_WINDOW)
 			setThresholdCooldown(SESSION_COOLDOWN)
-		} else if (productType === ProductType.Errors) {
+		} else if (product === ProductType.Errors) {
 			// locked error settings -> group by secure_id
 			setGroupByEnabled(true)
 			setGroupByKey('secure_id')
@@ -187,7 +192,7 @@ export const AlertForm: React.FC = () => {
 		setQuery('')
 		setFunctionType(MetricAggregator.Count)
 		setFunctionColumn('')
-	}, [productType])
+	}
 
 	const onSave = () => {
 		const formVariables = {
@@ -449,7 +454,7 @@ export const AlertForm: React.FC = () => {
 										<OptionDropdown<ProductType>
 											options={products}
 											selection={productType}
-											setSelection={setProductType}
+											setSelection={handleProductChange}
 											icons={productIcons}
 										/>
 									</LabeledRow>
