@@ -2558,6 +2558,8 @@ export type GetSessionUsersReportsQuery = { __typename?: 'Query' } & {
 			Types.SessionsReportRow,
 			| 'key'
 			| 'email'
+			| 'first_session'
+			| 'last_session'
 			| 'num_sessions'
 			| 'num_days_visited'
 			| 'num_months_visited'

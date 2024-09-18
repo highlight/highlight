@@ -830,18 +830,20 @@ type SessionQuery struct {
 }
 
 type SessionsReportRow struct {
-	Key                   string  `json:"key"`
-	Email                 string  `json:"email"`
-	NumSessions           uint64  `json:"num_sessions"`
-	NumDaysVisited        uint64  `json:"num_days_visited"`
-	NumMonthsVisited      uint64  `json:"num_months_visited"`
-	AvgActiveLengthMins   float64 `json:"avg_active_length_mins"`
-	MaxActiveLengthMins   float64 `json:"max_active_length_mins"`
-	TotalActiveLengthMins float64 `json:"total_active_length_mins"`
-	AvgLengthMins         float64 `json:"avg_length_mins"`
-	MaxLengthMins         float64 `json:"max_length_mins"`
-	TotalLengthMins       float64 `json:"total_length_mins"`
-	Location              string  `json:"location"`
+	Key                   string    `json:"key"`
+	Email                 string    `json:"email"`
+	NumSessions           uint64    `json:"num_sessions"`
+	FirstSession          time.Time `json:"first_session"`
+	LastSession           time.Time `json:"last_session"`
+	NumDaysVisited        uint64    `json:"num_days_visited"`
+	NumMonthsVisited      uint64    `json:"num_months_visited"`
+	AvgActiveLengthMins   float64   `json:"avg_active_length_mins"`
+	MaxActiveLengthMins   float64   `json:"max_active_length_mins"`
+	TotalActiveLengthMins float64   `json:"total_active_length_mins"`
+	AvgLengthMins         float64   `json:"avg_length_mins"`
+	MaxLengthMins         float64   `json:"max_length_mins"`
+	TotalLengthMins       float64   `json:"total_length_mins"`
+	Location              string    `json:"location"`
 }
 
 type SlackSyncResponse struct {
