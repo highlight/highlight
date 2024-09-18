@@ -2853,6 +2853,7 @@ type Mutation {
 		query: String
 		group_by_key: String
 		below_threshold: Boolean
+		default: Boolean
 		threshold_value: Float
 		threshold_window: Int
 		threshold_cooldown: Int
@@ -2879,21 +2880,6 @@ type Mutation {
 		disabled: Boolean!
 	): Boolean!
 	deleteAlert(project_id: ID!, alert_id: ID!): Boolean!
-	createErrorAlert(
-		project_id: ID!
-		name: String!
-		count_threshold: Int!
-		threshold_window: Int!
-		slack_channels: [SanitizedSlackChannelInput]!
-		discord_channels: [DiscordChannelInput!]!
-		microsoft_teams_channels: [MicrosoftTeamsChannelInput!]!
-		webhook_destinations: [WebhookDestinationInput!]!
-		emails: [String]!
-		query: String!
-		regex_groups: [String]!
-		frequency: Int!
-		default: Boolean
-	): ErrorAlert
 	updateErrorAlert(
 		project_id: ID!
 		name: String
@@ -2929,10 +2915,8 @@ type Mutation {
 	): MetricMonitor
 
 	updateSessionAlert(id: ID!, input: SessionAlertInput!): SessionAlert
-	createSessionAlert(input: SessionAlertInput!): SessionAlert
 	deleteSessionAlert(project_id: ID!, session_alert_id: ID!): SessionAlert
 	updateLogAlert(id: ID!, input: LogAlertInput!): LogAlert
-	createLogAlert(input: LogAlertInput!): LogAlert
 	deleteLogAlert(project_id: ID!, id: ID!): LogAlert
 	updateLogAlertIsDisabled(
 		id: ID!

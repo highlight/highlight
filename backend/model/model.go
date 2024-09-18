@@ -1954,6 +1954,7 @@ type Alert struct {
 	Disabled          bool                `gorm:"default:false"`
 	LastAdminToEditID int                 `gorm:"last_admin_to_edit_id"`
 	Destinations      []*AlertDestination `gorm:"foreignKey:AlertID"`
+	Default           bool                `gorm:"default:false"` // alert created during setup flow
 
 	// fields for threshold alert
 	BelowThreshold    *bool

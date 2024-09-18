@@ -3363,11 +3363,16 @@ func (r *mutationResolver) UpdateMetricMonitor(ctx context.Context, metricMonito
 }
 
 // CreateAlert is the resolver for the createAlert field.
-func (r *mutationResolver) CreateAlert(ctx context.Context, projectID int, name string, productType modelInputs.ProductType, functionType modelInputs.MetricAggregator, functionColumn *string, query *string, groupByKey *string, belowThreshold *bool, thresholdValue *float64, thresholdWindow *int, thresholdCooldown *int, destinations []*modelInputs.AlertDestinationInput) (*model.Alert, error) {
+func (r *mutationResolver) CreateAlert(ctx context.Context, projectID int, name string, productType modelInputs.ProductType, functionType modelInputs.MetricAggregator, functionColumn *string, query *string, groupByKey *string, belowThreshold *bool, defaultArg *bool, thresholdValue *float64, thresholdWindow *int, thresholdCooldown *int, destinations []*modelInputs.AlertDestinationInput) (*model.Alert, error) {
 	project, err := r.isUserInProject(ctx, projectID)
 	admin, _ := r.getCurrentAdmin(ctx)
 	if err != nil {
 		return nil, err
+	}
+
+	defaultValue := false
+	if defaultArg != nil {
+		defaultValue = *defaultArg
 	}
 
 	newAlert := &model.Alert{
@@ -3379,6 +3384,7 @@ func (r *mutationResolver) CreateAlert(ctx context.Context, projectID int, name 
 		FunctionColumn:    functionColumn,
 		Query:             query,
 		GroupByKey:        groupByKey,
+		Default:           defaultValue,
 		BelowThreshold:    belowThreshold,
 		ThresholdValue:    thresholdValue,
 		ThresholdWindow:   thresholdWindow,
@@ -3527,76 +3533,6 @@ func (r *mutationResolver) DeleteAlert(ctx context.Context, projectID int, alert
 	}
 
 	return true, nil
-}
-
-// CreateErrorAlert is the resolver for the createErrorAlert field.
-func (r *mutationResolver) CreateErrorAlert(ctx context.Context, projectID int, name string, countThreshold int, thresholdWindow int, slackChannels []*modelInputs.SanitizedSlackChannelInput, discordChannels []*modelInputs.DiscordChannelInput, microsoftTeamsChannels []*modelInputs.MicrosoftTeamsChannelInput, webhookDestinations []*modelInputs.WebhookDestinationInput, emails []*string, query string, regexGroups []*string, frequency int, defaultArg *bool) (*model.ErrorAlert, error) {
-	project, err := r.isUserInProject(ctx, projectID)
-	admin, _ := r.getCurrentAdmin(ctx)
-	workspace, _ := r.GetWorkspace(project.WorkspaceID)
-	if err != nil {
-		return nil, err
-	}
-
-	channelsString, err := r.MarshalSlackChannelsToSanitizedSlackChannels(slackChannels)
-	if err != nil {
-		return nil, err
-	}
-
-	regexGroupsBytes, err := json.Marshal(regexGroups)
-	if err != nil {
-		return nil, e.Wrap(err, "error marshalling regex groups")
-	}
-	regexGroupsString := string(regexGroupsBytes)
-
-	emailsString, err := r.MarshalAlertEmails(emails)
-	if err != nil {
-		return nil, err
-	}
-
-	if defaultArg == nil {
-		defaultArg = pointy.Bool(false)
-	}
-
-	newAlert := &model.ErrorAlert{
-		AlertDeprecated: model.AlertDeprecated{
-			ProjectID:         projectID,
-			CountThreshold:    countThreshold,
-			ThresholdWindow:   &thresholdWindow,
-			Type:              &model.AlertType.ERROR,
-			ChannelsToNotify:  channelsString,
-			EmailsToNotify:    emailsString,
-			Name:              name,
-			LastAdminToEditID: admin.ID,
-			Frequency:         frequency,
-			Default:           *defaultArg,
-		},
-		RegexGroups: &regexGroupsString,
-		Query:       query,
-		AlertIntegrations: model.AlertIntegrations{
-			DiscordChannelsToNotify:        discord.GQLInputToGo(discordChannels),
-			MicrosoftTeamsChannelsToNotify: microsoft_teams.GQLInputToGo(microsoftTeamsChannels),
-			WebhookDestinations:            webhook.GQLInputToGo(webhookDestinations),
-		},
-	}
-
-	if err := r.DB.WithContext(ctx).Create(newAlert).Error; err != nil {
-		return nil, e.Wrap(err, "error creating a new error alert")
-	}
-	if err := model.SendWelcomeSlackMessage(ctx, newAlert, &model.SendWelcomeSlackMessageInput{
-		Workspace:            workspace,
-		Admin:                admin,
-		OperationName:        "created",
-		OperationDescription: "Alerts will now be sent to this channel.",
-		ID:                   newAlert.ID,
-		Project:              project,
-		IncludeEditLink:      true,
-		URLSlug:              "alerts/errors",
-	}); err != nil {
-		log.WithContext(ctx).Error(err)
-	}
-
-	return newAlert, nil
 }
 
 // UpdateErrorAlert is the resolver for the updateErrorAlert field.
@@ -3866,40 +3802,6 @@ func (r *mutationResolver) UpdateSessionAlert(ctx context.Context, id int, input
 	return sessionAlert, nil
 }
 
-// CreateSessionAlert is the resolver for the createSessionAlert field.
-func (r *mutationResolver) CreateSessionAlert(ctx context.Context, input modelInputs.SessionAlertInput) (*model.SessionAlert, error) {
-	project, err := r.isUserInProject(ctx, input.ProjectID)
-	admin, _ := r.getCurrentAdmin(ctx)
-	workspace, _ := r.GetWorkspace(project.WorkspaceID)
-	if err != nil {
-		return nil, err
-	}
-
-	sessionAlert, err := alerts.BuildSessionAlert(project, workspace, admin, input)
-
-	if err != nil {
-		return nil, e.Wrap(err, "failed to build session feedback alert")
-	}
-
-	if err := r.DB.WithContext(ctx).Create(sessionAlert).Error; err != nil {
-		return nil, e.Wrap(err, "error creating a new session feedback alert")
-	}
-	if err := model.SendWelcomeSlackMessage(ctx, sessionAlert, &model.SendWelcomeSlackMessageInput{
-		Workspace:            workspace,
-		Admin:                admin,
-		OperationName:        "created",
-		OperationDescription: "Alerts will now be sent to this channel.",
-		ID:                   sessionAlert.ID,
-		Project:              project,
-		IncludeEditLink:      true,
-		URLSlug:              "alerts/session",
-	}); err != nil {
-		log.WithContext(ctx).Error(err)
-	}
-
-	return sessionAlert, nil
-}
-
 // DeleteSessionAlert is the resolver for the deleteSessionAlert field.
 func (r *mutationResolver) DeleteSessionAlert(ctx context.Context, projectID int, sessionAlertID int) (*model.SessionAlert, error) {
 	project, err := r.isUserInProject(ctx, projectID)
@@ -3975,51 +3877,6 @@ func (r *mutationResolver) UpdateLogAlert(ctx context.Context, id int, input mod
 	}
 
 	if err := microsoft_teams.SendLogAlertsWelcomeMessage(ctx, alert, &config); err != nil {
-		log.WithContext(ctx).Error(err)
-	}
-
-	return alert, nil
-}
-
-// CreateLogAlert is the resolver for the createLogAlert field.
-func (r *mutationResolver) CreateLogAlert(ctx context.Context, input modelInputs.LogAlertInput) (*model.LogAlert, error) {
-	project, err := r.isUserInProject(ctx, input.ProjectID)
-	admin, _ := r.getCurrentAdmin(ctx)
-	workspace, _ := r.GetWorkspace(project.WorkspaceID)
-	if err != nil {
-		return nil, err
-	}
-
-	alert, err := alerts.BuildLogAlert(project, workspace, admin, input)
-	if err != nil {
-		return nil, e.Wrap(err, "failed to build log alert")
-	}
-
-	if err := r.DB.WithContext(ctx).Create(alert).Error; err != nil {
-		return nil, e.Wrap(err, "error creating a new log alert")
-	}
-
-	if err := model.SendWelcomeSlackMessage(ctx, alert, &model.SendWelcomeSlackMessageInput{
-		Workspace:            workspace,
-		Admin:                admin,
-		OperationName:        "created",
-		OperationDescription: "Log alerts will now be sent to this channel.",
-		ID:                   alert.ID,
-		Project:              project,
-		IncludeEditLink:      true,
-		URLSlug:              "alerts/logs",
-	}); err != nil {
-		log.WithContext(ctx).Error(err)
-	}
-
-	teamsMessageInput := microsoft_teams.WelcomeMessageData{
-		Workspace:     workspace,
-		Admin:         admin,
-		Project:       project,
-		OperationName: "created",
-	}
-
-	if err := microsoft_teams.SendLogAlertsWelcomeMessage(ctx, alert, &teamsMessageInput); err != nil {
 		log.WithContext(ctx).Error(err)
 	}
 
