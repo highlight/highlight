@@ -1073,7 +1073,7 @@ type ComplexityRoot struct {
 		LogAlert                         func(childComplexity int, id int) int
 		LogAlerts                        func(childComplexity int, projectID int) int
 		LogLines                         func(childComplexity int, productType model.ProductType, projectID int, params model.QueryInput) int
-		Logs                             func(childComplexity int, projectID int, params model.QueryInput, after *string, before *string, at *string, direction model.SortDirection) int
+		Logs                             func(childComplexity int, projectID int, params model.QueryInput, after *string, before *string, at *string, direction model.SortDirection, limit *int) int
 		LogsErrorObjects                 func(childComplexity int, logCursors []string) int
 		LogsHistogram                    func(childComplexity int, projectID int, params model.QueryInput) int
 		LogsIntegration                  func(childComplexity int, projectID int) int
@@ -1980,7 +1980,7 @@ type QueryResolver interface {
 	OauthClientMetadata(ctx context.Context, clientID string) (*model.OAuthClient, error)
 	EmailOptOuts(ctx context.Context, token *string, adminID *int) ([]model.EmailOptOutCategory, error)
 	AiQuerySuggestion(ctx context.Context, timeZone string, projectID int, productType model.ProductType, query string) (*model.QueryOutput, error)
-	Logs(ctx context.Context, projectID int, params model.QueryInput, after *string, before *string, at *string, direction model.SortDirection) (*model.LogConnection, error)
+	Logs(ctx context.Context, projectID int, params model.QueryInput, after *string, before *string, at *string, direction model.SortDirection, limit *int) (*model.LogConnection, error)
 	LogsHistogram(ctx context.Context, projectID int, params model.QueryInput) (*model.LogsHistogram, error)
 	LogsMetrics(ctx context.Context, projectID int, params model.QueryInput, column string, metricTypes []model.MetricAggregator, groupBy []string, bucketBy string, bucketCount *int, bucketWindow *int, limit *int, limitAggregator *model.MetricAggregator, limitColumn *string) (*model.MetricsBuckets, error)
 	LogsKeys(ctx context.Context, projectID int, dateRange model.DateRangeRequiredInput, query *string, typeArg *model.KeyType) ([]*model.QueryKey, error)
@@ -8000,7 +8000,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Query.Logs(childComplexity, args["project_id"].(int), args["params"].(model.QueryInput), args["after"].(*string), args["before"].(*string), args["at"].(*string), args["direction"].(model.SortDirection)), true
+		return e.complexity.Query.Logs(childComplexity, args["project_id"].(int), args["params"].(model.QueryInput), args["after"].(*string), args["before"].(*string), args["at"].(*string), args["direction"].(model.SortDirection), args["limit"].(*int)), true
 
 	case "Query.logs_error_objects":
 		if e.complexity.Query.LogsErrorObjects == nil {
@@ -13948,6 +13948,7 @@ type Query {
 		before: String
 		at: String
 		direction: SortDirection!
+		limit: Int
 	): LogConnection!
 	logs_histogram(project_id: ID!, params: QueryInput!): LogsHistogram!
 	logs_metrics(
@@ -20766,6 +20767,15 @@ func (ec *executionContext) field_Query_logs_args(ctx context.Context, rawArgs m
 		}
 	}
 	args["direction"] = arg5
+	var arg6 *int
+	if tmp, ok := rawArgs["limit"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("limit"))
+		arg6, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["limit"] = arg6
 	return args, nil
 }
 
@@ -63330,7 +63340,7 @@ func (ec *executionContext) _Query_logs(ctx context.Context, field graphql.Colle
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().Logs(rctx, fc.Args["project_id"].(int), fc.Args["params"].(model.QueryInput), fc.Args["after"].(*string), fc.Args["before"].(*string), fc.Args["at"].(*string), fc.Args["direction"].(model.SortDirection))
+		return ec.resolvers.Query().Logs(rctx, fc.Args["project_id"].(int), fc.Args["params"].(model.QueryInput), fc.Args["after"].(*string), fc.Args["before"].(*string), fc.Args["at"].(*string), fc.Args["direction"].(model.SortDirection), fc.Args["limit"].(*int))
 	})
 	if err != nil {
 		ec.Error(ctx, err)

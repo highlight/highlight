@@ -13718,6 +13718,7 @@ export const GetLogsDocument = gql`
 		$before: String
 		$at: String
 		$direction: SortDirection!
+		$limit: Int
 	) {
 		logs(
 			project_id: $project_id
@@ -13726,6 +13727,7 @@ export const GetLogsDocument = gql`
 			before: $before
 			at: $at
 			direction: $direction
+			limit: $limit
 		) {
 			edges {
 				cursor
@@ -13772,6 +13774,7 @@ export const GetLogsDocument = gql`
  *      before: // value for 'before'
  *      at: // value for 'at'
  *      direction: // value for 'direction'
+ *      limit: // value for 'limit'
  *   },
  * });
  */

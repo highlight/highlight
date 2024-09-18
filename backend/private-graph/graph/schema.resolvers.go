@@ -9206,7 +9206,7 @@ And specifically, for the %s product, you can refer to the following documentati
 }
 
 // Logs is the resolver for the logs field.
-func (r *queryResolver) Logs(ctx context.Context, projectID int, params modelInputs.QueryInput, after *string, before *string, at *string, direction modelInputs.SortDirection) (*modelInputs.LogConnection, error) {
+func (r *queryResolver) Logs(ctx context.Context, projectID int, params modelInputs.QueryInput, after *string, before *string, at *string, direction modelInputs.SortDirection, limit *int) (*modelInputs.LogConnection, error) {
 	project, err := r.isUserInProjectOrDemoProject(ctx, projectID)
 	if err != nil {
 		return nil, err
@@ -9255,6 +9255,7 @@ func (r *queryResolver) Logs(ctx context.Context, projectID int, params modelInp
 		Before:    before,
 		At:        at,
 		Direction: direction,
+		Limit:     limit,
 	})
 }
 

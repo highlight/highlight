@@ -2333,6 +2333,7 @@ type Query {
 		before: String
 		at: String
 		direction: SortDirection!
+		limit: Int
 	): LogConnection!
 	logs_histogram(project_id: ID!, params: QueryInput!): LogsHistogram!
 	logs_metrics(

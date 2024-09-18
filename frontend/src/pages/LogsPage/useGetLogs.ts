@@ -32,6 +32,7 @@ export const useGetLogs = ({
 	disablePolling,
 	sortColumn = 'timestamp',
 	sortDirection = Types.SortDirection.Desc,
+	limit,
 	disableRelatedResources,
 }: {
 	query: string
@@ -42,6 +43,7 @@ export const useGetLogs = ({
 	disablePolling?: boolean
 	sortColumn?: string
 	sortDirection?: Types.SortDirection
+	limit?: number
 	disableRelatedResources?: boolean
 }) => {
 	const [loadingAfter, setLoadingAfter] = useState(false)
@@ -51,6 +53,7 @@ export const useGetLogs = ({
 			project_id: project_id!,
 			at: logCursor,
 			direction: sortDirection,
+			limit,
 			params: {
 				query,
 				date_range: {

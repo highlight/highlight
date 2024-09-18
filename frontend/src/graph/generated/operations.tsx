@@ -4675,6 +4675,7 @@ export type GetLogsQueryVariables = Types.Exact<{
 	before?: Types.Maybe<Types.Scalars['String']>
 	at?: Types.Maybe<Types.Scalars['String']>
 	direction: Types.SortDirection
+	limit?: Types.Maybe<Types.Scalars['Int']>
 }>
 
 export type GetLogsQuery = { __typename?: 'Query' } & {

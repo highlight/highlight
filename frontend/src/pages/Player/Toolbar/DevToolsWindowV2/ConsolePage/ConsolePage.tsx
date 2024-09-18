@@ -49,6 +49,7 @@ export const ConsolePage = ({
 		logCursor: undefined,
 		sortDirection: SortDirection.Asc,
 		sortColumn: 'timestamp',
+		limit: 1_000,
 	})
 
 	const fetchMoreWhenScrolled = useCallback(

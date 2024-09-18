@@ -2090,6 +2090,7 @@ query GetLogs(
 	$before: String
 	$at: String
 	$direction: SortDirection!
+	$limit: Int
 ) {
 	logs(
 		project_id: $project_id
@@ -2098,6 +2099,7 @@ query GetLogs(
 		before: $before
 		at: $at
 		direction: $direction
+		limit: $limit
 	) {
 		edges {
 			cursor
