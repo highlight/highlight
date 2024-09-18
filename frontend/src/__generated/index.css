@@ -5235,6 +5235,7 @@ body {
   background: var(--_1pyqka91y);
 }
 .in1xv9h {
+  color: var(--_1pyqka9c);
   position: absolute;
   top: 50%;
   left: 50%;
@@ -8070,7 +8071,7 @@ body {
   height: 40px;
 }
 .gw96js1 {
-  height: 100%;
+  height: calc(100% - 40px);
 }
 .gw96js2 {
   width: calc(100%);

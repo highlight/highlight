@@ -804,53 +804,6 @@ mutation ReplyToErrorComment(
 	}
 }
 
-mutation CreateErrorAlert(
-	$project_id: ID!
-	$name: String!
-	$count_threshold: Int!
-	$threshold_window: Int!
-	$slack_channels: [SanitizedSlackChannelInput]!
-	$discord_channels: [DiscordChannelInput!]!
-	$webhook_destinations: [WebhookDestinationInput!]!
-	$microsoft_teams_channels: [MicrosoftTeamsChannelInput!]!
-	$emails: [String]!
-	$regex_groups: [String]!
-	$frequency: Int!
-	$default: Boolean
-	$query: String!
-) {
-	createErrorAlert(
-		project_id: $project_id
-		count_threshold: $count_threshold
-		name: $name
-		slack_channels: $slack_channels
-		discord_channels: $discord_channels
-		microsoft_teams_channels: $microsoft_teams_channels
-		webhook_destinations: $webhook_destinations
-		emails: $emails
-		threshold_window: $threshold_window
-		regex_groups: $regex_groups
-		frequency: $frequency
-		default: $default
-		query: $query
-	) {
-		id
-		ChannelsToNotify {
-			webhook_channel
-			webhook_channel_id
-		}
-		EmailsToNotify
-		Name
-		CountThreshold
-		ThresholdWindow
-		LastAdminToEditID
-		RegexGroups
-		Frequency
-		disabled
-		Query
-	}
-}
-
 mutation CreateMetricMonitor(
 	$project_id: ID!
 	$name: String!
@@ -973,6 +926,7 @@ mutation CreateAlert(
 	$function_column: String
 	$query: String
 	$group_by_key: String
+	$default: Boolean
 	$below_threshold: Boolean
 	$threshold_value: Float
 	$threshold_window: Int
@@ -987,6 +941,7 @@ mutation CreateAlert(
 		function_column: $function_column
 		query: $query
 		group_by_key: $group_by_key
+		default: $default
 		below_threshold: $below_threshold
 		threshold_value: $threshold_value
 		threshold_window: $threshold_window
@@ -1141,12 +1096,6 @@ mutation UpdateLogAlert($id: ID!, $input: LogAlertInput!) {
 	}
 }
 
-mutation CreateLogAlert($input: LogAlertInput!) {
-	createLogAlert(input: $input) {
-		id
-	}
-}
-
 mutation DeleteLogAlert($project_id: ID!, $id: ID!) {
 	deleteLogAlert(project_id: $project_id, id: $id) {
 		id
@@ -1205,23 +1154,6 @@ mutation UpdateErrorAlertIsDisabled(
 		disabled: $disabled
 	) {
 		id
-	}
-}
-
-mutation CreateSessionAlert($input: SessionAlertInput!) {
-	createSessionAlert(input: $input) {
-		id
-		ChannelsToNotify {
-			webhook_channel
-			webhook_channel_id
-		}
-		EmailsToNotify
-		Name
-		ExcludedEnvironments
-		CountThreshold
-		ThresholdWindow
-		LastAdminToEditID
-		disabled
 	}
 }
 
