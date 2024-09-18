@@ -53,7 +53,6 @@ import { authRedirect } from '@/pages/Auth/utils'
 import { onlyAllowHighlightStaff } from '@/util/authorization/authorizationUtils'
 import { omit } from 'lodash'
 import HighlightLDProvider from '@context/LDContext'
-import { useLDClient } from 'launchdarkly-react-client-sdk'
 
 document.body.className = 'highlight-light-theme'
 
@@ -203,9 +202,9 @@ const App = () => {
 }
 
 const AuthenticationRoleRouter = () => {
+	analytics.useAnalytics()
 	const location = useLocation()
 	const navigate = useNavigate()
-	const ldClient = useLDClient()
 	const workspaceId = /^\/w\/(\d+)\/.*$/.exec(location.pathname)?.pop()
 	const projectId = /^\/(\d+)\/.*$/.exec(location.pathname)?.pop()
 
@@ -378,11 +377,6 @@ const AuthenticationRoleRouter = () => {
 					},
 					{} as Record<string, string>,
 				)
-				ldClient?.identify({
-					kind: 'user',
-					key: adminDetails.email,
-					...adminDetails,
-				})
 				analytics.identify(adminData.id, {
 					'Project ID': data.project?.id,
 					'Workspace ID': data.project?.workspace?.id,
