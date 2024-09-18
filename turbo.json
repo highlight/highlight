@@ -16,7 +16,13 @@
 				"@rrweb/rrweb-plugin-sequential-id-record#build",
 				"@rrweb/types#build"
 			],
-			"inputs": ["src/**/*.tsx", "src/**/*.ts", "tsconfig.json"],
+			"inputs": [
+				"../client/src/**/*.tsx",
+				"../client/src/**/*.ts",
+				"src/**/*.tsx",
+				"src/**/*.ts",
+				"tsconfig.json"
+			],
 			"outputs": ["dist/**/*.d.ts"]
 		},
 		"highlight.io#build": {
