@@ -166,7 +166,7 @@ func readObjects[TObj interface{}](ctx context.Context, client *Client, config m
 	rows.Close()
 
 	span.Finish(rows.Err())
-	return getConnection(edges, pagination), nil
+	return getConnection(edges, pagination, limit), nil
 }
 
 func makeSelectBuilder(
