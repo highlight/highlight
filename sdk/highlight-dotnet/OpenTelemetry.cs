@@ -115,8 +115,8 @@ namespace Highlight
         public const string HighlightHeader = "x-highlight-request";
 
         public class Config {
-            public required string ProjectId;
-            public required string ServiceName;
+            public string ProjectId = "";
+            public string ServiceName = "";
             public string OtlpEndpoint = "https://otel.highlight.io:4318";
         }
         
@@ -127,7 +127,7 @@ namespace Highlight
                 ["highlight.project_id"] = _config.ProjectId,
                 ["service.name"] = _config.ServiceName,
                 ["telemetry.distro.name"] = "Highlight.ASPCore",
-                ["telemetry.distro.version"] = "0.1.8",
+                ["telemetry.distro.version"] = "0.2.0",
             };
         }
 
