@@ -40,7 +40,7 @@ export const FetchListener = (
 		}
 
 		const [sessionSecureID, requestId] = createNetworkRequestId(otelEnabled)
-		if (shouldNetworkRequestBeTraced(url, tracingOrigins)) {
+		if (shouldNetworkRequestBeTraced(url, tracingOrigins, urlBlocklist)) {
 			init = init || {}
 			// Pre-existing headers could be one of three different formats; this reads all of them.
 			let headers = new Headers(init.headers)
