@@ -110,7 +110,7 @@
 		"turbo": "^2.0.6",
 		"typescript": "^5.5.2"
 	},
-	"packageManager": "yarn@4.3.1",
+	"packageManager": "yarn@4.5.0",
 	"resolutions": {
 		"ansi-color@^0.2.1": "patch:ansi-color@npm%3A0.2.1#./.yarn/patches/ansi-color-npm-0.2.1-f7243d10a4.patch",
 		"lodash-es@^4.17.21": "patch:lodash-es@npm%3A4.17.21#./.yarn/patches/lodash-es-npm-4.17.21-b45832dfce.patch",

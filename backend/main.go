@@ -226,7 +226,8 @@ func main() {
 	// setup highlight logrus hook
 	hlog.Init()
 
-	if err := enterprise.Start(ctx); err != nil {
+	isEnterprise, err := enterprise.Start(ctx)
+	if err != nil {
 		log.WithContext(ctx).WithError(err).Fatal("Failed to start highlight enterprise license checker.")
 	}
 
@@ -257,8 +258,16 @@ func main() {
 		}
 	}
 
+	if isEnterprise {
+		if err := model.EnableAllWorkspaceSettings(ctx, db); err != nil {
+			log.WithContext(ctx).
+				WithError(err).
+				Error("failed to enable all workspace settings for enterprise deploy")
+		}
+	}
+
 	var pricingClient *pricing.Client
-	if env.IsInDocker() {
+	if env.IsInDocker() && !env.IsDevOrTestEnv() {
 		pricingClient = pricing.NewNoopClient()
 	} else {
 		stripeClient := &client.API{}

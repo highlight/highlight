@@ -137,6 +137,11 @@ func CreateTracerProvider(endpoint string, opts ...sdktrace.TracerProviderOption
 	if err != nil {
 		return nil, fmt.Errorf("creating OTLP trace exporter: %w", err)
 	}
+	conf.resourceAttributes = append(
+		conf.resourceAttributes,
+		semconv.TelemetryDistroName("github.com/highlight/highlight/sdk/highlight-go"),
+		semconv.TelemetryDistroVersion(Version),
+	)
 	resources, err := resource.New(context.Background(),
 		resource.WithFromEnv(),
 		resource.WithHost(),

@@ -13,7 +13,7 @@ import {
 } from '@highlight-run/ui/components'
 import { useParams } from '@util/react-router/useParams'
 import { Divider } from 'antd'
-import React, { PropsWithChildren, useEffect, useMemo, useState } from 'react'
+import React, { PropsWithChildren, useMemo, useState } from 'react'
 import { Helmet } from 'react-helmet'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 
@@ -31,6 +31,7 @@ import {
 	MetricAggregator,
 	ProductType,
 } from '@/graph/generated/schemas'
+import useFeatureFlag, { Feature } from '@/hooks/useFeatureFlag/useFeatureFlag'
 import { useProjectId } from '@/hooks/useProjectId'
 import { useSearchTime } from '@/hooks/useSearchTime'
 import { FREQUENCIES } from '@/pages/Alerts/AlertConfigurationCard/AlertConfigurationConstants'
@@ -43,7 +44,9 @@ import { Combobox } from '@/pages/Graphing/Combobox'
 import {
 	FUNCTION_TYPES,
 	PRODUCT_ICONS,
+	PRODUCT_ICONS_WITH_EVENTS,
 	PRODUCTS,
+	PRODUCTS_WITH_EVENTS,
 } from '@/pages/Graphing/constants'
 import { HeaderDivider } from '@/pages/Graphing/Dashboard'
 import { LabeledRow } from '@/pages/Graphing/LabeledRow'
@@ -65,18 +68,22 @@ const FREQUENCY_OPTIONS = FREQUENCIES.filter((freq) => Number(freq.value) >= 60)
 const MINUTE = 60
 const WEEK = 7 * 24 * 60 * MINUTE
 
-const DEFAULT_THRESHOLD = 1
-const DEFAULT_WINDOW = MINUTE * 30
-const DEFAULT_COOLDOWN = MINUTE * 30
+export const SESSION_WINDOW = MINUTE
+export const SESSION_COOLDOWN = WEEK
+
+export const DEFAULT_THRESHOLD = 1
+export const DEFAULT_WINDOW = MINUTE * 30
+export const DEFAULT_COOLDOWN = MINUTE * 30
 
 const ALERT_PRODUCT_INFO = {
 	[ProductType.Sessions]:
 		"Alerts once for every session that matches the condition's filters.",
 	[ProductType.Errors]:
-		'Alerts every time an error group matches the specified conditions.',
+		'Alerts every time an open error matches the specified conditions.',
 	[ProductType.Logs]: false,
 	[ProductType.Traces]: false,
 	[ProductType.Metrics]: false,
+	[ProductType.Events]: false,
 }
 
 export const AlertForm: React.FC = () => {
@@ -85,6 +92,20 @@ export const AlertForm: React.FC = () => {
 		alert_id: string
 	}>()
 	const [searchParams] = useSearchParams()
+
+	const eventSearchEnabled = useFeatureFlag(Feature.EventSearch)
+	const { products, productIcons } = useMemo(() => {
+		if (!eventSearchEnabled) {
+			return {
+				products: PRODUCTS,
+				productIcons: PRODUCT_ICONS,
+			}
+		}
+		return {
+			products: PRODUCTS_WITH_EVENTS,
+			productIcons: PRODUCT_ICONS_WITH_EVENTS,
+		}
+	}, [eventSearchEnabled])
 
 	const isEdit = alert_id !== undefined
 
@@ -114,7 +135,7 @@ export const AlertForm: React.FC = () => {
 
 	const [alertName, setAlertName] = useState('')
 	const [productType, setProductType] = useState(
-		(searchParams.get('source') as ProductType) || PRODUCTS[0],
+		(searchParams.get('source') as ProductType) || products[0],
 	)
 	const [functionType, setFunctionType] = useState(MetricAggregator.Count)
 	const [functionColumn, setFunctionColumn] = useState('')
@@ -140,15 +161,20 @@ export const AlertForm: React.FC = () => {
 		[],
 	)
 
-	useEffect(() => {
-		if (productType === ProductType.Sessions) {
+	const handleProductChange = (product: ProductType) => {
+		if (product === productType) {
+			return
+		}
+
+		setProductType(product)
+		if (product === ProductType.Sessions) {
 			// locked session settings -> group by secure_id
 			setGroupByEnabled(true)
 			setGroupByKey('secure_id')
 			// only alert once per session
-			setThresholdWindow(MINUTE)
-			setThresholdCooldown(WEEK)
-		} else if (productType === ProductType.Errors) {
+			setThresholdWindow(SESSION_WINDOW)
+			setThresholdCooldown(SESSION_COOLDOWN)
+		} else if (product === ProductType.Errors) {
 			// locked error settings -> group by secure_id
 			setGroupByEnabled(true)
 			setGroupByKey('secure_id')
@@ -166,7 +192,7 @@ export const AlertForm: React.FC = () => {
 		setQuery('')
 		setFunctionType(MetricAggregator.Count)
 		setFunctionColumn('')
-	}, [productType])
+	}
 
 	const onSave = () => {
 		const formVariables = {
@@ -324,7 +350,7 @@ export const AlertForm: React.FC = () => {
 						py="6"
 					>
 						<Text size="small" weight="medium">
-							Create alert
+							{isEdit ? 'Edit' : 'Create'} alert
 						</Text>
 						<Box display="flex" gap="4">
 							<DateRangePicker
@@ -426,10 +452,10 @@ export const AlertForm: React.FC = () => {
 										tooltip="The resource being queried, one of the four highlight.io resources."
 									>
 										<OptionDropdown<ProductType>
-											options={PRODUCTS}
+											options={products}
 											selection={productType}
-											setSelection={setProductType}
-											icons={PRODUCT_ICONS}
+											setSelection={handleProductChange}
+											icons={productIcons}
 										/>
 									</LabeledRow>
 									{ALERT_PRODUCT_INFO[productType] && (

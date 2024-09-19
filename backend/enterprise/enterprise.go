@@ -33,12 +33,15 @@ const UpdateErrorsAbort = 10
 
 var isEnterprise = false
 
-func Start(ctx context.Context) error {
+// Start configures the enterprise service. Returns true for valid enterprise deploys
+func Start(ctx context.Context) (bool, error) {
+	go CheckForUpdatesLoop(context.Background())
+
 	environ, err := GetEnvironment(GetEncryptedEnvironmentFilePath(), GetEncryptedEnvironmentDigestFilePath())
 	if err != nil {
 		log.WithContext(ctx).WithError(err).Info("enterprise service not configured")
 		if env.IsEnterpriseDeploy() {
-			return e.Wrap(err, "highlight enterprise mode configured but failed to start license checker")
+			return false, e.Wrap(err, "highlight enterprise mode configured but failed to start license checker")
 		}
 	} else {
 		isEnterprise = true
@@ -49,11 +52,10 @@ func Start(ctx context.Context) error {
 			environ.CopyTo(&env.Config)
 			log.WithContext(ctx).
 				Info("applied enterprise environment file")
+			return true, nil
 		}
 	}
-
-	go CheckForUpdatesLoop(context.Background())
-	return nil
+	return false, nil
 }
 
 func RequireEnterprise(ctx context.Context) {

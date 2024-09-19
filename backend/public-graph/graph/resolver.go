@@ -290,6 +290,42 @@ func (r *Resolver) AppendProperties(ctx context.Context, sessionID int, properti
 	return nil
 }
 
+func (r *Resolver) CreateSessionEvents(ctx context.Context, sessionID int, events []*clickhouse.SessionEventRow) error {
+	outerSpan, ctxT := util.StartSpanFromContext(ctx, "public-graph.CreateSessionEvents", util.Tag("sessionID", sessionID))
+	defer outerSpan.Finish()
+
+	loadSessionSpan, ctxS := util.StartSpanFromContext(ctxT, "public-graph.CreateSessionEvents.loadSessions", util.Tag("sessionID", sessionID))
+	session := &model.Session{}
+	res := r.DB.WithContext(ctxS).Where(&model.Session{Model: model.Model{ID: sessionID}}).Take(&session)
+	if err := res.Error; err != nil {
+		return e.Wrapf(err, "error getting session(id=%d) in create session events", sessionID)
+	}
+	loadSessionSpan.Finish()
+
+	clickhouseSpan, ctxW := util.StartSpanFromContext(ctxT, "public-graph.CreateSessionEvents.flush.sessionEvents")
+	clickhouseSpan.SetAttribute("NumSessionEventRows", len(events))
+	defer clickhouseSpan.Finish()
+
+	sessionEvents := []*clickhouse.SessionEventRow{}
+	for _, event := range events {
+		sessionEvents = append(sessionEvents, &clickhouse.SessionEventRow{
+			ProjectID:        uint32(session.ProjectID),
+			SessionID:        uint64(session.ID),
+			SessionCreatedAt: session.CreatedAt,
+			Timestamp:        event.Timestamp,
+			Event:            event.Event,
+			Attributes:       event.Attributes,
+		})
+	}
+
+	err := r.Clickhouse.BatchWriteSessionEventRows(ctxW, sessionEvents)
+	if err != nil {
+		return e.Wrap(err, "error writing session events to clickhouse")
+	}
+
+	return nil
+}
+
 func (r *Resolver) AppendFields(ctx context.Context, fields []*model.Field, session *model.Session) error {
 	outerSpan, ctx := util.StartSpanFromContext(ctx, "public-graph.AppendFields",
 		util.ResourceName("go.sessions.AppendFields"), util.Tag("sessionID", session.ID))
@@ -2260,6 +2296,7 @@ func (r *Resolver) AddTrackProperties(ctx context.Context, sessionID int, events
 	defer outerSpan.Finish()
 
 	fields := map[string]string{}
+	sessionEvents := []*clickhouse.SessionEventRow{}
 
 	for _, event := range events.Events {
 		if event.Type == parse.Custom {
@@ -2290,6 +2327,35 @@ func (r *Resolver) AddTrackProperties(ctx context.Context, sessionID int, events
 				return e.New("error deserializing track event properties")
 			}
 
+			attributes := make(map[string]string)
+			for k, v := range propertiesObject {
+				attributes[k] = fmt.Sprintf("%v", v)
+			}
+
+			// make event name the event key and delete from attributes
+			eventName := "unknown_event"
+			if attributes["event"] != "" {
+				eventName = attributes["event"]
+				delete(attributes, "event")
+			} else if attributes["segment-event"] != "" {
+				eventName = attributes["segment-event"]
+				delete(attributes, "segment-event")
+			} else {
+				log.WithContext(ctx).WithFields(
+					log.Fields{
+						"sessionID":  sessionID,
+						"attributes": attributes,
+					}).Warn("writing unknown event")
+			}
+
+			sessionEvents = append(sessionEvents,
+				&clickhouse.SessionEventRow{
+					Event:      eventName,
+					Timestamp:  event.Timestamp,
+					Attributes: attributes,
+				},
+			)
+
 			for k, v := range propertiesObject {
 				formattedVal := fmt.Sprintf("%.*v", SESSION_FIELD_MAX_LENGTH, v)
 				if len(formattedVal) > 0 {
@@ -2308,7 +2374,12 @@ func (r *Resolver) AddTrackProperties(ctx context.Context, sessionID int, events
 		if err := r.AppendProperties(ctx, sessionID, fields, PropertyType.TRACK); err != nil {
 			return e.Wrap(err, "error adding set of properties to db")
 		}
+	}
 
+	if len(sessionEvents) > 0 {
+		if err := r.CreateSessionEvents(ctx, sessionID, sessionEvents); err != nil {
+			return e.Wrapf(err, "error creating session events for session %d", sessionID)
+		}
 	}
 
 	return nil

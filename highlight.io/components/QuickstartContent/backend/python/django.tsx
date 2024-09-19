@@ -13,7 +13,7 @@ export const PythonDjangoContext: QuickStartContent = {
 	logoUrl: siteUrl('/images/quickstart/django.svg'),
 	entries: [
 		setupFrontendSnippet,
-		downloadSnippet('Django'),
+		downloadSnippet(),
 		{
 			title: 'Initialize the Highlight SDK.',
 			content:

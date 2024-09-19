@@ -27,6 +27,10 @@ import (
 const maxWorkers = 40
 const alertEvalFreq = time.Minute
 
+var defaultAlertFilters = map[modelInputs.ProductType]string{
+	modelInputs.ProductTypeErrors: "status=OPEN ",
+}
+
 func WatchMetricAlerts(ctx context.Context, DB *gorm.DB, MailClient *sendgrid.Client, rh *resthooks.Resthook, redis *redis.Client, ccClient *clickhouse.Client, lambdaClient *lambda.Client) {
 	log.WithContext(ctx).Info("Starting to watch metric alerts")
 
@@ -103,9 +107,9 @@ func processMetricAlert(ctx context.Context, DB *gorm.DB, MailClient *sendgrid.C
 		return errors.Errorf("Unknown product type: %s", alert.ProductType)
 	}
 
-	query := ""
+	query := defaultAlertFilters[alert.ProductType]
 	if alert.Query != nil {
-		query = *alert.Query
+		query += *alert.Query
 	}
 
 	column := ""

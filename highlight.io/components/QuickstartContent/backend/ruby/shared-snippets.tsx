@@ -37,7 +37,7 @@ export const customError: QuickStartStep = {
 		'If you want to explicitly send an error to Highlight, you can use the `error` method within traced code.',
 	code: [
 		{
-			text: `Highlight.error(e)`,
+			text: `Highlight.exception(e)`,
 			language: 'ruby',
 		},
 	],

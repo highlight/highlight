@@ -1,5 +1,6 @@
 import {
 	IconSolidChartBar,
+	IconSolidFire,
 	IconSolidLightningBolt,
 	IconSolidLogs,
 	IconSolidPlayCircle,
@@ -19,6 +20,10 @@ export const PRODUCTS: ProductType[] = [
 	ProductType.Metrics,
 ]
 
+export const PRODUCTS_WITH_EVENTS: ProductType[] = PRODUCTS.concat([
+	ProductType.Events,
+])
+
 export const PRODUCT_ICONS = [
 	<IconSolidLogs key="logs" />,
 	<IconSolidTraces key="traces" />,
@@ -26,6 +31,10 @@ export const PRODUCT_ICONS = [
 	<IconSolidLightningBolt key="errors" />,
 	<IconSolidChartBar key="metrics" />,
 ]
+
+export const PRODUCT_ICONS_WITH_EVENTS = PRODUCT_ICONS.concat([
+	<IconSolidFire key="events" />,
+])
 
 export const NUMERIC_FUNCTION_TYPES: MetricAggregator[] = [
 	MetricAggregator.Min,

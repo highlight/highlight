@@ -5,15 +5,18 @@ import Modal from '@components/Modal/Modal'
 import ModalBody from '@components/ModalBody/ModalBody'
 import { toast } from '@components/Toaster'
 import {
-	useCreateErrorAlertMutation,
-	useCreateLogAlertMutation,
-	useCreateSessionAlertMutation,
+	useCreateAlertMutation,
 	useGetAlertsPagePayloadQuery,
 	useUpsertDiscordChannelMutation,
 	useUpsertSlackChannelMutation,
 } from '@graph/hooks'
 import { namedOperations } from '@graph/operations'
-import { SessionAlertType } from '@graph/schemas'
+import {
+	MetricAggregator,
+	ProductType,
+	AlertDestinationType,
+	AlertDestinationInput,
+} from '@graph/schemas'
 import {
 	Badge,
 	Box,
@@ -32,7 +35,6 @@ import {
 } from '@highlight-run/ui/components'
 import { vars } from '@highlight-run/ui/vars'
 import { useProjectId } from '@hooks/useProjectId'
-import { DEFAULT_FREQUENCY } from '@pages/Alerts/AlertConfigurationCard/AlertConfigurationConstants'
 import { getDiscordOauthUrl } from '@pages/IntegrationsPage/components/DiscordIntegration/DiscordIntegrationConfig'
 import { Header } from '@pages/Setup/Header'
 import useLocalStorage from '@rehooks/local-storage'
@@ -41,6 +43,7 @@ import { client } from '@util/graph'
 import * as React from 'react'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useLocation, useMatch, useNavigate } from 'react-router-dom'
+import { DEFAULT_COOLDOWN, SESSION_COOLDOWN } from '@pages/Alerts/AlertForm'
 
 import Switch from '@/components/Switch/Switch'
 import { getMicrosoftTeamsUrl } from '@/pages/IntegrationsPage/components/MicrosoftTeamsIntegration/utils'
@@ -339,11 +342,18 @@ const PlatformPicker: React.FC = function () {
 	)
 }
 
-const AlertPicker = function ({
-	platform,
-}: {
-	platform: 'slack' | 'discord' | 'email' | 'microsoft_teams'
-}) {
+type Platform = 'slack' | 'discord' | 'email' | 'microsoft_teams'
+
+const PLATFORM_TO_DESTINATION = {
+	slack: AlertDestinationType.Slack,
+	discord: AlertDestinationType.Discord,
+	email: AlertDestinationType.Email,
+	microsoft_teams: AlertDestinationType.MicrosoftTeams,
+}
+
+type AlertPickerProps = { platform: Platform }
+
+const AlertPicker: React.FC<AlertPickerProps> = ({ platform }) => {
 	const { projectId } = useProjectId()
 	const createLoading = useRef<boolean>(false)
 	const alertsCreated = useRef<Set<'Session' | 'Error' | 'Log'>>(
@@ -365,11 +375,7 @@ const AlertPicker = function ({
 		fetchPolicy: 'network-only',
 	})
 
-	const [createSessionAlert] = useCreateSessionAlertMutation()
-
-	const [createErrorAlert] = useCreateErrorAlertMutation()
-
-	const [createLogAlert] = useCreateLogAlertMutation()
+	const [createAlert] = useCreateAlertMutation()
 
 	const [upsertSlackChannel] = useUpsertSlackChannelMutation()
 	const [upsertDiscordChannel] = useUpsertDiscordChannelMutation()
@@ -393,7 +399,11 @@ const AlertPicker = function ({
 	}, [hasDefaultErrorAlert, hasDefaultLogAlert, hasDefaultSessionAlert])
 
 	const getChannelID = useCallback(
-		async (destination: string) => {
+		async (destination?: string) => {
+			if (!destination) {
+				return ''
+			}
+
 			let channelID = ''
 			if (platform === 'slack') {
 				const { data } = await upsertSlackChannel({
@@ -422,8 +432,9 @@ const AlertPicker = function ({
 		for (const alert of alertsSelected) {
 			if (alertsCreated.current.has(alert)) continue
 			alertsCreated.current.add(alert)
-			const destination =
-				alertOptions.find((a) => a.name === alert)?.destination ?? ''
+			const destination = alertOptions.find(
+				(a) => a.name === alert,
+			)?.destination
 
 			promises.push(
 				getChannelID(destination).then((channelID) => {
@@ -435,83 +446,71 @@ const AlertPicker = function ({
 						projectId,
 					})
 
-					const a = alertOptions.find((a) => a.name === alert)
+					const destinations: AlertDestinationInput[] = []
+
+					if (!!channelID && !!destination) {
+						destinations.push({
+							destination_type: PLATFORM_TO_DESTINATION[platform],
+							type_id: channelID,
+							type_name: destination,
+						})
+					} else if (!!emailDestination) {
+						destinations.push({
+							destination_type: PLATFORM_TO_DESTINATION[platform],
+							type_id: emailDestination,
+							type_name: emailDestination,
+						})
+					}
+
 					const requestVariables = {
 						project_id: projectId,
-						count_threshold: a?.thresholdPerMinute ?? 1,
-						threshold_window: Number(DEFAULT_FREQUENCY),
-						slack_channels:
-							platform === 'slack'
-								? [
-										{
-											webhook_channel_id: channelID,
-											webhook_channel_name: destination,
-										},
-									]
-								: [],
-						discord_channels:
-							platform === 'discord'
-								? [
-										{
-											id: channelID,
-											name: destination,
-										},
-									]
-								: [],
-						microsoft_teams_channels:
-							platform === 'microsoft_teams'
-								? [
-										{
-											id: channelID,
-											name: destination,
-										},
-									]
-								: [],
-						emails: emailDestination ? [emailDestination] : [],
-						environments: [],
-						webhook_destinations: [],
+						function_type: MetricAggregator.Count,
 						default: true,
+						below_threshold: false,
+						threshold_window: 60, // 1 minute
+						destinations: destinations,
 					}
 
 					if (alert === 'Session') {
 						if (!hasDefaultSessionAlert) {
-							return createSessionAlert({
+							return createAlert({
 								variables: {
-									input: {
-										...requestVariables,
-										name: 'New Session Alert',
-										exclude_rules: [],
-										user_properties: [],
-										track_properties: [],
-										disabled: false,
-										type: SessionAlertType.NewSessionAlert,
-									},
+									...requestVariables,
+									name: 'New Session Alert',
+									product_type: ProductType.Sessions,
+									query: 'first_time=true',
+									group_by_key: 'secure_id',
+									threshold_value: 1,
+									threshold_cooldown: SESSION_COOLDOWN,
 								},
 							})
 						}
 					} else if (alert === 'Error') {
 						if (!hasDefaultErrorAlert) {
-							return createErrorAlert({
+							return createAlert({
 								variables: {
 									...requestVariables,
 									name: 'Error Alert',
-									regex_groups: [],
-									frequency: 3600,
+									product_type: ProductType.Errors,
 									query: '',
+									group_by_key: 'secure_id',
+									threshold_value: 10,
+									threshold_cooldown: DEFAULT_COOLDOWN,
 								},
 							})
 						}
 					} else if (alert === 'Log') {
 						if (!hasDefaultLogAlert) {
-							return createLogAlert({
+							return createAlert({
 								variables: {
-									input: {
-										...requestVariables,
-										name: 'Error Log Alert',
-										below_threshold: false,
-										disabled: false,
-										query: 'level:error',
-									},
+									...requestVariables,
+									name: 'Error Log Alert',
+									product_type: ProductType.Logs,
+									below_threshold: false,
+									query: 'level=error',
+									group_by_key: '',
+									threshold_value: 60,
+									threshold_cooldown: DEFAULT_COOLDOWN,
 								},
 							})
 						}
@@ -525,9 +524,7 @@ const AlertPicker = function ({
 		})
 	}, [
 		alertsSelected,
-		createErrorAlert,
-		createLogAlert,
-		createSessionAlert,
+		createAlert,
 		emailDestination,
 		getChannelID,
 		hasDefaultErrorAlert,

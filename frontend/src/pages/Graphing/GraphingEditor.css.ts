@@ -6,7 +6,7 @@ export const editGraphHeader = style({
 })
 
 export const editGraphPanel = style({
-	height: '100%',
+	height: 'calc(100% - 40px)',
 })
 
 export const previewWindow = style({

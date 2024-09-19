@@ -830,18 +830,20 @@ type SessionQuery struct {
 }
 
 type SessionsReportRow struct {
-	Key                   string  `json:"key"`
-	Email                 string  `json:"email"`
-	NumSessions           uint64  `json:"num_sessions"`
-	NumDaysVisited        uint64  `json:"num_days_visited"`
-	NumMonthsVisited      uint64  `json:"num_months_visited"`
-	AvgActiveLengthMins   float64 `json:"avg_active_length_mins"`
-	MaxActiveLengthMins   float64 `json:"max_active_length_mins"`
-	TotalActiveLengthMins float64 `json:"total_active_length_mins"`
-	AvgLengthMins         float64 `json:"avg_length_mins"`
-	MaxLengthMins         float64 `json:"max_length_mins"`
-	TotalLengthMins       float64 `json:"total_length_mins"`
-	Location              string  `json:"location"`
+	Key                   string    `json:"key"`
+	Email                 string    `json:"email"`
+	NumSessions           uint64    `json:"num_sessions"`
+	FirstSession          time.Time `json:"first_session"`
+	LastSession           time.Time `json:"last_session"`
+	NumDaysVisited        uint64    `json:"num_days_visited"`
+	NumMonthsVisited      uint64    `json:"num_months_visited"`
+	AvgActiveLengthMins   float64   `json:"avg_active_length_mins"`
+	MaxActiveLengthMins   float64   `json:"max_active_length_mins"`
+	TotalActiveLengthMins float64   `json:"total_active_length_mins"`
+	AvgLengthMins         float64   `json:"avg_length_mins"`
+	MaxLengthMins         float64   `json:"max_length_mins"`
+	TotalLengthMins       float64   `json:"total_length_mins"`
+	Location              string    `json:"location"`
 }
 
 type SlackSyncResponse struct {
@@ -1990,6 +1992,7 @@ const (
 	ProductTypeLogs     ProductType = "Logs"
 	ProductTypeTraces   ProductType = "Traces"
 	ProductTypeMetrics  ProductType = "Metrics"
+	ProductTypeEvents   ProductType = "Events"
 )
 
 var AllProductType = []ProductType{
@@ -1998,11 +2001,12 @@ var AllProductType = []ProductType{
 	ProductTypeLogs,
 	ProductTypeTraces,
 	ProductTypeMetrics,
+	ProductTypeEvents,
 }
 
 func (e ProductType) IsValid() bool {
 	switch e {
-	case ProductTypeSessions, ProductTypeErrors, ProductTypeLogs, ProductTypeTraces, ProductTypeMetrics:
+	case ProductTypeSessions, ProductTypeErrors, ProductTypeLogs, ProductTypeTraces, ProductTypeMetrics, ProductTypeEvents:
 		return true
 	}
 	return false
@@ -2205,6 +2209,79 @@ func (e *ReservedErrorsJoinedKey) UnmarshalGQL(v interface{}) error {
 }
 
 func (e ReservedErrorsJoinedKey) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+type ReservedEventKey string
+
+const (
+	ReservedEventKeyBrowserName         ReservedEventKey = "browser_name"
+	ReservedEventKeyBrowserVersion      ReservedEventKey = "browser_version"
+	ReservedEventKeyCity                ReservedEventKey = "city"
+	ReservedEventKeyCountry             ReservedEventKey = "country"
+	ReservedEventKeyEnvironment         ReservedEventKey = "environment"
+	ReservedEventKeyEvent               ReservedEventKey = "event"
+	ReservedEventKeyFirstSession        ReservedEventKey = "first_session"
+	ReservedEventKeyIdentified          ReservedEventKey = "identified"
+	ReservedEventKeyIdentifier          ReservedEventKey = "identifier"
+	ReservedEventKeyIP                  ReservedEventKey = "ip"
+	ReservedEventKeyOsName              ReservedEventKey = "os_name"
+	ReservedEventKeyOsVersion           ReservedEventKey = "os_version"
+	ReservedEventKeySecureSessionID     ReservedEventKey = "secure_session_id"
+	ReservedEventKeyServiceVersion      ReservedEventKey = "service_version"
+	ReservedEventKeySessionActiveLength ReservedEventKey = "session_active_length"
+	ReservedEventKeySessionLength       ReservedEventKey = "session_length"
+	ReservedEventKeySessionPagesVisited ReservedEventKey = "session_pages_visited"
+	ReservedEventKeyState               ReservedEventKey = "state"
+)
+
+var AllReservedEventKey = []ReservedEventKey{
+	ReservedEventKeyBrowserName,
+	ReservedEventKeyBrowserVersion,
+	ReservedEventKeyCity,
+	ReservedEventKeyCountry,
+	ReservedEventKeyEnvironment,
+	ReservedEventKeyEvent,
+	ReservedEventKeyFirstSession,
+	ReservedEventKeyIdentified,
+	ReservedEventKeyIdentifier,
+	ReservedEventKeyIP,
+	ReservedEventKeyOsName,
+	ReservedEventKeyOsVersion,
+	ReservedEventKeySecureSessionID,
+	ReservedEventKeyServiceVersion,
+	ReservedEventKeySessionActiveLength,
+	ReservedEventKeySessionLength,
+	ReservedEventKeySessionPagesVisited,
+	ReservedEventKeyState,
+}
+
+func (e ReservedEventKey) IsValid() bool {
+	switch e {
+	case ReservedEventKeyBrowserName, ReservedEventKeyBrowserVersion, ReservedEventKeyCity, ReservedEventKeyCountry, ReservedEventKeyEnvironment, ReservedEventKeyEvent, ReservedEventKeyFirstSession, ReservedEventKeyIdentified, ReservedEventKeyIdentifier, ReservedEventKeyIP, ReservedEventKeyOsName, ReservedEventKeyOsVersion, ReservedEventKeySecureSessionID, ReservedEventKeyServiceVersion, ReservedEventKeySessionActiveLength, ReservedEventKeySessionLength, ReservedEventKeySessionPagesVisited, ReservedEventKeyState:
+		return true
+	}
+	return false
+}
+
+func (e ReservedEventKey) String() string {
+	return string(e)
+}
+
+func (e *ReservedEventKey) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = ReservedEventKey(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid ReservedEventKey", str)
+	}
+	return nil
+}
+
+func (e ReservedEventKey) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(e.String()))
 }
 

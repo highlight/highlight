@@ -418,12 +418,12 @@ export const Dashboard = () => {
 																							id: vizId,
 																							fields: {
 																								graphs(
-																									existing: any[] = [],
+																									existing = [],
 																								) {
 																									const idx =
 																										existing.findIndex(
 																											(
-																												e,
+																												e: any,
 																											) =>
 																												e.__ref ===
 																												afterGraphId,
@@ -502,7 +502,7 @@ export const Dashboard = () => {
 																							id: vizId,
 																							fields: {
 																								graphs(
-																									existing: any[] = [],
+																									existing = [],
 																								) {
 																									const filtered =
 																										existing.filter(
@@ -620,6 +620,7 @@ export const Dashboard = () => {
 															variables={
 																variables
 															}
+															height={280}
 														/>
 													</DashboardCard>
 												)

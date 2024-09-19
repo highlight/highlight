@@ -60,7 +60,7 @@ export const Basic = () => {
 						step="5"
 						defaultValue="10"
 						min={0}
-						max={50}
+						max={500}
 					/>
 				</Box>
 			</Form>

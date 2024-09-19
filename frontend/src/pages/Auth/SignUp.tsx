@@ -87,6 +87,11 @@ export const SignUp: React.FC = () => {
 					provider: additionalUserInfo.providerId,
 				})
 
+				analytics.trackGaEvent('sign_up', {
+					email: user.email!,
+					provider: additionalUserInfo.providerId,
+				})
+
 				if (!user?.emailVerified) {
 					auth.currentUser?.sendEmailVerification()
 				}
