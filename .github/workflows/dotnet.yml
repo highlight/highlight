@@ -58,11 +58,8 @@ jobs:
             - name: dotnet restore
               run: dotnet restore
 
-            - name: dotnet build
-              run: dotnet build --configuration Release -p:Deterministic=true
-
             - name: dotnet pack
-              run: dotnet pack --configuration Release --no-restore --no-build
+              run: dotnet pack --configuration Release
 
             - name: Push generated package to NuGet registry
               # if: github.ref == 'refs/heads/main'
