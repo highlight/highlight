@@ -18,12 +18,14 @@ import {
 	Button,
 	DateRangePicker,
 	DEFAULT_TIME_PRESETS,
+	Form,
 	IconSolidAdjustments,
 	IconSolidChartBar,
 	IconSolidCheveronRight,
 	IconSolidClock,
 	IconSolidCog,
 	IconSolidPlus,
+	Input,
 	parsePreset,
 	presetStartDate,
 	Stack,
@@ -263,18 +265,6 @@ export const Dashboard = () => {
 								<Button
 									emphasis="medium"
 									kind="secondary"
-									iconLeft={
-										<IconSolidAdjustments size={14} />
-									}
-									onClick={() => {
-										setShowVariablesModal(true)
-									}}
-								>
-									Variables
-								</Button>
-								<Button
-									emphasis="medium"
-									kind="secondary"
 									iconLeft={<IconSolidCog size={14} />}
 									onClick={() => {
 										setShowSettingsModal(true)
@@ -303,11 +293,53 @@ export const Dashboard = () => {
 					) : (
 						<Box
 							display="flex"
-							flexDirection="row"
+							flexDirection="column"
 							justifyContent="space-between"
 							height="full"
 							cssClass={style.dashboardContent}
 						>
+							<Form>
+								<Stack
+									direction="row"
+									justifyContent="flex-start"
+									alignItems="center"
+									cssClass={style.variablesBar}
+								>
+									{variables &&
+										Array.from(variables).map(
+											([key, value]) => {
+												return (
+													<>
+														<Text>{key}:</Text>
+														<Box
+															cssClass={
+																style.variableInput
+															}
+														>
+															<Input
+																value={value}
+																name="value"
+															/>
+														</Box>
+														<HeaderDivider />
+													</>
+												)
+											},
+										)}
+									<Button
+										emphasis="low"
+										kind="secondary"
+										iconLeft={
+											<IconSolidAdjustments size={14} />
+										}
+										onClick={() => {
+											setShowVariablesModal(true)
+										}}
+									>
+										Variables
+									</Button>
+								</Stack>
+							</Form>
 							<Box
 								display="flex"
 								position="relative"

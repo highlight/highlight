@@ -5,8 +5,17 @@ export const editGraphHeader = style({
 	height: 40,
 })
 
+export const variablesBar = style({
+	height: 40,
+})
+
+export const variableInput = style({
+	width: 200,
+})
+
 export const dashboardContent = style({
 	height: 'calc(100% - 40px)',
+	overflow: 'auto',
 })
 
 export const headerDivider = style({
@@ -37,7 +46,6 @@ export const input = style({
 })
 
 export const graphGrid = style({
-	overflow: 'auto',
 	display: 'grid',
 	width: '100%',
 	height: '100%',
