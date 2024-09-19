@@ -97,7 +97,9 @@ export const Combobox: React.FC<Props> = ({
 		<ComboboxSelect
 			label={label}
 			value={selection}
-			valueRender={<Text cssClass={style.comboboxText}>{selection}</Text>}
+			valueRender={
+				<Text cssClass={style.comboboxText}>{selection || 'Rows'}</Text>
+			}
 			options={keyOptions}
 			onChange={setSelection}
 			onChangeQuery={setQuery}
