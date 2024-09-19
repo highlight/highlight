@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    highlight_io (0.5.1)
+    highlight_io (0.5.2)
       grpc (~> 1.66)
       opentelemetry-exporter-otlp (~> 0.28.1)
       opentelemetry-instrumentation-all (~> 0.62.1)
