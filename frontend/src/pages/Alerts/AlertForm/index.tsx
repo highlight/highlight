@@ -139,6 +139,9 @@ export const AlertForm: React.FC = () => {
 	)
 	const [functionType, setFunctionType] = useState(MetricAggregator.Count)
 	const [functionColumn, setFunctionColumn] = useState('')
+	const fetchedFunctionColumn = useMemo(() => {
+		return functionType === MetricAggregator.Count ? '' : functionColumn
+	}, [functionColumn, functionType])
 
 	const isErrorAlert = productType === ProductType.Errors
 	const isSessionAlert = productType === ProductType.Sessions
@@ -200,10 +203,7 @@ export const AlertForm: React.FC = () => {
 			name: alertName,
 			product_type: productType,
 			function_type: functionType,
-			function_column:
-				functionType === MetricAggregator.Count
-					? undefined
-					: functionColumn,
+			function_column: fetchedFunctionColumn || undefined,
 			query: query,
 			group_by_key: groupByEnabled ? groupByKey : undefined,
 			below_threshold: belowThreshold,
@@ -407,7 +407,7 @@ export const AlertForm: React.FC = () => {
 							alertName={alertName}
 							query={query}
 							productType={productType}
-							functionColumn={functionColumn}
+							functionColumn={fetchedFunctionColumn}
 							functionType={functionType}
 							groupByKey={groupByEnabled ? groupByKey : undefined}
 							thresholdWindow={thresholdWindow}
@@ -489,7 +489,9 @@ export const AlertForm: React.FC = () => {
 												setSelection={setFunctionType}
 											/>
 											<Combobox
-												selection={functionColumn}
+												selection={
+													fetchedFunctionColumn
+												}
 												setSelection={setFunctionColumn}
 												label="metric"
 												searchConfig={
