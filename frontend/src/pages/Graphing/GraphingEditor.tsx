@@ -219,8 +219,8 @@ export const GraphingEditor: React.FC = () => {
 			groupByKey: groupByEnabled ? groupByKey : null,
 			limit: groupByEnabled ? Number(limit) : null,
 			limitFunctionType: groupByEnabled ? limitFunctionType : null,
-			limitMetric: groupByEnabled ? limitMetric : null,
-			metric,
+			limitMetric: groupByEnabled ? fetchedLimitMetric : null,
+			metric: fetchedMetric,
 			nullHandling,
 			productType,
 			query: debouncedQuery,
@@ -330,7 +330,6 @@ export const GraphingEditor: React.FC = () => {
 
 	const [productType, setProductType] = useState(products[0])
 	const [viewType, setViewType] = useState(VIEWS[0])
-	const [functionType, setFunctionType] = useState(FUNCTION_TYPES[0])
 	const [lineNullHandling, setLineNullHandling] = useState(
 		LINE_NULL_HANDLING[0],
 	)
@@ -350,7 +349,13 @@ export const GraphingEditor: React.FC = () => {
 		[query],
 	)
 
+	const [functionType, setFunctionType] = useState(FUNCTION_TYPES[0])
 	const [metric, setMetric] = useState('')
+
+	const fetchedMetric = useMemo(() => {
+		return functionType === MetricAggregator.Count ? '' : metric
+	}, [functionType, metric])
+
 	const [metricViewTitle, setMetricViewTitle] = useState('')
 	const tempMetricViewTitle = useRef<string>('')
 	const [groupByEnabled, setGroupByEnabled] = useState(false)
@@ -361,6 +366,9 @@ export const GraphingEditor: React.FC = () => {
 	)
 	const [limit, setLimit] = useState<number | string>(10)
 	const [limitMetric, setLimitMetric] = useState('')
+	const fetchedLimitMetric = useMemo(() => {
+		return limitFunctionType === MetricAggregator.Count ? '' : limitMetric
+	}, [limitFunctionType, limitMetric])
 
 	const [bucketBySetting, setBucketBySetting] = useState(BUCKET_BY_OPTIONS[2])
 	const [bucketByKey, setBucketByKey] = useState(TIMESTAMP_KEY)
@@ -381,13 +389,13 @@ export const GraphingEditor: React.FC = () => {
 			newViewTitle === stringifiedFunctionType &&
 			stringifiedFunctionType
 		) {
-			newViewTitle += metric ? `(${metric})` : ''
+			newViewTitle += fetchedMetric ? `(${fetchedMetric})` : ''
 		}
 		newViewTitle = newViewTitle
 			? `${newViewTitle} Of ${productType?.toString() ?? ''}`
 			: newViewTitle
 		return newViewTitle
-	}, [functionType, metric, metricViewTitle, productType])
+	}, [fetchedMetric, functionType, metricViewTitle, productType])
 
 	let display: string | undefined
 	let nullHandling: string | undefined
@@ -505,7 +513,7 @@ export const GraphingEditor: React.FC = () => {
 								selectedPreset={selectedPreset}
 								endDate={endDate}
 								query={debouncedQuery}
-								metric={metric}
+								metric={fetchedMetric}
 								functionType={functionType}
 								bucketByKey={getBucketByKey(
 									bucketBySetting,
@@ -533,7 +541,9 @@ export const GraphingEditor: React.FC = () => {
 										: undefined
 								}
 								limitMetric={
-									groupByEnabled ? limitMetric : undefined
+									groupByEnabled
+										? fetchedLimitMetric
+										: undefined
 								}
 								setTimeRange={updateSearchTime}
 							/>
@@ -636,21 +646,20 @@ export const GraphingEditor: React.FC = () => {
 											selection={functionType}
 											setSelection={setFunctionType}
 										/>
-										{functionType !==
-											MetricAggregator.Count && (
-											<Combobox
-												selection={metric}
-												setSelection={setMetric}
-												label="metric"
-												searchConfig={
-													searchOptionsConfig
-												}
-												onlyNumericKeys={
-													functionType !==
-													MetricAggregator.CountDistinct
-												}
-											/>
-										)}
+										<Combobox
+											selection={fetchedMetric}
+											setSelection={setMetric}
+											label="metric"
+											searchConfig={searchOptionsConfig}
+											disabled={
+												functionType ===
+												MetricAggregator.Count
+											}
+											onlyNumericKeys={
+												functionType !==
+												MetricAggregator.CountDistinct
+											}
+										/>
 									</LabeledRow>
 									<LabeledRow
 										label="Filters"
@@ -730,20 +739,23 @@ export const GraphingEditor: React.FC = () => {
 														setLimitFunctionType
 													}
 												/>
-												{limitFunctionType !==
-													MetricAggregator.Count && (
-													<Combobox
-														selection={limitMetric}
-														setSelection={
-															setLimitMetric
-														}
-														label="limitMetric"
-														searchConfig={
-															searchOptionsConfig
-														}
-														onlyNumericKeys
-													/>
-												)}
+												<Combobox
+													selection={
+														fetchedLimitMetric
+													}
+													setSelection={
+														setLimitMetric
+													}
+													label="limitMetric"
+													searchConfig={
+														searchOptionsConfig
+													}
+													disabled={
+														limitFunctionType ===
+														MetricAggregator.Count
+													}
+													onlyNumericKeys
+												/>
 											</LabeledRow>
 										</Box>
 									)}
