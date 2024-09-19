@@ -45361,13 +45361,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"object-path@npm:0.6.0":
-  version: 0.6.0
-  resolution: "object-path@npm:0.6.0"
-  checksum: 10/ee9c2977f35630ef72d45a8718f4a5a1bf8576e56003dfea3fddb88a022351e41eb6592c7f4af2da8132d87cf38480c19d929f795e212eeec3314ea3375982cc
-  languageName: node
-  linkType: hard
-
 "object-path@npm:^0.11.8":
   version: 0.11.8
   resolution: "object-path@npm:0.11.8"
@@ -50289,7 +50282,6 @@ __metadata:
     react: "npm:^18.2.0"
     react-dom: "npm:^18.2.0"
     react-router-dom: "npm:^6.16.0"
-    sort-by: "npm:^1.2.0"
     typescript: "npm:^5.0.2"
     vite: "npm:^5.2.12"
   languageName: unknown
@@ -53326,15 +53318,6 @@ __metadata:
   version: 0.1.0
   resolution: "sort-asc@npm:0.1.0"
   checksum: 10/c130223336a9431edd4c12cf0a4893eb9327591f8c9d9ccd1b27a42f7657b4bb84807d7150d79fc52ab7d1e9691684897de7ef2a6a3516d32349af68d2705d57
-  languageName: node
-  linkType: hard
-
-"sort-by@npm:^1.2.0":
-  version: 1.2.0
-  resolution: "sort-by@npm:1.2.0"
-  dependencies:
-    object-path: "npm:0.6.0"
-  checksum: 10/82c9812aa318eff68669fe25cc0168d172ccbff9d34d52449c345631118b5e29608e3524e9028b23dc4959c8a7601b19a40ddbe3eb05234c0a54792912c5ad2f
   languageName: node
   linkType: hard
 
