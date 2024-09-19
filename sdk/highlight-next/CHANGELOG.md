@@ -1,5 +1,18 @@
 # @highlight-run/next
 
+## 7.5.26
+
+### Patch Changes
+
+-   5045b23: fix opentelemetry warning from missing dependencies
+-   Updated dependencies [815faa8]
+-   Updated dependencies [815faa8]
+-   Updated dependencies [5045b23]
+    -   highlight.run@9.4.0
+    -   @highlight-run/cloudflare@2.1.8
+    -   @highlight-run/node@3.9.3
+    -   @highlight-run/react@6.0.0
+
 ## 7.5.25
 
 ### Patch Changes

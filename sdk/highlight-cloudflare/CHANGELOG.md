@@ -1,5 +1,11 @@
 # @highlight-run/cloudflare
 
+## 2.1.8
+
+### Patch Changes
+
+-   5045b23: fix opentelemetry warning from missing dependencies
+
 ## 2.1.7
 
 ### Patch Changes
