@@ -9,7 +9,7 @@ import {
 import { useMemo, useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 
-import { Button } from '@/components/Button'
+import { Button } from '@/components/Button/Button'
 import { Skeleton } from '@/components/Skeleton'
 import { useMatchErrorTagQuery } from '@/graph/generated/hooks'
 

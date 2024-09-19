@@ -10,7 +10,7 @@ import { useAuthorization } from '@util/authorization/authorization'
 import { POLICY_NAMES } from '@util/authorization/authorizationPolicies'
 
 import BorderBox from '@/components/BorderBox/BorderBox'
-import { Button } from '@/components/Button'
+import { Button } from '@/components/Button/Button'
 import { ToggleRow } from '@/components/ToggleRow/ToggleRow'
 import {
 	useEditWorkspaceSettingsMutation,

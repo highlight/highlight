@@ -31,7 +31,7 @@ import moment from 'moment'
 import React, { useEffect } from 'react'
 import { useLocation } from 'react-router-dom'
 
-import { Button } from '@/components/Button'
+import { Button } from '@/components/Button/Button'
 import { LoadingRightPanel } from '@/components/Loading/Loading'
 import {
 	useGetBillingDetailsQuery,

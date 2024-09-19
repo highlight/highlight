@@ -1,4 +1,4 @@
-import { Button } from '@components/Button'
+import { Button } from '@/components/Button/Button'
 import { LinkButton } from '@components/LinkButton'
 import { useGetLogsIntegrationQuery } from '@graph/hooks'
 import { Box, Callout, Stack, Text } from '@highlight-run/ui/components'

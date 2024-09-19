@@ -1,5 +1,5 @@
 import { useAuthContext } from '@authentication/AuthContext'
-import { Button } from '@components/Button'
+import { Button } from '@/components/Button/Button'
 import { useGetBillingDetailsForProjectQuery } from '@graph/hooks'
 import {
 	Box,

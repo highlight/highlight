@@ -1,4 +1,4 @@
-import { Button } from '@components/Button'
+import { Button } from '@/components/Button/Button'
 import Card from '@components/Card/Card'
 import { LinkButton } from '@components/LinkButton'
 import {

@@ -1,4 +1,4 @@
-import { Button } from '@components/Button'
+import { Button } from '@/components/Button/Button'
 import InfoTooltip from '@components/InfoTooltip/InfoTooltip'
 import { LinkButton } from '@components/LinkButton'
 import { Maybe, SourceMappingError } from '@graph/schemas'

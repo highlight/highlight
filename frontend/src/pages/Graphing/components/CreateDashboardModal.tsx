@@ -1,4 +1,4 @@
-import { Button } from '@components/Button'
+import { Button } from '@/components/Button/Button'
 import { Modal } from '@components/Modal/ModalV2'
 import { toast } from '@components/Toaster'
 import { useUpsertVisualizationMutation } from '@graph/hooks'

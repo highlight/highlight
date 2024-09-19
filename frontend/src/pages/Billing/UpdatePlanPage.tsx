@@ -44,7 +44,7 @@ import React from 'react'
 import ReactCollapsible from 'react-collapsible'
 import { useNavigate } from 'react-router-dom'
 
-import { Button } from '@/components/Button'
+import { Button } from '@/components/Button/Button'
 import {
 	useCreateOrUpdateStripeSubscriptionMutation,
 	useGetBillingDetailsQuery,

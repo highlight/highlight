@@ -9,7 +9,7 @@ import {
 import clsx from 'clsx'
 import { useEffect, useState } from 'react'
 
-import { Button } from '@/components/Button'
+import { Button } from '@/components/Button/Button'
 import { useGetSessionInsightLazyQuery } from '@/graph/generated/hooks'
 import usePlayerConfiguration from '@/pages/Player/PlayerHook/utils/usePlayerConfiguration'
 import { useReplayerContext } from '@/pages/Player/ReplayerContext'

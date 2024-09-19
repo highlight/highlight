@@ -58,7 +58,7 @@ import React, { useEffect, useMemo, useState } from 'react'
 import { OnChangeHandlerFunc } from 'react-mentions'
 import { useNavigate } from 'react-router-dom'
 
-import { Button } from '@/components/Button'
+import { Button } from '@/components/Button/Button'
 import { CommentMentionButton } from '@/components/Comment/CommentMentionButton'
 import { SearchIssues } from '@/components/SearchIssues/SearchIssues'
 import { useGitlabIntegration } from '@/pages/IntegrationsPage/components/GitlabIntegration/utils'

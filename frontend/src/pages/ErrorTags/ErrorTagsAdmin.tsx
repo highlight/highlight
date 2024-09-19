@@ -1,7 +1,7 @@
 import { Box, IconSolidCheveronLeft, Stack } from '@highlight-run/ui/components'
 import { Link } from 'react-router-dom'
 
-import { Button } from '@/components/Button'
+import { Button } from '@/components/Button/Button'
 import { ManageErrorTags } from '@/pages/ErrorTags/ManageErrorTag'
 
 import styles from './ErrorTags.module.css'

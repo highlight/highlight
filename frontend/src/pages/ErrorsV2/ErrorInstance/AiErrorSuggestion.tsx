@@ -1,5 +1,5 @@
 import { useApolloClient } from '@apollo/client'
-import { Button } from '@components/Button'
+import { Button } from '@/components/Button/Button'
 import { toast } from '@components/Toaster'
 import { GetErrorResolutionSuggestionDocument } from '@graph/hooks'
 import {

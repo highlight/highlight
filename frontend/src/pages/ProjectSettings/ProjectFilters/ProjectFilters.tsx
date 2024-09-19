@@ -1,5 +1,5 @@
 import EnterpriseFeatureButton from '@components/Billing/EnterpriseFeatureButton'
-import { Button } from '@components/Button'
+import { Button } from '@/components/Button/Button'
 import LoadingBox from '@components/LoadingBox'
 import { TIME_FORMAT } from '@components/Search/SearchForm/constants'
 import { SearchForm } from '@components/Search/SearchForm/SearchForm'

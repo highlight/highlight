@@ -1,4 +1,4 @@
-import { Button } from '@components/Button'
+import { Button } from '@/components/Button/Button'
 import { Callout, Stack, Text } from '@highlight-run/ui/components'
 
 export enum SearchResultsKind {

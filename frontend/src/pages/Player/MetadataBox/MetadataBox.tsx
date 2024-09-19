@@ -1,5 +1,5 @@
 import { Avatar } from '@components/Avatar/Avatar'
-import { Button } from '@components/Button'
+import { Button } from '@/components/Button/Button'
 import { useSearchContext } from '@components/Search/SearchContext'
 import { TableList, TableListItem } from '@components/TableList/TableList'
 import { toast } from '@components/Toaster'
