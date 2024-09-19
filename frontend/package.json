@@ -113,7 +113,7 @@
 	},
 	"devDependencies": {
 		"@babel/core": "^7.19.0",
-		"@graphql-codegen/cli": "^2.13.7",
+		"@graphql-codegen/cli": "^5.0.2",
 		"@graphql-codegen/import-types-preset": "^1.18.1",
 		"@graphql-codegen/named-operations-object": "^3.0.0",
 		"@graphql-codegen/typescript": "^2.8.1",
@@ -121,7 +121,7 @@
 		"@graphql-codegen/typescript-react-apollo": "^2.2.1",
 		"@highlight-run/sourcemap-uploader": "workspace:*",
 		"@rrweb/types": "workspace:*",
-		"@svgr/cli": "^5.5.0",
+		"@svgr/cli": "^8.1.0",
 		"@svgr/core": "^7.0.0",
 		"@svgr/plugin-jsx": "^7.0.0",
 		"@testing-library/jest-dom": "^5.1.0",
