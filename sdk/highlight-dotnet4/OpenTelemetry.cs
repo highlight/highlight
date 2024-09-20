@@ -19,7 +19,7 @@ public static class HighlightSerilogExtensions
         public static LoggerConfiguration HighlightOpenTelemetry(this LoggerSinkConfiguration loggerConfiguration,
             Action<Highlight.OpenTelemetry.Config> configure)
         {
-            Highlight.OpenTelemetry.Config config = new Highlight.OpenTelemetry.Config();
+            Highlight.OpenTelemetry.Config config = new();
             configure(config);
             return loggerConfiguration.OpenTelemetry(options =>
             {
@@ -66,7 +66,7 @@ public class TraceProcessor : BaseProcessor<Activity>
             var attributes = ctx.Select(entry => new KeyValuePair<string, object>(entry.Key, entry.Value)).ToList();
             if (data.Attributes != null)
             {
-                attributes = attributes.Concat(data.Attributes).ToList();
+                attributes = [.. attributes, .. data.Attributes];
             }
 
             data.Attributes = attributes;
@@ -111,8 +111,8 @@ public class TraceProcessor : BaseProcessor<Activity>
             };
         }
 
-        static readonly Config Cfg = new Config();
-        static readonly Random Random = new Random();
+        static readonly Config Cfg = new();
+        static readonly Random Random = new();
         
         static TracerProvider _tracerProvider;
         static MeterProvider _meterProvider;
@@ -164,7 +164,7 @@ public class TraceProcessor : BaseProcessor<Activity>
             var (sessionId, requestId) = ExtractContext(httpRequest);
             activity.SetTag("highlight.session_id", sessionId);
             activity.SetTag("highlight.trace_id", requestId);
-            Baggage.SetBaggage(new[] { new KeyValuePair<string, string>(HighlightHeader, $"{sessionId}/{requestId}") });
+            Baggage.SetBaggage([new KeyValuePair<string, string>(HighlightHeader, $"{sessionId}/{requestId}")]);
         }
 
         static void EnrichWithHttpResponse(Activity activity, HttpResponse httpResponse)
@@ -218,6 +218,8 @@ public class TraceProcessor : BaseProcessor<Activity>
                 .AddSqlClientInstrumentation()
                 .AddQuartzInstrumentation()
                 .AddWcfInstrumentation()
+                .AddEntityFrameworkCoreInstrumentation()
+                .AddRedisInstrumentation()
                 .AddAspNetInstrumentation(options =>
                 {
                     options.RecordException = true;
