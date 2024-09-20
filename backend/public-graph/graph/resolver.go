@@ -19,39 +19,21 @@ import (
 	"strings"
 	"time"
 
-	"github.com/highlight-run/highlight/backend/env"
-	"github.com/highlight-run/highlight/backend/geolocation"
-	kafkaqueue "github.com/highlight-run/highlight/backend/kafka-queue"
-	"github.com/oschwald/geoip2-golang"
-
-	"go.opentelemetry.io/otel/codes"
-	semconv "go.opentelemetry.io/otel/semconv/v1.25.0"
-	"go.opentelemetry.io/otel/trace"
-
-	"go.opentelemetry.io/otel/attribute"
-	"golang.org/x/sync/errgroup"
-	"gorm.io/gorm"
-	"gorm.io/gorm/clause"
-
 	"github.com/PaesslerAG/jsonpath"
 	"github.com/aws/smithy-go/ptr"
 	"github.com/google/uuid"
 	lru "github.com/hashicorp/golang-lru/v2"
 	"github.com/highlight-run/go-resthooks"
-	"github.com/mssola/user_agent"
-	"github.com/openlyinc/pointy"
-	e "github.com/pkg/errors"
-	"github.com/samber/lo"
-	"github.com/sendgrid/sendgrid-go"
-	log "github.com/sirupsen/logrus"
-
 	"github.com/highlight-run/highlight/backend/alerts"
 	"github.com/highlight-run/highlight/backend/clickhouse"
 	"github.com/highlight-run/highlight/backend/email"
 	"github.com/highlight-run/highlight/backend/embeddings"
+	"github.com/highlight-run/highlight/backend/env"
 	"github.com/highlight-run/highlight/backend/errorgroups"
 	parse "github.com/highlight-run/highlight/backend/event-parse"
+	"github.com/highlight-run/highlight/backend/geolocation"
 	kafka_queue "github.com/highlight-run/highlight/backend/kafka-queue"
+	kafkaqueue "github.com/highlight-run/highlight/backend/kafka-queue"
 	"github.com/highlight-run/highlight/backend/lambda"
 	"github.com/highlight-run/highlight/backend/model"
 	"github.com/highlight-run/highlight/backend/parser"
@@ -61,6 +43,7 @@ import (
 	modelInputs "github.com/highlight-run/highlight/backend/public-graph/graph/model"
 	publicModel "github.com/highlight-run/highlight/backend/public-graph/graph/model"
 	"github.com/highlight-run/highlight/backend/redis"
+	"github.com/highlight-run/highlight/backend/session_replay"
 	"github.com/highlight-run/highlight/backend/stacktraces"
 	"github.com/highlight-run/highlight/backend/storage"
 	"github.com/highlight-run/highlight/backend/store"
@@ -70,6 +53,20 @@ import (
 	"github.com/highlight/highlight/sdk/highlight-go"
 	hlog "github.com/highlight/highlight/sdk/highlight-go/log"
 	hmetric "github.com/highlight/highlight/sdk/highlight-go/metric"
+	"github.com/mssola/user_agent"
+	"github.com/openlyinc/pointy"
+	"github.com/oschwald/geoip2-golang"
+	e "github.com/pkg/errors"
+	"github.com/samber/lo"
+	"github.com/sendgrid/sendgrid-go"
+	log "github.com/sirupsen/logrus"
+	"go.opentelemetry.io/otel/attribute"
+	"go.opentelemetry.io/otel/codes"
+	semconv "go.opentelemetry.io/otel/semconv/v1.25.0"
+	"go.opentelemetry.io/otel/trace"
+	"golang.org/x/sync/errgroup"
+	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 )
 
 // This file will not be regenerated automatically.
@@ -2289,7 +2286,7 @@ func (r *Resolver) AddTrackPropertiesImpl(ctx context.Context, sessionSecureID s
 	return nil
 }
 
-func (r *Resolver) AddSessionEvents(ctx context.Context, sessionID int, events *parse.ReplayEvents) error {
+func (r *Resolver) AddSessionEvents(ctx context.Context, sessionID int, events *session_replay.ReplayEvents) error {
 	outerSpan, ctx := util.StartSpanFromContext(ctx, "public-graph.AddSessionEvents",
 		util.ResourceName("go.sessions.AddSessionEvents"))
 	defer outerSpan.Finish()
@@ -2298,7 +2295,7 @@ func (r *Resolver) AddSessionEvents(ctx context.Context, sessionID int, events *
 	sessionEvents := []*clickhouse.SessionEventRow{}
 
 	for _, event := range events.Events {
-		if event.Type == parse.Custom {
+		if event.Type == session_replay.Custom {
 			dataObject := struct {
 				Tag     string          `json:"tag"`
 				Payload json.RawMessage `json:"payload"`
@@ -2657,7 +2654,7 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 			hostUrl := parse.GetHostUrlFromEvents(parsedEvents.Events)
 
 			for _, event := range parsedEvents.Events {
-				if event.Type == parse.FullSnapshot || event.Type == parse.IncrementalSnapshot {
+				if event.Type == session_replay.FullSnapshot || event.Type == session_replay.IncrementalSnapshot {
 					snapshot, err := parse.NewSnapshot(event.Data, hostUrl)
 					if err != nil {
 						log.WithContext(ctx).WithField("projectID", projectID).WithField("sessionID", sessionID).WithField("length", len([]byte(event.Data))).WithError(err).Error("Error unmarshalling snapshot")
@@ -2688,7 +2685,7 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 						}
 					}
 
-					if event.Type == parse.FullSnapshot {
+					if event.Type == session_replay.FullSnapshot {
 						hasFullSnapshot = true
 						stylesheetsSpan, _ := util.StartSpanFromContext(ctx, "public-graph.pushPayload",
 							util.ResourceName("go.parseEvents.InjectStylesheets"), util.Tag("project_id", projectID))
@@ -2699,14 +2696,14 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 							log.WithContext(ctx).Error(e.Wrap(err, "Error injecting snapshot stylesheets"))
 						}
 					}
-					if event.Type == parse.IncrementalSnapshot {
+					if event.Type == session_replay.IncrementalSnapshot {
 						mouseInteractionEventData, err := parse.UnmarshallMouseInteractionEvent(event.Data)
 						if err != nil {
 							log.WithContext(ctx).Error(e.Wrap(err, "Error unmarshalling incremental event"))
 						}
-						if userEvent := map[parse.EventSource]bool{
-							parse.MouseMove: true, parse.MouseInteraction: true, parse.Scroll: true,
-							parse.Input: true, parse.TouchMove: true, parse.Drag: true,
+						if userEvent := map[session_replay.EventSource]bool{
+							session_replay.MouseMove: true, session_replay.MouseInteraction: true, session_replay.Scroll: true,
+							session_replay.Input: true, session_replay.TouchMove: true, session_replay.Drag: true,
 						}[*mouseInteractionEventData.Source]; userEvent {
 							lastUserInteractionTimestamp = event.Timestamp.Round(time.Millisecond)
 						}

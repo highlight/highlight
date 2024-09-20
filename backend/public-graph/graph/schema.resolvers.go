@@ -7,6 +7,10 @@ package graph
 import (
 	"context"
 	"encoding/json"
+	"github.com/highlight-run/highlight/backend/session_replay"
+	hlog "github.com/highlight/highlight/sdk/highlight-go/log"
+	"github.com/samber/lo"
+	"golang.org/x/sync/errgroup"
 	"time"
 
 	"github.com/DmitriyVTitov/size"
@@ -17,12 +21,9 @@ import (
 	generated1 "github.com/highlight-run/highlight/backend/public-graph/graph/generated"
 	customModels "github.com/highlight-run/highlight/backend/public-graph/graph/model"
 	"github.com/highlight-run/highlight/backend/util"
-	hlog "github.com/highlight/highlight/sdk/highlight-go/log"
 	"github.com/openlyinc/pointy"
 	e "github.com/pkg/errors"
-	"github.com/samber/lo"
 	log "github.com/sirupsen/logrus"
-	"golang.org/x/sync/errgroup"
 )
 
 // InitializeSession is the resolver for the initializeSession field.
@@ -212,6 +213,29 @@ func (r *mutationResolver) PushPayload(ctx context.Context, sessionSecureID stri
 		})
 	}
 	err := r.ProducerQueue.Submit(ctx, sessionSecureID, msgs...)
+	if err != nil {
+		return size.Of(events), err
+	}
+
+	// TODO(vkorolik) - dual writes, remove code above
+	msgs = []kafkaqueue.RetryableMessage{}
+	for _, event := range events.Events {
+		msgs = append(msgs, &kafkaqueue.Message{
+			Type: kafkaqueue.PushSessionReplayEvent,
+			PushSessionEvent: &kafkaqueue.PushSessionEventArgs{
+				SessionSecureID: sessionSecureID,
+				PayloadID:       *payloadID,
+				Event: &session_replay.ReplayEvent{
+					Timestamp: time.UnixMilli(int64(event.Timestamp)),
+					Type:      session_replay.EventType(event.Type),
+					Data:      event.Data.(json.RawMessage),
+					SID:       event.Sid,
+				},
+			},
+		})
+	}
+	// TODO(vkorolik) use a different queue, sessions queue
+	err = r.BatchedQueue.Submit(ctx, "", msgs...)
 	return size.Of(events), err
 }
 

@@ -143,6 +143,7 @@ var booleanKeys = map[string]bool{
 const SessionsJoinedTable = "sessions_joined_vw"
 const SessionsTable = "sessions"
 const FieldsTable = "fields"
+const SessionReplayEventsTable = "session_replay_events"
 const SessionKeysTable = "session_keys"
 const timeRangeField = "custom_created_at"
 const sampleField = "custom_sample"
@@ -258,6 +259,29 @@ func (client *Client) WriteSessions(ctx context.Context, sessions []*model.Sessi
 	}
 
 	return g.Wait()
+}
+
+type SessionReplayEvent struct {
+	SessionSecureID string
+	PayloadID       int
+	EventType       int8
+	EventTimestamp  time.Time
+	EventSid        int
+	EventData       string
+	Expires         time.Time
+}
+
+func (client *Client) WriteSessionReplayEvents(ctx context.Context, events []*SessionReplayEvent) error {
+	var chEvents []interface{}
+	for _, e := range events {
+		chEvents = append(chEvents, e)
+	}
+	sql, args := sqlbuilder.
+		NewStruct(new(SessionReplayEvent)).
+		InsertInto(SessionReplayEventsTable, chEvents...).
+		BuildWithFlavor(sqlbuilder.ClickHouse)
+	sql, args = replaceTimestampInserts(sql, args, map[int]bool{3: true, 6: true}, MicroSeconds)
+	return client.conn.Exec(ctx, sql, args...)
 }
 
 func GetSessionsQueryImplDeprecated(admin *model.Admin, query modelInputs.ClickhouseQuery, projectId int, retentionDate time.Time, selectColumns string, groupBy *string, orderBy *string, limit *int, offset *int) (string, []interface{}, bool, error) {
