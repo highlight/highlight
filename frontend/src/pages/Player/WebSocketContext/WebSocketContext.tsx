@@ -2,7 +2,6 @@ import { useGetWebSocketEventsQuery } from '@graph/hooks'
 import { Session, WebSocketEvent } from '@graph/schemas'
 import { LoadingError } from '@pages/Player/ResourcesContext/ResourcesContext'
 import { indexedDBFetch } from '@util/db'
-import { checkResourceLimit } from '@util/preload'
 import { H } from 'highlight.run'
 import { useEffect, useState } from 'react'
 
@@ -56,18 +55,6 @@ export const useWebSocket = (
 			setLoading(true)
 			;(async () => {
 				if (!session.web_socket_events_url) return
-				const limit = await checkResourceLimit(
-					session.web_socket_events_url,
-				)
-				if (limit) {
-					setError(LoadingError.NetworkResourcesTooLarge)
-					H.consumeError(new Error(limit.error), undefined, {
-						fileSize: limit.fileSize.toString(),
-						limit: limit.sizeLimit.toString(),
-						sessionSecureID: session?.secure_id,
-					})
-					return
-				}
 				let response
 				for await (const r of indexedDBFetch(
 					session.web_socket_events_url,

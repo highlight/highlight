@@ -3197,7 +3197,7 @@ func (r *Resolver) submitFrontendNetworkMetric(ctx context.Context, sessionObj *
 		responseHeaders, _ := re.RequestResponsePairs.Response.HeadersRaw.(map[string]interface{})
 		userAgent, _ := requestHeaders["User-Agent"].(string)
 		requestBody, ok := re.RequestResponsePairs.Request.Body.(string)
-		if !ok {
+		if re.RequestResponsePairs.Request.Body != nil && !ok {
 			bdBytes, err := json.Marshal(requestBody)
 			if err != nil {
 				log.WithContext(ctx).WithError(err).WithField("sessionID", sessionObj.ID).Error("failed to serialize network request body as json")
@@ -3206,7 +3206,7 @@ func (r *Resolver) submitFrontendNetworkMetric(ctx context.Context, sessionObj *
 			}
 		}
 		responseBody, ok := re.RequestResponsePairs.Response.Body.(string)
-		if !ok {
+		if re.RequestResponsePairs.Response.Body != nil && !ok {
 			bdBytes, err := json.Marshal(responseBody)
 			if err != nil {
 				log.WithContext(ctx).WithError(err).WithField("sessionID", sessionObj.ID).Error("failed to serialize network response body as json")
@@ -3224,6 +3224,7 @@ func (r *Resolver) submitFrontendNetworkMetric(ctx context.Context, sessionObj *
 			semconv.ServiceName(sessionObj.ServiceName),
 			semconv.ServiceVersion(ptr.ToString(sessionObj.AppVersion)),
 			semconv.HTTPURL(re.Name),
+			attribute.Bool("http.blocked", re.RequestResponsePairs.URLBlocked),
 			attribute.String("http.request.body", requestBody),
 			attribute.String("http.response.body", responseBody),
 			attribute.Float64("http.response.encoded.size", re.EncodedBodySize),
@@ -3247,13 +3248,13 @@ func (r *Resolver) submitFrontendNetworkMetric(ctx context.Context, sessionObj *
 		for requestHeader, requestHeaderValue := range requestHeaders {
 			str, ok := requestHeaderValue.(string)
 			if ok {
-				attributes = append(attributes, attribute.String(fmt.Sprintf("http.request.header.%s", requestHeader), str))
+				attributes = append(attributes, attribute.String(fmt.Sprintf("http.request.headers.%s", requestHeader), str))
 			}
 		}
 		for responseHeader, responseHeaderValue := range responseHeaders {
 			str, ok := responseHeaderValue.(string)
 			if ok {
-				attributes = append(attributes, attribute.String(fmt.Sprintf("http.response.header.%s", responseHeader), str))
+				attributes = append(attributes, attribute.String(fmt.Sprintf("http.response.headers.%s", responseHeader), str))
 			}
 		}
 		requestBodyJson := make(map[string]interface{})
@@ -3284,6 +3285,7 @@ func (r *Resolver) submitFrontendWebsocketMetric(sessionObj *model.Session, even
 			attribute.String(highlight.SessionIDAttribute, sessionObj.SecureID),
 			attribute.String(highlight.RequestIDAttribute, event.SocketID),
 			attribute.String(highlight.TraceKeyAttribute, event.Name),
+			attribute.String("ws.type", event.Type),
 			semconv.DeploymentEnvironmentKey.String(sessionObj.Environment),
 			semconv.ServiceNameKey.String(sessionObj.ServiceName),
 			semconv.ServiceVersionKey.String(ptr.ToString(sessionObj.AppVersion)),
