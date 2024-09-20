@@ -17,7 +17,7 @@ const useInkeepSettings = (): InkeepSharedSettings => {
 		apiKey: '3721b3f00a2e161d2eb143932695e984a9db05ffb89bdb57',
 		integrationId: 'clxout8nk014hvhjs0jc5ccfb',
 		organizationId: 'org_k9k0yeE7ovNoTgrC',
-		primaryBrandColor: '#6C37F4',
+		primaryBrandColor: '#744ED4',
 		organizationDisplayName: 'Highlight.io',
 		theme: {
 			stylesheetUrls: ['/inkeep.css'],
