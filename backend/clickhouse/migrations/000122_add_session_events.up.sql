@@ -1,12 +1,11 @@
 CREATE TABLE session_replay_events
 (
     SessionSecureID String,
-    PayloadID       Int32,
+    EventSid        Int64,
     EventType       Int8,
-    EventTimestamp  DateTime64(6),
-    EventSid        Int32,
+    EventTimestamp  DateTime64(3),
     EventData       String,
     Expires         DateTime
 ) ENGINE = MergeTree
-      ORDER BY (SessionSecureID, PayloadID)
+      ORDER BY (SessionSecureID, EventSid)
       TTL Expires;

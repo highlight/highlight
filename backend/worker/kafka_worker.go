@@ -216,8 +216,8 @@ func (k *KafkaBatchWorker) flush(ctx context.Context) error {
 			}
 		case kafkaqueue.PushSessionReplayEvent:
 			event := publicWorkerMessage.PushSessionEvent.Event
-			if !event.Timestamp.IsZero() {
-				sessionReplayEvents = append(sessionReplayEvents, convertSessionReplayEvent(publicWorkerMessage.PushSessionEvent.SessionSecureID, publicWorkerMessage.PushSessionEvent.PayloadID, event))
+			if event != nil {
+				sessionReplayEvents = append(sessionReplayEvents, convertSessionReplayEvent(publicWorkerMessage.PushSessionEvent.SessionSecureID, event))
 			}
 		default:
 			log.WithContext(ctx).Errorf("unknown message type received by batch worker %+v", lastMsg.GetType())
@@ -284,16 +284,16 @@ func (k *KafkaBatchWorker) flush(ctx context.Context) error {
 	return nil
 }
 
-func convertSessionReplayEvent(sessionSecureID string, payloadID int, event *session_replay.ReplayEvent) *clickhouse.SessionReplayEvent {
+func convertSessionReplayEvent(sessionSecureID string, event *session_replay.ReplayEvent) *clickhouse.SessionReplayEvent {
+	ts := time.UnixMilli(int64(event.TimestampRaw))
 	return &clickhouse.SessionReplayEvent{
 		SessionSecureID: sessionSecureID,
-		PayloadID:       payloadID,
 		EventType:       int8(event.Type),
-		EventTimestamp:  event.Timestamp,
-		EventSid:        int(event.SID),
+		EventTimestamp:  int64(event.TimestampRaw),
+		EventSid:        int64(event.SID),
 		EventData:       string(event.Data),
 		//TODO(vkorolik) figure out retention based on project
-		Expires: event.Timestamp.AddDate(0, 3, 0),
+		Expires: ts.AddDate(0, 3, 0),
 	}
 }
 
@@ -666,8 +666,6 @@ func (k *KafkaBatchWorker) flushDataSync(ctx context.Context, sessionIds []int, 
 }
 
 func (k *KafkaBatchWorker) flushSessionReplayEvents(ctx context.Context, events []*clickhouse.SessionReplayEvent) error {
-	//TODO(vkorolik)
-
 	chSpan, _ := util.StartSpanFromContext(ctx, "worker.kafka.datasync.writeClickhouse.sessionReplayEvents")
 
 	k.log(ctx, log.Fields{"events_length": len(events)})

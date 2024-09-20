@@ -53,8 +53,9 @@ const (
 
 // ReplayEvent represents a single event that represents a change on the DOM.
 type ReplayEvent struct {
-	Timestamp    time.Time       `json:"-"`
-	Type         EventType       `json:"type"`
+	Timestamp time.Time `json:"-"`
+	Type      EventType `json:"type"`
+	// TODO(vkorolik) change to map[string]interface{}
 	Data         json.RawMessage `json:"data"`
 	TimestampRaw float64         `json:"timestamp"`
 	SID          float64         `json:"_sid"`

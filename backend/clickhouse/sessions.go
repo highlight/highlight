@@ -263,10 +263,9 @@ func (client *Client) WriteSessions(ctx context.Context, sessions []*model.Sessi
 
 type SessionReplayEvent struct {
 	SessionSecureID string
-	PayloadID       int
+	EventSid        int64
 	EventType       int8
-	EventTimestamp  time.Time
-	EventSid        int
+	EventTimestamp  int64
 	EventData       string
 	Expires         time.Time
 }
@@ -280,7 +279,7 @@ func (client *Client) WriteSessionReplayEvents(ctx context.Context, events []*Se
 		NewStruct(new(SessionReplayEvent)).
 		InsertInto(SessionReplayEventsTable, chEvents...).
 		BuildWithFlavor(sqlbuilder.ClickHouse)
-	sql, args = replaceTimestampInserts(sql, args, map[int]bool{3: true, 6: true}, MicroSeconds)
+	sql, args = replaceTimestampInserts(sql, args, map[int]bool{3: true}, MilliSeconds)
 	return client.conn.Exec(ctx, sql, args...)
 }
 

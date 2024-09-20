@@ -253,16 +253,20 @@ func (r *mutationResolver) PushPayloadCompressed(ctx context.Context, sessionSec
 	// TODO(vkorolik) - dual writes, remove code above
 	var msgs []kafkaqueue.RetryableMessage
 	for _, event := range payload.Events.Events {
+		bt, err := json.Marshal(event.Data)
+		if err != nil {
+			return nil, err
+		}
 		msgs = append(msgs, &kafkaqueue.Message{
 			Type: kafkaqueue.PushSessionReplayEvent,
 			PushSessionEvent: &kafkaqueue.PushSessionEventArgs{
 				SessionSecureID: sessionSecureID,
 				PayloadID:       payloadID,
 				Event: &session_replay.ReplayEvent{
-					Timestamp: time.UnixMilli(int64(event.Timestamp)),
-					Type:      session_replay.EventType(event.Type),
-					Data:      event.Data.(json.RawMessage),
-					SID:       event.Sid,
+					TimestampRaw: event.Timestamp,
+					SID:          event.Sid,
+					Type:         session_replay.EventType(event.Type),
+					Data:         bt,
 				},
 			},
 		})
