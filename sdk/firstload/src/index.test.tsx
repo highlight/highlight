@@ -69,6 +69,7 @@ describe('should work outside of the browser in unit test', () => {
 		expect(await highlight.getSessionDetails()).toEqual({
 			url: 'https://app.highlight.io/1/sessions/foo',
 			urlWithTimestamp: 'https://app.highlight.io/1/sessions/foo?ts=0',
+			sessionSecureID: 'foo',
 		})
 	})
 })
