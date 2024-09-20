@@ -70,7 +70,7 @@
 		"uuidv4": "^6.2.13"
 	},
 	"devDependencies": {
-		"@svgr/webpack": "^6.5.1",
+		"@svgr/webpack": "^8.1.0",
 		"@types/js-cookie": "^3.0.6",
 		"@types/js-yaml": "^4.0.5",
 		"@types/lodash.debounce": "^4.0.7",

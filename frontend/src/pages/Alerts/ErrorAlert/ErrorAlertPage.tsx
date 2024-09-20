@@ -2,7 +2,6 @@ import { Button } from '@components/Button'
 import Select from '@components/Select/Select'
 import { toast } from '@components/Toaster'
 import {
-	useCreateErrorAlertMutation,
 	useDeleteErrorAlertMutation,
 	useUpdateErrorAlertMutation,
 } from '@graph/hooks'
@@ -32,7 +31,6 @@ import {
 	getFrequencyOption,
 } from '@pages/Alerts/utils/AlertsUtils'
 import { useParams } from '@util/react-router/useParams'
-import { capitalize } from 'lodash'
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { StringParam, useQueryParam } from 'use-query-params'
@@ -58,9 +56,6 @@ export const ErrorAlertPage = () => {
 	const { alert_id } = useParams<{
 		alert_id: string
 	}>()
-
-	const isCreate = alert_id === undefined
-	const createStr = isCreate ? 'create' : 'update'
 
 	const { alertsPayload } = useAlertsContext()
 	const alert = alert_id
@@ -134,13 +129,10 @@ export const ErrorAlertPage = () => {
 	}, [alert])
 
 	useEffect(() => {
-		analytics.page('Error Alert', { isCreate })
-	}, [isCreate])
+		analytics.page('Error Alert')
+	}, [])
 
 	const [updateErrorAlertMutation] = useUpdateErrorAlertMutation({
-		refetchQueries: [namedOperations.Query.GetAlertsPagePayload],
-	})
-	const [createErrorAlertMutation] = useCreateErrorAlertMutation({
 		refetchQueries: [namedOperations.Query.GetAlertsPagePayload],
 	})
 	const [deleteErrorAlertMutation] = useDeleteErrorAlertMutation({
@@ -175,31 +167,29 @@ export const ErrorAlertPage = () => {
 				>
 					Cancel
 				</Button>
-				{!isCreate && (
-					<Button
-						kind="danger"
-						size="small"
-						emphasis="low"
-						trackingId="deleteErrorAlert"
-						onClick={() => {
-							deleteErrorAlertMutation({
-								variables: {
-									project_id: project_id ?? '',
-									error_alert_id: alert_id,
-								},
+				<Button
+					kind="danger"
+					size="small"
+					emphasis="low"
+					trackingId="deleteErrorAlert"
+					onClick={() => {
+						deleteErrorAlertMutation({
+							variables: {
+								project_id: project_id ?? '',
+								error_alert_id: alert_id!,
+							},
+						})
+							.then(() => {
+								toast.success(`Error alert deleted!`)
+								navigate(`/${project_id}/alerts`)
 							})
-								.then(() => {
-									toast.success(`Error alert deleted!`)
-									navigate(`/${project_id}/alerts`)
-								})
-								.catch(() => {
-									toast.error(`Failed to delete error alert!`)
-								})
-						}}
-					>
-						Delete Alert
-					</Button>
-				)}
+							.catch(() => {
+								toast.error(`Failed to delete error alert!`)
+							})
+					}}
+				>
+					Delete Alert
+				</Button>
 				<Button
 					kind="primary"
 					size="small"
@@ -277,45 +267,28 @@ export const ErrorAlertPage = () => {
 							return
 						}
 
-						if (isCreate) {
-							createErrorAlertMutation({
-								variables: input,
+						updateErrorAlertMutation({
+							variables: {
+								...input,
+								error_alert_id: alert_id!,
+							},
+						})
+							.then(() => {
+								toast.success(`Error alert updated!`)
+								navigate(`/${project_id}/alerts`)
 							})
-								.then(() => {
-									toast.success(`Error alert ${createStr}d!`)
-									navigate(`/${project_id}/alerts`)
-								})
-								.catch(() => {
-									toast.error(
-										`Failed to ${createStr} error alert!`,
-									)
-								})
-						} else {
-							updateErrorAlertMutation({
-								variables: {
-									...input,
-									error_alert_id: alert_id,
-								},
+							.catch(() => {
+								toast.error(`Failed to update error alert!`)
 							})
-								.then(() => {
-									toast.success(`Error alert ${createStr}d!`)
-									navigate(`/${project_id}/alerts`)
-								})
-								.catch(() => {
-									toast.error(
-										`Failed to ${createStr} error alert!`,
-									)
-								})
-						}
 					}}
 				>
-					{capitalize(createStr)} alert
+					Update alert
 				</Button>
 			</Box>
 		</Box>
 	)
 
-	const isLoading = !isCreate && !formValues.loaded
+	const isLoading = !formValues.loaded
 
 	return (
 		<Box width="full" background="raised" p="8">
@@ -394,7 +367,6 @@ export const ErrorAlertPage = () => {
 									>
 										<ErrorAlertForm
 											hideRegexExpression={
-												isCreate ||
 												!alert?.RegexGroups?.length
 											}
 										/>

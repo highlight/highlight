@@ -210,16 +210,17 @@ export const GraphingEditor: React.FC = () => {
 		const graphInput: GraphInput = {
 			visualizationId: dashboard_id!,
 			bucketByKey: getBucketByKey(bucketBySetting, bucketByKey) ?? null,
-			bucketCount: bucketBySetting === 'Count' ? bucketCount : null,
+			bucketCount:
+				bucketBySetting === 'Count' ? Number(bucketCount) : null,
 			bucketInterval:
-				bucketBySetting === 'Interval' ? bucketInterval : null,
+				bucketBySetting === 'Interval' ? Number(bucketInterval) : null,
 			display,
 			functionType,
 			groupByKey: groupByEnabled ? groupByKey : null,
-			limit: groupByEnabled ? limit : null,
+			limit: groupByEnabled ? Number(limit) : null,
 			limitFunctionType: groupByEnabled ? limitFunctionType : null,
-			limitMetric: groupByEnabled ? limitMetric : null,
-			metric,
+			limitMetric: groupByEnabled ? fetchedLimitMetric : null,
+			metric: fetchedMetric,
 			nullHandling,
 			productType,
 			query: debouncedQuery,
@@ -329,7 +330,6 @@ export const GraphingEditor: React.FC = () => {
 
 	const [productType, setProductType] = useState(products[0])
 	const [viewType, setViewType] = useState(VIEWS[0])
-	const [functionType, setFunctionType] = useState(FUNCTION_TYPES[0])
 	const [lineNullHandling, setLineNullHandling] = useState(
 		LINE_NULL_HANDLING[0],
 	)
@@ -349,7 +349,13 @@ export const GraphingEditor: React.FC = () => {
 		[query],
 	)
 
+	const [functionType, setFunctionType] = useState(FUNCTION_TYPES[0])
 	const [metric, setMetric] = useState('')
+
+	const fetchedMetric = useMemo(() => {
+		return functionType === MetricAggregator.Count ? '' : metric
+	}, [functionType, metric])
+
 	const [metricViewTitle, setMetricViewTitle] = useState('')
 	const tempMetricViewTitle = useRef<string>('')
 	const [groupByEnabled, setGroupByEnabled] = useState(false)
@@ -358,13 +364,18 @@ export const GraphingEditor: React.FC = () => {
 	const [limitFunctionType, setLimitFunctionType] = useState(
 		FUNCTION_TYPES[0],
 	)
-	const [limit, setLimit] = useState(10)
+	const [limit, setLimit] = useState<number | string>(10)
 	const [limitMetric, setLimitMetric] = useState('')
+	const fetchedLimitMetric = useMemo(() => {
+		return limitFunctionType === MetricAggregator.Count ? '' : limitMetric
+	}, [limitFunctionType, limitMetric])
 
 	const [bucketBySetting, setBucketBySetting] = useState(BUCKET_BY_OPTIONS[2])
 	const [bucketByKey, setBucketByKey] = useState(TIMESTAMP_KEY)
-	const [bucketCount, setBucketCount] = useState(DEFAULT_BUCKET_COUNT)
-	const [bucketInterval, setBucketInterval] = useState(
+	const [bucketCount, setBucketCount] = useState<number | string>(
+		DEFAULT_BUCKET_COUNT,
+	)
+	const [bucketInterval, setBucketInterval] = useState<number | string>(
 		DEFAULT_BUCKET_INTERVAL,
 	)
 
@@ -378,13 +389,13 @@ export const GraphingEditor: React.FC = () => {
 			newViewTitle === stringifiedFunctionType &&
 			stringifiedFunctionType
 		) {
-			newViewTitle += metric ? `(${metric})` : ''
+			newViewTitle += fetchedMetric ? `(${fetchedMetric})` : ''
 		}
 		newViewTitle = newViewTitle
 			? `${newViewTitle} Of ${productType?.toString() ?? ''}`
 			: newViewTitle
 		return newViewTitle
-	}, [functionType, metric, metricViewTitle, productType])
+	}, [fetchedMetric, functionType, metricViewTitle, productType])
 
 	let display: string | undefined
 	let nullHandling: string | undefined
@@ -487,7 +498,7 @@ export const GraphingEditor: React.FC = () => {
 						display="flex"
 						flexDirection="row"
 						justifyContent="space-between"
-						height="full"
+						cssClass={style.editGraphPanel}
 					>
 						<GraphBackgroundWrapper>
 							<Graph
@@ -502,7 +513,7 @@ export const GraphingEditor: React.FC = () => {
 								selectedPreset={selectedPreset}
 								endDate={endDate}
 								query={debouncedQuery}
-								metric={metric}
+								metric={fetchedMetric}
 								functionType={functionType}
 								bucketByKey={getBucketByKey(
 									bucketBySetting,
@@ -510,25 +521,29 @@ export const GraphingEditor: React.FC = () => {
 								)}
 								bucketCount={
 									bucketBySetting === 'Count'
-										? bucketCount
+										? Number(bucketCount)
 										: undefined
 								}
 								bucketByWindow={
 									bucketBySetting === 'Interval'
-										? bucketInterval
+										? Number(bucketInterval)
 										: undefined
 								}
 								groupByKey={
 									groupByEnabled ? groupByKey : undefined
 								}
-								limit={groupByEnabled ? limit : undefined}
+								limit={
+									groupByEnabled ? Number(limit) : undefined
+								}
 								limitFunctionType={
 									groupByEnabled
 										? limitFunctionType
 										: undefined
 								}
 								limitMetric={
-									groupByEnabled ? limitMetric : undefined
+									groupByEnabled
+										? fetchedLimitMetric
+										: undefined
 								}
 								setTimeRange={updateSearchTime}
 							/>
@@ -631,21 +646,20 @@ export const GraphingEditor: React.FC = () => {
 											selection={functionType}
 											setSelection={setFunctionType}
 										/>
-										{functionType !==
-											MetricAggregator.Count && (
-											<Combobox
-												selection={metric}
-												setSelection={setMetric}
-												label="metric"
-												searchConfig={
-													searchOptionsConfig
-												}
-												onlyNumericKeys={
-													functionType !==
-													MetricAggregator.CountDistinct
-												}
-											/>
-										)}
+										<Combobox
+											selection={fetchedMetric}
+											setSelection={setMetric}
+											label="metric"
+											searchConfig={searchOptionsConfig}
+											disabled={
+												functionType ===
+												MetricAggregator.Count
+											}
+											onlyNumericKeys={
+												functionType !==
+												MetricAggregator.CountDistinct
+											}
+										/>
 									</LabeledRow>
 									<LabeledRow
 										label="Filters"
@@ -706,11 +720,7 @@ export const GraphingEditor: React.FC = () => {
 													placeholder="Enter limit"
 													value={limit}
 													onChange={(e) => {
-														setLimit(
-															Number(
-																e.target.value,
-															),
-														)
+														setLimit(e.target.value)
 													}}
 													cssClass={style.input}
 												/>
@@ -729,20 +739,23 @@ export const GraphingEditor: React.FC = () => {
 														setLimitFunctionType
 													}
 												/>
-												{limitFunctionType !==
-													MetricAggregator.Count && (
-													<Combobox
-														selection={limitMetric}
-														setSelection={
-															setLimitMetric
-														}
-														label="limitMetric"
-														searchConfig={
-															searchOptionsConfig
-														}
-														onlyNumericKeys
-													/>
-												)}
+												<Combobox
+													selection={
+														fetchedLimitMetric
+													}
+													setSelection={
+														setLimitMetric
+													}
+													label="limitMetric"
+													searchConfig={
+														searchOptionsConfig
+													}
+													disabled={
+														limitFunctionType ===
+														MetricAggregator.Count
+													}
+													onlyNumericKeys
+												/>
 											</LabeledRow>
 										</Box>
 									)}
@@ -799,9 +812,7 @@ export const GraphingEditor: React.FC = () => {
 													value={bucketCount}
 													onChange={(e) => {
 														setBucketCount(
-															Number(
-																e.target.value,
-															),
+															e.target.value,
 														)
 													}}
 													cssClass={style.input}
@@ -819,9 +830,7 @@ export const GraphingEditor: React.FC = () => {
 												options={FREQUENCIES}
 												value={bucketInterval}
 												onValueChange={(o) => {
-													setBucketInterval(
-														Number(o.value),
-													)
+													setBucketInterval(o.value)
 												}}
 											/>
 										</LabeledRow>

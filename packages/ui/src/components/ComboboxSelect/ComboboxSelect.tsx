@@ -109,7 +109,13 @@ export const ComboboxSelect = <T extends string | string[]>({
 			</SelectLabel>
 			<Select
 				store={select}
-				className={clsx([styles.selectButton, cssClass])}
+				className={clsx([
+					styles.selectButton,
+					cssClass,
+					{
+						[styles.disabled]: disabled,
+					},
+				])}
 				disabled={disabled}
 			>
 				{icon}

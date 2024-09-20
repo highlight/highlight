@@ -251,9 +251,10 @@ const isHighlightNetworkResourceFilter = (name: string, backendUrl: string) =>
 	name
 		.toLocaleLowerCase()
 		.includes(
-			import.meta.env.REACT_APP_PUBLIC_GRAPH_URI ?? 'highlight.io',
+			import.meta.env.REACT_APP_PUBLIC_GRAPH_URI ?? 'pub.highlight.io',
 		) ||
-	name.toLocaleLowerCase().includes('highlight.io') ||
+	name.toLocaleLowerCase().includes('pub.highlight.io') ||
+	name.toLocaleLowerCase().includes('otel.highlight.io') ||
 	name.toLocaleLowerCase().includes(backendUrl)
 
 export const shouldNetworkRequestBeRecorded = (
@@ -263,14 +264,22 @@ export const shouldNetworkRequestBeRecorded = (
 ) => {
 	return (
 		!isHighlightNetworkResourceFilter(url, highlightBackendUrl) ||
-		shouldNetworkRequestBeTraced(url, tracingOrigins)
+		shouldNetworkRequestBeTraced(url, tracingOrigins ?? [], [])
 	)
 }
 
 export const shouldNetworkRequestBeTraced = (
 	url: string,
-	tracingOrigins?: boolean | (string | RegExp)[],
+	tracingOrigins: boolean | (string | RegExp)[],
+	urlBlocklist: string[],
 ) => {
+	if (
+		urlBlocklist.some((blockedUrl) =>
+			url.toLowerCase().includes(blockedUrl),
+		)
+	) {
+		return false
+	}
 	let patterns: (string | RegExp)[] = []
 	if (tracingOrigins === true) {
 		patterns = ['localhost', /^\//]

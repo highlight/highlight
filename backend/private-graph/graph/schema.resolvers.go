@@ -3363,11 +3363,16 @@ func (r *mutationResolver) UpdateMetricMonitor(ctx context.Context, metricMonito
 }
 
 // CreateAlert is the resolver for the createAlert field.
-func (r *mutationResolver) CreateAlert(ctx context.Context, projectID int, name string, productType modelInputs.ProductType, functionType modelInputs.MetricAggregator, functionColumn *string, query *string, groupByKey *string, belowThreshold *bool, thresholdValue *float64, thresholdWindow *int, thresholdCooldown *int, destinations []*modelInputs.AlertDestinationInput) (*model.Alert, error) {
+func (r *mutationResolver) CreateAlert(ctx context.Context, projectID int, name string, productType modelInputs.ProductType, functionType modelInputs.MetricAggregator, functionColumn *string, query *string, groupByKey *string, belowThreshold *bool, defaultArg *bool, thresholdValue *float64, thresholdWindow *int, thresholdCooldown *int, destinations []*modelInputs.AlertDestinationInput) (*model.Alert, error) {
 	project, err := r.isUserInProject(ctx, projectID)
 	admin, _ := r.getCurrentAdmin(ctx)
 	if err != nil {
 		return nil, err
+	}
+
+	defaultValue := false
+	if defaultArg != nil {
+		defaultValue = *defaultArg
 	}
 
 	newAlert := &model.Alert{
@@ -3379,6 +3384,7 @@ func (r *mutationResolver) CreateAlert(ctx context.Context, projectID int, name 
 		FunctionColumn:    functionColumn,
 		Query:             query,
 		GroupByKey:        groupByKey,
+		Default:           defaultValue,
 		BelowThreshold:    belowThreshold,
 		ThresholdValue:    thresholdValue,
 		ThresholdWindow:   thresholdWindow,
@@ -3527,76 +3533,6 @@ func (r *mutationResolver) DeleteAlert(ctx context.Context, projectID int, alert
 	}
 
 	return true, nil
-}
-
-// CreateErrorAlert is the resolver for the createErrorAlert field.
-func (r *mutationResolver) CreateErrorAlert(ctx context.Context, projectID int, name string, countThreshold int, thresholdWindow int, slackChannels []*modelInputs.SanitizedSlackChannelInput, discordChannels []*modelInputs.DiscordChannelInput, microsoftTeamsChannels []*modelInputs.MicrosoftTeamsChannelInput, webhookDestinations []*modelInputs.WebhookDestinationInput, emails []*string, query string, regexGroups []*string, frequency int, defaultArg *bool) (*model.ErrorAlert, error) {
-	project, err := r.isUserInProject(ctx, projectID)
-	admin, _ := r.getCurrentAdmin(ctx)
-	workspace, _ := r.GetWorkspace(project.WorkspaceID)
-	if err != nil {
-		return nil, err
-	}
-
-	channelsString, err := r.MarshalSlackChannelsToSanitizedSlackChannels(slackChannels)
-	if err != nil {
-		return nil, err
-	}
-
-	regexGroupsBytes, err := json.Marshal(regexGroups)
-	if err != nil {
-		return nil, e.Wrap(err, "error marshalling regex groups")
-	}
-	regexGroupsString := string(regexGroupsBytes)
-
-	emailsString, err := r.MarshalAlertEmails(emails)
-	if err != nil {
-		return nil, err
-	}
-
-	if defaultArg == nil {
-		defaultArg = pointy.Bool(false)
-	}
-
-	newAlert := &model.ErrorAlert{
-		AlertDeprecated: model.AlertDeprecated{
-			ProjectID:         projectID,
-			CountThreshold:    countThreshold,
-			ThresholdWindow:   &thresholdWindow,
-			Type:              &model.AlertType.ERROR,
-			ChannelsToNotify:  channelsString,
-			EmailsToNotify:    emailsString,
-			Name:              name,
-			LastAdminToEditID: admin.ID,
-			Frequency:         frequency,
-			Default:           *defaultArg,
-		},
-		RegexGroups: &regexGroupsString,
-		Query:       query,
-		AlertIntegrations: model.AlertIntegrations{
-			DiscordChannelsToNotify:        discord.GQLInputToGo(discordChannels),
-			MicrosoftTeamsChannelsToNotify: microsoft_teams.GQLInputToGo(microsoftTeamsChannels),
-			WebhookDestinations:            webhook.GQLInputToGo(webhookDestinations),
-		},
-	}
-
-	if err := r.DB.WithContext(ctx).Create(newAlert).Error; err != nil {
-		return nil, e.Wrap(err, "error creating a new error alert")
-	}
-	if err := model.SendWelcomeSlackMessage(ctx, newAlert, &model.SendWelcomeSlackMessageInput{
-		Workspace:            workspace,
-		Admin:                admin,
-		OperationName:        "created",
-		OperationDescription: "Alerts will now be sent to this channel.",
-		ID:                   newAlert.ID,
-		Project:              project,
-		IncludeEditLink:      true,
-		URLSlug:              "alerts/errors",
-	}); err != nil {
-		log.WithContext(ctx).Error(err)
-	}
-
-	return newAlert, nil
 }
 
 // UpdateErrorAlert is the resolver for the updateErrorAlert field.
@@ -3866,40 +3802,6 @@ func (r *mutationResolver) UpdateSessionAlert(ctx context.Context, id int, input
 	return sessionAlert, nil
 }
 
-// CreateSessionAlert is the resolver for the createSessionAlert field.
-func (r *mutationResolver) CreateSessionAlert(ctx context.Context, input modelInputs.SessionAlertInput) (*model.SessionAlert, error) {
-	project, err := r.isUserInProject(ctx, input.ProjectID)
-	admin, _ := r.getCurrentAdmin(ctx)
-	workspace, _ := r.GetWorkspace(project.WorkspaceID)
-	if err != nil {
-		return nil, err
-	}
-
-	sessionAlert, err := alerts.BuildSessionAlert(project, workspace, admin, input)
-
-	if err != nil {
-		return nil, e.Wrap(err, "failed to build session feedback alert")
-	}
-
-	if err := r.DB.WithContext(ctx).Create(sessionAlert).Error; err != nil {
-		return nil, e.Wrap(err, "error creating a new session feedback alert")
-	}
-	if err := model.SendWelcomeSlackMessage(ctx, sessionAlert, &model.SendWelcomeSlackMessageInput{
-		Workspace:            workspace,
-		Admin:                admin,
-		OperationName:        "created",
-		OperationDescription: "Alerts will now be sent to this channel.",
-		ID:                   sessionAlert.ID,
-		Project:              project,
-		IncludeEditLink:      true,
-		URLSlug:              "alerts/session",
-	}); err != nil {
-		log.WithContext(ctx).Error(err)
-	}
-
-	return sessionAlert, nil
-}
-
 // DeleteSessionAlert is the resolver for the deleteSessionAlert field.
 func (r *mutationResolver) DeleteSessionAlert(ctx context.Context, projectID int, sessionAlertID int) (*model.SessionAlert, error) {
 	project, err := r.isUserInProject(ctx, projectID)
@@ -3975,51 +3877,6 @@ func (r *mutationResolver) UpdateLogAlert(ctx context.Context, id int, input mod
 	}
 
 	if err := microsoft_teams.SendLogAlertsWelcomeMessage(ctx, alert, &config); err != nil {
-		log.WithContext(ctx).Error(err)
-	}
-
-	return alert, nil
-}
-
-// CreateLogAlert is the resolver for the createLogAlert field.
-func (r *mutationResolver) CreateLogAlert(ctx context.Context, input modelInputs.LogAlertInput) (*model.LogAlert, error) {
-	project, err := r.isUserInProject(ctx, input.ProjectID)
-	admin, _ := r.getCurrentAdmin(ctx)
-	workspace, _ := r.GetWorkspace(project.WorkspaceID)
-	if err != nil {
-		return nil, err
-	}
-
-	alert, err := alerts.BuildLogAlert(project, workspace, admin, input)
-	if err != nil {
-		return nil, e.Wrap(err, "failed to build log alert")
-	}
-
-	if err := r.DB.WithContext(ctx).Create(alert).Error; err != nil {
-		return nil, e.Wrap(err, "error creating a new log alert")
-	}
-
-	if err := model.SendWelcomeSlackMessage(ctx, alert, &model.SendWelcomeSlackMessageInput{
-		Workspace:            workspace,
-		Admin:                admin,
-		OperationName:        "created",
-		OperationDescription: "Log alerts will now be sent to this channel.",
-		ID:                   alert.ID,
-		Project:              project,
-		IncludeEditLink:      true,
-		URLSlug:              "alerts/logs",
-	}); err != nil {
-		log.WithContext(ctx).Error(err)
-	}
-
-	teamsMessageInput := microsoft_teams.WelcomeMessageData{
-		Workspace:     workspace,
-		Admin:         admin,
-		Project:       project,
-		OperationName: "created",
-	}
-
-	if err := microsoft_teams.SendLogAlertsWelcomeMessage(ctx, alert, &teamsMessageInput); err != nil {
 		log.WithContext(ctx).Error(err)
 	}
 
@@ -6746,82 +6603,6 @@ func (r *queryResolver) SessionsHistogram(ctx context.Context, projectID int, pa
 	}, nil
 }
 
-// SessionsReport is the resolver for the sessions_report field.
-func (r *queryResolver) SessionsReport(ctx context.Context, projectID int, query modelInputs.ClickhouseQuery) ([]*modelInputs.SessionsReportRow, error) {
-	project, err := r.isUserInProjectOrDemoProject(ctx, projectID)
-	if err != nil {
-		return nil, err
-	}
-	workspace, err := r.GetWorkspace(project.WorkspaceID)
-	if err != nil {
-		return nil, err
-	}
-	retentionDate := GetRetentionDate(workspace.RetentionPeriod)
-
-	// If there's no admin for the context, use `admin=nil`
-	// (admin is used by the "viewed by me" filter)
-	admin, err := r.getCurrentAdmin(ctx)
-	if errors.Is(err, AuthenticationError) {
-		admin = nil
-	} else if err != nil {
-		return nil, err
-	}
-
-	sql, args, _, err := clickhouse.GetSessionsQueryImplDeprecated(admin, query, projectID, retentionDate, "ID", nil, nil, nil, nil)
-	if err != nil {
-		return nil, err
-	}
-
-	q := fmt.Sprintf(`
-select coalesce(email.Value, nullif(IP, ''), device.Value, Identifier) as key,
-       count(distinct ID)                                              as num_sessions,
-       count(distinct date_trunc('day', CreatedAt))                    as num_days_visited,
-       count(distinct date_trunc('month', CreatedAt))                  as num_months_visited,
-       avg(greatest(0, ActiveLength)) / 1000 / 60                      as avg_active_length_mins,
-       max(greatest(0, ActiveLength)) / 1000 / 60                      as max_active_length_mins,
-       sum(greatest(0, ActiveLength)) / 1000 / 60                      as total_active_length_mins,
-       avg(greatest(0, Length)) / 1000 / 60                            as avg_length_mins,
-       max(greatest(0, Length)) / 1000 / 60                            as max_length_mins,
-       sum(greatest(0, Length)) / 1000 / 60                            as total_length_mins,
-       max(City)                                                       as location
-from sessions final
-         left join (select *
-                    from fields
-                    where fields.ProjectID = %d
-                      and Type = 'user'
-                      and Name = 'email') email on
-    email.SessionCreatedAt = CreatedAt
-        and email.SessionID = ID
-         left join (select *
-                    from fields
-                    where fields.ProjectID = %d
-                      and Type = 'session'
-                      and Name = 'device_id') device on
-    device.SessionCreatedAt = CreatedAt
-        and device.SessionID = ID
-WHERE sessions.ProjectID = %d
-  AND NOT Excluded
-  AND WithinBillingQuota
-  AND ID in (%s)
-group by 1 order by num_sessions desc;
-`, project.ID, project.ID, project.ID, sql)
-	rows, err := r.ClickhouseClient.GetConn().Query(ctx, q, args...)
-	if err != nil {
-		return nil, err
-	}
-
-	var results []*modelInputs.SessionsReportRow
-	for rows.Next() {
-		var result modelInputs.SessionsReportRow
-		if err := rows.Scan(&result.Key, &result.NumSessions, &result.NumDaysVisited, &result.NumMonthsVisited, &result.AvgActiveLengthMins, &result.MaxActiveLengthMins, &result.TotalActiveLengthMins, &result.AvgLengthMins, &result.MaxLengthMins, &result.TotalLengthMins, &result.Location); err != nil {
-			return nil, err
-		}
-		results = append(results, &result)
-	}
-
-	return results, nil
-}
-
 // SessionUsersReport is the resolver for the session_users_report field.
 func (r *queryResolver) SessionUsersReport(ctx context.Context, projectID int, params modelInputs.QueryInput) ([]*modelInputs.SessionsReportRow, error) {
 	project, err := r.isUserInProjectOrDemoProject(ctx, projectID)
@@ -6849,39 +6630,32 @@ func (r *queryResolver) SessionUsersReport(ctx context.Context, projectID int, p
 	}
 
 	q := fmt.Sprintf(`
-select coalesce(email.Value, nullif(IP, ''), device.Value, Identifier) as key,
-       any(email.Value)                                                as email,
-       count(distinct ID)                                              as num_sessions,
-       count(distinct date_trunc('day', CreatedAt))                    as num_days_visited,
-       count(distinct date_trunc('month', CreatedAt))                  as num_months_visited,
-       avg(greatest(0, ActiveLength)) / 1000 / 60                      as avg_active_length_mins,
-       max(greatest(0, ActiveLength)) / 1000 / 60                      as max_active_length_mins,
-       sum(greatest(0, ActiveLength)) / 1000 / 60                      as total_active_length_mins,
-       avg(greatest(0, Length)) / 1000 / 60                            as avg_length_mins,
-       max(greatest(0, Length)) / 1000 / 60                            as max_length_mins,
-       sum(greatest(0, Length)) / 1000 / 60                            as total_length_mins,
-       max(City)                                                       as location
-from sessions final
-         left join (select *
-                    from fields
-                    where fields.ProjectID = %d
-                      and Type = 'user'
-                      and Name = 'email') email on
-    email.SessionCreatedAt = CreatedAt
-        and email.SessionID = ID
-         left join (select *
-                    from fields
-                    where fields.ProjectID = %d
-                      and Type = 'session'
-                      and Name = 'device_id') device on
-    device.SessionCreatedAt = CreatedAt
-        and device.SessionID = ID
-WHERE sessions.ProjectID = %d
+select coalesce(
+               nullif(arrayFilter((k, v) -> k = 'email', SessionAttributePairs)[1].2, ''),
+               nullif(IP, ''),
+               nullif(arrayFilter((k, v) -> k = 'device_id', SessionAttributePairs)[1].2, ''),
+               Identifier
+       )                                                                       as key,
+       min(arrayFilter((k, v) -> k = 'email', SessionAttributePairs)[1].2)     as email,
+       min(CreatedAt)                                                          as first_session,
+       max(CreatedAt)                                                          as last_session,
+       count(distinct ID)                                                      as num_sessions,
+       count(distinct date_trunc('day', CreatedAt))                            as num_days_visited,
+       count(distinct date_trunc('month', CreatedAt))                          as num_months_visited,
+       avg(greatest(0, ActiveLength)) / 1000 / 60                              as avg_active_length_mins,
+       max(greatest(0, ActiveLength)) / 1000 / 60                              as max_active_length_mins,
+       sum(greatest(0, ActiveLength)) / 1000 / 60                              as total_active_length_mins,
+       avg(greatest(0, Length)) / 1000 / 60                                    as avg_length_mins,
+       max(greatest(0, Length)) / 1000 / 60                                    as max_length_mins,
+       sum(greatest(0, Length)) / 1000 / 60                                    as total_length_mins,
+       max(coalesce(nullif(City, ''), nullif(State, ''), nullif(Country, ''))) as location
+from sessions_joined_vw final
+WHERE ProjectID = %d
   AND NOT Excluded
   AND WithinBillingQuota
   AND ID in (%s)
 group by 1 order by num_sessions desc;
-`, project.ID, project.ID, project.ID, sql)
+`, project.ID, sql)
 	rows, err := r.ClickhouseClient.GetConn().Query(ctx, q, args...)
 	if err != nil {
 		return nil, err
@@ -6890,7 +6664,7 @@ group by 1 order by num_sessions desc;
 	var results []*modelInputs.SessionsReportRow
 	for rows.Next() {
 		var result modelInputs.SessionsReportRow
-		if err := rows.Scan(&result.Key, &result.Email, &result.NumSessions, &result.NumDaysVisited, &result.NumMonthsVisited, &result.AvgActiveLengthMins, &result.MaxActiveLengthMins, &result.TotalActiveLengthMins, &result.AvgLengthMins, &result.MaxLengthMins, &result.TotalLengthMins, &result.Location); err != nil {
+		if err := rows.Scan(&result.Key, &result.Email, &result.FirstSession, &result.LastSession, &result.NumSessions, &result.NumDaysVisited, &result.NumMonthsVisited, &result.AvgActiveLengthMins, &result.MaxActiveLengthMins, &result.TotalActiveLengthMins, &result.AvgLengthMins, &result.MaxLengthMins, &result.TotalLengthMins, &result.Location); err != nil {
 			return nil, err
 		}
 		results = append(results, &result)
@@ -9522,7 +9296,7 @@ func (r *queryResolver) Trace(ctx context.Context, projectID int, traceID string
 }
 
 // Traces is the resolver for the traces field.
-func (r *queryResolver) Traces(ctx context.Context, projectID int, params modelInputs.QueryInput, after *string, before *string, at *string, direction modelInputs.SortDirection) (*modelInputs.TraceConnection, error) {
+func (r *queryResolver) Traces(ctx context.Context, projectID int, params modelInputs.QueryInput, after *string, before *string, at *string, direction modelInputs.SortDirection, limit *int) (*modelInputs.TraceConnection, error) {
 	project, err := r.isUserInProjectOrDemoProject(ctx, projectID)
 	if err != nil {
 		return nil, err
@@ -9533,6 +9307,7 @@ func (r *queryResolver) Traces(ctx context.Context, projectID int, params modelI
 		Before:    before,
 		At:        at,
 		Direction: direction,
+		Limit:     limit,
 	})
 }
 

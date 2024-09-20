@@ -2,7 +2,6 @@ import { Button } from '@components/Button'
 import Select from '@components/Select/Select'
 import { toast } from '@components/Toaster'
 import {
-	useCreateSessionAlertMutation,
 	useDeleteSessionAlertMutation,
 	useGetIdentifierSuggestionsQuery,
 	useGetTrackSuggestionQuery,
@@ -38,7 +37,6 @@ import {
 	getFrequencyOption,
 } from '@pages/Alerts/utils/AlertsUtils'
 import { useParams } from '@util/react-router/useParams'
-import { capitalize } from 'lodash'
 import { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 
@@ -89,9 +87,6 @@ export const SessionAlertPage = () => {
 	const { alert_id } = useParams<{
 		alert_id: string
 	}>()
-
-	const isCreate = alert_id === undefined
-	const createStr = isCreate ? 'create' : 'update'
 
 	const { alertsPayload } = useAlertsContext()
 	const alert = alert_id
@@ -173,13 +168,10 @@ export const SessionAlertPage = () => {
 	}, [alert])
 
 	useEffect(() => {
-		analytics.page('Session Alert', { isCreate })
-	}, [isCreate])
+		analytics.page('Session Alert')
+	})
 
 	const [updateSessionAlertMutation] = useUpdateSessionAlertMutation({
-		refetchQueries: [namedOperations.Query.GetAlertsPagePayload],
-	})
-	const [createSessionAlertMutation] = useCreateSessionAlertMutation({
 		refetchQueries: [namedOperations.Query.GetAlertsPagePayload],
 	})
 	const [deleteSessionAlertMutation] = useDeleteSessionAlertMutation({
@@ -214,31 +206,29 @@ export const SessionAlertPage = () => {
 				>
 					Cancel
 				</Button>
-				{!isCreate && (
-					<Button
-						kind="danger"
-						size="small"
-						emphasis="low"
-						trackingId="deleteSessionAlert"
-						onClick={() => {
-							deleteSessionAlertMutation({
-								variables: {
-									project_id: project_id ?? '',
-									session_alert_id: alert_id,
-								},
+				<Button
+					kind="danger"
+					size="small"
+					emphasis="low"
+					trackingId="deleteSessionAlert"
+					onClick={() => {
+						deleteSessionAlertMutation({
+							variables: {
+								project_id: project_id ?? '',
+								session_alert_id: alert_id!,
+							},
+						})
+							.then(() => {
+								toast.success(`Error alert deleted!`)
+								navigate(`/${project_id}/alerts`)
 							})
-								.then(() => {
-									toast.success(`Error alert deleted!`)
-									navigate(`/${project_id}/alerts`)
-								})
-								.catch(() => {
-									toast.error(`Failed to delete error alert!`)
-								})
-						}}
-					>
-						Delete Alert
-					</Button>
-				)}
+							.catch(() => {
+								toast.error(`Failed to delete error alert!`)
+							})
+					}}
+				>
+					Delete Alert
+				</Button>
 				<Button
 					kind="primary"
 					size="small"
@@ -356,59 +346,31 @@ export const SessionAlertPage = () => {
 							return
 						}
 
-						if (isCreate) {
-							createSessionAlertMutation({
-								variables: {
-									input: {
-										...input,
-										count_threshold:
-											input.count_threshold ?? 1,
-									},
+						updateSessionAlertMutation({
+							variables: {
+								input: {
+									...input,
+									count_threshold: input.count_threshold ?? 1,
 								},
+								id: alert_id!,
+							},
+						})
+							.then(() => {
+								toast.success(`Session alert updated!`)
+								navigate(`/${project_id}/alerts`)
 							})
-								.then(() => {
-									toast.success(
-										`Session alert ${createStr}d!`,
-									)
-									navigate(`/${project_id}/alerts`)
-								})
-								.catch(() => {
-									toast.error(
-										`Failed to ${createStr} session alert!`,
-									)
-								})
-						} else {
-							updateSessionAlertMutation({
-								variables: {
-									input: {
-										...input,
-										count_threshold:
-											input.count_threshold ?? 1,
-									},
-									id: alert_id,
-								},
+							.catch(() => {
+								toast.error(`Failed to update session alert!`)
 							})
-								.then(() => {
-									toast.success(
-										`Session alert ${createStr}d!`,
-									)
-									navigate(`/${project_id}/alerts`)
-								})
-								.catch(() => {
-									toast.error(
-										`Failed to ${createStr} session alert!`,
-									)
-								})
-						}
 					}}
 				>
-					{capitalize(createStr)} alert
+					Update alert
 				</Button>
 			</Box>
 		</Box>
 	)
 
-	const isLoading = !isCreate && !values.loaded
+	const isLoading = !values.loaded
 
 	return (
 		<Box width="full" background="raised" p="8">

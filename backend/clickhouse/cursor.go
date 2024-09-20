@@ -22,7 +22,12 @@ type Connection[T interface{}] struct {
 	PageInfo *modelInputs.PageInfo
 }
 
-func getConnection[T interface{}](edges []*Edge[T], pagination Pagination, limit int) *Connection[T] {
+func getConnection[T interface{}](edges []*Edge[T], pagination Pagination) *Connection[T] {
+	limit := LogsLimit
+	if pagination.Limit != nil {
+		limit = *pagination.Limit
+	}
+
 	var (
 		endCursor       string
 		startCursor     string

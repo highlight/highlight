@@ -1406,7 +1406,7 @@ SessionSecureID: ${this.sessionData.sessionSecureID}`,
 			bytesSinceSnapshot: this._eventBytesSinceSnapshot,
 			lastSnapshotTime: this._lastSnapshotTime,
 		})
-		record.takeFullSnapshot(true)
+		record.takeFullSnapshot()
 		this._eventBytesSinceSnapshot = 0
 		this._lastSnapshotTime = new Date().getTime()
 	}

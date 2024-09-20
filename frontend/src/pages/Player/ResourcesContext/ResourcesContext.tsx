@@ -1,26 +1,23 @@
-import { useGetResourcesQuery } from '@graph/hooks'
-import { Session } from '@graph/schemas'
+import { Session, SortDirection, TraceEdge } from '@graph/schemas'
 import { RequestResponsePair } from '@highlight-run/client'
 import { RequestType } from '@pages/Player/Toolbar/DevToolsWindowV2/utils'
 import { getGraphQLResolverName } from '@pages/Player/utils/utils'
 import { createContext } from '@util/context/context'
-import { indexedDBFetch } from '@util/db'
-import { checkResourceLimit } from '@util/preload'
-import { H } from 'highlight.run'
-import { useCallback, useEffect, useState } from 'react'
-import { BooleanParam, useQueryParam } from 'use-query-params'
+import { useEffect, useState } from 'react'
 
-import { useSessionParams } from '@/pages/Sessions/utils'
 import { ApolloError } from '@apollo/client'
+import { useGetTraces } from '@pages/Traces/useGetTraces'
+import { useProjectId } from '@hooks/useProjectId'
+import moment from 'moment'
 
 export enum LoadingError {
-	NetworkResourcesTooLarge = 'payload too large.',
 	NetworkResourcesFetchFailed = 'failed to fetch.',
 }
 
 interface ResourcesContext {
 	resourcesLoading: boolean
-	loadResources: () => void
+	loadingAfter: boolean
+	fetchMoreForward: () => Promise<void>
 	resources: NetworkResourceWithID[]
 	error?: LoadingError | ApolloError
 }
@@ -38,11 +35,78 @@ interface NetworkResource extends PerformanceResourceTiming {
 
 export type NetworkResourceWithID = { id: number } & NetworkResource
 
-const buildResources = (resources: NetworkResource[]) => {
+const buildResources = (traces: TraceEdge[]) => {
 	const indexResources = [] as NetworkResourceWithID[]
 	const webSocketHash = {} as { [key: string]: NetworkResource }
 
-	resources?.forEach((resource: NetworkResource) => {
+	traces?.forEach((trace: TraceEdge) => {
+		const start = moment(trace.node.timestamp)
+		const transferSize = Number(
+			trace.node.traceAttributes.http?.response?.encoded?.size ??
+				trace.node.traceAttributes.http?.response?.transfer?.size ??
+				trace.node.traceAttributes.http?.response_content_length,
+		)
+		const requestBody =
+			trace.node.traceAttributes.http?.request?.body === 'undefined'
+				? undefined
+				: trace.node.traceAttributes.http?.request?.body
+		const responseBody =
+			trace.node.traceAttributes.http?.response?.body === 'undefined'
+				? undefined
+				: trace.node.traceAttributes.http?.response?.body
+		let requestHeaders =
+				trace.node.traceAttributes.http?.request?.headers ??
+				trace.node.traceAttributes.http?.request?.header,
+			responseHeaders =
+				trace.node.traceAttributes.http?.response?.headers ??
+				trace.node.traceAttributes.http?.response?.header
+		try {
+			if (typeof requestHeaders === 'string') {
+				requestHeaders = JSON.parse(requestHeaders)
+			}
+		} catch (e) {}
+		try {
+			if (typeof responseHeaders === 'string') {
+				responseHeaders = JSON.parse(responseHeaders)
+			}
+		} catch (e) {}
+		const resource = {
+			startTimeAbs: start.toDate().getTime(),
+			responseEndAbs:
+				start.toDate().getTime() + trace.node.duration / 1e6,
+			decodedBodySize: Number(
+				trace.node.traceAttributes.http?.response_content_length,
+			),
+			name: trace.node.traceAttributes.http?.url,
+			initiatorType:
+				trace.node.traceAttributes.initiator_type ||
+				(requestBody || responseBody ? 'fetch' : 'other'),
+			transferSize,
+			requestResponsePairs: {
+				request: {
+					id: trace.node.traceID,
+					body: requestBody,
+					headers: requestHeaders,
+					sessionSecureID: trace.node.secureSessionID,
+					url: trace.node.traceAttributes.http?.url,
+					verb: trace.node.traceAttributes.http?.method,
+				},
+				response: {
+					body: responseBody,
+					headers: responseHeaders,
+					status:
+						trace.node.traceAttributes.http?.status_code === '0'
+							? 'Unknown'
+							: trace.node.traceAttributes.http?.status_code,
+					size: transferSize,
+				},
+				urlBlocked: trace.node.traceAttributes.http?.blocked,
+			},
+			socketId: trace.node.traceID,
+			type:
+				trace.node.traceAttributes.ws?.type ||
+				trace.node.traceAttributes.http?.type,
+		} as unknown as NetworkResource
 		if (
 			resource.initiatorType === RequestType.WebSocket &&
 			resource.socketId
@@ -77,19 +141,23 @@ const buildResources = (resources: NetworkResource[]) => {
 		.map((resource: NetworkResourceWithID) => {
 			const resolverName = getGraphQLResolverName(resource)
 
-			const updatedResource = { ...resource }
+			let updatedResource = { ...resource }
 
 			if (resolverName) {
 				updatedResource.displayName = `${resolverName} (${resource.name})`
 			}
 
 			if (resource.startTimeAbs && resource.responseEndAbs) {
-				updatedResource.duration =
-					resource.responseEndAbs - resource.startTimeAbs
+				updatedResource = {
+					...updatedResource,
+					duration: resource.responseEndAbs - resource.startTimeAbs,
+				}
 			} else if (resource.responseEnd && resource.startTime) {
 				// used in highlight.run <8.8.0 for websocket events and <7.5.4 for requests
-				updatedResource.duration =
-					resource.responseEnd - resource.startTime
+				updatedResource = {
+					...updatedResource,
+					duration: resource.responseEnd - resource.startTime,
+				}
 			}
 
 			return updatedResource
@@ -98,112 +166,48 @@ const buildResources = (resources: NetworkResource[]) => {
 
 export const useResources = (
 	session: Session | undefined,
-): ResourcesContext => {
-	const { sessionSecureId: session_secure_id } = useSessionParams()
-	const [sessionSecureId, setSessionSecureId] = useState<string>()
-	const [s3Error, setS3Error] = useState<LoadingError>()
-	const [downloadResources] = useQueryParam('downloadresources', BooleanParam)
-
-	const [resourcesLoading, setResourcesLoading] = useState(false)
-	const skipQuery =
-		sessionSecureId === undefined ||
-		session === undefined ||
-		!!session?.resources_url
+): {
+	error: ApolloError | undefined
+	fetchMoreForward: () => Promise<void>
+	loadingAfter: boolean
+	resources: NetworkResourceWithID[]
+	resourcesLoading: boolean
+} => {
+	const { projectId } = useProjectId()
 
 	const {
-		data,
-		loading: queryLoading,
-		error: redisError,
-	} = useGetResourcesQuery({
-		variables: {
-			session_secure_id: sessionSecureId ?? '',
-		},
-		fetchPolicy: 'cache-and-network',
-		skip: skipQuery,
+		traceEdges,
+		loading: resourcesLoading,
+		error: dataError,
+		loadingAfter,
+		fetchMoreForward,
+	} = useGetTraces({
+		query: `secure_session_id=${session?.secure_id} AND highlight.type=http.request`,
+		projectId,
+		startDate: moment(session?.created_at).toDate(),
+		endDate: moment(session?.created_at).add(4, 'hours').toDate(),
+		traceCursor: undefined,
+		sortDirection: SortDirection.Asc,
+		sortColumn: 'timestamp',
+		skip: !session?.secure_id,
+		skipPolling: true,
+		limit: 1_000,
 	})
 
-	useEffect(() => {
-		if (!skipQuery) {
-			setResourcesLoading(queryLoading && data === undefined)
-		}
-	}, [data, queryLoading, skipQuery])
-
 	const [resources, setResources] = useState<NetworkResourceWithID[]>([])
-	useEffect(() => {
-		setS3Error(undefined)
-		setResources(buildResources(data?.resources as NetworkResource[]))
-	}, [data?.resources])
 
 	useEffect(() => {
-		if (downloadResources && resources.length > 0) {
-			const a = document.createElement('a')
-			const file = new Blob([JSON.stringify(resources)], {
-				type: 'application/json',
-			})
-
-			a.href = URL.createObjectURL(file)
-			a.download = `session-${sessionSecureId}-resources.json`
-			a.click()
-
-			URL.revokeObjectURL(a.href)
+		if (session && traceEdges.length) {
+			setResources(buildResources(traceEdges))
 		}
-	}, [downloadResources, resources, sessionSecureId])
-
-	// If sessionSecureId is set and equals the current session's (ensures effect is run once)
-	// and resources url is defined, fetch using resources url
-	useEffect(() => {
-		if (
-			sessionSecureId === session?.secure_id &&
-			!!session?.resources_url
-		) {
-			setResourcesLoading(true)
-			;(async () => {
-				if (!session.resources_url) return
-				const limit = await checkResourceLimit(session.resources_url)
-				if (limit) {
-					setS3Error(LoadingError.NetworkResourcesTooLarge)
-					H.consumeError(new Error(limit.error), undefined, {
-						fileSize: limit.fileSize.toString(),
-						limit: limit.sizeLimit.toString(),
-						sessionSecureID: session?.secure_id,
-					})
-					return
-				}
-				let response
-				for await (const r of indexedDBFetch(session.resources_url)) {
-					response = r
-				}
-				if (response) {
-					response
-						.json()
-						.then((data) => {
-							setS3Error(undefined)
-							setResources(buildResources(data))
-						})
-						.catch((e) => {
-							setS3Error(LoadingError.NetworkResourcesFetchFailed)
-							setResources([])
-							H.consumeError(
-								e,
-								'Error direct downloading resources',
-							)
-						})
-						.finally(() => setResourcesLoading(false))
-				}
-			})()
-		}
-		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [sessionSecureId, session?.secure_id])
-
-	const loadResources = useCallback(() => {
-		setSessionSecureId(session_secure_id)
-	}, [session_secure_id])
+	}, [session, traceEdges])
 
 	return {
-		loadResources,
 		resources,
 		resourcesLoading,
-		error: redisError ?? s3Error,
+		error: dataError,
+		loadingAfter,
+		fetchMoreForward,
 	}
 }
 

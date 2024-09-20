@@ -17,6 +17,7 @@ import {
 import { Stack } from '../Stack/Stack'
 import { Text } from '../Text/Text'
 import * as styles from './styles.css'
+import { themeVars } from '../../theme'
 
 export type SelectOption = {
 	name: string
@@ -574,7 +575,13 @@ export const SelectTrigger: React.FC<SelectTriggerProps> = ({
 					)}
 
 					{!hideArrow && (
-						<Ariakit.SelectArrow render={<IconSolidSelector />} />
+						<Ariakit.SelectArrow
+							render={
+								<IconSolidSelector
+									color={themeVars.static.content.moderate}
+								/>
+							}
+						/>
 					)}
 				</Stack>
 			</Stack>

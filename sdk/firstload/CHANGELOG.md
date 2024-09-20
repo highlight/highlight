@@ -1,5 +1,15 @@
 # highlight.run
 
+## 9.4.0
+
+### Minor Changes
+
+-   815faa8: fix rrweb postcss replay and live mode
+
+### Patch Changes
+
+-   815faa8: fix live mode breaking due to ischeckout of full snapshot
+
 ## 9.3.4
 
 ### Patch Changes
