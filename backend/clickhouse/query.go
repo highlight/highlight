@@ -51,6 +51,11 @@ type ReadMetricsInput struct {
 }
 
 func readObjects[TObj interface{}](ctx context.Context, client *Client, config model.TableConfig, samplingConfig model.TableConfig, projectID int, params modelInputs.QueryInput, pagination Pagination, scanObject func(driver.Rows) (*Edge[TObj], error)) (*Connection[TObj], error) {
+	limit := LogsLimit
+	if pagination.Limit != nil {
+		limit = *pagination.Limit
+	}
+
 	sb := sqlbuilder.NewSelectBuilder()
 	var err error
 	var args []interface{}
@@ -78,7 +83,7 @@ func readObjects[TObj interface{}](ctx context.Context, client *Client, config m
 		if err != nil {
 			return nil, err
 		}
-		beforeSb.Distinct().Limit(LogsLimit/2 + 1)
+		beforeSb.Distinct().Limit(limit/2 + 1)
 
 		atSb, _, err := makeSelectBuilder(
 			innerTableConfig,
@@ -104,7 +109,7 @@ func readObjects[TObj interface{}](ctx context.Context, client *Client, config m
 		if err != nil {
 			return nil, err
 		}
-		afterSb.Distinct().Limit(LogsLimit/2 + 1)
+		afterSb.Distinct().Limit(limit/2 + 1)
 
 		ub := sqlbuilder.UnionAll(beforeSb, atSb, afterSb)
 		sb.Select(outerSelect).
@@ -124,14 +129,14 @@ func readObjects[TObj interface{}](ctx context.Context, client *Client, config m
 			return nil, err
 		}
 
-		fromSb.Distinct().Limit(LogsLimit + 1)
+		fromSb.Distinct().Limit(limit + 1)
 		sb.Select(outerSelect).
 			Distinct().
 			From(config.TableName).
 			Where(sb.Equal("ProjectId", projectID)).
 			Where(sb.In(fmt.Sprintf("(%s)", strings.Join(innerSelect, ",")), fromSb)).
 			OrderBy(orderForward).
-			Limit(LogsLimit + 1)
+			Limit(limit + 1)
 	}
 
 	sql, args := sb.BuildWithFlavor(sqlbuilder.ClickHouse)
