@@ -541,6 +541,8 @@ func (w *Worker) excludeSession(ctx context.Context, s *model.Session, reason ba
 }
 
 func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
+	// TODO(vkorolik) TMP
+	return nil
 	if s.Excluded {
 		return nil
 	}
