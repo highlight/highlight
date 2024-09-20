@@ -81,6 +81,7 @@
   color: #3E3E44;
 }
 
+/* Result cards */
 .ikp-result-card__container {
   background-color: #16161800;
   border-radius: 6px;
@@ -103,6 +104,7 @@
   box-shadow: none;
 }
 
+/* AI chat box */
 .ikp-ai-chat__message-box {
   padding: 4px 6px 4px 6px;
   border-radius: 6px;
@@ -117,6 +119,7 @@
   border-color: #C8C7CB;
 }
 
+/* Search bar */
 .ikp-search-bar-stand-alone {
   padding: 0 6px 0 6px;
   border-radius: 6px;
@@ -136,6 +139,7 @@
   background-color: transparent;
 }
 
+/* "Ask AI" card */
 .ikp-ask-ai-card {
   background-color: #16161800;
   border-radius: 6px;
