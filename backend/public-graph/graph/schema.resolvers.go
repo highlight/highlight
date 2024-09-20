@@ -9,6 +9,7 @@ import (
 	"context"
 	"encoding/base64"
 	"encoding/json"
+	parse "github.com/highlight-run/highlight/backend/event-parse"
 	"github.com/highlight-run/highlight/backend/session_replay"
 	hlog "github.com/highlight/highlight/sdk/highlight-go/log"
 	"github.com/samber/lo"
@@ -250,23 +251,64 @@ func (r *mutationResolver) PushPayloadCompressed(ctx context.Context, sessionSec
 		return nil, err
 	}
 
+	// TODO: this isn't very performant, as marshaling the whole event obj to a string is expensive;
+	// should fix at some point.
+	eventBytes, err := json.Marshal(payload.Events)
+	if err != nil {
+		return nil, e.Wrap(err, "error marshaling events from schema interfaces")
+	}
+	parsedEvents, err := parse.EventsFromString(string(eventBytes))
+	if err != nil {
+		return nil, e.Wrap(err, "error parsing events from schema interfaces")
+	}
+
+	hostUrl := parse.GetHostUrlFromEvents(parsedEvents.Events)
+
+	for _, event := range parsedEvents.Events {
+		if event.Type == session_replay.FullSnapshot || event.Type == session_replay.IncrementalSnapshot {
+			snapshot, err := parse.NewSnapshot(event.Data, hostUrl)
+			if err != nil {
+				log.WithContext(ctx).WithField("sessionSecureID", sessionSecureID).WithField("length", len([]byte(event.Data))).WithError(err).Error("Error unmarshalling snapshot")
+				continue
+			}
+
+			// escape script tags in any javascript
+			err = snapshot.EscapeJavascript(ctx)
+			if err != nil {
+				log.WithContext(ctx).Error(e.Wrap(err, "Error escaping snapshot javascript"))
+			}
+
+			if event.Type == session_replay.FullSnapshot {
+				stylesheetsSpan, _ := util.StartSpanFromContext(ctx, "public-graph.pushPayload",
+					util.ResourceName("go.parseEvents.InjectStylesheets"))
+				// If we see a snapshot event, attempt to inject CORS stylesheets.
+				err := snapshot.InjectStylesheets(ctx)
+				stylesheetsSpan.Finish(err)
+				if err != nil {
+					log.WithContext(ctx).Error(e.Wrap(err, "Error injecting snapshot stylesheets"))
+				}
+			}
+
+			if event.Data, err = snapshot.Encode(); err != nil {
+				log.WithContext(ctx).Error(e.Wrap(err, "Error encoding snapshot"))
+				continue
+			}
+		}
+	}
+
 	// TODO(vkorolik) - dual writes, remove code above
 	var msgs []kafkaqueue.RetryableMessage
-	for _, event := range payload.Events.Events {
-		bt, err := json.Marshal(event.Data)
-		if err != nil {
-			return nil, err
-		}
+	for _, event := range parsedEvents.Events {
 		msgs = append(msgs, &kafkaqueue.Message{
 			Type: kafkaqueue.PushSessionReplayEvent,
 			PushSessionEvent: &kafkaqueue.PushSessionEventArgs{
 				SessionSecureID: sessionSecureID,
 				PayloadID:       payloadID,
 				Event: &session_replay.ReplayEvent{
-					TimestampRaw: event.Timestamp,
-					SID:          event.Sid,
-					Type:         session_replay.EventType(event.Type),
-					Data:         bt,
+					TimestampRaw: event.TimestampRaw,
+					SID:          event.SID,
+					Type:         event.Type,
+					Data:         event.Data,
 				},
 			},
 		})
