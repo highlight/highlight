@@ -19,6 +19,9 @@ const useInkeepSettings = (): InkeepSharedSettings => {
 		organizationId: 'org_k9k0yeE7ovNoTgrC',
 		primaryBrandColor: '#6C37F4',
 		organizationDisplayName: 'Highlight.io',
+		theme: {
+			stylesheetUrls: ['/inkeep.css'],
+		},
 	}
 
 	const modalSettings: InkeepModalSettings = {}

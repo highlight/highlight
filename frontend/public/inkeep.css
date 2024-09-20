@@ -1,0 +1,35 @@
+.ikp-modal-widget__content {
+  border-radius: 8px;
+  border: 1px solid #DCDBDD;
+}
+
+.ikp-ai-chat__header-toolbar {
+  background-color: #FDFCFD;
+  border-bottom: 1px solid #DCDBDD;
+  font-weight: 500;
+}
+
+.ikp-switch-view-toggle {
+  padding: 3px;
+  gap: 3px;
+  border-radius: 9px;
+  background-color: #F4F2F4;
+}
+
+.ikp-switch-view-toggle__button {
+  background-color: #F4F2F4;
+  color: #6F6E77;
+}
+
+.ikp-switch-view-toggle__button--active {
+  color: white;
+  padding: 4px 6px 4px 6px;
+  border-radius: 6px;
+  background-color: #744ED4;
+  box-shadow: 0px -1px 0px 0px #00000052 inset;
+}
+
+.ikp-switch-view-toggle__button--active .ikp-switch-to-chat-icon,
+.ikp-switch-view-toggle__button--active .ikp-switch-to-search-icon {
+  color: white;
+}
