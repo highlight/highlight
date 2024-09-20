@@ -876,7 +876,7 @@ func (client *Client) QuerySessionHistogram(ctx context.Context, admin *model.Ad
 func (client *Client) QuerySessionReplayEvents(ctx context.Context, session *model.Session, cursor *model.EventsCursor) ([]any, *model.EventsCursor, error) {
 	sb := sqlbuilder.NewSelectBuilder()
 	sb.Select("*")
-	sb.From(fmt.Sprintf(SessionReplayEventsTable))
+	sb.From(fmt.Sprintf("%s FINAL", SessionReplayEventsTable))
 	sb.Where(sb.Equal("SessionSecureID", session.SecureID))
 	sb.OrderBy("EventSid")
 	sql, args := sb.BuildWithFlavor(sqlbuilder.ClickHouse)

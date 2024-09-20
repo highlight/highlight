@@ -6,6 +6,6 @@ CREATE TABLE session_replay_events
     EventTimestamp  DateTime64(3),
     EventData       String,
     Expires         DateTime
-) ENGINE = MergeTree
+) ENGINE = ReplacingMergeTree
       ORDER BY (SessionSecureID, EventSid)
       TTL Expires;
