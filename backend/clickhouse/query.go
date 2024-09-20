@@ -55,6 +55,7 @@ func readObjects[TObj interface{}](ctx context.Context, client *Client, config m
 	if pagination.Limit != nil {
 		limit = *pagination.Limit
 	}
+
 	sb := sqlbuilder.NewSelectBuilder()
 	var err error
 	var args []interface{}
