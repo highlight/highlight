@@ -52,6 +52,7 @@ import { SIGN_IN_ROUTE } from '@/pages/Auth/AuthRouter'
 import { authRedirect } from '@/pages/Auth/utils'
 import { onlyAllowHighlightStaff } from '@/util/authorization/authorizationUtils'
 import { omit } from 'lodash'
+import FeatureFlagProvider from '@context/FeatureFlagContext'
 
 document.body.className = 'highlight-light-theme'
 
@@ -173,37 +174,40 @@ const App = () => {
 	return (
 		<ErrorBoundary>
 			<ApolloProvider client={client}>
-				<SkeletonTheme
-					baseColor="var(--color-gray-200)"
-					highlightColor="var(--color-primary-background)"
-				>
-					<AppLoadingContext
-						value={{
-							loadingState,
-							setLoadingState,
-						}}
+				<FeatureFlagProvider>
+					<SkeletonTheme
+						baseColor="var(--color-gray-200)"
+						highlightColor="var(--color-primary-background)"
 					>
-						<LoadingPage />
-						<BrowserRouter>
-							<QueryParamProvider
-								adapter={ReactRouter6Adapter}
-								options={{
-									searchStringToObject: parse,
-									objectToSearchString: stringify,
-								}}
-							>
-								<AuthenticationRoleRouter />
-							</QueryParamProvider>
-							<Toaster />
-						</BrowserRouter>
-					</AppLoadingContext>
-				</SkeletonTheme>
+						<AppLoadingContext
+							value={{
+								loadingState,
+								setLoadingState,
+							}}
+						>
+							<LoadingPage />
+							<BrowserRouter>
+								<QueryParamProvider
+									adapter={ReactRouter6Adapter}
+									options={{
+										searchStringToObject: parse,
+										objectToSearchString: stringify,
+									}}
+								>
+									<AuthenticationRoleRouter />
+								</QueryParamProvider>
+								<Toaster />
+							</BrowserRouter>
+						</AppLoadingContext>
+					</SkeletonTheme>
+				</FeatureFlagProvider>
 			</ApolloProvider>
 		</ErrorBoundary>
 	)
 }
 
 const AuthenticationRoleRouter = () => {
+	analytics.useAnalytics()
 	const location = useLocation()
 	const navigate = useNavigate()
 	const workspaceId = /^\/w\/(\d+)\/.*$/.exec(location.pathname)?.pop()
@@ -367,18 +371,21 @@ const AuthenticationRoleRouter = () => {
 					return
 				}
 
+				const adminDetails = Object.entries(
+					omit(adminData, ['__typename']),
+				).reduce(
+					(acc, [key, value]) => {
+						if (value) {
+							acc[key] = value.toString()
+						}
+						return acc
+					},
+					{} as Record<string, string>,
+				)
 				analytics.identify(adminData.id, {
 					'Project ID': data.project?.id,
 					'Workspace ID': data.project?.workspace?.id,
-					...Object.entries(omit(adminData, ['__typename'])).reduce(
-						(acc, [key, value]) => {
-							if (value) {
-								acc[key] = value.toString()
-							}
-							return acc
-						},
-						{} as Record<string, string>,
-					),
+					...adminDetails,
 				})
 			},
 		})

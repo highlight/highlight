@@ -9715,6 +9715,10 @@ __metadata:
     "@parcel/watcher": "npm:^2.4.1"
     "@rehooks/local-storage": "npm:^2.4.5"
     "@rrweb/types": "workspace:*"
+    "@statsig/js-client": "npm:^3.0.0"
+    "@statsig/react-bindings": "npm:^3.0.0"
+    "@statsig/session-replay": "npm:^3.0.0"
+    "@statsig/web-analytics": "npm:^3.0.0"
     "@stripe/stripe-js": "npm:^1.32.0"
     "@svgr/cli": "npm:^8.1.0"
     "@svgr/core": "npm:^7.0.0"
@@ -9775,6 +9779,7 @@ __metadata:
     highlight.run: "workspace:*"
     js-cookie: "npm:^3.0.1"
     jsonc-parser: "npm:^3.2.0"
+    launchdarkly-react-client-sdk: "npm:^3.4.0"
     less: "npm:^4.1.3"
     lightningcss: "npm:^1.22.1"
     lodash: "npm:^4.17.21"
@@ -16800,7 +16805,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@rrweb/types@workspace:*, @rrweb/types@workspace:rrweb/packages/types":
+"@rrweb/types@npm:^2.0.0-alpha.12, @rrweb/types@workspace:*, @rrweb/types@workspace:rrweb/packages/types":
   version: 0.0.0-use.local
   resolution: "@rrweb/types@workspace:rrweb/packages/types"
   dependencies:
@@ -17778,6 +17783,54 @@ __metadata:
     follow-redirects: "npm:^1.15.6"
     tar-fs: "npm:^3.0.6"
   checksum: 10/99fdb1480af62ff3617dc868f9d3c93474a41621b06efcf25650d039c79fabb1097dacc3266f77e76984518b28296999bd33e551737b5a980b01de998d27df5e
+  languageName: node
+  linkType: hard
+
+"@statsig/client-core@npm:3.0.0":
+  version: 3.0.0
+  resolution: "@statsig/client-core@npm:3.0.0"
+  checksum: 10/8d3da4445e5b6fe77dafe23d7c46e67239f12f3d88d14fdff3c675329a21c21616131e68b7848b6eb73b697ecb3e21bc0b82f5ce5a841dddbc2ad53518f53650
+  languageName: node
+  linkType: hard
+
+"@statsig/js-client@npm:3.0.0, @statsig/js-client@npm:^3.0.0":
+  version: 3.0.0
+  resolution: "@statsig/js-client@npm:3.0.0"
+  dependencies:
+    "@statsig/client-core": "npm:3.0.0"
+  checksum: 10/45412754ec8318b63940c503ee14e9edcc9b63ea7c9b6abe18983680bb82c1bc27078a7be1497198ee2779354f4768f2638047910748a1dbe6f2b87a86b551b3
+  languageName: node
+  linkType: hard
+
+"@statsig/react-bindings@npm:^3.0.0":
+  version: 3.0.0
+  resolution: "@statsig/react-bindings@npm:3.0.0"
+  dependencies:
+    "@statsig/client-core": "npm:3.0.0"
+    "@statsig/js-client": "npm:3.0.0"
+  peerDependencies:
+    react: ^16.6.3 || ^17.0.0 || ^18.0.0
+  checksum: 10/2236f7ecf74b0f82f4e7d6a748ef4e22e38e78af59c9015b1bb17015446b49381c8d0a583b14512849f31dd7936474f24fec36c2bb7ffc7cc4be3f098873cb41
+  languageName: node
+  linkType: hard
+
+"@statsig/session-replay@npm:^3.0.0":
+  version: 3.0.0
+  resolution: "@statsig/session-replay@npm:3.0.0"
+  dependencies:
+    "@statsig/client-core": "npm:3.0.0"
+    rrweb: "npm:2.0.0-alpha.12"
+  checksum: 10/1c5a8160fa8a6ad34f7fa03677d62b6f941bc3ffe3b3e7274799306ad5e3966d53a899ac510580ef1a39c23abf4b7178bc7f81ace16c0ad630bafefb6eda1343
+  languageName: node
+  linkType: hard
+
+"@statsig/web-analytics@npm:^3.0.0":
+  version: 3.0.0
+  resolution: "@statsig/web-analytics@npm:3.0.0"
+  dependencies:
+    "@statsig/client-core": "npm:3.0.0"
+    "@statsig/js-client": "npm:3.0.0"
+  checksum: 10/fa04b10f947d96550ff0dd5cdad0740ddbfe2fd35234bd96387ae868171dd48dc107c34b4a0e699523db0b9daec09bcc61ab5a71d1a33c109dfb5c9fa9e68c21
   languageName: node
   linkType: hard
 
@@ -33787,6 +33840,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"fast-deep-equal@npm:^2.0.1":
+  version: 2.0.1
+  resolution: "fast-deep-equal@npm:2.0.1"
+  checksum: 10/b701835a87985e0ec4925bdf1f0c1e7eb56309b5d12d534d5b4b69d95a54d65bb16861c081781ead55f73f12d6c60ba668713391ee7fbf6b0567026f579b7b0b
+  languageName: node
+  linkType: hard
+
 "fast-diff@npm:^1.1.2":
   version: 1.3.0
   resolution: "fast-diff@npm:1.3.0"
@@ -40790,6 +40850,41 @@ __metadata:
     picocolors: "npm:^1.0.0"
     shell-quote: "npm:^1.8.1"
   checksum: 10/e06d193075ac09f7f8109f10cabe464a211bf7ed4cbe75f83348d6f67bf4d9f162f06e7a1ab3e1cd7fc250b5342c3b57080618aff2e646dc34248fe499227601
+  languageName: node
+  linkType: hard
+
+"launchdarkly-js-client-sdk@npm:^3.3.0":
+  version: 3.4.0
+  resolution: "launchdarkly-js-client-sdk@npm:3.4.0"
+  dependencies:
+    escape-string-regexp: "npm:^4.0.0"
+    launchdarkly-js-sdk-common: "npm:5.3.0"
+  checksum: 10/4f63bf5dda5d4b1f37f2a34d6d4a6ecc9f927348b5cd091765ca9d42298f2d47e2ae7de04166d777312fee55d72545bb877a3098fb93b246e82365c3340acc2c
+  languageName: node
+  linkType: hard
+
+"launchdarkly-js-sdk-common@npm:5.3.0":
+  version: 5.3.0
+  resolution: "launchdarkly-js-sdk-common@npm:5.3.0"
+  dependencies:
+    base64-js: "npm:^1.3.0"
+    fast-deep-equal: "npm:^2.0.1"
+    uuid: "npm:^8.0.0"
+  checksum: 10/f6c9f3912659600335b4db07dde1917f93d1a0db8b4427d1d6b00233067380519b73d4789e9061d7d84f7907e46c1b8d4bb377d42abbb1b2539a488fbfec1f5b
+  languageName: node
+  linkType: hard
+
+"launchdarkly-react-client-sdk@npm:^3.4.0":
+  version: 3.4.0
+  resolution: "launchdarkly-react-client-sdk@npm:3.4.0"
+  dependencies:
+    hoist-non-react-statics: "npm:^3.3.2"
+    launchdarkly-js-client-sdk: "npm:^3.3.0"
+    lodash.camelcase: "npm:^4.3.0"
+  peerDependencies:
+    react: ^16.6.3 || ^17.0.0 || ^18.0.0
+    react-dom: ^16.8.4 || ^17.0.0 || ^18.0.0
+  checksum: 10/3aa3e744450be511b38991b8a73da59dc74cceb34f7a2471d88982be3da880e7d1bceaabd8c8a7f7ba7a042006c5d74bfa6049cae2e05fe9ad4827a75c598474
   languageName: node
   linkType: hard
 
@@ -51249,7 +51344,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"rrdom@workspace:*, rrdom@workspace:rrweb/packages/rrdom":
+"rrdom@npm:^2.0.0-alpha.12, rrdom@workspace:*, rrdom@workspace:rrweb/packages/rrdom":
   version: 0.0.0-use.local
   resolution: "rrdom@workspace:rrweb/packages/rrdom"
   dependencies:
@@ -51313,7 +51408,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"rrweb-snapshot@workspace:*, rrweb-snapshot@workspace:rrweb/packages/rrweb-snapshot":
+"rrweb-snapshot@npm:^2.0.0-alpha.12, rrweb-snapshot@workspace:*, rrweb-snapshot@workspace:rrweb/packages/rrweb-snapshot":
   version: 0.0.0-use.local
   resolution: "rrweb-snapshot@workspace:rrweb/packages/rrweb-snapshot"
   dependencies:
@@ -51331,6 +51426,22 @@ __metadata:
     vitest: "npm:^1.4.0"
   languageName: unknown
   linkType: soft
+
+"rrweb@npm:2.0.0-alpha.12":
+  version: 2.0.0-alpha.12
+  resolution: "rrweb@npm:2.0.0-alpha.12"
+  dependencies:
+    "@rrweb/types": "npm:^2.0.0-alpha.12"
+    "@types/css-font-loading-module": "npm:0.0.7"
+    "@xstate/fsm": "npm:^1.4.0"
+    base64-arraybuffer: "npm:^1.0.1"
+    fflate: "npm:^0.4.4"
+    mitt: "npm:^3.0.0"
+    rrdom: "npm:^2.0.0-alpha.12"
+    rrweb-snapshot: "npm:^2.0.0-alpha.12"
+  checksum: 10/36b4516849184241a722a4cc1cddc494938940519b845cc6cea165d9c84a0686f8ebf40792bfd760f29c9e5f4af90620734b6e12c19de827926fc345439af2a7
+  languageName: node
+  linkType: hard
 
 "rrweb@workspace:*, rrweb@workspace:rrweb/packages/rrweb":
   version: 0.0.0-use.local
