@@ -51258,7 +51258,6 @@ __metadata:
     "@typescript-eslint/eslint-plugin": "npm:^5.23.0"
     "@typescript-eslint/parser": "npm:^5.23.0"
     eslint: "npm:^8.15.0"
-    happy-dom: "npm:^14.12.0"
     puppeteer: "npm:^17.1.3"
     rrweb-snapshot: "workspace:*"
     turbo: "npm:^2.0.5"
