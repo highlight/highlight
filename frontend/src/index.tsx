@@ -73,6 +73,11 @@ const clientDebug = window.localStorage.getItem(clientDebugKey)
 if (!clientDebug) {
 	window.localStorage.setItem(clientDebugKey, 'false')
 }
+const clientOtelKey = 'highlight-client-otel'
+const clientOtel = window.localStorage.getItem(clientOtelKey)
+if (!clientOtel) {
+	window.localStorage.setItem(clientOtelKey, 'true')
+}
 const shouldDebugLog = clientDebug === 'true'
 const options: HighlightOptions = {
 	debug: shouldDebugLog
@@ -123,7 +128,7 @@ const options: HighlightOptions = {
 	sessionShortcut: 'alt+1,command+`,alt+esc',
 	version: import.meta.env.REACT_APP_COMMIT_SHA ?? '1.0.0',
 	serviceName: 'frontend',
-	enableOtelTracing: true,
+	enableOtelTracing: clientOtel !== 'false',
 	otlpEndpoint: OTLP_ENDPOINT,
 }
 const favicon = document.querySelector("link[rel~='icon']") as any

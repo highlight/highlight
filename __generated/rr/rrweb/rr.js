@@ -209,9 +209,13 @@ function stringifyStylesheet(s2) {
     if (!rules2) {
       return null;
     }
+    let sheetHref = s2.href;
+    if (!sheetHref && s2.ownerNode && s2.ownerNode.ownerDocument) {
+      sheetHref = s2.ownerNode.ownerDocument.location.href;
+    }
     const stringifiedRules = Array.from(
       rules2,
-      (rule) => stringifyRule(rule, s2.href)
+      (rule) => stringifyRule(rule, sheetHref)
     ).join("");
     return fixBrowserCompatibilityIssuesInCSS(stringifiedRules);
   } catch (error) {
@@ -446,9 +450,43 @@ function absolutifyURLs(cssText, href) {
     }
   );
 }
+function normalizeCssString(cssText) {
+  return cssText.replace(/(\/\*[^*]*\*\/)|[\s;]/g, "");
+}
+function splitCssText(cssText, style) {
+  const childNodes2 = Array.from(style.childNodes);
+  const splits = [];
+  if (childNodes2.length > 1 && cssText && typeof cssText === "string") {
+    const cssTextNorm = normalizeCssString(cssText);
+    for (let i2 = 1; i2 < childNodes2.length; i2++) {
+      if (childNodes2[i2].textContent && typeof childNodes2[i2].textContent === "string") {
+        const textContentNorm = normalizeCssString(childNodes2[i2].textContent);
+        for (let j = 3; j < textContentNorm.length; j++) {
+          const bit = textContentNorm.substring(0, j);
+          if (cssTextNorm.split(bit).length === 2) {
+            const splitNorm = cssTextNorm.indexOf(bit);
+            for (let k = splitNorm; k < cssText.length; k++) {
+              if (normalizeCssString(cssText.substring(0, k)).length === splitNorm) {
+                splits.push(cssText.substring(0, k));
+                cssText = cssText.substring(k);
+                break;
+              }
+            }
+            break;
+          }
+        }
+      }
+    }
+  }
+  splits.push(cssText);
+  return splits;
+}
+function markCssSplits(cssText, style) {
+  return splitCssText(cssText, style).join("/* rr_split */");
+}
 function obfuscateText(text) {
   text = text.replace(/[^ -~]+/g, "");
-  text = (text == null ? void 0 : text.split(" ").map((word) => Math.random().toString(20).substr(2, word.length)).join(" ")) || "";
+  text = (text == null ? void 0 : text.split(" ").map((word) => Math.random().toString(20).substring(2, word.length)).join(" ")) || "";
   return text;
 }
 function isElementSrcBlocked(tagName) {
@@ -759,6 +797,7 @@ function serializeNode(n2, options) {
     recordCanvas,
     keepIframeSrcFn,
     newlyAddedElement = false,
+    cssCaptured = false,
     privacySetting
   } = options;
   const rootId = getRootId(doc, mirror2);
@@ -808,7 +847,8 @@ function serializeNode(n2, options) {
         needsMask,
         maskTextFn,
         privacySetting,
-        rootId
+        rootId,
+        cssCaptured
       });
     case n2.CDATA_SECTION_NODE:
       return {
@@ -833,48 +873,28 @@ function getRootId(doc, mirror2) {
   return docId === 1 ? void 0 : docId;
 }
 function serializeTextNode(n2, options) {
-  var _a2, _b;
-  const {
-    needsMask,
-    maskTextFn,
-    privacySetting,
-    rootId
-  } = options;
+  var _a2;
+  const { needsMask, maskTextFn, privacySetting, rootId, cssCaptured } = options;
   const parent = index$1.parentNode(n2);
   const parentTagName = parent && parent.tagName;
-  let text = index$1.textContent(n2);
+  let textContent2 = "";
   const isStyle = parentTagName === "STYLE" ? true : void 0;
   const isScript = parentTagName === "SCRIPT" ? true : void 0;
-  let textContentHandled = false;
-  if (isStyle && text) {
-    try {
-      if (n2.nextSibling || n2.previousSibling) {
-      } else if ((_a2 = parent.sheet) == null ? void 0 : _a2.cssRules) {
-        text = stringifyStylesheet(parent.sheet);
-      }
-    } catch (err) {
-      console.warn(
-        `Cannot get CSS styles from text's parentNode. Error: ${err}`,
-        n2
-      );
-    }
-    text = absolutifyURLs(text, getHref(options.doc));
-    textContentHandled = true;
-  }
   if (isScript) {
-    text = "SCRIPT_PLACEHOLDER";
-    textContentHandled = true;
-  } else if (parentTagName === "NOSCRIPT") {
-    text = "";
-    textContentHandled = true;
+    textContent2 = "SCRIPT_PLACEHOLDER";
+  } else if (!cssCaptured) {
+    textContent2 = index$1.textContent(n2);
+    if (isStyle && textContent2) {
+      textContent2 = absolutifyURLs(textContent2, getHref(options.doc));
+    }
   }
-  if (!isStyle && !isScript && text && needsMask) {
-    text = maskTextFn ? maskTextFn(text, index$1.parentElement(n2)) : text.replace(/[\S]/g, "*");
+  if (!isStyle && !isScript && textContent2 && needsMask) {
+    textContent2 = maskTextFn ? maskTextFn(textContent2, index$1.parentElement(n2)) : textContent2.replace(/[\S]/g, "*");
   }
   const enableStrictPrivacy = privacySetting === "strict";
-  const highlightOverwriteRecord = (_b = n2.parentElement) == null ? void 0 : _b.getAttribute("data-hl-record");
-  const obfuscateDefaultPrivacy = privacySetting === "default" && shouldObfuscateTextByDefault(text);
-  if ((enableStrictPrivacy || obfuscateDefaultPrivacy) && !highlightOverwriteRecord && !textContentHandled && parentTagName) {
+  const highlightOverwriteRecord = (_a2 = n2.parentElement) == null ? void 0 : _a2.getAttribute("data-hl-record");
+  const obfuscateDefaultPrivacy = privacySetting === "default" && shouldObfuscateTextByDefault(textContent2);
+  if ((enableStrictPrivacy || obfuscateDefaultPrivacy) && !highlightOverwriteRecord && parentTagName) {
     const IGNORE_TAG_NAMES = /* @__PURE__ */ new Set([
       "HEAD",
       "TITLE",
@@ -884,14 +904,13 @@ function serializeTextNode(n2, options) {
       "BODY",
       "NOSCRIPT"
     ]);
-    if (!IGNORE_TAG_NAMES.has(parentTagName) && text) {
-      text = obfuscateText(text);
+    if (!IGNORE_TAG_NAMES.has(parentTagName) && textContent2) {
+      textContent2 = obfuscateText(textContent2);
     }
   }
   return {
     type: NodeType$2.Text,
-    textContent: text || "",
-    isStyle,
+    textContent: textContent2 || "",
     rootId
   };
 }
@@ -943,12 +962,14 @@ function serializeElementNode(n2, options) {
       attributes._cssText = cssText;
     }
   }
-  if (tagName === "style" && n2.sheet && // TODO: Currently we only try to get dynamic stylesheet when it is an empty style element
-  !(n2.innerText || index$1.textContent(n2) || "").trim().length) {
-    const cssText = stringifyStylesheet(
+  if (tagName === "style" && n2.sheet) {
+    let cssText = stringifyStylesheet(
       n2.sheet
     );
     if (cssText) {
+      if (n2.childNodes.length > 1) {
+        cssText = markCssSplits(cssText, n2);
+      }
       attributes._cssText = cssText;
     }
   }
@@ -1181,6 +1202,7 @@ function serializeNodeWithId(n2, options) {
     stylesheetLoadTimeout = 5e3,
     keepIframeSrcFn = () => false,
     newlyAddedElement = false,
+    cssCaptured = false,
     privacySetting
   } = options;
   let { needsMask } = options;
@@ -1210,6 +1232,7 @@ function serializeNodeWithId(n2, options) {
     recordCanvas,
     keepIframeSrcFn,
     newlyAddedElement,
+    cssCaptured,
     privacySetting
   });
   if (!_serializedNode) {
@@ -1219,7 +1242,7 @@ function serializeNodeWithId(n2, options) {
   let id;
   if (mirror2.hasNode(n2)) {
     id = mirror2.getId(n2);
-  } else if (slimDOMExcluded(_serializedNode, slimDOMOptions) || !preserveWhiteSpace && _serializedNode.type === NodeType$2.Text && !_serializedNode.isStyle && !_serializedNode.textContent.replace(/^\s+|\s+$/gm, "").length) {
+  } else if (slimDOMExcluded(_serializedNode, slimDOMOptions) || !preserveWhiteSpace && _serializedNode.type === NodeType$2.Text && !_serializedNode.textContent.replace(/^\s+|\s+$/gm, "").length) {
     id = IGNORED_NODE;
   } else {
     id = genId();
@@ -1278,11 +1301,15 @@ function serializeNodeWithId(n2, options) {
       onStylesheetLoad,
       stylesheetLoadTimeout,
       keepIframeSrcFn,
+      cssCaptured: false,
       privacySetting: overwrittenPrivacySetting
     };
     if (serializedNode.type === NodeType$2.Element && serializedNode.tagName === "textarea" && serializedNode.attributes.value !== void 0)
       ;
     else {
+      if (serializedNode.type === NodeType$2.Element && serializedNode.attributes._cssText !== void 0 && typeof serializedNode.attributes._cssText === "string") {
+        bypassOptions.cssCaptured = true;
+      }
       for (const childN of Array.from(index$1.childNodes(n2))) {
         const serializedChildNode = serializeNodeWithId(childN, bypassOptions);
         if (serializedChildNode) {
@@ -2083,6 +2110,36 @@ function createCache() {
     stylesWithHoverClass
   };
 }
+function applyCssSplits(n2, cssText, hackCss, cache) {
+  const childTextNodes = [];
+  for (const scn of n2.childNodes) {
+    if (scn.type === NodeType$2.Text) {
+      childTextNodes.push(scn);
+    }
+  }
+  const cssTextSplits = cssText.split("/* rr_split */");
+  while (cssTextSplits.length > 1 && cssTextSplits.length > childTextNodes.length) {
+    cssTextSplits.splice(-2, 2, cssTextSplits.slice(-2).join(""));
+  }
+  for (let i2 = 0; i2 < childTextNodes.length; i2++) {
+    const childTextNode = childTextNodes[i2];
+    const cssTextSection = cssTextSplits[i2];
+    if (childTextNode && cssTextSection) {
+      childTextNode.textContent = hackCss ? adaptCssForReplay(cssTextSection, cache) : cssTextSection;
+    }
+  }
+}
+function buildStyleNode(n2, styleEl, cssText, options) {
+  const { doc, hackCss, cache } = options;
+  if (n2.childNodes.length) {
+    applyCssSplits(n2, cssText, hackCss, cache);
+  } else {
+    if (hackCss) {
+      cssText = adaptCssForReplay(cssText, cache);
+    }
+    styleEl.appendChild(doc.createTextNode(cssText));
+  }
+}
 function buildNode(n2, options) {
   var _a2;
   const { doc, hackCss, cache } = options;
@@ -2132,12 +2189,12 @@ function buildNode(n2, options) {
           specialAttributes[name] = value;
           continue;
         }
-        const isTextarea = tagName === "textarea" && name === "value";
-        const isRemoteOrDynamicCss = tagName === "style" && name === "_cssText";
-        if (isRemoteOrDynamicCss && hackCss && typeof value === "string") {
-          value = adaptCssForReplay(value, cache);
-        }
-        if ((isTextarea || isRemoteOrDynamicCss) && typeof value === "string") {
+        if (typeof value !== "string")
+          ;
+        else if (tagName === "style" && name === "_cssText") {
+          buildStyleNode(n2, node, value, options);
+          continue;
+        } else if (tagName === "textarea" && name === "value") {
           node.appendChild(doc.createTextNode(value));
           n2.childNodes = [];
           continue;
@@ -2232,9 +2289,10 @@ function buildNode(n2, options) {
       return node;
     }
     case NodeType$2.Text:
-      return doc.createTextNode(
-        n2.isStyle && hackCss ? adaptCssForReplay(n2.textContent, cache) : n2.textContent
-      );
+      if (n2.isStyle && hackCss) {
+        return doc.createTextNode(adaptCssForReplay(n2.textContent, cache));
+      }
+      return doc.createTextNode(n2.textContent);
     case NodeType$2.CDATA:
       return doc.createCDATASection(n2.textContent);
     case NodeType$2.Comment:
@@ -3233,8 +3291,13 @@ function diffProps(oldTree, newTree, rrnodeMirror) {
       };
     } else if (newTree.tagName === "IFRAME" && name === "srcdoc")
       continue;
-    else
-      oldTree.setAttribute(name, newValue);
+    else {
+      try {
+        oldTree.setAttribute(name, newValue);
+      } catch (err) {
+        console.warn(err);
+      }
+    }
   }
   for (const { name } of Array.from(oldAttributes))
     if (!(name in newAttributes))
@@ -4537,8 +4600,17 @@ var MutationBuffer = class {
       };
       const pushAdd = (n2) => {
         const parent = index.parentNode(n2);
-        if (!parent || !inDom(n2) || parent.tagName === "TEXTAREA") {
+        if (!parent || !inDom(n2)) {
           return;
+        }
+        let cssCaptured = false;
+        if (n2.nodeType === Node.TEXT_NODE) {
+          const parentTag = parent.tagName;
+          if (parentTag === "TEXTAREA") {
+            return;
+          } else if (parentTag === "STYLE" && this.addedSet.has(parent)) {
+            cssCaptured = true;
+          }
         }
         const parentId = isShadowRoot(parent) ? this.mirror.getId(getShadowHost(n2)) : this.mirror.getId(parent);
         const nextId = getNextId(n2);
@@ -4582,7 +4654,8 @@ var MutationBuffer = class {
           },
           onStylesheetLoad: (link, childSn) => {
             this.stylesheetManager.attachLinkElement(link, childSn);
-          }
+          },
+          cssCaptured
         });
         if (sn) {
           adds.push({
@@ -9823,6 +9896,9 @@ var Replayer = class {
         "html.rrweb-paused *, html.rrweb-paused *:before, html.rrweb-paused *:after { animation-play-state: paused !important; }"
       );
     }
+    if (!injectStylesRules.length) {
+      return;
+    }
     if (this.usingVirtualDom) {
       const styleEl = this.virtualDom.createElement("style");
       this.virtualDom.mirror.add(
@@ -10506,7 +10582,12 @@ var Replayer = class {
         }
         return this.warnNodeNotFound(d, mutation.id);
       }
-      target.textContent = mutation.value;
+      const parentEl = target.parentElement;
+      if (mutation.value && parentEl && parentEl.tagName === "STYLE") {
+        target.textContent = adaptCssForReplay(mutation.value, this.cache);
+      } else {
+        target.textContent = mutation.value;
+      }
       if (this.usingVirtualDom) {
         const parent = target.parentNode;
         if (((_a2 = parent == null ? void 0 : parent.rules) == null ? void 0 : _a2.length) > 0)

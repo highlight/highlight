@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    highlight_io (0.5.0)
+    highlight_io (0.5.2)
       grpc (~> 1.66)
       opentelemetry-exporter-otlp (~> 0.28.1)
       opentelemetry-instrumentation-all (~> 0.62.1)
@@ -12,11 +12,14 @@ GEM
   remote: https://rubygems.org/
   specs:
     ast (2.4.2)
-    google-protobuf (3.25.3)
-    google-protobuf (3.25.3-arm64-darwin)
-    googleapis-common-protos-types (1.15.0)
+    google-protobuf (3.25.5-arm64-darwin)
+    google-protobuf (3.25.5-x86_64-linux)
+    googleapis-common-protos-types (1.16.0)
       google-protobuf (>= 3.18, < 5.a)
     grpc (1.66.0-arm64-darwin)
+      google-protobuf (>= 3.25, < 5.0)
+      googleapis-common-protos-types (~> 1.0)
+    grpc (1.66.0-x86_64-linux)
       google-protobuf (>= 3.25, < 5.0)
       googleapis-common-protos-types (~> 1.0)
     json (2.6.3)
@@ -35,7 +38,7 @@ GEM
     opentelemetry-helpers-mysql (0.1.1)
       opentelemetry-api (~> 1.0)
       opentelemetry-common (~> 0.21)
-    opentelemetry-helpers-sql-obfuscation (0.1.1)
+    opentelemetry-helpers-sql-obfuscation (0.2.0)
       opentelemetry-common (~> 0.21)
     opentelemetry-instrumentation-action_mailer (0.1.0)
       opentelemetry-api (~> 1.0)
@@ -230,8 +233,7 @@ GEM
     rainbow (3.1.1)
     rake (12.3.3)
     regexp_parser (2.8.1)
-    rexml (3.2.8)
-      strscan (>= 3.0.9)
+    rexml (3.3.7)
     rubocop (1.55.1)
       json (~> 2.3)
       language_server-protocol (>= 3.17.0)
@@ -246,7 +248,6 @@ GEM
     rubocop-ast (1.29.0)
       parser (>= 3.2.1.0)
     ruby-progressbar (1.13.0)
-    strscan (3.1.0)
     unicode-display_width (2.4.2)
 
 PLATFORMS

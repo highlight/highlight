@@ -80,7 +80,13 @@ export const XHRListener = (
 		}
 
 		const [sessionSecureID, requestId] = createNetworkRequestId(otelEnabled)
-		if (shouldNetworkRequestBeTraced(this._url, tracingOrigins)) {
+		if (
+			shouldNetworkRequestBeTraced(
+				this._url,
+				tracingOrigins,
+				urlBlocklist,
+			)
+		) {
 			this.setRequestHeader(
 				HIGHLIGHT_REQUEST_HEADER,
 				getHighlightRequestHeader(sessionSecureID, requestId),

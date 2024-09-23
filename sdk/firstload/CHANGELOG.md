@@ -1,5 +1,22 @@
 # highlight.run
 
+## 9.4.1
+
+### Patch Changes
+
+-   a95d52b: record pri.highlight.io requests
+-   f432e66: block tracing via x-highlight-request header via urlblocklist
+
+## 9.4.0
+
+### Minor Changes
+
+-   815faa8: fix rrweb postcss replay and live mode
+
+### Patch Changes
+
+-   815faa8: fix live mode breaking due to ischeckout of full snapshot
+
 ## 9.3.4
 
 ### Patch Changes

@@ -28,6 +28,10 @@ export const selectButton = style({
 	},
 })
 
+export const disabled = style({
+	backgroundColor: vars.theme.interactive.fill.secondary.disabled,
+})
+
 export const combobox = style({
 	width: '100%',
 	border: 'none',

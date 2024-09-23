@@ -46,7 +46,7 @@ import {
 	viewportResizeDimension,
 } from '@rrweb/types'
 import analytics from '@util/analytics'
-import log from '@util/log'
+import log, { verboseLoggingEnabled } from '@util/log'
 import { timedCall } from '@util/perf/instrument'
 import { H } from 'highlight.run'
 import { throttle } from 'lodash'
@@ -417,6 +417,7 @@ export const PlayerReducer = (
 			break
 		case PlayerActionType.updateEvents:
 			if (s.replayer) {
+				log('updateEvents', { events })
 				s.replayer.replaceEvents(events)
 			}
 			break
@@ -465,6 +466,7 @@ export const PlayerReducer = (
 					s = processSessionMetadata(s, events)
 				}
 			} else {
+				log('onChunksLoad', { events })
 				s.replayer.replaceEvents(events)
 			}
 			s = replayerAction(
@@ -565,7 +567,9 @@ const initReplayer = (
 		mouseTail: showPlayerMouseTail,
 		UNSAFE_replayCanvas: true,
 		liveMode: s.isLiveMode,
-		useVirtualDom: false,
+		useVirtualDom: true,
+		showWarning: verboseLoggingEnabled,
+		showDebug: verboseLoggingEnabled,
 		pauseAnimation: !PROJECTS_WITH_CSS_ANIMATIONS.includes(s.project_id),
 		logger: {
 			log: throttle(console.log, 100),
@@ -912,16 +916,10 @@ export const getEvents = (
 		'clear' | 'set' | 'delete'
 	>,
 ) => {
-	let numEvents = 0
 	const events = []
-	for (const [, v] of [...chunkEvents.entries()].sort(
-		(a, b) => a[0] - b[0],
-	)) {
+	for (const [, v] of [...chunkEvents.entries()]) {
 		for (const val of v) {
 			if (val) {
-				if (numEvents++ >= MAX_SHORT_INT_SIZE) {
-					return events
-				}
 				events.push(val)
 			}
 		}
