@@ -1,3 +1,7 @@
+## 0.5.2
+
+- Update dependencies with security vulnerabilities
+
 ## 0.5.1
 
 - Fix bug with SDK controller instrumentation

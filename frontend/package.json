@@ -120,6 +120,7 @@
 		"@graphql-codegen/typescript-operations": "^1.17.14",
 		"@graphql-codegen/typescript-react-apollo": "^2.2.1",
 		"@highlight-run/sourcemap-uploader": "workspace:*",
+		"@parcel/watcher": "^2.4.1",
 		"@rrweb/types": "workspace:*",
 		"@svgr/cli": "^8.1.0",
 		"@svgr/core": "^7.0.0",
