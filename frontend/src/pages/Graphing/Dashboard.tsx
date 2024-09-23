@@ -30,7 +30,7 @@ import {
 } from '@highlight-run/ui/components'
 import { vars } from '@highlight-run/ui/vars'
 import clsx from 'clsx'
-import { useId, useState } from 'react'
+import { useEffect, useId, useState } from 'react'
 import { Helmet } from 'react-helmet'
 import { Link, useNavigate } from 'react-router-dom'
 
@@ -131,13 +131,6 @@ export const Dashboard = () => {
 	const { projectId } = useProjectId()
 	const { data } = useGetVisualizationQuery({
 		variables: { id: dashboard_id! },
-		onCompleted: (data) => {
-			setGraphs(data.visualization.graphs)
-			const preset = data.visualization.timePreset
-			if (preset) {
-				updateSearchTime(new Date(), new Date(), parsePreset(preset))
-			}
-		},
 	})
 
 	const [upsertViz] = useUpsertVisualizationMutation()
@@ -149,6 +142,17 @@ export const Dashboard = () => {
 			presets: presets,
 			initialPreset: DEFAULT_TIME_PRESETS[2],
 		})
+
+	useEffect(() => {
+		if (data) {
+			setGraphs(data.visualization.graphs)
+			const preset = data.visualization.timePreset
+			if (preset) {
+				updateSearchTime(new Date(), new Date(), parsePreset(preset))
+			}
+		}
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [data])
 
 	const navigate = useNavigate()
 
