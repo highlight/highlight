@@ -381,7 +381,6 @@ const H: HighlightPublicInterface = {
 	): any => {
 		const tracer = typeof getTracer === 'function' ? getTracer() : undefined
 		if (!tracer) {
-			console.log('::: no tracer')
 			const noopSpan = getNoopSpan()
 
 			if (fn === undefined && context === undefined) {
@@ -394,10 +393,10 @@ const H: HighlightPublicInterface = {
 		}
 
 		const wrapCallback = (span: Span, callback: (span: Span) => any) => {
-			let result: any
-			try {
-				result = callback(span)
-			} finally {
+			const result = callback(span)
+			if (result instanceof Promise) {
+				return result.finally(() => span.end())
+			} else {
 				span.end()
 				return result
 			}
