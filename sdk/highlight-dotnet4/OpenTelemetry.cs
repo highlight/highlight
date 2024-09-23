@@ -214,7 +214,6 @@ public class TraceProcessor : BaseProcessor<Activity>
             _tracerProvider = Sdk.CreateTracerProviderBuilder()
                 .SetResourceBuilder(ResourceBuilder.CreateDefault().AddAttributes(GetResourceAttributes()))
                 .AddHttpClientInstrumentation()
-                .AddGrpcClientInstrumentation()
                 .AddSqlClientInstrumentation()
                 .AddQuartzInstrumentation()
                 .AddWcfInstrumentation()
