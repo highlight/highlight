@@ -313,7 +313,6 @@ export const useSetPlayerTimestampFromSearchParam = (
 	}
 }
 
-// TODO(spenny): here
 /** These are the type of custom events that will show up as annotations on the timeline. */
 const CustomEventsForTimeline = [
 	'Click',
