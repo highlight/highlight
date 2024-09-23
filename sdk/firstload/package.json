@@ -33,6 +33,7 @@
 		"dev:watch": "yarn build:watch",
 		"enforce-size": "size-limit",
 		"test": "vitest --run",
+		"test:watch": "vitest",
 		"typegen": "tsc && node scripts/replace-client-imports.mjs"
 	},
 	"type": "module",

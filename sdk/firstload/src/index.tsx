@@ -35,6 +35,7 @@ import configureElectronHighlight from './environments/electron.js'
 import { HighlightSegmentMiddleware } from './integrations/segment.js'
 import { initializeFetchListener } from './listeners/fetch'
 import { initializeWebSocketListener } from './listeners/web-socket'
+import { getNoopSpan } from '@highlight-run/client/src/otel/utils.js'
 
 enum MetricCategory {
 	Device = 'Device',
@@ -380,25 +381,25 @@ const H: HighlightPublicInterface = {
 	): any => {
 		const tracer = typeof getTracer === 'function' ? getTracer() : undefined
 		if (!tracer) {
+			console.log('::: no tracer')
+			const noopSpan = getNoopSpan()
+
 			if (fn === undefined && context === undefined) {
-				;(options as Callback)()
+				return (options as Callback)(noopSpan)
 			} else if (fn === undefined) {
-				;(context as Callback)()
+				return (context as Callback)(noopSpan)
 			} else {
-				fn()
+				return fn(noopSpan)
 			}
-			return
 		}
 
-		const wrapCallback = async (
-			span: Span,
-			callback: (span: Span) => any,
-		) => {
+		const wrapCallback = (span: Span, callback: (span: Span) => any) => {
+			let result: any
 			try {
-				const result = await callback(span)
-				return result
+				result = callback(span)
 			} finally {
 				span.end()
+				return result
 			}
 		}
 
@@ -427,11 +428,18 @@ const H: HighlightPublicInterface = {
 		context?: Context | ((span: Span) => any),
 		fn?: (span: Span) => any,
 	): any => {
-		if (typeof getTracer !== 'function') {
-			return
-		}
+		const tracer = typeof getTracer === 'function' ? getTracer() : undefined
+		if (!tracer) {
+			const noopSpan = getNoopSpan()
 
-		const tracer = getTracer()
+			if (fn === undefined && context === undefined) {
+				return (options as Callback)(noopSpan)
+			} else if (fn === undefined) {
+				return (context as Callback)(noopSpan)
+			} else {
+				return fn(noopSpan)
+			}
+		}
 
 		if (fn === undefined && context === undefined) {
 			return tracer.startActiveSpan(name, options as Callback)
@@ -527,10 +535,18 @@ listenToChromeExtensionMessage()
 initializeFetchListener()
 initializeWebSocketListener()
 
+// Exposes some helpers for tests
+const __testing = {
+	reset: () => {
+		init_called = false
+	},
+}
+
 export {
 	configureElectronHighlight,
 	H,
 	HighlightSegmentMiddleware,
 	MetricCategory,
+	__testing,
 }
 export type { HighlightOptions }
