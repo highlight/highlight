@@ -189,7 +189,7 @@ export const useResources = (
 		traceCursor: undefined,
 		sortDirection: SortDirection.Asc,
 		sortColumn: 'timestamp',
-		skip: !session?.secure_id,
+		skip: true || !session?.secure_id,
 		skipPolling: true,
 		limit: 1_000,
 	})
