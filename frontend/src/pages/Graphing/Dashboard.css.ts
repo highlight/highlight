@@ -5,14 +5,6 @@ export const editGraphHeader = style({
 	height: 40,
 })
 
-export const variablesBar = style({
-	height: 40,
-})
-
-export const variableInput = style({
-	width: 200,
-})
-
 export const dashboardContent = style({
 	height: 'calc(100% - 40px)',
 	overflow: 'auto',
@@ -22,6 +14,7 @@ export const headerDivider = style({
 	width: 1,
 	backgroundColor: vars.theme.static.divider.weak,
 	margin: '4px 2px',
+	height: 20,
 })
 
 export const graphBackground = style({

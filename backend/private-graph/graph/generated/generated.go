@@ -1063,8 +1063,8 @@ type ComplexityRoot struct {
 		IsWorkspaceIntegratedWith        func(childComplexity int, integrationType model.IntegrationType, workspaceID int) int
 		JiraProjects                     func(childComplexity int, workspaceID int) int
 		JoinableWorkspaces               func(childComplexity int) int
-		KeyValues                        func(childComplexity int, productType model.ProductType, projectID int, keyName string, dateRange model.DateRangeRequiredInput, query *string, count *int) int
-		Keys                             func(childComplexity int, productType model.ProductType, projectID int, dateRange model.DateRangeRequiredInput, query *string, typeArg *model.KeyType) int
+		KeyValues                        func(childComplexity int, productType *model.ProductType, projectID int, keyName string, dateRange model.DateRangeRequiredInput, query *string, count *int) int
+		Keys                             func(childComplexity int, productType *model.ProductType, projectID int, dateRange model.DateRangeRequiredInput, query *string, typeArg *model.KeyType) int
 		LinearTeams                      func(childComplexity int, projectID int) int
 		LiveUsersCount                   func(childComplexity int, projectID int) int
 		LogAlert                         func(childComplexity int, id int) int
@@ -1596,8 +1596,9 @@ type ComplexityRoot struct {
 
 	Variable struct {
 		DefaultValue func(childComplexity int) int
+		Field        func(childComplexity int) int
 		Key          func(childComplexity int) int
-		Type         func(childComplexity int) int
+		ProductType  func(childComplexity int) int
 	}
 
 	VercelEnv struct {
@@ -2013,8 +2014,8 @@ type QueryResolver interface {
 	EventsKeyValues(ctx context.Context, projectID int, keyName string, dateRange model.DateRangeRequiredInput, query *string, count *int) ([]string, error)
 	EventsMetrics(ctx context.Context, projectID int, params model.QueryInput, column string, metricTypes []model.MetricAggregator, groupBy []string, bucketBy string, bucketCount *int, bucketWindow *int, limit *int, limitAggregator *model.MetricAggregator, limitColumn *string) (*model.MetricsBuckets, error)
 	Metrics(ctx context.Context, productType model.ProductType, projectID int, params model.QueryInput, column string, metricTypes []model.MetricAggregator, groupBy []string, bucketBy string, bucketCount *int, bucketWindow *int, limit *int, limitAggregator *model.MetricAggregator, limitColumn *string) (*model.MetricsBuckets, error)
-	Keys(ctx context.Context, productType model.ProductType, projectID int, dateRange model.DateRangeRequiredInput, query *string, typeArg *model.KeyType) ([]*model.QueryKey, error)
-	KeyValues(ctx context.Context, productType model.ProductType, projectID int, keyName string, dateRange model.DateRangeRequiredInput, query *string, count *int) ([]string, error)
+	Keys(ctx context.Context, productType *model.ProductType, projectID int, dateRange model.DateRangeRequiredInput, query *string, typeArg *model.KeyType) ([]*model.QueryKey, error)
+	KeyValues(ctx context.Context, productType *model.ProductType, projectID int, keyName string, dateRange model.DateRangeRequiredInput, query *string, count *int) ([]string, error)
 	Visualization(ctx context.Context, id int) (*model1.Visualization, error)
 	Visualizations(ctx context.Context, projectID int, input string, count int, offset int) (*model1.VisualizationsResponse, error)
 	Graph(ctx context.Context, id int) (*model1.Graph, error)
@@ -7885,7 +7886,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Query.KeyValues(childComplexity, args["product_type"].(model.ProductType), args["project_id"].(int), args["key_name"].(string), args["date_range"].(model.DateRangeRequiredInput), args["query"].(*string), args["count"].(*int)), true
+		return e.complexity.Query.KeyValues(childComplexity, args["product_type"].(*model.ProductType), args["project_id"].(int), args["key_name"].(string), args["date_range"].(model.DateRangeRequiredInput), args["query"].(*string), args["count"].(*int)), true
 
 	case "Query.keys":
 		if e.complexity.Query.Keys == nil {
@@ -7897,7 +7898,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Query.Keys(childComplexity, args["product_type"].(model.ProductType), args["project_id"].(int), args["date_range"].(model.DateRangeRequiredInput), args["query"].(*string), args["type"].(*model.KeyType)), true
+		return e.complexity.Query.Keys(childComplexity, args["product_type"].(*model.ProductType), args["project_id"].(int), args["date_range"].(model.DateRangeRequiredInput), args["query"].(*string), args["type"].(*model.KeyType)), true
 
 	case "Query.linear_teams":
 		if e.complexity.Query.LinearTeams == nil {
@@ -11001,6 +11002,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Variable.DefaultValue(childComplexity), true
 
+	case "Variable.field":
+		if e.complexity.Variable.Field == nil {
+			break
+		}
+
+		return e.complexity.Variable.Field(childComplexity), true
+
 	case "Variable.key":
 		if e.complexity.Variable.Key == nil {
 			break
@@ -11008,12 +11016,12 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Variable.Key(childComplexity), true
 
-	case "Variable.type":
-		if e.complexity.Variable.Type == nil {
+	case "Variable.productType":
+		if e.complexity.Variable.ProductType == nil {
 			break
 		}
 
-		return e.complexity.Variable.Type(childComplexity), true
+		return e.complexity.Variable.ProductType(childComplexity), true
 
 	case "VercelEnv.configurationId":
 		if e.complexity.VercelEnv.ConfigurationID == nil {
@@ -13634,15 +13642,11 @@ type Graph {
 	nullHandling: String
 }
 
-enum VariableType {
-	PlainText
-	FieldValue
-}
-
 type Variable {
-	type: VariableType!
 	key: String!
 	defaultValue: String!
+	productType: ProductType
+	field: String
 }
 
 type Visualization {
@@ -13683,9 +13687,10 @@ input GraphInput {
 }
 
 input VariableInput {
-	type: VariableType!
 	key: String!
 	defaultValue: String!
+	productType: ProductType
+	field: String
 }
 
 input VisualizationInput {
@@ -14158,14 +14163,14 @@ type Query {
 		limit_column: String
 	): MetricsBuckets!
 	keys(
-		product_type: ProductType!
+		product_type: ProductType
 		project_id: ID!
 		date_range: DateRangeRequiredInput!
 		query: String
 		type: KeyType
 	): [QueryKey!]!
 	key_values(
-		product_type: ProductType!
+		product_type: ProductType
 		project_id: ID!
 		key_name: String!
 		date_range: DateRangeRequiredInput!
@@ -20362,10 +20367,10 @@ func (ec *executionContext) field_Query_jira_projects_args(ctx context.Context, 
 func (ec *executionContext) field_Query_key_values_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
-	var arg0 model.ProductType
+	var arg0 *model.ProductType
 	if tmp, ok := rawArgs["product_type"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("product_type"))
-		arg0, err = ec.unmarshalNProductType2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐProductType(ctx, tmp)
+		arg0, err = ec.unmarshalOProductType2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐProductType(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -20422,10 +20427,10 @@ func (ec *executionContext) field_Query_key_values_args(ctx context.Context, raw
 func (ec *executionContext) field_Query_keys_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
-	var arg0 model.ProductType
+	var arg0 *model.ProductType
 	if tmp, ok := rawArgs["product_type"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("product_type"))
-		arg0, err = ec.unmarshalNProductType2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐProductType(ctx, tmp)
+		arg0, err = ec.unmarshalOProductType2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐProductType(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -64759,7 +64764,7 @@ func (ec *executionContext) _Query_keys(ctx context.Context, field graphql.Colle
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().Keys(rctx, fc.Args["product_type"].(model.ProductType), fc.Args["project_id"].(int), fc.Args["date_range"].(model.DateRangeRequiredInput), fc.Args["query"].(*string), fc.Args["type"].(*model.KeyType))
+		return ec.resolvers.Query().Keys(rctx, fc.Args["product_type"].(*model.ProductType), fc.Args["project_id"].(int), fc.Args["date_range"].(model.DateRangeRequiredInput), fc.Args["query"].(*string), fc.Args["type"].(*model.KeyType))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -64820,7 +64825,7 @@ func (ec *executionContext) _Query_key_values(ctx context.Context, field graphql
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().KeyValues(rctx, fc.Args["product_type"].(model.ProductType), fc.Args["project_id"].(int), fc.Args["key_name"].(string), fc.Args["date_range"].(model.DateRangeRequiredInput), fc.Args["query"].(*string), fc.Args["count"].(*int))
+		return ec.resolvers.Query().KeyValues(rctx, fc.Args["product_type"].(*model.ProductType), fc.Args["project_id"].(int), fc.Args["key_name"].(string), fc.Args["date_range"].(model.DateRangeRequiredInput), fc.Args["query"].(*string), fc.Args["count"].(*int))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -78303,50 +78308,6 @@ func (ec *executionContext) fieldContext_UserProperty_value(ctx context.Context,
 	return fc, nil
 }
 
-func (ec *executionContext) _Variable_type(ctx context.Context, field graphql.CollectedField, obj *model.Variable) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Variable_type(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Type, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(model.VariableType)
-	fc.Result = res
-	return ec.marshalNVariableType2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐVariableType(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_Variable_type(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "Variable",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type VariableType does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
 func (ec *executionContext) _Variable_key(ctx context.Context, field graphql.CollectedField, obj *model.Variable) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Variable_key(ctx, field)
 	if err != nil {
@@ -78423,6 +78384,88 @@ func (ec *executionContext) _Variable_defaultValue(ctx context.Context, field gr
 }
 
 func (ec *executionContext) fieldContext_Variable_defaultValue(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Variable",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Variable_productType(ctx context.Context, field graphql.CollectedField, obj *model.Variable) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Variable_productType(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ProductType, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*model.ProductType)
+	fc.Result = res
+	return ec.marshalOProductType2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐProductType(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Variable_productType(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Variable",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type ProductType does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Variable_field(ctx context.Context, field graphql.CollectedField, obj *model.Variable) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Variable_field(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Field, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Variable_field(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "Variable",
 		Field:      field,
@@ -79180,12 +79223,14 @@ func (ec *executionContext) fieldContext_Visualization_variables(ctx context.Con
 		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
-			case "type":
-				return ec.fieldContext_Variable_type(ctx, field)
 			case "key":
 				return ec.fieldContext_Variable_key(ctx, field)
 			case "defaultValue":
 				return ec.fieldContext_Variable_defaultValue(ctx, field)
+			case "productType":
+				return ec.fieldContext_Variable_productType(ctx, field)
+			case "field":
+				return ec.fieldContext_Variable_field(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Variable", field.Name)
 		},
@@ -84799,20 +84844,13 @@ func (ec *executionContext) unmarshalInputVariableInput(ctx context.Context, obj
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"type", "key", "defaultValue"}
+	fieldsInOrder := [...]string{"key", "defaultValue", "productType", "field"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
 			continue
 		}
 		switch k {
-		case "type":
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("type"))
-			data, err := ec.unmarshalNVariableType2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐVariableType(ctx, v)
-			if err != nil {
-				return it, err
-			}
-			it.Type = data
 		case "key":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("key"))
 			data, err := ec.unmarshalNString2string(ctx, v)
@@ -84827,6 +84865,20 @@ func (ec *executionContext) unmarshalInputVariableInput(ctx context.Context, obj
 				return it, err
 			}
 			it.DefaultValue = data
+		case "productType":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("productType"))
+			data, err := ec.unmarshalOProductType2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐProductType(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.ProductType = data
+		case "field":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("field"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Field = data
 		}
 	}
 
@@ -99111,11 +99163,6 @@ func (ec *executionContext) _Variable(ctx context.Context, sel ast.SelectionSet,
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("Variable")
-		case "type":
-			out.Values[i] = ec._Variable_type(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				out.Invalids++
-			}
 		case "key":
 			out.Values[i] = ec._Variable_key(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
@@ -99126,6 +99173,10 @@ func (ec *executionContext) _Variable(ctx context.Context, sel ast.SelectionSet,
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
+		case "productType":
+			out.Values[i] = ec._Variable_productType(ctx, field, obj)
+		case "field":
+			out.Values[i] = ec._Variable_field(ctx, field, obj)
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -105289,16 +105340,6 @@ func (ec *executionContext) marshalNVariable2ᚖgithubᚗcomᚋhighlightᚑrun�
 func (ec *executionContext) unmarshalNVariableInput2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐVariableInput(ctx context.Context, v interface{}) (*model.VariableInput, error) {
 	res, err := ec.unmarshalInputVariableInput(ctx, v)
 	return &res, graphql.ErrorOnPath(ctx, err)
-}
-
-func (ec *executionContext) unmarshalNVariableType2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐVariableType(ctx context.Context, v interface{}) (model.VariableType, error) {
-	var res model.VariableType
-	err := res.UnmarshalGQL(v)
-	return res, graphql.ErrorOnPath(ctx, err)
-}
-
-func (ec *executionContext) marshalNVariableType2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐVariableType(ctx context.Context, sel ast.SelectionSet, v model.VariableType) graphql.Marshaler {
-	return v
 }
 
 func (ec *executionContext) marshalNVercelEnv2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐVercelEnvᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.VercelEnv) graphql.Marshaler {

@@ -9489,8 +9489,12 @@ func (r *queryResolver) Metrics(ctx context.Context, productType modelInputs.Pro
 }
 
 // Keys is the resolver for the keys field.
-func (r *queryResolver) Keys(ctx context.Context, productType modelInputs.ProductType, projectID int, dateRange modelInputs.DateRangeRequiredInput, query *string, typeArg *modelInputs.KeyType) ([]*modelInputs.QueryKey, error) {
-	switch productType {
+func (r *queryResolver) Keys(ctx context.Context, productType *modelInputs.ProductType, projectID int, dateRange modelInputs.DateRangeRequiredInput, query *string, typeArg *modelInputs.KeyType) ([]*modelInputs.QueryKey, error) {
+	if productType == nil {
+
+	}
+
+	switch *productType {
 	case modelInputs.ProductTypeMetrics:
 		project, err := r.isUserInProjectOrDemoProject(ctx, projectID)
 		if err != nil {
@@ -9513,7 +9517,11 @@ func (r *queryResolver) Keys(ctx context.Context, productType modelInputs.Produc
 }
 
 // KeyValues is the resolver for the key_values field.
-func (r *queryResolver) KeyValues(ctx context.Context, productType modelInputs.ProductType, projectID int, keyName string, dateRange modelInputs.DateRangeRequiredInput, query *string, count *int) ([]string, error) {
+func (r *queryResolver) KeyValues(ctx context.Context, productType *modelInputs.ProductType, projectID int, keyName string, dateRange modelInputs.DateRangeRequiredInput, query *string, count *int) ([]string, error) {
+	if productType == nil {
+
+	}
+
 	switch productType {
 	case modelInputs.ProductTypeMetrics:
 		project, err := r.isUserInProjectOrDemoProject(ctx, projectID)

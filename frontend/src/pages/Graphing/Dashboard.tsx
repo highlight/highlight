@@ -18,14 +18,11 @@ import {
 	Button,
 	DateRangePicker,
 	DEFAULT_TIME_PRESETS,
-	Form,
-	IconSolidAdjustments,
 	IconSolidChartBar,
 	IconSolidCheveronRight,
 	IconSolidClock,
 	IconSolidCog,
 	IconSolidPlus,
-	Input,
 	parsePreset,
 	presetStartDate,
 	Stack,
@@ -34,9 +31,9 @@ import {
 } from '@highlight-run/ui/components'
 import { vars } from '@highlight-run/ui/vars'
 import clsx from 'clsx'
-import { useId, useState } from 'react'
+import { useEffect, useId, useState } from 'react'
 import { Helmet } from 'react-helmet'
-import { Link, useNavigate, useSearchParams } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 
 import {
 	useDeleteGraphMutation,
@@ -55,10 +52,8 @@ import { useParams } from '@/util/react-router/useParams'
 
 import * as style from './Dashboard.css'
 import { DashboardSettingsModal } from '@/pages/Graphing/components/DashboardSettingsModal'
-import {
-	getQueryKey,
-	VariablesModal,
-} from '@/pages/Graphing/components/VariablesModal'
+import { VariablesBar } from '@/pages/Graphing/components/VariablesBar'
+import { useGraphingVariables } from '@/pages/Graphing/hooks/useGraphingVariables'
 
 export const HeaderDivider = () => <Box cssClass={style.headerDivider} />
 
@@ -75,13 +70,10 @@ export const Dashboard = () => {
 	)
 
 	const [showSettingsModal, setShowSettingsModal] = useState(false)
-	const [showVariablesModal, setShowVariablesModal] = useState(false)
-
-	const [params] = useSearchParams()
 
 	const [graphs, setGraphs] =
 		useState<GetVisualizationQuery['visualization']['graphs']>()
-	const [variables, setVariables] = useState<Map<string, string>>()
+
 	const handleDragEnd = (event: any) => {
 		const { active, over } = event
 
@@ -142,22 +134,20 @@ export const Dashboard = () => {
 	const { projectId } = useProjectId()
 	const { data } = useGetVisualizationQuery({
 		variables: { id: dashboard_id! },
-		onCompleted: (data) => {
+	})
+
+	useEffect(() => {
+		if (data) {
 			setGraphs(data.visualization.graphs)
 			const preset = data.visualization.timePreset
 			if (preset) {
 				updateSearchTime(new Date(), new Date(), parsePreset(preset))
 			}
-			const variables = new Map<string, string>()
-			data.visualization.variables.forEach((v) => {
-				variables.set(
-					v.key,
-					params.get(getQueryKey(v.key)) ?? v.defaultValue,
-				)
-			})
-			setVariables(variables)
-		},
-	})
+		}
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [data])
+
+	const { values } = useGraphingVariables(dashboard_id!)
 
 	const [upsertViz] = useUpsertVisualizationMutation()
 
@@ -186,14 +176,6 @@ export const Dashboard = () => {
 					setShowSettingsModal(false)
 				}}
 				dashboardId={dashboard_id!}
-				settings={data?.visualization}
-			/>
-			<VariablesModal
-				dashboardId={dashboard_id!}
-				showModal={showVariablesModal}
-				onHideModal={() => {
-					setShowVariablesModal(false)
-				}}
 				settings={data?.visualization}
 			/>
 			<Box
@@ -298,48 +280,7 @@ export const Dashboard = () => {
 							height="full"
 							cssClass={style.dashboardContent}
 						>
-							<Form>
-								<Stack
-									direction="row"
-									justifyContent="flex-start"
-									alignItems="center"
-									cssClass={style.variablesBar}
-								>
-									{variables &&
-										Array.from(variables).map(
-											([key, value]) => {
-												return (
-													<>
-														<Text>{key}:</Text>
-														<Box
-															cssClass={
-																style.variableInput
-															}
-														>
-															<Input
-																value={value}
-																name="value"
-															/>
-														</Box>
-														<HeaderDivider />
-													</>
-												)
-											},
-										)}
-									<Button
-										emphasis="low"
-										kind="secondary"
-										iconLeft={
-											<IconSolidAdjustments size={14} />
-										}
-										onClick={() => {
-											setShowVariablesModal(true)
-										}}
-									>
-										Variables
-									</Button>
-								</Stack>
-							</Form>
+							<VariablesBar dashboardId={dashboard_id!} />
 							<Box
 								display="flex"
 								position="relative"
@@ -649,9 +590,7 @@ export const Dashboard = () => {
 															setTimeRange={
 																updateSearchTime
 															}
-															variables={
-																variables
-															}
+															variables={values}
 															height={280}
 														/>
 													</DashboardCard>

@@ -1,33 +1,41 @@
 import { Modal } from '@components/Modal/ModalV2'
 import { toast } from '@components/Toaster'
 import { useUpsertVisualizationMutation } from '@graph/hooks'
-import { Box, Button, Form, Stack, Table } from '@highlight-run/ui/components'
+import {
+	Box,
+	Button,
+	Form,
+	IconSolidDotsHorizontal,
+	IconSolidPlus,
+	Menu,
+	Stack,
+	Table,
+} from '@highlight-run/ui/components'
 import React, { useState } from 'react'
 
 import { useProjectId } from '@/hooks/useProjectId'
-import {
-	Variable,
-	VariableType,
-	Visualization,
-} from '@/graph/generated/schemas'
-import { useSearchParams } from 'react-router-dom'
+import { ProductType, Variable } from '@/graph/generated/schemas'
+import { useGraphingVariables } from '@/pages/Graphing/hooks/useGraphingVariables'
+import { OptionDropdown } from '@/pages/Graphing/OptionDropdown'
+import { GRAPHING_VARIABLE_TYPES, TEXT } from '@/pages/Graphing/constants'
+import { Combobox, ValueCombobox } from '@/pages/Graphing/Combobox'
+
+import moment from 'moment'
 
 interface Props {
 	dashboardId: string
 	showModal: boolean
 	onHideModal: () => void
-	settings: Visualization | undefined
 }
 
 export const VariablesModal: React.FC<Props> = ({
 	dashboardId,
 	showModal,
 	onHideModal,
-	settings,
 }) => {
 	const { projectId } = useProjectId()
 
-	const [upsertViz, upsertContext] = useUpsertVisualizationMutation({})
+	const [upsertViz] = useUpsertVisualizationMutation({})
 
 	const onSubmit = (variables: Variable[]) => {
 		upsertViz({
@@ -62,18 +70,15 @@ export const VariablesModal: React.FC<Props> = ({
 		onHideModal()
 	}
 
-	console.log('settings', settings, showModal)
+	const { variables, loading } = useGraphingVariables(dashboardId)
 
-	if (!showModal || !settings) {
+	if (!showModal || loading) {
 		return null
 	}
 
-	console.log('rendering!')
-
 	return (
 		<InnerModal
-			loading={upsertContext.loading}
-			settings={settings}
+			initialVariables={variables}
 			onHideModal={onHideModal}
 			onSubmit={onSubmit}
 		/>
@@ -81,8 +86,7 @@ export const VariablesModal: React.FC<Props> = ({
 }
 
 interface ModalProps {
-	loading: boolean
-	settings: Visualization
+	initialVariables: Variable[]
 	onHideModal: () => void
 	onSubmit: (variables: Variable[]) => void
 }
@@ -91,12 +95,16 @@ export const getQueryKey = (key: string): string => {
 	return `var-${key}`
 }
 
-const InnerModal = ({ onHideModal, onSubmit, settings }: ModalProps) => {
-	const [variables, setVariables] = useState(settings.variables)
+const InnerModal = ({
+	onHideModal,
+	onSubmit,
+	initialVariables,
+}: ModalProps) => {
+	const [variables, setVariables] = useState(initialVariables)
 	const setVariable = (
 		idx: number,
-		field: 'key' | 'defaultValue',
-		value: string,
+		field: 'key' | 'defaultValue' | 'field' | 'productType',
+		value: string | undefined,
 	) => {
 		const varsCopy = [...variables]
 		varsCopy[idx] = { ...variables[idx], [field]: value }
@@ -108,75 +116,46 @@ const InnerModal = ({ onHideModal, onSubmit, settings }: ModalProps) => {
 		varsCopy.push({
 			defaultValue: '',
 			key: '',
-			type: VariableType.PlainText,
 		})
 		setVariables(varsCopy)
-		const valsCopy = [...currentValues]
-		valsCopy.push('')
-		setCurrentValues(valsCopy)
 	}
 
 	const removeVariable = (idx: number) => {
 		const varsCopy = [...variables]
 		varsCopy.splice(idx, 1)
 		setVariables(varsCopy)
-		const valsCopy = [...currentValues]
-		valsCopy.splice(idx, 1)
-		setCurrentValues(valsCopy)
-	}
-
-	const [params, setParams] = useSearchParams()
-
-	const initialCurrentValues: string[] = []
-	settings.variables.forEach((v) => {
-		initialCurrentValues.push(
-			params.get(getQueryKey(v.key)) ?? v.defaultValue,
-		)
-	})
-	const [currentValues, setCurrentValues] = useState(initialCurrentValues)
-
-	const setCurrentValue = (idx: number, value: string) => {
-		const valsCopy = [...currentValues]
-		valsCopy[idx] = value
-		setCurrentValues(valsCopy)
 	}
 
 	const formStore = Form.useStore({
 		defaultValues: {
-			variables: settings.variables,
+			variables: initialVariables,
 		},
 	})
 
 	const handleSubmit = (e: { preventDefault: () => void }) => {
 		e.preventDefault()
-		setParams(
-			(prev) => {
-				currentValues.forEach((v, idx) => {
-					console.log('variables', variables, idx)
-					const variable = variables[idx]
-					if (v !== variable.defaultValue) {
-						prev.set(getQueryKey(variable.key), v)
-					} else {
-						prev.delete(getQueryKey(variable.key))
-					}
-				})
-				return prev
-			},
-			{ replace: true },
-		)
 		onSubmit(variables)
 	}
 
 	return (
 		<Modal title="Variables" onClose={onHideModal}>
-			<Stack py="8" px="12" style={{ minWidth: 600, maxWidth: 1000 }}>
+			<Stack style={{ minWidth: 800, maxWidth: 1000 }}>
 				<Form onSubmit={handleSubmit} store={formStore}>
-					<Table>
+					<Table noBorder>
 						<Table.Head>
-							<Table.Row>
+							<Table.Row
+								gridColumns={[
+									'1fr',
+									'1fr',
+									'1fr',
+									'1fr',
+									'40px',
+								]}
+							>
 								<Table.Cell>Name</Table.Cell>
+								<Table.Cell>Source</Table.Cell>
+								<Table.Cell>Field</Table.Cell>
 								<Table.Cell>Default value</Table.Cell>
-								<Table.Cell>Current value</Table.Cell>
 								<Table.Cell></Table.Cell>
 							</Table.Row>
 						</Table.Head>
@@ -184,7 +163,14 @@ const InnerModal = ({ onHideModal, onSubmit, settings }: ModalProps) => {
 							{variables.map((variable, i) => (
 								<Table.Row
 									key={i}
-									// gridColumns={['3rem', '1fr', '10rem']}
+									gridColumns={[
+										'1fr',
+										'1fr',
+										'1fr',
+										'1fr',
+										'40px',
+									]}
+									alignItems="center"
 								>
 									<Table.Cell>
 										<Form.Input
@@ -201,72 +187,141 @@ const InnerModal = ({ onHideModal, onSubmit, settings }: ModalProps) => {
 										/>
 									</Table.Cell>
 									<Table.Cell>
-										<Form.Input
-											name={`default-value-${i}`}
-											value={variable.defaultValue}
-											onChange={(e) => {
-												setVariable(
-													i,
-													'defaultValue',
-													e.target.value,
-												)
+										<OptionDropdown<ProductType | TEXT>
+											options={GRAPHING_VARIABLE_TYPES}
+											selection={
+												variable.productType ?? TEXT
+											}
+											setSelection={(productType) => {
+												if (productType === TEXT) {
+													setVariable(
+														i,
+														'productType',
+														undefined,
+													)
+												} else {
+													setVariable(
+														i,
+														'productType',
+														productType,
+													)
+												}
 											}}
-											autoComplete="off"
 										/>
 									</Table.Cell>
 									<Table.Cell>
-										<Form.Input
-											name={`current-value-${i}`}
-											value={currentValues[i]}
-											onChange={(e) => {
-												setCurrentValue(
-													i,
-													e.target.value,
-												)
-											}}
-											autoComplete="off"
-										/>
+										{variable.productType && (
+											<Combobox
+												selection={variable.field ?? ''}
+												setSelection={(
+													selection: string,
+												) => {
+													setVariable(
+														i,
+														'field',
+														selection,
+													)
+												}}
+												searchConfig={{
+													productType:
+														variable.productType,
+													startDate: moment()
+														.subtract(30, 'days')
+														.toDate(),
+													endDate: moment().toDate(),
+												}}
+												label={`product-type-${i}`}
+											/>
+										)}
 									</Table.Cell>
 									<Table.Cell>
-										<Button
-											onClick={() => {
-												removeVariable(i)
-											}}
-										>
-											Remove
-										</Button>
+										{!variable.productType ? (
+											<Form.Input
+												name={`default-value-${i}`}
+												value={variable.defaultValue}
+												onChange={(e) => {
+													setVariable(
+														i,
+														'defaultValue',
+														e.target.value,
+													)
+												}}
+												autoComplete="off"
+											/>
+										) : (
+											<ValueCombobox
+												selection={
+													variable.defaultValue ?? ''
+												}
+												setSelection={(
+													selection: string,
+												) => {
+													setVariable(
+														i,
+														'defaultValue',
+														selection,
+													)
+												}}
+												searchConfig={{
+													productType:
+														variable.productType,
+													startDate: moment()
+														.subtract(30, 'days')
+														.toDate(),
+													endDate: moment().toDate(),
+												}}
+												keyName={variable.field ?? ''}
+												label={`default-value-${i}`}
+											/>
+										)}
 									</Table.Cell>
+									<Menu>
+										<Menu.Button
+											emphasis="low"
+											kind="secondary"
+											icon={
+												<IconSolidDotsHorizontal
+													size={14}
+												/>
+											}
+										/>
+										<Menu.List>
+											<Menu.Item
+												onClick={() => {
+													removeVariable(i)
+												}}
+											>
+												Delete
+											</Menu.Item>
+										</Menu.List>
+									</Menu>
 								</Table.Row>
 							))}
-							<Table.Row>
-								<Button
-									onClick={() => {
-										addVariable()
-									}}
-								>
-									Add variable
-								</Button>
-							</Table.Row>
 						</Table.Body>
 					</Table>
-					<Box borderTop="dividerWeak" my="12" width="full" />
-					<Box
-						display="flex"
-						justifyContent="flex-end"
-						gap="8"
-						pt="12"
+					<Box borderTop="dividerWeak" my="4" width="full" />
+					<Stack
+						direction="row"
+						justifyContent="space-between"
+						pb="4"
+						px="4"
 					>
 						<Button
 							kind="secondary"
-							emphasis="medium"
-							onClick={onHideModal}
+							emphasis="low"
+							iconLeft={<IconSolidPlus />}
+							onClick={() => {
+								addVariable()
+							}}
 						>
-							Cancel
+							New variable
 						</Button>
-						<Button kind="primary" type="submit">
-							Save
-						</Button>
-					</Box>
+						<Box display="flex" justifyContent="flex-end" gap="8">
+							<Button kind="primary" type="submit">
+								Save
+							</Button>
+						</Box>
+					</Stack>
 				</Form>
 			</Stack>
 		</Modal>

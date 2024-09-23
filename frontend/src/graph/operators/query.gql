@@ -2601,9 +2601,10 @@ query GetVisualization($id: ID!) {
 		name
 		timePreset
 		variables {
-			type
 			key
 			defaultValue
+			productType
+			field
 		}
 		graphs {
 			id
@@ -2652,9 +2653,10 @@ query GetVisualizations(
 			name
 			timePreset
 			variables {
-				type
 				key
 				defaultValue
+				productType
+				field
 			}
 			graphs {
 				id

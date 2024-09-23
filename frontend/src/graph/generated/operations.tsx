@@ -5169,7 +5169,7 @@ export type GetVisualizationQuery = { __typename?: 'Query' } & {
 			variables: Array<
 				{ __typename?: 'Variable' } & Pick<
 					Types.Variable,
-					'type' | 'key' | 'defaultValue'
+					'key' | 'defaultValue' | 'productType' | 'field'
 				>
 			>
 			graphs: Array<
@@ -5222,7 +5222,7 @@ export type GetVisualizationsQuery = { __typename?: 'Query' } & {
 						variables: Array<
 							{ __typename?: 'Variable' } & Pick<
 								Types.Variable,
-								'type' | 'key' | 'defaultValue'
+								'key' | 'defaultValue' | 'productType' | 'field'
 							>
 						>
 						graphs: Array<

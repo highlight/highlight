@@ -2566,14 +2566,14 @@ export type QueryKey_ValuesArgs = {
 	count?: InputMaybe<Scalars['Int']>
 	date_range: DateRangeRequiredInput
 	key_name: Scalars['String']
-	product_type: ProductType
+	product_type?: InputMaybe<ProductType>
 	project_id: Scalars['ID']
 	query?: InputMaybe<Scalars['String']>
 }
 
 export type QueryKeysArgs = {
 	date_range: DateRangeRequiredInput
-	product_type: ProductType
+	product_type?: InputMaybe<ProductType>
 	project_id: Scalars['ID']
 	query?: InputMaybe<Scalars['String']>
 	type?: InputMaybe<KeyType>
@@ -3834,19 +3834,16 @@ export type UserPropertyInput = {
 export type Variable = {
 	__typename?: 'Variable'
 	defaultValue: Scalars['String']
+	field?: Maybe<Scalars['String']>
 	key: Scalars['String']
-	type: VariableType
+	productType?: Maybe<ProductType>
 }
 
 export type VariableInput = {
 	defaultValue: Scalars['String']
+	field?: InputMaybe<Scalars['String']>
 	key: Scalars['String']
-	type: VariableType
-}
-
-export enum VariableType {
-	FieldValue = 'FieldValue',
-	PlainText = 'PlainText',
+	productType?: InputMaybe<ProductType>
 }
 
 export type VercelEnv = {

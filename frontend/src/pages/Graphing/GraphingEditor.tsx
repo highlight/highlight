@@ -5,7 +5,6 @@ import {
 	DateRangePicker,
 	DEFAULT_TIME_PRESETS,
 	Form,
-	IconSolidAdjustments,
 	IconSolidClock,
 	Input,
 	presetStartDate,
@@ -23,7 +22,7 @@ import React, {
 	useState,
 } from 'react'
 import { Helmet } from 'react-helmet'
-import { useNavigate, useSearchParams } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 import { useDebounce } from 'react-use'
 
 import { SearchContext } from '@/components/Search/SearchContext'
@@ -75,11 +74,9 @@ import * as style from './GraphingEditor.css'
 import { LabeledRow } from './LabeledRow'
 import { OptionDropdown } from './OptionDropdown'
 import { BarChartSettings, LineChartSettings, TableSettings } from './Settings'
-import {
-	getQueryKey,
-	VariablesModal,
-} from '@/pages/Graphing/components/VariablesModal'
 import { FREQUENCIES } from '@/pages/Alerts/AlertConfigurationCard/AlertConfigurationConstants'
+import { useGraphingVariables } from '@/pages/Graphing/hooks/useGraphingVariables'
+import { VariablesBar } from '@/pages/Graphing/components/VariablesBar'
 
 type BucketBy = 'None' | 'Interval' | 'Count'
 const BUCKET_BY_OPTIONS: BucketBy[] = ['None', 'Interval', 'Count']
@@ -283,21 +280,12 @@ export const GraphingEditor: React.FC = () => {
 		})
 	}
 
-	const { data } = useGetVisualizationQuery({
+	useGetVisualizationQuery({
 		variables: {
 			id: dashboard_id!,
 		},
 		onCompleted: (data) => {
 			setCompleted(true)
-
-			const variables = new Map<string, string>()
-			data.visualization.variables.forEach((v) => {
-				variables.set(
-					v.key,
-					params.get(getQueryKey(v.key)) ?? v.defaultValue,
-				)
-			})
-			setVariables(variables)
 
 			const g = data.visualization.graphs.find((g) => g.id === graph_id)
 			if (g === undefined) {
@@ -385,9 +373,6 @@ export const GraphingEditor: React.FC = () => {
 		DEFAULT_BUCKET_INTERVAL,
 	)
 
-	const [params] = useSearchParams()
-	const [variables, setVariables] = useState<Map<string, string>>()
-	const [showVariablesModal, setShowVariablesModal] = useState(false)
 	const [completed, setCompleted] = useState(!isEdit)
 
 	tempMetricViewTitle.current = useMemo(() => {
@@ -426,6 +411,12 @@ export const GraphingEditor: React.FC = () => {
 		}
 	}, [endDate, productType, startDate])
 
+	const { values } = useGraphingVariables(dashboard_id!)
+
+	const variableKeys = Array.from(values).map(([key]) => {
+		return `$${key}`
+	})
+
 	if (!completed) {
 		return null
 	}
@@ -435,14 +426,6 @@ export const GraphingEditor: React.FC = () => {
 			<Helmet>
 				<title>{isEdit ? 'Edit' : 'Create'} Metric View</title>
 			</Helmet>
-			<VariablesModal
-				dashboardId={dashboard_id!}
-				showModal={showVariablesModal}
-				onHideModal={() => {
-					setShowVariablesModal(false)
-				}}
-				settings={data?.visualization}
-			/>
 			<Box
 				background="n2"
 				padding="8"
@@ -492,16 +475,6 @@ export const GraphingEditor: React.FC = () => {
 							/>
 							<HeaderDivider />
 							<Button
-								emphasis="medium"
-								kind="secondary"
-								iconLeft={<IconSolidAdjustments size={14} />}
-								onClick={() => {
-									setShowVariablesModal(true)
-								}}
-							>
-								Variables
-							</Button>
-							<Button
 								emphasis="low"
 								kind="secondary"
 								onClick={() => {
@@ -527,53 +500,63 @@ export const GraphingEditor: React.FC = () => {
 						justifyContent="space-between"
 						cssClass={style.editGraphPanel}
 					>
-						<GraphBackgroundWrapper>
-							<Graph
-								title={
-									metricViewTitle ||
-									tempMetricViewTitle?.current
-								}
-								viewConfig={viewConfig}
-								productType={productType}
-								projectId={projectId}
-								startDate={startDate}
-								selectedPreset={selectedPreset}
-								endDate={endDate}
-								query={debouncedQuery}
-								metric={metric}
-								functionType={functionType}
-								bucketByKey={getBucketByKey(
-									bucketBySetting,
-									bucketByKey,
-								)}
-								bucketCount={
-									bucketBySetting === 'Count'
-										? Number(bucketCount)
-										: undefined
-								}
-								bucketByWindow={
-									bucketBySetting === 'Interval'
-										? Number(bucketInterval)
-										: undefined
-								}
-								groupByKey={
-									groupByEnabled ? groupByKey : undefined
-								}
-								limit={
-									groupByEnabled ? Number(limit) : undefined
-								}
-								limitFunctionType={
-									groupByEnabled
-										? limitFunctionType
-										: undefined
-								}
-								limitMetric={
-									groupByEnabled ? limitMetric : undefined
-								}
-								setTimeRange={updateSearchTime}
-								variables={variables}
-							/>
-						</GraphBackgroundWrapper>
+						<Box
+							width="full"
+							display="flex"
+							flexDirection="column"
+							justifyContent="space-between"
+						>
+							<VariablesBar dashboardId={dashboard_id!} />
+							<GraphBackgroundWrapper>
+								<Graph
+									title={
+										metricViewTitle ||
+										tempMetricViewTitle?.current
+									}
+									viewConfig={viewConfig}
+									productType={productType}
+									projectId={projectId}
+									startDate={startDate}
+									selectedPreset={selectedPreset}
+									endDate={endDate}
+									query={debouncedQuery}
+									metric={metric}
+									functionType={functionType}
+									bucketByKey={getBucketByKey(
+										bucketBySetting,
+										bucketByKey,
+									)}
+									bucketCount={
+										bucketBySetting === 'Count'
+											? Number(bucketCount)
+											: undefined
+									}
+									bucketByWindow={
+										bucketBySetting === 'Interval'
+											? Number(bucketInterval)
+											: undefined
+									}
+									groupByKey={
+										groupByEnabled ? groupByKey : undefined
+									}
+									limit={
+										groupByEnabled
+											? Number(limit)
+											: undefined
+									}
+									limitFunctionType={
+										groupByEnabled
+											? limitFunctionType
+											: undefined
+									}
+									limitMetric={
+										groupByEnabled ? limitMetric : undefined
+									}
+									setTimeRange={updateSearchTime}
+									variables={values}
+								/>
+							</GraphBackgroundWrapper>
+						</Box>
 						<Box
 							display="flex"
 							borderLeft="dividerWeak"
@@ -685,6 +668,7 @@ export const GraphingEditor: React.FC = () => {
 													functionType !==
 													MetricAggregator.CountDistinct
 												}
+												defaultKeys={variableKeys}
 											/>
 										)}
 									</LabeledRow>
@@ -728,6 +712,7 @@ export const GraphingEditor: React.FC = () => {
 											setSelection={setGroupByKey}
 											label="groupBy"
 											searchConfig={searchOptionsConfig}
+											defaultKeys={variableKeys}
 										/>
 									</LabeledRow>
 									{groupByEnabled && (
@@ -778,6 +763,9 @@ export const GraphingEditor: React.FC = () => {
 															searchOptionsConfig
 														}
 														onlyNumericKeys
+														defaultKeys={
+															variableKeys
+														}
 													/>
 												)}
 											</LabeledRow>
@@ -820,6 +808,7 @@ export const GraphingEditor: React.FC = () => {
 													}
 													defaultKeys={[
 														TIMESTAMP_KEY,
+														...variableKeys,
 													]}
 													onlyNumericKeys
 												/>

@@ -1,5 +1,6 @@
 import {
 	IconSolidChartBar,
+	IconSolidDocumentText,
 	IconSolidFire,
 	IconSolidLightningBolt,
 	IconSolidLogs,
@@ -24,6 +25,14 @@ export const PRODUCTS_WITH_EVENTS: ProductType[] = PRODUCTS.concat([
 	ProductType.Events,
 ])
 
+export const TEXT = 'Text'
+export type TEXT = 'Text'
+
+export const GRAPHING_VARIABLE_TYPES: (ProductType | TEXT)[] = [
+	TEXT,
+	...PRODUCTS_WITH_EVENTS,
+]
+
 export const PRODUCT_ICONS = [
 	<IconSolidLogs key="logs" />,
 	<IconSolidTraces key="traces" />,
@@ -35,6 +44,11 @@ export const PRODUCT_ICONS = [
 export const PRODUCT_ICONS_WITH_EVENTS = PRODUCT_ICONS.concat([
 	<IconSolidFire key="events" />,
 ])
+
+export const GRAPHING_VARIABLE_ICONS = [
+	<IconSolidDocumentText key={TEXT} />,
+	...PRODUCT_ICONS_WITH_EVENTS,
+]
 
 export const NUMERIC_FUNCTION_TYPES: MetricAggregator[] = [
 	MetricAggregator.Min,

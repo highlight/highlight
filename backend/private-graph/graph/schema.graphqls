@@ -2007,15 +2007,11 @@ type Graph {
 	nullHandling: String
 }
 
-enum VariableType {
-	PlainText
-	FieldValue
-}
-
 type Variable {
-	type: VariableType!
 	key: String!
 	defaultValue: String!
+	productType: ProductType
+	field: String
 }
 
 type Visualization {
@@ -2056,9 +2052,10 @@ input GraphInput {
 }
 
 input VariableInput {
-	type: VariableType!
 	key: String!
 	defaultValue: String!
+	productType: ProductType
+	field: String
 }
 
 input VisualizationInput {
@@ -2531,14 +2528,14 @@ type Query {
 		limit_column: String
 	): MetricsBuckets!
 	keys(
-		product_type: ProductType!
+		product_type: ProductType
 		project_id: ID!
 		date_range: DateRangeRequiredInput!
 		query: String
 		type: KeyType
 	): [QueryKey!]!
 	key_values(
-		product_type: ProductType!
+		product_type: ProductType
 		project_id: ID!
 		key_name: String!
 		date_range: DateRangeRequiredInput!

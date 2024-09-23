@@ -335,6 +335,7 @@ export const Search: React.FC<{
 	textAreaRef?: React.RefObject<HTMLTextAreaElement>
 	hasAdditonalActions?: boolean
 	creatables?: { [key: string]: Creatable }
+	defaultValueOptions?: string[]
 	enableAIMode?: boolean
 	aiSupportedSearch?: boolean
 }> = ({

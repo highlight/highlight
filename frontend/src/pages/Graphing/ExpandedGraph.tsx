@@ -24,6 +24,7 @@ import { GraphBackgroundWrapper } from '@/pages/Graphing/GraphingEditor'
 import { useParams } from '@/util/react-router/useParams'
 
 import * as style from './Dashboard.css'
+import { useGraphingVariables } from '@/pages/Graphing/hooks/useGraphingVariables'
 
 export const ExpandedGraph = () => {
 	const { dashboard_id, graph_id } = useParams<{
@@ -44,6 +45,8 @@ export const ExpandedGraph = () => {
 		})
 
 	const navigate = useNavigate()
+
+	const { values } = useGraphingVariables(dashboard_id!)
 
 	const g = data?.visualization.graphs.find((g) => g.id === graph_id)
 	if (g === undefined) {
@@ -170,6 +173,7 @@ export const ExpandedGraph = () => {
 								}
 								limitMetric={g.limitMetric ?? undefined}
 								setTimeRange={updateSearchTime}
+								variables={values}
 							/>
 						</GraphBackgroundWrapper>
 					</Box>

@@ -15103,9 +15103,10 @@ export const GetVisualizationDocument = gql`
 			name
 			timePreset
 			variables {
-				type
 				key
 				defaultValue
+				productType
+				field
 			}
 			graphs {
 				id
@@ -15204,9 +15205,10 @@ export const GetVisualizationsDocument = gql`
 				name
 				timePreset
 				variables {
-					type
 					key
 					defaultValue
+					productType
+					field
 				}
 				graphs {
 					id
