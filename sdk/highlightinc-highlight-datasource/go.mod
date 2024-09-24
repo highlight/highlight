@@ -1,6 +1,6 @@
 module github.com/highlight/highlightinc-highlight-datasource
 
-go 1.22.2
+go 1.23.1
 
 require (
 	github.com/grafana/grafana-plugin-sdk-go v0.250.0
