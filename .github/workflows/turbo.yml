@@ -86,13 +86,6 @@ jobs:
               env:
                   DOPPLER_TOKEN: ${{ secrets.DOPPLER_PROD_RENDER_SECRET }}
 
-            - name: Validate repo state
-              run: |
-                  git status --porcelain
-                  pushd rrweb
-                  git status --porcelain
-                  popd
-
             - name: Upload frontend sourcemaps
               if: github.ref == 'refs/heads/main'
               run: yarn sourcemaps:frontend
@@ -101,12 +94,24 @@ jobs:
                   APP_VERSION: ${{ github.event.pull_request.head.sha || github.sha }}
 
             - name: Configure yarn npm registry credentials
-              if: github.ref == 'refs/heads/main'
+              if: github.event.pull_request.head.repo.full_name == 'highlight/highlight' || github.ref == 'refs/heads/main' || github.event_name == 'release'
               run: |
                   yarn config set npmRegistryServer "https://registry.npmjs.org"
                   yarn config set npmAuthToken "${NPM_TOKEN}"
               env:
                   NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+            - name: Publish npm packages and release changesets
+              if: github.event.pull_request.head.repo.full_name == 'highlight/highlight' || github.ref == 'refs/heads/main' || github.event_name == 'release'
+              id: changesets-publish
+              uses: changesets/action@v1
+              with:
+                  version: yarn changeset version
+                  publish: yarn publish:turbo
+              env:
+                  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+                  NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+                  NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
             - name: Publish ai lambda
               if: github.ref == 'refs/heads/main'
@@ -119,27 +124,3 @@ jobs:
             - name: Publish render lambda
               if: github.ref == 'refs/heads/main'
               run: yarn publish:render
-
-            - name: Publish npm packages
-              if: github.ref == 'refs/heads/main'
-              id: changesets-publish
-              uses: changesets/action@v1
-              with:
-                  branch: main
-                  publish: yarn publish:turbo
-              env:
-                  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-                  NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
-                  NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-
-            - name: Release changesets
-              if: github.ref == 'refs/heads/main'
-              id: changesets-version
-              uses: changesets/action@v1
-              with:
-                  branch: main
-                  version: yarn changeset version
-              env:
-                  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-                  NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
-                  NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
