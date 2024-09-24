@@ -5311,7 +5311,6 @@ func (r *queryResolver) ErrorGroups(ctx context.Context, projectID int, count in
 		Joins("ErrorTag").
 		Where("error_groups.id in ?", ids).
 		Where("error_groups.project_id = ?", project.ID).
-		Order("error_groups.updated_at DESC").
 		Find(&results).Error; err != nil {
 		return nil, err
 	}
@@ -5321,6 +5320,18 @@ func (r *queryResolver) ErrorGroups(ctx context.Context, projectID int, count in
 			return nil, err
 		}
 	}
+
+	// Sort results by LastOccurrence, descending
+	sort.Slice(results, func(i, j int) bool {
+		var timeA, timeB time.Time
+		if results[i].LastOccurrence != nil {
+			timeA = *results[i].LastOccurrence
+		}
+		if results[j].LastOccurrence != nil {
+			timeB = *results[j].LastOccurrence
+		}
+		return timeA.After(timeB)
+	})
 
 	return &model.ErrorResults{
 		ErrorGroups: lo.Map(results, func(eg *model.ErrorGroup, idx int) model.ErrorGroup { return *eg }),
