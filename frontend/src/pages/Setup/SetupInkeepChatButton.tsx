@@ -1,12 +1,9 @@
-import dynamic from 'next/dynamic'
 import { InkeepChatButtonProps } from '@inkeep/uikit'
 import useInkeepSettings from '@/hooks/useInkeepSettings'
+import { lazy, Suspense } from 'react'
 
-const ChatButton = dynamic(
-	() => import('@inkeep/uikit').then((mod) => mod.InkeepChatButton),
-	{
-		ssr: false,
-	},
+const ChatButton = lazy(() =>
+	import('@inkeep/uikit').then((mod) => ({ default: mod.InkeepChatButton })),
 )
 
 function InkeepChatButton() {
@@ -20,7 +17,11 @@ function InkeepChatButton() {
 		modalSettings,
 	}
 
-	return <ChatButton {...chatButtonProps} />
+	return (
+		<Suspense>
+			<ChatButton {...chatButtonProps} />
+		</Suspense>
+	)
 }
 
 export default InkeepChatButton

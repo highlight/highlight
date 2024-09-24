@@ -9781,7 +9781,6 @@ __metadata:
     lodash: "npm:^4.17.21"
     lottie-react: "npm:^2.1.0"
     moment: "npm:2.29.4"
-    next: "npm:14.1.1"
     npm-run-all: "npm:^4.1.5"
     postcss: "npm:^8.4.35"
     postcss-custom-properties: "npm:^12.1.7"
