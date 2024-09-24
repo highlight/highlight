@@ -6,7 +6,6 @@ import {
 	IconSolidChartBar,
 	IconSolidCheveronRight,
 	IconSolidClock,
-	presetStartDate,
 	Stack,
 	Tag,
 	Text,
@@ -24,6 +23,7 @@ import { GraphBackgroundWrapper } from '@/pages/Graphing/GraphingEditor'
 import { useParams } from '@/util/react-router/useParams'
 
 import * as style from './Dashboard.css'
+import { useRetentionPresets } from '@/components/Search/SearchForm/hooks'
 
 export const ExpandedGraph = () => {
 	const { dashboard_id, graph_id } = useParams<{
@@ -37,9 +37,11 @@ export const ExpandedGraph = () => {
 		variables: { id: dashboard_id! },
 	})
 
+	const { presets, minDate } = useRetentionPresets()
+
 	const { startDate, endDate, selectedPreset, updateSearchTime } =
 		useSearchTime({
-			presets: DEFAULT_TIME_PRESETS,
+			presets: presets,
 			initialPreset: DEFAULT_TIME_PRESETS[2],
 		})
 
@@ -118,10 +120,8 @@ export const ExpandedGraph = () => {
 									selectedPreset,
 								}}
 								onDatesChange={updateSearchTime}
-								presets={DEFAULT_TIME_PRESETS}
-								minDate={presetStartDate(
-									DEFAULT_TIME_PRESETS[5],
-								)}
+								presets={presets}
+								minDate={minDate}
 							/>
 							<HeaderDivider />
 							<Button
