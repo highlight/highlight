@@ -17,9 +17,9 @@ import {
 import usePlayerConfiguration from '@pages/Player/PlayerHook/utils/usePlayerConfiguration'
 import { sessionIsBackfilled } from '@pages/Player/utils/utils'
 import {
-	getDisplayName,
 	getDisplayNameAndField,
 	getIdentifiedUserProfileImage,
+	getIdentifier,
 } from '@pages/Sessions/SessionsFeedV3/MinimalSessionCard/utils/utils'
 import { useParams } from '@util/react-router/useParams'
 import { copyToClipboard, validateEmail } from '@util/string'
@@ -41,6 +41,7 @@ import { RelatedResourceButtons } from '@/pages/Player/MetadataBox/RelatedResour
 import { useReplayerContext } from '../ReplayerContext'
 import * as style from './MetadataBox.css'
 import { getAbsoluteUrl, getMajorVersion } from './utils/utils'
+import { quoteQueryValue } from '@/components/Search/SearchForm/utils'
 
 export const MetadataBox = React.memo(() => {
 	const { session_secure_id } = useParams<{ session_secure_id: string }>()
@@ -198,17 +199,15 @@ export const MetadataBox = React.memo(() => {
 
 		let newQueryParts = []
 		if (session.identified) {
-			const displayName = getDisplayName(session)
-			const userParam = validateEmail(displayName)
-				? 'email'
-				: 'identifier'
+			const identifier = getIdentifier(session)
+			const userParam = validateEmail(identifier) ? 'email' : 'identifier'
 
 			newQueryParts = queryParts.filter((part) => part.key !== userParam)
 			newQueryParts.push({
 				key: userParam,
 				operator: '=',
-				value: displayName,
-				text: `${userParam}=${displayName}`,
+				value: identifier,
+				text: `${userParam}=${quoteQueryValue(identifier)}`,
 			} as SearchExpression)
 		} else {
 			newQueryParts = queryParts.filter(
