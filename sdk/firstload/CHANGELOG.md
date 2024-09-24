@@ -1,5 +1,11 @@
 # highlight.run
 
+## 9.4.2
+
+### Patch Changes
+
+-   5213ca3: ensure callback value is returned when not initialized
+
 ## 9.4.1
 
 ### Patch Changes
