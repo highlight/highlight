@@ -27,6 +27,7 @@ import (
 const SamplingRows = 20_000_000
 const KeysMaxRows = 1_000_000
 const KeyValuesMaxRows = 1_000_000
+const MaxBuckets = 100
 
 type SampleableTableConfig struct {
 	tableConfig         model.TableConfig
@@ -750,9 +751,6 @@ func (client *Client) ReadMetrics(ctx context.Context, input ReadMetricsInput) (
 			EndDate:   time.Now(),
 		}
 	}
-	startTimestamp := input.Params.DateRange.StartDate.Unix()
-	endTimestamp := input.Params.DateRange.EndDate.Unix()
-	useSampling := input.SampleableConfig.useSampling(input.Params.DateRange.EndDate.Sub(input.Params.DateRange.StartDate)) && input.SavedMetricState == nil
 
 	nBuckets := 48
 	if input.BucketWindow == nil {
@@ -761,15 +759,23 @@ func (client *Client) ReadMetrics(ctx context.Context, input ReadMetricsInput) (
 		} else if input.BucketCount != nil {
 			nBuckets = *input.BucketCount
 		}
-		if nBuckets > 1000 {
-			nBuckets = 1000
+		if nBuckets > MaxBuckets {
+			nBuckets = MaxBuckets
 		}
 		if nBuckets < 1 {
 			nBuckets = 1
 		}
 	} else {
-		nBuckets = int((endTimestamp - startTimestamp) / int64(*input.BucketWindow))
+		nBuckets = int(int64(input.Params.DateRange.EndDate.Sub(input.Params.DateRange.StartDate).Seconds()) / int64(*input.BucketWindow))
+		if nBuckets > MaxBuckets {
+			nBuckets = MaxBuckets
+			input.Params.DateRange.StartDate = input.Params.DateRange.EndDate.Add(-1 * time.Duration(MaxBuckets**input.BucketWindow) * time.Second)
+		}
 	}
+
+	startTimestamp := input.Params.DateRange.StartDate.Unix()
+	endTimestamp := input.Params.DateRange.EndDate.Unix()
+	useSampling := input.SampleableConfig.useSampling(input.Params.DateRange.EndDate.Sub(input.Params.DateRange.StartDate)) && input.SavedMetricState == nil
 
 	keysToColumns := input.SampleableConfig.tableConfig.KeysToColumns
 

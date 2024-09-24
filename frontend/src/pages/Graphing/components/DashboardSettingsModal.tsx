@@ -14,6 +14,7 @@ import React from 'react'
 
 import { useProjectId } from '@/hooks/useProjectId'
 import { Visualization } from '@/graph/generated/schemas'
+import { useRetentionPresets } from '@/components/Search/SearchForm/hooks'
 
 interface Props {
 	dashboardId: string
@@ -96,6 +97,8 @@ const InnerModal = ({
 	onSubmit,
 	settings,
 }: ModalProps) => {
+	const { presets } = useRetentionPresets()
+
 	const formStore = Form.useStore({
 		defaultValues: {
 			name: settings.name,
@@ -111,7 +114,7 @@ const InnerModal = ({
 		onSubmit(name, timePreset)
 	}
 
-	const timeLabels = DEFAULT_TIME_PRESETS.map((p) => ({
+	const timeLabels = presets.map((p) => ({
 		value: presetValue(p),
 		name: presetLabel(p),
 	}))

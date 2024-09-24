@@ -7,7 +7,6 @@ import {
 	Form,
 	IconSolidClock,
 	Input,
-	presetStartDate,
 	Select,
 	TagSwitchGroup,
 	Text,
@@ -75,6 +74,7 @@ import { LabeledRow } from './LabeledRow'
 import { OptionDropdown } from './OptionDropdown'
 import { BarChartSettings, LineChartSettings, TableSettings } from './Settings'
 import { FREQUENCIES } from '@/pages/Alerts/AlertConfigurationCard/AlertConfigurationConstants'
+import { useRetentionPresets } from '@/components/Search/SearchForm/hooks'
 
 type BucketBy = 'None' | 'Interval' | 'Count'
 const BUCKET_BY_OPTIONS: BucketBy[] = ['None', 'Interval', 'Count']
@@ -178,9 +178,11 @@ export const GraphingEditor: React.FC = () => {
 
 	const isEdit = graph_id !== undefined
 
+	const { presets, minDate } = useRetentionPresets()
+
 	const { startDate, endDate, selectedPreset, updateSearchTime } =
 		useSearchTime({
-			presets: DEFAULT_TIME_PRESETS,
+			presets: presets,
 			initialPreset: DEFAULT_TIME_PRESETS[2],
 		})
 
@@ -468,10 +470,8 @@ export const GraphingEditor: React.FC = () => {
 									selectedPreset,
 								}}
 								onDatesChange={updateSearchTime}
-								presets={DEFAULT_TIME_PRESETS}
-								minDate={presetStartDate(
-									DEFAULT_TIME_PRESETS[5],
-								)}
+								presets={presets}
+								minDate={minDate}
 							/>
 							<HeaderDivider />
 							<Button

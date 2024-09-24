@@ -813,7 +813,7 @@ func (client *Client) QueryErrorGroups(ctx context.Context, projectId int, count
 	}
 
 	sb.Select("ID, count() OVER() AS total")
-	sb.OrderBy("UpdatedAt DESC, ID DESC")
+	sb.OrderBy("MaxTimestamp DESC, ID DESC")
 	sb.Limit(count)
 	sb.Offset(offset)
 
@@ -842,16 +842,17 @@ func readErrorGroups(params modelInputs.QueryInput, projectId int) (*sqlbuilder.
 	sb.From(fmt.Sprintf("%s FINAL", ErrorGroupsTableConfig.TableName))
 
 	sbInner := sqlbuilder.NewSelectBuilder()
-	sbInner.Select("ErrorGroupID")
+	sbInner.Select("ErrorGroupID, max(Timestamp) as MaxTimestamp")
 	sbInner.From(fmt.Sprintf("%s FINAL", ErrorsJoinedTableConfig.TableName))
 	sbInner.Where(sbInner.Equal("ProjectId", projectId))
 
 	sbInner.Where(sbInner.LessEqualThan("Timestamp", params.DateRange.EndDate)).
 		Where(sbInner.GreaterEqualThan("Timestamp", params.DateRange.StartDate))
+	sbInner.GroupBy("ErrorGroupID")
 
 	parser.AssignSearchFilters(sbInner, params.Query, ErrorsJoinedTableConfig)
 
-	sb.Where(sb.In("ID", sbInner))
+	sb.JoinWithOption(sqlbuilder.InnerJoin, sb.BuilderAs(sbInner, "join"), "ID = ErrorGroupID")
 
 	return sb, nil
 }
