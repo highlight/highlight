@@ -19,10 +19,10 @@ import { sessionIsBackfilled } from '@pages/Player/utils/utils'
 import {
 	getDisplayNameAndField,
 	getIdentifiedUserProfileImage,
-	getIdentifier,
+	getUserProperties,
 } from '@pages/Sessions/SessionsFeedV3/MinimalSessionCard/utils/utils'
 import { useParams } from '@util/react-router/useParams'
-import { copyToClipboard, validateEmail } from '@util/string'
+import { copyToClipboard } from '@util/string'
 import clsx from 'clsx'
 import { capitalize } from 'lodash'
 import React, { useCallback, useEffect, useMemo } from 'react'
@@ -199,15 +199,23 @@ export const MetadataBox = React.memo(() => {
 
 		let newQueryParts = []
 		if (session.identified) {
-			const identifier = getIdentifier(session)
-			const userParam = validateEmail(identifier) ? 'email' : 'identifier'
+			const { email } = getUserProperties(session.user_properties)
+			const { identifier } = session
 
-			newQueryParts = queryParts.filter((part) => part.key !== userParam)
+			if (!email && !identifier) {
+				return
+			}
+
+			const { key, value } = email
+				? { key: 'email', value: email }
+				: { key: 'identifier', value: identifier }
+
+			newQueryParts = queryParts.filter((part) => part.key !== key)
 			newQueryParts.push({
-				key: userParam,
+				key,
 				operator: '=',
-				value: identifier,
-				text: `${userParam}=${quoteQueryValue(identifier)}`,
+				value,
+				text: `${key}=${quoteQueryValue(value)}`,
 			} as SearchExpression)
 		} else {
 			newQueryParts = queryParts.filter(

@@ -65,19 +65,3 @@ export const getDisplayName = (
 ): string => {
 	return getDisplayNameAndField(session)[0]
 }
-
-export const getIdentifier = (
-	session?: Maybe<SessionWithIdentityInformation>,
-): string => {
-	const userProperties = getUserProperties(session?.user_properties)
-
-	if (userProperties?.email) {
-		return userProperties?.email
-	} else if (session?.identifier && session.identifier !== 'null') {
-		return session.identifier
-	} else if (session?.fingerprint) {
-		return `${session?.fingerprint}`
-	} else {
-		return 'unidentified'
-	}
-}
