@@ -1070,7 +1070,7 @@ type ComplexityRoot struct {
 		LogAlert                         func(childComplexity int, id int) int
 		LogAlerts                        func(childComplexity int, projectID int) int
 		LogLines                         func(childComplexity int, productType model.ProductType, projectID int, params model.QueryInput) int
-		Logs                             func(childComplexity int, projectID int, params model.QueryInput, after *string, before *string, at *string, direction model.SortDirection) int
+		Logs                             func(childComplexity int, projectID int, params model.QueryInput, after *string, before *string, at *string, direction model.SortDirection, limit *int) int
 		LogsErrorObjects                 func(childComplexity int, logCursors []string) int
 		LogsHistogram                    func(childComplexity int, projectID int, params model.QueryInput) int
 		LogsIntegration                  func(childComplexity int, projectID int) int
@@ -1113,7 +1113,6 @@ type ComplexityRoot struct {
 		SessionExports                   func(childComplexity int, projectID int) int
 		SessionInsight                   func(childComplexity int, secureID string) int
 		SessionIntervals                 func(childComplexity int, sessionSecureID string) int
-		SessionLogs                      func(childComplexity int, projectID int, params model.QueryInput) int
 		SessionUsersReport               func(childComplexity int, projectID int, params model.QueryInput) int
 		Sessions                         func(childComplexity int, projectID int, count int, params model.QueryInput, sortField *string, sortDesc bool, page *int) int
 		SessionsClickhouse               func(childComplexity int, projectID int, count int, query model.ClickhouseQuery, sortField *string, sortDesc bool, page *int) int
@@ -1975,8 +1974,7 @@ type QueryResolver interface {
 	OauthClientMetadata(ctx context.Context, clientID string) (*model.OAuthClient, error)
 	EmailOptOuts(ctx context.Context, token *string, adminID *int) ([]model.EmailOptOutCategory, error)
 	AiQuerySuggestion(ctx context.Context, timeZone string, projectID int, productType model.ProductType, query string) (*model.QueryOutput, error)
-	Logs(ctx context.Context, projectID int, params model.QueryInput, after *string, before *string, at *string, direction model.SortDirection) (*model.LogConnection, error)
-	SessionLogs(ctx context.Context, projectID int, params model.QueryInput) ([]*model.LogEdge, error)
+	Logs(ctx context.Context, projectID int, params model.QueryInput, after *string, before *string, at *string, direction model.SortDirection, limit *int) (*model.LogConnection, error)
 	LogsHistogram(ctx context.Context, projectID int, params model.QueryInput) (*model.LogsHistogram, error)
 	LogsMetrics(ctx context.Context, projectID int, params model.QueryInput, column string, metricTypes []model.MetricAggregator, groupBy []string, bucketBy string, bucketCount *int, bucketWindow *int, limit *int, limitAggregator *model.MetricAggregator, limitColumn *string) (*model.MetricsBuckets, error)
 	LogsKeys(ctx context.Context, projectID int, dateRange model.DateRangeRequiredInput, query *string, typeArg *model.KeyType) ([]*model.QueryKey, error)
@@ -7960,7 +7958,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Query.Logs(childComplexity, args["project_id"].(int), args["params"].(model.QueryInput), args["after"].(*string), args["before"].(*string), args["at"].(*string), args["direction"].(model.SortDirection)), true
+		return e.complexity.Query.Logs(childComplexity, args["project_id"].(int), args["params"].(model.QueryInput), args["after"].(*string), args["before"].(*string), args["at"].(*string), args["direction"].(model.SortDirection), args["limit"].(*int)), true
 
 	case "Query.logs_error_objects":
 		if e.complexity.Query.LogsErrorObjects == nil {
@@ -8455,18 +8453,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Query.SessionIntervals(childComplexity, args["session_secure_id"].(string)), true
-
-	case "Query.sessionLogs":
-		if e.complexity.Query.SessionLogs == nil {
-			break
-		}
-
-		args, err := ec.field_Query_sessionLogs_args(context.TODO(), rawArgs)
-		if err != nil {
-			return 0, false
-		}
-
-		return e.complexity.Query.SessionLogs(childComplexity, args["project_id"].(int), args["params"].(model.QueryInput)), true
 
 	case "Query.session_users_report":
 		if e.complexity.Query.SessionUsersReport == nil {
@@ -13919,8 +13905,8 @@ type Query {
 		before: String
 		at: String
 		direction: SortDirection!
+		limit: Int
 	): LogConnection!
-	sessionLogs(project_id: ID!, params: QueryInput!): [LogEdge!]!
 	logs_histogram(project_id: ID!, params: QueryInput!): LogsHistogram!
 	logs_metrics(
 		project_id: ID!
@@ -20579,6 +20565,15 @@ func (ec *executionContext) field_Query_logs_args(ctx context.Context, rawArgs m
 		}
 	}
 	args["direction"] = arg5
+	var arg6 *int
+	if tmp, ok := rawArgs["limit"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("limit"))
+		arg6, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["limit"] = arg6
 	return args, nil
 }
 
@@ -21500,30 +21495,6 @@ func (ec *executionContext) field_Query_services_args(ctx context.Context, rawAr
 		}
 	}
 	args["query"] = arg3
-	return args, nil
-}
-
-func (ec *executionContext) field_Query_sessionLogs_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
-	var err error
-	args := map[string]interface{}{}
-	var arg0 int
-	if tmp, ok := rawArgs["project_id"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("project_id"))
-		arg0, err = ec.unmarshalNID2int(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["project_id"] = arg0
-	var arg1 model.QueryInput
-	if tmp, ok := rawArgs["params"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("params"))
-		arg1, err = ec.unmarshalNQueryInput2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐQueryInput(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["params"] = arg1
 	return args, nil
 }
 
@@ -62805,7 +62776,7 @@ func (ec *executionContext) _Query_logs(ctx context.Context, field graphql.Colle
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().Logs(rctx, fc.Args["project_id"].(int), fc.Args["params"].(model.QueryInput), fc.Args["after"].(*string), fc.Args["before"].(*string), fc.Args["at"].(*string), fc.Args["direction"].(model.SortDirection))
+		return ec.resolvers.Query().Logs(rctx, fc.Args["project_id"].(int), fc.Args["params"].(model.QueryInput), fc.Args["after"].(*string), fc.Args["before"].(*string), fc.Args["at"].(*string), fc.Args["direction"].(model.SortDirection), fc.Args["limit"].(*int))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -62846,67 +62817,6 @@ func (ec *executionContext) fieldContext_Query_logs(ctx context.Context, field g
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_Query_logs_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
-		ec.Error(ctx, err)
-		return fc, err
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _Query_sessionLogs(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Query_sessionLogs(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().SessionLogs(rctx, fc.Args["project_id"].(int), fc.Args["params"].(model.QueryInput))
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.([]*model.LogEdge)
-	fc.Result = res
-	return ec.marshalNLogEdge2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐLogEdgeᚄ(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_Query_sessionLogs(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "Query",
-		Field:      field,
-		IsMethod:   true,
-		IsResolver: true,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			switch field.Name {
-			case "cursor":
-				return ec.fieldContext_LogEdge_cursor(ctx, field)
-			case "node":
-				return ec.fieldContext_LogEdge_node(ctx, field)
-			}
-			return nil, fmt.Errorf("no field named %q was found under type LogEdge", field.Name)
-		},
-	}
-	defer func() {
-		if r := recover(); r != nil {
-			err = ec.Recover(ctx, r)
-			ec.Error(ctx, err)
-		}
-	}()
-	ctx = graphql.WithFieldContext(ctx, fc)
-	if fc.Args, err = ec.field_Query_sessionLogs_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return fc, err
 	}
@@ -94437,28 +94347,6 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_logs(ctx, field)
-				if res == graphql.Null {
-					atomic.AddUint32(&fs.Invalids, 1)
-				}
-				return res
-			}
-
-			rrm := func(ctx context.Context) graphql.Marshaler {
-				return ec.OperationContext.RootResolverMiddleware(ctx,
-					func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
-			}
-
-			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
-		case "sessionLogs":
-			field := field
-
-			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._Query_sessionLogs(ctx, field)
 				if res == graphql.Null {
 					atomic.AddUint32(&fs.Invalids, 1)
 				}

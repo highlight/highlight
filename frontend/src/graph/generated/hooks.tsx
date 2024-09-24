@@ -13512,6 +13512,7 @@ export const GetLogsDocument = gql`
 		$before: String
 		$at: String
 		$direction: SortDirection!
+		$limit: Int
 	) {
 		logs(
 			project_id: $project_id
@@ -13520,6 +13521,7 @@ export const GetLogsDocument = gql`
 			before: $before
 			at: $at
 			direction: $direction
+			limit: $limit
 		) {
 			edges {
 				cursor
@@ -13566,6 +13568,7 @@ export const GetLogsDocument = gql`
  *      before: // value for 'before'
  *      at: // value for 'at'
  *      direction: // value for 'direction'
+ *      limit: // value for 'limit'
  *   },
  * });
  */
@@ -13596,68 +13599,6 @@ export type GetLogsLazyQueryHookResult = ReturnType<typeof useGetLogsLazyQuery>
 export type GetLogsQueryResult = Apollo.QueryResult<
 	Types.GetLogsQuery,
 	Types.GetLogsQueryVariables
->
-export const GetSessionLogsDocument = gql`
-	query GetSessionLogs($project_id: ID!, $params: QueryInput!) {
-		sessionLogs(project_id: $project_id, params: $params) {
-			cursor
-			node {
-				timestamp
-				level
-				message
-			}
-		}
-	}
-`
-
-/**
- * __useGetSessionLogsQuery__
- *
- * To run a query within a React component, call `useGetSessionLogsQuery` and pass it any options that fit your needs.
- * When your component renders, `useGetSessionLogsQuery` returns an object from Apollo Client that contains loading, error, and data properties
- * you can use to render your UI.
- *
- * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
- *
- * @example
- * const { data, loading, error } = useGetSessionLogsQuery({
- *   variables: {
- *      project_id: // value for 'project_id'
- *      params: // value for 'params'
- *   },
- * });
- */
-export function useGetSessionLogsQuery(
-	baseOptions: Apollo.QueryHookOptions<
-		Types.GetSessionLogsQuery,
-		Types.GetSessionLogsQueryVariables
-	>,
-) {
-	return Apollo.useQuery<
-		Types.GetSessionLogsQuery,
-		Types.GetSessionLogsQueryVariables
-	>(GetSessionLogsDocument, baseOptions)
-}
-export function useGetSessionLogsLazyQuery(
-	baseOptions?: Apollo.LazyQueryHookOptions<
-		Types.GetSessionLogsQuery,
-		Types.GetSessionLogsQueryVariables
-	>,
-) {
-	return Apollo.useLazyQuery<
-		Types.GetSessionLogsQuery,
-		Types.GetSessionLogsQueryVariables
-	>(GetSessionLogsDocument, baseOptions)
-}
-export type GetSessionLogsQueryHookResult = ReturnType<
-	typeof useGetSessionLogsQuery
->
-export type GetSessionLogsLazyQueryHookResult = ReturnType<
-	typeof useGetSessionLogsLazyQuery
->
-export type GetSessionLogsQueryResult = Apollo.QueryResult<
-	Types.GetSessionLogsQuery,
-	Types.GetSessionLogsQueryVariables
 >
 export const GetLogsHistogramDocument = gql`
 	query GetLogsHistogram($project_id: ID!, $params: QueryInput!) {
