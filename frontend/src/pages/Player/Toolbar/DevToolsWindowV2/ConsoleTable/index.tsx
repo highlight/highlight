@@ -266,7 +266,7 @@ const ConsoleTableInner = ({
 
 	// eslint-disable-next-line react-hooks/exhaustive-deps
 	const scrollFunction = useCallback(
-		_.debounce((index: number) => {
+		_.throttle((index: number) => {
 			requestAnimationFrame(() => {
 				rowVirtualizer.scrollToIndex(index, {
 					align: 'center',
