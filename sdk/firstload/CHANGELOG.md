@@ -1,5 +1,11 @@
 # highlight.run
 
+## 9.4.3
+
+### Patch Changes
+
+-   54557e9: re-release 9.4.2 which included incorrect bundle built from 9.3.4
+
 ## 9.4.2
 
 ### Patch Changes
