@@ -7881,13 +7881,19 @@ body {
   -webkit-line-clamp: 1;
   line-clamp: 1;
 }
-.izessr0:focus,
-.izessr0:active,
-.izessr0:hover {
-  background-color: #e9e8ea;
+.ammwad0 {
+  border-bottom: none !important;
+  opacity: 0.4;
 }
-.izessr2 {
-  border-bottom: 2px solid var(--_1pyqka9l);
+.ammwad1 {
+  opacity: 1;
+}
+.ammwad2 {
+  border-bottom: 1px solid var(--_1pyqka9k) !important;
+  background-color: var(--_1pyqka92);
+}
+.ammwad3 {
+  border-bottom: 2px solid var(--_1pyqka9l) !important;
 }
 ._1eq64x70 {
   align-items: center;

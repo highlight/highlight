@@ -32,6 +32,8 @@ export const useGetLogs = ({
 	disablePolling,
 	sortColumn = 'timestamp',
 	sortDirection = Types.SortDirection.Desc,
+	limit,
+	disableRelatedResources,
 }: {
 	query: string
 	project_id: string | undefined
@@ -41,6 +43,8 @@ export const useGetLogs = ({
 	disablePolling?: boolean
 	sortColumn?: string
 	sortDirection?: Types.SortDirection
+	limit?: number
+	disableRelatedResources?: boolean
 }) => {
 	const [loadingAfter, setLoadingAfter] = useState(false)
 
@@ -49,6 +53,7 @@ export const useGetLogs = ({
 			project_id: project_id!,
 			at: logCursor,
 			direction: sortDirection,
+			limit,
 			params: {
 				query,
 				date_range: {
@@ -156,7 +161,7 @@ export const useGetLogs = ({
 					.format(TIME_FORMAT),
 			},
 		},
-		skip: !data?.logs.edges.length,
+		skip: disableRelatedResources || !data?.logs.edges.length,
 	})
 
 	// eslint-disable-next-line react-hooks/exhaustive-deps

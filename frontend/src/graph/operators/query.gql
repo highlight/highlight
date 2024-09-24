@@ -2092,6 +2092,7 @@ query GetLogs(
 	$before: String
 	$at: String
 	$direction: SortDirection!
+	$limit: Int
 ) {
 	logs(
 		project_id: $project_id
@@ -2100,6 +2101,7 @@ query GetLogs(
 		before: $before
 		at: $at
 		direction: $direction
+		limit: $limit
 	) {
 		edges {
 			cursor
@@ -2123,17 +2125,6 @@ query GetLogs(
 			hasPreviousPage
 			startCursor
 			endCursor
-		}
-	}
-}
-
-query GetSessionLogs($project_id: ID!, $params: QueryInput!) {
-	sessionLogs(project_id: $project_id, params: $params) {
-		cursor
-		node {
-			timestamp
-			level
-			message
 		}
 	}
 }

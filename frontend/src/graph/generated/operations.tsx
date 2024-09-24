@@ -4584,6 +4584,7 @@ export type GetLogsQueryVariables = Types.Exact<{
 	before?: Types.Maybe<Types.Scalars['String']>
 	at?: Types.Maybe<Types.Scalars['String']>
 	direction: Types.SortDirection
+	limit?: Types.Maybe<Types.Scalars['Int']>
 }>
 
 export type GetLogsQuery = { __typename?: 'Query' } & {
@@ -4612,22 +4613,6 @@ export type GetLogsQuery = { __typename?: 'Query' } & {
 			'hasNextPage' | 'hasPreviousPage' | 'startCursor' | 'endCursor'
 		>
 	}
-}
-
-export type GetSessionLogsQueryVariables = Types.Exact<{
-	project_id: Types.Scalars['ID']
-	params: Types.QueryInput
-}>
-
-export type GetSessionLogsQuery = { __typename?: 'Query' } & {
-	sessionLogs: Array<
-		{ __typename?: 'LogEdge' } & Pick<Types.LogEdge, 'cursor'> & {
-				node: { __typename?: 'Log' } & Pick<
-					Types.Log,
-					'timestamp' | 'level' | 'message'
-				>
-			}
-	>
 }
 
 export type GetLogsHistogramQueryVariables = Types.Exact<{
@@ -5390,7 +5375,6 @@ export const namedOperations = {
 		GetErrorGroupTags: 'GetErrorGroupTags' as const,
 		GetEmailOptOuts: 'GetEmailOptOuts' as const,
 		GetLogs: 'GetLogs' as const,
-		GetSessionLogs: 'GetSessionLogs' as const,
 		GetLogsHistogram: 'GetLogsHistogram' as const,
 		GetLogsRelatedResources: 'GetLogsRelatedResources' as const,
 		GetProjectSettings: 'GetProjectSettings' as const,
