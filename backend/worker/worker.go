@@ -825,14 +825,18 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 
 		sessionEvents := []*clickhouse.SessionEventRow{
 			{
-				Timestamp:  landingPage.CreatedAt,
-				Event:      "landing_page",
-				Attributes: map[string]string{"url": landingPage.Value},
+				Timestamp: landingPage.CreatedAt,
+				Event:     "Navigate",
+				Attributes: map[string]string{
+					"landing_page": landingPage.Value,
+				},
 			},
 			{
-				Timestamp:  exitPage.CreatedAt,
-				Event:      "exit_page",
-				Attributes: map[string]string{"url": exitPage.Value},
+				Timestamp: exitPage.CreatedAt,
+				Event:     "Navigate",
+				Attributes: map[string]string{
+					"exit_page": exitPage.Value,
+				},
 			},
 		}
 

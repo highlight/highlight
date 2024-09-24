@@ -2261,7 +2261,7 @@ func (r *Resolver) ProcessBackendPayloadImpl(ctx context.Context, sessionSecureI
 	putErrorsToDBSpan.Finish()
 }
 
-// Deprecated, left for backward compatibility with older client versions. Use AddTrackProperties instead
+// Deprecated, left for backward compatibility with older client versions. Use AddSessionEvents instead
 func (r *Resolver) AddTrackPropertiesImpl(ctx context.Context, sessionSecureID string, propertiesObject interface{}) error {
 	outerSpan, ctx := util.StartSpanFromContext(ctx, "public-graph.AddTrackPropertiesImpl",
 		util.ResourceName("go.sessions.AddTrackPropertiesImpl"))
@@ -2290,9 +2290,9 @@ func (r *Resolver) AddTrackPropertiesImpl(ctx context.Context, sessionSecureID s
 	return nil
 }
 
-func (r *Resolver) AddTrackProperties(ctx context.Context, sessionID int, events *parse.ReplayEvents) error {
-	outerSpan, ctx := util.StartSpanFromContext(ctx, "public-graph.AddTrackProperties",
-		util.ResourceName("go.sessions.AddTrackProperties"))
+func (r *Resolver) AddSessionEvents(ctx context.Context, sessionID int, events *parse.ReplayEvents) error {
+	outerSpan, ctx := util.StartSpanFromContext(ctx, "public-graph.AddSessionEvents",
+		util.ResourceName("go.sessions.AddSessionEvents"))
 	defer outerSpan.Finish()
 
 	fields := map[string]string{}
@@ -2309,62 +2309,94 @@ func (r *Resolver) AddTrackProperties(ctx context.Context, sessionID int, events
 				return e.New("error deserializing custom event properties")
 			}
 
-			if !strings.Contains(dataObject.Tag, "Track") {
+			trackEvent := strings.Contains(dataObject.Tag, "Track")
+			navigateEvent := strings.Contains(dataObject.Tag, "Navigate")
+			reloadEvent := strings.Contains(dataObject.Tag, "Reload")
+			clickEvent := strings.Contains(dataObject.Tag, "Click")
+
+			if !trackEvent && !navigateEvent && !reloadEvent && !clickEvent {
 				continue
 			}
 
 			if dataObject.Payload == nil {
-				return e.New("error reading raw payload from track event")
+				return e.New("error reading raw payload from session event")
 			}
 
-			var payloadStr string
-			if err := json.Unmarshal(dataObject.Payload, &payloadStr); err != nil {
-				return e.New("error deserializing track event payload into a string")
-			}
-
-			propertiesObject := make(map[string]interface{})
-			if err := json.Unmarshal([]byte(payloadStr), &propertiesObject); err != nil {
-				return e.New("error deserializing track event properties")
-			}
-
-			attributes := make(map[string]string)
-			for k, v := range propertiesObject {
-				attributes[k] = fmt.Sprintf("%v", v)
-			}
-
-			// make event name the event key and delete from attributes
-			eventName := "unknown_event"
-			if attributes["event"] != "" {
-				eventName = attributes["event"]
-				delete(attributes, "event")
-			} else if attributes["segment-event"] != "" {
-				eventName = attributes["segment-event"]
-				delete(attributes, "segment-event")
-			} else {
-				log.WithContext(ctx).WithFields(
-					log.Fields{
-						"sessionID":  sessionID,
-						"attributes": attributes,
-					}).Warn("writing unknown event")
-			}
-
-			sessionEvents = append(sessionEvents,
-				&clickhouse.SessionEventRow{
-					Event:      eventName,
-					Timestamp:  event.Timestamp,
-					Attributes: attributes,
-				},
-			)
-
-			for k, v := range propertiesObject {
-				formattedVal := fmt.Sprintf("%.*v", SESSION_FIELD_MAX_LENGTH, v)
-				if len(formattedVal) > 0 {
-					fields[k] = formattedVal
+			payloadStr := string(dataObject.Payload)
+			if !clickEvent {
+				if err := json.Unmarshal(dataObject.Payload, &payloadStr); err != nil {
+					return e.New("error deserializing session event payload into a string")
 				}
-				// the value below is used for testing using /buttons
-				testTrackingMessage := "therewasonceahumblebumblebeeflyingthroughtheforestwhensuddenlyadropofwaterfullyencasedhimittookhimasecondtofigureoutthathesinaraindropsuddenlytheraindrophitthegroundasifhewasdivingintoapoolandheflewawaywithnofurtherissues"
-				if fields[k] == testTrackingMessage {
-					return e.New(testTrackingMessage)
+			}
+
+			if clickEvent {
+				propertiesObject := make(map[string]string)
+				if err := json.Unmarshal([]byte(payloadStr), &propertiesObject); err != nil {
+					return e.New("error deserializing track event properties")
+				}
+
+				sessionEvents = append(sessionEvents,
+					&clickhouse.SessionEventRow{
+						Event:      dataObject.Tag,
+						Timestamp:  event.Timestamp,
+						Attributes: propertiesObject,
+					},
+				)
+			} else if navigateEvent || reloadEvent {
+				sessionEvents = append(sessionEvents,
+					&clickhouse.SessionEventRow{
+						Event:     dataObject.Tag,
+						Timestamp: event.Timestamp,
+						Attributes: map[string]string{
+							"url": payloadStr,
+						},
+					},
+				)
+			} else if trackEvent {
+				propertiesObject := make(map[string]interface{})
+				if err := json.Unmarshal([]byte(payloadStr), &propertiesObject); err != nil {
+					return e.New("error deserializing track event properties")
+				}
+
+				attributes := make(map[string]string)
+				for k, v := range propertiesObject {
+					attributes[k] = fmt.Sprintf("%v", v)
+				}
+
+				// make event name the event key and delete from attributes
+				eventName := "unknown_event"
+				if attributes["event"] != "" {
+					eventName = attributes["event"]
+					delete(attributes, "event")
+				} else if attributes["segment-event"] != "" {
+					eventName = attributes["segment-event"]
+					delete(attributes, "segment-event")
+				} else {
+					log.WithContext(ctx).WithFields(
+						log.Fields{
+							"sessionID":  sessionID,
+							"attributes": attributes,
+						}).Warn("writing unknown event")
+				}
+
+				sessionEvents = append(sessionEvents,
+					&clickhouse.SessionEventRow{
+						Event:      eventName,
+						Timestamp:  event.Timestamp,
+						Attributes: attributes,
+					},
+				)
+
+				for k, v := range propertiesObject {
+					formattedVal := fmt.Sprintf("%.*v", SESSION_FIELD_MAX_LENGTH, v)
+					if len(formattedVal) > 0 {
+						fields[k] = formattedVal
+					}
+					// the value below is used for testing using /buttons
+					testTrackingMessage := "therewasonceahumblebumblebeeflyingthroughtheforestwhensuddenlyadropofwaterfullyencasedhimittookhimasecondtofigureoutthathesinaraindropsuddenlytheraindrophitthegroundasifhewasdivingintoapoolandheflewawaywithnofurtherissues"
+					if fields[k] == testTrackingMessage {
+						return e.New(testTrackingMessage)
+					}
 				}
 			}
 		}
@@ -2597,7 +2629,7 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 				return e.Wrap(err, "error parsing events from schema interfaces")
 			}
 
-			if err := r.AddTrackProperties(ctx, sessionID, parsedEvents); err != nil {
+			if err := r.AddSessionEvents(ctx, sessionID, parsedEvents); err != nil {
 				log.WithContext(ctx).Error(e.Wrap(err, "failed to add track properties"))
 			}
 
