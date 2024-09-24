@@ -1,4 +1,4 @@
-import { InkeepChatButtonProps } from '@inkeep/uikit'
+import type { InkeepChatButtonProps } from '@inkeep/uikit'
 import useInkeepSettings from '@/hooks/useInkeepSettings'
 import { lazy, Suspense } from 'react'
 
