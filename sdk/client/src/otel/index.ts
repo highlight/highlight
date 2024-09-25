@@ -372,20 +372,11 @@ const shouldRecordRequest = (
 		return false
 	}
 
-	// Potential future refactor: shouldNetworkRequestBeRecorded also calls
-	// shouldNetworkRequestBeTraced, but it returns true for all non-Highlight
-	// resources. Following existing patterns here, but we may want to decouple
-	// these two functions and refactor some of the request filtering logic.
-	const shouldRecord = shouldNetworkRequestBeRecorded(
+	return shouldNetworkRequestBeRecorded(
 		url,
 		highlightEndpoints,
 		tracingOrigins,
 	)
-	if (!shouldRecord) {
-		return false
-	}
-
-	return shouldNetworkRequestBeTraced(url, tracingOrigins ?? [], urlBlocklist)
 }
 
 const assignDocumentDurations = (span: api.Span) => {
