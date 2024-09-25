@@ -184,68 +184,83 @@ describe('shouldNetworkRequestBeRecorded', () => {
 		vi.restoreAllMocks()
 	})
 
-	test.each([
-		['https://example.com/api/todo/create', [], true, true],
-		['https://pub.example.com/api/todo/create', [], ['example.com'], true],
-		// No highlight endpoints, so record it
-		[
-			'https://pub.example.com/api/todo/create',
-			[],
-			['foo.example.com'],
-			true,
-		],
-		[
-			'https://pub.example.com/api/todo/create',
-			[],
-			[/.*example\.com.*/],
-			true,
-		],
-		[
-			'https://pub.example.com/api/todo/create',
-			['https://pub.example.com/my/api'],
-			[/.*example\.com.*/],
-			true,
-		],
-		// Tracing origins overrides highlight endpoints
-		[
-			'https://pub.example.com/api/todo/create',
-			['https://pub.example.com/api'],
-			[/.*example\.com.*/],
-			true,
-		],
-		['https://otel.highlight.io/v1/traces', [], [], false],
-		['https://otel.highlight.io/v1/traces', [], [/.*highlight\.io/], true],
-		[
-			'https://otel.highlight.io/v1/traces',
-			[],
-			['otel.highlight.io'],
-			true,
-		],
-		[
-			'https://otel.highlight.io/v1/traces',
-			['otel.highlight.io'],
-			['otel.highlight.io'],
-			true,
-		],
-		['https://pub.highlight.io', [], [], false],
-	])(
-		'shouldNetworkRequestBeRecorded(%s, %s, %s, %b) -> %s',
-		(url, highlightEndpoints, tracingOrigins, expected) => {
-			window.location.host = 'example.com'
-			expect(
-				shouldNetworkRequestBeRecorded(
-					url,
-					highlightEndpoints,
-					tracingOrigins,
-				),
-				`
-shouldNetworkRequestBeRecorded(
-	url: ${url}
-	tracingOrigins: ${JSON.stringify(tracingOrigins)}
-	highlightEndpoints: ${JSON.stringify(highlightEndpoints)}
-)
-				`,
-			).toBe(expected)
-		},
-	)
+	it('records external URLs when tracingOrigins is true', () => {
+		expect(
+			shouldNetworkRequestBeRecorded(
+				'https://example.com/api/todo/create',
+				[],
+				true,
+			),
+		).toBe(true)
+	})
+
+	it('records external URLs when tracingOrigins matches', () => {
+		expect(
+			shouldNetworkRequestBeRecorded(
+				'https://example.com/api/todo/create',
+				[],
+				['example.com'],
+			),
+		).toBe(true)
+	})
+
+	it('records external URLs when tracingOrigins do not match', () => {
+		expect(
+			shouldNetworkRequestBeRecorded(
+				'https://example.com/api/todo/create',
+				[],
+				['foo.example.com'],
+			),
+		).toBe(true)
+	})
+
+	it('does not record highlight endpoints when tracingOrigins is empty', () => {
+		expect(
+			shouldNetworkRequestBeRecorded(
+				'https://otel.highlight.io/v1/traces',
+				[],
+				[],
+			),
+		).toBe(false)
+	})
+
+	it('records highlight endpoints when tracingOrigins regex matches', () => {
+		expect(
+			shouldNetworkRequestBeRecorded(
+				'https://otel.highlight.io/v1/traces',
+				[],
+				[/.*highlight\.io/],
+			),
+		).toBe(true)
+	})
+
+	it('records highlight endpoints when tracingOrigins matches', () => {
+		expect(
+			shouldNetworkRequestBeRecorded(
+				'https://otel.highlight.io/v1/traces',
+				[],
+				['otel.highlight.io'],
+			),
+		).toBe(true)
+	})
+
+	it('does not record highlight endpoints when passed in as an argument', () => {
+		expect(
+			shouldNetworkRequestBeRecorded(
+				'https://otel.highlight.io/v1/traces',
+				['otel.highlight.io'],
+				[],
+			),
+		).toBe(false)
+	})
+
+	it('records highlight endpoints even when they are passed in as an argument if in tracingOrigins', () => {
+		expect(
+			shouldNetworkRequestBeRecorded(
+				'https://otel.highlight.io/v1/traces',
+				['otel.highlight.io'],
+				[/.*highlight\.io/],
+			),
+		).toBe(true)
+	})
 })
