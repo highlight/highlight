@@ -14,7 +14,7 @@ using System;
 namespace Serilog
 {
 
-public static class HighlightSerilogExtensions
+    public static class HighlightSerilogExtensions
     {
         public static LoggerConfiguration HighlightOpenTelemetry(this LoggerSinkConfiguration loggerConfiguration,
             Action<Highlight.OpenTelemetry.Config> configure)
@@ -38,13 +38,13 @@ public static class HighlightSerilogExtensions
 
 namespace Highlight
 {
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Web;
-using Microsoft.Extensions.Logging;
+    using System;
+    using System.Collections.Generic;
+    using System.Linq;
+    using System.Web;
+    using Microsoft.Extensions.Logging;
 
-public class TraceProcessor : BaseProcessor<Activity>
+    public class TraceProcessor : BaseProcessor<Activity>
     {
         public override void OnStart(Activity data)
         {
@@ -66,7 +66,7 @@ public class TraceProcessor : BaseProcessor<Activity>
             var attributes = ctx.Select(entry => new KeyValuePair<string, object>(entry.Key, entry.Value)).ToList();
             if (data.Attributes != null)
             {
-                attributes = [.. attributes, .. data.Attributes];
+                attributes = attributes.Concat(data.Attributes).ToList();
             }
 
             data.Attributes = attributes;
@@ -94,12 +94,13 @@ public class TraceProcessor : BaseProcessor<Activity>
         public const OtlpProtocol SerilogExportProtocol = OtlpProtocol.HttpProtobuf;
         public const string HighlightHeader = "x-highlight-request";
 
-        public class Config {
+        public class Config
+        {
             public string ProjectId;
             public string ServiceName;
             public string OtlpEndpoint = "https://otel.highlight.io:4318";
         }
-        
+
         public static Dictionary<string, object> GetResourceAttributes()
         {
             return new Dictionary<string, object>
@@ -113,7 +114,7 @@ public class TraceProcessor : BaseProcessor<Activity>
 
         static readonly Config Cfg = new();
         static readonly Random Random = new();
-        
+
         static TracerProvider _tracerProvider;
         static MeterProvider _meterProvider;
 
@@ -154,24 +155,24 @@ public class TraceProcessor : BaseProcessor<Activity>
             activity.SetTag("http.scheme", httpRequest.Url.Scheme);
             activity.SetTag("http.url", httpRequest.Path);
             activity.SetTag("http.user_agent", httpRequest.Headers["User-Agent"]);
-            
-            foreach(string header in httpRequest.Headers)
+
+            foreach (string header in httpRequest.Headers)
             {
                 var value = httpRequest.Headers[header];
                 activity.SetTag($"http.request.header.{header}", value);
             }
-            
+
             var (sessionId, requestId) = ExtractContext(httpRequest);
             activity.SetTag("highlight.session_id", sessionId);
             activity.SetTag("highlight.trace_id", requestId);
-            Baggage.SetBaggage([new KeyValuePair<string, string>(HighlightHeader, $"{sessionId}/{requestId}")]);
+            Baggage.SetBaggage(new[] { new KeyValuePair<string, string>(HighlightHeader, $"{sessionId}/{requestId}") });
         }
 
         static void EnrichWithHttpResponse(Activity activity, HttpResponse httpResponse)
         {
             activity.SetTag("http.status_code", httpResponse.StatusCode);
-            
-            foreach(string header in httpResponse.Headers)
+
+            foreach (string header in httpResponse.Headers)
             {
                 var value = httpResponse.Headers[header];
                 activity.SetTag($"http.request.header.{header}", value);

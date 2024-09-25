@@ -55,11 +55,14 @@ jobs:
               with:
                   dotnet-version: 8.x
 
-            - name: dotnet restore
-              run: dotnet restore
+            - name: Setup dotnet
+              uses: microsoft/setup-msbuild@v2
 
-            - name: dotnet pack
-              run: dotnet pack --configuration Release
+            - name: msbuild restore
+              run: msbuild -t:Restore
+
+            - name: msbuild pack
+              run: msbuild -t:Pack -property:Configuration=Release
 
             - name: Push generated package to NuGet registry
               # if: github.ref == 'refs/heads/main'
