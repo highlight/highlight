@@ -16,6 +16,7 @@
 		"@highlight-run/react": "workspace:*",
 		"@highlight-run/react-mentions": "4.4.2",
 		"@highlight-run/ui": "workspace:*",
+		"@inkeep/uikit": "^0.3.8",
 		"@mux/mux-player": "^2.4.1",
 		"@mux/mux-player-react": "^2.4.1",
 		"@rehooks/local-storage": "^2.4.5",
