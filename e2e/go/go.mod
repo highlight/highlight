@@ -1,6 +1,6 @@
 module github.com/highlight/highlight/e2e/go
 
-go 1.22.2
+go 1.23.1
 
 replace github.com/highlight/highlight/sdk/highlight-go => ../../sdk/highlight-go
 
