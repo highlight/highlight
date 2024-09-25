@@ -54,6 +54,7 @@ import { OptionDropdown } from '@/pages/Graphing/OptionDropdown'
 
 import { AlertGraph } from '../AlertGraph'
 import * as style from './styles.css'
+import { EventSelection } from '@/pages/Graphing/EventSelection'
 
 const SidebarSection = (props: PropsWithChildren) => {
 	return (
@@ -476,31 +477,44 @@ export const AlertForm: React.FC = () => {
 								</SidebarSection>
 								<Divider className="m-0" />
 								<SidebarSection>
-									<LabeledRow
-										label="Filters"
-										name="query"
-										tooltip="The search query used to filter which data points are included before aggregating."
-									>
-										<Box
-											border="divider"
-											width="full"
-											borderRadius="6"
+									{productType === ProductType.Events ? (
+										<EventSelection
+											initialQuery={query}
+											setQuery={setQuery}
+											startDate={startDate}
+											endDate={endDate}
+										/>
+									) : (
+										<LabeledRow
+											label="Filters"
+											name="query"
+											tooltip="The search query used to filter which data points are included before aggregating."
 										>
-											<SearchContext
-												initialQuery={query}
-												onSubmit={setQuery}
+											<Box
+												border="divider"
+												width="full"
+												borderRadius="6"
 											>
-												<Search
-													startDate={
-														new Date(startDate)
-													}
-													endDate={new Date(endDate)}
-													productType={productType}
-													hideIcon
-												/>
-											</SearchContext>
-										</Box>
-									</LabeledRow>
+												<SearchContext
+													initialQuery={query}
+													onSubmit={setQuery}
+												>
+													<Search
+														startDate={
+															new Date(startDate)
+														}
+														endDate={
+															new Date(endDate)
+														}
+														productType={
+															productType
+														}
+														hideIcon
+													/>
+												</SearchContext>
+											</Box>
+										</LabeledRow>
+									)}
 								</SidebarSection>
 								{!isSessionAlert && !isErrorAlert && (
 									<>
