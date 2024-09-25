@@ -254,14 +254,16 @@ const isHighlightNetworkResourceFilter = (
 	name
 		.toLocaleLowerCase()
 		.includes(
-			import.meta.env.REACT_APP_PUBLIC_GRAPH_URI ?? 'highlight.io',
+			import.meta.env.REACT_APP_PUBLIC_GRAPH_URI ?? 'pub.highlight.io',
 		) ||
-	name.toLocaleLowerCase().includes('highlight.io') ||
+	name.toLocaleLowerCase().includes('pub.highlight.io') ||
+	name.toLocaleLowerCase().includes('otel.highlight.io') ||
 	highlightEndpoints.some((backendUrl) =>
 		name.toLocaleLowerCase().includes(backendUrl),
 	)
-// TODO: Add OTeL endpoint to the filter
 
+// Determines whether we store the network request and show it in the session
+// replay, including the body and headers.
 export const shouldNetworkRequestBeRecorded = (
 	url: string,
 	highlightEndpoints: string[],
@@ -269,14 +271,24 @@ export const shouldNetworkRequestBeRecorded = (
 ) => {
 	return (
 		!isHighlightNetworkResourceFilter(url, highlightEndpoints) ||
-		shouldNetworkRequestBeTraced(url, tracingOrigins)
+		shouldNetworkRequestBeTraced(url, tracingOrigins ?? [], [])
 	)
 }
 
+// Determines whether we want to attach the x-highlight-request header to the
+// request. We want to avoid adding this to external requests.
 export const shouldNetworkRequestBeTraced = (
 	url: string,
-	tracingOrigins?: boolean | (string | RegExp)[],
+	tracingOrigins: boolean | (string | RegExp)[],
+	urlBlocklist: string[],
 ) => {
+	if (
+		urlBlocklist.some((blockedUrl) =>
+			url.toLowerCase().includes(blockedUrl),
+		)
+	) {
+		return false
+	}
 	let patterns: (string | RegExp)[] = []
 	if (tracingOrigins === true) {
 		patterns = ['localhost', /^\//]

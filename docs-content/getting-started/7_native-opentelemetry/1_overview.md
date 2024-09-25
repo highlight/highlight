@@ -14,13 +14,16 @@ The highlight.io SDKs are powered by [OpenTelemetry](https://opentelemetry.io/) 
 
 <DocsCardGroup>
     <DocsCard title="Error Monitoring in OTEL"  href="./2_error-monitoring.md">
-        {"Get started with errors."}
+        Get started with errors.
     </DocsCard>
     <DocsCard title="Backend Logging in OTEL"  href="./3_logging.md">
-        {"Get started with logs."}
+        Get started with logs.
     </DocsCard>
     <DocsCard title="Tracing in OTEL"  href="./4_tracing.md">
-        {"Get started with traces."}
+        Get started with traces.
+    </DocsCard>
+    <DocsCard title="Browser OTEL" href="./5_browser.md">
+        Send Browser instrumentation data to Highlight.
     </DocsCard>
 </DocsCardGroup>
 
@@ -42,7 +45,7 @@ Additional optional attributes are set by highlight to provide additional contex
 - `highlight.type` - `http.request` for frontend network requests reported by highlight, `highlight.internal` for highlight-internal traces, otherwise unset.
 - `highlight.key` - The unique object key for this trace, for grouping by distinct objects in highlight.
 
-We also send one of the following [Events](https://opentelemetry.io/docs/specs/otel/trace/api/#add-events) on a trace:
+We may also send one of the following [Events](https://opentelemetry.io/docs/specs/otel/trace/api/#add-events) on a trace:
 
 - `log` - The trace is processed as a log event.
   - `log.severity` - an [OpenTelemetry log level](https://opentelemetry.io/docs/specs/otel/logs/data-model-appendix/#appendix-b-severitynumber-example-mappings).
@@ -70,13 +73,11 @@ An exception is represented in OpenTelemetry as a Trace Event, per the [semantic
 
 Many OpenTelemetry SDK implementations offer a `span.record_exception(exc)` method that automatically populates the semantic convention attributes with the correct values.
 
-
 ## Recording a Log
 
 If an SDK supports the logs ingest endpoint (`v1/logs`), prefer using that. Otherwise, see below for reporting the log as a trace event.
 
 A LogRecord is exported with an associated trace. Specific attributes for the file logging, line number, and more are set based on the [logging semantic convention keys](https://opentelemetry.io/docs/reference/specification/logs/semantic_conventions/).
-
 
 ## Reporting a Log as an OTEL Trace
 
@@ -108,7 +109,7 @@ processors:
 
 exporters:
   otlphttp/highlight:
-    endpoint: 'https://pub.highlight.run/otel'
+    endpoint: 'https://otel.highlight.io'
     compression: gzip
   otlphttp/example:
     endpoint: 'https://example.com/otel'

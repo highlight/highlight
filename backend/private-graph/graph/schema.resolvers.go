@@ -5311,7 +5311,6 @@ func (r *queryResolver) ErrorGroups(ctx context.Context, projectID int, count in
 		Joins("ErrorTag").
 		Where("error_groups.id in ?", ids).
 		Where("error_groups.project_id = ?", project.ID).
-		Order("error_groups.updated_at DESC").
 		Find(&results).Error; err != nil {
 		return nil, err
 	}
@@ -5321,6 +5320,18 @@ func (r *queryResolver) ErrorGroups(ctx context.Context, projectID int, count in
 			return nil, err
 		}
 	}
+
+	// Sort results by LastOccurrence, descending
+	sort.Slice(results, func(i, j int) bool {
+		var timeA, timeB time.Time
+		if results[i].LastOccurrence != nil {
+			timeA = *results[i].LastOccurrence
+		}
+		if results[j].LastOccurrence != nil {
+			timeB = *results[j].LastOccurrence
+		}
+		return timeA.After(timeB)
+	})
 
 	return &model.ErrorResults{
 		ErrorGroups: lo.Map(results, func(eg *model.ErrorGroup, idx int) model.ErrorGroup { return *eg }),
@@ -8980,7 +8991,7 @@ And specifically, for the %s product, you can refer to the following documentati
 }
 
 // Logs is the resolver for the logs field.
-func (r *queryResolver) Logs(ctx context.Context, projectID int, params modelInputs.QueryInput, after *string, before *string, at *string, direction modelInputs.SortDirection) (*modelInputs.LogConnection, error) {
+func (r *queryResolver) Logs(ctx context.Context, projectID int, params modelInputs.QueryInput, after *string, before *string, at *string, direction modelInputs.SortDirection, limit *int) (*modelInputs.LogConnection, error) {
 	project, err := r.isUserInProjectOrDemoProject(ctx, projectID)
 	if err != nil {
 		return nil, err
@@ -9029,17 +9040,8 @@ func (r *queryResolver) Logs(ctx context.Context, projectID int, params modelInp
 		Before:    before,
 		At:        at,
 		Direction: direction,
+		Limit:     limit,
 	})
-}
-
-// SessionLogs is the resolver for the sessionLogs field.
-func (r *queryResolver) SessionLogs(ctx context.Context, projectID int, params modelInputs.QueryInput) ([]*modelInputs.LogEdge, error) {
-	project, err := r.isUserInProjectOrDemoProject(ctx, projectID)
-	if err != nil {
-		return nil, err
-	}
-
-	return r.ClickhouseClient.ReadSessionLogs(ctx, project.ID, params)
 }
 
 // LogsHistogram is the resolver for the logs_histogram field.
@@ -9305,7 +9307,7 @@ func (r *queryResolver) Trace(ctx context.Context, projectID int, traceID string
 }
 
 // Traces is the resolver for the traces field.
-func (r *queryResolver) Traces(ctx context.Context, projectID int, params modelInputs.QueryInput, after *string, before *string, at *string, direction modelInputs.SortDirection) (*modelInputs.TraceConnection, error) {
+func (r *queryResolver) Traces(ctx context.Context, projectID int, params modelInputs.QueryInput, after *string, before *string, at *string, direction modelInputs.SortDirection, limit *int) (*modelInputs.TraceConnection, error) {
 	project, err := r.isUserInProjectOrDemoProject(ctx, projectID)
 	if err != nil {
 		return nil, err
@@ -9316,6 +9318,7 @@ func (r *queryResolver) Traces(ctx context.Context, projectID int, params modelI
 		Before:    before,
 		At:        at,
 		Direction: direction,
+		Limit:     limit,
 	})
 }
 

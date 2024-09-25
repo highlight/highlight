@@ -70,6 +70,25 @@ export const RETENTION_PERIOD_LABELS: { [K in RetentionPeriod]: string } = {
 	[RetentionPeriod.ThreeYears]: '3 year retention',
 }
 
+export const getRetentionDays = (p: RetentionPeriod) => {
+	switch (p) {
+		case RetentionPeriod.SevenDays:
+			return 7
+		case RetentionPeriod.ThirtyDays:
+			return 30
+		case RetentionPeriod.ThreeMonths:
+			return 90
+		case RetentionPeriod.SixMonths:
+			return 180
+		case RetentionPeriod.TwelveMonths:
+			return 365
+		case RetentionPeriod.TwoYears:
+			return 2 * 365
+		case RetentionPeriod.ThreeYears:
+			return 3 * 365
+	}
+}
+
 export const PLANS_WITH_ENTERPRISE_FEATURES = new Set<PlanType>([
 	PlanType.Business,
 	PlanType.Enterprise,

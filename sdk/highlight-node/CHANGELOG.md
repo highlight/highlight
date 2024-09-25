@@ -1,5 +1,11 @@
 # @highlight-run/node
 
+## 3.9.3
+
+### Patch Changes
+
+-   5045b23: fix opentelemetry warning from missing dependencies
+
 ## 3.9.2
 
 ### Patch Changes

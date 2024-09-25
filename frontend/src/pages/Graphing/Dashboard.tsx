@@ -24,14 +24,13 @@ import {
 	IconSolidCog,
 	IconSolidPlus,
 	parsePreset,
-	presetStartDate,
 	Stack,
 	Tag,
 	Text,
 } from '@highlight-run/ui/components'
 import { vars } from '@highlight-run/ui/vars'
 import clsx from 'clsx'
-import { useId, useState } from 'react'
+import { useEffect, useId, useState } from 'react'
 import { Helmet } from 'react-helmet'
 import { Link, useNavigate } from 'react-router-dom'
 
@@ -52,6 +51,7 @@ import { useParams } from '@/util/react-router/useParams'
 
 import * as style from './Dashboard.css'
 import { DashboardSettingsModal } from '@/pages/Graphing/components/DashboardSettingsModal'
+import { useRetentionPresets } from '@/components/Search/SearchForm/hooks'
 
 export const HeaderDivider = () => <Box cssClass={style.headerDivider} />
 
@@ -131,22 +131,28 @@ export const Dashboard = () => {
 	const { projectId } = useProjectId()
 	const { data } = useGetVisualizationQuery({
 		variables: { id: dashboard_id! },
-		onCompleted: (data) => {
+	})
+
+	const [upsertViz] = useUpsertVisualizationMutation()
+
+	const { presets, minDate } = useRetentionPresets()
+
+	const { startDate, endDate, selectedPreset, updateSearchTime } =
+		useSearchTime({
+			presets: presets,
+			initialPreset: DEFAULT_TIME_PRESETS[2],
+		})
+
+	useEffect(() => {
+		if (data) {
 			setGraphs(data.visualization.graphs)
 			const preset = data.visualization.timePreset
 			if (preset) {
 				updateSearchTime(new Date(), new Date(), parsePreset(preset))
 			}
-		},
-	})
-
-	const [upsertViz] = useUpsertVisualizationMutation()
-
-	const { startDate, endDate, selectedPreset, updateSearchTime } =
-		useSearchTime({
-			presets: DEFAULT_TIME_PRESETS,
-			initialPreset: DEFAULT_TIME_PRESETS[2],
-		})
+		}
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [data])
 
 	const navigate = useNavigate()
 
@@ -229,10 +235,8 @@ export const Dashboard = () => {
 										selectedPreset,
 									}}
 									onDatesChange={updateSearchTime}
-									presets={DEFAULT_TIME_PRESETS}
-									minDate={presetStartDate(
-										DEFAULT_TIME_PRESETS[5],
-									)}
+									presets={presets}
+									minDate={minDate}
 								/>
 								<HeaderDivider />
 								<Button

@@ -27,6 +27,7 @@ import (
 const SamplingRows = 20_000_000
 const KeysMaxRows = 1_000_000
 const KeyValuesMaxRows = 1_000_000
+const MaxBuckets = 100
 
 type SampleableTableConfig struct {
 	tableConfig         model.TableConfig
@@ -51,6 +52,11 @@ type ReadMetricsInput struct {
 }
 
 func readObjects[TObj interface{}](ctx context.Context, client *Client, config model.TableConfig, samplingConfig model.TableConfig, projectID int, params modelInputs.QueryInput, pagination Pagination, scanObject func(driver.Rows) (*Edge[TObj], error)) (*Connection[TObj], error) {
+	limit := LogsLimit
+	if pagination.Limit != nil {
+		limit = *pagination.Limit
+	}
+
 	sb := sqlbuilder.NewSelectBuilder()
 	var err error
 	var args []interface{}
@@ -78,7 +84,7 @@ func readObjects[TObj interface{}](ctx context.Context, client *Client, config m
 		if err != nil {
 			return nil, err
 		}
-		beforeSb.Distinct().Limit(LogsLimit/2 + 1)
+		beforeSb.Distinct().Limit(limit/2 + 1)
 
 		atSb, _, err := makeSelectBuilder(
 			innerTableConfig,
@@ -104,7 +110,7 @@ func readObjects[TObj interface{}](ctx context.Context, client *Client, config m
 		if err != nil {
 			return nil, err
 		}
-		afterSb.Distinct().Limit(LogsLimit/2 + 1)
+		afterSb.Distinct().Limit(limit/2 + 1)
 
 		ub := sqlbuilder.UnionAll(beforeSb, atSb, afterSb)
 		sb.Select(outerSelect).
@@ -124,14 +130,14 @@ func readObjects[TObj interface{}](ctx context.Context, client *Client, config m
 			return nil, err
 		}
 
-		fromSb.Distinct().Limit(LogsLimit + 1)
+		fromSb.Distinct().Limit(limit + 1)
 		sb.Select(outerSelect).
 			Distinct().
 			From(config.TableName).
 			Where(sb.Equal("ProjectId", projectID)).
 			Where(sb.In(fmt.Sprintf("(%s)", strings.Join(innerSelect, ",")), fromSb)).
 			OrderBy(orderForward).
-			Limit(LogsLimit + 1)
+			Limit(limit + 1)
 	}
 
 	sql, args := sb.BuildWithFlavor(sqlbuilder.ClickHouse)
@@ -745,9 +751,6 @@ func (client *Client) ReadMetrics(ctx context.Context, input ReadMetricsInput) (
 			EndDate:   time.Now(),
 		}
 	}
-	startTimestamp := input.Params.DateRange.StartDate.Unix()
-	endTimestamp := input.Params.DateRange.EndDate.Unix()
-	useSampling := input.SampleableConfig.useSampling(input.Params.DateRange.EndDate.Sub(input.Params.DateRange.StartDate)) && input.SavedMetricState == nil
 
 	nBuckets := 48
 	if input.BucketWindow == nil {
@@ -756,15 +759,23 @@ func (client *Client) ReadMetrics(ctx context.Context, input ReadMetricsInput) (
 		} else if input.BucketCount != nil {
 			nBuckets = *input.BucketCount
 		}
-		if nBuckets > 1000 {
-			nBuckets = 1000
+		if nBuckets > MaxBuckets {
+			nBuckets = MaxBuckets
 		}
 		if nBuckets < 1 {
 			nBuckets = 1
 		}
 	} else {
-		nBuckets = int((endTimestamp - startTimestamp) / int64(*input.BucketWindow))
+		nBuckets = int(int64(input.Params.DateRange.EndDate.Sub(input.Params.DateRange.StartDate).Seconds()) / int64(*input.BucketWindow))
+		if nBuckets > MaxBuckets {
+			nBuckets = MaxBuckets
+			input.Params.DateRange.StartDate = input.Params.DateRange.EndDate.Add(-1 * time.Duration(MaxBuckets**input.BucketWindow) * time.Second)
+		}
 	}
+
+	startTimestamp := input.Params.DateRange.StartDate.Unix()
+	endTimestamp := input.Params.DateRange.EndDate.Unix()
+	useSampling := input.SampleableConfig.useSampling(input.Params.DateRange.EndDate.Sub(input.Params.DateRange.StartDate)) && input.SavedMetricState == nil
 
 	keysToColumns := input.SampleableConfig.tableConfig.KeysToColumns
 
