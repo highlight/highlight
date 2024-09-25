@@ -59,7 +59,10 @@ import {
 	TableNullHandling,
 } from '@/pages/Graphing/components/Table'
 import { HeaderDivider } from '@/pages/Graphing/Dashboard'
+import { FREQUENCIES } from '@/pages/Alerts/AlertConfigurationCard/AlertConfigurationConstants'
+import { useRetentionPresets } from '@/components/Search/SearchForm/hooks'
 
+import { EventSelection } from './EventSelection'
 import { Combobox } from './Combobox'
 import {
 	DEFAULT_BUCKET_COUNT,
@@ -74,8 +77,6 @@ import * as style from './GraphingEditor.css'
 import { LabeledRow } from './LabeledRow'
 import { OptionDropdown } from './OptionDropdown'
 import { BarChartSettings, LineChartSettings, TableSettings } from './Settings'
-import { FREQUENCIES } from '@/pages/Alerts/AlertConfigurationCard/AlertConfigurationConstants'
-import { useRetentionPresets } from '@/components/Search/SearchForm/hooks'
 
 type BucketBy = 'None' | 'Interval' | 'Count'
 const BUCKET_BY_OPTIONS: BucketBy[] = ['None', 'Interval', 'Count']
@@ -648,31 +649,44 @@ export const GraphingEditor: React.FC = () => {
 								</SidebarSection>
 								<Divider className="m-0" />
 								<SidebarSection>
-									<LabeledRow
-										label="Filters"
-										name="query"
-										tooltip="The search query used to filter which data points are included before aggregating."
-									>
-										<Box
-											border="divider"
-											width="full"
-											borderRadius="6"
+									{productType === ProductType.Events ? (
+										<EventSelection
+											initialQuery={query}
+											setQuery={setQuery}
+											startDate={startDate}
+											endDate={endDate}
+										/>
+									) : (
+										<LabeledRow
+											label="Filters"
+											name="query"
+											tooltip="The search query used to filter which data points are included before aggregating."
 										>
-											<SearchContext
-												initialQuery={query}
-												onSubmit={setQuery}
+											<Box
+												border="divider"
+												width="full"
+												borderRadius="6"
 											>
-												<Search
-													startDate={
-														new Date(startDate)
-													}
-													endDate={new Date(endDate)}
-													productType={productType}
-													hideIcon
-												/>
-											</SearchContext>
-										</Box>
-									</LabeledRow>
+												<SearchContext
+													initialQuery={query}
+													onSubmit={setQuery}
+												>
+													<Search
+														startDate={
+															new Date(startDate)
+														}
+														endDate={
+															new Date(endDate)
+														}
+														productType={
+															productType
+														}
+														hideIcon
+													/>
+												</SearchContext>
+											</Box>
+										</LabeledRow>
+									)}
 								</SidebarSection>
 								<Divider className="m-0" />
 								<SidebarSection>
