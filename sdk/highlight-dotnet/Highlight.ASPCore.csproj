@@ -2,6 +2,7 @@
 
     <PropertyGroup>
         <TargetFrameworks>net6.0;net7.0;net8.0</TargetFrameworks>
+        <AzureFunctionsVersion>v4</AzureFunctionsVersion>
         <RootNamespace>Highlight</RootNamespace>
         <ImplicitUsings>enable</ImplicitUsings>
         <IsPackable>true</IsPackable>
@@ -33,7 +34,7 @@
       <PackageReference Include="OpenTelemetry.Extensions.Hosting" Version="1.9.0" />
       <PackageReference Include="Serilog" Version="4.0.1" />
       <PackageReference Include="Serilog.Sinks.OpenTelemetry" Version="4.0.0" />
-      <None Include="README.md" Pack="true" PackagePath=""/>
+      <None Include="README.md" Pack="true" PackagePath="" />
     </ItemGroup>
 
 </Project>
