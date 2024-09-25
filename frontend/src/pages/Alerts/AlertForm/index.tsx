@@ -51,10 +51,10 @@ import {
 import { HeaderDivider } from '@/pages/Graphing/Dashboard'
 import { LabeledRow } from '@/pages/Graphing/LabeledRow'
 import { OptionDropdown } from '@/pages/Graphing/OptionDropdown'
+import { EventSelection } from '@/pages/Graphing/EventSelection'
 
 import { AlertGraph } from '../AlertGraph'
 import * as style from './styles.css'
-import { EventSelection } from '@/pages/Graphing/EventSelection'
 
 const SidebarSection = (props: PropsWithChildren) => {
 	return (
