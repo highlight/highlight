@@ -4,6 +4,7 @@ import type {
 	InkeepBaseSettings,
 	InkeepModalSettings,
 } from '@inkeep/uikit'
+import inkeepCssUrl from '../inkeep.css?url'
 
 type InkeepSharedSettings = {
 	baseSettings: InkeepBaseSettings
@@ -20,7 +21,7 @@ const useInkeepSettings = (): InkeepSharedSettings => {
 		primaryBrandColor: '#744ED4',
 		organizationDisplayName: 'Highlight.io',
 		theme: {
-			stylesheetUrls: ['/inkeep.css'],
+			stylesheetUrls: [inkeepCssUrl],
 		},
 	}
 
