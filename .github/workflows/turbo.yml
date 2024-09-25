@@ -126,7 +126,7 @@ jobs:
 
             - name: Release changesets
               if: github.event.pull_request.head.repo.full_name == 'highlight/highlight'
-              id: changesets-publish
+              id: changesets-version
               uses: changesets/action@v1
               with:
                   version: yarn changeset version
