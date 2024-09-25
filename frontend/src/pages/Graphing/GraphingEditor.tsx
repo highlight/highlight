@@ -1,7 +1,6 @@
 import { toast } from '@components/Toaster'
 import {
 	Box,
-	Button,
 	DateRangePicker,
 	DEFAULT_TIME_PRESETS,
 	Form,
@@ -24,11 +23,13 @@ import { Helmet } from 'react-helmet'
 import { useNavigate } from 'react-router-dom'
 import { useDebounce } from 'react-use'
 
+import { Button } from '@/components/Button'
 import { SearchContext } from '@/components/Search/SearchContext'
 import { Search } from '@/components/Search/SearchForm/SearchForm'
 import {
 	useGetVisualizationQuery,
 	useUpsertGraphMutation,
+	useDeleteGraphMutation,
 } from '@/graph/generated/hooks'
 import {
 	GraphInput,
@@ -187,10 +188,17 @@ export const GraphingEditor: React.FC = () => {
 		})
 
 	const [upsertGraph, upsertGraphContext] = useUpsertGraphMutation()
+	const [deleteGraph] = useDeleteGraphMutation()
 
 	const tempId = useId()
 
 	const navigate = useNavigate()
+	const redirectToDashboard = () => {
+		navigate({
+			pathname: `../${dashboard_id}`,
+			search: location.search,
+		})
+	}
 
 	const onSave = () => {
 		let display: string | undefined
@@ -269,15 +277,52 @@ export const GraphingEditor: React.FC = () => {
 		})
 			.then(() => {
 				toast.success(`Metric view ${isEdit ? 'updated' : 'created'}`)
+				redirectToDashboard()
 			})
 			.catch(() => {
 				toast.error('Failed to create metric view')
 			})
+	}
 
-		navigate({
-			pathname: `../${dashboard_id}`,
-			search: location.search,
+	const onDelete = () => {
+		if (!isEdit) {
+			return
+		}
+
+		deleteGraph({
+			variables: {
+				id: graph_id,
+			},
+			optimisticResponse: {
+				deleteGraph: true,
+			},
+			update(cache) {
+				const vizId = cache.identify({
+					id: dashboard_id,
+					__typename: 'Visualization',
+				})
+				const graphId = cache.identify({
+					id: graph_id,
+					__typename: 'Graph',
+				})
+				cache.modify({
+					id: vizId,
+					fields: {
+						graphs(existing = []) {
+							const filtered = existing.filter(
+								(e: any) => e.__ref !== graphId,
+							)
+							return filtered
+						},
+					},
+				})
+			},
 		})
+			.then(() => {
+				toast.success('Metric view deleted')
+				redirectToDashboard()
+			})
+			.catch(() => toast.error('Failed to delete metric view'))
 	}
 
 	useGetVisualizationQuery({
@@ -475,18 +520,24 @@ export const GraphingEditor: React.FC = () => {
 							/>
 							<HeaderDivider />
 							<Button
+								trackingId="MetricViewCancel"
 								emphasis="low"
 								kind="secondary"
-								onClick={() => {
-									navigate({
-										pathname: `../${dashboard_id}`,
-										search: location.search,
-									})
-								}}
+								onClick={redirectToDashboard}
 							>
 								Cancel
 							</Button>
+							{isEdit && (
+								<Button
+									trackingId="MetricViewDelete"
+									kind="danger"
+									onClick={onDelete}
+								>
+									Delete metric view
+								</Button>
+							)}
 							<Button
+								trackingId="MetricViewSave"
 								disabled={upsertGraphContext.loading}
 								onClick={onSave}
 							>
@@ -598,41 +649,30 @@ export const GraphingEditor: React.FC = () => {
 								<Divider className="m-0" />
 								<SidebarSection>
 									<LabeledRow
-										label="View type"
-										name="viewType"
+										label="Filters"
+										name="query"
+										tooltip="The search query used to filter which data points are included before aggregating."
 									>
-										<OptionDropdown<View>
-											options={VIEWS}
-											selection={viewType}
-											setSelection={setViewType}
-											icons={VIEW_ICONS}
-											labels={VIEW_LABELS}
-										/>
+										<Box
+											border="divider"
+											width="full"
+											borderRadius="6"
+										>
+											<SearchContext
+												initialQuery={query}
+												onSubmit={setQuery}
+											>
+												<Search
+													startDate={
+														new Date(startDate)
+													}
+													endDate={new Date(endDate)}
+													productType={productType}
+													hideIcon
+												/>
+											</SearchContext>
+										</Box>
 									</LabeledRow>
-									{viewType === 'Line chart' && (
-										<LineChartSettings
-											nullHandling={lineNullHandling}
-											setNullHandling={
-												setLineNullHandling
-											}
-											lineDisplay={lineDisplay}
-											setLineDisplay={setLineDisplay}
-										/>
-									)}
-									{viewType === 'Bar chart' && (
-										<BarChartSettings
-											barDisplay={barDisplay}
-											setBarDisplay={setBarDisplay}
-										/>
-									)}
-									{viewType === 'Table' && (
-										<TableSettings
-											nullHandling={tableNullHandling}
-											setNullHandling={
-												setTableNullHandling
-											}
-										/>
-									)}
 								</SidebarSection>
 								<Divider className="m-0" />
 								<SidebarSection>
@@ -661,34 +701,6 @@ export const GraphingEditor: React.FC = () => {
 											}
 										/>
 									</LabeledRow>
-									<LabeledRow
-										label="Filters"
-										name="query"
-										tooltip="The search query used to filter which data points are included before aggregating."
-									>
-										<Box
-											border="divider"
-											width="full"
-											borderRadius="6"
-										>
-											<SearchContext
-												initialQuery={query}
-												onSubmit={setQuery}
-											>
-												<Search
-													startDate={
-														new Date(startDate)
-													}
-													endDate={new Date(endDate)}
-													productType={productType}
-													hideIcon
-												/>
-											</SearchContext>
-										</Box>
-									</LabeledRow>
-								</SidebarSection>
-								<Divider className="m-0" />
-								<SidebarSection>
 									<LabeledRow
 										label="Group by"
 										name="groupBy"
@@ -758,6 +770,45 @@ export const GraphingEditor: React.FC = () => {
 												/>
 											</LabeledRow>
 										</Box>
+									)}
+								</SidebarSection>
+								<Divider className="m-0" />
+								<SidebarSection>
+									<LabeledRow
+										label="View type"
+										name="viewType"
+									>
+										<OptionDropdown<View>
+											options={VIEWS}
+											selection={viewType}
+											setSelection={setViewType}
+											icons={VIEW_ICONS}
+											labels={VIEW_LABELS}
+										/>
+									</LabeledRow>
+									{viewType === 'Line chart' && (
+										<LineChartSettings
+											nullHandling={lineNullHandling}
+											setNullHandling={
+												setLineNullHandling
+											}
+											lineDisplay={lineDisplay}
+											setLineDisplay={setLineDisplay}
+										/>
+									)}
+									{viewType === 'Bar chart' && (
+										<BarChartSettings
+											barDisplay={barDisplay}
+											setBarDisplay={setBarDisplay}
+										/>
+									)}
+									{viewType === 'Table' && (
+										<TableSettings
+											nullHandling={tableNullHandling}
+											setNullHandling={
+												setTableNullHandling
+											}
+										/>
 									)}
 								</SidebarSection>
 								<Divider className="m-0" />

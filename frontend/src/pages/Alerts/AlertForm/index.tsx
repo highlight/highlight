@@ -372,7 +372,7 @@ export const AlertForm: React.FC = () => {
 								emphasis="low"
 								kind="secondary"
 								onClick={() => navigate(`/${projectId}/alerts`)}
-								trackingId="CancelAlert"
+								trackingId="AlertCancel"
 							>
 								Cancel
 							</Button>
@@ -382,16 +382,16 @@ export const AlertForm: React.FC = () => {
 									size="small"
 									emphasis="low"
 									onClick={onDelete}
-									trackingId="DeleteAlert"
+									trackingId="AlertDelete"
 								>
-									Delete Alert
+									Delete alert
 								</Button>
 							)}
 
 							<Button
 								disabled={disableSave}
 								onClick={onSave}
-								trackingId="SaveAlert"
+								trackingId="AlertSave"
 							>
 								Save&nbsp;
 							</Button>
@@ -475,39 +475,7 @@ export const AlertForm: React.FC = () => {
 									)}
 								</SidebarSection>
 								<Divider className="m-0" />
-
 								<SidebarSection>
-									{!isSessionAlert && !isErrorAlert && (
-										<LabeledRow
-											label="Function"
-											name="function"
-											tooltip="Determines how data points are aggregated. If the function requires a numeric field as input, one can be chosen."
-										>
-											<OptionDropdown<MetricAggregator>
-												options={FUNCTION_TYPES}
-												selection={functionType}
-												setSelection={setFunctionType}
-											/>
-											<Combobox
-												selection={
-													fetchedFunctionColumn
-												}
-												setSelection={setFunctionColumn}
-												label="metric"
-												searchConfig={
-													searchOptionsConfig
-												}
-												disabled={
-													functionType ===
-													MetricAggregator.Count
-												}
-												onlyNumericKeys={
-													functionType !==
-													MetricAggregator.CountDistinct
-												}
-											/>
-										</LabeledRow>
-									)}
 									<LabeledRow
 										label="Filters"
 										name="query"
@@ -534,9 +502,65 @@ export const AlertForm: React.FC = () => {
 										</Box>
 									</LabeledRow>
 								</SidebarSection>
-								<Divider className="m-0" />
+								{!isSessionAlert && !isErrorAlert && (
+									<>
+										<Divider className="m-0" />
+										<SidebarSection>
+											<LabeledRow
+												label="Function"
+												name="function"
+												tooltip="Determines how data points are aggregated. If the function requires a numeric field as input, one can be chosen."
+											>
+												<OptionDropdown<MetricAggregator>
+													options={FUNCTION_TYPES}
+													selection={functionType}
+													setSelection={
+														setFunctionType
+													}
+												/>
+												<Combobox
+													selection={
+														fetchedFunctionColumn
+													}
+													setSelection={
+														setFunctionColumn
+													}
+													label="metric"
+													searchConfig={
+														searchOptionsConfig
+													}
+													disabled={
+														functionType ===
+														MetricAggregator.Count
+													}
+													onlyNumericKeys={
+														functionType !==
+														MetricAggregator.CountDistinct
+													}
+												/>
+											</LabeledRow>
+											<LabeledRow
+												label="Group by"
+												name="groupBy"
+												enabled={groupByEnabled}
+												setEnabled={setGroupByEnabled}
+												tooltip="A categorical field for grouping results into separate series."
+											>
+												<Combobox
+													selection={groupByKey}
+													setSelection={setGroupByKey}
+													label="groupBy"
+													searchConfig={
+														searchOptionsConfig
+													}
+												/>
+											</LabeledRow>
+										</SidebarSection>
+									</>
+								)}
 								{!isSessionAlert && (
 									<>
+										<Divider className="m-0" />
 										<SidebarSection>
 											<LabeledRow
 												label="Alert conditions"
@@ -624,38 +648,9 @@ export const AlertForm: React.FC = () => {
 												/>
 											</LabeledRow>
 										</SidebarSection>
-										<Divider className="m-0" />
-										{!isErrorAlert && (
-											<>
-												<SidebarSection>
-													<LabeledRow
-														label="Group by"
-														name="groupBy"
-														enabled={groupByEnabled}
-														setEnabled={
-															setGroupByEnabled
-														}
-														tooltip="A categorical field for grouping results into separate series."
-													>
-														<Combobox
-															selection={
-																groupByKey
-															}
-															setSelection={
-																setGroupByKey
-															}
-															label="groupBy"
-															searchConfig={
-																searchOptionsConfig
-															}
-														/>
-													</LabeledRow>
-												</SidebarSection>
-												<Divider className="m-0" />
-											</>
-										)}
 									</>
 								)}
+								<Divider className="m-0" />
 								<SidebarSection>
 									<DestinationInput
 										initialDestinations={
