@@ -1,6 +1,6 @@
 module github.com/highlight/highlight/sdk/highlight-go
 
-go 1.22.2
+go 1.23.1
 
 require (
 	github.com/99designs/gqlgen v0.17.45
