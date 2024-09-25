@@ -19,6 +19,10 @@
   background-color: #F4F2F4;
 }
 
+.ikp-search-bar-stand-alone {
+  height: 30px;
+}
+
 .ikp-switch-view-toggle__button {
   background-color: #F4F2F4;
   color: #6F6E77;
