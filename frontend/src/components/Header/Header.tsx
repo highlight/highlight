@@ -75,6 +75,7 @@ import { generateRandomColor } from '@/util/color'
 import { CalendlyButton } from '../CalendlyModal/CalendlyButton'
 import { CommandBar as CommandBarV1 } from './CommandBar/CommandBar'
 import styles from './Header.module.css'
+import InkeepChatSupportMenuItem from '@/components/Header/InkeepChatSupportMenuItem'
 
 type Props = {
 	fullyIntegrated?: boolean
@@ -769,31 +770,7 @@ export const Header: React.FC<Props> = ({ fullyIntegrated }) => {
 													</Menu.List>
 												</Menu>
 											</Menu.Item>
-											<Menu.Item
-												onClick={async () =>
-													await showSupportMessage(
-														`Read out on Discord if you need technical help. For sales / billing questions, 
-														please send us an email at sales@highlight.run.`,
-													)
-												}
-											>
-												<Box
-													display="flex"
-													alignItems="center"
-													gap="4"
-												>
-													<IconSolidChat
-														size={14}
-														color={
-															vars.theme
-																.interactive
-																.fill.secondary
-																.content.text
-														}
-													/>
-													Chat / Support
-												</Box>
-											</Menu.Item>
+											<InkeepChatSupportMenuItem />
 											<a
 												href="https://www.highlight.io/docs"
 												className={linkStyle}
