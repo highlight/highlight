@@ -159,8 +159,7 @@ export class FirstLoadListeners {
 			options?.backendUrl ||
 			import.meta.env.REACT_APP_PUBLIC_GRAPH_URI ||
 			'https://pub.highlight.run'
-		const otlpEndpoint =
-			options.otlpEndpoint ?? 'https://otel.highlight.io:4318'
+		const otlpEndpoint = options.otlpEndpoint ?? 'https://otel.highlight.io'
 		sThis.highlightEndpoints = [_backendUrl, otlpEndpoint].filter(
 			Boolean,
 		) as string[]
