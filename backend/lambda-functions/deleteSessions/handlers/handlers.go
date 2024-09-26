@@ -219,7 +219,6 @@ func (h *handlers) DeleteSessions(ctx context.Context, projectId int, startDate 
 
 	if err := h.storageClient.CleanupRawEvents(ctx, projectId); err != nil {
 		log.WithContext(ctx).Error(err)
-		return
 	}
 
 	if len(batches) == 0 {

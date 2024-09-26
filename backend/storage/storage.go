@@ -529,6 +529,9 @@ func (f *FilesystemClient) CleanupRawEvents(ctx context.Context, projectId int) 
 	basePath := fmt.Sprintf("%s/raw-events/%d", f.fsRoot, projectId)
 	startDate := time.Now().AddDate(0, 0, -1*RAW_EVENT_RETENTION_DAYS)
 	entries, err := os.ReadDir(basePath)
+	if os.IsNotExist(err) {
+		return nil
+	}
 	if err != nil {
 		return err
 	}
