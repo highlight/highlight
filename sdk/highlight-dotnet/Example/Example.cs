@@ -10,9 +10,9 @@ public class Program
         var builder = WebApplication.CreateBuilder();
 
         // Add services to the container.
-        builder.Services
-            .AddRazorComponents()
-            .AddInteractiveServerComponents();
+        // builder.Services
+        //     .AddRazorComponents()
+        //     .AddInteractiveServerComponents();
         builder.Services.AddHighlightInstrumentation(options => options.ProjectId = "1");
         builder.Logging
             .AddHighlightInstrumentation(options =>
