@@ -2,7 +2,7 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd">
     <metadata>
         <id>Highlight.ASP4</id>
-        <version>0.1.7</version>
+        <version>0.2.0-beta7</version>
         <releaseNotes>Initial Release</releaseNotes>
         <projectUrl>https://highlight.io</projectUrl>
         <description>Session replay, error monitoring, logging, and tracing: stop guessing why bugs happen!</description>
