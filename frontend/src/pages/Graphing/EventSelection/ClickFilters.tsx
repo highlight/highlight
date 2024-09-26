@@ -76,7 +76,8 @@ export const ClickFilters: React.FC<Props> = ({
 		queryParts.forEach((part) => {
 			if (
 				!foundClickType &&
-				!!CLICK_FILTER_TO_TYPE[part.key as ClickTypeFilter]
+				!!CLICK_FILTER_TO_TYPE[part.key as ClickTypeFilter] &&
+				part.operator === '='
 			) {
 				foundClickType =
 					CLICK_FILTER_TO_TYPE[part.key as ClickTypeFilter]
@@ -104,9 +105,9 @@ export const ClickFilters: React.FC<Props> = ({
 			)
 		}
 		if (!!clickFilters) {
-			queryArray.push(`(${clickFilters})`)
+			queryArray.push(clickFilters)
 		}
-		setQuery(`(${queryArray.join(' ')})`)
+		setQuery(queryArray.join(' '))
 	}, [setQuery, clickTypeValue, clickFilters, clickType])
 
 	const [clickQuery, setClickQuery] = useState('')

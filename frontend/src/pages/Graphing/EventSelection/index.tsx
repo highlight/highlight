@@ -47,7 +47,7 @@ export const EventSelection: React.FC<Props> = ({
 		let foundEventName = ''
 		const foundFilters: string[] = []
 		queryParts.forEach((part) => {
-			if (part.key === 'event') {
+			if (part.key === 'event' && part.operator === '=') {
 				foundEventName = part.value.replace(/^["](.*)["]$/, '$1')
 			} else {
 				foundFilters.push(part.text)
@@ -72,9 +72,9 @@ export const EventSelection: React.FC<Props> = ({
 			queryArray.push(`event="${eventName}"`)
 		}
 		if (!!eventFilters) {
-			queryArray.push(`(${eventFilters})`)
+			queryArray.push(eventFilters)
 		}
-		setQuery(`(${queryArray.join(' ')})`)
+		setQuery(queryArray.join(' '))
 	}, [eventName, eventFilters, setQuery])
 
 	// set event name for special event types

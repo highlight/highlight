@@ -83,7 +83,8 @@ export const NavigateFilters: React.FC<Props> = ({
 		queryParts.forEach((part) => {
 			if (
 				!foundNavigateType &&
-				!!NAVIGATE_FILTER_TO_TYPE[part.key as NavigateTypeFilter]
+				!!NAVIGATE_FILTER_TO_TYPE[part.key as NavigateTypeFilter] &&
+				part.operator === '='
 			) {
 				foundNavigateType =
 					NAVIGATE_FILTER_TO_TYPE[part.key as NavigateTypeFilter]
@@ -111,9 +112,9 @@ export const NavigateFilters: React.FC<Props> = ({
 			)
 		}
 		if (!!navigateFilters) {
-			queryArray.push(`(${navigateFilters})`)
+			queryArray.push(navigateFilters)
 		}
-		setQuery(`(${queryArray.join(' ')})`)
+		setQuery(queryArray.join(' '))
 	}, [setQuery, navigateUrl, navigateFilters, navigateType])
 
 	const [navigateQuery, setNavigateQuery] = useState('')
