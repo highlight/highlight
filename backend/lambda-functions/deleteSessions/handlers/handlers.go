@@ -217,6 +217,11 @@ func (h *handlers) DeleteSessions(ctx context.Context, projectId int, startDate 
 		return
 	}
 
+	if err := h.storageClient.CleanupRawEvents(ctx, projectId); err != nil {
+		log.WithContext(ctx).Error(err)
+		return
+	}
+
 	if len(batches) == 0 {
 		log.WithContext(ctx).Warnf("SessionDeleteJob - no sessions to delete for projectId %d, continuing", projectId)
 		return
