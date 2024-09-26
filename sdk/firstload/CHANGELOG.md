@@ -1,5 +1,11 @@
 # highlight.run
 
+## 9.4.4
+
+### Patch Changes
+
+-   41eb89f: fix recording bodies of otel requests
+
 ## 9.4.3
 
 ### Patch Changes
