@@ -15,6 +15,7 @@
 		"dev:gql": "graphql-codegen --config --watch codegen.yml",
 		"enforce-size": "size-limit",
 		"test": "vitest --run",
+		"test:watch": "vitest",
 		"typegen": "tsc",
 		"types:check": "yarn typegen"
 	},
