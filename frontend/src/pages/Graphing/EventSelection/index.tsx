@@ -1,13 +1,15 @@
 import React, { useEffect, useMemo, useState } from 'react'
 
 import { LabeledRow } from '@/pages/Graphing/LabeledRow'
-import { Box, Card } from '@highlight-run/ui/components'
+import { Box } from '@highlight-run/ui/components'
 import { OptionDropdown } from '@/pages/Graphing/OptionDropdown'
 import { parseSearch } from '@/components/Search/utils'
+import Card from '@components/Card/Card'
 
-import { TrackFilters } from './TrackFilters'
 import { ClickFilters } from './ClickFilters'
-import { NavigateFilters } from '@/pages/Graphing/EventSelection/NavigateFilters'
+import { NavigateFilters } from './NavigateFilters'
+import { TrackFilters } from './TrackFilters'
+import * as style from './styles.css'
 
 enum EventType {
 	Track = 'Track',
@@ -123,7 +125,7 @@ export const EventSelection: React.FC<Props> = ({
 	}, [endDate, eventFilters, eventName, eventType, loading, startDate])
 
 	return (
-		<Card>
+		<Card className={style.card}>
 			<Box width="full" display="flex" flexDirection="column" gap="12">
 				<LabeledRow label="Event type" name="eventType">
 					<OptionDropdown<EventType>

@@ -688,7 +688,9 @@ export const GraphingEditor: React.FC = () => {
 										</LabeledRow>
 									)}
 								</SidebarSection>
-								<Divider className="m-0" />
+								<Box px="12">
+									<Divider className="m-0" />
+								</Box>
 								<SidebarSection>
 									<LabeledRow
 										label="Function"
