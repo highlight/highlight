@@ -245,18 +245,24 @@ export const Select = <T,>({
 			const { value } = store.getState()
 			let newOptions = valueToOptions(optionsProp) as SelectOption[]
 
-			if (Array.isArray(newOptions) && Array.isArray(value)) {
-				const missingOptions = value
-					.filter(
-						(v) =>
-							!newOptions.some((option) =>
-								optionsMatch(option, v),
-							),
-					)
-					.map((v) => ({ name: v, value: v }))
+			if (Array.isArray(newOptions)) {
+				if (Array.isArray(value)) {
+					const missingOptions = value
+						.filter(
+							(v) =>
+								!newOptions.some((option) =>
+									optionsMatch(option, v),
+								),
+						)
+						.map((v) => ({ name: v, value: v }))
 
-				if (missingOptions.length) {
-					newOptions = [...newOptions, ...missingOptions]
+					if (missingOptions.length) {
+						newOptions = [...newOptions, ...missingOptions]
+					}
+				} else if (
+					!newOptions.some((option) => optionsMatch(option, value))
+				) {
+					newOptions = [...newOptions, { name: value, value }]
 				}
 
 				setOptions(newOptions)
