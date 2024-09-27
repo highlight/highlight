@@ -384,7 +384,7 @@ const shouldRecordRequest = (
 		return false
 	}
 
-	return shouldNetworkRequestBeTraced(url, tracingOrigins)
+	return shouldNetworkRequestBeTraced(url, tracingOrigins ?? [], urlBlocklist)
 }
 
 const assignDocumentDurations = (span: api.Span) => {

@@ -26,6 +26,8 @@ export const FeatureConfig: { [key: number]: Config } = {
 		workspaceOverride: new Set<string>([
 			// Highlight
 			'1',
+			'15127',
+			'32550',
 		]),
 	},
 } as const

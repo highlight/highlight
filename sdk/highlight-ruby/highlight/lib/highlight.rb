@@ -20,7 +20,7 @@ module Highlight
   end
 
   def self.init(project_id, environment: '', otlp_endpoint: H::OTLP_HTTP, &block)
-    H.new(project_id, environment: environment, otlp_endpoint: otlp_endpoint, &block)
+    H.new(project_id, environment: environment.to_s, otlp_endpoint: otlp_endpoint, &block)
   end
 
   def self.start_span(name, attrs = {}, &block)

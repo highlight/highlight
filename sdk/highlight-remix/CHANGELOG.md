@@ -1,5 +1,45 @@
 # @highlight-run/remix
 
+## 2.0.60
+
+### Patch Changes
+
+-   Updated dependencies [54557e9]
+    -   highlight.run@9.4.3
+    -   @highlight-run/node@3.9.3
+    -   @highlight-run/react@6.0.3
+
+## 2.0.59
+
+### Patch Changes
+
+-   Updated dependencies [5213ca3]
+    -   highlight.run@9.4.2
+    -   @highlight-run/node@3.9.3
+    -   @highlight-run/react@6.0.2
+
+## 2.0.58
+
+### Patch Changes
+
+-   Updated dependencies [a95d52b]
+-   Updated dependencies [f432e66]
+    -   highlight.run@9.4.1
+    -   @highlight-run/node@3.9.3
+    -   @highlight-run/react@6.0.1
+
+## 2.0.57
+
+### Patch Changes
+
+-   5045b23: fix opentelemetry warning from missing dependencies
+-   Updated dependencies [815faa8]
+-   Updated dependencies [815faa8]
+-   Updated dependencies [5045b23]
+    -   highlight.run@9.4.0
+    -   @highlight-run/node@3.9.3
+    -   @highlight-run/react@6.0.0
+
 ## 2.0.56
 
 ### Patch Changes

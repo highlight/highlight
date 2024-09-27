@@ -39,7 +39,6 @@ import { Virtuoso, VirtuosoHandle } from 'react-virtuoso'
 
 import { ErrorObject } from '@/graph/generated/schemas'
 import { useActiveNetworkResourceId } from '@/hooks/useActiveNetworkResourceId'
-import { useSessionParams } from '@/pages/Sessions/utils'
 import { styledVerticalScrollbar } from '@/style/common.css'
 import analytics from '@/util/analytics'
 
@@ -67,20 +66,16 @@ export const NetworkPage = ({
 	const startTime = sessionMetadata.startTime
 	const { showPlayerAbsoluteTime } = usePlayerConfiguration()
 	const { setActiveNetworkResourceId } = useActiveNetworkResourceId()
-	const { sessionSecureId } = useSessionParams()
 
 	const virtuoso = useRef<VirtuosoHandle>(null)
 
 	const {
 		resources: parsedResources,
-		loadResources,
 		resourcesLoading: loading,
 		error: resourceLoadingError,
+		fetchMoreForward,
+		loadingAfter,
 	} = useResourcesContext()
-	useEffect(() => {
-		loadResources()
-		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [sessionSecureId])
 
 	const networkRange = useMemo(() => {
 		if (parsedResources.length > 0) {
@@ -211,6 +206,20 @@ export const NetworkPage = ({
 		[],
 	)
 
+	const fetchMoreWhenScrolled = useCallback(
+		async (e: React.UIEvent<'div'>) => {
+			if (!loadingAfter) {
+				const { scrollHeight, scrollTop, clientHeight } =
+					e.target as HTMLDivElement
+				//once the user has scrolled within 100px of the bottom of the table, fetch more data if there is any
+				if (scrollHeight - scrollTop - clientHeight < 100) {
+					await fetchMoreForward()
+				}
+			}
+		},
+		[fetchMoreForward, loadingAfter],
+	)
+
 	useLayoutEffect(() => {
 		if (autoScroll && state === ReplayerState.Playing) {
 			scrollFunction(currentResourceIdx)
@@ -259,6 +268,7 @@ export const NetworkPage = ({
 									/>
 								),
 							}}
+							onScroll={fetchMoreWhenScrolled}
 							scrollSeekConfiguration={{
 								enter: (v) => v > 512,
 								exit: (v) => v < 128,

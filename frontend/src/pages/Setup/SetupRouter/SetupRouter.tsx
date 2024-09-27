@@ -48,6 +48,7 @@ import {
 
 import { AlertsSetup } from './AlertsSetup'
 import * as styles from './SetupRouter.css'
+import InkeepChatButton from '@/pages/Setup/SetupInkeepChatButton'
 
 export const SetupRouter = () => {
 	const { toggleShowBanner } = useGlobalContext()
@@ -308,6 +309,7 @@ export const SetupRouter = () => {
 					position="relative"
 					overflow="hidden"
 				>
+					<InkeepChatButton />
 					<IntegrationBar integrationData={integrationData} />
 
 					<Box overflowY="scroll" height="full">
