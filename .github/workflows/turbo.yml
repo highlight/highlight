@@ -125,7 +125,7 @@ jobs:
               run: yarn publish:render
 
             - name: Release changesets
-              if: github.event.pull_request.head.repo.full_name == 'highlight/highlight'
+              if: github.ref == 'refs/heads/main'
               id: changesets-version
               uses: changesets/action@v1
               with:
