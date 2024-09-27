@@ -496,6 +496,20 @@ func (client *Client) AllKeyValues(ctx context.Context, projectID int, keyName s
 		builders = append(builders, sb)
 	}
 
+	// Sessions key values are stored in a different format
+	sessionsSb := sqlbuilder.NewSelectBuilder()
+	sessionsSb.Select("Value, count() / max(count()) over () as PctCount").
+		From(FieldsTable).
+		Where(sessionsSb.Equal("ProjectId", projectID)).
+		Where(sessionsSb.Equal("Name", keyName)).
+		Where(fmt.Sprintf("Value ILIKE %s", sessionsSb.Var("%"+searchQuery+"%"))).
+		Where(fmt.Sprintf("SessionCreatedAt >= %s", sessionsSb.Var(startDate))).
+		Where(fmt.Sprintf("SessionCreatedAt <= %s", sessionsSb.Var(endDate))).
+		GroupBy("1").
+		OrderBy("2 DESC, 1").
+		Limit(limitCount)
+	builders = append(builders, sessionsSb)
+
 	sb := sqlbuilder.NewSelectBuilder()
 	sql, args := sb.Select("Value, sum(PctCount)").
 		From(sb.BuilderAs(sqlbuilder.UnionAll(builders...), "inner")).
