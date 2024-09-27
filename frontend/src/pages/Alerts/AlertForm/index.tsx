@@ -452,7 +452,11 @@ export const AlertForm: React.FC = () => {
 										tooltip="The resource being queried, one of the four highlight.io resources."
 									>
 										<OptionDropdown<ProductType>
-											options={products}
+											options={products.filter(
+												(product) =>
+													product !==
+													ProductType.Metrics,
+											)}
 											selection={productType}
 											setSelection={handleProductChange}
 											icons={productIcons}
