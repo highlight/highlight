@@ -31,6 +31,7 @@
       <PackageReference Include="OpenTelemetry" Version="1.9.0" />
       <PackageReference Include="OpenTelemetry.AutoInstrumentation" Version="1.7.0" />
       <PackageReference Include="OpenTelemetry.Exporter.OpenTelemetryProtocol" Version="1.9.0" />
+      <PackageReference Include="OpenTelemetry.Extensions.Hosting" Version="1.6.0" />
       <PackageReference Include="Serilog" Version="4.0.1" />
       <PackageReference Include="Serilog.Sinks.OpenTelemetry" Version="4.0.0" />
       <None Include="README.md" Pack="true" PackagePath="" />

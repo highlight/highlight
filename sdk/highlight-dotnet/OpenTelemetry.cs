@@ -272,7 +272,7 @@ namespace Highlight
                     }));
         }
 
-        public static void InstrumentLogging(Microsoft.Extensions.Logging.ILoggingBuilder logging, Action<Config> configure)
+        public static void InstrumentLogging(ILoggingBuilder logging, Action<Config> configure)
         {
             configure(_config);
             logging.AddOpenTelemetry(options =>
