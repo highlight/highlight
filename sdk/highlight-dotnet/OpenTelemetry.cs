@@ -1,5 +1,4 @@
-﻿using System.Diagnostics;
-using OpenTelemetry;
+﻿using OpenTelemetry;
 using OpenTelemetry.Exporter;
 using OpenTelemetry.Logs;
 using OpenTelemetry.Metrics;
@@ -9,6 +8,7 @@ using Serilog.Configuration;
 using Serilog.Core;
 using Serilog.Events;
 using Serilog.Sinks.OpenTelemetry;
+using System.Diagnostics;
 
 namespace Serilog
 {
@@ -272,7 +272,7 @@ namespace Highlight
                     }));
         }
 
-        public static void InstrumentLogging(ILoggingBuilder logging, Action<Config> configure)
+        public static void InstrumentLogging(Microsoft.Extensions.Logging.ILoggingBuilder logging, Action<Config> configure)
         {
             configure(_config);
             logging.AddOpenTelemetry(options =>
