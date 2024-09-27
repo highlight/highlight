@@ -17,7 +17,8 @@ export const PRODUCTS: ProductType[] = [
 	ProductType.Traces,
 	ProductType.Sessions,
 	ProductType.Errors,
-	ProductType.Metrics,
+	// TODO(vkorolik) metrics disabled in the frontend to avoid confusion
+	// ProductType.Metrics,
 ]
 
 export const PRODUCTS_WITH_EVENTS: ProductType[] = PRODUCTS.concat([
