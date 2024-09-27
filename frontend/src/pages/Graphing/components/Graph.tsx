@@ -707,7 +707,6 @@ const Graph = ({
 	variables,
 	children,
 }: React.PropsWithChildren<ChartProps<ViewConfig>>) => {
-	console.log('start!', variables)
 	const queriedBucketCount = bucketByKey !== undefined ? bucketCount : 1
 
 	const pollTimeout = useRef<number>()

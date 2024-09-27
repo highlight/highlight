@@ -26,6 +26,7 @@ type Props = {
 	onlyNumericKeys?: boolean
 	defaultKeys?: string[]
 	disabled?: boolean
+	placeholder?: string
 }
 
 export const Combobox: React.FC<Props> = ({
@@ -36,6 +37,7 @@ export const Combobox: React.FC<Props> = ({
 	onlyNumericKeys,
 	defaultKeys,
 	disabled,
+	placeholder = 'Rows',
 }) => {
 	const { projectId } = useProjectId()
 	const [getKeys, { data }] = useGetKeysLazyQuery()
@@ -101,7 +103,9 @@ export const Combobox: React.FC<Props> = ({
 			label={label}
 			value={selection}
 			valueRender={
-				<Text cssClass={style.comboboxText}>{selection || 'Rows'}</Text>
+				<Text cssClass={style.comboboxText}>
+					{selection || placeholder}
+				</Text>
 			}
 			options={keyOptions}
 			onChange={setSelection}

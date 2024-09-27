@@ -221,6 +221,7 @@ const InnerModal = ({
 												)
 											}}
 											autoComplete="off"
+											placeholder="Variable name"
 										/>
 									</Table.Cell>
 									<Table.Cell>
@@ -257,6 +258,7 @@ const InnerModal = ({
 													endDate: moment().toDate(),
 												}}
 												label={`product-type-${i}`}
+												placeholder=""
 											/>
 										)}
 									</Table.Cell>
@@ -274,6 +276,7 @@ const InnerModal = ({
 													)
 												}}
 												autoComplete="off"
+												placeholder="Default value"
 											/>
 										)}
 										{variable.suggestionType ===
@@ -298,6 +301,7 @@ const InnerModal = ({
 													endDate: moment().toDate(),
 												}}
 												label={`default-value-${i}`}
+												placeholder=""
 											/>
 										)}
 										{variable.suggestionType ===
