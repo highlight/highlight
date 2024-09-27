@@ -32,7 +32,6 @@ export class FirstLoadListeners {
 	// The properties below were added in 4.0.0 (Feb 2022), and are patched in by client via setupNetworkListeners()
 	options: HighlightClassOptions
 	hasNetworkRecording: boolean | undefined = true
-	_backendUrl!: string
 	disableNetworkRecording!: boolean
 	enableRecordingNetworkContents!: boolean
 	xhrNetworkContents!: RequestResponsePair[]
@@ -47,6 +46,7 @@ export class FirstLoadListeners {
 	networkHeaderKeysToRecord: string[] | undefined
 	lastNetworkRequestTimestamp: number
 	urlBlocklist!: string[]
+	highlightEndpoints!: string[]
 	requestResponseSanitizer?: (
 		pair: RequestResponsePair,
 	) => RequestResponsePair | null
@@ -155,10 +155,12 @@ export class FirstLoadListeners {
 		sThis: FirstLoadListeners,
 		options: HighlightClassOptions,
 	): void {
-		sThis._backendUrl =
+		const _backendUrl =
 			options?.backendUrl ||
 			import.meta.env.REACT_APP_PUBLIC_GRAPH_URI ||
 			'https://pub.highlight.run'
+		const otlpEndpoint = options.otlpEndpoint || 'https://otel.highlight.io'
+		sThis.highlightEndpoints = [_backendUrl, otlpEndpoint]
 
 		sThis.xhrNetworkContents = []
 		sThis.fetchNetworkContents = []
@@ -262,7 +264,7 @@ export class FirstLoadListeners {
 					disableWebSocketRecording:
 						sThis.disableRecordingWebSocketContents,
 					bodyKeysToRedact: sThis.networkBodyKeysToRedact,
-					backendUrl: sThis._backendUrl,
+					highlightEndpoints: sThis.highlightEndpoints,
 					tracingOrigins: sThis.tracingOrigins,
 					urlBlocklist: sThis.urlBlocklist,
 					bodyKeysToRecord: sThis.networkBodyKeysToRecord,
@@ -298,7 +300,7 @@ export class FirstLoadListeners {
 
 					return shouldNetworkRequestBeRecorded(
 						r.name,
-						sThis._backendUrl,
+						sThis.highlightEndpoints,
 						sThis.tracingOrigins,
 					)
 				})
