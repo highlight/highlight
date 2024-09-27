@@ -693,6 +693,9 @@ export const GraphingEditor: React.FC = () => {
 													endDate={new Date(endDate)}
 													productType={productType}
 													hideIcon
+													defaultValueOptions={
+														variableKeys
+													}
 												/>
 											</SearchContext>
 										</Box>

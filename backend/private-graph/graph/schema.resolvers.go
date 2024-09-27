@@ -8783,7 +8783,7 @@ func (r *queryResolver) AiQuerySuggestion(ctx context.Context, timeZone string, 
 		count := 10
 		vals, err := r.KeyValues(
 			ctx,
-			productType,
+			&productType,
 			projectID,
 			key,
 			modelInputs.DateRangeRequiredInput{
@@ -9490,16 +9490,17 @@ func (r *queryResolver) Metrics(ctx context.Context, productType modelInputs.Pro
 
 // Keys is the resolver for the keys field.
 func (r *queryResolver) Keys(ctx context.Context, productType *modelInputs.ProductType, projectID int, dateRange modelInputs.DateRangeRequiredInput, query *string, typeArg *modelInputs.KeyType) ([]*modelInputs.QueryKey, error) {
-	if productType == nil {
+	project, err := r.isUserInProjectOrDemoProject(ctx, projectID)
+	if err != nil {
+		return nil, err
+	}
 
+	if productType == nil {
+		return r.ClickhouseClient.AllKeys(ctx, project.ID, dateRange.StartDate, dateRange.EndDate, query, typeArg)
 	}
 
 	switch *productType {
 	case modelInputs.ProductTypeMetrics:
-		project, err := r.isUserInProjectOrDemoProject(ctx, projectID)
-		if err != nil {
-			return nil, err
-		}
 		return r.ClickhouseClient.MetricsKeys(ctx, project.ID, dateRange.StartDate, dateRange.EndDate, query, typeArg)
 	case modelInputs.ProductTypeTraces:
 		return r.TracesKeys(ctx, projectID, dateRange, query, typeArg)
@@ -9518,16 +9519,17 @@ func (r *queryResolver) Keys(ctx context.Context, productType *modelInputs.Produ
 
 // KeyValues is the resolver for the key_values field.
 func (r *queryResolver) KeyValues(ctx context.Context, productType *modelInputs.ProductType, projectID int, keyName string, dateRange modelInputs.DateRangeRequiredInput, query *string, count *int) ([]string, error) {
-	if productType == nil {
-
+	project, err := r.isUserInProjectOrDemoProject(ctx, projectID)
+	if err != nil {
+		return nil, err
 	}
 
-	switch productType {
+	if productType == nil {
+		return r.ClickhouseClient.AllKeyValues(ctx, project.ID, keyName, dateRange.StartDate, dateRange.EndDate, query, count)
+	}
+
+	switch *productType {
 	case modelInputs.ProductTypeMetrics:
-		project, err := r.isUserInProjectOrDemoProject(ctx, projectID)
-		if err != nil {
-			return nil, err
-		}
 		return r.ClickhouseClient.MetricsKeyValues(ctx, project.ID, keyName, dateRange.StartDate, dateRange.EndDate, query, count)
 	case modelInputs.ProductTypeTraces:
 		return r.TracesKeyValues(ctx, projectID, keyName, dateRange, query, count)

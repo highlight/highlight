@@ -19,7 +19,7 @@ type Props = {
 	setSelection: (selection: string) => void
 	label: string
 	searchConfig: {
-		productType: ProductType
+		productType?: ProductType
 		startDate: Date
 		endDate: Date
 	}
@@ -115,7 +115,7 @@ type ValueProps = {
 	label: string
 	keyName: string
 	searchConfig: {
-		productType: ProductType
+		productType?: ProductType
 		startDate: Date
 		endDate: Date
 	}
@@ -193,7 +193,11 @@ export const ValueCombobox: React.FC<ValueProps> = ({
 		<ComboboxSelect
 			label={label}
 			value={selection}
-			valueRender={<Text cssClass={style.comboboxText}>{selection}</Text>}
+			valueRender={
+				<Text lines="1" cssClass={style.comboboxText}>
+					{selection}
+				</Text>
+			}
 			options={valueOptions}
 			onChange={setSelection}
 			onChangeQuery={setQuery}

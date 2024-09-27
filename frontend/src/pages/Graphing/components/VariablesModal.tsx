@@ -10,15 +10,18 @@ import {
 	Menu,
 	Stack,
 	Table,
+	Text,
 } from '@highlight-run/ui/components'
 import React, { useState } from 'react'
 
 import { useProjectId } from '@/hooks/useProjectId'
-import { ProductType, Variable } from '@/graph/generated/schemas'
+import { SuggestionType, Variable } from '@/graph/generated/schemas'
 import { useGraphingVariables } from '@/pages/Graphing/hooks/useGraphingVariables'
 import { OptionDropdown } from '@/pages/Graphing/OptionDropdown'
-import { GRAPHING_VARIABLE_TYPES, TEXT } from '@/pages/Graphing/constants'
+import { SUGGESTION_TYPES } from '@/pages/Graphing/constants'
 import { Combobox, ValueCombobox } from '@/pages/Graphing/Combobox'
+
+import * as style from './VariablesModal.css'
 
 import moment from 'moment'
 
@@ -103,7 +106,7 @@ const InnerModal = ({
 	const [variables, setVariables] = useState(initialVariables)
 	const setVariable = (
 		idx: number,
-		field: 'key' | 'defaultValue' | 'field' | 'productType',
+		field: 'key' | 'defaultValue' | 'field' | 'suggestionType',
 		value: string | undefined,
 	) => {
 		const varsCopy = [...variables]
@@ -116,6 +119,7 @@ const InnerModal = ({
 		varsCopy.push({
 			defaultValue: '',
 			key: '',
+			suggestionType: SuggestionType.Value,
 		})
 		setVariables(varsCopy)
 	}
@@ -151,11 +155,44 @@ const InnerModal = ({
 									'1fr',
 									'40px',
 								]}
+								className={style.tableHeader}
 							>
-								<Table.Cell>Name</Table.Cell>
-								<Table.Cell>Source</Table.Cell>
-								<Table.Cell>Field</Table.Cell>
-								<Table.Cell>Default value</Table.Cell>
+								<Table.Cell>
+									<Text
+										size="xSmall"
+										weight="medium"
+										color="secondaryContentText"
+									>
+										Name
+									</Text>
+								</Table.Cell>
+								<Table.Cell>
+									<Text
+										size="xSmall"
+										weight="medium"
+										color="secondaryContentText"
+									>
+										Suggestion type
+									</Text>
+								</Table.Cell>
+								<Table.Cell>
+									<Text
+										size="xSmall"
+										weight="medium"
+										color="secondaryContentText"
+									>
+										Suggestion field
+									</Text>
+								</Table.Cell>
+								<Table.Cell>
+									<Text
+										size="xSmall"
+										weight="medium"
+										color="secondaryContentText"
+									>
+										Default value
+									</Text>
+								</Table.Cell>
 								<Table.Cell></Table.Cell>
 							</Table.Row>
 						</Table.Head>
@@ -187,30 +224,21 @@ const InnerModal = ({
 										/>
 									</Table.Cell>
 									<Table.Cell>
-										<OptionDropdown<ProductType | TEXT>
-											options={GRAPHING_VARIABLE_TYPES}
-											selection={
-												variable.productType ?? TEXT
-											}
-											setSelection={(productType) => {
-												if (productType === TEXT) {
-													setVariable(
-														i,
-														'productType',
-														undefined,
-													)
-												} else {
-													setVariable(
-														i,
-														'productType',
-														productType,
-													)
-												}
+										<OptionDropdown<SuggestionType>
+											options={SUGGESTION_TYPES}
+											selection={variable.suggestionType}
+											setSelection={(suggestionType) => {
+												setVariable(
+													i,
+													'suggestionType',
+													suggestionType,
+												)
 											}}
 										/>
 									</Table.Cell>
 									<Table.Cell>
-										{variable.productType && (
+										{variable.suggestionType ===
+											SuggestionType.Value && (
 											<Combobox
 												selection={variable.field ?? ''}
 												setSelection={(
@@ -223,8 +251,6 @@ const InnerModal = ({
 													)
 												}}
 												searchConfig={{
-													productType:
-														variable.productType,
 													startDate: moment()
 														.subtract(30, 'days')
 														.toDate(),
@@ -235,7 +261,8 @@ const InnerModal = ({
 										)}
 									</Table.Cell>
 									<Table.Cell>
-										{!variable.productType ? (
+										{variable.suggestionType ===
+											SuggestionType.None && (
 											<Form.Input
 												name={`default-value-${i}`}
 												value={variable.defaultValue}
@@ -248,7 +275,33 @@ const InnerModal = ({
 												}}
 												autoComplete="off"
 											/>
-										) : (
+										)}
+										{variable.suggestionType ===
+											SuggestionType.Key && (
+											<Combobox
+												selection={
+													variable.defaultValue ?? ''
+												}
+												setSelection={(
+													selection: string,
+												) => {
+													setVariable(
+														i,
+														'defaultValue',
+														selection,
+													)
+												}}
+												searchConfig={{
+													startDate: moment()
+														.subtract(30, 'days')
+														.toDate(),
+													endDate: moment().toDate(),
+												}}
+												label={`default-value-${i}`}
+											/>
+										)}
+										{variable.suggestionType ===
+											SuggestionType.Value && (
 											<ValueCombobox
 												selection={
 													variable.defaultValue ?? ''
@@ -263,8 +316,6 @@ const InnerModal = ({
 													)
 												}}
 												searchConfig={{
-													productType:
-														variable.productType,
 													startDate: moment()
 														.subtract(30, 'days')
 														.toDate(),

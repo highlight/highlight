@@ -1,6 +1,5 @@
 import {
 	IconSolidChartBar,
-	IconSolidDocumentText,
 	IconSolidFire,
 	IconSolidLightningBolt,
 	IconSolidLogs,
@@ -8,7 +7,11 @@ import {
 	IconSolidTraces,
 } from '@highlight-run/ui/components'
 
-import { MetricAggregator, ProductType } from '@/graph/generated/schemas'
+import {
+	MetricAggregator,
+	ProductType,
+	SuggestionType,
+} from '@/graph/generated/schemas'
 
 export const DEFAULT_BUCKET_COUNT = 50
 export const DEFAULT_BUCKET_INTERVAL = 300
@@ -25,14 +28,6 @@ export const PRODUCTS_WITH_EVENTS: ProductType[] = PRODUCTS.concat([
 	ProductType.Events,
 ])
 
-export const TEXT = 'Text'
-export type TEXT = 'Text'
-
-export const GRAPHING_VARIABLE_TYPES: (ProductType | TEXT)[] = [
-	TEXT,
-	...PRODUCTS_WITH_EVENTS,
-]
-
 export const PRODUCT_ICONS = [
 	<IconSolidLogs key="logs" />,
 	<IconSolidTraces key="traces" />,
@@ -44,11 +39,6 @@ export const PRODUCT_ICONS = [
 export const PRODUCT_ICONS_WITH_EVENTS = PRODUCT_ICONS.concat([
 	<IconSolidFire key="events" />,
 ])
-
-export const GRAPHING_VARIABLE_ICONS = [
-	<IconSolidDocumentText key={TEXT} />,
-	...PRODUCT_ICONS_WITH_EVENTS,
-]
 
 export const NUMERIC_FUNCTION_TYPES: MetricAggregator[] = [
 	MetricAggregator.Min,
@@ -65,6 +55,12 @@ export const FUNCTION_TYPES: MetricAggregator[] = [
 	MetricAggregator.Count,
 	MetricAggregator.CountDistinct,
 	...NUMERIC_FUNCTION_TYPES,
+]
+
+export const SUGGESTION_TYPES: SuggestionType[] = [
+	SuggestionType.Value,
+	SuggestionType.Key,
+	SuggestionType.None,
 ]
 
 export const GRAPHING_FIELD_DOCS_LINK =

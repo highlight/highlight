@@ -5096,7 +5096,7 @@ export type GetTracesMetricsQuery = { __typename?: 'Query' } & {
 }
 
 export type GetKeysQueryVariables = Types.Exact<{
-	product_type: Types.ProductType
+	product_type?: Types.Maybe<Types.ProductType>
 	project_id: Types.Scalars['ID']
 	date_range: Types.DateRangeRequiredInput
 	query?: Types.Maybe<Types.Scalars['String']>
@@ -5110,7 +5110,7 @@ export type GetKeysQuery = { __typename?: 'Query' } & {
 }
 
 export type GetKeyValuesQueryVariables = Types.Exact<{
-	product_type: Types.ProductType
+	product_type?: Types.Maybe<Types.ProductType>
 	project_id: Types.Scalars['ID']
 	key_name: Types.Scalars['String']
 	date_range: Types.DateRangeRequiredInput
@@ -5169,7 +5169,7 @@ export type GetVisualizationQuery = { __typename?: 'Query' } & {
 			variables: Array<
 				{ __typename?: 'Variable' } & Pick<
 					Types.Variable,
-					'key' | 'defaultValue' | 'productType' | 'field'
+					'key' | 'defaultValue' | 'suggestionType' | 'field'
 				>
 			>
 			graphs: Array<
@@ -5222,7 +5222,10 @@ export type GetVisualizationsQuery = { __typename?: 'Query' } & {
 						variables: Array<
 							{ __typename?: 'Variable' } & Pick<
 								Types.Variable,
-								'key' | 'defaultValue' | 'productType' | 'field'
+								| 'key'
+								| 'defaultValue'
+								| 'suggestionType'
+								| 'field'
 							>
 						>
 						graphs: Array<

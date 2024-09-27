@@ -271,67 +271,6 @@ func expandJSON(logAttributes map[string]string) map[string]interface{} {
 	return out
 }
 
-func AllKeys(ctx context.Context, client *Client, tableName string, projectID int, startDate time.Time, endDate time.Time, query *string, typeArg *modelInputs.KeyType) ([]*modelInputs.QueryKey, error) {
-	chCtx := clickhouse.Context(ctx, clickhouse.WithSettings(clickhouse.Settings{
-		"max_rows_to_read": KeysMaxRows,
-	}))
-
-	sb := sqlbuilder.NewSelectBuilder()
-	sb.Select("Key, Type, sum(Count)").
-		From(tableName).
-		Where(sb.Equal("ProjectId", projectID)).
-		Where(fmt.Sprintf("Day >= toStartOfDay(%s)", sb.Var(startDate))).
-		Where(fmt.Sprintf("Day <= toStartOfDay(%s)", sb.Var(endDate)))
-
-	if query != nil && *query != "" {
-		sb.Where(fmt.Sprintf("Key ILIKE %s", sb.Var("%"+*query+"%")))
-	}
-
-	if typeArg != nil && *typeArg == modelInputs.KeyTypeNumeric {
-		sb.Where(sb.Equal("Type", typeArg))
-	}
-
-	sb.GroupBy("1, 2").
-		OrderBy("3 DESC, 1").
-		Limit(25)
-
-	sql, args := sb.BuildWithFlavor(sqlbuilder.ClickHouse)
-
-	span, _ := util.StartSpanFromContext(chCtx, "readKeys", util.ResourceName(tableName))
-	span.SetAttribute("Query", sql)
-	span.SetAttribute("Table", tableName)
-	span.SetAttribute("db.system", "clickhouse")
-
-	rows, err := client.conn.Query(chCtx, sql, args...)
-
-	if err != nil {
-		return nil, err
-	}
-
-	keys := []*modelInputs.QueryKey{}
-	for rows.Next() {
-		var (
-			key     string
-			keyType string
-			count   uint64
-		)
-
-		if err := rows.Scan(&key, &keyType, &count); err != nil {
-			return nil, err
-		}
-
-		keys = append(keys, &modelInputs.QueryKey{
-			Name: key,
-			Type: modelInputs.KeyType(keyType),
-		})
-	}
-
-	rows.Close()
-
-	span.Finish(rows.Err())
-	return keys, rows.Err()
-}
-
 func KeysAggregated(ctx context.Context, client *Client, tableName string, projectID int, startDate time.Time, endDate time.Time, query *string, typeArg *modelInputs.KeyType) ([]*modelInputs.QueryKey, error) {
 	chCtx := clickhouse.Context(ctx, clickhouse.WithSettings(clickhouse.Settings{
 		"max_rows_to_read": KeysMaxRows,
@@ -437,6 +376,148 @@ func KeyValuesAggregated(ctx context.Context, client *Client, tableName string, 
 		var (
 			value string
 			count uint64
+		)
+		if err := rows.Scan(&value, &count); err != nil {
+			return nil, err
+		}
+
+		values = append(values, value)
+	}
+
+	rows.Close()
+
+	span.Finish(rows.Err())
+	return values, rows.Err()
+}
+
+func (client *Client) AllKeys(ctx context.Context, projectID int, startDate time.Time, endDate time.Time, query *string, typeArg *modelInputs.KeyType) ([]*modelInputs.QueryKey, error) {
+	chCtx := clickhouse.Context(ctx, clickhouse.WithSettings(clickhouse.Settings{
+		"max_rows_to_read": KeysMaxRows,
+	}))
+
+	limitCount := 25
+
+	allTables := []string{EventKeysTable, LogKeysTable, TraceKeysTable, SessionKeysTable}
+
+	builders := []sqlbuilder.Builder{}
+	for _, table := range allTables {
+		sb := sqlbuilder.NewSelectBuilder()
+		sb.Select("Key, sum(Count) / max(sum(Count)) over () as PctCount").
+			From(table).
+			Where(sb.Equal("ProjectId", projectID)).
+			Where(fmt.Sprintf("Day >= toStartOfDay(%s)", sb.Var(startDate))).
+			Where(fmt.Sprintf("Day <= toStartOfDay(%s)", sb.Var(endDate)))
+
+		if query != nil && *query != "" {
+			sb.Where(fmt.Sprintf("Key ILIKE %s", sb.Var("%"+*query+"%")))
+		}
+
+		if typeArg != nil && *typeArg == modelInputs.KeyTypeNumeric {
+			sb.Where(sb.Equal("Type", typeArg))
+		}
+
+		sb.GroupBy("1").
+			OrderBy("2 DESC, 1").
+			Limit(limitCount)
+
+		builders = append(builders, sb)
+	}
+
+	sb := sqlbuilder.NewSelectBuilder()
+	sql, args := sb.Select("Key, sum(PctCount)").
+		From(sb.BuilderAs(sqlbuilder.UnionAll(builders...), "inner")).
+		GroupBy("1").
+		OrderBy("2 DESC").
+		Limit(limitCount).
+		BuildWithFlavor(sqlbuilder.ClickHouse)
+
+	span, _ := util.StartSpanFromContext(chCtx, "readAllKeys")
+	span.SetAttribute("Query", sql)
+	span.SetAttribute("db.system", "clickhouse")
+
+	rows, err := client.conn.Query(chCtx, sql, args...)
+
+	if err != nil {
+		return nil, err
+	}
+
+	keys := []*modelInputs.QueryKey{}
+	for rows.Next() {
+		var (
+			key   string
+			count float64
+		)
+
+		if err := rows.Scan(&key, &count); err != nil {
+			return nil, err
+		}
+
+		keys = append(keys, &modelInputs.QueryKey{
+			Name: key,
+		})
+	}
+
+	rows.Close()
+
+	span.Finish(rows.Err())
+	return keys, rows.Err()
+}
+
+func (client *Client) AllKeyValues(ctx context.Context, projectID int, keyName string, startDate time.Time, endDate time.Time, query *string, limit *int) ([]string, error) {
+	chCtx := clickhouse.Context(ctx, clickhouse.WithSettings(clickhouse.Settings{
+		"max_rows_to_read": KeyValuesMaxRows,
+	}))
+
+	limitCount := 500
+	if limit != nil {
+		limitCount = *limit
+	}
+
+	searchQuery := ""
+	if query != nil {
+		searchQuery = *query
+	}
+
+	allTables := []string{EventKeyValuesTable, LogKeyValuesTable, TraceKeyValuesTable}
+
+	builders := []sqlbuilder.Builder{}
+	for _, table := range allTables {
+		sb := sqlbuilder.NewSelectBuilder()
+		sb.Select("Value, sum(Count) / max(sum(Count)) over () as PctCount").
+			From(table).
+			Where(sb.Equal("ProjectId", projectID)).
+			Where(sb.Equal("Key", keyName)).
+			Where(fmt.Sprintf("Value ILIKE %s", sb.Var("%"+searchQuery+"%"))).
+			Where(fmt.Sprintf("Day >= toStartOfDay(%s)", sb.Var(startDate))).
+			Where(fmt.Sprintf("Day <= toStartOfDay(%s)", sb.Var(endDate))).
+			GroupBy("1").
+			OrderBy("2 DESC, 1").
+			Limit(limitCount)
+		builders = append(builders, sb)
+	}
+
+	sb := sqlbuilder.NewSelectBuilder()
+	sql, args := sb.Select("Value, sum(PctCount)").
+		From(sb.BuilderAs(sqlbuilder.UnionAll(builders...), "inner")).
+		GroupBy("1").
+		OrderBy("2 DESC").
+		Limit(limitCount).
+		BuildWithFlavor(sqlbuilder.ClickHouse)
+
+	span, _ := util.StartSpanFromContext(chCtx, "readAllKeyValues")
+	span.SetAttribute("Query", sql)
+	span.SetAttribute("db.system", "clickhouse")
+
+	rows, err := client.conn.Query(chCtx, sql, args...)
+	if err != nil {
+		return nil, err
+	}
+
+	values := []string{}
+	for rows.Next() {
+		var (
+			value string
+			count float64
 		)
 		if err := rows.Scan(&value, &count); err != nil {
 			return nil, err

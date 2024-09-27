@@ -1595,10 +1595,10 @@ type ComplexityRoot struct {
 	}
 
 	Variable struct {
-		DefaultValue func(childComplexity int) int
-		Field        func(childComplexity int) int
-		Key          func(childComplexity int) int
-		ProductType  func(childComplexity int) int
+		DefaultValue   func(childComplexity int) int
+		Field          func(childComplexity int) int
+		Key            func(childComplexity int) int
+		SuggestionType func(childComplexity int) int
 	}
 
 	VercelEnv struct {
@@ -11016,12 +11016,12 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Variable.Key(childComplexity), true
 
-	case "Variable.productType":
-		if e.complexity.Variable.ProductType == nil {
+	case "Variable.suggestionType":
+		if e.complexity.Variable.SuggestionType == nil {
 			break
 		}
 
-		return e.complexity.Variable.ProductType(childComplexity), true
+		return e.complexity.Variable.SuggestionType(childComplexity), true
 
 	case "VercelEnv.configurationId":
 		if e.complexity.VercelEnv.ConfigurationID == nil {
@@ -11867,6 +11867,12 @@ enum ProductType {
 	Traces
 	Metrics
 	Events
+}
+
+enum SuggestionType {
+	None
+	Value
+	Key
 }
 
 enum IngestReason {
@@ -13645,7 +13651,7 @@ type Graph {
 type Variable {
 	key: String!
 	defaultValue: String!
-	productType: ProductType
+	suggestionType: SuggestionType!
 	field: String
 }
 
@@ -13689,7 +13695,7 @@ input GraphInput {
 input VariableInput {
 	key: String!
 	defaultValue: String!
-	productType: ProductType
+	suggestionType: SuggestionType!
 	field: String
 }
 
@@ -78396,8 +78402,8 @@ func (ec *executionContext) fieldContext_Variable_defaultValue(ctx context.Conte
 	return fc, nil
 }
 
-func (ec *executionContext) _Variable_productType(ctx context.Context, field graphql.CollectedField, obj *model.Variable) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Variable_productType(ctx, field)
+func (ec *executionContext) _Variable_suggestionType(ctx context.Context, field graphql.CollectedField, obj *model.Variable) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Variable_suggestionType(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -78410,28 +78416,31 @@ func (ec *executionContext) _Variable_productType(ctx context.Context, field gra
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.ProductType, nil
+		return obj.SuggestionType, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
 		return graphql.Null
 	}
 	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
 		return graphql.Null
 	}
-	res := resTmp.(*model.ProductType)
+	res := resTmp.(model.SuggestionType)
 	fc.Result = res
-	return ec.marshalOProductType2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐProductType(ctx, field.Selections, res)
+	return ec.marshalNSuggestionType2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐSuggestionType(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_Variable_productType(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_Variable_suggestionType(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "Variable",
 		Field:      field,
 		IsMethod:   false,
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type ProductType does not have child fields")
+			return nil, errors.New("field of type SuggestionType does not have child fields")
 		},
 	}
 	return fc, nil
@@ -79227,8 +79236,8 @@ func (ec *executionContext) fieldContext_Visualization_variables(ctx context.Con
 				return ec.fieldContext_Variable_key(ctx, field)
 			case "defaultValue":
 				return ec.fieldContext_Variable_defaultValue(ctx, field)
-			case "productType":
-				return ec.fieldContext_Variable_productType(ctx, field)
+			case "suggestionType":
+				return ec.fieldContext_Variable_suggestionType(ctx, field)
 			case "field":
 				return ec.fieldContext_Variable_field(ctx, field)
 			}
@@ -84844,7 +84853,7 @@ func (ec *executionContext) unmarshalInputVariableInput(ctx context.Context, obj
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"key", "defaultValue", "productType", "field"}
+	fieldsInOrder := [...]string{"key", "defaultValue", "suggestionType", "field"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -84865,13 +84874,13 @@ func (ec *executionContext) unmarshalInputVariableInput(ctx context.Context, obj
 				return it, err
 			}
 			it.DefaultValue = data
-		case "productType":
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("productType"))
-			data, err := ec.unmarshalOProductType2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐProductType(ctx, v)
+		case "suggestionType":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("suggestionType"))
+			data, err := ec.unmarshalNSuggestionType2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐSuggestionType(ctx, v)
 			if err != nil {
 				return it, err
 			}
-			it.ProductType = data
+			it.SuggestionType = data
 		case "field":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("field"))
 			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
@@ -99173,8 +99182,11 @@ func (ec *executionContext) _Variable(ctx context.Context, sel ast.SelectionSet,
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
-		case "productType":
-			out.Values[i] = ec._Variable_productType(ctx, field, obj)
+		case "suggestionType":
+			out.Values[i] = ec._Variable_suggestionType(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
 		case "field":
 			out.Values[i] = ec._Variable_field(ctx, field, obj)
 		default:
@@ -104781,6 +104793,16 @@ func (ec *executionContext) unmarshalNSubscriptionInterval2githubᚗcomᚋhighli
 }
 
 func (ec *executionContext) marshalNSubscriptionInterval2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐSubscriptionInterval(ctx context.Context, sel ast.SelectionSet, v model.SubscriptionInterval) graphql.Marshaler {
+	return v
+}
+
+func (ec *executionContext) unmarshalNSuggestionType2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐSuggestionType(ctx context.Context, v interface{}) (model.SuggestionType, error) {
+	var res model.SuggestionType
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNSuggestionType2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐSuggestionType(ctx context.Context, sel ast.SelectionSet, v model.SuggestionType) graphql.Marshaler {
 	return v
 }
 

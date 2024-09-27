@@ -2516,7 +2516,7 @@ query GetTracesMetrics(
 }
 
 query GetKeys(
-	$product_type: ProductType!
+	$product_type: ProductType
 	$project_id: ID!
 	$date_range: DateRangeRequiredInput!
 	$query: String
@@ -2535,7 +2535,7 @@ query GetKeys(
 }
 
 query GetKeyValues(
-	$product_type: ProductType!
+	$product_type: ProductType
 	$project_id: ID!
 	$key_name: String!
 	$date_range: DateRangeRequiredInput!
@@ -2603,7 +2603,7 @@ query GetVisualization($id: ID!) {
 		variables {
 			key
 			defaultValue
-			productType
+			suggestionType
 			field
 		}
 		graphs {
@@ -2655,7 +2655,7 @@ query GetVisualizations(
 			variables {
 				key
 				defaultValue
-				productType
+				suggestionType
 				field
 			}
 			graphs {

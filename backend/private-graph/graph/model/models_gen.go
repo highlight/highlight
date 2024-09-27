@@ -1004,17 +1004,17 @@ type UserPropertyInput struct {
 }
 
 type Variable struct {
-	Key          string       `json:"key"`
-	DefaultValue string       `json:"defaultValue"`
-	ProductType  *ProductType `json:"productType,omitempty"`
-	Field        *string      `json:"field,omitempty"`
+	Key            string         `json:"key"`
+	DefaultValue   string         `json:"defaultValue"`
+	SuggestionType SuggestionType `json:"suggestionType"`
+	Field          *string        `json:"field,omitempty"`
 }
 
 type VariableInput struct {
-	Key          string       `json:"key"`
-	DefaultValue string       `json:"defaultValue"`
-	ProductType  *ProductType `json:"productType,omitempty"`
-	Field        *string      `json:"field,omitempty"`
+	Key            string         `json:"key"`
+	DefaultValue   string         `json:"defaultValue"`
+	SuggestionType SuggestionType `json:"suggestionType"`
+	Field          *string        `json:"field,omitempty"`
 }
 
 type VercelEnv struct {
@@ -3033,5 +3033,48 @@ func (e *SubscriptionInterval) UnmarshalGQL(v interface{}) error {
 }
 
 func (e SubscriptionInterval) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+type SuggestionType string
+
+const (
+	SuggestionTypeNone  SuggestionType = "None"
+	SuggestionTypeValue SuggestionType = "Value"
+	SuggestionTypeKey   SuggestionType = "Key"
+)
+
+var AllSuggestionType = []SuggestionType{
+	SuggestionTypeNone,
+	SuggestionTypeValue,
+	SuggestionTypeKey,
+}
+
+func (e SuggestionType) IsValid() bool {
+	switch e {
+	case SuggestionTypeNone, SuggestionTypeValue, SuggestionTypeKey:
+		return true
+	}
+	return false
+}
+
+func (e SuggestionType) String() string {
+	return string(e)
+}
+
+func (e *SuggestionType) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = SuggestionType(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid SuggestionType", str)
+	}
+	return nil
+}
+
+func (e SuggestionType) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(e.String()))
 }

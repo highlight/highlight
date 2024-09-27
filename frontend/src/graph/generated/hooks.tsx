@@ -14854,7 +14854,7 @@ export type GetTracesMetricsQueryResult = Apollo.QueryResult<
 >
 export const GetKeysDocument = gql`
 	query GetKeys(
-		$product_type: ProductType!
+		$product_type: ProductType
 		$project_id: ID!
 		$date_range: DateRangeRequiredInput!
 		$query: String
@@ -14923,7 +14923,7 @@ export type GetKeysQueryResult = Apollo.QueryResult<
 >
 export const GetKeyValuesDocument = gql`
 	query GetKeyValues(
-		$product_type: ProductType!
+		$product_type: ProductType
 		$project_id: ID!
 		$key_name: String!
 		$date_range: DateRangeRequiredInput!
@@ -15105,7 +15105,7 @@ export const GetVisualizationDocument = gql`
 			variables {
 				key
 				defaultValue
-				productType
+				suggestionType
 				field
 			}
 			graphs {
@@ -15207,7 +15207,7 @@ export const GetVisualizationsDocument = gql`
 				variables {
 					key
 					defaultValue
-					productType
+					suggestionType
 					field
 				}
 				graphs {

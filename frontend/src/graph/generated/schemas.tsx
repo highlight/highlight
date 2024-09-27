@@ -3694,6 +3694,12 @@ export enum SubscriptionInterval {
 	Monthly = 'Monthly',
 }
 
+export enum SuggestionType {
+	Key = 'Key',
+	None = 'None',
+	Value = 'Value',
+}
+
 export type SystemConfiguration = {
 	__typename?: 'SystemConfiguration'
 	maintenance_end?: Maybe<Scalars['Timestamp']>
@@ -3836,14 +3842,14 @@ export type Variable = {
 	defaultValue: Scalars['String']
 	field?: Maybe<Scalars['String']>
 	key: Scalars['String']
-	productType?: Maybe<ProductType>
+	suggestionType: SuggestionType
 }
 
 export type VariableInput = {
 	defaultValue: Scalars['String']
 	field?: InputMaybe<Scalars['String']>
 	key: Scalars['String']
-	productType?: InputMaybe<ProductType>
+	suggestionType: SuggestionType
 }
 
 export type VercelEnv = {

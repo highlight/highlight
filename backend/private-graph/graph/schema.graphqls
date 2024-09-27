@@ -234,6 +234,12 @@ enum ProductType {
 	Events
 }
 
+enum SuggestionType {
+	None
+	Value
+	Key
+}
+
 enum IngestReason {
 	Sample
 	Rate
@@ -2010,7 +2016,7 @@ type Graph {
 type Variable {
 	key: String!
 	defaultValue: String!
-	productType: ProductType
+	suggestionType: SuggestionType!
 	field: String
 }
 
@@ -2054,7 +2060,7 @@ input GraphInput {
 input VariableInput {
 	key: String!
 	defaultValue: String!
-	productType: ProductType
+	suggestionType: SuggestionType!
 	field: String
 }
 

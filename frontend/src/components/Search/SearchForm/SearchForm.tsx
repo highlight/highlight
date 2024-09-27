@@ -347,6 +347,7 @@ export const Search: React.FC<{
 	productType,
 	hasAdditonalActions,
 	creatables,
+	defaultValueOptions,
 	enableAIMode,
 	aiSupportedSearch,
 }) => {
@@ -411,7 +412,10 @@ export const Search: React.FC<{
 		!!activePart.value?.length
 
 	let visibleItems: SearchResult[] = showValues
-		? getVisibleValues(activePart, values)
+		? getVisibleValues(
+				activePart,
+				defaultValueOptions?.concat(values ?? []),
+			)
 		: getVisibleKeys(query, activePart, keys)
 
 	// Show operators when we have an exact match for a key

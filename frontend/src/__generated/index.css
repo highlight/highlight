@@ -6821,7 +6821,10 @@ body {
   height: 40px;
 }
 ._1runqd01 {
-  width: 150px;
+  max-width: 150px;
+}
+.w96cqy0 {
+  height: 28px;
 }
 ._11j364l0 {
   width: calc(100% - 320px);
