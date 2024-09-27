@@ -1,16 +1,19 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk.Web">
 
     <PropertyGroup>
-        <TargetFramework>net8.0</TargetFramework>
+        <TargetFrameworks>net6.0;net7.0;net8.0</TargetFrameworks>
+        <AzureFunctionsVersion>v4</AzureFunctionsVersion>
         <RootNamespace>Highlight</RootNamespace>
         <ImplicitUsings>enable</ImplicitUsings>
         <IsPackable>true</IsPackable>
         <Nullable>enable</Nullable>
 
         <OutputType>library</OutputType>
-        <Version>0.1.7</Version>
-        <AssemblyVersion>0.1.7</AssemblyVersion>
-        <FileVersion>0.1.7</FileVersion>
+        <Version>0.2.1</Version>
+        <AssemblyVersion>0.2.1</AssemblyVersion>
+        <FileVersion>0.2.1</FileVersion>
+        <Deterministic>true</Deterministic>
+        <LangVersion>latest</LangVersion>
         <Company>highlight.io</Company>
         <Authors>Vadim Korolik</Authors>
         <Product>highlight.io</Product>
@@ -31,7 +34,7 @@
       <PackageReference Include="OpenTelemetry.Extensions.Hosting" Version="1.9.0" />
       <PackageReference Include="Serilog" Version="4.0.1" />
       <PackageReference Include="Serilog.Sinks.OpenTelemetry" Version="4.0.0" />
-      <None Include="README.md" Pack="true" PackagePath=""/>
+      <None Include="README.md" Pack="true" PackagePath="" />
     </ItemGroup>
 
 </Project>

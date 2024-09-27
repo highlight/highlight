@@ -1,6 +1,6 @@
 {
 	"name": "@highlight-run/react",
-	"version": "6.0.1",
+	"version": "6.0.3",
 	"description": "The official Highlight SDK for React",
 	"license": "Apache-2.0",
 	"peerDependencies": {

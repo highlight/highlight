@@ -1,35 +1,36 @@
-# highlight-io .NET4 SDK
+# highlight-io .NET Core SDK
 
-This directory contains the source code for the Highlight .NET4 SDK.
+This directory contains the source code for the Highlight .NET Core SDK.
 
 ## Usage
 
 1. Install the NuGet Package
 2. Set up the Highlight SDK with your ASP app.
 ```csharp
-// initialize your webapp
-AreaRegistration.RegisterAllAreas();
-FilterConfig.RegisterGlobalFilters(GlobalFilters.Filters);
-RouteConfig.RegisterRoutes(RouteTable.Routes);
-BundleConfig.RegisterBundles(BundleTable.Bundles);
+// configure your web application
+var builder = WebApplication.CreateBuilder(args);
 
-// configure highlight
-Highlight.OpenTelemetry.Register(options =>
-{
-    options.ProjectId = "<YOUR_PROJECT_ID>";
-    options.ServiceName = "example-dotnet-backend";
-});
+// Initialize trace, error, metric, and log export
+builder.Services
+    .AddHighlightInstrumentation(options => options.ProjectId = "<YOUR_PROJECT_ID>");
+builder.Logging
+    .AddHighlightInstrumentation(options => options.ProjectId = "<YOUR_PROJECT_ID>");
+
+var app = builder.Build();
 ```
 3. Configure Serilog logging to export to highlight
 ```csharp
 // create a Serilog logger with highlight export
-var logger = new LoggerConfiguration()
+Log.Logger = new LoggerConfiguration()
+    .Enrich.WithMachineName()
     .Enrich.WithHighlight()
-    .WriteTo.HighlightOpenTelemetry(options =>
-    {
-        options.ProjectId = "<YOUR_PROJECT_ID>";
-        options.ServiceName = "example-dotnet-backend";
-    })
+    .Enrich.FromLogContext()
+    .WriteTo.Async(async =>
+        async.HighlightOpenTelemetry(options =>
+        {
+            options.ProjectId = "<YOUR_PROJECT_ID>";
+            options.ServiceName = "<YOUR_SERVICE_NAME>";
+        })
+    )
     .CreateLogger();
-logger.Information("Hello, World!");
 ```

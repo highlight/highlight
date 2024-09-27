@@ -9710,6 +9710,7 @@ __metadata:
     "@highlight-run/react-mentions": "npm:4.4.2"
     "@highlight-run/sourcemap-uploader": "workspace:*"
     "@highlight-run/ui": "workspace:*"
+    "@inkeep/uikit": "npm:^0.3.8"
     "@mux/mux-player": "npm:^2.4.1"
     "@mux/mux-player-react": "npm:^2.4.1"
     "@parcel/watcher": "npm:^2.4.1"

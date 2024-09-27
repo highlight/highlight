@@ -14,12 +14,12 @@ using System;
 namespace Serilog
 {
 
-public static class HighlightSerilogExtensions
+    public static class HighlightSerilogExtensions
     {
         public static LoggerConfiguration HighlightOpenTelemetry(this LoggerSinkConfiguration loggerConfiguration,
             Action<Highlight.OpenTelemetry.Config> configure)
         {
-            Highlight.OpenTelemetry.Config config = new Highlight.OpenTelemetry.Config();
+            Highlight.OpenTelemetry.Config config = new();
             configure(config);
             return loggerConfiguration.OpenTelemetry(options =>
             {
@@ -38,13 +38,13 @@ public static class HighlightSerilogExtensions
 
 namespace Highlight
 {
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Web;
-using Microsoft.Extensions.Logging;
+    using System;
+    using System.Collections.Generic;
+    using System.Linq;
+    using System.Web;
+    using Microsoft.Extensions.Logging;
 
-public class TraceProcessor : BaseProcessor<Activity>
+    public class TraceProcessor : BaseProcessor<Activity>
     {
         public override void OnStart(Activity data)
         {
@@ -94,12 +94,13 @@ public class TraceProcessor : BaseProcessor<Activity>
         public const OtlpProtocol SerilogExportProtocol = OtlpProtocol.HttpProtobuf;
         public const string HighlightHeader = "x-highlight-request";
 
-        public class Config {
+        public class Config
+        {
             public string ProjectId;
             public string ServiceName;
             public string OtlpEndpoint = "https://otel.highlight.io:4318";
         }
-        
+
         public static Dictionary<string, object> GetResourceAttributes()
         {
             return new Dictionary<string, object>
@@ -107,13 +108,13 @@ public class TraceProcessor : BaseProcessor<Activity>
                 ["highlight.project_id"] = Cfg.ProjectId,
                 ["service.name"] = Cfg.ServiceName,
                 ["telemetry.distro.name"] = "Highlight.ASP4",
-                ["telemetry.distro.version"] = "0.1.7",
+                ["telemetry.distro.version"] = "0.2.1",
             };
         }
 
-        static readonly Config Cfg = new Config();
-        static readonly Random Random = new Random();
-        
+        static readonly Config Cfg = new();
+        static readonly Random Random = new();
+
         static TracerProvider _tracerProvider;
         static MeterProvider _meterProvider;
 
@@ -154,13 +155,13 @@ public class TraceProcessor : BaseProcessor<Activity>
             activity.SetTag("http.scheme", httpRequest.Url.Scheme);
             activity.SetTag("http.url", httpRequest.Path);
             activity.SetTag("http.user_agent", httpRequest.Headers["User-Agent"]);
-            
-            foreach(string header in httpRequest.Headers)
+
+            foreach (string header in httpRequest.Headers)
             {
                 var value = httpRequest.Headers[header];
                 activity.SetTag($"http.request.header.{header}", value);
             }
-            
+
             var (sessionId, requestId) = ExtractContext(httpRequest);
             activity.SetTag("highlight.session_id", sessionId);
             activity.SetTag("highlight.trace_id", requestId);
@@ -170,8 +171,8 @@ public class TraceProcessor : BaseProcessor<Activity>
         static void EnrichWithHttpResponse(Activity activity, HttpResponse httpResponse)
         {
             activity.SetTag("http.status_code", httpResponse.StatusCode);
-            
-            foreach(string header in httpResponse.Headers)
+
+            foreach (string header in httpResponse.Headers)
             {
                 var value = httpResponse.Headers[header];
                 activity.SetTag($"http.request.header.{header}", value);
@@ -214,10 +215,11 @@ public class TraceProcessor : BaseProcessor<Activity>
             _tracerProvider = Sdk.CreateTracerProviderBuilder()
                 .SetResourceBuilder(ResourceBuilder.CreateDefault().AddAttributes(GetResourceAttributes()))
                 .AddHttpClientInstrumentation()
-                .AddGrpcClientInstrumentation()
                 .AddSqlClientInstrumentation()
                 .AddQuartzInstrumentation()
                 .AddWcfInstrumentation()
+                .AddEntityFrameworkCoreInstrumentation()
+                .AddRedisInstrumentation()
                 .AddAspNetInstrumentation(options =>
                 {
                     options.RecordException = true;

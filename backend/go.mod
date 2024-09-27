@@ -1,6 +1,6 @@
 module github.com/highlight-run/highlight/backend
 
-go 1.22.2
+go 1.23.1
 
 replace golang.org/x/crypto => golang.org/x/crypto v0.17.0
 
