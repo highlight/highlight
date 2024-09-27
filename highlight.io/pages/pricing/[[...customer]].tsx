@@ -358,7 +358,7 @@ const PriceCalculator = ({
 	pricingTier,
 	setEstimatorCategory,
 }: {
-	customer: string
+	customer: string | null
 	prices: typeof StandardPrices
 	pricingTier: PricingTier
 	setEstimatorCategory: (value: any) => void
