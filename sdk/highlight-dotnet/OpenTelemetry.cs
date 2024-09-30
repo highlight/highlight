@@ -114,12 +114,13 @@ namespace Highlight
         public const OtlpExportProtocol ExportProtocol = OtlpExportProtocol.HttpProtobuf;
         public const string HighlightHeader = "x-highlight-request";
 
-        public class Config {
-            public required string ProjectId;
-            public required string ServiceName;
+        public class Config
+        {
+            public string ProjectId = "";
+            public string ServiceName = "";
             public string OtlpEndpoint = "https://otel.highlight.io:4318";
         }
-        
+
         public static Dictionary<string, object> GetResourceAttributes()
         {
             return new Dictionary<string, object>
@@ -127,7 +128,7 @@ namespace Highlight
                 ["highlight.project_id"] = _config.ProjectId,
                 ["service.name"] = _config.ServiceName,
                 ["telemetry.distro.name"] = "Highlight.ASPCore",
-                ["telemetry.distro.version"] = "0.1.7",
+                ["telemetry.distro.version"] = "0.2.1",
             };
         }
 

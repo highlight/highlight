@@ -44,6 +44,10 @@ import { SearchExpression } from '@/components/Search/Parser/listener'
 import { LogEdge } from '@/graph/generated/schemas'
 import { LogDetails } from '@/pages/LogsPage/LogsTable/LogDetails'
 import { THROTTLED_UPDATE_MS } from '@/pages/Player/PlayerHook/PlayerState'
+import {
+	ReplayerState,
+	useReplayerContext,
+} from '@/pages/Player/ReplayerContext'
 import analytics from '@/util/analytics'
 
 import * as styles from './style.css'
@@ -135,6 +139,8 @@ const ConsoleTableInner = ({
 	loadingAfter,
 	fetchMoreWhenScrolled,
 }: ConsoleTableInnerProps) => {
+	const { state } = useReplayerContext()
+
 	const bodyRef = useRef<HTMLDivElement>(null)
 	const [expanded, setExpanded] = useState<ExpandedState>({})
 
@@ -278,10 +284,15 @@ const ConsoleTableInner = ({
 	)
 
 	useEffect(() => {
-		if (autoScroll && lastActiveLogIndex >= 0 && !!logEdges.length) {
+		if (
+			autoScroll &&
+			state === ReplayerState.Playing &&
+			lastActiveLogIndex >= 0 &&
+			!!logEdges.length
+		) {
 			scrollFunction(lastActiveLogIndex)
 		}
-	}, [lastActiveLogIndex, logEdges, scrollFunction, autoScroll])
+	}, [lastActiveLogIndex, logEdges, scrollFunction, autoScroll, state])
 
 	return (
 		<Table height="full" noBorder>

@@ -51,6 +51,7 @@ import {
 import { HeaderDivider } from '@/pages/Graphing/Dashboard'
 import { LabeledRow } from '@/pages/Graphing/LabeledRow'
 import { OptionDropdown } from '@/pages/Graphing/OptionDropdown'
+import { EventSelection } from '@/pages/Graphing/EventSelection'
 
 import { AlertGraph } from '../AlertGraph'
 import * as style from './styles.css'
@@ -372,7 +373,7 @@ export const AlertForm: React.FC = () => {
 								emphasis="low"
 								kind="secondary"
 								onClick={() => navigate(`/${projectId}/alerts`)}
-								trackingId="CancelAlert"
+								trackingId="AlertCancel"
 							>
 								Cancel
 							</Button>
@@ -382,16 +383,16 @@ export const AlertForm: React.FC = () => {
 									size="small"
 									emphasis="low"
 									onClick={onDelete}
-									trackingId="DeleteAlert"
+									trackingId="AlertDelete"
 								>
-									Delete Alert
+									Delete alert
 								</Button>
 							)}
 
 							<Button
 								disabled={disableSave}
 								onClick={onSave}
-								trackingId="SaveAlert"
+								trackingId="AlertSave"
 							>
 								Save&nbsp;
 							</Button>
@@ -475,68 +476,107 @@ export const AlertForm: React.FC = () => {
 									)}
 								</SidebarSection>
 								<Divider className="m-0" />
-
 								<SidebarSection>
-									{!isSessionAlert && !isErrorAlert && (
+									{productType === ProductType.Events ? (
+										<EventSelection
+											initialQuery={query}
+											setQuery={setQuery}
+											startDate={startDate}
+											endDate={endDate}
+										/>
+									) : (
 										<LabeledRow
-											label="Function"
-											name="function"
-											tooltip="Determines how data points are aggregated. If the function requires a numeric field as input, one can be chosen."
+											label="Filters"
+											name="query"
+											tooltip="The search query used to filter which data points are included before aggregating."
 										>
-											<OptionDropdown<MetricAggregator>
-												options={FUNCTION_TYPES}
-												selection={functionType}
-												setSelection={setFunctionType}
-											/>
-											<Combobox
-												selection={
-													fetchedFunctionColumn
-												}
-												setSelection={setFunctionColumn}
-												label="metric"
-												searchConfig={
-													searchOptionsConfig
-												}
-												disabled={
-													functionType ===
-													MetricAggregator.Count
-												}
-												onlyNumericKeys={
-													functionType !==
-													MetricAggregator.CountDistinct
-												}
-											/>
+											<Box
+												border="divider"
+												width="full"
+												borderRadius="6"
+											>
+												<SearchContext
+													initialQuery={query}
+													onSubmit={setQuery}
+												>
+													<Search
+														startDate={
+															new Date(startDate)
+														}
+														endDate={
+															new Date(endDate)
+														}
+														productType={
+															productType
+														}
+														hideIcon
+													/>
+												</SearchContext>
+											</Box>
 										</LabeledRow>
 									)}
-									<LabeledRow
-										label="Filters"
-										name="query"
-										tooltip="The search query used to filter which data points are included before aggregating."
-									>
-										<Box
-											border="divider"
-											width="full"
-											borderRadius="6"
-										>
-											<SearchContext
-												initialQuery={query}
-												onSubmit={setQuery}
-											>
-												<Search
-													startDate={
-														new Date(startDate)
-													}
-													endDate={new Date(endDate)}
-													productType={productType}
-													hideIcon
-												/>
-											</SearchContext>
-										</Box>
-									</LabeledRow>
 								</SidebarSection>
-								<Divider className="m-0" />
+								{!isSessionAlert && !isErrorAlert && (
+									<>
+										<Box px="12">
+											<Divider className="m-0" />
+										</Box>
+										<SidebarSection>
+											<LabeledRow
+												label="Function"
+												name="function"
+												tooltip="Determines how data points are aggregated. If the function requires a numeric field as input, one can be chosen."
+											>
+												<OptionDropdown<MetricAggregator>
+													options={FUNCTION_TYPES}
+													selection={functionType}
+													setSelection={
+														setFunctionType
+													}
+												/>
+												<Combobox
+													selection={
+														fetchedFunctionColumn
+													}
+													setSelection={
+														setFunctionColumn
+													}
+													label="metric"
+													searchConfig={
+														searchOptionsConfig
+													}
+													disabled={
+														functionType ===
+														MetricAggregator.Count
+													}
+													onlyNumericKeys={
+														functionType !==
+														MetricAggregator.CountDistinct
+													}
+												/>
+											</LabeledRow>
+											<LabeledRow
+												label="Group by"
+												name="groupBy"
+												enabled={groupByEnabled}
+												setEnabled={setGroupByEnabled}
+												tooltip="A categorical field for grouping results into separate series."
+											>
+												<Combobox
+													selection={groupByKey}
+													setSelection={setGroupByKey}
+													label="groupBy"
+													searchConfig={
+														searchOptionsConfig
+													}
+												/>
+											</LabeledRow>
+										</SidebarSection>
+									</>
+								)}
 								{!isSessionAlert && (
 									<>
+										<Divider className="m-0" />
 										<SidebarSection>
 											<LabeledRow
 												label="Alert conditions"
@@ -624,38 +664,9 @@ export const AlertForm: React.FC = () => {
 												/>
 											</LabeledRow>
 										</SidebarSection>
-										<Divider className="m-0" />
-										{!isErrorAlert && (
-											<>
-												<SidebarSection>
-													<LabeledRow
-														label="Group by"
-														name="groupBy"
-														enabled={groupByEnabled}
-														setEnabled={
-															setGroupByEnabled
-														}
-														tooltip="A categorical field for grouping results into separate series."
-													>
-														<Combobox
-															selection={
-																groupByKey
-															}
-															setSelection={
-																setGroupByKey
-															}
-															label="groupBy"
-															searchConfig={
-																searchOptionsConfig
-															}
-														/>
-													</LabeledRow>
-												</SidebarSection>
-												<Divider className="m-0" />
-											</>
-										)}
 									</>
 								)}
+								<Divider className="m-0" />
 								<SidebarSection>
 									<DestinationInput
 										initialDestinations={

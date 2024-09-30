@@ -14,7 +14,14 @@ import clsx, { ClassValue } from 'clsx'
 import React, { useState } from 'react'
 
 import { vars } from '../../css/vars'
-import { IconSolidCheckCircle, IconSolidSearch } from '../icons'
+import {
+	IconSolidCheckCircle,
+	IconSolidSearch,
+	IconSolidXCircle,
+} from '../icons'
+import { Box } from '../Box/Box'
+import { ButtonIcon } from '../ButtonIcon/ButtonIcon'
+import { Stack } from '../Stack/Stack'
 import { Text } from '../Text/Text'
 import * as styles from './styles.css'
 
@@ -29,7 +36,7 @@ type Props<T extends string | string[]> = {
 	value: T | undefined
 	valueRender?: React.ReactNode
 	options: Option[] | undefined
-	onChange: (value: T) => void
+	onChange: (value: any) => void
 	onChangeQuery?: (value: string) => void
 	onClose?: () => void
 	queryPlaceholder?: string
@@ -41,6 +48,7 @@ type Props<T extends string | string[]> = {
 	disabled?: boolean
 	loadingRender?: React.ReactNode
 	emptyStateRender?: React.ReactNode
+	clearable?: boolean
 }
 
 export const ComboboxSelect = <T extends string | string[]>({
@@ -61,6 +69,7 @@ export const ComboboxSelect = <T extends string | string[]>({
 	disabled,
 	loadingRender,
 	emptyStateRender,
+	clearable,
 }: Props<T>) => {
 	const isMultiselect = typeof value === 'object'
 
@@ -118,12 +127,35 @@ export const ComboboxSelect = <T extends string | string[]>({
 				])}
 				disabled={disabled}
 			>
-				{icon}
-				{valueRender && (
-					<Text size="xSmall" color="secondaryContentText" lines="1">
-						{valueRender}
-					</Text>
-				)}
+				<Stack
+					direction="row"
+					align="center"
+					justify="space-between"
+					width="full"
+					gap="2"
+				>
+					<Box>
+						{icon}
+						{valueRender && (
+							<Text
+								size="xSmall"
+								color="secondaryContentText"
+								lines="1"
+							>
+								{valueRender}
+							</Text>
+						)}
+					</Box>
+					{clearable && !!value && (
+						<ButtonIcon
+							icon={<IconSolidXCircle />}
+							onClick={() => onChange(undefined)}
+							size="xSmall"
+							emphasis="none"
+							kind="secondary"
+						/>
+					)}
+				</Stack>
 			</Select>
 			<SelectPopover
 				store={select}
