@@ -16,6 +16,8 @@ import * as comboBoxStyle from '../Combobox/styles.css'
 import { OptionDropdown } from '@/pages/Graphing/OptionDropdown'
 import { parseSearch } from '@/components/Search/utils'
 
+const EVENT_NAME = 'Navigate'
+
 enum NavigateType {
 	Visited = 'Visited',
 	Reloaded = 'Reloaded',
@@ -152,6 +154,7 @@ export const NavigateFilters: React.FC<Props> = ({
 				},
 				query: debouncedNavigateQuery,
 				count: 25,
+				event: EVENT_NAME,
 			},
 		})
 	}, [
@@ -207,6 +210,7 @@ export const NavigateFilters: React.FC<Props> = ({
 							startDate={startDate}
 							endDate={endDate}
 							productType={ProductType.Events}
+							event={EVENT_NAME}
 							hideIcon
 						/>
 					</SearchContext>
