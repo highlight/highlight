@@ -51,12 +51,12 @@ namespace Microsoft.Extensions.DependencyInjection
             return services;
         }
 
-        public static ILogger AddHighlightInstrumentation(this ILogger logger,
+        public static ILoggingBuilder AddHighlightInstrumentation(this ILoggingBuilder logging,
             Action<Highlight.OpenTelemetry.Config> configure)
         {
             if (configure == null)
                 throw new ArgumentNullException(nameof(configure));
-            Highlight.OpenTelemetry.InstrumentLogging(logger, configure);
+            Highlight.OpenTelemetry.InstrumentLogging(logging, configure);
             return logging;
         }
     }
@@ -128,7 +128,7 @@ namespace Highlight
                 ["highlight.project_id"] = _config.ProjectId,
                 ["service.name"] = _config.ServiceName,
                 ["telemetry.distro.name"] = "Highlight.ASPCore",
-                ["telemetry.distro.version"] = "0.2.5",
+                ["telemetry.distro.version"] = "0.2.4",
             };
         }
 
@@ -272,7 +272,7 @@ namespace Highlight
                     }));
         }
 
-        public static void InstrumentLogging(ILogger logging, Action<Config> configure)
+        public static void InstrumentLogging(ILoggingBuilder logging, Action<Config> configure)
         {
             configure(_config);
             logging.AddOpenTelemetry(options =>
