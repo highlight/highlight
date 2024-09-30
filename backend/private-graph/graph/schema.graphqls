@@ -2477,6 +2477,7 @@ type Query {
 		date_range: DateRangeRequiredInput!
 		query: String
 		type: KeyType
+		event: String
 	): [QueryKey!]!
 	events_key_values(
 		project_id: ID!
@@ -2484,6 +2485,7 @@ type Query {
 		date_range: DateRangeRequiredInput!
 		query: String
 		count: Int
+		event: String
 	): [String!]!
 	events_metrics(
 		project_id: ID!
@@ -2518,6 +2520,7 @@ type Query {
 		date_range: DateRangeRequiredInput!
 		query: String
 		type: KeyType
+		event: String
 	): [QueryKey!]!
 	key_values(
 		product_type: ProductType!
@@ -2526,6 +2529,7 @@ type Query {
 		date_range: DateRangeRequiredInput!
 		query: String
 		count: Int
+		event: String
 	): [String!]!
 	visualization(id: ID!): Visualization!
 	visualizations(
