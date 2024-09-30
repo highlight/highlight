@@ -179,7 +179,7 @@ export const NavigateFilters: React.FC<Props> = ({
 						value={navigateUrl}
 						valueRender={
 							<Text cssClass={comboBoxStyle.comboboxText}>
-								{navigateUrl}
+								{navigateUrl || 'All urls'}
 							</Text>
 						}
 						options={keyValueOptions}

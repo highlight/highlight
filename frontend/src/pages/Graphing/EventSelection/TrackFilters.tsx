@@ -80,7 +80,7 @@ export const TrackFilters: React.FC<Props> = ({
 					value={eventName}
 					valueRender={
 						<Text cssClass={comboBoxStyle.comboboxText}>
-							{eventName}
+							{eventName || 'All events'}
 						</Text>
 					}
 					options={keyValueOptions}

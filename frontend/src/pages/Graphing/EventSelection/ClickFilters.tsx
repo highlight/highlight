@@ -172,7 +172,7 @@ export const ClickFilters: React.FC<Props> = ({
 						value={clickTypeValue}
 						valueRender={
 							<Text cssClass={comboBoxStyle.comboboxText}>
-								{clickTypeValue}
+								{clickTypeValue || 'All clicks'}
 							</Text>
 						}
 						options={keyValueOptions}
