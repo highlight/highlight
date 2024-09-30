@@ -2456,6 +2456,7 @@ export type QueryEventsArgs = {
 export type QueryEvents_Key_ValuesArgs = {
 	count?: InputMaybe<Scalars['Int']>
 	date_range: DateRangeRequiredInput
+	event?: InputMaybe<Scalars['String']>
 	key_name: Scalars['String']
 	project_id: Scalars['ID']
 	query?: InputMaybe<Scalars['String']>
@@ -2463,6 +2464,7 @@ export type QueryEvents_Key_ValuesArgs = {
 
 export type QueryEvents_KeysArgs = {
 	date_range: DateRangeRequiredInput
+	event?: InputMaybe<Scalars['String']>
 	project_id: Scalars['ID']
 	query?: InputMaybe<Scalars['String']>
 	type?: InputMaybe<KeyType>
@@ -2564,6 +2566,7 @@ export type QueryJira_ProjectsArgs = {
 export type QueryKey_ValuesArgs = {
 	count?: InputMaybe<Scalars['Int']>
 	date_range: DateRangeRequiredInput
+	event?: InputMaybe<Scalars['String']>
 	key_name: Scalars['String']
 	product_type: ProductType
 	project_id: Scalars['ID']
@@ -2572,6 +2575,7 @@ export type QueryKey_ValuesArgs = {
 
 export type QueryKeysArgs = {
 	date_range: DateRangeRequiredInput
+	event?: InputMaybe<Scalars['String']>
 	product_type: ProductType
 	project_id: Scalars['ID']
 	query?: InputMaybe<Scalars['String']>

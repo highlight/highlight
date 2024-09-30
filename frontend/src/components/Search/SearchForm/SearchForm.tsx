@@ -337,6 +337,7 @@ export const Search: React.FC<{
 	creatables?: { [key: string]: Creatable }
 	enableAIMode?: boolean
 	aiSupportedSearch?: boolean
+	event?: string
 }> = ({
 	startDate,
 	endDate,
@@ -348,6 +349,7 @@ export const Search: React.FC<{
 	creatables,
 	enableAIMode,
 	aiSupportedSearch,
+	event,
 }) => {
 	const {
 		disabled,
@@ -481,6 +483,7 @@ export const Search: React.FC<{
 					end_date: moment(endDate).format(TIME_FORMAT),
 				},
 				query: debouncedValue,
+				event: event,
 			},
 			fetchPolicy: 'cache-first',
 			onCompleted: (data) => {
@@ -495,6 +498,7 @@ export const Search: React.FC<{
 		project_id,
 		getKeys,
 		productType,
+		event,
 	])
 
 	useEffect(() => {
@@ -527,6 +531,7 @@ export const Search: React.FC<{
 				},
 				query: debouncedValue,
 				count: 25,
+				event: event,
 			},
 			fetchPolicy: 'cache-first',
 			onCompleted: (data) => {
@@ -543,6 +548,7 @@ export const Search: React.FC<{
 		project_id,
 		showValues,
 		startDate,
+		event,
 	])
 
 	useEffect(() => {
