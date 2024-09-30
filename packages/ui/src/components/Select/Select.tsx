@@ -260,6 +260,7 @@ export const Select = <T,>({
 						newOptions = [...newOptions, ...missingOptions]
 					}
 				} else if (
+					!!value &&
 					!newOptions.some((option) => optionsMatch(option, value))
 				) {
 					newOptions = [...newOptions, { name: value, value }]
