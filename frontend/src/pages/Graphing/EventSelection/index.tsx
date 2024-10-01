@@ -4,12 +4,10 @@ import { LabeledRow } from '@/pages/Graphing/LabeledRow'
 import { Box } from '@highlight-run/ui/components'
 import { OptionDropdown } from '@/pages/Graphing/OptionDropdown'
 import { parseSearch } from '@/components/Search/utils'
-import Card from '@components/Card/Card'
 
 import { ClickFilters } from './ClickFilters'
 import { NavigateFilters } from './NavigateFilters'
 import { TrackFilters } from './TrackFilters'
-import * as style from './styles.css'
 
 enum EventType {
 	Track = 'Track',
@@ -125,17 +123,24 @@ export const EventSelection: React.FC<Props> = ({
 	}, [endDate, eventFilters, eventName, eventType, loading, startDate])
 
 	return (
-		<Card className={style.card}>
-			<Box width="full" display="flex" flexDirection="column" gap="12">
-				<LabeledRow label="Event type" name="eventType">
-					<OptionDropdown<EventType>
-						options={EVENT_TYPES}
-						selection={eventType}
-						setSelection={setEventType}
-					/>
-				</LabeledRow>
-				{eventTypeFilters}
-			</Box>
-		</Card>
+		<Box
+			width="full"
+			display="flex"
+			flexDirection="column"
+			gap="12"
+			p="8"
+			borderRadius="8"
+			border="secondary"
+			backgroundColor="nested"
+		>
+			<LabeledRow label="Event type" name="eventType">
+				<OptionDropdown<EventType>
+					options={EVENT_TYPES}
+					selection={eventType}
+					setSelection={setEventType}
+				/>
+			</LabeledRow>
+			{eventTypeFilters}
+		</Box>
 	)
 }
