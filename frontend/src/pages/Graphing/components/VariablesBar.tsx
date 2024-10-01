@@ -27,6 +27,11 @@ export const VariablesBar: React.FC<Props> = ({ dashboardId }) => {
 
 	const [showVariablesModal, setShowVariablesModal] = useState(false)
 
+	const searchConfig = {
+		startDate: moment().subtract(30, 'days').toDate(),
+		endDate: moment().toDate(),
+	}
+
 	return (
 		<>
 			<VariablesModal
@@ -83,16 +88,7 @@ export const VariablesBar: React.FC<Props> = ({ dashboardId }) => {
 															selection,
 														)
 													}}
-													searchConfig={{
-														startDate: moment()
-															.subtract(
-																30,
-																'days',
-															)
-															.toDate(),
-														endDate:
-															moment().toDate(),
-													}}
+													searchConfig={searchConfig}
 													label={`current-value-${i}`}
 												/>
 											)}
@@ -110,16 +106,7 @@ export const VariablesBar: React.FC<Props> = ({ dashboardId }) => {
 															selection,
 														)
 													}}
-													searchConfig={{
-														startDate: moment()
-															.subtract(
-																30,
-																'days',
-															)
-															.toDate(),
-														endDate:
-															moment().toDate(),
-													}}
+													searchConfig={searchConfig}
 													keyName={v.field ?? ''}
 													label={`current-value-${i}`}
 												/>
