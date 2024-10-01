@@ -5087,6 +5087,7 @@ export type GetKeysQueryVariables = Types.Exact<{
 	date_range: Types.DateRangeRequiredInput
 	query?: Types.Maybe<Types.Scalars['String']>
 	type?: Types.Maybe<Types.KeyType>
+	event?: Types.Maybe<Types.Scalars['String']>
 }>
 
 export type GetKeysQuery = { __typename?: 'Query' } & {
@@ -5102,6 +5103,7 @@ export type GetKeyValuesQueryVariables = Types.Exact<{
 	date_range: Types.DateRangeRequiredInput
 	query: Types.Scalars['String']
 	count: Types.Scalars['Int']
+	event?: Types.Maybe<Types.Scalars['String']>
 }>
 
 export type GetKeyValuesQuery = { __typename?: 'Query' } & Pick<

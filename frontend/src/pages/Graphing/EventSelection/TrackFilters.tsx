@@ -107,6 +107,7 @@ export const TrackFilters: React.FC<Props> = ({
 							startDate={startDate}
 							endDate={endDate}
 							productType={ProductType.Events}
+							event={eventName}
 							hideIcon
 						/>
 					</SearchContext>

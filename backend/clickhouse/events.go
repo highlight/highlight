@@ -17,8 +17,8 @@ import (
 
 const SessionEventsTable = "session_events"
 const SessionEventsView = "session_events_vw"
-const EventKeysTable = "event_keys"
-const EventKeyValuesTable = "event_key_values"
+const EventKeysTable = "event_keys_new"
+const EventKeyValuesTable = "event_key_values_new"
 
 var eventKeysToColumns = map[string]string{
 	string(modelInputs.ReservedEventKeyBrowserName):         "BrowserName",
@@ -141,8 +141,8 @@ func (client *Client) ReadWorkspaceEventCounts(ctx context.Context, projectIDs [
 	})
 }
 
-func (client *Client) EventsKeys(ctx context.Context, projectID int, startDate time.Time, endDate time.Time, query *string, typeArg *modelInputs.KeyType) ([]*modelInputs.QueryKey, error) {
-	eventKeys, err := KeysAggregated(ctx, client, EventKeysTable, projectID, startDate, endDate, query, typeArg)
+func (client *Client) EventsKeys(ctx context.Context, projectID int, startDate time.Time, endDate time.Time, query *string, typeArg *modelInputs.KeyType, event *string) ([]*modelInputs.QueryKey, error) {
+	eventKeys, err := KeysAggregated(ctx, client, EventKeysTable, projectID, startDate, endDate, query, typeArg, event)
 	if err != nil {
 		return nil, err
 	}
@@ -161,12 +161,12 @@ func (client *Client) EventsKeys(ctx context.Context, projectID int, startDate t
 	return eventKeys, nil
 }
 
-func (client *Client) EventsKeyValues(ctx context.Context, projectID int, keyName string, startDate time.Time, endDate time.Time, query *string, limit *int) ([]string, error) {
+func (client *Client) EventsKeyValues(ctx context.Context, projectID int, keyName string, startDate time.Time, endDate time.Time, query *string, limit *int, event *string) ([]string, error) {
 	if eventBooleanKeys[keyName] {
 		return []string{"true", "false"}, nil
 	}
 
-	return KeyValuesAggregated(ctx, client, EventKeyValuesTable, projectID, keyName, startDate, endDate, query, limit)
+	return KeyValuesAggregated(ctx, client, EventKeyValuesTable, projectID, keyName, startDate, endDate, query, limit, event)
 }
 
 func (client *Client) EventsLogLines(ctx context.Context, projectID int, params modelInputs.QueryInput) ([]*modelInputs.LogLine, error) {
