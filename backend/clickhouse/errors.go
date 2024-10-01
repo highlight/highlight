@@ -623,13 +623,6 @@ var reservedErrorsJoinedKeys = lo.Map(modelInputs.AllReservedErrorsJoinedKey, fu
 	return string(key)
 })
 
-var defaultErrorKeys = []*modelInputs.QueryKey{
-	{Name: string(modelInputs.ReservedLogKeySecureSessionID), Type: modelInputs.KeyTypeString},
-	{Name: string(modelInputs.ReservedLogKeySpanID), Type: modelInputs.KeyTypeString},
-	{Name: string(modelInputs.ReservedLogKeyTraceID), Type: modelInputs.KeyTypeString},
-	{Name: string(modelInputs.ReservedLogKeyMessage), Type: modelInputs.KeyTypeString},
-}
-
 var ErrorsJoinedTableConfig = model.TableConfig{
 	TableName: "errors_joined_vw",
 	KeysToColumns: map[string]string{
