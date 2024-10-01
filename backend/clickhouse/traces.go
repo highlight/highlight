@@ -484,7 +484,7 @@ func (client *Client) ReadWorkspaceTraceCounts(ctx context.Context, projectIDs [
 }
 
 func (client *Client) TracesKeys(ctx context.Context, projectID int, startDate time.Time, endDate time.Time, query *string, typeArg *modelInputs.KeyType) ([]*modelInputs.QueryKey, error) {
-	traceKeys, err := KeysAggregated(ctx, client, TraceKeysTable, projectID, startDate, endDate, query, typeArg)
+	traceKeys, err := KeysAggregated(ctx, client, TraceKeysTable, projectID, startDate, endDate, query, typeArg, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -504,7 +504,7 @@ func (client *Client) TracesKeys(ctx context.Context, projectID int, startDate t
 }
 
 func (client *Client) TracesKeyValues(ctx context.Context, projectID int, keyName string, startDate time.Time, endDate time.Time, query *string, limit *int) ([]string, error) {
-	return KeyValuesAggregated(ctx, client, TraceKeyValuesTable, projectID, keyName, startDate, endDate, query, limit)
+	return KeyValuesAggregated(ctx, client, TraceKeyValuesTable, projectID, keyName, startDate, endDate, query, limit, nil)
 }
 
 func TraceMatchesQuery(trace *TraceRow, filters listener.Filters) bool {
