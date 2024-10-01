@@ -157,18 +157,6 @@ export const useResizePlayer = (
 		setScale(scale)
 	}, [playerWrapperRef, replayer?.wrapper, setScale, viewport])
 
-	// This adjusts the dimensions (i.e. scale()) of the iframe when the page loads.
-	useEffect(() => {
-		const i = window.setInterval(() => {
-			if (replayer && resizePlayer()) {
-				clearInterval(i)
-			}
-		}, 1000 / 15)
-		return () => {
-			i && clearInterval(i)
-		}
-	}, [resizePlayer, replayer])
-
 	// On any change to replayer, 'sizes', refresh the size of the player.
 	useEffect(() => {
 		replayer && resizePlayer()
