@@ -2198,7 +2198,13 @@ function buildNode(n2, options) {
           continue;
         } else if (tagName === "textarea" && name === "value") {
           node.appendChild(doc.createTextNode(value));
-          n2.childNodes = [];
+          try {
+            n2.childNodes = [];
+          } catch (err) {
+            console.warn(
+              `Highlight failed to set rrweb text area child nodes ${err}`
+            );
+          }
           continue;
         }
         try {
