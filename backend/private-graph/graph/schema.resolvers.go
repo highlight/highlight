@@ -8803,6 +8803,7 @@ func (r *queryResolver) AiQuerySuggestion(ctx context.Context, timeZone string, 
 			},
 			nil,
 			&count,
+			nil,
 		)
 		if err != nil {
 			return nil, err
@@ -9438,23 +9439,23 @@ func (r *queryResolver) SessionsMetrics(ctx context.Context, projectID int, para
 }
 
 // EventsKeys is the resolver for the events_keys field.
-func (r *queryResolver) EventsKeys(ctx context.Context, projectID int, dateRange modelInputs.DateRangeRequiredInput, query *string, typeArg *modelInputs.KeyType) ([]*modelInputs.QueryKey, error) {
+func (r *queryResolver) EventsKeys(ctx context.Context, projectID int, dateRange modelInputs.DateRangeRequiredInput, query *string, typeArg *modelInputs.KeyType, event *string) ([]*modelInputs.QueryKey, error) {
 	project, err := r.isUserInProjectOrDemoProject(ctx, projectID)
 	if err != nil {
 		return nil, err
 	}
 
-	return r.ClickhouseClient.EventsKeys(ctx, project.ID, dateRange.StartDate, dateRange.EndDate, query, typeArg)
+	return r.ClickhouseClient.EventsKeys(ctx, project.ID, dateRange.StartDate, dateRange.EndDate, query, typeArg, event)
 }
 
 // EventsKeyValues is the resolver for the events_key_values field.
-func (r *queryResolver) EventsKeyValues(ctx context.Context, projectID int, keyName string, dateRange modelInputs.DateRangeRequiredInput, query *string, count *int) ([]string, error) {
+func (r *queryResolver) EventsKeyValues(ctx context.Context, projectID int, keyName string, dateRange modelInputs.DateRangeRequiredInput, query *string, count *int, event *string) ([]string, error) {
 	project, err := r.isUserInProjectOrDemoProject(ctx, projectID)
 	if err != nil {
 		return nil, err
 	}
 
-	return r.ClickhouseClient.EventsKeyValues(ctx, project.ID, keyName, dateRange.StartDate, dateRange.EndDate, query, count)
+	return r.ClickhouseClient.EventsKeyValues(ctx, project.ID, keyName, dateRange.StartDate, dateRange.EndDate, query, count, event)
 }
 
 // EventsMetrics is the resolver for the events_metrics field.
@@ -9492,7 +9493,7 @@ func (r *queryResolver) Metrics(ctx context.Context, productType modelInputs.Pro
 }
 
 // Keys is the resolver for the keys field.
-func (r *queryResolver) Keys(ctx context.Context, productType *modelInputs.ProductType, projectID int, dateRange modelInputs.DateRangeRequiredInput, query *string, typeArg *modelInputs.KeyType) ([]*modelInputs.QueryKey, error) {
+func (r *queryResolver) Keys(ctx context.Context, productType *modelInputs.ProductType, projectID int, dateRange modelInputs.DateRangeRequiredInput, query *string, typeArg *modelInputs.KeyType, event *string) ([]*modelInputs.QueryKey, error) {
 	project, err := r.isUserInProjectOrDemoProject(ctx, projectID)
 	if err != nil {
 		return nil, err
@@ -9514,14 +9515,14 @@ func (r *queryResolver) Keys(ctx context.Context, productType *modelInputs.Produ
 	case modelInputs.ProductTypeErrors:
 		return r.ErrorsKeys(ctx, projectID, dateRange, query, typeArg)
 	case modelInputs.ProductTypeEvents:
-		return r.EventsKeys(ctx, projectID, dateRange, query, typeArg)
+		return r.EventsKeys(ctx, projectID, dateRange, query, typeArg, event)
 	default:
 		return nil, e.Errorf("invalid product type %s", productType)
 	}
 }
 
 // KeyValues is the resolver for the key_values field.
-func (r *queryResolver) KeyValues(ctx context.Context, productType *modelInputs.ProductType, projectID int, keyName string, dateRange modelInputs.DateRangeRequiredInput, query *string, count *int) ([]string, error) {
+func (r *queryResolver) KeyValues(ctx context.Context, productType *modelInputs.ProductType, projectID int, keyName string, dateRange modelInputs.DateRangeRequiredInput, query *string, count *int, event *string) ([]string, error) {
 	project, err := r.isUserInProjectOrDemoProject(ctx, projectID)
 	if err != nil {
 		return nil, err
@@ -9543,7 +9544,7 @@ func (r *queryResolver) KeyValues(ctx context.Context, productType *modelInputs.
 	case modelInputs.ProductTypeErrors:
 		return r.ErrorsKeyValues(ctx, projectID, keyName, dateRange, query, count)
 	case modelInputs.ProductTypeEvents:
-		return r.EventsKeyValues(ctx, projectID, keyName, dateRange, query, count)
+		return r.EventsKeyValues(ctx, projectID, keyName, dateRange, query, count, event)
 	default:
 		return nil, e.Errorf("invalid product type %s", productType)
 	}

@@ -22,6 +22,13 @@ const useInkeepSettings = (): InkeepSharedSettings => {
 		organizationDisplayName: 'Highlight.io',
 		theme: {
 			stylesheetUrls: [inkeepCssUrl],
+			tokens: {
+				zIndex: {
+					// header has z-index value of 20000
+					overlay: 20001,
+					modal: 20002,
+				},
+			},
 		},
 	}
 

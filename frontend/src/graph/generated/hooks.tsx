@@ -14803,6 +14803,7 @@ export const GetKeysDocument = gql`
 		$date_range: DateRangeRequiredInput!
 		$query: String
 		$type: KeyType
+		$event: String
 	) {
 		keys(
 			product_type: $product_type
@@ -14810,6 +14811,7 @@ export const GetKeysDocument = gql`
 			date_range: $date_range
 			query: $query
 			type: $type
+			event: $event
 		) {
 			name
 			type
@@ -14834,6 +14836,7 @@ export const GetKeysDocument = gql`
  *      date_range: // value for 'date_range'
  *      query: // value for 'query'
  *      type: // value for 'type'
+ *      event: // value for 'event'
  *   },
  * });
  */
@@ -14873,6 +14876,7 @@ export const GetKeyValuesDocument = gql`
 		$date_range: DateRangeRequiredInput!
 		$query: String!
 		$count: Int!
+		$event: String
 	) {
 		key_values(
 			product_type: $product_type
@@ -14881,6 +14885,7 @@ export const GetKeyValuesDocument = gql`
 			date_range: $date_range
 			query: $query
 			count: $count
+			event: $event
 		)
 	}
 `
@@ -14903,6 +14908,7 @@ export const GetKeyValuesDocument = gql`
  *      date_range: // value for 'date_range'
  *      query: // value for 'query'
  *      count: // value for 'count'
+ *      event: // value for 'event'
  *   },
  * });
  */

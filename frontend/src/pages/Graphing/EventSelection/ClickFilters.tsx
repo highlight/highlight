@@ -16,6 +16,8 @@ import * as comboBoxStyle from '../Combobox/styles.css'
 import { OptionDropdown } from '@/pages/Graphing/OptionDropdown'
 import { parseSearch } from '@/components/Search/utils'
 
+const EVENT_NAME = 'Click'
+
 enum ClickType {
 	Text = 'Text',
 	Target = 'Target',
@@ -145,6 +147,7 @@ export const ClickFilters: React.FC<Props> = ({
 				},
 				query: debouncedClickQuery,
 				count: 25,
+				event: EVENT_NAME,
 			},
 		})
 	}, [
@@ -200,6 +203,7 @@ export const ClickFilters: React.FC<Props> = ({
 							startDate={startDate}
 							endDate={endDate}
 							productType={ProductType.Events}
+							event={EVENT_NAME}
 							hideIcon
 						/>
 					</SearchContext>
