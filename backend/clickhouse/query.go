@@ -277,7 +277,7 @@ func expandJSON(logAttributes map[string]string) map[string]interface{} {
 	return out
 }
 
-func KeysAggregated(ctx context.Context, client *Client, tableName string, projectID int, startDate time.Time, endDate time.Time, query *string, typeArg *modelInputs.KeyType, additionalWhereClauses *[]string) ([]*modelInputs.QueryKey, error) {
+func KeysAggregated(ctx context.Context, client *Client, tableName string, projectID int, startDate time.Time, endDate time.Time, query *string, typeArg *modelInputs.KeyType, event *string) ([]*modelInputs.QueryKey, error) {
 	chCtx := clickhouse.Context(ctx, clickhouse.WithSettings(clickhouse.Settings{
 		"max_rows_to_read": KeysMaxRows,
 	}))
@@ -297,10 +297,12 @@ func KeysAggregated(ctx context.Context, client *Client, tableName string, proje
 		sb.Where(sb.Equal("Type", typeArg))
 	}
 
-	if additionalWhereClauses != nil {
-		for _, whereClause := range *additionalWhereClauses {
-			sb.Where(whereClause)
-		}
+	if event != nil && *event != "" {
+		sb.Where(
+			sb.Or(
+				fmt.Sprintf("Event = %s", sb.Var(*event)),
+				"Event = ''",
+			))
 	}
 
 	sb.GroupBy("1, 2").
@@ -344,7 +346,7 @@ func KeysAggregated(ctx context.Context, client *Client, tableName string, proje
 	return keys, rows.Err()
 }
 
-func KeyValuesAggregated(ctx context.Context, client *Client, tableName string, projectID int, keyName string, startDate time.Time, endDate time.Time, query *string, limit *int, additionalWhereClauses *[]string) ([]string, error) {
+func KeyValuesAggregated(ctx context.Context, client *Client, tableName string, projectID int, keyName string, startDate time.Time, endDate time.Time, query *string, limit *int, event *string) ([]string, error) {
 	chCtx := clickhouse.Context(ctx, clickhouse.WithSettings(clickhouse.Settings{
 		"max_rows_to_read": KeyValuesMaxRows,
 	}))
@@ -368,10 +370,12 @@ func KeyValuesAggregated(ctx context.Context, client *Client, tableName string, 
 		Where(fmt.Sprintf("Day >= toStartOfDay(%s)", sb.Var(startDate))).
 		Where(fmt.Sprintf("Day <= toStartOfDay(%s)", sb.Var(endDate)))
 
-	if additionalWhereClauses != nil {
-		for _, whereClause := range *additionalWhereClauses {
-			sb.Where(whereClause)
-		}
+	if event != nil && *event != "" {
+		sb.Where(
+			sb.Or(
+				fmt.Sprintf("Event = %s", sb.Var(*event)),
+				"Event = ''",
+			))
 	}
 
 	sb.GroupBy("1").

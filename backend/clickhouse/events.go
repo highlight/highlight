@@ -142,12 +142,7 @@ func (client *Client) ReadWorkspaceEventCounts(ctx context.Context, projectIDs [
 }
 
 func (client *Client) EventsKeys(ctx context.Context, projectID int, startDate time.Time, endDate time.Time, query *string, typeArg *modelInputs.KeyType, event *string) ([]*modelInputs.QueryKey, error) {
-	whereClauses := []string{}
-	if event != nil && *event != "" {
-		whereClauses = append(whereClauses, fmt.Sprintf("Event = '%s' OR Event = ''", *event))
-	}
-
-	eventKeys, err := KeysAggregated(ctx, client, EventKeysTable, projectID, startDate, endDate, query, typeArg, &whereClauses)
+	eventKeys, err := KeysAggregated(ctx, client, EventKeysTable, projectID, startDate, endDate, query, typeArg, event)
 	if err != nil {
 		return nil, err
 	}
@@ -171,12 +166,7 @@ func (client *Client) EventsKeyValues(ctx context.Context, projectID int, keyNam
 		return []string{"true", "false"}, nil
 	}
 
-	whereClauses := []string{}
-	if event != nil && *event != "" {
-		whereClauses = append(whereClauses, fmt.Sprintf("Event = %s OR Event = ''", *event))
-	}
-
-	return KeyValuesAggregated(ctx, client, EventKeyValuesTable, projectID, keyName, startDate, endDate, query, limit, &whereClauses)
+	return KeyValuesAggregated(ctx, client, EventKeyValuesTable, projectID, keyName, startDate, endDate, query, limit, event)
 }
 
 func (client *Client) EventsLogLines(ctx context.Context, projectID int, params modelInputs.QueryInput) ([]*modelInputs.LogLine, error) {
