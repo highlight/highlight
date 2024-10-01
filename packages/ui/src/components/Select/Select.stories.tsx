@@ -145,6 +145,40 @@ const users: User[] = OPTIONS.map((name, i) => ({
 	name,
 	value: i + 1,
 }))
+export const SingleSelectDynamicOptionsAndCustomTypes = () => {
+	const [options, setOptions] = useState<User[]>(users)
+	const [value, setValue] = useState<User>()
+
+	return (
+		<Stack gap="10">
+			<pre style={{ whiteSpace: 'pre-wrap' }}>
+				{JSON.stringify(options)}
+			</pre>
+
+			<Select<User>
+				value={value}
+				options={options}
+				placeholder="Select a user..."
+				onValueChange={(newValue) => {
+					setValue(newValue)
+				}}
+			/>
+
+			<Button
+				onClick={() => {
+					const number = options.length + 1
+					setOptions((prev) => [
+						...prev,
+						{ name: `New User ${number}`, value: number },
+					])
+				}}
+			>
+				Add Option
+			</Button>
+		</Stack>
+	)
+}
+
 export const DynamicOptionsAndCustomTypes = () => {
 	const [options, setOptions] = useState<User[]>(users)
 	const [value, setValue] = useState<User[]>([])

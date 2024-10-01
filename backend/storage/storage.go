@@ -11,6 +11,7 @@ import (
 	"io"
 	"net/http"
 	"os"
+	"path"
 	"strconv"
 	"strings"
 	"sync"
@@ -53,8 +54,9 @@ var (
 )
 
 const (
-	MIME_TYPE_JSON          = "application/json"
-	CONTENT_ENCODING_BROTLI = "br"
+	MIME_TYPE_JSON           = "application/json"
+	CONTENT_ENCODING_BROTLI  = "br"
+	RAW_EVENT_RETENTION_DAYS = 1
 )
 
 type PayloadType string
@@ -99,6 +101,7 @@ type Client interface {
 	ReadGitHubFile(ctx context.Context, repoPath string, fileName string, version string) ([]byte, error)
 	PushGitHubFile(ctx context.Context, repoPath string, fileName string, version string, fileBytes []byte) (*int64, error)
 	DeleteSessionData(ctx context.Context, projectId int, sessionId int) error
+	CleanupRawEvents(ctx context.Context, projectId int) error
 }
 
 type FilesystemClient struct {
@@ -515,6 +518,40 @@ func (s *S3Client) DeleteSessionData(ctx context.Context, projectId int, session
 		}
 	}
 
+	return nil
+}
+
+func (f *FilesystemClient) CleanupRawEvents(ctx context.Context, projectId int) error {
+	if f.fsRoot == "" {
+		return errors.New("f.fsRoot cannot be empty")
+	}
+
+	basePath := fmt.Sprintf("%s/raw-events/%d", f.fsRoot, projectId)
+	startDate := time.Now().AddDate(0, 0, -1*RAW_EVENT_RETENTION_DAYS)
+	entries, err := os.ReadDir(basePath)
+	if os.IsNotExist(err) {
+		return nil
+	}
+	if err != nil {
+		return err
+	}
+	for _, entry := range entries {
+		if !entry.IsDir() {
+			continue
+		}
+		fileInfo, err := entry.Info()
+		if err != nil {
+			return err
+		}
+		if fileInfo.ModTime().Before(startDate) {
+			os.RemoveAll(path.Join(basePath, entry.Name()))
+		}
+	}
+
+	return nil
+}
+
+func (f *S3Client) CleanupRawEvents(ctx context.Context, projectId int) error {
 	return nil
 }
 

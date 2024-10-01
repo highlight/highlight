@@ -40,6 +40,7 @@ import {
 } from '@pages/Player/SessionLevelBar/utils/utils'
 import {
 	customEvent,
+	IncrementalSource,
 	metaEvent,
 	playerMetaData,
 	SessionInterval,
@@ -576,6 +577,24 @@ const initReplayer = (
 			warn: throttle(console.warn, 100),
 		},
 	})
+
+	// Hide the mouse cursor until we get a movement event and know where to place it.
+	playerMountingRoot.classList.add('hide-mouse-cursor')
+	const mouseMoveEvents = [
+		IncrementalSource.MouseMove,
+		IncrementalSource.TouchMove,
+		IncrementalSource.Drag,
+	]
+	const castEventHandler = (event: any) => {
+		const source = event.data.source
+		const isMouseMove = mouseMoveEvents.includes(source)
+
+		if (isMouseMove) {
+			playerMountingRoot.classList.remove('hide-mouse-cursor')
+			s.replayer?.off('event-cast', castEventHandler)
+		}
+	}
+	s.replayer.on('event-cast', castEventHandler)
 
 	s.browserExtensionScriptURLs = getBrowserExtensionScriptURLs(events)
 
