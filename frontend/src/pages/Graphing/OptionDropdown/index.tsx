@@ -39,6 +39,7 @@ export const OptionDropdown = <T extends string>({
 						</Text>
 					)
 				}}
+				options={options}
 				onValueChange={(v: SelectOption) => setSelection(v.value as T)}
 				disabled={disabled}
 			>
