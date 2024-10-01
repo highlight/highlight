@@ -53,6 +53,10 @@ export const rrwebPlayerWrapper = style({
 	width: '100%',
 })
 
+globalStyle('.hide-mouse-cursor .replayer-mouse', {
+	display: 'none',
+})
+
 export const rrwebInnerWrapper = style({})
 globalStyle(`${rrwebInnerWrapper} iframe`, {
 	borderRadius: 4,

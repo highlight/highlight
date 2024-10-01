@@ -102,12 +102,7 @@ const options: HighlightOptions = {
 			'web-socket-events-compressed',
 		],
 	},
-	tracingOrigins: [
-		'highlight.io',
-		'highlight.run',
-		'localhost',
-		'localhost:8082',
-	],
+	tracingOrigins: ['pri.highlight.io', 'localhost:8082/private'],
 	integrations: {
 		amplitude: {
 			apiKey: 'fb83ae15d6122ef1b3f0ecdaa3393fea',

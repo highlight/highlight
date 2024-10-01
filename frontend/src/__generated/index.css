@@ -6059,6 +6059,9 @@ body {
   position: relative;
   width: 100%;
 }
+.hide-mouse-cursor .replayer-mouse {
+  display: none;
+}
 ._1gpgayi5 iframe {
   border-radius: 4px;
   border: var(--_1pyqka9k) solid 1px;
@@ -6829,6 +6832,10 @@ body {
 }
 .w96cqy0 {
   height: 28px;
+}
+.dx6ck10 {
+  background-color: var(--_1pyqka90);
+  padding: 8px;
 }
 ._11j364l0 {
   width: calc(100% - 320px);

@@ -2342,13 +2342,23 @@ func (r *Resolver) AddSessionEvents(ctx context.Context, sessionID int, events *
 						Attributes: propertiesObject,
 					},
 				)
-			} else if navigateEvent || reloadEvent {
+			} else if navigateEvent {
 				sessionEvents = append(sessionEvents,
 					&clickhouse.SessionEventRow{
-						Event:     dataObject.Tag,
+						Event:     "Navigate",
 						Timestamp: event.Timestamp,
 						Attributes: map[string]string{
 							"url": payloadStr,
+						},
+					},
+				)
+			} else if reloadEvent {
+				sessionEvents = append(sessionEvents,
+					&clickhouse.SessionEventRow{
+						Event:     "Navigate",
+						Timestamp: event.Timestamp,
+						Attributes: map[string]string{
+							"reload": payloadStr,
 						},
 					},
 				)

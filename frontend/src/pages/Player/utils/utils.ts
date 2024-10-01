@@ -5,6 +5,7 @@ import useResizeAware from 'react-resize-aware'
 import { Replayer } from 'rrweb'
 
 import * as playerStyles from '@/pages/Player/styles.css'
+import { useReplayerContext } from '@/pages/Player/ReplayerContext'
 
 export enum SessionPageSearchParams {
 	/** Automatically sets the date range for the current segment based on the value. */
@@ -121,6 +122,7 @@ export const useResizePlayer = (
 	playerWrapperRef: React.RefObject<HTMLDivElement>,
 	setScale: React.Dispatch<React.SetStateAction<number>>,
 ) => {
+	const { viewport } = useReplayerContext()
 	const [centerColumnResizeListener, centerColumnSize] = useResizeAware()
 	const [resizeListener, sizes] = useResizeAware()
 
@@ -131,66 +133,42 @@ export const useResizePlayer = (
 			)
 		: 0
 
-	const resizePlayer = useCallback(
-		(replayer: Replayer): boolean => {
-			const width = replayer?.wrapper?.getBoundingClientRect().width
-			const height = replayer?.wrapper?.getBoundingClientRect().height
-			const targetWidth = playerWrapperRef.current?.clientWidth
-			const targetHeight = playerWrapperRef.current?.clientHeight
-			if (!targetWidth || !targetHeight) {
-				return false
-			}
-			const widthScale =
-				(targetWidth - playerStyles.PLAYER_PADDING_X) / width
-			const heightScale =
-				(targetHeight - playerStyles.PLAYER_PADDING_Y) / height
-			let scale = Math.min(heightScale, widthScale)
-			// If calculated scale is close enough to 1, return to avoid
-			// infinite looping caused by small floating point math differences
-			if (scale >= 0.9999 && scale <= 1.0001) {
-				return false
-			}
+	const resizePlayer = useCallback((): void => {
+		const { width, height } = viewport ?? {}
+		const targetWidth = playerWrapperRef.current?.clientWidth
+		const targetHeight = playerWrapperRef.current?.clientHeight
+		if (!targetWidth || !targetHeight || !width || !height) {
+			return
+		}
 
-			let retry = false
-			if (scale <= 0 || !Number.isFinite(scale)) {
-				retry = true
-				scale = 1
-			}
+		const widthScale = (targetWidth - playerStyles.PLAYER_PADDING_X) / width
+		const heightScale =
+			(targetHeight - playerStyles.PLAYER_PADDING_Y) / height
+		const scale = Math.min(heightScale, widthScale)
 
-			setScale((s) => {
-				const replayerScale = s * scale
+		if (scale <= 0 || !Number.isFinite(scale)) {
+			return
+		}
 
-				replayer?.wrapper?.setAttribute(
-					'style',
-					`transform: scale(${replayerScale}) translate(-50%, -50%)`,
-				)
-				replayer?.wrapper?.setAttribute(
-					'class',
-					`replayer-wrapper ${playerStyles.rrwebInnerWrapper}`,
-				)
-
-				return replayerScale
-			})
-			return !retry
-		},
-		[playerWrapperRef, setScale],
-	)
-
-	const playerBoundingClientRectWidth =
-		replayer?.wrapper?.getBoundingClientRect().width
-	const playerBoundingClientRectHeight =
-		replayer?.wrapper?.getBoundingClientRect().height
+		replayer?.wrapper?.setAttribute(
+			'style',
+			`transform: scale(${scale}) translate(-50%, -50%)`,
+		)
+		setScale(scale)
+	}, [playerWrapperRef, replayer?.wrapper, setScale, viewport])
 
 	// On any change to replayer, 'sizes', refresh the size of the player.
 	useEffect(() => {
-		replayer && resizePlayer(replayer)
+		replayer && resizePlayer()
 		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [
-		sizes,
-		replayer,
-		playerBoundingClientRectWidth,
-		playerBoundingClientRectHeight,
-	])
+	}, [sizes, replayer, viewport?.width, viewport?.height])
+
+	useEffect(() => {
+		replayer?.wrapper?.setAttribute(
+			'class',
+			`replayer-wrapper ${playerStyles.rrwebInnerWrapper}`,
+		)
+	}, [replayer?.wrapper])
 
 	return {
 		resizeListener,

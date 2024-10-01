@@ -125,7 +125,9 @@ const H: HighlightPublicInterface = {
 				}) => {
 					if (options?.enableOtelTracing) {
 						setupBrowserTracing({
-							endpoint: options?.otlpEndpoint,
+							otlpEndpoint:
+								options?.otlpEndpoint ??
+								'https://otel.highlight.io',
 							projectId: projectID,
 							sessionSecureId: sessionSecureID,
 							environment: options?.environment ?? 'production',

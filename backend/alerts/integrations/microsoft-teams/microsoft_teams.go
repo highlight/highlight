@@ -89,6 +89,9 @@ func GetTeamsFromWorkspace(workspace *model.Workspace) ([]TeamResponse, error) {
 			if err != nil {
 				return err
 			}
+			if response == nil {
+				return errors.New("nil response from teams api")
+			}
 			for _, value := range response.Value {
 				if value.TeamsApp.Id == env.Config.MicrosoftTeamsBotId || value.TeamsApp.ExternalId == env.Config.MicrosoftTeamsBotId {
 					found[idx] = true
