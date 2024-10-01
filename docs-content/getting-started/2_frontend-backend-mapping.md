@@ -59,15 +59,15 @@ Below are solutions for what we support today. If you'd like us to support a new
 
 - [JS Backend Integration](4_backend-sdk/03_js)
 
-- [JS Backend Integration](4_backend-sdk/04_php)
+- [PHP Backend Integration](4_backend-sdk/04_php)
 
 - [Python Backend Integration](4_backend-sdk/05_python)
 
-- [Python Backend Integration](4_backend-sdk/06_ruby)
+- [Ruby Backend Integration](4_backend-sdk/06_ruby)
 
-- [Python Backend Integration](4_backend-sdk/07_rust)
+- [Rust Backend Integration](4_backend-sdk/07_rust)
 
-- [Python Backend Integration](4_backend-sdk/08_dotnet.md)
+- [.NET Backend Integration](4_backend-sdk/08_dotnet.md)
 
 ## Distributed Tracing
 
