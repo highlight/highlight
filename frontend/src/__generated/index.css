@@ -6059,6 +6059,9 @@ body {
   position: relative;
   width: 100%;
 }
+.hide-mouse-cursor .replayer-mouse {
+  display: none;
+}
 ._1gpgayi5 iframe {
   border-radius: 4px;
   border: var(--_1pyqka9k) solid 1px;
