@@ -15,7 +15,7 @@ export const AWSLambdaContent: QuickStartContent = {
 	entries: [
 		{
 			title: 'Add the ARN layer.',
-			content: `Add the ARN layer to your Lambda function. Click on the "Layers" tab in the Lambda console and click "Add layer". You can find the most recent instrumentation release URLs in [the repo](https://github.com/open-telemetry/opentelemetry-lambda/releases).
+			content: `Add the ARN layer to your Lambda function. Click on the "Layers" tab in the Lambda console and click "Add layer". You can find the most recent instrumentation release URLs in [their releases](https://github.com/open-telemetry/opentelemetry-lambda/releases).
 
 ![AWS Lambda ARN](/images/docs/serverless/aws-lambda-arn-config.png)`,
 			code: [
