@@ -2,12 +2,6 @@ import { siteUrl } from '../../../../utils/urls'
 import { QuickStartContent } from '../../QuickstartContent'
 import { verifyTraces } from '../shared-snippets'
 
-// Basic instructions are:
-// Add a basic description with links to OTEL Lambda docs.
-//
-// 1. Add ARN layer
-// 2. Set ENV vars
-// 3. Check Highlight for traces (show image preview)
 export const AWSLambdaContent: QuickStartContent = {
 	title: 'AWS Lambda',
 	subtitle: 'Learn how to set up highlight.io tracing for on AWS Lambda.',
