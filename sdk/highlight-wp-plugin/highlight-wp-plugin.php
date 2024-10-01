@@ -44,6 +44,7 @@ class Highlight_WP_Plugin {
             <?php
                 settings_fields('highlight_wp_option_group');
                 do_settings_sections('highlight-wp-settings');
+                wp_nonce_field('highlight_wp_settings_nonce', 'highlight_wp_settings_nonce');
                 submit_button();
             ?>
             </form>
@@ -99,6 +100,11 @@ class Highlight_WP_Plugin {
     }
 
     public function sanitize($input) {
+        if (!isset($_POST['highlight_wp_settings_nonce']) || !wp_verify_nonce($_POST['highlight_wp_settings_nonce'], 'highlight_wp_settings_nonce')) {
+            add_settings_error('highlight_wp_messages', 'highlight_wp_message', __('Invalid nonce specified', 'highlight-wp-plugin'), 'error');
+            return get_option('highlight_wp_options');
+        }
+
         $sanitary_values = array();
         if (isset($input['project_id'])) {
             $sanitary_values['project_id'] = sanitize_text_field($input['project_id']);
@@ -158,10 +164,10 @@ class Highlight_WP_Plugin {
             <script src="https://unpkg.com/highlight.run"></script>
             <script>
                 H.init('<?php echo esc_js($options['project_id']); ?>', {
-                    serviceName: '<?php echo $service_name; ?>',
-                    tracingOrigins: <?php echo $tracing_origins; ?>,
+                    serviceName: '<?php echo esc_js($service_name); ?>',
+                    tracingOrigins: <?php echo esc_js($tracing_origins); ?>,
                     networkRecording: {
-                        enabled: <?php echo $enable_network_recording ? 'true' : 'false'; ?>,
+                        enabled: <?php echo esc_js($enable_network_recording ? 'true' : 'false'); ?>,
                         recordHeadersAndBody: true,
                     },
                 });
