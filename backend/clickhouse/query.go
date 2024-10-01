@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"reflect"
 	"regexp"
+	"sort"
 	"strconv"
 	"strings"
 	"time"
@@ -22,6 +23,7 @@ import (
 	"github.com/huandu/go-sqlbuilder"
 	"github.com/nqd/flat"
 	e "github.com/pkg/errors"
+	"github.com/samber/lo"
 )
 
 const SamplingRows = 20_000_000
@@ -433,8 +435,6 @@ func (client *Client) AllKeys(ctx context.Context, projectID int, startDate time
 	sql, args := sb.Select("Key, sum(PctCount)").
 		From(sb.BuilderAs(sqlbuilder.UnionAll(builders...), "inner")).
 		GroupBy("1").
-		OrderBy("2 DESC").
-		Limit(limitCount).
 		BuildWithFlavor(sqlbuilder.ClickHouse)
 
 	span, _ := util.StartSpanFromContext(chCtx, "readAllKeys")
@@ -447,7 +447,12 @@ func (client *Client) AllKeys(ctx context.Context, projectID int, startDate time
 		return nil, err
 	}
 
-	keys := []*modelInputs.QueryKey{}
+	type queryKeyWithCount struct {
+		*modelInputs.QueryKey
+		count float64
+	}
+
+	keys := []queryKeyWithCount{}
 	for rows.Next() {
 		var (
 			key   string
@@ -458,15 +463,63 @@ func (client *Client) AllKeys(ctx context.Context, projectID int, startDate time
 			return nil, err
 		}
 
-		keys = append(keys, &modelInputs.QueryKey{
-			Name: key,
+		keys = append(keys, queryKeyWithCount{
+			QueryKey: &modelInputs.QueryKey{Name: key},
+			count:    count})
+	}
+	rows.Close()
+	span.Finish(rows.Err())
+	if rows.Err() != nil {
+		return nil, rows.Err()
+	}
+
+	// Add all matching default keys into the results
+	defaultKeys := lo.Map(modelInputs.AllReservedErrorsJoinedKey, func(k modelInputs.ReservedErrorsJoinedKey, _ int) *modelInputs.QueryKey {
+		return &modelInputs.QueryKey{Name: string(k), Type: modelInputs.KeyTypeString}
+	})
+
+	defaultKeys = append(defaultKeys, defaultLogKeys...)
+	defaultKeys = append(defaultKeys, defaultEventKeys...)
+	defaultKeys = append(defaultKeys, defaultTraceKeys...)
+	defaultKeys = append(defaultKeys, defaultSessionsKeys...)
+
+	defaultKeys = lo.Filter(defaultKeys, func(k *modelInputs.QueryKey, _ int) bool {
+		return query == nil || strings.Contains(strings.ToLower(string(k.Name)), strings.ToLower(*query))
+	})
+
+	keys = append(keys, lo.Map(defaultKeys, func(k *modelInputs.QueryKey, _ int) queryKeyWithCount {
+		return queryKeyWithCount{
+			k,
+			1.0}
+	})...)
+
+	grouped := lo.GroupBy(keys, func(k queryKeyWithCount) string {
+		return k.Name
+	})
+
+	keysAggregated := []queryKeyWithCount{}
+	for k, v := range grouped {
+		totalCount := lo.SumBy(v, func(k queryKeyWithCount) float64 {
+			return k.count
+		})
+
+		keysAggregated = append(keysAggregated, queryKeyWithCount{
+			QueryKey: &modelInputs.QueryKey{Name: k},
+			count:    totalCount,
 		})
 	}
 
-	rows.Close()
+	sort.Slice(keysAggregated, func(i, j int) bool {
+		return keysAggregated[i].count > keysAggregated[j].count
+	})
 
-	span.Finish(rows.Err())
-	return keys, rows.Err()
+	if len(keysAggregated) > limitCount {
+		keysAggregated = keysAggregated[:limitCount]
+	}
+
+	return lo.Map(keysAggregated, func(k queryKeyWithCount, _ int) *modelInputs.QueryKey {
+		return k.QueryKey
+	}), nil
 }
 
 func (client *Client) AllKeyValues(ctx context.Context, projectID int, keyName string, startDate time.Time, endDate time.Time, query *string, limit *int) ([]string, error) {
