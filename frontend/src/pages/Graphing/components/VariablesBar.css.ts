@@ -6,4 +6,5 @@ export const variablesBar = style({
 
 export const variableInput = style({
 	maxWidth: 150,
+	minWidth: 100,
 })
