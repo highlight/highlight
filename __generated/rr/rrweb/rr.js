@@ -7200,7 +7200,7 @@ var CanvasManager = class {
               actualHeight: video.videoHeight
             };
             const maxDim = Math.max(actualWidth, actualHeight);
-            if (actualWidth === 0 || actualHeight === 0 || boxWidth === 0 || boxHeight === 0) {
+            if (maxDim === 0) {
               this.debug(video, "not yet ready", {
                 width: video.width,
                 height: video.height,
@@ -8932,7 +8932,7 @@ var MediaManager = class {
   syncAllMediaElements(options = { pause: false }) {
     this.mediaMap.forEach((_mediaState, target) => {
       this.syncTargetWithState(target);
-      if (options.pause) {
+      if (options.pause && target.pause) {
         target.pause();
       }
     });
