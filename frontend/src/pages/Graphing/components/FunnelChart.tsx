@@ -14,7 +14,6 @@ import {
 	AxisConfig,
 	InnerChartProps,
 	SeriesInfo,
-	TooltipConfig,
 } from '@/pages/Graphing/components/Graph'
 
 export type FunnelDisplay = 'Funnel Steps'
@@ -36,8 +35,9 @@ const getCustomLabel = () => (props: LabelProps) => {
 }
 
 const getCustomTooltip =
-	(data: any[]) =>
+	(data: any[] | undefined) =>
 	({ payload }: any) => {
+		if (!data?.at(0)) return null
 		const initialValue = data[0][data[0].Group]
 		return (
 			<Box cssClass={style.tooltipWrapper}>
@@ -84,7 +84,7 @@ export const FunnelChart = ({
 	data,
 	children,
 }: React.PropsWithChildren<
-	InnerChartProps<FunnelChartConfig> & SeriesInfo & AxisConfig & TooltipConfig
+	InnerChartProps<FunnelChartConfig> & SeriesInfo & AxisConfig
 >) => {
 	return (
 		<ResponsiveContainer height="100%" width="100%">
