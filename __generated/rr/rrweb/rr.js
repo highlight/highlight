@@ -1002,12 +1002,8 @@ function serializeElementNode(n2, options) {
   }
   if (tagName === "canvas" && recordCanvas) {
     if (n2.__context === "2d") {
-      if (!is2DCanvasBlank(n2)) {
-        attributes.rr_dataURL = n2.toDataURL(
-          dataURLOptions.type,
-          dataURLOptions.quality
-        );
-      }
+      if (!is2DCanvasBlank(n2))
+        ;
     } else if (!("__context" in n2)) {
       const canvasDataURL = n2.toDataURL(
         dataURLOptions.type,
@@ -1115,7 +1111,9 @@ function serializeElementNode(n2, options) {
         height,
         rr_width: `${width}px`,
         rr_height: `${height}px`,
-        rr_inlined_video: true
+        rr_inlined_video: true,
+        class: attributes.class,
+        style: attributes.style
       };
       tagName = "canvas";
       const blankCanvas = doc.createElement("canvas");
@@ -2125,7 +2123,11 @@ function applyCssSplits(n2, cssText, hackCss, cache) {
     const childTextNode = childTextNodes[i2];
     const cssTextSection = cssTextSplits[i2];
     if (childTextNode && cssTextSection) {
-      childTextNode.textContent = hackCss ? adaptCssForReplay(cssTextSection, cache) : cssTextSection;
+      try {
+        childTextNode.textContent = hackCss ? adaptCssForReplay(cssTextSection, cache) : cssTextSection;
+      } catch (err) {
+        console.warn(`Highlight failed to set rrweb css ${err}`);
+      }
     }
   }
 }
@@ -2196,7 +2198,13 @@ function buildNode(n2, options) {
           continue;
         } else if (tagName === "textarea" && name === "value") {
           node.appendChild(doc.createTextNode(value));
-          n2.childNodes = [];
+          try {
+            n2.childNodes = [];
+          } catch (err) {
+            console.warn(
+              `Highlight failed to set rrweb text area child nodes ${err}`
+            );
+          }
           continue;
         }
         try {
@@ -7114,9 +7122,21 @@ var CanvasManager = class {
     let lastSnapshotTime = 0;
     let rafId;
     const elementFoundTime = /* @__PURE__ */ new Map();
+    const querySelectorAll2 = (node, selector) => {
+      const nodes = [];
+      node.querySelectorAll(selector).forEach((n2) => nodes.push(n2));
+      const nodeIterator = document.createNodeIterator(node, Node.ELEMENT_NODE);
+      let currentNode;
+      while (currentNode = nodeIterator.nextNode()) {
+        if (currentNode == null ? void 0 : currentNode.shadowRoot) {
+          nodes.push(...querySelectorAll2(currentNode.shadowRoot, selector));
+        }
+      }
+      return nodes;
+    };
     const getCanvas = (timestamp) => {
       const matchedCanvas = [];
-      win.document.querySelectorAll("canvas").forEach((canvas) => {
+      querySelectorAll2(win.document, "canvas").forEach((canvas) => {
         if (!isBlocked(canvas, blockClass, blockSelector, true)) {
           this.debug(canvas, "discovered canvas");
           matchedCanvas.push(canvas);
@@ -7131,7 +7151,7 @@ var CanvasManager = class {
     const getVideos = (timestamp) => {
       const matchedVideos = [];
       if (recordVideos) {
-        win.document.querySelectorAll("video").forEach((video) => {
+        querySelectorAll2(win.document, "video").forEach((video) => {
           if (video.src !== "" && video.src.indexOf("blob:") === -1)
             return;
           if (!isBlocked(video, blockClass, blockSelector, true)) {
@@ -7186,10 +7206,14 @@ var CanvasManager = class {
               actualHeight: video.videoHeight
             };
             const maxDim = Math.max(actualWidth, actualHeight);
-            if (video.width === 0 || video.height === 0 || actualWidth === 0 || actualHeight === 0 || boxWidth === 0 || boxHeight === 0) {
+            if (maxDim === 0) {
               this.debug(video, "not yet ready", {
                 width: video.width,
-                height: video.height
+                height: video.height,
+                actualWidth,
+                actualHeight,
+                boxWidth,
+                boxHeight
               });
               return;
             }
@@ -8914,7 +8938,7 @@ var MediaManager = class {
   syncAllMediaElements(options = { pause: false }) {
     this.mediaMap.forEach((_mediaState, target) => {
       this.syncTargetWithState(target);
-      if (options.pause) {
+      if (options.pause && target.pause) {
         target.pause();
       }
     });
