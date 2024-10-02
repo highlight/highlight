@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/aws/smithy-go/ptr"
 	"reflect"
 	"regexp"
 	"sort"
@@ -14,7 +15,6 @@ import (
 
 	"github.com/ClickHouse/clickhouse-go/v2"
 	"github.com/ClickHouse/clickhouse-go/v2/lib/driver"
-	"github.com/aws/smithy-go/ptr"
 	"github.com/highlight-run/highlight/backend/model"
 	"github.com/highlight-run/highlight/backend/parser"
 	"github.com/highlight-run/highlight/backend/parser/listener"
@@ -53,6 +53,7 @@ type ReadMetricsInput struct {
 	LimitAggregator  *modelInputs.MetricAggregator
 	LimitColumn      *string
 	SavedMetricState *SavedMetricState
+	FunnelSteps      []string
 }
 
 func readObjects[TObj interface{}](ctx context.Context, client *Client, config model.TableConfig, samplingConfig model.TableConfig, projectID int, params modelInputs.QueryInput, pagination Pagination, scanObject func(driver.Rows) (*Edge[TObj], error)) (*Connection[TObj], error) {
@@ -973,6 +974,10 @@ func (client *Client) ReadMetrics(ctx context.Context, input ReadMetricsInput) (
 		return nil, errors.New("no metric types provided")
 	}
 
+	if len(input.FunnelSteps) > 0 {
+		return client.ReadFunnels(ctx, input)
+	}
+
 	if input.Params.DateRange == nil {
 		input.Params.DateRange = &modelInputs.DateRangeRequiredInput{
 			StartDate: time.Now().Add(-time.Hour * 24 * 30),
@@ -1333,14 +1338,7 @@ func (client *Client) ReadMetrics(ctx context.Context, input ReadMetricsInput) (
 	return metrics, err
 }
 
-type ReadFunnelsInput struct {
-	SampleableConfig SampleableTableConfig
-	ProjectIDs       []int
-	Params           modelInputs.FunnelQueryInput
-	GroupBy          []string
-}
-
-func (client *Client) ReadFunnels(ctx context.Context, input ReadFunnelsInput) (*modelInputs.MetricsBuckets, error) {
+func (client *Client) ReadFunnels(ctx context.Context, input ReadMetricsInput) (*modelInputs.MetricsBuckets, error) {
 	useSampling := input.SampleableConfig.useSampling(input.Params.DateRange.EndDate.Sub(input.Params.DateRange.StartDate))
 
 	var config model.TableConfig
@@ -1349,6 +1347,9 @@ func (client *Client) ReadFunnels(ctx context.Context, input ReadFunnelsInput) (
 	} else {
 		config = input.SampleableConfig.tableConfig
 	}
+
+	// TODO(vkorolik) step.Column support
+	input.Column = "SecureID"
 
 	startTimestamp := input.Params.DateRange.StartDate.Unix()
 	endTimestamp := input.Params.DateRange.EndDate.Unix()
@@ -1359,25 +1360,24 @@ func (client *Client) ReadFunnels(ctx context.Context, input ReadFunnelsInput) (
 	defer span.Finish()
 
 	var steps []sqlbuilder.Builder
-	for idx, step := range input.Params.Steps {
-		// TODO(vkorolik) step.Column escaping
+	for idx, step := range input.FunnelSteps {
 		innerSb := sqlbuilder.NewSelectBuilder()
 		innerSb.
 			From(input.SampleableConfig.tableConfig.TableName).
-			Select(strings.Join([]string{step.Column, `min(CreatedAt)`}, ", ")).
+			Select(strings.Join([]string{input.Column, `min(CreatedAt)`}, ", ")).
 			Where(innerSb.In("ProjectId", input.ProjectIDs)).
 			Where(innerSb.GreaterEqualThan("CreatedAt", startTimestamp)).
 			Where(innerSb.LessEqualThan("CreatedAt", endTimestamp))
 
-		filters := parser.Parse(step.Step, input.SampleableConfig.tableConfig)
+		filters := parser.Parse(step, input.SampleableConfig.tableConfig)
 		attributeFields := getAttributeFields(config, filters)
 		addAttributes(config, attributeFields, input.ProjectIDs, modelInputs.QueryInput{
-			Query:     step.Step,
+			Query:     step,
 			DateRange: input.Params.DateRange,
 			Sort:      input.Params.Sort,
 		}, innerSb)
-		parser.AssignSearchFilters(innerSb, step.Step, config)
-		innerSb.GroupBy(step.Column)
+		parser.AssignSearchFilters(innerSb, step, config)
+		innerSb.GroupBy(input.Column)
 
 		inner := sqlbuilder.NewSelectBuilder()
 		inner.Select(fmt.Sprintf("%d as step_num", idx), "count() as count")
@@ -1405,22 +1405,25 @@ func (client *Client) ReadFunnels(ctx context.Context, input ReadFunnelsInput) (
 
 	row := struct {
 		stepNum uint8
-		count   uint64
+		result  uint64
 	}{}
 
 	metrics := &modelInputs.MetricsBuckets{
 		Buckets: []*modelInputs.MetricBucket{},
 	}
 	for rows.Next() {
-		if err := rows.Scan(&row.stepNum, &row.count); err != nil {
+		if err := rows.Scan(&row.stepNum, &row.result); err != nil {
 			return nil, err
 		}
-		s := input.Params.Steps[row.stepNum]
+		s := input.FunnelSteps[row.stepNum]
 		metrics.Buckets = append(metrics.Buckets, &modelInputs.MetricBucket{
-			Group:       append(make([]string, 0), strings.Join([]string{s.Column, s.Step}, " ")),
-			MetricValue: ptr.Float64(float64(row.count)),
+			Group:       []string{s},
+			MetricType:  input.MetricTypes[0],
+			MetricValue: ptr.Float64(float64(row.result)),
 		})
 	}
+
+	metrics.BucketCount = 1
 
 	return metrics, err
 }

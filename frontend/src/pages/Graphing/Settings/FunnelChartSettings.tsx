@@ -1,8 +1,5 @@
 import React from 'react'
-import {
-	FUNNEL_DISPLAY,
-	FunnelDisplay,
-} from '@pages/Graphing/components/FunnelChart'
+import { FUNNEL_DISPLAY, FunnelDisplay } from '@pages/Graphing/components/types'
 import { LabeledRow } from '@pages/Graphing/LabeledRow'
 import { TagSwitchGroup } from '@highlight-run/ui/components'
 import * as style from './styles.css'

@@ -1047,7 +1047,6 @@ type ComplexityRoot struct {
 		EventsMetrics                    func(childComplexity int, projectID int, params model.QueryInput, column string, metricTypes []model.MetricAggregator, groupBy []string, bucketBy string, bucketCount *int, bucketWindow *int, limit *int, limitAggregator *model.MetricAggregator, limitColumn *string) int
 		ExistingLogsTraces               func(childComplexity int, projectID int, traceIds []string, dateRange model.DateRangeRequiredInput) int
 		FieldSuggestion                  func(childComplexity int, projectID int, name string, query string) int
-		Funnel                           func(childComplexity int, productType model.ProductType, projectID int, params model.FunnelQueryInput, groupBy []string) int
 		GenerateZapierAccessToken        func(childComplexity int, projectID int) int
 		GetSourceMapUploadUrls           func(childComplexity int, apiKey string, paths []string) int
 		GithubIssueLabels                func(childComplexity int, workspaceID int, repository string) int
@@ -1082,7 +1081,7 @@ type ComplexityRoot struct {
 		MetricMonitors                   func(childComplexity int, projectID int, metricName *string) int
 		MetricTagValues                  func(childComplexity int, projectID int, metricName string, tagName string) int
 		MetricTags                       func(childComplexity int, projectID int, metricName string, query *string) int
-		Metrics                          func(childComplexity int, productType model.ProductType, projectID int, params model.QueryInput, column string, metricTypes []model.MetricAggregator, groupBy []string, bucketBy string, bucketCount *int, bucketWindow *int, limit *int, limitAggregator *model.MetricAggregator, limitColumn *string) int
+		Metrics                          func(childComplexity int, productType model.ProductType, projectID int, params model.QueryInput, column string, metricTypes []model.MetricAggregator, groupBy []string, bucketBy string, bucketCount *int, bucketWindow *int, limit *int, limitAggregator *model.MetricAggregator, limitColumn *string, funnelSteps []string) int
 		MetricsTimeline                  func(childComplexity int, projectID int, metricName string, params model.DashboardParamsInput) int
 		MicrosoftTeamsChannelSuggestions func(childComplexity int, projectID int) int
 		NetworkHistogram                 func(childComplexity int, projectID int, params model.NetworkHistogramParamsInput) int
@@ -1121,7 +1120,7 @@ type ComplexityRoot struct {
 		SessionsHistogramClickhouse      func(childComplexity int, projectID int, query model.ClickhouseQuery, histogramOptions model.DateHistogramOptions) int
 		SessionsKeyValues                func(childComplexity int, projectID int, keyName string, dateRange model.DateRangeRequiredInput, query *string, count *int) int
 		SessionsKeys                     func(childComplexity int, projectID int, dateRange model.DateRangeRequiredInput, query *string, typeArg *model.KeyType) int
-		SessionsMetrics                  func(childComplexity int, projectID int, params model.QueryInput, column string, metricTypes []model.MetricAggregator, groupBy []string, bucketBy string, bucketCount *int, bucketWindow *int, limit *int, limitAggregator *model.MetricAggregator, limitColumn *string) int
+		SessionsMetrics                  func(childComplexity int, projectID int, params model.QueryInput, column string, metricTypes []model.MetricAggregator, groupBy []string, bucketBy string, bucketCount *int, bucketWindow *int, limit *int, limitAggregator *model.MetricAggregator, limitColumn *string, funnelSteps []string) int
 		SlackChannelSuggestion           func(childComplexity int, projectID int) int
 		SourcemapFiles                   func(childComplexity int, projectID int, version *string) int
 		SourcemapVersions                func(childComplexity int, projectID int) int
@@ -2008,12 +2007,11 @@ type QueryResolver interface {
 	ErrorsMetrics(ctx context.Context, projectID int, params model.QueryInput, column string, metricTypes []model.MetricAggregator, groupBy []string, bucketBy string, bucketCount *int, bucketWindow *int, limit *int, limitAggregator *model.MetricAggregator, limitColumn *string) (*model.MetricsBuckets, error)
 	SessionsKeys(ctx context.Context, projectID int, dateRange model.DateRangeRequiredInput, query *string, typeArg *model.KeyType) ([]*model.QueryKey, error)
 	SessionsKeyValues(ctx context.Context, projectID int, keyName string, dateRange model.DateRangeRequiredInput, query *string, count *int) ([]string, error)
-	SessionsMetrics(ctx context.Context, projectID int, params model.QueryInput, column string, metricTypes []model.MetricAggregator, groupBy []string, bucketBy string, bucketCount *int, bucketWindow *int, limit *int, limitAggregator *model.MetricAggregator, limitColumn *string) (*model.MetricsBuckets, error)
+	SessionsMetrics(ctx context.Context, projectID int, params model.QueryInput, column string, metricTypes []model.MetricAggregator, groupBy []string, bucketBy string, bucketCount *int, bucketWindow *int, limit *int, limitAggregator *model.MetricAggregator, limitColumn *string, funnelSteps []string) (*model.MetricsBuckets, error)
 	EventsKeys(ctx context.Context, projectID int, dateRange model.DateRangeRequiredInput, query *string, typeArg *model.KeyType, event *string) ([]*model.QueryKey, error)
 	EventsKeyValues(ctx context.Context, projectID int, keyName string, dateRange model.DateRangeRequiredInput, query *string, count *int, event *string) ([]string, error)
 	EventsMetrics(ctx context.Context, projectID int, params model.QueryInput, column string, metricTypes []model.MetricAggregator, groupBy []string, bucketBy string, bucketCount *int, bucketWindow *int, limit *int, limitAggregator *model.MetricAggregator, limitColumn *string) (*model.MetricsBuckets, error)
-	Metrics(ctx context.Context, productType model.ProductType, projectID int, params model.QueryInput, column string, metricTypes []model.MetricAggregator, groupBy []string, bucketBy string, bucketCount *int, bucketWindow *int, limit *int, limitAggregator *model.MetricAggregator, limitColumn *string) (*model.MetricsBuckets, error)
-	Funnel(ctx context.Context, productType model.ProductType, projectID int, params model.FunnelQueryInput, groupBy []string) (*model.MetricsBuckets, error)
+	Metrics(ctx context.Context, productType model.ProductType, projectID int, params model.QueryInput, column string, metricTypes []model.MetricAggregator, groupBy []string, bucketBy string, bucketCount *int, bucketWindow *int, limit *int, limitAggregator *model.MetricAggregator, limitColumn *string, funnelSteps []string) (*model.MetricsBuckets, error)
 	Keys(ctx context.Context, productType *model.ProductType, projectID int, dateRange model.DateRangeRequiredInput, query *string, typeArg *model.KeyType, event *string) ([]*model.QueryKey, error)
 	KeyValues(ctx context.Context, productType *model.ProductType, projectID int, keyName string, dateRange model.DateRangeRequiredInput, query *string, count *int, event *string) ([]string, error)
 	Visualization(ctx context.Context, id int) (*model1.Visualization, error)
@@ -7689,18 +7687,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Query.FieldSuggestion(childComplexity, args["project_id"].(int), args["name"].(string), args["query"].(string)), true
 
-	case "Query.funnel":
-		if e.complexity.Query.Funnel == nil {
-			break
-		}
-
-		args, err := ec.field_Query_funnel_args(context.TODO(), rawArgs)
-		if err != nil {
-			return 0, false
-		}
-
-		return e.complexity.Query.Funnel(childComplexity, args["product_type"].(model.ProductType), args["project_id"].(int), args["params"].(model.FunnelQueryInput), args["group_by"].([]string)), true
-
 	case "Query.generate_zapier_access_token":
 		if e.complexity.Query.GenerateZapierAccessToken == nil {
 			break
@@ -8114,7 +8100,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Query.Metrics(childComplexity, args["product_type"].(model.ProductType), args["project_id"].(int), args["params"].(model.QueryInput), args["column"].(string), args["metric_types"].([]model.MetricAggregator), args["group_by"].([]string), args["bucket_by"].(string), args["bucket_count"].(*int), args["bucket_window"].(*int), args["limit"].(*int), args["limit_aggregator"].(*model.MetricAggregator), args["limit_column"].(*string)), true
+		return e.complexity.Query.Metrics(childComplexity, args["product_type"].(model.ProductType), args["project_id"].(int), args["params"].(model.QueryInput), args["column"].(string), args["metric_types"].([]model.MetricAggregator), args["group_by"].([]string), args["bucket_by"].(string), args["bucket_count"].(*int), args["bucket_window"].(*int), args["limit"].(*int), args["limit_aggregator"].(*model.MetricAggregator), args["limit_column"].(*string), args["funnel_steps"].([]string)), true
 
 	case "Query.metrics_timeline":
 		if e.complexity.Query.MetricsTimeline == nil {
@@ -8572,7 +8558,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Query.SessionsMetrics(childComplexity, args["project_id"].(int), args["params"].(model.QueryInput), args["column"].(string), args["metric_types"].([]model.MetricAggregator), args["group_by"].([]string), args["bucket_by"].(string), args["bucket_count"].(*int), args["bucket_window"].(*int), args["limit"].(*int), args["limit_aggregator"].(*model.MetricAggregator), args["limit_column"].(*string)), true
+		return e.complexity.Query.SessionsMetrics(childComplexity, args["project_id"].(int), args["params"].(model.QueryInput), args["column"].(string), args["metric_types"].([]model.MetricAggregator), args["group_by"].([]string), args["bucket_by"].(string), args["bucket_count"].(*int), args["bucket_window"].(*int), args["limit"].(*int), args["limit_aggregator"].(*model.MetricAggregator), args["limit_column"].(*string), args["funnel_steps"].([]string)), true
 
 	case "Query.slack_channel_suggestion":
 		if e.complexity.Query.SlackChannelSuggestion == nil {
@@ -11499,8 +11485,6 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 		ec.unmarshalInputDateRangeRequiredInput,
 		ec.unmarshalInputDiscordChannelInput,
 		ec.unmarshalInputErrorGroupFrequenciesParamsInput,
-		ec.unmarshalInputFunnelQueryInput,
-		ec.unmarshalInputFunnelStep,
 		ec.unmarshalInputGraphInput,
 		ec.unmarshalInputIntegrationProjectMappingInput,
 		ec.unmarshalInputLengthRangeInput,
@@ -12878,18 +12862,6 @@ type QueryOutput {
 	date_range: DateRangeRequiredOutput!
 }
 
-input FunnelStep {
-	step: String!
-	column: String!
-	metric_type: MetricAggregator!
-}
-
-input FunnelQueryInput {
-	steps: [FunnelStep!]!
-	date_range: DateRangeRequiredInput!
-	sort: SortInput
-}
-
 enum MetricTagFilterOp {
 	equals
 	contains
@@ -14142,6 +14114,7 @@ type Query {
 		limit: Int
 		limit_aggregator: MetricAggregator
 		limit_column: String
+		funnel_steps: [String!]
 	): MetricsBuckets!
 	events_keys(
 		project_id: ID!
@@ -14184,12 +14157,7 @@ type Query {
 		limit: Int
 		limit_aggregator: MetricAggregator
 		limit_column: String
-	): MetricsBuckets!
-	funnel(
-		product_type: ProductType!
-		project_id: ID!
-		params: FunnelQueryInput!
-		group_by: [String!]!
+		funnel_steps: [String!]
 	): MetricsBuckets!
 	keys(
 		product_type: ProductType
@@ -20125,48 +20093,6 @@ func (ec *executionContext) field_Query_field_suggestion_args(ctx context.Contex
 	return args, nil
 }
 
-func (ec *executionContext) field_Query_funnel_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
-	var err error
-	args := map[string]interface{}{}
-	var arg0 model.ProductType
-	if tmp, ok := rawArgs["product_type"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("product_type"))
-		arg0, err = ec.unmarshalNProductType2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐProductType(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["product_type"] = arg0
-	var arg1 int
-	if tmp, ok := rawArgs["project_id"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("project_id"))
-		arg1, err = ec.unmarshalNID2int(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["project_id"] = arg1
-	var arg2 model.FunnelQueryInput
-	if tmp, ok := rawArgs["params"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("params"))
-		arg2, err = ec.unmarshalNFunnelQueryInput2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐFunnelQueryInput(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["params"] = arg2
-	var arg3 []string
-	if tmp, ok := rawArgs["group_by"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("group_by"))
-		arg3, err = ec.unmarshalNString2ᚕstringᚄ(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["group_by"] = arg3
-	return args, nil
-}
-
 func (ec *executionContext) field_Query_generate_zapier_access_token_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
@@ -21214,6 +21140,15 @@ func (ec *executionContext) field_Query_metrics_args(ctx context.Context, rawArg
 		}
 	}
 	args["limit_column"] = arg11
+	var arg12 []string
+	if tmp, ok := rawArgs["funnel_steps"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("funnel_steps"))
+		arg12, err = ec.unmarshalOString2ᚕstringᚄ(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["funnel_steps"] = arg12
 	return args, nil
 }
 
@@ -22192,6 +22127,15 @@ func (ec *executionContext) field_Query_sessions_metrics_args(ctx context.Contex
 		}
 	}
 	args["limit_column"] = arg10
+	var arg11 []string
+	if tmp, ok := rawArgs["funnel_steps"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("funnel_steps"))
+		arg11, err = ec.unmarshalOString2ᚕstringᚄ(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["funnel_steps"] = arg11
 	return args, nil
 }
 
@@ -64501,7 +64445,7 @@ func (ec *executionContext) _Query_sessions_metrics(ctx context.Context, field g
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().SessionsMetrics(rctx, fc.Args["project_id"].(int), fc.Args["params"].(model.QueryInput), fc.Args["column"].(string), fc.Args["metric_types"].([]model.MetricAggregator), fc.Args["group_by"].([]string), fc.Args["bucket_by"].(string), fc.Args["bucket_count"].(*int), fc.Args["bucket_window"].(*int), fc.Args["limit"].(*int), fc.Args["limit_aggregator"].(*model.MetricAggregator), fc.Args["limit_column"].(*string))
+		return ec.resolvers.Query().SessionsMetrics(rctx, fc.Args["project_id"].(int), fc.Args["params"].(model.QueryInput), fc.Args["column"].(string), fc.Args["metric_types"].([]model.MetricAggregator), fc.Args["group_by"].([]string), fc.Args["bucket_by"].(string), fc.Args["bucket_count"].(*int), fc.Args["bucket_window"].(*int), fc.Args["limit"].(*int), fc.Args["limit_aggregator"].(*model.MetricAggregator), fc.Args["limit_column"].(*string), fc.Args["funnel_steps"].([]string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -64743,7 +64687,7 @@ func (ec *executionContext) _Query_metrics(ctx context.Context, field graphql.Co
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().Metrics(rctx, fc.Args["product_type"].(model.ProductType), fc.Args["project_id"].(int), fc.Args["params"].(model.QueryInput), fc.Args["column"].(string), fc.Args["metric_types"].([]model.MetricAggregator), fc.Args["group_by"].([]string), fc.Args["bucket_by"].(string), fc.Args["bucket_count"].(*int), fc.Args["bucket_window"].(*int), fc.Args["limit"].(*int), fc.Args["limit_aggregator"].(*model.MetricAggregator), fc.Args["limit_column"].(*string))
+		return ec.resolvers.Query().Metrics(rctx, fc.Args["product_type"].(model.ProductType), fc.Args["project_id"].(int), fc.Args["params"].(model.QueryInput), fc.Args["column"].(string), fc.Args["metric_types"].([]model.MetricAggregator), fc.Args["group_by"].([]string), fc.Args["bucket_by"].(string), fc.Args["bucket_count"].(*int), fc.Args["bucket_window"].(*int), fc.Args["limit"].(*int), fc.Args["limit_aggregator"].(*model.MetricAggregator), fc.Args["limit_column"].(*string), fc.Args["funnel_steps"].([]string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -64786,69 +64730,6 @@ func (ec *executionContext) fieldContext_Query_metrics(ctx context.Context, fiel
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_Query_metrics_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
-		ec.Error(ctx, err)
-		return fc, err
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _Query_funnel(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Query_funnel(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().Funnel(rctx, fc.Args["product_type"].(model.ProductType), fc.Args["project_id"].(int), fc.Args["params"].(model.FunnelQueryInput), fc.Args["group_by"].([]string))
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(*model.MetricsBuckets)
-	fc.Result = res
-	return ec.marshalNMetricsBuckets2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐMetricsBuckets(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_Query_funnel(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "Query",
-		Field:      field,
-		IsMethod:   true,
-		IsResolver: true,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			switch field.Name {
-			case "buckets":
-				return ec.fieldContext_MetricsBuckets_buckets(ctx, field)
-			case "bucket_count":
-				return ec.fieldContext_MetricsBuckets_bucket_count(ctx, field)
-			case "sample_factor":
-				return ec.fieldContext_MetricsBuckets_sample_factor(ctx, field)
-			}
-			return nil, fmt.Errorf("no field named %q was found under type MetricsBuckets", field.Name)
-		},
-	}
-	defer func() {
-		if r := recover(); r != nil {
-			err = ec.Recover(ctx, r)
-			ec.Error(ctx, err)
-		}
-	}()
-	ctx = graphql.WithFieldContext(ctx, fc)
-	if fc.Args, err = ec.field_Query_funnel_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return fc, err
 	}
@@ -84009,88 +83890,6 @@ func (ec *executionContext) unmarshalInputErrorGroupFrequenciesParamsInput(ctx c
 	return it, nil
 }
 
-func (ec *executionContext) unmarshalInputFunnelQueryInput(ctx context.Context, obj interface{}) (model.FunnelQueryInput, error) {
-	var it model.FunnelQueryInput
-	asMap := map[string]interface{}{}
-	for k, v := range obj.(map[string]interface{}) {
-		asMap[k] = v
-	}
-
-	fieldsInOrder := [...]string{"steps", "date_range", "sort"}
-	for _, k := range fieldsInOrder {
-		v, ok := asMap[k]
-		if !ok {
-			continue
-		}
-		switch k {
-		case "steps":
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("steps"))
-			data, err := ec.unmarshalNFunnelStep2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐFunnelStepᚄ(ctx, v)
-			if err != nil {
-				return it, err
-			}
-			it.Steps = data
-		case "date_range":
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("date_range"))
-			data, err := ec.unmarshalNDateRangeRequiredInput2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐDateRangeRequiredInput(ctx, v)
-			if err != nil {
-				return it, err
-			}
-			it.DateRange = data
-		case "sort":
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("sort"))
-			data, err := ec.unmarshalOSortInput2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐSortInput(ctx, v)
-			if err != nil {
-				return it, err
-			}
-			it.Sort = data
-		}
-	}
-
-	return it, nil
-}
-
-func (ec *executionContext) unmarshalInputFunnelStep(ctx context.Context, obj interface{}) (model.FunnelStep, error) {
-	var it model.FunnelStep
-	asMap := map[string]interface{}{}
-	for k, v := range obj.(map[string]interface{}) {
-		asMap[k] = v
-	}
-
-	fieldsInOrder := [...]string{"step", "column", "metric_type"}
-	for _, k := range fieldsInOrder {
-		v, ok := asMap[k]
-		if !ok {
-			continue
-		}
-		switch k {
-		case "step":
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("step"))
-			data, err := ec.unmarshalNString2string(ctx, v)
-			if err != nil {
-				return it, err
-			}
-			it.Step = data
-		case "column":
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("column"))
-			data, err := ec.unmarshalNString2string(ctx, v)
-			if err != nil {
-				return it, err
-			}
-			it.Column = data
-		case "metric_type":
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("metric_type"))
-			data, err := ec.unmarshalNMetricAggregator2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐMetricAggregator(ctx, v)
-			if err != nil {
-				return it, err
-			}
-			it.MetricType = data
-		}
-	}
-
-	return it, nil
-}
-
 func (ec *executionContext) unmarshalInputGraphInput(ctx context.Context, obj interface{}) (model.GraphInput, error) {
 	var it model.GraphInput
 	asMap := map[string]interface{}{}
@@ -95594,28 +95393,6 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 			}
 
 			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
-		case "funnel":
-			field := field
-
-			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._Query_funnel(ctx, field)
-				if res == graphql.Null {
-					atomic.AddUint32(&fs.Invalids, 1)
-				}
-				return res
-			}
-
-			rrm := func(ctx context.Context) graphql.Marshaler {
-				return ec.OperationContext.RootResolverMiddleware(ctx,
-					func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
-			}
-
-			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
 		case "keys":
 			field := field
 
@@ -102306,33 +102083,6 @@ func (ec *executionContext) marshalNFloat2float64(ctx context.Context, sel ast.S
 		}
 	}
 	return res
-}
-
-func (ec *executionContext) unmarshalNFunnelQueryInput2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐFunnelQueryInput(ctx context.Context, v interface{}) (model.FunnelQueryInput, error) {
-	res, err := ec.unmarshalInputFunnelQueryInput(ctx, v)
-	return res, graphql.ErrorOnPath(ctx, err)
-}
-
-func (ec *executionContext) unmarshalNFunnelStep2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐFunnelStepᚄ(ctx context.Context, v interface{}) ([]*model.FunnelStep, error) {
-	var vSlice []interface{}
-	if v != nil {
-		vSlice = graphql.CoerceList(v)
-	}
-	var err error
-	res := make([]*model.FunnelStep, len(vSlice))
-	for i := range vSlice {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
-		res[i], err = ec.unmarshalNFunnelStep2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐFunnelStep(ctx, vSlice[i])
-		if err != nil {
-			return nil, err
-		}
-	}
-	return res, nil
-}
-
-func (ec *executionContext) unmarshalNFunnelStep2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐFunnelStep(ctx context.Context, v interface{}) (*model.FunnelStep, error) {
-	res, err := ec.unmarshalInputFunnelStep(ctx, v)
-	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
 func (ec *executionContext) marshalNGitHubRepo2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐGitHubRepo(ctx context.Context, sel ast.SelectionSet, v *model.GitHubRepo) graphql.Marshaler {

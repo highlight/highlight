@@ -12,12 +12,11 @@ import {
 
 import {
 	AxisConfig,
+	getColor,
 	InnerChartProps,
 	SeriesInfo,
 } from '@/pages/Graphing/components/Graph'
-
-export type FunnelDisplay = 'Funnel Steps'
-export const FUNNEL_DISPLAY: FunnelDisplay[] = ['Funnel Steps']
+import { FunnelDisplay } from '@pages/Graphing/components/types'
 
 const getCustomLabel = () => (props: LabelProps) => {
 	return (
@@ -57,7 +56,7 @@ const getCustomTooltip =
 							color="default"
 							cssClass={style.tooltipText}
 						>
-							{p.name}
+							{p.name || '<empty>'}
 						</Text>
 						<Text
 							size="small"
@@ -103,7 +102,10 @@ export const FunnelChart = ({
 						name: d.Group,
 						fill: vars.color.p9,
 					}))}
-					isAnimationActive
+					isAnimationActive={false}
+					fill={getColor(0, '')}
+					stroke={getColor(0, '')}
+					color={getColor(0, '')}
 				>
 					<LabelList
 						position="right"

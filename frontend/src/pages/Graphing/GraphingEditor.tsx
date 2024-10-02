@@ -10,10 +10,7 @@ import {
 	TagSwitchGroup,
 	Text,
 } from '@highlight-run/ui/components'
-import {
-	FUNNEL_DISPLAY,
-	FunnelDisplay,
-} from '@pages/Graphing/components/FunnelChart'
+import { FUNNEL_DISPLAY, FunnelDisplay } from '@pages/Graphing/components/types'
 import { useParams } from '@util/react-router/useParams'
 import { Divider } from 'antd'
 import React, {
@@ -46,6 +43,7 @@ import { useSearchTime } from '@/hooks/useSearchTime'
 import { BAR_DISPLAY, BarDisplay } from '@/pages/Graphing/components/BarChart'
 import Graph, {
 	getViewConfig,
+	GROUP_KEY,
 	TIMESTAMP_KEY,
 	View,
 	VIEW_OPTIONS,
@@ -672,7 +670,8 @@ export const GraphingEditor: React.FC = () => {
 								</SidebarSection>
 								<Divider className="m-0" />
 								<SidebarSection>
-									{productType === ProductType.Events ? (
+									{productType === ProductType.Events ||
+									viewType === 'Funnel chart' ? (
 										<EventSelection
 											initialQuery={query}
 											setQuery={setQuery}
@@ -835,7 +834,17 @@ export const GraphingEditor: React.FC = () => {
 										<OptionDropdown
 											options={VIEW_OPTIONS}
 											selection={viewType}
-											setSelection={setViewType}
+											setSelection={(option: View) => {
+												setViewType(option)
+												// TODO(vkorolik) should probably live elsewhere
+												if (option === 'Funnel chart') {
+													setBucketByKey(GROUP_KEY)
+													setFunctionType(
+														MetricAggregator.Count,
+													)
+													setMetric('SecureID')
+												}
+											}}
 										/>
 									</LabeledRow>
 									{viewType === 'Line chart' && (
