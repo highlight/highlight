@@ -1368,6 +1368,14 @@ func (client *Client) ReadFunnels(ctx context.Context, input ReadFunnelsInput) (
 			Where(innerSb.In("ProjectId", input.ProjectIDs)).
 			Where(innerSb.GreaterEqualThan("CreatedAt", startTimestamp)).
 			Where(innerSb.LessEqualThan("CreatedAt", endTimestamp))
+
+		filters := parser.Parse(step.Step, input.SampleableConfig.tableConfig)
+		attributeFields := getAttributeFields(config, filters)
+		addAttributes(config, attributeFields, input.ProjectIDs, modelInputs.QueryInput{
+			Query:     step.Step,
+			DateRange: input.Params.DateRange,
+			Sort:      input.Params.Sort,
+		}, innerSb)
 		parser.AssignSearchFilters(innerSb, step.Step, config)
 		innerSb.GroupBy(step.Column)
 
