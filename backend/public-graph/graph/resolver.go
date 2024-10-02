@@ -318,7 +318,7 @@ func (r *Resolver) CreateSessionEvents(ctx context.Context, sessionID int, event
 		})
 	}
 
-	err := r.Clickhouse.BatchWriteSessionEventRows(ctxW, sessionEvents)
+	err := r.Clickhouse.WriteSessionEventRows(ctxW, sessionEvents)
 	if err != nil {
 		return e.Wrap(err, "error writing session events to clickhouse")
 	}

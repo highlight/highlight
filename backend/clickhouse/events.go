@@ -2,14 +2,15 @@ package clickhouse
 
 import (
 	"context"
-	"fmt"
+	"errors"
 	"strings"
 	"time"
 
+	"github.com/ClickHouse/clickhouse-go/v2"
 	"github.com/google/uuid"
 	"github.com/highlight-run/highlight/backend/model"
+	"github.com/huandu/go-sqlbuilder"
 	"github.com/openlyinc/pointy"
-	e "github.com/pkg/errors"
 	"github.com/samber/lo"
 
 	modelInputs "github.com/highlight-run/highlight/backend/private-graph/graph/model"
@@ -84,31 +85,41 @@ type SessionEventRow struct {
 	Attributes       map[string]string
 }
 
-func (client *Client) BatchWriteSessionEventRows(ctx context.Context, eventRows []*SessionEventRow) error {
+func (client *Client) WriteSessionEventRows(ctx context.Context, eventRows []*SessionEventRow) error {
 	if len(eventRows) == 0 {
 		return nil
 	}
 
-	rows := lo.Map(eventRows, func(l *SessionEventRow, _ int) interface{} {
-		if len(l.UUID) == 0 {
-			l.UUID = uuid.New().String()
-		}
-		return l
-	})
+	chEvents := []interface{}{}
 
-	batch, err := client.conn.PrepareBatch(ctx, fmt.Sprintf("INSERT INTO %s", SessionEventsTable))
-	if err != nil {
-		return e.Wrap(err, "failed to create session events batch")
+	for _, event := range eventRows {
+		if event == nil {
+			return errors.New("nil event")
+		}
+
+		newEvent := *event
+		if len(newEvent.UUID) == 0 {
+			newEvent.UUID = uuid.New().String()
+		}
+
+		chEvents = append(chEvents, newEvent)
 	}
 
-	for _, sessionEventRow := range rows {
-		err = batch.AppendStruct(sessionEventRow)
-		if err != nil {
-			return err
-		}
+	if len(chEvents) > 0 {
+		chCtx := clickhouse.Context(ctx, clickhouse.WithSettings(clickhouse.Settings{
+			"async_insert":          1,
+			"wait_for_async_insert": 1,
+		}))
+
+		eventsSql, eventsArgs := sqlbuilder.
+			NewStruct(new(SessionEventRow)).
+			InsertInto(SessionEventsTable, chEvents...).
+			BuildWithFlavor(sqlbuilder.ClickHouse)
+
+		return client.conn.Exec(chCtx, eventsSql, eventsArgs...)
 	}
 
-	return batch.Send()
+	return nil
 }
 
 func (client *Client) ReadEventsMetrics(ctx context.Context, projectID int, params modelInputs.QueryInput, column string, metricTypes []modelInputs.MetricAggregator, groupBy []string, nBuckets *int, bucketBy string, bucketWindow *int, limit *int, limitAggregator *modelInputs.MetricAggregator, limitColumn *string) (*modelInputs.MetricsBuckets, error) {
