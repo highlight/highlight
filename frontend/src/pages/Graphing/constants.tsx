@@ -7,7 +7,11 @@ import {
 	IconSolidTraces,
 } from '@highlight-run/ui/components'
 
-import { MetricAggregator, ProductType } from '@/graph/generated/schemas'
+import {
+	MetricAggregator,
+	ProductType,
+	SuggestionType,
+} from '@/graph/generated/schemas'
 
 export const DEFAULT_BUCKET_COUNT = 50
 export const DEFAULT_BUCKET_INTERVAL = 300
@@ -52,6 +56,12 @@ export const FUNCTION_TYPES: MetricAggregator[] = [
 	MetricAggregator.Count,
 	MetricAggregator.CountDistinct,
 	...NUMERIC_FUNCTION_TYPES,
+]
+
+export const SUGGESTION_TYPES: SuggestionType[] = [
+	SuggestionType.Value,
+	SuggestionType.Key,
+	SuggestionType.None,
 ]
 
 export const GRAPHING_FIELD_DOCS_LINK =

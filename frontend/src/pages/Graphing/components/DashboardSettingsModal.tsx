@@ -20,7 +20,7 @@ interface Props {
 	dashboardId: string
 	showModal: boolean
 	onHideModal: () => void
-	settings: Visualization | undefined
+	settings: Pick<Visualization, 'timePreset' | 'name'> | undefined
 }
 
 export const DashboardSettingsModal: React.FC<Props> = ({
@@ -86,7 +86,7 @@ export const DashboardSettingsModal: React.FC<Props> = ({
 
 interface ModalProps {
 	loading: boolean
-	settings: Visualization
+	settings: Pick<Visualization, 'timePreset' | 'name'>
 	onHideModal: () => void
 	onSubmit: (name: string, timePreset: string) => void
 }

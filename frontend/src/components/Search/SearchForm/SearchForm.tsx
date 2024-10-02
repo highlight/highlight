@@ -335,6 +335,7 @@ export const Search: React.FC<{
 	textAreaRef?: React.RefObject<HTMLTextAreaElement>
 	hasAdditonalActions?: boolean
 	creatables?: { [key: string]: Creatable }
+	defaultValueOptions?: string[]
 	enableAIMode?: boolean
 	aiSupportedSearch?: boolean
 	event?: string
@@ -347,6 +348,7 @@ export const Search: React.FC<{
 	productType,
 	hasAdditonalActions,
 	creatables,
+	defaultValueOptions,
 	enableAIMode,
 	aiSupportedSearch,
 	event,
@@ -412,7 +414,10 @@ export const Search: React.FC<{
 		!!activePart.value?.length
 
 	let visibleItems: SearchResult[] = showValues
-		? getVisibleValues(activePart, values)
+		? getVisibleValues(
+				activePart,
+				defaultValueOptions?.concat(values ?? []),
+			)
 		: getVisibleKeys(query, activePart, keys)
 
 	// Show operators when we have an exact match for a key
