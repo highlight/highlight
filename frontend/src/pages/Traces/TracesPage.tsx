@@ -61,6 +61,10 @@ import analytics from '@/util/analytics'
 import { formatNumber } from '@/util/numbers'
 
 import * as styles from './TracesPage.css'
+import {
+	DEMO_PROJECT_ID,
+	DEMO_WORKSPACE_PROXY_APPLICATION_ID,
+} from '@/components/DemoWorkspaceButton/DemoWorkspaceButton'
 
 export type TracesOutletContext = Partial<Trace>[]
 
@@ -243,8 +247,13 @@ export const TracesPage: React.FC = () => {
 
 	useEffect(() => {
 		if (!resource) {
+			const redirectProjectId =
+				projectId === DEMO_PROJECT_ID
+					? DEMO_WORKSPACE_PROXY_APPLICATION_ID
+					: projectId
+
 			navigate({
-				pathname: `/${projectId}/traces`,
+				pathname: `/${redirectProjectId}/traces`,
 				search: location.search,
 			})
 		}
