@@ -738,18 +738,6 @@ export type Field = {
 	value: Scalars['String']
 }
 
-export type FunnelQueryInput = {
-	date_range: DateRangeRequiredInput
-	sort?: InputMaybe<SortInput>
-	steps: Array<FunnelStep>
-}
-
-export type FunnelStep = {
-	column: Scalars['String']
-	metric_type: MetricAggregator
-	step: Scalars['String']
-}
-
 export type GitHubRepo = {
 	__typename?: 'GitHubRepo'
 	key: Scalars['String']
@@ -2104,7 +2092,6 @@ export type Query = {
 	events_metrics: MetricsBuckets
 	existing_logs_traces: Array<Scalars['String']>
 	field_suggestion?: Maybe<Array<Maybe<Field>>>
-	funnel: MetricsBuckets
 	generate_zapier_access_token: Scalars['String']
 	get_source_map_upload_urls: Array<Scalars['String']>
 	github_issue_labels: Array<Scalars['String']>
@@ -2509,13 +2496,6 @@ export type QueryField_SuggestionArgs = {
 	query: Scalars['String']
 }
 
-export type QueryFunnelArgs = {
-	group_by: Array<Scalars['String']>
-	params: FunnelQueryInput
-	product_type: ProductType
-	project_id: Scalars['ID']
-}
-
 export type QueryGenerate_Zapier_Access_TokenArgs = {
 	project_id: Scalars['ID']
 }
@@ -2702,6 +2682,7 @@ export type QueryMetricsArgs = {
 	bucket_count?: InputMaybe<Scalars['Int']>
 	bucket_window?: InputMaybe<Scalars['Int']>
 	column: Scalars['String']
+	funnel_steps?: InputMaybe<Array<Scalars['String']>>
 	group_by: Array<Scalars['String']>
 	limit?: InputMaybe<Scalars['Int']>
 	limit_aggregator?: InputMaybe<MetricAggregator>
@@ -2898,6 +2879,7 @@ export type QuerySessions_MetricsArgs = {
 	bucket_count?: InputMaybe<Scalars['Int']>
 	bucket_window?: InputMaybe<Scalars['Int']>
 	column: Scalars['String']
+	funnel_steps?: InputMaybe<Array<Scalars['String']>>
 	group_by: Array<Scalars['String']>
 	limit?: InputMaybe<Scalars['Int']>
 	limit_aggregator?: InputMaybe<MetricAggregator>

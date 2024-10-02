@@ -1241,18 +1241,6 @@ type QueryOutput {
 	date_range: DateRangeRequiredOutput!
 }
 
-input FunnelStep {
-	step: String!
-	column: String!
-	metric_type: MetricAggregator!
-}
-
-input FunnelQueryInput {
-	steps: [FunnelStep!]!
-	date_range: DateRangeRequiredInput!
-	sort: SortInput
-}
-
 enum MetricTagFilterOp {
 	equals
 	contains
@@ -2505,6 +2493,7 @@ type Query {
 		limit: Int
 		limit_aggregator: MetricAggregator
 		limit_column: String
+		funnel_steps: [String!]
 	): MetricsBuckets!
 	events_keys(
 		project_id: ID!
@@ -2547,12 +2536,7 @@ type Query {
 		limit: Int
 		limit_aggregator: MetricAggregator
 		limit_column: String
-	): MetricsBuckets!
-	funnel(
-		product_type: ProductType!
-		project_id: ID!
-		params: FunnelQueryInput!
-		group_by: [String!]!
+		funnel_steps: [String!]
 	): MetricsBuckets!
 	keys(
 		product_type: ProductType

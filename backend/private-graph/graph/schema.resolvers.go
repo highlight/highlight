@@ -9429,13 +9429,13 @@ func (r *queryResolver) SessionsKeyValues(ctx context.Context, projectID int, ke
 }
 
 // SessionsMetrics is the resolver for the sessions_metrics field.
-func (r *queryResolver) SessionsMetrics(ctx context.Context, projectID int, params modelInputs.QueryInput, column string, metricTypes []modelInputs.MetricAggregator, groupBy []string, bucketBy string, bucketCount *int, bucketWindow *int, limit *int, limitAggregator *modelInputs.MetricAggregator, limitColumn *string) (*modelInputs.MetricsBuckets, error) {
+func (r *queryResolver) SessionsMetrics(ctx context.Context, projectID int, params modelInputs.QueryInput, column string, metricTypes []modelInputs.MetricAggregator, groupBy []string, bucketBy string, bucketCount *int, bucketWindow *int, limit *int, limitAggregator *modelInputs.MetricAggregator, limitColumn *string, funnelSteps []string) (*modelInputs.MetricsBuckets, error) {
 	project, err := r.isUserInProjectOrDemoProject(ctx, projectID)
 	if err != nil {
 		return nil, err
 	}
 
-	return r.ClickhouseClient.ReadSessionsMetrics(ctx, project.ID, params, column, metricTypes, groupBy, bucketCount, bucketBy, bucketWindow, limit, limitAggregator, limitColumn)
+	return r.ClickhouseClient.ReadSessionsMetrics(ctx, project.ID, params, column, metricTypes, groupBy, bucketCount, bucketBy, bucketWindow, limit, limitAggregator, limitColumn, funnelSteps)
 }
 
 // EventsKeys is the resolver for the events_keys field.
@@ -9469,7 +9469,8 @@ func (r *queryResolver) EventsMetrics(ctx context.Context, projectID int, params
 }
 
 // Metrics is the resolver for the metrics field.
-func (r *queryResolver) Metrics(ctx context.Context, productType modelInputs.ProductType, projectID int, params modelInputs.QueryInput, column string, metricTypes []modelInputs.MetricAggregator, groupBy []string, bucketBy string, bucketCount *int, bucketWindow *int, limit *int, limitAggregator *modelInputs.MetricAggregator, limitColumn *string) (*modelInputs.MetricsBuckets, error) {
+func (r *queryResolver) Metrics(ctx context.Context, productType modelInputs.ProductType, projectID int, params modelInputs.QueryInput, column string, metricTypes []modelInputs.MetricAggregator, groupBy []string, bucketBy string, bucketCount *int, bucketWindow *int, limit *int, limitAggregator *modelInputs.MetricAggregator, limitColumn *string, funnelSteps []string) (*modelInputs.MetricsBuckets, error) {
+	// TODO(vkorolik) other product funnels?
 	switch productType {
 	case modelInputs.ProductTypeMetrics:
 		project, err := r.isUserInProjectOrDemoProject(ctx, projectID)
@@ -9482,7 +9483,7 @@ func (r *queryResolver) Metrics(ctx context.Context, productType modelInputs.Pro
 	case modelInputs.ProductTypeLogs:
 		return r.LogsMetrics(ctx, projectID, params, column, metricTypes, groupBy, bucketBy, bucketCount, bucketWindow, limit, limitAggregator, limitColumn)
 	case modelInputs.ProductTypeSessions:
-		return r.SessionsMetrics(ctx, projectID, params, column, metricTypes, groupBy, bucketBy, bucketCount, bucketWindow, limit, limitAggregator, limitColumn)
+		return r.SessionsMetrics(ctx, projectID, params, column, metricTypes, groupBy, bucketBy, bucketCount, bucketWindow, limit, limitAggregator, limitColumn, funnelSteps)
 	case modelInputs.ProductTypeErrors:
 		return r.ErrorsMetrics(ctx, projectID, params, column, metricTypes, groupBy, bucketBy, bucketCount, bucketWindow, limit, limitAggregator, limitColumn)
 	case modelInputs.ProductTypeEvents:
@@ -9490,21 +9491,6 @@ func (r *queryResolver) Metrics(ctx context.Context, productType modelInputs.Pro
 	default:
 		return nil, e.Errorf("invalid product type %s", productType)
 	}
-}
-
-// Funnel is the resolver for the funnel field.
-func (r *queryResolver) Funnel(ctx context.Context, productType modelInputs.ProductType, projectID int, params modelInputs.FunnelQueryInput, groupBy []string) (*modelInputs.MetricsBuckets, error) {
-	project, err := r.isUserInProjectOrDemoProject(ctx, projectID)
-	if err != nil {
-		return nil, err
-	}
-
-	return r.ClickhouseClient.ReadFunnels(ctx, clickhouse.ReadFunnelsInput{
-		SampleableConfig: clickhouse.SessionsSampleableTableConfig,
-		ProjectIDs:       []int{project.ID},
-		Params:           params,
-		GroupBy:          groupBy,
-	})
 }
 
 // Keys is the resolver for the keys field.
