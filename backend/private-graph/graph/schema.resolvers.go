@@ -4733,6 +4733,15 @@ func (r *mutationResolver) UpsertVisualization(ctx context.Context, visualizatio
 		Name:             viz.Name,
 		TimePreset:       viz.TimePreset,
 		GraphIds:         viz.GraphIds,
+		Variables:        viz.Variables,
+	}
+
+	if visualization.Variables != nil {
+		bytes, err := json.Marshal(visualization.Variables)
+		if err != nil {
+			return 0, e.Wrapf(err, "error marshaling variables")
+		}
+		toSave.Variables = string(bytes)
 	}
 
 	if visualization.Name != nil {
@@ -8785,7 +8794,7 @@ func (r *queryResolver) AiQuerySuggestion(ctx context.Context, timeZone string, 
 		count := 10
 		vals, err := r.KeyValues(
 			ctx,
-			productType,
+			&productType,
 			projectID,
 			key,
 			modelInputs.DateRangeRequiredInput{
@@ -9484,13 +9493,18 @@ func (r *queryResolver) Metrics(ctx context.Context, productType modelInputs.Pro
 }
 
 // Keys is the resolver for the keys field.
-func (r *queryResolver) Keys(ctx context.Context, productType modelInputs.ProductType, projectID int, dateRange modelInputs.DateRangeRequiredInput, query *string, typeArg *modelInputs.KeyType, event *string) ([]*modelInputs.QueryKey, error) {
-	switch productType {
+func (r *queryResolver) Keys(ctx context.Context, productType *modelInputs.ProductType, projectID int, dateRange modelInputs.DateRangeRequiredInput, query *string, typeArg *modelInputs.KeyType, event *string) ([]*modelInputs.QueryKey, error) {
+	project, err := r.isUserInProjectOrDemoProject(ctx, projectID)
+	if err != nil {
+		return nil, err
+	}
+
+	if productType == nil {
+		return r.ClickhouseClient.AllKeys(ctx, project.ID, dateRange.StartDate, dateRange.EndDate, query, typeArg)
+	}
+
+	switch *productType {
 	case modelInputs.ProductTypeMetrics:
-		project, err := r.isUserInProjectOrDemoProject(ctx, projectID)
-		if err != nil {
-			return nil, err
-		}
 		return r.ClickhouseClient.MetricsKeys(ctx, project.ID, dateRange.StartDate, dateRange.EndDate, query, typeArg)
 	case modelInputs.ProductTypeTraces:
 		return r.TracesKeys(ctx, projectID, dateRange, query, typeArg)
@@ -9508,13 +9522,18 @@ func (r *queryResolver) Keys(ctx context.Context, productType modelInputs.Produc
 }
 
 // KeyValues is the resolver for the key_values field.
-func (r *queryResolver) KeyValues(ctx context.Context, productType modelInputs.ProductType, projectID int, keyName string, dateRange modelInputs.DateRangeRequiredInput, query *string, count *int, event *string) ([]string, error) {
-	switch productType {
+func (r *queryResolver) KeyValues(ctx context.Context, productType *modelInputs.ProductType, projectID int, keyName string, dateRange modelInputs.DateRangeRequiredInput, query *string, count *int, event *string) ([]string, error) {
+	project, err := r.isUserInProjectOrDemoProject(ctx, projectID)
+	if err != nil {
+		return nil, err
+	}
+
+	if productType == nil {
+		return r.ClickhouseClient.AllKeyValues(ctx, project.ID, keyName, dateRange.StartDate, dateRange.EndDate, query, count)
+	}
+
+	switch *productType {
 	case modelInputs.ProductTypeMetrics:
-		project, err := r.isUserInProjectOrDemoProject(ctx, projectID)
-		if err != nil {
-			return nil, err
-		}
 		return r.ClickhouseClient.MetricsKeyValues(ctx, project.ID, keyName, dateRange.StartDate, dateRange.EndDate, query, count)
 	case modelInputs.ProductTypeTraces:
 		return r.TracesKeyValues(ctx, projectID, keyName, dateRange, query, count)
@@ -9965,6 +9984,18 @@ func (r *visualizationResolver) UpdatedByAdmin(ctx context.Context, obj *model.V
 		Email:    email,
 		PhotoURL: obj.UpdatedByAdmin.PhotoURL,
 	}, nil
+}
+
+// Variables is the resolver for the variables field.
+func (r *visualizationResolver) Variables(ctx context.Context, obj *model.Visualization) ([]*modelInputs.Variable, error) {
+	if obj.Variables == "" {
+		return []*modelInputs.Variable{}, nil
+	}
+	variables := &[]*modelInputs.Variable{}
+	if err := json.Unmarshal([]byte(obj.Variables), variables); err != nil {
+		return nil, e.Wrapf(err, "error unmarshaling variables")
+	}
+	return *variables, nil
 }
 
 // AllWorkspaceSettings returns generated.AllWorkspaceSettingsResolver implementation.

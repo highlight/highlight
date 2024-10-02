@@ -51,6 +51,8 @@ import { useParams } from '@/util/react-router/useParams'
 
 import * as style from './Dashboard.css'
 import { DashboardSettingsModal } from '@/pages/Graphing/components/DashboardSettingsModal'
+import { VariablesBar } from '@/pages/Graphing/components/VariablesBar'
+import { useGraphingVariables } from '@/pages/Graphing/hooks/useGraphingVariables'
 import { useRetentionPresets } from '@/components/Search/SearchForm/hooks'
 
 export const HeaderDivider = () => <Box cssClass={style.headerDivider} />
@@ -67,10 +69,11 @@ export const Dashboard = () => {
 		}),
 	)
 
-	const [showModal, setShowModal] = useState(false)
+	const [showSettingsModal, setShowSettingsModal] = useState(false)
 
 	const [graphs, setGraphs] =
 		useState<GetVisualizationQuery['visualization']['graphs']>()
+
 	const handleDragEnd = (event: any) => {
 		const { active, over } = event
 
@@ -133,16 +136,6 @@ export const Dashboard = () => {
 		variables: { id: dashboard_id! },
 	})
 
-	const [upsertViz] = useUpsertVisualizationMutation()
-
-	const { presets, minDate } = useRetentionPresets()
-
-	const { startDate, endDate, selectedPreset, updateSearchTime } =
-		useSearchTime({
-			presets: presets,
-			initialPreset: DEFAULT_TIME_PRESETS[2],
-		})
-
 	useEffect(() => {
 		if (data) {
 			setGraphs(data.visualization.graphs)
@@ -153,6 +146,18 @@ export const Dashboard = () => {
 		}
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [data])
+
+	const { values } = useGraphingVariables(dashboard_id!)
+
+	const [upsertViz] = useUpsertVisualizationMutation()
+
+	const { presets, minDate } = useRetentionPresets()
+
+	const { startDate, endDate, selectedPreset, updateSearchTime } =
+		useSearchTime({
+			presets: presets,
+			initialPreset: DEFAULT_TIME_PRESETS[2],
+		})
 
 	const navigate = useNavigate()
 
@@ -168,9 +173,9 @@ export const Dashboard = () => {
 				<title>Dashboard</title>
 			</Helmet>
 			<DashboardSettingsModal
-				showModal={showModal}
+				showModal={showSettingsModal}
 				onHideModal={() => {
-					setShowModal(false)
+					setShowSettingsModal(false)
 				}}
 				dashboardId={dashboard_id!}
 				settings={data?.visualization}
@@ -244,7 +249,7 @@ export const Dashboard = () => {
 									kind="secondary"
 									iconLeft={<IconSolidCog size={14} />}
 									onClick={() => {
-										setShowModal(true)
+										setShowSettingsModal(true)
 									}}
 								>
 									Settings
@@ -270,11 +275,12 @@ export const Dashboard = () => {
 					) : (
 						<Box
 							display="flex"
-							flexDirection="row"
+							flexDirection="column"
 							justifyContent="space-between"
 							height="full"
 							cssClass={style.dashboardContent}
 						>
+							<VariablesBar dashboardId={dashboard_id!} />
 							<Box
 								display="flex"
 								position="relative"
@@ -584,6 +590,7 @@ export const Dashboard = () => {
 															setTimeRange={
 																updateSearchTime
 															}
+															variables={values}
 															height={280}
 														/>
 													</DashboardCard>

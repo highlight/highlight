@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"reflect"
 	"regexp"
+	"sort"
 	"strconv"
 	"strings"
 	"time"
@@ -22,6 +23,7 @@ import (
 	"github.com/huandu/go-sqlbuilder"
 	"github.com/nqd/flat"
 	e "github.com/pkg/errors"
+	"github.com/samber/lo"
 )
 
 const SamplingRows = 20_000_000
@@ -399,6 +401,213 @@ func KeyValuesAggregated(ctx context.Context, client *Client, tableName string, 
 		var (
 			value string
 			count uint64
+		)
+		if err := rows.Scan(&value, &count); err != nil {
+			return nil, err
+		}
+
+		values = append(values, value)
+	}
+
+	rows.Close()
+
+	span.Finish(rows.Err())
+	return values, rows.Err()
+}
+
+func (client *Client) AllKeys(ctx context.Context, projectID int, startDate time.Time, endDate time.Time, query *string, typeArg *modelInputs.KeyType) ([]*modelInputs.QueryKey, error) {
+	chCtx := clickhouse.Context(ctx, clickhouse.WithSettings(clickhouse.Settings{
+		"max_rows_to_read": KeysMaxRows,
+	}))
+
+	limitCount := 25
+
+	allTables := []string{EventKeysTable, LogKeysTable, TraceKeysTable, SessionKeysTable}
+
+	builders := []sqlbuilder.Builder{}
+	for _, table := range allTables {
+		sb := sqlbuilder.NewSelectBuilder()
+		sb.Select("Key, sum(Count) / max(sum(Count)) over () as PctCount").
+			From(table).
+			Where(sb.Equal("ProjectId", projectID)).
+			Where(fmt.Sprintf("Day >= toStartOfDay(%s)", sb.Var(startDate))).
+			Where(fmt.Sprintf("Day <= toStartOfDay(%s)", sb.Var(endDate)))
+
+		if query != nil && *query != "" {
+			sb.Where(fmt.Sprintf("Key ILIKE %s", sb.Var("%"+*query+"%")))
+		}
+
+		if typeArg != nil && *typeArg == modelInputs.KeyTypeNumeric {
+			sb.Where(sb.Equal("Type", typeArg))
+		}
+
+		sb.GroupBy("1").
+			OrderBy("2 DESC, 1").
+			Limit(limitCount)
+
+		builders = append(builders, sb)
+	}
+
+	sb := sqlbuilder.NewSelectBuilder()
+	sql, args := sb.Select("Key, sum(PctCount)").
+		From(sb.BuilderAs(sqlbuilder.UnionAll(builders...), "inner")).
+		GroupBy("1").
+		BuildWithFlavor(sqlbuilder.ClickHouse)
+
+	span, _ := util.StartSpanFromContext(chCtx, "readAllKeys")
+	span.SetAttribute("Query", sql)
+	span.SetAttribute("db.system", "clickhouse")
+
+	rows, err := client.conn.Query(chCtx, sql, args...)
+
+	if err != nil {
+		return nil, err
+	}
+
+	type queryKeyWithCount struct {
+		*modelInputs.QueryKey
+		count float64
+	}
+
+	keys := []queryKeyWithCount{}
+	for rows.Next() {
+		var (
+			key   string
+			count float64
+		)
+
+		if err := rows.Scan(&key, &count); err != nil {
+			return nil, err
+		}
+
+		keys = append(keys, queryKeyWithCount{
+			QueryKey: &modelInputs.QueryKey{Name: key},
+			count:    count})
+	}
+	rows.Close()
+	span.Finish(rows.Err())
+	if rows.Err() != nil {
+		return nil, rows.Err()
+	}
+
+	// Add all matching default keys into the results
+	defaultKeys := lo.Map(modelInputs.AllReservedErrorsJoinedKey, func(k modelInputs.ReservedErrorsJoinedKey, _ int) *modelInputs.QueryKey {
+		return &modelInputs.QueryKey{Name: string(k), Type: modelInputs.KeyTypeString}
+	})
+
+	defaultKeys = append(defaultKeys, defaultLogKeys...)
+	defaultKeys = append(defaultKeys, defaultEventKeys...)
+	defaultKeys = append(defaultKeys, defaultTraceKeys...)
+	defaultKeys = append(defaultKeys, defaultSessionsKeys...)
+
+	defaultKeys = lo.Filter(defaultKeys, func(k *modelInputs.QueryKey, _ int) bool {
+		return query == nil || strings.Contains(strings.ToLower(string(k.Name)), strings.ToLower(*query))
+	})
+
+	keys = append(keys, lo.Map(defaultKeys, func(k *modelInputs.QueryKey, _ int) queryKeyWithCount {
+		return queryKeyWithCount{
+			k,
+			1.0}
+	})...)
+
+	grouped := lo.GroupBy(keys, func(k queryKeyWithCount) string {
+		return k.Name
+	})
+
+	keysAggregated := []queryKeyWithCount{}
+	for k, v := range grouped {
+		totalCount := lo.SumBy(v, func(k queryKeyWithCount) float64 {
+			return k.count
+		})
+
+		keysAggregated = append(keysAggregated, queryKeyWithCount{
+			QueryKey: &modelInputs.QueryKey{Name: k},
+			count:    totalCount,
+		})
+	}
+
+	sort.Slice(keysAggregated, func(i, j int) bool {
+		return keysAggregated[i].count > keysAggregated[j].count
+	})
+
+	if len(keysAggregated) > limitCount {
+		keysAggregated = keysAggregated[:limitCount]
+	}
+
+	return lo.Map(keysAggregated, func(k queryKeyWithCount, _ int) *modelInputs.QueryKey {
+		return k.QueryKey
+	}), nil
+}
+
+func (client *Client) AllKeyValues(ctx context.Context, projectID int, keyName string, startDate time.Time, endDate time.Time, query *string, limit *int) ([]string, error) {
+	chCtx := clickhouse.Context(ctx, clickhouse.WithSettings(clickhouse.Settings{
+		"max_rows_to_read": KeyValuesMaxRows,
+	}))
+
+	limitCount := 500
+	if limit != nil {
+		limitCount = *limit
+	}
+
+	searchQuery := ""
+	if query != nil {
+		searchQuery = *query
+	}
+
+	allTables := []string{EventKeyValuesTable, LogKeyValuesTable, TraceKeyValuesTable}
+
+	builders := []sqlbuilder.Builder{}
+	for _, table := range allTables {
+		sb := sqlbuilder.NewSelectBuilder()
+		sb.Select("Value, sum(Count) / max(sum(Count)) over () as PctCount").
+			From(table).
+			Where(sb.Equal("ProjectId", projectID)).
+			Where(sb.Equal("Key", keyName)).
+			Where(fmt.Sprintf("Value ILIKE %s", sb.Var("%"+searchQuery+"%"))).
+			Where(fmt.Sprintf("Day >= toStartOfDay(%s)", sb.Var(startDate))).
+			Where(fmt.Sprintf("Day <= toStartOfDay(%s)", sb.Var(endDate))).
+			GroupBy("1").
+			OrderBy("2 DESC, 1").
+			Limit(limitCount)
+		builders = append(builders, sb)
+	}
+
+	// Sessions key values are stored in a different format
+	sessionsSb := sqlbuilder.NewSelectBuilder()
+	sessionsSb.Select("Value, count() / max(count()) over () as PctCount").
+		From(FieldsTable).
+		Where(sessionsSb.Equal("ProjectID", projectID)).
+		Where(sessionsSb.Equal("Name", keyName)).
+		Where(fmt.Sprintf("Value ILIKE %s", sessionsSb.Var("%"+searchQuery+"%"))).
+		Where(fmt.Sprintf("SessionCreatedAt >= %s", sessionsSb.Var(startDate))).
+		Where(fmt.Sprintf("SessionCreatedAt <= %s", sessionsSb.Var(endDate))).
+		GroupBy("1").
+		OrderBy("2 DESC, 1").
+		Limit(limitCount)
+	builders = append(builders, sessionsSb)
+
+	sb := sqlbuilder.NewSelectBuilder()
+	sql, args := sb.Select("Value, sum(PctCount)").
+		From(sb.BuilderAs(sqlbuilder.UnionAll(builders...), "inner")).
+		GroupBy("1").
+		OrderBy("2 DESC").
+		Limit(limitCount).
+		BuildWithFlavor(sqlbuilder.ClickHouse)
+
+	span, _ := util.StartSpanFromContext(chCtx, "readAllKeyValues")
+	span.SetAttribute("Query", sql)
+	span.SetAttribute("db.system", "clickhouse")
+
+	rows, err := client.conn.Query(chCtx, sql, args...)
+	if err != nil {
+		return nil, err
+	}
+
+	values := []string{}
+	for rows.Next() {
+		var (
+			value string
+			count float64
 		)
 		if err := rows.Scan(&value, &count); err != nil {
 			return nil, err
