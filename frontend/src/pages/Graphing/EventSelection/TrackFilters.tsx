@@ -88,6 +88,7 @@ export const TrackFilters: React.FC<Props> = ({
 					onChangeQuery={setEventNameQuery}
 					cssClass={comboBoxStyle.combobox}
 					wrapperCssClass={comboBoxStyle.comboboxWrapper}
+					popoverCssClass={comboBoxStyle.comboboxPopover}
 					queryPlaceholder="Filter..."
 					creatableRender={(value) => (
 						<Text cssClass={comboBoxStyle.comboboxText}>

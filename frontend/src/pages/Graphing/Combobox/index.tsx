@@ -105,6 +105,7 @@ export const Combobox: React.FC<Props> = ({
 			onChangeQuery={setQuery}
 			cssClass={style.combobox}
 			wrapperCssClass={style.comboboxWrapper}
+			popoverCssClass={style.comboboxPopover}
 			queryPlaceholder="Filter..."
 			disabled={disabled}
 		/>
