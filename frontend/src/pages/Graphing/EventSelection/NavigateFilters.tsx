@@ -190,6 +190,7 @@ export const NavigateFilters: React.FC<Props> = ({
 						onChangeQuery={setNavigateQuery}
 						cssClass={comboBoxStyle.combobox}
 						wrapperCssClass={comboBoxStyle.comboboxWrapper}
+						popoverCssClass={comboBoxStyle.comboboxPopover}
 						queryPlaceholder="Filter..."
 						creatableRender={(value) => (
 							<Text cssClass={comboBoxStyle.comboboxText}>
