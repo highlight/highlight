@@ -97,6 +97,14 @@ class Highlight_WP_Plugin {
             'highlight-wp-settings',
             'highlight_wp_setting_section'
         );
+
+        add_settings_field(
+            'backend_url',
+            'Backend URL',
+            array($this, 'backend_url_callback'),
+            'highlight-wp-settings',
+            'highlight_wp_setting_section'
+        );
     }
 
     public function sanitize($input) {
@@ -117,6 +125,9 @@ class Highlight_WP_Plugin {
         }
         if (isset($input['enable_network_recording'])) {
             $sanitary_values['enable_network_recording'] = (bool)$input['enable_network_recording'];
+        }
+        if (isset($input['backend_url'])) {
+            $sanitary_values['backend_url'] = esc_url_raw($input['backend_url']);
         }
         return $sanitary_values;
     }
@@ -154,12 +165,21 @@ class Highlight_WP_Plugin {
         );
     }
 
+    public function backend_url_callback() {
+        printf(
+            '<input type="url" id="backend_url" name="highlight_wp_options[backend_url]" value="%s" />',
+            isset($this->options['backend_url']) ? esc_url($this->options['backend_url']) : ''
+        );
+        echo '<p class="description">Enter the backend URL for your Highlight.io instance (optional).</p>';
+    }
+
     public function add_highlight_script() {
         $options = get_option('highlight_wp_options');
         if (isset($options['project_id']) && !empty($options['project_id'])) {
             $service_name = isset($options['service_name']) ? esc_js($options['service_name']) : 'highlight-wp-plugin';
             $tracing_origins = isset($options['tracing_origins']) ? $this->parse_tracing_origins($options['tracing_origins']) : 'true';
             $enable_network_recording = isset($options['enable_network_recording']) ? (bool)$options['enable_network_recording'] : false;
+            $backend_url = isset($options['backend_url']) ? esc_url($options['backend_url']) : '';
             ?>
             <script src="https://unpkg.com/highlight.run"></script>
             <script>
@@ -170,6 +190,9 @@ class Highlight_WP_Plugin {
                         enabled: <?php echo esc_js($enable_network_recording ? 'true' : 'false'); ?>,
                         recordHeadersAndBody: true,
                     },
+                    <?php if (!empty($backend_url)) : ?>
+                    backendUrl: '<?php echo esc_js($backend_url); ?>',
+                    <?php endif; ?>
                 });
             </script>
             <?php
