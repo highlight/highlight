@@ -128,14 +128,14 @@ namespace Highlight
                 ["highlight.project_id"] = _config.ProjectId,
                 ["service.name"] = _config.ServiceName,
                 ["telemetry.distro.name"] = "Highlight.ASPCore",
-                ["telemetry.distro.version"] = "0.2.6",
+                ["telemetry.distro.version"] = "0.2.7",
             };
         }
 
         static Config _config = new()
         {
             ProjectId = "",
-            ServiceName = "svc"
+            ServiceName = "default-service-name"
         };
 
         static readonly Random Random = new();
@@ -244,7 +244,11 @@ namespace Highlight
                     .AddProcessor(new TraceProcessor())
                     .AddHttpClientInstrumentation()
                     .AddGrpcClientInstrumentation()
-                    .AddSqlClientInstrumentation()
+                    .AddSqlClientInstrumentation(option =>
+                    {
+                        option.SetDbStatementForStoredProcedure = true;
+                        option.SetDbStatementForText = true;
+                    })
                     .AddEntityFrameworkCoreInstrumentation()
                     .AddQuartzInstrumentation()
                     .AddWcfInstrumentation()
