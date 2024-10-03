@@ -164,6 +164,11 @@ export const Footer = ({ light }: { light?: boolean }) => {
 							<li>
 								<Link href="/docs">Documentation</Link>
 							</li>
+							<li>
+								<Link href="/ambassador-program">
+									Ambassadors
+								</Link>
+							</li>
 						</ul>
 					</Typography>
 				</div>
