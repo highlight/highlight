@@ -4,6 +4,9 @@ import {
 	DEFAULT_TIME_PRESETS,
 	IconSolidBell,
 	IconSolidCheveronRight,
+	IconSolidPauseCircle,
+	IconSolidPencil,
+	IconSolidPlayCircle,
 	presetStartDate,
 	Tag,
 	Text,
@@ -159,8 +162,15 @@ export const AlertPage: React.FC = () => {
 							/>
 							<HeaderDivider />
 							<Button
-								emphasis="low"
+								emphasis="medium"
 								kind="secondary"
+								iconLeft={
+									data.alert.disabled ? (
+										<IconSolidPlayCircle />
+									) : (
+										<IconSolidPauseCircle />
+									)
+								}
 								onClick={() =>
 									handleToggleDisabled(!data.alert.disabled)
 								}
@@ -172,8 +182,9 @@ export const AlertPage: React.FC = () => {
 									: 'Pause alert'}
 							</Button>
 							<Button
-								emphasis="low"
+								emphasis="medium"
 								kind="secondary"
+								iconLeft={<IconSolidPencil />}
 								onClick={redirectToEditAlert}
 								trackingId="AlertConfigure"
 							>
