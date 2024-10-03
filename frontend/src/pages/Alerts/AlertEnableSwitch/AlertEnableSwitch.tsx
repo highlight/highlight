@@ -98,7 +98,7 @@ export const AlertEnableSwitch: React.FC<
 		toast.success(
 			isDisabled
 				? `Paused "${record.name || record.Name}"`
-				: `Activated "${record.name || record.Name}"`,
+				: `Enabled "${record.name || record.Name}"`,
 			{ duration: 5000 },
 		)
 

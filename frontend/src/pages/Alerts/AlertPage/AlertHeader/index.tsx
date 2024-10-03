@@ -23,13 +23,13 @@ export const AlertHeader: React.FC<Props> = ({
 	const alertState: AlertState = useMemo(() => {
 		if (disabled) {
 			return {
-				state: 'Disabled',
+				state: 'Paused',
 				color: 'secondary',
 			}
 		}
 		// TODO(spenny): check if alerting
 		return {
-			state: 'Active',
+			state: 'Enabled',
 			color: 'success',
 		}
 	}, [disabled])

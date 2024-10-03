@@ -77,7 +77,7 @@ export const AlertPage: React.FC = () => {
 		toast.success(
 			disabled
 				? `Paused "${data?.alert.name}"`
-				: `Activated "${data?.alert.name}"`,
+				: `Enabled "${data?.alert.name}"`,
 			{ duration: 5000 },
 		)
 
@@ -168,7 +168,7 @@ export const AlertPage: React.FC = () => {
 								disabled={updateLoading}
 							>
 								{data.alert.disabled
-									? 'Activate alert'
+									? 'Enable alert'
 									: 'Pause alert'}
 							</Button>
 							<Button
