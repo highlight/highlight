@@ -1410,7 +1410,7 @@ type Graph struct {
 	Query             string
 	Metric            string
 	FunctionType      modelInputs.MetricAggregator
-	GroupByKey        *string
+	GroupByKeys       pq.StringArray `gorm:"type:text[]"`
 	BucketByKey       *string
 	BucketCount       *int
 	BucketInterval    *int

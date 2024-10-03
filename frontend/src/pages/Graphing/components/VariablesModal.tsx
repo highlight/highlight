@@ -107,7 +107,7 @@ const InnerModal = ({
 	const setVariable = (
 		idx: number,
 		field: 'key' | 'defaultValue' | 'field' | 'suggestionType',
-		value: string | undefined,
+		value: string | string[] | undefined,
 	) => {
 		const varsCopy = [...variables]
 		varsCopy[idx] = { ...variables[idx], [field]: value }
@@ -117,7 +117,7 @@ const InnerModal = ({
 	const addVariable = () => {
 		const varsCopy = [...variables]
 		varsCopy.push({
-			defaultValue: '',
+			defaultValues: [''],
 			key: '',
 			suggestionType: SuggestionType.Value,
 		})
@@ -257,8 +257,6 @@ const InnerModal = ({
 														.toDate(),
 													endDate: moment().toDate(),
 												}}
-												label={`product-type-${i}`}
-												placeholder=""
 											/>
 										)}
 									</Table.Cell>
@@ -267,12 +265,14 @@ const InnerModal = ({
 											SuggestionType.None && (
 											<Form.Input
 												name={`default-value-${i}`}
-												value={variable.defaultValue}
+												value={
+													variable.defaultValues[0]
+												}
 												onChange={(e) => {
 													setVariable(
 														i,
 														'defaultValue',
-														e.target.value,
+														[e.target.value],
 													)
 												}}
 												autoComplete="off"
@@ -283,10 +283,10 @@ const InnerModal = ({
 											SuggestionType.Key && (
 											<Combobox
 												selection={
-													variable.defaultValue ?? ''
+													variable.defaultValues
 												}
 												setSelection={(
-													selection: string,
+													selection: string[],
 												) => {
 													setVariable(
 														i,
@@ -300,18 +300,16 @@ const InnerModal = ({
 														.toDate(),
 													endDate: moment().toDate(),
 												}}
-												label={`default-value-${i}`}
-												placeholder=""
 											/>
 										)}
 										{variable.suggestionType ===
 											SuggestionType.Value && (
 											<ValueCombobox
 												selection={
-													variable.defaultValue ?? ''
+													variable.defaultValues
 												}
 												setSelection={(
-													selection: string,
+													selection: string[],
 												) => {
 													setVariable(
 														i,
@@ -326,7 +324,6 @@ const InnerModal = ({
 													endDate: moment().toDate(),
 												}}
 												keyName={variable.field ?? ''}
-												label={`default-value-${i}`}
 											/>
 										)}
 									</Table.Cell>

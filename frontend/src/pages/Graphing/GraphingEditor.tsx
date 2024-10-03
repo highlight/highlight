@@ -229,7 +229,7 @@ export const GraphingEditor: React.FC = () => {
 				bucketBySetting === 'Interval' ? Number(bucketInterval) : null,
 			display,
 			functionType,
-			groupByKey: groupByEnabled ? groupByKey : null,
+			groupByKeys: groupByEnabled ? groupByKeys : null,
 			limit: groupByEnabled ? Number(limit) : null,
 			limitFunctionType: groupByEnabled ? limitFunctionType : null,
 			limitMetric: groupByEnabled ? fetchedLimitMetric : null,
@@ -358,8 +358,8 @@ export const GraphingEditor: React.FC = () => {
 			setDebouncedQuery(g.query)
 			setMetric(g.metric)
 			setMetricViewTitle(g.title)
-			setGroupByEnabled(g.groupByKey !== null)
-			setGroupByKey(g.groupByKey ?? '')
+			setGroupByEnabled((g.groupByKeys ?? []).length > 0)
+			setGroupByKeys(g.groupByKeys ?? [])
 			setLimitFunctionType(g.limitFunctionType ?? FUNCTION_TYPES[0])
 			setLimit(g.limit ?? 10)
 			setLimitMetric(g.limitMetric ?? '')
@@ -409,7 +409,7 @@ export const GraphingEditor: React.FC = () => {
 	const [metricViewTitle, setMetricViewTitle] = useState('')
 	const tempMetricViewTitle = useRef<string>('')
 	const [groupByEnabled, setGroupByEnabled] = useState(false)
-	const [groupByKey, setGroupByKey] = useState('')
+	const [groupByKeys, setGroupByKeys] = useState<string[]>([])
 
 	const [limitFunctionType, setLimitFunctionType] = useState(
 		FUNCTION_TYPES[0],
@@ -596,8 +596,8 @@ export const GraphingEditor: React.FC = () => {
 											? Number(bucketInterval)
 											: undefined
 									}
-									groupByKey={
-										groupByEnabled ? groupByKey : undefined
+									groupByKeys={
+										groupByEnabled ? groupByKeys : undefined
 									}
 									limit={
 										groupByEnabled
@@ -725,7 +725,6 @@ export const GraphingEditor: React.FC = () => {
 										<Combobox
 											selection={fetchedMetric}
 											setSelection={setMetric}
-											label="metric"
 											searchConfig={searchOptionsConfig}
 											disabled={
 												functionType ===
@@ -736,6 +735,12 @@ export const GraphingEditor: React.FC = () => {
 												MetricAggregator.CountDistinct
 											}
 											defaultKeys={variableKeys}
+											placeholder={
+												functionType ===
+												MetricAggregator.Count
+													? 'Rows'
+													: undefined
+											}
 										/>
 									</LabeledRow>
 									<LabeledRow
@@ -746,9 +751,8 @@ export const GraphingEditor: React.FC = () => {
 										tooltip="A categorical field for grouping results into separate series."
 									>
 										<Combobox
-											selection={groupByKey}
-											setSelection={setGroupByKey}
-											label="groupBy"
+											selection={groupByKeys}
+											setSelection={setGroupByKeys}
 											searchConfig={searchOptionsConfig}
 											defaultKeys={variableKeys}
 										/>
@@ -796,7 +800,6 @@ export const GraphingEditor: React.FC = () => {
 													setSelection={
 														setLimitMetric
 													}
-													label="limitMetric"
 													searchConfig={
 														searchOptionsConfig
 													}
@@ -806,6 +809,12 @@ export const GraphingEditor: React.FC = () => {
 													}
 													onlyNumericKeys
 													defaultKeys={variableKeys}
+													placeholder={
+														limitFunctionType ===
+														MetricAggregator.Count
+															? 'Rows'
+															: undefined
+													}
 												/>
 											</LabeledRow>
 										</Box>
@@ -880,7 +889,6 @@ export const GraphingEditor: React.FC = () => {
 													setSelection={
 														setBucketByKey
 													}
-													label="bucketBy"
 													searchConfig={
 														searchOptionsConfig
 													}

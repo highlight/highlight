@@ -10,6 +10,7 @@ import { ButtonIcon } from '../ButtonIcon/ButtonIcon'
 import {
 	IconSolidCheck,
 	IconSolidCheckCircle,
+	IconSolidLoading,
 	IconSolidSelector,
 	IconSolidX,
 	IconSolidXCircle,
@@ -18,6 +19,7 @@ import { Stack } from '../Stack/Stack'
 import { Text } from '../Text/Text'
 import * as styles from './styles.css'
 import { themeVars } from '../../theme'
+import { vars } from '@/vars'
 
 export type SelectOption = {
 	name: string
@@ -147,6 +149,7 @@ export type SelectProps<T = any> = Omit<
 	displayMode?: SelectProviderProps['displayMode']
 	filterable?: boolean
 	loading?: SelectProviderProps['loading']
+	resultsLoading?: boolean
 	trigger?: React.ComponentType
 	options?: SelectProviderProps['options']
 	placeholder?: string
@@ -168,6 +171,7 @@ export const Select = <T,>({
 	displayMode,
 	filterable,
 	loading,
+	resultsLoading,
 	store,
 	value: valueProp,
 	options: optionsProp,
@@ -306,7 +310,7 @@ export const Select = <T,>({
 				<Provider store={store} options={options}>
 					<Trigger {...props} />
 					<Popover>
-						<Box px="4" pb="4">
+						<Box px="4" pb="4" display="flex" alignItems="center">
 							<Ariakit.Combobox
 								autoSelect
 								placeholder="Search..."
@@ -314,6 +318,12 @@ export const Select = <T,>({
 								value={searchValue}
 								onChange={(e) => setSearchValue(e.target.value)}
 							/>
+							{resultsLoading && (
+								<IconSolidLoading
+									className={styles.loadingIcon}
+									color={vars.theme.static.content.weak}
+								/>
+							)}
 						</Box>
 
 						<Ariakit.ComboboxList>
@@ -653,13 +663,14 @@ export const Option: React.FC<OptionProps> = ({
 			className={styles.item}
 			{...props}
 		>
-			<ItemCheck checked={selected} />
+			<ItemCheck checked={selected} style={{ flexShrink: 0 }} />
 			{children ? (
 				typeof children === 'string' ? (
 					<Text
 						size="small"
 						weight="medium"
 						color="secondaryContentOnEnabled"
+						lines="1"
 					>
 						{children}
 					</Text>
@@ -671,6 +682,7 @@ export const Option: React.FC<OptionProps> = ({
 					size="small"
 					weight="medium"
 					color="secondaryContentOnEnabled"
+					lines="1"
 				>
 					{value}
 				</Text>
@@ -696,7 +708,7 @@ export const ItemCheck: React.FC<Ariakit.SelectItemCheckProps> = ({
 	}
 
 	return (
-		<Ariakit.SelectItemCheck {...props}>
+		<Ariakit.SelectItemCheck {...props} className={styles.checkmark}>
 			{children ?? <IconSolidCheck size="16" />}
 		</Ariakit.SelectItemCheck>
 	)
@@ -705,12 +717,7 @@ export const ItemCheck: React.FC<Ariakit.SelectItemCheckProps> = ({
 type PopoverProps = Ariakit.SelectPopoverProps
 export const Popover: React.FC<PopoverProps> = ({ children, ...props }) => {
 	return (
-		<Ariakit.SelectPopover
-			sameWidth
-			gutter={4}
-			className={styles.popover}
-			{...props}
-		>
+		<Ariakit.SelectPopover gutter={4} className={styles.popover} {...props}>
 			{/*
 			There is a bug in Ariakit where you need to have this arrow rendered or
 			else positioning of the popover breaks. We render it, but hide it by

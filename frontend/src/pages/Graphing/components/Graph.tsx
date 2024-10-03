@@ -91,7 +91,7 @@ export interface ChartProps<TConfig> {
 	query: string
 	metric: string
 	functionType: MetricAggregator
-	groupByKey?: string
+	groupByKeys?: string[]
 	bucketByKey?: string
 	bucketCount?: number
 	bucketByWindow?: number
@@ -103,7 +103,7 @@ export interface ChartProps<TConfig> {
 	height?: number
 	setTimeRange?: SetTimeRange
 	loadExemplars?: LoadExemplars
-	variables?: Map<string, string>
+	variables?: Map<string, string[]>
 }
 
 export interface InnerChartProps<TConfig> {
@@ -672,15 +672,45 @@ export const useGraphSeries = (
 const POLL_INTERVAL_VALUE = 1000 * 60
 const LONGER_POLL_INTERVAL_VALUE = 1000 * 60 * 5
 
-const replaceVariables = (
+const replaceQueryVariables = (
 	text: string,
-	vars: Map<string, string> | undefined,
+	vars: Map<string, string[]> | undefined,
 ) => {
-	vars?.forEach((value, key) => {
-		text = text?.replaceAll(`$${key}`, value)
+	vars?.forEach((values, key) => {
+		let replacementText = ''
+		if (values.length === 1) {
+			replacementText = values[0]
+		} else if (values.length > 1) {
+			replacementText = `(${values.join(' OR ')})`
+		}
+		text = text?.replaceAll(`$${key}`, replacementText)
 	})
-	console.log('replaceVariables', vars)
 	return text
+}
+
+const matchParamVariables = (
+	text: string | string[],
+	vars: Map<string, string[]> | undefined,
+): string[] => {
+	if (Array.isArray(text)) {
+		const results: string[] = []
+		text.forEach((t) => {
+			const values = vars?.get(t)
+			if (values !== undefined) {
+				results.push(...values)
+			} else {
+				results.push(t)
+			}
+		})
+		return results
+	} else {
+		const values = vars?.get(text)
+		if (values !== undefined) {
+			return values
+		} else {
+			return [text]
+		}
+	}
 }
 
 const Graph = ({
@@ -691,7 +721,7 @@ const Graph = ({
 	query,
 	metric,
 	functionType,
-	groupByKey,
+	groupByKeys,
 	bucketByKey,
 	bucketByWindow,
 	bucketCount,
@@ -742,15 +772,15 @@ const Graph = ({
 				return
 		}
 
-		let relatedResourceQuery = replaceVariables(query, variables)
-		if (groupByKey !== undefined) {
+		let relatedResourceQuery = replaceQueryVariables(query, variables)
+		if (groupByKeys !== undefined && groupByKeys.length > 0) {
 			if (relatedResourceQuery !== '') {
 				relatedResourceQuery += ' '
 			}
 			if (group !== NO_GROUP_PLACEHOLDER && group !== '') {
-				relatedResourceQuery += `${groupByKey}="${group}"`
+				relatedResourceQuery += `${groupByKeys[0]}="${group}"`
 			} else {
-				relatedResourceQuery += `${groupByKey} not exists`
+				relatedResourceQuery += `${groupByKeys[0]} not exists`
 			}
 		}
 		if (![undefined, TIMESTAMP_KEY].includes(bucketByKey)) {
@@ -836,24 +866,25 @@ const Graph = ({
 						start_date: start.format(TIME_FORMAT),
 						end_date: end.format(TIME_FORMAT),
 					},
-					query: replaceVariables(query, variables),
+					query: replaceQueryVariables(query, variables),
 				},
-				column: replaceVariables(yAxisMetric, variables),
+				column: matchParamVariables(yAxisMetric, variables).at(0) ?? '',
 				metric_types: [functionType],
 				group_by:
-					groupByKey !== undefined
-						? [replaceVariables(groupByKey, variables)]
+					groupByKeys !== undefined
+						? matchParamVariables(groupByKeys, variables)
 						: [],
 				bucket_by:
 					bucketByKey !== undefined
-						? replaceVariables(bucketByKey, variables)
+						? (matchParamVariables(bucketByKey, variables).at(0) ??
+							'')
 						: TIMESTAMP_KEY,
 				bucket_window: bucketByWindow,
 				bucket_count: queriedBucketCount,
 				limit: limit,
 				limit_aggregator: limitFunctionType,
 				limit_column: limitMetric
-					? replaceVariables(limitMetric, variables)
+					? matchParamVariables(limitMetric, variables).at(0)
 					: undefined,
 			},
 		}).then(() => {
@@ -880,7 +911,7 @@ const Graph = ({
 		fetchStart,
 		functionType,
 		getMetrics,
-		groupByKey,
+		groupByKeys,
 		limit,
 		limitFunctionType,
 		limitMetric,
@@ -890,7 +921,6 @@ const Graph = ({
 		queriedBucketCount,
 		query,
 		variables,
-		replaceVariables,
 	])
 
 	const data = useGraphData(metrics, xAxisMetric)
