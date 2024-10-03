@@ -81,7 +81,8 @@ import { PythonGCPTracesContent } from './traces/python/gcp'
 import { PythonManualTracesContent } from './traces/python/manual'
 import { PythonAITracesContent } from './traces/python/python-ai'
 import { PythonLibrariesTracesContent } from './traces/python/python-libraries'
-import { RubyTracesContent } from './traces/ruby'
+import { RubyRailsTracesContent } from './traces/ruby/rails'
+import { RubyOtherTracesContent } from './traces/ruby/other'
 import { RustTracesContent } from './traces/rust'
 import { AWSLambdaContent } from './traces/serverless/lambda'
 
@@ -461,7 +462,8 @@ export const quickStartContent = {
 			title: 'Ruby',
 			subtitle: 'Install tracing in your Ruby application.',
 			logoUrl: siteUrl('/images/quickstart/ruby.svg'),
-			[QuickStartType.RubyRails]: RubyTracesContent,
+			[QuickStartType.RubyRails]: RubyRailsTracesContent,
+			[QuickStartType.RubyOther]: RubyOtherTracesContent,
 		},
 	},
 	other: {

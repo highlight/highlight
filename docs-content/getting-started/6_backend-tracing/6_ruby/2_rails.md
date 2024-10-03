@@ -1,7 +1,7 @@
 ---
-toc: Ruby
-title: Backend Tracing in Ruby
-slug: ruby
+toc: Rails
+title: Rails
+slug: rails
 quickstart: true
 ---
 
