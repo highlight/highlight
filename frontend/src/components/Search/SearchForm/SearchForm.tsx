@@ -416,7 +416,7 @@ export const Search: React.FC<{
 	let visibleItems: SearchResult[] = showValues
 		? getVisibleValues(
 				activePart,
-				defaultValueOptions?.concat(values ?? []),
+				(defaultValueOptions ?? []).concat(values ?? []),
 			)
 		: getVisibleKeys(query, activePart, keys)
 
