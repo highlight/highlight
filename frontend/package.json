@@ -82,7 +82,7 @@
 	},
 	"scripts": {
 		"analyze": "source-map-explorer 'build/static/js/*.js'",
-		"build": "yarn types:check && NODE_OPTIONS='--max-old-space-size=16384' vite build",
+		"build": "yarn types:check && NODE_OPTIONS='--max-old-space-size=32768' vite build",
 		"codegen": "graphql-codegen --config codegen.yml",
 		"dev": "run-p --print-label --race 'dev:**'",
 		"dev:vite": "vite",
