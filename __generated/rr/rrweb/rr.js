@@ -2201,9 +2201,7 @@ function buildNode(n2, options) {
           try {
             n2.childNodes = [];
           } catch (err) {
-            console.warn(
-              `Highlight failed to set rrweb text area child nodes ${err}`
-            );
+            console.warn(`Highlight failed to set rrweb text area child nodes ${err}`);
           }
           continue;
         }
