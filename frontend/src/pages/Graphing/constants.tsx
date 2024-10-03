@@ -30,12 +30,22 @@ export const PRODUCT_ICONS = [
 	<IconSolidTraces key="traces" />,
 	<IconSolidPlayCircle key="sessions" />,
 	<IconSolidLightningBolt key="errors" />,
-	<IconSolidChartBar key="metrics" />,
+	// TODO(vkorolik) metrics disabled in the frontend to avoid confusion
+	// <IconSolidChartBar key="metrics" />,
 ]
 
 export const PRODUCT_ICONS_WITH_EVENTS = PRODUCT_ICONS.concat([
 	<IconSolidFire key="events" />,
 ])
+
+export const PRODUCTS_TO_ICONS = {
+	[ProductType.Logs]: <IconSolidLogs key="logs" />,
+	[ProductType.Traces]: <IconSolidTraces key="traces" />,
+	[ProductType.Sessions]: <IconSolidPlayCircle key="sessions" />,
+	[ProductType.Errors]: <IconSolidLightningBolt key="errors" />,
+	[ProductType.Metrics]: <IconSolidChartBar key="metrics" />,
+	[ProductType.Events]: <IconSolidFire key="events" />,
+}
 
 export const NUMERIC_FUNCTION_TYPES: MetricAggregator[] = [
 	MetricAggregator.Min,

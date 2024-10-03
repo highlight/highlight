@@ -97,8 +97,8 @@ export const AlertEnableSwitch: React.FC<
 
 		toast.success(
 			isDisabled
-				? `Disabled "${record.name || record.Name}"`
-				: `Enabled "${record.name || record.Name}"`,
+				? `Paused "${record.name || record.Name}"`
+				: `Activated "${record.name || record.Name}"`,
 			{ duration: 5000 },
 		)
 
@@ -108,7 +108,7 @@ export const AlertEnableSwitch: React.FC<
 
 	return (
 		<Switch
-			trackingId={`AlertEnable-${record.id}`}
+			trackingId="AlertDisableSwitch"
 			loading={loading}
 			justifySpaceBetween
 			size="default"

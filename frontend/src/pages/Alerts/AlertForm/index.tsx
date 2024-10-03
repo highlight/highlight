@@ -404,21 +404,40 @@ export const AlertForm: React.FC = () => {
 						justifyContent="space-between"
 						cssClass={style.editGraphPanel}
 					>
-						<AlertGraph
-							alertName={alertName}
-							query={query}
-							productType={productType}
-							functionColumn={fetchedFunctionColumn}
-							functionType={functionType}
-							groupByKey={groupByEnabled ? groupByKey : undefined}
-							thresholdWindow={thresholdWindow}
-							thresholdValue={thresholdValue}
-							belowThreshold={belowThreshold}
-							startDate={startDate}
-							endDate={endDate}
-							selectedPreset={selectedPreset}
-							updateSearchTime={updateSearchTime}
-						/>
+						<Box
+							display="flex"
+							position="relative"
+							height="full"
+							cssClass={style.previewWindow}
+						>
+							<Box
+								position="absolute"
+								width="full"
+								height="full"
+								cssClass={style.graphBackground}
+							>
+								<EditorBackground />
+							</Box>
+							<Box cssClass={style.graphContainer}>
+								<AlertGraph
+									alertName={alertName}
+									query={query}
+									productType={productType}
+									functionColumn={fetchedFunctionColumn}
+									functionType={functionType}
+									groupByKey={
+										groupByEnabled ? groupByKey : undefined
+									}
+									thresholdWindow={thresholdWindow}
+									thresholdValue={thresholdValue}
+									belowThreshold={belowThreshold}
+									startDate={startDate}
+									endDate={endDate}
+									selectedPreset={selectedPreset}
+									updateSearchTime={updateSearchTime}
+								/>
+							</Box>
+						</Box>
 						<Box
 							display="flex"
 							borderLeft="dividerWeak"
@@ -681,5 +700,32 @@ export const AlertForm: React.FC = () => {
 				</Box>
 			</Box>
 		</>
+	)
+}
+
+const EditorBackground = () => {
+	return (
+		<svg width="100%" height="100%">
+			<defs>
+				<pattern
+					id="polka-dots"
+					x="0"
+					y="0"
+					width="14"
+					height="14"
+					patternUnits="userSpaceOnUse"
+				>
+					<circle fill="#e4e2e4" cx="7" cy="7" r="1" />
+				</pattern>
+			</defs>
+
+			<rect
+				x="0"
+				y="0"
+				width="100%"
+				height="100%"
+				fill="url(#polka-dots)"
+			/>
+		</svg>
 	)
 }
