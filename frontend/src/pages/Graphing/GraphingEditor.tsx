@@ -60,7 +60,6 @@ import {
 } from '@/pages/Graphing/components/Table'
 import { HeaderDivider } from '@/pages/Graphing/Dashboard'
 
-import { EventSelection } from './EventSelection'
 import { Combobox } from './Combobox'
 import {
 	DEFAULT_BUCKET_COUNT,
@@ -78,6 +77,8 @@ import {
 	LineChartSettings,
 	TableSettings,
 } from './Settings'
+import { EventSteps } from '@pages/Graphing/EventSelection/EventSteps'
+import { EventSelection } from '@pages/Graphing/EventSelection'
 import { FREQUENCIES } from '@/pages/Alerts/AlertConfigurationCard/AlertConfigurationConstants'
 import { useGraphingVariables } from '@/pages/Graphing/hooks/useGraphingVariables'
 import { VariablesBar } from '@/pages/Graphing/components/VariablesBar'
@@ -393,6 +394,13 @@ export const GraphingEditor: React.FC = () => {
 	const [funnelDisplay, setFunnelDisplay] = useState(FUNNEL_DISPLAY[0])
 
 	const [query, setQuery] = useState('')
+	// TODO(vkorolik)
+	const [funnelSteps, setFunnelSteps] = useState<string[]>([
+		'',
+		'email exists',
+		'email exists event=header-link-click-alerts',
+		"email exists event=header-link-click-alerts event='Session pause'",
+	])
 	const [debouncedQuery, setDebouncedQuery] = useState('')
 	useDebounce(
 		() => {
@@ -617,6 +625,7 @@ export const GraphingEditor: React.FC = () => {
 									limitMetric={
 										groupByEnabled ? limitMetric : undefined
 									}
+									funnelSteps={funnelSteps}
 									setTimeRange={updateSearchTime}
 									variables={values}
 								/>
@@ -670,11 +679,18 @@ export const GraphingEditor: React.FC = () => {
 								</SidebarSection>
 								<Divider className="m-0" />
 								<SidebarSection>
-									{productType === ProductType.Events ||
-									viewType === 'Funnel chart' ? (
+									{productType === ProductType.Events ? (
 										<EventSelection
 											initialQuery={query}
 											setQuery={setQuery}
+											startDate={startDate}
+											endDate={endDate}
+										/>
+									) : viewType === 'Funnel chart' ? (
+										<EventSteps
+											initialQuery={query}
+											setQuery={setQuery}
+											setFunnelSteps={setFunnelSteps}
 											startDate={startDate}
 											endDate={endDate}
 										/>

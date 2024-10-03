@@ -20,8 +20,8 @@ import { vars } from '@highlight-run/ui/vars'
 import {
 	FunnelChart,
 	FunnelChartConfig,
-	FunnelDisplay,
 } from '@pages/Graphing/components/FunnelChart'
+import { FunnelDisplay } from '@pages/Graphing/components/types'
 import clsx from 'clsx'
 import _ from 'lodash'
 import moment from 'moment'
@@ -121,6 +121,7 @@ export interface ChartProps<TConfig> {
 	limit?: number
 	limitFunctionType?: MetricAggregator
 	limitMetric?: string
+	funnelSteps?: string[]
 	viewConfig: TConfig
 	disabled?: boolean
 	height?: number
@@ -738,6 +739,7 @@ const Graph = ({
 	limit,
 	limitFunctionType,
 	limitMetric,
+	funnelSteps,
 	title,
 	viewConfig,
 	disabled,
@@ -748,7 +750,6 @@ const Graph = ({
 	children,
 }: React.PropsWithChildren<ChartProps<ViewConfig>>) => {
 	const queriedBucketCount = bucketByKey !== undefined ? bucketCount : 1
-	const funnelMode = viewConfig.type === 'Funnel chart'
 
 	const pollTimeout = useRef<number>()
 	const [pollInterval, setPollInterval] = useState<number>(0)
@@ -895,14 +896,7 @@ const Graph = ({
                     ? replaceVariables(limitMetric, variables)
                     : undefined,
 				// TODO(vkorolik)
-				funnel_steps: funnelMode
-					? [
-							'',
-							'email exists',
-							'email exists event=header-link-click-alerts',
-							"email exists event=header-link-click-alerts event='Session pause'",
-						]
-					: undefined,
+                funnel_steps: funnelSteps,
 			},
 		}).then(() => {
 			// create another poll timeout if pollInterval is set
@@ -932,6 +926,7 @@ const Graph = ({
 		limit,
 		limitFunctionType,
 		limitMetric,
+		funnelSteps,
 		yAxisMetric,
 		productType,
 		projectId,
@@ -1032,7 +1027,11 @@ const Graph = ({
 							xAxisMetric={xAxisMetric}
 							yAxisMetric={yAxisMetric}
 							yAxisFunction={yAxisFunction}
-							viewConfig={{ showLegend: true }}
+							viewConfig={{
+								showLegend: true,
+								type: 'Bar chart',
+								display: 'Grouped',
+							}}
 							series={series}
 							spotlight={spotlight}
 							setTimeRange={setTimeRange}
