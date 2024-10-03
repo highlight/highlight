@@ -116,7 +116,7 @@ func Test_IsSessionExcluded(t *testing.T) {
 	_, err = resolver.Store.UpdateProjectFilterSettings(ctx, project.ID, store.UpdateProjectFilterSettingsParams{
 		Sampling: &modelInputs.SamplingInput{
 			SessionSamplingRate:    pointy.Float64(1. / 100_000),
-			SessionMinuteRateLimit: pointy.Int64(1),
+			SessionMinuteRateLimit: pointy.Int64(2),
 			SessionExclusionQuery:  pointy.String("environment:prod"),
 		},
 	})
@@ -131,9 +131,13 @@ func Test_IsSessionExcluded(t *testing.T) {
 	excluded, reason := resolver.IsSessionExcluded(ctx, &s, false)
 	assert.False(t, excluded)
 	assert.Equal(t, "", reason.String())
+	s = model.Session{ProjectID: project.ID, Identifier: rare, Model: model.Model{CreatedAt: when}}
+	excluded, reason = resolver.IsSessionExcluded(ctx, &s, false)
+	assert.False(t, excluded)
+	assert.Equal(t, "", reason.String())
 	for i := 0; i < 100; i++ {
 		for _, hasErrors := range []bool{false, true} {
-			s := model.Session{ProjectID: project.ID, SecureID: rare, Model: model.Model{CreatedAt: when}}
+			s := model.Session{ProjectID: project.ID, SecureID: rare, Identifier: rare, Model: model.Model{CreatedAt: when}}
 			excluded, reason := resolver.IsSessionExcluded(ctx, &s, hasErrors)
 			assert.True(t, excluded)
 			assert.Equal(t, modelInputs.SessionExcludedReasonRateLimitMinute, *reason)
