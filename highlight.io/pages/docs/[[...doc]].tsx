@@ -1033,7 +1033,10 @@ export default function DocPage({
 												EnterpriseSelfHostCalendlyComponent,
 												DocsCardGroup,
 												h1: (props) => (
-													<h4 {...props} />
+													<h1
+														{...props}
+														className="docH1"
+													/>
 												),
 												h2: (props) => {
 													const id =
@@ -1045,9 +1048,10 @@ export default function DocPage({
 															href={`#${id}`}
 															className="flex items-baseline gap-2 my-6 transition-all group"
 														>
-															<h5
+															<h2
 																id={id}
 																{...props}
+																className="docH2"
 															/>
 														</Link>
 													)
@@ -1062,18 +1066,19 @@ export default function DocPage({
 															href={`#${id}`}
 															className="flex items-baseline gap-2 my-6 transition-all group"
 														>
-															<h6
+															<h3
 																id={id}
 																{...props}
+																className="docH3"
 															/>
 														</Link>
 													)
 												},
 												h4: (props) => (
-													<h6 {...props} />
+													<h4 {...props} />
 												),
 												h5: (props) => (
-													<h6 {...props} />
+													<h5 {...props} />
 												),
 												code: (props) => {
 													// check if props.children is a string
