@@ -37,10 +37,6 @@ function MyApp({ Component, pageProps }: AppProps) {
 	return (
 		<>
 			<Head>
-				<title>
-					highlight.io: The open source monitoring platform.
-				</title>
-
 				<link
 					rel="preconnect"
 					href="https://fonts.googleapis.com"
