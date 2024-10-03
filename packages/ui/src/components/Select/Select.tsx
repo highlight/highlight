@@ -45,6 +45,7 @@ type SelectProviderProps<T = any> = {
 	setOptions?: (options: T) => void
 	setValue?: (value: T) => void
 	onValueChange?: (value: T) => void
+	onSearchValueChange?: (value: string) => void
 }
 
 const SelectContext = React.createContext<SelectProviderProps>({
@@ -155,6 +156,7 @@ export type SelectProps<T = any> = Omit<
 		value: Ariakit.SelectStoreState['value'],
 	) => React.ReactElement | string | null
 	onValueChange?: SelectProviderProps['onValueChange']
+	onSearchValueChange?: SelectProviderProps['onSearchValueChange']
 	onCreate?: (newOptionValue: string) => void
 }
 
@@ -170,10 +172,15 @@ export const Select = <T,>({
 	value: valueProp,
 	options: optionsProp,
 	onValueChange,
+	onSearchValueChange,
 	onCreate,
 	...props
 }: SelectProps<T>) => {
-	const [searchValue, setSearchValue] = useState('')
+	const [searchValue, setSearchValueImpl] = useState('')
+	const setSearchValue = (searchValue: string) => {
+		setSearchValueImpl(searchValue)
+		onSearchValueChange && onSearchValueChange(searchValue)
+	}
 	const value = valueProp ?? props.defaultValue
 	const [options, setOptions] = useState(
 		valueToOptions(optionsProp) as SelectOption[],

@@ -1,4 +1,4 @@
-import { ComboboxSelect, Text } from '@highlight-run/ui/components'
+import { ComboboxSelect, Select, Text } from '@highlight-run/ui/components'
 import _ from 'lodash'
 import moment from 'moment'
 import React, { useEffect, useMemo, useState } from 'react'
@@ -32,15 +32,15 @@ type Props = {
 export const Combobox: React.FC<Props> = ({
 	selection,
 	setSelection,
-	label,
+	// label,
 	searchConfig: { productType, startDate, endDate },
 	onlyNumericKeys,
 	defaultKeys,
 	disabled,
-	placeholder = 'Rows',
+	// placeholder = 'Rows',
 }) => {
 	const { projectId } = useProjectId()
-	const [getKeys, { data }] = useGetKeysLazyQuery()
+	const [getKeys, { data, loading, previousData }] = useGetKeysLazyQuery()
 	const [query, setQuery] = useState('')
 	const [debouncedQuery, setDebouncedQuery] = useState('')
 	useDebounce(
@@ -61,19 +61,20 @@ export const Combobox: React.FC<Props> = ({
 		}
 
 		const searchKeys =
-			_.chain(data?.keys || [])
+			_.chain(data?.keys || previousData?.keys || [])
 				.map('name')
 				.uniq()
 				.value() ?? []
 
-		baseKeys.concat(searchKeys).slice(0, 8)
-
-		return baseKeys.concat(searchKeys).map((o) => ({
-			key: o,
-			render: o,
-		}))
+		return baseKeys
+			.concat(searchKeys)
+			.map((o) => ({
+				value: o,
+				name: o,
+			}))
+			.slice(0, 25)
 		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [data?.keys, defaultKeys])
+	}, [data?.keys, previousData?.keys, defaultKeys])
 
 	useEffect(() => {
 		getKeys({
@@ -99,21 +100,21 @@ export const Combobox: React.FC<Props> = ({
 	])
 
 	return (
-		<ComboboxSelect
-			label={label}
+		<Select
+			filterable
 			value={selection}
-			valueRender={
-				<Text cssClass={style.comboboxText}>
-					{selection || placeholder}
-				</Text>
-			}
+			// valueRender={
+			// 	<Text cssClass={style.comboboxText}>
+			// 		{selection || placeholder}
+			// 	</Text>
+			// }
 			options={keyOptions}
-			onChange={setSelection}
-			onChangeQuery={setQuery}
-			cssClass={style.combobox}
-			wrapperCssClass={style.comboboxWrapper}
-			popoverCssClass={style.comboboxPopover}
-			queryPlaceholder="Filter..."
+			onValueChange={setSelection}
+			onSearchValueChange={setQuery}
+			// cssClass={style.combobox}
+			// wrapperCssClass={style.comboboxWrapper}
+			// popoverCssClass={style.comboboxPopover}
+			// queryPlaceholder="Filter..."
 			disabled={disabled}
 		/>
 	)
