@@ -50,8 +50,6 @@ const ClickUpListSelector: React.FC<ContainerSelectionProps> = ({
 		}
 	}, [selectedClickUpListId, clickUpListOptions, setClickUpListId])
 
-	console.log('clickUpListOptions', clickUpListOptions)
-
 	return (
 		<Form.NamedSection label="List" name="clickupList">
 			<OptionDropdown
