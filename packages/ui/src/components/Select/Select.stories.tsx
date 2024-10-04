@@ -33,7 +33,6 @@ const OPTIONS = [
 	'Esplin',
 	'Mike',
 	'Chris',
-	'This is a pretty long option. I wonder what is going to happen?',
 ]
 
 export const Basic = () => {
@@ -313,20 +312,3 @@ const Options = () => (
 		))}
 	</>
 )
-
-export const ZaneTest = () => {
-	return (
-		<div style={{ display: 'flex' }}>
-			<div style={{ width: '400px', flexShrink: 0 }} />
-			<Select
-				defaultValue={'Jay'}
-				filterable
-				options={OPTIONS.map((option) => ({
-					name: option,
-					value: option,
-				}))}
-				style={{ width: 150, flexShrink: 0 }}
-			/>
-		</div>
-	)
-}

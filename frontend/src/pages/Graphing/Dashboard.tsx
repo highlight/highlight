@@ -573,8 +573,8 @@ export const Dashboard = () => {
 																g.bucketCount ??
 																undefined
 															}
-															groupByKey={
-																g.groupByKey ??
+															groupByKeys={
+																g.groupByKeys ??
 																undefined
 															}
 															limit={

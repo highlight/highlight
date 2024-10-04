@@ -19,7 +19,7 @@ import { Stack } from '../Stack/Stack'
 import { Text } from '../Text/Text'
 import * as styles from './styles.css'
 import { themeVars } from '../../theme'
-import { vars } from '@/vars'
+import { vars } from '@highlight-run/ui/vars'
 
 export type SelectOption = {
 	name: string

@@ -166,7 +166,7 @@ export const ExpandedGraph = () => {
 								bucketByKey={g.bucketByKey ?? undefined}
 								bucketByWindow={g.bucketInterval ?? undefined}
 								bucketCount={g.bucketCount ?? undefined}
-								groupByKey={g.groupByKey ?? undefined}
+								groupByKeys={g.groupByKeys ?? undefined}
 								limit={g.limit ?? undefined}
 								limitFunctionType={
 									g.limitFunctionType ?? undefined
