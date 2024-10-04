@@ -8,12 +8,7 @@ import { parseSearch } from '@/components/Search/utils'
 import { ClickFilters } from './ClickFilters'
 import { NavigateFilters } from './NavigateFilters'
 import { TrackFilters } from './TrackFilters'
-
-export enum EventType {
-	Track = 'Track',
-	Click = 'Click',
-	Navigate = 'Navigate',
-}
+import { EventSelectionDetails, EventType } from '@pages/Graphing/util'
 
 const EVENT_TYPES: EventType[] = [
 	EventType.Track,
@@ -28,12 +23,6 @@ type Props = {
 	setEvent?: (event: EventSelectionDetails) => void
 	startDate: Date
 	endDate: Date
-}
-
-export type EventSelectionDetails = {
-	type: EventType
-	name: string
-	filters: string
 }
 
 export const EventSelection: React.FC<Props> = ({
