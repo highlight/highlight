@@ -2493,7 +2493,6 @@ type Query {
 		limit: Int
 		limit_aggregator: MetricAggregator
 		limit_column: String
-		funnel_steps: [String!]
 	): MetricsBuckets!
 	events_keys(
 		project_id: ID!
@@ -2536,7 +2535,6 @@ type Query {
 		limit: Int
 		limit_aggregator: MetricAggregator
 		limit_column: String
-		funnel_steps: [String!]
 	): MetricsBuckets!
 	keys(
 		product_type: ProductType

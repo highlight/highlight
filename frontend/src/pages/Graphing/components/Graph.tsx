@@ -32,7 +32,10 @@ import { CategoricalChartState } from 'recharts/types/chart/types'
 import { loadingIcon } from '@/components/Button/style.css'
 import { useRelatedResource } from '@/components/RelatedResources/hooks'
 import { TIME_FORMAT } from '@/components/Search/SearchForm/constants'
-import { useGetMetricsLazyQuery } from '@/graph/generated/hooks'
+import {
+	GetMetricsQueryResult,
+	useGetMetricsLazyQuery,
+} from '@/graph/generated/hooks'
 import { GetMetricsQuery } from '@/graph/generated/operations'
 import { Maybe, MetricAggregator, ProductType } from '@/graph/generated/schemas'
 import {
@@ -646,11 +649,17 @@ export const getViewConfig = (
 }
 
 export const useGraphData = (
-	metrics: GetMetricsQuery | undefined,
+	results: GetMetricsQueryResult[] | undefined,
 	xAxisMetric: string,
 	funnelMode?: boolean,
 ) => {
 	return useMemo(() => {
+		if (!results?.length) return
+		const metrics: GetMetricsQuery = results[0].data!
+		for (const r of results) {
+			metrics.metrics.buckets.push(...(r.data?.metrics?.buckets ?? []))
+		}
+
 		let data: any[] | undefined
 		if (metrics?.metrics.buckets) {
 			if (funnelMode) {
@@ -689,12 +698,7 @@ export const useGraphData = (
 			}
 		}
 		return data
-	}, [
-		funnelMode,
-		metrics?.metrics.bucket_count,
-		metrics?.metrics.buckets,
-		xAxisMetric,
-	])
+	}, [funnelMode, results, xAxisMetric])
 }
 
 export const useGraphSeries = (
@@ -755,6 +759,7 @@ const Graph = ({
 	const [pollInterval, setPollInterval] = useState<number>(0)
 	const [fetchStart, setFetchStart] = useState<Date>()
 	const [fetchEnd, setFetchEnd] = useState<Date>()
+	const [results, setResults] = useState<GetMetricsQueryResult[]>()
 
 	const { set } = useRelatedResource()
 
@@ -817,10 +822,7 @@ const Graph = ({
 		})
 	}
 
-	const [
-		getMetrics,
-		{ data: newMetrics, called, loading, previousData: previousMetrics },
-	] = useGetMetricsLazyQuery()
+	const [getMetrics, { called, loading }] = useGetMetricsLazyQuery()
 
 	const rebaseFetchTime = useCallback(() => {
 		if (!selectedPreset) {
@@ -867,38 +869,59 @@ const Graph = ({
 			.startOf('minute')
 			.subtract(overage, 'minute')
 
-		getMetrics({
-			variables: {
-				product_type: productType,
-				project_id: projectId,
-				params: {
-					date_range: {
-						start_date: start.format(TIME_FORMAT),
-						end_date: end.format(TIME_FORMAT),
-					},
-					query: replaceVariables(query, variables),
+		const getMetricsVariables = {
+			product_type: productType,
+			project_id: projectId,
+			params: {
+				date_range: {
+					start_date: start.format(TIME_FORMAT),
+					end_date: end.format(TIME_FORMAT),
 				},
-				column: replaceVariables(yAxisMetric, variables),
-				metric_types: [functionType],
-				group_by:
-					groupByKey !== undefined
-						? [replaceVariables(groupByKey, variables)]
-						: [],
-				bucket_by:
-					bucketByKey !== undefined
-						? replaceVariables(bucketByKey, variables)
-						: TIMESTAMP_KEY,
-				bucket_window: bucketByWindow,
-				bucket_count: queriedBucketCount,
-				limit: limit,
-				limit_aggregator: limitFunctionType,
-                limit_column: limitMetric
-                    ? replaceVariables(limitMetric, variables)
-                    : undefined,
-				// TODO(vkorolik)
-                funnel_steps: funnelSteps,
+				query: replaceVariables(query, variables),
 			},
-		}).then(() => {
+			column: replaceVariables(yAxisMetric, variables),
+			metric_types: [functionType],
+			group_by:
+				groupByKey !== undefined
+					? [replaceVariables(groupByKey, variables)]
+					: [],
+			bucket_by:
+				bucketByKey !== undefined
+					? replaceVariables(bucketByKey, variables)
+					: TIMESTAMP_KEY,
+			bucket_window: bucketByWindow,
+			bucket_count: queriedBucketCount,
+			limit: limit,
+			limit_aggregator: limitFunctionType,
+			limit_column: limitMetric
+				? replaceVariables(limitMetric, variables)
+				: undefined,
+		}
+
+		let getMetricsPromises: Promise<GetMetricsQueryResult>[] = []
+		if (funnelSteps) {
+			// TODO(vkorolik)
+			for (const step of funnelSteps) {
+				getMetricsPromises.push(
+					getMetrics({
+						variables: {
+							...getMetricsVariables,
+							params: {
+								...getMetricsVariables.params,
+								query: step,
+							},
+						},
+					}),
+				)
+			}
+		} else {
+			getMetricsPromises = [
+				getMetrics({ variables: getMetricsVariables }),
+			]
+		}
+		Promise.all(getMetricsPromises).then((r: GetMetricsQueryResult[]) => {
+			setResults(r)
+
 			// create another poll timeout if pollInterval is set
 			if (pollInterval) {
 				pollTimeout.current = setTimeout(
@@ -936,9 +959,8 @@ const Graph = ({
 		replaceVariables,
 	])
 
-	const metrics = loading ? previousMetrics : newMetrics
 	const data = useGraphData(
-		metrics,
+		results,
 		xAxisMetric,
 		viewConfig.type === 'Funnel chart' && viewConfig.display === 'Vertical',
 	)

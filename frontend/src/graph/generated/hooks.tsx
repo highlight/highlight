@@ -14958,7 +14958,6 @@ export const GetMetricsDocument = gql`
 		$limit: Int
 		$limit_aggregator: MetricAggregator
 		$limit_column: String
-		$funnel_steps: [String!]
 	) {
 		metrics(
 			product_type: $product_type
@@ -14973,7 +14972,6 @@ export const GetMetricsDocument = gql`
 			limit: $limit
 			limit_aggregator: $limit_aggregator
 			limit_column: $limit_column
-			funnel_steps: $funnel_steps
 		) {
 			buckets {
 				bucket_id
@@ -15013,7 +15011,6 @@ export const GetMetricsDocument = gql`
  *      limit: // value for 'limit'
  *      limit_aggregator: // value for 'limit_aggregator'
  *      limit_column: // value for 'limit_column'
- *      funnel_steps: // value for 'funnel_steps'
  *   },
  * });
  */
