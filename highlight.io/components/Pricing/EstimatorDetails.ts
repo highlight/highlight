@@ -128,7 +128,7 @@ export const businessPrices: Prices = {
 		] as GraduatedPriceItem[],
 	},
 	Traces: {
-		free: 1_000_000,
+		free: 25_000_000,
 		unit: 1_000_000,
 		items: [
 			{
@@ -240,7 +240,7 @@ export const payAsYouGoPrices: Prices = {
 		] as GraduatedPriceItem[],
 	},
 	Traces: {
-		free: 1_000_000,
+		free: 25_000_000,
 		unit: 1_000_000,
 		items: [
 			{
@@ -352,7 +352,7 @@ export const enterprisePrices: Prices = {
 		] as GraduatedPriceItem[],
 	},
 	Traces: {
-		free: 1_000_000,
+		free: 25_000_000,
 		unit: 1_000_000,
 		items: [
 			{
@@ -464,7 +464,7 @@ export const selfHostPrices: Prices = {
 		] as GraduatedPriceItem[],
 	},
 	Traces: {
-		free: 1_000_000,
+		free: 25_000_000,
 		unit: 1_000_000,
 		items: [
 			{
