@@ -33,6 +33,7 @@ end`,
 			],
 		},
 		customError,
+		customTrace,
 		setUpLogging('rails'),
 	],
 }
