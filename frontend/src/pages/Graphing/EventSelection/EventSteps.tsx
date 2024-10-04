@@ -7,6 +7,7 @@ import {
 	IconSolidCursorClick,
 	IconSolidPlus,
 	IconSolidSearch,
+	IconSolidX,
 	Input,
 	Text,
 } from '@highlight-run/ui/components'
@@ -24,6 +25,7 @@ import { ProductType } from '@graph/schemas'
 type Step = {
 	title: string
 	event: EventSelectionDetails
+	query: string
 }
 
 const EventStep: React.FC<{
@@ -31,7 +33,8 @@ const EventStep: React.FC<{
 	step: Step
 	startDate: Date
 	endDate: Date
-}> = ({ index, step, startDate, endDate }) => {
+	onRemove?: () => void
+}> = ({ index, step, startDate, endDate, onRemove }) => {
 	return (
 		<Box
 			width="full"
@@ -43,33 +46,47 @@ const EventStep: React.FC<{
 			border="secondary"
 			backgroundColor="nested"
 		>
-			<Box width="full" display="flex" gap="4">
+			<Box width="full" display="flex" justifyContent="space-between">
+				<Box width="full" display="flex" gap="4">
+					<Badge
+						size="medium"
+						shape="basic"
+						variant="white"
+						label={(index + 1).toLocaleString()}
+					/>
+					<Badge
+						size="medium"
+						shape="basic"
+						variant="gray"
+						label={
+							step.event.type === 'Track'
+								? step.event.name
+								: step.event.type
+						}
+						iconStart={
+							step.event.type === 'Click' ? (
+								<IconSolidCursorClick width={13} />
+							) : step.event.type === 'Navigate' ? (
+								<IconSolidSearch width={13} />
+							) : (
+								<IconSolidChip width={13} />
+							)
+						}
+					/>
+					<Box my="8">
+						<Text lines="1" size="small" color="strong">
+							{step.title}
+						</Text>
+					</Box>
+				</Box>
 				<Badge
 					size="medium"
 					shape="basic"
 					variant="white"
-					label={(index + 1).toLocaleString()}
+					label="Remove"
+					iconStart={<IconSolidX width={13} />}
+					onClick={onRemove}
 				/>
-				<Badge
-					size="medium"
-					shape="basic"
-					variant="gray"
-					label={step.event.type}
-					iconStart={
-						step.event.type === 'Click' ? (
-							<IconSolidCursorClick width={13} />
-						) : step.event.type === 'Navigate' ? (
-							<IconSolidSearch width={13} />
-						) : (
-							<IconSolidChip width={13} />
-						)
-					}
-				/>
-				<Box my="8">
-					<Text lines="1" size="small" color="strong">
-						{step.title}
-					</Text>
-				</Box>
 			</Box>
 			<Box border="divider" width="full" borderRadius="6">
 				<SearchContext
@@ -95,6 +112,7 @@ const AddEventStep: React.FC<{
 	endDate: Date
 }> = ({ addStep, startDate, endDate }) => {
 	const [title, setTitle] = useState('')
+	const [query, setQuery] = useState<string>('')
 	const [event, setEvent] = useState<EventSelectionDetails>({
 		type: EventType.Track,
 		name: '',
@@ -125,8 +143,8 @@ const AddEventStep: React.FC<{
 			</LabeledRow>
 			<Divider className="m-0" />
 			<EventSelection
-				initialQuery=""
-				setQuery={() => {}}
+				initialQuery={query}
+				setQuery={setQuery}
 				initialEvent={event}
 				setEvent={setEvent}
 				startDate={startDate}
@@ -138,13 +156,7 @@ const AddEventStep: React.FC<{
 				emphasis="high"
 				iconLeft={<IconSolidPlus size={14} />}
 				onClick={() => {
-					addStep({ title, event })
-					setTitle('')
-					setEvent({
-						type: EventType.Track,
-						name: '',
-						filters: '',
-					})
+					addStep({ title, event, query })
 				}}
 			>
 				Add step
@@ -159,11 +171,11 @@ export const EventSteps: React.FC<{
 	setFunnelSteps: (funnelSteps: string[]) => void
 	startDate: Date
 	endDate: Date
-}> = ({ initialQuery, setQuery, setFunnelSteps, startDate, endDate }) => {
+}> = ({ initialQuery, setFunnelSteps, startDate, endDate }) => {
 	const [steps, setSteps] = useState<Step[]>([])
 	useEffect(() => {
 		if (initialQuery) {
-			// TODO(vkorolik)
+			// TODO(vkorolik) parse existing...? store new funnel steps on the graph
 			console.log('vadim', { initialQuery })
 			const steps = parseQuery()
 			setSteps(steps)
@@ -172,9 +184,7 @@ export const EventSteps: React.FC<{
 	}, [])
 
 	useEffect(() => {
-		// TODO(vkorolik)
-		// setFunnelSteps(steps)
-		console.log('vadim', { steps })
+		setFunnelSteps(steps.map((s) => s.query))
 	}, [setFunnelSteps, steps])
 
 	return (
@@ -186,6 +196,13 @@ export const EventSteps: React.FC<{
 					step={step}
 					startDate={startDate}
 					endDate={endDate}
+					onRemove={() =>
+						setSteps((s) =>
+							s
+								.slice(0, index)
+								.concat(s.slice(index, s.length - 1)),
+						)
+					}
 				/>
 			))}
 			<AddEventStep

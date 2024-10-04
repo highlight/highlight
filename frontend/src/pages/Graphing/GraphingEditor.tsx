@@ -396,12 +396,7 @@ export const GraphingEditor: React.FC = () => {
 
 	const [query, setQuery] = useState('')
 	// TODO(vkorolik)
-	const [funnelSteps, setFunnelSteps] = useState<string[]>([
-		'',
-		'email exists',
-		'email exists event=header-link-click-alerts',
-		"email exists event=header-link-click-alerts event='Session pause'",
-	])
+	const [funnelSteps, setFunnelSteps] = useState<string[]>([])
 	const [debouncedQuery, setDebouncedQuery] = useState('')
 	useDebounce(
 		() => {
@@ -681,20 +676,22 @@ export const GraphingEditor: React.FC = () => {
 								<Divider className="m-0" />
 								<SidebarSection>
 									{productType === ProductType.Events ? (
-										<EventSelection
-											initialQuery={query}
-											setQuery={setQuery}
-											startDate={startDate}
-											endDate={endDate}
-										/>
-									) : viewType === 'Funnel chart' ? (
-										<EventSteps
-											initialQuery={query}
-											setQuery={setQuery}
-											setFunnelSteps={setFunnelSteps}
-											startDate={startDate}
-											endDate={endDate}
-										/>
+										viewType === 'Funnel chart' ? (
+											<EventSteps
+												initialQuery={query}
+												setQuery={setQuery}
+												setFunnelSteps={setFunnelSteps}
+												startDate={startDate}
+												endDate={endDate}
+											/>
+										) : (
+											<EventSelection
+												initialQuery={query}
+												setQuery={setQuery}
+												startDate={startDate}
+												endDate={endDate}
+											/>
+										)
 									) : (
 										<LabeledRow
 											label="Filters"
