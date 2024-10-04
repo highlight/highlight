@@ -15,6 +15,7 @@ import { useParams } from '@util/react-router/useParams'
 import { Divider } from 'antd'
 import React, {
 	PropsWithChildren,
+	useEffect,
 	useId,
 	useMemo,
 	useRef,
@@ -43,7 +44,6 @@ import { useSearchTime } from '@/hooks/useSearchTime'
 import { BAR_DISPLAY, BarDisplay } from '@/pages/Graphing/components/BarChart'
 import Graph, {
 	getViewConfig,
-	GROUP_KEY,
 	TIMESTAMP_KEY,
 	View,
 	VIEW_OPTIONS,
@@ -478,6 +478,14 @@ export const GraphingEditor: React.FC = () => {
 		}
 	}, [endDate, productType, startDate])
 
+	useEffect(() => {
+		if (viewType === 'Funnel chart') {
+			setBucketBySetting('None')
+			setFunctionType(MetricAggregator.CountDistinct)
+			setMetric('SecureID')
+		}
+	}, [viewType])
+
 	const { values } = useGraphingVariables(dashboard_id!)
 
 	const variableKeys = Array.from(values).map(([key]) => {
@@ -741,6 +749,9 @@ export const GraphingEditor: React.FC = () => {
 											options={FUNCTION_TYPES}
 											selection={functionType}
 											setSelection={setFunctionType}
+											disabled={
+												viewType === 'Funnel chart'
+											}
 										/>
 										<Combobox
 											selection={fetchedMetric}
@@ -748,7 +759,8 @@ export const GraphingEditor: React.FC = () => {
 											searchConfig={searchOptionsConfig}
 											disabled={
 												functionType ===
-												MetricAggregator.Count
+													MetricAggregator.Count ||
+												viewType === 'Funnel chart'
 											}
 											onlyNumericKeys={
 												functionType !==
@@ -851,14 +863,6 @@ export const GraphingEditor: React.FC = () => {
 											selection={viewType}
 											setSelection={(option: View) => {
 												setViewType(option)
-												// TODO(vkorolik) should probably live elsewhere
-												if (option === 'Funnel chart') {
-													setBucketByKey(GROUP_KEY)
-													setFunctionType(
-														MetricAggregator.Count,
-													)
-													setMetric('SecureID')
-												}
 											}}
 										/>
 									</LabeledRow>
@@ -895,22 +899,26 @@ export const GraphingEditor: React.FC = () => {
 								</SidebarSection>
 								<Divider className="m-0" />
 								<SidebarSection>
-									<LabeledRow
-										label="Bucket by"
-										name="bucketBy"
-										tooltip="The method for determining the bucket sizes - can be a fixed interval or fixed count."
-									>
-										<TagSwitchGroup
-											options={BUCKET_BY_OPTIONS}
-											defaultValue={bucketBySetting}
-											onChange={(o: string | number) => {
-												setBucketBySetting(
-													o as BucketBy,
-												)
-											}}
-											cssClass={style.tagSwitch}
-										/>
-									</LabeledRow>
+									{viewType === 'Funnel chart' ? null : (
+										<LabeledRow
+											label="Bucket by"
+											name="bucketBy"
+											tooltip="The method for determining the bucket sizes - can be a fixed interval or fixed count."
+										>
+											<TagSwitchGroup
+												options={BUCKET_BY_OPTIONS}
+												defaultValue={bucketBySetting}
+												onChange={(
+													o: string | number,
+												) => {
+													setBucketBySetting(
+														o as BucketBy,
+													)
+												}}
+												cssClass={style.tagSwitch}
+											/>
+										</LabeledRow>
+									)}
 									{bucketBySetting === 'Count' && (
 										<>
 											<LabeledRow
