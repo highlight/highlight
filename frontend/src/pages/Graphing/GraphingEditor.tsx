@@ -237,6 +237,7 @@ export const GraphingEditor: React.FC = () => {
 			metric: fetchedMetric,
 			nullHandling,
 			productType,
+			// TODO(vkorolik) make query a generic object
 			query: debouncedQuery,
 			title: metricViewTitle || tempMetricViewTitle?.current,
 			type: viewType,

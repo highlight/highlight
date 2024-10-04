@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/aws/smithy-go/ptr"
 	"reflect"
 	"regexp"
 	"sort"
@@ -53,7 +52,6 @@ type ReadMetricsInput struct {
 	LimitAggregator  *modelInputs.MetricAggregator
 	LimitColumn      *string
 	SavedMetricState *SavedMetricState
-	FunnelSteps      []string
 }
 
 func readObjects[TObj interface{}](ctx context.Context, client *Client, config model.TableConfig, samplingConfig model.TableConfig, projectID int, params modelInputs.QueryInput, pagination Pagination, scanObject func(driver.Rows) (*Edge[TObj], error)) (*Connection[TObj], error) {
@@ -973,11 +971,6 @@ func (client *Client) ReadMetrics(ctx context.Context, input ReadMetricsInput) (
 	if len(input.MetricTypes) == 0 {
 		return nil, errors.New("no metric types provided")
 	}
-
-	if len(input.FunnelSteps) > 0 {
-		return client.ReadFunnels(ctx, input)
-	}
-
 	if input.Params.DateRange == nil {
 		input.Params.DateRange = &modelInputs.DateRangeRequiredInput{
 			StartDate: time.Now().Add(-time.Hour * 24 * 30),
@@ -1337,97 +1330,6 @@ func (client *Client) ReadMetrics(ctx context.Context, input ReadMetricsInput) (
 
 	return metrics, err
 }
-
-func (client *Client) ReadFunnels(ctx context.Context, input ReadMetricsInput) (*modelInputs.MetricsBuckets, error) {
-	useSampling := input.SampleableConfig.useSampling(input.Params.DateRange.EndDate.Sub(input.Params.DateRange.StartDate))
-
-	var config model.TableConfig
-	if useSampling {
-		config = input.SampleableConfig.samplingTableConfig
-	} else {
-		config = input.SampleableConfig.tableConfig
-	}
-
-	// TODO(vkorolik) step.Column support
-	input.Column = "SecureID"
-
-	startTimestamp := input.Params.DateRange.StartDate.Unix()
-	endTimestamp := input.Params.DateRange.EndDate.Unix()
-
-	span, ctx := util.StartSpanFromContext(ctx, "clickhouse.readFunnels")
-	span.SetAttribute("project_ids", input.Params)
-	span.SetAttribute("table", input.SampleableConfig.tableConfig.TableName)
-	defer span.Finish()
-
-	var steps []sqlbuilder.Builder
-	for idx, step := range input.FunnelSteps {
-		innerSb := sqlbuilder.NewSelectBuilder()
-		innerSb.
-			From(input.SampleableConfig.tableConfig.TableName).
-			Select(strings.Join([]string{input.Column, `min(CreatedAt)`}, ", ")).
-			Where(innerSb.In("ProjectId", input.ProjectIDs)).
-			Where(innerSb.GreaterEqualThan("CreatedAt", startTimestamp)).
-			Where(innerSb.LessEqualThan("CreatedAt", endTimestamp))
-
-		filters := parser.Parse(step, input.SampleableConfig.tableConfig)
-		attributeFields := getAttributeFields(config, filters)
-		addAttributes(config, attributeFields, input.ProjectIDs, modelInputs.QueryInput{
-			Query:     step,
-			DateRange: input.Params.DateRange,
-			Sort:      input.Params.Sort,
-		}, innerSb)
-		parser.AssignSearchFilters(innerSb, step, config)
-		innerSb.GroupBy(input.Column)
-
-		inner := sqlbuilder.NewSelectBuilder()
-		inner.Select(fmt.Sprintf("%d as step_num", idx), "count() as count")
-		inner.From(inner.BuilderAs(innerSb, fmt.Sprintf("S%d", idx)))
-		steps = append(steps, inner)
-	}
-
-	first := sqlbuilder.NewSelectBuilder()
-	first.Select("step_num", "count")
-	first.From(first.BuilderAs(steps[0], "wrapper"))
-	ub := sqlbuilder.UnionAll(append([]sqlbuilder.Builder{first}, steps[1:]...)...)
-
-	outer := sqlbuilder.NewSelectBuilder()
-	outer.Select("step_num", "count")
-	outer.From(outer.BuilderAs(ub, "full"))
-	outer.OrderBy("step_num")
-
-	sql, args := outer.BuildWithFlavor(sqlbuilder.ClickHouse)
-	rows, err := client.conn.Query(ctx, sql, args...)
-	span.Finish(err)
-
-	if err != nil {
-		return nil, err
-	}
-
-	row := struct {
-		stepNum uint8
-		result  uint64
-	}{}
-
-	metrics := &modelInputs.MetricsBuckets{
-		Buckets: []*modelInputs.MetricBucket{},
-	}
-	for rows.Next() {
-		if err := rows.Scan(&row.stepNum, &row.result); err != nil {
-			return nil, err
-		}
-		s := input.FunnelSteps[row.stepNum]
-		metrics.Buckets = append(metrics.Buckets, &modelInputs.MetricBucket{
-			Group:       []string{s},
-			MetricType:  input.MetricTypes[0],
-			MetricValue: ptr.Float64(float64(row.result)),
-		})
-	}
-
-	metrics.BucketCount = 1
-
-	return metrics, err
-}
-
 func formatColumn(input string, column string) string {
 	base := input
 	if base == "" {

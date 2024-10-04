@@ -5124,9 +5124,6 @@ export type GetMetricsQueryVariables = Types.Exact<{
 	limit?: Types.Maybe<Types.Scalars['Int']>
 	limit_aggregator?: Types.Maybe<Types.MetricAggregator>
 	limit_column?: Types.Maybe<Types.Scalars['String']>
-	funnel_steps?: Types.Maybe<
-		Array<Types.Scalars['String']> | Types.Scalars['String']
-	>
 }>
 
 export type GetMetricsQuery = { __typename?: 'Query' } & {

@@ -2562,7 +2562,6 @@ query GetMetrics(
 	$limit: Int
 	$limit_aggregator: MetricAggregator
 	$limit_column: String
-	$funnel_steps: [String!]
 ) {
 	metrics(
 		product_type: $product_type
@@ -2577,7 +2576,6 @@ query GetMetrics(
 		limit: $limit
 		limit_aggregator: $limit_aggregator
 		limit_column: $limit_column
-		funnel_steps: $funnel_steps
 	) {
 		buckets {
 			bucket_id

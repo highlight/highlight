@@ -2682,7 +2682,6 @@ export type QueryMetricsArgs = {
 	bucket_count?: InputMaybe<Scalars['Int']>
 	bucket_window?: InputMaybe<Scalars['Int']>
 	column: Scalars['String']
-	funnel_steps?: InputMaybe<Array<Scalars['String']>>
 	group_by: Array<Scalars['String']>
 	limit?: InputMaybe<Scalars['Int']>
 	limit_aggregator?: InputMaybe<MetricAggregator>
@@ -2879,7 +2878,6 @@ export type QuerySessions_MetricsArgs = {
 	bucket_count?: InputMaybe<Scalars['Int']>
 	bucket_window?: InputMaybe<Scalars['Int']>
 	column: Scalars['String']
-	funnel_steps?: InputMaybe<Array<Scalars['String']>>
 	group_by: Array<Scalars['String']>
 	limit?: InputMaybe<Scalars['Int']>
 	limit_aggregator?: InputMaybe<MetricAggregator>
