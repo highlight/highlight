@@ -19,7 +19,6 @@ import { Stack } from '../Stack/Stack'
 import { Text } from '../Text/Text'
 import * as styles from './styles.css'
 import { themeVars } from '../../theme'
-import { vars } from '@highlight-run/ui/vars'
 
 export type SelectOption = {
 	name: string
@@ -321,7 +320,7 @@ export const Select = <T,>({
 							{resultsLoading && (
 								<IconSolidLoading
 									className={styles.loadingIcon}
-									color={vars.theme.static.content.weak}
+									color={themeVars.static.content.weak}
 								/>
 							)}
 						</Box>

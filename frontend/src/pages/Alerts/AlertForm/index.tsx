@@ -541,7 +541,6 @@ export const AlertForm: React.FC = () => {
 													setSelection={
 														setFunctionColumn
 													}
-													label="metric"
 													searchConfig={
 														searchOptionsConfig
 													}
@@ -565,7 +564,6 @@ export const AlertForm: React.FC = () => {
 												<Combobox
 													selection={groupByKey}
 													setSelection={setGroupByKey}
-													label="groupBy"
 													searchConfig={
 														searchOptionsConfig
 													}
