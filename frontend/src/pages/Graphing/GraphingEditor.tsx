@@ -44,9 +44,7 @@ import Graph, {
 	getViewConfig,
 	TIMESTAMP_KEY,
 	View,
-	VIEW_ICONS,
-	VIEW_LABELS,
-	VIEWS,
+	VIEW_OPTIONS,
 } from '@/pages/Graphing/components/Graph'
 import {
 	LINE_DISPLAY,
@@ -68,10 +66,8 @@ import {
 	DEFAULT_BUCKET_COUNT,
 	DEFAULT_BUCKET_INTERVAL,
 	FUNCTION_TYPES,
-	PRODUCT_ICONS,
-	PRODUCT_ICONS_WITH_EVENTS,
-	PRODUCTS,
-	PRODUCTS_WITH_EVENTS,
+	PRODUCT_OPTIONS,
+	PRODUCT_OPTIONS_WITH_EVENTS,
 } from './constants'
 import * as style from './GraphingEditor.css'
 import { LabeledRow } from './LabeledRow'
@@ -165,17 +161,11 @@ export const GraphingEditor: React.FC = () => {
 	}>()
 
 	const eventSearchEnabled = useFeatureFlag(Feature.EventSearch)
-	const { products, productIcons } = useMemo(() => {
+	const productOptions = useMemo(() => {
 		if (!eventSearchEnabled) {
-			return {
-				products: PRODUCTS,
-				productIcons: PRODUCT_ICONS,
-			}
+			return PRODUCT_OPTIONS
 		}
-		return {
-			products: PRODUCTS_WITH_EVENTS,
-			productIcons: PRODUCT_ICONS_WITH_EVENTS,
-		}
+		return PRODUCT_OPTIONS_WITH_EVENTS
 	}, [eventSearchEnabled])
 
 	const isEdit = graph_id !== undefined
@@ -376,8 +366,8 @@ export const GraphingEditor: React.FC = () => {
 
 	const { projectId } = useProjectId()
 
-	const [productType, setProductType] = useState(products[0])
-	const [viewType, setViewType] = useState(VIEWS[0])
+	const [productType, setProductType] = useState(productOptions[0].value)
+	const [viewType, setViewType] = useState(VIEW_OPTIONS[0].value)
 	const [lineNullHandling, setLineNullHandling] = useState(
 		LINE_NULL_HANDLING[0],
 	)
@@ -640,10 +630,9 @@ export const GraphingEditor: React.FC = () => {
 										tooltip="The resource being queried, one of the four highlight.io resources."
 									>
 										<OptionDropdown<ProductType>
-											options={products}
+											options={productOptions}
 											selection={productType}
 											setSelection={setProductType}
-											icons={productIcons}
 										/>
 									</LabeledRow>
 								</SidebarSection>
@@ -697,7 +686,7 @@ export const GraphingEditor: React.FC = () => {
 										name="function"
 										tooltip="Determines how data points are aggregated. If the function requires a numeric field as input, one can be chosen."
 									>
-										<OptionDropdown<MetricAggregator>
+										<OptionDropdown
 											options={FUNCTION_TYPES}
 											selection={functionType}
 											setSelection={setFunctionType}
@@ -758,7 +747,7 @@ export const GraphingEditor: React.FC = () => {
 												name="limitBy"
 												tooltip="The function used to determine which groups are included."
 											>
-												<OptionDropdown<MetricAggregator>
+												<OptionDropdown
 													options={FUNCTION_TYPES}
 													selection={
 														limitFunctionType
@@ -794,12 +783,10 @@ export const GraphingEditor: React.FC = () => {
 										label="View type"
 										name="viewType"
 									>
-										<OptionDropdown<View>
-											options={VIEWS}
+										<OptionDropdown
+											options={VIEW_OPTIONS}
 											selection={viewType}
 											setSelection={setViewType}
-											icons={VIEW_ICONS}
-											labels={VIEW_LABELS}
 										/>
 									</LabeledRow>
 									{viewType === 'Line chart' && (
