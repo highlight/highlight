@@ -713,8 +713,8 @@ export const useFunnelData = (
 		if (buckets?.length) {
 			return buckets.map((b, idx) => {
 				const key =
-					funnelSteps?.at(idx)?.title ??
-					funnelSteps?.at(idx)?.query ??
+					funnelSteps?.at(idx)?.title ||
+					funnelSteps?.at(idx)?.query ||
 					''
 				return {
 					[GROUP_KEY]: key,
