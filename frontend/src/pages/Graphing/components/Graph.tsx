@@ -62,6 +62,8 @@ import {
 
 import * as style from './Graph.css'
 
+import { EventSelectionStep } from '@pages/Graphing/util'
+
 export type View = 'Line chart' | 'Bar chart' | 'Funnel chart' | 'Table'
 
 export const VIEW_OPTIONS = [
@@ -129,7 +131,7 @@ export interface ChartProps<TConfig> {
 	limit?: number
 	limitFunctionType?: MetricAggregator
 	limitMetric?: string
-	funnelSteps?: string[]
+	funnelSteps?: EventSelectionStep[]
 	viewConfig: TConfig
 	disabled?: boolean
 	height?: number
@@ -696,7 +698,7 @@ export const useGraphData = (
 
 export const useFunnelData = (
 	results: GetMetricsQuery[] | undefined,
-	funnelSteps: string[] | undefined,
+	funnelSteps: EventSelectionStep[] | undefined,
 ) => {
 	return useMemo(() => {
 		if (!results?.length || !results[0]?.metrics) return
@@ -710,7 +712,10 @@ export const useFunnelData = (
 		// TODO(vkorolik) filter based on previous step secure ids
 		if (buckets?.length) {
 			return buckets.map((b, idx) => {
-				const key = funnelSteps?.at(idx) ?? ''
+				const key =
+					funnelSteps?.at(idx)?.title ??
+					funnelSteps?.at(idx)?.query ??
+					''
 				return {
 					[GROUP_KEY]: key,
 					[key]: b.metric_value,
@@ -955,7 +960,7 @@ const Graph = ({
 							...getMetricsVariables,
 							params: {
 								...getMetricsVariables.params,
-								query: step,
+								query: step.query,
 							},
 						},
 					}),

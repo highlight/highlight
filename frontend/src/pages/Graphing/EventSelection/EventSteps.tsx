@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { useState } from 'react'
 import {
 	Badge,
 	Box,
@@ -13,24 +13,19 @@ import {
 } from '@highlight-run/ui/components'
 import { LabeledRow } from '@pages/Graphing/LabeledRow'
 import { Divider } from 'antd'
-import {
-	EventSelection,
-	EventSelectionDetails,
-	EventType,
-} from '@pages/Graphing/EventSelection/index'
+import { EventSelection } from '@pages/Graphing/EventSelection/index'
 import { SearchContext } from '@components/Search/SearchContext'
 import { Search } from '@components/Search/SearchForm/SearchForm'
 import { ProductType } from '@graph/schemas'
-
-type Step = {
-	title: string
-	event: EventSelectionDetails
-	query: string
-}
+import {
+	EventSelectionDetails,
+	EventSelectionStep,
+	EventType,
+} from '@pages/Graphing/util'
 
 const EventStep: React.FC<{
 	index: number
-	step: Step
+	step: EventSelectionStep
 	startDate: Date
 	endDate: Date
 	onRemove?: () => void
@@ -107,7 +102,7 @@ const EventStep: React.FC<{
 }
 
 const AddEventStep: React.FC<{
-	addStep: (step: Step) => void
+	addStep: (step: EventSelectionStep) => void
 	startDate: Date
 	endDate: Date
 }> = ({ addStep, startDate, endDate }) => {
@@ -166,27 +161,11 @@ const AddEventStep: React.FC<{
 }
 
 export const EventSteps: React.FC<{
-	initialQuery: string
-	setQuery: (query: string) => void
-	setFunnelSteps: (funnelSteps: string[]) => void
+	steps: EventSelectionStep[]
+	setSteps: React.Dispatch<React.SetStateAction<EventSelectionStep[]>>
 	startDate: Date
 	endDate: Date
-}> = ({ initialQuery, setFunnelSteps, startDate, endDate }) => {
-	const [steps, setSteps] = useState<Step[]>([])
-	useEffect(() => {
-		if (initialQuery) {
-			// TODO(vkorolik) parse existing...? store new funnel steps on the graph
-			console.log('vadim', { initialQuery })
-			const steps = parseQuery()
-			setSteps(steps)
-		}
-		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [])
-
-	useEffect(() => {
-		setFunnelSteps(steps.map((s) => s.query))
-	}, [setFunnelSteps, steps])
-
+}> = ({ steps, setSteps, startDate, endDate }) => {
 	return (
 		<>
 			{steps.map((step, index) => (

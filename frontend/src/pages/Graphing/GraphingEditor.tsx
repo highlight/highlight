@@ -83,6 +83,8 @@ import { FREQUENCIES } from '@/pages/Alerts/AlertConfigurationCard/AlertConfigur
 import { useGraphingVariables } from '@/pages/Graphing/hooks/useGraphingVariables'
 import { VariablesBar } from '@/pages/Graphing/components/VariablesBar'
 import { useRetentionPresets } from '@/components/Search/SearchForm/hooks'
+import { omit } from 'lodash'
+import { EventSelectionStep, loadFunnelStep } from '@pages/Graphing/util'
 
 type BucketBy = 'None' | 'Interval' | 'Count'
 const BUCKET_BY_OPTIONS: BucketBy[] = ['None', 'Interval', 'Count']
@@ -234,10 +236,10 @@ export const GraphingEditor: React.FC = () => {
 			limit: groupByEnabled ? Number(limit) : null,
 			limitFunctionType: groupByEnabled ? limitFunctionType : null,
 			limitMetric: groupByEnabled ? fetchedLimitMetric : null,
+			funnelSteps: funnelSteps.map((s) => omit(s, 'event')),
 			metric: fetchedMetric,
 			nullHandling,
 			productType,
-			// TODO(vkorolik) make query a generic object
 			query: debouncedQuery,
 			title: metricViewTitle || tempMetricViewTitle?.current,
 			type: viewType,
@@ -367,6 +369,7 @@ export const GraphingEditor: React.FC = () => {
 			setLimitFunctionType(g.limitFunctionType ?? FUNCTION_TYPES[0])
 			setLimit(g.limit ?? 10)
 			setLimitMetric(g.limitMetric ?? '')
+			setFunnelSteps((g.funnelSteps ?? []).map(loadFunnelStep))
 			setBucketByKey(g.bucketByKey ?? '')
 			setBucketCount(g.bucketCount ?? DEFAULT_BUCKET_COUNT)
 			setBucketInterval(g.bucketInterval ?? DEFAULT_BUCKET_INTERVAL)
@@ -395,8 +398,7 @@ export const GraphingEditor: React.FC = () => {
 	const [funnelDisplay, setFunnelDisplay] = useState(FUNNEL_DISPLAY[0])
 
 	const [query, setQuery] = useState('')
-	// TODO(vkorolik)
-	const [funnelSteps, setFunnelSteps] = useState<string[]>([])
+	const [funnelSteps, setFunnelSteps] = useState<EventSelectionStep[]>([])
 	const [debouncedQuery, setDebouncedQuery] = useState('')
 	useDebounce(
 		() => {
@@ -678,9 +680,8 @@ export const GraphingEditor: React.FC = () => {
 									{productType === ProductType.Events ? (
 										viewType === 'Funnel chart' ? (
 											<EventSteps
-												initialQuery={query}
-												setQuery={setQuery}
-												setFunnelSteps={setFunnelSteps}
+												steps={funnelSteps}
+												setSteps={setFunnelSteps}
 												startDate={startDate}
 												endDate={endDate}
 											/>
