@@ -26,7 +26,7 @@ import clsx from 'clsx'
 import _ from 'lodash'
 import moment from 'moment'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { Tooltip as RechartsTooltip, ReferenceArea } from 'recharts'
+import { ReferenceArea, Tooltip as RechartsTooltip } from 'recharts'
 import { CategoricalChartState } from 'recharts/types/chart/types'
 
 import { loadingIcon } from '@/components/Button/style.css'
@@ -37,7 +37,12 @@ import {
 	useGetMetricsLazyQuery,
 } from '@/graph/generated/hooks'
 import { GetMetricsQuery } from '@/graph/generated/operations'
-import { Maybe, MetricAggregator, ProductType } from '@/graph/generated/schemas'
+import {
+	Maybe,
+	MetricAggregator,
+	MetricBucket,
+	ProductType,
+} from '@/graph/generated/schemas'
 import {
 	BarChart,
 	BarChartConfig,
@@ -649,25 +654,13 @@ export const getViewConfig = (
 }
 
 export const useGraphData = (
-	results: GetMetricsQueryResult[] | undefined,
+	metrics: GetMetricsQuery | undefined,
 	xAxisMetric: string,
-	funnelMode?: boolean,
 ) => {
 	return useMemo(() => {
-		if (!results?.length) return
-		const metrics: GetMetricsQuery = results[0].data!
-		for (const r of results) {
-			metrics.metrics.buckets.push(...(r.data?.metrics?.buckets ?? []))
-		}
-
 		let data: any[] | undefined
-		if (metrics?.metrics.buckets) {
-			if (funnelMode) {
-				return metrics.metrics.buckets.map((b) => ({
-					[GROUP_KEY]: b.group.join(' '),
-					[b.group[0]]: b.metric_value,
-				}))
-			} else if (xAxisMetric !== GROUP_KEY) {
+		if (metrics?.metrics?.buckets) {
+			if (xAxisMetric !== GROUP_KEY) {
 				data = []
 				for (let i = 0; i < metrics.metrics.bucket_count; i++) {
 					data.push({})
@@ -698,20 +691,45 @@ export const useGraphData = (
 			}
 		}
 		return data
-	}, [funnelMode, results, xAxisMetric])
+	}, [metrics?.metrics.bucket_count, metrics?.metrics.buckets, xAxisMetric])
+}
+
+export const useFunnelData = (
+	results: GetMetricsQuery[] | undefined,
+	funnelSteps: string[] | undefined,
+) => {
+	return useMemo(() => {
+		if (!results?.length || !results[0]?.metrics) return
+		let buckets: Omit<MetricBucket, 'column'>[] = []
+		for (const r of results) {
+			if (r?.metrics?.buckets) {
+				buckets = buckets.concat(r.metrics.buckets)
+			}
+		}
+
+		// TODO(vkorolik) filter based on previous step secure ids
+		if (buckets?.length) {
+			return buckets.map((b, idx) => {
+				const key = funnelSteps?.at(idx) ?? ''
+				return {
+					[GROUP_KEY]: key,
+					[key]: b.metric_value,
+				}
+			})
+		}
+	}, [funnelSteps, results])
 }
 
 export const useGraphSeries = (
 	data: any[] | undefined,
 	xAxisMetric: string,
 ) => {
-	const series = useMemo(() => {
+	return useMemo(() => {
 		const excluded = [xAxisMetric, BUCKET_MIN_KEY, BUCKET_MAX_KEY]
 		return _.uniq(data?.flatMap((d) => Object.keys(d))).filter(
 			(key) => !excluded.includes(key),
 		)
 	}, [data, xAxisMetric])
-	return series
 }
 
 const POLL_INTERVAL_VALUE = 1000 * 60
@@ -789,7 +807,7 @@ const Graph = ({
 	const [pollInterval, setPollInterval] = useState<number>(0)
 	const [fetchStart, setFetchStart] = useState<Date>()
 	const [fetchEnd, setFetchEnd] = useState<Date>()
-	const [results, setResults] = useState<GetMetricsQueryResult[]>()
+	const [results, setResults] = useState<GetMetricsQuery[]>()
 
 	const { set } = useRelatedResource()
 
@@ -929,8 +947,7 @@ const Graph = ({
 		}
 
 		let getMetricsPromises: Promise<GetMetricsQueryResult>[] = []
-		if (funnelSteps) {
-			// TODO(vkorolik)
+		if (funnelSteps?.length) {
 			for (const step of funnelSteps) {
 				getMetricsPromises.push(
 					getMetrics({
@@ -949,16 +966,19 @@ const Graph = ({
 				getMetrics({ variables: getMetricsVariables }),
 			]
 		}
-		Promise.all(getMetricsPromises).then((r: GetMetricsQueryResult[]) => {
-			setResults(r)
-			// create another poll timeout if pollInterval is set
-			if (pollInterval) {
-				pollTimeout.current = setTimeout(
-					rebaseFetchTime,
-					pollInterval,
-				) as unknown as number
-			}
-		})
+		Promise.all(getMetricsPromises).then(
+			(results: GetMetricsQueryResult[]) => {
+				setResults(results.filter((r) => r.data).map((r) => r.data!))
+
+				// create another poll timeout if pollInterval is set
+				if (pollInterval) {
+					pollTimeout.current = setTimeout(
+						rebaseFetchTime,
+						pollInterval,
+					) as unknown as number
+				}
+			},
+		)
 
 		return () => {
 			if (!!pollTimeout.current) {
@@ -987,11 +1007,9 @@ const Graph = ({
 		variables,
 	])
 
-	const data = useGraphData(
-		results,
-		xAxisMetric,
-		viewConfig.type === 'Funnel chart' && viewConfig.display === 'Vertical',
-	)
+	const graphData = useGraphData(results?.at(0), xAxisMetric)
+	const funnelData = useFunnelData(results, funnelSteps)
+	const data = viewConfig.type === 'Funnel chart' ? funnelData : graphData
 
 	const series = useGraphSeries(data, xAxisMetric)
 
