@@ -106,7 +106,7 @@ const InnerModal = ({
 	const [variables, setVariables] = useState(initialVariables)
 	const setVariable = (
 		idx: number,
-		field: 'key' | 'defaultValue' | 'field' | 'suggestionType',
+		field: 'key' | 'defaultValues' | 'field' | 'suggestionType',
 		value: string | string[] | undefined,
 	) => {
 		const varsCopy = [...variables]
@@ -271,7 +271,7 @@ const InnerModal = ({
 												onChange={(e) => {
 													setVariable(
 														i,
-														'defaultValue',
+														'defaultValues',
 														[e.target.value],
 													)
 												}}
@@ -290,7 +290,7 @@ const InnerModal = ({
 												) => {
 													setVariable(
 														i,
-														'defaultValue',
+														'defaultValues',
 														selection,
 													)
 												}}
@@ -313,7 +313,7 @@ const InnerModal = ({
 												) => {
 													setVariable(
 														i,
-														'defaultValue',
+														'defaultValues',
 														selection,
 													)
 												}}

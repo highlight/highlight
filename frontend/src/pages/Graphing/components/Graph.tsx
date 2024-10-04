@@ -634,7 +634,7 @@ export const useGraphData = (
 
 				for (const b of metrics.metrics.buckets) {
 					const seriesKey = hasGroups
-						? b.group.join(' ') || NO_GROUP_PLACEHOLDER
+						? b.group.join(', ') || NO_GROUP_PLACEHOLDER
 						: b.metric_type
 					data[b.bucket_id][xAxisMetric] =
 						(b.bucket_min + b.bucket_max) / 2
@@ -646,7 +646,7 @@ export const useGraphData = (
 				data = []
 				for (const b of metrics.metrics.buckets) {
 					data.push({
-						[GROUP_KEY]: b.group.join(' '),
+						[GROUP_KEY]: b.group.join(', '),
 						'': b.metric_value,
 					})
 				}
@@ -749,7 +749,7 @@ const Graph = ({
 	const loadExemplars = (
 		bucketMin: number | undefined,
 		bucketMax: number | undefined,
-		group: string | undefined,
+		groups: string | undefined,
 	) => {
 		let relatedResourceType: 'logs' | 'errors' | 'sessions' | 'traces'
 		switch (productType) {
@@ -774,14 +774,13 @@ const Graph = ({
 
 		let relatedResourceQuery = replaceQueryVariables(query, variables)
 		if (groupByKeys !== undefined && groupByKeys.length > 0) {
-			if (relatedResourceQuery !== '') {
-				relatedResourceQuery += ' '
-			}
-			if (group !== NO_GROUP_PLACEHOLDER && group !== '') {
-				relatedResourceQuery += `${groupByKeys[0]}="${group}"`
-			} else {
-				relatedResourceQuery += `${groupByKeys[0]} not exists`
-			}
+			groups?.split(', ').forEach((group, idx) => {
+				if (group !== NO_GROUP_PLACEHOLDER && group !== '') {
+					relatedResourceQuery += ` ${groupByKeys[idx]}="${group}"`
+				} else {
+					relatedResourceQuery += ` ${groupByKeys[idx]} not exists`
+				}
+			})
 		}
 		if (![undefined, TIMESTAMP_KEY].includes(bucketByKey)) {
 			if (relatedResourceQuery !== '') {
