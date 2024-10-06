@@ -1002,17 +1002,21 @@ export default function DocPage({
 									),
 								)}
 						</div>
-						<h3
-							className={classNames(styles.pageTitle, {
-								[styles.sdkPageTitle]: isSdkDoc,
-							})}
+						<h1
+							className={classNames(
+								styles.pageTitle,
+								{
+									[styles.sdkPageTitle]: isSdkDoc,
+								},
+								'docH1',
+							)}
 						>
 							{metadata?.heading
 								? metadata.heading
 								: metadata?.title
 									? metadata.title
 									: ''}
-						</h3>
+						</h1>
 						{isSdkDoc ? (
 							<DocSection content={markdownTextOG || ''} />
 						) : (
