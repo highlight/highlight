@@ -14,6 +14,7 @@ import { PlayerSearchParameters } from '@/pages/Player/PlayerHook/utils'
 import {
 	ReplayerContextProvider,
 	ReplayerState,
+	useReplayerContext,
 } from '@/pages/Player/ReplayerContext'
 import {
 	ResourcesContextProvider,
@@ -59,7 +60,6 @@ const SessionPanelBase: React.FC<{ resource: RelatedSession }> = ({
 	const { projectId } = useNumericProjectId()
 	const playerRef = useRef<HTMLDivElement>(null)
 	const playerWrapperRef = useRef<HTMLDivElement>(null)
-	const playerContext = usePlayer(playerRef, true)
 	const {
 		session,
 		state: replayerState,
@@ -68,7 +68,7 @@ const SessionPanelBase: React.FC<{ resource: RelatedSession }> = ({
 		replayer,
 		sessionViewability,
 		setScale,
-	} = playerContext
+	} = useReplayerContext()
 	const replayerWrapperBbox = replayer?.wrapper.getBoundingClientRect()
 	const { playerCenterPanelRef } = usePlayerUIContext()
 
