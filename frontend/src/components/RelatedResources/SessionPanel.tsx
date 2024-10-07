@@ -47,18 +47,21 @@ export const SessionPanel: React.FC<{ resource: RelatedSession }> = ({
 		<ReplayerContextProvider value={playerContext}>
 			<ResourcesContextProvider value={resourcesContext}>
 				<ToolbarItemsContextProvider value={toolbarContext}>
-					<SessionPanelBase resource={resource} />
+					<SessionPanelBase
+						resource={resource}
+						playerRef={playerRef}
+					/>
 				</ToolbarItemsContextProvider>
 			</ResourcesContextProvider>
 		</ReplayerContextProvider>
 	)
 }
 
-const SessionPanelBase: React.FC<{ resource: RelatedSession }> = ({
-	resource,
-}) => {
+const SessionPanelBase: React.FC<{
+	resource: RelatedSession
+	playerRef: React.RefObject<HTMLDivElement>
+}> = ({ resource, playerRef }) => {
 	const { projectId } = useNumericProjectId()
-	const playerRef = useRef<HTMLDivElement>(null)
 	const playerWrapperRef = useRef<HTMLDivElement>(null)
 	const {
 		session,
