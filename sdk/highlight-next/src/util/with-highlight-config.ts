@@ -137,10 +137,10 @@ const getHighlightConfig = async (
 				source: '/:path*.map',
 				destination: '/404',
 			}
-
+			const backendUrl = defaultOpts.sourceMapsBackendUrl
 			const highlightRewrite = {
 				source: '/highlight-events',
-				destination: 'https://pub.highlight.io',
+				destination: backendUrl || 'https://pub.highlight.io',
 			}
 
 			if (!re || Array.isArray(re)) {
