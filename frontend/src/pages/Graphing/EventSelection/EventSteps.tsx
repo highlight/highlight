@@ -179,7 +179,7 @@ export const EventSteps: React.FC<{
 						setSteps((s) =>
 							s
 								.slice(0, index)
-								.concat(s.slice(index, s.length - 1)),
+								.concat(s.slice(index + 1, s.length)),
 						)
 					}
 				/>

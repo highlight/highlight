@@ -482,7 +482,9 @@ export const GraphingEditor: React.FC = () => {
 		if (viewType === 'Funnel chart') {
 			setBucketBySetting('None')
 			setFunctionType(MetricAggregator.CountDistinct)
-			setMetric('SecureID')
+			// once events have other session attributes, we can support per-user aggregation
+			setMetric('secure_session_id')
+			setGroupByKey('secure_session_id')
 		}
 	}, [viewType])
 
@@ -775,6 +777,7 @@ export const GraphingEditor: React.FC = () => {
 										name="groupBy"
 										enabled={groupByEnabled}
 										setEnabled={setGroupByEnabled}
+										disabled={viewType === 'Funnel chart'}
 										tooltip="A categorical field for grouping results into separate series."
 									>
 										<Combobox
@@ -783,6 +786,9 @@ export const GraphingEditor: React.FC = () => {
 											label="groupBy"
 											searchConfig={searchOptionsConfig}
 											defaultKeys={variableKeys}
+											disabled={
+												viewType === 'Funnel chart'
+											}
 										/>
 									</LabeledRow>
 									{groupByEnabled && (
@@ -850,9 +856,14 @@ export const GraphingEditor: React.FC = () => {
 										name="viewType"
 									>
 										<OptionDropdown
-											options={VIEW_OPTIONS}
+											options={VIEW_OPTIONS.filter(
+												(v) =>
+													productType ===
+														ProductType.Events ||
+													v.value !== 'Funnel chart',
+											)}
 											selection={viewType}
-											setSelection={(option: View) => {
+											setSelection={(option: string) => {
 												setViewType(option)
 											}}
 										/>
