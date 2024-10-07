@@ -2,6 +2,7 @@ package http
 
 import (
 	"compress/gzip"
+	"context"
 	"encoding/base64"
 	"encoding/json"
 	"errors"
@@ -11,16 +12,17 @@ import (
 	"strings"
 	"time"
 
+	"github.com/aws/smithy-go/ptr"
 	"github.com/go-chi/chi"
 	"github.com/google/uuid"
-	log "github.com/sirupsen/logrus"
-	semconv "go.opentelemetry.io/otel/semconv/v1.25.0"
-	"go.opentelemetry.io/otel/trace"
-
 	model2 "github.com/highlight-run/highlight/backend/model"
 	"github.com/highlight-run/highlight/backend/private-graph/graph/model"
 	hlog "github.com/highlight/highlight/sdk/highlight-go/log"
 	highlightChi "github.com/highlight/highlight/sdk/highlight-go/middleware/chi"
+	"github.com/samber/lo"
+	log "github.com/sirupsen/logrus"
+	semconv "go.opentelemetry.io/otel/semconv/v1.25.0"
+	"go.opentelemetry.io/otel/trace"
 )
 
 const (
@@ -29,6 +31,165 @@ const (
 	LogDrainProjectHeader     = "x-highlight-project"
 	LogDrainServiceHeader     = "x-highlight-service"
 )
+
+type PayloadMessage interface {
+	GetMessage() string
+	GetLevel() string
+	GetTimestamp() *time.Time
+	SetLogAttributes(ctx context.Context, hl *hlog.Log, msg []byte)
+}
+
+type CloudWatchPayloadMessage struct {
+	Payload   *CloudWatchPayload `json:",omitempty"`
+	Id        string
+	Timestamp int64
+	Message   string
+}
+
+func (p *CloudWatchPayloadMessage) GetMessage() string {
+	return p.Message
+}
+
+func (p *CloudWatchPayloadMessage) GetLevel() string {
+	return model.LogLevelInfo.String()
+}
+
+func (p *CloudWatchPayloadMessage) GetTimestamp() *time.Time {
+	return ptr.Time(time.UnixMilli(p.Timestamp))
+}
+
+func (p *CloudWatchPayloadMessage) SetLogAttributes(ctx context.Context, hl *hlog.Log, msg []byte) {
+	hl.Attributes = map[string]string{
+		string(semconv.ServiceNameKey): "firehose",
+		"message_type":                 p.Payload.MessageType,
+		"owner":                        p.Payload.Owner,
+		"log_group":                    p.Payload.LogGroup,
+		"log_stream":                   p.Payload.LogStream,
+	}
+}
+
+type Payload interface {
+	IsValid() bool
+	GetMessages() []PayloadMessage
+}
+
+type CloudWatchPayload struct {
+	MessageType         string
+	Owner               string
+	LogGroup            string
+	LogStream           string
+	SubscriptionFilters []string
+	LogEvents           []CloudWatchPayloadMessage
+}
+
+func (p *CloudWatchPayload) IsValid() bool {
+	return len(p.LogEvents) > 0
+}
+
+func (p *CloudWatchPayload) GetMessages() []PayloadMessage {
+	return lo.Map(p.LogEvents, func(msg CloudWatchPayloadMessage, _ int) PayloadMessage {
+		msg.Payload = p
+		return PayloadMessage(&msg)
+	})
+}
+
+type FireLensPayload struct {
+	Log    string
+	Source string
+}
+
+func (p *FireLensPayload) IsValid() bool {
+	return len(p.Log) > 0
+}
+
+func (p *FireLensPayload) GetMessages() []PayloadMessage {
+	return []PayloadMessage{p}
+}
+
+func (p *FireLensPayload) GetMessage() string {
+	return p.Log
+}
+
+func (p *FireLensPayload) GetLevel() string {
+	if p.Source == "stderr" {
+		return model.LogLevelError.String()
+	}
+	return model.LogLevelInfo.String()
+}
+
+func (p *FireLensPayload) GetTimestamp() *time.Time {
+	return nil
+}
+
+func (p *FireLensPayload) SetLogAttributes(ctx context.Context, hl *hlog.Log, msg []byte) {
+	var lgAttrs map[string]interface{}
+	if err := json.Unmarshal(msg, &lgAttrs); err != nil {
+		log.WithContext(ctx).
+			WithError(err).WithField("msg", msg).
+			Error("invalid firelens log attributes")
+	}
+	for k, v := range lgAttrs {
+		// skip the keys that are part of the message
+		if has := map[string]bool{"log": true, "source": true}[k]; has {
+			continue
+		}
+		for key, value := range hlog.FormatLogAttributes(k, v) {
+			hl.Attributes[key] = value
+		}
+	}
+	hl.Attributes[string(semconv.ServiceNameKey)] = hl.Attributes["container_name"]
+}
+
+type FireLensFluentBitPayload struct {
+	Message   string
+	Level     string
+	Source    string
+	Timestamp string `json:"@timestamp"`
+}
+
+func (p *FireLensFluentBitPayload) IsValid() bool {
+	return len(p.Message) > 0
+}
+
+func (p *FireLensFluentBitPayload) GetMessages() []PayloadMessage {
+	return []PayloadMessage{p}
+}
+
+func (p *FireLensFluentBitPayload) GetMessage() string {
+	return p.Message
+}
+
+func (p *FireLensFluentBitPayload) GetLevel() string {
+	return strings.ToLower(p.Level)
+}
+
+func (p *FireLensFluentBitPayload) GetTimestamp() *time.Time {
+	t, err := time.Parse("2006-01-02T15:04:05-0700", p.Timestamp)
+	if err != nil {
+		return &t
+	}
+	return nil
+}
+
+func (p *FireLensFluentBitPayload) SetLogAttributes(ctx context.Context, hl *hlog.Log, msg []byte) {
+	var lgAttrs map[string]interface{}
+	if err := json.Unmarshal(msg, &lgAttrs); err != nil {
+		log.WithContext(ctx).
+			WithError(err).WithField("msg", msg).
+			Error("invalid firelens fluentbit log attributes")
+	}
+	for k, v := range lgAttrs {
+		// skip the keys that are part of the message
+		if has := map[string]bool{"message": true, "source": true, "level": true, "@timestamp": true}[k]; has {
+			continue
+		}
+		for key, value := range hlog.FormatLogAttributes(k, v) {
+			hl.Attributes[key] = value
+		}
+	}
+	hl.Attributes[string(semconv.ServiceNameKey)] = hl.Attributes["container_name"]
+	hl.Attributes["source"] = p.Source
+}
 
 func getBody(r *http.Request) (body io.Reader, err error) {
 	body = r.Body
@@ -150,53 +311,48 @@ func HandleFirehoseLog(w http.ResponseWriter, r *http.Request) {
 			msg = data
 		}
 
-		var cloudwatchPayload struct {
-			MessageType         string
-			Owner               string
-			LogGroup            string
-			LogStream           string
-			SubscriptionFilters []string
-			LogEvents           []struct {
-				Id        string
-				Timestamp int64
-				Message   string
+		// try to parse the message as a structured payload
+		// if it is not, send it as a raw log message
+		var structured bool
+		for _, payload := range []Payload{&FireLensFluentBitPayload{}, &FireLensPayload{}, &CloudWatchPayload{}} {
+			err := json.Unmarshal(msg, &payload)
+			if err == nil && payload.IsValid() {
+				for _, p := range payload.GetMessages() {
+					t := p.GetTimestamp()
+					if t == nil {
+						t = ptr.Time(time.UnixMilli(lg.Timestamp))
+					}
+					hl := hlog.Log{
+						Message:    p.GetMessage(),
+						Level:      p.GetLevel(),
+						Timestamp:  t.UTC().Format(hlog.TimestampFormat),
+						Attributes: map[string]string{},
+					}
+					p.SetLogAttributes(r.Context(), &hl, msg)
+
+					if err := hlog.SubmitHTTPLog(r.Context(), tracer, projectID, hl); err != nil {
+						log.WithContext(r.Context()).WithError(err).Error("failed to submit log")
+						http.Error(w, err.Error(), http.StatusBadRequest)
+						return
+					}
+				}
+				structured = true
+				break
 			}
 		}
-		// try to parse the message as a cloudwatch payload
-		// if it is not, send it as a raw log message
-		if err := json.Unmarshal(msg, &cloudwatchPayload); err != nil {
+		if !structured {
 			hl := hlog.Log{
-				Message:   string(msg),
-				Timestamp: time.UnixMilli(lg.Timestamp).UTC().Format(hlog.TimestampFormat),
-				Level:     "info",
+				Message:    string(msg),
+				Timestamp:  time.UnixMilli(lg.Timestamp).UTC().Format(hlog.TimestampFormat),
+				Level:      "info",
+				Attributes: map[string]string{string(semconv.ServiceNameKey): "firehose"},
 			}
 			if err := hlog.SubmitHTTPLog(r.Context(), tracer, projectID, hl); err != nil {
 				log.WithContext(r.Context()).WithError(err).Error("failed to submit log")
 				http.Error(w, err.Error(), http.StatusBadRequest)
 				return
 			}
-		} else {
-			for _, event := range cloudwatchPayload.LogEvents {
-				hl := hlog.Log{
-					Message:   event.Message,
-					Timestamp: time.UnixMilli(event.Timestamp).UTC().Format(hlog.TimestampFormat),
-					Level:     "info",
-					Attributes: map[string]string{
-						string(semconv.ServiceNameKey): "firehose",
-						"message_type":                 cloudwatchPayload.MessageType,
-						"owner":                        cloudwatchPayload.Owner,
-						"log_group":                    cloudwatchPayload.LogGroup,
-						"log_stream":                   cloudwatchPayload.LogStream,
-					},
-				}
-				if err := hlog.SubmitHTTPLog(r.Context(), tracer, projectID, hl); err != nil {
-					log.WithContext(r.Context()).WithError(err).Error("failed to submit log")
-					http.Error(w, err.Error(), http.StatusBadRequest)
-					return
-				}
-			}
 		}
-
 	}
 
 	w.Header().Add("content-type", "application/json")
@@ -208,6 +364,7 @@ func HandleFirehoseLog(w http.ResponseWriter, r *http.Request) {
 		Timestamp: time.Now().UnixMilli(),
 	})
 	_, _ = w.Write(js)
+	w.WriteHeader(http.StatusOK)
 }
 
 func HandlePinoLogs(w http.ResponseWriter, r *http.Request, lgJson []byte, logs *hlog.PinoLogs) {
@@ -295,6 +452,10 @@ func HandleJSONLog(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		for k, v := range lgAttrs {
+			// skip the keys that are part of the message
+			if has := map[string]bool{"message": true, "timestamp": true, "level": true}[k]; has {
+				continue
+			}
 			for key, value := range hlog.FormatLogAttributes(k, v) {
 				lg.Attributes[key] = value
 			}
