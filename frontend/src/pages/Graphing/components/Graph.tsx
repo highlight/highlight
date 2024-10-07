@@ -37,12 +37,7 @@ import {
 	useGetMetricsLazyQuery,
 } from '@/graph/generated/hooks'
 import { GetMetricsQuery } from '@/graph/generated/operations'
-import {
-	Maybe,
-	MetricAggregator,
-	MetricBucket,
-	ProductType,
-} from '@/graph/generated/schemas'
+import { Maybe, MetricAggregator, ProductType } from '@/graph/generated/schemas'
 import {
 	BarChart,
 	BarChartConfig,
@@ -702,26 +697,25 @@ export const useFunnelData = (
 ) => {
 	return useMemo(() => {
 		if (!results?.length || !results[0]?.metrics) return
-		let buckets: Omit<MetricBucket, 'column'>[] = []
-		for (const r of results) {
+		const buckets: { [key: number]: number } = {}
+		results.forEach((r, idx) => {
 			if (r?.metrics?.buckets) {
-				buckets = buckets.concat(r.metrics.buckets)
+				r.metrics.buckets.forEach(
+					(b) =>
+						(buckets[idx] =
+							(buckets[idx] ?? 0) + (b?.metric_value ?? 0)),
+				)
 			}
-		}
+		})
 
-		// TODO(vkorolik) filter based on previous step secure ids
-		if (buckets?.length) {
-			return buckets.map((b, idx) => {
-				const key =
-					funnelSteps?.at(idx)?.title ||
-					funnelSteps?.at(idx)?.query ||
-					''
-				return {
-					[GROUP_KEY]: key,
-					[key]: b.metric_value,
-				}
-			})
-		}
+		return Object.values(buckets).map((value, idx) => {
+			const key =
+				funnelSteps?.at(idx)?.title || funnelSteps?.at(idx)?.query || ''
+			return {
+				[GROUP_KEY]: key,
+				[key]: value,
+			}
+		})
 	}, [funnelSteps, results])
 }
 
@@ -953,18 +947,31 @@ const Graph = ({
 
 		let getMetricsPromises: Promise<GetMetricsQueryResult>[] = []
 		if (funnelSteps?.length) {
+			let promise: Promise<GetMetricsQueryResult> = Promise.resolve(
+				{} as GetMetricsQueryResult,
+			)
 			for (const step of funnelSteps) {
-				getMetricsPromises.push(
-					getMetrics({
+				promise = promise.then((result) => {
+					// once events have other session attributes, we can support per-user aggregation
+					const keys = result.data?.metrics.buckets?.map(
+						(b) => b.group[0],
+					)
+					const previousStepFilter = keys
+						?.map((k) => `secure_session_id=${k}`)
+						?.join(' OR ')
+					return getMetrics({
 						variables: {
 							...getMetricsVariables,
 							params: {
 								...getMetricsVariables.params,
-								query: step.query,
+								query: keys?.length
+									? `${step.query} AND (${previousStepFilter})`
+									: step.query,
 							},
 						},
-					}),
-				)
+					})
+				})
+				getMetricsPromises.push(promise)
 			}
 		} else {
 			getMetricsPromises = [
