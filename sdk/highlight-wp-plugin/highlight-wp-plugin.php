@@ -68,7 +68,7 @@ class Highlight_WP_Plugin {
 
         add_settings_field(
             'project_id',
-            'Project ID',
+            'Project ID *',
             array($this, 'project_id_callback'),
             'highlight-wp-settings',
             'highlight_wp_setting_section'
@@ -76,7 +76,7 @@ class Highlight_WP_Plugin {
 
         add_settings_field(
             'service_name',
-            'Service Name',
+            'Service Name (optional)',
             array($this, 'service_name_callback'),
             'highlight-wp-settings',
             'highlight_wp_setting_section'
@@ -84,7 +84,7 @@ class Highlight_WP_Plugin {
 
         add_settings_field(
             'tracing_origins',
-            'Tracing Origins',
+            'Tracing Origins (optional)',
             array($this, 'tracing_origins_callback'),
             'highlight-wp-settings',
             'highlight_wp_setting_section'
@@ -92,7 +92,7 @@ class Highlight_WP_Plugin {
 
         add_settings_field(
             'enable_network_recording',
-            'Enable Network Recording',
+            'Enable Network Recording (optional)',
             array($this, 'enable_network_recording_callback'),
             'highlight-wp-settings',
             'highlight_wp_setting_section'
@@ -100,7 +100,7 @@ class Highlight_WP_Plugin {
 
         add_settings_field(
             'backend_url',
-            'Backend URL',
+            'Backend URL (optional)',
             array($this, 'backend_url_callback'),
             'highlight-wp-settings',
             'highlight_wp_setting_section'
@@ -133,14 +133,15 @@ class Highlight_WP_Plugin {
     }
 
     public function section_info() {
-        echo 'Enter your Highlight.io project settings below:';
+        echo 'Enter your Highlight project settings below. Fields marked with an asterisk (*) are required. Learn more about these settings in our <a href="https://www.highlight.io/docs/sdk/client#Hinit" target="_blank">documentation</a>.';
     }
 
     public function project_id_callback() {
         printf(
-            '<input type="text" id="project_id" name="highlight_wp_options[project_id]" value="%s" />',
+            '<input type="text" id="project_id" name="highlight_wp_options[project_id]" value="%s" required />',
             isset($this->options['project_id']) ? esc_attr($this->options['project_id']) : ''
         );
+        echo '<p class="description">Your Highlight Project ID (required). Can be found in your <a href="https://app.highlight.io/setup" target="_blank">Highlight project settings</a>.</p>';
     }
 
     public function service_name_callback() {
@@ -148,6 +149,7 @@ class Highlight_WP_Plugin {
             '<input type="text" id="service_name" name="highlight_wp_options[service_name]" value="%s" />',
             isset($this->options['service_name']) ? esc_attr($this->options['service_name']) : 'highlight-wp-plugin'
         );
+        echo '<p class="description">Optional: Customize the service name (default: highlight-wp-plugin).</p>';
     }
 
     public function tracing_origins_callback() {
@@ -170,7 +172,7 @@ class Highlight_WP_Plugin {
             '<input type="url" id="backend_url" name="highlight_wp_options[backend_url]" value="%s" />',
             isset($this->options['backend_url']) ? esc_url($this->options['backend_url']) : ''
         );
-        echo '<p class="description">Enter the backend URL for your Highlight.io instance (optional).</p>';
+        echo '<p class="description">Optional: Enter the backend URL for your Highlight.io instance.</p>';
     }
 
     public function add_highlight_script() {
