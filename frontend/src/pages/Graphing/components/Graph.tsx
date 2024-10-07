@@ -49,13 +49,24 @@ import {
 import * as style from './Graph.css'
 
 export type View = 'Line chart' | 'Bar chart' | 'Table'
-export const VIEWS: View[] = ['Line chart', 'Bar chart', 'Table']
-export const VIEW_ICONS = [
-	<IconSolidChartSquareLine size={16} key="line chart" />,
-	<IconSolidChartSquareBar size={16} key="bar chart" />,
-	<IconSolidTable size={16} key="table" />,
+
+export const VIEW_OPTIONS = [
+	{
+		value: 'Line chart',
+		name: 'Line chart',
+		icon: <IconSolidChartSquareLine size={16} />,
+	},
+	{
+		value: 'Bar chart',
+		name: 'Bar chart / histogram',
+		icon: <IconSolidChartSquareBar size={16} />,
+	},
+	{
+		value: 'Table',
+		name: 'Table',
+		icon: <IconSolidTable size={16} />,
+	},
 ]
-export const VIEW_LABELS = ['Line chart', 'Bar chart / histogram', 'Table']
 
 export const TIMESTAMP_KEY = 'Timestamp'
 export const GROUP_KEY = 'Group'
