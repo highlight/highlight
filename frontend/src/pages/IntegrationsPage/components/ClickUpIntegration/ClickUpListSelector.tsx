@@ -23,14 +23,14 @@ const ClickUpListSelector: React.FC<ContainerSelectionProps> = ({
 				f.lists.map((l) => ({
 					value: l.id,
 					id: l.id,
-					displayValue: `${f.name} > ${l.name}`,
+					name: `${f.name} > ${l.name}`,
 				})),
 			) || []
 		const folderlessLists =
 			data?.clickup_folderless_lists.map((l) => ({
 				value: l.id,
 				id: l.id,
-				displayValue: `${l.name}`,
+				name: `${l.name}`,
 			})) || []
 		return folderLists.concat(folderlessLists)
 	}, [data])
@@ -53,8 +53,7 @@ const ClickUpListSelector: React.FC<ContainerSelectionProps> = ({
 	return (
 		<Form.NamedSection label="List" name="clickupList">
 			<OptionDropdown
-				options={clickUpListOptions.map((o) => o.id)}
-				labels={clickUpListOptions.map((o) => o.displayValue)}
+				options={clickUpListOptions}
 				selection={selectedClickUpListId}
 				setSelection={setClickUpListId}
 				disabled={disabled || loading}

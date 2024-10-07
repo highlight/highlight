@@ -170,7 +170,7 @@ export const NavigateFilters: React.FC<Props> = ({
 		<>
 			<Box display="flex" flexDirection="row" gap="4">
 				<LabeledRow label="Navigate type" name="navigateType">
-					<OptionDropdown<NavigateType>
+					<OptionDropdown
 						options={NAVIGATE_TYPES}
 						selection={navigateType}
 						setSelection={setNavigateType}
