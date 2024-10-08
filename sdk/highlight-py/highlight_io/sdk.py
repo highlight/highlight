@@ -437,7 +437,7 @@ class H(object):
             attributes["highlight.trace_id"] = request_id
             attributes["highlight.session_id"] = session_id
             if isinstance(record.args, dict):
-                addedAttributes = flatten_dict(record.args, sep='.')
+                addedAttributes = flatten_dict(record.args, sep=".")
                 attributes.update(addedAttributes)
             elif isinstance(record.args, list):
                 attributes["args"] = record.args
