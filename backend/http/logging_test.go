@@ -53,6 +53,41 @@ const KinesisFirehoseFirelensFluentbitJson = `{
     "ecs_task_definition": "example-json-logger:4"
 }`
 
+const KinesisFirehoseFirelensPinoJson = `{
+  "status": "error",
+  "level": 50,
+  "time": 1728347034087,
+  "pid": 43,
+  "environment": "staging",
+  "region": "us-east-2",
+  "name": "example-json-logger",
+  "service": "abc123",
+  "dd": {
+    "trace_id": "7211330732019911779",
+    "span_id": "7995688579442497114",
+    "service": "main-api",
+    "version": "1.2.3",
+    "env": "staging"
+  },
+  "trace_id": "f80fc1e87e7bce2bb992167f47f8ab00",
+  "span_id": "9fdca739939f9145",
+  "trace_flags": "01",
+  "flagKey": "foo-bar-baz",
+  "requestContext": {
+    "userId": "abc-123",
+    "organizationId": 1
+  },
+  "defaultValue": false,
+  "variationValue": false,
+  "msg": "something happened in this execution.",
+  "container_id": "x-y",
+  "container_name": "api-container-name",
+  "source": "stdout",
+  "ecs_cluster": "fooAPI",
+  "ecs_task_arn": "arn:aws:ecs:us-east-2:x:task/fooAPI/y",
+  "ecs_task_definition": "fooAPI:659"
+}`
+
 type MockResponseWriter struct {
 	statusCode int
 }
@@ -165,7 +200,7 @@ func TestHandleFirehoseCloudwatch(t *testing.T) {
 }
 
 func TestHandleFirehoseFireLens(t *testing.T) {
-	for idx, body := range []string{KinesisFirehoseFirelensJson, KinesisFirehoseFirelensFluentbitJson} {
+	for idx, body := range []string{KinesisFirehoseFirelensJson, KinesisFirehoseFirelensFluentbitJson, KinesisFirehoseFirelensPinoJson} {
 		t.Run(fmt.Sprintf("%d", idx), func(t *testing.T) {
 			b := bytes.Buffer{}
 			gz := gzip.NewWriter(&b)
@@ -189,6 +224,9 @@ func TestHandleFirehoseFireLens(t *testing.T) {
 			event := span.Events()[len(span.Events())-1]
 			assert.Equal(t, "highlight.log", span.Name())
 			assert.Equal(t, "log", event.Name)
+
+			// in the last 30 years to check that time is not unix epoch
+			assert.Less(t, time.Since(event.Time), time.Hour*24*365*30)
 
 			proj, _ := lo.Find(span.Attributes(), func(item attribute.KeyValue) bool {
 				return item.Key == "highlight.project_id"

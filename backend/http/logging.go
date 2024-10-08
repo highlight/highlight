@@ -191,6 +191,52 @@ func (p *FireLensFluentBitPayload) SetLogAttributes(ctx context.Context, hl *hlo
 	hl.Attributes["source"] = p.Source
 }
 
+type FireLensPinoPayload struct {
+	Message string `json:"msg"`
+	Level   uint8  `json:"level"`
+	Service string `json:"name"`
+	Time    int64  `json:"time"`
+}
+
+func (p *FireLensPinoPayload) IsValid() bool {
+	return len(p.Message) > 0
+}
+
+func (p *FireLensPinoPayload) GetMessages() []PayloadMessage {
+	return []PayloadMessage{p}
+}
+
+func (p *FireLensPinoPayload) GetMessage() string {
+	return p.Message
+}
+
+func (p *FireLensPinoPayload) GetLevel() string {
+	return parsePinoLevel(p.Level)
+}
+
+func (p *FireLensPinoPayload) GetTimestamp() *time.Time {
+	return ptr.Time(time.UnixMilli(p.Time))
+}
+
+func (p *FireLensPinoPayload) SetLogAttributes(ctx context.Context, hl *hlog.Log, msg []byte) {
+	var lgAttrs map[string]interface{}
+	if err := json.Unmarshal(msg, &lgAttrs); err != nil {
+		log.WithContext(ctx).
+			WithError(err).WithField("msg", msg).
+			Error("invalid firelens fluentbit log attributes")
+	}
+	for k, v := range lgAttrs {
+		// skip the keys that are part of the message
+		if has := map[string]bool{"level": true, "time": true, "msg": true}[k]; has {
+			continue
+		}
+		for key, value := range hlog.FormatLogAttributes(k, v) {
+			hl.Attributes[key] = value
+		}
+	}
+	hl.Attributes[string(semconv.ServiceNameKey)] = hl.Attributes["name"]
+}
+
 func getBody(r *http.Request) (body io.Reader, err error) {
 	body = r.Body
 	if r.Header.Get("Content-Encoding") == "gzip" {
@@ -239,6 +285,24 @@ func getQueryStringParams(r *http.Request) (int, string, error) {
 		return 0, "", nil
 	}
 	return projectID, qs.Get(LogDrainServiceQueryParam), nil
+}
+
+func parsePinoLevel(level uint8) string {
+	switch level {
+	case 10:
+		return "trace"
+	case 20:
+		return "debug"
+	case 30:
+		return "info"
+	case 40:
+		return "warn"
+	case 50:
+		return "error"
+	case 60:
+		return "fatal"
+	}
+	return "info"
 }
 
 func HandleFirehoseLog(w http.ResponseWriter, r *http.Request) {
@@ -314,7 +378,7 @@ func HandleFirehoseLog(w http.ResponseWriter, r *http.Request) {
 		// try to parse the message as a structured payload
 		// if it is not, send it as a raw log message
 		var structured bool
-		for _, payload := range []Payload{&FireLensFluentBitPayload{}, &FireLensPayload{}, &CloudWatchPayload{}} {
+		for _, payload := range []Payload{&FireLensFluentBitPayload{}, &FireLensPinoPayload{}, &FireLensPayload{}, &CloudWatchPayload{}} {
 			err := json.Unmarshal(msg, &payload)
 			if err == nil && payload.IsValid() {
 				for _, p := range payload.GetMessages() {
@@ -389,20 +453,7 @@ func HandlePinoLogs(w http.ResponseWriter, r *http.Request, lgJson []byte, logs 
 		lg.Attributes[string(semconv.ServiceNameKey)] = serviceName
 		lg.Timestamp = time.UnixMilli(pinoLog.Time).UTC().Format(hlog.TimestampFormat)
 		lg.Message = pinoLog.Message
-		switch pinoLog.Level {
-		case 10:
-			lg.Level = "trace"
-		case 20:
-			lg.Level = "debug"
-		case 30:
-			lg.Level = "info"
-		case 40:
-			lg.Level = "warn"
-		case 50:
-			lg.Level = "error"
-		case 60:
-			lg.Level = "fatal"
-		}
+		lg.Level = parsePinoLevel(pinoLog.Level)
 
 		for k, v := range lgAttrs.Logs[idx] {
 			// skip the keys that are part of the message
