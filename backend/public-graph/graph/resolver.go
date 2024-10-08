@@ -748,8 +748,29 @@ func (r *Resolver) isWithinErrorQuota(ctx context.Context, workspace *model.Work
 	return withinBillingQuota
 }
 
-// Matches the ErrorObject with an existing ErrorGroup, or creates a new one if the group does not exist
+// HandleErrorAndGroup caches the result of handleErrorAndGroup under the exact match of the error body + stacktrace.
+// Improves performance of handleErrorAndGroup by first checking if the exact error object has been grouped before.
 func (r *Resolver) HandleErrorAndGroup(ctx context.Context, errorObj *model.ErrorObject, structuredStackTrace []*privateModel.ErrorTrace, fields []*model.ErrorField, projectID int, workspace *model.Workspace) (*model.ErrorGroup, error) {
+	key := errorgroups.GetKey(projectID, errorObj, structuredStackTrace)
+	var cacheMiss bool
+	eg, err := redis.CachedEval(ctx, r.Redis, key, time.Second, time.Minute, func() (*model.ErrorGroup, error) {
+		cacheMiss = true
+		return r.handleErrorAndGroup(ctx, errorObj, structuredStackTrace, fields, projectID, workspace)
+	})
+
+	// on cache hit, we want to run logic to update error group based on new error object
+	if !cacheMiss {
+		// tagGroup is ignored when error group is matched
+		eg, err = r.GetOrCreateErrorGroup(ctx, errorObj, func() (*int, error) {
+			return ptr.Int(eg.ID), nil
+		}, nil, false)
+	}
+
+	return eg, err
+}
+
+// Matches the ErrorObject with an existing ErrorGroup, or creates a new one if the group does not exist
+func (r *Resolver) handleErrorAndGroup(ctx context.Context, errorObj *model.ErrorObject, structuredStackTrace []*privateModel.ErrorTrace, fields []*model.ErrorField, projectID int, workspace *model.Workspace) (*model.ErrorGroup, error) {
 	span, ctx := util.StartSpanFromContext(ctx, "HandleErrorAndGroup", util.Tag("projectID", projectID))
 	defer span.Finish()
 
