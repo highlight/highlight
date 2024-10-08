@@ -2509,11 +2509,12 @@ query GetTracesMetrics(
 }
 
 query GetKeys(
-	$product_type: ProductType!
+	$product_type: ProductType
 	$project_id: ID!
 	$date_range: DateRangeRequiredInput!
 	$query: String
 	$type: KeyType
+	$event: String
 ) {
 	keys(
 		product_type: $product_type
@@ -2521,6 +2522,7 @@ query GetKeys(
 		date_range: $date_range
 		query: $query
 		type: $type
+		event: $event
 	) {
 		name
 		type
@@ -2528,12 +2530,13 @@ query GetKeys(
 }
 
 query GetKeyValues(
-	$product_type: ProductType!
+	$product_type: ProductType
 	$project_id: ID!
 	$key_name: String!
 	$date_range: DateRangeRequiredInput!
 	$query: String!
 	$count: Int!
+	$event: String
 ) {
 	key_values(
 		product_type: $product_type
@@ -2542,6 +2545,7 @@ query GetKeyValues(
 		date_range: $date_range
 		query: $query
 		count: $count
+		event: $event
 	)
 }
 
@@ -2593,6 +2597,12 @@ query GetVisualization($id: ID!) {
 		projectId
 		name
 		timePreset
+		variables {
+			key
+			defaultValue
+			suggestionType
+			field
+		}
 		graphs {
 			id
 			type
@@ -2639,6 +2649,12 @@ query GetVisualizations(
 			projectId
 			name
 			timePreset
+			variables {
+				key
+				defaultValue
+				suggestionType
+				field
+			}
 			graphs {
 				id
 				type

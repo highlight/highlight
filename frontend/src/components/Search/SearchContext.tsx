@@ -49,6 +49,7 @@ interface SearchContext extends Partial<ReturnType<typeof useSearchTime>> {
 	aiSuggestion?: AiSuggestion
 	aiSuggestionLoading?: boolean
 	aiSuggestionError?: ApolloError
+	defaultValues?: string[]
 }
 
 export const [useSearchContext, SearchContextProvider] =

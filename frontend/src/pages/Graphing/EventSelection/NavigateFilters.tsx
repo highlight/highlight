@@ -16,6 +16,8 @@ import * as comboBoxStyle from '../Combobox/styles.css'
 import { OptionDropdown } from '@/pages/Graphing/OptionDropdown'
 import { parseSearch } from '@/components/Search/utils'
 
+const EVENT_NAME = 'Navigate'
+
 enum NavigateType {
 	Visited = 'Visited',
 	Reloaded = 'Reloaded',
@@ -152,6 +154,7 @@ export const NavigateFilters: React.FC<Props> = ({
 				},
 				query: debouncedNavigateQuery,
 				count: 25,
+				event: EVENT_NAME,
 			},
 		})
 	}, [
@@ -167,7 +170,7 @@ export const NavigateFilters: React.FC<Props> = ({
 		<>
 			<Box display="flex" flexDirection="row" gap="4">
 				<LabeledRow label="Navigate type" name="navigateType">
-					<OptionDropdown<NavigateType>
+					<OptionDropdown
 						options={NAVIGATE_TYPES}
 						selection={navigateType}
 						setSelection={setNavigateType}
@@ -187,6 +190,7 @@ export const NavigateFilters: React.FC<Props> = ({
 						onChangeQuery={setNavigateQuery}
 						cssClass={comboBoxStyle.combobox}
 						wrapperCssClass={comboBoxStyle.comboboxWrapper}
+						popoverCssClass={comboBoxStyle.comboboxPopover}
 						queryPlaceholder="Filter..."
 						creatableRender={(value) => (
 							<Text cssClass={comboBoxStyle.comboboxText}>
@@ -207,6 +211,7 @@ export const NavigateFilters: React.FC<Props> = ({
 							startDate={startDate}
 							endDate={endDate}
 							productType={ProductType.Events}
+							event={EVENT_NAME}
 							hideIcon
 						/>
 					</SearchContext>

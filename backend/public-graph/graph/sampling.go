@@ -255,7 +255,11 @@ func (r *Resolver) IsSessionExcluded(ctx context.Context, s *model.Session, sess
 }
 
 func (r *Resolver) isSessionExcludedBySample(ctx context.Context, session *model.Session) bool {
-	return !r.isItemIngestedBySample(ctx, privateModel.ProductTypeSessions, session.ProjectID, session.SecureID)
+	samplingKey := session.Identifier
+	if samplingKey == "" {
+		samplingKey = session.SecureID
+	}
+	return !r.isItemIngestedBySample(ctx, privateModel.ProductTypeSessions, session.ProjectID, samplingKey)
 }
 
 func (r *Resolver) isSessionExcludedByRateLimit(ctx context.Context, session *model.Session) bool {

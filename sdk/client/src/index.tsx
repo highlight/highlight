@@ -1402,6 +1402,10 @@ SessionSecureID: ${this.sessionData.sessionSecureID}`,
 	}
 
 	private takeFullSnapshot() {
+		if (!this._recordStop) {
+			this.logger.log(`skipping full snapshot as rrweb is not running`)
+			return
+		}
 		this.logger.log(`taking full snapshot`, {
 			bytesSinceSnapshot: this._eventBytesSinceSnapshot,
 			lastSnapshotTime: this._lastSnapshotTime,

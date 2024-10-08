@@ -57,7 +57,9 @@ export const DashboardCard = ({
 			onMouseEnter={() => {
 				setGraphHover(true)
 			}}
-			onMouseLeave={() => {}}
+			onMouseLeave={() => {
+				setGraphHover(false)
+			}}
 		>
 			<Box
 				borderRadius="6"

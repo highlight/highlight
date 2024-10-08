@@ -43,10 +43,8 @@ import { DestinationInput } from '@/pages/Alerts/DestinationInput'
 import { Combobox } from '@/pages/Graphing/Combobox'
 import {
 	FUNCTION_TYPES,
-	PRODUCT_ICONS,
-	PRODUCT_ICONS_WITH_EVENTS,
-	PRODUCTS,
-	PRODUCTS_WITH_EVENTS,
+	PRODUCT_OPTIONS,
+	PRODUCT_OPTIONS_WITH_EVENTS,
 } from '@/pages/Graphing/constants'
 import { HeaderDivider } from '@/pages/Graphing/Dashboard'
 import { LabeledRow } from '@/pages/Graphing/LabeledRow'
@@ -95,17 +93,11 @@ export const AlertForm: React.FC = () => {
 	const [searchParams] = useSearchParams()
 
 	const eventSearchEnabled = useFeatureFlag(Feature.EventSearch)
-	const { products, productIcons } = useMemo(() => {
+	const productOptions = useMemo(() => {
 		if (!eventSearchEnabled) {
-			return {
-				products: PRODUCTS,
-				productIcons: PRODUCT_ICONS,
-			}
+			return PRODUCT_OPTIONS
 		}
-		return {
-			products: PRODUCTS_WITH_EVENTS,
-			productIcons: PRODUCT_ICONS_WITH_EVENTS,
-		}
+		return PRODUCT_OPTIONS_WITH_EVENTS
 	}, [eventSearchEnabled])
 
 	const isEdit = alert_id !== undefined
@@ -136,7 +128,7 @@ export const AlertForm: React.FC = () => {
 
 	const [alertName, setAlertName] = useState('')
 	const [productType, setProductType] = useState(
-		(searchParams.get('source') as ProductType) || products[0],
+		(searchParams.get('source') as ProductType) || productOptions[0].value,
 	)
 	const [functionType, setFunctionType] = useState(MetricAggregator.Count)
 	const [functionColumn, setFunctionColumn] = useState('')
@@ -452,11 +444,10 @@ export const AlertForm: React.FC = () => {
 										name="source"
 										tooltip="The resource being queried, one of the four highlight.io resources."
 									>
-										<OptionDropdown<ProductType>
-											options={products}
+										<OptionDropdown
+											options={productOptions}
 											selection={productType}
 											setSelection={handleProductChange}
-											icons={productIcons}
 										/>
 									</LabeledRow>
 									{ALERT_PRODUCT_INFO[productType] && (
@@ -527,7 +518,7 @@ export const AlertForm: React.FC = () => {
 												name="function"
 												tooltip="Determines how data points are aggregated. If the function requires a numeric field as input, one can be chosen."
 											>
-												<OptionDropdown<MetricAggregator>
+												<OptionDropdown
 													options={FUNCTION_TYPES}
 													selection={functionType}
 													setSelection={
@@ -582,7 +573,7 @@ export const AlertForm: React.FC = () => {
 												label="Alert conditions"
 												name="alertConditions"
 											>
-												<OptionDropdown<AlertCondition>
+												<OptionDropdown
 													options={
 														ALERT_CONDITION_OPTIONS
 													}
@@ -622,13 +613,10 @@ export const AlertForm: React.FC = () => {
 													label="Alert window"
 													name="thresholdWindow"
 												>
-													<OptionDropdown<string>
-														options={FREQUENCY_OPTIONS.map(
-															(f) => f.value,
-														)}
-														labels={FREQUENCY_OPTIONS.map(
-															(f) => f.name,
-														)}
+													<OptionDropdown
+														options={
+															FREQUENCY_OPTIONS
+														}
 														selection={String(
 															thresholdWindow,
 														)}
@@ -646,13 +634,8 @@ export const AlertForm: React.FC = () => {
 												label="Cooldown"
 												name="thresholdCooldown"
 											>
-												<OptionDropdown<string>
-													options={FREQUENCY_OPTIONS.map(
-														(f) => f.value,
-													)}
-													labels={FREQUENCY_OPTIONS.map(
-														(f) => f.name,
-													)}
+												<OptionDropdown
+													options={FREQUENCY_OPTIONS}
 													selection={String(
 														thresholdCooldown,
 													)}

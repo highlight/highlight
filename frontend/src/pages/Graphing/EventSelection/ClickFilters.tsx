@@ -16,6 +16,8 @@ import * as comboBoxStyle from '../Combobox/styles.css'
 import { OptionDropdown } from '@/pages/Graphing/OptionDropdown'
 import { parseSearch } from '@/components/Search/utils'
 
+const EVENT_NAME = 'Click'
+
 enum ClickType {
 	Text = 'Text',
 	Target = 'Target',
@@ -145,6 +147,7 @@ export const ClickFilters: React.FC<Props> = ({
 				},
 				query: debouncedClickQuery,
 				count: 25,
+				event: EVENT_NAME,
 			},
 		})
 	}, [
@@ -160,7 +163,7 @@ export const ClickFilters: React.FC<Props> = ({
 		<>
 			<Box display="flex" flexDirection="row" gap="4">
 				<LabeledRow label="Click type" name="clickType">
-					<OptionDropdown<ClickType>
+					<OptionDropdown
 						options={CLICK_TYPES}
 						selection={clickType}
 						setSelection={setClickType}
@@ -180,6 +183,7 @@ export const ClickFilters: React.FC<Props> = ({
 						onChangeQuery={setClickQuery}
 						cssClass={comboBoxStyle.combobox}
 						wrapperCssClass={comboBoxStyle.comboboxWrapper}
+						popoverCssClass={comboBoxStyle.comboboxPopover}
 						queryPlaceholder="Filter..."
 						creatableRender={(value) => (
 							<Text cssClass={comboBoxStyle.comboboxText}>
@@ -200,6 +204,7 @@ export const ClickFilters: React.FC<Props> = ({
 							startDate={startDate}
 							endDate={endDate}
 							productType={ProductType.Events}
+							event={EVENT_NAME}
 							hideIcon
 						/>
 					</SearchContext>

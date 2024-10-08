@@ -82,6 +82,7 @@ import { PythonManualTracesContent } from './traces/python/manual'
 import { PythonAITracesContent } from './traces/python/python-ai'
 import { PythonLibrariesTracesContent } from './traces/python/python-libraries'
 import { RustTracesContent } from './traces/rust'
+import { AWSLambdaContent } from './traces/serverless/lambda'
 
 export type QuickStartOptions = {
 	title: string
@@ -116,6 +117,7 @@ export type QuickStartStep = {
 
 export enum QuickStartType {
 	Angular = 'angular',
+	AWSLambda = 'aws-lambda',
 	Electron = 'electron',
 	React = 'react',
 	Remix = 'remix',
@@ -447,6 +449,12 @@ export const quickStartContent = {
 			logoUrl: siteUrl('/images/quickstart/rust.svg'),
 			[QuickStartType.RustOther]: RustTracesContent,
 			[QuickStartType.RustActix]: RustTracesContent,
+		},
+		serverless: {
+			title: 'Serverless',
+			subtitle: 'Install tracing in your Serverless application.',
+			logoUrl: siteUrl('/images/quickstart/serverless.svg'),
+			[QuickStartType.AWSLambda]: AWSLambdaContent,
 		},
 	},
 	other: {

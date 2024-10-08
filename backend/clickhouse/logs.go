@@ -484,7 +484,7 @@ func (client *Client) ReadWorkspaceLogCounts(ctx context.Context, projectIDs []i
 }
 
 func (client *Client) LogsKeys(ctx context.Context, projectID int, startDate time.Time, endDate time.Time, query *string, typeArg *modelInputs.KeyType) ([]*modelInputs.QueryKey, error) {
-	logKeys, err := KeysAggregated(ctx, client, LogKeysTable, projectID, startDate, endDate, query, typeArg)
+	logKeys, err := KeysAggregated(ctx, client, LogKeysTable, projectID, startDate, endDate, query, typeArg, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -504,7 +504,7 @@ func (client *Client) LogsKeys(ctx context.Context, projectID int, startDate tim
 }
 
 func (client *Client) LogsKeyValues(ctx context.Context, projectID int, keyName string, startDate time.Time, endDate time.Time, query *string, limit *int) ([]string, error) {
-	return KeyValuesAggregated(ctx, client, LogKeyValuesTable, projectID, keyName, startDate, endDate, query, limit)
+	return KeyValuesAggregated(ctx, client, LogKeyValuesTable, projectID, keyName, startDate, endDate, query, limit, nil)
 }
 
 func LogMatchesQuery(logRow *LogRow, filters listener.Filters) bool {
