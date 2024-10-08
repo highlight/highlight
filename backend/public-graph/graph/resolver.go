@@ -460,6 +460,9 @@ func (r *Resolver) tagErrorGroup(ctx context.Context, errorObj *model.ErrorObjec
 }
 
 func (r *Resolver) GetOrCreateErrorGroup(ctx context.Context, errorObj *model.ErrorObject, matchFn func() (*int, error), onCreateGroup func(int) error, tagGroup bool) (*model.ErrorGroup, error) {
+	span, ctx := util.StartSpanFromContext(ctx, "resolver.GetOrCreateErrorGroup", util.Tag("error_object_id", errorObj.ID))
+	defer span.Finish()
+
 	match, err := matchFn()
 	if err != nil {
 		return nil, err
@@ -557,7 +560,7 @@ func (r *Resolver) GetOrCreateErrorGroup(ctx context.Context, errorObj *model.Er
 }
 
 func (r *Resolver) GetTopErrorGroupMatchByEmbedding(ctx context.Context, projectID int, method model.ErrorGroupingMethod, embedding model.Vector, threshold float64) (*int, error) {
-	span, ctx := util.StartSpanFromContext(ctx, "public-resolver", util.ResourceName("GetTopErrorGroupMatchByEmbedding"), util.Tag("projectID", projectID))
+	span, ctx := util.StartSpanFromContext(ctx, "resolver.GetTopErrorGroupMatchByEmbedding", util.Tag("projectID", projectID), util.Tag("method", method))
 	defer span.Finish()
 
 	result := struct {
@@ -614,6 +617,9 @@ func (r *Resolver) GetTopErrorGroupMatchByEmbedding(ctx context.Context, project
 }
 
 func (r *Resolver) GetTopErrorGroupMatch(ctx context.Context, event string, projectID int, fingerprints []*model.ErrorFingerprint) (*int, error) {
+	span, ctx := util.StartSpanFromContext(ctx, "resolver.GetTopErrorGroupMatch", util.Tag("projectID", projectID), util.Tag("event", event), util.Tag("num_fingerprints", len(fingerprints)))
+	defer span.Finish()
+
 	firstCode := ""
 	firstMeta := ""
 	restCode := []string{}
