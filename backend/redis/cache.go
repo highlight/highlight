@@ -2,10 +2,10 @@ package redis
 
 import (
 	"context"
-	"time"
-
 	"github.com/go-redis/cache/v9"
+	"github.com/highlight-run/highlight/backend/util"
 	log "github.com/sirupsen/logrus"
+	"time"
 )
 
 type Config struct {
@@ -37,6 +37,9 @@ func WithStoreNil(storeNil bool) Option {
 // CachedEval will return the value at cacheKey if it exists.
 // If it does not exist or is nil, CachedEval calls `fn()` to evaluate the result, and stores it at the cache key.
 func CachedEval[T any](ctx context.Context, redis *Client, cacheKey string, lockTimeout, cacheExpiration time.Duration, fn func() (*T, error), opts ...Option) (value *T, err error) {
+	span, ctx := util.StartSpanFromContext(ctx, "redis.CachedEval", util.Tag("key", cacheKey), util.Tag("lock_timeout_ns", lockTimeout.Nanoseconds()), util.Tag("ttl_ns", cacheExpiration.Nanoseconds()))
+	defer span.Finish()
+
 	var cfg Config
 	for _, opt := range opts {
 		opt(&cfg)
