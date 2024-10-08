@@ -27,7 +27,7 @@ services:
             WORDPRESS_DB_NAME: wordpress
         volumes:
             - wordpress_data:/var/www/html
-            - ../../sdk/highlight-wordpress:/var/www/html/wp-content/plugins/highlight-wordpress
+            - ../../sdk/highlight-wordpress/highlight-io:/var/www/html/wp-content/plugins/highlight-io
         platform: linux/amd64
 
 volumes:

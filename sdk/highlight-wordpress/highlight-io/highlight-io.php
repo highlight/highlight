@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Highlight.io Session Recording
  * Plugin URI: https://highlight.io/docs/wordpress
- * Description: Enables Highlight.io session recording on your WordPress site.
+ * Description: Enables Highlight.io on your WordPress site. Can be used for session recording, error monitoring, and more.
  * Version: 1.0.0
  * Author: Highlight.io
  * Author URI: https://highlight.io
@@ -108,9 +108,9 @@ class Highlight_WP_Plugin {
     }
 
     public function sanitize($input) {
-        $nonce = isset($_POST['highlight_wp_settings_nonce']) ? sanitize_text_field($_POST['highlight_wp_settings_nonce']) : '';
+        $nonce = isset($_POST['highlight_wp_settings_nonce']) ? sanitize_text_field(wp_unslash($_POST['highlight_wp_settings_nonce'])) : '';
         if (!wp_verify_nonce($nonce, 'highlight_wp_settings_nonce')) {
-            add_settings_error('highlight_wp_messages', 'highlight_wp_message', __('Invalid nonce specified', 'highlight-wordpress'), 'error');
+            add_settings_error('highlight_wp_messages', 'highlight_wp_message', __('Invalid nonce specified', 'highlight'), 'error');
             return get_option('highlight_wp_options');
         }
 
