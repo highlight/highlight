@@ -36,7 +36,7 @@ type PayloadMessage interface {
 	GetMessage() string
 	GetLevel() string
 	GetTimestamp() *time.Time
-	SetLogAttributes(ctx context.Context, hl *hlog.Log, msg []byte)
+	SetLogAttributes(ctx context.Context, hl *hlog.Log, msg []byte) context.Context
 }
 
 type CloudWatchPayloadMessage struct {
@@ -58,7 +58,7 @@ func (p *CloudWatchPayloadMessage) GetTimestamp() *time.Time {
 	return ptr.Time(time.UnixMilli(p.Timestamp))
 }
 
-func (p *CloudWatchPayloadMessage) SetLogAttributes(ctx context.Context, hl *hlog.Log, msg []byte) {
+func (p *CloudWatchPayloadMessage) SetLogAttributes(ctx context.Context, hl *hlog.Log, msg []byte) context.Context {
 	hl.Attributes = map[string]string{
 		string(semconv.ServiceNameKey): "firehose",
 		"message_type":                 p.Payload.MessageType,
@@ -66,10 +66,11 @@ func (p *CloudWatchPayloadMessage) SetLogAttributes(ctx context.Context, hl *hlo
 		"log_group":                    p.Payload.LogGroup,
 		"log_stream":                   p.Payload.LogStream,
 	}
+	return ctx
 }
 
 type Payload interface {
-	IsValid() bool
+	Parse([]byte) bool
 	GetMessages() []PayloadMessage
 }
 
@@ -82,8 +83,9 @@ type CloudWatchPayload struct {
 	LogEvents           []CloudWatchPayloadMessage
 }
 
-func (p *CloudWatchPayload) IsValid() bool {
-	return len(p.LogEvents) > 0
+func (p *CloudWatchPayload) Parse(msg []byte) bool {
+	err := json.Unmarshal(msg, p)
+	return err == nil && len(p.LogEvents) > 0
 }
 
 func (p *CloudWatchPayload) GetMessages() []PayloadMessage {
@@ -98,8 +100,9 @@ type FireLensPayload struct {
 	Source string
 }
 
-func (p *FireLensPayload) IsValid() bool {
-	return len(p.Log) > 0
+func (p *FireLensPayload) Parse(msg []byte) bool {
+	err := json.Unmarshal(msg, p)
+	return err == nil && len(p.Log) > 0
 }
 
 func (p *FireLensPayload) GetMessages() []PayloadMessage {
@@ -121,7 +124,7 @@ func (p *FireLensPayload) GetTimestamp() *time.Time {
 	return nil
 }
 
-func (p *FireLensPayload) SetLogAttributes(ctx context.Context, hl *hlog.Log, msg []byte) {
+func (p *FireLensPayload) SetLogAttributes(ctx context.Context, hl *hlog.Log, msg []byte) context.Context {
 	var lgAttrs map[string]interface{}
 	if err := json.Unmarshal(msg, &lgAttrs); err != nil {
 		log.WithContext(ctx).
@@ -138,6 +141,7 @@ func (p *FireLensPayload) SetLogAttributes(ctx context.Context, hl *hlog.Log, ms
 		}
 	}
 	hl.Attributes[string(semconv.ServiceNameKey)] = hl.Attributes["container_name"]
+	return ctx
 }
 
 type FireLensFluentBitPayload struct {
@@ -147,8 +151,9 @@ type FireLensFluentBitPayload struct {
 	Timestamp string `json:"@timestamp"`
 }
 
-func (p *FireLensFluentBitPayload) IsValid() bool {
-	return len(p.Message) > 0
+func (p *FireLensFluentBitPayload) Parse(msg []byte) bool {
+	err := json.Unmarshal(msg, p)
+	return err == nil && len(p.Message) > 0
 }
 
 func (p *FireLensFluentBitPayload) GetMessages() []PayloadMessage {
@@ -171,7 +176,7 @@ func (p *FireLensFluentBitPayload) GetTimestamp() *time.Time {
 	return nil
 }
 
-func (p *FireLensFluentBitPayload) SetLogAttributes(ctx context.Context, hl *hlog.Log, msg []byte) {
+func (p *FireLensFluentBitPayload) SetLogAttributes(ctx context.Context, hl *hlog.Log, msg []byte) context.Context {
 	var lgAttrs map[string]interface{}
 	if err := json.Unmarshal(msg, &lgAttrs); err != nil {
 		log.WithContext(ctx).
@@ -189,6 +194,7 @@ func (p *FireLensFluentBitPayload) SetLogAttributes(ctx context.Context, hl *hlo
 	}
 	hl.Attributes[string(semconv.ServiceNameKey)] = hl.Attributes["container_name"]
 	hl.Attributes["source"] = p.Source
+	return ctx
 }
 
 type FireLensPinoPayload struct {
@@ -198,8 +204,9 @@ type FireLensPinoPayload struct {
 	Time    int64  `json:"time"`
 }
 
-func (p *FireLensPinoPayload) IsValid() bool {
-	return len(p.Message) > 0
+func (p *FireLensPinoPayload) Parse(msg []byte) bool {
+	err := json.Unmarshal(msg, p)
+	return err == nil && len(p.Message) > 0
 }
 
 func (p *FireLensPinoPayload) GetMessages() []PayloadMessage {
@@ -218,7 +225,7 @@ func (p *FireLensPinoPayload) GetTimestamp() *time.Time {
 	return ptr.Time(time.UnixMilli(p.Time))
 }
 
-func (p *FireLensPinoPayload) SetLogAttributes(ctx context.Context, hl *hlog.Log, msg []byte) {
+func (p *FireLensPinoPayload) SetLogAttributes(ctx context.Context, hl *hlog.Log, msg []byte) context.Context {
 	var lgAttrs map[string]interface{}
 	if err := json.Unmarshal(msg, &lgAttrs); err != nil {
 		log.WithContext(ctx).
@@ -235,6 +242,37 @@ func (p *FireLensPinoPayload) SetLogAttributes(ctx context.Context, hl *hlog.Log
 		}
 	}
 	hl.Attributes[string(semconv.ServiceNameKey)] = hl.Attributes["name"]
+	return ctx
+}
+
+type JsonPayload struct {
+	Message string `json:"msg"`
+}
+
+func (p *JsonPayload) Parse(msg []byte) bool {
+	p.Message = string(msg)
+	return true
+}
+
+func (p *JsonPayload) GetMessages() []PayloadMessage {
+	return []PayloadMessage{p}
+}
+
+func (p *JsonPayload) GetMessage() string {
+	return p.Message
+}
+
+func (p *JsonPayload) GetLevel() string {
+	return model.LogLevelInfo.String()
+}
+
+func (p *JsonPayload) GetTimestamp() *time.Time {
+	return nil
+}
+
+func (p *JsonPayload) SetLogAttributes(ctx context.Context, hl *hlog.Log, msg []byte) context.Context {
+	hl.Attributes[string(semconv.ServiceNameKey)] = "firehose"
+	return ctx
 }
 
 func getBody(r *http.Request) (body io.Reader, err error) {
@@ -375,12 +413,8 @@ func HandleFirehoseLog(w http.ResponseWriter, r *http.Request) {
 			msg = data
 		}
 
-		// try to parse the message as a structured payload
-		// if it is not, send it as a raw log message
-		var structured bool
-		for _, payload := range []Payload{&FireLensFluentBitPayload{}, &FireLensPinoPayload{}, &FireLensPayload{}, &CloudWatchPayload{}} {
-			err := json.Unmarshal(msg, &payload)
-			if err == nil && payload.IsValid() {
+		for _, payload := range []Payload{&FireLensFluentBitPayload{}, &FireLensPinoPayload{}, &FireLensPayload{}, &CloudWatchPayload{}, &JsonPayload{}} {
+			if payload.Parse(msg) {
 				for _, p := range payload.GetMessages() {
 					t := p.GetTimestamp()
 					if t == nil {
@@ -392,29 +426,14 @@ func HandleFirehoseLog(w http.ResponseWriter, r *http.Request) {
 						Timestamp:  t.UTC().Format(hlog.TimestampFormat),
 						Attributes: map[string]string{},
 					}
-					p.SetLogAttributes(r.Context(), &hl, msg)
-
-					if err := hlog.SubmitHTTPLog(r.Context(), tracer, projectID, hl); err != nil {
+					ctx := p.SetLogAttributes(r.Context(), &hl, msg)
+					if err := hlog.SubmitHTTPLog(ctx, tracer, projectID, hl); err != nil {
 						log.WithContext(r.Context()).WithError(err).Error("failed to submit log")
 						http.Error(w, err.Error(), http.StatusBadRequest)
 						return
 					}
 				}
-				structured = true
 				break
-			}
-		}
-		if !structured {
-			hl := hlog.Log{
-				Message:    string(msg),
-				Timestamp:  time.UnixMilli(lg.Timestamp).UTC().Format(hlog.TimestampFormat),
-				Level:      "info",
-				Attributes: map[string]string{string(semconv.ServiceNameKey): "firehose"},
-			}
-			if err := hlog.SubmitHTTPLog(r.Context(), tracer, projectID, hl); err != nil {
-				log.WithContext(r.Context()).WithError(err).Error("failed to submit log")
-				http.Error(w, err.Error(), http.StatusBadRequest)
-				return
 			}
 		}
 	}

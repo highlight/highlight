@@ -38,7 +38,8 @@ const KinesisFirehoseFirelensJson = `{
     "container_name": "example-json-logger",
     "ecs_cluster": "highlight-production-cluster",
     "ecs_task_arn": "arn:aws:ecs:us-east-2:173971919437:task/highlight-production-cluster/b202eacdb71a473e812e81eaf8f4f8c0",
-    "ecs_task_definition": "example-json-logger:3"
+    "ecs_task_definition": "example-json-logger:3",
+  	"highlight.trace_id": "f80fc1e87e7bce2bb992167f47f8ab00"
 }`
 
 const KinesisFirehoseFirelensFluentbitJson = `{
@@ -50,7 +51,8 @@ const KinesisFirehoseFirelensFluentbitJson = `{
     "container_name": "example-json-logger",
     "ecs_cluster": "highlight-production-cluster",
     "ecs_task_arn": "arn:aws:ecs:us-east-2:173971919437:task/highlight-production-cluster/20f475b66b2b45c8b4253d9fbf40ff1d",
-    "ecs_task_definition": "example-json-logger:4"
+    "ecs_task_definition": "example-json-logger:4",
+  	"trace_id": "f80fc1e87e7bce2bb992167f47f8ab00"
 }`
 
 const KinesisFirehoseFirelensPinoJson = `{
@@ -69,6 +71,7 @@ const KinesisFirehoseFirelensPinoJson = `{
     "version": "1.2.3",
     "env": "staging"
   },
+  "traceId": "67047adc000000007307322150893952",
   "trace_id": "f80fc1e87e7bce2bb992167f47f8ab00",
   "span_id": "9fdca739939f9145",
   "trace_flags": "01",
@@ -222,6 +225,8 @@ func TestHandleFirehoseFireLens(t *testing.T) {
 			spans := spanRecorder.Ended()
 			span := spans[len(spans)-1]
 			event := span.Events()[len(span.Events())-1]
+			assert.True(t, span.SpanContext().TraceID().IsValid())
+			assert.Equal(t, "f80fc1e87e7bce2bb992167f47f8ab00", span.SpanContext().TraceID().String())
 			assert.Equal(t, "highlight.log", span.Name())
 			assert.Equal(t, "log", event.Name)
 

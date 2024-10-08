@@ -14,7 +14,6 @@ import (
 	"go.opentelemetry.io/otel/propagation"
 	"go.opentelemetry.io/otel/trace"
 
-	"github.com/pkg/errors"
 	"go.opentelemetry.io/otel/attribute"
 	semconv "go.opentelemetry.io/otel/semconv/v1.4.0"
 )
@@ -265,12 +264,6 @@ func InterceptRequestWithContext(ctx context.Context, r *http.Request) context.C
 }
 
 func validateRequest(ctx context.Context) (sessionSecureID string, requestID string, err error) {
-	stateMutex.RLock()
-	defer stateMutex.RUnlock()
-	if state == stopped {
-		err = errors.New(consumeErrorWorkerStopped)
-		return
-	}
 	if v := ctx.Value(string(ContextKeys.SessionSecureID)); v != nil {
 		sessionSecureID = v.(string)
 	}
