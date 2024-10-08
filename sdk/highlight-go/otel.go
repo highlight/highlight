@@ -207,7 +207,7 @@ func StartTraceWithTracer(ctx context.Context, tracer trace.Tracer, name string,
 		if err != nil {
 			data, _ := base64.StdEncoding.DecodeString(requestID)
 			hex := fmt.Sprintf("%032x", data)
-			tid, err = trace.TraceIDFromHex(hex)
+			tid, _ = trace.TraceIDFromHex(hex)
 		}
 		spanCtx = spanCtx.WithTraceID(tid)
 	}

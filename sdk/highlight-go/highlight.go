@@ -131,10 +131,6 @@ var (
 	otlp       *OTLP
 )
 
-const (
-	consumeErrorWorkerStopped = "highlight worker stopped"
-)
-
 // Logger is an interface that implements Log and Logf
 type Logger interface {
 	Error(v ...interface{})
