@@ -807,6 +807,7 @@ const Graph = ({
 	const [fetchStart, setFetchStart] = useState<Date>()
 	const [fetchEnd, setFetchEnd] = useState<Date>()
 	const [results, setResults] = useState<GetMetricsQuery[]>()
+	const [loading, setLoading] = useState<boolean>(false)
 
 	const { set } = useRelatedResource()
 
@@ -868,7 +869,7 @@ const Graph = ({
 		})
 	}
 
-	const [getMetrics, { called, loading }] = useGetMetricsLazyQuery()
+	const [getMetrics, { called }] = useGetMetricsLazyQuery()
 
 	const rebaseFetchTime = useCallback(() => {
 		if (!selectedPreset) {
@@ -945,6 +946,7 @@ const Graph = ({
 				: undefined,
 		}
 
+		setLoading(true)
 		let getMetricsPromises: Promise<GetMetricsQueryResult>[] = []
 		if (funnelSteps?.length) {
 			let promise: Promise<GetMetricsQueryResult> = Promise.resolve(
@@ -986,10 +988,12 @@ const Graph = ({
 				getMetrics({ variables: getMetricsVariables }),
 			]
 		}
-		Promise.all(getMetricsPromises).then(
-			(results: GetMetricsQueryResult[]) => {
+		Promise.all(getMetricsPromises)
+			.then((results: GetMetricsQueryResult[]) => {
 				setResults(results.filter((r) => r.data).map((r) => r.data!))
-
+			})
+			.finally(() => {
+				setLoading(false)
 				// create another poll timeout if pollInterval is set
 				if (pollInterval) {
 					pollTimeout.current = setTimeout(
@@ -997,8 +1001,7 @@ const Graph = ({
 						pollInterval,
 					) as unknown as number
 				}
-			},
-		)
+			})
 
 		return () => {
 			if (!!pollTimeout.current) {
@@ -1118,7 +1121,7 @@ const Graph = ({
 							viewConfig={{
 								showLegend: true,
 								type: 'Bar chart',
-								display: 'Grouped',
+								display: 'Stacked',
 							}}
 							series={series}
 							spotlight={spotlight}
