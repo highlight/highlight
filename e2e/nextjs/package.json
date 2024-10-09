@@ -9,9 +9,6 @@
 		"start": "next start -p 3005",
 		"lint": "next lint"
 	},
-	"installConfig": {
-		"hoistingLimits": "workspaces"
-	},
 	"dependencies": {
 		"@highlight-run/next": "workspace:*",
 		"@highlight-run/pino": "workspace:*",
