@@ -2568,7 +2568,7 @@ export type QueryKey_ValuesArgs = {
 	date_range: DateRangeRequiredInput
 	event?: InputMaybe<Scalars['String']>
 	key_name: Scalars['String']
-	product_type: ProductType
+	product_type?: InputMaybe<ProductType>
 	project_id: Scalars['ID']
 	query?: InputMaybe<Scalars['String']>
 }
@@ -2576,7 +2576,7 @@ export type QueryKey_ValuesArgs = {
 export type QueryKeysArgs = {
 	date_range: DateRangeRequiredInput
 	event?: InputMaybe<Scalars['String']>
-	product_type: ProductType
+	product_type?: InputMaybe<ProductType>
 	project_id: Scalars['ID']
 	query?: InputMaybe<Scalars['String']>
 	type?: InputMaybe<KeyType>
@@ -3694,6 +3694,12 @@ export enum SubscriptionInterval {
 	Monthly = 'Monthly',
 }
 
+export enum SuggestionType {
+	Key = 'Key',
+	None = 'None',
+	Value = 'Value',
+}
+
 export type SystemConfiguration = {
 	__typename?: 'SystemConfiguration'
 	maintenance_end?: Maybe<Scalars['Timestamp']>
@@ -3831,6 +3837,21 @@ export type UserPropertyInput = {
 	value: Scalars['String']
 }
 
+export type Variable = {
+	__typename?: 'Variable'
+	defaultValue: Scalars['String']
+	field?: Maybe<Scalars['String']>
+	key: Scalars['String']
+	suggestionType: SuggestionType
+}
+
+export type VariableInput = {
+	defaultValue: Scalars['String']
+	field?: InputMaybe<Scalars['String']>
+	key: Scalars['String']
+	suggestionType: SuggestionType
+}
+
 export type VercelEnv = {
 	__typename?: 'VercelEnv'
 	configurationId: Scalars['String']
@@ -3866,6 +3887,7 @@ export type Visualization = {
 	timePreset?: Maybe<Scalars['String']>
 	updatedAt: Scalars['Timestamp']
 	updatedByAdmin?: Maybe<SanitizedAdmin>
+	variables: Array<Variable>
 }
 
 export type VisualizationInput = {
@@ -3874,6 +3896,7 @@ export type VisualizationInput = {
 	name?: InputMaybe<Scalars['String']>
 	projectId: Scalars['ID']
 	timePreset?: InputMaybe<Scalars['String']>
+	variables?: InputMaybe<Array<VariableInput>>
 }
 
 export type VisualizationsResponse = {

@@ -7,12 +7,14 @@ export const editGraphHeader = style({
 
 export const dashboardContent = style({
 	height: 'calc(100% - 40px)',
+	overflow: 'auto',
 })
 
 export const headerDivider = style({
 	width: 1,
 	backgroundColor: vars.theme.static.divider.weak,
 	margin: '4px 2px',
+	height: 20,
 })
 
 export const graphBackground = style({
@@ -37,7 +39,6 @@ export const input = style({
 })
 
 export const graphGrid = style({
-	overflow: 'auto',
 	display: 'grid',
 	width: '100%',
 	height: '100%',

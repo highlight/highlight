@@ -234,6 +234,12 @@ enum ProductType {
 	Events
 }
 
+enum SuggestionType {
+	None
+	Value
+	Key
+}
+
 enum IngestReason {
 	Sample
 	Rate
@@ -2007,6 +2013,13 @@ type Graph {
 	nullHandling: String
 }
 
+type Variable {
+	key: String!
+	defaultValue: String!
+	suggestionType: SuggestionType!
+	field: String
+}
+
 type Visualization {
 	id: ID!
 	updatedAt: Timestamp!
@@ -2015,6 +2028,7 @@ type Visualization {
 	updatedByAdmin: SanitizedAdmin
 	graphs: [Graph!]!
 	timePreset: String
+	variables: [Variable!]!
 }
 
 type VisualizationsResponse {
@@ -2043,12 +2057,20 @@ input GraphInput {
 	nullHandling: String
 }
 
+input VariableInput {
+	key: String!
+	defaultValue: String!
+	suggestionType: SuggestionType!
+	field: String
+}
+
 input VisualizationInput {
 	id: ID
 	projectId: ID!
 	name: String
 	graphIds: [ID!]
 	timePreset: String
+	variables: [VariableInput!]
 }
 
 scalar Upload
@@ -2515,7 +2537,7 @@ type Query {
 		limit_column: String
 	): MetricsBuckets!
 	keys(
-		product_type: ProductType!
+		product_type: ProductType
 		project_id: ID!
 		date_range: DateRangeRequiredInput!
 		query: String
@@ -2523,7 +2545,7 @@ type Query {
 		event: String
 	): [QueryKey!]!
 	key_values(
-		product_type: ProductType!
+		product_type: ProductType
 		project_id: ID!
 		key_name: String!
 		date_range: DateRangeRequiredInput!

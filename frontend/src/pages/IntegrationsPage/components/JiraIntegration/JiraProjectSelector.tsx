@@ -18,7 +18,7 @@ const JiraProjectAndIssueTypeSelector: React.FC<ContainerSelectionProps> = ({
 			(data?.jira_projects || []).map((team: any) => ({
 				value: team.id,
 				id: team.id,
-				displayValue: `${team.name} (${team.key})`,
+				name: `${team.name} (${team.key})`,
 			})) || []
 		)
 	}, [data?.jira_projects])
@@ -42,7 +42,7 @@ const JiraProjectAndIssueTypeSelector: React.FC<ContainerSelectionProps> = ({
 		(issueType: any) => ({
 			value: issueType.id,
 			id: issueType.id,
-			displayValue: `${issueType.name} - (${issueType.description})`,
+			name: `${issueType.name} - (${issueType.description})`,
 		}),
 	)
 
@@ -66,8 +66,7 @@ const JiraProjectAndIssueTypeSelector: React.FC<ContainerSelectionProps> = ({
 		<>
 			<Form.NamedSection label="Project" name="jiraProject">
 				<OptionDropdown
-					options={jiraProjectsOptions.map((o) => o.id)}
-					labels={jiraProjectsOptions.map((o) => o.displayValue)}
+					options={jiraProjectsOptions}
 					selection={selectedJiraProjectId}
 					setSelection={setJiraProjectId}
 					disabled={disabled}
@@ -75,8 +74,7 @@ const JiraProjectAndIssueTypeSelector: React.FC<ContainerSelectionProps> = ({
 			</Form.NamedSection>
 			<Form.NamedSection label="Issue Type" name="jiraIssue">
 				<OptionDropdown
-					options={jiraIssueTypeOptions.map((o) => o.id)}
-					labels={jiraIssueTypeOptions.map((o) => o.displayValue)}
+					options={jiraIssueTypeOptions}
 					selection={selectedJiraIssueTypeId}
 					setSelection={setJiraIssueTypeId}
 					disabled={disabled}

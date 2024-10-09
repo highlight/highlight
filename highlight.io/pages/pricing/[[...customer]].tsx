@@ -1,4 +1,4 @@
-import { NextPage } from 'next'
+import { GetStaticPaths, GetStaticProps, NextPage } from 'next'
 import Link from 'next/link'
 import { FooterCallToAction } from '../../components/common/CallToAction/FooterCallToAction'
 import Footer from '../../components/common/Footer/Footer'
@@ -15,7 +15,17 @@ import * as Slider from '@radix-ui/react-slider'
 import { Fragment, useState } from 'react'
 import { CalendlyModal } from '../../components/common/CalendlyModal/CalendlyModal'
 import { HeadlessTooltip } from '../../components/Competitors/ComparisonTable'
-
+import classNames from 'classnames'
+import { PrimaryButton } from '../../components/common/Buttons/PrimaryButton'
+import {
+	CustomPrices,
+	PricingTier,
+	Retention,
+	RetentionMultipliers,
+	StandardPrices,
+	TierName,
+	TierOptions,
+} from '../../components/Pricing/EstimatorDetails'
 import {
 	HiOfficeBuilding,
 	HiPuzzle,
@@ -23,206 +33,61 @@ import {
 	HiServer,
 } from 'react-icons/hi'
 
-import classNames from 'classnames'
-import { PrimaryButton } from '../../components/common/Buttons/PrimaryButton'
-import {
-	businessPrices,
-	enterprisePrices,
-	freePrices,
-	payAsYouGoPrices,
-	Prices,
-	selfHostPrices,
-} from '../../components/Pricing/estimator_details'
-
-const retentionOptions = [
-	'30 days',
-	'3 months',
-	'6 months',
-	'1 year',
-	'2 years',
-] as const
-type Retention = (typeof retentionOptions)[number]
-const retentionMultipliers: Record<Retention, number> = {
-	'30 days': 1,
-	'3 months': 1,
-	'6 months': 1.5,
-	'1 year': 2,
-	'2 years': 2.5,
+const icons = {
+	Free: (
+		<HiReceiptTax className="text-darker-copy-on-dark w-8 h-8 -translate-x-1" />
+	),
+	PayAsYouGo: <HiPuzzle className="text-[#0090FF] w-8 h-8 -translate-x-1" />,
+	Business: <HiPuzzle className="text-[#0090FF] w-8 h-8 -translate-x-1" />,
+	Enterprise: (
+		<HiOfficeBuilding className="text-white w-8 h-8 -translate-x-1" />
+	),
+	SelfHostedEnterprise: (
+		<HiServer className="text-[#E93D82] w-8 h-8 -translate-x-1" />
+	),
 } as const
 
-const tierOptions = [
-	'Free',
-	'PayAsYouGo',
-	'Business',
-	'Enterprise',
-	'SelfHostedEnterprise',
-] as const
-type TierName = (typeof tierOptions)[number]
-
-type PricingTier = {
-	label: string
-	id?: string //PlanTier name, if not same as label
-	subText?: string
-	prices: Prices
-	icon: JSX.Element
-	features: {
-		feature: string
-		tooltip?: string
-	}[]
-	calculateUsage?: boolean
-	contactUs?: boolean
-	buttonLabel: string
-	buttonLink?: string
-	hidden?: boolean // hidden from plan tier, but not in estimator
+export const getStaticPaths: GetStaticPaths = async () => {
+	return {
+		paths: Object.keys(CustomPrices).map(
+			(k: string) => `/pricing/for/${k}`,
+		),
+		fallback: 'blocking',
+	}
 }
 
-const priceTiers: Record<TierName, PricingTier> = {
-	Free: {
-		label: 'Free',
-		prices: freePrices,
-		subText: 'Free Forever',
-		icon: (
-			<HiReceiptTax className="text-darker-copy-on-dark w-8 h-8 -translate-x-1" />
-		),
-		features: [
-			{
-				feature: `500 monthly sessions`,
-			},
-			{
-				feature: 'AI error grouping',
-			},
-			{
-				feature: 'Unlimited seats',
-			},
-		],
-		buttonLabel: 'Start free trial',
-		buttonLink: 'https://app.highlight.io/sign_up',
-	},
-	PayAsYouGo: {
-		label: 'Pay-as-you-go',
-		id: 'PayAsYouGo',
-		subText: 'Starts at',
-		prices: payAsYouGoPrices,
-		icon: <HiPuzzle className="text-[#0090FF] w-8 h-8 -translate-x-1" />,
-		features: [
-			{
-				feature: 'Up to 3 dashboards',
-				tooltip: `Create up to 3 dashboards in the metrics product.`,
-			},
-			{
-				feature: 'Up to 2 projects',
-				tooltip: `Create up to 2 projects for separating web app data.`,
-			},
-			{
-				feature: 'Up to 15 seats',
-			},
-			{
-				feature: 'Up to 7 day retention',
-			},
-		],
-		calculateUsage: true,
-		buttonLabel: 'Start free trial',
-		buttonLink: 'https://app.highlight.io/sign_up',
-	},
-	Business: {
-		label: 'Business',
-		id: 'Business',
-		subText: 'Starts at',
-		prices: businessPrices,
-		icon: <HiPuzzle className="text-[#0090FF] w-8 h-8 -translate-x-1" />,
-		features: [
-			{
-				feature: 'Unlimited dashboards',
-			},
-			{
-				feature: `Unlimited projects`,
-				tooltip: `Separate your data into different projects in a single billing account.`,
-			},
-			{
-				feature: 'Unlimited seats',
-			},
-			{
-				feature: 'Custom retention policies',
-			},
-			{
-				feature: `Filters for data ingest`,
-				tooltip: `Ability to filter out data before it is ingested to mitigate costs.`,
-			},
-			{
-				feature: `Everything in pay-as-you-go`,
-			},
-		],
-		calculateUsage: true,
-		buttonLabel: 'Start free trial',
-		buttonLink: 'https://app.highlight.io/sign_up',
-	},
-
-	Enterprise: {
-		label: 'Enterprise',
-		subText: 'Contact sales for pricing',
-		prices: enterprisePrices,
-		icon: (
-			<HiOfficeBuilding className="text-white w-8 h-8 -translate-x-1" />
-		),
-		features: [
-			{
-				feature: 'Volume discounts',
-				tooltip:
-					'At higher volumes, we can heavily discount usage; reach out to learn more.',
-			},
-			{
-				feature: 'SAML & SSO',
-				tooltip:
-					'Secure user management to ensure you can manage your team with your existing tooling.',
-			},
-			{
-				feature: 'Custom MSAs & SLAs',
-				tooltip:
-					'Custom contracts to abide by your compliance requirements; we handle these on a case-by-case basis.',
-			},
-			{
-				feature: 'RBAC & audit logs',
-				tooltip:
-					'Infrastructure for auditing and adding fine-grained access controls.',
-			},
-			{
-				feature: 'Data export & user reporting',
-				tooltip:
-					'Recurring or one-off exports of your observability data for offline analysis.',
-			},
-			{
-				feature: 'Everything in Business',
-			},
-		],
-		contactUs: true,
-		buttonLabel: 'Contact us',
-		calculateUsage: true,
-	},
-	SelfHostedEnterprise: {
-		label: 'Self-Hosted Enterprise',
-		id: 'SelfHostedEnterprise',
-
-		subText: 'per month, billed annually',
-		prices: selfHostPrices,
-		icon: <HiServer className="text-[#E93D82] w-8 h-8 -translate-x-1" />,
-		features: [],
-		calculateUsage: true,
-		buttonLabel: 'Learn More',
-		buttonLink:
-			'/docs/general/company/open-source/hosting/self-host-enterprise',
-		contactUs: true,
-		hidden: true,
-	},
+//Gets list of products from products.ts
+export const getStaticProps: GetStaticProps = async ({ params }) => {
+	const customer = (
+		((params?.customer ?? []) as string[]).pop() ?? ''
+	).toLocaleLowerCase() as keyof typeof CustomPrices
+	return {
+		props: {
+			customer: customer?.length
+				? customer.at(0)?.toLocaleUpperCase() + customer.slice(1)
+				: null,
+			prices: customer ? CustomPrices.example : StandardPrices,
+			// TODO(vkorolik) use custom name and lookup from hygraph
+			// prices: CustomPrices[customer] ?? StandardPrices,
+		},
+	}
 }
 
-const PricingPage: NextPage = () => {
+const PricingPage: NextPage<{
+	customer: string | null
+	prices: typeof StandardPrices
+}> = ({ customer, prices }) => {
 	const [estimatorCategory, setEstimatorCategory] = useState<
-		'PayAsYouGo' | 'Enterprise' | 'SelfHostedEnterprise' | 'Business'
-	>('PayAsYouGo')
+		keyof typeof StandardPrices
+	>(
+		Object.hasOwn(prices, 'PayAsYouGo')
+			? 'PayAsYouGo'
+			: (Object.keys(prices)[0] as keyof typeof StandardPrices),
+	)
 
 	//Allows for the selection of the tier from the dropdown
 	const setEstimatorCategoryWithLabel = (value: any) => {
-		if (tierOptions.includes(value)) {
+		if (TierOptions.includes(value)) {
 			setEstimatorCategory(value)
 		} else {
 			const val = value.replaceAll('-', '').replaceAll(' ', '')
@@ -233,42 +98,70 @@ const PricingPage: NextPage = () => {
 	return (
 		<div>
 			<Navbar />
-			<div className="w-full px-4 mx-auto my-24">
-				<div className="flex flex-col items-center text-center">
-					<h1 className="max-w-3xl">
-						Get the{' '}
-						<span className="text-highlight-yellow">
-							visibility
-						</span>{' '}
-						you need today.
-					</h1>
-					<Typography type="copy1" className="my-4 text-copy-on-dark">
-						Fair and transparent pricing that scales with any
-						organization.
-					</Typography>
+			{/*for customer-specific pricing, show a custom header*/}
+			{customer ? (
+				<div className="w-full px-4 mx-auto my-12">
+					<div className="flex flex-col items-center text-center">
+						<h1 className="max-w-6xl">
+							Custom pricing for{' '}
+							<span className="text-highlight-yellow">
+								{customer}
+							</span>
+						</h1>
+					</div>
 				</div>
-				<PlanTable
-					setEstimatorCategory={setEstimatorCategoryWithLabel}
-				/>
-			</div>
-			<div className="flex justify-center my-16 px-10" id="overage">
-				<div className="text-center max-w-[950px]">
-					<h2 className="mb-4">Estimate your bill</h2>
-					<Typography type="copy1" className="text-copy-on-dark">
-						Each of our plans comes with a pre-defined usage quota,
-						and if you exceed that quota, we charge an additional
-						fee. For custom plans,{' '}
-						<span className="inline-block">
-							<CalendlyModal className="underline">
-								reach out to us.
-							</CalendlyModal>
-						</span>
-					</Typography>
-				</div>
-			</div>
+			) : (
+				<>
+					<div className="w-full px-4 mx-auto my-24">
+						<div className="flex flex-col items-center text-center">
+							<h1 className="max-w-3xl">
+								Get the{' '}
+								<span className="text-highlight-yellow">
+									visibility
+								</span>{' '}
+								you need today.
+							</h1>
+							<Typography
+								type="copy1"
+								className="my-4 text-copy-on-dark"
+							>
+								Fair and transparent pricing that scales with
+								any organization.
+							</Typography>
+						</div>
+						<PlanTable
+							prices={prices}
+							setEstimatorCategory={setEstimatorCategoryWithLabel}
+						/>
+					</div>
+					<div
+						className="flex justify-center my-16 px-10"
+						id="overage"
+					>
+						<div className="text-center max-w-[950px]">
+							<h2 className="mb-4">Estimate your bill</h2>
+							<Typography
+								type="copy1"
+								className="text-copy-on-dark"
+							>
+								Each of our plans comes with a pre-defined usage
+								quota, and if you exceed that quota, we charge
+								an additional fee. For custom plans,{' '}
+								<span className="inline-block">
+									<CalendlyModal className="underline">
+										reach out to us.
+									</CalendlyModal>
+								</span>
+							</Typography>
+						</div>
+					</div>
+				</>
+			)}
 			<div className="my-16">
 				<PriceCalculator
-					pricingTier={priceTiers[estimatorCategory]}
+					customer={customer}
+					prices={prices}
+					pricingTier={prices[estimatorCategory]}
 					setEstimatorCategory={setEstimatorCategoryWithLabel}
 				/>
 			</div>
@@ -295,20 +188,23 @@ const PricingPage: NextPage = () => {
 	)
 }
 const PlanTable = ({
+	prices,
 	setEstimatorCategory,
 }: {
+	prices: typeof StandardPrices
 	setEstimatorCategory: (value: any) => void
 }) => {
 	return (
 		<div className="flex flex-col items-center w-full gap-6 mx-auto mt-16">
 			{/* Pricing */}
 			<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 justify-center">
-				{Object.entries(priceTiers).map(
+				{Object.entries(prices).map(
 					([name, tier]) =>
 						!tier.hidden && (
 							<PlanTier
 								tier={tier}
 								key={name}
+								name={name as TierName}
 								setEstimatorCategory={setEstimatorCategory}
 							/>
 						),
@@ -325,9 +221,11 @@ const PlanTable = ({
 
 const PlanTier = ({
 	tier,
+	name,
 	setEstimatorCategory,
 }: {
 	tier: PricingTier
+	name: TierName
 	setEstimatorCategory: (value: any) => void
 }) => {
 	const { features, calculateUsage } = tier
@@ -340,7 +238,7 @@ const PlanTier = ({
 		>
 			<div className="border-divider-on-dark pb-4">
 				<div className="flex flex-col">
-					{tier.icon}
+					{icons[name]}
 					<Typography className="my-2" type="copy1" emphasis>
 						{tier.label}
 					</Typography>
@@ -455,9 +353,13 @@ const formatPrice = (
 	})
 
 const PriceCalculator = ({
+	customer,
+	prices,
 	pricingTier,
 	setEstimatorCategory,
 }: {
+	customer: string | null
+	prices: typeof StandardPrices
 	pricingTier: PricingTier
 	setEstimatorCategory: (value: any) => void
 }) => {
@@ -498,7 +400,7 @@ const PriceCalculator = ({
 			remainder -= itemUsage
 			tier += 1
 		}
-		return (price * retentionMultipliers[retention] * 100) / 100
+		return (price * RetentionMultipliers[retention] * 100) / 100
 	}
 
 	const base = pricingTier.prices.monthlyPrice
@@ -529,27 +431,29 @@ const PriceCalculator = ({
 			{/* Price calculator */}
 			<div className="flex flex-col lg:flex-row items-center w-full lg:w-auto">
 				<div className="flex flex-col lg:h-full w-full lg:w-[350px] border-y-[1px] border-l-[1px] rounded-b-none rounded-t-lg  border-r-[1px] border-divider-on-dark p-4 gap-4 lg:border-r-0 lg:rounded-l-lg lg:rounded-r-none">
-					<div className="w-full">
-						<ListboxOptions
-							options={
-								setEstimatorCategory !== undefined
-									? [
-											'Pay-As-You-Go',
-											'Enterprise',
-											'Self-Hosted Enterprise',
-										]
-									: ['']
-							}
-							value={pricingTier.label}
-							onChange={setEstimatorCategory}
-						/>
-					</div>
+					{customer ? null : (
+						<div className="w-full">
+							<ListboxOptions
+								options={
+									setEstimatorCategory !== undefined
+										? Object.keys(prices)
+										: ['']
+								}
+								value={pricingTier.label}
+								onChange={setEstimatorCategory}
+							/>
+						</div>
+					)}
 
 					<div className="flex flex-col justify-between gap-8 border-[1px] border-divider-on-dark rounded-lg p-4 lg:h-full">
-						<MonthlySlider
-							annualPricing={annualPricing}
-							setAnnualPricing={setAnnualPricing}
-						/>
+						{customer ? (
+							<div />
+						) : (
+							<MonthlySlider
+								annualPricing={annualPricing}
+								setAnnualPricing={setAnnualPricing}
+							/>
+						)}
 						<div className="flex flex-col gap-2">
 							<div className="flex flex-col gap-1">
 								<CalculatorPriceRow
@@ -792,16 +696,38 @@ const CalculatorRowDesktop = ({
 						>
 							Monthly ingested {product.toLowerCase()}:
 						</Typography>
-						<Typography
-							type="copy4"
-							emphasis
-							className="text-white border-[1px] border-copy-on-light rounded-full px-3 py-[2px] w-[65px] text-center"
-						>
-							{value.toLocaleString(undefined, {
+						<input
+							type="text"
+							placeholder={'Enter your email'}
+							value={value.toLocaleString(undefined, {
 								notation: 'compact',
 								compactDisplay: 'short',
 							})}
-						</Typography>
+							onChange={(ev) => {
+								const val = ev.currentTarget.value
+								const suffix = val.at(-1)?.toLocaleUpperCase()
+								const number = Number(
+									Number.isNaN(Number(suffix))
+										? val.slice(0, -1)
+										: val,
+								)
+								if (!Number.isNaN(number)) {
+									onChange(
+										number *
+											(suffix === 'K'
+												? 1e3
+												: suffix === 'M'
+													? 1e6
+													: suffix === 'B'
+														? 1e9
+														: suffix === 'T'
+															? 1e12
+															: 1),
+									)
+								}
+							}}
+							className="text-copy-on-dark text-[17px] leading-none bg-transparent outline-none border-[1px] border-copy-on-light rounded-full px-3 py-[2px] w-[65px] text-center"
+						/>
 					</div>
 				</div>
 			</div>

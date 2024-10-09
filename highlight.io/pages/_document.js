@@ -75,13 +75,6 @@ class HighlightDocument extends Document {
     reb2b.SNIPPET_VERSION = "1.0.1";reb2b.load("Y4O7Z0HY8PNX");}();
 						`}
 					</Script>
-					<Script
-						type="text/javascript"
-						id="hs-script-loader"
-						async
-						defer
-						src="//js.hs-scripts.com/20473940.js"
-					></Script>
 				</Head>
 				<body style={{ overflowX: 'hidden' }}>
 					<Main />

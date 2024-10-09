@@ -1,5 +1,14 @@
 # highlight.run
 
+## 9.4.4
+
+### Patch Changes
+
+-   f43d3b4: fix full snapshot error when failing to starting rrweb recording
+-   72ec866: fix recording bodies of otel requests
+-   f43d3b4: improve canvas serialization performance and support shadow dom canvases
+-   f43d3b4: fix rrweb replay breaking on invalid inlined css
+
 ## 9.4.3
 
 ### Patch Changes

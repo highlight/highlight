@@ -44,9 +44,7 @@ import Graph, {
 	getViewConfig,
 	TIMESTAMP_KEY,
 	View,
-	VIEW_ICONS,
-	VIEW_LABELS,
-	VIEWS,
+	VIEW_OPTIONS,
 } from '@/pages/Graphing/components/Graph'
 import {
 	LINE_DISPLAY,
@@ -59,8 +57,6 @@ import {
 	TableNullHandling,
 } from '@/pages/Graphing/components/Table'
 import { HeaderDivider } from '@/pages/Graphing/Dashboard'
-import { FREQUENCIES } from '@/pages/Alerts/AlertConfigurationCard/AlertConfigurationConstants'
-import { useRetentionPresets } from '@/components/Search/SearchForm/hooks'
 
 import { EventSelection } from './EventSelection'
 import { Combobox } from './Combobox'
@@ -68,15 +64,17 @@ import {
 	DEFAULT_BUCKET_COUNT,
 	DEFAULT_BUCKET_INTERVAL,
 	FUNCTION_TYPES,
-	PRODUCT_ICONS,
-	PRODUCT_ICONS_WITH_EVENTS,
-	PRODUCTS,
-	PRODUCTS_WITH_EVENTS,
+	PRODUCT_OPTIONS,
+	PRODUCT_OPTIONS_WITH_EVENTS,
 } from './constants'
 import * as style from './GraphingEditor.css'
 import { LabeledRow } from './LabeledRow'
 import { OptionDropdown } from './OptionDropdown'
 import { BarChartSettings, LineChartSettings, TableSettings } from './Settings'
+import { FREQUENCIES } from '@/pages/Alerts/AlertConfigurationCard/AlertConfigurationConstants'
+import { useGraphingVariables } from '@/pages/Graphing/hooks/useGraphingVariables'
+import { VariablesBar } from '@/pages/Graphing/components/VariablesBar'
+import { useRetentionPresets } from '@/components/Search/SearchForm/hooks'
 
 type BucketBy = 'None' | 'Interval' | 'Count'
 const BUCKET_BY_OPTIONS: BucketBy[] = ['None', 'Interval', 'Count']
@@ -165,17 +163,11 @@ export const GraphingEditor: React.FC = () => {
 	}>()
 
 	const eventSearchEnabled = useFeatureFlag(Feature.EventSearch)
-	const { products, productIcons } = useMemo(() => {
+	const productOptions = useMemo(() => {
 		if (!eventSearchEnabled) {
-			return {
-				products: PRODUCTS,
-				productIcons: PRODUCT_ICONS,
-			}
+			return PRODUCT_OPTIONS
 		}
-		return {
-			products: PRODUCTS_WITH_EVENTS,
-			productIcons: PRODUCT_ICONS_WITH_EVENTS,
-		}
+		return PRODUCT_OPTIONS_WITH_EVENTS
 	}, [eventSearchEnabled])
 
 	const isEdit = graph_id !== undefined
@@ -330,9 +322,9 @@ export const GraphingEditor: React.FC = () => {
 		variables: {
 			id: dashboard_id!,
 		},
-		skip: !isEdit,
 		onCompleted: (data) => {
 			setCompleted(true)
+
 			const g = data.visualization.graphs.find((g) => g.id === graph_id)
 			if (g === undefined) {
 				return
@@ -376,8 +368,8 @@ export const GraphingEditor: React.FC = () => {
 
 	const { projectId } = useProjectId()
 
-	const [productType, setProductType] = useState(products[0])
-	const [viewType, setViewType] = useState(VIEWS[0])
+	const [productType, setProductType] = useState(productOptions[0].value)
+	const [viewType, setViewType] = useState(VIEW_OPTIONS[0].value)
 	const [lineNullHandling, setLineNullHandling] = useState(
 		LINE_NULL_HANDLING[0],
 	)
@@ -464,6 +456,12 @@ export const GraphingEditor: React.FC = () => {
 			endDate,
 		}
 	}, [endDate, productType, startDate])
+
+	const { values } = useGraphingVariables(dashboard_id!)
+
+	const variableKeys = Array.from(values).map(([key]) => {
+		return `$${key}`
+	})
 
 	if (!completed) {
 		return null
@@ -552,54 +550,63 @@ export const GraphingEditor: React.FC = () => {
 						justifyContent="space-between"
 						cssClass={style.editGraphPanel}
 					>
-						<GraphBackgroundWrapper>
-							<Graph
-								title={
-									metricViewTitle ||
-									tempMetricViewTitle?.current
-								}
-								viewConfig={viewConfig}
-								productType={productType}
-								projectId={projectId}
-								startDate={startDate}
-								selectedPreset={selectedPreset}
-								endDate={endDate}
-								query={debouncedQuery}
-								metric={fetchedMetric}
-								functionType={functionType}
-								bucketByKey={getBucketByKey(
-									bucketBySetting,
-									bucketByKey,
-								)}
-								bucketCount={
-									bucketBySetting === 'Count'
-										? Number(bucketCount)
-										: undefined
-								}
-								bucketByWindow={
-									bucketBySetting === 'Interval'
-										? Number(bucketInterval)
-										: undefined
-								}
-								groupByKey={
-									groupByEnabled ? groupByKey : undefined
-								}
-								limit={
-									groupByEnabled ? Number(limit) : undefined
-								}
-								limitFunctionType={
-									groupByEnabled
-										? limitFunctionType
-										: undefined
-								}
-								limitMetric={
-									groupByEnabled
-										? fetchedLimitMetric
-										: undefined
-								}
-								setTimeRange={updateSearchTime}
-							/>
-						</GraphBackgroundWrapper>
+						<Box
+							width="full"
+							display="flex"
+							flexDirection="column"
+							justifyContent="space-between"
+						>
+							<VariablesBar dashboardId={dashboard_id!} />
+							<GraphBackgroundWrapper>
+								<Graph
+									title={
+										metricViewTitle ||
+										tempMetricViewTitle?.current
+									}
+									viewConfig={viewConfig}
+									productType={productType}
+									projectId={projectId}
+									startDate={startDate}
+									selectedPreset={selectedPreset}
+									endDate={endDate}
+									query={debouncedQuery}
+									metric={metric}
+									functionType={functionType}
+									bucketByKey={getBucketByKey(
+										bucketBySetting,
+										bucketByKey,
+									)}
+									bucketCount={
+										bucketBySetting === 'Count'
+											? Number(bucketCount)
+											: undefined
+									}
+									bucketByWindow={
+										bucketBySetting === 'Interval'
+											? Number(bucketInterval)
+											: undefined
+									}
+									groupByKey={
+										groupByEnabled ? groupByKey : undefined
+									}
+									limit={
+										groupByEnabled
+											? Number(limit)
+											: undefined
+									}
+									limitFunctionType={
+										groupByEnabled
+											? limitFunctionType
+											: undefined
+									}
+									limitMetric={
+										groupByEnabled ? limitMetric : undefined
+									}
+									setTimeRange={updateSearchTime}
+									variables={values}
+								/>
+							</GraphBackgroundWrapper>
+						</Box>
 						<Box
 							display="flex"
 							borderLeft="dividerWeak"
@@ -640,10 +647,9 @@ export const GraphingEditor: React.FC = () => {
 										tooltip="The resource being queried, one of the four highlight.io resources."
 									>
 										<OptionDropdown<ProductType>
-											options={products}
+											options={productOptions}
 											selection={productType}
 											setSelection={setProductType}
-											icons={productIcons}
 										/>
 									</LabeledRow>
 								</SidebarSection>
@@ -682,6 +688,9 @@ export const GraphingEditor: React.FC = () => {
 															productType
 														}
 														hideIcon
+														defaultValueOptions={
+															variableKeys
+														}
 													/>
 												</SearchContext>
 											</Box>
@@ -697,7 +706,7 @@ export const GraphingEditor: React.FC = () => {
 										name="function"
 										tooltip="Determines how data points are aggregated. If the function requires a numeric field as input, one can be chosen."
 									>
-										<OptionDropdown<MetricAggregator>
+										<OptionDropdown
 											options={FUNCTION_TYPES}
 											selection={functionType}
 											setSelection={setFunctionType}
@@ -715,6 +724,7 @@ export const GraphingEditor: React.FC = () => {
 												functionType !==
 												MetricAggregator.CountDistinct
 											}
+											defaultKeys={variableKeys}
 										/>
 									</LabeledRow>
 									<LabeledRow
@@ -729,6 +739,7 @@ export const GraphingEditor: React.FC = () => {
 											setSelection={setGroupByKey}
 											label="groupBy"
 											searchConfig={searchOptionsConfig}
+											defaultKeys={variableKeys}
 										/>
 									</LabeledRow>
 									{groupByEnabled && (
@@ -758,7 +769,7 @@ export const GraphingEditor: React.FC = () => {
 												name="limitBy"
 												tooltip="The function used to determine which groups are included."
 											>
-												<OptionDropdown<MetricAggregator>
+												<OptionDropdown
 													options={FUNCTION_TYPES}
 													selection={
 														limitFunctionType
@@ -783,6 +794,7 @@ export const GraphingEditor: React.FC = () => {
 														MetricAggregator.Count
 													}
 													onlyNumericKeys
+													defaultKeys={variableKeys}
 												/>
 											</LabeledRow>
 										</Box>
@@ -794,12 +806,10 @@ export const GraphingEditor: React.FC = () => {
 										label="View type"
 										name="viewType"
 									>
-										<OptionDropdown<View>
-											options={VIEWS}
+										<OptionDropdown
+											options={VIEW_OPTIONS}
 											selection={viewType}
 											setSelection={setViewType}
-											icons={VIEW_ICONS}
-											labels={VIEW_LABELS}
 										/>
 									</LabeledRow>
 									{viewType === 'Line chart' && (
@@ -863,6 +873,7 @@ export const GraphingEditor: React.FC = () => {
 													}
 													defaultKeys={[
 														TIMESTAMP_KEY,
+														...variableKeys,
 													]}
 													onlyNumericKeys
 												/>
