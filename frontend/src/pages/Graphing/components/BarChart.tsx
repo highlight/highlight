@@ -17,6 +17,7 @@ import {
 	InnerChartProps,
 	isActive,
 	SeriesInfo,
+	TooltipSettings,
 	useGraphCallbacks,
 } from '@/pages/Graphing/components/Graph'
 
@@ -26,7 +27,9 @@ export const BAR_DISPLAY: BarDisplay[] = ['Grouped', 'Stacked']
 export type BarChartConfig = {
 	type: 'Bar chart'
 	showLegend: boolean
+	shadeToPrevious?: true
 	display?: BarDisplay
+	tooltipSettings?: TooltipSettings
 }
 
 const RoundedBar = (id: string, isLast: boolean) => (props: any) => {
@@ -97,6 +100,7 @@ export const BarChart = ({
 		yAxisFunction,
 		setTimeRange,
 		loadExemplars,
+		viewConfig?.tooltipSettings,
 	)
 
 	return (
