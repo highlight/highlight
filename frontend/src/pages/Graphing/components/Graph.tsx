@@ -956,6 +956,14 @@ const Graph = ({
 					const keys = result.data?.metrics.buckets?.map(
 						(b) => b.group[0],
 					)
+					// if previous step exists but no result, we should have no results
+					if (keys?.length && keys.at(0) === '') {
+						return Promise.resolve({
+							data: {
+								metrics: { buckets: [{}] },
+							},
+						} as GetMetricsQueryResult)
+					}
 					const previousStepFilter = keys
 						?.map((k) => `secure_session_id=${k}`)
 						?.join(' OR ')

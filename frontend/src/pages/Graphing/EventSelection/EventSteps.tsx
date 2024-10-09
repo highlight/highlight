@@ -58,6 +58,7 @@ const EventStep: React.FC<{
 								? step.event.name
 								: step.event.type
 						}
+						lines="1"
 						iconStart={
 							step.event.type === 'Click' ? (
 								<IconSolidCursorClick width={13} />

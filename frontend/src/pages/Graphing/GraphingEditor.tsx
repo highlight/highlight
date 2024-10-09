@@ -484,6 +484,7 @@ export const GraphingEditor: React.FC = () => {
 			setFunctionType(MetricAggregator.CountDistinct)
 			// once events have other session attributes, we can support per-user aggregation
 			setMetric('secure_session_id')
+			setGroupByEnabled(true)
 			setGroupByKey('secure_session_id')
 		}
 	}, [viewType])
