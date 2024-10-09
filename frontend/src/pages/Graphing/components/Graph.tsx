@@ -86,6 +86,7 @@ export const VIEW_OPTIONS = [
 
 export const TIMESTAMP_KEY = 'Timestamp'
 export const GROUP_KEY = 'Group'
+export const PERCENT_KEY = 'Percent'
 export const BUCKET_MIN_KEY = 'BucketMin'
 export const BUCKET_MAX_KEY = 'BucketMax'
 export const NO_GROUP_PLACEHOLDER = '<empty>'
@@ -181,8 +182,9 @@ const strokeColors = [
 	'#3E63DD',
 ]
 
-interface TooltipSettings {
+export interface TooltipSettings {
 	dashed?: boolean
+	funnelMode?: true
 }
 
 export const useGraphCallbacks = (
@@ -293,6 +295,7 @@ export const useGraphCallbacks = (
 				tooltipRef,
 				onMouseLeave,
 				loadExemplars,
+				tooltipSettings?.funnelMode,
 			)}
 			cursor={
 				frozenTooltip
@@ -461,6 +464,7 @@ const getCustomTooltip =
 		tooltipRef?: React.MutableRefObject<HTMLDivElement | null>,
 		onMouseLeave?: () => void,
 		loadExemplars?: LoadExemplars,
+		funnelMode?: true,
 	) =>
 	({ active, payload, label }: any) => {
 		if (frozenTooltip !== undefined) {
@@ -521,15 +525,27 @@ const getCustomTooltip =
 									cssClass={style.tooltipText}
 								></Text>
 							</Badge>
-							<Text
-								lines="1"
-								size="xSmall"
-								weight="medium"
-								color="default"
-								cssClass={style.tooltipText}
-							>
-								{p.name ? p.name : yAxisFunction}
-							</Text>
+							{funnelMode ? (
+								<Text
+									lines="1"
+									size="xSmall"
+									weight="medium"
+									color="default"
+									cssClass={style.tooltipText}
+								>
+									{(p.payload[PERCENT_KEY] * 100).toFixed(1)}%
+								</Text>
+							) : (
+								<Text
+									lines="1"
+									size="xxSmall"
+									weight="medium"
+									color="default"
+									cssClass={style.tooltipText}
+								>
+									{p.name ? p.name : yAxisFunction}
+								</Text>
+							)}
 						</Box>
 						{frozenTooltip && (
 							<ButtonIcon
@@ -697,23 +713,29 @@ export const useFunnelData = (
 ) => {
 	return useMemo(() => {
 		if (!results?.length || !results[0]?.metrics) return
-		const buckets: { [key: number]: number } = {}
+		const buckets: { [key: number]: { value: number; percent: number } } =
+			{}
 		results.forEach((r, idx) => {
 			if (r?.metrics?.buckets) {
-				r.metrics.buckets.forEach(
-					(b) =>
-						(buckets[idx] =
-							(buckets[idx] ?? 0) + (b?.metric_value ?? 0)),
-				)
+				r.metrics.buckets.forEach((b) => {
+					const prev = buckets[idx - 1]?.value ?? 0
+					const value =
+						(buckets[idx]?.value ?? 0) + (b?.metric_value ?? 0)
+					buckets[idx] = {
+						value,
+						percent: prev > 0 ? value / prev : 1,
+					}
+				})
 			}
 		})
 
-		return Object.values(buckets).map((value, idx) => {
+		return Object.values(buckets).map((r, idx) => {
 			const key =
 				funnelSteps?.at(idx)?.title || funnelSteps?.at(idx)?.query || ''
 			return {
 				[GROUP_KEY]: key,
-				[key]: value,
+				[PERCENT_KEY]: r.percent,
+				[key]: r.value,
 			}
 		})
 	}, [funnelSteps, results])
@@ -724,7 +746,12 @@ export const useGraphSeries = (
 	xAxisMetric: string,
 ) => {
 	return useMemo(() => {
-		const excluded = [xAxisMetric, BUCKET_MIN_KEY, BUCKET_MAX_KEY]
+		const excluded = [
+			xAxisMetric,
+			BUCKET_MIN_KEY,
+			BUCKET_MAX_KEY,
+			PERCENT_KEY,
+		]
 		return _.uniq(data?.flatMap((d) => Object.keys(d))).filter(
 			(key) => !excluded.includes(key),
 		)
@@ -1119,9 +1146,11 @@ const Graph = ({
 							yAxisMetric={yAxisMetric}
 							yAxisFunction={yAxisFunction}
 							viewConfig={{
+								shadeToPrevious: true,
 								showLegend: true,
 								type: 'Bar chart',
 								display: 'Stacked',
+								tooltipSettings: { funnelMode: true },
 							}}
 							series={series}
 							spotlight={spotlight}
