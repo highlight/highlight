@@ -5304,11 +5304,16 @@ function adaptCssForReplay(cssText, cache) {
   const cachedStyle = cache == null ? void 0 : cache.stylesWithHoverClass.get(cssText);
   if (cachedStyle)
     return cachedStyle;
-  const ast = postcss$1$1([
-    mediaSelectorPlugin,
-    pseudoClassPlugin
-  ]).process(cssText);
-  const result2 = ast.css;
+  let result2 = cssText;
+  try {
+    const ast = postcss$1$1([
+      mediaSelectorPlugin,
+      pseudoClassPlugin
+    ]).process(cssText);
+    result2 = ast.css;
+  } catch (error) {
+    console.warn("Failed to adapt css for replay", error);
+  }
   cache == null ? void 0 : cache.stylesWithHoverClass.set(cssText, result2);
   return result2;
 }
@@ -5464,9 +5469,9 @@ function buildNode(n2, options) {
           }
         }
         if (name === "rr_width") {
-          node2.style.width = value.toString();
+          node2.style.setProperty("width", value.toString());
         } else if (name === "rr_height") {
-          node2.style.height = value.toString();
+          node2.style.setProperty("height", value.toString());
         } else if (name === "rr_mediaCurrentTime" && typeof value === "number") {
           node2.currentTime = value;
         } else if (name === "rr_mediaState") {
@@ -11486,6 +11491,7 @@ var MutationBuffer = class {
     __publicField(this, "addedSet", /* @__PURE__ */ new Set());
     __publicField(this, "movedSet", /* @__PURE__ */ new Set());
     __publicField(this, "droppedSet", /* @__PURE__ */ new Set());
+    __publicField(this, "removesSubTreeCache", /* @__PURE__ */ new Set());
     __publicField(this, "mutationCb");
     __publicField(this, "blockClass");
     __publicField(this, "blockSelector");
@@ -11601,13 +11607,13 @@ var MutationBuffer = class {
         this.mirror.removeNodeFromMap(this.mapRemoves.shift());
       }
       for (const n2 of this.movedSet) {
-        if (isParentRemoved(this.removes, n2, this.mirror) && !this.movedSet.has(index.parentNode(n2))) {
+        if (isParentRemoved(this.removesSubTreeCache, n2, this.mirror) && !this.movedSet.has(index.parentNode(n2))) {
           continue;
         }
         pushAdd(n2);
       }
       for (const n2 of this.addedSet) {
-        if (!isAncestorInSet(this.droppedSet, n2) && !isParentRemoved(this.removes, n2, this.mirror)) {
+        if (!isAncestorInSet(this.droppedSet, n2) && !isParentRemoved(this.removesSubTreeCache, n2, this.mirror)) {
           pushAdd(n2);
         } else if (isAncestorInSet(this.movedSet, n2)) {
           pushAdd(n2);
@@ -11712,6 +11718,7 @@ var MutationBuffer = class {
       this.addedSet = /* @__PURE__ */ new Set();
       this.movedSet = /* @__PURE__ */ new Set();
       this.droppedSet = /* @__PURE__ */ new Set();
+      this.removesSubTreeCache = /* @__PURE__ */ new Set();
       this.movedMap = {};
       this.mutationCb(payload);
     });
@@ -11877,6 +11884,7 @@ var MutationBuffer = class {
                 id: nodeId,
                 isShadow: isShadowRoot(m.target) && isNativeShadowDom(m.target) ? true : void 0
               });
+              processRemoves(n2, this.removesSubTreeCache);
             }
             this.mapRemoves.push(n2);
           });
@@ -11974,21 +11982,27 @@ function deepDelete(addsSet, n2) {
   addsSet.delete(n2);
   index.childNodes(n2).forEach((childN) => deepDelete(addsSet, childN));
 }
-function isParentRemoved(removes, n2, mirror2) {
-  if (removes.length === 0)
-    return false;
-  return _isParentRemoved(removes, n2, mirror2);
-}
-function _isParentRemoved(removes, n2, mirror2) {
-  let node2 = index.parentNode(n2);
-  while (node2) {
-    const parentId = mirror2.getId(node2);
-    if (removes.some((r2) => r2.id === parentId)) {
-      return true;
-    }
-    node2 = index.parentNode(node2);
+function processRemoves(n2, cache) {
+  const queue = [n2];
+  while (queue.length) {
+    const next = queue.pop();
+    if (cache.has(next))
+      continue;
+    cache.add(next);
+    index.childNodes(next).forEach((n22) => queue.push(n22));
   }
-  return false;
+  return;
+}
+function isParentRemoved(removes, n2, mirror2) {
+  if (removes.size === 0)
+    return false;
+  return _isParentRemoved(removes, n2);
+}
+function _isParentRemoved(removes, n2, _mirror2) {
+  const node2 = index.parentNode(n2);
+  if (!node2)
+    return false;
+  return removes.has(node2);
 }
 function isAncestorInSet(set, n2) {
   if (set.size === 0)
