@@ -1,5 +1,4 @@
 import { Box, Text } from '@highlight-run/ui/components'
-import { vars } from '@highlight-run/ui/vars'
 import * as style from '@pages/Graphing/components/Graph.css'
 import {
 	Funnel,
@@ -100,20 +99,11 @@ export const FunnelChart = ({
 					data={data?.map((d) => ({
 						value: d[d.Group] ?? d.Count,
 						name: d.Group,
-						fill: vars.color.p9,
+						fill: getColor(0, ''),
 					}))}
 					isAnimationActive={false}
-					fill={getColor(0, '')}
-					stroke={getColor(0, '')}
-					color={getColor(0, '')}
 				>
-					<LabelList
-						position="right"
-						fill="#000"
-						stroke="none"
-						dataKey="name"
-						content={getCustomLabel()}
-					/>
+					<LabelList position="right" content={getCustomLabel()} />
 				</Funnel>
 			</RechartsFunnelChart>
 		</ResponsiveContainer>
