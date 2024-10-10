@@ -8,5 +8,5 @@ export const alertTopbar = style({
 
 export const alertContainer = style({
 	height: `calc(100% - ${TOPBAR_HEIGHT}px)`,
-	margin: '48px auto 12px',
+	margin: '24px auto 12px',
 })

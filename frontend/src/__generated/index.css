@@ -6879,12 +6879,19 @@ body {
   z-index: 1;
   background-color: #ffffff;
 }
+._1vb6x0p0 {
+  text-decoration: none;
+  color: var(--_1pyqka9y);
+}
+._1vb6x0p0:hover {
+  color: var(--_1pyqka9y);
+}
 ._1qk0ipj0 {
   height: 40px;
 }
 ._1qk0ipj1 {
   height: calc(100% - 40px);
-  margin: 48px auto 12px;
+  margin: 24px auto 12px;
 }
 @keyframes _5ouxf40 {
   0% {
@@ -7137,13 +7144,6 @@ body {
 ._2tuxi81 ol {
   padding: 0 0 0 1.5rem !important;
   margin: 0 0 1rem 0 !important;
-}
-._1vb6x0p0 {
-  text-decoration: none;
-  color: var(--_1pyqka9y);
-}
-._1vb6x0p0:hover {
-  color: var(--_1pyqka9y);
 }
 ._1bcldh0 {
   border-radius: 4px;

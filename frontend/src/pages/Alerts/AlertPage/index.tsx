@@ -56,23 +56,25 @@ export const AlertPage: React.FC = () => {
 		skip: !alert_id,
 	})
 
-	const { data: alertStateChangesData, loading: alertStateChangesLoading } =
-		useGetAlertingAlertStateChangesQuery({
-			variables: {
-				alert_id: alert_id!,
-				start_date: startDate.toISOString(),
-				end_date: endDate.toISOString(),
-			},
-			skip: !alert_id,
-		})
-
 	const {
-		data: lastAlertStateChangesData,
-		loading: lastAlertStateChangesLoading,
-	} = useGetLastAlertStateChangesQuery({
-		variables: { alert_id: alert_id! },
+		data: alertingData,
+		loading: alertingLoading,
+		error: alertingError,
+		refetch: alertingRefetch,
+	} = useGetAlertingAlertStateChangesQuery({
+		variables: {
+			alert_id: alert_id!,
+			start_date: startDate.toISOString(),
+			end_date: endDate.toISOString(),
+		},
 		skip: !alert_id,
 	})
+
+	const { data: currentStateData, loading: CurrentStateLoading } =
+		useGetLastAlertStateChangesQuery({
+			variables: { alert_id: alert_id! },
+			skip: !alert_id,
+		})
 
 	const [updateAlertDisabled] = useUpdateAlertDisabledMutation()
 
@@ -229,32 +231,50 @@ export const AlertPage: React.FC = () => {
 						/>
 						<AlertInfo
 							alertStateChanges={
-								lastAlertStateChangesData?.last_alert_state_changes
+								currentStateData?.last_alert_state_changes
 							}
-							loading={lastAlertStateChangesLoading}
+							loading={CurrentStateLoading}
 							totalAlerts={
-								alertStateChangesData
-									?.alerting_alert_state_changes?.length
+								alertingData?.alerting_alert_state_changes
+									?.length
 							}
-							totalAlertsLoading={alertStateChangesLoading}
+							totalAlertsLoading={alertingLoading}
 						/>
-						<AlertGraph
-							alertName={data.alert.name}
-							query={data.alert.query ?? ''}
-							productType={data.alert.product_type}
-							functionColumn={data.alert.function_column ?? ''}
-							functionType={data.alert.function_type}
-							groupByKey={data.alert.group_by_key ?? undefined}
-							startDate={startDate}
-							endDate={endDate}
-							selectedPreset={selectedPreset}
-							updateSearchTime={updateSearchTime}
-							// TODO(spenny): should be optional to support anomoly alerts
-							thresholdWindow={data.alert.threshold_window ?? 0}
-							thresholdValue={data.alert.threshold_value ?? 0}
-							belowThreshold={data.alert.below_threshold ?? false}
+						<Box height="full" width="full">
+							<AlertGraph
+								alertName={data.alert.name}
+								query={data.alert.query ?? ''}
+								productType={data.alert.product_type}
+								functionColumn={
+									data.alert.function_column ?? ''
+								}
+								functionType={data.alert.function_type}
+								groupByKey={
+									data.alert.group_by_key ?? undefined
+								}
+								startDate={startDate}
+								endDate={endDate}
+								selectedPreset={selectedPreset}
+								updateSearchTime={updateSearchTime}
+								// TODO(spenny): should be optional to support anomoly alerts
+								thresholdWindow={
+									data.alert.threshold_window ?? 0
+								}
+								thresholdValue={data.alert.threshold_value ?? 0}
+								belowThreshold={
+									data.alert.below_threshold ?? false
+								}
+							/>
+						</Box>
+						<AlertTable
+							alert={data.alert}
+							loading={alertingLoading}
+							error={alertingError}
+							refetch={alertingRefetch}
+							alertingStates={
+								alertingData?.alerting_alert_state_changes
+							}
 						/>
-						<AlertTable />
 					</Box>
 				</Box>
 			</Box>
