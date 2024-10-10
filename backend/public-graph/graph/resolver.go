@@ -2349,7 +2349,8 @@ func (r *Resolver) AddSessionEvents(ctx context.Context, sessionID int, events *
 			}{}
 
 			if err := json.Unmarshal([]byte(event.Data), &dataObject); err != nil {
-				return e.New("error deserializing custom event properties")
+				log.WithContext(ctx).WithField("session_id", sessionID).Error("error deserializing custom event properties")
+				continue
 			}
 
 			trackEvent := strings.Contains(dataObject.Tag, "Track")
@@ -2362,27 +2363,35 @@ func (r *Resolver) AddSessionEvents(ctx context.Context, sessionID int, events *
 			}
 
 			if dataObject.Payload == nil {
-				return e.New("error reading raw payload from session event")
+				log.WithContext(ctx).WithField("session_id", sessionID).Error("error reading raw payload from session event")
+				continue
 			}
 
 			payloadStr := string(dataObject.Payload)
 			if !clickEvent {
 				if err := json.Unmarshal(dataObject.Payload, &payloadStr); err != nil {
-					return e.New("error deserializing session event payload into a string")
+					log.WithContext(ctx).WithField("session_id", sessionID).WithField("payloadStr", dataObject.Payload).Error("error deserializing session event payload into a string")
+					continue
 				}
 			}
 
 			if clickEvent {
-				propertiesObject := make(map[string]string)
+				propertiesObject := make(map[string]interface{})
 				if err := json.Unmarshal([]byte(payloadStr), &propertiesObject); err != nil {
-					return e.New("error deserializing track event properties")
+					// older versions of the client send in the clickTarget as a string
+					propertiesObject["clickTarget"] = payloadStr
+				}
+
+				attributes := make(map[string]string)
+				for k, v := range propertiesObject {
+					attributes[k] = fmt.Sprintf("%v", v)
 				}
 
 				sessionEvents = append(sessionEvents,
 					&clickhouse.SessionEventRow{
 						Event:      dataObject.Tag,
 						Timestamp:  event.Timestamp,
-						Attributes: propertiesObject,
+						Attributes: attributes,
 					},
 				)
 			} else if navigateEvent {
@@ -2408,7 +2417,8 @@ func (r *Resolver) AddSessionEvents(ctx context.Context, sessionID int, events *
 			} else if trackEvent {
 				propertiesObject := make(map[string]interface{})
 				if err := json.Unmarshal([]byte(payloadStr), &propertiesObject); err != nil {
-					return e.New("error deserializing track event properties")
+					log.WithContext(ctx).WithField("session_id", sessionID).WithField("payloadStr", payloadStr).Error("error deserializing track event properties")
+					propertiesObject["payload"] = payloadStr
 				}
 
 				attributes := make(map[string]string)
@@ -2448,7 +2458,8 @@ func (r *Resolver) AddSessionEvents(ctx context.Context, sessionID int, events *
 					// the value below is used for testing using /buttons
 					testTrackingMessage := "therewasonceahumblebumblebeeflyingthroughtheforestwhensuddenlyadropofwaterfullyencasedhimittookhimasecondtofigureoutthathesinaraindropsuddenlytheraindrophitthegroundasifhewasdivingintoapoolandheflewawaywithnofurtherissues"
 					if fields[k] == testTrackingMessage {
-						return e.New(testTrackingMessage)
+						log.WithContext(ctx).WithField("session_id", sessionID).Error(testTrackingMessage)
+						continue
 					}
 				}
 			}
@@ -2457,13 +2468,13 @@ func (r *Resolver) AddSessionEvents(ctx context.Context, sessionID int, events *
 
 	if len(fields) > 0 {
 		if err := r.AppendProperties(ctx, sessionID, fields, PropertyType.TRACK); err != nil {
-			return e.Wrap(err, "error adding set of properties to db")
+			log.WithContext(ctx).WithField("session_id", sessionID).Error(e.Wrap(err, "error adding set of properties to db"))
 		}
 	}
 
 	if len(sessionEvents) > 0 {
 		if err := r.CreateSessionEvents(ctx, sessionID, sessionEvents); err != nil {
-			return e.Wrapf(err, "error creating session events for session %d", sessionID)
+			log.WithContext(ctx).WithField("session_id", sessionID).Error(e.Wrapf(err, "error creating session events for session %d", sessionID))
 		}
 	}
 
