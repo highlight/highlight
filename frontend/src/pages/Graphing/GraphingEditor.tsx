@@ -753,7 +753,7 @@ export const GraphingEditor: React.FC = () => {
 											<LabeledRow
 												label="Limit"
 												name="limit"
-												tooltip="The maximum number of groups to include. Currenty, the max is 100."
+												tooltip="The maximum number of groups to include. Currently, the max is 100."
 											>
 												<Input
 													type="number"
@@ -889,7 +889,7 @@ export const GraphingEditor: React.FC = () => {
 											<LabeledRow
 												label="Buckets"
 												name="bucketCount"
-												tooltip="The number of X-axis buckets. A higher value will display smaller, more granular buckets. Currenty, the max is 100."
+												tooltip="The number of X-axis buckets. A higher value will display smaller, more granular buckets. Currently, the max is 100."
 											>
 												<Input
 													type="number"
