@@ -2378,8 +2378,9 @@ func (r *Resolver) AddSessionEvents(ctx context.Context, sessionID int, events *
 			if clickEvent {
 				propertiesObject := make(map[string]interface{})
 				if err := json.Unmarshal([]byte(payloadStr), &propertiesObject); err != nil {
+					// older versions of the client send in the clickTarget as a string
 					log.WithContext(ctx).WithField("payloadStr", payloadStr).Error("error deserializing click event properties")
-					propertiesObject["payload"] = payloadStr
+					propertiesObject["clickTarget"] = payloadStr
 				}
 
 				attributes := make(map[string]string)
