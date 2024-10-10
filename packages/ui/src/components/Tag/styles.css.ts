@@ -79,6 +79,16 @@ export const variants = recipe({
 		kind: {
 			primary: {},
 			secondary: {},
+			danger: {
+				background: vars.color.r9,
+				color: vars.color.white,
+				boxShadow: shadows.primary,
+			},
+			success: {
+				background: vars.theme.static.surface.sentiment.good,
+				color: vars.theme.static.content.sentiment.good,
+				boxShadow: shadows.primary,
+			},
 		},
 		shape: {
 			rounded: {},

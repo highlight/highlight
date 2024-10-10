@@ -1,4 +1,5 @@
 import {
+	IconSolidChartBar,
 	IconSolidFire,
 	IconSolidLightningBolt,
 	IconSolidLogs,
@@ -51,6 +52,15 @@ export const PRODUCT_OPTIONS_WITH_EVENTS = PRODUCT_OPTIONS.concat([
 		icon: <IconSolidFire key="events" />,
 	},
 ])
+
+export const PRODUCTS_TO_ICONS = {
+	[ProductType.Logs]: <IconSolidLogs key="logs" />,
+	[ProductType.Traces]: <IconSolidTraces key="traces" />,
+	[ProductType.Sessions]: <IconSolidPlayCircle key="sessions" />,
+	[ProductType.Errors]: <IconSolidLightningBolt key="errors" />,
+	[ProductType.Metrics]: <IconSolidChartBar key="metrics" />,
+	[ProductType.Events]: <IconSolidFire key="events" />,
+}
 
 export const NUMERIC_FUNCTION_TYPES: MetricAggregator[] = [
 	MetricAggregator.Min,
