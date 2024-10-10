@@ -1,0 +1,29 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "highlight.fullname" . }}-collector
+  labels:
+    app.kubernetes.io/component: collector
+    app.kubernetes.io/part-of: {{ include "highlight.name" . }}
+    {{- include "highlight.labels" . | nindent 4 }}
+spec:
+  selector:
+    app.kubernetes.io/component: collector
+    app.kubernetes.io/part-of: {{ include "highlight.name" . }}
+    {{- include "highlight.selectorLabels" . | nindent 4 }}
+  ports:
+    - name: otlp-grpc
+      port: 4317
+      protocol: TCP
+    - name: otlp-http
+      port: 4318
+      protocol: TCP
+    - name: healthcheck
+      port: 4319
+      protocol: TCP
+    - name: fluentforward
+      port: 24224
+      protocol: TCP
+    - name: tcplog
+      port: 34302
+      protocol: TCP
