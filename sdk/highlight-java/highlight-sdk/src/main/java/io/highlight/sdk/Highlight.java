@@ -104,7 +104,7 @@ public class Highlight {
 	 * Captures an exception and sends it to Highlight.
 	 * 
 	 * @param throwable the throwable to capture
-	 * @param header the {@link HighlightHeader} associated with the record
+	 * @param header    the {@link HighlightHeader} associated with the record
 	 * @throws HighlightIllegalStateException  if Highlight is not initialized
 	 * @throws HighlightInvalidRecordException if the record is invalid
 	 */
@@ -155,20 +155,21 @@ public class Highlight {
 	/**
 	 * Captures a log and sends it to Highlight.
 	 * 
-	 * @param severity  the severity of the log
-	 * @param message   the message to log
-	 * @param header the {@link HighlightHeader} associated with the record
+	 * @param severity the severity of the log
+	 * @param message  the message to log
+	 * @param header   the {@link HighlightHeader} associated with the record
 	 * @throws HighlightIllegalStateException  if Highlight is not initialized
 	 * @throws HighlightInvalidRecordException if the record is invalid
 	 */
 	public static void captureLog(Severity severity, String message, HighlightHeader header) {
 		Highlight.requireInitialization();
 
-		Highlight.captureRecord(HighlightRecord.log()
-				.severity(severity)
-				.message(message)
-				.requestHeader(header)
-				.build());
+		Highlight
+				.captureRecord(HighlightRecord.log()
+						.severity(severity)
+						.message(message)
+						.requestHeader(header)
+						.build());
 	}
 
 	/**
@@ -225,7 +226,8 @@ public class Highlight {
 			long startTime = System.currentTimeMillis();
 
 			if (!this.state.compareAndSet(State.RUNNING, State.SHUTDOWN)) {
-				System.out.println("Highlight is trying to force shutdown everyting because the currently state is invalid!");
+				System.out.println(
+						"Highlight is trying to force shutdown everyting because the currently state is invalid!");
 			}
 
 			if (this.openTelemetry != null) {
