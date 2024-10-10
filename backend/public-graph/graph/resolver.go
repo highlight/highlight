@@ -759,7 +759,7 @@ func (r *Resolver) isWithinErrorQuota(ctx context.Context, workspace *model.Work
 func (r *Resolver) HandleErrorAndGroup(ctx context.Context, errorObj *model.ErrorObject, structuredStackTrace []*privateModel.ErrorTrace, fields []*model.ErrorField, projectID int, workspace *model.Workspace) (*model.ErrorGroup, error) {
 	key := errorgroups.GetKey(projectID, errorObj, structuredStackTrace)
 	var cacheMiss bool
-	eg, err := redis.CachedEval(ctx, r.Redis, key, time.Second, time.Minute, func() (*model.ErrorGroup, error) {
+	eg, err := redis.CachedEval(ctx, r.Redis, key, 10*time.Second, time.Hour, func() (*model.ErrorGroup, error) {
 		cacheMiss = true
 		return r.handleErrorAndGroup(ctx, errorObj, structuredStackTrace, fields, projectID, workspace)
 	})
@@ -2282,6 +2282,10 @@ func (r *Resolver) ProcessBackendPayloadImpl(ctx context.Context, sessionSecureI
 	for _, errorInstances := range groupedErrors {
 		instance := errorInstances[len(errorInstances)-1]
 		data := groups[instance.ErrorGroupID]
+		if data.Group == nil || data.SessionObj == nil {
+			log.WithContext(ctx).WithField("error_group_id", instance.ErrorGroupID).Error("skipping error group alert")
+			continue
+		}
 		r.sendErrorAlert(ctx, data.Group.ProjectID, data.SessionObj, data.Group, instance, data.VisitedURL)
 	}
 
