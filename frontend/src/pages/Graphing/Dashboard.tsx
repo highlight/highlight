@@ -318,12 +318,14 @@ export const Dashboard = () => {
 																					g.bucketByKey,
 																				bucketCount:
 																					g.bucketCount,
+																				bucketInterval:
+																					g.bucketInterval,
 																				display:
 																					g.display,
 																				functionType:
 																					g.functionType,
-																				groupByKey:
-																					g.groupByKey,
+																				groupByKeys:
+																					g.groupByKeys,
 																				limit: g.limit,
 																				limitFunctionType:
 																					g.limitFunctionType,
@@ -571,8 +573,8 @@ export const Dashboard = () => {
 																g.bucketCount ??
 																undefined
 															}
-															groupByKey={
-																g.groupByKey ??
+															groupByKeys={
+																g.groupByKeys ??
 																undefined
 															}
 															limit={
