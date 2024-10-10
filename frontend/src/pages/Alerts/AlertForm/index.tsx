@@ -30,14 +30,16 @@ import {
 	AlertDestinationInput,
 	MetricAggregator,
 	ProductType,
+	ThresholdCondition,
+	ThresholdType,
 } from '@/graph/generated/schemas'
 import useFeatureFlag, { Feature } from '@/hooks/useFeatureFlag/useFeatureFlag'
 import { useProjectId } from '@/hooks/useProjectId'
 import { useSearchTime } from '@/hooks/useSearchTime'
 import { FREQUENCIES } from '@/pages/Alerts/AlertConfigurationCard/AlertConfigurationConstants'
 import {
-	ALERT_CONDITION_OPTIONS,
-	AlertCondition,
+	getThresholdConditionOptions,
+	THRESHOLD_TYPE_OPTIONS,
 } from '@/pages/Alerts/constants'
 import { DestinationInput } from '@/pages/Alerts/DestinationInput'
 import { Combobox } from '@/pages/Graphing/Combobox'
@@ -75,6 +77,8 @@ export const SESSION_COOLDOWN = WEEK
 export const DEFAULT_THRESHOLD = 1
 export const DEFAULT_WINDOW = MINUTE * 30
 export const DEFAULT_COOLDOWN = MINUTE * 30
+export const DEFAULT_THRESHOLD_CONDITON = ThresholdCondition.Above
+export const DEFAULT_THRESHOLD_TYPE = ThresholdType.Constant
 
 const ALERT_PRODUCT_INFO = {
 	[ProductType.Sessions]:
@@ -152,7 +156,11 @@ export const AlertForm: React.FC = () => {
 	const [groupByEnabled, setGroupByEnabled] = useState(false)
 	const [groupByKey, setGroupByKey] = useState('')
 
-	const [belowThreshold, setBelowThreshold] = useState(false)
+	const [thresholdType, setThresholdType] = useState(DEFAULT_THRESHOLD_TYPE)
+	const [thresholdCondition, setThresholdCondition] = useState(
+		DEFAULT_THRESHOLD_CONDITON,
+	)
+
 	const [thresholdValue, setThresholdValue] = useState(DEFAULT_THRESHOLD)
 	const [thresholdWindow, setThresholdWindow] = useState(DEFAULT_WINDOW)
 	const [thresholdCooldown, setThresholdCooldown] =
@@ -191,7 +199,7 @@ export const AlertForm: React.FC = () => {
 			setThresholdCooldown(DEFAULT_COOLDOWN)
 		}
 
-		setBelowThreshold(false)
+		setThresholdCondition(DEFAULT_THRESHOLD_CONDITON)
 		setThresholdValue(DEFAULT_THRESHOLD)
 		setQuery('')
 		setFunctionType(MetricAggregator.Count)
@@ -207,7 +215,6 @@ export const AlertForm: React.FC = () => {
 			function_column: fetchedFunctionColumn || undefined,
 			query: query,
 			group_by_key: groupByEnabled ? groupByKey : undefined,
-			below_threshold: belowThreshold,
 			threshold_value: thresholdValue,
 			threshold_window: thresholdWindow,
 			threshold_cooldown: thresholdCooldown,
@@ -289,11 +296,16 @@ export const AlertForm: React.FC = () => {
 			setGroupByKey(data.alert.group_by_key ?? '')
 
 			// for threshold alerts
-			setBelowThreshold(data.alert.below_threshold ?? false)
 			setThresholdValue(data.alert.threshold_value ?? DEFAULT_THRESHOLD)
 			setThresholdWindow(data.alert.threshold_window ?? DEFAULT_WINDOW)
 			setThresholdCooldown(
 				data.alert.threshold_cooldown ?? DEFAULT_COOLDOWN,
+			)
+			setThresholdType(
+				data.alert.threshold_type ?? DEFAULT_THRESHOLD_TYPE,
+			)
+			setThresholdCondition(
+				data.alert.threshold_condition ?? DEFAULT_THRESHOLD_CONDITON,
 			)
 			setInitialDestinations(
 				data.alert.destinations as AlertDestinationInput[],
@@ -413,7 +425,8 @@ export const AlertForm: React.FC = () => {
 							groupByKey={groupByEnabled ? groupByKey : undefined}
 							thresholdWindow={thresholdWindow}
 							thresholdValue={thresholdValue}
-							belowThreshold={belowThreshold}
+							thresholdType={thresholdType}
+							thresholdCondition={thresholdCondition}
 							startDate={startDate}
 							endDate={endDate}
 							selectedPreset={selectedPreset}
@@ -579,24 +592,33 @@ export const AlertForm: React.FC = () => {
 										<Divider className="m-0" />
 										<SidebarSection>
 											<LabeledRow
+												label="Alert type"
+												name="alertType"
+											>
+												<OptionDropdown<ThresholdType>
+													options={
+														THRESHOLD_TYPE_OPTIONS
+													}
+													selection={thresholdType}
+													setSelection={
+														setThresholdType
+													}
+												/>
+											</LabeledRow>
+											<LabeledRow
 												label="Alert conditions"
 												name="alertConditions"
 											>
-												<OptionDropdown<AlertCondition>
-													options={
-														ALERT_CONDITION_OPTIONS
-													}
+												<OptionDropdown<ThresholdCondition>
+													options={getThresholdConditionOptions(
+														thresholdType,
+													)}
 													selection={
-														belowThreshold
-															? AlertCondition.Below
-															: AlertCondition.Above
+														thresholdCondition
 													}
-													setSelection={(option) => {
-														setBelowThreshold(
-															option ==
-																AlertCondition.Below,
-														)
-													}}
+													setSelection={
+														setThresholdCondition
+													}
 												/>
 											</LabeledRow>
 											<Stack direction="row" gap="12">
@@ -607,6 +629,7 @@ export const AlertForm: React.FC = () => {
 													<Input
 														name="thresholdValue"
 														type="number"
+														step=".5"
 														value={thresholdValue}
 														onChange={(e) => {
 															setThresholdValue(

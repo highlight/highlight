@@ -1895,10 +1895,11 @@ query GetAlert($id: ID!) {
 		group_by_key
 		disabled
 		last_admin_to_edit_id
-		below_threshold
 		threshold_value
 		threshold_window
 		threshold_cooldown
+		threshold_type
+		threshold_condition
 		destinations {
 			id
 			destination_type

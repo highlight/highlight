@@ -2,7 +2,12 @@ import { Box, DateRangePreset } from '@highlight-run/ui/components'
 import React from 'react'
 import { ReferenceArea, ReferenceLine } from 'recharts'
 
-import { MetricAggregator, ProductType } from '@/graph/generated/schemas'
+import {
+	MetricAggregator,
+	ProductType,
+	ThresholdCondition,
+	ThresholdType,
+} from '@/graph/generated/schemas'
 import { useProjectId } from '@/hooks/useProjectId'
 import Graph, {
 	getViewConfig,
@@ -47,7 +52,8 @@ type Props = {
 	groupByKey?: string
 	thresholdWindow: number
 	thresholdValue: number
-	belowThreshold: boolean
+	thresholdType: ThresholdType
+	thresholdCondition: ThresholdCondition
 	startDate: Date
 	endDate: Date
 	selectedPreset?: DateRangePreset
@@ -63,7 +69,8 @@ export const AlertGraph: React.FC<Props> = ({
 	groupByKey,
 	thresholdWindow,
 	thresholdValue,
-	belowThreshold,
+	// thresholdType,
+	thresholdCondition,
 	startDate,
 	endDate,
 	selectedPreset,
@@ -126,14 +133,16 @@ export const AlertGraph: React.FC<Props> = ({
 									y={thresholdValue}
 									stroke="red"
 								/>
-								{!belowThreshold && (
+								{thresholdCondition ===
+									ThresholdCondition.Above && (
 									<ReferenceArea
 										y1={thresholdValue}
 										opacity={0.5}
 										isFront
 									/>
 								)}
-								{belowThreshold && (
+								{thresholdCondition ===
+									ThresholdCondition.Below && (
 									<ReferenceArea
 										y2={thresholdValue}
 										opacity={0.5}

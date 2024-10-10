@@ -37,6 +37,11 @@ type SampleableTableConfig struct {
 	useSampling         func(time.Duration) bool
 }
 
+type AnomalySettings struct {
+	MetricId        string
+	BlockNumberInfo []BlockNumberInfo
+}
+
 type ReadMetricsInput struct {
 	SampleableConfig SampleableTableConfig
 	ProjectIDs       []int
@@ -51,6 +56,7 @@ type ReadMetricsInput struct {
 	LimitAggregator  *modelInputs.MetricAggregator
 	LimitColumn      *string
 	SavedMetricState *SavedMetricState
+	AnomalySettings  *AnomalySettings
 }
 
 func readObjects[TObj interface{}](ctx context.Context, client *Client, config model.TableConfig, samplingConfig model.TableConfig, projectID int, params modelInputs.QueryInput, pagination Pagination, scanObject func(driver.Rows) (*Edge[TObj], error)) (*Connection[TObj], error) {
