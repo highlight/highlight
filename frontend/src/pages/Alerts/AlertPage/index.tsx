@@ -21,6 +21,8 @@ import { toast } from '@/components/Toaster'
 import { namedOperations } from '@/graph/generated/operations'
 import {
 	useGetAlertQuery,
+	useGetAlertingAlertStateChangesQuery,
+	useGetLastAlertStateChangesQuery,
 	useUpdateAlertDisabledMutation,
 } from '@/graph/generated/hooks'
 import { useProjectId } from '@/hooks/useProjectId'
@@ -51,6 +53,31 @@ export const AlertPage: React.FC = () => {
 		},
 		skip: !alert_id,
 	})
+
+	const { data: alertStateChangesData, loading: alertStateChnagesLoading } =
+		useGetAlertingAlertStateChangesQuery({
+			variables: { alert_id: alert_id! },
+			skip: !alert_id,
+		})
+
+	const {
+		data: lastAlertStateChangesData,
+		loading: lastAlertStateChangesLoading,
+	} = useGetLastAlertStateChangesQuery({
+		variables: { alert_id: alert_id! },
+		skip: !alert_id,
+	})
+
+	console.log(
+		'alertStateChangesData',
+		alertStateChangesData,
+		alertStateChnagesLoading,
+	)
+	console.log(
+		'lastAlertStateChangesData',
+		lastAlertStateChangesData,
+		lastAlertStateChangesLoading,
+	)
 
 	const [updateAlertDisabled] = useUpdateAlertDisabledMutation()
 

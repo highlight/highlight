@@ -103,14 +103,29 @@ type AlertDestinationInput struct {
 }
 
 type AlertStateChange struct {
-	ID            int        `json:"id"`
-	Timestamp     time.Time  `json:"timestamp"`
-	AlertID       int        `json:"AlertID"`
-	State         AlertState `json:"State"`
-	PreviousState AlertState `json:"PreviousState"`
-	Title         string     `json:"Title"`
-	GroupByKey    string     `json:"GroupByKey"`
+	ID         int        `json:"id"`
+	Timestamp  time.Time  `json:"timestamp"`
+	ProjectID  int        `json:"projectID"`
+	AlertID    int        `json:"alertID"`
+	State      AlertState `json:"state"`
+	GroupByKey string     `json:"groupByKey"`
 }
+
+type AlertStateChangeConnection struct {
+	Edges    []*AlertStateChangeEdge `json:"edges"`
+	PageInfo *PageInfo               `json:"pageInfo"`
+}
+
+func (AlertStateChangeConnection) IsConnection()               {}
+func (this AlertStateChangeConnection) GetPageInfo() *PageInfo { return this.PageInfo }
+
+type AlertStateChangeEdge struct {
+	Cursor string            `json:"cursor"`
+	Node   *AlertStateChange `json:"node"`
+}
+
+func (AlertStateChangeEdge) IsEdge()                {}
+func (this AlertStateChangeEdge) GetCursor() string { return this.Cursor }
 
 type AllProjectSettings struct {
 	ID                                int            `json:"id"`

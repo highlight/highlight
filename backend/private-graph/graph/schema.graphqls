@@ -1650,11 +1650,20 @@ type Alert {
 type AlertStateChange {
 	id: ID!
 	timestamp: Timestamp!
-	AlertID: ID!
-	State: AlertState!
-	PreviousState: AlertState!
-	Title: String!
-	GroupByKey: String!
+	projectID: ID!
+	alertID: ID!
+	state: AlertState!
+	groupByKey: String!
+}
+
+type AlertStateChangeEdge implements Edge {
+	cursor: String!
+	node: AlertStateChange!
+}
+
+type AlertStateChangeConnection implements Connection {
+	edges: [AlertStateChangeEdge!]!
+	pageInfo: PageInfo!
 }
 
 type SanitizedSlackChannel {
@@ -2241,7 +2250,8 @@ type Query {
 	joinable_workspaces: [Workspace]
 	alerts(project_id: ID!): [Alert]!
 	alert(id: ID!): Alert!
-	alert_state_changes(alert_id: ID!): [AlertStateChange]!
+	alerting_alert_state_changes(alert_id: ID!): [AlertStateChange]!
+	last_alert_state_changes(alert_id: ID!): [AlertStateChange]!
 	error_alerts(project_id: ID!): [ErrorAlert]!
 	new_user_alerts(project_id: ID!): [SessionAlert]
 	track_properties_alerts(project_id: ID!): [SessionAlert]!

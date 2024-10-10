@@ -1908,6 +1908,22 @@ query GetAlert($id: ID!) {
 	}
 }
 
+query GetAlertingAlertStateChanges($alert_id: ID!) {
+	alerting_alert_state_changes(alert_id: $alert_id) {
+		timestamp
+		state
+		groupByKey
+	}
+}
+
+query GetLastAlertStateChanges($alert_id: ID!) {
+	last_alert_state_changes(alert_id: $alert_id) {
+		timestamp
+		state
+		groupByKey
+	}
+}
+
 query GetMetricMonitors($project_id: ID!, $metric_name: String!) {
 	metric_monitors(project_id: $project_id, metric_name: $metric_name) {
 		id

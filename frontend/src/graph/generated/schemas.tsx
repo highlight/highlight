@@ -182,13 +182,24 @@ export enum AlertState {
 
 export type AlertStateChange = {
 	__typename?: 'AlertStateChange'
-	AlertID: Scalars['ID']
-	GroupByKey: Scalars['String']
-	PreviousState: AlertState
-	State: AlertState
-	Title: Scalars['String']
+	alertID: Scalars['ID']
+	groupByKey: Scalars['String']
 	id: Scalars['ID']
+	projectID: Scalars['ID']
+	state: AlertState
 	timestamp: Scalars['Timestamp']
+}
+
+export type AlertStateChangeConnection = Connection & {
+	__typename?: 'AlertStateChangeConnection'
+	edges: Array<AlertStateChangeEdge>
+	pageInfo: PageInfo
+}
+
+export type AlertStateChangeEdge = Edge & {
+	__typename?: 'AlertStateChangeEdge'
+	cursor: Scalars['String']
+	node: AlertStateChange
 }
 
 export type AllProjectSettings = {
@@ -2041,7 +2052,7 @@ export type Query = {
 	admin_role_by_project?: Maybe<WorkspaceAdminRole>
 	ai_query_suggestion: QueryOutput
 	alert: Alert
-	alert_state_changes: Array<Maybe<AlertStateChange>>
+	alerting_alert_state_changes: Array<Maybe<AlertStateChange>>
 	alerts: Array<Maybe<Alert>>
 	api_key_to_org_id?: Maybe<Scalars['ID']>
 	averageSessionLength?: Maybe<AverageSessionLength>
@@ -2110,6 +2121,7 @@ export type Query = {
 	joinable_workspaces?: Maybe<Array<Maybe<Workspace>>>
 	key_values: Array<Scalars['String']>
 	keys: Array<QueryKey>
+	last_alert_state_changes: Array<Maybe<AlertStateChange>>
 	linear_teams?: Maybe<Array<LinearTeam>>
 	liveUsersCount?: Maybe<Scalars['Int64']>
 	log_alert: LogAlert
@@ -2229,7 +2241,7 @@ export type QueryAlertArgs = {
 	id: Scalars['ID']
 }
 
-export type QueryAlert_State_ChangesArgs = {
+export type QueryAlerting_Alert_State_ChangesArgs = {
 	alert_id: Scalars['ID']
 }
 
@@ -2580,6 +2592,10 @@ export type QueryKeysArgs = {
 	project_id: Scalars['ID']
 	query?: InputMaybe<Scalars['String']>
 	type?: InputMaybe<KeyType>
+}
+
+export type QueryLast_Alert_State_ChangesArgs = {
+	alert_id: Scalars['ID']
 }
 
 export type QueryLinear_TeamsArgs = {

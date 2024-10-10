@@ -4333,6 +4333,36 @@ export type GetAlertQuery = { __typename?: 'Query' } & {
 		}
 }
 
+export type GetAlertingAlertStateChangesQueryVariables = Types.Exact<{
+	alert_id: Types.Scalars['ID']
+}>
+
+export type GetAlertingAlertStateChangesQuery = { __typename?: 'Query' } & {
+	alerting_alert_state_changes: Array<
+		Types.Maybe<
+			{ __typename?: 'AlertStateChange' } & Pick<
+				Types.AlertStateChange,
+				'timestamp' | 'state' | 'groupByKey'
+			>
+		>
+	>
+}
+
+export type GetLastAlertStateChangesQueryVariables = Types.Exact<{
+	alert_id: Types.Scalars['ID']
+}>
+
+export type GetLastAlertStateChangesQuery = { __typename?: 'Query' } & {
+	last_alert_state_changes: Array<
+		Types.Maybe<
+			{ __typename?: 'AlertStateChange' } & Pick<
+				Types.AlertStateChange,
+				'timestamp' | 'state' | 'groupByKey'
+			>
+		>
+	>
+}
+
 export type GetMetricMonitorsQueryVariables = Types.Exact<{
 	project_id: Types.Scalars['ID']
 	metric_name: Types.Scalars['String']
@@ -5377,6 +5407,8 @@ export const namedOperations = {
 		GetLogAlertsPagePayload: 'GetLogAlertsPagePayload' as const,
 		GetAlertsPagePayload: 'GetAlertsPagePayload' as const,
 		GetAlert: 'GetAlert' as const,
+		GetAlertingAlertStateChanges: 'GetAlertingAlertStateChanges' as const,
+		GetLastAlertStateChanges: 'GetLastAlertStateChanges' as const,
 		GetMetricMonitors: 'GetMetricMonitors' as const,
 		GetCommentMentionSuggestions: 'GetCommentMentionSuggestions' as const,
 		GetCustomerPortalURL: 'GetCustomerPortalURL' as const,
