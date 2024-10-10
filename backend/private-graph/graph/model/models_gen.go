@@ -386,6 +386,16 @@ type ErrorTrace struct {
 	EnhancementVersion         *string             `json:"enhancementVersion,omitempty"`
 }
 
+type FunnelStep struct {
+	Title string `json:"title"`
+	Query string `json:"query"`
+}
+
+type FunnelStepInput struct {
+	Title string `json:"title"`
+	Query string `json:"query"`
+}
+
 type GitHubRepo struct {
 	RepoID string `json:"repo_id"`
 	Name   string `json:"name"`
@@ -399,24 +409,25 @@ type GitlabProject struct {
 }
 
 type GraphInput struct {
-	ID                *int              `json:"id,omitempty"`
-	VisualizationID   int               `json:"visualizationId"`
-	AfterGraphID      *int              `json:"afterGraphId,omitempty"`
-	Type              string            `json:"type"`
-	Title             string            `json:"title"`
-	ProductType       ProductType       `json:"productType"`
-	Query             string            `json:"query"`
-	Metric            string            `json:"metric"`
-	FunctionType      MetricAggregator  `json:"functionType"`
-	GroupByKeys       pq.StringArray    `json:"groupByKeys,omitempty"`
-	BucketByKey       *string           `json:"bucketByKey,omitempty"`
-	BucketCount       *int              `json:"bucketCount,omitempty"`
-	BucketInterval    *int              `json:"bucketInterval,omitempty"`
-	Limit             *int              `json:"limit,omitempty"`
-	LimitFunctionType *MetricAggregator `json:"limitFunctionType,omitempty"`
-	LimitMetric       *string           `json:"limitMetric,omitempty"`
-	Display           *string           `json:"display,omitempty"`
-	NullHandling      *string           `json:"nullHandling,omitempty"`
+	ID                *int               `json:"id,omitempty"`
+	VisualizationID   int                `json:"visualizationId"`
+	AfterGraphID      *int               `json:"afterGraphId,omitempty"`
+	Type              string             `json:"type"`
+	Title             string             `json:"title"`
+	ProductType       ProductType        `json:"productType"`
+	Query             string             `json:"query"`
+	Metric            string             `json:"metric"`
+	FunctionType      MetricAggregator   `json:"functionType"`
+	GroupByKeys       pq.StringArray     `json:"groupByKeys,omitempty"`
+	BucketByKey       *string            `json:"bucketByKey,omitempty"`
+	BucketCount       *int               `json:"bucketCount,omitempty"`
+	BucketInterval    *int               `json:"bucketInterval,omitempty"`
+	Limit             *int               `json:"limit,omitempty"`
+	LimitFunctionType *MetricAggregator  `json:"limitFunctionType,omitempty"`
+	LimitMetric       *string            `json:"limitMetric,omitempty"`
+	FunnelSteps       []*FunnelStepInput `json:"funnelSteps,omitempty"`
+	Display           *string            `json:"display,omitempty"`
+	NullHandling      *string            `json:"nullHandling,omitempty"`
 }
 
 type HeightList struct {

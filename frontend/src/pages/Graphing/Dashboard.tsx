@@ -54,6 +54,7 @@ import { DashboardSettingsModal } from '@/pages/Graphing/components/DashboardSet
 import { VariablesBar } from '@/pages/Graphing/components/VariablesBar'
 import { useGraphingVariables } from '@/pages/Graphing/hooks/useGraphingVariables'
 import { useRetentionPresets } from '@/components/Search/SearchForm/hooks'
+import { loadFunnelStep } from '@pages/Graphing/util'
 
 export const HeaderDivider = () => <Box cssClass={style.headerDivider} />
 
@@ -589,6 +590,12 @@ export const Dashboard = () => {
 																g.limitMetric ??
 																undefined
 															}
+															funnelSteps={(
+																g.funnelSteps ??
+																[]
+															).map(
+																loadFunnelStep,
+															)}
 															setTimeRange={
 																updateSearchTime
 															}
