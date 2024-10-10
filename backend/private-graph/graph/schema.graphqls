@@ -2002,7 +2002,7 @@ type Graph {
 	query: String!
 	metric: String!
 	functionType: MetricAggregator!
-	groupByKey: String
+	groupByKeys: StringArray
 	bucketByKey: String
 	bucketCount: Int
 	bucketInterval: Int
@@ -2015,7 +2015,7 @@ type Graph {
 
 type Variable {
 	key: String!
-	defaultValue: String!
+	defaultValues: [String!]!
 	suggestionType: SuggestionType!
 	field: String
 }
@@ -2046,7 +2046,7 @@ input GraphInput {
 	query: String!
 	metric: String!
 	functionType: MetricAggregator!
-	groupByKey: String
+	groupByKeys: StringArray
 	bucketByKey: String
 	bucketCount: Int
 	bucketInterval: Int
@@ -2059,7 +2059,7 @@ input GraphInput {
 
 input VariableInput {
 	key: String!
-	defaultValue: String!
+	defaultValues: [String!]!
 	suggestionType: SuggestionType!
 	field: String
 }

@@ -408,7 +408,7 @@ type GraphInput struct {
 	Query             string            `json:"query"`
 	Metric            string            `json:"metric"`
 	FunctionType      MetricAggregator  `json:"functionType"`
-	GroupByKey        *string           `json:"groupByKey,omitempty"`
+	GroupByKeys       pq.StringArray    `json:"groupByKeys,omitempty"`
 	BucketByKey       *string           `json:"bucketByKey,omitempty"`
 	BucketCount       *int              `json:"bucketCount,omitempty"`
 	BucketInterval    *int              `json:"bucketInterval,omitempty"`
@@ -1005,14 +1005,14 @@ type UserPropertyInput struct {
 
 type Variable struct {
 	Key            string         `json:"key"`
-	DefaultValue   string         `json:"defaultValue"`
+	DefaultValues  []string       `json:"defaultValues"`
 	SuggestionType SuggestionType `json:"suggestionType"`
 	Field          *string        `json:"field,omitempty"`
 }
 
 type VariableInput struct {
 	Key            string         `json:"key"`
-	DefaultValue   string         `json:"defaultValue"`
+	DefaultValues  []string       `json:"defaultValues"`
 	SuggestionType SuggestionType `json:"suggestionType"`
 	Field          *string        `json:"field,omitempty"`
 }

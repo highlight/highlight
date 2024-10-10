@@ -112,7 +112,9 @@ export const AlertGraph: React.FC<Props> = ({
 						query={query}
 						metric={functionColumn}
 						functionType={functionType}
-						groupByKey={sessionsProduct ? undefined : groupByKey}
+						groupByKeys={
+							sessionsProduct ? undefined : [groupByKey ?? '']
+						}
 						setTimeRange={updateSearchTime}
 						bucketByKey="Timestamp"
 						bucketCount={sessionsProduct ? 50 : undefined}
