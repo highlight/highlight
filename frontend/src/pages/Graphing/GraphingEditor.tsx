@@ -79,6 +79,8 @@ import { useRetentionPresets } from '@/components/Search/SearchForm/hooks'
 type BucketBy = 'None' | 'Interval' | 'Count'
 const BUCKET_BY_OPTIONS: BucketBy[] = ['None', 'Interval', 'Count']
 
+const MAX_BUCKET_SIZE = 100
+
 const SidebarSection = (props: PropsWithChildren) => {
 	return (
 		<Box p="12" width="full" display="flex" flexDirection="column" gap="12">
@@ -644,7 +646,7 @@ export const GraphingEditor: React.FC = () => {
 									<LabeledRow
 										label="Source"
 										name="source"
-										tooltip="The resource being queried, one of the four highlight.io resources."
+										tooltip="The resource being queried, one of the five highlight.io resources."
 									>
 										<OptionDropdown<ProductType>
 											options={productOptions}
@@ -751,7 +753,7 @@ export const GraphingEditor: React.FC = () => {
 											<LabeledRow
 												label="Limit"
 												name="limit"
-												tooltip="The maximum number of groups to include."
+												tooltip="The maximum number of groups to include. Currenty, the max is 100."
 											>
 												<Input
 													type="number"
@@ -759,7 +761,13 @@ export const GraphingEditor: React.FC = () => {
 													placeholder="Enter limit"
 													value={limit}
 													onChange={(e) => {
-														setLimit(e.target.value)
+														const value = Math.min(
+															MAX_BUCKET_SIZE,
+															parseInt(
+																e.target.value,
+															),
+														)
+														setLimit(value)
 													}}
 													cssClass={style.input}
 												/>
@@ -881,7 +889,7 @@ export const GraphingEditor: React.FC = () => {
 											<LabeledRow
 												label="Buckets"
 												name="bucketCount"
-												tooltip="The number of X-axis buckets. A higher value will display smaller, more granular buckets."
+												tooltip="The number of X-axis buckets. A higher value will display smaller, more granular buckets. Currenty, the max is 100."
 											>
 												<Input
 													type="number"
@@ -889,9 +897,16 @@ export const GraphingEditor: React.FC = () => {
 													placeholder="Enter bucket count"
 													value={bucketCount}
 													onChange={(e) => {
-														setBucketCount(
-															e.target.value,
-														)
+														const newValue =
+															Math.min(
+																MAX_BUCKET_SIZE,
+																parseInt(
+																	e.target
+																		.value,
+																),
+															)
+
+														setBucketCount(newValue)
 													}}
 													cssClass={style.input}
 												/>

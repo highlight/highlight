@@ -690,7 +690,6 @@ const replaceVariables = (
 	vars?.forEach((value, key) => {
 		text = text?.replaceAll(`$${key}`, value)
 	})
-	console.log('replaceVariables', vars)
 	return text
 }
 
