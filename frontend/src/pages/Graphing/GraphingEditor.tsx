@@ -489,6 +489,12 @@ export const GraphingEditor: React.FC = () => {
 		}
 	}, [viewType])
 
+	useEffect(() => {
+		if (productType !== ProductType.Events) {
+			setViewType(VIEW_OPTIONS[0].value)
+		}
+	}, [productType])
+
 	const { values } = useGraphingVariables(dashboard_id!)
 
 	const variableKeys = Array.from(values).map(([key]) => {
@@ -680,11 +686,66 @@ export const GraphingEditor: React.FC = () => {
 										tooltip="The resource being queried, one of the four highlight.io resources."
 									>
 										<OptionDropdown<ProductType>
-											options={productOptions}
+											options={productOptions.filter(
+												(p) =>
+													p.value ===
+														ProductType.Events ||
+													viewType !== 'Funnel chart',
+											)}
 											selection={productType}
 											setSelection={setProductType}
 										/>
 									</LabeledRow>
+								</SidebarSection>
+								<Divider className="m-0" />
+								<SidebarSection>
+									<LabeledRow
+										label="View type"
+										name="viewType"
+									>
+										<OptionDropdown
+											options={VIEW_OPTIONS.filter(
+												(v) =>
+													productType ===
+														ProductType.Events ||
+													v.value !== 'Funnel chart',
+											)}
+											selection={viewType}
+											setSelection={(option: string) => {
+												setViewType(option)
+											}}
+										/>
+									</LabeledRow>
+									{viewType === 'Line chart' && (
+										<LineChartSettings
+											nullHandling={lineNullHandling}
+											setNullHandling={
+												setLineNullHandling
+											}
+											lineDisplay={lineDisplay}
+											setLineDisplay={setLineDisplay}
+										/>
+									)}
+									{viewType === 'Bar chart' && (
+										<BarChartSettings
+											barDisplay={barDisplay}
+											setBarDisplay={setBarDisplay}
+										/>
+									)}
+									{viewType === 'Funnel chart' && (
+										<FunnelChartSettings
+											funnelDisplay={funnelDisplay}
+											setFunnelDisplay={setFunnelDisplay}
+										/>
+									)}
+									{viewType === 'Table' && (
+										<TableSettings
+											nullHandling={tableNullHandling}
+											setNullHandling={
+												setTableNullHandling
+											}
+										/>
+									)}
 								</SidebarSection>
 								<Divider className="m-0" />
 								<SidebarSection>
@@ -848,56 +909,6 @@ export const GraphingEditor: React.FC = () => {
 												/>
 											</LabeledRow>
 										</Box>
-									)}
-								</SidebarSection>
-								<Divider className="m-0" />
-								<SidebarSection>
-									<LabeledRow
-										label="View type"
-										name="viewType"
-									>
-										<OptionDropdown
-											options={VIEW_OPTIONS.filter(
-												(v) =>
-													productType ===
-														ProductType.Events ||
-													v.value !== 'Funnel chart',
-											)}
-											selection={viewType}
-											setSelection={(option: string) => {
-												setViewType(option)
-											}}
-										/>
-									</LabeledRow>
-									{viewType === 'Line chart' && (
-										<LineChartSettings
-											nullHandling={lineNullHandling}
-											setNullHandling={
-												setLineNullHandling
-											}
-											lineDisplay={lineDisplay}
-											setLineDisplay={setLineDisplay}
-										/>
-									)}
-									{viewType === 'Bar chart' && (
-										<BarChartSettings
-											barDisplay={barDisplay}
-											setBarDisplay={setBarDisplay}
-										/>
-									)}
-									{viewType === 'Funnel chart' && (
-										<FunnelChartSettings
-											funnelDisplay={funnelDisplay}
-											setFunnelDisplay={setFunnelDisplay}
-										/>
-									)}
-									{viewType === 'Table' && (
-										<TableSettings
-											nullHandling={tableNullHandling}
-											setNullHandling={
-												setTableNullHandling
-											}
-										/>
 									)}
 								</SidebarSection>
 								<Divider className="m-0" />
