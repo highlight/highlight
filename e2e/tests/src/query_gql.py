@@ -1,15 +1,15 @@
 # TODO(vkorolik) parse queries from `query.gql`
-GET_ERROR_GROUPS_CLICKHOUSE = """
-query GetErrorGroupsClickhouse(
+GET_ERROR_GROUPS = """
+query GetErrorGroups(
 	$project_id: ID!
 	$count: Int!
-	$query: ClickhouseQuery!
+	$params: QueryInput!
 	$page: Int
 ) {
-	error_groups_clickhouse(
+	error_groups(
 		project_id: $project_id
 		count: $count
-		query: $query
+		params: $params
 		page: $page
 	) {
 		error_groups {
@@ -20,7 +20,8 @@ query GetErrorGroupsClickhouse(
 			type
 			event
 			state
-			state
+			first_occurrence
+			last_occurrence
 			snoozed_until
 			environments
 			stack_trace
@@ -149,60 +150,65 @@ query GetAdmin {
 }
 """
 
-GET_SESSIONS_CLICKHOUSE = """
-query GetSessionsClickhouse($project_id: ID!, $count: Int!, $query: ClickhouseQuery!, $sort_desc: Boolean!, $sort_field: String, $page: Int) {
-  sessions_clickhouse(
-    project_id: $project_id
-    count: $count
-    query: $query
-    sort_field: $sort_field
-    sort_desc: $sort_desc
-    page: $page
-  ) {
-    sessions {
-      id
-      secure_id
-      client_id
-      fingerprint
-      identifier
-      identified
-      os_name
-      os_version
-      browser_name
-      browser_version
-      ip
-      city
-      state
-      country
-      postal
-      created_at
-      language
-      length
-      active_length
-      enable_recording_network_contents
-      viewed
-      starred
-      processed
-      has_rage_clicks
-      has_errors
-      fields {
-        name
-        value
-        type
-        id
-        __typename
-      }
-      first_time
-      user_properties
-      event_counts
-      last_user_interaction_time
-      is_public
-      excluded
-      __typename
-    }
-    totalCount
-    __typename
-  }
+GET_SESSIONS = """
+query GetSessions(
+	$project_id: ID!
+	$count: Int!
+	$params: QueryInput!
+	$sort_desc: Boolean!
+	$sort_field: String
+	$page: Int
+) {
+	sessions(
+		project_id: $project_id
+		count: $count
+		params: $params
+		sort_field: $sort_field
+		sort_desc: $sort_desc
+		page: $page
+	) {
+		sessions {
+			id
+			secure_id
+			client_id
+			fingerprint
+			identifier
+			identified
+			os_name
+			os_version
+			browser_name
+			browser_version
+			ip
+			city
+			state
+			country
+			postal
+			created_at
+			language
+			length
+			active_length
+			enable_recording_network_contents
+			viewed
+			starred
+			processed
+			has_rage_clicks
+			has_errors
+			fields {
+				name
+				value
+				type
+				id
+			}
+			first_time
+			user_properties
+			event_counts
+			last_user_interaction_time
+			is_public
+			excluded
+			email
+		}
+		totalCount
+	}
 }
 """
 
