@@ -802,6 +802,10 @@ func (r *Resolver) HandleErrorAndGroup(ctx context.Context, errorObj *model.Erro
 		cacheMiss = true
 		return r.handleErrorAndGroup(ctx, project, errorObj, structuredStackTrace, fields, projectID, workspace)
 	})
+	if eg == nil || err != nil {
+		log.WithContext(ctx).WithError(err).WithField("project_id", projectID).Error("failed to group error")
+		return eg, err
+	}
 
 	// on cache hit, we want to run logic to update error group based on new error object
 	if !cacheMiss {
@@ -809,10 +813,10 @@ func (r *Resolver) HandleErrorAndGroup(ctx context.Context, errorObj *model.Erro
 		eg, err = r.GetOrCreateErrorGroup(ctx, errorObj, func() (*int, error) {
 			return ptr.Int(eg.ID), nil
 		}, nil, false)
-	}
-	if eg == nil || err != nil {
-		log.WithContext(ctx).WithError(err).WithField("project_id", projectID).Error("failed to group error")
-		return eg, err
+		if eg == nil || err != nil {
+			log.WithContext(ctx).WithError(err).WithField("project_id", projectID).Error("failed to group error on cache hit")
+			return eg, err
+		}
 	}
 
 	// save error object after grouping
