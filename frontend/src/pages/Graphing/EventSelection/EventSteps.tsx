@@ -79,7 +79,6 @@ const EventStep: React.FC<{
 					size="medium"
 					shape="basic"
 					variant="white"
-					label="Remove"
 					iconStart={<IconSolidX width={13} />}
 					onClick={onRemove}
 				/>
