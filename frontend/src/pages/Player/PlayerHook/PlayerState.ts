@@ -60,7 +60,7 @@ const EMPTY_SESSION_METADATA = {
 	endTime: 0,
 	totalTime: 0,
 }
-const PROJECTS_WITH_CSS_ANIMATIONS: string[] = ['1', '1020', '1021']
+const PROJECTS_WITH_CSS_ANIMATIONS: string[] = ['1', '1020', '1021', '102751']
 
 // assuming 120 fps
 export const FRAME_MS = 1000 / 120
