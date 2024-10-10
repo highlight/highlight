@@ -7,10 +7,6 @@ import requests
 from query_gql import GET_ERROR_GROUPS, GET_LOGS, GET_TRACES
 from util import query
 
-# GetErrorGroups must use the test start time because an error object
-# matching a group does not update the creation time which the resolver uses to match error groups
-test_start = datetime.utcnow()
-
 
 @pytest.mark.parametrize("success", ["true", "false"])
 @pytest.mark.parametrize(
@@ -30,6 +26,7 @@ test_start = datetime.utcnow()
     ids=["page-router-test", "page-router-edge-test", "app-router-test", "edge-test"],
 )
 def test_next_js(next_app, oauth_api, endpoint, expected_error, success):
+    start = datetime.utcnow()
     r = requests.get(
         f"http://localhost:3005{endpoint}",
         params={"success": success, "sql": "true"},
@@ -63,7 +60,7 @@ def test_next_js(next_app, oauth_api, endpoint, expected_error, success):
                 "params": {
                     "query": "",
                     "date_range": {
-                        "start_date": f'{test_start.isoformat(timespec="microseconds")}000-00:00',
+                        "start_date": f'{start.isoformat(timespec="microseconds")}000-00:00',
                         "end_date": f'{ts.isoformat(timespec="microseconds")}000-00:00',
                     },
                 },
@@ -147,6 +144,7 @@ def test_express_log(express_app, oauth_api):
 
 
 def test_express_error(express_app, oauth_api):
+    start = datetime.utcnow() - timedelta(minutes=1)
     r = requests.get(
         f"http://localhost:3003/",
         headers={"x-highlight-request": "abc123/def456"},
@@ -177,7 +175,7 @@ def test_express_error(express_app, oauth_api):
             "params": {
                 "query": "",
                 "date_range": {
-                    "start_date": f'{test_start.isoformat(timespec="microseconds")}000-00:00',
+                    "start_date": f'{start.isoformat(timespec="microseconds")}000-00:00',
                     "end_date": f'{ts.isoformat(timespec="microseconds")}000-00:00',
                 },
             },
@@ -191,6 +189,7 @@ def test_express_error(express_app, oauth_api):
 
 
 def test_dotnet_error(dotnet_app, oauth_api):
+    start = datetime.utcnow() - timedelta(minutes=1)
     r = requests.get(
         f"http://localhost:5249/api/errors",
         headers={"x-highlight-request": "a1b2c30001/aaa111"},
@@ -224,7 +223,7 @@ def test_dotnet_error(dotnet_app, oauth_api):
             "params": {
                 "query": "",
                 "date_range": {
-                    "start_date": f'{test_start.isoformat(timespec="microseconds")}000-00:00',
+                    "start_date": f'{start.isoformat(timespec="microseconds")}000-00:00',
                     "end_date": f'{ts.isoformat(timespec="microseconds")}000-00:00',
                 },
             },
