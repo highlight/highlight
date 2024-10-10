@@ -2306,7 +2306,8 @@ func (r *Resolver) AddSessionEvents(ctx context.Context, sessionID int, events *
 			}{}
 
 			if err := json.Unmarshal([]byte(event.Data), &dataObject); err != nil {
-				return e.New("error deserializing custom event properties")
+				log.WithContext(ctx).Error("error deserializing custom event properties")
+				continue
 			}
 
 			trackEvent := strings.Contains(dataObject.Tag, "Track")
@@ -2319,20 +2320,23 @@ func (r *Resolver) AddSessionEvents(ctx context.Context, sessionID int, events *
 			}
 
 			if dataObject.Payload == nil {
-				return e.New("error reading raw payload from session event")
+				log.WithContext(ctx).Error("error reading raw payload from session event")
+				continue
 			}
 
 			payloadStr := string(dataObject.Payload)
 			if !clickEvent {
 				if err := json.Unmarshal(dataObject.Payload, &payloadStr); err != nil {
-					return e.New("error deserializing session event payload into a string")
+					log.WithContext(ctx).Error("error deserializing session event payload into a string")
+					continue
 				}
 			}
 
 			if clickEvent {
 				propertiesObject := make(map[string]interface{})
 				if err := json.Unmarshal([]byte(payloadStr), &propertiesObject); err != nil {
-					return e.New("error deserializing click event properties")
+					log.WithContext(ctx).Error("error deserializing click event properties")
+					continue
 				}
 
 				attributes := make(map[string]string)
@@ -2370,7 +2374,8 @@ func (r *Resolver) AddSessionEvents(ctx context.Context, sessionID int, events *
 			} else if trackEvent {
 				propertiesObject := make(map[string]interface{})
 				if err := json.Unmarshal([]byte(payloadStr), &propertiesObject); err != nil {
-					return e.New("error deserializing track event properties")
+					log.WithContext(ctx).Error("error deserializing track event properties")
+					continue
 				}
 
 				attributes := make(map[string]string)
@@ -2410,7 +2415,8 @@ func (r *Resolver) AddSessionEvents(ctx context.Context, sessionID int, events *
 					// the value below is used for testing using /buttons
 					testTrackingMessage := "therewasonceahumblebumblebeeflyingthroughtheforestwhensuddenlyadropofwaterfullyencasedhimittookhimasecondtofigureoutthathesinaraindropsuddenlytheraindrophitthegroundasifhewasdivingintoapoolandheflewawaywithnofurtherissues"
 					if fields[k] == testTrackingMessage {
-						return e.New(testTrackingMessage)
+						log.WithContext(ctx).Error(testTrackingMessage)
+						continue
 					}
 				}
 			}
@@ -2419,13 +2425,13 @@ func (r *Resolver) AddSessionEvents(ctx context.Context, sessionID int, events *
 
 	if len(fields) > 0 {
 		if err := r.AppendProperties(ctx, sessionID, fields, PropertyType.TRACK); err != nil {
-			return e.Wrap(err, "error adding set of properties to db")
+			log.WithContext(ctx).Error(e.Wrap(err, "error adding set of properties to db"))
 		}
 	}
 
 	if len(sessionEvents) > 0 {
 		if err := r.CreateSessionEvents(ctx, sessionID, sessionEvents); err != nil {
-			return e.Wrapf(err, "error creating session events for session %d", sessionID)
+			log.WithContext(ctx).Error(e.Wrapf(err, "error creating session events for session %d", sessionID))
 		}
 	}
 
