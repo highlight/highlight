@@ -73,6 +73,12 @@ const ResourceDropdown = ({
 			link: '/ambassador-program',
 			sameTab: true,
 		},
+		{
+			title: 'Podcast',
+			icon: <Icons.HiMicrophone className={styles.copyOnLight} />,
+			link: 'https://podcasters.spotify.com/pod/show/highlightio',
+			sameTab: false,
+		},
 	]
 
 	return (

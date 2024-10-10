@@ -16,23 +16,24 @@ export const OSSCallToAction = () => {
 				}}
 			>
 				<h3 className="text-center leading-normal">
-					Join our{' '}
+					Check out the{' '}
 					<span className={styles.highlightedText}>
-						Fullstack Monitoring for .NET Applications
+						Optimizing AI Applications with OpenTelemetry
 					</span>{' '}
 					livestream.
 				</h3>
 				<div className="text-center px-2 md:px-16 mt-6">
 					<Typography type="copy1" className="leading-relaxed">
-						Join us September 5th at 1pm PDT to learn how to
-						leverage OpenTelemetry to get fullstack visibility into
-						everything happening in your .NET applications.
+						Join us November 5th at 9am PT to learn about optimizing
+						AI applications. We&apos;ll cover best practices,
+						performance tips, and monitoring strategies to enhance
+						AI-powered software.
 					</Typography>
 				</div>
 				<div className="flex justify-center mt-8">
 					<div className="flex flex-col lg:flex-row justify-center gap-4 w-full px-5 md:w-auto">
 						<PrimaryButton
-							href="https://lu.ma/51zg6p43?utm_source=highlight-oss-cta"
+							href="https://www.linuxfoundation.org/webinars/optimizing-ai-applications-with-opentelemetry?hsLang=en&utm_source=highlight-oss-cta"
 							target="_blank"
 							rel="noreferrer"
 							className="md:max-w-[180px]"
