@@ -759,7 +759,7 @@ export type Graph = {
 	bucketInterval?: Maybe<Scalars['Int']>
 	display?: Maybe<Scalars['String']>
 	functionType: MetricAggregator
-	groupByKey?: Maybe<Scalars['String']>
+	groupByKeys?: Maybe<Scalars['StringArray']>
 	id: Scalars['ID']
 	limit?: Maybe<Scalars['Int']>
 	limitFunctionType?: Maybe<MetricAggregator>
@@ -779,7 +779,7 @@ export type GraphInput = {
 	bucketInterval?: InputMaybe<Scalars['Int']>
 	display?: InputMaybe<Scalars['String']>
 	functionType: MetricAggregator
-	groupByKey?: InputMaybe<Scalars['String']>
+	groupByKeys?: InputMaybe<Scalars['StringArray']>
 	id?: InputMaybe<Scalars['ID']>
 	limit?: InputMaybe<Scalars['Int']>
 	limitFunctionType?: InputMaybe<MetricAggregator>
@@ -3839,14 +3839,14 @@ export type UserPropertyInput = {
 
 export type Variable = {
 	__typename?: 'Variable'
-	defaultValue: Scalars['String']
+	defaultValues: Array<Scalars['String']>
 	field?: Maybe<Scalars['String']>
 	key: Scalars['String']
 	suggestionType: SuggestionType
 }
 
 export type VariableInput = {
-	defaultValue: Scalars['String']
+	defaultValues: Array<Scalars['String']>
 	field?: InputMaybe<Scalars['String']>
 	key: Scalars['String']
 	suggestionType: SuggestionType

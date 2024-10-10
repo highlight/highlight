@@ -1,6 +1,8 @@
 package errorgroups
 
 import (
+	"fmt"
+	"github.com/aws/smithy-go/ptr"
 	"strconv"
 	"strings"
 
@@ -36,6 +38,15 @@ func GetFingerprints(projectID int, errorTraces []*privateModel.ErrorTrace) []*m
 		}
 	}
 	return fingerprints
+}
+
+func GetKey(projectID int, errorObj *model.ErrorObject, structuredStackTrace []*privateModel.ErrorTrace) string {
+	var fingerprintsStr string
+	for _, fp := range GetFingerprints(projectID, structuredStackTrace) {
+		fingerprintsStr = fmt.Sprintf("%s%s%s%d ", fingerprintsStr, fp.Type, fp.Value, fp.Index)
+	}
+	stackBody := joinStringPtrs(errorObj.StackTrace, ptr.String(fingerprintsStr))
+	return fmt.Sprintf("error-object-group-%d-%s-%s", projectID, errorObj.Event, stackBody)
 }
 
 func joinStringPtrs(ptrs ...*string) string {

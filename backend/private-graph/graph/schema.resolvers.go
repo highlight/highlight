@@ -4816,7 +4816,7 @@ func (r *mutationResolver) UpsertGraph(ctx context.Context, graph modelInputs.Gr
 		Query:             graph.Query,
 		Metric:            graph.Metric,
 		FunctionType:      graph.FunctionType,
-		GroupByKey:        graph.GroupByKey,
+		GroupByKeys:       graph.GroupByKeys,
 		BucketByKey:       graph.BucketByKey,
 		BucketCount:       graph.BucketCount,
 		BucketInterval:    graph.BucketInterval,
@@ -9991,11 +9991,32 @@ func (r *visualizationResolver) Variables(ctx context.Context, obj *model.Visual
 	if obj.Variables == "" {
 		return []*modelInputs.Variable{}, nil
 	}
-	variables := &[]*modelInputs.Variable{}
-	if err := json.Unmarshal([]byte(obj.Variables), variables); err != nil {
+	type VariablesUnmarshaled struct {
+		Key            string                     `json:"key"`
+		DefaultValue   string                     `json:"defaultValue"`
+		DefaultValues  []string                   `json:"defaultValues"`
+		SuggestionType modelInputs.SuggestionType `json:"suggestionType"`
+		Field          *string                    `json:"field,omitempty"`
+	}
+	unmarshalled := &[]*VariablesUnmarshaled{}
+	if err := json.Unmarshal([]byte(obj.Variables), unmarshalled); err != nil {
 		return nil, e.Wrapf(err, "error unmarshaling variables")
 	}
-	return *variables, nil
+
+	variables := []*modelInputs.Variable{}
+	for _, v := range *unmarshalled {
+		if v.DefaultValue != "" && len(v.DefaultValues) == 0 {
+			v.DefaultValues = []string{v.DefaultValue}
+		}
+		variables = append(variables, &modelInputs.Variable{
+			Key:            v.Key,
+			DefaultValues:  v.DefaultValues,
+			SuggestionType: v.SuggestionType,
+			Field:          v.Field,
+		})
+	}
+
+	return variables, nil
 }
 
 // AllWorkspaceSettings returns generated.AllWorkspaceSettingsResolver implementation.

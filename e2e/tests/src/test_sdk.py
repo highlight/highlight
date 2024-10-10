@@ -4,7 +4,7 @@ from datetime import datetime, timedelta
 import pytest
 import requests
 
-from query_gql import GET_ERROR_GROUPS_CLICKHOUSE, GET_LOGS, GET_TRACES
+from query_gql import GET_ERROR_GROUPS, GET_LOGS, GET_TRACES
 from util import query
 
 
@@ -42,25 +42,24 @@ def test_next_js(next_app, oauth_api, endpoint, expected_error, success):
     if success == "false":
 
         def validator(data: dict[str, any]):
-            assert 0 < len(data["error_groups_clickhouse"]["error_groups"]) < 10
+            assert 0 < len(data["error_groups"]["error_groups"]) < 10
             # check that we actually received the edge runtime error
             events = set(
                 map(
                     lambda eg: eg["event"][0],
-                    data["error_groups_clickhouse"]["error_groups"],
+                    data["error_groups"]["error_groups"],
                 )
             )
             assert expected_error in events
 
         query(
             oauth_api,
-            "GetErrorGroupsClickhouse",
-            GET_ERROR_GROUPS_CLICKHOUSE,
+            "GetErrorGroups",
+            GET_ERROR_GROUPS,
             variables_fn=lambda ts: {
-                "query": {
-                    "isAnd": True,
-                    "rules": [],
-                    "dateRange": {
+                "params": {
+                    "query": "",
+                    "date_range": {
                         "start_date": f'{start.isoformat(timespec="microseconds")}000-00:00',
                         "end_date": f'{ts.isoformat(timespec="microseconds")}000-00:00',
                     },
@@ -155,12 +154,12 @@ def test_express_error(express_app, oauth_api):
     assert r.ok
 
     def validator(data: dict[str, any]):
-        assert 0 < len(data["error_groups_clickhouse"]["error_groups"]) < 10
+        assert 0 < len(data["error_groups"]["error_groups"]) < 10
         # check that we actually received the edge runtime error
         events = set(
             map(
                 lambda eg: eg["event"][0],
-                data["error_groups_clickhouse"]["error_groups"],
+                data["error_groups"]["error_groups"],
             )
         )
         if express_app[0] == "express_js":
@@ -170,13 +169,12 @@ def test_express_error(express_app, oauth_api):
 
     query(
         oauth_api,
-        "GetErrorGroupsClickhouse",
-        GET_ERROR_GROUPS_CLICKHOUSE,
+        "GetErrorGroups",
+        GET_ERROR_GROUPS,
         variables_fn=lambda ts: {
-            "query": {
-                "isAnd": True,
-                "rules": [],
-                "dateRange": {
+            "params": {
+                "query": "",
+                "date_range": {
                     "start_date": f'{start.isoformat(timespec="microseconds")}000-00:00',
                     "end_date": f'{ts.isoformat(timespec="microseconds")}000-00:00',
                 },
@@ -201,12 +199,12 @@ def test_dotnet_error(dotnet_app, oauth_api):
     assert not r.ok
 
     def validator(data: dict[str, any]):
-        assert 0 < len(data["error_groups_clickhouse"]["error_groups"]) < 10
+        assert 0 < len(data["error_groups"]["error_groups"]) < 10
         # check that we actually received the edge runtime error
         events = set(
             map(
                 lambda eg: eg["event"][0],
-                data["error_groups_clickhouse"]["error_groups"],
+                data["error_groups"]["error_groups"],
             )
         )
 
@@ -219,13 +217,12 @@ def test_dotnet_error(dotnet_app, oauth_api):
 
     query(
         oauth_api,
-        "GetErrorGroupsClickhouse",
-        GET_ERROR_GROUPS_CLICKHOUSE,
+        "GetErrorGroups",
+        GET_ERROR_GROUPS,
         variables_fn=lambda ts: {
-            "query": {
-                "isAnd": True,
-                "rules": [],
-                "dateRange": {
+            "params": {
+                "query": "",
+                "date_range": {
                     "start_date": f'{start.isoformat(timespec="microseconds")}000-00:00',
                     "end_date": f'{ts.isoformat(timespec="microseconds")}000-00:00',
                 },
