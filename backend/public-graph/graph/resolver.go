@@ -311,7 +311,7 @@ func (r *Resolver) CreateSessionEvents(ctx context.Context, sessionID int, event
 		sessionEvents = append(sessionEvents, &clickhouse.SessionEventRow{
 			ProjectID:        uint32(session.ProjectID),
 			SessionID:        uint64(session.ID),
-			SessionCreatedAt: session.CreatedAt,
+			SessionCreatedAt: session.CreatedAt.UnixMicro(),
 			Timestamp:        event.Timestamp,
 			Event:            event.Event,
 			Attributes:       event.Attributes,
@@ -2390,7 +2390,7 @@ func (r *Resolver) AddSessionEvents(ctx context.Context, sessionID int, events *
 				sessionEvents = append(sessionEvents,
 					&clickhouse.SessionEventRow{
 						Event:      dataObject.Tag,
-						Timestamp:  event.Timestamp,
+						Timestamp:  event.Timestamp.UnixMicro(),
 						Attributes: attributes,
 					},
 				)
@@ -2398,7 +2398,7 @@ func (r *Resolver) AddSessionEvents(ctx context.Context, sessionID int, events *
 				sessionEvents = append(sessionEvents,
 					&clickhouse.SessionEventRow{
 						Event:     "Navigate",
-						Timestamp: event.Timestamp,
+						Timestamp: event.Timestamp.UnixMicro(),
 						Attributes: map[string]string{
 							"url": payloadStr,
 						},
@@ -2408,7 +2408,7 @@ func (r *Resolver) AddSessionEvents(ctx context.Context, sessionID int, events *
 				sessionEvents = append(sessionEvents,
 					&clickhouse.SessionEventRow{
 						Event:     "Navigate",
-						Timestamp: event.Timestamp,
+						Timestamp: event.Timestamp.UnixMicro(),
 						Attributes: map[string]string{
 							"reload": payloadStr,
 						},
@@ -2445,7 +2445,7 @@ func (r *Resolver) AddSessionEvents(ctx context.Context, sessionID int, events *
 				sessionEvents = append(sessionEvents,
 					&clickhouse.SessionEventRow{
 						Event:      eventName,
-						Timestamp:  event.Timestamp,
+						Timestamp:  event.Timestamp.UnixMicro(),
 						Attributes: attributes,
 					},
 				)

@@ -5754,6 +5754,10 @@ export const UpsertGraphDocument = gql`
 			limit
 			limitFunctionType
 			limitMetric
+			funnelSteps {
+				title
+				query
+			}
 			display
 			nullHandling
 		}
@@ -15073,6 +15077,10 @@ export const GetVisualizationDocument = gql`
 				limit
 				limitFunctionType
 				limitMetric
+				funnelSteps {
+					title
+					query
+				}
 				display
 				nullHandling
 			}
@@ -15175,6 +15183,10 @@ export const GetVisualizationsDocument = gql`
 					limit
 					limitFunctionType
 					limitMetric
+					funnelSteps {
+						title
+						query
+					}
 					display
 					nullHandling
 				}

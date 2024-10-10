@@ -1473,6 +1473,10 @@ mutation UpsertGraph($graph: GraphInput!) {
 		limit
 		limitFunctionType
 		limitMetric
+		funnelSteps {
+			title
+			query
+		}
 		display
 		nullHandling
 	}
