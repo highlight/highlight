@@ -2379,7 +2379,7 @@ func (r *Resolver) AddSessionEvents(ctx context.Context, sessionID int, events *
 				propertiesObject := make(map[string]interface{})
 				if err := json.Unmarshal([]byte(payloadStr), &propertiesObject); err != nil {
 					log.WithContext(ctx).WithField("payloadStr", payloadStr).Error("error deserializing click event properties")
-					continue
+					propertiesObject["payload"] = payloadStr
 				}
 
 				attributes := make(map[string]string)
@@ -2418,7 +2418,7 @@ func (r *Resolver) AddSessionEvents(ctx context.Context, sessionID int, events *
 				propertiesObject := make(map[string]interface{})
 				if err := json.Unmarshal([]byte(payloadStr), &propertiesObject); err != nil {
 					log.WithContext(ctx).WithField("payloadStr", payloadStr).Error("error deserializing track event properties")
-					continue
+					propertiesObject["payload"] = payloadStr
 				}
 
 				attributes := make(map[string]string)
