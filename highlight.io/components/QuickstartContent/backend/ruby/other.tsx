@@ -3,7 +3,6 @@ import { QuickStartContent } from '../../QuickstartContent'
 import { frontendInstallSnippet } from '../shared-snippets'
 import {
 	customError,
-	customTrace,
 	initializeSdk,
 	installSdk,
 	setUpLogging,
@@ -19,22 +18,6 @@ export const RubyOtherContent: QuickStartContent = {
 		frontendInstallSnippet,
 		installSdk,
 		initializeSdk,
-		{
-			title: 'Add Highlight tracing.',
-			content:
-				'`start_span` will automatically record raised exceptions and send them to Highlight.',
-			code: [
-				{
-					text: `require "highlight"
-
-Highlight.start_span('my-span') do
-  span.add_attribute({ key: "value" })
-  # your code here
-end`,
-					language: 'ruby',
-				},
-			],
-		},
 		verifyErrors,
 		customError,
 		setUpLogging('other'),
