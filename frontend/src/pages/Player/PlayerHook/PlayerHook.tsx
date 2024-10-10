@@ -292,7 +292,7 @@ export const usePlayer = (
 			}
 			return toRemove
 		},
-		[getChunkTs],
+		[getChunkTs, noChunkRemoval],
 	)
 
 	const getLastLoadedEventTimestamp = useCallback(() => {
