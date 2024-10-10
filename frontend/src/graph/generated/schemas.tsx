@@ -2243,6 +2243,8 @@ export type QueryAlertArgs = {
 
 export type QueryAlerting_Alert_State_ChangesArgs = {
 	alert_id: Scalars['ID']
+	end_date: Scalars['Timestamp']
+	start_date: Scalars['Timestamp']
 }
 
 export type QueryAlertsArgs = {

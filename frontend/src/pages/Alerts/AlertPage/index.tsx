@@ -30,8 +30,10 @@ import { useSearchTime } from '@/hooks/useSearchTime'
 import { HeaderDivider } from '@/pages/Graphing/Dashboard'
 
 import { AlertGraph } from '../AlertGraph'
+import { AlertHeader } from './AlertHeader'
+import { AlertInfo } from './AlertInfo'
+import { AlertTable } from './AlertTable'
 import * as style from './styles.css'
-import { AlertHeader } from '@/pages/Alerts/AlertPage/AlertHeader'
 
 export const AlertPage: React.FC = () => {
 	const { projectId } = useProjectId()
@@ -54,9 +56,13 @@ export const AlertPage: React.FC = () => {
 		skip: !alert_id,
 	})
 
-	const { data: alertStateChangesData, loading: alertStateChnagesLoading } =
+	const { data: alertStateChangesData, loading: alertStateChangesLoading } =
 		useGetAlertingAlertStateChangesQuery({
-			variables: { alert_id: alert_id! },
+			variables: {
+				alert_id: alert_id!,
+				start_date: startDate.toISOString(),
+				end_date: endDate.toISOString(),
+			},
 			skip: !alert_id,
 		})
 
@@ -67,17 +73,6 @@ export const AlertPage: React.FC = () => {
 		variables: { alert_id: alert_id! },
 		skip: !alert_id,
 	})
-
-	console.log(
-		'alertStateChangesData',
-		alertStateChangesData,
-		alertStateChnagesLoading,
-	)
-	console.log(
-		'lastAlertStateChangesData',
-		lastAlertStateChangesData,
-		lastAlertStateChangesLoading,
-	)
 
 	const [updateAlertDisabled] = useUpdateAlertDisabledMutation()
 
@@ -232,7 +227,17 @@ export const AlertPage: React.FC = () => {
 							productType={data.alert.product_type}
 							disabled={data.alert.disabled}
 						/>
-						{/* TODO(spenny): add alert info */}
+						<AlertInfo
+							alertStateChanges={
+								lastAlertStateChangesData?.last_alert_state_changes
+							}
+							loading={lastAlertStateChangesLoading}
+							totalAlerts={
+								alertStateChangesData
+									?.alerting_alert_state_changes?.length
+							}
+							totalAlertsLoading={alertStateChangesLoading}
+						/>
 						<AlertGraph
 							alertName={data.alert.name}
 							query={data.alert.query ?? ''}
@@ -249,7 +254,7 @@ export const AlertPage: React.FC = () => {
 							thresholdValue={data.alert.threshold_value ?? 0}
 							belowThreshold={data.alert.below_threshold ?? false}
 						/>
-						{/* TODO(spenny): add alert states */}
+						<AlertTable />
 					</Box>
 				</Box>
 			</Box>

@@ -4335,6 +4335,8 @@ export type GetAlertQuery = { __typename?: 'Query' } & {
 
 export type GetAlertingAlertStateChangesQueryVariables = Types.Exact<{
 	alert_id: Types.Scalars['ID']
+	start_date: Types.Scalars['Timestamp']
+	end_date: Types.Scalars['Timestamp']
 }>
 
 export type GetAlertingAlertStateChangesQuery = { __typename?: 'Query' } & {

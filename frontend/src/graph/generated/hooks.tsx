@@ -12574,8 +12574,16 @@ export type GetAlertQueryResult = Apollo.QueryResult<
 	Types.GetAlertQueryVariables
 >
 export const GetAlertingAlertStateChangesDocument = gql`
-	query GetAlertingAlertStateChanges($alert_id: ID!) {
-		alerting_alert_state_changes(alert_id: $alert_id) {
+	query GetAlertingAlertStateChanges(
+		$alert_id: ID!
+		$start_date: Timestamp!
+		$end_date: Timestamp!
+	) {
+		alerting_alert_state_changes(
+			alert_id: $alert_id
+			start_date: $start_date
+			end_date: $end_date
+		) {
 			timestamp
 			state
 			groupByKey
@@ -12596,6 +12604,8 @@ export const GetAlertingAlertStateChangesDocument = gql`
  * const { data, loading, error } = useGetAlertingAlertStateChangesQuery({
  *   variables: {
  *      alert_id: // value for 'alert_id'
+ *      start_date: // value for 'start_date'
+ *      end_date: // value for 'end_date'
  *   },
  * });
  */

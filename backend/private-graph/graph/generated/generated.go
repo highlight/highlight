@@ -1006,7 +1006,7 @@ type ComplexityRoot struct {
 		AdminRoleByProject               func(childComplexity int, projectID int) int
 		AiQuerySuggestion                func(childComplexity int, timeZone string, projectID int, productType model.ProductType, query string) int
 		Alert                            func(childComplexity int, id int) int
-		AlertingAlertStateChanges        func(childComplexity int, alertID int) int
+		AlertingAlertStateChanges        func(childComplexity int, alertID int, startDate time.Time, endDate time.Time) int
 		Alerts                           func(childComplexity int, projectID int) int
 		AverageSessionLength             func(childComplexity int, projectID int, lookbackDays float64) int
 		BillingDetails                   func(childComplexity int, workspaceID int) int
@@ -1929,7 +1929,7 @@ type QueryResolver interface {
 	JoinableWorkspaces(ctx context.Context) ([]*model1.Workspace, error)
 	Alerts(ctx context.Context, projectID int) ([]*model1.Alert, error)
 	Alert(ctx context.Context, id int) (*model1.Alert, error)
-	AlertingAlertStateChanges(ctx context.Context, alertID int) ([]*model.AlertStateChange, error)
+	AlertingAlertStateChanges(ctx context.Context, alertID int, startDate time.Time, endDate time.Time) ([]*model.AlertStateChange, error)
 	LastAlertStateChanges(ctx context.Context, alertID int) ([]*model.AlertStateChange, error)
 	ErrorAlerts(ctx context.Context, projectID int) ([]*model1.ErrorAlert, error)
 	NewUserAlerts(ctx context.Context, projectID int) ([]*model1.SessionAlert, error)
@@ -7139,7 +7139,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Query.AlertingAlertStateChanges(childComplexity, args["alert_id"].(int)), true
+		return e.complexity.Query.AlertingAlertStateChanges(childComplexity, args["alert_id"].(int), args["start_date"].(time.Time), args["end_date"].(time.Time)), true
 
 	case "Query.alerts":
 		if e.complexity.Query.Alerts == nil {
@@ -13915,7 +13915,11 @@ type Query {
 	joinable_workspaces: [Workspace]
 	alerts(project_id: ID!): [Alert]!
 	alert(id: ID!): Alert!
-	alerting_alert_state_changes(alert_id: ID!): [AlertStateChange]!
+	alerting_alert_state_changes(
+		alert_id: ID!
+		start_date: Timestamp!
+		end_date: Timestamp!
+	): [AlertStateChange]!
 	last_alert_state_changes(alert_id: ID!): [AlertStateChange]!
 	error_alerts(project_id: ID!): [ErrorAlert]!
 	new_user_alerts(project_id: ID!): [SessionAlert]
@@ -18783,6 +18787,24 @@ func (ec *executionContext) field_Query_alerting_alert_state_changes_args(ctx co
 		}
 	}
 	args["alert_id"] = arg0
+	var arg1 time.Time
+	if tmp, ok := rawArgs["start_date"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("start_date"))
+		arg1, err = ec.unmarshalNTimestamp2timeᚐTime(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["start_date"] = arg1
+	var arg2 time.Time
+	if tmp, ok := rawArgs["end_date"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("end_date"))
+		arg2, err = ec.unmarshalNTimestamp2timeᚐTime(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["end_date"] = arg2
 	return args, nil
 }
 
@@ -58823,7 +58845,7 @@ func (ec *executionContext) _Query_alerting_alert_state_changes(ctx context.Cont
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().AlertingAlertStateChanges(rctx, fc.Args["alert_id"].(int))
+		return ec.resolvers.Query().AlertingAlertStateChanges(rctx, fc.Args["alert_id"].(int), fc.Args["start_date"].(time.Time), fc.Args["end_date"].(time.Time))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
