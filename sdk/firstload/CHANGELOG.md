@@ -1,5 +1,11 @@
 # highlight.run
 
+## 9.5.0
+
+### Minor Changes
+
+-   d94533a: update rrweb to use postcss css parser
+
 ## 9.4.4
 
 ### Patch Changes
