@@ -1614,7 +1614,16 @@ export type UpsertGraphMutation = { __typename?: 'Mutation' } & {
 		| 'limitMetric'
 		| 'display'
 		| 'nullHandling'
-	>
+	> & {
+			funnelSteps?: Types.Maybe<
+				Array<
+					{ __typename?: 'FunnelStep' } & Pick<
+						Types.FunnelStep,
+						'title' | 'query'
+					>
+				>
+			>
+		}
 }
 
 export type DeleteGraphMutationVariables = Types.Exact<{
@@ -5179,7 +5188,16 @@ export type GetVisualizationQuery = { __typename?: 'Query' } & {
 					| 'limitMetric'
 					| 'display'
 					| 'nullHandling'
-				>
+				> & {
+						funnelSteps?: Types.Maybe<
+							Array<
+								{ __typename?: 'FunnelStep' } & Pick<
+									Types.FunnelStep,
+									'title' | 'query'
+								>
+							>
+						>
+					}
 			>
 			updatedByAdmin?: Types.Maybe<
 				{ __typename?: 'SanitizedAdmin' } & Pick<
@@ -5235,7 +5253,18 @@ export type GetVisualizationsQuery = { __typename?: 'Query' } & {
 								| 'limitMetric'
 								| 'display'
 								| 'nullHandling'
-							>
+							> & {
+									funnelSteps?: Types.Maybe<
+										Array<
+											{
+												__typename?: 'FunnelStep'
+											} & Pick<
+												Types.FunnelStep,
+												'title' | 'query'
+											>
+										>
+									>
+								}
 						>
 						updatedByAdmin?: Types.Maybe<
 							{ __typename?: 'SanitizedAdmin' } & Pick<

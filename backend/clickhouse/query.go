@@ -751,14 +751,14 @@ func matchesQuery[TObj interface{}](row *TObj, config model.TableConfig, filters
 		switch filter.Operator {
 		case listener.OperatorAnd:
 			for _, childFilter := range filter.Filters {
-				if !matchesQuery(row, config, listener.Filters{childFilter}, filter.Operator) {
+				if !matchesQuery[TObj](row, config, listener.Filters{childFilter}, filter.Operator) {
 					return false
 				}
 			}
 		case listener.OperatorOr:
 			var anyMatch bool
 			for _, childFilter := range filter.Filters {
-				if matchesQuery(row, config, listener.Filters{childFilter}, filter.Operator) {
+				if matchesQuery[TObj](row, config, listener.Filters{childFilter}, filter.Operator) {
 					anyMatch = true
 					break
 				}
@@ -767,7 +767,7 @@ func matchesQuery[TObj interface{}](row *TObj, config model.TableConfig, filters
 				return false
 			}
 		case listener.OperatorNot:
-			return !matchesQuery(row, config, listener.Filters{filter.Filters[0]}, filter.Operator)
+			return !matchesQuery[TObj](row, config, listener.Filters{filter.Filters[0]}, filter.Operator)
 		default:
 			matches, err := matchFilter(row, config, filter)
 			if err != nil {
@@ -970,7 +970,6 @@ func (client *Client) ReadMetrics(ctx context.Context, input ReadMetricsInput) (
 	if len(input.MetricTypes) == 0 {
 		return nil, errors.New("no metric types provided")
 	}
-
 	if input.Params.DateRange == nil {
 		input.Params.DateRange = &modelInputs.DateRangeRequiredInput{
 			StartDate: time.Now().Add(-time.Hour * 24 * 30),
@@ -1330,7 +1329,6 @@ func (client *Client) ReadMetrics(ctx context.Context, input ReadMetricsInput) (
 
 	return metrics, err
 }
-
 func formatColumn(input string, column string) string {
 	base := input
 	if base == "" {

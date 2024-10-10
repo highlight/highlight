@@ -2618,6 +2618,10 @@ query GetVisualization($id: ID!) {
 			limit
 			limitFunctionType
 			limitMetric
+			funnelSteps {
+				title
+				query
+			}
 			display
 			nullHandling
 		}
@@ -2670,6 +2674,10 @@ query GetVisualizations(
 				limit
 				limitFunctionType
 				limitMetric
+				funnelSteps {
+					title
+					query
+				}
 				display
 				nullHandling
 			}

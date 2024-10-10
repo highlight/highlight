@@ -825,14 +825,14 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 
 		sessionEvents := []*clickhouse.SessionEventRow{
 			{
-				Timestamp: landingPage.CreatedAt,
+				Timestamp: landingPage.CreatedAt.UnixMicro(),
 				Event:     "Navigate",
 				Attributes: map[string]string{
 					"landing_page": landingPage.Value,
 				},
 			},
 			{
-				Timestamp: exitPage.CreatedAt,
+				Timestamp: exitPage.CreatedAt.UnixMicro(),
 				Event:     "Navigate",
 				Attributes: map[string]string{
 					"exit_page": exitPage.Value,

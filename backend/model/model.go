@@ -1417,6 +1417,7 @@ type Graph struct {
 	Limit             *int
 	LimitFunctionType *modelInputs.MetricAggregator
 	LimitMetric       *string
+	FunnelSteps       *string `gorm:"type:jsonb"`
 	Display           *string
 	NullHandling      *string
 }

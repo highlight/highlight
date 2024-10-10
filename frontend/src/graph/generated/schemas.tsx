@@ -738,6 +738,17 @@ export type Field = {
 	value: Scalars['String']
 }
 
+export type FunnelStep = {
+	__typename?: 'FunnelStep'
+	query: Scalars['String']
+	title: Scalars['String']
+}
+
+export type FunnelStepInput = {
+	query: Scalars['String']
+	title: Scalars['String']
+}
+
 export type GitHubRepo = {
 	__typename?: 'GitHubRepo'
 	key: Scalars['String']
@@ -759,6 +770,7 @@ export type Graph = {
 	bucketInterval?: Maybe<Scalars['Int']>
 	display?: Maybe<Scalars['String']>
 	functionType: MetricAggregator
+	funnelSteps?: Maybe<Array<FunnelStep>>
 	groupByKey?: Maybe<Scalars['String']>
 	id: Scalars['ID']
 	limit?: Maybe<Scalars['Int']>
@@ -779,6 +791,7 @@ export type GraphInput = {
 	bucketInterval?: InputMaybe<Scalars['Int']>
 	display?: InputMaybe<Scalars['String']>
 	functionType: MetricAggregator
+	funnelSteps?: InputMaybe<Array<FunnelStepInput>>
 	groupByKey?: InputMaybe<Scalars['String']>
 	id?: InputMaybe<Scalars['ID']>
 	limit?: InputMaybe<Scalars['Int']>
