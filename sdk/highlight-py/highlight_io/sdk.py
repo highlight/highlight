@@ -31,6 +31,7 @@ from opentelemetry.trace import INVALID_SPAN
 from highlight_io.integrations import Integration
 from highlight_io.integrations.all import DEFAULT_INTEGRATIONS
 from highlight_io.utils.lru_cache import LRUCache
+from highlight_io.utils.dict import flatten_dict
 
 
 class LogHandler(logging.Handler):
@@ -436,7 +437,8 @@ class H(object):
             attributes["highlight.trace_id"] = request_id
             attributes["highlight.session_id"] = session_id
             if isinstance(record.args, dict):
-                attributes.update(record.args)
+                addedAttributes = flatten_dict(record.args, sep=".")
+                attributes.update(addedAttributes)
             elif isinstance(record.args, list):
                 attributes["args"] = record.args
             elif record.args:

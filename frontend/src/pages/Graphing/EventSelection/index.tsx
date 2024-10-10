@@ -134,7 +134,7 @@ export const EventSelection: React.FC<Props> = ({
 			backgroundColor="nested"
 		>
 			<LabeledRow label="Event type" name="eventType">
-				<OptionDropdown<EventType>
+				<OptionDropdown
 					options={EVENT_TYPES}
 					selection={eventType}
 					setSelection={setEventType}

@@ -64,7 +64,7 @@
 		"react-youtube": "^10.1.0",
 		"remark-gfm": "^3.0.1",
 		"remove-markdown": "^0.5.0",
-		"rudder-sdk-js": "^2.20.0",
+		"rudder-sdk-js": "2.20.0",
 		"sass": "^1.56.1",
 		"sharp": "^0.32.6",
 		"uuidv4": "^6.2.13"

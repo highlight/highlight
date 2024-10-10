@@ -6,7 +6,13 @@ from django.http import HttpResponse, HttpRequest
 
 def index(request: HttpRequest):
     logging.info(
-        "hello handler", {"customer": request.headers.get("customer") or "unknown"}
+        "hello handler",
+        {
+            "customer": {
+                "first_name": request.headers.get("first_name") or "Din",
+                "last_name": request.headers.get("last_name") or "Djarin",
+            }
+        }
     )
     if random.random() < 0.5:
         return HttpResponse(f"result is {2 / 0}")
