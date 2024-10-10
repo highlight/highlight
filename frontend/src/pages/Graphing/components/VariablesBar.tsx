@@ -22,7 +22,7 @@ interface Props {
 }
 
 export const VariablesBar: React.FC<Props> = ({ dashboardId }) => {
-	const { values, variables, setCurrentValue } =
+	const { values, variables, setCurrentValues } =
 		useGraphingVariables(dashboardId)
 
 	const [showVariablesModal, setShowVariablesModal] = useState(false)
@@ -66,9 +66,9 @@ export const VariablesBar: React.FC<Props> = ({ dashboardId }) => {
 													name={`default-value-${i}`}
 													value={values.get(v.key)}
 													onChange={(e) => {
-														setCurrentValue(
+														setCurrentValues(
 															v.key,
-															e.target.value,
+															[e.target.value],
 														)
 													}}
 													autoComplete="off"
@@ -78,37 +78,35 @@ export const VariablesBar: React.FC<Props> = ({ dashboardId }) => {
 												SuggestionType.Key && (
 												<Combobox
 													selection={
-														values.get(v.key) ?? ''
+														values.get(v.key) ?? []
 													}
 													setSelection={(
-														selection: string,
+														selection: string[],
 													) => {
-														setCurrentValue(
+														setCurrentValues(
 															v.key,
 															selection,
 														)
 													}}
 													searchConfig={searchConfig}
-													label={`current-value-${i}`}
 												/>
 											)}
 											{v.suggestionType ===
 												SuggestionType.Value && (
 												<ValueCombobox
 													selection={
-														values.get(v.key) ?? ''
+														values.get(v.key) ?? []
 													}
 													setSelection={(
-														selection: string,
+														selection: string[],
 													) => {
-														setCurrentValue(
+														setCurrentValues(
 															v.key,
 															selection,
 														)
 													}}
 													searchConfig={searchConfig}
 													keyName={v.field ?? ''}
-													label={`current-value-${i}`}
 												/>
 											)}
 										</Box>

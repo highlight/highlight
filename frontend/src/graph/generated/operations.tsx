@@ -1606,7 +1606,7 @@ export type UpsertGraphMutation = { __typename?: 'Mutation' } & {
 		| 'query'
 		| 'metric'
 		| 'functionType'
-		| 'groupByKey'
+		| 'groupByKeys'
 		| 'bucketByKey'
 		| 'bucketCount'
 		| 'limit'
@@ -5157,7 +5157,7 @@ export type GetVisualizationQuery = { __typename?: 'Query' } & {
 			variables: Array<
 				{ __typename?: 'Variable' } & Pick<
 					Types.Variable,
-					'key' | 'defaultValue' | 'suggestionType' | 'field'
+					'key' | 'defaultValues' | 'suggestionType' | 'field'
 				>
 			>
 			graphs: Array<
@@ -5170,7 +5170,7 @@ export type GetVisualizationQuery = { __typename?: 'Query' } & {
 					| 'query'
 					| 'metric'
 					| 'functionType'
-					| 'groupByKey'
+					| 'groupByKeys'
 					| 'bucketByKey'
 					| 'bucketCount'
 					| 'bucketInterval'
@@ -5211,7 +5211,7 @@ export type GetVisualizationsQuery = { __typename?: 'Query' } & {
 							{ __typename?: 'Variable' } & Pick<
 								Types.Variable,
 								| 'key'
-								| 'defaultValue'
+								| 'defaultValues'
 								| 'suggestionType'
 								| 'field'
 							>
@@ -5226,7 +5226,7 @@ export type GetVisualizationsQuery = { __typename?: 'Query' } & {
 								| 'query'
 								| 'metric'
 								| 'functionType'
-								| 'groupByKey'
+								| 'groupByKeys'
 								| 'bucketByKey'
 								| 'bucketCount'
 								| 'bucketInterval'

@@ -163,7 +163,7 @@ export const ClickFilters: React.FC<Props> = ({
 		<>
 			<Box display="flex" flexDirection="row" gap="4">
 				<LabeledRow label="Click type" name="clickType">
-					<OptionDropdown<ClickType>
+					<OptionDropdown
 						options={CLICK_TYPES}
 						selection={clickType}
 						setSelection={setClickType}

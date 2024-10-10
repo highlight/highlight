@@ -590,7 +590,7 @@ type ComplexityRoot struct {
 		BucketInterval    func(childComplexity int) int
 		Display           func(childComplexity int) int
 		FunctionType      func(childComplexity int) int
-		GroupByKey        func(childComplexity int) int
+		GroupByKeys       func(childComplexity int) int
 		ID                func(childComplexity int) int
 		Limit             func(childComplexity int) int
 		LimitFunctionType func(childComplexity int) int
@@ -1594,7 +1594,7 @@ type ComplexityRoot struct {
 	}
 
 	Variable struct {
-		DefaultValue   func(childComplexity int) int
+		DefaultValues  func(childComplexity int) int
 		Field          func(childComplexity int) int
 		Key            func(childComplexity int) int
 		SuggestionType func(childComplexity int) int
@@ -4608,12 +4608,12 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Graph.FunctionType(childComplexity), true
 
-	case "Graph.groupByKey":
-		if e.complexity.Graph.GroupByKey == nil {
+	case "Graph.groupByKeys":
+		if e.complexity.Graph.GroupByKeys == nil {
 			break
 		}
 
-		return e.complexity.Graph.GroupByKey(childComplexity), true
+		return e.complexity.Graph.GroupByKeys(childComplexity), true
 
 	case "Graph.id":
 		if e.complexity.Graph.ID == nil {
@@ -10981,12 +10981,12 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.UserProperty.Value(childComplexity), true
 
-	case "Variable.defaultValue":
-		if e.complexity.Variable.DefaultValue == nil {
+	case "Variable.defaultValues":
+		if e.complexity.Variable.DefaultValues == nil {
 			break
 		}
 
-		return e.complexity.Variable.DefaultValue(childComplexity), true
+		return e.complexity.Variable.DefaultValues(childComplexity), true
 
 	case "Variable.field":
 		if e.complexity.Variable.Field == nil {
@@ -13623,7 +13623,7 @@ type Graph {
 	query: String!
 	metric: String!
 	functionType: MetricAggregator!
-	groupByKey: String
+	groupByKeys: StringArray
 	bucketByKey: String
 	bucketCount: Int
 	bucketInterval: Int
@@ -13636,7 +13636,7 @@ type Graph {
 
 type Variable {
 	key: String!
-	defaultValue: String!
+	defaultValues: [String!]!
 	suggestionType: SuggestionType!
 	field: String
 }
@@ -13667,7 +13667,7 @@ input GraphInput {
 	query: String!
 	metric: String!
 	functionType: MetricAggregator!
-	groupByKey: String
+	groupByKeys: StringArray
 	bucketByKey: String
 	bucketCount: Int
 	bucketInterval: Int
@@ -13680,7 +13680,7 @@ input GraphInput {
 
 input VariableInput {
 	key: String!
-	defaultValue: String!
+	defaultValues: [String!]!
 	suggestionType: SuggestionType!
 	field: String
 }
@@ -39113,8 +39113,8 @@ func (ec *executionContext) fieldContext_Graph_functionType(ctx context.Context,
 	return fc, nil
 }
 
-func (ec *executionContext) _Graph_groupByKey(ctx context.Context, field graphql.CollectedField, obj *model1.Graph) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Graph_groupByKey(ctx, field)
+func (ec *executionContext) _Graph_groupByKeys(ctx context.Context, field graphql.CollectedField, obj *model1.Graph) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Graph_groupByKeys(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -39127,7 +39127,7 @@ func (ec *executionContext) _Graph_groupByKey(ctx context.Context, field graphql
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.GroupByKey, nil
+		return obj.GroupByKeys, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -39136,19 +39136,19 @@ func (ec *executionContext) _Graph_groupByKey(ctx context.Context, field graphql
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(*string)
+	res := resTmp.(pq.StringArray)
 	fc.Result = res
-	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+	return ec.marshalOStringArray2githubᚗcomᚋlibᚋpqᚐStringArray(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_Graph_groupByKey(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_Graph_groupByKeys(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "Graph",
 		Field:      field,
 		IsMethod:   false,
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type String does not have child fields")
+			return nil, errors.New("field of type StringArray does not have child fields")
 		},
 	}
 	return fc, nil
@@ -52022,8 +52022,8 @@ func (ec *executionContext) fieldContext_Mutation_upsertGraph(ctx context.Contex
 				return ec.fieldContext_Graph_metric(ctx, field)
 			case "functionType":
 				return ec.fieldContext_Graph_functionType(ctx, field)
-			case "groupByKey":
-				return ec.fieldContext_Graph_groupByKey(ctx, field)
+			case "groupByKeys":
+				return ec.fieldContext_Graph_groupByKeys(ctx, field)
 			case "bucketByKey":
 				return ec.fieldContext_Graph_bucketByKey(ctx, field)
 			case "bucketCount":
@@ -65019,8 +65019,8 @@ func (ec *executionContext) fieldContext_Query_graph(ctx context.Context, field 
 				return ec.fieldContext_Graph_metric(ctx, field)
 			case "functionType":
 				return ec.fieldContext_Graph_functionType(ctx, field)
-			case "groupByKey":
-				return ec.fieldContext_Graph_groupByKey(ctx, field)
+			case "groupByKeys":
+				return ec.fieldContext_Graph_groupByKeys(ctx, field)
 			case "bucketByKey":
 				return ec.fieldContext_Graph_bucketByKey(ctx, field)
 			case "bucketCount":
@@ -78318,8 +78318,8 @@ func (ec *executionContext) fieldContext_Variable_key(ctx context.Context, field
 	return fc, nil
 }
 
-func (ec *executionContext) _Variable_defaultValue(ctx context.Context, field graphql.CollectedField, obj *model.Variable) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Variable_defaultValue(ctx, field)
+func (ec *executionContext) _Variable_defaultValues(ctx context.Context, field graphql.CollectedField, obj *model.Variable) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Variable_defaultValues(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -78332,7 +78332,7 @@ func (ec *executionContext) _Variable_defaultValue(ctx context.Context, field gr
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.DefaultValue, nil
+		return obj.DefaultValues, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -78344,12 +78344,12 @@ func (ec *executionContext) _Variable_defaultValue(ctx context.Context, field gr
 		}
 		return graphql.Null
 	}
-	res := resTmp.(string)
+	res := resTmp.([]string)
 	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
+	return ec.marshalNString2ᚕstringᚄ(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_Variable_defaultValue(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_Variable_defaultValues(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "Variable",
 		Field:      field,
@@ -79087,8 +79087,8 @@ func (ec *executionContext) fieldContext_Visualization_graphs(ctx context.Contex
 				return ec.fieldContext_Graph_metric(ctx, field)
 			case "functionType":
 				return ec.fieldContext_Graph_functionType(ctx, field)
-			case "groupByKey":
-				return ec.fieldContext_Graph_groupByKey(ctx, field)
+			case "groupByKeys":
+				return ec.fieldContext_Graph_groupByKeys(ctx, field)
 			case "bucketByKey":
 				return ec.fieldContext_Graph_bucketByKey(ctx, field)
 			case "bucketCount":
@@ -79194,8 +79194,8 @@ func (ec *executionContext) fieldContext_Visualization_variables(ctx context.Con
 			switch field.Name {
 			case "key":
 				return ec.fieldContext_Variable_key(ctx, field)
-			case "defaultValue":
-				return ec.fieldContext_Variable_defaultValue(ctx, field)
+			case "defaultValues":
+				return ec.fieldContext_Variable_defaultValues(ctx, field)
 			case "suggestionType":
 				return ec.fieldContext_Variable_suggestionType(ctx, field)
 			case "field":
@@ -83877,7 +83877,7 @@ func (ec *executionContext) unmarshalInputGraphInput(ctx context.Context, obj in
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"id", "visualizationId", "afterGraphId", "type", "title", "productType", "query", "metric", "functionType", "groupByKey", "bucketByKey", "bucketCount", "bucketInterval", "limit", "limitFunctionType", "limitMetric", "display", "nullHandling"}
+	fieldsInOrder := [...]string{"id", "visualizationId", "afterGraphId", "type", "title", "productType", "query", "metric", "functionType", "groupByKeys", "bucketByKey", "bucketCount", "bucketInterval", "limit", "limitFunctionType", "limitMetric", "display", "nullHandling"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -83947,13 +83947,13 @@ func (ec *executionContext) unmarshalInputGraphInput(ctx context.Context, obj in
 				return it, err
 			}
 			it.FunctionType = data
-		case "groupByKey":
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("groupByKey"))
-			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+		case "groupByKeys":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("groupByKeys"))
+			data, err := ec.unmarshalOStringArray2githubᚗcomᚋlibᚋpqᚐStringArray(ctx, v)
 			if err != nil {
 				return it, err
 			}
-			it.GroupByKey = data
+			it.GroupByKeys = data
 		case "bucketByKey":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("bucketByKey"))
 			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
@@ -84813,7 +84813,7 @@ func (ec *executionContext) unmarshalInputVariableInput(ctx context.Context, obj
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"key", "defaultValue", "suggestionType", "field"}
+	fieldsInOrder := [...]string{"key", "defaultValues", "suggestionType", "field"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -84827,13 +84827,13 @@ func (ec *executionContext) unmarshalInputVariableInput(ctx context.Context, obj
 				return it, err
 			}
 			it.Key = data
-		case "defaultValue":
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("defaultValue"))
-			data, err := ec.unmarshalNString2string(ctx, v)
+		case "defaultValues":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("defaultValues"))
+			data, err := ec.unmarshalNString2ᚕstringᚄ(ctx, v)
 			if err != nil {
 				return it, err
 			}
-			it.DefaultValue = data
+			it.DefaultValues = data
 		case "suggestionType":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("suggestionType"))
 			data, err := ec.unmarshalNSuggestionType2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐSuggestionType(ctx, v)
@@ -88992,8 +88992,8 @@ func (ec *executionContext) _Graph(ctx context.Context, sel ast.SelectionSet, ob
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
-		case "groupByKey":
-			out.Values[i] = ec._Graph_groupByKey(ctx, field, obj)
+		case "groupByKeys":
+			out.Values[i] = ec._Graph_groupByKeys(ctx, field, obj)
 		case "bucketByKey":
 			out.Values[i] = ec._Graph_bucketByKey(ctx, field, obj)
 		case "bucketCount":
@@ -99115,8 +99115,8 @@ func (ec *executionContext) _Variable(ctx context.Context, sel ast.SelectionSet,
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
-		case "defaultValue":
-			out.Values[i] = ec._Variable_defaultValue(ctx, field, obj)
+		case "defaultValues":
+			out.Values[i] = ec._Variable_defaultValues(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}

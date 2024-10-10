@@ -5748,7 +5748,7 @@ export const UpsertGraphDocument = gql`
 			query
 			metric
 			functionType
-			groupByKey
+			groupByKeys
 			bucketByKey
 			bucketCount
 			limit
@@ -15054,7 +15054,7 @@ export const GetVisualizationDocument = gql`
 			timePreset
 			variables {
 				key
-				defaultValue
+				defaultValues
 				suggestionType
 				field
 			}
@@ -15066,7 +15066,7 @@ export const GetVisualizationDocument = gql`
 				query
 				metric
 				functionType
-				groupByKey
+				groupByKeys
 				bucketByKey
 				bucketCount
 				bucketInterval
@@ -15156,7 +15156,7 @@ export const GetVisualizationsDocument = gql`
 				timePreset
 				variables {
 					key
-					defaultValue
+					defaultValues
 					suggestionType
 					field
 				}
@@ -15168,7 +15168,7 @@ export const GetVisualizationsDocument = gql`
 					query
 					metric
 					functionType
-					groupByKey
+					groupByKeys
 					bucketByKey
 					bucketCount
 					bucketInterval

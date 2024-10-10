@@ -29,6 +29,7 @@ import (
 const SamplingRows = 20_000_000
 const KeysMaxRows = 1_000_000
 const KeyValuesMaxRows = 1_000_000
+const AllKeyValuesMaxRows = 100_000_000
 const MaxBuckets = 100
 
 type SampleableTableConfig struct {
@@ -541,7 +542,7 @@ func (client *Client) AllKeys(ctx context.Context, projectID int, startDate time
 
 func (client *Client) AllKeyValues(ctx context.Context, projectID int, keyName string, startDate time.Time, endDate time.Time, query *string, limit *int) ([]string, error) {
 	chCtx := clickhouse.Context(ctx, clickhouse.WithSettings(clickhouse.Settings{
-		"max_rows_to_read": KeyValuesMaxRows,
+		"max_rows_to_read": AllKeyValuesMaxRows,
 	}))
 
 	limitCount := 500

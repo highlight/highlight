@@ -1,4 +1,4 @@
-import { style } from '@vanilla-extract/css'
+import { keyframes, style } from '@vanilla-extract/css'
 
 import { sprinkles } from '@/sprinkles'
 import { vars } from '@/vars'
@@ -68,11 +68,10 @@ export const combobox = style([
 	}),
 	{
 		boxSizing: 'border-box',
-		selectors: {
-			'&:focus': {
-				borderColor: vars.theme.interactive.fill.primary.enabled,
-			},
-		},
+		fontSize: '13px',
+		lineHeight: '13px',
+		caretColor: vars.theme.interactive.fill.primary.enabled,
+		outline: 0,
 	},
 ])
 
@@ -97,3 +96,24 @@ export const checkbox = style([
 		},
 	},
 ])
+
+export const checkmark = style([
+	{
+		flexShrink: 0,
+	},
+])
+
+const rotate = keyframes({
+	'0%': {
+		transform: 'rotate(0deg)',
+	},
+	'100%': {
+		transform: 'rotate(360deg)',
+	},
+})
+
+export const loadingIcon = style({
+	position: 'absolute',
+	right: 8,
+	animation: `1s ${rotate} linear infinite`,
+})
