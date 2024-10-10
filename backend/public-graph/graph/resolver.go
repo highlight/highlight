@@ -2330,16 +2330,21 @@ func (r *Resolver) AddSessionEvents(ctx context.Context, sessionID int, events *
 			}
 
 			if clickEvent {
-				propertiesObject := make(map[string]string)
+				propertiesObject := make(map[string]interface{})
 				if err := json.Unmarshal([]byte(payloadStr), &propertiesObject); err != nil {
-					return e.New("error deserializing track event properties")
+					return e.New("error deserializing click event properties")
+				}
+
+				attributes := make(map[string]string)
+				for k, v := range propertiesObject {
+					attributes[k] = fmt.Sprintf("%v", v)
 				}
 
 				sessionEvents = append(sessionEvents,
 					&clickhouse.SessionEventRow{
 						Event:      dataObject.Tag,
 						Timestamp:  event.Timestamp,
-						Attributes: propertiesObject,
+						Attributes: attributes,
 					},
 				)
 			} else if navigateEvent {
