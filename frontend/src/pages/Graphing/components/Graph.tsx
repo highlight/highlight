@@ -961,8 +961,7 @@ const Graph = ({
 					: [],
 			bucket_by:
 				bucketByKey !== undefined
-					? (matchParamVariables(bucketByKey, variables).at(0) ??
-							'')
+					? (matchParamVariables(bucketByKey, variables).at(0) ?? '')
 					: TIMESTAMP_KEY,
 			bucket_window: bucketByWindow,
 			bucket_count: queriedBucketCount,
@@ -1138,7 +1137,7 @@ const Graph = ({
 				)
 				break
 			case 'Funnel chart':
-				if (viewConfig.display === 'Horizontal') {
+				if (viewConfig.display === 'Bar Chart') {
 					innerChart = (
 						<BarChart
 							data={data}
@@ -1161,7 +1160,29 @@ const Graph = ({
 							{children}
 						</BarChart>
 					)
-				} else if (viewConfig.display === 'Vertical') {
+				} else if (viewConfig.display === 'Line Chart') {
+					innerChart = (
+						<LineChart
+							data={data}
+							xAxisMetric={xAxisMetric}
+							yAxisMetric={yAxisMetric}
+							yAxisFunction={yAxisFunction}
+							viewConfig={{
+								showLegend: true,
+								type: 'Line chart',
+								display: 'Stacked area',
+								tooltipSettings: { funnelMode: true },
+							}}
+							series={series}
+							spotlight={spotlight}
+							setTimeRange={setTimeRange}
+							loadExemplars={loadExemplars}
+							showGrid
+						>
+							{children}
+						</LineChart>
+					)
+				} else if (viewConfig.display === 'Vertical Funnel') {
 					innerChart = (
 						<FunnelChart
 							data={data}

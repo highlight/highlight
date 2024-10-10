@@ -34,6 +34,7 @@ export type BarChartConfig = {
 
 const RoundedBar = (id: string, isLast: boolean) => (props: any) => {
 	const { fill, x, y, width, height } = props
+	// TODO(vkorolik) use shadeToPrevious
 	return (
 		<>
 			<rect
