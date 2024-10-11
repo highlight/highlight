@@ -361,7 +361,8 @@ class H(object):
             "http.response.detail": detail,
         }
         if attributes:
-            attrs.update(attributes)
+            addedAttributes = flatten_dict(attributes, sep=".")
+            attrs.update(addedAttributes)
         for req in ("request", "response"):
             headers = attrs.pop(f"http.{req}.headers", None)
             if not headers:
@@ -398,7 +399,13 @@ class H(object):
         span = otel_trace.get_current_span()
         if not span:
             raise RuntimeError("H.record_exception called without a span context")
-        span.record_exception(e, attributes)
+        
+        attrs = {}
+        if attributes:
+            addedAttributes = flatten_dict(attributes, sep=".")
+            attrs.update(addedAttributes)
+
+        span.record_exception(e, attrs)
 
     @property
     def logging_handler(self) -> logging.Handler:
@@ -428,7 +435,7 @@ class H(object):
             )
             # record.created is sec but timestamp should be ns
             ts = int(record.created * 1000.0 * 1000.0 * 1000.0)
-            attributes = span.attributes.copy()
+            attributes = flatten_dict(span.attributes.copy(), sep=".")
             attributes[SpanAttributes.CODE_FUNCTION] = record.funcName
             attributes[SpanAttributes.CODE_NAMESPACE] = record.module
             attributes[SpanAttributes.CODE_FILEPATH] = record.pathname
