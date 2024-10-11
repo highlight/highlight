@@ -40,15 +40,15 @@ const LaunchWeekBanner = () => {
 const LivestreamBanner = () => {
 	return (
 		<Link
-			href="https://lu.ma/51zg6p43?utm_source=highlight-banner"
+			href="https://www.linuxfoundation.org/webinars/optimizing-ai-applications-with-opentelemetry?hsLang=en&utm_source=highlight-banner"
 			target="_blank"
 			rel="noreferrer"
 			className="hidden md:flex text-center justify-center items-center w-full py-2.5 px-3 bg-color-primary-200 text-white hover:bg-opacity-90"
 		>
 			<Typography type="copy3">
-				Join our livestream: September 5th at 1pm PT on Fullstack
-				Monitoring for .NET Applications with OpenTelemetry. Register{' '}
-				<span className="font-semibold underline">here</span>.
+				Learn how to use OpenTelemetry for optimizing AI applications at
+				our livestream on November 5th at 9am PT -{' '}
+				<span className="font-semibold underline">Register here</span>
 			</Typography>
 		</Link>
 	)
