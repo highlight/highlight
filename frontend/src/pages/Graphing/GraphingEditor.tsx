@@ -92,6 +92,7 @@ type BucketBy = 'None' | 'Interval' | 'Count'
 const BUCKET_BY_OPTIONS: BucketBy[] = ['None', 'Interval', 'Count']
 
 const MAX_BUCKET_SIZE = 100
+const MAX_LIMIT_SIZE = 100
 
 const SidebarSection = (props: PropsWithChildren) => {
 	return (
@@ -494,6 +495,7 @@ export const GraphingEditor: React.FC = () => {
 			setMetric('secure_session_id')
 			setGroupByEnabled(true)
 			setGroupByKeys(['secure_session_id'])
+			setLimit(Number.MAX_VALUE)
 		}
 	}, [viewType])
 
@@ -905,7 +907,9 @@ export const GraphingEditor: React.FC = () => {
 														onChange={(e) => {
 															const value =
 																Math.min(
-																	MAX_BUCKET_SIZE,
+																	viewType === 'Table'
+																? Number.MAX_VALUE
+																: MAX_LIMIT_SIZE,
 																	parseInt(
 																		e.target
 																			.value,
