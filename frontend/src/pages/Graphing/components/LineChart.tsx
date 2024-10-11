@@ -18,6 +18,7 @@ import {
 	InnerChartProps,
 	isActive,
 	SeriesInfo,
+	TooltipSettings,
 	useGraphCallbacks,
 } from '@/pages/Graphing/components/Graph'
 
@@ -36,6 +37,7 @@ export type LineChartConfig = {
 	showLegend: boolean
 	display?: LineDisplay
 	nullHandling?: LineNullHandling
+	tooltipSettings?: TooltipSettings
 }
 
 export const LineChart = ({

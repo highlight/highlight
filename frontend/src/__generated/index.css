@@ -6673,30 +6673,6 @@ body {
     border-bottom: none;
   }
 }
-._1s4anja0 {
-  margin-left: -8px;
-  margin-right: -8px;
-}
-._1s4anja1 {
-  height: calc(100% - 50px);
-}
-._1s4anja2 {
-  overflow-y: hidden;
-  scrollbar-gutter: stable;
-}
-._1s4anja3 {
-  overflow-y: auto;
-  scrollbar-gutter: stable;
-}
-._1s4anja4 {
-  overflow-y: hidden;
-}
-._1s4anja5 {
-  min-width: 106px;
-}
-._1s4anja6 {
-  overflow: hidden;
-}
 .dg2vg60 {
   z-index: 2;
   pointer-events: none;
@@ -6761,20 +6737,58 @@ body {
   width: 16px;
 }
 .dg2vg6b {
+  position: absolute;
+  background-color: white;
+  border: var(--_1pyqka9j) solid 1px;
+  border-radius: 6px;
+  min-width: 100px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 8px;
+}
+.dg2vg6c {
+  line-height: 16px;
+}
+.dg2vg6d {
   border-radius: 50%;
   width: 8px;
   height: 8px;
   flex-shrink: 0;
   flex-grow: 0;
 }
-.dg2vg6c {
+.dg2vg6e {
   pointer-events: none;
 }
-.dg2vg6d {
+.dg2vg6f {
   width: min-content;
 }
-.dg2vg6e {
+.dg2vg6g {
   user-select: none;
+}
+._1s4anja0 {
+  margin-left: -8px;
+  margin-right: -8px;
+}
+._1s4anja1 {
+  height: calc(100% - 50px);
+}
+._1s4anja2 {
+  overflow-y: hidden;
+  scrollbar-gutter: stable;
+}
+._1s4anja3 {
+  overflow-y: auto;
+  scrollbar-gutter: stable;
+}
+._1s4anja4 {
+  overflow-y: hidden;
+}
+._1s4anja5 {
+  min-width: 106px;
+}
+._1s4anja6 {
+  overflow: hidden;
 }
 ._1a4jm560 {
   height: 40px;

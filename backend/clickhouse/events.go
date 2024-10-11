@@ -115,6 +115,7 @@ func (client *Client) WriteSessionEventRows(ctx context.Context, eventRows []*Se
 			NewStruct(new(SessionEventRow)).
 			InsertInto(SessionEventsTable, chEvents...).
 			BuildWithFlavor(sqlbuilder.ClickHouse)
+		eventsSql, eventsArgs = replaceTimestampInserts(eventsSql, eventsArgs, map[int]bool{3: true, 4: true}, MicroSeconds)
 
 		eventsSql, eventsArgs = replaceTimestampInserts(eventsSql, eventsArgs, map[int]bool{3: true, 4: true}, MicroSeconds)
 
