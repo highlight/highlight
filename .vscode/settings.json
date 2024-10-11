@@ -181,14 +181,5 @@
 	},
 	"[dotenv]": {
 		"editor.defaultFormatter": "foxundermoon.shell-format"
-	},
-	"python.testing.unittestArgs": [
-		"-v",
-		"-s",
-		"./sdk",
-		"-p",
-		"test_*.py"
-	],
-	"python.testing.pytestEnabled": false,
-	"python.testing.unittestEnabled": true
+	}
 }
