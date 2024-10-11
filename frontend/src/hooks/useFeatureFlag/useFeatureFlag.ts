@@ -23,8 +23,7 @@ export enum Feature {
 export const FeatureConfig: { [key: number]: Config } = {
 	[Feature.EventSearch]: {
 		workspace: true,
-		percent: 0,
-		workspaceOverride: new Set<string>(['1', '15127', '32550']),
+		percent: 100,
 	},
 	[Feature.PlayerNoChunkRemoval]: {
 		workspace: true,

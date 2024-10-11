@@ -1,11 +1,11 @@
 import {
-	IconSolidFire,
+	Box,
 	IconSolidLightningBolt,
 	IconSolidLogs,
 	IconSolidPlayCircle,
 	IconSolidTraces,
 } from '@highlight-run/ui/components'
-
+import { betaTag } from '@/components/Header/styles.css'
 import {
 	MetricAggregator,
 	ProductType,
@@ -48,7 +48,11 @@ export const PRODUCT_OPTIONS_WITH_EVENTS = PRODUCT_OPTIONS.concat([
 	{
 		name: ProductType.Events,
 		value: ProductType.Events,
-		icon: <IconSolidFire key="events" />,
+		icon: (
+			<Box cssClass={betaTag} key="events">
+				Beta
+			</Box>
+		),
 	},
 ])
 
