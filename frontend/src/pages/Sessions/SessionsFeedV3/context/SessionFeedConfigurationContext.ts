@@ -21,6 +21,15 @@ export const sortOrders = ['Descending', 'Ascending'] as const
 
 export type SESSION_FEED_SORT_ORDER = (typeof sortOrders)[number]
 
+export const resultFormats = [
+	'Count',
+	'Length',
+	'Active Length',
+	'Count/Length/ActiveLength',
+] as const
+
+export type SESSION_FEED_RESULT_FORMAT = (typeof resultFormats)[number]
+
 export interface SessionFeedConfigurationContext {
 	datetimeFormat: SESSION_FEED_DATETIME_FORMAT
 	setDatetimeFormat: (newDatetimeFormat: SESSION_FEED_DATETIME_FORMAT) => void
