@@ -169,7 +169,6 @@ export const usePlayer = (
 
 	const unsubscribeSessionPayloadFn = useRef<(() => void) | null>()
 	const animationFrameID = useRef<number>(0)
-	const lookaheadLoading = useRef<boolean>(false)
 
 	const [
 		chunkEventsRef,
@@ -944,14 +943,6 @@ export const usePlayer = (
 	// ensures we skip over inactivity periods
 	useEffect(() => {
 		;(async () => {
-			if (lookaheadLoading.current) {
-				log(
-					'PlayerHook.tsx',
-					'skipping lookahead due to concurrent loading',
-				)
-				return
-			}
-			lookaheadLoading.current = true
 			if (
 				state.sessionMetadata.startTime === 0 ||
 				state.replayerState !== ReplayerState.Playing ||
@@ -981,7 +972,7 @@ export const usePlayer = (
 				undefined,
 				getLastLoadedEventTimestamp() - state.time < LOOKAHEAD_MS,
 			)
-		})().finally(() => (lookaheadLoading.current = false))
+		})()
 	}, [
 		state.time,
 		ensureChunksLoaded,
