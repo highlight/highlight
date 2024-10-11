@@ -1,14 +1,15 @@
 import { useGetVisualizationQuery } from '@/graph/generated/hooks'
 import { Variable } from '@/graph/generated/schemas'
 import { getQueryKey } from '@/pages/Graphing/components/VariablesModal'
+import _ from 'lodash'
 import { useCallback, useMemo } from 'react'
 
 import { useSearchParams } from 'react-router-dom'
 
 export interface UseGraphingVariables {
-	values: Map<string, string>
+	values: Map<string, string[]>
 	variables: Variable[]
-	setCurrentValue: (key: string, value: string) => void
+	setCurrentValues: (key: string, values: string[]) => void
 	loading: boolean
 }
 
@@ -22,29 +23,34 @@ export function useGraphingVariables(
 	const [params, setParams] = useSearchParams()
 
 	const values = useMemo(() => {
-		const values = new Map<string, string>()
+		const values = new Map<string, string[]>()
 		data?.visualization.variables.forEach((v) => {
-			values.set(v.key, params.get(getQueryKey(v.key)) ?? v.defaultValue)
+			const paramMarshalled = params.get(getQueryKey(v.key))
+			if (paramMarshalled === null) {
+				values.set(v.key, v.defaultValues)
+			} else {
+				values.set(v.key, JSON.parse(paramMarshalled))
+			}
 		})
 		return values
 	}, [data?.visualization.variables, params])
 
 	const defaultValues = useMemo(() => {
-		const defaultValues = new Map<string, string>()
+		const defaultValues = new Map<string, string[]>()
 		data?.visualization.variables.forEach((v) => {
-			defaultValues.set(v.key, v.defaultValue)
+			defaultValues.set(v.key, v.defaultValues)
 		})
 		return defaultValues
 	}, [data?.visualization.variables])
 
-	const setCurrentValue = useCallback(
-		(key: string, value: string) => {
+	const setCurrentValues = useCallback(
+		(key: string, values: string[]) => {
 			setParams(
 				(prev) => {
-					if (value !== defaultValues.get(key)) {
-						prev.set(getQueryKey(key), value)
-					} else {
+					if (_.isEqual(values, defaultValues.get(key))) {
 						prev.delete(getQueryKey(key))
+					} else {
+						prev.set(getQueryKey(key), JSON.stringify(values))
 					}
 					return prev
 				},
@@ -57,7 +63,7 @@ export function useGraphingVariables(
 	return {
 		values,
 		variables: data?.visualization.variables ?? [],
-		setCurrentValue,
+		setCurrentValues,
 		loading,
 	}
 }

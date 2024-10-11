@@ -1606,7 +1606,7 @@ export type UpsertGraphMutation = { __typename?: 'Mutation' } & {
 		| 'query'
 		| 'metric'
 		| 'functionType'
-		| 'groupByKey'
+		| 'groupByKeys'
 		| 'bucketByKey'
 		| 'bucketCount'
 		| 'limit'
@@ -1614,7 +1614,16 @@ export type UpsertGraphMutation = { __typename?: 'Mutation' } & {
 		| 'limitMetric'
 		| 'display'
 		| 'nullHandling'
-	>
+	> & {
+			funnelSteps?: Types.Maybe<
+				Array<
+					{ __typename?: 'FunnelStep' } & Pick<
+						Types.FunnelStep,
+						'title' | 'query'
+					>
+				>
+			>
+		}
 }
 
 export type DeleteGraphMutationVariables = Types.Exact<{
@@ -5157,7 +5166,7 @@ export type GetVisualizationQuery = { __typename?: 'Query' } & {
 			variables: Array<
 				{ __typename?: 'Variable' } & Pick<
 					Types.Variable,
-					'key' | 'defaultValue' | 'suggestionType' | 'field'
+					'key' | 'defaultValues' | 'suggestionType' | 'field'
 				>
 			>
 			graphs: Array<
@@ -5170,7 +5179,7 @@ export type GetVisualizationQuery = { __typename?: 'Query' } & {
 					| 'query'
 					| 'metric'
 					| 'functionType'
-					| 'groupByKey'
+					| 'groupByKeys'
 					| 'bucketByKey'
 					| 'bucketCount'
 					| 'bucketInterval'
@@ -5179,7 +5188,16 @@ export type GetVisualizationQuery = { __typename?: 'Query' } & {
 					| 'limitMetric'
 					| 'display'
 					| 'nullHandling'
-				>
+				> & {
+						funnelSteps?: Types.Maybe<
+							Array<
+								{ __typename?: 'FunnelStep' } & Pick<
+									Types.FunnelStep,
+									'title' | 'query'
+								>
+							>
+						>
+					}
 			>
 			updatedByAdmin?: Types.Maybe<
 				{ __typename?: 'SanitizedAdmin' } & Pick<
@@ -5211,7 +5229,7 @@ export type GetVisualizationsQuery = { __typename?: 'Query' } & {
 							{ __typename?: 'Variable' } & Pick<
 								Types.Variable,
 								| 'key'
-								| 'defaultValue'
+								| 'defaultValues'
 								| 'suggestionType'
 								| 'field'
 							>
@@ -5226,7 +5244,7 @@ export type GetVisualizationsQuery = { __typename?: 'Query' } & {
 								| 'query'
 								| 'metric'
 								| 'functionType'
-								| 'groupByKey'
+								| 'groupByKeys'
 								| 'bucketByKey'
 								| 'bucketCount'
 								| 'bucketInterval'
@@ -5235,7 +5253,18 @@ export type GetVisualizationsQuery = { __typename?: 'Query' } & {
 								| 'limitMetric'
 								| 'display'
 								| 'nullHandling'
-							>
+							> & {
+									funnelSteps?: Types.Maybe<
+										Array<
+											{
+												__typename?: 'FunnelStep'
+											} & Pick<
+												Types.FunnelStep,
+												'title' | 'query'
+											>
+										>
+									>
+								}
 						>
 						updatedByAdmin?: Types.Maybe<
 							{ __typename?: 'SanitizedAdmin' } & Pick<

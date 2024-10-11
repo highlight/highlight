@@ -292,6 +292,15 @@ func (r *errorObjectResolver) Session(ctx context.Context, obj *model.ErrorObjec
 	return r.Store.GetSession(ctx, *obj.SessionID)
 }
 
+// FunnelSteps is the resolver for the funnelSteps field.
+func (r *graphResolver) FunnelSteps(ctx context.Context, obj *model.Graph) (funnelSteps []*modelInputs.FunnelStep, err error) {
+	if obj.FunnelSteps == nil {
+		return nil, nil
+	}
+	err = json.Unmarshal([]byte(*obj.FunnelSteps), &funnelSteps)
+	return
+}
+
 // ChannelsToNotify is the resolver for the ChannelsToNotify field.
 func (r *logAlertResolver) ChannelsToNotify(ctx context.Context, obj *model.LogAlert) ([]*modelInputs.SanitizedSlackChannel, error) {
 	return obj.GetChannelsToNotify()
@@ -4805,6 +4814,11 @@ func (r *mutationResolver) UpsertGraph(ctx context.Context, graph modelInputs.Gr
 		id = *graph.ID
 	}
 
+	funnelStepsStr, err := json.Marshal(graph.FunnelSteps)
+	if err != nil {
+		return nil, err
+	}
+
 	toSave := model.Graph{
 		Model: model.Model{
 			ID: id,
@@ -4816,13 +4830,14 @@ func (r *mutationResolver) UpsertGraph(ctx context.Context, graph modelInputs.Gr
 		Query:             graph.Query,
 		Metric:            graph.Metric,
 		FunctionType:      graph.FunctionType,
-		GroupByKey:        graph.GroupByKey,
+		GroupByKeys:       graph.GroupByKeys,
 		BucketByKey:       graph.BucketByKey,
 		BucketCount:       graph.BucketCount,
 		BucketInterval:    graph.BucketInterval,
 		Limit:             graph.Limit,
 		LimitFunctionType: graph.LimitFunctionType,
 		LimitMetric:       graph.LimitMetric,
+		FunnelSteps:       ptr.String(string(funnelStepsStr)),
 		Display:           graph.Display,
 		NullHandling:      graph.NullHandling,
 	}
@@ -9991,11 +10006,32 @@ func (r *visualizationResolver) Variables(ctx context.Context, obj *model.Visual
 	if obj.Variables == "" {
 		return []*modelInputs.Variable{}, nil
 	}
-	variables := &[]*modelInputs.Variable{}
-	if err := json.Unmarshal([]byte(obj.Variables), variables); err != nil {
+	type VariablesUnmarshaled struct {
+		Key            string                     `json:"key"`
+		DefaultValue   string                     `json:"defaultValue"`
+		DefaultValues  []string                   `json:"defaultValues"`
+		SuggestionType modelInputs.SuggestionType `json:"suggestionType"`
+		Field          *string                    `json:"field,omitempty"`
+	}
+	unmarshalled := &[]*VariablesUnmarshaled{}
+	if err := json.Unmarshal([]byte(obj.Variables), unmarshalled); err != nil {
 		return nil, e.Wrapf(err, "error unmarshaling variables")
 	}
-	return *variables, nil
+
+	variables := []*modelInputs.Variable{}
+	for _, v := range *unmarshalled {
+		if v.DefaultValue != "" && len(v.DefaultValues) == 0 {
+			v.DefaultValues = []string{v.DefaultValue}
+		}
+		variables = append(variables, &modelInputs.Variable{
+			Key:            v.Key,
+			DefaultValues:  v.DefaultValues,
+			SuggestionType: v.SuggestionType,
+			Field:          v.Field,
+		})
+	}
+
+	return variables, nil
 }
 
 // AllWorkspaceSettings returns generated.AllWorkspaceSettingsResolver implementation.
@@ -10017,6 +10053,9 @@ func (r *Resolver) ErrorGroup() generated.ErrorGroupResolver { return &errorGrou
 
 // ErrorObject returns generated.ErrorObjectResolver implementation.
 func (r *Resolver) ErrorObject() generated.ErrorObjectResolver { return &errorObjectResolver{r} }
+
+// Graph returns generated.GraphResolver implementation.
+func (r *Resolver) Graph() generated.GraphResolver { return &graphResolver{r} }
 
 // LogAlert returns generated.LogAlertResolver implementation.
 func (r *Resolver) LogAlert() generated.LogAlertResolver { return &logAlertResolver{r} }
@@ -10069,6 +10108,7 @@ type errorAlertResolver struct{ *Resolver }
 type errorCommentResolver struct{ *Resolver }
 type errorGroupResolver struct{ *Resolver }
 type errorObjectResolver struct{ *Resolver }
+type graphResolver struct{ *Resolver }
 type logAlertResolver struct{ *Resolver }
 type matchedErrorObjectResolver struct{ *Resolver }
 type metricMonitorResolver struct{ *Resolver }

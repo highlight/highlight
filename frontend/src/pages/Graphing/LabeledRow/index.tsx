@@ -36,6 +36,7 @@ type Props = PropsWithChildren<{
 	name: string
 	enabled?: boolean
 	setEnabled?: (value: boolean) => void
+	disabled?: boolean
 	tooltip?: string
 }>
 
@@ -44,6 +45,7 @@ export const LabeledRow: React.FC<Props> = ({
 	name,
 	enabled,
 	setEnabled,
+	disabled,
 	children,
 	tooltip,
 }) => {
@@ -56,6 +58,7 @@ export const LabeledRow: React.FC<Props> = ({
 					<Switch
 						trackingId={`${label}-switch`}
 						size="small"
+						disabled={disabled}
 						checked={enabled}
 						onChange={(enabled) => {
 							setEnabled(enabled)
