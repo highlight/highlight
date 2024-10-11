@@ -91,8 +91,6 @@ VALUES (now(), now(), null,
 INSERT INTO o_auth_client_stores (id, created_at, secret, domains, app_name, admin_id)
 VALUES ('abc123', now(), 'def456', '{example.com}', 'Test', 1);
 INSERT INTO o_auth_operations (created_at, client_id, authorized_graph_ql_operation)
-VALUES (now(), 'abc123', 'sessions_clickhouse');
-INSERT INTO o_auth_operations (created_at, client_id, authorized_graph_ql_operation)
 VALUES (now(), 'abc123', 'sessions');
 INSERT INTO o_auth_operations (created_at, client_id, authorized_graph_ql_operation)
 VALUES (now(), 'abc123', 'session');
@@ -105,7 +103,7 @@ VALUES (now(), 'abc123', 'event_chunk_url');
 INSERT INTO o_auth_operations (created_at, client_id, authorized_graph_ql_operation)
 VALUES (now(), 'abc123', 'admin');
 INSERT INTO o_auth_operations (created_at, client_id, authorized_graph_ql_operation)
-VALUES (now(), 'abc123', 'error_groups_clickhouse');
+VALUES (now(), 'abc123', 'error_groups');
 INSERT INTO o_auth_operations (created_at, client_id, authorized_graph_ql_operation)
 VALUES (now(), 'abc123', 'logs');
 INSERT INTO o_auth_operations (created_at, client_id, authorized_graph_ql_operation)

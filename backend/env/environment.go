@@ -226,7 +226,7 @@ func EnvironmentName() string {
 func ConsumerSpanSamplingRate() float64 {
 	i, err := strconv.ParseInt(Config.ConsumerFraction, 10, 64)
 	if err != nil {
-		i = 1_000
+		i = 1_000_000
 	}
 	return 1. / float64(i)
 }

@@ -1,5 +1,4 @@
 import {
-	IconSolidChartBar,
 	IconSolidFire,
 	IconSolidLightningBolt,
 	IconSolidLogs,
@@ -16,29 +15,41 @@ import {
 export const DEFAULT_BUCKET_COUNT = 50
 export const DEFAULT_BUCKET_INTERVAL = 300
 
-export const PRODUCTS: ProductType[] = [
-	ProductType.Logs,
-	ProductType.Traces,
-	ProductType.Sessions,
-	ProductType.Errors,
+export const PRODUCT_OPTIONS = [
+	{
+		name: ProductType.Logs,
+		value: ProductType.Logs,
+		icon: <IconSolidLogs key="logs" />,
+	},
+	{
+		name: ProductType.Traces,
+		value: ProductType.Traces,
+		icon: <IconSolidTraces key="traces" />,
+	},
+	{
+		name: ProductType.Sessions,
+		value: ProductType.Sessions,
+		icon: <IconSolidPlayCircle key="sessions" />,
+	},
+	{
+		name: ProductType.Errors,
+		value: ProductType.Errors,
+		icon: <IconSolidLightningBolt key="errors" />,
+	},
 	// TODO(vkorolik) metrics disabled in the frontend to avoid confusion
-	// ProductType.Metrics,
+	// {
+	// 	name: ProductType.Metrics,
+	// 	value: ProductType.Metrics,
+	// 	icon: <IconSolidChartBar key="metrics" />,
+	// }
 ]
 
-export const PRODUCTS_WITH_EVENTS: ProductType[] = PRODUCTS.concat([
-	ProductType.Events,
-])
-
-export const PRODUCT_ICONS = [
-	<IconSolidLogs key="logs" />,
-	<IconSolidTraces key="traces" />,
-	<IconSolidPlayCircle key="sessions" />,
-	<IconSolidLightningBolt key="errors" />,
-	<IconSolidChartBar key="metrics" />,
-]
-
-export const PRODUCT_ICONS_WITH_EVENTS = PRODUCT_ICONS.concat([
-	<IconSolidFire key="events" />,
+export const PRODUCT_OPTIONS_WITH_EVENTS = PRODUCT_OPTIONS.concat([
+	{
+		name: ProductType.Events,
+		value: ProductType.Events,
+		icon: <IconSolidFire key="events" />,
+	},
 ])
 
 export const NUMERIC_FUNCTION_TYPES: MetricAggregator[] = [
