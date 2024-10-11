@@ -79,8 +79,8 @@ type SessionEventRow struct {
 	UUID             string
 	ProjectID        uint32
 	SessionID        uint64
-	SessionCreatedAt time.Time
-	Timestamp        time.Time
+	SessionCreatedAt int64
+	Timestamp        int64
 	Event            string
 	Attributes       map[string]string
 }
@@ -115,6 +115,7 @@ func (client *Client) WriteSessionEventRows(ctx context.Context, eventRows []*Se
 			NewStruct(new(SessionEventRow)).
 			InsertInto(SessionEventsTable, chEvents...).
 			BuildWithFlavor(sqlbuilder.ClickHouse)
+		eventsSql, eventsArgs = replaceTimestampInserts(eventsSql, eventsArgs, map[int]bool{3: true, 4: true}, MicroSeconds)
 
 		return client.conn.Exec(chCtx, eventsSql, eventsArgs...)
 	}

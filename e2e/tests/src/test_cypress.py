@@ -4,7 +4,7 @@ from datetime import datetime, timedelta, timezone
 import requests
 
 from query_gql import (
-    GET_SESSIONS_CLICKHOUSE,
+    GET_SESSIONS,
     GET_SESSION,
     GET_SESSION_INTERVALS,
     GET_EVENT_CHUNKS,
@@ -14,7 +14,7 @@ from util import query
 
 
 def validate_sessions(data: dict[str, any]):
-    sessions = data["sessions_clickhouse"]["sessions"]
+    sessions = data["sessions"]["sessions"]
     assert sessions
 
 
@@ -43,13 +43,12 @@ def validate_session(data: dict[str, any]):
 def test_cypress_session_attributes(oauth_api):
     data = query(
         oauth_api,
-        "GetSessionsClickhouse",
-        GET_SESSIONS_CLICKHOUSE,
+        "GetSessions",
+        GET_SESSIONS,
         variables_fn=lambda ts: {
-            "query": {
-                "isAnd": True,
-                "rules": [],
-                "dateRange": {
+            "params": {
+                "query": "",
+                "date_range": {
                     "start_date": (datetime.now() - timedelta(days=1)).strftime(
                         "%Y-%m-%dT%H:%M:%S.%fZ"
                     ),
@@ -67,7 +66,7 @@ def test_cypress_session_attributes(oauth_api):
         validator=validate_sessions,
     )
 
-    for session in data["sessions_clickhouse"]["sessions"]:
+    for session in data["sessions"]["sessions"]:
         query(
             oauth_api,
             "GetSession",

@@ -2599,7 +2599,7 @@ query GetVisualization($id: ID!) {
 		timePreset
 		variables {
 			key
-			defaultValue
+			defaultValues
 			suggestionType
 			field
 		}
@@ -2611,13 +2611,17 @@ query GetVisualization($id: ID!) {
 			query
 			metric
 			functionType
-			groupByKey
+			groupByKeys
 			bucketByKey
 			bucketCount
 			bucketInterval
 			limit
 			limitFunctionType
 			limitMetric
+			funnelSteps {
+				title
+				query
+			}
 			display
 			nullHandling
 		}
@@ -2651,7 +2655,7 @@ query GetVisualizations(
 			timePreset
 			variables {
 				key
-				defaultValue
+				defaultValues
 				suggestionType
 				field
 			}
@@ -2663,13 +2667,17 @@ query GetVisualizations(
 				query
 				metric
 				functionType
-				groupByKey
+				groupByKeys
 				bucketByKey
 				bucketCount
 				bucketInterval
 				limit
 				limitFunctionType
 				limitMetric
+				funnelSteps {
+					title
+					query
+				}
 				display
 				nullHandling
 			}

@@ -1467,12 +1467,16 @@ mutation UpsertGraph($graph: GraphInput!) {
 		query
 		metric
 		functionType
-		groupByKey
+		groupByKeys
 		bucketByKey
 		bucketCount
 		limit
 		limitFunctionType
 		limitMetric
+		funnelSteps {
+			title
+			query
+		}
 		display
 		nullHandling
 	}

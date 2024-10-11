@@ -1994,6 +1994,11 @@ enum EmailOptOutCategory {
 	SessionDigests
 }
 
+type FunnelStep {
+	title: String!
+	query: String!
+}
+
 type Graph {
 	id: ID!
 	type: String!
@@ -2002,20 +2007,21 @@ type Graph {
 	query: String!
 	metric: String!
 	functionType: MetricAggregator!
-	groupByKey: String
+	groupByKeys: StringArray
 	bucketByKey: String
 	bucketCount: Int
 	bucketInterval: Int
 	limit: Int
 	limitFunctionType: MetricAggregator
 	limitMetric: String
+	funnelSteps: [FunnelStep!]
 	display: String
 	nullHandling: String
 }
 
 type Variable {
 	key: String!
-	defaultValue: String!
+	defaultValues: [String!]!
 	suggestionType: SuggestionType!
 	field: String
 }
@@ -2036,6 +2042,11 @@ type VisualizationsResponse {
 	results: [Visualization!]!
 }
 
+input FunnelStepInput {
+	title: String!
+	query: String!
+}
+
 input GraphInput {
 	id: ID
 	visualizationId: ID!
@@ -2046,20 +2057,21 @@ input GraphInput {
 	query: String!
 	metric: String!
 	functionType: MetricAggregator!
-	groupByKey: String
+	groupByKeys: StringArray
 	bucketByKey: String
 	bucketCount: Int
 	bucketInterval: Int
 	limit: Int
 	limitFunctionType: MetricAggregator
 	limitMetric: String
+	funnelSteps: [FunnelStepInput!]
 	display: String
 	nullHandling: String
 }
 
 input VariableInput {
 	key: String!
-	defaultValue: String!
+	defaultValues: [String!]!
 	suggestionType: SuggestionType!
 	field: String
 }
