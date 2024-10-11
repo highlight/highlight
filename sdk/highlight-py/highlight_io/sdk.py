@@ -369,8 +369,8 @@ class H(object):
             for k, v in headers.items():
                 if type(v) in [bool, str, bytes, int, float]:
                     attrs[f"http.{req}.headers.{k}"] = v
-        addedAttributes = flatten_dict(attrs, sep=".")
 
+        addedAttributes = flatten_dict(attrs, sep=".")
         span.add_event(name="exception", attributes=addedAttributes)
 
     @staticmethod
@@ -400,7 +400,7 @@ class H(object):
         span = otel_trace.get_current_span()
         if not span:
             raise RuntimeError("H.record_exception called without a span context")
-        
+
         attrs = {}
         if attributes:
             addedAttributes = flatten_dict(attributes, sep=".")
@@ -436,7 +436,7 @@ class H(object):
             )
             # record.created is sec but timestamp should be ns
             ts = int(record.created * 1000.0 * 1000.0 * 1000.0)
-            attributes = attributes.copy()
+            attributes = span.attributes.copy()
             attributes[SpanAttributes.CODE_FUNCTION] = record.funcName
             attributes[SpanAttributes.CODE_NAMESPACE] = record.module
             attributes[SpanAttributes.CODE_FILEPATH] = record.pathname
