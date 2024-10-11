@@ -28,7 +28,6 @@ export const FeatureConfig: { [key: number]: Config } = {
 	[Feature.PlayerNoChunkRemoval]: {
 		workspace: true,
 		percent: 0,
-		workspaceOverride: new Set<string>(['13623', '95052']),
 	},
 } as const
 
