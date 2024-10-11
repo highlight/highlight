@@ -361,8 +361,7 @@ class H(object):
             "http.response.detail": detail,
         }
         if attributes:
-            addedAttributes = flatten_dict(attributes, sep=".")
-            attrs.update(addedAttributes)
+            attrs.update(attributes)
         for req in ("request", "response"):
             headers = attrs.pop(f"http.{req}.headers", None)
             if not headers:
@@ -370,7 +369,9 @@ class H(object):
             for k, v in headers.items():
                 if type(v) in [bool, str, bytes, int, float]:
                     attrs[f"http.{req}.headers.{k}"] = v
-        span.add_event(name="exception", attributes=attrs)
+        addedAttributes = flatten_dict(attrs, sep=".")
+
+        span.add_event(name="exception", attributes=addedAttributes)
 
     @staticmethod
     def record_exception(
@@ -435,7 +436,7 @@ class H(object):
             )
             # record.created is sec but timestamp should be ns
             ts = int(record.created * 1000.0 * 1000.0 * 1000.0)
-            attributes = flatten_dict(span.attributes.copy(), sep=".")
+            attributes = attributes.copy()
             attributes[SpanAttributes.CODE_FUNCTION] = record.funcName
             attributes[SpanAttributes.CODE_NAMESPACE] = record.module
             attributes[SpanAttributes.CODE_FILEPATH] = record.pathname
@@ -444,8 +445,7 @@ class H(object):
             attributes["highlight.trace_id"] = request_id
             attributes["highlight.session_id"] = session_id
             if isinstance(record.args, dict):
-                addedAttributes = flatten_dict(record.args, sep=".")
-                attributes.update(addedAttributes)
+                attributes.update(record.args)
             elif isinstance(record.args, list):
                 attributes["args"] = record.args
             elif record.args:
@@ -463,6 +463,8 @@ class H(object):
                     attributes[key] = value
             except:
                 pass
+
+            attributes = flatten_dict(attributes, sep=".")
 
             if record.exc_info:
                 attributes["exception.detail"] = message
