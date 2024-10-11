@@ -37,6 +37,7 @@ interface SearchContext extends Partial<ReturnType<typeof useSearchTime>> {
 	setPage: (page: number) => void
 	results: any[]
 	totalCount: number
+	resultFormatted?: string
 	moreResults: number
 	resetMoreResults: () => void
 	histogramBucketSize?: DateHistogramBucketSize
@@ -64,6 +65,7 @@ interface Props extends Partial<ReturnType<typeof useSearchTime>> {
 	page?: SearchContext['page']
 	setPage?: SearchContext['setPage']
 	results?: SearchContext['results']
+	resultFormatted?: SearchContext['resultFormatted']
 	totalCount?: SearchContext['totalCount']
 	histogramBucketSize?: SearchContext['histogramBucketSize']
 	moreResults?: SearchContext['moreResults']
@@ -83,6 +85,7 @@ export const SearchContext: React.FC<Props> = ({
 	loading = false,
 	initialQuery,
 	results = [],
+	resultFormatted = '',
 	totalCount = 0,
 	moreResults = 0,
 	page = START_PAGE,
@@ -109,6 +112,7 @@ export const SearchContext: React.FC<Props> = ({
 		<SearchContextProvider
 			value={{
 				results,
+				resultFormatted,
 				totalCount,
 				moreResults,
 				histogramBucketSize,

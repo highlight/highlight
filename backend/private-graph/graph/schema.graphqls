@@ -1458,6 +1458,8 @@ type ErrorsHistogram {
 type SessionResults {
 	sessions: [Session!]!
 	totalCount: Int64!
+	totalLength: Int64!
+	totalActiveLength: Int64!
 }
 
 type ErrorResults {

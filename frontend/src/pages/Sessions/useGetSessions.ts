@@ -2,7 +2,7 @@ import { PAGE_SIZE } from '@components/SearchPagination/SearchPagination'
 import { useGetSessionsLazyQuery, useGetSessionsQuery } from '@graph/hooks'
 import { usePollQuery } from '@util/search'
 import moment from 'moment'
-import { useCallback } from 'react'
+import { useCallback, useMemo } from 'react'
 
 import { TIME_FORMAT } from '@/components/Search/SearchForm/constants'
 import { GetHistogramBucketSize } from '@/components/SearchResultsHistogram/SearchResultsHistogram'
@@ -92,6 +92,15 @@ export const useGetSessions = ({
 		maxResults: PAGE_SIZE,
 	})
 
+	const totalLength = useMemo(
+		() => moment.duration(data?.sessions?.totalLength || 0, 'ms'),
+		[data?.sessions?.totalLength],
+	)
+	const totalActiveLength = useMemo(
+		() => moment.duration(data?.sessions?.totalActiveLength || 0, 'ms'),
+		[data?.sessions?.totalActiveLength],
+	)
+
 	return {
 		sessions: data?.sessions?.sessions || [],
 		sessionSes: data?.sessions?.sessions.map((eg) => eg.secure_id) || [],
@@ -101,6 +110,8 @@ export const useGetSessions = ({
 		error,
 		refetch,
 		totalCount: data?.sessions?.totalCount || 0,
+		totalLength: totalLength,
+		totalActiveLength: totalActiveLength,
 		histogramBucketSize: determineHistogramBucketSize(startDate, endDate),
 		pollingExpired,
 	}

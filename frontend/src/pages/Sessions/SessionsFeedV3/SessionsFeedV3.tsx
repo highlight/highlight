@@ -30,7 +30,7 @@ import { useGlobalContext } from '@routers/ProjectRouter/context/GlobalContext'
 import { useParams } from '@util/react-router/useParams'
 import { roundFeedDate } from '@util/time'
 import clsx from 'clsx'
-import React, { useMemo } from 'react'
+import React from 'react'
 
 import { AdditionalFeedResults } from '@/components/FeedResults/FeedResults'
 import { useSearchContext } from '@/components/Search/SearchContext'
@@ -45,8 +45,6 @@ import { SessionFeedConfigurationContextProvider } from './context/SessionFeedCo
 import { useSessionFeedConfiguration } from './hooks/useSessionFeedConfiguration'
 import { SessionFeedConfigDropdown } from './SessionFeedConfigDropdown'
 import * as style from './SessionFeedV3.css'
-import { formatResult } from '@pages/Sessions/SessionsFeedV3/SessionFeedConfigDropdown/helpers'
-import moment from 'moment/moment'
 
 export const SessionsHistogram: React.FC<{ readonly?: boolean }> = React.memo(
 	({ readonly }) => {
@@ -144,6 +142,7 @@ export const SessionFeedV3 = React.memo(() => {
 		endDate,
 		selectedPreset,
 		results,
+		resultFormatted,
 		moreResults,
 		resetMoreResults,
 		page,
@@ -184,27 +183,6 @@ export const SessionFeedV3 = React.memo(() => {
 
 	const { presets, minDate } = useRetentionPresets(ProductType.Sessions)
 
-	const resultTotalTime = useMemo(
-		() =>
-			moment.duration(
-				results
-					.map((s: Maybe<Session>) => s?.length)
-					.reduce((a, b) => a + b, 0),
-				'ms',
-			),
-		[results],
-	)
-	const resultActiveTime = useMemo(
-		() =>
-			moment.duration(
-				results
-					.map((s: Maybe<Session>) => s?.active_length)
-					.reduce((a, b) => a + b, 0),
-				'ms',
-			),
-		[results],
-	)
-
 	return (
 		<SessionFeedConfigurationContextProvider
 			value={sessionFeedConfiguration}
@@ -231,12 +209,7 @@ export const SessionFeedV3 = React.memo(() => {
 					timeMode="fixed-range"
 					savedSegmentType={SavedSegmentEntityType.Session}
 					actions={actions}
-					resultFormatted={formatResult(
-						totalCount,
-						resultTotalTime,
-						resultActiveTime,
-						sessionFeedConfiguration.resultFormat,
-					)}
+					resultFormatted={resultFormatted}
 					loading={loading}
 					creatables={{
 						sample: {
