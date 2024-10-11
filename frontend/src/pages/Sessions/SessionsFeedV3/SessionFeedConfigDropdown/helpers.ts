@@ -76,19 +76,22 @@ export const getSortOrderDisplayName = (sortOrder: SESSION_FEED_SORT_ORDER) => {
 	}
 }
 
+const durationFormatter = (dur: moment.Duration) => {
+	return dur.humanize()
+}
+
 export const formatResult = (
 	count: number,
 	totalTime: moment.Duration | undefined,
 	activeTime: moment.Duration | undefined,
 	format: SESSION_FEED_RESULT_FORMAT,
 ) => {
-	const humanizeFormat = { m: 1440 }
 	if (format === 'Count/Length/ActiveLength' && totalTime && activeTime) {
-		return `${count.toLocaleString()} results, ${totalTime.humanize(humanizeFormat)} total, ${activeTime.humanize(humanizeFormat)} active`
+		return `${count.toLocaleString()} results, ${durationFormatter(totalTime)} total, ${durationFormatter(activeTime)} active`
 	} else if (format === 'Active Length' && activeTime) {
-		return activeTime.humanize(humanizeFormat)
+		return durationFormatter(activeTime)
 	} else if (format === 'Length' && totalTime) {
-		return totalTime.humanize(humanizeFormat)
+		return durationFormatter(totalTime)
 	}
 	return `${count.toLocaleString()} results`
 }

@@ -7,6 +7,7 @@ import {
 	SESSION_FEED_SORT_ORDER,
 } from '@/pages/Sessions/SessionsFeedV3/context/SessionFeedConfigurationContext'
 import useFeatureFlag, { Feature } from '@hooks/useFeatureFlag/useFeatureFlag'
+import { useEffect } from 'react'
 
 const LOCAL_STORAGE_KEY_PREFIX = 'highlightSessionFeedConfiguration'
 
@@ -29,8 +30,14 @@ export const useSessionFeedConfiguration = () => {
 	const [resultFormat, setResultFormat] =
 		useLocalStorage<SESSION_FEED_RESULT_FORMAT>(
 			`${LOCAL_STORAGE_KEY_PREFIX}ResultFormat`,
-			sessionResultsVerbose ? 'Count/Length/ActiveLength' : 'Count',
+			'Count',
 		)
+
+	useEffect(() => {
+		if (sessionResultsVerbose) {
+			setResultFormat('Count/Length/ActiveLength')
+		}
+	}, [sessionResultsVerbose, setResultFormat])
 
 	return {
 		datetimeFormat,
