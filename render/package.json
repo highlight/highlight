@@ -25,7 +25,7 @@
 		"pg": "^8.12.0",
 		"puppeteer-core": "22.15.0",
 		"puppeteer-screen-recorder": "^3.0.3",
-		"rrweb": "workspace:*"
+		"rrweb": "^2.0.0-alpha.17"
 	},
 	"devDependencies": {
 		"@types/aws-lambda": "^8.10.142",

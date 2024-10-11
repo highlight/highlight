@@ -1,4 +1,4 @@
-import { GenerateSecureID } from '@highlight-run/client/src/utils/secure-id'
+import { GenerateSecureID } from 'highlight.run'
 import Cookies from 'js-cookie'
 
 export const setAttributionData = () => {

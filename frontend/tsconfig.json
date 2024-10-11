@@ -34,8 +34,7 @@
 	},
 	"exclude": ["**/node_modules/**", "**/build/**"],
 	"references": [
-		{ "path": "../sdk/client" },
-		{ "path": "../sdk/firstload" },
+		{ "path": "../sdk/highlight-run"},
 		{ "path": "../rrweb/packages/rrweb" },
 		{ "path": "../rrweb/packages/types" }
 	]
