@@ -169,6 +169,7 @@ export const usePlayer = (
 
 	const unsubscribeSessionPayloadFn = useRef<(() => void) | null>()
 	const animationFrameID = useRef<number>(0)
+	const lookaheadLoading = useRef<boolean>(false)
 
 	const [
 		chunkEventsRef,
@@ -962,35 +963,45 @@ export const usePlayer = (
 	// ensures that chunks are loaded in advance during playback
 	// ensures we skip over inactivity periods
 	useEffect(() => {
-		if (
-			state.sessionMetadata.startTime === 0 ||
-			state.replayerState !== ReplayerState.Playing ||
-			sessionSecureId !== state.session_secure_id
-		) {
-			return
-		}
-		// If the player is in an inactive interval, skip to the end of it
-		let inactivityEnd: number | undefined
-		if (skipInactive && state.replayerState === ReplayerState.Playing) {
-			inactivityEnd = getInactivityEnd(state.time)
-			if (inactivityEnd !== undefined) {
+		;(async () => {
+			if (lookaheadLoading.current) {
 				log(
 					'PlayerHook.tsx',
-					'seeking to',
-					inactivityEnd,
-					'due to inactivity at',
-					state.time,
+					'skipping lookahead due to concurrent loading',
 				)
-				play(inactivityEnd).then()
 				return
 			}
-		}
-		ensureChunksLoaded(
-			state.time,
-			state.time + LOOKAHEAD_MS,
-			undefined,
-			getLastLoadedEventTimestamp() - state.time < LOOKAHEAD_MS,
-		).then()
+			lookaheadLoading.current = true
+			if (
+				state.sessionMetadata.startTime === 0 ||
+				state.replayerState !== ReplayerState.Playing ||
+				sessionSecureId !== state.session_secure_id
+			) {
+				return
+			}
+			// If the player is in an inactive interval, skip to the end of it
+			let inactivityEnd: number | undefined
+			if (skipInactive && state.replayerState === ReplayerState.Playing) {
+				inactivityEnd = getInactivityEnd(state.time)
+				if (inactivityEnd !== undefined) {
+					log(
+						'PlayerHook.tsx',
+						'seeking to',
+						inactivityEnd,
+						'due to inactivity at',
+						state.time,
+					)
+					play(inactivityEnd).then()
+					return
+				}
+			}
+			await ensureChunksLoaded(
+				state.time,
+				state.time + LOOKAHEAD_MS,
+				undefined,
+				getLastLoadedEventTimestamp() - state.time < LOOKAHEAD_MS,
+			)
+		})().finally(() => (lookaheadLoading.current = false))
 	}, [
 		state.time,
 		ensureChunksLoaded,
