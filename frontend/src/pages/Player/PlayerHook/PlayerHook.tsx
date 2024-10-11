@@ -397,6 +397,7 @@ export const usePlayer = (
 			if (lastChunkIdx !== undefined)
 				endIdx = Math.min(lastChunkIdx, endIdx)
 
+			let blockingLoad = false
 			const promises = []
 			log(
 				'PlayerHook.tsx:ensureChunksLoaded',
@@ -426,6 +427,7 @@ export const usePlayer = (
 								'needs blocking load for chunk',
 								i,
 							)
+							blockingLoad = true
 							dispatch({
 								type: PlayerActionType.startChunksLoad,
 							})
@@ -463,7 +465,7 @@ export const usePlayer = (
 					toRemove.delete(currentChunkIdx)
 				}
 				log('PlayerHook.tsx:ensureChunksLoaded', 'getChunksToRemove', {
-					after: chunkEventsRef.current,
+					before: chunkEventsRef.current,
 					toRemove,
 				})
 				toRemove.forEach((idx) => chunkEventsRemove(idx))
@@ -474,6 +476,10 @@ export const usePlayer = (
 				}
 				const loadedChunkIds = new Set<number>()
 				await Promise.all(promises)
+				log('PlayerHook.tsx:ensureChunksLoaded', 'getChunksToRemove', {
+					after: chunkEventsRef.current,
+					toRemove,
+				})
 				if (
 					target.current.time !== startTime ||
 					target.current.state !== (action ?? target.current.state)
@@ -504,7 +510,7 @@ export const usePlayer = (
 					'calling dispatchAction due to action',
 					{
 						startTime,
-						action,
+						action: blockingLoad ? state.replayerState : action,
 						target,
 						chunks: chunkEventsRef.current,
 					},
@@ -516,6 +522,7 @@ export const usePlayer = (
 			projectId,
 			state.session?.chunked,
 			state.sessionMetadata.startTime,
+			state.replayerState,
 			getChunkIdx,
 			eventChunksData?.event_chunks,
 			dispatchAction,
@@ -945,7 +952,6 @@ export const usePlayer = (
 		;(async () => {
 			if (
 				state.sessionMetadata.startTime === 0 ||
-				state.replayerState !== ReplayerState.Playing ||
 				sessionSecureId !== state.session_secure_id
 			) {
 				return
