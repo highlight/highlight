@@ -349,10 +349,11 @@ export const usePlayer = (
 					chunkResponse,
 				})
 				log('PlayerHook.tsx:loadEventChunk', 'set data for chunk', _i)
-				return {
-					idx: _i,
-					events: toHighlightEvents(await chunkResponse.json()),
-				}
+				// set before removing from load so that the `has` check doesn't race
+				chunkEventsSet(
+					_i,
+					toHighlightEvents(await chunkResponse.json()),
+				)
 			} catch (e: any) {
 				log(e, 'Error direct downloading session payload', {
 					chunk: `${_i}`,
@@ -360,9 +361,8 @@ export const usePlayer = (
 			} finally {
 				loadingChunks.current.delete(_i)
 			}
-			return { idx: -1, events: [] }
 		},
-		[fetchEventChunkURL, sessionSecureId],
+		[chunkEventsSet, fetchEventChunkURL, sessionSecureId],
 	)
 
 	// Ensure all chunks between startTs and endTs are loaded.
@@ -474,7 +474,7 @@ export const usePlayer = (
 					state: action ?? target.current.state,
 				}
 				const loadedChunkIds = new Set<number>()
-				const loadedChunks = await Promise.all(promises)
+				await Promise.all(promises)
 				if (
 					target.current.time !== startTime ||
 					target.current.state !== (action ?? target.current.state)
@@ -490,9 +490,6 @@ export const usePlayer = (
 						},
 					)
 					return
-				}
-				for (const { idx, events } of loadedChunks) {
-					chunkEventsSet(idx, events)
 				}
 				// update the replayer events
 				log(
@@ -527,7 +524,6 @@ export const usePlayer = (
 			loadEventChunk,
 			getChunksToRemove,
 			chunkEventsRemove,
-			chunkEventsSet,
 		],
 	)
 
@@ -689,32 +685,16 @@ export const usePlayer = (
 	useEffect(() => {
 		resetPlayer()
 		if (sessionSecureId && eventChunksData?.event_chunks?.length) {
-			loadEventChunk(0)
-				.then(({ events }) => {
-					chunkEventsSet(0, events)
-					dispatch({
-						type: PlayerActionType.onChunksLoad,
-						showPlayerMouseTail,
-						time: 0,
-						action: ReplayerState.Paused,
-						playerRef,
-					})
-					log('PlayerHook.tsx', 'initial chunk complete')
+			loadEventChunk(0).then(() => {
+				dispatch({
+					type: PlayerActionType.onChunksLoad,
+					showPlayerMouseTail,
+					time: 0,
+					action: ReplayerState.Paused,
+					playerRef,
 				})
-				.then(() => {
-					const nextChunk = eventChunksData.event_chunks.at(1)
-					if (nextChunk) {
-						loadEventChunk(nextChunk.chunk_index).then(
-							({ idx, events }) => {
-								chunkEventsSet(idx, events)
-								log(
-									'PlayerHook.tsx',
-									'next chunk load complete',
-								)
-							},
-						)
-					}
-				})
+				log('PlayerHook.tsx', 'initial chunk complete')
+			})
 		}
 	}, [
 		projectId,
@@ -991,7 +971,7 @@ export const usePlayer = (
 						'due to inactivity at',
 						state.time,
 					)
-					play(inactivityEnd).then()
+					await play(inactivityEnd)
 					return
 				}
 			}
