@@ -34,8 +34,9 @@ slug: ruby
   </div>
   <div className="right">
     <code>
-        Highlight.init('your-project-id', environment: 'production') do &#124;config&#124;
-            ...
+        Highlight.init('1jdkoe52', environment: Rails.env, otlp_endpoint: 'http:\//localhost:4318') do c
+          c.service_name = 'highlight-ruby-demo-backend'
+          c.service_version = '1.0.0'
         end
     </code>
   </div>
@@ -47,22 +48,23 @@ slug: ruby
     <p>Starts a new span with the given name and attributes.</p>
     <h6>Method Parameters</h6>
     <aside className="parameter">
-      <h5>ctx <code>context.Context</code> <code>required</code></h5>
-      <p>The context provided for starting the Highlight daemon.</p>
+      <h5>name <code>string</code> <code>required</code></h5>
+      <p>The name of the span.</p>
+      <h5>&block <code>required</code></h5>
+      <p>The block of code to be executed within the span.</p>
     </aside>
     <h6>Options</h6>
     <aside className="parameter">
-      <h5><code>WithServiceName</code> <code>optional</code></h5>
-      <p>The name of your app.</p>
-      <h5><code>WithServiceVersion</code> <code>optional</code></h5>
-      <p>The version of this app. We recommend setting this to the most recent deploy SHA of your app.</p>
+      <h5><code>attrs</code> <code>optional</code></h5>
+      <p>A hash of attributes to add to the span.</p>
     </aside>
   </div>
   <div className="right">
     <code>
-        Highlight.start_span('database_query', { db_name: 'users' }) do span
-            # Perform database query
-            span.add_event('query_completed')
+        Highlight.start_span('pages-home-fetch') do
+          uri = URI.parse('http:\//www.example.com/?test=1')
+          response = Net::HTTP.get_response(uri)
+          @data = response.body
         end
     </code>
   </div>
@@ -70,161 +72,46 @@ slug: ruby
 
 <section className="section">
   <div className="left">
-    <h3>highlight.Stop()</h3>
-    <p>Stop the Highlight client. Does not wait for all un-flushed data to be sent.</p>
-  </div>
-  <div className="right">
-    <code>
-        highlight.Stop()
-    </code>
-  </div>
-</section>
-
-<section className="section">
-  <div className="left">
-    <h3>highlight.SetProjectID()</h3>
-    <p>Configure your Highlight project ID. See the [setup page for your project](https://app.highlight.io/setup).</p>
+    <h3>Highlight.log()</h3>
+    <p>Logs a message with the specified level and attributes.</p>
     <h6>Method Parameters</h6>
     <aside className="parameter">
-      <h5>id <code>string</code> <code>required</code></h5>
-      <p>The project ID.</p>
+      <h5>level <code>string</code> <code>required</code></h5>
+      <p>The log level.</p>
+      <h5>message <code>string</code> <code>required</code></h5>
+      <p>The log message.</p>
+    </aside>
+    <h6>Options</h6>
+    <aside className="parameter">
+      <h5><code>attrs</code> <code>optional</code></h5>
+      <p>Additional attributes to include with the log.</p>
     </aside>
   </div>
   <div className="right">
     <code>
-        highlight.SetProjectID("<YOUR_PROJECT_ID>")
+        Highlight.log('info', 'hello, world!', { foo: 'bar' })
     </code>
   </div>
 </section>
 
 <section className="section">
   <div className="left">
-    <h3>highlight.RecordError()</h3>
-    <p>Record errors thrown in your backend.</p>
+    <h3>Highlight.exception()</h3>
+    <p>Records an exception with optional attributes.</p>
     <h6>Method Parameters</h6>
     <aside className="parameter">
-      <h5>ctx <code>context.Context</code> <code>required</code></h5>
-      <p>The request context which should have highlight parameters set from highlight.InterceptRequest().</p>
-      <h5>err <code>error</code> <code>required</code></h5>
-      <p>The error to report.</p>
-     <h5>tags <code>...struct{Key: string, Value: string}</code> <code>optional</code></h5>
-      <p>Additional tags to identify this error.</p>
+      <h5>error <code>string</code> <code>required</code></h5>
+      <p>The exception object to be recorded.</p>
     </aside>
-  </div>
-  <div className="right">
-    <code>
-        ctx := context.Background()
-        result, err := myOperation(ctx)
-        if err != nil {
-            highlight.RecordError(ctx, err)
-        }
-    </code>
-  </div>
-</section>
-
-<section className="section">
-  <div className="left">
-    <h3>highlight.RecordMetric()</h3>
-    <p>Record metrics from your backend to be visualized in Highlight charts.</p>
-    <h6>Method Parameters</h6>
+    <h6>Options</h6>
     <aside className="parameter">
-      <h5>ctx <code>context.Context</code> <code>required</code></h5>
-      <p>The request context which should have highlight parameters set from highlight.InterceptRequest().</p>
-      <h5>name <code>string</code> <code>required</code></h5>
-      <p>The metric name.</p>
-      <h5>value <code>float64</code> <code>required</code></h5>
-      <p>The metrics value.</p>
+      <h5><code>attrs</code> <code>optional</code></h5>
+      <p>Additional attributes to include with the exception.</p>
     </aside>
   </div>
   <div className="right">
     <code>
-        start := time.Now()
-        defer func() {
-            highlight.RecordMetric(
-                ctx, "my.operation.duration-s", time.Since(start).Seconds(),
-            )
-        }()
-    </code>
-  </div>
-</section>
-
-<section className="section">
-  <div className="left">
-    <h3>highlight.InterceptRequest()</h3>
-    <p>Called under the hood by our middleware web backend handlers to extract the request context.
-Use this if you are using the raw http server package and need to setup the Highlight context.</p>
-    <h6>Method Parameters</h6>
-    <aside className="parameter">
-      <h5>r <code>*http.Request</code> <code>required</code></h5>
-      <p>The incoming request.</p>
-      <h5>ctx <code>context.Context</code> <code>optional</code></h5>
-      <p>The incoming request context. Use InterceptRequestWithContext if you have an existing context.</p>
-    </aside>
-  </div>
-  <div className="right">
-    <code>
-        func Middleware(next http.Handler) http.Handler {
-            fn := func(w http.ResponseWriter, r *http.Request) {
-                ctx := highlight.InterceptRequest(r)
-                r = r.WithContext(ctx)
-                highlight.MarkBackendSetup(r.Context())
-                next.ServeHTTP(w, r)
-            }
-            return http.HandlerFunc(fn)
-        }
-    </code>
-  </div>
-</section>
-
-<section className="section">
-  <div className="left">
-    <h3>highlight.NewGraphqlTracer()</h3>
-    <p>An http middleware for tracing GraphQL servers.</p>
-    <h6>Configuration</h6>
-    <aside className="parameter">
-      <h5>highlight.NewGraphqlTracer().WithRequestFieldLogging()</h5>
-      <p>Emits highlight logs with details of each graphql operation.</p>
-    </aside>
-  </div>
-  <div className="right">
-    <code>
-        import ghandler "github.com/99designs/gqlgen/graphql/handler"
-        privateServer := ghandler.New(privategen.NewExecutableSchema(...)
-        server.Use(highlight.NewGraphqlTracer(string(util.PrivateGraph)).WithRequestFieldLogging())
-    </code>
-  </div>
-</section>
-
-<section className="section">
-  <div className="left">
-    <h3>highlight.GraphQLRecoverFunc()</h3>
-    <p>A gqlgen recover function to capture panics.</p>
-    <h6>Configuration</h6>
-  </div>
-  <div className="right">
-    <code>
-        import ghandler "github.com/99designs/gqlgen/graphql/handler"
-        privateServer := ghandler.New(privategen.NewExecutableSchema(...)
-        server.SetRecoverFunc(highlight.GraphQLRecoverFunc())
-    </code>
-  </div>
-</section>
-
-<section className="section">
-  <div className="left">
-    <h3>highlight.GraphQLErrorPresenter()</h3>
-    <p>A gqlgen error presenter.</p>
-    <h6>Configuration</h6>
-    <aside className="parameter">
-      <h5>service<code>string</code> <code>required</code></h5>
-      <p>The name of the service.</p>
-    </aside>
-  </div>
-  <div className="right">
-    <code>
-        import ghandler "github.com/99designs/gqlgen/graphql/handler"
-        privateServer := ghandler.New(privategen.NewExecutableSchema(...)
-        privateServer.SetErrorPresenter(highlight.GraphQLErrorPresenter("private"))
+        Highlight.exception(e, { foo: 'bar' })
     </code>
   </div>
 </section>
