@@ -684,16 +684,25 @@ export const usePlayer = (
 	useEffect(() => {
 		resetPlayer()
 		if (sessionSecureId && eventChunksData?.event_chunks?.length) {
-			loadEventChunk(0).then(() => {
-				dispatch({
-					type: PlayerActionType.onChunksLoad,
-					showPlayerMouseTail,
-					time: 0,
-					action: ReplayerState.Paused,
-					playerRef,
+			loadEventChunk(0)
+				.then(() => {
+					dispatch({
+						type: PlayerActionType.onChunksLoad,
+						showPlayerMouseTail,
+						time: 0,
+						action: ReplayerState.Paused,
+						playerRef,
+					})
+					log('PlayerHook.tsx', 'initial chunk complete')
 				})
-				log('PlayerHook.tsx', 'initial chunk complete')
-			})
+				.then(() => {
+					const nextChunk = eventChunksData.event_chunks.at(1)
+					if (nextChunk) {
+						loadEventChunk(nextChunk.chunk_index).then(() => {
+							log('PlayerHook.tsx', 'next chunk load complete')
+						})
+					}
+				})
 		}
 	}, [
 		projectId,
