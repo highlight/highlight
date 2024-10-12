@@ -1041,8 +1041,7 @@ export const Search: React.FC<{
 							)}
 							{(activeTab === 'filters' ||
 								(['recent', 'most'].includes(activeTab) &&
-									showValues &&
-									showOperators)) &&
+									(showValues || showOperators))) &&
 								visibleItems.map((key, index) => {
 									const badgeText =
 										getSearchResultBadgeText(key)
