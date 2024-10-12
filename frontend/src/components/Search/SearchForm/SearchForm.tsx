@@ -402,6 +402,7 @@ export const Search: React.FC<{
 
 	const showHistoryList =
 		activeTab === 'recent' ? recentSearches : mostSearched
+
 	useEffect(() => {
 		// necessary to update the combobox with the URL state
 		setQuery(initialQuery.trim() === '' ? '' : initialQuery)
@@ -434,6 +435,8 @@ export const Search: React.FC<{
 	// Show operators when we have an exact match for a key
 	const keyMatch = visibleItems.find((item) => item.name === activePart.text)
 	const showOperators = !!keyMatch
+
+	console.log('visibleItems===>', visibleItems)
 
 	if (showOperators) {
 		let operators = [] as string[]
@@ -905,21 +908,6 @@ export const Search: React.FC<{
 								</Combobox.Item>
 							</Combobox.Group>
 						)}
-						{loading && (
-							<Combobox.Group
-								className={styles.comboboxGroup}
-								store={comboboxStore}
-							>
-								<Combobox.Item
-									className={styles.comboboxItem}
-									disabled
-								>
-									<Text color="secondaryContentText">
-										Loading...
-									</Text>
-								</Combobox.Item>
-							</Combobox.Group>
-						)}
 						{/* If we want to move this to separate compoent. we can do for now placing it here */}
 						<Combobox.Group
 							className={styles.comboboxGroup}
@@ -931,42 +919,30 @@ export const Search: React.FC<{
 										<Box px="10" py="6">
 											<div className="mb-4 flex space-x-2">
 												<Button
-													kind="secondary"
 													trackingId="filters_click"
 													onClick={() =>
 														setActiveTab('filters')
 													}
-													className={`flex-1 rounded-md py-2 text-center ${
-														activeTab === 'recent'
+													className={`rounded-md text-center ${
+														activeTab === 'filters'
 															? 'bg-blue-500 text-white'
 															: 'bg-gray-200 text-gray-800'
 													}`}
 												>
-													<Text
-														color="moderate"
-														size="xxSmall"
-													>
-														Filters
-													</Text>
+													Filters
 												</Button>
 												<Button
-													kind="secondary"
 													trackingId="history_recent_click"
 													onClick={() =>
 														setActiveTab('recent')
 													}
-													className={`flex-1 rounded-md py-2 text-center ${
+													className={`rounded-md text-center ${
 														activeTab === 'recent'
 															? 'bg-blue-500 text-white'
 															: 'bg-gray-200 text-gray-800'
 													}`}
 												>
-													<Text
-														color="moderate"
-														size="xxSmall"
-													>
-														Recent History
-													</Text>
+													Recent History
 												</Button>
 												{/* Not needed, if asked we can enabled it */}
 												{/* <Button
@@ -991,7 +967,8 @@ export const Search: React.FC<{
 											</div>
 										</Box>
 									</Combobox.GroupLabel>
-									{showHistoryList?.length > 0 &&
+									{activeTab !== 'filters' &&
+									showHistoryList?.length > 0 &&
 									!historyLoading ? (
 										showHistoryList.map(
 											(
@@ -1073,6 +1050,21 @@ export const Search: React.FC<{
 									)
 								})}
 						</Combobox.Group>
+						{loading && (
+							<Combobox.Group
+								className={styles.comboboxGroup}
+								store={comboboxStore}
+							>
+								<Combobox.Item
+									className={styles.comboboxItem}
+									disabled
+								>
+									<Text color="secondaryContentText">
+										Loading...
+									</Text>
+								</Combobox.Item>
+							</Combobox.Group>
+						)}
 					</Box>
 					<Box
 						bbr="8"
