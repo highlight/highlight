@@ -1,3 +1,5 @@
+import { useEffect, useState } from 'react'
+import { useLocation } from 'react-router-dom'
 import {
 	DateRangePreset,
 	EXTENDED_TIME_PRESETS,
@@ -108,5 +110,87 @@ export const useRetentionPresets = (productType?: ProductType) => {
 	return {
 		presets,
 		minDate,
+	}
+}
+
+export interface SearchEntry {
+	query: string
+	timestamp: number
+	count: number
+	title?: string
+}
+
+const MAX_HISTORY_LENGTH = 10
+
+function getRecentSearches(moduleName: string): SearchEntry[] {
+	const key = `${moduleName}_searchHistory`
+	const history: SearchEntry[] = JSON.parse(localStorage.getItem(key) || '[]')
+	return history
+		.sort((a, b) => b.timestamp - a.timestamp)
+		.slice(0, MAX_HISTORY_LENGTH)
+}
+
+function getMostSearchedQueries(moduleName: string): SearchEntry[] {
+	const key = `${moduleName}_searchHistory`
+	const history: SearchEntry[] = JSON.parse(localStorage.getItem(key) || '[]')
+	return history
+		.sort((a, b) => b.count - a.count)
+		.slice(0, MAX_HISTORY_LENGTH)
+}
+
+function saveSearchQuery(moduleName: string, searchQuery: string): void {
+	const key = `${moduleName}_searchHistory`
+	let history: SearchEntry[] = JSON.parse(localStorage.getItem(key) || '[]')
+
+	const existingQuery = history.find((item) => item.query === searchQuery)
+
+	if (existingQuery) {
+		existingQuery.timestamp = Date.now()
+		existingQuery.count += 1
+	} else {
+		history.push({ query: searchQuery, timestamp: Date.now(), count: 1 })
+	}
+
+	// Limit the history length
+	if (history.length > MAX_HISTORY_LENGTH) {
+		history = history.slice(0, MAX_HISTORY_LENGTH)
+	}
+
+	localStorage.setItem(key, JSON.stringify(history))
+}
+
+export const useSearchHistory = () => {
+	const [recentSearches, setRecentSearches] = useState<SearchEntry[]>([])
+	const [mostSearched, setMostSearched] = useState<SearchEntry[]>([])
+	const [activeTab, setActiveTab] = useState<'recent' | 'most' | 'filters'>(
+		'recent',
+	)
+	const [historyLoading, setHisotryLoading] = useState(true)
+	const locaiton = useLocation()
+	const pathName = locaiton?.pathname
+
+	useEffect(() => {
+		setHisotryLoading(true)
+		setRecentSearches(getRecentSearches(pathName))
+		setMostSearched(getMostSearchedQueries(pathName))
+		setActiveTab('filters')
+		setHisotryLoading(false)
+	}, [pathName])
+
+	const handleSearch = (query: string) => {
+		if (query.trim() !== '') {
+			saveSearchQuery(pathName, query)
+			setRecentSearches(getRecentSearches(pathName))
+			setMostSearched(getMostSearchedQueries(pathName))
+		}
+	}
+
+	return {
+		recentSearches,
+		mostSearched,
+		handleSearch,
+		activeTab,
+		setActiveTab,
+		historyLoading,
 	}
 }

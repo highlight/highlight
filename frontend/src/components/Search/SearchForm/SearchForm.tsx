@@ -57,6 +57,7 @@ import { ProductType, SavedSegmentEntityType } from '@/graph/generated/schemas'
 import { useDebounce } from '@/hooks/useDebounce'
 import { useApplicationContext } from '@/routers/AppRouter/context/ApplicationContext'
 import { formatNumber } from '@/util/numbers'
+import { useSearchHistory, SearchEntry } from './hooks'
 
 import { AiSearch } from './AiSearch'
 import * as styles from './SearchForm.css'
@@ -390,7 +391,17 @@ export const Search: React.FC<{
 	const { debouncedValue, setDebouncedValue } = useDebounce<string>(
 		activePart.value,
 	)
+	const {
+		recentSearches,
+		mostSearched,
+		handleSearch,
+		activeTab,
+		setActiveTab,
+		historyLoading,
+	} = useSearchHistory()
 
+	const showHistoryList =
+		activeTab === 'recent' ? recentSearches : mostSearched
 	useEffect(() => {
 		// necessary to update the combobox with the URL state
 		setQuery(initialQuery.trim() === '' ? '' : initialQuery)
@@ -465,6 +476,9 @@ export const Search: React.FC<{
 	const isDirty = query !== ''
 
 	const submitQuery = (query: string) => {
+		if (query) {
+			handleSearch?.(query)
+		}
 		onSubmit(query)
 	}
 
@@ -906,24 +920,130 @@ export const Search: React.FC<{
 								</Combobox.Item>
 							</Combobox.Group>
 						)}
-						{visibleItems.length > 0 && (
-							<Combobox.Group
-								className={styles.comboboxGroup}
-								store={comboboxStore}
-							>
-								{!showValues && !showOperators && (
+						{/* If we want to move this to separate compoent. we can do for now placing it here */}
+						<Combobox.Group
+							className={styles.comboboxGroup}
+							store={comboboxStore}
+						>
+							{!showValues && !showOperators && (
+								<>
 									<Combobox.GroupLabel store={comboboxStore}>
 										<Box px="10" py="6">
-											<Text
-												color="moderate"
-												size="xxSmall"
-											>
-												Filters
-											</Text>
+											<div className="mb-4 flex space-x-2">
+												<Button
+													kind="secondary"
+													trackingId="filters_click"
+													onClick={() =>
+														setActiveTab('filters')
+													}
+													className={`flex-1 rounded-md py-2 text-center ${
+														activeTab === 'recent'
+															? 'bg-blue-500 text-white'
+															: 'bg-gray-200 text-gray-800'
+													}`}
+												>
+													<Text
+														color="moderate"
+														size="xxSmall"
+													>
+														Filters
+													</Text>
+												</Button>
+												<Button
+													kind="secondary"
+													trackingId="history_recent_click"
+													onClick={() =>
+														setActiveTab('recent')
+													}
+													className={`flex-1 rounded-md py-2 text-center ${
+														activeTab === 'recent'
+															? 'bg-blue-500 text-white'
+															: 'bg-gray-200 text-gray-800'
+													}`}
+												>
+													<Text
+														color="moderate"
+														size="xxSmall"
+													>
+														Recent History
+													</Text>
+												</Button>
+												{/* Not needed, if asked we can enabled it */}
+												{/* <Button
+													kind="secondary"
+													trackingId="history_most_searched_click"
+													onClick={() =>
+														setActiveTab('most')
+													}
+													className={`flex-1 rounded-md py-2 text-center ${
+														activeTab == 'most'
+															? 'bg-blue-500 text-white'
+															: 'bg-gray-200 text-gray-800'
+													}`}
+												>
+													<Text
+														color="moderate"
+														size="xxSmall"
+													>
+														Most Searched
+													</Text>
+												</Button> */}
+											</div>
 										</Box>
 									</Combobox.GroupLabel>
-								)}
-								{visibleItems.map((key, index) => {
+									{showHistoryList?.length > 0 &&
+									!historyLoading ? (
+										showHistoryList.map(
+											(
+												data: SearchEntry,
+												index: number,
+											) => {
+												return (
+													<Combobox.Item
+														className={
+															styles.comboboxItem
+														}
+														key={index}
+														onClick={() =>
+															setQuery(data.query)
+														}
+														store={comboboxStore}
+														value={data.query}
+														hideOnClick={false}
+														setValueOnClick={false}
+														title={data.title}
+													>
+														<Text
+															color="secondaryContentText"
+															lines="1"
+															family="monospace"
+														>
+															{data.query}
+														</Text>
+														<Badge label="History" />
+													</Combobox.Item>
+												)
+											},
+										)
+									) : !historyLoading ? (
+										<Text color="secondaryContentText">
+											{activeTab === 'recent' &&
+												'No recent searches'}
+											{activeTab === 'most' &&
+												'No most searched queries'}
+										</Text>
+									) : (
+										<Text color="secondaryContentText">
+											Loading...
+										</Text>
+									)}
+								</>
+							)}
+							{(activeTab === 'filters' ||
+								(['recent', 'most'].includes(activeTab) &&
+									showValues &&
+									showOperators)) &&
+								visibleItems.map((key, index) => {
 									const badgeText =
 										getSearchResultBadgeText(key)
 
@@ -953,8 +1073,7 @@ export const Search: React.FC<{
 										</Combobox.Item>
 									)
 								})}
-							</Combobox.Group>
-						)}
+						</Combobox.Group>
 					</Box>
 					<Box
 						bbr="8"
