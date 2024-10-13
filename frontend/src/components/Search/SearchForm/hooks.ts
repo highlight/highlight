@@ -140,7 +140,11 @@ function getMostSearchedQueries(moduleName: string): SearchEntry[] {
 		.slice(0, MAX_HISTORY_LENGTH)
 }
 
-function saveSearchQuery(moduleName: string, searchQuery: string, queryParts: SearchExpression[]): void {
+function saveSearchQuery(
+	moduleName: string,
+	searchQuery: string,
+	queryParts: SearchExpression[],
+): void {
 	const key = `${moduleName}_searchHistory`
 	let history: SearchEntry[] = JSON.parse(localStorage.getItem(key) || '[]')
 
@@ -150,7 +154,12 @@ function saveSearchQuery(moduleName: string, searchQuery: string, queryParts: Se
 		existingQuery.timestamp = Date.now()
 		existingQuery.count += 1
 	} else {
-		history.push({ query: searchQuery, timestamp: Date.now(), count: 1 , queryParts: queryParts})
+		history.push({
+			query: searchQuery,
+			timestamp: Date.now(),
+			count: 1,
+			queryParts: queryParts,
+		})
 	}
 
 	// Limit the history length
@@ -179,7 +188,7 @@ export const useSearchHistory = () => {
 		setHisotryLoading(false)
 	}, [pathName])
 
-	const handleSearch = (query: string, queryParts:SearchExpression[]) => {
+	const handleSearch = (query: string, queryParts: SearchExpression[]) => {
 		if (query.trim() !== '') {
 			saveSearchQuery(pathName, query, queryParts)
 			setRecentSearches(getRecentSearches(pathName))

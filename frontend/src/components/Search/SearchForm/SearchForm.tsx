@@ -666,9 +666,12 @@ export const Search: React.FC<{
 		comboboxStore.setState('moves', 0)
 	}
 
-	const handleHistorySelction = (query:string, queryParts:SearchExpression[])=>{
+	const handleHistorySelction = (
+		query: string,
+		queryParts: SearchExpression[],
+	) => {
 		const newQuery = stringifySearchQuery(queryParts)
-		const newCursorPosition = query.length;
+		const newCursorPosition = query.length
 		startTransition(() => {
 			setCursorIndex(newCursorPosition)
 			submitQuery(newQuery)
@@ -989,10 +992,12 @@ export const Search: React.FC<{
 															styles.comboboxItem
 														}
 														key={index}
-														onClick={() =>{
-															handleHistorySelction(data.query, data.queryParts);
-														}
-														}
+														onClick={() => {
+															handleHistorySelction(
+																data.query,
+																data.queryParts,
+															)
+														}}
 														store={comboboxStore}
 														value={data.query}
 														hideOnClick={false}
