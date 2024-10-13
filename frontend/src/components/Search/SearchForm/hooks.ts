@@ -11,6 +11,7 @@ import moment from 'moment'
 import { ProductType, RetentionPeriod } from '@/graph/generated/schemas'
 import { useApplicationContext } from '@/routers/AppRouter/context/ApplicationContext'
 import { getRetentionDays } from '@/pages/Billing/utils/utils'
+import { SearchExpression } from '../Parser/listener'
 
 export const useRetentionPresets = (productType?: ProductType) => {
 	const { currentWorkspace } = useApplicationContext()
@@ -118,6 +119,7 @@ export interface SearchEntry {
 	timestamp: number
 	count: number
 	title?: string
+	queryParts: SearchExpression[]
 }
 
 const MAX_HISTORY_LENGTH = 10
@@ -138,7 +140,7 @@ function getMostSearchedQueries(moduleName: string): SearchEntry[] {
 		.slice(0, MAX_HISTORY_LENGTH)
 }
 
-function saveSearchQuery(moduleName: string, searchQuery: string): void {
+function saveSearchQuery(moduleName: string, searchQuery: string, queryParts: SearchExpression[]): void {
 	const key = `${moduleName}_searchHistory`
 	let history: SearchEntry[] = JSON.parse(localStorage.getItem(key) || '[]')
 
@@ -148,7 +150,7 @@ function saveSearchQuery(moduleName: string, searchQuery: string): void {
 		existingQuery.timestamp = Date.now()
 		existingQuery.count += 1
 	} else {
-		history.push({ query: searchQuery, timestamp: Date.now(), count: 1 })
+		history.push({ query: searchQuery, timestamp: Date.now(), count: 1 , queryParts: queryParts})
 	}
 
 	// Limit the history length
@@ -177,9 +179,9 @@ export const useSearchHistory = () => {
 		setHisotryLoading(false)
 	}, [pathName])
 
-	const handleSearch = (query: string) => {
+	const handleSearch = (query: string, queryParts:SearchExpression[]) => {
 		if (query.trim() !== '') {
-			saveSearchQuery(pathName, query)
+			saveSearchQuery(pathName, query, queryParts)
 			setRecentSearches(getRecentSearches(pathName))
 			setMostSearched(getMostSearchedQueries(pathName))
 		}

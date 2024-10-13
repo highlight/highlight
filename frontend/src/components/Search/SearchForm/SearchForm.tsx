@@ -480,7 +480,7 @@ export const Search: React.FC<{
 
 	const submitQuery = (query: string) => {
 		if (query) {
-			handleSearch?.(query)
+			handleSearch?.(query, queryParts)
 		}
 		onSubmit(query)
 	}
@@ -662,6 +662,18 @@ export const Search: React.FC<{
 			}
 		})
 
+		comboboxStore.setActiveId(null)
+		comboboxStore.setState('moves', 0)
+	}
+
+	const handleHistorySelction = (query:string, queryParts:SearchExpression[])=>{
+		const newQuery = stringifySearchQuery(queryParts)
+		const newCursorPosition = query.length;
+		startTransition(() => {
+			setCursorIndex(newCursorPosition)
+			submitQuery(newQuery)
+			comboboxStore.setOpen(false)
+		})
 		comboboxStore.setActiveId(null)
 		comboboxStore.setState('moves', 0)
 	}
@@ -923,11 +935,9 @@ export const Search: React.FC<{
 													onClick={() =>
 														setActiveTab('filters')
 													}
-													className={`rounded-md text-center ${
-														activeTab === 'filters'
-															? 'bg-blue-500 text-white'
-															: 'bg-gray-200 text-gray-800'
-													}`}
+													size="xSmall"
+													kind="secondary"
+													emphasis="high"
 												>
 													Filters
 												</Button>
@@ -936,11 +946,9 @@ export const Search: React.FC<{
 													onClick={() =>
 														setActiveTab('recent')
 													}
-													className={`rounded-md text-center ${
-														activeTab === 'recent'
-															? 'bg-blue-500 text-white'
-															: 'bg-gray-200 text-gray-800'
-													}`}
+													size="xSmall"
+													kind="secondary"
+													emphasis="high"
 												>
 													Recent History
 												</Button>
@@ -981,8 +989,9 @@ export const Search: React.FC<{
 															styles.comboboxItem
 														}
 														key={index}
-														onClick={() =>
-															setQuery(data.query)
+														onClick={() =>{
+															handleHistorySelction(data.query, data.queryParts);
+														}
 														}
 														store={comboboxStore}
 														value={data.query}
