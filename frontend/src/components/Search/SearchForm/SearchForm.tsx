@@ -480,7 +480,14 @@ export const Search: React.FC<{
 
 	const submitQuery = (query: string) => {
 		if (query) {
-			handleSearch?.(query, queryParts)
+			try {
+				const newQueryParts = JSON.parse(
+					JSON.stringify(queryParts || []),
+				)
+				handleSearch?.(query, newQueryParts)
+			} catch (err) {
+				//do nothing
+			}
 		}
 		onSubmit(query)
 	}
