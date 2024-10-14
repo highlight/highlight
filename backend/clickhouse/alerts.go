@@ -77,7 +77,17 @@ func (client *Client) WriteAlertStateChanges(ctx context.Context, projectId int,
 	return client.conn.Exec(chCtx, sql, args...)
 }
 
-func (client *Client) GetAlertingAlertStateChanges(ctx context.Context, projectId int, alertId int, startDate time.Time, endDate time.Time) ([]*modelInputs.AlertStateChange, error) {
+func (client *Client) GetAlertingAlertStateChanges(ctx context.Context, projectId int, alertId int, startDate time.Time, endDate time.Time, pageParam *int, countParam *int) ([]*modelInputs.AlertStateChange, int64, error) {
+	page := 1
+	if pageParam != nil {
+		page = *pageParam
+	}
+	count := 10
+	if countParam != nil {
+		count = *countParam
+	}
+	offset := (page - 1) * count
+
 	scanAlertStateChange := func(rows driver.Rows) (*modelInputs.AlertStateChange, error) {
 		var result AlertStateChangeRow
 		if err := rows.ScanStruct(&result); err != nil {
@@ -93,6 +103,23 @@ func (client *Client) GetAlertingAlertStateChanges(ctx context.Context, projectI
 		}, nil
 	}
 
+	totalSb := sqlbuilder.NewSelectBuilder()
+	totalSb.Select("count(*) as total").
+		From(AlertStateChangesTable).
+		Where(totalSb.Equal("ProjectID", projectId)).
+		Where(totalSb.Equal("AlertID", alertId)).
+		Where(totalSb.Equal("State", modelInputs.AlertStateAlerting)).
+		Where(totalSb.GreaterEqualThan("Timestamp", startDate)).
+		Where(totalSb.LessEqualThan("Timestamp", endDate))
+
+	totalSql, totalArgs := totalSb.BuildWithFlavor(sqlbuilder.ClickHouse)
+
+	row := client.conn.QueryRow(ctx, totalSql, totalArgs...)
+	var totalCount uint64
+	if err := row.Scan(&totalCount); err != nil {
+		return nil, 0, err
+	}
+
 	sb := sqlbuilder.NewSelectBuilder()
 	sb.Select("ProjectID", "AlertID", "Timestamp", "State", "GroupByKey").
 		From(AlertStateChangesTable).
@@ -100,25 +127,28 @@ func (client *Client) GetAlertingAlertStateChanges(ctx context.Context, projectI
 		Where(sb.Equal("AlertID", alertId)).
 		Where(sb.Equal("State", modelInputs.AlertStateAlerting)).
 		Where(sb.GreaterEqualThan("Timestamp", startDate)).
-		Where(sb.LessEqualThan("Timestamp", endDate))
+		Where(sb.LessEqualThan("Timestamp", endDate)).
+		OrderBy("Timestamp DESC").
+		Offset(offset).
+		Limit(count)
 
 	sql, args := sb.BuildWithFlavor(sqlbuilder.ClickHouse)
 	rows, err := client.conn.Query(ctx, sql, args...)
 	if err != nil {
-		return nil, err
+		return nil, 0, err
 	}
 
 	results := []*modelInputs.AlertStateChange{}
 	for rows.Next() {
 		result, err := scanAlertStateChange(rows)
 		if err != nil {
-			return nil, err
+			return nil, 0, err
 		}
 
 		results = append(results, result)
 	}
 
-	return results, nil
+	return results, int64(totalCount), nil
 }
 
 func (client *Client) GetLastAlertStateChanges(ctx context.Context, projectId int, alertId int) ([]*modelInputs.AlertStateChange, error) {

@@ -1656,14 +1656,9 @@ type AlertStateChange {
 	groupByKey: String!
 }
 
-type AlertStateChangeEdge implements Edge {
-	cursor: String!
-	node: AlertStateChange!
-}
-
-type AlertStateChangeConnection implements Connection {
-	edges: [AlertStateChangeEdge!]!
-	pageInfo: PageInfo!
+type AlertStateChangeResults {
+	alertStateChanges: [AlertStateChange]!
+	totalCount: Int64!
 }
 
 type SanitizedSlackChannel {
@@ -2254,7 +2249,9 @@ type Query {
 		alert_id: ID!
 		start_date: Timestamp!
 		end_date: Timestamp!
-	): [AlertStateChange]!
+		page: Int
+		count: Int
+	): AlertStateChangeResults!
 	last_alert_state_changes(alert_id: ID!): [AlertStateChange]!
 	error_alerts(project_id: ID!): [ErrorAlert]!
 	new_user_alerts(project_id: ID!): [SessionAlert]

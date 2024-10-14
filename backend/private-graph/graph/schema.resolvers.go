@@ -7164,7 +7164,7 @@ func (r *queryResolver) Alert(ctx context.Context, id int) (*model.Alert, error)
 }
 
 // AlertingAlertStateChanges is the resolver for the alerting_alert_state_changes field.
-func (r *queryResolver) AlertingAlertStateChanges(ctx context.Context, alertID int, startDate time.Time, endDate time.Time) ([]*modelInputs.AlertStateChange, error) {
+func (r *queryResolver) AlertingAlertStateChanges(ctx context.Context, alertID int, startDate time.Time, endDate time.Time, page *int, count *int) (*modelInputs.AlertStateChangeResults, error) {
 	var alert *model.Alert
 	if err := r.DB.WithContext(ctx).Model(&model.Alert{}).Where("id = ?", alertID).Find(&alert).Error; err != nil {
 		return nil, err
@@ -7175,7 +7175,12 @@ func (r *queryResolver) AlertingAlertStateChanges(ctx context.Context, alertID i
 		return nil, err
 	}
 
-	return r.ClickhouseClient.GetAlertingAlertStateChanges(ctx, alert.ProjectID, alertID, startDate, endDate)
+	alertStateChanges, total, err := r.ClickhouseClient.GetAlertingAlertStateChanges(ctx, alert.ProjectID, alertID, startDate, endDate, page, count)
+
+	return &modelInputs.AlertStateChangeResults{
+		AlertStateChanges: alertStateChanges,
+		TotalCount:        total,
+	}, nil
 }
 
 // LastAlertStateChanges is the resolver for the last_alert_state_changes field.

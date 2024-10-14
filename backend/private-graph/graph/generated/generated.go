@@ -170,14 +170,9 @@ type ComplexityRoot struct {
 		Timestamp  func(childComplexity int) int
 	}
 
-	AlertStateChangeConnection struct {
-		Edges    func(childComplexity int) int
-		PageInfo func(childComplexity int) int
-	}
-
-	AlertStateChangeEdge struct {
-		Cursor func(childComplexity int) int
-		Node   func(childComplexity int) int
+	AlertStateChangeResults struct {
+		AlertStateChanges func(childComplexity int) int
+		TotalCount        func(childComplexity int) int
 	}
 
 	AllProjectSettings struct {
@@ -1006,7 +1001,7 @@ type ComplexityRoot struct {
 		AdminRoleByProject               func(childComplexity int, projectID int) int
 		AiQuerySuggestion                func(childComplexity int, timeZone string, projectID int, productType model.ProductType, query string) int
 		Alert                            func(childComplexity int, id int) int
-		AlertingAlertStateChanges        func(childComplexity int, alertID int, startDate time.Time, endDate time.Time) int
+		AlertingAlertStateChanges        func(childComplexity int, alertID int, startDate time.Time, endDate time.Time, page *int, count *int) int
 		Alerts                           func(childComplexity int, projectID int) int
 		AverageSessionLength             func(childComplexity int, projectID int, lookbackDays float64) int
 		BillingDetails                   func(childComplexity int, workspaceID int) int
@@ -1929,7 +1924,7 @@ type QueryResolver interface {
 	JoinableWorkspaces(ctx context.Context) ([]*model1.Workspace, error)
 	Alerts(ctx context.Context, projectID int) ([]*model1.Alert, error)
 	Alert(ctx context.Context, id int) (*model1.Alert, error)
-	AlertingAlertStateChanges(ctx context.Context, alertID int, startDate time.Time, endDate time.Time) ([]*model.AlertStateChange, error)
+	AlertingAlertStateChanges(ctx context.Context, alertID int, startDate time.Time, endDate time.Time, page *int, count *int) (*model.AlertStateChangeResults, error)
 	LastAlertStateChanges(ctx context.Context, alertID int) ([]*model.AlertStateChange, error)
 	ErrorAlerts(ctx context.Context, projectID int) ([]*model1.ErrorAlert, error)
 	NewUserAlerts(ctx context.Context, projectID int) ([]*model1.SessionAlert, error)
@@ -2631,33 +2626,19 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.AlertStateChange.Timestamp(childComplexity), true
 
-	case "AlertStateChangeConnection.edges":
-		if e.complexity.AlertStateChangeConnection.Edges == nil {
+	case "AlertStateChangeResults.alertStateChanges":
+		if e.complexity.AlertStateChangeResults.AlertStateChanges == nil {
 			break
 		}
 
-		return e.complexity.AlertStateChangeConnection.Edges(childComplexity), true
+		return e.complexity.AlertStateChangeResults.AlertStateChanges(childComplexity), true
 
-	case "AlertStateChangeConnection.pageInfo":
-		if e.complexity.AlertStateChangeConnection.PageInfo == nil {
+	case "AlertStateChangeResults.totalCount":
+		if e.complexity.AlertStateChangeResults.TotalCount == nil {
 			break
 		}
 
-		return e.complexity.AlertStateChangeConnection.PageInfo(childComplexity), true
-
-	case "AlertStateChangeEdge.cursor":
-		if e.complexity.AlertStateChangeEdge.Cursor == nil {
-			break
-		}
-
-		return e.complexity.AlertStateChangeEdge.Cursor(childComplexity), true
-
-	case "AlertStateChangeEdge.node":
-		if e.complexity.AlertStateChangeEdge.Node == nil {
-			break
-		}
-
-		return e.complexity.AlertStateChangeEdge.Node(childComplexity), true
+		return e.complexity.AlertStateChangeResults.TotalCount(childComplexity), true
 
 	case "AllProjectSettings.autoResolveStaleErrorsDayInterval":
 		if e.complexity.AllProjectSettings.AutoResolveStaleErrorsDayInterval == nil {
@@ -7139,7 +7120,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Query.AlertingAlertStateChanges(childComplexity, args["alert_id"].(int), args["start_date"].(time.Time), args["end_date"].(time.Time)), true
+		return e.complexity.Query.AlertingAlertStateChanges(childComplexity, args["alert_id"].(int), args["start_date"].(time.Time), args["end_date"].(time.Time), args["page"].(*int), args["count"].(*int)), true
 
 	case "Query.alerts":
 		if e.complexity.Query.Alerts == nil {
@@ -13321,14 +13302,9 @@ type AlertStateChange {
 	groupByKey: String!
 }
 
-type AlertStateChangeEdge implements Edge {
-	cursor: String!
-	node: AlertStateChange!
-}
-
-type AlertStateChangeConnection implements Connection {
-	edges: [AlertStateChangeEdge!]!
-	pageInfo: PageInfo!
+type AlertStateChangeResults {
+	alertStateChanges: [AlertStateChange]!
+	totalCount: Int64!
 }
 
 type SanitizedSlackChannel {
@@ -13919,7 +13895,9 @@ type Query {
 		alert_id: ID!
 		start_date: Timestamp!
 		end_date: Timestamp!
-	): [AlertStateChange]!
+		page: Int
+		count: Int
+	): AlertStateChangeResults!
 	last_alert_state_changes(alert_id: ID!): [AlertStateChange]!
 	error_alerts(project_id: ID!): [ErrorAlert]!
 	new_user_alerts(project_id: ID!): [SessionAlert]
@@ -18805,6 +18783,24 @@ func (ec *executionContext) field_Query_alerting_alert_state_changes_args(ctx co
 		}
 	}
 	args["end_date"] = arg2
+	var arg3 *int
+	if tmp, ok := rawArgs["page"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("page"))
+		arg3, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["page"] = arg3
+	var arg4 *int
+	if tmp, ok := rawArgs["count"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("count"))
+		arg4, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["count"] = arg4
 	return args, nil
 }
 
@@ -26349,8 +26345,8 @@ func (ec *executionContext) fieldContext_AlertStateChange_groupByKey(ctx context
 	return fc, nil
 }
 
-func (ec *executionContext) _AlertStateChangeConnection_edges(ctx context.Context, field graphql.CollectedField, obj *model.AlertStateChangeConnection) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_AlertStateChangeConnection_edges(ctx, field)
+func (ec *executionContext) _AlertStateChangeResults_alertStateChanges(ctx context.Context, field graphql.CollectedField, obj *model.AlertStateChangeResults) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_AlertStateChangeResults_alertStateChanges(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -26363,7 +26359,7 @@ func (ec *executionContext) _AlertStateChangeConnection_edges(ctx context.Contex
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.Edges, nil
+		return obj.AlertStateChanges, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -26375,162 +26371,14 @@ func (ec *executionContext) _AlertStateChangeConnection_edges(ctx context.Contex
 		}
 		return graphql.Null
 	}
-	res := resTmp.([]*model.AlertStateChangeEdge)
+	res := resTmp.([]*model.AlertStateChange)
 	fc.Result = res
-	return ec.marshalNAlertStateChangeEdge2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐAlertStateChangeEdgeᚄ(ctx, field.Selections, res)
+	return ec.marshalNAlertStateChange2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐAlertStateChange(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_AlertStateChangeConnection_edges(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_AlertStateChangeResults_alertStateChanges(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
-		Object:     "AlertStateChangeConnection",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			switch field.Name {
-			case "cursor":
-				return ec.fieldContext_AlertStateChangeEdge_cursor(ctx, field)
-			case "node":
-				return ec.fieldContext_AlertStateChangeEdge_node(ctx, field)
-			}
-			return nil, fmt.Errorf("no field named %q was found under type AlertStateChangeEdge", field.Name)
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _AlertStateChangeConnection_pageInfo(ctx context.Context, field graphql.CollectedField, obj *model.AlertStateChangeConnection) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_AlertStateChangeConnection_pageInfo(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.PageInfo, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(*model.PageInfo)
-	fc.Result = res
-	return ec.marshalNPageInfo2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐPageInfo(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_AlertStateChangeConnection_pageInfo(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "AlertStateChangeConnection",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			switch field.Name {
-			case "hasNextPage":
-				return ec.fieldContext_PageInfo_hasNextPage(ctx, field)
-			case "hasPreviousPage":
-				return ec.fieldContext_PageInfo_hasPreviousPage(ctx, field)
-			case "startCursor":
-				return ec.fieldContext_PageInfo_startCursor(ctx, field)
-			case "endCursor":
-				return ec.fieldContext_PageInfo_endCursor(ctx, field)
-			}
-			return nil, fmt.Errorf("no field named %q was found under type PageInfo", field.Name)
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _AlertStateChangeEdge_cursor(ctx context.Context, field graphql.CollectedField, obj *model.AlertStateChangeEdge) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_AlertStateChangeEdge_cursor(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Cursor, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(string)
-	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_AlertStateChangeEdge_cursor(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "AlertStateChangeEdge",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type String does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _AlertStateChangeEdge_node(ctx context.Context, field graphql.CollectedField, obj *model.AlertStateChangeEdge) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_AlertStateChangeEdge_node(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Node, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(*model.AlertStateChange)
-	fc.Result = res
-	return ec.marshalNAlertStateChange2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐAlertStateChange(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_AlertStateChangeEdge_node(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "AlertStateChangeEdge",
+		Object:     "AlertStateChangeResults",
 		Field:      field,
 		IsMethod:   false,
 		IsResolver: false,
@@ -26550,6 +26398,50 @@ func (ec *executionContext) fieldContext_AlertStateChangeEdge_node(ctx context.C
 				return ec.fieldContext_AlertStateChange_groupByKey(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type AlertStateChange", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _AlertStateChangeResults_totalCount(ctx context.Context, field graphql.CollectedField, obj *model.AlertStateChangeResults) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_AlertStateChangeResults_totalCount(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.TotalCount, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int64)
+	fc.Result = res
+	return ec.marshalNInt642int64(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_AlertStateChangeResults_totalCount(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "AlertStateChangeResults",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int64 does not have child fields")
 		},
 	}
 	return fc, nil
@@ -58845,7 +58737,7 @@ func (ec *executionContext) _Query_alerting_alert_state_changes(ctx context.Cont
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().AlertingAlertStateChanges(rctx, fc.Args["alert_id"].(int), fc.Args["start_date"].(time.Time), fc.Args["end_date"].(time.Time))
+		return ec.resolvers.Query().AlertingAlertStateChanges(rctx, fc.Args["alert_id"].(int), fc.Args["start_date"].(time.Time), fc.Args["end_date"].(time.Time), fc.Args["page"].(*int), fc.Args["count"].(*int))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -58857,9 +58749,9 @@ func (ec *executionContext) _Query_alerting_alert_state_changes(ctx context.Cont
 		}
 		return graphql.Null
 	}
-	res := resTmp.([]*model.AlertStateChange)
+	res := resTmp.(*model.AlertStateChangeResults)
 	fc.Result = res
-	return ec.marshalNAlertStateChange2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐAlertStateChange(ctx, field.Selections, res)
+	return ec.marshalNAlertStateChangeResults2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐAlertStateChangeResults(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Query_alerting_alert_state_changes(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -58870,20 +58762,12 @@ func (ec *executionContext) fieldContext_Query_alerting_alert_state_changes(ctx 
 		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
-			case "id":
-				return ec.fieldContext_AlertStateChange_id(ctx, field)
-			case "timestamp":
-				return ec.fieldContext_AlertStateChange_timestamp(ctx, field)
-			case "projectID":
-				return ec.fieldContext_AlertStateChange_projectID(ctx, field)
-			case "alertID":
-				return ec.fieldContext_AlertStateChange_alertID(ctx, field)
-			case "state":
-				return ec.fieldContext_AlertStateChange_state(ctx, field)
-			case "groupByKey":
-				return ec.fieldContext_AlertStateChange_groupByKey(ctx, field)
+			case "alertStateChanges":
+				return ec.fieldContext_AlertStateChangeResults_alertStateChanges(ctx, field)
+			case "totalCount":
+				return ec.fieldContext_AlertStateChangeResults_totalCount(ctx, field)
 			}
-			return nil, fmt.Errorf("no field named %q was found under type AlertStateChange", field.Name)
+			return nil, fmt.Errorf("no field named %q was found under type AlertStateChangeResults", field.Name)
 		},
 	}
 	defer func() {
@@ -85340,13 +85224,6 @@ func (ec *executionContext) _Connection(ctx context.Context, sel ast.SelectionSe
 			return graphql.Null
 		}
 		return ec._ServiceConnection(ctx, sel, obj)
-	case model.AlertStateChangeConnection:
-		return ec._AlertStateChangeConnection(ctx, sel, &obj)
-	case *model.AlertStateChangeConnection:
-		if obj == nil {
-			return graphql.Null
-		}
-		return ec._AlertStateChangeConnection(ctx, sel, obj)
 	default:
 		panic(fmt.Errorf("unexpected type %T", obj))
 	}
@@ -85377,13 +85254,6 @@ func (ec *executionContext) _Edge(ctx context.Context, sel ast.SelectionSet, obj
 			return graphql.Null
 		}
 		return ec._ServiceEdge(ctx, sel, obj)
-	case model.AlertStateChangeEdge:
-		return ec._AlertStateChangeEdge(ctx, sel, &obj)
-	case *model.AlertStateChangeEdge:
-		if obj == nil {
-			return graphql.Null
-		}
-		return ec._AlertStateChangeEdge(ctx, sel, obj)
 	default:
 		panic(fmt.Errorf("unexpected type %T", obj))
 	}
@@ -86007,68 +85877,24 @@ func (ec *executionContext) _AlertStateChange(ctx context.Context, sel ast.Selec
 	return out
 }
 
-var alertStateChangeConnectionImplementors = []string{"AlertStateChangeConnection", "Connection"}
+var alertStateChangeResultsImplementors = []string{"AlertStateChangeResults"}
 
-func (ec *executionContext) _AlertStateChangeConnection(ctx context.Context, sel ast.SelectionSet, obj *model.AlertStateChangeConnection) graphql.Marshaler {
-	fields := graphql.CollectFields(ec.OperationContext, sel, alertStateChangeConnectionImplementors)
-
-	out := graphql.NewFieldSet(fields)
-	deferred := make(map[string]*graphql.FieldSet)
-	for i, field := range fields {
-		switch field.Name {
-		case "__typename":
-			out.Values[i] = graphql.MarshalString("AlertStateChangeConnection")
-		case "edges":
-			out.Values[i] = ec._AlertStateChangeConnection_edges(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				out.Invalids++
-			}
-		case "pageInfo":
-			out.Values[i] = ec._AlertStateChangeConnection_pageInfo(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				out.Invalids++
-			}
-		default:
-			panic("unknown field " + strconv.Quote(field.Name))
-		}
-	}
-	out.Dispatch(ctx)
-	if out.Invalids > 0 {
-		return graphql.Null
-	}
-
-	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
-
-	for label, dfs := range deferred {
-		ec.processDeferredGroup(graphql.DeferredGroup{
-			Label:    label,
-			Path:     graphql.GetPath(ctx),
-			FieldSet: dfs,
-			Context:  ctx,
-		})
-	}
-
-	return out
-}
-
-var alertStateChangeEdgeImplementors = []string{"AlertStateChangeEdge", "Edge"}
-
-func (ec *executionContext) _AlertStateChangeEdge(ctx context.Context, sel ast.SelectionSet, obj *model.AlertStateChangeEdge) graphql.Marshaler {
-	fields := graphql.CollectFields(ec.OperationContext, sel, alertStateChangeEdgeImplementors)
+func (ec *executionContext) _AlertStateChangeResults(ctx context.Context, sel ast.SelectionSet, obj *model.AlertStateChangeResults) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, alertStateChangeResultsImplementors)
 
 	out := graphql.NewFieldSet(fields)
 	deferred := make(map[string]*graphql.FieldSet)
 	for i, field := range fields {
 		switch field.Name {
 		case "__typename":
-			out.Values[i] = graphql.MarshalString("AlertStateChangeEdge")
-		case "cursor":
-			out.Values[i] = ec._AlertStateChangeEdge_cursor(ctx, field, obj)
+			out.Values[i] = graphql.MarshalString("AlertStateChangeResults")
+		case "alertStateChanges":
+			out.Values[i] = ec._AlertStateChangeResults_alertStateChanges(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
-		case "node":
-			out.Values[i] = ec._AlertStateChangeEdge_node(ctx, field, obj)
+		case "totalCount":
+			out.Values[i] = ec._AlertStateChangeResults_totalCount(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
@@ -100887,68 +100713,18 @@ func (ec *executionContext) marshalNAlertStateChange2ᚕᚖgithubᚗcomᚋhighli
 	return ret
 }
 
-func (ec *executionContext) marshalNAlertStateChange2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐAlertStateChange(ctx context.Context, sel ast.SelectionSet, v *model.AlertStateChange) graphql.Marshaler {
+func (ec *executionContext) marshalNAlertStateChangeResults2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐAlertStateChangeResults(ctx context.Context, sel ast.SelectionSet, v model.AlertStateChangeResults) graphql.Marshaler {
+	return ec._AlertStateChangeResults(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNAlertStateChangeResults2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐAlertStateChangeResults(ctx context.Context, sel ast.SelectionSet, v *model.AlertStateChangeResults) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
 		}
 		return graphql.Null
 	}
-	return ec._AlertStateChange(ctx, sel, v)
-}
-
-func (ec *executionContext) marshalNAlertStateChangeEdge2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐAlertStateChangeEdgeᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.AlertStateChangeEdge) graphql.Marshaler {
-	ret := make(graphql.Array, len(v))
-	var wg sync.WaitGroup
-	isLen1 := len(v) == 1
-	if !isLen1 {
-		wg.Add(len(v))
-	}
-	for i := range v {
-		i := i
-		fc := &graphql.FieldContext{
-			Index:  &i,
-			Result: &v[i],
-		}
-		ctx := graphql.WithFieldContext(ctx, fc)
-		f := func(i int) {
-			defer func() {
-				if r := recover(); r != nil {
-					ec.Error(ctx, ec.Recover(ctx, r))
-					ret = nil
-				}
-			}()
-			if !isLen1 {
-				defer wg.Done()
-			}
-			ret[i] = ec.marshalNAlertStateChangeEdge2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐAlertStateChangeEdge(ctx, sel, v[i])
-		}
-		if isLen1 {
-			f(i)
-		} else {
-			go f(i)
-		}
-
-	}
-	wg.Wait()
-
-	for _, e := range ret {
-		if e == graphql.Null {
-			return graphql.Null
-		}
-	}
-
-	return ret
-}
-
-func (ec *executionContext) marshalNAlertStateChangeEdge2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐAlertStateChangeEdge(ctx context.Context, sel ast.SelectionSet, v *model.AlertStateChangeEdge) graphql.Marshaler {
-	if v == nil {
-		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
-			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
-		}
-		return graphql.Null
-	}
-	return ec._AlertStateChangeEdge(ctx, sel, v)
+	return ec._AlertStateChangeResults(ctx, sel, v)
 }
 
 func (ec *executionContext) unmarshalNAny2ᚕinterface(ctx context.Context, v interface{}) ([]interface{}, error) {

@@ -12578,15 +12578,20 @@ export const GetAlertingAlertStateChangesDocument = gql`
 		$alert_id: ID!
 		$start_date: Timestamp!
 		$end_date: Timestamp!
+		$page: Int
 	) {
 		alerting_alert_state_changes(
 			alert_id: $alert_id
 			start_date: $start_date
 			end_date: $end_date
+			page: $page
 		) {
-			timestamp
-			state
-			groupByKey
+			totalCount
+			alertStateChanges {
+				timestamp
+				state
+				groupByKey
+			}
 		}
 	}
 `
@@ -12606,6 +12611,7 @@ export const GetAlertingAlertStateChangesDocument = gql`
  *      alert_id: // value for 'alert_id'
  *      start_date: // value for 'start_date'
  *      end_date: // value for 'end_date'
+ *      page: // value for 'page'
  *   },
  * });
  */

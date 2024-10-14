@@ -13,7 +13,7 @@ import {
 } from '@highlight-run/ui/components'
 import { useNavigate } from 'react-router-dom'
 import { useParams } from '@util/react-router/useParams'
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { Helmet } from 'react-helmet'
 
 import { Button } from '@components/Button'
@@ -21,8 +21,8 @@ import { toast } from '@/components/Toaster'
 import { namedOperations } from '@/graph/generated/operations'
 import {
 	useGetAlertQuery,
-	useGetAlertingAlertStateChangesQuery,
-	useGetLastAlertStateChangesQuery,
+	useGetAlertingAlertStateChangesLazyQuery,
+	useGetLastAlertStateChangesLazyQuery,
 	useUpdateAlertDisabledMutation,
 } from '@/graph/generated/hooks'
 import { useProjectId } from '@/hooks/useProjectId'
@@ -34,12 +34,23 @@ import { AlertHeader } from './AlertHeader'
 import { AlertInfo } from './AlertInfo'
 import { AlertTable } from './AlertTable'
 import * as style from './styles.css'
+import SearchPagination from '@/components/SearchPagination/SearchPagination'
+import { NumberParam, useQueryParam, withDefault } from 'use-query-params'
+
+const START_PAGE = 1
+const PAGE_SIZE = 10
+const PAGE_PARAM = withDefault(NumberParam, START_PAGE)
 
 export const AlertPage: React.FC = () => {
 	const { projectId } = useProjectId()
 	const { alert_id } = useParams<{
 		alert_id: string
 	}>()
+	const [page, setPage] = useQueryParam('page', PAGE_PARAM)
+	const updatePage = (page: number) => {
+		setPage(page, 'replaceIn')
+	}
+
 	const navigate = useNavigate()
 	const [updateLoading, setUpdateLoading] = useState(false)
 
@@ -56,25 +67,47 @@ export const AlertPage: React.FC = () => {
 		skip: !alert_id,
 	})
 
-	const {
-		data: alertingData,
-		loading: alertingLoading,
-		error: alertingError,
-		refetch: alertingRefetch,
-	} = useGetAlertingAlertStateChangesQuery({
-		variables: {
-			alert_id: alert_id!,
-			start_date: startDate.toISOString(),
-			end_date: endDate.toISOString(),
+	const [
+		getAlertingAlertStateChangesQuery,
+		{
+			error: alertingError,
+			data: alertingData,
+			loading: alertingLoading,
+			refetch: alertingRefetch,
 		},
-		skip: !alert_id,
-	})
+	] = useGetAlertingAlertStateChangesLazyQuery()
 
-	const { data: currentStateData, loading: CurrentStateLoading } =
-		useGetLastAlertStateChangesQuery({
-			variables: { alert_id: alert_id! },
-			skip: !alert_id,
+	useEffect(() => {
+		if (!alert_id) {
+			return
+		}
+
+		getAlertingAlertStateChangesQuery({
+			variables: {
+				alert_id: alert_id!,
+				start_date: startDate.toISOString(),
+				end_date: endDate.toISOString(),
+				page: page,
+			},
 		})
+	}, [alert_id, startDate, endDate, page, getAlertingAlertStateChangesQuery])
+
+	const [
+		getLastAlertStateChangesQuery,
+		{ data: currentStateData, loading: currentStateLoading },
+	] = useGetLastAlertStateChangesLazyQuery()
+
+	useEffect(() => {
+		if (!alert_id) {
+			return
+		}
+
+		getLastAlertStateChangesQuery({
+			variables: {
+				alert_id: alert_id!,
+			},
+		})
+	}, [alert_id, getLastAlertStateChangesQuery])
 
 	const [updateAlertDisabled] = useUpdateAlertDisabledMutation()
 
@@ -223,6 +256,8 @@ export const AlertPage: React.FC = () => {
 						gap="12"
 						p="16"
 						cssClass={style.alertContainer}
+						overflowY="auto"
+						hiddenScroll
 					>
 						<AlertHeader
 							alertName={data.alert.name}
@@ -233,10 +268,10 @@ export const AlertPage: React.FC = () => {
 							alertStateChanges={
 								currentStateData?.last_alert_state_changes
 							}
-							loading={CurrentStateLoading}
+							loading={currentStateLoading}
 							totalAlerts={
 								alertingData?.alerting_alert_state_changes
-									?.length
+									.totalCount
 							}
 							totalAlertsLoading={alertingLoading}
 						/>
@@ -256,7 +291,6 @@ export const AlertPage: React.FC = () => {
 								endDate={endDate}
 								selectedPreset={selectedPreset}
 								updateSearchTime={updateSearchTime}
-								// TODO(spenny): should be optional to support anomoly alerts
 								thresholdWindow={
 									data.alert.threshold_window ?? 0
 								}
@@ -266,15 +300,28 @@ export const AlertPage: React.FC = () => {
 								}
 							/>
 						</Box>
-						<AlertTable
-							alert={data.alert}
-							loading={alertingLoading}
-							error={alertingError}
-							refetch={alertingRefetch}
-							alertingStates={
-								alertingData?.alerting_alert_state_changes
-							}
-						/>
+						<Box height="full" width="full">
+							<AlertTable
+								alert={data.alert}
+								loading={alertingLoading}
+								error={alertingError}
+								refetch={alertingRefetch}
+								alertingStates={
+									alertingData?.alerting_alert_state_changes
+										.alertStateChanges
+								}
+							/>
+							<SearchPagination
+								page={page}
+								setPage={updatePage}
+								totalCount={
+									alertingData?.alerting_alert_state_changes
+										.totalCount ?? 0
+								}
+								pageSize={PAGE_SIZE}
+								loading={alertingLoading}
+							/>
+						</Box>
 					</Box>
 				</Box>
 			</Box>

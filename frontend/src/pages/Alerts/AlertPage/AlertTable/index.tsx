@@ -10,15 +10,7 @@ import {
 	Tag,
 	Text,
 } from '@highlight-run/ui/components'
-import {
-	createColumnHelper,
-	flexRender,
-	getCoreRowModel,
-	Row,
-	useReactTable,
-} from '@tanstack/react-table'
-import { useVirtualizer } from '@tanstack/react-virtual'
-import React, { Key, useMemo, useRef } from 'react'
+import React, { useMemo } from 'react'
 import { LinkButton } from '@/components/LinkButton'
 import { Button } from '@components/Button'
 import { Link } from '@components/Link'
@@ -31,7 +23,7 @@ type Props = {
 	refetch: () => void
 }
 
-export const AlertTable = (props: Props) => {
+export const AlertTable: React.FC<Props> = (props) => {
 	return (
 		<Box>
 			<Box py="12">
@@ -44,102 +36,56 @@ export const AlertTable = (props: Props) => {
 	)
 }
 
-const AlertTableInner = ({
+const AlertTableInner: React.FC<Props> = ({
 	alertingStates = [],
 	alert,
 	loading,
 	error,
 	refetch,
-}: Props) => {
-	const bodyRef = useRef<HTMLDivElement>(null)
-
-	const columnHelper = createColumnHelper<any>()
-
-	const columnData = useMemo(() => {
-		const gridColumns = ['200px', '1fr', '100px']
-		const columnHeaders = [
+}) => {
+	const columns = useMemo(
+		() => [
 			{
 				id: 'timestamp',
-				component: 'Time',
+				name: 'Time',
+				width: '200px',
+				renderData: (alertState: any) => (
+					<Text>{moment(alertState.timestamp).format('LT')}</Text>
+				),
 			},
 			{
-				id: 'groupBy',
-				component: alert.group_by_key || 'Group by',
+				id: 'groupByKey',
+				name: alert.group_by_key || 'Group by',
+				width: '1fr',
+				renderData: (alertState: any) => (
+					<Tag shape="basic" size="small" kind="secondary">
+						{alertState.groupByKey}
+					</Tag>
+				),
 			},
 			{
-				id: 'link',
-				component: '',
+				id: 'view',
+				name: '',
+				width: '100px',
+				renderData: (_: any) => (
+					<LinkButton
+						trackingId={`alertsView${alert.product_type}`}
+						size="xSmall"
+						kind="secondary"
+						emphasis="medium"
+						// TODO(spenny): build link
+						to="/errors"
+					>
+						View {alert.product_type}
+					</LinkButton>
+				),
 			},
-		]
+		],
+		[alert.group_by_key, alert.product_type],
+	)
+	const gridColumns = columns.map((column) => column.width)
 
-		const columns = [
-			columnHelper.accessor('timestamp', {
-				cell: ({ getValue }) => {
-					const date = getValue()
-
-					return (
-						<Table.Cell>
-							<Text>{moment(date).format('LT')}</Text>
-						</Table.Cell>
-					)
-				},
-			}),
-			columnHelper.accessor('groupByKey', {
-				cell: ({ getValue }) => {
-					return (
-						<Table.Cell>
-							<Tag shape="basic" size="small" kind="secondary">
-								{getValue() as string}
-							</Tag>
-						</Table.Cell>
-					)
-				},
-			}),
-			columnHelper.accessor('link', {
-				cell: () => {
-					return (
-						<Table.Cell>
-							<LinkButton
-								trackingId={`alertsView${alert.product_type}`}
-								size="xSmall"
-								kind="secondary"
-								emphasis="medium"
-								// TODO(spenny): build link
-								to="/errors"
-							>
-								View {alert.product_type}
-							</LinkButton>
-						</Table.Cell>
-					)
-				},
-			}),
-		]
-
-		return {
-			gridColumns,
-			columnHeaders,
-			columns,
-		}
-	}, [alert.group_by_key, alert.product_type, columnHelper])
-
-	const table = useReactTable({
-		data: alertingStates,
-		columns: columnData.columns,
-		getCoreRowModel: getCoreRowModel(),
-	})
-
-	const { rows } = table.getRowModel()
-
-	const rowVirtualizer = useVirtualizer({
-		count: rows.length,
-		estimateSize: () => 29,
-		getScrollElement: () => bodyRef.current,
-		overscan: 50,
-	})
-
-	const virtualRows = rowVirtualizer.getVirtualItems()
-
-	const tableBody = () => {
+	const tableBody = useMemo(() => {
 		if (loading) {
 			return <LoadingBox />
 		}
@@ -180,30 +126,36 @@ const AlertTableInner = ({
 			)
 		}
 
+		if (!alertingStates?.length) {
+			return (
+				<Box m="auto" style={{ maxWidth: '300px' }}>
+					<Callout title="No alert notifications found" />
+				</Box>
+			)
+		}
+
 		return (
 			<>
-				{virtualRows.map((virtualRow) => {
-					const row = rows[virtualRow.index]
-
+				{alertingStates.map((alertingState, index) => {
 					return (
-						<AlertTableRow
-							key={virtualRow.key}
-							row={row}
-							rowVirtualizer={rowVirtualizer}
-							virtualRowKey={virtualRow.key}
-							gridColumns={columnData.gridColumns}
-						/>
+						<Table.Row gridColumns={gridColumns} key={index}>
+							{columns.map((column) => (
+								<Table.Cell key={column.id}>
+									{column.renderData(alertingState as any)}
+								</Table.Cell>
+							))}
+						</Table.Row>
 					)
 				})}
 			</>
 		)
-	}
+	}, [alertingStates, columns, error, gridColumns, loading, refetch])
 
 	return (
 		<Table noBorder>
 			<Table.Head>
-				<Table.Row gridColumns={columnData.gridColumns}>
-					{columnData.columnHeaders.map((header) => (
+				<Table.Row gridColumns={gridColumns}>
+					{columns.map((header) => (
 						<Table.Header key={header.id}>
 							<Box
 								display="flex"
@@ -211,50 +163,20 @@ const AlertTableInner = ({
 								justifyContent="space-between"
 							>
 								<Stack direction="row" gap="6" align="center">
-									<Text lines="1">{header.component}</Text>
+									<Text lines="1">{header.name}</Text>
 								</Stack>
 							</Box>
 						</Table.Header>
 					))}
 				</Table.Row>
 			</Table.Head>
-			<Table.Body ref={bodyRef} overflowY="auto" hiddenScroll>
-				{tableBody()}
+			<Table.Body
+				style={{ minHeight: 400 }}
+				display="flex"
+				flexDirection="column"
+			>
+				{tableBody}
 			</Table.Body>
 		</Table>
 	)
 }
-
-type AlertTableRowProps = {
-	row: Row<any>
-	rowVirtualizer: any
-	virtualRowKey: Key
-	gridColumns: string[]
-}
-
-const AlertTableRow = React.memo<AlertTableRowProps>(
-	({ row, rowVirtualizer, virtualRowKey, gridColumns }) => {
-		return (
-			<Table.Row
-				gridColumns={gridColumns}
-				key={virtualRowKey}
-				data-index={virtualRowKey}
-				forwardRef={rowVirtualizer.measureElement}
-			>
-				{row.getVisibleCells().map((cell: any) => {
-					return (
-						<React.Fragment key={cell.column.id}>
-							{flexRender(
-								cell.column.columnDef.cell,
-								cell.getContext(),
-							)}
-						</React.Fragment>
-					)
-				})}
-			</Table.Row>
-		)
-	},
-	(prevProps, nextProps) => {
-		return prevProps.virtualRowKey === nextProps.virtualRowKey
-	},
-)

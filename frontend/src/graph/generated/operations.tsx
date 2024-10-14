@@ -4337,17 +4337,22 @@ export type GetAlertingAlertStateChangesQueryVariables = Types.Exact<{
 	alert_id: Types.Scalars['ID']
 	start_date: Types.Scalars['Timestamp']
 	end_date: Types.Scalars['Timestamp']
+	page?: Types.Maybe<Types.Scalars['Int']>
 }>
 
 export type GetAlertingAlertStateChangesQuery = { __typename?: 'Query' } & {
-	alerting_alert_state_changes: Array<
-		Types.Maybe<
-			{ __typename?: 'AlertStateChange' } & Pick<
-				Types.AlertStateChange,
-				'timestamp' | 'state' | 'groupByKey'
+	alerting_alert_state_changes: {
+		__typename?: 'AlertStateChangeResults'
+	} & Pick<Types.AlertStateChangeResults, 'totalCount'> & {
+			alertStateChanges: Array<
+				Types.Maybe<
+					{ __typename?: 'AlertStateChange' } & Pick<
+						Types.AlertStateChange,
+						'timestamp' | 'state' | 'groupByKey'
+					>
+				>
 			>
-		>
-	>
+		}
 }
 
 export type GetLastAlertStateChangesQueryVariables = Types.Exact<{

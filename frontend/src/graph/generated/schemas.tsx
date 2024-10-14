@@ -190,16 +190,10 @@ export type AlertStateChange = {
 	timestamp: Scalars['Timestamp']
 }
 
-export type AlertStateChangeConnection = Connection & {
-	__typename?: 'AlertStateChangeConnection'
-	edges: Array<AlertStateChangeEdge>
-	pageInfo: PageInfo
-}
-
-export type AlertStateChangeEdge = Edge & {
-	__typename?: 'AlertStateChangeEdge'
-	cursor: Scalars['String']
-	node: AlertStateChange
+export type AlertStateChangeResults = {
+	__typename?: 'AlertStateChangeResults'
+	alertStateChanges: Array<Maybe<AlertStateChange>>
+	totalCount: Scalars['Int64']
 }
 
 export type AllProjectSettings = {
@@ -2052,7 +2046,7 @@ export type Query = {
 	admin_role_by_project?: Maybe<WorkspaceAdminRole>
 	ai_query_suggestion: QueryOutput
 	alert: Alert
-	alerting_alert_state_changes: Array<Maybe<AlertStateChange>>
+	alerting_alert_state_changes: AlertStateChangeResults
 	alerts: Array<Maybe<Alert>>
 	api_key_to_org_id?: Maybe<Scalars['ID']>
 	averageSessionLength?: Maybe<AverageSessionLength>
@@ -2243,7 +2237,9 @@ export type QueryAlertArgs = {
 
 export type QueryAlerting_Alert_State_ChangesArgs = {
 	alert_id: Scalars['ID']
+	count?: InputMaybe<Scalars['Int']>
 	end_date: Scalars['Timestamp']
+	page?: InputMaybe<Scalars['Int']>
 	start_date: Scalars['Timestamp']
 }
 
