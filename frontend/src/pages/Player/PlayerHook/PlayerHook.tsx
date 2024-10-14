@@ -413,6 +413,18 @@ export const usePlayer = (
 						'waiting for loading chunk',
 						i,
 					)
+					// signal that we are loading chunks once
+					if (!blockingLoad && forceBlockingLoad) {
+						log(
+							'PlayerHook.tsx:ensureChunksLoaded',
+							'needs blocking load for chunk, forced blocking load',
+							i,
+						)
+						blockingLoad = true
+						dispatch({
+							type: PlayerActionType.startChunksLoad,
+						})
+					}
 				} else {
 					// signal that we are loading chunks once
 					if (!blockingLoad) {
