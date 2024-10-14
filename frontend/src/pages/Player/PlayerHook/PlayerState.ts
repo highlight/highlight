@@ -64,7 +64,7 @@ const PROJECTS_WITH_CSS_ANIMATIONS: string[] = ['1', '1020', '1021', '102751']
 
 // assuming 120 fps
 export const FRAME_MS = 1000 / 120
-// update every 15 frames
+// update every N frames
 export const THROTTLED_UPDATE_MS = FRAME_MS * 15
 
 export const CHUNKING_DISABLED_PROJECTS: string[] = []

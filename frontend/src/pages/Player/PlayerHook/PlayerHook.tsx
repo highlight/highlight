@@ -162,6 +162,13 @@ export const usePlayer = (
 	const loadingChunks = useRef<Set<number>>(new Set<number>())
 	// on blocking load, represents the next state
 	const blockingLoad = useRef<ReplayerState>()
+	// the timestamp we are moving to next.
+	const target = useRef<{
+		time?: number
+		state: ReplayerState.Paused | ReplayerState.Playing
+	}>({
+		state: ReplayerState.Paused,
+	})
 
 	const unsubscribeSessionPayloadFn = useRef<(() => void) | null>()
 	const animationFrameID = useRef<number>(0)
@@ -467,12 +474,33 @@ export const usePlayer = (
 					toRemove,
 				})
 				toRemove.forEach((idx) => chunkEventsRemove(idx))
+				// while we wait for the promises to resolve, set the target as a lock for other ensureChunksLoaded
+				target.current = {
+					time: startTime,
+					state: action ?? target.current.state,
+				}
 				const loadedChunkIds = new Set<number>()
 				await Promise.all(promises)
 				log('PlayerHook.tsx:ensureChunksLoaded', 'getChunksToRemove', {
 					after: chunkEventsRef.current,
 					toRemove,
 				})
+				if (
+					target.current.time !== startTime ||
+					target.current.state !== (action ?? target.current.state)
+				) {
+					log(
+						'PlayerHook.tsx:ensureChunksLoaded',
+						'someone else has taken the chunk loading lock',
+						{
+							startTime,
+							action,
+							target,
+							loadedChunks: loadedChunkIds,
+						},
+					)
+					return
+				}
 				// update the replayer events
 				log(
 					'PlayerHook.tsx:ensureChunksLoaded',
@@ -523,6 +551,7 @@ export const usePlayer = (
 	const play = useCallback(
 		(time?: number): Promise<void> => {
 			const newTime = time ?? 0
+			target.current = { time: newTime, state: ReplayerState.Playing }
 			dispatch({ type: PlayerActionType.setTime, time: newTime })
 			// Don't play the session if the player is already at the end of the session.
 			if (newTime >= state.sessionEndTime) {
@@ -550,6 +579,10 @@ export const usePlayer = (
 
 	const pause = useCallback(
 		(time?: number) => {
+			target.current = {
+				time: time,
+				state: ReplayerState.Paused,
+			}
 			return new Promise<void>(async (r) => {
 				if (time !== undefined) {
 					await H.startManualSpan(
@@ -579,6 +612,10 @@ export const usePlayer = (
 
 	const seek = useCallback(
 		(time: number): Promise<void> => {
+			target.current = {
+				time: time,
+				state: target.current.state,
+			}
 			return new Promise<void>(async (r) => {
 				await H.startManualSpan('timelineChangeTime', async (span) => {
 					span?.setAttribute('action', 'seek')
