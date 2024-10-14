@@ -491,7 +491,11 @@ export const usePlayer = (
 					},
 				)
 				dispatchAction(startTime, action)
-			} else if (blockingLoad.current && state.replayerState) {
+			} else if (
+				promises.length &&
+				blockingLoad.current &&
+				state.replayerState
+			) {
 				log(
 					'PlayerHook.tsx:ensureChunksLoaded',
 					'calling dispatchAction due to blockingLoad',
