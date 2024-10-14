@@ -239,7 +239,7 @@ interface startChunksLoad {
 interface onChunksLoad {
 	type: PlayerActionType.onChunksLoad
 	showPlayerMouseTail: boolean
-	time: number
+	time: number | undefined
 	playerRef: RefObject<HTMLDivElement>
 	action: ReplayerState
 }

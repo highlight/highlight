@@ -160,7 +160,8 @@ export const usePlayer = (
 
 	// chunk indexes that are currently being loaded (fetched over the network)
 	const loadingChunks = useRef<Set<number>>(new Set<number>())
-	const blockingLoad = useRef<boolean>(false)
+	// on blocking load, represents the next state
+	const blockingLoad = useRef<ReplayerState>()
 
 	const unsubscribeSessionPayloadFn = useRef<(() => void) | null>()
 	const animationFrameID = useRef<number>(0)
@@ -308,7 +309,7 @@ export const usePlayer = (
 	}, [chunkEventsRef, state.sessionMetadata.startTime])
 
 	const dispatchAction = useCallback(
-		(time: number, action: ReplayerState) => {
+		(time: number | undefined, action: ReplayerState) => {
 			H.startSpan(
 				'dispatchAction',
 				{ attributes: { time, action } },
@@ -419,7 +420,7 @@ export const usePlayer = (
 							'needs blocking load for chunk, forced blocking load',
 							i,
 						)
-						blockingLoad.current = true
+						blockingLoad.current = state.replayerState
 						dispatch({
 							type: PlayerActionType.startChunksLoad,
 						})
@@ -434,7 +435,7 @@ export const usePlayer = (
 							'needs blocking load for chunk',
 							i,
 						)
-						blockingLoad.current = true
+						blockingLoad.current = state.replayerState
 						dispatch({
 							type: PlayerActionType.startChunksLoad,
 						})
@@ -491,22 +492,17 @@ export const usePlayer = (
 					},
 				)
 				dispatchAction(startTime, action)
-			} else if (
-				promises.length &&
-				blockingLoad.current &&
-				state.replayerState
-			) {
+			} else if (promises.length && blockingLoad.current) {
 				log(
 					'PlayerHook.tsx:ensureChunksLoaded',
 					'calling dispatchAction due to blockingLoad',
 					{
 						startTime,
-						action: state.replayerState,
 						chunks: chunkEventsRef.current,
 					},
 				)
-				dispatchAction(startTime, state.replayerState)
-				blockingLoad.current = false
+				dispatchAction(undefined, blockingLoad.current)
+				blockingLoad.current = undefined
 			}
 		},
 		[
