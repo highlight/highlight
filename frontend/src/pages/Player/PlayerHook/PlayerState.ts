@@ -444,7 +444,7 @@ export const PlayerReducer = (
 				PlayerActionType.startChunksLoad,
 				s,
 				ReplayerState.Paused,
-				getTimeFromReplayer(s.replayer, s.sessionMetadata),
+				undefined,
 				true,
 			)
 			break
