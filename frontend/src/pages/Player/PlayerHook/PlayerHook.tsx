@@ -10,6 +10,7 @@ import {
 } from '@graph/hooks'
 import { GetSessionQuery } from '@graph/operations'
 import {
+	BUFFER_MS,
 	CHUNKING_DISABLED_PROJECTS,
 	FRAME_MS,
 	getEvents,
@@ -371,6 +372,7 @@ export const usePlayer = (
 			endTime?: number,
 			action?: ReplayerState.Playing | ReplayerState.Paused,
 			forceLoadNext?: boolean,
+			blockingLoad?: boolean,
 		) => {
 			if (
 				!projectId ||
@@ -397,7 +399,6 @@ export const usePlayer = (
 			if (lastChunkIdx !== undefined)
 				endIdx = Math.min(lastChunkIdx, endIdx)
 
-			let blockingLoad = false
 			const promises = []
 			log(
 				'PlayerHook.tsx:ensureChunksLoaded',
@@ -420,18 +421,16 @@ export const usePlayer = (
 					)
 				} else {
 					// signal that we are loading chunks once
-					if (!promises.length) {
-						if (i == startIdx) {
-							log(
-								'PlayerHook.tsx:ensureChunksLoaded',
-								'needs blocking load for chunk',
-								i,
-							)
-							blockingLoad = true
-							dispatch({
-								type: PlayerActionType.startChunksLoad,
-							})
-						}
+					if (!promises.length && i == startIdx) {
+						log(
+							'PlayerHook.tsx:ensureChunksLoaded',
+							'needs blocking load for chunk',
+							i,
+						)
+						blockingLoad = true
+						dispatch({
+							type: PlayerActionType.startChunksLoad,
+						})
 					}
 					promises.push(loadEventChunk(i))
 				}
@@ -977,6 +976,7 @@ export const usePlayer = (
 				state.time + LOOKAHEAD_MS,
 				undefined,
 				getLastLoadedEventTimestamp() - state.time < LOOKAHEAD_MS,
+				getLastLoadedEventTimestamp() - state.time < BUFFER_MS,
 			)
 		})()
 	}, [
