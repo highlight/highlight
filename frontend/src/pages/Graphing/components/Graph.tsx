@@ -112,7 +112,7 @@ export type ViewConfig =
 	| ListConfig
 
 export interface ChartProps<TConfig> {
-	id: string
+	id?: string
 	title: string
 	productType: ProductType
 	projectId: string
@@ -1068,7 +1068,7 @@ const Graph = ({
 	const [spotlight, setSpotlight] = useState<number | undefined>()
 
 	useEffect(() => {
-		if (data) {
+		if (id && data) {
 			setGraphData((graphData) =>
 				graphData[id]?.length
 					? graphData

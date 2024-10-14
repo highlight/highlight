@@ -606,7 +606,6 @@ export const GraphingEditor: React.FC = () => {
 								<VariablesBar dashboardId={dashboard_id!} />
 								<GraphBackgroundWrapper>
 									<Graph
-										id={tempId}
 										title={
 											metricViewTitle ||
 											tempMetricViewTitle?.current
