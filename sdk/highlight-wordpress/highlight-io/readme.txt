@@ -67,6 +67,32 @@ If you encounter issues, please check the following:
 
 For further assistance, please refer to our support documentation or contact our support team.
 
+== Development ==
+
+If you're interested in contributing to the development of this plugin, follow these steps:
+
+1. Clone [the repository from GitHub](https://github.com/highlight/highlight)
+2. Make your changes in the `sdk/highlight-wordpress/highlight-io` directory.
+3. Test your changes thoroughly on a local WordPress installation or using the end-to-end example app in `/e2e/wordpress/` directory.
+4. Submit a pull request with your changes for review.
+
+=== Preparing the Plugin for Distribution ===
+
+To package the plugin for distribution in the WordPress plugin directory, we use a custom script that puts all files into a single `.zip` archive. Here's how to use it:
+
+1. Navigate to the root directory of the project.
+2. Run the following command:
+
+```sh
+# if using yarn
+yarn build:wordpress
+
+# if using npm
+npm run build:wordpress
+```
+
+3. The script will create a zip file named `highlight-wordpress.zip` in the `sdk/highlight-wordpress` directory.
+
 == Changelog ==
 
 = 1.0.0 =
@@ -76,3 +102,7 @@ For further assistance, please refer to our support documentation or contact our
 
 = 1.0.0 =
 Initial release of the Highlight.io WordPress Plugin.
+
+= How can I contribute to the plugin's development? =
+
+We welcome contributions! Please refer to the "Development" section in this readme for information on how to get started. Make sure to follow WordPress coding standards and thoroughly test your changes before submitting a pull request.
