@@ -20,7 +20,7 @@ export const useExportGraph = () => {
 				)
 				.join('\r\n')
 			console.info(
-				`exporting graph ${graphID} from dashboard ${dashboardID} with ${rows.length} rows, ${csvContent.length} long string.`,
+				`exporting graph with ${rows.length} rows, ${csvContent.length} long string.`,
 				{ dashboardID, graphID, rows },
 			)
 			await exportFile(`graph_${dashboardID}_${graphID}.csv`, csvContent)
