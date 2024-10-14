@@ -365,7 +365,7 @@ export const usePlayer = (
 			endTime?: number,
 			action?: ReplayerState.Playing | ReplayerState.Paused,
 			forceLoadNext?: boolean,
-			blockingLoad?: boolean,
+			forceBlockingLoad?: boolean,
 		) => {
 			if (
 				!projectId ||
@@ -392,6 +392,7 @@ export const usePlayer = (
 			if (lastChunkIdx !== undefined)
 				endIdx = Math.min(lastChunkIdx, endIdx)
 
+			let blockingLoad = false
 			const promises = []
 			log(
 				'PlayerHook.tsx:ensureChunksLoaded',
@@ -414,27 +415,20 @@ export const usePlayer = (
 					)
 				} else {
 					// signal that we are loading chunks once
-					if (!promises.length && i == startIdx) {
-						log(
-							'PlayerHook.tsx:ensureChunksLoaded',
-							'needs blocking load for chunk',
-							i,
-						)
-						blockingLoad = true
-						dispatch({
-							type: PlayerActionType.startChunksLoad,
-						})
+					if (!blockingLoad) {
+						if (forceBlockingLoad || i == startIdx) {
+							log(
+								'PlayerHook.tsx:ensureChunksLoaded',
+								'needs blocking load for chunk',
+								i,
+							)
+							blockingLoad = true
+							dispatch({
+								type: PlayerActionType.startChunksLoad,
+							})
+						}
 					}
 					promises.push(loadEventChunk(i))
-				}
-
-				if (promises.length > MAX_CHUNK_COUNT) {
-					console.warn('large number of chunks requested', {
-						startIdx,
-						endIdx,
-						current: chunkEventsRef.current,
-					})
-					break
 				}
 			}
 			log(
