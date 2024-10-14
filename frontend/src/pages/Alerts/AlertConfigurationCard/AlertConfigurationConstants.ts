@@ -77,9 +77,29 @@ export const FREQUENCIES = [
 		id: '3d',
 	},
 	{
+		name: '5 days',
+		value: `${SECONDS_PER_DAY * 5}`,
+		id: '5d',
+	},
+	{
 		name: '1 week',
 		value: `${SECONDS_PER_WEEK}`,
 		id: '7d',
+	},
+	{
+		name: '2 weeks',
+		value: `${SECONDS_PER_WEEK * 2}`,
+		id: '14d',
+	},
+	{
+		name: '4 weeks',
+		value: `${SECONDS_PER_WEEK * 4}`,
+		id: '28d',
+	},
+	{
+		name: '1 month',
+		value: `${SECONDS_PER_DAY * 30}`,
+		id: '30d',
 	},
 ]
 
