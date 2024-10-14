@@ -10,7 +10,6 @@ import (
 	modelInputs "github.com/highlight-run/highlight/backend/private-graph/graph/model"
 	"github.com/highlight-run/highlight/backend/util"
 	"github.com/huandu/go-sqlbuilder"
-	"go.opentelemetry.io/otel/trace"
 )
 
 func GetSearchListener(sqlBuilder *sqlbuilder.SelectBuilder, query string, tableConfig model.TableConfig) *listener.SearchListener {
@@ -18,7 +17,7 @@ func GetSearchListener(sqlBuilder *sqlbuilder.SelectBuilder, query string, table
 }
 
 func GetSearchFilters(query string, tableConfig model.TableConfig, listener *listener.SearchListener) listener.Filters {
-	s := util.StartSpan("GetSearchFilters", util.WithSpanKind(trace.SpanKindServer), util.Tag("query", query))
+	s := util.StartSpan("GetSearchFilters", util.Tag("query", query))
 	defer s.Finish()
 
 	if !strings.Contains(query, string(modelInputs.ReservedTraceKeyMetricName)) {

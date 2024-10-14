@@ -8,12 +8,7 @@ import { parseSearch } from '@/components/Search/utils'
 import { ClickFilters } from './ClickFilters'
 import { NavigateFilters } from './NavigateFilters'
 import { TrackFilters } from './TrackFilters'
-
-enum EventType {
-	Track = 'Track',
-	Click = 'Click',
-	Navigate = 'Navigate',
-}
+import { EventSelectionDetails, EventType } from '@pages/Graphing/util'
 
 const EVENT_TYPES: EventType[] = [
 	EventType.Track,
@@ -24,6 +19,8 @@ const EVENT_TYPES: EventType[] = [
 type Props = {
 	initialQuery: string
 	setQuery: (query: string) => void
+	initialEvent?: EventSelectionDetails
+	setEvent?: (event: EventSelectionDetails) => void
 	startDate: Date
 	endDate: Date
 }
@@ -31,12 +28,18 @@ type Props = {
 export const EventSelection: React.FC<Props> = ({
 	initialQuery,
 	setQuery,
+	initialEvent,
+	setEvent,
 	startDate,
 	endDate,
 }) => {
-	const [eventType, setEventType] = useState<EventType>(EventType.Track)
-	const [eventName, setEventName] = useState('')
-	const [eventFilters, setEventFilters] = useState('')
+	const [eventDetails, setEventDetails] = useState<EventSelectionDetails>(
+		initialEvent ?? {
+			type: EventType.Track,
+			name: '',
+			filters: '',
+		},
+	)
 
 	const [loading, setLoading] = useState(true)
 
@@ -55,48 +58,56 @@ export const EventSelection: React.FC<Props> = ({
 		})
 
 		if (EVENT_TYPES.includes(foundEventName as EventType)) {
-			setEventType(foundEventName as EventType)
+			setEventDetails((e) => ({
+				...e,
+				type: foundEventName as EventType,
+			}))
 		} else {
-			setEventName(foundEventName)
+			setEventDetails((e) => ({ ...e, name: foundEventName }))
 		}
 
-		setEventFilters(foundFilters.join(' '))
+		setEventDetails((e) => ({ ...e, filters: foundFilters.join(' ') }))
 		setLoading(false)
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [])
 
 	// recreate query when eventName or filters change
 	useEffect(() => {
-		const queryArray = []
-		if (!!eventName) {
-			queryArray.push(`event="${eventName}"`)
+		if (setEvent) {
+			setEvent(eventDetails)
 		}
-		if (!!eventFilters) {
-			queryArray.push(eventFilters)
+		const queryArray = []
+		if (!!eventDetails.name) {
+			queryArray.push(`event="${eventDetails.name}"`)
+		}
+		if (!!eventDetails.filters) {
+			queryArray.push(eventDetails.filters)
 		}
 		setQuery(queryArray.join(' '))
-	}, [eventName, eventFilters, setQuery])
+	}, [setQuery, setEvent, eventDetails])
 
 	// set event name for special event types
 	useEffect(() => {
-		if (eventType !== EventType.Track) {
-			setEventName(eventType)
+		if (eventDetails.type !== EventType.Track) {
+			setEventDetails((e) => ({ ...e, name: eventDetails.type }))
 		}
-	}, [eventType])
+	}, [eventDetails.type])
 
 	const eventTypeFilters = useMemo(() => {
 		if (loading) {
 			return
 		}
 
-		switch (eventType) {
+		switch (eventDetails.type) {
 			case EventType.Click:
 				return (
 					<ClickFilters
 						startDate={startDate}
 						endDate={endDate}
-						initialQuery={eventFilters}
-						setQuery={setEventFilters}
+						initialQuery={eventDetails.filters}
+						setQuery={(filters: string) =>
+							setEventDetails((e) => ({ ...e, filters }))
+						}
 					/>
 				)
 			case EventType.Track:
@@ -104,10 +115,14 @@ export const EventSelection: React.FC<Props> = ({
 					<TrackFilters
 						startDate={startDate}
 						endDate={endDate}
-						initialQuery={eventFilters}
-						setQuery={setEventFilters}
-						eventName={eventName}
-						setEventName={setEventName}
+						initialQuery={eventDetails.filters}
+						setQuery={(filters: string) =>
+							setEventDetails((e) => ({ ...e, filters }))
+						}
+						eventName={eventDetails.name}
+						setEventName={(name: string) =>
+							setEventDetails((e) => ({ ...e, name }))
+						}
 					/>
 				)
 			case EventType.Navigate:
@@ -115,29 +130,31 @@ export const EventSelection: React.FC<Props> = ({
 					<NavigateFilters
 						startDate={startDate}
 						endDate={endDate}
-						initialQuery={eventFilters}
-						setQuery={setEventFilters}
+						initialQuery={eventDetails.filters}
+						setQuery={(filters: string) =>
+							setEventDetails((e) => ({ ...e, filters }))
+						}
 					/>
 				)
 		}
-	}, [endDate, eventFilters, eventName, eventType, loading, startDate])
+	}, [
+		endDate,
+		eventDetails.filters,
+		eventDetails.name,
+		eventDetails.type,
+		loading,
+		startDate,
+	])
 
 	return (
-		<Box
-			width="full"
-			display="flex"
-			flexDirection="column"
-			gap="12"
-			p="8"
-			borderRadius="8"
-			border="secondary"
-			backgroundColor="nested"
-		>
+		<Box width="full" display="flex" flexDirection="column" gap="12" p="0">
 			<LabeledRow label="Event type" name="eventType">
 				<OptionDropdown
 					options={EVENT_TYPES}
-					selection={eventType}
-					setSelection={setEventType}
+					selection={eventDetails.type}
+					setSelection={(type: EventType) =>
+						setEventDetails((e) => ({ ...e, type }))
+					}
 				/>
 			</LabeledRow>
 			{eventTypeFilters}

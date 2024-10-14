@@ -15,6 +15,7 @@ interface Config {
 
 export enum Feature {
 	EventSearch,
+	PlayerNoChunkRemoval,
 }
 
 // configures the criteria and percentage of population for which the feature is active.
@@ -22,13 +23,12 @@ export enum Feature {
 export const FeatureConfig: { [key: number]: Config } = {
 	[Feature.EventSearch]: {
 		workspace: true,
+		percent: 100,
+	},
+	[Feature.PlayerNoChunkRemoval]: {
+		workspace: true,
 		percent: 0,
-		workspaceOverride: new Set<string>([
-			// Highlight
-			'1',
-			'15127',
-			'32550',
-		]),
+		workspaceOverride: new Set<string>(['13623', '95052']),
 	},
 } as const
 
@@ -73,6 +73,14 @@ export const isFeatureOn = async function (
 	if (config.percent >= 100) {
 		return true
 	}
+	const overrideKey = `highlight-feature-flag-override-${feature}`
+	const override = window.localStorage.getItem(overrideKey)
+	if (override === 'true') {
+		return true
+	} else if (override === 'false') {
+		return true
+	}
+
 	return isActive(
 		feature,
 		(config.project

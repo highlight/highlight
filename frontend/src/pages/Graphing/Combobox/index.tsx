@@ -1,5 +1,5 @@
-import { ComboboxSelect, Text } from '@highlight-run/ui/components'
-import _ from 'lodash'
+import { Select } from '@highlight-run/ui/components'
+import _, { isArray } from 'lodash'
 import moment from 'moment'
 import React, { useEffect, useMemo, useState } from 'react'
 import { useDebounce } from 'react-use'
@@ -12,12 +12,9 @@ import {
 import { KeyType, ProductType } from '@/graph/generated/schemas'
 import { useProjectId } from '@/hooks/useProjectId'
 
-import * as style from './styles.css'
-
-type Props = {
-	selection: string
-	setSelection: (selection: string) => void
-	label: string
+type Props<T extends string | string[]> = {
+	selection: T
+	setSelection: (selection: T) => void
 	searchConfig: {
 		productType?: ProductType
 		startDate: Date
@@ -29,18 +26,17 @@ type Props = {
 	placeholder?: string
 }
 
-export const Combobox: React.FC<Props> = ({
+export const Combobox = <T extends string | string[]>({
 	selection,
 	setSelection,
-	label,
 	searchConfig: { productType, startDate, endDate },
 	onlyNumericKeys,
 	defaultKeys,
 	disabled,
-	placeholder = 'Rows',
-}) => {
+	placeholder,
+}: Props<T>) => {
 	const { projectId } = useProjectId()
-	const [getKeys, { data }] = useGetKeysLazyQuery()
+	const [getKeys, { data, loading, previousData }] = useGetKeysLazyQuery()
 	const [query, setQuery] = useState('')
 	const [debouncedQuery, setDebouncedQuery] = useState('')
 	useDebounce(
@@ -61,19 +57,14 @@ export const Combobox: React.FC<Props> = ({
 		}
 
 		const searchKeys =
-			_.chain(data?.keys || [])
+			_.chain(data?.keys || previousData?.keys || [])
 				.map('name')
 				.uniq()
 				.value() ?? []
 
-		baseKeys.concat(searchKeys).slice(0, 8)
-
-		return baseKeys.concat(searchKeys).map((o) => ({
-			key: o,
-			render: o,
-		}))
+		return baseKeys.concat(searchKeys).slice(0, 10)
 		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [data?.keys, defaultKeys])
+	}, [data?.keys, previousData?.keys, defaultKeys])
 
 	useEffect(() => {
 		getKeys({
@@ -98,31 +89,31 @@ export const Combobox: React.FC<Props> = ({
 		startDate,
 	])
 
+	const showSpinner = query !== debouncedQuery || loading
+
 	return (
-		<ComboboxSelect
-			label={label}
+		<Select
+			filterable
 			value={selection}
-			valueRender={
-				<Text cssClass={style.comboboxText}>
-					{selection || placeholder}
-				</Text>
-			}
 			options={keyOptions}
-			onChange={setSelection}
-			onChangeQuery={setQuery}
-			cssClass={style.combobox}
-			wrapperCssClass={style.comboboxWrapper}
-			popoverCssClass={style.comboboxPopover}
-			queryPlaceholder="Filter..."
+			onValueChange={(v) => {
+				if (isArray(v)) {
+					setSelection(v.map((v) => v.value) as any)
+				} else {
+					setSelection(v.value)
+				}
+			}}
+			onSearchValueChange={setQuery}
+			placeholder={placeholder}
 			disabled={disabled}
+			resultsLoading={showSpinner}
 		/>
 	)
 }
 
 type ValueProps = {
-	selection: string
-	setSelection: (selection: string) => void
-	label: string
+	selection: string[]
+	setSelection: (selection: string[]) => void
 	keyName: string
 	searchConfig: {
 		productType?: ProductType
@@ -135,13 +126,12 @@ type ValueProps = {
 export const ValueCombobox: React.FC<ValueProps> = ({
 	selection,
 	setSelection,
-	label,
 	keyName,
 	searchConfig: { productType, startDate, endDate },
 	defaultValues,
 }) => {
 	const { projectId } = useProjectId()
-	const [getKeyValues, { data }] = useGetKeyValuesLazyQuery()
+	const [getKeyValues, { data, loading }] = useGetKeyValuesLazyQuery()
 	const [query, setQuery] = useState('')
 	const [debouncedQuery, setDebouncedQuery] = useState('')
 	useDebounce(
@@ -166,12 +156,7 @@ export const ValueCombobox: React.FC<ValueProps> = ({
 				.uniq()
 				.value() ?? []
 
-		baseKeys.concat(searchKeys).slice(0, 8)
-
-		return baseKeys.concat(searchKeys).map((o) => ({
-			key: o,
-			render: o,
-		}))
+		return baseKeys.concat(searchKeys).slice(0, 10)
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [data?.key_values, defaultValues])
 
@@ -199,21 +184,16 @@ export const ValueCombobox: React.FC<ValueProps> = ({
 		keyName,
 	])
 
+	const showSpinner = query !== debouncedQuery || loading
+
 	return (
-		<ComboboxSelect
-			label={label}
+		<Select
+			filterable
 			value={selection}
-			valueRender={
-				<Text lines="1" cssClass={style.comboboxText}>
-					{selection}
-				</Text>
-			}
 			options={valueOptions}
-			onChange={setSelection}
-			onChangeQuery={setQuery}
-			cssClass={style.combobox}
-			wrapperCssClass={style.comboboxWrapper}
-			queryPlaceholder="Filter..."
+			onValueChange={(v) => setSelection(v.map((v: any) => v.value))}
+			onSearchValueChange={setQuery}
+			resultsLoading={showSpinner}
 		/>
 	)
 }

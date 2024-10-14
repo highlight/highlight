@@ -442,7 +442,7 @@ export const AlertForm: React.FC = () => {
 									<LabeledRow
 										label="Source"
 										name="source"
-										tooltip="The resource being queried, one of the four highlight.io resources."
+										tooltip="The resource being queried, one of the five highlight.io resources."
 									>
 										<OptionDropdown
 											options={productOptions}
@@ -532,7 +532,6 @@ export const AlertForm: React.FC = () => {
 													setSelection={
 														setFunctionColumn
 													}
-													label="metric"
 													searchConfig={
 														searchOptionsConfig
 													}
@@ -556,7 +555,6 @@ export const AlertForm: React.FC = () => {
 												<Combobox
 													selection={groupByKey}
 													setSelection={setGroupByKey}
-													label="groupBy"
 													searchConfig={
 														searchOptionsConfig
 													}
