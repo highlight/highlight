@@ -397,7 +397,7 @@ export const usePlayer = (
 			log(
 				'PlayerHook.tsx:ensureChunksLoaded',
 				'checking chunk loaded status range',
-				{ action, startIdx, endIdx },
+				{ action, startIdx, endIdx, forceLoadNext, forceBlockingLoad },
 			)
 			for (let i = startIdx; i <= endIdx; i++) {
 				log('PlayerHook.tsx:ensureChunksLoaded', 'has', i, {
