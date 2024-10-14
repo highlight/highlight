@@ -1,4 +1,5 @@
 import { exportFile, processRows } from '@util/session/report'
+import moment from 'moment'
 
 export const useExportGraph = () => {
 	return {
@@ -11,11 +12,14 @@ export const useExportGraph = () => {
 			const csvContent = rows
 				.map((rowArray) =>
 					rowArray
-						.map((col) =>
-							col
-								? col.toString().replaceAll(/[,;\t]/gi, '|')
-								: '',
-						)
+						.map((col) => {
+							const m = moment(Number(col), 'X', true)
+							return col
+								? m.isAfter(moment().subtract(10, 'year'))
+									? m.format('yyyy-MM-dd HH:mm:ss')
+									: col.toString().replaceAll(/[,;\t]/gi, '|')
+								: ''
+						})
 						.join(','),
 				)
 				.join('\r\n')
