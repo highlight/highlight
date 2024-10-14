@@ -1075,7 +1075,7 @@ const Graph = ({
 					: { ...graphData, [id]: data },
 			)
 		}
-	}, [data, setGraphData])
+	}, [data, id, setGraphData])
 
 	// Reset spotlight when `series` is updated
 	useEffect(() => {
