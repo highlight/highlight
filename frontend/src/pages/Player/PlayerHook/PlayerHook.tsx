@@ -501,7 +501,7 @@ export const usePlayer = (
 						chunks: chunkEventsRef.current,
 					},
 				)
-				dispatchAction(undefined, blockingLoad.current)
+				dispatchAction(startTime, blockingLoad.current)
 				blockingLoad.current = undefined
 			}
 		},
