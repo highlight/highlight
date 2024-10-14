@@ -160,6 +160,7 @@ export const usePlayer = (
 
 	// chunk indexes that are currently being loaded (fetched over the network)
 	const loadingChunks = useRef<Set<number>>(new Set<number>())
+	const blockingLoad = useRef<boolean>(false)
 
 	const unsubscribeSessionPayloadFn = useRef<(() => void) | null>()
 	const animationFrameID = useRef<number>(0)
@@ -319,6 +320,7 @@ export const usePlayer = (
 						action: action,
 						playerRef,
 					})
+					blockingLoad.current = false
 				},
 			)
 		},
@@ -392,7 +394,6 @@ export const usePlayer = (
 			if (lastChunkIdx !== undefined)
 				endIdx = Math.min(lastChunkIdx, endIdx)
 
-			let blockingLoad = false
 			const promises = []
 			log(
 				'PlayerHook.tsx:ensureChunksLoaded',
@@ -414,27 +415,27 @@ export const usePlayer = (
 						i,
 					)
 					// signal that we are loading chunks once
-					if (!blockingLoad && forceBlockingLoad) {
+					if (!blockingLoad.current && forceBlockingLoad) {
 						log(
 							'PlayerHook.tsx:ensureChunksLoaded',
 							'needs blocking load for chunk, forced blocking load',
 							i,
 						)
-						blockingLoad = true
+						blockingLoad.current = true
 						dispatch({
 							type: PlayerActionType.startChunksLoad,
 						})
 					}
 				} else {
 					// signal that we are loading chunks once
-					if (!blockingLoad) {
+					if (!blockingLoad.current) {
 						if (forceBlockingLoad || i == startIdx) {
 							log(
 								'PlayerHook.tsx:ensureChunksLoaded',
 								'needs blocking load for chunk',
 								i,
 							)
-							blockingLoad = true
+							blockingLoad.current = true
 							dispatch({
 								type: PlayerActionType.startChunksLoad,
 							})
@@ -492,6 +493,17 @@ export const usePlayer = (
 					},
 				)
 				dispatchAction(startTime, action)
+			} else if (blockingLoad.current && state.replayerState) {
+				log(
+					'PlayerHook.tsx:ensureChunksLoaded',
+					'calling dispatchAction due to blockingLoad',
+					{
+						startTime,
+						action: state.replayerState,
+						chunks: chunkEventsRef.current,
+					},
+				)
+				dispatchAction(startTime, state.replayerState)
 			}
 		},
 		[
