@@ -320,7 +320,6 @@ export const usePlayer = (
 						action: action,
 						playerRef,
 					})
-					blockingLoad.current = false
 				},
 			)
 		},
@@ -414,7 +413,6 @@ export const usePlayer = (
 						'waiting for loading chunk',
 						i,
 					)
-					// signal that we are loading chunks once
 					if (!blockingLoad.current && forceBlockingLoad) {
 						log(
 							'PlayerHook.tsx:ensureChunksLoaded',
@@ -427,19 +425,19 @@ export const usePlayer = (
 						})
 					}
 				} else {
-					// signal that we are loading chunks once
-					if (!blockingLoad.current) {
-						if (forceBlockingLoad || i == startIdx) {
-							log(
-								'PlayerHook.tsx:ensureChunksLoaded',
-								'needs blocking load for chunk',
-								i,
-							)
-							blockingLoad.current = true
-							dispatch({
-								type: PlayerActionType.startChunksLoad,
-							})
-						}
+					if (
+						(!blockingLoad.current && forceBlockingLoad) ||
+						i == startIdx
+					) {
+						log(
+							'PlayerHook.tsx:ensureChunksLoaded',
+							'needs blocking load for chunk',
+							i,
+						)
+						blockingLoad.current = true
+						dispatch({
+							type: PlayerActionType.startChunksLoad,
+						})
 					}
 					promises.push(loadEventChunk(i))
 				}
@@ -504,6 +502,7 @@ export const usePlayer = (
 					},
 				)
 				dispatchAction(startTime, state.replayerState)
+				blockingLoad.current = false
 			}
 		},
 		[
