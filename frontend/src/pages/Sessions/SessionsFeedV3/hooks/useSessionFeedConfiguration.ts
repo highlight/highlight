@@ -32,12 +32,23 @@ export const useSessionFeedConfiguration = () => {
 			`${LOCAL_STORAGE_KEY_PREFIX}ResultFormat`,
 			'Count',
 		)
+	const [resultFormatConfigured, setResultFormatConfigured] =
+		useLocalStorage<boolean>(
+			`${LOCAL_STORAGE_KEY_PREFIX}ResultFormat-configured`,
+			false,
+		)
 
 	useEffect(() => {
-		if (sessionResultsVerbose) {
+		if (!resultFormatConfigured && sessionResultsVerbose) {
 			setResultFormat('Count/Length/ActiveLength')
+			setResultFormatConfigured(true)
 		}
-	}, [sessionResultsVerbose, setResultFormat])
+	}, [
+		resultFormatConfigured,
+		sessionResultsVerbose,
+		setResultFormat,
+		setResultFormatConfigured,
+	])
 
 	return {
 		datetimeFormat,
