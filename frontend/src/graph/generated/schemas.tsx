@@ -3579,7 +3579,9 @@ export type SessionQuery = {
 export type SessionResults = {
 	__typename?: 'SessionResults'
 	sessions: Array<Session>
+	totalActiveLength: Scalars['Int64']
 	totalCount: Scalars['Int64']
+	totalLength: Scalars['Int64']
 }
 
 export type SessionsHistogram = {

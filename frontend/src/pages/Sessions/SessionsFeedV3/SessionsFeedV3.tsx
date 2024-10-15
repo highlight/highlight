@@ -142,6 +142,7 @@ export const SessionFeedV3 = React.memo(() => {
 		endDate,
 		selectedPreset,
 		results,
+		resultFormatted,
 		moreResults,
 		resetMoreResults,
 		page,
@@ -208,7 +209,7 @@ export const SessionFeedV3 = React.memo(() => {
 					timeMode="fixed-range"
 					savedSegmentType={SavedSegmentEntityType.Session}
 					actions={actions}
-					resultCount={totalCount}
+					resultFormatted={resultFormatted}
 					loading={loading}
 					creatables={{
 						sample: {

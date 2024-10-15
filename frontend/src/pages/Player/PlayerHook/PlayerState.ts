@@ -299,7 +299,12 @@ export const PlayerInitialState = {
 	sessionEndTime: 0,
 	sessionIntervals: [],
 	sessionMetadata: EMPTY_SESSION_METADATA,
-	sessionResults: { sessions: [], totalCount: -1 },
+	sessionResults: {
+		sessions: [],
+		totalCount: 0,
+		totalLength: 0,
+		totalActiveLength: 0,
+	},
 	sessionViewability: SessionViewability.VIEWABLE,
 	session_secure_id: '',
 	time: 0,
