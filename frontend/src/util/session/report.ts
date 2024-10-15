@@ -29,6 +29,9 @@ export const processRows = <
 			input = { ...input, ...JSON.parse(input.user_properties ?? '') }
 		} catch (e) {}
 		Object.keys(input).forEach((key, idx) => {
+			if (!key.length) {
+				key = 'Value'
+			}
 			if (!keys.hasOwnProperty(key)) {
 				keys[key as keyof T] = idx
 			}
