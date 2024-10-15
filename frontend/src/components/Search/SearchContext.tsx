@@ -84,11 +84,6 @@ interface Props extends Partial<ReturnType<typeof useSearchTime>> {
 	aiSuggestion?: SearchContext['aiSuggestion']
 	aiSuggestionLoading?: SearchContext['aiSuggestionLoading']
 	aiSuggestionError?: SearchContext['aiSuggestionError']
-	// recentSearches: SearchContext['recentSearches']
-	// handleSearch?: SearchContext['handleSearch']
-	// historyLoading?: SearchContext['historyLoading']
-	// activeTab?: SearchContext['activeTab']
-	// setActiveTab?: SearchContext['setActiveTab']
 }
 
 export const SearchContext: React.FC<Props> = ({
