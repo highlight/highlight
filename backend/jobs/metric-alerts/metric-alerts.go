@@ -103,6 +103,8 @@ func processMetricAlert(ctx context.Context, DB *gorm.DB, MailClient *sendgrid.C
 		config = clickhouse.MetricsSampleableTableConfig
 	case modelInputs.ProductTypeTraces:
 		config = clickhouse.TracesSampleableTableConfig
+	case modelInputs.ProductTypeEvents:
+		config = clickhouse.EventsSampleableTableConfig
 	default:
 		return errors.Errorf("Unknown product type: %s", alert.ProductType)
 	}
