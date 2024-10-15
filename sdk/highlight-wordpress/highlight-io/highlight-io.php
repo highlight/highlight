@@ -17,6 +17,7 @@ if (!defined('ABSPATH')) {
 
 class Highlight_WP_Plugin {
     private $options;
+    private $text_domain = 'highlight-io-session-recording';
 
     public function __construct() {
         add_action('admin_menu', array($this, 'add_plugin_page'));
@@ -110,7 +111,7 @@ class Highlight_WP_Plugin {
     public function sanitize($input) {
         $nonce = isset($_POST['highlight_wp_settings_nonce']) ? sanitize_text_field(wp_unslash($_POST['highlight_wp_settings_nonce'])) : '';
         if (!wp_verify_nonce($nonce, 'highlight_wp_settings_nonce')) {
-            add_settings_error('highlight_wp_messages', 'highlight_wp_message', __('Invalid nonce specified', 'highlight'), 'error');
+            add_settings_error('highlight_wp_messages', 'highlight_wp_message', __('Invalid nonce specified', $this->text_domain), 'error');
             return get_option('highlight_wp_options');
         }
 
@@ -181,7 +182,7 @@ class Highlight_WP_Plugin {
     public function enqueue_highlight_script() {
         $options = get_option('highlight_wp_options');
         if (isset($options['project_id']) && !empty($options['project_id'])) {
-            wp_enqueue_script('highlight-run', 'https://unpkg.com/highlight.run', array(), '1.0.0', true);
+            wp_enqueue_script('highlight-run', plugin_dir_url(__FILE__) . 'highlight.js', array(), '1.0.0', true);
 
             $highlight_config = array(
                 'serviceName' => isset($options['service_name']) ? $options['service_name'] : 'highlight-wordpress',
