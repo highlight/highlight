@@ -86,7 +86,13 @@ export const formatResult = (
 	activeTime: moment.Duration | undefined,
 	format: SESSION_FEED_RESULT_FORMAT,
 ) => {
-	if (format === 'Count/Length/ActiveLength' && totalTime && activeTime) {
+	if (count === 0) {
+		return `${count.toLocaleString()} results`
+	} else if (
+		format === 'Count/Length/ActiveLength' &&
+		totalTime &&
+		activeTime
+	) {
 		return `${count.toLocaleString()} results, ${durationFormatter(totalTime)} total, ${durationFormatter(activeTime)} active`
 	} else if (format === 'Active Length' && activeTime) {
 		return durationFormatter(activeTime)
