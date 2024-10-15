@@ -5127,6 +5127,7 @@ export type GetMetricsQueryVariables = Types.Exact<{
 	limit?: Types.Maybe<Types.Scalars['Int']>
 	limit_aggregator?: Types.Maybe<Types.MetricAggregator>
 	limit_column?: Types.Maybe<Types.Scalars['String']>
+	prediction_settings?: Types.Maybe<Types.PredictionSettings>
 }>
 
 export type GetMetricsQuery = { __typename?: 'Query' } & {
@@ -5143,6 +5144,8 @@ export type GetMetricsQuery = { __typename?: 'Query' } & {
 					| 'group'
 					| 'metric_type'
 					| 'metric_value'
+					| 'yhat_lower'
+					| 'yhat_upper'
 				>
 			>
 		}

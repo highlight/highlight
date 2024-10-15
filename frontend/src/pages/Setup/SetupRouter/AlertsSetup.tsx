@@ -16,6 +16,8 @@ import {
 	ProductType,
 	AlertDestinationType,
 	AlertDestinationInput,
+	ThresholdType,
+	ThresholdCondition,
 } from '@graph/schemas'
 import {
 	Badge,
@@ -506,7 +508,9 @@ const AlertPicker: React.FC<AlertPickerProps> = ({ platform }) => {
 									...requestVariables,
 									name: 'Error Log Alert',
 									product_type: ProductType.Logs,
-									below_threshold: false,
+									threshold_type: ThresholdType.Constant,
+									threshold_condition:
+										ThresholdCondition.Above,
 									query: 'level=error',
 									group_by_key: '',
 									threshold_value: 60,

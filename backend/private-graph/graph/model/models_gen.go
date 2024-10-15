@@ -601,6 +601,8 @@ type MetricBucket struct {
 	Column      MetricColumn     `json:"column"`
 	MetricType  MetricAggregator `json:"metric_type"`
 	MetricValue *float64         `json:"metric_value,omitempty"`
+	YhatLower   *float64         `json:"yhat_lower,omitempty"`
+	YhatUpper   *float64         `json:"yhat_upper,omitempty"`
 }
 
 type MetricPreview struct {
@@ -675,6 +677,11 @@ type Plan struct {
 	ErrorsRate          float64                     `json:"errorsRate"`
 	LogsRate            float64                     `json:"logsRate"`
 	TracesRate          float64                     `json:"tracesRate"`
+}
+
+type PredictionSettings struct {
+	ChangepointPriorScale float64 `json:"changepointPriorScale"`
+	IntervalWidth         float64 `json:"intervalWidth"`
 }
 
 type QueryInput struct {

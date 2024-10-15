@@ -69,15 +69,18 @@ export const AlertGraph: React.FC<Props> = ({
 	groupByKey,
 	thresholdWindow,
 	thresholdValue,
-	// thresholdType,
+	thresholdType,
 	thresholdCondition,
 	startDate,
 	endDate,
 	selectedPreset,
 	updateSearchTime,
 }) => {
+	console.log('thresholdType', thresholdType)
 	const { projectId } = useProjectId()
-	const sessionsProduct = productType === ProductType.Sessions
+	const sessionsProduct =
+		productType === ProductType.Sessions &&
+		thresholdType === ThresholdType.Constant
 
 	const viewConfig = sessionsProduct
 		? getViewConfig('Bar chart', 'Stacked', 'Zero')
@@ -126,31 +129,40 @@ export const AlertGraph: React.FC<Props> = ({
 						bucketByWindow={
 							sessionsProduct ? undefined : thresholdWindow
 						}
+						predictionSettings={
+							thresholdType === ThresholdType.Anomaly
+								? {
+										changepointPriorScale: 0.25,
+										intervalWidth: 0.99,
+									}
+								: undefined
+						}
 					>
-						{!sessionsProduct && (
-							<>
-								<ReferenceLine
-									y={thresholdValue}
-									stroke="red"
-								/>
-								{thresholdCondition ===
-									ThresholdCondition.Above && (
-									<ReferenceArea
-										y1={thresholdValue}
-										opacity={0.5}
-										isFront
+						{!sessionsProduct &&
+							thresholdType === ThresholdType.Constant && (
+								<>
+									<ReferenceLine
+										y={thresholdValue}
+										stroke="red"
 									/>
-								)}
-								{thresholdCondition ===
-									ThresholdCondition.Below && (
-									<ReferenceArea
-										y2={thresholdValue}
-										opacity={0.5}
-										isFront
-									/>
-								)}
-							</>
-						)}
+									{thresholdCondition ===
+										ThresholdCondition.Above && (
+										<ReferenceArea
+											y1={thresholdValue}
+											opacity={0.5}
+											isFront
+										/>
+									)}
+									{thresholdCondition ===
+										ThresholdCondition.Below && (
+										<ReferenceArea
+											y2={thresholdValue}
+											opacity={0.5}
+											isFront
+										/>
+									)}
+								</>
+							)}
 					</Graph>
 				</Box>
 			</Box>

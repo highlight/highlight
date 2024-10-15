@@ -68,6 +68,25 @@ const SidebarSection = (props: PropsWithChildren) => {
 
 const FREQUENCY_OPTIONS = FREQUENCIES.filter((freq) => Number(freq.value) >= 60)
 
+const CONFIDENCE_OPTIONS = [
+	{
+		name: '80%',
+		value: '.80',
+	},
+	{
+		name: '90%',
+		value: '.90',
+	},
+	{
+		name: '95%',
+		value: '.95',
+	},
+	{
+		name: '99%',
+		value: '.99',
+	},
+]
+
 const MINUTE = 60
 const WEEK = 7 * 24 * 60 * MINUTE
 
@@ -160,6 +179,7 @@ export const AlertForm: React.FC = () => {
 	const [thresholdCondition, setThresholdCondition] = useState(
 		DEFAULT_THRESHOLD_CONDITON,
 	)
+	const isAnomaly = thresholdType === ThresholdType.Anomaly
 
 	const [thresholdValue, setThresholdValue] = useState(DEFAULT_THRESHOLD)
 	const [thresholdWindow, setThresholdWindow] = useState(DEFAULT_WINDOW)
@@ -179,14 +199,14 @@ export const AlertForm: React.FC = () => {
 		}
 
 		setProductType(product)
-		if (product === ProductType.Sessions) {
+		if (product === ProductType.Sessions && !isAnomaly) {
 			// locked session settings -> group by secure_id
 			setGroupByEnabled(true)
 			setGroupByKey('secure_id')
 			// only alert once per session
 			setThresholdWindow(SESSION_WINDOW)
 			setThresholdCooldown(SESSION_COOLDOWN)
-		} else if (product === ProductType.Errors) {
+		} else if (product === ProductType.Errors && !isAnomaly) {
 			// locked error settings -> group by secure_id
 			setGroupByEnabled(true)
 			setGroupByKey('secure_id')
@@ -472,21 +492,22 @@ export const AlertForm: React.FC = () => {
 											icons={productIcons}
 										/>
 									</LabeledRow>
-									{ALERT_PRODUCT_INFO[productType] && (
-										<Callout
-											title={`${productType} alerts`}
-										>
-											<Box pb="8">
-												<Text>
-													{
-														ALERT_PRODUCT_INFO[
-															productType
-														]
-													}
-												</Text>
-											</Box>
-										</Callout>
-									)}
+									{!isAnomaly &&
+										ALERT_PRODUCT_INFO[productType] && (
+											<Callout
+												title={`${productType} alerts`}
+											>
+												<Box pb="8">
+													<Text>
+														{
+															ALERT_PRODUCT_INFO[
+																productType
+															]
+														}
+													</Text>
+												</Box>
+											</Callout>
+										)}
 								</SidebarSection>
 								<Divider className="m-0" />
 								<SidebarSection>
@@ -529,7 +550,8 @@ export const AlertForm: React.FC = () => {
 										</LabeledRow>
 									)}
 								</SidebarSection>
-								{!isSessionAlert && !isErrorAlert && (
+								{(isAnomaly ||
+									(!isSessionAlert && !isErrorAlert)) && (
 									<>
 										<Box px="12">
 											<Divider className="m-0" />
@@ -587,63 +609,122 @@ export const AlertForm: React.FC = () => {
 										</SidebarSection>
 									</>
 								)}
-								{!isSessionAlert && (
-									<>
-										<Divider className="m-0" />
-										<SidebarSection>
-											<LabeledRow
-												label="Alert type"
-												name="alertType"
-											>
-												<OptionDropdown<ThresholdType>
-													options={
-														THRESHOLD_TYPE_OPTIONS
-													}
-													selection={thresholdType}
-													setSelection={
-														setThresholdType
-													}
-												/>
-											</LabeledRow>
-											<LabeledRow
-												label="Alert conditions"
-												name="alertConditions"
-											>
-												<OptionDropdown<ThresholdCondition>
-													options={getThresholdConditionOptions(
-														thresholdType,
-													)}
-													selection={
-														thresholdCondition
-													}
-													setSelection={
-														setThresholdCondition
-													}
-												/>
-											</LabeledRow>
-											<Stack direction="row" gap="12">
+
+								<>
+									<Divider className="m-0" />
+									<SidebarSection>
+										<LabeledRow
+											label="Alert type"
+											name="alertType"
+										>
+											<OptionDropdown<ThresholdType>
+												options={THRESHOLD_TYPE_OPTIONS}
+												selection={thresholdType}
+												setSelection={setThresholdType}
+											/>
+										</LabeledRow>
+										{(isAnomaly || !isSessionAlert) && (
+											<>
 												<LabeledRow
-													label="Alert threshold"
-													name="thresholdValue"
+													label="Alert conditions"
+													name="alertConditions"
 												>
-													<Input
-														name="thresholdValue"
-														type="number"
-														step=".5"
-														value={thresholdValue}
-														onChange={(e) => {
-															setThresholdValue(
-																Number(
-																	e.target
-																		.value,
-																),
-															)
-														}}
+													<OptionDropdown<ThresholdCondition>
+														options={getThresholdConditionOptions(
+															thresholdType,
+														)}
+														selection={
+															thresholdCondition
+														}
+														setSelection={
+															setThresholdCondition
+														}
 													/>
 												</LabeledRow>
+												<Stack direction="row" gap="12">
+													{isAnomaly && (
+														<LabeledRow
+															label="Confidence interval"
+															name="thresholdValue"
+														>
+															<OptionDropdown<string>
+																options={CONFIDENCE_OPTIONS.map(
+																	(f) =>
+																		f.value,
+																)}
+																labels={CONFIDENCE_OPTIONS.map(
+																	(f) =>
+																		f.name,
+																)}
+																selection={String(
+																	thresholdValue,
+																)}
+																setSelection={(
+																	option,
+																) => {
+																	setThresholdValue(
+																		Number(
+																			option,
+																		),
+																	)
+																}}
+															/>
+														</LabeledRow>
+													)}
+													{!isAnomaly && (
+														<LabeledRow
+															label="Alert threshold"
+															name="thresholdValue"
+														>
+															<Input
+																name="thresholdValue"
+																type="number"
+																value={
+																	thresholdValue
+																}
+																onChange={(
+																	e,
+																) => {
+																	setThresholdValue(
+																		Number(
+																			e
+																				.target
+																				.value,
+																		),
+																	)
+																}}
+															/>
+														</LabeledRow>
+													)}
+													<LabeledRow
+														label="Alert window"
+														name="thresholdWindow"
+													>
+														<OptionDropdown<string>
+															options={FREQUENCY_OPTIONS.map(
+																(f) => f.value,
+															)}
+															labels={FREQUENCY_OPTIONS.map(
+																(f) => f.name,
+															)}
+															selection={String(
+																thresholdWindow,
+															)}
+															setSelection={(
+																option,
+															) => {
+																setThresholdWindow(
+																	Number(
+																		option,
+																	),
+																)
+															}}
+														/>
+													</LabeledRow>
+												</Stack>
 												<LabeledRow
-													label="Alert window"
-													name="thresholdWindow"
+													label="Cooldown"
+													name="thresholdCooldown"
 												>
 													<OptionDropdown<string>
 														options={FREQUENCY_OPTIONS.map(
@@ -653,42 +734,22 @@ export const AlertForm: React.FC = () => {
 															(f) => f.name,
 														)}
 														selection={String(
-															thresholdWindow,
+															thresholdCooldown,
 														)}
 														setSelection={(
 															option,
 														) => {
-															setThresholdWindow(
+															setThresholdCooldown(
 																Number(option),
 															)
 														}}
 													/>
 												</LabeledRow>
-											</Stack>
-											<LabeledRow
-												label="Cooldown"
-												name="thresholdCooldown"
-											>
-												<OptionDropdown<string>
-													options={FREQUENCY_OPTIONS.map(
-														(f) => f.value,
-													)}
-													labels={FREQUENCY_OPTIONS.map(
-														(f) => f.name,
-													)}
-													selection={String(
-														thresholdCooldown,
-													)}
-													setSelection={(option) => {
-														setThresholdCooldown(
-															Number(option),
-														)
-													}}
-												/>
-											</LabeledRow>
-										</SidebarSection>
-									</>
-								)}
+											</>
+										)}
+									</SidebarSection>
+								</>
+
 								<Divider className="m-0" />
 								<SidebarSection>
 									<DestinationInput

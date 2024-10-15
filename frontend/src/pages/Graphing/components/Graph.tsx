@@ -20,7 +20,7 @@ import clsx from 'clsx'
 import _ from 'lodash'
 import moment from 'moment'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { Tooltip as RechartsTooltip, ReferenceArea } from 'recharts'
+import { Area, Tooltip as RechartsTooltip, ReferenceArea } from 'recharts'
 import { CategoricalChartState } from 'recharts/types/chart/types'
 
 import { loadingIcon } from '@/components/Button/style.css'
@@ -28,7 +28,12 @@ import { useRelatedResource } from '@/components/RelatedResources/hooks'
 import { TIME_FORMAT } from '@/components/Search/SearchForm/constants'
 import { useGetMetricsLazyQuery } from '@/graph/generated/hooks'
 import { GetMetricsQuery } from '@/graph/generated/operations'
-import { Maybe, MetricAggregator, ProductType } from '@/graph/generated/schemas'
+import {
+	Maybe,
+	MetricAggregator,
+	PredictionSettings,
+	ProductType,
+} from '@/graph/generated/schemas'
 import {
 	BarChart,
 	BarChartConfig,
@@ -61,6 +66,10 @@ export const TIMESTAMP_KEY = 'Timestamp'
 export const GROUP_KEY = 'Group'
 export const BUCKET_MIN_KEY = 'BucketMin'
 export const BUCKET_MAX_KEY = 'BucketMax'
+export const YHAT_UPPER_KEY = 'yhat_upper'
+export const YHAT_LOWER_KEY = 'yhat_lower'
+export const YHAT_UPPER_REGION_KEY = 'yhat_upper_region'
+export const YHAT_LOWER_REGION_KEY = 'yhat_lower_region'
 export const NO_GROUP_PLACEHOLDER = '<empty>'
 const MAX_LABEL_CHARS = 100
 
@@ -104,6 +113,7 @@ export interface ChartProps<TConfig> {
 	setTimeRange?: SetTimeRange
 	loadExemplars?: LoadExemplars
 	variables?: Map<string, string>
+	predictionSettings?: PredictionSettings
 }
 
 export interface InnerChartProps<TConfig> {
@@ -440,6 +450,8 @@ const getCustomTooltip =
 			label = frozenTooltip.activeLabel
 		}
 
+		console.log('payload', payload)
+
 		const isValid = active && payload && payload.length
 		return (
 			<Box
@@ -456,72 +468,81 @@ const getCustomTooltip =
 				>
 					{isValid && getTickFormatter(xAxisMetric)(label)}
 				</Text>
-				{payload.map((p: any, idx: number) => (
-					<Box
-						display="flex"
-						key={idx}
-						justifyContent="space-between"
-						gap="4"
-						cssClass={style.tooltipRow}
-					>
+				{payload
+					.filter(
+						(p: any) =>
+							![
+								YHAT_LOWER_REGION_KEY,
+								YHAT_UPPER_REGION_KEY,
+							].includes(p.dataKey),
+					)
+					.map((p: any, idx: number) => (
 						<Box
 							display="flex"
-							flexDirection="row"
-							alignItems="center"
+							key={idx}
+							justifyContent="space-between"
 							gap="4"
+							cssClass={style.tooltipRow}
 						>
 							<Box
-								style={{
-									backgroundColor: p.color,
-								}}
-								cssClass={style.tooltipDot}
-							></Box>
-							<Badge
-								size="small"
-								shape="basic"
-								label={
-									isValid &&
-									getTickFormatter(yAxisMetric)(p.value)
-								}
+								display="flex"
+								flexDirection="row"
+								alignItems="center"
+								gap="4"
 							>
+								<Box
+									style={{
+										backgroundColor: p.color,
+									}}
+									cssClass={style.tooltipDot}
+								></Box>
+								<Badge
+									size="small"
+									shape="basic"
+									label={
+										isValid &&
+										getTickFormatter(yAxisMetric)(p.value)
+									}
+								>
+									<Text
+										lines="1"
+										size="xSmall"
+										weight="medium"
+										color="default"
+										cssClass={style.tooltipText}
+									></Text>
+								</Badge>
 								<Text
 									lines="1"
 									size="xSmall"
 									weight="medium"
 									color="default"
 									cssClass={style.tooltipText}
-								></Text>
-							</Badge>
-							<Text
-								lines="1"
-								size="xSmall"
-								weight="medium"
-								color="default"
-								cssClass={style.tooltipText}
-							>
-								{p.name ? p.name : yAxisFunction}
-							</Text>
+								>
+									{p.name ? p.name : yAxisFunction}
+								</Text>
+							</Box>
+							{frozenTooltip && (
+								<ButtonIcon
+									icon={<IconSolidExternalLink size={16} />}
+									size="minimal"
+									shape="square"
+									emphasis="low"
+									kind="secondary"
+									cssClass={style.exemplarButton}
+									onClick={() => {
+										loadExemplars &&
+											loadExemplars(
+												p.payload[BUCKET_MIN_KEY],
+												p.payload[BUCKET_MAX_KEY],
+												p.dataKey ||
+													p.payload[GROUP_KEY],
+											)
+									}}
+								/>
+							)}
 						</Box>
-						{frozenTooltip && (
-							<ButtonIcon
-								icon={<IconSolidExternalLink size={16} />}
-								size="minimal"
-								shape="square"
-								emphasis="low"
-								kind="secondary"
-								cssClass={style.exemplarButton}
-								onClick={() => {
-									loadExemplars &&
-										loadExemplars(
-											p.payload[BUCKET_MIN_KEY],
-											p.payload[BUCKET_MAX_KEY],
-											p.dataKey || p.payload[GROUP_KEY],
-										)
-								}}
-							/>
-						)}
-					</Box>
-				))}
+					))}
 			</Box>
 		)
 	}
@@ -641,6 +662,21 @@ export const useGraphData = (
 					data[b.bucket_id][seriesKey] = b.metric_value
 					data[b.bucket_id][BUCKET_MIN_KEY] = b.bucket_min
 					data[b.bucket_id][BUCKET_MAX_KEY] = b.bucket_max
+
+					if (b.yhat_upper && b.yhat_lower) {
+						data[b.bucket_id][YHAT_UPPER_KEY] = {
+							[seriesKey]: b.yhat_upper,
+						}
+						data[b.bucket_id][YHAT_LOWER_KEY] = {
+							[seriesKey]: b.yhat_lower,
+						}
+						if (!hasGroups) {
+							data[b.bucket_id][YHAT_UPPER_REGION_KEY] =
+								b.yhat_upper - b.yhat_lower
+							data[b.bucket_id][YHAT_LOWER_REGION_KEY] =
+								b.yhat_lower
+						}
+					}
 				}
 			} else {
 				data = []
@@ -661,7 +697,15 @@ export const useGraphSeries = (
 	xAxisMetric: string,
 ) => {
 	const series = useMemo(() => {
-		const excluded = [xAxisMetric, BUCKET_MIN_KEY, BUCKET_MAX_KEY]
+		const excluded = [
+			xAxisMetric,
+			BUCKET_MIN_KEY,
+			BUCKET_MAX_KEY,
+			YHAT_UPPER_KEY,
+			YHAT_LOWER_KEY,
+			YHAT_LOWER_REGION_KEY,
+			YHAT_UPPER_REGION_KEY,
+		]
 		return _.uniq(data?.flatMap((d) => Object.keys(d))).filter(
 			(key) => !excluded.includes(key),
 		)
@@ -705,6 +749,7 @@ const Graph = ({
 	setTimeRange,
 	selectedPreset,
 	variables,
+	predictionSettings,
 	children,
 }: React.PropsWithChildren<ChartProps<ViewConfig>>) => {
 	const queriedBucketCount = bucketByKey !== undefined ? bucketCount : 1
@@ -855,6 +900,7 @@ const Graph = ({
 				limit_column: limitMetric
 					? replaceVariables(limitMetric, variables)
 					: undefined,
+				prediction_settings: predictionSettings,
 			},
 		}).then(() => {
 			// create another poll timeout if pollInterval is set
@@ -891,6 +937,7 @@ const Graph = ({
 		query,
 		variables,
 		replaceVariables,
+		predictionSettings,
 	])
 
 	const data = useGraphData(metrics, xAxisMetric)
@@ -949,6 +996,28 @@ const Graph = ({
 						showGrid
 					>
 						{children}
+						<Area
+							isAnimationActive={false}
+							dataKey={YHAT_LOWER_REGION_KEY}
+							strokeWidth="2px"
+							fill="#FFFFFF"
+							stroke="#555555"
+							fillOpacity={0.1}
+							stackId={-1}
+							connectNulls
+							activeDot={<></>}
+						/>
+						<Area
+							isAnimationActive={false}
+							dataKey={YHAT_UPPER_REGION_KEY}
+							strokeWidth="2px"
+							fill="#555555"
+							stroke="#555555"
+							fillOpacity={0.1}
+							stackId={-1}
+							connectNulls
+							activeDot={<></>}
+						/>
 					</LineChart>
 				)
 				break

@@ -1159,6 +1159,8 @@ type MetricBucket {
 	column: MetricColumn!
 	metric_type: MetricAggregator!
 	metric_value: Float
+	yhat_lower: Float
+	yhat_upper: Float
 }
 
 type MetricsBuckets {
@@ -1399,6 +1401,11 @@ input UserPropertyInput {
 	id: ID!
 	name: String!
 	value: String!
+}
+
+input PredictionSettings {
+	changepointPriorScale: Float!
+	intervalWidth: Float!
 }
 
 type User {
@@ -2547,6 +2554,7 @@ type Query {
 		limit: Int
 		limit_aggregator: MetricAggregator
 		limit_column: String
+		prediction_settings: PredictionSettings
 	): MetricsBuckets!
 	keys(
 		product_type: ProductType

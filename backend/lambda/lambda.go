@@ -132,6 +132,67 @@ func (s *Client) GetActivityGraph(ctx context.Context, eventCounts string) (*htt
 	return s.RetryableHTTPClient.Do(req)
 }
 
+type PredictionDataFrame struct {
+	DS []string  `json:"ds"`
+	Y  []float64 `json:"y"`
+}
+
+type PredictionInput struct {
+	ChangepointPriorScale float64             `json:"changepoint_prior_scale"`
+	IntervalWidth         float64             `json:"interval_width"`
+	Input                 PredictionDataFrame `json:"input"`
+}
+
+type PredictionResult struct {
+	DS        map[uint64]uint64  `json:"ds"`
+	YHat      map[uint64]float64 `json:"yhat"`
+	YHatLower map[uint64]float64 `json:"yhat_lower"`
+	YHatUpper map[uint64]float64 `json:"yhat_upper"`
+}
+
+func (s *Client) GetPredictions(ctx context.Context, ds []string, y []float64, changepointPriorScale float64, intervalWidth float64) (*PredictionResult, error) {
+	url := "https://3yoqbhxpfya5u23dbwwqgwspoy0bvskg.lambda-url.us-east-2.on.aws"
+	log.WithContext(ctx).Infof("requesting prediction for %s", url)
+
+	marshaled, err := json.Marshal(PredictionInput{
+		ChangepointPriorScale: changepointPriorScale,
+		IntervalWidth:         intervalWidth,
+		Input: PredictionDataFrame{
+			DS: ds,
+			Y:  y,
+		},
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	req, _ := http.NewRequest(http.MethodPost, url, bytes.NewReader(marshaled))
+	req = req.WithContext(ctx)
+	req.Header = http.Header{
+		"Content-Type": []string{"application/json"},
+	}
+
+	resp, err := s.HTTPClient.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	if resp.StatusCode != 200 {
+		return nil, errors.New(fmt.Sprintf("prediction returned %d", resp.StatusCode))
+	}
+
+	b, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+
+	var result PredictionResult
+	if err = json.Unmarshal(b, &result); err != nil {
+		return nil, err
+	}
+
+	return &result, nil
+}
+
 func (s *Client) GetSessionInsight(ctx context.Context, projectID int, sessionID int) (*http.Response, error) {
 	var req *retryablehttp.Request
 

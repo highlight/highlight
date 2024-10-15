@@ -37,26 +37,21 @@ type SampleableTableConfig struct {
 	useSampling         func(time.Duration) bool
 }
 
-type AnomalySettings struct {
-	MetricId        string
-	BlockNumberInfo []BlockNumberInfo
-}
-
 type ReadMetricsInput struct {
-	SampleableConfig SampleableTableConfig
-	ProjectIDs       []int
-	Params           modelInputs.QueryInput
-	Column           string
-	MetricTypes      []modelInputs.MetricAggregator
-	GroupBy          []string
-	BucketCount      *int
-	BucketWindow     *int
-	BucketBy         string
-	Limit            *int
-	LimitAggregator  *modelInputs.MetricAggregator
-	LimitColumn      *string
-	SavedMetricState *SavedMetricState
-	AnomalySettings  *AnomalySettings
+	SampleableConfig   SampleableTableConfig
+	ProjectIDs         []int
+	Params             modelInputs.QueryInput
+	Column             string
+	MetricTypes        []modelInputs.MetricAggregator
+	GroupBy            []string
+	BucketCount        *int
+	BucketWindow       *int
+	BucketBy           string
+	Limit              *int
+	LimitAggregator    *modelInputs.MetricAggregator
+	LimitColumn        *string
+	SavedMetricState   *SavedMetricState
+	PredictionSettings *modelInputs.PredictionSettings
 }
 
 func readObjects[TObj interface{}](ctx context.Context, client *Client, config model.TableConfig, samplingConfig model.TableConfig, projectID int, params modelInputs.QueryInput, pagination Pagination, scanObject func(driver.Rows) (*Edge[TObj], error)) (*Connection[TObj], error) {

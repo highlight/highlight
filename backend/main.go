@@ -311,12 +311,12 @@ func main() {
 	defer kafkaTracesProducer.Stop(ctx)
 
 	var lambdaClient *lambda.Client
-	if !env.IsInDocker() {
-		lambdaClient, err = lambda.NewLambdaClient()
-		if err != nil {
-			log.WithContext(ctx).Errorf("error creating lambda client: %v", err)
-		}
+	// if !env.IsInDocker() {
+	lambdaClient, err = lambda.NewLambdaClient()
+	if err != nil {
+		log.WithContext(ctx).Errorf("error creating lambda client: %v", err)
 	}
+	// }
 
 	redisClient := redis.NewClient()
 	sfnClient := stepfunctions.NewClient()

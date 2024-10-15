@@ -14965,6 +14965,7 @@ export const GetMetricsDocument = gql`
 		$limit: Int
 		$limit_aggregator: MetricAggregator
 		$limit_column: String
+		$prediction_settings: PredictionSettings
 	) {
 		metrics(
 			product_type: $product_type
@@ -14979,6 +14980,7 @@ export const GetMetricsDocument = gql`
 			limit: $limit
 			limit_aggregator: $limit_aggregator
 			limit_column: $limit_column
+			prediction_settings: $prediction_settings
 		) {
 			buckets {
 				bucket_id
@@ -14987,6 +14989,8 @@ export const GetMetricsDocument = gql`
 				group
 				metric_type
 				metric_value
+				yhat_lower
+				yhat_upper
 			}
 			bucket_count
 			sample_factor
@@ -15018,6 +15022,7 @@ export const GetMetricsDocument = gql`
  *      limit: // value for 'limit'
  *      limit_aggregator: // value for 'limit_aggregator'
  *      limit_column: // value for 'limit_column'
+ *      prediction_settings: // value for 'prediction_settings'
  *   },
  * });
  */

@@ -1100,6 +1100,8 @@ export type MetricBucket = {
 	group: Array<Scalars['String']>
 	metric_type: MetricAggregator
 	metric_value?: Maybe<Scalars['Float']>
+	yhat_lower?: Maybe<Scalars['Float']>
+	yhat_upper?: Maybe<Scalars['Float']>
 }
 
 export enum MetricBucketBy {
@@ -2007,6 +2009,11 @@ export enum PlanType {
 	UsageBased = 'UsageBased',
 }
 
+export type PredictionSettings = {
+	changepointPriorScale: Scalars['Float']
+	intervalWidth: Scalars['Float']
+}
+
 export enum ProductType {
 	Errors = 'Errors',
 	Events = 'Events',
@@ -2691,6 +2698,7 @@ export type QueryMetricsArgs = {
 	limit_column?: InputMaybe<Scalars['String']>
 	metric_types: Array<MetricAggregator>
 	params: QueryInput
+	prediction_settings?: InputMaybe<PredictionSettings>
 	product_type: ProductType
 	project_id: Scalars['ID']
 }
