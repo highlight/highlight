@@ -79,12 +79,15 @@ import {
 } from './Settings'
 import { EventSteps } from '@pages/Graphing/EventSelection/EventSteps'
 import { EventSelection } from '@pages/Graphing/EventSelection'
-import { FREQUENCIES } from '@/pages/Alerts/AlertConfigurationCard/AlertConfigurationConstants'
 import { useGraphingVariables } from '@/pages/Graphing/hooks/useGraphingVariables'
 import { VariablesBar } from '@/pages/Graphing/components/VariablesBar'
 import { useRetentionPresets } from '@/components/Search/SearchForm/hooks'
 import { omit } from 'lodash'
-import { EventSelectionStep, loadFunnelStep } from '@pages/Graphing/util'
+import {
+	BUCKET_FREQUENCIES,
+	EventSelectionStep,
+	loadFunnelStep,
+} from '@pages/Graphing/util'
 import { useGraphData } from '@pages/Graphing/hooks/useGraphData'
 import { GraphContextProvider } from './context/GraphContext'
 
@@ -1046,7 +1049,7 @@ export const GraphingEditor: React.FC = () => {
 												tooltip="The number of X-axis buckets. A higher value will display smaller, more granular buckets."
 											>
 												<Select
-													options={FREQUENCIES}
+													options={BUCKET_FREQUENCIES}
 													value={bucketInterval}
 													onValueChange={(o) => {
 														setBucketInterval(
