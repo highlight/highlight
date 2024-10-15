@@ -6527,7 +6527,7 @@ func (r *queryResolver) Sessions(ctx context.Context, projectID int, count int, 
 		return nil, err
 	}
 
-	ids, total, ordered, err := r.ClickhouseClient.QuerySessionIds(ctx, admin, projectID, count, params, chSortStr, page, retentionDate)
+	ids, total, totalLength, totalActiveLength, ordered, err := r.ClickhouseClient.QuerySessionIds(ctx, admin, projectID, count, params, chSortStr, page, retentionDate)
 	if err != nil {
 		return nil, err
 	}
@@ -6555,8 +6555,10 @@ func (r *queryResolver) Sessions(ctx context.Context, projectID int, count int, 
 	}
 
 	return &model.SessionResults{
-		Sessions:   results,
-		TotalCount: total,
+		Sessions:          results,
+		TotalCount:        total,
+		TotalLength:       totalLength,
+		TotalActiveLength: totalActiveLength,
 	}, nil
 }
 
