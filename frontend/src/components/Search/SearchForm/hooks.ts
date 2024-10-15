@@ -131,15 +131,6 @@ function getRecentSearches(moduleName: string): SearchEntry[] {
 		.sort((a, b) => b.timestamp - a.timestamp)
 		.slice(0, MAX_HISTORY_LENGTH)
 }
-
-function getMostSearchedQueries(moduleName: string): SearchEntry[] {
-	const key = `${moduleName}_searchHistory`
-	const history: SearchEntry[] = JSON.parse(localStorage.getItem(key) || '[]')
-	return history
-		.sort((a, b) => b.count - a.count)
-		.slice(0, MAX_HISTORY_LENGTH)
-}
-
 function saveSearchQuery(
 	moduleName: string,
 	searchQuery: string,
@@ -148,57 +139,66 @@ function saveSearchQuery(
 	const key = `${moduleName}_searchHistory`
 	let history: SearchEntry[] = JSON.parse(localStorage.getItem(key) || '[]')
 
-	const existingQuery = history.find((item) => item.query === searchQuery)
+	// Create a Set based on unique search queries
+	const uniqueQueries = new Set(history.map((item) => item.query))
 
-	if (existingQuery) {
-		existingQuery.timestamp = Date.now()
-		existingQuery.count += 1
+	// If the query already exists, update the timestamp and count
+	if (uniqueQueries.has(searchQuery)) {
+		history = history.map((item) =>
+			item.query == searchQuery
+				? { ...item, timestamp: Date.now(), count: item.count + 1 }
+				: item,
+		)
 	} else {
+		// Add the new query to the history if it doesn't exist
 		history.push({
 			query: searchQuery,
 			timestamp: Date.now(),
 			count: 1,
 			queryParts: queryParts,
 		})
+		uniqueQueries.add(searchQuery) // Add to the Set as well
 	}
-
-	// Limit the history length
+	console.log('history', history)
+	// Limit the history length to MAX_HISTORY_LENGTH
 	if (history.length > MAX_HISTORY_LENGTH) {
-		history = history.slice(0, MAX_HISTORY_LENGTH)
+		history = history.slice(-MAX_HISTORY_LENGTH) // Keep the most recent queries
 	}
 
+	// Save the updated history back to localStorage
 	localStorage.setItem(key, JSON.stringify(history))
 }
 
 export const useSearchHistory = () => {
 	const [recentSearches, setRecentSearches] = useState<SearchEntry[]>([])
-	const [mostSearched, setMostSearched] = useState<SearchEntry[]>([])
 	const [activeTab, setActiveTab] = useState<'recent' | 'most' | 'filters'>(
 		'recent',
 	)
 	const [historyLoading, setHisotryLoading] = useState(true)
 	const locaiton = useLocation()
+	//currently we are storing the pathname as identifier. So it is project specific. if we want global search we can tweak the below path and achieve that.
 	const pathName = locaiton?.pathname
 
 	useEffect(() => {
 		setHisotryLoading(true)
 		setRecentSearches(getRecentSearches(pathName))
-		setMostSearched(getMostSearchedQueries(pathName))
 		setActiveTab('filters')
 		setHisotryLoading(false)
 	}, [pathName])
 
 	const handleSearch = (query: string, queryParts: SearchExpression[]) => {
-		if (query.trim() !== '') {
-			saveSearchQuery(pathName, query, queryParts)
+		const trimedQuery = queryParts.reduce((acc, part) => {
+			acc = (acc ? `${acc} ` : acc) + part.text
+			return acc
+		}, '')
+		if (trimedQuery !== '') {
+			saveSearchQuery(pathName, trimedQuery, queryParts)
 			setRecentSearches(getRecentSearches(pathName))
-			setMostSearched(getMostSearchedQueries(pathName))
 		}
 	}
 
 	return {
 		recentSearches,
-		mostSearched,
 		handleSearch,
 		activeTab,
 		setActiveTab,

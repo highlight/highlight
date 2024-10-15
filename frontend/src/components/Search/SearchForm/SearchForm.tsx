@@ -57,7 +57,7 @@ import { ProductType, SavedSegmentEntityType } from '@/graph/generated/schemas'
 import { useDebounce } from '@/hooks/useDebounce'
 import { useApplicationContext } from '@/routers/AppRouter/context/ApplicationContext'
 import { formatNumber } from '@/util/numbers'
-import { useSearchHistory, SearchEntry } from './hooks'
+import { SearchEntry } from './hooks'
 
 import { AiSearch } from './AiSearch'
 import * as styles from './SearchForm.css'
@@ -363,6 +363,10 @@ export const Search: React.FC<{
 		onSubmit,
 		setQuery,
 		setAiMode,
+		recentSearches,
+		activeTab,
+		setActiveTab,
+		historyLoading,
 	} = useSearchContext()
 	const navigate = useNavigate()
 	const { currentWorkspace } = useApplicationContext()
@@ -391,17 +395,6 @@ export const Search: React.FC<{
 	const { debouncedValue, setDebouncedValue } = useDebounce<string>(
 		activePart.value,
 	)
-	const {
-		recentSearches,
-		mostSearched,
-		handleSearch,
-		activeTab,
-		setActiveTab,
-		historyLoading,
-	} = useSearchHistory()
-
-	const showHistoryList =
-		activeTab === 'recent' ? recentSearches : mostSearched
 
 	useEffect(() => {
 		// necessary to update the combobox with the URL state
@@ -477,16 +470,6 @@ export const Search: React.FC<{
 	const isDirty = query !== ''
 
 	const submitQuery = (query: string) => {
-		if (query) {
-			try {
-				const newQueryParts = JSON.parse(
-					JSON.stringify(queryParts || []),
-				)
-				handleSearch?.(query, newQueryParts)
-			} catch (err) {
-				//do nothing
-			}
-		}
 		onSubmit(query)
 	}
 
@@ -676,10 +659,9 @@ export const Search: React.FC<{
 		queryParts: SearchExpression[],
 	) => {
 		const newQuery = stringifySearchQuery(queryParts)
-		const newCursorPosition = query.length
 		startTransition(() => {
-			setCursorIndex(newCursorPosition)
 			submitQuery(newQuery)
+			handleSetCursorIndex()
 			comboboxStore.setOpen(false)
 		})
 		comboboxStore.setActiveId(null)
@@ -936,8 +918,8 @@ export const Search: React.FC<{
 							{!showValues && !showOperators && (
 								<>
 									<Combobox.GroupLabel store={comboboxStore}>
-										<Box px="10" py="6">
-											<div className="mb-4 flex space-x-2">
+										<Box px="10" py="2">
+											<div className="mb-1.5 flex space-x-2">
 												<Button
 													trackingId="filters_click"
 													onClick={() =>
@@ -946,6 +928,11 @@ export const Search: React.FC<{
 													size="xSmall"
 													kind="secondary"
 													emphasis="high"
+													className={
+														activeTab === 'filters'
+															? 'bg-gray-400'
+															: ''
+													}
 												>
 													Filters
 												</Button>
@@ -957,6 +944,11 @@ export const Search: React.FC<{
 													size="xSmall"
 													kind="secondary"
 													emphasis="high"
+													className={
+														activeTab === 'recent'
+															? 'bg-gray-400'
+															: ''
+													}
 												>
 													Recent History
 												</Button>
@@ -964,9 +956,9 @@ export const Search: React.FC<{
 										</Box>
 									</Combobox.GroupLabel>
 									{activeTab !== 'filters' &&
-									showHistoryList?.length > 0 &&
+									recentSearches?.length > 0 &&
 									!historyLoading ? (
-										showHistoryList.map(
+										recentSearches.map(
 											(
 												data: SearchEntry,
 												index: number,
