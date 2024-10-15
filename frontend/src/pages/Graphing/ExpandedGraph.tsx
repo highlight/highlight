@@ -25,6 +25,8 @@ import { useParams } from '@/util/react-router/useParams'
 import * as style from './Dashboard.css'
 import { useGraphingVariables } from '@/pages/Graphing/hooks/useGraphingVariables'
 import { useRetentionPresets } from '@/components/Search/SearchForm/hooks'
+import { GraphContextProvider } from '@pages/Graphing/context/GraphContext'
+import { useGraphData } from '@pages/Graphing/hooks/useGraphData'
 
 export const ExpandedGraph = () => {
 	const { dashboard_id, graph_id } = useParams<{
@@ -33,6 +35,7 @@ export const ExpandedGraph = () => {
 	}>()
 
 	const { projectId } = useProjectId()
+	const graphContext = useGraphData()
 
 	const { data } = useGetVisualizationQuery({
 		variables: { id: dashboard_id! },
@@ -56,7 +59,7 @@ export const ExpandedGraph = () => {
 	}
 
 	return (
-		<>
+		<GraphContextProvider value={graphContext}>
 			<Helmet>
 				<title>Dashboard</title>
 			</Helmet>
@@ -166,7 +169,7 @@ export const ExpandedGraph = () => {
 								bucketByKey={g.bucketByKey ?? undefined}
 								bucketByWindow={g.bucketInterval ?? undefined}
 								bucketCount={g.bucketCount ?? undefined}
-								groupByKey={g.groupByKey ?? undefined}
+								groupByKeys={g.groupByKeys ?? undefined}
 								limit={g.limit ?? undefined}
 								limitFunctionType={
 									g.limitFunctionType ?? undefined
@@ -179,6 +182,6 @@ export const ExpandedGraph = () => {
 					</Box>
 				</Box>
 			</Box>
-		</>
+		</GraphContextProvider>
 	)
 }

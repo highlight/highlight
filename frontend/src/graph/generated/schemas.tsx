@@ -739,6 +739,17 @@ export type Field = {
 	value: Scalars['String']
 }
 
+export type FunnelStep = {
+	__typename?: 'FunnelStep'
+	query: Scalars['String']
+	title: Scalars['String']
+}
+
+export type FunnelStepInput = {
+	query: Scalars['String']
+	title: Scalars['String']
+}
+
 export type GitHubRepo = {
 	__typename?: 'GitHubRepo'
 	key: Scalars['String']
@@ -760,7 +771,8 @@ export type Graph = {
 	bucketInterval?: Maybe<Scalars['Int']>
 	display?: Maybe<Scalars['String']>
 	functionType: MetricAggregator
-	groupByKey?: Maybe<Scalars['String']>
+	funnelSteps?: Maybe<Array<FunnelStep>>
+	groupByKeys?: Maybe<Scalars['StringArray']>
 	id: Scalars['ID']
 	limit?: Maybe<Scalars['Int']>
 	limitFunctionType?: Maybe<MetricAggregator>
@@ -780,7 +792,8 @@ export type GraphInput = {
 	bucketInterval?: InputMaybe<Scalars['Int']>
 	display?: InputMaybe<Scalars['String']>
 	functionType: MetricAggregator
-	groupByKey?: InputMaybe<Scalars['String']>
+	funnelSteps?: InputMaybe<Array<FunnelStepInput>>
+	groupByKeys?: InputMaybe<Scalars['StringArray']>
 	id?: InputMaybe<Scalars['ID']>
 	limit?: InputMaybe<Scalars['Int']>
 	limitFunctionType?: InputMaybe<MetricAggregator>
@@ -3577,7 +3590,9 @@ export type SessionQuery = {
 export type SessionResults = {
 	__typename?: 'SessionResults'
 	sessions: Array<Session>
+	totalActiveLength: Scalars['Int64']
 	totalCount: Scalars['Int64']
+	totalLength: Scalars['Int64']
 }
 
 export type SessionsHistogram = {
@@ -3861,14 +3876,14 @@ export type UserPropertyInput = {
 
 export type Variable = {
 	__typename?: 'Variable'
-	defaultValue: Scalars['String']
+	defaultValues: Array<Scalars['String']>
 	field?: Maybe<Scalars['String']>
 	key: Scalars['String']
 	suggestionType: SuggestionType
 }
 
 export type VariableInput = {
-	defaultValue: Scalars['String']
+	defaultValues: Array<Scalars['String']>
 	field?: InputMaybe<Scalars['String']>
 	key: Scalars['String']
 	suggestionType: SuggestionType

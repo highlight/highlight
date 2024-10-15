@@ -18,6 +18,7 @@ import {
 	InnerChartProps,
 	isActive,
 	SeriesInfo,
+	TooltipSettings,
 	useGraphCallbacks,
 	YHAT_LOWER_KEY,
 	YHAT_UPPER_KEY,
@@ -38,6 +39,7 @@ export type LineChartConfig = {
 	showLegend: boolean
 	display?: LineDisplay
 	nullHandling?: LineNullHandling
+	tooltipSettings?: TooltipSettings
 }
 
 const isAnomaly = (props: any, key: string) => {

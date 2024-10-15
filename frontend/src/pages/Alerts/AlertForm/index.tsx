@@ -45,15 +45,15 @@ import { DestinationInput } from '@/pages/Alerts/DestinationInput'
 import { Combobox } from '@/pages/Graphing/Combobox'
 import {
 	FUNCTION_TYPES,
-	PRODUCT_ICONS,
-	PRODUCT_ICONS_WITH_EVENTS,
-	PRODUCTS,
-	PRODUCTS_WITH_EVENTS,
+	PRODUCT_OPTIONS,
+	PRODUCT_OPTIONS_WITH_EVENTS,
 } from '@/pages/Graphing/constants'
 import { HeaderDivider } from '@/pages/Graphing/Dashboard'
 import { LabeledRow } from '@/pages/Graphing/LabeledRow'
 import { OptionDropdown } from '@/pages/Graphing/OptionDropdown'
 import { EventSelection } from '@/pages/Graphing/EventSelection'
+import { GraphContextProvider } from '@/pages/Graphing/context/GraphContext'
+import { useGraphData } from '@pages/Graphing/hooks/useGraphData'
 
 import { AlertGraph } from '../AlertGraph'
 import * as style from './styles.css'
@@ -112,23 +112,18 @@ const ALERT_PRODUCT_INFO = {
 
 export const AlertForm: React.FC = () => {
 	const { projectId } = useProjectId()
+	const graphContext = useGraphData()
 	const { alert_id } = useParams<{
 		alert_id: string
 	}>()
 	const [searchParams] = useSearchParams()
 
 	const eventSearchEnabled = useFeatureFlag(Feature.EventSearch)
-	const { products, productIcons } = useMemo(() => {
+	const productOptions = useMemo(() => {
 		if (!eventSearchEnabled) {
-			return {
-				products: PRODUCTS,
-				productIcons: PRODUCT_ICONS,
-			}
+			return PRODUCT_OPTIONS
 		}
-		return {
-			products: PRODUCTS_WITH_EVENTS,
-			productIcons: PRODUCT_ICONS_WITH_EVENTS,
-		}
+		return PRODUCT_OPTIONS_WITH_EVENTS
 	}, [eventSearchEnabled])
 
 	const isEdit = alert_id !== undefined
@@ -159,7 +154,7 @@ export const AlertForm: React.FC = () => {
 
 	const [alertName, setAlertName] = useState('')
 	const [productType, setProductType] = useState(
-		(searchParams.get('source') as ProductType) || products[0],
+		(searchParams.get('source') as ProductType) || productOptions[0].value,
 	)
 	const [functionType, setFunctionType] = useState(MetricAggregator.Count)
 	const [functionColumn, setFunctionColumn] = useState('')
@@ -350,7 +345,7 @@ export const AlertForm: React.FC = () => {
 		createAlertContext.loading || updateAlertContext.loading || !alertName
 
 	return (
-		<>
+		<GraphContextProvider value={graphContext}>
 			<Helmet>
 				<title>{isEdit ? 'Edit' : 'Create'} Alert</title>
 			</Helmet>
@@ -483,13 +478,12 @@ export const AlertForm: React.FC = () => {
 									<LabeledRow
 										label="Source"
 										name="source"
-										tooltip="The resource being queried, one of the four highlight.io resources."
+										tooltip="The resource being queried, one of the five highlight.io resources."
 									>
-										<OptionDropdown<ProductType>
-											options={products}
+										<OptionDropdown
+											options={productOptions}
 											selection={productType}
 											setSelection={handleProductChange}
-											icons={productIcons}
 										/>
 									</LabeledRow>
 									{!isAnomaly &&
@@ -562,7 +556,7 @@ export const AlertForm: React.FC = () => {
 												name="function"
 												tooltip="Determines how data points are aggregated. If the function requires a numeric field as input, one can be chosen."
 											>
-												<OptionDropdown<MetricAggregator>
+												<OptionDropdown
 													options={FUNCTION_TYPES}
 													selection={functionType}
 													setSelection={
@@ -576,7 +570,6 @@ export const AlertForm: React.FC = () => {
 													setSelection={
 														setFunctionColumn
 													}
-													label="metric"
 													searchConfig={
 														searchOptionsConfig
 													}
@@ -600,7 +593,6 @@ export const AlertForm: React.FC = () => {
 												<Combobox
 													selection={groupByKey}
 													setSelection={setGroupByKey}
-													label="groupBy"
 													searchConfig={
 														searchOptionsConfig
 													}
@@ -609,7 +601,6 @@ export const AlertForm: React.FC = () => {
 										</SidebarSection>
 									</>
 								)}
-
 								<>
 									<Divider className="m-0" />
 									<SidebarSection>
@@ -647,15 +638,10 @@ export const AlertForm: React.FC = () => {
 															label="Confidence interval"
 															name="thresholdValue"
 														>
-															<OptionDropdown<string>
-																options={CONFIDENCE_OPTIONS.map(
-																	(f) =>
-																		f.value,
-																)}
-																labels={CONFIDENCE_OPTIONS.map(
-																	(f) =>
-																		f.name,
-																)}
+															<OptionDropdown
+																options={
+																	CONFIDENCE_OPTIONS
+																}
 																selection={String(
 																	thresholdValue,
 																)}
@@ -700,13 +686,10 @@ export const AlertForm: React.FC = () => {
 														label="Alert window"
 														name="thresholdWindow"
 													>
-														<OptionDropdown<string>
-															options={FREQUENCY_OPTIONS.map(
-																(f) => f.value,
-															)}
-															labels={FREQUENCY_OPTIONS.map(
-																(f) => f.name,
-															)}
+														<OptionDropdown
+															options={
+																FREQUENCY_OPTIONS
+															}
 															selection={String(
 																thresholdWindow,
 															)}
@@ -726,13 +709,10 @@ export const AlertForm: React.FC = () => {
 													label="Cooldown"
 													name="thresholdCooldown"
 												>
-													<OptionDropdown<string>
-														options={FREQUENCY_OPTIONS.map(
-															(f) => f.value,
-														)}
-														labels={FREQUENCY_OPTIONS.map(
-															(f) => f.name,
-														)}
+													<OptionDropdown
+														options={
+															FREQUENCY_OPTIONS
+														}
 														selection={String(
 															thresholdCooldown,
 														)}
@@ -749,7 +729,6 @@ export const AlertForm: React.FC = () => {
 										)}
 									</SidebarSection>
 								</>
-
 								<Divider className="m-0" />
 								<SidebarSection>
 									<DestinationInput
@@ -764,6 +743,6 @@ export const AlertForm: React.FC = () => {
 					</Box>
 				</Box>
 			</Box>
-		</>
+		</GraphContextProvider>
 	)
 }

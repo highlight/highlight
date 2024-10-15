@@ -1,5 +1,4 @@
-﻿using System.Diagnostics;
-using OpenTelemetry;
+﻿using OpenTelemetry;
 using OpenTelemetry.Exporter;
 using OpenTelemetry.Logs;
 using OpenTelemetry.Metrics;
@@ -9,6 +8,7 @@ using Serilog.Configuration;
 using Serilog.Core;
 using Serilog.Events;
 using Serilog.Sinks.OpenTelemetry;
+using System.Diagnostics;
 
 namespace Serilog
 {
@@ -119,23 +119,25 @@ namespace Highlight
             public string ProjectId = "";
             public string ServiceName = "";
             public string OtlpEndpoint = "https://otel.highlight.io:4318";
-        }
+
+            public Dictionary<string, object> ResourceAttributes = [];
+        };
 
         public static Dictionary<string, object> GetResourceAttributes()
         {
-            return new Dictionary<string, object>
+            return _config.ResourceAttributes.Concat(new Dictionary<string, object>
             {
                 ["highlight.project_id"] = _config.ProjectId,
                 ["service.name"] = _config.ServiceName,
                 ["telemetry.distro.name"] = "Highlight.ASPCore",
-                ["telemetry.distro.version"] = "0.2.1",
-            };
+                ["telemetry.distro.version"] = "0.2.8",
+            }).ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
         }
 
         static Config _config = new()
         {
             ProjectId = "",
-            ServiceName = "svc"
+            ServiceName = "default-service-name"
         };
 
         static readonly Random Random = new();
@@ -244,7 +246,11 @@ namespace Highlight
                     .AddProcessor(new TraceProcessor())
                     .AddHttpClientInstrumentation()
                     .AddGrpcClientInstrumentation()
-                    .AddSqlClientInstrumentation()
+                    .AddSqlClientInstrumentation(option =>
+                    {
+                        option.SetDbStatementForStoredProcedure = true;
+                        option.SetDbStatementForText = true;
+                    })
                     .AddEntityFrameworkCoreInstrumentation()
                     .AddQuartzInstrumentation()
                     .AddWcfInstrumentation()

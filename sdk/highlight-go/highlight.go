@@ -14,7 +14,6 @@ import (
 	"go.opentelemetry.io/otel/propagation"
 	"go.opentelemetry.io/otel/trace"
 
-	"github.com/pkg/errors"
 	"go.opentelemetry.io/otel/attribute"
 	semconv "go.opentelemetry.io/otel/semconv/v1.4.0"
 )
@@ -130,10 +129,6 @@ var (
 	state      appState // 0 is idle, 1 is started, 2 is stopped
 	stateMutex sync.RWMutex
 	otlp       *OTLP
-)
-
-const (
-	consumeErrorWorkerStopped = "highlight worker stopped"
 )
 
 // Logger is an interface that implements Log and Logf
@@ -265,12 +260,6 @@ func InterceptRequestWithContext(ctx context.Context, r *http.Request) context.C
 }
 
 func validateRequest(ctx context.Context) (sessionSecureID string, requestID string, err error) {
-	stateMutex.RLock()
-	defer stateMutex.RUnlock()
-	if state == stopped {
-		err = errors.New(consumeErrorWorkerStopped)
-		return
-	}
 	if v := ctx.Value(string(ContextKeys.SessionSecureID)); v != nil {
 		sessionSecureID = v.(string)
 	}

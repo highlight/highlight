@@ -32,6 +32,7 @@ export const SearchPanel = () => {
 	const { showBanner } = useGlobalContext()
 	const {
 		results: errorGroups,
+		resultFormatted,
 		totalCount,
 		moreResults: moreErrors,
 		resetMoreResults: resetMoreErrors,
@@ -108,7 +109,7 @@ export const SearchPanel = () => {
 				timeMode="fixed-range"
 				savedSegmentType={SavedSegmentEntityType.Error}
 				actions={actions}
-				resultCount={totalCount}
+				resultFormatted={resultFormatted}
 				loading={loading}
 				enableAIMode={
 					workspaceSettings?.workspaceSettings?.ai_query_builder

@@ -692,8 +692,10 @@ type SessionsHistogram struct {
 }
 
 type SessionResults struct {
-	Sessions   []Session
-	TotalCount int64
+	Sessions          []Session
+	TotalCount        int64
+	TotalLength       int64
+	TotalActiveLength int64
 }
 
 type Session struct {
@@ -1410,13 +1412,14 @@ type Graph struct {
 	Query             string
 	Metric            string
 	FunctionType      modelInputs.MetricAggregator
-	GroupByKey        *string
+	GroupByKeys       pq.StringArray `gorm:"type:text[]"`
 	BucketByKey       *string
 	BucketCount       *int
 	BucketInterval    *int
 	Limit             *int
 	LimitFunctionType *modelInputs.MetricAggregator
 	LimitMetric       *string
+	FunnelSteps       *string `gorm:"type:jsonb"`
 	Display           *string
 	NullHandling      *string
 }
