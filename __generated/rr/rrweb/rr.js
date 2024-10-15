@@ -5338,11 +5338,7 @@ function applyCssSplits(n2, cssText, hackCss, cache) {
     const childTextNode = childTextNodes[i2];
     const cssTextSection = cssTextSplits[i2];
     if (childTextNode && cssTextSection) {
-      try {
-        childTextNode.textContent = hackCss ? adaptCssForReplay(cssTextSection, cache) : cssTextSection;
-      } catch (err) {
-        console.warn(`Highlight failed to set rrweb css ${err}`);
-      }
+      childTextNode.textContent = hackCss ? adaptCssForReplay(cssTextSection, cache) : cssTextSection;
     }
   }
 }
