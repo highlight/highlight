@@ -576,6 +576,8 @@ query GetSessions(
 			email
 		}
 		totalCount
+		totalLength
+		totalActiveLength
 	}
 }
 

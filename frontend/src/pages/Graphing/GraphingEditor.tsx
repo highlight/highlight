@@ -85,6 +85,8 @@ import { VariablesBar } from '@/pages/Graphing/components/VariablesBar'
 import { useRetentionPresets } from '@/components/Search/SearchForm/hooks'
 import { omit } from 'lodash'
 import { EventSelectionStep, loadFunnelStep } from '@pages/Graphing/util'
+import { useGraphData } from '@pages/Graphing/hooks/useGraphData'
+import { GraphContextProvider } from './context/GraphContext'
 
 type BucketBy = 'None' | 'Interval' | 'Count'
 const BUCKET_BY_OPTIONS: BucketBy[] = ['None', 'Interval', 'Count']
@@ -389,6 +391,7 @@ export const GraphingEditor: React.FC = () => {
 	})
 
 	const { projectId } = useProjectId()
+	const graphContext = useGraphData()
 
 	const [productType, setProductType] = useState(productOptions[0].value)
 	const [viewType, setViewType] = useState(VIEW_OPTIONS[0].value)
@@ -434,7 +437,7 @@ export const GraphingEditor: React.FC = () => {
 		return limitFunctionType === MetricAggregator.Count ? '' : limitMetric
 	}, [limitFunctionType, limitMetric])
 
-	const [bucketBySetting, setBucketBySetting] = useState(BUCKET_BY_OPTIONS[2])
+	const [bucketBySetting, setBucketBySetting] = useState(BUCKET_BY_OPTIONS[1])
 	const [bucketByKey, setBucketByKey] = useState(TIMESTAMP_KEY)
 	const [bucketCount, setBucketCount] = useState<number | string>(
 		DEFAULT_BUCKET_COUNT,
@@ -587,440 +590,472 @@ export const GraphingEditor: React.FC = () => {
 							</Button>
 						</Box>
 					</Box>
-					<Box
-						display="flex"
-						flexDirection="row"
-						justifyContent="space-between"
-						cssClass={style.editGraphPanel}
-					>
+					<GraphContextProvider value={graphContext}>
 						<Box
-							width="full"
 							display="flex"
-							flexDirection="column"
+							flexDirection="row"
 							justifyContent="space-between"
+							cssClass={style.editGraphPanel}
 						>
-							<VariablesBar dashboardId={dashboard_id!} />
-							<GraphBackgroundWrapper>
-								<Graph
-									title={
-										metricViewTitle ||
-										tempMetricViewTitle?.current
-									}
-									viewConfig={viewConfig}
-									productType={productType}
-									projectId={projectId}
-									startDate={startDate}
-									selectedPreset={selectedPreset}
-									endDate={endDate}
-									query={debouncedQuery}
-									metric={metric}
-									functionType={functionType}
-									bucketByKey={getBucketByKey(
-										bucketBySetting,
-										bucketByKey,
-									)}
-									bucketCount={
-										bucketBySetting === 'Count'
-											? Number(bucketCount)
-											: undefined
-									}
-									bucketByWindow={
-										bucketBySetting === 'Interval'
-											? Number(bucketInterval)
-											: undefined
-									}
-									groupByKeys={
-										groupByEnabled ? groupByKeys : undefined
-									}
-									limit={
-										groupByEnabled
-											? Number(limit)
-											: undefined
-									}
-									limitFunctionType={
-										groupByEnabled
-											? limitFunctionType
-											: undefined
-									}
-									limitMetric={
-										groupByEnabled ? limitMetric : undefined
-									}
-									funnelSteps={funnelSteps}
-									setTimeRange={updateSearchTime}
-									variables={values}
-								/>
-							</GraphBackgroundWrapper>
-						</Box>
-						<Box
-							display="flex"
-							borderLeft="dividerWeak"
-							height="full"
-							cssClass={style.editGraphSidebar}
-							overflowY="auto"
-							overflowX="hidden"
-							flexShrink={0}
-						>
-							<Form className={style.editGraphSidebar}>
-								<SidebarSection>
-									<LabeledRow
-										label="Metric view title"
-										name="title"
-									>
-										<Input
-											type="text"
+							<Box
+								width="full"
+								display="flex"
+								flexDirection="column"
+								justifyContent="space-between"
+							>
+								<VariablesBar dashboardId={dashboard_id!} />
+								<GraphBackgroundWrapper>
+									<Graph
+										title={
+											metricViewTitle ||
+											tempMetricViewTitle?.current
+										}
+										viewConfig={viewConfig}
+										productType={productType}
+										projectId={projectId}
+										startDate={startDate}
+										selectedPreset={selectedPreset}
+										endDate={endDate}
+										query={debouncedQuery}
+										metric={metric}
+										functionType={functionType}
+										bucketByKey={getBucketByKey(
+											bucketBySetting,
+											bucketByKey,
+										)}
+										bucketCount={
+											bucketBySetting === 'Count'
+												? Number(bucketCount)
+												: undefined
+										}
+										bucketByWindow={
+											bucketBySetting === 'Interval'
+												? Number(bucketInterval)
+												: undefined
+										}
+										groupByKeys={
+											groupByEnabled
+												? groupByKeys
+												: undefined
+										}
+										limit={
+											groupByEnabled
+												? Number(limit)
+												: undefined
+										}
+										limitFunctionType={
+											groupByEnabled
+												? limitFunctionType
+												: undefined
+										}
+										limitMetric={
+											groupByEnabled
+												? limitMetric
+												: undefined
+										}
+										funnelSteps={funnelSteps}
+										setTimeRange={updateSearchTime}
+										variables={values}
+									/>
+								</GraphBackgroundWrapper>
+							</Box>
+							<Box
+								display="flex"
+								borderLeft="dividerWeak"
+								height="full"
+								cssClass={style.editGraphSidebar}
+								overflowY="auto"
+								overflowX="hidden"
+								flexShrink={0}
+							>
+								<Form className={style.editGraphSidebar}>
+									<SidebarSection>
+										<LabeledRow
+											label="Metric view title"
 											name="title"
-											placeholder={
-												tempMetricViewTitle?.current ||
-												'Untitled metric view'
-											}
-											value={metricViewTitle}
-											onChange={(e) => {
-												setMetricViewTitle(
-													e.target.value,
-												)
-											}}
-											cssClass={style.input}
-										/>
-									</LabeledRow>
-								</SidebarSection>
-								<Divider className="m-0" />
-								<SidebarSection>
-									<LabeledRow
-										label="Source"
-										name="source"
-										tooltip="The resource being queried, one of the five highlight.io resources."
-									>
-										<OptionDropdown<ProductType>
-											options={productOptions.filter(
-												(p) =>
-													p.value ===
-														ProductType.Events ||
-													viewType !== 'Funnel chart',
-											)}
-											selection={productType}
-											setSelection={setProductType}
-										/>
-									</LabeledRow>
-								</SidebarSection>
-								<Divider className="m-0" />
-								<SidebarSection>
-									<LabeledRow
-										label="View type"
-										name="viewType"
-									>
-										<OptionDropdown
-											options={VIEW_OPTIONS.filter(
-												(v) =>
-													productType ===
-														ProductType.Events ||
-													v.value !== 'Funnel chart',
-											)}
-											selection={viewType}
-											setSelection={(option: string) => {
-												setViewType(option)
-											}}
-										/>
-									</LabeledRow>
-									{viewType === 'Line chart' && (
-										<LineChartSettings
-											nullHandling={lineNullHandling}
-											setNullHandling={
-												setLineNullHandling
-											}
-											lineDisplay={lineDisplay}
-											setLineDisplay={setLineDisplay}
-										/>
-									)}
-									{viewType === 'Bar chart' && (
-										<BarChartSettings
-											barDisplay={barDisplay}
-											setBarDisplay={setBarDisplay}
-										/>
-									)}
-									{viewType === 'Funnel chart' && (
-										<FunnelChartSettings
-											funnelDisplay={funnelDisplay}
-											setFunnelDisplay={setFunnelDisplay}
-										/>
-									)}
-									{viewType === 'Table' && (
-										<TableSettings
-											nullHandling={tableNullHandling}
-											setNullHandling={
-												setTableNullHandling
-											}
-										/>
-									)}
-								</SidebarSection>
-								<Divider className="m-0" />
-								<SidebarSection>
-									{productType === ProductType.Events ? (
-										viewType === 'Funnel chart' ? (
-											<EventSteps
-												steps={funnelSteps}
-												setSteps={setFunnelSteps}
-												startDate={startDate}
-												endDate={endDate}
-											/>
-										) : (
-											<EventSelection
-												initialQuery={query}
-												setQuery={setQuery}
-												startDate={startDate}
-												endDate={endDate}
-											/>
-										)
-									) : (
-										<LabeledRow
-											label="Filters"
-											name="query"
-											tooltip="The search query used to filter which data points are included before aggregating."
 										>
-											<Box
-												border="divider"
-												width="full"
-												borderRadius="6"
-											>
-												<SearchContext
-													initialQuery={query}
-													onSubmit={setQuery}
-												>
-													<Search
-														startDate={
-															new Date(startDate)
-														}
-														endDate={
-															new Date(endDate)
-														}
-														productType={
-															productType
-														}
-														hideIcon
-														defaultValueOptions={
-															variableKeys
-														}
-													/>
-												</SearchContext>
-											</Box>
-										</LabeledRow>
-									)}
-								</SidebarSection>
-								<Box px="12">
-									<Divider className="m-0" />
-								</Box>
-								<SidebarSection>
-									<LabeledRow
-										label="Function"
-										name="function"
-										tooltip="Determines how data points are aggregated. If the function requires a numeric field as input, one can be chosen."
-									>
-										<OptionDropdown
-											options={FUNCTION_TYPES}
-											selection={functionType}
-											setSelection={setFunctionType}
-											disabled={
-												viewType === 'Funnel chart'
-											}
-										/>
-										<Combobox
-											selection={fetchedMetric}
-											setSelection={setMetric}
-											searchConfig={searchOptionsConfig}
-											disabled={
-												functionType ===
-													MetricAggregator.Count ||
-												viewType === 'Funnel chart'
-											}
-											onlyNumericKeys={
-												functionType !==
-												MetricAggregator.CountDistinct
-											}
-											defaultKeys={variableKeys}
-											placeholder={
-												functionType ===
-												MetricAggregator.Count
-													? 'Rows'
-													: undefined
-											}
-										/>
-									</LabeledRow>
-									<LabeledRow
-										label="Group by"
-										name="groupBy"
-										enabled={groupByEnabled}
-										setEnabled={setGroupByEnabled}
-										disabled={viewType === 'Funnel chart'}
-										tooltip="A categorical field for grouping results into separate series."
-									>
-										<Combobox
-											selection={groupByKeys}
-											setSelection={setGroupByKeys}
-											searchConfig={searchOptionsConfig}
-											defaultKeys={variableKeys}
-											disabled={
-												viewType === 'Funnel chart'
-											}
-										/>
-									</LabeledRow>
-									{groupByEnabled && (
-										<Box
-											display="flex"
-											flexDirection="row"
-											gap="4"
-										>
-											<LabeledRow
-												label="Limit"
-												name="limit"
-												tooltip="The maximum number of groups to include. Currently, the max is 100."
-											>
-												<Input
-													type="number"
-													name="limit"
-													placeholder="Enter limit"
-													value={limit}
-													onChange={(e) => {
-														const value = Math.min(
-															MAX_BUCKET_SIZE,
-															parseInt(
-																e.target.value,
-															),
-														)
-														setLimit(value)
-													}}
-													cssClass={style.input}
-												/>
-											</LabeledRow>
-											<LabeledRow
-												label="By"
-												name="limitBy"
-												tooltip="The function used to determine which groups are included."
-											>
-												<OptionDropdown
-													options={FUNCTION_TYPES}
-													selection={
-														limitFunctionType
-													}
-													setSelection={
-														setLimitFunctionType
-													}
-												/>
-												<Combobox
-													selection={
-														fetchedLimitMetric
-													}
-													setSelection={
-														setLimitMetric
-													}
-													searchConfig={
-														searchOptionsConfig
-													}
-													disabled={
-														limitFunctionType ===
-														MetricAggregator.Count
-													}
-													onlyNumericKeys
-													defaultKeys={variableKeys}
-													placeholder={
-														limitFunctionType ===
-														MetricAggregator.Count
-															? 'Rows'
-															: undefined
-													}
-												/>
-											</LabeledRow>
-										</Box>
-									)}
-								</SidebarSection>
-								<Divider className="m-0" />
-								<SidebarSection>
-									{viewType === 'Funnel chart' ? null : (
-										<LabeledRow
-											label="Bucket by"
-											name="bucketBy"
-											tooltip="The method for determining the bucket sizes - can be a fixed interval or fixed count."
-										>
-											<TagSwitchGroup
-												options={BUCKET_BY_OPTIONS}
-												defaultValue={bucketBySetting}
-												onChange={(
-													o: string | number,
-												) => {
-													setBucketBySetting(
-														o as BucketBy,
+											<Input
+												type="text"
+												name="title"
+												placeholder={
+													tempMetricViewTitle?.current ||
+													'Untitled metric view'
+												}
+												value={metricViewTitle}
+												onChange={(e) => {
+													setMetricViewTitle(
+														e.target.value,
 													)
 												}}
-												cssClass={style.tagSwitch}
+												cssClass={style.input}
 											/>
 										</LabeledRow>
-									)}
-									{bucketBySetting === 'Count' && (
-										<>
-											<LabeledRow
-												label="Bucket field"
-												name="bucketField"
-												tooltip="A numeric field for bucketing results along the X-axis. Timestamp for time series charts, numeric fields for histograms, can be disabled to aggregate all results within the time range."
-											>
-												<Combobox
-													selection={bucketByKey}
-													setSelection={
-														setBucketByKey
-													}
-													searchConfig={
-														searchOptionsConfig
-													}
-													defaultKeys={[
-														TIMESTAMP_KEY,
-														...variableKeys,
-													]}
-													onlyNumericKeys
-												/>
-											</LabeledRow>
-											<LabeledRow
-												label="Buckets"
-												name="bucketCount"
-												tooltip="The number of X-axis buckets. A higher value will display smaller, more granular buckets. Currently, the max is 100."
-											>
-												<Input
-													type="number"
-													name="bucketCount"
-													placeholder="Enter bucket count"
-													value={bucketCount}
-													onChange={(e) => {
-														const newValue =
-															Math.min(
-																MAX_BUCKET_SIZE,
-																parseInt(
-																	e.target
-																		.value,
-																),
-															)
-
-														setBucketCount(newValue)
-													}}
-													cssClass={style.input}
-												/>
-											</LabeledRow>
-										</>
-									)}
-									{bucketBySetting === 'Interval' && (
+									</SidebarSection>
+									<Divider className="m-0" />
+									<SidebarSection>
 										<LabeledRow
-											label="Bucket interval"
-											name="bucketInterval"
-											tooltip="The number of X-axis buckets. A higher value will display smaller, more granular buckets."
+											label="Source"
+											name="source"
+											tooltip="The resource being queried, one of the five highlight.io resources."
 										>
-											<Select
-												options={FREQUENCIES}
-												value={bucketInterval}
-												onValueChange={(o) => {
-													setBucketInterval(o.value)
+											<OptionDropdown<ProductType>
+												options={productOptions.filter(
+													(p) =>
+														p.value ===
+															ProductType.Events ||
+														viewType !==
+															'Funnel chart',
+												)}
+												selection={productType}
+												setSelection={setProductType}
+											/>
+										</LabeledRow>
+									</SidebarSection>
+									<Divider className="m-0" />
+									<SidebarSection>
+										<LabeledRow
+											label="View type"
+											name="viewType"
+										>
+											<OptionDropdown
+												options={VIEW_OPTIONS.filter(
+													(v) =>
+														productType ===
+															ProductType.Events ||
+														v.value !==
+															'Funnel chart',
+												)}
+												selection={viewType}
+												setSelection={(
+													option: string,
+												) => {
+													setViewType(option)
 												}}
 											/>
 										</LabeledRow>
-									)}
-								</SidebarSection>
-							</Form>
+										{viewType === 'Line chart' && (
+											<LineChartSettings
+												nullHandling={lineNullHandling}
+												setNullHandling={
+													setLineNullHandling
+												}
+												lineDisplay={lineDisplay}
+												setLineDisplay={setLineDisplay}
+											/>
+										)}
+										{viewType === 'Bar chart' && (
+											<BarChartSettings
+												barDisplay={barDisplay}
+												setBarDisplay={setBarDisplay}
+											/>
+										)}
+										{viewType === 'Funnel chart' && (
+											<FunnelChartSettings
+												funnelDisplay={funnelDisplay}
+												setFunnelDisplay={
+													setFunnelDisplay
+												}
+											/>
+										)}
+										{viewType === 'Table' && (
+											<TableSettings
+												nullHandling={tableNullHandling}
+												setNullHandling={
+													setTableNullHandling
+												}
+											/>
+										)}
+									</SidebarSection>
+									<Divider className="m-0" />
+									<SidebarSection>
+										{productType === ProductType.Events ? (
+											viewType === 'Funnel chart' ? (
+												<EventSteps
+													steps={funnelSteps}
+													setSteps={setFunnelSteps}
+													startDate={startDate}
+													endDate={endDate}
+												/>
+											) : (
+												<EventSelection
+													initialQuery={query}
+													setQuery={setQuery}
+													startDate={startDate}
+													endDate={endDate}
+												/>
+											)
+										) : (
+											<LabeledRow
+												label="Filters"
+												name="query"
+												tooltip="The search query used to filter which data points are included before aggregating."
+											>
+												<Box
+													border="divider"
+													width="full"
+													borderRadius="6"
+												>
+													<SearchContext
+														initialQuery={query}
+														onSubmit={setQuery}
+													>
+														<Search
+															startDate={
+																new Date(
+																	startDate,
+																)
+															}
+															endDate={
+																new Date(
+																	endDate,
+																)
+															}
+															productType={
+																productType
+															}
+															hideIcon
+															defaultValueOptions={
+																variableKeys
+															}
+														/>
+													</SearchContext>
+												</Box>
+											</LabeledRow>
+										)}
+									</SidebarSection>
+									<Box px="12">
+										<Divider className="m-0" />
+									</Box>
+									<SidebarSection>
+										<LabeledRow
+											label="Function"
+											name="function"
+											tooltip="Determines how data points are aggregated. If the function requires a numeric field as input, one can be chosen."
+										>
+											<OptionDropdown
+												options={FUNCTION_TYPES}
+												selection={functionType}
+												setSelection={setFunctionType}
+												disabled={
+													viewType === 'Funnel chart'
+												}
+											/>
+											<Combobox
+												selection={fetchedMetric}
+												setSelection={setMetric}
+												searchConfig={
+													searchOptionsConfig
+												}
+												disabled={
+													functionType ===
+														MetricAggregator.Count ||
+													viewType === 'Funnel chart'
+												}
+												onlyNumericKeys={
+													functionType !==
+													MetricAggregator.CountDistinct
+												}
+												defaultKeys={variableKeys}
+												placeholder={
+													functionType ===
+													MetricAggregator.Count
+														? 'Rows'
+														: undefined
+												}
+											/>
+										</LabeledRow>
+										<LabeledRow
+											label="Group by"
+											name="groupBy"
+											enabled={groupByEnabled}
+											setEnabled={setGroupByEnabled}
+											disabled={
+												viewType === 'Funnel chart'
+											}
+											tooltip="A categorical field for grouping results into separate series."
+										>
+											<Combobox
+												selection={groupByKeys}
+												setSelection={setGroupByKeys}
+												searchConfig={
+													searchOptionsConfig
+												}
+												defaultKeys={variableKeys}
+												disabled={
+													viewType === 'Funnel chart'
+												}
+											/>
+										</LabeledRow>
+										{groupByEnabled && (
+											<Box
+												display="flex"
+												flexDirection="row"
+												gap="4"
+											>
+												<LabeledRow
+													label="Limit"
+													name="limit"
+													tooltip="The maximum number of groups to include. Currently, the max is 100."
+												>
+													<Input
+														type="number"
+														name="limit"
+														placeholder="Enter limit"
+														value={limit}
+														onChange={(e) => {
+															const value =
+																Math.min(
+																	MAX_BUCKET_SIZE,
+																	parseInt(
+																		e.target
+																			.value,
+																	),
+																)
+															setLimit(value)
+														}}
+														cssClass={style.input}
+													/>
+												</LabeledRow>
+												<LabeledRow
+													label="By"
+													name="limitBy"
+													tooltip="The function used to determine which groups are included."
+												>
+													<OptionDropdown
+														options={FUNCTION_TYPES}
+														selection={
+															limitFunctionType
+														}
+														setSelection={
+															setLimitFunctionType
+														}
+													/>
+													<Combobox
+														selection={
+															fetchedLimitMetric
+														}
+														setSelection={
+															setLimitMetric
+														}
+														searchConfig={
+															searchOptionsConfig
+														}
+														disabled={
+															limitFunctionType ===
+															MetricAggregator.Count
+														}
+														onlyNumericKeys
+														defaultKeys={
+															variableKeys
+														}
+														placeholder={
+															limitFunctionType ===
+															MetricAggregator.Count
+																? 'Rows'
+																: undefined
+														}
+													/>
+												</LabeledRow>
+											</Box>
+										)}
+									</SidebarSection>
+									<Divider className="m-0" />
+									<SidebarSection>
+										{viewType === 'Funnel chart' ? null : (
+											<LabeledRow
+												label="Bucket by"
+												name="bucketBy"
+												tooltip="The method for determining the bucket sizes - can be a fixed interval or fixed count."
+											>
+												<TagSwitchGroup
+													options={BUCKET_BY_OPTIONS}
+													defaultValue={
+														bucketBySetting
+													}
+													onChange={(
+														o: string | number,
+													) => {
+														setBucketBySetting(
+															o as BucketBy,
+														)
+													}}
+													cssClass={style.tagSwitch}
+												/>
+											</LabeledRow>
+										)}
+										{bucketBySetting === 'Count' && (
+											<>
+												<LabeledRow
+													label="Bucket field"
+													name="bucketField"
+													tooltip="A numeric field for bucketing results along the X-axis. Timestamp for time series charts, numeric fields for histograms, can be disabled to aggregate all results within the time range."
+												>
+													<Combobox
+														selection={bucketByKey}
+														setSelection={
+															setBucketByKey
+														}
+														searchConfig={
+															searchOptionsConfig
+														}
+														defaultKeys={[
+															TIMESTAMP_KEY,
+															...variableKeys,
+														]}
+														onlyNumericKeys
+													/>
+												</LabeledRow>
+												<LabeledRow
+													label="Buckets"
+													name="bucketCount"
+													tooltip="The number of X-axis buckets. A higher value will display smaller, more granular buckets. Currently, the max is 100."
+												>
+													<Input
+														type="number"
+														name="bucketCount"
+														placeholder="Enter bucket count"
+														value={bucketCount}
+														onChange={(e) => {
+															const newValue =
+																Math.min(
+																	MAX_BUCKET_SIZE,
+																	parseInt(
+																		e.target
+																			.value,
+																	),
+																)
+
+															setBucketCount(
+																newValue,
+															)
+														}}
+														cssClass={style.input}
+													/>
+												</LabeledRow>
+											</>
+										)}
+										{bucketBySetting === 'Interval' && (
+											<LabeledRow
+												label="Bucket interval"
+												name="bucketInterval"
+												tooltip="The number of X-axis buckets. A higher value will display smaller, more granular buckets."
+											>
+												<Select
+													options={FREQUENCIES}
+													value={bucketInterval}
+													onValueChange={(o) => {
+														setBucketInterval(
+															o.value,
+														)
+													}}
+												/>
+											</LabeledRow>
+										)}
+									</SidebarSection>
+								</Form>
+							</Box>
 						</Box>
-					</Box>
+					</GraphContextProvider>
 				</Box>
 			</Box>
 		</>
