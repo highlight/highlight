@@ -82,13 +82,3 @@
     height: 10px;
   }
 }
-.rr-player {
-  position: relative;
-  background: #fff;
-  float: left;
-  border-radius: 5px;
-  box-shadow: 0 24px 48px #11103e1f;
-}
-.rr-player__frame {
-  overflow: hidden;
-}

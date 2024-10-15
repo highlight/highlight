@@ -16594,7 +16594,6 @@ __metadata:
     "@rrweb/types": "workspace:*"
     puppeteer: "npm:^20.9.0"
     rrweb: "workspace:*"
-    turbo: "npm:^2.0.5"
     typescript: "npm:^5.4.5"
     vite: "npm:^5.3.1"
     vite-plugin-dts: "npm:^3.9.1"
@@ -16608,7 +16607,6 @@ __metadata:
   dependencies:
     "@rrweb/types": "workspace:*"
     fflate: "npm:^0.4.4"
-    turbo: "npm:^2.0.5"
     typescript: "npm:^5.4.5"
     vite: "npm:^5.3.1"
     vite-plugin-dts: "npm:^3.9.1"
@@ -16623,7 +16621,6 @@ __metadata:
     "@rrweb/types": "workspace:*"
     puppeteer: "npm:^20.9.0"
     rrweb: "workspace:*"
-    turbo: "npm:^2.0.5"
     typescript: "npm:^5.4.5"
     vite: "npm:^5.3.1"
     vite-plugin-dts: "npm:^3.9.1"
@@ -16638,7 +16635,6 @@ __metadata:
     "@rrweb/types": "workspace:*"
     puppeteer: "npm:^20.9.0"
     rrweb: "workspace:*"
-    turbo: "npm:^2.0.5"
     typescript: "npm:^5.4.5"
     vite: "npm:^5.3.1"
     vite-plugin-dts: "npm:^3.9.1"
@@ -16651,7 +16647,6 @@ __metadata:
   resolution: "@rrweb/rrweb-plugin-canvas-webrtc-record@workspace:rrweb/packages/plugins/rrweb-plugin-canvas-webrtc-record"
   dependencies:
     rrweb: "workspace:*"
-    turbo: "npm:^2.0.5"
     typescript: "npm:^5.4.5"
     vite: "npm:^5.3.1"
     vite-plugin-dts: "npm:^3.9.1"
@@ -16665,7 +16660,6 @@ __metadata:
   resolution: "@rrweb/rrweb-plugin-canvas-webrtc-replay@workspace:rrweb/packages/plugins/rrweb-plugin-canvas-webrtc-replay"
   dependencies:
     rrweb: "workspace:*"
-    turbo: "npm:^2.0.5"
     typescript: "npm:^5.4.5"
     vite: "npm:^5.3.1"
     vite-plugin-dts: "npm:^3.9.1"
@@ -16680,7 +16674,6 @@ __metadata:
   dependencies:
     puppeteer: "npm:^20.9.0"
     rrweb: "workspace:*"
-    turbo: "npm:^2.0.5"
     typescript: "npm:^5.4.5"
     vite: "npm:^5.3.1"
     vite-plugin-dts: "npm:^3.9.1"
@@ -16696,7 +16689,6 @@ __metadata:
   dependencies:
     "@rrweb/rrweb-plugin-console-record": "workspace:*"
     rrweb: "workspace:*"
-    turbo: "npm:^2.0.5"
     typescript: "npm:^5.4.5"
     vite: "npm:^5.3.1"
     vite-plugin-dts: "npm:^3.9.1"
@@ -16710,7 +16702,7 @@ __metadata:
   resolution: "@rrweb/rrweb-plugin-sequential-id-record@workspace:rrweb/packages/plugins/rrweb-plugin-sequential-id-record"
   dependencies:
     rrweb: "workspace:*"
-    turbo: "npm:^2.0.5"
+    turbo: "npm:^2.1.3"
     typescript: "npm:^5.4.5"
     vite: "npm:^5.3.1"
     vite-plugin-dts: "npm:^3.9.1"
@@ -16725,7 +16717,6 @@ __metadata:
   dependencies:
     "@rrweb/rrweb-plugin-sequential-id-record": "workspace:*"
     rrweb: "workspace:*"
-    turbo: "npm:^2.0.5"
     typescript: "npm:^5.4.5"
     vite: "npm:^5.3.1"
     vite-plugin-dts: "npm:^3.9.1"
@@ -16739,7 +16730,7 @@ __metadata:
   resolution: "@rrweb/types@workspace:rrweb/packages/types"
   dependencies:
     rrweb-snapshot: "workspace:*"
-    turbo: "npm:^2.0.5"
+    turbo: "npm:^2.1.3"
     vite: "npm:^5.3.1"
     vite-plugin-dts: "npm:^3.9.1"
   languageName: unknown
@@ -44488,6 +44479,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"nwsapi@npm:2.2.0":
+  version: 2.2.0
+  resolution: "nwsapi@npm:2.2.0"
+  checksum: 10/d27812654974786b5ddaf3d5834dbcd840d5705f3b594e9b11a6eb67f35349b847111e16c178ad98d327a4de3b98a5b765809d294066e13d9793486d68823a91
+  languageName: node
+  linkType: hard
+
 "nwsapi@npm:^2.2.0, nwsapi@npm:^2.2.2":
   version: 2.2.7
   resolution: "nwsapi@npm:2.2.7"
@@ -51033,11 +51031,10 @@ __metadata:
     cssom: "npm:^0.5.0"
     cssstyle: "npm:^2.3.0"
     eslint: "npm:^8.15.0"
-    nwsapi: "npm:^2.2.0"
+    nwsapi: "npm:2.2.0"
     puppeteer: "npm:^9.1.1"
     rrdom: "workspace:*"
     rrweb-snapshot: "workspace:*"
-    turbo: "npm:^2.0.5"
     typescript: "npm:^5.4.5"
     vite: "npm:^5.3.1"
     vite-plugin-dts: "npm:^3.9.1"
@@ -51057,7 +51054,7 @@ __metadata:
     happy-dom: "npm:^14.12.0"
     puppeteer: "npm:^17.1.3"
     rrweb-snapshot: "workspace:*"
-    turbo: "npm:^2.0.5"
+    turbo: "npm:^2.1.3"
     typescript: "npm:^5.4.5"
     vite: "npm:^5.3.1"
     vite-plugin-dts: "npm:^3.9.1"
@@ -51122,7 +51119,7 @@ __metadata:
     puppeteer: "npm:^17.1.3"
     ts-node: "npm:^7.0.1"
     tslib: "npm:^1.9.3"
-    turbo: "npm:^2.0.5"
+    turbo: "npm:^2.1.3"
     typescript: "npm:^5.4.5"
     vite: "npm:^5.3.1"
     vite-plugin-dts: "npm:^3.9.1"
@@ -51135,6 +51132,7 @@ __metadata:
   resolution: "rrweb@workspace:rrweb/packages/rrweb"
   dependencies:
     "@rrweb/types": "workspace:*"
+    "@rrweb/utils": "workspace:*"
     "@types/css-font-loading-module": "npm:0.0.7"
     "@types/dom-mediacapture-transform": "npm:0.1.4"
     "@types/inquirer": "npm:^8.2.1"
@@ -51156,7 +51154,7 @@ __metadata:
     simple-peer-light: "npm:^9.10.0"
     ts-node: "npm:^10.9.1"
     tslib: "npm:^2.3.1"
-    turbo: "npm:^2.0.5"
+    turbo: "npm:^2.1.3"
     typescript: "npm:^5.4.5"
     vite: "npm:^5.3.1"
     vite-plugin-dts: "npm:^3.9.1"
@@ -55518,30 +55516,30 @@ __metadata:
   languageName: node
   linkType: hard
 
-"turbo-darwin-64@npm:2.0.14":
-  version: 2.0.14
-  resolution: "turbo-darwin-64@npm:2.0.14"
+"turbo-darwin-64@npm:2.1.3":
+  version: 2.1.3
+  resolution: "turbo-darwin-64@npm:2.1.3"
   conditions: os=darwin & cpu=x64
   languageName: node
   linkType: hard
 
-"turbo-darwin-arm64@npm:2.0.14":
-  version: 2.0.14
-  resolution: "turbo-darwin-arm64@npm:2.0.14"
+"turbo-darwin-arm64@npm:2.1.3":
+  version: 2.1.3
+  resolution: "turbo-darwin-arm64@npm:2.1.3"
   conditions: os=darwin & cpu=arm64
   languageName: node
   linkType: hard
 
-"turbo-linux-64@npm:2.0.14":
-  version: 2.0.14
-  resolution: "turbo-linux-64@npm:2.0.14"
+"turbo-linux-64@npm:2.1.3":
+  version: 2.1.3
+  resolution: "turbo-linux-64@npm:2.1.3"
   conditions: os=linux & cpu=x64
   languageName: node
   linkType: hard
 
-"turbo-linux-arm64@npm:2.0.14":
-  version: 2.0.14
-  resolution: "turbo-linux-arm64@npm:2.0.14"
+"turbo-linux-arm64@npm:2.1.3":
+  version: 2.1.3
+  resolution: "turbo-linux-arm64@npm:2.1.3"
   conditions: os=linux & cpu=arm64
   languageName: node
   linkType: hard
@@ -55553,30 +55551,30 @@ __metadata:
   languageName: node
   linkType: hard
 
-"turbo-windows-64@npm:2.0.14":
-  version: 2.0.14
-  resolution: "turbo-windows-64@npm:2.0.14"
+"turbo-windows-64@npm:2.1.3":
+  version: 2.1.3
+  resolution: "turbo-windows-64@npm:2.1.3"
   conditions: os=win32 & cpu=x64
   languageName: node
   linkType: hard
 
-"turbo-windows-arm64@npm:2.0.14":
-  version: 2.0.14
-  resolution: "turbo-windows-arm64@npm:2.0.14"
+"turbo-windows-arm64@npm:2.1.3":
+  version: 2.1.3
+  resolution: "turbo-windows-arm64@npm:2.1.3"
   conditions: os=win32 & cpu=arm64
   languageName: node
   linkType: hard
 
-"turbo@npm:^2.0.4, turbo@npm:^2.0.5, turbo@npm:^2.0.6":
-  version: 2.0.14
-  resolution: "turbo@npm:2.0.14"
+"turbo@npm:^2.0.4, turbo@npm:^2.0.6, turbo@npm:^2.1.3":
+  version: 2.1.3
+  resolution: "turbo@npm:2.1.3"
   dependencies:
-    turbo-darwin-64: "npm:2.0.14"
-    turbo-darwin-arm64: "npm:2.0.14"
-    turbo-linux-64: "npm:2.0.14"
-    turbo-linux-arm64: "npm:2.0.14"
-    turbo-windows-64: "npm:2.0.14"
-    turbo-windows-arm64: "npm:2.0.14"
+    turbo-darwin-64: "npm:2.1.3"
+    turbo-darwin-arm64: "npm:2.1.3"
+    turbo-linux-64: "npm:2.1.3"
+    turbo-linux-arm64: "npm:2.1.3"
+    turbo-windows-64: "npm:2.1.3"
+    turbo-windows-arm64: "npm:2.1.3"
   dependenciesMeta:
     turbo-darwin-64:
       optional: true
@@ -55592,7 +55590,7 @@ __metadata:
       optional: true
   bin:
     turbo: bin/turbo
-  checksum: 10/8702de17bb7a05c9feed56eef76acdde5e2161a72647c0bf22b602e0e5004e4908bca7f58aa727b386af0869e516d424e363d6fe97dd562d297b128634a123e0
+  checksum: 10/b8e90a38f47dc5c07e5f1c0bd708f9dc6b00b744847a45c06e5de5a5379a32bb155e8ad994eb03e60f697afc87f0815dd02fc680e22c0fad83d65c0a1fb6fc96
   languageName: node
   linkType: hard
 
