@@ -907,9 +907,10 @@ export const GraphingEditor: React.FC = () => {
 														onChange={(e) => {
 															const value =
 																Math.min(
-																	viewType === 'Table'
-																? Number.MAX_VALUE
-																: MAX_LIMIT_SIZE,
+																	viewType ===
+																		'Table'
+																		? Number.MAX_VALUE
+																		: MAX_LIMIT_SIZE,
 																	parseInt(
 																		e.target
 																			.value,
