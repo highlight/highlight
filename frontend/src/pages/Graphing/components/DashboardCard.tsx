@@ -5,6 +5,7 @@ import {
 	Button,
 	IconSolidArrowsExpand,
 	IconSolidDesktopComputer,
+	IconSolidDocumentDownload,
 	IconSolidDotsHorizontal,
 	IconSolidDuplicate,
 	IconSolidPencil,
@@ -20,6 +21,7 @@ export const DashboardCard = ({
 	id,
 	onClone,
 	onDelete,
+	onDownload,
 	onExpand,
 	onEdit,
 	children,
@@ -27,6 +29,7 @@ export const DashboardCard = ({
 	id: string
 	onClone?: () => void
 	onDelete?: () => void
+	onDownload?: () => void
 	onExpand?: () => void
 	onEdit?: () => void
 }>) => {
@@ -125,6 +128,23 @@ export const DashboardCard = ({
 											>
 												<IconSolidDesktopComputer />
 												Expand metric view
+											</Box>
+										</Menu.Item>
+									)}
+									{onDownload && (
+										<Menu.Item
+											onClick={(e) => {
+												e.stopPropagation()
+												onDownload()
+											}}
+										>
+											<Box
+												display="flex"
+												alignItems="center"
+												gap="4"
+											>
+												<IconSolidDocumentDownload />
+												Download CSV
 											</Box>
 										</Menu.Item>
 									)}
