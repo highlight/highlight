@@ -545,8 +545,8 @@ export const Dashboard = () => {
 															}
 															onDownload={() =>
 																exportGraph(
-																	dashboard_id!,
 																	g.id,
+																	g.title,
 																	graphContext
 																		.graphData[
 																		g.id

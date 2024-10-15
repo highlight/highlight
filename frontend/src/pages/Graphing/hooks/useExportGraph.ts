@@ -4,8 +4,8 @@ import moment from 'moment'
 export const useExportGraph = () => {
 	return {
 		exportGraph: async (
-			dashboardID: string,
 			graphID: string,
+			graphTitle: string,
 			data: any[],
 		) => {
 			const rows = processRows(data, new Set(['BucketMin', 'BucketMax']))
@@ -16,7 +16,7 @@ export const useExportGraph = () => {
 							const m = moment(Number(col), 'X', true)
 							return col
 								? m.isAfter(moment().subtract(10, 'year'))
-									? m.format('yyyy-MM-dd HH:mm:ss')
+									? m.format('MM/DD/YYYY HH:mm:ss')
 									: col.toString().replaceAll(/[,;\t]/gi, '|')
 								: ''
 						})
@@ -25,9 +25,9 @@ export const useExportGraph = () => {
 				.join('\r\n')
 			console.info(
 				`exporting graph with ${rows.length} rows, ${csvContent.length} long string.`,
-				{ dashboardID, graphID, rows },
+				{ graphID, graphTitle, rows },
 			)
-			await exportFile(`graph_${dashboardID}_${graphID}.csv`, csvContent)
+			await exportFile(`graph_${graphID} ${graphTitle}.csv`, csvContent)
 		},
 	}
 }
