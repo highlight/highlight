@@ -436,8 +436,6 @@ export const Search: React.FC<{
 	const keyMatch = visibleItems.find((item) => item.name === activePart.text)
 	const showOperators = !!keyMatch
 
-	console.log('visibleItems===>', visibleItems)
-
 	if (showOperators) {
 		let operators = [] as string[]
 		switch (keyMatch.type) {
@@ -962,26 +960,6 @@ export const Search: React.FC<{
 												>
 													Recent History
 												</Button>
-												{/* Not needed, if asked we can enabled it */}
-												{/* <Button
-													kind="secondary"
-													trackingId="history_most_searched_click"
-													onClick={() =>
-														setActiveTab('most')
-													}
-													className={`flex-1 rounded-md py-2 text-center ${
-														activeTab == 'most'
-															? 'bg-blue-500 text-white'
-															: 'bg-gray-200 text-gray-800'
-													}`}
-												>
-													<Text
-														color="moderate"
-														size="xxSmall"
-													>
-														Most Searched
-													</Text>
-												</Button> */}
 											</div>
 										</Box>
 									</Combobox.GroupLabel>
