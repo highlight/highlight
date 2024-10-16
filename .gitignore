@@ -61,3 +61,6 @@ scripts/images
 sdk/highlightinc-highlight-datasource/grafana/
 
 google-chrome*
+
+# WordPress plugin distribution file
+sdk/highlight-wordpress/highlight-io.zip
