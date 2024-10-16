@@ -1128,9 +1128,6 @@ func (client *Client) ReadMetrics(ctx context.Context, input ReadMetricsInput) (
 	if input.Limit != nil {
 		limitCount = *input.Limit
 	}
-	if limitCount > 100 {
-		limitCount = 100
-	}
 	if limitCount < 1 {
 		limitCount = 1
 	}
