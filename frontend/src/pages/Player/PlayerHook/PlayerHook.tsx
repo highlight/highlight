@@ -10,7 +10,6 @@ import {
 } from '@graph/hooks'
 import { GetSessionQuery } from '@graph/operations'
 import {
-	BUFFER_MS,
 	CHUNKING_DISABLED_PROJECTS,
 	FRAME_MS,
 	getEvents,
@@ -160,8 +159,6 @@ export const usePlayer = (
 
 	// chunk indexes that are currently being loaded (fetched over the network)
 	const loadingChunks = useRef<Set<number>>(new Set<number>())
-	// on blocking load, represents the next state
-	const blockingLoad = useRef<ReplayerState>()
 	// the timestamp we are moving to next.
 	const target = useRef<{
 		time?: number
@@ -316,20 +313,14 @@ export const usePlayer = (
 	}, [chunkEventsRef, state.sessionMetadata.startTime])
 
 	const dispatchAction = useCallback(
-		(time: number | undefined, action: ReplayerState) => {
-			H.startSpan(
-				'dispatchAction',
-				{ attributes: { time, action } },
-				() => {
-					dispatch({
-						type: PlayerActionType.onChunksLoad,
-						showPlayerMouseTail,
-						time,
-						action: action,
-						playerRef,
-					})
-				},
-			)
+		(time: number, action: ReplayerState) => {
+			dispatch({
+				type: PlayerActionType.onChunksLoad,
+				showPlayerMouseTail,
+				time,
+				action: action,
+				playerRef,
+			})
 		},
 		[playerRef, showPlayerMouseTail],
 	)
@@ -351,11 +342,10 @@ export const usePlayer = (
 					chunkResponse,
 				})
 				log('PlayerHook.tsx:loadEventChunk', 'set data for chunk', _i)
-				// set before removing from load so that the `has` check doesn't race
-				chunkEventsSet(
-					_i,
-					toHighlightEvents(await chunkResponse.json()),
-				)
+				return {
+					idx: _i,
+					events: toHighlightEvents(await chunkResponse.json()),
+				}
 			} catch (e: any) {
 				log(e, 'Error direct downloading session payload', {
 					chunk: `${_i}`,
@@ -363,8 +353,9 @@ export const usePlayer = (
 			} finally {
 				loadingChunks.current.delete(_i)
 			}
+			return { idx: -1, events: [] }
 		},
-		[chunkEventsSet, fetchEventChunkURL, sessionSecureId],
+		[fetchEventChunkURL, sessionSecureId],
 	)
 
 	// Ensure all chunks between startTs and endTs are loaded.
@@ -374,7 +365,6 @@ export const usePlayer = (
 			endTime?: number,
 			action?: ReplayerState.Playing | ReplayerState.Paused,
 			forceLoadNext?: boolean,
-			forceBlockingLoad?: boolean,
 		) => {
 			if (
 				!projectId ||
@@ -405,7 +395,7 @@ export const usePlayer = (
 			log(
 				'PlayerHook.tsx:ensureChunksLoaded',
 				'checking chunk loaded status range',
-				{ action, startIdx, endIdx, forceLoadNext, forceBlockingLoad },
+				{ action, startIdx, endIdx },
 			)
 			for (let i = startIdx; i <= endIdx; i++) {
 				log('PlayerHook.tsx:ensureChunksLoaded', 'has', i, {
@@ -421,31 +411,19 @@ export const usePlayer = (
 						'waiting for loading chunk',
 						i,
 					)
-					if (!blockingLoad.current && forceBlockingLoad) {
-						log(
-							'PlayerHook.tsx:ensureChunksLoaded',
-							'needs blocking load for chunk, forced blocking load',
-							i,
-						)
-						blockingLoad.current = state.replayerState
-						dispatch({
-							type: PlayerActionType.startChunksLoad,
-						})
-					}
 				} else {
-					if (
-						(!blockingLoad.current && forceBlockingLoad) ||
-						i == startIdx
-					) {
-						log(
-							'PlayerHook.tsx:ensureChunksLoaded',
-							'needs blocking load for chunk',
-							i,
-						)
-						blockingLoad.current = state.replayerState
-						dispatch({
-							type: PlayerActionType.startChunksLoad,
-						})
+					// signal that we are loading chunks once
+					if (!promises.length) {
+						if (i == startIdx) {
+							log(
+								'PlayerHook.tsx:ensureChunksLoaded',
+								'needs blocking load for chunk',
+								i,
+							)
+							dispatch({
+								type: PlayerActionType.startChunksLoad,
+							})
+						}
 					}
 					promises.push(loadEventChunk(i))
 				}
@@ -470,7 +448,7 @@ export const usePlayer = (
 					toRemove.delete(currentChunkIdx)
 				}
 				log('PlayerHook.tsx:ensureChunksLoaded', 'getChunksToRemove', {
-					before: chunkEventsRef.current,
+					after: chunkEventsRef.current,
 					toRemove,
 				})
 				toRemove.forEach((idx) => chunkEventsRemove(idx))
@@ -480,11 +458,7 @@ export const usePlayer = (
 					state: action ?? target.current.state,
 				}
 				const loadedChunkIds = new Set<number>()
-				await Promise.all(promises)
-				log('PlayerHook.tsx:ensureChunksLoaded', 'getChunksToRemove', {
-					after: chunkEventsRef.current,
-					toRemove,
-				})
+				const loadedChunks = await Promise.all(promises)
 				if (
 					target.current.time !== startTime ||
 					target.current.state !== (action ?? target.current.state)
@@ -501,11 +475,14 @@ export const usePlayer = (
 					)
 					return
 				}
+				for (const { idx, events } of loadedChunks) {
+					chunkEventsSet(idx, events)
+				}
 				// update the replayer events
 				log(
 					'PlayerHook.tsx:ensureChunksLoaded',
 					'promises done, updating events',
-					{ loadedChunks: loadedChunkIds },
+					{ loadedChunks: loadedChunkIds, target },
 				)
 				dispatch({ type: PlayerActionType.updateEvents })
 			}
@@ -515,29 +492,18 @@ export const usePlayer = (
 					'calling dispatchAction due to action',
 					{
 						startTime,
-						action: blockingLoad ? state.replayerState : action,
+						action,
+						target,
 						chunks: chunkEventsRef.current,
 					},
 				)
 				dispatchAction(startTime, action)
-			} else if (promises.length && blockingLoad.current) {
-				log(
-					'PlayerHook.tsx:ensureChunksLoaded',
-					'calling dispatchAction due to blockingLoad',
-					{
-						startTime,
-						chunks: chunkEventsRef.current,
-					},
-				)
-				dispatchAction(undefined, blockingLoad.current)
-				blockingLoad.current = undefined
 			}
 		},
 		[
 			projectId,
 			state.session?.chunked,
 			state.sessionMetadata.startTime,
-			state.replayerState,
 			getChunkIdx,
 			eventChunksData?.event_chunks,
 			dispatchAction,
@@ -545,6 +511,7 @@ export const usePlayer = (
 			loadEventChunk,
 			getChunksToRemove,
 			chunkEventsRemove,
+			chunkEventsSet,
 		],
 	)
 
@@ -558,8 +525,8 @@ export const usePlayer = (
 				return Promise.resolve()
 			}
 
-			return new Promise<void>(async (r) => {
-				await H.startSpan(
+			return new Promise<void>((r) => {
+				H.startSpan(
 					'timelineChangeTime',
 					{ attributes: { action: 'play' } },
 					async () => {
@@ -583,24 +550,21 @@ export const usePlayer = (
 				time: time,
 				state: ReplayerState.Paused,
 			}
-			return new Promise<void>(async (r) => {
+			return new Promise<void>((r) => {
 				if (time !== undefined) {
-					await H.startManualSpan(
-						'timelineChangeTime',
-						async (span) => {
-							span?.setAttribute('action', 'pause')
-							dispatch({ type: PlayerActionType.setTime, time })
+					H.startManualSpan('timelineChangeTime', async (span) => {
+						span.setAttribute('action', 'pause')
+						dispatch({ type: PlayerActionType.setTime, time })
 
-							await ensureChunksLoaded(
-								time,
-								undefined,
-								ReplayerState.Paused,
-							).then(() => {
-								span?.end()
-								r()
-							})
-						},
-					)
+						await ensureChunksLoaded(
+							time,
+							undefined,
+							ReplayerState.Paused,
+						).then(() => {
+							span.end()
+							r()
+						})
+					})
 				} else {
 					dispatch({ type: PlayerActionType.pause })
 					r()
@@ -617,40 +581,39 @@ export const usePlayer = (
 				state: target.current.state,
 			}
 			return new Promise<void>(async (r) => {
-				await H.startManualSpan('timelineChangeTime', async (span) => {
-					span?.setAttribute('action', 'seek')
-
-					if (skipInactive) {
-						const inactivityEnd = getInactivityEnd(time)
-						if (inactivityEnd) {
-							log(
-								'PlayerHook.tsx',
-								'seeking to',
-								inactivityEnd,
-								'due to inactivity at seek requested for',
-								time,
-							)
-							time = inactivityEnd
-						}
-					}
-					const desiredState =
-						state.replayerState === ReplayerState.Paused
-							? ReplayerState.Paused
-							: ReplayerState.Playing
-					log('PlayerHook.tsx', 'seeking to', {
-						time,
-						desiredState,
-					})
-					dispatch({ type: PlayerActionType.setTime, time })
-					await ensureChunksLoaded(
-						time,
-						undefined,
-						desiredState,
-					).then(() => {
-						span?.end()
-						r()
-					})
+				const span = H.startManualSpan('timelineChangeTime', (span) => {
+					span.setAttribute('action', 'seek')
+					return span
 				})
+
+				if (skipInactive) {
+					const inactivityEnd = getInactivityEnd(time)
+					if (inactivityEnd) {
+						log(
+							'PlayerHook.tsx',
+							'seeking to',
+							inactivityEnd,
+							'due to inactivity at seek requested for',
+							time,
+						)
+						time = inactivityEnd
+					}
+				}
+				const desiredState =
+					state.replayerState === ReplayerState.Paused
+						? ReplayerState.Paused
+						: ReplayerState.Playing
+				log('PlayerHook.tsx', 'seeking to', {
+					time,
+					desiredState,
+				})
+				dispatch({ type: PlayerActionType.setTime, time })
+				await ensureChunksLoaded(time, undefined, desiredState).then(
+					() => {
+						span.end()
+						r()
+					},
+				)
 			})
 		},
 		[
@@ -706,16 +669,32 @@ export const usePlayer = (
 	useEffect(() => {
 		resetPlayer()
 		if (sessionSecureId && eventChunksData?.event_chunks?.length) {
-			loadEventChunk(0).then(() => {
-				dispatch({
-					type: PlayerActionType.onChunksLoad,
-					showPlayerMouseTail,
-					time: 0,
-					action: ReplayerState.Paused,
-					playerRef,
+			loadEventChunk(0)
+				.then(({ events }) => {
+					chunkEventsSet(0, events)
+					dispatch({
+						type: PlayerActionType.onChunksLoad,
+						showPlayerMouseTail,
+						time: 0,
+						action: ReplayerState.Paused,
+						playerRef,
+					})
+					log('PlayerHook.tsx', 'initial chunk complete')
 				})
-				log('PlayerHook.tsx', 'initial chunk complete')
-			})
+				.then(() => {
+					const nextChunk = eventChunksData.event_chunks.at(1)
+					if (nextChunk) {
+						loadEventChunk(nextChunk.chunk_index).then(
+							({ idx, events }) => {
+								chunkEventsSet(idx, events)
+								log(
+									'PlayerHook.tsx',
+									'next chunk load complete',
+								)
+							},
+						)
+					}
+				})
 		}
 	}, [
 		projectId,
@@ -964,37 +943,35 @@ export const usePlayer = (
 	// ensures that chunks are loaded in advance during playback
 	// ensures we skip over inactivity periods
 	useEffect(() => {
-		;(async () => {
-			if (
-				state.sessionMetadata.startTime === 0 ||
-				sessionSecureId !== state.session_secure_id
-			) {
+		if (
+			state.sessionMetadata.startTime === 0 ||
+			state.replayerState !== ReplayerState.Playing ||
+			sessionSecureId !== state.session_secure_id
+		) {
+			return
+		}
+		// If the player is in an inactive interval, skip to the end of it
+		let inactivityEnd: number | undefined
+		if (skipInactive && state.replayerState === ReplayerState.Playing) {
+			inactivityEnd = getInactivityEnd(state.time)
+			if (inactivityEnd !== undefined) {
+				log(
+					'PlayerHook.tsx',
+					'seeking to',
+					inactivityEnd,
+					'due to inactivity at',
+					state.time,
+				)
+				play(inactivityEnd).then()
 				return
 			}
-			// If the player is in an inactive interval, skip to the end of it
-			let inactivityEnd: number | undefined
-			if (skipInactive && state.replayerState === ReplayerState.Playing) {
-				inactivityEnd = getInactivityEnd(state.time)
-				if (inactivityEnd !== undefined) {
-					log(
-						'PlayerHook.tsx',
-						'seeking to',
-						inactivityEnd,
-						'due to inactivity at',
-						state.time,
-					)
-					await play(inactivityEnd)
-					return
-				}
-			}
-			await ensureChunksLoaded(
-				state.time,
-				state.time + LOOKAHEAD_MS,
-				undefined,
-				getLastLoadedEventTimestamp() - state.time < LOOKAHEAD_MS,
-				getLastLoadedEventTimestamp() - state.time < BUFFER_MS,
-			)
-		})()
+		}
+		ensureChunksLoaded(
+			state.time,
+			state.time + LOOKAHEAD_MS,
+			undefined,
+			getLastLoadedEventTimestamp() - state.time < LOOKAHEAD_MS,
+		).then()
 	}, [
 		state.time,
 		ensureChunksLoaded,

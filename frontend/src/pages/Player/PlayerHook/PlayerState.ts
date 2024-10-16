@@ -64,13 +64,12 @@ const PROJECTS_WITH_CSS_ANIMATIONS: string[] = ['1', '1020', '1021', '102751']
 
 // assuming 120 fps
 export const FRAME_MS = 1000 / 120
-// update every N frames
-export const THROTTLED_UPDATE_MS = FRAME_MS * 15
+// update every 30 frames
+export const THROTTLED_UPDATE_MS = FRAME_MS * 30
 
 export const CHUNKING_DISABLED_PROJECTS: string[] = []
-export const LOOKAHEAD_MS = 1000 * 30
-export const BUFFER_MS = 1000 * 3
-export const MAX_CHUNK_COUNT = 5
+export const LOOKAHEAD_MS = 1000 * 60
+export const MAX_CHUNK_COUNT = 8
 
 export enum SessionViewability {
 	VIEWABLE,
@@ -239,7 +238,7 @@ interface startChunksLoad {
 interface onChunksLoad {
 	type: PlayerActionType.onChunksLoad
 	showPlayerMouseTail: boolean
-	time: number | undefined
+	time: number
 	playerRef: RefObject<HTMLDivElement>
 	action: ReplayerState
 }
@@ -449,7 +448,7 @@ export const PlayerReducer = (
 				PlayerActionType.startChunksLoad,
 				s,
 				ReplayerState.Paused,
-				undefined,
+				getTimeFromReplayer(s.replayer, s.sessionMetadata),
 				true,
 			)
 			break
