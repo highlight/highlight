@@ -30,7 +30,7 @@ const SamplingRows = 20_000_000
 const KeysMaxRows = 1_000_000
 const KeyValuesMaxRows = 1_000_000
 const AllKeyValuesMaxRows = 100_000_000
-const MaxBuckets = 100
+const MaxBuckets = 240
 
 type SampleableTableConfig struct {
 	tableConfig         model.TableConfig
