@@ -1,5 +1,6 @@
 import { SemanticResourceAttributes } from '@opentelemetry/semantic-conventions'
 import { Highlight } from './client.js'
+import { describe, expect, it } from 'vitest'
 
 describe('client', () => {
 	it('includes process information in the resource', () => {

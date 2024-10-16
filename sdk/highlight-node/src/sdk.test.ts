@@ -1,4 +1,5 @@
 import { H, HIGHLIGHT_REQUEST_HEADER } from './sdk.js'
+import { describe, expect, it } from 'vitest'
 
 describe('parseHeaders', () => {
 	H.init({ projectID: '1' })
