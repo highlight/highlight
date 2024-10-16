@@ -724,24 +724,25 @@ SessionSecureID: ${this.sessionData.sessionSecureID}`,
 				blockClass: 'highlight-block',
 				emit,
 				recordCrossOriginIframes: this.options.recordCrossOriginIframe,
-				privacySetting: this.privacySetting,
+				// privacySetting: this.privacySetting,
 				maskAllInputs,
 				maskInputOptions: maskInputOptions,
 				recordCanvas: this.enableCanvasRecording,
-				sampling: {
-					canvas: {
-						fps: this.samplingStrategy.canvas,
-						fpsManual: this.samplingStrategy.canvasManualSnapshot,
-						resizeFactor: this.samplingStrategy.canvasFactor,
-						clearWebGLBuffer:
-							this.samplingStrategy.canvasClearWebGLBuffer,
-						initialSnapshotDelay:
-							this.samplingStrategy.canvasInitialSnapshotDelay,
-						dataURLOptions: this.samplingStrategy.dataUrlOptions,
-						maxSnapshotDimension:
-							this.samplingStrategy.canvasMaxSnapshotDimension,
-					},
-				},
+				sampling: { canvas: 1 },
+				// sampling: {
+				// 	canvas: {
+				// 		fps: this.samplingStrategy.canvas,
+				// 		fpsManual: this.samplingStrategy.canvasManualSnapshot,
+				// 		resizeFactor: this.samplingStrategy.canvasFactor,
+				// 		clearWebGLBuffer:
+				// 			this.samplingStrategy.canvasClearWebGLBuffer,
+				// 		initialSnapshotDelay:
+				// 			this.samplingStrategy.canvasInitialSnapshotDelay,
+				// 		dataURLOptions: this.samplingStrategy.dataUrlOptions,
+				// 		maxSnapshotDimension:
+				// 			this.samplingStrategy.canvasMaxSnapshotDimension,
+				// 	},
+				// },
 				keepIframeSrcFn: (_src: string) => {
 					return !this.options.recordCrossOriginIframe
 				},
@@ -749,16 +750,16 @@ SessionSecureID: ${this.sessionData.sessionSecureID}`,
 				collectFonts: this.inlineImages,
 				inlineStylesheet: this.inlineStylesheet,
 				plugins: [getRecordSequentialIdPlugin()],
-				logger:
-					(typeof this.options.debug === 'boolean' &&
-						this.options.debug) ||
-					(typeof this.options.debug === 'object' &&
-						this.options.debug.domRecording)
-						? {
-								debug: this.logger.log,
-								warn: HighlightWarning,
-							}
-						: undefined,
+				// logger:
+				// 	(typeof this.options.debug === 'boolean' &&
+				// 		this.options.debug) ||
+				// 	(typeof this.options.debug === 'object' &&
+				// 		this.options.debug.domRecording)
+				// 		? {
+				// 				debug: this.logger.log,
+				// 				warn: HighlightWarning,
+				// 			}
+				// 		: undefined,
 			})
 
 			// recordStop is not part of listeners because we do not actually want to stop rrweb
@@ -1206,7 +1207,7 @@ SessionSecureID: ${this.sessionData.sessionSecureID}`,
 	}
 
 	async snapshot(element: HTMLCanvasElement) {
-		await record.snapshotCanvas(element)
+		// await record.snapshotCanvas(element)
 	}
 
 	addSessionFeedback({

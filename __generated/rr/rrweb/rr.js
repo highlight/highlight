@@ -209,13 +209,9 @@ function stringifyStylesheet(s2) {
     if (!rules2) {
       return null;
     }
-    let sheetHref = s2.href;
-    if (!sheetHref && s2.ownerNode && s2.ownerNode.ownerDocument) {
-      sheetHref = s2.ownerNode.ownerDocument.location.href;
-    }
     const stringifiedRules = Array.from(
       rules2,
-      (rule2) => stringifyRule(rule2, sheetHref)
+      (rule2) => stringifyRule(rule2, s2.href)
     ).join("");
     return fixBrowserCompatibilityIssuesInCSS(stringifiedRules);
   } catch (error) {
@@ -324,16 +320,11 @@ function maskInputValue({
   tagName,
   type,
   value,
-  overwriteRecord,
   maskInputFn
 }) {
   let text = value || "";
-  if (maskedInputType({
-    maskInputOptions,
-    tagName,
-    type,
-    overwriteRecord
-  })) {
+  const actualType = type && toLowerCase(type);
+  if (maskInputOptions[tagName.toLowerCase()] || actualType && maskInputOptions[actualType]) {
     if (maskInputFn) {
       text = maskInputFn(text, element);
     } else {
@@ -450,84 +441,6 @@ function absolutifyURLs(cssText, href) {
     }
   );
 }
-function normalizeCssString(cssText) {
-  return cssText.replace(/(\/\*[^*]*\*\/)|[\s;]/g, "");
-}
-function splitCssText(cssText, style) {
-  const childNodes2 = Array.from(style.childNodes);
-  const splits = [];
-  if (childNodes2.length > 1 && cssText && typeof cssText === "string") {
-    const cssTextNorm = normalizeCssString(cssText);
-    for (let i2 = 1; i2 < childNodes2.length; i2++) {
-      if (childNodes2[i2].textContent && typeof childNodes2[i2].textContent === "string") {
-        const textContentNorm = normalizeCssString(childNodes2[i2].textContent);
-        for (let j = 3; j < textContentNorm.length; j++) {
-          const bit = textContentNorm.substring(0, j);
-          if (cssTextNorm.split(bit).length === 2) {
-            const splitNorm = cssTextNorm.indexOf(bit);
-            for (let k = splitNorm; k < cssText.length; k++) {
-              if (normalizeCssString(cssText.substring(0, k)).length === splitNorm) {
-                splits.push(cssText.substring(0, k));
-                cssText = cssText.substring(k);
-                break;
-              }
-            }
-            break;
-          }
-        }
-      }
-    }
-  }
-  splits.push(cssText);
-  return splits;
-}
-function markCssSplits(cssText, style) {
-  return splitCssText(cssText, style).join("/* rr_split */");
-}
-function obfuscateText(text) {
-  text = text.replace(/[^ -~]+/g, "");
-  text = (text == null ? void 0 : text.split(" ").map((word) => Math.random().toString(20).substring(2, word.length)).join(" ")) || "";
-  return text;
-}
-function isElementSrcBlocked(tagName) {
-  return tagName === "img" || tagName === "video" || tagName === "audio" || tagName === "source";
-}
-var EMAIL_REGEX = new RegExp(
-  /[a-zA-Z0-9.!#$%&'*+=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:.[a-zA-Z0-9-]+)*/
-);
-var LONG_NUMBER_REGEX = new RegExp(/[0-9]{9,16}/);
-var SSN_REGEX = new RegExp(/[0-9]{3}-?[0-9]{2}-?[0-9]{4}/);
-var PHONE_NUMBER_REGEX = new RegExp(
-  /[+]?[(]?[0-9]{3}[)]?[-\s.]?[0-9]{3}[-\s.]?[0-9]{4,6}/
-);
-var CREDIT_CARD_REGEX = new RegExp(/[0-9]{4}-?[0-9]{4}-?[0-9]{4}-?[0-9]{4}/);
-var ADDRESS_REGEX = new RegExp(
-  /[0-9]{1,5}.?[0-9]{0,3}\s[a-zA-Z]{2,30}\s[a-zA-Z]{2,15}/
-);
-var IP_REGEX = new RegExp(/(?:[0-9]{1,3}.){3}[0-9]{1,3}/);
-var DEFAULT_OBFUSCATE_REGEXES = [
-  EMAIL_REGEX,
-  LONG_NUMBER_REGEX,
-  SSN_REGEX,
-  PHONE_NUMBER_REGEX,
-  CREDIT_CARD_REGEX,
-  ADDRESS_REGEX,
-  IP_REGEX
-];
-function shouldObfuscateTextByDefault(text) {
-  if (!text)
-    return false;
-  return DEFAULT_OBFUSCATE_REGEXES.some((regex) => regex.test(text));
-}
-var maskedInputType = ({
-  maskInputOptions,
-  tagName,
-  type,
-  overwriteRecord
-}) => {
-  const actualType = type && type.toLowerCase();
-  return overwriteRecord !== "true" && (!!maskInputOptions[tagName.toLowerCase()] || !!(actualType && maskInputOptions[actualType]));
-};
 var _id = 1;
 var tagNameRegex = new RegExp("[^a-z0-9-_:]");
 var IGNORED_NODE = -2;
@@ -789,16 +702,13 @@ function serializeNode(n2, options) {
     needsMask,
     inlineStylesheet,
     maskInputOptions = {},
-    maskTextClass,
     maskTextFn,
     maskInputFn,
     dataURLOptions = {},
     inlineImages,
     recordCanvas,
     keepIframeSrcFn,
-    newlyAddedElement = false,
-    cssCaptured = false,
-    privacySetting
+    newlyAddedElement = false
   } = options;
   const rootId = getRootId(doc, mirror2);
   switch (n2.nodeType) {
@@ -832,13 +742,11 @@ function serializeNode(n2, options) {
         inlineStylesheet,
         maskInputOptions,
         maskInputFn,
-        maskTextClass,
         dataURLOptions,
         inlineImages,
         recordCanvas,
         keepIframeSrcFn,
         newlyAddedElement,
-        privacySetting,
         rootId
       });
     case n2.TEXT_NODE:
@@ -846,9 +754,7 @@ function serializeNode(n2, options) {
         doc,
         needsMask,
         maskTextFn,
-        privacySetting,
-        rootId,
-        cssCaptured
+        rootId
       });
     case n2.CDATA_SECTION_NODE:
       return {
@@ -874,43 +780,36 @@ function getRootId(doc, mirror2) {
 }
 function serializeTextNode(n2, options) {
   var _a2;
-  const { needsMask, maskTextFn, privacySetting, rootId, cssCaptured } = options;
+  const { needsMask, maskTextFn, rootId } = options;
   const parent = index$1.parentNode(n2);
   const parentTagName = parent && parent.tagName;
-  let textContent2 = "";
+  let text = index$1.textContent(n2);
   const isStyle = parentTagName === "STYLE" ? true : void 0;
   const isScript = parentTagName === "SCRIPT" ? true : void 0;
+  if (isStyle && text) {
+    try {
+      if (n2.nextSibling || n2.previousSibling) {
+      } else if ((_a2 = parent.sheet) == null ? void 0 : _a2.cssRules) {
+        text = stringifyStylesheet(parent.sheet);
+      }
+    } catch (err) {
+      console.warn(
+        `Cannot get CSS styles from text's parentNode. Error: ${err}`,
+        n2
+      );
+    }
+    text = absolutifyURLs(text, getHref(options.doc));
+  }
   if (isScript) {
-    textContent2 = "SCRIPT_PLACEHOLDER";
-  } else if (!cssCaptured) {
-    textContent2 = index$1.textContent(n2);
-    if (isStyle && textContent2) {
-      textContent2 = absolutifyURLs(textContent2, getHref(options.doc));
-    }
+    text = "SCRIPT_PLACEHOLDER";
   }
-  if (!isStyle && !isScript && textContent2 && needsMask) {
-    textContent2 = maskTextFn ? maskTextFn(textContent2, index$1.parentElement(n2)) : textContent2.replace(/[\S]/g, "*");
-  }
-  const enableStrictPrivacy = privacySetting === "strict";
-  const highlightOverwriteRecord = (_a2 = n2.parentElement) == null ? void 0 : _a2.getAttribute("data-hl-record");
-  const obfuscateDefaultPrivacy = privacySetting === "default" && shouldObfuscateTextByDefault(textContent2);
-  if ((enableStrictPrivacy || obfuscateDefaultPrivacy) && !highlightOverwriteRecord && parentTagName) {
-    const IGNORE_TAG_NAMES = /* @__PURE__ */ new Set([
-      "HEAD",
-      "TITLE",
-      "STYLE",
-      "SCRIPT",
-      "HTML",
-      "BODY",
-      "NOSCRIPT"
-    ]);
-    if (!IGNORE_TAG_NAMES.has(parentTagName) && textContent2) {
-      textContent2 = obfuscateText(textContent2);
-    }
+  if (!isStyle && !isScript && text && needsMask) {
+    text = maskTextFn ? maskTextFn(text, index$1.parentElement(n2)) : text.replace(/[\S]/g, "*");
   }
   return {
     type: NodeType$2.Text,
-    textContent: textContent2 || "",
+    textContent: text || "",
+    isStyle,
     rootId
   };
 }
@@ -922,19 +821,15 @@ function serializeElementNode(n2, options) {
     inlineStylesheet,
     maskInputOptions = {},
     maskInputFn,
-    maskTextClass,
     dataURLOptions = {},
     inlineImages,
     recordCanvas,
     keepIframeSrcFn,
     newlyAddedElement = false,
-    privacySetting,
     rootId
   } = options;
-  let needBlock = _isBlockedElement(n2, blockClass, blockSelector);
-  const needMask = _isBlockedElement(n2, maskTextClass, null);
-  const enableStrictPrivacy = privacySetting === "strict";
-  let tagName = getValidTagName$1(n2);
+  const needBlock = _isBlockedElement(n2, blockClass, blockSelector);
+  const tagName = getValidTagName$1(n2);
   let attributes = {};
   const len = n2.attributes.length;
   for (let i2 = 0; i2 < len; i2++) {
@@ -962,14 +857,12 @@ function serializeElementNode(n2, options) {
       attributes._cssText = cssText;
     }
   }
-  if (tagName === "style" && n2.sheet) {
-    let cssText = stringifyStylesheet(
+  if (tagName === "style" && n2.sheet && // TODO: Currently we only try to get dynamic stylesheet when it is an empty style element
+  !(n2.innerText || index$1.textContent(n2) || "").trim().length) {
+    const cssText = stringifyStylesheet(
       n2.sheet
     );
     if (cssText) {
-      if (n2.childNodes.length > 1) {
-        cssText = markCssSplits(cssText, n2);
-      }
       attributes._cssText = cssText;
     }
   }
@@ -982,7 +875,6 @@ function serializeElementNode(n2, options) {
         type: getInputType(n2),
         tagName,
         value,
-        overwriteRecord: n2.getAttribute("data-hl-record"),
         maskInputOptions,
         maskInputFn
       });
@@ -1002,8 +894,12 @@ function serializeElementNode(n2, options) {
   }
   if (tagName === "canvas" && recordCanvas) {
     if (n2.__context === "2d") {
-      if (!is2DCanvasBlank(n2))
-        ;
+      if (!is2DCanvasBlank(n2)) {
+        attributes.rr_dataURL = n2.toDataURL(
+          dataURLOptions.type,
+          dataURLOptions.quality
+        );
+      }
     } else if (!("__context" in n2)) {
       const canvasDataURL = n2.toDataURL(
         dataURLOptions.type,
@@ -1021,7 +917,7 @@ function serializeElementNode(n2, options) {
       }
     }
   }
-  if (tagName === "img" && inlineImages && !needBlock && !needMask && !enableStrictPrivacy) {
+  if (tagName === "img" && inlineImages) {
     if (!canvasService) {
       canvasService = doc.createElement("canvas");
       canvasCtx = canvasService.getContext("2d");
@@ -1079,16 +975,13 @@ function serializeElementNode(n2, options) {
       attributes.rr_scrollTop = n2.scrollTop;
     }
   }
-  if (needBlock || needMask || enableStrictPrivacy && isElementSrcBlocked(tagName)) {
+  if (needBlock) {
     const { width, height } = n2.getBoundingClientRect();
     attributes = {
       class: attributes.class,
       rr_width: `${width}px`,
       rr_height: `${height}px`
     };
-  }
-  if (enableStrictPrivacy && isElementSrcBlocked(tagName)) {
-    needBlock = true;
   }
   if (tagName === "iframe" && !keepIframeSrcFn(attributes.src)) {
     if (!n2.contentDocument) {
@@ -1102,29 +995,6 @@ function serializeElementNode(n2, options) {
       isCustomElement = true;
   } catch (e2) {
   }
-  if (inlineImages && tagName === "video") {
-    const video = n2;
-    if (video.src === "" || video.src.indexOf("blob:") !== -1) {
-      const { width, height } = n2.getBoundingClientRect();
-      attributes = {
-        width,
-        height,
-        rr_width: `${width}px`,
-        rr_height: `${height}px`,
-        rr_inlined_video: true,
-        class: attributes.class,
-        style: attributes.style
-      };
-      tagName = "canvas";
-      const blankCanvas = doc.createElement("canvas");
-      blankCanvas.width = n2.width;
-      blankCanvas.height = n2.height;
-      attributes.rr_dataURL = blankCanvas.toDataURL(
-        dataURLOptions.type,
-        dataURLOptions.quality
-      );
-    }
-  }
   return {
     type: NodeType$2.Element,
     tagName,
@@ -1132,7 +1002,6 @@ function serializeElementNode(n2, options) {
     childNodes: [],
     isSVG: isSVGElement(n2) || void 0,
     needBlock,
-    needMask,
     rootId,
     isCustom: isCustomElement
   };
@@ -1199,9 +1068,7 @@ function serializeNodeWithId(n2, options) {
     onStylesheetLoad,
     stylesheetLoadTimeout = 5e3,
     keepIframeSrcFn = () => false,
-    newlyAddedElement = false,
-    cssCaptured = false,
-    privacySetting
+    newlyAddedElement = false
   } = options;
   let { needsMask } = options;
   let { preserveWhiteSpace = true } = options;
@@ -1222,16 +1089,13 @@ function serializeNodeWithId(n2, options) {
     needsMask,
     inlineStylesheet,
     maskInputOptions,
-    maskTextClass,
     maskTextFn,
     maskInputFn,
     dataURLOptions,
     inlineImages,
     recordCanvas,
     keepIframeSrcFn,
-    newlyAddedElement,
-    cssCaptured,
-    privacySetting
+    newlyAddedElement
   });
   if (!_serializedNode) {
     console.warn(n2, "not serialized");
@@ -1240,7 +1104,7 @@ function serializeNodeWithId(n2, options) {
   let id;
   if (mirror2.hasNode(n2)) {
     id = mirror2.getId(n2);
-  } else if (slimDOMExcluded(_serializedNode, slimDOMOptions) || !preserveWhiteSpace && _serializedNode.type === NodeType$2.Text && !_serializedNode.textContent.replace(/^\s+|\s+$/gm, "").length) {
+  } else if (slimDOMExcluded(_serializedNode, slimDOMOptions) || !preserveWhiteSpace && _serializedNode.type === NodeType$2.Text && !_serializedNode.isStyle && !_serializedNode.textContent.replace(/^\s+|\s+$/gm, "").length) {
     id = IGNORED_NODE;
   } else {
     id = genId();
@@ -1254,19 +1118,9 @@ function serializeNodeWithId(n2, options) {
     onSerialize(n2);
   }
   let recordChild = !skipChild;
-  let overwrittenPrivacySetting = privacySetting;
-  let strictPrivacy = privacySetting === "strict";
   if (serializedNode.type === NodeType$2.Element) {
     recordChild = recordChild && !serializedNode.needBlock;
-    strictPrivacy || (strictPrivacy = !!serializedNode.needBlock || !!serializedNode.needMask);
-    overwrittenPrivacySetting = strictPrivacy ? "strict" : overwrittenPrivacySetting;
-    if (strictPrivacy && isElementSrcBlocked(serializedNode.tagName)) {
-      const clone = n2.cloneNode();
-      clone.src = "";
-      mirror2.add(clone, serializedNode);
-    }
     delete serializedNode.needBlock;
-    delete serializedNode.needMask;
     const shadowRootEl = index$1.shadowRoot(n2);
     if (shadowRootEl && isNativeShadowDom(shadowRootEl))
       serializedNode.isShadowHost = true;
@@ -1298,16 +1152,11 @@ function serializeNodeWithId(n2, options) {
       iframeLoadTimeout,
       onStylesheetLoad,
       stylesheetLoadTimeout,
-      keepIframeSrcFn,
-      cssCaptured: false,
-      privacySetting: overwrittenPrivacySetting
+      keepIframeSrcFn
     };
     if (serializedNode.type === NodeType$2.Element && serializedNode.tagName === "textarea" && serializedNode.attributes.value !== void 0)
       ;
     else {
-      if (serializedNode.type === NodeType$2.Element && serializedNode.attributes._cssText !== void 0 && typeof serializedNode.attributes._cssText === "string") {
-        bypassOptions.cssCaptured = true;
-      }
       for (const childN of Array.from(index$1.childNodes(n2))) {
         const serializedChildNode = serializeNodeWithId(childN, bypassOptions);
         if (serializedChildNode) {
@@ -1359,8 +1208,7 @@ function serializeNodeWithId(n2, options) {
             iframeLoadTimeout,
             onStylesheetLoad,
             stylesheetLoadTimeout,
-            keepIframeSrcFn,
-            privacySetting
+            keepIframeSrcFn
           });
           if (serializedIframeNode) {
             onIframeLoad(
@@ -1401,8 +1249,7 @@ function serializeNodeWithId(n2, options) {
             iframeLoadTimeout,
             onStylesheetLoad,
             stylesheetLoadTimeout,
-            keepIframeSrcFn,
-            privacySetting
+            keepIframeSrcFn
           });
           if (serializedLinkNode) {
             onStylesheetLoad(
@@ -1420,9 +1267,9 @@ function serializeNodeWithId(n2, options) {
 function snapshot(n2, options) {
   const {
     mirror: mirror2 = new Mirror(),
-    blockClass = "highlight-block",
+    blockClass = "rr-block",
     blockSelector = null,
-    maskTextClass = "highlight-mask",
+    maskTextClass = "rr-mask",
     maskTextSelector = null,
     inlineStylesheet = true,
     inlineImages = false,
@@ -1438,8 +1285,7 @@ function snapshot(n2, options) {
     iframeLoadTimeout,
     onStylesheetLoad,
     stylesheetLoadTimeout,
-    keepIframeSrcFn = () => false,
-    privacySetting = "default"
+    keepIframeSrcFn = () => false
   } = options || {};
   const maskInputOptions = maskAllInputs === true ? {
     color: true,
@@ -1461,7 +1307,7 @@ function snapshot(n2, options) {
   } : maskAllInputs === false ? {
     password: true
   } : maskAllInputs;
-  const slimDOMOptions = slimDOM || slimDOM === "all" ? (
+  const slimDOMOptions = slimDOM === true || slimDOM === "all" ? (
     // if true: set of sensible options that should not throw away any information
     {
       script: true,
@@ -1476,7 +1322,7 @@ function snapshot(n2, options) {
       headMetaAuthorship: true,
       headMetaVerification: true
     }
-  ) : !slimDOM ? {} : slimDOM;
+  ) : slimDOM === false ? {} : slimDOM;
   return serializeNodeWithId(n2, {
     doc: n2,
     mirror: mirror2,
@@ -1500,8 +1346,7 @@ function snapshot(n2, options) {
     onStylesheetLoad,
     stylesheetLoadTimeout,
     keepIframeSrcFn,
-    newlyAddedElement: false,
-    privacySetting
+    newlyAddedElement: false
   });
 }
 var MEDIA_SELECTOR = /(max|min)-device-(width|height)/;
@@ -1530,8 +1375,41 @@ var pseudoClassPlugin = {
         }
         fixed.push(rule2);
         rule2.selectors.forEach(function(selector) {
-          if (selector.includes(":hover")) {
-            rule2.selector += ",\n" + selector.replace(/:hover/g, ".\\:hover");
+          if (!selector.includes(":")) {
+            return;
+          }
+          const selectorParts = selector.replace(/\n/g, " ").split(" ");
+          const pseudoedSelectorParts = [];
+          selectorParts.forEach(function(selectorPart) {
+            const pseudos = selectorPart.match(/::?([^:]+)/g);
+            if (!pseudos) {
+              pseudoedSelectorParts.push(selectorPart);
+              return;
+            }
+            const baseSelector = selectorPart.substr(
+              0,
+              selectorPart.length - pseudos.join("").length
+            );
+            const classPseudos = pseudos.map(function(pseudo) {
+              const pseudoToCheck = pseudo.replace(/\(.*/g, "");
+              if (pseudoToCheck !== ":hover") {
+                return pseudo;
+              }
+              if (pseudo.match(/^::/)) {
+                return pseudo;
+              }
+              pseudo = pseudo.substr(1);
+              pseudo = pseudo.replace(/\(/g, "\\(");
+              pseudo = pseudo.replace(/\)/g, "\\)");
+              return ".\\:" + pseudo;
+            });
+            pseudoedSelectorParts.push(baseSelector + classPseudos.join(""));
+          });
+          addSelector(pseudoedSelectorParts.join(" "));
+          function addSelector(newSelector) {
+            if (newSelector && newSelector !== selector) {
+              rule2.selector += ",\n" + newSelector;
+            }
           }
         });
       }
@@ -5304,16 +5182,11 @@ function adaptCssForReplay(cssText, cache) {
   const cachedStyle = cache == null ? void 0 : cache.stylesWithHoverClass.get(cssText);
   if (cachedStyle)
     return cachedStyle;
-  let result2 = cssText;
-  try {
-    const ast = postcss$1$1([
-      mediaSelectorPlugin,
-      pseudoClassPlugin
-    ]).process(cssText);
-    result2 = ast.css;
-  } catch (error) {
-    console.warn("Failed to adapt css for replay", error);
-  }
+  const ast = postcss$1$1([
+    mediaSelectorPlugin,
+    pseudoClassPlugin
+  ]).process(cssText);
+  const result2 = ast.css;
   cache == null ? void 0 : cache.stylesWithHoverClass.set(cssText, result2);
   return result2;
 }
@@ -5322,40 +5195,6 @@ function createCache() {
   return {
     stylesWithHoverClass
   };
-}
-function applyCssSplits(n2, cssText, hackCss, cache) {
-  const childTextNodes = [];
-  for (const scn of n2.childNodes) {
-    if (scn.type === NodeType$2.Text) {
-      childTextNodes.push(scn);
-    }
-  }
-  const cssTextSplits = cssText.split("/* rr_split */");
-  while (cssTextSplits.length > 1 && cssTextSplits.length > childTextNodes.length) {
-    cssTextSplits.splice(-2, 2, cssTextSplits.slice(-2).join(""));
-  }
-  for (let i2 = 0; i2 < childTextNodes.length; i2++) {
-    const childTextNode = childTextNodes[i2];
-    const cssTextSection = cssTextSplits[i2];
-    if (childTextNode && cssTextSection) {
-      try {
-        childTextNode.textContent = hackCss ? adaptCssForReplay(cssTextSection, cache) : cssTextSection;
-      } catch (err) {
-        console.warn(`Highlight failed to set rrweb css ${err}`);
-      }
-    }
-  }
-}
-function buildStyleNode(n2, styleEl, cssText, options) {
-  const { doc, hackCss, cache } = options;
-  if (n2.childNodes.length) {
-    applyCssSplits(n2, cssText, hackCss, cache);
-  } else {
-    if (hackCss) {
-      cssText = adaptCssForReplay(cssText, cache);
-    }
-    styleEl.appendChild(doc.createTextNode(cssText));
-  }
 }
 function buildNode(n2, options) {
   var _a2;
@@ -5406,18 +5245,14 @@ function buildNode(n2, options) {
           specialAttributes[name] = value;
           continue;
         }
-        if (typeof value !== "string")
-          ;
-        else if (tagName === "style" && name === "_cssText") {
-          buildStyleNode(n2, node2, value, options);
-          continue;
-        } else if (tagName === "textarea" && name === "value") {
+        const isTextarea = tagName === "textarea" && name === "value";
+        const isRemoteOrDynamicCss = tagName === "style" && name === "_cssText";
+        if (isRemoteOrDynamicCss && hackCss && typeof value === "string") {
+          value = adaptCssForReplay(value, cache);
+        }
+        if ((isTextarea || isRemoteOrDynamicCss) && typeof value === "string") {
           node2.appendChild(doc.createTextNode(value));
-          try {
-            n2.childNodes = [];
-          } catch (err) {
-            console.warn(`Highlight failed to set rrweb text area child nodes ${err}`);
-          }
+          n2.childNodes = [];
           continue;
         }
         try {
@@ -5469,9 +5304,9 @@ function buildNode(n2, options) {
           }
         }
         if (name === "rr_width") {
-          node2.style.setProperty("width", value.toString());
+          node2.style.width = value.toString();
         } else if (name === "rr_height") {
-          node2.style.setProperty("height", value.toString());
+          node2.style.height = value.toString();
         } else if (name === "rr_mediaCurrentTime" && typeof value === "number") {
           node2.currentTime = value;
         } else if (name === "rr_mediaState") {
@@ -5510,10 +5345,9 @@ function buildNode(n2, options) {
       return node2;
     }
     case NodeType$2.Text:
-      if (n2.isStyle && hackCss) {
-        return doc.createTextNode(adaptCssForReplay(n2.textContent, cache));
-      }
-      return doc.createTextNode(n2.textContent);
+      return doc.createTextNode(
+        n2.isStyle && hackCss ? adaptCssForReplay(n2.textContent, cache) : n2.textContent
+      );
     case NodeType$2.CDATA:
       return doc.createCDATASection(n2.textContent);
     case NodeType$2.Comment:
@@ -10227,13 +10061,8 @@ function diffProps(oldTree, newTree, rrnodeMirror) {
       };
     } else if (newTree.tagName === "IFRAME" && name === "srcdoc")
       continue;
-    else {
-      try {
-        oldTree.setAttribute(name, newValue);
-      } catch (err) {
-        console.warn(err);
-      }
-    }
+    else
+      oldTree.setAttribute(name, newValue);
   }
   for (const { name } of Array.from(oldAttributes))
     if (!(name in newAttributes))
@@ -10894,7 +10723,7 @@ var index = {
   mutationObserver: mutationObserverCtor
 };
 function on(type, fn, target = document) {
-  const options = { capture: true };
+  const options = { capture: true, passive: true };
   target.addEventListener(type, fn, options);
   return () => target.removeEventListener(type, fn, options);
 }
@@ -11025,16 +10854,6 @@ function closestElementOfNode(node2) {
   const el = node2.nodeType === node2.ELEMENT_NODE ? node2 : index.parentElement(node2);
   return el;
 }
-var isCanvasNode = (node2) => {
-  try {
-    if (node2 instanceof HTMLElement) {
-      return node2.tagName === "CANVAS";
-    }
-  } catch {
-    return false;
-  }
-  return false;
-};
 function isBlocked(node2, blockClass, blockSelector, checkAncestors) {
   if (!node2) {
     return false;
@@ -11295,7 +11114,6 @@ var utils = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty(
   inDom,
   isAncestorRemoved,
   isBlocked,
-  isCanvasNode,
   isIgnored,
   isSerialized,
   isSerializedIframe,
@@ -11491,7 +11309,6 @@ var MutationBuffer = class {
     __publicField(this, "addedSet", /* @__PURE__ */ new Set());
     __publicField(this, "movedSet", /* @__PURE__ */ new Set());
     __publicField(this, "droppedSet", /* @__PURE__ */ new Set());
-    __publicField(this, "removesSubTreeCache", /* @__PURE__ */ new Set());
     __publicField(this, "mutationCb");
     __publicField(this, "blockClass");
     __publicField(this, "blockSelector");
@@ -11504,7 +11321,6 @@ var MutationBuffer = class {
     __publicField(this, "keepIframeSrcFn");
     __publicField(this, "recordCanvas");
     __publicField(this, "inlineImages");
-    __publicField(this, "privacySetting");
     __publicField(this, "slimDOMOptions");
     __publicField(this, "dataURLOptions");
     __publicField(this, "doc");
@@ -11537,17 +11353,8 @@ var MutationBuffer = class {
       };
       const pushAdd = (n2) => {
         const parent = index.parentNode(n2);
-        if (!parent || !inDom(n2)) {
+        if (!parent || !inDom(n2) || parent.tagName === "TEXTAREA") {
           return;
-        }
-        let cssCaptured = false;
-        if (n2.nodeType === Node.TEXT_NODE) {
-          const parentTag = parent.tagName;
-          if (parentTag === "TEXTAREA") {
-            return;
-          } else if (parentTag === "STYLE" && this.addedSet.has(parent)) {
-            cssCaptured = true;
-          }
         }
         const parentId = isShadowRoot(parent) ? this.mirror.getId(getShadowHost(n2)) : this.mirror.getId(parent);
         const nextId = getNextId(n2);
@@ -11571,7 +11378,6 @@ var MutationBuffer = class {
           dataURLOptions: this.dataURLOptions,
           recordCanvas: this.recordCanvas,
           inlineImages: this.inlineImages,
-          privacySetting: this.privacySetting,
           onSerialize: (currentN) => {
             if (isSerializedIframe(currentN, this.mirror)) {
               this.iframeManager.addIframe(currentN);
@@ -11591,8 +11397,7 @@ var MutationBuffer = class {
           },
           onStylesheetLoad: (link, childSn) => {
             this.stylesheetManager.attachLinkElement(link, childSn);
-          },
-          cssCaptured
+          }
         });
         if (sn) {
           adds.push({
@@ -11607,13 +11412,13 @@ var MutationBuffer = class {
         this.mirror.removeNodeFromMap(this.mapRemoves.shift());
       }
       for (const n2 of this.movedSet) {
-        if (isParentRemoved(this.removesSubTreeCache, n2, this.mirror) && !this.movedSet.has(index.parentNode(n2))) {
+        if (isParentRemoved(this.removes, n2, this.mirror) && !this.movedSet.has(index.parentNode(n2))) {
           continue;
         }
         pushAdd(n2);
       }
       for (const n2 of this.addedSet) {
-        if (!isAncestorInSet(this.droppedSet, n2) && !isParentRemoved(this.removesSubTreeCache, n2, this.mirror)) {
+        if (!isAncestorInSet(this.droppedSet, n2) && !isParentRemoved(this.removes, n2, this.mirror)) {
           pushAdd(n2);
         } else if (isAncestorInSet(this.movedSet, n2)) {
           pushAdd(n2);
@@ -11671,22 +11476,14 @@ var MutationBuffer = class {
       }
       const payload = {
         texts: this.texts.map((text) => {
-          var _a2, _b;
           const n2 = text.node;
           const parent = index.parentNode(n2);
           if (parent && parent.tagName === "TEXTAREA") {
             this.genTextAreaValueMutation(parent);
           }
-          let value = text.value;
-          const enableStrictPrivacy = this.privacySetting === "strict";
-          const obfuscateDefaultPrivacy = this.privacySetting === "default" && shouldObfuscateTextByDefault(value);
-          const highlightOverwriteRecord = (_b = (_a2 = text.node) == null ? void 0 : _a2.parentElement) == null ? void 0 : _b.getAttribute("data-hl-record");
-          if ((enableStrictPrivacy || obfuscateDefaultPrivacy) && !highlightOverwriteRecord && value) {
-            value = obfuscateText(value);
-          }
           return {
             id: this.mirror.getId(n2),
-            value
+            value: text.value
           };
         }).filter((text) => !addedIds.has(text.id)).filter((text) => this.mirror.has(text.id)),
         attributes: this.attributes.map((attribute) => {
@@ -11718,7 +11515,6 @@ var MutationBuffer = class {
       this.addedSet = /* @__PURE__ */ new Set();
       this.movedSet = /* @__PURE__ */ new Set();
       this.droppedSet = /* @__PURE__ */ new Set();
-      this.removesSubTreeCache = /* @__PURE__ */ new Set();
       this.movedMap = {};
       this.mutationCb(payload);
     });
@@ -11772,7 +11568,6 @@ var MutationBuffer = class {
               tagName: target.tagName,
               type,
               value,
-              overwriteRecord: target.getAttribute("data-hl-record"),
               maskInputFn: this.maskInputFn
             });
           }
@@ -11801,14 +11596,6 @@ var MutationBuffer = class {
             target.setAttribute("data-rr-is-password", "true");
           }
           if (!ignoreAttribute(target.tagName, attributeName)) {
-            const tagName = m.target.tagName;
-            if (tagName === "INPUT") {
-              const node2 = m.target;
-              if (node2.type === "password") {
-                item.attributes["value"] = "*".repeat(node2.value.length);
-                break;
-              }
-            }
             item.attributes[attributeName] = transformAttribute(
               this.doc,
               toLowerCase(target.tagName),
@@ -11884,7 +11671,6 @@ var MutationBuffer = class {
                 id: nodeId,
                 isShadow: isShadowRoot(m.target) && isNativeShadowDom(m.target) ? true : void 0
               });
-              processRemoves(n2, this.removesSubTreeCache);
             }
             this.mapRemoves.push(n2);
           });
@@ -11938,7 +11724,6 @@ var MutationBuffer = class {
       "keepIframeSrcFn",
       "recordCanvas",
       "inlineImages",
-      "privacySetting",
       "slimDOMOptions",
       "dataURLOptions",
       "doc",
@@ -11982,27 +11767,21 @@ function deepDelete(addsSet, n2) {
   addsSet.delete(n2);
   index.childNodes(n2).forEach((childN) => deepDelete(addsSet, childN));
 }
-function processRemoves(n2, cache) {
-  const queue = [n2];
-  while (queue.length) {
-    const next = queue.pop();
-    if (cache.has(next))
-      continue;
-    cache.add(next);
-    index.childNodes(next).forEach((n22) => queue.push(n22));
-  }
-  return;
-}
 function isParentRemoved(removes, n2, mirror2) {
-  if (removes.size === 0)
+  if (removes.length === 0)
     return false;
-  return _isParentRemoved(removes, n2);
+  return _isParentRemoved(removes, n2, mirror2);
 }
-function _isParentRemoved(removes, n2, _mirror2) {
-  const node2 = index.parentNode(n2);
-  if (!node2)
-    return false;
-  return removes.has(node2);
+function _isParentRemoved(removes, n2, mirror2) {
+  let node2 = index.parentNode(n2);
+  while (node2) {
+    const parentId = mirror2.getId(node2);
+    if (removes.some((r2) => r2.id === parentId)) {
+      return true;
+    }
+    node2 = index.parentNode(node2);
+  }
+  return false;
 }
 function isAncestorInSet(set, n2) {
   if (set.size === 0)
@@ -12156,8 +11935,7 @@ function initMouseInteractionObserver({
   const getHandler = (eventKey) => {
     return (event) => {
       const target = getEventTarget(event);
-      if (isBlocked(target, blockClass, blockSelector, true) || // We ignore canvas elements for rage click detection because we cannot infer what inside the canvas is getting interacted with.
-      isCanvasNode(target)) {
+      if (isBlocked(target, blockClass, blockSelector, true)) {
         return;
       }
       let pointerType = null;
@@ -12323,22 +12101,15 @@ function initInputObserver({
     let text = target.value;
     let isChecked = false;
     const type = getInputType(target) || "";
-    const overwriteRecord = target.getAttribute("data-hl-record");
     if (type === "radio" || type === "checkbox") {
       isChecked = target.checked;
-    } else if (maskedInputType({
-      maskInputOptions,
-      type,
-      tagName,
-      overwriteRecord
-    })) {
+    } else if (maskInputOptions[tagName.toLowerCase()] || maskInputOptions[type]) {
       text = maskInputValue({
         element: target,
         maskInputOptions,
         tagName,
         type,
         value: text,
-        overwriteRecord,
         maskInputFn
       });
     }
@@ -13204,7 +12975,7 @@ var IframeManager = class {
     const iframeSourceWindow = message.source;
     if (!iframeSourceWindow)
       return;
-    const iframeEl = this.crossOriginIframeMap.get(iframeSourceWindow);
+    const iframeEl = this.crossOriginIframeMap.get(message.source);
     if (!iframeEl)
       return;
     const transformedEvent = this.transformCrossOriginEvent(
@@ -13690,7 +13461,7 @@ function getNormalizedContextName(contextType) {
 function initCanvasContextObserver(win, blockClass, blockSelector, setPreserveDrawingBufferToTrue) {
   const handlers = [];
   try {
-    const restoreGetContext = patch(
+    const restoreHandler = patch(
       win.HTMLCanvasElement.prototype,
       "getContext",
       function(original) {
@@ -13716,7 +13487,7 @@ function initCanvasContextObserver(win, blockClass, blockSelector, setPreserveDr
         };
       }
     );
-    handlers.push(restoreGetContext);
+    handlers.push(restoreHandler);
   } catch {
     console.error("failed to patch HTMLCanvasElement.prototype.getContext");
   }
@@ -13750,12 +13521,7 @@ function patchGLPrototype(prototype, type, cb, blockClass, blockSelector, win) {
           return function(...args) {
             const result2 = original.apply(this, args);
             saveWebGLVar(result2, win, this);
-            if ("tagName" in this.canvas && !isBlocked(
-              this.canvas,
-              blockClass,
-              blockSelector,
-              true
-            )) {
+            if ("tagName" in this.canvas && !isBlocked(this.canvas, blockClass, blockSelector, true)) {
               const recordArgs = serializeArgs(args, win, this);
               const mutation = {
                 type,
@@ -13813,7 +13579,7 @@ function initCanvasWebGLMutationObserver(cb, win, blockClass, blockSelector) {
     handlers.forEach((h) => h());
   };
 }
-var encodedJs = "KGZ1bmN0aW9uKCkgewogICJ1c2Ugc3RyaWN0IjsKICB2YXIgY2hhcnMgPSAiQUJDREVGR0hJSktMTU5PUFFSU1RVVldYWVphYmNkZWZnaGlqa2xtbm9wcXJzdHV2d3h5ejAxMjM0NTY3ODkrLyI7CiAgdmFyIGxvb2t1cCA9IHR5cGVvZiBVaW50OEFycmF5ID09PSAidW5kZWZpbmVkIiA/IFtdIDogbmV3IFVpbnQ4QXJyYXkoMjU2KTsKICBmb3IgKHZhciBpID0gMDsgaSA8IGNoYXJzLmxlbmd0aDsgaSsrKSB7CiAgICBsb29rdXBbY2hhcnMuY2hhckNvZGVBdChpKV0gPSBpOwogIH0KICB2YXIgZW5jb2RlID0gZnVuY3Rpb24oYXJyYXlidWZmZXIpIHsKICAgIHZhciBieXRlcyA9IG5ldyBVaW50OEFycmF5KGFycmF5YnVmZmVyKSwgaTIsIGxlbiA9IGJ5dGVzLmxlbmd0aCwgYmFzZTY0ID0gIiI7CiAgICBmb3IgKGkyID0gMDsgaTIgPCBsZW47IGkyICs9IDMpIHsKICAgICAgYmFzZTY0ICs9IGNoYXJzW2J5dGVzW2kyXSA+PiAyXTsKICAgICAgYmFzZTY0ICs9IGNoYXJzWyhieXRlc1tpMl0gJiAzKSA8PCA0IHwgYnl0ZXNbaTIgKyAxXSA+PiA0XTsKICAgICAgYmFzZTY0ICs9IGNoYXJzWyhieXRlc1tpMiArIDFdICYgMTUpIDw8IDIgfCBieXRlc1tpMiArIDJdID4+IDZdOwogICAgICBiYXNlNjQgKz0gY2hhcnNbYnl0ZXNbaTIgKyAyXSAmIDYzXTsKICAgIH0KICAgIGlmIChsZW4gJSAzID09PSAyKSB7CiAgICAgIGJhc2U2NCA9IGJhc2U2NC5zdWJzdHJpbmcoMCwgYmFzZTY0Lmxlbmd0aCAtIDEpICsgIj0iOwogICAgfSBlbHNlIGlmIChsZW4gJSAzID09PSAxKSB7CiAgICAgIGJhc2U2NCA9IGJhc2U2NC5zdWJzdHJpbmcoMCwgYmFzZTY0Lmxlbmd0aCAtIDIpICsgIj09IjsKICAgIH0KICAgIHJldHVybiBiYXNlNjQ7CiAgfTsKICBjb25zdCBsYXN0QmxvYk1hcCA9IC8qIEBfX1BVUkVfXyAqLyBuZXcgTWFwKCk7CiAgY29uc3QgdHJhbnNwYXJlbnRCbG9iTWFwID0gLyogQF9fUFVSRV9fICovIG5ldyBNYXAoKTsKICBhc3luYyBmdW5jdGlvbiBnZXRUcmFuc3BhcmVudEJsb2JGb3Iod2lkdGgsIGhlaWdodCwgZGF0YVVSTE9wdGlvbnMpIHsKICAgIGNvbnN0IGlkID0gYCR7d2lkdGh9LSR7aGVpZ2h0fWA7CiAgICBpZiAoIk9mZnNjcmVlbkNhbnZhcyIgaW4gZ2xvYmFsVGhpcykgewogICAgICBpZiAodHJhbnNwYXJlbnRCbG9iTWFwLmhhcyhpZCkpIHJldHVybiB0cmFuc3BhcmVudEJsb2JNYXAuZ2V0KGlkKTsKICAgICAgY29uc3Qgb2Zmc2NyZWVuID0gbmV3IE9mZnNjcmVlbkNhbnZhcyh3aWR0aCwgaGVpZ2h0KTsKICAgICAgb2Zmc2NyZWVuLmdldENvbnRleHQoIjJkIik7CiAgICAgIGNvbnN0IGJsb2IgPSBhd2FpdCBvZmZzY3JlZW4uY29udmVydFRvQmxvYihkYXRhVVJMT3B0aW9ucyk7CiAgICAgIGNvbnN0IGFycmF5QnVmZmVyID0gYXdhaXQgYmxvYi5hcnJheUJ1ZmZlcigpOwogICAgICBjb25zdCBiYXNlNjQgPSBlbmNvZGUoYXJyYXlCdWZmZXIpOwogICAgICB0cmFuc3BhcmVudEJsb2JNYXAuc2V0KGlkLCBiYXNlNjQpOwogICAgICByZXR1cm4gYmFzZTY0OwogICAgfSBlbHNlIHsKICAgICAgcmV0dXJuICIiOwogICAgfQogIH0KICBjb25zdCB3b3JrZXIgPSBzZWxmOwogIGxldCBsb2dEZWJ1ZyA9IGZhbHNlOwogIGNvbnN0IGRlYnVnID0gKC4uLmFyZ3MpID0+IHsKICAgIGlmIChsb2dEZWJ1ZykgewogICAgICBjb25zb2xlLmRlYnVnKC4uLmFyZ3MpOwogICAgfQogIH07CiAgd29ya2VyLm9ubWVzc2FnZSA9IGFzeW5jIGZ1bmN0aW9uKGUpIHsKICAgIGxvZ0RlYnVnID0gISFlLmRhdGEubG9nRGVidWc7CiAgICBpZiAoIk9mZnNjcmVlbkNhbnZhcyIgaW4gZ2xvYmFsVGhpcykgewogICAgICBjb25zdCB7IGlkLCBiaXRtYXAsIHdpZHRoLCBoZWlnaHQsIGR4LCBkeSwgZHcsIGRoLCBkYXRhVVJMT3B0aW9ucyB9ID0gZS5kYXRhOwogICAgICBjb25zdCB0cmFuc3BhcmVudEJhc2U2NCA9IGdldFRyYW5zcGFyZW50QmxvYkZvcigKICAgICAgICB3aWR0aCwKICAgICAgICBoZWlnaHQsCiAgICAgICAgZGF0YVVSTE9wdGlvbnMKICAgICAgKTsKICAgICAgY29uc3Qgb2Zmc2NyZWVuID0gbmV3IE9mZnNjcmVlbkNhbnZhcyh3aWR0aCwgaGVpZ2h0KTsKICAgICAgY29uc3QgY3R4ID0gb2Zmc2NyZWVuLmdldENvbnRleHQoIjJkIik7CiAgICAgIGN0eC5kcmF3SW1hZ2UoYml0bWFwLCAwLCAwLCB3aWR0aCwgaGVpZ2h0KTsKICAgICAgYml0bWFwLmNsb3NlKCk7CiAgICAgIGNvbnN0IGJsb2IgPSBhd2FpdCBvZmZzY3JlZW4uY29udmVydFRvQmxvYihkYXRhVVJMT3B0aW9ucyk7CiAgICAgIGNvbnN0IHR5cGUgPSBibG9iLnR5cGU7CiAgICAgIGNvbnN0IGFycmF5QnVmZmVyID0gYXdhaXQgYmxvYi5hcnJheUJ1ZmZlcigpOwogICAgICBjb25zdCBiYXNlNjQgPSBlbmNvZGUoYXJyYXlCdWZmZXIpOwogICAgICBpZiAoIWxhc3RCbG9iTWFwLmhhcyhpZCkgJiYgYXdhaXQgdHJhbnNwYXJlbnRCYXNlNjQgPT09IGJhc2U2NCkgewogICAgICAgIGRlYnVnKCJbaGlnaGxpZ2h0LXdvcmtlcl0gY2FudmFzIGJpdG1hcCBpcyB0cmFuc3BhcmVudCIsIHsKICAgICAgICAgIGlkLAogICAgICAgICAgYmFzZTY0CiAgICAgICAgfSk7CiAgICAgICAgbGFzdEJsb2JNYXAuc2V0KGlkLCBiYXNlNjQpOwogICAgICAgIHJldHVybiB3b3JrZXIucG9zdE1lc3NhZ2UoeyBpZCwgc3RhdHVzOiAidHJhbnNwYXJlbnQiIH0pOwogICAgICB9CiAgICAgIGlmIChsYXN0QmxvYk1hcC5nZXQoaWQpID09PSBiYXNlNjQpIHsKICAgICAgICBkZWJ1ZygiW2hpZ2hsaWdodC13b3JrZXJdIGNhbnZhcyBiaXRtYXAgaXMgdW5jaGFuZ2VkIiwgewogICAgICAgICAgaWQsCiAgICAgICAgICBiYXNlNjQKICAgICAgICB9KTsKICAgICAgICByZXR1cm4gd29ya2VyLnBvc3RNZXNzYWdlKHsgaWQsIHN0YXR1czogInVuY2hhbmdlZCIgfSk7CiAgICAgIH0KICAgICAgY29uc3QgbXNnID0gewogICAgICAgIGlkLAogICAgICAgIHR5cGUsCiAgICAgICAgYmFzZTY0LAogICAgICAgIHdpZHRoLAogICAgICAgIGhlaWdodCwKICAgICAgICBkeCwKICAgICAgICBkeSwKICAgICAgICBkdywKICAgICAgICBkaAogICAgICB9OwogICAgICBkZWJ1ZygiW2hpZ2hsaWdodC13b3JrZXJdIGNhbnZhcyBiaXRtYXAgcHJvY2Vzc2VkIiwgbXNnKTsKICAgICAgd29ya2VyLnBvc3RNZXNzYWdlKG1zZyk7CiAgICAgIGxhc3RCbG9iTWFwLnNldChpZCwgYmFzZTY0KTsKICAgIH0gZWxzZSB7CiAgICAgIGRlYnVnKCJbaGlnaGxpZ2h0LXdvcmtlcl0gbm8gb2Zmc2NyZWVuY2FudmFzIHN1cHBvcnQiLCB7CiAgICAgICAgaWQ6IGUuZGF0YS5pZAogICAgICB9KTsKICAgICAgcmV0dXJuIHdvcmtlci5wb3N0TWVzc2FnZSh7IGlkOiBlLmRhdGEuaWQsIHN0YXR1czogInVuc3VwcG9ydGVkIiB9KTsKICAgIH0KICB9Owp9KSgpOwovLyMgc291cmNlTWFwcGluZ1VSTD1pbWFnZS1iaXRtYXAtZGF0YS11cmwtd29ya2VyLUJpWEpSZjQ3LmpzLm1hcAo=";
+var encodedJs = "KGZ1bmN0aW9uKCkgewogICJ1c2Ugc3RyaWN0IjsKICB2YXIgY2hhcnMgPSAiQUJDREVGR0hJSktMTU5PUFFSU1RVVldYWVphYmNkZWZnaGlqa2xtbm9wcXJzdHV2d3h5ejAxMjM0NTY3ODkrLyI7CiAgdmFyIGxvb2t1cCA9IHR5cGVvZiBVaW50OEFycmF5ID09PSAidW5kZWZpbmVkIiA/IFtdIDogbmV3IFVpbnQ4QXJyYXkoMjU2KTsKICBmb3IgKHZhciBpID0gMDsgaSA8IGNoYXJzLmxlbmd0aDsgaSsrKSB7CiAgICBsb29rdXBbY2hhcnMuY2hhckNvZGVBdChpKV0gPSBpOwogIH0KICB2YXIgZW5jb2RlID0gZnVuY3Rpb24oYXJyYXlidWZmZXIpIHsKICAgIHZhciBieXRlcyA9IG5ldyBVaW50OEFycmF5KGFycmF5YnVmZmVyKSwgaTIsIGxlbiA9IGJ5dGVzLmxlbmd0aCwgYmFzZTY0ID0gIiI7CiAgICBmb3IgKGkyID0gMDsgaTIgPCBsZW47IGkyICs9IDMpIHsKICAgICAgYmFzZTY0ICs9IGNoYXJzW2J5dGVzW2kyXSA+PiAyXTsKICAgICAgYmFzZTY0ICs9IGNoYXJzWyhieXRlc1tpMl0gJiAzKSA8PCA0IHwgYnl0ZXNbaTIgKyAxXSA+PiA0XTsKICAgICAgYmFzZTY0ICs9IGNoYXJzWyhieXRlc1tpMiArIDFdICYgMTUpIDw8IDIgfCBieXRlc1tpMiArIDJdID4+IDZdOwogICAgICBiYXNlNjQgKz0gY2hhcnNbYnl0ZXNbaTIgKyAyXSAmIDYzXTsKICAgIH0KICAgIGlmIChsZW4gJSAzID09PSAyKSB7CiAgICAgIGJhc2U2NCA9IGJhc2U2NC5zdWJzdHJpbmcoMCwgYmFzZTY0Lmxlbmd0aCAtIDEpICsgIj0iOwogICAgfSBlbHNlIGlmIChsZW4gJSAzID09PSAxKSB7CiAgICAgIGJhc2U2NCA9IGJhc2U2NC5zdWJzdHJpbmcoMCwgYmFzZTY0Lmxlbmd0aCAtIDIpICsgIj09IjsKICAgIH0KICAgIHJldHVybiBiYXNlNjQ7CiAgfTsKICBjb25zdCBsYXN0QmxvYk1hcCA9IC8qIEBfX1BVUkVfXyAqLyBuZXcgTWFwKCk7CiAgY29uc3QgdHJhbnNwYXJlbnRCbG9iTWFwID0gLyogQF9fUFVSRV9fICovIG5ldyBNYXAoKTsKICBhc3luYyBmdW5jdGlvbiBnZXRUcmFuc3BhcmVudEJsb2JGb3Iod2lkdGgsIGhlaWdodCwgZGF0YVVSTE9wdGlvbnMpIHsKICAgIGNvbnN0IGlkID0gYCR7d2lkdGh9LSR7aGVpZ2h0fWA7CiAgICBpZiAoIk9mZnNjcmVlbkNhbnZhcyIgaW4gZ2xvYmFsVGhpcykgewogICAgICBpZiAodHJhbnNwYXJlbnRCbG9iTWFwLmhhcyhpZCkpIHJldHVybiB0cmFuc3BhcmVudEJsb2JNYXAuZ2V0KGlkKTsKICAgICAgY29uc3Qgb2Zmc2NyZWVuID0gbmV3IE9mZnNjcmVlbkNhbnZhcyh3aWR0aCwgaGVpZ2h0KTsKICAgICAgb2Zmc2NyZWVuLmdldENvbnRleHQoIjJkIik7CiAgICAgIGNvbnN0IGJsb2IgPSBhd2FpdCBvZmZzY3JlZW4uY29udmVydFRvQmxvYihkYXRhVVJMT3B0aW9ucyk7CiAgICAgIGNvbnN0IGFycmF5QnVmZmVyID0gYXdhaXQgYmxvYi5hcnJheUJ1ZmZlcigpOwogICAgICBjb25zdCBiYXNlNjQgPSBlbmNvZGUoYXJyYXlCdWZmZXIpOwogICAgICB0cmFuc3BhcmVudEJsb2JNYXAuc2V0KGlkLCBiYXNlNjQpOwogICAgICByZXR1cm4gYmFzZTY0OwogICAgfSBlbHNlIHsKICAgICAgcmV0dXJuICIiOwogICAgfQogIH0KICBjb25zdCB3b3JrZXIgPSBzZWxmOwogIHdvcmtlci5vbm1lc3NhZ2UgPSBhc3luYyBmdW5jdGlvbihlKSB7CiAgICBpZiAoIk9mZnNjcmVlbkNhbnZhcyIgaW4gZ2xvYmFsVGhpcykgewogICAgICBjb25zdCB7IGlkLCBiaXRtYXAsIHdpZHRoLCBoZWlnaHQsIGRhdGFVUkxPcHRpb25zIH0gPSBlLmRhdGE7CiAgICAgIGNvbnN0IHRyYW5zcGFyZW50QmFzZTY0ID0gZ2V0VHJhbnNwYXJlbnRCbG9iRm9yKAogICAgICAgIHdpZHRoLAogICAgICAgIGhlaWdodCwKICAgICAgICBkYXRhVVJMT3B0aW9ucwogICAgICApOwogICAgICBjb25zdCBvZmZzY3JlZW4gPSBuZXcgT2Zmc2NyZWVuQ2FudmFzKHdpZHRoLCBoZWlnaHQpOwogICAgICBjb25zdCBjdHggPSBvZmZzY3JlZW4uZ2V0Q29udGV4dCgiMmQiKTsKICAgICAgY3R4LmRyYXdJbWFnZShiaXRtYXAsIDAsIDApOwogICAgICBiaXRtYXAuY2xvc2UoKTsKICAgICAgY29uc3QgYmxvYiA9IGF3YWl0IG9mZnNjcmVlbi5jb252ZXJ0VG9CbG9iKGRhdGFVUkxPcHRpb25zKTsKICAgICAgY29uc3QgdHlwZSA9IGJsb2IudHlwZTsKICAgICAgY29uc3QgYXJyYXlCdWZmZXIgPSBhd2FpdCBibG9iLmFycmF5QnVmZmVyKCk7CiAgICAgIGNvbnN0IGJhc2U2NCA9IGVuY29kZShhcnJheUJ1ZmZlcik7CiAgICAgIGlmICghbGFzdEJsb2JNYXAuaGFzKGlkKSAmJiBhd2FpdCB0cmFuc3BhcmVudEJhc2U2NCA9PT0gYmFzZTY0KSB7CiAgICAgICAgbGFzdEJsb2JNYXAuc2V0KGlkLCBiYXNlNjQpOwogICAgICAgIHJldHVybiB3b3JrZXIucG9zdE1lc3NhZ2UoeyBpZCB9KTsKICAgICAgfQogICAgICBpZiAobGFzdEJsb2JNYXAuZ2V0KGlkKSA9PT0gYmFzZTY0KSByZXR1cm4gd29ya2VyLnBvc3RNZXNzYWdlKHsgaWQgfSk7CiAgICAgIHdvcmtlci5wb3N0TWVzc2FnZSh7CiAgICAgICAgaWQsCiAgICAgICAgdHlwZSwKICAgICAgICBiYXNlNjQsCiAgICAgICAgd2lkdGgsCiAgICAgICAgaGVpZ2h0CiAgICAgIH0pOwogICAgICBsYXN0QmxvYk1hcC5zZXQoaWQsIGJhc2U2NCk7CiAgICB9IGVsc2UgewogICAgICByZXR1cm4gd29ya2VyLnBvc3RNZXNzYWdlKHsgaWQ6IGUuZGF0YS5pZCB9KTsKICAgIH0KICB9Owp9KSgpOwovLyMgc291cmNlTWFwcGluZ1VSTD1pbWFnZS1iaXRtYXAtZGF0YS11cmwtd29ya2VyLUlKcEM3Z19iLmpzLm1hcAo=";
 var decodeBase64 = (base64) => Uint8Array.from(atob(base64), (c2) => c2.charCodeAt(0));
 var blob = typeof self !== "undefined" && self.Blob && new Blob([decodeBase64(encodedJs)], { type: "text/javascript;charset=utf-8" });
 function WorkerWrapper(options) {
@@ -13845,11 +13611,6 @@ var CanvasManager = class {
     __publicField(this, "pendingCanvasMutations", /* @__PURE__ */ new Map());
     __publicField(this, "rafStamps", { latestId: 0, invokeId: null });
     __publicField(this, "mirror");
-    __publicField(this, "logger");
-    __publicField(this, "worker");
-    __publicField(this, "snapshotInProgressMap", /* @__PURE__ */ new Map());
-    __publicField(this, "lastSnapshotTime", /* @__PURE__ */ new Map());
-    __publicField(this, "options");
     __publicField(this, "mutationCb");
     __publicField(this, "resetObservers");
     __publicField(this, "frozen", false);
@@ -13864,84 +13625,21 @@ var CanvasManager = class {
       this.pendingCanvasMutations.get(target).push(mutation);
     });
     const {
-      sampling,
+      sampling = "all",
       win,
       blockClass,
       blockSelector,
       recordCanvas,
-      recordVideos,
-      initialSnapshotDelay,
       dataURLOptions
     } = options;
     this.mutationCb = options.mutationCb;
     this.mirror = options.mirror;
-    this.logger = options.logger;
-    this.worker = new WorkerWrapper();
-    this.worker.onmessage = (e2) => {
-      const { id } = e2.data;
-      this.snapshotInProgressMap.set(id, false);
-      if (!("base64" in e2.data)) {
-        this.debug(null, "canvas worker received empty message", {
-          data: e2.data,
-          status: e2.data.status
-        });
-        return;
-      }
-      const { base64, type, dx, dy, dw, dh } = e2.data;
-      const mutation = {
-        id,
-        type: CanvasContext["2D"],
-        commands: [
-          {
-            property: "clearRect",
-            // wipe canvas
-            args: [dx, dy, dw, dh]
-          },
-          {
-            property: "drawImage",
-            // draws (semi-transparent) image
-            args: [
-              {
-                rr_type: "ImageBitmap",
-                args: [
-                  {
-                    rr_type: "Blob",
-                    data: [{ rr_type: "ArrayBuffer", base64 }],
-                    type
-                  }
-                ]
-              },
-              dx,
-              dy,
-              dw,
-              dh
-            ]
-          }
-        ]
-      };
-      this.debug(null, "canvas worker recording mutation", mutation);
-      this.mutationCb(mutation);
-    };
-    this.options = options;
-    if (recordCanvas && sampling === "all") {
-      this.debug(null, "initializing canvas mutation observer", { sampling });
+    if (recordCanvas && sampling === "all")
       this.initCanvasMutationObserver(win, blockClass, blockSelector);
-    } else if (recordCanvas && typeof sampling === "number") {
-      this.debug(null, "initializing canvas fps observer", { sampling });
-      this.initCanvasFPSObserver(
-        recordVideos,
-        sampling,
-        win,
-        blockClass,
-        blockSelector,
-        {
-          initialSnapshotDelay,
-          dataURLOptions
-        },
-        options.resizeFactor,
-        options.maxSnapshotDimension
-      );
-    }
+    if (recordCanvas && typeof sampling === "number")
+      this.initCanvasFPSObserver(sampling, win, blockClass, blockSelector, {
+        dataURLOptions
+      });
   }
   reset() {
     this.pendingCanvasMutations.clear();
@@ -13959,262 +13657,101 @@ var CanvasManager = class {
   unlock() {
     this.locked = false;
   }
-  debug(element, ...args) {
-    if (!this.logger)
-      return;
-    const id = this.mirror.getId(element);
-    let prefix = "[highlight-canvas-manager]";
-    if (element) {
-      prefix = `[highlight-canvas] [id:${id}]`;
-      if (element.tagName.toLowerCase() === "canvas") {
-        prefix += ` [ctx:${element.__context}]`;
-      }
-    }
-    this.logger.debug(prefix, element, ...args);
-  }
-  async snapshot(canvas) {
-    var _a2;
-    const id = this.mirror.getId(canvas);
-    if (this.snapshotInProgressMap.get(id)) {
-      this.debug(canvas, "snapshotting already in progress for", id);
-      return;
-    }
-    const timeBetweenSnapshots = 1e3 / (typeof this.options.samplingManual === "number" ? this.options.samplingManual : 1);
-    const lastSnapshotTime = this.lastSnapshotTime.get(id);
-    if (lastSnapshotTime && (/* @__PURE__ */ new Date()).getTime() - lastSnapshotTime < timeBetweenSnapshots) {
-      return;
-    }
-    this.debug(canvas, "starting snapshotting");
-    if (canvas.width === 0 || canvas.height === 0) {
-      this.debug(canvas, "not yet ready", {
-        width: canvas.width,
-        height: canvas.height
-      });
-      return;
-    }
-    this.lastSnapshotTime.set(id, (/* @__PURE__ */ new Date()).getTime());
-    this.snapshotInProgressMap.set(id, true);
-    try {
-      if (this.options.clearWebGLBuffer !== false && ["webgl", "webgl2"].includes(canvas.__context)) {
-        const context = canvas.getContext(canvas.__context);
-        if (((_a2 = context == null ? void 0 : context.getContextAttributes()) == null ? void 0 : _a2.preserveDrawingBuffer) === false) {
-          context.clear(context.COLOR_BUFFER_BIT);
-          this.debug(canvas, "cleared webgl canvas to load it into memory", {
-            attributes: context == null ? void 0 : context.getContextAttributes()
-          });
-        }
-      }
-      if (canvas.width === 0 || canvas.height === 0) {
-        this.debug(canvas, "not yet ready", {
-          width: canvas.width,
-          height: canvas.height
-        });
-        return;
-      }
-      let scale = this.options.resizeFactor || 1;
-      if (this.options.maxSnapshotDimension) {
-        const maxDim = Math.max(canvas.width, canvas.height);
-        scale = Math.min(scale, this.options.maxSnapshotDimension / maxDim);
-      }
-      const width = canvas.width * scale;
-      const height = canvas.height * scale;
-      const bitmap = await createImageBitmap(canvas, {
-        resizeWidth: width,
-        resizeHeight: height
-      });
-      this.debug(canvas, "created image bitmap", {
-        width: bitmap.width,
-        height: bitmap.height
-      });
-      this.worker.postMessage(
-        {
-          id,
-          bitmap,
-          width,
-          height,
-          dx: 0,
-          dy: 0,
-          dw: canvas.width,
-          dh: canvas.height,
-          dataURLOptions: this.options.dataURLOptions,
-          logDebug: !!this.logger
-        },
-        [bitmap]
-      );
-      this.debug(canvas, "sent message");
-    } catch (e2) {
-      this.debug(canvas, "failed to snapshot", e2);
-    } finally {
-      this.snapshotInProgressMap.set(id, false);
-    }
-  }
-  initCanvasFPSObserver(recordVideos, fps, win, blockClass, blockSelector, options, resizeFactor, maxSnapshotDimension) {
+  initCanvasFPSObserver(fps, win, blockClass, blockSelector, options) {
     const canvasContextReset = initCanvasContextObserver(
       win,
       blockClass,
       blockSelector,
       true
     );
+    const snapshotInProgressMap = /* @__PURE__ */ new Map();
+    const worker = new WorkerWrapper();
+    worker.onmessage = (e2) => {
+      const { id } = e2.data;
+      snapshotInProgressMap.set(id, false);
+      if (!("base64" in e2.data))
+        return;
+      const { base64, type, width, height } = e2.data;
+      this.mutationCb({
+        id,
+        type: CanvasContext["2D"],
+        commands: [
+          {
+            property: "clearRect",
+            // wipe canvas
+            args: [0, 0, width, height]
+          },
+          {
+            property: "drawImage",
+            // draws (semi-transparent) image
+            args: [
+              {
+                rr_type: "ImageBitmap",
+                args: [
+                  {
+                    rr_type: "Blob",
+                    data: [{ rr_type: "ArrayBuffer", base64 }],
+                    type
+                  }
+                ]
+              },
+              0,
+              0
+            ]
+          }
+        ]
+      });
+    };
     const timeBetweenSnapshots = 1e3 / fps;
     let lastSnapshotTime = 0;
     let rafId;
-    const elementFoundTime = /* @__PURE__ */ new Map();
-    const querySelectorAll2 = (node2, selector) => {
-      const nodes = [];
-      node2.querySelectorAll(selector).forEach((n2) => nodes.push(n2));
-      const nodeIterator = document.createNodeIterator(node2, Node.ELEMENT_NODE);
-      let currentNode;
-      while (currentNode = nodeIterator.nextNode()) {
-        if (currentNode == null ? void 0 : currentNode.shadowRoot) {
-          nodes.push(...querySelectorAll2(currentNode.shadowRoot, selector));
-        }
-      }
-      return nodes;
-    };
-    const getCanvas = (timestamp) => {
+    const getCanvas = () => {
       const matchedCanvas = [];
-      querySelectorAll2(win.document, "canvas").forEach((canvas) => {
+      win.document.querySelectorAll("canvas").forEach((canvas) => {
         if (!isBlocked(canvas, blockClass, blockSelector, true)) {
-          this.debug(canvas, "discovered canvas");
           matchedCanvas.push(canvas);
-          const id = this.mirror.getId(canvas);
-          if (!elementFoundTime.has(id)) {
-            elementFoundTime.set(id, timestamp);
-          }
         }
       });
       return matchedCanvas;
     };
-    const getVideos = (timestamp) => {
-      const matchedVideos = [];
-      if (recordVideos) {
-        querySelectorAll2(win.document, "video").forEach((video) => {
-          if (video.src !== "" && video.src.indexOf("blob:") === -1)
-            return;
-          if (!isBlocked(video, blockClass, blockSelector, true)) {
-            matchedVideos.push(video);
-            const id = this.mirror.getId(video);
-            if (!elementFoundTime.has(id)) {
-              elementFoundTime.set(id, timestamp);
-            }
-          }
-        });
-      }
-      return matchedVideos;
-    };
-    const takeSnapshots = async (timestamp) => {
+    const takeCanvasSnapshots = (timestamp) => {
       if (lastSnapshotTime && timestamp - lastSnapshotTime < timeBetweenSnapshots) {
-        rafId = requestAnimationFrame(takeSnapshots);
+        rafId = requestAnimationFrame(takeCanvasSnapshots);
         return;
       }
       lastSnapshotTime = timestamp;
-      const filterElementStartTime = (canvas) => {
+      getCanvas().forEach(async (canvas) => {
+        var _a2;
         const id = this.mirror.getId(canvas);
-        const foundTime = elementFoundTime.get(id);
-        const hadLoadingTime = !options.initialSnapshotDelay || timestamp - foundTime > options.initialSnapshotDelay;
-        this.debug(canvas, {
-          delay: options.initialSnapshotDelay,
-          delta: timestamp - foundTime,
-          hadLoadingTime
-        });
-        return hadLoadingTime;
-      };
-      const promises = [];
-      promises.push(
-        ...getCanvas(timestamp).filter(filterElementStartTime).map((canvas) => this.snapshot(canvas))
-      );
-      promises.push(
-        ...getVideos(timestamp).filter(filterElementStartTime).map(async (video) => {
-          this.debug(video, "starting video snapshotting");
-          const id = this.mirror.getId(video);
-          if (this.snapshotInProgressMap.get(id)) {
-            this.debug(
-              video,
-              "video snapshotting already in progress for",
-              id
-            );
-            return;
+        if (snapshotInProgressMap.get(id))
+          return;
+        if (canvas.width === 0 || canvas.height === 0)
+          return;
+        snapshotInProgressMap.set(id, true);
+        if (["webgl", "webgl2"].includes(canvas.__context)) {
+          const context = canvas.getContext(canvas.__context);
+          if (((_a2 = context == null ? void 0 : context.getContextAttributes()) == null ? void 0 : _a2.preserveDrawingBuffer) === false) {
+            context.clear(context.COLOR_BUFFER_BIT);
           }
-          this.snapshotInProgressMap.set(id, true);
-          try {
-            const { width: boxWidth, height: boxHeight } = video.getBoundingClientRect();
-            const { actualWidth, actualHeight } = {
-              actualWidth: video.videoWidth,
-              actualHeight: video.videoHeight
-            };
-            const maxDim = Math.max(actualWidth, actualHeight);
-            if (maxDim === 0) {
-              this.debug(video, "not yet ready", {
-                width: video.width,
-                height: video.height,
-                actualWidth,
-                actualHeight,
-                boxWidth,
-                boxHeight
-              });
-              return;
-            }
-            let scale = resizeFactor || 1;
-            if (maxSnapshotDimension) {
-              scale = Math.min(scale, maxSnapshotDimension / maxDim);
-            }
-            const width = actualWidth * scale;
-            const height = actualHeight * scale;
-            const bitmap = await createImageBitmap(video, {
-              resizeWidth: width,
-              resizeHeight: height
-            });
-            const outputScale = Math.max(boxWidth, boxHeight) / maxDim;
-            const outputWidth = actualWidth * outputScale;
-            const outputHeight = actualHeight * outputScale;
-            const offsetX = (boxWidth - outputWidth) / 2;
-            const offsetY = (boxHeight - outputHeight) / 2;
-            this.debug(video, "created image bitmap", {
-              actualWidth,
-              actualHeight,
-              boxWidth,
-              boxHeight,
-              outputWidth,
-              outputHeight,
-              resizeWidth: width,
-              resizeHeight: height,
-              scale,
-              outputScale,
-              offsetX,
-              offsetY
-            });
-            this.worker.postMessage(
-              {
-                id,
-                bitmap,
-                width,
-                height,
-                dx: offsetX,
-                dy: offsetY,
-                dw: outputWidth,
-                dh: outputHeight,
-                dataURLOptions: options.dataURLOptions,
-                logDebug: !!this.logger
-              },
-              [bitmap]
-            );
-            this.debug(video, "send message");
-          } catch (e2) {
-            this.debug(video, "failed to snapshot", e2);
-          } finally {
-            this.snapshotInProgressMap.set(id, false);
-          }
-        })
-      );
-      await Promise.all(promises).catch(console.error);
-      rafId = requestAnimationFrame(takeSnapshots);
+        }
+        const bitmap = await createImageBitmap(canvas);
+        worker.postMessage(
+          {
+            id,
+            bitmap,
+            width: canvas.width,
+            height: canvas.height,
+            dataURLOptions: options.dataURLOptions
+          },
+          [bitmap]
+        );
+      });
+      rafId = requestAnimationFrame(takeCanvasSnapshots);
     };
-    rafId = requestAnimationFrame(takeSnapshots);
+    rafId = requestAnimationFrame(takeCanvasSnapshots);
     this.resetObservers = () => {
       canvasContextReset();
-      if (rafId) {
-        cancelAnimationFrame(rafId);
-      }
+      cancelAnimationFrame(rafId);
     };
   }
   initCanvasMutationObserver(win, blockClass, blockSelector) {
@@ -14382,26 +13919,26 @@ try {
 }
 var mirror = createMirror$2();
 function record(options = {}) {
-  var _a2, _b, _c, _d, _e, _f, _g, _h;
   const {
     emit,
     checkoutEveryNms,
     checkoutEveryNth,
-    blockClass = "highlight-block",
+    blockClass = "rr-block",
     blockSelector = null,
-    ignoreClass = "highlight-ignore",
+    ignoreClass = "rr-ignore",
     ignoreSelector = null,
-    maskTextClass = "highlight-mask",
+    maskTextClass = "rr-mask",
     maskTextSelector = null,
     inlineStylesheet = true,
     maskAllInputs,
     maskInputOptions: _maskInputOptions,
     slimDOMOptions: _slimDOMOptions,
     maskInputFn,
-    maskTextFn = obfuscateText,
+    maskTextFn,
     hooks,
     packFn,
     sampling = {},
+    dataURLOptions = {},
     mousemoveWait,
     recordDOM = true,
     recordCanvas = false,
@@ -14412,15 +13949,9 @@ function record(options = {}) {
     inlineImages = false,
     plugins,
     keepIframeSrcFn = () => false,
-    privacySetting = "default",
     ignoreCSSAttributes = /* @__PURE__ */ new Set([]),
-    errorHandler: errorHandler2,
-    logger
+    errorHandler: errorHandler2
   } = options;
-  const dataURLOptions = {
-    ...options.dataURLOptions,
-    ...(_b = (_a2 = options.sampling) == null ? void 0 : _a2.canvas) == null ? void 0 : _b.dataURLOptions
-  };
   registerErrorHandler(errorHandler2);
   const inEmittingFrame = recordCrossOriginIframes ? window.parent === window : true;
   let passEmitsToParent = false;
@@ -14493,10 +14024,10 @@ function record(options = {}) {
     return e2;
   };
   wrappedEmit = (r2, isCheckout) => {
-    var _a3;
+    var _a2;
     const e2 = r2;
     e2.timestamp = nowTimestamp();
-    if (((_a3 = mutationBuffers[0]) == null ? void 0 : _a3.isFrozen()) && e2.type !== EventType.FullSnapshot && !(e2.type === EventType.IncrementalSnapshot && e2.data.source === IncrementalSource.Mutation)) {
+    if (((_a2 = mutationBuffers[0]) == null ? void 0 : _a2.isFrozen()) && e2.type !== EventType.FullSnapshot && !(e2.type === EventType.IncrementalSnapshot && e2.data.source === IncrementalSource.Mutation)) {
       mutationBuffers.forEach((buf) => buf.unfreeze());
     }
     if (inEmittingFrame) {
@@ -14577,20 +14108,13 @@ function record(options = {}) {
   const processedNodeManager = new ProcessedNodeManager();
   canvasManager = new CanvasManager({
     recordCanvas,
-    recordVideos: inlineImages,
     mutationCb: wrappedCanvasMutationEmit,
     win: window,
     blockClass,
     blockSelector,
     mirror,
-    sampling: (_c = sampling == null ? void 0 : sampling.canvas) == null ? void 0 : _c.fps,
-    samplingManual: (_d = sampling == null ? void 0 : sampling.canvas) == null ? void 0 : _d.fpsManual,
-    clearWebGLBuffer: (_e = sampling == null ? void 0 : sampling.canvas) == null ? void 0 : _e.clearWebGLBuffer,
-    initialSnapshotDelay: (_f = sampling == null ? void 0 : sampling.canvas) == null ? void 0 : _f.initialSnapshotDelay,
-    dataURLOptions,
-    resizeFactor: (_g = sampling == null ? void 0 : sampling.canvas) == null ? void 0 : _g.resizeFactor,
-    maxSnapshotDimension: (_h = sampling == null ? void 0 : sampling.canvas) == null ? void 0 : _h.maxSnapshotDimension,
-    logger
+    sampling: sampling.canvas,
+    dataURLOptions
   });
   const shadowDomManager = new ShadowDomManager({
     mutationCb: wrappedMutationEmit,
@@ -14607,7 +14131,6 @@ function record(options = {}) {
       maskInputFn,
       recordCanvas,
       inlineImages,
-      privacySetting,
       sampling,
       slimDOMOptions,
       iframeManager,
@@ -14650,7 +14173,6 @@ function record(options = {}) {
       dataURLOptions,
       recordCanvas,
       inlineImages,
-      privacySetting,
       onSerialize: (n2) => {
         if (isSerializedIframe(n2, mirror)) {
           iframeManager.addIframe(n2);
@@ -14694,7 +14216,7 @@ function record(options = {}) {
   try {
     const handlers = [];
     const observe = (doc) => {
-      var _a3;
+      var _a2;
       return callbackWrapper(initObservers)(
         {
           mutationCb: wrappedMutationEmit,
@@ -14801,8 +14323,7 @@ function record(options = {}) {
           processedNodeManager,
           canvasManager,
           ignoreCSSAttributes,
-          privacySetting,
-          plugins: ((_a3 = plugins == null ? void 0 : plugins.filter((p) => p.observer)) == null ? void 0 : _a3.map((p) => ({
+          plugins: ((_a2 = plugins == null ? void 0 : plugins.filter((p) => p.observer)) == null ? void 0 : _a2.map((p) => ({
             observer: p.observer,
             options: p.options,
             callback: (payload) => wrappedEmit({
@@ -14869,7 +14390,7 @@ function record(options = {}) {
 }
 record.addCustomEvent = (tag, payload) => {
   if (!recording) {
-    return;
+    throw new Error("please add custom event after start recording");
   }
   wrappedEmit({
     type: EventType.Custom,
@@ -14887,12 +14408,6 @@ record.takeFullSnapshot = (isCheckout) => {
     throw new Error("please take full snapshot after start recording");
   }
   takeFullSnapshot$1(isCheckout);
-};
-record.snapshotCanvas = async (element) => {
-  if (!canvasManager) {
-    throw new Error("canvas manager is not initialized");
-  }
-  await canvasManager.snapshot(element);
 };
 record.mirror = mirror;
 function mitt$1(n2) {
@@ -15158,18 +14673,6 @@ var Timer = class {
       this.raf = requestAnimationFrame(this.rafCheck.bind(this));
     }
   }
-  /* Begin Highlight Code */
-  /**
-   * Add all actions before the timer starts
-   */
-  addActions(actions) {
-    this.actions = this.actions.concat(actions);
-  }
-  replaceActions(actions) {
-    this.actions.length = 0;
-    this.actions.splice(0, 0, ...actions);
-  }
-  /* End Highlight Code */
   start() {
     this.timeOffset = 0;
     this.lastTimestamp = performance.now();
@@ -15407,10 +14910,6 @@ function createPlayerService(context, { getCastFn, applyEventsSynchronously, emi
             ADD_EVENT: {
               target: "playing",
               actions: ["addEvent"]
-            },
-            REPLACE_EVENTS: {
-              target: "playing",
-              actions: ["replaceEvents"]
             }
           }
         },
@@ -15431,10 +14930,6 @@ function createPlayerService(context, { getCastFn, applyEventsSynchronously, emi
             ADD_EVENT: {
               target: "paused",
               actions: ["addEvent"]
-            },
-            REPLACE_EVENTS: {
-              target: "paused",
-              actions: ["replaceEvents"]
             }
           }
         },
@@ -15527,33 +15022,6 @@ function createPlayerService(context, { getCastFn, applyEventsSynchronously, emi
             return Date.now();
           }
         }),
-        /* Highlight Code Start */
-        replaceEvents: o((ctx, machineEvent) => {
-          const { events: curEvents, timer, baselineTime } = ctx;
-          if (machineEvent.type === "REPLACE_EVENTS") {
-            const { events: newEvents } = machineEvent.payload;
-            curEvents.length = 0;
-            const actions = [];
-            for (const event of newEvents) {
-              addDelay(event, baselineTime);
-              curEvents.push(event);
-              if (event.timestamp >= timer.timeOffset + baselineTime) {
-                const castFn = getCastFn(event, false);
-                actions.push({
-                  doAction: () => {
-                    castFn();
-                  },
-                  delay: event.delay
-                });
-              }
-            }
-            if (timer.isActive()) {
-              timer.replaceActions(actions);
-            }
-          }
-          return { ...ctx, events: curEvents };
-        }),
-        /* Highlight Code End */
         addEvent: o((ctx, machineEvent) => {
           const { baselineTime, timer, events } = ctx;
           if (machineEvent.type === "ADD_EVENT") {
@@ -15650,9 +15118,8 @@ function createSpeedService(context) {
   return v(speedMachine);
 }
 var rules = (blockClass) => [
-  "noscript { display: none !important; }",
-  `.${blockClass} { background: currentColor; border-radius: 5px; }`,
-  `.${blockClass}:hover::after {content: 'Redacted'; color: white; background: black; text-align: center; width: 100%; display: block;}`
+  `.${blockClass} { background: currentColor }`,
+  "noscript { display: none !important; }"
 ];
 var webGLVarMap = /* @__PURE__ */ new Map();
 function variableListFor(ctx, ctor) {
@@ -15875,7 +15342,7 @@ var MediaManager = class {
   syncAllMediaElements(options = { pause: false }) {
     this.mediaMap.forEach((_mediaState, target) => {
       this.syncTargetWithState(target);
-      if (options.pause && target.pause) {
+      if (options.pause) {
         target.pause();
       }
     });
@@ -16097,8 +15564,6 @@ function removeDialogFromTopLevel(node2, attributeMutation) {
   }
 }
 var SKIP_TIME_INTERVAL = 5 * 1e3;
-var SKIP_TIME_MIN = 1 * 1e3;
-var SKIP_DURATION_LIMIT = 60 * 60 * 1e3;
 var mitt = mitt$1 || mittProxy;
 var REPLAY_CONSOLE_PREFIX = "[replayer]";
 var defaultMouseTailConfig = {
@@ -16124,8 +15589,6 @@ var Replayer = class {
     __publicField(this, "tailPositions", []);
     __publicField(this, "emitter", mitt());
     __publicField(this, "nextUserInteractionEvent");
-    __publicField(this, "activityIntervals", []);
-    __publicField(this, "inactiveEndTimestamp");
     __publicField(this, "legacy_missingNodeRetryMap", {});
     __publicField(this, "cache", createCache());
     __publicField(this, "imageMap", /* @__PURE__ */ new Map());
@@ -16209,7 +15672,6 @@ var Replayer = class {
             if (isSync) {
               return;
             }
-            this.handleInactivity(event.timestamp);
             if (event === this.nextUserInteractionEvent) {
               this.nextUserInteractionEvent = null;
               this.backToNormal();
@@ -16288,7 +15750,7 @@ var Replayer = class {
       inactivePeriodThreshold: 10 * 1e3,
       showWarning: true,
       showDebug: false,
-      blockClass: "highlight-block",
+      blockClass: "rr-block",
       liveMode: false,
       insertStyleRules: [],
       triggerFocus: true,
@@ -16297,9 +15759,7 @@ var Replayer = class {
       mouseTail: defaultMouseTailConfig,
       useVirtualDom: true,
       // Virtual-dom optimization is enabled by default.
-      logger: console,
-      inactiveThreshold: 0.02,
-      inactiveSkipTime: SKIP_TIME_INTERVAL
+      logger: console
     };
     this.config = Object.assign({}, defaultConfig, config);
     this.handleResize = this.handleResize.bind(this);
@@ -16538,82 +15998,6 @@ var Replayer = class {
       }
     }
   }
-  /* Start Highlight Code */
-  getActivityIntervals() {
-    if (this.activityIntervals.length == 0) {
-      const allIntervals = [];
-      const metadata = this.getMetaData();
-      const userInteractionEvents = [
-        { timestamp: metadata.startTime },
-        ...this.service.state.context.events.filter(
-          (ev) => this.isUserInteraction(ev)
-        ),
-        { timestamp: metadata.endTime }
-      ];
-      for (let i2 = 1; i2 < userInteractionEvents.length; i2++) {
-        const currentInterval2 = userInteractionEvents[i2 - 1];
-        const _event = userInteractionEvents[i2];
-        if (_event.timestamp - currentInterval2.timestamp > this.config.inactivePeriodThreshold) {
-          allIntervals.push({
-            startTime: currentInterval2.timestamp,
-            endTime: _event.timestamp,
-            duration: _event.timestamp - currentInterval2.timestamp,
-            active: false
-          });
-        } else {
-          allIntervals.push({
-            startTime: currentInterval2.timestamp,
-            endTime: _event.timestamp,
-            duration: _event.timestamp - currentInterval2.timestamp,
-            active: true
-          });
-        }
-      }
-      const mergedIntervals = [];
-      let currentInterval = allIntervals[0];
-      for (let i2 = 1; i2 < allIntervals.length; i2++) {
-        if (allIntervals[i2].active != allIntervals[i2 - 1].active) {
-          mergedIntervals.push({
-            startTime: currentInterval.startTime,
-            endTime: allIntervals[i2 - 1].endTime,
-            duration: allIntervals[i2 - 1].endTime - currentInterval.startTime,
-            active: allIntervals[i2 - 1].active
-          });
-          currentInterval = allIntervals[i2];
-        }
-      }
-      if (currentInterval && allIntervals.length > 0) {
-        mergedIntervals.push({
-          startTime: currentInterval.startTime,
-          endTime: allIntervals[allIntervals.length - 1].endTime,
-          duration: allIntervals[allIntervals.length - 1].endTime - currentInterval.startTime,
-          active: allIntervals[allIntervals.length - 1].active
-        });
-      }
-      currentInterval = mergedIntervals[0];
-      for (let i2 = 1; i2 < mergedIntervals.length; i2++) {
-        if (!mergedIntervals[i2].active && mergedIntervals[i2].duration > this.config.inactiveThreshold * metadata.totalTime || !mergedIntervals[i2 - 1].active && mergedIntervals[i2 - 1].duration > this.config.inactiveThreshold * metadata.totalTime) {
-          this.activityIntervals.push({
-            startTime: currentInterval.startTime,
-            endTime: mergedIntervals[i2 - 1].endTime,
-            duration: mergedIntervals[i2 - 1].endTime - currentInterval.startTime,
-            active: mergedIntervals[i2 - 1].active
-          });
-          currentInterval = mergedIntervals[i2];
-        }
-      }
-      if (currentInterval && mergedIntervals.length > 0) {
-        this.activityIntervals.push({
-          startTime: currentInterval.startTime,
-          endTime: mergedIntervals[mergedIntervals.length - 1].endTime,
-          duration: mergedIntervals[mergedIntervals.length - 1].endTime - currentInterval.startTime,
-          active: mergedIntervals[mergedIntervals.length - 1].active
-        });
-      }
-    }
-    return this.activityIntervals;
-  }
-  /* End Highlight Code */
   getMetaData() {
     const firstEvent = this.service.state.context.events[0];
     const lastEvent = this.service.state.context.events[this.service.state.context.events.length - 1];
@@ -16702,15 +16086,6 @@ var Replayer = class {
       () => this.service.send({ type: "ADD_EVENT", payload: { event } })
     );
   }
-  replaceEvents(events) {
-    for (const event of events) {
-      if (indicatesTouchDevice(event)) {
-        this.mouse.classList.add("touch-device");
-        break;
-      }
-    }
-    this.service.send({ type: "REPLACE_EVENTS", payload: { events } });
-  }
   enableInteract() {
     this.iframe.setAttribute("scrolling", "auto");
     this.iframe.style.pointerEvents = "auto";
@@ -16756,32 +16131,6 @@ var Replayer = class {
       polyfill$1(this.iframe.contentWindow);
     }
   }
-  /* Start of Highlight Code */
-  handleInactivity(timestamp, resetNext) {
-    if (timestamp === this.inactiveEndTimestamp || resetNext) {
-      this.inactiveEndTimestamp = null;
-      this.backToNormal();
-    }
-    if (this.config.skipInactive && !this.inactiveEndTimestamp) {
-      for (const interval of this.getActivityIntervals()) {
-        if (timestamp >= interval.startTime && timestamp < interval.endTime && !interval.active) {
-          this.inactiveEndTimestamp = interval.endTime;
-          break;
-        }
-      }
-      if (this.inactiveEndTimestamp) {
-        const skipTime = this.inactiveEndTimestamp - timestamp;
-        const payload = {
-          speed: skipTime / SKIP_DURATION_LIMIT * this.config.inactiveSkipTime < SKIP_TIME_MIN ? skipTime / SKIP_TIME_MIN : Math.round(
-            Math.max(skipTime, SKIP_DURATION_LIMIT) / this.config.inactiveSkipTime
-          )
-        };
-        this.speedService.send({ type: "FAST_FORWARD", payload });
-        this.emitter.emit(ReplayerEvents.SkipStart, payload);
-      }
-    }
-  }
-  /* End of Highlight Code */
   rebuildFullSnapshot(event, isSync = false) {
     if (!this.iframe.contentDocument) {
       return this.warn("Looks like your replayer has been destroyed.");
@@ -16856,9 +16205,6 @@ var Replayer = class {
       injectStylesRules.push(
         "html.rrweb-paused *, html.rrweb-paused *:before, html.rrweb-paused *:after { animation-play-state: paused !important; }"
       );
-    }
-    if (!injectStylesRules.length) {
-      return;
     }
     if (this.usingVirtualDom) {
       const styleEl = this.virtualDom.createElement("style");
@@ -17543,12 +16889,7 @@ var Replayer = class {
         }
         return this.warnNodeNotFound(d, mutation.id);
       }
-      const parentEl = target.parentElement;
-      if (mutation.value && parentEl && parentEl.tagName === "STYLE") {
-        target.textContent = adaptCssForReplay(mutation.value, this.cache);
-      } else {
-        target.textContent = mutation.value;
-      }
+      target.textContent = mutation.value;
       if (this.usingVirtualDom) {
         const parent = target.parentNode;
         if (((_a2 = parent == null ? void 0 : parent.rules) == null ? void 0 : _a2.length) > 0)

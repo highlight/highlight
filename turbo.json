@@ -1,6 +1,19 @@
 {
 	"$schema": "https://turborepo.org/schema.json",
 	"tasks": {
+		"check-types": {
+			"dependsOn": ["^prepublish"]
+		},
+		"//#references:update": {
+			"inputs": [
+				"packages/*/package.json",
+				"packages/plugins/*/package.json"
+			],
+			"outputs": [
+				"packages/*/tsconfig.json",
+				"packages/plugins/*/tsconfig.json"
+			]
+		},
 		"@highlight-run/client#typegen": {
 			"dependsOn": [
 				"rrweb#build",
@@ -84,14 +97,16 @@
 			"cache": false
 		},
 		"build": {
-			"dependsOn": ["^build", "typegen"],
+			"dependsOn": ["^build", "//#references:update", "typegen"],
 			"outputs": [
-				"lib/**",
-				"es/**",
-				"dist/**",
-				"typings/**",
+				".svelte-kit/**",
 				"build/**",
-				"esm/**"
+				"dist/**",
+				"es/**",
+				"esm/**",
+				"lib/**",
+				"types/**",
+				"typings/**"
 			],
 			"env": [
 				"REACT_APP_AUTH_MODE",
@@ -191,5 +206,11 @@
 		}
 	},
 	"globalEnv": ["DOPPLER_TOKEN"],
-	"globalDependencies": ["yarn.lock", "tsconfig.json"]
+	"globalPassThroughEnv": ["PUPPETEER_HEADLESS"],
+	"globalDependencies": [
+		".eslintrc.js",
+		".prettierrc",
+		"vite.config.defaults.ts",
+		"tsconfig.json"
+	]
 }
