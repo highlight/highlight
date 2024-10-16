@@ -28,6 +28,8 @@ import {
 import { useProjectId } from '@/hooks/useProjectId'
 import { useSearchTime } from '@/hooks/useSearchTime'
 import { HeaderDivider } from '@/pages/Graphing/Dashboard'
+import { GraphContextProvider } from '@/pages/Graphing/context/GraphContext'
+import { useGraphData } from '@pages/Graphing/hooks/useGraphData'
 
 import { AlertGraph } from '../AlertGraph'
 import { AlertHeader } from './AlertHeader'
@@ -43,6 +45,7 @@ const PAGE_PARAM = withDefault(NumberParam, START_PAGE)
 
 export const AlertPage: React.FC = () => {
 	const { projectId } = useProjectId()
+	const graphContext = useGraphData()
 	const { alert_id } = useParams<{
 		alert_id: string
 	}>()
@@ -149,7 +152,7 @@ export const AlertPage: React.FC = () => {
 	}
 
 	return (
-		<>
+		<GraphContextProvider value={graphContext}>
 			<Helmet>
 				<title>{data.alert.name}</title>
 			</Helmet>
@@ -325,6 +328,6 @@ export const AlertPage: React.FC = () => {
 					</Box>
 				</Box>
 			</Box>
-		</>
+		</GraphContextProvider>
 	)
 }
