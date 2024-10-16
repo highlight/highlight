@@ -19,6 +19,7 @@
 		"@inkeep/uikit": "^0.3.8",
 		"@mux/mux-player": "^2.4.1",
 		"@mux/mux-player-react": "^2.4.1",
+		"@reflame/testing": "^0.0.2",
 		"@rehooks/local-storage": "^2.4.5",
 		"@stripe/stripe-js": "^1.32.0",
 		"@tanstack/react-table": "^8.7.9",
