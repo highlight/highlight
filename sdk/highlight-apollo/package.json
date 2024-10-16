@@ -30,6 +30,6 @@
 		"apollo-server": "^3.13.0",
 		"tsup": "^6.6.3",
 		"typescript": "^5.0.4",
-		"vitest": "^0.32.0"
+		"vitest": "^2.1.3"
 	}
 }
