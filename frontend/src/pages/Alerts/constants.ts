@@ -1,9 +1,9 @@
 import { ThresholdCondition, ThresholdType } from '@/graph/generated/schemas'
 
 export const THRESHOLD_CONDITION_OPTIONS = [
-	ThresholdCondition.Outside,
 	ThresholdCondition.Above,
 	ThresholdCondition.Below,
+	ThresholdCondition.Outside,
 ]
 
 export const getThresholdConditionOptions = (thresholdType: ThresholdType) => {

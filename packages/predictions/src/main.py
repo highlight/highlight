@@ -15,6 +15,7 @@ def main():
     return result
 
 def generate_prediction(event, context):
+    print(json.loads(event))
     body = json.loads(json.loads(event)['body'])
 
     print(body)

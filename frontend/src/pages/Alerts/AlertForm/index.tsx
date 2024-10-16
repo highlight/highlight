@@ -71,19 +71,23 @@ const FREQUENCY_OPTIONS = FREQUENCIES.filter((freq) => Number(freq.value) >= 60)
 const CONFIDENCE_OPTIONS = [
 	{
 		name: '80%',
-		value: '.80',
+		id: '80%',
+		value: 0.8,
 	},
 	{
 		name: '90%',
-		value: '.90',
+		id: '90%',
+		value: 0.9,
 	},
 	{
 		name: '95%',
-		value: '.95',
+		id: '95%',
+		value: 0.95,
 	},
 	{
 		name: '99%',
-		value: '.99',
+		id: '99%',
+		value: 0.99,
 	},
 ]
 
@@ -98,7 +102,7 @@ export const DEFAULT_WINDOW = MINUTE * 30
 export const DEFAULT_COOLDOWN = MINUTE * 30
 export const DEFAULT_THRESHOLD_CONDITON = ThresholdCondition.Above
 export const DEFAULT_THRESHOLD_TYPE = ThresholdType.Constant
-export const DEFAULT_CONFIDENCE_OPTION = CONFIDENCE_OPTIONS[3]
+export const DEFAULT_CONFIDENCE_OPTION = CONFIDENCE_OPTIONS[2]
 
 const ALERT_PRODUCT_INFO = {
 	[ProductType.Sessions]:
@@ -171,7 +175,20 @@ export const AlertForm: React.FC = () => {
 	const [groupByEnabled, setGroupByEnabled] = useState(false)
 	const [groupByKey, setGroupByKey] = useState('')
 
-	const [thresholdType, setThresholdType] = useState(DEFAULT_THRESHOLD_TYPE)
+	const [thresholdType, setThresholdTypeImpl] = useState(
+		DEFAULT_THRESHOLD_TYPE,
+	)
+	const setThresholdType = (value: ThresholdType) => {
+		if (value === thresholdType) {
+			return
+		}
+
+		if (value === ThresholdType.Anomaly) {
+			setThresholdValue(DEFAULT_CONFIDENCE_OPTION.value)
+		}
+
+		setThresholdTypeImpl(value)
+	}
 	const [thresholdCondition, setThresholdCondition] = useState(
 		DEFAULT_THRESHOLD_CONDITON,
 	)
@@ -638,7 +655,7 @@ export const AlertForm: React.FC = () => {
 												<Stack direction="row" gap="12">
 													{isAnomaly && (
 														<LabeledRow
-															label="Confidence interval"
+															label="Confidence"
 															name="thresholdValue"
 														>
 															<OptionDropdown
