@@ -4,6 +4,7 @@ import {
 } from '@highlight-run/cloudflare'
 import type { HighlightContext, NodeOptions } from '@highlight-run/node'
 import { IncomingHttpHeaders } from 'http'
+import { Headers } from 'node-fetch'
 import {
 	ExtendedExecutionContext,
 	HIGHLIGHT_REQUEST_HEADER,
