@@ -547,15 +547,30 @@ const getCustomTooltip =
 										cssClass={style.tooltipText}
 									></Text>
 								</Badge>
-								<Text
-									lines="1"
-									size="xSmall"
-									weight="medium"
-									color="default"
-									cssClass={style.tooltipText}
-								>
-									{p.name ? p.name : yAxisFunction}
-								</Text>
+								{funnelMode ? (
+									<Text
+										lines="1"
+										size="xSmall"
+										weight="medium"
+										color="default"
+										cssClass={style.tooltipText}
+									>
+										{(p.payload[PERCENT_KEY] * 100).toFixed(
+											1,
+										)}
+										%
+									</Text>
+								) : (
+									<Text
+										lines="1"
+										size="xxSmall"
+										weight="medium"
+										color="default"
+										cssClass={style.tooltipText}
+									>
+										{p.name ? p.name : yAxisFunction}
+									</Text>
+								)}
 							</Box>
 							{frozenTooltip && (
 								<ButtonIcon
@@ -575,27 +590,6 @@ const getCustomTooltip =
 											)
 									}}
 								/>
-							)}
-							{funnelMode ? (
-								<Text
-									lines="1"
-									size="xSmall"
-									weight="medium"
-									color="default"
-									cssClass={style.tooltipText}
-								>
-									{(p.payload[PERCENT_KEY] * 100).toFixed(1)}%
-								</Text>
-							) : (
-								<Text
-									lines="1"
-									size="xxSmall"
-									weight="medium"
-									color="default"
-									cssClass={style.tooltipText}
-								>
-									{p.name ? p.name : yAxisFunction}
-								</Text>
 							)}
 						</Box>
 					))}
@@ -715,6 +709,11 @@ export const useGraphData = (
 					metrics.metrics.buckets.find((b) => b.group.length) !==
 					undefined
 
+				console.log(
+					'hasGroups',
+					metrics.metrics.buckets.find((b) => b.group.length),
+				)
+
 				for (const b of metrics.metrics.buckets) {
 					const seriesKey = hasGroups
 						? b.group.join(', ') || NO_GROUP_PLACEHOLDER
@@ -725,16 +724,21 @@ export const useGraphData = (
 					data[b.bucket_id][BUCKET_MIN_KEY] = b.bucket_min
 					data[b.bucket_id][BUCKET_MAX_KEY] = b.bucket_max
 
-					if (b.yhat_upper && b.yhat_lower) {
+					if (b.yhat_upper) {
 						data[b.bucket_id][YHAT_UPPER_KEY] = {
 							[seriesKey]: b.yhat_upper,
 						}
+						if (!hasGroups) {
+							data[b.bucket_id][YHAT_UPPER_REGION_KEY] =
+								b.yhat_upper - (b.yhat_lower ?? 0)
+						}
+					}
+
+					if (b.yhat_lower) {
 						data[b.bucket_id][YHAT_LOWER_KEY] = {
 							[seriesKey]: b.yhat_lower,
 						}
 						if (!hasGroups) {
-							data[b.bucket_id][YHAT_UPPER_REGION_KEY] =
-								b.yhat_upper - b.yhat_lower
 							data[b.bucket_id][YHAT_LOWER_REGION_KEY] =
 								b.yhat_lower
 						}

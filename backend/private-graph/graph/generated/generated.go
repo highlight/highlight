@@ -13100,6 +13100,7 @@ input UserPropertyInput {
 input PredictionSettings {
 	changepointPriorScale: Float!
 	intervalWidth: Float!
+	thresholdCondition: ThresholdCondition!
 }
 
 type User {
@@ -84860,7 +84861,7 @@ func (ec *executionContext) unmarshalInputPredictionSettings(ctx context.Context
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"changepointPriorScale", "intervalWidth"}
+	fieldsInOrder := [...]string{"changepointPriorScale", "intervalWidth", "thresholdCondition"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -84881,6 +84882,13 @@ func (ec *executionContext) unmarshalInputPredictionSettings(ctx context.Context
 				return it, err
 			}
 			it.IntervalWidth = data
+		case "thresholdCondition":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("thresholdCondition"))
+			data, err := ec.unmarshalNThresholdCondition2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐThresholdCondition(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.ThresholdCondition = data
 		}
 	}
 
@@ -105447,6 +105455,16 @@ func (ec *executionContext) marshalNSystemConfiguration2ᚖgithubᚗcomᚋhighli
 		return graphql.Null
 	}
 	return ec._SystemConfiguration(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalNThresholdCondition2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐThresholdCondition(ctx context.Context, v interface{}) (model.ThresholdCondition, error) {
+	var res model.ThresholdCondition
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNThresholdCondition2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐThresholdCondition(ctx context.Context, sel ast.SelectionSet, v model.ThresholdCondition) graphql.Marshaler {
+	return v
 }
 
 func (ec *executionContext) marshalNTimelineIndicatorEvent2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐTimelineIndicatorEventᚄ(ctx context.Context, sel ast.SelectionSet, v []*model1.TimelineIndicatorEvent) graphql.Marshaler {

@@ -98,6 +98,7 @@ export const DEFAULT_WINDOW = MINUTE * 30
 export const DEFAULT_COOLDOWN = MINUTE * 30
 export const DEFAULT_THRESHOLD_CONDITON = ThresholdCondition.Above
 export const DEFAULT_THRESHOLD_TYPE = ThresholdType.Constant
+export const DEFAULT_CONFIDENCE_OPTION = CONFIDENCE_OPTIONS[3]
 
 const ALERT_PRODUCT_INFO = {
 	[ProductType.Sessions]:
@@ -343,6 +344,8 @@ export const AlertForm: React.FC = () => {
 
 	const disableSave =
 		createAlertContext.loading || updateAlertContext.loading || !alertName
+
+	console.log('thresholdValue', thresholdValue)
 
 	return (
 		<GraphContextProvider value={graphContext}>

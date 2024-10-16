@@ -2025,6 +2025,7 @@ export enum PlanType {
 export type PredictionSettings = {
 	changepointPriorScale: Scalars['Float']
 	intervalWidth: Scalars['Float']
+	thresholdCondition: ThresholdCondition
 }
 
 export enum ProductType {

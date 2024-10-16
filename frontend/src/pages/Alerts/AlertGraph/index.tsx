@@ -76,7 +76,6 @@ export const AlertGraph: React.FC<Props> = ({
 	selectedPreset,
 	updateSearchTime,
 }) => {
-	console.log('thresholdType', thresholdType)
 	const { projectId } = useProjectId()
 	const sessionsProduct =
 		productType === ProductType.Sessions &&
@@ -123,7 +122,9 @@ export const AlertGraph: React.FC<Props> = ({
 						metric={functionColumn}
 						functionType={functionType}
 						groupByKeys={
-							sessionsProduct ? undefined : [groupByKey ?? '']
+							sessionsProduct || !groupByKey
+								? undefined
+								: [groupByKey]
 						}
 						setTimeRange={updateSearchTime}
 						bucketByKey="Timestamp"
@@ -135,7 +136,8 @@ export const AlertGraph: React.FC<Props> = ({
 							thresholdType === ThresholdType.Anomaly
 								? {
 										changepointPriorScale: 0.25,
-										intervalWidth: 0.99,
+										intervalWidth: thresholdValue,
+										thresholdCondition,
 									}
 								: undefined
 						}

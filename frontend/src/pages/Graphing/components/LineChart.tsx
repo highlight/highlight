@@ -45,17 +45,27 @@ export type LineChartConfig = {
 const isAnomaly = (props: any, key: string) => {
 	const { payload } = props
 
-	const hasYHat =
-		payload &&
+	if (!payload || !payload[key]) {
+		return false
+	}
+
+	if (
 		payload[YHAT_LOWER_KEY] &&
 		payload[YHAT_LOWER_KEY][key] &&
-		payload[YHAT_UPPER_KEY] &&
-		payload[YHAT_UPPER_KEY][key]
+		payload[key] < payload[YHAT_LOWER_KEY][key]
+	) {
+		return true
+	}
 
-	return hasYHat
-		? payload[key] < payload[YHAT_LOWER_KEY][key] ||
-				payload[key] > payload[YHAT_UPPER_KEY][key]
-		: false
+	if (
+		payload[YHAT_UPPER_KEY] &&
+		payload[YHAT_UPPER_KEY][key] &&
+		payload[key] > payload[YHAT_UPPER_KEY][key]
+	) {
+		return true
+	}
+
+	return false
 }
 
 export const LineChart = ({

@@ -9548,8 +9548,12 @@ func (r *queryResolver) Metrics(ctx context.Context, productType modelInputs.Pro
 	}
 
 	for _, b := range results.Buckets {
-		b.YhatUpper = pointy.Float64(predictions.YHatUpper[b.BucketID])
-		b.YhatLower = pointy.Float64(predictions.YHatLower[b.BucketID])
+		if predictionSettings.ThresholdCondition != modelInputs.ThresholdConditionBelow {
+			b.YhatUpper = pointy.Float64(predictions.YHatUpper[b.BucketID])
+		}
+		if predictionSettings.ThresholdCondition != modelInputs.ThresholdConditionAbove {
+			b.YhatLower = pointy.Float64(predictions.YHatLower[b.BucketID])
+		}
 	}
 
 	return results, nil
