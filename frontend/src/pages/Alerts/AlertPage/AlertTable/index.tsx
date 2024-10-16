@@ -50,7 +50,11 @@ const AlertTableInner: React.FC<Props> = ({
 				name: 'Time',
 				width: '200px',
 				renderData: (alertState: any) => (
-					<Text>{moment(alertState.timestamp).format('LT')}</Text>
+					<Text>
+						{moment(alertState.timestamp).format(
+							'M/D/YY h:mm:ss A',
+						)}
+					</Text>
 				),
 			},
 			{
@@ -59,7 +63,7 @@ const AlertTableInner: React.FC<Props> = ({
 				width: '1fr',
 				renderData: (alertState: any) => (
 					<Tag shape="basic" size="small" kind="secondary">
-						{alertState.groupByKey}
+						{alertState.groupByKey || 'N/A'}
 					</Tag>
 				),
 			},
