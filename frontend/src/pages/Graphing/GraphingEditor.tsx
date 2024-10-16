@@ -79,12 +79,15 @@ import {
 } from './Settings'
 import { EventSteps } from '@pages/Graphing/EventSelection/EventSteps'
 import { EventSelection } from '@pages/Graphing/EventSelection'
-import { FREQUENCIES } from '@/pages/Alerts/AlertConfigurationCard/AlertConfigurationConstants'
 import { useGraphingVariables } from '@/pages/Graphing/hooks/useGraphingVariables'
 import { VariablesBar } from '@/pages/Graphing/components/VariablesBar'
 import { useRetentionPresets } from '@/components/Search/SearchForm/hooks'
 import { omit } from 'lodash'
-import { EventSelectionStep, loadFunnelStep } from '@pages/Graphing/util'
+import {
+	BUCKET_FREQUENCIES,
+	EventSelectionStep,
+	loadFunnelStep,
+} from '@pages/Graphing/util'
 import { useGraphData } from '@pages/Graphing/hooks/useGraphData'
 import { GraphContextProvider } from './context/GraphContext'
 
@@ -92,6 +95,7 @@ type BucketBy = 'None' | 'Interval' | 'Count'
 const BUCKET_BY_OPTIONS: BucketBy[] = ['None', 'Interval', 'Count']
 
 const MAX_BUCKET_SIZE = 100
+const MAX_LIMIT_SIZE = 100
 
 const SidebarSection = (props: PropsWithChildren) => {
 	return (
@@ -494,6 +498,7 @@ export const GraphingEditor: React.FC = () => {
 			setMetric('secure_session_id')
 			setGroupByEnabled(true)
 			setGroupByKeys(['secure_session_id'])
+			setLimit(Number.MAX_VALUE)
 		}
 	}, [viewType])
 
@@ -905,7 +910,10 @@ export const GraphingEditor: React.FC = () => {
 														onChange={(e) => {
 															const value =
 																Math.min(
-																	MAX_BUCKET_SIZE,
+																	viewType ===
+																		'Table'
+																		? Number.MAX_VALUE
+																		: MAX_LIMIT_SIZE,
 																	parseInt(
 																		e.target
 																			.value,
@@ -1041,7 +1049,7 @@ export const GraphingEditor: React.FC = () => {
 												tooltip="The number of X-axis buckets. A higher value will display smaller, more granular buckets."
 											>
 												<Select
-													options={FREQUENCIES}
+													options={BUCKET_FREQUENCIES}
 													value={bucketInterval}
 													onValueChange={(o) => {
 														setBucketInterval(
