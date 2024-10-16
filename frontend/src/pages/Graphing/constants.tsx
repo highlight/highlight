@@ -1,12 +1,13 @@
 import {
 	IconSolidChartBar,
 	IconSolidFire,
+	Box,
 	IconSolidLightningBolt,
 	IconSolidLogs,
 	IconSolidPlayCircle,
 	IconSolidTraces,
 } from '@highlight-run/ui/components'
-
+import { betaTag } from '@/components/Header/styles.css'
 import {
 	MetricAggregator,
 	ProductType,
@@ -14,7 +15,7 @@ import {
 } from '@/graph/generated/schemas'
 
 export const DEFAULT_BUCKET_COUNT = 50
-export const DEFAULT_BUCKET_INTERVAL = 300
+export const DEFAULT_BUCKET_INTERVAL = 60 * 60
 
 export const PRODUCT_OPTIONS = [
 	{
@@ -49,7 +50,11 @@ export const PRODUCT_OPTIONS_WITH_EVENTS = PRODUCT_OPTIONS.concat([
 	{
 		name: ProductType.Events,
 		value: ProductType.Events,
-		icon: <IconSolidFire key="events" />,
+		icon: (
+			<Box cssClass={betaTag} key="events">
+				Beta
+			</Box>
+		),
 	},
 ])
 

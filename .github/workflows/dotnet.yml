@@ -67,4 +67,4 @@ jobs:
             - name: Push generated package to NuGet registry
               if: github.ref == 'refs/heads/main'
               run: |
-                  nuget push bin\**\*.nupkg -Source https://api.nuget.org/v3/index.json -ApiKey ${{ secrets.NUGET_API_KEY }} -SymbolApiKey ${{ secrets.NUGET_API_KEY }}
+                  nuget push bin\**\*.nupkg -Source https://api.nuget.org/v3/index.json -ApiKey ${{ secrets.NUGET_API_KEY }} -SymbolApiKey ${{ secrets.NUGET_API_KEY }} -SkipDuplicate

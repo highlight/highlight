@@ -764,39 +764,44 @@ func GetSessionsQueryImpl(admin *model.Admin, params modelInputs.QueryInput, pro
 	return sql, args, useRandomSample, nil
 }
 
-func (client *Client) QuerySessionIds(ctx context.Context, admin *model.Admin, projectId int, count int, params modelInputs.QueryInput, sortField string, page *int, retentionDate time.Time) ([]int64, int64, bool, error) {
+func (client *Client) QuerySessionIds(ctx context.Context, admin *model.Admin, projectId int, count int, params modelInputs.QueryInput, sortField string, page *int, retentionDate time.Time) ([]int64, int64, int64, int64, bool, error) {
 	pageInt := 1
 	if page != nil {
 		pageInt = *page
 	}
 	offset := (pageInt - 1) * count
 
-	sql, args, sampleRuleFound, err := GetSessionsQueryImpl(admin, params, projectId, retentionDate, "ID, count() OVER() AS total", nil, pointy.String(sortField), pointy.Int(count), pointy.Int(offset))
+	sql, args, sampleRuleFound, err := GetSessionsQueryImpl(
+		admin, params, projectId, retentionDate,
+		"ID, count() OVER() AS total, sum(Length) OVER() AS TotalLength, sum(ActiveLength) OVER() AS TotalActiveLength",
+		nil, pointy.String(sortField), pointy.Int(count), pointy.Int(offset),
+	)
 	if err != nil {
-		return nil, 0, false, err
+		return nil, 0, 0, 0, false, err
 	}
 
 	rows, err := client.conn.Query(ctx, sql, args...)
 	if err != nil {
-		return nil, 0, false, err
+		return nil, 0, 0, 0, false, err
 	}
 
 	var ids []int64
 	var total uint64
+	var totalLength, totalActiveLength int64
 	for rows.Next() {
 		var id int64
-		columns := []interface{}{&id, &total}
+		columns := []interface{}{&id, &total, &totalLength, &totalActiveLength}
 		if sampleRuleFound {
 			var hash uint64
 			columns = append(columns, &hash)
 		}
 		if err := rows.Scan(columns...); err != nil {
-			return nil, 0, false, err
+			return nil, 0, 0, 0, false, err
 		}
 		ids = append(ids, id)
 	}
 
-	return ids, int64(total), sampleRuleFound, nil
+	return ids, int64(total), totalLength, totalActiveLength, sampleRuleFound, nil
 }
 
 func (client *Client) QuerySessionHistogram(ctx context.Context, admin *model.Admin, projectId int, params modelInputs.QueryInput, retentionDate time.Time, options modelInputs.DateHistogramOptions) ([]time.Time, []int64, []int64, []int64, error) {

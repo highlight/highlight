@@ -5748,12 +5748,16 @@ export const UpsertGraphDocument = gql`
 			query
 			metric
 			functionType
-			groupByKey
+			groupByKeys
 			bucketByKey
 			bucketCount
 			limit
 			limitFunctionType
 			limitMetric
+			funnelSteps {
+				title
+				query
+			}
 			display
 			nullHandling
 		}
@@ -7526,6 +7530,8 @@ export const GetSessionsDocument = gql`
 				email
 			}
 			totalCount
+			totalLength
+			totalActiveLength
 		}
 	}
 `
@@ -15186,7 +15192,7 @@ export const GetVisualizationDocument = gql`
 			timePreset
 			variables {
 				key
-				defaultValue
+				defaultValues
 				suggestionType
 				field
 			}
@@ -15198,13 +15204,17 @@ export const GetVisualizationDocument = gql`
 				query
 				metric
 				functionType
-				groupByKey
+				groupByKeys
 				bucketByKey
 				bucketCount
 				bucketInterval
 				limit
 				limitFunctionType
 				limitMetric
+				funnelSteps {
+					title
+					query
+				}
 				display
 				nullHandling
 			}
@@ -15288,7 +15298,7 @@ export const GetVisualizationsDocument = gql`
 				timePreset
 				variables {
 					key
-					defaultValue
+					defaultValues
 					suggestionType
 					field
 				}
@@ -15300,13 +15310,17 @@ export const GetVisualizationsDocument = gql`
 					query
 					metric
 					functionType
-					groupByKey
+					groupByKeys
 					bucketByKey
 					bucketCount
 					bucketInterval
 					limit
 					limitFunctionType
 					limitMetric
+					funnelSteps {
+						title
+						query
+					}
 					display
 					nullHandling
 				}

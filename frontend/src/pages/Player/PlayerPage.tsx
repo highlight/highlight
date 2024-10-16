@@ -67,6 +67,7 @@ import {
 } from './constants'
 import { SessionView } from './SessionView'
 import * as style from './styles.css'
+import { formatResult } from '@pages/Sessions/SessionsFeedV3/SessionFeedConfigDropdown/helpers'
 
 const PAGE_PARAM = withDefault(NumberParam, START_PAGE)
 
@@ -319,6 +320,12 @@ export const PlayerPage = () => {
 						onSubmit={handleSubmit}
 						loading={getSessionsData.loading}
 						results={getSessionsData.sessions}
+						resultFormatted={formatResult(
+							getSessionsData.totalCount,
+							getSessionsData.totalLength,
+							getSessionsData.totalActiveLength,
+							sessionFeedConfiguration.resultFormat,
+						)}
 						totalCount={getSessionsData.totalCount}
 						moreResults={getSessionsData.moreSessions}
 						resetMoreResults={getSessionsData.resetMoreSessions}

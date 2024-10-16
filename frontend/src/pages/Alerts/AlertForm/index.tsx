@@ -50,6 +50,8 @@ import { HeaderDivider } from '@/pages/Graphing/Dashboard'
 import { LabeledRow } from '@/pages/Graphing/LabeledRow'
 import { OptionDropdown } from '@/pages/Graphing/OptionDropdown'
 import { EventSelection } from '@/pages/Graphing/EventSelection'
+import { GraphContextProvider } from '@/pages/Graphing/context/GraphContext'
+import { useGraphData } from '@pages/Graphing/hooks/useGraphData'
 
 import { AlertGraph } from '../AlertGraph'
 import * as style from './styles.css'
@@ -87,6 +89,7 @@ const ALERT_PRODUCT_INFO = {
 
 export const AlertForm: React.FC = () => {
 	const { projectId } = useProjectId()
+	const graphContext = useGraphData()
 	const { alert_id } = useParams<{
 		alert_id: string
 	}>()
@@ -310,7 +313,7 @@ export const AlertForm: React.FC = () => {
 		createAlertContext.loading || updateAlertContext.loading || !alertName
 
 	return (
-		<>
+		<GraphContextProvider value={graphContext}>
 			<Helmet>
 				<title>{isEdit ? 'Edit' : 'Create'} Alert</title>
 			</Helmet>
@@ -461,7 +464,7 @@ export const AlertForm: React.FC = () => {
 									<LabeledRow
 										label="Source"
 										name="source"
-										tooltip="The resource being queried, one of the four highlight.io resources."
+										tooltip="The resource being queried, one of the five highlight.io resources."
 									>
 										<OptionDropdown
 											options={productOptions}
@@ -551,7 +554,6 @@ export const AlertForm: React.FC = () => {
 													setSelection={
 														setFunctionColumn
 													}
-													label="metric"
 													searchConfig={
 														searchOptionsConfig
 													}
@@ -575,7 +577,6 @@ export const AlertForm: React.FC = () => {
 												<Combobox
 													selection={groupByKey}
 													setSelection={setGroupByKey}
-													label="groupBy"
 													searchConfig={
 														searchOptionsConfig
 													}
@@ -682,7 +683,7 @@ export const AlertForm: React.FC = () => {
 					</Box>
 				</Box>
 			</Box>
-		</>
+		</GraphContextProvider>
 	)
 }
 

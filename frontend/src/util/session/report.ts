@@ -8,7 +8,7 @@ import { Maybe, Session, SessionsReportRow } from '@graph/schemas'
 import { useProjectId } from '@hooks/useProjectId'
 import moment from 'moment/moment'
 
-const processRows = <
+export const processRows = <
 	T extends { __typename?: Maybe<string>; user_properties?: Maybe<string> },
 >(
 	inputs: T[],
@@ -38,10 +38,10 @@ const processRows = <
 		...Object.keys(keys).filter((k) => !ignoreKeys.has(k as keyof T)),
 	])
 
-	for (const session of inputs) {
-		let data = session
+	for (const input of inputs) {
+		let data = input
 		try {
-			data = { ...data, ...JSON.parse(session.user_properties ?? '') }
+			data = { ...data, ...JSON.parse(input.user_properties ?? '') }
 		} catch (e) {}
 		rows.push(
 			Object.entries(keys)
@@ -98,7 +98,7 @@ const getSessionRows = (sessions: Session[]) => {
 	return processRows(sessions, new Set<keyof Session>(['id', 'event_counts']))
 }
 
-const exportFile = async (name: string, content: string) => {
+export const exportFile = async (name: string, content: string) => {
 	const blob = new Blob([content], { type: 'text/csv' })
 	const link = document.createElement('a')
 	link.setAttribute('href', window.URL.createObjectURL(blob))

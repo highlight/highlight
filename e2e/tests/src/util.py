@@ -16,8 +16,9 @@ def query(
 ):
     api_url, oauth_token = oauth_api
     exc: Optional[Exception] = None
+    start = datetime.now()
     # retry up for up to N seconds in case the data needs time to populate
-    for _ in range(600):
+    for _ in range(60):
         try:
             if variables_fn:
                 variables = variables_fn(datetime.utcnow())
@@ -32,7 +33,6 @@ def query(
                 headers={"Authorization": f"Bearer {oauth_token}"},
                 timeout=30,
             )
-            logging.info(f"POST {r.url} {json} {r.status_code} {r.text}")
             assert r.status_code == 200
             j = r.json()
             assert len(j.get("errors") or []) == 0
@@ -40,11 +40,14 @@ def query(
                 try:
                     validator(j["data"])
                 except Exception as e:
-                    logging.error(f"validator failed: {e}")
                     raise
+            logging.info(
+                f"POST {r.url} {json} succeeded after {datetime.now() - start}"
+            )
             return j["data"]
         except Exception as e:
             exc = e
-            time.sleep(0.1)
+            time.sleep(1)
     else:
+        logging.error(f"validator failed: {exc}")
         raise exc
