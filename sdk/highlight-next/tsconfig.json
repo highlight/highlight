@@ -24,6 +24,10 @@
 			"@highlight-run/sourcemap-uploader",
 			"@highlight-run/node",
 			"jest"
+		],
+		"typeRoots": [
+			"./node_modules/@types",
+			"./node_modules",
 		]
 	},
 	"include": [
