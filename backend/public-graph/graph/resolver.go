@@ -2384,7 +2384,10 @@ func (r *Resolver) AddSessionEvents(ctx context.Context, sessionID int, events *
 
 				attributes := make(map[string]string)
 				for k, v := range propertiesObject {
-					attributes[k] = fmt.Sprintf("%v", v)
+					attributes[k] = fmt.Sprintf("%.*v", SESSION_FIELD_MAX_LENGTH, v)
+					if len(attributes[k]) > 0 {
+						fields[k] = attributes[k]
+					}
 				}
 
 				sessionEvents = append(sessionEvents,
