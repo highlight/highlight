@@ -43,6 +43,19 @@ const COMMON_EMAIL_PROVIDERS = [
 	'fastmail',
 	'protonmail',
 	'hey.com',
+	'aol',
+	'msn',
+	'wanadoo',
+	'orange',
+	'qq.com',
+	'icloud',
+	'live.com',
+	'me.com',
+	'proton.me',
+	'simplelogin',
+	'duck.com',
+	'mail.ru',
+	'163.com',
 ] as const
 
 export const InviteTeamForm: React.FC = () => {
@@ -93,7 +106,7 @@ export const InviteTeamForm: React.FC = () => {
 
 	const formStore = Form.useStore({
 		defaultValues: {
-			autoJoinDomain: true,
+			autoJoinDomain: false,
 			inviteEmails: '',
 			numTeamEmails: 1,
 		},
