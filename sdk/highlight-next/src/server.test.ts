@@ -9,7 +9,15 @@ import {
 	startMockOtelServer,
 } from 'mock-otel-server'
 import kill from 'tree-kill'
-import { vi } from 'vitest'
+import {
+	vi,
+	describe,
+	beforeAll,
+	afterAll,
+	beforeEach,
+	it,
+	expect,
+} from 'vitest'
 
 vi.mock('pg', () => {
 	const pgClient = {
@@ -54,7 +62,9 @@ describe('Next.js server instrumentation', () => {
 	})
 
 	describe('Page Router', () => {
-		it('Should report Page Router success', async () => {
+		it('Should report Page Router success', async (context) => {
+			// Does not run automatically without running next.js example app
+			context.skip()
 			fetch(`${NEXT_URL}/api/page-router-test?success=true`, {
 				method: 'GET',
 				headers: {
@@ -73,7 +83,8 @@ describe('Next.js server instrumentation', () => {
 			expect(detailsWithSessionId.length > 0).toEqual(true)
 		})
 
-		it('Should report Page Router error', async () => {
+		it('Should report Page Router error', async (context) => {
+			context.skip()
 			fetch(`${NEXT_URL}/api/page-router-test?success=false`, {
 				method: 'GET',
 				headers: {
@@ -97,7 +108,8 @@ describe('Next.js server instrumentation', () => {
 	})
 
 	describe('App Router', () => {
-		it('Should report App Router success', async () => {
+		it('Should report App Router success', async (context) => {
+			context.skip()
 			fetch(`${NEXT_URL}/api/app-router-test?success=true&sql=false`, {
 				method: 'GET',
 				headers: {
@@ -116,7 +128,8 @@ describe('Next.js server instrumentation', () => {
 			expect(detailsWithSessionId.length > 0).toEqual(true)
 		}, 10000)
 
-		it('Should report App Router error', async () => {
+		it('Should report App Router error', async (context) => {
+			context.skip()
 			await fetch(
 				`${NEXT_URL}/api/app-router-test?success=false&sql=false`,
 				{
