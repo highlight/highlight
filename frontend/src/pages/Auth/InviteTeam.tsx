@@ -51,6 +51,7 @@ const COMMON_EMAIL_PROVIDERS = [
 	'live.com',
 	'me.com',
 	'proton.me',
+	'simplelogin',
 	'duck.com',
 	'mail.ru',
 	'163.com',
