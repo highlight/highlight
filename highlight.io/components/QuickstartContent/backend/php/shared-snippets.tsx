@@ -53,7 +53,7 @@ export const customError: QuickStartStep = {
 		{
 			text: `use Highlight\\SDK\\Highlight;
 
-Highlight::captureException(new Exception('This is a test exception'));
+Highlight::captureException(new \Exception('This is a test exception'));
 `,
 			language: 'php',
 		},
