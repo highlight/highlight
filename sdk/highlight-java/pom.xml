@@ -1,4 +1,6 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 
 	<groupId>io.highlight</groupId>
@@ -7,7 +9,10 @@
 	<packaging>pom</packaging>
 
 	<name>Highlight Java</name>
-	<description>highlight.io is a monitoring tool for the next generation of developers (like you!). Unlike the age-old, outdated tools out there, we aim to build a cohesive, modern and fully-featured monitoring solution, something we wished WE had. And it's all open source :)</description>
+	<description>highlight.io is a monitoring tool for the next generation of
+		developers (like you!). Unlike the age-old, outdated tools out there, we
+		aim to build a cohesive, modern and fully-featured monitoring solution,
+		something we wished WE had. And it's all open source :)</description>
 	<url>https://github.com/highlight/highlight</url>
 	<inceptionYear>2023</inceptionYear>
 
@@ -43,15 +48,14 @@
 	</issueManagement>
 
 	<properties>
-		<revision>${revision}</revision>
-		<version>${revision}</version>
+		<revision>0.0.0.-b0</revision>
 		<project.language.name>java</project.language.name>
 		<maven.compiler.source>11</maven.compiler.source>
 		<maven.compiler.target>11</maven.compiler.target>
 
 		<maven.install.skip>true</maven.install.skip>
 		<maven.deploy.skip>true</maven.deploy.skip>
-        <skipStaging>false</skipStaging>
+		<skipStaging>false</skipStaging>
 		<deployAtEnd>true</deployAtEnd>
 
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -84,7 +88,8 @@
 		</snapshotRepository>
 		<repository>
 			<id>ossrh</id>
-			<url>https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/</url>
+			<url>
+				https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/</url>
 		</repository>
 	</distributionManagement>
 
