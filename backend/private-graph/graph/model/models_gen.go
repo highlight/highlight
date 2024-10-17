@@ -694,6 +694,7 @@ type PredictionSettings struct {
 	ChangepointPriorScale float64            `json:"changepointPriorScale"`
 	IntervalWidth         float64            `json:"intervalWidth"`
 	ThresholdCondition    ThresholdCondition `json:"thresholdCondition"`
+	IntervalSeconds       int                `json:"intervalSeconds"`
 }
 
 type QueryInput struct {

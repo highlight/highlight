@@ -9531,29 +9531,8 @@ func (r *queryResolver) Metrics(ctx context.Context, productType modelInputs.Pro
 		return results, err
 	}
 
-	y := make([]float64, results.BucketCount)
-	ds := make([]string, results.BucketCount)
-	for _, b := range results.Buckets {
-		var value float64
-		if b.MetricValue != nil {
-			value = *b.MetricValue
-		}
-		y[b.BucketID] = value
-		ds[b.BucketID] = time.Unix(int64((b.BucketMax+b.BucketMin)/2), 0).Format("2006-01-02T15:04:05")
-	}
-
-	predictions, err := r.LambdaClient.GetPredictions(ctx, ds, y, predictionSettings.ChangepointPriorScale, predictionSettings.IntervalWidth)
-	if err != nil {
+	if err := r.LambdaClient.AddPredictions(ctx, results.Buckets, *predictionSettings); err != nil {
 		return nil, err
-	}
-
-	for _, b := range results.Buckets {
-		if predictionSettings.ThresholdCondition != modelInputs.ThresholdConditionBelow {
-			b.YhatUpper = pointy.Float64(predictions.YHatUpper[b.BucketID])
-		}
-		if predictionSettings.ThresholdCondition != modelInputs.ThresholdConditionAbove {
-			b.YhatLower = pointy.Float64(predictions.YHatLower[b.BucketID])
-		}
 	}
 
 	return results, nil

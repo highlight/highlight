@@ -173,11 +173,6 @@ func processMetricAlert(ctx context.Context, DB *gorm.DB, MailClient *sendgrid.C
 		thresholdWindow = time.Duration(*alert.ThresholdWindow) * time.Second
 	}
 
-	belowThreshold := false
-	if alert.BelowThreshold != nil {
-		belowThreshold = *alert.BelowThreshold
-	}
-
 	var thresholdValue float64
 	if alert.ThresholdValue != nil {
 		thresholdValue = *alert.ThresholdValue
@@ -188,45 +183,73 @@ func processMetricAlert(ctx context.Context, DB *gorm.DB, MailClient *sendgrid.C
 		groupByKey = groupBy[0]
 	}
 
+	bucketsInner := buckets.Buckets
+
 	stateChanges := []modelInputs.AlertStateChange{}
 	if saveMetricState {
-		results, err := ccClient.AggregateMetricStates(ctx, alert.MetricId, curDate, thresholdWindow, alert.FunctionType)
+		var windowSeconds *int
+		if alert.ThresholdType == modelInputs.ThresholdTypeAnomaly {
+			windowSeconds = alert.ThresholdWindow
+		}
+
+		bucketsInner, err = ccClient.AggregateMetricStates(ctx, alert.MetricId, curDate, thresholdWindow, alert.FunctionType, windowSeconds)
 		if err != nil {
 			return err
 		}
-		for _, result := range results {
-			alertCondition := result.Value >= thresholdValue
-			if belowThreshold {
-				alertCondition = result.Value <= thresholdValue
+
+		if alert.ThresholdType == modelInputs.ThresholdTypeAnomaly && alert.ThresholdWindow != nil {
+			if err := lambdaClient.AddPredictions(ctx, bucketsInner, modelInputs.PredictionSettings{
+				ChangepointPriorScale: .25,
+				IntervalWidth:         thresholdValue,
+				ThresholdCondition:    alert.ThresholdCondition,
+				IntervalSeconds:       *alert.ThresholdWindow,
+			}); err != nil {
+				return err
 			}
 
-			alertStateChange := getAlertStateChange(curDate, alertCondition, alert.ID, result.GroupByKey, lastAlerts, cooldown)
+			maxId := lo.Max(lo.Map(bucketsInner, func(bucket *modelInputs.MetricBucket, _ int) uint64 { return bucket.BucketID }))
 
-			if alertStateChange.State == modelInputs.AlertStateAlerting {
-				alertsV2.SendAlerts(ctx, DB, MailClient, lambdaClient, alert, groupByKey, result.GroupByKey, result.Value)
+			// Only interested in the last bucket
+			newBuckets := []*modelInputs.MetricBucket{}
+			for _, bucket := range bucketsInner {
+				if bucket.BucketID == maxId {
+					newBuckets = append(newBuckets, bucket)
+				}
 			}
-
-			stateChanges = append(stateChanges, alertStateChange)
+			bucketsInner = newBuckets
 		}
-	} else {
-		for _, bucket := range buckets.Buckets {
-			value := 0.0
-			if bucket.MetricValue != nil {
-				value = *bucket.MetricValue
-			}
-			alertCondition := value >= thresholdValue
-			if belowThreshold {
-				alertCondition = value <= thresholdValue
-			}
 
-			alertStateChange := getAlertStateChange(curDate, alertCondition, alert.ID, strings.Join(bucket.Group, "."), lastAlerts, cooldown)
+	}
 
-			if alertStateChange.State == modelInputs.AlertStateAlerting {
-				alertsV2.SendAlerts(ctx, DB, MailClient, lambdaClient, alert, groupByKey, bucket.Group[0], value)
-			}
-
-			stateChanges = append(stateChanges, alertStateChange)
+	for _, bucket := range bucketsInner {
+		if bucket.MetricValue == nil {
+			continue
 		}
+
+		alertCondition := false
+		if alert.ThresholdType == modelInputs.ThresholdTypeConstant {
+			if alert.ThresholdCondition == modelInputs.ThresholdConditionAbove {
+				alertCondition = *bucket.MetricValue >= thresholdValue
+			} else if alert.ThresholdCondition == modelInputs.ThresholdConditionBelow {
+				alertCondition = *bucket.MetricValue <= thresholdValue
+			}
+		} else if alert.ThresholdType == modelInputs.ThresholdTypeAnomaly {
+			if alert.ThresholdCondition == modelInputs.ThresholdConditionAbove && bucket.YhatUpper != nil {
+				alertCondition = *bucket.MetricValue >= *bucket.YhatUpper
+			} else if alert.ThresholdCondition == modelInputs.ThresholdConditionBelow && bucket.YhatLower != nil {
+				alertCondition = *bucket.MetricValue <= *bucket.YhatLower
+			} else if alert.ThresholdCondition == modelInputs.ThresholdConditionOutside && bucket.YhatUpper != nil && bucket.YhatLower != nil {
+				alertCondition = *bucket.MetricValue >= *bucket.YhatUpper || *bucket.MetricValue <= *bucket.YhatLower
+			}
+		}
+
+		alertStateChange := getAlertStateChange(curDate, alertCondition, alert.ID, strings.Join(bucket.Group, ""), lastAlerts, cooldown)
+
+		if alertStateChange.State == modelInputs.AlertStateAlerting {
+			alertsV2.SendAlerts(ctx, DB, MailClient, lambdaClient, alert, groupByKey, strings.Join(bucket.Group, ""), *bucket.MetricValue)
+		}
+
+		stateChanges = append(stateChanges, alertStateChange)
 	}
 
 	if err := ccClient.WriteAlertStateChanges(ctx, alert.ProjectID, stateChanges); err != nil {

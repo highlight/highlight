@@ -1407,6 +1407,7 @@ input PredictionSettings {
 	changepointPriorScale: Float!
 	intervalWidth: Float!
 	thresholdCondition: ThresholdCondition!
+	intervalSeconds: Int!
 }
 
 type User {

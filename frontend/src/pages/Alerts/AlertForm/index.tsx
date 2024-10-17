@@ -625,7 +625,7 @@ export const AlertForm: React.FC = () => {
 									<Divider className="m-0" />
 									<SidebarSection>
 										<LabeledRow
-											label="Alert type"
+											label="Alert threshold type"
 											name="alertType"
 										>
 											<OptionDropdown<ThresholdType>

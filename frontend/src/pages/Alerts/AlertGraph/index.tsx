@@ -138,6 +138,7 @@ export const AlertGraph: React.FC<Props> = ({
 										changepointPriorScale: 0.25,
 										intervalWidth: thresholdValue,
 										thresholdCondition,
+										intervalSeconds: thresholdWindow,
 									}
 								: undefined
 						}

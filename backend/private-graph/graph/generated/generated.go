@@ -13101,6 +13101,7 @@ input PredictionSettings {
 	changepointPriorScale: Float!
 	intervalWidth: Float!
 	thresholdCondition: ThresholdCondition!
+	intervalSeconds: Int!
 }
 
 type User {
@@ -84861,7 +84862,7 @@ func (ec *executionContext) unmarshalInputPredictionSettings(ctx context.Context
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"changepointPriorScale", "intervalWidth", "thresholdCondition"}
+	fieldsInOrder := [...]string{"changepointPriorScale", "intervalWidth", "thresholdCondition", "intervalSeconds"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -84889,6 +84890,13 @@ func (ec *executionContext) unmarshalInputPredictionSettings(ctx context.Context
 				return it, err
 			}
 			it.ThresholdCondition = data
+		case "intervalSeconds":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("intervalSeconds"))
+			data, err := ec.unmarshalNInt2int(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.IntervalSeconds = data
 		}
 	}
 

@@ -11,6 +11,8 @@ import (
 	"time"
 
 	"github.com/highlight-run/highlight/backend/env"
+	"github.com/samber/lo"
+	"go.openly.dev/pointy"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	v4 "github.com/aws/aws-sdk-go-v2/aws/signer/v4"
@@ -133,13 +135,14 @@ func (s *Client) GetActivityGraph(ctx context.Context, eventCounts string) (*htt
 }
 
 type PredictionDataFrame struct {
-	DS []string  `json:"ds"`
-	Y  []float64 `json:"y"`
+	DS map[uint64]string  `json:"ds"`
+	Y  map[uint64]float64 `json:"y"`
 }
 
 type PredictionInput struct {
 	ChangepointPriorScale float64             `json:"changepoint_prior_scale"`
 	IntervalWidth         float64             `json:"interval_width"`
+	IntervalSeconds       int                 `json:"interval_seconds"`
 	Input                 PredictionDataFrame `json:"input"`
 }
 
@@ -150,47 +153,75 @@ type PredictionResult struct {
 	YHatUpper map[uint64]float64 `json:"yhat_upper"`
 }
 
-func (s *Client) GetPredictions(ctx context.Context, ds []string, y []float64, changepointPriorScale float64, intervalWidth float64) (*PredictionResult, error) {
-	url := "https://3yoqbhxpfya5u23dbwwqgwspoy0bvskg.lambda-url.us-east-2.on.aws"
-	log.WithContext(ctx).Infof("requesting prediction for %s", url)
-
-	marshaled, err := json.Marshal(PredictionInput{
-		ChangepointPriorScale: changepointPriorScale,
-		IntervalWidth:         intervalWidth,
-		Input: PredictionDataFrame{
-			DS: ds,
-			Y:  y,
-		},
+func (s *Client) AddPredictions(ctx context.Context, metricBuckets []*modelInputs.MetricBucket, settings modelInputs.PredictionSettings) error {
+	// Partition all buckets by group, then get a prediction for each group
+	partitioned := lo.PartitionBy(metricBuckets, func(bucket *modelInputs.MetricBucket) string {
+		return strings.Join(bucket.Group, ",")
 	})
-	if err != nil {
-		return nil, err
+
+	for _, buckets := range partitioned {
+		y := map[uint64]float64{}
+		ds := map[uint64]string{}
+		for _, b := range buckets {
+			var value float64
+			if b.MetricValue != nil {
+				value = *b.MetricValue
+			}
+			y[b.BucketID] = value
+			ds[b.BucketID] = time.Unix(int64((b.BucketMax+b.BucketMin)/2), 0).Format("2006-01-02T15:04:05")
+		}
+
+		url := "http://127.0.0.1:5001"
+		log.WithContext(ctx).Infof("requesting prediction for %s", url)
+
+		marshaled, err := json.Marshal(PredictionInput{
+			ChangepointPriorScale: settings.ChangepointPriorScale,
+			IntervalWidth:         settings.IntervalWidth,
+			IntervalSeconds:       settings.IntervalSeconds,
+			Input: PredictionDataFrame{
+				DS: ds,
+				Y:  y,
+			},
+		})
+		if err != nil {
+			return err
+		}
+
+		req, _ := http.NewRequest(http.MethodPost, url, bytes.NewReader(marshaled))
+		req = req.WithContext(ctx)
+		req.Header = http.Header{
+			"Content-Type": []string{"application/json"},
+		}
+
+		resp, err := s.HTTPClient.Do(req)
+		if err != nil {
+			return err
+		}
+		if resp.StatusCode != 200 {
+			return errors.New(fmt.Sprintf("prediction returned %d", resp.StatusCode))
+		}
+
+		b, err := io.ReadAll(resp.Body)
+		if err != nil {
+			return err
+		}
+
+		var result PredictionResult
+		if err = json.Unmarshal(b, &result); err != nil {
+			return err
+		}
+
+		for _, b := range buckets {
+			if settings.ThresholdCondition != modelInputs.ThresholdConditionBelow {
+				b.YhatUpper = pointy.Float64(result.YHatUpper[b.BucketID])
+			}
+			if settings.ThresholdCondition != modelInputs.ThresholdConditionAbove {
+				b.YhatLower = pointy.Float64(result.YHatLower[b.BucketID])
+			}
+		}
 	}
 
-	req, _ := http.NewRequest(http.MethodPost, url, bytes.NewReader(marshaled))
-	req = req.WithContext(ctx)
-	req.Header = http.Header{
-		"Content-Type": []string{"application/json"},
-	}
-
-	resp, err := s.HTTPClient.Do(req)
-	if err != nil {
-		return nil, err
-	}
-	if resp.StatusCode != 200 {
-		return nil, errors.New(fmt.Sprintf("prediction returned %d", resp.StatusCode))
-	}
-
-	b, err := io.ReadAll(resp.Body)
-	if err != nil {
-		return nil, err
-	}
-
-	var result PredictionResult
-	if err = json.Unmarshal(b, &result); err != nil {
-		return nil, err
-	}
-
-	return &result, nil
+	return nil
 }
 
 func (s *Client) GetSessionInsight(ctx context.Context, projectID int, sessionID int) (*http.Response, error) {
