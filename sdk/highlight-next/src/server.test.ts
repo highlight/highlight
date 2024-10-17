@@ -19,22 +19,6 @@ import {
 	expect,
 } from 'vitest'
 
-vi.mock('pg', () => {
-	const pgClient = {
-		connect: jest.fn(),
-		query: jest.fn(),
-		end: jest.fn(),
-	}
-
-	pgClient.query.mockResolvedValue({
-		rows: [{ message: 'Hello world!' }],
-	})
-
-	return {
-		Client: jest.fn().mockImplementation(() => pgClient),
-	}
-})
-
 const SESSION_ID = '123456'
 const TRACE_ID = '78910'
 const NEXT_PORT = 3010
