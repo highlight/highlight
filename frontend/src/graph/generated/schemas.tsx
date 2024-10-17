@@ -768,6 +768,7 @@ export type Graph = {
 	bucketByKey?: Maybe<Scalars['String']>
 	bucketCount?: Maybe<Scalars['Int']>
 	bucketInterval?: Maybe<Scalars['Int']>
+	description: Scalars['String']
 	display?: Maybe<Scalars['String']>
 	functionType: MetricAggregator
 	funnelSteps?: Maybe<Array<FunnelStep>>
@@ -2111,6 +2112,7 @@ export type Query = {
 	github_repos?: Maybe<Array<GitHubRepo>>
 	gitlab_projects?: Maybe<Array<GitlabProject>>
 	graph: Graph
+	graph_templates: Array<Graph>
 	height_lists: Array<HeightList>
 	height_workspaces: Array<HeightWorkspace>
 	identifier_suggestion: Array<Scalars['String']>

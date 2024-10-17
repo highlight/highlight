@@ -7,11 +7,13 @@ import * as style from './styles.css'
 type Props = {
 	funnelDisplay: FunnelDisplay
 	setFunnelDisplay: (option: FunnelDisplay) => void
+	disabled?: boolean
 }
 
 export const FunnelChartSettings: React.FC<Props> = ({
 	funnelDisplay,
 	setFunnelDisplay,
+	disabled,
 }) => (
 	<>
 		<LabeledRow
@@ -26,6 +28,7 @@ export const FunnelChartSettings: React.FC<Props> = ({
 					setFunnelDisplay(o as FunnelDisplay)
 				}}
 				cssClass={style.tagSwitch}
+				disabled={disabled}
 			/>
 		</LabeledRow>
 	</>

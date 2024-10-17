@@ -9648,6 +9648,16 @@ func (r *queryResolver) Graph(ctx context.Context, id int) (*model.Graph, error)
 	return &graph, nil
 }
 
+// GraphTemplates is the resolver for the graph_templates field.
+func (r *queryResolver) GraphTemplates(ctx context.Context) ([]*model.Graph, error) {
+	var graphs []*model.Graph
+	if err := r.DB.WithContext(ctx).Model(&graphs).Where("visualization_id = -1").Find(&graphs).Error; err != nil {
+		return nil, err
+	}
+
+	return graphs, nil
+}
+
 // LogLines is the resolver for the log_lines field.
 func (r *queryResolver) LogLines(ctx context.Context, productType modelInputs.ProductType, projectID int, params modelInputs.QueryInput) ([]*modelInputs.LogLine, error) {
 	project, err := r.isUserInProjectOrDemoProject(ctx, projectID)

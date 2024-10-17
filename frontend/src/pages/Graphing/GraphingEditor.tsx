@@ -37,6 +37,7 @@ import {
 	GraphInput,
 	MetricAggregator,
 	ProductType,
+	Graph as GraphType,
 } from '@/graph/generated/schemas'
 import useFeatureFlag, { Feature } from '@/hooks/useFeatureFlag/useFeatureFlag'
 import { useProjectId } from '@/hooks/useProjectId'
@@ -90,6 +91,7 @@ import {
 } from '@pages/Graphing/util'
 import { useGraphData } from '@pages/Graphing/hooks/useGraphData'
 import { GraphContextProvider } from './context/GraphContext'
+import TemplateMenu from '@/pages/Graphing/TemplateMenu'
 
 type BucketBy = 'None' | 'Interval' | 'Count'
 const BUCKET_BY_OPTIONS: BucketBy[] = ['None', 'Interval', 'Count']
@@ -343,6 +345,41 @@ export const GraphingEditor: React.FC = () => {
 			.catch(() => toast.error('Failed to delete metric view'))
 	}
 
+	const applyGraph = (g: GraphType) => {
+		const viewType = g.type as View
+		setProductType(g.productType)
+		setViewType(viewType)
+		setFunctionType(g.functionType)
+
+		if (viewType === 'Line chart') {
+			setLineNullHandling(g.nullHandling as LineNullHandling)
+			setLineDisplay(g.display as LineDisplay)
+		} else if (viewType === 'Bar chart') {
+			setBarDisplay(g.display as BarDisplay)
+		} else if (viewType === 'Funnel chart') {
+			setFunnelDisplay(g.display as FunnelDisplay)
+		} else if (viewType === 'Table') {
+			setTableNullHandling(g.nullHandling as TableNullHandling)
+		}
+
+		setQuery(g.query)
+		setDebouncedQuery(g.query)
+		setMetric(g.metric)
+		setMetricViewTitle(g.title)
+		setGroupByEnabled((g.groupByKeys ?? []).length > 0)
+		setGroupByKeys(g.groupByKeys ?? [])
+		setLimitFunctionType(g.limitFunctionType ?? FUNCTION_TYPES[0])
+		setLimit(g.limit ?? 10)
+		setLimitMetric(g.limitMetric ?? '')
+		setFunnelSteps((g.funnelSteps ?? []).map(loadFunnelStep))
+		setBucketByKey(g.bucketByKey ?? '')
+		setBucketCount(g.bucketCount ?? DEFAULT_BUCKET_COUNT)
+		setBucketInterval(g.bucketInterval ?? DEFAULT_BUCKET_INTERVAL)
+		setBucketBySetting(
+			g.bucketInterval ? 'Interval' : g.bucketCount ? 'Count' : 'None',
+		)
+	}
+
 	useGetVisualizationQuery({
 		variables: {
 			id: dashboard_id!,
@@ -355,42 +392,7 @@ export const GraphingEditor: React.FC = () => {
 				return
 			}
 
-			const viewType = g.type as View
-			setProductType(g.productType)
-			setViewType(viewType)
-			setFunctionType(g.functionType)
-
-			if (viewType === 'Line chart') {
-				setLineNullHandling(g.nullHandling as LineNullHandling)
-				setLineDisplay(g.display as LineDisplay)
-			} else if (viewType === 'Bar chart') {
-				setBarDisplay(g.display as BarDisplay)
-			} else if (viewType === 'Funnel chart') {
-				setFunnelDisplay(g.display as FunnelDisplay)
-			} else if (viewType === 'Table') {
-				setTableNullHandling(g.nullHandling as TableNullHandling)
-			}
-
-			setQuery(g.query)
-			setDebouncedQuery(g.query)
-			setMetric(g.metric)
-			setMetricViewTitle(g.title)
-			setGroupByEnabled((g.groupByKeys ?? []).length > 0)
-			setGroupByKeys(g.groupByKeys ?? [])
-			setLimitFunctionType(g.limitFunctionType ?? FUNCTION_TYPES[0])
-			setLimit(g.limit ?? 10)
-			setLimitMetric(g.limitMetric ?? '')
-			setFunnelSteps((g.funnelSteps ?? []).map(loadFunnelStep))
-			setBucketByKey(g.bucketByKey ?? '')
-			setBucketCount(g.bucketCount ?? DEFAULT_BUCKET_COUNT)
-			setBucketInterval(g.bucketInterval ?? DEFAULT_BUCKET_INTERVAL)
-			setBucketBySetting(
-				g.bucketInterval
-					? 'Interval'
-					: g.bucketCount
-						? 'Count'
-						: 'None',
-			)
+			applyGraph(g)
 		},
 	})
 
@@ -514,6 +516,84 @@ export const GraphingEditor: React.FC = () => {
 		return `$${key}`
 	})
 
+	const [graphPreview, setGraphPreview] = useState<GraphType | undefined>(
+		undefined,
+	)
+	const isPreview = graphPreview !== undefined
+
+	const settings = {
+		productType,
+		viewType,
+		functionType,
+		lineNullHandling,
+		lineDisplay,
+		barDisplay,
+		funnelDisplay,
+		tableNullHandling,
+		query,
+		fetchedMetric,
+		metricViewTitle,
+		groupByEnabled,
+		groupByKeys,
+		limitFunctionType,
+		limit,
+		funnelSteps,
+		bucketByKey,
+		bucketCount,
+		bucketInterval,
+		bucketBySetting,
+		fetchedLimitMetric,
+	}
+
+	if (isPreview) {
+		const viewType = graphPreview.type as View
+
+		settings.productType = graphPreview.productType
+		settings.viewType = viewType
+		settings.functionType = graphPreview.functionType
+
+		if (viewType === 'Line chart') {
+			settings.lineNullHandling =
+				graphPreview.nullHandling as LineNullHandling
+			settings.lineDisplay = graphPreview.display as LineDisplay
+		} else if (viewType === 'Bar chart') {
+			settings.barDisplay = graphPreview.display as BarDisplay
+		} else if (viewType === 'Funnel chart') {
+			settings.funnelDisplay = graphPreview.display as FunnelDisplay
+		} else if (viewType === 'Table') {
+			settings.tableNullHandling =
+				graphPreview.nullHandling as TableNullHandling
+		}
+
+		settings.query = graphPreview.query
+		settings.fetchedMetric =
+			graphPreview.functionType === MetricAggregator.Count
+				? ''
+				: graphPreview.metric
+		settings.metricViewTitle = graphPreview.title
+		settings.groupByEnabled = (graphPreview.groupByKeys ?? []).length > 0
+		settings.groupByKeys = graphPreview.groupByKeys ?? []
+		settings.limitFunctionType =
+			graphPreview.limitFunctionType ?? FUNCTION_TYPES[0]
+		settings.limit = graphPreview.limit ?? 10
+		settings.fetchedLimitMetric =
+			graphPreview.limitFunctionType === MetricAggregator.Count
+				? ''
+				: (graphPreview.limitMetric ?? '')
+		settings.funnelSteps = (graphPreview.funnelSteps ?? []).map(
+			loadFunnelStep,
+		)
+		settings.bucketByKey = graphPreview.bucketByKey ?? '10'
+		settings.bucketCount = graphPreview.bucketCount ?? DEFAULT_BUCKET_COUNT
+		settings.bucketInterval =
+			graphPreview.bucketInterval ?? DEFAULT_BUCKET_INTERVAL
+		settings.bucketBySetting = graphPreview.bucketInterval
+			? 'Interval'
+			: graphPreview.bucketCount
+				? 'Count'
+				: 'None'
+	}
+
 	if (!completed) {
 		return null
 	}
@@ -555,6 +635,17 @@ export const GraphingEditor: React.FC = () => {
 							{isEdit ? 'Edit' : 'Create'} metric view
 						</Text>
 						<Box display="flex" gap="4">
+							<TemplateMenu
+								previewTemplate={(template) => {
+									setGraphPreview(template)
+								}}
+								applyTemplate={(template) => {
+									if (template !== undefined) {
+										applyGraph(template)
+									}
+								}}
+							/>
+							<HeaderDivider />
 							<DateRangePicker
 								iconLeft={<IconSolidClock size={14} />}
 								emphasis="medium"
@@ -569,6 +660,7 @@ export const GraphingEditor: React.FC = () => {
 								minDate={minDate}
 							/>
 							<HeaderDivider />
+
 							<Button
 								trackingId="MetricViewCancel"
 								emphasis="low"
@@ -686,13 +778,14 @@ export const GraphingEditor: React.FC = () => {
 													tempMetricViewTitle?.current ||
 													'Untitled metric view'
 												}
-												value={metricViewTitle}
+												value={settings.metricViewTitle}
 												onChange={(e) => {
 													setMetricViewTitle(
 														e.target.value,
 													)
 												}}
 												cssClass={style.input}
+												disabled={isPreview}
 											/>
 										</LabeledRow>
 									</SidebarSection>
@@ -713,6 +806,10 @@ export const GraphingEditor: React.FC = () => {
 												)}
 												selection={productType}
 												setSelection={setProductType}
+												previewSelection={
+													settings.productType
+												}
+												disabled={isPreview}
 											/>
 										</LabeledRow>
 									</SidebarSection>
@@ -736,57 +833,80 @@ export const GraphingEditor: React.FC = () => {
 												) => {
 													setViewType(option)
 												}}
+												previewSelection={
+													settings.viewType
+												}
+												disabled={isPreview}
 											/>
 										</LabeledRow>
-										{viewType === 'Line chart' && (
+										{settings.viewType === 'Line chart' && (
 											<LineChartSettings
-												nullHandling={lineNullHandling}
+												nullHandling={
+													settings.lineNullHandling
+												}
 												setNullHandling={
 													setLineNullHandling
 												}
-												lineDisplay={lineDisplay}
+												lineDisplay={
+													settings.lineDisplay
+												}
 												setLineDisplay={setLineDisplay}
+												disabled={isPreview}
 											/>
 										)}
-										{viewType === 'Bar chart' && (
+										{settings.viewType === 'Bar chart' && (
 											<BarChartSettings
-												barDisplay={barDisplay}
+												barDisplay={settings.barDisplay}
 												setBarDisplay={setBarDisplay}
+												disabled={isPreview}
 											/>
 										)}
-										{viewType === 'Funnel chart' && (
+										{settings.viewType ===
+											'Funnel chart' && (
 											<FunnelChartSettings
-												funnelDisplay={funnelDisplay}
+												funnelDisplay={
+													settings.funnelDisplay
+												}
 												setFunnelDisplay={
 													setFunnelDisplay
 												}
+												disabled={isPreview}
 											/>
 										)}
-										{viewType === 'Table' && (
+										{settings.viewType === 'Table' && (
 											<TableSettings
-												nullHandling={tableNullHandling}
+												nullHandling={
+													settings.tableNullHandling
+												}
 												setNullHandling={
 													setTableNullHandling
 												}
+												disabled={isPreview}
 											/>
 										)}
 									</SidebarSection>
 									<Divider className="m-0" />
 									<SidebarSection>
-										{productType === ProductType.Events ? (
-											viewType === 'Funnel chart' ? (
+										{settings.productType ===
+										ProductType.Events ? (
+											settings.viewType ===
+											'Funnel chart' ? (
 												<EventSteps
-													steps={funnelSteps}
+													steps={settings.funnelSteps}
 													setSteps={setFunnelSteps}
 													startDate={startDate}
 													endDate={endDate}
+													// disabled={isPreview}
 												/>
 											) : (
 												<EventSelection
-													initialQuery={query}
+													initialQuery={
+														settings.query
+													}
 													setQuery={setQuery}
 													startDate={startDate}
 													endDate={endDate}
+													// disabled={isPreview}
 												/>
 											)
 										) : (
@@ -801,8 +921,11 @@ export const GraphingEditor: React.FC = () => {
 													borderRadius="6"
 												>
 													<SearchContext
-														initialQuery={query}
+														initialQuery={
+															settings.query
+														}
 														onSubmit={setQuery}
+														disabled={isPreview}
 													>
 														<Search
 															startDate={
@@ -842,7 +965,12 @@ export const GraphingEditor: React.FC = () => {
 												selection={functionType}
 												setSelection={setFunctionType}
 												disabled={
-													viewType === 'Funnel chart'
+													settings.viewType ===
+														'Funnel chart' ||
+													isPreview
+												}
+												previewSelection={
+													settings.functionType
 												}
 											/>
 											<Combobox
@@ -852,30 +980,36 @@ export const GraphingEditor: React.FC = () => {
 													searchOptionsConfig
 												}
 												disabled={
-													functionType ===
+													settings.functionType ===
 														MetricAggregator.Count ||
-													viewType === 'Funnel chart'
+													settings.viewType ===
+														'Funnel chart' ||
+													isPreview
 												}
 												onlyNumericKeys={
-													functionType !==
+													settings.functionType !==
 													MetricAggregator.CountDistinct
 												}
 												defaultKeys={variableKeys}
 												placeholder={
-													functionType ===
+													settings.functionType ===
 													MetricAggregator.Count
 														? 'Rows'
 														: undefined
+												}
+												previewSelection={
+													settings.fetchedMetric
 												}
 											/>
 										</LabeledRow>
 										<LabeledRow
 											label="Group by"
 											name="groupBy"
-											enabled={groupByEnabled}
+											enabled={settings.groupByEnabled}
 											setEnabled={setGroupByEnabled}
 											disabled={
-												viewType === 'Funnel chart'
+												settings.viewType ===
+													'Funnel chart' || isPreview
 											}
 											tooltip="A categorical field for grouping results into separate series."
 										>
@@ -887,11 +1021,16 @@ export const GraphingEditor: React.FC = () => {
 												}
 												defaultKeys={variableKeys}
 												disabled={
-													viewType === 'Funnel chart'
+													settings.viewType ===
+														'Funnel chart' ||
+													isPreview
+												}
+												previewSelection={
+													settings.groupByKeys
 												}
 											/>
 										</LabeledRow>
-										{groupByEnabled && (
+										{settings.groupByEnabled && (
 											<Box
 												display="flex"
 												flexDirection="row"
@@ -906,7 +1045,7 @@ export const GraphingEditor: React.FC = () => {
 														type="number"
 														name="limit"
 														placeholder="Enter limit"
-														value={limit}
+														value={settings.limit}
 														onChange={(e) => {
 															const value =
 																Math.min(
@@ -922,6 +1061,7 @@ export const GraphingEditor: React.FC = () => {
 															setLimit(value)
 														}}
 														cssClass={style.input}
+														disabled={isPreview}
 													/>
 												</LabeledRow>
 												<LabeledRow
@@ -937,6 +1077,10 @@ export const GraphingEditor: React.FC = () => {
 														setSelection={
 															setLimitFunctionType
 														}
+														previewSelection={
+															settings.limitFunctionType
+														}
+														disabled={isPreview}
 													/>
 													<Combobox
 														selection={
@@ -949,18 +1093,22 @@ export const GraphingEditor: React.FC = () => {
 															searchOptionsConfig
 														}
 														disabled={
-															limitFunctionType ===
-															MetricAggregator.Count
+															settings.limitFunctionType ===
+																MetricAggregator.Count ||
+															isPreview
 														}
 														onlyNumericKeys
 														defaultKeys={
 															variableKeys
 														}
 														placeholder={
-															limitFunctionType ===
+															settings.limitFunctionType ===
 															MetricAggregator.Count
 																? 'Rows'
 																: undefined
+														}
+														previewSelection={
+															settings.fetchedLimitMetric
 														}
 													/>
 												</LabeledRow>
@@ -969,7 +1117,8 @@ export const GraphingEditor: React.FC = () => {
 									</SidebarSection>
 									<Divider className="m-0" />
 									<SidebarSection>
-										{viewType === 'Funnel chart' ? null : (
+										{settings.viewType ===
+										'Funnel chart' ? null : (
 											<LabeledRow
 												label="Bucket by"
 												name="bucketBy"
@@ -978,7 +1127,7 @@ export const GraphingEditor: React.FC = () => {
 												<TagSwitchGroup
 													options={BUCKET_BY_OPTIONS}
 													defaultValue={
-														bucketBySetting
+														settings.bucketBySetting
 													}
 													onChange={(
 														o: string | number,
@@ -988,10 +1137,12 @@ export const GraphingEditor: React.FC = () => {
 														)
 													}}
 													cssClass={style.tagSwitch}
+													disabled={isPreview}
 												/>
 											</LabeledRow>
 										)}
-										{bucketBySetting === 'Count' && (
+										{settings.bucketBySetting ===
+											'Count' && (
 											<>
 												<LabeledRow
 													label="Bucket field"
@@ -1011,6 +1162,10 @@ export const GraphingEditor: React.FC = () => {
 															...variableKeys,
 														]}
 														onlyNumericKeys
+														previewSelection={
+															settings.bucketByKey
+														}
+														disabled={isPreview}
 													/>
 												</LabeledRow>
 												<LabeledRow
@@ -1022,7 +1177,9 @@ export const GraphingEditor: React.FC = () => {
 														type="number"
 														name="bucketCount"
 														placeholder="Enter bucket count"
-														value={bucketCount}
+														value={
+															settings.bucketCount
+														}
 														onChange={(e) => {
 															const newValue =
 																Math.min(
@@ -1038,11 +1195,13 @@ export const GraphingEditor: React.FC = () => {
 															)
 														}}
 														cssClass={style.input}
+														disabled={isPreview}
 													/>
 												</LabeledRow>
 											</>
 										)}
-										{bucketBySetting === 'Interval' && (
+										{settings.bucketBySetting ===
+											'Interval' && (
 											<LabeledRow
 												label="Bucket interval"
 												name="bucketInterval"
@@ -1050,12 +1209,15 @@ export const GraphingEditor: React.FC = () => {
 											>
 												<Select
 													options={BUCKET_FREQUENCIES}
-													value={bucketInterval}
+													value={
+														settings.bucketInterval
+													}
 													onValueChange={(o) => {
 														setBucketInterval(
 															o.value,
 														)
 													}}
+													disabled={isPreview}
 												/>
 											</LabeledRow>
 										)}
