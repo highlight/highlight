@@ -6,9 +6,12 @@ import {
 	DateRangePicker,
 	DEFAULT_TIME_PRESETS,
 	Form,
+	IconSolidBell,
+	IconSolidCheveronRight,
 	Input,
 	presetStartDate,
 	Stack,
+	Tag,
 	Text,
 } from '@highlight-run/ui/components'
 import { useParams } from '@util/react-router/useParams'
@@ -197,6 +200,10 @@ export const AlertForm: React.FC = () => {
 		navigate(`/${projectId}/alerts/${alert_id}`)
 	}
 
+	const redirectToAlerts = () => {
+		navigate(`/${projectId}/alerts`)
+	}
+
 	const onSave = () => {
 		const formVariables = {
 			project_id: projectId,
@@ -349,9 +356,27 @@ export const AlertForm: React.FC = () => {
 						paddingRight="8"
 						py="6"
 					>
-						<Text size="small" weight="medium">
-							{isEdit ? 'Edit' : 'Create'} alert
-						</Text>
+						<Box
+							alignItems="center"
+							display="flex"
+							gap="4"
+							color="weak"
+							flexWrap="nowrap"
+						>
+							<Tag
+								shape="basic"
+								kind="secondary"
+								lines="1"
+								iconLeft={<IconSolidBell />}
+								onClick={redirectToAlerts}
+							>
+								Alerts
+							</Tag>
+							<IconSolidCheveronRight />
+							<Text size="small" weight="medium" color="default">
+								{isEdit ? 'Edit' : 'Create'} alert
+							</Text>
+						</Box>
 						<Box display="flex" gap="4">
 							<DateRangePicker
 								emphasis="low"
