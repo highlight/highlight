@@ -141,6 +141,7 @@ export type Alert = {
 	metric_id: Scalars['String']
 	name: Scalars['String']
 	product_type: ProductType
+	project_id: Scalars['ID']
 	query?: Maybe<Scalars['String']>
 	threshold_cooldown?: Maybe<Scalars['Int']>
 	threshold_value?: Maybe<Scalars['Float']>
@@ -182,13 +183,18 @@ export enum AlertState {
 
 export type AlertStateChange = {
 	__typename?: 'AlertStateChange'
-	AlertID: Scalars['ID']
-	GroupByKey: Scalars['String']
-	PreviousState: AlertState
-	State: AlertState
-	Title: Scalars['String']
+	alertID: Scalars['ID']
+	groupByKey: Scalars['String']
 	id: Scalars['ID']
+	projectID: Scalars['ID']
+	state: AlertState
 	timestamp: Scalars['Timestamp']
+}
+
+export type AlertStateChangeResults = {
+	__typename?: 'AlertStateChangeResults'
+	alertStateChanges: Array<Maybe<AlertStateChange>>
+	totalCount: Scalars['Int64']
 }
 
 export type AllProjectSettings = {
@@ -2054,7 +2060,7 @@ export type Query = {
 	admin_role_by_project?: Maybe<WorkspaceAdminRole>
 	ai_query_suggestion: QueryOutput
 	alert: Alert
-	alert_state_changes: Array<Maybe<AlertStateChange>>
+	alerting_alert_state_changes: AlertStateChangeResults
 	alerts: Array<Maybe<Alert>>
 	api_key_to_org_id?: Maybe<Scalars['ID']>
 	averageSessionLength?: Maybe<AverageSessionLength>
@@ -2123,6 +2129,7 @@ export type Query = {
 	joinable_workspaces?: Maybe<Array<Maybe<Workspace>>>
 	key_values: Array<Scalars['String']>
 	keys: Array<QueryKey>
+	last_alert_state_changes: Array<Maybe<AlertStateChange>>
 	linear_teams?: Maybe<Array<LinearTeam>>
 	liveUsersCount?: Maybe<Scalars['Int64']>
 	log_alert: LogAlert
@@ -2242,8 +2249,12 @@ export type QueryAlertArgs = {
 	id: Scalars['ID']
 }
 
-export type QueryAlert_State_ChangesArgs = {
+export type QueryAlerting_Alert_State_ChangesArgs = {
 	alert_id: Scalars['ID']
+	count?: InputMaybe<Scalars['Int']>
+	end_date: Scalars['Timestamp']
+	page?: InputMaybe<Scalars['Int']>
+	start_date: Scalars['Timestamp']
 }
 
 export type QueryAlertsArgs = {
@@ -2593,6 +2604,10 @@ export type QueryKeysArgs = {
 	project_id: Scalars['ID']
 	query?: InputMaybe<Scalars['String']>
 	type?: InputMaybe<KeyType>
+}
+
+export type QueryLast_Alert_State_ChangesArgs = {
+	alert_id: Scalars['ID']
 }
 
 export type QueryLinear_TeamsArgs = {

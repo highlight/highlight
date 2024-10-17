@@ -11,33 +11,6 @@ import Graph, {
 
 import * as style from './styles.css'
 
-const EditorBackground = () => {
-	return (
-		<svg width="100%" height="100%">
-			<defs>
-				<pattern
-					id="polka-dots"
-					x="0"
-					y="0"
-					width="14"
-					height="14"
-					patternUnits="userSpaceOnUse"
-				>
-					<circle fill="#e4e2e4" cx="7" cy="7" r="1" />
-				</pattern>
-			</defs>
-
-			<rect
-				x="0"
-				y="0"
-				width="100%"
-				height="100%"
-				fill="url(#polka-dots)"
-			/>
-		</svg>
-	)
-}
-
 type Props = {
 	alertName: string
 	query: string
@@ -77,75 +50,56 @@ export const AlertGraph: React.FC<Props> = ({
 		: getViewConfig('Line chart', 'Line', 'Zero')
 
 	return (
-		<Box
-			display="flex"
-			position="relative"
-			height="full"
-			cssClass={style.previewWindow}
-		>
+		<Box cssClass={style.graphWrapper} shadow="small">
 			<Box
-				position="absolute"
+				px="16"
+				py="12"
 				width="full"
 				height="full"
-				cssClass={style.graphBackground}
+				border="divider"
+				borderRadius="8"
 			>
-				<EditorBackground />
-			</Box>
-
-			<Box cssClass={style.graphWrapper} shadow="small">
-				<Box
-					px="16"
-					py="12"
-					width="full"
-					height="full"
-					border="divider"
-					borderRadius="8"
+				<Graph
+					title={alertName || 'Untitled alert'}
+					viewConfig={viewConfig}
+					productType={productType}
+					projectId={projectId}
+					startDate={startDate}
+					selectedPreset={selectedPreset}
+					endDate={endDate}
+					query={query}
+					metric={functionColumn}
+					functionType={functionType}
+					groupByKeys={
+						sessionsProduct ? undefined : [groupByKey ?? '']
+					}
+					setTimeRange={updateSearchTime}
+					bucketByKey="Timestamp"
+					bucketCount={sessionsProduct ? 50 : undefined}
+					bucketByWindow={
+						sessionsProduct ? undefined : thresholdWindow
+					}
 				>
-					<Graph
-						title={alertName || 'Untitled alert'}
-						viewConfig={viewConfig}
-						productType={productType}
-						projectId={projectId}
-						startDate={startDate}
-						selectedPreset={selectedPreset}
-						endDate={endDate}
-						query={query}
-						metric={functionColumn}
-						functionType={functionType}
-						groupByKeys={
-							sessionsProduct ? undefined : [groupByKey ?? '']
-						}
-						setTimeRange={updateSearchTime}
-						bucketByKey="Timestamp"
-						bucketCount={sessionsProduct ? 50 : undefined}
-						bucketByWindow={
-							sessionsProduct ? undefined : thresholdWindow
-						}
-					>
-						{!sessionsProduct && (
-							<>
-								<ReferenceLine
-									y={thresholdValue}
-									stroke="red"
+					{!sessionsProduct && (
+						<>
+							<ReferenceLine y={thresholdValue} stroke="red" />
+							{!belowThreshold && (
+								<ReferenceArea
+									y1={thresholdValue}
+									opacity={0.5}
+									isFront
 								/>
-								{!belowThreshold && (
-									<ReferenceArea
-										y1={thresholdValue}
-										opacity={0.5}
-										isFront
-									/>
-								)}
-								{belowThreshold && (
-									<ReferenceArea
-										y2={thresholdValue}
-										opacity={0.5}
-										isFront
-									/>
-								)}
-							</>
-						)}
-					</Graph>
-				</Box>
+							)}
+							{belowThreshold && (
+								<ReferenceArea
+									y2={thresholdValue}
+									opacity={0.5}
+									isFront
+								/>
+							)}
+						</>
+					)}
+				</Graph>
 			</Box>
 		</Box>
 	)
