@@ -159,7 +159,6 @@ function saveSearchQuery(
 		})
 		uniqueQueries.add(searchQuery) // Add to the Set as well
 	}
-	console.log('history', history)
 	// Limit the history length to MAX_HISTORY_LENGTH
 	if (history.length > MAX_HISTORY_LENGTH) {
 		history = history.slice(-MAX_HISTORY_LENGTH) // Keep the most recent queries
