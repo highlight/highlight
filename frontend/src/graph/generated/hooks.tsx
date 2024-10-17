@@ -7530,6 +7530,8 @@ export const GetSessionsDocument = gql`
 				email
 			}
 			totalCount
+			totalLength
+			totalActiveLength
 		}
 	}
 `

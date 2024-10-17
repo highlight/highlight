@@ -2394,7 +2394,7 @@ export type GetSessionsQueryVariables = Types.Exact<{
 export type GetSessionsQuery = { __typename?: 'Query' } & {
 	sessions: { __typename?: 'SessionResults' } & Pick<
 		Types.SessionResults,
-		'totalCount'
+		'totalCount' | 'totalLength' | 'totalActiveLength'
 	> & {
 			sessions: Array<
 				{ __typename?: 'Session' } & Pick<

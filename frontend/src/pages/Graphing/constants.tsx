@@ -13,7 +13,7 @@ import {
 } from '@/graph/generated/schemas'
 
 export const DEFAULT_BUCKET_COUNT = 50
-export const DEFAULT_BUCKET_INTERVAL = 300
+export const DEFAULT_BUCKET_INTERVAL = 60 * 60
 
 export const PRODUCT_OPTIONS = [
 	{

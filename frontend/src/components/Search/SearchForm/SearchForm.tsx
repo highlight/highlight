@@ -56,9 +56,7 @@ import {
 import { ProductType, SavedSegmentEntityType } from '@/graph/generated/schemas'
 import { useDebounce } from '@/hooks/useDebounce'
 import { useApplicationContext } from '@/routers/AppRouter/context/ApplicationContext'
-import { formatNumber } from '@/util/numbers'
 import { SearchEntry } from './hooks'
-
 import { AiSearch } from './AiSearch'
 import * as styles from './SearchForm.css'
 
@@ -116,7 +114,7 @@ export type SearchFormProps = {
 	savedSegmentType?: SavedSegmentEntityType
 	textAreaRef?: React.RefObject<HTMLTextAreaElement>
 	isPanelView?: boolean
-	resultCount?: number
+	resultFormatted?: string
 	loading?: boolean
 	creatables?: { [key: string]: Creatable }
 	enableAIMode?: boolean
@@ -138,7 +136,7 @@ const SearchForm: React.FC<SearchFormProps> = ({
 	savedSegmentType,
 	textAreaRef,
 	isPanelView,
-	resultCount,
+	resultFormatted,
 	loading,
 	creatables,
 	enableAIMode,
@@ -264,14 +262,11 @@ const SearchForm: React.FC<SearchFormProps> = ({
 									<Box display="flex" alignItems="center">
 										{loading ? (
 											<LoadingBox />
-										) : (
-											resultCount != null && (
-												<Text color="weak">
-													{formatNumber(resultCount)}{' '}
-													results
-												</Text>
-											)
-										)}
+										) : resultFormatted ? (
+											<Text color="weak">
+												{resultFormatted}
+											</Text>
+										) : null}
 									</Box>
 									{SegmentMenu}
 								</Stack>

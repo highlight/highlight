@@ -58,6 +58,7 @@ import {
 import * as style from './Graph.css'
 
 import { EventSelectionStep } from '@pages/Graphing/util'
+import { useGraphContext } from '../context/GraphContext'
 
 export type View = 'Line chart' | 'Bar chart' | 'Funnel chart' | 'Table'
 
@@ -111,6 +112,7 @@ export type ViewConfig =
 	| ListConfig
 
 export interface ChartProps<TConfig> {
+	id?: string
 	title: string
 	productType: ProductType
 	projectId: string
@@ -819,6 +821,7 @@ const Graph = ({
 	limitMetric,
 	funnelSteps,
 	title,
+	id,
 	viewConfig,
 	disabled,
 	height,
@@ -827,6 +830,7 @@ const Graph = ({
 	variables,
 	children,
 }: React.PropsWithChildren<ChartProps<ViewConfig>>) => {
+	const { setGraphData } = useGraphContext()
 	const queriedBucketCount = bucketByKey !== undefined ? bucketCount : 1
 
 	const pollTimeout = useRef<number>()
@@ -1059,10 +1063,19 @@ const Graph = ({
 	const graphData = useGraphData(results?.at(0), xAxisMetric)
 	const funnelData = useFunnelData(results, funnelSteps)
 	const data = viewConfig.type === 'Funnel chart' ? funnelData : graphData
-
 	const series = useGraphSeries(data, xAxisMetric)
 
 	const [spotlight, setSpotlight] = useState<number | undefined>()
+
+	useEffect(() => {
+		if (id && data) {
+			setGraphData((graphData) =>
+				graphData[id]?.length
+					? graphData
+					: { ...graphData, [id]: data },
+			)
+		}
+	}, [data, id, setGraphData])
 
 	// Reset spotlight when `series` is updated
 	useEffect(() => {
