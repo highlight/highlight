@@ -1,6 +1,7 @@
 import LoadingBox from '@components/LoadingBox'
 import { SearchEmptyState } from '@components/SearchEmptyState/SearchEmptyState'
 import { GetAlertsPagePayloadQuery } from '@graph/operations'
+import { Link } from 'react-router-dom'
 import {
 	Box,
 	Callout,
@@ -274,18 +275,26 @@ function AlertsPageLoaded({
 	const { project_id } = useParams<{ project_id: string }>()
 	const navigate = useNavigate()
 
-	const navigateToAlert = (record: any) => {
+	const getEditAlertLink = (record: any) => {
 		if (record.configuration.name === ALERT_NAMES['ALERT']) {
-			navigate(`/${project_id}/alerts/${record.id}/edit`)
+			return `/${project_id}/alerts/${record.id}/edit`
 		} else if (record.type === ALERT_NAMES['METRIC_MONITOR']) {
-			navigate(`/${project_id}/alerts/monitor/${record.id}`)
+			return `/${project_id}/alerts/monitor/${record.id}`
 		} else if (record.type === ALERT_NAMES['LOG_ALERT']) {
-			navigate(`/${project_id}/alerts/logs/${record.id}`)
+			return `/${project_id}/alerts/logs/${record.id}`
 		} else if (record.type === ALERT_NAMES['ERROR_ALERT']) {
-			navigate(`/${project_id}/alerts/errors/${record.id}`)
+			return `/${project_id}/alerts/errors/${record.id}`
 		} else {
-			navigate(`/${project_id}/alerts/session/${record.id}`)
+			return `/${project_id}/alerts/session/${record.id}`
 		}
+	}
+
+	const getAlertLink = (record: any) => {
+		if (record.configuration.name !== ALERT_NAMES['ALERT']) {
+			return null
+		}
+
+		return `/${project_id}/alerts/${record.id}`
 	}
 
 	const alertsAsTableRows = [
@@ -429,8 +438,9 @@ function AlertsPageLoaded({
 												<AlertRow
 													key={idx}
 													record={record}
-													navigateToAlert={
-														navigateToAlert
+													getAlertLink={getAlertLink}
+													getEditAlertLink={
+														getEditAlertLink
 													}
 												/>
 											),
@@ -456,10 +466,23 @@ function AlertsPageLoaded({
 
 type AlertRowProps = {
 	record: any
-	navigateToAlert: (record: any) => void
+	getAlertLink: (record: any) => string | null
+	getEditAlertLink: (record: any) => string
 }
 
-const AlertRow = ({ record, navigateToAlert }: AlertRowProps) => {
+const AlertRow = ({
+	record,
+	getAlertLink,
+	getEditAlertLink,
+}: AlertRowProps) => {
+	const navigate = useNavigate()
+	const alertLink = getAlertLink(record)
+
+	const naviageToEditAlert = () => {
+		const editAlertLink = getEditAlertLink(record)
+		navigate(editAlertLink)
+	}
+
 	return (
 		<Box
 			border="dividerWeak"
@@ -493,9 +516,21 @@ const AlertRow = ({ record, navigateToAlert }: AlertRowProps) => {
 					gap="8"
 				>
 					<Box display="flex" alignItems="center" gap="4">
-						<Text weight="medium" size="small" color="strong">
-							{record.name}
-						</Text>
+						{!!alertLink ? (
+							<Link to={alertLink}>
+								<Text
+									weight="medium"
+									size="small"
+									color="strong"
+								>
+									{record.name}
+								</Text>
+							</Link>
+						) : (
+							<Text weight="medium" size="small" color="strong">
+								{record.name}
+							</Text>
+						)}
 						<Tooltip
 							trigger={
 								<Tag
@@ -517,7 +552,7 @@ const AlertRow = ({ record, navigateToAlert }: AlertRowProps) => {
 							shape="basic"
 							emphasis="low"
 							iconRight={<IconSolidCheveronRight />}
-							onClick={() => navigateToAlert(record)}
+							onClick={naviageToEditAlert}
 						>
 							Configure
 						</Tag>
@@ -562,7 +597,7 @@ const AlertRow = ({ record, navigateToAlert }: AlertRowProps) => {
 										emphasis="medium"
 										disabled={record.disabled}
 										iconLeft={<RiSlackFill />}
-										onClick={() => navigateToAlert(record)}
+										onClick={naviageToEditAlert}
 									>
 										{channel.webhook_channel}
 									</Tag>
@@ -587,7 +622,7 @@ const AlertRow = ({ record, navigateToAlert }: AlertRowProps) => {
 												}
 											/>
 										}
-										onClick={() => navigateToAlert(record)}
+										onClick={naviageToEditAlert}
 									>
 										{channel.name}
 									</Tag>
@@ -612,7 +647,7 @@ const AlertRow = ({ record, navigateToAlert }: AlertRowProps) => {
 												}
 											/>
 										}
-										onClick={() => navigateToAlert(record)}
+										onClick={naviageToEditAlert}
 									>
 										{channel.name}
 									</Tag>
@@ -629,7 +664,7 @@ const AlertRow = ({ record, navigateToAlert }: AlertRowProps) => {
 										emphasis="medium"
 										disabled={record.disabled}
 										iconLeft={<RiMailFill />}
-										onClick={() => navigateToAlert(record)}
+										onClick={naviageToEditAlert}
 									>
 										{email}
 									</Tag>
@@ -645,7 +680,7 @@ const AlertRow = ({ record, navigateToAlert }: AlertRowProps) => {
 										emphasis="medium"
 										disabled={record.disabled}
 										iconLeft={<IconSolidRefresh />}
-										onClick={() => navigateToAlert(record)}
+										onClick={naviageToEditAlert}
 									>
 										Webhook enabled
 									</Tag>
@@ -659,7 +694,7 @@ const AlertRow = ({ record, navigateToAlert }: AlertRowProps) => {
 								emphasis="medium"
 								disabled={record.disabled}
 								iconLeft={<IconSolidExclamation />}
-								onClick={() => navigateToAlert(record)}
+								onClick={naviageToEditAlert}
 							>
 								No notifications enabled
 							</Tag>

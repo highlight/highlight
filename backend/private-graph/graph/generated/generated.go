@@ -147,6 +147,7 @@ type ComplexityRoot struct {
 		MetricId          func(childComplexity int) int
 		Name              func(childComplexity int) int
 		ProductType       func(childComplexity int) int
+		ProjectID         func(childComplexity int) int
 		Query             func(childComplexity int) int
 		ThresholdCooldown func(childComplexity int) int
 		ThresholdValue    func(childComplexity int) int
@@ -2525,6 +2526,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Alert.ProductType(childComplexity), true
+
+	case "Alert.project_id":
+		if e.complexity.Alert.ProjectID == nil {
+			break
+		}
+
+		return e.complexity.Alert.ProjectID(childComplexity), true
 
 	case "Alert.query":
 		if e.complexity.Alert.Query == nil {
@@ -13324,6 +13332,7 @@ input AlertDestinationInput {
 
 type Alert {
 	id: ID!
+	project_id: ID!
 	updated_at: Timestamp!
 	metric_id: String!
 	name: String!
@@ -25263,6 +25272,50 @@ func (ec *executionContext) _Alert_id(ctx context.Context, field graphql.Collect
 }
 
 func (ec *executionContext) fieldContext_Alert_id(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Alert",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type ID does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Alert_project_id(ctx context.Context, field graphql.CollectedField, obj *model1.Alert) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Alert_project_id(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ProjectID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	fc.Result = res
+	return ec.marshalNID2int(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Alert_project_id(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "Alert",
 		Field:      field,
@@ -49616,6 +49669,8 @@ func (ec *executionContext) fieldContext_Mutation_createAlert(ctx context.Contex
 			switch field.Name {
 			case "id":
 				return ec.fieldContext_Alert_id(ctx, field)
+			case "project_id":
+				return ec.fieldContext_Alert_project_id(ctx, field)
 			case "updated_at":
 				return ec.fieldContext_Alert_updated_at(ctx, field)
 			case "metric_id":
@@ -49702,6 +49757,8 @@ func (ec *executionContext) fieldContext_Mutation_updateAlert(ctx context.Contex
 			switch field.Name {
 			case "id":
 				return ec.fieldContext_Alert_id(ctx, field)
+			case "project_id":
+				return ec.fieldContext_Alert_project_id(ctx, field)
 			case "updated_at":
 				return ec.fieldContext_Alert_updated_at(ctx, field)
 			case "metric_id":
@@ -58793,6 +58850,8 @@ func (ec *executionContext) fieldContext_Query_alerts(ctx context.Context, field
 			switch field.Name {
 			case "id":
 				return ec.fieldContext_Alert_id(ctx, field)
+			case "project_id":
+				return ec.fieldContext_Alert_project_id(ctx, field)
 			case "updated_at":
 				return ec.fieldContext_Alert_updated_at(ctx, field)
 			case "metric_id":
@@ -58882,6 +58941,8 @@ func (ec *executionContext) fieldContext_Query_alert(ctx context.Context, field 
 			switch field.Name {
 			case "id":
 				return ec.fieldContext_Alert_id(ctx, field)
+			case "project_id":
+				return ec.fieldContext_Alert_project_id(ctx, field)
 			case "updated_at":
 				return ec.fieldContext_Alert_updated_at(ctx, field)
 			case "metric_id":
@@ -86017,6 +86078,11 @@ func (ec *executionContext) _Alert(ctx context.Context, sel ast.SelectionSet, ob
 			out.Values[i] = graphql.MarshalString("Alert")
 		case "id":
 			out.Values[i] = ec._Alert_id(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "project_id":
+			out.Values[i] = ec._Alert_project_id(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}

@@ -1630,6 +1630,7 @@ input AlertDestinationInput {
 
 type Alert {
 	id: ID!
+	project_id: ID!
 	updated_at: Timestamp!
 	metric_id: String!
 	name: String!

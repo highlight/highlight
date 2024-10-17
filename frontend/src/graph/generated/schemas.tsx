@@ -141,6 +141,7 @@ export type Alert = {
 	metric_id: Scalars['String']
 	name: Scalars['String']
 	product_type: ProductType
+	project_id: Scalars['ID']
 	query?: Maybe<Scalars['String']>
 	threshold_cooldown?: Maybe<Scalars['Int']>
 	threshold_value?: Maybe<Scalars['Float']>

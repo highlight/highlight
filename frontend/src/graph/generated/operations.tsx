@@ -4317,6 +4317,7 @@ export type GetAlertQuery = { __typename?: 'Query' } & {
 	alert: { __typename?: 'Alert' } & Pick<
 		Types.Alert,
 		| 'id'
+		| 'project_id'
 		| 'updated_at'
 		| 'name'
 		| 'product_type'

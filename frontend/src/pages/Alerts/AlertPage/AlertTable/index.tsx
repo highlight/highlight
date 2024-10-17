@@ -11,9 +11,14 @@ import {
 	Text,
 } from '@highlight-run/ui/components'
 import React, { useMemo } from 'react'
-import { LinkButton } from '@/components/LinkButton'
 import { Button } from '@components/Button'
 import { Link } from '@components/Link'
+import { ProductType } from '@/graph/generated/schemas'
+import { DEFAULT_WINDOW } from '@/pages/Alerts/AlertForm'
+import {
+	RelatedResource,
+	useRelatedResource,
+} from '@/components/RelatedResources/hooks'
 
 type Props = {
 	alertingStates?: any[]
@@ -43,6 +48,8 @@ const AlertTableInner: React.FC<Props> = ({
 	error,
 	refetch,
 }) => {
+	const { set } = useRelatedResource()
+
 	const columns = useMemo(
 		() => [
 			{
@@ -51,9 +58,7 @@ const AlertTableInner: React.FC<Props> = ({
 				width: '200px',
 				renderData: (alertState: any) => (
 					<Text>
-						{moment(alertState.timestamp).format(
-							'M/D/YY h:mm:ss A',
-						)}
+						{moment(alertState.timestamp).format('M/D/YY h:mm A')}
 					</Text>
 				),
 			},
@@ -70,22 +75,28 @@ const AlertTableInner: React.FC<Props> = ({
 			{
 				id: 'view',
 				name: '',
-				width: '100px',
-				renderData: (_: any) => (
-					<LinkButton
-						trackingId={`alertsView${alert.product_type}`}
-						size="xSmall"
-						kind="secondary"
-						emphasis="medium"
-						// TODO(spenny): build link
-						to="/errors"
-					>
-						View {alert.product_type}
-					</LinkButton>
-				),
+				width: '150px',
+				renderData: (alertState: any) => {
+					const relatedResource = buildRelatedResource(
+						alertState,
+						alert,
+					)
+					return (
+						<Button
+							trackingId={`alertsView${alert.product_type}`}
+							size="xSmall"
+							kind="secondary"
+							emphasis="medium"
+							disabled={!relatedResource}
+							onClick={() => set(relatedResource!)}
+						>
+							View {alert.product_type}
+						</Button>
+					)
+				},
 			},
 		],
-		[alert.group_by_key, alert.product_type],
+		[alert, set],
 	)
 	const gridColumns = columns.map((column) => column.width)
 
@@ -183,4 +194,58 @@ const AlertTableInner: React.FC<Props> = ({
 			</Table.Body>
 		</Table>
 	)
+}
+
+const buildRelatedResource = (
+	alertState: any,
+	alert: any,
+): RelatedResource | null => {
+	switch (alert.product_type as ProductType) {
+		case ProductType.Sessions:
+			return {
+				type: 'session',
+				secureId: alertState.groupByKey,
+			} as RelatedResource
+		case ProductType.Errors:
+			return {
+				type: 'error',
+				secureId: alertState.groupByKey,
+			} as RelatedResource
+		case ProductType.Logs:
+			const logParams = buildParams(alertState, alert)
+			return {
+				type: 'logs',
+				...logParams,
+			} as RelatedResource
+		case ProductType.Traces:
+			const traceParams = buildParams(alertState, alert)
+			return {
+				type: 'traces',
+				...traceParams,
+			} as RelatedResource
+		case ProductType.Events:
+			return null // disabled
+		case ProductType.Metrics:
+			return null // not used
+	}
+}
+
+const buildParams = (alertState: any, alert: any) => {
+	const alertTime = moment(alertState.timestamp)
+	const lookbackSeconds = alert.threshold_window ?? DEFAULT_WINDOW
+	const lookBackStart = moment().subtract(lookbackSeconds, 'seconds')
+
+	const params: string[] = []
+	if (!!alertState.groupByKey) {
+		params.push(`${alert.group_by_key}=${alertState.groupByKey}`)
+	}
+	if (!!alert.query) {
+		params.push(alert.query)
+	}
+
+	return {
+		startDate: lookBackStart.toISOString(),
+		endDate: alertTime.toISOString(),
+		query: params.join(' AND '),
+	}
 }

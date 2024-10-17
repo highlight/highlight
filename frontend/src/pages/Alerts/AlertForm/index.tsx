@@ -193,6 +193,10 @@ export const AlertForm: React.FC = () => {
 		setFunctionColumn('')
 	}
 
+	const redirectToAlert = () => {
+		navigate(`/${projectId}/alerts/${alert_id}`)
+	}
+
 	const onSave = () => {
 		const formVariables = {
 			project_id: projectId,
@@ -218,7 +222,7 @@ export const AlertForm: React.FC = () => {
 			})
 				.then(() => {
 					toast.success(`${alertName} updated`).then(() => {
-						navigate(`/${projectId}/alerts`)
+						redirectToAlert()
 					})
 				})
 				.catch(() => {
@@ -232,7 +236,7 @@ export const AlertForm: React.FC = () => {
 			})
 				.then(() => {
 					toast.success(`${alertName} created`).then(() => {
-						navigate(`/${projectId}/alerts`)
+						redirectToAlert()
 					})
 				})
 				.catch(() => {
@@ -367,7 +371,7 @@ export const AlertForm: React.FC = () => {
 							<Button
 								emphasis="low"
 								kind="secondary"
-								onClick={() => navigate(`/${projectId}/alerts`)}
+								onClick={redirectToAlert}
 								trackingId="AlertCancel"
 							>
 								Cancel

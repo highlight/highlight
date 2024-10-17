@@ -12510,6 +12510,7 @@ export const GetAlertDocument = gql`
 	query GetAlert($id: ID!) {
 		alert(id: $id) {
 			id
+			project_id
 			updated_at
 			name
 			product_type
