@@ -233,7 +233,7 @@ const buildRelatedResource = (
 const buildParams = (alertState: AlertStateChange, alert: Alert) => {
 	const alertTime = moment(alertState.timestamp)
 	const lookbackSeconds = alert.threshold_window ?? DEFAULT_WINDOW
-	const lookBackStart = moment().subtract(lookbackSeconds, 'seconds')
+	const lookBackStart = moment(alertTime).subtract(lookbackSeconds, 'seconds')
 
 	const params: string[] = []
 	if (!!alertState.groupByKey) {
