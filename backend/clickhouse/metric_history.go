@@ -57,8 +57,7 @@ type AggregatedMetricResults struct {
 	Value      float64
 }
 
-func (client *Client) AggregateMetricStates(ctx context.Context, metricId string, endDate time.Time, interval time.Duration, aggregator modelInputs.MetricAggregator, windowSeconds *int) ([]*modelInputs.MetricBucket, error) {
-	startDate := endDate.Add(-interval)
+func (client *Client) AggregateMetricStates(ctx context.Context, metricId string, startDate time.Time, endDate time.Time, interval time.Duration, aggregator modelInputs.MetricAggregator, windowSeconds *int) ([]*modelInputs.MetricBucket, error) {
 	sb := sqlbuilder.NewSelectBuilder()
 
 	selectCols := []string{"GroupByKey"}

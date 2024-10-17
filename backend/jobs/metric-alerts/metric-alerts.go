@@ -5,11 +5,11 @@ import (
 	"strings"
 	"time"
 
+	"github.com/highlight-run/highlight/backend/alerts/predictions"
 	alertsV2 "github.com/highlight-run/highlight/backend/alerts/v2"
 	"github.com/highlight-run/highlight/backend/clickhouse"
 	"github.com/highlight-run/highlight/backend/lambda"
 	modelInputs "github.com/highlight-run/highlight/backend/private-graph/graph/model"
-	"github.com/highlight-run/highlight/backend/redis"
 	"github.com/highlight-run/highlight/backend/util"
 	"github.com/highlight-run/workerpool"
 	"github.com/openlyinc/pointy"
@@ -18,20 +18,20 @@ import (
 	"github.com/pkg/errors"
 	"github.com/sendgrid/sendgrid-go"
 
-	"github.com/highlight-run/go-resthooks"
 	"github.com/highlight-run/highlight/backend/model"
 	log "github.com/sirupsen/logrus"
 	"gorm.io/gorm"
 )
 
 const maxWorkers = 40
+const anomalyBucketCount = 100
 const alertEvalFreq = time.Minute
 
 var defaultAlertFilters = map[modelInputs.ProductType]string{
 	modelInputs.ProductTypeErrors: "status=OPEN ",
 }
 
-func WatchMetricAlerts(ctx context.Context, DB *gorm.DB, MailClient *sendgrid.Client, rh *resthooks.Resthook, redis *redis.Client, ccClient *clickhouse.Client, lambdaClient *lambda.Client) {
+func WatchMetricAlerts(ctx context.Context, DB *gorm.DB, MailClient *sendgrid.Client, ccClient *clickhouse.Client, lambdaClient *lambda.Client) {
 	log.WithContext(ctx).Info("Starting to watch metric alerts")
 
 	alertWorkerpool := workerpool.New(maxWorkers)
@@ -47,7 +47,7 @@ func WatchMetricAlerts(ctx context.Context, DB *gorm.DB, MailClient *sendgrid.Cl
 				func() {
 					ctx := context.Background()
 
-					err := processMetricAlert(ctx, DB, MailClient, alert, rh, redis, ccClient, lambdaClient)
+					err := processMetricAlert(ctx, DB, MailClient, alert, ccClient, lambdaClient)
 					if err != nil {
 						log.WithContext(ctx).Error(err)
 					}
@@ -70,12 +70,32 @@ func getMetricAlerts(ctx context.Context, DB *gorm.DB) []*model.Alert {
 	return alerts
 }
 
-func processMetricAlert(ctx context.Context, DB *gorm.DB, MailClient *sendgrid.Client, alert *model.Alert, rh *resthooks.Resthook, redis *redis.Client, ccClient *clickhouse.Client, lambdaClient *lambda.Client) error {
+func processMetricAlert(ctx context.Context, DB *gorm.DB, MailClient *sendgrid.Client, alert *model.Alert, ccClient *clickhouse.Client, lambdaClient *lambda.Client) error {
 	curDate := time.Now().Round(time.Minute).Add(-1 * time.Minute)
 
+	thresholdWindow := 1 * time.Hour
+	if alert.ThresholdWindow != nil {
+		thresholdWindow = time.Duration(*alert.ThresholdWindow) * time.Second
+	}
+
+	saveMetricState := alert.ProductType != modelInputs.ProductTypeErrors && alert.ProductType != modelInputs.ProductTypeSessions
+
+	endDate := curDate
+	startDate := curDate.Add(-1 * thresholdWindow)
+
 	// Filter for data points +/- 2 hours of the current time to match ingest filter
-	startDate := curDate.Add(-2 * time.Hour)
-	endDate := curDate.Add(2 * time.Hour)
+	if saveMetricState {
+		if thresholdWindow < 2*time.Hour {
+			startDate = curDate.Add(-2 * time.Hour)
+		}
+		endDate = curDate.Add(2 * time.Hour)
+	}
+
+	bucketCount := 1
+	if alert.ThresholdType == modelInputs.ThresholdTypeAnomaly {
+		startDate = curDate.Add(-anomalyBucketCount * thresholdWindow)
+		bucketCount = anomalyBucketCount
+	}
 
 	var cooldown time.Duration
 	if alert.ThresholdCooldown != nil {
@@ -124,9 +144,6 @@ func processMetricAlert(ctx context.Context, DB *gorm.DB, MailClient *sendgrid.C
 		groupBy = append(groupBy, *alert.GroupByKey)
 	}
 
-	saveMetricState := alert.ProductType != modelInputs.ProductTypeErrors && alert.ProductType != modelInputs.ProductTypeSessions
-
-	bucketCount := 1
 	var savedState *clickhouse.SavedMetricState
 	if saveMetricState {
 		blockInfo, err := ccClient.GetBlockNumbers(ctx, alert.MetricId, startDate, endDate)
@@ -160,17 +177,12 @@ func processMetricAlert(ctx context.Context, DB *gorm.DB, MailClient *sendgrid.C
 		GroupBy:          groupBy,
 		BucketCount:      &bucketCount,
 		BucketBy:         modelInputs.MetricBucketByTimestamp.String(),
-		Limit:            pointy.Int(100),
+		Limit:            pointy.Int(20),
 		LimitAggregator:  &aggregatorCount,
 		SavedMetricState: savedState,
 	})
 	if err != nil {
 		return err
-	}
-
-	thresholdWindow := 1 * time.Hour
-	if alert.ThresholdWindow != nil {
-		thresholdWindow = time.Duration(*alert.ThresholdWindow) * time.Second
 	}
 
 	var thresholdValue float64
@@ -192,13 +204,18 @@ func processMetricAlert(ctx context.Context, DB *gorm.DB, MailClient *sendgrid.C
 			windowSeconds = alert.ThresholdWindow
 		}
 
-		bucketsInner, err = ccClient.AggregateMetricStates(ctx, alert.MetricId, curDate, thresholdWindow, alert.FunctionType, windowSeconds)
+		startDate := curDate.Add(-1 * thresholdWindow)
+		if alert.ThresholdType == modelInputs.ThresholdTypeAnomaly {
+			startDate = curDate.Add(-anomalyBucketCount * thresholdWindow)
+		}
+
+		bucketsInner, err = ccClient.AggregateMetricStates(ctx, alert.MetricId, startDate, curDate, thresholdWindow, alert.FunctionType, windowSeconds)
 		if err != nil {
 			return err
 		}
 
 		if alert.ThresholdType == modelInputs.ThresholdTypeAnomaly && alert.ThresholdWindow != nil {
-			if err := lambdaClient.AddPredictions(ctx, bucketsInner, modelInputs.PredictionSettings{
+			if err := predictions.AddPredictions(ctx, bucketsInner, modelInputs.PredictionSettings{
 				ChangepointPriorScale: .25,
 				IntervalWidth:         thresholdValue,
 				ThresholdCondition:    alert.ThresholdCondition,

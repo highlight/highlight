@@ -32,6 +32,7 @@ import (
 	"github.com/highlight-run/highlight/backend/alerts/integrations/discord"
 	microsoft_teams "github.com/highlight-run/highlight/backend/alerts/integrations/microsoft-teams"
 	"github.com/highlight-run/highlight/backend/alerts/integrations/webhook"
+	"github.com/highlight-run/highlight/backend/alerts/predictions"
 	alertsV2 "github.com/highlight-run/highlight/backend/alerts/v2"
 	destinationsV2 "github.com/highlight-run/highlight/backend/alerts/v2/destinations"
 	"github.com/highlight-run/highlight/backend/apolloio"
@@ -9531,7 +9532,7 @@ func (r *queryResolver) Metrics(ctx context.Context, productType modelInputs.Pro
 		return results, err
 	}
 
-	if err := r.LambdaClient.AddPredictions(ctx, results.Buckets, *predictionSettings); err != nil {
+	if err := predictions.AddPredictions(ctx, results.Buckets, *predictionSettings); err != nil {
 		return nil, err
 	}
 
