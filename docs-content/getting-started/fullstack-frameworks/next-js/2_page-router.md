@@ -357,7 +357,7 @@ curl http://localhost:3000/api/nodejs-page-router-test?error
 We do not recommend enabling this while integrating Highlight for the first time because it will prevent you from validating that your local build can send data to Highlight.
 ```
 
-In the case that you don't want local sessions sent to Highlight, the `excludedHostnames` prop accepts an array of partial or full hostnames. For example, if you pass in `excludedHostnames={['localhost', 'staging]}`, you'll block `localhost` on all ports, `www.staging.highlight.io` and `staging.highlight.com`.
+In the case that you don't want local sessions sent to Highlight, the `excludedHostnames` prop accepts an array of partial or full hostnames. For example, if you pass in `excludedHostnames={['localhost', 'staging']}`, you'll block `localhost` on all ports, `www.staging.highlight.io` and `staging.highlight.com`.
 
 Alternatively, you could manually call `H.start()` and `H.stop()` to manage invocation on your own.
 
