@@ -291,6 +291,8 @@ namespace Highlight
                         exporterOptions.Endpoint = new Uri(_config.OtlpEndpoint + "/v1/logs");
                         exporterOptions.Protocol = ExportProtocol;
                     });
+                options.IncludeScopes = true;
+                options.IncludeFormattedMessage = true;
             });
         }
     }
