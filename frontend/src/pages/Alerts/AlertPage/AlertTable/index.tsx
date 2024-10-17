@@ -13,7 +13,7 @@ import {
 import React, { useMemo } from 'react'
 import { Button } from '@components/Button'
 import { Link } from '@components/Link'
-import { ProductType } from '@/graph/generated/schemas'
+import { Alert, AlertStateChange, ProductType } from '@/graph/generated/schemas'
 import { DEFAULT_WINDOW } from '@/pages/Alerts/AlertForm'
 import {
 	RelatedResource,
@@ -21,8 +21,8 @@ import {
 } from '@/components/RelatedResources/hooks'
 
 type Props = {
-	alertingStates?: any[]
-	alert: any
+	alertingStates?: AlertStateChange[]
+	alert: Alert
 	loading: boolean
 	error: ApolloError | undefined
 	refetch: () => void
@@ -56,7 +56,7 @@ const AlertTableInner: React.FC<Props> = ({
 				id: 'timestamp',
 				name: 'Time',
 				width: '200px',
-				renderData: (alertState: any) => (
+				renderData: (alertState: AlertStateChange) => (
 					<Text>
 						{moment(alertState.timestamp).format('M/D/YY h:mm A')}
 					</Text>
@@ -66,7 +66,7 @@ const AlertTableInner: React.FC<Props> = ({
 				id: 'groupByKey',
 				name: alert.group_by_key || 'Group by',
 				width: '1fr',
-				renderData: (alertState: any) => (
+				renderData: (alertState: AlertStateChange) => (
 					<Tag shape="basic" size="small" kind="secondary">
 						{alertState.groupByKey || 'N/A'}
 					</Tag>
@@ -76,7 +76,7 @@ const AlertTableInner: React.FC<Props> = ({
 				id: 'view',
 				name: '',
 				width: '150px',
-				renderData: (alertState: any) => {
+				renderData: (alertState: AlertStateChange) => {
 					const relatedResource = buildRelatedResource(
 						alertState,
 						alert,
@@ -156,7 +156,7 @@ const AlertTableInner: React.FC<Props> = ({
 						<Table.Row gridColumns={gridColumns} key={index}>
 							{columns.map((column) => (
 								<Table.Cell key={column.id}>
-									{column.renderData(alertingState as any)}
+									{column.renderData(alertingState)}
 								</Table.Cell>
 							))}
 						</Table.Row>
@@ -197,8 +197,8 @@ const AlertTableInner: React.FC<Props> = ({
 }
 
 const buildRelatedResource = (
-	alertState: any,
-	alert: any,
+	alertState: AlertStateChange,
+	alert: Alert,
 ): RelatedResource | null => {
 	switch (alert.product_type as ProductType) {
 		case ProductType.Sessions:
@@ -230,7 +230,7 @@ const buildRelatedResource = (
 	}
 }
 
-const buildParams = (alertState: any, alert: any) => {
+const buildParams = (alertState: AlertStateChange, alert: Alert) => {
 	const alertTime = moment(alertState.timestamp)
 	const lookbackSeconds = alert.threshold_window ?? DEFAULT_WINDOW
 	const lookBackStart = moment().subtract(lookbackSeconds, 'seconds')

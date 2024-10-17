@@ -11,10 +11,10 @@ import {
 	Stack,
 	Text,
 } from '@highlight-run/ui/components'
-import { AlertState } from '@/graph/generated/schemas'
+import { AlertState, AlertStateChange } from '@/graph/generated/schemas'
 
 type Props = {
-	alertStateChanges?: any[]
+	alertStateChanges?: AlertStateChange[]
 	totalAlerts?: number
 	loading?: boolean
 	totalAlertsLoading?: boolean
@@ -57,7 +57,7 @@ export const AlertInfo: React.FC<Props> = ({
 			justifyContent="space-between"
 		>
 			<AlertInfoBox
-				label="Current Alerts"
+				label="Active Alerts"
 				value={currentAlertCount}
 				icon={<IconSolidFire />}
 				borderRight

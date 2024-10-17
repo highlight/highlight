@@ -30,6 +30,7 @@ import { useSearchTime } from '@/hooks/useSearchTime'
 import { HeaderDivider } from '@/pages/Graphing/Dashboard'
 import { GraphContextProvider } from '@/pages/Graphing/context/GraphContext'
 import { useGraphData } from '@pages/Graphing/hooks/useGraphData'
+import { Alert, AlertStateChange } from '@/graph/generated/schemas'
 
 import { AlertGraph } from '../AlertGraph'
 import { AlertHeader } from './AlertHeader'
@@ -269,7 +270,7 @@ export const AlertPage: React.FC = () => {
 						/>
 						<AlertInfo
 							alertStateChanges={
-								currentStateData?.last_alert_state_changes
+								currentStateData?.last_alert_state_changes as AlertStateChange[]
 							}
 							loading={currentStateLoading}
 							totalAlerts={
@@ -305,13 +306,13 @@ export const AlertPage: React.FC = () => {
 						</Box>
 						<Box height="full" width="full">
 							<AlertTable
-								alert={data.alert}
+								alert={data.alert as Alert}
 								loading={alertingLoading}
 								error={alertingError}
 								refetch={alertingRefetch}
 								alertingStates={
 									alertingData?.alerting_alert_state_changes
-										.alertStateChanges
+										.alertStateChanges as AlertStateChange[]
 								}
 							/>
 							<SearchPagination

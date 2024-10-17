@@ -111,7 +111,7 @@ export const useRelatedResource = () => {
 				innerString = decodeURIComponent(resourceParam)
 			}
 			const resource = JSON.parse(innerString) as RelatedResource
-			console.log('resource', resource, innerString)
+
 			setResource(resource)
 		} else {
 			setResource(null)
