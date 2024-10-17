@@ -1,5 +1,11 @@
 # @highlight-run/apollo
 
+## 3.4.19
+
+### Patch Changes
+
+-   a3ff05e: update transient dependencies with security vulnerabilities
+
 ## 3.4.18
 
 ### Patch Changes

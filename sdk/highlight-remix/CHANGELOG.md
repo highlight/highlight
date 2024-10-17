@@ -1,5 +1,11 @@
 # @highlight-run/remix
 
+## 2.0.63
+
+### Patch Changes
+
+-   80aa6c7: Update deprecated DataFunctionArgs type in Remix
+
 ## 2.0.62
 
 ### Patch Changes
