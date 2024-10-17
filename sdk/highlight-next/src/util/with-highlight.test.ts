@@ -3,6 +3,7 @@ import { Highlight } from './with-highlight-nodejs-page-router'
 
 import * as trpc from '@trpc/server'
 import { createNextApiHandler } from '@trpc/server/adapters/next'
+import { describe, it } from 'vitest'
 
 describe('withHighlight', () => {
 	const withHighlight = Highlight({ projectID: 'test' })
