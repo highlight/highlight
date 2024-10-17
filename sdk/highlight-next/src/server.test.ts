@@ -28,16 +28,14 @@ const HIGHLIGHT_HEADER = { 'x-highlight-request': `${SESSION_ID}/${TRACE_ID}` }
 
 describe('Next.js server instrumentation', () => {
 	let stopOtel: () => void
-	let stopNext: () => void
 
 	beforeAll(async () => {
 		stopOtel = await startMockOtelServer({ port: OTEL_PORT })
-		stopNext = await startNext(OTEL_PORT).catch((stop) => stop())
+		await startNext(OTEL_PORT)
 	}, 10000)
 
 	afterAll(async () => {
 		await stopOtel()
-		await stopNext()
 	})
 
 	beforeEach(() => {
