@@ -1888,6 +1888,7 @@ query GetAlertsPagePayload($project_id: ID!) {
 query GetAlert($id: ID!) {
 	alert(id: $id) {
 		id
+		project_id
 		updated_at
 		name
 		product_type
@@ -1907,6 +1908,35 @@ query GetAlert($id: ID!) {
 			type_id
 			type_name
 		}
+	}
+}
+
+query GetAlertingAlertStateChanges(
+	$alert_id: ID!
+	$start_date: Timestamp!
+	$end_date: Timestamp!
+	$page: Int
+) {
+	alerting_alert_state_changes(
+		alert_id: $alert_id
+		start_date: $start_date
+		end_date: $end_date
+		page: $page
+	) {
+		totalCount
+		alertStateChanges {
+			timestamp
+			state
+			groupByKey
+		}
+	}
+}
+
+query GetLastAlertStateChanges($alert_id: ID!) {
+	last_alert_state_changes(alert_id: $alert_id) {
+		timestamp
+		state
+		groupByKey
 	}
 }
 

@@ -24,20 +24,25 @@ export const ErrorPanel: React.FC<{ resource: RelatedError }> = ({
 }) => {
 	const [displayGitHubSettings, setDisplayGitHubSettings] = useState(false)
 	const { projectId } = useNumericProjectId()
-	const path = useMemo(
-		() =>
-			`/${projectId}/errors/${resource.secureId}/instances/${resource.instanceId}?${PlayerSearchParameters.search}=false`,
-		[projectId, resource.secureId, resource.instanceId],
-	)
+	const path = useMemo(() => {
+		let errorPath = `/${projectId}/errors/${resource.secureId}'`
+		if (resource.instanceId) {
+			errorPath += `/instances/${resource.instanceId}`
+		}
+
+		return (errorPath += `?${PlayerSearchParameters.search}=false`)
+	}, [projectId, resource.secureId, resource.instanceId])
 	const { data, loading } = useErrorGroup(resource.secureId)
 	const errorGroup = data?.error_group
 	const { data: errorInstanceData, loading: errorInstanceLoading } =
 		useGetErrorInstanceQuery({
 			variables: {
 				error_group_secure_id: String(errorGroup?.secure_id),
-				error_object_id: String(resource.instanceId),
+				error_object_id: resource.instanceId
+					? String(resource.instanceId)
+					: undefined,
 			},
-			skip: !resource.instanceId,
+			skip: !errorGroup?.secure_id,
 		})
 	const errorInstance = errorInstanceData?.error_instance
 	const showLoading =

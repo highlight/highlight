@@ -194,6 +194,11 @@ func processMetricAlert(ctx context.Context, DB *gorm.DB, MailClient *sendgrid.C
 		if err != nil {
 			return err
 		}
+		if len(results) == 0 {
+			// write a normal state with no group by key to avoid missing data
+			alertStateChange := getAlertStateChange(curDate, false, alert.ID, "", lastAlerts, cooldown)
+			stateChanges = append(stateChanges, alertStateChange)
+		}
 		for _, result := range results {
 			alertCondition := result.Value >= thresholdValue
 			if belowThreshold {
@@ -209,6 +214,12 @@ func processMetricAlert(ctx context.Context, DB *gorm.DB, MailClient *sendgrid.C
 			stateChanges = append(stateChanges, alertStateChange)
 		}
 	} else {
+		if len(buckets.Buckets) == 0 {
+			// write a normal state with no group by key to avoid missing data
+			alertStateChange := getAlertStateChange(curDate, false, alert.ID, "", lastAlerts, cooldown)
+			stateChanges = append(stateChanges, alertStateChange)
+		}
+
 		for _, bucket := range buckets.Buckets {
 			value := 0.0
 			if bucket.MetricValue != nil {
