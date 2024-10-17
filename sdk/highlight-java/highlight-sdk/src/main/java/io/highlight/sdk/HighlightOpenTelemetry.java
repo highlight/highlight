@@ -49,8 +49,11 @@ public class HighlightOpenTelemetry implements OpenTelemetry {
 				.put(HighlightAttributes.HIGHLIGHT_PROJECT_ID, options.projectId())
 				.put(ResourceAttributes.DEPLOYMENT_ENVIRONMENT, options.enviroment())
 				.put(ResourceAttributes.SERVICE_INSTANCE_ID, SessionId.get().toString())
-				.put(ResourceAttributes.SERVICE_VERSION, options.version())
-				.put(ResourceAttributes.SERVICE_NAME, options.serviceName());
+				.put(ResourceAttributes.SERVICE_VERSION, options.version());
+
+		if (options.serviceName() != null) {
+			attributesBuilder.put(ResourceAttributes.SERVICE_NAME, options.serviceName());
+		}
 
 		if (options.metric()) {
 			attributesBuilder

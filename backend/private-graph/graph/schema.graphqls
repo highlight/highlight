@@ -1630,6 +1630,7 @@ input AlertDestinationInput {
 
 type Alert {
 	id: ID!
+	project_id: ID!
 	updated_at: Timestamp!
 	metric_id: String!
 	name: String!
@@ -1652,11 +1653,15 @@ type Alert {
 type AlertStateChange {
 	id: ID!
 	timestamp: Timestamp!
-	AlertID: ID!
-	State: AlertState!
-	PreviousState: AlertState!
-	Title: String!
-	GroupByKey: String!
+	projectID: ID!
+	alertID: ID!
+	state: AlertState!
+	groupByKey: String!
+}
+
+type AlertStateChangeResults {
+	alertStateChanges: [AlertStateChange]!
+	totalCount: Int64!
 }
 
 type SanitizedSlackChannel {
@@ -2255,7 +2260,14 @@ type Query {
 	joinable_workspaces: [Workspace]
 	alerts(project_id: ID!): [Alert]!
 	alert(id: ID!): Alert!
-	alert_state_changes(alert_id: ID!): [AlertStateChange]!
+	alerting_alert_state_changes(
+		alert_id: ID!
+		start_date: Timestamp!
+		end_date: Timestamp!
+		page: Int
+		count: Int
+	): AlertStateChangeResults!
+	last_alert_state_changes(alert_id: ID!): [AlertStateChange]!
 	error_alerts(project_id: ID!): [ErrorAlert]!
 	new_user_alerts(project_id: ID!): [SessionAlert]
 	track_properties_alerts(project_id: ID!): [SessionAlert]!

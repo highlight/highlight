@@ -1,6 +1,6 @@
 [package]
 name = "highlightio-actix"
-version = "1.0.2"
+version = "1.0.3"
 license = "Apache-2.0"
 description = """
 hightlight.io crate for actix-web 4.

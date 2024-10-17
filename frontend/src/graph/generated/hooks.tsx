@@ -12510,6 +12510,7 @@ export const GetAlertDocument = gql`
 	query GetAlert($id: ID!) {
 		alert(id: $id) {
 			id
+			project_id
 			updated_at
 			name
 			product_type
@@ -12578,6 +12579,138 @@ export type GetAlertLazyQueryHookResult = ReturnType<
 export type GetAlertQueryResult = Apollo.QueryResult<
 	Types.GetAlertQuery,
 	Types.GetAlertQueryVariables
+>
+export const GetAlertingAlertStateChangesDocument = gql`
+	query GetAlertingAlertStateChanges(
+		$alert_id: ID!
+		$start_date: Timestamp!
+		$end_date: Timestamp!
+		$page: Int
+	) {
+		alerting_alert_state_changes(
+			alert_id: $alert_id
+			start_date: $start_date
+			end_date: $end_date
+			page: $page
+		) {
+			totalCount
+			alertStateChanges {
+				timestamp
+				state
+				groupByKey
+			}
+		}
+	}
+`
+
+/**
+ * __useGetAlertingAlertStateChangesQuery__
+ *
+ * To run a query within a React component, call `useGetAlertingAlertStateChangesQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetAlertingAlertStateChangesQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetAlertingAlertStateChangesQuery({
+ *   variables: {
+ *      alert_id: // value for 'alert_id'
+ *      start_date: // value for 'start_date'
+ *      end_date: // value for 'end_date'
+ *      page: // value for 'page'
+ *   },
+ * });
+ */
+export function useGetAlertingAlertStateChangesQuery(
+	baseOptions: Apollo.QueryHookOptions<
+		Types.GetAlertingAlertStateChangesQuery,
+		Types.GetAlertingAlertStateChangesQueryVariables
+	>,
+) {
+	return Apollo.useQuery<
+		Types.GetAlertingAlertStateChangesQuery,
+		Types.GetAlertingAlertStateChangesQueryVariables
+	>(GetAlertingAlertStateChangesDocument, baseOptions)
+}
+export function useGetAlertingAlertStateChangesLazyQuery(
+	baseOptions?: Apollo.LazyQueryHookOptions<
+		Types.GetAlertingAlertStateChangesQuery,
+		Types.GetAlertingAlertStateChangesQueryVariables
+	>,
+) {
+	return Apollo.useLazyQuery<
+		Types.GetAlertingAlertStateChangesQuery,
+		Types.GetAlertingAlertStateChangesQueryVariables
+	>(GetAlertingAlertStateChangesDocument, baseOptions)
+}
+export type GetAlertingAlertStateChangesQueryHookResult = ReturnType<
+	typeof useGetAlertingAlertStateChangesQuery
+>
+export type GetAlertingAlertStateChangesLazyQueryHookResult = ReturnType<
+	typeof useGetAlertingAlertStateChangesLazyQuery
+>
+export type GetAlertingAlertStateChangesQueryResult = Apollo.QueryResult<
+	Types.GetAlertingAlertStateChangesQuery,
+	Types.GetAlertingAlertStateChangesQueryVariables
+>
+export const GetLastAlertStateChangesDocument = gql`
+	query GetLastAlertStateChanges($alert_id: ID!) {
+		last_alert_state_changes(alert_id: $alert_id) {
+			timestamp
+			state
+			groupByKey
+		}
+	}
+`
+
+/**
+ * __useGetLastAlertStateChangesQuery__
+ *
+ * To run a query within a React component, call `useGetLastAlertStateChangesQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetLastAlertStateChangesQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetLastAlertStateChangesQuery({
+ *   variables: {
+ *      alert_id: // value for 'alert_id'
+ *   },
+ * });
+ */
+export function useGetLastAlertStateChangesQuery(
+	baseOptions: Apollo.QueryHookOptions<
+		Types.GetLastAlertStateChangesQuery,
+		Types.GetLastAlertStateChangesQueryVariables
+	>,
+) {
+	return Apollo.useQuery<
+		Types.GetLastAlertStateChangesQuery,
+		Types.GetLastAlertStateChangesQueryVariables
+	>(GetLastAlertStateChangesDocument, baseOptions)
+}
+export function useGetLastAlertStateChangesLazyQuery(
+	baseOptions?: Apollo.LazyQueryHookOptions<
+		Types.GetLastAlertStateChangesQuery,
+		Types.GetLastAlertStateChangesQueryVariables
+	>,
+) {
+	return Apollo.useLazyQuery<
+		Types.GetLastAlertStateChangesQuery,
+		Types.GetLastAlertStateChangesQueryVariables
+	>(GetLastAlertStateChangesDocument, baseOptions)
+}
+export type GetLastAlertStateChangesQueryHookResult = ReturnType<
+	typeof useGetLastAlertStateChangesQuery
+>
+export type GetLastAlertStateChangesLazyQueryHookResult = ReturnType<
+	typeof useGetLastAlertStateChangesLazyQuery
+>
+export type GetLastAlertStateChangesQueryResult = Apollo.QueryResult<
+	Types.GetLastAlertStateChangesQuery,
+	Types.GetLastAlertStateChangesQueryVariables
 >
 export const GetMetricMonitorsDocument = gql`
 	query GetMetricMonitors($project_id: ID!, $metric_name: String!) {

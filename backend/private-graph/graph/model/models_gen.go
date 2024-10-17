@@ -103,13 +103,17 @@ type AlertDestinationInput struct {
 }
 
 type AlertStateChange struct {
-	ID            int        `json:"id"`
-	Timestamp     time.Time  `json:"timestamp"`
-	AlertID       int        `json:"AlertID"`
-	State         AlertState `json:"State"`
-	PreviousState AlertState `json:"PreviousState"`
-	Title         string     `json:"Title"`
-	GroupByKey    string     `json:"GroupByKey"`
+	ID         int        `json:"id"`
+	Timestamp  time.Time  `json:"timestamp"`
+	ProjectID  int        `json:"projectID"`
+	AlertID    int        `json:"alertID"`
+	State      AlertState `json:"state"`
+	GroupByKey string     `json:"groupByKey"`
+}
+
+type AlertStateChangeResults struct {
+	AlertStateChanges []*AlertStateChange `json:"alertStateChanges"`
+	TotalCount        int64               `json:"totalCount"`
 }
 
 type AllProjectSettings struct {

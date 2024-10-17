@@ -4317,6 +4317,7 @@ export type GetAlertQuery = { __typename?: 'Query' } & {
 	alert: { __typename?: 'Alert' } & Pick<
 		Types.Alert,
 		| 'id'
+		| 'project_id'
 		| 'updated_at'
 		| 'name'
 		| 'product_type'
@@ -4340,6 +4341,43 @@ export type GetAlertQuery = { __typename?: 'Query' } & {
 				>
 			>
 		}
+}
+
+export type GetAlertingAlertStateChangesQueryVariables = Types.Exact<{
+	alert_id: Types.Scalars['ID']
+	start_date: Types.Scalars['Timestamp']
+	end_date: Types.Scalars['Timestamp']
+	page?: Types.Maybe<Types.Scalars['Int']>
+}>
+
+export type GetAlertingAlertStateChangesQuery = { __typename?: 'Query' } & {
+	alerting_alert_state_changes: {
+		__typename?: 'AlertStateChangeResults'
+	} & Pick<Types.AlertStateChangeResults, 'totalCount'> & {
+			alertStateChanges: Array<
+				Types.Maybe<
+					{ __typename?: 'AlertStateChange' } & Pick<
+						Types.AlertStateChange,
+						'timestamp' | 'state' | 'groupByKey'
+					>
+				>
+			>
+		}
+}
+
+export type GetLastAlertStateChangesQueryVariables = Types.Exact<{
+	alert_id: Types.Scalars['ID']
+}>
+
+export type GetLastAlertStateChangesQuery = { __typename?: 'Query' } & {
+	last_alert_state_changes: Array<
+		Types.Maybe<
+			{ __typename?: 'AlertStateChange' } & Pick<
+				Types.AlertStateChange,
+				'timestamp' | 'state' | 'groupByKey'
+			>
+		>
+	>
 }
 
 export type GetMetricMonitorsQueryVariables = Types.Exact<{
@@ -5406,6 +5444,8 @@ export const namedOperations = {
 		GetLogAlertsPagePayload: 'GetLogAlertsPagePayload' as const,
 		GetAlertsPagePayload: 'GetAlertsPagePayload' as const,
 		GetAlert: 'GetAlert' as const,
+		GetAlertingAlertStateChanges: 'GetAlertingAlertStateChanges' as const,
+		GetLastAlertStateChanges: 'GetLastAlertStateChanges' as const,
 		GetMetricMonitors: 'GetMetricMonitors' as const,
 		GetCommentMentionSuggestions: 'GetCommentMentionSuggestions' as const,
 		GetCustomerPortalURL: 'GetCustomerPortalURL' as const,

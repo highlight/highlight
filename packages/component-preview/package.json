@@ -7,7 +7,7 @@
 	},
 	"dependencies": {
 		"@highlight-run/react": "workspace:*",
-		"@ladle/react": "^2.8.0"
+		"@ladle/react": "^4.1.2"
 	},
 	"devDependencies": {
 		"typescript": "^4.9.5"
