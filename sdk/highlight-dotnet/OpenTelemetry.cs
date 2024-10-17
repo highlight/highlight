@@ -130,7 +130,7 @@ namespace Highlight
                 ["highlight.project_id"] = _config.ProjectId,
                 ["service.name"] = _config.ServiceName,
                 ["telemetry.distro.name"] = "Highlight.ASPCore",
-                ["telemetry.distro.version"] = "0.2.8",
+                ["telemetry.distro.version"] = "0.2.9",
             }).ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
         }
 
@@ -291,6 +291,8 @@ namespace Highlight
                         exporterOptions.Endpoint = new Uri(_config.OtlpEndpoint + "/v1/logs");
                         exporterOptions.Protocol = ExportProtocol;
                     });
+                options.IncludeScopes = true;
+                options.IncludeFormattedMessage = true;
             });
         }
     }

@@ -19,10 +19,10 @@
     </NuGetPackageImportStamp>
   </PropertyGroup>
   <PropertyGroup>
-    <Version>0.2.1</Version>
-    <PackageVersion>0.2.1</PackageVersion>
-    <AssemblyVersion>0.2.1</AssemblyVersion>
-    <FileVersion>0.2.1</FileVersion>
+    <Version>0.2.2</Version>
+    <PackageVersion>0.2.2</PackageVersion>
+    <AssemblyVersion>0.2.2</AssemblyVersion>
+    <FileVersion>0.2.2</FileVersion>
     <Company>highlight.io</Company>
     <Authors>Vadim Korolik</Authors>
     <Product>highlight.io</Product>
