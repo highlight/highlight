@@ -32,6 +32,7 @@ var (
 	goLinePattern           = regexp.MustCompile(`\t(.+):(\d+)( 0x[0-f]+)?`)
 	goFuncPattern           = regexp.MustCompile(`^(.+)\.(.+?)(\([^()]*\))?$`)
 	goRecoveredPanicPattern = regexp.MustCompile(`^\s*runtime\.gopanic\s*$`)
+	dotnetCSPattern         = regexp.MustCompile(`\.cs`)
 	dotnetExceptionPattern  = regexp.MustCompile(`^([\w.]+: .+?)( at .+)?$`)
 	dotnetFilePattern       = regexp.MustCompile(`^\s*at (.+?)(?: in (.+?)(?::line (\d+))?)?$`)
 	generalPattern          = regexp.MustCompile(`^(.+)`)
@@ -45,6 +46,10 @@ func StructureOTELStackTrace(stackTrace string) ([]*publicModel.ErrorTrace, erro
 		stackTrace = jsonStr
 	}
 	var language Language
+	if m := dotnetCSPattern.Find([]byte(stackTrace)); m != nil {
+		language = DotNET
+	}
+
 	var errMsg string
 	var frame *publicModel.ErrorTrace
 	frames := []*publicModel.ErrorTrace{}
@@ -64,8 +69,7 @@ func StructureOTELStackTrace(stackTrace string) ([]*publicModel.ErrorTrace, erro
 			if line == "" {
 				language = Golang
 				continue
-			} else if matches := dotnetExceptionPattern.FindSubmatch([]byte(line)); matches != nil {
-				language = DotNET
+			} else if matches := dotnetExceptionPattern.FindSubmatch([]byte(line)); language == DotNET && matches != nil {
 				errMsg = string(matches[1])
 				if m := strings.Split(strings.ReplaceAll(string(matches[2]), " at ", "\n at "), "\n"); m != nil {
 					lines = append(lines, m...)
