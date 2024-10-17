@@ -1,5 +1,11 @@
 # @highlight-run/next
 
+## 7.5.32
+
+### Patch Changes
+
+-   a3ff05e: update transient dependencies with security vulnerabilities
+
 ## 7.5.31
 
 ### Patch Changes
