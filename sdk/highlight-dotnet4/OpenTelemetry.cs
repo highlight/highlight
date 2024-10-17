@@ -108,7 +108,7 @@ namespace Highlight
                 ["highlight.project_id"] = Cfg.ProjectId,
                 ["service.name"] = Cfg.ServiceName,
                 ["telemetry.distro.name"] = "Highlight.ASP4",
-                ["telemetry.distro.version"] = "0.2.1",
+                ["telemetry.distro.version"] = "0.2.2",
             };
         }
 
@@ -261,6 +261,8 @@ namespace Highlight
                         exporterOptions.Endpoint = new Uri(Cfg.OtlpEndpoint + "/v1/logs");
                         exporterOptions.Protocol = ExportProtocol;
                     });
+                options.IncludeScopes = true;
+                options.IncludeFormattedMessage = true;
             });
         }
 
