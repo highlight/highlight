@@ -4979,31 +4979,34 @@ body {
   background: var(--_1pyqka91x);
 }
 .n4pjg82 {
+  background-color: var(--_1pyqka9v);
+}
+.n4pjg83 {
   width: 100%;
   border: none;
   font-size: 13px;
   font-weight: 500 !important;
 }
-.n4pjg82:focus-visible {
+.n4pjg83:focus-visible {
   outline: none;
 }
-.n4pjg82::placeholder {
+.n4pjg83::placeholder {
   color: var(--_1pyqka9x);
 }
-.n4pjg83 {
+.n4pjg84 {
   padding: 6px 8px;
   display: flex;
   gap: 4px;
   align-items: center;
 }
-.n4pjg84 {
+.n4pjg85 {
   border-bottom: 1px solid #dcdbdd;
 }
-.n4pjg85 {
+.n4pjg86 {
   max-height: 380px;
   overflow-y: auto;
 }
-.n4pjg86 {
+.n4pjg87 {
   background-color: #ffffff;
   border: var(--_1pyqka91o) solid 1px;
   border-radius: 6px;
@@ -5012,33 +5015,33 @@ body {
   max-width: 50vw;
   box-shadow: 0 6px 12px -2px rgba(59, 59, 59, 0.12);
 }
-.n4pjg87 {
+.n4pjg88 {
   align-items: center;
   display: flex;
   font-size: 13px;
   gap: 6px;
   padding: 6px 8px;
 }
-.n4pjg87[data-active-item] {
+.n4pjg88[data-active-item] {
   background-color: #e9e8ea;
   color: var(--_1pyqka9b);
   cursor: pointer;
 }
-.n4pjg88 {
+.n4pjg89 {
   font-weight: 500;
   color: var(--_1pyqka9c);
   justify-content: center;
 }
-.n4pjg89 {
+.n4pjg8a {
   border: var(--_1pyqka91o) solid 1px;
   border-radius: 4px;
   display: flex;
   padding: 1px;
 }
-.n4pjg87[aria-selected=true] .n4pjg89 {
+.n4pjg88[aria-selected=true] .n4pjg8a {
   background-color: var(--_1pyqka9l);
 }
-.n4pjg87[aria-selected=false] .n4pjg89 {
+.n4pjg88[aria-selected=false] .n4pjg8a {
   background-color: white;
 }
 ._1ec5cce1 {
@@ -5063,6 +5066,14 @@ body {
     width: auto;
   }
 }
+@keyframes _4k8820b {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
 ._4k88201 {
   min-height: 28px;
 }
@@ -5080,9 +5091,10 @@ body {
 }
 ._4k88207 {
   box-sizing: border-box;
-}
-._4k88207:focus {
-  border-color: var(--_1pyqka9l);
+  font-size: 13px;
+  line-height: 13px;
+  caret-color: var(--_1pyqka9l);
+  outline: 0;
 }
 ._4k88209 {
   height: 16px;
@@ -5093,6 +5105,14 @@ body {
 }
 ._4k88203[aria-selected=false] ._4k88209 {
   background-color: white;
+}
+._4k8820a {
+  flex-shrink: 0;
+}
+._4k8820c {
+  position: absolute;
+  right: 8px;
+  animation: 1s _4k8820b linear infinite;
 }
 .in1xv90 {
   border: none;
@@ -5235,6 +5255,7 @@ body {
   background: var(--_1pyqka91y);
 }
 .in1xv9h {
+  color: var(--_1pyqka9c);
   position: absolute;
   top: 50%;
   left: 50%;
@@ -6055,6 +6076,9 @@ body {
   position: relative;
   width: 100%;
 }
+.hide-mouse-cursor .replayer-mouse {
+  display: none;
+}
 ._1gpgayi5 iframe {
   border-radius: 4px;
   border: var(--_1pyqka9k) solid 1px;
@@ -6602,23 +6626,10 @@ body {
   display: flex;
   align-items: center;
 }
-._7o1fd80 {
-  width: 100%;
-  height: 28px;
-  border-radius: 6px;
-}
-._7o1fd81 {
-  flex: 1;
-}
-._7o1fd82 {
-  line-height: 24px;
-}
 ._11t98zr0 {
   border-bottom: var(--_1pyqka9k) solid 1px;
-  height: 280px;
 }
 ._11t98zr1 {
-  height: 100%;
   background-color: #ffffff;
 }
 ._11t98zr2 {
@@ -6661,30 +6672,6 @@ body {
   ._11t98zr0:nth-child(3n+1):nth-last-child(-n+5) ~ ._11t98zr0 {
     border-bottom: none;
   }
-}
-._1s4anja0 {
-  margin-left: -8px;
-  margin-right: -8px;
-}
-._1s4anja1 {
-  height: calc(100% - 50px);
-}
-._1s4anja2 {
-  overflow-y: hidden;
-  scrollbar-gutter: stable;
-}
-._1s4anja3 {
-  overflow-y: auto;
-  scrollbar-gutter: stable;
-}
-._1s4anja4 {
-  overflow-y: hidden;
-}
-._1s4anja5 {
-  min-width: 106px;
-}
-._1s4anja6 {
-  overflow: hidden;
 }
 .dg2vg60 {
   z-index: 2;
@@ -6750,31 +6737,71 @@ body {
   width: 16px;
 }
 .dg2vg6b {
+  position: absolute;
+  background-color: white;
+  border: var(--_1pyqka9j) solid 1px;
+  border-radius: 6px;
+  min-width: 100px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 8px;
+}
+.dg2vg6c {
+  line-height: 16px;
+}
+.dg2vg6d {
   border-radius: 50%;
   width: 8px;
   height: 8px;
   flex-shrink: 0;
   flex-grow: 0;
 }
-.dg2vg6c {
+.dg2vg6e {
   pointer-events: none;
 }
-.dg2vg6d {
+.dg2vg6f {
   width: min-content;
 }
-.dg2vg6e {
+.dg2vg6g {
   user-select: none;
+}
+._1s4anja0 {
+  margin-left: -8px;
+  margin-right: -8px;
+}
+._1s4anja1 {
+  height: calc(100% - 50px);
+}
+._1s4anja2 {
+  overflow-y: hidden;
+  scrollbar-gutter: stable;
+}
+._1s4anja3 {
+  overflow-y: auto;
+  scrollbar-gutter: stable;
+}
+._1s4anja4 {
+  overflow-y: hidden;
+}
+._1s4anja5 {
+  min-width: 106px;
+}
+._1s4anja6 {
+  overflow: hidden;
 }
 ._1a4jm560 {
   height: 40px;
 }
 ._1a4jm561 {
   height: calc(100% - 40px);
+  overflow: auto;
 }
 ._1a4jm562 {
   width: 1px;
   background-color: var(--_1pyqka9k);
   margin: 4px 2px;
+  height: 20px;
 }
 ._1a4jm563 {
   z-index: 0;
@@ -6793,12 +6820,10 @@ body {
   height: 28px;
 }
 ._1a4jm568 {
-  overflow: auto;
   display: grid;
   width: 100%;
   height: 100%;
   padding: 8px 28px;
-  grid-template-rows: repeat(auto-fill, 280px);
 }
 ._1a4jm566 > div {
   width: 100%;
@@ -6818,20 +6843,29 @@ body {
     grid-template-columns: 1fr 1fr 1fr;
   }
 }
-._4e4xu50 {
-  border: var(--_1pyqka9j) solid 1px;
+._1runqd00 {
+  height: 40px;
+}
+._1runqd01 {
+  max-width: 150px;
+  min-width: 100px;
+}
+.w96cqy0 {
+  height: 28px;
+}
+._7o1fd80 {
   width: 100%;
+  height: 28px;
+  border-radius: 6px;
+}
+._7o1fd81 {
   flex: 1;
 }
-._4e4xu51 {
-  height: 24px;
+._7o1fd82 {
+  line-height: 24px;
 }
-._4e4xu50 > div {
-  width: 100%;
-}
-._4e4xu52 {
-  max-height: 300px;
-  overflow-y: auto;
+._7o1fd83 {
+  max-width: 280px;
 }
 ._11j364l0 {
   width: calc(100% - 320px);
@@ -7895,13 +7929,19 @@ body {
   -webkit-line-clamp: 1;
   line-clamp: 1;
 }
-.izessr0:focus,
-.izessr0:active,
-.izessr0:hover {
-  background-color: #e9e8ea;
+.ammwad0 {
+  border-bottom: none !important;
+  opacity: 0.4;
 }
-.izessr2 {
-  border-bottom: 2px solid var(--_1pyqka9l);
+.ammwad1 {
+  opacity: 1;
+}
+.ammwad2 {
+  border-bottom: 1px solid var(--_1pyqka9k) !important;
+  background-color: var(--_1pyqka92);
+}
+.ammwad3 {
+  border-bottom: 2px solid var(--_1pyqka9l) !important;
 }
 ._1eq64x70 {
   align-items: center;
@@ -8088,7 +8128,7 @@ body {
   height: 40px;
 }
 .gw96js1 {
-  height: 100%;
+  height: calc(100% - 40px);
 }
 .gw96js2 {
   width: calc(100%);

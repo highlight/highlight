@@ -1,90 +1,75 @@
 import {
 	Box,
-	IconSolidCheveronDown,
-	Menu,
+	Select,
+	SelectOption,
 	Stack,
-	Tooltip,
+	Text,
 } from '@highlight-run/ui/components'
-import React from 'react'
+import React, { useMemo } from 'react'
 
-import * as style from './styles.css'
+type Options<T> = T[] | SelectOption[]
 
 export const OptionDropdown = <T extends string>({
 	options,
 	selection,
 	setSelection,
-	icons,
-	labels,
-	tooltips,
 	disabled,
 }: {
-	options: T[]
+	options: Options<T>
 	selection: T
 	setSelection: (option: T) => void
-	icons?: JSX.Element[]
-	labels?: string[]
-	tooltips?: React.ReactNode[]
 	disabled?: boolean
 }) => {
-	const selectedIndex = options.indexOf(selection)
-	const selectedIcon = icons?.at(selectedIndex)
-	const selectedLabel = labels?.at(selectedIndex)
 	return (
-		<Menu>
-			<Menu.Button
-				kind="secondary"
-				size="small"
-				emphasis="medium"
-				cssClass={style.menuButton}
-				disabled={disabled}
-			>
-				<Box
-					width="full"
-					display="flex"
-					alignItems="center"
-					gap="4"
-					justifyContent="space-between"
-					cssClass={style.menuButtonInner}
-				>
-					<Stack direction="row" alignItems="center" gap="4">
-						{selectedIcon}
-						{selectedLabel ?? selection}
-					</Stack>
-					<IconSolidCheveronDown />
-				</Box>
-			</Menu.Button>
-			<Menu.List cssClass={style.menuList}>
-				{options.map((p, idx) => {
-					let innerContent: React.ReactNode = (
-						<Stack
-							direction="row"
-							alignItems="center"
-							gap="4"
-							width="full"
-						>
-							{icons?.at(idx)}
-							{labels?.at(idx) ?? p}
-						</Stack>
-					)
-					if (tooltips !== undefined) {
-						innerContent = (
-							<Tooltip placement="left" trigger={innerContent}>
-								{tooltips[idx]}
-							</Tooltip>
-						)
-					}
+		<Box flex="stretch">
+			<Select<T>
+				value={selection}
+				renderValue={(value) => {
 					return (
-						<Menu.Item
-							key={p}
-							onClick={() => {
-								setSelection(p as T)
-							}}
-						>
-							{innerContent}
-						</Menu.Item>
+						<Text color="secondaryContentOnEnabled">
+							<Stack direction="row" alignItems="center" gap="4">
+								<SelectValue
+									options={options}
+									value={value as T}
+								/>
+							</Stack>
+						</Text>
 					)
-				})}
-			</Menu.List>
-		</Menu>
+				}}
+				options={options}
+				onValueChange={(v: SelectOption) => setSelection(v.value as T)}
+				disabled={disabled}
+			/>
+		</Box>
+	)
+}
+
+const SelectValue = <T extends string>({
+	options,
+	value,
+}: {
+	options: Options<T>
+	value: T
+}) => {
+	const selectedOption = useMemo(() => {
+		if (typeof options === 'string') {
+			return value
+		}
+
+		return (
+			(options as SelectOption[]).find((opt) => opt.value === value) ||
+			value
+		)
+	}, [options, value])
+
+	if (typeof selectedOption === 'string') {
+		return value
+	}
+
+	return (
+		<>
+			{selectedOption.icon}
+			{selectedOption.name || selectedOption.value}
+		</>
 	)
 }

@@ -824,61 +824,6 @@ export type ReplyToErrorCommentMutation = { __typename?: 'Mutation' } & {
 	>
 }
 
-export type CreateErrorAlertMutationVariables = Types.Exact<{
-	project_id: Types.Scalars['ID']
-	name: Types.Scalars['String']
-	count_threshold: Types.Scalars['Int']
-	threshold_window: Types.Scalars['Int']
-	slack_channels:
-		| Array<Types.Maybe<Types.SanitizedSlackChannelInput>>
-		| Types.Maybe<Types.SanitizedSlackChannelInput>
-	discord_channels:
-		| Array<Types.DiscordChannelInput>
-		| Types.DiscordChannelInput
-	webhook_destinations:
-		| Array<Types.WebhookDestinationInput>
-		| Types.WebhookDestinationInput
-	microsoft_teams_channels:
-		| Array<Types.MicrosoftTeamsChannelInput>
-		| Types.MicrosoftTeamsChannelInput
-	emails:
-		| Array<Types.Maybe<Types.Scalars['String']>>
-		| Types.Maybe<Types.Scalars['String']>
-	regex_groups:
-		| Array<Types.Maybe<Types.Scalars['String']>>
-		| Types.Maybe<Types.Scalars['String']>
-	frequency: Types.Scalars['Int']
-	default?: Types.Maybe<Types.Scalars['Boolean']>
-	query: Types.Scalars['String']
-}>
-
-export type CreateErrorAlertMutation = { __typename?: 'Mutation' } & {
-	createErrorAlert?: Types.Maybe<
-		{ __typename?: 'ErrorAlert' } & Pick<
-			Types.ErrorAlert,
-			| 'id'
-			| 'EmailsToNotify'
-			| 'Name'
-			| 'CountThreshold'
-			| 'ThresholdWindow'
-			| 'LastAdminToEditID'
-			| 'RegexGroups'
-			| 'Frequency'
-			| 'disabled'
-			| 'Query'
-		> & {
-				ChannelsToNotify: Array<
-					Types.Maybe<
-						{ __typename?: 'SanitizedSlackChannel' } & Pick<
-							Types.SanitizedSlackChannel,
-							'webhook_channel' | 'webhook_channel_id'
-						>
-					>
-				>
-			}
-	>
-}
-
 export type CreateMetricMonitorMutationVariables = Types.Exact<{
 	project_id: Types.Scalars['ID']
 	name: Types.Scalars['String']
@@ -1025,6 +970,7 @@ export type CreateAlertMutationVariables = Types.Exact<{
 	function_column?: Types.Maybe<Types.Scalars['String']>
 	query?: Types.Maybe<Types.Scalars['String']>
 	group_by_key?: Types.Maybe<Types.Scalars['String']>
+	default?: Types.Maybe<Types.Scalars['Boolean']>
 	below_threshold?: Types.Maybe<Types.Scalars['Boolean']>
 	threshold_value?: Types.Maybe<Types.Scalars['Float']>
 	threshold_window?: Types.Maybe<Types.Scalars['Int']>
@@ -1213,16 +1159,6 @@ export type UpdateLogAlertMutation = { __typename?: 'Mutation' } & {
 	>
 }
 
-export type CreateLogAlertMutationVariables = Types.Exact<{
-	input: Types.LogAlertInput
-}>
-
-export type CreateLogAlertMutation = { __typename?: 'Mutation' } & {
-	createLogAlert?: Types.Maybe<
-		{ __typename?: 'LogAlert' } & Pick<Types.LogAlert, 'id'>
-	>
-}
-
 export type DeleteLogAlertMutationVariables = Types.Exact<{
 	project_id: Types.Scalars['ID']
 	id: Types.Scalars['ID']
@@ -1283,35 +1219,6 @@ export type UpdateErrorAlertIsDisabledMutationVariables = Types.Exact<{
 export type UpdateErrorAlertIsDisabledMutation = { __typename?: 'Mutation' } & {
 	updateErrorAlertIsDisabled?: Types.Maybe<
 		{ __typename?: 'ErrorAlert' } & Pick<Types.ErrorAlert, 'id'>
-	>
-}
-
-export type CreateSessionAlertMutationVariables = Types.Exact<{
-	input: Types.SessionAlertInput
-}>
-
-export type CreateSessionAlertMutation = { __typename?: 'Mutation' } & {
-	createSessionAlert?: Types.Maybe<
-		{ __typename?: 'SessionAlert' } & Pick<
-			Types.SessionAlert,
-			| 'id'
-			| 'EmailsToNotify'
-			| 'Name'
-			| 'ExcludedEnvironments'
-			| 'CountThreshold'
-			| 'ThresholdWindow'
-			| 'LastAdminToEditID'
-			| 'disabled'
-		> & {
-				ChannelsToNotify: Array<
-					Types.Maybe<
-						{ __typename?: 'SanitizedSlackChannel' } & Pick<
-							Types.SanitizedSlackChannel,
-							'webhook_channel' | 'webhook_channel_id'
-						>
-					>
-				>
-			}
 	>
 }
 
@@ -1699,7 +1606,7 @@ export type UpsertGraphMutation = { __typename?: 'Mutation' } & {
 		| 'query'
 		| 'metric'
 		| 'functionType'
-		| 'groupByKey'
+		| 'groupByKeys'
 		| 'bucketByKey'
 		| 'bucketCount'
 		| 'limit'
@@ -1707,7 +1614,16 @@ export type UpsertGraphMutation = { __typename?: 'Mutation' } & {
 		| 'limitMetric'
 		| 'display'
 		| 'nullHandling'
-	>
+	> & {
+			funnelSteps?: Types.Maybe<
+				Array<
+					{ __typename?: 'FunnelStep' } & Pick<
+						Types.FunnelStep,
+						'title' | 'query'
+					>
+				>
+			>
+		}
 }
 
 export type DeleteGraphMutationVariables = Types.Exact<{
@@ -2478,7 +2394,7 @@ export type GetSessionsQueryVariables = Types.Exact<{
 export type GetSessionsQuery = { __typename?: 'Query' } & {
 	sessions: { __typename?: 'SessionResults' } & Pick<
 		Types.SessionResults,
-		'totalCount'
+		'totalCount' | 'totalLength' | 'totalActiveLength'
 	> & {
 			sessions: Array<
 				{ __typename?: 'Session' } & Pick<
@@ -2558,6 +2474,8 @@ export type GetSessionUsersReportsQuery = { __typename?: 'Query' } & {
 			Types.SessionsReportRow,
 			| 'key'
 			| 'email'
+			| 'first_session'
+			| 'last_session'
 			| 'num_sessions'
 			| 'num_days_visited'
 			| 'num_months_visited'
@@ -4675,6 +4593,7 @@ export type GetLogsQueryVariables = Types.Exact<{
 	before?: Types.Maybe<Types.Scalars['String']>
 	at?: Types.Maybe<Types.Scalars['String']>
 	direction: Types.SortDirection
+	limit?: Types.Maybe<Types.Scalars['Int']>
 }>
 
 export type GetLogsQuery = { __typename?: 'Query' } & {
@@ -4703,22 +4622,6 @@ export type GetLogsQuery = { __typename?: 'Query' } & {
 			'hasNextPage' | 'hasPreviousPage' | 'startCursor' | 'endCursor'
 		>
 	}
-}
-
-export type GetSessionLogsQueryVariables = Types.Exact<{
-	project_id: Types.Scalars['ID']
-	params: Types.QueryInput
-}>
-
-export type GetSessionLogsQuery = { __typename?: 'Query' } & {
-	sessionLogs: Array<
-		{ __typename?: 'LogEdge' } & Pick<Types.LogEdge, 'cursor'> & {
-				node: { __typename?: 'Log' } & Pick<
-					Types.Log,
-					'timestamp' | 'level' | 'message'
-				>
-			}
-	>
 }
 
 export type GetLogsHistogramQueryVariables = Types.Exact<{
@@ -5104,6 +5007,7 @@ export type GetTracesQueryVariables = Types.Exact<{
 	before?: Types.Maybe<Types.Scalars['String']>
 	at?: Types.Maybe<Types.Scalars['String']>
 	direction: Types.SortDirection
+	limit?: Types.Maybe<Types.Scalars['Int']>
 }>
 
 export type GetTracesQuery = { __typename?: 'Query' } & {
@@ -5187,11 +5091,12 @@ export type GetTracesMetricsQuery = { __typename?: 'Query' } & {
 }
 
 export type GetKeysQueryVariables = Types.Exact<{
-	product_type: Types.ProductType
+	product_type?: Types.Maybe<Types.ProductType>
 	project_id: Types.Scalars['ID']
 	date_range: Types.DateRangeRequiredInput
 	query?: Types.Maybe<Types.Scalars['String']>
 	type?: Types.Maybe<Types.KeyType>
+	event?: Types.Maybe<Types.Scalars['String']>
 }>
 
 export type GetKeysQuery = { __typename?: 'Query' } & {
@@ -5201,12 +5106,13 @@ export type GetKeysQuery = { __typename?: 'Query' } & {
 }
 
 export type GetKeyValuesQueryVariables = Types.Exact<{
-	product_type: Types.ProductType
+	product_type?: Types.Maybe<Types.ProductType>
 	project_id: Types.Scalars['ID']
 	key_name: Types.Scalars['String']
 	date_range: Types.DateRangeRequiredInput
 	query: Types.Scalars['String']
 	count: Types.Scalars['Int']
+	event?: Types.Maybe<Types.Scalars['String']>
 }>
 
 export type GetKeyValuesQuery = { __typename?: 'Query' } & Pick<
@@ -5257,6 +5163,12 @@ export type GetVisualizationQuery = { __typename?: 'Query' } & {
 		Types.Visualization,
 		'id' | 'updatedAt' | 'projectId' | 'name' | 'timePreset'
 	> & {
+			variables: Array<
+				{ __typename?: 'Variable' } & Pick<
+					Types.Variable,
+					'key' | 'defaultValues' | 'suggestionType' | 'field'
+				>
+			>
 			graphs: Array<
 				{ __typename?: 'Graph' } & Pick<
 					Types.Graph,
@@ -5267,7 +5179,7 @@ export type GetVisualizationQuery = { __typename?: 'Query' } & {
 					| 'query'
 					| 'metric'
 					| 'functionType'
-					| 'groupByKey'
+					| 'groupByKeys'
 					| 'bucketByKey'
 					| 'bucketCount'
 					| 'bucketInterval'
@@ -5276,7 +5188,16 @@ export type GetVisualizationQuery = { __typename?: 'Query' } & {
 					| 'limitMetric'
 					| 'display'
 					| 'nullHandling'
-				>
+				> & {
+						funnelSteps?: Types.Maybe<
+							Array<
+								{ __typename?: 'FunnelStep' } & Pick<
+									Types.FunnelStep,
+									'title' | 'query'
+								>
+							>
+						>
+					}
 			>
 			updatedByAdmin?: Types.Maybe<
 				{ __typename?: 'SanitizedAdmin' } & Pick<
@@ -5304,6 +5225,15 @@ export type GetVisualizationsQuery = { __typename?: 'Query' } & {
 					Types.Visualization,
 					'id' | 'updatedAt' | 'projectId' | 'name' | 'timePreset'
 				> & {
+						variables: Array<
+							{ __typename?: 'Variable' } & Pick<
+								Types.Variable,
+								| 'key'
+								| 'defaultValues'
+								| 'suggestionType'
+								| 'field'
+							>
+						>
 						graphs: Array<
 							{ __typename?: 'Graph' } & Pick<
 								Types.Graph,
@@ -5314,7 +5244,7 @@ export type GetVisualizationsQuery = { __typename?: 'Query' } & {
 								| 'query'
 								| 'metric'
 								| 'functionType'
-								| 'groupByKey'
+								| 'groupByKeys'
 								| 'bucketByKey'
 								| 'bucketCount'
 								| 'bucketInterval'
@@ -5323,7 +5253,18 @@ export type GetVisualizationsQuery = { __typename?: 'Query' } & {
 								| 'limitMetric'
 								| 'display'
 								| 'nullHandling'
-							>
+							> & {
+									funnelSteps?: Types.Maybe<
+										Array<
+											{
+												__typename?: 'FunnelStep'
+											} & Pick<
+												Types.FunnelStep,
+												'title' | 'query'
+											>
+										>
+									>
+								}
 						>
 						updatedByAdmin?: Types.Maybe<
 							{ __typename?: 'SanitizedAdmin' } & Pick<
@@ -5480,7 +5421,6 @@ export const namedOperations = {
 		GetErrorGroupTags: 'GetErrorGroupTags' as const,
 		GetEmailOptOuts: 'GetEmailOptOuts' as const,
 		GetLogs: 'GetLogs' as const,
-		GetSessionLogs: 'GetSessionLogs' as const,
 		GetLogsHistogram: 'GetLogsHistogram' as const,
 		GetLogsRelatedResources: 'GetLogsRelatedResources' as const,
 		GetProjectSettings: 'GetProjectSettings' as const,
@@ -5551,7 +5491,6 @@ export const namedOperations = {
 		MuteErrorCommentThread: 'MuteErrorCommentThread' as const,
 		RemoveErrorIssue: 'RemoveErrorIssue' as const,
 		ReplyToErrorComment: 'ReplyToErrorComment' as const,
-		CreateErrorAlert: 'CreateErrorAlert' as const,
 		CreateMetricMonitor: 'CreateMetricMonitor' as const,
 		UpdateMetricMonitor: 'UpdateMetricMonitor' as const,
 		DeleteMetricMonitor: 'DeleteMetricMonitor' as const,
@@ -5565,13 +5504,11 @@ export const namedOperations = {
 		DeleteErrorAlert: 'DeleteErrorAlert' as const,
 		DeleteSessionAlert: 'DeleteSessionAlert' as const,
 		UpdateLogAlert: 'UpdateLogAlert' as const,
-		CreateLogAlert: 'CreateLogAlert' as const,
 		DeleteLogAlert: 'DeleteLogAlert' as const,
 		UpdateLogAlertIsDisabled: 'UpdateLogAlertIsDisabled' as const,
 		UpdateSessionAlertIsDisabled: 'UpdateSessionAlertIsDisabled' as const,
 		UpdateMetricMonitorIsDisabled: 'UpdateMetricMonitorIsDisabled' as const,
 		UpdateErrorAlertIsDisabled: 'UpdateErrorAlertIsDisabled' as const,
-		CreateSessionAlert: 'CreateSessionAlert' as const,
 		UpdateSessionAlert: 'UpdateSessionAlert' as const,
 		UpdateSessionIsPublic: 'UpdateSessionIsPublic' as const,
 		UpdateErrorGroupIsPublic: 'UpdateErrorGroupIsPublic' as const,

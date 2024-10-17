@@ -21,6 +21,7 @@ export const useGetTraces = ({
 	sortColumn = 'timestamp',
 	sortDirection = Types.SortDirection.Desc,
 	skip,
+	limit,
 }: {
 	query: string
 	projectId: string | undefined
@@ -31,6 +32,7 @@ export const useGetTraces = ({
 	sortColumn?: string
 	sortDirection?: Types.SortDirection
 	skip?: boolean
+	limit?: number
 }) => {
 	const [loadingAfter, setLoadingAfter] = useState(false)
 
@@ -39,6 +41,7 @@ export const useGetTraces = ({
 			project_id: projectId!,
 			at: traceCursor,
 			direction: sortDirection,
+			limit,
 			params: {
 				query,
 				date_range: {

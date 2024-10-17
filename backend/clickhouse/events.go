@@ -2,14 +2,15 @@ package clickhouse
 
 import (
 	"context"
-	"fmt"
+	"errors"
 	"strings"
 	"time"
 
+	"github.com/ClickHouse/clickhouse-go/v2"
 	"github.com/google/uuid"
 	"github.com/highlight-run/highlight/backend/model"
+	"github.com/huandu/go-sqlbuilder"
 	"github.com/openlyinc/pointy"
-	e "github.com/pkg/errors"
 	"github.com/samber/lo"
 
 	modelInputs "github.com/highlight-run/highlight/backend/private-graph/graph/model"
@@ -17,8 +18,8 @@ import (
 
 const SessionEventsTable = "session_events"
 const SessionEventsView = "session_events_vw"
-const EventKeysTable = "event_keys"
-const EventKeyValuesTable = "event_key_values"
+const EventKeysTable = "event_keys_new"
+const EventKeyValuesTable = "event_key_values_new"
 
 var eventKeysToColumns = map[string]string{
 	string(modelInputs.ReservedEventKeyBrowserName):         "BrowserName",
@@ -78,37 +79,48 @@ type SessionEventRow struct {
 	UUID             string
 	ProjectID        uint32
 	SessionID        uint64
-	SessionCreatedAt time.Time
-	Timestamp        time.Time
+	SessionCreatedAt int64
+	Timestamp        int64
 	Event            string
 	Attributes       map[string]string
 }
 
-func (client *Client) BatchWriteSessionEventRows(ctx context.Context, eventRows []*SessionEventRow) error {
+func (client *Client) WriteSessionEventRows(ctx context.Context, eventRows []*SessionEventRow) error {
 	if len(eventRows) == 0 {
 		return nil
 	}
 
-	rows := lo.Map(eventRows, func(l *SessionEventRow, _ int) interface{} {
-		if len(l.UUID) == 0 {
-			l.UUID = uuid.New().String()
-		}
-		return l
-	})
+	chEvents := []interface{}{}
 
-	batch, err := client.conn.PrepareBatch(ctx, fmt.Sprintf("INSERT INTO %s", SessionEventsTable))
-	if err != nil {
-		return e.Wrap(err, "failed to create session events batch")
+	for _, event := range eventRows {
+		if event == nil {
+			return errors.New("nil event")
+		}
+
+		newEvent := *event
+		if len(newEvent.UUID) == 0 {
+			newEvent.UUID = uuid.New().String()
+		}
+
+		chEvents = append(chEvents, newEvent)
 	}
 
-	for _, sessionEventRow := range rows {
-		err = batch.AppendStruct(sessionEventRow)
-		if err != nil {
-			return err
-		}
+	if len(chEvents) > 0 {
+		chCtx := clickhouse.Context(ctx, clickhouse.WithSettings(clickhouse.Settings{
+			"async_insert":          1,
+			"wait_for_async_insert": 1,
+		}))
+
+		eventsSql, eventsArgs := sqlbuilder.
+			NewStruct(new(SessionEventRow)).
+			InsertInto(SessionEventsTable, chEvents...).
+			BuildWithFlavor(sqlbuilder.ClickHouse)
+		eventsSql, eventsArgs = replaceTimestampInserts(eventsSql, eventsArgs, map[int]bool{3: true, 4: true}, MicroSeconds)
+
+		return client.conn.Exec(chCtx, eventsSql, eventsArgs...)
 	}
 
-	return batch.Send()
+	return nil
 }
 
 func (client *Client) ReadEventsMetrics(ctx context.Context, projectID int, params modelInputs.QueryInput, column string, metricTypes []modelInputs.MetricAggregator, groupBy []string, nBuckets *int, bucketBy string, bucketWindow *int, limit *int, limitAggregator *modelInputs.MetricAggregator, limitColumn *string) (*modelInputs.MetricsBuckets, error) {
@@ -141,8 +153,8 @@ func (client *Client) ReadWorkspaceEventCounts(ctx context.Context, projectIDs [
 	})
 }
 
-func (client *Client) EventsKeys(ctx context.Context, projectID int, startDate time.Time, endDate time.Time, query *string, typeArg *modelInputs.KeyType) ([]*modelInputs.QueryKey, error) {
-	eventKeys, err := KeysAggregated(ctx, client, EventKeysTable, projectID, startDate, endDate, query, typeArg)
+func (client *Client) EventsKeys(ctx context.Context, projectID int, startDate time.Time, endDate time.Time, query *string, typeArg *modelInputs.KeyType, event *string) ([]*modelInputs.QueryKey, error) {
+	eventKeys, err := KeysAggregated(ctx, client, EventKeysTable, projectID, startDate, endDate, query, typeArg, event)
 	if err != nil {
 		return nil, err
 	}
@@ -161,12 +173,12 @@ func (client *Client) EventsKeys(ctx context.Context, projectID int, startDate t
 	return eventKeys, nil
 }
 
-func (client *Client) EventsKeyValues(ctx context.Context, projectID int, keyName string, startDate time.Time, endDate time.Time, query *string, limit *int) ([]string, error) {
+func (client *Client) EventsKeyValues(ctx context.Context, projectID int, keyName string, startDate time.Time, endDate time.Time, query *string, limit *int, event *string) ([]string, error) {
 	if eventBooleanKeys[keyName] {
 		return []string{"true", "false"}, nil
 	}
 
-	return KeyValuesAggregated(ctx, client, EventKeyValuesTable, projectID, keyName, startDate, endDate, query, limit)
+	return KeyValuesAggregated(ctx, client, EventKeyValuesTable, projectID, keyName, startDate, endDate, query, limit, event)
 }
 
 func (client *Client) EventsLogLines(ctx context.Context, projectID int, params modelInputs.QueryInput) ([]*modelInputs.LogLine, error) {

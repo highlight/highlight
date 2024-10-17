@@ -1,5 +1,49 @@
 # highlight.run
 
+## 9.5.0
+
+### Minor Changes
+
+-   d94533a: update rrweb to use postcss css parser
+
+## 9.4.4
+
+### Patch Changes
+
+-   f43d3b4: fix full snapshot error when failing to starting rrweb recording
+-   72ec866: fix recording bodies of otel requests
+-   f43d3b4: improve canvas serialization performance and support shadow dom canvases
+-   f43d3b4: fix rrweb replay breaking on invalid inlined css
+
+## 9.4.3
+
+### Patch Changes
+
+-   54557e9: re-release 9.4.2 which included incorrect bundle built from 9.3.4
+
+## 9.4.2
+
+### Patch Changes
+
+-   5213ca3: ensure callback value is returned when not initialized
+
+## 9.4.1
+
+### Patch Changes
+
+-   a95d52b: record pri.highlight.io requests
+-   f432e66: block tracing via x-highlight-request header via urlblocklist
+
+## 9.4.0
+
+### Minor Changes
+
+-   815faa8: fix rrweb postcss replay and live mode
+
+### Patch Changes
+
+-   815faa8: fix live mode breaking due to ischeckout of full snapshot
+
 ## 9.3.4
 
 ### Patch Changes

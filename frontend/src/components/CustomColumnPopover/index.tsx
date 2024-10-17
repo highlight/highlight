@@ -32,9 +32,16 @@ export type CustomColumn<T, TIn> = {
 	type: TIn
 	size: string
 	accessor: (row: T) => any
+	onClick?: (edge: any) => void
 }
 
-type LogColumnType = 'string' | 'datetime' | 'session' | 'level' | 'body'
+type LogColumnType =
+	| 'string'
+	| 'datetime'
+	| 'session'
+	| 'level'
+	| 'body'
+	| 'go-to-log'
 export type LogCustomColumn = CustomColumn<LogEdge, LogColumnType>
 
 type TraceColumnType =

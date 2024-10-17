@@ -1,4 +1,4 @@
-import { OpenAIApi } from 'openai'
+import { OpenAI } from 'openai'
 import { getSessionHighlightPrompt } from './prompts'
 
 export enum EventType {
@@ -80,12 +80,9 @@ export const getMostActiveChunks = (events: any[]) => {
 		.join('\n')
 }
 
-export const getInsightsForEvents = async (
-	openai: OpenAIApi,
-	events: any[],
-) => {
+export const getInsightsForEvents = async (openai: OpenAI, events: any[]) => {
 	const parsedEvents = parseEventsForInput(events)
-	const completion = await openai.createChatCompletion({
+	const completion = await openai.chat.completions.create({
 		model: 'gpt-4o-mini',
 		messages: [
 			{
@@ -97,6 +94,6 @@ export const getInsightsForEvents = async (
 		],
 		temperature: 1.2,
 	})
-	const responseString = completion.data.choices[0].message?.content || ''
+	const responseString = completion.choices[0].message?.content || ''
 	return responseString
 }

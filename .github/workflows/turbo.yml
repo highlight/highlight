@@ -81,29 +81,10 @@ jobs:
 
             - name: Build render
               # does not work for open source builds as doppler is required
-              if: github.event.pull_request.head.repo.full_name == 'highlight/highlight' || github.ref == 'refs/heads/main' || github.event_name == 'release'
+              if: github.event.pull_request.head.repo.full_name == 'highlight/highlight' || github.ref == 'refs/heads/main'
               run: doppler run -- yarn build:render
               env:
                   DOPPLER_TOKEN: ${{ secrets.DOPPLER_PROD_RENDER_SECRET }}
-
-            - name: Validate repo state
-              run: |
-                  git status --porcelain
-                  pushd rrweb
-                  git status --porcelain
-                  popd
-
-            - name: Release changesets
-              if: github.ref == 'refs/heads/main'
-              id: changesets-version
-              uses: changesets/action@v1
-              with:
-                  branch: main
-                  version: yarn changeset version
-              env:
-                  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-                  NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
-                  NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
             - name: Upload frontend sourcemaps
               if: github.ref == 'refs/heads/main'
@@ -113,12 +94,23 @@ jobs:
                   APP_VERSION: ${{ github.event.pull_request.head.sha || github.sha }}
 
             - name: Configure yarn npm registry credentials
-              if: github.ref == 'refs/heads/main'
+              if: github.event.pull_request.head.repo.full_name == 'highlight/highlight' || github.ref == 'refs/heads/main'
               run: |
                   yarn config set npmRegistryServer "https://registry.npmjs.org"
                   yarn config set npmAuthToken "${NPM_TOKEN}"
               env:
                   NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+            - name: Publish npm packages
+              if: github.ref == 'refs/heads/main'
+              id: changesets-publish
+              uses: changesets/action@v1
+              with:
+                  publish: yarn publish:turbo
+              env:
+                  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+                  NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+                  NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
             - name: Publish ai lambda
               if: github.ref == 'refs/heads/main'
@@ -132,13 +124,12 @@ jobs:
               if: github.ref == 'refs/heads/main'
               run: yarn publish:render
 
-            - name: Publish changesets
+            - name: Release changesets
               if: github.ref == 'refs/heads/main'
-              id: changesets-publish
+              id: changesets-version
               uses: changesets/action@v1
               with:
-                  branch: main
-                  publish: yarn publish:turbo
+                  version: yarn changeset version
               env:
                   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
                   NPM_TOKEN: ${{ secrets.NPM_TOKEN }}

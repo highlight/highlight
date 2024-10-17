@@ -10,11 +10,19 @@ import {
 	useComboboxStore,
 	useSelectStore,
 } from '@ariakit/react'
+import type { ComponentTest } from '@reflame/testing'
 import clsx, { ClassValue } from 'clsx'
 import React, { useState } from 'react'
 
 import { vars } from '../../css/vars'
-import { IconSolidCheckCircle, IconSolidSearch } from '../icons'
+import {
+	IconSolidCheckCircle,
+	IconSolidSearch,
+	IconSolidXCircle,
+} from '../icons'
+import { Box } from '../Box/Box'
+import { ButtonIcon } from '../ButtonIcon/ButtonIcon'
+import { Stack } from '../Stack/Stack'
 import { Text } from '../Text/Text'
 import * as styles from './styles.css'
 
@@ -29,7 +37,7 @@ type Props<T extends string | string[]> = {
 	value: T | undefined
 	valueRender?: React.ReactNode
 	options: Option[] | undefined
-	onChange: (value: T) => void
+	onChange: (value: any) => void
 	onChangeQuery?: (value: string) => void
 	onClose?: () => void
 	queryPlaceholder?: string
@@ -41,6 +49,7 @@ type Props<T extends string | string[]> = {
 	disabled?: boolean
 	loadingRender?: React.ReactNode
 	emptyStateRender?: React.ReactNode
+	clearable?: boolean
 }
 
 export const ComboboxSelect = <T extends string | string[]>({
@@ -61,6 +70,7 @@ export const ComboboxSelect = <T extends string | string[]>({
 	disabled,
 	loadingRender,
 	emptyStateRender,
+	clearable,
 }: Props<T>) => {
 	const isMultiselect = typeof value === 'object'
 
@@ -109,15 +119,44 @@ export const ComboboxSelect = <T extends string | string[]>({
 			</SelectLabel>
 			<Select
 				store={select}
-				className={clsx([styles.selectButton, cssClass])}
+				className={clsx([
+					styles.selectButton,
+					cssClass,
+					{
+						[styles.disabled]: disabled,
+					},
+				])}
 				disabled={disabled}
 			>
-				{icon}
-				{valueRender && (
-					<Text size="xSmall" color="secondaryContentText" lines="1">
-						{valueRender}
-					</Text>
-				)}
+				<Stack
+					direction="row"
+					align="center"
+					justify="space-between"
+					width="full"
+					gap="2"
+				>
+					<Box>
+						{icon}
+						{valueRender && (
+							<Text
+								size="xSmall"
+								color="secondaryContentText"
+								lines="1"
+							>
+								{valueRender}
+							</Text>
+						)}
+					</Box>
+					{clearable && !!value && (
+						<ButtonIcon
+							icon={<IconSolidXCircle />}
+							onClick={() => onChange(undefined)}
+							size="xSmall"
+							emphasis="none"
+							kind="secondary"
+						/>
+					)}
+				</Stack>
 			</Select>
 			<SelectPopover
 				store={select}
@@ -209,7 +248,7 @@ export const ComboboxSelect = <T extends string | string[]>({
 	)
 }
 
-export const ComboboxSelect_test = () => {
+export const ComboboxSelect_test: ComponentTest = () => {
 	const [value, setValue] = useState('')
 	const options = [
 		{ key: 'red', render: 'Red' },
@@ -232,13 +271,8 @@ export const ComboboxSelect_test = () => {
 	)
 }
 
-// Will add a TS type package for this stuff soon!
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-// @ts-ignore
-ComboboxSelect_test.run = async ({ step }) => {
-	// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-	// @ts-ignore
-	await step('open dialog', async ({ screen, user }) => {
+ComboboxSelect_test.run = async ({ step, screen, user }) => {
+	await step('open dialog', async () => {
 		const combobox = await screen.findByRole('combobox')
 		await user.click(combobox)
 		const dialog = await screen.findByRole('dialog')
@@ -249,9 +283,7 @@ ComboboxSelect_test.run = async ({ step }) => {
 		}
 	})
 
-	// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-	// @ts-ignore
-	await step('enter filter text', async ({ screen, user }) => {
+	await step('enter filter text', async () => {
 		const filterInput = await screen.findByPlaceholderText('Filter...')
 		await user.type(filterInput, 're')
 		return {
@@ -261,9 +293,7 @@ ComboboxSelect_test.run = async ({ step }) => {
 		}
 	})
 
-	// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-	// @ts-ignore
-	await step('select option', async ({ screen, user }) => {
+	await step('select option', async () => {
 		const redOption = await screen.findByText('Red')
 		await user.click(redOption)
 	})

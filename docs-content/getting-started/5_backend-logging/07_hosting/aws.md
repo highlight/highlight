@@ -70,3 +70,60 @@ Finally, connect your AWS CloudWatch Log Stream to the Kinesis Data Stream via a
 ![](/images/aws/kinesis/step3.png)
 
 If you have any questions with your setup, don't hesitate to [reach out](https://community.highlight.io)!
+
+
+### AWS Kinesis Firehose with Firelens Fluentbit JSON structured logging
+
+Let's say you are running an ECS Service and want your structured JSON logs to be exported to highlight via [AWS Firelens shipping to a Kinesis Data Stream](https://docs.aws.amazon.com/app2container/latest/UserGuide/a2c-integrations-firelens.html). 
+
+Set up the Kinesis Data Stream and Kinesis Firehose as described above in the previous Firehose docs.  
+
+Connect your AWS ECS Service to the Kinesis Data Stream via a Firelens side-car running along-side your service.
+
+For example, your ECS Task Definition should have your primary service (ie. `example-json-logger`) and the log router sidecar, running the `aws-for-fluent-bit` image configured to parse JSON logs and forward them to the Kinesis Data Stream (ie. `YOUR-AWS-KINESIS-DATA-STREAM`):
+```json
+{
+  "containerDefinitions": [
+    {
+      "name": "example-json-logger",
+      "image": "sikwan/random-json-logger",
+      "logConfiguration": {
+        "logDriver": "awsfirelens",
+        "options": {
+          "region": "us-east-2",
+          "stream": "YOUR-AWS-KINESIS-DATA-STREAM",
+          "Name": "kinesis_streams"
+        }
+      }
+    },
+    {
+      "name": "log_router",
+      "image": "public.ecr.aws/aws-observability/aws-for-fluent-bit:stable",
+      "firelensConfiguration": {
+        "type": "fluentbit",
+        "options": {
+          "config-file-type": "file",
+          "config-file-value": "/fluent-bit/configs/parse-json.conf",
+          "enable-ecs-log-metadata": "true"
+        }
+      }
+    }
+  ]
+}
+```
+
+Note, you may need to update your ECS task execution role to allow `kinesis:PutRecords`
+```json
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Effect": "Allow",
+            "Action": "kinesis:PutRecords",
+            "Resource": "arn:aws:kinesis:us-east-2:XXXXXXXXXX:stream/your-kinesis-data-stream"
+        }
+    ]
+}
+```
+
+You should now see your logs appear in highlight.

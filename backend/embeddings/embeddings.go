@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/highlight-run/highlight/backend/env"
+	"github.com/highlight-run/highlight/backend/util"
 	"io"
 	"math"
 	"net/http"
@@ -194,6 +195,8 @@ func GetErrorObjectQuery(errorObj *model.ErrorObject) string {
 }
 
 func (c *HuggingfaceModelClient) GetEmbeddings(ctx context.Context, errors []*model.ErrorObject) ([]*model.ErrorObjectEmbeddings, error) {
+	span, ctx := util.StartSpanFromContext(ctx, "huggingface.GetEmbeddings", util.Tag("num_errors", len(errors)))
+	defer span.Finish()
 	start := time.Now()
 	var combinedInputs []string
 	for _, errorObject := range errors {

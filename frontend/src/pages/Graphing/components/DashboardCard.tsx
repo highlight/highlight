@@ -5,8 +5,9 @@ import {
 	Button,
 	IconSolidArrowsExpand,
 	IconSolidDesktopComputer,
+	IconSolidDocumentDownload,
+	IconSolidDotsHorizontal,
 	IconSolidDuplicate,
-	IconSolidMenu,
 	IconSolidPencil,
 	IconSolidTrash,
 	Menu,
@@ -20,6 +21,7 @@ export const DashboardCard = ({
 	id,
 	onClone,
 	onDelete,
+	onDownload,
 	onExpand,
 	onEdit,
 	children,
@@ -27,6 +29,7 @@ export const DashboardCard = ({
 	id: string
 	onClone?: () => void
 	onDelete?: () => void
+	onDownload?: () => void
 	onExpand?: () => void
 	onEdit?: () => void
 }>) => {
@@ -57,7 +60,9 @@ export const DashboardCard = ({
 			onMouseEnter={() => {
 				setGraphHover(true)
 			}}
-			onMouseLeave={() => {}}
+			onMouseLeave={() => {
+				setGraphHover(false)
+			}}
 		>
 			<Box
 				borderRadius="6"
@@ -103,7 +108,7 @@ export const DashboardCard = ({
 									size="xSmall"
 									emphasis="low"
 									kind="secondary"
-									iconLeft={<IconSolidMenu />}
+									iconLeft={<IconSolidDotsHorizontal />}
 									onClick={(e: any) => {
 										e.stopPropagation()
 									}}
@@ -123,6 +128,23 @@ export const DashboardCard = ({
 											>
 												<IconSolidDesktopComputer />
 												Expand metric view
+											</Box>
+										</Menu.Item>
+									)}
+									{onDownload && (
+										<Menu.Item
+											onClick={(e) => {
+												e.stopPropagation()
+												onDownload()
+											}}
+										>
+											<Box
+												display="flex"
+												alignItems="center"
+												gap="4"
+											>
+												<IconSolidDocumentDownload />
+												Download CSV
 											</Box>
 										</Menu.Item>
 									)}

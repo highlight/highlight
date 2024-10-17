@@ -13,3 +13,7 @@ export const comboboxWrapper = style({
 export const comboboxText = style({
 	lineHeight: '24px',
 })
+
+export const comboboxPopover = style({
+	maxWidth: 280,
+})

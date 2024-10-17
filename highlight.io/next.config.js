@@ -62,6 +62,45 @@ const nextConfig = {
 				destination: 'https://github.com/highlight/highlight',
 				permanent: false,
 			},
+			{
+				source: '/docs/product-features/comments',
+				destination:
+					'/docs/general/product-features/general-features/comments',
+				permanent: true,
+			},
+			{
+				source: '/docs/general/company/product-philosphy',
+				destination: '/docs/general/company/product-philosophy',
+				permanent: true,
+			},
+			{
+				source: '/docs/general/product-features/session-replay/privacy',
+				destination:
+					'/docs/getting-started/client-sdk/replay-configuration/privacy',
+				permanent: true,
+			},
+			{
+				source: '/docs/reference',
+				destination: '/docs',
+				permanent: true,
+			},
+			{
+				source: '/blog/post/opensearch-for-a-write-heavy-workload',
+				destination: '/blog/opensearch-for-a-write-heavy-workload',
+				permanent: true,
+			},
+			{
+				source: '/docs/general/getting-started/backend-sdk/cloudflare',
+				destination:
+					'/docs/getting-started/backend-logging/js/cloudflare',
+				permanent: true,
+			},
+			{
+				source: '/docs/general/getting-started/backend-sdk/python',
+				destination:
+					'/docs/getting-started/backend-logging/python/other',
+				permanent: true,
+			},
 		]
 	},
 	async headers() {

@@ -28,7 +28,6 @@ const LogAlertsRouter = () => {
 				<title>Log Alerts</title>
 			</Helmet>
 			<Routes>
-				<Route path="new" element={<LogAlertPage />} />
 				<Route path=":alert_id" element={<LogAlertPage />} />
 			</Routes>
 		</LogAlertsContextProvider>

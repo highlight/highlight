@@ -141,7 +141,7 @@ func (h *handlers) GetSessionIdsByQuery(ctx context.Context, event utils.QuerySe
 		batchId := uuid.New().String()
 		toDelete := []model.DeleteSessionsTask{}
 
-		ids, _, _, err := h.clickhouseClient.QuerySessionIds(ctx, nil, event.ProjectId, 10000, event.Params, "CreatedAt DESC, ID DESC", pointy.Int(page), time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC))
+		ids, _, _, _, _, err := h.clickhouseClient.QuerySessionIds(ctx, nil, event.ProjectId, 10000, event.Params, "CreatedAt DESC, ID DESC", pointy.Int(page), time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC))
 		if err != nil {
 			return nil, err
 		}
@@ -215,6 +215,10 @@ func (h *handlers) DeleteSessions(ctx context.Context, projectId int, startDate 
 	if err != nil {
 		log.WithContext(ctx).Error(err)
 		return
+	}
+
+	if err := h.storageClient.CleanupRawEvents(ctx, projectId); err != nil {
+		log.WithContext(ctx).Error(err)
 	}
 
 	if len(batches) == 0 {

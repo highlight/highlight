@@ -1,6 +1,5 @@
 import {
 	DateRangePreset,
-	DEFAULT_TIME_PRESETS,
 	EXTENDED_TIME_PRESETS,
 	presetStartDate,
 } from '@highlight-run/ui/components'
@@ -9,11 +8,11 @@ import moment from 'moment'
 
 import { ProductType, RetentionPeriod } from '@/graph/generated/schemas'
 import { useApplicationContext } from '@/routers/AppRouter/context/ApplicationContext'
+import { getRetentionDays } from '@/pages/Billing/utils/utils'
 
-export const useRetentionPresets = (productType: ProductType) => {
+export const useRetentionPresets = (productType?: ProductType) => {
 	const { currentWorkspace } = useApplicationContext()
 
-	let defaultPresets = DEFAULT_TIME_PRESETS
 	let retentionPeriod: RetentionPeriod | undefined =
 		RetentionPeriod.ThirtyDays
 	switch (productType) {
@@ -21,14 +20,29 @@ export const useRetentionPresets = (productType: ProductType) => {
 			retentionPeriod =
 				currentWorkspace?.errors_retention_period ??
 				RetentionPeriod.ThreeMonths
-			defaultPresets = EXTENDED_TIME_PRESETS
 			break
 		case ProductType.Sessions:
 			retentionPeriod =
 				currentWorkspace?.retention_period ??
 				RetentionPeriod.ThreeMonths
-			defaultPresets = EXTENDED_TIME_PRESETS
 			break
+		case undefined:
+			// If no product type specified, use the max retention period
+			const sessionDays = getRetentionDays(
+				currentWorkspace?.retention_period ??
+					RetentionPeriod.ThreeMonths,
+			)
+			const errorDays = getRetentionDays(
+				currentWorkspace?.errors_retention_period ??
+					RetentionPeriod.ThreeMonths,
+			)
+
+			if (sessionDays > errorDays) {
+				retentionPeriod = currentWorkspace?.retention_period
+			} else {
+				retentionPeriod = currentWorkspace?.errors_retention_period
+			}
+			retentionPeriod = retentionPeriod ?? RetentionPeriod.ThreeMonths
 	}
 
 	let retentionPreset: DateRangePreset
@@ -80,7 +94,7 @@ export const useRetentionPresets = (productType: ProductType) => {
 	// Add the retention preset as a selectable preset
 	// Filter out any presets larger than the retention duration
 	const presets = _.uniqWith(
-		defaultPresets.concat([retentionPreset]),
+		EXTENDED_TIME_PRESETS.concat([retentionPreset]),
 		_.isEqual,
 	).filter((p) => {
 		return (

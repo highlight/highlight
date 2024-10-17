@@ -386,6 +386,16 @@ type ErrorTrace struct {
 	EnhancementVersion         *string             `json:"enhancementVersion,omitempty"`
 }
 
+type FunnelStep struct {
+	Title string `json:"title"`
+	Query string `json:"query"`
+}
+
+type FunnelStepInput struct {
+	Title string `json:"title"`
+	Query string `json:"query"`
+}
+
 type GitHubRepo struct {
 	RepoID string `json:"repo_id"`
 	Name   string `json:"name"`
@@ -399,24 +409,25 @@ type GitlabProject struct {
 }
 
 type GraphInput struct {
-	ID                *int              `json:"id,omitempty"`
-	VisualizationID   int               `json:"visualizationId"`
-	AfterGraphID      *int              `json:"afterGraphId,omitempty"`
-	Type              string            `json:"type"`
-	Title             string            `json:"title"`
-	ProductType       ProductType       `json:"productType"`
-	Query             string            `json:"query"`
-	Metric            string            `json:"metric"`
-	FunctionType      MetricAggregator  `json:"functionType"`
-	GroupByKey        *string           `json:"groupByKey,omitempty"`
-	BucketByKey       *string           `json:"bucketByKey,omitempty"`
-	BucketCount       *int              `json:"bucketCount,omitempty"`
-	BucketInterval    *int              `json:"bucketInterval,omitempty"`
-	Limit             *int              `json:"limit,omitempty"`
-	LimitFunctionType *MetricAggregator `json:"limitFunctionType,omitempty"`
-	LimitMetric       *string           `json:"limitMetric,omitempty"`
-	Display           *string           `json:"display,omitempty"`
-	NullHandling      *string           `json:"nullHandling,omitempty"`
+	ID                *int               `json:"id,omitempty"`
+	VisualizationID   int                `json:"visualizationId"`
+	AfterGraphID      *int               `json:"afterGraphId,omitempty"`
+	Type              string             `json:"type"`
+	Title             string             `json:"title"`
+	ProductType       ProductType        `json:"productType"`
+	Query             string             `json:"query"`
+	Metric            string             `json:"metric"`
+	FunctionType      MetricAggregator   `json:"functionType"`
+	GroupByKeys       pq.StringArray     `json:"groupByKeys,omitempty"`
+	BucketByKey       *string            `json:"bucketByKey,omitempty"`
+	BucketCount       *int               `json:"bucketCount,omitempty"`
+	BucketInterval    *int               `json:"bucketInterval,omitempty"`
+	Limit             *int               `json:"limit,omitempty"`
+	LimitFunctionType *MetricAggregator  `json:"limitFunctionType,omitempty"`
+	LimitMetric       *string            `json:"limitMetric,omitempty"`
+	FunnelSteps       []*FunnelStepInput `json:"funnelSteps,omitempty"`
+	Display           *string            `json:"display,omitempty"`
+	NullHandling      *string            `json:"nullHandling,omitempty"`
 }
 
 type HeightList struct {
@@ -830,18 +841,20 @@ type SessionQuery struct {
 }
 
 type SessionsReportRow struct {
-	Key                   string  `json:"key"`
-	Email                 string  `json:"email"`
-	NumSessions           uint64  `json:"num_sessions"`
-	NumDaysVisited        uint64  `json:"num_days_visited"`
-	NumMonthsVisited      uint64  `json:"num_months_visited"`
-	AvgActiveLengthMins   float64 `json:"avg_active_length_mins"`
-	MaxActiveLengthMins   float64 `json:"max_active_length_mins"`
-	TotalActiveLengthMins float64 `json:"total_active_length_mins"`
-	AvgLengthMins         float64 `json:"avg_length_mins"`
-	MaxLengthMins         float64 `json:"max_length_mins"`
-	TotalLengthMins       float64 `json:"total_length_mins"`
-	Location              string  `json:"location"`
+	Key                   string    `json:"key"`
+	Email                 string    `json:"email"`
+	NumSessions           uint64    `json:"num_sessions"`
+	FirstSession          time.Time `json:"first_session"`
+	LastSession           time.Time `json:"last_session"`
+	NumDaysVisited        uint64    `json:"num_days_visited"`
+	NumMonthsVisited      uint64    `json:"num_months_visited"`
+	AvgActiveLengthMins   float64   `json:"avg_active_length_mins"`
+	MaxActiveLengthMins   float64   `json:"max_active_length_mins"`
+	TotalActiveLengthMins float64   `json:"total_active_length_mins"`
+	AvgLengthMins         float64   `json:"avg_length_mins"`
+	MaxLengthMins         float64   `json:"max_length_mins"`
+	TotalLengthMins       float64   `json:"total_length_mins"`
+	Location              string    `json:"location"`
 }
 
 type SlackSyncResponse struct {
@@ -1001,6 +1014,20 @@ type UserPropertyInput struct {
 	Value string `json:"value"`
 }
 
+type Variable struct {
+	Key            string         `json:"key"`
+	DefaultValues  []string       `json:"defaultValues"`
+	SuggestionType SuggestionType `json:"suggestionType"`
+	Field          *string        `json:"field,omitempty"`
+}
+
+type VariableInput struct {
+	Key            string         `json:"key"`
+	DefaultValues  []string       `json:"defaultValues"`
+	SuggestionType SuggestionType `json:"suggestionType"`
+	Field          *string        `json:"field,omitempty"`
+}
+
 type VercelEnv struct {
 	ID              string `json:"id"`
 	Key             string `json:"key"`
@@ -1025,11 +1052,12 @@ type VercelProjectMappingInput struct {
 }
 
 type VisualizationInput struct {
-	ID         *int    `json:"id,omitempty"`
-	ProjectID  int     `json:"projectId"`
-	Name       *string `json:"name,omitempty"`
-	GraphIds   []int   `json:"graphIds,omitempty"`
-	TimePreset *string `json:"timePreset,omitempty"`
+	ID         *int             `json:"id,omitempty"`
+	ProjectID  int              `json:"projectId"`
+	Name       *string          `json:"name,omitempty"`
+	GraphIds   []int            `json:"graphIds,omitempty"`
+	TimePreset *string          `json:"timePreset,omitempty"`
+	Variables  []*VariableInput `json:"variables,omitempty"`
 }
 
 type WebSocketEvent struct {
@@ -3016,5 +3044,48 @@ func (e *SubscriptionInterval) UnmarshalGQL(v interface{}) error {
 }
 
 func (e SubscriptionInterval) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+type SuggestionType string
+
+const (
+	SuggestionTypeNone  SuggestionType = "None"
+	SuggestionTypeValue SuggestionType = "Value"
+	SuggestionTypeKey   SuggestionType = "Key"
+)
+
+var AllSuggestionType = []SuggestionType{
+	SuggestionTypeNone,
+	SuggestionTypeValue,
+	SuggestionTypeKey,
+}
+
+func (e SuggestionType) IsValid() bool {
+	switch e {
+	case SuggestionTypeNone, SuggestionTypeValue, SuggestionTypeKey:
+		return true
+	}
+	return false
+}
+
+func (e SuggestionType) String() string {
+	return string(e)
+}
+
+func (e *SuggestionType) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = SuggestionType(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid SuggestionType", str)
+	}
+	return nil
+}
+
+func (e SuggestionType) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(e.String()))
 }

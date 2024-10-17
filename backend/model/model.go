@@ -692,8 +692,10 @@ type SessionsHistogram struct {
 }
 
 type SessionResults struct {
-	Sessions   []Session
-	TotalCount int64
+	Sessions          []Session
+	TotalCount        int64
+	TotalLength       int64
+	TotalActiveLength int64
 }
 
 type Session struct {
@@ -1410,13 +1412,14 @@ type Graph struct {
 	Query             string
 	Metric            string
 	FunctionType      modelInputs.MetricAggregator
-	GroupByKey        *string
+	GroupByKeys       pq.StringArray `gorm:"type:text[]"`
 	BucketByKey       *string
 	BucketCount       *int
 	BucketInterval    *int
 	Limit             *int
 	LimitFunctionType *modelInputs.MetricAggregator
 	LimitMetric       *string
+	FunnelSteps       *string `gorm:"type:jsonb"`
 	Display           *string
 	NullHandling      *string
 }
@@ -1430,6 +1433,7 @@ type Visualization struct {
 	GraphIds         pq.Int32Array `gorm:"type:integer[]"`
 	Graphs           []Graph
 	TimePreset       *string
+	Variables        string
 }
 
 type VisualizationsResponse struct {
@@ -1954,6 +1958,7 @@ type Alert struct {
 	Disabled          bool                `gorm:"default:false"`
 	LastAdminToEditID int                 `gorm:"last_admin_to_edit_id"`
 	Destinations      []*AlertDestination `gorm:"foreignKey:AlertID"`
+	Default           bool                `gorm:"default:false"` // alert created during setup flow
 
 	// fields for threshold alert
 	BelowThreshold    *bool
@@ -2469,12 +2474,11 @@ type TableConfig struct {
 	BodyColumn       string
 	SeverityColumn   string
 	AttributesColumn string
-	// AttributesList set when AttributesColumn is an array of k,v pairs of attributes
-	AttributesList bool
-	MetricColumn   *string
-	KeysToColumns  map[string]string
-	ReservedKeys   []string
-	SelectColumns  []string
-	DefaultFilter  string
-	IgnoredFilters map[string]bool
+	AttributesTable  string
+	MetricColumn     *string
+	KeysToColumns    map[string]string
+	ReservedKeys     []string
+	SelectColumns    []string
+	DefaultFilter    string
+	IgnoredFilters   map[string]bool
 }

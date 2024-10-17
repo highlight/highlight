@@ -67,6 +67,18 @@ const ResourceDropdown = ({
 			link: '/docs/general/roadmap',
 			sameTab: true,
 		},
+		{
+			title: 'Ambassadors',
+			icon: <Icons.HiUserGroup className={styles.copyOnLight} />,
+			link: '/ambassador-program',
+			sameTab: true,
+		},
+		{
+			title: 'Podcast',
+			icon: <Icons.HiMicrophone className={styles.copyOnLight} />,
+			link: 'https://podcasters.spotify.com/pod/show/highlightio',
+			sameTab: false,
+		},
 	]
 
 	return (

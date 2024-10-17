@@ -17,12 +17,12 @@ import {
 import usePlayerConfiguration from '@pages/Player/PlayerHook/utils/usePlayerConfiguration'
 import { sessionIsBackfilled } from '@pages/Player/utils/utils'
 import {
-	getDisplayName,
 	getDisplayNameAndField,
 	getIdentifiedUserProfileImage,
+	getUserProperties,
 } from '@pages/Sessions/SessionsFeedV3/MinimalSessionCard/utils/utils'
 import { useParams } from '@util/react-router/useParams'
-import { copyToClipboard, validateEmail } from '@util/string'
+import { copyToClipboard } from '@util/string'
 import clsx from 'clsx'
 import { capitalize } from 'lodash'
 import React, { useCallback, useEffect, useMemo } from 'react'
@@ -41,6 +41,7 @@ import { RelatedResourceButtons } from '@/pages/Player/MetadataBox/RelatedResour
 import { useReplayerContext } from '../ReplayerContext'
 import * as style from './MetadataBox.css'
 import { getAbsoluteUrl, getMajorVersion } from './utils/utils'
+import { quoteQueryValue } from '@/components/Search/SearchForm/utils'
 
 export const MetadataBox = React.memo(() => {
 	const { session_secure_id } = useParams<{ session_secure_id: string }>()
@@ -198,17 +199,23 @@ export const MetadataBox = React.memo(() => {
 
 		let newQueryParts = []
 		if (session.identified) {
-			const displayName = getDisplayName(session)
-			const userParam = validateEmail(displayName)
-				? 'email'
-				: 'identifier'
+			const { email } = getUserProperties(session.user_properties)
+			const { identifier } = session
 
-			newQueryParts = queryParts.filter((part) => part.key !== userParam)
+			if (!email && !identifier) {
+				return
+			}
+
+			const { key, value } = email
+				? { key: 'email', value: email }
+				: { key: 'identifier', value: identifier }
+
+			newQueryParts = queryParts.filter((part) => part.key !== key)
 			newQueryParts.push({
-				key: userParam,
+				key,
 				operator: '=',
-				value: displayName,
-				text: `${userParam}=${displayName}`,
+				value,
+				text: `${key}=${quoteQueryValue(value)}`,
 			} as SearchExpression)
 		} else {
 			newQueryParts = queryParts.filter(

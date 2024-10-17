@@ -13,6 +13,12 @@ export const PythonAWSTracesContent: QuickStartContent = {
 	logoUrl: siteUrl('/images/quickstart/aws-lambda.svg'),
 	entries: [
 		setupFrontendSnippet,
+		{
+			title: `Optionally, set up OTel auto-instrumentation.`,
+			content: `Follow [the instructions](${siteUrl(
+				'/docs/getting-started/backend-tracing/serverless/aws-lambda',
+			)}) for setting up AWS Lambda auto-instrumentation. This is not required, but can be used independently or alongside manual instrumentation (documented below).`,
+		},
 		downloadSnippet(),
 		{
 			title: 'Initialize the Highlight SDK.',

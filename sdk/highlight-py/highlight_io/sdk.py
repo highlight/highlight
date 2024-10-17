@@ -31,6 +31,7 @@ from opentelemetry.trace import INVALID_SPAN
 from highlight_io.integrations import Integration
 from highlight_io.integrations.all import DEFAULT_INTEGRATIONS
 from highlight_io.utils.lru_cache import LRUCache
+from highlight_io.utils.dict import flatten_dict
 
 
 class LogHandler(logging.Handler):
@@ -368,7 +369,9 @@ class H(object):
             for k, v in headers.items():
                 if type(v) in [bool, str, bytes, int, float]:
                     attrs[f"http.{req}.headers.{k}"] = v
-        span.add_event(name="exception", attributes=attrs)
+
+        addedAttributes = flatten_dict(attrs, sep=".")
+        span.add_event(name="exception", attributes=addedAttributes)
 
     @staticmethod
     def record_exception(
@@ -397,7 +400,13 @@ class H(object):
         span = otel_trace.get_current_span()
         if not span:
             raise RuntimeError("H.record_exception called without a span context")
-        span.record_exception(e, attributes)
+
+        attrs = {}
+        if attributes:
+            addedAttributes = flatten_dict(attributes, sep=".")
+            attrs.update(addedAttributes)
+
+        span.record_exception(e, attrs)
 
     @property
     def logging_handler(self) -> logging.Handler:
@@ -454,6 +463,8 @@ class H(object):
                     attributes[key] = value
             except:
                 pass
+
+            attributes = flatten_dict(attributes, sep=".")
 
             if record.exc_info:
                 attributes["exception.detail"] = message

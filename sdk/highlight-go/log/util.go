@@ -162,6 +162,30 @@ func SubmitHTTPLog(ctx context.Context, tracer trace.Tracer, projectID int, lg L
 		attrs = append(attrs, attribute.String(k, v))
 	}
 
+	var sessionID, requestID string
+	for _, opt := range []struct {
+		key string
+		val *string
+	}{
+		{highlight.SessionIDAttribute, &sessionID},
+		{highlight.DeprecatedSessionIDAttribute, &sessionID},
+		{"secure_session_id", &sessionID},
+		{highlight.RequestIDAttribute, &requestID},
+		{highlight.DeprecatedRequestIDAttribute, &requestID},
+		{"trace_id", &requestID},
+		{"traceId", &requestID},
+		{"traceID", &requestID},
+	} {
+		if *opt.val != "" {
+			continue
+		}
+		if val, ok := lg.Attributes[opt.key]; ok && val != "" {
+			*opt.val = val
+		}
+	}
+	ctx = context.WithValue(ctx, highlight.ContextKeys.SessionSecureID, sessionID)
+	ctx = context.WithValue(ctx, highlight.ContextKeys.RequestID, requestID)
+
 	var t time.Time
 	var err error
 	t, err = time.Parse(TimestampFormat, lg.Timestamp)

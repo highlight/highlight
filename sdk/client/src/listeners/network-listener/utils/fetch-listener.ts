@@ -24,7 +24,7 @@ declare var window: HighlightFetchWindow & Window
 
 export const FetchListener = (
 	callback: NetworkListenerCallback,
-	backendUrl: string,
+	highlightEndpoints: string[],
 	tracingOrigins: boolean | (string | RegExp)[],
 	urlBlocklist: string[],
 	bodyKeysToRedact: string[],
@@ -35,12 +35,18 @@ export const FetchListener = (
 
 	window._fetchProxy = function (input, init) {
 		const { method, url } = getFetchRequestProperties(input, init)
-		if (!shouldNetworkRequestBeRecorded(url, backendUrl, tracingOrigins)) {
+		if (
+			!shouldNetworkRequestBeRecorded(
+				url,
+				highlightEndpoints,
+				tracingOrigins,
+			)
+		) {
 			return originalFetch.call(this, input, init)
 		}
 
 		const [sessionSecureID, requestId] = createNetworkRequestId(otelEnabled)
-		if (shouldNetworkRequestBeTraced(url, tracingOrigins)) {
+		if (shouldNetworkRequestBeTraced(url, tracingOrigins, urlBlocklist)) {
 			init = init || {}
 			// Pre-existing headers could be one of three different formats; this reads all of them.
 			let headers = new Headers(init.headers)

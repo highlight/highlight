@@ -17,6 +17,7 @@ import {
 	InnerChartProps,
 	isActive,
 	SeriesInfo,
+	TooltipSettings,
 	useGraphCallbacks,
 } from '@/pages/Graphing/components/Graph'
 
@@ -26,11 +27,14 @@ export const BAR_DISPLAY: BarDisplay[] = ['Grouped', 'Stacked']
 export type BarChartConfig = {
 	type: 'Bar chart'
 	showLegend: boolean
+	shadeToPrevious?: true
 	display?: BarDisplay
+	tooltipSettings?: TooltipSettings
 }
 
 const RoundedBar = (id: string, isLast: boolean) => (props: any) => {
 	const { fill, x, y, width, height } = props
+	// TODO(vkorolik) use shadeToPrevious
 	return (
 		<>
 			<rect
@@ -97,6 +101,7 @@ export const BarChart = ({
 		yAxisFunction,
 		setTimeRange,
 		loadExemplars,
+		viewConfig?.tooltipSettings,
 	)
 
 	return (
@@ -131,16 +136,6 @@ export const BarChart = ({
 					hide={showXAxis === false}
 				/>
 
-				{/* <Tooltip
-					content={getCustomTooltip(
-						xAxisMetric,
-						yAxisMetric,
-						yAxisFunction,
-					)}
-					wrapperStyle={{ zIndex: 100 }}
-					cursor={{ fill: '#C8C7CB', fillOpacity: 0.5 }}
-					isAnimationActive={false}
-				/> */}
 				{tooltip}
 
 				<YAxis

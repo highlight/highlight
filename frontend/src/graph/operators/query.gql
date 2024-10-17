@@ -576,6 +576,8 @@ query GetSessions(
 			email
 		}
 		totalCount
+		totalLength
+		totalActiveLength
 	}
 }
 
@@ -600,6 +602,8 @@ query GetSessionUsersReports($project_id: ID!, $params: QueryInput!) {
 	session_users_report(project_id: $project_id, params: $params) {
 		key
 		email
+		first_session
+		last_session
 		num_sessions
 		num_days_visited
 		num_months_visited
@@ -2090,6 +2094,7 @@ query GetLogs(
 	$before: String
 	$at: String
 	$direction: SortDirection!
+	$limit: Int
 ) {
 	logs(
 		project_id: $project_id
@@ -2098,6 +2103,7 @@ query GetLogs(
 		before: $before
 		at: $at
 		direction: $direction
+		limit: $limit
 	) {
 		edges {
 			cursor
@@ -2121,17 +2127,6 @@ query GetLogs(
 			hasPreviousPage
 			startCursor
 			endCursor
-		}
-	}
-}
-
-query GetSessionLogs($project_id: ID!, $params: QueryInput!) {
-	sessionLogs(project_id: $project_id, params: $params) {
-		cursor
-		node {
-			timestamp
-			level
-			message
 		}
 	}
 }
@@ -2434,6 +2429,7 @@ query GetTraces(
 	$before: String
 	$at: String
 	$direction: SortDirection!
+	$limit: Int
 ) {
 	traces(
 		project_id: $project_id
@@ -2442,6 +2438,7 @@ query GetTraces(
 		before: $before
 		at: $at
 		direction: $direction
+		limit: $limit
 	) {
 		edges {
 			cursor
@@ -2514,11 +2511,12 @@ query GetTracesMetrics(
 }
 
 query GetKeys(
-	$product_type: ProductType!
+	$product_type: ProductType
 	$project_id: ID!
 	$date_range: DateRangeRequiredInput!
 	$query: String
 	$type: KeyType
+	$event: String
 ) {
 	keys(
 		product_type: $product_type
@@ -2526,6 +2524,7 @@ query GetKeys(
 		date_range: $date_range
 		query: $query
 		type: $type
+		event: $event
 	) {
 		name
 		type
@@ -2533,12 +2532,13 @@ query GetKeys(
 }
 
 query GetKeyValues(
-	$product_type: ProductType!
+	$product_type: ProductType
 	$project_id: ID!
 	$key_name: String!
 	$date_range: DateRangeRequiredInput!
 	$query: String!
 	$count: Int!
+	$event: String
 ) {
 	key_values(
 		product_type: $product_type
@@ -2547,6 +2547,7 @@ query GetKeyValues(
 		date_range: $date_range
 		query: $query
 		count: $count
+		event: $event
 	)
 }
 
@@ -2598,6 +2599,12 @@ query GetVisualization($id: ID!) {
 		projectId
 		name
 		timePreset
+		variables {
+			key
+			defaultValues
+			suggestionType
+			field
+		}
 		graphs {
 			id
 			type
@@ -2606,13 +2613,17 @@ query GetVisualization($id: ID!) {
 			query
 			metric
 			functionType
-			groupByKey
+			groupByKeys
 			bucketByKey
 			bucketCount
 			bucketInterval
 			limit
 			limitFunctionType
 			limitMetric
+			funnelSteps {
+				title
+				query
+			}
 			display
 			nullHandling
 		}
@@ -2644,6 +2655,12 @@ query GetVisualizations(
 			projectId
 			name
 			timePreset
+			variables {
+				key
+				defaultValues
+				suggestionType
+				field
+			}
 			graphs {
 				id
 				type
@@ -2652,13 +2669,17 @@ query GetVisualizations(
 				query
 				metric
 				functionType
-				groupByKey
+				groupByKeys
 				bucketByKey
 				bucketCount
 				bucketInterval
 				limit
 				limitFunctionType
 				limitMetric
+				funnelSteps {
+					title
+					query
+				}
 				display
 				nullHandling
 			}
