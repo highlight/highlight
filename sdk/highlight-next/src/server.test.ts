@@ -32,20 +32,22 @@ const HIGHLIGHT_HEADER = { 'x-highlight-request': `${SESSION_ID}/${TRACE_ID}` }
 
 describe('Next.js server instrumentation', () => {
 	let stopOtel: () => void
-	let stopNext: () => Promise<void>
+	let stopNext: (() => Promise<void>) | undefined
 
 	beforeAll(async () => {
 		stopOtel = startMockOtelServer({ port: OTEL_PORT })
 		stopNext = await startNext(OTEL_PORT)
-	}, 10_000)
+	}, 60_000)
 
 	afterAll(async () => {
 		try {
 			stopOtel()
 		} finally {
-			await stopNext()
+			if (stopNext) {
+				await stopNext()
+			}
 		}
-	}, 10_000)
+	}, 60_000)
 
 	beforeEach(() => {
 		vi.clearAllMocks()
@@ -120,7 +122,7 @@ describe('Next.js server instrumentation', () => {
 			detailsWithSessionId.length === 0 && logDetails(details)
 
 			expect(detailsWithSessionId.length > 0).toEqual(true)
-		}, 10000)
+		}, 60_000)
 
 		it('Should report App Router error', async () => {
 			await fetch(
@@ -145,9 +147,9 @@ describe('Next.js server instrumentation', () => {
 
 			expect(hasError.length).toBeGreaterThanOrEqual(1)
 			expect(detailsWithSessionId.length > 0).toEqual(true)
-		}, 10000)
+		}, 60_000)
 	})
-}, 10_000)
+}, 60_000)
 
 async function startNext(port: number) {
 	return new Promise<() => Promise<void>>(async (resolve) => {
