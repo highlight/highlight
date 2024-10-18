@@ -130,7 +130,7 @@ namespace Highlight
                 ["highlight.project_id"] = _config.ProjectId,
                 ["service.name"] = _config.ServiceName,
                 ["telemetry.distro.name"] = "Highlight.ASPCore",
-                ["telemetry.distro.version"] = "0.2.10",
+                ["telemetry.distro.version"] = "0.2.9",
             }).ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
         }
 
@@ -239,7 +239,7 @@ namespace Highlight
         public static void InstrumentServices(IServiceCollection services, Action<Config> configure)
         {
             configure(_config);
-            var tracerProvider = services.AddOpenTelemetry()
+            services.AddOpenTelemetry()
                 .ConfigureResource(resource => resource.AddAttributes(GetResourceAttributes()))
                 .WithTracing(tracing => tracing
                     .AddSource(_config.ServiceName)
@@ -275,9 +275,7 @@ namespace Highlight
                     {
                         options.Endpoint = new Uri(_config.OtlpEndpoint + "/v1/metrics");
                         options.Protocol = ExportProtocol;
-                    }))
-                    .Build();
-            builder.Services.AddSingleton(openTelemetryTracerProvider);
+                    }));
         }
 
         public static void InstrumentLogging(ILoggingBuilder logging, Action<Config> configure)
