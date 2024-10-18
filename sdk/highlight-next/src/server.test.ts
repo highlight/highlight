@@ -160,7 +160,8 @@ async function startNext(port: number) {
 			['workspace', 'nextjs', 'next', 'dev', '-p', String(NEXT_PORT)],
 			{
 				env: {
-					PATH: path,
+					...process.env,
+					PATH: `${path}:${process.env.path}`,
 					NODE_ENV: 'test',
 					NEXT_PUBLIC_HIGHLIGHT_OTLP_ENDPOINT: getOtlpEndpoint(port),
 				},
