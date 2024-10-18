@@ -6,6 +6,7 @@ import {
 } from '@opentelemetry/api'
 import { ResourceAttributes } from '@opentelemetry/resources'
 import { IncomingHttpHeaders } from 'http'
+import type { Headers } from 'node-fetch'
 import { Highlight } from './client'
 import log from './log'
 import type { HighlightContext, NodeOptions } from './types.js'

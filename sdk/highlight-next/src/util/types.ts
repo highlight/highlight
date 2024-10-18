@@ -7,7 +7,8 @@ import type {
 import type { WorkersSDK } from '@highlight-run/opentelemetry-sdk-workers'
 import type { Attributes } from '@opentelemetry/api'
 import type { ResourceAttributes } from '@opentelemetry/resources/build/src/types'
-import { IncomingHttpHeaders } from 'http'
+import type { IncomingHttpHeaders } from 'http'
+import type { Headers } from 'node-fetch'
 
 export type HighlightEnv = NodeOptions
 

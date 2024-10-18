@@ -1,4 +1,5 @@
 import { safeStringify } from './hooks'
+import { describe, expect, it } from 'vitest'
 
 describe('safeStringify', () => {
 	it('ensure safeStringify can handle bigints', async () => {

@@ -9947,20 +9947,19 @@ __metadata:
     "@rollup/plugin-terser": "npm:^0.4.4"
     "@rollup/plugin-typescript": "npm:^11.1.5"
     "@trpc/server": "npm:^9.27.4"
-    "@types/jest": "npm:27.4.1"
     "@types/js-cookie": "npm:^3"
+    "@types/node": "npm:^16.18.113"
     chokidar-cli: "npm:^3.0.0"
     eslint: "npm:8.39.0"
     highlight.run: "workspace:*"
-    jest: "npm:^29.2.0"
     js-cookie: "npm:^3.0.5"
+    node-fetch: "npm:^3.3.2"
     rollup: "npm:^4.4.1"
     tree-kill: "npm:^1.2.2"
-    ts-jest: "npm:^29.0.3"
     typescript: "npm:^5.0.4"
     vitest: "npm:^2.1.3"
   peerDependencies:
-    next: ">=11"
+    next: ">=13"
     react: ">=17"
   languageName: unknown
   linkType: soft
@@ -9986,16 +9985,15 @@ __metadata:
     "@rollup/plugin-node-resolve": "npm:^15.2.3"
     "@rollup/plugin-terser": "npm:^0.4.4"
     "@rollup/plugin-typescript": "npm:^11.1.5"
-    "@types/jest": "npm:^29.2.0"
     "@types/lru-cache": "npm:^7.10.10"
-    "@types/node": "npm:17.0.13"
+    "@types/node": "npm:^14.18.63"
     check-dependencies: "npm:^2.0.0"
     encoding: "npm:^0.1.13"
     highlight.run: "workspace:*"
-    jest: "npm:^29.2.2"
+    node-fetch: "npm:^3.3.2"
     rollup: "npm:^4.1.4"
-    ts-jest: "npm:^29.0.3"
     typescript: "npm:^5.0.4"
+    vitest: "npm:^2.1.3"
   languageName: unknown
   linkType: soft
 
@@ -20187,23 +20185,13 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/jest@npm:*, @types/jest@npm:^29.2.0, @types/jest@npm:^29.5.0, @types/jest@npm:^29.5.2":
+"@types/jest@npm:*, @types/jest@npm:^29.5.0, @types/jest@npm:^29.5.2":
   version: 29.5.12
   resolution: "@types/jest@npm:29.5.12"
   dependencies:
     expect: "npm:^29.0.0"
     pretty-format: "npm:^29.0.0"
   checksum: 10/312e8dcf92cdd5a5847d6426f0940829bca6fe6b5a917248f3d7f7ef5d85c9ce78ef05e47d2bbabc40d41a930e0e36db2d443d2610a9e3db9062da2d5c904211
-  languageName: node
-  linkType: hard
-
-"@types/jest@npm:27.4.1":
-  version: 27.4.1
-  resolution: "@types/jest@npm:27.4.1"
-  dependencies:
-    jest-matcher-utils: "npm:^27.0.0"
-    pretty-format: "npm:^27.0.0"
-  checksum: 10/aad204b936c67368f0c5e7a03906ec34b6d41bacf3a03f0fe816c1879369eb6a753dfd2947367cb3d17a7b0d4691b381d987798a824f6f77e811a2ca4d992113
   languageName: node
   linkType: hard
 
@@ -20532,13 +20520,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/node@npm:17.0.13":
-  version: 17.0.13
-  resolution: "@types/node@npm:17.0.13"
-  checksum: 10/0c6fc5a45d94f49c36c18bd1aae78d045351f60a8d70dac2920113606fadf08dfa789b33954ef5372354c1114ce4d0df3a8cba87e3a5db2eab2ce8fa01ee03be
-  languageName: node
-  linkType: hard
-
 "@types/node@npm:18.11.18":
   version: 18.11.18
   resolution: "@types/node@npm:18.11.18"
@@ -20560,10 +20541,17 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/node@npm:^16.11.35, @types/node@npm:^16.3.1":
-  version: 16.18.70
-  resolution: "@types/node@npm:16.18.70"
-  checksum: 10/76374c82f77f7bd3067d25fa3852d114c2a70ca87fb12e4877ed8ca96fe04bc3beb6c411605e5317c5a616cb5730c55f5bd9caa15940bfa0e14db276f0cfb307
+"@types/node@npm:^14.18.63":
+  version: 14.18.63
+  resolution: "@types/node@npm:14.18.63"
+  checksum: 10/82a7775898c2ea6db0b610a463512206fb2c7adc1af482c7eb44b99d94375fff51c74f67ae75a63c5532971159f30c866a4d308000624ef02fd9a7175e277019
+  languageName: node
+  linkType: hard
+
+"@types/node@npm:^16.11.35, @types/node@npm:^16.18.113, @types/node@npm:^16.3.1":
+  version: 16.18.113
+  resolution: "@types/node@npm:16.18.113"
+  checksum: 10/7d7d9c63fd910d0eb5ed9611cadec55d9af5585338394e1ecb8871f2f96bea338c14dd470c10d64fbe87ff703cb94d7cab9b9e6ce260f0ad171d79419b1c9201
   languageName: node
   linkType: hard
 
@@ -29563,6 +29551,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"data-uri-to-buffer@npm:^4.0.0":
+  version: 4.0.1
+  resolution: "data-uri-to-buffer@npm:4.0.1"
+  checksum: 10/0d0790b67ffec5302f204c2ccca4494f70b4e2d940fea3d36b09f0bb2b8539c2e86690429eb1f1dc4bcc9e4df0644193073e63d9ee48ac9fce79ec1506e4aa4c
+  languageName: node
+  linkType: hard
+
 "data-uri-to-buffer@npm:^5.0.1":
   version: 5.0.1
   resolution: "data-uri-to-buffer@npm:5.0.1"
@@ -34273,6 +34268,16 @@ __metadata:
   languageName: node
   linkType: hard
 
+"fetch-blob@npm:^3.1.2, fetch-blob@npm:^3.1.4":
+  version: 3.2.0
+  resolution: "fetch-blob@npm:3.2.0"
+  dependencies:
+    node-domexception: "npm:^1.0.0"
+    web-streams-polyfill: "npm:^3.0.3"
+  checksum: 10/5264ecceb5fdc19eb51d1d0359921f12730941e333019e673e71eb73921146dceabcb0b8f534582be4497312d656508a439ad0f5edeec2b29ab2e10c72a1f86b
+  languageName: node
+  linkType: hard
+
 "fflate@npm:^0.4.4":
   version: 0.4.8
   resolution: "fflate@npm:0.4.8"
@@ -34928,6 +34933,15 @@ __metadata:
     node-domexception: "npm:1.0.0"
     web-streams-polyfill: "npm:4.0.0-beta.3"
   checksum: 10/29622f75533107c1bbcbe31fda683e6a55859af7f48ec354a9800591ce7947ed84cd3ef2b2fcb812047a884f17a1bac75ce098ffc17e23402cd373e49c1cd335
+  languageName: node
+  linkType: hard
+
+"formdata-polyfill@npm:^4.0.10":
+  version: 4.0.10
+  resolution: "formdata-polyfill@npm:4.0.10"
+  dependencies:
+    fetch-blob: "npm:^3.1.2"
+  checksum: 10/9b5001d2edef3c9449ac3f48bd4f8cc92e7d0f2e7c1a5c8ba555ad4e77535cc5cf621fabe49e97f304067037282dd9093b9160a3cb533e46420b446c4e6bc06f
   languageName: node
   linkType: hard
 
@@ -40229,7 +40243,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"jest@npm:^29.2.0, jest@npm:^29.2.2, jest@npm:^29.5.0":
+"jest@npm:^29.5.0":
   version: 29.7.0
   resolution: "jest@npm:29.7.0"
   dependencies:
@@ -45253,7 +45267,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"node-domexception@npm:1.0.0":
+"node-domexception@npm:1.0.0, node-domexception@npm:^1.0.0":
   version: 1.0.0
   resolution: "node-domexception@npm:1.0.0"
   checksum: 10/e332522f242348c511640c25a6fc7da4f30e09e580c70c6b13cb0be83c78c3e71c8d4665af2527e869fc96848924a4316ae7ec9014c091e2156f41739d4fa233
@@ -45324,6 +45338,17 @@ __metadata:
     encoding:
       optional: true
   checksum: 10/b24f8a3dc937f388192e59bcf9d0857d7b6940a2496f328381641cb616efccc9866e89ec43f2ec956bbd6c3d3ee05524ce77fe7b29ccd34692b3a16f237d6676
+  languageName: node
+  linkType: hard
+
+"node-fetch@npm:^3.3.2":
+  version: 3.3.2
+  resolution: "node-fetch@npm:3.3.2"
+  dependencies:
+    data-uri-to-buffer: "npm:^4.0.0"
+    fetch-blob: "npm:^3.1.4"
+    formdata-polyfill: "npm:^4.0.10"
+  checksum: 10/24207ca8c81231c7c59151840e3fded461d67a31cf3e3b3968e12201a42f89ce4a0b5fb7079b1fa0a4655957b1ca9257553200f03a9f668b45ebad265ca5593d
   languageName: node
   linkType: hard
 
@@ -56405,7 +56430,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"ts-jest@npm:^29.0.3, ts-jest@npm:^29.1.0":
+"ts-jest@npm:^29.1.0":
   version: 29.1.2
   resolution: "ts-jest@npm:29.1.2"
   dependencies:
@@ -59123,10 +59148,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"web-streams-polyfill@npm:^3.1.1, web-streams-polyfill@npm:^3.2.1":
-  version: 3.2.1
-  resolution: "web-streams-polyfill@npm:3.2.1"
-  checksum: 10/08fcf97b7883c1511dd3da794f50e9bde75a660884783baaddb2163643c21a94086f394dc4bd20dff0f55c98d98d60c4bea05a5809ef5005bdf835b63ada8900
+"web-streams-polyfill@npm:^3.0.3, web-streams-polyfill@npm:^3.1.1, web-streams-polyfill@npm:^3.2.1":
+  version: 3.3.3
+  resolution: "web-streams-polyfill@npm:3.3.3"
+  checksum: 10/8e7e13501b3834094a50abe7c0b6456155a55d7571312b89570012ef47ec2a46d766934768c50aabad10a9c30dd764a407623e8bfcc74fcb58495c29130edea9
   languageName: node
   linkType: hard
 

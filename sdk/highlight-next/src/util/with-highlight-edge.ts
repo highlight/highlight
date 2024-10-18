@@ -2,6 +2,7 @@ import type { NodeOptions } from '@highlight-run/node'
 import type { NextFetchEvent, NextRequest } from 'next/server'
 import { H } from './highlight-edge'
 import { ExtendedExecutionContext } from './types'
+import type { Headers } from 'node-fetch'
 
 export type HighlightEnv = NodeOptions
 
@@ -28,7 +29,7 @@ export function Highlight(env: HighlightEnv) {
 
 			try {
 				const response = await H.runWithHeaders(
-					request.headers,
+					request.headers as unknown as Headers,
 					async () => {
 						return await handler(request, event)
 					},
@@ -39,7 +40,7 @@ export function Highlight(env: HighlightEnv) {
 				return response
 			} catch (error) {
 				const { secureSessionId, requestId } = H.parseHeaders(
-					request.headers,
+					request.headers as unknown as Headers,
 				)
 				if (error instanceof Error) {
 					H.consumeError(error, secureSessionId, requestId)

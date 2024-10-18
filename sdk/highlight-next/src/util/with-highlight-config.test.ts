@@ -1,21 +1,14 @@
 import { Rewrite } from 'next/dist/lib/load-custom-routes'
 import { withHighlightConfig } from './with-highlight-config'
+import { describe, expect, it } from 'vitest'
 
 describe('withHighlightConfig', () => {
-	let defaultRewrite: {
-		beforeFiles: Rewrite[]
-		afterFiles: Rewrite[]
-		fallback: Rewrite[]
-	} = {
-		afterFiles: [
-			{
-				destination: 'https://pub.highlight.run',
-				source: '/highlight-events',
-			},
-		],
-		beforeFiles: [],
-		fallback: [],
-	}
+	let defaultRewrite = [
+		{
+			destination: 'https://pub.highlight.io',
+			source: '/highlight-events',
+		},
+	]
 
 	it('creates new rewrites if none exist', async () => {
 		expect(
@@ -33,8 +26,7 @@ describe('withHighlightConfig', () => {
 		const rewrites: () => Promise<Rewrite[]> = () =>
 			Promise.resolve([testEntry])
 
-		const expected = { ...defaultRewrite }
-		expected.afterFiles = [testEntry, ...expected.afterFiles]
+		const expected = [testEntry, ...defaultRewrite]
 		expect(
 			await (
 				await withHighlightConfig({ rewrites })
@@ -58,9 +50,10 @@ describe('withHighlightConfig', () => {
 				fallback: [testEntry],
 			})
 
-		const expected = { ...defaultRewrite }
-		expected.beforeFiles = [testEntry]
-		expected.fallback = [testEntry]
+		const expected = {
+			beforeFiles: [testEntry],
+			fallback: [testEntry],
+		}
 		expect(
 			await (
 				await withHighlightConfig({ rewrites })
@@ -81,10 +74,10 @@ describe('withHighlightConfig', () => {
 			// @ts-expect-error
 			() => Promise.resolve({ fallback: [testEntry] })
 
-		const expected = { ...defaultRewrite }
-		// @ts-expect-error
-		expected.beforeFiles = undefined
-		expected.fallback = [testEntry]
+		const expected = {
+			beforeFiles: undefined,
+			fallback: [testEntry],
+		}
 		expect(
 			await (
 				await withHighlightConfig({ rewrites })
