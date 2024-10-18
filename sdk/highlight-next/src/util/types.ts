@@ -33,11 +33,8 @@ export interface HighlightInterface {
 	) => WorkersSDK
 	isInitialized: () => boolean
 	metrics: (metrics: Metric[]) => void
-	parseHeaders: (headers: Headers | IncomingHttpHeaders) => HighlightContext
-	runWithHeaders: <T>(
-		headers: Headers | IncomingHttpHeaders,
-		cb: () => T,
-	) => Promise<T>
+	parseHeaders: (headers: any) => HighlightContext
+	runWithHeaders: <T>(headers: any, cb: () => T) => Promise<T>
 	consumeError: (
 		error: Error,
 		secureSessionId?: string,
