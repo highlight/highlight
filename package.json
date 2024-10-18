@@ -37,6 +37,7 @@
 		"build:frontend": "yarn turbo run build --filter @highlight-run/frontend...",
 		"build:render": "yarn turbo run build --filter=render",
 		"build:sdk": "yarn turbo run build --filter highlight.run --filter @highlight-run/cloudflare --filter @highlight-run/react --filter @highlight-run/apollo... --filter @highlight-run/next... --filter @highlight-run/nest... --filter @highlight-run/pino... --filter @highlight-run/remix...",
+		"build:wordpress": "cd sdk/highlight-wordpress && curl -o -L highlight-io/highlight.js https://unpkg.com/highlight.run && zip -r highlight-io.zip highlight-io -x '*/.*'",
 		"cy:run": "cypress run",
 		"cy:run:chrome": "cypress run --headed --browser chrome",
 		"clean": "find . -depth -name node_modules -exec rm -r \"{}\" \\; && find . -name tsconfig.tsbuildinfo -delete && find . -depth -name dist -exec rm -r \"{}\" \\; && find . -depth -name build -exec rm -r \"{}\" \\; && find . -depth -name es -exec rm -r \"{}\" \\;",
@@ -113,11 +114,19 @@
 	"packageManager": "yarn@4.5.0",
 	"resolutions": {
 		"ansi-color@^0.2.1": "patch:ansi-color@npm%3A0.2.1#./.yarn/patches/ansi-color-npm-0.2.1-f7243d10a4.patch",
+		"cookie@0.6.0": "0.7.2",
+		"cookie@^0.5.0": "0.7.2",
+		"cookie@^0.6.0": "0.7.2",
+		"cookie@~0.4.1": "0.7.2",
+		"debug@4.1.1": "4.3.7",
 		"lodash-es@^4.17.21": "patch:lodash-es@npm%3A4.17.21#./.yarn/patches/lodash-es-npm-4.17.21-b45832dfce.patch",
 		"protobufjs": "patch:protobufjs@npm%3Alatest#~/.yarn/patches/protobufjs-npm-7.2.6-4bb38caa1d.patch",
-		"debug@4.1.1": "4.3.7",
 		"semver@7.3.5": "7.6.0",
 		"semver@7.3.8": "7.6.0",
-		"tar@4.4.18": "6.2.1"
+		"tar@4.4.18": "6.2.1",
+		"path-to-regexp@6.1.0": "6.3.0",
+		"path-to-regexp@6.2.1": "6.3.0",
+		"tough-cookie@~2.5.0": "4.1.3",
+		"xml2js@^0.4.17": "0.5.0"
 	}
 }

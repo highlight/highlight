@@ -8,7 +8,6 @@ import (
 	"github.com/highlight-run/highlight/backend/alerts/predictions"
 	alertsV2 "github.com/highlight-run/highlight/backend/alerts/v2"
 	"github.com/highlight-run/highlight/backend/clickhouse"
-	"github.com/highlight-run/highlight/backend/lambda"
 	modelInputs "github.com/highlight-run/highlight/backend/private-graph/graph/model"
 	"github.com/highlight-run/highlight/backend/util"
 	"github.com/highlight-run/workerpool"
@@ -31,7 +30,7 @@ var defaultAlertFilters = map[modelInputs.ProductType]string{
 	modelInputs.ProductTypeErrors: "status=OPEN ",
 }
 
-func WatchMetricAlerts(ctx context.Context, DB *gorm.DB, MailClient *sendgrid.Client, ccClient *clickhouse.Client, lambdaClient *lambda.Client) {
+func WatchMetricAlerts(ctx context.Context, DB *gorm.DB, MailClient *sendgrid.Client, ccClient *clickhouse.Client) {
 	log.WithContext(ctx).Info("Starting to watch metric alerts")
 
 	alertWorkerpool := workerpool.New(maxWorkers)
@@ -47,7 +46,7 @@ func WatchMetricAlerts(ctx context.Context, DB *gorm.DB, MailClient *sendgrid.Cl
 				func() {
 					ctx := context.Background()
 
-					err := processMetricAlert(ctx, DB, MailClient, alert, ccClient, lambdaClient)
+					err := processMetricAlert(ctx, DB, MailClient, alert, ccClient)
 					if err != nil {
 						log.WithContext(ctx).Error(err)
 					}
@@ -70,7 +69,7 @@ func getMetricAlerts(ctx context.Context, DB *gorm.DB) []*model.Alert {
 	return alerts
 }
 
-func processMetricAlert(ctx context.Context, DB *gorm.DB, MailClient *sendgrid.Client, alert *model.Alert, ccClient *clickhouse.Client, lambdaClient *lambda.Client) error {
+func processMetricAlert(ctx context.Context, DB *gorm.DB, MailClient *sendgrid.Client, alert *model.Alert, ccClient *clickhouse.Client) error {
 	curDate := time.Now().Round(time.Minute).Add(-1 * time.Minute)
 
 	thresholdWindow := 1 * time.Hour
@@ -235,7 +234,12 @@ func processMetricAlert(ctx context.Context, DB *gorm.DB, MailClient *sendgrid.C
 			}
 			bucketsInner = newBuckets
 		}
+	}
 
+	if len(bucketsInner) == 0 {
+		// write a normal state with no group by key to avoid missing data
+		alertStateChange := getAlertStateChange(curDate, false, alert.ID, "", lastAlerts, cooldown)
+		stateChanges = append(stateChanges, alertStateChange)
 	}
 
 	for _, bucket := range bucketsInner {

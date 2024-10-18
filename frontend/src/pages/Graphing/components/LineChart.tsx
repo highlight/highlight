@@ -49,19 +49,11 @@ const isAnomaly = (props: any, key: string) => {
 		return false
 	}
 
-	if (
-		payload[YHAT_LOWER_KEY] &&
-		payload[YHAT_LOWER_KEY][key] &&
-		payload[key] < payload[YHAT_LOWER_KEY][key]
-	) {
+	if (payload[key] < payload[YHAT_LOWER_KEY]?.[key]) {
 		return true
 	}
 
-	if (
-		payload[YHAT_UPPER_KEY] &&
-		payload[YHAT_UPPER_KEY][key] &&
-		payload[key] > payload[YHAT_UPPER_KEY][key]
-	) {
+	if (payload[key] > payload[YHAT_UPPER_KEY]?.[key]) {
 		return true
 	}
 

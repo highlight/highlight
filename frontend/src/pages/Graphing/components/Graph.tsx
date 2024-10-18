@@ -485,8 +485,6 @@ const getCustomTooltip =
 			label = frozenTooltip.activeLabel
 		}
 
-		console.log('payload', payload)
-
 		const isValid = active && payload && payload.length
 		return (
 			<Box

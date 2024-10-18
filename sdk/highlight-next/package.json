@@ -82,6 +82,6 @@
 		"tree-kill": "^1.2.2",
 		"ts-jest": "^29.0.3",
 		"typescript": "^5.0.4",
-		"vitest": "^0.32.0"
+		"vitest": "^2.1.3"
 	}
 }

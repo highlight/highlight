@@ -6,9 +6,12 @@ import {
 	DateRangePicker,
 	DEFAULT_TIME_PRESETS,
 	Form,
+	IconSolidBell,
+	IconSolidCheveronRight,
 	Input,
 	presetStartDate,
 	Stack,
+	Tag,
 	Text,
 } from '@highlight-run/ui/components'
 import { useParams } from '@util/react-router/useParams'
@@ -102,7 +105,7 @@ export const DEFAULT_WINDOW = MINUTE * 30
 export const DEFAULT_COOLDOWN = MINUTE * 30
 export const DEFAULT_THRESHOLD_CONDITON = ThresholdCondition.Above
 export const DEFAULT_THRESHOLD_TYPE = ThresholdType.Constant
-export const DEFAULT_CONFIDENCE_OPTION = CONFIDENCE_OPTIONS[2]
+export const DEFAULT_CONFIDENCE_OPTION = CONFIDENCE_OPTIONS[1]
 
 const ALERT_PRODUCT_INFO = {
 	[ProductType.Sessions]:
@@ -185,6 +188,8 @@ export const AlertForm: React.FC = () => {
 
 		if (value === ThresholdType.Anomaly) {
 			setThresholdValue(DEFAULT_CONFIDENCE_OPTION.value)
+		} else if (value === ThresholdType.Constant) {
+			setThresholdValue(DEFAULT_THRESHOLD)
 		}
 
 		setThresholdTypeImpl(value)
@@ -239,6 +244,14 @@ export const AlertForm: React.FC = () => {
 		setFunctionColumn('')
 	}
 
+	const redirectToAlert = () => {
+		navigate(`/${projectId}/alerts/${alert_id}`)
+	}
+
+	const redirectToAlerts = () => {
+		navigate(`/${projectId}/alerts`)
+	}
+
 	const onSave = () => {
 		const formVariables = {
 			project_id: projectId,
@@ -251,6 +264,8 @@ export const AlertForm: React.FC = () => {
 			threshold_value: thresholdValue,
 			threshold_window: thresholdWindow,
 			threshold_cooldown: thresholdCooldown,
+			threshold_type: thresholdType,
+			threshold_condition: thresholdCondition,
 			destinations,
 		}
 
@@ -263,7 +278,7 @@ export const AlertForm: React.FC = () => {
 			})
 				.then(() => {
 					toast.success(`${alertName} updated`).then(() => {
-						navigate(`/${projectId}/alerts`)
+						redirectToAlert()
 					})
 				})
 				.catch(() => {
@@ -277,7 +292,7 @@ export const AlertForm: React.FC = () => {
 			})
 				.then(() => {
 					toast.success(`${alertName} created`).then(() => {
-						navigate(`/${projectId}/alerts`)
+						redirectToAlert()
 					})
 				})
 				.catch(() => {
@@ -397,9 +412,27 @@ export const AlertForm: React.FC = () => {
 						paddingRight="8"
 						py="6"
 					>
-						<Text size="small" weight="medium">
-							{isEdit ? 'Edit' : 'Create'} alert
-						</Text>
+						<Box
+							alignItems="center"
+							display="flex"
+							gap="4"
+							color="weak"
+							flexWrap="nowrap"
+						>
+							<Tag
+								shape="basic"
+								kind="secondary"
+								lines="1"
+								iconLeft={<IconSolidBell />}
+								onClick={redirectToAlerts}
+							>
+								Alerts
+							</Tag>
+							<IconSolidCheveronRight />
+							<Text size="small" weight="medium" color="default">
+								{isEdit ? 'Edit' : 'Create'} alert
+							</Text>
+						</Box>
 						<Box display="flex" gap="4">
 							<DateRangePicker
 								emphasis="low"
@@ -419,7 +452,7 @@ export const AlertForm: React.FC = () => {
 							<Button
 								emphasis="low"
 								kind="secondary"
-								onClick={() => navigate(`/${projectId}/alerts`)}
+								onClick={redirectToAlert}
 								trackingId="AlertCancel"
 							>
 								Cancel
@@ -451,22 +484,41 @@ export const AlertForm: React.FC = () => {
 						justifyContent="space-between"
 						cssClass={style.editGraphPanel}
 					>
-						<AlertGraph
-							alertName={alertName}
-							query={query}
-							productType={productType}
-							functionColumn={fetchedFunctionColumn}
-							functionType={functionType}
-							groupByKey={groupByEnabled ? groupByKey : undefined}
-							thresholdWindow={thresholdWindow}
-							thresholdValue={thresholdValue}
-							thresholdType={thresholdType}
-							thresholdCondition={thresholdCondition}
-							startDate={startDate}
-							endDate={endDate}
-							selectedPreset={selectedPreset}
-							updateSearchTime={updateSearchTime}
-						/>
+						<Box
+							display="flex"
+							position="relative"
+							height="full"
+							cssClass={style.previewWindow}
+						>
+							<Box
+								position="absolute"
+								width="full"
+								height="full"
+								cssClass={style.graphBackground}
+							>
+								<EditorBackground />
+							</Box>
+							<Box cssClass={style.graphContainer}>
+								<AlertGraph
+									alertName={alertName}
+									query={query}
+									productType={productType}
+									functionColumn={fetchedFunctionColumn}
+									functionType={functionType}
+									groupByKey={
+										groupByEnabled ? groupByKey : undefined
+									}
+									thresholdWindow={thresholdWindow}
+									thresholdValue={thresholdValue}
+									thresholdType={thresholdType}
+									thresholdCondition={thresholdCondition}
+									startDate={startDate}
+									endDate={endDate}
+									selectedPreset={selectedPreset}
+									updateSearchTime={updateSearchTime}
+								/>
+							</Box>
+						</Box>
 						<Box
 							display="flex"
 							borderLeft="dividerWeak"
@@ -655,7 +707,7 @@ export const AlertForm: React.FC = () => {
 												<Stack direction="row" gap="12">
 													{isAnomaly && (
 														<LabeledRow
-															label="Confidence"
+															label="Alert threshold"
 															name="thresholdValue"
 														>
 															<OptionDropdown
@@ -764,5 +816,32 @@ export const AlertForm: React.FC = () => {
 				</Box>
 			</Box>
 		</GraphContextProvider>
+	)
+}
+
+const EditorBackground = () => {
+	return (
+		<svg width="100%" height="100%">
+			<defs>
+				<pattern
+					id="polka-dots"
+					x="0"
+					y="0"
+					width="14"
+					height="14"
+					patternUnits="userSpaceOnUse"
+				>
+					<circle fill="#e4e2e4" cx="7" cy="7" r="1" />
+				</pattern>
+			</defs>
+
+			<rect
+				x="0"
+				y="0"
+				width="100%"
+				height="100%"
+				fill="url(#polka-dots)"
+			/>
+		</svg>
 	)
 }

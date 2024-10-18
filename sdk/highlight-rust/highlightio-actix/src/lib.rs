@@ -1,3 +1,8 @@
+/// Official [Highlight.io](https://highlight.io) SDK for Actix. Refer to our docs on how to get started with
+/// [error monitoring](https://www.highlight.io/docs/getting-started/backend-sdk/rust/actix),
+/// [logging](https://www.highlight.io/docs/getting-started/backend-logging/rust/actix), and
+/// [tracing](https://www.highlight.io/docs/getting-started/backend-tracing/rust/actix).
+
 use std::{borrow::Cow, pin::Pin};
 
 use actix_web::{
