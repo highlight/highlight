@@ -225,8 +225,13 @@ func init() {
 	}
 }
 
+type AppendProperty struct {
+	Key   string
+	Value string
+}
+
 // Change to AppendProperties(sessionId,properties,type)
-func (r *Resolver) AppendProperties(ctx context.Context, sessionID int, properties map[string]string, propType Property) error {
+func (r *Resolver) AppendProperties(ctx context.Context, sessionID int, properties []AppendProperty, propType Property) error {
 	outerSpan, ctx := util.StartSpanFromContext(ctx, "public-graph.AppendProperties",
 		util.ResourceName("go.sessions.AppendProperties"), util.Tag("sessionID", sessionID))
 	defer outerSpan.Finish()
@@ -1078,7 +1083,9 @@ func (r *Resolver) IndexSessionClickhouse(ctx context.Context, session *model.Se
 	if session.AppVersion != nil {
 		sessionProperties["service_version"] = *session.AppVersion
 	}
-	if err := r.AppendProperties(ctx, session.ID, sessionProperties, PropertyType.SESSION); err != nil {
+	if err := r.AppendProperties(ctx, session.ID, lo.MapToSlice(sessionProperties, func(key string, value string) AppendProperty {
+		return AppendProperty{key, value}
+	}), PropertyType.SESSION); err != nil {
 		log.WithContext(ctx).Error(e.Wrap(err, "error adding set of properties to db"))
 	}
 	return r.DataSyncQueue.Submit(ctx, strconv.Itoa(session.ID), &kafka_queue.Message{Type: kafka_queue.SessionDataSync, SessionDataSync: &kafka_queue.SessionDataSyncArgs{SessionID: session.ID}})
@@ -1562,7 +1569,9 @@ func (r *Resolver) IdentifySessionImpl(ctx context.Context, sessionSecureID stri
 	if err := session.SetUserProperties(allUserProperties); err != nil {
 		return e.Wrapf(err, "[IdentifySession] [project_id: %d] error appending user properties to session object {id: %d}", session.ProjectID, sessionID)
 	}
-	if err := r.AppendProperties(spanCtx, sessionID, newUserProperties, PropertyType.USER); err != nil {
+	if err := r.AppendProperties(spanCtx, sessionID, lo.MapToSlice(newUserProperties, func(key string, value string) AppendProperty {
+		return AppendProperty{key, value}
+	}), PropertyType.USER); err != nil {
 		log.WithContext(ctx).Error(e.Wrapf(err, "[IdentifySession] error adding set of identify properties to db: session: %d", sessionID))
 	}
 	setUserPropsSpan.Finish()
@@ -1682,7 +1691,9 @@ func (r *Resolver) AddSessionPropertiesImpl(ctx context.Context, sessionSecureID
 	for k, v := range obj {
 		fields[k] = fmt.Sprintf("%v", v)
 	}
-	err = r.AppendProperties(ctx, sessionObj.ID, fields, PropertyType.SESSION)
+	err = r.AppendProperties(ctx, sessionObj.ID, lo.MapToSlice(fields, func(key string, value string) AppendProperty {
+		return AppendProperty{key, value}
+	}), PropertyType.SESSION)
 	if err != nil {
 		return e.Wrap(err, "error adding set of properties to db")
 	}
@@ -2326,7 +2337,9 @@ func (r *Resolver) AddTrackPropertiesImpl(ctx context.Context, sessionSecureID s
 			return e.New("therewasonceahumblebumblebeeflyingthroughtheforestwhensuddenlyadropofwaterfullyencasedhimittookhimasecondtofigureoutthathesinaraindropsuddenlytheraindrophitthegroundasifhewasdivingintoapoolandheflewawaywithnofurtherissues")
 		}
 	}
-	err = r.AppendProperties(ctx, sessionObj.ID, fields, PropertyType.TRACK)
+	err = r.AppendProperties(ctx, sessionObj.ID, lo.MapToSlice(fields, func(key string, value string) AppendProperty {
+		return AppendProperty{key, value}
+	}), PropertyType.TRACK)
 	if err != nil {
 		return e.Wrap(err, "error adding set of properties to db")
 	}
@@ -2338,7 +2351,7 @@ func (r *Resolver) AddSessionEvents(ctx context.Context, sessionID int, events *
 		util.ResourceName("go.sessions.AddSessionEvents"))
 	defer outerSpan.Finish()
 
-	fields := map[string]string{}
+	var fields []AppendProperty
 	sessionEvents := []*clickhouse.SessionEventRow{}
 
 	for _, event := range events.Events {
@@ -2384,7 +2397,10 @@ func (r *Resolver) AddSessionEvents(ctx context.Context, sessionID int, events *
 
 				attributes := make(map[string]string)
 				for k, v := range propertiesObject {
-					attributes[k] = fmt.Sprintf("%v", v)
+					attributes[k] = fmt.Sprintf("%.*v", SESSION_FIELD_MAX_LENGTH, v)
+					if len(attributes[k]) > 0 {
+						fields = append(fields, AppendProperty{k, attributes[k]})
+					}
 				}
 
 				sessionEvents = append(sessionEvents,
@@ -2453,13 +2469,7 @@ func (r *Resolver) AddSessionEvents(ctx context.Context, sessionID int, events *
 				for k, v := range propertiesObject {
 					formattedVal := fmt.Sprintf("%.*v", SESSION_FIELD_MAX_LENGTH, v)
 					if len(formattedVal) > 0 {
-						fields[k] = formattedVal
-					}
-					// the value below is used for testing using /buttons
-					testTrackingMessage := "therewasonceahumblebumblebeeflyingthroughtheforestwhensuddenlyadropofwaterfullyencasedhimittookhimasecondtofigureoutthathesinaraindropsuddenlytheraindrophitthegroundasifhewasdivingintoapoolandheflewawaywithnofurtherissues"
-					if fields[k] == testTrackingMessage {
-						log.WithContext(ctx).WithField("session_id", sessionID).Error(testTrackingMessage)
-						continue
+						fields = append(fields, AppendProperty{k, formattedVal})
 					}
 				}
 			}
