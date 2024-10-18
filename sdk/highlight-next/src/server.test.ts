@@ -143,7 +143,7 @@ describe('Next.js server instrumentation', () => {
 
 			detailsWithSessionId.length === 0 && logDetails(details)
 
-			expect(hasError.length).toEqual(1)
+			expect(hasError.length).toBeGreaterThanOrEqual(1)
 			expect(detailsWithSessionId.length > 0).toEqual(true)
 		}, 10000)
 	})

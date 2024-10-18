@@ -33,7 +33,6 @@ export function startMockOtelServer({
 			const trace = JSON.parse(
 				req.body.toString(),
 			) as IExportTraceServiceRequest
-			console.log({ trace })
 
 			if (trace.resourceSpans) {
 				const resourceSpans = getResourceSpansByPort(port)
@@ -43,6 +42,27 @@ export function startMockOtelServer({
 							scopeSpan.spans?.flatMap((span) => span.name),
 						) ?? [],
 				)
+				const spanAttributes = [
+					...trace.resourceSpans.flatMap(
+						(resourceSpan) =>
+							resourceSpan.resource?.attributes.flatMap(
+								(attr) => attr.key,
+							) ?? [],
+					),
+					...trace.resourceSpans.flatMap(
+						(resourceSpan) =>
+							resourceSpan.scopeSpans.flatMap(
+								(span) => span.scope?.attributes,
+							) ?? [],
+					),
+					...trace.resourceSpans.flatMap(
+						(resourceSpan) =>
+							resourceSpan.scopeSpans.flatMap((span) =>
+								span.spans?.flatMap((s) => s.attributes),
+							) ?? [],
+					),
+				]
+				console.log({ trace, spanNames, spanAttributes })
 
 				resourceSpans.push(...trace.resourceSpans)
 
