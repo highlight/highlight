@@ -26,7 +26,7 @@ import (
 	"github.com/highlight-run/highlight/backend/public-graph/graph/model"
 	"github.com/highlight-run/highlight/backend/redis"
 	"github.com/highlight-run/highlight/backend/stacktraces"
-    "github.com/highlight/highlight/sdk/highlight-go"
+	"github.com/highlight/highlight/sdk/highlight-go"
 	highlightChi "github.com/highlight/highlight/sdk/highlight-go/middleware/chi"
 	"github.com/openlyinc/pointy"
 	e "github.com/pkg/errors"
