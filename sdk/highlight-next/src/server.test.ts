@@ -151,17 +151,21 @@ describe('Next.js server instrumentation', () => {
 
 async function startNext(port: number) {
 	return new Promise<() => Promise<void>>(async (resolve) => {
-		const nodeDir = join(homedir(), '.nvm/versions/node')
-		const versions = readdirSync(nodeDir).map((v) => v.substring(1))
-		const latest = maxSatisfying(versions, '>=0')
-		const path = join(homedir(), '.nvm/versions/node', `v${latest}`, 'bin')
+		let path = process.env.path
+		try {
+			const nodeDir = join(homedir(), '.nvm/versions/node')
+			const versions = readdirSync(nodeDir).map((v) => v.substring(1))
+			const latest = maxSatisfying(versions, '>=0')
+			const p = join(homedir(), '.nvm/versions/node', `v${latest}`, 'bin')
+			path = `${p}:${path}`
+		} catch (e) {}
 		const child = spawn(
 			'yarn',
 			['workspace', 'nextjs', 'next', 'dev', '-p', String(NEXT_PORT)],
 			{
 				env: {
 					...process.env,
-					PATH: `${path}:${process.env.path}`,
+					PATH: path,
 					NODE_ENV: 'test',
 					NEXT_PUBLIC_HIGHLIGHT_OTLP_ENDPOINT: getOtlpEndpoint(port),
 				},
