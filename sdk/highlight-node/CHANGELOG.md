@@ -1,5 +1,11 @@
 # @highlight-run/node
 
+## 3.9.4
+
+### Patch Changes
+
+-   e6d5ad2: ensure compatibility with node.js 14 when referencing Headers type
+
 ## 3.9.3
 
 ### Patch Changes
