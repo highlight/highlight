@@ -1,5 +1,13 @@
 # @highlight-run/remix
 
+## 2.0.63
+
+### Patch Changes
+
+-   80aa6c7: Update deprecated DataFunctionArgs type in Remix
+-   Updated dependencies [e6d5ad2]
+    -   @highlight-run/node@3.9.4
+
 ## 2.0.62
 
 ### Patch Changes
