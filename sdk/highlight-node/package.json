@@ -6,9 +6,9 @@
 		"typegen": "tsc -d --emitDeclarationOnly",
 		"dev": "yarn build --watch",
 		"build": "rollup --config rollup.config.mjs",
-		"test": "yarn test:check-deps && yarn test:jest",
+		"test": "yarn test:check-deps && yarn test:vitest",
 		"test:check-deps": "node scripts/check-deps.mjs",
-		"test:jest": "jest"
+		"test:vitest": "vitest run"
 	},
 	"main": "./dist/index.cjs",
 	"module": "./dist/index.js",
@@ -44,15 +44,14 @@
 		"@rollup/plugin-node-resolve": "^15.2.3",
 		"@rollup/plugin-terser": "^0.4.4",
 		"@rollup/plugin-typescript": "^11.1.5",
-		"@types/jest": "^29.2.0",
 		"@types/lru-cache": "^7.10.10",
-		"@types/node": "17.0.13",
+		"@types/node": "^14.18.63",
 		"check-dependencies": "^2.0.0",
 		"encoding": "^0.1.13",
 		"highlight.run": "workspace:*",
-		"jest": "^29.2.2",
+		"node-fetch": "^3.3.2",
 		"rollup": "^4.1.4",
-		"ts-jest": "^29.0.3",
-		"typescript": "^5.0.4"
+		"typescript": "^5.0.4",
+		"vitest": "^2.1.3"
 	}
 }
