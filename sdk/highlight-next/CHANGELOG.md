@@ -1,5 +1,17 @@
 # @highlight-run/next
 
+## 7.6.0
+
+### Minor Changes
+
+-   e6d5ad2: require next 13 and ensure compatibility with node 16
+
+### Patch Changes
+
+-   a3ff05e: update transient dependencies with security vulnerabilities
+-   Updated dependencies [e6d5ad2]
+    -   @highlight-run/node@3.9.4
+
 ## 7.5.31
 
 ### Patch Changes
