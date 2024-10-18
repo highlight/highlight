@@ -11,7 +11,8 @@
 		"moduleResolution": "Node",
 		"skipLibCheck": true,
 		"strict": true,
-		"resolveJsonModule": true
+		"resolveJsonModule": true,
+		"typeRoots": ["./node_modules/@types"]
 	},
 	"include": ["src"],
 	"references": [{

@@ -28,7 +28,7 @@ export function Highlight(env: HighlightEnv) {
 
 			try {
 				const response = await H.runWithHeaders(
-					request.headers,
+					request.headers as any,
 					async () => {
 						return await handler(request, event)
 					},
@@ -39,7 +39,7 @@ export function Highlight(env: HighlightEnv) {
 				return response
 			} catch (error) {
 				const { secureSessionId, requestId } = H.parseHeaders(
-					request.headers,
+					request.headers as any,
 				)
 				if (error instanceof Error) {
 					H.consumeError(error, secureSessionId, requestId)
