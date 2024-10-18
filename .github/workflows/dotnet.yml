@@ -33,7 +33,7 @@ jobs:
               run: dotnet pack -c Release -o out
 
             - name: Push generated package to NuGet registry
-              if: github.ref == 'refs/heads/main'
+              # if: github.ref == 'refs/heads/main'
               run: dotnet nuget push out/*.nupkg --skip-duplicate -k $NUGET_AUTH_TOKEN -s https://api.nuget.org/v3/index.json
               env:
                   NUGET_AUTH_TOKEN: ${{ secrets.NUGET_API_KEY }}
@@ -65,6 +65,6 @@ jobs:
               run: msbuild -t:Pack -property:Configuration=Release
 
             - name: Push generated package to NuGet registry
-              if: github.ref == 'refs/heads/main'
+              # if: github.ref == 'refs/heads/main'
               run: |
                   nuget push bin\**\*.nupkg -Source https://api.nuget.org/v3/index.json -ApiKey ${{ secrets.NUGET_API_KEY }} -SymbolApiKey ${{ secrets.NUGET_API_KEY }} -SkipDuplicate
