@@ -9953,7 +9953,6 @@ __metadata:
     eslint: "npm:8.39.0"
     highlight.run: "workspace:*"
     js-cookie: "npm:^3.0.5"
-    node-fetch: "npm:^3.3.2"
     rollup: "npm:^4.4.1"
     tree-kill: "npm:^1.2.2"
     typescript: "npm:^5.0.4"

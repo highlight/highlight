@@ -77,7 +77,6 @@
 		"@types/node": "^16.18.113",
 		"chokidar-cli": "^3.0.0",
 		"eslint": "8.39.0",
-		"node-fetch": "^3.3.2",
 		"rollup": "^4.4.1",
 		"tree-kill": "^1.2.2",
 		"typescript": "^5.0.4",

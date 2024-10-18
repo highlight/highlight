@@ -1,5 +1,4 @@
 import type { NextRequest } from 'next/server'
-import type { Headers } from 'node-fetch'
 import { H, NodeOptions } from '@highlight-run/node'
 
 type NextContext = { params: Record<string, string> }
@@ -19,7 +18,7 @@ export function Highlight(options: NodeOptions) {
 
 			try {
 				return await H.runWithHeaders<Promise<Response>>(
-					request.headers as unknown as Headers,
+					request.headers as any,
 					async () => originalHandler(request, context),
 				)
 			} catch (e) {
@@ -32,7 +31,7 @@ export function Highlight(options: NodeOptions) {
 				// convert ms to ns
 				const delta = (new Date().getTime() - start.getTime()) * 1000000
 				const { secureSessionId, requestId } = NodeH.parseHeaders(
-					request.headers as unknown as Headers,
+					request.headers as any,
 				)
 
 				if (secureSessionId && requestId) {
