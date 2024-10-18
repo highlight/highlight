@@ -6,16 +6,13 @@ import {
 import classNames from 'classnames'
 import Markdown from 'markdown-to-jsx'
 import styles from '../../components/Docs/Docs.module.scss'
-import { Typography } from '../common/Typography/Typography'
 import { HighlightCodeBlock } from '../Docs/HighlightCodeBlock/HighlightCodeBlock'
 type Props = { content: QuickStartContent }
 
 export function QuickStart({ content: c }: Props) {
 	return (
 		<div style={{ display: 'flex', flexDirection: 'column', gap: 40 }}>
-			<Typography onDark type="copy1">
-				{c.subtitle}
-			</Typography>
+			<h2 className="quickStartH2">{c.subtitle}</h2>
 			<div style={{ borderTop: '1px solid #EBFF5E', width: 200 }} />
 			<div
 				style={{
@@ -41,9 +38,9 @@ export function QuickStart({ content: c }: Props) {
 										styles.quickStartSubtext,
 									)}
 								>
-									<Typography type="copy2" emphasis>
+									<h3 className="quickStartH3">
 										{step.title}
-									</Typography>
+									</h3>
 									<Markdown
 										options={{
 											forceBlock: true,
