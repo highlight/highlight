@@ -8,6 +8,7 @@ import {
 	logDetails,
 	startMockOtelServer,
 } from 'mock-otel-server'
+import { join } from 'node:path'
 import kill from 'tree-kill'
 import {
 	vi,
@@ -18,6 +19,9 @@ import {
 	it,
 	expect,
 } from 'vitest'
+import { homedir } from 'node:os'
+import { readdir, readdirSync } from 'node:fs'
+import { maxSatisfying, parse } from 'semver'
 
 const SESSION_ID = '123456'
 const TRACE_ID = '78910'
@@ -28,15 +32,20 @@ const HIGHLIGHT_HEADER = { 'x-highlight-request': `${SESSION_ID}/${TRACE_ID}` }
 
 describe('Next.js server instrumentation', () => {
 	let stopOtel: () => void
+	let stopNext: () => Promise<void>
 
 	beforeAll(async () => {
-		stopOtel = await startMockOtelServer({ port: OTEL_PORT })
-		await startNext(OTEL_PORT)
-	}, 10000)
+		stopOtel = startMockOtelServer({ port: OTEL_PORT })
+		stopNext = await startNext(OTEL_PORT)
+	}, 10_000)
 
 	afterAll(async () => {
-		await stopOtel()
-	})
+		try {
+			stopOtel()
+		} finally {
+			await stopNext()
+		}
+	}, 10_000)
 
 	beforeEach(() => {
 		vi.clearAllMocks()
@@ -44,10 +53,8 @@ describe('Next.js server instrumentation', () => {
 	})
 
 	describe('Page Router', () => {
-		it('Should report Page Router success', async (context) => {
-			// Does not run automatically without running next.js example app
-			context.skip()
-			fetch(`${NEXT_URL}/api/page-router-test?success=true`, {
+		it('Should report Page Router success', async () => {
+			await fetch(`${NEXT_URL}/api/page-router-test?success=true`, {
 				method: 'GET',
 				headers: {
 					...HIGHLIGHT_HEADER,
@@ -65,14 +72,17 @@ describe('Next.js server instrumentation', () => {
 			expect(detailsWithSessionId.length > 0).toEqual(true)
 		})
 
-		it('Should report Page Router error', async (context) => {
-			context.skip()
-			fetch(`${NEXT_URL}/api/page-router-test?success=false`, {
-				method: 'GET',
-				headers: {
-					...HIGHLIGHT_HEADER,
-				},
-			})
+		it('Should report Page Router error', async () => {
+			try {
+				await fetch(`${NEXT_URL}/api/page-router-test?success=false`, {
+					method: 'GET',
+					headers: {
+						...HIGHLIGHT_HEADER,
+					},
+				})
+			} catch (err) {
+				console.log('expected error', { err })
+			}
 
 			const { details } = await getResourceSpans(OTEL_PORT, ['exception'])
 
@@ -90,14 +100,16 @@ describe('Next.js server instrumentation', () => {
 	})
 
 	describe('App Router', () => {
-		it('Should report App Router success', async (context) => {
-			context.skip()
-			fetch(`${NEXT_URL}/api/app-router-test?success=true&sql=false`, {
-				method: 'GET',
-				headers: {
-					...HIGHLIGHT_HEADER,
+		it('Should report App Router success', async () => {
+			await fetch(
+				`${NEXT_URL}/api/app-router-test?success=true&sql=false`,
+				{
+					method: 'GET',
+					headers: {
+						...HIGHLIGHT_HEADER,
+					},
 				},
-			})
+			)
 
 			const { details } = await getResourceSpans(OTEL_PORT)
 			const detailsWithSessionId = filterDetailsBySessionId(
@@ -110,8 +122,7 @@ describe('Next.js server instrumentation', () => {
 			expect(detailsWithSessionId.length > 0).toEqual(true)
 		}, 10000)
 
-		it('Should report App Router error', async (context) => {
-			context.skip()
+		it('Should report App Router error', async () => {
 			await fetch(
 				`${NEXT_URL}/api/app-router-test?success=false&sql=false`,
 				{
@@ -136,46 +147,42 @@ describe('Next.js server instrumentation', () => {
 			expect(detailsWithSessionId.length > 0).toEqual(true)
 		}, 10000)
 	})
-})
+}, 10_000)
 
-function startNext(port: number) {
-	return new Promise<() => void>(async (resolve, reject) => {
+async function startNext(port: number) {
+	return new Promise<() => Promise<void>>(async (resolve) => {
+		const nodeDir = join(homedir(), '.nvm/versions/node')
+		const versions = readdirSync(nodeDir).map((v) => v.substring(1))
+		const latest = maxSatisfying(versions, '>=0')
+		const path = join(homedir(), '.nvm/versions/node', `v${latest}`, 'bin')
 		const child = spawn(
 			'yarn',
 			['workspace', 'nextjs', 'next', 'dev', '-p', String(NEXT_PORT)],
 			{
 				env: {
+					PATH: path,
 					NODE_ENV: 'test',
 					NEXT_PUBLIC_HIGHLIGHT_OTLP_ENDPOINT: getOtlpEndpoint(port),
 				},
 			},
 		)
 
+		child.stderr.on('data', (data) => {
+			console.error(`${data}`)
+		})
 		child.stdout.on('data', (data) => {
 			const isReady = data.toString().includes('Ready')
 
 			console.info(`${data}`)
 
-			isReady && resolve(killChild)
+			isReady &&
+				resolve(async function () {
+					if (!child.pid) return
+					console.error('stopping next', { pid: child.pid })
+					await new Promise<void>((r) => {
+						kill(child.pid!, 'SIGKILL', () => r())
+					})
+				})
 		})
-
-		child.stderr.on('data', (data) => {
-			console.error(`${data}`)
-		})
-
-		child.on('error', (error) => {
-			killChild()
-
-			reject(error)
-		})
-
-		function killChild() {
-			return new Promise<void>((resolve, reject) => {
-				if (!child.pid) return
-				kill(child.pid, 'SIGTERM', (err) =>
-					err ? reject(err) : resolve(),
-				)
-			})
-		}
 	})
 }
