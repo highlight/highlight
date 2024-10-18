@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ include "highlight.fullname" . }}-postgres-pvc
+spec:
+  resources:
+    requests:
+      storage: {{ .Values.postgres.config.storageSize }}
+  volumeMode: Filesystem
+  accessModes:
+    - ReadWriteOnce
