@@ -27,24 +27,21 @@
         <RepositoryUrl>https://github.com/highlight/highlight</RepositoryUrl>
     </PropertyGroup>
 
-    <ItemGroup>      
-      <PackageReference Include="OpenTelemetry" Version="1.6.0" Condition="'$(TargetFramework)' == 'net6.0'" />
-      <PackageReference Include="OpenTelemetry.AutoInstrumentation" Version="1.0.2" Condition="'$(TargetFramework)' == 'net6.0'" />
-      <PackageReference Include="OpenTelemetry.Exporter.OpenTelemetryProtocol" Version="1.6.0" Condition="'$(TargetFramework)' == 'net6.0'" />
-      <PackageReference Include="OpenTelemetry.Extensions.Hosting" Version="1.6.0" Condition="'$(TargetFramework)' == 'net6.0'" />
-      <PackageReference Include="Serilog" Version="3.1.1" Condition="'$(TargetFramework)' == 'net6.0'" />
-      <PackageReference Include="Serilog.Sinks.OpenTelemetry" Version="1.2.0" Condition="'$(TargetFramework)' == 'net6.0'" />
+    <ItemGroup>
+      <PackageReference Include="OpenTelemetry" Version="1.6.0" Condition="'$(TargetFramework)' == 'net6.0'"/>
+      <PackageReference Include="OpenTelemetry.AutoInstrumentation" Version="1.0.2" Condition="'$(TargetFramework)' == 'net6.0'"/>
+      <PackageReference Include="OpenTelemetry.Exporter.OpenTelemetryProtocol" Version="1.6.0" Condition="'$(TargetFramework)' == 'net6.0'"/>
+      <PackageReference Include="OpenTelemetry.Extensions.Hosting" Version="1.6.0" Condition="'$(TargetFramework)' == 'net6.0'"/>
+      <PackageReference Include="Serilog" Version="3.1.1"  Condition="'$(TargetFramework)' == 'net6.0'" />
+      <PackageReference Include="Serilog.Sinks.OpenTelemetry" Version="1.2.0"  Condition="'$(TargetFramework)' == 'net6.0'" />
 
-      <PackageReference Include="OpenTelemetry" Version="1.9.0" Condition="'$(TargetFramework)' != 'net6.0'" />
-      <PackageReference Include="OpenTelemetry.AutoInstrumentation" Version="1.8.0" Condition="'$(TargetFramework)' != 'net6.0'" />
-      <PackageReference Include="OpenTelemetry.Exporter.OpenTelemetryProtocol" Version="1.9.0" Condition="'$(TargetFramework)' != 'net6.0'" />
-      <PackageReference Include="OpenTelemetry.Extensions.Hosting" Version="1.9.0" Condition="'$(TargetFramework)' != 'net6.0'" />
-      <PackageReference Include="Serilog" Version="4.0.2" Condition="'$(TargetFramework)' != 'net6.0'" />
-      <PackageReference Include="Serilog.Sinks.OpenTelemetry" Version="4.1.1" Condition="'$(TargetFramework)' != 'net6.0'" />
-
-      <PackageReference Include="Microsoft.Azure.Functions.Extensions" Version="1.1.0" />
-      <PackageReference Include="Microsoft.NET.Sdk.Functions" Version="4.5.0" />
-
+      <PackageReference Include="OpenTelemetry" Version="1.9.0" Condition="'$(TargetFramework)' != 'net6.0'"/>
+      <PackageReference Include="OpenTelemetry.AutoInstrumentation" Version="1.8.0" Condition="'$(TargetFramework)' != 'net6.0'"/>
+      <PackageReference Include="OpenTelemetry.Exporter.OpenTelemetryProtocol" Version="1.9.0" Condition="'$(TargetFramework)' != 'net6.0'"/>
+      <PackageReference Include="OpenTelemetry.Extensions.Hosting" Version="1.9.0" Condition="'$(TargetFramework)' != 'net6.0'"/>
+      <PackageReference Include="Serilog" Version="4.0.2"  Condition="'$(TargetFramework)' != 'net6.0'" />
+      <PackageReference Include="Serilog.Sinks.OpenTelemetry" Version="4.1.1"  Condition="'$(TargetFramework)' != 'net6.0'" />
+      
       <None Include="README.md" Pack="true" PackagePath="" />
     </ItemGroup>
 
