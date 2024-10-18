@@ -153,7 +153,7 @@ describe('Next.js server instrumentation', () => {
 
 async function startNext(port: number) {
 	return new Promise<() => Promise<void>>(async (resolve) => {
-		let path = process.env.path
+		let path = `/usr/local/bin:${process.env.PATH}`
 		try {
 			const nodeDir = join(homedir(), '.nvm/versions/node')
 			const versions = readdirSync(nodeDir).map((v) => v.substring(1))
@@ -161,6 +161,7 @@ async function startNext(port: number) {
 			const p = join(homedir(), '.nvm/versions/node', `v${latest}`, 'bin')
 			path = `${p}:${path}`
 		} catch (e) {}
+		console.log('starting next with path', { path })
 		const child = spawn(
 			'yarn',
 			['workspace', 'nextjs', 'next', 'dev', '-p', String(NEXT_PORT)],
