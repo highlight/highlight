@@ -3294,10 +3294,11 @@ export const CreateAlertDocument = gql`
 		$query: String
 		$group_by_key: String
 		$default: Boolean
-		$below_threshold: Boolean
 		$threshold_value: Float
 		$threshold_window: Int
 		$threshold_cooldown: Int
+		$threshold_type: ThresholdType
+		$threshold_condition: ThresholdCondition
 		$destinations: [AlertDestinationInput!]!
 	) {
 		createAlert(
@@ -3309,10 +3310,11 @@ export const CreateAlertDocument = gql`
 			query: $query
 			group_by_key: $group_by_key
 			default: $default
-			below_threshold: $below_threshold
 			threshold_value: $threshold_value
 			threshold_window: $threshold_window
 			threshold_cooldown: $threshold_cooldown
+			threshold_type: $threshold_type
+			threshold_condition: $threshold_condition
 			destinations: $destinations
 		) {
 			id
@@ -3347,10 +3349,11 @@ export type CreateAlertMutationFn = Apollo.MutationFunction<
  *      query: // value for 'query'
  *      group_by_key: // value for 'group_by_key'
  *      default: // value for 'default'
- *      below_threshold: // value for 'below_threshold'
  *      threshold_value: // value for 'threshold_value'
  *      threshold_window: // value for 'threshold_window'
  *      threshold_cooldown: // value for 'threshold_cooldown'
+ *      threshold_type: // value for 'threshold_type'
+ *      threshold_condition: // value for 'threshold_condition'
  *      destinations: // value for 'destinations'
  *   },
  * });
@@ -3385,10 +3388,11 @@ export const UpdateAlertDocument = gql`
 		$function_column: String
 		$query: String
 		$group_by_key: String
-		$below_threshold: Boolean
 		$threshold_value: Float
 		$threshold_window: Int
 		$threshold_cooldown: Int
+		$threshold_type: ThresholdType
+		$threshold_condition: ThresholdCondition
 		$destinations: [AlertDestinationInput!]
 	) {
 		updateAlert(
@@ -3400,10 +3404,11 @@ export const UpdateAlertDocument = gql`
 			function_column: $function_column
 			query: $query
 			group_by_key: $group_by_key
-			below_threshold: $below_threshold
 			threshold_value: $threshold_value
 			threshold_window: $threshold_window
 			threshold_cooldown: $threshold_cooldown
+			threshold_type: $threshold_type
+			threshold_condition: $threshold_condition
 			destinations: $destinations
 		) {
 			id
@@ -3438,10 +3443,11 @@ export type UpdateAlertMutationFn = Apollo.MutationFunction<
  *      function_column: // value for 'function_column'
  *      query: // value for 'query'
  *      group_by_key: // value for 'group_by_key'
- *      below_threshold: // value for 'below_threshold'
  *      threshold_value: // value for 'threshold_value'
  *      threshold_window: // value for 'threshold_window'
  *      threshold_cooldown: // value for 'threshold_cooldown'
+ *      threshold_type: // value for 'threshold_type'
+ *      threshold_condition: // value for 'threshold_condition'
  *      destinations: // value for 'destinations'
  *   },
  * });
@@ -12520,10 +12526,11 @@ export const GetAlertDocument = gql`
 			group_by_key
 			disabled
 			last_admin_to_edit_id
-			below_threshold
 			threshold_value
 			threshold_window
 			threshold_cooldown
+			threshold_type
+			threshold_condition
 			destinations {
 				id
 				destination_type
@@ -15097,6 +15104,7 @@ export const GetMetricsDocument = gql`
 		$limit: Int
 		$limit_aggregator: MetricAggregator
 		$limit_column: String
+		$prediction_settings: PredictionSettings
 	) {
 		metrics(
 			product_type: $product_type
@@ -15111,6 +15119,7 @@ export const GetMetricsDocument = gql`
 			limit: $limit
 			limit_aggregator: $limit_aggregator
 			limit_column: $limit_column
+			prediction_settings: $prediction_settings
 		) {
 			buckets {
 				bucket_id
@@ -15119,6 +15128,8 @@ export const GetMetricsDocument = gql`
 				group
 				metric_type
 				metric_value
+				yhat_lower
+				yhat_upper
 			}
 			bucket_count
 			sample_factor
@@ -15150,6 +15161,7 @@ export const GetMetricsDocument = gql`
  *      limit: // value for 'limit'
  *      limit_aggregator: // value for 'limit_aggregator'
  *      limit_column: // value for 'limit_column'
+ *      prediction_settings: // value for 'prediction_settings'
  *   },
  * });
  */

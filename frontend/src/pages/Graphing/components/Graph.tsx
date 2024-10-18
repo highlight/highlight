@@ -26,7 +26,7 @@ import clsx from 'clsx'
 import _ from 'lodash'
 import moment from 'moment'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { ReferenceArea, Tooltip as RechartsTooltip } from 'recharts'
+import { Area, Tooltip as RechartsTooltip, ReferenceArea } from 'recharts'
 import { CategoricalChartState } from 'recharts/types/chart/types'
 
 import { loadingIcon } from '@/components/Button/style.css'
@@ -37,7 +37,12 @@ import {
 	useGetMetricsLazyQuery,
 } from '@/graph/generated/hooks'
 import { GetMetricsQuery } from '@/graph/generated/operations'
-import { Maybe, MetricAggregator, ProductType } from '@/graph/generated/schemas'
+import {
+	Maybe,
+	MetricAggregator,
+	PredictionSettings,
+	ProductType,
+} from '@/graph/generated/schemas'
 import {
 	BarChart,
 	BarChartConfig,
@@ -90,6 +95,10 @@ export const GROUP_KEY = 'Group'
 export const PERCENT_KEY = 'Percent'
 export const BUCKET_MIN_KEY = 'BucketMin'
 export const BUCKET_MAX_KEY = 'BucketMax'
+export const YHAT_UPPER_KEY = 'yhat_upper'
+export const YHAT_LOWER_KEY = 'yhat_lower'
+export const YHAT_UPPER_REGION_KEY = 'yhat_upper_region'
+export const YHAT_LOWER_REGION_KEY = 'yhat_lower_region'
 export const NO_GROUP_PLACEHOLDER = '<empty>'
 const MAX_LABEL_CHARS = 100
 
@@ -136,6 +145,7 @@ export interface ChartProps<TConfig> {
 	setTimeRange?: SetTimeRange
 	loadExemplars?: LoadExemplars
 	variables?: Map<string, string[]>
+	predictionSettings?: PredictionSettings
 }
 
 export interface InnerChartProps<TConfig> {
@@ -491,84 +501,96 @@ const getCustomTooltip =
 				>
 					{isValid && getTickFormatter(xAxisMetric)(label)}
 				</Text>
-				{payload.map((p: any, idx: number) => (
-					<Box
-						display="flex"
-						key={idx}
-						justifyContent="space-between"
-						gap="4"
-						cssClass={style.tooltipRow}
-					>
+				{payload
+					.filter(
+						(p: any) =>
+							![
+								YHAT_LOWER_REGION_KEY,
+								YHAT_UPPER_REGION_KEY,
+							].includes(p.dataKey),
+					)
+					.map((p: any, idx: number) => (
 						<Box
 							display="flex"
-							flexDirection="row"
-							alignItems="center"
+							key={idx}
+							justifyContent="space-between"
 							gap="4"
+							cssClass={style.tooltipRow}
 						>
 							<Box
-								style={{
-									backgroundColor: p.color,
-								}}
-								cssClass={style.tooltipDot}
-							></Box>
-							<Badge
-								size="small"
-								shape="basic"
-								label={
-									isValid &&
-									getTickFormatter(yAxisMetric)(p.value)
-								}
+								display="flex"
+								flexDirection="row"
+								alignItems="center"
+								gap="4"
 							>
-								<Text
-									lines="1"
-									size="xSmall"
-									weight="medium"
-									color="default"
-									cssClass={style.tooltipText}
-								></Text>
-							</Badge>
-							{funnelMode ? (
-								<Text
-									lines="1"
-									size="xSmall"
-									weight="medium"
-									color="default"
-									cssClass={style.tooltipText}
+								<Box
+									style={{
+										backgroundColor: p.color,
+									}}
+									cssClass={style.tooltipDot}
+								></Box>
+								<Badge
+									size="small"
+									shape="basic"
+									label={
+										isValid &&
+										getTickFormatter(yAxisMetric)(p.value)
+									}
 								>
-									{(p.payload[PERCENT_KEY] * 100).toFixed(1)}%
-								</Text>
-							) : (
-								<Text
-									lines="1"
-									size="xxSmall"
-									weight="medium"
-									color="default"
-									cssClass={style.tooltipText}
-								>
-									{p.name ? p.name : yAxisFunction}
-								</Text>
+									<Text
+										lines="1"
+										size="xSmall"
+										weight="medium"
+										color="default"
+										cssClass={style.tooltipText}
+									></Text>
+								</Badge>
+								{funnelMode ? (
+									<Text
+										lines="1"
+										size="xSmall"
+										weight="medium"
+										color="default"
+										cssClass={style.tooltipText}
+									>
+										{(p.payload[PERCENT_KEY] * 100).toFixed(
+											1,
+										)}
+										%
+									</Text>
+								) : (
+									<Text
+										lines="1"
+										size="xxSmall"
+										weight="medium"
+										color="default"
+										cssClass={style.tooltipText}
+									>
+										{p.name ? p.name : yAxisFunction}
+									</Text>
+								)}
+							</Box>
+							{frozenTooltip && (
+								<ButtonIcon
+									icon={<IconSolidExternalLink size={16} />}
+									size="minimal"
+									shape="square"
+									emphasis="low"
+									kind="secondary"
+									cssClass={style.exemplarButton}
+									onClick={() => {
+										loadExemplars &&
+											loadExemplars(
+												p.payload[BUCKET_MIN_KEY],
+												p.payload[BUCKET_MAX_KEY],
+												p.dataKey ||
+													p.payload[GROUP_KEY],
+											)
+									}}
+								/>
 							)}
 						</Box>
-						{frozenTooltip && (
-							<ButtonIcon
-								icon={<IconSolidExternalLink size={16} />}
-								size="minimal"
-								shape="square"
-								emphasis="low"
-								kind="secondary"
-								cssClass={style.exemplarButton}
-								onClick={() => {
-									loadExemplars &&
-										loadExemplars(
-											p.payload[BUCKET_MIN_KEY],
-											p.payload[BUCKET_MAX_KEY],
-											p.dataKey || p.payload[GROUP_KEY],
-										)
-								}}
-							/>
-						)}
-					</Box>
-				))}
+					))}
 			</Box>
 		)
 	}
@@ -685,6 +707,11 @@ export const useGraphData = (
 					metrics.metrics.buckets.find((b) => b.group.length) !==
 					undefined
 
+				console.log(
+					'hasGroups',
+					metrics.metrics.buckets.find((b) => b.group.length),
+				)
+
 				for (const b of metrics.metrics.buckets) {
 					const seriesKey = hasGroups
 						? b.group.join(', ') || NO_GROUP_PLACEHOLDER
@@ -694,6 +721,26 @@ export const useGraphData = (
 					data[b.bucket_id][seriesKey] = b.metric_value
 					data[b.bucket_id][BUCKET_MIN_KEY] = b.bucket_min
 					data[b.bucket_id][BUCKET_MAX_KEY] = b.bucket_max
+
+					if (b.yhat_upper) {
+						data[b.bucket_id][YHAT_UPPER_KEY] = {
+							[seriesKey]: b.yhat_upper,
+						}
+						if (!hasGroups) {
+							data[b.bucket_id][YHAT_UPPER_REGION_KEY] =
+								b.yhat_upper - (b.yhat_lower ?? 0)
+						}
+					}
+
+					if (b.yhat_lower) {
+						data[b.bucket_id][YHAT_LOWER_KEY] = {
+							[seriesKey]: b.yhat_lower,
+						}
+						if (!hasGroups) {
+							data[b.bucket_id][YHAT_LOWER_REGION_KEY] =
+								b.yhat_lower
+						}
+					}
 				}
 			} else {
 				data = []
@@ -752,6 +799,10 @@ export const useGraphSeries = (
 			xAxisMetric,
 			BUCKET_MIN_KEY,
 			BUCKET_MAX_KEY,
+			YHAT_UPPER_KEY,
+			YHAT_LOWER_KEY,
+			YHAT_LOWER_REGION_KEY,
+			YHAT_UPPER_REGION_KEY,
 			PERCENT_KEY,
 		]
 		return _.uniq(data?.flatMap((d) => Object.keys(d))).filter(
@@ -828,6 +879,7 @@ const Graph = ({
 	setTimeRange,
 	selectedPreset,
 	variables,
+	predictionSettings,
 	children,
 }: React.PropsWithChildren<ChartProps<ViewConfig>>) => {
 	const { setGraphData } = useGraphContext()
@@ -974,6 +1026,7 @@ const Graph = ({
 			limit_column: limitMetric
 				? matchParamVariables(limitMetric, variables).at(0)
 				: undefined,
+			prediction_settings: predictionSettings,
 		}
 
 		setLoading(true)
@@ -1058,6 +1111,7 @@ const Graph = ({
 		queriedBucketCount,
 		query,
 		variables,
+		predictionSettings,
 	])
 
 	const graphData = useGraphData(results?.at(0), xAxisMetric)
@@ -1128,6 +1182,28 @@ const Graph = ({
 						showGrid
 					>
 						{children}
+						<Area
+							isAnimationActive={false}
+							dataKey={YHAT_LOWER_REGION_KEY}
+							strokeWidth="2px"
+							fill="#FFFFFF"
+							stroke="#555555"
+							fillOpacity={0.1}
+							stackId={-1}
+							connectNulls
+							activeDot={<></>}
+						/>
+						<Area
+							isAnimationActive={false}
+							dataKey={YHAT_UPPER_REGION_KEY}
+							strokeWidth="2px"
+							fill="#555555"
+							stroke="#555555"
+							fillOpacity={0.1}
+							stackId={-1}
+							connectNulls
+							activeDot={<></>}
+						/>
 					</LineChart>
 				)
 				break

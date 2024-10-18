@@ -130,7 +130,6 @@ export enum AdminRole {
 
 export type Alert = {
 	__typename?: 'Alert'
-	below_threshold?: Maybe<Scalars['Boolean']>
 	destinations: Array<Maybe<AlertDestination>>
 	disabled: Scalars['Boolean']
 	function_column?: Maybe<Scalars['String']>
@@ -143,7 +142,9 @@ export type Alert = {
 	product_type: ProductType
 	project_id: Scalars['ID']
 	query?: Maybe<Scalars['String']>
+	threshold_condition?: Maybe<ThresholdCondition>
 	threshold_cooldown?: Maybe<Scalars['Int']>
+	threshold_type?: Maybe<ThresholdType>
 	threshold_value?: Maybe<Scalars['Float']>
 	threshold_window?: Maybe<Scalars['Int']>
 	updated_at: Scalars['Timestamp']
@@ -1118,6 +1119,8 @@ export type MetricBucket = {
 	group: Array<Scalars['String']>
 	metric_type: MetricAggregator
 	metric_value?: Maybe<Scalars['Float']>
+	yhat_lower?: Maybe<Scalars['Float']>
+	yhat_upper?: Maybe<Scalars['Float']>
 }
 
 export enum MetricBucketBy {
@@ -1326,7 +1329,6 @@ export type MutationChangeProjectMembershipArgs = {
 }
 
 export type MutationCreateAlertArgs = {
-	below_threshold?: InputMaybe<Scalars['Boolean']>
 	default?: InputMaybe<Scalars['Boolean']>
 	destinations: Array<AlertDestinationInput>
 	function_column?: InputMaybe<Scalars['String']>
@@ -1336,7 +1338,9 @@ export type MutationCreateAlertArgs = {
 	product_type: ProductType
 	project_id: Scalars['ID']
 	query?: InputMaybe<Scalars['String']>
+	threshold_condition?: InputMaybe<ThresholdCondition>
 	threshold_cooldown?: InputMaybe<Scalars['Int']>
+	threshold_type?: InputMaybe<ThresholdType>
 	threshold_value?: InputMaybe<Scalars['Float']>
 	threshold_window?: InputMaybe<Scalars['Int']>
 }
@@ -1770,7 +1774,6 @@ export type MutationUpdateAdminAndCreateWorkspaceArgs = {
 
 export type MutationUpdateAlertArgs = {
 	alert_id: Scalars['ID']
-	below_threshold?: InputMaybe<Scalars['Boolean']>
 	destinations?: InputMaybe<Array<AlertDestinationInput>>
 	function_column?: InputMaybe<Scalars['String']>
 	function_type?: InputMaybe<MetricAggregator>
@@ -1779,7 +1782,9 @@ export type MutationUpdateAlertArgs = {
 	product_type?: InputMaybe<ProductType>
 	project_id: Scalars['ID']
 	query?: InputMaybe<Scalars['String']>
+	threshold_condition?: InputMaybe<ThresholdCondition>
 	threshold_cooldown?: InputMaybe<Scalars['Int']>
+	threshold_type?: InputMaybe<ThresholdType>
 	threshold_value?: InputMaybe<Scalars['Float']>
 	threshold_window?: InputMaybe<Scalars['Int']>
 }
@@ -2021,6 +2026,13 @@ export enum PlanType {
 	Lite = 'Lite',
 	Startup = 'Startup',
 	UsageBased = 'UsageBased',
+}
+
+export type PredictionSettings = {
+	changepointPriorScale: Scalars['Float']
+	intervalSeconds: Scalars['Int']
+	intervalWidth: Scalars['Float']
+	thresholdCondition: ThresholdCondition
 }
 
 export enum ProductType {
@@ -2716,6 +2728,7 @@ export type QueryMetricsArgs = {
 	limit_column?: InputMaybe<Scalars['String']>
 	metric_types: Array<MetricAggregator>
 	params: QueryInput
+	prediction_settings?: InputMaybe<PredictionSettings>
 	product_type: ProductType
 	project_id: Scalars['ID']
 }
@@ -3734,6 +3747,17 @@ export type SystemConfiguration = {
 	__typename?: 'SystemConfiguration'
 	maintenance_end?: Maybe<Scalars['Timestamp']>
 	maintenance_start?: Maybe<Scalars['Timestamp']>
+}
+
+export enum ThresholdCondition {
+	Above = 'Above',
+	Below = 'Below',
+	Outside = 'Outside',
+}
+
+export enum ThresholdType {
+	Anomaly = 'Anomaly',
+	Constant = 'Constant',
 }
 
 export type TimelineIndicatorEvent = {

@@ -971,10 +971,11 @@ export type CreateAlertMutationVariables = Types.Exact<{
 	query?: Types.Maybe<Types.Scalars['String']>
 	group_by_key?: Types.Maybe<Types.Scalars['String']>
 	default?: Types.Maybe<Types.Scalars['Boolean']>
-	below_threshold?: Types.Maybe<Types.Scalars['Boolean']>
 	threshold_value?: Types.Maybe<Types.Scalars['Float']>
 	threshold_window?: Types.Maybe<Types.Scalars['Int']>
 	threshold_cooldown?: Types.Maybe<Types.Scalars['Int']>
+	threshold_type?: Types.Maybe<Types.ThresholdType>
+	threshold_condition?: Types.Maybe<Types.ThresholdCondition>
 	destinations:
 		| Array<Types.AlertDestinationInput>
 		| Types.AlertDestinationInput
@@ -998,10 +999,11 @@ export type UpdateAlertMutationVariables = Types.Exact<{
 	function_column?: Types.Maybe<Types.Scalars['String']>
 	query?: Types.Maybe<Types.Scalars['String']>
 	group_by_key?: Types.Maybe<Types.Scalars['String']>
-	below_threshold?: Types.Maybe<Types.Scalars['Boolean']>
 	threshold_value?: Types.Maybe<Types.Scalars['Float']>
 	threshold_window?: Types.Maybe<Types.Scalars['Int']>
 	threshold_cooldown?: Types.Maybe<Types.Scalars['Int']>
+	threshold_type?: Types.Maybe<Types.ThresholdType>
+	threshold_condition?: Types.Maybe<Types.ThresholdCondition>
 	destinations?: Types.Maybe<
 		Array<Types.AlertDestinationInput> | Types.AlertDestinationInput
 	>
@@ -4327,10 +4329,11 @@ export type GetAlertQuery = { __typename?: 'Query' } & {
 		| 'group_by_key'
 		| 'disabled'
 		| 'last_admin_to_edit_id'
-		| 'below_threshold'
 		| 'threshold_value'
 		| 'threshold_window'
 		| 'threshold_cooldown'
+		| 'threshold_type'
+		| 'threshold_condition'
 	> & {
 			destinations: Array<
 				Types.Maybe<
@@ -5171,6 +5174,7 @@ export type GetMetricsQueryVariables = Types.Exact<{
 	limit?: Types.Maybe<Types.Scalars['Int']>
 	limit_aggregator?: Types.Maybe<Types.MetricAggregator>
 	limit_column?: Types.Maybe<Types.Scalars['String']>
+	prediction_settings?: Types.Maybe<Types.PredictionSettings>
 }>
 
 export type GetMetricsQuery = { __typename?: 'Query' } & {
@@ -5187,6 +5191,8 @@ export type GetMetricsQuery = { __typename?: 'Query' } & {
 					| 'group'
 					| 'metric_type'
 					| 'metric_value'
+					| 'yhat_lower'
+					| 'yhat_upper'
 				>
 			>
 		}

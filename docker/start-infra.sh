@@ -4,7 +4,7 @@ source env.sh
 
 # startup the infra
 
-SERVICES="clickhouse kafka postgres redis zookeeper collector"
+SERVICES="clickhouse kafka postgres redis zookeeper collector predictions"
 BUILD_ARGS="--build-arg OTEL_COLLECTOR_ALPINE_IMAGE_NAME=${OTEL_COLLECTOR_ALPINE_IMAGE_NAME} \
             --build-arg OTEL_COLLECTOR_IMAGE_NAME=${OTEL_COLLECTOR_IMAGE_NAME}"
 

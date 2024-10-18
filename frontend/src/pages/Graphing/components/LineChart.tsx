@@ -20,6 +20,8 @@ import {
 	SeriesInfo,
 	TooltipSettings,
 	useGraphCallbacks,
+	YHAT_LOWER_KEY,
+	YHAT_UPPER_KEY,
 } from '@/pages/Graphing/components/Graph'
 
 export type LineNullHandling = 'Hidden' | 'Connected' | 'Zero'
@@ -38,6 +40,24 @@ export type LineChartConfig = {
 	display?: LineDisplay
 	nullHandling?: LineNullHandling
 	tooltipSettings?: TooltipSettings
+}
+
+const isAnomaly = (props: any, key: string) => {
+	const { payload } = props
+
+	if (!payload || !payload[key]) {
+		return false
+	}
+
+	if (payload[key] < payload[YHAT_LOWER_KEY]?.[key]) {
+		return true
+	}
+
+	if (payload[key] > payload[YHAT_UPPER_KEY]?.[key]) {
+		return true
+	}
+
+	return false
 }
 
 export const LineChart = ({
@@ -159,15 +179,28 @@ export const LineChart = ({
 						}
 
 						const CustomizedDot = (props: any) => {
-							if (
-								(viewConfig.nullHandling !== 'Hidden' &&
-									viewConfig.nullHandling !== undefined) ||
-								data === undefined
-							) {
+							if (data === undefined) {
 								return null
 							}
 
 							const { cx, cy, stroke, index } = props
+
+							if (isAnomaly(props, key)) {
+								return (
+									<svg x={cx - 3} y={cy - 3}>
+										<g transform="translate(3 3)">
+											<circle r="3" fill="#FF0000" />
+										</g>
+									</svg>
+								)
+							}
+
+							if (
+								viewConfig.nullHandling !== 'Hidden' &&
+								viewConfig.nullHandling !== undefined
+							) {
+								return null
+							}
 
 							const hasPrev =
 								index === 0 ||
@@ -183,7 +216,6 @@ export const LineChart = ({
 									data[index + 1][key],
 								)
 
-							// Draw a dot if discontinuous at this point
 							if (hasCur && (!hasPrev || !hasNext)) {
 								return (
 									<svg x={cx - 2} y={cy - 2}>
@@ -200,7 +232,7 @@ export const LineChart = ({
 						const ActiveDot = (props: any) => {
 							const { cx, cy, fill } = props
 
-							if (cy === null) {
+							if (cy === null || isAnomaly(props, key)) {
 								return
 							}
 
