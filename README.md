@@ -50,7 +50,7 @@ git clone --recurse-submodules https://github.com/highlight/highlight
 cd docker && ./run-hobby.sh
 ```
 
-After a brief frontend load time, the app should be accessible at https://localhost
+After a brief frontend load time, the app should be accessible at https://localhost. Use the password set in docker/.env variable `ADMIN_PASSWORD` with any valid email address.
 
 Good for <10k sessions and <50k errors ingested monthly. See our  [docs for more info and limitations](https://www.highlight.io/docs/general/company/open-source/hosting/self-host-hobby).
 
