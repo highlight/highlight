@@ -15,7 +15,7 @@ last 15 minutes service by selecting "Last 15 minutes" from the time picker and 
 event=Click
 ``` 
 
-We also offer form-based assistance to help you discover events and their attributes, as discussed below.
+We also offer autocompletion to help you discover events and their attributes, as discussed below.
 
 
 ## Searching for Events
@@ -59,7 +59,7 @@ suggestions for keys to filter on.
 
 ## Special Events
 
-The Handshake SDK records a few events by default: Click and Navigate events, both of which have some attributes associated with them.
+The Highlight SDK records a few events by default: Click and Navigate events, both of which have some attributes associated with them.
 The event search form helps navigate these attributes with additional inputs, but all can be used directly in the search query.
 
 
