@@ -25,7 +25,7 @@ const LaunchWeekBanner = () => {
 			Launch Week 7 is here.{' '}
 			<a
 				target="_blank"
-				href="https://www.youtube.com/playlist?list=XXXYYYZZZ"
+				href="https://dub.highlight.io/lw7-playlist"
 				rel="noreferrer"
 			>
 				Follow along
