@@ -5,6 +5,12 @@ createdAt: 2024-10-21T12:00:00.000Z
 updatedAt: 2024-10-21T12:00:00.000Z
 ---
 
+<EmbeddedVideo 
+  src="https://www.youtube.com/embed/BFvEFV5DbHI?si=GXZ1FtLYCBBgJq3R"
+  title="Metrics Tutorial: Using Session Events for User Analytics"
+  allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+/>
+
 ## Overview
 
 This tutorial walks you through creating a graph to track unique users who clicked on header links. By following these steps, you'll gain insights into user
