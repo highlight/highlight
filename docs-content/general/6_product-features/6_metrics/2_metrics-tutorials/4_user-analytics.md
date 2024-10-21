@@ -49,6 +49,7 @@ The resulting graph will show a count of all the emails (representing users) acr
 ### 6. Refine Your Metrics
 
 If you’d prefer to track unique sessions instead of unique users, simply modify the `CountDistinct` function to use secure_session_id instead of the user identifier.
+To get more insights into searching events, read our [event search docs](../5_event-search.md).
 
 ### 7. Interpret and Act on the Data
 
