@@ -17,7 +17,7 @@ logger.info('Queried table', {
 
 The log message is `Queried table` and the attributes are `table:users` and `query:hello`.
 
-## Searching for logs
+## Searching for Logs
 
 For general information on searching logs, check out our [Search docs](../../6_product-features/3_general-features/search.md).
 
