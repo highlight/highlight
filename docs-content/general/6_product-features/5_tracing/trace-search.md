@@ -14,7 +14,7 @@ For example, you can get to all spans of traces produced in the last 15 minutes 
 service_name=private-graph
 ```
 
-## Searching for sessions
+## Searching for Traces
 
 For general information on searching traces, check out our [Search docs](../../6_product-features/3_general-features/search.md).
 
