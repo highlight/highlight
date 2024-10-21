@@ -5,9 +5,9 @@ createdAt: 2024-10-21T12:00:00.000Z
 updatedAt: 2024-10-21T12:00:00.000Z
 ---
 
-Event search allows you to create metrics and alerts based on events that occurred within your sessions. Session search allows you to
-find sessions with events, but event search allows you to hone in deeper to the attributes passed in with an event, and get a total
-count of the events, including multiple occurances in a session.  You can filter events using a
+Event search lets you create metrics and alerts based on events within your sessions. While session search helps you find
+sessions containing specific events, event search dives deeper by analyzing the attributes passed with each event and counting
+occurrences, even if they happen multiple times in a session.  You can filter events using a
 [search query](../../6_product-features/3_general-features/search.md). For example, you can get `Click` events produced in the
 last 15 minutes service by selecting "Last 15 minutes" from the time picker and entering the following query:
 
@@ -15,12 +15,12 @@ last 15 minutes service by selecting "Last 15 minutes" from the time picker and 
 event=Click
 ``` 
 
-However, we also offer some assistance in the form to help discover events and their attributes, which will be discussed below. 
+We also offer form-based assistance to help you discover events and their attributes, as discussed below.
 
 
 ## Searching for Events
 
-For general information on searching traces, check out our [Search docs](../../6_product-features/3_general-features/search.md).
+For general information on searching events, check out our [Search docs](../../6_product-features/3_general-features/search.md).
 
 ## Default Key
 
@@ -31,7 +31,7 @@ key for the expression (`event=*Navigate*`).
 
 You can search on any attributes that you send in your events as well as any of the default attributes assigned to a event.
 
-The autoinjected attributes for events can be seen in the table below.
+Below is a table showing the autoinjected attributes for events:
 
 | Attribute                       | Description                                        | Example                                                                                                                                 |
 |---------------------------------|----------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------|
@@ -65,16 +65,15 @@ The event search form helps navigate these attributes with additional inputs, bu
 
 ### Click Events
 
-Click events are recorded whenever the SDK recognizes a mouse down event. This could be on a non-clickable element, such as a Header
-or white space. Click events have 3 main attributes associated with it:
+Click Events are triggered by mouse-down actions, even on non-clickable elements (like headers or white space). Click events have 3 main
+attributes associated with it:
  - `clickTextContent`: The text of the content that was clicked.
  - `clickTarget`: The HTML element that was clicked.
  - `clickSelector`: The full HTML path to the clicked element.
 
  ### Navigate Events
 
-Navigate events are recorded whenever the SDK recognizes a change/request in the URL. This also includes users reloading the page.
-All Navigate event attributes are urls, but the `key` determines the type of Navigate event
+Navigate events are triggered by URL changes, including reloads. Navigate event attributes are URLs, and key types include:
  - `exit_page`: The user ended the session on this url.
  - `landing_page`: The user landed on this url.
  - `reload`: The user reloaded the page on this url.
@@ -84,9 +83,8 @@ All Navigate event attributes are urls, but the `key` determines the type of Nav
 
 ### Digging Deeper into Events
 
-Getting the total number events may be useful, but there is much more you can do with events. If you want to get the number of
-unique sessions, edit the function to `CountDistinct` by `secure_session_id`. If you would like the number of unique users, use
-`CountDistinct` with the `identifier` attribute.
+If you want to get the number of unique sessions, edit the function to CountDistinct by secure_session_id. If you would like the number
+of unique users, use CountDistinct with the identifier attribute.
 
 ### Funnels
 
