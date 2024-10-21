@@ -40,4 +40,10 @@ Read more about the metrics features below:
     <DocsCard title="Creating / editing a graph."  href="./graphing.md">
         {"Create and edit graphs in your dashboards."}
     </DocsCard>
+    <DocsCard title="Drilldown" href="./drilldown.md">
+        {"Take a closer lookat the underlying data."}
+    </DocsCard>
+    <DocsCard title="Search" href="../3_general_features/search.md">
+        {"Make the most of the search capabilities."}
+    </DocsCard>
 </DocsCardGroup>
