@@ -7175,6 +7175,11 @@ func (r *queryResolver) Alerts(ctx context.Context, projectID int) ([]*model.Ale
 	if err := r.DB.Order("created_at asc").Model(&model.Alert{}).Preload("Destinations").Where("project_id = ?", projectID).Find(&alerts).Error; err != nil {
 		return nil, err
 	}
+
+	for _, alert := range alerts {
+		backfillAlertFields(alert)
+	}
+
 	return alerts, nil
 }
 
@@ -7189,6 +7194,8 @@ func (r *queryResolver) Alert(ctx context.Context, id int) (*model.Alert, error)
 	if err != nil {
 		return nil, err
 	}
+
+	backfillAlertFields(alert)
 
 	return alert, nil
 }
