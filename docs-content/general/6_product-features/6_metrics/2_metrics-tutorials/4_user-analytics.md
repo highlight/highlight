@@ -1,16 +1,9 @@
 ---
-title: Event Search
-slug: event-search
+title: User Analytics
+slug: user-analytics
 createdAt: 2024-10-21T12:00:00.000Z
 updatedAt: 2024-10-21T12:00:00.000Z
 ---
-
-
-<!-- <EmbeddedVideo 
-  src="https://www.youtube.com/embed/7BhzaEVqsS4"
-  title="Metrics Tutorial: Measuring User Page Clicks"
-  allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-/> -->
 
 ## Overview
 
