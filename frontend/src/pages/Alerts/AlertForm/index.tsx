@@ -247,7 +247,6 @@ export const AlertForm: React.FC = () => {
 			})
 				.then((response) => {
 					toast.success(`${alertName} created`).then(() => {
-						console.log('reponse', response)
 						redirectToAlert(response?.data?.createAlert?.id)
 					})
 				})
