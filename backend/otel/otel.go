@@ -453,8 +453,7 @@ func (o *Handler) HandleLog(w http.ResponseWriter, r *http.Request) {
 					continue
 				}
 
-				// TODO(vkorolik) spanID
-				_, backendError := getBackendError(ctx, fields.timestamp, fields, traceID, "", pointy.String(logRow.Cursor()))
+				_, backendError := getBackendError(ctx, fields.timestamp, fields, traceID, logRecord.SpanID().String(), pointy.String(logRow.Cursor()))
 				if backendError == nil {
 					lg(ctx, fields).Error("otel span error got no session and no project")
 				} else {
