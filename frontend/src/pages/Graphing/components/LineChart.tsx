@@ -112,14 +112,14 @@ export const LineChart = ({
 					return 0
 				}
 
-				return maxYAxisMin * YAXIS_PADDING_FACTOR
+				return Math.floor(maxYAxisMin * YAXIS_PADDING_FACTOR)
 			},
 			(dataMax: number) => {
 				if (minYAxisMax === undefined || minYAxisMax < dataMax) {
-					return dataMax * YAXIS_PADDING_FACTOR
+					return Math.ceil(dataMax * YAXIS_PADDING_FACTOR)
 				}
 
-				return minYAxisMax * YAXIS_PADDING_FACTOR
+				return Math.ceil(minYAxisMax * YAXIS_PADDING_FACTOR)
 			},
 		] as AxisDomain
 	}, [maxYAxisMin, minYAxisMax])
