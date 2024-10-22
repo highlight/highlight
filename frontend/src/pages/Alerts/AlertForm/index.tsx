@@ -23,6 +23,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom'
 import { SearchContext } from '@/components/Search/SearchContext'
 import { Search } from '@/components/Search/SearchForm/SearchForm'
 import {
+	GetAlertDocument,
 	useCreateAlertMutation,
 	useDeleteAlertMutation,
 	useGetAlertQuery,
@@ -115,14 +116,16 @@ export const AlertForm: React.FC = () => {
 		})
 
 	const [createAlert, createAlertContext] = useCreateAlertMutation({
-		refetchQueries: [
-			namedOperations.Query.GetAlert,
-			namedOperations.Query.GetAlertsPagePayload,
-		],
+		refetchQueries: [namedOperations.Query.GetAlertsPagePayload],
 	})
 	const [updateAlert, updateAlertContext] = useUpdateAlertMutation({
 		refetchQueries: [
-			namedOperations.Query.GetAlert,
+			{
+				query: GetAlertDocument,
+				variables: {
+					id: alert_id!,
+				},
+			},
 			namedOperations.Query.GetAlertsPagePayload,
 		],
 	})
@@ -196,8 +199,9 @@ export const AlertForm: React.FC = () => {
 		setFunctionColumn('')
 	}
 
-	const redirectToAlert = () => {
-		navigate(`/${projectId}/alerts/${alert_id}`)
+	const redirectToAlert = (id?: string) => {
+		const redirectId = id || alert_id
+		navigate(`/${projectId}/alerts/${redirectId}`)
 	}
 
 	const redirectToAlerts = () => {
@@ -241,9 +245,9 @@ export const AlertForm: React.FC = () => {
 					...formVariables,
 				},
 			})
-				.then(() => {
+				.then((response) => {
 					toast.success(`${alertName} created`).then(() => {
-						redirectToAlert()
+						redirectToAlert(response?.data?.createAlert?.id)
 					})
 				})
 				.catch(() => {
@@ -396,7 +400,11 @@ export const AlertForm: React.FC = () => {
 							<Button
 								emphasis="low"
 								kind="secondary"
-								onClick={redirectToAlert}
+								onClick={() =>
+									alert_id
+										? redirectToAlert()
+										: redirectToAlerts()
+								}
 								trackingId="AlertCancel"
 							>
 								Cancel

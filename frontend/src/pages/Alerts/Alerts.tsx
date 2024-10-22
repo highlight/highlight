@@ -479,7 +479,6 @@ const AlertRow = ({
 	const alertLink = getAlertLink(record)
 
 	const naviageToEditAlert = (e: React.MouseEvent<HTMLButtonElement>) => {
-		e.stopPropagation()
 		e.preventDefault()
 
 		const editAlertLink = getEditAlertLink(record)
