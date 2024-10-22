@@ -69,7 +69,6 @@ let onHighlightReadyQueue: {
 }[] = []
 let onHighlightReadyTimeout: number | undefined = undefined
 
-let sessionSecureID: string
 let highlight_obj: Highlight
 let first_load_listeners: FirstLoadListeners
 let init_called = false
@@ -104,18 +103,14 @@ const H: HighlightPublicInterface = {
 			}
 
 			let previousSession = getPreviousSessionData()
-			sessionSecureID = GenerateSecureID()
+			let sessionSecureID = GenerateSecureID()
 			if (previousSession?.sessionSecureID) {
 				sessionSecureID = previousSession.sessionSecureID
 			}
 
 			// `init` was already called, do not reinitialize
 			if (init_called) {
-				return {
-					sessionSecureID:
-						highlight_obj?.sessionData?.sessionSecureID ??
-						sessionSecureID,
-				}
+				return { sessionSecureID }
 			}
 			init_called = true
 
@@ -164,7 +159,7 @@ const H: HighlightPublicInterface = {
 				firstloadVersion,
 				environment: options?.environment || 'production',
 				appVersion: options?.version,
-				sessionSecureID: sessionSecureID,
+				sessionSecureID,
 			}
 			first_load_listeners = new FirstLoadListeners(client_options)
 			if (!options?.manualStart) {
@@ -187,11 +182,7 @@ const H: HighlightPublicInterface = {
 				setupAmplitudeIntegration(options.integrations.amplitude)
 			}
 
-			return {
-				sessionSecureID:
-					highlight_obj?.sessionData?.sessionSecureID ??
-					sessionSecureID,
-			}
+			return { sessionSecureID }
 		} catch (e) {
 			HighlightWarning('init', e)
 		}
