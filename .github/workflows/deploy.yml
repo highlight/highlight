@@ -476,7 +476,7 @@ jobs:
               with:
                   task-definition: deploy/predictions-task.json
                   container-name: highlight-predictions
-                  image: ${{ steps.login-ecr.outputs.registry }}/highlight-production-ecr-repo:${{ github.sha }}.arm64
+                  image: ${{ steps.login-ecr.outputs.registry }}/highlight-predictions:${{ github.sha }}.arm64
             - name: Deploy to Amazon ECS private-graph service
               uses: aws-actions/amazon-ecs-deploy-task-definition@v1
               with:
