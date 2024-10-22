@@ -2,4 +2,4 @@
 'highlight.run': patch
 ---
 
-fix getSession\* methods using stale session ID
+fix `H.getSession*` methods using stale session ID

@@ -459,38 +459,59 @@ const H: HighlightPublicInterface = {
 			)
 		}
 	},
-	getSessionURL: async () => {
-		const data = getPreviousSessionData(sessionSecureID)
-		if (data) {
-			return `https://${HIGHLIGHT_URL}/${data.projectID}/sessions/${sessionSecureID}`
-		} else {
-			throw new Error(`Unable to get session URL: ${sessionSecureID}}`)
-		}
-	},
-	getSessionDetails: async () => {
-		const baseUrl = await H.getSessionURL()
-		const sessionData = getPreviousSessionData(sessionSecureID)
-		if (!baseUrl) {
-			throw new Error('Could not get session URL')
-		}
-		const currentSessionTimestamp = sessionData?.sessionStartTime
-		if (!currentSessionTimestamp) {
-			throw new Error('Could not get session start timestamp')
-		}
-		const now = new Date().getTime()
-		const url = new URL(baseUrl)
-		const urlWithTimestamp = new URL(baseUrl)
-		urlWithTimestamp.searchParams.set(
-			'ts',
-			// The delta between when the session recording started and now.
-			((now - currentSessionTimestamp) / 1000).toString(),
-		)
+	getSessionURL: () => {
+		return new Promise((resolve, reject) => {
+			H.onHighlightReady(() => {
+				const secureID = highlight_obj.sessionData.sessionSecureID
+				const data = getPreviousSessionData(secureID)
 
-		return {
-			url: url.toString(),
-			urlWithTimestamp: urlWithTimestamp.toString(),
-			sessionSecureID,
-		} as SessionDetails
+				if (data) {
+					resolve(
+						`https://${HIGHLIGHT_URL}/${data.projectID}/sessions/${secureID}`,
+					)
+				} else {
+					reject(new Error(`Unable to get session URL: ${secureID}`))
+				}
+			})
+		})
+	},
+	getSessionDetails: () => {
+		return new Promise((resolve, reject) => {
+			H.onHighlightReady(async () => {
+				try {
+					const baseUrl = await H.getSessionURL()
+					if (!baseUrl) {
+						throw new Error('Could not get session URL')
+					}
+
+					const secureID =
+						highlight_obj?.sessionData?.sessionSecureID ??
+						sessionSecureID
+					const sessionData = getPreviousSessionData(secureID)
+					const currentSessionTimestamp =
+						sessionData?.sessionStartTime
+					if (!currentSessionTimestamp) {
+						throw new Error('Could not get session start timestamp')
+					}
+
+					const now = new Date().getTime()
+					const url = new URL(baseUrl)
+					const urlWithTimestamp = new URL(baseUrl)
+					urlWithTimestamp.searchParams.set(
+						'ts',
+						((now - currentSessionTimestamp) / 1000).toString(),
+					)
+
+					resolve({
+						url: url.toString(),
+						urlWithTimestamp: urlWithTimestamp.toString(),
+						sessionSecureID: secureID,
+					} as SessionDetails)
+				} catch (error) {
+					reject(error)
+				}
+			})
+		})
 	},
 	getRecordingState: () => {
 		return highlight_obj?.state ?? 'NotRecording'
