@@ -18,8 +18,8 @@ import { Helmet } from 'react-helmet'
 
 import { Button } from '@components/Button'
 import { toast } from '@/components/Toaster'
-import { namedOperations } from '@/graph/generated/operations'
 import {
+	GetAlertDocument,
 	useGetAlertQuery,
 	useGetAlertingAlertStateChangesLazyQuery,
 	useGetLastAlertStateChangesLazyQuery,
@@ -130,7 +130,14 @@ export const AlertPage: React.FC = () => {
 
 		setUpdateLoading(true)
 		await updateAlertDisabled({
-			refetchQueries: [namedOperations.Query.GetAlert],
+			refetchQueries: [
+				{
+					query: GetAlertDocument,
+					variables: {
+						id: alert_id!,
+					},
+				},
+			],
 			variables: {
 				alert_id: alert_id!,
 				project_id: projectId,
