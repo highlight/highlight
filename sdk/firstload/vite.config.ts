@@ -1,10 +1,10 @@
 // vite.config.ts
-import { resolve as resolvePath } from 'path'
-import { defineConfig } from 'vite'
-import typescript from '@rollup/plugin-typescript'
-import resolve from '@rollup/plugin-node-resolve'
 import commonjs from '@rollup/plugin-commonjs'
 import json from '@rollup/plugin-json'
+import resolve from '@rollup/plugin-node-resolve'
+import typescript from '@rollup/plugin-typescript'
+import { resolve as resolvePath } from 'path'
+import { defineConfig } from 'vite'
 
 export default defineConfig({
 	envPrefix: ['REACT_APP_'],
@@ -44,6 +44,7 @@ export default defineConfig({
 			output: {
 				exports: 'named',
 			},
+			cache: false,
 		},
 	},
 })

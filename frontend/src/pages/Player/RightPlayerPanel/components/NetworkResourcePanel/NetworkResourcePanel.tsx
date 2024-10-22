@@ -22,6 +22,7 @@ import moment from 'moment'
 import React, { useCallback, useEffect, useMemo, useState } from 'react'
 import { useHotkeys } from 'react-hotkeys-hook'
 
+import { TIME_FORMAT } from '@/components/Search/SearchForm/constants'
 import { useActiveNetworkResourceId } from '@/hooks/useActiveNetworkResourceId'
 import { useProjectId } from '@/hooks/useProjectId'
 import { NetworkResourceErrors } from '@/pages/Player/RightPlayerPanel/components/NetworkResourcePanel/NetworkResourceErrors'
@@ -180,8 +181,8 @@ function NetworkResourceDetails({
 	const timestamp = useMemo(() => {
 		// startTime used in highlight.run <8.8.0 for websocket events and <7.5.4 for requests
 		return resource.startTimeAbs
-			? resource.startTimeAbs - startTime
-			: new Date(resource.startTime).getTime()
+			? resource.startTimeAbs
+			: startTime + resource.startTime
 	}, [resource.startTime, resource.startTimeAbs, startTime])
 
 	useHotkeys(
@@ -272,7 +273,7 @@ function NetworkResourceDetails({
 								? moment(resource.timestamp).format('h:mm:ss A')
 								: MillisToMinutesAndSeconds(
 										resource.relativeStartTime,
-								  )
+									)
 						}
 						size="medium"
 						shape="basic"
@@ -307,10 +308,18 @@ function NetworkResourceDetails({
 			>
 				<Tabs.List px="8" gap="12">
 					<Tabs.Tab id={NetworkRequestTabs.Info}>Info</Tabs.Tab>
-					<Tabs.Tab id={NetworkRequestTabs.Errors}>Errors</Tabs.Tab>
-					<Tabs.Tab id={NetworkRequestTabs.Logs}>Logs</Tabs.Tab>
 					{isNetworkRequest && (
-						<Tabs.Tab id={NetworkRequestTabs.Trace}>Trace</Tabs.Tab>
+						<>
+							<Tabs.Tab id={NetworkRequestTabs.Errors}>
+								Errors
+							</Tabs.Tab>
+							<Tabs.Tab id={NetworkRequestTabs.Logs}>
+								Logs
+							</Tabs.Tab>
+							<Tabs.Tab id={NetworkRequestTabs.Trace}>
+								Trace
+							</Tabs.Tab>
+						</>
 					)}
 				</Tabs.List>
 				<Tabs.Panel id={NetworkRequestTabs.Info} scrollable>
@@ -336,6 +345,7 @@ function NetworkResourceDetails({
 							projectId={projectId}
 							traceId={traceId}
 							secureSessionId={session?.secure_id}
+							timestamp={moment(timestamp).format(TIME_FORMAT)}
 						>
 							<NetworkResourceTrace />
 						</TraceProvider>
@@ -503,7 +513,7 @@ function WebSocketDetails({
 								? moment(resource.timestamp).format('h:mm:ss A')
 								: MillisToMinutesAndSeconds(
 										resource.relativeStartTime,
-								  )
+									)
 						}
 						size="medium"
 						shape="basic"

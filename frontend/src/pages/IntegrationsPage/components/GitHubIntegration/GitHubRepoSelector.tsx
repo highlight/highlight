@@ -7,7 +7,7 @@ import { ContainerSelectionProps } from '@pages/IntegrationsPage/IssueTrackerInt
 import useLocalStorage from '@rehooks/local-storage'
 import { useEffect, useMemo } from 'react'
 
-import { OptionDropdown } from '@/pages/Graphing/GraphingEditor'
+import { OptionDropdown } from '@/pages/Graphing/OptionDropdown'
 
 const GitHubRepoSelector: React.FC<ContainerSelectionProps> = ({
 	setSelectionId,
@@ -20,7 +20,7 @@ const GitHubRepoSelector: React.FC<ContainerSelectionProps> = ({
 			data?.github_repos?.map((repo) => ({
 				value: repo.name,
 				id: repo.name,
-				displayValue: repo.name,
+				name: repo.name,
 			})) || []
 		)
 	}, [data])
@@ -50,8 +50,7 @@ const GitHubRepoSelector: React.FC<ContainerSelectionProps> = ({
 	return (
 		<Form.NamedSection label="Repository" name="githubRepo">
 			<OptionDropdown
-				options={githubReposOptions.map((o) => o.id)}
-				labels={githubReposOptions.map((o) => o.displayValue)}
+				options={githubReposOptions}
 				selection={selectedGitHubRepoId}
 				setSelection={setGitHubRepoId}
 				disabled={disabled}

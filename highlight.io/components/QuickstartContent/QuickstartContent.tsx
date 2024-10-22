@@ -28,6 +28,7 @@ import { RubyRailsContent } from './backend/ruby/rails'
 import { RustActixContent } from './backend/rust/actix'
 import { RustOtherContent } from './backend/rust/other'
 import { AngularContent } from './frontend/angular'
+import { ElectronContext } from './frontend/electron'
 import { GatsbyContent } from './frontend/gatsby'
 import { NextContent } from './frontend/next'
 import { OtherContext } from './frontend/other'
@@ -41,6 +42,7 @@ import { FluentForwardContent } from './logging/fluentd'
 import { GoFiberLogContent } from './logging/go/fiber'
 import { GoOtherLogContent } from './logging/go/other'
 import { HostingFlyIOLogContent } from './logging/hosting/fly-io'
+import { HostingHerokuLogContent } from './logging/hosting/heroku'
 import { HostingRenderLogContent } from './logging/hosting/render'
 import { HostingVercelLogContent } from './logging/hosting/vercel'
 import { HTTPContent } from './logging/http'
@@ -62,7 +64,8 @@ import { SyslogContent } from './logging/syslog'
 import { SystemdContent } from './logging/systemd'
 import { DevDeploymentContent } from './self-host/dev-deploy'
 import { SelfHostContent } from './self-host/self-host'
-import { DotNetOTLPTracingContent } from './traces/dot-net'
+import { DotNetOTLPTracingContent } from './traces/dotnet/dot-net'
+import { DotNet4OTLPTracingContent } from './traces/dotnet/dot-net-4'
 import { GoTracesContent } from './traces/go/go'
 import { GormTracesContent } from './traces/go/gorm'
 import { JSManualTracesContent } from './traces/node-js/manual'
@@ -78,9 +81,10 @@ import { PythonGCPTracesContent } from './traces/python/gcp'
 import { PythonManualTracesContent } from './traces/python/manual'
 import { PythonAITracesContent } from './traces/python/python-ai'
 import { PythonLibrariesTracesContent } from './traces/python/python-libraries'
+import { RubyRailsTracesContent } from './traces/ruby/rails'
+import { RubyOtherTracesContent } from './traces/ruby/other'
 import { RustTracesContent } from './traces/rust'
-import { HostingHerokuLogContent } from './logging/hosting/heroku'
-import { DotNet4OTLPTracingContent } from './traces/dot-net-4'
+import { AWSLambdaContent } from './traces/serverless/lambda'
 
 export type QuickStartOptions = {
 	title: string
@@ -115,6 +119,8 @@ export type QuickStartStep = {
 
 export enum QuickStartType {
 	Angular = 'angular',
+	AWSLambda = 'aws-lambda',
+	Electron = 'electron',
 	React = 'react',
 	Remix = 'remix',
 	SvelteKit = 'svelte-kit',
@@ -192,6 +198,7 @@ export const quickStartContent = {
 			[QuickStartType.Vue]: VueContent,
 			[QuickStartType.SvelteKit]: SvelteKitContent,
 			[QuickStartType.Gatsby]: GatsbyContent,
+			[QuickStartType.Electron]: ElectronContext,
 			[QuickStartType.Other]: OtherContext,
 		},
 	},
@@ -444,6 +451,19 @@ export const quickStartContent = {
 			logoUrl: siteUrl('/images/quickstart/rust.svg'),
 			[QuickStartType.RustOther]: RustTracesContent,
 			[QuickStartType.RustActix]: RustTracesContent,
+		},
+		serverless: {
+			title: 'Serverless',
+			subtitle: 'Install tracing in your Serverless application.',
+			logoUrl: siteUrl('/images/quickstart/serverless.svg'),
+			[QuickStartType.AWSLambda]: AWSLambdaContent,
+		},
+		ruby: {
+			title: 'Ruby',
+			subtitle: 'Install tracing in your Ruby application.',
+			logoUrl: siteUrl('/images/quickstart/ruby.svg'),
+			[QuickStartType.RubyRails]: RubyRailsTracesContent,
+			[QuickStartType.RubyOther]: RubyOtherTracesContent,
 		},
 	},
 	other: {

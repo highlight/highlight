@@ -7,7 +7,7 @@ import { styledVerticalScrollbar } from '@/style/common.css'
 
 export const container = style({
 	position: 'relative',
-	zIndex: 1,
+	zIndex: 10,
 
 	selectors: {
 		'&:after': {
@@ -41,12 +41,11 @@ export const combobox = style([
 	sprinkles({
 		p: '6',
 	}),
-	typographyStyles.family.monospace,
-	typographyStyles.size.small,
 	{
 		background: 'transparent',
 		border: 0,
 		caretColor: vars.theme.static.content.default,
+		color: vars.theme.static.content.default,
 		display: 'flex',
 		fontFeatureSettings: '"tnum" off', // disable tabular numbers
 		fontWeight: '500 !important',

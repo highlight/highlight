@@ -2,11 +2,13 @@ package graph
 
 import (
 	"context"
+	"github.com/highlight-run/highlight/backend/email"
 	"github.com/highlight-run/highlight/backend/env"
 	"os"
 	"strconv"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/highlight-run/highlight/backend/clickhouse"
 	"github.com/highlight-run/highlight/backend/integrations"
@@ -35,6 +37,7 @@ import (
 )
 
 var DB *gorm.DB
+var Store *store.Store
 
 // Gets run once; M.run() calls the tests in this file.
 func TestMain(m *testing.M) {
@@ -42,7 +45,8 @@ func TestMain(m *testing.M) {
 	testLogger := log.WithContext(context.TODO())
 	var err error
 	DB, err = util.CreateAndMigrateTestDB(dbName)
-	SetupAuthClient(context.Background(), Simple, nil, nil)
+	Store = store.NewStore(DB, redis.NewClient(), integrations.NewIntegrationsClient(DB), &storage.FilesystemClient{}, &kafka_queue.MockMessageQueue{}, nil)
+	SetupAuthClient(context.Background(), Store, Simple, nil, nil)
 	if err != nil {
 		testLogger.Error(e.Wrap(err, "error creating testdb"))
 	}
@@ -555,7 +559,7 @@ func TestResolver_canAdminViewSession(t *testing.T) {
 			if err := redisClient.Cache.Delete(ctx, "session-secure-abc123"); err != nil {
 				t.Fatal(err)
 			}
-			r := &queryResolver{Resolver: &Resolver{DB: DB, Store: store.NewStore(DB, redisClient, integrations.NewIntegrationsClient(DB), &storage.FilesystemClient{}, &kafka_queue.MockMessageQueue{}, nil)}}
+			r := &queryResolver{Resolver: &Resolver{DB: DB, Store: Store}}
 
 			w := model.Workspace{}
 			if err := DB.Create(&w).Error; err != nil {
@@ -1073,5 +1077,129 @@ func TestAdminEmailAddresses(t *testing.T) {
 			assert.Equal(t, addrs[0].AdminID, 3)
 			assert.Equal(t, addrs[0].Email, "admin2@example.com")
 		}
+	})
+}
+
+func TestUpdateSessionIsPublic(t *testing.T) {
+	util.RunTestWithDBWipe(t, DB, func(t *testing.T) {
+		admin := model.Admin{UID: ptr.String("a1b2c3")}
+		if err := DB.Create(&admin).Error; err != nil {
+			t.Fatal(e.Wrap(err, "error inserting admin"))
+		}
+
+		workspace := model.Workspace{
+			Name: ptr.String("test1"),
+		}
+		if err := DB.Create(&workspace).Error; err != nil {
+			t.Fatal(e.Wrap(err, "error inserting workspace"))
+		}
+
+		if err := DB.Create(&model.WorkspaceAdmin{
+			WorkspaceID: workspace.ID, AdminID: admin.ID,
+		}).Error; err != nil {
+			t.Fatal(e.Wrap(err, "error inserting workspace"))
+		}
+
+		settings := model.AllWorkspaceSettings{
+			WorkspaceID:           workspace.ID,
+			EnableUnlistedSharing: true,
+		}
+		if err := DB.Create(&settings).Error; err != nil {
+			t.Fatal(e.Wrap(err, "error inserting workspace settings"))
+		}
+
+		project := model.Project{
+			Name:        ptr.String("p1"),
+			WorkspaceID: workspace.ID,
+		}
+		if err := DB.Create(&project).Error; err != nil {
+			t.Fatal(e.Wrap(err, "error inserting project"))
+		}
+
+		session := model.Session{ProjectID: project.ID, SecureID: "abc123"}
+		if err := DB.Create(&session).Error; err != nil {
+			t.Fatal(e.Wrap(err, "error inserting sessions"))
+		}
+		assert.False(t, session.IsPublic)
+
+		// test logic
+		ctx := context.Background()
+		ctx = context.WithValue(ctx, model.ContextKeys.UID, *admin.UID)
+		assert.NoError(t, redis.NewClient().FlushDB(ctx))
+
+		r := &mutationResolver{Resolver: &Resolver{DB: DB, Store: Store}}
+		_ = r.Store.Redis.FlushDB(ctx)
+
+		s, err := r.UpdateSessionIsPublic(ctx, session.SecureID, true)
+		assert.NoError(t, err)
+		assert.True(t, s.IsPublic)
+
+		if err := DB.Model(&model.Session{}).Where(&model.Session{SecureID: "abc123"}).Take(&session).Error; err != nil {
+			t.Fatal(e.Wrap(err, "error reading sessions"))
+		}
+		assert.True(t, session.IsPublic)
+
+		s, err = r.UpdateSessionIsPublic(ctx, session.SecureID, false)
+		assert.NoError(t, err)
+		assert.False(t, s.IsPublic)
+
+		if err := DB.Model(&model.Session{}).Where(&model.Session{SecureID: "abc123"}).Take(&session).Error; err != nil {
+			t.Fatal(e.Wrap(err, "error reading sessions"))
+		}
+		assert.False(t, session.IsPublic)
+	})
+}
+
+// ensure that invite link email is checked case-insensitively with admin email
+func TestQueryResolver_updateBillingDetails(t *testing.T) {
+	util.RunTestWithDBWipe(t, DB, func(t *testing.T) {
+		start := time.Now().AddDate(0, 0, 1)
+		end := start.AddDate(0, 1, 0)
+		workspace := model.Workspace{
+			Name:               ptr.String("test1"),
+			BillingPeriodStart: &start,
+			BillingPeriodEnd:   &end,
+			NextInvoiceDate:    &end,
+		}
+		if err := DB.Create(&workspace).Error; err != nil {
+			t.Fatal(e.Wrap(err, "error inserting workspace"))
+		}
+
+		hs := model.BillingEmailHistory{
+			Active: true, WorkspaceID: workspace.ID,
+			Type: email.BillingTracesUsage80Percent,
+		}
+		if err := DB.Create(&hs).Error; err != nil {
+			t.Fatal(e.Wrap(err, "error inserting BillingEmailHistory"))
+		}
+
+		hs2 := model.BillingEmailHistory{
+			Active: true, WorkspaceID: workspace.ID,
+			Type: email.BillingSessionOverage,
+		}
+		if err := DB.Create(&hs2).Error; err != nil {
+			t.Fatal(e.Wrap(err, "error inserting BillingEmailHistory"))
+		}
+
+		// test logic
+		ctx := context.Background()
+		r := &queryResolver{Resolver: &Resolver{DB: DB, Redis: redis.NewClient()}}
+
+		err := r.updateBillingDetails(ctx, workspace.ID, &planDetails{
+			modelInputs.PlanTypeEnterprise, true, &start, &end, &end,
+		})
+		assert.NoError(t, err)
+
+		hs = model.BillingEmailHistory{}
+		if err := DB.Model(&model.BillingEmailHistory{}).Where(&model.BillingEmailHistory{Type: email.BillingTracesUsage80Percent}).Take(&hs).Error; err != nil {
+			t.Fatal(e.Wrap(err, "error querying BillingEmailHistory"))
+		}
+		assert.False(t, hs.Active)
+
+		hs = model.BillingEmailHistory{}
+		if err := DB.Model(&model.BillingEmailHistory{}).Where(&model.BillingEmailHistory{Type: email.BillingSessionOverage}).Take(&hs).Error; err != nil {
+			t.Fatal(e.Wrap(err, "error querying BillingEmailHistory"))
+		}
+		assert.True(t, hs.Active)
 	})
 }

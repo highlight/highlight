@@ -20,7 +20,7 @@ describe('client recording spec', () => {
 			cy.wait('@PushPayloadCompressed')
 				.its('request.body.variables')
 				.should('have.property', 'data')
-				.then((data) => {
+				.then(async (data) => {
 					const { resources } = decompressPushPayload(data)
 					const parsedResources = JSON.parse(resources).resources
 					const firstResourceKeys = Object.keys(
@@ -49,17 +49,41 @@ describe('client recording spec', () => {
 						'workerStartAbs',
 					])
 
+					const baseUrl = Cypress.config('baseUrl')
+					win.eval(`fetch(new URL('${baseUrl}/index.html'))`)
 					win.eval(
-						`fetch(new URL('https://localhost:3000/index.html'))`,
+						`fetch(new URL('${baseUrl}/index.html'), {method: 'POST'})`,
 					)
-					win.eval(
-						`fetch(new URL('https://localhost:3000/index.html'), {method: 'POST'})`,
-					)
-					win.eval(`fetch('https://localhost:3000/index.html')`)
-					win.eval(
-						`fetch('https://localhost:3000/index.html', {method: 'POST'})`,
-					)
+					win.eval(`fetch('${baseUrl}/index.html')`)
+					win.eval(`fetch('${baseUrl}/index.html', {method: 'POST'})`)
 					win.eval(`H.track('MyTrackEvent', {'foo': 'bar'})`)
+
+					const result = await win.eval(`H.getSessionURL()`)
+					console.log('getSessionURL', result)
+
+					const prefix = result.substring(
+						0,
+						result.lastIndexOf('/') + 1,
+					)
+					const session = result.substring(
+						result.lastIndexOf('/') + 1,
+						result.length,
+					)
+
+					expect(prefix).to.eq('https://app.highlight.io/1/sessions/')
+					expect(session).to.not.eq(
+						'https://app.highlight.io/1/sessions/',
+					)
+					expect(session.length).to.eq(28)
+
+					const { url, urlWithTimestamp } = await win.eval(
+						`H.getSessionDetails()`,
+					)
+					const ts = Number(urlWithTimestamp.split('ts=').pop())
+					console.log('getSessionDetails ts', ts)
+					expect(url).to.eq(result)
+					expect(ts).to.greaterThan(0)
+					expect(ts).to.lessThan(5)
 				})
 
 			cy.wait('@PushPayloadCompressed')

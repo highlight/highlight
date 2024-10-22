@@ -107,10 +107,10 @@ const SessionCommentHeader: React.FC<Props> = ({ comment, isReply }) => {
 								? window.open(
 										getAttachmentUrl(existingAttachment),
 										'_blank',
-								  )
+									)
 								: analytics.track(
 										`Create ${integration.name} Issue from Comment`,
-								  )
+									)
 							setShowNewIssueModal(integration)
 						}}
 					>
@@ -140,8 +140,8 @@ const SessionCommentHeader: React.FC<Props> = ({ comment, isReply }) => {
 	const authorName =
 		comment.type === SessionCommentType.Feedback
 			? comment.metadata?.name ||
-			  comment.metadata?.email?.split('@')[0] ||
-			  'Anonymous'
+				comment.metadata?.email?.split('@')[0] ||
+				'Anonymous'
 			: comment.author?.name || comment.author?.email.split('@')[0]
 
 	const timeAgo = moment(comment.created_at).fromNow()

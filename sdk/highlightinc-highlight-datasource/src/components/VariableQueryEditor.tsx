@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
 import { SelectableValue } from '@grafana/data';
 import { InlineField, InlineFieldRow, Input, Select } from '@grafana/ui';
+import React, { useState } from 'react';
 
 import { tableOptions } from '../datasource';
 import { HighlightVariableQuery, Table } from '../types';

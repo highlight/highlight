@@ -1,0 +1,1 @@
+DROP VIEW IF EXISTS event_attributes_new_mv;

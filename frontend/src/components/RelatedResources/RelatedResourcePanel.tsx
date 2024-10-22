@@ -8,6 +8,7 @@ import {
 } from '@/components/RelatedResources/hooks'
 import { LogsPanel } from '@/components/RelatedResources/LogsPanel'
 import { Panel } from '@/components/RelatedResources/Panel'
+import { RelatedResourceList } from '@/components/RelatedResources/RelatedResourceList'
 import { SessionPanel } from '@/components/RelatedResources/SessionPanel'
 import { TracePanel } from '@/components/RelatedResources/TracePanel'
 import { useNumericProjectId } from '@/hooks/useProjectId'
@@ -49,9 +50,15 @@ export const RelatedResourcePanel: React.FC<Props> = ({}) => {
 					projectId={projectId!}
 					traceId={resource.id}
 					spanId={resource.spanID}
+					timestamp={resource.timestamp}
 				>
 					<TracePanel />
 				</TraceProvider>
+			)}
+			{(resource?.type === 'traces' ||
+				resource?.type === 'sessions' ||
+				resource?.type === 'errors') && (
+				<RelatedResourceList resource={resource} />
 			)}
 		</Panel>
 	)

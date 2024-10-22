@@ -1,5 +1,161 @@
 # highlight.run
 
+## 9.5.0
+
+### Minor Changes
+
+-   d94533a: update rrweb to use postcss css parser
+
+## 9.4.4
+
+### Patch Changes
+
+-   f43d3b4: fix full snapshot error when failing to starting rrweb recording
+-   72ec866: fix recording bodies of otel requests
+-   f43d3b4: improve canvas serialization performance and support shadow dom canvases
+-   f43d3b4: fix rrweb replay breaking on invalid inlined css
+
+## 9.4.3
+
+### Patch Changes
+
+-   54557e9: re-release 9.4.2 which included incorrect bundle built from 9.3.4
+
+## 9.4.2
+
+### Patch Changes
+
+-   5213ca3: ensure callback value is returned when not initialized
+
+## 9.4.1
+
+### Patch Changes
+
+-   a95d52b: record pri.highlight.io requests
+-   f432e66: block tracing via x-highlight-request header via urlblocklist
+
+## 9.4.0
+
+### Minor Changes
+
+-   815faa8: fix rrweb postcss replay and live mode
+
+### Patch Changes
+
+-   815faa8: fix live mode breaking due to ischeckout of full snapshot
+
+## 9.3.4
+
+### Patch Changes
+
+-   02f67d0: Fix type error reporting screen orientation
+
+## 9.3.3
+
+### Patch Changes
+
+-   5cc0afd: correctly report clickTextContent as timeline events
+
+## 9.3.2
+
+### Patch Changes
+
+-   be38f68: make client kill switch less likely to trigger by requiring multiple failures
+-   2339697: update opentelemetry dependencies
+-   bbbaeb1: ensure duplicate tab functionality does not break x-highlight-request header
+    corrects issue introduced in 9.3.0 with the x-highlight-request missing the session id
+
+## 9.3.1
+
+### Patch Changes
+
+-   262a07314: revert postcss changes to css parsing in rrweb
+    https://github.com/rrweb-io/rrweb/pull/1458 introduced
+    a new CSS parser which causes issues with certain large CSS files
+
+## 9.3.0
+
+### Minor Changes
+
+-   0a8a9ffdc: add cookie session persistence
+
+### Patch Changes
+
+-   d2e00028a: correctly set x-highlight-request on outgoing fetch/xhr requests with duplicate tab recording.
+    the sessionID in the x-highlight-request would not be set correctly after recent changes
+    corrected the multi-tab behavior to clear the local storage sessionID value to ensure
+    new tabs started unique sessions. corrects bug affecting >=9.1.5
+-   0a8a9ffdc: update otel webjs network span naming
+
+## 9.2.2
+
+### Patch Changes
+
+-   f7fb74a44: add XHR request fallback is sendBeacon fails
+
+## 9.2.1
+
+### Patch Changes
+
+-   0067ea6b5: use trace ID as request ID in network listeners
+
+## 9.2.0
+
+### Minor Changes
+
+-   d67bd4425: stop recording if pushpayload cannot keep up with uploading data
+
+## 9.1.5
+
+### Patch Changes
+
+-   5b0b5a503: update rrweb to ^2.0.0-alpha.17
+    ensure multiple tabs report data to distinct sessions
+
+## 9.1.4
+
+### Patch Changes
+
+-   3e99f48ca: fix otel webjs event monkeypatch breaking mouse event listeners
+
+## 9.1.3
+
+### Patch Changes
+
+-   efdf6b66a: fix highlight.run getSessionUrl only returning session ID
+
+## 9.1.2
+
+### Patch Changes
+
+-   50dba067f: fix otel webjs startSpan crashing when otel code has not loaded
+
+## 9.1.1
+
+### Patch Changes
+
+-   05fbf19aa: report performance resource timings in nanoseconds
+-   24c5b00b6: fix span renaming of GraphQL requests
+
+## 9.1.0
+
+### Minor Changes
+
+-   463e99106: add browser OTEL tracing
+-   8fd0e8f92: add `startSpan` and `startManualSpan` methods
+
+## 9.0.5
+
+### Patch Changes
+
+-   e239b1a02: fix cross-origin iframe recording
+
+## 9.0.4
+
+### Patch Changes
+
+-   0a245b208: default to jpeg canvas recording when webp not supported
+
 ## 9.0.3
 
 ### Patch Changes

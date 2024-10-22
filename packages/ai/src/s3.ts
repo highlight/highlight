@@ -1,8 +1,8 @@
 import { GetObjectCommand, S3Client } from '@aws-sdk/client-s3'
-import { Readable } from 'stream'
 import { NodeHttpHandler } from '@aws-sdk/node-http-handler'
-import zlib from 'zlib'
 import * as https from 'https'
+import { Readable } from 'stream'
+import zlib from 'zlib'
 
 const east_client = new S3Client({
 	region: 'us-east-2',

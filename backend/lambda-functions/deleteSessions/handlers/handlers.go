@@ -3,8 +3,10 @@ package handlers
 import (
 	"context"
 	"fmt"
-	"github.com/highlight-run/highlight/backend/env"
+	"strconv"
 	"time"
+
+	"github.com/highlight-run/highlight/backend/env"
 
 	"github.com/openlyinc/pointy"
 	log "github.com/sirupsen/logrus"
@@ -12,6 +14,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/highlight-run/highlight/backend/clickhouse"
 	"github.com/highlight-run/highlight/backend/email"
+	"github.com/highlight-run/highlight/backend/enterprise"
 	"github.com/highlight-run/highlight/backend/lambda-functions/deleteSessions/utils"
 	"github.com/highlight-run/highlight/backend/model"
 	modelInputs "github.com/highlight-run/highlight/backend/private-graph/graph/model"
@@ -138,7 +141,7 @@ func (h *handlers) GetSessionIdsByQuery(ctx context.Context, event utils.QuerySe
 		batchId := uuid.New().String()
 		toDelete := []model.DeleteSessionsTask{}
 
-		ids, _, _, err := h.clickhouseClient.QuerySessionIds(ctx, nil, event.ProjectId, 10000, event.Params, "CreatedAt DESC, ID DESC", pointy.Int(page), time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC))
+		ids, _, _, _, _, err := h.clickhouseClient.QuerySessionIds(ctx, nil, event.ProjectId, 10000, event.Params, "CreatedAt DESC, ID DESC", pointy.Int(page), time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC))
 		if err != nil {
 			return nil, err
 		}
@@ -214,6 +217,10 @@ func (h *handlers) DeleteSessions(ctx context.Context, projectId int, startDate 
 		return
 	}
 
+	if err := h.storageClient.CleanupRawEvents(ctx, projectId); err != nil {
+		log.WithContext(ctx).Error(err)
+	}
+
 	if len(batches) == 0 {
 		log.WithContext(ctx).Warnf("SessionDeleteJob - no sessions to delete for projectId %d, continuing", projectId)
 		return
@@ -241,7 +248,23 @@ func (h *handlers) DeleteSessions(ctx context.Context, projectId int, startDate 
 	}
 }
 
-func (h *handlers) ProcessRetentionDeletions(ctx context.Context, retentionDays int) {
+func (h *handlers) ProcessRetentionDeletions(ctx context.Context) {
+	retentionEnv := env.Config.SessionRetentionDays
+	if retentionEnv == "" {
+		log.WithContext(ctx).Info("SESSION_RETENTION_DAYS not set, skipping SessionDeleteJob")
+		return
+	}
+	sessionRetentionDays, err := strconv.Atoi(env.Config.SessionRetentionDays)
+	if err != nil {
+		log.WithContext(ctx).Error("Error parsing SESSION_RETENTION_DAYS, skipping SessionDeleteJob")
+		return
+	}
+	if sessionRetentionDays <= 0 {
+		log.WithContext(ctx).Error("sessionRetentionDays <= 0, skipping SessionDeleteJob")
+		return
+	}
+	enterprise.RequireEnterprise(ctx)
+
 	var projectIds []int
 	if err := h.db.Model(&model.Project{}).Select("id").Find(&projectIds).Error; err != nil {
 		log.WithContext(ctx).Error(err)
@@ -249,7 +272,7 @@ func (h *handlers) ProcessRetentionDeletions(ctx context.Context, retentionDays 
 	}
 
 	now := time.Now()
-	endDate := now.AddDate(0, 0, -1*retentionDays)
+	endDate := now.AddDate(0, 0, -1*sessionRetentionDays)
 	startDate := endDate.AddDate(-10, 0, 0)
 
 	for _, id := range projectIds {

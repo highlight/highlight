@@ -16,7 +16,7 @@ export const RubyRailsLogContent: QuickStartContent = {
 				{
 					text: `require "highlight"
 
-Highlight::H.new("<YOUR_PROJECT_ID>", environment: "production") do |c|
+Highlight.init("<YOUR_PROJECT_ID>", environment: "production") do |c|
   c.service_name = "my-rails-app"
   c.service_version = "git-sha"
 end
@@ -24,9 +24,12 @@ end
 # you can replace the Rails.logger with Highlight's
 Rails.logger = Highlight::Logger.new(STDOUT)
 
-# or alternatively extend it to log with both
-highlightLogger = Highlight::Logger.new(nil)
-Rails.logger.extend(ActiveSupport::Logger.broadcast(highlightLogger))`,
+# or broadcast logs to Highlight's logger
+highlight_logger = Highlight::Logger.new(nil)
+Rails.logger.broadcast_to(highlight_logger)
+
+# or if using an older version of Rails, you can extend the logger
+Rails.logger.extend(ActiveSupport::Logger.broadcast(highlight_logger))`,
 					language: 'ruby',
 				},
 			],

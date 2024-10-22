@@ -83,6 +83,7 @@ export const inputVariants = recipe({
 		},
 	},
 	defaultVariants: {
+		size: 'small',
 		outline: true,
 		truncate: false,
 	},
@@ -167,6 +168,7 @@ export const inputNumberButton = style({
 })
 
 export const inputNumberIcon = style({
+	color: vars.theme.static.content.moderate,
 	position: 'absolute',
 	// center the icon vertically and horizontally
 	top: '50%',

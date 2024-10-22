@@ -4,7 +4,7 @@ import { ContainerSelectionProps } from '@pages/IntegrationsPage/IssueTrackerInt
 import useLocalStorage from '@rehooks/local-storage'
 import { useEffect, useMemo } from 'react'
 
-import { OptionDropdown } from '@/pages/Graphing/GraphingEditor'
+import { OptionDropdown } from '@/pages/Graphing/OptionDropdown'
 
 const LinearTeamSelector: React.FC<ContainerSelectionProps> = ({
 	setSelectionId,
@@ -17,7 +17,7 @@ const LinearTeamSelector: React.FC<ContainerSelectionProps> = ({
 			teams?.map((team) => ({
 				value: team.team_id,
 				id: team.team_id,
-				displayValue: `${team.name} (${team.key})`,
+				name: `${team.name} (${team.key})`,
 			})) || []
 		)
 	}, [teams])
@@ -47,8 +47,7 @@ const LinearTeamSelector: React.FC<ContainerSelectionProps> = ({
 	return (
 		<Form.NamedSection label="Team" name="linearTeam">
 			<OptionDropdown
-				options={linearTeamsOptions.map((o) => o.id)}
-				labels={linearTeamsOptions.map((o) => o.displayValue)}
+				options={linearTeamsOptions}
 				selection={selectedLinearTeamId}
 				setSelection={setLinearTeamId}
 				disabled={disabled}

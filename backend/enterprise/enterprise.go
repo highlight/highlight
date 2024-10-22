@@ -31,14 +31,20 @@ import (
 const UpdateInterval = time.Minute
 const UpdateErrorsAbort = 10
 
-func Start(ctx context.Context) error {
+var isEnterprise = false
+
+// Start configures the enterprise service. Returns true for valid enterprise deploys
+func Start(ctx context.Context) (bool, error) {
+	go CheckForUpdatesLoop(context.Background())
+
 	environ, err := GetEnvironment(GetEncryptedEnvironmentFilePath(), GetEncryptedEnvironmentDigestFilePath())
 	if err != nil {
 		log.WithContext(ctx).WithError(err).Info("enterprise service not configured")
 		if env.IsEnterpriseDeploy() {
-			return e.Wrap(err, "highlight enterprise mode configured but failed to start license checker")
+			return false, e.Wrap(err, "highlight enterprise mode configured but failed to start license checker")
 		}
 	} else {
+		isEnterprise = true
 		log.WithContext(ctx).
 			WithField("environment_valid_until", environ.EnterpriseEnvExpiration).
 			Info("welcome to highlight.io enterprise")
@@ -46,11 +52,16 @@ func Start(ctx context.Context) error {
 			environ.CopyTo(&env.Config)
 			log.WithContext(ctx).
 				Info("applied enterprise environment file")
+			return true, nil
 		}
 	}
+	return false, nil
+}
 
-	go CheckForUpdatesLoop(context.Background())
-	return nil
+func RequireEnterprise(ctx context.Context) {
+	if !isEnterprise {
+		log.WithContext(ctx).Fatal("Enterprise license required when none was found.")
+	}
 }
 
 func HasUpdates(client *retryablehttp.Client) (bool, error) {

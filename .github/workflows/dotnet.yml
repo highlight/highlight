@@ -1,0 +1,70 @@
+name: .NET SDK
+
+on:
+    push:
+        branches: ['main']
+    pull_request:
+        types: [opened, synchronize]
+        paths:
+            - 'sdk/highlight-dotnet/**'
+            - 'sdk/highlight-dotnet4/**'
+            - '.github/workflows/dotnet.yml'
+
+concurrency: ${{ github.workflow }}-${{ github.ref }}
+jobs:
+    build-dotnet:
+        name: ASP.NET Core SDK
+        runs-on: ubuntu-latest
+        defaults:
+            run:
+                working-directory: ./sdk/highlight-dotnet
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v4
+              with:
+                  submodules: recursive
+
+            - name: Setup .NET environment
+              uses: actions/setup-dotnet@v4
+              with:
+                  dotnet-version: 8.x
+
+            - name: Build solution and generate NuGet package
+              run: dotnet pack -c Release -o out
+
+            - name: Push generated package to NuGet registry
+              if: github.ref == 'refs/heads/main'
+              run: dotnet nuget push out/*.nupkg --skip-duplicate -k $NUGET_AUTH_TOKEN -s https://api.nuget.org/v3/index.json
+              env:
+                  NUGET_AUTH_TOKEN: ${{ secrets.NUGET_API_KEY }}
+
+    build-dotnet4:
+        name: ASP.NET4 SDK
+        runs-on: windows-latest
+        defaults:
+            run:
+                working-directory: ./sdk/highlight-dotnet4
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v4
+              with:
+                  submodules: recursive
+
+            - name: Setup dotnet
+              uses: actions/setup-dotnet@v4
+              with:
+                  dotnet-version: 8.x
+
+            - name: Setup dotnet
+              uses: microsoft/setup-msbuild@v2
+
+            - name: msbuild restore
+              run: msbuild -t:Restore
+
+            - name: msbuild pack
+              run: msbuild -t:Pack -property:Configuration=Release
+
+            - name: Push generated package to NuGet registry
+              if: github.ref == 'refs/heads/main'
+              run: |
+                  nuget push bin\**\*.nupkg -Source https://api.nuget.org/v3/index.json -ApiKey ${{ secrets.NUGET_API_KEY }} -SymbolApiKey ${{ secrets.NUGET_API_KEY }} -SkipDuplicate

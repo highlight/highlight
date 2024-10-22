@@ -2,8 +2,9 @@ import * as Ariakit from '@ariakit/react'
 import clsx, { ClassValue } from 'clsx'
 import React from 'react'
 
-import { Button as OriginalButton, ButtonProps } from '../Button/Button'
+import { ButtonProps, Button as OriginalButton } from '../Button/Button'
 import { ButtonIcon, Props as ButtonIconProps } from '../ButtonIcon/ButtonIcon'
+import { Text } from '../Text/Text'
 import * as styles from './styles.css'
 
 type Props = React.PropsWithChildren<Partial<Ariakit.MenuProviderProps>>
@@ -84,7 +85,7 @@ const Item: React.FC<Ariakit.MenuItemProps> = ({ children, ...props }) => (
 		className={styles.menuItemVariants({ selected: false })}
 		{...props}
 	>
-		{children}
+		{typeof children === 'string' ? <Text>{children}</Text> : children}
 	</Ariakit.MenuItem>
 )
 

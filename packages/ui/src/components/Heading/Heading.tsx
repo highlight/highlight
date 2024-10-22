@@ -2,7 +2,7 @@ import React from 'react'
 
 import { Sprinkles } from '../../css/sprinkles.css'
 import { Box } from '../Box/Box'
-import { Props as TruncateProps, Truncate } from '../private/Truncate/Truncate'
+import { Truncate, Props as TruncateProps } from '../private/Truncate/Truncate'
 import * as styles from './styles.css'
 
 // `as?: styles.Variants['level']` was producing a type error so pulled this out

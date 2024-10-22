@@ -2,12 +2,13 @@ import clsx from 'clsx'
 import React from 'react'
 
 import { Box, BoxProps } from '../Box/Box'
-import { Props as TruncateProps, Truncate } from '../private/Truncate/Truncate'
+import { Truncate, Props as TruncateProps } from '../private/Truncate/Truncate'
 import * as styles from './styles.css'
 
 export type Props = React.PropsWithChildren &
 	styles.Variants & {
 		as?: BoxProps['as']
+		align?: BoxProps['textAlign']
 		color?: BoxProps['color']
 		decoration?: BoxProps['textDecoration']
 		display?: BoxProps['display']

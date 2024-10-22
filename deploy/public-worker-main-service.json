@@ -44,8 +44,8 @@
 		}
 	],
 	"family": "public-worker-main-service",
-	"taskRoleArn": "arn:aws:iam::173971919437:role/ecsTaskExecutionRole",
-	"executionRoleArn": "arn:aws:iam::173971919437:role/ecsTaskExecutionRole",
+	"taskRoleArn": "arn:aws:iam::173971919437:role/HighlightAppProd",
+	"executionRoleArn": "arn:aws:iam::173971919437:role/HighlightAppProd",
 	"networkMode": "bridge",
 	"revision": 408,
 	"volumes": [],

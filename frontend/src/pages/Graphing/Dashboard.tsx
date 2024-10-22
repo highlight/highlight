@@ -18,12 +18,12 @@ import {
 	Button,
 	DateRangePicker,
 	DEFAULT_TIME_PRESETS,
-	Form,
 	IconSolidChartBar,
 	IconSolidCheveronRight,
+	IconSolidClock,
+	IconSolidCog,
 	IconSolidPlus,
-	IconSolidTemplate,
-	presetStartDate,
+	parsePreset,
 	Stack,
 	Tag,
 	Text,
@@ -50,6 +50,14 @@ import Graph, { getViewConfig } from '@/pages/Graphing/components/Graph'
 import { useParams } from '@/util/react-router/useParams'
 
 import * as style from './Dashboard.css'
+import { DashboardSettingsModal } from '@/pages/Graphing/components/DashboardSettingsModal'
+import { VariablesBar } from '@/pages/Graphing/components/VariablesBar'
+import { useGraphingVariables } from '@/pages/Graphing/hooks/useGraphingVariables'
+import { useRetentionPresets } from '@/components/Search/SearchForm/hooks'
+import { loadFunnelStep } from '@pages/Graphing/util'
+import { GraphContextProvider } from './context/GraphContext'
+import { useGraphData } from '@pages/Graphing/hooks/useGraphData'
+import { useExportGraph } from '@pages/Graphing/hooks/useExportGraph'
 
 export const HeaderDivider = () => <Box cssClass={style.headerDivider} />
 
@@ -65,24 +73,65 @@ export const Dashboard = () => {
 		}),
 	)
 
-	const [editing, setEditing] = useState(false)
-	const [name, setName] = useState('')
+	const [showSettingsModal, setShowSettingsModal] = useState(false)
+
 	const [graphs, setGraphs] =
 		useState<GetVisualizationQuery['visualization']['graphs']>()
+
 	const handleDragEnd = (event: any) => {
 		const { active, over } = event
 
 		if (active.id !== over.id) {
-			setGraphs((graphs) => {
-				if (graphs === undefined) {
-					return undefined
-				}
+			if (graphs === undefined) {
+				return undefined
+			}
 
-				const oldIndex = graphs.findIndex((g) => g.id === active.id)
-				const newIndex = graphs.findIndex((g) => g.id === over.id)
+			const oldIndex = graphs.findIndex((g) => g.id === active.id)
+			const newIndex = graphs.findIndex((g) => g.id === over.id)
 
-				return arrayMove(graphs, oldIndex, newIndex)
+			const newGraphs = arrayMove(graphs, oldIndex, newIndex)
+			setGraphs(newGraphs)
+
+			const graphIds = newGraphs?.map((g) => g.id)
+			upsertViz({
+				variables: {
+					visualization: {
+						projectId,
+						id: dashboard_id,
+						graphIds: graphIds,
+					},
+				},
+				optimisticResponse: {
+					upsertVisualization: dashboard_id!,
+				},
+				update(cache) {
+					const vizId = cache.identify({
+						id: dashboard_id,
+						__typename: 'Visualization',
+					})
+					const graphs = graphIds?.map((gId) => ({
+						__ref: cache.identify({
+							id: gId,
+							__typename: 'Graph',
+						}),
+					}))
+					cache.modify({
+						id: vizId,
+						fields: {
+							name() {
+								return name
+							},
+							graphs() {
+								return graphs
+							},
+						},
+					})
+				},
 			})
+				.then(() => {
+					toast.success('Dashboard updated')
+				})
+				.catch(() => toast.error('Failed to update dashboard'))
 		}
 	}
 
@@ -92,17 +141,25 @@ export const Dashboard = () => {
 	})
 
 	useEffect(() => {
-		if (data !== undefined) {
-			setName(data.visualization.name)
+		if (data) {
 			setGraphs(data.visualization.graphs)
+			const preset = data.visualization.timePreset
+			if (preset) {
+				updateSearchTime(new Date(), new Date(), parsePreset(preset))
+			}
 		}
+		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [data])
+
+	const { values } = useGraphingVariables(dashboard_id!)
 
 	const [upsertViz] = useUpsertVisualizationMutation()
 
+	const { presets, minDate } = useRetentionPresets()
+
 	const { startDate, endDate, selectedPreset, updateSearchTime } =
 		useSearchTime({
-			presets: DEFAULT_TIME_PRESETS,
+			presets: presets,
 			initialPreset: DEFAULT_TIME_PRESETS[2],
 		})
 
@@ -112,6 +169,9 @@ export const Dashboard = () => {
 	const [upsertGraph] = useUpsertGraphMutation()
 	const tempId = useId()
 
+	const graphContext = useGraphData()
+	const { exportGraph } = useExportGraph()
+
 	const noGraphs = graphs?.length === 0
 
 	return (
@@ -119,6 +179,14 @@ export const Dashboard = () => {
 			<Helmet>
 				<title>Dashboard</title>
 			</Helmet>
+			<DashboardSettingsModal
+				showModal={showSettingsModal}
+				onHideModal={() => {
+					setShowSettingsModal(false)
+				}}
+				dashboardId={dashboard_id!}
+				settings={data?.visualization}
+			/>
 			<Box
 				background="n2"
 				padding="8"
@@ -162,160 +230,51 @@ export const Dashboard = () => {
 							<IconSolidCheveronRight
 								color={vars.theme.static.content.weak}
 							/>
-							{editing ? (
-								<Form autoComplete="off">
-									<Form.Input
-										name="name"
-										value={name}
-										onChange={(e) => {
-											setName(e.target.value)
-										}}
-										placeholder="Untitled dashboard"
-									></Form.Input>
-								</Form>
-							) : (
-								<Text
-									size="small"
-									weight="medium"
-									color="default"
-								>
-									{name}
-								</Text>
-							)}
+
+							<Text size="small" weight="medium" color="default">
+								{data?.visualization.name}
+							</Text>
 						</Stack>
 						<Box display="flex" gap="4">
-							{editing ? (
-								<>
-									<Button
-										emphasis="low"
-										kind="secondary"
-										onClick={() => {
-											if (data !== undefined) {
-												setName(
-													data?.visualization.name,
-												)
-												setGraphs(
-													data?.visualization.graphs,
-												)
-											}
-											setEditing(false)
-											toast.success(
-												'Canceled dashboard changes',
-											)
-										}}
-									>
-										Cancel
-									</Button>
-									<Button
-										emphasis="high"
-										kind="primary"
-										onClick={() => {
-											const graphIds = graphs?.map(
-												(g) => g.id,
-											)
-											upsertViz({
-												variables: {
-													visualization: {
-														projectId,
-														id: dashboard_id,
-														name,
-														graphIds: graphIds,
-													},
-												},
-												optimisticResponse: {
-													upsertVisualization:
-														dashboard_id!,
-												},
-												update(cache) {
-													const vizId =
-														cache.identify({
-															id: dashboard_id,
-															__typename:
-																'Visualization',
-														})
-													const graphs =
-														graphIds?.map(
-															(gId) => ({
-																__ref: cache.identify(
-																	{
-																		id: gId,
-																		__typename:
-																			'Graph',
-																	},
-																),
-															}),
-														)
-													cache.modify({
-														id: vizId,
-														fields: {
-															name() {
-																return name
-															},
-															graphs() {
-																return graphs
-															},
-														},
-													})
-												},
-											})
-												.then(() => {
-													toast.success(
-														'Dashboard updated',
-													)
-												})
-												.catch(() =>
-													toast.error(
-														'Failed to update dashboard',
-													),
-												)
-											setEditing(false)
-										}}
-									>
-										Save
-									</Button>
-								</>
-							) : (
-								<>
-									<DateRangePicker
-										emphasis="low"
-										kind="secondary"
-										selectedValue={{
-											startDate,
-											endDate,
-											selectedPreset,
-										}}
-										onDatesChange={updateSearchTime}
-										presets={DEFAULT_TIME_PRESETS}
-										minDate={presetStartDate(
-											DEFAULT_TIME_PRESETS[5],
-										)}
-									/>
-									<HeaderDivider />
-									<Button
-										emphasis="low"
-										kind="secondary"
-										iconLeft={<IconSolidTemplate />}
-										onClick={() => {
-											setEditing(true)
-										}}
-									>
-										Edit dashboard
-									</Button>
-									<Button
-										emphasis="low"
-										kind="secondary"
-										iconLeft={<IconSolidPlus />}
-										onClick={() => {
-											navigate({
-												pathname: 'new',
-												search: location.search,
-											})
-										}}
-									>
-										Add graph
-									</Button>
-								</>
-							)}
+							<>
+								<DateRangePicker
+									emphasis="medium"
+									kind="secondary"
+									iconLeft={<IconSolidClock size={14} />}
+									selectedValue={{
+										startDate,
+										endDate,
+										selectedPreset,
+									}}
+									onDatesChange={updateSearchTime}
+									presets={presets}
+									minDate={minDate}
+								/>
+								<HeaderDivider />
+								<Button
+									emphasis="medium"
+									kind="secondary"
+									iconLeft={<IconSolidCog size={14} />}
+									onClick={() => {
+										setShowSettingsModal(true)
+									}}
+								>
+									Settings
+								</Button>
+								<Button
+									emphasis="medium"
+									kind="secondary"
+									iconLeft={<IconSolidPlus size={14} />}
+									onClick={() => {
+										navigate({
+											pathname: 'new',
+											search: location.search,
+										})
+									}}
+								>
+									Add graph
+								</Button>
+							</>
 						</Box>
 					</Box>
 					{noGraphs ? (
@@ -323,92 +282,36 @@ export const Dashboard = () => {
 					) : (
 						<Box
 							display="flex"
-							flexDirection="row"
+							flexDirection="column"
 							justifyContent="space-between"
 							height="full"
 							cssClass={style.dashboardContent}
 						>
+							<VariablesBar dashboardId={dashboard_id!} />
 							<Box
 								display="flex"
 								position="relative"
 								width="full"
 								height="full"
 							>
-								<Box
-									cssClass={clsx(style.graphGrid, {
-										[style.gridEditing]: editing,
-									})}
-								>
-									<DndContext
-										sensors={sensors}
-										collisionDetection={closestCenter}
-										onDragEnd={handleDragEnd}
-									>
-										<SortableContext
-											items={graphs ?? []}
-											strategy={rectSortingStrategy}
-											disabled={!editing}
+								<Box cssClass={clsx(style.graphGrid)}>
+									<GraphContextProvider value={graphContext}>
+										<DndContext
+											sensors={sensors}
+											collisionDetection={closestCenter}
+											onDragEnd={handleDragEnd}
 										>
-											{graphs?.map((g) => {
-												const isTemp =
-													g.id.startsWith('temp-')
-												return (
-													<DashboardCard
-														id={g.id}
-														key={g.id}
-														editing={editing}
-													>
-														<Graph
-															title={g.title}
-															viewConfig={getViewConfig(
-																g.type,
-																g.display ??
-																	undefined,
-																g.nullHandling ??
-																	undefined,
-															)}
-															productType={
-																g.productType
-															}
-															projectId={
-																projectId
-															}
-															selectedPreset={
-																selectedPreset
-															}
-															startDate={
-																startDate
-															}
-															endDate={endDate}
-															query={g.query}
-															metric={g.metric}
-															functionType={
-																g.functionType
-															}
-															bucketByKey={
-																g.bucketByKey ??
-																undefined
-															}
-															bucketCount={
-																g.bucketCount ??
-																undefined
-															}
-															groupByKey={
-																g.groupByKey ??
-																undefined
-															}
-															limit={
-																g.limit ??
-																undefined
-															}
-															limitFunctionType={
-																g.limitFunctionType ??
-																undefined
-															}
-															limitMetric={
-																g.limitMetric ??
-																undefined
-															}
+											<SortableContext
+												items={graphs ?? []}
+												strategy={rectSortingStrategy}
+											>
+												{graphs?.map((g) => {
+													const isTemp =
+														g.id.startsWith('temp-')
+													return (
+														<DashboardCard
+															id={g.id}
+															key={g.id}
 															onClone={
 																isTemp
 																	? undefined
@@ -423,17 +326,21 @@ export const Dashboard = () => {
 																						g.bucketByKey,
 																					bucketCount:
 																						g.bucketCount,
+																					bucketInterval:
+																						g.bucketInterval,
 																					display:
 																						g.display,
 																					functionType:
 																						g.functionType,
-																					groupByKey:
-																						g.groupByKey,
+																					groupByKeys:
+																						g.groupByKeys,
 																					limit: g.limit,
 																					limitFunctionType:
 																						g.limitFunctionType,
 																					limitMetric:
 																						g.limitMetric,
+																					funnelSteps:
+																						g.funnelSteps,
 																					metric: g.metric,
 																					nullHandling:
 																						g.nullHandling,
@@ -496,12 +403,12 @@ export const Dashboard = () => {
 																								id: vizId,
 																								fields: {
 																									graphs(
-																										existing: any[] = [],
+																										existing = [],
 																									) {
 																										const idx =
 																											existing.findIndex(
 																												(
-																													e,
+																													e: any,
 																												) =>
 																													e.__ref ===
 																													afterGraphId,
@@ -539,7 +446,7 @@ export const Dashboard = () => {
 																						)
 																					},
 																				)
-																	  }
+																		}
 															}
 															onDelete={
 																isTemp
@@ -580,7 +487,7 @@ export const Dashboard = () => {
 																								id: vizId,
 																								fields: {
 																									graphs(
-																										existing: any[] = [],
+																										existing = [],
 																									) {
 																										const filtered =
 																											existing.filter(
@@ -610,7 +517,7 @@ export const Dashboard = () => {
 																							'Failed to delete metric view',
 																						),
 																				)
-																	  }
+																		}
 															}
 															onExpand={
 																isTemp
@@ -622,7 +529,7 @@ export const Dashboard = () => {
 																					search: location.search,
 																				},
 																			)
-																	  }
+																		}
 															}
 															onEdit={
 																isTemp
@@ -634,18 +541,99 @@ export const Dashboard = () => {
 																					search: location.search,
 																				},
 																			)
-																	  }
+																		}
 															}
-															disabled={editing}
-															setTimeRange={
-																updateSearchTime
+															onDownload={() =>
+																exportGraph(
+																	g.id,
+																	g.title,
+																	graphContext
+																		.graphData[
+																		g.id
+																	],
+																)
 															}
-														/>
-													</DashboardCard>
-												)
-											})}
-										</SortableContext>
-									</DndContext>
+														>
+															<Graph
+																id={g.id}
+																title={g.title}
+																viewConfig={getViewConfig(
+																	g.type,
+																	g.display ??
+																		undefined,
+																	g.nullHandling ??
+																		undefined,
+																)}
+																productType={
+																	g.productType
+																}
+																projectId={
+																	projectId
+																}
+																selectedPreset={
+																	selectedPreset
+																}
+																startDate={
+																	startDate
+																}
+																endDate={
+																	endDate
+																}
+																query={g.query}
+																metric={
+																	g.metric
+																}
+																functionType={
+																	g.functionType
+																}
+																bucketByKey={
+																	g.bucketByKey ??
+																	undefined
+																}
+																bucketByWindow={
+																	g.bucketInterval ??
+																	undefined
+																}
+																bucketCount={
+																	g.bucketCount ??
+																	undefined
+																}
+																groupByKeys={
+																	g.groupByKeys ??
+																	undefined
+																}
+																limit={
+																	g.limit ??
+																	undefined
+																}
+																limitFunctionType={
+																	g.limitFunctionType ??
+																	undefined
+																}
+																limitMetric={
+																	g.limitMetric ??
+																	undefined
+																}
+																funnelSteps={(
+																	g.funnelSteps ??
+																	[]
+																).map(
+																	loadFunnelStep,
+																)}
+																setTimeRange={
+																	updateSearchTime
+																}
+																variables={
+																	values
+																}
+																height={280}
+															/>
+														</DashboardCard>
+													)
+												})}
+											</SortableContext>
+										</DndContext>
+									</GraphContextProvider>
 								</Box>
 							</Box>
 						</Box>

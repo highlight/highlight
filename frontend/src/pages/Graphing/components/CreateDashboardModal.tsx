@@ -22,7 +22,10 @@ export const CreateDashboardModal: React.FC<Props> = ({
 	const { projectId } = useProjectId()
 
 	const [upsertViz, upsertContext] = useUpsertVisualizationMutation({
-		refetchQueries: [namedOperations.Query.GetVisualizations],
+		refetchQueries: [
+			namedOperations.Query.GetVisualizations,
+			namedOperations.Query.GetWorkspaceSettings,
+		],
 	})
 
 	const onSubmit = (name: string) => {
@@ -68,7 +71,6 @@ const InnerModal = ({ loading, onHideModal, onSubmit }: ModalProps) => {
 	const formStore = Form.useStore({
 		defaultValues: {
 			name: '',
-			filters: '',
 		},
 	})
 

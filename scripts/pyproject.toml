@@ -14,6 +14,7 @@ tqdm = "^4.66.3"
 stripe = "^6.7.0"
 clickhouse-connect = "^0.7.8"
 pandas = "^2.2.2"
+beautifulsoup4 = "^4.12.3"
 
 [tool.poetry.group.dev.dependencies]
 black = "^24.3.0"

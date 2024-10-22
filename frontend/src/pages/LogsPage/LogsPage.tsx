@@ -20,7 +20,10 @@ import React, { useEffect, useMemo, useRef, useState } from 'react'
 import { Helmet } from 'react-helmet'
 import { useQueryParam } from 'use-query-params'
 
-import { DEFAULT_COLUMN_SIZE } from '@/components/CustomColumnPopover'
+import {
+	DEFAULT_COLUMN_SIZE,
+	SerializedColumn,
+} from '@/components/CustomColumnPopover'
 import { AiSuggestion, SearchContext } from '@/components/Search/SearchContext'
 import {
 	TIME_FORMAT,
@@ -39,7 +42,6 @@ import {
 	useGetMetricsQuery,
 	useGetWorkspaceSettingsQuery,
 } from '@/graph/generated/hooks'
-import useFeatureFlag, { Feature } from '@/hooks/useFeatureFlag/useFeatureFlag'
 import { useNumericProjectId } from '@/hooks/useProjectId'
 import { useSearchTime } from '@/hooks/useSearchTime'
 import { TIMESTAMP_KEY } from '@/pages/Graphing/components/Graph'
@@ -84,7 +86,6 @@ const LogsPageInner = ({ timeMode, logCursor, presetDefault }: Props) => {
 		project_id: string
 	}>()
 	const { currentWorkspace } = useApplicationContext()
-	const aiQueryBuilderFlag = useFeatureFlag(Feature.AiQueryBuilder)
 	const [aiMode, setAiMode] = useState(false)
 	const [query, setQuery] = useQueryParam('query', QueryParam)
 	const queryParts = useMemo(() => {
@@ -99,10 +100,9 @@ const LogsPageInner = ({ timeMode, logCursor, presetDefault }: Props) => {
 		fetchPolicy: 'network-only',
 	})
 
-	const [selectedColumns, setSelectedColumns] = useLocalStorage(
-		`highlight-logs-table-columns`,
-		DEFAULT_LOG_COLUMNS,
-	)
+	const [selectedColumns, setSelectedColumns] = useLocalStorage<
+		SerializedColumn[]
+	>(`highlight-logs-table-columns`, DEFAULT_LOG_COLUMNS)
 	const [windowSize, setWindowSize] = useLocalStorage(
 		'highlight-logs-window-size',
 		window.innerWidth,
@@ -261,10 +261,6 @@ const LogsPageInner = ({ timeMode, logCursor, presetDefault }: Props) => {
 		} as AiSuggestion
 	}, [aiData])
 
-	const enableAiQueryBuilder =
-		aiQueryBuilderFlag &&
-		workspaceSettings?.workspaceSettings?.ai_query_builder
-
 	return (
 		<SearchContext
 			initialQuery={query}
@@ -307,7 +303,11 @@ const LogsPageInner = ({ timeMode, logCursor, presetDefault }: Props) => {
 						timeMode={timeMode}
 						savedSegmentType={SavedSegmentEntityType.Log}
 						textAreaRef={textAreaRef}
-						enableAIMode={enableAiQueryBuilder}
+						enableAIMode={
+							workspaceSettings?.workspaceSettings
+								?.ai_query_builder
+						}
+						aiSupportedSearch
 					/>
 					<LogsCount
 						startDate={searchTimeContext.startDate}

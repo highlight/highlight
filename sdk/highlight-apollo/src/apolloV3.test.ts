@@ -1,10 +1,10 @@
-import { ApolloServerV3HighlightPlugin } from './apolloV3'
 import { ApolloServer, gql } from 'apollo-server'
 import {
-	startMockOtelServer,
-	getResourceSpans,
 	getOtlpEndpoint,
+	getResourceSpans,
+	startMockOtelServer,
 } from 'mock-otel-server'
+import { ApolloServerV3HighlightPlugin } from './apolloV3'
 
 const SESSION_ID = '123456'
 const TRACE_ID = '78910'

@@ -123,7 +123,7 @@ export const DocsMarkdownRenderer = (
 												newUrl,
 											)
 										},
-								  }
+									}
 								: {}),
 						},
 						[
@@ -137,11 +137,11 @@ export const DocsMarkdownRenderer = (
 													styles.inlineCodeBlock,
 											},
 											c?.props.children,
-									  )
+										)
 									: c,
 							),
 							copyHeadingIcon(props?.children?.length ?? 0),
-						] || '',
+						],
 					)
 				)}
 			</>
@@ -213,7 +213,7 @@ export const MethodParameterRenderer = (renderType: 'h5' | 'code' | 'a') => {
 												newUrl,
 											)
 										},
-								  }
+									}
 								: {}),
 						},
 						[
@@ -227,11 +227,11 @@ export const MethodParameterRenderer = (renderType: 'h5' | 'code' | 'a') => {
 													styles.inlineCodeBlock,
 											},
 											c?.props.children,
-									  )
+										)
 									: c,
 							),
 							copyHeadingIcon(props?.children?.length ?? 0),
-						] || '',
+						],
 					)
 				)}
 			</>
@@ -321,7 +321,7 @@ export const getDocsTypographyRenderer = (
 												newUrl,
 											)
 										},
-								  }
+									}
 								: {}),
 						},
 						[
@@ -335,11 +335,11 @@ export const getDocsTypographyRenderer = (
 													styles.inlineCodeBlock,
 											},
 											c?.children[0].value,
-									  )
+										)
 									: c.value,
 							),
 							copyHeadingIcon(props?.node?.children?.length ?? 0),
-						] || '',
+						],
 					)
 				)}
 			</>

@@ -10,12 +10,13 @@ import {
 	shouldNetworkRequestBeTraced,
 } from './utils'
 
-interface BrowserXHR extends XMLHttpRequest {
+export interface BrowserXHR extends XMLHttpRequest {
 	_method: string
 	_url: string
 	_requestHeaders: Headers
 	_responseSize?: number
 	_shouldRecordHeaderAndBody: boolean
+	_body?: any
 }
 
 /**
@@ -23,11 +24,12 @@ interface BrowserXHR extends XMLHttpRequest {
  */
 export const XHRListener = (
 	callback: NetworkListenerCallback,
-	backendUrl: string,
+	highlightEndpoints: string[],
 	tracingOrigins: boolean | (string | RegExp)[],
 	urlBlocklist: string[],
-	bodyKeysToRedact?: string[],
-	bodyKeysToRecord?: string[],
+	bodyKeysToRedact: string[],
+	bodyKeysToRecord: string[] | undefined,
+	otelEnabled: boolean,
 ) => {
 	const XHR = XMLHttpRequest.prototype
 
@@ -69,7 +71,7 @@ export const XHRListener = (
 		if (
 			!shouldNetworkRequestBeRecorded(
 				this._url,
-				backendUrl,
+				highlightEndpoints,
 				tracingOrigins,
 			)
 		) {
@@ -77,8 +79,14 @@ export const XHRListener = (
 			return originalSend.apply(this, arguments)
 		}
 
-		const [sessionSecureID, requestId] = createNetworkRequestId()
-		if (shouldNetworkRequestBeTraced(this._url, tracingOrigins)) {
+		const [sessionSecureID, requestId] = createNetworkRequestId(otelEnabled)
+		if (
+			shouldNetworkRequestBeTraced(
+				this._url,
+				tracingOrigins,
+				urlBlocklist,
+			)
+		) {
 			this.setRequestHeader(
 				HIGHLIGHT_REQUEST_HEADER,
 				getHighlightRequestHeader(sessionSecureID, requestId),
@@ -99,6 +107,7 @@ export const XHRListener = (
 			if (postData) {
 				const bodyData = getBodyData(postData, requestModel.url)
 				if (bodyData) {
+					this._body = bodyData
 					requestModel['body'] = getBodyThatShouldBeRecorded(
 						bodyData,
 						bodyKeysToRedact,

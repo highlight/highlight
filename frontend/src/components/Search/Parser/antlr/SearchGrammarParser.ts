@@ -7,21 +7,16 @@ import {
 	DecisionState,
 	DFA,
 	FailedPredicateException,
-	RecognitionException,
 	NoViableAltException,
-	BailErrorStrategy,
 	Parser,
 	ParserATNSimulator,
-	RuleContext,
 	ParserRuleContext,
-	PredictionMode,
 	PredictionContextCache,
+	RecognitionException,
+	RuleContext,
 	TerminalNode,
-	RuleNode,
 	Token,
 	TokenStream,
-	Interval,
-	IntervalSet,
 } from 'antlr4'
 import SearchGrammarListener from './SearchGrammarListener.js'
 // for running tests with parameters, TODO: discuss strategy for typed parameters in CI

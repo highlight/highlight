@@ -5,7 +5,7 @@ import useLocalStorage from '@rehooks/local-storage'
 import { useParams } from '@util/react-router/useParams'
 import { useEffect, useMemo } from 'react'
 
-import { OptionDropdown } from '@/pages/Graphing/GraphingEditor'
+import { OptionDropdown } from '@/pages/Graphing/OptionDropdown'
 
 const HeightListSelector: React.FC<ContainerSelectionProps> = ({
 	setSelectionId,
@@ -23,7 +23,7 @@ const HeightListSelector: React.FC<ContainerSelectionProps> = ({
 				return {
 					value: list.id,
 					id: list.id,
-					displayValue: list.name,
+					name: list.name,
 				}
 			}) || []
 		)
@@ -47,8 +47,7 @@ const HeightListSelector: React.FC<ContainerSelectionProps> = ({
 	return (
 		<Form.NamedSection label="List" name="heightList">
 			<OptionDropdown
-				options={heightListOptions.map((o) => o.id)}
-				labels={heightListOptions.map((o) => o.displayValue)}
+				options={heightListOptions}
 				selection={selectedHeightListId}
 				setSelection={setHeightListId}
 				disabled={disabled || loading}

@@ -104,6 +104,9 @@ export const SessionView: React.FC<SessionViewProps> = ({
 	useEffect(() => {
 		setSessionResults({
 			totalCount,
+			// not available from search context; not be used by replayer
+			totalLength: 0,
+			totalActiveLength: 0,
 			sessions: results,
 		})
 	}, [setSessionResults, totalCount, results])

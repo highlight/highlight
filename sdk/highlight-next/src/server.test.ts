@@ -1,14 +1,14 @@
-import kill from 'tree-kill'
-import {
-	startMockOtelServer,
-	getResourceSpans,
-	getOtlpEndpoint,
-	clearResourceSpans,
-	filterEventsByName,
-	filterDetailsBySessionId,
-	logDetails,
-} from 'mock-otel-server'
 import { spawn } from 'child_process'
+import {
+	clearResourceSpans,
+	filterDetailsBySessionId,
+	filterEventsByName,
+	getOtlpEndpoint,
+	getResourceSpans,
+	logDetails,
+	startMockOtelServer,
+} from 'mock-otel-server'
+import kill from 'tree-kill'
 import { vi } from 'vitest'
 
 vi.mock('pg', () => {
@@ -176,6 +176,7 @@ function startNext(port: number) {
 
 		function killChild() {
 			return new Promise<void>((resolve, reject) => {
+				if (!child.pid) return
 				kill(child.pid, 'SIGTERM', (err) =>
 					err ? reject(err) : resolve(),
 				)

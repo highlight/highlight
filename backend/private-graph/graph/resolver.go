@@ -6,7 +6,6 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
-	"github.com/highlight-run/highlight/backend/env"
 	"io"
 	"math/big"
 	"net/http"
@@ -15,6 +14,8 @@ import (
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/highlight-run/highlight/backend/env"
 
 	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/service/marketplacemetering"
@@ -88,6 +89,7 @@ import (
 const ErrorGroupLookbackDays = 7
 const SessionActiveMetricName = "sessionActiveLength"
 const SessionProcessedMetricName = "sessionProcessed"
+const MaxDownloadSize = 32 * 1024 * 1024 // 32MB
 
 var AuthenticationError = errors.New("401 - AuthenticationError")
 var AuthorizationError = errors.New("403 - AuthorizationError")
@@ -222,7 +224,27 @@ func (r *Resolver) getCustomVerifiedAdminEmailDomain(admin *model.Admin) (string
 	}
 
 	// this is just the top 10 email domains as of June 6, 2016, and protonmail.com
-	if map[string]bool{"gmail.com": true, "yahoo.com": true, "hotmail.com": true, "aol.com": true, "hotmail.co.uk": true, "protonmail.com": true, "hotmail.fr": true, "msn.com": true, "yahoo.fr": true, "wanadoo.fr": true, "orange.fr": true}[strings.ToLower(domain)] {
+	if map[string]bool{
+		"gmail.com":      true,
+		"yahoo.com":      true,
+		"hotmail.com":    true,
+		"aol.com":        true,
+		"hotmail.co.uk":  true,
+		"protonmail.com": true,
+		"hotmail.fr":     true,
+		"msn.com":        true,
+		"yahoo.fr":       true,
+		"wanadoo.fr":     true,
+		"orange.fr":      true,
+		"qq.com":         true,
+		"icloud.com":     true,
+		"live.com":       true,
+		"me.com":         true,
+		"proton.me":      true,
+		"duck.com":       true,
+		"mail.ru":        true,
+		"163.com":        true,
+	}[strings.ToLower(domain)] {
 		return "", nil
 	}
 
@@ -481,18 +503,37 @@ func (r *Resolver) isUserInWorkspaceReadOnly(ctx context.Context, workspaceID in
 		Model: model.Model{
 			ID: workspace.ID,
 		},
-		Name:                        workspace.Name,
-		PlanTier:                    workspace.PlanTier,
+		AllowMeterOverage:           workspace.AllowMeterOverage,
 		AllowedAutoJoinEmailOrigins: workspace.AllowedAutoJoinEmailOrigins,
-		SlackWebhookChannel:         workspace.SlackWebhookChannel,
-		RetentionPeriod:             workspace.RetentionPeriod,
-		ErrorsRetentionPeriod:       workspace.ErrorsRetentionPeriod,
-		SessionsMaxCents:            workspace.SessionsMaxCents,
-		ErrorsMaxCents:              workspace.ErrorsMaxCents,
-		LogsMaxCents:                workspace.LogsMaxCents,
-		TracesMaxCents:              workspace.TracesMaxCents,
+		BillingPeriodEnd:            workspace.BillingPeriodEnd,
+		BillingPeriodStart:          workspace.BillingPeriodStart,
 		ClearbitEnabled:             workspace.ClearbitEnabled,
 		CloudflareProxy:             workspace.CloudflareProxy,
+		EligibleForTrialExtension:   workspace.EligibleForTrialExtension,
+		ErrorsMaxCents:              workspace.ErrorsMaxCents,
+		ErrorsRetentionPeriod:       workspace.ErrorsRetentionPeriod,
+		LogsMaxCents:                workspace.LogsMaxCents,
+		LogsRetentionPeriod:         workspace.LogsRetentionPeriod,
+		MonthlyErrorsLimit:          workspace.MonthlyErrorsLimit,
+		MonthlyLogsLimit:            workspace.MonthlyLogsLimit,
+		MonthlyMembersLimit:         workspace.MonthlyMembersLimit,
+		MonthlySessionLimit:         workspace.MonthlySessionLimit,
+		MonthlyTracesLimit:          workspace.MonthlyTracesLimit,
+		Name:                        workspace.Name,
+		NextInvoiceDate:             workspace.NextInvoiceDate,
+		PlanTier:                    workspace.PlanTier,
+		RetentionPeriod:             workspace.RetentionPeriod,
+		SessionsMaxCents:            workspace.SessionsMaxCents,
+		SlackWebhookChannel:         workspace.SlackWebhookChannel,
+		StripeErrorOveragePriceID:   workspace.StripeErrorOveragePriceID,
+		StripeLogOveragePriceID:     workspace.StripeLogOveragePriceID,
+		StripeSessionOveragePriceID: workspace.StripeSessionOveragePriceID,
+		StripeTracesOveragePriceID:  workspace.StripeTracesOveragePriceID,
+		TracesMaxCents:              workspace.TracesMaxCents,
+		TracesRetentionPeriod:       workspace.TracesRetentionPeriod,
+		TrialEndDate:                workspace.TrialEndDate,
+		TrialExtensionEnabled:       workspace.TrialExtensionEnabled,
+		UnlimitedMembers:            workspace.UnlimitedMembers,
 	}, nil
 }
 
@@ -725,7 +766,7 @@ func (r *Resolver) canAdminModifyErrorGroup(ctx context.Context, errorGroupSecur
 
 func (r *Resolver) _doesAdminOwnSession(ctx context.Context, sessionSecureId string) (session *model.Session, ownsSession bool, err error) {
 	if session, err = r.Store.GetSessionFromSecureID(ctx, sessionSecureId); err != nil {
-		return nil, false, AuthorizationError
+		return nil, false, err
 	}
 	_, err = r.isUserInProjectOrDemoProject(ctx, session.ProjectID)
 	if err != nil {
@@ -1351,7 +1392,7 @@ func (r *Resolver) updateAWSMPBillingDetails(ctx context.Context, workspaceID in
 	log.WithContext(ctx).WithField("workspace_id", workspace.ID).WithField("customer", *customer).Info("billing update for aws mp")
 	now := time.Now()
 	end := time.Now().AddDate(0, 1, 0)
-	if err := r.updateBillingDetails(ctx, workspace, &planDetails{
+	if err := r.updateBillingDetails(ctx, workspace.ID, &planDetails{
 		tier:               pricing.AWSMPProducts[*customer.ProductCode],
 		unlimitedMembers:   true,
 		billingPeriodStart: &now,
@@ -1416,7 +1457,7 @@ func (r *Resolver) updateStripeBillingDetails(ctx context.Context, stripeCustome
 		return e.Wrapf(err, "BILLING_ERROR error retrieving workspace for customer %s", stripeCustomerID)
 	}
 
-	if err := r.updateBillingDetails(ctx, &workspace, &details); err != nil {
+	if err := r.updateBillingDetails(ctx, workspace.ID, &details); err != nil {
 		return e.Wrap(err, "BILLING_ERROR error updating billing details for stripe usage")
 	}
 
@@ -1435,7 +1476,7 @@ type planDetails struct {
 	nextInvoiceDate    *time.Time
 }
 
-func (r *Resolver) updateBillingDetails(ctx context.Context, workspace *model.Workspace, details *planDetails) error {
+func (r *Resolver) updateBillingDetails(ctx context.Context, workspaceID int, details *planDetails) error {
 	updates := map[string]interface{}{
 		"PlanTier":           string(details.tier),
 		"UnlimitedMembers":   details.unlimitedMembers,
@@ -1445,15 +1486,32 @@ func (r *Resolver) updateBillingDetails(ctx context.Context, workspace *model.Wo
 		"TrialEndDate":       nil,
 	}
 
-	if err := r.DB.WithContext(ctx).Model(&model.Workspace{}).
-		Where(model.Workspace{Model: model.Model{ID: workspace.ID}}).
+	if err := r.DB.WithContext(ctx).
+		Model(&model.Workspace{}).
+		Where(model.Workspace{Model: model.Model{ID: workspaceID}}).
 		Updates(updates).Error; err != nil {
-		return e.Wrapf(err, "BILLING_ERROR error updating workspace fields for workspace %d", workspace.ID)
+		return e.Wrapf(err, "BILLING_ERROR error updating workspace fields for workspace %d", workspaceID)
 	}
 
-	// Make previous billing history email records inactive (so new active records can be added)
+	var workspace model.Workspace
+	if err := r.DB.WithContext(ctx).
+		Model(&model.Workspace{}).
+		Where(model.Workspace{Model: model.Model{ID: workspaceID}}).
+		Take(&workspace).Error; err != nil {
+		return e.Wrapf(err, "BILLING_ERROR error querying workspace %d", workspaceID)
+	}
+
+	// Make previous billing history email records inactive (so new active records can be added) once we start a new billing period
+	bpStart := time.Now().Truncate(time.Hour * 24 * 30)
+	if workspace.NextInvoiceDate != nil {
+		bpStart = (*workspace.NextInvoiceDate).AddDate(0, -1, 0)
+	} else if workspace.BillingPeriodStart != nil {
+		bpStart = *workspace.BillingPeriodStart
+	}
 	if err := r.DB.WithContext(ctx).Model(&model.BillingEmailHistory{}).
 		Where(model.BillingEmailHistory{Active: true, WorkspaceID: workspace.ID}).
+		Where("type not in ?", Email.OneTimeBillingNotifications).
+		Where("created_at < ?", bpStart).
 		Updates(map[string]interface{}{
 			"Active":      false,
 			"WorkspaceID": workspace.ID,
@@ -2354,32 +2412,30 @@ func (r *Resolver) RemoveGitHubFromWorkspace(ctx context.Context, workspace *mod
 }
 
 func (r *Resolver) RemoveIntegrationFromWorkspaceAndProjects(ctx context.Context, workspace *model.Workspace, integrationType modelInputs.IntegrationType) error {
-	workspaceMapping := &model.IntegrationWorkspaceMapping{}
-	if err := r.DB.WithContext(ctx).Where(&model.IntegrationWorkspaceMapping{
-		WorkspaceID:     workspace.ID,
-		IntegrationType: integrationType,
-	}).Take(&workspaceMapping).Error; err != nil {
-		return e.Wrap(err, fmt.Sprintf("workspace does not have a %s integration", integrationType))
-	}
+	return r.DB.Transaction(func(tx *gorm.DB) error {
+		if err := tx.WithContext(ctx).Exec(`
+			DELETE FROM integration_workspace_mappings
+			WHERE integration_type = ?
+			AND workspace_id = ?
+		`, integrationType, workspace.ID).Error; err != nil {
+			return err
+		}
 
-	if err := r.DB.WithContext(ctx).Raw(`
-		DELETE FROM integration_project_mappings ipm
-		WHERE ipm.integration_type = ?
-		AND EXISTS (
-			SELECT *
-			FROM projects p
-			WHERE p.workspace_id = ?
-			AND ipm.project_id = p.id
-		)
-	`, integrationType, workspace.ID).Error; err != nil {
-		return err
-	}
+		if err := tx.WithContext(ctx).Exec(`
+			DELETE FROM integration_project_mappings ipm
+			WHERE ipm.integration_type = ?
+			AND EXISTS (
+				SELECT *
+				FROM projects p
+				WHERE p.workspace_id = ?
+				AND ipm.project_id = p.id
+			)
+		`, integrationType, workspace.ID).Error; err != nil {
+			return err
+		}
 
-	if err := r.DB.WithContext(ctx).Delete(workspaceMapping).Error; err != nil {
-		return e.Wrap(err, fmt.Sprintf("error deleting workspace %s integration", integrationType))
-	}
-
-	return nil
+		return nil
+	})
 }
 
 func (r *Resolver) RemoveDiscordFromWorkspace(ctx context.Context, workspace *model.Workspace) error {
@@ -3478,30 +3534,37 @@ func (r *Resolver) GetSlackChannelsFromSlack(ctx context.Context, workspaceId in
 		slackClient := slack.New(*workspace.SlackAccessToken)
 		existingChannels, _ := workspace.IntegratedSlackChannels()
 
-		getConversationsParam := slack.GetConversationsParameters{
-			Limit: 1000,
-			// public_channel is for public channels in the Slack workspace
-			// private is for private channels in the Slack workspace that the Bot is included in
-			// mpim is for multi-person conversations in the Slack workspace that the Bot is included in
-			Types: []string{"public_channel", "private_channel", "mpim"},
-		}
 		allSlackChannelsFromAPI := []slack.Channel{}
 
-		// Slack paginates the channels/people listing.
-		for {
-			channels, cursor, err := slackClient.GetConversations(&getConversationsParam)
-			getConversationsParam.Cursor = cursor
-			if err != nil {
-				return nil, e.Wrap(err, "error getting Slack channels from Slack.")
+		// public_channel is for public channels in the Slack workspace
+		// private is for private channels in the Slack workspace that the Bot is included in
+		// mpim is for multi-person conversations in the Slack workspace that the Bot is included in
+		// Because the Slack API applies a limit before filtering, it's more performant (fewer iterations)
+		// to request data for each channel separately.
+		channelTypes := []string{"public_channel", "private_channel", "mpim"}
+		for _, channelType := range channelTypes {
+			getConversationsParam := slack.GetConversationsParameters{
+				ExcludeArchived: true,
+				Limit:           1000,
+				Types:           []string{channelType},
 			}
 
-			allSlackChannelsFromAPI = append(allSlackChannelsFromAPI, channels...)
+			// Slack paginates the channels/people listing.
+			for {
+				channels, cursor, err := slackClient.GetConversations(&getConversationsParam)
+				getConversationsParam.Cursor = cursor
+				if err != nil {
+					return nil, e.Wrap(err, "error getting Slack channels from Slack.")
+				}
 
-			if getConversationsParam.Cursor == "" {
-				break
+				allSlackChannelsFromAPI = append(allSlackChannelsFromAPI, channels...)
+
+				if getConversationsParam.Cursor == "" {
+					break
+				}
+				// delay the next slack call to avoid getting rate limited
+				time.Sleep(time.Second)
 			}
-			// delay the next slack call to avoid getting rate limited
-			time.Sleep(time.Second)
 		}
 
 		// We need to get the users in the Slack channel in order to get their name.
@@ -3623,7 +3686,7 @@ func GetMetricTimeline(ctx context.Context, ccClient *clickhouse.Client, project
 	metrics, err := ccClient.ReadEventMetrics(ctx, projectID, modelInputs.QueryInput{
 		Query:     strings.Join(parts, " "),
 		DateRange: params.DateRange,
-	}, metricName, []modelInputs.MetricAggregator{agg}, params.Groups, pointy.Int(numBuckets), string(modelInputs.MetricBucketByTimestamp), nil, nil, nil)
+	}, metricName, []modelInputs.MetricAggregator{agg}, params.Groups, pointy.Int(numBuckets), string(modelInputs.MetricBucketByTimestamp), nil, nil, nil, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -3854,7 +3917,7 @@ func (r *Resolver) CreateDefaultDashboard(ctx context.Context, projectID int) (*
 			Title:             "Most visited pages",
 			ProductType:       "Sessions",
 			FunctionType:      "Count",
-			GroupByKey:        pointy.String("visited-url"),
+			GroupByKeys:       []string{"visited-url"},
 			BucketByKey:       pointy.String("Timestamp"),
 			BucketCount:       pointy.Int(24),
 			Limit:             pointy.Int(5),
@@ -3868,7 +3931,7 @@ func (r *Resolver) CreateDefaultDashboard(ctx context.Context, projectID int) (*
 			Query:             "event exists",
 			Metric:            "active_length",
 			FunctionType:      "Avg",
-			GroupByKey:        pointy.String("event"),
+			GroupByKeys:       []string{"event"},
 			BucketByKey:       pointy.String("Timestamp"),
 			BucketCount:       pointy.Int(24),
 			Limit:             pointy.Int(10),
@@ -3894,7 +3957,7 @@ func (r *Resolver) CreateDefaultDashboard(ctx context.Context, projectID int) (*
 			Query:             "http.method exists http.url exists http.url=*api*",
 			FunctionType:      "P95",
 			Metric:            "duration",
-			GroupByKey:        pointy.String("span_name"),
+			GroupByKeys:       []string{"span_name"},
 			Limit:             pointy.Int(10),
 			LimitFunctionType: &countAggregator,
 			BucketByKey:       pointy.String("Timestamp"),
@@ -3908,7 +3971,7 @@ func (r *Resolver) CreateDefaultDashboard(ctx context.Context, projectID int) (*
 			ProductType:       "Errors",
 			FunctionType:      "Count",
 			Query:             "browser exists",
-			GroupByKey:        pointy.String("browser"),
+			GroupByKeys:       []string{"browser"},
 			Limit:             pointy.Int(10),
 			LimitFunctionType: &countAggregator,
 			NullHandling:      pointy.String("Hide row"),
@@ -3922,7 +3985,7 @@ func (r *Resolver) CreateDefaultDashboard(ctx context.Context, projectID int) (*
 			ProductType:       "Metrics",
 			FunctionType:      "P95",
 			Metric:            vital,
-			GroupByKey:        pointy.String("browser"),
+			GroupByKeys:       []string{"browser"},
 			BucketByKey:       pointy.String("Timestamp"),
 			BucketCount:       pointy.Int(24),
 			Limit:             pointy.Int(10),

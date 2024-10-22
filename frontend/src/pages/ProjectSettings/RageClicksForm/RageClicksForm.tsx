@@ -77,7 +77,7 @@ export const RageClicksForm = () => {
 														rage_click_window_seconds:
 															val,
 													},
-											  }
+												}
 											: currentProjectSettings,
 								)
 							}}
@@ -106,7 +106,7 @@ export const RageClicksForm = () => {
 														rage_click_radius_pixels:
 															val,
 													},
-											  }
+												}
 											: currentProjectSettings,
 								)
 							}}
@@ -134,7 +134,7 @@ export const RageClicksForm = () => {
 														...currentProjectSettings.projectSettings,
 														rage_click_count: val,
 													},
-											  }
+												}
 											: currentProjectSettings,
 								)
 							}}

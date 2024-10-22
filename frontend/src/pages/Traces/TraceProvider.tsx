@@ -1,5 +1,5 @@
 import { ApolloError } from '@apollo/client'
-import { createContext, useContext, useMemo, useState } from 'react'
+import { createContext, useContext, useEffect, useMemo, useState } from 'react'
 
 import { useGetTraceQuery } from '@/graph/generated/hooks'
 import { TraceError } from '@/graph/generated/schemas'
@@ -38,6 +38,7 @@ export const TraceContext = createContext<TraceContext>({} as TraceContext)
 type Props = {
 	projectId: string
 	traceId?: string
+	timestamp?: string
 	secureSessionId?: string
 	spanId?: string
 }
@@ -46,6 +47,7 @@ export const TraceProvider: React.FC<React.PropsWithChildren<Props>> = ({
 	children,
 	projectId,
 	traceId,
+	timestamp,
 	secureSessionId,
 	spanId,
 }) => {
@@ -57,6 +59,7 @@ export const TraceProvider: React.FC<React.PropsWithChildren<Props>> = ({
 		variables: {
 			project_id: projectId!,
 			trace_id: traceId!,
+			timestamp: timestamp!,
 			session_secure_id: secureSessionId,
 		},
 		onCompleted: (data) => {
@@ -70,7 +73,7 @@ export const TraceProvider: React.FC<React.PropsWithChildren<Props>> = ({
 				}
 			}
 		},
-		skip: !projectId || !traceId,
+		skip: !projectId || !traceId || !timestamp,
 		fetchPolicy: 'cache-and-network',
 	})
 
@@ -132,6 +135,32 @@ export const TraceProvider: React.FC<React.PropsWithChildren<Props>> = ({
 		return organizeSpansWithChildren(spans)
 	}, [data?.trace?.trace])
 
+	useEffect(() => {
+		if (spanId) {
+			const selectedSpan = data?.trace?.trace.find(
+				(span) => span.spanID === spanId,
+			)
+
+			if (selectedSpan) {
+				setSelectedSpan(selectedSpan as FlameGraphSpan)
+			}
+		}
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [spanId])
+
+	secureSessionId = useMemo(() => {
+		if (!!secureSessionId) {
+			return secureSessionId
+		}
+
+		if (!!data?.trace?.trace) {
+			return data?.trace?.trace.find((span) => span.secureSessionID)
+				?.secureSessionID
+		}
+
+		return undefined
+	}, [data?.trace?.trace, secureSessionId])
+
 	return (
 		<TraceContext.Provider
 			value={{
@@ -149,7 +178,7 @@ export const TraceProvider: React.FC<React.PropsWithChildren<Props>> = ({
 				traces,
 				spans,
 				error,
-				secureSessionId: firstSpan?.secureSessionID,
+				secureSessionId,
 				setHoveredSpan,
 				setSelectedSpan,
 			}}

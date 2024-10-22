@@ -40,13 +40,14 @@ import {
 } from '@pages/Player/SessionLevelBar/utils/utils'
 import {
 	customEvent,
+	IncrementalSource,
 	metaEvent,
 	playerMetaData,
 	SessionInterval,
 	viewportResizeDimension,
 } from '@rrweb/types'
 import analytics from '@util/analytics'
-import log from '@util/log'
+import log, { verboseLoggingEnabled } from '@util/log'
 import { timedCall } from '@util/perf/instrument'
 import { H } from 'highlight.run'
 import { throttle } from 'lodash'
@@ -59,16 +60,17 @@ const EMPTY_SESSION_METADATA = {
 	endTime: 0,
 	totalTime: 0,
 }
-const PROJECTS_WITH_CSS_ANIMATIONS: string[] = ['1', '1020', '1021']
+const PROJECTS_WITH_CSS_ANIMATIONS: string[] = ['1', '1020', '1021', '102751']
 
 // assuming 120 fps
 export const FRAME_MS = 1000 / 120
-// update every 30 frames
-export const THROTTLED_UPDATE_MS = FRAME_MS * 30
+// update every N frames
+export const THROTTLED_UPDATE_MS = FRAME_MS * 15
 
 export const CHUNKING_DISABLED_PROJECTS: string[] = []
-export const LOOKAHEAD_MS = 1000 * 60
-export const MAX_CHUNK_COUNT = 8
+export const LOOKAHEAD_MS = 1000 * 30
+export const BUFFER_MS = 1000 * 3
+export const MAX_CHUNK_COUNT = 5
 
 export enum SessionViewability {
 	VIEWABLE,
@@ -237,7 +239,7 @@ interface startChunksLoad {
 interface onChunksLoad {
 	type: PlayerActionType.onChunksLoad
 	showPlayerMouseTail: boolean
-	time: number
+	time: number | undefined
 	playerRef: RefObject<HTMLDivElement>
 	action: ReplayerState
 }
@@ -297,7 +299,12 @@ export const PlayerInitialState = {
 	sessionEndTime: 0,
 	sessionIntervals: [],
 	sessionMetadata: EMPTY_SESSION_METADATA,
-	sessionResults: { sessions: [], totalCount: -1 },
+	sessionResults: {
+		sessions: [],
+		totalCount: 0,
+		totalLength: 0,
+		totalActiveLength: 0,
+	},
 	sessionViewability: SessionViewability.VIEWABLE,
 	session_secure_id: '',
 	time: 0,
@@ -417,6 +424,7 @@ export const PlayerReducer = (
 			break
 		case PlayerActionType.updateEvents:
 			if (s.replayer) {
+				log('updateEvents', { events })
 				s.replayer.replaceEvents(events)
 			}
 			break
@@ -441,7 +449,7 @@ export const PlayerReducer = (
 				PlayerActionType.startChunksLoad,
 				s,
 				ReplayerState.Paused,
-				getTimeFromReplayer(s.replayer, s.sessionMetadata),
+				undefined,
 				true,
 			)
 			break
@@ -465,6 +473,7 @@ export const PlayerReducer = (
 					s = processSessionMetadata(s, events)
 				}
 			} else {
+				log('onChunksLoad', { events })
 				s.replayer.replaceEvents(events)
 			}
 			s = replayerAction(
@@ -565,13 +574,33 @@ const initReplayer = (
 		mouseTail: showPlayerMouseTail,
 		UNSAFE_replayCanvas: true,
 		liveMode: s.isLiveMode,
-		useVirtualDom: false,
+		useVirtualDom: true,
+		showWarning: verboseLoggingEnabled,
+		showDebug: verboseLoggingEnabled,
 		pauseAnimation: !PROJECTS_WITH_CSS_ANIMATIONS.includes(s.project_id),
 		logger: {
 			log: throttle(console.log, 100),
 			warn: throttle(console.warn, 100),
 		},
 	})
+
+	// Hide the mouse cursor until we get a movement event and know where to place it.
+	playerMountingRoot.classList.add('hide-mouse-cursor')
+	const mouseMoveEvents = [
+		IncrementalSource.MouseMove,
+		IncrementalSource.TouchMove,
+		IncrementalSource.Drag,
+	]
+	const castEventHandler = (event: any) => {
+		const source = event.data.source
+		const isMouseMove = mouseMoveEvents.includes(source)
+
+		if (isMouseMove) {
+			playerMountingRoot.classList.remove('hide-mouse-cursor')
+			s.replayer?.off('event-cast', castEventHandler)
+		}
+	}
+	s.replayer.on('event-cast', castEventHandler)
 
 	s.browserExtensionScriptURLs = getBrowserExtensionScriptURLs(events)
 
@@ -732,7 +761,7 @@ const processSessionMetadata = (
 							active: interval.active,
 						}
 					},
-			  )
+				)
 			: s.replayer.getActivityIntervals()
 	const sm: playerMetaData = parsedSessionIntervalsData
 		? {
@@ -751,7 +780,7 @@ const processSessionMetadata = (
 						].endTime,
 					).getTime() -
 					new Date(parsedSessionIntervalsData[0].startTime).getTime(),
-		  }
+			}
 		: s.replayer.getMetaData()
 
 	const sessionIntervals = getSessionIntervals(sm, parsedSessionIntervalsData)
@@ -761,7 +790,7 @@ const processSessionMetadata = (
 		s.onSessionPayloadLoadedPayload.timelineIndicatorEvents.length > 0
 			? toHighlightEvents(
 					s.onSessionPayloadLoadedPayload.timelineIndicatorEvents,
-			  )
+				)
 			: events
 	s.sessionIntervals = getCommentsInSessionIntervalsRelative(
 		addEventsToSessionIntervals(
@@ -912,16 +941,10 @@ export const getEvents = (
 		'clear' | 'set' | 'delete'
 	>,
 ) => {
-	let numEvents = 0
 	const events = []
-	for (const [, v] of [...chunkEvents.entries()].sort(
-		(a, b) => a[0] - b[0],
-	)) {
+	for (const [, v] of [...chunkEvents.entries()]) {
 		for (const val of v) {
 			if (val) {
-				if (numEvents++ >= MAX_SHORT_INT_SIZE) {
-					return events
-				}
 				events.push(val)
 			}
 		}

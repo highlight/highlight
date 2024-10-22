@@ -53,6 +53,10 @@ export const rrwebPlayerWrapper = style({
 	width: '100%',
 })
 
+globalStyle('.hide-mouse-cursor .replayer-mouse', {
+	display: 'none',
+})
+
 export const rrwebInnerWrapper = style({})
 globalStyle(`${rrwebInnerWrapper} iframe`, {
 	borderRadius: 4,
@@ -67,7 +71,6 @@ export const playerCenterColumn = style({
 	flexGrow: 1,
 	position: 'relative',
 	minWidth: MIN_CENTER_COLUMN_WIDTH,
-	zIndex: 0,
 })
 
 export const draggable = style({

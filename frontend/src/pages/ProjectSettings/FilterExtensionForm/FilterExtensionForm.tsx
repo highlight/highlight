@@ -53,7 +53,7 @@ export const FilterExtensionForm = () => {
 												filter_chrome_extension:
 													isOptIn,
 											},
-									  }
+										}
 									: currentProjectSettings,
 							)
 						},

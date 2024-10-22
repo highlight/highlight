@@ -6,10 +6,11 @@ import (
 	"database/sql/driver"
 	"encoding/json"
 	"fmt"
-	"github.com/highlight-run/highlight/backend/env"
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/highlight-run/highlight/backend/env"
 
 	Email "github.com/highlight-run/highlight/backend/email"
 	modelInputs "github.com/highlight-run/highlight/backend/private-graph/graph/model"
@@ -50,6 +51,7 @@ const (
 
 // TODO(et) - replace this with generated SessionAlertType
 var AlertType = struct {
+	// deprecated alerts
 	ERROR            string
 	NEW_USER         string
 	TRACK_PROPERTIES string
@@ -58,7 +60,14 @@ var AlertType = struct {
 	RAGE_CLICK       string
 	NEW_SESSION      string
 	LOG              string
+	// new alerts
+	SESSIONS string
+	ERRORS   string
+	LOGS     string
+	TRACES   string
+	METRICS  string
 }{
+	// deprecated alerts
 	ERROR:            "ERROR_ALERT",
 	NEW_USER:         "NEW_USER_ALERT",
 	TRACK_PROPERTIES: "TRACK_PROPERTIES_ALERT",
@@ -67,6 +76,12 @@ var AlertType = struct {
 	RAGE_CLICK:       "RAGE_CLICK_ALERT",
 	NEW_SESSION:      "NEW_SESSION_ALERT",
 	LOG:              "LOG",
+	// new alerts
+	SESSIONS: "SESSIONS_ALERT",
+	ERRORS:   "ERRORS_ALERT",
+	LOGS:     "LOGS_ALERT",
+	TRACES:   "TRACES_ALERT",
+	METRICS:  "METRICS_ALERT",
 }
 
 var AdminRole = struct {
@@ -265,10 +280,10 @@ type Workspace struct {
 	MonthlyErrorsLimit          *int
 	MonthlyLogsLimit            *int
 	MonthlyTracesLimit          *int
-	RetentionPeriod             *modelInputs.RetentionPeriod
-	ErrorsRetentionPeriod       *modelInputs.RetentionPeriod
-	LogsRetentionPeriod         *modelInputs.RetentionPeriod
-	TracesRetentionPeriod       *modelInputs.RetentionPeriod
+	RetentionPeriod             *modelInputs.RetentionPeriod `gorm:"default:SevenDays"`
+	ErrorsRetentionPeriod       *modelInputs.RetentionPeriod `gorm:"default:SevenDays"`
+	LogsRetentionPeriod         *modelInputs.RetentionPeriod `gorm:"default:ThirtyDays"`
+	TracesRetentionPeriod       *modelInputs.RetentionPeriod `gorm:"default:ThirtyDays"`
 	SessionsMaxCents            *int
 	ErrorsMaxCents              *int
 	LogsMaxCents                *int
@@ -452,15 +467,22 @@ type AllWorkspaceSettings struct {
 	ErrorEmbeddingsThreshold  float64 `gorm:"default:0.2"`
 	ReplaceAssets             bool    `gorm:"default:false"`
 	StoreIP                   bool    `gorm:"default:false"`
-	EnableSessionExport       bool    `gorm:"default:false"`
-	EnableIngestSampling      bool    `gorm:"default:false"`
-	EnableUnlistedSharing     bool    `gorm:"default:true"`
-	EnableNetworkTraces       bool    `gorm:"default:true"`
-	EnableBillingLimits       bool    `gorm:"default:false"` // old plans grandfathered in to true
-	EnableDataDeletion        bool    `gorm:"default:true"`
 	CanShowBillingIssueBanner bool    `gorm:"default:true"`
-	EnableGrafanaDashboard    bool    `gorm:"default:false"`
-	EnableProjectLevelAccess  bool    `gorm:"default:false"`
+
+	EnableUnlimitedDashboards bool `gorm:"default:false"`
+	EnableUnlimitedProjects   bool `gorm:"default:false"`
+	EnableUnlimitedRetention  bool `gorm:"default:false"`
+	EnableUnlimitedSeats      bool `gorm:"default:false"`
+
+	EnableBillingLimits      bool `gorm:"default:false"` // old plans grandfathered in to true
+	EnableGrafanaDashboard   bool `gorm:"default:false"`
+	EnableIngestSampling     bool `gorm:"default:false"`
+	EnableProjectLevelAccess bool `gorm:"default:false"`
+	EnableSessionExport      bool `gorm:"default:false"`
+
+	EnableDataDeletion    bool `gorm:"default:true"`
+	EnableNetworkTraces   bool `gorm:"default:true"`
+	EnableUnlistedSharing bool `gorm:"default:true"`
 }
 
 type HasSecret interface {
@@ -670,8 +692,10 @@ type SessionsHistogram struct {
 }
 
 type SessionResults struct {
-	Sessions   []Session
-	TotalCount int64
+	Sessions          []Session
+	TotalCount        int64
+	TotalLength       int64
+	TotalActiveLength int64
 }
 
 type Session struct {
@@ -1388,12 +1412,14 @@ type Graph struct {
 	Query             string
 	Metric            string
 	FunctionType      modelInputs.MetricAggregator
-	GroupByKey        *string
+	GroupByKeys       pq.StringArray `gorm:"type:text[]"`
 	BucketByKey       *string
 	BucketCount       *int
+	BucketInterval    *int
 	Limit             *int
 	LimitFunctionType *modelInputs.MetricAggregator
 	LimitMetric       *string
+	FunnelSteps       *string `gorm:"type:jsonb"`
 	Display           *string
 	NullHandling      *string
 }
@@ -1406,6 +1432,8 @@ type Visualization struct {
 	UpdatedByAdmin   *Admin        `gorm:"foreignKey:UpdatedByAdminId"`
 	GraphIds         pq.Int32Array `gorm:"type:integer[]"`
 	Graphs           []Graph
+	TimePreset       *string
+	Variables        string
 }
 
 type VisualizationsResponse struct {
@@ -1920,18 +1948,21 @@ func (s *Session) GetUserProperties() (map[string]string, error) {
 type Alert struct {
 	Model
 	ProjectID         int
+	MetricId          string
 	Name              string
 	ProductType       modelInputs.ProductType
 	FunctionType      modelInputs.MetricAggregator
+	FunctionColumn    *string
 	Query             *string
 	GroupByKey        *string
 	Disabled          bool                `gorm:"default:false"`
 	LastAdminToEditID int                 `gorm:"last_admin_to_edit_id"`
 	Destinations      []*AlertDestination `gorm:"foreignKey:AlertID"`
+	Default           bool                `gorm:"default:false"` // alert created during setup flow
 
 	// fields for threshold alert
 	BelowThreshold    *bool
-	ThresholdCount    *int
+	ThresholdValue    *float64
 	ThresholdWindow   *int
 	ThresholdCooldown *int
 }
@@ -2415,16 +2446,39 @@ func SendWelcomeSlackMessage(ctx context.Context, obj IAlert, input *SendWelcome
 	return nil
 }
 
-type TableConfig[TReservedKey ~string] struct {
+// EnableAllWorkspaceSettings updates all rows to enable enterprise workspace features
+func EnableAllWorkspaceSettings(ctx context.Context, db *gorm.DB) error {
+	if err := db.WithContext(ctx).
+		Model(&AllWorkspaceSettings{}).
+		Where("1 = 1").
+		Updates(&AllWorkspaceSettings{
+			StoreIP:                   true,
+			CanShowBillingIssueBanner: false,
+			EnableUnlimitedDashboards: true,
+			EnableUnlimitedProjects:   true,
+			EnableUnlimitedRetention:  true,
+			EnableUnlimitedSeats:      true,
+			EnableBillingLimits:       true,
+			EnableGrafanaDashboard:    true,
+			EnableIngestSampling:      true,
+			EnableProjectLevelAccess:  true,
+			EnableSessionExport:       true,
+		}).Error; err != nil {
+		return e.Wrap(err, "failed to enable all workspace settings")
+	}
+	return nil
+}
+
+type TableConfig struct {
 	TableName        string
 	BodyColumn       string
 	SeverityColumn   string
 	AttributesColumn string
-	// AttributesList set when AttributesColumn is an array of k,v pairs of attributes
-	AttributesList bool
-	KeysToColumns  map[TReservedKey]string
-	ReservedKeys   []TReservedKey
-	SelectColumns  []string
-	DefaultFilter  string
-	IgnoredFilters map[string]bool
+	AttributesTable  string
+	MetricColumn     *string
+	KeysToColumns    map[string]string
+	ReservedKeys     []string
+	SelectColumns    []string
+	DefaultFilter    string
+	IgnoredFilters   map[string]bool
 }

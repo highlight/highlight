@@ -1,12 +1,18 @@
 import { render } from '@react-email/render'
 import { APIGatewayEvent } from 'aws-lambda'
 import {
+	AlertUpsertEmail,
 	ErrorAlertEmail,
+	ErrorsAlertV2Email,
 	LogAlertEmail,
+	LogsAlertV2Email,
+	MetricsAlertV2Email,
 	NewSessionAlertEmail,
 	NewUserAlertEmail,
 	RageClickAlertEmail,
 	SessionInsightsEmail,
+	SessionsAlertV2Email,
+	TracesAlertV2Email,
 	TrackEventPropertiesAlertEmail,
 	TrackUserPropertiesAlertEmail,
 } from '../emails'
@@ -50,6 +56,18 @@ const getEmailTemplate = (template: string) => {
 			return TrackEventPropertiesAlertEmail
 		case 'track-user-properties-alert':
 			return TrackUserPropertiesAlertEmail
+		case 'sessions-alert':
+			return SessionsAlertV2Email
+		case 'errors-alert':
+			return ErrorsAlertV2Email
+		case 'logs-alert':
+			return LogsAlertV2Email
+		case 'traces-alert':
+			return TracesAlertV2Email
+		case 'metrics-alert':
+			return MetricsAlertV2Email
+		case 'alert-upsert':
+			return AlertUpsertEmail
 		default:
 			console.error('No email template found for ', template)
 	}

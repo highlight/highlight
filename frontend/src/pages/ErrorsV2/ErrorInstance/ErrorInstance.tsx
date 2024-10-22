@@ -317,7 +317,7 @@ const Metadata: React.FC<{
 						meta.key === 'timestamp'
 							? moment(meta.label as string).format(
 									'M/D/YY h:mm:ss.SSS A',
-							  )
+								)
 							: meta.label
 					return (
 						<Box display="flex" gap="6" key={meta.key}>

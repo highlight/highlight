@@ -3,6 +3,7 @@ package util
 import (
 	"context"
 	"flag"
+
 	"github.com/highlight-run/highlight/backend/env"
 	log "github.com/sirupsen/logrus"
 )
@@ -51,6 +52,7 @@ const (
 	PublicWorkerDataSync     Handler = "public-worker-datasync"
 	PublicWorkerTraces       Handler = "public-worker-traces"
 	AutoResolveStaleErrors   Handler = "auto-resolve-stale-errors"
+	StartSessionDeleteJob    Handler = "start-session-delete-job"
 )
 
 func (lt Handler) IsValid() bool {

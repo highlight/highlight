@@ -11,14 +11,19 @@
 			"outputs": ["dist/**/*.d.ts"]
 		},
 		"highlight.run#typegen": {
-			"dependsOn": ["@highlight-run/client#typegen"],
-			"inputs": ["src/**/*.tsx", "src/**/*.ts", "tsconfig.json"],
+			"dependsOn": [
+				"rrweb#build",
+				"@rrweb/rrweb-plugin-sequential-id-record#build",
+				"@rrweb/types#build"
+			],
+			"inputs": [
+				"../client/src/**/*.tsx",
+				"../client/src/**/*.ts",
+				"src/**/*.tsx",
+				"src/**/*.ts",
+				"tsconfig.json"
+			],
 			"outputs": ["dist/**/*.d.ts"]
-		},
-		"highlight.run#build": {
-			"dependsOn": ["typegen", "@highlight-run/client#build"],
-			"inputs": ["src/**/*.tsx", "src/**/*.ts", "tsconfig.json"],
-			"outputs": ["dist/**"]
 		},
 		"highlight.io#build": {
 			"dependsOn": ["^build"],
@@ -48,15 +53,17 @@
 			"outputs": ["dist/**"]
 		},
 		"codegen": {
-			"inputs": ["../**/*.gql", "../**/*.graphqls"],
-			"outputs": ["src/graph/generated/**"]
+			"inputs": ["./**/*.gql", "./**/*.graphqls"],
+			"outputs": ["src/graph/generated/**"],
+			"cache": false
 		},
 		"typegen": {
-			"dependsOn": ["^typegen"],
+			"dependsOn": ["^typegen", "codegen"],
 			"inputs": [
 				"src/**/*.tsx",
 				"src/**/*.ts",
 				"tsconfig.json",
+				"tsconfig.tsbuildinfo",
 				"./**/*.graphqls"
 			],
 			"outputs": [
@@ -77,7 +84,7 @@
 			"cache": false
 		},
 		"build": {
-			"dependsOn": ["codegen", "typegen", "^build"],
+			"dependsOn": ["^build", "typegen"],
 			"outputs": [
 				"lib/**",
 				"es/**",
@@ -92,12 +99,14 @@
 				"REACT_APP_FIREBASE_CONFIG_OBJECT",
 				"REACT_APP_FRONTEND_ORG",
 				"REACT_APP_FRONTEND_URI",
+				"REACT_APP_DISABLE_ANALYTICS",
 				"REACT_APP_FRONT_INTEGRATION_CLIENT_ID",
 				"REACT_APP_IN_DOCKER",
 				"REACT_APP_PRIVATE_GRAPH_URI",
 				"REACT_APP_PUBLIC_GRAPH_URI",
 				"REACT_APP_STRIPE_API_PK",
 				"REACT_APP_VERCEL_INTEGRATION_NAME",
+				"REACT_APP_OTLP_ENDPOINT",
 
 				"CLICKUP_CLIENT_ID",
 				"DEMO_PROJECT_ID",
@@ -114,10 +123,11 @@
 			]
 		},
 		"dev": {
-			"dependsOn": ["typegen", "^build"],
+			"dependsOn": ["^build", "typegen"],
 			"env": [
 				"REACT_APP_AUTH_MODE",
 				"REACT_APP_COMMIT_SHA",
+				"REACT_APP_DISABLE_ANALYTICS",
 				"REACT_APP_FIREBASE_CONFIG_OBJECT",
 				"REACT_APP_FRONTEND_ORG",
 				"REACT_APP_FRONTEND_URI",
@@ -127,6 +137,7 @@
 				"REACT_APP_PUBLIC_GRAPH_URI",
 				"REACT_APP_STRIPE_API_PK",
 				"REACT_APP_VERCEL_INTEGRATION_NAME",
+				"REACT_APP_OTLP_ENDPOINT",
 
 				"CLICKUP_CLIENT_ID",
 				"DEMO_PROJECT_ID",

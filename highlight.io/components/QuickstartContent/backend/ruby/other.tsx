@@ -18,21 +18,6 @@ export const RubyOtherContent: QuickStartContent = {
 		frontendInstallSnippet,
 		installSdk,
 		initializeSdk,
-		{
-			title: 'Add Highlight tracing.',
-			content:
-				'`trace` will automatically record raised exceptions and send them to Highlight.',
-			code: [
-				{
-					text: `require "highlight"
-
-Highlight::H.instance.trace(nil, nil) do
-  # your code here
-end`,
-					language: 'ruby',
-				},
-			],
-		},
 		verifyErrors,
 		customError,
 		setUpLogging('other'),

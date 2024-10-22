@@ -379,7 +379,7 @@ export const NewCommentForm = ({
 						getCommentMentionSuggestions(mentionSuggestionsData),
 						admin,
 						mentionedAdmins,
-				  )
+					)
 				: [],
 		[admin, isLoggedIn, mentionSuggestionsData, mentionedAdmins],
 	)

@@ -4,7 +4,7 @@ import { ContainerSelectionProps } from '@pages/IntegrationsPage/IssueTrackerInt
 import useLocalStorage from '@rehooks/local-storage'
 import { useEffect, useMemo } from 'react'
 
-import { OptionDropdown } from '@/pages/Graphing/GraphingEditor'
+import { OptionDropdown } from '@/pages/Graphing/OptionDropdown'
 
 const JiraProjectAndIssueTypeSelector: React.FC<ContainerSelectionProps> = ({
 	setSelectionId,
@@ -18,7 +18,7 @@ const JiraProjectAndIssueTypeSelector: React.FC<ContainerSelectionProps> = ({
 			(data?.jira_projects || []).map((team: any) => ({
 				value: team.id,
 				id: team.id,
-				displayValue: `${team.name} (${team.key})`,
+				name: `${team.name} (${team.key})`,
 			})) || []
 		)
 	}, [data?.jira_projects])
@@ -35,14 +35,14 @@ const JiraProjectAndIssueTypeSelector: React.FC<ContainerSelectionProps> = ({
 	const selectedJiraProject = selectedJiraProjectId
 		? (data?.jira_projects || []).find(
 				(p) => p.id === selectedJiraProjectId,
-		  )
+			)
 		: null
 
 	const jiraIssueTypeOptions = (selectedJiraProject?.issueTypes || []).map(
 		(issueType: any) => ({
 			value: issueType.id,
 			id: issueType.id,
-			displayValue: `${issueType.name} - (${issueType.description})`,
+			name: `${issueType.name} - (${issueType.description})`,
 		}),
 	)
 
@@ -66,8 +66,7 @@ const JiraProjectAndIssueTypeSelector: React.FC<ContainerSelectionProps> = ({
 		<>
 			<Form.NamedSection label="Project" name="jiraProject">
 				<OptionDropdown
-					options={jiraProjectsOptions.map((o) => o.id)}
-					labels={jiraProjectsOptions.map((o) => o.displayValue)}
+					options={jiraProjectsOptions}
 					selection={selectedJiraProjectId}
 					setSelection={setJiraProjectId}
 					disabled={disabled}
@@ -75,8 +74,7 @@ const JiraProjectAndIssueTypeSelector: React.FC<ContainerSelectionProps> = ({
 			</Form.NamedSection>
 			<Form.NamedSection label="Issue Type" name="jiraIssue">
 				<OptionDropdown
-					options={jiraIssueTypeOptions.map((o) => o.id)}
-					labels={jiraIssueTypeOptions.map((o) => o.displayValue)}
+					options={jiraIssueTypeOptions}
 					selection={selectedJiraIssueTypeId}
 					setSelection={setJiraIssueTypeId}
 					disabled={disabled}

@@ -61,8 +61,8 @@ export const Calendar: FC<CalendarProps> = ({
 							range: hasSelectedRange
 								? d.range
 								: isHoveringOverDisabledDay
-								? ''
-								: d.range,
+									? ''
+									: d.range,
 						}}
 						key={d.$date.toString()}
 						onMouseEnter={function () {

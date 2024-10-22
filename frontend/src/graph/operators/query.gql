@@ -573,8 +573,11 @@ query GetSessions(
 			last_user_interaction_time
 			is_public
 			excluded
+			email
 		}
 		totalCount
+		totalLength
+		totalActiveLength
 	}
 }
 
@@ -598,6 +601,9 @@ query GetSessionsHistogram(
 query GetSessionUsersReports($project_id: ID!, $params: QueryInput!) {
 	session_users_report(project_id: $project_id, params: $params) {
 		key
+		email
+		first_session
+		last_session
 		num_sessions
 		num_days_visited
 		num_months_visited
@@ -1864,6 +1870,74 @@ query GetAlertsPagePayload($project_id: ID!) {
 		Type
 		query
 	}
+	alerts(project_id: $project_id) {
+		id
+		updated_at
+		name
+		product_type
+		disabled
+		destinations {
+			id
+			destination_type
+			type_id
+			type_name
+		}
+	}
+}
+
+query GetAlert($id: ID!) {
+	alert(id: $id) {
+		id
+		project_id
+		updated_at
+		name
+		product_type
+		function_type
+		function_column
+		query
+		group_by_key
+		disabled
+		last_admin_to_edit_id
+		below_threshold
+		threshold_value
+		threshold_window
+		threshold_cooldown
+		destinations {
+			id
+			destination_type
+			type_id
+			type_name
+		}
+	}
+}
+
+query GetAlertingAlertStateChanges(
+	$alert_id: ID!
+	$start_date: Timestamp!
+	$end_date: Timestamp!
+	$page: Int
+) {
+	alerting_alert_state_changes(
+		alert_id: $alert_id
+		start_date: $start_date
+		end_date: $end_date
+		page: $page
+	) {
+		totalCount
+		alertStateChanges {
+			timestamp
+			state
+			groupByKey
+		}
+	}
+}
+
+query GetLastAlertStateChanges($alert_id: ID!) {
+	last_alert_state_changes(alert_id: $alert_id) {
+		timestamp
+		state
+		groupByKey
+	}
 }
 
 query GetMetricMonitors($project_id: ID!, $metric_name: String!) {
@@ -2050,6 +2124,7 @@ query GetLogs(
 	$before: String
 	$at: String
 	$direction: SortDirection!
+	$limit: Int
 ) {
 	logs(
 		project_id: $project_id
@@ -2058,6 +2133,7 @@ query GetLogs(
 		before: $before
 		at: $at
 		direction: $direction
+		limit: $limit
 	) {
 		edges {
 			cursor
@@ -2083,21 +2159,6 @@ query GetLogs(
 			endCursor
 		}
 	}
-}
-
-query GetSessionLogs($project_id: ID!, $params: QueryInput!) {
-	sessionLogs(project_id: $project_id, params: $params) {
-		cursor
-		node {
-			timestamp
-			level
-			message
-		}
-	}
-}
-
-query GetLogsTotalCount($project_id: ID!, $params: QueryInput!) {
-	logs_total_count(project_id: $project_id, params: $params)
 }
 
 query GetLogsHistogram($project_id: ID!, $params: QueryInput!) {
@@ -2184,12 +2245,20 @@ query GetWorkspaceSettings($workspace_id: ID!) {
 		ai_application
 		ai_query_builder
 		ai_insights
-		enable_session_export
-		enable_unlisted_sharing
-		enable_ingest_sampling
+		enable_billing_limits
+		enable_business_dashboards
+		enable_business_projects
+		enable_business_retention
+		enable_business_seats
 		enable_data_deletion
 		enable_grafana_dashboard
+		enable_ingest_filtering
+		enable_ingest_sampling
+		enable_network_traces
 		enable_project_level_access
+		enable_project_level_access
+		enable_session_export
+		enable_unlisted_sharing
 	}
 }
 
@@ -2200,7 +2269,7 @@ query GetSystemConfiguration {
 	}
 }
 
-query GetErrorObjects(
+query GetErrorGroupInstances(
 	$errorGroupSecureID: String!
 	$count: Int!
 	$params: QueryInput!
@@ -2217,7 +2286,6 @@ query GetErrorObjects(
 			createdAt
 			event
 			timestamp
-			errorGroupSecureID
 			serviceVersion
 			serviceName
 			session {
@@ -2226,6 +2294,38 @@ query GetErrorObjects(
 				fingerprint
 				excluded
 			}
+			errorGroupSecureID
+		}
+		totalCount
+	}
+}
+
+query GetErrorObjects(
+	$project_id: String!
+	$count: Int!
+	$params: QueryInput!
+	$page: Int
+) {
+	error_objects(
+		project_id: $project_id
+		count: $count
+		params: $params
+		page: $page
+	) {
+		error_objects {
+			id
+			createdAt
+			event
+			timestamp
+			serviceVersion
+			serviceName
+			session {
+				secureID
+				email
+				fingerprint
+				excluded
+			}
+			errorGroupSecureID
 		}
 		totalCount
 	}
@@ -2303,11 +2403,13 @@ query MatchErrorTag($query: String!) {
 query GetTrace(
 	$project_id: ID!
 	$trace_id: String!
+	$timestamp: Timestamp!
 	$session_secure_id: String
 ) {
 	trace(
 		project_id: $project_id
 		trace_id: $trace_id
+		timestamp: $timestamp
 		session_secure_id: $session_secure_id
 	) {
 		trace {
@@ -2357,6 +2459,7 @@ query GetTraces(
 	$before: String
 	$at: String
 	$direction: SortDirection!
+	$limit: Int
 ) {
 	traces(
 		project_id: $project_id
@@ -2365,6 +2468,7 @@ query GetTraces(
 		before: $before
 		at: $at
 		direction: $direction
+		limit: $limit
 	) {
 		edges {
 			cursor
@@ -2437,11 +2541,12 @@ query GetTracesMetrics(
 }
 
 query GetKeys(
-	$product_type: ProductType!
+	$product_type: ProductType
 	$project_id: ID!
 	$date_range: DateRangeRequiredInput!
 	$query: String
 	$type: KeyType
+	$event: String
 ) {
 	keys(
 		product_type: $product_type
@@ -2449,6 +2554,7 @@ query GetKeys(
 		date_range: $date_range
 		query: $query
 		type: $type
+		event: $event
 	) {
 		name
 		type
@@ -2456,16 +2562,22 @@ query GetKeys(
 }
 
 query GetKeyValues(
-	$product_type: ProductType!
+	$product_type: ProductType
 	$project_id: ID!
 	$key_name: String!
 	$date_range: DateRangeRequiredInput!
+	$query: String!
+	$count: Int!
+	$event: String
 ) {
 	key_values(
 		product_type: $product_type
 		project_id: $project_id
 		key_name: $key_name
 		date_range: $date_range
+		query: $query
+		count: $count
+		event: $event
 	)
 }
 
@@ -2478,6 +2590,7 @@ query GetMetrics(
 	$group_by: [String!]!
 	$bucket_by: String!
 	$bucket_count: Int
+	$bucket_window: Int
 	$limit: Int
 	$limit_aggregator: MetricAggregator
 	$limit_column: String
@@ -2490,6 +2603,7 @@ query GetMetrics(
 		metric_types: $metric_types
 		group_by: $group_by
 		bucket_by: $bucket_by
+		bucket_window: $bucket_window
 		bucket_count: $bucket_count
 		limit: $limit
 		limit_aggregator: $limit_aggregator
@@ -2514,6 +2628,13 @@ query GetVisualization($id: ID!) {
 		updatedAt
 		projectId
 		name
+		timePreset
+		variables {
+			key
+			defaultValues
+			suggestionType
+			field
+		}
 		graphs {
 			id
 			type
@@ -2522,12 +2643,17 @@ query GetVisualization($id: ID!) {
 			query
 			metric
 			functionType
-			groupByKey
+			groupByKeys
 			bucketByKey
 			bucketCount
+			bucketInterval
 			limit
 			limitFunctionType
 			limitMetric
+			funnelSteps {
+				title
+				query
+			}
 			display
 			nullHandling
 		}
@@ -2558,6 +2684,13 @@ query GetVisualizations(
 			updatedAt
 			projectId
 			name
+			timePreset
+			variables {
+				key
+				defaultValues
+				suggestionType
+				field
+			}
 			graphs {
 				id
 				type
@@ -2566,12 +2699,17 @@ query GetVisualizations(
 				query
 				metric
 				functionType
-				groupByKey
+				groupByKeys
 				bucketByKey
 				bucketCount
+				bucketInterval
 				limit
 				limitFunctionType
 				limitMetric
+				funnelSteps {
+					title
+					query
+				}
 				display
 				nullHandling
 			}

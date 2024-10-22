@@ -1,5 +1,8 @@
 import { useAuthContext } from '@authentication/AuthContext'
-import { DEMO_WORKSPACE_PROXY_APPLICATION_ID } from '@components/DemoWorkspaceButton/DemoWorkspaceButton'
+import {
+	DEMO_PROJECT_ID,
+	DEMO_WORKSPACE_PROXY_APPLICATION_ID,
+} from '@components/DemoWorkspaceButton/DemoWorkspaceButton'
 import ProjectPicker from '@components/Header/components/ProjectPicker/ProjectPicker'
 import { betaTag, linkStyle } from '@components/Header/styles.css'
 import { useBillingHook } from '@components/Header/useBillingHook'
@@ -14,11 +17,11 @@ import {
 	Badge,
 	Box,
 	ButtonIcon,
+	IconProps,
 	IconSolidArrowSmLeft,
 	IconSolidArrowSmRight,
 	IconSolidAtSymbol,
 	IconSolidChartBar,
-	IconSolidChat,
 	IconSolidCheck,
 	IconSolidCog,
 	IconSolidDesktopComputer,
@@ -41,7 +44,6 @@ import {
 	TextLink,
 } from '@highlight-run/ui/components'
 import { vars } from '@highlight-run/ui/vars'
-import useFeatureFlag, { Feature } from '@hooks/useFeatureFlag/useFeatureFlag'
 import { useLocalStorageProjectId, useProjectId } from '@hooks/useProjectId'
 import SvgHighlightLogoOnLight from '@icons/HighlightLogoOnLight'
 import SvgXIcon from '@icons/XIcon'
@@ -56,7 +58,6 @@ import analytics from '@util/analytics'
 import { auth } from '@util/auth'
 import { isProjectWithinTrial } from '@util/billing/billing'
 import { titleCaseString } from '@util/string'
-import { showSupportMessage } from '@util/window'
 import { Divider } from 'antd'
 import clsx from 'clsx'
 import moment from 'moment'
@@ -72,6 +73,7 @@ import { generateRandomColor } from '@/util/color'
 import { CalendlyButton } from '../CalendlyModal/CalendlyButton'
 import { CommandBar as CommandBarV1 } from './CommandBar/CommandBar'
 import styles from './Header.module.css'
+import InkeepChatSupportMenuItem from '@/components/Header/InkeepChatSupportMenuItem'
 
 type Props = {
 	fullyIntegrated?: boolean
@@ -151,7 +153,6 @@ export const Header: React.FC<Props> = ({ fullyIntegrated }) => {
 	const { projectId } = useProjectId()
 	const { projectId: localStorageProjectId } = useLocalStorageProjectId()
 	const { isLoggedIn, signOut } = useAuthContext()
-	const showMetrics = useFeatureFlag(Feature.Metrics)
 	const { allProjects, currentWorkspace } = useApplicationContext()
 	const workspaceId = currentWorkspace?.id
 	const localStorageProject = allProjects?.find(
@@ -175,7 +176,11 @@ export const Header: React.FC<Props> = ({ fullyIntegrated }) => {
 
 	const { isProjectLevelMember } = useAuthContext()
 
-	const pages = [
+	const pages: {
+		key: string
+		icon: ({ size, ...props }: IconProps) => JSX.Element
+		isBeta?: boolean
+	}[] = [
 		{
 			key: 'sessions',
 			icon: IconSolidPlayCircle,
@@ -195,8 +200,6 @@ export const Header: React.FC<Props> = ({ fullyIntegrated }) => {
 		{
 			key: 'metrics',
 			icon: IconSolidChartBar,
-			isBeta: true,
-			hidden: !showMetrics,
 		},
 		{
 			key: 'alerts',
@@ -291,9 +294,6 @@ export const Header: React.FC<Props> = ({ fullyIntegrated }) => {
 							{projectId && !isSettings && (
 								<Box display="flex" alignItems="center" gap="4">
 									{pages.map((p) => {
-										if (p.hidden) {
-											return null
-										}
 										return (
 											<LinkButton
 												iconLeft={
@@ -437,8 +437,7 @@ export const Header: React.FC<Props> = ({ fullyIntegrated }) => {
 							justifyContent="flex-end"
 							alignItems="center"
 							gap="12"
-							style={{ zIndex: 20000 }}
-							width="full"
+							style={{ zIndex: 20000, minWidth: 400 }}
 						>
 							{!!projectId &&
 								!fullyIntegrated &&
@@ -601,7 +600,7 @@ export const Header: React.FC<Props> = ({ fullyIntegrated }) => {
 														emphasis="low"
 														kind="secondary"
 														onClick={(e: any) =>
-															e.preventDefault()
+															e.stopPropagation()
 														}
 													>
 														<Box
@@ -704,7 +703,7 @@ export const Header: React.FC<Props> = ({ fullyIntegrated }) => {
 																			</Menu.Item>
 																		)
 																	},
-															  )}
+																)}
 														<Divider className="mb-0 mt-1" />
 														<Link
 															to="/new"
@@ -769,28 +768,7 @@ export const Header: React.FC<Props> = ({ fullyIntegrated }) => {
 													</Menu.List>
 												</Menu>
 											</Menu.Item>
-											<Menu.Item
-												onClick={() => {
-													showSupportMessage()
-												}}
-											>
-												<Box
-													display="flex"
-													alignItems="center"
-													gap="4"
-												>
-													<IconSolidChat
-														size={14}
-														color={
-															vars.theme
-																.interactive
-																.fill.secondary
-																.content.text
-														}
-													/>
-													Chat / Support
-												</Box>
-											</Menu.Item>
+											<InkeepChatSupportMenuItem />
 											<a
 												href="https://www.highlight.io/docs"
 												className={linkStyle}
@@ -897,7 +875,7 @@ const BillingBanner: React.FC = () => {
 	})
 	const { data, loading } = useGetBillingDetailsForProjectQuery({
 		variables: { project_id: projectId! },
-		skip: !projectId,
+		skip: !projectId || projectId === DEMO_PROJECT_ID,
 	})
 	const [hasReportedTrialExtension, setHasReportedTrialExtension] =
 		useLocalStorage('highlightReportedTrialExtension', false)
@@ -981,8 +959,8 @@ const BillingBanner: React.FC = () => {
 
 	if (!bannerMessage && !hasTrial) {
 		const isLaunchWeek = moment().isBetween(
-			'2024-04-29T16:00:00Z', // 9AM PST
-			'2024-05-04T16:00:00Z',
+			'2024-07-29T16:00:00Z', // 9AM PST
+			'2024-08-03T16:00:00Z',
 		)
 		if (isLaunchWeek) {
 			return <LaunchWeekBanner />
@@ -1090,10 +1068,10 @@ const LaunchWeekBanner = () => {
 
 	const bannerMessage = (
 		<span>
-			Launch Week 5 is here.{' '}
+			Launch Week 6 is here.{' '}
 			<a
 				target="_blank"
-				href="https://www.highlight.io/blog/tag/launch-week-5"
+				href="https://www.youtube.com/playlist?list=PLtIz-bpzHkhhXNuWXTohSbozKz3t-WjOR"
 				className={styles.trialLink}
 				rel="noreferrer"
 			>

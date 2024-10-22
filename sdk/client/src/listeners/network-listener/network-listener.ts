@@ -1,12 +1,12 @@
 import { NetworkRecordingOptions } from '../../types/client'
 import { FetchListener } from './utils/fetch-listener'
 import { RequestResponsePair } from './utils/models'
-import { XHRListener } from './utils/xhr-listener'
 import {
 	WebSocketEventListenerCallback,
 	WebSocketListener,
 	WebSocketRequestListenerCallback,
 } from './utils/web-socket-listener'
+import { XHRListener } from './utils/xhr-listener'
 
 export type NetworkListenerCallback = (
 	requestResponsePair: RequestResponsePair,
@@ -19,10 +19,10 @@ type NetworkListenerArguments = {
 	webSocketEventCallback: WebSocketEventListenerCallback
 	disableWebSocketRecording: boolean
 	bodyKeysToRedact: string[]
-	backendUrl: string
+	highlightEndpoints: string[]
 	tracingOrigins: boolean | (string | RegExp)[]
 	urlBlocklist: string[]
-	sessionSecureID: string
+	otelEnabled: boolean
 } & Pick<NetworkRecordingOptions, 'bodyKeysToRecord'>
 
 export const NetworkListener = ({
@@ -32,27 +32,29 @@ export const NetworkListener = ({
 	webSocketEventCallback,
 	disableWebSocketRecording,
 	bodyKeysToRedact,
-	backendUrl,
+	highlightEndpoints,
 	tracingOrigins,
 	urlBlocklist,
-	sessionSecureID,
 	bodyKeysToRecord,
+	otelEnabled,
 }: NetworkListenerArguments) => {
 	const removeXHRListener = XHRListener(
 		xhrCallback,
-		backendUrl,
+		highlightEndpoints,
 		tracingOrigins,
 		urlBlocklist,
 		bodyKeysToRedact,
 		bodyKeysToRecord,
+		otelEnabled,
 	)
 	const removeFetchListener = FetchListener(
 		fetchCallback,
-		backendUrl,
+		highlightEndpoints,
 		tracingOrigins,
 		urlBlocklist,
 		bodyKeysToRedact,
 		bodyKeysToRecord,
+		otelEnabled,
 	)
 
 	const removeWebSocketListener = !disableWebSocketRecording
@@ -60,7 +62,7 @@ export const NetworkListener = ({
 				webSocketRequestCallback,
 				webSocketEventCallback,
 				urlBlocklist,
-		  )
+			)
 		: () => {}
 
 	return () => {

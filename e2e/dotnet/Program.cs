@@ -1,47 +1,62 @@
 using System.Diagnostics;
-using dotnet;
-using OpenTelemetry.Trace;
+using dotnet.Components;
 using Serilog;
 
+const string serviceName = "example-dotnet-backend";
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
-builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+builder.Services.AddRazorComponents()
+    .AddInteractiveServerComponents();
 
+// Setup Highlight Instrumentation
+builder.Services
+    .AddHighlightInstrumentation(options => {
+        options.ProjectId = "1";
+        options.ServiceName = "example-dotnet-backend";
+        options.OtlpEndpoint = "http://localhost:4318";
+    });
+builder.Logging
+    .AddHighlightInstrumentation(options => {
+        options.ProjectId = "1";
+        options.ServiceName = "example-dotnet-backend";
+        options.OtlpEndpoint = "http://localhost:4318";
+    });
 Log.Logger = new LoggerConfiguration()
-    .Enrich.WithMachineName()
-    .Enrich.With<HighlightLogEnricher>()
+    .Enrich.WithHighlight()
     .Enrich.FromLogContext()
-    .WriteTo.Async(async =>
-        async.OpenTelemetry(options =>
-        {
-            options.Endpoint = HighlightConfig.LogsEndpoint;
-            options.Protocol = HighlightConfig.Protocol;
-            options.ResourceAttributes = HighlightConfig.ResourceAttributes;
-        })
-    )
+    .WriteTo.HighlightOpenTelemetry(options =>
+                     {
+                         options.ProjectId = "1";
+                         options.ServiceName = serviceName;
+                         options.OtlpEndpoint = "http://localhost:4318";
+                     })
     .CreateLogger();
 
-HighlightConfig.Configure(builder);
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
+if (!app.Environment.IsDevelopment())
 {
-    app.UseSwagger();
-    app.UseSwaggerUI();
+    app.UseExceptionHandler("/Error", createScopeForErrors: true);
+    // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
+    app.UseHsts();
 }
 
 app.UseHttpsRedirection();
+
+app.UseStaticFiles();
+app.UseAntiforgery();
+
+app.MapRazorComponents<App>()
+    .AddInteractiveServerRenderMode();
 
 var summaries = new[]
 {
     "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
 };
 
-var tracer = new ActivitySource(HighlightConfig.ServiceName);
+var tracer = new ActivitySource(serviceName);
 var activityListener = new ActivityListener
 {
     ShouldListenTo = s => true,
@@ -50,8 +65,8 @@ var activityListener = new ActivityListener
 };
 ActivitySource.AddActivityListener(activityListener);
 
-app.MapGet("/weatherforecast", () =>
-    {
+app.MapGet("/api/traces",
+    () => {
         Log.Warning("stormy weather ahead");
         using var span = tracer.StartActivity("SomeWork")!;
         span.SetTag("mystring", "value");
@@ -62,38 +77,41 @@ app.MapGet("/weatherforecast", () =>
         var childSpan = tracer.StartActivity("child span")!;
         Log.Information("clear skies now");
         var forecast = Enumerable.Range(1, 5).Select(index =>
-                new WeatherForecast
-                (
-                    DateOnly.FromDateTime(DateTime.Now.AddDays(index)),
-                    Random.Shared.Next(-20, 55),
-                    summaries[Random.Shared.Next(summaries.Length)]
+                new WeatherForecast(
+                DateOnly.FromDateTime(DateTime.Now.AddDays(index)),
+                Random.Shared.Next(-20, 55),
+                summaries[Random.Shared.Next(summaries.Length)]
                 ))
             .ToArray();
 
         childSpan.SetTag("forecast", forecast[0].Summary);
-        childSpan.SetStatus(Status.Ok);
+        childSpan.SetStatus(ActivityStatusCode.Ok);
         childSpan.Stop();
-        
+
         Trace.TraceWarning("forecast incoming");
         return forecast;
     })
-    .WithName("GetWeatherForecast")
-    .WithOpenApi();
+    .WithName("GetTraces");
 
-
-app.MapGet("/error", () =>
-    {
-        Log.Warning("going to throw an exception");
-        
-        using var span = tracer.StartActivity("ShouldThrow")!;
-        throw new Exception("oh no, a random error occurred " + Guid.NewGuid());
+app.MapGet("/api/logs",
+    () => {
+        Log.Warning("just a warning log");
+        Log.Information("info log here");
+        return "hello";
     })
-    .WithName("GetError")
-    .WithOpenApi();
+    .WithName("GetLogs");
 
-app.MapGet("/", () => "Hello World!")
-    .WithName("GetRoot")
-    .WithOpenApi();
+
+app.MapGet("/api/errors",
+    () =>
+    {
+        var guid = Guid.NewGuid();
+        Log.Warning("going to throw an exception with guid {guid}", guid);
+
+        using var span = tracer.StartActivity("ShouldThrow")!;
+        throw new Exception("oh no, a random error occurred " + guid);
+    })
+    .WithName("GetErrors");
 
 app.Run();
 
@@ -101,3 +119,4 @@ record WeatherForecast(DateOnly Date, int TemperatureC, string? Summary)
 {
     public int TemperatureF => 32 + (int)(TemperatureC / 0.5556);
 }
+

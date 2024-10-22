@@ -2,8 +2,8 @@ import {
 	CLICK_NEARBY_THRESHOLD,
 	CustomLegend,
 	CustomTooltip,
-	MAX_LEGEND_ITEMS,
 	Props as LineChartProps,
+	MAX_LEGEND_ITEMS,
 } from '@components/LineChart/LineChart'
 import { RechartTooltip } from '@components/recharts/RechartTooltip/RechartTooltip'
 import { generateRandomColor } from '@util/color'
@@ -11,10 +11,10 @@ import React from 'react'
 import AutoSizer from 'react-virtualized-auto-sizer'
 import {
 	Bar,
-	BarChart as RechartsBarChart,
 	CartesianGrid,
 	Label,
 	Legend,
+	BarChart as RechartsBarChart,
 	ReferenceArea,
 	ReferenceAreaProps,
 	ReferenceLine,
@@ -71,7 +71,7 @@ const CategoricalBarChart = ({
 					(keyName) =>
 						keyName !== xAxisDataKeyName &&
 						keyName !== '__typename',
-			  )
+				)
 			: []
 	const yAxisKeys = allYAxisKeys.slice(0, MAX_LEGEND_ITEMS)
 	const gridColor = 'none'

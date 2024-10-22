@@ -96,14 +96,24 @@ type AdminAndWorkspaceDetails struct {
 	PromoCode                   *string `json:"promo_code,omitempty"`
 }
 
+type AlertDestinationInput struct {
+	DestinationType AlertDestinationType `json:"destination_type"`
+	TypeID          string               `json:"type_id"`
+	TypeName        string               `json:"type_name"`
+}
+
 type AlertStateChange struct {
-	ID            int        `json:"id"`
-	Timestamp     time.Time  `json:"timestamp"`
-	AlertID       int        `json:"AlertID"`
-	State         AlertState `json:"State"`
-	PreviousState AlertState `json:"PreviousState"`
-	Title         string     `json:"Title"`
-	GroupByKey    *string    `json:"GroupByKey,omitempty"`
+	ID         int        `json:"id"`
+	Timestamp  time.Time  `json:"timestamp"`
+	ProjectID  int        `json:"projectID"`
+	AlertID    int        `json:"alertID"`
+	State      AlertState `json:"state"`
+	GroupByKey string     `json:"groupByKey"`
+}
+
+type AlertStateChangeResults struct {
+	AlertStateChanges []*AlertStateChange `json:"alertStateChanges"`
+	TotalCount        int64               `json:"totalCount"`
 }
 
 type AllProjectSettings struct {
@@ -348,9 +358,9 @@ type ErrorObjectNode struct {
 	Event              string                  `json:"event"`
 	Timestamp          time.Time               `json:"timestamp"`
 	Session            *ErrorObjectNodeSession `json:"session,omitempty"`
-	ErrorGroupSecureID string                  `json:"errorGroupSecureID"`
 	ServiceVersion     string                  `json:"serviceVersion"`
 	ServiceName        string                  `json:"serviceName"`
+	ErrorGroupSecureID string                  `json:"errorGroupSecureID"`
 }
 
 type ErrorObjectNodeSession struct {
@@ -380,6 +390,16 @@ type ErrorTrace struct {
 	EnhancementVersion         *string             `json:"enhancementVersion,omitempty"`
 }
 
+type FunnelStep struct {
+	Title string `json:"title"`
+	Query string `json:"query"`
+}
+
+type FunnelStepInput struct {
+	Title string `json:"title"`
+	Query string `json:"query"`
+}
+
 type GitHubRepo struct {
 	RepoID string `json:"repo_id"`
 	Name   string `json:"name"`
@@ -393,23 +413,25 @@ type GitlabProject struct {
 }
 
 type GraphInput struct {
-	ID                *int              `json:"id,omitempty"`
-	VisualizationID   int               `json:"visualizationId"`
-	AfterGraphID      *int              `json:"afterGraphId,omitempty"`
-	Type              string            `json:"type"`
-	Title             string            `json:"title"`
-	ProductType       ProductType       `json:"productType"`
-	Query             string            `json:"query"`
-	Metric            string            `json:"metric"`
-	FunctionType      MetricAggregator  `json:"functionType"`
-	GroupByKey        *string           `json:"groupByKey,omitempty"`
-	BucketByKey       *string           `json:"bucketByKey,omitempty"`
-	BucketCount       *int              `json:"bucketCount,omitempty"`
-	Limit             *int              `json:"limit,omitempty"`
-	LimitFunctionType *MetricAggregator `json:"limitFunctionType,omitempty"`
-	LimitMetric       *string           `json:"limitMetric,omitempty"`
-	Display           *string           `json:"display,omitempty"`
-	NullHandling      *string           `json:"nullHandling,omitempty"`
+	ID                *int               `json:"id,omitempty"`
+	VisualizationID   int                `json:"visualizationId"`
+	AfterGraphID      *int               `json:"afterGraphId,omitempty"`
+	Type              string             `json:"type"`
+	Title             string             `json:"title"`
+	ProductType       ProductType        `json:"productType"`
+	Query             string             `json:"query"`
+	Metric            string             `json:"metric"`
+	FunctionType      MetricAggregator   `json:"functionType"`
+	GroupByKeys       pq.StringArray     `json:"groupByKeys,omitempty"`
+	BucketByKey       *string            `json:"bucketByKey,omitempty"`
+	BucketCount       *int               `json:"bucketCount,omitempty"`
+	BucketInterval    *int               `json:"bucketInterval,omitempty"`
+	Limit             *int               `json:"limit,omitempty"`
+	LimitFunctionType *MetricAggregator  `json:"limitFunctionType,omitempty"`
+	LimitMetric       *string            `json:"limitMetric,omitempty"`
+	FunnelSteps       []*FunnelStepInput `json:"funnelSteps,omitempty"`
+	Display           *string            `json:"display,omitempty"`
+	NullHandling      *string            `json:"nullHandling,omitempty"`
 }
 
 type HeightList struct {
@@ -823,17 +845,20 @@ type SessionQuery struct {
 }
 
 type SessionsReportRow struct {
-	Key                   string  `json:"key"`
-	NumSessions           uint64  `json:"num_sessions"`
-	NumDaysVisited        uint64  `json:"num_days_visited"`
-	NumMonthsVisited      uint64  `json:"num_months_visited"`
-	AvgActiveLengthMins   float64 `json:"avg_active_length_mins"`
-	MaxActiveLengthMins   float64 `json:"max_active_length_mins"`
-	TotalActiveLengthMins float64 `json:"total_active_length_mins"`
-	AvgLengthMins         float64 `json:"avg_length_mins"`
-	MaxLengthMins         float64 `json:"max_length_mins"`
-	TotalLengthMins       float64 `json:"total_length_mins"`
-	Location              string  `json:"location"`
+	Key                   string    `json:"key"`
+	Email                 string    `json:"email"`
+	NumSessions           uint64    `json:"num_sessions"`
+	FirstSession          time.Time `json:"first_session"`
+	LastSession           time.Time `json:"last_session"`
+	NumDaysVisited        uint64    `json:"num_days_visited"`
+	NumMonthsVisited      uint64    `json:"num_months_visited"`
+	AvgActiveLengthMins   float64   `json:"avg_active_length_mins"`
+	MaxActiveLengthMins   float64   `json:"max_active_length_mins"`
+	TotalActiveLengthMins float64   `json:"total_active_length_mins"`
+	AvgLengthMins         float64   `json:"avg_length_mins"`
+	MaxLengthMins         float64   `json:"max_length_mins"`
+	TotalLengthMins       float64   `json:"total_length_mins"`
+	Location              string    `json:"location"`
 }
 
 type SlackSyncResponse struct {
@@ -993,6 +1018,20 @@ type UserPropertyInput struct {
 	Value string `json:"value"`
 }
 
+type Variable struct {
+	Key            string         `json:"key"`
+	DefaultValues  []string       `json:"defaultValues"`
+	SuggestionType SuggestionType `json:"suggestionType"`
+	Field          *string        `json:"field,omitempty"`
+}
+
+type VariableInput struct {
+	Key            string         `json:"key"`
+	DefaultValues  []string       `json:"defaultValues"`
+	SuggestionType SuggestionType `json:"suggestionType"`
+	Field          *string        `json:"field,omitempty"`
+}
+
 type VercelEnv struct {
 	ID              string `json:"id"`
 	Key             string `json:"key"`
@@ -1017,10 +1056,12 @@ type VercelProjectMappingInput struct {
 }
 
 type VisualizationInput struct {
-	ID        *int   `json:"id,omitempty"`
-	ProjectID int    `json:"projectId"`
-	Name      string `json:"name"`
-	GraphIds  []int  `json:"graphIds,omitempty"`
+	ID         *int             `json:"id,omitempty"`
+	ProjectID  int              `json:"projectId"`
+	Name       *string          `json:"name,omitempty"`
+	GraphIds   []int            `json:"graphIds,omitempty"`
+	TimePreset *string          `json:"timePreset,omitempty"`
+	Variables  []*VariableInput `json:"variables,omitempty"`
 }
 
 type WebSocketEvent struct {
@@ -1097,24 +1138,26 @@ func (e AlertDestinationType) MarshalGQL(w io.Writer) {
 type AlertState string
 
 const (
-	AlertStateNormal   AlertState = "Normal"
-	AlertStatePending  AlertState = "Pending"
-	AlertStateAlerting AlertState = "Alerting"
-	AlertStateNoData   AlertState = "NoData"
-	AlertStateError    AlertState = "Error"
+	AlertStateNormal           AlertState = "Normal"
+	AlertStatePending          AlertState = "Pending"
+	AlertStateAlerting         AlertState = "Alerting"
+	AlertStateAlertingSilently AlertState = "AlertingSilently"
+	AlertStateNoData           AlertState = "NoData"
+	AlertStateError            AlertState = "Error"
 )
 
 var AllAlertState = []AlertState{
 	AlertStateNormal,
 	AlertStatePending,
 	AlertStateAlerting,
+	AlertStateAlertingSilently,
 	AlertStateNoData,
 	AlertStateError,
 }
 
 func (e AlertState) IsValid() bool {
 	switch e {
-	case AlertStateNormal, AlertStatePending, AlertStateAlerting, AlertStateNoData, AlertStateError:
+	case AlertStateNormal, AlertStatePending, AlertStateAlerting, AlertStateAlertingSilently, AlertStateNoData, AlertStateError:
 		return true
 	}
 	return false
@@ -1915,6 +1958,7 @@ const (
 	PlanTypeEnterprise PlanType = "Enterprise"
 	PlanTypeUsageBased PlanType = "UsageBased"
 	PlanTypeGraduated  PlanType = "Graduated"
+	PlanTypeBusiness   PlanType = "Business"
 )
 
 var AllPlanType = []PlanType{
@@ -1925,11 +1969,12 @@ var AllPlanType = []PlanType{
 	PlanTypeEnterprise,
 	PlanTypeUsageBased,
 	PlanTypeGraduated,
+	PlanTypeBusiness,
 }
 
 func (e PlanType) IsValid() bool {
 	switch e {
-	case PlanTypeFree, PlanTypeLite, PlanTypeBasic, PlanTypeStartup, PlanTypeEnterprise, PlanTypeUsageBased, PlanTypeGraduated:
+	case PlanTypeFree, PlanTypeLite, PlanTypeBasic, PlanTypeStartup, PlanTypeEnterprise, PlanTypeUsageBased, PlanTypeGraduated, PlanTypeBusiness:
 		return true
 	}
 	return false
@@ -1964,6 +2009,7 @@ const (
 	ProductTypeLogs     ProductType = "Logs"
 	ProductTypeTraces   ProductType = "Traces"
 	ProductTypeMetrics  ProductType = "Metrics"
+	ProductTypeEvents   ProductType = "Events"
 )
 
 var AllProductType = []ProductType{
@@ -1972,11 +2018,12 @@ var AllProductType = []ProductType{
 	ProductTypeLogs,
 	ProductTypeTraces,
 	ProductTypeMetrics,
+	ProductTypeEvents,
 }
 
 func (e ProductType) IsValid() bool {
 	switch e {
-	case ProductTypeSessions, ProductTypeErrors, ProductTypeLogs, ProductTypeTraces, ProductTypeMetrics:
+	case ProductTypeSessions, ProductTypeErrors, ProductTypeLogs, ProductTypeTraces, ProductTypeMetrics, ProductTypeEvents:
 		return true
 	}
 	return false
@@ -2182,6 +2229,79 @@ func (e ReservedErrorsJoinedKey) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(e.String()))
 }
 
+type ReservedEventKey string
+
+const (
+	ReservedEventKeyBrowserName         ReservedEventKey = "browser_name"
+	ReservedEventKeyBrowserVersion      ReservedEventKey = "browser_version"
+	ReservedEventKeyCity                ReservedEventKey = "city"
+	ReservedEventKeyCountry             ReservedEventKey = "country"
+	ReservedEventKeyEnvironment         ReservedEventKey = "environment"
+	ReservedEventKeyEvent               ReservedEventKey = "event"
+	ReservedEventKeyFirstSession        ReservedEventKey = "first_session"
+	ReservedEventKeyIdentified          ReservedEventKey = "identified"
+	ReservedEventKeyIdentifier          ReservedEventKey = "identifier"
+	ReservedEventKeyIP                  ReservedEventKey = "ip"
+	ReservedEventKeyOsName              ReservedEventKey = "os_name"
+	ReservedEventKeyOsVersion           ReservedEventKey = "os_version"
+	ReservedEventKeySecureSessionID     ReservedEventKey = "secure_session_id"
+	ReservedEventKeyServiceVersion      ReservedEventKey = "service_version"
+	ReservedEventKeySessionActiveLength ReservedEventKey = "session_active_length"
+	ReservedEventKeySessionLength       ReservedEventKey = "session_length"
+	ReservedEventKeySessionPagesVisited ReservedEventKey = "session_pages_visited"
+	ReservedEventKeyState               ReservedEventKey = "state"
+)
+
+var AllReservedEventKey = []ReservedEventKey{
+	ReservedEventKeyBrowserName,
+	ReservedEventKeyBrowserVersion,
+	ReservedEventKeyCity,
+	ReservedEventKeyCountry,
+	ReservedEventKeyEnvironment,
+	ReservedEventKeyEvent,
+	ReservedEventKeyFirstSession,
+	ReservedEventKeyIdentified,
+	ReservedEventKeyIdentifier,
+	ReservedEventKeyIP,
+	ReservedEventKeyOsName,
+	ReservedEventKeyOsVersion,
+	ReservedEventKeySecureSessionID,
+	ReservedEventKeyServiceVersion,
+	ReservedEventKeySessionActiveLength,
+	ReservedEventKeySessionLength,
+	ReservedEventKeySessionPagesVisited,
+	ReservedEventKeyState,
+}
+
+func (e ReservedEventKey) IsValid() bool {
+	switch e {
+	case ReservedEventKeyBrowserName, ReservedEventKeyBrowserVersion, ReservedEventKeyCity, ReservedEventKeyCountry, ReservedEventKeyEnvironment, ReservedEventKeyEvent, ReservedEventKeyFirstSession, ReservedEventKeyIdentified, ReservedEventKeyIdentifier, ReservedEventKeyIP, ReservedEventKeyOsName, ReservedEventKeyOsVersion, ReservedEventKeySecureSessionID, ReservedEventKeyServiceVersion, ReservedEventKeySessionActiveLength, ReservedEventKeySessionLength, ReservedEventKeySessionPagesVisited, ReservedEventKeyState:
+		return true
+	}
+	return false
+}
+
+func (e ReservedEventKey) String() string {
+	return string(e)
+}
+
+func (e *ReservedEventKey) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = ReservedEventKey(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid ReservedEventKey", str)
+	}
+	return nil
+}
+
+func (e ReservedEventKey) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
 type ReservedLogKey string
 
 const (
@@ -2249,7 +2369,6 @@ const (
 	ReservedSessionKeyCity               ReservedSessionKey = "city"
 	ReservedSessionKeyCompleted          ReservedSessionKey = "completed"
 	ReservedSessionKeyCountry            ReservedSessionKey = "country"
-	ReservedSessionKeyDeviceID           ReservedSessionKey = "device_id"
 	ReservedSessionKeyEnvironment        ReservedSessionKey = "environment"
 	ReservedSessionKeyExcluded           ReservedSessionKey = "excluded"
 	ReservedSessionKeyFirstTime          ReservedSessionKey = "first_time"
@@ -2283,7 +2402,6 @@ var AllReservedSessionKey = []ReservedSessionKey{
 	ReservedSessionKeyCity,
 	ReservedSessionKeyCompleted,
 	ReservedSessionKeyCountry,
-	ReservedSessionKeyDeviceID,
 	ReservedSessionKeyEnvironment,
 	ReservedSessionKeyExcluded,
 	ReservedSessionKeyFirstTime,
@@ -2312,7 +2430,7 @@ var AllReservedSessionKey = []ReservedSessionKey{
 
 func (e ReservedSessionKey) IsValid() bool {
 	switch e {
-	case ReservedSessionKeyActiveLength, ReservedSessionKeyBrowserName, ReservedSessionKeyBrowserVersion, ReservedSessionKeyCity, ReservedSessionKeyCompleted, ReservedSessionKeyCountry, ReservedSessionKeyDeviceID, ReservedSessionKeyEnvironment, ReservedSessionKeyExcluded, ReservedSessionKeyFirstTime, ReservedSessionKeyHasComments, ReservedSessionKeyHasErrors, ReservedSessionKeyHasRageClicks, ReservedSessionKeyIdentified, ReservedSessionKeyIdentifier, ReservedSessionKeyIP, ReservedSessionKeyLength, ReservedSessionKeyNormalness, ReservedSessionKeyOsName, ReservedSessionKeyOsVersion, ReservedSessionKeyPagesVisited, ReservedSessionKeySample, ReservedSessionKeySecureID, ReservedSessionKeyServiceVersion, ReservedSessionKeyState, ReservedSessionKeyViewedByAnyone, ReservedSessionKeyViewedByMe, ReservedSessionKeyWithinBillingQuota, ReservedSessionKeyLocState, ReservedSessionKeyProcessed, ReservedSessionKeyViewed:
+	case ReservedSessionKeyActiveLength, ReservedSessionKeyBrowserName, ReservedSessionKeyBrowserVersion, ReservedSessionKeyCity, ReservedSessionKeyCompleted, ReservedSessionKeyCountry, ReservedSessionKeyEnvironment, ReservedSessionKeyExcluded, ReservedSessionKeyFirstTime, ReservedSessionKeyHasComments, ReservedSessionKeyHasErrors, ReservedSessionKeyHasRageClicks, ReservedSessionKeyIdentified, ReservedSessionKeyIdentifier, ReservedSessionKeyIP, ReservedSessionKeyLength, ReservedSessionKeyNormalness, ReservedSessionKeyOsName, ReservedSessionKeyOsVersion, ReservedSessionKeyPagesVisited, ReservedSessionKeySample, ReservedSessionKeySecureID, ReservedSessionKeyServiceVersion, ReservedSessionKeyState, ReservedSessionKeyViewedByAnyone, ReservedSessionKeyViewedByMe, ReservedSessionKeyWithinBillingQuota, ReservedSessionKeyLocState, ReservedSessionKeyProcessed, ReservedSessionKeyViewed:
 		return true
 	}
 	return false
@@ -2930,5 +3048,48 @@ func (e *SubscriptionInterval) UnmarshalGQL(v interface{}) error {
 }
 
 func (e SubscriptionInterval) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+type SuggestionType string
+
+const (
+	SuggestionTypeNone  SuggestionType = "None"
+	SuggestionTypeValue SuggestionType = "Value"
+	SuggestionTypeKey   SuggestionType = "Key"
+)
+
+var AllSuggestionType = []SuggestionType{
+	SuggestionTypeNone,
+	SuggestionTypeValue,
+	SuggestionTypeKey,
+}
+
+func (e SuggestionType) IsValid() bool {
+	switch e {
+	case SuggestionTypeNone, SuggestionTypeValue, SuggestionTypeKey:
+		return true
+	}
+	return false
+}
+
+func (e SuggestionType) String() string {
+	return string(e)
+}
+
+func (e *SuggestionType) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = SuggestionType(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid SuggestionType", str)
+	}
+	return nil
+}
+
+func (e SuggestionType) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(e.String()))
 }

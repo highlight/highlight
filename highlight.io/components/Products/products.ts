@@ -29,6 +29,21 @@ ReactDOM.render(
 )
 `
 
+const htmlSnippet: string = `
+
+<script src="https://unpkg.com/highlight.run"></script>
+
+H.init(
+    "<YOUR_PROJECT_ID>", // Get your project ID from https://app.highlight.io/setup
+    networkRecording: {
+        enabled: true,
+        recordHeadersAndBody: true,
+    },
+    tracingOrigins: true // Optional configuration of Highlight features
+);
+
+`
+
 const expressSnippet: string = `
 
 import { Handlers } from '@highlight-run/node'
@@ -188,6 +203,18 @@ const svelteSnippet: string = `
 ...
 `
 
+const rubySnipped: string = `
+
+require "highlight"
+
+Highlight.init("<YOUR_PROJECT_ID>", environment: "production") do |c|
+  c.service_name = "my-rails-app"
+end
+
+Rails.logger = Highlight::Logger.new(STDOUT)
+
+`
+
 export const PRODUCTS: { [k: string]: iProduct } = {
 	react: {
 		type: 'frontend',
@@ -239,7 +266,7 @@ export const PRODUCTS: { [k: string]: iProduct } = {
 	},
 	express: {
 		type: 'backend',
-		docsLink: '/docs/getting-started/4_backend-sdk/express',
+		docsLink: '/docs/getting-started/backend-sdk/express',
 		slug: 'express',
 		title: 'Express',
 		types: ['Backend', 'Frontend'],
@@ -248,7 +275,7 @@ export const PRODUCTS: { [k: string]: iProduct } = {
 
 	go: {
 		type: 'backend',
-		docsLink: '/docs/getting-started/4_backend-sdk/go',
+		docsLink: '/docs/getting-started/backend-sdk/go',
 		slug: 'go',
 		title: 'Golang',
 		types: ['Backend', 'Frontend'],
@@ -266,11 +293,20 @@ export const PRODUCTS: { [k: string]: iProduct } = {
 
 	node: {
 		type: 'backend',
-		docsLink: '/docs/getting-started/4_backend-sdk/nodejs',
+		docsLink: '/docs/getting-started/backend-sdk/nodejs',
 		slug: 'node',
 		title: 'Node.js',
 		types: ['Backend', 'Frontend'],
 		snippets: [nodeSnippet, defaultFrontendSnippet],
+	},
+
+	rails: {
+		type: 'backend',
+		docsLink: '/docs/getting-started/backend-sdk/ruby/rails',
+		slug: 'rails',
+		title: 'Rails',
+		types: ['Backend', 'Frontend'],
+		snippets: [rubySnipped, htmlSnippet],
 	},
 }
 

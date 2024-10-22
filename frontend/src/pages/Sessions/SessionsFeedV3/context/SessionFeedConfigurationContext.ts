@@ -11,15 +11,24 @@ export const dateTimeFormats = [
 	'ISO',
 ] as const
 
-export type SESSION_FEED_DATETIME_FORMAT = typeof dateTimeFormats[number]
+export type SESSION_FEED_DATETIME_FORMAT = (typeof dateTimeFormats)[number]
 
 export const countFormats = ['Short', 'Full'] as const
 
-export type SESSION_FEED_COUNT_FORMAT = typeof countFormats[number]
+export type SESSION_FEED_COUNT_FORMAT = (typeof countFormats)[number]
 
 export const sortOrders = ['Descending', 'Ascending'] as const
 
-export type SESSION_FEED_SORT_ORDER = typeof sortOrders[number]
+export type SESSION_FEED_SORT_ORDER = (typeof sortOrders)[number]
+
+export const resultFormats = [
+	'Count',
+	'Length',
+	'Active Length',
+	'Count/Length/ActiveLength',
+] as const
+
+export type SESSION_FEED_RESULT_FORMAT = (typeof resultFormats)[number]
 
 export interface SessionFeedConfigurationContext {
 	datetimeFormat: SESSION_FEED_DATETIME_FORMAT

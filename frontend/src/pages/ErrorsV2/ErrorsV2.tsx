@@ -9,6 +9,7 @@ import LoadingBox from '@components/LoadingBox'
 import { PreviousNextGroup } from '@components/PreviousNextGroup/PreviousNextGroup'
 import { toast } from '@components/Toaster'
 import {
+	useGetAiQuerySuggestionLazyQuery,
 	useGetAlertsPagePayloadQuery,
 	useGetErrorGroupQuery,
 	useMarkErrorGroupAsViewedMutation,
@@ -52,7 +53,7 @@ import {
 } from 'use-query-params'
 
 import { DEMO_PROJECT_ID } from '@/components/DemoWorkspaceButton/DemoWorkspaceButton'
-import { SearchContext } from '@/components/Search/SearchContext'
+import { AiSuggestion, SearchContext } from '@/components/Search/SearchContext'
 import { useRetentionPresets } from '@/components/Search/SearchForm/hooks'
 import { START_PAGE } from '@/components/SearchPagination/SearchPagination'
 import { GetErrorGroupQuery } from '@/graph/generated/operations'
@@ -64,7 +65,7 @@ import { useSearchTime } from '@/hooks/useSearchTime'
 import ErrorIssueButton from '@/pages/ErrorsV2/ErrorIssueButton/ErrorIssueButton'
 import ErrorShareButton from '@/pages/ErrorsV2/ErrorShareButton/ErrorShareButton'
 import { ErrorStateSelect } from '@/pages/ErrorsV2/ErrorStateSelect/ErrorStateSelect'
-import { useGetErrors } from '@/pages/ErrorsV2/useGetErrors'
+import { useGetErrorGroups } from '@/pages/ErrorsV2/useGetErrorGroups'
 import usePlayerConfiguration from '@/pages/Player/PlayerHook/utils/usePlayerConfiguration'
 import { useApplicationContext } from '@/routers/AppRouter/context/ApplicationContext'
 import { useIntegratedLocalStorage } from '@/util/integrated'
@@ -93,12 +94,21 @@ export default function ErrorsV2() {
 	const [query, setQuery] = useQueryParam('query', ERROR_QUERY_PARAM)
 	const [page, setPage] = useQueryParam('page', PAGE_PARAM)
 
+	const [aiMode, setAiMode] = useState(false)
+
 	const { presets } = useRetentionPresets(ProductType.Errors)
 	const initialPreset = presets[5] ?? presets.at(-1)
 
 	const searchTimeContext = useSearchTime({
 		presets: presets,
 		initialPreset: initialPreset,
+	})
+
+	const [
+		getAiQuerySuggestion,
+		{ data: aiData, error: aiError, loading: aiLoading },
+	] = useGetAiQuerySuggestionLazyQuery({
+		fetchPolicy: 'network-only',
 	})
 
 	const handleSubmit = useCallback(
@@ -109,7 +119,7 @@ export default function ErrorsV2() {
 		[setPage, setQuery],
 	)
 
-	const getErrorsData = useGetErrors({
+	const getErrorsData = useGetErrorGroups({
 		query,
 		project_id,
 		startDate: searchTimeContext.startDate,
@@ -133,11 +143,11 @@ export default function ErrorsV2() {
 	const navigation = useErrorPageNavigation(getErrorsData.errorGroupSecureIds)
 
 	const dragHandleRef = useRef<HTMLDivElement>(null)
-	const [dragging, setDragging] = useState(false)
+	const dragging = useRef(false)
 
 	const handleMouseMove = useCallback(
 		(e: MouseEvent) => {
-			if (!dragging) {
+			if (!dragging.current) {
 				return
 			}
 
@@ -148,27 +158,53 @@ export default function ErrorsV2() {
 				Math.min(Math.max(e.clientX, MIN_PANEL_WIDTH), MAX_PANEL_WIDTH),
 			)
 		},
-		[dragging, navigation],
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+		[],
 	)
 
 	const handleMouseUp = useCallback(() => {
-		setDragging(false)
+		dragging.current = false
 	}, [])
 
-	useEffect(() => {
-		if (dragging) {
-			window.addEventListener('mousemove', handleMouseMove, true)
-			window.addEventListener('mouseup', handleMouseUp, true)
-		} else {
-			window.removeEventListener('mousemove', handleMouseMove, true)
-			window.removeEventListener('mouseup', handleMouseUp, true)
+	const onAiSubmit = (aiQuery: string) => {
+		if (project_id && aiQuery.length) {
+			getAiQuerySuggestion({
+				variables: {
+					query: aiQuery,
+					project_id: project_id,
+					product_type: ProductType.Errors,
+					time_zone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+				},
+			})
 		}
+	}
+
+	const aiSuggestion = useMemo(() => {
+		const { query, date_range = {} } = aiData?.ai_query_suggestion ?? {}
+
+		return {
+			query,
+			dateRange: {
+				startDate: date_range.start_date
+					? new Date(date_range.start_date)
+					: undefined,
+				endDate: date_range.end_date
+					? new Date(date_range.end_date)
+					: undefined,
+			},
+		} as AiSuggestion
+	}, [aiData])
+
+	useEffect(() => {
+		window.addEventListener('mousemove', handleMouseMove, true)
+		window.addEventListener('mouseup', handleMouseUp, true)
 
 		return () => {
 			window.removeEventListener('mousemove', handleMouseMove, true)
 			window.removeEventListener('mouseup', handleMouseUp, true)
 		}
-	}, [dragging, handleMouseMove, handleMouseUp])
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [])
 
 	useAllHotKeys(navigation)
 
@@ -243,6 +279,12 @@ export default function ErrorsV2() {
 			page={page}
 			setPage={setPage}
 			pollingExpired={getErrorsData.pollingExpired}
+			aiMode={aiMode}
+			setAiMode={setAiMode}
+			onAiSubmit={onAiSubmit}
+			aiSuggestion={aiSuggestion}
+			aiSuggestionLoading={aiLoading}
+			aiSuggestionError={aiError}
 			{...searchTimeContext}
 		>
 			<Helmet>
@@ -262,7 +304,7 @@ export default function ErrorsV2() {
 						cssClass={styles.panelDragHandle}
 						onMouseDown={(e) => {
 							e.preventDefault()
-							setDragging(true)
+							dragging.current = true
 						}}
 					/>
 					<SearchPanel />

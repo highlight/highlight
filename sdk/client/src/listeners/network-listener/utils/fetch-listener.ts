@@ -1,15 +1,15 @@
 import {
+	Request as HighlightRequest,
+	Response as HighlightResponse,
+	RequestResponsePair,
+} from './models'
+import {
 	HIGHLIGHT_REQUEST_HEADER,
 	createNetworkRequestId,
 	getHighlightRequestHeader,
 	shouldNetworkRequestBeRecorded,
 	shouldNetworkRequestBeTraced,
 } from './utils'
-import {
-	Request as HighlightRequest,
-	Response as HighlightResponse,
-	RequestResponsePair,
-} from './models'
 
 import { NetworkListenerCallback } from '../network-listener'
 import { getBodyThatShouldBeRecorded } from './xhr-listener'
@@ -24,22 +24,29 @@ declare var window: HighlightFetchWindow & Window
 
 export const FetchListener = (
 	callback: NetworkListenerCallback,
-	backendUrl: string,
+	highlightEndpoints: string[],
 	tracingOrigins: boolean | (string | RegExp)[],
 	urlBlocklist: string[],
-	bodyKeysToRedact?: string[],
-	bodyKeysToRecord?: string[],
+	bodyKeysToRedact: string[],
+	bodyKeysToRecord: string[] | undefined,
+	otelEnabled: boolean,
 ) => {
 	const originalFetch = window._fetchProxy
 
 	window._fetchProxy = function (input, init) {
 		const { method, url } = getFetchRequestProperties(input, init)
-		if (!shouldNetworkRequestBeRecorded(url, backendUrl, tracingOrigins)) {
+		if (
+			!shouldNetworkRequestBeRecorded(
+				url,
+				highlightEndpoints,
+				tracingOrigins,
+			)
+		) {
 			return originalFetch.call(this, input, init)
 		}
 
-		const [sessionSecureID, requestId] = createNetworkRequestId()
-		if (shouldNetworkRequestBeTraced(url, tracingOrigins)) {
+		const [sessionSecureID, requestId] = createNetworkRequestId(otelEnabled)
+		if (shouldNetworkRequestBeTraced(url, tracingOrigins, urlBlocklist)) {
 			init = init || {}
 			// Pre-existing headers could be one of three different formats; this reads all of them.
 			let headers = new Headers(init.headers)
@@ -158,46 +165,16 @@ const logRequest = (
 			}
 
 			if (shouldRecordHeaderAndBody) {
-				let text: string
-				try {
-					/**
-					 * We are using the TextDecoder because it supports a larger number of use cases.
-					 * Using just `response.text()` sometimes causes the body to fail due to the request being aborted.
-					 * https://stackoverflow.com/questions/41946457/getting-text-from-fetch-response-object
-					 */
-					const clone = response.clone()
-					const body = clone.body
-					if (body) {
-						let reader = body.getReader()
-						let utf8Decoder = new TextDecoder()
-						let nextChunk
-
-						let result = ''
-
-						while (!(nextChunk = await reader.read()).done) {
-							let partialData = nextChunk.value
-							result += utf8Decoder.decode(partialData)
-						}
-						text = result
-						text = getBodyThatShouldBeRecorded(
-							text,
-							bodyKeysToRedact,
-							bodyKeysToRecord,
-							response.headers,
-						)
-					} else {
-						text = ''
-					}
-				} catch (e) {
-					text = `Unable to clone response: ${e as string}`
-				}
-
-				responsePayload.body = text
+				responsePayload.body = await getResponseBody(
+					response,
+					bodyKeysToRecord,
+					bodyKeysToRedact,
+				)
 				// response.headers must be used as an iterable via `.entries()` to get headers
 				responsePayload.headers = Object.fromEntries(
 					response.headers.entries(),
 				)
-				responsePayload.size = text.length * 8
+				responsePayload.size = responsePayload.body.length * 8
 			}
 
 			if (
@@ -226,4 +203,46 @@ const logRequest = (
 	}
 	// Swallow any error thrown by responsePromise
 	responsePromise.then(onPromiseResolveHandler).catch(() => {})
+}
+
+export const getResponseBody = async (
+	response: Response,
+	bodyKeysToRecord: string[] | undefined,
+	bodyKeysToRedact: string[] | undefined,
+) => {
+	let text: string
+	try {
+		/**
+		 * We are using the TextDecoder because it supports a larger number of use cases.
+		 * Using just `response.text()` sometimes causes the body to fail due to the request being aborted.
+		 * https://stackoverflow.com/questions/41946457/getting-text-from-fetch-response-object
+		 */
+		const clone = response.clone()
+		const body = clone.body
+		if (body) {
+			let reader = body.getReader()
+			let utf8Decoder = new TextDecoder()
+			let nextChunk
+
+			let result = ''
+
+			while (!(nextChunk = await reader.read()).done) {
+				let partialData = nextChunk.value
+				result += utf8Decoder.decode(partialData)
+			}
+			text = result
+			text = getBodyThatShouldBeRecorded(
+				text,
+				bodyKeysToRedact,
+				bodyKeysToRecord,
+				response.headers,
+			)
+		} else {
+			text = ''
+		}
+	} catch (e) {
+		text = `Unable to clone response: ${e as string}`
+	}
+
+	return text
 }

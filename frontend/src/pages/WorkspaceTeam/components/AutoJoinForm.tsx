@@ -1,5 +1,4 @@
 import { useAuthContext } from '@authentication/AuthContext'
-import Select from '@components/Select/Select'
 import { toast } from '@components/Toaster'
 import Tooltip from '@components/Tooltip/Tooltip'
 import {
@@ -7,10 +6,12 @@ import {
 	useUpdateAllowedEmailOriginsMutation,
 } from '@graph/hooks'
 import { namedOperations } from '@graph/operations'
-import { Box, Text } from '@highlight-run/ui/components'
+import { Box, Select, Text } from '@highlight-run/ui/components'
 import { useParams } from '@util/react-router/useParams'
 import Checkbox, { CheckboxChangeEvent } from 'antd/es/checkbox'
 import React, { useState } from 'react'
+
+import { getEmailDomain } from '@/util/email'
 
 import styles from './AutoJoinForm.module.css'
 
@@ -45,6 +46,8 @@ export const AutoJoinForm: React.FC = () => {
 
 	const onChangeMsg = (domains: string[], msg: string) => {
 		setAutoJoinDomains(domains)
+		setAdminDomains(adminDomains)
+
 		if (workspace_id) {
 			updateAllowedEmailOrigins({
 				variables: {
@@ -67,8 +70,11 @@ export const AutoJoinForm: React.FC = () => {
 		}
 	}
 
-	const handleSelectChange = (domains: string[]) => {
-		onChangeMsg(domains, 'Successfully updated auto-join email domains!')
+	const handleSelectChange = (domains: { name: string; value: string }[]) => {
+		onChangeMsg(
+			domains.map((d) => d.value),
+			'Successfully updated auto-join email domains!',
+		)
 	}
 
 	return (
@@ -86,30 +92,16 @@ export const AutoJoinForm: React.FC = () => {
 					<Text>Auto-approved email domains</Text>
 				</Box>
 				<Select
-					placeholder={`${adminsEmailDomain}, acme.corp, piedpiper.com`}
-					className={styles.select}
+					creatable
+					filterable
+					displayMode="tags"
 					loading={loading}
+					placeholder={`${adminsEmailDomain}, acme.corp, piedpiper.com`}
 					value={autoJoinDomains}
-					mode="tags"
-					onChange={handleSelectChange}
-					options={adminDomains.map((emailOrigin) => ({
-						displayValue: emailOrigin,
-						id: emailOrigin,
-						value: emailOrigin,
-					}))}
+					onValueChange={handleSelectChange}
+					options={adminDomains}
 				/>
 			</div>
 		</Tooltip>
 	)
-}
-
-const getEmailDomain = (email?: string) => {
-	if (!email) {
-		return ''
-	}
-	if (!email.includes('@')) {
-		return ''
-	}
-	const [, domain] = email.split('@')
-	return domain
 }

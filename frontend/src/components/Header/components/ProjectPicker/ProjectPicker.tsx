@@ -1,3 +1,4 @@
+import EnterpriseFeatureButton from '@components/Billing/EnterpriseFeatureButton'
 import { linkStyle } from '@components/Header/styles.css'
 import {
 	Box,
@@ -47,7 +48,7 @@ const ProjectPicker = () => {
 							isSelected
 								? {
 										backgroundColor: vars.color.n2,
-								  }
+									}
 								: undefined
 						}
 					>
@@ -76,93 +77,101 @@ const ProjectPicker = () => {
 						</Box>
 					</Menu.Item>
 				)
-		  })
+			})
 		: []
 
 	const headerDisplayValue = isWorkspaceLevel
 		? 'Back to Project'
 		: isInDemoProject
-		? DEMO_PROJECT_NAME
-		: currentProject?.name
+			? DEMO_PROJECT_NAME
+			: currentProject?.name
 
 	return (
-		<div>
-			<div>
-				<Menu>
-					<Menu.Button
-						kind="secondary"
-						emphasis="medium"
-						size="small"
-						iconLeft={
-							isWorkspaceLevel ? (
-								<IconSolidArrowSmLeft size={14} />
-							) : (
-								<IconSolidBriefcase size={14} />
-							)
-						}
-					>
-						{isInDemoProject ? (
-							<Link to={SIGN_UP_ROUTE} className={linkStyle}>
-								<Text lines="1">{headerDisplayValue}</Text>
-							</Link>
+		<Box>
+			<Menu>
+				<Menu.Button
+					kind="secondary"
+					emphasis="medium"
+					size="small"
+					iconLeft={
+						isWorkspaceLevel ? (
+							<IconSolidArrowSmLeft size={14} />
 						) : (
+							<IconSolidBriefcase size={14} />
+						)
+					}
+				>
+					{isInDemoProject ? (
+						<Link to={SIGN_UP_ROUTE} className={linkStyle}>
 							<Text lines="1">{headerDisplayValue}</Text>
-						)}
-					</Menu.Button>
-					{!isInDemoProject && (
-						<Menu.List>
-							{projectOptions}
-							{projectId && (
-								<>
-									<Menu.Divider />
-									{!isProjectLevelMember && (
-										<Link
-											to={`/w/${currentWorkspace?.id}/new`}
-											state={{
-												previousLocation: location,
-											}}
+						</Link>
+					) : (
+						<Text lines="1">{headerDisplayValue}</Text>
+					)}
+				</Menu.Button>
+				{!isInDemoProject && (
+					<Menu.List>
+						{projectOptions}
+						{projectId && (
+							<>
+								<Menu.Divider />
+								{!isProjectLevelMember && (
+									<Menu.Item>
+										<EnterpriseFeatureButton
+											setting="enable_business_projects"
+											name="More than 1 project"
+											fn={async () =>
+												navigate(
+													`/w/${currentWorkspace?.id}/new`,
+													{
+														state: {
+															previousLocation:
+																location,
+														},
+													},
+												)
+											}
+											variant="basic"
 											className={linkStyle}
 										>
-											<Menu.Item>
-												<Box
-													display="flex"
-													alignItems="center"
-													gap="4"
-												>
-													<IconSolidPlusSm
-														size={14}
-														color={vars.color.n9}
-													/>
-													Create new project
-												</Box>
-											</Menu.Item>
-										</Link>
-									)}
-									<Link
-										to={`/${projectId}/settings/sessions`}
-										className={linkStyle}
-									>
-										<Menu.Item>
 											<Box
 												display="flex"
 												alignItems="center"
 												gap="4"
 											>
-												<IconSolidCog
+												<IconSolidPlusSm
 													size={14}
 													color={vars.color.n9}
 												/>
-												Project settings
+												Create new project
 											</Box>
-										</Menu.Item>
-									</Link>
-								</>
-							)}
-						</Menu.List>
-					)}
-				</Menu>
-			</div>
-		</div>
+										</EnterpriseFeatureButton>
+									</Menu.Item>
+								)}
+								<Link
+									to={`/${projectId}/settings/sessions`}
+									className={linkStyle}
+								>
+									<Menu.Item>
+										<Box
+											display="flex"
+											alignItems="center"
+											gap="4"
+										>
+											<IconSolidCog
+												size={14}
+												color={vars.color.n9}
+											/>
+											Project settings
+										</Box>
+									</Menu.Item>
+								</Link>
+							</>
+						)}
+					</Menu.List>
+				)}
+			</Menu>
+		</Box>
 	)
 }
 

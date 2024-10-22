@@ -13,7 +13,7 @@ export const PythonFlaskContext: QuickStartContent = {
 	logoUrl: siteUrl('/images/quickstart/flask.svg'),
 	entries: [
 		setupFrontendSnippet,
-		downloadSnippet('Flask'),
+		downloadSnippet(),
 		{
 			title: 'Initialize the Highlight SDK.',
 			content: 'Setup the SDK to with the Flask integration.',

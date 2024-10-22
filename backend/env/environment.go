@@ -8,6 +8,7 @@ import (
 	"github.com/samber/lo"
 	log "github.com/sirupsen/logrus"
 	"io"
+	"net/url"
 	"os"
 	"reflect"
 	"strconv"
@@ -26,16 +27,15 @@ type Configuration struct {
 	AuthJWTAccessToken          string `mapstructure:"JWT_ACCESS_SECRET"`
 	AuthMode                    string `mapstructure:"REACT_APP_AUTH_MODE"`
 	AuthWhitelistedAccount      string `mapstructure:"WHITELISTED_FIREBASE_ACCOUNT"`
-	AwsAccessKeyID              string `mapstructure:"AWS_ACCESS_KEY_ID"`
 	AwsCloudfrontDomain         string `mapstructure:"AWS_CLOUDFRONT_DOMAIN"`
 	AwsCloudfrontPrivateKey     string `mapstructure:"AWS_CLOUDFRONT_PRIVATE_KEY"`
 	AwsCloudfrontPublicKeyID    string `mapstructure:"AWS_CLOUDFRONT_PUBLIC_KEY_ID"`
+	AwsRoleArn                  string `mapstructure:"AWS_ROLE_ARN"`
 	AwsS3BucketName             string `mapstructure:"AWS_S3_BUCKET_NAME_NEW"`
 	AwsS3GithubBucketName       string `mapstructure:"AWS_S3_GITHUB_BUCKET_NAME"`
 	AwsS3ResourcesBucketName    string `mapstructure:"AWS_S3_RESOURCES_BUCKET"`
 	AwsS3SourceMapBucketName    string `mapstructure:"AWS_S3_SOURCE_MAP_BUCKET_NAME_NEW"`
 	AwsS3StagingBucketName      string `mapstructure:"AWS_S3_STAGING_BUCKET_NAME"`
-	AwsSecretAccessKey          string `mapstructure:"AWS_SECRET_ACCESS_KEY"`
 	ClearbitApiKey              string `mapstructure:"CLEARBIT_API_KEY"`
 	ClickUpClientID             string `mapstructure:"CLICKUP_CLIENT_ID"`
 	ClickUpClientSecret         string `mapstructure:"CLICKUP_CLIENT_SECRET"`
@@ -88,6 +88,10 @@ type Configuration struct {
 	LinearClientSecret          string `mapstructure:"LINEAR_CLIENT_SECRET"`
 	MicrosoftTeamsBotId         string `mapstructure:"MICROSOFT_TEAMS_BOT_ID"`
 	MicrosoftTeamsBotPassword   string `mapstructure:"MICROSOFT_TEAMS_BOT_PASSWORD"`
+	OAuthClientID               string `mapstructure:"OAUTH_CLIENT_ID"`
+	OAuthClientSecret           string `mapstructure:"OAUTH_CLIENT_SECRET"`
+	OAuthProviderUrl            string `mapstructure:"OAUTH_PROVIDER_URL"`
+	OAuthRedirectUrl            string `mapstructure:"OAUTH_REDIRECT_URL"`
 	OTLPDogfoodEndpoint         string `mapstructure:"OTLP_DOGFOOD_ENDPOINT"`
 	OTLPEndpoint                string `mapstructure:"OTLP_ENDPOINT"`
 	ObjectStorageFS             string `mapstructure:"OBJECT_STORAGE_FS"`
@@ -169,6 +173,14 @@ func GetEnterpriseEnvPublicKey() string {
 	return Config.EnterpriseEnvPublicKey
 }
 
+func GetFrontendDomain() (string, error) {
+	u, err := url.Parse(Config.FrontendUri)
+	if err != nil {
+		return "", err
+	}
+	return u.Host, nil
+}
+
 func IsDevEnv() bool {
 	return Config.Environment == "dev"
 }
@@ -214,7 +226,7 @@ func EnvironmentName() string {
 func ConsumerSpanSamplingRate() float64 {
 	i, err := strconv.ParseInt(Config.ConsumerFraction, 10, 64)
 	if err != nil {
-		i = 1_000
+		i = 1_000_000
 	}
 	return 1. / float64(i)
 }

@@ -51,10 +51,6 @@ export const titleText = style({
 	display: 'flex',
 })
 
-export const hiddenMenu = style({
-	visibility: 'hidden',
-})
-
 export const tooltipWrapper = style({
 	backgroundColor: 'white',
 	border: vars.border.divider,
@@ -68,14 +64,39 @@ export const tooltipWrapper = style({
 
 export const tooltipText = style({
 	lineHeight: '16px',
-	maxWidth: '300px',
+})
+
+export const tooltipRow = style({
+	maxWidth: '350px',
+})
+
+export const exemplarButton = style({
+	height: '16px',
+	width: '16px',
+})
+
+export const labelWrapper = style({
+	position: 'absolute',
+	backgroundColor: 'white',
+	border: vars.border.divider,
+	borderRadius: '6px',
+	minWidth: '100px',
+	display: 'flex',
+	flexDirection: 'column',
+	gap: '6px',
+	padding: '8px',
+})
+
+export const labelText = style({
+	lineHeight: '16px',
 })
 
 export const tooltipDot = style({
 	borderRadius: '50%',
-	marginRight: '4px',
 	width: 8,
 	height: 8,
+	flexShrink: 0,
+	flexGrow: 0,
 })
 
 export const disabled = style({

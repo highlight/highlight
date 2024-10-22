@@ -1,0 +1,61 @@
+﻿@page "/"
+@using System.Diagnostics
+@using Highlight
+@using Serilog
+
+<PageTitle>Home</PageTitle>
+
+<h1>Hello, world!</h1>
+
+Welcome to your new app.
+
+@if (traceId == null)
+{
+    <p>
+        <em>Loading...</em>
+    </p>
+}
+else
+{
+    <ul>
+        <li>TraceID: @traceId</li>
+        <li>SpanID: @spanId</li>
+    </ul>
+}
+
+<h2>Traces</h2>
+<button onclick="fetch('/api/traces')">Submit</button>
+
+<h2>Logs</h2>
+<button onclick="fetch('/api/logs')">Submit</button>
+
+<h2>Errors</h2>
+<button onclick="fetch('/api/errors')">Submit</button>
+
+
+@code {
+    private ActivitySource? tracer;
+    private String? traceId, spanId;
+
+    protected override void OnInitialized()
+    {
+        tracer = new ActivitySource(Highlight.OpenTelemetry.GetConfig().ServiceName);
+        var activityListener = new ActivityListener
+        {
+            ShouldListenTo = s => true,
+            SampleUsingParentId = (ref ActivityCreationOptions<string> activityOptions) => ActivitySamplingResult.AllData,
+            Sample = (ref ActivityCreationOptions<ActivityContext> activityOptions) => ActivitySamplingResult.AllData
+        };
+        ActivitySource.AddActivityListener(activityListener);
+
+        var span = tracer.StartActivity("home span")!;
+        Log.Information("hello world");
+        Trace.TraceWarning("oh no!");
+
+        span.SetTag("hi", "there");
+        span.SetStatus(ActivityStatusCode.Ok);
+        traceId = span.TraceId.ToString();
+        spanId = span.SpanId.ToString();
+        span.Stop();
+    }
+}

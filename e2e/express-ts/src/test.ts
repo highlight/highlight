@@ -1,5 +1,4 @@
 import fetch from 'node-fetch'
-import { startExpress } from './express'
 import { startApollo } from './apollo'
 
 const HIGHLIGHT_HEADER = { 'x-highlight-request': '123456/78910' }

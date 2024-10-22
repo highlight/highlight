@@ -46,6 +46,7 @@ import logger from '../../highlight.logger'
 import ChevronDown from '../../public/images/ChevronDownIcon'
 import Minus from '../../public/images/MinusIcon'
 import { readMarkdown, removeOrderingPrefix } from '../../shared/doc'
+import Image from 'next/image'
 
 const DOCS_CONTENT_PATH = path.join(process.cwd(), '../docs-content')
 const DOCS_GITHUB_LINK = `github.com/highlight/highlight/blob/main/docs-content`
@@ -68,6 +69,13 @@ export interface DocPath {
 	content: string
 }
 
+type DocLink = {
+	metadata: any
+	simple_path: string
+	array_path: string[]
+	hasContent: boolean
+}
+
 type DocData = {
 	markdownText: MDXRemoteSerializeResult | null
 	markdownTextOG?: string
@@ -75,7 +83,7 @@ type DocData = {
 	quickstartContent?: QuickStartContent
 	slug: string
 	toc: TocEntry
-	docOptions: DocPath[]
+	docOptions: DocLink[]
 	metadata?: {
 		title: string
 		metaTitle?: string
@@ -319,6 +327,34 @@ interface TocEntry {
 	children: TocEntry[]
 }
 
+// Filter quickStartContent to only include the keys that are needed for the current doc
+function getFilteredQuickStartContent(
+	newContent: string,
+	quickStartContent: any,
+) {
+	const regex = /\{(\w+(?:\["[^"]+"\])+)\}/
+	const match = newContent.match(regex)
+
+	if (match) {
+		const keyString = match[1]
+		const quickStartContentMatches = keyString
+			.split(/\["|\"]/)
+			.filter((key) => key && key !== 'quickStartContent')
+
+		const getFilteredValue = (obj: any, keys: string[]) =>
+			keys.reduce((acc, key) => acc?.[key] ?? null, obj)
+
+		const filteredQuickStartContent = quickStartContentMatches.reduceRight(
+			(obj, key) => ({ [key]: obj }),
+			getFilteredValue(quickStartContent, quickStartContentMatches),
+		)
+
+		return filteredQuickStartContent
+	} else {
+		return quickStartContent
+	}
+}
+
 export const getStaticProps: GetStaticProps<DocData> = async (context) => {
 	logger.info(
 		{ params: context?.params },
@@ -442,19 +478,34 @@ export const getStaticProps: GetStaticProps<DocData> = async (context) => {
 				? await serialize(newerContent, {
 						scope: {
 							path: currentDoc.rel_path,
-							quickStartContent,
+							// Only filter quickStartContent if it exists in the markdown
+							quickStartContent: newContent.includes(
+								'quickStartContent',
+							)
+								? getFilteredQuickStartContent(
+										newContent,
+										quickStartContent,
+									)
+								: null,
 							roadmapData: roadmapData,
 						},
 						mdxOptions: {
 							remarkPlugins: [remarkGfm],
 						},
-				  })
+					})
 				: null,
 			markdownTextOG: newContent,
 			slug: currentDoc.simple_path,
 			relPath: currentDoc.rel_path,
 			docIndex: currentDocIndex,
-			docOptions: docPaths,
+			docOptions: docPaths.map((d) => {
+				return {
+					metadata: d.metadata,
+					simple_path: d.simple_path,
+					array_path: d.array_path,
+					hasContent: d.content != '',
+				}
+			}),
 			isSdkDoc: currentDoc.isSdkDoc,
 			toc,
 			redirect,
@@ -633,7 +684,7 @@ const TableOfContents = ({
 	toc: TocEntry
 	openParent: boolean
 	openTopLevel?: boolean
-	docPaths: DocPath[]
+	docPaths: DocLink[]
 	onNavigate?: () => void
 }) => {
 	const hasChildren = !!toc?.children.length
@@ -751,7 +802,7 @@ const TableOfContents = ({
 
 const getBreadcrumbs = (
 	metadata: any,
-	docOptions: DocPath[],
+	docOptions: DocLink[],
 	docIndex: number,
 ) => {
 	const trail: { title: string; path: string; hasContent: boolean }[] = [
@@ -772,7 +823,7 @@ const getBreadcrumbs = (
 			trail.push({
 				title: nextBreadcrumb?.metadata?.title,
 				path: `/docs/${nextBreadcrumb?.simple_path}`,
-				hasContent: nextBreadcrumb?.content != '',
+				hasContent: nextBreadcrumb?.hasContent || false,
 			})
 		})
 	}
@@ -832,14 +883,14 @@ export default function DocPage({
 					metadata?.metaTitle?.length
 						? metadata?.metaTitle
 						: metadata?.title?.length
-						? metadata?.title === 'Welcome to Highlight'
-							? 'Documentation'
-							: metadata?.title
-						: ''
+							? metadata?.title === 'Welcome to Highlight'
+								? 'Documentation'
+								: metadata?.title
+							: ''
 				}
 				description={description}
 				absoluteImageUrl={`https://${
-					process.env.NEXT_PUBLIC_VERCEL_URL
+					process.env.NEXT_PUBLIC_VERCEL_PROJECT_PRODUCTION_URL
 				}/api/og/doc${relPath?.replace('.md', '')}`}
 				canonical={`/docs/${slug}`}
 			/>
@@ -959,8 +1010,8 @@ export default function DocPage({
 							{metadata?.heading
 								? metadata.heading
 								: metadata?.title
-								? metadata.title
-								: ''}
+									? metadata.title
+									: ''}
 						</h3>
 						{isSdkDoc ? (
 							<DocSection content={markdownTextOG || ''} />
@@ -1051,12 +1102,12 @@ export default function DocPage({
 															<HighlightCodeBlock
 																language={
 																	props.className
-																		? props.className
+																		? (props.className
 																				.split(
 																					'language-',
 																				)
 																				.pop() ??
-																		  'js'
+																			'js')
 																		: 'js'
 																}
 																text={
@@ -1098,9 +1149,20 @@ export default function DocPage({
 												img: (props) => {
 													return (
 														<picture>
-															<img
+															<Image
 																{...props}
-																alt={props.alt}
+																width={Number(
+																	props.width,
+																)}
+																height={Number(
+																	props.height,
+																)}
+																src={String(
+																	props.src,
+																)}
+																alt={String(
+																	props.alt,
+																)}
 																className="border rounded-lg border-divider-on-dark"
 															/>
 														</picture>

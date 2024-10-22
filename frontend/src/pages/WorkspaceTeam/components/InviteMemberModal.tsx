@@ -2,6 +2,7 @@ import Alert from '@components/Alert/Alert'
 import CopyText from '@components/CopyText/CopyText'
 import { toast } from '@components/Toaster'
 import { useSendAdminWorkspaceInviteMutation } from '@graph/hooks'
+import { namedOperations } from '@graph/operations'
 import { AdminRole } from '@graph/schemas'
 import {
 	Box,
@@ -21,20 +22,15 @@ import { StringParam, useQueryParam } from 'use-query-params'
 
 import { useAuthContext } from '@/authentication/AuthContext'
 import { Button } from '@/components/Button'
-import {
-	DISABLED_REASON_IS_ADMIN,
-	RoleOptions,
-} from '@/pages/WorkspaceTeam/components/AllMembers'
+import { RoleOptions } from '@/pages/WorkspaceTeam/components/AllMembers'
 import { useApplicationContext } from '@/routers/AppRouter/context/ApplicationContext'
 
 function InviteMemberModal({
-	showModal,
 	toggleShowModal,
 	workspaceId,
 	workspaceName,
 	workspaceInviteLinks,
 }: {
-	showModal: boolean
 	toggleShowModal: (value: boolean) => void
 	workspaceId?: string
 	workspaceName?: string
@@ -66,6 +62,7 @@ function InviteMemberModal({
 		},
 	] = useSendAdminWorkspaceInviteMutation({
 		fetchPolicy: 'no-cache',
+		refetchQueries: [namedOperations.Query.GetWorkspaceSettings],
 	})
 
 	const onSubmit = (e: { preventDefault: () => void }) => {
@@ -96,8 +93,8 @@ function InviteMemberModal({
 	const roleOptions =
 		workspaceRole === AdminRole.Admin ? RoleOptions : [RoleOptions[0]]
 
-	const disabledReason =
-		newAdminRole === AdminRole.Admin ? DISABLED_REASON_IS_ADMIN : undefined
+	// const disabledReason =
+	// 	newAdminRole === AdminRole.Admin ? DISABLED_REASON_IS_ADMIN : undefined
 
 	const inviteLink = getWorkspaceInvitationLink(
 		workspaceInviteLinks?.secret || '',
@@ -106,7 +103,6 @@ function InviteMemberModal({
 
 	return (
 		<Modal
-			open={showModal}
 			onClose={() => {
 				// TODO: This doesn't seem to be firing
 				toggleShowModal(false)

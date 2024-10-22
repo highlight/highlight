@@ -13,6 +13,7 @@ import React from 'react'
 
 import { useRelatedResource } from '@/components/RelatedResources/hooks'
 import { Trace } from '@/graph/generated/schemas'
+import { ColumnRendererProps } from '@/pages/LogsPage/LogsTable/CustomColumns/renderers'
 import { getTraceDurationString } from '@/pages/Traces/utils'
 import analytics from '@/util/analytics'
 
@@ -50,6 +51,7 @@ const ColumnWrapper: React.FC<ColumnWrapperProps> = ({
 		set({
 			type: 'trace',
 			id: trace.traceID,
+			timestamp: trace.timestamp,
 			spanID: trace.spanID,
 		})
 
@@ -87,12 +89,6 @@ const ColumnWrapper: React.FC<ColumnWrapperProps> = ({
 const EmptyState: React.FC = () => (
 	<Text color="secondaryContentOnDisabled">empty</Text>
 )
-
-type ColumnRendererProps = {
-	row: any
-	getValue: () => any
-	first: boolean
-}
 
 const StringColumnRenderer: React.FC<ColumnRendererProps> = ({
 	row,
@@ -151,7 +147,7 @@ const SessionColumnRenderer: React.FC<ColumnRendererProps> = ({
 				})
 
 				analytics.track('traces_session-column_click')
-		  }
+			}
 		: undefined
 	const paddingProps = secureSessionID
 		? { pt: '4' as const, pb: '0' as const }
@@ -225,7 +221,7 @@ const DurationRenderer: React.FC<ColumnRendererProps> = ({
 	)
 }
 
-export const ColumnRenderers = {
+export const TraceColumnRenderers = {
 	boolean: BooleanColumnRenderer,
 	datetime: DateTimeColumnRenderer,
 	duration: DurationRenderer,

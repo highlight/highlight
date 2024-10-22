@@ -1,6 +1,7 @@
 import { SearchExpression } from '@components/Search/Parser/listener'
 import {
 	Box,
+	IconSolidArrowCircleRight,
 	IconSolidPlayCircle,
 	Stack,
 	Table,
@@ -13,10 +14,17 @@ import { useNavigate } from 'react-router-dom'
 
 import { LogTimestamp } from '@/pages/LogsPage/LogsTable/LogTimestamp'
 
-type ColumnRendererProps = {
+export type ColumnRenderMap = {
+	[K: string]: React.FC<ColumnRendererProps>
+	string: React.FC<ColumnRendererProps>
+}
+
+export type ColumnRendererProps = {
 	row: any
 	getValue: () => any
+	first: boolean
 	queryParts: SearchExpression[]
+	onClick?: (edge: any) => void
 }
 
 const EmptyState: React.FC = () => (
@@ -50,7 +58,7 @@ const SessionColumnRenderer: React.FC<ColumnRendererProps> = ({
 		? (e: any) => {
 				e.stopPropagation()
 				navigate(`/${log.projectID}/sessions/${secureSessionID}`)
-		  }
+			}
 		: undefined
 	const paddingProps = secureSessionID
 		? { pt: '4' as const, pb: '0' as const }
@@ -133,10 +141,34 @@ const BodyRenderer: React.FC<ColumnRendererProps> = ({
 	)
 }
 
+const GoToLogRenderer: React.FC<ColumnRendererProps> = ({ onClick, row }) => {
+	const handleClick = (e: any) => {
+		if (!!onClick) {
+			e.stopPropagation()
+			onClick(row.original)
+		}
+	}
+
+	return (
+		<Table.Cell alignItems="center" onClick={handleClick} py="0">
+			<Tag
+				shape="basic"
+				emphasis="low"
+				kind="secondary"
+				size="small"
+				iconRight={<IconSolidArrowCircleRight />}
+			>
+				Go to
+			</Tag>
+		</Table.Cell>
+	)
+}
+
 export const ColumnRenderers = {
 	body: BodyRenderer,
 	datetime: DateTimeColumnRenderer,
 	level: LevelRenderer,
 	session: SessionColumnRenderer,
 	string: StringColumnRenderer,
+	'go-to-log': GoToLogRenderer,
 }

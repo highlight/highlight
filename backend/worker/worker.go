@@ -5,13 +5,15 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/highlight-run/highlight/backend/env"
 	"math"
 	"math/rand"
 	"sort"
 	"strconv"
 	"sync"
 	"time"
+
+	"github.com/highlight-run/highlight/backend/clickhouse"
+	"github.com/highlight-run/highlight/backend/env"
 
 	"github.com/samber/lo"
 
@@ -33,7 +35,7 @@ import (
 	delete_handlers "github.com/highlight-run/highlight/backend/lambda-functions/deleteSessions/handlers"
 
 	log_alerts "github.com/highlight-run/highlight/backend/jobs/log-alerts"
-	metric_monitor "github.com/highlight-run/highlight/backend/jobs/metric-monitor"
+	metric_alerts "github.com/highlight-run/highlight/backend/jobs/metric-alerts"
 	kafkaqueue "github.com/highlight-run/highlight/backend/kafka-queue"
 	journey_handlers "github.com/highlight-run/highlight/backend/lambda-functions/journeys/handlers"
 	"github.com/highlight-run/highlight/backend/model"
@@ -810,12 +812,36 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 	}
 
 	if len(visitFields) >= 1 {
+		landingPage := visitFields[0]
+		exitPage := visitFields[len(visitFields)-1]
 		sessionProperties := map[string]string{
-			"landing_page": visitFields[0].Value,
-			"exit_page":    visitFields[len(visitFields)-1].Value,
+			"landing_page": landingPage.Value,
+			"exit_page":    exitPage.Value,
 		}
+
 		if err := w.PublicResolver.AppendProperties(ctx, s.ID, sessionProperties, pubgraph.PropertyType.SESSION); err != nil {
 			log.WithContext(ctx).Error(e.Wrapf(err, "[processSession] error appending properties for session %d", s.ID))
+		}
+
+		sessionEvents := []*clickhouse.SessionEventRow{
+			{
+				Timestamp: landingPage.CreatedAt.UnixMicro(),
+				Event:     "Navigate",
+				Attributes: map[string]string{
+					"landing_page": landingPage.Value,
+				},
+			},
+			{
+				Timestamp: exitPage.CreatedAt.UnixMicro(),
+				Event:     "Navigate",
+				Attributes: map[string]string{
+					"exit_page": exitPage.Value,
+				},
+			},
+		}
+
+		if err := w.PublicResolver.CreateSessionEvents(ctx, s.ID, sessionEvents); err != nil {
+			log.WithContext(ctx).Error(e.Wrapf(err, "error creating session events for session %d", s.ID))
 		}
 	}
 
@@ -1101,41 +1127,22 @@ func (w *Worker) MigrateDB(ctx context.Context) {
 	}
 }
 
-func (w *Worker) StartMetricMonitorWatcher(ctx context.Context) {
-	metric_monitor.WatchMetricMonitors(ctx, w.Resolver.DB, w.Resolver.ClickhouseClient, w.Resolver.MailClient, w.Resolver.RH)
-}
-
 func (w *Worker) StartLogAlertWatcher(ctx context.Context) {
 	log_alerts.WatchLogAlerts(ctx, w.Resolver.DB, w.Resolver.MailClient, w.Resolver.RH, w.Resolver.Redis, w.Resolver.ClickhouseClient, w.Resolver.LambdaClient)
 }
 
-func (w *Worker) StartSessionDeleteJob(ctx context.Context) {
-	retentionEnv := env.Config.SessionRetentionDays
-	if retentionEnv == "" {
-		log.WithContext(ctx).Info("SESSION_RETENTION_DAYS not set, skipping SessionDeleteJob")
-		return
-	}
-	sessionRetentionDays, err := strconv.Atoi(env.Config.SessionRetentionDays)
-	if err != nil {
-		log.WithContext(ctx).Error("Error parsing SESSION_RETENTION_DAYS, skipping SessionDeleteJob")
-		return
-	}
-	if sessionRetentionDays <= 0 {
-		log.WithContext(ctx).Error("sessionRetentionDays <= 0, skipping SessionDeleteJob")
-		return
-	}
-
-	w.doSessionDeleteLoop(ctx, sessionRetentionDays)
+func (w *Worker) StartMetricAlertWatcher(ctx context.Context) {
+	metric_alerts.WatchMetricAlerts(ctx, w.Resolver.DB, w.Resolver.MailClient, w.Resolver.RH, w.Resolver.Redis, w.Resolver.ClickhouseClient, w.Resolver.LambdaClient)
 }
 
-func (w *Worker) doSessionDeleteLoop(ctx context.Context, sessionRetentionDays int) {
+func (w *Worker) StartSessionDeleteJob(ctx context.Context) {
 	log.WithContext(ctx).Info("Starting SessionDeleteJob")
 
 	deleteHandlers := delete_handlers.InitHandlers(w.Resolver.DB, w.Resolver.ClickhouseClient, nil, w.Resolver.StorageClient)
 
-	deleteHandlers.ProcessRetentionDeletions(ctx, sessionRetentionDays)
+	deleteHandlers.ProcessRetentionDeletions(ctx)
 	for range time.Tick(time.Hour * 24) {
-		deleteHandlers.ProcessRetentionDeletions(ctx, sessionRetentionDays)
+		deleteHandlers.ProcessRetentionDeletions(ctx)
 	}
 }
 
@@ -1172,22 +1179,17 @@ func (w *Worker) RefreshMaterializedViews(ctx context.Context) {
 		log.WithContext(ctx).Fatal(e.Wrap(err, "Error refreshing daily_error_counts_view"))
 	}
 
+	// skip phonehome for highlight production deployment
+	if env.IsProduction() {
+		return
+	}
+
 	type AggregateSessionCount struct {
-		WorkspaceID                      int        `json:"workspace_id"`
-		SessionCount                     int64      `json:"session_count"`
-		ErrorCount                       int64      `json:"error_count"`
-		LogCount                         int64      `json:"log_count"`
-		SessionCountLastWeek             int64      `json:"session_count_last_week"`
-		ErrorCountLastWeek               int64      `json:"error_count_last_week"`
-		LogCountLastWeek                 int64      `json:"log_count_last_week"`
-		SessionCountLastDay              int64      `json:"session_count_last_day"`
-		ErrorCountLastDay                int64      `json:"error_count_last_day"`
-		LogCountLastDay                  int64      `json:"log_count_last_day"`
-		TrialEndDate                     *time.Time `json:"trial_end_date"`
-		PlanTier                         string     `json:"plan_tier"`
-		SessionReplayIntegrated          bool       `json:"session_replay_integrated"`
-		BackendErrorMonitoringIntegrated bool       `json:"backend_error_monitoring_integrated"`
-		BackendLoggingIntegrated         bool       `json:"backend_logging_integrated"`
+		WorkspaceID  int   `json:"workspace_id"`
+		SessionCount int64 `json:"session_count"`
+		ErrorCount   int64 `json:"error_count"`
+		LogCount     int64 `json:"log_count"`
+		TraceCount   int64 `json:"trace_count"`
 	}
 	var counts []*AggregateSessionCount
 
@@ -1215,51 +1217,27 @@ func (w *Worker) RefreshMaterializedViews(ctx context.Context) {
 	}
 
 	for idx, c := range counts {
+		c.SessionCount += errorResults[idx].SessionCount
 		c.ErrorCount += errorResults[idx].ErrorCount
-		c.ErrorCountLastWeek += errorResults[idx].ErrorCountLastWeek
-		c.ErrorCountLastDay += errorResults[idx].ErrorCountLastDay
 
 		workspace := &model.Workspace{}
 		if err := w.Resolver.DB.WithContext(ctx).Preload("Projects").Model(&model.Workspace{}).Where("id = ?", c.WorkspaceID).Take(&workspace).Error; err != nil {
 			continue
 		}
-		c.TrialEndDate = workspace.TrialEndDate
-		c.PlanTier = workspace.PlanTier
-		for t, ptr := range map[model.MarkBackendSetupType]*bool{
-			model.MarkBackendSetupTypeSession: &c.SessionReplayIntegrated,
-			model.MarkBackendSetupTypeError:   &c.BackendErrorMonitoringIntegrated,
-			model.MarkBackendSetupTypeLogs:    &c.BackendLoggingIntegrated,
-		} {
-			setupEvent := model.SetupEvent{}
-			if err := w.Resolver.DB.WithContext(ctx).Model(&model.SetupEvent{}).Joins("INNER JOIN projects p on p.id = project_id").Joins("INNER JOIN workspaces w on w.id = p.workspace_id").Where("w.id = ? AND type = ?", workspace.ID, t).Take(&setupEvent).Error; err == nil {
-				*ptr = setupEvent.ID != 0
-			}
-		}
-		for _, p := range workspace.Projects {
-			backendErrors, err := w.Resolver.Query().ServerIntegration(ctx, p.ID)
-			if err == nil && backendErrors.Integrated {
-				c.BackendErrorMonitoringIntegrated = c.BackendErrorMonitoringIntegrated || backendErrors.Integrated
-			}
-			logs, err := w.Resolver.Query().LogsIntegration(ctx, p.ID)
-			if err == nil && logs.Integrated {
-				c.BackendLoggingIntegrated = c.BackendLoggingIntegrated || logs.Integrated
-			}
-			count, _ := w.Resolver.ClickhouseClient.ReadLogsTotalCount(ctx, p.ID, backend.QueryInput{DateRange: &backend.DateRangeRequiredInput{
-				StartDate: time.Now().Add(-time.Hour * 24 * 30),
-				EndDate:   time.Now(),
-			}})
-			c.LogCount += int64(count)
-			countWeek, _ := w.Resolver.ClickhouseClient.ReadLogsTotalCount(ctx, p.ID, backend.QueryInput{DateRange: &backend.DateRangeRequiredInput{
-				StartDate: time.Now().Add(-time.Hour * 24 * 7),
-				EndDate:   time.Now(),
-			}})
-			c.LogCountLastWeek += int64(countWeek)
-			countDay, _ := w.Resolver.ClickhouseClient.ReadLogsTotalCount(ctx, p.ID, backend.QueryInput{DateRange: &backend.DateRangeRequiredInput{
-				StartDate: time.Now().Add(-time.Hour * 24),
-				EndDate:   time.Now(),
-			}})
-			c.LogCountLastDay += int64(countDay)
-		}
+		count, _ := w.Resolver.ClickhouseClient.ReadLogsDailySum(ctx, lo.Map(workspace.Projects, func(p model.Project, index int) int {
+			return p.ID
+		}), backend.DateRangeRequiredInput{
+			StartDate: time.Now().AddDate(0, 0, -1),
+			EndDate:   time.Now(),
+		})
+		c.LogCount = int64(count)
+		count, _ = w.Resolver.ClickhouseClient.ReadTracesDailySum(ctx, lo.Map(workspace.Projects, func(p model.Project, index int) int {
+			return p.ID
+		}), backend.DateRangeRequiredInput{
+			StartDate: time.Now().AddDate(0, 0, -1),
+			EndDate:   time.Now(),
+		})
+		c.TraceCount = int64(count)
 	}
 
 	for _, c := range counts {
@@ -1267,6 +1245,7 @@ func (w *Worker) RefreshMaterializedViews(ctx context.Context) {
 			attribute.Int64(phonehome.SessionCount, c.SessionCount),
 			attribute.Int64(phonehome.ErrorCount, c.ErrorCount),
 			attribute.Int64(phonehome.LogCount, c.LogCount),
+			attribute.Int64(phonehome.TraceCount, c.TraceCount),
 		})
 	}
 }
@@ -1336,7 +1315,7 @@ func (w *Worker) GetHandler(ctx context.Context, handlerFlag util.Handler) func(
 	case util.MigrateDB:
 		return w.MigrateDB
 	case util.MetricMonitors:
-		return w.StartMetricMonitorWatcher
+		return w.StartMetricAlertWatcher
 	case util.LogAlerts:
 		return w.StartLogAlertWatcher
 	case util.BackfillStackFrames:
@@ -1353,6 +1332,8 @@ func (w *Worker) GetHandler(ctx context.Context, handlerFlag util.Handler) func(
 		return w.GetPublicWorker(kafkaqueue.TopicTypeTraces)
 	case util.AutoResolveStaleErrors:
 		return w.AutoResolveStaleErrors
+	case util.StartSessionDeleteJob:
+		return w.StartSessionDeleteJob
 	case "":
 		// no handler provided defaults to the session worker
 		return w.Start

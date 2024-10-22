@@ -13,7 +13,7 @@ export const PythonFastAPITracesContent: QuickStartContent = {
 	logoUrl: siteUrl('/images/quickstart/fastapi.svg'),
 	entries: [
 		setupFrontendSnippet,
-		downloadSnippet('FastAPI'),
+		downloadSnippet(),
 		{
 			title: 'Initialize the Highlight SDK.',
 			content: 'Setup the SDK to with the FastAPI integration.',

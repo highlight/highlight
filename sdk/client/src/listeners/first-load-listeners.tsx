@@ -1,20 +1,19 @@
 import { ConsoleListener } from './console-listener'
 import { ErrorListener } from './error-listener'
 
-import { ConsoleMessage, ErrorMessage } from '../types/shared-types'
-import { ALL_CONSOLE_METHODS, ConsoleMethods } from '../types/client'
+import stringify from 'json-stringify-safe'
 import { ERRORS_TO_IGNORE, ERROR_PATTERNS_TO_IGNORE } from '../constants/errors'
 import { HighlightClassOptions } from '../index'
-import stringify from 'json-stringify-safe'
-import { DEFAULT_URL_BLOCKLIST } from './network-listener/utils/network-sanitizer'
+import { shutdown } from '../otel'
+import { ALL_CONSOLE_METHODS, ConsoleMethods } from '../types/client'
+import { ConsoleMessage, ErrorMessage } from '../types/shared-types'
+import { NetworkListener } from './network-listener/network-listener'
 import {
-	Request,
-	Response,
 	RequestResponsePair,
 	WebSocketEvent,
 	WebSocketRequest,
 } from './network-listener/utils/models'
-import { NetworkListener } from './network-listener/network-listener'
+import { DEFAULT_URL_BLOCKLIST } from './network-listener/utils/network-sanitizer'
 import {
 	matchPerformanceTimingsWithRequestResponsePair,
 	shouldNetworkRequestBeRecorded,
@@ -33,7 +32,6 @@ export class FirstLoadListeners {
 	// The properties below were added in 4.0.0 (Feb 2022), and are patched in by client via setupNetworkListeners()
 	options: HighlightClassOptions
 	hasNetworkRecording: boolean | undefined = true
-	_backendUrl!: string
 	disableNetworkRecording!: boolean
 	enableRecordingNetworkContents!: boolean
 	xhrNetworkContents!: RequestResponsePair[]
@@ -48,6 +46,7 @@ export class FirstLoadListeners {
 	networkHeaderKeysToRecord: string[] | undefined
 	lastNetworkRequestTimestamp: number
 	urlBlocklist!: string[]
+	highlightEndpoints!: string[]
 	requestResponseSanitizer?: (
 		pair: RequestResponsePair,
 	) => RequestResponsePair | null
@@ -139,6 +138,9 @@ export class FirstLoadListeners {
 				{ enablePromisePatch: this.enablePromisePatch },
 			),
 		)
+		if (this.options.enableOtelTracing) {
+			this.listeners.push(shutdown)
+		}
 		FirstLoadListeners.setupNetworkListener(this, this.options)
 	}
 
@@ -153,10 +155,12 @@ export class FirstLoadListeners {
 		sThis: FirstLoadListeners,
 		options: HighlightClassOptions,
 	): void {
-		sThis._backendUrl =
+		const _backendUrl =
 			options?.backendUrl ||
 			import.meta.env.REACT_APP_PUBLIC_GRAPH_URI ||
 			'https://pub.highlight.run'
+		const otlpEndpoint = options.otlpEndpoint || 'https://otel.highlight.io'
+		sThis.highlightEndpoints = [_backendUrl, otlpEndpoint]
 
 		sThis.xhrNetworkContents = []
 		sThis.fetchNetworkContents = []
@@ -174,7 +178,6 @@ export class FirstLoadListeners {
 			sThis.networkHeadersToRedact = []
 			sThis.networkBodyKeysToRedact = []
 			sThis.urlBlocklist = []
-			sThis.networkBodyKeysToRecord = []
 			sThis.networkBodyKeysToRecord = []
 		} else if (typeof options?.networkRecording === 'boolean') {
 			sThis.disableNetworkRecording = !options.networkRecording
@@ -261,11 +264,11 @@ export class FirstLoadListeners {
 					disableWebSocketRecording:
 						sThis.disableRecordingWebSocketContents,
 					bodyKeysToRedact: sThis.networkBodyKeysToRedact,
-					backendUrl: sThis._backendUrl,
+					highlightEndpoints: sThis.highlightEndpoints,
 					tracingOrigins: sThis.tracingOrigins,
 					urlBlocklist: sThis.urlBlocklist,
-					sessionSecureID: options.sessionSecureID,
 					bodyKeysToRecord: sThis.networkBodyKeysToRecord,
+					otelEnabled: !!options.enableOtelTracing,
 				}),
 			)
 		}
@@ -297,7 +300,7 @@ export class FirstLoadListeners {
 
 					return shouldNetworkRequestBeRecorded(
 						r.name,
-						sThis._backendUrl,
+						sThis.highlightEndpoints,
 						sThis.tracingOrigins,
 					)
 				})

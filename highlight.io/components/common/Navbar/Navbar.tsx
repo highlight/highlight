@@ -1,4 +1,3 @@
-import { DocSearch } from '@docsearch/react'
 import classNames from 'classnames'
 import Link from 'next/link'
 import { useEffect, useState } from 'react'
@@ -15,18 +14,18 @@ import { Typography } from '../Typography/Typography'
 import styles from './Navbar.module.scss'
 import ResourceDropdown from './ResourceDropdown'
 
-import '@docsearch/css'
 import moment from 'moment'
 import Banner from '../Banner/Banner'
 import FeatureDropdown from './FeatureDropdown'
+import InkeepSearchBar from './InkeepSearchBar'
 
 const LaunchWeekBanner = () => {
 	const bannerMessage = (
 		<div className={styles.launchWeekText}>
-			Launch Week 5 is here.{' '}
+			Launch Week 6 is here.{' '}
 			<a
 				target="_blank"
-				href="https://www.highlight.io/blog/tag/launch-week-5"
+				href="https://www.youtube.com/playlist?list=PLtIz-bpzHkhhXNuWXTohSbozKz3t-WjOR"
 				rel="noreferrer"
 			>
 				Follow along
@@ -41,15 +40,15 @@ const LaunchWeekBanner = () => {
 const LivestreamBanner = () => {
 	return (
 		<Link
-			href="https://lu.ma/bvnkoy5v"
+			href="https://www.linuxfoundation.org/webinars/optimizing-ai-applications-with-opentelemetry?hsLang=en&utm_source=highlight-banner"
 			target="_blank"
 			rel="noreferrer"
-			className="hidden md:flex justify-center items-center w-full h-[40px] bg-color-primary-200 text-white hover:bg-opacity-90"
+			className="hidden md:flex text-center justify-center items-center w-full py-2.5 px-3 bg-color-primary-200 text-white hover:bg-opacity-90"
 		>
 			<Typography type="copy3">
-				Join our livestream: July 2nd at 1pm PDT on Evaluating LLMs with
-				OpenLLMetry. Register
-				<span className="font-semibold"> here</span>.
+				Learn how to use OpenTelemetry for optimizing AI applications at
+				our livestream on November 5th at 9am PT -{' '}
+				<span className="font-semibold underline">Register here</span>
 			</Typography>
 		</Link>
 	)
@@ -110,8 +109,8 @@ const Navbar = ({
 	}
 
 	const isLaunchWeek = moment().isBetween(
-		'2024-04-29T16:00:00Z',
-		'2024-05-04T16:00:00Z',
+		'2024-07-29T16:00:00Z',
+		'2024-08-03T16:00:00Z',
 	)
 
 	useEffect(() => {
@@ -185,14 +184,7 @@ const Navbar = ({
 									{title}
 								</p>
 							</Typography>
-							{isDocsPage && (
-								<DocSearch
-									placeholder="Search the highlight.io docs"
-									appId="JGT9LI80J2"
-									indexName="highlight"
-									apiKey="ac336720d8f4f996abe3adee603a1c84"
-								/>
-							)}
+							{isDocsPage && <InkeepSearchBar />}
 						</div>
 						<div
 							className={styles.navMenu}

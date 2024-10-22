@@ -5,7 +5,7 @@ import useLocalStorage from '@rehooks/local-storage'
 import { useEffect, useMemo } from 'react'
 
 import { GitlabProject } from '@/graph/generated/schemas'
-import { OptionDropdown } from '@/pages/Graphing/GraphingEditor'
+import { OptionDropdown } from '@/pages/Graphing/OptionDropdown'
 
 const GitlabProjectAndIssueTypeSelector: React.FC<ContainerSelectionProps> = ({
 	setSelectionId,
@@ -18,7 +18,7 @@ const GitlabProjectAndIssueTypeSelector: React.FC<ContainerSelectionProps> = ({
 			(data?.gitlab_projects || []).map((team: GitlabProject) => ({
 				value: team.id.toString(),
 				id: team.id.toString(),
-				displayValue: team.nameWithNameSpace,
+				name: team.nameWithNameSpace,
 			})) || []
 		)
 	}, [data?.gitlab_projects])
@@ -36,8 +36,7 @@ const GitlabProjectAndIssueTypeSelector: React.FC<ContainerSelectionProps> = ({
 		<>
 			<Form.NamedSection label="Project" name="gitlabProject">
 				<OptionDropdown
-					options={gitlabProjectOptions.map((o) => o.id)}
-					labels={gitlabProjectOptions.map((o) => o.displayValue)}
+					options={gitlabProjectOptions}
 					selection={selectedGitlabProjectId}
 					setSelection={setGitlabProjectId}
 					disabled={disabled}

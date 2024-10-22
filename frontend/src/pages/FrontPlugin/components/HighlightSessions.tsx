@@ -25,7 +25,7 @@ export function HighlightSessions() {
 		loading,
 		setQuery,
 		query,
-		totalCount,
+		resultFormatted,
 		startDate,
 		endDate,
 		selectedPreset,
@@ -61,8 +61,8 @@ export function HighlightSessions() {
 	const recipient =
 		frontContext?.type === 'singleConversation'
 			? frontContext?.conversation?.recipient?.name ||
-			  email ||
-			  'recipient'
+				email ||
+				'recipient'
 			: email || 'recipient'
 
 	useEffect(() => {
@@ -115,7 +115,7 @@ export function HighlightSessions() {
 					productType={ProductType.Sessions}
 					timeMode="fixed-range"
 					savedSegmentType={SavedSegmentEntityType.Session}
-					resultCount={totalCount}
+					resultFormatted={resultFormatted}
 					loading={loading}
 					hideCreateAlert
 					isPanelView

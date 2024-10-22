@@ -1,4 +1,4 @@
-import { Request, Response, Headers } from './models'
+import { Headers, Request, Response } from './models'
 
 export const sanitizeResource = <T extends Request | Response>(
 	resource: T,
@@ -17,7 +17,7 @@ export const sanitizeResource = <T extends Request | Response>(
 	}
 }
 
-const sanitizeHeaders = (
+export const sanitizeHeaders = (
 	headersToRedact: string[],
 	headers?: Headers,
 	headersToRecord?: string[],

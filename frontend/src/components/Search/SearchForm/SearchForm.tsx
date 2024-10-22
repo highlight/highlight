@@ -38,6 +38,7 @@ import {
 	useSearchContext,
 } from '@/components/Search/SearchContext'
 import {
+	AI_SEARCH_PLACEHOLDERS,
 	TIME_FORMAT,
 	TIME_MODE,
 } from '@/components/Search/SearchForm/constants'
@@ -54,7 +55,7 @@ import {
 } from '@/graph/generated/hooks'
 import { ProductType, SavedSegmentEntityType } from '@/graph/generated/schemas'
 import { useDebounce } from '@/hooks/useDebounce'
-import { formatNumber } from '@/util/numbers'
+import { useApplicationContext } from '@/routers/AppRouter/context/ApplicationContext'
 
 import { AiSearch } from './AiSearch'
 import * as styles from './SearchForm.css'
@@ -83,7 +84,7 @@ export const SEARCH_OPERATORS = [
 	...CONTAINS_OPERATOR,
 	...MATCHES_OPERATOR,
 ] as const
-export type SearchOperator = typeof SEARCH_OPERATORS[number]
+export type SearchOperator = (typeof SEARCH_OPERATORS)[number]
 
 type Creatable = {
 	label: string
@@ -113,10 +114,11 @@ export type SearchFormProps = {
 	savedSegmentType?: SavedSegmentEntityType
 	textAreaRef?: React.RefObject<HTMLTextAreaElement>
 	isPanelView?: boolean
-	resultCount?: number
+	resultFormatted?: string
 	loading?: boolean
 	creatables?: { [key: string]: Creatable }
 	enableAIMode?: boolean
+	aiSupportedSearch?: boolean
 }
 
 const SearchForm: React.FC<SearchFormProps> = ({
@@ -134,10 +136,11 @@ const SearchForm: React.FC<SearchFormProps> = ({
 	savedSegmentType,
 	textAreaRef,
 	isPanelView,
-	resultCount,
+	resultFormatted,
 	loading,
 	creatables,
 	enableAIMode,
+	aiSupportedSearch,
 }) => {
 	const navigate = useNavigate()
 	const { projectId } = useProjectId()
@@ -186,6 +189,7 @@ const SearchForm: React.FC<SearchFormProps> = ({
 			hasAdditonalActions={!hideCreateAlert || !hideDatePicker}
 			creatables={creatables}
 			enableAIMode={enableAIMode}
+			aiSupportedSearch={aiSupportedSearch}
 		/>
 	)
 
@@ -196,8 +200,8 @@ const SearchForm: React.FC<SearchFormProps> = ({
 			trackingId="logs_create-alert_click"
 			onClick={() => {
 				navigate({
-					pathname: `/${projectId}/alerts/logs/new`,
-					search: location.search,
+					pathname: `/${projectId}/alerts/new`,
+					search: `${location.search}&source=${productType}`,
 				})
 			}}
 			emphasis="medium"
@@ -210,54 +214,66 @@ const SearchForm: React.FC<SearchFormProps> = ({
 	if (isPanelView) {
 		return (
 			<>
-				{SegmentModals}
-				<Stack alignItems="flex-start" gap="8" width="full" p="8">
-					<Stack
-						flexDirection="row"
-						justifyContent="space-between"
-						width="full"
-					>
-						{DatePickerComponent}
-						{ActionsComponent}
-					</Stack>
-					<Stack
-						gap="0"
-						border="dividerWeak"
-						borderRadius="6"
-						width="full"
-					>
-						<Box
-							background="white"
-							borderTopLeftRadius="4"
-							borderTopRightRadius="4"
-						>
-							{SearchComponent}
-						</Box>
-						<Box borderBottom="dividerWeak" />
+				{aiMode ? (
+					<AiSearch
+						placeholder={AI_SEARCH_PLACEHOLDERS[productType]}
+						panelView
+					/>
+				) : (
+					<>
+						{SegmentModals}
 						<Stack
-							flexDirection="row"
-							borderBottomLeftRadius="4"
-							borderBottomRightRadius="4"
-							justifyContent="space-between"
-							py="6"
-							pl="8"
-							pr="4"
+							alignItems="flex-start"
+							gap="8"
+							width="full"
+							p="8"
 						>
-							<Box display="flex" alignItems="center">
-								{loading ? (
-									<LoadingBox />
-								) : (
-									resultCount != null && (
-										<Text color="weak">
-											{formatNumber(resultCount)} results
-										</Text>
-									)
-								)}
-							</Box>
-							{SegmentMenu}
+							<Stack
+								flexDirection="row"
+								justifyContent="space-between"
+								width="full"
+							>
+								{DatePickerComponent}
+								{ActionsComponent}
+							</Stack>
+							<Stack
+								gap="0"
+								border="dividerWeak"
+								borderRadius="6"
+								width="full"
+							>
+								<Box
+									background="white"
+									borderTopLeftRadius="4"
+									borderTopRightRadius="4"
+								>
+									{SearchComponent}
+								</Box>
+								<Box borderBottom="dividerWeak" />
+								<Stack
+									flexDirection="row"
+									borderBottomLeftRadius="4"
+									borderBottomRightRadius="4"
+									justifyContent="space-between"
+									py="6"
+									pl="8"
+									pr="4"
+								>
+									<Box display="flex" alignItems="center">
+										{loading ? (
+											<LoadingBox />
+										) : resultFormatted ? (
+											<Text color="weak">
+												{resultFormatted}
+											</Text>
+										) : null}
+									</Box>
+									{SegmentMenu}
+								</Stack>
+							</Stack>
 						</Stack>
-					</Stack>
-				</Stack>
+					</>
+				)}
 			</>
 		)
 	}
@@ -275,7 +291,9 @@ const SearchForm: React.FC<SearchFormProps> = ({
 				borderBottom="dividerWeak"
 			>
 				{aiMode ? (
-					<AiSearch />
+					<AiSearch
+						placeholder={AI_SEARCH_PLACEHOLDERS[productType]}
+					/>
 				) : (
 					<>
 						{SearchComponent}
@@ -313,7 +331,10 @@ export const Search: React.FC<{
 	textAreaRef?: React.RefObject<HTMLTextAreaElement>
 	hasAdditonalActions?: boolean
 	creatables?: { [key: string]: Creatable }
+	defaultValueOptions?: string[]
 	enableAIMode?: boolean
+	aiSupportedSearch?: boolean
+	event?: string
 }> = ({
 	startDate,
 	endDate,
@@ -323,7 +344,10 @@ export const Search: React.FC<{
 	productType,
 	hasAdditonalActions,
 	creatables,
+	defaultValueOptions,
 	enableAIMode,
+	aiSupportedSearch,
+	event,
 }) => {
 	const {
 		disabled,
@@ -335,6 +359,9 @@ export const Search: React.FC<{
 		setQuery,
 		setAiMode,
 	} = useSearchContext()
+	const navigate = useNavigate()
+	const { currentWorkspace } = useApplicationContext()
+	const workspaceId = currentWorkspace?.id
 	const { project_id } = useParams()
 	const [_, setSortColumn] = useQueryParam(SORT_COLUMN, StringParam)
 	const [__, setSortDirection] = useQueryParam(SORT_DIRECTION, StringParam)
@@ -361,6 +388,12 @@ export const Search: React.FC<{
 	)
 
 	useEffect(() => {
+		// necessary to update the combobox with the URL state
+		setQuery(initialQuery.trim() === '' ? '' : initialQuery)
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [initialQuery])
+
+	useEffect(() => {
 		if (showErrors && !hasErrors) {
 			setShowErrors(false)
 		}
@@ -377,7 +410,10 @@ export const Search: React.FC<{
 		!!activePart.value?.length
 
 	let visibleItems: SearchResult[] = showValues
-		? getVisibleValues(activePart, values)
+		? getVisibleValues(
+				activePart,
+				(defaultValueOptions ?? []).concat(values ?? []),
+			)
 		: getVisibleKeys(query, activePart, keys)
 
 	// Show operators when we have an exact match for a key
@@ -414,7 +450,7 @@ export const Search: React.FC<{
 				({
 					name: operator,
 					type: 'Operator',
-				} as SearchResult),
+				}) as SearchResult,
 		)
 	}
 
@@ -448,6 +484,7 @@ export const Search: React.FC<{
 					end_date: moment(endDate).format(TIME_FORMAT),
 				},
 				query: debouncedValue,
+				event: event,
 			},
 			fetchPolicy: 'cache-first',
 			onCompleted: (data) => {
@@ -462,6 +499,7 @@ export const Search: React.FC<{
 		project_id,
 		getKeys,
 		productType,
+		event,
 	])
 
 	useEffect(() => {
@@ -492,6 +530,9 @@ export const Search: React.FC<{
 					start_date: moment(startDate).format(TIME_FORMAT),
 					end_date: moment(endDate).format(TIME_FORMAT),
 				},
+				query: debouncedValue,
+				count: 25,
+				event: event,
 			},
 			fetchPolicy: 'cache-first',
 			onCompleted: (data) => {
@@ -499,6 +540,7 @@ export const Search: React.FC<{
 			},
 		})
 	}, [
+		debouncedValue,
 		activePart.key,
 		creatables,
 		endDate,
@@ -507,13 +549,8 @@ export const Search: React.FC<{
 		project_id,
 		showValues,
 		startDate,
+		event,
 	])
-
-	useEffect(() => {
-		// necessary to update the combobox with the URL state
-		setQuery(initialQuery.trim() === '' ? '' : initialQuery)
-		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [initialQuery])
 
 	useEffect(() => {
 		// Ensure the cursor is placed in the correct position after update the
@@ -698,6 +735,7 @@ export const Search: React.FC<{
 						[styles.comboboxNotEmpty]: query.length > 0,
 					})}
 					render={
+						// @ts-ignore onPointerEnterCapture, onPointerLeaveCapture ignored by autoresize lib
 						<TextareaAutosize
 							ref={inputRef}
 							style={{ resize: 'none', overflowY: 'hidden' }}
@@ -779,14 +817,20 @@ export const Search: React.FC<{
 					sameWidth
 				>
 					<Box cssClass={styles.comboboxResults}>
-						{enableAIMode && activePart.text === '' && (
+						{aiSupportedSearch && activePart.text === '' && (
 							<Combobox.Group
 								className={styles.comboboxGroup}
 								store={comboboxStore}
 							>
 								<Combobox.Item
 									className={styles.comboboxItem}
-									onClick={() => setAiMode(true)}
+									onClick={() =>
+										enableAIMode
+											? setAiMode(true)
+											: navigate(
+													`/w/${workspaceId}/harold-ai`,
+												)
+									}
 									store={comboboxStore}
 								>
 									<Stack
@@ -813,35 +857,37 @@ export const Search: React.FC<{
 									onClick={submitAndBlur}
 									store={comboboxStore}
 								>
-									<Stack
-										direction="row"
-										gap="4"
-										align="center"
+									<Box
+										py="8"
+										cssClass={{
+											display: 'inline-block',
+										}}
 									>
-										<Text
-											lines="1"
-											color="weak"
-											size="small"
-										>
-											Show all results for
-										</Text>
-
 										<Text
 											size="small"
 											family="monospace"
 											color="secondaryContentText"
+											display="inline-block"
+											break="all"
 										>
+											<Text
+												color="weak"
+												size="small"
+												display="inline-block"
+											>
+												Show all results for &nbsp;
+											</Text>
 											&lsquo;
 											{activePart.key === BODY_KEY
 												? activePart.value
 												: activePart.text}
 											&rsquo;
 										</Text>
-									</Stack>
+									</Box>
 								</Combobox.Item>
 							</Combobox.Group>
 						)}
-						{loading && visibleItems.length === 0 && (
+						{loading && (
 							<Combobox.Group
 								className={styles.comboboxGroup}
 								store={comboboxStore}

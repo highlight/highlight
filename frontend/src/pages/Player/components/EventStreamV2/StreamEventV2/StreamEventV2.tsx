@@ -124,7 +124,7 @@ export const StreamEventV2 = function ({
 									? playerTimeToSessionAbsoluteTime({
 											sessionStartTime: start,
 											relativeTime: timeSinceStart,
-									  })
+										})
 									: MillisToMinutesAndSeconds(timeSinceStart)}
 							</Text>
 							<IconSolidArrowCircleRight

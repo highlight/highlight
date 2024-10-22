@@ -1,5 +1,21 @@
 AllCops:
-    TargetRubyVersion: 2.6
+    TargetRubyVersion: 3.0
+    EnabledByDefault: true
+
+Bundler/GemComment:
+    Enabled: false
+
+Bundler/GemVersion:
+    Enabled: false
+
+Lint/ConstantResolution:
+    Enabled: false
+
+Style/ConstantVisibility:
+    Enabled: false
+
+Style/Copyright:
+    Enabled: false
 
 Style/FrozenStringLiteralComment:
     Enabled: false
@@ -7,8 +23,38 @@ Style/FrozenStringLiteralComment:
 Style/Documentation:
     Enabled: false
 
+Style/DocumentationMethod:
+    Enabled: false
+
+Style/ImplicitRuntimeError:
+    Enabled: false
+
+Style/InlineComment:
+    Enabled: false
+
+Style/MissingElse:
+    Enabled: false
+
+Style/OpenStructUse:
+    Enabled: false
+
+Style/StringHashKeys:
+    Enabled: false
+
 Metrics/MethodLength:
     Enabled: false
 
+Metrics/CyclomaticComplexity:
+    Enabled: false
+
+Metrics/PerceivedComplexity:
+    Enabled: false
+
 Naming/MethodParameterName:
+    Enabled: false
+
+Metrics/AbcSize:
+    Enabled: false
+
+Metrics/ClassLength:
     Enabled: false

@@ -1,6 +1,6 @@
 import classNames from 'classnames'
 import Link from 'next/link'
-import { FaGithub, FaLinkedinIn } from 'react-icons/fa'
+import { FaGithub, FaLinkedinIn, FaPodcast } from 'react-icons/fa'
 import { FaXTwitter } from 'react-icons/fa6'
 import { COMPETITORS } from '../../Competitors/competitors'
 import { PRODUCTS } from '../../Products/products'
@@ -54,6 +54,17 @@ export const Footer = ({ light }: { light?: boolean }) => {
 							href="https://github.com/highlight/highlight"
 						>
 							<FaGithub className="w-[24px] h-[24px]" />
+						</a>
+						<a
+							className={
+								light
+									? 'text-[#6F6E77] hover:text-black'
+									: 'text-white hover:text-color-primary-300'
+							}
+							href="https://podcasters.spotify.com/pod/show/highlightio"
+							target="_blank"
+						>
+							<FaPodcast className="w-[24px] h-[24px]" />
 						</a>
 					</div>
 				</div>
@@ -163,6 +174,11 @@ export const Footer = ({ light }: { light?: boolean }) => {
 							</li>
 							<li>
 								<Link href="/docs">Documentation</Link>
+							</li>
+							<li>
+								<Link href="/ambassador-program">
+									Ambassadors
+								</Link>
 							</li>
 						</ul>
 					</Typography>

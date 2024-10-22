@@ -226,3 +226,27 @@ export function stringify(
 		return str
 	}
 }
+
+function supportsWebP(): boolean {
+	var elem = document.createElement('canvas')
+	if (!!(elem.getContext && elem.getContext('2d'))) {
+		return elem.toDataURL('image/webp').indexOf('data:image/webp') == 0
+	}
+	return false
+}
+
+export function getDefaultDataURLOptions(): {
+	type: string
+	quality: number
+} {
+	if (supportsWebP()) {
+		return {
+			type: 'image/webp',
+			quality: 0.9,
+		}
+	}
+	return {
+		type: 'image/jpeg',
+		quality: 0.6,
+	}
+}

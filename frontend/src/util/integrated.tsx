@@ -37,7 +37,7 @@ export type LocalStorageIntegrationData = {
 } & IntegrationStatus
 
 export const useClientIntegration = () => {
-	const { isLoggedIn } = useAuthContext()
+	const { admin, isLoggedIn } = useAuthContext()
 	const { projectId } = useNumericProjectId()
 	const [localStorageIntegrated, setLocalStorageIntegrated] =
 		useIntegratedLocalStorage(projectId!, 'client')
@@ -67,12 +67,15 @@ export const useClientIntegration = () => {
 	])
 
 	useEffect(() => {
-		if (data?.clientIntegration !== undefined) {
+		if (data?.clientIntegration !== undefined && admin?.email) {
 			if (
 				!localStorageIntegrated.integrated &&
 				data?.clientIntegration.integrated
 			) {
 				analytics.track('integrated-client', { id: projectId })
+				analytics.trackGaEvent('integrated_client', {
+					email: admin?.email,
+				})
 			}
 
 			setLocalStorageIntegrated({
@@ -81,6 +84,7 @@ export const useClientIntegration = () => {
 			})
 		}
 	}, [
+		admin?.email,
 		data?.clientIntegration,
 		localStorageIntegrated.integrated,
 		projectId,
@@ -91,7 +95,7 @@ export const useClientIntegration = () => {
 }
 
 export const useServerIntegration = () => {
-	const { isLoggedIn } = useAuthContext()
+	const { admin, isLoggedIn } = useAuthContext()
 	const { projectId } = useNumericProjectId()
 	const [localStorageIntegrated, setLocalStorageIntegrated] =
 		useIntegratedLocalStorage(projectId!, 'server')
@@ -121,12 +125,15 @@ export const useServerIntegration = () => {
 	])
 
 	useEffect(() => {
-		if (data?.serverIntegration !== undefined) {
+		if (data?.serverIntegration !== undefined && admin?.email) {
 			if (
 				!localStorageIntegrated.integrated &&
 				data?.serverIntegration.integrated
 			) {
 				analytics.track('integrated-server', { id: projectId })
+				analytics.trackGaEvent('integrated_server', {
+					email: admin?.email,
+				})
 			}
 
 			setLocalStorageIntegrated({
@@ -135,6 +142,7 @@ export const useServerIntegration = () => {
 			})
 		}
 	}, [
+		admin?.email,
 		data?.serverIntegration,
 		localStorageIntegrated.integrated,
 		projectId,
@@ -145,7 +153,7 @@ export const useServerIntegration = () => {
 }
 
 export const useLogsIntegration = () => {
-	const { isLoggedIn } = useAuthContext()
+	const { admin, isLoggedIn } = useAuthContext()
 	const { projectId } = useNumericProjectId()
 	const [localStorageIntegrated, setLocalStorageIntegrated] =
 		useIntegratedLocalStorage(projectId!, 'logs')
@@ -175,12 +183,15 @@ export const useLogsIntegration = () => {
 	])
 
 	useEffect(() => {
-		if (data?.logsIntegration !== undefined) {
+		if (data?.logsIntegration !== undefined && admin?.email) {
 			if (
 				!localStorageIntegrated.integrated &&
 				data?.logsIntegration.integrated
 			) {
 				analytics.track('integrated-logs', { id: projectId })
+				analytics.trackGaEvent('integrated_logs', {
+					email: admin?.email,
+				})
 			}
 
 			setLocalStorageIntegrated({
@@ -189,6 +200,7 @@ export const useLogsIntegration = () => {
 			})
 		}
 	}, [
+		admin?.email,
 		data?.logsIntegration,
 		localStorageIntegrated.integrated,
 		projectId,
@@ -199,7 +211,7 @@ export const useLogsIntegration = () => {
 }
 
 export const useTracesIntegration = () => {
-	const { isLoggedIn } = useAuthContext()
+	const { admin, isLoggedIn } = useAuthContext()
 	const { projectId } = useNumericProjectId()
 	const [localStorageIntegrated, setLocalStorageIntegrated] =
 		useIntegratedLocalStorage(projectId!, 'traces')
@@ -229,12 +241,15 @@ export const useTracesIntegration = () => {
 	])
 
 	useEffect(() => {
-		if (data?.tracesIntegration !== undefined) {
+		if (data?.tracesIntegration !== undefined && admin?.email) {
 			if (
 				!localStorageIntegrated.integrated &&
 				data?.tracesIntegration.integrated
 			) {
 				analytics.track('integrated-traces', { id: projectId })
+				analytics.trackGaEvent('integrated_traces', {
+					email: admin?.email,
+				})
 			}
 
 			setLocalStorageIntegrated({
@@ -243,6 +258,7 @@ export const useTracesIntegration = () => {
 			})
 		}
 	}, [
+		admin?.email,
 		data?.tracesIntegration,
 		localStorageIntegrated.integrated,
 		projectId,
@@ -253,7 +269,7 @@ export const useTracesIntegration = () => {
 }
 
 export const useAlertsIntegration = () => {
-	const { isLoggedIn } = useAuthContext()
+	const { isLoggedIn, admin } = useAuthContext()
 	const { projectId } = useNumericProjectId()
 	const [localStorageIntegrated, setLocalStorageIntegrated] =
 		useIntegratedLocalStorage(projectId!, 'alerts')
@@ -283,17 +299,11 @@ export const useAlertsIntegration = () => {
 	])
 
 	useEffect(() => {
-		if (
-			(data?.log_alerts?.length ?? 0) +
-				(data?.error_alerts?.length ?? 0) +
-				(data?.new_session_alerts?.length ?? 0) +
-				(data?.rage_click_alerts?.length ?? 0) +
-				(data?.new_user_alerts?.length ?? 0) +
-				(data?.track_properties_alerts?.length ?? 0) +
-				(data?.user_properties_alerts?.length ?? 0) >
-			0
-		) {
-			analytics.track('integrated-logs', { id: projectId })
+		if (admin?.email && (data?.alerts?.length ?? 0) > 0) {
+			analytics.track('integrated-alerts', { id: projectId })
+			analytics.trackGaEvent('integrated_alerts', {
+				email: admin?.email,
+			})
 
 			setLocalStorageIntegrated({
 				loading: false,
@@ -302,13 +312,8 @@ export const useAlertsIntegration = () => {
 			})
 		}
 	}, [
-		data?.error_alerts?.length,
-		data?.log_alerts?.length,
-		data?.new_session_alerts?.length,
-		data?.new_user_alerts?.length,
-		data?.rage_click_alerts?.length,
-		data?.track_properties_alerts?.length,
-		data?.user_properties_alerts?.length,
+		admin?.email,
+		data?.alerts?.length,
 		localStorageIntegrated.integrated,
 		projectId,
 		setLocalStorageIntegrated,
@@ -318,7 +323,7 @@ export const useAlertsIntegration = () => {
 }
 
 export const useTeamIntegration = () => {
-	const { isLoggedIn } = useAuthContext()
+	const { admin, isLoggedIn } = useAuthContext()
 	const { projectId } = useNumericProjectId()
 	const [localStorageIntegrated, setLocalStorageIntegrated] =
 		useIntegratedLocalStorage(projectId!, 'team')
@@ -353,8 +358,11 @@ export const useTeamIntegration = () => {
 	])
 
 	useEffect(() => {
-		if ((data?.admins.length ?? 0) > 1) {
+		if (admin?.email && (data?.admins.length ?? 0) > 1) {
 			analytics.track('integrated-team', { id: projectId })
+			analytics.trackGaEvent('integrated_team', {
+				email: admin?.email,
+			})
 
 			setLocalStorageIntegrated({
 				loading: false,
@@ -363,6 +371,7 @@ export const useTeamIntegration = () => {
 			})
 		}
 	}, [
+		admin?.email,
 		data?.admins.length,
 		localStorageIntegrated.integrated,
 		projectId,

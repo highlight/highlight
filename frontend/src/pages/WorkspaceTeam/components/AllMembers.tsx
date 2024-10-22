@@ -91,7 +91,7 @@ export const PopoverCell = <T extends string[] | string>({
 	const filteredOptions = filter
 		? options.filter((o) =>
 				o.render.toLowerCase().includes(query.toLowerCase()),
-		  )
+			)
 		: options
 	const selectionSet = isMultiSelect
 		? new Set(initialCopy)
@@ -150,7 +150,7 @@ export const PopoverCell = <T extends string[] | string>({
 								onChange(value)
 							}
 							setChanged(false)
-					  }
+						}
 					: undefined
 			}
 			cssClass={style.combobox}
@@ -312,7 +312,7 @@ const AllMembers = ({
 														? admin.name
 														: getDisplayNameFromEmail(
 																admin.email,
-														  )}{' '}
+															)}{' '}
 													{isSelf && '(You)'}
 												</Text>
 											}

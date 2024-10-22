@@ -17,31 +17,7 @@ const nextConfig = {
 		remotePatterns: [
 			{
 				protocol: 'https',
-				hostname: 'www.highlight.io',
-			},
-			{
-				protocol: 'https',
-				hostname: 'media.graphassets.com',
-			},
-			{
-				protocol: 'https',
-				hostname: 'lh3.googleusercontent.com',
-			},
-			{
-				protocol: 'https',
-				hostname: 'picsum.photos',
-			},
-			{
-				protocol: 'https',
-				hostname: 'firebasestorage.googleapis.com',
-			},
-			{
-				protocol: 'https',
-				hostname: 'ca.slack-edge.com',
-			},
-			{
-				protocol: 'https',
-				hostname: 'tamuhack.org',
+				hostname: '*',
 			},
 		],
 	},
@@ -85,6 +61,45 @@ const nextConfig = {
 				source: '/github/:slug*',
 				destination: 'https://github.com/highlight/highlight',
 				permanent: false,
+			},
+			{
+				source: '/docs/product-features/comments',
+				destination:
+					'/docs/general/product-features/general-features/comments',
+				permanent: true,
+			},
+			{
+				source: '/docs/general/company/product-philosphy',
+				destination: '/docs/general/company/product-philosophy',
+				permanent: true,
+			},
+			{
+				source: '/docs/general/product-features/session-replay/privacy',
+				destination:
+					'/docs/getting-started/client-sdk/replay-configuration/privacy',
+				permanent: true,
+			},
+			{
+				source: '/docs/reference',
+				destination: '/docs',
+				permanent: true,
+			},
+			{
+				source: '/blog/post/opensearch-for-a-write-heavy-workload',
+				destination: '/blog/opensearch-for-a-write-heavy-workload',
+				permanent: true,
+			},
+			{
+				source: '/docs/general/getting-started/backend-sdk/cloudflare',
+				destination:
+					'/docs/getting-started/backend-logging/js/cloudflare',
+				permanent: true,
+			},
+			{
+				source: '/docs/general/getting-started/backend-sdk/python',
+				destination:
+					'/docs/getting-started/backend-logging/python/other',
+				permanent: true,
 			},
 		]
 	},

@@ -11,6 +11,7 @@ import (
 	"io"
 	"net/http"
 	"os"
+	"path"
 	"strconv"
 	"strings"
 	"sync"
@@ -22,6 +23,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/feature/cloudfront/sign"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	s3Types "github.com/aws/aws-sdk-go-v2/service/s3/types"
+	"github.com/aws/aws-sdk-go-v2/service/sts"
 	"github.com/aws/smithy-go/ptr"
 	"github.com/go-chi/chi"
 	"github.com/google/uuid"
@@ -52,8 +54,9 @@ var (
 )
 
 const (
-	MIME_TYPE_JSON          = "application/json"
-	CONTENT_ENCODING_BROTLI = "br"
+	MIME_TYPE_JSON           = "application/json"
+	CONTENT_ENCODING_BROTLI  = "br"
+	RAW_EVENT_RETENTION_DAYS = 1
 )
 
 type PayloadType string
@@ -98,6 +101,7 @@ type Client interface {
 	ReadGitHubFile(ctx context.Context, repoPath string, fileName string, version string) ([]byte, error)
 	PushGitHubFile(ctx context.Context, repoPath string, fileName string, version string, fileBytes []byte) (*int64, error)
 	DeleteSessionData(ctx context.Context, projectId int, sessionId int) error
+	CleanupRawEvents(ctx context.Context, projectId int) error
 }
 
 type FilesystemClient struct {
@@ -517,6 +521,40 @@ func (s *S3Client) DeleteSessionData(ctx context.Context, projectId int, session
 	return nil
 }
 
+func (f *FilesystemClient) CleanupRawEvents(ctx context.Context, projectId int) error {
+	if f.fsRoot == "" {
+		return errors.New("f.fsRoot cannot be empty")
+	}
+
+	basePath := fmt.Sprintf("%s/raw-events/%d", f.fsRoot, projectId)
+	startDate := time.Now().AddDate(0, 0, -1*RAW_EVENT_RETENTION_DAYS)
+	entries, err := os.ReadDir(basePath)
+	if os.IsNotExist(err) {
+		return nil
+	}
+	if err != nil {
+		return err
+	}
+	for _, entry := range entries {
+		if !entry.IsDir() {
+			continue
+		}
+		fileInfo, err := entry.Info()
+		if err != nil {
+			return err
+		}
+		if fileInfo.ModTime().Before(startDate) {
+			os.RemoveAll(path.Join(basePath, entry.Name()))
+		}
+	}
+
+	return nil
+}
+
+func (f *S3Client) CleanupRawEvents(ctx context.Context, projectId int) error {
+	return nil
+}
+
 func NewFSClient(_ context.Context, origin, fsRoot string) (*FilesystemClient, error) {
 	return &FilesystemClient{origin: origin, fsRoot: fsRoot, redis: hredis.NewClient()}, nil
 }
@@ -539,6 +577,13 @@ func NewS3Client(ctx context.Context) (*S3Client, error) {
 	clientEast2 := s3.NewFromConfig(cfgEast2, func(o *s3.Options) {
 		o.UsePathStyle = true
 	})
+
+	// Create Amazon S3 API client using path style addressing.
+	stsClient := sts.NewFromConfig(cfgEast2, func(o *sts.Options) {})
+	_, err = stsClient.GetCallerIdentity(ctx, &sts.GetCallerIdentityInput{})
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to validate aws credentials for storage client")
+	}
 
 	return &S3Client{
 		S3ClientEast2:   clientEast2,

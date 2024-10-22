@@ -25,7 +25,6 @@ import (
 const timeFormat = "2006-01-02T15:04:05.000Z"
 
 var fieldMap = map[string]string{
-	"fingerprint":       "Fingerprint",
 	"pages_visited":     "PagesVisited",
 	"viewed_by_me":      "ViewedByAdmins",
 	"created_at":        "CreatedAt",
@@ -68,7 +67,6 @@ var fieldMap = map[string]string{
 
 type ClickhouseSession struct {
 	ID                 int64
-	Fingerprint        int32
 	ProjectID          int32
 	PagesVisited       int32
 	ViewedByAdmins     clickhouse.ArraySet
@@ -124,6 +122,7 @@ var defaultSessionsKeys = []*modelInputs.QueryKey{
 	{Name: string(modelInputs.ReservedSessionKeyLength), Type: modelInputs.KeyTypeNumeric},
 	{Name: string(modelInputs.ReservedSessionKeyPagesVisited), Type: modelInputs.KeyTypeNumeric},
 	{Name: string(modelInputs.ReservedSessionKeySample), Type: modelInputs.KeyTypeCreatable},
+	{Name: string(modelInputs.ReservedSessionKeySecureID), Type: modelInputs.KeyTypeString},
 	{Name: string(modelInputs.ReservedSessionKeyViewedByAnyone), Type: modelInputs.KeyTypeBoolean},
 	{Name: string(modelInputs.ReservedSessionKeyViewedByMe), Type: modelInputs.KeyTypeBoolean},
 }
@@ -189,7 +188,6 @@ func (client *Client) WriteSessions(ctx context.Context, sessions []*model.Sessi
 
 		chs := ClickhouseSession{
 			ID:                 int64(session.ID),
-			Fingerprint:        int32(session.Fingerprint),
 			ProjectID:          int32(session.ProjectID),
 			PagesVisited:       int32(session.PagesVisited),
 			ViewedByAdmins:     viewedByAdmins,
@@ -240,7 +238,7 @@ func (client *Client) WriteSessions(ctx context.Context, sessions []*model.Sessi
 				NewStruct(new(ClickhouseSession)).
 				InsertInto(SessionsTable, chSessions...).
 				BuildWithFlavor(sqlbuilder.ClickHouse)
-			sessionsSql, sessionsArgs = replaceTimestampInserts(sessionsSql, sessionsArgs, map[int]bool{7: true, 8: true}, MicroSeconds)
+			sessionsSql, sessionsArgs = replaceTimestampInserts(sessionsSql, sessionsArgs, map[int]bool{6: true, 7: true}, MicroSeconds)
 			return client.conn.Exec(chCtx, sessionsSql, sessionsArgs...)
 		})
 	}
@@ -477,7 +475,7 @@ func (client *Client) DeleteSessions(ctx context.Context, projectId int, session
 	return client.conn.Exec(ctx, sql, args...)
 }
 
-var SessionsTableConfig = model.TableConfig[string]{
+var SessionsTableConfig = model.TableConfig{
 	TableName:        SessionsTable,
 	KeysToColumns:    fieldMap,
 	AttributesColumn: "Fields",
@@ -490,69 +488,94 @@ func SessionMatchesQuery(session *model.Session, filters listener.Filters) bool 
 	return matchesQuery(session, SessionsTableConfig, filters, listener.OperatorAnd)
 }
 
-var SessionsJoinedTableConfig = model.TableConfig[modelInputs.ReservedSessionKey]{
+var reservedSessionKeys = lo.Map(modelInputs.AllReservedSessionKey, func(key modelInputs.ReservedSessionKey, _ int) string {
+	return string(key)
+})
+
+var SessionsJoinedTableConfig = model.TableConfig{
 	TableName:        SessionsJoinedTable,
-	AttributesColumn: "SessionAttributePairs",
-	AttributesList:   true,
-	BodyColumn:       `concat(coalesce(nullif(arrayFilter((k, v) -> k = 'email', SessionAttributePairs) [1].2,''), nullif(Identifier, ''), nullif(toString(Fingerprint), ''), 'unidentified'), ': ', City, if(City != '', ', ', ''), Country)`,
-	KeysToColumns: map[modelInputs.ReservedSessionKey]string{
-		modelInputs.ReservedSessionKeyActiveLength:       "ActiveLength",
-		modelInputs.ReservedSessionKeyServiceVersion:     "AppVersion",
-		modelInputs.ReservedSessionKeyBrowserName:        "BrowserName",
-		modelInputs.ReservedSessionKeyBrowserVersion:     "BrowserVersion",
-		modelInputs.ReservedSessionKeyCity:               "City",
-		modelInputs.ReservedSessionKeyCompleted:          "Processed",
-		modelInputs.ReservedSessionKeyCountry:            "Country",
-		modelInputs.ReservedSessionKeyEnvironment:        "Environment",
-		modelInputs.ReservedSessionKeyExcluded:           "Excluded",
-		modelInputs.ReservedSessionKeyDeviceID:           "Fingerprint",
-		modelInputs.ReservedSessionKeyFirstTime:          "FirstTime",
-		modelInputs.ReservedSessionKeyHasComments:        "HasComments",
-		modelInputs.ReservedSessionKeyHasErrors:          "HasErrors",
-		modelInputs.ReservedSessionKeyHasRageClicks:      "HasRageClicks",
-		modelInputs.ReservedSessionKeyIdentified:         "Identified",
-		modelInputs.ReservedSessionKeyIdentifier:         "Identifier",
-		modelInputs.ReservedSessionKeyIP:                 "IP",
-		modelInputs.ReservedSessionKeyLength:             "Length",
-		modelInputs.ReservedSessionKeyNormalness:         "Normalness",
-		modelInputs.ReservedSessionKeyOsName:             "OSName",
-		modelInputs.ReservedSessionKeyOsVersion:          "OSVersion",
-		modelInputs.ReservedSessionKeyPagesVisited:       "PagesVisited",
-		modelInputs.ReservedSessionKeySecureID:           "SecureID",
-		modelInputs.ReservedSessionKeyState:              "State",
-		modelInputs.ReservedSessionKeyViewedByAnyone:     "Viewed",
-		modelInputs.ReservedSessionKeyWithinBillingQuota: "WithinBillingQuota",
+	AttributesColumn: "RelevantFields",
+	AttributesTable:  "fields",
+	BodyColumn:       `concat(coalesce(nullif(arrayFilter((k, v) -> k = 'email', RelevantFields) [1].2,''), nullif(Identifier, ''), nullif(arrayFilter((k, v) -> k = 'device_id', RelevantFields) [1].2, ''), 'unidentified'), ': ', City, if(City != '', ', ', ''), Country)`,
+	KeysToColumns: map[string]string{
+		string(modelInputs.ReservedSessionKeyActiveLength):       "ActiveLength",
+		string(modelInputs.ReservedSessionKeyServiceVersion):     "AppVersion",
+		string(modelInputs.ReservedSessionKeyBrowserName):        "BrowserName",
+		string(modelInputs.ReservedSessionKeyBrowserVersion):     "BrowserVersion",
+		string(modelInputs.ReservedSessionKeyCity):               "City",
+		string(modelInputs.ReservedSessionKeyCompleted):          "Processed",
+		string(modelInputs.ReservedSessionKeyCountry):            "Country",
+		string(modelInputs.ReservedSessionKeyEnvironment):        "Environment",
+		string(modelInputs.ReservedSessionKeyExcluded):           "Excluded",
+		string(modelInputs.ReservedSessionKeyFirstTime):          "FirstTime",
+		string(modelInputs.ReservedSessionKeyHasComments):        "HasComments",
+		string(modelInputs.ReservedSessionKeyHasErrors):          "HasErrors",
+		string(modelInputs.ReservedSessionKeyHasRageClicks):      "HasRageClicks",
+		string(modelInputs.ReservedSessionKeyIdentified):         "Identified",
+		string(modelInputs.ReservedSessionKeyIdentifier):         "Identifier",
+		string(modelInputs.ReservedSessionKeyIP):                 "IP",
+		string(modelInputs.ReservedSessionKeyLength):             "Length",
+		string(modelInputs.ReservedSessionKeyNormalness):         "Normalness",
+		string(modelInputs.ReservedSessionKeyOsName):             "OSName",
+		string(modelInputs.ReservedSessionKeyOsVersion):          "OSVersion",
+		string(modelInputs.ReservedSessionKeyPagesVisited):       "PagesVisited",
+		string(modelInputs.ReservedSessionKeySecureID):           "SecureID",
+		string(modelInputs.ReservedSessionKeyState):              "State",
+		string(modelInputs.ReservedSessionKeyViewedByAnyone):     "Viewed",
+		string(modelInputs.ReservedSessionKeyWithinBillingQuota): "WithinBillingQuota",
 
 		// deprecated but kept in for backwards compatibility of search
-		modelInputs.ReservedSessionKeyViewed:    "Viewed",
-		modelInputs.ReservedSessionKeyProcessed: "Processed",
-		modelInputs.ReservedSessionKeyLocState:  "State",
+		string(modelInputs.ReservedSessionKeyViewed):    "Viewed",
+		string(modelInputs.ReservedSessionKeyProcessed): "Processed",
+		string(modelInputs.ReservedSessionKeyLocState):  "State",
 	},
-	ReservedKeys: modelInputs.AllReservedSessionKey,
+	ReservedKeys: reservedSessionKeys,
 	IgnoredFilters: map[string]bool{
 		modelInputs.ReservedSessionKeySample.String():     true,
 		modelInputs.ReservedSessionKeyViewedByMe.String(): true,
 	},
+	DefaultFilter: "excluded=false",
 }
 
-var sessionsSampleableTableConfig = sampleableTableConfig[modelInputs.ReservedSessionKey]{
+var SessionsSampleableTableConfig = SampleableTableConfig{
 	tableConfig: SessionsJoinedTableConfig,
 	useSampling: func(time.Duration) bool {
 		return false
 	},
 }
 
-func (client *Client) ReadSessionsMetrics(ctx context.Context, projectID int, params modelInputs.QueryInput, column string, metricTypes []modelInputs.MetricAggregator, groupBy []string, nBuckets *int, bucketBy string, limit *int, limitAggregator *modelInputs.MetricAggregator, limitColumn *string) (*modelInputs.MetricsBuckets, error) {
-	return readMetrics(ctx, client, sessionsSampleableTableConfig, projectID, params, column, metricTypes, groupBy, nBuckets, bucketBy, limit, limitAggregator, limitColumn)
+func (client *Client) ReadSessionsMetrics(ctx context.Context, projectID int, params modelInputs.QueryInput, column string, metricTypes []modelInputs.MetricAggregator, groupBy []string, nBuckets *int, bucketBy string, bucketWindow *int, limit *int, limitAggregator *modelInputs.MetricAggregator, limitColumn *string) (*modelInputs.MetricsBuckets, error) {
+	return client.ReadMetrics(ctx, ReadMetricsInput{
+		SampleableConfig: SessionsSampleableTableConfig,
+		ProjectIDs:       []int{projectID},
+		Params:           params,
+		Column:           column,
+		MetricTypes:      metricTypes,
+		GroupBy:          groupBy,
+		BucketCount:      nBuckets,
+		BucketWindow:     bucketWindow,
+		BucketBy:         bucketBy,
+		Limit:            limit,
+		LimitAggregator:  limitAggregator,
+		LimitColumn:      limitColumn,
+	})
 }
 
 func (client *Client) ReadWorkspaceSessionCounts(ctx context.Context, projectIDs []int, params modelInputs.QueryInput) (*modelInputs.MetricsBuckets, error) {
 	// 12 buckets - 12 months in a year, or 12 weeks in a quarter
-	return readWorkspaceMetrics(ctx, client, sessionsSampleableTableConfig, projectIDs, params, "", []modelInputs.MetricAggregator{modelInputs.MetricAggregatorCount}, nil, pointy.Int(12), modelInputs.MetricBucketByTimestamp.String(), nil, nil, nil)
+	return client.ReadMetrics(ctx, ReadMetricsInput{
+		SampleableConfig: SessionsSampleableTableConfig,
+		ProjectIDs:       projectIDs,
+		Params:           params,
+		Column:           "",
+		MetricTypes:      []modelInputs.MetricAggregator{modelInputs.MetricAggregatorCount},
+		BucketCount:      pointy.Int(12),
+		BucketBy:         modelInputs.MetricBucketByTimestamp.String(),
+	})
 }
 
 func (client *Client) SessionsKeys(ctx context.Context, projectID int, startDate time.Time, endDate time.Time, query *string, typeArg *modelInputs.KeyType) ([]*modelInputs.QueryKey, error) {
-	sessionKeys, err := KeysAggregated(ctx, client, SessionKeysTable, projectID, startDate, endDate, query, typeArg)
+	sessionKeys, err := KeysAggregated(ctx, client, SessionKeysTable, projectID, startDate, endDate, query, typeArg, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -600,9 +623,19 @@ func (client *Client) QuerySessionCustomMetrics(ctx context.Context, projectId i
 	return metrics, nil
 }
 
-func (client *Client) SessionsKeyValues(ctx context.Context, projectID int, keyName string, startDate time.Time, endDate time.Time) ([]string, error) {
+func (client *Client) SessionsKeyValues(ctx context.Context, projectID int, keyName string, startDate time.Time, endDate time.Time, query *string, limit *int) ([]string, error) {
 	if booleanKeys[keyName] {
 		return []string{"true", "false"}, nil
+	}
+
+	limitCount := 10
+	if limit != nil {
+		limitCount = *limit
+	}
+
+	searchQuery := ""
+	if query != nil {
+		searchQuery = *query
 	}
 
 	sb := sqlbuilder.NewSelectBuilder()
@@ -612,10 +645,11 @@ func (client *Client) SessionsKeyValues(ctx context.Context, projectID int, keyN
 		Where(sb.And(
 			sb.Equal("ProjectID", projectID),
 			sb.Equal("Name", keyName),
+			fmt.Sprintf("Value ILIKE %s", sb.Var("%"+searchQuery+"%")),
 			sb.Between("SessionCreatedAt", startDate, endDate))).
 		GroupBy("1").
 		OrderBy("count() DESC").
-		Limit(10).
+		Limit(limitCount).
 		BuildWithFlavor(sqlbuilder.ClickHouse)
 
 	rows, err := client.conn.Query(ctx, sql, args...)
@@ -637,6 +671,31 @@ func (client *Client) SessionsKeyValues(ctx context.Context, projectID int, keyN
 
 func (client *Client) GetConn() driver.Conn {
 	return client.conn
+}
+
+func getAttributeFields(config model.TableConfig, filters listener.Filters) []string {
+	attributeFields := []string{"email", "device_id"}
+	for _, f := range filters {
+		if f.Column == config.AttributesColumn {
+			attributeFields = append(attributeFields, f.Key)
+		}
+		attributeFields = append(attributeFields, getAttributeFields(config, f.Filters)...)
+	}
+	return attributeFields
+}
+
+func addAttributes(config model.TableConfig, attributeFields []string, projectIds []int, params modelInputs.QueryInput, sb *sqlbuilder.SelectBuilder) {
+	if config.AttributesTable != "" {
+		joinSb := sqlbuilder.NewSelectBuilder()
+		joinSb.From(config.AttributesTable).
+			Select(fmt.Sprintf("SessionID, groupArray(tuple(Name, Value)) AS %s", config.AttributesColumn)).
+			Where(joinSb.In("ProjectID", projectIds)).
+			Where(joinSb.GreaterEqualThan("SessionCreatedAt", params.DateRange.StartDate)).
+			Where(joinSb.LessEqualThan("SessionCreatedAt", params.DateRange.EndDate)).
+			Where(joinSb.In("Name", attributeFields)).
+			GroupBy("SessionID")
+		sb.JoinWithOption(sqlbuilder.InnerJoin, sb.BuilderAs(joinSb, "join"), "ID = SessionID")
+	}
 }
 
 func GetSessionsQueryImpl(admin *model.Admin, params modelInputs.QueryInput, projectId int, retentionDate time.Time, selectColumns string, groupBy *string, orderBy *string, limit *int, offset *int) (string, []interface{}, bool, error) {
@@ -690,6 +749,9 @@ func GetSessionsQueryImpl(admin *model.Admin, params modelInputs.QueryInput, pro
 		sb = sb.Offset(*offset)
 	}
 
+	attributeFields := getAttributeFields(SessionsJoinedTableConfig, listener.GetFilters())
+	addAttributes(SessionsJoinedTableConfig, attributeFields, []int{projectId}, params, sb)
+
 	if useRandomSample {
 		sbOuter := sqlbuilder.NewSelectBuilder()
 		sb = sbOuter.
@@ -702,39 +764,44 @@ func GetSessionsQueryImpl(admin *model.Admin, params modelInputs.QueryInput, pro
 	return sql, args, useRandomSample, nil
 }
 
-func (client *Client) QuerySessionIds(ctx context.Context, admin *model.Admin, projectId int, count int, params modelInputs.QueryInput, sortField string, page *int, retentionDate time.Time) ([]int64, int64, bool, error) {
+func (client *Client) QuerySessionIds(ctx context.Context, admin *model.Admin, projectId int, count int, params modelInputs.QueryInput, sortField string, page *int, retentionDate time.Time) ([]int64, int64, int64, int64, bool, error) {
 	pageInt := 1
 	if page != nil {
 		pageInt = *page
 	}
 	offset := (pageInt - 1) * count
 
-	sql, args, sampleRuleFound, err := GetSessionsQueryImpl(admin, params, projectId, retentionDate, "ID, count() OVER() AS total", nil, pointy.String(sortField), pointy.Int(count), pointy.Int(offset))
+	sql, args, sampleRuleFound, err := GetSessionsQueryImpl(
+		admin, params, projectId, retentionDate,
+		"ID, count() OVER() AS total, sum(Length) OVER() AS TotalLength, sum(ActiveLength) OVER() AS TotalActiveLength",
+		nil, pointy.String(sortField), pointy.Int(count), pointy.Int(offset),
+	)
 	if err != nil {
-		return nil, 0, false, err
+		return nil, 0, 0, 0, false, err
 	}
 
 	rows, err := client.conn.Query(ctx, sql, args...)
 	if err != nil {
-		return nil, 0, false, err
+		return nil, 0, 0, 0, false, err
 	}
 
 	var ids []int64
 	var total uint64
+	var totalLength, totalActiveLength int64
 	for rows.Next() {
 		var id int64
-		columns := []interface{}{&id, &total}
+		columns := []interface{}{&id, &total, &totalLength, &totalActiveLength}
 		if sampleRuleFound {
 			var hash uint64
 			columns = append(columns, &hash)
 		}
 		if err := rows.Scan(columns...); err != nil {
-			return nil, 0, false, err
+			return nil, 0, 0, 0, false, err
 		}
 		ids = append(ids, id)
 	}
 
-	return ids, int64(total), sampleRuleFound, nil
+	return ids, int64(total), totalLength, totalActiveLength, sampleRuleFound, nil
 }
 
 func (client *Client) QuerySessionHistogram(ctx context.Context, admin *model.Admin, projectId int, params modelInputs.QueryInput, retentionDate time.Time, options modelInputs.DateHistogramOptions) ([]time.Time, []int64, []int64, []int64, error) {

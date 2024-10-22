@@ -32,7 +32,7 @@ export const iconVariants = recipe({
 	variants: {
 		size: {
 			xSmall: { height: 12, width: 12, ...typographyStyles.size.xSmall },
-			small: { height: 12, width: 12, ...typographyStyles.size.small },
+			small: { height: 14, width: 14, ...typographyStyles.size.small },
 			medium: { height: 14, width: 14, ...typographyStyles.size.small },
 			large: { height: 16, width: 16, ...typographyStyles.size.small },
 			xLarge: { height: 16, width: 16, ...typographyStyles.size.large },
@@ -44,7 +44,7 @@ export const iconVariants = recipe({
 		},
 		kind: {
 			primary: {
-				color: vars.theme.interactive.fill.primary.content.onEnabled,
+				color: vars.theme.interactive.fill.primary.content.text,
 			},
 			secondary: {
 				color: vars.theme.interactive.fill.secondary.content.onEnabled,

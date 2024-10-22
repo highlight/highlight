@@ -2,7 +2,6 @@ import { Button } from '@components/Button'
 import Select from '@components/Select/Select'
 import { toast } from '@components/Toaster'
 import {
-	useCreateSessionAlertMutation,
 	useDeleteSessionAlertMutation,
 	useGetIdentifierSuggestionsQuery,
 	useGetTrackSuggestionQuery,
@@ -38,7 +37,6 @@ import {
 	getFrequencyOption,
 } from '@pages/Alerts/utils/AlertsUtils'
 import { useParams } from '@util/react-router/useParams'
-import { capitalize } from 'lodash'
 import { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 
@@ -89,9 +87,6 @@ export const SessionAlertPage = () => {
 	const { alert_id } = useParams<{
 		alert_id: string
 	}>()
-
-	const isCreate = alert_id === undefined
-	const createStr = isCreate ? 'create' : 'update'
 
 	const { alertsPayload } = useAlertsContext()
 	const alert = alert_id
@@ -173,13 +168,10 @@ export const SessionAlertPage = () => {
 	}, [alert])
 
 	useEffect(() => {
-		analytics.page('Session Alert', { isCreate })
-	}, [isCreate])
+		analytics.page('Session Alert')
+	})
 
 	const [updateSessionAlertMutation] = useUpdateSessionAlertMutation({
-		refetchQueries: [namedOperations.Query.GetAlertsPagePayload],
-	})
-	const [createSessionAlertMutation] = useCreateSessionAlertMutation({
 		refetchQueries: [namedOperations.Query.GetAlertsPagePayload],
 	})
 	const [deleteSessionAlertMutation] = useDeleteSessionAlertMutation({
@@ -214,31 +206,29 @@ export const SessionAlertPage = () => {
 				>
 					Cancel
 				</Button>
-				{!isCreate && (
-					<Button
-						kind="danger"
-						size="small"
-						emphasis="low"
-						trackingId="deleteSessionAlert"
-						onClick={() => {
-							deleteSessionAlertMutation({
-								variables: {
-									project_id: project_id ?? '',
-									session_alert_id: alert_id,
-								},
+				<Button
+					kind="danger"
+					size="small"
+					emphasis="low"
+					trackingId="deleteSessionAlert"
+					onClick={() => {
+						deleteSessionAlertMutation({
+							variables: {
+								project_id: project_id ?? '',
+								session_alert_id: alert_id!,
+							},
+						})
+							.then(() => {
+								toast.success(`Error alert deleted!`)
+								navigate(`/${project_id}/alerts`)
 							})
-								.then(() => {
-									toast.success(`Error alert deleted!`)
-									navigate(`/${project_id}/alerts`)
-								})
-								.catch(() => {
-									toast.error(`Failed to delete error alert!`)
-								})
-						}}
-					>
-						Delete Alert
-					</Button>
-				)}
+							.catch(() => {
+								toast.error(`Failed to delete error alert!`)
+							})
+					}}
+				>
+					Delete Alert
+				</Button>
 				<Button
 					kind="primary"
 					size="small"
@@ -289,14 +279,14 @@ export const SessionAlertPage = () => {
 							exclude_rules: excludeRules
 								? formStore.getValue(
 										formStore.names.excludeRules,
-								  ) || []
+									) || []
 								: [],
 							user_properties: tracksUserProperties
 								? (
 										formStore.getValue(
 											formStore.names.userProperties,
 										) || []
-								  ).map((userProperty: any) => {
+									).map((userProperty: any) => {
 										const [id, name, value] =
 											userProperty.split(SEPARATOR, 3)
 										return {
@@ -304,14 +294,14 @@ export const SessionAlertPage = () => {
 											value,
 											name,
 										}
-								  })
+									})
 								: [],
 							track_properties: tracksSessionProperties
 								? (
 										formStore.getValue(
 											formStore.names.trackProperties,
 										) || []
-								  ).map((trackProperty: any) => {
+									).map((trackProperty: any) => {
 										const [id, name, value] =
 											trackProperty.split(SEPARATOR, 3)
 										return {
@@ -319,7 +309,7 @@ export const SessionAlertPage = () => {
 											value,
 											name,
 										}
-								  }) || []
+									}) || []
 								: [],
 							type: alertType,
 						}
@@ -356,59 +346,31 @@ export const SessionAlertPage = () => {
 							return
 						}
 
-						if (isCreate) {
-							createSessionAlertMutation({
-								variables: {
-									input: {
-										...input,
-										count_threshold:
-											input.count_threshold ?? 1,
-									},
+						updateSessionAlertMutation({
+							variables: {
+								input: {
+									...input,
+									count_threshold: input.count_threshold ?? 1,
 								},
+								id: alert_id!,
+							},
+						})
+							.then(() => {
+								toast.success(`Session alert updated!`)
+								navigate(`/${project_id}/alerts`)
 							})
-								.then(() => {
-									toast.success(
-										`Session alert ${createStr}d!`,
-									)
-									navigate(`/${project_id}/alerts`)
-								})
-								.catch(() => {
-									toast.error(
-										`Failed to ${createStr} session alert!`,
-									)
-								})
-						} else {
-							updateSessionAlertMutation({
-								variables: {
-									input: {
-										...input,
-										count_threshold:
-											input.count_threshold ?? 1,
-									},
-									id: alert_id,
-								},
+							.catch(() => {
+								toast.error(`Failed to update session alert!`)
 							})
-								.then(() => {
-									toast.success(
-										`Session alert ${createStr}d!`,
-									)
-									navigate(`/${project_id}/alerts`)
-								})
-								.catch(() => {
-									toast.error(
-										`Failed to ${createStr} session alert!`,
-									)
-								})
-						}
 					}}
 				>
-					{capitalize(createStr)} alert
+					Update alert
 				</Button>
 			</Box>
 		</Box>
 	)
 
-	const isLoading = !isCreate && !values.loaded
+	const isLoading = !values.loaded
 
 	return (
 		<Box width="full" background="raised" p="8">
@@ -585,13 +547,13 @@ const SessionAlertForm = ({
 		? []
 		: (userSuggestionsApiResponse?.property_suggestion || []).map(
 				(suggestion) => getPropertiesOption(suggestion),
-		  )
+			)
 
 	const trackPropertiesSuggestions = trackSuggestionsLoading
 		? []
 		: (trackSuggestionsApiResponse?.property_suggestion || []).map(
 				(suggestion) => getPropertiesOption(suggestion),
-		  )
+			)
 
 	const identifierSuggestions = identifierSuggestionsLoading
 		? []
@@ -606,7 +568,7 @@ const SessionAlertForm = ({
 					),
 					id: suggestion,
 				}),
-		  )
+			)
 
 	const handleUserPropertiesSearch = (query = '') => {
 		refetchUserSuggestions({ query, project_id: project_id })
@@ -632,7 +594,7 @@ const SessionAlertForm = ({
 							<Text size="large" weight="bold" color="strong">
 								Alert conditions
 							</Text>
-							<Menu>
+							<Menu placement="bottom-end">
 								<ThresholdTypeConfiguration />
 							</Menu>
 						</Box>
@@ -663,19 +625,9 @@ const SessionAlertForm = ({
 									<Form.Select
 										label="Alert threshold window"
 										name={formStore.names.threshold_window}
-									>
-										<option value="" disabled>
-											Select alert threshold window
-										</option>
-										{FREQUENCIES.map((freq: any) => (
-											<option
-												key={freq.id}
-												value={Number(freq.value)}
-											>
-												{freq.displayValue}
-											</option>
-										))}
-									</Form.Select>
+										placeholder="Select alert threshold window"
+										options={FREQUENCIES}
+									/>
 								</Column>
 							</Column.Container>
 						)}

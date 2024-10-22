@@ -14,6 +14,9 @@ jobs:
     build:
         name: Ruby SDK
         runs-on: ubuntu-latest
+        strategy:
+            matrix:
+                ruby: ['3.0', '3.3']
         defaults:
             run:
                 working-directory: ./sdk/highlight-ruby/highlight
@@ -25,10 +28,11 @@ jobs:
                   filters: |
                       ruby-changed:
                         - 'sdk/highlight-ruby/**'
-            - name: Install Ruby 2.6
+            - name: Install Ruby
               uses: ruby/setup-ruby@v1
               with:
-                  ruby-version: '2.6'
+                  ruby-version: ${{ matrix.ruby }}
+                  bundler-cache: true # runs 'bundle install' and caches installed gems automatically
             - name: Install dependencies
               run: bundle install
             - name: Test
@@ -36,7 +40,7 @@ jobs:
             - name: Rubocop
               run: bundle exec rubocop
             - name: Publish to RubyGems
-              if: github.ref == 'refs/heads/main' && steps.filter.outputs.ruby-changed == 'true'
+              if: github.ref == 'refs/heads/main' && matrix.ruby == '3.3' && steps.filter.outputs.ruby-changed == 'true'
               run: |
                   mkdir -p $HOME/.gem
                   touch $HOME/.gem/credentials
@@ -46,3 +50,22 @@ jobs:
                   gem push *.gem
               env:
                   RUBYGEMS_API_KEY: '${{secrets.RUBYGEMS_API_KEY}}'
+    e2e:
+        name: Ruby Example App
+        runs-on: ubuntu-latest
+        defaults:
+            run:
+                working-directory: ./e2e/ruby/rails/demo
+        steps:
+            - uses: actions/checkout@v4
+            - name: Install Ruby
+              uses: ruby/setup-ruby@v1
+              with:
+                  ruby-version: '3.3.4'
+                  bundler-cache: true # runs 'bundle install' and caches installed gems automatically
+            - name: Install dependencies
+              run: bundle install
+            - name: Test
+              run: bundle exec rake
+            - name: Rubocop
+              run: bundle exec rubocop

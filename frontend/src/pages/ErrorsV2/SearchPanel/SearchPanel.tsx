@@ -17,18 +17,22 @@ import { useEffect, useState } from 'react'
 import { useSearchContext } from '@/components/Search/SearchContext'
 import { useRetentionPresets } from '@/components/Search/SearchForm/hooks'
 import { SearchForm } from '@/components/Search/SearchForm/SearchForm'
+import { useGetWorkspaceSettingsQuery } from '@/graph/generated/hooks'
 import { ErrorFeedCard } from '@/pages/ErrorsV2/ErrorFeedCard/ErrorFeedCard'
 import { useErrorPageNavigation } from '@/pages/ErrorsV2/ErrorsV2'
 import { OverageCard } from '@/pages/Sessions/SessionsFeedV3/OverageCard/OverageCard'
+import { useApplicationContext } from '@/routers/AppRouter/context/ApplicationContext'
 import { styledVerticalScrollbar } from '@/style/common.css'
 
 import * as style from './SearchPanel.css'
 
 export const SearchPanel = () => {
+	const { currentWorkspace } = useApplicationContext()
 	const { setShowLeftPanel } = useErrorPageNavigation()
 	const { showBanner } = useGlobalContext()
 	const {
 		results: errorGroups,
+		resultFormatted,
 		totalCount,
 		moreResults: moreErrors,
 		resetMoreResults: resetMoreErrors,
@@ -46,6 +50,11 @@ export const SearchPanel = () => {
 	const showHistogram = totalCount >= 0
 
 	const [, setSyncButtonDisabled] = useState<boolean>(false)
+
+	const { data: workspaceSettings } = useGetWorkspaceSettingsQuery({
+		variables: { workspace_id: String(currentWorkspace?.id) },
+		skip: !currentWorkspace?.id,
+	})
 
 	useEffect(() => {
 		if (!loading) {
@@ -100,8 +109,12 @@ export const SearchPanel = () => {
 				timeMode="fixed-range"
 				savedSegmentType={SavedSegmentEntityType.Error}
 				actions={actions}
-				resultCount={totalCount}
+				resultFormatted={resultFormatted}
 				loading={loading}
+				enableAIMode={
+					workspaceSettings?.workspaceSettings?.ai_query_builder
+				}
+				aiSupportedSearch
 				hideCreateAlert
 				isPanelView
 			/>

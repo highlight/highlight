@@ -70,6 +70,30 @@ export const RETENTION_PERIOD_LABELS: { [K in RetentionPeriod]: string } = {
 	[RetentionPeriod.ThreeYears]: '3 year retention',
 }
 
+export const getRetentionDays = (p: RetentionPeriod) => {
+	switch (p) {
+		case RetentionPeriod.SevenDays:
+			return 7
+		case RetentionPeriod.ThirtyDays:
+			return 30
+		case RetentionPeriod.ThreeMonths:
+			return 90
+		case RetentionPeriod.SixMonths:
+			return 180
+		case RetentionPeriod.TwelveMonths:
+			return 365
+		case RetentionPeriod.TwoYears:
+			return 2 * 365
+		case RetentionPeriod.ThreeYears:
+			return 3 * 365
+	}
+}
+
+export const PLANS_WITH_ENTERPRISE_FEATURES = new Set<PlanType>([
+	PlanType.Business,
+	PlanType.Enterprise,
+])
+
 type meterArgs = {
 	workspace: Maybe<Pick<Workspace, 'trial_end_date'>> | undefined
 	details:
@@ -117,6 +141,7 @@ export const getMeterAmounts = ({
 			[ProductType.Logs]: [0, undefined],
 			[ProductType.Traces]: [0, undefined],
 			[ProductType.Metrics]: [0, undefined],
+			[ProductType.Events]: [0, undefined],
 		}
 	}
 	const trialActive = workspace?.trial_end_date
@@ -154,6 +179,8 @@ export const getMeterAmounts = ({
 		[ProductType.Traces]: [tracesMeter, tracesQuota],
 		// TODO(vkorolik) billing for metrics ingest
 		[ProductType.Metrics]: [0, undefined],
+		// TODO(spenny): better way to add new searches without needing to add a new billable product
+		[ProductType.Events]: [0, undefined],
 	}
 }
 

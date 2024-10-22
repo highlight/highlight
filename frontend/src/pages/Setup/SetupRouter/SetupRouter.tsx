@@ -48,6 +48,7 @@ import {
 
 import { AlertsSetup } from './AlertsSetup'
 import * as styles from './SetupRouter.css'
+import InkeepChatButton from '@/pages/Setup/SetupInkeepChatButton'
 
 export const SetupRouter = () => {
 	const { toggleShowBanner } = useGlobalContext()
@@ -63,16 +64,16 @@ export const SetupRouter = () => {
 		area === 'backend'
 			? serverIntegration
 			: area === 'client'
-			? clientIntegration
-			: area === 'backend-logging'
-			? logsIntegration
-			: area === 'alerts'
-			? alertsIntegration
-			: area === 'team'
-			? teamIntegration
-			: area === 'traces'
-			? tracesIntegration
-			: undefined
+				? clientIntegration
+				: area === 'backend-logging'
+					? logsIntegration
+					: area === 'alerts'
+						? alertsIntegration
+						: area === 'team'
+							? teamIntegration
+							: area === 'traces'
+								? tracesIntegration
+								: undefined
 	const { projectId } = useProjectId()
 	const { data } = useGetProjectQuery({ variables: { id: projectId! } })
 	const projectVerboseId = data?.project?.verbose_id
@@ -308,6 +309,7 @@ export const SetupRouter = () => {
 					position="relative"
 					overflow="hidden"
 				>
+					<InkeepChatButton />
 					<IntegrationBar integrationData={integrationData} />
 
 					<Box overflowY="scroll" height="full">

@@ -8,9 +8,16 @@ import SearchPagination, {
 	PAGE_SIZE,
 } from '@components/SearchPagination/SearchPagination'
 import { SearchResultsHistogram } from '@components/SearchResultsHistogram/SearchResultsHistogram'
-import { useGetSessionsHistogramQuery } from '@graph/hooks'
-import { SavedSegmentEntityType } from '@graph/schemas'
-import { Maybe, ProductType, Session } from '@graph/schemas'
+import {
+	useGetSessionsHistogramQuery,
+	useGetWorkspaceSettingsQuery,
+} from '@graph/hooks'
+import {
+	Maybe,
+	ProductType,
+	SavedSegmentEntityType,
+	Session,
+} from '@graph/schemas'
 import {
 	Box,
 	ButtonIcon,
@@ -31,6 +38,7 @@ import { useRetentionPresets } from '@/components/Search/SearchForm/hooks'
 import { SearchForm } from '@/components/Search/SearchForm/SearchForm'
 import usePlayerConfiguration from '@/pages/Player/PlayerHook/utils/usePlayerConfiguration'
 import { OverageCard } from '@/pages/Sessions/SessionsFeedV3/OverageCard/OverageCard'
+import { useApplicationContext } from '@/routers/AppRouter/context/ApplicationContext'
 import { styledVerticalScrollbar } from '@/style/common.css'
 
 import { SessionFeedConfigurationContextProvider } from './context/SessionFeedConfigurationContext'
@@ -45,7 +53,7 @@ export const SessionsHistogram: React.FC<{ readonly?: boolean }> = React.memo(
 		}>()
 
 		const {
-			query,
+			initialQuery,
 			histogramBucketSize,
 			startDate,
 			endDate,
@@ -56,7 +64,7 @@ export const SessionsHistogram: React.FC<{ readonly?: boolean }> = React.memo(
 			variables: {
 				project_id: project_id!,
 				params: {
-					query,
+					query: initialQuery,
 					date_range: {
 						start_date: roundFeedDate(
 							startDate!.toISOString(),
@@ -125,6 +133,7 @@ export const SessionsHistogram: React.FC<{ readonly?: boolean }> = React.memo(
 )
 
 export const SessionFeedV3 = React.memo(() => {
+	const { currentWorkspace } = useApplicationContext()
 	const sessionFeedConfiguration = useSessionFeedConfiguration()
 	const {
 		loading,
@@ -133,6 +142,7 @@ export const SessionFeedV3 = React.memo(() => {
 		endDate,
 		selectedPreset,
 		results,
+		resultFormatted,
 		moreResults,
 		resetMoreResults,
 		page,
@@ -166,6 +176,11 @@ export const SessionFeedV3 = React.memo(() => {
 		)
 	}
 
+	const { data: workspaceSettings } = useGetWorkspaceSettingsQuery({
+		variables: { workspace_id: String(currentWorkspace?.id) },
+		skip: !currentWorkspace?.id,
+	})
+
 	const { presets, minDate } = useRetentionPresets(ProductType.Sessions)
 
 	return (
@@ -194,7 +209,7 @@ export const SessionFeedV3 = React.memo(() => {
 					timeMode="fixed-range"
 					savedSegmentType={SavedSegmentEntityType.Session}
 					actions={actions}
-					resultCount={totalCount}
+					resultFormatted={resultFormatted}
 					loading={loading}
 					creatables={{
 						sample: {
@@ -206,6 +221,10 @@ export const SessionFeedV3 = React.memo(() => {
 								.join(''),
 						},
 					}}
+					enableAIMode={
+						workspaceSettings?.workspaceSettings?.ai_query_builder
+					}
+					aiSupportedSearch
 					hideCreateAlert
 					isPanelView
 				/>

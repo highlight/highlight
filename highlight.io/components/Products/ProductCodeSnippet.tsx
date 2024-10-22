@@ -1,9 +1,9 @@
 import Image from 'next/legacy/image'
 import { CodeBlock } from 'react-code-blocks'
 import { SyntaxHighlighterProps } from 'react-syntax-highlighter'
+import homeStyles from '../../Home/Home.module.scss'
 import CopyIcon from '../../public/images/copy.svg'
 import highlightCodeTheme from './../common/CodeBlock/highlight-code-theme'
-import homeStyles from '../../Home/Home.module.scss'
 
 const ProductCodeSnippet = ({
 	content,

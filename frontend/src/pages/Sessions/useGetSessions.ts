@@ -2,7 +2,7 @@ import { PAGE_SIZE } from '@components/SearchPagination/SearchPagination'
 import { useGetSessionsLazyQuery, useGetSessionsQuery } from '@graph/hooks'
 import { usePollQuery } from '@util/search'
 import moment from 'moment'
-import { useCallback } from 'react'
+import { useCallback, useMemo } from 'react'
 
 import { TIME_FORMAT } from '@/components/Search/SearchForm/constants'
 import { GetHistogramBucketSize } from '@/components/SearchResultsHistogram/SearchResultsHistogram'
@@ -19,6 +19,7 @@ export const useGetSessions = ({
 	page = 1,
 	disablePolling,
 	sortDesc,
+	presetSelected,
 }: {
 	query: string
 	project_id: string | undefined
@@ -27,17 +28,17 @@ export const useGetSessions = ({
 	page?: number
 	disablePolling?: boolean
 	sortDesc: boolean
+	presetSelected: boolean
 }) => {
 	// Using these rounded dates to ensure the cache is hit on initial load. The
 	// query will still be sent and the data in the cache will be updated.
 	const roundedStartDate = moment(startDate)
 		.startOf('minute')
 		.subtract(moment(startDate).minute() % 10, 'minutes')
-	const endDateIsNearNow = moment().diff(moment(endDate), 'seconds') < 10
-	const momentEndDate = endDateIsNearNow
+	const momentEndDate = presetSelected
 		? moment(endDate).add(10, 'minutes')
 		: moment(endDate)
-	const roudnedEndDate = momentEndDate
+	const roundedEndDate = momentEndDate
 		.startOf('minute')
 		.subtract(moment(endDate).minute() % 10, 'minutes')
 
@@ -50,7 +51,7 @@ export const useGetSessions = ({
 				query,
 				date_range: {
 					start_date: roundedStartDate.format(TIME_FORMAT),
-					end_date: roudnedEndDate.format(TIME_FORMAT),
+					end_date: roundedEndDate.format(TIME_FORMAT),
 				},
 			},
 			sort_desc: sortDesc,
@@ -91,6 +92,15 @@ export const useGetSessions = ({
 		maxResults: PAGE_SIZE,
 	})
 
+	const totalLength = useMemo(
+		() => moment.duration(data?.sessions?.totalLength || 0, 'ms'),
+		[data?.sessions?.totalLength],
+	)
+	const totalActiveLength = useMemo(
+		() => moment.duration(data?.sessions?.totalActiveLength || 0, 'ms'),
+		[data?.sessions?.totalActiveLength],
+	)
+
 	return {
 		sessions: data?.sessions?.sessions || [],
 		sessionSes: data?.sessions?.sessions.map((eg) => eg.secure_id) || [],
@@ -100,6 +110,8 @@ export const useGetSessions = ({
 		error,
 		refetch,
 		totalCount: data?.sessions?.totalCount || 0,
+		totalLength: totalLength,
+		totalActiveLength: totalActiveLength,
 		histogramBucketSize: determineHistogramBucketSize(startDate, endDate),
 		pollingExpired,
 	}

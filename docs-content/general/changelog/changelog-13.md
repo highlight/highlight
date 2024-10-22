@@ -27,7 +27,7 @@ We've shipped even more SDKS this week:
 
 [Go Fiber](../../getting-started/4_backend-sdk/go.md)
 
-[Python Fast API](../../getting-started/4_backend-sdk/python.md)
+[Python Fast API](../../getting-started/4_backend-sdk/05_python/1_overview.md)
 
 ## Our new logging product (🤫)
 

@@ -8,11 +8,11 @@ import {
 	useLoaderData,
 } from '@remix-run/react'
 
-import { CONSTANTS } from './constants.js'
 import { HighlightInit } from '@highlight-run/remix/client'
-import type { LinksFunction } from '@remix-run/node'
 import { cssBundleHref } from '@remix-run/css-bundle'
+import type { LinksFunction } from '@remix-run/node'
 import { json } from '@remix-run/node'
+import { CONSTANTS } from './constants.js'
 
 export { ErrorBoundary } from './components/error-boundary.js'
 

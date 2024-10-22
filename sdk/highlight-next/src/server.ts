@@ -1,16 +1,16 @@
-import * as withHighlightNodeJsPageRouter from './util/with-highlight-nodejs-page-router'
 import * as withHighlightNodeJsAppRouter from './util/with-highlight-nodejs-app-router'
+import * as withHighlightNodeJsPageRouter from './util/with-highlight-nodejs-page-router'
 
-import type { ExtendedExecutionContext, HighlightEnv } from './util/types'
-import type { EdgeHandler } from './util/with-highlight-edge'
 import type { NextFetchEvent, NextRequest } from 'next/server'
 import { isNodeJsRuntime } from './util/is-node-js-runtime'
+import type { ExtendedExecutionContext, HighlightEnv } from './util/types'
+import type { EdgeHandler } from './util/with-highlight-edge'
 
+export { H } from '@highlight-run/node' // Imports from server.edge.ts for the edge runtime
+export { highlightMiddleware } from './util/highlight-middleware'
 export { isNodeJsRuntime } from './util/is-node-js-runtime'
 export { registerHighlight } from './util/register-highlight'
 export type { HighlightEnv } from './util/types'
-export { H } from '@highlight-run/node' // Imports from server.edge.ts for the edge runtime
-export { highlightMiddleware } from './util/highlight-middleware'
 
 type PageRouterHighlightHandler = ReturnType<
 	typeof withHighlightNodeJsPageRouter.Highlight

@@ -10,7 +10,7 @@ import { SearchForm } from '@/components/Search/SearchForm/SearchForm'
 import SearchPagination, {
 	START_PAGE,
 } from '@/components/SearchPagination/SearchPagination'
-import { useGetErrorObjectsQuery } from '@/graph/generated/hooks'
+import { useGetErrorGroupInstancesQuery } from '@/graph/generated/hooks'
 import { GetErrorGroupQuery } from '@/graph/generated/operations'
 import { ProductType } from '@/graph/generated/schemas'
 import { ErrorInstancesTable } from '@/pages/ErrorsV2/ErrorInstances/ErrorInstancesTable'
@@ -32,7 +32,7 @@ export const ErrorInstances = ({ errorGroup }: Props) => {
 	const [submittedQuery, setSubmittedQuery] = useState(query)
 	const [page, setPage] = useState(START_PAGE)
 
-	const { data, loading, error } = useGetErrorObjectsQuery({
+	const { data, loading, error } = useGetErrorGroupInstancesQuery({
 		variables: {
 			errorGroupSecureID: errorGroup?.secure_id ?? '',
 			count: PAGE_SIZE,
@@ -99,7 +99,10 @@ export const ErrorInstances = ({ errorGroup }: Props) => {
 
 	return (
 		<ErrorInstancesContainer onSubmit={handleSubmit} query={submittedQuery}>
-			<ErrorInstancesTable nodes={error_objects} />
+			<ErrorInstancesTable
+				nodes={error_objects}
+				errorGroupSecureId={errorGroup?.secure_id}
+			/>
 			<SearchPagination
 				page={page}
 				setPage={setPage}

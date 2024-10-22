@@ -7,12 +7,14 @@ export const editGraphHeader = style({
 
 export const dashboardContent = style({
 	height: 'calc(100% - 40px)',
+	overflow: 'auto',
 })
 
 export const headerDivider = style({
 	width: 1,
 	backgroundColor: vars.theme.static.divider.weak,
 	margin: '4px 2px',
+	height: 20,
 })
 
 export const graphBackground = style({
@@ -37,12 +39,10 @@ export const input = style({
 })
 
 export const graphGrid = style({
-	overflow: 'auto',
 	display: 'grid',
 	width: '100%',
 	height: '100%',
 	padding: '8px 28px',
-	gridTemplateRows: 'repeat(auto-fill, 280px)',
 
 	'@media': {
 		[`(width <= 850px)`]: {
@@ -55,10 +55,6 @@ export const graphGrid = style({
 			gridTemplateColumns: '1fr 1fr 1fr',
 		},
 	},
-})
-
-export const gridEditing = style({
-	backgroundColor: vars.theme.static.surface.raised,
 })
 
 globalStyle(`${menuButton} > div`, {

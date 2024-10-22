@@ -1,5 +1,200 @@
 # @highlight-run/remix
 
+## 2.0.62
+
+### Patch Changes
+
+-   Updated dependencies [d94533a]
+    -   highlight.run@9.5.0
+    -   @highlight-run/node@3.9.3
+    -   @highlight-run/react@7.0.0
+
+## 2.0.61
+
+### Patch Changes
+
+-   Updated dependencies [f43d3b4]
+-   Updated dependencies [72ec866]
+-   Updated dependencies [f43d3b4]
+-   Updated dependencies [f43d3b4]
+    -   highlight.run@9.4.4
+    -   @highlight-run/node@3.9.3
+    -   @highlight-run/react@6.0.4
+
+## 2.0.60
+
+### Patch Changes
+
+-   Updated dependencies [54557e9]
+    -   highlight.run@9.4.3
+    -   @highlight-run/node@3.9.3
+    -   @highlight-run/react@6.0.3
+
+## 2.0.59
+
+### Patch Changes
+
+-   Updated dependencies [5213ca3]
+    -   highlight.run@9.4.2
+    -   @highlight-run/node@3.9.3
+    -   @highlight-run/react@6.0.2
+
+## 2.0.58
+
+### Patch Changes
+
+-   Updated dependencies [a95d52b]
+-   Updated dependencies [f432e66]
+    -   highlight.run@9.4.1
+    -   @highlight-run/node@3.9.3
+    -   @highlight-run/react@6.0.1
+
+## 2.0.57
+
+### Patch Changes
+
+-   5045b23: fix opentelemetry warning from missing dependencies
+-   Updated dependencies [815faa8]
+-   Updated dependencies [815faa8]
+-   Updated dependencies [5045b23]
+    -   highlight.run@9.4.0
+    -   @highlight-run/node@3.9.3
+    -   @highlight-run/react@6.0.0
+
+## 2.0.56
+
+### Patch Changes
+
+-   Updated dependencies [1e21c52]
+-   Updated dependencies [02f67d0]
+    -   @highlight-run/node@3.9.2
+    -   highlight.run@9.3.4
+    -   @highlight-run/react@5.0.4
+
+## 2.0.55
+
+### Patch Changes
+
+-   Updated dependencies [5cc0afd]
+    -   highlight.run@9.3.3
+    -   @highlight-run/node@3.9.1
+    -   @highlight-run/react@5.0.3
+
+## 2.0.54
+
+### Patch Changes
+
+-   2339697: update opentelemetry dependencies
+-   Updated dependencies [be38f68]
+-   Updated dependencies [2339697]
+-   Updated dependencies [bbbaeb1]
+    -   highlight.run@9.3.2
+    -   @highlight-run/node@3.9.1
+    -   @highlight-run/react@5.0.2
+
+## 2.0.53
+
+### Patch Changes
+
+-   Updated dependencies [262a07314]
+    -   highlight.run@9.3.1
+    -   @highlight-run/node@3.9.0
+    -   @highlight-run/react@5.0.1
+
+## 2.0.52
+
+### Patch Changes
+
+-   Updated dependencies [d2e00028a]
+-   Updated dependencies [0a8a9ffdc]
+-   Updated dependencies [0a8a9ffdc]
+    -   highlight.run@9.3.0
+    -   @highlight-run/node@3.9.0
+    -   @highlight-run/react@5.0.0
+
+## 2.0.51
+
+### Patch Changes
+
+-   Updated dependencies [f7fb74a44]
+    -   highlight.run@9.2.2
+    -   @highlight-run/node@3.9.0
+    -   @highlight-run/react@4.0.2
+
+## 2.0.50
+
+### Patch Changes
+
+-   Updated dependencies [0067ea6b5]
+    -   highlight.run@9.2.1
+    -   @highlight-run/node@3.9.0
+    -   @highlight-run/react@4.0.1
+
+## 2.0.49
+
+### Patch Changes
+
+-   Updated dependencies [d67bd4425]
+    -   highlight.run@9.2.0
+    -   @highlight-run/node@3.9.0
+    -   @highlight-run/react@4.0.0
+
+## 2.0.48
+
+### Patch Changes
+
+-   Updated dependencies [5b0b5a503]
+    -   highlight.run@9.1.5
+    -   @highlight-run/node@3.9.0
+    -   @highlight-run/react@3.2.5
+
+## 2.0.47
+
+### Patch Changes
+
+-   Updated dependencies [b09f21e4b]
+    -   @highlight-run/react@3.2.4
+
+## 2.0.46
+
+### Patch Changes
+
+-   Updated dependencies [3e99f48ca]
+    -   highlight.run@9.1.4
+    -   @highlight-run/node@3.9.0
+
+## 2.0.45
+
+### Patch Changes
+
+-   Updated dependencies [efdf6b66a]
+    -   highlight.run@9.1.3
+    -   @highlight-run/node@3.9.0
+
+## 2.0.44
+
+### Patch Changes
+
+-   Updated dependencies [50dba067f]
+    -   highlight.run@9.1.2
+    -   @highlight-run/node@3.9.0
+
+## 2.0.43
+
+### Patch Changes
+
+-   Updated dependencies [e239b1a02]
+    -   highlight.run@9.0.5
+    -   @highlight-run/node@3.9.0
+
+## 2.0.42
+
+### Patch Changes
+
+-   Updated dependencies [0a245b208]
+    -   highlight.run@9.0.4
+    -   @highlight-run/node@3.9.0
+
 ## 2.0.41
 
 ### Patch Changes

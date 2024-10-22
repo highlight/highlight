@@ -56,9 +56,37 @@ enum HeardAbout {
 	other = 'Other',
 }
 
+const ROLE_OPTIONS = [
+	{
+		name: 'Product',
+		value: 'Product',
+	},
+	{
+		name: 'Engineering',
+		value: 'Engineer',
+	},
+	{
+		name: 'Founder',
+		value: 'Founder',
+	},
+	{
+		name: 'Business / Finance',
+		value: 'Sales',
+	},
+]
+
+const TEAM_SIZE_OPTIONS = Object.entries(TeamSize).map(([k, v]) => ({
+	name: v,
+	value: k,
+}))
+
+const HEARD_ABOUT_OPTIONS = Object.entries(HeardAbout).map(([k, v]) => ({
+	name: v,
+	value: k,
+}))
+
 export const AdminForm: React.FC = () => {
 	const [showPromoCodeField, setShowPromoCodeField] = useState(false)
-	const [error, setError] = useState('')
 	const { setLoadingState } = useAppLoadingContext()
 	const { admin, fetchAdmin } = useAuthContext()
 	const navigate = useNavigate()
@@ -113,7 +141,10 @@ export const AdminForm: React.FC = () => {
 
 		if (!formState.valid) {
 			analytics.track('About you submission failed')
-			setError('Please fill out all form fields correctly.')
+			formStore.setError(
+				'general',
+				'Please fill out all form fields correctly.',
+			)
 			return
 		}
 
@@ -170,7 +201,9 @@ export const AdminForm: React.FC = () => {
 			)
 
 			await fetchAdmin() // updates admin in auth context
-			navigate(INVITE_TEAM_ROUTE)
+			navigate(
+				`${INVITE_TEAM_ROUTE}${inWorkspace ? '' : '?new_workspace=1'}`,
+			)
 		} catch (e: any) {
 			if (import.meta.env.DEV) {
 				console.error(e)
@@ -185,7 +218,7 @@ export const AdminForm: React.FC = () => {
 				errorMessage = 'Something went wrong. Please try again.'
 			}
 
-			setError(errorMessage)
+			formStore.setError('general', errorMessage)
 		}
 	})
 
@@ -203,6 +236,8 @@ export const AdminForm: React.FC = () => {
 	if (workspacesLoading) {
 		return null
 	}
+
+	const formError = formStore.getError('general')
 
 	return (
 		<Landing>
@@ -246,49 +281,26 @@ export const AdminForm: React.FC = () => {
 						/>
 
 						<Form.Select
-							className={styles.select}
 							name={formStore.names.role}
 							label="Role"
 							required
-						>
-							<option value="" disabled>
-								Select your role
-							</option>
-							<option value="Product">Product</option>
-							<option value="Engineer">Engineering</option>
-							<option value="Founder">Founder</option>
-							<option value="Sales">Business / Finance</option>
-						</Form.Select>
+							options={ROLE_OPTIONS}
+							placeholder="Select your role"
+						/>
 						<Form.Select
-							className={styles.select}
 							name={formStore.names.teamSize}
 							label="Team Size"
 							required
-						>
-							<option value="" disabled>
-								Select your team size
-							</option>
-							{Object.entries(TeamSize).map(([k, v]) => (
-								<option value={k} key={k}>
-									{v}
-								</option>
-							))}
-						</Form.Select>
+							options={TEAM_SIZE_OPTIONS}
+							placeholder="Select your team size"
+						/>
 						<Form.Select
-							className={styles.select}
 							name={formStore.names.heardAbout}
 							label="Where did you hear about us?"
 							required
-						>
-							<option value="" disabled>
-								Select how you heard about us
-							</option>
-							{Object.entries(HeardAbout).map(([k, v]) => (
-								<option value={k} key={k}>
-									{v}
-								</option>
-							))}
-						</Form.Select>
+							options={HEARD_ABOUT_OPTIONS}
+							placeholder="Select how you heard about us"
+						/>
 						{!inWorkspace &&
 							(showPromoCodeField ? (
 								<Form.Input
@@ -306,7 +318,9 @@ export const AdminForm: React.FC = () => {
 									</ButtonLink>
 								</Box>
 							))}
-						{error && <Callout kind="error">{error}</Callout>}
+						{formError && (
+							<Callout kind="error">{formError}</Callout>
+						)}
 					</Stack>
 				</AuthBody>
 				<AuthFooter>

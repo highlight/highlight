@@ -5,7 +5,7 @@ import {
 	DEFAULT_TIME_PRESETS,
 	IconSolidChartBar,
 	IconSolidCheveronRight,
-	presetStartDate,
+	IconSolidClock,
 	Stack,
 	Tag,
 	Text,
@@ -19,9 +19,14 @@ import { useProjectId } from '@/hooks/useProjectId'
 import { useSearchTime } from '@/hooks/useSearchTime'
 import Graph, { getViewConfig } from '@/pages/Graphing/components/Graph'
 import { HeaderDivider } from '@/pages/Graphing/Dashboard'
+import { GraphBackgroundWrapper } from '@/pages/Graphing/GraphingEditor'
 import { useParams } from '@/util/react-router/useParams'
 
 import * as style from './Dashboard.css'
+import { useGraphingVariables } from '@/pages/Graphing/hooks/useGraphingVariables'
+import { useRetentionPresets } from '@/components/Search/SearchForm/hooks'
+import { GraphContextProvider } from '@pages/Graphing/context/GraphContext'
+import { useGraphData } from '@pages/Graphing/hooks/useGraphData'
 
 export const ExpandedGraph = () => {
 	const { dashboard_id, graph_id } = useParams<{
@@ -30,18 +35,23 @@ export const ExpandedGraph = () => {
 	}>()
 
 	const { projectId } = useProjectId()
+	const graphContext = useGraphData()
 
 	const { data } = useGetVisualizationQuery({
 		variables: { id: dashboard_id! },
 	})
 
+	const { presets, minDate } = useRetentionPresets()
+
 	const { startDate, endDate, selectedPreset, updateSearchTime } =
 		useSearchTime({
-			presets: DEFAULT_TIME_PRESETS,
+			presets: presets,
 			initialPreset: DEFAULT_TIME_PRESETS[2],
 		})
 
 	const navigate = useNavigate()
+
+	const { values } = useGraphingVariables(dashboard_id!)
 
 	const g = data?.visualization.graphs.find((g) => g.id === graph_id)
 	if (g === undefined) {
@@ -49,7 +59,7 @@ export const ExpandedGraph = () => {
 	}
 
 	return (
-		<>
+		<GraphContextProvider value={graphContext}>
 			<Helmet>
 				<title>Dashboard</title>
 			</Helmet>
@@ -107,18 +117,17 @@ export const ExpandedGraph = () => {
 						</Stack>
 						<Box display="flex" gap="4">
 							<DateRangePicker
-								emphasis="low"
+								emphasis="medium"
 								kind="secondary"
+								iconLeft={<IconSolidClock size={14} />}
 								selectedValue={{
 									startDate,
 									endDate,
 									selectedPreset,
 								}}
 								onDatesChange={updateSearchTime}
-								presets={DEFAULT_TIME_PRESETS}
-								minDate={presetStartDate(
-									DEFAULT_TIME_PRESETS[5],
-								)}
+								presets={presets}
+								minDate={minDate}
 							/>
 							<HeaderDivider />
 							<Button
@@ -131,7 +140,7 @@ export const ExpandedGraph = () => {
 									})
 								}}
 							>
-								Cancel
+								Back
 							</Button>
 						</Box>
 					</Box>
@@ -141,14 +150,7 @@ export const ExpandedGraph = () => {
 						justifyContent="space-between"
 						height="full"
 					>
-						<Box
-							display="flex"
-							position="relative"
-							width="full"
-							height="full"
-							px="12"
-							py="16"
-						>
+						<GraphBackgroundWrapper>
 							<Graph
 								title={g.title}
 								viewConfig={getViewConfig(
@@ -165,19 +167,21 @@ export const ExpandedGraph = () => {
 								metric={g.metric}
 								functionType={g.functionType}
 								bucketByKey={g.bucketByKey ?? undefined}
+								bucketByWindow={g.bucketInterval ?? undefined}
 								bucketCount={g.bucketCount ?? undefined}
-								groupByKey={g.groupByKey ?? undefined}
+								groupByKeys={g.groupByKeys ?? undefined}
 								limit={g.limit ?? undefined}
 								limitFunctionType={
 									g.limitFunctionType ?? undefined
 								}
 								limitMetric={g.limitMetric ?? undefined}
 								setTimeRange={updateSearchTime}
+								variables={values}
 							/>
-						</Box>
+						</GraphBackgroundWrapper>
 					</Box>
 				</Box>
 			</Box>
-		</>
+		</GraphContextProvider>
 	)
 }

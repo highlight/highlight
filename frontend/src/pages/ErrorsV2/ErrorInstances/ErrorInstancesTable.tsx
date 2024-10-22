@@ -30,6 +30,7 @@ const toYearMonthDay = (timestamp: string) => {
 
 type Props = {
 	nodes: ErrorObjectNode[]
+	errorGroupSecureId: string | undefined
 }
 
 function truncateVersion(version: string) {
@@ -41,7 +42,7 @@ function truncateVersion(version: string) {
 	}
 }
 
-export const ErrorInstancesTable = ({ nodes }: Props) => {
+export const ErrorInstancesTable = ({ nodes, errorGroupSecureId }: Props) => {
 	const { projectId } = useProjectId()
 	const { isLoggedIn } = useAuthContext()
 	const columnHelper = createColumnHelper<ErrorObjectNode>()
@@ -145,7 +146,7 @@ export const ErrorInstancesTable = ({ nodes }: Props) => {
 					<Link
 						key={row.id}
 						to={{
-							pathname: `/${projectId}/errors/${row.original.errorGroupSecureID}/instances/${row.original.id}`,
+							pathname: `/${projectId}/errors/${errorGroupSecureId}/instances/${row.original.id}`,
 							search: location.search,
 						}}
 						className={styles.rowLink}

@@ -6,8 +6,22 @@ import { useSearchParams } from 'react-router-dom'
 import { PlayerSearchParameters } from '@/pages/Player/PlayerHook/utils'
 
 type RelatedResourceCommon = {
-	type: 'error' | 'session' | 'trace' | 'logs'
+	type:
+		| 'error'
+		| 'session'
+		| 'trace'
+		| 'logs'
+		| 'errors'
+		| 'sessions'
+		| 'traces'
 	canGoBack?: boolean
+}
+
+type QueryableResource = {
+	type: 'logs' | 'errors' | 'sessions' | 'traces'
+	query: string
+	startDate: string
+	endDate: string
 }
 
 export type RelatedError = RelatedResourceCommon & {
@@ -27,22 +41,39 @@ export type RelatedSession = RelatedResourceCommon & {
 export type RelatedTrace = RelatedResourceCommon & {
 	type: 'trace'
 	id: string
+	timestamp: string
 	spanID?: string
 }
 
-export type RelatedLogs = RelatedResourceCommon & {
-	type: 'logs'
-	query: string
-	startDate: string
-	endDate: string
-	logCursor?: string
-}
+export type RelatedLogs = RelatedResourceCommon &
+	QueryableResource & {
+		type: 'logs'
+		logCursor?: string
+	}
+
+export type RelatedTraces = RelatedResourceCommon &
+	QueryableResource & {
+		type: 'traces'
+	}
+
+export type RelatedErrors = RelatedResourceCommon &
+	QueryableResource & {
+		type: 'errors'
+	}
+
+export type RelatedSessions = RelatedResourceCommon &
+	QueryableResource & {
+		type: 'sessions'
+	}
 
 export type RelatedResource =
 	| RelatedError
 	| RelatedSession
 	| RelatedTrace
 	| RelatedLogs
+	| RelatedTraces
+	| RelatedErrors
+	| RelatedSessions
 
 const LOCAL_STORAGE_WIDTH_KEY = 'related-resource-panel-width'
 export const RELATED_RESOURCE_PARAM = 'related_resource'
@@ -73,9 +104,13 @@ export const useRelatedResource = () => {
 		const resourceParam = searchParams.get(RELATED_RESOURCE_PARAM)
 
 		if (resourceParam) {
-			const resource = JSON.parse(
-				decodeURIComponent(resourceParam),
-			) as RelatedResource
+			let innerString: string
+			try {
+				innerString = atob(resourceParam)
+			} catch {
+				innerString = decodeURIComponent(resourceParam)
+			}
+			const resource = JSON.parse(innerString) as RelatedResource
 
 			setResource(resource)
 		} else {
@@ -112,7 +147,7 @@ export const useRelatedResource = () => {
 
 			searchParams.set(
 				RELATED_RESOURCE_PARAM,
-				JSON.stringify(newResource), // setSearchParams encodes the string
+				btoa(JSON.stringify(newResource)), // setSearchParams encodes the string
 			)
 
 			setSearchParams(Object.fromEntries(searchParams.entries()))

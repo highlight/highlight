@@ -20,22 +20,21 @@
 		"hoistingLimits": "dependencies"
 	},
 	"dependencies": {
-		"@aws-sdk/client-s3": "^3.540.0",
-		"@sparticuz/chromium": "116.0.0",
-		"pg": "^8.11.3",
-		"puppeteer": "21.1.1",
-		"puppeteer-core": "21.1.1",
-		"puppeteer-screen-recorder": "^2.1.2",
+		"@aws-sdk/client-s3": "^3.623.0",
+		"@sparticuz/chromium": "126.0.0",
+		"pg": "^8.12.0",
+		"puppeteer-core": "22.15.0",
+		"puppeteer-screen-recorder": "^3.0.3",
 		"rrweb": "workspace:*"
 	},
 	"devDependencies": {
-		"@types/aws-lambda": "^8.10.119",
-		"@types/find": "^0.2.1",
-		"@types/fs-extra": "^11.0.1",
-		"@types/node": "^20.5.7",
-		"@types/pg": "^8.10.2",
-		"tsup": "^7.2.0",
-		"typescript": "^5.2.2"
+		"@types/aws-lambda": "^8.10.142",
+		"@types/find": "^0.2.4",
+		"@types/fs-extra": "^11.0.4",
+		"@types/node": "^22.1.0",
+		"@types/pg": "^8.11.6",
+		"tsup": "^7.3.0",
+		"typescript": "^5.5.4"
 	},
 	"packageManager": "yarn@4.0.2"
 }

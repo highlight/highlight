@@ -1,4 +1,5 @@
 import { Avatar } from '@components/Avatar/Avatar'
+import { Button } from '@components/Button'
 import { useSearchContext } from '@components/Search/SearchContext'
 import { TableList, TableListItem } from '@components/TableList/TableList'
 import { toast } from '@components/Toaster'
@@ -7,8 +8,7 @@ import { GetEnhancedUserDetailsQuery } from '@graph/operations'
 import { Maybe, Session, SocialLink, SocialType } from '@graph/schemas'
 import {
 	Box,
-	ButtonIcon,
-	IconSolidExternalLink,
+	IconSolidCheveronRight,
 	IconSolidQuestionMarkCircle,
 	Tag,
 	Text,
@@ -17,12 +17,12 @@ import {
 import usePlayerConfiguration from '@pages/Player/PlayerHook/utils/usePlayerConfiguration'
 import { sessionIsBackfilled } from '@pages/Player/utils/utils'
 import {
-	getDisplayName,
 	getDisplayNameAndField,
 	getIdentifiedUserProfileImage,
+	getUserProperties,
 } from '@pages/Sessions/SessionsFeedV3/MinimalSessionCard/utils/utils'
 import { useParams } from '@util/react-router/useParams'
-import { copyToClipboard, validateEmail } from '@util/string'
+import { copyToClipboard } from '@util/string'
 import clsx from 'clsx'
 import { capitalize } from 'lodash'
 import React, { useCallback, useEffect, useMemo } from 'react'
@@ -41,6 +41,7 @@ import { RelatedResourceButtons } from '@/pages/Player/MetadataBox/RelatedResour
 import { useReplayerContext } from '../ReplayerContext'
 import * as style from './MetadataBox.css'
 import { getAbsoluteUrl, getMajorVersion } from './utils/utils'
+import { quoteQueryValue } from '@/components/Search/SearchForm/utils'
 
 export const MetadataBox = React.memo(() => {
 	const { session_secure_id } = useParams<{ session_secure_id: string }>()
@@ -102,7 +103,7 @@ export const MetadataBox = React.memo(() => {
 							keyDisplayValue: 'IP',
 							valueDisplayValue: session?.ip,
 						},
-				  ]
+					]
 				: []),
 			{
 				keyDisplayValue: 'Browser',
@@ -110,7 +111,7 @@ export const MetadataBox = React.memo(() => {
 					session?.browser_name && session?.browser_version
 						? `${session.browser_name} ${getMajorVersion(
 								session.browser_version,
-						  )}`
+							)}`
 						: undefined,
 			},
 			{
@@ -119,7 +120,7 @@ export const MetadataBox = React.memo(() => {
 					session?.os_name && session?.os_version
 						? `${session.os_name} ${getMajorVersion(
 								session.os_version,
-						  )}`
+							)}`
 						: undefined,
 			},
 			{
@@ -198,17 +199,23 @@ export const MetadataBox = React.memo(() => {
 
 		let newQueryParts = []
 		if (session.identified) {
-			const displayName = getDisplayName(session)
-			const userParam = validateEmail(displayName)
-				? 'email'
-				: 'identifier'
+			const { email } = getUserProperties(session.user_properties)
+			const { identifier } = session
 
-			newQueryParts = queryParts.filter((part) => part.key !== userParam)
+			if (!email && !identifier) {
+				return
+			}
+
+			const { key, value } = email
+				? { key: 'email', value: email }
+				: { key: 'identifier', value: identifier }
+
+			newQueryParts = queryParts.filter((part) => part.key !== key)
 			newQueryParts.push({
-				key: userParam,
+				key,
 				operator: '=',
-				value: displayName,
-				text: `${userParam}=${displayName}`,
+				value,
+				text: `${key}=${quoteQueryValue(value)}`,
 			} as SearchExpression)
 		} else {
 			newQueryParts = queryParts.filter(
@@ -293,14 +300,16 @@ export const MetadataBox = React.memo(() => {
 						</Box>
 					)}
 				</Box>
-				<ButtonIcon
+				<Button
+					size="small"
 					kind="secondary"
 					emphasis="low"
-					shape="square"
-					size="small"
-					icon={<IconSolidExternalLink />}
+					iconRight={<IconSolidCheveronRight />}
 					onClick={searchIdentifier}
-				/>
+					trackingId="session-metadata-identifier-search"
+				>
+					Sessions
+				</Button>
 			</Box>
 			<Box display="flex" pt="4" pb="8" px="8">
 				<RelatedResourceButtons
