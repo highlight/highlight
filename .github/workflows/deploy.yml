@@ -480,7 +480,7 @@ jobs:
             - name: Deploy to Amazon ECS private-graph service
               uses: aws-actions/amazon-ecs-deploy-task-definition@v1
               with:
-                  task-definition: ${{ steps.image-private-graph.outputs.task-definition }}
+                  task-definition: ${{ steps.image-predictions.outputs.task-definition }}
                   service: predictions-service
                   cluster: highlight-ec2-prod
 
