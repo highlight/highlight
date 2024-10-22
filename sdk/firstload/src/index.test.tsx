@@ -4,10 +4,17 @@ import {
 	setSessionSecureID,
 } from '@highlight-run/client/src/utils/sessionStorage/highlightSession'
 import * as Firstload from '.'
-import { Highlight } from '../../client/src'
 import { HighlightPublicInterface } from '../../client/src/types/types'
 import * as otel from '../../client/src/otel'
 import { waitFor } from '@testing-library/react'
+
+const sessionData = {
+	sessionSecureID: 'foo',
+	projectID: 1,
+	payloadID: 1,
+	lastPushTime: new Date().getTime(),
+	sessionStartTime: new Date().getTime(),
+}
 
 describe('should work outside of the browser in unit test', () => {
 	let highlight: HighlightPublicInterface
@@ -17,13 +24,7 @@ describe('should work outside of the browser in unit test', () => {
 		highlight = Firstload.H
 
 		setSessionSecureID('foo')
-		setSessionData({
-			sessionSecureID: 'foo',
-			projectID: 1,
-			payloadID: 1,
-			lastPushTime: new Date().getTime(),
-			sessionStartTime: new Date().getTime(),
-		})
+		setSessionData(sessionData)
 	})
 
 	afterEach(() => {
@@ -63,18 +64,49 @@ describe('should work outside of the browser in unit test', () => {
 	})
 
 	it('should handle getSessionURL', async () => {
+		Firstload.__testing.setHighlightObj({
+			ready: true,
+			sessionData,
+		})
+		highlight.init('1')
+
 		expect(await highlight.getSessionURL()).toBe(
 			'https://app.highlight.io/1/sessions/foo',
 		)
 	})
 
 	it('should handle getSessionDetails', async () => {
-		highlight.init(1)
+		Firstload.__testing.setHighlightObj({
+			ready: true,
+			sessionData,
+		})
+		highlight.init('1')
 
-		expect(await highlight.getSessionDetails()).toEqual({
-			url: 'https://app.highlight.io/1/sessions/foo',
-			urlWithTimestamp: 'https://app.highlight.io/1/sessions/foo?ts=0',
-			sessionSecureID: 'foo',
+		const details = await highlight.getSessionDetails()
+		expect(details.url).toBe('https://app.highlight.io/1/sessions/foo')
+		expect(details.urlWithTimestamp).toContain(
+			'https://app.highlight.io/1/sessions/foo?ts=0',
+		)
+		expect(details.sessionSecureID).toBe('foo')
+	})
+
+	describe('onHighlightReady', () => {
+		it('should call the callback', async () => {
+			const mockCallback = vi.fn(() => undefined)
+
+			Firstload.__testing.setHighlightObj({
+				ready: true,
+				sessionData,
+			})
+			highlight.onHighlightReady(mockCallback)
+			highlight.init('1')
+
+			// Wait for the callback to be called
+			await waitFor(() => {
+				expect(mockCallback).toHaveBeenCalled()
+			})
+
+			expect(mockCallback).toHaveReturnedWith(undefined)
 		})
 	})
 

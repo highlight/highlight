@@ -123,6 +123,7 @@ const H: HighlightPublicInterface = {
 					getTracer: otelGetTracer,
 				}) => {
 					if (options?.enableOtelTracing) {
+						console.log('::: init otel')
 						setupBrowserTracing({
 							otlpEndpoint:
 								options?.otlpEndpoint ??
@@ -514,34 +515,38 @@ const H: HighlightPublicInterface = {
 		return highlight_obj?.state ?? 'NotRecording'
 	},
 	onHighlightReady: (func, options) => {
-		onHighlightReadyQueue.push({ options, func })
-		if (onHighlightReadyTimeout === undefined) {
-			const fn = () => {
-				const newOnHighlightReadyQueue: {
-					options?: OnHighlightReadyOptions
-					func: () => void | Promise<void>
-				}[] = []
-				for (const f of onHighlightReadyQueue) {
-					if (
-						highlight_obj &&
-						(f.options?.waitForReady === false ||
-							highlight_obj.ready)
-					) {
-						f.func()
-					} else {
-						newOnHighlightReadyQueue.push(f)
+		if (highlight_obj) {
+			func()
+		} else {
+			onHighlightReadyQueue.push({ options, func })
+			if (onHighlightReadyTimeout === undefined) {
+				const fn = () => {
+					const newOnHighlightReadyQueue: {
+						options?: OnHighlightReadyOptions
+						func: () => void | Promise<void>
+					}[] = []
+					for (const f of onHighlightReadyQueue) {
+						if (
+							highlight_obj &&
+							(f.options?.waitForReady === false ||
+								highlight_obj.ready)
+						) {
+							f.func()
+						} else {
+							newOnHighlightReadyQueue.push(f)
+						}
+					}
+					onHighlightReadyQueue = newOnHighlightReadyQueue
+					onHighlightReadyTimeout = undefined
+					if (onHighlightReadyQueue.length > 0) {
+						onHighlightReadyTimeout = setTimeout(
+							fn,
+							READY_WAIT_LOOP_MS,
+						) as unknown as number
 					}
 				}
-				onHighlightReadyQueue = newOnHighlightReadyQueue
-				onHighlightReadyTimeout = undefined
-				if (onHighlightReadyQueue.length > 0) {
-					onHighlightReadyTimeout = setTimeout(
-						fn,
-						READY_WAIT_LOOP_MS,
-					) as unknown as number
-				}
+				fn()
 			}
-			fn()
 		}
 	},
 }
@@ -558,6 +563,12 @@ initializeWebSocketListener()
 const __testing = {
 	reset: () => {
 		init_called = false
+		highlight_obj = undefined as any
+		onHighlightReadyQueue = []
+		onHighlightReadyTimeout = undefined
+	},
+	setHighlightObj: (obj: Partial<Highlight>) => {
+		highlight_obj = obj as Highlight
 	},
 }
 
