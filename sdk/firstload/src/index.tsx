@@ -111,7 +111,11 @@ const H: HighlightPublicInterface = {
 
 			// `init` was already called, do not reinitialize
 			if (init_called) {
-				return { sessionSecureID }
+				return {
+					sessionSecureID:
+						highlight_obj?.sessionData?.sessionSecureID ??
+						sessionSecureID,
+				}
 			}
 			init_called = true
 
@@ -183,7 +187,11 @@ const H: HighlightPublicInterface = {
 				setupAmplitudeIntegration(options.integrations.amplitude)
 			}
 
-			return { sessionSecureID }
+			return {
+				sessionSecureID:
+					highlight_obj?.sessionData?.sessionSecureID ??
+					sessionSecureID,
+			}
 		} catch (e) {
 			HighlightWarning('init', e)
 		}
@@ -484,9 +492,7 @@ const H: HighlightPublicInterface = {
 						throw new Error('Could not get session URL')
 					}
 
-					const secureID =
-						highlight_obj?.sessionData?.sessionSecureID ??
-						sessionSecureID
+					const secureID = highlight_obj.sessionData.sessionSecureID
 					const sessionData = getPreviousSessionData(secureID)
 					const currentSessionTimestamp =
 						sessionData?.sessionStartTime
