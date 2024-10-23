@@ -1159,6 +1159,8 @@ type MetricBucket {
 	column: MetricColumn!
 	metric_type: MetricAggregator!
 	metric_value: Float
+	yhat_lower: Float
+	yhat_upper: Float
 }
 
 type MetricsBuckets {
@@ -1401,6 +1403,13 @@ input UserPropertyInput {
 	value: String!
 }
 
+input PredictionSettings {
+	changepointPriorScale: Float!
+	intervalWidth: Float!
+	thresholdCondition: ThresholdCondition!
+	intervalSeconds: Int!
+}
+
 type User {
 	id: ID!
 }
@@ -1606,6 +1615,17 @@ enum AlertState {
 	Error
 }
 
+enum ThresholdType {
+	Constant
+	Anomaly
+}
+
+enum ThresholdCondition {
+	Above
+	Below
+	Outside
+}
+
 enum AlertDestinationType {
 	Slack
 	Discord
@@ -1644,10 +1664,11 @@ type Alert {
 	destinations: [AlertDestination]!
 
 	# threshold alerts
-	below_threshold: Boolean
 	threshold_value: Float
 	threshold_window: Int
 	threshold_cooldown: Int
+	threshold_type: ThresholdType
+	threshold_condition: ThresholdCondition
 }
 
 type AlertStateChange {
@@ -2561,6 +2582,7 @@ type Query {
 		limit: Int
 		limit_aggregator: MetricAggregator
 		limit_column: String
+		prediction_settings: PredictionSettings
 	): MetricsBuckets!
 	keys(
 		product_type: ProductType
@@ -2905,11 +2927,12 @@ type Mutation {
 		function_column: String
 		query: String
 		group_by_key: String
-		below_threshold: Boolean
 		default: Boolean
 		threshold_value: Float
 		threshold_window: Int
 		threshold_cooldown: Int
+		threshold_type: ThresholdType
+		threshold_condition: ThresholdCondition
 		destinations: [AlertDestinationInput!]!
 	): Alert
 	updateAlert(
@@ -2921,10 +2944,11 @@ type Mutation {
 		function_column: String
 		query: String
 		group_by_key: String
-		below_threshold: Boolean
 		threshold_value: Float
 		threshold_window: Int
 		threshold_cooldown: Int
+		threshold_type: ThresholdType
+		threshold_condition: ThresholdCondition
 		destinations: [AlertDestinationInput!]
 	): Alert
 	updateAlertDisabled(

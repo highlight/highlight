@@ -2,7 +2,12 @@ import { Box, DateRangePreset } from '@highlight-run/ui/components'
 import React from 'react'
 import { ReferenceArea, ReferenceLine } from 'recharts'
 
-import { MetricAggregator, ProductType } from '@/graph/generated/schemas'
+import {
+	MetricAggregator,
+	ProductType,
+	ThresholdCondition,
+	ThresholdType,
+} from '@/graph/generated/schemas'
 import { useProjectId } from '@/hooks/useProjectId'
 import Graph, {
 	getViewConfig,
@@ -20,7 +25,8 @@ type Props = {
 	groupByKey?: string
 	thresholdWindow: number
 	thresholdValue: number
-	belowThreshold: boolean
+	thresholdType: ThresholdType
+	thresholdCondition: ThresholdCondition
 	startDate: Date
 	endDate: Date
 	selectedPreset?: DateRangePreset
@@ -36,14 +42,17 @@ export const AlertGraph: React.FC<Props> = ({
 	groupByKey,
 	thresholdWindow,
 	thresholdValue,
-	belowThreshold,
+	thresholdType,
+	thresholdCondition,
 	startDate,
 	endDate,
 	selectedPreset,
 	updateSearchTime,
 }) => {
 	const { projectId } = useProjectId()
-	const sessionsProduct = productType === ProductType.Sessions
+	const sessionsProduct =
+		productType === ProductType.Sessions &&
+		thresholdType === ThresholdType.Constant
 
 	const viewConfig = sessionsProduct
 		? getViewConfig('Bar chart', 'Stacked', 'Zero')
@@ -71,7 +80,9 @@ export const AlertGraph: React.FC<Props> = ({
 					metric={functionColumn}
 					functionType={functionType}
 					groupByKeys={
-						sessionsProduct ? undefined : [groupByKey ?? '']
+						sessionsProduct || groupByKey === undefined
+							? undefined
+							: [groupByKey]
 					}
 					setTimeRange={updateSearchTime}
 					bucketByKey="Timestamp"
@@ -79,26 +90,42 @@ export const AlertGraph: React.FC<Props> = ({
 					bucketByWindow={
 						sessionsProduct ? undefined : thresholdWindow
 					}
+					predictionSettings={
+						thresholdType === ThresholdType.Anomaly
+							? {
+									changepointPriorScale: 0.25,
+									intervalWidth: thresholdValue,
+									thresholdCondition,
+									intervalSeconds: thresholdWindow,
+								}
+							: undefined
+					}
 				>
-					{!sessionsProduct && (
-						<>
-							<ReferenceLine y={thresholdValue} stroke="red" />
-							{!belowThreshold && (
-								<ReferenceArea
-									y1={thresholdValue}
-									opacity={0.5}
-									isFront
+					{!sessionsProduct &&
+						thresholdType === ThresholdType.Constant && (
+							<>
+								<ReferenceLine
+									y={thresholdValue}
+									stroke="red"
 								/>
-							)}
-							{belowThreshold && (
-								<ReferenceArea
-									y2={thresholdValue}
-									opacity={0.5}
-									isFront
-								/>
-							)}
-						</>
-					)}
+								{thresholdCondition ===
+									ThresholdCondition.Above && (
+									<ReferenceArea
+										y1={thresholdValue}
+										opacity={0.5}
+										isFront
+									/>
+								)}
+								{thresholdCondition ===
+									ThresholdCondition.Below && (
+									<ReferenceArea
+										y2={thresholdValue}
+										opacity={0.5}
+										isFront
+									/>
+								)}
+							</>
+						)}
 				</Graph>
 			</Box>
 		</Box>
