@@ -18,8 +18,8 @@ import { Helmet } from 'react-helmet'
 
 import { Button } from '@components/Button'
 import { toast } from '@/components/Toaster'
-import { namedOperations } from '@/graph/generated/operations'
 import {
+	GetAlertDocument,
 	useGetAlertQuery,
 	useGetAlertingAlertStateChangesLazyQuery,
 	useGetLastAlertStateChangesLazyQuery,
@@ -30,7 +30,12 @@ import { useSearchTime } from '@/hooks/useSearchTime'
 import { HeaderDivider } from '@/pages/Graphing/Dashboard'
 import { GraphContextProvider } from '@/pages/Graphing/context/GraphContext'
 import { useGraphData } from '@pages/Graphing/hooks/useGraphData'
-import { Alert, AlertStateChange } from '@/graph/generated/schemas'
+import {
+	Alert,
+	AlertStateChange,
+	ThresholdCondition,
+	ThresholdType,
+} from '@/graph/generated/schemas'
 
 import { AlertGraph } from '../AlertGraph'
 import { AlertHeader } from './AlertHeader'
@@ -130,7 +135,14 @@ export const AlertPage: React.FC = () => {
 
 		setUpdateLoading(true)
 		await updateAlertDisabled({
-			refetchQueries: [namedOperations.Query.GetAlert],
+			refetchQueries: [
+				{
+					query: GetAlertDocument,
+					variables: {
+						id: alert_id!,
+					},
+				},
+			],
 			variables: {
 				alert_id: alert_id!,
 				project_id: projectId,
@@ -299,8 +311,13 @@ export const AlertPage: React.FC = () => {
 									data.alert.threshold_window ?? 0
 								}
 								thresholdValue={data.alert.threshold_value ?? 0}
-								belowThreshold={
-									data.alert.below_threshold ?? false
+								thresholdType={
+									data.alert.threshold_type ??
+									ThresholdType.Constant
+								}
+								thresholdCondition={
+									data.alert.threshold_condition ??
+									ThresholdCondition.Above
 								}
 							/>
 						</Box>

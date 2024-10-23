@@ -3,13 +3,13 @@ package otel
 import (
 	"context"
 	"fmt"
-	"github.com/highlight-run/highlight/backend/env"
 	"net/http"
 	"regexp"
 	"strconv"
 	"strings"
 	"time"
 
+	"github.com/highlight-run/highlight/backend/env"
 	model "github.com/highlight-run/highlight/backend/model"
 	modelInputs "github.com/highlight-run/highlight/backend/private-graph/graph/model"
 	"github.com/highlight-run/highlight/backend/public-graph/graph"
@@ -267,13 +267,13 @@ func extractFields(ctx context.Context, params extractFieldsParams) (*extractedF
 		delete(fields.attrs, highlight.MetricEventValue)
 	}
 
-	if val, ok := eventAttributes[string(semconv.ExceptionTypeKey)]; ok { // we know that exception.type will be in the event attributes map
-		fields.exceptionType = val.(string)
+	if val, ok := fields.attrs[string(semconv.ExceptionTypeKey)]; ok {
+		fields.exceptionType = val
 		delete(fields.attrs, string(semconv.ExceptionTypeKey))
 	}
 
-	if val, ok := eventAttributes[string(semconv.ExceptionMessageKey)]; ok { // we know that exception.message will be in the event attributes map
-		fields.exceptionMessage = val.(string)
+	if val, ok := fields.attrs[string(semconv.ExceptionMessageKey)]; ok {
+		fields.exceptionMessage = val
 		delete(fields.attrs, string(semconv.ExceptionMessageKey))
 		// if this is a log that is emitted from an error,
 		// we should use the error text as the log body
@@ -282,13 +282,13 @@ func extractFields(ctx context.Context, params extractFieldsParams) (*extractedF
 		}
 	}
 
-	if val, ok := eventAttributes[string(semconv.ExceptionStacktraceKey)]; ok { // we know that exception.stacktrace will be in the event attributes map
-		fields.exceptionStackTrace = val.(string)
+	if val, ok := fields.attrs[string(semconv.ExceptionStacktraceKey)]; ok {
+		fields.exceptionStackTrace = val
 		delete(fields.attrs, string(semconv.ExceptionStacktraceKey))
 	}
 
-	if val, ok := eventAttributes[highlight.ErrorURLAttribute]; ok { // we know that URL will be in the event attributes map
-		fields.errorUrl = val.(string)
+	if val, ok := fields.attrs[highlight.ErrorURLAttribute]; ok {
+		fields.errorUrl = val
 		delete(fields.attrs, highlight.ErrorURLAttribute)
 	}
 

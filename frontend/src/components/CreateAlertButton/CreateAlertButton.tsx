@@ -3,14 +3,11 @@ import { Box, IconSolidBell } from '@highlight-run/ui/components'
 import { useProjectId } from '@hooks/useProjectId'
 import React from 'react'
 import { useNavigate } from 'react-router-dom'
+import { ProductType } from '@/graph/generated/schemas'
 
 import * as styles from './style.css'
 
-export const CreateAlertButton = function ({
-	type,
-}: {
-	type: 'session' | 'errors'
-}) {
+export const CreateAlertButton = function ({ type }: { type: ProductType }) {
 	const { projectId } = useProjectId()
 	const navigate = useNavigate()
 	return (
@@ -21,7 +18,10 @@ export const CreateAlertButton = function ({
 			trackingId={`${type}-player-bar-alerts`}
 			iconLeft={<IconSolidBell />}
 			onClick={() => {
-				navigate(`/${projectId}/alerts/${type}/new`)
+				navigate({
+					pathname: `/${projectId}/alerts/new`,
+					search: `source=${type}`,
+				})
 			}}
 		>
 			Turn on alerts
