@@ -67,7 +67,8 @@ let onHighlightReadyQueue: {
 	options?: OnHighlightReadyOptions
 	func: () => void | Promise<void>
 }[] = []
-let onHighlightReadyTimeout: number | undefined = undefined
+let onHighlightReadyTimeout: ReturnType<typeof setTimeout> | undefined =
+	undefined
 
 let highlight_obj: Highlight
 let first_load_listeners: FirstLoadListeners
@@ -123,7 +124,6 @@ const H: HighlightPublicInterface = {
 					getTracer: otelGetTracer,
 				}) => {
 					if (options?.enableOtelTracing) {
-						console.log('::: init otel')
 						setupBrowserTracing({
 							otlpEndpoint:
 								options?.otlpEndpoint ??
@@ -515,39 +515,44 @@ const H: HighlightPublicInterface = {
 		return highlight_obj?.state ?? 'NotRecording'
 	},
 	onHighlightReady: (func, options) => {
-		if (highlight_obj) {
+		// Run the callback immediately if Highlight is already ready
+		if (highlight_obj && highlight_obj.ready) {
 			func()
-		} else {
-			onHighlightReadyQueue.push({ options, func })
-			if (onHighlightReadyTimeout === undefined) {
-				const fn = () => {
-					const newOnHighlightReadyQueue: {
-						options?: OnHighlightReadyOptions
-						func: () => void | Promise<void>
-					}[] = []
-					for (const f of onHighlightReadyQueue) {
-						if (
-							highlight_obj &&
-							(f.options?.waitForReady === false ||
-								highlight_obj.ready)
-						) {
-							f.func()
-						} else {
-							newOnHighlightReadyQueue.push(f)
-						}
-					}
-					onHighlightReadyQueue = newOnHighlightReadyQueue
-					onHighlightReadyTimeout = undefined
-					if (onHighlightReadyQueue.length > 0) {
-						onHighlightReadyTimeout = setTimeout(
-							fn,
-							READY_WAIT_LOOP_MS,
-						) as unknown as number
-					}
+			return
+		}
+
+		onHighlightReadyQueue.push({ options, func })
+
+		if (onHighlightReadyTimeout !== undefined) {
+			return
+		}
+
+		const processQueue = () => {
+			const newQueue = onHighlightReadyQueue.filter((item) => {
+				if (
+					!highlight_obj ||
+					(item.options?.waitForReady !== false &&
+						!highlight_obj.ready)
+				) {
+					return true
 				}
-				fn()
+
+				item.func()
+				return false
+			})
+
+			onHighlightReadyQueue = newQueue
+			onHighlightReadyTimeout = undefined
+
+			if (onHighlightReadyQueue.length > 0) {
+				onHighlightReadyTimeout = setTimeout(
+					processQueue,
+					READY_WAIT_LOOP_MS,
+				)
 			}
 		}
+
+		processQueue()
 	},
 }
 
@@ -559,7 +564,7 @@ listenToChromeExtensionMessage()
 initializeFetchListener()
 initializeWebSocketListener()
 
-// Exposes some helpers for tests
+// Helpers only for testing
 const __testing = {
 	reset: () => {
 		init_called = false
