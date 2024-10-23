@@ -138,7 +138,7 @@ export const RelatedResourceList: React.FC<{
 					error={errorObjectsError}
 					loadingAfter={errorObjectsLoadingAfter}
 					fetchMoreWhenScrolled={fetchMoreWhenScrolled}
-					bodyHeight="calc(100% - 56px)"
+					bodyHeight="calc(100% - 64px)"
 					resources={errorObjects}
 					selectedColumns={DEFAULT_ERROR_OBJECT_COLUMNS}
 					columnRenderers={ErrorObjectColumnRenderers}
@@ -157,7 +157,7 @@ export const RelatedResourceList: React.FC<{
 					error={sessionsError}
 					loadingAfter={sessionsLoadingAfter}
 					fetchMoreWhenScrolled={fetchMoreWhenScrolled}
-					bodyHeight="calc(100% - 56px)"
+					bodyHeight="calc(100% - 64px)"
 					resources={sessions}
 					columnRenderers={SessionColumnRenderers}
 				/>
@@ -176,7 +176,7 @@ export const RelatedResourceList: React.FC<{
 					error={tracesError}
 					loadingAfter={tracesLoadingAfter}
 					fetchMoreWhenScrolled={fetchMoreWhenScrolled}
-					bodyHeight="calc(100% - 56px)"
+					bodyHeight="calc(100% - 64px)"
 					resources={traceEdges}
 				/>
 			)
@@ -194,7 +194,7 @@ export const RelatedResourceList: React.FC<{
 					error={eventsError}
 					loadingAfter={eventsLoadingAfter}
 					fetchMoreWhenScrolled={fetchMoreWhenScrolled}
-					bodyHeight="calc(100% - 56px)"
+					bodyHeight="calc(100% - 64px)"
 					resources={eventSessions}
 					columnRenderers={SessionColumnRenderers}
 				/>
@@ -225,7 +225,6 @@ export const RelatedResourceList: React.FC<{
 						presets={[]}
 						minDate={startDate}
 						timeMode="permalink"
-						hideDatePicker
 						hideCreateAlert
 						productType={productType}
 					/>
