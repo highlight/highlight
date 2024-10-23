@@ -4055,3 +4055,26 @@ func reorderGraphs(viz *model.Visualization) {
 	}
 	viz.Graphs = orderedGraphs
 }
+
+func backfillAlertFields(alert *model.Alert) {
+	if alert == nil {
+		return
+	}
+
+	if !alert.ThresholdType.IsValid() {
+		alert.ThresholdType = modelInputs.ThresholdTypeConstant
+	}
+
+	if !alert.ThresholdCondition.IsValid() {
+		belowThreshold := false
+		if alert.BelowThreshold != nil {
+			belowThreshold = *alert.BelowThreshold
+		}
+
+		if belowThreshold {
+			alert.ThresholdCondition = modelInputs.ThresholdConditionBelow
+		} else {
+			alert.ThresholdCondition = modelInputs.ThresholdConditionAbove
+		}
+	}
+}
