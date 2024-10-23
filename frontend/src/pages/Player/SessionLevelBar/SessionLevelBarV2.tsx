@@ -31,12 +31,13 @@ import usePlayerConfiguration from '@pages/Player/PlayerHook/utils/usePlayerConf
 import { useReplayerContext } from '@pages/Player/ReplayerContext'
 import analytics from '@util/analytics'
 import { delay } from 'lodash'
-import React, { useRef, useState } from 'react'
+import React, { useMemo, useRef, useState } from 'react'
 import { useHotkeys } from 'react-hotkeys-hook'
 import { useNavigate } from 'react-router-dom'
 
 import { PlayerModeSwitch } from '@/pages/Player/SessionLevelBar/PlayerModeSwitch/PlayerModeSwitch'
 import { useSessionParams } from '@/pages/Sessions/utils'
+import { ProductType } from '@/graph/generated/schemas'
 
 import SessionShareButtonV2 from '../SessionShareButton/SessionShareButtonV2'
 import * as styles from './SessionLevelBarV2.css'
@@ -68,7 +69,16 @@ export const SessionLevelBarV2: React.FC<
 		},
 		skip: !projectId,
 	})
-	const showCreateAlertButton = alertsData?.new_session_alerts?.length === 0
+
+	const showCreateAlertButton = useMemo(() => {
+		if (!!alertsData?.new_session_alerts?.length) {
+			return false
+		}
+
+		return !alertsData?.alerts?.some(
+			(alert) => alert?.product_type === ProductType.Sessions,
+		)
+	}, [alertsData])
 
 	const isDefaultView = DEFAULT_RIGHT_PANEL_VIEWS.includes(rightPanelView)
 
@@ -168,7 +178,9 @@ export const SessionLevelBarV2: React.FC<
 						<>
 							<SessionShareButtonV2 />
 							{showCreateAlertButton ? (
-								<CreateAlertButton type="session" />
+								<CreateAlertButton
+									type={ProductType.Sessions}
+								/>
 							) : null}
 							<Divider />
 							<PlayerModeSwitch />
