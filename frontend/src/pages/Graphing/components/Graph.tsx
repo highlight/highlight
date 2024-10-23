@@ -144,6 +144,8 @@ export interface ChartProps<TConfig> {
 	height?: number
 	setTimeRange?: SetTimeRange
 	loadExemplars?: LoadExemplars
+	minYAxisMax?: number
+	maxYAxisMin?: number
 	variables?: Map<string, string[]>
 	predictionSettings?: PredictionSettings
 }
@@ -171,6 +173,8 @@ export interface AxisConfig {
 	showXAxis?: boolean
 	showYAxis?: boolean
 	showGrid?: boolean
+	minYAxisMax?: number
+	maxYAxisMin?: number
 }
 
 export type LoadExemplars = (
@@ -879,6 +883,8 @@ const Graph = ({
 	setTimeRange,
 	selectedPreset,
 	variables,
+	minYAxisMax,
+	maxYAxisMin,
 	predictionSettings,
 	children,
 }: React.PropsWithChildren<ChartProps<ViewConfig>>) => {
@@ -1179,6 +1185,8 @@ const Graph = ({
 						spotlight={spotlight}
 						setTimeRange={setTimeRange}
 						loadExemplars={loadExemplars}
+						minYAxisMax={minYAxisMax}
+						maxYAxisMin={maxYAxisMin}
 						showGrid
 					>
 						{children}

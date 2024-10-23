@@ -23,6 +23,7 @@ import {
 	YHAT_LOWER_KEY,
 	YHAT_UPPER_KEY,
 } from '@/pages/Graphing/components/Graph'
+import { AxisDomain } from 'recharts/types/util/types'
 
 export type LineNullHandling = 'Hidden' | 'Connected' | 'Zero'
 export const LINE_NULL_HANDLING: LineNullHandling[] = [
@@ -40,7 +41,11 @@ export type LineChartConfig = {
 	display?: LineDisplay
 	nullHandling?: LineNullHandling
 	tooltipSettings?: TooltipSettings
+	minYAxisMax?: number
+	maxYAxisMin?: number
 }
+
+const YAXIS_PADDING_FACTOR = 1.05
 
 const isAnomaly = (props: any, key: string) => {
 	const { payload } = props
@@ -75,6 +80,8 @@ export const LineChart = ({
 	showYAxis,
 	showGrid,
 	strokeColors,
+	minYAxisMax,
+	maxYAxisMin,
 }: React.PropsWithChildren<
 	InnerChartProps<LineChartConfig> & SeriesInfo & AxisConfig
 >) => {
@@ -112,6 +119,30 @@ export const LineChart = ({
 		loadExemplars,
 		{ dashed: true },
 	)
+
+	const yAxisDomain = useMemo(() => {
+		if (minYAxisMax === undefined && maxYAxisMin === undefined) {
+			return undefined
+		}
+
+		return [
+			() => {
+				if (maxYAxisMin === undefined || maxYAxisMin > 0) {
+					// default is 0 - allowDataOverflow={false} allows for negative values
+					return 0
+				}
+
+				return Math.floor(maxYAxisMin * YAXIS_PADDING_FACTOR)
+			},
+			(dataMax: number) => {
+				if (minYAxisMax === undefined || minYAxisMax < dataMax) {
+					return Math.ceil(dataMax * YAXIS_PADDING_FACTOR)
+				}
+
+				return Math.ceil(minYAxisMax * YAXIS_PADDING_FACTOR)
+			},
+		] as AxisDomain
+	}, [maxYAxisMin, minYAxisMax])
 
 	return (
 		<ResponsiveContainer height="100%" width="100%" ref={chartRef}>
@@ -162,6 +193,7 @@ export const LineChart = ({
 					width={32}
 					type="number"
 					hide={showYAxis === false}
+					domain={yAxisDomain}
 				/>
 
 				{showGrid && (
