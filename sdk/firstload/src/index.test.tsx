@@ -6,7 +6,6 @@ import {
 import * as Firstload from '.'
 import { HighlightPublicInterface } from '../../client/src/types/types'
 import * as otel from '../../client/src/otel'
-import { waitFor } from '@testing-library/react'
 
 const sessionData = {
 	sessionSecureID: 'foo',
@@ -94,19 +93,43 @@ describe('should work outside of the browser in unit test', () => {
 		it('should call the callback', async () => {
 			const mockCallback = vi.fn(() => undefined)
 
-			Firstload.__testing.setHighlightObj({
-				ready: true,
-				sessionData,
-			})
 			highlight.onHighlightReady(mockCallback)
 			highlight.init('1')
 
-			// Wait for the callback to be called
-			await waitFor(() => {
-				expect(mockCallback).toHaveBeenCalled()
-			})
+			await vi.waitFor(
+				() => {
+					expect(mockCallback).toHaveBeenCalled()
+				},
+				{ timeout: 2000 },
+			)
 
 			expect(mockCallback).toHaveReturnedWith(undefined)
+		})
+
+		it('should call multiple registered callbacks', async () => {
+			const mockCallback1 = vi.fn(() => undefined)
+			const mockCallback2 = vi.fn(() => undefined)
+
+			highlight.onHighlightReady(mockCallback1)
+			highlight.onHighlightReady(mockCallback2)
+			highlight.init('1')
+
+			await vi.waitFor(
+				() => {
+					expect(mockCallback1).toHaveBeenCalled()
+					expect(mockCallback2).toHaveBeenCalled()
+				},
+				{ timeout: 2000 },
+			)
+		})
+
+		it('should call the callback immediately if already ready', () => {
+			Firstload.__testing.setHighlightObj({ ready: true })
+
+			const mockCallback = vi.fn(() => undefined)
+			highlight.onHighlightReady(mockCallback)
+
+			expect(mockCallback).toHaveBeenCalled()
 		})
 	})
 
@@ -141,9 +164,9 @@ describe('should work outside of the browser in unit test', () => {
 					})
 
 					let tracer: any
-					await waitFor(() => {
+					await vi.waitFor(() => {
 						tracer = otel.getTracer()
-						expect(!!tracer).toBe(true)
+						expect(tracer).toBeDefined()
 					})
 
 					vi.spyOn(tracer, 'startActiveSpan')
@@ -180,9 +203,9 @@ describe('should work outside of the browser in unit test', () => {
 					})
 
 					let tracer: any
-					await waitFor(() => {
+					await vi.waitFor(() => {
 						tracer = otel.getTracer()
-						expect(!!tracer).toBe(true)
+						expect(tracer).toBeDefined()
 					})
 
 					vi.spyOn(tracer, 'startActiveSpan')
