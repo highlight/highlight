@@ -32,10 +32,10 @@ export const SessionsAlertV2Email = ({
 	sessionLink = 'https://localhost:3000/1/sessions/6r5FU4u4SYs4AG4kZjnLHyU5K2N7',
 	userIdentifier = '1',
 }: SessionsAlertV2EmailProps) => (
-	<EmailHtml previewText={`${alertName} alert fired`}>
+	<EmailHtml previewText={`${alertName} Alert`}>
 		<HighlightLogo />
 		<Title>
-			<span style={highlightedTextStyle}>{alertName}</span> alert fired
+			<span style={highlightedTextStyle}>{alertName}</span> Alert
 		</Title>
 		<Subtitle>{projectName}</Subtitle>
 

@@ -34,6 +34,8 @@ func SendAlerts(ctx context.Context, mailClient *sendgrid.Client, lambdaClient *
 		sendTraceAlert(ctx, mailClient, lambdaClient, alertInput, destinations)
 	case modelInputs.ProductTypeMetrics:
 		sendMetricAlert(ctx, mailClient, lambdaClient, alertInput, destinations)
+	case modelInputs.ProductTypeEvents:
+		sendEventAlert(ctx, mailClient, lambdaClient, alertInput, destinations)
 	default:
 		log.WithContext(ctx).WithFields(
 			log.Fields{
@@ -108,9 +110,10 @@ func sendLogAlert(ctx context.Context, mailClient *sendgrid.Client, lambdaClient
 		SubjectLine: fmt.Sprintf("%s Alert", alertInput.Alert.Name),
 		Template:    lambda.ReactEmailTemplateLogsAlert,
 		TemplateData: map[string]interface{}{
-			"alertLink":      alertInput.AlertLink,
-			"alertName":      alertInput.Alert.Name,
-			"belowThreshold": alertInput.Alert.BelowThreshold,
+			"alertLink": alertInput.AlertLink,
+			"alertName": alertInput.Alert.Name,
+			// TODO(spenny): fix for anomoly alerts
+			"belowThreshold": (alertInput.Alert.BelowThreshold != nil && *alertInput.Alert.BelowThreshold) || (alertInput.Alert.ThresholdCondition == modelInputs.ThresholdConditionBelow),
 			"functionValue":  functionValue,
 			"functionName":   functionName,
 			"logsLink":       alertInput.LogInput.LogsLink,
@@ -144,11 +147,12 @@ func sendTraceAlert(ctx context.Context, mailClient *sendgrid.Client, lambdaClie
 
 	emailData := &EmailData{
 		SubjectLine: fmt.Sprintf("%s Alert", alertInput.Alert.Name),
-		Template:    lambda.ReactEmailTemplateLogsAlert,
+		Template:    lambda.ReactEmailTemplateTracesAlert,
 		TemplateData: map[string]interface{}{
-			"alertLink":      alertInput.AlertLink,
-			"alertName":      alertInput.Alert.Name,
-			"belowThreshold": alertInput.Alert.BelowThreshold,
+			"alertLink": alertInput.AlertLink,
+			"alertName": alertInput.Alert.Name,
+			// TODO(spenny): fix for anomoly alerts
+			"belowThreshold": (alertInput.Alert.BelowThreshold != nil && *alertInput.Alert.BelowThreshold) || (alertInput.Alert.ThresholdCondition == modelInputs.ThresholdConditionBelow),
 			"functionValue":  functionValue,
 			"functionName":   functionName,
 			"tracesLink":     alertInput.TraceInput.TracesLink,
@@ -182,13 +186,53 @@ func sendMetricAlert(ctx context.Context, mailClient *sendgrid.Client, lambdaCli
 
 	emailData := &EmailData{
 		SubjectLine: fmt.Sprintf("%s Alert", alertInput.Alert.Name),
-		Template:    lambda.ReactEmailTemplateLogsAlert,
+		Template:    lambda.ReactEmailTemplateMetricsAlert,
 		TemplateData: map[string]interface{}{
-			"alertLink":      alertInput.AlertLink,
-			"alertName":      alertInput.Alert.Name,
-			"belowThreshold": alertInput.Alert.BelowThreshold,
+			"alertLink": alertInput.AlertLink,
+			"alertName": alertInput.Alert.Name,
+			// TODO(spenny): fix for anomoly alerts
+			"belowThreshold": (alertInput.Alert.BelowThreshold != nil && *alertInput.Alert.BelowThreshold) || (alertInput.Alert.ThresholdCondition == modelInputs.ThresholdConditionBelow),
 			"functionValue":  functionValue,
-			"functionName":   functionName, "dashboardsLink": alertInput.MetricInput.DashboardLink,
+			"functionName":   functionName,
+			"dashboardsLink": alertInput.MetricInput.DashboardLink,
+			"projectName":    alertInput.ProjectName,
+			"query":          query,
+			"thresholdValue": thresholdValue,
+		},
+	}
+
+	deliverAlerts(ctx, mailClient, lambdaClient, emailData, destinations)
+}
+
+func sendEventAlert(ctx context.Context, mailClient *sendgrid.Client, lambdaClient *lambda.Client, alertInput *destinationsV2.AlertInput, destinations []model.AlertDestination) {
+	query := "[empty query]"
+	if alertInput.Alert.Query != nil {
+		query = *alertInput.Alert.Query
+	}
+
+	var functionName string
+	var functionValue interface{}
+	var thresholdValue interface{}
+	if alertInput.Alert.FunctionType == modelInputs.MetricAggregatorCount || alertInput.Alert.FunctionType == modelInputs.MetricAggregatorCountDistinct || alertInput.Alert.FunctionType == modelInputs.MetricAggregatorCountDistinctKey {
+		functionName = "Count"
+		functionValue = int(alertInput.AlertValue)
+		thresholdValue = int(*alertInput.Alert.ThresholdValue)
+	} else {
+		functionName = alertInput.Alert.FunctionType.String()
+		functionValue = alertInput.AlertValue
+		thresholdValue = *alertInput.Alert.ThresholdValue
+	}
+
+	emailData := &EmailData{
+		SubjectLine: fmt.Sprintf("%s Alert", alertInput.Alert.Name),
+		Template:    lambda.ReactEmailTemplateEventsAlert,
+		TemplateData: map[string]interface{}{
+			"alertLink": alertInput.AlertLink,
+			"alertName": alertInput.Alert.Name,
+			// TODO(spenny): fix for anomoly alerts
+			"belowThreshold": (alertInput.Alert.BelowThreshold != nil && *alertInput.Alert.BelowThreshold) || (alertInput.Alert.ThresholdCondition == modelInputs.ThresholdConditionBelow),
+			"functionValue":  functionValue,
+			"functionName":   functionName,
 			"projectName":    alertInput.ProjectName,
 			"query":          query,
 			"thresholdValue": thresholdValue,

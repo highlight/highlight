@@ -52,7 +52,7 @@ func SendAlerts(ctx context.Context, db *gorm.DB, mailClient *sendgrid.Client, l
 	frontendURL := env.Config.FrontendUri
 	alertInput := destinationsV2.AlertInput{
 		Alert:       alert,
-		AlertLink:   fmt.Sprintf("%s/alerts/%d/%d", frontendURL, alert.ProjectID, alert.ID),
+		AlertLink:   fmt.Sprintf("%s/%d/alerts/%d", frontendURL, alert.ProjectID, alert.ID),
 		AlertValue:  value,
 		Group:       alertGroup,
 		GroupValue:  alertGroupValue,
@@ -78,6 +78,8 @@ func SendAlerts(ctx context.Context, db *gorm.DB, mailClient *sendgrid.Client, l
 		alertInput.TraceInput = buildTraceAlertInput(ctx, db, &alertInput)
 	case modelInputs.ProductTypeMetrics:
 		alertInput.MetricInput = buildMetricAlertInput(ctx, db, &alertInput)
+	case modelInputs.ProductTypeEvents:
+		// nothing extra needed
 	default:
 		log.WithContext(ctx).WithFields(
 			log.Fields{

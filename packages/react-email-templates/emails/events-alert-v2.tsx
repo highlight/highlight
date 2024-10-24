@@ -13,29 +13,28 @@ import {
 } from '../components/alerts'
 import { EmailHtml, HighlightLogo } from '../components/common'
 
-export interface TracesAlertV2EmailProps {
+export interface EventsAlertV2EmailProps {
 	alertLink?: string
 	alertName?: string
 	belowThreshold?: boolean
+	count?: number
 	functionName?: string
 	functionValue?: number
 	projectName?: string
 	query?: string
 	thresholdValue?: number
-	tracesLink?: string
 }
 
-export const TracesAlertV2Email = ({
+export const EventsAlertV2Email = ({
 	alertLink = 'https://localhost:3000/1/alerts/1',
-	alertName = 'Trace Alert',
+	alertName = 'Event Alert',
 	belowThreshold = false,
 	functionName = 'Count',
 	functionValue = 24,
 	projectName = 'Highlight Production (app.highlight.io)',
-	query = 'level:info',
+	query = 'event=Click',
 	thresholdValue = 20,
-	tracesLink = 'https://localhost:3000/1/traces',
-}: TracesAlertV2EmailProps) => (
+}: EventsAlertV2EmailProps) => (
 	<EmailHtml previewText={`${alertName} Alert`}>
 		<HighlightLogo />
 		<Title>
@@ -45,7 +44,7 @@ export const TracesAlertV2Email = ({
 
 		<AlertContainer>
 			<Text style={textStyle}>
-				Traces {functionName} for query{' '}
+				Events {functionName} for query{' '}
 				<span style={highlightedTextStyle}>{query}</span> is currently{' '}
 				{belowThreshold ? 'below' : 'above'} the threshold.
 			</Text>
@@ -66,7 +65,7 @@ export const TracesAlertV2Email = ({
 					</Text>
 				</Column>
 			</Row>
-			<CtaLink href={tracesLink} label="View traces" />
+			<CtaLink href={alertLink} label="View Alert" />
 		</AlertContainer>
 
 		<Break />
@@ -95,4 +94,4 @@ const statHeader = {
 	marginRight: '8px',
 }
 
-export default TracesAlertV2Email
+export default EventsAlertV2Email

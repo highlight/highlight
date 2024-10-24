@@ -37,10 +37,10 @@ export const MetricsAlertV2Email = ({
 	query = 'level:info',
 	thresholdValue = 20,
 }: MetricsAlertV2EmailProps) => (
-	<EmailHtml previewText={`${alertName} alert fired`}>
+	<EmailHtml previewText={`${alertName} Alert`}>
 		<HighlightLogo />
 		<Title>
-			<span style={highlightedTextStyle}>{alertName}</span> alert fired
+			<span style={highlightedTextStyle}>{alertName}</span> Alert
 		</Title>
 		<Subtitle>{projectName}</Subtitle>
 

@@ -33,6 +33,8 @@ func SendAlerts(ctx context.Context, microsoftTeamsTenantId *string, alertInput 
 		sendTraceAlert(ctx, *microsoftTeamsTenantId, alertInput, destinations)
 	case modelInputs.ProductTypeMetrics:
 		sendMetricAlert(ctx, *microsoftTeamsTenantId, alertInput, destinations)
+	case modelInputs.ProductTypeEvents:
+		sendEventAlert(ctx, *microsoftTeamsTenantId, alertInput, destinations)
 	default:
 		log.WithContext(ctx).WithFields(
 			log.Fields{
@@ -115,8 +117,9 @@ func sendLogAlert(ctx context.Context, microsoftTeamsTenantId string, alertInput
 	var alertText string
 	var countText string
 
+	// TODO(spenny): fix for anomoly alerts
 	threholdRelation := "above"
-	if *alertInput.Alert.BelowThreshold {
+	if (alertInput.Alert.BelowThreshold != nil && *alertInput.Alert.BelowThreshold) || (alertInput.Alert.ThresholdCondition == modelInputs.ThresholdConditionBelow) {
 		threholdRelation = "below"
 	}
 
@@ -165,8 +168,9 @@ func sendTraceAlert(ctx context.Context, microsoftTeamsTenantId string, alertInp
 	var alertText string
 	var countText string
 
+	// TODO(spenny): fix for anomoly alerts
 	threholdRelation := "above"
-	if *alertInput.Alert.BelowThreshold {
+	if (alertInput.Alert.BelowThreshold != nil && *alertInput.Alert.BelowThreshold) || (alertInput.Alert.ThresholdCondition == modelInputs.ThresholdConditionBelow) {
 		threholdRelation = "below"
 	}
 
@@ -215,8 +219,9 @@ func sendMetricAlert(ctx context.Context, microsoftTeamsTenantId string, alertIn
 	var alertText string
 	var countText string
 
+	// TODO(spenny): fix for anomoly alerts
 	threholdRelation := "above"
-	if *alertInput.Alert.BelowThreshold {
+	if (alertInput.Alert.BelowThreshold != nil && *alertInput.Alert.BelowThreshold) || (alertInput.Alert.ThresholdCondition == modelInputs.ThresholdConditionBelow) {
 		threholdRelation = "below"
 	}
 
@@ -256,6 +261,57 @@ func sendMetricAlert(ctx context.Context, microsoftTeamsTenantId string, alertIn
 		AlertText:   alertText,
 		CountText:   countText,
 		MetricsLink: alertInput.MetricInput.DashboardLink,
+	}
+
+	deliverAlerts(ctx, microsoftTeamsTenantId, microsoftteamsV2_templates.MetricAlertMessageTemplate, messagePayload, destinations)
+}
+
+func sendEventAlert(ctx context.Context, microsoftTeamsTenantId string, alertInput *destinationsV2.AlertInput, destinations []model.AlertDestination) {
+	var alertText string
+	var countText string
+
+	// TODO(spenny): fix for anomoly alerts
+	threholdRelation := "above"
+	if (alertInput.Alert.BelowThreshold != nil && *alertInput.Alert.BelowThreshold) || (alertInput.Alert.ThresholdCondition == modelInputs.ThresholdConditionBelow) {
+		threholdRelation = "below"
+	}
+
+	query := "[empty query]"
+	if alertInput.Alert.Query != nil {
+		query = *alertInput.Alert.Query
+	}
+
+	if alertInput.Alert.FunctionType == modelInputs.MetricAggregatorCount || alertInput.Alert.FunctionType == modelInputs.MetricAggregatorCountDistinct || alertInput.Alert.FunctionType == modelInputs.MetricAggregatorCountDistinctKey {
+		alertText = fmt.Sprintf(
+			"Event count for query **%s** was %s the threshold.",
+			query,
+			threholdRelation,
+		)
+		countText = fmt.Sprintf(
+			"*Count*: %d | *Threshold*: %d",
+			int(alertInput.AlertValue),
+			int(*alertInput.Alert.ThresholdValue),
+		)
+	} else {
+		alertText = fmt.Sprintf(
+			"Event %s for query **%s** was %s the threshold.",
+			alertInput.Alert.FunctionType,
+			query,
+			threholdRelation,
+		)
+		countText = fmt.Sprintf(
+			"*%s*: %f | *Threshold*: %f",
+			alertInput.Alert.FunctionType,
+			alertInput.AlertValue,
+			*alertInput.Alert.ThresholdValue,
+		)
+	}
+
+	messagePayload := microsoftteamsV2_templates.EventAlertPayload{
+		AlertName: alertInput.Alert.Name,
+		AlertText: alertText,
+		CountText: countText,
+		AlertLink: alertInput.AlertLink,
 	}
 
 	deliverAlerts(ctx, microsoftTeamsTenantId, microsoftteamsV2_templates.MetricAlertMessageTemplate, messagePayload, destinations)

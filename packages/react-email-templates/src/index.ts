@@ -7,6 +7,7 @@ import {
 	LogAlertEmail,
 	LogsAlertV2Email,
 	MetricsAlertV2Email,
+	EventsAlertV2Email,
 	NewSessionAlertEmail,
 	NewUserAlertEmail,
 	RageClickAlertEmail,
@@ -66,6 +67,8 @@ const getEmailTemplate = (template: string) => {
 			return TracesAlertV2Email
 		case 'metrics-alert':
 			return MetricsAlertV2Email
+		case 'events-alert':
+			return EventsAlertV2Email
 		case 'alert-upsert':
 			return AlertUpsertEmail
 		default:
