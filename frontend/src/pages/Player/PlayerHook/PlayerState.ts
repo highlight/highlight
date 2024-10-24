@@ -574,7 +574,7 @@ const initReplayer = (
 		mouseTail: showPlayerMouseTail,
 		UNSAFE_replayCanvas: true,
 		liveMode: s.isLiveMode,
-		useVirtualDom: true,
+		useVirtualDom: !s.isLiveMode && !!s.session?.chunked,
 		showWarning: verboseLoggingEnabled,
 		showDebug: verboseLoggingEnabled,
 		pauseAnimation: !PROJECTS_WITH_CSS_ANIMATIONS.includes(s.project_id),
