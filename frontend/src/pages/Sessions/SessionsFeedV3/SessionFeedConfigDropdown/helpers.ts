@@ -77,7 +77,7 @@ export const getSortOrderDisplayName = (sortOrder: SESSION_FEED_SORT_ORDER) => {
 }
 
 const durationFormatter = (dur: moment.Duration) => {
-	return (dur.milliseconds() / 1000 / 60 / 60).toFixed(1).toLocaleString()
+	return dur.as('hours').toFixed(1).toLocaleString()
 }
 
 export const formatResult = (
