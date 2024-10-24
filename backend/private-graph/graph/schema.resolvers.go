@@ -920,6 +920,10 @@ func (r *mutationResolver) SendAdminWorkspaceInvite(ctx context.Context, workspa
 		return nil, err
 	}
 
+	if role != model.AdminRole.ADMIN && role != model.AdminRole.MEMBER {
+		return nil, e.Errorf("invalid role %s", role)
+	}
+
 	err = r.validateAdminRole(ctx, workspaceID)
 	if err != nil {
 		return nil, err
