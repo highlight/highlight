@@ -920,16 +920,9 @@ func (r *mutationResolver) SendAdminWorkspaceInvite(ctx context.Context, workspa
 		return nil, err
 	}
 
-	if role != model.AdminRole.ADMIN && role != model.AdminRole.MEMBER {
-		return nil, e.Errorf("invalid role %s", role)
-	}
-
-	// If the new invite is for an admin role, the inviter must be an admin
-	if role == model.AdminRole.ADMIN {
-		err := r.validateAdminRole(ctx, workspaceID)
-		if err != nil {
-			return nil, err
-		}
+	err = r.validateAdminRole(ctx, workspaceID)
+	if err != nil {
+		return nil, err
 	}
 
 	// Check if an invite to the email address already exists
