@@ -77,7 +77,7 @@ export const getSortOrderDisplayName = (sortOrder: SESSION_FEED_SORT_ORDER) => {
 }
 
 const durationFormatter = (dur: moment.Duration) => {
-	return dur.humanize()
+	return dur.as('hours').toFixed(1).toLocaleString()
 }
 
 export const formatResult = (
@@ -93,11 +93,11 @@ export const formatResult = (
 		totalTime &&
 		activeTime
 	) {
-		return `${count.toLocaleString()} results, ${durationFormatter(totalTime)} total, ${durationFormatter(activeTime)} active`
+		return `${count.toLocaleString()} results, ${durationFormatter(totalTime)} total hours, ${durationFormatter(activeTime)} active hours`
 	} else if (format === 'Active Length' && activeTime) {
-		return durationFormatter(activeTime)
+		return `${durationFormatter(activeTime)} active hours`
 	} else if (format === 'Length' && totalTime) {
-		return durationFormatter(totalTime)
+		return `${durationFormatter(totalTime)} total hours`
 	}
 	return `${count.toLocaleString()} results`
 }
