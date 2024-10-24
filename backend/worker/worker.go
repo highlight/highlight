@@ -739,7 +739,7 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 			StartTime:       startInterval.StartTime,
 			EndTime:         allIntervals[len(allIntervals)-1].EndTime,
 			Duration:        int(allIntervals[len(allIntervals)-1].EndTime.Sub(startInterval.StartTime).Milliseconds()),
-			Active:          allIntervals[len(allIntervals)-1].Active,
+			Active:          activeInterval,
 		})
 	}
 
