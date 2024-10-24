@@ -1,6 +1,6 @@
 {
 	"name": "highlight.run",
-	"version": "9.5.0",
+	"version": "9.5.1",
 	"description": "Open source, fullstack monitoring. Capture frontend errors, record server side logs, and visualize what broke with session replay.",
 	"keywords": [
 		"highlight",
@@ -67,7 +67,8 @@
 		"tslib": "^2.6.2",
 		"typescript": "^5.4.3",
 		"vite": "^5.2.12",
-		"vitest": "^1.6.0"
+		"vitest": "^1.6.0",
+		"vitest-canvas-mock": "^0.3.3"
 	},
 	"size-limit": [
 		{
