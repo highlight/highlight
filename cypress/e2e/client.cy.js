@@ -97,6 +97,7 @@ describe('client recording spec', () => {
 						throw new Error('no events')
 					}
 					const customEvent = events.events.find((e) => e.type === 5)
+					cy.log('::: customEvent', customEvent)
 					if (!customEvent) {
 						throw new Error(
 							'no customEvent: ' + JSON.stringify(events),
