@@ -130,7 +130,7 @@ namespace Highlight
                 ["highlight.project_id"] = _config.ProjectId,
                 ["service.name"] = _config.ServiceName,
                 ["telemetry.distro.name"] = "Highlight.ASPCore",
-                ["telemetry.distro.version"] = "0.2.9",
+                ["telemetry.distro.version"] = "0.2.12",
             }).ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
         }
 
@@ -240,9 +240,10 @@ namespace Highlight
         {
             configure(_config);
             services.AddOpenTelemetry()
-                .ConfigureResource(resource => resource.AddAttributes(GetResourceAttributes()))
                 .WithTracing(tracing => tracing
-                    .AddSource(_config.ServiceName)
+                    .SetSampler(new AlwaysOnSampler())
+                    .SetResourceBuilder(ResourceBuilder.CreateDefault().AddAttributes(GetResourceAttributes()).AddService(_config.ServiceName))
+                    .AddSource([_config.ServiceName, "Microsoft.Azure.Functions.Worker"])
                     .AddProcessor(new TraceProcessor())
                     .AddHttpClientInstrumentation()
                     .AddGrpcClientInstrumentation()
@@ -266,6 +267,7 @@ namespace Highlight
                         options.Protocol = ExportProtocol;
                     }))
                 .WithMetrics(metrics => metrics
+                    .SetResourceBuilder(ResourceBuilder.CreateDefault().AddAttributes(GetResourceAttributes()).AddService(_config.ServiceName))
                     .AddMeter(_config.ServiceName)
                     .AddHttpClientInstrumentation()
                     .AddRuntimeInstrumentation()
