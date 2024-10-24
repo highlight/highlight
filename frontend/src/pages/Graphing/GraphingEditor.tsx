@@ -94,6 +94,7 @@ import { GraphContextProvider } from './context/GraphContext'
 type BucketBy = 'None' | 'Interval' | 'Count'
 const BUCKET_BY_OPTIONS: BucketBy[] = ['None', 'Interval', 'Count']
 
+const FUNNEL_BUCKET_SIZE = 100_000_000
 const MAX_BUCKET_SIZE = 100
 const MAX_LIMIT_SIZE = 100
 
@@ -498,7 +499,7 @@ export const GraphingEditor: React.FC = () => {
 			setMetric('secure_session_id')
 			setGroupByEnabled(true)
 			setGroupByKeys(['secure_session_id'])
-			setLimit(Number.MAX_VALUE)
+			setLimit(FUNNEL_BUCKET_SIZE)
 		}
 	}, [viewType])
 
@@ -912,7 +913,7 @@ export const GraphingEditor: React.FC = () => {
 																Math.min(
 																	viewType ===
 																		'Table'
-																		? Number.MAX_VALUE
+																		? FUNNEL_BUCKET_SIZE
 																		: MAX_LIMIT_SIZE,
 																	parseInt(
 																		e.target
