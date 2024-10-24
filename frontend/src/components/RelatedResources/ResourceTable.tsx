@@ -62,8 +62,8 @@ export const ResourceTable = <T, TCol extends string>(
 						<Box mb="6">
 							<Text color="moderate">
 								There was an error loading your{' '}
-								{props.resourceType}. Reach out to us if this
-								might be a bug.
+								{props.resourceType}. Reach out to us if you
+								think this is a bug.
 							</Text>
 						</Box>
 						<Stack direction="row">
