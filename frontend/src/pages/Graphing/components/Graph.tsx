@@ -905,7 +905,12 @@ const Graph = ({
 		bucketMax: number | undefined,
 		groups: string | undefined,
 	) => {
-		let relatedResourceType: 'logs' | 'errors' | 'sessions' | 'traces'
+		let relatedResourceType:
+			| 'logs'
+			| 'errors'
+			| 'sessions'
+			| 'traces'
+			| 'events'
 		switch (productType) {
 			case ProductType.Errors:
 				relatedResourceType = 'errors'
@@ -921,6 +926,9 @@ const Graph = ({
 				break
 			case ProductType.Metrics:
 				relatedResourceType = 'sessions'
+				break
+			case ProductType.Events:
+				relatedResourceType = 'events'
 				break
 			default:
 				return

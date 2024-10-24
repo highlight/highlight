@@ -2569,6 +2569,14 @@ type Query {
 		limit_aggregator: MetricAggregator
 		limit_column: String
 	): MetricsBuckets!
+	event_sessions(
+		project_id: ID!
+		count: Int!
+		params: QueryInput!
+		sort_field: String
+		sort_desc: Boolean!
+		page: Int
+	): SessionResults!
 	metrics(
 		product_type: ProductType!
 		project_id: ID!

@@ -105,7 +105,6 @@ export const LogsPanel: React.FC<{ resource: RelatedLogs }> = ({
 						presets={[]}
 						minDate={startDate}
 						timeMode="permalink"
-						hideDatePicker
 						hideCreateAlert
 						productType={ProductType.Logs}
 					/>
@@ -129,7 +128,7 @@ export const LogsPanel: React.FC<{ resource: RelatedLogs }> = ({
 								loadingAfter={loadingAfter}
 								selectedCursor={undefined}
 								fetchMoreWhenScrolled={fetchMoreWhenScrolled}
-								bodyHeight="calc(100% - 56px)"
+								bodyHeight="calc(100% - 64px)"
 							/>
 						)}
 					</Box>

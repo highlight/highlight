@@ -7593,6 +7593,121 @@ export type GetSessionsQueryResult = Apollo.QueryResult<
 	Types.GetSessionsQuery,
 	Types.GetSessionsQueryVariables
 >
+export const GetEventSessionsDocument = gql`
+	query GetEventSessions(
+		$project_id: ID!
+		$count: Int!
+		$params: QueryInput!
+		$sort_desc: Boolean!
+		$sort_field: String
+		$page: Int
+	) {
+		event_sessions(
+			project_id: $project_id
+			count: $count
+			params: $params
+			sort_field: $sort_field
+			sort_desc: $sort_desc
+			page: $page
+		) {
+			sessions {
+				id
+				secure_id
+				client_id
+				fingerprint
+				identifier
+				identified
+				os_name
+				os_version
+				browser_name
+				browser_version
+				ip
+				city
+				state
+				country
+				postal
+				created_at
+				language
+				length
+				active_length
+				enable_recording_network_contents
+				viewed
+				starred
+				processed
+				has_rage_clicks
+				has_errors
+				fields {
+					name
+					value
+					type
+					id
+				}
+				first_time
+				user_properties
+				event_counts
+				last_user_interaction_time
+				is_public
+				excluded
+				email
+			}
+			totalCount
+		}
+	}
+`
+
+/**
+ * __useGetEventSessionsQuery__
+ *
+ * To run a query within a React component, call `useGetEventSessionsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetEventSessionsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetEventSessionsQuery({
+ *   variables: {
+ *      project_id: // value for 'project_id'
+ *      count: // value for 'count'
+ *      params: // value for 'params'
+ *      sort_desc: // value for 'sort_desc'
+ *      sort_field: // value for 'sort_field'
+ *      page: // value for 'page'
+ *   },
+ * });
+ */
+export function useGetEventSessionsQuery(
+	baseOptions: Apollo.QueryHookOptions<
+		Types.GetEventSessionsQuery,
+		Types.GetEventSessionsQueryVariables
+	>,
+) {
+	return Apollo.useQuery<
+		Types.GetEventSessionsQuery,
+		Types.GetEventSessionsQueryVariables
+	>(GetEventSessionsDocument, baseOptions)
+}
+export function useGetEventSessionsLazyQuery(
+	baseOptions?: Apollo.LazyQueryHookOptions<
+		Types.GetEventSessionsQuery,
+		Types.GetEventSessionsQueryVariables
+	>,
+) {
+	return Apollo.useLazyQuery<
+		Types.GetEventSessionsQuery,
+		Types.GetEventSessionsQueryVariables
+	>(GetEventSessionsDocument, baseOptions)
+}
+export type GetEventSessionsQueryHookResult = ReturnType<
+	typeof useGetEventSessionsQuery
+>
+export type GetEventSessionsLazyQueryHookResult = ReturnType<
+	typeof useGetEventSessionsLazyQuery
+>
+export type GetEventSessionsQueryResult = Apollo.QueryResult<
+	Types.GetEventSessionsQuery,
+	Types.GetEventSessionsQueryVariables
+>
 export const GetSessionsHistogramDocument = gql`
 	query GetSessionsHistogram(
 		$project_id: ID!
