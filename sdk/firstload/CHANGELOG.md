@@ -1,5 +1,11 @@
 # highlight.run
 
+## 9.5.1
+
+### Patch Changes
+
+-   5194753: fix `H.getSession*` methods using stale session ID
+
 ## 9.5.0
 
 ### Minor Changes
