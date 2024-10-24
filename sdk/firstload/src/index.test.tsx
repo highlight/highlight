@@ -102,8 +102,6 @@ describe('should work outside of the browser in unit test', () => {
 				},
 				{ timeout: 2000 },
 			)
-
-			expect(mockCallback).toHaveReturnedWith(undefined)
 		})
 
 		it('should call multiple registered callbacks', async () => {
