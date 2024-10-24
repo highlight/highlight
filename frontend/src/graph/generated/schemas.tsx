@@ -2117,6 +2117,7 @@ export type Query = {
 	errors_metrics: MetricsBuckets
 	event_chunk_url: Scalars['String']
 	event_chunks: Array<EventChunk>
+	event_sessions: SessionResults
 	events?: Maybe<Array<Maybe<Scalars['Any']>>>
 	events_key_values: Array<Scalars['String']>
 	events_keys: Array<QueryKey>
@@ -2483,6 +2484,15 @@ export type QueryEvent_Chunk_UrlArgs = {
 
 export type QueryEvent_ChunksArgs = {
 	secure_id: Scalars['String']
+}
+
+export type QueryEvent_SessionsArgs = {
+	count: Scalars['Int']
+	page?: InputMaybe<Scalars['Int']>
+	params: QueryInput
+	project_id: Scalars['ID']
+	sort_desc: Scalars['Boolean']
+	sort_field?: InputMaybe<Scalars['String']>
 }
 
 export type QueryEventsArgs = {

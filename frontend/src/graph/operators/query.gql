@@ -581,6 +581,66 @@ query GetSessions(
 	}
 }
 
+query GetEventSessions(
+	$project_id: ID!
+	$count: Int!
+	$params: QueryInput!
+	$sort_desc: Boolean!
+	$sort_field: String
+	$page: Int
+) {
+	event_sessions(
+		project_id: $project_id
+		count: $count
+		params: $params
+		sort_field: $sort_field
+		sort_desc: $sort_desc
+		page: $page
+	) {
+		sessions {
+			id
+			secure_id
+			client_id
+			fingerprint
+			identifier
+			identified
+			os_name
+			os_version
+			browser_name
+			browser_version
+			ip
+			city
+			state
+			country
+			postal
+			created_at
+			language
+			length
+			active_length
+			enable_recording_network_contents
+			viewed
+			starred
+			processed
+			has_rage_clicks
+			has_errors
+			fields {
+				name
+				value
+				type
+				id
+			}
+			first_time
+			user_properties
+			event_counts
+			last_user_interaction_time
+			is_public
+			excluded
+			email
+		}
+		totalCount
+	}
+}
+
 query GetSessionsHistogram(
 	$project_id: ID!
 	$params: QueryInput!

@@ -2449,6 +2449,71 @@ export type GetSessionsQuery = { __typename?: 'Query' } & {
 		}
 }
 
+export type GetEventSessionsQueryVariables = Types.Exact<{
+	project_id: Types.Scalars['ID']
+	count: Types.Scalars['Int']
+	params: Types.QueryInput
+	sort_desc: Types.Scalars['Boolean']
+	sort_field?: Types.Maybe<Types.Scalars['String']>
+	page?: Types.Maybe<Types.Scalars['Int']>
+}>
+
+export type GetEventSessionsQuery = { __typename?: 'Query' } & {
+	event_sessions: { __typename?: 'SessionResults' } & Pick<
+		Types.SessionResults,
+		'totalCount'
+	> & {
+			sessions: Array<
+				{ __typename?: 'Session' } & Pick<
+					Types.Session,
+					| 'id'
+					| 'secure_id'
+					| 'client_id'
+					| 'fingerprint'
+					| 'identifier'
+					| 'identified'
+					| 'os_name'
+					| 'os_version'
+					| 'browser_name'
+					| 'browser_version'
+					| 'ip'
+					| 'city'
+					| 'state'
+					| 'country'
+					| 'postal'
+					| 'created_at'
+					| 'language'
+					| 'length'
+					| 'active_length'
+					| 'enable_recording_network_contents'
+					| 'viewed'
+					| 'starred'
+					| 'processed'
+					| 'has_rage_clicks'
+					| 'has_errors'
+					| 'first_time'
+					| 'user_properties'
+					| 'event_counts'
+					| 'last_user_interaction_time'
+					| 'is_public'
+					| 'excluded'
+					| 'email'
+				> & {
+						fields?: Types.Maybe<
+							Array<
+								Types.Maybe<
+									{ __typename?: 'Field' } & Pick<
+										Types.Field,
+										'name' | 'value' | 'type' | 'id'
+									>
+								>
+							>
+						>
+					}
+			>
+		}
+}
+
 export type GetSessionsHistogramQueryVariables = Types.Exact<{
 	project_id: Types.Scalars['ID']
 	params: Types.QueryInput
@@ -5365,6 +5430,7 @@ export const namedOperations = {
 		GetTimelineIndicatorEvents: 'GetTimelineIndicatorEvents' as const,
 		GetWebSocketEvents: 'GetWebSocketEvents' as const,
 		GetSessions: 'GetSessions' as const,
+		GetEventSessions: 'GetEventSessions' as const,
 		GetSessionsHistogram: 'GetSessionsHistogram' as const,
 		GetSessionUsersReports: 'GetSessionUsersReports' as const,
 		GetErrorGroups: 'GetErrorGroups' as const,

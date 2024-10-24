@@ -9534,6 +9534,41 @@ func (r *queryResolver) EventsMetrics(ctx context.Context, projectID int, params
 	return r.ClickhouseClient.ReadEventsMetrics(ctx, project.ID, params, column, metricTypes, groupBy, bucketCount, bucketBy, bucketWindow, limit, limitAggregator, limitColumn)
 }
 
+// EventSessions is the resolver for the event_sessions field.
+func (r *queryResolver) EventSessions(ctx context.Context, projectID int, count int, params modelInputs.QueryInput, sortField *string, sortDesc bool, page *int) (*model.SessionResults, error) {
+	_, err := r.isUserInProjectOrDemoProject(ctx, projectID)
+	if err != nil {
+		return nil, err
+	}
+
+	chSortStr := "SessionCreatedAt DESC"
+	pgSortStr := "created_at DESC"
+	if !sortDesc {
+		chSortStr = "SessionCreatedAt ASC"
+		pgSortStr = "created_at ASC"
+	}
+
+	sessionIDs, total, err := r.ClickhouseClient.QueryEventSessionIds(ctx, projectID, count, params, chSortStr, page)
+	if err != nil {
+		return nil, err
+	}
+
+	q := r.DB.WithContext(ctx).Model(&model.Session{}).
+		Where("id in ?", sessionIDs).
+		Where("project_id = ?", projectID).
+		Order(pgSortStr)
+
+	var results []model.Session
+	if err := q.Find(&results).Error; err != nil {
+		return nil, err
+	}
+
+	return &model.SessionResults{
+		Sessions:   results,
+		TotalCount: total,
+	}, nil
+}
+
 // Metrics is the resolver for the metrics field.
 func (r *queryResolver) Metrics(ctx context.Context, productType modelInputs.ProductType, projectID int, params modelInputs.QueryInput, column string, metricTypes []modelInputs.MetricAggregator, groupBy []string, bucketBy string, bucketCount *int, bucketWindow *int, limit *int, limitAggregator *modelInputs.MetricAggregator, limitColumn *string, predictionSettings *modelInputs.PredictionSettings) (*modelInputs.MetricsBuckets, error) {
 	var results *modelInputs.MetricsBuckets

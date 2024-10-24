@@ -3,12 +3,14 @@ package clickhouse
 import (
 	"context"
 	"errors"
+	"fmt"
 	"strings"
 	"time"
 
 	"github.com/ClickHouse/clickhouse-go/v2"
 	"github.com/google/uuid"
 	"github.com/highlight-run/highlight/backend/model"
+	"github.com/highlight-run/highlight/backend/parser"
 	"github.com/huandu/go-sqlbuilder"
 	"github.com/openlyinc/pointy"
 	"github.com/samber/lo"
@@ -151,6 +153,69 @@ func (client *Client) ReadWorkspaceEventCounts(ctx context.Context, projectIDs [
 		BucketCount:      pointy.Int(12),
 		BucketBy:         modelInputs.MetricBucketByTimestamp.String(),
 	})
+}
+
+func GetEventsQueryImpl(params modelInputs.QueryInput, projectId int, selectColumns string, orderBy *string, limit *int, offset *int) (string, []interface{}, error) {
+	sb := sqlbuilder.NewSelectBuilder()
+	sb.From(fmt.Sprintf("%s FINAL", eventsTableConfig.TableName))
+
+	sb.Where(sb.Equal("ProjectId", projectId)).
+		Where(sb.LessEqualThan("Timestamp", params.DateRange.EndDate)).
+		Where(sb.GreaterEqualThan("Timestamp", params.DateRange.StartDate))
+
+	listener := parser.GetSearchListener(sb, params.Query, SessionsJoinedTableConfig)
+	parser.GetSearchFilters(params.Query, eventsTableConfig, listener)
+
+	sb.Select(selectColumns)
+
+	if orderBy != nil {
+		sb = sb.OrderBy(*orderBy)
+	}
+	if limit != nil {
+		sb = sb.Limit(*limit)
+	}
+	if offset != nil {
+		sb = sb.Offset(*offset)
+	}
+
+	sql, args := sb.BuildWithFlavor(sqlbuilder.ClickHouse)
+
+	return sql, args, nil
+}
+
+func (client *Client) QueryEventSessionIds(ctx context.Context, projectId int, count int, params modelInputs.QueryInput, sortField string, page *int) ([]int64, int64, error) {
+	pageInt := 1
+	if page != nil {
+		pageInt = *page
+	}
+	offset := (pageInt - 1) * count
+
+	sql, args, err := GetEventsQueryImpl(
+		params, projectId,
+		"DISTINCT SessionId, count() OVER() AS total",
+		pointy.String(sortField), pointy.Int(count), pointy.Int(offset),
+	)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	rows, err := client.conn.Query(ctx, sql, args...)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	var sessionIDs []int64
+	var total uint64
+	for rows.Next() {
+		var sessionID int64
+		columns := []interface{}{&sessionID, &total}
+		if err := rows.Scan(columns...); err != nil {
+			return nil, 0, err
+		}
+		sessionIDs = append(sessionIDs, sessionID)
+	}
+
+	return sessionIDs, int64(total), nil
 }
 
 func (client *Client) EventsKeys(ctx context.Context, projectID int, startDate time.Time, endDate time.Time, query *string, typeArg *modelInputs.KeyType, event *string) ([]*modelInputs.QueryKey, error) {
