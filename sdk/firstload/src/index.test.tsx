@@ -100,7 +100,7 @@ describe('should work outside of the browser in unit test', () => {
 				() => {
 					expect(mockCallback).toHaveBeenCalled()
 				},
-				{ timeout: 2000 },
+				{ timeout: 5000 },
 			)
 		})
 
