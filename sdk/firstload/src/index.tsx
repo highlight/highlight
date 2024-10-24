@@ -572,7 +572,6 @@ const __testing = {
 		onHighlightReadyQueue = []
 		onHighlightReadyTimeout = undefined
 		first_load_listeners = undefined as any
-		getTracer = undefined as any
 	},
 	setHighlightObj: (obj: Partial<Highlight>) => {
 		highlight_obj = obj as Highlight
