@@ -51922,18 +51922,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"require-in-the-middle@npm:^7.1.1":
-  version: 7.2.0
-  resolution: "require-in-the-middle@npm:7.2.0"
-  dependencies:
-    debug: "npm:^4.1.1"
-    module-details-from-path: "npm:^1.0.3"
-    resolve: "npm:^1.22.1"
-  checksum: 10/f77f865d5f689d8cada40c9bb947a86d2992b34ee9d3b98aaa7f643acd101ede624e5fe3e9200103900f6b772af4277ef97d08a9332160c895861dc3f801be67
-  languageName: node
-  linkType: hard
-
-"require-in-the-middle@npm:^7.4.0":
+"require-in-the-middle@npm:^7.1.1, require-in-the-middle@npm:^7.4.0":
   version: 7.4.0
   resolution: "require-in-the-middle@npm:7.4.0"
   dependencies:
