@@ -2,7 +2,7 @@ import chromium from '@sparticuz/chromium'
 import { mkdtemp, readFileSync } from 'fs'
 import { tmpdir } from 'os'
 import path from 'path'
-import puppeteer, { Browser } from 'puppeteer-core'
+import puppeteer, { Browser, Page } from 'puppeteer-core'
 import { PuppeteerScreenRecorder } from 'puppeteer-screen-recorder'
 import { promisify } from 'util'
 
@@ -21,6 +21,42 @@ const getHtml = (rrwebStyle: string, rrwebJs: string): string => {
 </html>`
 }
 
+async function setupOAuthProjectToken(
+	page: Page,
+	apiConfig: {
+		domain: string
+		oauthURL: string
+		apiURL: string
+		clientID: string
+		clientSecret: string
+		project: number
+	},
+) {
+	const r = await fetch(
+		`${apiConfig.oauthURL}/token?grant_type=client_credentials&client_id=${apiConfig.clientID}&client_secret=${apiConfig.clientSecret}`,
+		{
+			method: 'POST',
+			mode: 'no-cors',
+		},
+	)
+	const data = await r.json()
+	const accessToken = data['access_token']
+
+	// set asset cookie from project-token api
+	const token = await fetch(
+		`${apiConfig.apiURL}/project-token/${apiConfig.project}`,
+		{
+			credentials: 'include',
+			headers: { Authorization: `Bearer ${accessToken}` },
+		},
+	)
+	for (const cookie of token.headers.getSetCookie()) {
+		const value = cookie.split(';')[0]
+		const [k, v] = value.trim().split('=')
+		await page.setCookie({ name: k, value: v, domain: apiConfig.domain })
+	}
+}
+
 export interface RenderConfig {
 	fps?: number
 	dir?: string
@@ -28,15 +64,19 @@ export interface RenderConfig {
 	ts?: number
 	tsEnd?: number
 	chunk?: number
+	domain?: string
+	oauthURL?: string
+	apiURL?: string
 }
 
 export async function render(
+	project: number,
 	events: string,
 	chunk_idx: number,
 	intervals: any[],
 	worker: number,
 	workers: number,
-	{ fps, ts, tsEnd, dir, video }: RenderConfig,
+	{ fps, ts, tsEnd, dir, video, ...apiConfig }: RenderConfig,
 ) {
 	let files: string[] = []
 	if (ts === undefined && fps === undefined) {
@@ -55,7 +95,7 @@ export async function render(
 		console.log(`starting puppeteer for dev`)
 		browser = await puppeteer.launch({
 			channel: 'chrome',
-			headless: 'new',
+			headless: true,
 			args: ['--no-sandbox'],
 		})
 	} else {
@@ -94,6 +134,14 @@ export async function render(
 		'utf8',
 	)
 	await page.setContent(getHtml(css, js))
+	await setupOAuthProjectToken(page, {
+		domain: apiConfig?.domain ?? '.highlight.io',
+		oauthURL: apiConfig?.oauthURL ?? 'https://pri.highlight.io/oauth',
+		apiURL: apiConfig?.apiURL ?? 'https://pri.highlight.io',
+		clientID: process.env.OAUTH_CLIENT_ID ?? '',
+		clientSecret: process.env.OAUTH_CLIENT_SECRET ?? '',
+		project,
+	})
 	await page.evaluate(
 		`
         const events = JSON.parse(` +
