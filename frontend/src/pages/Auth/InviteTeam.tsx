@@ -95,14 +95,13 @@ export const InviteTeamForm: React.FC = () => {
 	const adminRole = adminRoleData?.admin_role?.role ?? AdminRole.Member
 	const adminProjects = adminRoleData?.admin_role?.projectIds ?? []
 
-	const enableAutoJoinInput =
-		new_workspace && !isCommonEmailDomain && adminRole === AdminRole.Admin
+	const enableAutoJoinInput = new_workspace && !isCommonEmailDomain
 
 	useEffect(() => {
-		if (adminProjects.length > 0) {
+		if (adminProjects.length > 0 || adminRole !== AdminRole.Admin) {
 			navigate(redirectRoute)
 		}
-	}, [adminProjects.length, navigate, redirectRoute])
+	}, [adminProjects.length, adminRole, navigate, redirectRoute])
 
 	const formStore = Form.useStore({
 		defaultValues: {
