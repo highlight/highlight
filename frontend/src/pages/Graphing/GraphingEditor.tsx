@@ -148,12 +148,10 @@ export const GraphBackgroundWrapper = ({ children }: PropsWithChildren) => {
 
 			<Box cssClass={style.graphWrapper} shadow="small">
 				<Box
-					px="16"
-					py="12"
-					width="full"
-					height="full"
 					border="divider"
 					borderRadius="8"
+					width="full"
+					height="full"
 				>
 					{children}
 				</Box>
@@ -189,6 +187,8 @@ export const GraphingEditor: React.FC = () => {
 		}
 		return PRODUCT_OPTIONS_WITH_EVENTS
 	}, [eventSearchEnabled])
+
+	const [showTemplates, setShowTemplates] = useState(false)
 
 	const isEdit = graph_id !== undefined
 
@@ -635,16 +635,14 @@ export const GraphingEditor: React.FC = () => {
 							{isEdit ? 'Edit' : 'Create'} metric view
 						</Text>
 						<Box display="flex" gap="4">
-							<TemplateMenu
-								previewTemplate={(template) => {
-									setGraphPreview(template)
-								}}
-								applyTemplate={(template) => {
-									if (template !== undefined) {
-										applyGraph(template)
-									}
-								}}
-							/>
+							<Button
+								trackingId="showTemplates"
+								emphasis="medium"
+								kind="secondary"
+								onClick={() => setShowTemplates(true)}
+							>
+								Templates
+							</Button>
 							<HeaderDivider />
 							<DateRangePicker
 								iconLeft={<IconSolidClock size={14} />}
@@ -702,58 +700,83 @@ export const GraphingEditor: React.FC = () => {
 							>
 								<VariablesBar dashboardId={dashboard_id!} />
 								<GraphBackgroundWrapper>
-									<Graph
-										title={
-											metricViewTitle ||
-											tempMetricViewTitle?.current
-										}
-										viewConfig={viewConfig}
-										productType={productType}
-										projectId={projectId}
-										startDate={startDate}
-										selectedPreset={selectedPreset}
-										endDate={endDate}
-										query={debouncedQuery}
-										metric={metric}
-										functionType={functionType}
-										bucketByKey={getBucketByKey(
-											bucketBySetting,
-											bucketByKey,
-										)}
-										bucketCount={
-											bucketBySetting === 'Count'
-												? Number(bucketCount)
-												: undefined
-										}
-										bucketByWindow={
-											bucketBySetting === 'Interval'
-												? Number(bucketInterval)
-												: undefined
-										}
-										groupByKeys={
-											groupByEnabled
-												? groupByKeys
-												: undefined
-										}
-										limit={
-											groupByEnabled
-												? Number(limit)
-												: undefined
-										}
-										limitFunctionType={
-											groupByEnabled
-												? limitFunctionType
-												: undefined
-										}
-										limitMetric={
-											groupByEnabled
-												? limitMetric
-												: undefined
-										}
-										funnelSteps={funnelSteps}
-										setTimeRange={updateSearchTime}
-										variables={values}
-									/>
+									{showTemplates && (
+										<TemplateMenu
+											previewTemplate={(template) => {
+												setGraphPreview(template)
+											}}
+											applyTemplate={(template) => {
+												if (template !== undefined) {
+													applyGraph(template)
+												}
+											}}
+											onClose={() =>
+												setShowTemplates(false)
+											}
+										/>
+									)}
+									{!showTemplates && (
+										<Box
+											px="16"
+											py="12"
+											width="full"
+											height="full"
+										>
+											<Graph
+												title={
+													metricViewTitle ||
+													tempMetricViewTitle?.current
+												}
+												viewConfig={viewConfig}
+												productType={productType}
+												projectId={projectId}
+												startDate={startDate}
+												selectedPreset={selectedPreset}
+												endDate={endDate}
+												query={debouncedQuery}
+												metric={metric}
+												functionType={functionType}
+												bucketByKey={getBucketByKey(
+													bucketBySetting,
+													bucketByKey,
+												)}
+												bucketCount={
+													bucketBySetting === 'Count'
+														? Number(bucketCount)
+														: undefined
+												}
+												bucketByWindow={
+													bucketBySetting ===
+													'Interval'
+														? Number(bucketInterval)
+														: undefined
+												}
+												groupByKeys={
+													groupByEnabled
+														? groupByKeys
+														: undefined
+												}
+												limit={
+													groupByEnabled
+														? Number(limit)
+														: undefined
+												}
+												limitFunctionType={
+													groupByEnabled
+														? limitFunctionType
+														: undefined
+												}
+												limitMetric={
+													groupByEnabled
+														? limitMetric
+														: undefined
+												}
+												funnelSteps={funnelSteps}
+												setTimeRange={updateSearchTime}
+												variables={values}
+											/>
+										</Box>
+									)}
 								</GraphBackgroundWrapper>
 							</Box>
 							<Box

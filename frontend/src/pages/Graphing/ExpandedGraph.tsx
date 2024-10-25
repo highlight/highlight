@@ -151,33 +151,37 @@ export const ExpandedGraph = () => {
 						height="full"
 					>
 						<GraphBackgroundWrapper>
-							<Graph
-								title={g.title}
-								viewConfig={getViewConfig(
-									g.type,
-									g.display,
-									g.nullHandling,
-								)}
-								productType={g.productType}
-								projectId={projectId}
-								startDate={startDate}
-								endDate={endDate}
-								selectedPreset={selectedPreset}
-								query={g.query}
-								metric={g.metric}
-								functionType={g.functionType}
-								bucketByKey={g.bucketByKey ?? undefined}
-								bucketByWindow={g.bucketInterval ?? undefined}
-								bucketCount={g.bucketCount ?? undefined}
-								groupByKeys={g.groupByKeys ?? undefined}
-								limit={g.limit ?? undefined}
-								limitFunctionType={
-									g.limitFunctionType ?? undefined
-								}
-								limitMetric={g.limitMetric ?? undefined}
-								setTimeRange={updateSearchTime}
-								variables={values}
-							/>
+							<Box px="16" py="12" width="full" height="full">
+								<Graph
+									title={g.title}
+									viewConfig={getViewConfig(
+										g.type,
+										g.display,
+										g.nullHandling,
+									)}
+									productType={g.productType}
+									projectId={projectId}
+									startDate={startDate}
+									endDate={endDate}
+									selectedPreset={selectedPreset}
+									query={g.query}
+									metric={g.metric}
+									functionType={g.functionType}
+									bucketByKey={g.bucketByKey ?? undefined}
+									bucketByWindow={
+										g.bucketInterval ?? undefined
+									}
+									bucketCount={g.bucketCount ?? undefined}
+									groupByKeys={g.groupByKeys ?? undefined}
+									limit={g.limit ?? undefined}
+									limitFunctionType={
+										g.limitFunctionType ?? undefined
+									}
+									limitMetric={g.limitMetric ?? undefined}
+									setTimeRange={updateSearchTime}
+									variables={values}
+								/>
+							</Box>
 						</GraphBackgroundWrapper>
 					</Box>
 				</Box>
