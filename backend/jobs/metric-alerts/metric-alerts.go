@@ -78,7 +78,7 @@ func processMetricAlert(ctx context.Context, DB *gorm.DB, MailClient *sendgrid.C
 		thresholdWindow = time.Duration(*alert.ThresholdWindow) * time.Second
 	}
 
-	saveMetricState := alert.ProductType != modelInputs.ProductTypeErrors && alert.ProductType != modelInputs.ProductTypeSessions
+	saveMetricState := alert.ProductType != modelInputs.ProductTypeErrors && alert.ProductType != modelInputs.ProductTypeSessions && alert.ProductType != modelInputs.ProductTypeEvents
 
 	endDate := curDate
 	startDate := curDate.Add(-1 * thresholdWindow)
