@@ -144,7 +144,7 @@ const { withHighlightConfig } = require('@highlight-run/next/config')
 /** @type {import('next').NextConfig} */
 const nextConfig = {
 	experimental: {
-		serverComponentsExternalPackages: ['@highlight-run/node'],
+		serverComponentsExternalPackages: ['@highlight-run/node', 'require-in-the-middle'],
 	},
 	productionBrowserSourceMaps: true, // optionally ship source maps to production
 }
@@ -175,7 +175,7 @@ const { withHighlightConfig } = require('@highlight-run/next/config')
 /** @type {import('next').NextConfig} */
 const nextConfig = {
 	experimental: {
-		serverComponentsExternalPackages: ['@highlight-run/node'],
+		serverComponentsExternalPackages: ['@highlight-run/node', 'require-in-the-middle'],
 	},
 	productionBrowserSourceMaps: false,
 }

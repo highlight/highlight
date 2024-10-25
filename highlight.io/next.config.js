@@ -23,6 +23,7 @@ const nextConfig = {
 	},
 	experimental: {
 		serverComponentsExternalPackages: ['pino', 'pino-pretty'],
+		instrumentationHook: true,
 	},
 	productionBrowserSourceMaps: true,
 	reactStrictMode: true,

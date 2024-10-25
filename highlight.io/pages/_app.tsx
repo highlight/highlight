@@ -12,6 +12,7 @@ import Head from 'next/head'
 import Analytics from '../components/Analytics'
 import { Meta } from '../components/common/Head/Meta'
 import MetaImage from '../public/images/meta-image.jpg'
+import { ErrorBoundary as HighlightErrorBoundary } from '@highlight-run/next/client'
 
 Router.events.on('routeChangeStart', nProgress.start)
 Router.events.on('routeChangeError', nProgress.done)
@@ -31,11 +32,12 @@ H.init('4d7k1xeo', {
 		recordHeadersAndBody: true,
 	},
 	tracingOrigins: true,
+	enableOtelTracing: true,
 })
 
 function MyApp({ Component, pageProps }: AppProps) {
 	return (
-		<>
+		<HighlightErrorBoundary showDialog>
 			<Head>
 				<link
 					rel="preconnect"
@@ -52,7 +54,7 @@ function MyApp({ Component, pageProps }: AppProps) {
 			<Component {...pageProps} />
 			<SpeedInsights />
 			<Analytics />
-		</>
+		</HighlightErrorBoundary>
 	)
 }
 

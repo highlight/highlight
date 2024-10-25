@@ -7,6 +7,7 @@ import typescript from '@rollup/plugin-typescript'
 /** @type {import('rollup').RollupOptions} */
 const config = {
 	input: 'src/index.ts',
+	external: ['require-in-the-middle'],
 	context: 'global',
 	plugins: [
 		json(),
