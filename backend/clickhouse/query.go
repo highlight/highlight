@@ -30,7 +30,7 @@ const SamplingRows = 20_000_000
 const KeysMaxRows = 1_000_000
 const KeyValuesMaxRows = 1_000_000
 const AllKeyValuesMaxRows = 100_000_000
-const MaxBuckets = 100
+const MaxBuckets = 240
 
 type SampleableTableConfig struct {
 	tableConfig         model.TableConfig
@@ -39,19 +39,20 @@ type SampleableTableConfig struct {
 }
 
 type ReadMetricsInput struct {
-	SampleableConfig SampleableTableConfig
-	ProjectIDs       []int
-	Params           modelInputs.QueryInput
-	Column           string
-	MetricTypes      []modelInputs.MetricAggregator
-	GroupBy          []string
-	BucketCount      *int
-	BucketWindow     *int
-	BucketBy         string
-	Limit            *int
-	LimitAggregator  *modelInputs.MetricAggregator
-	LimitColumn      *string
-	SavedMetricState *SavedMetricState
+	SampleableConfig   SampleableTableConfig
+	ProjectIDs         []int
+	Params             modelInputs.QueryInput
+	Column             string
+	MetricTypes        []modelInputs.MetricAggregator
+	GroupBy            []string
+	BucketCount        *int
+	BucketWindow       *int
+	BucketBy           string
+	Limit              *int
+	LimitAggregator    *modelInputs.MetricAggregator
+	LimitColumn        *string
+	SavedMetricState   *SavedMetricState
+	PredictionSettings *modelInputs.PredictionSettings
 }
 
 func readObjects[TObj interface{}](ctx context.Context, client *Client, config model.TableConfig, samplingConfig model.TableConfig, projectID int, params modelInputs.QueryInput, pagination Pagination, scanObject func(driver.Rows) (*Edge[TObj], error)) (*Connection[TObj], error) {
@@ -752,14 +753,14 @@ func matchesQuery[TObj interface{}](row *TObj, config model.TableConfig, filters
 		switch filter.Operator {
 		case listener.OperatorAnd:
 			for _, childFilter := range filter.Filters {
-				if !matchesQuery(row, config, listener.Filters{childFilter}, filter.Operator) {
+				if !matchesQuery[TObj](row, config, listener.Filters{childFilter}, filter.Operator) {
 					return false
 				}
 			}
 		case listener.OperatorOr:
 			var anyMatch bool
 			for _, childFilter := range filter.Filters {
-				if matchesQuery(row, config, listener.Filters{childFilter}, filter.Operator) {
+				if matchesQuery[TObj](row, config, listener.Filters{childFilter}, filter.Operator) {
 					anyMatch = true
 					break
 				}
@@ -768,7 +769,7 @@ func matchesQuery[TObj interface{}](row *TObj, config model.TableConfig, filters
 				return false
 			}
 		case listener.OperatorNot:
-			return !matchesQuery(row, config, listener.Filters{filter.Filters[0]}, filter.Operator)
+			return !matchesQuery[TObj](row, config, listener.Filters{filter.Filters[0]}, filter.Operator)
 		default:
 			matches, err := matchFilter(row, config, filter)
 			if err != nil {
@@ -971,7 +972,6 @@ func (client *Client) ReadMetrics(ctx context.Context, input ReadMetricsInput) (
 	if len(input.MetricTypes) == 0 {
 		return nil, errors.New("no metric types provided")
 	}
-
 	if input.Params.DateRange == nil {
 		input.Params.DateRange = &modelInputs.DateRangeRequiredInput{
 			StartDate: time.Now().Add(-time.Hour * 24 * 30),
@@ -1128,9 +1128,6 @@ func (client *Client) ReadMetrics(ctx context.Context, input ReadMetricsInput) (
 	limitCount := 10
 	if input.Limit != nil {
 		limitCount = *input.Limit
-	}
-	if limitCount > 100 {
-		limitCount = 100
 	}
 	if limitCount < 1 {
 		limitCount = 1
@@ -1331,7 +1328,6 @@ func (client *Client) ReadMetrics(ctx context.Context, input ReadMetricsInput) (
 
 	return metrics, err
 }
-
 func formatColumn(input string, column string) string {
 	base := input
 	if base == "" {

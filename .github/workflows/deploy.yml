@@ -438,6 +438,52 @@ jobs:
                   service: public-worker-traces-service
                   cluster: highlight-ec2-prod
 
+    deploy_predictions:
+        runs-on: codebuild-highlight-github-actions-runner-${{ github.run_id }}-${{ github.run_attempt }}-arm-3.0-large
+        steps:
+            - name: Check out the repo
+              uses: actions/checkout@v4
+
+            - name: Login to Docker Hub
+              uses: docker/login-action@v3
+              with:
+                  username: ${{ secrets.DOCKERHUB_USERNAME }}
+                  password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+            - name: Configure AWS Credentials
+              uses: aws-actions/configure-aws-credentials@v4
+              with:
+                  aws-region: us-east-2
+                  role-to-assume: ${{ secrets.AWS_ROLE_TO_ASSUME }}
+
+            - name: Login to Amazon ECR
+              id: login-ecr
+              uses: aws-actions/amazon-ecr-login@v2
+
+            - name: Build, tag, and push arm64 image to Amazon ECR
+              env:
+                  ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+                  ECR_REPOSITORY: highlight-predictions
+                  IMAGE_TAG: ${{ github.sha }}
+              run: |
+                  docker buildx build --build-arg REACT_APP_COMMIT_SHA=${{ github.sha }} --build-arg RELEASE=${{ github.ref_name }} --platform linux/arm64 -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG.arm64 -f packages/predictions/predictions.Dockerfile .
+                  docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG.arm64
+
+            # Edit and deploy predictions
+            - name: Replace image label for predictions task
+              id: image-predictions
+              uses: aws-actions/amazon-ecs-render-task-definition@v1
+              with:
+                  task-definition: deploy/predictions-task.json
+                  container-name: highlight-predictions
+                  image: ${{ steps.login-ecr.outputs.registry }}/highlight-predictions:${{ github.sha }}.arm64
+            - name: Deploy to Amazon ECS private-graph service
+              uses: aws-actions/amazon-ecs-deploy-task-definition@v1
+              with:
+                  task-definition: ${{ steps.image-predictions.outputs.task-definition }}
+                  service: predictions-service
+                  cluster: highlight-ec2-prod
+
     deploy_opentelemetry_collector:
         runs-on: codebuild-highlight-github-actions-runner-${{ github.run_id }}-${{ github.run_attempt }}-arm-3.0-large
         steps:

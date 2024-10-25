@@ -57,7 +57,8 @@ export const RelatedResourcePanel: React.FC<Props> = ({}) => {
 			)}
 			{(resource?.type === 'traces' ||
 				resource?.type === 'sessions' ||
-				resource?.type === 'errors') && (
+				resource?.type === 'errors' ||
+				resource?.type === 'events') && (
 				<RelatedResourceList resource={resource} />
 			)}
 		</Panel>

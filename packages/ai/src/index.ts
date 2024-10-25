@@ -1,13 +1,13 @@
 import type { APIGatewayEvent } from 'aws-lambda'
-import { Configuration, OpenAIApi } from 'openai'
+import { ClientOptions, OpenAI } from 'openai'
 import { getEvents } from './s3'
 import { getInsightsForEvents } from './utils'
 
-const configuration = new Configuration({
+const configuration = {
 	organization: 'org-q9w5AyJeJV2vbW0t1g74sCB0',
 	apiKey: process.env.OPENAI_API_KEY,
-})
-const openai = new OpenAIApi(configuration)
+} as ClientOptions
+const openai = new OpenAI(configuration)
 
 export const handler = async (event?: APIGatewayEvent) => {
 	const args = JSON.parse(event?.body ?? '[]')

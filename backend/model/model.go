@@ -692,8 +692,10 @@ type SessionsHistogram struct {
 }
 
 type SessionResults struct {
-	Sessions   []Session
-	TotalCount int64
+	Sessions          []Session
+	TotalCount        int64
+	TotalLength       int64
+	TotalActiveLength int64
 }
 
 type Session struct {
@@ -1417,6 +1419,7 @@ type Graph struct {
 	Limit             *int
 	LimitFunctionType *modelInputs.MetricAggregator
 	LimitMetric       *string
+	FunnelSteps       *string `gorm:"type:jsonb"`
 	Display           *string
 	NullHandling      *string
 }
@@ -1958,10 +1961,12 @@ type Alert struct {
 	Default           bool                `gorm:"default:false"` // alert created during setup flow
 
 	// fields for threshold alert
-	BelowThreshold    *bool
-	ThresholdValue    *float64
-	ThresholdWindow   *int
-	ThresholdCooldown *int
+	BelowThreshold     *bool
+	ThresholdValue     *float64
+	ThresholdWindow    *int
+	ThresholdCooldown  *int
+	ThresholdType      modelInputs.ThresholdType
+	ThresholdCondition modelInputs.ThresholdCondition
 }
 
 type AlertDestination struct {

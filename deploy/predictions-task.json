@@ -1,0 +1,78 @@
+{
+	"taskDefinitionArn": "arn:aws:ecs:us-east-2:173971919437:task-definition/predictions-task:1",
+	"containerDefinitions": [
+		{
+			"name": "highlight-predictions",
+			"image": "--replaced-by-github-action--",
+			"cpu": 0,
+			"portMappings": [
+				{
+					"containerPort": 5001,
+					"hostPort": 5001,
+					"protocol": "tcp"
+				}
+			],
+			"essential": true,
+			"command": [
+				"poetry",
+				"run",
+				"flask",
+				"--app",
+				"src/main.py",
+				"run",
+				"-h",
+				"0.0.0.0",
+				"-p",
+				"5001"
+			],
+			"environment": [],
+			"mountPoints": [],
+			"volumesFrom": [],
+			"logConfiguration": {
+				"logDriver": "awslogs",
+				"options": {
+					"awslogs-group": "/ecs/predictions-task",
+					"awslogs-region": "us-east-2",
+					"awslogs-stream-prefix": "ecs"
+				}
+			},
+			"systemControls": []
+		}
+	],
+	"family": "predictions-task",
+	"taskRoleArn": "arn:aws:iam::173971919437:role/HighlightAppProd",
+	"executionRoleArn": "arn:aws:iam::173971919437:role/HighlightAppProd",
+	"networkMode": "awsvpc",
+	"revision": 1,
+	"volumes": [],
+	"status": "ACTIVE",
+	"requiresAttributes": [
+		{
+			"name": "com.amazonaws.ecs.capability.logging-driver.awslogs"
+		},
+		{
+			"name": "ecs.capability.execution-role-awslogs"
+		},
+		{
+			"name": "com.amazonaws.ecs.capability.docker-remote-api.1.19"
+		},
+		{
+			"name": "com.amazonaws.ecs.capability.task-iam-role"
+		},
+		{
+			"name": "com.amazonaws.ecs.capability.docker-remote-api.1.18"
+		},
+		{
+			"name": "ecs.capability.task-eni"
+		}
+	],
+	"placementConstraints": [],
+	"compatibilities": ["EC2", "FARGATE"],
+	"requiresCompatibilities": ["EC2", "FARGATE"],
+	"cpu": "4096",
+	"memory": "16384",
+	"runtimePlatform": {
+		"cpuArchitecture": "ARM64"
+	},
+	"tags": []
+}

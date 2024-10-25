@@ -1,5 +1,31 @@
 # @highlight-run/remix
 
+## 2.0.64
+
+### Patch Changes
+
+-   Updated dependencies [5194753]
+    -   highlight.run@9.5.1
+    -   @highlight-run/node@3.9.4
+    -   @highlight-run/react@7.0.1
+
+## 2.0.63
+
+### Patch Changes
+
+-   80aa6c7: Update deprecated DataFunctionArgs type in Remix
+-   Updated dependencies [e6d5ad2]
+    -   @highlight-run/node@3.9.4
+
+## 2.0.62
+
+### Patch Changes
+
+-   Updated dependencies [d94533a]
+    -   highlight.run@9.5.0
+    -   @highlight-run/node@3.9.3
+    -   @highlight-run/react@7.0.0
+
 ## 2.0.61
 
 ### Patch Changes

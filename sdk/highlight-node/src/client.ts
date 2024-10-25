@@ -36,6 +36,7 @@ import { clearInterval } from 'timers'
 import { hookConsole } from './hooks.js'
 import log from './log.js'
 import { HIGHLIGHT_REQUEST_HEADER } from './sdk.js'
+import { Headers } from 'node-fetch'
 import type { HighlightContext, NodeOptions } from './types.js'
 import * as packageJson from '../package.json'
 
@@ -517,12 +518,18 @@ function parseHeaders(
 	return { secureSessionId: undefined, requestId: undefined }
 }
 
-function extractIncomingHttpHeaders(
-	headers?: Headers | IncomingHttpHeaders,
-): IncomingHttpHeaders {
+function extractIncomingHttpHeaders(headers?: any): IncomingHttpHeaders {
 	if (headers) {
 		let requestHeaders: IncomingHttpHeaders = {}
-		if (headers instanceof Headers) {
+		if (Object.hasOwn(headers, HIGHLIGHT_REQUEST_HEADER)) {
+			requestHeaders[HIGHLIGHT_REQUEST_HEADER] = (
+				headers as { [HIGHLIGHT_REQUEST_HEADER]: string }
+			)[HIGHLIGHT_REQUEST_HEADER]
+		} else if (typeof headers.forEach === 'function') {
+			headers.forEach(
+				(value: any, key: any) => (requestHeaders[key] = value),
+			)
+		} else if (headers instanceof Headers) {
 			headers.forEach((value, key) => (requestHeaders[key] = value))
 		} else if (headers) {
 			requestHeaders = headers

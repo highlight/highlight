@@ -16,6 +16,7 @@ interface Config {
 export enum Feature {
 	EventSearch,
 	PlayerNoChunkRemoval,
+	SessionResultsVerbose,
 }
 
 // configures the criteria and percentage of population for which the feature is active.
@@ -23,13 +24,16 @@ export enum Feature {
 export const FeatureConfig: { [key: number]: Config } = {
 	[Feature.EventSearch]: {
 		workspace: true,
-		percent: 0,
-		workspaceOverride: new Set<string>(['1', '15127', '32550']),
+		percent: 100,
 	},
 	[Feature.PlayerNoChunkRemoval]: {
 		workspace: true,
 		percent: 0,
-		workspaceOverride: new Set<string>(['13623', '95052']),
+	},
+	[Feature.SessionResultsVerbose]: {
+		workspace: true,
+		percent: 0,
+		workspaceOverride: new Set<string>(['1', '5422', '27699']),
 	},
 } as const
 

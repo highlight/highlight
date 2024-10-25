@@ -3,7 +3,6 @@ import { QuickStartContent } from '../../QuickstartContent'
 import { frontendInstallSnippet } from '../shared-snippets'
 import {
 	customError,
-	customTrace,
 	initializeSdk,
 	installSdk,
 	setUpLogging,
@@ -33,7 +32,6 @@ end`,
 			],
 		},
 		customError,
-		customTrace,
 		setUpLogging('rails'),
 	],
 }

@@ -1,5 +1,35 @@
 # @highlight-run/next
 
+## 7.6.1
+
+### Patch Changes
+
+-   Updated dependencies [5194753]
+    -   highlight.run@9.5.1
+    -   @highlight-run/node@3.9.4
+    -   @highlight-run/react@7.0.1
+
+## 7.6.0
+
+### Minor Changes
+
+-   e6d5ad2: require next 13 and ensure compatibility with node 16
+
+### Patch Changes
+
+-   a3ff05e: update transient dependencies with security vulnerabilities
+-   Updated dependencies [e6d5ad2]
+    -   @highlight-run/node@3.9.4
+
+## 7.5.31
+
+### Patch Changes
+
+-   Updated dependencies [d94533a]
+    -   highlight.run@9.5.0
+    -   @highlight-run/node@3.9.3
+    -   @highlight-run/react@7.0.0
+
 ## 7.5.30
 
 ### Patch Changes

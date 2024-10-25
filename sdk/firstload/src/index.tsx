@@ -67,9 +67,9 @@ let onHighlightReadyQueue: {
 	options?: OnHighlightReadyOptions
 	func: () => void | Promise<void>
 }[] = []
-let onHighlightReadyTimeout: number | undefined = undefined
+let onHighlightReadyTimeout: ReturnType<typeof setTimeout> | undefined =
+	undefined
 
-let sessionSecureID: string
 let highlight_obj: Highlight
 let first_load_listeners: FirstLoadListeners
 let init_called = false
@@ -104,7 +104,7 @@ const H: HighlightPublicInterface = {
 			}
 
 			let previousSession = getPreviousSessionData()
-			sessionSecureID = GenerateSecureID()
+			let sessionSecureID = GenerateSecureID()
 			if (previousSession?.sessionSecureID) {
 				sessionSecureID = previousSession.sessionSecureID
 			}
@@ -160,7 +160,7 @@ const H: HighlightPublicInterface = {
 				firstloadVersion,
 				environment: options?.environment || 'production',
 				appVersion: options?.version,
-				sessionSecureID: sessionSecureID,
+				sessionSecureID,
 			}
 			first_load_listeners = new FirstLoadListeners(client_options)
 			if (!options?.manualStart) {
@@ -459,72 +459,100 @@ const H: HighlightPublicInterface = {
 			)
 		}
 	},
-	getSessionURL: async () => {
-		const data = getPreviousSessionData(sessionSecureID)
-		if (data) {
-			return `https://${HIGHLIGHT_URL}/${data.projectID}/sessions/${sessionSecureID}`
-		} else {
-			throw new Error(`Unable to get session URL: ${sessionSecureID}}`)
-		}
-	},
-	getSessionDetails: async () => {
-		const baseUrl = await H.getSessionURL()
-		const sessionData = getPreviousSessionData(sessionSecureID)
-		if (!baseUrl) {
-			throw new Error('Could not get session URL')
-		}
-		const currentSessionTimestamp = sessionData?.sessionStartTime
-		if (!currentSessionTimestamp) {
-			throw new Error('Could not get session start timestamp')
-		}
-		const now = new Date().getTime()
-		const url = new URL(baseUrl)
-		const urlWithTimestamp = new URL(baseUrl)
-		urlWithTimestamp.searchParams.set(
-			'ts',
-			// The delta between when the session recording started and now.
-			((now - currentSessionTimestamp) / 1000).toString(),
-		)
+	getSessionURL: () => {
+		return new Promise((resolve, reject) => {
+			H.onHighlightReady(() => {
+				const secureID = highlight_obj.sessionData.sessionSecureID
+				const data = getPreviousSessionData(secureID)
 
-		return {
-			url: url.toString(),
-			urlWithTimestamp: urlWithTimestamp.toString(),
-			sessionSecureID,
-		} as SessionDetails
+				if (data) {
+					resolve(
+						`https://${HIGHLIGHT_URL}/${data.projectID}/sessions/${secureID}`,
+					)
+				} else {
+					reject(new Error(`Unable to get session URL: ${secureID}`))
+				}
+			})
+		})
+	},
+	getSessionDetails: () => {
+		return new Promise((resolve, reject) => {
+			H.onHighlightReady(async () => {
+				try {
+					const baseUrl = await H.getSessionURL()
+					if (!baseUrl) {
+						throw new Error('Could not get session URL')
+					}
+
+					const secureID = highlight_obj.sessionData.sessionSecureID
+					const sessionData = getPreviousSessionData(secureID)
+					const currentSessionTimestamp =
+						sessionData?.sessionStartTime
+					if (!currentSessionTimestamp) {
+						throw new Error('Could not get session start timestamp')
+					}
+
+					const now = new Date().getTime()
+					const url = new URL(baseUrl)
+					const urlWithTimestamp = new URL(baseUrl)
+					urlWithTimestamp.searchParams.set(
+						'ts',
+						((now - currentSessionTimestamp) / 1000).toString(),
+					)
+
+					resolve({
+						url: url.toString(),
+						urlWithTimestamp: urlWithTimestamp.toString(),
+						sessionSecureID: secureID,
+					} as SessionDetails)
+				} catch (error) {
+					reject(error)
+				}
+			})
+		})
 	},
 	getRecordingState: () => {
 		return highlight_obj?.state ?? 'NotRecording'
 	},
 	onHighlightReady: (func, options) => {
-		onHighlightReadyQueue.push({ options, func })
-		if (onHighlightReadyTimeout === undefined) {
-			const fn = () => {
-				const newOnHighlightReadyQueue: {
-					options?: OnHighlightReadyOptions
-					func: () => void | Promise<void>
-				}[] = []
-				for (const f of onHighlightReadyQueue) {
-					if (
-						highlight_obj &&
-						(f.options?.waitForReady === false ||
-							highlight_obj.ready)
-					) {
-						f.func()
-					} else {
-						newOnHighlightReadyQueue.push(f)
-					}
-				}
-				onHighlightReadyQueue = newOnHighlightReadyQueue
-				onHighlightReadyTimeout = undefined
-				if (onHighlightReadyQueue.length > 0) {
-					onHighlightReadyTimeout = setTimeout(
-						fn,
-						READY_WAIT_LOOP_MS,
-					) as unknown as number
-				}
-			}
-			fn()
+		// Run the callback immediately if Highlight is already ready
+		if (highlight_obj && highlight_obj.ready) {
+			func()
+			return
 		}
+
+		onHighlightReadyQueue.push({ options, func })
+
+		if (onHighlightReadyTimeout !== undefined) {
+			return
+		}
+
+		const processQueue = () => {
+			const newQueue = onHighlightReadyQueue.filter((item) => {
+				if (
+					!highlight_obj ||
+					(item.options?.waitForReady !== false &&
+						!highlight_obj.ready)
+				) {
+					return true
+				}
+
+				item.func()
+				return false
+			})
+
+			onHighlightReadyQueue = newQueue
+			onHighlightReadyTimeout = undefined
+
+			if (onHighlightReadyQueue.length > 0) {
+				onHighlightReadyTimeout = setTimeout(
+					processQueue,
+					READY_WAIT_LOOP_MS,
+				)
+			}
+		}
+
+		processQueue()
 	},
 }
 
@@ -536,10 +564,17 @@ listenToChromeExtensionMessage()
 initializeFetchListener()
 initializeWebSocketListener()
 
-// Exposes some helpers for tests
+// Helpers only for testing
 const __testing = {
 	reset: () => {
 		init_called = false
+		highlight_obj = undefined as any
+		onHighlightReadyQueue = []
+		onHighlightReadyTimeout = undefined
+		first_load_listeners = undefined as any
+	},
+	setHighlightObj: (obj: Partial<Highlight>) => {
+		highlight_obj = obj as Highlight
 	},
 }
 
