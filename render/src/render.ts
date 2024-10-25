@@ -2,7 +2,8 @@ import chromium from '@sparticuz/chromium'
 import { mkdtemp, readFileSync } from 'fs'
 import { tmpdir } from 'os'
 import path from 'path'
-import puppeteer, { Browser, Page } from 'puppeteer-core'
+import puppeteer from 'puppeteer-core'
+import type { Browser, CookieParam, Page } from 'puppeteer-core'
 import { PuppeteerScreenRecorder } from 'puppeteer-screen-recorder'
 import { promisify } from 'util'
 
@@ -53,7 +54,18 @@ async function setupOAuthProjectToken(
 	for (const cookie of token.headers.getSetCookie()) {
 		const value = cookie.split(';')[0]
 		const [k, v] = value.trim().split('=')
-		await page.setCookie({ name: k, value: v, domain: apiConfig.domain })
+		const cookieParam = {
+			name: k,
+			value: v,
+			domain: apiConfig.domain,
+			path: '/',
+			expires: new Date().getTime() + 15 * 60 * 1000,
+			httpOnly: true,
+			secure: true,
+			sameSite: 'None',
+		} as CookieParam
+		console.log('setting project-token cookie', cookieParam)
+		await page.setCookie(cookieParam)
 	}
 }
 
@@ -133,9 +145,10 @@ export async function render(
 		path.join(path.resolve(), 'node_modules', 'rrweb', 'dist', 'style.css'),
 		'utf8',
 	)
+	await page.goto('https://app.highlight.io')
 	await page.setContent(getHtml(css, js))
 	await setupOAuthProjectToken(page, {
-		domain: apiConfig?.domain ?? '.highlight.io',
+		domain: apiConfig?.domain ?? 'pri.highlight.io',
 		oauthURL: apiConfig?.oauthURL ?? 'https://pri.highlight.io/oauth',
 		apiURL: apiConfig?.apiURL ?? 'https://pri.highlight.io',
 		clientID: process.env.OAUTH_CLIENT_ID ?? '',
@@ -157,10 +170,11 @@ export async function render(
         window.r = new rrweb.Replayer(events, {
         	target: document.body,
             triggerFocus: true,
-            mouseTail: false,
+            mouseTail: true,
             UNSAFE_replayCanvas: true,
             liveMode: false,
-            speed: 4
+            useVirtualDom: true,
+            speed: 8
         });
         window.getInactivityEnd = (time) => {
 			for (const interval of intervals) {
