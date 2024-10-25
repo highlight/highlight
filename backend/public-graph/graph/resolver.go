@@ -327,7 +327,7 @@ func (r *Resolver) SubmitSessionEvents(ctx context.Context, sessionID int, event
 
 	err := r.DataSyncQueue.Submit(ctx, "", messages...)
 	if err != nil {
-		return e.Wrap(err, "failed to submit otel project traces to public worker queue")
+		return e.Wrap(err, "failed to submit session events to public worker queue")
 	}
 
 	return nil
