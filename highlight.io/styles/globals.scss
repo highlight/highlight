@@ -426,3 +426,39 @@ iframe,
 img {
 	max-width: calc(100vw - 2rem);
 }
+
+.docH1 {
+	font-size: var(--size-xxLarge);
+	line-height: 54px !important;
+	letter-spacing: -0.25px;
+}
+
+.docH2 {
+	font-size: 26px;
+	line-height: 40px !important;
+	font-weight: 600 !important;
+}
+
+.docH3 {
+	font-size: 22px;
+	line-height: 34px !important;
+	font-weight: 600 !important;
+	letter-spacing: -0.25px;
+}
+
+.quickStartH2 {
+	font-size: 22px;
+	font-weight: 400;
+	line-height: 36px !important;
+	margin: 0 !important;
+	letter-spacing: 0 !important;
+	color: var(--copy-on-dark);
+}
+
+.quickStartH3 {
+	font-size: 18px;
+	font-weight: 600;
+	line-height: 34px !important;
+	margin: 0 !important;
+	letter-spacing: 0 !important;
+}
