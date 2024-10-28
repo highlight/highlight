@@ -50,7 +50,11 @@ export const processRows = <
 			Object.entries(keys)
 				.filter(([k]) => !ignoreKeys.has(k as keyof T))
 				.sort(([, idx1], [_, idx2]) => idx1 - idx2)
-				.map(([k]) => data[k as keyof T]),
+				.map(([k]) =>
+					Object.hasOwn(data, k)
+						? data[k as keyof T]
+						: data['' as keyof T],
+				),
 		)
 	}
 	return rows
