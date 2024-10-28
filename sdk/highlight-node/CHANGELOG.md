@@ -1,5 +1,11 @@
 # @highlight-run/node
 
+## 3.9.5
+
+### Patch Changes
+
+-   7becd8b: fix @highlight-run/next sdk breaking HMR with turbopack next.js 14
+
 ## 3.9.4
 
 ### Patch Changes
