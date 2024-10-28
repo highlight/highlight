@@ -1,5 +1,11 @@
 # highlight.run
 
+## 9.5.2
+
+### Patch Changes
+
+-   df0b226: respect traceOrigins setting for context propagation
+
 ## 9.5.1
 
 ### Patch Changes
