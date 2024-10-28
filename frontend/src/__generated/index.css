@@ -8165,8 +8165,20 @@ body {
   grid-template-columns: 1fr 1fr 1fr;
 }
 .uok1x61 {
-  width: 220px;
+  width: 100%;
   height: 120px;
+  border-radius: 4px;
+  cursor: pointer;
+  border: none;
+}
+.uok1x61:hover {
+  border: 1px solid var(--_1pyqka9j);
+}
+.uok1x62 {
+  color: var(--_1pyqka9b);
+}
+.uok1x63 {
+  color: var(--_1pyqka9d);
 }
 ._1n2x7d50 {
   width: 100%;

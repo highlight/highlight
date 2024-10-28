@@ -1,6 +1,16 @@
 import { useGetGraphTemplatesQuery } from '@/graph/generated/hooks'
 import { Graph } from '@/graph/generated/schemas'
-import { Box, ButtonIcon, IconSolidX, Text } from '@highlight-run/ui/components'
+import {
+	Box,
+	ButtonIcon,
+	IconSolidChartSquareBar,
+	IconSolidChartSquareLine,
+	IconSolidLocationMarker,
+	IconSolidTable,
+	IconSolidX,
+	Text,
+	Tooltip,
+} from '@highlight-run/ui/components'
 import * as style from './TemplateMenu.css'
 import { vars } from '@highlight-run/ui/vars'
 
@@ -13,7 +23,7 @@ interface Props {
 }
 
 const TemplateMenu = ({ previewTemplate, applyTemplate, onClose }: Props) => {
-	const { data, loading } = useGetGraphTemplatesQuery()
+	const { data } = useGetGraphTemplatesQuery()
 	return (
 		<Box>
 			<Box
@@ -59,26 +69,66 @@ const TemplateMenu = ({ previewTemplate, applyTemplate, onClose }: Props) => {
 							onMouseLeave={() => previewTemplate(undefined)}
 							onClick={() => applyTemplate(t)}
 						>
-							<Box cssClass={style.templatePreview}> </Box>
+							<button className={style.templatePreview}>
+								{t.type === 'Line chart' && (
+									<IconSolidChartSquareLine
+										size={64}
+										color={
+											vars.theme.static.content.default
+										}
+									/>
+								)}
+								{t.type === 'Bar chart' && (
+									<IconSolidChartSquareBar
+										size={64}
+										color={
+											vars.theme.static.content.default
+										}
+									/>
+								)}
+								{t.type === 'Funnel chart' && (
+									<IconSolidLocationMarker
+										size={64}
+										color={
+											vars.theme.static.content.default
+										}
+									/>
+								)}
+								{t.type === 'Table' && (
+									<IconSolidTable
+										size={64}
+										color={
+											vars.theme.static.content.default
+										}
+									/>
+								)}
+							</button>
 							<Box width="full">
 								<Text
 									lines="1"
 									size="small"
-									color="default"
 									weight="medium"
+									cssClass={style.templateTitle}
 								>
 									{t.title}
 								</Text>
 							</Box>
 							<Box>
-								<Text
-									lines="1"
-									size="small"
-									color="secondaryContentText"
-									weight="medium"
+								<Tooltip
+									trigger={
+										<Text
+											lines="1"
+											size="small"
+											weight="medium"
+											cssClass={style.templateDescription}
+										>
+											{t.description}
+										</Text>
+									}
+									delayed
 								>
 									{t.description}
-								</Text>
+								</Tooltip>
 							</Box>
 						</Box>
 					</Box>

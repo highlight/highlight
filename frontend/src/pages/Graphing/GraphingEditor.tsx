@@ -399,8 +399,28 @@ export const GraphingEditor: React.FC = () => {
 	const { projectId } = useProjectId()
 	const graphContext = useGraphData()
 
-	const [productType, setProductType] = useState(productOptions[0].value)
-	const [viewType, setViewType] = useState(VIEW_OPTIONS[0].value)
+	const [productType, setProductTypeImpl] = useState(productOptions[0].value)
+	const setProductType = (pt: ProductType) => {
+		if (productType !== ProductType.Events) {
+			setViewType(VIEW_OPTIONS[0].value as View)
+		}
+		setProductTypeImpl(pt)
+	}
+
+	const [viewType, setViewTypeImpl] = useState(VIEW_OPTIONS[0].value)
+	const setViewType = (vt: View) => {
+		if (vt === 'Funnel chart') {
+			setBucketBySetting('None')
+			setFunctionType(MetricAggregator.CountDistinct)
+			// once events have other session attributes, we can support per-user aggregation
+			setMetric('secure_session_id')
+			setGroupByEnabled(true)
+			setGroupByKeys(['secure_session_id'])
+			setLimit(Number.MAX_VALUE)
+		}
+		setViewTypeImpl(vt)
+	}
+
 	const [lineNullHandling, setLineNullHandling] = useState(
 		LINE_NULL_HANDLING[0],
 	)
@@ -504,12 +524,6 @@ export const GraphingEditor: React.FC = () => {
 		}
 	}, [viewType])
 
-	useEffect(() => {
-		if (productType !== ProductType.Events) {
-			setViewType(VIEW_OPTIONS[0].value)
-		}
-	}, [productType])
-
 	const { values } = useGraphingVariables(dashboard_id!)
 
 	const variableKeys = Array.from(values).map(([key]) => {
@@ -519,7 +533,7 @@ export const GraphingEditor: React.FC = () => {
 	const [graphPreview, setGraphPreview] = useState<GraphType | undefined>(
 		undefined,
 	)
-	const isPreview = graphPreview !== undefined
+	const isPreview = graphPreview !== undefined || showTemplates
 
 	const settings = {
 		productType,
@@ -545,7 +559,7 @@ export const GraphingEditor: React.FC = () => {
 		fetchedLimitMetric,
 	}
 
-	if (isPreview) {
+	if (graphPreview !== undefined) {
 		const viewType = graphPreview.type as View
 
 		settings.productType = graphPreview.productType
@@ -709,10 +723,13 @@ export const GraphingEditor: React.FC = () => {
 												if (template !== undefined) {
 													applyGraph(template)
 												}
-											}}
-											onClose={() =>
+												setGraphPreview(undefined)
 												setShowTemplates(false)
-											}
+											}}
+											onClose={() => {
+												setGraphPreview(undefined)
+												setShowTemplates(false)
+											}}
 										/>
 									)}
 									{!showTemplates && (
@@ -854,7 +871,7 @@ export const GraphingEditor: React.FC = () => {
 												setSelection={(
 													option: string,
 												) => {
-													setViewType(option)
+													setViewType(option as View)
 												}}
 												previewSelection={
 													settings.viewType
