@@ -163,7 +163,7 @@ func GetEventsQueryImpl(params modelInputs.QueryInput, projectId int, selectColu
 		Where(sb.LessEqualThan("Timestamp", params.DateRange.EndDate)).
 		Where(sb.GreaterEqualThan("Timestamp", params.DateRange.StartDate))
 
-	listener := parser.GetSearchListener(sb, params.Query, SessionsJoinedTableConfig)
+	listener := parser.GetSearchListener(sb, params.Query, eventsTableConfig)
 	parser.GetSearchFilters(params.Query, eventsTableConfig, listener)
 
 	sb.Select(selectColumns)
