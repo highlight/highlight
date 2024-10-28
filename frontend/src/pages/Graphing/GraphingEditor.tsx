@@ -846,9 +846,6 @@ export const GraphingEditor: React.FC = () => {
 												)}
 												selection={productType}
 												setSelection={setProductType}
-												previewSelection={
-													settings.productType
-												}
 												disabled={isPreview}
 											/>
 										</LabeledRow>
@@ -873,9 +870,6 @@ export const GraphingEditor: React.FC = () => {
 												) => {
 													setViewType(option as View)
 												}}
-												previewSelection={
-													settings.viewType
-												}
 												disabled={isPreview}
 											/>
 										</LabeledRow>
@@ -1009,9 +1003,6 @@ export const GraphingEditor: React.FC = () => {
 														'Funnel chart' ||
 													isPreview
 												}
-												previewSelection={
-													settings.functionType
-												}
 											/>
 											<Combobox
 												selection={fetchedMetric}
@@ -1037,9 +1028,6 @@ export const GraphingEditor: React.FC = () => {
 														? 'Rows'
 														: undefined
 												}
-												previewSelection={
-													settings.fetchedMetric
-												}
 											/>
 										</LabeledRow>
 										<LabeledRow
@@ -1064,9 +1052,6 @@ export const GraphingEditor: React.FC = () => {
 													settings.viewType ===
 														'Funnel chart' ||
 													isPreview
-												}
-												previewSelection={
-													settings.groupByKeys
 												}
 											/>
 										</LabeledRow>
@@ -1117,9 +1102,6 @@ export const GraphingEditor: React.FC = () => {
 														setSelection={
 															setLimitFunctionType
 														}
-														previewSelection={
-															settings.limitFunctionType
-														}
 														disabled={isPreview}
 													/>
 													<Combobox
@@ -1146,9 +1128,6 @@ export const GraphingEditor: React.FC = () => {
 															MetricAggregator.Count
 																? 'Rows'
 																: undefined
-														}
-														previewSelection={
-															settings.fetchedLimitMetric
 														}
 													/>
 												</LabeledRow>
@@ -1202,9 +1181,6 @@ export const GraphingEditor: React.FC = () => {
 															...variableKeys,
 														]}
 														onlyNumericKeys
-														previewSelection={
-															settings.bucketByKey
-														}
 														disabled={isPreview}
 													/>
 												</LabeledRow>

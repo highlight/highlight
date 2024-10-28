@@ -61,15 +61,13 @@ const TemplateMenu = ({ previewTemplate, applyTemplate, onClose }: Props) => {
 			<Box cssClass={style.templateGrid}>
 				{data?.graph_templates.map((t) => (
 					<Box key={t.id} p="12">
-						<Box
-							flexDirection="column"
-							display="flex"
-							gap="8"
-							onMouseEnter={() => previewTemplate(t)}
-							onMouseLeave={() => previewTemplate(undefined)}
-							onClick={() => applyTemplate(t)}
-						>
-							<button className={style.templatePreview}>
+						<Box flexDirection="column" display="flex" gap="8">
+							<button
+								className={style.templatePreview}
+								onMouseEnter={() => previewTemplate(t)}
+								onMouseLeave={() => previewTemplate(undefined)}
+								onClick={() => applyTemplate(t)}
+							>
 								{t.type === 'Line chart' && (
 									<IconSolidChartSquareLine
 										size={64}
