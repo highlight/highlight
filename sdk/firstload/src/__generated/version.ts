@@ -1,1 +1,1 @@
-export default "9.5.1"
+export default "9.5.2"
