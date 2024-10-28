@@ -14,13 +14,11 @@ export const OptionDropdown = <T extends string>({
 	selection,
 	setSelection,
 	disabled,
-	previewSelection,
 }: {
 	options: Options<T>
 	selection: T
 	setSelection: (option: T) => void
 	disabled?: boolean
-	previewSelection?: T
 }) => {
 	return (
 		<Box flex="stretch">
@@ -32,7 +30,7 @@ export const OptionDropdown = <T extends string>({
 							<Stack direction="row" alignItems="center" gap="4">
 								<SelectValue
 									options={options}
-									value={previewSelection ?? (value as T)}
+									value={value as T}
 								/>
 							</Stack>
 						</Text>
@@ -40,7 +38,6 @@ export const OptionDropdown = <T extends string>({
 				}}
 				options={options}
 				onValueChange={(v: SelectOption) => {
-					console.log('onValueChange!', v)
 					setSelection(v.value as T)
 				}}
 				disabled={disabled}

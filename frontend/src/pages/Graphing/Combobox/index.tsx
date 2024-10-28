@@ -24,7 +24,6 @@ type Props<T extends string | string[]> = {
 	defaultKeys?: string[]
 	disabled?: boolean
 	placeholder?: string
-	previewSelection?: T
 }
 
 export const Combobox = <T extends string | string[]>({
@@ -35,8 +34,6 @@ export const Combobox = <T extends string | string[]>({
 	defaultKeys,
 	disabled,
 	placeholder,
-	// eslint-disable-next-line @typescript-eslint/no-unused-vars
-	previewSelection,
 }: Props<T>) => {
 	const { projectId } = useProjectId()
 	const [getKeys, { data, loading, previousData }] = useGetKeysLazyQuery()
@@ -98,7 +95,6 @@ export const Combobox = <T extends string | string[]>({
 		<Select
 			filterable
 			value={selection}
-			// renderValue={() => previewSelection ?? selection ?? placeholder}
 			options={keyOptions}
 			onValueChange={(v) => {
 				if (isArray(v)) {

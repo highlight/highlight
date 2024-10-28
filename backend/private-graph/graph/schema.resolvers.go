@@ -9650,8 +9650,9 @@ func (r *queryResolver) Graph(ctx context.Context, id int) (*model.Graph, error)
 
 // GraphTemplates is the resolver for the graph_templates field.
 func (r *queryResolver) GraphTemplates(ctx context.Context) ([]*model.Graph, error) {
+	const templateId = -1
 	var graphs []*model.Graph
-	if err := r.DB.WithContext(ctx).Model(&graphs).Where("visualization_id = -1").Find(&graphs).Error; err != nil {
+	if err := r.DB.WithContext(ctx).Model(&graphs).Where("visualization_id = ?", templateId).Find(&graphs).Error; err != nil {
 		return nil, err
 	}
 
