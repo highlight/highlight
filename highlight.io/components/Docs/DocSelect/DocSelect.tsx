@@ -84,6 +84,13 @@ const DOCS_TYPES: Array<{
 		url: '/docs/sdk/client',
 		baseUrl: '/docs/sdk/client',
 	},
+	{
+		id: 10,
+		name: 'Ruby SDK',
+		icon: <DocumentTextIcon />,
+		url: '/docs/sdk/ruby',
+		baseUrl: '/docs/sdk/ruby',
+	},
 ]
 
 const findSelectedDocByArrayPath = (arrayPath: string[]) => {
