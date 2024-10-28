@@ -6,9 +6,15 @@ export const useExportGraph = () => {
 		exportGraph: async (
 			graphID: string,
 			graphTitle: string,
+			functionType: string,
+			metric: string,
 			data: any[],
 		) => {
-			const rows = processRows(data, new Set(['BucketMin', 'BucketMax']))
+			const rows = processRows(
+				data,
+				new Set(['BucketMin', 'BucketMax']),
+				metric,
+			)
 			const csvContent = rows
 				.map((rowArray) =>
 					rowArray
@@ -25,7 +31,7 @@ export const useExportGraph = () => {
 				.join('\r\n')
 			console.info(
 				`exporting graph with ${rows.length} rows, ${csvContent.length} long string.`,
-				{ graphID, graphTitle, rows },
+				{ graphID, graphTitle, functionType, metric, rows },
 			)
 			await exportFile(`graph_${graphID} ${graphTitle}.csv`, csvContent)
 		},

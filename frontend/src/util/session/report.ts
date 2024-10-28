@@ -7,12 +7,14 @@ import {
 import { Maybe, Session, SessionsReportRow } from '@graph/schemas'
 import { useProjectId } from '@hooks/useProjectId'
 import moment from 'moment/moment'
+import { TIME_METRICS } from '@pages/Graphing/constants'
 
 export const processRows = <
 	T extends { __typename?: Maybe<string>; user_properties?: Maybe<string> },
 >(
 	inputs: T[],
 	ignoreKeys: Set<keyof T> = new Set<keyof T>([]),
+	metric?: string,
 ) => {
 	ignoreKeys.add('user_properties')
 	ignoreKeys.add('__typename')
@@ -30,7 +32,11 @@ export const processRows = <
 		} catch (e) {}
 		Object.keys(input).forEach((key, idx) => {
 			if (!key.length) {
-				key = 'Value'
+				let suffix = ''
+				if (Object.hasOwn(TIME_METRICS, metric)) {
+					suffix = ` (${TIME_METRICS[metric]})`
+				}
+				key = metric ? `${metric}${suffix}` : 'Value'
 			}
 			if (!keys.hasOwnProperty(key)) {
 				keys[key as keyof T] = idx

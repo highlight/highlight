@@ -17,6 +17,18 @@ import {
 export const DEFAULT_BUCKET_COUNT = 50
 export const DEFAULT_BUCKET_INTERVAL = 60 * 60
 
+export const TIME_METRICS = {
+	active_length: 'ms',
+	length: 'ms',
+	duration: 'ns',
+	Jank: 'ms',
+	FCP: 'ms',
+	FID: 'ms',
+	LCP: 'ms',
+	TTFB: 'ms',
+	INP: 'ms',
+}
+
 export const PRODUCT_OPTIONS = [
 	{
 		name: ProductType.Logs,
