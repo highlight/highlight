@@ -169,6 +169,10 @@ export interface SeriesInfo {
 	strokeColors?: string[] | Map<string, string>
 }
 
+export interface VizId {
+	visualizationId: string | undefined
+}
+
 export interface AxisConfig {
 	showXAxis?: boolean
 	showYAxis?: boolean
@@ -1314,6 +1318,7 @@ const Graph = ({
 						viewConfig={viewConfig}
 						series={series}
 						disabled={disabled}
+						visualizationId={id}
 					/>
 				)
 				break
