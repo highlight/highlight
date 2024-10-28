@@ -1,4 +1,5 @@
 import { exportFile, processRows } from '@util/session/report'
+import { useGraphData } from '@pages/Graphing/hooks/useGraphData'
 import moment from 'moment'
 
 export const useExportGraph = () => {
