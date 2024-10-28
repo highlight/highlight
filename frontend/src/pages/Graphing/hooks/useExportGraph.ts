@@ -2,14 +2,15 @@ import { exportFile, processRows } from '@util/session/report'
 import moment from 'moment'
 
 export const useExportGraph = () => {
+	const graphContext = useGraphData()
 	return {
 		exportGraph: async (
 			graphID: string,
 			graphTitle: string,
 			functionType: string,
 			metric: string,
-			data: any[],
 		) => {
+			const data = graphContext.graphData[graphID]
 			const rows = processRows(
 				data,
 				new Set(['BucketMin', 'BucketMax']),

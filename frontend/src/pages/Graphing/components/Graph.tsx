@@ -1126,11 +1126,7 @@ const Graph = ({
 
 	useEffect(() => {
 		if (id && data) {
-			setGraphData((graphData) =>
-				graphData[id]?.length
-					? graphData
-					: { ...graphData, [id]: data },
-			)
+			setGraphData((graphData) => ({ ...graphData, [id]: data }))
 		}
 	}, [data, id, setGraphData])
 

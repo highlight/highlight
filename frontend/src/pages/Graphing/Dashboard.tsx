@@ -549,10 +549,6 @@ export const Dashboard = () => {
 																	g.title,
 																	g.functionType,
 																	g.metric,
-																	graphContext
-																		.graphData[
-																		g.id
-																	],
 																)
 															}
 														>
