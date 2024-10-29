@@ -9975,7 +9975,7 @@ __metadata:
     "@opentelemetry/exporter-jaeger": "npm:^1.26.0"
     "@opentelemetry/exporter-trace-otlp-http": "npm:>=0.53.0"
     "@opentelemetry/instrumentation": "npm:>=0.53.0"
-    "@opentelemetry/otlp-exporter-base": "npm:>=0.53.0"
+    "@opentelemetry/otlp-exporter-base": "npm:^0.53.0"
     "@opentelemetry/resources": "npm:^1.26.0"
     "@opentelemetry/sdk-node": "npm:>=0.53.0"
     "@opentelemetry/sdk-trace-base": "npm:^1.26.0"
@@ -10007,7 +10007,7 @@ __metadata:
     "@opentelemetry/api": "npm:^1.8.0"
     "@opentelemetry/core": "npm:^1.22.0"
     "@opentelemetry/instrumentation": "npm:>=0.49.1"
-    "@opentelemetry/otlp-exporter-base": "npm:>=0.49.1"
+    "@opentelemetry/otlp-exporter-base": "npm:^0.53.0"
     "@opentelemetry/otlp-transformer": "npm:>=0.49.1"
     "@opentelemetry/resources": "npm:^1.22.0"
     "@opentelemetry/sdk-trace-base": "npm:^1.22.0"
@@ -13055,7 +13055,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@opentelemetry/otlp-exporter-base@npm:0.53.0, @opentelemetry/otlp-exporter-base@npm:>=0.49.1, @opentelemetry/otlp-exporter-base@npm:>=0.53.0":
+"@opentelemetry/otlp-exporter-base@npm:0.53.0, @opentelemetry/otlp-exporter-base@npm:>=0.53.0, @opentelemetry/otlp-exporter-base@npm:^0.53.0":
   version: 0.53.0
   resolution: "@opentelemetry/otlp-exporter-base@npm:0.53.0"
   dependencies:
