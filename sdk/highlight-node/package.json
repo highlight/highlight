@@ -26,9 +26,6 @@
 	"publishConfig": {
 		"access": "public"
 	},
-	"dependencies": {
-		"require-in-the-middle": "^7.4.0"
-	},
 	"devDependencies": {
 		"@opentelemetry/api": "^1.9.0",
 		"@opentelemetry/auto-instrumentations-node": ">=0.50.0",
