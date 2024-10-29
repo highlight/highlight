@@ -474,7 +474,7 @@ func (k *KafkaBatchWorker) flushSessionEvents(ctx context.Context, sessionEventR
 	span, ctxT := util.StartSpanFromContext(ctx, fmt.Sprintf("worker.kafka.%s.flush.clickhouse", k.Name), util.WithHighlightTracingDisabled(true))
 	span.SetAttribute("NumTraceRows", len(sessionEventRows))
 	span.SetAttribute("PayloadSizeBytes", binary.Size(sessionEventRows))
-	err := k.Worker.PublicResolver.Clickhouse.WriteSessionEventRows(ctxT, sessionEventRows)
+	err := k.Worker.PublicResolver.Clickhouse.BatchWriteSessionEventRows(ctxT, sessionEventRows)
 	defer span.Finish(err)
 	if err != nil {
 		log.WithContext(ctxT).WithError(err).Error("failed to batch write session events to clickhouse")
