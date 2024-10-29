@@ -9961,7 +9961,6 @@ __metadata:
   peerDependencies:
     next: ">=13"
     react: ">=17"
-    require-in-the-middle: ">=7"
   languageName: unknown
   linkType: soft
 

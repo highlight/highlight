@@ -22,7 +22,12 @@ const nextConfig = {
 		],
 	},
 	experimental: {
-		serverComponentsExternalPackages: ['pino', 'pino-pretty'],
+		serverComponentsExternalPackages: [
+			'pino',
+			'pino-pretty',
+			'@highlight-run/node',
+			'require-in-the-middle',
+		],
 		instrumentationHook: true,
 	},
 	productionBrowserSourceMaps: true,

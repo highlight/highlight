@@ -8,6 +8,7 @@ import typescript from '@rollup/plugin-typescript'
 const config = {
 	input: 'src/index.ts',
 	context: 'global',
+	external: ['require-in-the-middle'],
 	plugins: [
 		json(),
 		commonjs({

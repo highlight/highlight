@@ -55,8 +55,7 @@
 	},
 	"peerDependencies": {
 		"next": ">=13",
-		"react": ">=17",
-		"require-in-the-middle": ">=7"
+		"react": ">=17"
 	},
 	"dependencies": {
 		"@highlight-run/cloudflare": "workspace:*",
