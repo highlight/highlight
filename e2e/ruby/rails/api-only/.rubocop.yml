@@ -1,0 +1,37 @@
+inherit_from: '../../../../sdk/highlight-ruby/highlight/.rubocop.yml'
+
+AllCops:
+    SuggestExtensions: false
+    TargetRubyVersion: 3.0
+    Exclude:
+        - 'db/**/*'
+        - 'spec/**/*'
+        - 'test/**/*'
+        - 'config/**/*'
+        - 'bin/**/*'
+
+Style/FrozenStringLiteralComment:
+    Enabled: false
+
+Style/Documentation:
+    Enabled: false
+
+Metrics/MethodLength:
+    Enabled: false
+
+Naming/MethodParameterName:
+    Enabled: false
+
+Metrics/AbcSize:
+    Enabled: false
+
+Metrics/ClassLength:
+    Enabled: false
+
+Layout/LineLength:
+    Exclude:
+        - 'bin/bundle'
+
+Style/IfUnlessModifier:
+    Exclude:
+        - 'bin/bundle'
