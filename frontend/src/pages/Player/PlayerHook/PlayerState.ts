@@ -920,21 +920,6 @@ export const getTimeFromReplayer = function (
 	)
 }
 
-const MAX_SHORT_INT_SIZE = 65536
-
-// events are passed into an functions which does an array.splice or Math.max
-// When the number of events is greater than MAX_SHORT_INT_SIZE, the browser can crash.
-// Hence, we instead take a sample of events to ensure we stay under MAX_SHORT_INT_SIZE.
-export const truncate = function* <T>(data: IterableIterator<T> | T[]) {
-	let idx = 0
-	for (const obj of data) {
-		if (idx++ >= MAX_SHORT_INT_SIZE) {
-			break
-		}
-		yield obj
-	}
-}
-
 export const getEvents = (
 	chunkEvents: Omit<
 		Map<number, HighlightEvent[]>,

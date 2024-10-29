@@ -22,7 +22,6 @@ import {
 	PlayerReducer,
 	SessionViewability,
 	THROTTLED_UPDATE_MS,
-	truncate,
 } from '@pages/Player/PlayerHook/PlayerState'
 import { useTimelineIndicators } from '@pages/Player/TimelineIndicatorsContext/TimelineIndicatorsContext'
 import useLocalStorage from '@rehooks/local-storage'
@@ -300,17 +299,16 @@ export const usePlayer = (
 
 	const getLastLoadedEventTimestamp = useCallback(() => {
 		const lastLoadedChunk = Math.max(
-			...[...truncate(chunkEventsRef.current.entries())]
+			...chunkEventsRef.current
+				.entries()
 				.filter(([, v]) => !!v.length)
 				.map(([k]) => k),
 		)
 		return (
 			Math.max(
-				...truncate(
-					chunkEventsRef.current
-						.get(lastLoadedChunk)
-						?.map((e) => e.timestamp) || [],
-				),
+				...(chunkEventsRef.current
+					.get(lastLoadedChunk)
+					?.map((e) => e.timestamp) || []),
 			) - state.sessionMetadata.startTime
 		)
 	}, [chunkEventsRef, state.sessionMetadata.startTime])
