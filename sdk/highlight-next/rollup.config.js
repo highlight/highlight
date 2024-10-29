@@ -10,7 +10,7 @@ const config = {
 		'src/server.ts',
 		'src/ssr.tsx',
 	],
-	external: ['next', 'react'],
+	external: ['next', 'react', 'require-in-the-middle'],
 	plugins: [typescript(), terser()],
 	output: [
 		{

@@ -349,13 +349,13 @@ Node.js
 
 ######
 
-1. Add `@highlight-run/node` to `experimental.serverComponentsExternalPackages` in your `next.config.js`. 
+1. Add `@highlight-run/node` and `require-in-the-middle` to `experimental.serverComponentsExternalPackages` in your `next.config.js`. 
 
 ```javascript
 // next.config.js
 const nextConfig = {
 	experimental: {
-		serverComponentsExternalPackages: ['@highlight-run/node'],
+		serverComponentsExternalPackages: ['@highlight-run/node', 'require-in-the-middle'],
 	},
 }
 

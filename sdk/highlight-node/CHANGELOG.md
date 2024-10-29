@@ -1,5 +1,18 @@
 # @highlight-run/node
 
+## 3.9.6
+
+### Patch Changes
+
+-   d3ba444: fix opentelemetry-sdk-workers breaking with otlp-exporter-base 0.54
+-   21f3cfb: fix @highlight-run/next sdk breaking HMR with turbopack next.js 14 due to require-in-the-middle bundling
+
+## 3.9.5
+
+### Patch Changes
+
+-   7becd8b: fix @highlight-run/next sdk breaking HMR with turbopack next.js 14
+
 ## 3.9.4
 
 ### Patch Changes
