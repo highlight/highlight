@@ -840,7 +840,7 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 			},
 		}
 
-		if err := w.PublicResolver.CreateSessionEvents(ctx, s.ID, sessionEvents); err != nil {
+		if err := w.PublicResolver.SubmitSessionEvents(ctx, s.ID, sessionEvents); err != nil {
 			log.WithContext(ctx).Error(e.Wrapf(err, "error creating session events for session %d", s.ID))
 		}
 	}

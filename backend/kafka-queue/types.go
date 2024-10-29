@@ -36,6 +36,7 @@ const (
 	PushCompressedPayload                  PayloadType = iota
 	PushLogsFlattened                      PayloadType = iota
 	PushTracesFlattened                    PayloadType = iota
+	PushSessionEvents                      PayloadType = iota
 	HealthCheck                            PayloadType = math.MaxInt
 )
 
@@ -260,6 +261,41 @@ func (m *TraceRowMessage) GetKafkaMessage() *kafka.Message {
 	return m.KafkaMessage
 }
 func (m *TraceRowMessage) SetKafkaMessage(value *kafka.Message) {
+	m.KafkaMessage = value
+}
+
+type SessionEventRowMessage struct {
+	Type         PayloadType
+	Failures     int
+	MaxRetries   int
+	KafkaMessage *kafka.Message `json:",omitempty"`
+	*clickhouse.SessionEventRow
+}
+
+func (m *SessionEventRowMessage) GetType() PayloadType {
+	return PushSessionEvents
+}
+
+func (m *SessionEventRowMessage) GetFailures() int {
+	return m.Failures
+}
+
+func (m *SessionEventRowMessage) SetFailures(value int) {
+	m.Failures = value
+}
+
+func (m *SessionEventRowMessage) GetMaxRetries() int {
+	return m.MaxRetries
+}
+
+func (m *SessionEventRowMessage) SetMaxRetries(value int) {
+	m.MaxRetries = value
+}
+
+func (m *SessionEventRowMessage) GetKafkaMessage() *kafka.Message {
+	return m.KafkaMessage
+}
+func (m *SessionEventRowMessage) SetKafkaMessage(value *kafka.Message) {
 	m.KafkaMessage = value
 }
 

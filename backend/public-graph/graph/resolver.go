@@ -21,6 +21,7 @@ import (
 
 	"github.com/highlight-run/highlight/backend/env"
 	"github.com/highlight-run/highlight/backend/geolocation"
+	kafkaqueue "github.com/highlight-run/highlight/backend/kafka-queue"
 	"github.com/oschwald/geoip2-golang"
 
 	"go.opentelemetry.io/otel/codes"
@@ -295,11 +296,11 @@ func (r *Resolver) AppendProperties(ctx context.Context, sessionID int, properti
 	return nil
 }
 
-func (r *Resolver) CreateSessionEvents(ctx context.Context, sessionID int, events []*clickhouse.SessionEventRow) error {
-	outerSpan, ctxT := util.StartSpanFromContext(ctx, "public-graph.CreateSessionEvents", util.Tag("sessionID", sessionID))
+func (r *Resolver) SubmitSessionEvents(ctx context.Context, sessionID int, events []*clickhouse.SessionEventRow) error {
+	outerSpan, ctxT := util.StartSpanFromContext(ctx, "public-graph.SubmitSessionEvents", util.Tag("sessionID", sessionID))
 	defer outerSpan.Finish()
 
-	loadSessionSpan, ctxS := util.StartSpanFromContext(ctxT, "public-graph.CreateSessionEvents.loadSessions", util.Tag("sessionID", sessionID))
+	loadSessionSpan, ctxS := util.StartSpanFromContext(ctxT, "public-graph.SubmitSessionEvents.loadSessions", util.Tag("sessionID", sessionID))
 	session := &model.Session{}
 	res := r.DB.WithContext(ctxS).Where(&model.Session{Model: model.Model{ID: sessionID}}).Take(&session)
 	if err := res.Error; err != nil {
@@ -307,25 +308,26 @@ func (r *Resolver) CreateSessionEvents(ctx context.Context, sessionID int, event
 	}
 	loadSessionSpan.Finish()
 
-	clickhouseSpan, ctxW := util.StartSpanFromContext(ctxT, "public-graph.CreateSessionEvents.flush.sessionEvents")
-	clickhouseSpan.SetAttribute("NumSessionEventRows", len(events))
-	defer clickhouseSpan.Finish()
-
-	sessionEvents := []*clickhouse.SessionEventRow{}
+	var messages []kafkaqueue.RetryableMessage
 	for _, event := range events {
-		sessionEvents = append(sessionEvents, &clickhouse.SessionEventRow{
+		sessionEvent := &clickhouse.SessionEventRow{
 			ProjectID:        uint32(session.ProjectID),
 			SessionID:        uint64(session.ID),
 			SessionCreatedAt: session.CreatedAt.UnixMicro(),
 			Timestamp:        event.Timestamp,
 			Event:            event.Event,
 			Attributes:       event.Attributes,
+		}
+
+		messages = append(messages, &kafkaqueue.SessionEventRowMessage{
+			Type:            kafkaqueue.PushSessionEvents,
+			SessionEventRow: sessionEvent,
 		})
 	}
 
-	err := r.Clickhouse.WriteSessionEventRows(ctxW, sessionEvents)
+	err := r.DataSyncQueue.Submit(ctx, "", messages...)
 	if err != nil {
-		return e.Wrap(err, "error writing session events to clickhouse")
+		return e.Wrap(err, "failed to submit session events to public worker queue")
 	}
 
 	return nil
@@ -2483,7 +2485,7 @@ func (r *Resolver) AddSessionEvents(ctx context.Context, sessionID int, events *
 	}
 
 	if len(sessionEvents) > 0 {
-		if err := r.CreateSessionEvents(ctx, sessionID, sessionEvents); err != nil {
+		if err := r.SubmitSessionEvents(ctx, sessionID, sessionEvents); err != nil {
 			log.WithContext(ctx).WithField("session_id", sessionID).Error(e.Wrapf(err, "error creating session events for session %d", sessionID))
 		}
 	}
