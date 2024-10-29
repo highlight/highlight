@@ -26,27 +26,33 @@ interface PerformanceData {
 }
 
 const PerformancePage = React.memo(({}: Props) => {
-	const { performancePayloads, jankPayloads, eventsForTimelineIndicator } =
-		useReplayerContext()
+	const {
+		performancePayloads,
+		sessionMetadata,
+		jankPayloads,
+		eventsForTimelineIndicator,
+	} = useReplayerContext()
 
 	const performanceData: PerformanceData[] = performancePayloads.map(
 		(payload) => {
 			return {
-				timestamp: payload.relativeTimestamp * 1000,
+				timestamp:
+					payload.relativeTimestamp * 1000 +
+					sessionMetadata.startTime,
 				fps: payload.fps,
 				jank: {},
 				memoryUsagePercent:
-					payload.usedJSHeapSize / payload.jsHeapSizeLimit,
+					(payload.usedJSHeapSize / payload.jsHeapSizeLimit) * 100,
 			}
 		},
 	)
 	performanceData.push(
 		...jankPayloads.map((j) => {
-			const perf = performanceData.find(
-				(p) => p.timestamp >= j.relativeTimestamp * 1000,
-			)
+			const absTime =
+				j.relativeTimestamp * 1000 + sessionMetadata.startTime
+			const perf = performanceData.find((p) => p.timestamp >= absTime)
 			return {
-				timestamp: j.relativeTimestamp * 1000,
+				timestamp: absTime,
 				jank: {
 					amount: j.jankAmount,
 					selector: j.querySelector,
