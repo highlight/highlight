@@ -1,5 +1,11 @@
 # highlight.run
 
+## 9.5.3
+
+### Patch Changes
+
+-   5568cba: revert rrweb to alpha17 to correct live mode css issues
+
 ## 9.5.2
 
 ### Patch Changes
