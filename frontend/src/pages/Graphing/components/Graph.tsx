@@ -64,6 +64,7 @@ import * as style from './Graph.css'
 
 import { EventSelectionStep } from '@pages/Graphing/util'
 import { useGraphContext } from '../context/GraphContext'
+import { TIME_METRICS } from '@pages/Graphing/constants'
 
 export type View = 'Line chart' | 'Bar chart' | 'Funnel chart' | 'Table'
 
@@ -400,18 +401,6 @@ const durationUnitMap: [number, string][] = [
 
 const DEFAULT_TIME_METRIC = 'ns'
 
-const timeMetrics = {
-	active_length: 'ms',
-	length: 'ms',
-	duration: 'ns',
-	Jank: 'ms',
-	FCP: 'ms',
-	FID: 'ms',
-	LCP: 'ms',
-	TTFB: 'ms',
-	INP: 'ms',
-}
-
 export const getTickFormatter = (metric: string, data?: any[] | undefined) => {
 	if (metric === 'Timestamp') {
 		if (data === undefined) {
@@ -429,10 +418,10 @@ export const getTickFormatter = (metric: string, data?: any[] | undefined) => {
 		} else {
 			return (value: any) => moment(value * 1000).format('MM/DD')
 		}
-	} else if (Object.hasOwn(timeMetrics, metric)) {
+	} else if (Object.hasOwn(TIME_METRICS, metric)) {
 		return (value: any) => {
 			let startUnit =
-				timeMetrics[metric as keyof typeof timeMetrics] ??
+				TIME_METRICS[metric as keyof typeof TIME_METRICS] ??
 				DEFAULT_TIME_METRIC
 			let lastUnit = startUnit
 			for (const entry of durationUnitMap) {
@@ -1137,11 +1126,7 @@ const Graph = ({
 
 	useEffect(() => {
 		if (id && data) {
-			setGraphData((graphData) =>
-				graphData[id]?.length
-					? graphData
-					: { ...graphData, [id]: data },
-			)
+			setGraphData((graphData) => ({ ...graphData, [id]: data }))
 		}
 	}, [data, id, setGraphData])
 

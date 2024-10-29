@@ -96,6 +96,7 @@ const BUCKET_BY_OPTIONS: BucketBy[] = ['None', 'Interval', 'Count']
 
 const MAX_BUCKET_SIZE = 100
 const MAX_LIMIT_SIZE = 100
+const NO_LIMIT = 1_000_000_000_000
 
 const SidebarSection = (props: PropsWithChildren) => {
 	return (
@@ -498,15 +499,17 @@ export const GraphingEditor: React.FC = () => {
 			setMetric('secure_session_id')
 			setGroupByEnabled(true)
 			setGroupByKeys(['secure_session_id'])
-			setLimit(Number.MAX_VALUE)
+			setLimit(NO_LIMIT)
+		} else if (viewType === 'Table') {
+			setLimit(NO_LIMIT)
 		}
 	}, [viewType])
 
 	useEffect(() => {
-		if (productType !== ProductType.Events) {
+		if (productType !== ProductType.Events && viewType === 'Funnel chart') {
 			setViewType(VIEW_OPTIONS[0].value)
 		}
-	}, [productType])
+	}, [productType, viewType])
 
 	const { values } = useGraphingVariables(dashboard_id!)
 
@@ -891,7 +894,8 @@ export const GraphingEditor: React.FC = () => {
 												}
 											/>
 										</LabeledRow>
-										{groupByEnabled && (
+										{groupByEnabled &&
+										viewType !== 'Table' ? (
 											<Box
 												display="flex"
 												flexDirection="row"
@@ -912,7 +916,7 @@ export const GraphingEditor: React.FC = () => {
 																Math.min(
 																	viewType ===
 																		'Table'
-																		? Number.MAX_VALUE
+																		? NO_LIMIT
 																		: MAX_LIMIT_SIZE,
 																	parseInt(
 																		e.target
@@ -965,7 +969,7 @@ export const GraphingEditor: React.FC = () => {
 													/>
 												</LabeledRow>
 											</Box>
-										)}
+										) : null}
 									</SidebarSection>
 									<Divider className="m-0" />
 									<SidebarSection>

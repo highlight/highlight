@@ -57,7 +57,7 @@ import { useRetentionPresets } from '@/components/Search/SearchForm/hooks'
 import { loadFunnelStep } from '@pages/Graphing/util'
 import { GraphContextProvider } from './context/GraphContext'
 import { useGraphData } from '@pages/Graphing/hooks/useGraphData'
-import { useExportGraph } from '@pages/Graphing/hooks/useExportGraph'
+import { exportGraph } from '@pages/Graphing/hooks/exportGraph'
 
 export const HeaderDivider = () => <Box cssClass={style.headerDivider} />
 
@@ -170,7 +170,6 @@ export const Dashboard = () => {
 	const tempId = useId()
 
 	const graphContext = useGraphData()
-	const { exportGraph } = useExportGraph()
 
 	const noGraphs = graphs?.length === 0
 
@@ -547,6 +546,8 @@ export const Dashboard = () => {
 																exportGraph(
 																	g.id,
 																	g.title,
+																	g.functionType,
+																	g.metric,
 																	graphContext
 																		.graphData[
 																		g.id
