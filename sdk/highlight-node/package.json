@@ -1,6 +1,6 @@
 {
 	"name": "@highlight-run/node",
-	"version": "3.9.4",
+	"version": "3.9.6",
 	"license": "Apache-2.0",
 	"scripts": {
 		"typegen": "tsc -d --emitDeclarationOnly",
@@ -33,7 +33,7 @@
 		"@opentelemetry/exporter-jaeger": "^1.26.0",
 		"@opentelemetry/exporter-trace-otlp-http": ">=0.53.0",
 		"@opentelemetry/instrumentation": ">=0.53.0",
-		"@opentelemetry/otlp-exporter-base": ">=0.53.0",
+		"@opentelemetry/otlp-exporter-base": "^0.53.0",
 		"@opentelemetry/resources": "^1.26.0",
 		"@opentelemetry/sdk-node": ">=0.53.0",
 		"@opentelemetry/sdk-trace-base": "^1.26.0",
