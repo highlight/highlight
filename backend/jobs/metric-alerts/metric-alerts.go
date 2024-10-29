@@ -195,7 +195,7 @@ func processMetricAlert(ctx context.Context, DB *gorm.DB, MailClient *sendgrid.C
 		groupByKey = groupBy[0]
 	}
 
-	bucketsInner := buckets.Buckets
+	var bucketsInner []*modelInputs.MetricBucket
 
 	stateChanges := []modelInputs.AlertStateChange{}
 	if saveMetricState {
@@ -235,6 +235,8 @@ func processMetricAlert(ctx context.Context, DB *gorm.DB, MailClient *sendgrid.C
 			}
 			bucketsInner = newBuckets
 		}
+	} else if buckets != nil {
+		bucketsInner = buckets.Buckets
 	}
 
 	if len(bucketsInner) == 0 {
