@@ -64,7 +64,7 @@ func (client *Client) AggregateMetricStates(ctx context.Context, metricId string
 	groupCols := []string{"1"}
 
 	if windowSeconds != nil {
-		selectCols = append(selectCols, fmt.Sprintf("date_diff('second', %s, Timestamp) / %d as BucketId", startDate.Format("2006-01-02 15:04:05"), windowSeconds))
+		selectCols = append(selectCols, fmt.Sprintf("toUInt64(date_diff('second', %s, Timestamp) / %d) as BucketId", sb.Var(startDate), *windowSeconds))
 		groupCols = append(groupCols, "2")
 	}
 
@@ -110,10 +110,11 @@ func (client *Client) AggregateMetricStates(ctx context.Context, metricId string
 		if err := rows.ScanStruct(&result); err != nil {
 			return nil, err
 		}
+		val := result.Value
 		results = append(results, &modelInputs.MetricBucket{
 			BucketID:    result.BucketId,
 			Group:       []string{result.GroupByKey},
-			MetricValue: &result.Value,
+			MetricValue: &val,
 			YhatLower:   nil,
 			YhatUpper:   nil,
 		})

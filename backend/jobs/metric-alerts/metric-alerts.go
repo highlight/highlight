@@ -186,6 +186,7 @@ func processMetricAlert(ctx context.Context, DB *gorm.DB, MailClient *sendgrid.C
 		Limit:            pointy.Int(20),
 		LimitAggregator:  &aggregatorCount,
 		SavedMetricState: savedState,
+		NoBucketMax:      true,
 	})
 	if err != nil {
 		return err
