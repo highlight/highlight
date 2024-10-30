@@ -64,7 +64,6 @@ async function setupOAuthProjectToken(
 			secure: true,
 			sameSite: 'None',
 		} as CookieParam
-		console.log('setting project-token cookie', cookieParam)
 		await page.setCookie(cookieParam)
 	}
 }
