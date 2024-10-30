@@ -14,9 +14,16 @@ import (
 	"github.com/highlight-run/highlight/backend/model"
 	modelInputs "github.com/highlight-run/highlight/backend/private-graph/graph/model"
 	"github.com/highlight-run/highlight/backend/routing"
+	"github.com/highlight-run/highlight/backend/util"
 )
 
 func SendAlerts(ctx context.Context, microsoftTeamsTenantId *string, alertInput *destinationsV2.AlertInput, destinations []model.AlertDestination) {
+	span, ctx := util.StartSpanFromContext(ctx, "SendAlerts.MicrosoftTeams")
+	span.SetAttribute("alert_id", alertInput.Alert.ID)
+	span.SetAttribute("project_id", alertInput.Alert.ProjectID)
+	span.SetAttribute("product_type", alertInput.Alert.ProductType)
+	defer span.Finish()
+
 	if microsoftTeamsTenantId == nil {
 		log.WithContext(ctx).Error("microsoft teams access token is nil")
 		return
