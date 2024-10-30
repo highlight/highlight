@@ -12,6 +12,7 @@ import (
 	"github.com/highlight-run/highlight/backend/model"
 	modelInputs "github.com/highlight-run/highlight/backend/private-graph/graph/model"
 	"github.com/highlight-run/highlight/backend/routing"
+	"github.com/highlight-run/highlight/backend/util"
 	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 	"github.com/slack-go/slack"
@@ -29,6 +30,12 @@ var PURPLE_ALERT = "#7e5bef" // events
 var ERROR_STACKTRACE_FILE_NAME_LENGTH_LIMIT = 75
 
 func SendAlerts(ctx context.Context, slackAccessToken *string, alertInput *destinationsV2.AlertInput, destinations []model.AlertDestination) {
+	span, ctx := util.StartSpanFromContext(ctx, "SendAlerts.Slack")
+	span.SetAttribute("alert_id", alertInput.Alert.ID)
+	span.SetAttribute("project_id", alertInput.Alert.ProjectID)
+	span.SetAttribute("product_type", alertInput.Alert.ProductType)
+	defer span.Finish()
+
 	if slackAccessToken == nil {
 		log.WithContext(ctx).Error("slack access token is nil")
 		return

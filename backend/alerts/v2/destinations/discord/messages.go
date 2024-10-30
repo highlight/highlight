@@ -17,6 +17,7 @@ import (
 	"github.com/highlight-run/highlight/backend/model"
 	modelInputs "github.com/highlight-run/highlight/backend/private-graph/graph/model"
 	"github.com/highlight-run/highlight/backend/routing"
+	"github.com/highlight-run/highlight/backend/util"
 )
 
 func newMessageEmbed() *discordgo.MessageEmbed {
@@ -39,6 +40,12 @@ var highlightEmoji = discordgo.ComponentEmoji{
 }
 
 func SendAlerts(ctx context.Context, discordGuildId *string, alertInput *destinationsV2.AlertInput, destinations []model.AlertDestination) {
+	span, ctx := util.StartSpanFromContext(ctx, "SendAlerts.Discord")
+	span.SetAttribute("alert_id", alertInput.Alert.ID)
+	span.SetAttribute("project_id", alertInput.Alert.ProjectID)
+	span.SetAttribute("product_type", alertInput.Alert.ProductType)
+	defer span.Finish()
+
 	if discordGuildId == nil {
 		log.WithContext(ctx).Error("discord access token is nil")
 		return
