@@ -180,7 +180,7 @@
 		"stylelint": "^14.9.1",
 		"tailwindcss": "^3.1.8",
 		"typed-scss-modules": "^3.4.0",
-		"typescript": "5.4.2",
+		"typescript": "^5.6.3",
 		"vite": "^5.2.12",
 		"vite-plugin-imp": "^2.4.0",
 		"vite-plugin-svgr": "^3.3.0",
