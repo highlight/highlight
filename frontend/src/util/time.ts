@@ -42,6 +42,10 @@ export function formatTimeAsHMS(millis: number) {
 		: `${parts.h}:${minutesStr}:${secondsStr}`
 }
 
+export function msToHours(ms: number) {
+	return ms / 1000 / 60 / 60
+}
+
 interface TimeAsAplhanumOptions {
 	showDetails?: boolean
 	zeroUnit?: string
