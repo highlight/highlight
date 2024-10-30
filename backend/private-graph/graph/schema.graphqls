@@ -691,6 +691,10 @@ type ErrorField {
 	value: String!
 }
 
+type ErrorFieldWrapper {
+	error_field: ErrorField!
+}
+
 type ErrorGroup {
 	created_at: Timestamp!
 	updated_at: Timestamp!
