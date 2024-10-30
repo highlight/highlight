@@ -22,6 +22,8 @@ import { DEFAULT_TRACE_COLUMNS } from '@/pages/Traces/CustomColumns/columns'
 import { TraceColumnRenderers } from '@/pages/Traces/CustomColumns/renderers'
 import { useGetTraces } from '@/pages/Traces/useGetTraces'
 import { useGetEventsPaginated } from '@/pages/Sessions/useGetEventsPaginated'
+import { DateTimeParam, encodeQueryParams, StringParam } from 'use-query-params'
+import { stringify } from 'query-string'
 
 export const RelatedResourceList: React.FC<{
 	resource: RelatedResource & {
@@ -38,6 +40,33 @@ export const RelatedResourceList: React.FC<{
 	const startDate = useMemo(() => new Date(resource.startDate), [])
 	const endDate = useMemo(() => new Date(resource.endDate), [])
 	/* eslint-enable react-hooks/exhaustive-deps */
+
+	const path = useMemo(() => {
+		const encodedQuery = encodeQueryParams(
+			{
+				query: StringParam,
+				start_date: DateTimeParam,
+				end_date: DateTimeParam,
+			},
+			{
+				query: query,
+				start_date: startDate,
+				end_date: endDate,
+			},
+		)
+		const search = stringify(encodedQuery)
+
+		switch (resource.type) {
+			case 'traces':
+				return `/${projectId}/traces?${search}`
+			case 'sessions':
+				return `/${projectId}/sessions?${search}`
+			case 'errors':
+				return `/${projectId}/errors?${search}`
+			default:
+				return ''
+		}
+	}, [endDate, projectId, query, resource.type, startDate])
 
 	const {
 		traceEdges,
@@ -207,7 +236,8 @@ export const RelatedResourceList: React.FC<{
 
 	return (
 		<SearchContext initialQuery={query} onSubmit={handleSubmit} disabled>
-			<Panel.Header>
+			<Panel.Header path={path}>
+				{!!path && <Panel.HeaderCopyLinkButton path={path} />}
 				<Panel.HeaderDivider />
 			</Panel.Header>
 
