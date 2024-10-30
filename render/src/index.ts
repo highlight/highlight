@@ -90,8 +90,8 @@ if (process.env.DEV?.length) {
 		handler({
 			queryStringParameters: {
 				format: 'video/mp4',
-				project: '5403',
-				session: '965816134',
+				project: '1',
+				session: '617599894',
 			},
 		} as unknown as APIGatewayEvent),
 	])
