@@ -94,6 +94,7 @@ export const VIEW_OPTIONS = [
 export const TIMESTAMP_KEY = 'Timestamp'
 export const GROUP_KEY = 'Group'
 export const PERCENT_KEY = 'Percent'
+export const QUERY_KEY = 'Query'
 export const BUCKET_MIN_KEY = 'BucketMin'
 export const BUCKET_MAX_KEY = 'BucketMax'
 export const YHAT_UPPER_KEY = 'yhat_upper'
@@ -186,6 +187,7 @@ export type LoadExemplars = (
 	bucketMin: number | undefined,
 	bucketMax: number | undefined,
 	group: string | undefined,
+	stepQuery: string | undefined,
 ) => void
 
 export type SetTimeRange = (startDate: Date, endDate: Date) => void
@@ -573,6 +575,7 @@ const getCustomTooltip =
 												p.payload[BUCKET_MAX_KEY],
 												p.dataKey ||
 													p.payload[GROUP_KEY],
+												p.payload[QUERY_KEY],
 											)
 									}}
 								/>
@@ -776,11 +779,12 @@ export const useFunnelData = (
 		})
 
 		return Object.values(buckets).map((r, idx) => {
-			const key =
-				funnelSteps?.at(idx)?.title || funnelSteps?.at(idx)?.query || ''
+			const query = funnelSteps?.at(idx)?.query || ''
+			const key = funnelSteps?.at(idx)?.title || query
 			return {
 				[GROUP_KEY]: key,
 				[PERCENT_KEY]: r.percent,
+				[QUERY_KEY]: query,
 				[key]: r.value,
 			}
 		})
@@ -801,6 +805,7 @@ export const useGraphSeries = (
 			YHAT_LOWER_REGION_KEY,
 			YHAT_UPPER_REGION_KEY,
 			PERCENT_KEY,
+			QUERY_KEY,
 		]
 		return _.uniq(data?.flatMap((d) => Object.keys(d))).filter(
 			(key) => !excluded.includes(key),
@@ -897,6 +902,7 @@ const Graph = ({
 		bucketMin: number | undefined,
 		bucketMax: number | undefined,
 		groups: string | undefined,
+		stepQuery: string | undefined,
 	) => {
 		let relatedResourceType:
 			| 'logs'
@@ -922,15 +928,16 @@ const Graph = ({
 				break
 			case ProductType.Events:
 				relatedResourceType = 'sessions'
-				groupByKeys = groupByKeys.map((k) =>
-					k === 'secure_session_id' ? 'secure_id' : k,
-				)
+				groupByKeys = undefined
 				break
 			default:
 				return
 		}
 
-		let relatedResourceQuery = replaceQueryVariables(query, variables)
+		let relatedResourceQuery = replaceQueryVariables(
+			stepQuery || query,
+			variables,
+		)
 		if (groupByKeys !== undefined && groupByKeys.length > 0) {
 			groups?.split(', ').forEach((group, idx) => {
 				if (group !== NO_GROUP_PLACEHOLDER && group !== '') {
@@ -950,8 +957,12 @@ const Graph = ({
 		let startDateStr = moment(startDate).toISOString()
 		let endDateStr = moment(endDate).toISOString()
 		if (bucketByKey === TIMESTAMP_KEY && bucketMin && bucketMax) {
-			startDateStr = new Date(bucketMin * 1000).toISOString()
-			endDateStr = new Date(bucketMax * 1000).toISOString()
+			startDateStr = (
+				bucketMin ? new Date(bucketMin * 1000) : startDate
+			).toISOString()
+			endDateStr = (
+				bucketMax ? new Date(bucketMax * 1000) : endDate
+			).toISOString()
 		}
 
 		set({
