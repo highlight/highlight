@@ -752,17 +752,26 @@ export const useFunnelData = (
 		if (!results?.length || !results[0]?.metrics) return
 		const buckets: { [key: number]: { value: number; percent: number } } =
 			{}
+		let groups = new Set<string>(
+			results[0].metrics.buckets.map((b) => b.group[0]),
+		)
 		results.forEach((r, idx) => {
 			if (r?.metrics?.buckets) {
 				r.metrics.buckets.forEach((b) => {
+					const group = b?.group[0]
 					const prev = buckets[idx - 1]?.value ?? 0
-					const value =
-						(buckets[idx]?.value ?? 0) + (b?.metric_value ?? 0)
+					const stepValue = groups.has(group)
+						? (b?.metric_value ?? 0)
+						: 0
+					const value = (buckets[idx]?.value ?? 0) + stepValue
 					buckets[idx] = {
 						value,
 						percent: prev > 0 ? value / prev : 1,
 					}
 				})
+				groups = groups.intersection(
+					new Set<string>(r.metrics.buckets.map((b) => b.group[0])),
+				)
 			}
 		})
 
@@ -1030,39 +1039,18 @@ const Graph = ({
 		setLoading(true)
 		let getMetricsPromises: Promise<GetMetricsQueryResult>[] = []
 		if (funnelSteps?.length) {
-			let promise: Promise<GetMetricsQueryResult> = Promise.resolve(
-				{} as GetMetricsQueryResult,
-			)
 			for (const step of funnelSteps) {
-				promise = promise.then((result) => {
-					// once events have other session attributes, we can support per-user aggregation
-					const keys = result.data?.metrics.buckets?.map(
-						(b) => b.group[0],
-					)
-					// if previous step exists but no result, we should have no results
-					if (keys?.length && keys.at(0) === '') {
-						return Promise.resolve({
-							data: {
-								metrics: { buckets: [{}] },
-							},
-						} as GetMetricsQueryResult)
-					}
-					const previousStepFilter = keys
-						?.map((k) => `secure_session_id=${k}`)
-						?.join(' OR ')
-					return getMetrics({
+				getMetricsPromises.push(
+					getMetrics({
 						variables: {
 							...getMetricsVariables,
 							params: {
 								...getMetricsVariables.params,
-								query: keys?.length
-									? `${step.query} AND (${previousStepFilter})`
-									: step.query,
+								query: step.query,
 							},
 						},
-					})
-				})
-				getMetricsPromises.push(promise)
+					}),
+				)
 			}
 		} else {
 			getMetricsPromises = [
