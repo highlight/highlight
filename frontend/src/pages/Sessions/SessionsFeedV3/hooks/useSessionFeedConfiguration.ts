@@ -54,6 +54,7 @@ export const useSessionFeedConfiguration = () => {
 		resultFormatConfigured,
 		sessionResultsVerbose,
 		setResultFormat,
+		setSessionHistogramFormat,
 		setResultFormatConfigured,
 	])
 
