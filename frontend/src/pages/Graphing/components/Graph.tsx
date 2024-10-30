@@ -921,7 +921,10 @@ const Graph = ({
 				relatedResourceType = 'sessions'
 				break
 			case ProductType.Events:
-				relatedResourceType = 'events'
+				relatedResourceType = 'sessions'
+				groupByKeys = groupByKeys.map((k) =>
+					k === 'secure_session_id' ? 'secure_id' : k,
+				)
 				break
 			default:
 				return
