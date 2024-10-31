@@ -30,10 +30,10 @@ type PredictionInput struct {
 }
 
 type PredictionResult struct {
-	DS        map[uint64]uint64  `json:"ds"`
-	YHat      map[uint64]float64 `json:"yhat"`
-	YHatLower map[uint64]float64 `json:"yhat_lower"`
-	YHatUpper map[uint64]float64 `json:"yhat_upper"`
+	DS        map[int]uint64  `json:"ds"`
+	YHat      map[int]float64 `json:"yhat"`
+	YHatLower map[int]float64 `json:"yhat_lower"`
+	YHatUpper map[int]float64 `json:"yhat_upper"`
 }
 
 func AddPredictions(ctx context.Context, metricBuckets []*modelInputs.MetricBucket, settings modelInputs.PredictionSettings) error {
@@ -92,12 +92,12 @@ func AddPredictions(ctx context.Context, metricBuckets []*modelInputs.MetricBuck
 			return err
 		}
 
-		for _, b := range buckets {
+		for idx, b := range buckets {
 			if settings.ThresholdCondition != modelInputs.ThresholdConditionBelow {
-				b.YhatUpper = pointy.Float64(result.YHatUpper[b.BucketID])
+				b.YhatUpper = pointy.Float64(result.YHatUpper[idx])
 			}
 			if settings.ThresholdCondition != modelInputs.ThresholdConditionAbove {
-				b.YhatLower = pointy.Float64(result.YHatLower[b.BucketID])
+				b.YhatLower = pointy.Float64(result.YHatLower[idx])
 			}
 		}
 	}
