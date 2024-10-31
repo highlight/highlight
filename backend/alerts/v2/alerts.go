@@ -40,6 +40,12 @@ func SendAlerts(ctx context.Context, db *gorm.DB, mailClient *sendgrid.Client, l
 		return nil
 	}
 
+	log.WithContext(ctx).WithFields(
+		log.Fields{
+			"alertID":          alert.ID,
+			"alertProductType": alert.ProductType,
+		}).Info("sending alerts")
+
 	destinationsByType := make(map[modelInputs.AlertDestinationType][]model.AlertDestination)
 	for _, destination := range destinations {
 		destinationsByType[destination.DestinationType] = append(destinationsByType[destination.DestinationType], destination)

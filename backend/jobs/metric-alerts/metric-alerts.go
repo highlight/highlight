@@ -77,6 +77,12 @@ func processMetricAlert(ctx context.Context, DB *gorm.DB, MailClient *sendgrid.C
 	span.SetAttribute("product_type", alert.ProductType)
 	defer span.Finish()
 
+	log.WithContext(ctx).WithFields(
+		log.Fields{
+			"alertID":          alert.ID,
+			"alertProductType": alert.ProductType,
+		}).Info("processing metric alert")
+
 	curDate := time.Now().Round(time.Minute).Add(-1 * time.Minute)
 
 	thresholdWindow := 1 * time.Hour
@@ -276,6 +282,12 @@ func processMetricAlert(ctx context.Context, DB *gorm.DB, MailClient *sendgrid.C
 		alertStateChange := getAlertStateChange(curDate, alertCondition, alert.ID, strings.Join(bucket.Group, ""), lastAlerts, cooldown)
 
 		if alertStateChange.State == modelInputs.AlertStateAlerting {
+			log.WithContext(ctx).WithFields(
+				log.Fields{
+					"alertID":          alert.ID,
+					"alertProductType": alert.ProductType,
+				}).Info("alerting metric alert")
+
 			err := alertsV2.SendAlerts(ctx, DB, MailClient, lambdaClient, alert, groupByKey, strings.Join(bucket.Group, ""), *bucket.MetricValue)
 			if err != nil {
 				log.WithContext(ctx).WithFields(
@@ -292,6 +304,12 @@ func processMetricAlert(ctx context.Context, DB *gorm.DB, MailClient *sendgrid.C
 	if err := ccClient.WriteAlertStateChanges(ctx, alert.ProjectID, stateChanges); err != nil {
 		return err
 	}
+
+	log.WithContext(ctx).WithFields(
+		log.Fields{
+			"alertID":          alert.ID,
+			"alertProductType": alert.ProductType,
+		}).Info("processed metric alert")
 
 	return nil
 }
