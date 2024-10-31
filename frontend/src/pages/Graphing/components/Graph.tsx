@@ -227,8 +227,6 @@ export const useGraphCallbacks = (
 	const chartRef = useRef<HTMLDivElement>(null)
 	const tooltipRef = useRef<HTMLDivElement>(null)
 
-	const [mouseMoveState, setMouseMoveState] =
-		useState<CategoricalChartState>()
 	const [frozenTooltip, setFrozenTooltip] = useState<CategoricalChartState>()
 
 	const allowDrag = setTimeRange !== undefined
@@ -266,8 +264,6 @@ export const useGraphCallbacks = (
 
 	const onMouseMove = allowDrag
 		? (e: CategoricalChartState) => {
-				setMouseMoveState(e)
-
 				if (refAreaStart !== undefined && e.activeLabel !== undefined) {
 					setRefAreaEnd(Number(e.activeLabel))
 					setFrozenTooltip(undefined)
@@ -338,12 +334,7 @@ export const useGraphCallbacks = (
 		/>
 	)
 
-	const tooltipCanFreeze =
-		loadExemplars &&
-		!frozenTooltip &&
-		mouseMoveState?.activePayload?.find(
-			(p) => ![undefined, null].includes(p.value),
-		)
+	const tooltipCanFreeze = loadExemplars && !frozenTooltip
 
 	return {
 		referenceArea,
