@@ -24,6 +24,7 @@ const Ruby Language = "ruby"
 var (
 	jsPattern               = regexp.MustCompile(` {4}at ((.+) )?\(?(.+):(\d+):(\d+)\)?`)
 	jsAnonPattern           = regexp.MustCompile(` {4}at (.+) \((.+)\)`)
+	jsOTeLPattern           = regexp.MustCompile(`(.*)@(.+\.js):(\d+):(\d+)`)
 	pyPattern               = regexp.MustCompile(` {2}File "(.+)", line (\d+), in (\w+)`)
 	pyExcPattern            = regexp.MustCompile(`^(\S.+)`)
 	pyUnderPattern          = regexp.MustCompile(`^\s*[\^~]+\s*$`)
@@ -75,9 +76,13 @@ func StructureOTELStackTrace(stackTrace string) ([]*publicModel.ErrorTrace, erro
 					lines = append(lines, m...)
 				}
 				continue
+			} else if matches := jsOTeLPattern.FindSubmatch([]byte(line)); matches != nil {
+				language = Javascript
 			}
-			errMsg = line
-			continue
+			if language != Javascript {
+				errMsg = line
+				continue
+			}
 		}
 		if line == "" {
 			continue
@@ -106,6 +111,14 @@ func StructureOTELStackTrace(stackTrace string) ([]*publicModel.ErrorTrace, erro
 			frame.FileName = pointy.String(string(matches[2]))
 			line, _ := strconv.ParseInt(string(matches[3]), 10, 32)
 			frame.LineNumber = pointy.Int(int(line))
+		} else if matches := jsOTeLPattern.FindSubmatch([]byte(line)); matches != nil {
+			language = Javascript
+			frame.FunctionName = pointy.String(string(matches[1]))
+			frame.FileName = pointy.String(string(matches[2]))
+			l, _ := strconv.ParseInt(string(matches[3]), 10, 32)
+			col, _ := strconv.ParseInt(string(matches[4]), 10, 32)
+			frame.LineNumber = pointy.Int(int(l))
+			frame.ColumnNumber = pointy.Int(int(col))
 		} else if matches := jsPattern.FindSubmatch([]byte(line)); matches != nil {
 			language = Javascript
 			if matches[2] != nil {
