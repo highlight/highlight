@@ -6632,7 +6632,7 @@ func (r *queryResolver) SessionsHistogram(ctx context.Context, projectID int, pa
 		return nil, err
 	}
 
-	bucketTimes, totals, withErrors, withoutErrors, err := r.ClickhouseClient.QuerySessionHistogram(ctx, admin, projectID, params, retentionDate, histogramOptions)
+	bucketTimes, totals, withErrors, withoutErrors, inactiveLengths, activeLengths, err := r.ClickhouseClient.QuerySessionHistogram(ctx, admin, projectID, params, retentionDate, histogramOptions)
 	if err != nil {
 		return nil, err
 	}
@@ -6646,6 +6646,8 @@ func (r *queryResolver) SessionsHistogram(ctx context.Context, projectID int, pa
 		BucketTimes:           MergeHistogramBucketTimes(bucketTimes, histogramOptions.BucketSize.Multiple),
 		SessionsWithoutErrors: MergeHistogramBucketCounts(withoutErrors, histogramOptions.BucketSize.Multiple),
 		SessionsWithErrors:    MergeHistogramBucketCounts(withErrors, histogramOptions.BucketSize.Multiple),
+		InactiveLengths:       MergeHistogramBucketCounts(inactiveLengths, histogramOptions.BucketSize.Multiple),
+		ActiveLengths:         MergeHistogramBucketCounts(activeLengths, histogramOptions.BucketSize.Multiple),
 		TotalSessions:         MergeHistogramBucketCounts(totals, histogramOptions.BucketSize.Multiple),
 	}, nil
 }

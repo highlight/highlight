@@ -1429,7 +1429,9 @@ type ComplexityRoot struct {
 	}
 
 	SessionsHistogram struct {
+		ActiveLengths         func(childComplexity int) int
 		BucketTimes           func(childComplexity int) int
+		InactiveLengths       func(childComplexity int) int
 		SessionsWithErrors    func(childComplexity int) int
 		SessionsWithoutErrors func(childComplexity int) int
 		TotalSessions         func(childComplexity int) int
@@ -10310,12 +10312,26 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.SessionResults.TotalLength(childComplexity), true
 
+	case "SessionsHistogram.active_lengths":
+		if e.complexity.SessionsHistogram.ActiveLengths == nil {
+			break
+		}
+
+		return e.complexity.SessionsHistogram.ActiveLengths(childComplexity), true
+
 	case "SessionsHistogram.bucket_times":
 		if e.complexity.SessionsHistogram.BucketTimes == nil {
 			break
 		}
 
 		return e.complexity.SessionsHistogram.BucketTimes(childComplexity), true
+
+	case "SessionsHistogram.inactive_lengths":
+		if e.complexity.SessionsHistogram.InactiveLengths == nil {
+			break
+		}
+
+		return e.complexity.SessionsHistogram.InactiveLengths(childComplexity), true
 
 	case "SessionsHistogram.sessions_with_errors":
 		if e.complexity.SessionsHistogram.SessionsWithErrors == nil {
@@ -13198,6 +13214,8 @@ type SessionsHistogram {
 	sessions_without_errors: [Int64!]!
 	sessions_with_errors: [Int64!]!
 	total_sessions: [Int64!]!
+	inactive_lengths: [Int64!]!
+	active_lengths: [Int64!]!
 }
 
 type ErrorsHistogram {
@@ -58231,6 +58249,10 @@ func (ec *executionContext) fieldContext_Query_sessions_histogram_clickhouse(ctx
 				return ec.fieldContext_SessionsHistogram_sessions_with_errors(ctx, field)
 			case "total_sessions":
 				return ec.fieldContext_SessionsHistogram_total_sessions(ctx, field)
+			case "inactive_lengths":
+				return ec.fieldContext_SessionsHistogram_inactive_lengths(ctx, field)
+			case "active_lengths":
+				return ec.fieldContext_SessionsHistogram_active_lengths(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type SessionsHistogram", field.Name)
 		},
@@ -58296,6 +58318,10 @@ func (ec *executionContext) fieldContext_Query_sessions_histogram(ctx context.Co
 				return ec.fieldContext_SessionsHistogram_sessions_with_errors(ctx, field)
 			case "total_sessions":
 				return ec.fieldContext_SessionsHistogram_total_sessions(ctx, field)
+			case "inactive_lengths":
+				return ec.fieldContext_SessionsHistogram_inactive_lengths(ctx, field)
+			case "active_lengths":
+				return ec.fieldContext_SessionsHistogram_active_lengths(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type SessionsHistogram", field.Name)
 		},
@@ -74299,6 +74325,94 @@ func (ec *executionContext) _SessionsHistogram_total_sessions(ctx context.Contex
 }
 
 func (ec *executionContext) fieldContext_SessionsHistogram_total_sessions(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "SessionsHistogram",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int64 does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _SessionsHistogram_inactive_lengths(ctx context.Context, field graphql.CollectedField, obj *model1.SessionsHistogram) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_SessionsHistogram_inactive_lengths(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.InactiveLengths, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]int64)
+	fc.Result = res
+	return ec.marshalNInt642ᚕint64ᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_SessionsHistogram_inactive_lengths(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "SessionsHistogram",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int64 does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _SessionsHistogram_active_lengths(ctx context.Context, field graphql.CollectedField, obj *model1.SessionsHistogram) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_SessionsHistogram_active_lengths(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ActiveLengths, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]int64)
+	fc.Result = res
+	return ec.marshalNInt642ᚕint64ᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_SessionsHistogram_active_lengths(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "SessionsHistogram",
 		Field:      field,
@@ -99006,6 +99120,16 @@ func (ec *executionContext) _SessionsHistogram(ctx context.Context, sel ast.Sele
 			}
 		case "total_sessions":
 			out.Values[i] = ec._SessionsHistogram_total_sessions(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "inactive_lengths":
+			out.Values[i] = ec._SessionsHistogram_inactive_lengths(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "active_lengths":
+			out.Values[i] = ec._SessionsHistogram_active_lengths(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
