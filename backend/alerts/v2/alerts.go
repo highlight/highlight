@@ -40,6 +40,12 @@ func SendAlerts(ctx context.Context, db *gorm.DB, mailClient *sendgrid.Client, l
 		return nil
 	}
 
+	log.WithContext(ctx).WithFields(
+		log.Fields{
+			"alertID":          alert.ID,
+			"alertProductType": alert.ProductType,
+		}).Info("sending alerts")
+
 	destinationsByType := make(map[modelInputs.AlertDestinationType][]model.AlertDestination)
 	for _, destination := range destinations {
 		destinationsByType[destination.DestinationType] = append(destinationsByType[destination.DestinationType], destination)
@@ -63,13 +69,13 @@ func SendAlerts(ctx context.Context, db *gorm.DB, mailClient *sendgrid.Client, l
 	switch alert.ProductType {
 	case modelInputs.ProductTypeSessions:
 		sessionAlertInput, err := buildSessionAlertInput(ctx, db, &alertInput)
-		if err == nil {
+		if err != nil {
 			return err
 		}
 		alertInput.SessionInput = sessionAlertInput
 	case modelInputs.ProductTypeErrors:
 		errorAlertInput, err := buildErrorAlertInput(ctx, db, &alertInput)
-		if err == nil {
+		if err != nil {
 			return err
 		}
 		alertInput.ErrorInput = errorAlertInput
