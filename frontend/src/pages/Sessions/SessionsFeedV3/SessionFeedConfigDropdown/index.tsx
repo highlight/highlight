@@ -511,7 +511,7 @@ export const SessionFeedConfigDropdown = function () {
 												<IconGroup
 													icon={
 														format ===
-														sessionFeedConfiguration.setSessionHistogramFormat ? (
+														sessionFeedConfiguration.sessionHistogramFormat ? (
 															<IconSolidCheck
 																size={16}
 																color={

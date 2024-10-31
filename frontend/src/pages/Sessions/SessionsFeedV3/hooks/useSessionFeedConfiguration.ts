@@ -47,7 +47,7 @@ export const useSessionFeedConfiguration = () => {
 	useEffect(() => {
 		if (!resultFormatConfigured && sessionResultsVerbose) {
 			setResultFormat('Count/Length/ActiveLength')
-			setSessionHistogramFormat('Active Time')
+			setSessionHistogramFormat('Active/Inactive Time')
 			setResultFormatConfigured(true)
 		}
 	}, [
