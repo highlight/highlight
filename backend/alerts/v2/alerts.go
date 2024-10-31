@@ -69,13 +69,13 @@ func SendAlerts(ctx context.Context, db *gorm.DB, mailClient *sendgrid.Client, l
 	switch alert.ProductType {
 	case modelInputs.ProductTypeSessions:
 		sessionAlertInput, err := buildSessionAlertInput(ctx, db, &alertInput)
-		if err == nil {
+		if err != nil {
 			return err
 		}
 		alertInput.SessionInput = sessionAlertInput
 	case modelInputs.ProductTypeErrors:
 		errorAlertInput, err := buildErrorAlertInput(ctx, db, &alertInput)
-		if err == nil {
+		if err != nil {
 			return err
 		}
 		alertInput.ErrorInput = errorAlertInput
