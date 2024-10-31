@@ -3624,7 +3624,9 @@ export type SessionResults = {
 
 export type SessionsHistogram = {
 	__typename?: 'SessionsHistogram'
+	active_lengths: Array<Scalars['Int64']>
 	bucket_times: Array<Scalars['Timestamp']>
+	inactive_lengths: Array<Scalars['Int64']>
 	sessions_with_errors: Array<Scalars['Int64']>
 	sessions_without_errors: Array<Scalars['Int64']>
 	total_sessions: Array<Scalars['Int64']>

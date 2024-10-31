@@ -2527,6 +2527,8 @@ export type GetSessionsHistogramQuery = { __typename?: 'Query' } & {
 		| 'sessions_without_errors'
 		| 'sessions_with_errors'
 		| 'total_sessions'
+		| 'inactive_lengths'
+		| 'active_lengths'
 	>
 }
 
