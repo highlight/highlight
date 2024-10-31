@@ -325,7 +325,7 @@ export const Buttons = () => {
 									span?.setAttribute('test', 'f00')
 									span?.recordException(
 										new Error(
-											'this is a otel tracer error',
+											'this is a highlight tracer error',
 										),
 									)
 									span?.end()
