@@ -1,5 +1,11 @@
 # @highlight-run/node
 
+## 3.9.7
+
+### Patch Changes
+
+-   b02cad4: fix object.hasown reference for node 14
+
 ## 3.9.6
 
 ### Patch Changes

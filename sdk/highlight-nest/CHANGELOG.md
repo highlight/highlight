@@ -1,5 +1,12 @@
 # @highlight-run/nest
 
+## 3.6.7
+
+### Patch Changes
+
+-   Updated dependencies [b02cad4]
+    -   @highlight-run/node@3.9.7
+
 ## 3.6.6
 
 ### Patch Changes
