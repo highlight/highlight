@@ -362,6 +362,17 @@ func TestEnhanceBackendNextServerlessTrace(t *testing.T) {
 	}
 	assert.Equal(t, 1, len(mappedStackTrace))
 	assert.Equal(t, "                    console.log(`got fetch cache entry for ${key}, duration: ${Date.now() - start}ms, size: ${Object.keys(cached).length}, cache-state: ${cacheState} tags: ${tags == null ? void 0 : tags.join(\",\")} softTags: ${softTags == null ? void 0 : softTags.join(\",\")}`);\n", *mappedStackTrace[0].LineContent)
+
+	err = json.Unmarshal([]byte(`[{"fileName":"/var/task/node_modules/@commerce-apps/core/dist/base/staticClient.js","lineNumber":162,"functionName":"","columnNumber":49,"error":"Error: 504 Request Timeout"}]`), &stackFrameInput)
+	assert.NoError(t, err)
+
+	mappedStackTrace, err = EnhanceStackTrace(ctx, stackFrameInput, 1, nil, client)
+	if err != nil {
+		t.Fatal(e.Wrap(err, "error enhancing source map"))
+	}
+	assert.Equal(t, 1, len(mappedStackTrace))
+	assert.Equal(t, "  return options.rawResponse ? response : getObjectFromResponse(response);\n", *mappedStackTrace[0].LineContent)
+
 }
 
 func TestGetURLSourcemap(t *testing.T) {
