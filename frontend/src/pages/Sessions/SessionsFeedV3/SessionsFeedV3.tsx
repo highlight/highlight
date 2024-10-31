@@ -112,16 +112,16 @@ export const SessionsHistogram: React.FC<{ readonly?: boolean }> = React.memo(
 							{
 								label: 'inactive hours',
 								color: 'n11',
-								counts: data?.sessions_histogram.inactive_lengths
-									.map(msToHours)
-									.map((h) => Number(h.toFixed(1))),
+								counts: data?.sessions_histogram.inactive_lengths.map(
+									msToHours,
+								),
 							},
 							{
 								label: 'active hours',
 								color: 'p11',
-								counts: data?.sessions_histogram.active_lengths
-									.map(msToHours)
-									.map((h) => Number(h.toFixed(1))),
+								counts: data?.sessions_histogram.active_lengths.map(
+									msToHours,
+								),
 							},
 						]
 					: [

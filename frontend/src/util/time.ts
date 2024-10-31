@@ -43,7 +43,8 @@ export function formatTimeAsHMS(millis: number) {
 }
 
 export function msToHours(ms: number) {
-	return ms / 1000 / 60 / 60
+	const h = ms / 1000 / 60 / 60
+	return h < 10 / 60 ? Math.round(h * 1_000) / 1_000 : h
 }
 
 interface TimeAsAplhanumOptions {
