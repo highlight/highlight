@@ -257,19 +257,19 @@ func processMetricAlert(ctx context.Context, DB *gorm.DB, MailClient *sendgrid.C
 		}
 
 		alertCondition := false
-		if alert.ThresholdType == modelInputs.ThresholdTypeConstant {
-			if alert.ThresholdCondition == modelInputs.ThresholdConditionAbove {
-				alertCondition = *bucket.MetricValue >= thresholdValue
-			} else if alert.ThresholdCondition == modelInputs.ThresholdConditionBelow {
-				alertCondition = *bucket.MetricValue <= thresholdValue
-			}
-		} else if alert.ThresholdType == modelInputs.ThresholdTypeAnomaly {
+		if alert.ThresholdType == modelInputs.ThresholdTypeAnomaly {
 			if alert.ThresholdCondition == modelInputs.ThresholdConditionAbove && bucket.YhatUpper != nil {
 				alertCondition = *bucket.MetricValue >= *bucket.YhatUpper
 			} else if alert.ThresholdCondition == modelInputs.ThresholdConditionBelow && bucket.YhatLower != nil {
 				alertCondition = *bucket.MetricValue <= *bucket.YhatLower
 			} else if alert.ThresholdCondition == modelInputs.ThresholdConditionOutside && bucket.YhatUpper != nil && bucket.YhatLower != nil {
 				alertCondition = *bucket.MetricValue >= *bucket.YhatUpper || *bucket.MetricValue <= *bucket.YhatLower
+			}
+		} else {
+			if alert.ThresholdCondition == modelInputs.ThresholdConditionBelow {
+				alertCondition = *bucket.MetricValue <= thresholdValue
+			} else {
+				alertCondition = *bucket.MetricValue >= thresholdValue
 			}
 		}
 
