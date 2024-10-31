@@ -15,6 +15,7 @@ import (
 
 type Language string
 
+const JavascriptOTeL Language = "js-otel"
 const Javascript Language = "js"
 const Python Language = "python"
 const Golang Language = "golang"
@@ -41,7 +42,12 @@ var (
 
 // StructureOTELStackTrace processes a backend opentelemetry stacktrace into a structured ErrorTraces.
 // The operation returns the deepest frame first (reversing the order of the incoming stacktrace).
-func StructureOTELStackTrace(stackTrace string) ([]*publicModel.ErrorTrace, error) {
+func StructureOTELStackTrace(stackTrace string, opts ...StructureStackTraceOption) ([]*publicModel.ErrorTrace, error) {
+	var cfg StructureStackTraceConfig
+	for _, opt := range opts {
+		opt(&cfg)
+	}
+
 	var jsonStr string
 	if err := json.Unmarshal([]byte(stackTrace), &jsonStr); err == nil {
 		stackTrace = jsonStr
@@ -77,9 +83,9 @@ func StructureOTELStackTrace(stackTrace string) ([]*publicModel.ErrorTrace, erro
 				}
 				continue
 			} else if matches := jsOTeLPattern.FindSubmatch([]byte(line)); matches != nil {
-				language = Javascript
+				language = JavascriptOTeL
 			}
-			if language != Javascript {
+			if language != JavascriptOTeL {
 				errMsg = line
 				continue
 			}
@@ -111,16 +117,11 @@ func StructureOTELStackTrace(stackTrace string) ([]*publicModel.ErrorTrace, erro
 			frame.FileName = pointy.String(string(matches[2]))
 			line, _ := strconv.ParseInt(string(matches[3]), 10, 32)
 			frame.LineNumber = pointy.Int(int(line))
-		} else if matches := jsOTeLPattern.FindSubmatch([]byte(line)); matches != nil {
-			language = Javascript
-			frame.FunctionName = pointy.String(string(matches[1]))
-			frame.FileName = pointy.String(string(matches[2]))
-			l, _ := strconv.ParseInt(string(matches[3]), 10, 32)
-			col, _ := strconv.ParseInt(string(matches[4]), 10, 32)
-			frame.LineNumber = pointy.Int(int(l))
-			frame.ColumnNumber = pointy.Int(int(col))
 		} else if matches := jsPattern.FindSubmatch([]byte(line)); matches != nil {
 			language = Javascript
+			if cfg.FromOTeL {
+				language = JavascriptOTeL
+			}
 			if matches[2] != nil {
 				frame.FunctionName = pointy.String(string(matches[2]))
 			}
@@ -131,9 +132,20 @@ func StructureOTELStackTrace(stackTrace string) ([]*publicModel.ErrorTrace, erro
 			frame.ColumnNumber = pointy.Int(int(col))
 		} else if matches := jsAnonPattern.FindSubmatch([]byte(line)); matches != nil {
 			language = Javascript
+			if cfg.FromOTeL {
+				language = JavascriptOTeL
+			}
 			frame.FunctionName = pointy.String(string(matches[1]))
 			frame.FileName = pointy.String(string(matches[2]))
 			frame.LineContent = pointy.String(string(matches[2]))
+		} else if matches := jsOTeLPattern.FindSubmatch([]byte(line)); matches != nil {
+			language = JavascriptOTeL
+			frame.FunctionName = pointy.String(string(matches[1]))
+			frame.FileName = pointy.String(string(matches[2]))
+			l, _ := strconv.ParseInt(string(matches[3]), 10, 32)
+			col, _ := strconv.ParseInt(string(matches[4]), 10, 32)
+			frame.LineNumber = pointy.Int(int(l))
+			frame.ColumnNumber = pointy.Int(int(col))
 		} else if matches := pyPattern.FindSubmatch([]byte(line)); matches != nil {
 			language = Python
 			frame.FunctionName = pointy.String(string(matches[3]))
@@ -175,9 +187,9 @@ func StructureOTELStackTrace(stackTrace string) ([]*publicModel.ErrorTrace, erro
 		frames = append(frames, frame)
 		frame = nil
 	}
-	// for otel non go/.net errors, stacktraces are sent top-down (top frame is most outer; bottom frame is most inner)
+	// for some non-otel-native errors, stacktraces are sent top-down (top frame is most outer; bottom frame is most inner)
 	// our backend expects to store stack traces in the opposite order, so we have to reverse it before returning.
-	if language != Golang && language != DotNET && language != Ruby {
+	if language != JavascriptOTeL && language != Golang && language != DotNET && language != Ruby {
 		for i, j := 0, len(frames)-1; i < j; i, j = i+1, j-1 {
 			frames[i], frames[j] = frames[j], frames[i]
 		}
@@ -185,8 +197,8 @@ func StructureOTELStackTrace(stackTrace string) ([]*publicModel.ErrorTrace, erro
 	return frames, nil
 }
 
-func FormatStructureStackTrace(ctx context.Context, stackTrace string) string {
-	frames, err := StructureOTELStackTrace(stackTrace)
+func FormatStructureStackTrace(ctx context.Context, stackTrace string, opts ...StructureStackTraceOption) string {
+	frames, err := StructureOTELStackTrace(stackTrace, opts...)
 	if err != nil {
 		log.WithContext(ctx).WithField("StackTrace", stackTrace).WithError(err).Warnf("otel failed to structure stacktrace")
 		return stackTrace
@@ -197,4 +209,16 @@ func FormatStructureStackTrace(ctx context.Context, stackTrace string) string {
 		return stackTrace
 	}
 	return string(output)
+}
+
+type StructureStackTraceConfig struct {
+	FromOTeL bool
+}
+
+type StructureStackTraceOption func(cfg *StructureStackTraceConfig)
+
+func FromOTeL() StructureStackTraceOption {
+	return func(cfg *StructureStackTraceConfig) {
+		cfg.FromOTeL = true
+	}
 }
