@@ -584,6 +584,7 @@ export const GraphingEditor: React.FC = () => {
 			graphPreview.functionType === MetricAggregator.Count
 				? ''
 				: graphPreview.metric
+		console.log('fetchedMetric', settings.fetchedMetric)
 		settings.metricViewTitle = graphPreview.title
 		settings.groupByEnabled = (graphPreview.groupByKeys ?? []).length > 0
 		settings.groupByKeys = graphPreview.groupByKeys ?? []
@@ -844,8 +845,12 @@ export const GraphingEditor: React.FC = () => {
 														viewType !==
 															'Funnel chart',
 												)}
-												selection={productType}
-												setSelection={setProductType}
+												selection={settings.productType}
+												setSelection={(s) => {
+													s !==
+														settings.productType &&
+														setProductType(s)
+												}}
 												disabled={isPreview}
 											/>
 										</LabeledRow>
@@ -864,11 +869,10 @@ export const GraphingEditor: React.FC = () => {
 														v.value !==
 															'Funnel chart',
 												)}
-												selection={viewType}
-												setSelection={(
-													option: string,
-												) => {
-													setViewType(option as View)
+												selection={settings.viewType}
+												setSelection={(s) => {
+													s !== settings.viewType &&
+														setViewType(s as View)
 												}}
 												disabled={isPreview}
 											/>
@@ -996,7 +1000,9 @@ export const GraphingEditor: React.FC = () => {
 										>
 											<OptionDropdown
 												options={FUNCTION_TYPES}
-												selection={functionType}
+												selection={
+													settings.functionType
+												}
 												setSelection={setFunctionType}
 												disabled={
 													settings.viewType ===
@@ -1005,7 +1011,9 @@ export const GraphingEditor: React.FC = () => {
 												}
 											/>
 											<Combobox
-												selection={fetchedMetric}
+												selection={
+													settings.fetchedMetric
+												}
 												setSelection={setMetric}
 												searchConfig={
 													searchOptionsConfig
@@ -1042,7 +1050,7 @@ export const GraphingEditor: React.FC = () => {
 											tooltip="A categorical field for grouping results into separate series."
 										>
 											<Combobox
-												selection={groupByKeys}
+												selection={settings.groupByKeys}
 												setSelection={setGroupByKeys}
 												searchConfig={
 													searchOptionsConfig
@@ -1097,7 +1105,7 @@ export const GraphingEditor: React.FC = () => {
 													<OptionDropdown
 														options={FUNCTION_TYPES}
 														selection={
-															limitFunctionType
+															settings.limitFunctionType
 														}
 														setSelection={
 															setLimitFunctionType
@@ -1106,7 +1114,7 @@ export const GraphingEditor: React.FC = () => {
 													/>
 													<Combobox
 														selection={
-															fetchedLimitMetric
+															settings.fetchedLimitMetric
 														}
 														setSelection={
 															setLimitMetric
@@ -1169,7 +1177,9 @@ export const GraphingEditor: React.FC = () => {
 													tooltip="A numeric field for bucketing results along the X-axis. Timestamp for time series charts, numeric fields for histograms, can be disabled to aggregate all results within the time range."
 												>
 													<Combobox
-														selection={bucketByKey}
+														selection={
+															settings.bucketByKey
+														}
 														setSelection={
 															setBucketByKey
 														}
