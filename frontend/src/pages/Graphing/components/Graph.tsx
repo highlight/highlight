@@ -838,7 +838,7 @@ const Graph = ({
 	const [fetchStart, setFetchStart] = useState<Date>()
 	const [fetchEnd, setFetchEnd] = useState<Date>()
 	const [results, setResults] = useState<GetMetricsQuery[]>()
-	const [loading, setLoading] = useState<boolean>(false)
+	const [loading, setLoading] = useState<boolean>(true)
 
 	const { set } = useRelatedResource()
 
@@ -1100,7 +1100,7 @@ const Graph = ({
 				alignItems="center"
 				justifyContent="center"
 			>
-				{!loading && (
+				{!loading && called && (
 					<Badge
 						size="medium"
 						shape="basic"
@@ -1222,6 +1222,7 @@ const Graph = ({
 						viewConfig={viewConfig}
 						series={series}
 						disabled={disabled}
+						loadExemplars={loadExemplars}
 					/>
 				)
 				break
@@ -1251,7 +1252,7 @@ const Graph = ({
 					{title || 'Untitled metric view'}
 				</Text>
 			</Box>
-			{called && (
+			{
 				<Box
 					style={{ height: height ?? '100%' }}
 					key={series.join(';')} // Hacky but recharts' ResponsiveContainer has issues when this height changes so just rerender the whole thing
@@ -1285,7 +1286,13 @@ const Graph = ({
 					)}
 					{innerChart}
 				</Box>
-			)}
+			}
+			{loading &&
+				groupByKeys !== undefined &&
+				groupByKeys.length > 0 &&
+				viewConfig.showLegend && (
+					<Box position="relative" cssClass={style.legendLoading} />
+				)}
 			{showLegend && (
 				<Box position="relative" cssClass={style.legendWrapper}>
 					{series.map((key, idx) => {
