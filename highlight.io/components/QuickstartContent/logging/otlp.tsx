@@ -17,6 +17,7 @@ import { Resource } from '@opentelemetry/resources'
 import type { Attributes } from '@opentelemetry/api'
 
 const attributes: Attributes = {
+	// Provide the highlight project ID as a resource attribute or via the exporter headers
     'highlight.project_id': '<YOUR_PROJECT_ID>'
 }
 const sdk = new NodeSDK({
@@ -25,6 +26,9 @@ const sdk = new NodeSDK({
 		// NB: this is the url for trace exports. if you are using a language which supports
 		// the opentelemetry logs format, use 'https://otel.highlight.io:4318/v1/logs'
 		url: 'https://otel.highlight.io:4318/v1/traces'
+		// In some OpenTelemetry implementations, it's easier to provide 
+		// the project ID as a header rather than a resource attribute.
+		// headers: { 'x-highlight-project': '<YOUR_PROJECT_ID>' }
 	})
 });
 const tracer = trace.getTracer('my-service');
