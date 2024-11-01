@@ -46,7 +46,11 @@ import {
 	DEFAULT_TRACE_COLUMNS,
 	HIGHLIGHT_STANDARD_COLUMNS as TRACE_STANDARD_COLUMNS,
 } from '@/pages/Traces/CustomColumns/columns'
-import { ProductType, TraceEdge } from '@/graph/generated/schemas'
+import {
+	ProductType,
+	SortDirection,
+	TraceEdge,
+} from '@/graph/generated/schemas'
 
 import * as styles from './ResourceTable.css'
 
@@ -119,6 +123,9 @@ type TableInnerProps<T> = {
 	fetchMoreWhenScrolled: (target: HTMLDivElement) => void
 	bodyHeight: string
 	columnRenderers: ColumnRenderMap
+	sortDirection?: SortDirection
+	sortColumn?: string
+	handleSort?: (column: string, direction?: SortDirection | null) => void
 }
 
 const LOADING_AFTER_HEIGHT = 28
@@ -156,6 +163,9 @@ const TableInner = <T,>({
 	bodyHeight,
 	fetchMoreWhenScrolled,
 	columnRenderers,
+	sortDirection,
+	sortColumn,
+	handleSort,
 }: TableInnerProps<T>) => {
 	const bodyRef = useRef<HTMLDivElement>(null)
 
@@ -185,6 +195,9 @@ const TableInner = <T,>({
 				id: column.id,
 				component: column.label,
 				showActions: true,
+				onSort: (direction?: SortDirection | null) => {
+					handleSort?.(column.id, direction)
+				},
 			})
 
 			const accessorFn =
@@ -303,6 +316,8 @@ const TableInner = <T,>({
 							standardColumns={resourceAttributes.standardColumns}
 							trackingIdPrefix={`${resourceType}-related-table-column`}
 							setSelectedColumns={setSelectedColumns}
+							sortColumn={sortColumn}
+							sortDirection={sortDirection}
 						/>
 					))}
 				</Table.Row>

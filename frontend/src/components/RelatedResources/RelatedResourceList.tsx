@@ -10,7 +10,7 @@ import { ResourceTable } from '@/components/RelatedResources/ResourceTable'
 import { SearchContext } from '@/components/Search/SearchContext'
 import { SearchForm } from '@/components/Search/SearchForm/SearchForm'
 import { parseSearch } from '@/components/Search/utils'
-import { ProductType } from '@/graph/generated/schemas'
+import { ProductType, SortDirection } from '@/graph/generated/schemas'
 import { useNumericProjectId } from '@/hooks/useProjectId'
 import { ErrorObjectColumnRenderers } from '@/pages/ErrorsV2/CustomColumns/renderers'
 import { SessionColumnRenderers } from '@/pages/Sessions/CustomColumns/renderers'
@@ -37,6 +37,32 @@ export const RelatedResourceList: React.FC<{
 	const startDate = useMemo(() => new Date(resource.startDate), [])
 	const endDate = useMemo(() => new Date(resource.endDate), [])
 	/* eslint-enable react-hooks/exhaustive-deps */
+
+	const [sortDirection, setSortDirection] = useState<SortDirection>()
+	const [sortColumn, setSortColumn] = useState<string>()
+
+	const handleSort = useCallback(
+		(column: string, direction?: SortDirection | null) => {
+			if (
+				column === sortColumn &&
+				(direction === null || sortDirection === SortDirection.Asc)
+			) {
+				setSortColumn(undefined)
+				setSortDirection(undefined)
+			} else {
+				const nextDirection =
+					direction ??
+					(column === sortColumn &&
+					sortDirection === SortDirection.Desc
+						? SortDirection.Asc
+						: SortDirection.Desc)
+
+				setSortColumn(column)
+				setSortDirection(nextDirection)
+			}
+		},
+		[setSortColumn, setSortDirection, sortColumn, sortDirection],
+	)
 
 	const path = useMemo(() => {
 		const encodedQuery = encodeQueryParams(
@@ -78,6 +104,8 @@ export const RelatedResourceList: React.FC<{
 		startDate,
 		endDate,
 		skipPolling: true,
+		sortColumn,
+		sortDirection,
 		skip: resource.type !== 'traces',
 	})
 
@@ -201,6 +229,9 @@ export const RelatedResourceList: React.FC<{
 					fetchMoreWhenScrolled={fetchMoreWhenScrolled}
 					bodyHeight="calc(100% - 64px)"
 					resources={traceEdges}
+					handleSort={handleSort}
+					sortDirection={sortDirection}
+					sortColumn={sortColumn}
 				/>
 			)
 			break
