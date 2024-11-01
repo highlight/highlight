@@ -8,7 +8,6 @@ import {
 } from '@highlight-run/ui/components'
 import clsx from 'clsx'
 import _ from 'lodash'
-import { useState } from 'react'
 
 import {
 	BUCKET_MAX_KEY,
@@ -17,9 +16,11 @@ import {
 	GROUP_KEY,
 	InnerChartProps,
 	SeriesInfo,
+	VizId,
 } from '@/pages/Graphing/components/Graph'
 
 import * as style from './Table.css'
+import useLocalStorage from '@rehooks/local-storage'
 
 export type TableNullHandling = 'Hide row' | 'Blank' | 'Zero'
 export const TABLE_NULL_HANDLING: TableNullHandling[] = [
@@ -50,7 +51,8 @@ export const MetricTable = ({
 	viewConfig,
 	disabled,
 	loadExemplars,
-}: InnerChartProps<TableConfig> & SeriesInfo) => {
+	visualizationId,
+}: InnerChartProps<TableConfig> & SeriesInfo & VizId) => {
 	const xAxisTickFormatter = getTickFormatter(xAxisMetric)
 	const valueFormatter = getTickFormatter(yAxisMetric)
 
@@ -59,8 +61,14 @@ export const MetricTable = ({
 
 	const showMetricFn = series.join('') === ''
 
-	const [sortColumn, setSortColumn] = useState(-1)
-	const [sortAsc, setSortAsc] = useState(true)
+	const [sortAsc, setSortAsc] = useLocalStorage<boolean>(
+		`sort-asc-${visualizationId}`,
+		true,
+	)
+	const [sortColumn, setSortColumn] = useLocalStorage<number>(
+		`sort-col-${visualizationId}`,
+		-1,
+	)
 
 	const onSort = (colIdx: number) => () => {
 		if (sortColumn === colIdx) {
