@@ -751,13 +751,17 @@ export const useFunnelData = (
 ) => {
 	return useMemo(() => {
 		if (!results?.length || !results[0]?.metrics) return
-		const buckets: { [key: number]: { value: number; percent: number } } =
-			{}
+		const buckets: {
+			[key: number]: { value: number; percent: number }
+		} = {}
 		let groups = new Set<string>(
 			results[0].metrics.buckets.map((b) => b.group[0]),
 		)
 		results.forEach((r, idx) => {
 			if (r?.metrics?.buckets) {
+				const resultGroups = new Set<string>(
+					r.metrics.buckets.map((b) => b.group[0]),
+				)
 				r.metrics.buckets.forEach((b) => {
 					const group = b?.group[0]
 					const prev = buckets[idx - 1]?.value ?? 0
@@ -770,9 +774,7 @@ export const useFunnelData = (
 						percent: prev > 0 ? value / prev : 1,
 					}
 				})
-				groups = groups.intersection(
-					new Set<string>(r.metrics.buckets.map((b) => b.group[0])),
-				)
+				groups = groups.intersection(resultGroups)
 			}
 		})
 
@@ -925,7 +927,7 @@ const Graph = ({
 				relatedResourceType = 'sessions'
 				break
 			case ProductType.Events:
-				relatedResourceType = 'sessions'
+				relatedResourceType = 'events'
 				groupByKeys = undefined
 				break
 			default:
