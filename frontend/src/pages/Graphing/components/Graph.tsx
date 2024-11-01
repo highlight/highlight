@@ -393,7 +393,6 @@ const durationUnitMap: [number, string][] = [
 	[1000, 's'],
 	[60, 'm'],
 	[60, 'h'],
-	[24, 'd'],
 ]
 
 const DEFAULT_TIME_METRIC = 'ns'
@@ -434,7 +433,7 @@ export const getTickFormatter = (metric: string, data?: any[] | undefined) => {
 				value /= entry[0]
 				lastUnit = entry[1]
 			}
-			return `${value.toFixed(0)}${lastUnit}`
+			return `${value.toFixed(lastUnit === 'h' ? 1 : 0)}${lastUnit}`
 		}
 	} else if (metric === 'percent') {
 		return (value: any) => {
@@ -940,6 +939,9 @@ const Graph = ({
 		)
 		if (groupByKeys !== undefined && groupByKeys.length > 0) {
 			groups?.split(', ').forEach((group, idx) => {
+				if (!groupByKeys) {
+					return
+				}
 				if (group !== NO_GROUP_PLACEHOLDER && group !== '') {
 					relatedResourceQuery += ` ${groupByKeys[idx]}="${group}"`
 				} else {
