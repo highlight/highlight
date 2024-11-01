@@ -1,5 +1,5 @@
 import { vars } from '@highlight-run/ui/vars'
-import { style } from '@vanilla-extract/css'
+import { keyframes, style } from '@vanilla-extract/css'
 
 export const graphCard = style({
 	borderBottom: vars.border.dividerWeak,
@@ -60,5 +60,19 @@ export const buttonContainer = style({
 	lineHeight: '24px',
 	height: '24px',
 	alignItems: 'center',
+	justifyItems: 'flex-end',
 	zIndex: 1,
+})
+
+const fadeOut = keyframes({
+	'0%': { opacity: 1 },
+	'80%': { opacity: 1 },
+	'100%': { opacity: 0 },
+})
+
+export const drilldownHint = style({
+	animationName: fadeOut,
+	animationDuration: '2s',
+	animationTimingFunction: 'linear',
+	animationFillMode: 'forwards',
 })

@@ -47,6 +47,7 @@ export const Combobox = <T extends string | string[]>({
 		[query],
 	)
 
+	const keyResults = data?.keys || previousData?.keys
 	const keyOptions = useMemo(() => {
 		const baseKeys: string[] = []
 
@@ -57,14 +58,14 @@ export const Combobox = <T extends string | string[]>({
 		}
 
 		const searchKeys =
-			_.chain(data?.keys || previousData?.keys || [])
+			_.chain(keyResults || [])
 				.map('name')
 				.uniq()
 				.value() ?? []
 
-		return baseKeys.concat(searchKeys).slice(0, 10)
+		return baseKeys.concat(searchKeys).slice(0, 8)
 		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [data?.keys, previousData?.keys, defaultKeys])
+	}, [keyResults, defaultKeys])
 
 	useEffect(() => {
 		getKeys({
@@ -91,16 +92,28 @@ export const Combobox = <T extends string | string[]>({
 
 	const showSpinner = query !== debouncedQuery || loading
 
+	const setSelectionDedupe = (s: T) => {
+		if (
+			isArray(s) &&
+			isArray(selection) &&
+			s.join('|') !== selection.join('|')
+		) {
+			setSelection(s)
+		} else if (s !== selection) {
+			setSelection(s)
+		}
+	}
+
 	return (
 		<Select
-			filterable
+			customFilterable
 			value={selection}
 			options={keyOptions}
 			onValueChange={(v) => {
 				if (isArray(v)) {
-					setSelection(v.map((v) => v.value) as any)
+					setSelectionDedupe(v.map((v) => v.value) as any)
 				} else {
-					setSelection(v.value)
+					setSelectionDedupe(v.value)
 				}
 			}}
 			onSearchValueChange={setQuery}
@@ -131,7 +144,8 @@ export const ValueCombobox: React.FC<ValueProps> = ({
 	defaultValues,
 }) => {
 	const { projectId } = useProjectId()
-	const [getKeyValues, { data, loading }] = useGetKeyValuesLazyQuery()
+	const [getKeyValues, { data, loading, previousData }] =
+		useGetKeyValuesLazyQuery()
 	const [query, setQuery] = useState('')
 	const [debouncedQuery, setDebouncedQuery] = useState('')
 	useDebounce(
@@ -142,6 +156,7 @@ export const ValueCombobox: React.FC<ValueProps> = ({
 		[query],
 	)
 
+	const keyValueResults = data?.key_values || previousData?.key_values
 	const valueOptions = useMemo(() => {
 		const baseKeys: string[] = []
 
@@ -152,13 +167,13 @@ export const ValueCombobox: React.FC<ValueProps> = ({
 		}
 
 		const searchKeys =
-			_.chain(data?.key_values || [])
+			_.chain(keyValueResults || [])
 				.uniq()
 				.value() ?? []
 
-		return baseKeys.concat(searchKeys).slice(0, 10)
+		return baseKeys.concat(searchKeys).slice(0, 8)
 		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [data?.key_values, defaultValues])
+	}, [keyValueResults, defaultValues])
 
 	useEffect(() => {
 		getKeyValues({
@@ -188,7 +203,7 @@ export const ValueCombobox: React.FC<ValueProps> = ({
 
 	return (
 		<Select
-			filterable
+			customFilterable
 			value={selection}
 			options={valueOptions}
 			onValueChange={(v) => setSelection(v.map((v: any) => v.value))}

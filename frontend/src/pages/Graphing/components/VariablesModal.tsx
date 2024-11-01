@@ -117,7 +117,7 @@ const InnerModal = ({
 	const addVariable = () => {
 		const varsCopy = [...variables]
 		varsCopy.push({
-			defaultValues: [''],
+			defaultValues: [],
 			key: '',
 			suggestionType: SuggestionType.Value,
 		})
@@ -142,7 +142,11 @@ const InnerModal = ({
 	}
 
 	return (
-		<Modal title="Variables" onClose={onHideModal}>
+		<Modal
+			title="Variables"
+			onClose={onHideModal}
+			closeOnClickOutside={false}
+		>
 			<Stack style={{ minWidth: 800, maxWidth: 1000 }}>
 				<Form onSubmit={handleSubmit} store={formStore}>
 					<Table noBorder>

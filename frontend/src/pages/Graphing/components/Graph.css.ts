@@ -25,6 +25,10 @@ export const legendWrapper = style({
 	rowGap: 6,
 })
 
+export const legendLoading = style({
+	height: 42,
+})
+
 export const legendDot = style({
 	borderRadius: '50%',
 	margin: 'auto',

@@ -15,6 +15,7 @@ type Props = {
 	setNullHandling: (option: LineNullHandling) => void
 	lineDisplay: LineDisplay
 	setLineDisplay: (option: LineDisplay) => void
+	disabled?: boolean
 }
 
 export const LineChartSettings: React.FC<Props> = ({
@@ -22,6 +23,7 @@ export const LineChartSettings: React.FC<Props> = ({
 	setNullHandling,
 	lineDisplay,
 	setLineDisplay,
+	disabled,
 }) => (
 	<>
 		<LabeledRow
@@ -36,6 +38,7 @@ export const LineChartSettings: React.FC<Props> = ({
 					setLineDisplay(o as LineDisplay)
 				}}
 				cssClass={style.tagSwitch}
+				disabled={disabled}
 			/>
 		</LabeledRow>
 		<LabeledRow
@@ -50,6 +53,7 @@ export const LineChartSettings: React.FC<Props> = ({
 					setNullHandling(o as LineNullHandling)
 				}}
 				cssClass={style.tagSwitch}
+				disabled={disabled}
 			/>
 		</LabeledRow>
 	</>

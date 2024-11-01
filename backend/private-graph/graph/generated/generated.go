@@ -600,6 +600,7 @@ type ComplexityRoot struct {
 		BucketByKey       func(childComplexity int) int
 		BucketCount       func(childComplexity int) int
 		BucketInterval    func(childComplexity int) int
+		Description       func(childComplexity int) int
 		Display           func(childComplexity int) int
 		FunctionType      func(childComplexity int) int
 		FunnelSteps       func(childComplexity int) int
@@ -1069,6 +1070,7 @@ type ComplexityRoot struct {
 		GithubRepos                      func(childComplexity int, workspaceID int) int
 		GitlabProjects                   func(childComplexity int, workspaceID int) int
 		Graph                            func(childComplexity int, id int) int
+		GraphTemplates                   func(childComplexity int) int
 		HeightLists                      func(childComplexity int, projectID int) int
 		HeightWorkspaces                 func(childComplexity int, workspaceID int) int
 		IdentifierSuggestion             func(childComplexity int, projectID int, query string) int
@@ -2043,6 +2045,7 @@ type QueryResolver interface {
 	Visualization(ctx context.Context, id int) (*model1.Visualization, error)
 	Visualizations(ctx context.Context, projectID int, input string, count int, offset int) (*model1.VisualizationsResponse, error)
 	Graph(ctx context.Context, id int) (*model1.Graph, error)
+	GraphTemplates(ctx context.Context) ([]*model1.Graph, error)
 	LogLines(ctx context.Context, productType model.ProductType, projectID int, params model.QueryInput) ([]*model.LogLine, error)
 }
 type SavedSegmentResolver interface {
@@ -4654,6 +4657,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Graph.BucketInterval(childComplexity), true
+
+	case "Graph.description":
+		if e.complexity.Graph.Description == nil {
+			break
+		}
+
+		return e.complexity.Graph.Description(childComplexity), true
 
 	case "Graph.display":
 		if e.complexity.Graph.Display == nil {
@@ -7852,6 +7862,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Query.Graph(childComplexity, args["id"].(int)), true
+
+	case "Query.graph_templates":
+		if e.complexity.Query.GraphTemplates == nil {
+			break
+		}
+
+		return e.complexity.Query.GraphTemplates(childComplexity), true
 
 	case "Query.height_lists":
 		if e.complexity.Query.HeightLists == nil {
@@ -13790,6 +13807,7 @@ type Graph {
 	id: ID!
 	type: String!
 	title: String!
+	description: String!
 	productType: ProductType!
 	query: String!
 	metric: String!
@@ -14376,6 +14394,7 @@ type Query {
 		offset: Int!
 	): VisualizationsResponse!
 	graph(id: ID!): Graph!
+	graph_templates: [Graph!]!
 	log_lines(
 		product_type: ProductType!
 		project_id: ID!
@@ -39502,6 +39521,50 @@ func (ec *executionContext) fieldContext_Graph_title(ctx context.Context, field 
 	return fc, nil
 }
 
+func (ec *executionContext) _Graph_description(ctx context.Context, field graphql.CollectedField, obj *model1.Graph) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Graph_description(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Description, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Graph_description(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Graph",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Graph_productType(ctx context.Context, field graphql.CollectedField, obj *model1.Graph) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Graph_productType(ctx, field)
 	if err != nil {
@@ -52720,6 +52783,8 @@ func (ec *executionContext) fieldContext_Mutation_upsertGraph(ctx context.Contex
 				return ec.fieldContext_Graph_type(ctx, field)
 			case "title":
 				return ec.fieldContext_Graph_title(ctx, field)
+			case "description":
+				return ec.fieldContext_Graph_description(ctx, field)
 			case "productType":
 				return ec.fieldContext_Graph_productType(ctx, field)
 			case "query":
@@ -65867,6 +65932,8 @@ func (ec *executionContext) fieldContext_Query_graph(ctx context.Context, field 
 				return ec.fieldContext_Graph_type(ctx, field)
 			case "title":
 				return ec.fieldContext_Graph_title(ctx, field)
+			case "description":
+				return ec.fieldContext_Graph_description(ctx, field)
 			case "productType":
 				return ec.fieldContext_Graph_productType(ctx, field)
 			case "query":
@@ -65909,6 +65976,88 @@ func (ec *executionContext) fieldContext_Query_graph(ctx context.Context, field 
 	if fc.Args, err = ec.field_Query_graph_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Query_graph_templates(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Query_graph_templates(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().GraphTemplates(rctx)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]*model1.Graph)
+	fc.Result = res
+	return ec.marshalNGraph2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐGraphᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Query_graph_templates(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_Graph_id(ctx, field)
+			case "type":
+				return ec.fieldContext_Graph_type(ctx, field)
+			case "title":
+				return ec.fieldContext_Graph_title(ctx, field)
+			case "description":
+				return ec.fieldContext_Graph_description(ctx, field)
+			case "productType":
+				return ec.fieldContext_Graph_productType(ctx, field)
+			case "query":
+				return ec.fieldContext_Graph_query(ctx, field)
+			case "metric":
+				return ec.fieldContext_Graph_metric(ctx, field)
+			case "functionType":
+				return ec.fieldContext_Graph_functionType(ctx, field)
+			case "groupByKeys":
+				return ec.fieldContext_Graph_groupByKeys(ctx, field)
+			case "bucketByKey":
+				return ec.fieldContext_Graph_bucketByKey(ctx, field)
+			case "bucketCount":
+				return ec.fieldContext_Graph_bucketCount(ctx, field)
+			case "bucketInterval":
+				return ec.fieldContext_Graph_bucketInterval(ctx, field)
+			case "limit":
+				return ec.fieldContext_Graph_limit(ctx, field)
+			case "limitFunctionType":
+				return ec.fieldContext_Graph_limitFunctionType(ctx, field)
+			case "limitMetric":
+				return ec.fieldContext_Graph_limitMetric(ctx, field)
+			case "funnelSteps":
+				return ec.fieldContext_Graph_funnelSteps(ctx, field)
+			case "display":
+				return ec.fieldContext_Graph_display(ctx, field)
+			case "nullHandling":
+				return ec.fieldContext_Graph_nullHandling(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type Graph", field.Name)
+		},
 	}
 	return fc, nil
 }
@@ -80113,6 +80262,8 @@ func (ec *executionContext) fieldContext_Visualization_graphs(ctx context.Contex
 				return ec.fieldContext_Graph_type(ctx, field)
 			case "title":
 				return ec.fieldContext_Graph_title(ctx, field)
+			case "description":
+				return ec.fieldContext_Graph_description(ctx, field)
 			case "productType":
 				return ec.fieldContext_Graph_productType(ctx, field)
 			case "query":
@@ -90187,6 +90338,11 @@ func (ec *executionContext) _Graph(ctx context.Context, sel ast.SelectionSet, ob
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&out.Invalids, 1)
 			}
+		case "description":
+			out.Values[i] = ec._Graph_description(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&out.Invalids, 1)
+			}
 		case "productType":
 			out.Values[i] = ec._Graph_productType(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
@@ -96767,6 +96923,28 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_graph(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx,
+					func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
+		case "graph_templates":
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_graph_templates(ctx, field)
 				if res == graphql.Null {
 					atomic.AddUint32(&fs.Invalids, 1)
 				}
@@ -103459,6 +103637,50 @@ func (ec *executionContext) marshalNGraph2ᚕgithubᚗcomᚋhighlightᚑrunᚋhi
 				defer wg.Done()
 			}
 			ret[i] = ec.marshalNGraph2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐGraph(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
+}
+
+func (ec *executionContext) marshalNGraph2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐGraphᚄ(ctx context.Context, sel ast.SelectionSet, v []*model1.Graph) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNGraph2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐGraph(ctx, sel, v[i])
 		}
 		if isLen1 {
 			f(i)

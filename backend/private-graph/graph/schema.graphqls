@@ -2033,6 +2033,7 @@ type Graph {
 	id: ID!
 	type: String!
 	title: String!
+	description: String!
 	productType: ProductType!
 	query: String!
 	metric: String!
@@ -2619,6 +2620,7 @@ type Query {
 		offset: Int!
 	): VisualizationsResponse!
 	graph(id: ID!): Graph!
+	graph_templates: [Graph!]!
 	log_lines(
 		product_type: ProductType!
 		project_id: ID!
