@@ -21,11 +21,11 @@ The SDK provides common methods for recording exceptions or logging, but this ma
 
 ## Configuring OpenTelemetry attributes
 
-Highlight follows OpenTelemetry [semantic conventions](https://opentelemetry.io/docs/reference/specification/trace/semantic_conventions/) to record data in highlight with metadata you expect. However, there are a few key attributes that highlight treats distinctly.
+Highlight follows OpenTelemetry [semantic conventions](https://opentelemetry.io/docs/reference/specification/trace/semantic_conventions/) to record data in Highlight with metadata you expect. However, there are a few key attributes that highlight treats distinctly.
 
 ### Setting the Highlight Project ID
 
-To have your OpenTelemetry data land in your highlight project, you must provide the highlight project identifier with the data.
+To have your OpenTelemetry data land in your Highlight project, you must provide the Highlight project identifier with the data.
 This can be done via an exporter HTTP header, resource attributes, or data attributes (on the individual span / log / metric records). 
 
 - x-highlight-project - use this HTTP header for OpenTelemetry exporter configuration
