@@ -75,6 +75,7 @@ type Props<T> = {
 	selectedColumns: SerializedColumn[]
 	standardColumns: Record<string, SerializedColumn>
 	setSelectedColumns: (columns: SerializedColumn[]) => void
+	preventKeySearch?: boolean
 }
 
 export const CustomColumnPopover = <T,>({
@@ -83,6 +84,7 @@ export const CustomColumnPopover = <T,>({
 	selectedColumns,
 	standardColumns,
 	setSelectedColumns,
+	preventKeySearch,
 }: Props<T>) => {
 	const { project_id } = useParams()
 	const [query, setQuery] = useState<string>('')
@@ -97,7 +99,7 @@ export const CustomColumnPopover = <T,>({
 	const [getKeys, { data, loading }] = useGetKeysLazyQuery()
 
 	useEffect(() => {
-		if (debouncedQuery) {
+		if (!preventKeySearch && debouncedQuery) {
 			getKeys({
 				variables: {
 					product_type: productType,
@@ -110,7 +112,15 @@ export const CustomColumnPopover = <T,>({
 				},
 			})
 		}
-	}, [debouncedQuery, startDate, endDate, productType, project_id, getKeys])
+	}, [
+		debouncedQuery,
+		startDate,
+		endDate,
+		productType,
+		project_id,
+		getKeys,
+		preventKeySearch,
+	])
 
 	const defaultColumnOptions = useMemo(() => {
 		const seletedColumnHash = selectedColumns.reduce(

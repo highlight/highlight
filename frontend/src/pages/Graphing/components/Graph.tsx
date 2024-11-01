@@ -695,11 +695,6 @@ export const useGraphData = (
 					metrics.metrics.buckets.find((b) => b.group.length) !==
 					undefined
 
-				console.log(
-					'hasGroups',
-					metrics.metrics.buckets.find((b) => b.group.length),
-				)
-
 				for (const b of metrics.metrics.buckets) {
 					const seriesKey = hasGroups
 						? b.group.join(', ') || NO_GROUP_PLACEHOLDER
