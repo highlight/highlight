@@ -187,7 +187,7 @@ export type LoadExemplars = (
 	bucketMin: number | undefined,
 	bucketMax: number | undefined,
 	group: string | undefined,
-	stepQuery: string | undefined,
+	stepQuery?: string,
 ) => void
 
 export type SetTimeRange = (startDate: Date, endDate: Date) => void
