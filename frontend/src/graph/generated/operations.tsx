@@ -5265,6 +5265,44 @@ export type GetMetricsQuery = { __typename?: 'Query' } & {
 		}
 }
 
+export type GetGraphTemplatesQueryVariables = Types.Exact<{
+	[key: string]: never
+}>
+
+export type GetGraphTemplatesQuery = { __typename?: 'Query' } & {
+	graph_templates: Array<
+		{ __typename?: 'Graph' } & Pick<
+			Types.Graph,
+			| 'id'
+			| 'type'
+			| 'title'
+			| 'description'
+			| 'productType'
+			| 'query'
+			| 'metric'
+			| 'functionType'
+			| 'groupByKeys'
+			| 'bucketByKey'
+			| 'bucketCount'
+			| 'bucketInterval'
+			| 'limit'
+			| 'limitFunctionType'
+			| 'limitMetric'
+			| 'display'
+			| 'nullHandling'
+		> & {
+				funnelSteps?: Types.Maybe<
+					Array<
+						{ __typename?: 'FunnelStep' } & Pick<
+							Types.FunnelStep,
+							'title' | 'query'
+						>
+					>
+				>
+			}
+	>
+}
+
 export type GetVisualizationQueryVariables = Types.Exact<{
 	id: Types.Scalars['ID']
 }>
@@ -5286,6 +5324,7 @@ export type GetVisualizationQuery = { __typename?: 'Query' } & {
 					| 'id'
 					| 'type'
 					| 'title'
+					| 'description'
 					| 'productType'
 					| 'query'
 					| 'metric'
@@ -5554,6 +5593,7 @@ export const namedOperations = {
 		GetKeys: 'GetKeys' as const,
 		GetKeyValues: 'GetKeyValues' as const,
 		GetMetrics: 'GetMetrics' as const,
+		GetGraphTemplates: 'GetGraphTemplates' as const,
 		GetVisualization: 'GetVisualization' as const,
 		GetVisualizations: 'GetVisualizations' as const,
 		GetAIQuerySuggestion: 'GetAIQuerySuggestion' as const,

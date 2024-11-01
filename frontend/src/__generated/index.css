@@ -6636,6 +6636,17 @@ body {
   display: flex;
   align-items: center;
 }
+@keyframes _11t98zr6 {
+  0% {
+    opacity: 1;
+  }
+  80% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
 ._11t98zr0 {
   border-bottom: var(--_1pyqka9k) solid 1px;
 }
@@ -6657,7 +6668,14 @@ body {
   line-height: 24px;
   height: 24px;
   align-items: center;
+  justify-items: flex-end;
   z-index: 1;
+}
+._11t98zr7 {
+  animation-name: _11t98zr6;
+  animation-duration: 2s;
+  animation-timing-function: linear;
+  animation-fill-mode: forwards;
 }
 @media (width <= 850px) {
   ._11t98zr0:nth-child(n+1):nth-last-child(-n+3) {
@@ -6705,6 +6723,9 @@ body {
   row-gap: 6px;
 }
 .dg2vg63 {
+  height: 42px;
+}
+.dg2vg64 {
   border-radius: 50%;
   margin: auto;
   margin-right: 4px;
@@ -6712,21 +6733,21 @@ body {
   height: 8px;
   flex-shrink: 0;
 }
-.dg2vg64 {
+.dg2vg65 {
   text-align: left;
 }
-.dg2vg65 {
+.dg2vg66 {
   height: 16px;
   flex: 1 0 calc(100% / 3);
   max-width: fit-content;
 }
-.dg2vg66 {
+.dg2vg67 {
   line-height: 24px;
   height: 24px;
   align-items: center;
   display: flex;
 }
-.dg2vg67 {
+.dg2vg68 {
   background-color: white;
   border: var(--_1pyqka9j) solid 1px;
   border-radius: 6px;
@@ -6736,17 +6757,17 @@ body {
   gap: 6px;
   padding: 8px;
 }
-.dg2vg68 {
+.dg2vg69 {
   line-height: 16px;
 }
-.dg2vg69 {
+.dg2vg6a {
   max-width: 350px;
 }
-.dg2vg6a {
+.dg2vg6b {
   height: 16px;
   width: 16px;
 }
-.dg2vg6b {
+.dg2vg6c {
   position: absolute;
   background-color: white;
   border: var(--_1pyqka9j) solid 1px;
@@ -6757,23 +6778,23 @@ body {
   gap: 6px;
   padding: 8px;
 }
-.dg2vg6c {
+.dg2vg6d {
   line-height: 16px;
 }
-.dg2vg6d {
+.dg2vg6e {
   border-radius: 50%;
   width: 8px;
   height: 8px;
   flex-shrink: 0;
   flex-grow: 0;
 }
-.dg2vg6e {
+.dg2vg6f {
   pointer-events: none;
 }
-.dg2vg6f {
+.dg2vg6g {
   width: min-content;
 }
-.dg2vg6g {
+.dg2vg6h {
   user-select: none;
 }
 ._1s4anja0 {
@@ -8176,6 +8197,28 @@ body {
 }
 .k0as8h0 {
   width: 100%;
+}
+.uok1x60 {
+  display: grid;
+  width: 100%;
+  height: 100%;
+  grid-template-columns: 1fr 1fr 1fr;
+}
+.uok1x61 {
+  width: 100%;
+  height: 120px;
+  border-radius: 4px;
+  cursor: pointer;
+  border: none;
+}
+.uok1x61:hover {
+  border: 1px solid var(--_1pyqka9j);
+}
+.uok1x62 {
+  color: var(--_1pyqka9b);
+}
+.uok1x63 {
+  color: var(--_1pyqka9d);
 }
 ._1n2x7d50 {
   width: 100%;

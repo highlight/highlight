@@ -15312,6 +15312,81 @@ export type GetMetricsQueryResult = Apollo.QueryResult<
 	Types.GetMetricsQuery,
 	Types.GetMetricsQueryVariables
 >
+export const GetGraphTemplatesDocument = gql`
+	query GetGraphTemplates {
+		graph_templates {
+			id
+			type
+			title
+			description
+			productType
+			query
+			metric
+			functionType
+			groupByKeys
+			bucketByKey
+			bucketCount
+			bucketInterval
+			limit
+			limitFunctionType
+			limitMetric
+			funnelSteps {
+				title
+				query
+			}
+			display
+			nullHandling
+		}
+	}
+`
+
+/**
+ * __useGetGraphTemplatesQuery__
+ *
+ * To run a query within a React component, call `useGetGraphTemplatesQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetGraphTemplatesQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetGraphTemplatesQuery({
+ *   variables: {
+ *   },
+ * });
+ */
+export function useGetGraphTemplatesQuery(
+	baseOptions?: Apollo.QueryHookOptions<
+		Types.GetGraphTemplatesQuery,
+		Types.GetGraphTemplatesQueryVariables
+	>,
+) {
+	return Apollo.useQuery<
+		Types.GetGraphTemplatesQuery,
+		Types.GetGraphTemplatesQueryVariables
+	>(GetGraphTemplatesDocument, baseOptions)
+}
+export function useGetGraphTemplatesLazyQuery(
+	baseOptions?: Apollo.LazyQueryHookOptions<
+		Types.GetGraphTemplatesQuery,
+		Types.GetGraphTemplatesQueryVariables
+	>,
+) {
+	return Apollo.useLazyQuery<
+		Types.GetGraphTemplatesQuery,
+		Types.GetGraphTemplatesQueryVariables
+	>(GetGraphTemplatesDocument, baseOptions)
+}
+export type GetGraphTemplatesQueryHookResult = ReturnType<
+	typeof useGetGraphTemplatesQuery
+>
+export type GetGraphTemplatesLazyQueryHookResult = ReturnType<
+	typeof useGetGraphTemplatesLazyQuery
+>
+export type GetGraphTemplatesQueryResult = Apollo.QueryResult<
+	Types.GetGraphTemplatesQuery,
+	Types.GetGraphTemplatesQueryVariables
+>
 export const GetVisualizationDocument = gql`
 	query GetVisualization($id: ID!) {
 		visualization(id: $id) {
@@ -15330,6 +15405,7 @@ export const GetVisualizationDocument = gql`
 				id
 				type
 				title
+				description
 				productType
 				query
 				metric

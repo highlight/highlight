@@ -1410,6 +1410,7 @@ type Graph struct {
 	VisualizationID   int `gorm:"index"`
 	Type              string
 	Title             string
+	Description       string
 	ProductType       modelInputs.ProductType
 	Query             string
 	Metric            string

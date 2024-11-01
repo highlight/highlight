@@ -10,6 +10,8 @@ import clsx from 'clsx'
 import _ from 'lodash'
 
 import {
+	BUCKET_MAX_KEY,
+	BUCKET_MIN_KEY,
 	getTickFormatter,
 	GROUP_KEY,
 	InnerChartProps,
@@ -48,6 +50,7 @@ export const MetricTable = ({
 	series,
 	viewConfig,
 	disabled,
+	loadExemplars,
 	visualizationId,
 }: InnerChartProps<TableConfig> & SeriesInfo & VizId) => {
 	const xAxisTickFormatter = getTickFormatter(xAxisMetric)
@@ -156,7 +159,23 @@ export const MetricTable = ({
 							return (
 								<Table.Row key={i} className={style.tableRow}>
 									{showXAxisColumn && (
-										<Table.Cell key={i}>
+										<Table.Cell
+											key={i}
+											onClick={
+												loadExemplars
+													? () =>
+															loadExemplars(
+																d[
+																	BUCKET_MIN_KEY
+																],
+																d[
+																	BUCKET_MAX_KEY
+																],
+																d[GROUP_KEY],
+															)
+													: undefined
+											}
+										>
 											<Text
 												size="small"
 												color="default"
@@ -192,7 +211,23 @@ export const MetricTable = ({
 										}
 
 										const out = (
-											<Table.Cell key={i}>
+											<Table.Cell
+												key={i}
+												onClick={
+													loadExemplars
+														? () =>
+																loadExemplars(
+																	d[
+																		BUCKET_MIN_KEY
+																	],
+																	d[
+																		BUCKET_MAX_KEY
+																	],
+																	s,
+																)
+														: undefined
+												}
+											>
 												<Text
 													size="small"
 													color="default"

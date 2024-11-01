@@ -2689,6 +2689,32 @@ query GetMetrics(
 	}
 }
 
+query GetGraphTemplates {
+	graph_templates {
+		id
+		type
+		title
+		description
+		productType
+		query
+		metric
+		functionType
+		groupByKeys
+		bucketByKey
+		bucketCount
+		bucketInterval
+		limit
+		limitFunctionType
+		limitMetric
+		funnelSteps {
+			title
+			query
+		}
+		display
+		nullHandling
+	}
+}
+
 query GetVisualization($id: ID!) {
 	visualization(id: $id) {
 		id
@@ -2706,6 +2732,7 @@ query GetVisualization($id: ID!) {
 			id
 			type
 			title
+			description
 			productType
 			query
 			metric

@@ -29,6 +29,7 @@ export const Modal: React.FC<
 		maxHeight?: string
 		title?: React.ReactNode
 		footer?: React.ReactNode
+		closeOnClickOutside?: boolean
 	}>
 > = ({
 	children,
@@ -41,6 +42,7 @@ export const Modal: React.FC<
 	onClose,
 	title,
 	footer,
+	closeOnClickOutside,
 }) => {
 	const portalRoot = document.getElementById('portal')!
 	return createPortal(
@@ -58,7 +60,7 @@ export const Modal: React.FC<
 				overflow: 'hidden',
 				backgroundColor: '#6F6E777A',
 			}}
-			onClick={onClose}
+			onClick={closeOnClickOutside !== false ? onClose : undefined}
 		>
 			<Stack
 				justifyContent={justifyContent}
