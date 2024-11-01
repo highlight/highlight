@@ -7,7 +7,9 @@ import {
 	IconSolidUserAdd,
 	Stack,
 	Tabs,
+	Tooltip,
 } from '@highlight-run/ui/components'
+import { useAuthContext } from '@/authentication/AuthContext'
 import AllMembers from '@pages/WorkspaceTeam/components/AllMembers'
 import { AutoJoinForm } from '@pages/WorkspaceTeam/components/AutoJoinForm'
 import InviteMemberModal from '@pages/WorkspaceTeam/components/InviteMemberModal'
@@ -125,6 +127,10 @@ const TabContentContainer = ({
 	title: string
 	toggleInviteModal: React.Dispatch<React.SetStateAction<boolean>>
 }) => {
+	const { workspaceRole } = useAuthContext()
+
+	const isAdminUser = workspaceRole === AdminRole.Admin
+
 	return (
 		<Box mt="8">
 			<Stack
@@ -134,20 +140,29 @@ const TabContentContainer = ({
 				direction="row"
 			>
 				<h4 className={styles.tabTitle}>{title}</h4>
-				<EnterpriseFeatureButton
-					setting="enable_business_seats"
-					name="More than 15 team members"
-					fn={() => toggleInviteModal((shown) => !shown)}
-					variant="basic"
+				<Tooltip
+					disabled={isAdminUser}
+					trigger={
+						<EnterpriseFeatureButton
+							setting="enable_business_seats"
+							name="More than 15 team members"
+							fn={() => toggleInviteModal((shown) => !shown)}
+							disabled={!isAdminUser}
+							variant="basic"
+						>
+							<Button
+								trackingId="WorkspaceTeamInviteMember"
+								iconLeft={<IconSolidUserAdd />}
+								onClick={() => null}
+								disabled={!isAdminUser}
+							>
+								Invite users
+							</Button>
+						</EnterpriseFeatureButton>
+					}
 				>
-					<Button
-						trackingId="WorkspaceTeamInviteMember"
-						iconLeft={<IconSolidUserAdd />}
-						onClick={() => console.log('invite users button')}
-					>
-						Invite users
-					</Button>
-				</EnterpriseFeatureButton>
+					Please contact an admin to invite users
+				</Tooltip>
 			</Stack>
 			{children}
 		</Box>

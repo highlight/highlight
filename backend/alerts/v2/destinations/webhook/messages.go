@@ -13,11 +13,18 @@ import (
 	"github.com/highlight-run/highlight/backend/model"
 	modelInputs "github.com/highlight-run/highlight/backend/private-graph/graph/model"
 	"github.com/highlight-run/highlight/backend/routing"
+	"github.com/highlight-run/highlight/backend/util"
 	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 )
 
 func SendAlerts(ctx context.Context, alertInput *destinationsV2.AlertInput, destinations []model.AlertDestination) {
+	span, ctx := util.StartSpanFromContext(ctx, "SendAlerts.Webhooks")
+	span.SetAttribute("alert_id", alertInput.Alert.ID)
+	span.SetAttribute("project_id", alertInput.Alert.ProjectID)
+	span.SetAttribute("product_type", alertInput.Alert.ProductType)
+	defer span.Finish()
+
 	switch alertInput.Alert.ProductType {
 	case modelInputs.ProductTypeSessions:
 		sendSessionAlert(ctx, alertInput, destinations)
@@ -29,6 +36,8 @@ func SendAlerts(ctx context.Context, alertInput *destinationsV2.AlertInput, dest
 		sendTraceAlert(ctx, alertInput, destinations)
 	case modelInputs.ProductTypeMetrics:
 		sendMetricAlert(ctx, alertInput, destinations)
+	case modelInputs.ProductTypeEvents:
+		sendEventAlert(ctx, alertInput, destinations)
 	default:
 		log.WithContext(ctx).WithFields(
 			log.Fields{
@@ -141,7 +150,8 @@ func sendLogAlert(ctx context.Context, alertInput *destinationsV2.AlertInput, de
 		Function:       alertInput.Alert.FunctionType,
 		FunctionColumn: functionColumn,
 		Threshold:      *alertInput.Alert.ThresholdValue,
-		BelowThreshold: *alertInput.Alert.BelowThreshold,
+		// TODO(spenny): fix for anomoly alerts
+		BelowThreshold: (alertInput.Alert.BelowThreshold != nil && *alertInput.Alert.BelowThreshold) || (alertInput.Alert.ThresholdCondition == modelInputs.ThresholdConditionBelow),
 		LogsURL:        alertInput.LogInput.LogsLink,
 	}
 
@@ -183,7 +193,8 @@ func sendTraceAlert(ctx context.Context, alertInput *destinationsV2.AlertInput, 
 		Function:       alertInput.Alert.FunctionType,
 		FunctionColumn: functionColumn,
 		Threshold:      *alertInput.Alert.ThresholdValue,
-		BelowThreshold: *alertInput.Alert.BelowThreshold,
+		// TODO(spenny): fix for anomoly alerts
+		BelowThreshold: (alertInput.Alert.BelowThreshold != nil && *alertInput.Alert.BelowThreshold) || (alertInput.Alert.ThresholdCondition == modelInputs.ThresholdConditionBelow),
 		TracesURL:      alertInput.TraceInput.TracesLink,
 	}
 
@@ -221,8 +232,48 @@ func sendMetricAlert(ctx context.Context, alertInput *destinationsV2.AlertInput,
 		Function:       alertInput.Alert.FunctionType,
 		FunctionColumn: functionColumn,
 		Threshold:      *alertInput.Alert.ThresholdValue,
-		BelowThreshold: *alertInput.Alert.BelowThreshold,
+		// TODO(spenny): fix for anomoly alerts
+		BelowThreshold: (alertInput.Alert.BelowThreshold != nil && *alertInput.Alert.BelowThreshold) || (alertInput.Alert.ThresholdCondition == modelInputs.ThresholdConditionBelow),
 		DashboardURL:   alertInput.MetricInput.DashboardLink,
+	}
+
+	sendAlerts(ctx, messagePayload, destinations)
+}
+
+type EventAlertPayload struct {
+	Event          string
+	AlertName      string
+	Query          string
+	Count          float64
+	Function       modelInputs.MetricAggregator
+	FunctionColumn string
+	Threshold      float64
+	BelowThreshold bool
+	AlertURL       string
+}
+
+func sendEventAlert(ctx context.Context, alertInput *destinationsV2.AlertInput, destinations []model.AlertDestination) {
+	query := ""
+	if alertInput.Alert.Query != nil {
+		query = *alertInput.Alert.Query
+	}
+
+	functionColumn := ""
+	if alertInput.Alert.FunctionColumn != nil {
+		functionColumn = *alertInput.Alert.FunctionColumn
+	}
+
+	messagePayload := EventAlertPayload{
+		Event:          model.AlertType.TRACES,
+		AlertName:      alertInput.Alert.Name,
+		Query:          query,
+		Count:          alertInput.AlertValue,
+		Function:       alertInput.Alert.FunctionType,
+		FunctionColumn: functionColumn,
+		Threshold:      *alertInput.Alert.ThresholdValue,
+		// TODO(spenny): fix for anomoly alerts
+		BelowThreshold: (alertInput.Alert.BelowThreshold != nil && *alertInput.Alert.BelowThreshold) || (alertInput.Alert.ThresholdCondition == modelInputs.ThresholdConditionBelow),
+		AlertURL:       alertInput.AlertLink,
 	}
 
 	sendAlerts(ctx, messagePayload, destinations)

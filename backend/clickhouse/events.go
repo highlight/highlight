@@ -2,15 +2,16 @@ package clickhouse
 
 import (
 	"context"
-	"errors"
+	"fmt"
 	"strings"
 	"time"
 
-	"github.com/ClickHouse/clickhouse-go/v2"
 	"github.com/google/uuid"
 	"github.com/highlight-run/highlight/backend/model"
+	"github.com/highlight-run/highlight/backend/parser"
 	"github.com/huandu/go-sqlbuilder"
 	"github.com/openlyinc/pointy"
+	e "github.com/pkg/errors"
 	"github.com/samber/lo"
 
 	modelInputs "github.com/highlight-run/highlight/backend/private-graph/graph/model"
@@ -85,42 +86,31 @@ type SessionEventRow struct {
 	Attributes       map[string]string
 }
 
-func (client *Client) WriteSessionEventRows(ctx context.Context, eventRows []*SessionEventRow) error {
+func (client *Client) BatchWriteSessionEventRows(ctx context.Context, eventRows []*SessionEventRow) error {
 	if len(eventRows) == 0 {
 		return nil
 	}
 
-	chEvents := []interface{}{}
-
-	for _, event := range eventRows {
-		if event == nil {
-			return errors.New("nil event")
+	rows := lo.Map(eventRows, func(l *SessionEventRow, _ int) interface{} {
+		if len(l.UUID) == 0 {
+			l.UUID = uuid.New().String()
 		}
+		return l
+	})
 
-		newEvent := *event
-		if len(newEvent.UUID) == 0 {
-			newEvent.UUID = uuid.New().String()
-		}
-
-		chEvents = append(chEvents, newEvent)
+	batch, err := client.conn.PrepareBatch(ctx, fmt.Sprintf("INSERT INTO %s", SessionEventsTable))
+	if err != nil {
+		return e.Wrap(err, "failed to create session events batch")
 	}
 
-	if len(chEvents) > 0 {
-		chCtx := clickhouse.Context(ctx, clickhouse.WithSettings(clickhouse.Settings{
-			"async_insert":          1,
-			"wait_for_async_insert": 1,
-		}))
-
-		eventsSql, eventsArgs := sqlbuilder.
-			NewStruct(new(SessionEventRow)).
-			InsertInto(SessionEventsTable, chEvents...).
-			BuildWithFlavor(sqlbuilder.ClickHouse)
-		eventsSql, eventsArgs = replaceTimestampInserts(eventsSql, eventsArgs, map[int]bool{3: true, 4: true}, MicroSeconds)
-
-		return client.conn.Exec(chCtx, eventsSql, eventsArgs...)
+	for _, sessionEventRow := range rows {
+		err = batch.AppendStruct(sessionEventRow)
+		if err != nil {
+			return err
+		}
 	}
 
-	return nil
+	return batch.Send()
 }
 
 func (client *Client) ReadEventsMetrics(ctx context.Context, projectID int, params modelInputs.QueryInput, column string, metricTypes []modelInputs.MetricAggregator, groupBy []string, nBuckets *int, bucketBy string, bucketWindow *int, limit *int, limitAggregator *modelInputs.MetricAggregator, limitColumn *string) (*modelInputs.MetricsBuckets, error) {
@@ -151,6 +141,69 @@ func (client *Client) ReadWorkspaceEventCounts(ctx context.Context, projectIDs [
 		BucketCount:      pointy.Int(12),
 		BucketBy:         modelInputs.MetricBucketByTimestamp.String(),
 	})
+}
+
+func GetEventsQueryImpl(params modelInputs.QueryInput, projectId int, selectColumns string, orderBy *string, limit *int, offset *int) (string, []interface{}, error) {
+	sb := sqlbuilder.NewSelectBuilder()
+	sb.From(fmt.Sprintf("%s FINAL", eventsTableConfig.TableName))
+
+	sb.Where(sb.Equal("ProjectId", projectId)).
+		Where(sb.LessEqualThan("Timestamp", params.DateRange.EndDate)).
+		Where(sb.GreaterEqualThan("Timestamp", params.DateRange.StartDate))
+
+	listener := parser.GetSearchListener(sb, params.Query, eventsTableConfig)
+	parser.GetSearchFilters(params.Query, eventsTableConfig, listener)
+
+	sb.Select(selectColumns)
+
+	if orderBy != nil {
+		sb = sb.OrderBy(*orderBy)
+	}
+	if limit != nil {
+		sb = sb.Limit(*limit)
+	}
+	if offset != nil {
+		sb = sb.Offset(*offset)
+	}
+
+	sql, args := sb.BuildWithFlavor(sqlbuilder.ClickHouse)
+
+	return sql, args, nil
+}
+
+func (client *Client) QueryEventSessionIds(ctx context.Context, projectId int, count int, params modelInputs.QueryInput, sortField string, page *int) ([]int64, int64, error) {
+	pageInt := 1
+	if page != nil {
+		pageInt = *page
+	}
+	offset := (pageInt - 1) * count
+
+	sql, args, err := GetEventsQueryImpl(
+		params, projectId,
+		"DISTINCT SessionId, count() OVER() AS total",
+		pointy.String(sortField), pointy.Int(count), pointy.Int(offset),
+	)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	rows, err := client.conn.Query(ctx, sql, args...)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	var sessionIDs []int64
+	var total uint64
+	for rows.Next() {
+		var sessionID int64
+		columns := []interface{}{&sessionID, &total}
+		if err := rows.Scan(columns...); err != nil {
+			return nil, 0, err
+		}
+		sessionIDs = append(sessionIDs, sessionID)
+	}
+
+	return sessionIDs, int64(total), nil
 }
 
 func (client *Client) EventsKeys(ctx context.Context, projectID int, startDate time.Time, endDate time.Time, query *string, typeArg *modelInputs.KeyType, event *string) ([]*modelInputs.QueryKey, error) {

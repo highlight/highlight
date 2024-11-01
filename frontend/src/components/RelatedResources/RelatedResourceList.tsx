@@ -21,10 +21,13 @@ import { useGetSessionsPaginated } from '@/pages/Sessions/useGetSessionsPaginate
 import { DEFAULT_TRACE_COLUMNS } from '@/pages/Traces/CustomColumns/columns'
 import { TraceColumnRenderers } from '@/pages/Traces/CustomColumns/renderers'
 import { useGetTraces } from '@/pages/Traces/useGetTraces'
+import { useGetEventsPaginated } from '@/pages/Sessions/useGetEventsPaginated'
+import { DateTimeParam, encodeQueryParams, StringParam } from 'use-query-params'
+import { stringify } from 'query-string'
 
 export const RelatedResourceList: React.FC<{
 	resource: RelatedResource & {
-		type: 'traces' | 'sessions' | 'errors'
+		type: 'traces' | 'sessions' | 'errors' | 'events'
 	}
 }> = ({ resource }) => {
 	const { set } = useRelatedResource()
@@ -37,6 +40,33 @@ export const RelatedResourceList: React.FC<{
 	const startDate = useMemo(() => new Date(resource.startDate), [])
 	const endDate = useMemo(() => new Date(resource.endDate), [])
 	/* eslint-enable react-hooks/exhaustive-deps */
+
+	const path = useMemo(() => {
+		const encodedQuery = encodeQueryParams(
+			{
+				query: StringParam,
+				start_date: DateTimeParam,
+				end_date: DateTimeParam,
+			},
+			{
+				query: query,
+				start_date: startDate,
+				end_date: endDate,
+			},
+		)
+		const search = stringify(encodedQuery)
+
+		switch (resource.type) {
+			case 'traces':
+				return `/${projectId}/traces?${search}`
+			case 'sessions':
+				return `/${projectId}/sessions?${search}`
+			case 'errors':
+				return `/${projectId}/errors?${search}`
+			default:
+				return ''
+		}
+	}, [endDate, projectId, query, resource.type, startDate])
 
 	const {
 		traceEdges,
@@ -82,6 +112,20 @@ export const RelatedResourceList: React.FC<{
 		skip: resource.type !== 'errors',
 	})
 
+	const {
+		sessions: eventSessions,
+		loading: eventsLoading,
+		error: eventsError,
+		loadingAfter: eventsLoadingAfter,
+		fetchMoreForward: moreEvents,
+	} = useGetEventsPaginated({
+		query,
+		projectId: projectId!,
+		startDate,
+		endDate,
+		skip: resource.type !== 'events',
+	})
+
 	const fetchMoreWhenScrolled = useCallback(
 		(containerRefElement?: HTMLDivElement | null) => {
 			if (containerRefElement) {
@@ -99,11 +143,14 @@ export const RelatedResourceList: React.FC<{
 						case 'traces':
 							moreTraces()
 							break
+						case 'events':
+							moreEvents()
+							break
 					}
 				}
 			}
 		},
-		[moreErrorObjects, moreSessions, moreTraces, resource.type],
+		[moreErrorObjects, moreSessions, moreTraces, moreEvents, resource.type],
 	)
 
 	let innerTable: JSX.Element
@@ -120,7 +167,7 @@ export const RelatedResourceList: React.FC<{
 					error={errorObjectsError}
 					loadingAfter={errorObjectsLoadingAfter}
 					fetchMoreWhenScrolled={fetchMoreWhenScrolled}
-					bodyHeight="calc(100% - 56px)"
+					bodyHeight="calc(100% - 64px)"
 					resources={errorObjects}
 					selectedColumns={DEFAULT_ERROR_OBJECT_COLUMNS}
 					columnRenderers={ErrorObjectColumnRenderers}
@@ -139,7 +186,7 @@ export const RelatedResourceList: React.FC<{
 					error={sessionsError}
 					loadingAfter={sessionsLoadingAfter}
 					fetchMoreWhenScrolled={fetchMoreWhenScrolled}
-					bodyHeight="calc(100% - 56px)"
+					bodyHeight="calc(100% - 64px)"
 					resources={sessions}
 					columnRenderers={SessionColumnRenderers}
 				/>
@@ -158,11 +205,29 @@ export const RelatedResourceList: React.FC<{
 					error={tracesError}
 					loadingAfter={tracesLoadingAfter}
 					fetchMoreWhenScrolled={fetchMoreWhenScrolled}
-					bodyHeight="calc(100% - 56px)"
+					bodyHeight="calc(100% - 64px)"
 					resources={traceEdges}
 				/>
 			)
 			break
+		case 'events':
+			productType = ProductType.Events
+			innerTable = (
+				<ResourceTable
+					// show sessions for events
+					resourceType="sessions"
+					selectedColumns={DEFAULT_SESSION_COLUMNS}
+					query={query}
+					queryParts={queryParts}
+					loading={eventsLoading}
+					error={eventsError}
+					loadingAfter={eventsLoadingAfter}
+					fetchMoreWhenScrolled={fetchMoreWhenScrolled}
+					bodyHeight="calc(100% - 64px)"
+					resources={eventSessions}
+					columnRenderers={SessionColumnRenderers}
+				/>
+			)
 	}
 
 	useEffect(() => {
@@ -171,7 +236,8 @@ export const RelatedResourceList: React.FC<{
 
 	return (
 		<SearchContext initialQuery={query} onSubmit={handleSubmit} disabled>
-			<Panel.Header>
+			<Panel.Header path={path}>
+				{!!path && <Panel.HeaderCopyLinkButton path={path} />}
 				<Panel.HeaderDivider />
 			</Panel.Header>
 
@@ -189,7 +255,6 @@ export const RelatedResourceList: React.FC<{
 						presets={[]}
 						minDate={startDate}
 						timeMode="permalink"
-						hideDatePicker
 						hideCreateAlert
 						productType={productType}
 					/>

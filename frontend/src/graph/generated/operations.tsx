@@ -971,10 +971,11 @@ export type CreateAlertMutationVariables = Types.Exact<{
 	query?: Types.Maybe<Types.Scalars['String']>
 	group_by_key?: Types.Maybe<Types.Scalars['String']>
 	default?: Types.Maybe<Types.Scalars['Boolean']>
-	below_threshold?: Types.Maybe<Types.Scalars['Boolean']>
 	threshold_value?: Types.Maybe<Types.Scalars['Float']>
 	threshold_window?: Types.Maybe<Types.Scalars['Int']>
 	threshold_cooldown?: Types.Maybe<Types.Scalars['Int']>
+	threshold_type?: Types.Maybe<Types.ThresholdType>
+	threshold_condition?: Types.Maybe<Types.ThresholdCondition>
 	destinations:
 		| Array<Types.AlertDestinationInput>
 		| Types.AlertDestinationInput
@@ -998,10 +999,11 @@ export type UpdateAlertMutationVariables = Types.Exact<{
 	function_column?: Types.Maybe<Types.Scalars['String']>
 	query?: Types.Maybe<Types.Scalars['String']>
 	group_by_key?: Types.Maybe<Types.Scalars['String']>
-	below_threshold?: Types.Maybe<Types.Scalars['Boolean']>
 	threshold_value?: Types.Maybe<Types.Scalars['Float']>
 	threshold_window?: Types.Maybe<Types.Scalars['Int']>
 	threshold_cooldown?: Types.Maybe<Types.Scalars['Int']>
+	threshold_type?: Types.Maybe<Types.ThresholdType>
+	threshold_condition?: Types.Maybe<Types.ThresholdCondition>
 	destinations?: Types.Maybe<
 		Array<Types.AlertDestinationInput> | Types.AlertDestinationInput
 	>
@@ -2447,6 +2449,71 @@ export type GetSessionsQuery = { __typename?: 'Query' } & {
 		}
 }
 
+export type GetEventSessionsQueryVariables = Types.Exact<{
+	project_id: Types.Scalars['ID']
+	count: Types.Scalars['Int']
+	params: Types.QueryInput
+	sort_desc: Types.Scalars['Boolean']
+	sort_field?: Types.Maybe<Types.Scalars['String']>
+	page?: Types.Maybe<Types.Scalars['Int']>
+}>
+
+export type GetEventSessionsQuery = { __typename?: 'Query' } & {
+	event_sessions: { __typename?: 'SessionResults' } & Pick<
+		Types.SessionResults,
+		'totalCount'
+	> & {
+			sessions: Array<
+				{ __typename?: 'Session' } & Pick<
+					Types.Session,
+					| 'id'
+					| 'secure_id'
+					| 'client_id'
+					| 'fingerprint'
+					| 'identifier'
+					| 'identified'
+					| 'os_name'
+					| 'os_version'
+					| 'browser_name'
+					| 'browser_version'
+					| 'ip'
+					| 'city'
+					| 'state'
+					| 'country'
+					| 'postal'
+					| 'created_at'
+					| 'language'
+					| 'length'
+					| 'active_length'
+					| 'enable_recording_network_contents'
+					| 'viewed'
+					| 'starred'
+					| 'processed'
+					| 'has_rage_clicks'
+					| 'has_errors'
+					| 'first_time'
+					| 'user_properties'
+					| 'event_counts'
+					| 'last_user_interaction_time'
+					| 'is_public'
+					| 'excluded'
+					| 'email'
+				> & {
+						fields?: Types.Maybe<
+							Array<
+								Types.Maybe<
+									{ __typename?: 'Field' } & Pick<
+										Types.Field,
+										'name' | 'value' | 'type' | 'id'
+									>
+								>
+							>
+						>
+					}
+			>
+		}
+}
+
 export type GetSessionsHistogramQueryVariables = Types.Exact<{
 	project_id: Types.Scalars['ID']
 	params: Types.QueryInput
@@ -2460,6 +2527,8 @@ export type GetSessionsHistogramQuery = { __typename?: 'Query' } & {
 		| 'sessions_without_errors'
 		| 'sessions_with_errors'
 		| 'total_sessions'
+		| 'inactive_lengths'
+		| 'active_lengths'
 	>
 }
 
@@ -4317,6 +4386,7 @@ export type GetAlertQuery = { __typename?: 'Query' } & {
 	alert: { __typename?: 'Alert' } & Pick<
 		Types.Alert,
 		| 'id'
+		| 'project_id'
 		| 'updated_at'
 		| 'name'
 		| 'product_type'
@@ -4326,10 +4396,11 @@ export type GetAlertQuery = { __typename?: 'Query' } & {
 		| 'group_by_key'
 		| 'disabled'
 		| 'last_admin_to_edit_id'
-		| 'below_threshold'
 		| 'threshold_value'
 		| 'threshold_window'
 		| 'threshold_cooldown'
+		| 'threshold_type'
+		| 'threshold_condition'
 	> & {
 			destinations: Array<
 				Types.Maybe<
@@ -4340,6 +4411,43 @@ export type GetAlertQuery = { __typename?: 'Query' } & {
 				>
 			>
 		}
+}
+
+export type GetAlertingAlertStateChangesQueryVariables = Types.Exact<{
+	alert_id: Types.Scalars['ID']
+	start_date: Types.Scalars['Timestamp']
+	end_date: Types.Scalars['Timestamp']
+	page?: Types.Maybe<Types.Scalars['Int']>
+}>
+
+export type GetAlertingAlertStateChangesQuery = { __typename?: 'Query' } & {
+	alerting_alert_state_changes: {
+		__typename?: 'AlertStateChangeResults'
+	} & Pick<Types.AlertStateChangeResults, 'totalCount'> & {
+			alertStateChanges: Array<
+				Types.Maybe<
+					{ __typename?: 'AlertStateChange' } & Pick<
+						Types.AlertStateChange,
+						'timestamp' | 'state' | 'groupByKey'
+					>
+				>
+			>
+		}
+}
+
+export type GetLastAlertStateChangesQueryVariables = Types.Exact<{
+	alert_id: Types.Scalars['ID']
+}>
+
+export type GetLastAlertStateChangesQuery = { __typename?: 'Query' } & {
+	last_alert_state_changes: Array<
+		Types.Maybe<
+			{ __typename?: 'AlertStateChange' } & Pick<
+				Types.AlertStateChange,
+				'timestamp' | 'state' | 'groupByKey'
+			>
+		>
+	>
 }
 
 export type GetMetricMonitorsQueryVariables = Types.Exact<{
@@ -5133,6 +5241,7 @@ export type GetMetricsQueryVariables = Types.Exact<{
 	limit?: Types.Maybe<Types.Scalars['Int']>
 	limit_aggregator?: Types.Maybe<Types.MetricAggregator>
 	limit_column?: Types.Maybe<Types.Scalars['String']>
+	prediction_settings?: Types.Maybe<Types.PredictionSettings>
 }>
 
 export type GetMetricsQuery = { __typename?: 'Query' } & {
@@ -5149,6 +5258,8 @@ export type GetMetricsQuery = { __typename?: 'Query' } & {
 					| 'group'
 					| 'metric_type'
 					| 'metric_value'
+					| 'yhat_lower'
+					| 'yhat_upper'
 				>
 			>
 		}
@@ -5360,6 +5471,7 @@ export const namedOperations = {
 		GetTimelineIndicatorEvents: 'GetTimelineIndicatorEvents' as const,
 		GetWebSocketEvents: 'GetWebSocketEvents' as const,
 		GetSessions: 'GetSessions' as const,
+		GetEventSessions: 'GetEventSessions' as const,
 		GetSessionsHistogram: 'GetSessionsHistogram' as const,
 		GetSessionUsersReports: 'GetSessionUsersReports' as const,
 		GetErrorGroups: 'GetErrorGroups' as const,
@@ -5445,6 +5557,8 @@ export const namedOperations = {
 		GetLogAlertsPagePayload: 'GetLogAlertsPagePayload' as const,
 		GetAlertsPagePayload: 'GetAlertsPagePayload' as const,
 		GetAlert: 'GetAlert' as const,
+		GetAlertingAlertStateChanges: 'GetAlertingAlertStateChanges' as const,
+		GetLastAlertStateChanges: 'GetLastAlertStateChanges' as const,
 		GetMetricMonitors: 'GetMetricMonitors' as const,
 		GetCommentMentionSuggestions: 'GetCommentMentionSuggestions' as const,
 		GetCustomerPortalURL: 'GetCustomerPortalURL' as const,

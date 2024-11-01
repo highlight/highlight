@@ -55,11 +55,15 @@ export const ResourceTable = <T, TCol extends string>(
 		return (
 			<FullScreenContainer>
 				<Box m="auto" style={{ maxWidth: 300 }}>
-					<Callout title="Failed to load logs" kind="error">
+					<Callout
+						title={`Failed to load ${props.resourceType}`}
+						kind="error"
+					>
 						<Box mb="6">
 							<Text color="moderate">
-								There was an error loading your logs. Reach out
-								to us if this might be a bug.
+								There was an error loading your{' '}
+								{props.resourceType}. Reach out to us if you
+								think this is a bug.
 							</Text>
 						</Box>
 						<Stack direction="row">

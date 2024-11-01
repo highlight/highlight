@@ -927,10 +927,11 @@ mutation CreateAlert(
 	$query: String
 	$group_by_key: String
 	$default: Boolean
-	$below_threshold: Boolean
 	$threshold_value: Float
 	$threshold_window: Int
 	$threshold_cooldown: Int
+	$threshold_type: ThresholdType
+	$threshold_condition: ThresholdCondition
 	$destinations: [AlertDestinationInput!]!
 ) {
 	createAlert(
@@ -942,10 +943,11 @@ mutation CreateAlert(
 		query: $query
 		group_by_key: $group_by_key
 		default: $default
-		below_threshold: $below_threshold
 		threshold_value: $threshold_value
 		threshold_window: $threshold_window
 		threshold_cooldown: $threshold_cooldown
+		threshold_type: $threshold_type
+		threshold_condition: $threshold_condition
 		destinations: $destinations
 	) {
 		id
@@ -963,10 +965,11 @@ mutation UpdateAlert(
 	$function_column: String
 	$query: String
 	$group_by_key: String
-	$below_threshold: Boolean
 	$threshold_value: Float
 	$threshold_window: Int
 	$threshold_cooldown: Int
+	$threshold_type: ThresholdType
+	$threshold_condition: ThresholdCondition
 	$destinations: [AlertDestinationInput!]
 ) {
 	updateAlert(
@@ -978,10 +981,11 @@ mutation UpdateAlert(
 		function_column: $function_column
 		query: $query
 		group_by_key: $group_by_key
-		below_threshold: $below_threshold
 		threshold_value: $threshold_value
 		threshold_window: $threshold_window
 		threshold_cooldown: $threshold_cooldown
+		threshold_type: $threshold_type
+		threshold_condition: $threshold_condition
 		destinations: $destinations
 	) {
 		id

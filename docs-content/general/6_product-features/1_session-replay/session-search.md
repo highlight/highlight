@@ -17,17 +17,17 @@ throughout a session. The data you send us can be in the form of:
 This is done using [search query](../../6_product-features/3_general-features/search.md), and we cover how
 search/instrumentation for each type of these queries works below.
 
-## Searching for sessions
+## Searching for Sessions
 
 For general information on searching sessions, check out our [Search docs](../../6_product-features/3_general-features/search.md).
 
-## Default search
+## Default Search
 
 By default, Highlight will show completed sessions that have been fully processed, `completed=true`. For newer
 projects with less sessions, Highlight will show all sessions, and provide an example of how to use the search
 query, `completed=(true or false)`.
 
-## Default key
+## Default Key
 
 The default key for session search searches across multiple attributes. These columns include the user's identifier and
 location. This could be the user's `email`, `device_id`, or given `identifier`,  as well as their `city` or `country`.

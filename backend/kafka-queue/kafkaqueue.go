@@ -5,9 +5,10 @@ import (
 	"crypto/tls"
 	"encoding/json"
 	"fmt"
-	"github.com/highlight-run/highlight/backend/env"
 	"strings"
 	"time"
+
+	"github.com/highlight-run/highlight/backend/env"
 
 	"github.com/pkg/errors"
 	"github.com/samber/lo"
@@ -478,6 +479,8 @@ func (p *Queue) deserializeMessage(compressed []byte) (RetryableMessage, error) 
 		msg = &LogRowMessage{}
 	} else if msgType.Type == PushTracesFlattened {
 		msg = &TraceRowMessage{}
+	} else if msgType.Type == PushSessionEvents {
+		msg = &SessionEventRowMessage{}
 	} else {
 		msg = &Message{}
 	}

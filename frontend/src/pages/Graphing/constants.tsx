@@ -1,4 +1,6 @@
 import {
+	IconSolidChartBar,
+	IconSolidFire,
 	Box,
 	IconSolidLightningBolt,
 	IconSolidLogs,
@@ -14,6 +16,18 @@ import {
 
 export const DEFAULT_BUCKET_COUNT = 50
 export const DEFAULT_BUCKET_INTERVAL = 60 * 60
+
+export const TIME_METRICS = {
+	active_length: 'ms',
+	length: 'ms',
+	duration: 'ns',
+	Jank: 'ms',
+	FCP: 'ms',
+	FID: 'ms',
+	LCP: 'ms',
+	TTFB: 'ms',
+	INP: 'ms',
+}
 
 export const PRODUCT_OPTIONS = [
 	{
@@ -55,6 +69,15 @@ export const PRODUCT_OPTIONS_WITH_EVENTS = PRODUCT_OPTIONS.concat([
 		),
 	},
 ])
+
+export const PRODUCTS_TO_ICONS = {
+	[ProductType.Logs]: <IconSolidLogs key="logs" />,
+	[ProductType.Traces]: <IconSolidTraces key="traces" />,
+	[ProductType.Sessions]: <IconSolidPlayCircle key="sessions" />,
+	[ProductType.Errors]: <IconSolidLightningBolt key="errors" />,
+	[ProductType.Metrics]: <IconSolidChartBar key="metrics" />,
+	[ProductType.Events]: <IconSolidFire key="events" />,
+}
 
 export const NUMERIC_FUNCTION_TYPES: MetricAggregator[] = [
 	MetricAggregator.Min,

@@ -3294,10 +3294,11 @@ export const CreateAlertDocument = gql`
 		$query: String
 		$group_by_key: String
 		$default: Boolean
-		$below_threshold: Boolean
 		$threshold_value: Float
 		$threshold_window: Int
 		$threshold_cooldown: Int
+		$threshold_type: ThresholdType
+		$threshold_condition: ThresholdCondition
 		$destinations: [AlertDestinationInput!]!
 	) {
 		createAlert(
@@ -3309,10 +3310,11 @@ export const CreateAlertDocument = gql`
 			query: $query
 			group_by_key: $group_by_key
 			default: $default
-			below_threshold: $below_threshold
 			threshold_value: $threshold_value
 			threshold_window: $threshold_window
 			threshold_cooldown: $threshold_cooldown
+			threshold_type: $threshold_type
+			threshold_condition: $threshold_condition
 			destinations: $destinations
 		) {
 			id
@@ -3347,10 +3349,11 @@ export type CreateAlertMutationFn = Apollo.MutationFunction<
  *      query: // value for 'query'
  *      group_by_key: // value for 'group_by_key'
  *      default: // value for 'default'
- *      below_threshold: // value for 'below_threshold'
  *      threshold_value: // value for 'threshold_value'
  *      threshold_window: // value for 'threshold_window'
  *      threshold_cooldown: // value for 'threshold_cooldown'
+ *      threshold_type: // value for 'threshold_type'
+ *      threshold_condition: // value for 'threshold_condition'
  *      destinations: // value for 'destinations'
  *   },
  * });
@@ -3385,10 +3388,11 @@ export const UpdateAlertDocument = gql`
 		$function_column: String
 		$query: String
 		$group_by_key: String
-		$below_threshold: Boolean
 		$threshold_value: Float
 		$threshold_window: Int
 		$threshold_cooldown: Int
+		$threshold_type: ThresholdType
+		$threshold_condition: ThresholdCondition
 		$destinations: [AlertDestinationInput!]
 	) {
 		updateAlert(
@@ -3400,10 +3404,11 @@ export const UpdateAlertDocument = gql`
 			function_column: $function_column
 			query: $query
 			group_by_key: $group_by_key
-			below_threshold: $below_threshold
 			threshold_value: $threshold_value
 			threshold_window: $threshold_window
 			threshold_cooldown: $threshold_cooldown
+			threshold_type: $threshold_type
+			threshold_condition: $threshold_condition
 			destinations: $destinations
 		) {
 			id
@@ -3438,10 +3443,11 @@ export type UpdateAlertMutationFn = Apollo.MutationFunction<
  *      function_column: // value for 'function_column'
  *      query: // value for 'query'
  *      group_by_key: // value for 'group_by_key'
- *      below_threshold: // value for 'below_threshold'
  *      threshold_value: // value for 'threshold_value'
  *      threshold_window: // value for 'threshold_window'
  *      threshold_cooldown: // value for 'threshold_cooldown'
+ *      threshold_type: // value for 'threshold_type'
+ *      threshold_condition: // value for 'threshold_condition'
  *      destinations: // value for 'destinations'
  *   },
  * });
@@ -7587,6 +7593,121 @@ export type GetSessionsQueryResult = Apollo.QueryResult<
 	Types.GetSessionsQuery,
 	Types.GetSessionsQueryVariables
 >
+export const GetEventSessionsDocument = gql`
+	query GetEventSessions(
+		$project_id: ID!
+		$count: Int!
+		$params: QueryInput!
+		$sort_desc: Boolean!
+		$sort_field: String
+		$page: Int
+	) {
+		event_sessions(
+			project_id: $project_id
+			count: $count
+			params: $params
+			sort_field: $sort_field
+			sort_desc: $sort_desc
+			page: $page
+		) {
+			sessions {
+				id
+				secure_id
+				client_id
+				fingerprint
+				identifier
+				identified
+				os_name
+				os_version
+				browser_name
+				browser_version
+				ip
+				city
+				state
+				country
+				postal
+				created_at
+				language
+				length
+				active_length
+				enable_recording_network_contents
+				viewed
+				starred
+				processed
+				has_rage_clicks
+				has_errors
+				fields {
+					name
+					value
+					type
+					id
+				}
+				first_time
+				user_properties
+				event_counts
+				last_user_interaction_time
+				is_public
+				excluded
+				email
+			}
+			totalCount
+		}
+	}
+`
+
+/**
+ * __useGetEventSessionsQuery__
+ *
+ * To run a query within a React component, call `useGetEventSessionsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetEventSessionsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetEventSessionsQuery({
+ *   variables: {
+ *      project_id: // value for 'project_id'
+ *      count: // value for 'count'
+ *      params: // value for 'params'
+ *      sort_desc: // value for 'sort_desc'
+ *      sort_field: // value for 'sort_field'
+ *      page: // value for 'page'
+ *   },
+ * });
+ */
+export function useGetEventSessionsQuery(
+	baseOptions: Apollo.QueryHookOptions<
+		Types.GetEventSessionsQuery,
+		Types.GetEventSessionsQueryVariables
+	>,
+) {
+	return Apollo.useQuery<
+		Types.GetEventSessionsQuery,
+		Types.GetEventSessionsQueryVariables
+	>(GetEventSessionsDocument, baseOptions)
+}
+export function useGetEventSessionsLazyQuery(
+	baseOptions?: Apollo.LazyQueryHookOptions<
+		Types.GetEventSessionsQuery,
+		Types.GetEventSessionsQueryVariables
+	>,
+) {
+	return Apollo.useLazyQuery<
+		Types.GetEventSessionsQuery,
+		Types.GetEventSessionsQueryVariables
+	>(GetEventSessionsDocument, baseOptions)
+}
+export type GetEventSessionsQueryHookResult = ReturnType<
+	typeof useGetEventSessionsQuery
+>
+export type GetEventSessionsLazyQueryHookResult = ReturnType<
+	typeof useGetEventSessionsLazyQuery
+>
+export type GetEventSessionsQueryResult = Apollo.QueryResult<
+	Types.GetEventSessionsQuery,
+	Types.GetEventSessionsQueryVariables
+>
 export const GetSessionsHistogramDocument = gql`
 	query GetSessionsHistogram(
 		$project_id: ID!
@@ -7602,6 +7723,8 @@ export const GetSessionsHistogramDocument = gql`
 			sessions_without_errors
 			sessions_with_errors
 			total_sessions
+			inactive_lengths
+			active_lengths
 		}
 	}
 `
@@ -12510,6 +12633,7 @@ export const GetAlertDocument = gql`
 	query GetAlert($id: ID!) {
 		alert(id: $id) {
 			id
+			project_id
 			updated_at
 			name
 			product_type
@@ -12519,10 +12643,11 @@ export const GetAlertDocument = gql`
 			group_by_key
 			disabled
 			last_admin_to_edit_id
-			below_threshold
 			threshold_value
 			threshold_window
 			threshold_cooldown
+			threshold_type
+			threshold_condition
 			destinations {
 				id
 				destination_type
@@ -12578,6 +12703,138 @@ export type GetAlertLazyQueryHookResult = ReturnType<
 export type GetAlertQueryResult = Apollo.QueryResult<
 	Types.GetAlertQuery,
 	Types.GetAlertQueryVariables
+>
+export const GetAlertingAlertStateChangesDocument = gql`
+	query GetAlertingAlertStateChanges(
+		$alert_id: ID!
+		$start_date: Timestamp!
+		$end_date: Timestamp!
+		$page: Int
+	) {
+		alerting_alert_state_changes(
+			alert_id: $alert_id
+			start_date: $start_date
+			end_date: $end_date
+			page: $page
+		) {
+			totalCount
+			alertStateChanges {
+				timestamp
+				state
+				groupByKey
+			}
+		}
+	}
+`
+
+/**
+ * __useGetAlertingAlertStateChangesQuery__
+ *
+ * To run a query within a React component, call `useGetAlertingAlertStateChangesQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetAlertingAlertStateChangesQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetAlertingAlertStateChangesQuery({
+ *   variables: {
+ *      alert_id: // value for 'alert_id'
+ *      start_date: // value for 'start_date'
+ *      end_date: // value for 'end_date'
+ *      page: // value for 'page'
+ *   },
+ * });
+ */
+export function useGetAlertingAlertStateChangesQuery(
+	baseOptions: Apollo.QueryHookOptions<
+		Types.GetAlertingAlertStateChangesQuery,
+		Types.GetAlertingAlertStateChangesQueryVariables
+	>,
+) {
+	return Apollo.useQuery<
+		Types.GetAlertingAlertStateChangesQuery,
+		Types.GetAlertingAlertStateChangesQueryVariables
+	>(GetAlertingAlertStateChangesDocument, baseOptions)
+}
+export function useGetAlertingAlertStateChangesLazyQuery(
+	baseOptions?: Apollo.LazyQueryHookOptions<
+		Types.GetAlertingAlertStateChangesQuery,
+		Types.GetAlertingAlertStateChangesQueryVariables
+	>,
+) {
+	return Apollo.useLazyQuery<
+		Types.GetAlertingAlertStateChangesQuery,
+		Types.GetAlertingAlertStateChangesQueryVariables
+	>(GetAlertingAlertStateChangesDocument, baseOptions)
+}
+export type GetAlertingAlertStateChangesQueryHookResult = ReturnType<
+	typeof useGetAlertingAlertStateChangesQuery
+>
+export type GetAlertingAlertStateChangesLazyQueryHookResult = ReturnType<
+	typeof useGetAlertingAlertStateChangesLazyQuery
+>
+export type GetAlertingAlertStateChangesQueryResult = Apollo.QueryResult<
+	Types.GetAlertingAlertStateChangesQuery,
+	Types.GetAlertingAlertStateChangesQueryVariables
+>
+export const GetLastAlertStateChangesDocument = gql`
+	query GetLastAlertStateChanges($alert_id: ID!) {
+		last_alert_state_changes(alert_id: $alert_id) {
+			timestamp
+			state
+			groupByKey
+		}
+	}
+`
+
+/**
+ * __useGetLastAlertStateChangesQuery__
+ *
+ * To run a query within a React component, call `useGetLastAlertStateChangesQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetLastAlertStateChangesQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetLastAlertStateChangesQuery({
+ *   variables: {
+ *      alert_id: // value for 'alert_id'
+ *   },
+ * });
+ */
+export function useGetLastAlertStateChangesQuery(
+	baseOptions: Apollo.QueryHookOptions<
+		Types.GetLastAlertStateChangesQuery,
+		Types.GetLastAlertStateChangesQueryVariables
+	>,
+) {
+	return Apollo.useQuery<
+		Types.GetLastAlertStateChangesQuery,
+		Types.GetLastAlertStateChangesQueryVariables
+	>(GetLastAlertStateChangesDocument, baseOptions)
+}
+export function useGetLastAlertStateChangesLazyQuery(
+	baseOptions?: Apollo.LazyQueryHookOptions<
+		Types.GetLastAlertStateChangesQuery,
+		Types.GetLastAlertStateChangesQueryVariables
+	>,
+) {
+	return Apollo.useLazyQuery<
+		Types.GetLastAlertStateChangesQuery,
+		Types.GetLastAlertStateChangesQueryVariables
+	>(GetLastAlertStateChangesDocument, baseOptions)
+}
+export type GetLastAlertStateChangesQueryHookResult = ReturnType<
+	typeof useGetLastAlertStateChangesQuery
+>
+export type GetLastAlertStateChangesLazyQueryHookResult = ReturnType<
+	typeof useGetLastAlertStateChangesLazyQuery
+>
+export type GetLastAlertStateChangesQueryResult = Apollo.QueryResult<
+	Types.GetLastAlertStateChangesQuery,
+	Types.GetLastAlertStateChangesQueryVariables
 >
 export const GetMetricMonitorsDocument = gql`
 	query GetMetricMonitors($project_id: ID!, $metric_name: String!) {
@@ -14964,6 +15221,7 @@ export const GetMetricsDocument = gql`
 		$limit: Int
 		$limit_aggregator: MetricAggregator
 		$limit_column: String
+		$prediction_settings: PredictionSettings
 	) {
 		metrics(
 			product_type: $product_type
@@ -14978,6 +15236,7 @@ export const GetMetricsDocument = gql`
 			limit: $limit
 			limit_aggregator: $limit_aggregator
 			limit_column: $limit_column
+			prediction_settings: $prediction_settings
 		) {
 			buckets {
 				bucket_id
@@ -14986,6 +15245,8 @@ export const GetMetricsDocument = gql`
 				group
 				metric_type
 				metric_value
+				yhat_lower
+				yhat_upper
 			}
 			bucket_count
 			sample_factor
@@ -15017,6 +15278,7 @@ export const GetMetricsDocument = gql`
  *      limit: // value for 'limit'
  *      limit_aggregator: // value for 'limit_aggregator'
  *      limit_column: // value for 'limit_column'
+ *      prediction_settings: // value for 'prediction_settings'
  *   },
  * });
  */

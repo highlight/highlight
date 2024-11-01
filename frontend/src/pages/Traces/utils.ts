@@ -277,3 +277,13 @@ export const traceSortFn = (
 
 	return startA - startB
 }
+
+export const traceSortByStartTimeFn = (
+	a: Partial<FlameGraphSpan>,
+	b: Partial<FlameGraphSpan>,
+) => {
+	const startA = new Date(a.timestamp ?? 0).getTime()
+	const startB = new Date(b.timestamp ?? 0).getTime()
+
+	return startA - startB
+}

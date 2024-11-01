@@ -251,9 +251,13 @@ module Highlight
     module Rails
       def self.included(base)
         base.extend(ClassMethods)
-        base.helper_method(:highlight_headers)
+
+        if base.respond_to?(:helper_method)
+          base.helper_method(:highlight_headers)
+          base.helper(ViewHelpers)
+        end
+
         base.around_action(:with_highlight_context)
-        base.helper(ViewHelpers)
       end
 
       def with_highlight_context(&block)

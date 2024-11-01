@@ -581,6 +581,66 @@ query GetSessions(
 	}
 }
 
+query GetEventSessions(
+	$project_id: ID!
+	$count: Int!
+	$params: QueryInput!
+	$sort_desc: Boolean!
+	$sort_field: String
+	$page: Int
+) {
+	event_sessions(
+		project_id: $project_id
+		count: $count
+		params: $params
+		sort_field: $sort_field
+		sort_desc: $sort_desc
+		page: $page
+	) {
+		sessions {
+			id
+			secure_id
+			client_id
+			fingerprint
+			identifier
+			identified
+			os_name
+			os_version
+			browser_name
+			browser_version
+			ip
+			city
+			state
+			country
+			postal
+			created_at
+			language
+			length
+			active_length
+			enable_recording_network_contents
+			viewed
+			starred
+			processed
+			has_rage_clicks
+			has_errors
+			fields {
+				name
+				value
+				type
+				id
+			}
+			first_time
+			user_properties
+			event_counts
+			last_user_interaction_time
+			is_public
+			excluded
+			email
+		}
+		totalCount
+	}
+}
+
 query GetSessionsHistogram(
 	$project_id: ID!
 	$params: QueryInput!
@@ -595,6 +655,8 @@ query GetSessionsHistogram(
 		sessions_without_errors
 		sessions_with_errors
 		total_sessions
+		inactive_lengths
+		active_lengths
 	}
 }
 
@@ -1888,6 +1950,7 @@ query GetAlertsPagePayload($project_id: ID!) {
 query GetAlert($id: ID!) {
 	alert(id: $id) {
 		id
+		project_id
 		updated_at
 		name
 		product_type
@@ -1897,16 +1960,46 @@ query GetAlert($id: ID!) {
 		group_by_key
 		disabled
 		last_admin_to_edit_id
-		below_threshold
 		threshold_value
 		threshold_window
 		threshold_cooldown
+		threshold_type
+		threshold_condition
 		destinations {
 			id
 			destination_type
 			type_id
 			type_name
 		}
+	}
+}
+
+query GetAlertingAlertStateChanges(
+	$alert_id: ID!
+	$start_date: Timestamp!
+	$end_date: Timestamp!
+	$page: Int
+) {
+	alerting_alert_state_changes(
+		alert_id: $alert_id
+		start_date: $start_date
+		end_date: $end_date
+		page: $page
+	) {
+		totalCount
+		alertStateChanges {
+			timestamp
+			state
+			groupByKey
+		}
+	}
+}
+
+query GetLastAlertStateChanges($alert_id: ID!) {
+	last_alert_state_changes(alert_id: $alert_id) {
+		timestamp
+		state
+		groupByKey
 	}
 }
 
@@ -2564,6 +2657,7 @@ query GetMetrics(
 	$limit: Int
 	$limit_aggregator: MetricAggregator
 	$limit_column: String
+	$prediction_settings: PredictionSettings
 ) {
 	metrics(
 		product_type: $product_type
@@ -2578,6 +2672,7 @@ query GetMetrics(
 		limit: $limit
 		limit_aggregator: $limit_aggregator
 		limit_column: $limit_column
+		prediction_settings: $prediction_settings
 	) {
 		buckets {
 			bucket_id
@@ -2586,6 +2681,8 @@ query GetMetrics(
 			group
 			metric_type
 			metric_value
+			yhat_lower
+			yhat_upper
 		}
 		bucket_count
 		sample_factor

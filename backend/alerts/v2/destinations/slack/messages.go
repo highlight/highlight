@@ -12,6 +12,7 @@ import (
 	"github.com/highlight-run/highlight/backend/model"
 	modelInputs "github.com/highlight-run/highlight/backend/private-graph/graph/model"
 	"github.com/highlight-run/highlight/backend/routing"
+	"github.com/highlight-run/highlight/backend/util"
 	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 	"github.com/slack-go/slack"
@@ -24,10 +25,17 @@ var RED_ALERT = "#961e13"    // errors
 var YELLOW_ALERT = "#f2c94c" // logs
 var ORANGE_ALERT = "#f2994a" // traces
 var BLUE_ALERT = "#1e40af"   // metrics
+var PURPLE_ALERT = "#7e5bef" // events
 
 var ERROR_STACKTRACE_FILE_NAME_LENGTH_LIMIT = 75
 
 func SendAlerts(ctx context.Context, slackAccessToken *string, alertInput *destinationsV2.AlertInput, destinations []model.AlertDestination) {
+	span, ctx := util.StartSpanFromContext(ctx, "SendAlerts.Slack")
+	span.SetAttribute("alert_id", alertInput.Alert.ID)
+	span.SetAttribute("project_id", alertInput.Alert.ProjectID)
+	span.SetAttribute("product_type", alertInput.Alert.ProductType)
+	defer span.Finish()
+
 	if slackAccessToken == nil {
 		log.WithContext(ctx).Error("slack access token is nil")
 		return
@@ -44,6 +52,8 @@ func SendAlerts(ctx context.Context, slackAccessToken *string, alertInput *desti
 		sendTraceAlert(ctx, *slackAccessToken, alertInput, destinations)
 	case modelInputs.ProductTypeMetrics:
 		sendMetricAlert(ctx, *slackAccessToken, alertInput, destinations)
+	case modelInputs.ProductTypeEvents:
+		sendEventAlert(ctx, *slackAccessToken, alertInput, destinations)
 	default:
 		log.WithContext(ctx).WithFields(
 			log.Fields{
@@ -267,7 +277,7 @@ func sendLogAlert(ctx context.Context, slackAccessToken string, alertInput *dest
 	var headerBlockSet []slack.Block
 	headerText := fmt.Sprintf("*%s* Alert", alertInput.Alert.Name)
 	if alertInput.GroupValue != "" {
-		headerText = fmt.Sprintf("*%s* fired for *%s*", alertInput.Alert.Name, alertInput.GroupValue)
+		headerText = fmt.Sprintf("*%s* Alert for *%s*", alertInput.Alert.Name, alertInput.GroupValue)
 	}
 	headerBlock := slack.NewTextBlockObject(slack.MarkdownType, headerText, false, false)
 	headerBlockSet = append(headerBlockSet, slack.NewSectionBlock(headerBlock, nil, nil))
@@ -278,8 +288,9 @@ func sendLogAlert(ctx context.Context, slackAccessToken string, alertInput *dest
 	// log data
 	var alertText string
 
+	// TODO(spenny): fix for anomoly alerts
 	threholdRelation := "above"
-	if *alertInput.Alert.BelowThreshold {
+	if (alertInput.Alert.BelowThreshold != nil && *alertInput.Alert.BelowThreshold) || (alertInput.Alert.ThresholdCondition == modelInputs.ThresholdConditionBelow) {
 		threholdRelation = "below"
 	}
 
@@ -343,7 +354,7 @@ func sendTraceAlert(ctx context.Context, slackAccessToken string, alertInput *de
 	var headerBlockSet []slack.Block
 	headerText := fmt.Sprintf("*%s* Alert", alertInput.Alert.Name)
 	if alertInput.GroupValue != "" {
-		headerText = fmt.Sprintf("*%s* fired for *%s*", alertInput.Alert.Name, alertInput.GroupValue)
+		headerText = fmt.Sprintf("*%s* Alert for *%s*", alertInput.Alert.Name, alertInput.GroupValue)
 	}
 	headerBlock := slack.NewTextBlockObject(slack.MarkdownType, headerText, false, false)
 	headerBlockSet = append(headerBlockSet, slack.NewSectionBlock(headerBlock, nil, nil))
@@ -354,8 +365,9 @@ func sendTraceAlert(ctx context.Context, slackAccessToken string, alertInput *de
 	// trace data
 	var alertText string
 
+	// TODO(spenny): fix for anomoly alerts
 	threholdRelation := "above"
-	if *alertInput.Alert.BelowThreshold {
+	if (alertInput.Alert.BelowThreshold != nil && *alertInput.Alert.BelowThreshold) || (alertInput.Alert.ThresholdCondition == modelInputs.ThresholdConditionBelow) {
 		threholdRelation = "below"
 	}
 
@@ -419,7 +431,7 @@ func sendMetricAlert(ctx context.Context, slackAccessToken string, alertInput *d
 	var headerBlockSet []slack.Block
 	headerText := fmt.Sprintf("*%s* Alert", alertInput.Alert.Name)
 	if alertInput.GroupValue != "" {
-		headerText = fmt.Sprintf("*%s* fired for *%s*", alertInput.Alert.Name, alertInput.GroupValue)
+		headerText = fmt.Sprintf("*%s* Alert for *%s*", alertInput.Alert.Name, alertInput.GroupValue)
 	}
 	headerBlock := slack.NewTextBlockObject(slack.MarkdownType, headerText, false, false)
 	headerBlockSet = append(headerBlockSet, slack.NewSectionBlock(headerBlock, nil, nil))
@@ -430,8 +442,9 @@ func sendMetricAlert(ctx context.Context, slackAccessToken string, alertInput *d
 	// trace data
 	var alertText string
 
+	// TODO(spenny): fix for anomoly alerts
 	threholdRelation := "above"
-	if *alertInput.Alert.BelowThreshold {
+	if (alertInput.Alert.BelowThreshold != nil && *alertInput.Alert.BelowThreshold) || (alertInput.Alert.ThresholdCondition == modelInputs.ThresholdConditionBelow) {
 		threholdRelation = "below"
 	}
 
@@ -482,6 +495,83 @@ func sendMetricAlert(ctx context.Context, slackAccessToken string, alertInput *d
 
 	attachment := &slack.Attachment{
 		Color:  BLUE_ALERT,
+		Blocks: slack.Blocks{BlockSet: bodyBlockSet},
+	}
+
+	deliverAlerts(ctx, slackAccessToken, destinations, previewText, headerBlockSet, attachment)
+}
+
+func sendEventAlert(ctx context.Context, slackAccessToken string, alertInput *destinationsV2.AlertInput, destinations []model.AlertDestination) {
+	previewText := fmt.Sprintf("%s Alert", alertInput.Alert.Name)
+
+	// HEADER
+	var headerBlockSet []slack.Block
+	headerText := fmt.Sprintf("*%s* Alert", alertInput.Alert.Name)
+	if alertInput.GroupValue != "" {
+		headerText = fmt.Sprintf("*%s* Alert for *%s*", alertInput.Alert.Name, alertInput.GroupValue)
+	}
+	headerBlock := slack.NewTextBlockObject(slack.MarkdownType, headerText, false, false)
+	headerBlockSet = append(headerBlockSet, slack.NewSectionBlock(headerBlock, nil, nil))
+
+	// BODY
+	var bodyBlockSet []slack.Block
+
+	// trace data
+	var alertText string
+
+	// TODO(spenny): fix for anomoly alerts
+	threholdRelation := "above"
+	if (alertInput.Alert.BelowThreshold != nil && *alertInput.Alert.BelowThreshold) || (alertInput.Alert.ThresholdCondition == modelInputs.ThresholdConditionBelow) {
+		threholdRelation = "below"
+	}
+
+	query := "[empty query]"
+	if alertInput.Alert.Query != nil {
+		query = *alertInput.Alert.Query
+	}
+
+	if alertInput.Alert.FunctionType == modelInputs.MetricAggregatorCount || alertInput.Alert.FunctionType == modelInputs.MetricAggregatorCountDistinct || alertInput.Alert.FunctionType == modelInputs.MetricAggregatorCountDistinctKey {
+		alertText = fmt.Sprintf(
+			"Event count for query *%s* was %s the threshold.\n_Count_: %d | _Threshold_: %d",
+			query,
+			threholdRelation,
+			int(alertInput.AlertValue),
+			int(*alertInput.Alert.ThresholdValue),
+		)
+	} else {
+		alertText = fmt.Sprintf(
+			"Event %s for query *%s* was %s the threshold.\n_%s_: %f | _Threshold_: %f",
+			alertInput.Alert.FunctionType,
+			query,
+			threholdRelation,
+			alertInput.Alert.FunctionType,
+			alertInput.AlertValue,
+			*alertInput.Alert.ThresholdValue,
+		)
+	}
+
+	eventBlock := slack.NewTextBlockObject(slack.MarkdownType, alertText, false, false)
+	bodyBlockSet = append(bodyBlockSet, slack.NewSectionBlock(eventBlock, nil, nil))
+
+	// actions
+	var actionBlocks []slack.BlockElement
+	button := slack.NewButtonBlockElement(
+		"",
+		"click",
+		slack.NewTextBlockObject(
+			slack.PlainTextType,
+			"View Alert",
+			false,
+			false,
+		),
+	)
+	button.URL = alertInput.AlertLink
+	actionBlocks = append(actionBlocks, button)
+
+	bodyBlockSet = append(bodyBlockSet, slack.NewActionBlock("", actionBlocks...))
+
+	attachment := &slack.Attachment{
+		Color:  PURPLE_ALERT,
 		Blocks: slack.Blocks{BlockSet: bodyBlockSet},
 	}
 

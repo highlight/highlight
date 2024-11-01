@@ -51,7 +51,7 @@ jobs:
               env:
                   RUBYGEMS_API_KEY: '${{secrets.RUBYGEMS_API_KEY}}'
     e2e:
-        name: Ruby Example App
+        name: Rails Example App Tests
         runs-on: ubuntu-latest
         defaults:
             run:
@@ -69,3 +69,20 @@ jobs:
               run: bundle exec rake
             - name: Rubocop
               run: bundle exec rubocop
+    e2e-api-only:
+        name: Rails API-Only Example App Tests
+        runs-on: ubuntu-latest
+        defaults:
+            run:
+                working-directory: ./e2e/ruby/rails/api-only
+        steps:
+            - uses: actions/checkout@v4
+            - name: Install Ruby
+              uses: ruby/setup-ruby@v1
+              with:
+                  ruby-version: '3.3.4'
+                  bundler-cache: true # runs 'bundle install' and caches installed gems automatically
+            - name: Install dependencies
+              run: bundle install
+            - name: Test
+              run: bundle exec rake

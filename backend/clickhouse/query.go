@@ -39,19 +39,21 @@ type SampleableTableConfig struct {
 }
 
 type ReadMetricsInput struct {
-	SampleableConfig SampleableTableConfig
-	ProjectIDs       []int
-	Params           modelInputs.QueryInput
-	Column           string
-	MetricTypes      []modelInputs.MetricAggregator
-	GroupBy          []string
-	BucketCount      *int
-	BucketWindow     *int
-	BucketBy         string
-	Limit            *int
-	LimitAggregator  *modelInputs.MetricAggregator
-	LimitColumn      *string
-	SavedMetricState *SavedMetricState
+	SampleableConfig   SampleableTableConfig
+	ProjectIDs         []int
+	Params             modelInputs.QueryInput
+	Column             string
+	MetricTypes        []modelInputs.MetricAggregator
+	GroupBy            []string
+	BucketCount        *int
+	BucketWindow       *int
+	BucketBy           string
+	Limit              *int
+	LimitAggregator    *modelInputs.MetricAggregator
+	LimitColumn        *string
+	SavedMetricState   *SavedMetricState
+	PredictionSettings *modelInputs.PredictionSettings
+	NoBucketMax        bool
 }
 
 func readObjects[TObj interface{}](ctx context.Context, client *Client, config model.TableConfig, samplingConfig model.TableConfig, projectID int, params modelInputs.QueryInput, pagination Pagination, scanObject func(driver.Rows) (*Edge[TObj], error)) (*Connection[TObj], error) {
@@ -985,7 +987,7 @@ func (client *Client) ReadMetrics(ctx context.Context, input ReadMetricsInput) (
 		} else if input.BucketCount != nil {
 			nBuckets = *input.BucketCount
 		}
-		if nBuckets > MaxBuckets {
+		if nBuckets > MaxBuckets && !input.NoBucketMax {
 			nBuckets = MaxBuckets
 		}
 		if nBuckets < 1 {
@@ -993,7 +995,7 @@ func (client *Client) ReadMetrics(ctx context.Context, input ReadMetricsInput) (
 		}
 	} else {
 		nBuckets = int(int64(input.Params.DateRange.EndDate.Sub(input.Params.DateRange.StartDate).Seconds()) / int64(*input.BucketWindow))
-		if nBuckets > MaxBuckets {
+		if nBuckets > MaxBuckets && !input.NoBucketMax {
 			nBuckets = MaxBuckets
 			input.Params.DateRange.StartDate = input.Params.DateRange.EndDate.Add(-1 * time.Duration(MaxBuckets**input.BucketWindow) * time.Second)
 		}

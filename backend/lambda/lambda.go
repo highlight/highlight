@@ -183,6 +183,7 @@ const (
 	ReactEmailTemplateLogsAlert     ReactEmailTemplate = "logs-alert"
 	ReactEmailTemplateTracesAlert   ReactEmailTemplate = "traces-alert"
 	ReactEmailTemplateMetricsAlert  ReactEmailTemplate = "metrics-alert"
+	ReactEmailTemplateEventsAlert   ReactEmailTemplate = "events-alert"
 	// session insights
 	ReactEmailTemplateSessionInsights ReactEmailTemplate = "session-insights"
 	// notifications

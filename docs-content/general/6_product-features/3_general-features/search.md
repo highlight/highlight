@@ -148,7 +148,8 @@ operator characters (`!`, `=`, `:`, `<`, `>`), and parentheses.
 
 See the links below for more details on searching in specific parts of the product.
 
-* [Session search](../../6_product-features/1_session-replay/session-search.md)
-* [Error search](../../6_product-features/2_error-monitoring/error-search.md)
-* [Log Search](../../6_product-features/4_logging/log-search.md)
-* [Trace Search](../../6_product-features/5_tracing/trace-search.md)
+* [Session search](../1_session-replay/session-search.md)
+* [Error search](../2_error-monitoring/error-search.md)
+* [Log Search](../4_logging/log-search.md)
+* [Trace Search](../5_tracing/trace-search.md)
+* [Event search](../6_metrics/5_event-search.md)

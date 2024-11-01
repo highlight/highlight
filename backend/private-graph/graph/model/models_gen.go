@@ -103,13 +103,17 @@ type AlertDestinationInput struct {
 }
 
 type AlertStateChange struct {
-	ID            int        `json:"id"`
-	Timestamp     time.Time  `json:"timestamp"`
-	AlertID       int        `json:"AlertID"`
-	State         AlertState `json:"State"`
-	PreviousState AlertState `json:"PreviousState"`
-	Title         string     `json:"Title"`
-	GroupByKey    string     `json:"GroupByKey"`
+	ID         int        `json:"id"`
+	Timestamp  time.Time  `json:"timestamp"`
+	ProjectID  int        `json:"projectID"`
+	AlertID    int        `json:"alertID"`
+	State      AlertState `json:"state"`
+	GroupByKey string     `json:"groupByKey"`
+}
+
+type AlertStateChangeResults struct {
+	AlertStateChanges []*AlertStateChange `json:"alertStateChanges"`
+	TotalCount        int64               `json:"totalCount"`
 }
 
 type AllProjectSettings struct {
@@ -612,6 +616,8 @@ type MetricBucket struct {
 	Column      MetricColumn     `json:"column"`
 	MetricType  MetricAggregator `json:"metric_type"`
 	MetricValue *float64         `json:"metric_value,omitempty"`
+	YhatLower   *float64         `json:"yhat_lower,omitempty"`
+	YhatUpper   *float64         `json:"yhat_upper,omitempty"`
 }
 
 type MetricPreview struct {
@@ -686,6 +692,13 @@ type Plan struct {
 	ErrorsRate          float64                     `json:"errorsRate"`
 	LogsRate            float64                     `json:"logsRate"`
 	TracesRate          float64                     `json:"tracesRate"`
+}
+
+type PredictionSettings struct {
+	ChangepointPriorScale float64            `json:"changepointPriorScale"`
+	IntervalWidth         float64            `json:"intervalWidth"`
+	ThresholdCondition    ThresholdCondition `json:"thresholdCondition"`
+	IntervalSeconds       int                `json:"intervalSeconds"`
 }
 
 type QueryInput struct {
@@ -3087,5 +3100,89 @@ func (e *SuggestionType) UnmarshalGQL(v interface{}) error {
 }
 
 func (e SuggestionType) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+type ThresholdCondition string
+
+const (
+	ThresholdConditionAbove   ThresholdCondition = "Above"
+	ThresholdConditionBelow   ThresholdCondition = "Below"
+	ThresholdConditionOutside ThresholdCondition = "Outside"
+)
+
+var AllThresholdCondition = []ThresholdCondition{
+	ThresholdConditionAbove,
+	ThresholdConditionBelow,
+	ThresholdConditionOutside,
+}
+
+func (e ThresholdCondition) IsValid() bool {
+	switch e {
+	case ThresholdConditionAbove, ThresholdConditionBelow, ThresholdConditionOutside:
+		return true
+	}
+	return false
+}
+
+func (e ThresholdCondition) String() string {
+	return string(e)
+}
+
+func (e *ThresholdCondition) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = ThresholdCondition(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid ThresholdCondition", str)
+	}
+	return nil
+}
+
+func (e ThresholdCondition) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+type ThresholdType string
+
+const (
+	ThresholdTypeConstant ThresholdType = "Constant"
+	ThresholdTypeAnomaly  ThresholdType = "Anomaly"
+)
+
+var AllThresholdType = []ThresholdType{
+	ThresholdTypeConstant,
+	ThresholdTypeAnomaly,
+}
+
+func (e ThresholdType) IsValid() bool {
+	switch e {
+	case ThresholdTypeConstant, ThresholdTypeAnomaly:
+		return true
+	}
+	return false
+}
+
+func (e ThresholdType) String() string {
+	return string(e)
+}
+
+func (e *ThresholdType) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = ThresholdType(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid ThresholdType", str)
+	}
+	return nil
+}
+
+func (e ThresholdType) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(e.String()))
 }

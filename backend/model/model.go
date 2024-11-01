@@ -688,6 +688,8 @@ type SessionsHistogram struct {
 	BucketTimes           []time.Time `json:"bucket_times"`
 	SessionsWithoutErrors []int64     `json:"sessions_without_errors"`
 	SessionsWithErrors    []int64     `json:"sessions_with_errors"`
+	InactiveLengths       []int64     `json:"inactive_lengths"`
+	ActiveLengths         []int64     `json:"active_lengths"`
 	TotalSessions         []int64     `json:"total_sessions"`
 }
 
@@ -1962,10 +1964,12 @@ type Alert struct {
 	Default           bool                `gorm:"default:false"` // alert created during setup flow
 
 	// fields for threshold alert
-	BelowThreshold    *bool
-	ThresholdValue    *float64
-	ThresholdWindow   *int
-	ThresholdCooldown *int
+	BelowThreshold     *bool
+	ThresholdValue     *float64
+	ThresholdWindow    *int
+	ThresholdCooldown  *int
+	ThresholdType      modelInputs.ThresholdType
+	ThresholdCondition modelInputs.ThresholdCondition
 }
 
 type AlertDestination struct {

@@ -40,4 +40,13 @@ Read more about the metrics features below:
     <DocsCard title="Creating / editing a graph."  href="./graphing.md">
         {"Create and edit graphs in your dashboards."}
     </DocsCard>
+    <DocsCard title="Drilldown" href="./drilldown.md">
+        {"Take a closer look at the underlying data."}
+    </DocsCard>
+    <DocsCard title="Variables" href="./variables.md">
+        {"Use variables to reuse filters across many graphs in a dashboard."}
+    </DocsCard>
+    <DocsCard title="Search" href="../3_general_features/search.md">
+        {"Make the most of the search capabilities."}
+    </DocsCard>
 </DocsCardGroup>
