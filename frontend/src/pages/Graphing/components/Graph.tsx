@@ -498,6 +498,10 @@ const getCustomTooltip =
 								YHAT_UPPER_REGION_KEY,
 							].includes(p.dataKey),
 					)
+					// sort the tooltip to show the keys with largest value first
+					.sort(
+						(p1: any, p2: any) => (p2.value ?? 0) - (p1.value ?? 0),
+					)
 					.map((p: any, idx: number) => (
 						<Box
 							display="flex"
@@ -696,11 +700,6 @@ export const useGraphData = (
 				const hasGroups =
 					metrics.metrics.buckets.find((b) => b.group.length) !==
 					undefined
-
-				console.log(
-					'hasGroups',
-					metrics.metrics.buckets.find((b) => b.group.length),
-				)
 
 				for (const b of metrics.metrics.buckets) {
 					const seriesKey = hasGroups
