@@ -58,8 +58,6 @@ interface SearchContext extends Partial<ReturnType<typeof useSearchTime>> {
 	recentSearches: SearchEntry[]
 	handleSearch: (query: string, queryParts: SearchExpression[]) => void
 	historyLoading: boolean
-	activeTab: 'recent' | 'most' | 'filters'
-	setActiveTab: (activeTab: 'recent' | 'most' | 'filters') => void
 }
 
 export const [useSearchContext, SearchContextProvider] =
@@ -116,13 +114,7 @@ export const SearchContext: React.FC<Props> = ({
 	const [aiQuery, setAiQuery] = useState('')
 	const { queryParts, tokens } = parseSearch(query)
 	const tokenGroups = buildTokenGroups(tokens)
-	const {
-		handleSearch,
-		recentSearches,
-		activeTab,
-		historyLoading,
-		setActiveTab,
-	} = useSearchHistory()
+	const { handleSearch, recentSearches, historyLoading } = useSearchHistory()
 	const handleSubmit = (query: string) => {
 		onSubmit(query)
 		if (query) {
@@ -134,6 +126,7 @@ export const SearchContext: React.FC<Props> = ({
 				handleSearch?.(query, newQueryParts)
 			} catch (err) {
 				//do nothing
+				console.error('Something went wrong while', err)
 			}
 		}
 	}
@@ -167,10 +160,8 @@ export const SearchContext: React.FC<Props> = ({
 				aiSuggestionLoading,
 				aiSuggestionError,
 				recentSearches,
-				setActiveTab,
 				handleSearch,
 				historyLoading,
-				activeTab,
 				...searchTimeContext,
 			}}
 		>

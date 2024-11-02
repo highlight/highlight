@@ -359,7 +359,6 @@ export const Search: React.FC<{
 		setQuery,
 		setAiMode,
 		recentSearches,
-		activeTab,
 		historyLoading,
 	} = useSearchContext()
 	const navigate = useNavigate()
@@ -953,10 +952,7 @@ export const Search: React.FC<{
 								)
 							) : !historyLoading ? (
 								<Text color="secondaryContentText">
-									{activeTab === 'recent' &&
-										'No recent searches'}
-									{activeTab === 'most' &&
-										'No most searched queries'}
+									No recent searches
 								</Text>
 							) : (
 								<Text color="secondaryContentText">

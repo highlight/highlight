@@ -170,25 +170,20 @@ function saveSearchQuery(
 
 export const useSearchHistory = () => {
 	const [recentSearches, setRecentSearches] = useState<SearchEntry[]>([])
-	const [activeTab, setActiveTab] = useState<'recent' | 'most' | 'filters'>(
-		'recent',
-	)
 	const [historyLoading, setHisotryLoading] = useState(true)
 	const locaiton = useLocation()
 	//currently we are storing the pathname as identifier. So it is project specific. if we want global search we can tweak the below path and achieve that.
 	const pathName = locaiton?.pathname
 
 	useEffect(() => {
-		setHisotryLoading(true)
 		setRecentSearches(getRecentSearches(pathName))
-		setActiveTab('filters')
 		setHisotryLoading(false)
 	}, [pathName])
 
 	const handleSearch = (query: string, queryParts: SearchExpression[]) => {
 		const trimedQuery = queryParts.reduce((acc, part) => {
-			acc = (acc ? `${acc} ` : acc) + part.text
-			return acc
+			acc = (acc ? `${acc} ` : acc) + part.text.trim()
+			return acc.trim()
 		}, '')
 		if (trimedQuery !== '') {
 			saveSearchQuery(pathName, trimedQuery, queryParts)
@@ -199,8 +194,6 @@ export const useSearchHistory = () => {
 	return {
 		recentSearches,
 		handleSearch,
-		activeTab,
-		setActiveTab,
 		historyLoading,
 	}
 }
