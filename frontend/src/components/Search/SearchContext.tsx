@@ -126,7 +126,10 @@ export const SearchContext: React.FC<Props> = ({
 				handleSearch?.(query, newQueryParts)
 			} catch (err) {
 				//do nothing
-				console.error('Something went wrong while', err)
+				console.error(
+					'Something went wrong while parsing the queryParts',
+					err,
+				)
 			}
 		}
 	}
