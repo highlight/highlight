@@ -145,12 +145,20 @@ const getHighlightConfig = async (
 
 			if (!re || Array.isArray(re)) {
 				re = re ?? []
+
+				// Check if highlight-event is already in the array
+				const isProxyConfigured = re.some(rewrite => rewrite.source === highlightRewrite.source);
+
+				// Add sourcemap rewrite if necessary
 				if (defaultOpts.uploadSourceMaps) {
 					re.push(sourcemapRewrite)
 				}
-				if (defaultOpts.configureHighlightProxy) {
+
+				// Add highlight rewrite if not already configured and necessary
+				if (!isProxyConfigured && defaultOpts.configureHighlightProxy) {
 					re.push(highlightRewrite)
 				}
+
 				return re
 			} else {
 				return {
