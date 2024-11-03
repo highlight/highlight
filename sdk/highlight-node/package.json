@@ -1,6 +1,6 @@
 {
 	"name": "@highlight-run/node",
-	"version": "3.9.6",
+	"version": "3.9.7",
 	"license": "Apache-2.0",
 	"scripts": {
 		"typegen": "tsc -d --emitDeclarationOnly",
@@ -25,6 +25,9 @@
 	},
 	"publishConfig": {
 		"access": "public"
+	},
+	"dependencies": {
+		"require-in-the-middle": "^7.4.0"
 	},
 	"devDependencies": {
 		"@opentelemetry/api": "^1.9.0",
