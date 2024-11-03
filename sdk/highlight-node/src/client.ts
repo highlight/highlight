@@ -521,7 +521,7 @@ function parseHeaders(
 function extractIncomingHttpHeaders(headers?: any): IncomingHttpHeaders {
 	if (headers) {
 		let requestHeaders: IncomingHttpHeaders = {}
-		if (Object.hasOwn(headers, HIGHLIGHT_REQUEST_HEADER)) {
+		if (headers.hasOwnProperty(HIGHLIGHT_REQUEST_HEADER)) {
 			requestHeaders[HIGHLIGHT_REQUEST_HEADER] = (
 				headers as { [HIGHLIGHT_REQUEST_HEADER]: string }
 			)[HIGHLIGHT_REQUEST_HEADER]
