@@ -94,6 +94,7 @@ export const VIEW_OPTIONS = [
 export const TIMESTAMP_KEY = 'Timestamp'
 export const GROUP_KEY = 'Group'
 export const PERCENT_KEY = 'Percent'
+export const QUERY_KEY = 'Query'
 export const BUCKET_MIN_KEY = 'BucketMin'
 export const BUCKET_MAX_KEY = 'BucketMax'
 export const YHAT_UPPER_KEY = 'yhat_upper'
@@ -186,6 +187,7 @@ export type LoadExemplars = (
 	bucketMin: number | undefined,
 	bucketMax: number | undefined,
 	group: string | undefined,
+	stepQuery?: string,
 ) => void
 
 export type SetTimeRange = (startDate: Date, endDate: Date) => void
@@ -391,7 +393,6 @@ const durationUnitMap: [number, string][] = [
 	[1000, 's'],
 	[60, 'm'],
 	[60, 'h'],
-	[24, 'd'],
 ]
 
 const DEFAULT_TIME_METRIC = 'ns'
@@ -432,7 +433,7 @@ export const getTickFormatter = (metric: string, data?: any[] | undefined) => {
 				value /= entry[0]
 				lastUnit = entry[1]
 			}
-			return `${value.toFixed(0)}${lastUnit}`
+			return `${value.toFixed(lastUnit === 'h' ? 1 : 0)}${lastUnit}`
 		}
 	} else if (metric === 'percent') {
 		return (value: any) => {
@@ -496,6 +497,10 @@ const getCustomTooltip =
 								YHAT_LOWER_REGION_KEY,
 								YHAT_UPPER_REGION_KEY,
 							].includes(p.dataKey),
+					)
+					// sort the tooltip to show the keys with largest value first
+					.sort(
+						(p1: any, p2: any) => (p2.value ?? 0) - (p1.value ?? 0),
 					)
 					.map((p: any, idx: number) => (
 						<Box
@@ -573,6 +578,7 @@ const getCustomTooltip =
 												p.payload[BUCKET_MAX_KEY],
 												p.dataKey ||
 													p.payload[GROUP_KEY],
+												p.payload[QUERY_KEY],
 											)
 									}}
 								/>
@@ -695,11 +701,6 @@ export const useGraphData = (
 					metrics.metrics.buckets.find((b) => b.group.length) !==
 					undefined
 
-				console.log(
-					'hasGroups',
-					metrics.metrics.buckets.find((b) => b.group.length),
-				)
-
 				for (const b of metrics.metrics.buckets) {
 					const seriesKey = hasGroups
 						? b.group.join(', ') || NO_GROUP_PLACEHOLDER
@@ -750,28 +751,40 @@ export const useFunnelData = (
 ) => {
 	return useMemo(() => {
 		if (!results?.length || !results[0]?.metrics) return
-		const buckets: { [key: number]: { value: number; percent: number } } =
-			{}
+		const buckets: {
+			[key: number]: { value: number; percent: number }
+		} = {}
+		let groups = new Set<string>(
+			results[0].metrics.buckets.map((b) => b.group[0]),
+		)
 		results.forEach((r, idx) => {
 			if (r?.metrics?.buckets) {
+				const resultGroups = new Set<string>(
+					r.metrics.buckets.map((b) => b.group[0]),
+				)
 				r.metrics.buckets.forEach((b) => {
+					const group = b?.group[0]
 					const prev = buckets[idx - 1]?.value ?? 0
-					const value =
-						(buckets[idx]?.value ?? 0) + (b?.metric_value ?? 0)
+					const stepValue = groups.has(group)
+						? (b?.metric_value ?? 0)
+						: 0
+					const value = (buckets[idx]?.value ?? 0) + stepValue
 					buckets[idx] = {
 						value,
 						percent: prev > 0 ? value / prev : 1,
 					}
 				})
+				groups = groups.intersection(resultGroups)
 			}
 		})
 
 		return Object.values(buckets).map((r, idx) => {
-			const key =
-				funnelSteps?.at(idx)?.title || funnelSteps?.at(idx)?.query || ''
+			const query = funnelSteps?.at(idx)?.query || ''
+			const key = funnelSteps?.at(idx)?.title || query
 			return {
 				[GROUP_KEY]: key,
 				[PERCENT_KEY]: r.percent,
+				[QUERY_KEY]: query,
 				[key]: r.value,
 			}
 		})
@@ -792,6 +805,7 @@ export const useGraphSeries = (
 			YHAT_LOWER_REGION_KEY,
 			YHAT_UPPER_REGION_KEY,
 			PERCENT_KEY,
+			QUERY_KEY,
 		]
 		return _.uniq(data?.flatMap((d) => Object.keys(d))).filter(
 			(key) => !excluded.includes(key),
@@ -888,6 +902,7 @@ const Graph = ({
 		bucketMin: number | undefined,
 		bucketMax: number | undefined,
 		groups: string | undefined,
+		stepQuery: string | undefined,
 	) => {
 		let relatedResourceType:
 			| 'logs'
@@ -913,14 +928,21 @@ const Graph = ({
 				break
 			case ProductType.Events:
 				relatedResourceType = 'events'
+				groupByKeys = undefined
 				break
 			default:
 				return
 		}
 
-		let relatedResourceQuery = replaceQueryVariables(query, variables)
+		let relatedResourceQuery = replaceQueryVariables(
+			stepQuery || query,
+			variables,
+		)
 		if (groupByKeys !== undefined && groupByKeys.length > 0) {
 			groups?.split(', ').forEach((group, idx) => {
+				if (!groupByKeys) {
+					return
+				}
 				if (group !== NO_GROUP_PLACEHOLDER && group !== '') {
 					relatedResourceQuery += ` ${groupByKeys[idx]}="${group}"`
 				} else {
@@ -938,8 +960,12 @@ const Graph = ({
 		let startDateStr = moment(startDate).toISOString()
 		let endDateStr = moment(endDate).toISOString()
 		if (bucketByKey === TIMESTAMP_KEY && bucketMin && bucketMax) {
-			startDateStr = new Date(bucketMin * 1000).toISOString()
-			endDateStr = new Date(bucketMax * 1000).toISOString()
+			startDateStr = (
+				bucketMin ? new Date(bucketMin * 1000) : startDate
+			).toISOString()
+			endDateStr = (
+				bucketMax ? new Date(bucketMax * 1000) : endDate
+			).toISOString()
 		}
 
 		set({
@@ -1030,39 +1056,18 @@ const Graph = ({
 		setLoading(true)
 		let getMetricsPromises: Promise<GetMetricsQueryResult>[] = []
 		if (funnelSteps?.length) {
-			let promise: Promise<GetMetricsQueryResult> = Promise.resolve(
-				{} as GetMetricsQueryResult,
-			)
 			for (const step of funnelSteps) {
-				promise = promise.then((result) => {
-					// once events have other session attributes, we can support per-user aggregation
-					const keys = result.data?.metrics.buckets?.map(
-						(b) => b.group[0],
-					)
-					// if previous step exists but no result, we should have no results
-					if (keys?.length && keys.at(0) === '') {
-						return Promise.resolve({
-							data: {
-								metrics: { buckets: [{}] },
-							},
-						} as GetMetricsQueryResult)
-					}
-					const previousStepFilter = keys
-						?.map((k) => `secure_session_id=${k}`)
-						?.join(' OR ')
-					return getMetrics({
+				getMetricsPromises.push(
+					getMetrics({
 						variables: {
 							...getMetricsVariables,
 							params: {
 								...getMetricsVariables.params,
-								query: keys?.length
-									? `${step.query} AND (${previousStepFilter})`
-									: step.query,
+								query: step.query,
 							},
 						},
-					})
-				})
-				getMetricsPromises.push(promise)
+					}),
+				)
 			}
 		} else {
 			getMetricsPromises = [

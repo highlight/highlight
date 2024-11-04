@@ -98,7 +98,7 @@ export const TraceFlameGraph: React.FC = () => {
 			const tickDuration = totalDuration * percent
 			const displayDuration =
 				Math.round((tickDuration / timeUnit!.divider) * 10) / 10
-			const time = `${displayDuration}${timeUnit!.unit}` ?? '0ms'
+			const time = `${displayDuration}${timeUnit!.unit}`
 
 			tcks.push({
 				time,
