@@ -42,6 +42,7 @@ var eventKeysToColumns = map[string]string{
 	string(modelInputs.ReservedEventKeyOsVersion):           "OSVersion",
 	string(modelInputs.ReservedEventKeySecureSessionID):     "SecureSessionId",
 	string(modelInputs.ReservedEventKeyState):               "State",
+	string(modelInputs.ReservedEventKeyTimestamp):           "Timestamp",
 }
 
 var defaultEventKeys = []*modelInputs.QueryKey{
@@ -51,6 +52,7 @@ var defaultEventKeys = []*modelInputs.QueryKey{
 	{Name: string(modelInputs.ReservedEventKeySessionActiveLength), Type: modelInputs.KeyTypeNumeric},
 	{Name: string(modelInputs.ReservedEventKeySessionLength), Type: modelInputs.KeyTypeNumeric},
 	{Name: string(modelInputs.ReservedEventKeySessionPagesVisited), Type: modelInputs.KeyTypeNumeric},
+	{Name: string(modelInputs.ReservedEventKeyTimestamp), Type: modelInputs.KeyTypeNumeric},
 }
 
 var eventBooleanKeys = map[string]bool{

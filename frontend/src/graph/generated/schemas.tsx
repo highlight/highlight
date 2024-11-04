@@ -3204,6 +3204,7 @@ export enum ReservedEventKey {
 	SessionLength = 'session_length',
 	SessionPagesVisited = 'session_pages_visited',
 	State = 'state',
+	Timestamp = 'timestamp',
 }
 
 export enum ReservedLogKey {
@@ -3247,6 +3248,7 @@ export enum ReservedSessionKey {
 	SecureId = 'secure_id',
 	ServiceVersion = 'service_version',
 	State = 'state',
+	Timestamp = 'timestamp',
 	Viewed = 'viewed',
 	ViewedByAnyone = 'viewed_by_anyone',
 	ViewedByMe = 'viewed_by_me',
