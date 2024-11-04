@@ -55,13 +55,15 @@ export default function OTelCourseSignup() {
 			</Head>
 
 			{/* Hero Section */}
-			<section className="bg-[#0d0225] text-white py-20">
-				<div className="container mx-auto px-4 md:w-2/3">
-					<h1 className="text-5xl font-bold mb-6 text-center leading-tight tracking-normal">
-						Unlock the Power of OpenTelemetry: From Novice to Expert
-						in One Course
+			<section className="bg-[#0d0225] text-white py-16 md:py-20">
+				<div className="container mx-auto px-4 md:w-[775px]">
+					<h1 className="text-3xl md:text-5xl mb-6 text-center leading-tight tracking-normal font-poppins my-0">
+						Unlock the Power of OpenTelemetry:{' '}
+						<span className="text-[rgb(235,255,94)]">
+							From Novice to Expert in One Course
+						</span>
 					</h1>
-					<p className="text-xl md:text-2xl text-center mb-12 w-3/4 mx-auto">
+					<p className="text-base md:text-xl font-medium md:text-2xl text-center mb-12 w-3/4 mx-auto">
 						Master the industry-leading observability framework in
 						our free, comprehensive course
 					</p>
@@ -78,7 +80,7 @@ export default function OTelCourseSignup() {
 
 			{/* Course Benefits */}
 			<section className="py-16 bg-white text-gray-900">
-				<div className="container mx-auto px-4">
+				<div className="container mx-auto px-4 md:max-w-3xl">
 					<h2 className="text-3xl font-bold text-center mb-12 text-[#0d0225]">
 						What You&apos;ll Learn
 					</h2>
@@ -134,7 +136,7 @@ export default function OTelCourseSignup() {
 			{/* Sign Up Form */}
 			<section id="signup" className="py-16 bg-gray-100 text-gray-900">
 				<div className="container mx-auto px-4">
-					<div className="max-w-3xl mx-auto bg-white rounded-lg shadow-lg overflow-hidden">
+					<div className="max-w-4xl mx-auto bg-white rounded-lg shadow-lg overflow-hidden">
 						<div className="md:flex">
 							<div className="md:w-1/2 p-8">
 								<h2 className="text-3xl font-bold mb-4 text-[#0d0225]">
@@ -147,17 +149,24 @@ export default function OTelCourseSignup() {
 								</p>
 								<div id="hubspot-form-container"></div>
 							</div>
-							<div className="md:w-1/2 bg-[#0d0225] text-white p-8 flex items-center">
+							<div className="md:w-1/2 bg-[#0d0225] text-white p-8 flex">
 								<div>
-									<h3 className="text-2xl font-bold mb-4">
+									<h3 className="text-3xl font-bold mb-4">
 										What You&apos;ll Get
 									</h3>
 									<ul className="list-disc list-inside space-y-2">
-										<li>Learn from industry experts</li>
-										<li>Hands-on practical exercises</li>
+										<li>9-part expert video course</li>
+										<li>Free updates forever</li>
+										<li>
+											Tracing, metrics & logging deep
+											dives
+										</li>
+										<li>
+											Collector configuration & best
+											practices
+										</li>
 										<li>Real-world case studies</li>
-										<li>Self-paced learning</li>
-										<li>Certificate of completion</li>
+										<li>Performance optimization guides</li>
 									</ul>
 								</div>
 							</div>
@@ -218,7 +227,7 @@ export default function OTelCourseSignup() {
 			</section>
 
 			{/* Call to Action */}
-			<section className="bg-[#0d0225] text-white py-12 pb-24">
+			<section className="bg-[#0d0225] text-white pt-20 pb-16">
 				<div className="container mx-auto px-4 text-center">
 					<h2 className="text-3xl font-bold mb-4">
 						Ready to Master OpenTelemetry?
@@ -233,6 +242,21 @@ export default function OTelCourseSignup() {
 					>
 						Start Learning Today
 					</a>
+				</div>
+
+				{/* Footer Note */}
+				<div className="text-center text-sm text-white mt-32">
+					<p>
+						💜 Brought to you for free as a labor of love by the
+						team at{' '}
+						<a
+							href="https://highlight.io"
+							className="text-white font-semibold hover:underline"
+						>
+							Highlight.io
+						</a>{' '}
+						💜
+					</p>
 				</div>
 			</section>
 		</div>
