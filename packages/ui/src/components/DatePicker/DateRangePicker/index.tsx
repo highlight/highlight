@@ -27,7 +27,7 @@ import {
 	isPresetSelected,
 	setTimeOnDate,
 } from './helpers'
-import { Badge } from '@/components/Badge/Badge'
+import { Badge } from '../../Badge/Badge'
 
 export type DateRangePreset = {
 	unit: moment.DurationInputArg2
