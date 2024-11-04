@@ -6,6 +6,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"go.opentelemetry.io/collector/pdata/pmetric"
 	"io"
 	"net/http"
 	"strconv"
@@ -101,7 +102,7 @@ func getBackendError(ctx context.Context, ts time.Time, fields *extractedFields,
 }
 
 func getMetric(ctx context.Context, ts time.Time, fields *extractedFields, spanID, parentSpanID, traceID string) (*model.MetricInput, error) {
-	if fields.metricEventName == "" {
+	if fields.metricName == "" {
 		return nil, e.New("otel received metric with no name")
 	}
 	tags := lo.Map(lo.Entries(fields.attrs), func(t lo.Entry[string, string], i int) *model.MetricTag {
@@ -123,7 +124,7 @@ func getMetric(ctx context.Context, ts time.Time, fields *extractedFields, spanI
 		ParentSpanID:    pointy.String(parentSpanID),
 		TraceID:         pointy.String(traceID),
 		Group:           pointy.String(fields.requestID),
-		Name:            fields.metricEventName,
+		Name:            fields.metricName,
 		Value:           fields.metricEventValue,
 		Category:        pointy.String(fields.source.String()),
 		Timestamp:       ts,
@@ -173,9 +174,10 @@ func (o *Handler) HandleTrace(w http.ResponseWriter, r *http.Request) {
 	spans := req.Traces().ResourceSpans()
 	for i := 0; i < spans.Len(); i++ {
 		resource := spans.At(i).Resource()
-		scopeScans := spans.At(i).ScopeSpans()
-		for j := 0; j < scopeScans.Len(); j++ {
-			spans := scopeScans.At(j).Spans()
+		scopeSpans := spans.At(i).ScopeSpans()
+		for j := 0; j < scopeSpans.Len(); j++ {
+			scope := scopeSpans.At(j).Scope()
+			spans := scopeSpans.At(j).Spans()
 			for k := 0; k < spans.Len(); k++ {
 				span := spans.At(k)
 				events := span.Events()
@@ -211,6 +213,7 @@ func (o *Handler) HandleTrace(w http.ResponseWriter, r *http.Request) {
 					fields, err := extractFields(r.Context(), extractFieldsParams{
 						headers:  r.Header,
 						resource: &resource,
+						scope:    &scope,
 						span:     &span,
 						event:    &event,
 						curTime:  curTime,
@@ -424,14 +427,16 @@ func (o *Handler) HandleLog(w http.ResponseWriter, r *http.Request) {
 		resource := resourceLogs.At(i).Resource()
 		scopeLogs := resourceLogs.At(i).ScopeLogs()
 		for j := 0; j < scopeLogs.Len(); j++ {
-			scopeLogs := scopeLogs.At(j)
-			logRecords := scopeLogs.LogRecords()
+			scopeLog := scopeLogs.At(j)
+			scope := scopeLog.Scope()
+			logRecords := scopeLog.LogRecords()
 			for k := 0; k < logRecords.Len(); k++ {
 				logRecord := logRecords.At(k)
 
 				fields, err := extractFields(r.Context(), extractFieldsParams{
 					headers:                r.Header,
 					resource:               &resource,
+					scope:                  &scope,
 					logRecord:              &logRecord,
 					curTime:                curTime,
 					herokuProjectExtractor: o.matchHerokuDrain,
@@ -522,10 +527,127 @@ func (o *Handler) HandleMetric(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	log.WithContext(ctx).
-		WithField("count", req.Metrics().MetricCount()).
-		WithField("dp_count", req.Metrics().DataPointCount()).
-		Info("received otel metrics")
+	var curTime = time.Now()
+	resourceMetrics := req.Metrics().ResourceMetrics()
+	for i := 0; i < resourceMetrics.Len(); i++ {
+		resource := resourceMetrics.At(i).Resource()
+		scopeMetrics := resourceMetrics.At(i).ScopeMetrics()
+		for j := 0; j < scopeMetrics.Len(); j++ {
+			scopeMetric := scopeMetrics.At(j)
+			scope := scopeMetric.Scope()
+			metrics := scopeMetric.Metrics()
+			for k := 0; k < metrics.Len(); k++ {
+				metric := metrics.At(k)
+				fields, err := extractFields(r.Context(), extractFieldsParams{
+					headers:  r.Header,
+					resource: &resource,
+					scope:    &scope,
+					metric:   &metric,
+					curTime:  curTime,
+				})
+				if err != nil {
+					lg(ctx, fields).WithError(err).Info("failed to extract fields from metric")
+					continue
+				}
+
+				if metric.Type() == pmetric.MetricTypeSum {
+					for l := 0; l < metric.Sum().DataPoints().Len(); l++ {
+						dp := metric.Sum().DataPoints().At(l)
+						log.WithContext(ctx).
+							WithFields(log.Fields{
+								"fields":    fields,
+								"time":      dp.Timestamp().AsTime(),
+								"start":     dp.StartTimestamp().AsTime(),
+								"double":    dp.DoubleValue(),
+								"int":       dp.IntValue(),
+								"attrs":     dp.Attributes(),
+								"exemplars": dp.Exemplars(),
+								"flags":     dp.Flags(),
+								"type":      dp.ValueType(),
+							}).
+							Info("received otel metrics sum")
+					}
+				} else if metric.Type() == pmetric.MetricTypeGauge {
+					for l := 0; l < metric.Gauge().DataPoints().Len(); l++ {
+						dp := metric.Gauge().DataPoints().At(l)
+						log.WithContext(ctx).
+							WithFields(log.Fields{
+								"fields":    fields,
+								"time":      dp.Timestamp().AsTime(),
+								"start":     dp.StartTimestamp().AsTime(),
+								"double":    dp.DoubleValue(),
+								"int":       dp.IntValue(),
+								"attrs":     dp.Attributes(),
+								"exemplars": dp.Exemplars(),
+								"flags":     dp.Flags(),
+								"type":      dp.ValueType(),
+							}).
+							Info("received otel metrics gauge")
+					}
+				} else if metric.Type() == pmetric.MetricTypeHistogram {
+					for l := 0; l < metric.Histogram().DataPoints().Len(); l++ {
+						dp := metric.Histogram().DataPoints().At(l)
+						log.WithContext(ctx).
+							WithFields(log.Fields{
+								"fields":        fields,
+								"time":          dp.Timestamp().AsTime(),
+								"start":         dp.StartTimestamp().AsTime(),
+								"attrs":         dp.Attributes(),
+								"exemplars":     dp.Exemplars(),
+								"flags":         dp.Flags(),
+								"bounds":        dp.ExplicitBounds(),
+								"bucket_counts": dp.BucketCounts(),
+								"sum":           dp.Sum(),
+								"count":         dp.Count(),
+								"min":           dp.Min(),
+								"max":           dp.Max(),
+							}).
+							Info("received otel metrics histogram")
+					}
+				} else if metric.Type() == pmetric.MetricTypeExponentialHistogram {
+					for l := 0; l < metric.ExponentialHistogram().DataPoints().Len(); l++ {
+						dp := metric.ExponentialHistogram().DataPoints().At(l)
+						log.WithContext(ctx).
+							WithFields(log.Fields{
+								"fields":         fields,
+								"time":           dp.Timestamp().AsTime(),
+								"start":          dp.StartTimestamp().AsTime(),
+								"attrs":          dp.Attributes(),
+								"exemplars":      dp.Exemplars(),
+								"flags":          dp.Flags(),
+								"negative":       dp.Negative(),
+								"positive":       dp.Positive(),
+								"sum":            dp.Sum(),
+								"count":          dp.Count(),
+								"min":            dp.Min(),
+								"max":            dp.Max(),
+								"scale":          dp.Scale(),
+								"zero_count":     dp.ZeroCount(),
+								"zero_threshold": dp.ZeroThreshold(),
+							}).
+							Info("received otel metrics exp histogram")
+					}
+				} else if metric.Type() == pmetric.MetricTypeSummary {
+					for l := 0; l < metric.Summary().DataPoints().Len(); l++ {
+						dp := metric.Summary().DataPoints().At(l)
+
+						log.WithContext(ctx).
+							WithFields(log.Fields{
+								"fields":          fields,
+								"time":            dp.Timestamp().AsTime(),
+								"start":           dp.StartTimestamp().AsTime(),
+								"attrs":           dp.Attributes(),
+								"flags":           dp.Flags(),
+								"count":           dp.Count(),
+								"sum":             dp.Sum(),
+								"quantile_values": dp.QuantileValues(),
+							}).
+							Info("received otel metrics summary")
+					}
+				}
+			}
+		}
+	}
 
 	w.WriteHeader(http.StatusOK)
 }
