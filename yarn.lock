@@ -9722,6 +9722,7 @@ __metadata:
     "@inkeep/uikit": "npm:^0.3.8"
     "@mux/mux-player": "npm:^2.4.1"
     "@mux/mux-player-react": "npm:^2.4.1"
+    "@opentelemetry/api": "npm:^1.9.0"
     "@parcel/watcher": "npm:^2.4.1"
     "@reflame/testing": "npm:^0.0.2"
     "@rehooks/local-storage": "npm:^2.4.5"

@@ -70,7 +70,7 @@ func getBackendError(ctx context.Context, ts time.Time, fields *extractedFields,
 		lg(ctx, fields).Warn("otel received exception with no stacktrace")
 		fields.exceptionStackTrace = ""
 	}
-	fields.exceptionStackTrace = stacktraces.FormatStructureStackTrace(ctx, fields.exceptionStackTrace)
+	fields.exceptionStackTrace = stacktraces.FormatStructureStackTrace(ctx, fields.exceptionStackTrace, stacktraces.FromOTeL())
 	payloadBytes, _ := json.Marshal(fields.attrs)
 	err := &model.BackendErrorObjectInput{
 		SessionSecureID: &fields.sessionID,

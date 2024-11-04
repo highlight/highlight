@@ -107,12 +107,18 @@ func TestEnhanceStackTrace(t *testing.T) {
 					LineNumber:   ptr.Int(634),
 					ColumnNumber: ptr.Int(4),
 					FunctionName: ptr.String(""),
+					LinesBefore:  ptr.String("   * @param {*} target The value to search for.\n   * @param {Function} comparator The comparator invoked per element.\n   * @returns {boolean} Returns `true` if `target` is found, else `false`.\n   */\n  function arrayIncludesWith(array, value, comparator) {\n"),
+					LineContent:  ptr.String("    var index = -1,\n"),
+					LinesAfter:   ptr.String("        length = array == null ? 0 : array.length;\n\n    while (++index < length) {\n      if (comparator(value, array[index])) {\n        return true;\n"),
 				},
 				{
 					FileName:     ptr.String("https://cdnjs.cloudflare.com/ajax/libs/lodash.js/4.17.4/lodash.js"),
 					LineNumber:   ptr.Int(633),
 					ColumnNumber: ptr.Int(11),
 					FunctionName: ptr.String("arrayIncludesWith"),
+					LinesBefore:  ptr.String("   * @param {Array} [array] The array to inspect.\n   * @param {*} target The value to search for.\n   * @param {Function} comparator The comparator invoked per element.\n   * @returns {boolean} Returns `true` if `target` is found, else `false`.\n   */\n"),
+					LineContent:  ptr.String("  function arrayIncludesWith(array, value, comparator) {\n"),
+					LinesAfter:   ptr.String("    var index = -1,\n        length = array == null ? 0 : array.length;\n\n    while (++index < length) {\n      if (comparator(value, array[index])) {\n"),
 				},
 			},
 			fetcher: NetworkFetcher{redis: redis.NewClient()},
@@ -362,6 +368,17 @@ func TestEnhanceBackendNextServerlessTrace(t *testing.T) {
 	}
 	assert.Equal(t, 1, len(mappedStackTrace))
 	assert.Equal(t, "                    console.log(`got fetch cache entry for ${key}, duration: ${Date.now() - start}ms, size: ${Object.keys(cached).length}, cache-state: ${cacheState} tags: ${tags == null ? void 0 : tags.join(\",\")} softTags: ${softTags == null ? void 0 : softTags.join(\",\")}`);\n", *mappedStackTrace[0].LineContent)
+
+	err = json.Unmarshal([]byte(`[{"fileName":"/var/task/node_modules/@commerce-apps/core/dist/base/staticClient.js","lineNumber":162,"functionName":"","columnNumber":49,"error":"Error: 504 Request Timeout"}]`), &stackFrameInput)
+	assert.NoError(t, err)
+
+	mappedStackTrace, err = EnhanceStackTrace(ctx, stackFrameInput, 1, nil, client)
+	if err != nil {
+		t.Fatal(e.Wrap(err, "error enhancing source map"))
+	}
+	assert.Equal(t, 1, len(mappedStackTrace))
+	assert.Equal(t, "  return options.rawResponse ? response : getObjectFromResponse(response);\n", *mappedStackTrace[0].LineContent)
+
 }
 
 func TestGetURLSourcemap(t *testing.T) {
