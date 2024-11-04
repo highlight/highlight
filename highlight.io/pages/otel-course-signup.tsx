@@ -57,7 +57,7 @@ export default function OTelCourseSignup() {
 			{/* Hero Section */}
 			<section className="bg-[#0d0225] text-white py-20">
 				<div className="container mx-auto px-4 md:w-2/3">
-					<h1 className="text-4xl md:text-5xl font-bold mb-6 text-center leading-tight">
+					<h1 className="text-5xl font-bold mb-6 text-center leading-tight tracking-normal">
 						Unlock the Power of OpenTelemetry: From Novice to Expert
 						in One Course
 					</h1>
@@ -110,9 +110,9 @@ export default function OTelCourseSignup() {
 									'Dive into advanced topics such as distributed tracing and service mesh',
 							},
 							{
-								title: 'Hands-On Labs',
+								title: 'Project-Based Learning',
 								description:
-									'Practice your skills with hands-on labs and practical exercises',
+									'Solidify knowledge with a real-world project putting what you learn into practice',
 							},
 						].map((item, index) => (
 							<div
@@ -218,7 +218,7 @@ export default function OTelCourseSignup() {
 			</section>
 
 			{/* Call to Action */}
-			<section className="bg-[#0d0225] text-white py-12">
+			<section className="bg-[#0d0225] text-white py-12 pb-24">
 				<div className="container mx-auto px-4 text-center">
 					<h2 className="text-3xl font-bold mb-4">
 						Ready to Master OpenTelemetry?
