@@ -79,6 +79,7 @@ const COURSE_VIDEOS: CourseVideo[] = [
 ]
 
 export default function OTelCourse() {
+	const [isAuthorized, setIsAuthorized] = useState(false)
 	const [currentVideo, setCurrentVideo] = useState<string | null>(null)
 	const [videoProgressData, setVideoProgressData] = useState<
 		CourseVideoProgress[]
@@ -220,6 +221,10 @@ export default function OTelCourse() {
 					: video,
 			),
 		)
+	}
+
+	if (!isAuthorized) {
+		return null
 	}
 
 	return (
