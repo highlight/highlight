@@ -41,37 +41,31 @@ const COURSE_VIDEOS: CourseVideo[] = [
 			'Introduction to distributed tracing with OpenTelemetry. Learn how to instrument applications for tracing across different languages, and how to export trace data to observability platforms.',
 	},
 	{
-		id: 'ASgosEzG4Pw',
 		title: 'OpenTelemetry Metrics',
 		description:
 			'Focuses on metrics collection and exporting, explaining different types of metrics (counters, gauges, histograms) and how to use OpenTelemetry to monitor application performance.',
 	},
 	{
-		id: 'l65h40vG3vg',
 		title: 'OpenTelemetry Logging',
 		description:
 			'Learn about structured logging and how to integrate logging with OpenTelemetry, collecting and exporting logs to various backend systems for analysis.',
 	},
 	{
-		id: '7BhzaEVqsS4',
 		title: 'OpenTelemetry Collector and Processors',
 		description:
 			'A deep dive into the OpenTelemetry Collector, its setup, and how to configure processors and exporters to tailor data pipelines for different observability needs.',
 	},
 	{
-		id: 'GMMdBR_61qw',
 		title: 'OpenTelemetry in Real-world Scenarios',
 		description:
 			'Explore practical examples of OpenTelemetry in action within microservices, cloud environments (AWS, Google Cloud, Azure), and Kubernetes, showcasing real-world use cases.',
 	},
 	{
-		id: 'Hb24x1_wDXQ',
 		title: 'Best Practices and Performance Considerations',
 		description:
 			'Guidelines for performance optimization when using OpenTelemetry, avoiding overhead, and securing data collection pipelines to maintain privacy and compliance.',
 	},
 	{
-		id: 'vGPpaTpTOdA',
 		title: 'Advanced Topics and Future of OpenTelemetry',
 		description:
 			'Explore advanced custom instrumentation, monitoring for AI/ML applications, and the future trends of OpenTelemetry in observability and beyond.',
@@ -97,6 +91,8 @@ export default function OTelCourse() {
 
 			if (!authorized && typeof window !== 'undefined') {
 				router.push('/otel-course-signup')
+			} else {
+				setIsAuthorized(true)
 			}
 		}
 
@@ -146,8 +142,7 @@ export default function OTelCourse() {
 
 	const initializePlayer = (videoId: string) => {
 		const newPlayer = new window.YT.Player('youtube-player', {
-			height: 450,
-			width: 800,
+			height: 558,
 			videoId,
 			playerVars: {
 				autoplay: 1,
@@ -228,7 +223,7 @@ export default function OTelCourse() {
 	}
 
 	return (
-		<div className="container mx-auto px-4 py-8">
+		<div className="container mx-auto px-4 py-8 max-w-5xl">
 			<Head>
 				<title>OpenTelemetry Course | Highlight.io</title>
 				<meta
@@ -244,10 +239,10 @@ export default function OTelCourse() {
 			</div>
 
 			<div className="mb-8">
-				<div className="aspect-w-16 aspect-h-9 h-[450px] flex items-center justify-center relative">
+				<div className="aspect-w-16 aspect-h-9 h-[558px] flex items-center justify-center relative">
 					<div id="youtube-player" className="w-full h-full"></div>
 					{!currentVideo && (
-						<div className="w-full h-full flex items-center justify-center absolute top-0 left-0">
+						<div className="w-full h-full flex items-center justify-center absolute top-0 left-0 bg-black bg-opacity-40">
 							<div className="text-center">
 								<Typography type="copy2" className="mb-4">
 									Select a video to start learning
@@ -280,16 +275,27 @@ export default function OTelCourse() {
 					return (
 						<div
 							key={`${video.id}-${index}`}
-							className="bg-white rounded-lg shadow-lg overflow-hidden flex hover:shadow-xl transition-shadow duration-300"
+							className="bg-white rounded-lg shadow-lg overflow-hidden flex flex-col md:flex-row hover:shadow-xl transition-shadow duration-300"
 						>
-							<div className="w-1/4 h-[190px] relative">
-								<div className="aspect-w-16 aspect-h-9">
-									<Image
-										src={`https://img.youtube.com/vi/${video.id}/maxresdefault.jpg`}
-										alt={video.title}
-										layout="fill"
-										objectFit="cover"
-									/>
+							<div className="relative w-full md:w-1/3">
+								<div className="w-full h-48 md:h-full relative">
+									{video.id ? (
+										<Image
+											src={`https://img.youtube.com/vi/${video.id}/maxresdefault.jpg`}
+											alt={video.title}
+											fill
+											className="object-cover"
+										/>
+									) : (
+										<div className="w-full h-full flex items-center justify-center bg-gray-200">
+											<Typography
+												type="copy2"
+												className="text-gray-500"
+											>
+												Coming Soon
+											</Typography>
+										</div>
+									)}
 									<div className="absolute inset-0 bg-black bg-opacity-40 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity duration-300">
 										<button
 											className="bg-red-600 text-white rounded-full p-3 hover:bg-red-700 transition-colors transform hover:scale-110 duration-300"
@@ -313,7 +319,7 @@ export default function OTelCourse() {
 									</div>
 								</div>
 							</div>
-							<div className="w-2/3 p-6 flex flex-col justify-between">
+							<div className="w-full md:w-2/3 p-6 flex flex-col justify-between">
 								<div>
 									<Typography
 										type="copy2"
