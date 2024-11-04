@@ -554,9 +554,7 @@ function ErrorDisplay({
 			return (
 				<ErrorState
 					title="Enter this Workspace?"
-					message={
-						"Sadly, you don’t have access to the workspace 😢 Request access and we'll shoot an email to your workspace admin. Alternatively, feel free to make an account!"
-					}
+					message="Sadly, you don’t have access to the workspace 😢 Request access and we'll shoot an email to your workspace admin. Alternatively, feel free to make an account!"
 					shownWithHeader
 					showRequestAccess
 				/>

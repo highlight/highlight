@@ -63,12 +63,10 @@ function getUntaintedPrototype$1(key) {
     const iframeEl = document.createElement("iframe");
     document.body.appendChild(iframeEl);
     const win = iframeEl.contentWindow;
-    if (!win)
-      return defaultObj.prototype;
+    if (!win) return defaultObj.prototype;
     const untaintedObject = win[key].prototype;
     document.body.removeChild(iframeEl);
-    if (!untaintedObject)
-      return defaultPrototype;
+    if (!untaintedObject) return defaultPrototype;
     return untaintedBasePrototype$1[key] = untaintedObject;
   } catch {
     return defaultPrototype;
@@ -87,8 +85,7 @@ function getUntaintedAccessor$1(key, instance, accessor) {
     untaintedPrototype,
     accessor
   )) == null ? void 0 : _a2.get;
-  if (!untaintedAccessor)
-    return instance[accessor];
+  if (!untaintedAccessor) return instance[accessor];
   untaintedAccessorCache$1[cacheKey] = untaintedAccessor;
   return untaintedAccessor.call(instance);
 }
@@ -101,8 +98,7 @@ function getUntaintedMethod$1(key, instance, method) {
     );
   const untaintedPrototype = getUntaintedPrototype$1(key);
   const untaintedMethod = untaintedPrototype[method];
-  if (typeof untaintedMethod !== "function")
-    return instance[method];
+  if (typeof untaintedMethod !== "function") return instance[method];
   untaintedMethodCache$1[cacheKey] = untaintedMethod;
   return untaintedMethod.bind(instance);
 }
@@ -125,16 +121,14 @@ function getRootNode$1(n2) {
   return getUntaintedMethod$1("Node", n2, "getRootNode")();
 }
 function host$1(n2) {
-  if (!n2 || !("host" in n2))
-    return null;
+  if (!n2 || !("host" in n2)) return null;
   return getUntaintedAccessor$1("ShadowRoot", n2, "host");
 }
 function styleSheets$1(n2) {
   return n2.styleSheets;
 }
 function shadowRoot$1(n2) {
-  if (!n2 || !("shadowRoot" in n2))
-    return null;
+  if (!n2 || !("shadowRoot" in n2)) return null;
   return getUntaintedAccessor$1("Element", n2, "shadowRoot");
 }
 function querySelector$1(n2, selectors) {
@@ -187,8 +181,7 @@ function fixBrowserCompatibilityIssuesInCSS(cssText) {
 }
 function escapeImportStatement(rule2) {
   const { cssText } = rule2;
-  if (cssText.split('"').length < 3)
-    return cssText;
+  if (cssText.split('"').length < 3) return cssText;
   const statement = ["@import", `url(${JSON.stringify(rule2.href)})`];
   if (rule2.layerName === "") {
     statement.push(`layer`);
@@ -265,8 +258,7 @@ var Mirror = class {
   }
   getId(n2) {
     var _a2;
-    if (!n2)
-      return -1;
+    if (!n2) return -1;
     const id = (_a2 = this.getMeta(n2)) == null ? void 0 : _a2.id;
     return id ?? -1;
   }
@@ -305,8 +297,7 @@ var Mirror = class {
     const oldNode = this.getNode(id);
     if (oldNode) {
       const meta = this.nodeMetaMap.get(oldNode);
-      if (meta)
-        this.nodeMetaMap.set(n2, meta);
+      if (meta) this.nodeMetaMap.set(n2, meta);
     }
     this.idNodeMap.set(id, n2);
   }
@@ -348,8 +339,7 @@ function toLowerCase(str) {
 var ORIGINAL_ATTRIBUTE_NAME = "__rrweb_original__";
 function is2DCanvasBlank(canvas) {
   const ctx = canvas.getContext("2d");
-  if (!ctx)
-    return true;
+  if (!ctx) return true;
   const chunkSize = 50;
   for (let x2 = 0; x2 < canvas.width; x2 += chunkSize) {
     for (let y = 0; y < canvas.height; y += chunkSize) {
@@ -365,15 +355,13 @@ function is2DCanvasBlank(canvas) {
           Math.min(chunkSize, canvas.height - y)
         ).data.buffer
       );
-      if (pixelBuffer.some((pixel) => pixel !== 0))
-        return false;
+      if (pixelBuffer.some((pixel) => pixel !== 0)) return false;
     }
   }
   return true;
 }
 function isNodeMetaEqual(a2, b) {
-  if (!a2 || !b || a2.type !== b.type)
-    return false;
+  if (!a2 || !b || a2.type !== b.type) return false;
   if (a2.type === NodeType$2.Document)
     return a2.compatMode === b.compatMode;
   else if (a2.type === NodeType$2.DocumentType)
@@ -515,8 +503,7 @@ var DEFAULT_OBFUSCATE_REGEXES = [
   IP_REGEX
 ];
 function shouldObfuscateTextByDefault(text) {
-  if (!text)
-    return false;
+  if (!text) return false;
   return DEFAULT_OBFUSCATE_REGEXES.some((regex) => regex.test(text));
 }
 var maskedInputType = ({
@@ -670,11 +657,9 @@ function _isBlockedElement(element, blockClass, blockSelector) {
   return false;
 }
 function classMatchesRegex(node2, regex, checkAncestors) {
-  if (!node2)
-    return false;
+  if (!node2) return false;
   if (node2.nodeType !== node2.ELEMENT_NODE) {
-    if (!checkAncestors)
-      return false;
+    if (!checkAncestors) return false;
     return classMatchesRegex(index$1.parentNode(node2), regex, checkAncestors);
   }
   for (let eIndex = node2.classList.length; eIndex--; ) {
@@ -683,8 +668,7 @@ function classMatchesRegex(node2, regex, checkAncestors) {
       return true;
     }
   }
-  if (!checkAncestors)
-    return false;
+  if (!checkAncestors) return false;
   return classMatchesRegex(index$1.parentNode(node2), regex, checkAncestors);
 }
 function needMaskingText(node2, maskTextClass, maskTextSelector, checkAncestors) {
@@ -702,23 +686,18 @@ function needMaskingText(node2, maskTextClass, maskTextSelector, checkAncestors)
   try {
     if (typeof maskTextClass === "string") {
       if (checkAncestors) {
-        if (el.closest(`.${maskTextClass}`))
-          return true;
+        if (el.closest(`.${maskTextClass}`)) return true;
       } else {
-        if (el.classList.contains(maskTextClass))
-          return true;
+        if (el.classList.contains(maskTextClass)) return true;
       }
     } else {
-      if (classMatchesRegex(el, maskTextClass, checkAncestors))
-        return true;
+      if (classMatchesRegex(el, maskTextClass, checkAncestors)) return true;
     }
     if (maskTextSelector) {
       if (checkAncestors) {
-        if (el.closest(maskTextSelector))
-          return true;
+        if (el.closest(maskTextSelector)) return true;
       } else {
-        if (el.matches(maskTextSelector))
-          return true;
+        if (el.matches(maskTextSelector)) return true;
       }
     }
   } catch (e2) {
@@ -766,8 +745,7 @@ function onceStylesheetLoaded(link, listener, styleSheetLoadTimeout) {
   } catch (error) {
     return;
   }
-  if (styleSheetLoaded)
-    return;
+  if (styleSheetLoaded) return;
   const timer = setTimeout(() => {
     if (!fired) {
       listener();
@@ -867,8 +845,7 @@ function serializeNode(n2, options) {
   }
 }
 function getRootId(doc, mirror2) {
-  if (!mirror2.hasNode(doc))
-    return void 0;
+  if (!mirror2.hasNode(doc)) return void 0;
   const docId = mirror2.getId(doc);
   return docId === 1 ? void 0 : docId;
 }
@@ -1002,8 +979,7 @@ function serializeElementNode(n2, options) {
   }
   if (tagName === "canvas" && recordCanvas) {
     if (n2.__context === "2d") {
-      if (!is2DCanvasBlank(n2))
-        ;
+      if (!is2DCanvasBlank(n2)) ;
     } else if (!("__context" in n2)) {
       const canvasDataURL = n2.toDataURL(
         dataURLOptions.type,
@@ -1044,8 +1020,7 @@ function serializeElementNode(n2, options) {
           image.crossOrigin = "anonymous";
           if (image.complete && image.naturalWidth !== 0)
             recordInlineImage();
-          else
-            image.addEventListener("load", recordInlineImage);
+          else image.addEventListener("load", recordInlineImage);
           return;
         } else {
           console.warn(
@@ -1057,10 +1032,8 @@ function serializeElementNode(n2, options) {
         priorCrossOrigin ? attributes.crossOrigin = priorCrossOrigin : image.removeAttribute("crossorigin");
       }
     };
-    if (image.complete && image.naturalWidth !== 0)
-      recordInlineImage();
-    else
-      image.addEventListener("load", recordInlineImage);
+    if (image.complete && image.naturalWidth !== 0) recordInlineImage();
+    else image.addEventListener("load", recordInlineImage);
   }
   if (tagName === "audio" || tagName === "video") {
     const mediaAttributes = attributes;
@@ -1098,8 +1071,7 @@ function serializeElementNode(n2, options) {
   }
   let isCustomElement;
   try {
-    if (customElements.get(tagName))
-      isCustomElement = true;
+    if (customElements.get(tagName)) isCustomElement = true;
   } catch (e2) {
   }
   if (inlineImages && tagName === "video") {
@@ -1302,8 +1274,7 @@ function serializeNodeWithId(n2, options) {
       cssCaptured: false,
       privacySetting: overwrittenPrivacySetting
     };
-    if (serializedNode.type === NodeType$2.Element && serializedNode.tagName === "textarea" && serializedNode.attributes.value !== void 0)
-      ;
+    if (serializedNode.type === NodeType$2.Element && serializedNode.tagName === "textarea" && serializedNode.attributes.value !== void 0) ;
     else {
       if (serializedNode.type === NodeType$2.Element && serializedNode.attributes._cssText !== void 0 && typeof serializedNode.attributes._cssText === "string") {
         bypassOptions.cssCaptured = true;
@@ -1542,8 +1513,7 @@ function getDefaultExportFromCjs$1(x2) {
   return x2 && x2.__esModule && Object.prototype.hasOwnProperty.call(x2, "default") ? x2["default"] : x2;
 }
 function getAugmentedNamespace$1(n2) {
-  if (n2.__esModule)
-    return n2;
+  if (n2.__esModule) return n2;
   var f2 = n2.default;
   if (typeof f2 == "function") {
     var a2 = function a22() {
@@ -1553,8 +1523,7 @@ function getAugmentedNamespace$1(n2) {
       return f2.apply(this, arguments);
     };
     a2.prototype = f2.prototype;
-  } else
-    a2 = {};
+  } else a2 = {};
   Object.defineProperty(a2, "__esModule", { value: true });
   Object.keys(n2).forEach(function(k) {
     var d = Object.getOwnPropertyDescriptor(n2, k);
@@ -1622,11 +1591,9 @@ var CssSyntaxError$3$1 = class CssSyntaxError extends Error {
     this.message += ": " + this.reason;
   }
   showSourceCode(color) {
-    if (!this.source)
-      return "";
+    if (!this.source) return "";
     let css = this.source;
-    if (color == null)
-      color = pico$1.isColorSupported;
+    if (color == null) color = pico$1.isColorSupported;
     let aside = (text) => text;
     let mark = (text) => text;
     let highlight = (text) => text;
@@ -1729,8 +1696,7 @@ var Stringifier$2$1 = class Stringifier {
     if (value.includes("\n")) {
       let indent = this.raw(node2, null, "indent");
       if (indent.length) {
-        for (let step = 0; step < depth; step++)
-          value += indent;
+        for (let step = 0; step < depth; step++) value += indent;
       }
     }
     return value;
@@ -1745,23 +1711,20 @@ var Stringifier$2$1 = class Stringifier {
     } else {
       after = this.raw(node2, "after", "emptyBody");
     }
-    if (after)
-      this.builder(after);
+    if (after) this.builder(after);
     this.builder("}", node2, "end");
   }
   body(node2) {
     let last = node2.nodes.length - 1;
     while (last > 0) {
-      if (node2.nodes[last].type !== "comment")
-        break;
+      if (node2.nodes[last].type !== "comment") break;
       last -= 1;
     }
     let semicolon = this.raw(node2, "semicolon");
     for (let i2 = 0; i2 < node2.nodes.length; i2++) {
       let child = node2.nodes[i2];
       let before = this.raw(child, "before");
-      if (before)
-        this.builder(before);
+      if (before) this.builder(before);
       this.stringify(child, last !== i2 || semicolon);
     }
   }
@@ -1776,8 +1739,7 @@ var Stringifier$2$1 = class Stringifier {
     if (node2.important) {
       string += node2.raws.important || " !important";
     }
-    if (semicolon)
-      string += ";";
+    if (semicolon) string += ";";
     this.builder(string, node2);
   }
   document(node2) {
@@ -1785,12 +1747,10 @@ var Stringifier$2$1 = class Stringifier {
   }
   raw(node2, own, detect) {
     let value;
-    if (!detect)
-      detect = own;
+    if (!detect) detect = own;
     if (own) {
       value = node2.raws[own];
-      if (typeof value !== "undefined")
-        return value;
+      if (typeof value !== "undefined") return value;
     }
     let parent = node2.parent;
     if (detect === "before") {
@@ -1801,11 +1761,9 @@ var Stringifier$2$1 = class Stringifier {
         return "";
       }
     }
-    if (!parent)
-      return DEFAULT_RAW$1[detect];
+    if (!parent) return DEFAULT_RAW$1[detect];
     let root2 = node2.root();
-    if (!root2.rawCache)
-      root2.rawCache = {};
+    if (!root2.rawCache) root2.rawCache = {};
     if (typeof root2.rawCache[detect] !== "undefined") {
       return root2.rawCache[detect];
     }
@@ -1818,13 +1776,11 @@ var Stringifier$2$1 = class Stringifier {
       } else {
         root2.walk((i2) => {
           value = i2.raws[own];
-          if (typeof value !== "undefined")
-            return false;
+          if (typeof value !== "undefined") return false;
         });
       }
     }
-    if (typeof value === "undefined")
-      value = DEFAULT_RAW$1[detect];
+    if (typeof value === "undefined") value = DEFAULT_RAW$1[detect];
     root2.rawCache[detect] = value;
     return value;
   }
@@ -1841,8 +1797,7 @@ var Stringifier$2$1 = class Stringifier {
         }
       }
     });
-    if (value)
-      value = value.replace(/\S/g, "");
+    if (value) value = value.replace(/\S/g, "");
     return value;
   }
   rawBeforeComment(root2, node2) {
@@ -1886,8 +1841,7 @@ var Stringifier$2$1 = class Stringifier {
     root2.walk((i2) => {
       if (i2.type !== "decl") {
         value = i2.raws.between;
-        if (typeof value !== "undefined")
-          return false;
+        if (typeof value !== "undefined") return false;
       }
     });
     return value;
@@ -1905,8 +1859,7 @@ var Stringifier$2$1 = class Stringifier {
         }
       }
     });
-    if (value)
-      value = value.replace(/\S/g, "");
+    if (value) value = value.replace(/\S/g, "");
     return value;
   }
   rawColon(root2) {
@@ -1924,15 +1877,13 @@ var Stringifier$2$1 = class Stringifier {
     root2.walk((i2) => {
       if (i2.nodes && i2.nodes.length === 0) {
         value = i2.raws.after;
-        if (typeof value !== "undefined")
-          return false;
+        if (typeof value !== "undefined") return false;
       }
     });
     return value;
   }
   rawIndent(root2) {
-    if (root2.raws.indent)
-      return root2.raws.indent;
+    if (root2.raws.indent) return root2.raws.indent;
     let value;
     root2.walk((i2) => {
       let p = i2.parent;
@@ -1952,8 +1903,7 @@ var Stringifier$2$1 = class Stringifier {
     root2.walk((i2) => {
       if (i2.nodes && i2.nodes.length && i2.last.type === "decl") {
         value = i2.raws.semicolon;
-        if (typeof value !== "undefined")
-          return false;
+        if (typeof value !== "undefined") return false;
       }
     });
     return value;
@@ -1968,8 +1918,7 @@ var Stringifier$2$1 = class Stringifier {
   }
   root(node2) {
     this.body(node2);
-    if (node2.raws.after)
-      this.builder(node2.raws.after);
+    if (node2.raws.after) this.builder(node2.raws.after);
   }
   rule(node2) {
     this.block(node2, this.rawValue(node2, "selector"));
@@ -2008,20 +1957,17 @@ function cloneNode$1(obj, parent) {
     if (!Object.prototype.hasOwnProperty.call(obj, i2)) {
       continue;
     }
-    if (i2 === "proxyCache")
-      continue;
+    if (i2 === "proxyCache") continue;
     let value = obj[i2];
     let type = typeof value;
     if (i2 === "parent" && type === "object") {
-      if (parent)
-        cloned[i2] = parent;
+      if (parent) cloned[i2] = parent;
     } else if (i2 === "source") {
       cloned[i2] = value;
     } else if (Array.isArray(value)) {
       cloned[i2] = value.map((j) => cloneNode$1(j, cloned));
     } else {
-      if (type === "object" && value !== null)
-        value = cloneNode$1(value);
+      if (type === "object" && value !== null) value = cloneNode$1(value);
       cloned[i2] = value;
     }
   }
@@ -2075,8 +2021,7 @@ var Node$4$1 = class Node2 {
   cleanRaws(keepBetween) {
     delete this.raws.before;
     delete this.raws.after;
-    if (!keepBetween)
-      delete this.raws.between;
+    if (!keepBetween) delete this.raws.between;
   }
   clone(overrides = {}) {
     let cloned = cloneNode$1(this);
@@ -2119,8 +2064,7 @@ var Node$4$1 = class Node2 {
         }
       },
       set(node2, prop, value) {
-        if (node2[prop] === value)
-          return true;
+        if (node2[prop] === value) return true;
         node2[prop] = value;
         if (prop === "prop" || prop === "value" || prop === "name" || prop === "params" || prop === "important" || /* c8 ignore next */
         prop === "text") {
@@ -2144,8 +2088,7 @@ var Node$4$1 = class Node2 {
     }
   }
   next() {
-    if (!this.parent)
-      return void 0;
+    if (!this.parent) return void 0;
     let index2 = this.parent.index(this);
     return this.parent.nodes[index2 + 1];
   }
@@ -2156,8 +2099,7 @@ var Node$4$1 = class Node2 {
     } else if (opts.word) {
       stringRepresentation = this.toString();
       let index2 = stringRepresentation.indexOf(opts.word);
-      if (index2 !== -1)
-        pos = this.positionInside(index2, stringRepresentation);
+      if (index2 !== -1) pos = this.positionInside(index2, stringRepresentation);
     }
     return pos;
   }
@@ -2176,8 +2118,7 @@ var Node$4$1 = class Node2 {
     return { column, line };
   }
   prev() {
-    if (!this.parent)
-      return void 0;
+    if (!this.parent) return void 0;
     let index2 = this.parent.index(this);
     return this.parent.nodes[index2 - 1];
   }
@@ -2275,8 +2216,7 @@ var Node$4$1 = class Node2 {
       if (!Object.prototype.hasOwnProperty.call(this, name)) {
         continue;
       }
-      if (name === "parent" || name === "proxyCache")
-        continue;
+      if (name === "parent" || name === "proxyCache") continue;
       let value = this[name];
       if (Array.isArray(value)) {
         fixed[name] = value.map((i2) => {
@@ -2316,8 +2256,7 @@ var Node$4$1 = class Node2 {
     return this.proxyCache;
   }
   toString(stringifier2 = stringify$3$1) {
-    if (stringifier2.stringify)
-      stringifier2 = stringifier2.stringify;
+    if (stringifier2.stringify) stringifier2 = stringifier2.stringify;
     let result2 = "";
     stringifier2(this, (i2) => {
       result2 += i2;
@@ -2326,8 +2265,7 @@ var Node$4$1 = class Node2 {
   }
   warn(result2, text, opts) {
     let data = { node: this };
-    for (let i2 in opts)
-      data[i2] = opts[i2];
+    for (let i2 in opts) data[i2] = opts[i2];
     return result2.warn(text, data);
   }
   get proxyOf() {
@@ -2370,8 +2308,7 @@ var Root$6$1;
 var Rule$4$1;
 function cleanSource$1(nodes) {
   return nodes.map((i2) => {
-    if (i2.nodes)
-      i2.nodes = cleanSource$1(i2.nodes);
+    if (i2.nodes) i2.nodes = cleanSource$1(i2.nodes);
     delete i2.source;
     return i2;
   });
@@ -2388,8 +2325,7 @@ var Container$7$1 = class Container extends Node$1$1 {
   append(...children) {
     for (let child of children) {
       let nodes = this.normalize(child, this.last);
-      for (let node2 of nodes)
-        this.proxyOf.nodes.push(node2);
+      for (let node2 of nodes) this.proxyOf.nodes.push(node2);
     }
     this.markDirty();
     return this;
@@ -2397,20 +2333,17 @@ var Container$7$1 = class Container extends Node$1$1 {
   cleanRaws(keepBetween) {
     super.cleanRaws(keepBetween);
     if (this.nodes) {
-      for (let node2 of this.nodes)
-        node2.cleanRaws(keepBetween);
+      for (let node2 of this.nodes) node2.cleanRaws(keepBetween);
     }
   }
   each(callback) {
-    if (!this.proxyOf.nodes)
-      return void 0;
+    if (!this.proxyOf.nodes) return void 0;
     let iterator = this.getIterator();
     let index2, result2;
     while (this.indexes[iterator] < this.proxyOf.nodes.length) {
       index2 = this.indexes[iterator];
       result2 = callback(this.proxyOf.nodes[index2], index2);
-      if (result2 === false)
-        break;
+      if (result2 === false) break;
       this.indexes[iterator] += 1;
     }
     delete this.indexes[iterator];
@@ -2420,10 +2353,8 @@ var Container$7$1 = class Container extends Node$1$1 {
     return this.nodes.every(condition);
   }
   getIterator() {
-    if (!this.lastEach)
-      this.lastEach = 0;
-    if (!this.indexes)
-      this.indexes = {};
+    if (!this.lastEach) this.lastEach = 0;
+    if (!this.indexes) this.indexes = {};
     this.lastEach += 1;
     let iterator = this.lastEach;
     this.indexes[iterator] = 0;
@@ -2465,8 +2396,7 @@ var Container$7$1 = class Container extends Node$1$1 {
         }
       },
       set(node2, prop, value) {
-        if (node2[prop] === value)
-          return true;
+        if (node2[prop] === value) return true;
         node2[prop] = value;
         if (prop === "name" || prop === "params" || prop === "selector") {
           node2.markDirty();
@@ -2476,18 +2406,15 @@ var Container$7$1 = class Container extends Node$1$1 {
     };
   }
   index(child) {
-    if (typeof child === "number")
-      return child;
-    if (child.proxyOf)
-      child = child.proxyOf;
+    if (typeof child === "number") return child;
+    if (child.proxyOf) child = child.proxyOf;
     return this.proxyOf.nodes.indexOf(child);
   }
   insertAfter(exist, add) {
     let existIndex = this.index(exist);
     let nodes = this.normalize(add, this.proxyOf.nodes[existIndex]).reverse();
     existIndex = this.index(exist);
-    for (let node2 of nodes)
-      this.proxyOf.nodes.splice(existIndex + 1, 0, node2);
+    for (let node2 of nodes) this.proxyOf.nodes.splice(existIndex + 1, 0, node2);
     let index2;
     for (let id in this.indexes) {
       index2 = this.indexes[id];
@@ -2507,8 +2434,7 @@ var Container$7$1 = class Container extends Node$1$1 {
       type
     ).reverse();
     existIndex = this.index(exist);
-    for (let node2 of nodes)
-      this.proxyOf.nodes.splice(existIndex, 0, node2);
+    for (let node2 of nodes) this.proxyOf.nodes.splice(existIndex, 0, node2);
     let index2;
     for (let id in this.indexes) {
       index2 = this.indexes[id];
@@ -2527,14 +2453,12 @@ var Container$7$1 = class Container extends Node$1$1 {
     } else if (Array.isArray(nodes)) {
       nodes = nodes.slice(0);
       for (let i2 of nodes) {
-        if (i2.parent)
-          i2.parent.removeChild(i2, "ignore");
+        if (i2.parent) i2.parent.removeChild(i2, "ignore");
       }
     } else if (nodes.type === "root" && this.type !== "document") {
       nodes = nodes.nodes.slice(0);
       for (let i2 of nodes) {
-        if (i2.parent)
-          i2.parent.removeChild(i2, "ignore");
+        if (i2.parent) i2.parent.removeChild(i2, "ignore");
       }
     } else if (nodes.type) {
       nodes = [nodes];
@@ -2555,15 +2479,11 @@ var Container$7$1 = class Container extends Node$1$1 {
       throw new Error("Unknown node type in node creation");
     }
     let processed = nodes.map((i2) => {
-      if (!i2[my$1$1])
-        Container.rebuild(i2);
+      if (!i2[my$1$1]) Container.rebuild(i2);
       i2 = i2.proxyOf;
-      if (i2.parent)
-        i2.parent.removeChild(i2);
-      if (i2[isClean$1$1])
-        markTreeDirty$1(i2);
-      if (!i2.raws)
-        i2.raws = {};
+      if (i2.parent) i2.parent.removeChild(i2);
+      if (i2[isClean$1$1]) markTreeDirty$1(i2);
+      if (!i2.raws) i2.raws = {};
       if (typeof i2.raws.before === "undefined") {
         if (sample && typeof sample.raws.before !== "undefined") {
           i2.raws.before = sample.raws.before.replace(/\S/g, "");
@@ -2578,8 +2498,7 @@ var Container$7$1 = class Container extends Node$1$1 {
     children = children.reverse();
     for (let child of children) {
       let nodes = this.normalize(child, this.first, "prepend").reverse();
-      for (let node2 of nodes)
-        this.proxyOf.nodes.unshift(node2);
+      for (let node2 of nodes) this.proxyOf.nodes.unshift(node2);
       for (let id in this.indexes) {
         this.indexes[id] = this.indexes[id] + nodes.length;
       }
@@ -2593,8 +2512,7 @@ var Container$7$1 = class Container extends Node$1$1 {
     return this;
   }
   removeAll() {
-    for (let node2 of this.proxyOf.nodes)
-      node2.parent = void 0;
+    for (let node2 of this.proxyOf.nodes) node2.parent = void 0;
     this.proxyOf.nodes = [];
     this.markDirty();
     return this;
@@ -2619,10 +2537,8 @@ var Container$7$1 = class Container extends Node$1$1 {
       opts = {};
     }
     this.walkDecls((decl) => {
-      if (opts.props && !opts.props.includes(decl.prop))
-        return;
-      if (opts.fast && !decl.value.includes(opts.fast))
-        return;
+      if (opts.props && !opts.props.includes(decl.prop)) return;
+      if (opts.fast && !decl.value.includes(opts.fast)) return;
       decl.value = decl.value.replace(pattern, callback);
     });
     this.markDirty();
@@ -2719,13 +2635,11 @@ var Container$7$1 = class Container extends Node$1$1 {
     });
   }
   get first() {
-    if (!this.proxyOf.nodes)
-      return void 0;
+    if (!this.proxyOf.nodes) return void 0;
     return this.proxyOf.nodes[0];
   }
   get last() {
-    if (!this.proxyOf.nodes)
-      return void 0;
+    if (!this.proxyOf.nodes) return void 0;
     return this.proxyOf.nodes[this.proxyOf.nodes.length - 1];
   }
 };
@@ -2769,13 +2683,11 @@ var AtRule$3$1 = class AtRule extends Container$6$1 {
     this.type = "atrule";
   }
   append(...children) {
-    if (!this.proxyOf.nodes)
-      this.nodes = [];
+    if (!this.proxyOf.nodes) this.nodes = [];
     return super.append(...children);
   }
   prepend(...children) {
-    if (!this.proxyOf.nodes)
-      this.nodes = [];
+    if (!this.proxyOf.nodes) this.nodes = [];
     return super.prepend(...children);
   }
 };
@@ -2837,8 +2749,7 @@ function fromBase64$1(str) {
 }
 var PreviousMap$2$1 = class PreviousMap {
   constructor(css, opts) {
-    if (opts.map === false)
-      return;
+    if (opts.map === false) return;
     this.loadAnnotation(css);
     this.inline = this.startWith(this.annotation, "data:");
     let prev = opts.map ? opts.map.prev : void 0;
@@ -2846,10 +2757,8 @@ var PreviousMap$2$1 = class PreviousMap {
     if (!this.mapFile && opts.from) {
       this.mapFile = opts.from;
     }
-    if (this.mapFile)
-      this.root = dirname$1$1(this.mapFile);
-    if (text)
-      this.text = text;
+    if (this.mapFile) this.root = dirname$1$1(this.mapFile);
+    if (text) this.text = text;
   }
   consumer() {
     if (!this.consumerCache) {
@@ -2877,14 +2786,12 @@ var PreviousMap$2$1 = class PreviousMap {
     return sourceMapString.replace(/^\/\*\s*# sourceMappingURL=/, "").trim();
   }
   isMap(map) {
-    if (typeof map !== "object")
-      return false;
+    if (typeof map !== "object") return false;
     return typeof map.mappings === "string" || typeof map._mappings === "string" || Array.isArray(map.sections);
   }
   loadAnnotation(css) {
     let comments = css.match(/\/\*\s*# sourceMappingURL=/g);
-    if (!comments)
-      return;
+    if (!comments) return;
     let start = css.lastIndexOf(comments.pop());
     let end = css.indexOf("*/", start);
     if (start > -1 && end > -1) {
@@ -2899,8 +2806,7 @@ var PreviousMap$2$1 = class PreviousMap {
     }
   }
   loadMap(file, prev) {
-    if (prev === false)
-      return false;
+    if (prev === false) return false;
     if (prev) {
       if (typeof prev === "string") {
         return prev;
@@ -2930,14 +2836,12 @@ var PreviousMap$2$1 = class PreviousMap {
       return this.decodeInline(this.annotation);
     } else if (this.annotation) {
       let map = this.annotation;
-      if (file)
-        map = join$1(dirname$1$1(file), map);
+      if (file) map = join$1(dirname$1$1(file), map);
       return this.loadFile(map);
     }
   }
   startWith(string, start) {
-    if (!string)
-      return false;
+    if (!string) return false;
     return string.substr(0, start.length) === start;
   }
   withContent() {
@@ -2980,15 +2884,13 @@ var Input$4$1 = class Input {
       if (map.text) {
         this.map = map;
         let file = map.consumer().file;
-        if (!this.file && file)
-          this.file = this.mapResolve(file);
+        if (!this.file && file) this.file = this.mapResolve(file);
       }
     }
     if (!this.file) {
       this.id = "<input css " + nanoid$2(6) + ">";
     }
-    if (this.map)
-      this.map.file = this.from;
+    if (this.map) this.map.file = this.from;
   }
   error(message, line, column, opts = {}) {
     let endColumn, endLine, result2;
@@ -3090,12 +2992,10 @@ var Input$4$1 = class Input {
     return resolve$1$1(this.map.consumer().sourceRoot || this.map.root || ".", file);
   }
   origin(line, column, endLine, endColumn) {
-    if (!this.map)
-      return false;
+    if (!this.map) return false;
     let consumer = this.map.consumer();
     let from = consumer.originalPositionFor({ column, line });
-    if (!from.source)
-      return false;
+    if (!from.source) return false;
     let to;
     if (typeof endLine === "number") {
       to = consumer.originalPositionFor({ column: endColumn, line: endLine });
@@ -3124,8 +3024,7 @@ var Input$4$1 = class Input {
       }
     }
     let source = consumer.sourceContentFor(from.source);
-    if (source)
-      result2.source = source;
+    if (source) result2.source = source;
     return result2;
   }
   toJSON() {
@@ -3159,8 +3058,7 @@ var Root$5$1 = class Root extends Container$4$1 {
   constructor(defaults) {
     super(defaults);
     this.type = "root";
-    if (!this.nodes)
-      this.nodes = [];
+    if (!this.nodes) this.nodes = [];
   }
   normalize(child, sample, type) {
     let nodes = super.normalize(child);
@@ -3231,23 +3129,19 @@ var list$2$1 = {
       } else if (letter === "(") {
         func += 1;
       } else if (letter === ")") {
-        if (func > 0)
-          func -= 1;
+        if (func > 0) func -= 1;
       } else if (func === 0) {
-        if (separators.includes(letter))
-          split = true;
+        if (separators.includes(letter)) split = true;
       }
       if (split) {
-        if (current !== "")
-          array.push(current.trim());
+        if (current !== "") array.push(current.trim());
         current = "";
         split = false;
       } else {
         current += letter;
       }
     }
-    if (last || current !== "")
-      array.push(current.trim());
+    if (last || current !== "") array.push(current.trim());
     return array;
   }
 };
@@ -3259,8 +3153,7 @@ var Rule$3$1 = class Rule extends Container$3$1 {
   constructor(defaults) {
     super(defaults);
     this.type = "rule";
-    if (!this.nodes)
-      this.nodes = [];
+    if (!this.nodes) this.nodes = [];
   }
   get selectors() {
     return list$1$1.comma(this.selector);
@@ -3282,8 +3175,7 @@ var PreviousMap2$1 = previousMap$1;
 var Root$4$1 = root$1;
 var Rule$2$1 = rule$1;
 function fromJSON$1$1(json, inputs) {
-  if (Array.isArray(json))
-    return json.map((n2) => fromJSON$1$1(n2));
+  if (Array.isArray(json)) return json.map((n2) => fromJSON$1$1(n2));
   let { inputs: ownInputs, ...defaults } = json;
   if (ownInputs) {
     inputs = [];
@@ -3355,8 +3247,7 @@ var MapGenerator$2$1 = class MapGenerator {
       content = this.outputFile() + ".map";
     }
     let eol = "\n";
-    if (this.css.includes("\r\n"))
-      eol = "\r\n";
+    if (this.css.includes("\r\n")) eol = "\r\n";
     this.css += eol + "/*# sourceMappingURL=" + content + " */";
   }
   applyPrevMaps() {
@@ -3376,14 +3267,12 @@ var MapGenerator$2$1 = class MapGenerator {
     }
   }
   clearAnnotation() {
-    if (this.mapOpts.annotation === false)
-      return;
+    if (this.mapOpts.annotation === false) return;
     if (this.root) {
       let node2;
       for (let i2 = this.root.nodes.length - 1; i2 >= 0; i2--) {
         node2 = this.root.nodes[i2];
-        if (node2.type !== "comment")
-          continue;
+        if (node2.type !== "comment") continue;
         if (node2.text.startsWith("# sourceMappingURL=")) {
           this.root.removeChild(i2);
         }
@@ -3424,12 +3313,9 @@ var MapGenerator$2$1 = class MapGenerator {
         source: this.opts.from ? this.toUrl(this.path(this.opts.from)) : "<no source>"
       });
     }
-    if (this.isSourcesContent())
-      this.setSourcesContent();
-    if (this.root && this.previous().length > 0)
-      this.applyPrevMaps();
-    if (this.isAnnotation())
-      this.addAnnotation();
+    if (this.isSourcesContent()) this.setSourcesContent();
+    if (this.root && this.previous().length > 0) this.applyPrevMaps();
+    if (this.isAnnotation()) this.addAnnotation();
     if (this.isInline()) {
       return [this.css];
     } else {
@@ -3549,15 +3435,11 @@ var MapGenerator$2$1 = class MapGenerator {
     }
   }
   path(file) {
-    if (this.mapOpts.absolute)
-      return file;
-    if (file.charCodeAt(0) === 60)
-      return file;
-    if (/^\w+:\/\//.test(file))
-      return file;
+    if (this.mapOpts.absolute) return file;
+    if (file.charCodeAt(0) === 60) return file;
+    if (/^\w+:\/\//.test(file)) return file;
     let cached = this.memoizedPaths.get(file);
-    if (cached)
-      return cached;
+    if (cached) return cached;
     let from = this.opts.to ? dirname$2(this.opts.to) : ".";
     if (typeof this.mapOpts.annotation === "string") {
       from = dirname$2(resolve$2(from, this.mapOpts.annotation));
@@ -3580,8 +3462,7 @@ var MapGenerator$2$1 = class MapGenerator {
         });
       } else {
         let input2 = new Input$2$1(this.originalCSS, this.opts);
-        if (input2.map)
-          this.previousMaps.push(input2.map);
+        if (input2.map) this.previousMaps.push(input2.map);
       }
     }
     return this.previousMaps;
@@ -3622,8 +3503,7 @@ var MapGenerator$2$1 = class MapGenerator {
   }
   toFileUrl(path) {
     let cached = this.memoizedFileURLs.get(path);
-    if (cached)
-      return cached;
+    if (cached) return cached;
     if (pathToFileURL$2) {
       let fileURL = pathToFileURL$2(path).toString();
       this.memoizedFileURLs.set(path, fileURL);
@@ -3636,8 +3516,7 @@ var MapGenerator$2$1 = class MapGenerator {
   }
   toUrl(path) {
     let cached = this.memoizedURLs.get(path);
-    if (cached)
-      return cached;
+    if (cached) return cached;
     if (sep$1 === "\\") {
       path = path.replace(/\\/g, "/");
     }
@@ -3689,10 +3568,8 @@ var tokenize$1 = function tokenizer(input2, options = {}) {
     return returned.length === 0 && pos >= length;
   }
   function nextToken(opts) {
-    if (returned.length)
-      return returned.pop();
-    if (pos >= length)
-      return;
+    if (returned.length) return returned.pop();
+    if (pos >= length) return;
     let ignoreUnclosed = opts ? opts.ignoreUnclosed : false;
     code = css.charCodeAt(pos);
     switch (code) {
@@ -3871,8 +3748,7 @@ function findLastWithPosition$1(tokens) {
   for (let i2 = tokens.length - 1; i2 >= 0; i2--) {
     let token = tokens[i2];
     let pos = token[3] || token[2];
-    if (pos)
-      return pos;
+    if (pos) return pos;
   }
 }
 var Parser$1$1 = class Parser {
@@ -3965,16 +3841,14 @@ var Parser$1$1 = class Parser {
   }
   checkMissedSemicolon(tokens) {
     let colon = this.colon(tokens);
-    if (colon === false)
-      return;
+    if (colon === false) return;
     let founded = 0;
     let token;
     for (let j = colon - 1; j >= 0; j--) {
       token = tokens[j];
       if (token[0] !== "space") {
         founded += 1;
-        if (founded === 2)
-          break;
+        if (founded === 2) break;
       }
     }
     throw this.input.error(
@@ -4040,8 +3914,7 @@ var Parser$1$1 = class Parser {
     );
     node2.source.end.offset++;
     while (tokens[0][0] !== "word") {
-      if (tokens.length === 1)
-        this.unknownWord(tokens);
+      if (tokens.length === 1) this.unknownWord(tokens);
       node2.raws.before += tokens.shift()[1];
     }
     node2.source.start = this.getPosition(tokens[0][2]);
@@ -4075,8 +3948,7 @@ var Parser$1$1 = class Parser {
     let next;
     while (tokens.length) {
       next = tokens[0][0];
-      if (next !== "space" && next !== "comment")
-        break;
+      if (next !== "space" && next !== "comment") break;
       firstSpaces.push(tokens.shift());
     }
     this.precheckMissedSemicolon(tokens);
@@ -4086,8 +3958,7 @@ var Parser$1$1 = class Parser {
         node2.important = true;
         let string = this.stringFrom(tokens, i2);
         string = this.spacesFromEnd(tokens) + string;
-        if (string !== " !important")
-          node2.raws.important = string;
+        if (string !== " !important") node2.raws.important = string;
         break;
       } else if (token[1].toLowerCase() === "important") {
         let cache = tokens.slice(0);
@@ -4149,8 +4020,7 @@ var Parser$1$1 = class Parser {
     }
   }
   endFile() {
-    if (this.current.parent)
-      this.unclosedBlock();
+    if (this.current.parent) this.unclosedBlock();
     if (this.current.nodes && this.current.nodes.length) {
       this.current.raws.semicolon = this.semicolon;
     }
@@ -4184,8 +4054,7 @@ var Parser$1$1 = class Parser {
     };
     node2.raws.before = this.spaces;
     this.spaces = "";
-    if (node2.type !== "comment")
-      this.semicolon = false;
+    if (node2.type !== "comment") this.semicolon = false;
   }
   other(start) {
     let end = false;
@@ -4200,12 +4069,10 @@ var Parser$1$1 = class Parser {
       type = token[0];
       tokens.push(token);
       if (type === "(" || type === "[") {
-        if (!bracket)
-          bracket = token;
+        if (!bracket) bracket = token;
         brackets.push(type === "(" ? ")" : "]");
       } else if (customProperty && colon && type === "{") {
-        if (!bracket)
-          bracket = token;
+        if (!bracket) bracket = token;
         brackets.push("}");
       } else if (brackets.length === 0) {
         if (type === ";") {
@@ -4227,21 +4094,17 @@ var Parser$1$1 = class Parser {
         }
       } else if (type === brackets[brackets.length - 1]) {
         brackets.pop();
-        if (brackets.length === 0)
-          bracket = null;
+        if (brackets.length === 0) bracket = null;
       }
       token = this.tokenizer.nextToken();
     }
-    if (this.tokenizer.endOfFile())
-      end = true;
-    if (brackets.length > 0)
-      this.unclosedBracket(bracket);
+    if (this.tokenizer.endOfFile()) end = true;
+    if (brackets.length > 0) this.unclosedBracket(bracket);
     if (end && colon) {
       if (!customProperty) {
         while (tokens.length) {
           token = tokens[tokens.length - 1][0];
-          if (token !== "space" && token !== "comment")
-            break;
+          if (token !== "space" && token !== "comment") break;
           this.tokenizer.back(tokens.pop());
         }
       }
@@ -4328,8 +4191,7 @@ var Parser$1$1 = class Parser {
     let spaces = "";
     while (tokens.length) {
       lastTokenType = tokens[tokens.length - 1][0];
-      if (lastTokenType !== "space" && lastTokenType !== "comment")
-        break;
+      if (lastTokenType !== "space" && lastTokenType !== "comment") break;
       spaces = tokens.pop()[1] + spaces;
     }
     return spaces;
@@ -4340,8 +4202,7 @@ var Parser$1$1 = class Parser {
     let spaces = "";
     while (tokens.length) {
       next = tokens[0][0];
-      if (next !== "space" && next !== "comment")
-        break;
+      if (next !== "space" && next !== "comment") break;
       spaces += tokens.shift()[1];
     }
     return spaces;
@@ -4351,8 +4212,7 @@ var Parser$1$1 = class Parser {
     let spaces = "";
     while (tokens.length) {
       lastTokenType = tokens[tokens.length - 1][0];
-      if (lastTokenType !== "space")
-        break;
+      if (lastTokenType !== "space") break;
       spaces = tokens.pop()[1] + spaces;
     }
     return spaces;
@@ -4437,8 +4297,7 @@ var Warning$2$1 = class Warning {
       this.endLine = range.end.line;
       this.endColumn = range.end.column;
     }
-    for (let opt in opts)
-      this[opt] = opts[opt];
+    for (let opt in opts) this[opt] = opts[opt];
   }
   toString() {
     if (this.node) {
@@ -4490,8 +4349,7 @@ var result$1 = Result$3$1;
 Result$3$1.default = Result$3$1;
 var printed$1 = {};
 var warnOnce$2$1 = function warnOnce(message) {
-  if (printed$1[message])
-    return;
+  if (printed$1[message]) return;
   printed$1[message] = true;
   if (typeof console !== "undefined" && console.warn) {
     console.warn(message);
@@ -4585,8 +4443,7 @@ function toStack$1(node2) {
 }
 function cleanMarks$1(node2) {
   node2[isClean$3] = false;
-  if (node2.nodes)
-    node2.nodes.forEach((i2) => cleanMarks$1(i2));
+  if (node2.nodes) node2.nodes.forEach((i2) => cleanMarks$1(i2));
   return node2;
 }
 var postcss$2$1 = {};
@@ -4600,20 +4457,15 @@ var LazyResult$2$1 = class LazyResult {
     } else if (css instanceof LazyResult || css instanceof Result$2$1) {
       root2 = cleanMarks$1(css.root);
       if (css.map) {
-        if (typeof opts.map === "undefined")
-          opts.map = {};
-        if (!opts.map.inline)
-          opts.map.inline = false;
+        if (typeof opts.map === "undefined") opts.map = {};
+        if (!opts.map.inline) opts.map.inline = false;
         opts.map.prev = css.map;
       }
     } else {
       let parser2 = parse$2$1;
-      if (opts.syntax)
-        parser2 = opts.syntax.parse;
-      if (opts.parser)
-        parser2 = opts.parser;
-      if (parser2.parse)
-        parser2 = parser2.parse;
+      if (opts.syntax) parser2 = opts.syntax.parse;
+      if (opts.parser) parser2 = opts.parser;
+      if (parser2.parse) parser2 = parser2.parse;
       try {
         root2 = parser2(css, opts);
       } catch (error) {
@@ -4635,10 +4487,8 @@ var LazyResult$2$1 = class LazyResult {
     });
   }
   async() {
-    if (this.error)
-      return Promise.reject(this.error);
-    if (this.processed)
-      return Promise.resolve(this.result);
+    if (this.error) return Promise.reject(this.error);
+    if (this.processed) return Promise.resolve(this.result);
     if (!this.processing) {
       this.processing = this.runAsync();
     }
@@ -4656,8 +4506,7 @@ var LazyResult$2$1 = class LazyResult {
   handleError(error, node2) {
     let plugin22 = this.result.lastPlugin;
     try {
-      if (node2)
-        node2.addToError(error);
+      if (node2) node2.addToError(error);
       this.error = error;
       if (error.name === "CssSyntaxError" && !error.plugin) {
         error.plugin = plugin22.postcssPlugin;
@@ -4677,16 +4526,14 @@ var LazyResult$2$1 = class LazyResult {
         }
       }
     } catch (err) {
-      if (console && console.error)
-        console.error(err);
+      if (console && console.error) console.error(err);
     }
     return error;
   }
   prepareVisitors() {
     this.listeners = {};
     let add = (plugin22, type, cb) => {
-      if (!this.listeners[type])
-        this.listeners[type] = [];
+      if (!this.listeners[type]) this.listeners[type] = [];
       this.listeners[type].push([plugin22, cb]);
     };
     for (let plugin22 of this.plugins) {
@@ -4793,20 +4640,15 @@ var LazyResult$2$1 = class LazyResult {
     }
   }
   stringify() {
-    if (this.error)
-      throw this.error;
-    if (this.stringified)
-      return this.result;
+    if (this.error) throw this.error;
+    if (this.stringified) return this.result;
     this.stringified = true;
     this.sync();
     let opts = this.result.opts;
     let str = stringify$2$1;
-    if (opts.syntax)
-      str = opts.syntax.stringify;
-    if (opts.stringifier)
-      str = opts.stringifier;
-    if (str.stringify)
-      str = str.stringify;
+    if (opts.syntax) str = opts.syntax.stringify;
+    if (opts.stringifier) str = opts.stringifier;
+    if (str.stringify) str = str.stringify;
     let map = new MapGenerator$1$1(str, this.result.root, this.result.opts);
     let data = map.generate();
     this.result.css = data[0];
@@ -4814,10 +4656,8 @@ var LazyResult$2$1 = class LazyResult {
     return this.result;
   }
   sync() {
-    if (this.error)
-      throw this.error;
-    if (this.processed)
-      return this.result;
+    if (this.error) throw this.error;
+    if (this.processed) return this.result;
     this.processed = true;
     if (this.processing) {
       throw this.getAsyncError();
@@ -4936,15 +4776,13 @@ var LazyResult$2$1 = class LazyResult {
       if (event === CHILDREN$1) {
         if (node2.nodes) {
           node2.each((child) => {
-            if (!child[isClean$3])
-              this.walkSync(child);
+            if (!child[isClean$3]) this.walkSync(child);
           });
         }
       } else {
         let visitors = this.listeners[event];
         if (visitors) {
-          if (this.visitSync(visitors, node2.toProxy()))
-            return;
+          if (this.visitSync(visitors, node2.toProxy())) return;
         }
       }
     }
@@ -5022,8 +4860,7 @@ var NoWorkResult$1$1 = class NoWorkResult {
     }
   }
   async() {
-    if (this.error)
-      return Promise.reject(this.error);
+    if (this.error) return Promise.reject(this.error);
     return Promise.resolve(this.result);
   }
   catch(onRejected) {
@@ -5033,8 +4870,7 @@ var NoWorkResult$1$1 = class NoWorkResult {
     return this.async().then(onFinally, onFinally);
   }
   sync() {
-    if (this.error)
-      throw this.error;
+    if (this.error) throw this.error;
     return this.result;
   }
   then(onFulfilled, onRejected) {
@@ -5192,8 +5028,7 @@ postcss$3.plugin = function plugin(name, initializer) {
   let cache;
   Object.defineProperty(creator, "postcss", {
     get() {
-      if (!cache)
-        cache = creator();
+      if (!cache) cache = creator();
       return cache;
     }
   });
@@ -5302,8 +5137,7 @@ function getTagName(n2) {
 }
 function adaptCssForReplay(cssText, cache) {
   const cachedStyle = cache == null ? void 0 : cache.stylesWithHoverClass.get(cssText);
-  if (cachedStyle)
-    return cachedStyle;
+  if (cachedStyle) return cachedStyle;
   let result2 = cssText;
   try {
     const ast = postcss$1$1([
@@ -5400,14 +5234,12 @@ function buildNode(n2, options) {
         if (value === null) {
           continue;
         }
-        if (value === true)
-          value = "";
+        if (value === true) value = "";
         if (name.startsWith("rr_")) {
           specialAttributes[name] = value;
           continue;
         }
-        if (typeof value !== "string")
-          ;
+        if (typeof value !== "string") ;
         else if (tagName === "style" && name === "_cssText") {
           buildStyleNode(n2, node2, value, options);
           continue;
@@ -5534,8 +5366,7 @@ function buildNodeWithSN(n2, options) {
   if (mirror2.has(n2.id)) {
     const nodeInMirror = mirror2.getNode(n2.id);
     const meta = mirror2.getMeta(nodeInMirror);
-    if (isNodeMetaEqual(meta, n2))
-      return mirror2.getNode(n2.id);
+    if (isNodeMetaEqual(meta, n2)) return mirror2.getNode(n2.id);
   }
   let node2 = buildNode(n2, { doc, hackCss, cache });
   if (!node2) {
@@ -5581,8 +5412,7 @@ function buildNodeWithSN(n2, options) {
         const htmlElement = childNode;
         let body = null;
         htmlElement.childNodes.forEach((child) => {
-          if (child.nodeName === "BODY")
-            body = child;
+          if (child.nodeName === "BODY") body = child;
         });
         if (body) {
           htmlElement.removeChild(body);
@@ -5677,8 +5507,7 @@ var Mirror$1 = class Mirror2 {
   }
   getId(n2) {
     var _a2;
-    if (!n2)
-      return -1;
+    if (!n2) return -1;
     const id = (_a2 = this.getMeta(n2)) == null ? void 0 : _a2.id;
     return id ?? -1;
   }
@@ -5717,8 +5546,7 @@ var Mirror$1 = class Mirror2 {
     const oldNode = this.getNode(id);
     if (oldNode) {
       const meta = this.nodeMetaMap.get(oldNode);
-      if (meta)
-        this.nodeMetaMap.set(n2, meta);
+      if (meta) this.nodeMetaMap.set(n2, meta);
     }
     this.idNodeMap.set(id, n2);
   }
@@ -5734,8 +5562,7 @@ function getDefaultExportFromCjs(x2) {
   return x2 && x2.__esModule && Object.prototype.hasOwnProperty.call(x2, "default") ? x2["default"] : x2;
 }
 function getAugmentedNamespace(n2) {
-  if (n2.__esModule)
-    return n2;
+  if (n2.__esModule) return n2;
   var f2 = n2.default;
   if (typeof f2 == "function") {
     var a2 = function a22() {
@@ -5745,8 +5572,7 @@ function getAugmentedNamespace(n2) {
       return f2.apply(this, arguments);
     };
     a2.prototype = f2.prototype;
-  } else
-    a2 = {};
+  } else a2 = {};
   Object.defineProperty(a2, "__esModule", { value: true });
   Object.keys(n2).forEach(function(k) {
     var d = Object.getOwnPropertyDescriptor(n2, k);
@@ -5814,11 +5640,9 @@ var CssSyntaxError$3 = class CssSyntaxError2 extends Error {
     this.message += ": " + this.reason;
   }
   showSourceCode(color) {
-    if (!this.source)
-      return "";
+    if (!this.source) return "";
     let css = this.source;
-    if (color == null)
-      color = pico.isColorSupported;
+    if (color == null) color = pico.isColorSupported;
     let aside = (text) => text;
     let mark = (text) => text;
     let highlight = (text) => text;
@@ -5921,8 +5745,7 @@ var Stringifier$2 = class Stringifier2 {
     if (value.includes("\n")) {
       let indent = this.raw(node2, null, "indent");
       if (indent.length) {
-        for (let step = 0; step < depth; step++)
-          value += indent;
+        for (let step = 0; step < depth; step++) value += indent;
       }
     }
     return value;
@@ -5937,23 +5760,20 @@ var Stringifier$2 = class Stringifier2 {
     } else {
       after = this.raw(node2, "after", "emptyBody");
     }
-    if (after)
-      this.builder(after);
+    if (after) this.builder(after);
     this.builder("}", node2, "end");
   }
   body(node2) {
     let last = node2.nodes.length - 1;
     while (last > 0) {
-      if (node2.nodes[last].type !== "comment")
-        break;
+      if (node2.nodes[last].type !== "comment") break;
       last -= 1;
     }
     let semicolon = this.raw(node2, "semicolon");
     for (let i2 = 0; i2 < node2.nodes.length; i2++) {
       let child = node2.nodes[i2];
       let before = this.raw(child, "before");
-      if (before)
-        this.builder(before);
+      if (before) this.builder(before);
       this.stringify(child, last !== i2 || semicolon);
     }
   }
@@ -5968,8 +5788,7 @@ var Stringifier$2 = class Stringifier2 {
     if (node2.important) {
       string += node2.raws.important || " !important";
     }
-    if (semicolon)
-      string += ";";
+    if (semicolon) string += ";";
     this.builder(string, node2);
   }
   document(node2) {
@@ -5977,12 +5796,10 @@ var Stringifier$2 = class Stringifier2 {
   }
   raw(node2, own, detect) {
     let value;
-    if (!detect)
-      detect = own;
+    if (!detect) detect = own;
     if (own) {
       value = node2.raws[own];
-      if (typeof value !== "undefined")
-        return value;
+      if (typeof value !== "undefined") return value;
     }
     let parent = node2.parent;
     if (detect === "before") {
@@ -5993,11 +5810,9 @@ var Stringifier$2 = class Stringifier2 {
         return "";
       }
     }
-    if (!parent)
-      return DEFAULT_RAW[detect];
+    if (!parent) return DEFAULT_RAW[detect];
     let root2 = node2.root();
-    if (!root2.rawCache)
-      root2.rawCache = {};
+    if (!root2.rawCache) root2.rawCache = {};
     if (typeof root2.rawCache[detect] !== "undefined") {
       return root2.rawCache[detect];
     }
@@ -6010,13 +5825,11 @@ var Stringifier$2 = class Stringifier2 {
       } else {
         root2.walk((i2) => {
           value = i2.raws[own];
-          if (typeof value !== "undefined")
-            return false;
+          if (typeof value !== "undefined") return false;
         });
       }
     }
-    if (typeof value === "undefined")
-      value = DEFAULT_RAW[detect];
+    if (typeof value === "undefined") value = DEFAULT_RAW[detect];
     root2.rawCache[detect] = value;
     return value;
   }
@@ -6033,8 +5846,7 @@ var Stringifier$2 = class Stringifier2 {
         }
       }
     });
-    if (value)
-      value = value.replace(/\S/g, "");
+    if (value) value = value.replace(/\S/g, "");
     return value;
   }
   rawBeforeComment(root2, node2) {
@@ -6078,8 +5890,7 @@ var Stringifier$2 = class Stringifier2 {
     root2.walk((i2) => {
       if (i2.type !== "decl") {
         value = i2.raws.between;
-        if (typeof value !== "undefined")
-          return false;
+        if (typeof value !== "undefined") return false;
       }
     });
     return value;
@@ -6097,8 +5908,7 @@ var Stringifier$2 = class Stringifier2 {
         }
       }
     });
-    if (value)
-      value = value.replace(/\S/g, "");
+    if (value) value = value.replace(/\S/g, "");
     return value;
   }
   rawColon(root2) {
@@ -6116,15 +5926,13 @@ var Stringifier$2 = class Stringifier2 {
     root2.walk((i2) => {
       if (i2.nodes && i2.nodes.length === 0) {
         value = i2.raws.after;
-        if (typeof value !== "undefined")
-          return false;
+        if (typeof value !== "undefined") return false;
       }
     });
     return value;
   }
   rawIndent(root2) {
-    if (root2.raws.indent)
-      return root2.raws.indent;
+    if (root2.raws.indent) return root2.raws.indent;
     let value;
     root2.walk((i2) => {
       let p = i2.parent;
@@ -6144,8 +5952,7 @@ var Stringifier$2 = class Stringifier2 {
     root2.walk((i2) => {
       if (i2.nodes && i2.nodes.length && i2.last.type === "decl") {
         value = i2.raws.semicolon;
-        if (typeof value !== "undefined")
-          return false;
+        if (typeof value !== "undefined") return false;
       }
     });
     return value;
@@ -6160,8 +5967,7 @@ var Stringifier$2 = class Stringifier2 {
   }
   root(node2) {
     this.body(node2);
-    if (node2.raws.after)
-      this.builder(node2.raws.after);
+    if (node2.raws.after) this.builder(node2.raws.after);
   }
   rule(node2) {
     this.block(node2, this.rawValue(node2, "selector"));
@@ -6200,20 +6006,17 @@ function cloneNode(obj, parent) {
     if (!Object.prototype.hasOwnProperty.call(obj, i2)) {
       continue;
     }
-    if (i2 === "proxyCache")
-      continue;
+    if (i2 === "proxyCache") continue;
     let value = obj[i2];
     let type = typeof value;
     if (i2 === "parent" && type === "object") {
-      if (parent)
-        cloned[i2] = parent;
+      if (parent) cloned[i2] = parent;
     } else if (i2 === "source") {
       cloned[i2] = value;
     } else if (Array.isArray(value)) {
       cloned[i2] = value.map((j) => cloneNode(j, cloned));
     } else {
-      if (type === "object" && value !== null)
-        value = cloneNode(value);
+      if (type === "object" && value !== null) value = cloneNode(value);
       cloned[i2] = value;
     }
   }
@@ -6267,8 +6070,7 @@ var Node$4 = class Node3 {
   cleanRaws(keepBetween) {
     delete this.raws.before;
     delete this.raws.after;
-    if (!keepBetween)
-      delete this.raws.between;
+    if (!keepBetween) delete this.raws.between;
   }
   clone(overrides = {}) {
     let cloned = cloneNode(this);
@@ -6311,8 +6113,7 @@ var Node$4 = class Node3 {
         }
       },
       set(node2, prop, value) {
-        if (node2[prop] === value)
-          return true;
+        if (node2[prop] === value) return true;
         node2[prop] = value;
         if (prop === "prop" || prop === "value" || prop === "name" || prop === "params" || prop === "important" || /* c8 ignore next */
         prop === "text") {
@@ -6336,8 +6137,7 @@ var Node$4 = class Node3 {
     }
   }
   next() {
-    if (!this.parent)
-      return void 0;
+    if (!this.parent) return void 0;
     let index2 = this.parent.index(this);
     return this.parent.nodes[index2 + 1];
   }
@@ -6348,8 +6148,7 @@ var Node$4 = class Node3 {
     } else if (opts.word) {
       stringRepresentation = this.toString();
       let index2 = stringRepresentation.indexOf(opts.word);
-      if (index2 !== -1)
-        pos = this.positionInside(index2, stringRepresentation);
+      if (index2 !== -1) pos = this.positionInside(index2, stringRepresentation);
     }
     return pos;
   }
@@ -6368,8 +6167,7 @@ var Node$4 = class Node3 {
     return { column, line };
   }
   prev() {
-    if (!this.parent)
-      return void 0;
+    if (!this.parent) return void 0;
     let index2 = this.parent.index(this);
     return this.parent.nodes[index2 - 1];
   }
@@ -6467,8 +6265,7 @@ var Node$4 = class Node3 {
       if (!Object.prototype.hasOwnProperty.call(this, name)) {
         continue;
       }
-      if (name === "parent" || name === "proxyCache")
-        continue;
+      if (name === "parent" || name === "proxyCache") continue;
       let value = this[name];
       if (Array.isArray(value)) {
         fixed[name] = value.map((i2) => {
@@ -6508,8 +6305,7 @@ var Node$4 = class Node3 {
     return this.proxyCache;
   }
   toString(stringifier2 = stringify$3) {
-    if (stringifier2.stringify)
-      stringifier2 = stringifier2.stringify;
+    if (stringifier2.stringify) stringifier2 = stringifier2.stringify;
     let result2 = "";
     stringifier2(this, (i2) => {
       result2 += i2;
@@ -6518,8 +6314,7 @@ var Node$4 = class Node3 {
   }
   warn(result2, text, opts) {
     let data = { node: this };
-    for (let i2 in opts)
-      data[i2] = opts[i2];
+    for (let i2 in opts) data[i2] = opts[i2];
     return result2.warn(text, data);
   }
   get proxyOf() {
@@ -6562,8 +6357,7 @@ var Root$6;
 var Rule$4;
 function cleanSource(nodes) {
   return nodes.map((i2) => {
-    if (i2.nodes)
-      i2.nodes = cleanSource(i2.nodes);
+    if (i2.nodes) i2.nodes = cleanSource(i2.nodes);
     delete i2.source;
     return i2;
   });
@@ -6580,8 +6374,7 @@ var Container$7 = class Container2 extends Node$1 {
   append(...children) {
     for (let child of children) {
       let nodes = this.normalize(child, this.last);
-      for (let node2 of nodes)
-        this.proxyOf.nodes.push(node2);
+      for (let node2 of nodes) this.proxyOf.nodes.push(node2);
     }
     this.markDirty();
     return this;
@@ -6589,20 +6382,17 @@ var Container$7 = class Container2 extends Node$1 {
   cleanRaws(keepBetween) {
     super.cleanRaws(keepBetween);
     if (this.nodes) {
-      for (let node2 of this.nodes)
-        node2.cleanRaws(keepBetween);
+      for (let node2 of this.nodes) node2.cleanRaws(keepBetween);
     }
   }
   each(callback) {
-    if (!this.proxyOf.nodes)
-      return void 0;
+    if (!this.proxyOf.nodes) return void 0;
     let iterator = this.getIterator();
     let index2, result2;
     while (this.indexes[iterator] < this.proxyOf.nodes.length) {
       index2 = this.indexes[iterator];
       result2 = callback(this.proxyOf.nodes[index2], index2);
-      if (result2 === false)
-        break;
+      if (result2 === false) break;
       this.indexes[iterator] += 1;
     }
     delete this.indexes[iterator];
@@ -6612,10 +6402,8 @@ var Container$7 = class Container2 extends Node$1 {
     return this.nodes.every(condition);
   }
   getIterator() {
-    if (!this.lastEach)
-      this.lastEach = 0;
-    if (!this.indexes)
-      this.indexes = {};
+    if (!this.lastEach) this.lastEach = 0;
+    if (!this.indexes) this.indexes = {};
     this.lastEach += 1;
     let iterator = this.lastEach;
     this.indexes[iterator] = 0;
@@ -6657,8 +6445,7 @@ var Container$7 = class Container2 extends Node$1 {
         }
       },
       set(node2, prop, value) {
-        if (node2[prop] === value)
-          return true;
+        if (node2[prop] === value) return true;
         node2[prop] = value;
         if (prop === "name" || prop === "params" || prop === "selector") {
           node2.markDirty();
@@ -6668,18 +6455,15 @@ var Container$7 = class Container2 extends Node$1 {
     };
   }
   index(child) {
-    if (typeof child === "number")
-      return child;
-    if (child.proxyOf)
-      child = child.proxyOf;
+    if (typeof child === "number") return child;
+    if (child.proxyOf) child = child.proxyOf;
     return this.proxyOf.nodes.indexOf(child);
   }
   insertAfter(exist, add) {
     let existIndex = this.index(exist);
     let nodes = this.normalize(add, this.proxyOf.nodes[existIndex]).reverse();
     existIndex = this.index(exist);
-    for (let node2 of nodes)
-      this.proxyOf.nodes.splice(existIndex + 1, 0, node2);
+    for (let node2 of nodes) this.proxyOf.nodes.splice(existIndex + 1, 0, node2);
     let index2;
     for (let id in this.indexes) {
       index2 = this.indexes[id];
@@ -6699,8 +6483,7 @@ var Container$7 = class Container2 extends Node$1 {
       type
     ).reverse();
     existIndex = this.index(exist);
-    for (let node2 of nodes)
-      this.proxyOf.nodes.splice(existIndex, 0, node2);
+    for (let node2 of nodes) this.proxyOf.nodes.splice(existIndex, 0, node2);
     let index2;
     for (let id in this.indexes) {
       index2 = this.indexes[id];
@@ -6719,14 +6502,12 @@ var Container$7 = class Container2 extends Node$1 {
     } else if (Array.isArray(nodes)) {
       nodes = nodes.slice(0);
       for (let i2 of nodes) {
-        if (i2.parent)
-          i2.parent.removeChild(i2, "ignore");
+        if (i2.parent) i2.parent.removeChild(i2, "ignore");
       }
     } else if (nodes.type === "root" && this.type !== "document") {
       nodes = nodes.nodes.slice(0);
       for (let i2 of nodes) {
-        if (i2.parent)
-          i2.parent.removeChild(i2, "ignore");
+        if (i2.parent) i2.parent.removeChild(i2, "ignore");
       }
     } else if (nodes.type) {
       nodes = [nodes];
@@ -6747,15 +6528,11 @@ var Container$7 = class Container2 extends Node$1 {
       throw new Error("Unknown node type in node creation");
     }
     let processed = nodes.map((i2) => {
-      if (!i2[my$1])
-        Container2.rebuild(i2);
+      if (!i2[my$1]) Container2.rebuild(i2);
       i2 = i2.proxyOf;
-      if (i2.parent)
-        i2.parent.removeChild(i2);
-      if (i2[isClean$1])
-        markTreeDirty(i2);
-      if (!i2.raws)
-        i2.raws = {};
+      if (i2.parent) i2.parent.removeChild(i2);
+      if (i2[isClean$1]) markTreeDirty(i2);
+      if (!i2.raws) i2.raws = {};
       if (typeof i2.raws.before === "undefined") {
         if (sample && typeof sample.raws.before !== "undefined") {
           i2.raws.before = sample.raws.before.replace(/\S/g, "");
@@ -6770,8 +6547,7 @@ var Container$7 = class Container2 extends Node$1 {
     children = children.reverse();
     for (let child of children) {
       let nodes = this.normalize(child, this.first, "prepend").reverse();
-      for (let node2 of nodes)
-        this.proxyOf.nodes.unshift(node2);
+      for (let node2 of nodes) this.proxyOf.nodes.unshift(node2);
       for (let id in this.indexes) {
         this.indexes[id] = this.indexes[id] + nodes.length;
       }
@@ -6785,8 +6561,7 @@ var Container$7 = class Container2 extends Node$1 {
     return this;
   }
   removeAll() {
-    for (let node2 of this.proxyOf.nodes)
-      node2.parent = void 0;
+    for (let node2 of this.proxyOf.nodes) node2.parent = void 0;
     this.proxyOf.nodes = [];
     this.markDirty();
     return this;
@@ -6811,10 +6586,8 @@ var Container$7 = class Container2 extends Node$1 {
       opts = {};
     }
     this.walkDecls((decl) => {
-      if (opts.props && !opts.props.includes(decl.prop))
-        return;
-      if (opts.fast && !decl.value.includes(opts.fast))
-        return;
+      if (opts.props && !opts.props.includes(decl.prop)) return;
+      if (opts.fast && !decl.value.includes(opts.fast)) return;
       decl.value = decl.value.replace(pattern, callback);
     });
     this.markDirty();
@@ -6911,13 +6684,11 @@ var Container$7 = class Container2 extends Node$1 {
     });
   }
   get first() {
-    if (!this.proxyOf.nodes)
-      return void 0;
+    if (!this.proxyOf.nodes) return void 0;
     return this.proxyOf.nodes[0];
   }
   get last() {
-    if (!this.proxyOf.nodes)
-      return void 0;
+    if (!this.proxyOf.nodes) return void 0;
     return this.proxyOf.nodes[this.proxyOf.nodes.length - 1];
   }
 };
@@ -6961,13 +6732,11 @@ var AtRule$3 = class AtRule2 extends Container$6 {
     this.type = "atrule";
   }
   append(...children) {
-    if (!this.proxyOf.nodes)
-      this.nodes = [];
+    if (!this.proxyOf.nodes) this.nodes = [];
     return super.append(...children);
   }
   prepend(...children) {
-    if (!this.proxyOf.nodes)
-      this.nodes = [];
+    if (!this.proxyOf.nodes) this.nodes = [];
     return super.prepend(...children);
   }
 };
@@ -7029,8 +6798,7 @@ function fromBase64(str) {
 }
 var PreviousMap$2 = class PreviousMap2 {
   constructor(css, opts) {
-    if (opts.map === false)
-      return;
+    if (opts.map === false) return;
     this.loadAnnotation(css);
     this.inline = this.startWith(this.annotation, "data:");
     let prev = opts.map ? opts.map.prev : void 0;
@@ -7038,10 +6806,8 @@ var PreviousMap$2 = class PreviousMap2 {
     if (!this.mapFile && opts.from) {
       this.mapFile = opts.from;
     }
-    if (this.mapFile)
-      this.root = dirname$1(this.mapFile);
-    if (text)
-      this.text = text;
+    if (this.mapFile) this.root = dirname$1(this.mapFile);
+    if (text) this.text = text;
   }
   consumer() {
     if (!this.consumerCache) {
@@ -7069,14 +6835,12 @@ var PreviousMap$2 = class PreviousMap2 {
     return sourceMapString.replace(/^\/\*\s*# sourceMappingURL=/, "").trim();
   }
   isMap(map) {
-    if (typeof map !== "object")
-      return false;
+    if (typeof map !== "object") return false;
     return typeof map.mappings === "string" || typeof map._mappings === "string" || Array.isArray(map.sections);
   }
   loadAnnotation(css) {
     let comments = css.match(/\/\*\s*# sourceMappingURL=/g);
-    if (!comments)
-      return;
+    if (!comments) return;
     let start = css.lastIndexOf(comments.pop());
     let end = css.indexOf("*/", start);
     if (start > -1 && end > -1) {
@@ -7091,8 +6855,7 @@ var PreviousMap$2 = class PreviousMap2 {
     }
   }
   loadMap(file, prev) {
-    if (prev === false)
-      return false;
+    if (prev === false) return false;
     if (prev) {
       if (typeof prev === "string") {
         return prev;
@@ -7122,14 +6885,12 @@ var PreviousMap$2 = class PreviousMap2 {
       return this.decodeInline(this.annotation);
     } else if (this.annotation) {
       let map = this.annotation;
-      if (file)
-        map = join(dirname$1(file), map);
+      if (file) map = join(dirname$1(file), map);
       return this.loadFile(map);
     }
   }
   startWith(string, start) {
-    if (!string)
-      return false;
+    if (!string) return false;
     return string.substr(0, start.length) === start;
   }
   withContent() {
@@ -7172,15 +6933,13 @@ var Input$4 = class Input2 {
       if (map.text) {
         this.map = map;
         let file = map.consumer().file;
-        if (!this.file && file)
-          this.file = this.mapResolve(file);
+        if (!this.file && file) this.file = this.mapResolve(file);
       }
     }
     if (!this.file) {
       this.id = "<input css " + nanoid(6) + ">";
     }
-    if (this.map)
-      this.map.file = this.from;
+    if (this.map) this.map.file = this.from;
   }
   error(message, line, column, opts = {}) {
     let endColumn, endLine, result2;
@@ -7282,12 +7041,10 @@ var Input$4 = class Input2 {
     return resolve$1(this.map.consumer().sourceRoot || this.map.root || ".", file);
   }
   origin(line, column, endLine, endColumn) {
-    if (!this.map)
-      return false;
+    if (!this.map) return false;
     let consumer = this.map.consumer();
     let from = consumer.originalPositionFor({ column, line });
-    if (!from.source)
-      return false;
+    if (!from.source) return false;
     let to;
     if (typeof endLine === "number") {
       to = consumer.originalPositionFor({ column: endColumn, line: endLine });
@@ -7316,8 +7073,7 @@ var Input$4 = class Input2 {
       }
     }
     let source = consumer.sourceContentFor(from.source);
-    if (source)
-      result2.source = source;
+    if (source) result2.source = source;
     return result2;
   }
   toJSON() {
@@ -7351,8 +7107,7 @@ var Root$5 = class Root2 extends Container$4 {
   constructor(defaults) {
     super(defaults);
     this.type = "root";
-    if (!this.nodes)
-      this.nodes = [];
+    if (!this.nodes) this.nodes = [];
   }
   normalize(child, sample, type) {
     let nodes = super.normalize(child);
@@ -7423,23 +7178,19 @@ var list$2 = {
       } else if (letter === "(") {
         func += 1;
       } else if (letter === ")") {
-        if (func > 0)
-          func -= 1;
+        if (func > 0) func -= 1;
       } else if (func === 0) {
-        if (separators.includes(letter))
-          split = true;
+        if (separators.includes(letter)) split = true;
       }
       if (split) {
-        if (current !== "")
-          array.push(current.trim());
+        if (current !== "") array.push(current.trim());
         current = "";
         split = false;
       } else {
         current += letter;
       }
     }
-    if (last || current !== "")
-      array.push(current.trim());
+    if (last || current !== "") array.push(current.trim());
     return array;
   }
 };
@@ -7451,8 +7202,7 @@ var Rule$3 = class Rule2 extends Container$3 {
   constructor(defaults) {
     super(defaults);
     this.type = "rule";
-    if (!this.nodes)
-      this.nodes = [];
+    if (!this.nodes) this.nodes = [];
   }
   get selectors() {
     return list$1.comma(this.selector);
@@ -7474,8 +7224,7 @@ var PreviousMap22 = previousMap;
 var Root$4 = root;
 var Rule$2 = rule;
 function fromJSON$1(json, inputs) {
-  if (Array.isArray(json))
-    return json.map((n2) => fromJSON$1(n2));
+  if (Array.isArray(json)) return json.map((n2) => fromJSON$1(n2));
   let { inputs: ownInputs, ...defaults } = json;
   if (ownInputs) {
     inputs = [];
@@ -7547,8 +7296,7 @@ var MapGenerator$2 = class MapGenerator2 {
       content = this.outputFile() + ".map";
     }
     let eol = "\n";
-    if (this.css.includes("\r\n"))
-      eol = "\r\n";
+    if (this.css.includes("\r\n")) eol = "\r\n";
     this.css += eol + "/*# sourceMappingURL=" + content + " */";
   }
   applyPrevMaps() {
@@ -7568,14 +7316,12 @@ var MapGenerator$2 = class MapGenerator2 {
     }
   }
   clearAnnotation() {
-    if (this.mapOpts.annotation === false)
-      return;
+    if (this.mapOpts.annotation === false) return;
     if (this.root) {
       let node2;
       for (let i2 = this.root.nodes.length - 1; i2 >= 0; i2--) {
         node2 = this.root.nodes[i2];
-        if (node2.type !== "comment")
-          continue;
+        if (node2.type !== "comment") continue;
         if (node2.text.startsWith("# sourceMappingURL=")) {
           this.root.removeChild(i2);
         }
@@ -7616,12 +7362,9 @@ var MapGenerator$2 = class MapGenerator2 {
         source: this.opts.from ? this.toUrl(this.path(this.opts.from)) : "<no source>"
       });
     }
-    if (this.isSourcesContent())
-      this.setSourcesContent();
-    if (this.root && this.previous().length > 0)
-      this.applyPrevMaps();
-    if (this.isAnnotation())
-      this.addAnnotation();
+    if (this.isSourcesContent()) this.setSourcesContent();
+    if (this.root && this.previous().length > 0) this.applyPrevMaps();
+    if (this.isAnnotation()) this.addAnnotation();
     if (this.isInline()) {
       return [this.css];
     } else {
@@ -7741,15 +7484,11 @@ var MapGenerator$2 = class MapGenerator2 {
     }
   }
   path(file) {
-    if (this.mapOpts.absolute)
-      return file;
-    if (file.charCodeAt(0) === 60)
-      return file;
-    if (/^\w+:\/\//.test(file))
-      return file;
+    if (this.mapOpts.absolute) return file;
+    if (file.charCodeAt(0) === 60) return file;
+    if (/^\w+:\/\//.test(file)) return file;
     let cached = this.memoizedPaths.get(file);
-    if (cached)
-      return cached;
+    if (cached) return cached;
     let from = this.opts.to ? dirname(this.opts.to) : ".";
     if (typeof this.mapOpts.annotation === "string") {
       from = dirname(resolve(from, this.mapOpts.annotation));
@@ -7772,8 +7511,7 @@ var MapGenerator$2 = class MapGenerator2 {
         });
       } else {
         let input2 = new Input$2(this.originalCSS, this.opts);
-        if (input2.map)
-          this.previousMaps.push(input2.map);
+        if (input2.map) this.previousMaps.push(input2.map);
       }
     }
     return this.previousMaps;
@@ -7814,8 +7552,7 @@ var MapGenerator$2 = class MapGenerator2 {
   }
   toFileUrl(path) {
     let cached = this.memoizedFileURLs.get(path);
-    if (cached)
-      return cached;
+    if (cached) return cached;
     if (pathToFileURL) {
       let fileURL = pathToFileURL(path).toString();
       this.memoizedFileURLs.set(path, fileURL);
@@ -7828,8 +7565,7 @@ var MapGenerator$2 = class MapGenerator2 {
   }
   toUrl(path) {
     let cached = this.memoizedURLs.get(path);
-    if (cached)
-      return cached;
+    if (cached) return cached;
     if (sep === "\\") {
       path = path.replace(/\\/g, "/");
     }
@@ -7881,10 +7617,8 @@ var tokenize = function tokenizer2(input2, options = {}) {
     return returned.length === 0 && pos >= length;
   }
   function nextToken(opts) {
-    if (returned.length)
-      return returned.pop();
-    if (pos >= length)
-      return;
+    if (returned.length) return returned.pop();
+    if (pos >= length) return;
     let ignoreUnclosed = opts ? opts.ignoreUnclosed : false;
     code = css.charCodeAt(pos);
     switch (code) {
@@ -8063,8 +7797,7 @@ function findLastWithPosition(tokens) {
   for (let i2 = tokens.length - 1; i2 >= 0; i2--) {
     let token = tokens[i2];
     let pos = token[3] || token[2];
-    if (pos)
-      return pos;
+    if (pos) return pos;
   }
 }
 var Parser$1 = class Parser2 {
@@ -8157,16 +7890,14 @@ var Parser$1 = class Parser2 {
   }
   checkMissedSemicolon(tokens) {
     let colon = this.colon(tokens);
-    if (colon === false)
-      return;
+    if (colon === false) return;
     let founded = 0;
     let token;
     for (let j = colon - 1; j >= 0; j--) {
       token = tokens[j];
       if (token[0] !== "space") {
         founded += 1;
-        if (founded === 2)
-          break;
+        if (founded === 2) break;
       }
     }
     throw this.input.error(
@@ -8232,8 +7963,7 @@ var Parser$1 = class Parser2 {
     );
     node2.source.end.offset++;
     while (tokens[0][0] !== "word") {
-      if (tokens.length === 1)
-        this.unknownWord(tokens);
+      if (tokens.length === 1) this.unknownWord(tokens);
       node2.raws.before += tokens.shift()[1];
     }
     node2.source.start = this.getPosition(tokens[0][2]);
@@ -8267,8 +7997,7 @@ var Parser$1 = class Parser2 {
     let next;
     while (tokens.length) {
       next = tokens[0][0];
-      if (next !== "space" && next !== "comment")
-        break;
+      if (next !== "space" && next !== "comment") break;
       firstSpaces.push(tokens.shift());
     }
     this.precheckMissedSemicolon(tokens);
@@ -8278,8 +8007,7 @@ var Parser$1 = class Parser2 {
         node2.important = true;
         let string = this.stringFrom(tokens, i2);
         string = this.spacesFromEnd(tokens) + string;
-        if (string !== " !important")
-          node2.raws.important = string;
+        if (string !== " !important") node2.raws.important = string;
         break;
       } else if (token[1].toLowerCase() === "important") {
         let cache = tokens.slice(0);
@@ -8341,8 +8069,7 @@ var Parser$1 = class Parser2 {
     }
   }
   endFile() {
-    if (this.current.parent)
-      this.unclosedBlock();
+    if (this.current.parent) this.unclosedBlock();
     if (this.current.nodes && this.current.nodes.length) {
       this.current.raws.semicolon = this.semicolon;
     }
@@ -8376,8 +8103,7 @@ var Parser$1 = class Parser2 {
     };
     node2.raws.before = this.spaces;
     this.spaces = "";
-    if (node2.type !== "comment")
-      this.semicolon = false;
+    if (node2.type !== "comment") this.semicolon = false;
   }
   other(start) {
     let end = false;
@@ -8392,12 +8118,10 @@ var Parser$1 = class Parser2 {
       type = token[0];
       tokens.push(token);
       if (type === "(" || type === "[") {
-        if (!bracket)
-          bracket = token;
+        if (!bracket) bracket = token;
         brackets.push(type === "(" ? ")" : "]");
       } else if (customProperty && colon && type === "{") {
-        if (!bracket)
-          bracket = token;
+        if (!bracket) bracket = token;
         brackets.push("}");
       } else if (brackets.length === 0) {
         if (type === ";") {
@@ -8419,21 +8143,17 @@ var Parser$1 = class Parser2 {
         }
       } else if (type === brackets[brackets.length - 1]) {
         brackets.pop();
-        if (brackets.length === 0)
-          bracket = null;
+        if (brackets.length === 0) bracket = null;
       }
       token = this.tokenizer.nextToken();
     }
-    if (this.tokenizer.endOfFile())
-      end = true;
-    if (brackets.length > 0)
-      this.unclosedBracket(bracket);
+    if (this.tokenizer.endOfFile()) end = true;
+    if (brackets.length > 0) this.unclosedBracket(bracket);
     if (end && colon) {
       if (!customProperty) {
         while (tokens.length) {
           token = tokens[tokens.length - 1][0];
-          if (token !== "space" && token !== "comment")
-            break;
+          if (token !== "space" && token !== "comment") break;
           this.tokenizer.back(tokens.pop());
         }
       }
@@ -8520,8 +8240,7 @@ var Parser$1 = class Parser2 {
     let spaces = "";
     while (tokens.length) {
       lastTokenType = tokens[tokens.length - 1][0];
-      if (lastTokenType !== "space" && lastTokenType !== "comment")
-        break;
+      if (lastTokenType !== "space" && lastTokenType !== "comment") break;
       spaces = tokens.pop()[1] + spaces;
     }
     return spaces;
@@ -8532,8 +8251,7 @@ var Parser$1 = class Parser2 {
     let spaces = "";
     while (tokens.length) {
       next = tokens[0][0];
-      if (next !== "space" && next !== "comment")
-        break;
+      if (next !== "space" && next !== "comment") break;
       spaces += tokens.shift()[1];
     }
     return spaces;
@@ -8543,8 +8261,7 @@ var Parser$1 = class Parser2 {
     let spaces = "";
     while (tokens.length) {
       lastTokenType = tokens[tokens.length - 1][0];
-      if (lastTokenType !== "space")
-        break;
+      if (lastTokenType !== "space") break;
       spaces = tokens.pop()[1] + spaces;
     }
     return spaces;
@@ -8629,8 +8346,7 @@ var Warning$2 = class Warning2 {
       this.endLine = range.end.line;
       this.endColumn = range.end.column;
     }
-    for (let opt in opts)
-      this[opt] = opts[opt];
+    for (let opt in opts) this[opt] = opts[opt];
   }
   toString() {
     if (this.node) {
@@ -8682,8 +8398,7 @@ var result = Result$3;
 Result$3.default = Result$3;
 var printed = {};
 var warnOnce$2 = function warnOnce2(message) {
-  if (printed[message])
-    return;
+  if (printed[message]) return;
   printed[message] = true;
   if (typeof console !== "undefined" && console.warn) {
     console.warn(message);
@@ -8777,8 +8492,7 @@ function toStack(node2) {
 }
 function cleanMarks(node2) {
   node2[isClean] = false;
-  if (node2.nodes)
-    node2.nodes.forEach((i2) => cleanMarks(i2));
+  if (node2.nodes) node2.nodes.forEach((i2) => cleanMarks(i2));
   return node2;
 }
 var postcss$2 = {};
@@ -8792,20 +8506,15 @@ var LazyResult$2 = class LazyResult2 {
     } else if (css instanceof LazyResult2 || css instanceof Result$2) {
       root2 = cleanMarks(css.root);
       if (css.map) {
-        if (typeof opts.map === "undefined")
-          opts.map = {};
-        if (!opts.map.inline)
-          opts.map.inline = false;
+        if (typeof opts.map === "undefined") opts.map = {};
+        if (!opts.map.inline) opts.map.inline = false;
         opts.map.prev = css.map;
       }
     } else {
       let parser2 = parse$2;
-      if (opts.syntax)
-        parser2 = opts.syntax.parse;
-      if (opts.parser)
-        parser2 = opts.parser;
-      if (parser2.parse)
-        parser2 = parser2.parse;
+      if (opts.syntax) parser2 = opts.syntax.parse;
+      if (opts.parser) parser2 = opts.parser;
+      if (parser2.parse) parser2 = parser2.parse;
       try {
         root2 = parser2(css, opts);
       } catch (error) {
@@ -8827,10 +8536,8 @@ var LazyResult$2 = class LazyResult2 {
     });
   }
   async() {
-    if (this.error)
-      return Promise.reject(this.error);
-    if (this.processed)
-      return Promise.resolve(this.result);
+    if (this.error) return Promise.reject(this.error);
+    if (this.processed) return Promise.resolve(this.result);
     if (!this.processing) {
       this.processing = this.runAsync();
     }
@@ -8848,8 +8555,7 @@ var LazyResult$2 = class LazyResult2 {
   handleError(error, node2) {
     let plugin22 = this.result.lastPlugin;
     try {
-      if (node2)
-        node2.addToError(error);
+      if (node2) node2.addToError(error);
       this.error = error;
       if (error.name === "CssSyntaxError" && !error.plugin) {
         error.plugin = plugin22.postcssPlugin;
@@ -8869,16 +8575,14 @@ var LazyResult$2 = class LazyResult2 {
         }
       }
     } catch (err) {
-      if (console && console.error)
-        console.error(err);
+      if (console && console.error) console.error(err);
     }
     return error;
   }
   prepareVisitors() {
     this.listeners = {};
     let add = (plugin22, type, cb) => {
-      if (!this.listeners[type])
-        this.listeners[type] = [];
+      if (!this.listeners[type]) this.listeners[type] = [];
       this.listeners[type].push([plugin22, cb]);
     };
     for (let plugin22 of this.plugins) {
@@ -8985,20 +8689,15 @@ var LazyResult$2 = class LazyResult2 {
     }
   }
   stringify() {
-    if (this.error)
-      throw this.error;
-    if (this.stringified)
-      return this.result;
+    if (this.error) throw this.error;
+    if (this.stringified) return this.result;
     this.stringified = true;
     this.sync();
     let opts = this.result.opts;
     let str = stringify$2;
-    if (opts.syntax)
-      str = opts.syntax.stringify;
-    if (opts.stringifier)
-      str = opts.stringifier;
-    if (str.stringify)
-      str = str.stringify;
+    if (opts.syntax) str = opts.syntax.stringify;
+    if (opts.stringifier) str = opts.stringifier;
+    if (str.stringify) str = str.stringify;
     let map = new MapGenerator$1(str, this.result.root, this.result.opts);
     let data = map.generate();
     this.result.css = data[0];
@@ -9006,10 +8705,8 @@ var LazyResult$2 = class LazyResult2 {
     return this.result;
   }
   sync() {
-    if (this.error)
-      throw this.error;
-    if (this.processed)
-      return this.result;
+    if (this.error) throw this.error;
+    if (this.processed) return this.result;
     this.processed = true;
     if (this.processing) {
       throw this.getAsyncError();
@@ -9128,15 +8825,13 @@ var LazyResult$2 = class LazyResult2 {
       if (event === CHILDREN) {
         if (node2.nodes) {
           node2.each((child) => {
-            if (!child[isClean])
-              this.walkSync(child);
+            if (!child[isClean]) this.walkSync(child);
           });
         }
       } else {
         let visitors = this.listeners[event];
         if (visitors) {
-          if (this.visitSync(visitors, node2.toProxy()))
-            return;
+          if (this.visitSync(visitors, node2.toProxy())) return;
         }
       }
     }
@@ -9214,8 +8909,7 @@ var NoWorkResult$1 = class NoWorkResult2 {
     }
   }
   async() {
-    if (this.error)
-      return Promise.reject(this.error);
+    if (this.error) return Promise.reject(this.error);
     return Promise.resolve(this.result);
   }
   catch(onRejected) {
@@ -9225,8 +8919,7 @@ var NoWorkResult$1 = class NoWorkResult2 {
     return this.async().then(onFinally, onFinally);
   }
   sync() {
-    if (this.error)
-      throw this.error;
+    if (this.error) throw this.error;
     return this.result;
   }
   then(onFulfilled, onRejected) {
@@ -9384,8 +9077,7 @@ postcss.plugin = function plugin2(name, initializer) {
   let cache;
   Object.defineProperty(creator, "postcss", {
     get() {
-      if (!cache)
-        cache = creator();
+      if (!cache) cache = creator();
       return cache;
     }
   });
@@ -9462,8 +9154,7 @@ function toCSSText(style) {
   const properties = [];
   for (const name in style) {
     const value = style[name];
-    if (typeof value !== "string")
-      continue;
+    if (typeof value !== "string") continue;
     const normalizedName = hyphenate(name);
     properties.push(`${normalizedName}: ${value};`);
   }
@@ -9472,8 +9163,7 @@ function toCSSText(style) {
 var camelizeRE = /-([a-z])/g;
 var CUSTOM_PROPERTY_REGEX = /^--[a-zA-Z0-9-]+$/;
 var camelize = (str) => {
-  if (CUSTOM_PROPERTY_REGEX.test(str))
-    return str;
+  if (CUSTOM_PROPERTY_REGEX.test(str)) return str;
   return str.replace(camelizeRE, (_, c2) => c2 ? c2.toUpperCase() : "");
 };
 var hyphenateRE = /\B([A-Z])/g;
@@ -9506,15 +9196,11 @@ var BaseRRNode = class _BaseRRNode {
     return childNodes2;
   }
   contains(node2) {
-    if (!(node2 instanceof _BaseRRNode))
-      return false;
-    else if (node2.ownerDocument !== this.ownerDocument)
-      return false;
-    else if (node2 === this)
-      return true;
+    if (!(node2 instanceof _BaseRRNode)) return false;
+    else if (node2.ownerDocument !== this.ownerDocument) return false;
+    else if (node2 === this) return true;
     while (node2.parentNode) {
-      if (node2.parentNode === this)
-        return true;
+      if (node2.parentNode === this) return true;
       node2 = node2.parentNode;
     }
     return false;
@@ -9722,20 +9408,15 @@ var BaseRRElement = class extends BaseRRNode {
     const style = this.attributes.style ? parseCSSText(this.attributes.style) : {};
     const hyphenateRE2 = /\B([A-Z])/g;
     style.setProperty = (name, value, priority) => {
-      if (hyphenateRE2.test(name))
-        return;
+      if (hyphenateRE2.test(name)) return;
       const normalizedName = camelize(name);
-      if (!value)
-        delete style[normalizedName];
-      else
-        style[normalizedName] = value;
-      if (priority === "important")
-        style[normalizedName] += " !important";
+      if (!value) delete style[normalizedName];
+      else style[normalizedName] = value;
+      if (priority === "important") style[normalizedName] += " !important";
       this.attributes.style = toCSSText(style);
     };
     style.removeProperty = (name) => {
-      if (hyphenateRE2.test(name))
-        return "";
+      if (hyphenateRE2.test(name)) return "";
       const normalizedName = camelize(name);
       const value = style[normalizedName] || "";
       delete style[normalizedName];
@@ -9745,8 +9426,7 @@ var BaseRRElement = class extends BaseRRNode {
     return style;
   }
   getAttribute(name) {
-    if (this.attributes[name] === void 0)
-      return null;
+    if (this.attributes[name] === void 0) return null;
     return this.attributes[name];
   }
   setAttribute(name, attribute) {
@@ -9897,8 +9577,7 @@ var ClassList = class {
     __publicField2(this, "add", (...classNames) => {
       for (const item of classNames) {
         const className = String(item);
-        if (this.classes.indexOf(className) >= 0)
-          continue;
+        if (this.classes.indexOf(className) >= 0) continue;
         this.classes.push(className);
       }
       this.onChange && this.onChange(this.classes.join(" "));
@@ -9917,8 +9596,7 @@ var ClassList = class {
   }
 };
 function appendChild(parent, newChild) {
-  if (newChild.parentNode)
-    newChild.parentNode.removeChild(newChild);
+  if (newChild.parentNode) newChild.parentNode.removeChild(newChild);
   if (parent.lastChild) {
     parent.lastChild.nextSibling = newChild;
     newChild.previousSibling = parent.lastChild;
@@ -9934,23 +9612,18 @@ function appendChild(parent, newChild) {
   return newChild;
 }
 function insertBefore(parent, newChild, refChild) {
-  if (!refChild)
-    return appendChild(parent, newChild);
+  if (!refChild) return appendChild(parent, newChild);
   if (refChild.parentNode !== parent)
     throw new Error(
       "Failed to execute 'insertBefore' on 'RRNode': The RRNode before which the new node is to be inserted is not a child of this RRNode."
     );
-  if (newChild === refChild)
-    return newChild;
-  if (newChild.parentNode)
-    newChild.parentNode.removeChild(newChild);
+  if (newChild === refChild) return newChild;
+  if (newChild.parentNode) newChild.parentNode.removeChild(newChild);
   newChild.previousSibling = refChild.previousSibling;
   refChild.previousSibling = newChild;
   newChild.nextSibling = refChild;
-  if (newChild.previousSibling)
-    newChild.previousSibling.nextSibling = newChild;
-  else
-    parent.firstChild = newChild;
+  if (newChild.previousSibling) newChild.previousSibling.nextSibling = newChild;
+  else parent.firstChild = newChild;
   newChild.parentElement = parent;
   newChild.parentNode = parent;
   newChild.ownerDocument = parent.ownerDocument;
@@ -9963,12 +9636,10 @@ function removeChild(parent, child) {
     );
   if (child.previousSibling)
     child.previousSibling.nextSibling = child.nextSibling;
-  else
-    parent.firstChild = child.nextSibling;
+  else parent.firstChild = child.nextSibling;
   if (child.nextSibling)
     child.nextSibling.previousSibling = child.previousSibling;
-  else
-    parent.lastChild = child.previousSibling;
+  else parent.lastChild = child.previousSibling;
   child.previousSibling = null;
   child.nextSibling = null;
   child.parentElement = null;
@@ -10081,8 +9752,7 @@ function diffBeforeUpdatingChildren(oldTree, newTree, replayer, rrnodeMirror) {
       switch (newRRElement.tagName) {
         case "IFRAME": {
           const oldContentDocument = oldTree.contentDocument;
-          if (!oldContentDocument)
-            break;
+          if (!oldContentDocument) break;
           diff(
             oldContentDocument,
             newTree.contentDocument,
@@ -10093,8 +9763,7 @@ function diffBeforeUpdatingChildren(oldTree, newTree, replayer, rrnodeMirror) {
         }
       }
       if (newRRElement.shadowRoot) {
-        if (!oldElement.shadowRoot)
-          oldElement.attachShadow({ mode: "open" });
+        if (!oldElement.shadowRoot) oldElement.attachShadow({ mode: "open" });
         diffChildren(
           // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
           oldElement.shadowRoot,
@@ -10178,14 +9847,11 @@ function diffAfterUpdatingChildren(oldTree, newTree, replayer) {
           const shouldBeModal = rrDialog.isModal;
           const modalChanged = wasModal !== shouldBeModal;
           const openChanged = wasOpen !== shouldBeOpen;
-          if (modalChanged || wasOpen && openChanged)
-            dialog.close();
+          if (modalChanged || wasOpen && openChanged) dialog.close();
           if (shouldBeOpen && (openChanged || modalChanged)) {
             try {
-              if (shouldBeModal)
-                dialog.showModal();
-              else
-                dialog.show();
+              if (shouldBeModal) dialog.showModal();
+              else dialog.show();
             } catch (e2) {
               console.warn(e2);
             }
@@ -10225,8 +9891,7 @@ function diffProps(oldTree, newTree, rrnodeMirror) {
           ctx.drawImage(image, 0, 0, image.width, image.height);
         }
       };
-    } else if (newTree.tagName === "IFRAME" && name === "srcdoc")
-      continue;
+    } else if (newTree.tagName === "IFRAME" && name === "srcdoc") continue;
     else {
       try {
         oldTree.setAttribute(name, newValue);
@@ -10236,16 +9901,14 @@ function diffProps(oldTree, newTree, rrnodeMirror) {
     }
   }
   for (const { name } of Array.from(oldAttributes))
-    if (!(name in newAttributes))
-      oldTree.removeAttribute(name);
+    if (!(name in newAttributes)) oldTree.removeAttribute(name);
   newTree.scrollLeft && (oldTree.scrollLeft = newTree.scrollLeft);
   newTree.scrollTop && (oldTree.scrollTop = newTree.scrollTop);
 }
 function diffChildren(oldTree, newTree, replayer, rrnodeMirror) {
   const oldChildren = Array.from(oldTree.childNodes);
   const newChildren = newTree.childNodes;
-  if (oldChildren.length === 0 && newChildren.length === 0)
-    return;
+  if (oldChildren.length === 0 && newChildren.length === 0) return;
   let oldStartIndex = 0, oldEndIndex = oldChildren.length - 1, newStartIndex = 0, newEndIndex = newChildren.length - 1;
   let oldStartNode = oldChildren[oldStartIndex], oldEndNode = oldChildren[oldEndIndex], newStartNode = newChildren[newStartIndex], newEndNode = newChildren[newEndIndex];
   let oldIdToIndex = void 0, indexInOld = void 0;
@@ -10356,8 +10019,7 @@ function diffChildren(oldTree, newTree, replayer, rrnodeMirror) {
   } else if (newStartIndex > newEndIndex) {
     for (; oldStartIndex <= oldEndIndex; oldStartIndex++) {
       const node2 = oldChildren[oldStartIndex];
-      if (!node2 || node2.parentNode !== oldTree)
-        continue;
+      if (!node2 || node2.parentNode !== oldTree) continue;
       try {
         oldTree.removeChild(node2);
         replayer.mirror.removeNodeFromMap(node2);
@@ -10378,10 +10040,8 @@ function createOrGetNode(rrNode, domMirror, rrnodeMirror) {
   const nodeId = rrnodeMirror.getId(rrNode);
   const sn = rrnodeMirror.getMeta(rrNode);
   let node2 = null;
-  if (nodeId > -1)
-    node2 = domMirror.getNode(nodeId);
-  if (node2 !== null && sameNodeType(node2, rrNode))
-    return node2;
+  if (nodeId > -1) node2 = domMirror.getNode(nodeId);
+  if (node2 !== null && sameNodeType(node2, rrNode)) return node2;
   switch (rrNode.RRNodeType) {
     case NodeType$1.Document:
       node2 = new Document();
@@ -10398,8 +10058,7 @@ function createOrGetNode(rrNode, domMirror, rrnodeMirror) {
       tagName = SVGTagMap[tagName] || tagName;
       if (sn && "isSVG" in sn && (sn == null ? void 0 : sn.isSVG)) {
         node2 = document.createElementNS(NAMESPACES["svg"], tagName);
-      } else
-        node2 = document.createElement(rrNode.tagName);
+      } else node2 = document.createElement(rrNode.tagName);
       break;
     }
     case NodeType$1.Text:
@@ -10412,8 +10071,7 @@ function createOrGetNode(rrNode, domMirror, rrnodeMirror) {
       node2 = document.createCDATASection(rrNode.data);
       break;
   }
-  if (sn)
-    domMirror.add(node2, { ...sn });
+  if (sn) domMirror.add(node2, { ...sn });
   try {
     createdNodeSet == null ? void 0 : createdNodeSet.add(node2);
   } catch (e2) {
@@ -10421,15 +10079,13 @@ function createOrGetNode(rrNode, domMirror, rrnodeMirror) {
   return node2;
 }
 function sameNodeType(node1, node2) {
-  if (node1.nodeType !== node2.nodeType)
-    return false;
+  if (node1.nodeType !== node2.nodeType) return false;
   return node1.nodeType !== node1.ELEMENT_NODE || node1.tagName.toUpperCase() === node2.tagName;
 }
 function nodeMatching(node1, node2, domMirror, rrdomMirror) {
   const node1Id = domMirror.getId(node1);
   const node2Id = rrdomMirror.getId(node2);
-  if (node1Id === -1 || node1Id !== node2Id)
-    return false;
+  if (node1Id === -1 || node1Id !== node2Id) return false;
   return sameNodeType(node1, node2);
 }
 var RRDocument = class _RRDocument extends BaseRRDocument {
@@ -10620,8 +10276,7 @@ function buildFromNode(node2, rrdom, domMirror, parentRRNode) {
 function buildFromDom(dom, domMirror = createMirror$1(), rrdom = new RRDocument()) {
   function walk2(node2, parentRRNode) {
     const rrNode = buildFromNode(node2, rrdom, domMirror, parentRRNode);
-    if (rrNode === null)
-      return;
+    if (rrNode === null) return;
     if (
       // if the parentRRNode isn't a RRIFrameElement
       (parentRRNode == null ? void 0 : parentRRNode.nodeName) !== "IFRAME" && // if node isn't a shadow root
@@ -10653,8 +10308,7 @@ var Mirror22 = class {
   }
   getId(n2) {
     var _a2;
-    if (!n2)
-      return -1;
+    if (!n2) return -1;
     const id = (_a2 = this.getMeta(n2)) == null ? void 0 : _a2.id;
     return id ?? -1;
   }
@@ -10691,8 +10345,7 @@ var Mirror22 = class {
     const oldNode = this.getNode(id);
     if (oldNode) {
       const meta = this.nodeMetaMap.get(oldNode);
-      if (meta)
-        this.nodeMetaMap.set(n2, meta);
+      if (meta) this.nodeMetaMap.set(n2, meta);
     }
     this.idNodeMap.set(id, n2);
   }
@@ -10796,12 +10449,10 @@ function getUntaintedPrototype(key) {
     const iframeEl = document.createElement("iframe");
     document.body.appendChild(iframeEl);
     const win = iframeEl.contentWindow;
-    if (!win)
-      return defaultObj.prototype;
+    if (!win) return defaultObj.prototype;
     const untaintedObject = win[key].prototype;
     document.body.removeChild(iframeEl);
-    if (!untaintedObject)
-      return defaultPrototype;
+    if (!untaintedObject) return defaultPrototype;
     return untaintedBasePrototype[key] = untaintedObject;
   } catch {
     return defaultPrototype;
@@ -10820,8 +10471,7 @@ function getUntaintedAccessor(key, instance, accessor) {
     untaintedPrototype,
     accessor
   )) == null ? void 0 : _a2.get;
-  if (!untaintedAccessor)
-    return instance[accessor];
+  if (!untaintedAccessor) return instance[accessor];
   untaintedAccessorCache[cacheKey] = untaintedAccessor;
   return untaintedAccessor.call(instance);
 }
@@ -10834,8 +10484,7 @@ function getUntaintedMethod(key, instance, method) {
     );
   const untaintedPrototype = getUntaintedPrototype(key);
   const untaintedMethod = untaintedPrototype[method];
-  if (typeof untaintedMethod !== "function")
-    return instance[method];
+  if (typeof untaintedMethod !== "function") return instance[method];
   untaintedMethodCache[cacheKey] = untaintedMethod;
   return untaintedMethod.bind(instance);
 }
@@ -10858,16 +10507,14 @@ function getRootNode(n2) {
   return getUntaintedMethod("Node", n2, "getRootNode")();
 }
 function host(n2) {
-  if (!n2 || !("host" in n2))
-    return null;
+  if (!n2 || !("host" in n2)) return null;
   return getUntaintedAccessor("ShadowRoot", n2, "host");
 }
 function styleSheets(n2) {
   return n2.styleSheets;
 }
 function shadowRoot(n2) {
-  if (!n2 || !("shadowRoot" in n2))
-    return null;
+  if (!n2 || !("shadowRoot" in n2)) return null;
   return getUntaintedAccessor("Element", n2, "shadowRoot");
 }
 function querySelector(n2, selectors) {
@@ -11045,21 +10692,16 @@ function isBlocked(node2, blockClass, blockSelector, checkAncestors) {
   }
   try {
     if (typeof blockClass === "string") {
-      if (el.classList.contains(blockClass))
-        return true;
-      if (checkAncestors && el.closest("." + blockClass) !== null)
-        return true;
+      if (el.classList.contains(blockClass)) return true;
+      if (checkAncestors && el.closest("." + blockClass) !== null) return true;
     } else {
-      if (classMatchesRegex(el, blockClass, checkAncestors))
-        return true;
+      if (classMatchesRegex(el, blockClass, checkAncestors)) return true;
     }
   } catch (e2) {
   }
   if (blockSelector) {
-    if (el.matches(blockSelector))
-      return true;
-    if (checkAncestors && el.closest(blockSelector) !== null)
-      return true;
+    if (el.matches(blockSelector)) return true;
+    if (checkAncestors && el.closest(blockSelector) !== null) return true;
   }
   return false;
 }
@@ -11174,8 +10816,7 @@ function getBaseDimension(node2, rootIframe) {
   };
 }
 function hasShadowRoot(n2) {
-  if (!n2)
-    return false;
+  if (!n2) return false;
   if (n2 instanceof BaseRRNode && "shadowRoot" in n2) {
     return Boolean(n2.shadowRoot);
   }
@@ -11225,13 +10866,11 @@ var StyleSheetMirror = class {
    * @returns If the stylesheet is in the mirror, returns the id of the stylesheet. If not, return the new assigned id.
    */
   add(stylesheet, id) {
-    if (this.has(stylesheet))
-      return this.getId(stylesheet);
+    if (this.has(stylesheet)) return this.getId(stylesheet);
     let newId;
     if (id === void 0) {
       newId = this.id++;
-    } else
-      newId = id;
+    } else newId = id;
     this.styleIDMap.set(stylesheet, newId);
     this.idStyleMap.set(newId, stylesheet);
     return newId;
@@ -11264,15 +10903,13 @@ function getRootShadowHost(n2) {
 }
 function shadowHostInDom(n2) {
   const doc = n2.ownerDocument;
-  if (!doc)
-    return false;
+  if (!doc) return false;
   const shadowHost = getRootShadowHost(n2);
   return index.contains(doc, shadowHost);
 }
 function inDom(n2) {
   const doc = n2.ownerDocument;
-  if (!doc)
-    return false;
+  if (!doc) return false;
   return index.contains(doc, n2) || shadowHostInDom(n2);
 }
 var utils = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
@@ -11639,8 +11276,7 @@ var MutationBuffer = class {
             if (_node) {
               const parentId = this.mirror.getId(index.parentNode(_node.value));
               const nextId = getNextId(_node.value);
-              if (nextId === -1)
-                continue;
+              if (nextId === -1) continue;
               else if (parentId !== -1) {
                 node2 = _node;
                 break;
@@ -11872,10 +11508,8 @@ var MutationBuffer = class {
             if (this.addedSet.has(n2)) {
               deepDelete(this.addedSet, n2);
               this.droppedSet.add(n2);
-            } else if (this.addedSet.has(m.target) && nodeId === -1)
-              ;
-            else if (isAncestorRemoved(m.target, this.mirror))
-              ;
+            } else if (this.addedSet.has(m.target) && nodeId === -1) ;
+            else if (isAncestorRemoved(m.target, this.mirror)) ;
             else if (this.movedSet.has(n2) && this.movedMap[moveKey(nodeId, parentId)]) {
               deepDelete(this.movedSet, n2);
             } else {
@@ -11893,10 +11527,8 @@ var MutationBuffer = class {
       }
     });
     __publicField(this, "genAdds", (n2, target) => {
-      if (this.processedNodeManager.inOtherBuffer(n2, this))
-        return;
-      if (this.addedSet.has(n2) || this.movedSet.has(n2))
-        return;
+      if (this.processedNodeManager.inOtherBuffer(n2, this)) return;
+      if (this.addedSet.has(n2) || this.movedSet.has(n2)) return;
       if (this.mirror.hasNode(n2)) {
         if (isIgnored(n2, this.mirror, this.slimDOMOptions)) {
           return;
@@ -11986,27 +11618,23 @@ function processRemoves(n2, cache) {
   const queue = [n2];
   while (queue.length) {
     const next = queue.pop();
-    if (cache.has(next))
-      continue;
+    if (cache.has(next)) continue;
     cache.add(next);
     index.childNodes(next).forEach((n22) => queue.push(n22));
   }
   return;
 }
 function isParentRemoved(removes, n2, mirror2) {
-  if (removes.size === 0)
-    return false;
+  if (removes.size === 0) return false;
   return _isParentRemoved(removes, n2);
 }
 function _isParentRemoved(removes, n2, _mirror2) {
   const node2 = index.parentNode(n2);
-  if (!node2)
-    return false;
+  if (!node2) return false;
   return removes.has(node2);
 }
 function isAncestorInSet(set, n2) {
-  if (set.size === 0)
-    return false;
+  if (set.size === 0) return false;
   return _isAncestorInSet(set, n2);
 }
 function _isAncestorInSet(set, n2) {
@@ -12180,8 +11808,7 @@ function initMouseInteractionObserver({
           } else if (MouseInteractions[eventKey] === MouseInteractions.MouseUp) {
             thisEventKey = "TouchEnd";
           }
-        } else if (pointerType === PointerTypes.Pen)
-          ;
+        } else if (pointerType === PointerTypes.Pen) ;
       } else if (legacy_isTouchEvent(event)) {
         pointerType = PointerTypes.Touch;
       }
@@ -12438,12 +12065,9 @@ function getNestedCSSRulePositions(rule2) {
 }
 function getIdAndStyleId(sheet, mirror2, styleMirror) {
   let id, styleId;
-  if (!sheet)
-    return {};
-  if (sheet.ownerNode)
-    id = mirror2.getId(sheet.ownerNode);
-  else
-    styleId = styleMirror.getId(sheet);
+  if (!sheet) return {};
+  if (sheet.ownerNode) id = mirror2.getId(sheet.ownerNode);
+  else styleId = styleMirror.getId(sheet);
   return {
     styleId,
     id
@@ -12648,10 +12272,8 @@ function initAdoptedStyleSheetObserver({
 }, host2) {
   var _a2, _b, _c;
   let hostId = null;
-  if (host2.nodeName === "#document")
-    hostId = mirror2.getId(host2);
-  else
-    hostId = mirror2.getId(index.host(host2));
+  if (host2.nodeName === "#document") hostId = mirror2.getId(host2);
+  else hostId = mirror2.getId(index.host(host2));
   const patchTarget = host2.nodeName === "#document" ? (_a2 = host2.defaultView) == null ? void 0 : _a2.Document : (_c = (_b = host2.ownerDocument) == null ? void 0 : _b.defaultView) == null ? void 0 : _c.ShadowRoot;
   const originalPropertyDescriptor = (patchTarget == null ? void 0 : patchTarget.prototype) ? Object.getOwnPropertyDescriptor(
     patchTarget == null ? void 0 : patchTarget.prototype,
@@ -12852,8 +12474,7 @@ function initSelectionObserver(param) {
   let collapsed = true;
   const updateSelection = callbackWrapper(() => {
     const selection = doc.getSelection();
-    if (!selection || collapsed && (selection == null ? void 0 : selection.isCollapsed))
-      return;
+    if (!selection || collapsed && (selection == null ? void 0 : selection.isCollapsed)) return;
     collapsed = selection.isCollapsed || false;
     const ranges = [];
     const count = selection.rangeCount || 0;
@@ -12861,8 +12482,7 @@ function initSelectionObserver(param) {
       const range = selection.getRangeAt(i2);
       const { startContainer, startOffset, endContainer, endOffset } = range;
       const blocked = isBlocked(startContainer, blockClass, blockSelector, true) || isBlocked(endContainer, blockClass, blockSelector, true);
-      if (blocked)
-        continue;
+      if (blocked) continue;
       ranges.push({
         start: mirror2.getId(startContainer),
         startOffset,
@@ -12880,9 +12500,8 @@ function initCustomElementObserver({
   customElementCb
 }) {
   const win = doc.defaultView;
-  if (!win || !win.customElements)
-    return () => {
-    };
+  if (!win || !win.customElements) return () => {
+  };
   const restoreHandler = patch(
     win.customElements,
     "define",
@@ -13097,11 +12716,9 @@ var CrossOriginIframeMirror = class {
   }
   getRemoteId(iframe, id, map) {
     const remoteIdToIdMap = map || this.getRemoteIdToIdMap(iframe);
-    if (typeof id !== "number")
-      return id;
+    if (typeof id !== "number") return id;
     const remoteId = remoteIdToIdMap.get(id);
-    if (!remoteId)
-      return -1;
+    if (!remoteId) return -1;
     return remoteId;
   }
   getRemoteIds(iframe, ids) {
@@ -13202,11 +12819,9 @@ var IframeManager = class {
     crossOriginMessageEvent.origin !== crossOriginMessageEvent.data.origin)
       return;
     const iframeSourceWindow = message.source;
-    if (!iframeSourceWindow)
-      return;
+    if (!iframeSourceWindow) return;
     const iframeEl = this.crossOriginIframeMap.get(iframeSourceWindow);
-    if (!iframeEl)
-      return;
+    if (!iframeEl) return;
     const transformedEvent = this.transformCrossOriginEvent(
       iframeEl,
       crossOriginMessageEvent.data.event
@@ -13335,8 +12950,7 @@ var IframeManager = class {
   }
   replace(iframeMirror, obj, iframeEl, keys) {
     for (const key of keys) {
-      if (!Array.isArray(obj[key]) && typeof obj[key] !== "number")
-        continue;
+      if (!Array.isArray(obj[key]) && typeof obj[key] !== "number") continue;
       if (Array.isArray(obj[key])) {
         obj[key] = iframeMirror.getIds(
           iframeEl,
@@ -13363,8 +12977,7 @@ var IframeManager = class {
     }
   }
   patchRootIdOnNode(node2, rootId) {
-    if (node2.type !== NodeType$2.Document && !node2.rootId)
-      node2.rootId = rootId;
+    if (node2.type !== NodeType$2.Document && !node2.rootId) node2.rootId = rootId;
     if ("childNodes" in node2) {
       node2.childNodes.forEach((child) => {
         this.patchRootIdOnNode(child, rootId);
@@ -13391,10 +13004,8 @@ var ShadowDomManager = class {
     this.patchAttachShadow(Element, document);
   }
   addShadowRoot(shadowRoot2, doc) {
-    if (!isNativeShadowDom(shadowRoot2))
-      return;
-    if (this.shadowDoms.has(shadowRoot2))
-      return;
+    if (!isNativeShadowDom(shadowRoot2)) return;
+    if (this.shadowDoms.has(shadowRoot2)) return;
     this.shadowDoms.add(shadowRoot2);
     const observer = initMutationObserver(
       {
@@ -13438,8 +13049,7 @@ var ShadowDomManager = class {
    * Monkey patch 'attachShadow' of an IFrameElement to observe newly added shadow doms.
    */
   observeAttachShadow(iframeElement) {
-    if (!iframeElement.contentWindow || !iframeElement.contentDocument)
-      return;
+    if (!iframeElement.contentWindow || !iframeElement.contentDocument) return;
     this.patchAttachShadow(
       iframeElement.contentWindow.Element,
       iframeElement.contentDocument
@@ -13697,8 +13307,7 @@ function initCanvasContextObserver(win, blockClass, blockSelector, setPreserveDr
         return function(contextType, ...args) {
           if (!isBlocked(this, blockClass, blockSelector, true)) {
             const ctxName = getNormalizedContextName(contextType);
-            if (!("__context" in this))
-              this.__context = ctxName;
+            if (!("__context" in this)) this.__context = ctxName;
             if (setPreserveDrawingBufferToTrue && ["webgl", "webgl2"].includes(ctxName)) {
               if (args[0] && typeof args[0] === "object") {
                 const contextAttributes = args[0];
@@ -13820,8 +13429,7 @@ function WorkerWrapper(options) {
   let objURL;
   try {
     objURL = blob && (self.URL || self.webkitURL).createObjectURL(blob);
-    if (!objURL)
-      throw "";
+    if (!objURL) throw "";
     const worker = new Worker(objURL, {
       name: options == null ? void 0 : options.name
     });
@@ -13960,8 +13568,7 @@ var CanvasManager = class {
     this.locked = false;
   }
   debug(element, ...args) {
-    if (!this.logger)
-      return;
+    if (!this.logger) return;
     const id = this.mirror.getId(element);
     let prefix = "[highlight-canvas-manager]";
     if (element) {
@@ -14089,8 +13696,7 @@ var CanvasManager = class {
       const matchedVideos = [];
       if (recordVideos) {
         querySelectorAll2(win.document, "video").forEach((video) => {
-          if (video.src !== "" && video.src.indexOf("blob:") === -1)
-            return;
+          if (video.src !== "" && video.src.indexOf("blob:") === -1) return;
           if (!isBlocked(video, blockClass, blockSelector, true)) {
             matchedVideos.push(video);
             const id = this.mirror.getId(video);
@@ -14268,8 +13874,7 @@ var CanvasManager = class {
       return;
     }
     const valuesWithType = this.pendingCanvasMutations.get(canvas);
-    if (!valuesWithType || id === -1)
-      return;
+    if (!valuesWithType || id === -1) return;
     const values = valuesWithType.map((value) => {
       const { type: type2, ...rest } = value;
       return rest;
@@ -14304,14 +13909,12 @@ var StylesheetManager = class {
     this.trackLinkElement(linkEl);
   }
   trackLinkElement(linkEl) {
-    if (this.trackedLinkElements.has(linkEl))
-      return;
+    if (this.trackedLinkElements.has(linkEl)) return;
     this.trackedLinkElements.add(linkEl);
     this.trackStylesheetInLinkElement(linkEl);
   }
   adoptStyleSheets(sheets, hostId) {
-    if (sheets.length === 0)
-      return;
+    if (sheets.length === 0) return;
     const adoptedStyleSheetData = {
       id: hostId,
       styleIds: []
@@ -14328,12 +13931,10 @@ var StylesheetManager = class {
             index: index2
           }))
         });
-      } else
-        styleId = this.styleMirror.getId(sheet);
+      } else styleId = this.styleMirror.getId(sheet);
       adoptedStyleSheetData.styleIds.push(styleId);
     }
-    if (styles.length > 0)
-      adoptedStyleSheetData.styles = styles;
+    if (styles.length > 0) adoptedStyleSheetData.styles = styles;
     this.adoptedStyleSheetCb(adoptedStyleSheetData);
   }
   reset() {
@@ -14838,8 +14439,7 @@ function record(options = {}) {
             type: EventType.DomContentLoaded,
             data: {}
           });
-          if (recordAfter === "DOMContentLoaded")
-            init();
+          if (recordAfter === "DOMContentLoaded") init();
         })
       );
       handlers.push(
@@ -14850,8 +14450,7 @@ function record(options = {}) {
               type: EventType.Load,
               data: {}
             });
-            if (recordAfter === "load")
-              init();
+            if (recordAfter === "load") init();
           },
           window
         )
@@ -15237,20 +14836,17 @@ function addDelay(event, baselineTime) {
 }
 function t(t2, n2) {
   var e2 = "function" == typeof Symbol && t2[Symbol.iterator];
-  if (!e2)
-    return t2;
+  if (!e2) return t2;
   var r2, o2, i2 = e2.call(t2), a2 = [];
   try {
-    for (; (void 0 === n2 || n2-- > 0) && !(r2 = i2.next()).done; )
-      a2.push(r2.value);
+    for (; (void 0 === n2 || n2-- > 0) && !(r2 = i2.next()).done; ) a2.push(r2.value);
   } catch (t3) {
     o2 = { error: t3 };
   } finally {
     try {
       r2 && !r2.done && (e2 = i2.return) && e2.call(i2);
     } finally {
-      if (o2)
-        throw o2.error;
+      if (o2) throw o2.error;
     }
   }
   return a2;
@@ -15304,17 +14900,14 @@ function s(n2, o2) {
       try {
         for (var h = function(t2) {
           var n3 = "function" == typeof Symbol && Symbol.iterator, e3 = n3 && t2[n3], r2 = 0;
-          if (e3)
-            return e3.call(t2);
-          if (t2 && "number" == typeof t2.length)
-            return { next: function() {
-              return t2 && r2 >= t2.length && (t2 = void 0), { value: t2 && t2[r2++], done: !t2 };
-            } };
+          if (e3) return e3.call(t2);
+          if (t2 && "number" == typeof t2.length) return { next: function() {
+            return t2 && r2 >= t2.length && (t2 = void 0), { value: t2 && t2[r2++], done: !t2 };
+          } };
           throw new TypeError(n3 ? "Object is not iterable." : "Symbol.iterator is not defined.");
         }(m), b = h.next(); !b.done; b = h.next()) {
           var S = b.value;
-          if (void 0 === S)
-            return c(p, g);
+          if (void 0 === S) return c(p, g);
           var w = "string" == typeof S ? { target: S } : S, j = w.target, E = w.actions, R = void 0 === E ? [] : E, N = w.cond, O = void 0 === j;
           if ((void 0 === N ? function() {
             return true;
@@ -15333,8 +14926,7 @@ function s(n2, o2) {
         try {
           b && !b.done && (l3 = h.return) && l3.call(h);
         } finally {
-          if (s3)
-            throw s3.error;
+          if (s3) throw s3.error;
         }
       }
     }
@@ -15669,14 +15261,12 @@ function variableListFor(ctx, ctor) {
 function deserializeArg(imageMap, ctx, preload) {
   return async (arg) => {
     if (arg && typeof arg === "object" && "rr_type" in arg) {
-      if (preload)
-        preload.isUnchanged = false;
+      if (preload) preload.isUnchanged = false;
       if (arg.rr_type === "ImageBitmap" && "args" in arg) {
         const args = await deserializeArg(imageMap, ctx, preload)(arg.args);
         return await createImageBitmap.apply(null, args);
       } else if ("index" in arg) {
-        if (preload || ctx === null)
-          return arg;
+        if (preload || ctx === null) return arg;
         const { rr_type: name, index: index2 } = arg;
         return variableListFor(ctx, name)[index2];
       } else if ("args" in arg) {
@@ -15740,14 +15330,11 @@ var WebGLVariableConstructorsNames = [
   "WebGLVertexArrayObject"
 ];
 function saveToWebGLVarMap(ctx, result2) {
-  if (!(result2 == null ? void 0 : result2.constructor))
-    return;
+  if (!(result2 == null ? void 0 : result2.constructor)) return;
   const { name } = result2.constructor;
-  if (!WebGLVariableConstructorsNames.includes(name))
-    return;
+  if (!WebGLVariableConstructorsNames.includes(name)) return;
   const variables = variableListFor(ctx, name);
-  if (!variables.includes(result2))
-    variables.push(result2);
+  if (!variables.includes(result2)) variables.push(result2);
 }
 async function webglMutation({
   mutation,
@@ -15758,8 +15345,7 @@ async function webglMutation({
 }) {
   try {
     const ctx = getContext(target, type);
-    if (!ctx)
-      return;
+    if (!ctx) return;
     if (mutation.setter) {
       ctx[mutation.property] = mutation.args[0];
       return;
@@ -15771,8 +15357,7 @@ async function webglMutation({
     const result2 = original.apply(ctx, args);
     saveToWebGLVarMap(ctx, result2);
     const debugMode = false;
-    if (debugMode)
-      ;
+    if (debugMode) ;
   } catch (error) {
     errorHandler2(mutation, error);
   }
@@ -15911,15 +15496,12 @@ var MediaManager = class {
     }
   }
   waitForMetadata(target) {
-    if (this.metadataCallbackMap.has(target))
-      return;
-    if (!("addEventListener" in target))
-      return;
+    if (this.metadataCallbackMap.has(target)) return;
+    if (!("addEventListener" in target)) return;
     const onLoadedMetadata = () => {
       this.metadataCallbackMap.delete(target);
       const mediaState = this.mediaMap.get(target);
-      if (!mediaState)
-        return;
+      if (!mediaState) return;
       this.seekTo({
         time: this.getCurrentTime(),
         target,
@@ -15952,8 +15534,7 @@ var MediaManager = class {
   }
   syncTargetWithState(target) {
     const mediaState = this.mediaMap.get(target);
-    if (!mediaState)
-      return;
+    if (!mediaState) return;
     const { muted, loop, volume, isPlaying } = mediaState;
     const playerIsPaused = this.service.state.matches("paused");
     const playbackRate = mediaState.playbackRate * this.speedService.state.context.timer.speed;
@@ -15984,12 +15565,10 @@ var MediaManager = class {
     }
   }
   addMediaElements(node2, timeOffset, mirror2) {
-    if (!["AUDIO", "VIDEO"].includes(node2.nodeName))
-      return;
+    if (!["AUDIO", "VIDEO"].includes(node2.nodeName)) return;
     const target = node2;
     const serializedNode = mirror2.getMeta(target);
-    if (!serializedNode || !("attributes" in serializedNode))
-      return;
+    if (!serializedNode || !("attributes" in serializedNode)) return;
     const playerIsPaused = this.service.state.matches("paused");
     const mediaAttributes = serializedNode.attributes;
     let isPlaying = false;
@@ -15998,8 +15577,7 @@ var MediaManager = class {
     } else {
       isPlaying = target.getAttribute("autoplay") !== null;
     }
-    if (isPlaying && playerIsPaused)
-      target.pause();
+    if (isPlaying && playerIsPaused) target.pause();
     let playbackRate = 1;
     if (typeof mediaAttributes.rr_mediaPlaybackRate === "number") {
       playbackRate = mediaAttributes.rr_mediaPlaybackRate;
@@ -16058,8 +15636,7 @@ var MediaManager = class {
   }
 };
 function applyDialogToTopLevel(node2, attributeMutation) {
-  if (node2.nodeName !== "DIALOG" || node2 instanceof BaseRRNode)
-    return;
+  if (node2.nodeName !== "DIALOG" || node2 instanceof BaseRRNode) return;
   const dialog = node2;
   const oldIsOpen = dialog.open;
   const oldIsModalState = oldIsOpen && dialog.matches("dialog:modal");
@@ -16068,24 +15645,18 @@ function applyDialogToTopLevel(node2, attributeMutation) {
   const newIsModalState = rrOpenMode === "modal";
   const newIsNonModalState = rrOpenMode === "non-modal";
   const modalStateChanged = oldIsModalState && newIsNonModalState || !oldIsModalState && newIsModalState;
-  if (oldIsOpen && !modalStateChanged)
-    return;
+  if (oldIsOpen && !modalStateChanged) return;
   if (!dialog.isConnected) {
     console.warn("dialog is not attached to the dom", dialog);
     return;
   }
-  if (oldIsOpen)
-    dialog.close();
-  if (!newIsOpen)
-    return;
-  if (newIsModalState)
-    dialog.showModal();
-  else
-    dialog.show();
+  if (oldIsOpen) dialog.close();
+  if (!newIsOpen) return;
+  if (newIsModalState) dialog.showModal();
+  else dialog.show();
 }
 function removeDialogFromTopLevel(node2, attributeMutation) {
-  if (node2.nodeName !== "DIALOG" || node2 instanceof BaseRRNode)
-    return;
+  if (node2.nodeName !== "DIALOG" || node2 instanceof BaseRRNode) return;
   const dialog = node2;
   if (!dialog.isConnected) {
     console.warn("dialog is not attached to the dom", dialog);
@@ -16252,8 +15823,7 @@ var Replayer = class {
           castFn();
         }
         for (const plugin3 of this.config.plugins || []) {
-          if (plugin3.handler)
-            plugin3.handler(event, isSync, { replayer: this });
+          if (plugin3.handler) plugin3.handler(event, isSync, { replayer: this });
         }
         this.service.send({ type: "CAST_EVENT", payload: { event } });
         const last_index = this.service.state.context.events.length - 1;
@@ -16308,8 +15878,7 @@ var Replayer = class {
     this.emitter.on(ReplayerEvents.Resize, this.handleResize);
     this.setupDom();
     for (const plugin3 of this.config.plugins || []) {
-      if (plugin3.getMirror)
-        plugin3.getMirror({ nodeMirror: this.mirror });
+      if (plugin3.getMirror) plugin3.getMirror({ nodeMirror: this.mirror });
     }
     this.emitter.on(ReplayerEvents.Flush, () => {
       if (this.usingVirtualDom) {
@@ -16335,8 +15904,7 @@ var Replayer = class {
           },
           afterAppend: (node2, id) => {
             for (const plugin3 of this.config.plugins || []) {
-              if (plugin3.onBuild)
-                plugin3.onBuild(node2, { id, replayer: this });
+              if (plugin3.onBuild) plugin3.onBuild(node2, { id, replayer: this });
             }
           }
         };
@@ -16901,8 +16469,7 @@ var Replayer = class {
           head
         );
       }
-      if (this.usingVirtualDom)
-        return;
+      if (this.usingVirtualDom) return;
       for (const plugin3 of this.config.plugins || []) {
         if (plugin3.onBuild)
           plugin3.onBuild(builtNode, {
@@ -17216,12 +16783,10 @@ var Replayer = class {
       case IncrementalSource.StyleSheetRule:
       case IncrementalSource.StyleDeclaration: {
         if (this.usingVirtualDom) {
-          if (d.styleId)
-            this.constructedStyleMutations.push(d);
+          if (d.styleId) this.constructedStyleMutations.push(d);
           else if (d.id)
             (_b = this.virtualDom.mirror.getNode(d.id)) == null ? void 0 : _b.rules.push(d);
-        } else
-          this.applyStyleSheetMutation(d);
+        } else this.applyStyleSheetMutation(d);
         break;
       }
       case IncrementalSource.CanvasMutation: {
@@ -17277,10 +16842,8 @@ var Replayer = class {
         break;
       }
       case IncrementalSource.AdoptedStyleSheet: {
-        if (this.usingVirtualDom)
-          this.adoptedStyleSheets.push(d);
-        else
-          this.applyAdoptedStyleSheet(d);
+        if (this.usingVirtualDom) this.adoptedStyleSheets.push(d);
+        else this.applyAdoptedStyleSheet(d);
         break;
       }
     }
@@ -17303,8 +16866,7 @@ var Replayer = class {
               this.virtualDom,
               this.mirror
             );
-            if (virtualNode)
-              value.node = virtualNode;
+            if (virtualNode) value.node = virtualNode;
           } catch (error) {
             this.warn(error);
           }
@@ -17385,8 +16947,7 @@ var Replayer = class {
         if (!hasShadowRoot(parent)) {
           parent.attachShadow({ mode: "open" });
           parent = parent.shadowRoot;
-        } else
-          parent = parent.shadowRoot;
+        } else parent = parent.shadowRoot;
       }
       let previous = null;
       let next = null;
@@ -17411,12 +16972,10 @@ var Replayer = class {
         return;
       }
       const afterAppend = (node2, id) => {
-        if (this.usingVirtualDom)
-          return;
+        if (this.usingVirtualDom) return;
         applyDialogToTopLevel(node2);
         for (const plugin3 of this.config.plugins || []) {
-          if (plugin3.onBuild)
-            plugin3.onBuild(node2, { id, replayer: this });
+          if (plugin3.onBuild) plugin3.onBuild(node2, { id, replayer: this });
         }
       };
       const target = buildNodeWithSN(mutation.node, {
@@ -17551,8 +17110,7 @@ var Replayer = class {
       }
       if (this.usingVirtualDom) {
         const parent = target.parentNode;
-        if (((_a2 = parent == null ? void 0 : parent.rules) == null ? void 0 : _a2.length) > 0)
-          parent.rules = [];
+        if (((_a2 = parent == null ? void 0 : parent.rules) == null ? void 0 : _a2.length) > 0) parent.rules = [];
       }
     });
     d.attributes.forEach((mutation) => {
@@ -17700,8 +17258,7 @@ var Replayer = class {
       const ranges = d.ranges.map(({ start, startOffset, end, endOffset }) => {
         const startContainer = this.mirror.getNode(start);
         const endContainer = this.mirror.getNode(end);
-        if (!startContainer || !endContainer)
-          return;
+        if (!startContainer || !endContainer) return;
         const result2 = new Range();
         result2.setStart(startContainer, startOffset);
         result2.setEnd(endContainer, endOffset);
@@ -17724,12 +17281,10 @@ var Replayer = class {
   applyStyleSheetMutation(data) {
     var _a2;
     let styleSheet = null;
-    if (data.styleId)
-      styleSheet = this.styleMirror.getStyle(data.styleId);
+    if (data.styleId) styleSheet = this.styleMirror.getStyle(data.styleId);
     else if (data.id)
       styleSheet = ((_a2 = this.mirror.getNode(data.id)) == null ? void 0 : _a2.sheet) || null;
-    if (!styleSheet)
-      return;
+    if (!styleSheet) return;
     if (data.source === IncrementalSource.StyleSheetRule)
       this.applyStyleSheetRule(data, styleSheet);
     else if (data.source === IncrementalSource.StyleDeclaration)
@@ -17796,8 +17351,7 @@ var Replayer = class {
   applyAdoptedStyleSheet(data) {
     var _a2;
     const targetHost = this.mirror.getNode(data.id);
-    if (!targetHost)
-      return;
+    if (!targetHost) return;
     (_a2 = data.styles) == null ? void 0 : _a2.forEach((style) => {
       var _a3;
       let newStyleSheet = null;
@@ -17806,8 +17360,7 @@ var Replayer = class {
         hostWindow = ((_a3 = targetHost.ownerDocument) == null ? void 0 : _a3.defaultView) || null;
       else if (targetHost.nodeName === "#document")
         hostWindow = targetHost.defaultView;
-      if (!hostWindow)
-        return;
+      if (!hostWindow) return;
       try {
         newStyleSheet = new hostWindow.CSSStyleSheet();
         this.styleMirror.add(newStyleSheet, style.styleId);

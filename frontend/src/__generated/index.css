@@ -7157,7 +7157,12 @@ body {
   animation: 1s _1068vpp5 linear infinite;
 }
 ._2tuxi80 {
-  background: linear-gradient(45deg, rgba(162, 138, 220, 0.08) 0%, rgba(216, 165, 216, 0.08) 50%, rgba(233, 192, 186, 0.08) 100%);
+  background:
+    linear-gradient(
+      45deg,
+      rgba(162, 138, 220, 0.08) 0%,
+      rgba(216, 165, 216, 0.08) 50%,
+      rgba(233, 192, 186, 0.08) 100%);
 }
 ._2tuxi81 {
   position: relative;
@@ -7165,7 +7170,12 @@ body {
 }
 ._2tuxi81:after {
   content: "";
-  background: linear-gradient(45deg, rgba(162, 138, 220) 0%, rgba(216, 165, 216) 50%, rgba(233, 192, 186) 100%);
+  background:
+    linear-gradient(
+      45deg,
+      rgba(162, 138, 220) 0%,
+      rgba(216, 165, 216) 50%,
+      rgba(233, 192, 186) 100%);
   border: 1px solid transparent;
   border-radius: 8px;
   inset: 0;
