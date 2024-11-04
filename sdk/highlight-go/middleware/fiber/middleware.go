@@ -7,7 +7,7 @@ import (
 	"github.com/highlight/highlight/sdk/highlight-go"
 	"github.com/highlight/highlight/sdk/highlight-go/middleware"
 	"go.opentelemetry.io/otel/attribute"
-	semconv "go.opentelemetry.io/otel/semconv/v1.25.0"
+	semconv "go.opentelemetry.io/otel/semconv/v1.26.0"
 )
 
 // Middleware is a fiber compatible middleware
