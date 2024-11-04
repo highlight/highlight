@@ -36,10 +36,10 @@ export const TracesAlertV2Email = ({
 	thresholdValue = 20,
 	tracesLink = 'https://localhost:3000/1/traces',
 }: TracesAlertV2EmailProps) => (
-	<EmailHtml previewText={`${alertName} alert fired`}>
+	<EmailHtml previewText={`${alertName} Alert`}>
 		<HighlightLogo />
 		<Title>
-			<span style={highlightedTextStyle}>{alertName}</span> alert fired
+			<span style={highlightedTextStyle}>{alertName}</span> Alert
 		</Title>
 		<Subtitle>{projectName}</Subtitle>
 

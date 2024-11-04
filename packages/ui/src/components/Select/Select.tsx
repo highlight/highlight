@@ -147,6 +147,7 @@ export type SelectProps<T = any> = Omit<
 	disabled?: boolean
 	displayMode?: SelectProviderProps['displayMode']
 	filterable?: boolean
+	customFilterable?: boolean
 	loading?: SelectProviderProps['loading']
 	resultsLoading?: boolean
 	trigger?: React.ComponentType
@@ -169,6 +170,7 @@ export const Select = <T,>({
 	creatable,
 	displayMode,
 	filterable,
+	customFilterable,
 	loading,
 	resultsLoading,
 	store,
@@ -300,7 +302,7 @@ export const Select = <T,>({
 		[matches, searchValue],
 	)
 
-	return filterable ? (
+	return filterable || customFilterable ? (
 		<Ariakit.ComboboxProvider
 			resetValueOnHide
 			setValue={(v) => setSearchValue(v)}

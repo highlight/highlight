@@ -8,11 +8,6 @@ import {
 	ISpan,
 } from '@opentelemetry/otlp-transformer'
 
-import {
-	getExportRequestProto,
-	ServiceClientType,
-} from '@opentelemetry/otlp-proto-exporter-base/build/esm/index'
-
 const DEFAULT_PORT = 3101
 const RESOURCE_SPANS_BY_PORT = new Map<number, IResourceSpans[]>()
 const shouldStart = !!process.argv.find((arg) => arg.includes('--start'))
@@ -31,13 +26,13 @@ export function startMockOtelServer({
 }: {
 	port?: number
 }) {
-	const proto = getExportRequestProto(ServiceClientType.SPANS)
 	const app = express()
 	app.use(unzipBody)
-
 	app.use((req, res, next) => {
 		try {
-			const trace = proto.decode(req.body) as IExportTraceServiceRequest
+			const trace = JSON.parse(
+				req.body.toString(),
+			) as IExportTraceServiceRequest
 
 			if (trace.resourceSpans) {
 				const resourceSpans = getResourceSpansByPort(port)
@@ -47,6 +42,27 @@ export function startMockOtelServer({
 							scopeSpan.spans?.flatMap((span) => span.name),
 						) ?? [],
 				)
+				const spanAttributes = [
+					...trace.resourceSpans.flatMap(
+						(resourceSpan) =>
+							resourceSpan.resource?.attributes.flatMap(
+								(attr) => attr.key,
+							) ?? [],
+					),
+					...trace.resourceSpans.flatMap(
+						(resourceSpan) =>
+							resourceSpan.scopeSpans.flatMap(
+								(span) => span.scope?.attributes,
+							) ?? [],
+					),
+					...trace.resourceSpans.flatMap(
+						(resourceSpan) =>
+							resourceSpan.scopeSpans.flatMap((span) =>
+								span.spans?.flatMap((s) => s.attributes),
+							) ?? [],
+					),
+				]
+				console.log({ trace, spanNames, spanAttributes })
 
 				resourceSpans.push(...trace.resourceSpans)
 
@@ -130,9 +146,9 @@ function aggregateAttributes(resourceSpans: IResourceSpans[]) {
 	}[] = []
 
 	resourceSpans?.forEach((resourceSpan) => {
-		const filteredSpans = resourceSpan.scopeSpans
-			.flatMap((scopeSpan) => scopeSpan.spans)
-			.filter((span) => span?.name.includes('highlight')) as ISpan[]
+		const filteredSpans = resourceSpan.scopeSpans.flatMap(
+			(scopeSpan) => scopeSpan.spans,
+		) as ISpan[]
 		const spanNames = filteredSpans.map((span) => span.name)
 
 		const resourceAttributes =

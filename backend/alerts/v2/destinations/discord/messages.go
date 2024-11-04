@@ -17,6 +17,7 @@ import (
 	"github.com/highlight-run/highlight/backend/model"
 	modelInputs "github.com/highlight-run/highlight/backend/private-graph/graph/model"
 	"github.com/highlight-run/highlight/backend/routing"
+	"github.com/highlight-run/highlight/backend/util"
 )
 
 func newMessageEmbed() *discordgo.MessageEmbed {
@@ -30,6 +31,7 @@ var RED_ALERT = 0x961e13    // errors
 var YELLOW_ALERT = 0xf2c94c // logs
 var ORANGE_ALERT = 0xf2994a // traces
 var BLUE_ALERT = 0x1e40af   // metrics
+var PURPLE_ALERT = 0x7e5bef // events
 
 var highlightEmoji = discordgo.ComponentEmoji{
 	Name:     "highlight",
@@ -38,6 +40,12 @@ var highlightEmoji = discordgo.ComponentEmoji{
 }
 
 func SendAlerts(ctx context.Context, discordGuildId *string, alertInput *destinationsV2.AlertInput, destinations []model.AlertDestination) {
+	span, ctx := util.StartSpanFromContext(ctx, "SendAlerts.Discord")
+	span.SetAttribute("alert_id", alertInput.Alert.ID)
+	span.SetAttribute("project_id", alertInput.Alert.ProjectID)
+	span.SetAttribute("product_type", alertInput.Alert.ProductType)
+	defer span.Finish()
+
 	if discordGuildId == nil {
 		log.WithContext(ctx).Error("discord access token is nil")
 		return
@@ -54,6 +62,8 @@ func SendAlerts(ctx context.Context, discordGuildId *string, alertInput *destina
 		sendTraceAlert(ctx, *discordGuildId, alertInput, destinations)
 	case modelInputs.ProductTypeMetrics:
 		sendMetricAlert(ctx, *discordGuildId, alertInput, destinations)
+	case modelInputs.ProductTypeEvents:
+		sendEventAlert(ctx, *discordGuildId, alertInput, destinations)
 	default:
 		log.WithContext(ctx).WithFields(
 			log.Fields{
@@ -220,8 +230,9 @@ func sendLogAlert(ctx context.Context, discordGuildId string, alertInput *destin
 	// log data
 	var alertText string
 
+	// TODO(spenny): fix for anomoly alerts
 	threholdRelation := "above"
-	if *alertInput.Alert.BelowThreshold {
+	if (alertInput.Alert.BelowThreshold != nil && *alertInput.Alert.BelowThreshold) || (alertInput.Alert.ThresholdCondition == modelInputs.ThresholdConditionBelow) {
 		threholdRelation = "below"
 	}
 
@@ -284,8 +295,9 @@ func sendTraceAlert(ctx context.Context, discordGuildId string, alertInput *dest
 	// trace data
 	var alertText string
 
+	// TODO(spenny): fix for anomoly alerts
 	threholdRelation := "above"
-	if *alertInput.Alert.BelowThreshold {
+	if (alertInput.Alert.BelowThreshold != nil && *alertInput.Alert.BelowThreshold) || (alertInput.Alert.ThresholdCondition == modelInputs.ThresholdConditionBelow) {
 		threholdRelation = "below"
 	}
 
@@ -348,8 +360,9 @@ func sendMetricAlert(ctx context.Context, discordGuildId string, alertInput *des
 	// trace data
 	var alertText string
 
+	// TODO(spenny): fix for anomoly alerts
 	threholdRelation := "above"
-	if *alertInput.Alert.BelowThreshold {
+	if (alertInput.Alert.BelowThreshold != nil && *alertInput.Alert.BelowThreshold) || (alertInput.Alert.ThresholdCondition == modelInputs.ThresholdConditionBelow) {
 		threholdRelation = "below"
 	}
 
@@ -389,6 +402,71 @@ func sendMetricAlert(ctx context.Context, discordGuildId string, alertInput *des
 				Style:    discordgo.LinkButton,
 				Disabled: false,
 				URL:      alertInput.MetricInput.DashboardLink,
+			},
+		},
+	}
+
+	messageSend := discordgo.MessageSend{
+		Embeds:     []*discordgo.MessageEmbed{embed},
+		Components: []discordgo.MessageComponent{actionButtons},
+	}
+
+	deliverAlerts(ctx, discordGuildId, &messageSend, destinations)
+}
+
+func sendEventAlert(ctx context.Context, discordGuildId string, alertInput *destinationsV2.AlertInput, destinations []model.AlertDestination) {
+	embed := newMessageEmbed()
+	embed.Color = PURPLE_ALERT
+
+	// HEADER
+	embed.Title = fmt.Sprintf("%s Alert", alertInput.Alert.Name)
+
+	// BODY
+	// trace data
+	var alertText string
+
+	// TODO(spenny): fix for anomoly alerts
+	threholdRelation := "above"
+	if (alertInput.Alert.BelowThreshold != nil && *alertInput.Alert.BelowThreshold) || (alertInput.Alert.ThresholdCondition == modelInputs.ThresholdConditionBelow) {
+		threholdRelation = "below"
+	}
+
+	query := "[empty query]"
+	if alertInput.Alert.Query != nil {
+		query = *alertInput.Alert.Query
+	}
+
+	if alertInput.Alert.FunctionType == modelInputs.MetricAggregatorCount || alertInput.Alert.FunctionType == modelInputs.MetricAggregatorCountDistinct || alertInput.Alert.FunctionType == modelInputs.MetricAggregatorCountDistinctKey {
+		alertText = fmt.Sprintf(
+			"Event count for query **%s** was %s the threshold.\n_Count_: %d | _Threshold_: %d",
+			query,
+			threholdRelation,
+			int(alertInput.AlertValue),
+			int(*alertInput.Alert.ThresholdValue),
+		)
+	} else {
+		alertText = fmt.Sprintf(
+			"Event %s for query **%s** was %s the threshold.\n_%s_: %f | _Threshold_: %f",
+			alertInput.Alert.FunctionType,
+			query,
+			threholdRelation,
+			alertInput.Alert.FunctionType,
+			alertInput.AlertValue,
+			*alertInput.Alert.ThresholdValue,
+		)
+	}
+
+	embed.Description = alertText
+
+	// action buttons
+	actionButtons := discordgo.ActionsRow{
+		Components: []discordgo.MessageComponent{
+			discordgo.Button{
+				Emoji:    highlightEmoji,
+				Label:    "View Alert",
+				Style:    discordgo.LinkButton,
+				Disabled: false,
+				URL:      alertInput.AlertLink,
 			},
 		},
 	}

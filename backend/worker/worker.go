@@ -814,9 +814,9 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 	if len(visitFields) >= 1 {
 		landingPage := visitFields[0]
 		exitPage := visitFields[len(visitFields)-1]
-		sessionProperties := map[string]string{
-			"landing_page": landingPage.Value,
-			"exit_page":    exitPage.Value,
+		sessionProperties := []pubgraph.AppendProperty{
+			{Key: "landing_page", Value: landingPage.Value},
+			{Key: "exit_page", Value: exitPage.Value},
 		}
 
 		if err := w.PublicResolver.AppendProperties(ctx, s.ID, sessionProperties, pubgraph.PropertyType.SESSION); err != nil {
@@ -840,7 +840,7 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 			},
 		}
 
-		if err := w.PublicResolver.CreateSessionEvents(ctx, s.ID, sessionEvents); err != nil {
+		if err := w.PublicResolver.SubmitSessionEvents(ctx, s.ID, sessionEvents); err != nil {
 			log.WithContext(ctx).Error(e.Wrapf(err, "error creating session events for session %d", s.ID))
 		}
 	}
@@ -1132,7 +1132,7 @@ func (w *Worker) StartLogAlertWatcher(ctx context.Context) {
 }
 
 func (w *Worker) StartMetricAlertWatcher(ctx context.Context) {
-	metric_alerts.WatchMetricAlerts(ctx, w.Resolver.DB, w.Resolver.MailClient, w.Resolver.RH, w.Resolver.Redis, w.Resolver.ClickhouseClient, w.Resolver.LambdaClient)
+	metric_alerts.WatchMetricAlerts(ctx, w.Resolver.DB, w.Resolver.MailClient, w.Resolver.ClickhouseClient, w.Resolver.LambdaClient)
 }
 
 func (w *Worker) StartSessionDeleteJob(ctx context.Context) {

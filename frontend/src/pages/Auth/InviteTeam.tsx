@@ -43,6 +43,19 @@ const COMMON_EMAIL_PROVIDERS = [
 	'fastmail',
 	'protonmail',
 	'hey.com',
+	'aol',
+	'msn',
+	'wanadoo',
+	'orange',
+	'qq.com',
+	'icloud',
+	'live.com',
+	'me.com',
+	'proton.me',
+	'simplelogin',
+	'duck.com',
+	'mail.ru',
+	'163.com',
 ] as const
 
 export const InviteTeamForm: React.FC = () => {
@@ -82,18 +95,17 @@ export const InviteTeamForm: React.FC = () => {
 	const adminRole = adminRoleData?.admin_role?.role ?? AdminRole.Member
 	const adminProjects = adminRoleData?.admin_role?.projectIds ?? []
 
-	const enableAutoJoinInput =
-		new_workspace && !isCommonEmailDomain && adminRole === AdminRole.Admin
+	const enableAutoJoinInput = new_workspace && !isCommonEmailDomain
 
 	useEffect(() => {
-		if (adminProjects.length > 0) {
+		if (adminProjects.length > 0 || adminRole !== AdminRole.Admin) {
 			navigate(redirectRoute)
 		}
-	}, [adminProjects.length, navigate, redirectRoute])
+	}, [adminProjects.length, adminRole, navigate, redirectRoute])
 
 	const formStore = Form.useStore({
 		defaultValues: {
-			autoJoinDomain: true,
+			autoJoinDomain: false,
 			inviteEmails: '',
 			numTeamEmails: 1,
 		},

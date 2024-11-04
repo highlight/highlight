@@ -36,6 +36,7 @@ interface Props {
 	className?: string
 	variant?: 'basic'
 	shown?: true
+	disabled?: boolean
 }
 
 export default function EnterpriseFeatureButton({
@@ -48,6 +49,7 @@ export default function EnterpriseFeatureButton({
 	onShowModal,
 	onClose,
 	shown,
+	disabled,
 }: PropsWithChildren<Props>) {
 	const { currentWorkspace } = useApplicationContext()
 	const { data, loading } = useGetWorkspaceSettingsQuery({
@@ -70,7 +72,7 @@ export default function EnterpriseFeatureButton({
 	>(shown ? 'features' : undefined)
 
 	const checkFeature = useCallback(async () => {
-		if (loading || !data?.workspaceSettings) return
+		if (loading || !data?.workspaceSettings || disabled) return
 		if (!data.workspaceSettings[setting]) {
 			analytics.track(`enterprise-request-${name}`)
 			if (onShowModal) {
@@ -80,7 +82,15 @@ export default function EnterpriseFeatureButton({
 			return
 		}
 		await fn()
-	}, [loading, data?.workspaceSettings, setting, fn, name, onShowModal])
+	}, [
+		loading,
+		data?.workspaceSettings,
+		disabled,
+		setting,
+		fn,
+		name,
+		onShowModal,
+	])
 
 	let action: JSX.Element
 	if (variant === 'basic') {

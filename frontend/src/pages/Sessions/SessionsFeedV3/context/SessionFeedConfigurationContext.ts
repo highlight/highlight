@@ -21,6 +21,13 @@ export const sortOrders = ['Descending', 'Ascending'] as const
 
 export type SESSION_FEED_SORT_ORDER = (typeof sortOrders)[number]
 
+export const sessionHistogramFormats = [
+	'With/Without Errors',
+	'Active/Inactive Time',
+] as const
+
+export type SESSION_HISTOGRAM_FORMAT = (typeof sessionHistogramFormats)[number]
+
 export const resultFormats = [
 	'Count',
 	'Length',

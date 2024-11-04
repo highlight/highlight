@@ -103,11 +103,13 @@ app.MapGet("/api/logs",
 
 
 app.MapGet("/api/errors",
-    () => {
-        Log.Warning("going to throw an exception");
+    () =>
+    {
+        var guid = Guid.NewGuid();
+        Log.Warning("going to throw an exception with guid {guid}", guid);
 
         using var span = tracer.StartActivity("ShouldThrow")!;
-        throw new Exception("oh no, a random error occurred " + Guid.NewGuid());
+        throw new Exception("oh no, a random error occurred " + guid);
     })
     .WithName("GetErrors");
 

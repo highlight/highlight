@@ -21,22 +21,30 @@ import (
 	"github.com/highlight-run/highlight/backend/lambda"
 	"github.com/highlight-run/highlight/backend/model"
 	modelInputs "github.com/highlight-run/highlight/backend/private-graph/graph/model"
+	"github.com/highlight-run/highlight/backend/util"
 )
 
-func SendAlerts(ctx context.Context, db *gorm.DB, mailClient *sendgrid.Client, lambdaClient *lambda.Client, alert *model.Alert, alertGroup string, alertGroupValue string, value float64) {
+func SendAlerts(ctx context.Context, db *gorm.DB, mailClient *sendgrid.Client, lambdaClient *lambda.Client, alert *model.Alert, alertGroup string, alertGroupValue string, value float64) error {
+	span, ctx := util.StartSpanFromContext(ctx, "SendAlerts")
+	span.SetAttribute("alert_id", alert.ID)
+	span.SetAttribute("project_id", alert.ProjectID)
+	span.SetAttribute("product_type", alert.ProductType)
+	defer span.Finish()
+
 	destinations := []model.AlertDestination{}
 	if err := db.WithContext(ctx).Where("alert_id = ?", alert.ID).Find(&destinations).Error; err != nil {
-		log.WithContext(ctx).WithFields(
-			log.Fields{
-				"alertID":          alert.ID,
-				"alertProductType": alert.ProductType,
-			}).Error(err)
-		return
+		return err
 	}
 
 	if len(destinations) == 0 {
-		return
+		return nil
 	}
+
+	log.WithContext(ctx).WithFields(
+		log.Fields{
+			"alertID":          alert.ID,
+			"alertProductType": alert.ProductType,
+		}).Info("sending alerts")
 
 	destinationsByType := make(map[modelInputs.AlertDestinationType][]model.AlertDestination)
 	for _, destination := range destinations {
@@ -45,14 +53,13 @@ func SendAlerts(ctx context.Context, db *gorm.DB, mailClient *sendgrid.Client, l
 
 	var project model.Project
 	if err := db.WithContext(ctx).Model(&model.Project{}).Preload("Workspace").Where(&model.Project{Model: model.Model{ID: alert.ProjectID}}).Take(&project).Error; err != nil {
-		log.WithContext(ctx).Error(e.Wrap(err, "error querying project"))
-		return
+		return err
 	}
 
 	frontendURL := env.Config.FrontendUri
 	alertInput := destinationsV2.AlertInput{
 		Alert:       alert,
-		AlertLink:   fmt.Sprintf("%s/alerts/%d/%d", frontendURL, alert.ProjectID, alert.ID),
+		AlertLink:   fmt.Sprintf("%s/%d/alerts/%d", frontendURL, alert.ProjectID, alert.ID),
 		AlertValue:  value,
 		Group:       alertGroup,
 		GroupValue:  alertGroupValue,
@@ -61,15 +68,15 @@ func SendAlerts(ctx context.Context, db *gorm.DB, mailClient *sendgrid.Client, l
 
 	switch alert.ProductType {
 	case modelInputs.ProductTypeSessions:
-		sessionAlertInput := buildSessionAlertInput(ctx, db, &alertInput)
-		if sessionAlertInput == nil {
-			return
+		sessionAlertInput, err := buildSessionAlertInput(ctx, db, &alertInput)
+		if err != nil {
+			return err
 		}
 		alertInput.SessionInput = sessionAlertInput
 	case modelInputs.ProductTypeErrors:
-		errorAlertInput := buildErrorAlertInput(ctx, db, &alertInput)
-		if errorAlertInput == nil {
-			return
+		errorAlertInput, err := buildErrorAlertInput(ctx, db, &alertInput)
+		if err != nil {
+			return err
 		}
 		alertInput.ErrorInput = errorAlertInput
 	case modelInputs.ProductTypeLogs:
@@ -78,14 +85,10 @@ func SendAlerts(ctx context.Context, db *gorm.DB, mailClient *sendgrid.Client, l
 		alertInput.TraceInput = buildTraceAlertInput(ctx, db, &alertInput)
 	case modelInputs.ProductTypeMetrics:
 		alertInput.MetricInput = buildMetricAlertInput(ctx, db, &alertInput)
+	case modelInputs.ProductTypeEvents:
+		// nothing extra needed
 	default:
-		log.WithContext(ctx).WithFields(
-			log.Fields{
-				"alertID":          alert.ID,
-				"alertProductType": alert.ProductType,
-				"group":            alertGroup,
-				"values":           alertGroupValue,
-			}).Error("invalid product type")
+		return e.New("invalid product type")
 	}
 
 	for _, destinations := range destinationsByType {
@@ -101,28 +104,19 @@ func SendAlerts(ctx context.Context, db *gorm.DB, mailClient *sendgrid.Client, l
 		case modelInputs.AlertDestinationTypeWebhook:
 			webhookV2.SendAlerts(ctx, &alertInput, destinations)
 		default:
-			log.WithContext(ctx).WithFields(
-				log.Fields{
-					"alertID":          alert.ID,
-					"alertProductType": alert.ProductType,
-					"group":            alertGroup,
-					"values":           alertGroupValue,
-				}).Error("invalid destination type")
+			return e.New("invalid destination type")
 		}
 	}
+
+	return nil
 }
 
-func buildSessionAlertInput(ctx context.Context, db *gorm.DB, alertInput *destinationsV2.AlertInput) *destinationsV2.SessionInput {
+func buildSessionAlertInput(ctx context.Context, db *gorm.DB, alertInput *destinationsV2.AlertInput) (*destinationsV2.SessionInput, error) {
 	sessionSecureID := alertInput.GroupValue
 
 	var session *model.Session
 	if err := db.WithContext(ctx).Where("secure_id = ?", sessionSecureID).Take(&session).Error; err != nil {
-		log.WithContext(ctx).WithFields(
-			log.Fields{
-				"alertID":         alertInput.Alert.ID,
-				"sessionSecureID": sessionSecureID,
-			}).Error(err)
-		return nil
+		return nil, err
 	}
 
 	frontendURL := env.Config.FrontendUri
@@ -136,36 +130,25 @@ func buildSessionAlertInput(ctx context.Context, db *gorm.DB, alertInput *destin
 		Identifier:       session.Identifier,
 		SessionLink:      sessionUrl,
 		MoreSessionsLink: moreSessionsURL,
-	}
+	}, nil
 }
 
-func buildErrorAlertInput(ctx context.Context, db *gorm.DB, alertInput *destinationsV2.AlertInput) *destinationsV2.ErrorInput {
+func buildErrorAlertInput(ctx context.Context, db *gorm.DB, alertInput *destinationsV2.AlertInput) (*destinationsV2.ErrorInput, error) {
 	errorGroupSecureId := alertInput.GroupValue
 
 	var errorGroup *model.ErrorGroup
 	if err := db.WithContext(ctx).Where("secure_id = ?", errorGroupSecureId).Take(&errorGroup).Error; err != nil {
-		log.WithContext(ctx).WithFields(
-			log.Fields{
-				"alertID":            alertInput.Alert.ID,
-				"errorGroupSecureId": errorGroupSecureId,
-			}).Error(err)
-		return nil
+		return nil, err
 	}
 
 	var errorObject *model.ErrorObject
 	if err := db.WithContext(ctx).Where("error_group_id = ?", errorGroup.ID).Order("created_at desc").First(&errorObject).Error; err != nil {
-		log.WithContext(ctx).WithFields(
-			log.Fields{
-				"alertID":            alertInput.Alert.ID,
-				"errorGroupSecureId": errorGroupSecureId,
-			}).Error(err)
-		return nil
+		return nil, err
 	}
 
 	var project model.Project
 	if err := db.WithContext(ctx).Model(&model.Project{}).Where(&model.Project{Model: model.Model{ID: errorGroup.ProjectID}}).Take(&project).Error; err != nil {
-		log.WithContext(ctx).Error(e.Wrap(err, "error querying project"))
-		return nil
+		return nil, err
 	}
 
 	sessionSecureID := ""
@@ -205,7 +188,7 @@ func buildErrorAlertInput(ctx context.Context, db *gorm.DB, alertInput *destinat
 		SessionIdentifier: sessionIdentifier,
 		SessionLink:       sessionUrl,
 		SessionExcluded:   sessionExcluded,
-	}
+	}, nil
 }
 
 func buildLogAlertInput(ctx context.Context, db *gorm.DB, alertInput *destinationsV2.AlertInput) *destinationsV2.LogInput {

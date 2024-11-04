@@ -14,7 +14,6 @@ import moment from 'moment'
 import { useEffect, useRef, useState } from 'react'
 import { StringParam, useQueryParam } from 'use-query-params'
 
-import { useAuthContext } from '@/authentication/AuthContext'
 import {
 	DISABLED_REASON_IS_ADMIN,
 	PopoverCell,
@@ -89,11 +88,6 @@ function InviteMemberModal({
 
 	const { allProjects } = useApplicationContext()
 
-	const { workspaceRole } = useAuthContext()
-
-	const roleOptions =
-		workspaceRole === AdminRole.Admin ? RoleOptions : [RoleOptions[0]]
-
 	const disabledReason =
 		newAdminRole === AdminRole.Admin ? DISABLED_REASON_IS_ADMIN : undefined
 
@@ -120,7 +114,7 @@ function InviteMemberModal({
 						<Box borderRadius="4" p="4" cssClass={styles.popover}>
 							<PopoverCell
 								label="roles"
-								options={roleOptions}
+								options={RoleOptions}
 								initialSelection={newAdminRole}
 								onChange={(role) => {
 									setNewAdminRole(role)

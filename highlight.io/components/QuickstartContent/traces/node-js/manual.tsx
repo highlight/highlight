@@ -19,7 +19,7 @@ export const JSManualTracesContent: QuickStartContent = {
 		{
 			title: 'Wrap your code using the Node.js SDK.',
 			content:
-				'By wrapping your code with `startSpan` and `endSpan`, the `@highlight-run/node` SDK will record a span. You can create more child spans or add custom attributes to each span.',
+				'By calling `H.startActiveSpan()` and `span.end()`, the `@highlight-run/node` SDK will record a span. You can create more child spans or add custom attributes to each span.',
 			code: [
 				{
 					text: `
@@ -57,7 +57,7 @@ app.get('/', async (req, res) => {
 	await H.runWithHeaders(req.headers, () => {
 		const span = H.startActiveSpan("custom-span", {})
 		const err = new Error('this is a test error')
-		
+
 		console.info('Sending error to highlight')
 		H.consumeError(err)
 

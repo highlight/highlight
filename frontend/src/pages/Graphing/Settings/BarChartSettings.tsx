@@ -8,11 +8,13 @@ import * as style from './styles.css'
 type Props = {
 	barDisplay: BarDisplay
 	setBarDisplay: (option: BarDisplay) => void
+	disabled?: boolean
 }
 
 export const BarChartSettings: React.FC<Props> = ({
 	barDisplay,
 	setBarDisplay,
+	disabled,
 }) => (
 	<>
 		<LabeledRow
@@ -27,6 +29,7 @@ export const BarChartSettings: React.FC<Props> = ({
 					setBarDisplay(o as BarDisplay)
 				}}
 				cssClass={style.tagSwitch}
+				disabled={disabled}
 			/>
 		</LabeledRow>
 	</>

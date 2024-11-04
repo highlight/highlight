@@ -34,10 +34,30 @@ type PinoLogs struct {
 }
 
 type Log struct {
-	Message    string `json:"message"`
+	Message    any    `json:"message"`
 	Timestamp  string `json:"timestamp"`
 	Level      string `json:"level"`
 	Attributes map[string]string
+}
+
+func (l *Log) GetMessage() string {
+	if m, ok := l.Message.(string); ok {
+		return m
+	}
+	val, _ := json.Marshal(l.Message)
+	return string(val)
+}
+
+func (l *Log) GetMessageMap() map[string]string {
+	result := make(map[string]string)
+	if m, ok := l.Message.(map[string]interface{}); ok {
+		for k, v := range m {
+			for kp, vp := range FormatLogAttributes(k, v) {
+				result[kp] = vp
+			}
+		}
+	}
+	return result
 }
 
 type VercelProxy struct {
@@ -156,10 +176,15 @@ func SubmitVercelLogs(ctx context.Context, tracer trace.Tracer, projectID int, s
 func SubmitHTTPLog(ctx context.Context, tracer trace.Tracer, projectID int, lg Log) error {
 	attrs := []attribute.KeyValue{
 		LogSeverityKey.String(lg.Level),
-		LogMessageKey.String(lg.Message),
+		LogMessageKey.String(lg.GetMessage()),
 	}
 	for k, v := range lg.Attributes {
 		attrs = append(attrs, attribute.String(k, v))
+	}
+	if m := lg.GetMessageMap(); m != nil {
+		for k, v := range m {
+			attrs = append(attrs, attribute.String(k, v))
+		}
 	}
 
 	var sessionID, requestID string
@@ -204,7 +229,7 @@ func SubmitHTTPLog(ctx context.Context, tracer trace.Tracer, projectID int, lg L
 	defer highlight.EndTrace(span)
 	span.AddEvent(highlight.LogEvent, trace.WithAttributes(attrs...), trace.WithTimestamp(t))
 	if lg.Level == "error" {
-		span.SetStatus(codes.Error, lg.Message)
+		span.SetStatus(codes.Error, lg.GetMessage())
 	}
 	return nil
 }

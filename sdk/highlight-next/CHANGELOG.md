@@ -1,5 +1,60 @@
 # @highlight-run/next
 
+## 7.6.5
+
+### Patch Changes
+
+-   Updated dependencies [b02cad4]
+    -   @highlight-run/node@3.9.7
+
+## 7.6.4
+
+### Patch Changes
+
+-   Updated dependencies [d3ba444]
+-   Updated dependencies [21f3cfb]
+    -   @highlight-run/node@3.9.6
+    -   @highlight-run/opentelemetry-sdk-workers@1.0.8
+    -   @highlight-run/cloudflare@2.1.9
+
+## 7.6.3
+
+### Patch Changes
+
+-   7becd8b: fix @highlight-run/next sdk breaking HMR with turbopack next.js 14
+-   Updated dependencies [7becd8b]
+    -   @highlight-run/node@3.9.5
+
+## 7.6.2
+
+### Patch Changes
+
+-   Updated dependencies [df0b226]
+    -   highlight.run@9.5.2
+    -   @highlight-run/node@3.9.4
+    -   @highlight-run/react@7.0.2
+
+## 7.6.1
+
+### Patch Changes
+
+-   Updated dependencies [5194753]
+    -   highlight.run@9.5.1
+    -   @highlight-run/node@3.9.4
+    -   @highlight-run/react@7.0.1
+
+## 7.6.0
+
+### Minor Changes
+
+-   e6d5ad2: require next 13 and ensure compatibility with node 16
+
+### Patch Changes
+
+-   a3ff05e: update transient dependencies with security vulnerabilities
+-   Updated dependencies [e6d5ad2]
+    -   @highlight-run/node@3.9.4
+
 ## 7.5.31
 
 ### Patch Changes

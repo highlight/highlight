@@ -7,6 +7,7 @@ import {
 	IconSolidCheck,
 	IconSolidClipboardList,
 	IconSolidDocumentReport,
+	IconSolidDocumentText,
 	IconSolidFastForward,
 	IconSolidSortDescending,
 	IconSolidTrash,
@@ -25,6 +26,7 @@ import {
 	countFormats,
 	dateTimeFormats,
 	resultFormats,
+	sessionHistogramFormats,
 	sortOrders,
 } from '@/pages/Sessions/SessionsFeedV3/context/SessionFeedConfigurationContext'
 
@@ -377,7 +379,7 @@ export const SessionFeedConfigDropdown = function () {
 						<SectionRow>
 							<IconGroup
 								icon={
-									<IconSolidDocumentReport
+									<IconSolidDocumentText
 										size={16}
 										color={
 											vars.theme.interactive.fill
@@ -453,6 +455,83 @@ export const SessionFeedConfigDropdown = function () {
 														),
 														format,
 													).toString()}
+												/>
+											</SectionRow>
+										</Menu.Item>
+									))}
+								</Menu.List>
+							</Menu>
+						</SectionRow>
+					</Menu.Item>
+					<Menu.Item
+						key="sessionHistogram"
+						className={styles.menuItem}
+					>
+						<SectionRow>
+							<IconGroup
+								icon={
+									<IconSolidDocumentReport
+										size={16}
+										color={
+											vars.theme.interactive.fill
+												.secondary.content.text
+										}
+									/>
+								}
+								text="Session Histogram format"
+							/>
+							<Menu>
+								<Menu.Button
+									kind="secondary"
+									size="small"
+									emphasis="low"
+									cssClass={styles.menuButton}
+									onClick={(e: any) => e.preventDefault()}
+								>
+									{
+										sessionFeedConfiguration.sessionHistogramFormat
+									}
+								</Menu.Button>
+
+								<Menu.List
+									style={{ minWidth: 350 }}
+									cssClass={styles.menuContents}
+								>
+									{sessionHistogramFormats.map((format) => (
+										<Menu.Item
+											key={format}
+											onClick={(e) => {
+												e.preventDefault()
+												sessionFeedConfiguration.setSessionHistogramFormat(
+													format,
+												)
+											}}
+										>
+											<SectionRow>
+												<IconGroup
+													icon={
+														format ===
+														sessionFeedConfiguration.sessionHistogramFormat ? (
+															<IconSolidCheck
+																size={16}
+																color={
+																	vars.theme
+																		.interactive
+																		.fill
+																		.primary
+																		.enabled
+																}
+															/>
+														) : (
+															<Box
+																style={{
+																	width: 16,
+																	height: 16,
+																}}
+															/>
+														)
+													}
+													text={format}
 												/>
 											</SectionRow>
 										</Menu.Item>

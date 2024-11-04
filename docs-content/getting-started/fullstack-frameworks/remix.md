@@ -135,7 +135,7 @@ Alternatively, you can wrap Highlight's error handler and execute your own custo
 
 ```javascript
 // app/entry.server.tsx
-import type { DataFunctionArgs } from '@remix-run/node'
+import type { LoaderFunctionArgs, ActionFunctionArgs } from '@remix-run/node'
 
 import { H, HandleError } from '@highlight-run/remix/server'
 
@@ -143,7 +143,7 @@ const nodeOptions = { projectID: process.env.HIGHLIGHT_PROJECT_ID }
 
 export function handleError(
 	error: unknown,
-	dataFunctionArgs: DataFunctionArgs,
+	dataFunctionArgs: LoaderFunctionArgs | ActionFunctionArgs,
 ) {
 	const handleError = HandleError(nodeOptions)
 

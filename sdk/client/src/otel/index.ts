@@ -12,6 +12,7 @@ import { Resource } from '@opentelemetry/resources'
 import {
 	BatchSpanProcessor,
 	ConsoleSpanExporter,
+	PropagateTraceHeaderCorsUrls,
 	ReadableSpan,
 	SimpleSpanProcessor,
 	StackContextManager,
@@ -27,10 +28,7 @@ import {
 	DEFAULT_URL_BLOCKLIST,
 	sanitizeHeaders,
 } from '../listeners/network-listener/utils/network-sanitizer'
-import {
-	shouldNetworkRequestBeRecorded,
-	shouldNetworkRequestBeTraced,
-} from '../listeners/network-listener/utils/utils'
+import { shouldNetworkRequestBeRecorded } from '../listeners/network-listener/utils/utils'
 import {
 	BrowserXHR,
 	getBodyThatShouldBeRecorded,
@@ -113,7 +111,9 @@ export const setupBrowserTracing = (config: BrowserTracingConfig) => {
 			}),
 			new UserInteractionInstrumentation(),
 			new FetchInstrumentation({
-				propagateTraceHeaderCorsUrls: /.*/,
+				propagateTraceHeaderCorsUrls: getCorsUrlsPattern(
+					config.tracingOrigins,
+				),
 				applyCustomAttributesOnSpan: async (
 					span,
 					request,
@@ -152,7 +152,9 @@ export const setupBrowserTracing = (config: BrowserTracingConfig) => {
 				},
 			}),
 			new XMLHttpRequestInstrumentation({
-				propagateTraceHeaderCorsUrls: /.*/,
+				propagateTraceHeaderCorsUrls: getCorsUrlsPattern(
+					config.tracingOrigins,
+				),
 				applyCustomAttributesOnSpan: (span, xhr) => {
 					const browserXhr = xhr as BrowserXHR
 					const readableSpan = span as unknown as ReadableSpan
@@ -496,4 +498,18 @@ const humanizeDuration = (nanoseconds: number): string => {
 	} else {
 		return `${Number(nanoseconds.toFixed(1))}ns`
 	}
+}
+
+export const getCorsUrlsPattern = (
+	tracingOrigins: BrowserTracingConfig['tracingOrigins'],
+): PropagateTraceHeaderCorsUrls => {
+	if (tracingOrigins === true) {
+		return [/localhost/, /^\//, new RegExp(window.location.host)]
+	} else if (Array.isArray(tracingOrigins)) {
+		return tracingOrigins.map((pattern) =>
+			typeof pattern === 'string' ? new RegExp(pattern) : pattern,
+		)
+	}
+
+	return /^$/ // Match nothing if tracingOrigins is false or undefined
 }

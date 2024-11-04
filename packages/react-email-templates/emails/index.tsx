@@ -4,6 +4,7 @@ import { ErrorsAlertV2Email } from './errors-alert-v2'
 import { LogAlertEmail } from './log-alert'
 import { LogsAlertV2Email } from './logs-alert-v2'
 import { MetricsAlertV2Email } from './metrics-alert-v2'
+import { EventsAlertV2Email } from './events-alert-v2'
 import { NewSessionAlertEmail } from './new-session-alert'
 import { NewUserAlertEmail } from './new-user-alert'
 import { RageClickAlertEmail } from './rage-click-alert'
@@ -20,6 +21,7 @@ export {
 	LogAlertEmail,
 	LogsAlertV2Email,
 	MetricsAlertV2Email,
+	EventsAlertV2Email,
 	NewSessionAlertEmail,
 	NewUserAlertEmail,
 	RageClickAlertEmail,

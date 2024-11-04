@@ -1,5 +1,35 @@
 # @highlight-run/apollo
 
+## 3.4.22
+
+### Patch Changes
+
+-   Updated dependencies [b02cad4]
+    -   @highlight-run/node@3.9.7
+
+## 3.4.21
+
+### Patch Changes
+
+-   Updated dependencies [d3ba444]
+-   Updated dependencies [21f3cfb]
+    -   @highlight-run/node@3.9.6
+
+## 3.4.20
+
+### Patch Changes
+
+-   Updated dependencies [7becd8b]
+    -   @highlight-run/node@3.9.5
+
+## 3.4.19
+
+### Patch Changes
+
+-   a3ff05e: update transient dependencies with security vulnerabilities
+-   Updated dependencies [e6d5ad2]
+    -   @highlight-run/node@3.9.4
+
 ## 3.4.18
 
 ### Patch Changes

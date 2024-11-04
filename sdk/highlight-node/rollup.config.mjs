@@ -8,13 +8,18 @@ import typescript from '@rollup/plugin-typescript'
 const config = {
 	input: 'src/index.ts',
 	context: 'global',
+	external: ['require-in-the-middle'],
 	plugins: [
 		json(),
 		commonjs({
 			// required for @opentelemetry/resources which pretends to be an ESM build while using dynamic `require()`
 			transformMixedEsModules: true,
 		}),
-		resolve(),
+		resolve({
+			preferBuiltins: true,
+			// avoid bundling require-in-the-middle for next.js compatibility
+			resolveOnly: (module) => !module.includes('require-in-the-middle'),
+		}),
 		typescript(),
 		terser(),
 	],

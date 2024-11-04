@@ -14,6 +14,7 @@ type Props = {
 	size?: TagProps['size']
 	onChange?: (value: Option) => void
 	cssClass?: ClassValue | ClassValue[]
+	disabled?: boolean
 }
 
 export const TagSwitchGroup: React.FC<Props> = ({
@@ -23,6 +24,7 @@ export const TagSwitchGroup: React.FC<Props> = ({
 	options,
 	onChange,
 	cssClass,
+	disabled,
 }) => {
 	const [selectedOption, setSelectedOption] = useState(
 		defaultValue ?? options[0],
@@ -58,6 +60,7 @@ export const TagSwitchGroup: React.FC<Props> = ({
 								key={index}
 								name={name}
 								value={option}
+								disabled={disabled}
 								render={
 									<Tag
 										key={option}
