@@ -2,6 +2,8 @@ import Head from 'next/head'
 import { useRouter } from 'next/router'
 import { useEffect } from 'react'
 
+import '../styles/otel-course.scss'
+
 const COURSE_URL = '/otel-course'
 export const LOCAL_STORAGE_KEY = 'otelCourseAuthorized'
 
@@ -45,7 +47,7 @@ export default function OTelCourseSignup() {
 	}, [router])
 
 	return (
-		<div className="bg-gray-50 min-h-screen text-gray-900">
+		<div className="bg-gray-50 min-h-screen text-gray-900 otel-course">
 			<Head>
 				<title>Master OpenTelemetry: Free Course | Highlight.io</title>
 				<meta
@@ -55,15 +57,15 @@ export default function OTelCourseSignup() {
 			</Head>
 
 			{/* Hero Section */}
-			<section className="bg-[#0d0225] text-white py-16 md:py-20">
+			<section className="bg-[#0d0225] text-white py-16 md:py-28">
 				<div className="container mx-auto px-4 md:w-[775px]">
-					<h1 className="text-3xl md:text-5xl mb-6 text-center leading-tight tracking-normal font-poppins my-0">
+					<h1 className="text-3xl md:text-5xl text-center font-poppins">
 						Unlock the Power of OpenTelemetry:{' '}
 						<span className="text-[rgb(235,255,94)]">
 							From Novice to Expert in One Course
 						</span>
 					</h1>
-					<p className="text-base md:text-xl font-medium md:text-2xl text-center mb-12 w-3/4 mx-auto">
+					<p className="text-base md:text-xl font-medium text-center my-16 w-3/4 mx-auto">
 						Master the industry-leading observability framework in
 						our free, comprehensive course
 					</p>

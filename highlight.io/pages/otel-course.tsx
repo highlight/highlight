@@ -23,19 +23,24 @@ const PROGRESS_STORAGE_KEY = 'otel_course_progress'
 
 const COURSE_VIDEOS: CourseVideo[] = [
 	{
-		id: 'Vj8RHrI_fAY',
+		id: '_FGwkiR_XFM',
 		title: 'Introduction to Observability and OpenTelemetry',
 		description:
 			'Overview of Observability and the importance of monitoring. Introduces OpenTelemetry as a unified standard for distributed tracing, metrics, and logging.',
 	},
 	{
-		id: 'a4RUL1r3KE4',
+		id: 'biloVamYVVA',
 		title: 'Architecture and Components of OpenTelemetry',
 		description:
 			'Covers OpenTelemetry’s core components and architecture, including the SDK, API, and the role of the OpenTelemetry Collector in the observability pipeline.',
 	},
 	{
-		id: '8subH8Sb2b8',
+		id: 'G9yadsMgzu0',
+		title: 'Setting up the Collector',
+		description:
+			'Learn how to set up the OpenTelemetry Collector to receive and process telemetry data from your applications.',
+	},
+	{
 		title: 'OpenTelemetry Tracing',
 		description:
 			'Introduction to distributed tracing with OpenTelemetry. Learn how to instrument applications for tracing across different languages, and how to export trace data to observability platforms.',
