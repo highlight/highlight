@@ -103,7 +103,9 @@ export const ErrorInstancesTable = ({ nodes, errorGroupSecureId }: Props) => {
 					if (session.email) {
 						content = <>{session.email}</>
 					} else {
-						content = <>{session.fingerprint?.toString()}</> ?? (
+						content = session.fingerprint ? (
+							<>{session.fingerprint.toString()}</>
+						) : (
 							<>(no value)</>
 						)
 					}

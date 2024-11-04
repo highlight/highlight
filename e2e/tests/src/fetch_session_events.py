@@ -67,7 +67,7 @@ def main():
         },
         headers={"Authorization": f"Bearer {auth}"},
     )
-    sessions = r.json()["data"]["sessions_clickhouse"]["sessions"]
+    sessions = r.json()["data"]["sessions"]["sessions"]
 
     for session in sessions:
         r = requests.post(
