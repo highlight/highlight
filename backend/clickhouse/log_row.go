@@ -40,9 +40,7 @@ func NewLogRow(timestamp time.Time, projectID uint32, opts ...LogRowOption) *Log
 	}
 
 	logRow := &LogRow{
-		// ensure timestamp is written at second precision,
-		// since clickhouse schema will truncate to second precision anyways.
-		Timestamp:      timestamp.Truncate(time.Second),
+		Timestamp:      timestamp,
 		ProjectId:      projectID,
 		UUID:           uuid.New().String(),
 		SeverityText:   makeLogLevel("INFO").String(),
