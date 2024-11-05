@@ -950,14 +950,17 @@ export const Search: React.FC<{
 										)
 									},
 								)
-							) : !historyLoading ? (
-								<Text color="secondaryContentText">
-									No recent searches
-								</Text>
 							) : (
-								<Text color="secondaryContentText">
-									Loading...
-								</Text>
+								<Combobox.Item
+									className={styles.comboboxItem}
+									disabled
+								>
+									<Text color="secondaryContentText">
+										{!historyLoading
+											? 'No recent searches'
+											: 'Loading....'}
+									</Text>
+								</Combobox.Item>
 							)}
 						</Combobox.Group>
 
