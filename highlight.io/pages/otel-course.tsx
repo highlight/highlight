@@ -8,7 +8,7 @@ import { Typography } from '../components/common/Typography/Typography'
 import { LOCAL_STORAGE_KEY } from './otel-course-signup'
 
 type CourseVideo = {
-	id?: string
+	id: string | undefined
 	title: string
 	description: string
 }
@@ -41,36 +41,43 @@ const COURSE_VIDEOS: CourseVideo[] = [
 			'Learn how to set up the OpenTelemetry Collector to receive and process telemetry data from your applications.',
 	},
 	{
+		id: undefined,
 		title: 'OpenTelemetry Tracing',
 		description:
 			'Introduction to distributed tracing with OpenTelemetry. Learn how to instrument applications for tracing across different languages, and how to export trace data to observability platforms.',
 	},
 	{
+		id: undefined,
 		title: 'OpenTelemetry Metrics',
 		description:
 			'Focuses on metrics collection and exporting, explaining different types of metrics (counters, gauges, histograms) and how to use OpenTelemetry to monitor application performance.',
 	},
 	{
+		id: undefined,
 		title: 'OpenTelemetry Logging',
 		description:
 			'Learn about structured logging and how to integrate logging with OpenTelemetry, collecting and exporting logs to various backend systems for analysis.',
 	},
 	{
+		id: undefined,
 		title: 'OpenTelemetry Collector and Processors',
 		description:
 			'A deep dive into the OpenTelemetry Collector, its setup, and how to configure processors and exporters to tailor data pipelines for different observability needs.',
 	},
 	{
+		id: undefined,
 		title: 'OpenTelemetry in Real-world Scenarios',
 		description:
 			'Explore practical examples of OpenTelemetry in action within microservices, cloud environments (AWS, Google Cloud, Azure), and Kubernetes, showcasing real-world use cases.',
 	},
 	{
+		id: undefined,
 		title: 'Best Practices and Performance Considerations',
 		description:
 			'Guidelines for performance optimization when using OpenTelemetry, avoiding overhead, and securing data collection pipelines to maintain privacy and compliance.',
 	},
 	{
+		id: undefined,
 		title: 'Advanced Topics and Future of OpenTelemetry',
 		description:
 			'Explore advanced custom instrumentation, monitoring for AI/ML applications, and the future trends of OpenTelemetry in observability and beyond.',
