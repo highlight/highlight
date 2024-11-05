@@ -8,7 +8,7 @@ import { Typography } from '../components/common/Typography/Typography'
 import { LOCAL_STORAGE_KEY } from './otel-course-signup'
 
 type CourseVideo = {
-	id: string
+	id?: string
 	title: string
 	description: string
 }
