@@ -6,17 +6,11 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"go.opentelemetry.io/collector/pdata/pmetric"
 	"io"
 	"net/http"
 	"strconv"
 	"strings"
 	"time"
-
-	"go.opentelemetry.io/collector/pdata/plog/plogotlp"
-	"go.opentelemetry.io/collector/pdata/pmetric/pmetricotlp"
-	"go.opentelemetry.io/collector/pdata/ptrace/ptraceotlp"
-	semconv "go.opentelemetry.io/otel/semconv/v1.26.0"
 
 	"github.com/go-chi/chi"
 	"github.com/highlight-run/highlight/backend/clickhouse"
@@ -33,6 +27,11 @@ import (
 	e "github.com/pkg/errors"
 	"github.com/samber/lo"
 	log "github.com/sirupsen/logrus"
+	"go.opentelemetry.io/collector/pdata/plog/plogotlp"
+	"go.opentelemetry.io/collector/pdata/pmetric"
+	"go.opentelemetry.io/collector/pdata/pmetric/pmetricotlp"
+	"go.opentelemetry.io/collector/pdata/ptrace/ptraceotlp"
+	semconv "go.opentelemetry.io/otel/semconv/v1.26.0"
 )
 
 type Handler struct {
@@ -527,6 +526,8 @@ func (o *Handler) HandleMetric(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	var projectMetrics = make(map[int][]*clickhouse.MetricRow)
+
 	var curTime = time.Now()
 	resourceMetrics := req.Metrics().ResourceMetrics()
 	for i := 0; i < resourceMetrics.Len(); i++ {
@@ -549,104 +550,44 @@ func (o *Handler) HandleMetric(w http.ResponseWriter, r *http.Request) {
 					lg(ctx, fields).WithError(err).Info("failed to extract fields from metric")
 					continue
 				}
+				if _, ok := projectMetrics[fields.projectIDInt]; !ok {
+					projectMetrics[fields.projectIDInt] = []*clickhouse.MetricRow{}
+				}
 
-				if metric.Type() == pmetric.MetricTypeSum {
-					for l := 0; l < metric.Sum().DataPoints().Len(); l++ {
-						dp := metric.Sum().DataPoints().At(l)
-						log.WithContext(ctx).
-							WithFields(log.Fields{
-								"fields":    fields,
-								"time":      dp.Timestamp().AsTime(),
-								"start":     dp.StartTimestamp().AsTime(),
-								"double":    dp.DoubleValue(),
-								"int":       dp.IntValue(),
-								"attrs":     dp.Attributes(),
-								"exemplars": dp.Exemplars(),
-								"flags":     dp.Flags(),
-								"type":      dp.ValueType(),
-							}).
-							Info("received otel metrics sum")
-					}
-				} else if metric.Type() == pmetric.MetricTypeGauge {
+				if metric.Type() == pmetric.MetricTypeGauge {
 					for l := 0; l < metric.Gauge().DataPoints().Len(); l++ {
-						dp := metric.Gauge().DataPoints().At(l)
-						log.WithContext(ctx).
-							WithFields(log.Fields{
-								"fields":    fields,
-								"time":      dp.Timestamp().AsTime(),
-								"start":     dp.StartTimestamp().AsTime(),
-								"double":    dp.DoubleValue(),
-								"int":       dp.IntValue(),
-								"attrs":     dp.Attributes(),
-								"exemplars": dp.Exemplars(),
-								"flags":     dp.Flags(),
-								"type":      dp.ValueType(),
-							}).
-							Info("received otel metrics gauge")
+						dp := &NumberDataPoint{metric.Gauge().DataPoints().At(l)}
+						projectMetrics[fields.projectIDInt] = append(projectMetrics[fields.projectIDInt], dp.ToMetricRow(ctx, fields))
+					}
+				} else if metric.Type() == pmetric.MetricTypeSum {
+					for l := 0; l < metric.Sum().DataPoints().Len(); l++ {
+						dp := &NumberDataPoint{metric.Sum().DataPoints().At(l)}
+						projectMetrics[fields.projectIDInt] = append(projectMetrics[fields.projectIDInt], dp.ToMetricRow(ctx, fields))
 					}
 				} else if metric.Type() == pmetric.MetricTypeHistogram {
 					for l := 0; l < metric.Histogram().DataPoints().Len(); l++ {
-						dp := metric.Histogram().DataPoints().At(l)
-						log.WithContext(ctx).
-							WithFields(log.Fields{
-								"fields":        fields,
-								"time":          dp.Timestamp().AsTime(),
-								"start":         dp.StartTimestamp().AsTime(),
-								"attrs":         dp.Attributes(),
-								"exemplars":     dp.Exemplars(),
-								"flags":         dp.Flags(),
-								"bounds":        dp.ExplicitBounds(),
-								"bucket_counts": dp.BucketCounts(),
-								"sum":           dp.Sum(),
-								"count":         dp.Count(),
-								"min":           dp.Min(),
-								"max":           dp.Max(),
-							}).
-							Info("received otel metrics histogram")
+						dp := &HistogramDataPoint{metric.Histogram().DataPoints().At(l)}
+						projectMetrics[fields.projectIDInt] = append(projectMetrics[fields.projectIDInt], dp.ToMetricRow(ctx, fields))
 					}
 				} else if metric.Type() == pmetric.MetricTypeExponentialHistogram {
 					for l := 0; l < metric.ExponentialHistogram().DataPoints().Len(); l++ {
-						dp := metric.ExponentialHistogram().DataPoints().At(l)
-						log.WithContext(ctx).
-							WithFields(log.Fields{
-								"fields":         fields,
-								"time":           dp.Timestamp().AsTime(),
-								"start":          dp.StartTimestamp().AsTime(),
-								"attrs":          dp.Attributes(),
-								"exemplars":      dp.Exemplars(),
-								"flags":          dp.Flags(),
-								"negative":       dp.Negative(),
-								"positive":       dp.Positive(),
-								"sum":            dp.Sum(),
-								"count":          dp.Count(),
-								"min":            dp.Min(),
-								"max":            dp.Max(),
-								"scale":          dp.Scale(),
-								"zero_count":     dp.ZeroCount(),
-								"zero_threshold": dp.ZeroThreshold(),
-							}).
-							Info("received otel metrics exp histogram")
+						dp := &ExponentialHistogramDataPoint{metric.ExponentialHistogram().DataPoints().At(l)}
+						projectMetrics[fields.projectIDInt] = append(projectMetrics[fields.projectIDInt], dp.ToMetricRow(ctx, fields))
 					}
 				} else if metric.Type() == pmetric.MetricTypeSummary {
 					for l := 0; l < metric.Summary().DataPoints().Len(); l++ {
-						dp := metric.Summary().DataPoints().At(l)
-
-						log.WithContext(ctx).
-							WithFields(log.Fields{
-								"fields":          fields,
-								"time":            dp.Timestamp().AsTime(),
-								"start":           dp.StartTimestamp().AsTime(),
-								"attrs":           dp.Attributes(),
-								"flags":           dp.Flags(),
-								"count":           dp.Count(),
-								"sum":             dp.Sum(),
-								"quantile_values": dp.QuantileValues(),
-							}).
-							Info("received otel metrics summary")
+						dp := &SummaryDataPoint{metric.Summary().DataPoints().At(l)}
+						projectMetrics[fields.projectIDInt] = append(projectMetrics[fields.projectIDInt], dp.ToMetricRow(ctx, fields))
 					}
 				}
 			}
 		}
+	}
+
+	if err := o.submitProjectMetrics(ctx, projectMetrics); err != nil {
+		log.WithContext(ctx).WithError(err).Error("failed to submit otel project metrics")
+		w.WriteHeader(http.StatusServiceUnavailable)
+		return
 	}
 
 	w.WriteHeader(http.StatusOK)
@@ -849,6 +790,51 @@ func (o *Handler) submitTraceSpans(ctx context.Context, traceRows map[string][]*
 		err := o.resolver.MarkBackendSetupImpl(ctx, int(projectId), model2.MarkBackendSetupTypeTraces)
 		if err != nil {
 			log.WithContext(ctx).WithError(err).Error("failed to mark backend traces setup")
+		}
+	}
+
+	return nil
+}
+
+func (o *Handler) submitProjectMetrics(ctx context.Context, projectMetricRows map[int][]*clickhouse.MetricRow) error {
+	projectIds := lo.MapEntries(projectMetricRows, func(p int, _ []*clickhouse.MetricRow) (uint32, struct{}) {
+		return uint32(p), struct{}{}
+	})
+	quotaExceededByProject, err := o.getQuotaExceededByProject(ctx, projectIds, model2.PricingProductTypeMetrics)
+	if err != nil {
+		log.WithContext(ctx).Error(err)
+		quotaExceededByProject = map[uint32]bool{}
+	}
+
+	var messages []kafkaqueue.RetryableMessage
+	for projectID, metricRows := range projectMetricRows {
+		for _, metricRow := range metricRows {
+			if metricRow == nil {
+				continue
+			}
+			if quotaExceededByProject[uint32(projectID)] {
+				continue
+			}
+			if !o.resolver.IsMetricIngested(ctx, metricRow) {
+				continue
+			}
+			messages = append(messages, &kafkaqueue.OTeLMetricsMessage{
+				Type:      kafkaqueue.PushOTeLMetrics,
+				MetricRow: metricRow,
+			})
+		}
+
+		// no ordering for metrics data
+		err := o.resolver.MetricsQueue.Submit(ctx, "", messages...)
+		if err != nil {
+			return e.Wrap(err, "failed to submit otel project metrics to public worker queue")
+		}
+	}
+
+	for projectId := range projectIds {
+		err := o.resolver.MarkBackendSetupImpl(ctx, int(projectId), model2.MarkBackendSetupTypeMetrics)
+		if err != nil {
+			log.WithContext(ctx).WithError(err).Error("failed to mark backend metrics setup")
 		}
 	}
 

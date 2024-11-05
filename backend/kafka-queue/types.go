@@ -37,6 +37,7 @@ const (
 	PushLogsFlattened                      PayloadType = iota
 	PushTracesFlattened                    PayloadType = iota
 	PushSessionEvents                      PayloadType = iota
+	PushOTeLMetrics                        PayloadType = iota
 	HealthCheck                            PayloadType = math.MaxInt
 )
 
@@ -296,6 +297,41 @@ func (m *SessionEventRowMessage) GetKafkaMessage() *kafka.Message {
 	return m.KafkaMessage
 }
 func (m *SessionEventRowMessage) SetKafkaMessage(value *kafka.Message) {
+	m.KafkaMessage = value
+}
+
+type OTeLMetricsMessage struct {
+	Type         PayloadType
+	Failures     int
+	MaxRetries   int
+	KafkaMessage *kafka.Message `json:",omitempty"`
+	*clickhouse.MetricRow
+}
+
+func (m *OTeLMetricsMessage) GetType() PayloadType {
+	return PushOTeLMetrics
+}
+
+func (m *OTeLMetricsMessage) GetFailures() int {
+	return m.Failures
+}
+
+func (m *OTeLMetricsMessage) SetFailures(value int) {
+	m.Failures = value
+}
+
+func (m *OTeLMetricsMessage) GetMaxRetries() int {
+	return m.MaxRetries
+}
+
+func (m *OTeLMetricsMessage) SetMaxRetries(value int) {
+	m.MaxRetries = value
+}
+
+func (m *OTeLMetricsMessage) GetKafkaMessage() *kafka.Message {
+	return m.KafkaMessage
+}
+func (m *OTeLMetricsMessage) SetKafkaMessage(value *kafka.Message) {
 	m.KafkaMessage = value
 }
 

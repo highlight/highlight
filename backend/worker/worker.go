@@ -456,8 +456,17 @@ func (w *Worker) PublicWorker(ctx context.Context, topic kafkaqueue.TopicType) {
 		QueueSize:    sys.DataSyncQueueSize,
 		FlushTimeout: sys.DataSyncTimeout,
 	}
+	// TODO(vkorolik) try replace with kafka connect
+	metricsConfig := WorkerConfig{
+		Topic: kafkaqueue.TopicTypeMetrics,
+		// TODO(vkorolik) new config
+		Workers:      sys.TraceWorkers,
+		FlushSize:    sys.TraceFlushSize,
+		QueueSize:    sys.TraceQueueSize,
+		FlushTimeout: sys.TraceFlushTimeout,
+	}
 
-	kafkaWorkerConfigs := lo.Filter([]WorkerConfig{mainConfig, logsConfig, tracesConfig, dataSyncConfig}, func(cfg WorkerConfig, _ int) bool {
+	kafkaWorkerConfigs := lo.Filter([]WorkerConfig{mainConfig, logsConfig, tracesConfig, dataSyncConfig, metricsConfig}, func(cfg WorkerConfig, _ int) bool {
 		return cfg.Topic == topic
 	})
 

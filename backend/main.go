@@ -313,6 +313,8 @@ func main() {
 	defer kafkaBatchedProducer.Stop(ctx)
 	kafkaTracesProducer := kafkaqueue.New(ctx, kafkaqueue.GetTopic(kafkaqueue.GetTopicOptions{Type: kafkaqueue.TopicTypeTraces}), kafkaqueue.Producer, kCfg)
 	defer kafkaTracesProducer.Stop(ctx)
+	kafkaMetricsProducer := kafkaqueue.New(ctx, kafkaqueue.GetTopic(kafkaqueue.GetTopicOptions{Type: kafkaqueue.TopicTypeMetrics}), kafkaqueue.Producer, kCfg)
+	defer kafkaMetricsProducer.Stop(ctx)
 
 	var lambdaClient *lambda.Client
 	if !env.IsInDocker() {
@@ -390,6 +392,7 @@ func main() {
 		Store:                  dataStore,
 		DataSyncQueue:          kafkaDataSyncProducer,
 		TracesQueue:            kafkaTracesProducer,
+		MetricsQueue:           kafkaMetricsProducer,
 	}
 	private.SetupAuthClient(ctx, dataStore, private.GetEnvAuthMode(), oauthSrv, privateResolver.Query().APIKeyToOrgID)
 	r := chi.NewMux()
@@ -506,6 +509,7 @@ func main() {
 			BatchedQueue:      kafkaBatchedProducer,
 			DataSyncQueue:     kafkaDataSyncProducer,
 			TracesQueue:       kafkaTracesProducer,
+			MetricsQueue:      kafkaMetricsProducer,
 			MailClient:        sendgrid.NewSendClient(env.Config.SendgridKey),
 			EmbeddingsClient:  embeddings.New(),
 			StorageClient:     storageClient,
@@ -577,6 +581,7 @@ func main() {
 			BatchedQueue:      kafkaBatchedProducer,
 			DataSyncQueue:     kafkaDataSyncProducer,
 			TracesQueue:       kafkaTracesProducer,
+			MetricsQueue:      kafkaMetricsProducer,
 			MailClient:        sendgrid.NewSendClient(env.Config.SendgridKey),
 			EmbeddingsClient:  embeddings.New(),
 			StorageClient:     storageClient,
