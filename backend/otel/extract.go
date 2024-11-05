@@ -74,14 +74,15 @@ func newExtractedFields() *extractedFields {
 }
 
 type extractFieldsParams struct {
-	headers   http.Header
-	resource  *pcommon.Resource
-	scope     *pcommon.InstrumentationScope
-	span      *ptrace.Span
-	event     *ptrace.SpanEvent
-	logRecord *plog.LogRecord
-	metric    *pmetric.Metric
-	curTime   time.Time
+	headers          http.Header
+	resource         *pcommon.Resource
+	scope            *pcommon.InstrumentationScope
+	span             *ptrace.Span
+	event            *ptrace.SpanEvent
+	logRecord        *plog.LogRecord
+	metric           *pmetric.Metric
+	metricAttributes map[string]any
+	curTime          time.Time
 
 	herokuProjectExtractor func(context.Context, string) (string, int)
 }
@@ -89,7 +90,7 @@ type extractFieldsParams struct {
 func extractFields(ctx context.Context, params extractFieldsParams) (*extractedFields, error) {
 	fields := newExtractedFields()
 
-	var resourceAttributes, scopeAttributes, spanAttributes, spanEventAttributes, logAttributes, metricAttributes map[string]any
+	var resourceAttributes, scopeAttributes, spanAttributes, spanEventAttributes, logAttributes, metricMetadata, metricAttributes map[string]any
 	if params.resource != nil {
 		resourceAttributes = params.resource.Attributes().AsRaw()
 	}
@@ -171,10 +172,14 @@ func extractFields(ctx context.Context, params extractFieldsParams) (*extractedF
 	}
 
 	if params.metric != nil {
-		metricAttributes = params.metric.Metadata().AsRaw()
+		metricMetadata = params.metric.Metadata().AsRaw()
 		fields.metricName = params.metric.Name()
 		fields.metricDescription = params.metric.Description()
 		fields.metricUnit = params.metric.Unit()
+	}
+
+	if params.metricAttributes != nil {
+		metricAttributes = params.metricAttributes
 	}
 
 	originalAttrs := mergeMaps(
@@ -183,6 +188,7 @@ func extractFields(ctx context.Context, params extractFieldsParams) (*extractedF
 		spanEventAttributes,
 		scopeAttributes,
 		logAttributes,
+		metricMetadata,
 		metricAttributes,
 	)
 
