@@ -1,4 +1,5 @@
 -- Default Sum metrics table DDL
+-- TODO(vkorolik) break out into different tables
 CREATE TABLE IF NOT EXISTS metrics (
     ProjectID UInt32,
     ServiceName LowCardinality(String),
@@ -34,13 +35,11 @@ CREATE TABLE IF NOT EXISTS metrics (
     ValueAtQuantiles Nested(
         Quantile Float64,
         Value Float64
-    ),
-	INDEX idx_attr_key mapKeys(Attributes) TYPE bloom_filter(0.01) GRANULARITY 1,
-	INDEX idx_attr_value mapValues(Attributes) TYPE bloom_filter(0.01) GRANULARITY 1
+    )
 ) ENGINE = MergeTree()
 TTL toDateTime(Timestamp) + toIntervalDay(RetentionDays)
 PARTITION BY toDate(Timestamp)
-ORDER BY (ProjectID, toUnixTimestamp64Nano(Timestamp), ServiceName, MetricName, Attributes)
+ORDER BY (ProjectID, toUnixTimestamp64Nano(Timestamp))
 SETTINGS index_granularity = 8192,
     min_rows_for_wide_part = 0,
     min_bytes_for_wide_part = 0,
