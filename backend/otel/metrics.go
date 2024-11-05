@@ -7,6 +7,11 @@ import (
 	"go.opentelemetry.io/collector/pdata/pmetric"
 )
 
+func getMetricRetention(projectID int) uint8 {
+	// TODO(vkorolik) customizeable metrics retention
+	return 30
+}
+
 type DataPoint interface {
 	ToMetricRow(ctx context.Context, metricType pmetric.MetricType, fields *extractedFields) *clickhouse.MetricRow
 	ExtractAttributes() map[string]any
@@ -29,12 +34,11 @@ func (dp *NumberDataPoint) ToMetricRow(ctx context.Context, metricType pmetric.M
 		MetricDescription: fields.metricDescription,
 		MetricUnit:        fields.metricUnit,
 		Attributes:        fields.attrs,
-		Type:              metricType,
+		MetricType:        metricType,
 		Timestamp:         fields.timestamp,
 		StartTimestamp:    dp.StartTimestamp().AsTime(),
-		// TODO(vkorolik) customizeable metrics retention
-		RetentionDays: 30,
-		Flags:         uint32(dp.Flags()),
+		RetentionDays:     getMetricRetention(fields.projectIDInt),
+		Flags:             uint32(dp.Flags()),
 		// TODO(vkorolik)
 		ExemplarsAttributes:      nil,
 		ExemplarsTimestamp:       nil,
@@ -68,18 +72,17 @@ func (dp *HistogramDataPoint) ToMetricRow(ctx context.Context, metricType pmetri
 		MetricDescription: fields.metricDescription,
 		MetricUnit:        fields.metricUnit,
 		Attributes:        fields.attrs,
-		Type:              metricType,
+		MetricType:        metricType,
 		Timestamp:         fields.timestamp,
 		StartTimestamp:    dp.StartTimestamp().AsTime(),
-		// TODO(vkorolik) customizeable metrics retention
-		RetentionDays:  30,
-		Flags:          uint32(dp.Flags()),
-		Count:          dp.Count(),
-		Sum:            dp.Sum(),
-		BucketCounts:   dp.BucketCounts().AsRaw(),
-		ExplicitBounds: dp.ExplicitBounds().AsRaw(),
-		Min:            dp.Min(),
-		Max:            dp.Max(),
+		RetentionDays:     getMetricRetention(fields.projectIDInt),
+		Flags:             uint32(dp.Flags()),
+		Count:             dp.Count(),
+		Sum:               dp.Sum(),
+		BucketCounts:      dp.BucketCounts().AsRaw(),
+		ExplicitBounds:    dp.ExplicitBounds().AsRaw(),
+		Min:               dp.Min(),
+		Max:               dp.Max(),
 		// TODO(vkorolik)
 		ExemplarsAttributes:      nil,
 		ExemplarsTimestamp:       nil,
@@ -140,14 +143,13 @@ func (dp *SummaryDataPoint) ToMetricRow(ctx context.Context, metricType pmetric.
 		MetricDescription: fields.metricDescription,
 		MetricUnit:        fields.metricUnit,
 		Attributes:        fields.attrs,
-		Type:              metricType,
+		MetricType:        metricType,
 		Timestamp:         fields.timestamp,
 		StartTimestamp:    dp.StartTimestamp().AsTime(),
-		// TODO(vkorolik) customizeable metrics retention
-		RetentionDays: 30,
-		Flags:         uint32(dp.Flags()),
-		Count:         dp.Count(),
-		Sum:           dp.Sum(),
+		RetentionDays:     getMetricRetention(fields.projectIDInt),
+		Flags:             uint32(dp.Flags()),
+		Count:             dp.Count(),
+		Sum:               dp.Sum(),
 		// TODO(vkorolik) implement
 		ValueAtQuantilesQuantile: nil,
 		ValueAtQuantilesValue:    nil,

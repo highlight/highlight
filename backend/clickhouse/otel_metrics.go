@@ -33,7 +33,7 @@ type MetricRow struct {
 	ExemplarsTraceID         []string            `json:"Exemplars.TraceID" ch:"Exemplars.TraceID"`
 	ExemplarsSecureSessionID []string            `json:"Exemplars.SecureSessionID" ch:"Exemplars.SecureSessionID"`
 
-	Type           pmetric.MetricType
+	MetricType     pmetric.MetricType `ch:"Type"`
 	Value          float64
 	Count          uint64
 	Sum            float64
