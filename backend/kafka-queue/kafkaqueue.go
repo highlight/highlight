@@ -72,6 +72,7 @@ const (
 	TopicTypeBatched  TopicType = "batched"
 	TopicTypeDataSync TopicType = "datasync"
 	TopicTypeTraces   TopicType = "traces"
+	TopicTypeMetrics  TopicType = "metrics"
 )
 
 type GetTopicOptions struct {
@@ -488,6 +489,8 @@ func (p *Queue) deserializeMessage(compressed []byte) (RetryableMessage, error) 
 		msg = &TraceRowMessage{}
 	} else if msgType.Type == PushSessionEvents {
 		msg = &SessionEventRowMessage{}
+	} else if msgType.Type == PushOTeLMetrics {
+		msg = &OTeLMetricsMessage{}
 	} else {
 		msg = &Message{}
 	}

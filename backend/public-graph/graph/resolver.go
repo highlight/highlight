@@ -86,6 +86,7 @@ type Resolver struct {
 	BatchedQueue       kafka_queue.MessageQueue
 	DataSyncQueue      kafka_queue.MessageQueue
 	TracesQueue        kafka_queue.MessageQueue
+	MetricsQueue      kafka_queue.MessageQueue
 	MailClient         *sendgrid.Client
 	StorageClient      storage.Client
 	EmbeddingsClient   embeddings.Client
@@ -2020,7 +2021,7 @@ func (r *Resolver) PushMetricsImpl(ctx context.Context, projectVerboseID *string
 			WithEvents([]map[string]any{event}))
 	}
 
-	// TODO(vkorolik) write to an actual metrics table
+	// TODO(vkorolik) write to an actual metrics table via kafka_queue.PushOTeLMetrics
 	var messages []kafka_queue.RetryableMessage
 	for _, traceRow := range traceRows {
 		if !r.IsTraceIngested(ctx, traceRow) {

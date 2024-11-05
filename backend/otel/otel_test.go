@@ -133,6 +133,7 @@ func TestHandler_HandleLog(t *testing.T) {
 		ProducerQueue:      &producer,
 		BatchedQueue:       &producer,
 		TracesQueue:        &producer,
+		MetricsQueue:  &producer,
 		DB:                 db,
 		Clickhouse:         chClient,
 	}
@@ -223,6 +224,7 @@ func TestHandler_HandleTrace(t *testing.T) {
 			ProducerQueue:      &producer,
 			BatchedQueue:       &producer,
 			TracesQueue:        &producer,
+			MetricsQueue:  &producer,
 			DB:                 db,
 			Clickhouse:         chClient,
 		}

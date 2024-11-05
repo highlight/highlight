@@ -20,6 +20,11 @@ import (
 	"time"
 )
 
+func (r *Resolver) IsMetricIngested(ctx context.Context, trace *clickhouse.MetricRow) bool {
+	// TODO(vkorolik) not implemented
+	return true
+}
+
 func (r *Resolver) IsTraceIngested(ctx context.Context, trace *clickhouse.TraceRow) bool {
 	if !r.IsTraceIngestedByFilter(ctx, trace) {
 		return false

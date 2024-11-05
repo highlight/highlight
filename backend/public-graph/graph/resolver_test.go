@@ -98,6 +98,7 @@ func TestMain(m *testing.M) {
 		EmbeddingsClient: &mockEmbeddingsClient{},
 		DataSyncQueue:    &kafka_queue.MockMessageQueue{},
 		TracesQueue:      &kafka_queue.MockMessageQueue{},
+		MetricsQueue:     &kafka_queue.MockMessageQueue{},
 	}
 	code := m.Run()
 	os.Exit(code)
