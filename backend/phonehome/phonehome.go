@@ -94,7 +94,7 @@ func GetDefaultAttributes() ([]attribute.KeyValue, error) {
 var tracer = noop.NewTracerProvider().Tracer("")
 
 func Start(ctx context.Context) error {
-	tracerProvider, err := highlight.CreateTracerProvider(DataEndpoint)
+	tracerProvider, err := highlight.CreateTracerProvider(ctx, DataEndpoint)
 	if err != nil {
 		return err
 	}

@@ -9,13 +9,18 @@ import (
 
 type DataPoint interface {
 	ToMetricRow(ctx context.Context, metricType pmetric.MetricType, fields *extractedFields) *clickhouse.MetricRow
+	ExtractAttributes() map[string]any
 }
 
 type NumberDataPoint struct {
 	pmetric.NumberDataPoint
 }
 
-func (dp NumberDataPoint) ToMetricRow(ctx context.Context, metricType pmetric.MetricType, fields *extractedFields) *clickhouse.MetricRow {
+func (dp *NumberDataPoint) ExtractAttributes() map[string]any {
+	return dp.Attributes().AsRaw()
+}
+
+func (dp *NumberDataPoint) ToMetricRow(ctx context.Context, metricType pmetric.MetricType, fields *extractedFields) *clickhouse.MetricRow {
 	m := clickhouse.MetricRow{
 		ProjectID:         uint32(fields.projectIDInt),
 		ServiceName:       fields.serviceName,
@@ -50,7 +55,11 @@ type HistogramDataPoint struct {
 	pmetric.HistogramDataPoint
 }
 
-func (dp HistogramDataPoint) ToMetricRow(ctx context.Context, metricType pmetric.MetricType, fields *extractedFields) *clickhouse.MetricRow {
+func (dp *HistogramDataPoint) ExtractAttributes() map[string]any {
+	return dp.Attributes().AsRaw()
+}
+
+func (dp *HistogramDataPoint) ToMetricRow(ctx context.Context, metricType pmetric.MetricType, fields *extractedFields) *clickhouse.MetricRow {
 	m := clickhouse.MetricRow{
 		ProjectID:         uint32(fields.projectIDInt),
 		ServiceName:       fields.serviceName,
@@ -86,7 +95,11 @@ type ExponentialHistogramDataPoint struct {
 	pmetric.ExponentialHistogramDataPoint
 }
 
-func (dp ExponentialHistogramDataPoint) ToMetricRow(ctx context.Context, metricType pmetric.MetricType, fields *extractedFields) *clickhouse.MetricRow {
+func (dp *ExponentialHistogramDataPoint) ExtractAttributes() map[string]any {
+	return dp.Attributes().AsRaw()
+}
+
+func (dp *ExponentialHistogramDataPoint) ToMetricRow(ctx context.Context, metricType pmetric.MetricType, fields *extractedFields) *clickhouse.MetricRow {
 	log.WithContext(ctx).
 		WithFields(log.Fields{
 			"fields":         fields,
@@ -112,6 +125,10 @@ func (dp ExponentialHistogramDataPoint) ToMetricRow(ctx context.Context, metricT
 
 type SummaryDataPoint struct {
 	pmetric.SummaryDataPoint
+}
+
+func (dp *SummaryDataPoint) ExtractAttributes() map[string]any {
+	return dp.Attributes().AsRaw()
 }
 
 func (dp *SummaryDataPoint) ToMetricRow(ctx context.Context, metricType pmetric.MetricType, fields *extractedFields) *clickhouse.MetricRow {

@@ -539,21 +539,6 @@ func (o *Handler) HandleMetric(w http.ResponseWriter, r *http.Request) {
 			metrics := scopeMetric.Metrics()
 			for k := 0; k < metrics.Len(); k++ {
 				metric := metrics.At(k)
-				fields, err := extractFields(r.Context(), extractFieldsParams{
-					headers:  r.Header,
-					resource: &resource,
-					scope:    &scope,
-					metric:   &metric,
-					curTime:  curTime,
-				})
-				if err != nil {
-					lg(ctx, fields).WithError(err).Info("failed to extract fields from metric")
-					continue
-				}
-				if _, ok := projectMetrics[fields.projectIDInt]; !ok {
-					projectMetrics[fields.projectIDInt] = []*clickhouse.MetricRow{}
-				}
-
 				var dps []DataPoint
 				if metric.Type() == pmetric.MetricTypeGauge {
 					for l := 0; l < metric.Gauge().DataPoints().Len(); l++ {
@@ -577,6 +562,21 @@ func (o *Handler) HandleMetric(w http.ResponseWriter, r *http.Request) {
 					}
 				}
 				for _, dp := range dps {
+					fields, err := extractFields(r.Context(), extractFieldsParams{
+						headers:          r.Header,
+						resource:         &resource,
+						scope:            &scope,
+						metric:           &metric,
+						metricAttributes: dp.ExtractAttributes(),
+						curTime:          curTime,
+					})
+					if err != nil {
+						lg(ctx, fields).WithError(err).Info("failed to extract fields from metric data point")
+						continue
+					}
+					if _, ok := projectMetrics[fields.projectIDInt]; !ok {
+						projectMetrics[fields.projectIDInt] = []*clickhouse.MetricRow{}
+					}
 					projectMetrics[fields.projectIDInt] = append(projectMetrics[fields.projectIDInt], dp.ToMetricRow(ctx, metric.Type(), fields))
 				}
 			}
