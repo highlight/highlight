@@ -5,7 +5,7 @@ export function useGraphData(): GraphContext {
 	const graphData = useRef<GraphData>({})
 
 	return {
-		graphData: graphData.current,
+		graphData,
 		setGraphData: (
 			graph?: GraphData | ((graph?: GraphData) => GraphData),
 		) => {
