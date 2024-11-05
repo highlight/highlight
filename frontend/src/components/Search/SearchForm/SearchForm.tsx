@@ -701,7 +701,9 @@ export const Search: React.FC<{
 				margin="auto"
 			>
 				<Box
-					cssClass={styles.comboboxTagsContainer}
+					cssClass={clsx(styles.comboboxTagsContainer, {
+						[styles.comboboxTagsContainerDisabled]: disabled,
+					})}
 					style={{
 						left: hideIcon ? 4 : 2,
 						paddingLeft: hideIcon ? 2 : 38,
