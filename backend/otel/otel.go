@@ -554,31 +554,30 @@ func (o *Handler) HandleMetric(w http.ResponseWriter, r *http.Request) {
 					projectMetrics[fields.projectIDInt] = []*clickhouse.MetricRow{}
 				}
 
+				var dps []DataPoint
 				if metric.Type() == pmetric.MetricTypeGauge {
 					for l := 0; l < metric.Gauge().DataPoints().Len(); l++ {
-						dp := &NumberDataPoint{metric.Gauge().DataPoints().At(l)}
-						projectMetrics[fields.projectIDInt] = append(projectMetrics[fields.projectIDInt], dp.ToMetricRow(ctx, fields))
+						dps = append(dps, &NumberDataPoint{metric.Gauge().DataPoints().At(l)})
 					}
 				} else if metric.Type() == pmetric.MetricTypeSum {
 					for l := 0; l < metric.Sum().DataPoints().Len(); l++ {
-						dp := &NumberDataPoint{metric.Sum().DataPoints().At(l)}
-						projectMetrics[fields.projectIDInt] = append(projectMetrics[fields.projectIDInt], dp.ToMetricRow(ctx, fields))
+						dps = append(dps, &NumberDataPoint{metric.Sum().DataPoints().At(l)})
 					}
 				} else if metric.Type() == pmetric.MetricTypeHistogram {
 					for l := 0; l < metric.Histogram().DataPoints().Len(); l++ {
-						dp := &HistogramDataPoint{metric.Histogram().DataPoints().At(l)}
-						projectMetrics[fields.projectIDInt] = append(projectMetrics[fields.projectIDInt], dp.ToMetricRow(ctx, fields))
+						dps = append(dps, &HistogramDataPoint{metric.Histogram().DataPoints().At(l)})
 					}
 				} else if metric.Type() == pmetric.MetricTypeExponentialHistogram {
 					for l := 0; l < metric.ExponentialHistogram().DataPoints().Len(); l++ {
-						dp := &ExponentialHistogramDataPoint{metric.ExponentialHistogram().DataPoints().At(l)}
-						projectMetrics[fields.projectIDInt] = append(projectMetrics[fields.projectIDInt], dp.ToMetricRow(ctx, fields))
+						dps = append(dps, &ExponentialHistogramDataPoint{metric.ExponentialHistogram().DataPoints().At(l)})
 					}
 				} else if metric.Type() == pmetric.MetricTypeSummary {
 					for l := 0; l < metric.Summary().DataPoints().Len(); l++ {
-						dp := &SummaryDataPoint{metric.Summary().DataPoints().At(l)}
-						projectMetrics[fields.projectIDInt] = append(projectMetrics[fields.projectIDInt], dp.ToMetricRow(ctx, fields))
+						dps = append(dps, &SummaryDataPoint{metric.Summary().DataPoints().At(l)})
 					}
+				}
+				for _, dp := range dps {
+					projectMetrics[fields.projectIDInt] = append(projectMetrics[fields.projectIDInt], dp.ToMetricRow(ctx, metric.Type(), fields))
 				}
 			}
 		}

@@ -614,6 +614,7 @@ func main() {
 			go w.GetPublicWorker(kafkaqueue.TopicTypeBatched)(ctx)
 			go w.GetPublicWorker(kafkaqueue.TopicTypeDataSync)(ctx)
 			go w.GetPublicWorker(kafkaqueue.TopicTypeTraces)(ctx)
+			go w.GetPublicWorker(kafkaqueue.TopicTypeMetrics)(ctx)
 			go w.StartLogAlertWatcher(ctx)
 			go w.StartMetricAlertWatcher(ctx)
 			go w.StartSessionDeleteJob(ctx)
