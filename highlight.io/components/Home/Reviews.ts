@@ -5,7 +5,6 @@ import Mage from '../../public/images/companies/mage.png'
 import Portal from '../../public/images/companies/portal.png'
 
 import BasedashAvatar from '../../public/images/avatars/basedash.jpg'
-import ImpiraAvatar from '../../public/images/avatars/impira.jpg'
 import KnockAvatar from '../../public/images/avatars/knock.jpg'
 import MageAvatar from '../../public/images/avatars/mage.jpg'
 import PortalAvatar from '../../public/images/avatars/portal.jpg'
