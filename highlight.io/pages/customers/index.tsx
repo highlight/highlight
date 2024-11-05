@@ -80,7 +80,6 @@ const Customers = ({ customers }: { customers: Customer[] }) => {
 		'knock',
 		'hightouch',
 		'basedash',
-		'impira',
 		'mage',
 		'airplane',
 		'examedi',

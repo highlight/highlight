@@ -1,6 +1,5 @@
 import { StaticImageData } from 'next/legacy/image'
 import Basedash from '../../public/images/companies/basedash.png'
-import Impira from '../../public/images/companies/impira.png'
 import Knock from '../../public/images/companies/knock.png'
 import Mage from '../../public/images/companies/mage.png'
 import Portal from '../../public/images/companies/portal.png'
@@ -31,16 +30,6 @@ export const REVIEWS: Review[] = [
 			image: BasedashAvatar,
 			name: 'Max Musing',
 			role: 'Founder & CEO',
-		},
-	},
-	{
-		companyLogo: Impira,
-		scale: 1,
-		text: `Before Highlight, I was flying blind, but now I can see exactly where users are succeeding, failing, and running into issues.`,
-		author: {
-			image: ImpiraAvatar,
-			name: 'Lorilyn McCue',
-			role: 'Head of Product',
 		},
 	},
 	{
