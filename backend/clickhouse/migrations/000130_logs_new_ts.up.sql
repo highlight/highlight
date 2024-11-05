@@ -23,8 +23,5 @@ CREATE TABLE IF NOT EXISTS logs_new_ts (
 ORDER BY (ProjectId, Timestamp, UUID) TTL toDateTime(Timestamp) + toIntervalDay(30) SETTINGS ttl_only_drop_parts = 1,
     index_granularity = 8192,
     allow_experimental_block_number_column = 1;
-CREATE MATERIALIZED VIEW IF NOT EXISTS logs_new_ts_mv TO logs_new_ts AS
-SELECT *
-FROM logs;
 EXCHANGE TABLES logs
 AND logs_new_ts;
