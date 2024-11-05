@@ -117,9 +117,11 @@ const getHighlightConfig = async (
 ) => {
 	const defaultOpts = await getDefaultOpts(config, highlightOpts)
 
-
 	if (defaultOpts.configureHighlightProxy ){
-		defaultOpts.sourceMapsBackendUrl = "/highlight-events"
+			const backendUrl = process.env.NEXT_PUBLIC_HIGHLIGHT_BACKEND_URL;
+			const url = new URL(backendUrl || 'http://localhost:3000');
+			url.pathname = '/highlight-events';
+			defaultOpts.sourceMapsBackendUrl = url.toString();
 	}
 
 	let newRewrites = config.rewrites
