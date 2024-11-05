@@ -1069,7 +1069,8 @@ export const GraphingEditor: React.FC = () => {
 											/>
 										</LabeledRow>
 										{settings.groupByEnabled &&
-										viewType !== 'Table' ? (
+										viewType !== 'Table' &&
+										viewType !== 'Funnel chart' ? (
 											<Box
 												display="flex"
 												flexDirection="row"
