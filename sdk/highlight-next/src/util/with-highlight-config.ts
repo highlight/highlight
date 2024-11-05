@@ -117,6 +117,11 @@ const getHighlightConfig = async (
 ) => {
 	const defaultOpts = await getDefaultOpts(config, highlightOpts)
 
+
+	if (defaultOpts.configureHighlightProxy ){
+		defaultOpts.sourceMapsBackendUrl = "/highlight-events"
+	}
+
 	let newRewrites = config.rewrites
 	if (defaultOpts.uploadSourceMaps || defaultOpts.configureHighlightProxy) {
 		newRewrites = async () => {
