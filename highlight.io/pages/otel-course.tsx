@@ -262,9 +262,13 @@ export default function OTelCourse() {
 								<br />
 								<button
 									className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition-colors"
-									onClick={() =>
-										handleVideoClick(COURSE_VIDEOS[0].id)
-									}
+									onClick={() => {
+										if (COURSE_VIDEOS[0].id) {
+											handleVideoClick(
+												COURSE_VIDEOS[0].id,
+											)
+										}
+									}}
 								>
 									Start First Video
 								</button>
@@ -311,9 +315,11 @@ export default function OTelCourse() {
 									<div className="absolute inset-0 bg-black bg-opacity-40 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity duration-300">
 										<button
 											className="bg-red-600 text-white rounded-full p-3 hover:bg-red-700 transition-colors transform hover:scale-110 duration-300"
-											onClick={() =>
-												handleVideoClick(video.id)
-											}
+											onClick={() => {
+												if (video.id) {
+													handleVideoClick(video.id)
+												}
+											}}
 										>
 											<svg
 												xmlns="http://www.w3.org/2000/svg"
