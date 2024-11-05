@@ -10,6 +10,8 @@ import Pipe from '../../../public/images/companies/pipe.png'
 import Portal from '../../../public/images/companies/portal.png'
 import Secoda from '../../../public/images/companies/secoda.svg'
 import BlueCross from '../../../public/images/companies/bcbs.png'
+import Whop from '../../../public/images/companies/whop.png'
+import Aurora from '../../../public/images/companies/aurora.svg'
 import styles from '../../Home/Home.module.scss'
 
 export const CustomerReel = () => {
@@ -61,6 +63,18 @@ export const CustomerReel = () => {
 				<Image
 					src={Secoda}
 					alt="Secoda"
+					className={styles.scaleHeight}
+					style={{ transform: 'scale(0.8)' }}
+				/>
+				<Image
+					src={Whop}
+					alt="Whop"
+					className={styles.scaleHeight}
+					style={{ transform: 'scale(0.8)' }}
+				/>
+				<Image
+					src={Aurora}
+					alt="Aurora"
 					className={styles.scaleHeight}
 					style={{ transform: 'scale(0.8)' }}
 				/>
