@@ -164,7 +164,7 @@ func TestExtractFields_ExtractMetricEventName(t *testing.T) {
 	})
 	fields, err := extractFields(ctx, extractFieldsParams{resource: &resource})
 	assert.NoError(t, err)
-	assert.Equal(t, fields.metricEventName, "metric_name")
+	assert.Equal(t, fields.metricName, "metric_name")
 	assert.Equal(t, fields.attrs, map[string]string{})
 }
 
