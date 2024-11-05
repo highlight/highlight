@@ -54,12 +54,6 @@ export const CustomerReel = () => {
 					alt="Airplane"
 					className={styles.scaleHeight}
 				/>
-				<div
-					className={classNames(
-						styles.tabletGraphic,
-						styles.hideMobile,
-					)}
-				></div>
 				<Image
 					src={Secoda}
 					alt="Secoda"
