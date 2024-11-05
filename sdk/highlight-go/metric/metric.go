@@ -9,6 +9,8 @@ import (
 	"time"
 )
 
+// TODO(vkorolik) use otel metrics, golang sdk otel metrics
+
 // Histogram tracks the statistical distribution of a set of values on each host.
 func Histogram(ctx context.Context, name string, value float64, tags []attribute.KeyValue, rate float64) {
 	if rand.Float64() > math.Min(rate, highlight.GetMetricSamplingRate()) {

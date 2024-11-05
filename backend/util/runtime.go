@@ -51,6 +51,7 @@ const (
 	PublicWorkerBatched      Handler = "public-worker-batched"
 	PublicWorkerDataSync     Handler = "public-worker-datasync"
 	PublicWorkerTraces       Handler = "public-worker-traces"
+	PublicWorkerMetrics      Handler = "public-worker-metrics"
 	AutoResolveStaleErrors   Handler = "auto-resolve-stale-errors"
 	StartSessionDeleteJob    Handler = "start-session-delete-job"
 	ScheduledTasks           Handler = "scheduled-tasks"
@@ -58,7 +59,7 @@ const (
 
 func (lt Handler) IsValid() bool {
 	switch lt {
-	case ReportStripeUsage, MigrateDB, MetricMonitors, LogAlerts, BackfillStackFrames, RefreshMaterializedViews, PublicWorkerMain, PublicWorkerBatched, PublicWorkerDataSync, PublicWorkerTraces, AutoResolveStaleErrors:
+	case ReportStripeUsage, MigrateDB, MetricMonitors, LogAlerts, BackfillStackFrames, RefreshMaterializedViews, PublicWorkerMain, PublicWorkerBatched, PublicWorkerDataSync, PublicWorkerTraces, PublicWorkerMetrics, AutoResolveStaleErrors:
 		return true
 	}
 	return false

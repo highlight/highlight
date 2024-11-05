@@ -164,7 +164,7 @@ func (k *KafkaBatchWorker) flush(ctx context.Context) error {
 		}
 
 		publicWorkerMessage, ok := lastMsg.(*kafka_queue.Message)
-		if !ok && lastMsg.GetType() != kafkaqueue.PushLogsFlattened && lastMsg.GetType() != kafkaqueue.PushTracesFlattened && lastMsg.GetType() != kafkaqueue.PushSessionEvents {
+		if !ok && lastMsg.GetType() != kafkaqueue.PushLogsFlattened && lastMsg.GetType() != kafkaqueue.PushTracesFlattened && lastMsg.GetType() != kafkaqueue.PushOTeLMetrics && lastMsg.GetType() != kafkaqueue.PushSessionEvents {
 			log.WithContext(ctx).Errorf("type assertion failed for *kafka_queue.Message")
 			continue
 		}

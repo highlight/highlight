@@ -1366,6 +1366,8 @@ func (w *Worker) GetHandler(ctx context.Context, handlerFlag util.Handler) func(
 		return w.GetPublicWorker(kafkaqueue.TopicTypeDataSync)
 	case util.PublicWorkerTraces:
 		return w.GetPublicWorker(kafkaqueue.TopicTypeTraces)
+	case util.PublicWorkerMetrics:
+		return w.GetPublicWorker(kafkaqueue.TopicTypeMetrics)
 	case util.AutoResolveStaleErrors:
 		return w.AutoResolveStaleErrors
 	case util.StartSessionDeleteJob:

@@ -618,8 +618,8 @@ func main() {
 			go w.GetPublicWorker(kafkaqueue.TopicTypeBatched)(ctx)
 			go w.GetPublicWorker(kafkaqueue.TopicTypeDataSync)(ctx)
 			go w.GetPublicWorker(kafkaqueue.TopicTypeTraces)(ctx)
+			go w.GetPublicWorker(kafkaqueue.TopicTypeMetrics)(ctx)
 			go w.ScheduledTasks(ctx)
-
 			if env.IsDevEnv() && env.UseSSL() {
 				log.WithContext(ctx).
 					WithField("runtime", runtimeParsed).
