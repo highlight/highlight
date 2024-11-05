@@ -243,6 +243,22 @@ const Home: NextPage = () => {
 					</div>
 				</Section>
 				<Section>
+					<CompaniesReel />
+				</Section>
+				<Section>
+					<div className={styles.anchorFeature}>
+						<div className={styles.anchorHead}>
+							<Typography type="copy2" onDark>
+								Don&apos;t take our word.{' '}
+								<Link href="/customers">
+									Read our customer review section →
+								</Link>
+							</Typography>
+						</div>
+					</div>
+				</Section>
+				<CustomerReviewTrack />
+				<Section>
 					<div className={styles.anchorFeature} id="features">
 						<div className={styles.anchorTitle}>
 							<h2>
@@ -292,22 +308,6 @@ const Home: NextPage = () => {
 				</div>
 				<BigHeroArt />
 				<OSSCallToAction />
-				<Section>
-					<CompaniesReel />
-				</Section>
-				<Section>
-					<div className={styles.anchorFeature}>
-						<div className={styles.anchorHead}>
-							<Typography type="copy2" onDark>
-								Don&apos;t take our word.{' '}
-								<Link href="/customers">
-									Read our customer review section →
-								</Link>
-							</Typography>
-						</div>
-					</div>
-				</Section>
-				<CustomerReviewTrack />
 				<FooterCallToAction />
 			</main>
 			<Footer />
