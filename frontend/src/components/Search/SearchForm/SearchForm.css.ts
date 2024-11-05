@@ -66,6 +66,11 @@ export const comboboxTagsContainer = style([
 	},
 ])
 
+export const comboboxTagsContainerDisabled = style({
+	paddingRight: 6,
+	maxWidth: 'unset',
+})
+
 export const comboboxTag = style({
 	boxShadow: `0 0 0 1px ${vars.theme.static.divider.weak}`,
 	borderRadius: vars.borderRadius[4],
