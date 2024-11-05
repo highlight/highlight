@@ -371,7 +371,7 @@ func TestHandleErrorAndGroup(t *testing.T) {
 					t.Fatal(e.Wrap(err, "error making mapped stacktrace"))
 				}
 
-				errorGroup, err := resolver.HandleErrorAndGroup(context.TODO(), &errorObj, structuredStackTrace, nil, 1, &workspace)
+				errorGroup, err := resolver.HandleErrorAndGroup(context.TODO(), &errorObj, structuredStackTrace, 1, &workspace)
 				if err != nil {
 					t.Fatal(e.Wrap(err, "error handling error and group"))
 				}
@@ -423,7 +423,7 @@ func TestMatchErrorsWithSameTracesDifferentBodies(t *testing.T) {
 			StackTrace: &stacktrace,
 		}
 
-		errorGroup1, err := resolver.HandleErrorAndGroup(context.TODO(), &errorObject, structuredStackTrace, nil, project.ID, nil)
+		errorGroup1, err := resolver.HandleErrorAndGroup(context.TODO(), &errorObject, structuredStackTrace, project.ID, nil)
 		assert.NoError(t, err)
 
 		errorObject = model.ErrorObject{
@@ -432,7 +432,7 @@ func TestMatchErrorsWithSameTracesDifferentBodies(t *testing.T) {
 			StackTrace: &stacktrace,
 		}
 
-		errorGroup2, err := resolver.HandleErrorAndGroup(context.TODO(), &errorObject, structuredStackTrace, nil, project.ID, nil)
+		errorGroup2, err := resolver.HandleErrorAndGroup(context.TODO(), &errorObject, structuredStackTrace, project.ID, nil)
 		assert.NoError(t, err)
 
 		assert.Equal(t, errorGroup1.ID, errorGroup2.ID, "should return the same error group id")
@@ -460,7 +460,7 @@ func TestUpdatingErrorState(t *testing.T) {
 			StackTrace: &stacktrace,
 		}
 
-		errorGroup, err := resolver.HandleErrorAndGroup(ctx, &errorObject1, structuredStackTrace, nil, project.ID, nil)
+		errorGroup, err := resolver.HandleErrorAndGroup(ctx, &errorObject1, structuredStackTrace, project.ID, nil)
 		assert.NoError(t, err)
 		assert.Equal(t, errorGroup.State, privateModel.ErrorStateOpen)
 
@@ -476,7 +476,7 @@ func TestUpdatingErrorState(t *testing.T) {
 			StackTrace: &stacktrace,
 		}
 
-		errorGroup, err = resolver.HandleErrorAndGroup(ctx, &errorObject2, structuredStackTrace, nil, project.ID, nil)
+		errorGroup, err = resolver.HandleErrorAndGroup(ctx, &errorObject2, structuredStackTrace, project.ID, nil)
 		assert.NoError(t, err)
 		assert.Equal(t, errorGroup.State, privateModel.ErrorStateOpen)
 
@@ -492,7 +492,7 @@ func TestUpdatingErrorState(t *testing.T) {
 			StackTrace: &stacktrace,
 		}
 
-		errorGroup, err = resolver.HandleErrorAndGroup(ctx, &errorObject3, structuredStackTrace, nil, project.ID, nil)
+		errorGroup, err = resolver.HandleErrorAndGroup(ctx, &errorObject3, structuredStackTrace, project.ID, nil)
 		assert.NoError(t, err)
 		assert.Equal(t, privateModel.ErrorStateIgnored, errorGroup.State) // Should stay ignored
 

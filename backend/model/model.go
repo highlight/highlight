@@ -133,7 +133,6 @@ var Models = []interface{}{
 	&ErrorObject{},
 	&ErrorGroup{},
 	&ErrorGroupEmbeddings{},
-	&ErrorField{},
 	&SavedSegment{},
 	&Organization{},
 	&Admin{},
@@ -1048,7 +1047,6 @@ type ErrorGroup struct {
 	MappedStackTrace *string
 	State            modelInputs.ErrorState `json:"state" gorm:"default:OPEN"`
 	SnoozedUntil     *time.Time             `json:"snoozed_until"`
-	Fields           []*ErrorField          `gorm:"many2many:error_group_fields;" json:"fields"`
 	Fingerprints     []*ErrorFingerprint
 	FieldGroup       *string
 	Environments     string
@@ -1108,14 +1106,6 @@ type ErrorInstance struct {
 	ErrorObject ErrorObject `json:"error_object"`
 	NextID      *int        `json:"next_id"`
 	PreviousID  *int        `json:"previous_id"`
-}
-
-type ErrorField struct {
-	Model
-	ProjectID   int `json:"project_id"`
-	Name        string
-	Value       string
-	ErrorGroups []ErrorGroup `gorm:"many2many:error_group_fields;"`
 }
 
 type ErrorGroupEmbeddings struct {
