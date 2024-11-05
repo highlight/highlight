@@ -11,7 +11,7 @@ import Portal from '../../../public/images/companies/portal.png'
 import Secoda from '../../../public/images/companies/secoda.svg'
 import BlueCross from '../../../public/images/companies/bcbs.png'
 import Whop from '../../../public/images/companies/whop.png'
-import Aurora from '../../../public/images/companies/aurora.svg'
+import Aurora from '../../../public/images/companies/aurora.png'
 import styles from '../../Home/Home.module.scss'
 
 export const CustomerReel = () => {
