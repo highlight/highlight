@@ -108,22 +108,25 @@ export const AlertGraph: React.FC<Props> = ({
 							<>
 								<ReferenceLine
 									y={thresholdValue}
-									stroke="red"
+									strokeWidth="2px"
+									strokeDasharray="8 8"
+									strokeLinecap="round"
+									stroke="#C8C7CB"
 								/>
-								{thresholdCondition ===
-									ThresholdCondition.Above && (
-									<ReferenceArea
-										y1={thresholdValue}
-										opacity={0.5}
-										isFront
-									/>
-								)}
 								{thresholdCondition ===
 									ThresholdCondition.Below && (
 									<ReferenceArea
-										y2={thresholdValue}
-										opacity={0.5}
+										y1={thresholdValue}
 										isFront
+										fill="#F9F8F9"
+									/>
+								)}
+								{thresholdCondition ===
+									ThresholdCondition.Above && (
+									<ReferenceArea
+										y2={thresholdValue}
+										isFront
+										fill="#F9F8F9"
 									/>
 								)}
 							</>
