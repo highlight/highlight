@@ -1,5 +1,5 @@
 import { createContext } from '@util/context/context'
-import React, { RefObject } from 'react'
+import React from 'react'
 
 export type GraphData = { [graphID: string]: any[] }
 
