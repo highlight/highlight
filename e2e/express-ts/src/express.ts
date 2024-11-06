@@ -11,7 +11,7 @@ const port = 3003
 // This should be before any controllers (route definitions)
 app.use(Handlers.middleware(config))
 app.get('/', async (req, res) => {
-	await H.runWithHeaders(req.headers, async () => {
+	await H.runWithHeaders('custom /', req.headers, async () => {
 		const err = new Error('this is a test error', {
 			cause: { route: '/', foo: ['bar'] },
 		})
@@ -36,7 +36,7 @@ app.get('/', async (req, res) => {
 })
 
 app.get('/good', async (req, res) => {
-	await H.runWithHeaders(req.headers, () => {
+	await H.runWithHeaders('custom /good', req.headers, () => {
 		console.warn('doing some heavy work!')
 		let result = 0
 		for (let i = 0; i < 1000; i++) {
@@ -47,6 +47,10 @@ app.get('/good', async (req, res) => {
 
 		res.send('yay!')
 	})
+})
+
+app.get('/bad', async (req, res) => {
+	throw new Error('oh no, an error!')
 })
 
 // This should be before any other error middleware and after all controllers (route definitions)
