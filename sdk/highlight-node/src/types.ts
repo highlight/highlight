@@ -45,7 +45,14 @@ export interface NodeOptions extends HighlightOptions {
 	 * Set to try to serialize console object arguments into the message body.
 	 */
 	serializeConsoleAttributes?: boolean
+
+	/**
+	 * List of optional auto instrumentations to enable.
+	 */
+	autoInstrumentations?: AutoInstrumentations[]
 }
+
+type AutoInstrumentations = 'prisma'
 
 export interface HighlightContext {
 	secureSessionId: string | undefined

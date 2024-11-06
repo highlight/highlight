@@ -27,6 +27,7 @@
 		"access": "public"
 	},
 	"dependencies": {
+		"@prisma/instrumentation": "^5.22.0",
 		"require-in-the-middle": "^7.4.0"
 	},
 	"devDependencies": {

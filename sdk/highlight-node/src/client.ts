@@ -39,6 +39,7 @@ import { HIGHLIGHT_REQUEST_HEADER } from './sdk.js'
 import { Headers } from 'node-fetch'
 import type { HighlightContext, NodeOptions } from './types.js'
 import * as packageJson from '../package.json'
+import { PrismaInstrumentation } from '@prisma/instrumentation'
 
 const OTLP_HTTP = 'https://otel.highlight.io:4318'
 const FIVE_MINUTES = 1000 * 60 * 5
@@ -228,6 +229,21 @@ export class Highlight {
 		for (const [otelAttr, option] of Object.entries(OTEL_TO_OPTIONS)) {
 			if (options[option]) {
 				attributes[otelAttr] = options[option]
+			}
+		}
+
+		this._log(
+			'::: options.autoInstrumentations',
+			options.autoInstrumentations,
+		)
+		if (options.autoInstrumentations) {
+			if (options.autoInstrumentations.includes('prisma')) {
+				const {
+					PrismaInstrumentation,
+				} = require('@prisma/instrumentation')
+
+				this._log('::: setting up prisma instrumentation')
+				instrumentations.push(new PrismaInstrumentation())
 			}
 		}
 

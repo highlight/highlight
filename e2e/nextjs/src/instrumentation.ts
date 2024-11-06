@@ -10,6 +10,7 @@ export const highlightConfig = {
 	enableFsInstrumentation: true,
 	disableConsoleRecording: false,
 	debug: false,
+	autoInstrumentations: ['prisma'],
 } as NodeOptions
 
 export async function register() {

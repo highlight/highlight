@@ -7,7 +7,10 @@
 		"build": "next build",
 		"deploy": "yarn build && vercel build && vercel deploy --prebuilt",
 		"start": "next start -p 3005",
-		"lint": "next lint"
+		"lint": "next lint",
+		"prisma:migrate": "prisma migrate dev",
+		"prisma:pull": "prisma db pull",
+		"prisma:generate": "prisma generate"
 	},
 	"dependencies": {
 		"@highlight-run/next": "workspace:*",
@@ -39,6 +42,8 @@
 		"zod": "^3.22.4"
 	},
 	"devDependencies": {
+		"@prisma/client": "^5.22.0",
+		"prisma": "^5.22.0",
 		"vercel": "^37.5.2"
 	}
 }
