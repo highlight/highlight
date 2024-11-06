@@ -136,7 +136,6 @@ export type HighlightClassOptions = {
 	storageMode?: 'sessionStorage' | 'localStorage'
 	skipCookieSessionDataLoad?: true
 	sendMode?: 'webworker' | 'local'
-	enableOtelTracing?: HighlightOptions['enableOtelTracing']
 	otlpEndpoint?: HighlightOptions['otlpEndpoint']
 }
 

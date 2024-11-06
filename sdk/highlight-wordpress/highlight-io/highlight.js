@@ -11357,7 +11357,7 @@ spurious results.`)
 						{ enablePromisePatch: this.enablePromisePatch },
 					),
 				),
-				this.options.enableOtelTracing && this.listeners.push(KS),
+				this.listeners.push(KS),
 				et.setupNetworkListener(this, this.options)
 		}
 		stopListening() {
@@ -27492,7 +27492,7 @@ SessionSecureID: ${this.sessionData.sessionSecureID}`),
 					new Date().getTime() - this._lastSnapshotTime >= c &&
 					this.takeFullSnapshot(),
 					this.logger
-						.log(`Sending: ${s.length} events, ${o.length} messages, ${n.length} network resources, ${l.length} errors 
+						.log(`Sending: ${s.length} events, ${o.length} messages, ${n.length} network resources, ${l.length} errors
 To: ${this._backendUrl}
 Org: ${this.organizationID}
 SessionSecureID: ${this.sessionData.sessionSecureID}`)
