@@ -359,7 +359,6 @@ export const Search: React.FC<{
 		setQuery,
 		setAiMode,
 		recentSearches,
-		historyLoading,
 	} = useSearchContext()
 	const navigate = useNavigate()
 	const { currentWorkspace } = useApplicationContext()
@@ -421,6 +420,10 @@ export const Search: React.FC<{
 	// Show operators when we have an exact match for a key
 	const keyMatch = visibleItems.find((item) => item.name === activePart.text)
 	const showOperators = !!keyMatch
+
+	const visibleRecentSearch = recentSearches.filter((history) => {
+		return stringifySearchQuery(history.queryParts).indexOf(query) > -1
+	})
 
 	if (showOperators) {
 		let operators = [] as string[]
@@ -656,9 +659,8 @@ export const Search: React.FC<{
 			submitQuery(newQuery)
 			comboboxStore.setOpen(false)
 		})
-		handleSetCursorIndex()
+		setCursorIndex(newQuery.length)
 		comboboxStore.setActiveId(null)
-		comboboxStore.setState('moves', 0)
 	}
 
 	const handleRemoveItem = (index: number) => {
@@ -903,13 +905,13 @@ export const Search: React.FC<{
 								</Combobox.Item>
 							</Combobox.Group>
 						)}
-						{/* when query is empty then only show the recent history*/}
-						{!query?.trim()?.length && (
-							<Combobox.Group
-								className={styles.comboboxGroup}
-								store={comboboxStore}
-							>
-								{!showValues && !showOperators && (
+						{!showValues &&
+							!showOperators &&
+							visibleRecentSearch.length && (
+								<Combobox.Group
+									className={styles.comboboxGroup}
+									store={comboboxStore}
+								>
 									<Combobox.GroupLabel store={comboboxStore}>
 										<Box px="10" py="6">
 											<Text
@@ -920,12 +922,8 @@ export const Search: React.FC<{
 											</Text>
 										</Box>
 									</Combobox.GroupLabel>
-								)}
-								{!showValues &&
-								!showOperators &&
-								recentSearches?.length > 0 &&
-								!historyLoading ? (
-									recentSearches.map(
+
+									{visibleRecentSearch.map(
 										(data: SearchEntry, index: number) => {
 											return (
 												<Combobox.Item
@@ -956,21 +954,9 @@ export const Search: React.FC<{
 												</Combobox.Item>
 											)
 										},
-									)
-								) : (
-									<Combobox.Item
-										className={styles.comboboxItem}
-										disabled
-									>
-										<Text color="secondaryContentText">
-											{!historyLoading
-												? 'No recent searches'
-												: 'Loading....'}
-										</Text>
-									</Combobox.Item>
-								)}
-							</Combobox.Group>
-						)}
+									)}
+								</Combobox.Group>
+							)}
 						{loading && (
 							<Combobox.Group
 								className={styles.comboboxGroup}
