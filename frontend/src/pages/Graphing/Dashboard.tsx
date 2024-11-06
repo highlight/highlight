@@ -30,7 +30,7 @@ import {
 } from '@highlight-run/ui/components'
 import { vars } from '@highlight-run/ui/vars'
 import clsx from 'clsx'
-import { useEffect, useId, useState } from 'react'
+import { useCallback, useEffect, useId, useState } from 'react'
 import { Helmet } from 'react-helmet'
 import { Link, useNavigate } from 'react-router-dom'
 
@@ -41,7 +41,7 @@ import {
 	useUpsertVisualizationMutation,
 } from '@/graph/generated/hooks'
 import { GetVisualizationQuery } from '@/graph/generated/operations'
-import { GraphInput } from '@/graph/generated/schemas'
+import { GraphInput, Graph as TGraph } from '@/graph/generated/schemas'
 import { useProjectId } from '@/hooks/useProjectId'
 import { useSearchTime } from '@/hooks/useSearchTime'
 import { DashboardCard } from '@/pages/Graphing/components/DashboardCard'
@@ -172,6 +172,20 @@ export const Dashboard = () => {
 	const graphContext = useGraphData()
 
 	const noGraphs = graphs?.length === 0
+
+	const onDownload = useCallback(
+		(g: TGraph) =>
+			exportGraph(
+				g.id,
+				g.title,
+				g.functionType,
+				g.metric,
+				graphContext.graphData.current
+					? graphContext.graphData.current[g.id]
+					: [],
+			),
+		[graphContext.graphData],
+	)
 
 	return (
 		<>
@@ -543,16 +557,7 @@ export const Dashboard = () => {
 																		}
 															}
 															onDownload={() =>
-																exportGraph(
-																	g.id,
-																	g.title,
-																	g.functionType,
-																	g.metric,
-																	graphContext
-																		.graphData[
-																		g.id
-																	],
-																)
+																onDownload(g)
 															}
 														>
 															<Graph
