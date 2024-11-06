@@ -56,7 +56,7 @@ import {
 import { ProductType, SavedSegmentEntityType } from '@/graph/generated/schemas'
 import { useDebounce } from '@/hooks/useDebounce'
 import { useApplicationContext } from '@/routers/AppRouter/context/ApplicationContext'
-
+import { SearchEntry } from './hooks'
 import { AiSearch } from './AiSearch'
 import * as styles from './SearchForm.css'
 
@@ -358,6 +358,7 @@ export const Search: React.FC<{
 		onSubmit,
 		setQuery,
 		setAiMode,
+		recentSearches,
 	} = useSearchContext()
 	const navigate = useNavigate()
 	const { currentWorkspace } = useApplicationContext()
@@ -419,6 +420,10 @@ export const Search: React.FC<{
 	// Show operators when we have an exact match for a key
 	const keyMatch = visibleItems.find((item) => item.name === activePart.text)
 	const showOperators = !!keyMatch
+
+	const visibleRecentSearch = recentSearches.filter((history) => {
+		return stringifySearchQuery(history.queryParts).indexOf(query) > -1
+	})
 
 	if (showOperators) {
 		let operators = [] as string[]
@@ -643,6 +648,19 @@ export const Search: React.FC<{
 
 		comboboxStore.setActiveId(null)
 		comboboxStore.setState('moves', 0)
+	}
+
+	const handleHistorySelction = (
+		query: string,
+		queryParts: SearchExpression[],
+	) => {
+		const newQuery = stringifySearchQuery(queryParts)
+		startTransition(() => {
+			submitQuery(newQuery)
+			comboboxStore.setOpen(false)
+		})
+		setCursorIndex(newQuery.length)
+		comboboxStore.setActiveId(null)
 	}
 
 	const handleRemoveItem = (index: number) => {
@@ -889,6 +907,58 @@ export const Search: React.FC<{
 								</Combobox.Item>
 							</Combobox.Group>
 						)}
+						{!showValues &&
+							!showOperators &&
+							visibleRecentSearch.length > 0 && (
+								<Combobox.Group
+									className={styles.comboboxGroup}
+									store={comboboxStore}
+								>
+									<Combobox.GroupLabel store={comboboxStore}>
+										<Box px="10" py="6">
+											<Text
+												color="moderate"
+												size="xxSmall"
+											>
+												Recent
+											</Text>
+										</Box>
+									</Combobox.GroupLabel>
+
+									{visibleRecentSearch.map(
+										(data: SearchEntry, index: number) => {
+											return (
+												<Combobox.Item
+													className={
+														styles.comboboxItem
+													}
+													key={index}
+													onClick={() => {
+														handleHistorySelction(
+															data.query,
+															data.queryParts,
+														)
+													}}
+													store={comboboxStore}
+													value={data.query}
+													hideOnClick={false}
+													setValueOnClick={false}
+													title={data.title}
+												>
+													<Text
+														color="secondaryContentText"
+														lines="1"
+														family="monospace"
+													>
+														{data.query}
+													</Text>
+													<Badge label="History" />
+												</Combobox.Item>
+											)
+										},
+									)}
+								</Combobox.Group>
+							)}
 						{loading && (
 							<Combobox.Group
 								className={styles.comboboxGroup}
