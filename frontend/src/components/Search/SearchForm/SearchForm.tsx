@@ -654,9 +654,9 @@ export const Search: React.FC<{
 		const newQuery = stringifySearchQuery(queryParts)
 		startTransition(() => {
 			submitQuery(newQuery)
-			handleSetCursorIndex()
 			comboboxStore.setOpen(false)
 		})
+		handleSetCursorIndex()
 		comboboxStore.setActiveId(null)
 		comboboxStore.setState('moves', 0)
 	}
@@ -903,67 +903,74 @@ export const Search: React.FC<{
 								</Combobox.Item>
 							</Combobox.Group>
 						)}
-						<Combobox.Group
-							className={styles.comboboxGroup}
-							store={comboboxStore}
-						>
-							{!showValues && !showOperators && (
-								<Combobox.GroupLabel store={comboboxStore}>
-									<Box px="10" py="6">
-										<Text color="moderate" size="xxSmall">
-											Recent
-										</Text>
-									</Box>
-								</Combobox.GroupLabel>
-							)}
-							{!showValues &&
-							!showOperators &&
-							recentSearches?.length > 0 &&
-							!historyLoading ? (
-								recentSearches.map(
-									(data: SearchEntry, index: number) => {
-										return (
-											<Combobox.Item
-												className={styles.comboboxItem}
-												key={index}
-												onClick={() => {
-													handleHistorySelction(
-														data.query,
-														data.queryParts,
-													)
-												}}
-												store={comboboxStore}
-												value={data.query}
-												hideOnClick={false}
-												setValueOnClick={false}
-												title={data.title}
+						{/* when query is empty then only show the recent history*/}
+						{!query?.trim()?.length && (
+							<Combobox.Group
+								className={styles.comboboxGroup}
+								store={comboboxStore}
+							>
+								{!showValues && !showOperators && (
+									<Combobox.GroupLabel store={comboboxStore}>
+										<Box px="10" py="6">
+											<Text
+												color="moderate"
+												size="xxSmall"
 											>
-												<Text
-													color="secondaryContentText"
-													lines="1"
-													family="monospace"
+												Recent
+											</Text>
+										</Box>
+									</Combobox.GroupLabel>
+								)}
+								{!showValues &&
+								!showOperators &&
+								recentSearches?.length > 0 &&
+								!historyLoading ? (
+									recentSearches.map(
+										(data: SearchEntry, index: number) => {
+											return (
+												<Combobox.Item
+													className={
+														styles.comboboxItem
+													}
+													key={index}
+													onClick={() => {
+														handleHistorySelction(
+															data.query,
+															data.queryParts,
+														)
+													}}
+													store={comboboxStore}
+													value={data.query}
+													hideOnClick={false}
+													setValueOnClick={false}
+													title={data.title}
 												>
-													{data.query}
-												</Text>
-												<Badge label="History" />
-											</Combobox.Item>
-										)
-									},
-								)
-							) : (
-								<Combobox.Item
-									className={styles.comboboxItem}
-									disabled
-								>
-									<Text color="secondaryContentText">
-										{!historyLoading
-											? 'No recent searches'
-											: 'Loading....'}
-									</Text>
-								</Combobox.Item>
-							)}
-						</Combobox.Group>
-
+													<Text
+														color="secondaryContentText"
+														lines="1"
+														family="monospace"
+													>
+														{data.query}
+													</Text>
+													<Badge label="History" />
+												</Combobox.Item>
+											)
+										},
+									)
+								) : (
+									<Combobox.Item
+										className={styles.comboboxItem}
+										disabled
+									>
+										<Text color="secondaryContentText">
+											{!historyLoading
+												? 'No recent searches'
+												: 'Loading....'}
+										</Text>
+									</Combobox.Item>
+								)}
+							</Combobox.Group>
+						)}
 						{loading && (
 							<Combobox.Group
 								className={styles.comboboxGroup}
