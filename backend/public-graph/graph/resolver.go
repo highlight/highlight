@@ -2271,6 +2271,7 @@ func (r *Resolver) AddTrackPropertiesImpl(ctx context.Context, sessionSecureID s
 	fields := map[string]string{}
 	for k, v := range obj {
 		if k == "visited-url" {
+			// from old SDK versions (<9.6.0): don't process as these are now added in session events processing
 			continue
 		}
 
