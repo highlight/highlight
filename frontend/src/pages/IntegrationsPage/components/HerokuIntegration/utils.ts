@@ -68,9 +68,13 @@ export const useHerokuIntegration = () => {
 	}, [HerokuIntegResponse, setIsHerokuConnectedToProject])
 
 	const addHerokuToProject = useCallback(
-		async (token: string, projectId?: string) => {
+		async (tokens: string[], projectId?: string) => {
 			setLoading(true)
-			await addHerokuIntegrationToProject(token, projectId)
+			await Promise.all(
+				tokens.map((token) =>
+					addHerokuIntegrationToProject(token, projectId),
+				),
+			)
 			setIsHerokuConnectedToProject(true)
 			toast.success('Highlight is now synced with Heroku!', {
 				duration: 5000,

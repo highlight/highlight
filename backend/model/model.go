@@ -1295,9 +1295,9 @@ type IntegrationWorkspaceMapping struct {
 
 type IntegrationProjectMapping struct {
 	// idx_integration_project_mapping_integration_type_external_id is used to find a project for a given integration by its external id
-	IntegrationType modelInputs.IntegrationType `gorm:"uniqueIndex:idx_integration_project_mapping_project_id_integration_type;index:idx_integration_project_mapping_integration_type_external_id"`
-	ProjectID       int                         `gorm:"uniqueIndex:idx_integration_project_mapping_project_id_integration_type"`
-	ExternalID      string                      `gorm:"index:idx_integration_project_mapping_integration_type_external_id"`
+	IntegrationType modelInputs.IntegrationType `gorm:"index:idx_integration_project_mapping_integration_type_external_id"`
+	ProjectID       int
+	ExternalID      string `gorm:"index:idx_integration_project_mapping_integration_type_external_id"`
 }
 
 type OAuthClientStore struct {
