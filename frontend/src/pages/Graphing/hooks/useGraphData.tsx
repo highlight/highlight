@@ -11,7 +11,7 @@ export function useGraphData(): GraphContext {
 		) => {
 			if (typeof graph === 'function') {
 				graphData.current = graph(graphData.current)
-			} else {
+			} else if (graph) {
 				graphData.current = graph
 			}
 		},

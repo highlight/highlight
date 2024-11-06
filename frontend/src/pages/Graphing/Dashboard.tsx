@@ -180,7 +180,9 @@ export const Dashboard = () => {
 				g.title,
 				g.functionType,
 				g.metric,
-				graphContext.graphData.current[g.id],
+				graphContext.graphData.current
+					? graphContext.graphData.current[g.id]
+					: [],
 			),
 		[graphContext.graphData],
 	)
