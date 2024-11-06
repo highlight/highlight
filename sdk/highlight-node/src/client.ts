@@ -451,14 +451,13 @@ export class Highlight {
 	}
 
 	async runWithHeaders<T>(
+		name: string,
 		headers: Headers | IncomingHttpHeaders,
 		cb: (span: OtelSpan) => T | Promise<T>,
+		options?: SpanOptions,
 	) {
 		const { secureSessionId, requestId } = this.parseHeaders(headers)
-		const { span, ctx } = await this.startWithHeaders(
-			'highlight-ctx',
-			headers,
-		)
+		const { span, ctx } = this.startWithHeaders(name, headers, options)
 		try {
 			return await api.context.with(ctx, async () => {
 				return cb(span)

@@ -23,8 +23,10 @@ export interface HighlightInterface {
 
 	// Use runWithHeaders to execute a method with a highlight context
 	runWithHeaders: <T>(
+		name: string,
 		headers: Headers | IncomingHttpHeaders,
 		cb: (span: OtelSpan) => T | Promise<T>,
+		options?: SpanOptions,
 	) => Promise<T>
 	startWithHeaders: (
 		name: string,
@@ -167,8 +169,8 @@ export const H: HighlightInterface = {
 		return highlight_obj.parseHeaders(headers)
 	},
 
-	runWithHeaders: (headers, cb) => {
-		return highlight_obj.runWithHeaders(headers, cb)
+	runWithHeaders: (name, headers, cb, options) => {
+		return highlight_obj.runWithHeaders(name, headers, cb, options)
 	},
 	startWithHeaders: (spanName, headers, options) => {
 		return highlight_obj.startWithHeaders(spanName, headers, options)

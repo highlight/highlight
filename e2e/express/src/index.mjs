@@ -1,4 +1,5 @@
 import { H, Handlers } from '@highlight-run/node'
+import { appendFileSync, unlinkSync } from 'node:fs'
 import express from 'express'
 
 /** @type {import('@highlight-run/node').NodeOptions} */
@@ -38,8 +39,14 @@ app.get('/good', (req, res) => {
 		const value = Math.random() * 1000
 		result += value
 		console.warn('some work happening', { result, value })
+		appendFileSync('test.txt', result.toString())
 	}
+	unlinkSync('test.txt')
 	res.send('yay!')
+})
+
+app.get('/bad', (req, res) => {
+	throw new Error('this is an error')
 })
 
 // This should be before any other error middleware and after all controllers (route definitions)
