@@ -4,7 +4,10 @@ import {
 	W3CBaggagePropagator,
 	W3CTraceContextPropagator,
 } from '@opentelemetry/core'
-import { registerInstrumentations } from '@opentelemetry/instrumentation'
+import {
+	Instrumentation,
+	registerInstrumentations,
+} from '@opentelemetry/instrumentation'
 import { DocumentLoadInstrumentation } from '@opentelemetry/instrumentation-document-load'
 import { FetchInstrumentation } from '@opentelemetry/instrumentation-fetch'
 import { XMLHttpRequestInstrumentation } from '@opentelemetry/instrumentation-xml-http-request'
@@ -100,16 +103,19 @@ export const setupBrowserTracing = (config: BrowserTracingConfig) => {
 	})
 	provider.addSpanProcessor(spanProcessor)
 
-	registerInstrumentations({
-		instrumentations: [
-			new DocumentLoadInstrumentation({
-				applyCustomAttributesOnSpan: {
-					documentLoad: assignDocumentDurations,
-					documentFetch: assignDocumentDurations,
-					resourceFetch: assignResourceFetchDurations,
-				},
-			}),
-			new UserInteractionInstrumentation(),
+	let instrumentations: Instrumentation[] = [
+		new DocumentLoadInstrumentation({
+			applyCustomAttributesOnSpan: {
+				documentLoad: assignDocumentDurations,
+				documentFetch: assignDocumentDurations,
+				resourceFetch: assignResourceFetchDurations,
+			},
+		}),
+		new UserInteractionInstrumentation(),
+	]
+
+	if (config.networkRecordingOptions?.enabled) {
+		instrumentations.push(
 			new FetchInstrumentation({
 				propagateTraceHeaderCorsUrls: getCorsUrlsPattern(
 					config.tracingOrigins,
@@ -151,6 +157,9 @@ export const setupBrowserTracing = (config: BrowserTracingConfig) => {
 					span.setAttribute('http.response.body', body)
 				},
 			}),
+		)
+
+		instrumentations.push(
 			new XMLHttpRequestInstrumentation({
 				propagateTraceHeaderCorsUrls: getCorsUrlsPattern(
 					config.tracingOrigins,
@@ -185,8 +194,10 @@ export const setupBrowserTracing = (config: BrowserTracingConfig) => {
 					span.setAttribute('http.request.body', recordedBody)
 				},
 			}),
-		],
-	})
+		)
+	}
+
+	registerInstrumentations({ instrumentations })
 
 	const contextManager = new StackContextManager()
 	contextManager.enable()
