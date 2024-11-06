@@ -30704,11 +30704,13 @@ __metadata:
     "@highlight-run/apollo": "workspace:*"
     "@highlight-run/node": "workspace:*"
     "@highlight-run/pino": "workspace:*"
+    "@prisma/client": "npm:^5.22.0"
     dotenv: "npm:^16.3.1"
     express: "npm:^4.19.2"
     graphql: "npm:^16.8.1"
     pino: "npm:^8.19.0"
     pino-pretty: "npm:^10.2.3"
+    prisma: "npm:^5.22.0"
     ts-node: "npm:^10.9.1"
     typescript: "npm:^5.3.2"
   languageName: unknown

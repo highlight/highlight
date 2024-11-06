@@ -65,6 +65,10 @@ const instrumentations = getNodeAutoInstrumentations({
 	},
 })
 
+// Seems like this needs to be added here for Prisma tracing to work. Not sure
+// why it can't be added when initializing the SDK...
+instrumentations.push(new PrismaInstrumentation())
+
 /**
  * Baggage propagation does not appear to be patching Fetch at the moment,
  * but we hope it'll get fixed soon:
@@ -232,17 +236,9 @@ export class Highlight {
 			}
 		}
 
-		this._log(
-			'::: options.autoInstrumentations',
-			options.autoInstrumentations,
-		)
+		debugger
 		if (options.autoInstrumentations) {
 			if (options.autoInstrumentations.includes('prisma')) {
-				const {
-					PrismaInstrumentation,
-				} = require('@prisma/instrumentation')
-
-				this._log('::: setting up prisma instrumentation')
 				instrumentations.push(new PrismaInstrumentation())
 			}
 		}

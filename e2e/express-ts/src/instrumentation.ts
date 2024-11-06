@@ -1,8 +1,8 @@
 import { H, Handlers } from '@highlight-run/node'
+import type { NodeOptions } from '@highlight-run/node'
 import { CONSTANTS } from './constants'
 
-/** @type {import('@highlight-run/node').NodeOptions} */
-export const config = {
+export const config: NodeOptions = {
 	otlpEndpoint: CONSTANTS.HIGHLIGHT_OTLP_ENDPOINT,
 	projectID: CONSTANTS.HIGHLIGHT_PROJECT_ID ?? '1',
 	debug: false,
