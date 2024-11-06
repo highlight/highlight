@@ -907,7 +907,7 @@ export const Search: React.FC<{
 						)}
 						{!showValues &&
 							!showOperators &&
-							visibleRecentSearch.length && (
+							visibleRecentSearch.length > 0 && (
 								<Combobox.Group
 									className={styles.comboboxGroup}
 									store={comboboxStore}
