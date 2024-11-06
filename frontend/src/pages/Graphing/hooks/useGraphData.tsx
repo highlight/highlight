@@ -7,7 +7,7 @@ export function useGraphData(): GraphContext {
 	return {
 		graphData,
 		setGraphData: (
-			graph?: GraphData | ((graph?: GraphData) => GraphData),
+			graph?: GraphData | ((graph: GraphData) => GraphData),
 		) => {
 			if (typeof graph === 'function') {
 				graphData.current = graph(graphData.current)
