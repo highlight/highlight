@@ -7,7 +7,6 @@ export const setupFrontendSnippet: string = `<script src="https://unpkg.com/high
         H.init('<YOUR_PROJECT_ID>', {
             serviceName: 'highlight-dot-net-frontend',
             tracingOrigins: true,
-            enableOtelTracing: true,
             networkRecording: {
                 enabled: true,
                 recordHeadersAndBody: true,
