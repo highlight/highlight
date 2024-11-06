@@ -12784,6 +12784,7 @@ enum ReservedSessionKey {
 	secure_id
 	service_version
 	state
+	updated_at
 	viewed_by_anyone
 	viewed_by_me
 	within_billing_quota
