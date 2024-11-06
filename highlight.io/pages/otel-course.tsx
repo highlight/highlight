@@ -94,6 +94,8 @@ export default function OTelCourse() {
 	const router = useRouter()
 	const [player, setPlayer] = useState<YT.Player | null>(null)
 
+	const [showToast, setShowToast] = useState(false)
+
 	useEffect(() => {
 		// Check if user is authorized (e.g., by checking a cookie or local storage)
 		const checkAuthorization = () => {
@@ -151,6 +153,24 @@ export default function OTelCourse() {
 					})),
 		)
 	}, [])
+
+	useEffect(() => {
+		const signedup = new URLSearchParams(window.location.search).get(
+			'signedup',
+		)
+
+		if (signedup) {
+			setShowToast(true)
+			const timer = setTimeout(() => {
+				setShowToast(false)
+				history.replaceState({}, '', window.location.pathname)
+			}, 4000)
+
+			return () => clearTimeout(timer)
+		} else {
+			setShowToast(false)
+		}
+	}, [router])
 
 	const initializePlayer = (videoId: string) => {
 		const newPlayer = new window.YT.Player('youtube-player', {
@@ -236,6 +256,26 @@ export default function OTelCourse() {
 
 	return (
 		<div className="container mx-auto px-4 py-8 max-w-5xl">
+			{showToast && (
+				<div className="fixed top-8 left-1/2 transform -translate-x-1/2 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg transition-opacity duration-300 flex items-center space-x-2">
+					<svg
+						xmlns="http://www.w3.org/2000/svg"
+						className="h-6 w-6"
+						fill="none"
+						viewBox="0 0 24 24"
+						stroke="currentColor"
+					>
+						<path
+							strokeLinecap="round"
+							strokeLinejoin="round"
+							strokeWidth={2}
+							d="M5 13l4 4L19 7"
+						/>
+					</svg>
+					<span>Successfully signed up!</span>
+				</div>
+			)}
+
 			<Head>
 				<title>OpenTelemetry Course | Highlight.io</title>
 				<meta

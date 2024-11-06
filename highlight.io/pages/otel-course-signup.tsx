@@ -32,9 +32,7 @@ export default function OTelCourseSignup() {
 						"You're signed up! You will be redirected shortly.",
 					onFormSubmit: () => {
 						localStorage.setItem(LOCAL_STORAGE_KEY, 'true')
-						setTimeout(() => {
-							router.push(COURSE_URL)
-						}, 2000)
+						router.push(COURSE_URL + '?signedup=true')
 					},
 				})
 			}
