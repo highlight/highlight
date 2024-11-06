@@ -546,13 +546,6 @@ export type ErrorDistributionItem = {
 	value: Scalars['Int64']
 }
 
-export type ErrorField = {
-	__typename?: 'ErrorField'
-	name: Scalars['String']
-	project_id?: Maybe<Scalars['Int']>
-	value: Scalars['String']
-}
-
 export type ErrorGroup = {
 	__typename?: 'ErrorGroup'
 	created_at: Scalars['Timestamp']
@@ -561,7 +554,6 @@ export type ErrorGroup = {
 	error_metrics: Array<ErrorDistributionItem>
 	error_tag?: Maybe<ErrorTag>
 	event: Array<Maybe<Scalars['String']>>
-	fields?: Maybe<Array<Maybe<ErrorField>>>
 	first_occurrence?: Maybe<Scalars['Timestamp']>
 	id: Scalars['ID']
 	is_public: Scalars['Boolean']
@@ -2099,7 +2091,6 @@ export type Query = {
 	error_comments: Array<Maybe<ErrorComment>>
 	error_comments_for_admin: Array<Maybe<ErrorComment>>
 	error_comments_for_project: Array<Maybe<ErrorComment>>
-	error_field_suggestion?: Maybe<Array<Maybe<ErrorField>>>
 	error_group?: Maybe<ErrorGroup>
 	error_groups: ErrorResults
 	error_groups_clickhouse: ErrorResults
@@ -2377,12 +2368,6 @@ export type QueryError_CommentsArgs = {
 
 export type QueryError_Comments_For_ProjectArgs = {
 	project_id: Scalars['ID']
-}
-
-export type QueryError_Field_SuggestionArgs = {
-	name: Scalars['String']
-	project_id: Scalars['ID']
-	query: Scalars['String']
 }
 
 export type QueryError_GroupArgs = {

@@ -7026,24 +7026,6 @@ func (r *queryResolver) PropertySuggestion(ctx context.Context, projectID int, q
 	return fields, nil
 }
 
-// ErrorFieldSuggestion is the resolver for the error_field_suggestion field.
-func (r *queryResolver) ErrorFieldSuggestion(ctx context.Context, projectID int, name string, query string) ([]*model.ErrorField, error) {
-	if _, err := r.isUserInProjectOrDemoProject(ctx, projectID); err != nil {
-		return nil, err
-	}
-	fields := []*model.ErrorField{}
-	res := r.DB.WithContext(ctx).Where(&model.ErrorField{Name: name}).
-		Where("length(value) > ?", 0).
-		Where("value ILIKE ?", "%"+query+"%").
-		Where("project_id = ?", projectID).
-		Limit(model.SUGGESTION_LIMIT_CONSTANT).
-		Find(&fields)
-	if err := res.Error; err != nil {
-		return nil, e.Wrap(err, "error querying error field suggestion")
-	}
-	return fields, nil
-}
-
 // Projects is the resolver for the projects field.
 func (r *queryResolver) Projects(ctx context.Context) ([]*model.Project, error) {
 	admin, err := r.getCurrentAdmin(ctx)
