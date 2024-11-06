@@ -1187,9 +1187,10 @@ const Graph = ({
 							isAnimationActive={false}
 							dataKey={YHAT_LOWER_REGION_KEY}
 							strokeWidth="2px"
-							fill="#FFFFFF"
-							stroke="#555555"
-							fillOpacity={0.1}
+							strokeDasharray="8 8"
+							strokeLinecap="round"
+							stroke="#C8C7CB"
+							fillOpacity={0}
 							stackId={-1}
 							connectNulls
 							activeDot={<></>}
@@ -1198,9 +1199,10 @@ const Graph = ({
 							isAnimationActive={false}
 							dataKey={YHAT_UPPER_REGION_KEY}
 							strokeWidth="2px"
-							fill="#555555"
-							stroke="#555555"
-							fillOpacity={0.1}
+							strokeDasharray="8 8"
+							strokeLinecap="round"
+							fill="#F9F8F9"
+							stroke="#C8C7CB"
 							stackId={-1}
 							connectNulls
 							activeDot={<></>}
