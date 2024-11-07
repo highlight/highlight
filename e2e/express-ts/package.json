@@ -18,14 +18,18 @@
 		"@highlight-run/apollo": "workspace:*",
 		"@highlight-run/node": "workspace:*",
 		"@highlight-run/pino": "workspace:*",
+		"@opentelemetry/api": "^1.9.0",
 		"dotenv": "^16.3.1",
 		"express": "^4.19.2",
 		"graphql": "^16.8.1",
 		"pino": "^8.19.0",
-		"pino-pretty": "^10.2.3",
-		"ts-node": "^10.9.1"
+		"pino-pretty": "^10.2.3"
 	},
 	"devDependencies": {
+		"ts-node": "^10.9.2",
 		"typescript": "^5.3.2"
+	},
+	"installConfig": {
+		"hoistingLimits": "workspaces"
 	}
 }

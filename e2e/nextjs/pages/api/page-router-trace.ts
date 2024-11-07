@@ -9,7 +9,7 @@ export default withPageRouterHighlight(async function handler(
 	res: NextApiResponse,
 ) {
 	return new Promise<void>(async (resolve) => {
-		const span = await H.startActiveSpan('page-router-span', {})
+		const { span } = H.startWithHeaders('page-router-span', {})
 
 		console.info('Here: /pages/api/page-router-trace.ts ⌚⌚⌚')
 

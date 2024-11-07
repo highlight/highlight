@@ -217,7 +217,7 @@ import { H } from "@highlight-run/node";
 
 const onError = async (request: http.IncomingMessage, error: Error): void => {
     const callbackResult = await H.runWithHeaders&lt;ReturnType&gt;(req.headers, async () => {
-        const span = await H.startActiveSpan("custom-span-name", {});
+        const { span } = H.startWithHeaders('custom-span-name', {})
         // do work
         span.end();
       });
@@ -228,12 +228,16 @@ const onError = async (request: http.IncomingMessage, error: Error): void => {
 
 <section className="section">
   <div className="left">
-    <h3>H.startActiveSpan</h3>
-    <p>H.startActiveSpan() returns a Promise, which resolves to a span that carries all of the current Open Telemetry context as its parent span.</p>
+    <h3>H.startWithHeaders</h3>
+    <p>H.startWithHeaders() returns a Span and a Span Context to propagate the current trace to child spans.</p>
     <h6>Method Parameters</h6>
     <aside className="parameter">
       <h5>name<code>string</code> <code>required</code></h5>
       <p>Custom span name</p>
+    </aside>
+    <aside className="parameter">
+      <h5>headers<code>http.Headers</code> <code>required</code></h5>
+      <p>A headers object corresponding to the incoming http request headers. Can be an empty object: <code>{}</code></p>
     </aside>
     <aside className="parameter">
       <h5>options <code>optional</code></h5>
@@ -271,7 +275,11 @@ const onError = async (request: http.IncomingMessage, error: Error): void => {
     <h6>Method Return</h6>
     <aside className="parameter">
       <h5>span</h5>
-      <p>Returns a Promise that resolves to a custom span</p>
+      <p>Returns the started span</p>
+    </aside>
+    <aside className="parameter">
+      <h5>ctx</h5>
+      <p>Returns the context of the current span for trace propagation</p>
     </aside>
   </div>
   <div className="right">
@@ -279,7 +287,7 @@ const onError = async (request: http.IncomingMessage, error: Error): void => {
 import * as http from "http";
 import { H } from "@highlight-run/node";
 
-const span = await H.startActiveSpan("custom-span-name", {});
+const { span } = H.startWithHeaders("custom-span-name", {});
         // do work
         span.end();
 });
@@ -308,7 +316,7 @@ const span = await H.startActiveSpan("custom-span-name", {});
 import * as http from "http";
 import { H } from "@highlight-run/node";
 
-const span = await H.startActiveSpan('my-custom-span-name');
+const { span } = await H.startWithHeaders('my-custom-span-name', {});
 
 // do work
 

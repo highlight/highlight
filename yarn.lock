@@ -30598,12 +30598,13 @@ __metadata:
     "@highlight-run/apollo": "workspace:*"
     "@highlight-run/node": "workspace:*"
     "@highlight-run/pino": "workspace:*"
+    "@opentelemetry/api": "npm:^1.9.0"
     dotenv: "npm:^16.3.1"
     express: "npm:^4.19.2"
     graphql: "npm:^16.8.1"
     pino: "npm:^8.19.0"
     pino-pretty: "npm:^10.2.3"
-    ts-node: "npm:^10.9.1"
+    ts-node: "npm:^10.9.2"
     typescript: "npm:^5.3.2"
   languageName: unknown
   linkType: soft
@@ -56600,7 +56601,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"ts-node@npm:^10.9.1, ts-node@npm:~10.9.0":
+"ts-node@npm:^10.9.1, ts-node@npm:^10.9.2, ts-node@npm:~10.9.0":
   version: 10.9.2
   resolution: "ts-node@npm:10.9.2"
   dependencies:
