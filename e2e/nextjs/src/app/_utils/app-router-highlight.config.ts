@@ -39,14 +39,14 @@ function withPropagation(highlightHandler: HighlightHandler) {
 
 			propagation.inject(newContext, output)
 
-			const span = await H.startActiveSpan('propagation-test', {})
+			const result = H.runWithHeaders(
+				'app-router',
+				request.headers,
+				async () => await originalHandler(request, ctx),
+			)
 
 			request.headers.set('traceparent', output.traceparent ?? '')
 			request.headers.set('tracestate', output.tracestate ?? '')
-
-			const result = await originalHandler(request, ctx)
-
-			span.end()
 
 			return result
 		})

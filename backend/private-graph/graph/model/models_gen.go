@@ -2259,6 +2259,7 @@ const (
 	ReservedEventKeySessionLength       ReservedEventKey = "session_length"
 	ReservedEventKeySessionPagesVisited ReservedEventKey = "session_pages_visited"
 	ReservedEventKeyState               ReservedEventKey = "state"
+	ReservedEventKeyTimestamp           ReservedEventKey = "timestamp"
 )
 
 var AllReservedEventKey = []ReservedEventKey{
@@ -2280,11 +2281,12 @@ var AllReservedEventKey = []ReservedEventKey{
 	ReservedEventKeySessionLength,
 	ReservedEventKeySessionPagesVisited,
 	ReservedEventKeyState,
+	ReservedEventKeyTimestamp,
 }
 
 func (e ReservedEventKey) IsValid() bool {
 	switch e {
-	case ReservedEventKeyBrowserName, ReservedEventKeyBrowserVersion, ReservedEventKeyCity, ReservedEventKeyCountry, ReservedEventKeyEnvironment, ReservedEventKeyEvent, ReservedEventKeyFirstSession, ReservedEventKeyIdentified, ReservedEventKeyIdentifier, ReservedEventKeyIP, ReservedEventKeyOsName, ReservedEventKeyOsVersion, ReservedEventKeySecureSessionID, ReservedEventKeyServiceVersion, ReservedEventKeySessionActiveLength, ReservedEventKeySessionLength, ReservedEventKeySessionPagesVisited, ReservedEventKeyState:
+	case ReservedEventKeyBrowserName, ReservedEventKeyBrowserVersion, ReservedEventKeyCity, ReservedEventKeyCountry, ReservedEventKeyEnvironment, ReservedEventKeyEvent, ReservedEventKeyFirstSession, ReservedEventKeyIdentified, ReservedEventKeyIdentifier, ReservedEventKeyIP, ReservedEventKeyOsName, ReservedEventKeyOsVersion, ReservedEventKeySecureSessionID, ReservedEventKeyServiceVersion, ReservedEventKeySessionActiveLength, ReservedEventKeySessionLength, ReservedEventKeySessionPagesVisited, ReservedEventKeyState, ReservedEventKeyTimestamp:
 		return true
 	}
 	return false
@@ -2396,6 +2398,7 @@ const (
 	ReservedSessionKeySecureID           ReservedSessionKey = "secure_id"
 	ReservedSessionKeyServiceVersion     ReservedSessionKey = "service_version"
 	ReservedSessionKeyState              ReservedSessionKey = "state"
+	ReservedSessionKeyTimestamp          ReservedSessionKey = "timestamp"
 	ReservedSessionKeyViewedByAnyone     ReservedSessionKey = "viewed_by_anyone"
 	ReservedSessionKeyViewedByMe         ReservedSessionKey = "viewed_by_me"
 	ReservedSessionKeyWithinBillingQuota ReservedSessionKey = "within_billing_quota"
@@ -2429,6 +2432,7 @@ var AllReservedSessionKey = []ReservedSessionKey{
 	ReservedSessionKeySecureID,
 	ReservedSessionKeyServiceVersion,
 	ReservedSessionKeyState,
+	ReservedSessionKeyTimestamp,
 	ReservedSessionKeyViewedByAnyone,
 	ReservedSessionKeyViewedByMe,
 	ReservedSessionKeyWithinBillingQuota,
@@ -2439,7 +2443,7 @@ var AllReservedSessionKey = []ReservedSessionKey{
 
 func (e ReservedSessionKey) IsValid() bool {
 	switch e {
-	case ReservedSessionKeyActiveLength, ReservedSessionKeyBrowserName, ReservedSessionKeyBrowserVersion, ReservedSessionKeyCity, ReservedSessionKeyCompleted, ReservedSessionKeyCountry, ReservedSessionKeyEnvironment, ReservedSessionKeyExcluded, ReservedSessionKeyFirstTime, ReservedSessionKeyHasComments, ReservedSessionKeyHasErrors, ReservedSessionKeyHasRageClicks, ReservedSessionKeyIdentified, ReservedSessionKeyIdentifier, ReservedSessionKeyIP, ReservedSessionKeyLength, ReservedSessionKeyNormalness, ReservedSessionKeyOsName, ReservedSessionKeyOsVersion, ReservedSessionKeyPagesVisited, ReservedSessionKeySample, ReservedSessionKeySecureID, ReservedSessionKeyServiceVersion, ReservedSessionKeyState, ReservedSessionKeyViewedByAnyone, ReservedSessionKeyViewedByMe, ReservedSessionKeyWithinBillingQuota, ReservedSessionKeyLocState, ReservedSessionKeyProcessed, ReservedSessionKeyViewed:
+	case ReservedSessionKeyActiveLength, ReservedSessionKeyBrowserName, ReservedSessionKeyBrowserVersion, ReservedSessionKeyCity, ReservedSessionKeyCompleted, ReservedSessionKeyCountry, ReservedSessionKeyEnvironment, ReservedSessionKeyExcluded, ReservedSessionKeyFirstTime, ReservedSessionKeyHasComments, ReservedSessionKeyHasErrors, ReservedSessionKeyHasRageClicks, ReservedSessionKeyIdentified, ReservedSessionKeyIdentifier, ReservedSessionKeyIP, ReservedSessionKeyLength, ReservedSessionKeyNormalness, ReservedSessionKeyOsName, ReservedSessionKeyOsVersion, ReservedSessionKeyPagesVisited, ReservedSessionKeySample, ReservedSessionKeySecureID, ReservedSessionKeyServiceVersion, ReservedSessionKeyState, ReservedSessionKeyTimestamp, ReservedSessionKeyViewedByAnyone, ReservedSessionKeyViewedByMe, ReservedSessionKeyWithinBillingQuota, ReservedSessionKeyLocState, ReservedSessionKeyProcessed, ReservedSessionKeyViewed:
 		return true
 	}
 	return false

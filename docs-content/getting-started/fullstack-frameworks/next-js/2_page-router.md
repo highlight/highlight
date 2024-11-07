@@ -150,7 +150,7 @@ function ThrowerOfErrors({
 We use `experimental.instrumentationHook` to capture [Next.js's automatic instrumentation](https://nextjs.org/docs/app/building-your-application/optimizing/open-telemetry). This method captures detailed API route tracing as well as server-side errors.
 
 1. Enable `experimental.instrumentationHook` in `next.config.js`.
-2. Ignore warnings from `@highlight-run/node` due to a [known OpenTelemetry issue](https://github.com/open-telemetry/opentelemetry-js/issues/4173#issuecomment-1822938936)
+2. Setup the `withHighlightConfig` wrapper for auto-upload of your [sourcemaps](../../../general/6_product-features/2_error-monitoring/sourcemaps.md).
 
 ```javascript
 // next.config.mjs
@@ -160,16 +160,15 @@ const nextConfig = {
 	experimental: {
 		instrumentationHook: true,
 	},
-	webpack(config, options) {
-		if (options.isServer) {
-			config.ignoreWarnings = [{ module: /highlight-(run\/)?node/ }]
-		}
-		return config
-	},
 	// ...additional config
 }
 
 export default withHighlightConfig(nextConfig)
+```
+
+```hint
+ If you are using a Docker image to deploy your Next.js app, make sure that the `next.config.js` file is copied into the final Docker image.
+ Otherwise, the next server will not enable the `instrumentationHook` in your production deploy.
 ```
 
 2. Call `registerHighlight` in `instrumentation.ts` or `src/instrumentation.ts` if you're using a `/src` folder. Make sure that `instrumentation.ts` is a sibling of your `pages` folder. 

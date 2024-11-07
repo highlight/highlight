@@ -1140,6 +1140,10 @@ func TestLogsKeys(t *testing.T) {
 			Name: "message",
 			Type: "String",
 		},
+		{
+			Name: "timestamp",
+			Type: "Numeric",
+		},
 	}
 	assert.Equal(t, expected, keys)
 }

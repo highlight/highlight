@@ -12784,6 +12784,7 @@ enum ReservedSessionKey {
 	secure_id
 	service_version
 	state
+	timestamp
 	viewed_by_anyone
 	viewed_by_me
 	within_billing_quota
@@ -12813,6 +12814,7 @@ enum ReservedEventKey {
 	session_length
 	session_pages_visited
 	state
+	timestamp
 }
 
 enum LogSource {

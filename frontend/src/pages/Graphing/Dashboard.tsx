@@ -24,13 +24,14 @@ import {
 	IconSolidCog,
 	IconSolidPlus,
 	parsePreset,
+	presetValue,
 	Stack,
 	Tag,
 	Text,
 } from '@highlight-run/ui/components'
 import { vars } from '@highlight-run/ui/vars'
 import clsx from 'clsx'
-import { useEffect, useId, useState } from 'react'
+import { useCallback, useEffect, useId, useState } from 'react'
 import { Helmet } from 'react-helmet'
 import { Link, useNavigate } from 'react-router-dom'
 
@@ -41,7 +42,7 @@ import {
 	useUpsertVisualizationMutation,
 } from '@/graph/generated/hooks'
 import { GetVisualizationQuery } from '@/graph/generated/operations'
-import { GraphInput } from '@/graph/generated/schemas'
+import { GraphInput, Graph as TGraph } from '@/graph/generated/schemas'
 import { useProjectId } from '@/hooks/useProjectId'
 import { useSearchTime } from '@/hooks/useSearchTime'
 import { DashboardCard } from '@/pages/Graphing/components/DashboardCard'
@@ -140,12 +141,17 @@ export const Dashboard = () => {
 		variables: { id: dashboard_id! },
 	})
 
+	const [defaultTimePreset, setDefaultTimePreset] = useState(
+		DEFAULT_TIME_PRESETS[2],
+	)
 	useEffect(() => {
 		if (data) {
 			setGraphs(data.visualization.graphs)
 			const preset = data.visualization.timePreset
 			if (preset) {
-				updateSearchTime(new Date(), new Date(), parsePreset(preset))
+				const parsed = parsePreset(preset)
+				updateSearchTime(new Date(), new Date(), parsed)
+				setDefaultTimePreset(parsed)
 			}
 		}
 		// eslint-disable-next-line react-hooks/exhaustive-deps
@@ -172,6 +178,20 @@ export const Dashboard = () => {
 	const graphContext = useGraphData()
 
 	const noGraphs = graphs?.length === 0
+
+	const onDownload = useCallback(
+		(g: TGraph) =>
+			exportGraph(
+				g.id,
+				g.title,
+				g.functionType,
+				g.metric,
+				graphContext.graphData.current
+					? graphContext.graphData.current[g.id]
+					: [],
+			),
+		[graphContext.graphData],
+	)
 
 	return (
 		<>
@@ -248,6 +268,47 @@ export const Dashboard = () => {
 									onDatesChange={updateSearchTime}
 									presets={presets}
 									minDate={minDate}
+									defaultPreset={defaultTimePreset}
+									setDefaultPreset={(preset) => {
+										const timePreset = presetValue(preset)
+										upsertViz({
+											variables: {
+												visualization: {
+													projectId,
+													id: dashboard_id,
+													timePreset,
+												},
+											},
+											optimisticResponse: {
+												upsertVisualization:
+													dashboard_id!,
+											},
+											update(cache) {
+												const vizId = cache.identify({
+													id: dashboard_id,
+													__typename: 'Visualization',
+												})
+												cache.modify({
+													id: vizId,
+													fields: {
+														timePreset() {
+															return timePreset
+														},
+													},
+												})
+											},
+										})
+											.then(() => {
+												toast.success(
+													'Dashboard updated',
+												)
+											})
+											.catch(() =>
+												toast.error(
+													'Failed to update dashboard',
+												),
+											)
+									}}
 								/>
 								<HeaderDivider />
 								<Button
@@ -543,16 +604,7 @@ export const Dashboard = () => {
 																		}
 															}
 															onDownload={() =>
-																exportGraph(
-																	g.id,
-																	g.title,
-																	g.functionType,
-																	g.metric,
-																	graphContext
-																		.graphData[
-																		g.id
-																	],
-																)
+																onDownload(g)
 															}
 														>
 															<Graph

@@ -1,5 +1,5 @@
 import dynamic from 'next/dynamic'
-import { InkeepSearchBarProps } from '@inkeep/uikit'
+import type { InkeepSearchBarProps } from '@inkeep/uikit'
 import useInkeepSettings from 'highlight.io/utils/hooks'
 
 const SearchBar = dynamic(
