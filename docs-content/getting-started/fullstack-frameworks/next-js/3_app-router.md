@@ -167,7 +167,7 @@ const nextConfig = {
 export default withHighlightConfig(nextConfig)
 ```
 
-2. Call `registerHighlight` in `instrumentation.ts` or `src/instrumentation.ts` if you're using a `/src` folder. Make sure that `instrumentation.ts` is a sibling of your `pages` folder. 
+2. Call `registerHighlight` in `instrumentation.ts` or `src/instrumentation.ts` if you're using a `/src` folder. Make sure that `instrumentation.ts` is a sibling of your `app` folder. 
 ```jsx
 // instrumentation.ts or src/instrumentation.ts
 import { CONSTANTS } from './constants'
