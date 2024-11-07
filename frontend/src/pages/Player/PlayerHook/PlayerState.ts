@@ -941,14 +941,19 @@ export const getEvents = (
 		'clear' | 'set' | 'delete'
 	>,
 ) => {
+	let numEvents = 0
 	const events = []
-	for (const [, v] of [...chunkEvents.entries()]) {
+	for (const [, v] of [...chunkEvents.entries()].sort(
+		(a, b) => a[0] - b[0],
+	)) {
 		for (const val of v) {
 			if (val) {
+				if (numEvents++ >= MAX_SHORT_INT_SIZE) {
+					return events
+				}
 				events.push(val)
 			}
 		}
 	}
-
 	return events
 }
