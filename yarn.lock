@@ -458,7 +458,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@apollo/client@npm:^3.7.0":
+"@apollo/client@npm:3.7.0":
   version: 3.7.0
   resolution: "@apollo/client@npm:3.7.0"
   dependencies:
@@ -9359,7 +9359,7 @@ __metadata:
   resolution: "@highlight-run/frontend@workspace:frontend"
   dependencies:
     "@ant-design/icons": "npm:^4.7.0"
-    "@apollo/client": "npm:^3.7.0"
+    "@apollo/client": "npm:3.7.0"
     "@babel/core": "npm:^7.19.0"
     "@ctrl/tinycolor": "npm:^3.4.1"
     "@dinero.js/currencies": "npm:2.0.0-alpha.14"
@@ -9440,7 +9440,7 @@ __metadata:
     eslint-plugin-unused-imports: "npm:^3.2.0"
     firebase: "npm:^10.12.2"
     framer-motion: "npm:^6.3.15"
-    graphql: "npm:^15.7.2"
+    graphql: "npm:15.8.0"
     happy-dom: "npm:^14.7.1"
     highlight.io: "workspace:*"
     highlight.run: "workspace:*"
@@ -33752,7 +33752,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"graphql@npm:^15.7.2":
+"graphql@npm:15.8.0":
   version: 15.8.0
   resolution: "graphql@npm:15.8.0"
   checksum: 10/f8d830287a9028d6779b59c437e0ade63a713b47521b02b60316df1761b805b1a7ce03be88053d224b7f78f5d1d1a786d287ab229cd158b42ebeea9e86daaba5
