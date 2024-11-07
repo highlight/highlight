@@ -380,9 +380,10 @@ export const useSavedSegments = ({
 			<Stack
 				display="flex"
 				alignItems="center"
-				justifyContent="space-between"
-				gap="1"
+				gap="0"
 				flexDirection="row"
+				border="secondary"
+				borderRadius="8"
 			>
 				{mode === BuilderMode.SEGMENT_NEW ? (
 					<Menu>
@@ -403,6 +404,10 @@ export const useSavedSegments = ({
 							disabled={segmentsLoading || !selectedSegment?.name}
 							iconLeft={<IconSolidSegment size={12} />}
 							{...buttonProps}
+							style={{
+								border: 'none',
+								borderRadius: '8px 0 0 8px',
+							}}
 						>
 							<Text lines="1">
 								{selectedSegment?.name || '-none-'}
@@ -418,6 +423,11 @@ export const useSavedSegments = ({
 						disabled={segmentsLoading}
 						iconRight={<IconSolidCheveronDown size={12} />}
 						{...buttonProps}
+						style={{
+							border: 'none',
+							borderRadius: '0 8px 8px 0',
+							marginLeft: '-5px',
+						}}
 					></Menu.Button>
 					<Menu.List cssClass={styles.menuList}>
 						<>
