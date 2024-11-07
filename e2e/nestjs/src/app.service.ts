@@ -35,9 +35,13 @@ export class AppService {
     span.end();
 
     for (let i = 0; i < 10; i++) {
-      const { span: s } = H.startWithHeaders(`another request ${i}`, {
-        attributes: { i },
-      });
+      const { span: s } = H.startWithHeaders(
+        `another request ${i}`,
+        {},
+        {
+          attributes: { i },
+        },
+      );
       console.log('hello, world!');
       this.logger.log('hello, world!');
       this.logger.warn('whoa there! ', Math.random());
