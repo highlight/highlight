@@ -398,7 +398,7 @@ const durationUnitMap: [number, string][] = [
 const DEFAULT_TIME_METRIC = 'ns'
 
 export const getTickFormatter = (metric: string, data?: any[] | undefined) => {
-	if (metric === 'Timestamp') {
+	if (metric === 'Timestamp' || metric === 'timestamp') {
 		if (data === undefined) {
 			return (value: any) =>
 				moment(value * 1000).format('MMM D, h:mm:ss A')
@@ -1330,42 +1330,41 @@ const Graph = ({
 					{title || 'Untitled metric view'}
 				</Text>
 			</Box>
-			{
-				<Box
-					style={{ height: height ?? '100%' }}
-					key={series.join(';')} // Hacky but recharts' ResponsiveContainer has issues when this height changes so just rerender the whole thing
-					cssClass={clsx({
-						[style.disabled]: disabled,
-					})}
-					position="relative"
-				>
-					{loading && (
-						<Stack
-							position="absolute"
-							width="full"
-							height="full"
-							alignItems="center"
-							justifyContent="center"
-							cssClass={style.loadingOverlay}
-						>
-							<Badge
-								size="medium"
-								shape="basic"
-								variant="gray"
-								label="Loading"
-								iconStart={
-									<IconSolidLoading
-										className={loadingIcon}
-										color={vars.theme.static.content.weak}
-									/>
-								}
-							/>
-						</Stack>
-					)}
-					{innerChart}
-				</Box>
-			}
+			<Box
+				style={{ height: height ?? '100%' }}
+				key={series.join(';')} // Hacky but recharts' ResponsiveContainer has issues when this height changes so just rerender the whole thing
+				cssClass={clsx({
+					[style.disabled]: disabled,
+				})}
+				position="relative"
+			>
+				{loading && (
+					<Stack
+						position="absolute"
+						width="full"
+						height="full"
+						alignItems="center"
+						justifyContent="center"
+						cssClass={style.loadingOverlay}
+					>
+						<Badge
+							size="medium"
+							shape="basic"
+							variant="gray"
+							label="Loading"
+							iconStart={
+								<IconSolidLoading
+									className={loadingIcon}
+									color={vars.theme.static.content.weak}
+								/>
+							}
+						/>
+					</Stack>
+				)}
+				{innerChart}
+			</Box>
 			{loading &&
+				(data ?? []).length === 0 &&
 				groupByKeys !== undefined &&
 				groupByKeys.length > 0 &&
 				viewConfig.showLegend && (
