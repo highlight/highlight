@@ -35,7 +35,7 @@ export class AppService {
     span.end();
 
     for (let i = 0; i < 10; i++) {
-      const { span } = H.startWithHeaders(`another request ${i}`, {
+      const { span: s } = H.startWithHeaders(`another request ${i}`, {
         attributes: { i },
       });
       console.log('hello, world!');
