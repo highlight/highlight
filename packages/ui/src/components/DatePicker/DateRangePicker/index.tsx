@@ -9,6 +9,7 @@ import {
 	IconSolidCheck,
 	IconSolidCheveronDown,
 	IconSolidCheveronRight,
+	IconSolidClock,
 } from '../../icons'
 import { Menu, MenuButtonProps } from '../../Menu/Menu'
 import { Stack } from '../../Stack/Stack'
@@ -26,6 +27,7 @@ import {
 	isPresetSelected,
 	setTimeOnDate,
 } from './helpers'
+import { Badge } from '../../Badge/Badge'
 
 export type DateRangePreset = {
 	unit: moment.DurationInputArg2
@@ -109,6 +111,8 @@ type Props = {
 	minDate: Date
 	maxDate?: Date
 	noCustom?: boolean
+	defaultPreset?: DateRangePreset
+	setDefaultPreset?: (preset: DateRangePreset) => void
 } & Omit<MenuButtonProps, 'ref' | 'store'>
 
 export const DateRangePicker: React.FC<Props> = (props) => {
@@ -140,6 +144,8 @@ const DateRangePickerImpl = ({
 	onDatesChange,
 	presets,
 	noCustom,
+	defaultPreset,
+	setDefaultPreset,
 	minDate,
 	maxDate = moment().toDate(),
 	open,
@@ -368,7 +374,7 @@ const DateRangePickerImpl = ({
 				{buttonLabel}
 			</Menu.Button>
 			<Menu.List>
-				{menuState === MenuState.Default ? (
+				{menuState === MenuState.Default && (
 					<>
 						{presetOptions.map((preset) => {
 							return (
@@ -431,8 +437,71 @@ const DateRangePickerImpl = ({
 								</Stack>
 							</Menu.Item>
 						)}
+						{defaultPreset && setDefaultPreset && (
+							<>
+								<Menu.Divider />
+								<Menu>
+									<Menu.Button render={<Menu.Item />}>
+										<Stack
+											width={'full'}
+											display={'flex'}
+											direction={'row'}
+											alignItems={'center'}
+											justifyContent={'space-between'}
+										>
+											<Stack
+												direction="row"
+												align="center"
+												gap="4"
+											>
+												<IconSolidClock size={16} />
+												<Text userSelect="none">
+													Default
+												</Text>
+												<Badge
+													label={`${defaultPreset.quantity} ${defaultPreset.unit}`}
+												/>
+											</Stack>
+											<IconSolidCheveronRight size={16} />
+										</Stack>
+									</Menu.Button>
+									<Menu.List>
+										{presetOptions.map((preset) => {
+											return (
+												<Menu.Item
+													key={preset.label}
+													onClick={(e) => {
+														e.preventDefault()
+														e.stopPropagation()
+														setDefaultPreset(preset)
+													}}
+												>
+													<Stack
+														py="2"
+														direction="row"
+														align="center"
+														gap="4"
+													>
+														<CheckboxIconIfSelected
+															isSelected={isPresetSelected(
+																preset,
+																defaultPreset,
+															)}
+														/>
+														<Text userSelect="none">
+															{`${preset.quantity} ${preset.unit}`}
+														</Text>
+													</Stack>
+												</Menu.Item>
+											)
+										})}
+									</Menu.List>
+								</Menu>
+							</>
+						)}
 					</>
-				) : (
+				)}
+				{menuState === MenuState.Custom && (
 					<Form>
 						<Box
 							borderBottom={'divider'}

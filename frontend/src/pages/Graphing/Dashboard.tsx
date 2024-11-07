@@ -24,6 +24,7 @@ import {
 	IconSolidCog,
 	IconSolidPlus,
 	parsePreset,
+	presetValue,
 	Stack,
 	Tag,
 	Text,
@@ -140,12 +141,17 @@ export const Dashboard = () => {
 		variables: { id: dashboard_id! },
 	})
 
+	const [defaultTimePreset, setDefaultTimePreset] = useState(
+		DEFAULT_TIME_PRESETS[2],
+	)
 	useEffect(() => {
 		if (data) {
 			setGraphs(data.visualization.graphs)
 			const preset = data.visualization.timePreset
 			if (preset) {
-				updateSearchTime(new Date(), new Date(), parsePreset(preset))
+				const parsed = parsePreset(preset)
+				updateSearchTime(new Date(), new Date(), parsed)
+				setDefaultTimePreset(parsed)
 			}
 		}
 		// eslint-disable-next-line react-hooks/exhaustive-deps
@@ -262,6 +268,47 @@ export const Dashboard = () => {
 									onDatesChange={updateSearchTime}
 									presets={presets}
 									minDate={minDate}
+									defaultPreset={defaultTimePreset}
+									setDefaultPreset={(preset) => {
+										const timePreset = presetValue(preset)
+										upsertViz({
+											variables: {
+												visualization: {
+													projectId,
+													id: dashboard_id,
+													timePreset,
+												},
+											},
+											optimisticResponse: {
+												upsertVisualization:
+													dashboard_id!,
+											},
+											update(cache) {
+												const vizId = cache.identify({
+													id: dashboard_id,
+													__typename: 'Visualization',
+												})
+												cache.modify({
+													id: vizId,
+													fields: {
+														timePreset() {
+															return timePreset
+														},
+													},
+												})
+											},
+										})
+											.then(() => {
+												toast.success(
+													'Dashboard updated',
+												)
+											})
+											.catch(() =>
+												toast.error(
+													'Failed to update dashboard',
+												),
+											)
+									}}
 								/>
 								<HeaderDivider />
 								<Button

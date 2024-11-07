@@ -46,6 +46,7 @@ var defaultLogKeys = []*modelInputs.QueryKey{
 	{Name: string(modelInputs.ReservedLogKeySpanID), Type: modelInputs.KeyTypeString},
 	{Name: string(modelInputs.ReservedLogKeyTraceID), Type: modelInputs.KeyTypeString},
 	{Name: string(modelInputs.ReservedLogKeyMessage), Type: modelInputs.KeyTypeString},
+	{Name: string(modelInputs.ReservedLogKeyTimestamp), Type: modelInputs.KeyTypeNumeric},
 }
 
 var reservedLogKeys = lo.Map(modelInputs.AllReservedLogKey, func(key modelInputs.ReservedLogKey, _ int) string {

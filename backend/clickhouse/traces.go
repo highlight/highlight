@@ -79,6 +79,7 @@ var defaultTraceKeys = []*modelInputs.QueryKey{
 	{Name: string(modelInputs.ReservedTraceKeySecureSessionID), Type: modelInputs.KeyTypeString},
 	{Name: string(modelInputs.ReservedTraceKeyMetricName), Type: modelInputs.KeyTypeString},
 	{Name: string(modelInputs.ReservedTraceKeyMetricValue), Type: modelInputs.KeyTypeNumeric},
+	{Name: string(modelInputs.ReservedTraceKeyTimestamp), Type: modelInputs.KeyTypeNumeric},
 }
 
 var reservedTraceKeys = lo.Map(modelInputs.AllReservedTraceKey, func(key modelInputs.ReservedTraceKey, _ int) string {
