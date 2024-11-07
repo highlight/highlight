@@ -90,8 +90,6 @@ export const AlertGraph: React.FC<Props> = ({
 					bucketByWindow={
 						sessionsProduct ? undefined : thresholdWindow
 					}
-					maxYAxisMin={thresholdValue}
-					minYAxisMax={thresholdValue}
 					predictionSettings={
 						thresholdType === ThresholdType.Anomaly
 							? {
@@ -102,6 +100,11 @@ export const AlertGraph: React.FC<Props> = ({
 								}
 							: undefined
 					}
+					thresholdSettings={{
+						thresholdCondition,
+						thresholdType,
+						thresholdValue,
+					}}
 				>
 					{!sessionsProduct &&
 						thresholdType === ThresholdType.Constant && (
