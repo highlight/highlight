@@ -219,11 +219,22 @@ export const LineChart = ({
 
 							if (isAnomaly(props, key)) {
 								return (
-									<svg x={cx - 3} y={cy - 3}>
-										<g transform="translate(3 3)">
-											<circle r="3" fill="#FF0000" />
-										</g>
-									</svg>
+									<>
+										<svg x={cx - 2} y={cy - 2}>
+											<g transform="translate(2 2)">
+												<circle r="2" fill="#E5484D" />
+											</g>
+										</svg>
+										<svg x={cx - 4} y={cy - 4}>
+											<g transform="translate(4 4)">
+												<circle
+													r="4"
+													fill="#E5484D"
+													opacity={0.5}
+												/>
+											</g>
+										</svg>
+									</>
 								)
 							}
 

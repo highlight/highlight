@@ -42,6 +42,8 @@ import {
 	MetricAggregator,
 	PredictionSettings,
 	ProductType,
+	ThresholdCondition,
+	ThresholdType,
 } from '@/graph/generated/schemas'
 import {
 	BarChart,
@@ -122,6 +124,12 @@ export type ViewConfig =
 	| TableConfig
 	| ListConfig
 
+export type ThresholdSettings = {
+	thresholdValue: number
+	thresholdType: ThresholdType
+	thresholdCondition: ThresholdCondition
+}
+
 export interface ChartProps<TConfig> {
 	id?: string
 	title: string
@@ -146,10 +154,9 @@ export interface ChartProps<TConfig> {
 	height?: number
 	setTimeRange?: SetTimeRange
 	loadExemplars?: LoadExemplars
-	minYAxisMax?: number
-	maxYAxisMin?: number
 	variables?: Map<string, string[]>
 	predictionSettings?: PredictionSettings
+	thresholdSettings?: ThresholdSettings
 }
 
 export interface InnerChartProps<TConfig> {
@@ -687,8 +694,26 @@ export const getViewConfig = (
 export const useGraphData = (
 	metrics: GetMetricsQuery | undefined,
 	xAxisMetric: string,
+	thresholdSettings?: ThresholdSettings,
 ) => {
 	return useMemo(() => {
+		let upperThreshold: number | undefined
+		let lowerThreshold: number | undefined
+		if (thresholdSettings?.thresholdType === ThresholdType.Constant) {
+			if (
+				thresholdSettings.thresholdCondition ===
+				ThresholdCondition.Above
+			) {
+				upperThreshold = thresholdSettings.thresholdValue
+			}
+			if (
+				thresholdSettings.thresholdCondition ===
+				ThresholdCondition.Below
+			) {
+				lowerThreshold = thresholdSettings.thresholdValue
+			}
+		}
+
 		let data: any[] | undefined
 		if (metrics?.metrics?.buckets) {
 			if (xAxisMetric !== GROUP_KEY) {
@@ -711,23 +736,28 @@ export const useGraphData = (
 					data[b.bucket_id][BUCKET_MIN_KEY] = b.bucket_min
 					data[b.bucket_id][BUCKET_MAX_KEY] = b.bucket_max
 
-					if (b.yhat_upper) {
+					const bucketUpper = b.yhat_upper || upperThreshold
+					const bucketLower = b.yhat_lower || lowerThreshold
+
+					if (bucketUpper) {
 						data[b.bucket_id][YHAT_UPPER_KEY] = {
-							[seriesKey]: b.yhat_upper,
+							[seriesKey]: bucketUpper,
+							...data[b.bucket_id][YHAT_UPPER_KEY],
 						}
 						if (!hasGroups) {
 							data[b.bucket_id][YHAT_UPPER_REGION_KEY] =
-								b.yhat_upper - (b.yhat_lower ?? 0)
+								bucketUpper - (b.yhat_lower ?? 0)
 						}
 					}
 
-					if (b.yhat_lower) {
+					if (bucketLower) {
 						data[b.bucket_id][YHAT_LOWER_KEY] = {
-							[seriesKey]: b.yhat_lower,
+							[seriesKey]: bucketLower,
+							...data[b.bucket_id][YHAT_LOWER_KEY],
 						}
 						if (!hasGroups) {
 							data[b.bucket_id][YHAT_LOWER_REGION_KEY] =
-								b.yhat_lower
+								bucketLower
 						}
 					}
 				}
@@ -742,7 +772,7 @@ export const useGraphData = (
 			}
 		}
 		return data
-	}, [metrics?.metrics.bucket_count, metrics?.metrics.buckets, xAxisMetric])
+	}, [metrics, xAxisMetric, thresholdSettings])
 }
 
 export const useFunnelData = (
@@ -881,9 +911,8 @@ const Graph = ({
 	setTimeRange,
 	selectedPreset,
 	variables,
-	minYAxisMax,
-	maxYAxisMin,
 	predictionSettings,
+	thresholdSettings,
 	children,
 }: React.PropsWithChildren<ChartProps<ViewConfig>>) => {
 	const { setGraphData } = useGraphContext()
@@ -1117,7 +1146,11 @@ const Graph = ({
 		predictionSettings,
 	])
 
-	const graphData = useGraphData(results?.at(0), xAxisMetric)
+	const graphData = useGraphData(
+		results?.at(0),
+		xAxisMetric,
+		thresholdSettings,
+	)
 	const funnelData = useFunnelData(results, funnelSteps)
 	const data = viewConfig.type === 'Funnel chart' ? funnelData : graphData
 	const series = useGraphSeries(data, xAxisMetric)
@@ -1167,6 +1200,11 @@ const Graph = ({
 	} else {
 		switch (viewConfig.type) {
 			case 'Line chart':
+				const axisLimit =
+					thresholdSettings?.thresholdType === ThresholdType.Constant
+						? thresholdSettings?.thresholdValue
+						: undefined
+
 				innerChart = (
 					<LineChart
 						data={data}
@@ -1178,8 +1216,8 @@ const Graph = ({
 						spotlight={spotlight}
 						setTimeRange={setTimeRange}
 						loadExemplars={loadExemplars}
-						minYAxisMax={minYAxisMax}
-						maxYAxisMin={maxYAxisMin}
+						minYAxisMax={axisLimit}
+						maxYAxisMin={axisLimit}
 						showGrid
 					>
 						{children}
@@ -1187,9 +1225,10 @@ const Graph = ({
 							isAnimationActive={false}
 							dataKey={YHAT_LOWER_REGION_KEY}
 							strokeWidth="2px"
-							fill="#FFFFFF"
-							stroke="#555555"
-							fillOpacity={0.1}
+							strokeDasharray="8 8"
+							strokeLinecap="round"
+							stroke="#C8C7CB"
+							fillOpacity={0}
 							stackId={-1}
 							connectNulls
 							activeDot={<></>}
@@ -1198,9 +1237,10 @@ const Graph = ({
 							isAnimationActive={false}
 							dataKey={YHAT_UPPER_REGION_KEY}
 							strokeWidth="2px"
-							fill="#555555"
-							stroke="#555555"
-							fillOpacity={0.1}
+							strokeDasharray="8 8"
+							strokeLinecap="round"
+							fill="#F9F8F9"
+							stroke="#C8C7CB"
 							stackId={-1}
 							connectNulls
 							activeDot={<></>}
