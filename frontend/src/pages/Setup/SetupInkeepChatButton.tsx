@@ -1,12 +1,10 @@
 import type { InkeepChatButtonProps } from '@inkeep/uikit'
 import useInkeepSettings from '@/hooks/useInkeepSettings'
-import { Suspense } from 'react'
+import { lazy, Suspense } from 'react'
 
-// TODO(vkorolik) inkeep disabled - breaking rrweb replay
-// const ChatButton = lazy(() =>
-// 	import('@inkeep/uikit').then((mod) => ({ default: mod.InkeepChatButton })),
-// )
-const ChatButton = () => null
+const ChatButton = lazy(() =>
+	import('@inkeep/uikit').then((mod) => ({ default: mod.InkeepChatButton })),
+)
 
 function InkeepChatButton() {
 	const { baseSettings, aiChatSettings, searchSettings, modalSettings } =
