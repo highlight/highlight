@@ -32,6 +32,7 @@ enum BuilderMode {
 	CUSTOM = 'CUSTOM',
 	SEGMENT = 'SEGMENT',
 	SEGMENT_UPDATE = 'SEGMENT_UPDATE',
+	SEGMENT_NEW = 'SEGMENT_NEW',
 }
 
 enum SegmentModalState {
@@ -153,7 +154,13 @@ export const useSavedSegments = ({
 				return BuilderMode.SEGMENT_UPDATE
 			}
 		}
-		return BuilderMode.CUSTOM
+		const isQueryEmpty = query?.trim()?.length === 0
+
+		if (isQueryEmpty) {
+			return BuilderMode.CUSTOM
+		}
+
+		return BuilderMode.SEGMENT_NEW
 	}, [query, selectedSegment])
 
 	const segmentOptions = useMemo(
@@ -233,6 +240,10 @@ export const useSavedSegments = ({
 		}
 
 		if (!selectedSegment) {
+			if (mode === BuilderMode.SEGMENT_NEW) {
+				return null
+			}
+
 			return (
 				<>
 					<Box background="n1" borderBottom="secondary" p="8" mb="4">
@@ -424,17 +435,36 @@ export const useSavedSegments = ({
 			return null
 		}
 
-		const buttonProps =
-			mode === BuilderMode.SEGMENT_UPDATE
-				? {
-						kind: 'primary' as const,
-						emphasis: 'high' as const,
-					}
-				: {
-						kind: 'secondary' as const,
-						emphasis: 'medium' as const,
-					}
+		const buttonProps = [
+			BuilderMode.SEGMENT_NEW,
+			BuilderMode.SEGMENT_UPDATE,
+		].includes(mode)
+			? {
+					kind: 'primary' as const,
+					emphasis: 'high' as const,
+				}
+			: {
+					kind: 'secondary' as const,
+					emphasis: 'medium' as const,
+				}
 
+		if (mode === BuilderMode.SEGMENT_NEW) {
+			return (
+				<Menu>
+					<Menu.Button
+						iconLeft={<IconSolidSegment size={12} />}
+						iconRight={<IconSolidCheveronDown size={12} />}
+						{...buttonProps}
+						onClick={(e: any) => {
+							e.preventDefault()
+							setSegmentModalState(SegmentModalState.CREATE)
+						}}
+					>
+						<Text lines="1">Save</Text>
+					</Menu.Button>
+				</Menu>
+			)
+		}
 		return (
 			<Menu>
 				<Menu.Button
@@ -443,9 +473,7 @@ export const useSavedSegments = ({
 					iconRight={<IconSolidCheveronDown size={12} />}
 					{...buttonProps}
 				>
-					{selectedSegment?.name && (
-						<Text lines="1">{selectedSegment?.name}</Text>
-					)}
+					<Text lines="1">{selectedSegment?.name || '-None-'}</Text>
 				</Menu.Button>
 				<Menu.List cssClass={styles.menuList}>{menuOptions}</Menu.List>
 			</Menu>
