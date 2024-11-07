@@ -1,15 +1,16 @@
-import { lazy, Suspense } from 'react'
-import { useCallback, useState } from 'react'
-import { InkeepCustomTriggerProps } from '@inkeep/uikit'
+import { Suspense, useCallback, useState } from 'react'
+import type { InkeepCustomTriggerProps } from '@inkeep/uikit'
 import useInkeepSettings from '@/hooks/useInkeepSettings'
 import { Box, IconSolidChat, Menu } from '@highlight-run/ui/components'
 import { vars } from '@highlight-run/ui/vars'
 
-const CustomTrigger = lazy(() =>
-	import('@inkeep/uikit').then((mod) => ({
-		default: mod.InkeepCustomTrigger,
-	})),
-)
+// TODO(vkorolik) inkeep disabled - breaking rrweb replay
+// const CustomTrigger = lazy(() =>
+// 	import('@inkeep/uikit').then((mod) => ({
+// 		default: mod.InkeepCustomTrigger,
+// 	})),
+// )
+const CustomTrigger = () => null
 
 function InkeepChatSupportMenuItem() {
 	const [isOpen, setIsOpen] = useState(false)
