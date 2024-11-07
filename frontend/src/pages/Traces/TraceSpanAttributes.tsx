@@ -9,9 +9,14 @@ import analytics from '@/util/analytics'
 type Props = {
 	span: FlameGraphSpan
 	query?: string
+	onSubmit?: (query: string) => void
 }
 
-export const TraceSpanAttributes: React.FC<Props> = ({ span, query }) => {
+export const TraceSpanAttributes: React.FC<Props> = ({
+	span,
+	query,
+	onSubmit,
+}) => {
 	const attributes: { [key: string]: any } = { ...span }
 	const formattedSpan = formatTraceAttributes(attributes)
 
@@ -35,6 +40,7 @@ export const TraceSpanAttributes: React.FC<Props> = ({ span, query }) => {
 			attribute={formattedSpan}
 			matchedAttributes={matchedAttributes}
 			queryParts={queryParts}
+			setQuery={onSubmit}
 		/>
 	)
 }

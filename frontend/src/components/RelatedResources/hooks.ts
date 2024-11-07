@@ -39,12 +39,13 @@ export type RelatedSession = RelatedResourceCommon & {
 	[PlayerSearchParameters.tsAbs]?: string
 }
 
-export type RelatedTrace = RelatedResourceCommon & {
-	type: 'trace'
-	id: string
-	timestamp: string
-	spanID?: string
-}
+export type RelatedTrace = RelatedResourceCommon &
+	Partial<Omit<QueryableResource, 'type'>> & {
+		type: 'trace'
+		id: string
+		timestamp: string
+		spanID?: string
+	}
 
 export type RelatedLogs = RelatedResourceCommon &
 	QueryableResource & {
@@ -175,6 +176,17 @@ export const useRelatedResource = () => {
 		panelPaginationVar(null)
 	}, [searchParams, setSearchParams])
 
+	const updateQuery = useCallback(
+		(query: QueryableResource['query']) => {
+			searchParams.delete(RELATED_RESOURCE_PARAM)
+			searchParams.set('query', query)
+			setSearchParams(Object.fromEntries(searchParams.entries()))
+			setResource(null)
+			panelPaginationVar(null)
+		},
+		[searchParams, setSearchParams],
+	)
+
 	return {
 		resource,
 		panelPagination,
@@ -183,5 +195,7 @@ export const useRelatedResource = () => {
 		remove,
 		setPanelWidth,
 		setPanelPagination,
+		setResource,
+		updateQuery,
 	}
 }
