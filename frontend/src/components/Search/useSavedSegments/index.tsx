@@ -4,13 +4,14 @@ import { colors } from '@highlight-run/ui/colors'
 import {
 	Box,
 	IconSolidCheck,
-	IconSolidCheveronDown,
 	IconSolidCloudUpload,
 	IconSolidDocumentDuplicate,
 	IconSolidPencil,
 	IconSolidPlus,
+	IconSolidSave,
 	IconSolidSegment,
 	IconSolidTrash,
+	IconSolidSelector,
 	Menu,
 	Stack,
 	Text,
@@ -388,7 +389,7 @@ export const useSavedSegments = ({
 				{mode === BuilderMode.SEGMENT_NEW ? (
 					<Menu>
 						<Menu.Button
-							iconLeft={<IconSolidSegment size={12} />}
+							iconLeft={<IconSolidSave size={12} />}
 							{...buttonProps}
 							onClick={(e: any) => {
 								e.preventDefault()
@@ -421,7 +422,7 @@ export const useSavedSegments = ({
 				<Menu>
 					<Menu.Button
 						disabled={segmentsLoading}
-						iconRight={<IconSolidCheveronDown size={12} />}
+						iconRight={<IconSolidSelector size={12} />}
 						{...buttonProps}
 						style={{
 							border: 'none',
