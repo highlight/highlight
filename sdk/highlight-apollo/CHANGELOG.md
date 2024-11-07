@@ -1,5 +1,13 @@
 # @highlight-run/apollo
 
+## 3.4.23
+
+### Patch Changes
+
+-   236afe0: support span naming in runwithheaders and set a default span name for route middlewares
+-   Updated dependencies [236afe0]
+    -   @highlight-run/node@3.10.0
+
 ## 3.4.22
 
 ### Patch Changes
