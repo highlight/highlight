@@ -8,7 +8,7 @@ export const GET = withAppRouterHighlight(async function GET(
 	request: NextRequest,
 ) {
 	return new Promise(async (resolve) => {
-		const span = await H.startActiveSpan('app-router-span', {})
+		const { span } = H.startWithHeaders('app-router-span', {})
 
 		logger.info({}, `app router trace get`)
 

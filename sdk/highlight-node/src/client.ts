@@ -497,12 +497,6 @@ export class Highlight {
 
 		return { span, ctx: contextWithSpanSet }
 	}
-
-	startActiveSpan(name: string, options?: SpanOptions) {
-		return new Promise<OtelSpan>((resolve) =>
-			this.tracer.startActiveSpan(name, options || {}, resolve),
-		)
-	}
 }
 function parseHeaders(
 	headers: Headers | IncomingHttpHeaders,
