@@ -458,7 +458,43 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@apollo/client@npm:^3.7.0, @apollo/client@npm:^3.8.1":
+"@apollo/client@npm:3.7.17":
+  version: 3.7.17
+  resolution: "@apollo/client@npm:3.7.17"
+  dependencies:
+    "@graphql-typed-document-node/core": "npm:^3.1.1"
+    "@wry/context": "npm:^0.7.0"
+    "@wry/equality": "npm:^0.5.0"
+    "@wry/trie": "npm:^0.4.0"
+    graphql-tag: "npm:^2.12.6"
+    hoist-non-react-statics: "npm:^3.3.2"
+    optimism: "npm:^0.16.2"
+    prop-types: "npm:^15.7.2"
+    response-iterator: "npm:^0.2.6"
+    symbol-observable: "npm:^4.0.0"
+    ts-invariant: "npm:^0.10.3"
+    tslib: "npm:^2.3.0"
+    zen-observable-ts: "npm:^1.2.5"
+  peerDependencies:
+    graphql: ^14.0.0 || ^15.0.0 || ^16.0.0
+    graphql-ws: ^5.5.5
+    react: ^16.8.0 || ^17.0.0 || ^18.0.0
+    react-dom: ^16.8.0 || ^17.0.0 || ^18.0.0
+    subscriptions-transport-ws: ^0.9.0 || ^0.11.0
+  peerDependenciesMeta:
+    graphql-ws:
+      optional: true
+    react:
+      optional: true
+    react-dom:
+      optional: true
+    subscriptions-transport-ws:
+      optional: true
+  checksum: 10/3d820c9289904b237bb255ed0ef102b4b76fe1c062d6bc01239df5fef5d1ee64efc66039e0dd85cb07bd877aefd307ada362ee1e13a9bdf92d1d1aa6ff042395
+  languageName: node
+  linkType: hard
+
+"@apollo/client@npm:^3.8.1":
   version: 3.11.8
   resolution: "@apollo/client@npm:3.11.8"
   dependencies:
@@ -9699,7 +9735,7 @@ __metadata:
   resolution: "@highlight-run/frontend@workspace:frontend"
   dependencies:
     "@ant-design/icons": "npm:^4.7.0"
-    "@apollo/client": "npm:^3.7.0"
+    "@apollo/client": "npm:3.7.17"
     "@babel/core": "npm:^7.19.0"
     "@ctrl/tinycolor": "npm:^3.4.1"
     "@dinero.js/currencies": "npm:2.0.0-alpha.14"
@@ -9719,7 +9755,7 @@ __metadata:
     "@highlight-run/react-mentions": "npm:4.4.2"
     "@highlight-run/sourcemap-uploader": "workspace:*"
     "@highlight-run/ui": "workspace:*"
-    "@inkeep/uikit": "npm:^0.3.8"
+    "@inkeep/uikit": "npm:^0.3.16"
     "@mux/mux-player": "npm:^2.4.1"
     "@mux/mux-player-react": "npm:^2.4.1"
     "@opentelemetry/api": "npm:^1.9.0"
@@ -9781,7 +9817,7 @@ __metadata:
     eslint-plugin-unused-imports: "npm:^3.2.0"
     firebase: "npm:^10.12.2"
     framer-motion: "npm:^6.3.15"
-    graphql: "npm:^15.7.2"
+    graphql: "npm:^15.9.0"
     happy-dom: "npm:^14.7.1"
     highlight.io: "workspace:*"
     highlight.run: "workspace:*"
@@ -10180,85 +10216,85 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@inkeep/color-mode@npm:^0.1.2":
-  version: 0.1.2
-  resolution: "@inkeep/color-mode@npm:0.1.2"
+"@inkeep/color-mode@npm:^0.1.4":
+  version: 0.1.4
+  resolution: "@inkeep/color-mode@npm:0.1.4"
   peerDependencies:
     react: ^18.2.0
     react-dom: ^18.2.0
-  checksum: 10/0e6354dd1bf034c3322100d318ae69cdd63eb0cd5f14783ae51abdb6735dbd8de25ab507cb23b2789e3d1331f63443aaf78832d7258501f15a1be346f65d9c9b
+  checksum: 10/d92e76ac17ef358643bd73f1c59fba4e3e00b70e51d7e7072653a5596ea35d10b75f81c4f29eeb85257ac75f8a727cd1a48bfac4bbea4e5814c2007304152829
   languageName: node
   linkType: hard
 
-"@inkeep/components@npm:^0.1.2":
-  version: 0.1.2
-  resolution: "@inkeep/components@npm:0.1.2"
+"@inkeep/components@npm:^0.1.4":
+  version: 0.1.4
+  resolution: "@inkeep/components@npm:0.1.4"
   dependencies:
     "@ark-ui/react": "npm:^0.15.0"
-    "@inkeep/preset": "npm:^0.1.2"
-    "@inkeep/preset-chakra": "npm:^0.1.2"
-    "@inkeep/shared": "npm:^0.1.2"
-    "@inkeep/styled-system": "npm:^0.1.7"
+    "@inkeep/preset": "npm:^0.1.4"
+    "@inkeep/preset-chakra": "npm:^0.1.4"
+    "@inkeep/shared": "npm:^0.1.4"
+    "@inkeep/styled-system": "npm:^0.1.12"
     "@pandacss/dev": "npm:^0.22.0"
     framer-motion: "npm:^10.16.1"
   peerDependencies:
     "@ark-ui/react": ">=0.15.0"
     react: ^18.2.0
     react-dom: ^18.2.0
-  checksum: 10/31bc7524027b7417202f7a623f22003deeaad20dc272abb21b4fed3b273d2244dea00f67e829715a23d2fc4d06c7f9f344755f96137abe969ff8a534de8b5e31
+  checksum: 10/9a3a53fb6642a9ba4b95e2ece30b50c5339b75ba6b94c6f03e13afb952673a8eca541c197f031944b9e426f744c41345569ba2f838ec7d1666869b13b72904d9
   languageName: node
   linkType: hard
 
-"@inkeep/preset-chakra@npm:^0.1.2":
-  version: 0.1.2
-  resolution: "@inkeep/preset-chakra@npm:0.1.2"
+"@inkeep/preset-chakra@npm:^0.1.4":
+  version: 0.1.4
+  resolution: "@inkeep/preset-chakra@npm:0.1.4"
   dependencies:
     "@ark-ui/anatomy": "npm:^0.1.0"
-    "@inkeep/shared": "npm:^0.1.2"
+    "@inkeep/shared": "npm:^0.1.4"
     "@pandacss/dev": "npm:^0.22.0"
-  checksum: 10/c80070822aa2f4ad25493ed5ca6de010617f549aa876a2fb8bebcab53c17677cfee0897f64ccabcbafc519f470413698b0ce8f85c4b1ca0e2b6763897d23d6da
+  checksum: 10/64698cc70639a929e557919ad830b65f6cfa073a513b2ab8022b8587b935c15617dfb94cecb57d875c33866ebd02d242a8179661b3a5202dd0f6eeb06d36db91
   languageName: node
   linkType: hard
 
-"@inkeep/preset@npm:^0.1.2":
-  version: 0.1.2
-  resolution: "@inkeep/preset@npm:0.1.2"
+"@inkeep/preset@npm:^0.1.4":
+  version: 0.1.4
+  resolution: "@inkeep/preset@npm:0.1.4"
   dependencies:
     "@ark-ui/anatomy": "npm:^0.1.0"
-    "@inkeep/preset-chakra": "npm:^0.1.2"
-    "@inkeep/shared": "npm:^0.1.2"
+    "@inkeep/preset-chakra": "npm:^0.1.4"
+    "@inkeep/shared": "npm:^0.1.4"
     "@pandacss/dev": "npm:^0.22.0"
     colorjs.io: "npm:^0.4.5"
-  checksum: 10/9b6c631108a44b8b1e728e3b5504600d0924adcb60cc393f3b2c9e24bd6933f1aa4aa4d5d785bd975c6a41879e20e1581cbd257bb78e92478f25041c7a2e9568
+  checksum: 10/67725f0699a274e1442f0c1309aca1782eae97bc112ee146ebacb514c9a83ba7d69f908b4bd0679524e7263449147106631f1338cada2b10a2cd8e2448da86ed
   languageName: node
   linkType: hard
 
-"@inkeep/shared@npm:^0.1.2":
-  version: 0.1.2
-  resolution: "@inkeep/shared@npm:0.1.2"
-  checksum: 10/9f16ee5721d393a689be46834365519336d4b56178e0a130780e6891ad427322e2b2a8384db68bc960eb5ad0710676de1c1557fa356acee5fec21d98fa21c7a9
+"@inkeep/shared@npm:^0.1.4":
+  version: 0.1.4
+  resolution: "@inkeep/shared@npm:0.1.4"
+  checksum: 10/bc12d2c025c123eb43953a78ba2374a4e0d7e87b9dddfbc18822db2fdbdcd656ee97ec35c703e03db5dc1ba5f3d8ab904cd7ba24d57bd8e87fa93597fb4db97a
   languageName: node
   linkType: hard
 
-"@inkeep/styled-system@npm:^0.1.7, @inkeep/styled-system@npm:^0.1.8":
-  version: 0.1.8
-  resolution: "@inkeep/styled-system@npm:0.1.8"
-  checksum: 10/179ef15bff2e6a07821989e16f1c039efa71095ce1fde8748b4d38c2d3b33a75b3ad50efd7612778dd28378b5a1432962ad3401012b6be72383777988ee5ae73
+"@inkeep/styled-system@npm:^0.1.12, @inkeep/styled-system@npm:^0.1.13":
+  version: 0.1.13
+  resolution: "@inkeep/styled-system@npm:0.1.13"
+  checksum: 10/3d34c91a7d784157a1efc56796a6b134c992ecbcca02b8470dd35608f16306854ca6eac3168fcadece9b9057081a809fe2b69f5d69680fbbc21e1d1a2c5a28dd
   languageName: node
   linkType: hard
 
-"@inkeep/uikit@npm:^0.3.8":
-  version: 0.3.10
-  resolution: "@inkeep/uikit@npm:0.3.10"
+"@inkeep/uikit@npm:^0.3.16":
+  version: 0.3.16
+  resolution: "@inkeep/uikit@npm:0.3.16"
   dependencies:
     "@apollo/client": "npm:^3.8.1"
     "@ark-ui/react": "npm:^0.15.0"
-    "@inkeep/color-mode": "npm:^0.1.2"
-    "@inkeep/components": "npm:^0.1.2"
-    "@inkeep/preset": "npm:^0.1.2"
-    "@inkeep/preset-chakra": "npm:^0.1.2"
-    "@inkeep/shared": "npm:^0.1.2"
-    "@inkeep/styled-system": "npm:^0.1.8"
+    "@inkeep/color-mode": "npm:^0.1.4"
+    "@inkeep/components": "npm:^0.1.4"
+    "@inkeep/preset": "npm:^0.1.4"
+    "@inkeep/preset-chakra": "npm:^0.1.4"
+    "@inkeep/shared": "npm:^0.1.4"
+    "@inkeep/styled-system": "npm:^0.1.13"
     "@radix-ui/react-scroll-area": "npm:^1.1.0"
     "@types/lodash.isequal": "npm:^4.5.7"
     graphql: "npm:^16.8.1"
@@ -10282,7 +10318,7 @@ __metadata:
   peerDependencies:
     react: ^18.2.0
     react-dom: ^18.2.0
-  checksum: 10/c9493a0e345d596ca0c05a29eea969e97bf6b3437394c0007d89d49413aafebbb3eadd2fd46783977cc7f8bc9bfdd75949e9cda4a51225a58ff6ce3e60a1ee3c
+  checksum: 10/152eac6bf0b4351f5e4063b957ed2f9e8ed034f62c9df814f5b33b73dc2340b1ad71177392c470d3bd61cbb5605577485ddd71a0bf9db3f9739d1d7cc37752dc
   languageName: node
   linkType: hard
 
@@ -22884,7 +22920,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@wry/equality@npm:^0.5.6":
+"@wry/equality@npm:^0.5.0, @wry/equality@npm:^0.5.6":
   version: 0.5.7
   resolution: "@wry/equality@npm:0.5.7"
   dependencies:
@@ -22893,7 +22929,16 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@wry/trie@npm:^0.4.3":
+"@wry/trie@npm:^0.3.0":
+  version: 0.3.2
+  resolution: "@wry/trie@npm:0.3.2"
+  dependencies:
+    tslib: "npm:^2.3.0"
+  checksum: 10/151d06b519e1ff1c3acf6ee6846161b1d7d50bbecd4c48e5cd1b05f9e37c30602aff02e88f20105f6e6c54ae4123f9c4eb7715044d7fd927d4ba4ec3e755cd36
+  languageName: node
+  linkType: hard
+
+"@wry/trie@npm:^0.4.0, @wry/trie@npm:^0.4.3":
   version: 0.4.3
   resolution: "@wry/trie@npm:0.4.3"
   dependencies:
@@ -36261,10 +36306,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"graphql@npm:^15.7.2":
-  version: 15.8.0
-  resolution: "graphql@npm:15.8.0"
-  checksum: 10/f8d830287a9028d6779b59c437e0ade63a713b47521b02b60316df1761b805b1a7ce03be88053d224b7f78f5d1d1a786d287ab229cd158b42ebeea9e86daaba5
+"graphql@npm:^15.9.0":
+  version: 15.9.0
+  resolution: "graphql@npm:15.9.0"
+  checksum: 10/ce1f50672bcb369395d07a47048bcbb429ed1ce06dbcafb7a0999df791cb7aa7206be21497907973dbc8a01df3cd7f632f43c583f248538f186f5adfa1a0d1c5
   languageName: node
   linkType: hard
 
@@ -36972,7 +37017,7 @@ __metadata:
     "@headlessui/react": "npm:^1.7.4"
     "@heroicons/react": "npm:^2.0.13"
     "@highlight-run/next": "workspace:*"
-    "@inkeep/uikit": "npm:^0.3.8"
+    "@inkeep/uikit": "npm:^0.3.16"
     "@radix-ui/react-slider": "npm:^1.1.0"
     "@supabase/supabase-js": "npm:^2.7.1"
     "@svgr/webpack": "npm:^8.1.0"
@@ -46192,6 +46237,16 @@ __metadata:
   version: 0.14.7
   resolution: "opentracing@npm:0.14.7"
   checksum: 10/0159a5a2a40bef0722cd6e0607808355e0e22909fe54f3441fbce3c78183fed0a12f834ca43eff0c93abddb8b1ab89548162b05cd9b340678dfa3b5cb9eb04b8
+  languageName: node
+  linkType: hard
+
+"optimism@npm:^0.16.2":
+  version: 0.16.2
+  resolution: "optimism@npm:0.16.2"
+  dependencies:
+    "@wry/context": "npm:^0.7.0"
+    "@wry/trie": "npm:^0.3.0"
+  checksum: 10/b9fc5f6549cf98fcb67cd9a2c1c30b4a0f52d4e9c41191def5855ec753ec2b2796f7b114fdc67354b3d3b7f48a7293914e903cedc8c17454a1864051ec50862d
   languageName: node
   linkType: hard
 
