@@ -90,6 +90,8 @@ const Customers = ({ customers }: { customers: Customer[] }) => {
 		'superpowered',
 		'sunsama',
 		'cabal',
+		'whop',
+		'aurora',
 	]
 
 	return (

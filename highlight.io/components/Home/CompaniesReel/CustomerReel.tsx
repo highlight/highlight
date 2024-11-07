@@ -1,4 +1,3 @@
-import classNames from 'classnames'
 import Image from 'next/legacy/image'
 import Airplane from '../../../public/images/companies/airplane.png'
 import Basedash from '../../../public/images/companies/basedash.png'
@@ -54,12 +53,6 @@ export const CustomerReel = () => {
 					alt="Airplane"
 					className={styles.scaleHeight}
 				/>
-				<div
-					className={classNames(
-						styles.tabletGraphic,
-						styles.hideMobile,
-					)}
-				></div>
 				<Image
 					src={Secoda}
 					alt="Secoda"
@@ -69,15 +62,31 @@ export const CustomerReel = () => {
 				<Image
 					src={Whop}
 					alt="Whop"
-					className={styles.scaleHeight}
+					className={styles.scaleHeightWhopAndAurora}
 					style={{ transform: 'scale(0.8)' }}
 				/>
 				<Image
 					src={Aurora}
 					alt="Aurora"
-					className={styles.scaleHeight}
+					className={styles.scaleHeightWhopAndAurora}
 					style={{ transform: 'scale(0.8)' }}
 				/>
+			</div>
+			<div className={styles.companiesLastRowContainer}>
+				<div className={styles.companiesLastRow}>
+					<Image
+						src={Whop}
+						alt="Whop"
+						className={styles.scaleHeight}
+						style={{ transform: 'scale(0.8)' }}
+					/>
+					<Image
+						src={Aurora}
+						alt="Aurora"
+						className={styles.scaleHeight}
+						style={{ transform: 'scale(0.8)' }}
+					/>
+				</div>
 			</div>
 		</div>
 	)
