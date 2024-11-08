@@ -27,11 +27,15 @@ export function startPino() {
 		},
 	})
 
-	H.runWithHeaders({ 'x-highlight-request': '987654/321654' }, () => {
-		logger.info('hello world')
+	H.runWithHeaders(
+		'custom-span',
+		{ 'x-highlight-request': '987654/321654' },
+		() => {
+			logger.info('hello world')
 
-		const child = logger.child({ a: 'property' })
+			const child = logger.child({ a: 'property' })
 
-		child.info('hello child!')
-	})
+			child.info('hello child!')
+		},
+	)
 }
