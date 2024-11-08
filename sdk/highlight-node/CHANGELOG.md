@@ -1,5 +1,11 @@
 # @highlight-run/node
 
+## 3.10.1
+
+### Patch Changes
+
+-   f06a274: ensure W3CTraceContext is propagated to distributed services
+
 ## 3.10.0
 
 ### Minor Changes
