@@ -133,7 +133,6 @@ var Models = []interface{}{
 	&ErrorObject{},
 	&ErrorGroup{},
 	&ErrorGroupEmbeddings{},
-	&ErrorField{},
 	&SavedSegment{},
 	&Organization{},
 	&Admin{},
@@ -1048,7 +1047,6 @@ type ErrorGroup struct {
 	MappedStackTrace *string
 	State            modelInputs.ErrorState `json:"state" gorm:"default:OPEN"`
 	SnoozedUntil     *time.Time             `json:"snoozed_until"`
-	Fields           []*ErrorField          `gorm:"many2many:error_group_fields;" json:"fields"`
 	Fingerprints     []*ErrorFingerprint
 	FieldGroup       *string
 	Environments     string
@@ -1108,14 +1106,6 @@ type ErrorInstance struct {
 	ErrorObject ErrorObject `json:"error_object"`
 	NextID      *int        `json:"next_id"`
 	PreviousID  *int        `json:"previous_id"`
-}
-
-type ErrorField struct {
-	Model
-	ProjectID   int `json:"project_id"`
-	Name        string
-	Value       string
-	ErrorGroups []ErrorGroup `gorm:"many2many:error_group_fields;"`
 }
 
 type ErrorGroupEmbeddings struct {
@@ -1305,9 +1295,9 @@ type IntegrationWorkspaceMapping struct {
 
 type IntegrationProjectMapping struct {
 	// idx_integration_project_mapping_integration_type_external_id is used to find a project for a given integration by its external id
-	IntegrationType modelInputs.IntegrationType `gorm:"uniqueIndex:idx_integration_project_mapping_project_id_integration_type;index:idx_integration_project_mapping_integration_type_external_id"`
-	ProjectID       int                         `gorm:"uniqueIndex:idx_integration_project_mapping_project_id_integration_type"`
-	ExternalID      string                      `gorm:"index:idx_integration_project_mapping_integration_type_external_id"`
+	IntegrationType modelInputs.IntegrationType `gorm:"index:idx_integration_project_mapping_integration_type_external_id"`
+	ProjectID       int
+	ExternalID      string `gorm:"index:idx_integration_project_mapping_integration_type_external_id"`
 }
 
 type OAuthClientStore struct {
@@ -1653,13 +1643,6 @@ func MigrateDB(ctx context.Context, DB *gorm.DB) (bool, error) {
 		END $$;
 	`, DASHBOARD_METRIC_FILTERS_UNIQ, DASHBOARD_METRIC_FILTERS_UNIQ, DASHBOARD_METRIC_FILTERS_UNIQ)).Error; err != nil {
 		return false, e.Wrap(err, "Error adding unique constraint on dashboard_metric_filters")
-	}
-
-	if err := DB.Exec(`
-		CREATE INDEX CONCURRENTLY IF NOT EXISTS error_fields_md5_idx
-		ON error_fields (project_id, name, CAST(md5(value) AS uuid));
-	`).Error; err != nil {
-		return false, e.Wrap(err, "Error creating error_fields_md5_idx")
 	}
 
 	// If sessions_id_seq is not greater than 30000000, set it

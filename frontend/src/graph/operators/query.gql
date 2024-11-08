@@ -1118,10 +1118,6 @@ query GetErrorGroup($secure_id: String!, $use_clickhouse: Boolean) {
 		}
 		mapped_stack_trace
 		stack_trace
-		fields {
-			name
-			value
-		}
 		error_frequency
 		error_metrics {
 			error_group_id
@@ -1291,40 +1287,6 @@ query GetProjectSuggestion($query: String!) {
 		id
 		name
 		workspace_id
-	}
-}
-
-query GetErrorFieldSuggestion(
-	$project_id: ID!
-	$name: String!
-	$query: String!
-) {
-	error_field_suggestion(
-		project_id: $project_id
-		name: $name
-		query: $query
-	) {
-		name
-		value
-	}
-}
-
-query GetErrorSearchSuggestions($project_id: ID!, $query: String!) {
-	visitedUrls: error_field_suggestion(
-		project_id: $project_id
-		name: "visited_url"
-		query: $query
-	) {
-		name
-		value
-	}
-	fields: error_field_suggestion(
-		project_id: $project_id
-		name: "event"
-		query: $query
-	) {
-		name
-		value
 	}
 }
 

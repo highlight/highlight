@@ -505,7 +505,6 @@ func (r *Resolver) GetOrCreateErrorGroup(ctx context.Context, errorObj *model.Er
 			MappedStackTrace: errorObj.MappedStackTrace,
 			Type:             errorObj.Type,
 			State:            privateModel.ErrorStateOpen,
-			Fields:           []*model.ErrorField{},
 			Environments:     environmentsString,
 			ServiceName:      errorObj.ServiceName,
 		}
@@ -763,7 +762,7 @@ func (r *Resolver) isWithinErrorQuota(ctx context.Context, workspace *model.Work
 
 // HandleErrorAndGroup caches the result of handleErrorAndGroup under the exact match of the error body + stacktrace.
 // Improves performance of handleErrorAndGroup by first checking if the exact error object has been grouped before.
-func (r *Resolver) HandleErrorAndGroup(ctx context.Context, errorObj *model.ErrorObject, structuredStackTrace []*privateModel.ErrorTrace, fields []*model.ErrorField, projectID int, workspace *model.Workspace) (*model.ErrorGroup, error) {
+func (r *Resolver) HandleErrorAndGroup(ctx context.Context, errorObj *model.ErrorObject, structuredStackTrace []*privateModel.ErrorTrace, projectID int, workspace *model.Workspace) (*model.ErrorGroup, error) {
 	span, ctx := util.StartSpanFromContext(ctx, "HandleErrorAndGroup", util.Tag("projectID", projectID))
 	defer span.Finish()
 
@@ -807,7 +806,7 @@ func (r *Resolver) HandleErrorAndGroup(ctx context.Context, errorObj *model.Erro
 	var cacheMiss bool
 	eg, err := redis.CachedEval(ctx, r.Redis, key, 10*time.Second, time.Hour, func() (*model.ErrorGroup, error) {
 		cacheMiss = true
-		return r.handleErrorAndGroup(ctx, project, errorObj, structuredStackTrace, fields, projectID, workspace)
+		return r.handleErrorAndGroup(ctx, project, errorObj, structuredStackTrace, projectID, workspace)
 	})
 	if eg == nil || err != nil {
 		log.WithContext(ctx).WithError(err).WithField("project_id", projectID).Error("failed to group error")
@@ -840,7 +839,7 @@ func (r *Resolver) HandleErrorAndGroup(ctx context.Context, errorObj *model.Erro
 }
 
 // Matches the ErrorObject with an existing ErrorGroup, or creates a new one if the group does not exist
-func (r *Resolver) handleErrorAndGroup(ctx context.Context, project *model.Project, errorObj *model.ErrorObject, structuredStackTrace []*privateModel.ErrorTrace, fields []*model.ErrorField, projectID int, workspace *model.Workspace) (*model.ErrorGroup, error) {
+func (r *Resolver) handleErrorAndGroup(ctx context.Context, project *model.Project, errorObj *model.ErrorObject, structuredStackTrace []*privateModel.ErrorTrace, projectID int, workspace *model.Workspace) (*model.ErrorGroup, error) {
 	span, ctx := util.StartSpanFromContext(ctx, "handleErrorAndGroup", util.Tag("projectID", projectID))
 	defer span.Finish()
 
@@ -929,10 +928,6 @@ func (r *Resolver) handleErrorAndGroup(ctx context.Context, project *model.Proje
 		}
 	}
 
-	if err := r.AppendErrorFields(ctx, fields, errorGroup); err != nil {
-		return nil, e.Wrap(err, "error appending error fields")
-	}
-
 	if err := r.DB.Transaction(func(tx *gorm.DB) error {
 		for _, f := range fingerprints {
 			f.ErrorGroupId = errorGroup.ID
@@ -969,53 +964,6 @@ func (r *Resolver) handleErrorAndGroup(ctx context.Context, project *model.Proje
 	}
 
 	return errorGroup, nil
-}
-
-func (r *Resolver) AppendErrorFields(ctx context.Context, fields []*model.ErrorField, errorGroup *model.ErrorGroup) error {
-	fieldsToAppend := []*model.ErrorField{}
-	for _, f := range fields {
-		field := &model.ErrorField{}
-		res := r.DB.WithContext(ctx).Raw(`
-			SELECT * FROM error_fields
-			WHERE project_id = ?
-			AND name = ?
-			AND value = ?
-			AND md5(value)::uuid = md5(?)::uuid
-			`, f.ProjectID, f.Name, f.Value, f.Value).Take(&field)
-		// If the field doesn't exist, we create it.
-		if err := res.Error; err != nil || e.Is(err, gorm.ErrRecordNotFound) {
-			if err := r.DB.WithContext(ctx).Create(f).Error; err != nil {
-				return e.Wrap(err, "error creating error field")
-			}
-			fieldsToAppend = append(fieldsToAppend, f)
-		} else {
-			fieldsToAppend = append(fieldsToAppend, field)
-		}
-	}
-
-	var entries []struct {
-		ErrorGroupID int
-		ErrorFieldID int
-	}
-	for _, f := range fieldsToAppend {
-		entries = append(entries, struct {
-			ErrorGroupID int
-			ErrorFieldID int
-		}{
-			ErrorGroupID: errorGroup.ID,
-			ErrorFieldID: f.ID,
-		})
-	}
-
-	if len(entries) > 0 {
-		if err := r.DB.Table("error_group_fields").Clauses(clause.OnConflict{
-			DoNothing: true,
-		}).Create(entries).Error; err != nil {
-			return e.Wrap(err, "error updating fields")
-		}
-	}
-
-	return nil
 }
 
 func GetLocationFromIP(ctx context.Context, ip string) (location *Location, err error) {
@@ -2100,19 +2048,6 @@ func ClampTime(input time.Time, curTime time.Time) time.Time {
 	return input
 }
 
-func extractErrorFields(sessionObj *model.Session, errorToProcess *model.ErrorObject) []*model.ErrorField {
-	projectID := sessionObj.ProjectID
-
-	errorFields := []*model.ErrorField{}
-	errorFields = append(errorFields, &model.ErrorField{ProjectID: projectID, Name: "browser", Value: sessionObj.BrowserName})
-	errorFields = append(errorFields, &model.ErrorField{ProjectID: projectID, Name: "os_name", Value: sessionObj.OSName})
-	errorFields = append(errorFields, &model.ErrorField{ProjectID: projectID, Name: "visited_url", Value: errorToProcess.URL})
-	errorFields = append(errorFields, &model.ErrorField{ProjectID: projectID, Name: "event", Value: errorToProcess.Event})
-	errorFields = append(errorFields, &model.ErrorField{ProjectID: projectID, Name: "environment", Value: errorToProcess.Environment})
-
-	return errorFields
-}
-
 func (r *Resolver) updateErrorsCount(ctx context.Context, projectID int, errorsBySession map[string]int64, errors int, errorType string) {
 	dailyErrorCountSpan, ctx := util.StartSpanFromContext(ctx, "public-graph.processBackendPayload", util.ResourceName("db.updateDailyErrorCounts"))
 	dailyErrorCountSpan.SetAttribute("numberOfErrors", errors)
@@ -2286,7 +2221,7 @@ func (r *Resolver) ProcessBackendPayloadImpl(ctx context.Context, sessionSecureI
 			structuredStackTrace = structured
 		}
 
-		group, err := r.HandleErrorAndGroup(ctx, errorToInsert, structuredStackTrace, extractErrorFields(session, errorToInsert), projectID, workspace)
+		group, err := r.HandleErrorAndGroup(ctx, errorToInsert, structuredStackTrace, projectID, workspace)
 		if err != nil {
 			if e.Is(err, ErrUserFilteredError) {
 				log.WithContext(ctx).WithError(err).Info("Will not update error group")
@@ -2974,7 +2909,7 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 				structuredStackTrace = structured
 			}
 
-			group, err := r.HandleErrorAndGroup(ctx, errorToInsert, structuredStackTrace, extractErrorFields(sessionObj, errorToInsert), projectID, workspace)
+			group, err := r.HandleErrorAndGroup(ctx, errorToInsert, structuredStackTrace, projectID, workspace)
 			if err != nil {
 				if e.Is(err, ErrUserFilteredError) {
 					log.WithContext(ctx).WithError(err).Info("Will not update error group")

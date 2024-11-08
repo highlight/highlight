@@ -125,6 +125,7 @@ var defaultSessionsKeys = []*modelInputs.QueryKey{
 	{Name: string(modelInputs.ReservedSessionKeySecureID), Type: modelInputs.KeyTypeString},
 	{Name: string(modelInputs.ReservedSessionKeyViewedByAnyone), Type: modelInputs.KeyTypeBoolean},
 	{Name: string(modelInputs.ReservedSessionKeyViewedByMe), Type: modelInputs.KeyTypeBoolean},
+	{Name: string(modelInputs.ReservedSessionKeyTimestamp), Type: modelInputs.KeyTypeNumeric},
 }
 
 var booleanKeys = map[string]bool{
@@ -521,6 +522,7 @@ var SessionsJoinedTableConfig = model.TableConfig{
 		string(modelInputs.ReservedSessionKeyPagesVisited):       "PagesVisited",
 		string(modelInputs.ReservedSessionKeySecureID):           "SecureID",
 		string(modelInputs.ReservedSessionKeyState):              "State",
+		string(modelInputs.ReservedSessionKeyTimestamp):          "Timestamp",
 		string(modelInputs.ReservedSessionKeyViewedByAnyone):     "Viewed",
 		string(modelInputs.ReservedSessionKeyWithinBillingQuota): "WithinBillingQuota",
 

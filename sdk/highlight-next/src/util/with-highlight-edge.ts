@@ -28,6 +28,7 @@ export function Highlight(env: HighlightEnv) {
 
 			try {
 				const response = await H.runWithHeaders(
+					`${request.method?.toUpperCase()} - ${request.url}`,
 					request.headers as any,
 					async () => {
 						return await handler(request, event)
