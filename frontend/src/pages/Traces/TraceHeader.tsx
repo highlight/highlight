@@ -18,7 +18,7 @@ export const TraceHeader = () => {
 
 	return (
 		<Stack direction="column" gap="12" pb="12">
-			<Heading level="h4" lines="2">
+			<Heading level="h4" lines="2" title={traceName}>
 				{traceName}
 			</Heading>
 			<Stack gap="4" direction="row" alignItems="center">
