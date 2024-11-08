@@ -108,6 +108,7 @@ type ClickhouseField struct {
 	SessionCreatedAt int64
 	SessionID        int64
 	Value            string
+	Timestamp        int64
 }
 
 // These keys show up as recommendations, not in fields table due to high cardinality or post processing booleans
@@ -178,6 +179,7 @@ func (client *Client) WriteSessions(ctx context.Context, sessions []*model.Sessi
 				Value:            field.Value,
 				SessionID:        int64(session.ID),
 				SessionCreatedAt: session.CreatedAt.UnixMicro(),
+				Timestamp:        field.Timestamp.UnixMicro(),
 			}
 			chFields = append(chFields, &chf)
 		}
