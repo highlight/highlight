@@ -921,10 +921,6 @@ SessionSecureID: ${this.sessionData.sessionSecureID}`,
 					} else {
 						this.addCustomEvent<string>('Navigate', url)
 					}
-					highlightThis.addProperties(
-						{ 'visited-url': url },
-						{ type: 'session' },
-					)
 				}),
 			)
 

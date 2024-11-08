@@ -3,7 +3,11 @@ import { H } from './highlight-node'
 
 import { IncomingHttpHeaders } from 'http'
 
-export declare type HasHeaders = { headers: IncomingHttpHeaders }
+export declare type HasHeaders = {
+	headers: IncomingHttpHeaders
+	method?: string
+	url?: string
+}
 export declare type HasStatus = {
 	readonly statusCode: number
 	readonly statusMessage: string
@@ -28,9 +32,13 @@ export const Highlight =
 			const start = new Date()
 
 			try {
-				return await H.runWithHeaders(req.headers, async () => {
-					return await originalHandler(req, res)
-				})
+				return await H.runWithHeaders(
+					`${req.method?.toUpperCase()} - ${req.url}`,
+					req.headers,
+					async () => {
+						return await originalHandler(req, res)
+					},
+				)
 			} catch (e) {
 				res.status(500).send('Internal Server Error')
 				throw e

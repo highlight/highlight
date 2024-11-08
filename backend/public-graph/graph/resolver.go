@@ -227,8 +227,9 @@ func init() {
 }
 
 type AppendProperty struct {
-	Key   string
-	Value string
+	Key       string
+	Value     string
+	Timestamp time.Time
 }
 
 // Change to AppendProperties(sessionId,properties,type)
@@ -259,7 +260,7 @@ func (r *Resolver) AppendProperties(ctx context.Context, sessionID int, properti
 			// Skip when the field name is a number
 			// (this can be sent by clients if a string is passed as an `addProperties` payload)
 		} else {
-			modelFields = append(modelFields, &model.Field{ProjectID: projectID, Name: fv.Key, Value: fv.Value, Type: string(propType)})
+			modelFields = append(modelFields, &model.Field{ProjectID: projectID, Name: fv.Key, Value: fv.Value, Type: string(propType), Timestamp: fv.Timestamp})
 		}
 	}
 
@@ -1034,7 +1035,7 @@ func (r *Resolver) IndexSessionClickhouse(ctx context.Context, session *model.Se
 		sessionProperties["service_version"] = *session.AppVersion
 	}
 	if err := r.AppendProperties(ctx, session.ID, lo.MapToSlice(sessionProperties, func(key string, value string) AppendProperty {
-		return AppendProperty{key, value}
+		return AppendProperty{key, value, session.CreatedAt}
 	}), PropertyType.SESSION); err != nil {
 		log.WithContext(ctx).Error(e.Wrap(err, "error adding set of properties to db"))
 	}
@@ -1520,7 +1521,7 @@ func (r *Resolver) IdentifySessionImpl(ctx context.Context, sessionSecureID stri
 		return e.Wrapf(err, "[IdentifySession] [project_id: %d] error appending user properties to session object {id: %d}", session.ProjectID, sessionID)
 	}
 	if err := r.AppendProperties(spanCtx, sessionID, lo.MapToSlice(newUserProperties, func(key string, value string) AppendProperty {
-		return AppendProperty{key, value}
+		return AppendProperty{key, value, session.CreatedAt}
 	}), PropertyType.USER); err != nil {
 		log.WithContext(ctx).Error(e.Wrapf(err, "[IdentifySession] error adding set of identify properties to db: session: %d", sessionID))
 	}
@@ -1642,7 +1643,7 @@ func (r *Resolver) AddSessionPropertiesImpl(ctx context.Context, sessionSecureID
 		fields[k] = fmt.Sprintf("%v", v)
 	}
 	err = r.AppendProperties(ctx, sessionObj.ID, lo.MapToSlice(fields, func(key string, value string) AppendProperty {
-		return AppendProperty{key, value}
+		return AppendProperty{key, value, sessionObj.CreatedAt}
 	}), PropertyType.SESSION)
 	if err != nil {
 		return e.Wrap(err, "error adding set of properties to db")
@@ -2269,13 +2270,18 @@ func (r *Resolver) AddTrackPropertiesImpl(ctx context.Context, sessionSecureID s
 	}
 	fields := map[string]string{}
 	for k, v := range obj {
+		if k == "visited-url" {
+			// from old SDK versions (=<9.5.2): don't process as these are now added in session events processing
+			continue
+		}
+
 		fields[k] = fmt.Sprintf("%v", v)
 		if fields[k] == "therewasonceahumblebumblebeeflyingthroughtheforestwhensuddenlyadropofwaterfullyencasedhimittookhimasecondtofigureoutthathesinaraindropsuddenlytheraindrophitthegroundasifhewasdivingintoapoolandheflewawaywithnofurtherissues" {
 			return e.New("therewasonceahumblebumblebeeflyingthroughtheforestwhensuddenlyadropofwaterfullyencasedhimittookhimasecondtofigureoutthathesinaraindropsuddenlytheraindrophitthegroundasifhewasdivingintoapoolandheflewawaywithnofurtherissues")
 		}
 	}
 	err = r.AppendProperties(ctx, sessionObj.ID, lo.MapToSlice(fields, func(key string, value string) AppendProperty {
-		return AppendProperty{key, value}
+		return AppendProperty{key, value, sessionObj.CreatedAt}
 	}), PropertyType.TRACK)
 	if err != nil {
 		return e.Wrap(err, "error adding set of properties to db")
@@ -2336,7 +2342,7 @@ func (r *Resolver) AddSessionEvents(ctx context.Context, sessionID int, events *
 				for k, v := range propertiesObject {
 					attributes[k] = fmt.Sprintf("%.*v", SESSION_FIELD_MAX_LENGTH, v)
 					if len(attributes[k]) > 0 {
-						fields = append(fields, AppendProperty{k, attributes[k]})
+						fields = append(fields, AppendProperty{k, attributes[k], event.Timestamp})
 					}
 				}
 
@@ -2348,6 +2354,8 @@ func (r *Resolver) AddSessionEvents(ctx context.Context, sessionID int, events *
 					},
 				)
 			} else if navigateEvent {
+				fields = append(fields, AppendProperty{"visited-url", payloadStr, event.Timestamp})
+
 				sessionEvents = append(sessionEvents,
 					&clickhouse.SessionEventRow{
 						Event:     "Navigate",
@@ -2406,7 +2414,7 @@ func (r *Resolver) AddSessionEvents(ctx context.Context, sessionID int, events *
 				for k, v := range propertiesObject {
 					formattedVal := fmt.Sprintf("%.*v", SESSION_FIELD_MAX_LENGTH, v)
 					if len(formattedVal) > 0 {
-						fields = append(fields, AppendProperty{k, formattedVal})
+						fields = append(fields, AppendProperty{k, formattedVal, event.Timestamp})
 					}
 				}
 			}
@@ -3521,7 +3529,7 @@ func (r *Resolver) SendSessionTrackPropertiesAlert(ctx context.Context, workspac
 			}
 
 			if !isAMatchedField {
-				relatedFields = append(relatedFields, &model.Field{ProjectID: session.ProjectID, Name: fv.Key, Value: fv.Value, Type: string(PropertyType.TRACK)})
+				relatedFields = append(relatedFields, &model.Field{ProjectID: session.ProjectID, Name: fv.Key, Value: fv.Value, Type: string(PropertyType.TRACK), Timestamp: fv.Timestamp})
 			}
 		}
 

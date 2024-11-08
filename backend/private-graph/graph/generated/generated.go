@@ -12784,6 +12784,7 @@ enum ReservedSessionKey {
 	secure_id
 	service_version
 	state
+	timestamp
 	updated_at
 	viewed_by_anyone
 	viewed_by_me
@@ -12814,6 +12815,7 @@ enum ReservedEventKey {
 	session_length
 	session_pages_visited
 	state
+	timestamp
 }
 
 enum LogSource {

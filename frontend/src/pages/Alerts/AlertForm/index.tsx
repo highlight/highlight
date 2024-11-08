@@ -381,8 +381,6 @@ export const AlertForm: React.FC = () => {
 	const disableSave =
 		createAlertContext.loading || updateAlertContext.loading || !alertName
 
-	console.log('thresholdValue', thresholdValue)
-
 	return (
 		<GraphContextProvider value={graphContext}>
 			<Helmet>

@@ -2,6 +2,13 @@ import type { Attributes } from '@opentelemetry/api'
 import * as http from 'http'
 import { NodeOptions } from '.'
 import { H } from './sdk.js'
+import {
+	ATTR_HTTP_REQUEST_METHOD,
+	ATTR_HTTP_ROUTE,
+	ATTR_HTTP_RESPONSE_HEADER,
+	ATTR_HTTP_REQUEST_HEADER,
+	ATTR_HTTP_RESPONSE_STATUS_CODE,
+} from '@opentelemetry/semantic-conventions'
 
 /** JSDoc */
 interface MiddlewareError extends Error {
@@ -54,9 +61,19 @@ export function middleware(
 		next: () => void,
 	) => {
 		H._debug('middleware handling request')
-		H.runWithHeaders(req.headers, () => {
-			next()
-		})
+		H.runWithHeaders(
+			`${req.method?.toUpperCase()} - ${req.url}`,
+			req.headers,
+			() => next(),
+			{
+				attributes: {
+					[ATTR_HTTP_REQUEST_METHOD]: req.method,
+					[ATTR_HTTP_ROUTE]: req.url,
+					[ATTR_HTTP_RESPONSE_STATUS_CODE]: res.statusCode,
+					...(metadata ?? {}),
+				},
+			},
+		)
 	}
 }
 
@@ -118,6 +135,7 @@ export async function trpcOnError(
 declare type Headers = { [name: string]: string | undefined }
 
 const makeHandler = (
+	name: string,
 	origHandler: (...args: any) => any,
 	options: NodeOptions,
 	metadata: Attributes | undefined,
@@ -130,7 +148,7 @@ const makeHandler = (
 		const headers = headersExtractor(args)
 		try {
 			if (headers) {
-				return H.runWithHeaders(headers, async () =>
+				return H.runWithHeaders(name, headers, async () =>
 					origHandler(...args),
 				)
 			} else {
@@ -167,6 +185,7 @@ export function firebaseHttpFunctionHandler(
 	metadata?: Attributes,
 ): FirebaseHttpFunctionHandler {
 	return makeHandler(
+		'firebase.http',
 		origHandler,
 		options,
 		metadata,
@@ -185,6 +204,7 @@ export function firebaseCallableFunctionHandler(
 	metadata?: Attributes,
 ): FirebaseCallableFunctionHandler {
 	return makeHandler(
+		'firebase.cb',
 		origHandler,
 		options,
 		metadata,
@@ -203,6 +223,7 @@ export function serverlessFunction(
 	metadata?: Attributes,
 ): ServerlessCallableFunctionHandler {
 	return makeHandler(
+		'serverless',
 		origHandler,
 		options,
 		metadata,
