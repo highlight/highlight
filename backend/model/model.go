@@ -844,6 +844,7 @@ type Field struct {
 	Value     string    `gorm:"uniqueIndex:idx_fields_type_name_value_project_id"`
 	ProjectID int       `json:"project_id" gorm:"uniqueIndex:idx_fields_type_name_value_project_id"`
 	Sessions  []Session `gorm:"many2many:session_fields;"`
+	Timestamp time.Time `json:"timestamp"`
 }
 
 type ResourcesObject struct {
