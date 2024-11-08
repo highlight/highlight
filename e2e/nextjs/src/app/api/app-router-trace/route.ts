@@ -16,7 +16,7 @@ export const GET = withAppRouterHighlight(async function GET(
 		const headers = {}
 		await fetch('http://localhost:3010/x-highlight-request', {
 			method: 'GET',
-			headers, // Forward headers, x-highlight-request is critical
+			headers: request.headers, // Forward headers, x-highlight-request is critical
 		}).catch(() =>
 			console.info('Inactive go service at http://localhost:3010'),
 		)

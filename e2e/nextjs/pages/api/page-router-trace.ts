@@ -15,7 +15,11 @@ export default withPageRouterHighlight(async function handler(
 		const headers = {}
 		await fetch('http://localhost:3010/x-highlight-request', {
 			method: 'GET',
-			headers, // Forward headers, x-highlight-request is critical
+			// forward headers
+			headers: Object.entries(req.headers).reduce(
+				(acc, [key, value]) => ({ ...acc, [key]: value }),
+				{},
+			),
 		}).catch(() =>
 			console.info('Inactive go service at http://localhost:3010'),
 		)
