@@ -25,6 +25,7 @@ yalc.lock
 **/coverage.out
 **/output.txt
 **/.nvmrc
+**/*.db
 
 backend/backend
 backend/__debug_bin

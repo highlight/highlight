@@ -30,6 +30,7 @@ export const PrismaQueries = () => {
 			if (!response.ok) throw new Error('Failed to create user')
 
 			handleFetchUsers()
+			;(e.target as HTMLFormElement).reset()
 		} catch (error) {
 			alert(`Failed to create user: ${error}`)
 		}
