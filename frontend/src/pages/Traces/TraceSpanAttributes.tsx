@@ -9,7 +9,6 @@ import { useSearchContext } from '@/components/Search/SearchContext'
 type Props = {
 	span: FlameGraphSpan
 	query?: string
-	onUpdateQuery?: (query: string) => void
 }
 
 export const TraceSpanAttributes: React.FC<Props> = ({ span }) => {
