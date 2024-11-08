@@ -2,28 +2,21 @@ import { useEffect, useMemo } from 'react'
 
 import { JsonViewerV2 } from '@/components/JsonViewer/JsonViewerV2'
 import { findMatchingAttributes } from '@/components/JsonViewer/utils'
-import { parseSearch } from '@/components/Search/utils'
 import { FlameGraphSpan, formatTraceAttributes } from '@/pages/Traces/utils'
 import analytics from '@/util/analytics'
+import { useSearchContext } from '@/components/Search/SearchContext'
 
 type Props = {
 	span: FlameGraphSpan
 	query?: string
-	onSubmit?: (query: string) => void
+	onUpdateQuery?: (query: string) => void
 }
 
-export const TraceSpanAttributes: React.FC<Props> = ({
-	span,
-	query,
-	onSubmit,
-}) => {
+export const TraceSpanAttributes: React.FC<Props> = ({ span }) => {
 	const attributes: { [key: string]: any } = { ...span }
 	const formattedSpan = formatTraceAttributes(attributes)
+	const { onSubmit, queryParts } = useSearchContext()
 
-	const queryParts = useMemo(
-		() => (query ? parseSearch(query).queryParts : undefined),
-		[query],
-	)
 	const matchedAttributes = useMemo(
 		() =>
 			queryParts ? findMatchingAttributes(queryParts, formattedSpan) : {},

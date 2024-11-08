@@ -39,13 +39,12 @@ export type RelatedSession = RelatedResourceCommon & {
 	[PlayerSearchParameters.tsAbs]?: string
 }
 
-export type RelatedTrace = RelatedResourceCommon &
-	Partial<Omit<QueryableResource, 'type'>> & {
-		type: 'trace'
-		id: string
-		timestamp: string
-		spanID?: string
-	}
+export type RelatedTrace = RelatedResourceCommon & {
+	type: 'trace'
+	id: string
+	timestamp: string
+	spanID?: string
+}
 
 export type RelatedLogs = RelatedResourceCommon &
 	QueryableResource & {
@@ -191,6 +190,7 @@ export const useRelatedResource = () => {
 		resource,
 		panelPagination,
 		panelWidth,
+		searchParams,
 		set,
 		remove,
 		setPanelWidth,

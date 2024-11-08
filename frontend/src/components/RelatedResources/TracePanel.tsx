@@ -11,26 +11,21 @@ import {
 	useRelatedResource,
 } from '@/components/RelatedResources/hooks'
 import { useEffect, useState } from 'react'
+import { SearchContext } from '../Search/SearchContext'
 
-export const TracePanel: React.FC<{ resource: RelatedTrace }> = ({
-	resource,
-}) => {
+export const TracePanel: React.FC<{ resource: RelatedTrace }> = () => {
 	const { highlightedSpan, loading, selectedSpan, traces } = useTrace()
 	const span = selectedSpan || highlightedSpan
 	const path = `${window.location.pathname}${window.location.search}`
-	const { updateQuery } = useRelatedResource()
-	const [query, setQuery] = useState(resource.query ?? '')
+	const { searchParams, updateQuery } = useRelatedResource()
+	const [query, setQuery] = useState(searchParams?.get('query') ?? '')
 
 	useEffect(() => {
-		setQuery(resource?.query ?? '')
-	}, [resource.query])
-
-	const handleSubmit = (query: string) => {
-		updateQuery(query)
-	}
+		setQuery(searchParams?.get('query') ?? '')
+	}, [searchParams])
 
 	return (
-		<>
+		<SearchContext initialQuery={query} onSubmit={updateQuery} disabled>
 			<Panel.Header>
 				<Panel.HeaderCopyLinkButton path={path} />
 				<Panel.HeaderDivider />
@@ -58,13 +53,12 @@ export const TracePanel: React.FC<{ resource: RelatedTrace }> = ({
 								<TraceSpanAttributes
 									span={span}
 									query={query}
-									onSubmit={handleSubmit}
 								/>
 							)}
 						</Box>
 					</Box>
 				)}
 			</Box>
-		</>
+		</SearchContext>
 	)
 }
