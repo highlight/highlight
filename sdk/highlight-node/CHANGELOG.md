@@ -1,5 +1,11 @@
 # @highlight-run/node
 
+## 3.10.0
+
+### Minor Changes
+
+-   236afe0: support span naming in runwithheaders and set a default span name for route middlewares
+
 ## 3.9.7
 
 ### Patch Changes
