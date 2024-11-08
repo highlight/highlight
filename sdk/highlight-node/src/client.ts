@@ -65,8 +65,6 @@ const instrumentations = getNodeAutoInstrumentations({
 	},
 })
 
-// Seems like this needs to be added here for Prisma tracing to work. Not sure
-// why it can't be added when initializing the SDK...
 instrumentations.push(new PrismaInstrumentation())
 
 /**
@@ -233,13 +231,6 @@ export class Highlight {
 		for (const [otelAttr, option] of Object.entries(OTEL_TO_OPTIONS)) {
 			if (options[option]) {
 				attributes[otelAttr] = options[option]
-			}
-		}
-
-		debugger
-		if (options.autoInstrumentations) {
-			if (options.autoInstrumentations.includes('prisma')) {
-				instrumentations.push(new PrismaInstrumentation())
 			}
 		}
 
