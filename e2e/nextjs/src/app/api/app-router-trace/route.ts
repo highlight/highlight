@@ -13,7 +13,7 @@ export const GET = withAppRouterHighlight(async function GET(
 
 		logger.info({}, `app router trace get`)
 
-		const headers = { ...request.headers }
+		const headers = {}
 		await fetch('http://localhost:3010/x-highlight-request', {
 			method: 'GET',
 			headers, // Forward headers, x-highlight-request is critical

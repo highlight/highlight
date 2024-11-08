@@ -12,7 +12,7 @@ export default withPageRouterHighlight(async function handler(
 	return new Promise<void>(async (resolve) => {
 		const { span } = H.startWithHeaders('page-router-span', {})
 
-		const headers = { ...request.headers }
+		const headers = {}
 		await fetch('http://localhost:3010/x-highlight-request', {
 			method: 'GET',
 			headers, // Forward headers, x-highlight-request is critical

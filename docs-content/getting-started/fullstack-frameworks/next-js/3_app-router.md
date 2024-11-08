@@ -219,6 +219,39 @@ export default appRouterSsrErrorHandler(
 )
 ```
 
+### [Advanced] Propagate distributed tracing context with W3CTraceContextPropagation
+
+If you have another API service that you're making a request to, you'll want to propagate
+the trace context to that microservice so that logs and spans emitted by it will be attributed to the same trace.
+To do that, propagate the context in the headers via the `@opentelemetry/api` package.
+
+```tsx
+// app/api/app-router-trace/route.ts
+import { withAppRouterHighlight } from '@/app/_utils/app-router-highlight.config'
+import { H } from '@highlight-run/next/server'
+import { NextRequest } from 'next/server'
+import { propagation, context } from '@opentelemetry/api'
+
+export const GET = withAppRouterHighlight(async function GET(
+        request: NextRequest,
+) {
+  const { span } = H.startWithHeaders('app-router-span', {})
+
+  const headers = {}
+  propagation.inject(context.active(), headers)
+  await fetch('http://my-other-service/api', {
+    method: 'POST',
+    headers,
+  })
+
+  span.end()
+  
+  return new Response('Success: /api/app-router-trace')
+})
+
+export const runtime = 'nodejs'
+```
+
 ### Validate SSR error capture
 
 1. Copy the following code into `app/app-router-ssr/page.tsx`.
