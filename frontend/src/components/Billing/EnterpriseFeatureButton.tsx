@@ -23,6 +23,10 @@ const FEATURE_DESCRIPTIONS = {
 	'Ingestion Sampling': 'control data ingestion rates and sample data.',
 	'Custom Data Retention':
 		'control data retention beyond the standard retention.',
+	'Jira Integration':
+		'create Jira issues from your highlight.io errors and sessions.',
+	'Teams Integration':
+		'receive highlight.io alerts via Microsoft Teams messages.',
 } as const
 
 type Feature = keyof typeof FEATURE_DESCRIPTIONS
