@@ -527,6 +527,7 @@ var SessionsJoinedTableConfig = model.TableConfig{
 		string(modelInputs.ReservedSessionKeyTimestamp):          "Timestamp",
 		string(modelInputs.ReservedSessionKeyViewedByAnyone):     "Viewed",
 		string(modelInputs.ReservedSessionKeyWithinBillingQuota): "WithinBillingQuota",
+		string(modelInputs.ReservedSessionKeyUpdatedAt):          "UpdatedAt",
 
 		// deprecated but kept in for backwards compatibility of search
 		string(modelInputs.ReservedSessionKeyViewed):    "Viewed",
