@@ -883,6 +883,33 @@
 	padding: 0 var(--size-xLarge);
 	column-gap: var(--size-xLarge);
 	row-gap: var(--size-medium);
+	margin-bottom: -72px;
+
+	.scaleHeight {
+		max-height: 36px !important;
+		min-height: 36px !important;
+	}
+
+	.scaleHeightWhopAndAurora {
+		display: none !important;
+	}
+
+	img {
+		object-fit: contain;
+		filter: invert(1);
+		min-height: 36px;
+	}
+}
+
+.companiesLastRowContainer {
+	display: flex;
+	justify-content: center;
+}
+
+.companiesLastRow {
+	width: 40%;
+	display: grid;
+	grid-template-columns: repeat(2, 1fr);
 
 	.scaleHeight {
 		max-height: 36px !important;
@@ -893,6 +920,7 @@
 		object-fit: contain;
 		filter: invert(1);
 		min-height: 36px;
+		margin: 0 !important;
 	}
 }
 
@@ -1075,6 +1103,16 @@
 
 	.companies {
 		grid-template-columns: repeat(3, 1fr);
+
+		.scaleHeightWhopAndAurora {
+			max-height: 36px !important;
+			min-height: 36px !important;
+			display: block !important;
+		}
+	}
+
+	.companiesLastRowContainer {
+		display: none;
 	}
 
 	.featuresLeftColumn {
