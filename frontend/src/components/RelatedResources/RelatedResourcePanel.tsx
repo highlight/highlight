@@ -52,7 +52,7 @@ export const RelatedResourcePanel: React.FC<Props> = ({}) => {
 					spanId={resource.spanID}
 					timestamp={resource.timestamp}
 				>
-					<TracePanel />
+					<TracePanel resource={resource} />
 				</TraceProvider>
 			)}
 			{(resource?.type === 'traces' ||
