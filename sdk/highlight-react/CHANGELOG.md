@@ -6,7 +6,7 @@
 
 -   Updated dependencies [2d95aba]
 -   Updated dependencies [564d3f2]
-    -   highlight.run@9.7.0
+    -   highlight.run@9.6.0
 
 ## 7.0.2
 
