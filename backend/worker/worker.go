@@ -815,8 +815,8 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 		landingPage := visitFields[0]
 		exitPage := visitFields[len(visitFields)-1]
 		sessionProperties := []pubgraph.AppendProperty{
-			{Key: "landing_page", Value: landingPage.Value},
-			{Key: "exit_page", Value: exitPage.Value},
+			{Key: "landing_page", Value: landingPage.Value, Timestamp: landingPage.CreatedAt},
+			{Key: "exit_page", Value: exitPage.Value, Timestamp: exitPage.CreatedAt},
 		}
 
 		if err := w.PublicResolver.AppendProperties(ctx, s.ID, sessionProperties, pubgraph.PropertyType.SESSION); err != nil {

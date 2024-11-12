@@ -13,7 +13,11 @@ import api, {
 } from '@opentelemetry/api'
 import { getNodeAutoInstrumentations } from '@opentelemetry/auto-instrumentations-node'
 import { AsyncLocalStorageContextManager } from '@opentelemetry/context-async-hooks'
-import { W3CBaggagePropagator } from '@opentelemetry/core'
+import {
+	W3CBaggagePropagator,
+	W3CTraceContextPropagator,
+	CompositePropagator,
+} from '@opentelemetry/core'
 import { OTLPTraceExporter } from '@opentelemetry/exporter-trace-otlp-http'
 import { registerInstrumentations } from '@opentelemetry/instrumentation'
 import { CompressionAlgorithm } from '@opentelemetry/otlp-exporter-base'
@@ -74,7 +78,14 @@ instrumentations.push(new PrismaInstrumentation())
  *
  * Docs: https://github.com/open-telemetry/opentelemetry-js/blob/main/packages/opentelemetry-core/README.md
  */
-propagation.setGlobalPropagator(new W3CBaggagePropagator())
+propagation.setGlobalPropagator(
+	new CompositePropagator({
+		propagators: [
+			new W3CBaggagePropagator(),
+			new W3CTraceContextPropagator(),
+		],
+	}),
+)
 
 registerInstrumentations({ instrumentations })
 
@@ -454,16 +465,16 @@ export class Highlight {
 	}
 
 	async runWithHeaders<T>(
+		name: string,
 		headers: Headers | IncomingHttpHeaders,
 		cb: (span: OtelSpan) => T | Promise<T>,
+		options?: SpanOptions,
 	) {
 		const { secureSessionId, requestId } = this.parseHeaders(headers)
-		const { span, ctx } = await this.startWithHeaders(
-			'highlight-ctx',
-			headers,
-		)
+		const { span, ctx } = this.startWithHeaders(name, headers, options)
 		try {
 			return await api.context.with(ctx, async () => {
+				propagation.inject(ctx, headers)
 				return cb(span)
 			})
 		} catch (error) {
@@ -499,13 +510,8 @@ export class Highlight {
 			} as BaggageEntry)
 		}
 
+		propagation.inject(ctx, headers)
 		return { span, ctx: contextWithSpanSet }
-	}
-
-	startActiveSpan(name: string, options?: SpanOptions) {
-		return new Promise<OtelSpan>((resolve) =>
-			this.tracer.startActiveSpan(name, options || {}, resolve),
-		)
 	}
 }
 function parseHeaders(

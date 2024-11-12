@@ -11,6 +11,7 @@ import React from 'react'
 
 import styles from './HerokuIntegration.module.css'
 import { useHerokuIntegration } from './utils'
+import Select from '@components/Select/Select'
 
 const HerokuIntegration: React.FC<
 	React.PropsWithChildren<IntegrationConfigProps>
@@ -18,12 +19,12 @@ const HerokuIntegration: React.FC<
 	const { project_id } = useParams<{ project_id: string }>()
 	const { addHerokuToProject, removeHerokuIntegrationFromProject } =
 		useHerokuIntegration()
-	const formStore = Form.useStore({
+	const formStore = Form.useStore<{ tokens: string[] }>({
 		defaultValues: {
-			token: '',
+			tokens: [],
 		},
 	})
-	const token = formStore.useValue(formStore.names.token)
+	const tokens = formStore.useValue(formStore.names.tokens) as string[]
 
 	if (action === IntegrationAction.Disconnect) {
 		return (
@@ -79,12 +80,21 @@ const HerokuIntegration: React.FC<
 				</a>
 			</p>
 			<Form store={formStore} resetOnSubmit={false}>
-				<Form.Input
-					name={formStore.names.token}
-					label="Log Drain Token"
-					type="text"
-					autoFocus
-				/>
+				<Form.NamedSection
+					name={formStore.names.tokens}
+					label="Log Drain Token(s)"
+				>
+					<Select
+						aria-label="Log Drain Token(s)"
+						placeholder="d.9173ea1f-6f14-4976-9cf0-deadbeef1234"
+						onChange={(values: any): any =>
+							formStore.setValue(formStore.names.tokens, values)
+						}
+						className={styles.selectContainer}
+						mode="tags"
+						value={formStore.getValue(formStore.names.tokens)}
+					/>
+				</Form.NamedSection>
 			</Form>
 			<footer>
 				<Button
@@ -101,10 +111,10 @@ const HerokuIntegration: React.FC<
 					trackingId="IntegrationConfigurationSave-Heroku"
 					className={styles.modalBtn}
 					type="primary"
-					disabled={token.length < 38}
+					disabled={!tokens.filter((t) => t.length >= 38).length}
 					onClick={async () => {
 						setModalOpen(false)
-						await addHerokuToProject(token, project_id)
+						await addHerokuToProject(tokens, project_id)
 					}}
 				>
 					<AppsIcon className={styles.modalBtnIcon} /> Connect

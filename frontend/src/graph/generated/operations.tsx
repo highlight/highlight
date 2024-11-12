@@ -3186,16 +3186,6 @@ export type GetErrorGroupQuery = { __typename?: 'Query' } & {
 						>
 					>
 				>
-				fields?: Types.Maybe<
-					Array<
-						Types.Maybe<
-							{ __typename?: 'ErrorField' } & Pick<
-								Types.ErrorField,
-								'name' | 'value'
-							>
-						>
-					>
-				>
 				error_metrics: Array<
 					{ __typename?: 'ErrorDistributionItem' } & Pick<
 						Types.ErrorDistributionItem,
@@ -3419,53 +3409,6 @@ export type GetProjectSuggestionQuery = { __typename?: 'Query' } & {
 			{ __typename?: 'Project' } & Pick<
 				Types.Project,
 				'id' | 'name' | 'workspace_id'
-			>
-		>
-	>
-}
-
-export type GetErrorFieldSuggestionQueryVariables = Types.Exact<{
-	project_id: Types.Scalars['ID']
-	name: Types.Scalars['String']
-	query: Types.Scalars['String']
-}>
-
-export type GetErrorFieldSuggestionQuery = { __typename?: 'Query' } & {
-	error_field_suggestion?: Types.Maybe<
-		Array<
-			Types.Maybe<
-				{ __typename?: 'ErrorField' } & Pick<
-					Types.ErrorField,
-					'name' | 'value'
-				>
-			>
-		>
-	>
-}
-
-export type GetErrorSearchSuggestionsQueryVariables = Types.Exact<{
-	project_id: Types.Scalars['ID']
-	query: Types.Scalars['String']
-}>
-
-export type GetErrorSearchSuggestionsQuery = { __typename?: 'Query' } & {
-	visitedUrls?: Types.Maybe<
-		Array<
-			Types.Maybe<
-				{ __typename?: 'ErrorField' } & Pick<
-					Types.ErrorField,
-					'name' | 'value'
-				>
-			>
-		>
-	>
-	fields?: Types.Maybe<
-		Array<
-			Types.Maybe<
-				{ __typename?: 'ErrorField' } & Pick<
-					Types.ErrorField,
-					'name' | 'value'
-				>
 			>
 		>
 	>
@@ -5501,8 +5444,6 @@ export const namedOperations = {
 		GetFieldSuggestion: 'GetFieldSuggestion' as const,
 		GetEnvironments: 'GetEnvironments' as const,
 		GetProjectSuggestion: 'GetProjectSuggestion' as const,
-		GetErrorFieldSuggestion: 'GetErrorFieldSuggestion' as const,
-		GetErrorSearchSuggestions: 'GetErrorSearchSuggestions' as const,
 		GetSessionSearchResults: 'GetSessionSearchResults' as const,
 		GetTrackSuggestion: 'GetTrackSuggestion' as const,
 		GetUserSuggestion: 'GetUserSuggestion' as const,

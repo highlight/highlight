@@ -2,6 +2,7 @@ package metric_alerts
 
 import (
 	"context"
+	"fmt"
 	"strings"
 	"time"
 
@@ -70,6 +71,8 @@ func getMetricAlerts(ctx context.Context, DB *gorm.DB) []*model.Alert {
 	return alerts
 }
 
+const timeFormatSecondsNoTz = "2006-01-02T15:04:05"
+
 func processMetricAlert(ctx context.Context, DB *gorm.DB, MailClient *sendgrid.Client, alert *model.Alert, ccClient *clickhouse.Client, lambdaClient *lambda.Client) error {
 	span, ctx := util.StartSpanFromContext(ctx, "WatchMetricAlerts.processMetricAlert")
 	span.SetAttribute("alert_id", alert.ID)
@@ -114,7 +117,7 @@ func processMetricAlert(ctx context.Context, DB *gorm.DB, MailClient *sendgrid.C
 		cooldown = time.Duration(*alert.ThresholdCooldown) * time.Second
 	}
 
-	alertingStates, err := ccClient.GetLastAlertingStates(ctx, alert.ProjectID, alert.ID, startDate, curDate)
+	alertingStates, err := ccClient.GetLastAlertingStates(ctx, alert.ProjectID, alert.ID, curDate.Add(-1*cooldown), curDate)
 	if err != nil {
 		return err
 	}
@@ -144,6 +147,14 @@ func processMetricAlert(ctx context.Context, DB *gorm.DB, MailClient *sendgrid.C
 	query := defaultAlertFilters[alert.ProductType]
 	if alert.Query != nil {
 		query += *alert.Query
+	}
+
+	// For session alerts, reevaluate all sessions from the past 4 hours filtering by updated_at
+	// This is necessary as sessions can be updated and might meet alert criteria much later
+	// than when they are initialized, e.g. for alerts filtering on active_length.
+	if alert.ThresholdType == modelInputs.ThresholdTypeConstant && alert.ProductType == modelInputs.ProductTypeSessions {
+		query += fmt.Sprintf(` AND updated_at>="%s"`, startDate.Format(timeFormatSecondsNoTz))
+		startDate = endDate.Add(-4 * time.Hour)
 	}
 
 	column := ""
