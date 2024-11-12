@@ -1,11 +1,19 @@
-import { useState } from 'react'
+import { useRef } from 'react'
 import { GraphContext, GraphData } from '@pages/Graphing/context/GraphContext'
 
 export function useGraphData(): GraphContext {
-	const [graphData, setGraphData] = useState<GraphData>({})
+	const graphData = useRef<GraphData>({})
 
 	return {
 		graphData,
-		setGraphData,
+		setGraphData: (
+			graph?: GraphData | ((graph: GraphData) => GraphData),
+		) => {
+			if (typeof graph === 'function') {
+				graphData.current = graph(graphData.current)
+			} else if (graph) {
+				graphData.current = graph
+			}
+		},
 	}
 }

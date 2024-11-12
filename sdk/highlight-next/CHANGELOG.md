@@ -1,5 +1,29 @@
 # @highlight-run/next
 
+## 7.6.8
+
+### Patch Changes
+
+-   Updated dependencies [2d95aba]
+    -   highlight.run@9.5.3
+    -   @highlight-run/node@3.10.1
+    -   @highlight-run/react@7.0.3
+
+## 7.6.7
+
+### Patch Changes
+
+-   Updated dependencies [f06a274]
+    -   @highlight-run/node@3.10.1
+
+## 7.6.6
+
+### Patch Changes
+
+-   236afe0: support span naming in runwithheaders and set a default span name for route middlewares
+-   Updated dependencies [236afe0]
+    -   @highlight-run/node@3.10.0
+
 ## 7.6.5
 
 ### Patch Changes

@@ -175,13 +175,27 @@ export const useRelatedResource = () => {
 		panelPaginationVar(null)
 	}, [searchParams, setSearchParams])
 
+	const updateQuery = useCallback(
+		(query: QueryableResource['query']) => {
+			searchParams.delete(RELATED_RESOURCE_PARAM)
+			searchParams.set('query', query)
+			setSearchParams(Object.fromEntries(searchParams.entries()))
+			setResource(null)
+			panelPaginationVar(null)
+		},
+		[searchParams, setSearchParams],
+	)
+
 	return {
 		resource,
 		panelPagination,
 		panelWidth,
+		searchParams,
 		set,
 		remove,
 		setPanelWidth,
 		setPanelPagination,
+		setResource,
+		updateQuery,
 	}
 }

@@ -18,6 +18,7 @@ export function Highlight(options: NodeOptions) {
 
 			try {
 				return await H.runWithHeaders<Promise<Response>>(
+					`${request.method?.toUpperCase()} - ${request.url}`,
 					request.headers as any,
 					async () => originalHandler(request, context),
 				)
