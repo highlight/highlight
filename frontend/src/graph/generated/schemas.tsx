@@ -3234,6 +3234,7 @@ export enum ReservedSessionKey {
 	ServiceVersion = 'service_version',
 	State = 'state',
 	Timestamp = 'timestamp',
+	UpdatedAt = 'updated_at',
 	Viewed = 'viewed',
 	ViewedByAnyone = 'viewed_by_anyone',
 	ViewedByMe = 'viewed_by_me',

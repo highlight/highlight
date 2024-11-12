@@ -237,6 +237,40 @@ H.init(projectId, highlightOptions)
 H.consumeError(new Error("Your custom error message"))
 ```
 
+### [Advanced] Propagate distributed tracing context with W3CTraceContextPropagation
+
+If you have another API service that you're making a request to, you'll want to propagate
+the trace context to that microservice so that logs and spans emitted by it will be attributed to the same trace.
+To do that, propagate the context in the headers via the `@opentelemetry/api` package.
+
+```tsx
+// pages/api/page-router-trace.ts
+import { NextApiRequest, NextApiResponse } from 'next'
+
+import { withPageRouterHighlight } from '@/app/_utils/page-router-highlight.config'
+import { H } from '@highlight-run/next/server'
+import { context, propagation } from '@opentelemetry/api'
+
+export default withPageRouterHighlight(async function handler(
+        req: NextApiRequest,
+        res: NextApiResponse,
+) {
+  const { span } = H.startWithHeaders('page-router-span', {})
+  
+  const headers = {}
+  propagation.inject(context.active(), headers)
+  await fetch('http://my-other-service/api', {
+    method: 'POST',
+    headers,
+  })
+  
+  span.end()
+
+  res.send(`Trace sent! Check out this random number: ${Math.random()}`)
+})
+
+```
+
 ### Validate SSR error capture
 
 1. Copy the following code into `pages/page-router-ssr.tsx`.
