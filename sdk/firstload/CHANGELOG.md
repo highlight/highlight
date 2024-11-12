@@ -1,5 +1,11 @@
 # highlight.run
 
+## 9.5.3
+
+### Patch Changes
+
+-   2d95aba: Only send visited-url fields through the session events api
+
 ## 9.5.2
 
 ### Patch Changes
