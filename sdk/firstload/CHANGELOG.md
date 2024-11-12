@@ -1,10 +1,14 @@
 # highlight.run
 
-## 9.6.0
+## 9.7.0
 
 ### Minor Changes
 
--   94383f8: enable browser OTeL by default
+-   564d3f2: enable browser OTeL by default
+
+### Patch Changes
+
+-   2d95aba: Only send visited-url fields through the session events api
 
 ## 9.5.2
 
