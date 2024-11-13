@@ -458,8 +458,8 @@ export const GraphingEditor: React.FC = () => {
 			setMetric('secure_session_id')
 			setGroupByEnabled(true)
 			setGroupByKeys(['secure_session_id'])
-			setLimit(Number.MAX_VALUE)
-		} else if (viewType === 'Table') {
+			setLimit(NO_LIMIT)
+		} else if (vt === 'Table') {
 			setLimit(NO_LIMIT)
 		}
 		setViewTypeImpl(vt)
@@ -581,20 +581,6 @@ export const GraphingEditor: React.FC = () => {
 			endDate,
 		}
 	}, [endDate, productType, startDate])
-
-	useEffect(() => {
-		if (viewType === 'Funnel chart') {
-			setBucketBySetting('None')
-			setFunctionType(MetricAggregator.CountDistinct)
-			// once events have other session attributes, we can support per-user aggregation
-			setMetric('secure_session_id')
-			setGroupByEnabled(true)
-			setGroupByKeys(['secure_session_id'])
-			setLimit(NO_LIMIT)
-		} else if (viewType === 'Table') {
-			setLimit(NO_LIMIT)
-		}
-	}, [viewType])
 
 	const { values } = useGraphingVariables(dashboard_id!)
 
