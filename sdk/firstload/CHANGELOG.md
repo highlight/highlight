@@ -1,10 +1,6 @@
 # highlight.run
 
-## 9.6.0
-
-### Minor Changes
-
--   564d3f2: enable browser OTeL by default
+## 9.5.3
 
 ### Patch Changes
 
