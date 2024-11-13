@@ -1,6 +1,5 @@
 import { H, NodeOptions } from '@highlight-run/node'
-import type { MiddlewareHandler } from 'hono'
-import type { Context } from 'hono'
+import { LogLevel } from 'esbuild'
 import { createMiddleware } from 'hono/factory'
 
 /**
@@ -16,23 +15,25 @@ export const highlightMiddleware = (options: NodeOptions) => {
 		const headers = c.req.header()
 
 		// Run the request handler with Highlight tracing
-		await H.runWithHeaders(
-			spanName,
-			headers,
-			async () => {
-				await next()
-			},
-			{
-				attributes: {
-					'http.method': c.req.method,
-					'http.route': c.req.path,
-					'http.url': c.req.url,
+		try {
+			await H.runWithHeaders(
+				spanName,
+				headers,
+				async () => {
+					await next()
 				},
-			},
-		)
-
-		if (c.error) {
-			H.consumeError(c.error)
+				{
+					attributes: {
+						'http.method': c.req.method,
+						'http.route': c.req.path,
+						'http.url': c.req.url,
+					},
+				},
+			)
+		} finally {
+			if (c.error) {
+				H.consumeError(c.error)
+			}
 		}
 	})
 }

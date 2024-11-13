@@ -65,7 +65,7 @@ export function register() {
             },
         },
         attributes: {
-            'highlight.project_id': 'YOUR_PROJECT_ID',
+            'highlight.project_id': '<YOUR_PROJECT_ID>',
             'highlight.source': 'backend',
         },
         traceExporter: new OTLPHttpJsonTraceExporter({
@@ -124,7 +124,7 @@ export function register() {
             },
         },
         attributes: {
-            'highlight.project_id': 'YOUR_PROJECT_ID',
+            'highlight.project_id': '<YOUR_PROJECT_ID>',
             'highlight.source': 'backend',
         },
         traceExporter: new OTLPHttpJsonTraceExporter({

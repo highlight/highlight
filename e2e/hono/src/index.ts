@@ -3,6 +3,7 @@ import { serve } from '@hono/node-server'
 import { trace } from '@opentelemetry/api'
 import { Hono } from 'hono'
 import { html } from 'hono/html'
+import { logger } from 'hono/logger'
 
 const app = new Hono()
 
@@ -10,10 +11,13 @@ app.use(
 	'*',
 	highlightMiddleware({
 		projectID: '1jdkoe52',
-		serviceName: 'hono-e2e-example-server',
-		// otlpEndpoint: 'http://localhost:4318',
+		serviceName: 'hono-e2e-example',
+		otlpEndpoint: 'http://localhost:4318',
 	}),
 )
+
+// Add logging middleware to test log collection.
+app.use(logger())
 
 const layout = (
 	content: ReturnType<typeof html>,
@@ -29,8 +33,14 @@ const layout = (
 			<script src="https://unpkg.com/highlight.run"></script>
 			<script>
 				H.init('1jdkoe52', {
-					serviceName: 'hono-e2e-example-client',
+					serviceName: 'hono-e2e-example',
 					backendUrl: 'https://localhost:8082/public',
+					networkRecording: {
+						record: true,
+						recordHeadersAndBody: true,
+					},
+					tracingOrigins: true,
+					enableOtelTracing: true,
 					otlpEndpoint: 'http://localhost:4318',
 				})
 

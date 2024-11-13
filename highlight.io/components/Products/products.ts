@@ -203,7 +203,7 @@ const svelteSnippet: string = `
 ...
 `
 
-const rubySnipped: string = `
+const rubySnippet: string = `
 
 require "highlight"
 
@@ -212,6 +212,15 @@ Highlight.init("<YOUR_PROJECT_ID>", environment: "production") do |c|
 end
 
 Rails.logger = Highlight::Logger.new(STDOUT)
+
+`
+
+const honoSnippet: string = `
+
+import { highlightMiddleware } from '@highlight-run/hono'
+
+const app = new Hono()
+app.use('*', highlightMiddleware())
 
 `
 
@@ -306,7 +315,16 @@ export const PRODUCTS: { [k: string]: iProduct } = {
 		slug: 'rails',
 		title: 'Rails',
 		types: ['Backend', 'Frontend'],
-		snippets: [rubySnipped, htmlSnippet],
+		snippets: [rubySnippet, htmlSnippet],
+	},
+
+	hono: {
+		type: 'backend',
+		docsLink: '/docs/getting-started/backend-sdk/js/hono',
+		slug: 'hono',
+		title: 'Hono',
+		types: ['Backend', 'Frontend'],
+		snippets: [honoSnippet, defaultFrontendSnippet],
 	},
 }
 
