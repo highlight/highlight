@@ -16,6 +16,7 @@ type Props = React.PropsWithChildren &
 		as?: Levels
 		level?: Levels
 		lines?: TruncateProps['lines']
+		title?: string
 	}
 
 export const Heading: React.FC<Props> = ({
@@ -24,6 +25,7 @@ export const Heading: React.FC<Props> = ({
 	children,
 	level = 'h2',
 	lines,
+	title,
 	...props
 }) => {
 	const content = lines ? (
@@ -36,6 +38,7 @@ export const Heading: React.FC<Props> = ({
 		<Box
 			as={as || level}
 			cssClass={styles.variants({ align, level })}
+			title={title}
 			{...props}
 		>
 			{content}
