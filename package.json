@@ -17,6 +17,7 @@
 		"sdk/highlight-cloudflare",
 		"sdk/highlight-chrome",
 		"sdk/highlightinc-highlight-datasource",
+		"sdk/highlight-hono",
 		"sdk/highlight-nest",
 		"sdk/highlight-next",
 		"sdk/highlight-node",

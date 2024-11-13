@@ -1,37 +1,19 @@
-import { H } from '@highlight-run/node'
+import { highlightMiddleware } from '@highlight-run/hono'
 import { serve } from '@hono/node-server'
 import { trace } from '@opentelemetry/api'
 import { Hono } from 'hono'
 import { html } from 'hono/html'
-import { HtmlEscapedString } from 'hono/utils/html'
-
-H.init({
-	projectID: '1jdkoe52',
-	serviceName: 'hono-e2e-example-server',
-})
 
 const app = new Hono()
 
-// Set up Highlight for tracing requests
-app.use('*', async (c, next) => {
-	const spanName = c.req.method + ' ' + c.req.url
-	const headers = c.req.header()
-	const { span } = H.startWithHeaders(spanName, headers)
-	const { traceId, spanId } = span.spanContext()
-
-	console.log('::: spanName', spanName, traceId, spanId)
-	try {
-		await next()
-	} catch (err) {
-		console.log('::: err', err)
-		if (err instanceof Error) {
-			H.consumeError(err)
-		}
-		throw err
-	} finally {
-		span.end()
-	}
-})
+app.use(
+	'*',
+	highlightMiddleware({
+		projectID: '1jdkoe52',
+		serviceName: 'hono-e2e-example-server',
+		// otlpEndpoint: 'http://localhost:4318',
+	}),
+)
 
 const layout = (
 	content: ReturnType<typeof html>,
@@ -43,7 +25,15 @@ const layout = (
 		<head>
 			<title>Hono API Tester</title>
 			<meta name="traceparent" content="00-${traceId}-${spanId}-01" />
+
+			<script src="https://unpkg.com/highlight.run"></script>
 			<script>
+				H.init('1jdkoe52', {
+					serviceName: 'hono-e2e-example-client',
+					backendUrl: 'https://localhost:8082/public',
+					otlpEndpoint: 'http://localhost:4318',
+				})
+
 				async function makeRequest(endpoint) {
 					const resultDiv = document.getElementById('result')
 					try {
@@ -88,7 +78,6 @@ const layout = (
 
 app.get('/', (c) => {
 	const activeSpan = trace.getActiveSpan()
-	console.log('::: activeSpan', activeSpan)
 	const traceId = activeSpan?.spanContext().traceId ?? ''
 	const spanId = activeSpan?.spanContext().spanId ?? ''
 
