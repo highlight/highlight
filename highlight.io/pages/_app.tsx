@@ -32,7 +32,6 @@ H.init('4d7k1xeo', {
 		recordHeadersAndBody: true,
 	},
 	tracingOrigins: true,
-	enableOtelTracing: true,
 })
 
 function MyApp({ Component, pageProps }: AppProps) {

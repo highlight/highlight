@@ -321,17 +321,13 @@ function makeId(length: number) {
 	return result
 }
 
-export const createNetworkRequestId = (useOtelTraceId?: boolean) => {
+export const createNetworkRequestId = () => {
 	// Long enough to avoid collisions, not long enough to be unguessable
 	const requestId = makeId(10)
 
-	if (useOtelTraceId) {
-		const context = getActiveSpan()
-		const traceId = context?.spanContext().traceId
-		return [getNetworkSessionSecureID(), traceId ?? requestId]
-	}
-
-	return [getNetworkSessionSecureID(), requestId]
+	const context = getActiveSpan()
+	const traceId = context?.spanContext().traceId
+	return [getNetworkSessionSecureID(), traceId ?? requestId]
 }
 
 export const getHighlightRequestHeader = (
