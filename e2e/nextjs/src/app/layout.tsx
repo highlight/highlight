@@ -38,7 +38,6 @@ export default function RootLayout({
 				}}
 				backendUrl={CONSTANTS.NEXT_PUBLIC_HIGHLIGHT_BACKEND_URL}
 				otlpEndpoint={CONSTANTS.NEXT_PUBLIC_HIGHLIGHT_OTLP_ENDPOINT}
-				enableOtelTracing
 			/>
 
 			<html lang="en" data-layout>
