@@ -62,5 +62,6 @@ sdk/highlightinc-highlight-datasource/grafana/
 
 google-chrome*
 
-# WordPress plugin distribution file
+# WordPress plugin build files
 sdk/highlight-wordpress/highlight-io.zip
+sdk/highlight-wordpress/highlight-io/highlight.js
