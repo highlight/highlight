@@ -221,7 +221,6 @@ import { highlightMiddleware } from '@highlight-run/hono'
 
 const app = new Hono()
 app.use('*', highlightMiddleware())
-
 `
 
 export const PRODUCTS: { [k: string]: iProduct } = {
