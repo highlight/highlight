@@ -16,8 +16,10 @@
 	"peerDependencies": {
 		"@highlight-run/node": "^3.10.0"
 	},
+	"dependencies": {
+		"@highlight-run/node": "workspace:*"
+	},
 	"devDependencies": {
-		"@highlight-run/node": "workspace:*",
 		"@types/node": "^14.18.63",
 		"hono": "^4.6.10",
 		"typescript": "^5.0.4",
