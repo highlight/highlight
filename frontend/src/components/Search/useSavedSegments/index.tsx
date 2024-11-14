@@ -13,7 +13,6 @@ import {
 	IconSolidTrash,
 	IconSolidSelector,
 	Menu,
-	Stack,
 	Text,
 } from '@highlight-run/ui/components'
 import { vars } from '@highlight-run/ui/vars'
@@ -378,7 +377,7 @@ export const useSavedSegments = ({
 				}
 
 		return (
-			<Stack
+			<Box
 				display="flex"
 				alignItems="center"
 				gap="0"
@@ -474,7 +473,7 @@ export const useSavedSegments = ({
 						</>
 					</Menu.List>
 				</Menu>
-			</Stack>
+			</Box>
 		)
 	}, [
 		entityType,
