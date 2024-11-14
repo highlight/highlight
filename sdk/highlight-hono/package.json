@@ -13,9 +13,6 @@
 		"test": "vitest run",
 		"test:watch": "vitest"
 	},
-	"peerDependencies": {
-		"@highlight-run/node": "^3.10.0"
-	},
 	"dependencies": {
 		"@highlight-run/node": "workspace:*"
 	},
