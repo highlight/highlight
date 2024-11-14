@@ -344,6 +344,9 @@ const enhanceSpanWithHttpRequestAttributes = (
 	networkRecordingOptions?: NetworkRecordingOptions,
 ) => {
 	const stringBody = typeof body === 'string' ? body : String(body)
+	const readableSpan = span as unknown as ReadableSpan
+	const url = readableSpan.attributes['http.url'] as string
+	const urlObject = new URL(url)
 
 	let parsedBody
 	try {
@@ -369,7 +372,19 @@ const enhanceSpanWithHttpRequestAttributes = (
 		'highlight.type': 'http.request',
 		'http.request.headers': JSON.stringify(sanitizedHeaders),
 		'http.request.body': stringBody,
+		'url.original': url,
+		'url.domain': urlObject.host,
+		'url.path': urlObject.pathname,
+		'url.query': urlObject.search,
 	})
+
+	if (urlObject.searchParams.size > 0) {
+		span.setAttributes({
+			'url.query_params': JSON.stringify(
+				Object.fromEntries(urlObject.searchParams),
+			),
+		})
+	}
 }
 
 const shouldRecordRequest = (
