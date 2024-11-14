@@ -11,8 +11,6 @@ import ClearbitIntegrationConfig from '@pages/IntegrationsPage/components/Clearb
 import ClickUpIntegrationConfig from '@pages/IntegrationsPage/components/ClickUpIntegration/ClickUpIntegrationConfig'
 import ClickUpListSelector from '@pages/IntegrationsPage/components/ClickUpIntegration/ClickUpListSelector'
 import DiscordIntegrationConfig from '@pages/IntegrationsPage/components/DiscordIntegration/DiscordIntegrationConfig'
-import FrontIntegrationConfig from '@pages/IntegrationsPage/components/FrontIntegration/FrontIntegrationConfig'
-import FrontPluginConfig from '@pages/IntegrationsPage/components/FrontPlugin/FrontPluginConfig'
 import HeightIntegrationConfig from '@pages/IntegrationsPage/components/HeightIntegration/HeightIntegrationConfig'
 import HeightListSelector from '@pages/IntegrationsPage/components/HeightIntegration/HeightListSelector'
 import { IntegrationConfigProps } from '@pages/IntegrationsPage/components/Integration'
@@ -33,7 +31,6 @@ import ClearbitLogo from '@/static/integrations/clearbit.svg'
 import ClickupLogo from '@/static/integrations/clickup.svg'
 import CloudflareLogo from '@/static/integrations/cloudflare.svg'
 import DiscordLogo from '@/static/integrations/discord.svg'
-import FrontLogo from '@/static/integrations/front.png'
 import GitHubLogo from '@/static/integrations/github.svg'
 import GitlabLogo from '@/static/integrations/gitlab.png'
 import HeightLogo from '@/static/integrations/height.svg'
@@ -182,27 +179,6 @@ export const CLEARBIT_INTEGRATION: Integration = {
 	hasSettings: false,
 }
 
-export const FRONT_INTEGRATION: Integration = {
-	key: 'front',
-	name: 'Front',
-	configurationPath: 'front',
-	onlyShowForHighlightAdmin: true,
-	description: 'Enhance your customer interaction experience.',
-	icon: FrontLogo,
-	configurationPage: (opts) => <FrontIntegrationConfig {...opts} />,
-	hasSettings: false,
-}
-
-export const FRONT_PLUGIN: Integration = {
-	key: 'front',
-	name: 'Front',
-	configurationPath: 'front',
-	description: 'Enhance your customer interaction experience.',
-	icon: FrontLogo,
-	configurationPage: (opts) => <FrontPluginConfig {...opts} />,
-	hasSettings: false,
-}
-
 export const VERCEL_INTEGRATION: Integration = {
 	key: 'vercel',
 	name: 'Vercel',
@@ -275,7 +251,6 @@ const INTEGRATIONS: Integration[] = [
 	LINEAR_INTEGRATION,
 	ZAPIER_INTEGRATION,
 	CLEARBIT_INTEGRATION,
-	FRONT_PLUGIN,
 	VERCEL_INTEGRATION,
 	DISCORD_INTEGRATION,
 	CLICKUP_INTEGRATION,
