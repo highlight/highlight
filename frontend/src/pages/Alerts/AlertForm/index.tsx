@@ -16,7 +16,7 @@ import {
 } from '@highlight-run/ui/components'
 import { useParams } from '@util/react-router/useParams'
 import { Divider } from 'antd'
-import React, { PropsWithChildren, useMemo, useState } from 'react'
+import React, { PropsWithChildren, useEffect, useMemo, useState } from 'react'
 import { Helmet } from 'react-helmet'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 
@@ -108,6 +108,24 @@ export const DEFAULT_THRESHOLD_CONDITON = ThresholdCondition.Above
 export const DEFAULT_THRESHOLD_TYPE = ThresholdType.Constant
 export const DEFAULT_CONFIDENCE_OPTION = CONFIDENCE_OPTIONS[1]
 
+const SETTINGS_PARAM = 'settings'
+
+type AlertSettings = {
+	productType: ProductType
+	functionType: MetricAggregator
+	functionColumn: string
+	query: string
+	alertName: string
+	groupByEnabled: boolean
+	groupByKey: string
+	thresholdValue: number
+	thresholdCondition: ThresholdCondition
+	thresholdType: ThresholdType
+	thresholdWindow: number
+	thresholdCooldown: number
+	destinations: AlertDestinationInput[]
+}
+
 const ALERT_PRODUCT_INFO = {
 	[ProductType.Sessions]:
 		"Alerts once for every session that matches the condition's filters.",
@@ -125,7 +143,7 @@ export const AlertForm: React.FC = () => {
 	const { alert_id } = useParams<{
 		alert_id: string
 	}>()
-	const [searchParams] = useSearchParams()
+	const [searchParams, setSearchParams] = useSearchParams()
 
 	const eventSearchEnabled = useFeatureFlag(Feature.EventSearch)
 	const productOptions = useMemo(() => {
@@ -163,12 +181,25 @@ export const AlertForm: React.FC = () => {
 
 	const navigate = useNavigate()
 
-	const [alertName, setAlertName] = useState('')
-	const [productType, setProductType] = useState(
-		(searchParams.get('source') as ProductType) || productOptions[0].value,
+	const settingsParam = searchParams.get(SETTINGS_PARAM)
+	const [initialSettings] = useState(
+		settingsParam !== null
+			? (JSON.parse(atob(settingsParam)) as AlertSettings)
+			: undefined,
 	)
-	const [functionType, setFunctionType] = useState(MetricAggregator.Count)
-	const [functionColumn, setFunctionColumn] = useState('')
+
+	const [alertName, setAlertName] = useState(initialSettings?.alertName ?? '')
+	const [productType, setProductType] = useState(
+		(searchParams.get('source') as ProductType) ||
+			initialSettings?.productType ||
+			productOptions[0].value,
+	)
+	const [functionType, setFunctionType] = useState(
+		initialSettings?.functionType ?? MetricAggregator.Count,
+	)
+	const [functionColumn, setFunctionColumn] = useState(
+		initialSettings?.functionColumn ?? '',
+	)
 	const fetchedFunctionColumn = useMemo(() => {
 		return functionType === MetricAggregator.Count ? '' : functionColumn
 	}, [functionColumn, functionType])
@@ -176,13 +207,19 @@ export const AlertForm: React.FC = () => {
 	const isErrorAlert = productType === ProductType.Errors
 	const isSessionAlert = productType === ProductType.Sessions
 
-	const [query, setQuery] = useState(searchParams.get('query') ?? '')
+	const [query, setQuery] = useState(
+		initialSettings?.query ?? searchParams.get('query') ?? '',
+	)
 
-	const [groupByEnabled, setGroupByEnabled] = useState(false)
-	const [groupByKey, setGroupByKey] = useState('')
+	const [groupByEnabled, setGroupByEnabled] = useState(
+		initialSettings?.groupByEnabled ?? false,
+	)
+	const [groupByKey, setGroupByKey] = useState(
+		initialSettings?.groupByKey ?? '',
+	)
 
 	const [thresholdType, setThresholdTypeImpl] = useState(
-		DEFAULT_THRESHOLD_TYPE,
+		initialSettings?.thresholdType ?? DEFAULT_THRESHOLD_TYPE,
 	)
 	const setThresholdType = (value: ThresholdType) => {
 		if (value === thresholdType) {
@@ -198,20 +235,25 @@ export const AlertForm: React.FC = () => {
 		setThresholdTypeImpl(value)
 	}
 	const [thresholdCondition, setThresholdCondition] = useState(
-		DEFAULT_THRESHOLD_CONDITON,
+		initialSettings?.thresholdCondition ?? DEFAULT_THRESHOLD_CONDITON,
 	)
 	const isAnomaly = thresholdType === ThresholdType.Anomaly
 
-	const [thresholdValue, setThresholdValue] = useState(DEFAULT_THRESHOLD)
-	const [thresholdWindow, setThresholdWindow] = useState(DEFAULT_WINDOW)
-	const [thresholdCooldown, setThresholdCooldown] =
-		useState<number>(DEFAULT_COOLDOWN)
+	const [thresholdValue, setThresholdValue] = useState(
+		initialSettings?.thresholdValue ?? DEFAULT_THRESHOLD,
+	)
+	const [thresholdWindow, setThresholdWindow] = useState(
+		initialSettings?.thresholdWindow ?? DEFAULT_WINDOW,
+	)
+	const [thresholdCooldown, setThresholdCooldown] = useState<number>(
+		initialSettings?.thresholdCooldown ?? DEFAULT_COOLDOWN,
+	)
 
 	const [initialDestinations, setInitialDestinations] = useState<
 		AlertDestinationInput[]
-	>([])
+	>(initialSettings?.destinations ?? [])
 	const [destinations, setDestinations] = useState<AlertDestinationInput[]>(
-		[],
+		initialSettings?.destinations ?? [],
 	)
 
 	const handleProductChange = (product: ProductType) => {
@@ -255,6 +297,31 @@ export const AlertForm: React.FC = () => {
 	const redirectToAlerts = () => {
 		navigate(`/${projectId}/alerts`)
 	}
+
+	const settings: AlertSettings = {
+		productType,
+		functionType,
+		functionColumn,
+		query,
+		alertName,
+		groupByEnabled,
+		groupByKey,
+		thresholdValue,
+		thresholdCondition,
+		thresholdType,
+		thresholdWindow,
+		thresholdCooldown,
+		destinations,
+	}
+
+	const settingsEncoded = btoa(JSON.stringify(settings))
+
+	useEffect(() => {
+		searchParams.set(SETTINGS_PARAM, settingsEncoded)
+		setSearchParams(Object.fromEntries(searchParams.entries()), {
+			replace: true,
+		})
+	}, [searchParams, setSearchParams, settingsEncoded])
 
 	const onSave = () => {
 		const formVariables = {
@@ -335,7 +402,7 @@ export const AlertForm: React.FC = () => {
 		},
 		skip: !isEdit,
 		onCompleted: (data) => {
-			if (!data.alert) {
+			if (!data.alert || initialSettings !== undefined) {
 				return
 			}
 

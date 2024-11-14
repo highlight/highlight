@@ -174,11 +174,12 @@ export const useSearchHistory = () => {
 	const locaiton = useLocation()
 	//currently we are storing the pathname as identifier. So it is project specific. if we want global search we can tweak the below path and achieve that.
 	const pathName = locaiton?.pathname
+	const search = location?.search
 
 	useEffect(() => {
 		setRecentSearches(getRecentSearches(pathName))
 		setHistoryLoading(false)
-	}, [pathName])
+	}, [pathName, search])
 
 	const handleSearch = (query: string, queryParts: SearchExpression[]) => {
 		const trimedQuery = queryParts.reduce((acc, part) => {
