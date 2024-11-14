@@ -1,5 +1,4 @@
 import { H, NodeOptions } from '@highlight-run/node'
-import { LogLevel } from 'esbuild'
 import { createMiddleware } from 'hono/factory'
 
 /**
