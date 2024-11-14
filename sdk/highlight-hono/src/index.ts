@@ -14,25 +14,25 @@ export const highlightMiddleware = (options: NodeOptions) => {
 		const headers = c.req.header()
 
 		// Run the request handler with Highlight tracing
-		try {
-			await H.runWithHeaders(
-				spanName,
-				headers,
-				async () => {
+		await H.runWithHeaders(
+			spanName,
+			headers,
+			async () => {
+				try {
 					await next()
+				} finally {
+					if (c.error) {
+						H.consumeError(c.error)
+					}
+				}
+			},
+			{
+				attributes: {
+					'http.method': c.req.method,
+					'http.route': c.req.path,
+					'http.url': c.req.url,
 				},
-				{
-					attributes: {
-						'http.method': c.req.method,
-						'http.route': c.req.path,
-						'http.url': c.req.url,
-					},
-				},
-			)
-		} finally {
-			if (c.error) {
-				H.consumeError(c.error)
-			}
-		}
+			},
+		)
 	})
 }
