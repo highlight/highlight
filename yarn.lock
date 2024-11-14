@@ -10112,8 +10112,6 @@ __metadata:
     hono: "npm:^4.6.10"
     typescript: "npm:^5.0.4"
     vitest: "npm:^2.1.5"
-  peerDependencies:
-    "@highlight-run/node": ^3.10.0
   languageName: unknown
   linkType: soft
 
