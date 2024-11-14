@@ -132,96 +132,56 @@ describe('should work outside of the browser in unit test', () => {
 	})
 
 	describe('startSpan', () => {
-		describe('when otel is disabled', () => {
-			it('it returns the value of the callback', () => {
+		it('it returns the value of the callback', () =>
+			new Promise(async (done) => {
+				highlight.init(1)
+
+				let tracer: any
+				await vi.waitFor(() => {
+					tracer = otel.getTracer()
+					expect(tracer).toBeDefined()
+				})
+
+				vi.spyOn(tracer, 'startActiveSpan')
+
 				const value = highlight.startSpan('test', () => 'test')
 				expect(value).toBe('test')
-			})
 
-			it('handles async callbacks', () => {
-				return new Promise(async (resolve) => {
-					const value = await highlight.startSpan(
-						'test',
-						async () => {
-							await sleep(10)
-							return 'testing'
-						},
-					)
+				expect(tracer.startActiveSpan).toHaveBeenCalledWith(
+					'test',
+					expect.any(Function),
+				)
 
-					expect(value).toBe('testing')
-					resolve(true)
-				})
-			})
-		})
-
-		describe('when otel is enabled', () => {
-			it('it returns the value of the callback', () =>
-				new Promise(async (done) => {
-					highlight.init(1, {
-						enableOtelTracing: true,
-					})
-
-					let tracer: any
-					await vi.waitFor(() => {
-						tracer = otel.getTracer()
-						expect(tracer).toBeDefined()
-					})
-
-					vi.spyOn(tracer, 'startActiveSpan')
-
-					const value = highlight.startSpan('test', () => 'test')
-					expect(value).toBe('test')
-
-					expect(tracer.startActiveSpan).toHaveBeenCalledWith(
-						'test',
-						expect.any(Function),
-					)
-
-					done(true)
-				}))
-		})
+				done(true)
+			}))
 	})
 
 	describe('startManualSpan', () => {
-		describe('when otel is disabled', () => {
-			it('it returns the value of the callback', () => {
+		it('it returns the value of the callback', () =>
+			new Promise(async (done) => {
+				highlight.init(1)
+
+				let tracer: any
+				await vi.waitFor(() => {
+					tracer = otel.getTracer()
+					expect(tracer).toBeDefined()
+				})
+
+				vi.spyOn(tracer, 'startActiveSpan')
+
 				const value = highlight.startManualSpan('test', (span) => {
 					span.end()
 					return 'test'
 				})
 				expect(value).toBe('test')
-			})
-		})
 
-		describe('when otel is enabled', () => {
-			it('it returns the value of the callback', () =>
-				new Promise(async (done) => {
-					highlight.init(1, {
-						enableOtelTracing: true,
-					})
+				expect(tracer.startActiveSpan).toHaveBeenCalledWith(
+					'test',
+					expect.any(Function),
+				)
 
-					let tracer: any
-					await vi.waitFor(() => {
-						tracer = otel.getTracer()
-						expect(tracer).toBeDefined()
-					})
-
-					vi.spyOn(tracer, 'startActiveSpan')
-
-					const value = highlight.startManualSpan('test', (span) => {
-						span.end()
-						return 'test'
-					})
-					expect(value).toBe('test')
-
-					expect(tracer.startActiveSpan).toHaveBeenCalledWith(
-						'test',
-						expect.any(Function),
-					)
-
-					done(true)
-				}))
-		})
+				done(true)
+			}))
 	})
 })
 

@@ -22,11 +22,10 @@
                 enabled: true,
                 recordHeadersAndBody: true,
             },
-            enableOtelTracing: true,
             otlpEndpoint: 'http://localhost:4318',
         });
     </script>
-    
+
     <link rel="stylesheet" href="bootstrap/bootstrap.min.css"/>
     <link rel="stylesheet" href="app.css"/>
     <link rel="stylesheet" href="dotnet.styles.css"/>
@@ -53,7 +52,7 @@
         {
             _traceParentContext = "00-00-00-00";
         }
-        
+
         var traceId = currentTrace.Context.TraceId;
         var spanId = currentTrace.Context.SpanId;
 

@@ -123,24 +123,22 @@ const H: HighlightPublicInterface = {
 					setupBrowserTracing,
 					getTracer: otelGetTracer,
 				}) => {
-					if (options?.enableOtelTracing) {
-						setupBrowserTracing({
-							otlpEndpoint:
-								options?.otlpEndpoint ??
-								'https://otel.highlight.io',
-							projectId: projectID,
-							sessionSecureId: sessionSecureID,
-							environment: options?.environment ?? 'production',
-							networkRecordingOptions:
-								typeof options?.networkRecording === 'object'
-									? options.networkRecording
-									: undefined,
-							tracingOrigins: options?.tracingOrigins,
-							serviceName:
-								options?.serviceName ?? 'highlight-browser',
-						})
-						getTracer = otelGetTracer
-					}
+					setupBrowserTracing({
+						otlpEndpoint:
+							options?.otlpEndpoint ??
+							'https://otel.highlight.io',
+						projectId: projectID,
+						sessionSecureId: sessionSecureID,
+						environment: options?.environment ?? 'production',
+						networkRecordingOptions:
+							typeof options?.networkRecording === 'object'
+								? options.networkRecording
+								: undefined,
+						tracingOrigins: options?.tracingOrigins,
+						serviceName:
+							options?.serviceName ?? 'highlight-browser',
+					})
+					getTracer = otelGetTracer
 
 					highlight_obj = new Highlight(
 						client_options,

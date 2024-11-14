@@ -31,6 +31,7 @@ const KeysMaxRows = 1_000_000
 const KeyValuesMaxRows = 1_000_000
 const AllKeyValuesMaxRows = 100_000_000
 const MaxBuckets = 240
+const NoLimit = 1_000_000_000_000
 
 type SampleableTableConfig struct {
 	tableConfig         model.TableConfig
@@ -1186,10 +1187,14 @@ func (client *Client) ReadMetrics(ctx context.Context, input ReadMetricsInput) (
 
 		fromColStrs := []string{}
 		for idx := range input.GroupBy {
-			fromColStrs = append(fromColStrs, fmt.Sprintf("g%d", idx))
+			groupByIndex := fmt.Sprintf("g%d", idx)
+			fromColStrs = append(fromColStrs, groupByIndex)
+			fromSb.Where(fromSb.NotEqual(groupByIndex, ""))
 		}
 
-		fromSb.Where(fromSb.In("("+strings.Join(fromColStrs, ", ")+")", innerSb))
+		if limitCount != NoLimit {
+			fromSb.Where(fromSb.In("("+strings.Join(fromColStrs, ", ")+")", innerSb))
+		}
 	}
 
 	base := 5 + len(input.MetricTypes)

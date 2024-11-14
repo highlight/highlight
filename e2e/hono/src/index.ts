@@ -40,7 +40,6 @@ const layout = (
 						recordHeadersAndBody: true,
 					},
 					tracingOrigins: true,
-					enableOtelTracing: true,
 					otlpEndpoint: 'http://localhost:4318',
 				})
 
