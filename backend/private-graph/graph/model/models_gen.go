@@ -1414,7 +1414,6 @@ const (
 	IntegrationTypeSlack          IntegrationType = "Slack"
 	IntegrationTypeLinear         IntegrationType = "Linear"
 	IntegrationTypeZapier         IntegrationType = "Zapier"
-	IntegrationTypeFront          IntegrationType = "Front"
 	IntegrationTypeVercel         IntegrationType = "Vercel"
 	IntegrationTypeDiscord        IntegrationType = "Discord"
 	IntegrationTypeClickUp        IntegrationType = "ClickUp"
@@ -1431,7 +1430,6 @@ var AllIntegrationType = []IntegrationType{
 	IntegrationTypeSlack,
 	IntegrationTypeLinear,
 	IntegrationTypeZapier,
-	IntegrationTypeFront,
 	IntegrationTypeVercel,
 	IntegrationTypeDiscord,
 	IntegrationTypeClickUp,
@@ -1446,7 +1444,7 @@ var AllIntegrationType = []IntegrationType{
 
 func (e IntegrationType) IsValid() bool {
 	switch e {
-	case IntegrationTypeSlack, IntegrationTypeLinear, IntegrationTypeZapier, IntegrationTypeFront, IntegrationTypeVercel, IntegrationTypeDiscord, IntegrationTypeClickUp, IntegrationTypeHeight, IntegrationTypeGitHub, IntegrationTypeJira, IntegrationTypeMicrosoftTeams, IntegrationTypeGitLab, IntegrationTypeHeroku, IntegrationTypeCloudflare:
+	case IntegrationTypeSlack, IntegrationTypeLinear, IntegrationTypeZapier, IntegrationTypeVercel, IntegrationTypeDiscord, IntegrationTypeClickUp, IntegrationTypeHeight, IntegrationTypeGitHub, IntegrationTypeJira, IntegrationTypeMicrosoftTeams, IntegrationTypeGitLab, IntegrationTypeHeroku, IntegrationTypeCloudflare:
 		return true
 	}
 	return false

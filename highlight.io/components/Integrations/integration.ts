@@ -48,14 +48,6 @@ export const INTEGRATIONS: {
 			image: '/images/companies/icons/discord.png',
 		},
 		{
-			name: 'Front',
-			description:
-				'View highlight.io sessions directly in your Front inbox.',
-			link: '/docs/general/integrations/front-integration',
-			image: '/images/companies/icons/front.png',
-		},
-
-		{
 			name: 'Intercom',
 			description:
 				'Access highlight.io sessions within your Intercom dashboard.',

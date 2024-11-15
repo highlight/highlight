@@ -13,7 +13,6 @@ import {
 	useLocalStorageProjectId,
 	useNumericProjectId,
 } from '@hooks/useProjectId'
-import FrontPlugin from '@pages/FrontPlugin/FrontPlugin'
 import {
 	PlayerUIContextProvider,
 	RightPanelView,
@@ -149,7 +148,6 @@ export const ProjectRouter = () => {
 		>
 			<PlayerUIContextProvider value={playerUIContext}>
 				<Routes>
-					<Route path=":project_id/front" element={<FrontPlugin />} />
 					<Route
 						path=":project_id/*"
 						element={

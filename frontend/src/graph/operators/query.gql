@@ -1541,13 +1541,6 @@ query GetWorkspaceIsIntegratedWithZapier($project_id: ID!) {
 	)
 }
 
-query GetWorkspaceIsIntegratedWithFront($project_id: ID!) {
-	is_integrated_with_front: is_integrated_with(
-		integration_type: Front
-		project_id: $project_id
-	)
-}
-
 query GetWorkspaceIsIntegratedWithDiscord($project_id: ID!) {
 	is_integrated_with_discord: is_integrated_with(
 		integration_type: Discord

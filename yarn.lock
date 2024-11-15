@@ -8267,27 +8267,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@frontapp/plugin-sdk@npm:^1.1.2":
-  version: 1.1.2
-  resolution: "@frontapp/plugin-sdk@npm:1.1.2"
-  dependencies:
-    "@frontapp/ui-bridge": "npm:^2.0.0-beta6"
-    cuid: "npm:^2.1.8"
-    rxjs: "npm:^6.5.4"
-  checksum: 10/52a0134e04e6841f59d0002ddc68e95096ab6d10e7340f10ec8138d23c7e79be0de83247dd0369cee65e7e196eea22d3cd474c352b163412b41b468b03f3baa1
-  languageName: node
-  linkType: hard
-
-"@frontapp/ui-bridge@npm:^2.0.0-beta6":
-  version: 2.0.0-beta6
-  resolution: "@frontapp/ui-bridge@npm:2.0.0-beta6"
-  dependencies:
-    io-ts: "npm:^2.1.0"
-    rxjs: "npm:^6.5.3"
-  checksum: 10/4818ffb203018e1db76ac3c20fa8c42c90b11a641bafb2e5a9737ead56658307ed952114cb2cbd13d7ae4393a755b19b836a89b252259a1eb91fb96d7fbd9ea2
-  languageName: node
-  linkType: hard
-
 "@gar/promisify@npm:^1.1.3":
   version: 1.1.3
   resolution: "@gar/promisify@npm:1.1.3"
@@ -9743,7 +9722,6 @@ __metadata:
     "@dnd-kit/sortable": "npm:^8.0.0"
     "@dnd-kit/utilities": "npm:^3.2.2"
     "@fontsource/poppins": "npm:^4.5.9"
-    "@frontapp/plugin-sdk": "npm:^1.1.2"
     "@graphql-codegen/cli": "npm:^5.0.2"
     "@graphql-codegen/import-types-preset": "npm:^1.18.1"
     "@graphql-codegen/named-operations-object": "npm:^3.0.0"
@@ -29161,13 +29139,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"cuid@npm:^2.1.8":
-  version: 2.1.8
-  resolution: "cuid@npm:2.1.8"
-  checksum: 10/df122ce5ff83c6b1cd01bb9922eef8421314678bee1d2192cd167a5b94791886b52976e716b56672d356085ccd4eb08e2b66e63da53d8b3903e7273887a4231f
-  languageName: node
-  linkType: hard
-
 "custom-event@npm:~1.0.0":
   version: 1.0.1
   resolution: "custom-event@npm:1.0.1"
@@ -38200,15 +38171,6 @@ __metadata:
   dependencies:
     loose-envify: "npm:^1.0.0"
   checksum: 10/cc3182d793aad82a8d1f0af697b462939cb46066ec48bbf1707c150ad5fad6406137e91a262022c269702e01621f35ef60269f6c0d7fd178487959809acdfb14
-  languageName: node
-  linkType: hard
-
-"io-ts@npm:^2.1.0":
-  version: 2.2.18
-  resolution: "io-ts@npm:2.2.18"
-  peerDependencies:
-    fp-ts: ^2.5.0
-  checksum: 10/10128365bf2fe5e304bcb7a0721d04b7350d66d76269fddb8eb863143acb531039eb150213e63ba1b4938bec41b704bc2f964571ee762770d449b6ae08a48b52
   languageName: node
   linkType: hard
 
@@ -52748,7 +52710,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"rxjs@npm:^6.5.3, rxjs@npm:^6.5.4, rxjs@npm:^6.6.0":
+"rxjs@npm:^6.6.0":
   version: 6.6.7
   resolution: "rxjs@npm:6.6.7"
   dependencies:

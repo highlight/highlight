@@ -863,7 +863,6 @@ export enum IntegrationType {
 	ClickUp = 'ClickUp',
 	Cloudflare = 'Cloudflare',
 	Discord = 'Discord',
-	Front = 'Front',
 	GitHub = 'GitHub',
 	GitLab = 'GitLab',
 	Height = 'Height',
