@@ -165,7 +165,9 @@ class H(object):
         )
         self._log_handler = LogHandler(self, level=log_level)
         if instrument_logging:
-            self._instrument_logging(log_level=log_level, enable_log_traces=enable_log_traces)
+            self._instrument_logging(
+                log_level=log_level, enable_log_traces=enable_log_traces
+            )
 
         class HighlightSpanProcessor(SpanProcessor):
             def on_start(
