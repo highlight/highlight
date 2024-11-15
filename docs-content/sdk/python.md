@@ -54,6 +54,10 @@ slug: python
       <p>If enabled, Highlight will record log output from the logging module.</p>
     </aside>
     <aside className="parameter">
+      <h5>enable_log_traces<code>boolean</code> <code>optional</code></h5>
+      <p>If enabled, Highlight will record a trace for every log message.</p>
+    </aside>
+    <aside className="parameter">
       <h5>service_name<code>string</code> <code>optional</code></h5>
       <p>The name of your app.</p>
     </aside>
