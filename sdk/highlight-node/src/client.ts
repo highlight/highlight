@@ -142,6 +142,12 @@ class CustomSpanProcessor extends BatchSpanProcessorBase<BufferConfig> {
 		super.onEnd(span)
 	}
 
+	// Only needed to resolve a type error
+	onStart(span: ReadableSpan, parentContext: Context): void {
+		// @ts-ignore
+		super.onStart(span, parentContext)
+	}
+
 	onShutdown(): void {}
 
 	async forceFlush(): Promise<void> {
