@@ -99,6 +99,7 @@ class H(object):
         environment: str = "",
         disable_export_error_logging: bool = False,
         debug: bool = False,
+        enable_log_traces: bool = False,
         **kwargs,
     ):
         """
@@ -164,7 +165,7 @@ class H(object):
         )
         self._log_handler = LogHandler(self, level=log_level)
         if instrument_logging:
-            self._instrument_logging(log_level=log_level)
+            self._instrument_logging(log_level=log_level, enable_log_traces=enable_log_traces)
 
         class HighlightSpanProcessor(SpanProcessor):
             def on_start(
@@ -483,7 +484,7 @@ class H(object):
             )
             self.log.emit(r)
 
-    def _instrument_logging(self, log_level):
+    def _instrument_logging(self, log_level, enable_log_traces):
         if H._logging_instrumented:
             return
 
@@ -496,7 +497,7 @@ class H(object):
 
         def factory(*args, **kwargs) -> LogRecord:
             span = otel_trace.get_current_span()
-            if span != INVALID_SPAN and span.is_recording():
+            if not enable_log_traces or (span != INVALID_SPAN and span.is_recording()):
                 manager = contextlib.nullcontext(enter_result=span)
             else:
                 manager = self.trace("highlight.log")
