@@ -21,10 +21,7 @@ import {
 	StackContextManager,
 	WebTracerProvider,
 } from '@opentelemetry/sdk-trace-web'
-import {
-	SEMRESATTRS_DEPLOYMENT_ENVIRONMENT,
-	SEMRESATTRS_SERVICE_NAME,
-} from '@opentelemetry/semantic-conventions'
+import * as SemanticAttributes from '@opentelemetry/semantic-conventions'
 import { parse } from 'graphql'
 import { getResponseBody } from '../listeners/network-listener/utils/fetch-listener'
 import {
@@ -75,9 +72,9 @@ export const setupBrowserTracing = (config: BrowserTracingConfig) => {
 
 	provider = new WebTracerProvider({
 		resource: new Resource({
-			[SEMRESATTRS_SERVICE_NAME]:
+			[SemanticAttributes.ATTR_SERVICE_NAME]:
 				config.serviceName ?? 'highlight-browser',
-			[SEMRESATTRS_DEPLOYMENT_ENVIRONMENT]: environment,
+			[SemanticAttributes.DEPLOYMENT_ENVIRONMENT]: environment,
 			'highlight.project_id': config.projectId,
 			'highlight.session_id': config.sessionSecureId,
 		}),
@@ -372,15 +369,15 @@ const enhanceSpanWithHttpRequestAttributes = (
 		'highlight.type': 'http.request',
 		'http.request.headers': JSON.stringify(sanitizedHeaders),
 		'http.request.body': stringBody,
-		'url.original': url,
-		'url.domain': urlObject.host,
-		'url.path': urlObject.pathname,
-		'url.query': urlObject.search,
+		[SemanticAttributes.ATTR_URL_FULL]: url,
+		[SemanticAttributes.ATTR_URL_PATH]: urlObject.pathname,
+		[SemanticAttributes.ATTR_URL_QUERY]: urlObject.search,
 	})
 
 	if (urlObject.searchParams.size > 0) {
 		span.setAttributes({
-			'url.query_params': JSON.stringify(
+			// Custom attribute that displays query string params as an object.
+			['url.query_params']: JSON.stringify(
 				Object.fromEntries(urlObject.searchParams),
 			),
 		})
