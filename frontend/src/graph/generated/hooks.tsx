@@ -11257,63 +11257,6 @@ export type GetWorkspaceIsIntegratedWithZapierQueryResult = Apollo.QueryResult<
 	Types.GetWorkspaceIsIntegratedWithZapierQuery,
 	Types.GetWorkspaceIsIntegratedWithZapierQueryVariables
 >
-export const GetWorkspaceIsIntegratedWithFrontDocument = gql`
-	query GetWorkspaceIsIntegratedWithFront($project_id: ID!) {
-		is_integrated_with_front: is_integrated_with(
-			integration_type: Front
-			project_id: $project_id
-		)
-	}
-`
-
-/**
- * __useGetWorkspaceIsIntegratedWithFrontQuery__
- *
- * To run a query within a React component, call `useGetWorkspaceIsIntegratedWithFrontQuery` and pass it any options that fit your needs.
- * When your component renders, `useGetWorkspaceIsIntegratedWithFrontQuery` returns an object from Apollo Client that contains loading, error, and data properties
- * you can use to render your UI.
- *
- * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
- *
- * @example
- * const { data, loading, error } = useGetWorkspaceIsIntegratedWithFrontQuery({
- *   variables: {
- *      project_id: // value for 'project_id'
- *   },
- * });
- */
-export function useGetWorkspaceIsIntegratedWithFrontQuery(
-	baseOptions: Apollo.QueryHookOptions<
-		Types.GetWorkspaceIsIntegratedWithFrontQuery,
-		Types.GetWorkspaceIsIntegratedWithFrontQueryVariables
-	>,
-) {
-	return Apollo.useQuery<
-		Types.GetWorkspaceIsIntegratedWithFrontQuery,
-		Types.GetWorkspaceIsIntegratedWithFrontQueryVariables
-	>(GetWorkspaceIsIntegratedWithFrontDocument, baseOptions)
-}
-export function useGetWorkspaceIsIntegratedWithFrontLazyQuery(
-	baseOptions?: Apollo.LazyQueryHookOptions<
-		Types.GetWorkspaceIsIntegratedWithFrontQuery,
-		Types.GetWorkspaceIsIntegratedWithFrontQueryVariables
-	>,
-) {
-	return Apollo.useLazyQuery<
-		Types.GetWorkspaceIsIntegratedWithFrontQuery,
-		Types.GetWorkspaceIsIntegratedWithFrontQueryVariables
-	>(GetWorkspaceIsIntegratedWithFrontDocument, baseOptions)
-}
-export type GetWorkspaceIsIntegratedWithFrontQueryHookResult = ReturnType<
-	typeof useGetWorkspaceIsIntegratedWithFrontQuery
->
-export type GetWorkspaceIsIntegratedWithFrontLazyQueryHookResult = ReturnType<
-	typeof useGetWorkspaceIsIntegratedWithFrontLazyQuery
->
-export type GetWorkspaceIsIntegratedWithFrontQueryResult = Apollo.QueryResult<
-	Types.GetWorkspaceIsIntegratedWithFrontQuery,
-	Types.GetWorkspaceIsIntegratedWithFrontQueryVariables
->
 export const GetWorkspaceIsIntegratedWithDiscordDocument = gql`
 	query GetWorkspaceIsIntegratedWithDiscord($project_id: ID!) {
 		is_integrated_with_discord: is_integrated_with(
