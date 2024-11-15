@@ -26,6 +26,7 @@ COPY ../sdk/highlightinc-highlight-datasource/package.json ./sdk/highlightinc-hi
 COPY ../sdk/highlight-nest/package.json ./sdk/highlight-nest/package.json
 COPY ../sdk/highlight-next/package.json ./sdk/highlight-next/package.json
 COPY ../sdk/highlight-node/package.json ./sdk/highlight-node/package.json
+COPY ../sdk/highlight-hono/package.json ./sdk/highlight-hono/package.json
 COPY ../sdk/highlight-react/package.json ./sdk/highlight-react/package.json
 COPY ../sdk/highlight-remix/package.json ./sdk/highlight-remix/package.json
 COPY ../sdk/pino/package.json ./sdk/pino/package.json
