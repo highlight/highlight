@@ -48,6 +48,7 @@ type Configuration struct {
 	ConsumerFraction            string `mapstructure:"CONSUMER_SPAN_SAMPLING_FRACTION"`
 	DeleteSessionsArn           string `mapstructure:"DELETE_SESSIONS_ARN"`
 	DemoProjectID               string `mapstructure:"DEMO_PROJECT_ID"`
+	DisableCors                 string `mapstructure:"DISABLE_CORS"`
 	DiscordBotId                string `mapstructure:"DISCORD_BOT_ID"`
 	DiscordBotSecret            string `mapstructure:"DISCORD_BOT_SECRET"`
 	DiscordClientId             string `mapstructure:"DISCORD_CLIENT_ID"`
