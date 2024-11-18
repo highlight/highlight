@@ -21,7 +21,7 @@ export const initializeSdk: QuickStartStep = {
 use Highlight\\SDK\\Highlight;
 
 
-$projectId = 'YOUR_PROJECT_ID';
+$projectId = '<YOUR_PROJECT_ID>';
 
 // Use only a projectId to bootstrap Highlight
 if (!Highlight::isInitialized()) {

@@ -1,0 +1,18 @@
+{
+	"name": "highlight-hono-example",
+	"type": "module",
+	"private": true,
+	"scripts": {
+		"dev": "tsx watch src/index.ts"
+	},
+	"dependencies": {
+		"@highlight-run/hono": "workspace:*",
+		"@hono/node-server": "^1.13.7",
+		"@opentelemetry/api": "^1.9.0",
+		"hono": "^4.6.10"
+	},
+	"devDependencies": {
+		"@types/node": "^20.11.17",
+		"tsx": "^4.7.1"
+	}
+}
