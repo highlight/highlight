@@ -14013,10 +14013,12 @@ export const GetWorkspaceSettingsDocument = gql`
 			enable_grafana_dashboard
 			enable_ingest_filtering
 			enable_ingest_sampling
+			enable_jira_integration
 			enable_network_traces
 			enable_project_level_access
 			enable_project_level_access
 			enable_session_export
+			enable_teams_integration
 			enable_unlisted_sharing
 		}
 	}

@@ -479,6 +479,9 @@ type AllWorkspaceSettings struct {
 	EnableDataDeletion    bool `gorm:"default:true"`
 	EnableNetworkTraces   bool `gorm:"default:true"`
 	EnableUnlistedSharing bool `gorm:"default:true"`
+
+	EnableJiraIntegration  bool `gorm:"default:false"`
+	EnableTeamsIntegration bool `gorm:"default:false"`
 }
 
 type HasSecret interface {

@@ -231,9 +231,11 @@ export type AllWorkspaceSettings = {
 	enable_grafana_dashboard: Scalars['Boolean']
 	enable_ingest_filtering: Scalars['Boolean']
 	enable_ingest_sampling: Scalars['Boolean']
+	enable_jira_integration: Scalars['Boolean']
 	enable_network_traces: Scalars['Boolean']
 	enable_project_level_access: Scalars['Boolean']
 	enable_session_export: Scalars['Boolean']
+	enable_teams_integration: Scalars['Boolean']
 	enable_unlisted_sharing: Scalars['Boolean']
 	workspace_id: Scalars['ID']
 }

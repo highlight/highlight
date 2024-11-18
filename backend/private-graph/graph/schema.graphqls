@@ -569,6 +569,8 @@ type AllWorkspaceSettings {
 	enable_project_level_access: Boolean!
 	enable_session_export: Boolean!
 	enable_unlisted_sharing: Boolean!
+	enable_jira_integration: Boolean!
+	enable_teams_integration: Boolean!
 }
 
 type Account {
