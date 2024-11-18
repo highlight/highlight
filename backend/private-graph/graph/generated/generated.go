@@ -209,9 +209,11 @@ type ComplexityRoot struct {
 		EnableGrafanaDashboard   func(childComplexity int) int
 		EnableIngestFiltering    func(childComplexity int) int
 		EnableIngestSampling     func(childComplexity int) int
+		EnableJiraIntegration    func(childComplexity int) int
 		EnableNetworkTraces      func(childComplexity int) int
 		EnableProjectLevelAccess func(childComplexity int) int
 		EnableSessionExport      func(childComplexity int) int
+		EnableTeamsIntegration   func(childComplexity int) int
 		EnableUnlistedSharing    func(childComplexity int) int
 		WorkspaceID              func(childComplexity int) int
 	}
@@ -2857,6 +2859,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.AllWorkspaceSettings.EnableIngestSampling(childComplexity), true
 
+	case "AllWorkspaceSettings.enable_jira_integration":
+		if e.complexity.AllWorkspaceSettings.EnableJiraIntegration == nil {
+			break
+		}
+
+		return e.complexity.AllWorkspaceSettings.EnableJiraIntegration(childComplexity), true
+
 	case "AllWorkspaceSettings.enable_network_traces":
 		if e.complexity.AllWorkspaceSettings.EnableNetworkTraces == nil {
 			break
@@ -2877,6 +2886,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.AllWorkspaceSettings.EnableSessionExport(childComplexity), true
+
+	case "AllWorkspaceSettings.enable_teams_integration":
+		if e.complexity.AllWorkspaceSettings.EnableTeamsIntegration == nil {
+			break
+		}
+
+		return e.complexity.AllWorkspaceSettings.EnableTeamsIntegration(childComplexity), true
 
 	case "AllWorkspaceSettings.enable_unlisted_sharing":
 		if e.complexity.AllWorkspaceSettings.EnableUnlistedSharing == nil {
@@ -12294,6 +12310,8 @@ type AllWorkspaceSettings {
 	enable_project_level_access: Boolean!
 	enable_session_export: Boolean!
 	enable_unlisted_sharing: Boolean!
+	enable_jira_integration: Boolean!
+	enable_teams_integration: Boolean!
 }
 
 type Account {
@@ -28104,6 +28122,94 @@ func (ec *executionContext) _AllWorkspaceSettings_enable_unlisted_sharing(ctx co
 }
 
 func (ec *executionContext) fieldContext_AllWorkspaceSettings_enable_unlisted_sharing(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "AllWorkspaceSettings",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _AllWorkspaceSettings_enable_jira_integration(ctx context.Context, field graphql.CollectedField, obj *model1.AllWorkspaceSettings) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_AllWorkspaceSettings_enable_jira_integration(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.EnableJiraIntegration, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_AllWorkspaceSettings_enable_jira_integration(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "AllWorkspaceSettings",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _AllWorkspaceSettings_enable_teams_integration(ctx context.Context, field graphql.CollectedField, obj *model1.AllWorkspaceSettings) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_AllWorkspaceSettings_enable_teams_integration(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.EnableTeamsIntegration, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_AllWorkspaceSettings_enable_teams_integration(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "AllWorkspaceSettings",
 		Field:      field,
@@ -46885,6 +46991,10 @@ func (ec *executionContext) fieldContext_Mutation_editWorkspaceSettings(ctx cont
 				return ec.fieldContext_AllWorkspaceSettings_enable_session_export(ctx, field)
 			case "enable_unlisted_sharing":
 				return ec.fieldContext_AllWorkspaceSettings_enable_unlisted_sharing(ctx, field)
+			case "enable_jira_integration":
+				return ec.fieldContext_AllWorkspaceSettings_enable_jira_integration(ctx, field)
+			case "enable_teams_integration":
+				return ec.fieldContext_AllWorkspaceSettings_enable_teams_integration(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type AllWorkspaceSettings", field.Name)
 		},
@@ -61983,6 +62093,10 @@ func (ec *executionContext) fieldContext_Query_workspaceSettings(ctx context.Con
 				return ec.fieldContext_AllWorkspaceSettings_enable_session_export(ctx, field)
 			case "enable_unlisted_sharing":
 				return ec.fieldContext_AllWorkspaceSettings_enable_unlisted_sharing(ctx, field)
+			case "enable_jira_integration":
+				return ec.fieldContext_AllWorkspaceSettings_enable_jira_integration(ctx, field)
+			case "enable_teams_integration":
+				return ec.fieldContext_AllWorkspaceSettings_enable_teams_integration(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type AllWorkspaceSettings", field.Name)
 		},
@@ -86993,6 +87107,16 @@ func (ec *executionContext) _AllWorkspaceSettings(ctx context.Context, sel ast.S
 			}
 		case "enable_unlisted_sharing":
 			out.Values[i] = ec._AllWorkspaceSettings_enable_unlisted_sharing(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&out.Invalids, 1)
+			}
+		case "enable_jira_integration":
+			out.Values[i] = ec._AllWorkspaceSettings_enable_jira_integration(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&out.Invalids, 1)
+			}
+		case "enable_teams_integration":
+			out.Values[i] = ec._AllWorkspaceSettings_enable_teams_integration(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&out.Invalids, 1)
 			}
