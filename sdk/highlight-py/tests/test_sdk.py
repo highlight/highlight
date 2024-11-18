@@ -84,6 +84,7 @@ def test_log_no_trace(mock_trace):
 
     assert mock_trace.call_args_list[0].args[1:] != ("highlight.log",)
 
+
 def test_log_with_trace(mock_trace):
     logger = logging.getLogger()
     logger.setLevel(logging.INFO)
@@ -92,6 +93,7 @@ def test_log_with_trace(mock_trace):
     h.flush()
 
     assert mock_trace.call_args_list[0].args[1:] == ("highlight.log",)
+
 
 def test_test_decorator(mock_trace):
     h = highlight_io.H("1", instrument_logging=True, enable_log_traces=True)
