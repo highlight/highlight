@@ -1,0 +1,25 @@
+{
+	"name": "@highlight-run/hono",
+	"version": "1.0.0",
+	"description": "Highlight.io SDK for Hono applications",
+	"main": "dist/index.js",
+	"types": "dist/index.d.ts",
+	"files": [
+		"dist"
+	],
+	"scripts": {
+		"build": "tsc",
+		"dev": "tsc --watch",
+		"test": "vitest run",
+		"test:watch": "vitest"
+	},
+	"dependencies": {
+		"@highlight-run/node": "workspace:*"
+	},
+	"devDependencies": {
+		"@types/node": "^14.18.63",
+		"hono": "^4.6.10",
+		"typescript": "^5.0.4",
+		"vitest": "^2.1.5"
+	}
+}
