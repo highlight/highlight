@@ -8,7 +8,6 @@ import (
 	"reflect"
 	"regexp"
 	"sort"
-	"strconv"
 	"strings"
 	"time"
 
@@ -55,6 +54,7 @@ type ReadMetricsInput struct {
 	SavedMetricState   *SavedMetricState
 	PredictionSettings *modelInputs.PredictionSettings
 	NoBucketMax        bool
+	CorrelationId      int
 }
 
 func readObjects[TObj interface{}](ctx context.Context, client *Client, config model.TableConfig, samplingConfig model.TableConfig, projectID int, params modelInputs.QueryInput, pagination Pagination, scanObject func(driver.Rows) (*Edge[TObj], error)) (*Connection[TObj], error) {
@@ -965,14 +965,14 @@ func (client *Client) saveMetricHistory(ctx context.Context, sb *sqlbuilder.Sele
 	return err
 }
 
-func (client *Client) ReadMetrics(ctx context.Context, input ReadMetricsInput) (*modelInputs.MetricsBuckets, error) {
+func GetMetricsSqlBuilder(ctx context.Context, input ReadMetricsInput) (*sqlbuilder.SelectBuilder, int, error) {
 	span, ctx := util.StartSpanFromContext(ctx, "clickhouse.readMetrics")
 	span.SetAttribute("project_ids", input.ProjectIDs)
 	span.SetAttribute("table", input.SampleableConfig.tableConfig.TableName)
 	defer span.Finish()
 
 	if len(input.MetricTypes) == 0 {
-		return nil, errors.New("no metric types provided")
+		return nil, 0, errors.New("no metric types provided")
 	}
 	if input.Params.DateRange == nil {
 		input.Params.DateRange = &modelInputs.DateRangeRequiredInput{
@@ -1034,7 +1034,7 @@ func (client *Client) ReadMetrics(ctx context.Context, input ReadMetricsInput) (
 		Pagination{CountOnly: true},
 	)
 	if err != nil {
-		return nil, err
+		return nil, 0, err
 	}
 
 	attributeFields := getAttributeFields(config, filters)
@@ -1142,7 +1142,9 @@ func (client *Client) ReadMetrics(ctx context.Context, input ReadMetricsInput) (
 
 		for idx, group := range input.GroupBy {
 			var colStr string
-			if col, found := keysToColumns[group]; found {
+			if col == "" {
+				colStr = "''"
+			} else if col, found := keysToColumns[group]; found {
 				colStr = col
 			} else {
 				colStr = getAttributeFilterCol(input.SampleableConfig, innerSb.Var(group), "toString")
@@ -1197,21 +1199,21 @@ func (client *Client) ReadMetrics(ctx context.Context, input ReadMetricsInput) (
 		}
 	}
 
-	base := 5 + len(input.MetricTypes)
-	if input.SavedMetricState != nil {
-		base += 1
-	}
-
-	groupByCols := []string{"1"}
-	for i := base; i < base+len(input.GroupBy); i++ {
-		groupByCols = append(groupByCols, strconv.Itoa(i))
+	groupByCols := []string{"bucket_index"}
+	for idx := range input.GroupBy {
+		groupByCols = append(groupByCols, fmt.Sprintf("g%d", idx))
 	}
 
 	addAttributes(config, attributeFields, input.ProjectIDs, input.Params, fromSb)
 
 	innerSb := fromSb
 	fromSb = sqlbuilder.NewSelectBuilder()
-	outerSelect := []string{"bucket_index", "any(_sample_factor) as sample_factor", "any(min) as min", "any(max) as max"}
+	outerSelect := []string{
+		"bucket_index",
+		"any(_sample_factor) as sample_factor",
+		"any(min) as min",
+		"any(max) as max",
+		fmt.Sprintf("toInt64(%d) as correlation_id", input.CorrelationId)}
 	if input.SavedMetricState != nil {
 		outerSelect = append(outerSelect, "any(max_block_number) as max_block_number")
 	}
@@ -1228,16 +1230,25 @@ func (client *Client) ReadMetrics(ctx context.Context, input ReadMetricsInput) (
 	fromSb.OrderBy(groupByCols...)
 	fromSb.Limit(10000)
 
+	return fromSb, nBuckets, nil
+}
+
+func (client *Client) ReadMetrics(ctx context.Context, input ReadMetricsInput) (*modelInputs.MetricsBuckets, error) {
+	sb, nBuckets, err := GetMetricsSqlBuilder(ctx, input)
+	if err != nil {
+		return nil, err
+	}
+
 	if input.SavedMetricState != nil {
-		if err := client.saveMetricHistory(ctx, fromSb, input); err != nil {
+		if err := client.saveMetricHistory(ctx, sb, input); err != nil {
 			return nil, err
 		}
 		return nil, nil
 	}
 
-	sql, args := fromSb.BuildWithFlavor(sqlbuilder.ClickHouse)
+	sql, args := sb.BuildWithFlavor(sqlbuilder.ClickHouse)
 
-	span, ctx = util.StartSpanFromContext(ctx, "readMetrics.query")
+	span, ctx := util.StartSpanFromContext(ctx, "readMetrics.query")
 	span.SetAttribute("sql", sql)
 	span.SetAttribute("args", args)
 	rows, err := client.conn.Query(
@@ -1252,10 +1263,11 @@ func (client *Client) ReadMetrics(ctx context.Context, input ReadMetricsInput) (
 	}
 
 	var (
-		groupKey     uint64
-		sampleFactor float64
-		min          float64
-		max          float64
+		groupKey      uint64
+		sampleFactor  float64
+		min           float64
+		max           float64
+		correlationId uint8
 	)
 
 	groupByColResults := make([]string, len(input.GroupBy))
@@ -1265,6 +1277,7 @@ func (client *Client) ReadMetrics(ctx context.Context, input ReadMetricsInput) (
 	scanResults = append(scanResults, &sampleFactor)
 	scanResults = append(scanResults, &min)
 	scanResults = append(scanResults, &max)
+	scanResults = append(scanResults, &correlationId)
 	for idx := range input.MetricTypes {
 		scanResults = append(scanResults, &metricResults[idx])
 	}
@@ -1334,6 +1347,178 @@ func (client *Client) ReadMetrics(ctx context.Context, input ReadMetricsInput) (
 
 	return metrics, err
 }
+
+// Normalize group by lists to be the same length by filling w/ empty string
+func normalizeGroupBy(input []ReadMetricsInput) {
+	maxGroupBy := 0
+	for _, i := range input {
+		curGroupBy := len(i.GroupBy)
+		if curGroupBy > maxGroupBy {
+			maxGroupBy = curGroupBy
+		}
+	}
+
+	for idx := range input {
+		countToAdd := maxGroupBy - len(input[idx].GroupBy)
+		input[idx].GroupBy = append(input[idx].GroupBy, make([]string, countToAdd)...)
+	}
+}
+
+func (client *Client) ReadMetricsBatched(ctx context.Context, input []ReadMetricsInput) ([]*modelInputs.MetricsBuckets, error) {
+	if len(input) == 0 {
+		return nil, nil
+	}
+
+	normalizeGroupBy(input)
+
+	builders := []sqlbuilder.Builder{}
+	lengths := []int{}
+	for _, i := range input {
+		sb, nBuckets, err := GetMetricsSqlBuilder(ctx, i)
+		if err != nil {
+			return nil, err
+		}
+		builders = append(builders, sb)
+		lengths = append(lengths, nBuckets)
+	}
+
+	sb := sqlbuilder.UnionAll(builders...)
+	sql, args := sb.BuildWithFlavor(sqlbuilder.ClickHouse)
+
+	span, ctx := util.StartSpanFromContext(ctx, "readMetrics.query")
+	span.SetAttribute("sql", sql)
+	span.SetAttribute("args", args)
+	rows, err := client.conn.Query(
+		ctx,
+		sql,
+		args...,
+	)
+	span.Finish(err)
+
+	if err != nil {
+		return nil, err
+	}
+
+	var (
+		bucketId      uint64
+		sampleFactor  float64
+		min           float64
+		max           float64
+		correlationId int64
+	)
+
+	groupByColResults := make([]string, len(input[0].GroupBy))
+	metricResults := make([]*float64, len(input[0].MetricTypes))
+	scanResults := []interface{}{}
+	scanResults = append(scanResults, &bucketId)
+	scanResults = append(scanResults, &sampleFactor)
+	scanResults = append(scanResults, &min)
+	scanResults = append(scanResults, &max)
+	scanResults = append(scanResults, &correlationId)
+	for idx := range metricResults {
+		scanResults = append(scanResults, &metricResults[idx])
+	}
+	for idx := range groupByColResults {
+		scanResults = append(scanResults, &groupByColResults[idx])
+	}
+
+	results := make([]*modelInputs.MetricsBuckets, len(input))
+	for idx := range results {
+		results[idx] = &modelInputs.MetricsBuckets{}
+	}
+
+	var metrics *modelInputs.MetricsBuckets
+	var lastBucketId int
+	var lastCorrelationId int64 = -1
+
+	for rows.Next() {
+		if err := rows.Scan(scanResults...); err != nil {
+			return nil, err
+		}
+
+		nBuckets := lengths[correlationId]
+
+		if correlationId != lastCorrelationId {
+			if lastCorrelationId != -1 {
+				// Interpolate any missing buckets
+				for i := lastBucketId + 1; i < lengths[lastCorrelationId]; i++ {
+					for _, metricType := range input[lastCorrelationId].MetricTypes {
+						metrics.Buckets = append(metrics.Buckets, &modelInputs.MetricBucket{
+							BucketID:    uint64(i),
+							BucketMin:   float64(i)*(max-min)/float64(nBuckets) + min,
+							BucketMax:   float64(i+1)*(max-min)/float64(nBuckets) + min,
+							Group:       append(make([]string, 0), groupByColResults...),
+							MetricType:  metricType,
+							MetricValue: nil,
+						})
+					}
+				}
+
+				results[lastCorrelationId] = metrics
+			}
+
+			metrics = &modelInputs.MetricsBuckets{
+				Buckets:      []*modelInputs.MetricBucket{},
+				BucketCount:  uint64(nBuckets),
+				SampleFactor: sampleFactor,
+			}
+			lastBucketId = -1
+
+			lastCorrelationId = correlationId
+		}
+
+		if bucketId >= uint64(nBuckets) {
+			continue
+		}
+
+		// Interpolate any missing buckets
+		for i := lastBucketId + 1; i < int(bucketId); i++ {
+			for _, metricType := range input[correlationId].MetricTypes {
+				metrics.Buckets = append(metrics.Buckets, &modelInputs.MetricBucket{
+					BucketID:    uint64(i),
+					BucketMin:   float64(i)*(max-min)/float64(nBuckets) + min,
+					BucketMax:   float64(i+1)*(max-min)/float64(nBuckets) + min,
+					Group:       append(make([]string, 0), groupByColResults...),
+					MetricType:  metricType,
+					MetricValue: nil,
+				})
+			}
+		}
+
+		for idx, metricType := range input[correlationId].MetricTypes {
+			result := metricResults[idx]
+			metrics.Buckets = append(metrics.Buckets, &modelInputs.MetricBucket{
+				BucketID:    bucketId,
+				BucketMin:   float64(bucketId)*(max-min)/float64(nBuckets) + min,
+				BucketMax:   float64(bucketId+1)*(max-min)/float64(nBuckets) + min,
+				Group:       append(make([]string, 0), groupByColResults...),
+				MetricType:  metricType,
+				MetricValue: result,
+			})
+		}
+
+		lastBucketId = int(bucketId)
+	}
+
+	// Interpolate any missing buckets
+	for i := lastBucketId + 1; i < lengths[lastCorrelationId]; i++ {
+		for _, metricType := range input[lastCorrelationId].MetricTypes {
+			metrics.Buckets = append(metrics.Buckets, &modelInputs.MetricBucket{
+				BucketID:    uint64(i),
+				BucketMin:   float64(i)*(max-min)/float64(lengths[lastCorrelationId]) + min,
+				BucketMax:   float64(i+1)*(max-min)/float64(lengths[lastCorrelationId]) + min,
+				Group:       append(make([]string, 0), groupByColResults...),
+				MetricType:  metricType,
+				MetricValue: nil,
+			})
+		}
+	}
+
+	results[lastCorrelationId] = metrics
+
+	return results, err
+}
+
 func formatColumn(input string, column string) string {
 	base := input
 	if base == "" {

@@ -31,11 +31,6 @@ import { CategoricalChartState } from 'recharts/types/chart/types'
 
 import { loadingIcon } from '@/components/Button/style.css'
 import { useRelatedResource } from '@/components/RelatedResources/hooks'
-import { TIME_FORMAT } from '@/components/Search/SearchForm/constants'
-import {
-	GetMetricsQueryResult,
-	useGetMetricsLazyQuery,
-} from '@/graph/generated/hooks'
 import { GetMetricsQuery } from '@/graph/generated/operations'
 import {
 	Maybe,
@@ -67,6 +62,8 @@ import * as style from './Graph.css'
 import { EventSelectionStep } from '@pages/Graphing/util'
 import { useGraphContext } from '../context/GraphContext'
 import { TIME_METRICS } from '@pages/Graphing/constants'
+import { GetMetricsQueryResult } from '@/graph/generated/hooks'
+import { TIME_FORMAT } from '@/components/Search/SearchForm/constants'
 
 export type View = 'Line chart' | 'Bar chart' | 'Funnel chart' | 'Table'
 
@@ -915,7 +912,7 @@ const Graph = ({
 	thresholdSettings,
 	children,
 }: React.PropsWithChildren<ChartProps<ViewConfig>>) => {
-	const { setGraphData } = useGraphContext()
+	const { setGraphData, getMetrics } = useGraphContext()
 	const queriedBucketCount = bucketByKey !== undefined ? bucketCount : 1
 
 	const pollTimeout = useRef<number>()
@@ -1005,7 +1002,7 @@ const Graph = ({
 		})
 	}
 
-	const [getMetrics, { called }] = useGetMetricsLazyQuery()
+	const called = true
 
 	const rebaseFetchTime = useCallback(() => {
 		if (!selectedPreset) {
@@ -1036,115 +1033,118 @@ const Graph = ({
 	}, [rebaseFetchTime])
 
 	// fetch new metrics when varaibles change (including polled fetch time)
-	useEffect(() => {
-		if (!fetchStart || !fetchEnd) {
-			return
-		}
+	useEffect(
+		() => {
+			if (!fetchStart || !fetchEnd) {
+				return
+			}
 
-		const useLongerRounding =
-			moment(fetchEnd).diff(fetchStart, 'hours') >= 4
+			const useLongerRounding =
+				moment(fetchEnd).diff(fetchStart, 'hours') >= 4
 
-		const overage = useLongerRounding ? moment(fetchStart).minute() % 5 : 0
-		const start = moment(fetchStart)
-			.startOf('minute')
-			.subtract(overage, 'minute')
-		const end = moment(fetchEnd)
-			.startOf('minute')
-			.subtract(overage, 'minute')
+			const overage = useLongerRounding
+				? moment(fetchStart).minute() % 5
+				: 0
+			const start = moment(fetchStart)
+				.startOf('minute')
+				.subtract(overage, 'minute')
+			const end = moment(fetchEnd)
+				.startOf('minute')
+				.subtract(overage, 'minute')
 
-		const getMetricsVariables = {
-			product_type: productType,
-			project_id: projectId,
-			params: {
-				date_range: {
-					start_date: start.format(TIME_FORMAT),
-					end_date: end.format(TIME_FORMAT),
+			const getMetricsVariables = {
+				product_type: productType,
+				project_id: projectId,
+				params: {
+					date_range: {
+						start_date: start.format(TIME_FORMAT),
+						end_date: end.format(TIME_FORMAT),
+					},
+					query: replaceQueryVariables(query, variables),
 				},
-				query: replaceQueryVariables(query, variables),
-			},
-			column: matchParamVariables(yAxisMetric, variables).at(0) ?? '',
-			metric_types: [functionType],
-			group_by:
-				groupByKeys !== undefined
-					? matchParamVariables(groupByKeys, variables)
-					: [],
-			bucket_by:
-				bucketByKey !== undefined
-					? (matchParamVariables(bucketByKey, variables).at(0) ?? '')
-					: TIMESTAMP_KEY,
-			bucket_window: bucketByWindow,
-			bucket_count: queriedBucketCount,
-			limit: limit,
-			limit_aggregator: limitFunctionType,
-			limit_column: limitMetric
-				? matchParamVariables(limitMetric, variables).at(0)
-				: undefined,
-			prediction_settings: predictionSettings,
-		}
+				column: matchParamVariables(yAxisMetric, variables).at(0) ?? '',
+				metric_types: [functionType],
+				group_by:
+					groupByKeys !== undefined
+						? matchParamVariables(groupByKeys, variables)
+						: [],
+				bucket_by:
+					bucketByKey !== undefined
+						? (matchParamVariables(bucketByKey, variables).at(0) ??
+							'')
+						: TIMESTAMP_KEY,
+				bucket_window: bucketByWindow,
+				bucket_count: queriedBucketCount,
+				limit: limit,
+				limit_aggregator: limitFunctionType,
+				limit_column: limitMetric
+					? matchParamVariables(limitMetric, variables).at(0)
+					: undefined,
+				prediction_settings: predictionSettings,
+			}
 
-		setLoading(true)
-		let getMetricsPromises: Promise<GetMetricsQueryResult>[] = []
-		if (funnelSteps?.length) {
-			for (const step of funnelSteps) {
-				getMetricsPromises.push(
-					getMetrics({
-						variables: {
+			setLoading(true)
+			let getMetricsPromises: Promise<GetMetricsQueryResult['data']>[] =
+				[]
+			if (funnelSteps?.length) {
+				for (const step of funnelSteps) {
+					getMetricsPromises.push(
+						getMetrics({
 							...getMetricsVariables,
 							params: {
 								...getMetricsVariables.params,
 								query: step.query,
 							},
-						},
-					}),
-				)
-			}
-		} else {
-			getMetricsPromises = [
-				getMetrics({ variables: getMetricsVariables }),
-			]
-		}
-		Promise.all(getMetricsPromises)
-			.then((results: GetMetricsQueryResult[]) => {
-				setResults(results.filter((r) => r.data).map((r) => r.data!))
-			})
-			.finally(() => {
-				setLoading(false)
-				// create another poll timeout if pollInterval is set
-				if (pollInterval) {
-					pollTimeout.current = setTimeout(
-						rebaseFetchTime,
-						pollInterval,
-					) as unknown as number
+						}),
+					)
 				}
-			})
-
-		return () => {
-			if (!!pollTimeout.current) {
-				clearTimeout(pollTimeout.current)
-				pollTimeout.current = undefined
+			} else {
+				getMetricsPromises = [getMetrics(getMetricsVariables)]
 			}
-		}
+			Promise.all(getMetricsPromises)
+				.then((results) => {
+					setResults(results.filter((r) => r !== undefined))
+				})
+				.finally(() => {
+					setLoading(false)
+					// create another poll timeout if pollInterval is set
+					if (pollInterval) {
+						pollTimeout.current = setTimeout(
+							rebaseFetchTime,
+							pollInterval,
+						) as unknown as number
+					}
+				})
+
+			return () => {
+				if (!!pollTimeout.current) {
+					clearTimeout(pollTimeout.current)
+					pollTimeout.current = undefined
+				}
+			}
+		},
 		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [
-		bucketByKey,
-		bucketByWindow,
-		fetchEnd,
-		fetchStart,
-		functionType,
-		getMetrics,
-		groupByKeys,
-		limit,
-		limitFunctionType,
-		limitMetric,
-		funnelSteps,
-		yAxisMetric,
-		productType,
-		projectId,
-		queriedBucketCount,
-		query,
-		variables,
-		predictionSettings,
-	])
+		[
+			bucketByKey,
+			bucketByWindow,
+			fetchEnd,
+			fetchStart,
+			functionType,
+			getMetrics,
+			groupByKeys,
+			limit,
+			limitFunctionType,
+			limitMetric,
+			// funnelSteps,
+			yAxisMetric,
+			productType,
+			projectId,
+			queriedBucketCount,
+			query,
+			variables,
+			predictionSettings,
+		],
+	)
 
 	const graphData = useGraphData(
 		results?.at(0),

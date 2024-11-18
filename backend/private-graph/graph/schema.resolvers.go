@@ -9741,6 +9741,58 @@ func (r *queryResolver) LogLines(ctx context.Context, productType modelInputs.Pr
 	}
 }
 
+// MetricsBatched is the resolver for the metrics_batched field.
+func (r *queryResolver) MetricsBatched(ctx context.Context, input []*modelInputs.MetricsInput) ([]*modelInputs.MetricsBuckets, error) {
+	projectIds := lo.Uniq(lo.Map(input, func(i *modelInputs.MetricsInput, _ int) int {
+		return i.ProjectID
+	}))
+
+	for _, id := range projectIds {
+		_, err := r.isUserInProjectOrDemoProject(ctx, id)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	var requests []clickhouse.ReadMetricsInput
+	for idx, i := range input {
+		var config clickhouse.SampleableTableConfig
+		switch i.ProductType {
+		case modelInputs.ProductTypeMetrics:
+			config = clickhouse.MetricsSampleableTableConfig
+		case modelInputs.ProductTypeTraces:
+			config = clickhouse.TracesSampleableTableConfig
+		case modelInputs.ProductTypeLogs:
+			config = clickhouse.LogsSampleableTableConfig
+		case modelInputs.ProductTypeSessions:
+			config = clickhouse.SessionsSampleableTableConfig
+		case modelInputs.ProductTypeErrors:
+			config = clickhouse.ErrorsSampleableTableConfig
+		case modelInputs.ProductTypeEvents:
+			config = clickhouse.EventsSampleableTableConfig
+		}
+
+		requests = append(requests, clickhouse.ReadMetricsInput{
+			SampleableConfig:   config,
+			ProjectIDs:         []int{i.ProjectID},
+			Params:             *i.Params, // ZANETODO?
+			Column:             i.Column,
+			MetricTypes:        i.MetricTypes,
+			GroupBy:            i.GroupBy,
+			BucketCount:        i.BucketCount,
+			BucketWindow:       i.BucketWindow,
+			BucketBy:           i.BucketBy,
+			Limit:              i.Limit,
+			LimitAggregator:    i.LimitAggregator,
+			LimitColumn:        i.LimitColumn,
+			PredictionSettings: i.PredictionSettings,
+			CorrelationId:      idx,
+		})
+	}
+
+	return r.ClickhouseClient.ReadMetricsBatched(ctx, requests)
+}
+
 // Params is the resolver for the params field.
 func (r *savedSegmentResolver) Params(ctx context.Context, obj *model.SavedSegment) (*model.SearchParams, error) {
 	params := &model.SearchParams{}

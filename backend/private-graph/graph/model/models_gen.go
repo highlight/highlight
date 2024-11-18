@@ -643,6 +643,22 @@ type MetricsBuckets struct {
 	SampleFactor float64         `json:"sample_factor"`
 }
 
+type MetricsInput struct {
+	ProductType        ProductType         `json:"product_type"`
+	ProjectID          int                 `json:"project_id"`
+	Params             *QueryInput         `json:"params"`
+	Column             string              `json:"column"`
+	MetricTypes        []MetricAggregator  `json:"metric_types"`
+	GroupBy            []string            `json:"group_by"`
+	BucketBy           string              `json:"bucket_by"`
+	BucketWindow       *int                `json:"bucket_window,omitempty"`
+	BucketCount        *int                `json:"bucket_count,omitempty"`
+	Limit              *int                `json:"limit,omitempty"`
+	LimitAggregator    *MetricAggregator   `json:"limit_aggregator,omitempty"`
+	LimitColumn        *string             `json:"limit_column,omitempty"`
+	PredictionSettings *PredictionSettings `json:"prediction_settings,omitempty"`
+}
+
 type MicrosoftTeamsChannelInput struct {
 	Name string `json:"name"`
 	ID   string `json:"id"`

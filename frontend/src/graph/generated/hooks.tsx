@@ -15114,6 +15114,73 @@ export type GetMetricsQueryResult = Apollo.QueryResult<
 	Types.GetMetricsQuery,
 	Types.GetMetricsQueryVariables
 >
+export const GetMetricsBatchedDocument = gql`
+	query GetMetricsBatched($input: [MetricsInput!]!) {
+		metrics_batched(input: $input) {
+			buckets {
+				bucket_id
+				bucket_min
+				bucket_max
+				group
+				metric_type
+				metric_value
+				yhat_lower
+				yhat_upper
+			}
+			bucket_count
+			sample_factor
+		}
+	}
+`
+
+/**
+ * __useGetMetricsBatchedQuery__
+ *
+ * To run a query within a React component, call `useGetMetricsBatchedQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetMetricsBatchedQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetMetricsBatchedQuery({
+ *   variables: {
+ *      input: // value for 'input'
+ *   },
+ * });
+ */
+export function useGetMetricsBatchedQuery(
+	baseOptions: Apollo.QueryHookOptions<
+		Types.GetMetricsBatchedQuery,
+		Types.GetMetricsBatchedQueryVariables
+	>,
+) {
+	return Apollo.useQuery<
+		Types.GetMetricsBatchedQuery,
+		Types.GetMetricsBatchedQueryVariables
+	>(GetMetricsBatchedDocument, baseOptions)
+}
+export function useGetMetricsBatchedLazyQuery(
+	baseOptions?: Apollo.LazyQueryHookOptions<
+		Types.GetMetricsBatchedQuery,
+		Types.GetMetricsBatchedQueryVariables
+	>,
+) {
+	return Apollo.useLazyQuery<
+		Types.GetMetricsBatchedQuery,
+		Types.GetMetricsBatchedQueryVariables
+	>(GetMetricsBatchedDocument, baseOptions)
+}
+export type GetMetricsBatchedQueryHookResult = ReturnType<
+	typeof useGetMetricsBatchedQuery
+>
+export type GetMetricsBatchedLazyQueryHookResult = ReturnType<
+	typeof useGetMetricsBatchedLazyQuery
+>
+export type GetMetricsBatchedQueryResult = Apollo.QueryResult<
+	Types.GetMetricsBatchedQuery,
+	Types.GetMetricsBatchedQueryVariables
+>
 export const GetGraphTemplatesDocument = gql`
 	query GetGraphTemplates {
 		graph_templates {

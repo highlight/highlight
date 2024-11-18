@@ -2644,6 +2644,23 @@ query GetMetrics(
 	}
 }
 
+query GetMetricsBatched($input: [MetricsInput!]!) {
+	metrics_batched(input: $input) {
+		buckets {
+			bucket_id
+			bucket_min
+			bucket_max
+			group
+			metric_type
+			metric_value
+			yhat_lower
+			yhat_upper
+		}
+		bucket_count
+		sample_factor
+	}
+}
+
 query GetGraphTemplates {
 	graph_templates {
 		id

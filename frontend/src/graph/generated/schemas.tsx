@@ -1185,6 +1185,22 @@ export type MetricsBuckets = {
 	sample_factor: Scalars['Float']
 }
 
+export type MetricsInput = {
+	bucket_by: Scalars['String']
+	bucket_count?: InputMaybe<Scalars['Int']>
+	bucket_window?: InputMaybe<Scalars['Int']>
+	column: Scalars['String']
+	group_by: Array<Scalars['String']>
+	limit?: InputMaybe<Scalars['Int']>
+	limit_aggregator?: InputMaybe<MetricAggregator>
+	limit_column?: InputMaybe<Scalars['String']>
+	metric_types: Array<MetricAggregator>
+	params: QueryInput
+	prediction_settings?: InputMaybe<PredictionSettings>
+	product_type: ProductType
+	project_id: Scalars['ID']
+}
+
 export type MicrosoftTeamsChannel = {
 	__typename?: 'MicrosoftTeamsChannel'
 	id: Scalars['String']
@@ -2152,6 +2168,7 @@ export type Query = {
 	metric_tag_values: Array<Scalars['String']>
 	metric_tags: Array<Scalars['String']>
 	metrics: MetricsBuckets
+	metrics_batched: Array<MetricsBuckets>
 	metrics_timeline: Array<Maybe<DashboardPayload>>
 	microsoft_teams_channel_suggestions: Array<MicrosoftTeamsChannel>
 	network_histogram?: Maybe<CategoryHistogramPayload>
@@ -2727,6 +2744,10 @@ export type QueryMetricsArgs = {
 	prediction_settings?: InputMaybe<PredictionSettings>
 	product_type: ProductType
 	project_id: Scalars['ID']
+}
+
+export type QueryMetrics_BatchedArgs = {
+	input: Array<MetricsInput>
 }
 
 export type QueryMetrics_TimelineArgs = {

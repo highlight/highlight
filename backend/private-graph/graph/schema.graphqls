@@ -1405,6 +1405,22 @@ input PredictionSettings {
 	intervalSeconds: Int!
 }
 
+input MetricsInput {
+	product_type: ProductType!
+	project_id: ID!
+	params: QueryInput!
+	column: String!
+	metric_types: [MetricAggregator!]!
+	group_by: [String!]!
+	bucket_by: String!
+	bucket_window: Int
+	bucket_count: Int
+	limit: Int
+	limit_aggregator: MetricAggregator
+	limit_column: String
+	prediction_settings: PredictionSettings
+}
+
 type User {
 	id: ID!
 }
@@ -2616,6 +2632,7 @@ type Query {
 		project_id: ID!
 		params: QueryInput!
 	): [LogLine!]!
+	metrics_batched(input: [MetricsInput!]!): [MetricsBuckets!]!
 }
 
 type Mutation {

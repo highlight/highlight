@@ -5200,6 +5200,33 @@ export type GetMetricsQuery = { __typename?: 'Query' } & {
 		}
 }
 
+export type GetMetricsBatchedQueryVariables = Types.Exact<{
+	input: Array<Types.MetricsInput> | Types.MetricsInput
+}>
+
+export type GetMetricsBatchedQuery = { __typename?: 'Query' } & {
+	metrics_batched: Array<
+		{ __typename?: 'MetricsBuckets' } & Pick<
+			Types.MetricsBuckets,
+			'bucket_count' | 'sample_factor'
+		> & {
+				buckets: Array<
+					{ __typename?: 'MetricBucket' } & Pick<
+						Types.MetricBucket,
+						| 'bucket_id'
+						| 'bucket_min'
+						| 'bucket_max'
+						| 'group'
+						| 'metric_type'
+						| 'metric_value'
+						| 'yhat_lower'
+						| 'yhat_upper'
+					>
+				>
+			}
+	>
+}
+
 export type GetGraphTemplatesQueryVariables = Types.Exact<{
 	[key: string]: never
 }>
@@ -5524,6 +5551,7 @@ export const namedOperations = {
 		GetKeys: 'GetKeys' as const,
 		GetKeyValues: 'GetKeyValues' as const,
 		GetMetrics: 'GetMetrics' as const,
+		GetMetricsBatched: 'GetMetricsBatched' as const,
 		GetGraphTemplates: 'GetGraphTemplates' as const,
 		GetVisualization: 'GetVisualization' as const,
 		GetVisualizations: 'GetVisualizations' as const,
