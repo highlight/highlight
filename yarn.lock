@@ -21423,6 +21423,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@types/youtube@npm:^0.1.0":
+  version: 0.1.0
+  resolution: "@types/youtube@npm:0.1.0"
+  checksum: 10/028b73d2c0630609b33bb94d8e650e9a5f52d6110e5b7afb850e2c3ccaea8ef3d41032eabff1cd2568f4f57a28876d9bdc055932db4e57ad50912a27e560e734
+  languageName: node
+  linkType: hard
+
 "@typescript-eslint/eslint-plugin@npm:5.59.9":
   version: 5.59.9
   resolution: "@typescript-eslint/eslint-plugin@npm:5.59.9"
@@ -37151,6 +37158,7 @@ __metadata:
     "@types/react-swipe": "npm:^6.0.2"
     "@types/react-syntax-highlighter": "npm:^15.5.11"
     "@types/remove-markdown": "npm:^0.3.1"
+    "@types/youtube": "npm:^0.1.0"
     "@vercel/og": "npm:^0.6.2"
     "@vercel/speed-insights": "npm:^1.0.12"
     autoprefixer: "npm:^10.4.14"
