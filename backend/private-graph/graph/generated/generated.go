@@ -1057,7 +1057,6 @@ type ComplexityRoot struct {
 		EventsKeys                       func(childComplexity int, projectID int, dateRange model.DateRangeRequiredInput, query *string, typeArg *model.KeyType, event *string) int
 		EventsMetrics                    func(childComplexity int, projectID int, params model.QueryInput, column string, metricTypes []model.MetricAggregator, groupBy []string, bucketBy string, bucketCount *int, bucketWindow *int, limit *int, limitAggregator *model.MetricAggregator, limitColumn *string) int
 		ExistingLogsTraces               func(childComplexity int, projectID int, traceIds []string, dateRange model.DateRangeRequiredInput) int
-		FieldSuggestion                  func(childComplexity int, projectID int, name string, query string) int
 		GenerateZapierAccessToken        func(childComplexity int, projectID int) int
 		GetSourceMapUploadUrls           func(childComplexity int, apiKey string, paths []string) int
 		GithubIssueLabels                func(childComplexity int, workspaceID int, repository string) int
@@ -1112,7 +1111,6 @@ type ComplexityRoot struct {
 		RageClicks                       func(childComplexity int, sessionSecureID string) int
 		RageClicksForProject             func(childComplexity int, projectID int, lookbackDays float64) int
 		Referrers                        func(childComplexity int, projectID int, lookbackDays float64) int
-		Resources                        func(childComplexity int, sessionSecureID string) int
 		SavedSegments                    func(childComplexity int, projectID int, entityType model.SavedSegmentEntityType) int
 		SearchIssues                     func(childComplexity int, integrationType model.IntegrationType, projectID int, query string) int
 		ServerIntegration                func(childComplexity int, projectID int) int
@@ -1891,7 +1889,6 @@ type QueryResolver interface {
 	ErrorInstance(ctx context.Context, errorGroupSecureID string, errorObjectID *int, params *model.QueryInput) (*model1.ErrorInstance, error)
 	EnhancedUserDetails(ctx context.Context, sessionSecureID string) (*model.EnhancedUserDetailsResult, error)
 	Errors(ctx context.Context, sessionSecureID string) ([]*model1.ErrorObject, error)
-	Resources(ctx context.Context, sessionSecureID string) ([]interface{}, error)
 	WebVitals(ctx context.Context, sessionSecureID string) ([]*model1.Metric, error)
 	SessionComments(ctx context.Context, sessionSecureID string) ([]*model1.SessionComment, error)
 	SessionCommentTagsForProject(ctx context.Context, projectID int) ([]*model1.SessionCommentTag, error)
@@ -1930,7 +1927,6 @@ type QueryResolver interface {
 	BillingDetailsForProject(ctx context.Context, projectID int) (*model.BillingDetails, error)
 	BillingDetails(ctx context.Context, workspaceID int) (*model.BillingDetails, error)
 	UsageHistory(ctx context.Context, workspaceID int, productType model.ProductType, dateRange *model.DateRangeRequiredInput) (*model.UsageHistory, error)
-	FieldSuggestion(ctx context.Context, projectID int, name string, query string) ([]*model1.Field, error)
 	PropertySuggestion(ctx context.Context, projectID int, query string, typeArg string) ([]*model1.Field, error)
 	Projects(ctx context.Context) ([]*model1.Project, error)
 	Workspaces(ctx context.Context) ([]*model1.Workspace, error)
@@ -1949,7 +1945,7 @@ type QueryResolver interface {
 	LogAlerts(ctx context.Context, projectID int) ([]*model1.LogAlert, error)
 	LogAlert(ctx context.Context, id int) (*model1.LogAlert, error)
 	ProjectSuggestion(ctx context.Context, query string) ([]*model1.Project, error)
-	EnvironmentSuggestion(ctx context.Context, projectID int) ([]*model1.Field, error)
+	EnvironmentSuggestion(ctx context.Context, projectID int) ([]string, error)
 	IdentifierSuggestion(ctx context.Context, projectID int, query string) ([]string, error)
 	SlackChannelSuggestion(ctx context.Context, projectID int) ([]*model.SanitizedSlackChannel, error)
 	MicrosoftTeamsChannelSuggestions(ctx context.Context, projectID int) ([]*model1.MicrosoftTeamsChannel, error)
@@ -7746,18 +7742,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Query.ExistingLogsTraces(childComplexity, args["project_id"].(int), args["trace_ids"].([]string), args["date_range"].(model.DateRangeRequiredInput)), true
 
-	case "Query.field_suggestion":
-		if e.complexity.Query.FieldSuggestion == nil {
-			break
-		}
-
-		args, err := ec.field_Query_field_suggestion_args(context.TODO(), rawArgs)
-		if err != nil {
-			return 0, false
-		}
-
-		return e.complexity.Query.FieldSuggestion(childComplexity, args["project_id"].(int), args["name"].(string), args["query"].(string)), true
-
 	case "Query.generate_zapier_access_token":
 		if e.complexity.Query.GenerateZapierAccessToken == nil {
 			break
@@ -8390,18 +8374,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Query.Referrers(childComplexity, args["project_id"].(int), args["lookback_days"].(float64)), true
-
-	case "Query.resources":
-		if e.complexity.Query.Resources == nil {
-			break
-		}
-
-		args, err := ec.field_Query_resources_args(context.TODO(), rawArgs)
-		if err != nil {
-			return 0, false
-		}
-
-		return e.complexity.Query.Resources(childComplexity, args["session_secure_id"].(string)), true
 
 	case "Query.saved_segments":
 		if e.complexity.Query.SavedSegments == nil {
@@ -13912,7 +13884,6 @@ type Query {
 	): ErrorInstance
 	enhanced_user_details(session_secure_id: String!): EnhancedUserDetailsResult
 	errors(session_secure_id: String!): [ErrorObject]
-	resources(session_secure_id: String!): [Any]
 	web_vitals(session_secure_id: String!): [Metric!]!
 	session_comments(session_secure_id: String!): [SessionComment]!
 	session_comment_tags_for_project(project_id: ID!): [SessionCommentTag!]!
@@ -14008,8 +13979,6 @@ type Query {
 		product_type: ProductType!
 		date_range: DateRangeRequiredInput
 	): UsageHistory!
-	# gets all the projects of a user
-	field_suggestion(project_id: ID!, name: String!, query: String!): [Field]
 	property_suggestion(project_id: ID!, query: String!, type: String!): [Field]
 	projects: [Project]
 	workspaces: [Workspace]
@@ -14034,7 +14003,7 @@ type Query {
 	log_alerts(project_id: ID!): [LogAlert]!
 	log_alert(id: ID!): LogAlert!
 	projectSuggestion(query: String!): [Project]!
-	environment_suggestion(project_id: ID!): [Field]
+	environment_suggestion(project_id: ID!): [String!]!
 	identifier_suggestion(project_id: ID!, query: String!): [String!]!
 	slack_channel_suggestion(project_id: ID!): [SanitizedSlackChannel!]!
 	microsoft_teams_channel_suggestions(
@@ -20313,39 +20282,6 @@ func (ec *executionContext) field_Query_existing_logs_traces_args(ctx context.Co
 	return args, nil
 }
 
-func (ec *executionContext) field_Query_field_suggestion_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
-	var err error
-	args := map[string]interface{}{}
-	var arg0 int
-	if tmp, ok := rawArgs["project_id"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("project_id"))
-		arg0, err = ec.unmarshalNID2int(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["project_id"] = arg0
-	var arg1 string
-	if tmp, ok := rawArgs["name"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("name"))
-		arg1, err = ec.unmarshalNString2string(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["name"] = arg1
-	var arg2 string
-	if tmp, ok := rawArgs["query"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("query"))
-		arg2, err = ec.unmarshalNString2string(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["query"] = arg2
-	return args, nil
-}
-
 func (ec *executionContext) field_Query_generate_zapier_access_token_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
@@ -21729,21 +21665,6 @@ func (ec *executionContext) field_Query_referrers_args(ctx context.Context, rawA
 		}
 	}
 	args["lookback_days"] = arg1
-	return args, nil
-}
-
-func (ec *executionContext) field_Query_resources_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
-	var err error
-	args := map[string]interface{}{}
-	var arg0 string
-	if tmp, ok := rawArgs["session_secure_id"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("session_secure_id"))
-		arg0, err = ec.unmarshalNString2string(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["session_secure_id"] = arg0
 	return args, nil
 }
 
@@ -55891,58 +55812,6 @@ func (ec *executionContext) fieldContext_Query_errors(ctx context.Context, field
 	return fc, nil
 }
 
-func (ec *executionContext) _Query_resources(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Query_resources(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().Resources(rctx, fc.Args["session_secure_id"].(string))
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.([]interface{})
-	fc.Result = res
-	return ec.marshalOAny2ᚕinterface(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_Query_resources(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "Query",
-		Field:      field,
-		IsMethod:   true,
-		IsResolver: true,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type Any does not have child fields")
-		},
-	}
-	defer func() {
-		if r := recover(); r != nil {
-			err = ec.Recover(ctx, r)
-			ec.Error(ctx, err)
-		}
-	}()
-	ctx = graphql.WithFieldContext(ctx, fc)
-	if fc.Args, err = ec.field_Query_resources_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
-		ec.Error(ctx, err)
-		return fc, err
-	}
-	return fc, nil
-}
-
 func (ec *executionContext) _Query_web_vitals(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Query_web_vitals(ctx, field)
 	if err != nil {
@@ -58546,68 +58415,6 @@ func (ec *executionContext) fieldContext_Query_usageHistory(ctx context.Context,
 	return fc, nil
 }
 
-func (ec *executionContext) _Query_field_suggestion(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Query_field_suggestion(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().FieldSuggestion(rctx, fc.Args["project_id"].(int), fc.Args["name"].(string), fc.Args["query"].(string))
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.([]*model1.Field)
-	fc.Result = res
-	return ec.marshalOField2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐField(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_Query_field_suggestion(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "Query",
-		Field:      field,
-		IsMethod:   true,
-		IsResolver: true,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			switch field.Name {
-			case "id":
-				return ec.fieldContext_Field_id(ctx, field)
-			case "name":
-				return ec.fieldContext_Field_name(ctx, field)
-			case "value":
-				return ec.fieldContext_Field_value(ctx, field)
-			case "type":
-				return ec.fieldContext_Field_type(ctx, field)
-			}
-			return nil, fmt.Errorf("no field named %q was found under type Field", field.Name)
-		},
-	}
-	defer func() {
-		if r := recover(); r != nil {
-			err = ec.Recover(ctx, r)
-			ec.Error(ctx, err)
-		}
-	}()
-	ctx = graphql.WithFieldContext(ctx, fc)
-	if fc.Args, err = ec.field_Query_field_suggestion_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
-		ec.Error(ctx, err)
-		return fc, err
-	}
-	return fc, nil
-}
-
 func (ec *executionContext) _Query_property_suggestion(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Query_property_suggestion(ctx, field)
 	if err != nil {
@@ -60128,11 +59935,14 @@ func (ec *executionContext) _Query_environment_suggestion(ctx context.Context, f
 		return graphql.Null
 	}
 	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
 		return graphql.Null
 	}
-	res := resTmp.([]*model1.Field)
+	res := resTmp.([]string)
 	fc.Result = res
-	return ec.marshalOField2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐField(ctx, field.Selections, res)
+	return ec.marshalNString2ᚕstringᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Query_environment_suggestion(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -60142,17 +59952,7 @@ func (ec *executionContext) fieldContext_Query_environment_suggestion(ctx contex
 		IsMethod:   true,
 		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			switch field.Name {
-			case "id":
-				return ec.fieldContext_Field_id(ctx, field)
-			case "name":
-				return ec.fieldContext_Field_name(ctx, field)
-			case "value":
-				return ec.fieldContext_Field_value(ctx, field)
-			case "type":
-				return ec.fieldContext_Field_type(ctx, field)
-			}
-			return nil, fmt.Errorf("no field named %q was found under type Field", field.Name)
+			return nil, errors.New("field of type String does not have child fields")
 		},
 	}
 	defer func() {
@@ -93535,25 +93335,6 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 			}
 
 			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
-		case "resources":
-			field := field
-
-			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._Query_resources(ctx, field)
-				return res
-			}
-
-			rrm := func(ctx context.Context) graphql.Marshaler {
-				return ec.OperationContext.RootResolverMiddleware(ctx,
-					func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
-			}
-
-			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
 		case "web_vitals":
 			field := field
 
@@ -94363,25 +94144,6 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 			}
 
 			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
-		case "field_suggestion":
-			field := field
-
-			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._Query_field_suggestion(ctx, field)
-				return res
-			}
-
-			rrm := func(ctx context.Context) graphql.Marshaler {
-				return ec.OperationContext.RootResolverMiddleware(ctx,
-					func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
-			}
-
-			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
 		case "property_suggestion":
 			field := field
 
@@ -94773,6 +94535,9 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_environment_suggestion(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
 				return res
 			}
 

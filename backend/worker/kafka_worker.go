@@ -154,6 +154,7 @@ func (k *KafkaBatchWorker) flush(ctx context.Context) error {
 	var logRows []*clickhouse.LogRow
 	var traceRows []*clickhouse.ClickhouseTraceRow
 	var sessionEventRows []*clickhouse.SessionEventRow
+	var chFields []*clickhouse.ClickhouseField
 
 	var lastMsg kafkaqueue.RetryableMessage
 	var oldestMsg = time.Now()
@@ -164,7 +165,7 @@ func (k *KafkaBatchWorker) flush(ctx context.Context) error {
 		}
 
 		publicWorkerMessage, ok := lastMsg.(*kafka_queue.Message)
-		if !ok && lastMsg.GetType() != kafkaqueue.PushLogsFlattened && lastMsg.GetType() != kafkaqueue.PushTracesFlattened && lastMsg.GetType() != kafkaqueue.PushSessionEvents {
+		if !ok && lastMsg.GetType() != kafkaqueue.PushLogsFlattened && lastMsg.GetType() != kafkaqueue.PushTracesFlattened && lastMsg.GetType() != kafkaqueue.PushSessionEvents && lastMsg.GetType() != kafkaqueue.PushSessionFields {
 			log.WithContext(ctx).Errorf("type assertion failed for *kafka_queue.Message")
 			continue
 		}
@@ -213,6 +214,15 @@ func (k *KafkaBatchWorker) flush(ctx context.Context) error {
 			if sessionEventRow != nil {
 				sessionEventRows = append(sessionEventRows, sessionEventRow.SessionEventRow)
 			}
+		case kafkaqueue.PushSessionFields:
+			sessionField, ok := lastMsg.(*kafka_queue.SessionFieldRowMessage)
+			if !ok {
+				log.WithContext(ctx).Errorf("type assertion failed for *kafka_queue.SessionFieldRowMessage")
+				continue
+			}
+			if sessionField != nil {
+				chFields = append(chFields, sessionField.ClickhouseField)
+			}
 		default:
 			log.WithContext(ctx).Errorf("unknown message type received by batch worker %+v", lastMsg.GetType())
 		}
@@ -227,6 +237,7 @@ func (k *KafkaBatchWorker) flush(ctx context.Context) error {
 			"log_rows_length":       len(logRows),
 			"trace_rows_length":     len(traceRows),
 			"session_events_length": len(sessionEventRows),
+			"ch_fields_length":      len(chFields),
 		},
 		"KafkaBatchWorker organized messages",
 	)
@@ -261,6 +272,13 @@ func (k *KafkaBatchWorker) flush(ctx context.Context) error {
 			return err
 		}
 	}
+	if len(chFields) > 0 {
+		if err := k.flushFields(wCtx, chFields); err != nil {
+			workSpan.Finish(err)
+			return err
+		}
+	}
+
 	workSpan.Finish()
 
 	commitSpan, cCtx := util.StartSpanFromContext(ctx, fmt.Sprintf("worker.kafka.%s.flush.commit", k.Name))
@@ -478,6 +496,21 @@ func (k *KafkaBatchWorker) flushSessionEvents(ctx context.Context, sessionEventR
 	defer span.Finish(err)
 	if err != nil {
 		log.WithContext(ctxT).WithError(err).Error("failed to batch write session events to clickhouse")
+		span.Finish(err)
+		return err
+	}
+
+	return nil
+}
+
+func (k *KafkaBatchWorker) flushFields(ctx context.Context, chFields []*clickhouse.ClickhouseField) error {
+	span, ctxT := util.StartSpanFromContext(ctx, fmt.Sprintf("worker.kafka.%s.flush.clickhouse", k.Name), util.WithHighlightTracingDisabled(true))
+	span.SetAttribute("NumTraceRows", len(chFields))
+	span.SetAttribute("PayloadSizeBytes", binary.Size(chFields))
+	err := k.Worker.PublicResolver.Clickhouse.BatchWriteSessionFieldRows(ctxT, chFields)
+	defer span.Finish(err)
+	if err != nil {
+		log.WithContext(ctxT).WithError(err).Error("failed to batch write fields to clickhouse")
 		span.Finish(err)
 		return err
 	}

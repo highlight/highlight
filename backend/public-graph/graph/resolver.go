@@ -249,7 +249,7 @@ func (r *Resolver) AppendProperties(ctx context.Context, sessionID int, properti
 
 	propsSpan, ctx := util.StartSpanFromContext(ctx, "public-graph.AppendProperties",
 		util.ResourceName("processProperties"), util.Tag("num_properties", len(properties)))
-	var modelFields []*model.Field
+	var chFields []*clickhouse.ClickhouseField
 	projectID := session.ProjectID
 	for _, fv := range properties {
 		if len(fv.Value) > SESSION_FIELD_MAX_LENGTH {
@@ -260,18 +260,27 @@ func (r *Resolver) AppendProperties(ctx context.Context, sessionID int, properti
 			// Skip when the field name is a number
 			// (this can be sent by clients if a string is passed as an `addProperties` payload)
 		} else {
-			modelFields = append(modelFields, &model.Field{ProjectID: projectID, Name: fv.Key, Value: fv.Value, Type: string(propType), Timestamp: fv.Timestamp})
+			chFields = append(chFields,
+				&clickhouse.ClickhouseField{
+					ProjectID:        int32(projectID),
+					Type:             string(propType),
+					Name:             fv.Key,
+					Value:            fv.Value,
+					SessionID:        int64(sessionID),
+					SessionCreatedAt: session.CreatedAt.UnixMicro(),
+					Timestamp:        fv.Timestamp.UnixMicro(),
+				})
 		}
 	}
 
-	if len(modelFields) > 1000 {
-		modelFields = modelFields[:1000]
+	if len(chFields) > 1000 {
+		chFields = chFields[:1000]
 		log.WithContext(ctx).WithField("session_id", sessionID).Warnf("attempted to append more than 1000 fields - truncating")
 	}
 	propsSpan.Finish()
 
-	if len(modelFields) > 0 {
-		err := r.AppendFields(ctx, modelFields, session)
+	if len(chFields) > 0 {
+		err := r.AppendFields(ctx, chFields, session)
 		if err != nil {
 			return e.Wrap(err, "error appending fields")
 		}
@@ -334,10 +343,26 @@ func (r *Resolver) SubmitSessionEvents(ctx context.Context, sessionID int, event
 	return nil
 }
 
-func (r *Resolver) AppendFields(ctx context.Context, fields []*model.Field, session *model.Session) error {
+func (r *Resolver) AppendFields(ctx context.Context, cHfields []*clickhouse.ClickhouseField, session *model.Session) error {
 	outerSpan, ctx := util.StartSpanFromContext(ctx, "public-graph.AppendFields",
 		util.ResourceName("go.sessions.AppendFields"), util.Tag("sessionID", session.ID))
 	defer outerSpan.Finish()
+
+	var fields []*model.Field
+	var messages []kafkaqueue.RetryableMessage
+	for _, chField := range cHfields {
+		messages = append(messages, &kafkaqueue.SessionFieldRowMessage{
+			Type:            kafkaqueue.PushSessionEvents,
+			ClickhouseField: chField,
+		})
+
+		fields = append(fields, &model.Field{
+			ProjectID: int(chField.ProjectID),
+			Type:      chField.Type,
+			Name:      chField.Name,
+			Value:     chField.Value,
+		})
+	}
 
 	result := r.DB.
 		Clauses(clause.OnConflict{
@@ -386,8 +411,9 @@ func (r *Resolver) AppendFields(ctx context.Context, fields []*model.Field, sess
 		return e.Wrap(err, "error updating fields")
 	}
 
-	if err := r.DataSyncQueue.Submit(ctx, strconv.Itoa(session.ID), &kafka_queue.Message{Type: kafka_queue.SessionDataSync, SessionDataSync: &kafka_queue.SessionDataSyncArgs{SessionID: session.ID}}); err != nil {
-		return err
+	err := r.DataSyncQueue.Submit(ctx, strconv.Itoa(session.ID), messages...)
+	if err != nil {
+		return e.Wrap(err, "failed to submit fields to public worker queue")
 	}
 
 	return nil
@@ -3529,7 +3555,7 @@ func (r *Resolver) SendSessionTrackPropertiesAlert(ctx context.Context, workspac
 			}
 
 			if !isAMatchedField {
-				relatedFields = append(relatedFields, &model.Field{ProjectID: session.ProjectID, Name: fv.Key, Value: fv.Value, Type: string(PropertyType.TRACK), Timestamp: fv.Timestamp})
+				relatedFields = append(relatedFields, &model.Field{ProjectID: session.ProjectID, Name: fv.Key, Value: fv.Value, Type: string(PropertyType.TRACK)})
 			}
 		}
 

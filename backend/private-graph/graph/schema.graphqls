@@ -2171,7 +2171,6 @@ type Query {
 	): ErrorInstance
 	enhanced_user_details(session_secure_id: String!): EnhancedUserDetailsResult
 	errors(session_secure_id: String!): [ErrorObject]
-	resources(session_secure_id: String!): [Any]
 	web_vitals(session_secure_id: String!): [Metric!]!
 	session_comments(session_secure_id: String!): [SessionComment]!
 	session_comment_tags_for_project(project_id: ID!): [SessionCommentTag!]!
@@ -2267,8 +2266,6 @@ type Query {
 		product_type: ProductType!
 		date_range: DateRangeRequiredInput
 	): UsageHistory!
-	# gets all the projects of a user
-	field_suggestion(project_id: ID!, name: String!, query: String!): [Field]
 	property_suggestion(project_id: ID!, query: String!, type: String!): [Field]
 	projects: [Project]
 	workspaces: [Workspace]
@@ -2293,7 +2290,7 @@ type Query {
 	log_alerts(project_id: ID!): [LogAlert]!
 	log_alert(id: ID!): LogAlert!
 	projectSuggestion(query: String!): [Project]!
-	environment_suggestion(project_id: ID!): [Field]
+	environment_suggestion(project_id: ID!): [String!]!
 	identifier_suggestion(project_id: ID!, query: String!): [String!]!
 	slack_channel_suggestion(project_id: ID!): [SanitizedSlackChannel!]!
 	microsoft_teams_channel_suggestions(

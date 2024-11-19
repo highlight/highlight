@@ -37,6 +37,7 @@ const (
 	PushLogsFlattened                      PayloadType = iota
 	PushTracesFlattened                    PayloadType = iota
 	PushSessionEvents                      PayloadType = iota
+	PushSessionFields                      PayloadType = iota
 	HealthCheck                            PayloadType = math.MaxInt
 )
 
@@ -296,6 +297,42 @@ func (m *SessionEventRowMessage) GetKafkaMessage() *kafka.Message {
 	return m.KafkaMessage
 }
 func (m *SessionEventRowMessage) SetKafkaMessage(value *kafka.Message) {
+	m.KafkaMessage = value
+}
+
+type SessionFieldRowMessage struct {
+	Type         PayloadType
+	Failures     int
+	MaxRetries   int
+	KafkaMessage *kafka.Message `json:",omitempty"`
+	*clickhouse.ClickhouseField
+}
+
+func (m *SessionFieldRowMessage) GetType() PayloadType {
+	return PushSessionFields
+}
+
+func (m *SessionFieldRowMessage) GetFailures() int {
+	return m.Failures
+}
+
+func (m *SessionFieldRowMessage) SetFailures(value int) {
+	m.Failures = value
+}
+
+func (m *SessionFieldRowMessage) GetMaxRetries() int {
+	return m.MaxRetries
+}
+
+func (m *SessionFieldRowMessage) SetMaxRetries(value int) {
+	m.MaxRetries = value
+}
+
+func (m *SessionFieldRowMessage) GetKafkaMessage() *kafka.Message {
+	return m.KafkaMessage
+
+}
+func (m *SessionFieldRowMessage) SetKafkaMessage(value *kafka.Message) {
 	m.KafkaMessage = value
 }
 
