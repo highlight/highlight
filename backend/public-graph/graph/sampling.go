@@ -8,8 +8,6 @@ import (
 	"regexp"
 	"time"
 
-	trace2 "go.opentelemetry.io/otel/trace"
-
 	"github.com/aws/smithy-go/ptr"
 	"github.com/google/uuid"
 	e "github.com/pkg/errors"
@@ -20,34 +18,16 @@ import (
 	"github.com/highlight-run/highlight/backend/parser"
 	privateModel "github.com/highlight-run/highlight/backend/private-graph/graph/model"
 	modelInputs "github.com/highlight-run/highlight/backend/public-graph/graph/model"
-	"github.com/highlight-run/highlight/backend/util"
-	"github.com/highlight/highlight/sdk/highlight-go"
 )
 
 func (r *Resolver) IsTraceIngested(ctx context.Context, trace *clickhouse.TraceRow) bool {
-	span := util.StartSpan(
-		"IsIngestedBy", util.ResourceName("sampling"), util.WithHighlightTracingDisabled(true), util.WithSpanKind(trace2.SpanKindServer),
-		util.Tag(highlight.ProjectIDAttribute, trace.ProjectId),
-		util.Tag(highlight.TraceTypeAttribute, highlight.TraceTypeHighlightInternal),
-		util.Tag(highlight.TraceKeyAttribute, trace.UUID),
-		util.Tag("product", privateModel.ProductTypeTraces),
-		util.Tag("ingested", true),
-	)
-	defer span.Finish()
-
 	if !r.IsTraceIngestedByFilter(ctx, trace) {
-		span.SetAttribute("ingested", false)
-		span.SetAttribute("reason", privateModel.IngestReasonFilter)
 		return false
 	}
 	if !r.IsTraceIngestedBySample(ctx, trace) {
-		span.SetAttribute("ingested", false)
-		span.SetAttribute("reason", privateModel.IngestReasonSample)
 		return false
 	}
 	if !r.IsTraceIngestedByRateLimit(ctx, trace) {
-		span.SetAttribute("ingested", false)
-		span.SetAttribute("reason", privateModel.IngestReasonRate)
 		return false
 	}
 	return true
@@ -66,29 +46,13 @@ func (r *Resolver) IsTraceIngestedByFilter(ctx context.Context, trace *clickhous
 }
 
 func (r *Resolver) IsLogIngested(ctx context.Context, logRow *clickhouse.LogRow) bool {
-	span := util.StartSpan(
-		"IsIngestedBy", util.ResourceName("sampling"), util.WithSpanKind(trace2.SpanKindServer),
-		util.Tag(highlight.ProjectIDAttribute, logRow.ProjectId),
-		util.Tag(highlight.TraceTypeAttribute, highlight.TraceTypeHighlightInternal),
-		util.Tag(highlight.TraceKeyAttribute, logRow.UUID),
-		util.Tag("product", privateModel.ProductTypeLogs),
-		util.Tag("ingested", true),
-	)
-	defer span.Finish()
-
 	if !r.IsLogIngestedBySample(ctx, logRow) {
-		span.SetAttribute("ingested", false)
-		span.SetAttribute("reason", privateModel.IngestReasonSample)
 		return false
 	}
 	if !r.IsLogIngestedByFilter(ctx, logRow) {
-		span.SetAttribute("ingested", false)
-		span.SetAttribute("reason", privateModel.IngestReasonFilter)
 		return false
 	}
 	if !r.IsLogIngestedByRateLimit(ctx, logRow) {
-		span.SetAttribute("ingested", false)
-		span.SetAttribute("reason", privateModel.IngestReasonRate)
 		return false
 	}
 	return true
@@ -136,29 +100,13 @@ func (r *Resolver) IsFrontendErrorIngested(ctx context.Context, projectID int, s
 }
 
 func (r *Resolver) IsErrorIngested(ctx context.Context, projectID int, errorObject *modelInputs.BackendErrorObjectInput) bool {
-	span := util.StartSpan(
-		"IsIngestedBy", util.ResourceName("sampling"), util.WithSpanKind(trace2.SpanKindServer),
-		util.Tag(highlight.ProjectIDAttribute, projectID),
-		util.Tag(highlight.TraceTypeAttribute, highlight.TraceTypeHighlightInternal),
-		util.Tag(highlight.TraceKeyAttribute, getErrorObjectID(errorObject)),
-		util.Tag("product", privateModel.ProductTypeErrors),
-		util.Tag("ingested", true),
-	)
-	defer span.Finish()
-
 	if !r.IsErrorIngestedBySample(ctx, projectID, errorObject) {
-		span.SetAttribute("ingested", false)
-		span.SetAttribute("reason", privateModel.IngestReasonFilter)
 		return false
 	}
 	if !r.IsErrorIngestedByFilter(ctx, projectID, errorObject) {
-		span.SetAttribute("ingested", false)
-		span.SetAttribute("reason", privateModel.IngestReasonFilter)
 		return false
 	}
 	if !r.IsErrorIngestedByRateLimit(ctx, projectID, errorObject) {
-		span.SetAttribute("ingested", false)
-		span.SetAttribute("reason", privateModel.IngestReasonFilter)
 		return false
 	}
 	return true
@@ -198,16 +146,6 @@ func (r *Resolver) IsErrorIngestedByFilter(ctx context.Context, projectID int, e
 }
 
 func (r *Resolver) IsSessionExcluded(ctx context.Context, s *model.Session, sessionHasErrors bool) (bool, *privateModel.SessionExcludedReason) {
-	span := util.StartSpan(
-		"IsIngestedBy", util.ResourceName("sampling"), util.WithSpanKind(trace2.SpanKindServer),
-		util.Tag(highlight.ProjectIDAttribute, s.ProjectID),
-		util.Tag(highlight.TraceTypeAttribute, highlight.TraceTypeHighlightInternal),
-		util.Tag(highlight.TraceKeyAttribute, s.ID),
-		util.Tag("product", privateModel.ProductTypeSessions),
-		util.Tag("ingested", true),
-	)
-	defer span.Finish()
-
 	var excluded bool
 	var reason privateModel.SessionExcludedReason
 
@@ -247,10 +185,6 @@ func (r *Resolver) IsSessionExcluded(ctx context.Context, s *model.Session, sess
 		reason = privateModel.SessionExcludedReasonRateLimitMinute
 	}
 
-	if excluded {
-		span.SetAttribute("ingested", false)
-		span.SetAttribute("reason", reason)
-	}
 	return excluded, &reason
 }
 
