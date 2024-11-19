@@ -2040,8 +2040,8 @@ func ClampTime(input time.Time, curTime time.Time) time.Time {
 		return input
 	}
 
-	minTime := curTime.Add(-2 * time.Hour)
-	maxTime := curTime.Add(2 * time.Hour)
+	minTime := curTime.Add(-30 * 24 * time.Hour)
+	maxTime := curTime.Add(30 * 24 * time.Hour)
 	if input.Before(minTime) || input.After(maxTime) {
 		return curTime
 	}
