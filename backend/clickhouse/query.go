@@ -1044,7 +1044,7 @@ func (client *Client) ReadMetrics(ctx context.Context, input ReadMetricsInput) (
 		}
 
 		if samplingStats[originalTable].Rows > input.SampleableConfig.sampleSizeRows {
-			sampleRatio = float64(samplingStats[samplingTable].Rows) / float64(input.SampleableConfig.sampleSizeRows)
+			sampleRatio = float64(input.SampleableConfig.sampleSizeRows) / float64(samplingStats[samplingTable].Rows)
 		}
 	}
 
