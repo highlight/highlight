@@ -665,9 +665,6 @@ var BackendErrorObjectInputConfig = model.TableConfig{
 
 var ErrorsSampleableTableConfig = SampleableTableConfig{
 	tableConfig: ErrorsJoinedTableConfig,
-	useSampling: func(time.Duration) bool {
-		return false
-	},
 }
 
 func ErrorMatchesQuery(errorObject *model2.BackendErrorObjectInput, filters listener.Filters) bool {

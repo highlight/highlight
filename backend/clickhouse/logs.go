@@ -78,7 +78,7 @@ var LogsTableConfig = model.TableConfig{
 }
 
 var logsSamplingTableConfig = model.TableConfig{
-	TableName:        fmt.Sprintf("%s SAMPLE %d", LogsSamplingTable, SamplingRows),
+	TableName:        LogsSamplingTable,
 	KeysToColumns:    logKeysToColumns,
 	ReservedKeys:     reservedLogKeys,
 	BodyColumn:       "Body",
@@ -88,9 +88,7 @@ var logsSamplingTableConfig = model.TableConfig{
 var LogsSampleableTableConfig = SampleableTableConfig{
 	tableConfig:         LogsTableConfig,
 	samplingTableConfig: logsSamplingTableConfig,
-	useSampling: func(d time.Duration) bool {
-		return d >= 24*time.Hour
-	},
+	sampleSizeRows:      20_000_000,
 }
 
 func (client *Client) BatchWriteLogRows(ctx context.Context, logRows []*LogRow) error {
