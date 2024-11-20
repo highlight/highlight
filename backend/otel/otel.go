@@ -308,8 +308,11 @@ func (o *Handler) HandleTrace(w http.ResponseWriter, r *http.Request) {
 						log.WithContext(ctx).WithError(err).Error("failed to get workspace settings")
 						continue
 					}
-
-					if settings == nil || !settings.EnableLogTraceIngestion {
+					if settings == nil {
+						log.WithContext(ctx).Error("no workspace settings found")
+						continue
+					}
+					if !settings.EnableLogTraceIngestion {
 						continue
 					}
 				}
