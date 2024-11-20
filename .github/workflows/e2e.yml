@@ -40,6 +40,9 @@ jobs:
                   python-version: '3.10'
                   cache: 'poetry'
 
+            - name: Install Doppler CLI
+              uses: dopplerhq/cli-action@v3
+
             - name: Install dependencies
               working-directory: ./e2e/tests
               run: poetry install --all-extras
@@ -187,6 +190,9 @@ jobs:
               with:
                   python-version: '3.10'
                   cache: 'poetry'
+
+            - name: Install Doppler CLI
+              uses: dopplerhq/cli-action@v3
 
             - name: Install dependencies
               working-directory: ./e2e/tests

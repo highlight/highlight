@@ -40,7 +40,6 @@ import (
 	"github.com/highlight-run/highlight/backend/clickup"
 	Email "github.com/highlight-run/highlight/backend/email"
 	"github.com/highlight-run/highlight/backend/env"
-	"github.com/highlight-run/highlight/backend/front"
 	"github.com/highlight-run/highlight/backend/integrations/cloudflare"
 	"github.com/highlight-run/highlight/backend/integrations/height"
 	kafka_queue "github.com/highlight-run/highlight/backend/kafka-queue"
@@ -3013,10 +3012,6 @@ func (r *mutationResolver) AddIntegrationToProject(ctx context.Context, integrat
 		if err := r.AddSlackToWorkspace(ctx, workspace, code); err != nil {
 			return false, err
 		}
-	} else if *integrationType == modelInputs.IntegrationTypeFront {
-		if err := r.AddFrontToProject(ctx, project, code); err != nil {
-			return false, err
-		}
 	} else if *integrationType == modelInputs.IntegrationTypeVercel {
 		if err := r.AddVercelToWorkspace(workspace, code); err != nil {
 			return false, err
@@ -3070,10 +3065,6 @@ func (r *mutationResolver) RemoveIntegrationFromProject(ctx context.Context, int
 		}
 	} else if *integrationType == modelInputs.IntegrationTypeZapier {
 		if err := r.RemoveZapierFromWorkspace(ctx, project); err != nil {
-			return false, err
-		}
-	} else if *integrationType == modelInputs.IntegrationTypeFront {
-		if err := r.RemoveFrontFromProject(ctx, project); err != nil {
 			return false, err
 		}
 	} else if *integrationType == modelInputs.IntegrationTypeVercel {
@@ -7558,22 +7549,6 @@ func (r *queryResolver) IsIntegratedWith(ctx context.Context, integrationType mo
 		return project.ZapierAccessToken != nil, nil
 	} else if integrationType == modelInputs.IntegrationTypeMicrosoftTeams {
 		return workspace.MicrosoftTeamsTenantId != nil, nil
-	} else if integrationType == modelInputs.IntegrationTypeFront {
-		if project.FrontAccessToken == nil || project.FrontRefreshToken == nil || project.FrontTokenExpiresAt == nil {
-			return false, nil
-		}
-		oauth, err := front.RefreshOAuth(ctx, &front.OAuthToken{
-			AccessToken:  *project.FrontAccessToken,
-			RefreshToken: *project.FrontRefreshToken,
-			ExpiresAt:    project.FrontTokenExpiresAt.Unix(),
-		})
-		if err != nil {
-			return false, e.Wrap(err, "failed to refresh oauth")
-		}
-		if err := r.saveFrontOAuth(project, oauth); err != nil {
-			return false, e.Wrap(err, "failed to save oauth")
-		}
-		return project.FrontAccessToken != nil, nil
 	} else if integrationType == modelInputs.IntegrationTypeVercel {
 		// If there is an error accessing the Vercel projects, user needs to integrate again
 		_, err := r.VercelProjects(ctx, projectID)

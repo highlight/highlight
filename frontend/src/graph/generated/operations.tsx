@@ -3802,14 +3802,6 @@ export type GetWorkspaceIsIntegratedWithZapierQuery = {
 	__typename?: 'Query'
 } & { is_integrated_with_linear: Types.Query['is_integrated_with'] }
 
-export type GetWorkspaceIsIntegratedWithFrontQueryVariables = Types.Exact<{
-	project_id: Types.Scalars['ID']
-}>
-
-export type GetWorkspaceIsIntegratedWithFrontQuery = {
-	__typename?: 'Query'
-} & { is_integrated_with_front: Types.Query['is_integrated_with'] }
-
 export type GetWorkspaceIsIntegratedWithDiscordQueryVariables = Types.Exact<{
 	project_id: Types.Scalars['ID']
 }>
@@ -4806,9 +4798,11 @@ export type GetWorkspaceSettingsQuery = { __typename?: 'Query' } & {
 			| 'enable_grafana_dashboard'
 			| 'enable_ingest_filtering'
 			| 'enable_ingest_sampling'
+			| 'enable_jira_integration'
 			| 'enable_network_traces'
 			| 'enable_project_level_access'
 			| 'enable_session_export'
+			| 'enable_teams_integration'
 			| 'enable_unlisted_sharing'
 		>
 	>
@@ -5476,8 +5470,6 @@ export const namedOperations = {
 			'GetWorkspaceIsIntegratedWithLinear' as const,
 		GetWorkspaceIsIntegratedWithZapier:
 			'GetWorkspaceIsIntegratedWithZapier' as const,
-		GetWorkspaceIsIntegratedWithFront:
-			'GetWorkspaceIsIntegratedWithFront' as const,
 		GetWorkspaceIsIntegratedWithDiscord:
 			'GetWorkspaceIsIntegratedWithDiscord' as const,
 		GetWorkspaceIsIntegratedWithVercel:

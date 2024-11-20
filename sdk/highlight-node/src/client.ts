@@ -43,6 +43,7 @@ import { HIGHLIGHT_REQUEST_HEADER } from './sdk.js'
 import { Headers } from 'node-fetch'
 import type { HighlightContext, NodeOptions } from './types.js'
 import * as packageJson from '../package.json'
+import { PrismaInstrumentation } from '@prisma/instrumentation'
 
 const OTLP_HTTP = 'https://otel.highlight.io:4318'
 const FIVE_MINUTES = 1000 * 60 * 5
@@ -67,6 +68,8 @@ const instrumentations = getNodeAutoInstrumentations({
 		},
 	},
 })
+
+instrumentations.push(new PrismaInstrumentation())
 
 /**
  * Baggage propagation does not appear to be patching Fetch at the moment,
@@ -137,6 +140,12 @@ class CustomSpanProcessor extends BatchSpanProcessorBase<BufferConfig> {
 
 		// @ts-ignore
 		super.onEnd(span)
+	}
+
+	// Only needed to resolve a type error
+	onStart(span: ReadableSpan, parentContext: Context): void {
+		// @ts-ignore
+		super.onStart(span, parentContext)
 	}
 
 	onShutdown(): void {}

@@ -43,7 +43,6 @@ import (
 	microsoft_teams "github.com/highlight-run/highlight/backend/alerts/integrations/microsoft-teams"
 	"github.com/highlight-run/highlight/backend/clickhouse"
 	"github.com/highlight-run/highlight/backend/clickup"
-	"github.com/highlight-run/highlight/backend/front"
 	"github.com/highlight-run/highlight/backend/integrations"
 	"github.com/highlight-run/highlight/backend/integrations/height"
 	kafka_queue "github.com/highlight-run/highlight/backend/kafka-queue"
@@ -1976,15 +1975,6 @@ func (r *Resolver) CreateInviteLink(workspaceID int, email *string, role string,
 	return newInviteLink
 }
 
-func (r *Resolver) AddFrontToProject(ctx context.Context, project *model.Project, code string) error {
-	oauth, err := front.OAuth(ctx, code, nil)
-	if err != nil {
-		return e.Wrapf(err, "failed to add front to project id %d", project.ID)
-	}
-
-	return r.saveFrontOAuth(project, oauth)
-}
-
 func (r *Resolver) AddVercelToWorkspace(workspace *model.Workspace, code string) error {
 	res, err := vercel.GetAccessToken(code)
 	if err != nil {
@@ -2084,15 +2074,6 @@ func (r *Resolver) AddDiscordToWorkspace(ctx context.Context, workspace *model.W
 		return e.Wrap(err, "error updating discord guild id on workspace")
 	}
 
-	return nil
-}
-
-func (r *Resolver) saveFrontOAuth(project *model.Project, oauth *front.OAuthToken) error {
-	exp := time.Unix(oauth.ExpiresAt, 0)
-	if err := r.DB.WithContext(context.TODO()).Where(&project).Updates(&model.Project{FrontAccessToken: &oauth.AccessToken,
-		FrontRefreshToken: &oauth.RefreshToken, FrontTokenExpiresAt: &exp}).Error; err != nil {
-		return e.Wrap(err, "error updating front access token on project")
-	}
 	return nil
 }
 
@@ -2258,14 +2239,6 @@ func (r *Resolver) RemoveSlackFromWorkspace(ctx context.Context, workspace *mode
 func (r *Resolver) RemoveZapierFromWorkspace(ctx context.Context, project *model.Project) error {
 	if err := r.DB.WithContext(ctx).Where(&project).Select("zapier_access_token").Updates(&model.Project{ZapierAccessToken: nil}).Error; err != nil {
 		return e.Wrap(err, "error removing zapier access token in project model")
-	}
-
-	return nil
-}
-
-func (r *Resolver) RemoveFrontFromProject(ctx context.Context, project *model.Project) error {
-	if err := r.DB.WithContext(ctx).Where(&project).Select("front_access_token").Updates(&model.Project{FrontAccessToken: nil}).Error; err != nil {
-		return e.Wrap(err, "error removing front access token in project model")
 	}
 
 	return nil

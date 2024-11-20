@@ -11,6 +11,7 @@ import logger from '@/highlight.logger'
 import Image from 'next/image'
 import Link from 'next/link'
 import { HighlightButtons } from './components/highlight-buttons'
+import { PrismaQueries } from '@/app/components/prisma-queries'
 
 export default function Home() {
 	logger.info({}, `Home page component`)
@@ -43,6 +44,9 @@ export default function Home() {
 
 			<h3>Fetch</h3>
 			<FetchTests />
+
+			<h3>Prisma</h3>
+			<PrismaQueries />
 
 			<div style={{ paddingBottom: '1rem', paddingTop: '1rem' }}>
 				<a href="/server-actions" style={{ color: 'white' }}>

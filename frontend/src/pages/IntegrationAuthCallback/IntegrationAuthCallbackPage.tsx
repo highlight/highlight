@@ -16,7 +16,6 @@ import * as authRouterStyles from '@pages/Auth/AuthRouter.css'
 import { AuthBody, AuthFooter, AuthHeader } from '@pages/Auth/Layout'
 import { useClickUpIntegration } from '@pages/IntegrationsPage/components/ClickUpIntegration/utils'
 import { useDiscordIntegration } from '@pages/IntegrationsPage/components/DiscordIntegration/utils'
-import { useFrontIntegration } from '@pages/IntegrationsPage/components/FrontIntegration/utils'
 import { useGitHubIntegration } from '@pages/IntegrationsPage/components/GitHubIntegration/utils'
 import { useHeightIntegration } from '@pages/IntegrationsPage/components/HeightIntegration/utils'
 import { IntegrationAction } from '@pages/IntegrationsPage/components/Integration'
@@ -171,41 +170,6 @@ const LinearIntegrationCallback = ({ code, projectId, next }: Props) => {
 		addLinearIntegrationToProject,
 		navigate,
 	])
-	return null
-}
-const FrontIntegrationCallback = ({ code, projectId }: Props) => {
-	const navigate = useNavigate()
-	const { setLoadingState } = useAppLoadingContext()
-	const { addFrontIntegrationToProject } = useFrontIntegration()
-
-	useEffect(() => {
-		if (!projectId || !code) return
-		const next = `/${projectId}/integrations`
-		;(async () => {
-			try {
-				await addFrontIntegrationToProject(code, projectId)
-				toast.success('Highlight is now synced with Front!', {
-					duration: 5000,
-				})
-			} catch (e: any) {
-				H.consumeError(e)
-				console.error(e)
-				toast.error(
-					'Failed to add integration to project. Please try again.',
-				)
-			} finally {
-				navigate(next)
-				setLoadingState(AppLoadingState.LOADED)
-			}
-		})()
-	}, [
-		setLoadingState,
-		addFrontIntegrationToProject,
-		code,
-		projectId,
-		navigate,
-	])
-
 	return null
 }
 
@@ -750,10 +714,6 @@ const IntegrationAuthCallbackPage = () => {
 					projectId={projectId}
 					next={next}
 				/>
-			)
-		case 'front':
-			return (
-				<FrontIntegrationCallback code={code} projectId={projectId} />
 			)
 		case 'discord':
 			return (
