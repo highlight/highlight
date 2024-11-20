@@ -22,7 +22,10 @@ import { StringParam, useQueryParam } from 'use-query-params'
 
 import { useAuthContext } from '@/authentication/AuthContext'
 import { Button } from '@/components/Button'
-import { DISABLED_REASON_IS_ADMIN, RoleOptions } from '@/pages/WorkspaceTeam/components/AllMembers'
+import {
+	DISABLED_REASON_IS_ADMIN,
+	RoleOptions,
+} from '@/pages/WorkspaceTeam/components/AllMembers'
 import { useApplicationContext } from '@/routers/AppRouter/context/ApplicationContext'
 
 function InviteMemberModal({
@@ -121,107 +124,7 @@ function InviteMemberModal({
 			</Modal.Header>
 			<Modal.Body>
 				<Form>
-					<Stack direction="column" gap="12">
-						<Form.Input
-							name="email"
-							label="User email"
-							icon={
-								// TODO: Ask Julian what the icons should do
-								<IconSolidInformationCircle
-									color={vars.color.n8}
-			<form onSubmit={onSubmit}>
-				<p className={styles.boxSubTitle}>
-					Invite a team member to '{`${workspaceName}`}' by entering
-					an email below.
-				</p>
-				<Stack direction="row" alignItems="center">
-					<Stack direction="row" alignItems="center">
-						<Text lines="1">Role</Text>
-						<Box borderRadius="4" p="4" cssClass={styles.popover}>
-							<PopoverCell
-								label="roles"
-								options={RoleOptions}
-								initialSelection={newAdminRole}
-								onChange={(role) => {
-									setNewAdminRole(role)
-									setNewProjectIds([])
-								}}
-							/>
-						</Box>
-					</Stack>
-					<Stack direction="row" alignItems="center">
-						<Text lines="1">Project Access</Text>
-						<Box borderRadius="4" p="4" cssClass={styles.popover}>
-							<PopoverCell
-								label="projects"
-								options={allProjects?.map((p) => ({
-									key: p?.id ?? '0',
-									render: p?.name ?? '',
-								}))}
-								initialSelection={newProjectIds}
-								filter
-								onChange={setNewProjectIds}
-								disabledReason={disabledReason}
-							/>
-						</Box>
-					</Stack>
-				</Stack>
-				<div className={styles.buttonRow}>
-					<Input
-						ref={emailRef}
-						className={styles.emailInput}
-						placeholder="Email"
-						type="email"
-						required
-						name="invitedEmail"
-						autoFocus
-						value={email}
-						onChange={(e) => {
-							setEmail(e.target.value)
-						}}
-					/>
-					<Button
-						trackingId="WorkspaceInviteMember"
-						type="primary"
-						className={clsx(
-							commonStyles.submitButton,
-							styles.inviteButton,
-						)}
-						htmlType="submit"
-					>
-						{sendLoading ? (
-							<CircularSpinner
-								style={{
-									fontSize: 18,
-									color: 'var(--text-primary-inverted)',
-								}}
-							/>
-						) : (
-							'Invite'
-						)}
-					</Button>
-				</div>
-			</form>
-			{sendData?.sendAdminWorkspaceInvite && (
-				<Alert
-					shouldAlwaysShow
-					trackingId="InviteAdminToWorkspaceConfirmation"
-					message="An invite email has been sent!"
-					type="success"
-					description={
-						<>
-							You can also share with them this link:{' '}
-							<span>
-								<CopyText
-									text={sendData.sendAdminWorkspaceInvite}
-									onCopyTooltipText="Copied invite link to clipboard!"
-									inline
-								/>
-							}
-							value={email}
-							onChange={(e) => setEmail(e.target.value)}
-						/>
-
+					<Stack direction="column" gap="16">
 						<Stack direction="row" gap="8">
 							<Box style={{ width: '50%' }}>
 								<Form.Select
