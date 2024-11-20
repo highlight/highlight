@@ -106,7 +106,7 @@ var TracesTableConfig = model.TableConfig{
 }
 
 var tracesSamplingTableConfig = model.TableConfig{
-	TableName:        fmt.Sprintf("%s SAMPLE %d", TracesSamplingTable, SamplingRows),
+	TableName:        TracesSamplingTable,
 	BodyColumn:       "SpanName",
 	KeysToColumns:    traceKeysToColumns,
 	ReservedKeys:     reservedTraceKeys,
@@ -118,9 +118,7 @@ var tracesSamplingTableConfig = model.TableConfig{
 var TracesSampleableTableConfig = SampleableTableConfig{
 	tableConfig:         TracesTableConfig,
 	samplingTableConfig: tracesSamplingTableConfig,
-	useSampling: func(d time.Duration) bool {
-		return d >= time.Hour
-	},
+	sampleSizeRows:      20_000_000,
 }
 
 type ClickhouseTraceRow struct {
