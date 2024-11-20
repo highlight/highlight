@@ -23,12 +23,16 @@ export const ApolloServerHighlightPlugin = function <T extends BaseContext>(
 
 			const { secureSessionId, requestId } = H.parseHeaders(headers)
 
-			H.runWithHeaders(headers, () => {
-				H._debug('processError', 'extracted from headers', {
-					secureSessionId,
-					requestId,
-				})
-			})
+			H.runWithHeaders(
+				`${req.request.http?.method?.toUpperCase()} - ${req.request.http?.search}`,
+				headers,
+				() => {
+					H._debug('processError', 'extracted from headers', {
+						secureSessionId,
+						requestId,
+					})
+				},
+			)
 
 			return {
 				async didEncounterErrors(

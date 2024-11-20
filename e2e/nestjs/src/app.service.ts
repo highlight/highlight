@@ -15,7 +15,7 @@ export class AppService {
     error?: true;
     empty?: true;
   }): Promise<string[]> {
-    const span = await H.startActiveSpan('making request now', {});
+    const { span } = H.startWithHeaders('making request now', {});
     await firstValueFrom(
       this.httpService.post<any[]>(
         'https://pub.highlight.io/v1/logs/json',
@@ -35,9 +35,13 @@ export class AppService {
     span.end();
 
     for (let i = 0; i < 10; i++) {
-      const s = await H.startActiveSpan(`another request ${i}`, {
-        attributes: { i },
-      });
+      const { span: s } = H.startWithHeaders(
+        `another request ${i}`,
+        {},
+        {
+          attributes: { i },
+        },
+      );
       console.log('hello, world!');
       this.logger.log('hello, world!');
       this.logger.warn('whoa there! ', Math.random());

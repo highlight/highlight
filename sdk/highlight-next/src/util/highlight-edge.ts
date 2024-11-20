@@ -128,8 +128,10 @@ export const H: HighlightInterface = {
 		return { secureSessionId: undefined, requestId: undefined }
 	},
 	async runWithHeaders<T>(
+		name: string,
 		headers: Headers | IncomingHttpHeaders,
 		cb: () => T,
+		options?: any,
 	) {
 		headers && setHeaders(headers)
 

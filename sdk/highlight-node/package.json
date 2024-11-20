@@ -1,14 +1,14 @@
 {
 	"name": "@highlight-run/node",
-	"version": "3.9.3",
+	"version": "3.10.1",
 	"license": "Apache-2.0",
 	"scripts": {
 		"typegen": "tsc -d --emitDeclarationOnly",
 		"dev": "yarn build --watch",
 		"build": "rollup --config rollup.config.mjs",
-		"test": "yarn test:check-deps && yarn test:jest",
+		"test": "yarn test:check-deps && yarn test:vitest",
 		"test:check-deps": "node scripts/check-deps.mjs",
-		"test:jest": "jest"
+		"test:vitest": "vitest run"
 	},
 	"main": "./dist/index.cjs",
 	"module": "./dist/index.js",
@@ -26,6 +26,9 @@
 	"publishConfig": {
 		"access": "public"
 	},
+	"dependencies": {
+		"require-in-the-middle": "^7.4.0"
+	},
 	"devDependencies": {
 		"@opentelemetry/api": "^1.9.0",
 		"@opentelemetry/auto-instrumentations-node": ">=0.50.0",
@@ -33,7 +36,7 @@
 		"@opentelemetry/exporter-jaeger": "^1.26.0",
 		"@opentelemetry/exporter-trace-otlp-http": ">=0.53.0",
 		"@opentelemetry/instrumentation": ">=0.53.0",
-		"@opentelemetry/otlp-exporter-base": ">=0.53.0",
+		"@opentelemetry/otlp-exporter-base": "^0.53.0",
 		"@opentelemetry/resources": "^1.26.0",
 		"@opentelemetry/sdk-node": ">=0.53.0",
 		"@opentelemetry/sdk-trace-base": "^1.26.0",
@@ -44,15 +47,14 @@
 		"@rollup/plugin-node-resolve": "^15.2.3",
 		"@rollup/plugin-terser": "^0.4.4",
 		"@rollup/plugin-typescript": "^11.1.5",
-		"@types/jest": "^29.2.0",
 		"@types/lru-cache": "^7.10.10",
-		"@types/node": "17.0.13",
+		"@types/node": "^14.18.63",
 		"check-dependencies": "^2.0.0",
 		"encoding": "^0.1.13",
 		"highlight.run": "workspace:*",
-		"jest": "^29.2.2",
+		"node-fetch": "^3.3.2",
 		"rollup": "^4.1.4",
-		"ts-jest": "^29.0.3",
-		"typescript": "^5.0.4"
+		"typescript": "^5.0.4",
+		"vitest": "^2.1.3"
 	}
 }

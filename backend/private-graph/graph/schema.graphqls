@@ -443,7 +443,6 @@ enum IntegrationType {
 	Slack
 	Linear
 	Zapier
-	Front
 	Vercel
 	Discord
 	ClickUp
@@ -685,12 +684,6 @@ type ErrorInstance {
 	previous_id: ID
 }
 
-type ErrorField {
-	project_id: Int
-	name: String!
-	value: String!
-}
-
 type ErrorGroup {
 	created_at: Timestamp!
 	updated_at: Timestamp!
@@ -703,7 +696,6 @@ type ErrorGroup {
 	metadata_log: [ErrorMetadata]!
 	mapped_stack_trace: String
 	stack_trace: String
-	fields: [ErrorField]
 	state: ErrorState!
 	snoozed_until: Timestamp
 	environments: String
@@ -1066,6 +1058,8 @@ enum ReservedSessionKey {
 	secure_id
 	service_version
 	state
+	timestamp
+	updated_at
 	viewed_by_anyone
 	viewed_by_me
 	within_billing_quota
@@ -1095,6 +1089,7 @@ enum ReservedEventKey {
 	session_length
 	session_pages_visited
 	state
+	timestamp
 }
 
 enum LogSource {
@@ -1159,6 +1154,8 @@ type MetricBucket {
 	column: MetricColumn!
 	metric_type: MetricAggregator!
 	metric_value: Float
+	yhat_lower: Float
+	yhat_upper: Float
 }
 
 type MetricsBuckets {
@@ -1401,6 +1398,13 @@ input UserPropertyInput {
 	value: String!
 }
 
+input PredictionSettings {
+	changepointPriorScale: Float!
+	intervalWidth: Float!
+	thresholdCondition: ThresholdCondition!
+	intervalSeconds: Int!
+}
+
 type User {
 	id: ID!
 }
@@ -1448,6 +1452,8 @@ type SessionsHistogram {
 	sessions_without_errors: [Int64!]!
 	sessions_with_errors: [Int64!]!
 	total_sessions: [Int64!]!
+	inactive_lengths: [Int64!]!
+	active_lengths: [Int64!]!
 }
 
 type ErrorsHistogram {
@@ -1606,6 +1612,17 @@ enum AlertState {
 	Error
 }
 
+enum ThresholdType {
+	Constant
+	Anomaly
+}
+
+enum ThresholdCondition {
+	Above
+	Below
+	Outside
+}
+
 enum AlertDestinationType {
 	Slack
 	Discord
@@ -1644,10 +1661,11 @@ type Alert {
 	destinations: [AlertDestination]!
 
 	# threshold alerts
-	below_threshold: Boolean
 	threshold_value: Float
 	threshold_window: Int
 	threshold_cooldown: Int
+	threshold_type: ThresholdType
+	threshold_condition: ThresholdCondition
 }
 
 type AlertStateChange {
@@ -2010,6 +2028,7 @@ type Graph {
 	id: ID!
 	type: String!
 	title: String!
+	description: String!
 	productType: ProductType!
 	query: String!
 	metric: String!
@@ -2249,11 +2268,6 @@ type Query {
 	# gets all the projects of a user
 	field_suggestion(project_id: ID!, name: String!, query: String!): [Field]
 	property_suggestion(project_id: ID!, query: String!, type: String!): [Field]
-	error_field_suggestion(
-		project_id: ID!
-		name: String!
-		query: String!
-	): [ErrorField]
 	projects: [Project]
 	workspaces: [Workspace]
 	workspaces_count: Int64!
@@ -2548,6 +2562,14 @@ type Query {
 		limit_aggregator: MetricAggregator
 		limit_column: String
 	): MetricsBuckets!
+	event_sessions(
+		project_id: ID!
+		count: Int!
+		params: QueryInput!
+		sort_field: String
+		sort_desc: Boolean!
+		page: Int
+	): SessionResults!
 	metrics(
 		product_type: ProductType!
 		project_id: ID!
@@ -2561,6 +2583,7 @@ type Query {
 		limit: Int
 		limit_aggregator: MetricAggregator
 		limit_column: String
+		prediction_settings: PredictionSettings
 	): MetricsBuckets!
 	keys(
 		product_type: ProductType
@@ -2587,6 +2610,7 @@ type Query {
 		offset: Int!
 	): VisualizationsResponse!
 	graph(id: ID!): Graph!
+	graph_templates: [Graph!]!
 	log_lines(
 		product_type: ProductType!
 		project_id: ID!
@@ -2905,11 +2929,12 @@ type Mutation {
 		function_column: String
 		query: String
 		group_by_key: String
-		below_threshold: Boolean
 		default: Boolean
 		threshold_value: Float
 		threshold_window: Int
 		threshold_cooldown: Int
+		threshold_type: ThresholdType
+		threshold_condition: ThresholdCondition
 		destinations: [AlertDestinationInput!]!
 	): Alert
 	updateAlert(
@@ -2921,10 +2946,11 @@ type Mutation {
 		function_column: String
 		query: String
 		group_by_key: String
-		below_threshold: Boolean
 		threshold_value: Float
 		threshold_window: Int
 		threshold_cooldown: Int
+		threshold_type: ThresholdType
+		threshold_condition: ThresholdCondition
 		destinations: [AlertDestinationInput!]
 	): Alert
 	updateAlertDisabled(

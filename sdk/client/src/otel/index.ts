@@ -4,7 +4,10 @@ import {
 	W3CBaggagePropagator,
 	W3CTraceContextPropagator,
 } from '@opentelemetry/core'
-import { registerInstrumentations } from '@opentelemetry/instrumentation'
+import {
+	Instrumentation,
+	registerInstrumentations,
+} from '@opentelemetry/instrumentation'
 import { DocumentLoadInstrumentation } from '@opentelemetry/instrumentation-document-load'
 import { FetchInstrumentation } from '@opentelemetry/instrumentation-fetch'
 import { XMLHttpRequestInstrumentation } from '@opentelemetry/instrumentation-xml-http-request'
@@ -12,6 +15,7 @@ import { Resource } from '@opentelemetry/resources'
 import {
 	BatchSpanProcessor,
 	ConsoleSpanExporter,
+	PropagateTraceHeaderCorsUrls,
 	ReadableSpan,
 	SimpleSpanProcessor,
 	StackContextManager,
@@ -27,10 +31,7 @@ import {
 	DEFAULT_URL_BLOCKLIST,
 	sanitizeHeaders,
 } from '../listeners/network-listener/utils/network-sanitizer'
-import {
-	shouldNetworkRequestBeRecorded,
-	shouldNetworkRequestBeTraced,
-} from '../listeners/network-listener/utils/utils'
+import { shouldNetworkRequestBeRecorded } from '../listeners/network-listener/utils/utils'
 import {
 	BrowserXHR,
 	getBodyThatShouldBeRecorded,
@@ -102,18 +103,23 @@ export const setupBrowserTracing = (config: BrowserTracingConfig) => {
 	})
 	provider.addSpanProcessor(spanProcessor)
 
-	registerInstrumentations({
-		instrumentations: [
-			new DocumentLoadInstrumentation({
-				applyCustomAttributesOnSpan: {
-					documentLoad: assignDocumentDurations,
-					documentFetch: assignDocumentDurations,
-					resourceFetch: assignResourceFetchDurations,
-				},
-			}),
-			new UserInteractionInstrumentation(),
+	let instrumentations: Instrumentation[] = [
+		new DocumentLoadInstrumentation({
+			applyCustomAttributesOnSpan: {
+				documentLoad: assignDocumentDurations,
+				documentFetch: assignDocumentDurations,
+				resourceFetch: assignResourceFetchDurations,
+			},
+		}),
+		new UserInteractionInstrumentation(),
+	]
+
+	if (config.networkRecordingOptions?.enabled) {
+		instrumentations.push(
 			new FetchInstrumentation({
-				propagateTraceHeaderCorsUrls: /.*/,
+				propagateTraceHeaderCorsUrls: getCorsUrlsPattern(
+					config.tracingOrigins,
+				),
 				applyCustomAttributesOnSpan: async (
 					span,
 					request,
@@ -151,8 +157,13 @@ export const setupBrowserTracing = (config: BrowserTracingConfig) => {
 					span.setAttribute('http.response.body', body)
 				},
 			}),
+		)
+
+		instrumentations.push(
 			new XMLHttpRequestInstrumentation({
-				propagateTraceHeaderCorsUrls: /.*/,
+				propagateTraceHeaderCorsUrls: getCorsUrlsPattern(
+					config.tracingOrigins,
+				),
 				applyCustomAttributesOnSpan: (span, xhr) => {
 					const browserXhr = xhr as BrowserXHR
 					const readableSpan = span as unknown as ReadableSpan
@@ -183,8 +194,10 @@ export const setupBrowserTracing = (config: BrowserTracingConfig) => {
 					span.setAttribute('http.request.body', recordedBody)
 				},
 			}),
-		],
-	})
+		)
+	}
+
+	registerInstrumentations({ instrumentations })
 
 	const contextManager = new StackContextManager()
 	contextManager.enable()
@@ -496,4 +509,18 @@ const humanizeDuration = (nanoseconds: number): string => {
 	} else {
 		return `${Number(nanoseconds.toFixed(1))}ns`
 	}
+}
+
+export const getCorsUrlsPattern = (
+	tracingOrigins: BrowserTracingConfig['tracingOrigins'],
+): PropagateTraceHeaderCorsUrls => {
+	if (tracingOrigins === true) {
+		return [/localhost/, /^\//, new RegExp(window.location.host)]
+	} else if (Array.isArray(tracingOrigins)) {
+		return tracingOrigins.map((pattern) =>
+			typeof pattern === 'string' ? new RegExp(pattern) : pattern,
+		)
+	}
+
+	return /^$/ // Match nothing if tracingOrigins is false or undefined
 }

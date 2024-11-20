@@ -8,7 +8,7 @@
         {
             return "00-00-00-00";
         }
-        
+
         var traceId = currentTrace.Context.TraceId;
         var spanId = currentTrace.Context.SpanId;
 
@@ -37,7 +37,6 @@
                 enabled: true,
                 recordHeadersAndBody: true,
             },
-            enableOtelTracing: true,
             otlpEndpoint: 'http://localhost:4318',
         });
     </script>

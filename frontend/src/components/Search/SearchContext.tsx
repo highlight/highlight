@@ -12,6 +12,10 @@ import { parseSearch } from '@/components/Search/utils'
 import { START_PAGE } from '@/components/SearchPagination/SearchPagination'
 import { DateHistogramBucketSize } from '@/graph/generated/schemas'
 import { useSearchTime } from '@/hooks/useSearchTime'
+import {
+	SearchEntry,
+	useSearchHistory,
+} from '@/components/Search/SearchForm/hooks'
 
 export const SORT_COLUMN = 'sort_column'
 export const SORT_DIRECTION = 'sort_direction'
@@ -51,6 +55,9 @@ interface SearchContext extends Partial<ReturnType<typeof useSearchTime>> {
 	aiSuggestionLoading?: boolean
 	aiSuggestionError?: ApolloError
 	defaultValues?: string[]
+	recentSearches: SearchEntry[]
+	handleSearch: (query: string, queryParts: SearchExpression[]) => void
+	historyLoading: boolean
 }
 
 export const [useSearchContext, SearchContextProvider] =
@@ -107,6 +114,25 @@ export const SearchContext: React.FC<Props> = ({
 	const [aiQuery, setAiQuery] = useState('')
 	const { queryParts, tokens } = parseSearch(query)
 	const tokenGroups = buildTokenGroups(tokens)
+	const { handleSearch, recentSearches, historyLoading } = useSearchHistory()
+	const handleSubmit = (query: string) => {
+		onSubmit(query)
+		if (query) {
+			const queryParts = parseSearch(query)?.queryParts || []
+			try {
+				const newQueryParts = JSON.parse(
+					JSON.stringify(queryParts || []),
+				)
+				handleSearch?.(query, newQueryParts)
+			} catch (err) {
+				//do nothing
+				console.error(
+					'Something went wrong while parsing the queryParts',
+					err,
+				)
+			}
+		}
+	}
 
 	return (
 		<SearchContextProvider
@@ -124,7 +150,7 @@ export const SearchContext: React.FC<Props> = ({
 				tokenGroups,
 				page,
 				setQuery,
-				onSubmit,
+				onSubmit: handleSubmit,
 				setPage,
 				resetMoreResults,
 				pollingExpired,
@@ -136,6 +162,9 @@ export const SearchContext: React.FC<Props> = ({
 				aiSuggestion,
 				aiSuggestionLoading,
 				aiSuggestionError,
+				recentSearches,
+				handleSearch,
+				historyLoading,
 				...searchTimeContext,
 			}}
 		>

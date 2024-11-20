@@ -616,6 +616,8 @@ type MetricBucket struct {
 	Column      MetricColumn     `json:"column"`
 	MetricType  MetricAggregator `json:"metric_type"`
 	MetricValue *float64         `json:"metric_value,omitempty"`
+	YhatLower   *float64         `json:"yhat_lower,omitempty"`
+	YhatUpper   *float64         `json:"yhat_upper,omitempty"`
 }
 
 type MetricPreview struct {
@@ -690,6 +692,13 @@ type Plan struct {
 	ErrorsRate          float64                     `json:"errorsRate"`
 	LogsRate            float64                     `json:"logsRate"`
 	TracesRate          float64                     `json:"tracesRate"`
+}
+
+type PredictionSettings struct {
+	ChangepointPriorScale float64            `json:"changepointPriorScale"`
+	IntervalWidth         float64            `json:"intervalWidth"`
+	ThresholdCondition    ThresholdCondition `json:"thresholdCondition"`
+	IntervalSeconds       int                `json:"intervalSeconds"`
 }
 
 type QueryInput struct {
@@ -1405,7 +1414,6 @@ const (
 	IntegrationTypeSlack          IntegrationType = "Slack"
 	IntegrationTypeLinear         IntegrationType = "Linear"
 	IntegrationTypeZapier         IntegrationType = "Zapier"
-	IntegrationTypeFront          IntegrationType = "Front"
 	IntegrationTypeVercel         IntegrationType = "Vercel"
 	IntegrationTypeDiscord        IntegrationType = "Discord"
 	IntegrationTypeClickUp        IntegrationType = "ClickUp"
@@ -1422,7 +1430,6 @@ var AllIntegrationType = []IntegrationType{
 	IntegrationTypeSlack,
 	IntegrationTypeLinear,
 	IntegrationTypeZapier,
-	IntegrationTypeFront,
 	IntegrationTypeVercel,
 	IntegrationTypeDiscord,
 	IntegrationTypeClickUp,
@@ -1437,7 +1444,7 @@ var AllIntegrationType = []IntegrationType{
 
 func (e IntegrationType) IsValid() bool {
 	switch e {
-	case IntegrationTypeSlack, IntegrationTypeLinear, IntegrationTypeZapier, IntegrationTypeFront, IntegrationTypeVercel, IntegrationTypeDiscord, IntegrationTypeClickUp, IntegrationTypeHeight, IntegrationTypeGitHub, IntegrationTypeJira, IntegrationTypeMicrosoftTeams, IntegrationTypeGitLab, IntegrationTypeHeroku, IntegrationTypeCloudflare:
+	case IntegrationTypeSlack, IntegrationTypeLinear, IntegrationTypeZapier, IntegrationTypeVercel, IntegrationTypeDiscord, IntegrationTypeClickUp, IntegrationTypeHeight, IntegrationTypeGitHub, IntegrationTypeJira, IntegrationTypeMicrosoftTeams, IntegrationTypeGitLab, IntegrationTypeHeroku, IntegrationTypeCloudflare:
 		return true
 	}
 	return false
@@ -2250,6 +2257,7 @@ const (
 	ReservedEventKeySessionLength       ReservedEventKey = "session_length"
 	ReservedEventKeySessionPagesVisited ReservedEventKey = "session_pages_visited"
 	ReservedEventKeyState               ReservedEventKey = "state"
+	ReservedEventKeyTimestamp           ReservedEventKey = "timestamp"
 )
 
 var AllReservedEventKey = []ReservedEventKey{
@@ -2271,11 +2279,12 @@ var AllReservedEventKey = []ReservedEventKey{
 	ReservedEventKeySessionLength,
 	ReservedEventKeySessionPagesVisited,
 	ReservedEventKeyState,
+	ReservedEventKeyTimestamp,
 }
 
 func (e ReservedEventKey) IsValid() bool {
 	switch e {
-	case ReservedEventKeyBrowserName, ReservedEventKeyBrowserVersion, ReservedEventKeyCity, ReservedEventKeyCountry, ReservedEventKeyEnvironment, ReservedEventKeyEvent, ReservedEventKeyFirstSession, ReservedEventKeyIdentified, ReservedEventKeyIdentifier, ReservedEventKeyIP, ReservedEventKeyOsName, ReservedEventKeyOsVersion, ReservedEventKeySecureSessionID, ReservedEventKeyServiceVersion, ReservedEventKeySessionActiveLength, ReservedEventKeySessionLength, ReservedEventKeySessionPagesVisited, ReservedEventKeyState:
+	case ReservedEventKeyBrowserName, ReservedEventKeyBrowserVersion, ReservedEventKeyCity, ReservedEventKeyCountry, ReservedEventKeyEnvironment, ReservedEventKeyEvent, ReservedEventKeyFirstSession, ReservedEventKeyIdentified, ReservedEventKeyIdentifier, ReservedEventKeyIP, ReservedEventKeyOsName, ReservedEventKeyOsVersion, ReservedEventKeySecureSessionID, ReservedEventKeyServiceVersion, ReservedEventKeySessionActiveLength, ReservedEventKeySessionLength, ReservedEventKeySessionPagesVisited, ReservedEventKeyState, ReservedEventKeyTimestamp:
 		return true
 	}
 	return false
@@ -2387,6 +2396,8 @@ const (
 	ReservedSessionKeySecureID           ReservedSessionKey = "secure_id"
 	ReservedSessionKeyServiceVersion     ReservedSessionKey = "service_version"
 	ReservedSessionKeyState              ReservedSessionKey = "state"
+	ReservedSessionKeyTimestamp          ReservedSessionKey = "timestamp"
+	ReservedSessionKeyUpdatedAt          ReservedSessionKey = "updated_at"
 	ReservedSessionKeyViewedByAnyone     ReservedSessionKey = "viewed_by_anyone"
 	ReservedSessionKeyViewedByMe         ReservedSessionKey = "viewed_by_me"
 	ReservedSessionKeyWithinBillingQuota ReservedSessionKey = "within_billing_quota"
@@ -2420,6 +2431,8 @@ var AllReservedSessionKey = []ReservedSessionKey{
 	ReservedSessionKeySecureID,
 	ReservedSessionKeyServiceVersion,
 	ReservedSessionKeyState,
+	ReservedSessionKeyTimestamp,
+	ReservedSessionKeyUpdatedAt,
 	ReservedSessionKeyViewedByAnyone,
 	ReservedSessionKeyViewedByMe,
 	ReservedSessionKeyWithinBillingQuota,
@@ -2430,7 +2443,7 @@ var AllReservedSessionKey = []ReservedSessionKey{
 
 func (e ReservedSessionKey) IsValid() bool {
 	switch e {
-	case ReservedSessionKeyActiveLength, ReservedSessionKeyBrowserName, ReservedSessionKeyBrowserVersion, ReservedSessionKeyCity, ReservedSessionKeyCompleted, ReservedSessionKeyCountry, ReservedSessionKeyEnvironment, ReservedSessionKeyExcluded, ReservedSessionKeyFirstTime, ReservedSessionKeyHasComments, ReservedSessionKeyHasErrors, ReservedSessionKeyHasRageClicks, ReservedSessionKeyIdentified, ReservedSessionKeyIdentifier, ReservedSessionKeyIP, ReservedSessionKeyLength, ReservedSessionKeyNormalness, ReservedSessionKeyOsName, ReservedSessionKeyOsVersion, ReservedSessionKeyPagesVisited, ReservedSessionKeySample, ReservedSessionKeySecureID, ReservedSessionKeyServiceVersion, ReservedSessionKeyState, ReservedSessionKeyViewedByAnyone, ReservedSessionKeyViewedByMe, ReservedSessionKeyWithinBillingQuota, ReservedSessionKeyLocState, ReservedSessionKeyProcessed, ReservedSessionKeyViewed:
+	case ReservedSessionKeyActiveLength, ReservedSessionKeyBrowserName, ReservedSessionKeyBrowserVersion, ReservedSessionKeyCity, ReservedSessionKeyCompleted, ReservedSessionKeyCountry, ReservedSessionKeyEnvironment, ReservedSessionKeyExcluded, ReservedSessionKeyFirstTime, ReservedSessionKeyHasComments, ReservedSessionKeyHasErrors, ReservedSessionKeyHasRageClicks, ReservedSessionKeyIdentified, ReservedSessionKeyIdentifier, ReservedSessionKeyIP, ReservedSessionKeyLength, ReservedSessionKeyNormalness, ReservedSessionKeyOsName, ReservedSessionKeyOsVersion, ReservedSessionKeyPagesVisited, ReservedSessionKeySample, ReservedSessionKeySecureID, ReservedSessionKeyServiceVersion, ReservedSessionKeyState, ReservedSessionKeyTimestamp, ReservedSessionKeyUpdatedAt, ReservedSessionKeyViewedByAnyone, ReservedSessionKeyViewedByMe, ReservedSessionKeyWithinBillingQuota, ReservedSessionKeyLocState, ReservedSessionKeyProcessed, ReservedSessionKeyViewed:
 		return true
 	}
 	return false
@@ -3091,5 +3104,89 @@ func (e *SuggestionType) UnmarshalGQL(v interface{}) error {
 }
 
 func (e SuggestionType) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+type ThresholdCondition string
+
+const (
+	ThresholdConditionAbove   ThresholdCondition = "Above"
+	ThresholdConditionBelow   ThresholdCondition = "Below"
+	ThresholdConditionOutside ThresholdCondition = "Outside"
+)
+
+var AllThresholdCondition = []ThresholdCondition{
+	ThresholdConditionAbove,
+	ThresholdConditionBelow,
+	ThresholdConditionOutside,
+}
+
+func (e ThresholdCondition) IsValid() bool {
+	switch e {
+	case ThresholdConditionAbove, ThresholdConditionBelow, ThresholdConditionOutside:
+		return true
+	}
+	return false
+}
+
+func (e ThresholdCondition) String() string {
+	return string(e)
+}
+
+func (e *ThresholdCondition) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = ThresholdCondition(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid ThresholdCondition", str)
+	}
+	return nil
+}
+
+func (e ThresholdCondition) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+type ThresholdType string
+
+const (
+	ThresholdTypeConstant ThresholdType = "Constant"
+	ThresholdTypeAnomaly  ThresholdType = "Anomaly"
+)
+
+var AllThresholdType = []ThresholdType{
+	ThresholdTypeConstant,
+	ThresholdTypeAnomaly,
+}
+
+func (e ThresholdType) IsValid() bool {
+	switch e {
+	case ThresholdTypeConstant, ThresholdTypeAnomaly:
+		return true
+	}
+	return false
+}
+
+func (e ThresholdType) String() string {
+	return string(e)
+}
+
+func (e *ThresholdType) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = ThresholdType(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid ThresholdType", str)
+	}
+	return nil
+}
+
+func (e ThresholdType) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(e.String()))
 }

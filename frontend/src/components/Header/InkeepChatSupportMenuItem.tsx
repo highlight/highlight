@@ -1,6 +1,5 @@
-import { lazy, Suspense } from 'react'
-import { useCallback, useState } from 'react'
-import { InkeepCustomTriggerProps } from '@inkeep/uikit'
+import { lazy, Suspense, useCallback, useState } from 'react'
+import type { InkeepCustomTriggerProps } from '@inkeep/uikit'
 import useInkeepSettings from '@/hooks/useInkeepSettings'
 import { Box, IconSolidChat, Menu } from '@highlight-run/ui/components'
 import { vars } from '@highlight-run/ui/vars'

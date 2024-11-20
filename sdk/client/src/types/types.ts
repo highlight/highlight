@@ -235,10 +235,6 @@ export declare type HighlightOptions = {
 	 */
 	sendMode?: 'webworker' | 'local'
 	/**
-	 * Specifies whether to enable OpenTelemetry tracing on the client.
-	 */
-	enableOtelTracing?: boolean
-	/**
 	 * OTLP endpoint for OpenTelemetry tracing.
 	 */
 	otlpEndpoint?: string

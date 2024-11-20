@@ -4,9 +4,6 @@ import (
 	"context"
 	"encoding/base64"
 	"flag"
-	"github.com/mitchellh/mapstructure"
-	"github.com/samber/lo"
-	log "github.com/sirupsen/logrus"
 	"io"
 	"net/url"
 	"os"
@@ -14,6 +11,10 @@ import (
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/mitchellh/mapstructure"
+	"github.com/samber/lo"
+	log "github.com/sirupsen/logrus"
 )
 
 // EnterpriseEnvPublicKey is set by the go build process via `-ldflags="-X util.EnterpriseEnvPublicKey=value"`
@@ -47,6 +48,7 @@ type Configuration struct {
 	ConsumerFraction            string `mapstructure:"CONSUMER_SPAN_SAMPLING_FRACTION"`
 	DeleteSessionsArn           string `mapstructure:"DELETE_SESSIONS_ARN"`
 	DemoProjectID               string `mapstructure:"DEMO_PROJECT_ID"`
+	DisableCors                 string `mapstructure:"DISABLE_CORS"`
 	DiscordBotId                string `mapstructure:"DISCORD_BOT_ID"`
 	DiscordBotSecret            string `mapstructure:"DISCORD_BOT_SECRET"`
 	DiscordClientId             string `mapstructure:"DISCORD_CLIENT_ID"`
@@ -97,6 +99,7 @@ type Configuration struct {
 	ObjectStorageFS             string `mapstructure:"OBJECT_STORAGE_FS"`
 	OnPrem                      string `mapstructure:"ON_PREM"`
 	OpenAIApiKey                string `mapstructure:"OPENAI_API_KEY"`
+	PredictionsEndpoint         string `mapstructure:"PREDICTIONS_ENDPOINT"`
 	PricingBasicPriceID         string `mapstructure:"BASIC_PLAN_PRICE_ID"`
 	PricingEnterprisePriceID    string `mapstructure:"ENTERPRISE_PLAN_PRICE_ID"`
 	PricingStartupPriceID       string `mapstructure:"STARTUP_PLAN_PRICE_ID"`

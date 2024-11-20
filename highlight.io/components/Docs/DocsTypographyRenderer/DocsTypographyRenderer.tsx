@@ -78,7 +78,7 @@ export const DocsMarkdownRenderer = (
 									? props.className.split('language-').pop()
 									: 'js'
 							}
-							text={props.children[0]}
+							text={props.children}
 							showLineNumbers={false}
 						/>
 					)

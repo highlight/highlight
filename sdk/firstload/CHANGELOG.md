@@ -1,5 +1,23 @@
 # highlight.run
 
+## 9.5.3
+
+### Patch Changes
+
+-   2d95aba: Only send visited-url fields through the session events api
+
+## 9.5.2
+
+### Patch Changes
+
+-   df0b226: respect traceOrigins setting for context propagation
+
+## 9.5.1
+
+### Patch Changes
+
+-   5194753: fix `H.getSession*` methods using stale session ID
+
 ## 9.5.0
 
 ### Minor Changes

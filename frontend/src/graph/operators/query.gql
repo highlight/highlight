@@ -581,6 +581,66 @@ query GetSessions(
 	}
 }
 
+query GetEventSessions(
+	$project_id: ID!
+	$count: Int!
+	$params: QueryInput!
+	$sort_desc: Boolean!
+	$sort_field: String
+	$page: Int
+) {
+	event_sessions(
+		project_id: $project_id
+		count: $count
+		params: $params
+		sort_field: $sort_field
+		sort_desc: $sort_desc
+		page: $page
+	) {
+		sessions {
+			id
+			secure_id
+			client_id
+			fingerprint
+			identifier
+			identified
+			os_name
+			os_version
+			browser_name
+			browser_version
+			ip
+			city
+			state
+			country
+			postal
+			created_at
+			language
+			length
+			active_length
+			enable_recording_network_contents
+			viewed
+			starred
+			processed
+			has_rage_clicks
+			has_errors
+			fields {
+				name
+				value
+				type
+				id
+			}
+			first_time
+			user_properties
+			event_counts
+			last_user_interaction_time
+			is_public
+			excluded
+			email
+		}
+		totalCount
+	}
+}
+
 query GetSessionsHistogram(
 	$project_id: ID!
 	$params: QueryInput!
@@ -595,6 +655,8 @@ query GetSessionsHistogram(
 		sessions_without_errors
 		sessions_with_errors
 		total_sessions
+		inactive_lengths
+		active_lengths
 	}
 }
 
@@ -1056,10 +1118,6 @@ query GetErrorGroup($secure_id: String!, $use_clickhouse: Boolean) {
 		}
 		mapped_stack_trace
 		stack_trace
-		fields {
-			name
-			value
-		}
 		error_frequency
 		error_metrics {
 			error_group_id
@@ -1229,40 +1287,6 @@ query GetProjectSuggestion($query: String!) {
 		id
 		name
 		workspace_id
-	}
-}
-
-query GetErrorFieldSuggestion(
-	$project_id: ID!
-	$name: String!
-	$query: String!
-) {
-	error_field_suggestion(
-		project_id: $project_id
-		name: $name
-		query: $query
-	) {
-		name
-		value
-	}
-}
-
-query GetErrorSearchSuggestions($project_id: ID!, $query: String!) {
-	visitedUrls: error_field_suggestion(
-		project_id: $project_id
-		name: "visited_url"
-		query: $query
-	) {
-		name
-		value
-	}
-	fields: error_field_suggestion(
-		project_id: $project_id
-		name: "event"
-		query: $query
-	) {
-		name
-		value
 	}
 }
 
@@ -1513,13 +1537,6 @@ query GetWorkspaceIsIntegratedWithLinear($project_id: ID!) {
 query GetWorkspaceIsIntegratedWithZapier($project_id: ID!) {
 	is_integrated_with_linear: is_integrated_with(
 		integration_type: Zapier
-		project_id: $project_id
-	)
-}
-
-query GetWorkspaceIsIntegratedWithFront($project_id: ID!) {
-	is_integrated_with_front: is_integrated_with(
-		integration_type: Front
 		project_id: $project_id
 	)
 }
@@ -1898,10 +1915,11 @@ query GetAlert($id: ID!) {
 		group_by_key
 		disabled
 		last_admin_to_edit_id
-		below_threshold
 		threshold_value
 		threshold_window
 		threshold_cooldown
+		threshold_type
+		threshold_condition
 		destinations {
 			id
 			destination_type
@@ -2594,6 +2612,7 @@ query GetMetrics(
 	$limit: Int
 	$limit_aggregator: MetricAggregator
 	$limit_column: String
+	$prediction_settings: PredictionSettings
 ) {
 	metrics(
 		product_type: $product_type
@@ -2608,6 +2627,7 @@ query GetMetrics(
 		limit: $limit
 		limit_aggregator: $limit_aggregator
 		limit_column: $limit_column
+		prediction_settings: $prediction_settings
 	) {
 		buckets {
 			bucket_id
@@ -2616,9 +2636,37 @@ query GetMetrics(
 			group
 			metric_type
 			metric_value
+			yhat_lower
+			yhat_upper
 		}
 		bucket_count
 		sample_factor
+	}
+}
+
+query GetGraphTemplates {
+	graph_templates {
+		id
+		type
+		title
+		description
+		productType
+		query
+		metric
+		functionType
+		groupByKeys
+		bucketByKey
+		bucketCount
+		bucketInterval
+		limit
+		limitFunctionType
+		limitMetric
+		funnelSteps {
+			title
+			query
+		}
+		display
+		nullHandling
 	}
 }
 
@@ -2639,6 +2687,7 @@ query GetVisualization($id: ID!) {
 			id
 			type
 			title
+			description
 			productType
 			query
 			metric

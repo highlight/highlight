@@ -2,6 +2,7 @@ package clickhouse
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	modelInputs "github.com/highlight-run/highlight/backend/private-graph/graph/model"
@@ -52,12 +53,22 @@ func (client *Client) GetBlockNumbers(ctx context.Context, metricId string, star
 
 type AggregatedMetricResults struct {
 	GroupByKey string
+	BucketId   uint64
 	Value      float64
 }
 
-func (client *Client) AggregateMetricStates(ctx context.Context, metricId string, endDate time.Time, interval time.Duration, aggregator modelInputs.MetricAggregator) ([]AggregatedMetricResults, error) {
+func (client *Client) AggregateMetricStates(ctx context.Context, metricId string, startDate time.Time, endDate time.Time, interval time.Duration, aggregator modelInputs.MetricAggregator, windowSeconds *int) ([]*modelInputs.MetricBucket, error) {
 	sb := sqlbuilder.NewSelectBuilder()
+
 	selectCols := []string{"GroupByKey"}
+	groupCols := []string{"1"}
+
+	if windowSeconds != nil {
+		selectCols = append(selectCols,
+			fmt.Sprintf("toUInt64(date_diff('second', %s, Timestamp) / %d) as BucketId", sb.Var(startDate), *windowSeconds))
+		groupCols = append(groupCols, "2")
+	}
+
 	switch aggregator {
 	case modelInputs.MetricAggregatorCount:
 		selectCols = append(selectCols, "toFloat64(countMerge(CountState)) as Value")
@@ -83,9 +94,10 @@ func (client *Client) AggregateMetricStates(ctx context.Context, metricId string
 	sb.Select(selectCols...)
 	sb.From(MetricHistoryTable)
 	sb.Where(sb.Equal("MetricId", metricId))
-	sb.Where(sb.GreaterEqualThan("Timestamp", endDate.Add(-interval)))
+	sb.Where(sb.GreaterEqualThan("Timestamp", startDate))
 	sb.Where(sb.LessThan("Timestamp", endDate))
-	sb.GroupBy("GroupByKey")
+	sb.GroupBy(groupCols...)
+	sb.OrderBy(groupCols...)
 
 	sql, args := sb.BuildWithFlavor(sqlbuilder.ClickHouse)
 	rows, err := client.conn.Query(ctx, sql, args...)
@@ -93,13 +105,29 @@ func (client *Client) AggregateMetricStates(ctx context.Context, metricId string
 		return nil, err
 	}
 
-	results := []AggregatedMetricResults{}
+	results := []*modelInputs.MetricBucket{}
 	var result AggregatedMetricResults
 	for rows.Next() {
 		if err := rows.ScanStruct(&result); err != nil {
 			return nil, err
 		}
-		results = append(results, result)
+		val := result.Value
+
+		newBucket := &modelInputs.MetricBucket{
+			BucketID:    result.BucketId,
+			Group:       []string{result.GroupByKey},
+			MetricValue: &val,
+
+			YhatLower: nil,
+			YhatUpper: nil,
+		}
+
+		if windowSeconds != nil {
+			newBucket.BucketMin = float64(startDate.Unix()) + float64(result.BucketId*uint64(*windowSeconds))
+			newBucket.BucketMax = float64(startDate.Unix()) + float64((result.BucketId+1)*uint64(*windowSeconds))
+		}
+
+		results = append(results, newBucket)
 	}
 
 	return results, nil

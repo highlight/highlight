@@ -1,5 +1,48 @@
 # @highlight-run/nest
 
+## 3.6.9
+
+### Patch Changes
+
+-   Updated dependencies [f06a274]
+    -   @highlight-run/node@3.10.1
+
+## 3.6.8
+
+### Patch Changes
+
+-   Updated dependencies [236afe0]
+    -   @highlight-run/node@3.10.0
+
+## 3.6.7
+
+### Patch Changes
+
+-   Updated dependencies [b02cad4]
+    -   @highlight-run/node@3.9.7
+
+## 3.6.6
+
+### Patch Changes
+
+-   Updated dependencies [d3ba444]
+-   Updated dependencies [21f3cfb]
+    -   @highlight-run/node@3.9.6
+
+## 3.6.5
+
+### Patch Changes
+
+-   Updated dependencies [7becd8b]
+    -   @highlight-run/node@3.9.5
+
+## 3.6.4
+
+### Patch Changes
+
+-   Updated dependencies [e6d5ad2]
+    -   @highlight-run/node@3.9.4
+
 ## 3.6.3
 
 ### Patch Changes

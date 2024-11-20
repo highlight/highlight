@@ -136,6 +136,10 @@ func limitMaxSize(value *string) *string {
 	return pointy.String(strings.Repeat((*value)[:ERROR_STACK_MAX_FIELD_SIZE], 1))
 }
 
+var OSSSourceMapper = map[string]string{
+	"@commerce-apps/core": "https://raw.githubusercontent.com/SalesforceCommerceCloud/commerce-sdk-core/refs/heads/main",
+}
+
 /*
 * EnhanceStackTrace makes no DB changes
 * It loops through the stack trace, for each :
@@ -357,7 +361,7 @@ func mapFileForJS(jsFile string) string {
 	return fmt.Sprintf("%s.map", stripStackTraceQueryString(jsFile))
 }
 
-var NextNodeServerlessRegex = regexp.MustCompile(`/var/task/.+/\.next/(.+)`)
+var NextNodeServerlessRegex = regexp.MustCompile(`/var/task(/.*)?/(\.next|node_modules)/(.+)`)
 
 func processStackFrame(ctx context.Context, projectId int, version *string, stackTrace publicModel.StackFrameInput, storageClient storage.Client) (*privateModel.ErrorTrace, error, privateModel.SourceMappingError) {
 	stackTraceFileURL := *stackTrace.FileName
@@ -393,8 +397,13 @@ func processStackFrame(ctx context.Context, projectId int, version *string, stac
 	stackTraceFilePath := u.Path
 	if len(stackTraceFilePath) > 0 {
 		if matches := NextNodeServerlessRegex.FindStringSubmatch(stackTraceFilePath); matches != nil {
-			stackTraceFilePath = "_next/" + matches[1]
-			stackTraceFileURL = stackTraceFilePath
+			if matches[2] == ".next" {
+				stackTraceFilePath = "_next/" + matches[3]
+				stackTraceFileURL = stackTraceFilePath
+			} else {
+				stackTraceFilePath = matches[3]
+				stackTraceFileURL = fmt.Sprintf("https://unpkg.com/%s", stackTraceFilePath)
+			}
 			stackFileNameIndex = strings.Index(stackTraceFileURL, path.Base(stackTraceFileURL))
 		} else if stackTraceFilePath[0:1] == "/" {
 			stackTraceFilePath = stackTraceFilePath[1:]
@@ -463,6 +472,9 @@ func processStackFrame(ctx context.Context, projectId int, version *string, stac
 
 	// Get the content +/- ERROR_CONTEXT_LINES around the error line
 	content := smap.SourceContent(sourceFileName)
+	if content == "" {
+		content = fetchContentFromSource(ctx, sourceFileName)
+	}
 	if content != "" {
 		lineIdx := line - 1
 		var beforeSb strings.Builder
@@ -524,4 +536,29 @@ func processStackFrame(ctx context.Context, projectId int, version *string, stac
 		LinesAfter:   linesAfterPtr,
 	}
 	return mappedStackFrame, nil, stackTraceError
+}
+
+func fetchContentFromSource(ctx context.Context, sourceFileName string) string {
+	var err error
+	var paths = []string{sourceFileName}
+	for pkg, dst := range OSSSourceMapper {
+		parts := strings.Split(sourceFileName, pkg)
+		if len(parts) > 1 {
+			paths = append(paths, strings.Join([]string{dst, parts[1]}, ""))
+		}
+	}
+	for _, p := range paths {
+		var content []byte
+		content, err = fetch.fetchFile(ctx, p)
+		if err == nil && len(content) > 0 {
+			return string(content)
+		}
+	}
+	if err != nil {
+		log.WithContext(ctx).
+			WithError(err).
+			WithField("sourceFileName", sourceFileName).
+			Error("no source contents but got error fetching file")
+	}
+	return ""
 }

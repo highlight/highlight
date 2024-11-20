@@ -6,7 +6,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/highlight-run/highlight/backend/redis"
 	"io"
 	"net/http"
 	"strconv"
@@ -25,6 +24,7 @@ import (
 	privateModel "github.com/highlight-run/highlight/backend/private-graph/graph/model"
 	"github.com/highlight-run/highlight/backend/public-graph/graph"
 	"github.com/highlight-run/highlight/backend/public-graph/graph/model"
+	"github.com/highlight-run/highlight/backend/redis"
 	"github.com/highlight-run/highlight/backend/stacktraces"
 	"github.com/highlight/highlight/sdk/highlight-go"
 	highlightChi "github.com/highlight/highlight/sdk/highlight-go/middleware/chi"
@@ -70,7 +70,7 @@ func getBackendError(ctx context.Context, ts time.Time, fields *extractedFields,
 		lg(ctx, fields).Warn("otel received exception with no stacktrace")
 		fields.exceptionStackTrace = ""
 	}
-	fields.exceptionStackTrace = stacktraces.FormatStructureStackTrace(ctx, fields.exceptionStackTrace)
+	fields.exceptionStackTrace = stacktraces.FormatStructureStackTrace(ctx, fields.exceptionStackTrace, stacktraces.FromOTeL())
 	payloadBytes, _ := json.Marshal(fields.attrs)
 	err := &model.BackendErrorObjectInput{
 		SessionSecureID: &fields.sessionID,
@@ -329,36 +329,6 @@ func (o *Handler) HandleTrace(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	keyedErrorMessages := make(map[string][]kafkaqueue.RetryableMessage)
-	for projectID, sessionErrors := range projectSessionErrors {
-		for sessionID, errors := range sessionErrors {
-			for _, errorObject := range errors {
-				// cannot return error since we already perform this check for all project errors in `extractFields`
-				projectIDInt, _ := model2.FromVerboseID(projectID)
-				if !o.resolver.IsErrorIngested(ctx, projectIDInt, errorObject) {
-					continue
-				}
-				// session-less errors will have sessionID = "", which will
-				// generate a random key for the kafka message
-				keyedErrorMessages[sessionID] = append(keyedErrorMessages[sessionID], &kafkaqueue.Message{
-					Type: kafkaqueue.PushBackendPayload,
-					PushBackendPayload: &kafkaqueue.PushBackendPayloadArgs{
-						ProjectVerboseID: pointy.String(projectID),
-						SessionSecureID:  pointy.String(sessionID),
-						Errors:           []*model.BackendErrorObjectInput{errorObject},
-					}})
-			}
-		}
-	}
-	for key, messages := range keyedErrorMessages {
-		err = o.resolver.ProducerQueue.Submit(ctx, key, messages...)
-		if err != nil {
-			log.WithContext(ctx).WithError(err).Error("failed to submit otel errors to public worker queue")
-			w.WriteHeader(http.StatusServiceUnavailable)
-			return
-		}
-	}
-
 	for projectID, traceMetrics := range projectTraceMetrics {
 		for sessionID, metrics := range traceMetrics {
 			var messages []kafkaqueue.RetryableMessage
@@ -378,6 +348,12 @@ func (o *Handler) HandleTrace(w http.ResponseWriter, r *http.Request) {
 				return
 			}
 		}
+	}
+
+	if err := o.submitProjectSessionErrors(ctx, projectSessionErrors); err != nil {
+		log.WithContext(ctx).WithError(err).Error("failed to submit otel project session errors")
+		w.WriteHeader(http.StatusServiceUnavailable)
+		return
 	}
 
 	if err := o.submitTraceSpans(ctx, traceSpans); err != nil {
@@ -427,6 +403,7 @@ func (o *Handler) HandleLog(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var projectLogs = make(map[string][]*clickhouse.LogRow)
+	var projectSessionErrors = make(map[string]map[string][]*model.BackendErrorObjectInput)
 
 	var curTime = time.Now()
 
@@ -475,12 +452,28 @@ func (o *Handler) HandleLog(w http.ResponseWriter, r *http.Request) {
 					lg(ctx, fields).Errorf("otel log got no project")
 					continue
 				}
+
+				_, backendError := getBackendError(ctx, fields.timestamp, fields, traceID, logRecord.SpanID().String(), pointy.String(logRow.Cursor()))
+				if backendError == nil {
+					lg(ctx, fields).Error("otel span error got no session and no project")
+				} else {
+					if _, ok := projectSessionErrors[fields.projectID]; !ok {
+						projectSessionErrors[fields.projectID] = make(map[string][]*model.BackendErrorObjectInput)
+					}
+					projectSessionErrors[fields.projectID][fields.sessionID] = append(projectSessionErrors[fields.projectID][fields.sessionID], backendError)
+				}
 			}
 		}
 	}
 
 	if err := o.submitProjectLogs(ctx, projectLogs); err != nil {
 		log.WithContext(ctx).WithError(err).Error("failed to submit otel project logs")
+		w.WriteHeader(http.StatusServiceUnavailable)
+		return
+	}
+
+	if err := o.submitProjectSessionErrors(ctx, projectSessionErrors); err != nil {
+		log.WithContext(ctx).WithError(err).Error("failed to submit otel log project session errors")
 		w.WriteHeader(http.StatusServiceUnavailable)
 		return
 	}
@@ -645,6 +638,38 @@ func (o *Handler) submitProjectLogs(ctx context.Context, projectLogs map[string]
 	if err != nil {
 		return e.Wrap(err, "failed to submit otel project logs to public worker queue")
 	}
+	return nil
+}
+
+func (o *Handler) submitProjectSessionErrors(ctx context.Context, projectSessionErrors map[string]map[string][]*model.BackendErrorObjectInput) error {
+	keyedErrorMessages := make(map[string][]kafkaqueue.RetryableMessage)
+	for projectID, sessionErrors := range projectSessionErrors {
+		for sessionID, errors := range sessionErrors {
+			for _, errorObject := range errors {
+				// cannot return error since we already perform this check for all project errors in `extractFields`
+				projectIDInt, _ := model2.FromVerboseID(projectID)
+				if !o.resolver.IsErrorIngested(ctx, projectIDInt, errorObject) {
+					continue
+				}
+				// session-less errors will have sessionID = "", which will
+				// generate a random key for the kafka message
+				keyedErrorMessages[sessionID] = append(keyedErrorMessages[sessionID], &kafkaqueue.Message{
+					Type: kafkaqueue.PushBackendPayload,
+					PushBackendPayload: &kafkaqueue.PushBackendPayloadArgs{
+						ProjectVerboseID: pointy.String(projectID),
+						SessionSecureID:  pointy.String(sessionID),
+						Errors:           []*model.BackendErrorObjectInput{errorObject},
+					}})
+			}
+		}
+	}
+	for key, messages := range keyedErrorMessages {
+		err := o.resolver.ProducerQueue.Submit(ctx, key, messages...)
+		if err != nil {
+			return e.Wrap(err, "failed to submit otel errors to public worker queue")
+		}
+	}
+
 	return nil
 }
 

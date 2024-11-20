@@ -32,6 +32,7 @@ import (
 	"github.com/highlight-run/highlight/backend/alerts/integrations/discord"
 	microsoft_teams "github.com/highlight-run/highlight/backend/alerts/integrations/microsoft-teams"
 	"github.com/highlight-run/highlight/backend/alerts/integrations/webhook"
+	"github.com/highlight-run/highlight/backend/alerts/predictions"
 	alertsV2 "github.com/highlight-run/highlight/backend/alerts/v2"
 	destinationsV2 "github.com/highlight-run/highlight/backend/alerts/v2/destinations"
 	"github.com/highlight-run/highlight/backend/apolloio"
@@ -39,7 +40,6 @@ import (
 	"github.com/highlight-run/highlight/backend/clickup"
 	Email "github.com/highlight-run/highlight/backend/email"
 	"github.com/highlight-run/highlight/backend/env"
-	"github.com/highlight-run/highlight/backend/front"
 	"github.com/highlight-run/highlight/backend/integrations/cloudflare"
 	"github.com/highlight-run/highlight/backend/integrations/height"
 	kafka_queue "github.com/highlight-run/highlight/backend/kafka-queue"
@@ -923,12 +923,9 @@ func (r *mutationResolver) SendAdminWorkspaceInvite(ctx context.Context, workspa
 		return nil, e.Errorf("invalid role %s", role)
 	}
 
-	// If the new invite is for an admin role, the inviter must be an admin
-	if role == model.AdminRole.ADMIN {
-		err := r.validateAdminRole(ctx, workspaceID)
-		if err != nil {
-			return nil, err
-		}
+	err = r.validateAdminRole(ctx, workspaceID)
+	if err != nil {
+		return nil, err
 	}
 
 	// Check if an invite to the email address already exists
@@ -3015,10 +3012,6 @@ func (r *mutationResolver) AddIntegrationToProject(ctx context.Context, integrat
 		if err := r.AddSlackToWorkspace(ctx, workspace, code); err != nil {
 			return false, err
 		}
-	} else if *integrationType == modelInputs.IntegrationTypeFront {
-		if err := r.AddFrontToProject(ctx, project, code); err != nil {
-			return false, err
-		}
 	} else if *integrationType == modelInputs.IntegrationTypeVercel {
 		if err := r.AddVercelToWorkspace(workspace, code); err != nil {
 			return false, err
@@ -3072,10 +3065,6 @@ func (r *mutationResolver) RemoveIntegrationFromProject(ctx context.Context, int
 		}
 	} else if *integrationType == modelInputs.IntegrationTypeZapier {
 		if err := r.RemoveZapierFromWorkspace(ctx, project); err != nil {
-			return false, err
-		}
-	} else if *integrationType == modelInputs.IntegrationTypeFront {
-		if err := r.RemoveFrontFromProject(ctx, project); err != nil {
 			return false, err
 		}
 	} else if *integrationType == modelInputs.IntegrationTypeVercel {
@@ -3372,7 +3361,7 @@ func (r *mutationResolver) UpdateMetricMonitor(ctx context.Context, metricMonito
 }
 
 // CreateAlert is the resolver for the createAlert field.
-func (r *mutationResolver) CreateAlert(ctx context.Context, projectID int, name string, productType modelInputs.ProductType, functionType modelInputs.MetricAggregator, functionColumn *string, query *string, groupByKey *string, belowThreshold *bool, defaultArg *bool, thresholdValue *float64, thresholdWindow *int, thresholdCooldown *int, destinations []*modelInputs.AlertDestinationInput) (*model.Alert, error) {
+func (r *mutationResolver) CreateAlert(ctx context.Context, projectID int, name string, productType modelInputs.ProductType, functionType modelInputs.MetricAggregator, functionColumn *string, query *string, groupByKey *string, defaultArg *bool, thresholdValue *float64, thresholdWindow *int, thresholdCooldown *int, thresholdType *modelInputs.ThresholdType, thresholdCondition *modelInputs.ThresholdCondition, destinations []*modelInputs.AlertDestinationInput) (*model.Alert, error) {
 	project, err := r.isUserInProject(ctx, projectID)
 	admin, _ := r.getCurrentAdmin(ctx)
 	if err != nil {
@@ -3384,21 +3373,32 @@ func (r *mutationResolver) CreateAlert(ctx context.Context, projectID int, name 
 		defaultValue = *defaultArg
 	}
 
+	thresholdTypeDeref := modelInputs.ThresholdTypeConstant
+	if thresholdType != nil {
+		thresholdTypeDeref = *thresholdType
+	}
+
+	thresholdConditionDeref := modelInputs.ThresholdConditionAbove
+	if thresholdCondition != nil {
+		thresholdConditionDeref = *thresholdCondition
+	}
+
 	newAlert := &model.Alert{
-		ProjectID:         projectID,
-		MetricId:          uuid.New().String(),
-		Name:              name,
-		ProductType:       productType,
-		FunctionType:      functionType,
-		FunctionColumn:    functionColumn,
-		Query:             query,
-		GroupByKey:        groupByKey,
-		Default:           defaultValue,
-		BelowThreshold:    belowThreshold,
-		ThresholdValue:    thresholdValue,
-		ThresholdWindow:   thresholdWindow,
-		ThresholdCooldown: thresholdCooldown,
-		LastAdminToEditID: admin.ID,
+		ProjectID:          projectID,
+		MetricId:           uuid.New().String(),
+		Name:               name,
+		ProductType:        productType,
+		FunctionType:       functionType,
+		FunctionColumn:     functionColumn,
+		Query:              query,
+		GroupByKey:         groupByKey,
+		Default:            defaultValue,
+		ThresholdValue:     thresholdValue,
+		ThresholdWindow:    thresholdWindow,
+		ThresholdCooldown:  thresholdCooldown,
+		ThresholdType:      thresholdTypeDeref,
+		ThresholdCondition: thresholdConditionDeref,
+		LastAdminToEditID:  admin.ID,
 	}
 
 	createdAlert := &model.Alert{}
@@ -3437,7 +3437,7 @@ func (r *mutationResolver) CreateAlert(ctx context.Context, projectID int, name 
 }
 
 // UpdateAlert is the resolver for the updateAlert field.
-func (r *mutationResolver) UpdateAlert(ctx context.Context, projectID int, alertID int, name *string, productType *modelInputs.ProductType, functionType *modelInputs.MetricAggregator, functionColumn *string, query *string, groupByKey *string, belowThreshold *bool, thresholdValue *float64, thresholdWindow *int, thresholdCooldown *int, destinations []*modelInputs.AlertDestinationInput) (*model.Alert, error) {
+func (r *mutationResolver) UpdateAlert(ctx context.Context, projectID int, alertID int, name *string, productType *modelInputs.ProductType, functionType *modelInputs.MetricAggregator, functionColumn *string, query *string, groupByKey *string, thresholdValue *float64, thresholdWindow *int, thresholdCooldown *int, thresholdType *modelInputs.ThresholdType, thresholdCondition *modelInputs.ThresholdCondition, destinations []*modelInputs.AlertDestinationInput) (*model.Alert, error) {
 	project, err := r.isUserInProject(ctx, projectID)
 	admin, _ := r.getCurrentAdmin(ctx)
 	if err != nil {
@@ -3445,18 +3445,19 @@ func (r *mutationResolver) UpdateAlert(ctx context.Context, projectID int, alert
 	}
 
 	alertUpdates := map[string]interface{}{
-		"MetricId":          uuid.New().String(),
-		"LastAdminToEditID": admin.ID,
-		"Name":              name,
-		"ProductType":       productType,
-		"FunctionType":      functionType,
-		"FunctionColumn":    functionColumn,
-		"Query":             query,
-		"GroupByKey":        groupByKey,
-		"BelowThreshold":    belowThreshold,
-		"ThresholdValue":    thresholdValue,
-		"ThresholdWindow":   thresholdWindow,
-		"ThresholdCooldown": thresholdCooldown,
+		"MetricId":           uuid.New().String(),
+		"LastAdminToEditID":  admin.ID,
+		"Name":               name,
+		"ProductType":        productType,
+		"FunctionType":       functionType,
+		"FunctionColumn":     functionColumn,
+		"Query":              query,
+		"GroupByKey":         groupByKey,
+		"ThresholdValue":     thresholdValue,
+		"ThresholdWindow":    thresholdWindow,
+		"ThresholdCooldown":  thresholdCooldown,
+		"ThresholdType":      thresholdType,
+		"ThresholdCondition": thresholdCondition,
 	}
 
 	alert := &model.Alert{}
@@ -6622,7 +6623,7 @@ func (r *queryResolver) SessionsHistogram(ctx context.Context, projectID int, pa
 		return nil, err
 	}
 
-	bucketTimes, totals, withErrors, withoutErrors, err := r.ClickhouseClient.QuerySessionHistogram(ctx, admin, projectID, params, retentionDate, histogramOptions)
+	bucketTimes, totals, withErrors, withoutErrors, inactiveLengths, activeLengths, err := r.ClickhouseClient.QuerySessionHistogram(ctx, admin, projectID, params, retentionDate, histogramOptions)
 	if err != nil {
 		return nil, err
 	}
@@ -6636,6 +6637,8 @@ func (r *queryResolver) SessionsHistogram(ctx context.Context, projectID int, pa
 		BucketTimes:           MergeHistogramBucketTimes(bucketTimes, histogramOptions.BucketSize.Multiple),
 		SessionsWithoutErrors: MergeHistogramBucketCounts(withoutErrors, histogramOptions.BucketSize.Multiple),
 		SessionsWithErrors:    MergeHistogramBucketCounts(withErrors, histogramOptions.BucketSize.Multiple),
+		InactiveLengths:       MergeHistogramBucketCounts(inactiveLengths, histogramOptions.BucketSize.Multiple),
+		ActiveLengths:         MergeHistogramBucketCounts(activeLengths, histogramOptions.BucketSize.Multiple),
 		TotalSessions:         MergeHistogramBucketCounts(totals, histogramOptions.BucketSize.Multiple),
 	}, nil
 }
@@ -7014,24 +7017,6 @@ func (r *queryResolver) PropertySuggestion(ctx context.Context, projectID int, q
 	return fields, nil
 }
 
-// ErrorFieldSuggestion is the resolver for the error_field_suggestion field.
-func (r *queryResolver) ErrorFieldSuggestion(ctx context.Context, projectID int, name string, query string) ([]*model.ErrorField, error) {
-	if _, err := r.isUserInProjectOrDemoProject(ctx, projectID); err != nil {
-		return nil, err
-	}
-	fields := []*model.ErrorField{}
-	res := r.DB.WithContext(ctx).Where(&model.ErrorField{Name: name}).
-		Where("length(value) > ?", 0).
-		Where("value ILIKE ?", "%"+query+"%").
-		Where("project_id = ?", projectID).
-		Limit(model.SUGGESTION_LIMIT_CONSTANT).
-		Find(&fields)
-	if err := res.Error; err != nil {
-		return nil, e.Wrap(err, "error querying error field suggestion")
-	}
-	return fields, nil
-}
-
 // Projects is the resolver for the projects field.
 func (r *queryResolver) Projects(ctx context.Context) ([]*model.Project, error) {
 	admin, err := r.getCurrentAdmin(ctx)
@@ -7162,6 +7147,11 @@ func (r *queryResolver) Alerts(ctx context.Context, projectID int) ([]*model.Ale
 	if err := r.DB.Order("created_at asc").Model(&model.Alert{}).Preload("Destinations").Where("project_id = ?", projectID).Find(&alerts).Error; err != nil {
 		return nil, err
 	}
+
+	for _, alert := range alerts {
+		backfillAlertFields(alert)
+	}
+
 	return alerts, nil
 }
 
@@ -7176,6 +7166,8 @@ func (r *queryResolver) Alert(ctx context.Context, id int) (*model.Alert, error)
 	if err != nil {
 		return nil, err
 	}
+
+	backfillAlertFields(alert)
 
 	return alert, nil
 }
@@ -7557,22 +7549,6 @@ func (r *queryResolver) IsIntegratedWith(ctx context.Context, integrationType mo
 		return project.ZapierAccessToken != nil, nil
 	} else if integrationType == modelInputs.IntegrationTypeMicrosoftTeams {
 		return workspace.MicrosoftTeamsTenantId != nil, nil
-	} else if integrationType == modelInputs.IntegrationTypeFront {
-		if project.FrontAccessToken == nil || project.FrontRefreshToken == nil || project.FrontTokenExpiresAt == nil {
-			return false, nil
-		}
-		oauth, err := front.RefreshOAuth(ctx, &front.OAuthToken{
-			AccessToken:  *project.FrontAccessToken,
-			RefreshToken: *project.FrontRefreshToken,
-			ExpiresAt:    project.FrontTokenExpiresAt.Unix(),
-		})
-		if err != nil {
-			return false, e.Wrap(err, "failed to refresh oauth")
-		}
-		if err := r.saveFrontOAuth(project, oauth); err != nil {
-			return false, e.Wrap(err, "failed to save oauth")
-		}
-		return project.FrontAccessToken != nil, nil
 	} else if integrationType == modelInputs.IntegrationTypeVercel {
 		// If there is an error accessing the Vercel projects, user needs to integrate again
 		_, err := r.VercelProjects(ctx, projectID)
@@ -9514,28 +9490,80 @@ func (r *queryResolver) EventsMetrics(ctx context.Context, projectID int, params
 	return r.ClickhouseClient.ReadEventsMetrics(ctx, project.ID, params, column, metricTypes, groupBy, bucketCount, bucketBy, bucketWindow, limit, limitAggregator, limitColumn)
 }
 
+// EventSessions is the resolver for the event_sessions field.
+func (r *queryResolver) EventSessions(ctx context.Context, projectID int, count int, params modelInputs.QueryInput, sortField *string, sortDesc bool, page *int) (*model.SessionResults, error) {
+	_, err := r.isUserInProjectOrDemoProject(ctx, projectID)
+	if err != nil {
+		return nil, err
+	}
+
+	chSortStr := "SessionCreatedAt DESC"
+	pgSortStr := "created_at DESC"
+	if !sortDesc {
+		chSortStr = "SessionCreatedAt ASC"
+		pgSortStr = "created_at ASC"
+	}
+
+	sessionIDs, total, err := r.ClickhouseClient.QueryEventSessionIds(ctx, projectID, count, params, chSortStr, page)
+	if err != nil {
+		return nil, err
+	}
+
+	q := r.DB.WithContext(ctx).Model(&model.Session{}).
+		Where("id in ?", sessionIDs).
+		Where("project_id = ?", projectID).
+		Order(pgSortStr)
+
+	var results []model.Session
+	if err := q.Find(&results).Error; err != nil {
+		return nil, err
+	}
+
+	return &model.SessionResults{
+		Sessions:   results,
+		TotalCount: total,
+	}, nil
+}
+
 // Metrics is the resolver for the metrics field.
-func (r *queryResolver) Metrics(ctx context.Context, productType modelInputs.ProductType, projectID int, params modelInputs.QueryInput, column string, metricTypes []modelInputs.MetricAggregator, groupBy []string, bucketBy string, bucketCount *int, bucketWindow *int, limit *int, limitAggregator *modelInputs.MetricAggregator, limitColumn *string) (*modelInputs.MetricsBuckets, error) {
+func (r *queryResolver) Metrics(ctx context.Context, productType modelInputs.ProductType, projectID int, params modelInputs.QueryInput, column string, metricTypes []modelInputs.MetricAggregator, groupBy []string, bucketBy string, bucketCount *int, bucketWindow *int, limit *int, limitAggregator *modelInputs.MetricAggregator, limitColumn *string, predictionSettings *modelInputs.PredictionSettings) (*modelInputs.MetricsBuckets, error) {
+	var results *modelInputs.MetricsBuckets
+	var err error
+
 	switch productType {
 	case modelInputs.ProductTypeMetrics:
 		project, err := r.isUserInProjectOrDemoProject(ctx, projectID)
 		if err != nil {
 			return nil, err
 		}
-		return r.ClickhouseClient.ReadEventMetrics(ctx, project.ID, params, column, metricTypes, groupBy, bucketCount, bucketBy, bucketWindow, limit, limitAggregator, limitColumn)
+		results, err = r.ClickhouseClient.ReadEventMetrics(ctx, project.ID, params, column, metricTypes, groupBy, bucketCount, bucketBy, bucketWindow, limit, limitAggregator, limitColumn)
 	case modelInputs.ProductTypeTraces:
-		return r.TracesMetrics(ctx, projectID, params, column, metricTypes, groupBy, &bucketBy, bucketCount, bucketWindow, limit, limitAggregator, limitColumn)
+		results, err = r.TracesMetrics(ctx, projectID, params, column, metricTypes, groupBy, &bucketBy, bucketCount, bucketWindow, limit, limitAggregator, limitColumn)
 	case modelInputs.ProductTypeLogs:
-		return r.LogsMetrics(ctx, projectID, params, column, metricTypes, groupBy, bucketBy, bucketCount, bucketWindow, limit, limitAggregator, limitColumn)
+		results, err = r.LogsMetrics(ctx, projectID, params, column, metricTypes, groupBy, bucketBy, bucketCount, bucketWindow, limit, limitAggregator, limitColumn)
 	case modelInputs.ProductTypeSessions:
-		return r.SessionsMetrics(ctx, projectID, params, column, metricTypes, groupBy, bucketBy, bucketCount, bucketWindow, limit, limitAggregator, limitColumn)
+		results, err = r.SessionsMetrics(ctx, projectID, params, column, metricTypes, groupBy, bucketBy, bucketCount, bucketWindow, limit, limitAggregator, limitColumn)
 	case modelInputs.ProductTypeErrors:
-		return r.ErrorsMetrics(ctx, projectID, params, column, metricTypes, groupBy, bucketBy, bucketCount, bucketWindow, limit, limitAggregator, limitColumn)
+		results, err = r.ErrorsMetrics(ctx, projectID, params, column, metricTypes, groupBy, bucketBy, bucketCount, bucketWindow, limit, limitAggregator, limitColumn)
 	case modelInputs.ProductTypeEvents:
-		return r.EventsMetrics(ctx, projectID, params, column, metricTypes, groupBy, bucketBy, bucketCount, bucketWindow, limit, limitAggregator, limitColumn)
+		results, err = r.EventsMetrics(ctx, projectID, params, column, metricTypes, groupBy, bucketBy, bucketCount, bucketWindow, limit, limitAggregator, limitColumn)
 	default:
-		return nil, e.Errorf("invalid product type %s", productType)
+		results, err = nil, e.Errorf("invalid product type %s", productType)
 	}
+
+	if err != nil {
+		return nil, err
+	}
+
+	if predictionSettings == nil {
+		return results, err
+	}
+
+	if err := predictions.AddPredictions(ctx, results.Buckets, *predictionSettings); err != nil {
+		return nil, err
+	}
+
+	return results, nil
 }
 
 // Keys is the resolver for the keys field.
@@ -9675,6 +9703,17 @@ func (r *queryResolver) Graph(ctx context.Context, id int) (*model.Graph, error)
 	}
 
 	return &graph, nil
+}
+
+// GraphTemplates is the resolver for the graph_templates field.
+func (r *queryResolver) GraphTemplates(ctx context.Context) ([]*model.Graph, error) {
+	const templateId = -1
+	var graphs []*model.Graph
+	if err := r.DB.WithContext(ctx).Model(&graphs).Where("visualization_id = ?", templateId).Find(&graphs).Error; err != nil {
+		return nil, err
+	}
+
+	return graphs, nil
 }
 
 // LogLines is the resolver for the log_lines field.

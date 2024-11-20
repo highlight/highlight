@@ -318,6 +318,39 @@ export const Buttons = () => {
 					</button>
 					<button
 						className={commonStyles.submitButton}
+						onClick={async () => {
+							await H.startManualSpan(
+								'client-highlight-error',
+								async (span) => {
+									span?.setAttribute('test', 'f00')
+									span?.recordException(
+										new Error(
+											'this is a highlight tracer error',
+										),
+									)
+									span?.end()
+								},
+							)
+						}}
+					>
+						H.startActiveSpan().recordException()
+					</button>
+					<button
+						className={commonStyles.submitButton}
+						onClick={async () => {
+							const { trace } = await import('@opentelemetry/api')
+							const tracer = trace.getTracer('Buttons.tsx')
+							const span = tracer.startSpan('client-tracer-error')
+							span.recordException(
+								new Error('this is a otel tracer error'),
+							)
+							span.end()
+						}}
+					>
+						otel tracer recordException
+					</button>
+					<button
+						className={commonStyles.submitButton}
 						onClick={() => {
 							H.consumeError(
 								new Error('Highlight H.consumeError', {

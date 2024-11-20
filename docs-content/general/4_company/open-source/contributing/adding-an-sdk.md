@@ -19,6 +19,72 @@ In our SDKs, we instantiate the following constructs to exports data over OTLP H
 
 The SDK provides common methods for recording exceptions or logging, but this may depend on the language. For example, in Go, a logger hook API is provided to be configured by the application, but in Python, we automatically ingest a hook into the built in `logging` package.
 
+## Configuring OpenTelemetry attributes
+
+Highlight follows OpenTelemetry [semantic conventions](https://opentelemetry.io/docs/reference/specification/trace/semantic_conventions/) to record data in Highlight with metadata you expect. However, there are a few key attributes that highlight treats distinctly.
+
+### Setting the Highlight Project ID
+
+To have your OpenTelemetry data land in your Highlight project, you must provide the Highlight project identifier with the data.
+This can be done via an exporter HTTP header, resource attributes, or data attributes (on the individual span / log / metric records). 
+
+- x-highlight-project - use this HTTP header for OpenTelemetry exporter configuration
+- highlight.project_id - use this Attribute key for Resource or Record attributes
+
+### Example Node.js OpenTelemetry configuration
+
+```typescript
+import { NodeSDK } from '@opentelemetry/sdk-node'
+import { OTLPTraceExporter } from '@opentelemetry/exporter-trace-otlp-http';
+import { Resource } from '@opentelemetry/resources'
+import type { Attributes } from '@opentelemetry/api'
+
+const attributes: Attributes = {
+	// Provide the highlight project ID as a resource attribute or via the exporter headers
+    // 'highlight.project_id': '<YOUR_PROJECT_ID>',
+    'service.name': 'my-service'
+}
+const sdk = new NodeSDK({
+	resource: new Resource(attributes),
+	traceExporter: new OTLPTraceExporter({
+		// NB: this is the url for trace exports. if you are using a language which supports
+		// the opentelemetry logs format, use 'https://otel.highlight.io:4318/v1/logs'
+		url: 'https://otel.highlight.io:4318/v1/traces',
+		// In some OpenTelemetry implementations, it's easier to provide 
+		// the project ID as a header rather than a resource attribute.
+		headers: { 'x-highlight-project': '<YOUR_PROJECT_ID>' }
+	})
+});
+const tracer = trace.getTracer('my-tracer');
+sdk.start();
+
+
+const log = (level: string, message: string) => {
+    const span = tracer.startSpan('main')
+    span.setAttributes({
+        ['highlight.session_id']: 'abc123',
+        ['highlight.trace_id']: 'def456',
+        customer: 'vadim',
+        customer_id: 1234
+    })
+
+    span.addEvent('log', {
+        ['log.severity']: level,
+        ['log.message']: message
+    }, new Date())
+
+    span.addEvent('metric', {
+        ['metric.name']: 'my-web-vital',
+        ['metric.value']: 12.34
+    }, new Date())
+    span.end()
+};
+
+log('info', 'hello, world!')
+```
+
+See the OpenTelemetry [getting started guide](../../../../getting-started/7_native-opentelemetry/4_tracing.md) as well for more details.
+
 ## Recording an Error
 
 Data we send over the OpenTelemetry specification is as a [Trace](https://opentelemetry.io/docs/reference/specification/trace/) with attributes set per the [semantic conventions](https://opentelemetry.io/docs/reference/specification/trace/semantic_conventions/).

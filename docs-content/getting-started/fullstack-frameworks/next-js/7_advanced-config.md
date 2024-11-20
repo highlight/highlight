@@ -59,7 +59,7 @@ export default withPageRouterHighlight(async function handler(
 	res: NextApiResponse,
 ) {
 	return new Promise<void>(async (resolve) => {
-		const span = await H.startActiveSpan('page-router-span', {})
+		const { span } = H.startWithHeaders('page-router-span', {})
 
 		console.info('Here: /pages/api/page-router-trace.ts ⌚⌚⌚')
 
@@ -80,7 +80,7 @@ export const GET = withAppRouterHighlight(async function GET(
 	request: NextRequest,
 ) {
 	return new Promise(async (resolve) => {
-		const span = await H.startActiveSpan('app-router-span', {})
+        const { span } = H.startWithHeaders('app-router-span', {})
 
 		console.info('Here: /pages/api/app-router-trace/route.ts ⏰⏰⏰')
 
@@ -144,7 +144,7 @@ const { withHighlightConfig } = require('@highlight-run/next/config')
 /** @type {import('next').NextConfig} */
 const nextConfig = {
 	experimental: {
-		serverComponentsExternalPackages: ['@highlight-run/node'],
+		serverComponentsExternalPackages: ['@highlight-run/node', 'require-in-the-middle'],
 	},
 	productionBrowserSourceMaps: true, // optionally ship source maps to production
 }
@@ -175,7 +175,7 @@ const { withHighlightConfig } = require('@highlight-run/next/config')
 /** @type {import('next').NextConfig} */
 const nextConfig = {
 	experimental: {
-		serverComponentsExternalPackages: ['@highlight-run/node'],
+		serverComponentsExternalPackages: ['@highlight-run/node', 'require-in-the-middle'],
 	},
 	productionBrowserSourceMaps: false,
 }

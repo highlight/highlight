@@ -959,8 +959,8 @@ const BillingBanner: React.FC = () => {
 
 	if (!bannerMessage && !hasTrial) {
 		const isLaunchWeek = moment().isBetween(
-			'2024-07-29T16:00:00Z', // 9AM PST
-			'2024-08-03T16:00:00Z',
+			'2024-10-21T13:00:00Z', // 6AM PST
+			'2024-10-26T13:00:00Z',
 		)
 		if (isLaunchWeek) {
 			return <LaunchWeekBanner />
@@ -1068,10 +1068,10 @@ const LaunchWeekBanner = () => {
 
 	const bannerMessage = (
 		<span>
-			Launch Week 6 is here.{' '}
+			Launch Week 7 is here.{' '}
 			<a
 				target="_blank"
-				href="https://www.youtube.com/playlist?list=PLtIz-bpzHkhhXNuWXTohSbozKz3t-WjOR"
+				href="https://dub.highlight.io/lw7-playlist"
 				className={styles.trialLink}
 				rel="noreferrer"
 			>

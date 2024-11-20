@@ -9,11 +9,11 @@ In [highlight.io](https://highlight.io), you can search for a errors using diffe
 instance. The instance is a specific occurance of an error that occurred. Based on the error event, stacktrace, and other attributes,
 instances are organized into groups. These groups are returned by the search on the [Errors search page](https://app.highlight.io/errors).
 
-## Searching for errors
+## Searching for Errors
 
 For general information on searching errors, check out our [Search docs](../../6_product-features/3_general-features/search.md).
 
-## Default key
+## Default Key
 
 The default key for error search is `event`. If you enter an expression without a key (`undefined variable`) it will be used as the
 key for the expression (`event="*undefined variable*"`).
@@ -33,7 +33,7 @@ instances to get more information on different occurrences of the error group.
 
 ![](/images/error_instance_search.png)
 
-## Autoinjected attributes
+## Autoinjected Attributes
 
 Errors can be searched by the following attributes:
 

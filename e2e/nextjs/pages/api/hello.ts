@@ -6,6 +6,8 @@ function handler(req: NextApiRequest, res: NextApiResponse) {
 	const user = {
 		name: 'vadim',
 	} as any
+	logger.info({ key: 'my json message', foo: 'bar', user })
+
 	for (let i = 0; i < 100; i++) {
 		user[i.toString()] = Math.random()
 	}

@@ -373,7 +373,16 @@ function TopBar({
 		},
 		skip: !projectId,
 	})
-	const showCreateAlertButton = alertsData?.error_alerts?.length === 0
+
+	const showCreateAlertButton = useMemo(() => {
+		if (!!alertsData?.error_alerts?.length) {
+			return false
+		}
+
+		return !alertsData?.alerts?.some(
+			(alert) => alert?.product_type === ProductType.Errors,
+		)
+	}, [alertsData])
 
 	const {
 		showLeftPanel,
@@ -427,7 +436,7 @@ function TopBar({
 					<Box display="flex" gap="8" alignItems="center">
 						<ErrorShareButton errorGroup={errorGroup} />
 						{showCreateAlertButton ? (
-							<CreateAlertButton type="errors" />
+							<CreateAlertButton type={ProductType.Errors} />
 						) : null}
 						<Divider />
 						<ErrorStateSelect
@@ -545,9 +554,7 @@ function ErrorDisplay({
 			return (
 				<ErrorState
 					title="Enter this Workspace?"
-					message={
-						"Sadly, you don’t have access to the workspace 😢 Request access and we'll shoot an email to your workspace admin. Alternatively, feel free to make an account!"
-					}
+					message="Sadly, you don’t have access to the workspace 😢 Request access and we'll shoot an email to your workspace admin. Alternatively, feel free to make an account!"
 					shownWithHeader
 					showRequestAccess
 				/>

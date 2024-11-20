@@ -47,4 +47,7 @@ export default defineConfig({
 			cache: false,
 		},
 	},
+	test: {
+		environment: 'jsdom',
+	},
 })

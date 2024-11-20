@@ -38,5 +38,13 @@ export const logger = winston.createLogger({
 		winston.format.timestamp(),
 		winston.format.prettyPrint(),
 	),
-	transports: [new winston.transports.Console(), highlightTransport],
+	transports: [
+		new winston.transports.Console({
+			level: 'debug',
+			handleExceptions: true,
+			// @ts-ignore
+			json: true,
+		}),
+		highlightTransport,
+	],
 })

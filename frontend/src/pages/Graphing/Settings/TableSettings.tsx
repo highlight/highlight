@@ -8,11 +8,13 @@ import * as style from './styles.css'
 type Props = {
 	nullHandling: TableNullHandling
 	setNullHandling: (option: TableNullHandling) => void
+	disabled?: boolean
 }
 
 export const TableSettings: React.FC<Props> = ({
 	nullHandling,
 	setNullHandling,
+	disabled,
 }) => (
 	<LabeledRow
 		label="Nulls"
@@ -26,6 +28,7 @@ export const TableSettings: React.FC<Props> = ({
 				setNullHandling(o as TableNullHandling)
 			}}
 			cssClass={style.tagSwitch}
+			disabled={disabled}
 		/>
 	</LabeledRow>
 )

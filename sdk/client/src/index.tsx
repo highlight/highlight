@@ -136,7 +136,6 @@ export type HighlightClassOptions = {
 	storageMode?: 'sessionStorage' | 'localStorage'
 	skipCookieSessionDataLoad?: true
 	sendMode?: 'webworker' | 'local'
-	enableOtelTracing?: HighlightOptions['enableOtelTracing']
 	otlpEndpoint?: HighlightOptions['otlpEndpoint']
 }
 
@@ -516,13 +515,6 @@ export class Highlight {
 	}
 
 	async initialize(options?: StartOptions): Promise<undefined> {
-		this.logger.log(
-			`Initializing...`,
-			options,
-			this.sessionData,
-			this.options,
-		)
-
 		if (
 			(navigator?.webdriver && !window.Cypress) ||
 			navigator?.userAgent?.includes('Googlebot') ||
@@ -537,6 +529,13 @@ export class Highlight {
 				await this._reset(options)
 				return
 			}
+
+			this.logger.log(
+				`Initializing...`,
+				options,
+				this.sessionData,
+				this.options,
+			)
 
 			this.sessionData =
 				getPreviousSessionData(this.sessionData.sessionSecureID) ??
@@ -921,10 +920,6 @@ SessionSecureID: ${this.sessionData.sessionSecureID}`,
 					} else {
 						this.addCustomEvent<string>('Navigate', url)
 					}
-					highlightThis.addProperties(
-						{ 'visited-url': url },
-						{ type: 'session' },
-					)
 				}),
 			)
 

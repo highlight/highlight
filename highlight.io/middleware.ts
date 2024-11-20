@@ -1,4 +1,6 @@
-import { NextRequest, NextResponse } from 'next/server'
+// middleware.ts
+import { type NextRequest, NextResponse } from 'next/server'
+import { highlightMiddleware } from '@highlight-run/next/server'
 
 // this will redirect the domain landing page to the following page component
 const SUBDOMAIN_LANDING_PAGES = {
@@ -175,4 +177,7 @@ export default function middleware(req: NextRequest) {
 			}
 		}
 	}
+
+	highlightMiddleware(req)
+	return NextResponse.next()
 }

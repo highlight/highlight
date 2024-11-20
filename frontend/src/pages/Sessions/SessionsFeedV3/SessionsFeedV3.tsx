@@ -28,7 +28,7 @@ import { SessionFeedCard } from '@pages/Sessions/SessionsFeedV3/SessionFeedCard/
 import { SessionReport } from '@pages/Sessions/SessionsFeedV3/SessionReport'
 import { useGlobalContext } from '@routers/ProjectRouter/context/GlobalContext'
 import { useParams } from '@util/react-router/useParams'
-import { roundFeedDate } from '@util/time'
+import { roundFeedDate, msToHours } from '@util/time'
 import clsx from 'clsx'
 import React from 'react'
 
@@ -59,6 +59,7 @@ export const SessionsHistogram: React.FC<{ readonly?: boolean }> = React.memo(
 			endDate,
 			updateSearchTime,
 		} = useSearchContext()
+		const sessionFeedConfiguration = useSessionFeedConfiguration()
 
 		const { loading, data } = useGetSessionsHistogramQuery({
 			variables: {
@@ -104,18 +105,39 @@ export const SessionsHistogram: React.FC<{ readonly?: boolean }> = React.memo(
 			histogram.bucketTimes = data?.sessions_histogram.bucket_times.map(
 				(startTime) => new Date(startTime).valueOf(),
 			)
-			histogram.seriesList = [
-				{
-					label: 'sessions',
-					color: 'n11',
-					counts: data?.sessions_histogram.sessions_without_errors,
-				},
-				{
-					label: 'w/errors',
-					color: 'p11',
-					counts: data?.sessions_histogram.sessions_with_errors,
-				},
-			]
+			histogram.seriesList =
+				sessionFeedConfiguration.sessionHistogramFormat ===
+				'Active/Inactive Time'
+					? [
+							{
+								label: 'inactive hours',
+								color: 'n11',
+								counts: data?.sessions_histogram.inactive_lengths.map(
+									msToHours,
+								),
+							},
+							{
+								label: 'active hours',
+								color: 'p11',
+								counts: data?.sessions_histogram.active_lengths.map(
+									msToHours,
+								),
+							},
+						]
+					: [
+							{
+								label: 'sessions',
+								color: 'n11',
+								counts: data?.sessions_histogram
+									.sessions_without_errors,
+							},
+							{
+								label: 'w/errors',
+								color: 'p11',
+								counts: data?.sessions_histogram
+									.sessions_with_errors,
+							},
+						]
 		}
 
 		return (

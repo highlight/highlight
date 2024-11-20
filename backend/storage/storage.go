@@ -257,11 +257,12 @@ func (f *FilesystemClient) PushSourceMapFile(ctx context.Context, projectId int,
 	span, ctx := util.StartSpanFromContext(ctx, "fs.PushSourceMapFile")
 	defer span.Finish()
 
-	buf := new(bytes.Buffer)
-	_, err := buf.Read(fileBytes)
-	if err != nil {
-		return nil, errors.Wrap(err, "error reading from memory buffer")
+	if version == nil {
+		unversioned := "unversioned"
+		version = &unversioned
 	}
+
+	buf := bytes.NewBuffer(fileBytes)
 	if n, err := f.writeFSBytes(ctx, fmt.Sprintf("%s/%d/%s/%s", f.fsRoot, projectId, *version, fileName), buf); err != nil {
 		return pointy.Int64(0), err
 	} else {

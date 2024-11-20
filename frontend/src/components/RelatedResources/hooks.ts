@@ -14,11 +14,12 @@ type RelatedResourceCommon = {
 		| 'errors'
 		| 'sessions'
 		| 'traces'
+		| 'events'
 	canGoBack?: boolean
 }
 
 type QueryableResource = {
-	type: 'logs' | 'errors' | 'sessions' | 'traces'
+	type: 'logs' | 'errors' | 'sessions' | 'traces' | 'events'
 	query: string
 	startDate: string
 	endDate: string
@@ -66,6 +67,11 @@ export type RelatedSessions = RelatedResourceCommon &
 		type: 'sessions'
 	}
 
+export type RelatedEvents = RelatedResourceCommon &
+	QueryableResource & {
+		type: 'events'
+	}
+
 export type RelatedResource =
 	| RelatedError
 	| RelatedSession
@@ -74,6 +80,7 @@ export type RelatedResource =
 	| RelatedTraces
 	| RelatedErrors
 	| RelatedSessions
+	| RelatedEvents
 
 const LOCAL_STORAGE_WIDTH_KEY = 'related-resource-panel-width'
 export const RELATED_RESOURCE_PARAM = 'related_resource'
@@ -168,13 +175,27 @@ export const useRelatedResource = () => {
 		panelPaginationVar(null)
 	}, [searchParams, setSearchParams])
 
+	const updateQuery = useCallback(
+		(query: QueryableResource['query']) => {
+			searchParams.delete(RELATED_RESOURCE_PARAM)
+			searchParams.set('query', query)
+			setSearchParams(Object.fromEntries(searchParams.entries()))
+			setResource(null)
+			panelPaginationVar(null)
+		},
+		[searchParams, setSearchParams],
+	)
+
 	return {
 		resource,
 		panelPagination,
 		panelWidth,
+		searchParams,
 		set,
 		remove,
 		setPanelWidth,
 		setPanelPagination,
+		setResource,
+		updateQuery,
 	}
 }

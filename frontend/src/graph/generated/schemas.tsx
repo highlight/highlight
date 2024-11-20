@@ -130,7 +130,6 @@ export enum AdminRole {
 
 export type Alert = {
 	__typename?: 'Alert'
-	below_threshold?: Maybe<Scalars['Boolean']>
 	destinations: Array<Maybe<AlertDestination>>
 	disabled: Scalars['Boolean']
 	function_column?: Maybe<Scalars['String']>
@@ -143,7 +142,9 @@ export type Alert = {
 	product_type: ProductType
 	project_id: Scalars['ID']
 	query?: Maybe<Scalars['String']>
+	threshold_condition?: Maybe<ThresholdCondition>
 	threshold_cooldown?: Maybe<Scalars['Int']>
+	threshold_type?: Maybe<ThresholdType>
 	threshold_value?: Maybe<Scalars['Float']>
 	threshold_window?: Maybe<Scalars['Int']>
 	updated_at: Scalars['Timestamp']
@@ -545,13 +546,6 @@ export type ErrorDistributionItem = {
 	value: Scalars['Int64']
 }
 
-export type ErrorField = {
-	__typename?: 'ErrorField'
-	name: Scalars['String']
-	project_id?: Maybe<Scalars['Int']>
-	value: Scalars['String']
-}
-
 export type ErrorGroup = {
 	__typename?: 'ErrorGroup'
 	created_at: Scalars['Timestamp']
@@ -560,7 +554,6 @@ export type ErrorGroup = {
 	error_metrics: Array<ErrorDistributionItem>
 	error_tag?: Maybe<ErrorTag>
 	event: Array<Maybe<Scalars['String']>>
-	fields?: Maybe<Array<Maybe<ErrorField>>>
 	first_occurrence?: Maybe<Scalars['Timestamp']>
 	id: Scalars['ID']
 	is_public: Scalars['Boolean']
@@ -774,6 +767,7 @@ export type Graph = {
 	bucketByKey?: Maybe<Scalars['String']>
 	bucketCount?: Maybe<Scalars['Int']>
 	bucketInterval?: Maybe<Scalars['Int']>
+	description: Scalars['String']
 	display?: Maybe<Scalars['String']>
 	functionType: MetricAggregator
 	funnelSteps?: Maybe<Array<FunnelStep>>
@@ -869,7 +863,6 @@ export enum IntegrationType {
 	ClickUp = 'ClickUp',
 	Cloudflare = 'Cloudflare',
 	Discord = 'Discord',
-	Front = 'Front',
 	GitHub = 'GitHub',
 	GitLab = 'GitLab',
 	Height = 'Height',
@@ -1118,6 +1111,8 @@ export type MetricBucket = {
 	group: Array<Scalars['String']>
 	metric_type: MetricAggregator
 	metric_value?: Maybe<Scalars['Float']>
+	yhat_lower?: Maybe<Scalars['Float']>
+	yhat_upper?: Maybe<Scalars['Float']>
 }
 
 export enum MetricBucketBy {
@@ -1326,7 +1321,6 @@ export type MutationChangeProjectMembershipArgs = {
 }
 
 export type MutationCreateAlertArgs = {
-	below_threshold?: InputMaybe<Scalars['Boolean']>
 	default?: InputMaybe<Scalars['Boolean']>
 	destinations: Array<AlertDestinationInput>
 	function_column?: InputMaybe<Scalars['String']>
@@ -1336,7 +1330,9 @@ export type MutationCreateAlertArgs = {
 	product_type: ProductType
 	project_id: Scalars['ID']
 	query?: InputMaybe<Scalars['String']>
+	threshold_condition?: InputMaybe<ThresholdCondition>
 	threshold_cooldown?: InputMaybe<Scalars['Int']>
+	threshold_type?: InputMaybe<ThresholdType>
 	threshold_value?: InputMaybe<Scalars['Float']>
 	threshold_window?: InputMaybe<Scalars['Int']>
 }
@@ -1770,7 +1766,6 @@ export type MutationUpdateAdminAndCreateWorkspaceArgs = {
 
 export type MutationUpdateAlertArgs = {
 	alert_id: Scalars['ID']
-	below_threshold?: InputMaybe<Scalars['Boolean']>
 	destinations?: InputMaybe<Array<AlertDestinationInput>>
 	function_column?: InputMaybe<Scalars['String']>
 	function_type?: InputMaybe<MetricAggregator>
@@ -1779,7 +1774,9 @@ export type MutationUpdateAlertArgs = {
 	product_type?: InputMaybe<ProductType>
 	project_id: Scalars['ID']
 	query?: InputMaybe<Scalars['String']>
+	threshold_condition?: InputMaybe<ThresholdCondition>
 	threshold_cooldown?: InputMaybe<Scalars['Int']>
+	threshold_type?: InputMaybe<ThresholdType>
 	threshold_value?: InputMaybe<Scalars['Float']>
 	threshold_window?: InputMaybe<Scalars['Int']>
 }
@@ -2023,6 +2020,13 @@ export enum PlanType {
 	UsageBased = 'UsageBased',
 }
 
+export type PredictionSettings = {
+	changepointPriorScale: Scalars['Float']
+	intervalSeconds: Scalars['Int']
+	intervalWidth: Scalars['Float']
+	thresholdCondition: ThresholdCondition
+}
+
 export enum ProductType {
 	Errors = 'Errors',
 	Events = 'Events',
@@ -2086,7 +2090,6 @@ export type Query = {
 	error_comments: Array<Maybe<ErrorComment>>
 	error_comments_for_admin: Array<Maybe<ErrorComment>>
 	error_comments_for_project: Array<Maybe<ErrorComment>>
-	error_field_suggestion?: Maybe<Array<Maybe<ErrorField>>>
 	error_group?: Maybe<ErrorGroup>
 	error_groups: ErrorResults
 	error_groups_clickhouse: ErrorResults
@@ -2105,6 +2108,7 @@ export type Query = {
 	errors_metrics: MetricsBuckets
 	event_chunk_url: Scalars['String']
 	event_chunks: Array<EventChunk>
+	event_sessions: SessionResults
 	events?: Maybe<Array<Maybe<Scalars['Any']>>>
 	events_key_values: Array<Scalars['String']>
 	events_keys: Array<QueryKey>
@@ -2117,6 +2121,7 @@ export type Query = {
 	github_repos?: Maybe<Array<GitHubRepo>>
 	gitlab_projects?: Maybe<Array<GitlabProject>>
 	graph: Graph
+	graph_templates: Array<Graph>
 	height_lists: Array<HeightList>
 	height_workspaces: Array<HeightWorkspace>
 	identifier_suggestion: Array<Scalars['String']>
@@ -2364,12 +2369,6 @@ export type QueryError_Comments_For_ProjectArgs = {
 	project_id: Scalars['ID']
 }
 
-export type QueryError_Field_SuggestionArgs = {
-	name: Scalars['String']
-	project_id: Scalars['ID']
-	query: Scalars['String']
-}
-
 export type QueryError_GroupArgs = {
 	secure_id: Scalars['String']
 	use_clickhouse?: InputMaybe<Scalars['Boolean']>
@@ -2471,6 +2470,15 @@ export type QueryEvent_Chunk_UrlArgs = {
 
 export type QueryEvent_ChunksArgs = {
 	secure_id: Scalars['String']
+}
+
+export type QueryEvent_SessionsArgs = {
+	count: Scalars['Int']
+	page?: InputMaybe<Scalars['Int']>
+	params: QueryInput
+	project_id: Scalars['ID']
+	sort_desc: Scalars['Boolean']
+	sort_field?: InputMaybe<Scalars['String']>
 }
 
 export type QueryEventsArgs = {
@@ -2716,6 +2724,7 @@ export type QueryMetricsArgs = {
 	limit_column?: InputMaybe<Scalars['String']>
 	metric_types: Array<MetricAggregator>
 	params: QueryInput
+	prediction_settings?: InputMaybe<PredictionSettings>
 	product_type: ProductType
 	project_id: Scalars['ID']
 }
@@ -3179,6 +3188,7 @@ export enum ReservedEventKey {
 	SessionLength = 'session_length',
 	SessionPagesVisited = 'session_pages_visited',
 	State = 'state',
+	Timestamp = 'timestamp',
 }
 
 export enum ReservedLogKey {
@@ -3222,6 +3232,8 @@ export enum ReservedSessionKey {
 	SecureId = 'secure_id',
 	ServiceVersion = 'service_version',
 	State = 'state',
+	Timestamp = 'timestamp',
+	UpdatedAt = 'updated_at',
 	Viewed = 'viewed',
 	ViewedByAnyone = 'viewed_by_anyone',
 	ViewedByMe = 'viewed_by_me',
@@ -3601,7 +3613,9 @@ export type SessionResults = {
 
 export type SessionsHistogram = {
 	__typename?: 'SessionsHistogram'
+	active_lengths: Array<Scalars['Int64']>
 	bucket_times: Array<Scalars['Timestamp']>
+	inactive_lengths: Array<Scalars['Int64']>
 	sessions_with_errors: Array<Scalars['Int64']>
 	sessions_without_errors: Array<Scalars['Int64']>
 	total_sessions: Array<Scalars['Int64']>
@@ -3734,6 +3748,17 @@ export type SystemConfiguration = {
 	__typename?: 'SystemConfiguration'
 	maintenance_end?: Maybe<Scalars['Timestamp']>
 	maintenance_start?: Maybe<Scalars['Timestamp']>
+}
+
+export enum ThresholdCondition {
+	Above = 'Above',
+	Below = 'Below',
+	Outside = 'Outside',
+}
+
+export enum ThresholdType {
+	Anomaly = 'Anomaly',
+	Constant = 'Constant',
 }
 
 export type TimelineIndicatorEvent = {

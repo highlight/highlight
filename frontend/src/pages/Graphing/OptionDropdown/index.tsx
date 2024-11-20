@@ -37,7 +37,12 @@ export const OptionDropdown = <T extends string>({
 					)
 				}}
 				options={options}
-				onValueChange={(v: SelectOption) => setSelection(v.value as T)}
+				onValueChange={(v: SelectOption) => {
+					const newSelection = v.value as T
+					if (newSelection !== selection) {
+						setSelection(newSelection)
+					}
+				}}
 				disabled={disabled}
 			/>
 		</Box>

@@ -13,7 +13,11 @@ import api, {
 } from '@opentelemetry/api'
 import { getNodeAutoInstrumentations } from '@opentelemetry/auto-instrumentations-node'
 import { AsyncLocalStorageContextManager } from '@opentelemetry/context-async-hooks'
-import { W3CBaggagePropagator } from '@opentelemetry/core'
+import {
+	W3CBaggagePropagator,
+	W3CTraceContextPropagator,
+	CompositePropagator,
+} from '@opentelemetry/core'
 import { OTLPTraceExporter } from '@opentelemetry/exporter-trace-otlp-http'
 import { registerInstrumentations } from '@opentelemetry/instrumentation'
 import { CompressionAlgorithm } from '@opentelemetry/otlp-exporter-base'
@@ -36,6 +40,7 @@ import { clearInterval } from 'timers'
 import { hookConsole } from './hooks.js'
 import log from './log.js'
 import { HIGHLIGHT_REQUEST_HEADER } from './sdk.js'
+import { Headers } from 'node-fetch'
 import type { HighlightContext, NodeOptions } from './types.js'
 import * as packageJson from '../package.json'
 
@@ -70,7 +75,14 @@ const instrumentations = getNodeAutoInstrumentations({
  *
  * Docs: https://github.com/open-telemetry/opentelemetry-js/blob/main/packages/opentelemetry-core/README.md
  */
-propagation.setGlobalPropagator(new W3CBaggagePropagator())
+propagation.setGlobalPropagator(
+	new CompositePropagator({
+		propagators: [
+			new W3CBaggagePropagator(),
+			new W3CTraceContextPropagator(),
+		],
+	}),
+)
 
 registerInstrumentations({ instrumentations })
 
@@ -450,16 +462,16 @@ export class Highlight {
 	}
 
 	async runWithHeaders<T>(
+		name: string,
 		headers: Headers | IncomingHttpHeaders,
 		cb: (span: OtelSpan) => T | Promise<T>,
+		options?: SpanOptions,
 	) {
 		const { secureSessionId, requestId } = this.parseHeaders(headers)
-		const { span, ctx } = await this.startWithHeaders(
-			'highlight-ctx',
-			headers,
-		)
+		const { span, ctx } = this.startWithHeaders(name, headers, options)
 		try {
 			return await api.context.with(ctx, async () => {
+				propagation.inject(ctx, headers)
 				return cb(span)
 			})
 		} catch (error) {
@@ -495,13 +507,8 @@ export class Highlight {
 			} as BaggageEntry)
 		}
 
+		propagation.inject(ctx, headers)
 		return { span, ctx: contextWithSpanSet }
-	}
-
-	startActiveSpan(name: string, options?: SpanOptions) {
-		return new Promise<OtelSpan>((resolve) =>
-			this.tracer.startActiveSpan(name, options || {}, resolve),
-		)
 	}
 }
 function parseHeaders(
@@ -517,12 +524,18 @@ function parseHeaders(
 	return { secureSessionId: undefined, requestId: undefined }
 }
 
-function extractIncomingHttpHeaders(
-	headers?: Headers | IncomingHttpHeaders,
-): IncomingHttpHeaders {
+function extractIncomingHttpHeaders(headers?: any): IncomingHttpHeaders {
 	if (headers) {
 		let requestHeaders: IncomingHttpHeaders = {}
-		if (headers instanceof Headers) {
+		if (headers.hasOwnProperty(HIGHLIGHT_REQUEST_HEADER)) {
+			requestHeaders[HIGHLIGHT_REQUEST_HEADER] = (
+				headers as { [HIGHLIGHT_REQUEST_HEADER]: string }
+			)[HIGHLIGHT_REQUEST_HEADER]
+		} else if (typeof headers.forEach === 'function') {
+			headers.forEach(
+				(value: any, key: any) => (requestHeaders[key] = value),
+			)
+		} else if (headers instanceof Headers) {
 			headers.forEach((value, key) => (requestHeaders[key] = value))
 		} else if (headers) {
 			requestHeaders = headers

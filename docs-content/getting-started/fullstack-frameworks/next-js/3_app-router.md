@@ -144,7 +144,7 @@ function ThrowerOfErrors({
 We use `experimental.instrumentationHook` to capture [Next.js's automatic instrumentation](https://nextjs.org/docs/app/building-your-application/optimizing/open-telemetry). This method captures detailed API route tracing as well as server-side errors.
 
 1. Enable `experimental.instrumentationHook` in `next.config.js`.
-2. Ignore warnings from `@highlight-run/node` due to a [known OpenTelemetry issue](https://github.com/open-telemetry/opentelemetry-js/issues/4173#issuecomment-1822938936)
+2. Setup the `withHighlightConfig` wrapper for auto-upload of your [sourcemaps](../../../general/6_product-features/2_error-monitoring/sourcemaps.md). 
 
 ```javascript
 // next.config.mjs
@@ -154,17 +154,15 @@ const nextConfig = {
 	experimental: {
 		instrumentationHook: true,
 	},
-	webpack(config, options) {
-		if (options.isServer) {
-			config.ignoreWarnings = [{ module: /highlight-(run\/)?node/ }]
-		}
-
-		return config
-	},
 	// ...additional config
 }
 
 export default withHighlightConfig(nextConfig)
+```
+
+```hint
+ If you are using a Docker image to deploy your Next.js app, make sure that the `next.config.js` file is copied into the final Docker image.
+ Otherwise, the next server will not enable the `instrumentationHook` in your production deploy.
 ```
 
 2. Call `registerHighlight` in `instrumentation.ts` or `src/instrumentation.ts` if you're using a `/src` folder. Make sure that `instrumentation.ts` is a sibling of your `pages` folder. 
@@ -219,6 +217,39 @@ export default appRouterSsrErrorHandler(
 		)
 	},
 )
+```
+
+### [Advanced] Propagate distributed tracing context with W3CTraceContextPropagation
+
+If you have another API service that you're making a request to, you'll want to propagate
+the trace context to that microservice so that logs and spans emitted by it will be attributed to the same trace.
+To do that, propagate the context in the headers via the `@opentelemetry/api` package.
+
+```tsx
+// app/api/app-router-trace/route.ts
+import { withAppRouterHighlight } from '@/app/_utils/app-router-highlight.config'
+import { H } from '@highlight-run/next/server'
+import { NextRequest } from 'next/server'
+import { propagation, context } from '@opentelemetry/api'
+
+export const GET = withAppRouterHighlight(async function GET(
+        request: NextRequest,
+) {
+  const { span } = H.startWithHeaders('app-router-span', {})
+
+  const headers = {}
+  propagation.inject(context.active(), headers)
+  await fetch('http://my-other-service/api', {
+    method: 'POST',
+    headers,
+  })
+
+  span.end()
+  
+  return new Response('Success: /api/app-router-trace')
+})
+
+export const runtime = 'nodejs'
 ```
 
 ### Validate SSR error capture
@@ -294,7 +325,7 @@ export default function Page() {
 We do not recommend enabling this while integrating Highlight for the first time because it will prevent you from validating that your local build can send data to Highlight.
 ```
 
-In the case that you don't want local sessions sent to Highlight, the `excludedHostnames` prop accepts an array of partial or full hostnames. For example, if you pass in `excludedHostnames={['localhost', 'staging]}`, you'll block `localhost` on all ports, `www.staging.highlight.io` and `staging.highlight.com`.
+In the case that you don't want local sessions sent to Highlight, the `excludedHostnames` prop accepts an array of partial or full hostnames. For example, if you pass in `excludedHostnames={['localhost', 'staging']}`, you'll block `localhost` on all ports, `www.staging.highlight.io` and `staging.highlight.com`.
 
 Alternatively, you could manually call `H.start()` and `H.stop()` to manage invocation on your own.
 
@@ -349,13 +380,13 @@ Node.js
 
 ######
 
-1. Add `@highlight-run/node` to `experimental.serverComponentsExternalPackages` in your `next.config.js`. 
+1. Add `@highlight-run/node` and `require-in-the-middle` to `experimental.serverComponentsExternalPackages` in your `next.config.js`. 
 
 ```javascript
 // next.config.js
 const nextConfig = {
 	experimental: {
-		serverComponentsExternalPackages: ['@highlight-run/node'],
+		serverComponentsExternalPackages: ['@highlight-run/node', 'require-in-the-middle'],
 	},
 }
 

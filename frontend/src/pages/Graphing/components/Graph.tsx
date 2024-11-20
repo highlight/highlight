@@ -26,7 +26,7 @@ import clsx from 'clsx'
 import _ from 'lodash'
 import moment from 'moment'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { ReferenceArea, Tooltip as RechartsTooltip } from 'recharts'
+import { Area, Tooltip as RechartsTooltip, ReferenceArea } from 'recharts'
 import { CategoricalChartState } from 'recharts/types/chart/types'
 
 import { loadingIcon } from '@/components/Button/style.css'
@@ -37,7 +37,14 @@ import {
 	useGetMetricsLazyQuery,
 } from '@/graph/generated/hooks'
 import { GetMetricsQuery } from '@/graph/generated/operations'
-import { Maybe, MetricAggregator, ProductType } from '@/graph/generated/schemas'
+import {
+	Maybe,
+	MetricAggregator,
+	PredictionSettings,
+	ProductType,
+	ThresholdCondition,
+	ThresholdType,
+} from '@/graph/generated/schemas'
 import {
 	BarChart,
 	BarChartConfig,
@@ -59,6 +66,7 @@ import * as style from './Graph.css'
 
 import { EventSelectionStep } from '@pages/Graphing/util'
 import { useGraphContext } from '../context/GraphContext'
+import { TIME_METRICS } from '@pages/Graphing/constants'
 
 export type View = 'Line chart' | 'Bar chart' | 'Funnel chart' | 'Table'
 
@@ -88,8 +96,13 @@ export const VIEW_OPTIONS = [
 export const TIMESTAMP_KEY = 'Timestamp'
 export const GROUP_KEY = 'Group'
 export const PERCENT_KEY = 'Percent'
+export const QUERY_KEY = 'Query'
 export const BUCKET_MIN_KEY = 'BucketMin'
 export const BUCKET_MAX_KEY = 'BucketMax'
+export const YHAT_UPPER_KEY = 'yhat_upper'
+export const YHAT_LOWER_KEY = 'yhat_lower'
+export const YHAT_UPPER_REGION_KEY = 'yhat_upper_region'
+export const YHAT_LOWER_REGION_KEY = 'yhat_lower_region'
 export const NO_GROUP_PLACEHOLDER = '<empty>'
 const MAX_LABEL_CHARS = 100
 
@@ -110,6 +123,12 @@ export type ViewConfig =
 	| FunnelChartConfig
 	| TableConfig
 	| ListConfig
+
+export type ThresholdSettings = {
+	thresholdValue: number
+	thresholdType: ThresholdType
+	thresholdCondition: ThresholdCondition
+}
 
 export interface ChartProps<TConfig> {
 	id?: string
@@ -136,6 +155,8 @@ export interface ChartProps<TConfig> {
 	setTimeRange?: SetTimeRange
 	loadExemplars?: LoadExemplars
 	variables?: Map<string, string[]>
+	predictionSettings?: PredictionSettings
+	thresholdSettings?: ThresholdSettings
 }
 
 export interface InnerChartProps<TConfig> {
@@ -157,16 +178,23 @@ export interface SeriesInfo {
 	strokeColors?: string[] | Map<string, string>
 }
 
+export interface VizId {
+	visualizationId: string | undefined
+}
+
 export interface AxisConfig {
 	showXAxis?: boolean
 	showYAxis?: boolean
 	showGrid?: boolean
+	minYAxisMax?: number
+	maxYAxisMin?: number
 }
 
 export type LoadExemplars = (
 	bucketMin: number | undefined,
 	bucketMax: number | undefined,
 	group: string | undefined,
+	stepQuery?: string,
 ) => void
 
 export type SetTimeRange = (startDate: Date, endDate: Date) => void
@@ -212,8 +240,6 @@ export const useGraphCallbacks = (
 	const chartRef = useRef<HTMLDivElement>(null)
 	const tooltipRef = useRef<HTMLDivElement>(null)
 
-	const [mouseMoveState, setMouseMoveState] =
-		useState<CategoricalChartState>()
 	const [frozenTooltip, setFrozenTooltip] = useState<CategoricalChartState>()
 
 	const allowDrag = setTimeRange !== undefined
@@ -251,8 +277,6 @@ export const useGraphCallbacks = (
 
 	const onMouseMove = allowDrag
 		? (e: CategoricalChartState) => {
-				setMouseMoveState(e)
-
 				if (refAreaStart !== undefined && e.activeLabel !== undefined) {
 					setRefAreaEnd(Number(e.activeLabel))
 					setFrozenTooltip(undefined)
@@ -323,12 +347,7 @@ export const useGraphCallbacks = (
 		/>
 	)
 
-	const tooltipCanFreeze =
-		loadExemplars &&
-		!frozenTooltip &&
-		mouseMoveState?.activePayload?.find(
-			(p) => ![undefined, null].includes(p.value),
-		)
+	const tooltipCanFreeze = loadExemplars && !frozenTooltip
 
 	return {
 		referenceArea,
@@ -381,25 +400,12 @@ const durationUnitMap: [number, string][] = [
 	[1000, 's'],
 	[60, 'm'],
 	[60, 'h'],
-	[24, 'd'],
 ]
 
 const DEFAULT_TIME_METRIC = 'ns'
 
-const timeMetrics = {
-	active_length: 'ms',
-	length: 'ms',
-	duration: 'ns',
-	Jank: 'ms',
-	FCP: 'ms',
-	FID: 'ms',
-	LCP: 'ms',
-	TTFB: 'ms',
-	INP: 'ms',
-}
-
 export const getTickFormatter = (metric: string, data?: any[] | undefined) => {
-	if (metric === 'Timestamp') {
+	if (metric === 'Timestamp' || metric === 'timestamp') {
 		if (data === undefined) {
 			return (value: any) =>
 				moment(value * 1000).format('MMM D, h:mm:ss A')
@@ -415,10 +421,10 @@ export const getTickFormatter = (metric: string, data?: any[] | undefined) => {
 		} else {
 			return (value: any) => moment(value * 1000).format('MM/DD')
 		}
-	} else if (Object.hasOwn(timeMetrics, metric)) {
+	} else if (Object.hasOwn(TIME_METRICS, metric)) {
 		return (value: any) => {
 			let startUnit =
-				timeMetrics[metric as keyof typeof timeMetrics] ??
+				TIME_METRICS[metric as keyof typeof TIME_METRICS] ??
 				DEFAULT_TIME_METRIC
 			let lastUnit = startUnit
 			for (const entry of durationUnitMap) {
@@ -434,7 +440,7 @@ export const getTickFormatter = (metric: string, data?: any[] | undefined) => {
 				value /= entry[0]
 				lastUnit = entry[1]
 			}
-			return `${value.toFixed(0)}${lastUnit}`
+			return `${value.toFixed(lastUnit === 'h' ? 1 : 0)}${lastUnit}`
 		}
 	} else if (metric === 'percent') {
 		return (value: any) => {
@@ -491,84 +497,101 @@ const getCustomTooltip =
 				>
 					{isValid && getTickFormatter(xAxisMetric)(label)}
 				</Text>
-				{payload.map((p: any, idx: number) => (
-					<Box
-						display="flex"
-						key={idx}
-						justifyContent="space-between"
-						gap="4"
-						cssClass={style.tooltipRow}
-					>
+				{payload
+					.filter(
+						(p: any) =>
+							![
+								YHAT_LOWER_REGION_KEY,
+								YHAT_UPPER_REGION_KEY,
+							].includes(p.dataKey),
+					)
+					// sort the tooltip to show the keys with largest value first
+					.sort(
+						(p1: any, p2: any) => (p2.value ?? 0) - (p1.value ?? 0),
+					)
+					.map((p: any, idx: number) => (
 						<Box
 							display="flex"
-							flexDirection="row"
-							alignItems="center"
+							key={idx}
+							justifyContent="space-between"
 							gap="4"
+							cssClass={style.tooltipRow}
 						>
 							<Box
-								style={{
-									backgroundColor: p.color,
-								}}
-								cssClass={style.tooltipDot}
-							></Box>
-							<Badge
-								size="small"
-								shape="basic"
-								label={
-									isValid &&
-									getTickFormatter(yAxisMetric)(p.value)
-								}
+								display="flex"
+								flexDirection="row"
+								alignItems="center"
+								gap="4"
 							>
-								<Text
-									lines="1"
-									size="xSmall"
-									weight="medium"
-									color="default"
-									cssClass={style.tooltipText}
-								></Text>
-							</Badge>
-							{funnelMode ? (
-								<Text
-									lines="1"
-									size="xSmall"
-									weight="medium"
-									color="default"
-									cssClass={style.tooltipText}
+								<Box
+									style={{
+										backgroundColor: p.color,
+									}}
+									cssClass={style.tooltipDot}
+								></Box>
+								<Badge
+									size="small"
+									shape="basic"
+									label={
+										isValid &&
+										getTickFormatter(yAxisMetric)(p.value)
+									}
 								>
-									{(p.payload[PERCENT_KEY] * 100).toFixed(1)}%
-								</Text>
-							) : (
-								<Text
-									lines="1"
-									size="xxSmall"
-									weight="medium"
-									color="default"
-									cssClass={style.tooltipText}
-								>
-									{p.name ? p.name : yAxisFunction}
-								</Text>
+									<Text
+										lines="1"
+										size="xSmall"
+										weight="medium"
+										color="default"
+										cssClass={style.tooltipText}
+									></Text>
+								</Badge>
+								{funnelMode ? (
+									<Text
+										lines="1"
+										size="xSmall"
+										weight="medium"
+										color="default"
+										cssClass={style.tooltipText}
+									>
+										{(p.payload[PERCENT_KEY] * 100).toFixed(
+											1,
+										)}
+										%
+									</Text>
+								) : (
+									<Text
+										lines="1"
+										size="xxSmall"
+										weight="medium"
+										color="default"
+										cssClass={style.tooltipText}
+									>
+										{p.name ? p.name : yAxisFunction}
+									</Text>
+								)}
+							</Box>
+							{frozenTooltip && (
+								<ButtonIcon
+									icon={<IconSolidExternalLink size={16} />}
+									size="minimal"
+									shape="square"
+									emphasis="low"
+									kind="secondary"
+									cssClass={style.exemplarButton}
+									onClick={() => {
+										loadExemplars &&
+											loadExemplars(
+												p.payload[BUCKET_MIN_KEY],
+												p.payload[BUCKET_MAX_KEY],
+												p.dataKey ||
+													p.payload[GROUP_KEY],
+												p.payload[QUERY_KEY],
+											)
+									}}
+								/>
 							)}
 						</Box>
-						{frozenTooltip && (
-							<ButtonIcon
-								icon={<IconSolidExternalLink size={16} />}
-								size="minimal"
-								shape="square"
-								emphasis="low"
-								kind="secondary"
-								cssClass={style.exemplarButton}
-								onClick={() => {
-									loadExemplars &&
-										loadExemplars(
-											p.payload[BUCKET_MIN_KEY],
-											p.payload[BUCKET_MAX_KEY],
-											p.dataKey || p.payload[GROUP_KEY],
-										)
-								}}
-							/>
-						)}
-					</Box>
-				))}
+					))}
 			</Box>
 		)
 	}
@@ -671,8 +694,26 @@ export const getViewConfig = (
 export const useGraphData = (
 	metrics: GetMetricsQuery | undefined,
 	xAxisMetric: string,
+	thresholdSettings?: ThresholdSettings,
 ) => {
 	return useMemo(() => {
+		let upperThreshold: number | undefined
+		let lowerThreshold: number | undefined
+		if (thresholdSettings?.thresholdType === ThresholdType.Constant) {
+			if (
+				thresholdSettings.thresholdCondition ===
+				ThresholdCondition.Above
+			) {
+				upperThreshold = thresholdSettings.thresholdValue
+			}
+			if (
+				thresholdSettings.thresholdCondition ===
+				ThresholdCondition.Below
+			) {
+				lowerThreshold = thresholdSettings.thresholdValue
+			}
+		}
+
 		let data: any[] | undefined
 		if (metrics?.metrics?.buckets) {
 			if (xAxisMetric !== GROUP_KEY) {
@@ -694,6 +735,31 @@ export const useGraphData = (
 					data[b.bucket_id][seriesKey] = b.metric_value
 					data[b.bucket_id][BUCKET_MIN_KEY] = b.bucket_min
 					data[b.bucket_id][BUCKET_MAX_KEY] = b.bucket_max
+
+					const bucketUpper = b.yhat_upper || upperThreshold
+					const bucketLower = b.yhat_lower || lowerThreshold
+
+					if (bucketUpper) {
+						data[b.bucket_id][YHAT_UPPER_KEY] = {
+							[seriesKey]: bucketUpper,
+							...data[b.bucket_id][YHAT_UPPER_KEY],
+						}
+						if (!hasGroups) {
+							data[b.bucket_id][YHAT_UPPER_REGION_KEY] =
+								bucketUpper - (b.yhat_lower ?? 0)
+						}
+					}
+
+					if (bucketLower) {
+						data[b.bucket_id][YHAT_LOWER_KEY] = {
+							[seriesKey]: bucketLower,
+							...data[b.bucket_id][YHAT_LOWER_KEY],
+						}
+						if (!hasGroups) {
+							data[b.bucket_id][YHAT_LOWER_REGION_KEY] =
+								bucketLower
+						}
+					}
 				}
 			} else {
 				data = []
@@ -706,7 +772,7 @@ export const useGraphData = (
 			}
 		}
 		return data
-	}, [metrics?.metrics.bucket_count, metrics?.metrics.buckets, xAxisMetric])
+	}, [metrics, xAxisMetric, thresholdSettings])
 }
 
 export const useFunnelData = (
@@ -715,28 +781,40 @@ export const useFunnelData = (
 ) => {
 	return useMemo(() => {
 		if (!results?.length || !results[0]?.metrics) return
-		const buckets: { [key: number]: { value: number; percent: number } } =
-			{}
+		const buckets: {
+			[key: number]: { value: number; percent: number }
+		} = {}
+		let groups = new Set<string>(
+			results[0].metrics.buckets.map((b) => b.group[0]),
+		)
 		results.forEach((r, idx) => {
 			if (r?.metrics?.buckets) {
+				const resultGroups = new Set<string>(
+					r.metrics.buckets.map((b) => b.group[0]),
+				)
 				r.metrics.buckets.forEach((b) => {
+					const group = b?.group[0]
 					const prev = buckets[idx - 1]?.value ?? 0
-					const value =
-						(buckets[idx]?.value ?? 0) + (b?.metric_value ?? 0)
+					const stepValue = groups.has(group)
+						? (b?.metric_value ?? 0)
+						: 0
+					const value = (buckets[idx]?.value ?? 0) + stepValue
 					buckets[idx] = {
 						value,
 						percent: prev > 0 ? value / prev : 1,
 					}
 				})
+				groups = groups.intersection(resultGroups)
 			}
 		})
 
 		return Object.values(buckets).map((r, idx) => {
-			const key =
-				funnelSteps?.at(idx)?.title || funnelSteps?.at(idx)?.query || ''
+			const query = funnelSteps?.at(idx)?.query || ''
+			const key = funnelSteps?.at(idx)?.title || query
 			return {
 				[GROUP_KEY]: key,
 				[PERCENT_KEY]: r.percent,
+				[QUERY_KEY]: query,
 				[key]: r.value,
 			}
 		})
@@ -752,7 +830,12 @@ export const useGraphSeries = (
 			xAxisMetric,
 			BUCKET_MIN_KEY,
 			BUCKET_MAX_KEY,
+			YHAT_UPPER_KEY,
+			YHAT_LOWER_KEY,
+			YHAT_LOWER_REGION_KEY,
+			YHAT_UPPER_REGION_KEY,
 			PERCENT_KEY,
+			QUERY_KEY,
 		]
 		return _.uniq(data?.flatMap((d) => Object.keys(d))).filter(
 			(key) => !excluded.includes(key),
@@ -828,6 +911,8 @@ const Graph = ({
 	setTimeRange,
 	selectedPreset,
 	variables,
+	predictionSettings,
+	thresholdSettings,
 	children,
 }: React.PropsWithChildren<ChartProps<ViewConfig>>) => {
 	const { setGraphData } = useGraphContext()
@@ -838,7 +923,7 @@ const Graph = ({
 	const [fetchStart, setFetchStart] = useState<Date>()
 	const [fetchEnd, setFetchEnd] = useState<Date>()
 	const [results, setResults] = useState<GetMetricsQuery[]>()
-	const [loading, setLoading] = useState<boolean>(false)
+	const [loading, setLoading] = useState<boolean>(true)
 
 	const { set } = useRelatedResource()
 
@@ -846,8 +931,14 @@ const Graph = ({
 		bucketMin: number | undefined,
 		bucketMax: number | undefined,
 		groups: string | undefined,
+		stepQuery: string | undefined,
 	) => {
-		let relatedResourceType: 'logs' | 'errors' | 'sessions' | 'traces'
+		let relatedResourceType:
+			| 'logs'
+			| 'errors'
+			| 'sessions'
+			| 'traces'
+			| 'events'
 		switch (productType) {
 			case ProductType.Errors:
 				relatedResourceType = 'errors'
@@ -864,13 +955,23 @@ const Graph = ({
 			case ProductType.Metrics:
 				relatedResourceType = 'sessions'
 				break
+			case ProductType.Events:
+				relatedResourceType = 'events'
+				groupByKeys = undefined
+				break
 			default:
 				return
 		}
 
-		let relatedResourceQuery = replaceQueryVariables(query, variables)
+		let relatedResourceQuery = replaceQueryVariables(
+			stepQuery || query,
+			variables,
+		)
 		if (groupByKeys !== undefined && groupByKeys.length > 0) {
 			groups?.split(', ').forEach((group, idx) => {
+				if (!groupByKeys) {
+					return
+				}
 				if (group !== NO_GROUP_PLACEHOLDER && group !== '') {
 					relatedResourceQuery += ` ${groupByKeys[idx]}="${group}"`
 				} else {
@@ -888,8 +989,12 @@ const Graph = ({
 		let startDateStr = moment(startDate).toISOString()
 		let endDateStr = moment(endDate).toISOString()
 		if (bucketByKey === TIMESTAMP_KEY && bucketMin && bucketMax) {
-			startDateStr = new Date(bucketMin * 1000).toISOString()
-			endDateStr = new Date(bucketMax * 1000).toISOString()
+			startDateStr = (
+				bucketMin ? new Date(bucketMin * 1000) : startDate
+			).toISOString()
+			endDateStr = (
+				bucketMax ? new Date(bucketMax * 1000) : endDate
+			).toISOString()
 		}
 
 		set({
@@ -974,44 +1079,24 @@ const Graph = ({
 			limit_column: limitMetric
 				? matchParamVariables(limitMetric, variables).at(0)
 				: undefined,
+			prediction_settings: predictionSettings,
 		}
 
 		setLoading(true)
 		let getMetricsPromises: Promise<GetMetricsQueryResult>[] = []
 		if (funnelSteps?.length) {
-			let promise: Promise<GetMetricsQueryResult> = Promise.resolve(
-				{} as GetMetricsQueryResult,
-			)
 			for (const step of funnelSteps) {
-				promise = promise.then((result) => {
-					// once events have other session attributes, we can support per-user aggregation
-					const keys = result.data?.metrics.buckets?.map(
-						(b) => b.group[0],
-					)
-					// if previous step exists but no result, we should have no results
-					if (keys?.length && keys.at(0) === '') {
-						return Promise.resolve({
-							data: {
-								metrics: { buckets: [{}] },
-							},
-						} as GetMetricsQueryResult)
-					}
-					const previousStepFilter = keys
-						?.map((k) => `secure_session_id=${k}`)
-						?.join(' OR ')
-					return getMetrics({
+				getMetricsPromises.push(
+					getMetrics({
 						variables: {
 							...getMetricsVariables,
 							params: {
 								...getMetricsVariables.params,
-								query: keys?.length
-									? `${step.query} AND (${previousStepFilter})`
-									: step.query,
+								query: step.query,
 							},
 						},
-					})
-				})
-				getMetricsPromises.push(promise)
+					}),
+				)
 			}
 		} else {
 			getMetricsPromises = [
@@ -1058,9 +1143,14 @@ const Graph = ({
 		queriedBucketCount,
 		query,
 		variables,
+		predictionSettings,
 	])
 
-	const graphData = useGraphData(results?.at(0), xAxisMetric)
+	const graphData = useGraphData(
+		results?.at(0),
+		xAxisMetric,
+		thresholdSettings,
+	)
 	const funnelData = useFunnelData(results, funnelSteps)
 	const data = viewConfig.type === 'Funnel chart' ? funnelData : graphData
 	const series = useGraphSeries(data, xAxisMetric)
@@ -1069,11 +1159,7 @@ const Graph = ({
 
 	useEffect(() => {
 		if (id && data) {
-			setGraphData((graphData) =>
-				graphData[id]?.length
-					? graphData
-					: { ...graphData, [id]: data },
-			)
+			setGraphData((graphData) => ({ ...graphData, [id]: data }))
 		}
 	}, [data, id, setGraphData])
 
@@ -1100,7 +1186,7 @@ const Graph = ({
 				alignItems="center"
 				justifyContent="center"
 			>
-				{!loading && (
+				{!loading && called && (
 					<Badge
 						size="medium"
 						shape="basic"
@@ -1114,6 +1200,11 @@ const Graph = ({
 	} else {
 		switch (viewConfig.type) {
 			case 'Line chart':
+				const axisLimit =
+					thresholdSettings?.thresholdType === ThresholdType.Constant
+						? thresholdSettings?.thresholdValue
+						: undefined
+
 				innerChart = (
 					<LineChart
 						data={data}
@@ -1125,9 +1216,35 @@ const Graph = ({
 						spotlight={spotlight}
 						setTimeRange={setTimeRange}
 						loadExemplars={loadExemplars}
+						minYAxisMax={axisLimit}
+						maxYAxisMin={axisLimit}
 						showGrid
 					>
 						{children}
+						<Area
+							isAnimationActive={false}
+							dataKey={YHAT_LOWER_REGION_KEY}
+							strokeWidth="2px"
+							strokeDasharray="8 8"
+							strokeLinecap="round"
+							stroke="#C8C7CB"
+							fillOpacity={0}
+							stackId={-1}
+							connectNulls
+							activeDot={<></>}
+						/>
+						<Area
+							isAnimationActive={false}
+							dataKey={YHAT_UPPER_REGION_KEY}
+							strokeWidth="2px"
+							strokeDasharray="8 8"
+							strokeLinecap="round"
+							fill="#F9F8F9"
+							stroke="#C8C7CB"
+							stackId={-1}
+							connectNulls
+							activeDot={<></>}
+						/>
 					</LineChart>
 				)
 				break
@@ -1222,6 +1339,8 @@ const Graph = ({
 						viewConfig={viewConfig}
 						series={series}
 						disabled={disabled}
+						loadExemplars={loadExemplars}
+						visualizationId={id}
 					/>
 				)
 				break
@@ -1251,41 +1370,46 @@ const Graph = ({
 					{title || 'Untitled metric view'}
 				</Text>
 			</Box>
-			{called && (
-				<Box
-					style={{ height: height ?? '100%' }}
-					key={series.join(';')} // Hacky but recharts' ResponsiveContainer has issues when this height changes so just rerender the whole thing
-					cssClass={clsx({
-						[style.disabled]: disabled,
-					})}
-					position="relative"
-				>
-					{loading && (
-						<Stack
-							position="absolute"
-							width="full"
-							height="full"
-							alignItems="center"
-							justifyContent="center"
-							cssClass={style.loadingOverlay}
-						>
-							<Badge
-								size="medium"
-								shape="basic"
-								variant="gray"
-								label="Loading"
-								iconStart={
-									<IconSolidLoading
-										className={loadingIcon}
-										color={vars.theme.static.content.weak}
-									/>
-								}
-							/>
-						</Stack>
-					)}
-					{innerChart}
-				</Box>
-			)}
+			<Box
+				style={{ height: height ?? '100%' }}
+				key={series.join(';')} // Hacky but recharts' ResponsiveContainer has issues when this height changes so just rerender the whole thing
+				cssClass={clsx({
+					[style.disabled]: disabled,
+				})}
+				position="relative"
+			>
+				{loading && (
+					<Stack
+						position="absolute"
+						width="full"
+						height="full"
+						alignItems="center"
+						justifyContent="center"
+						cssClass={style.loadingOverlay}
+					>
+						<Badge
+							size="medium"
+							shape="basic"
+							variant="gray"
+							label="Loading"
+							iconStart={
+								<IconSolidLoading
+									className={loadingIcon}
+									color={vars.theme.static.content.weak}
+								/>
+							}
+						/>
+					</Stack>
+				)}
+				{innerChart}
+			</Box>
+			{loading &&
+				(data ?? []).length === 0 &&
+				groupByKeys !== undefined &&
+				groupByKeys.length > 0 &&
+				viewConfig.showLegend && (
+					<Box position="relative" cssClass={style.legendLoading} />
+				)}
 			{showLegend && (
 				<Box position="relative" cssClass={style.legendWrapper}>
 					{series.map((key, idx) => {

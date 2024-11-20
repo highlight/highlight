@@ -16,13 +16,14 @@ import {
 } from '@highlight-run/ui/components'
 import { useParams } from '@util/react-router/useParams'
 import { Divider } from 'antd'
-import React, { PropsWithChildren, useMemo, useState } from 'react'
+import React, { PropsWithChildren, useEffect, useMemo, useState } from 'react'
 import { Helmet } from 'react-helmet'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 
 import { SearchContext } from '@/components/Search/SearchContext'
 import { Search } from '@/components/Search/SearchForm/SearchForm'
 import {
+	GetAlertDocument,
 	useCreateAlertMutation,
 	useDeleteAlertMutation,
 	useGetAlertQuery,
@@ -33,14 +34,16 @@ import {
 	AlertDestinationInput,
 	MetricAggregator,
 	ProductType,
+	ThresholdCondition,
+	ThresholdType,
 } from '@/graph/generated/schemas'
 import useFeatureFlag, { Feature } from '@/hooks/useFeatureFlag/useFeatureFlag'
 import { useProjectId } from '@/hooks/useProjectId'
 import { useSearchTime } from '@/hooks/useSearchTime'
 import { FREQUENCIES } from '@/pages/Alerts/AlertConfigurationCard/AlertConfigurationConstants'
 import {
-	ALERT_CONDITION_OPTIONS,
-	AlertCondition,
+	getThresholdConditionOptions,
+	THRESHOLD_TYPE_OPTIONS,
 } from '@/pages/Alerts/constants'
 import { DestinationInput } from '@/pages/Alerts/DestinationInput'
 import { Combobox } from '@/pages/Graphing/Combobox'
@@ -69,6 +72,29 @@ const SidebarSection = (props: PropsWithChildren) => {
 
 const FREQUENCY_OPTIONS = FREQUENCIES.filter((freq) => Number(freq.value) >= 60)
 
+const CONFIDENCE_OPTIONS = [
+	{
+		name: '80%',
+		id: '80%',
+		value: 0.8,
+	},
+	{
+		name: '90%',
+		id: '90%',
+		value: 0.9,
+	},
+	{
+		name: '95%',
+		id: '95%',
+		value: 0.95,
+	},
+	{
+		name: '99%',
+		id: '99%',
+		value: 0.99,
+	},
+]
+
 const MINUTE = 60
 const WEEK = 7 * 24 * 60 * MINUTE
 
@@ -78,6 +104,27 @@ export const SESSION_COOLDOWN = WEEK
 export const DEFAULT_THRESHOLD = 1
 export const DEFAULT_WINDOW = MINUTE * 30
 export const DEFAULT_COOLDOWN = MINUTE * 30
+export const DEFAULT_THRESHOLD_CONDITON = ThresholdCondition.Above
+export const DEFAULT_THRESHOLD_TYPE = ThresholdType.Constant
+export const DEFAULT_CONFIDENCE_OPTION = CONFIDENCE_OPTIONS[1]
+
+const SETTINGS_PARAM = 'settings'
+
+type AlertSettings = {
+	productType: ProductType
+	functionType: MetricAggregator
+	functionColumn: string
+	query: string
+	alertName: string
+	groupByEnabled: boolean
+	groupByKey: string
+	thresholdValue: number
+	thresholdCondition: ThresholdCondition
+	thresholdType: ThresholdType
+	thresholdWindow: number
+	thresholdCooldown: number
+	destinations: AlertDestinationInput[]
+}
 
 const ALERT_PRODUCT_INFO = {
 	[ProductType.Sessions]:
@@ -96,7 +143,7 @@ export const AlertForm: React.FC = () => {
 	const { alert_id } = useParams<{
 		alert_id: string
 	}>()
-	const [searchParams] = useSearchParams()
+	const [searchParams, setSearchParams] = useSearchParams()
 
 	const eventSearchEnabled = useFeatureFlag(Feature.EventSearch)
 	const productOptions = useMemo(() => {
@@ -115,14 +162,16 @@ export const AlertForm: React.FC = () => {
 		})
 
 	const [createAlert, createAlertContext] = useCreateAlertMutation({
-		refetchQueries: [
-			namedOperations.Query.GetAlert,
-			namedOperations.Query.GetAlertsPagePayload,
-		],
+		refetchQueries: [namedOperations.Query.GetAlertsPagePayload],
 	})
 	const [updateAlert, updateAlertContext] = useUpdateAlertMutation({
 		refetchQueries: [
-			namedOperations.Query.GetAlert,
+			{
+				query: GetAlertDocument,
+				variables: {
+					id: alert_id!,
+				},
+			},
 			namedOperations.Query.GetAlertsPagePayload,
 		],
 	})
@@ -132,12 +181,25 @@ export const AlertForm: React.FC = () => {
 
 	const navigate = useNavigate()
 
-	const [alertName, setAlertName] = useState('')
-	const [productType, setProductType] = useState(
-		(searchParams.get('source') as ProductType) || productOptions[0].value,
+	const settingsParam = searchParams.get(SETTINGS_PARAM)
+	const [initialSettings] = useState(
+		settingsParam !== null
+			? (JSON.parse(atob(settingsParam)) as AlertSettings)
+			: undefined,
 	)
-	const [functionType, setFunctionType] = useState(MetricAggregator.Count)
-	const [functionColumn, setFunctionColumn] = useState('')
+
+	const [alertName, setAlertName] = useState(initialSettings?.alertName ?? '')
+	const [productType, setProductType] = useState(
+		(searchParams.get('source') as ProductType) ||
+			initialSettings?.productType ||
+			productOptions[0].value,
+	)
+	const [functionType, setFunctionType] = useState(
+		initialSettings?.functionType ?? MetricAggregator.Count,
+	)
+	const [functionColumn, setFunctionColumn] = useState(
+		initialSettings?.functionColumn ?? '',
+	)
 	const fetchedFunctionColumn = useMemo(() => {
 		return functionType === MetricAggregator.Count ? '' : functionColumn
 	}, [functionColumn, functionType])
@@ -145,22 +207,53 @@ export const AlertForm: React.FC = () => {
 	const isErrorAlert = productType === ProductType.Errors
 	const isSessionAlert = productType === ProductType.Sessions
 
-	const [query, setQuery] = useState(searchParams.get('query') ?? '')
+	const [query, setQuery] = useState(
+		initialSettings?.query ?? searchParams.get('query') ?? '',
+	)
 
-	const [groupByEnabled, setGroupByEnabled] = useState(false)
-	const [groupByKey, setGroupByKey] = useState('')
+	const [groupByEnabled, setGroupByEnabled] = useState(
+		initialSettings?.groupByEnabled ?? false,
+	)
+	const [groupByKey, setGroupByKey] = useState(
+		initialSettings?.groupByKey ?? '',
+	)
 
-	const [belowThreshold, setBelowThreshold] = useState(false)
-	const [thresholdValue, setThresholdValue] = useState(DEFAULT_THRESHOLD)
-	const [thresholdWindow, setThresholdWindow] = useState(DEFAULT_WINDOW)
-	const [thresholdCooldown, setThresholdCooldown] =
-		useState<number>(DEFAULT_COOLDOWN)
+	const [thresholdType, setThresholdTypeImpl] = useState(
+		initialSettings?.thresholdType ?? DEFAULT_THRESHOLD_TYPE,
+	)
+	const setThresholdType = (value: ThresholdType) => {
+		if (value === thresholdType) {
+			return
+		}
+
+		if (value === ThresholdType.Anomaly) {
+			setThresholdValue(DEFAULT_CONFIDENCE_OPTION.value)
+		} else if (value === ThresholdType.Constant) {
+			setThresholdValue(DEFAULT_THRESHOLD)
+		}
+
+		setThresholdTypeImpl(value)
+	}
+	const [thresholdCondition, setThresholdCondition] = useState(
+		initialSettings?.thresholdCondition ?? DEFAULT_THRESHOLD_CONDITON,
+	)
+	const isAnomaly = thresholdType === ThresholdType.Anomaly
+
+	const [thresholdValue, setThresholdValue] = useState(
+		initialSettings?.thresholdValue ?? DEFAULT_THRESHOLD,
+	)
+	const [thresholdWindow, setThresholdWindow] = useState(
+		initialSettings?.thresholdWindow ?? DEFAULT_WINDOW,
+	)
+	const [thresholdCooldown, setThresholdCooldown] = useState<number>(
+		initialSettings?.thresholdCooldown ?? DEFAULT_COOLDOWN,
+	)
 
 	const [initialDestinations, setInitialDestinations] = useState<
 		AlertDestinationInput[]
-	>([])
+	>(initialSettings?.destinations ?? [])
 	const [destinations, setDestinations] = useState<AlertDestinationInput[]>(
-		[],
+		initialSettings?.destinations ?? [],
 	)
 
 	const handleProductChange = (product: ProductType) => {
@@ -169,14 +262,14 @@ export const AlertForm: React.FC = () => {
 		}
 
 		setProductType(product)
-		if (product === ProductType.Sessions) {
+		if (product === ProductType.Sessions && !isAnomaly) {
 			// locked session settings -> group by secure_id
 			setGroupByEnabled(true)
 			setGroupByKey('secure_id')
 			// only alert once per session
 			setThresholdWindow(SESSION_WINDOW)
 			setThresholdCooldown(SESSION_COOLDOWN)
-		} else if (product === ProductType.Errors) {
+		} else if (product === ProductType.Errors && !isAnomaly) {
 			// locked error settings -> group by secure_id
 			setGroupByEnabled(true)
 			setGroupByKey('secure_id')
@@ -189,20 +282,46 @@ export const AlertForm: React.FC = () => {
 			setThresholdCooldown(DEFAULT_COOLDOWN)
 		}
 
-		setBelowThreshold(false)
+		setThresholdCondition(DEFAULT_THRESHOLD_CONDITON)
 		setThresholdValue(DEFAULT_THRESHOLD)
 		setQuery('')
 		setFunctionType(MetricAggregator.Count)
 		setFunctionColumn('')
 	}
 
-	const redirectToAlert = () => {
-		navigate(`/${projectId}/alerts/${alert_id}`)
+	const redirectToAlert = (id?: string) => {
+		const redirectId = id || alert_id
+		navigate(`/${projectId}/alerts/${redirectId}`)
 	}
 
 	const redirectToAlerts = () => {
 		navigate(`/${projectId}/alerts`)
 	}
+
+	const settings: AlertSettings = {
+		productType,
+		functionType,
+		functionColumn,
+		query,
+		alertName,
+		groupByEnabled,
+		groupByKey,
+		thresholdValue,
+		thresholdCondition,
+		thresholdType,
+		thresholdWindow,
+		thresholdCooldown,
+		destinations,
+	}
+
+	const settingsEncoded = btoa(JSON.stringify(settings))
+
+	useEffect(() => {
+		searchParams.set(SETTINGS_PARAM, settingsEncoded)
+		setSearchParams(Object.fromEntries(searchParams.entries()), {
+			replace: true,
+		})
+	}, [searchParams, setSearchParams, settingsEncoded])
 
 	const onSave = () => {
 		const formVariables = {
@@ -213,10 +332,11 @@ export const AlertForm: React.FC = () => {
 			function_column: fetchedFunctionColumn || undefined,
 			query: query,
 			group_by_key: groupByEnabled ? groupByKey : undefined,
-			below_threshold: belowThreshold,
 			threshold_value: thresholdValue,
 			threshold_window: thresholdWindow,
 			threshold_cooldown: thresholdCooldown,
+			threshold_type: thresholdType,
+			threshold_condition: thresholdCondition,
 			destinations,
 		}
 
@@ -241,9 +361,9 @@ export const AlertForm: React.FC = () => {
 					...formVariables,
 				},
 			})
-				.then(() => {
+				.then((response) => {
 					toast.success(`${alertName} created`).then(() => {
-						redirectToAlert()
+						redirectToAlert(response?.data?.createAlert?.id)
 					})
 				})
 				.catch(() => {
@@ -282,7 +402,7 @@ export const AlertForm: React.FC = () => {
 		},
 		skip: !isEdit,
 		onCompleted: (data) => {
-			if (!data.alert) {
+			if (!data.alert || initialSettings !== undefined) {
 				return
 			}
 
@@ -295,11 +415,16 @@ export const AlertForm: React.FC = () => {
 			setGroupByKey(data.alert.group_by_key ?? '')
 
 			// for threshold alerts
-			setBelowThreshold(data.alert.below_threshold ?? false)
 			setThresholdValue(data.alert.threshold_value ?? DEFAULT_THRESHOLD)
 			setThresholdWindow(data.alert.threshold_window ?? DEFAULT_WINDOW)
 			setThresholdCooldown(
 				data.alert.threshold_cooldown ?? DEFAULT_COOLDOWN,
+			)
+			setThresholdType(
+				data.alert.threshold_type ?? DEFAULT_THRESHOLD_TYPE,
+			)
+			setThresholdCondition(
+				data.alert.threshold_condition ?? DEFAULT_THRESHOLD_CONDITON,
 			)
 			setInitialDestinations(
 				data.alert.destinations as AlertDestinationInput[],
@@ -396,7 +521,11 @@ export const AlertForm: React.FC = () => {
 							<Button
 								emphasis="low"
 								kind="secondary"
-								onClick={redirectToAlert}
+								onClick={() =>
+									alert_id
+										? redirectToAlert()
+										: redirectToAlerts()
+								}
 								trackingId="AlertCancel"
 							>
 								Cancel
@@ -454,7 +583,8 @@ export const AlertForm: React.FC = () => {
 									}
 									thresholdWindow={thresholdWindow}
 									thresholdValue={thresholdValue}
-									belowThreshold={belowThreshold}
+									thresholdType={thresholdType}
+									thresholdCondition={thresholdCondition}
 									startDate={startDate}
 									endDate={endDate}
 									selectedPreset={selectedPreset}
@@ -501,21 +631,22 @@ export const AlertForm: React.FC = () => {
 											setSelection={handleProductChange}
 										/>
 									</LabeledRow>
-									{ALERT_PRODUCT_INFO[productType] && (
-										<Callout
-											title={`${productType} alerts`}
-										>
-											<Box pb="8">
-												<Text>
-													{
-														ALERT_PRODUCT_INFO[
-															productType
-														]
-													}
-												</Text>
-											</Box>
-										</Callout>
-									)}
+									{!isAnomaly &&
+										ALERT_PRODUCT_INFO[productType] && (
+											<Callout
+												title={`${productType} alerts`}
+											>
+												<Box pb="8">
+													<Text>
+														{
+															ALERT_PRODUCT_INFO[
+																productType
+															]
+														}
+													</Text>
+												</Box>
+											</Callout>
+										)}
 								</SidebarSection>
 								<Divider className="m-0" />
 								<SidebarSection>
@@ -558,7 +689,8 @@ export const AlertForm: React.FC = () => {
 										</LabeledRow>
 									)}
 								</SidebarSection>
-								{!isSessionAlert && !isErrorAlert && (
+								{(isAnomaly ||
+									(!isSessionAlert && !isErrorAlert)) && (
 									<>
 										<Box px="12">
 											<Divider className="m-0" />
@@ -614,90 +746,134 @@ export const AlertForm: React.FC = () => {
 										</SidebarSection>
 									</>
 								)}
-								{!isSessionAlert && (
-									<>
-										<Divider className="m-0" />
-										<SidebarSection>
-											<LabeledRow
-												label="Alert conditions"
-												name="alertConditions"
-											>
-												<OptionDropdown
-													options={
-														ALERT_CONDITION_OPTIONS
-													}
-													selection={
-														belowThreshold
-															? AlertCondition.Below
-															: AlertCondition.Above
-													}
-													setSelection={(option) => {
-														setBelowThreshold(
-															option ==
-																AlertCondition.Below,
-														)
-													}}
-												/>
-											</LabeledRow>
-											<Stack direction="row" gap="12">
+								<>
+									<Divider className="m-0" />
+									<SidebarSection>
+										<LabeledRow
+											label="Alert threshold type"
+											name="alertType"
+										>
+											<OptionDropdown<ThresholdType>
+												options={THRESHOLD_TYPE_OPTIONS}
+												selection={thresholdType}
+												setSelection={setThresholdType}
+											/>
+										</LabeledRow>
+										{(isAnomaly || !isSessionAlert) && (
+											<>
 												<LabeledRow
-													label="Alert threshold"
-													name="thresholdValue"
+													label="Alert conditions"
+													name="alertConditions"
 												>
-													<Input
-														name="thresholdValue"
-														type="number"
-														value={thresholdValue}
-														onChange={(e) => {
-															setThresholdValue(
-																Number(
-																	e.target
-																		.value,
-																),
-															)
-														}}
+													<OptionDropdown<ThresholdCondition>
+														options={getThresholdConditionOptions(
+															thresholdType,
+														)}
+														selection={
+															thresholdCondition
+														}
+														setSelection={
+															setThresholdCondition
+														}
 													/>
 												</LabeledRow>
+												<Stack direction="row" gap="12">
+													{isAnomaly && (
+														<LabeledRow
+															label="Alert threshold"
+															name="thresholdValue"
+														>
+															<OptionDropdown
+																options={
+																	CONFIDENCE_OPTIONS
+																}
+																selection={String(
+																	thresholdValue,
+																)}
+																setSelection={(
+																	option,
+																) => {
+																	setThresholdValue(
+																		Number(
+																			option,
+																		),
+																	)
+																}}
+															/>
+														</LabeledRow>
+													)}
+													{!isAnomaly && (
+														<LabeledRow
+															label="Alert threshold"
+															name="thresholdValue"
+														>
+															<Input
+																name="thresholdValue"
+																type="number"
+																value={
+																	thresholdValue
+																}
+																onChange={(
+																	e,
+																) => {
+																	setThresholdValue(
+																		Number(
+																			e
+																				.target
+																				.value,
+																		),
+																	)
+																}}
+															/>
+														</LabeledRow>
+													)}
+													<LabeledRow
+														label="Alert window"
+														name="thresholdWindow"
+													>
+														<OptionDropdown
+															options={
+																FREQUENCY_OPTIONS
+															}
+															selection={String(
+																thresholdWindow,
+															)}
+															setSelection={(
+																option,
+															) => {
+																setThresholdWindow(
+																	Number(
+																		option,
+																	),
+																)
+															}}
+														/>
+													</LabeledRow>
+												</Stack>
 												<LabeledRow
-													label="Alert window"
-													name="thresholdWindow"
+													label="Cooldown"
+													name="thresholdCooldown"
 												>
 													<OptionDropdown
 														options={
 															FREQUENCY_OPTIONS
 														}
 														selection={String(
-															thresholdWindow,
+															thresholdCooldown,
 														)}
 														setSelection={(
 															option,
 														) => {
-															setThresholdWindow(
+															setThresholdCooldown(
 																Number(option),
 															)
 														}}
 													/>
 												</LabeledRow>
-											</Stack>
-											<LabeledRow
-												label="Cooldown"
-												name="thresholdCooldown"
-											>
-												<OptionDropdown
-													options={FREQUENCY_OPTIONS}
-													selection={String(
-														thresholdCooldown,
-													)}
-													setSelection={(option) => {
-														setThresholdCooldown(
-															Number(option),
-														)
-													}}
-												/>
-											</LabeledRow>
-										</SidebarSection>
-									</>
-								)}
+											</>
+										)}
+									</SidebarSection>
+								</>
 								<Divider className="m-0" />
 								<SidebarSection>
 									<DestinationInput

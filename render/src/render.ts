@@ -2,7 +2,8 @@ import chromium from '@sparticuz/chromium'
 import { mkdtemp, readFileSync } from 'fs'
 import { tmpdir } from 'os'
 import path from 'path'
-import puppeteer, { Browser } from 'puppeteer-core'
+import puppeteer from 'puppeteer-core'
+import type { Browser, CookieParam, Page } from 'puppeteer-core'
 import { PuppeteerScreenRecorder } from 'puppeteer-screen-recorder'
 import { promisify } from 'util'
 
@@ -21,6 +22,52 @@ const getHtml = (rrwebStyle: string, rrwebJs: string): string => {
 </html>`
 }
 
+async function setupOAuthProjectToken(
+	page: Page,
+	apiConfig: {
+		domain: string
+		oauthURL: string
+		apiURL: string
+		clientID: string
+		clientSecret: string
+		project: number
+	},
+) {
+	const r = await fetch(
+		`${apiConfig.oauthURL}/token?grant_type=client_credentials&client_id=${apiConfig.clientID}&client_secret=${apiConfig.clientSecret}`,
+		{
+			method: 'POST',
+			mode: 'no-cors',
+		},
+	)
+	const data = await r.json()
+	const accessToken = data['access_token']
+
+	// set asset cookie from project-token api
+	const token = await fetch(
+		`${apiConfig.apiURL}/project-token/${apiConfig.project}`,
+		{
+			credentials: 'include',
+			headers: { Authorization: `Bearer ${accessToken}` },
+		},
+	)
+	for (const cookie of token.headers.getSetCookie()) {
+		const value = cookie.split(';')[0]
+		const [k, v] = value.trim().split('=')
+		const cookieParam = {
+			name: k,
+			value: v,
+			domain: apiConfig.domain,
+			path: '/',
+			expires: new Date().getTime() + 15 * 60 * 1000,
+			httpOnly: true,
+			secure: true,
+			sameSite: 'None',
+		} as CookieParam
+		await page.setCookie(cookieParam)
+	}
+}
+
 export interface RenderConfig {
 	fps?: number
 	dir?: string
@@ -28,15 +75,19 @@ export interface RenderConfig {
 	ts?: number
 	tsEnd?: number
 	chunk?: number
+	domain?: string
+	oauthURL?: string
+	apiURL?: string
 }
 
 export async function render(
+	project: number,
 	events: string,
 	chunk_idx: number,
 	intervals: any[],
 	worker: number,
 	workers: number,
-	{ fps, ts, tsEnd, dir, video }: RenderConfig,
+	{ fps, ts, tsEnd, dir, video, ...apiConfig }: RenderConfig,
 ) {
 	let files: string[] = []
 	if (ts === undefined && fps === undefined) {
@@ -55,7 +106,7 @@ export async function render(
 		console.log(`starting puppeteer for dev`)
 		browser = await puppeteer.launch({
 			channel: 'chrome',
-			headless: 'new',
+			headless: true,
 			args: ['--no-sandbox'],
 		})
 	} else {
@@ -93,7 +144,16 @@ export async function render(
 		path.join(path.resolve(), 'node_modules', 'rrweb', 'dist', 'style.css'),
 		'utf8',
 	)
+	await page.goto('https://app.highlight.io')
 	await page.setContent(getHtml(css, js))
+	await setupOAuthProjectToken(page, {
+		domain: apiConfig?.domain ?? 'pri.highlight.io',
+		oauthURL: apiConfig?.oauthURL ?? 'https://pri.highlight.io/oauth',
+		apiURL: apiConfig?.apiURL ?? 'https://pri.highlight.io',
+		clientID: process.env.OAUTH_CLIENT_ID ?? '',
+		clientSecret: process.env.OAUTH_CLIENT_SECRET ?? '',
+		project,
+	})
 	await page.evaluate(
 		`
         const events = JSON.parse(` +
@@ -109,10 +169,11 @@ export async function render(
         window.r = new rrweb.Replayer(events, {
         	target: document.body,
             triggerFocus: true,
-            mouseTail: false,
+            mouseTail: true,
             UNSAFE_replayCanvas: true,
             liveMode: false,
-            speed: 4
+            useVirtualDom: true,
+            speed: 8
         });
         window.getInactivityEnd = (time) => {
 			for (const interval of intervals) {

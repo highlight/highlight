@@ -5,9 +5,9 @@ import type {
 	NodeOptions,
 } from '@highlight-run/node'
 import type { WorkersSDK } from '@highlight-run/opentelemetry-sdk-workers'
-import type { Attributes } from '@opentelemetry/api'
+import type { Attributes, SpanOptions } from '@opentelemetry/api'
 import type { ResourceAttributes } from '@opentelemetry/resources/build/src/types'
-import { IncomingHttpHeaders } from 'http'
+import type { IncomingHttpHeaders } from 'http'
 
 export type HighlightEnv = NodeOptions
 
@@ -33,10 +33,12 @@ export interface HighlightInterface {
 	) => WorkersSDK
 	isInitialized: () => boolean
 	metrics: (metrics: Metric[]) => void
-	parseHeaders: (headers: Headers | IncomingHttpHeaders) => HighlightContext
+	parseHeaders: (headers: any) => HighlightContext
 	runWithHeaders: <T>(
-		headers: Headers | IncomingHttpHeaders,
+		name: string,
+		headers: any,
 		cb: () => T,
+		options?: SpanOptions,
 	) => Promise<T>
 	consumeError: (
 		error: Error,

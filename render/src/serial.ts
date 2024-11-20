@@ -42,7 +42,7 @@ export async function serialRender(
 	if (chunkEvents.length === 1) {
 		return {
 			dir,
-			files: await render(chunkEvents[0], 0, intervals, 0, 1, {
+			files: await render(project, chunkEvents[0], 0, intervals, 0, 1, {
 				fps,
 				ts,
 				tsEnd,
@@ -54,7 +54,7 @@ export async function serialRender(
 		const files: string[] = []
 		for (const [idx, events] of chunkEvents.entries()) {
 			files.push(
-				...(await render(events, idx, intervals, 0, 1, {
+				...(await render(project, events, idx, intervals, 0, 1, {
 					fps,
 					video: true,
 				})),

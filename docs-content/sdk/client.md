@@ -111,12 +111,6 @@ slug: client
           <h5>inlineStylesheet <code>boolean</code> <code>optional</code></h5>
           <p>Specifies whether to inline CSS style tags into the recording. When not set, defaults to true which will inline stylesheets to make sure apps recorded from localhost or other non-public network endpoints can be replayed. Setting to false may help with CORS issues caused by fetching the stylesheet contents, as well as with performance issues caused by the inlining process.</p>
         </aside>
-        <aside className="parameter">
-          <h5>enableOtelTracing <code>boolean</code> <code>optional</code></h5>
-          <p>
-            Specifies whether the OpenTelemetry Browser instrumentation will be enabled for your project. Learn more in [Browser OpenTelemetry](../getting-started/3_client-sdk/7_replay-configuration/opentelemetry.md).
-          </p>
-        </aside>
       </article>
     </aside>
   </div>
@@ -248,7 +242,6 @@ slug: client
 <section className="section">
   <div className="left">
     <h3>H.startSpan</h3>
-    <p><b>Note:</b> You must set <code inline>enableOtelTracing: true</code> when calling <code inline>H.init</code> for this method to do anything.</p>
     <p>This method is used to start a new span. Spans created with this method are automatically ended after the callback function completes, whether it returns normally or throws an error.</p>
     <p>Check out <code inline>startManualSpan</code> if you want to have more control over when the span is ended.</p>
     <h6>Method Parameters</h6>
@@ -287,7 +280,6 @@ slug: client
 <section className="section">
   <div className="left">
     <h3>H.startManualSpan</h3>
-    <p><b>Note:</b> You must set <code inline>enableOtelTracing: true</code> when calling <code inline>H.init</code> for this method to do anything.</p>
     <p>This method is used to start a new manual span. Use this when you don't want the span to be ended automatically. You need to end these spans by calling <code inline>span.end()</code></p>
     <h6>Method Parameters</h6>
     <aside className="parameter">

@@ -12,7 +12,7 @@ import styles from '../Docs.module.scss'
 
 export const HighlightCodeBlock = (props: {
 	language: string
-	text?: string
+	text?: string | any
 	copy?: string
 	topbar?: boolean
 	showLineNumbers?: boolean
@@ -97,7 +97,13 @@ export const HighlightCodeBlock = (props: {
 			)}
 			<CodeBlock
 				language={props.language}
-				text={props.text || props.product.snippets[selected] || ''}
+				text={
+					props.text?.at(0)?.props
+						? props.text
+								?.map((obj: any) => obj.props.children.at(0))
+								.join('\n')
+						: props.text || props.product.snippets[selected] || ''
+				}
 				showLineNumbers={props.showLineNumbers}
 				theme={highlightCodeTheme}
 			/>

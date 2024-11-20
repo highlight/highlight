@@ -2,6 +2,7 @@ import { Box, Callout, Text } from '@highlight-run/ui/components'
 import { stringify } from 'query-string'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { DateTimeParam, encodeQueryParams, StringParam } from 'use-query-params'
+import useLocalStorage from '@rehooks/local-storage'
 
 import { LinkButton } from '@/components/LinkButton'
 import {
@@ -16,6 +17,8 @@ import { ProductType } from '@/graph/generated/schemas'
 import { useNumericProjectId } from '@/hooks/useProjectId'
 import { LogsTable } from '@/pages/LogsPage/LogsTable/LogsTable'
 import { useGetLogs } from '@/pages/LogsPage/useGetLogs'
+import { SerializedColumn } from '@/components/CustomColumnPopover'
+import { DEFAULT_LOG_COLUMNS } from '@/pages/LogsPage/LogsTable/CustomColumns/columns'
 
 export const LogsPanel: React.FC<{ resource: RelatedLogs }> = ({
 	resource,
@@ -25,6 +28,10 @@ export const LogsPanel: React.FC<{ resource: RelatedLogs }> = ({
 	const { queryParts } = parseSearch(query)
 	const handleSubmit = (query: string) => set({ ...resource, query })
 	const { projectId } = useNumericProjectId()
+
+	const [selectedColumns, setSelectedColumns] = useLocalStorage<
+		SerializedColumn[]
+	>(`highlight-logs-related-table-columns`, DEFAULT_LOG_COLUMNS)
 
 	/* eslint-disable react-hooks/exhaustive-deps */
 	const startDate = useMemo(() => new Date(resource.startDate), [])
@@ -105,7 +112,6 @@ export const LogsPanel: React.FC<{ resource: RelatedLogs }> = ({
 						presets={[]}
 						minDate={startDate}
 						timeMode="permalink"
-						hideDatePicker
 						hideCreateAlert
 						productType={ProductType.Logs}
 					/>
@@ -129,7 +135,9 @@ export const LogsPanel: React.FC<{ resource: RelatedLogs }> = ({
 								loadingAfter={loadingAfter}
 								selectedCursor={undefined}
 								fetchMoreWhenScrolled={fetchMoreWhenScrolled}
-								bodyHeight="calc(100% - 56px)"
+								selectedColumns={selectedColumns}
+								setSelectedColumns={setSelectedColumns}
+								bodyHeight="calc(100% - 64px)"
 							/>
 						)}
 					</Box>

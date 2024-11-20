@@ -37,6 +37,7 @@ export default function RootLayout({
 					canvasClearWebGLBuffer: false,
 				}}
 				backendUrl={CONSTANTS.NEXT_PUBLIC_HIGHLIGHT_BACKEND_URL}
+				otlpEndpoint={CONSTANTS.NEXT_PUBLIC_HIGHLIGHT_OTLP_ENDPOINT}
 			/>
 
 			<html lang="en" data-layout>

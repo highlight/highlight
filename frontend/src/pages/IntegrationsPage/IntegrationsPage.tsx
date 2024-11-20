@@ -5,7 +5,6 @@ import { useClearbitIntegration } from '@pages/IntegrationsPage/components/Clear
 import { useClickUpIntegration } from '@pages/IntegrationsPage/components/ClickUpIntegration/utils'
 import { useCloudflareIntegration } from '@pages/IntegrationsPage/components/CloudflareIntegration/utils'
 import { useDiscordIntegration } from '@pages/IntegrationsPage/components/DiscordIntegration/utils'
-import { useFrontIntegration } from '@pages/IntegrationsPage/components/FrontIntegration/utils'
 import { useGitHubIntegration } from '@pages/IntegrationsPage/components/GitHubIntegration/utils'
 import { useHeightIntegration } from '@pages/IntegrationsPage/components/HeightIntegration/utils'
 import { useHerokuIntegration } from '@pages/IntegrationsPage/components/HerokuIntegration/utils'
@@ -48,9 +47,6 @@ const IntegrationsPage = () => {
 
 	const { isClearbitIntegratedWithWorkspace, loading: loadingClearbit } =
 		useClearbitIntegration()
-
-	const { isFrontIntegratedWithProject, loading: loadingFront } =
-		useFrontIntegration()
 
 	const { isVercelIntegratedWithProject, loading: loadingVercel } =
 		useVercelIntegration()
@@ -109,7 +105,6 @@ const IntegrationsPage = () => {
 		loadingSlack ||
 		loadingZapier ||
 		loadingClearbit ||
-		loadingFront ||
 		loadingVercel ||
 		loadingDiscord ||
 		loadingClickUp ||
@@ -152,7 +147,6 @@ const IntegrationsPage = () => {
 				(inter.key === 'zapier' && isZapierIntegratedWithProject) ||
 				(inter.key === 'clearbit' &&
 					isClearbitIntegratedWithWorkspace) ||
-				(inter.key === 'front' && isFrontIntegratedWithProject) ||
 				(inter.key === 'vercel' && isVercelIntegratedWithProject) ||
 				(inter.key === 'discord' && isDiscordIntegratedWithProject) ||
 				(inter.key === 'github' && isGitHubIntegratedWithProject) ||
@@ -173,7 +167,6 @@ const IntegrationsPage = () => {
 		isLinearIntegratedWithProject,
 		isZapierIntegratedWithProject,
 		isClearbitIntegratedWithWorkspace,
-		isFrontIntegratedWithProject,
 		isVercelIntegratedWithProject,
 		isDiscordIntegratedWithProject,
 		isGitHubIntegratedWithProject,

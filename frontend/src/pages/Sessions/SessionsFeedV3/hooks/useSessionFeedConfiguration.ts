@@ -5,6 +5,7 @@ import {
 	SESSION_FEED_DATETIME_FORMAT,
 	SESSION_FEED_RESULT_FORMAT,
 	SESSION_FEED_SORT_ORDER,
+	SESSION_HISTOGRAM_FORMAT,
 } from '@/pages/Sessions/SessionsFeedV3/context/SessionFeedConfigurationContext'
 import useFeatureFlag, { Feature } from '@hooks/useFeatureFlag/useFeatureFlag'
 import { useEffect } from 'react'
@@ -27,6 +28,11 @@ export const useSessionFeedConfiguration = () => {
 		`${LOCAL_STORAGE_KEY_PREFIX}SortOrder`,
 		'Descending',
 	)
+	const [sessionHistogramFormat, setSessionHistogramFormat] =
+		useLocalStorage<SESSION_HISTOGRAM_FORMAT>(
+			`${LOCAL_STORAGE_KEY_PREFIX}HistogramFormat`,
+			'With/Without Errors',
+		)
 	const [resultFormat, setResultFormat] =
 		useLocalStorage<SESSION_FEED_RESULT_FORMAT>(
 			`${LOCAL_STORAGE_KEY_PREFIX}ResultFormat`,
@@ -34,19 +40,21 @@ export const useSessionFeedConfiguration = () => {
 		)
 	const [resultFormatConfigured, setResultFormatConfigured] =
 		useLocalStorage<boolean>(
-			`${LOCAL_STORAGE_KEY_PREFIX}ResultFormat-configured`,
+			`${LOCAL_STORAGE_KEY_PREFIX}ResultFormat-configured-v2`,
 			false,
 		)
 
 	useEffect(() => {
 		if (!resultFormatConfigured && sessionResultsVerbose) {
 			setResultFormat('Count/Length/ActiveLength')
+			setSessionHistogramFormat('Active/Inactive Time')
 			setResultFormatConfigured(true)
 		}
 	}, [
 		resultFormatConfigured,
 		sessionResultsVerbose,
 		setResultFormat,
+		setSessionHistogramFormat,
 		setResultFormatConfigured,
 	])
 
@@ -57,6 +65,8 @@ export const useSessionFeedConfiguration = () => {
 		setCountFormat,
 		sortOrder,
 		setSortOrder,
+		sessionHistogramFormat,
+		setSessionHistogramFormat,
 		resultFormat,
 		setResultFormat,
 	}

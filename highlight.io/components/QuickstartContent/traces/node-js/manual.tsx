@@ -19,20 +19,24 @@ export const JSManualTracesContent: QuickStartContent = {
 		{
 			title: 'Wrap your code using the Node.js SDK.',
 			content:
-				'By wrapping your code with `startSpan` and `endSpan`, the `@highlight-run/node` SDK will record a span. You can create more child spans or add custom attributes to each span.',
+				'By calling `H.startWithHeaders()` and `span.end()`, the `@highlight-run/node` SDK will record a span. You can create more child spans or add custom attributes to each span.',
 			code: [
 				{
 					text: `
 const functionToTrace = async (input int) => {
-	const span = await H.startActiveSpan("functionToTrace", {custom_property: input})
+	const { span, ctx } = H.startWithHeaders("functionToTrace", {}, {custom_property: input})
 	// ...
-	anotherFunction()
+	// use the current span context with the function call to ensure child spans are tied to the current span
+	// import api from '@opentelemetry/api'
+	api.context.with(ctx, () => {
+        anotherFunction()
+    })
 	// ...
 	span.end()
 }
 
 const anotherFunction = () => {
-	const span = H.startActiveSpan("anotherFunction", {})
+	const { span } = H.startWithHeaders("anotherFunction", {})
 
 	// ...
 	span.end()
@@ -55,9 +59,9 @@ module.exports = function() {
 					text: `
 app.get('/', async (req, res) => {
 	await H.runWithHeaders(req.headers, () => {
-		const span = H.startActiveSpan("custom-span", {})
+		const { span } = H.startWithHeaders("custom-span", {})
 		const err = new Error('this is a test error')
-		
+
 		console.info('Sending error to highlight')
 		H.consumeError(err)
 

@@ -710,7 +710,7 @@ const LogAlertForm = () => {
 							}
 							notFoundContent={<p>No email suggestions</p>}
 							className={styles.selectContainer}
-							mode="multiple"
+							mode="tags"
 							value={formStore.getValue(formStore.names.emails)}
 						/>
 					</Form.NamedSection>
