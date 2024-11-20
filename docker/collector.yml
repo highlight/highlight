@@ -79,15 +79,23 @@ exporters:
         read_buffer_size: 32768
         write_buffer_size: 32768
         max_conns_per_host: 1000
+        keepalive:
+            time: 600s
+            timeout: 30s
         sending_queue:
             num_consumers: 100
             queue_size: 10000
+            storage: file_storage/otc
         retry_on_failure:
             enabled: true
             initial_interval: 1s
             max_interval: 30s
             max_elapsed_time: 300s
 processors:
+    memory_limiter:
+        limit_mib: 14336
+        spike_limit_mib: 1024
+        check_interval: 0.1s
     batch:
         metadata_keys:
             - x-highlight-project
@@ -102,21 +110,24 @@ service:
         metrics:
             address: '0.0.0.0:8888'
             level: detailed
-    extensions: [headers_setter, health_check]
+    extensions: [file_storage/otc, headers_setter, health_check]
     pipelines:
         traces:
             receivers: [otlp, otlp/https]
-            processors: [batch]
+            processors: [memory_limiter, batch]
             exporters: [otlphttp, logging]
         metrics:
             receivers: [otlp, otlp/https]
-            processors: [batch]
+            processors: [memory_limiter, batch]
             exporters: [otlphttp, logging]
         logs:
             receivers: [otlp, otlp/https, fluentforward, tcplog, syslog]
-            processors: [batch]
+            processors: [memory_limiter, batch]
             exporters: [otlphttp, logging]
 extensions:
+    file_storage/otc:
+        directory: /data/queue
+        timeout: 10s # in what time a file lock should be obtained
     headers_setter:
         headers:
             - action: upsert

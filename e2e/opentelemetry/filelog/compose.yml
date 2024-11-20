@@ -9,3 +9,5 @@ services:
         volumes:
             - ./otel-collector.yaml:/etc/otel-collector-config.yaml
             - $EXAMPLE_LOG_FILE_PATH:/var/log/watch.log
+            - ./log.json:/var/log/logs.json
+            - ./queue:/data/queue
