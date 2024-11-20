@@ -74,7 +74,8 @@ export const setupBrowserTracing = (config: BrowserTracingConfig) => {
 		resource: new Resource({
 			[SemanticAttributes.ATTR_SERVICE_NAME]:
 				config.serviceName ?? 'highlight-browser',
-			[SemanticAttributes.DEPLOYMENT_ENVIRONMENT]: environment,
+			[SemanticAttributes.SEMRESATTRS_DEPLOYMENT_ENVIRONMENT]:
+				environment,
 			'highlight.project_id': config.projectId,
 			'highlight.session_id': config.sessionSecureId,
 		}),
