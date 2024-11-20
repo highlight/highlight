@@ -300,9 +300,21 @@ func (o *Handler) HandleTrace(w http.ResponseWriter, r *http.Request) {
 					}
 				}
 
-				// skip logrus spans
-				if span.Name() == highlight.LogrusSpanName {
-					continue
+				// skip log spans
+				if span.Name() == highlight.LogrusSpanName || span.Name() == highlight.LogSpanName {
+					// skip unless workspace setting is on
+					settings, err := o.resolver.Store.GetAllWorkspaceSettingsByProject(ctx, fields.projectIDInt)
+					if err != nil {
+						log.WithContext(ctx).WithError(err).Error("failed to get workspace settings")
+						continue
+					}
+					if settings == nil {
+						log.WithContext(ctx).Error("no workspace settings found")
+						continue
+					}
+					if !settings.EnableLogTraceIngestion {
+						continue
+					}
 				}
 
 				timestamp := graph.ClampTime(span.StartTimestamp().AsTime(), curTime)
