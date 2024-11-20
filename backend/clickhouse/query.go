@@ -36,7 +36,7 @@ const NoLimit = 1_000_000_000_000
 type SampleableTableConfig struct {
 	tableConfig         model.TableConfig
 	samplingTableConfig model.TableConfig
-	useSampling         func(time.Duration) bool
+	sampleSizeRows      uint64
 }
 
 type ReadMetricsInput struct {
@@ -965,7 +965,89 @@ func (client *Client) saveMetricHistory(ctx context.Context, sb *sqlbuilder.Sele
 	return err
 }
 
+type SamplingStats struct {
+	Database string `ch:"database"`
+	Table    string `ch:"table"`
+	Parts    uint64 `ch:"parts"`
+	Rows     uint64 `ch:"rows"`
+	Marks    uint64 `ch:"marks"`
+}
+
+func (client *Client) getSamplingStats(ctx context.Context, tables []string, projectIds []int, dateRange modelInputs.DateRangeRequiredInput) (map[string]SamplingStats, error) {
+	tables = lo.Uniq(tables)
+	projectIds = lo.Uniq(projectIds)
+
+	builders := []sqlbuilder.Builder{}
+	for _, table := range tables {
+		sb := sqlbuilder.NewSelectBuilder()
+		sb.Select("1")
+		sb.From(table)
+		sb.Where(sb.In("ProjectId", projectIds))
+		sb.Where(sb.GreaterEqualThan("Timestamp", dateRange.StartDate))
+		sb.Where(sb.LessEqualThan("Timestamp", dateRange.EndDate))
+		builders = append(builders, sb)
+	}
+
+	sb := sqlbuilder.UnionAll(builders...)
+	sql, args := sb.BuildWithFlavor(sqlbuilder.ClickHouse)
+	sql = "EXPLAIN ESTIMATE " + sql
+
+	span, ctx := util.StartSpanFromContext(ctx, "getSamplingStats.query")
+	span.SetAttribute("sql", sql)
+	span.SetAttribute("args", args)
+	rows, err := client.conn.Query(
+		ctx,
+		sql,
+		args...,
+	)
+	span.Finish(err)
+	if err != nil {
+		return nil, err
+	}
+
+	results := []SamplingStats{}
+	for rows.Next() {
+		var result SamplingStats
+		if err := rows.ScanStruct(&result); err != nil {
+			return nil, err
+		}
+		results = append(results, result)
+	}
+
+	statsByTable := lo.KeyBy(results, func(s SamplingStats) string {
+		return s.Table
+	})
+
+	return statsByTable, nil
+}
+
 func (client *Client) ReadMetrics(ctx context.Context, input ReadMetricsInput) (*modelInputs.MetricsBuckets, error) {
+
+	if input.Params.DateRange == nil {
+		input.Params.DateRange = &modelInputs.DateRangeRequiredInput{
+			StartDate: time.Now().Add(-time.Hour * 24 * 30),
+			EndDate:   time.Now(),
+		}
+	}
+
+	sampleRatio := 0.0
+	if input.SampleableConfig.sampleSizeRows != 0 {
+		originalTable := input.SampleableConfig.tableConfig.TableName
+		samplingTable := input.SampleableConfig.samplingTableConfig.TableName
+
+		samplingStats, err := client.getSamplingStats(ctx,
+			[]string{originalTable, samplingTable},
+			input.ProjectIDs,
+			*input.Params.DateRange)
+		if err != nil {
+			return nil, err
+		}
+
+		if samplingStats[originalTable].Rows > input.SampleableConfig.sampleSizeRows {
+			sampleRatio = float64(input.SampleableConfig.sampleSizeRows) / float64(samplingStats[samplingTable].Rows)
+		}
+	}
+
 	span, ctx := util.StartSpanFromContext(ctx, "clickhouse.readMetrics")
 	span.SetAttribute("project_ids", input.ProjectIDs)
 	span.SetAttribute("table", input.SampleableConfig.tableConfig.TableName)
@@ -1004,15 +1086,16 @@ func (client *Client) ReadMetrics(ctx context.Context, input ReadMetricsInput) (
 
 	startTimestamp := input.Params.DateRange.StartDate.Unix()
 	endTimestamp := input.Params.DateRange.EndDate.Unix()
-	useSampling := input.SampleableConfig.useSampling(input.Params.DateRange.EndDate.Sub(input.Params.DateRange.StartDate)) && input.SavedMetricState == nil
 
 	keysToColumns := input.SampleableConfig.tableConfig.KeysToColumns
 
 	var fromSb *sqlbuilder.SelectBuilder
 	var err error
 	var config model.TableConfig
+	useSampling := sampleRatio != 0
 	if useSampling {
 		config = input.SampleableConfig.samplingTableConfig
+		config.TableName = fmt.Sprintf("%s SAMPLE %f", config.TableName, sampleRatio)
 	} else {
 		config = input.SampleableConfig.tableConfig
 	}
@@ -1334,6 +1417,7 @@ func (client *Client) ReadMetrics(ctx context.Context, input ReadMetricsInput) (
 
 	return metrics, err
 }
+
 func formatColumn(input string, column string) string {
 	base := input
 	if base == "" {

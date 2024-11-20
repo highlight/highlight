@@ -544,9 +544,6 @@ var SessionsJoinedTableConfig = model.TableConfig{
 
 var SessionsSampleableTableConfig = SampleableTableConfig{
 	tableConfig: SessionsJoinedTableConfig,
-	useSampling: func(time.Duration) bool {
-		return false
-	},
 }
 
 func (client *Client) ReadSessionsMetrics(ctx context.Context, projectID int, params modelInputs.QueryInput, column string, metricTypes []modelInputs.MetricAggregator, groupBy []string, nBuckets *int, bucketBy string, bucketWindow *int, limit *int, limitAggregator *modelInputs.MetricAggregator, limitColumn *string) (*modelInputs.MetricsBuckets, error) {
