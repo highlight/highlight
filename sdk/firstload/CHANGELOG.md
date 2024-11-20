@@ -1,5 +1,11 @@
 # highlight.run
 
+## 9.7.1
+
+### Patch Changes
+
+-   847fdc0: revert single style sheet serialization due to performance regression
+
 ## 9.7.0
 
 ### Minor Changes
