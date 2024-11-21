@@ -377,7 +377,7 @@ func TestExtractFields_HandleInvalidTimestamp(t *testing.T) {
 	curTime := time.Now().Truncate(time.Second).UTC()
 	resource := newResource(t, map[string]any{})
 	event := newEvent(map[string]string{})
-	event.SetTimestamp(pcommon.Timestamp(curTime.Add(3 * time.Hour).UnixNano()))
+	event.SetTimestamp(pcommon.Timestamp(curTime.Add(31 * 24 * time.Hour).UnixNano()))
 	fields, err := extractFields(ctx, extractFieldsParams{resource: &resource, event: &event, curTime: curTime})
 	assert.NoError(t, err)
 	assert.Equal(t, curTime, fields.timestamp)
