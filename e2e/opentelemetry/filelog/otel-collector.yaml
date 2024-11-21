@@ -3,11 +3,6 @@ receivers:
         include:
             - /var/log/watch.log
         start_at: beginning
-        operators:
-            - type: json_parser
-              timestamp:
-                  parse_from: attributes.Timestamp
-                  layout: '%Y-%m-%d %H:%M:%S.%f'
 
 processors:
     attributes/highlight-project:

@@ -100,8 +100,6 @@ services:
                 - IN_DOCKER_GO
                 - SSL
         container_name: collector
-        volumes:
-            - ./collector-queue:/data/queue
         extra_hosts:
             - 'host.docker.internal:host-gateway'
         ports:
