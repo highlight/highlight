@@ -3,6 +3,12 @@ receivers:
         include:
             - /var/log/watch.log
         start_at: beginning
+    filelog/json:
+        include:
+            - /var/log/log.json
+        start_at: beginning
+        operators:
+            - type: json_parser
 
 processors:
     attributes/highlight-project:
@@ -44,6 +50,6 @@ service:
     extensions: [file_storage/otc]
     pipelines:
         logs:
-            receivers: [filelog]
+            receivers: [filelog, filelog/json]
             processors: [attributes/highlight-project, batch]
             exporters: [otlp/highlight]

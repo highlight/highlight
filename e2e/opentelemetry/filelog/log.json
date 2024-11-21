@@ -1,5 +1,1 @@
-{
-	"body": {
-		"message": "{\"test\": \"what\", \"key\": \"test\", \"Timestamp\": \"2024-11-01 12:34:56.000001\"}"
-	}
-}
+{ "timestamp": 1136214245, "foo": "bar", "message": "test" }
