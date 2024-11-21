@@ -26,12 +26,6 @@ import (
 	"time"
 )
 
-const (
-	stateCookieName = "state"
-	tokenCookieName = "token"
-	loginExpiry     = 7 * 24 * time.Hour
-)
-
 type Client interface {
 	updateContextWithAuthenticatedUser(ctx context.Context, token string) (context.Context, error)
 	GetUser(ctx context.Context, uid string) (*auth.UserRecord, error)
@@ -456,7 +450,7 @@ func NewOAuthClient(ctx context.Context, store *store.Store) *OAuthAuthClient {
 	return &OAuthAuthClient{store, env.Config.OAuthClientID, provider, &oauth2Config}
 }
 
-func authenticateToken(tokenString string) (jwt.MapClaims, error) {
+func authenticateToken(ctx context.Context, tokenString string) (jwt.MapClaims, error) {
 	claims := jwt.MapClaims{}
 	_, err := jwt.ParseWithClaims(tokenString, claims, func(token *jwt.Token) (interface{}, error) {
 		return []byte(JwtAccessSecret), nil
@@ -472,7 +466,8 @@ func authenticateToken(tokenString string) (jwt.MapClaims, error) {
 
 	expClaim := int64(exp.(float64))
 	if time.Now().After(time.Unix(expClaim, 0)) {
-		return claims, e.Wrap(err, "token expired")
+		log.WithContext(ctx).WithField("token", tokenString).Info("expired user token")
+		return nil, nil
 	}
 
 	return claims, nil
@@ -483,9 +478,12 @@ func updateContextWithJWTToken(ctx context.Context, token string) (context.Conte
 	email := ""
 
 	if token != "" {
-		claims, err := authenticateToken(token)
+		claims, err := authenticateToken(ctx, token)
 		if err != nil {
 			return ctx, err
+		}
+		if claims == nil {
+			return ctx, nil
 		}
 
 		email = claims["email"].(string)
