@@ -352,7 +352,7 @@ func (r *Resolver) AppendFields(ctx context.Context, chfields []*clickhouse.Clic
 	var messages []kafkaqueue.RetryableMessage
 	for _, chField := range chfields {
 		messages = append(messages, &kafkaqueue.SessionFieldRowMessage{
-			Type:            kafkaqueue.PushSessionEvents,
+			Type:            kafkaqueue.PushSessionFields,
 			ClickhouseField: chField,
 		})
 
