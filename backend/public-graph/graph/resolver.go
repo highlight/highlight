@@ -335,7 +335,7 @@ func (r *Resolver) SubmitSessionEvents(ctx context.Context, sessionID int, event
 		})
 	}
 
-	err := r.DataSyncQueue.Submit(ctx, "", messages...)
+	err := r.DataSyncQueue.Submit(ctx, strconv.Itoa(session.ID), messages...)
 	if err != nil {
 		return e.Wrap(err, "failed to submit session events to public worker queue")
 	}
@@ -411,7 +411,7 @@ func (r *Resolver) AppendFields(ctx context.Context, chfields []*clickhouse.Clic
 		return e.Wrap(err, "error updating fields")
 	}
 
-	err := r.DataSyncQueue.Submit(ctx, "", messages...)
+	err := r.DataSyncQueue.Submit(ctx, strconv.Itoa(session.ID), messages...)
 	if err != nil {
 		return e.Wrap(err, "failed to submit fields to public worker queue")
 	}
