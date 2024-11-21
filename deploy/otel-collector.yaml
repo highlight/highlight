@@ -49,9 +49,6 @@ exporters:
         read_buffer_size: 32768
         write_buffer_size: 32768
         max_conns_per_host: 1000
-        keepalive:
-            time: 600s
-            timeout: 30s
         sending_queue:
             num_consumers: 100
             queue_size: 10000
