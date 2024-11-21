@@ -343,14 +343,14 @@ func (r *Resolver) SubmitSessionEvents(ctx context.Context, sessionID int, event
 	return nil
 }
 
-func (r *Resolver) AppendFields(ctx context.Context, cHfields []*clickhouse.ClickhouseField, session *model.Session) error {
+func (r *Resolver) AppendFields(ctx context.Context, chfields []*clickhouse.ClickhouseField, session *model.Session) error {
 	outerSpan, ctx := util.StartSpanFromContext(ctx, "public-graph.AppendFields",
 		util.ResourceName("go.sessions.AppendFields"), util.Tag("sessionID", session.ID))
 	defer outerSpan.Finish()
 
 	var fields []*model.Field
 	var messages []kafkaqueue.RetryableMessage
-	for _, chField := range cHfields {
+	for _, chField := range chfields {
 		messages = append(messages, &kafkaqueue.SessionFieldRowMessage{
 			Type:            kafkaqueue.PushSessionEvents,
 			ClickhouseField: chField,
@@ -411,7 +411,7 @@ func (r *Resolver) AppendFields(ctx context.Context, cHfields []*clickhouse.Clic
 		return e.Wrap(err, "error updating fields")
 	}
 
-	err := r.DataSyncQueue.Submit(ctx, strconv.Itoa(session.ID), messages...)
+	err := r.DataSyncQueue.Submit(ctx, "", messages...)
 	if err != nil {
 		return e.Wrap(err, "failed to submit fields to public worker queue")
 	}
