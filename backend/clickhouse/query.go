@@ -8,7 +8,6 @@ import (
 	"reflect"
 	"regexp"
 	"sort"
-	"strconv"
 	"strings"
 	"time"
 
@@ -791,6 +790,32 @@ func matchesQuery[TObj interface{}](row *TObj, config model.TableConfig, filters
 	return true
 }
 
+func getLimitFnStr(aggregator modelInputs.MetricAggregator, column string) string {
+	switch aggregator {
+	case modelInputs.MetricAggregatorCount:
+		return "count()"
+	case modelInputs.MetricAggregatorCountDistinctKey, modelInputs.MetricAggregatorCountDistinct:
+		return fmt.Sprintf("count(distinct %s)", column)
+	case modelInputs.MetricAggregatorMin:
+		return fmt.Sprintf("min(%s)", column)
+	case modelInputs.MetricAggregatorAvg:
+		return fmt.Sprintf("avg(%s)", column)
+	case modelInputs.MetricAggregatorP50:
+		return fmt.Sprintf("quantile(.5)(%s)", column)
+	case modelInputs.MetricAggregatorP90:
+		return fmt.Sprintf("quantile(.9)(%s)", column)
+	case modelInputs.MetricAggregatorP95:
+		return fmt.Sprintf("quantile(.95)(%s)", column)
+	case modelInputs.MetricAggregatorP99:
+		return fmt.Sprintf("quantile(.99)(%s)", column)
+	case modelInputs.MetricAggregatorMax:
+		return fmt.Sprintf("max(%s)", column)
+	case modelInputs.MetricAggregatorSum:
+		return fmt.Sprintf("sum(%s)", column)
+	}
+	return ""
+}
+
 func getFnStr(aggregator modelInputs.MetricAggregator, column string, useSampling bool, useState bool) string {
 	switch aggregator {
 	case modelInputs.MetricAggregatorCount:
@@ -1197,6 +1222,7 @@ func (client *Client) ReadMetrics(ctx context.Context, input ReadMetricsInput) (
 
 	selectCols = append(selectCols, fromSb.As(metricExpr, "metric_value"))
 
+	groupAliases := []string{}
 	for idx, group := range input.GroupBy {
 		groupCol := ""
 		if col, found := keysToColumns[group]; found {
@@ -1205,10 +1231,12 @@ func (client *Client) ReadMetrics(ctx context.Context, input ReadMetricsInput) (
 			groupCol = getAttributeFilterCol(input.SampleableConfig, fromSb.Var(group), "toString")
 			attributeFields = append(attributeFields, group)
 		}
-		selectCols = append(selectCols, fromSb.As(groupCol, fmt.Sprintf("g%d", idx)))
-	}
 
-	fromSb.Select(selectCols...)
+		groupAlias := fmt.Sprintf("g%d", idx)
+		groupAliases = append(groupAliases, groupAlias)
+
+		selectCols = append(selectCols, fromSb.As(groupCol, groupAlias))
+	}
 
 	limitCount := 10
 	if input.Limit != nil {
@@ -1217,26 +1245,8 @@ func (client *Client) ReadMetrics(ctx context.Context, input ReadMetricsInput) (
 	if limitCount < 1 {
 		limitCount = 1
 	}
-
-	if input.LimitAggregator != nil && len(input.GroupBy) > 0 {
-		innerSb := sqlbuilder.NewSelectBuilder()
-		colStrs := []string{}
-		groupByIndexes := []string{}
-
-		for idx, group := range input.GroupBy {
-			var colStr string
-			if col, found := keysToColumns[group]; found {
-				colStr = col
-			} else {
-				colStr = getAttributeFilterCol(input.SampleableConfig, innerSb.Var(group), "toString")
-			}
-			groupByIndex := fmt.Sprintf("g%d", idx)
-			colStrs = append(colStrs, innerSb.As(colStr, groupByIndex))
-			groupByIndexes = append(groupByIndexes, groupByIndex)
-			innerSb.Where(innerSb.NotEqual(groupByIndex, ""))
-		}
-
-		limitFn := ""
+	useLimit := input.LimitAggregator != nil && len(input.GroupBy) > 0 && limitCount != NoLimit
+	if useLimit {
 		col := ""
 		if input.LimitColumn != nil {
 			col = *input.LimitColumn
@@ -1245,50 +1255,26 @@ func (client *Client) ReadMetrics(ctx context.Context, input ReadMetricsInput) (
 			col = topCol
 		} else {
 			attributeFields = append(attributeFields, col)
-			col = getAttributeFilterCol(input.SampleableConfig, innerSb.Var(col), "toFloat64OrNull")
-		}
-		limitFn = getFnStr(*input.LimitAggregator, col, false, false)
-
-		innerSb.
-			From(config.TableName).
-			Select(strings.Join(colStrs, ", "))
-
-		addAttributes(config, attributeFields, input.ProjectIDs, input.Params, innerSb)
-
-		innerSb.Where(innerSb.In("ProjectId", input.ProjectIDs)).
-			Where(innerSb.GreaterEqualThan("Timestamp", startTimestamp)).
-			Where(innerSb.LessEqualThan("Timestamp", endTimestamp))
-
-		applyBlockFilter(innerSb, input)
-
-		parser.AssignSearchFilters(innerSb, input.Params.Query, config)
-
-		innerSb.GroupBy(groupByIndexes...).
-			OrderBy(limitFn).
-			Desc().
-			Limit(limitCount)
-
-		fromColStrs := []string{}
-		for idx := range input.GroupBy {
-			groupByIndex := fmt.Sprintf("g%d", idx)
-			fromColStrs = append(fromColStrs, groupByIndex)
-			fromSb.Where(fromSb.NotEqual(groupByIndex, ""))
+			col = getAttributeFilterCol(input.SampleableConfig, fromSb.Var(col), "toFloat64OrNull")
 		}
 
-		if limitCount != NoLimit {
-			fromSb.Where(fromSb.In("("+strings.Join(fromColStrs, ", ")+")", innerSb))
-		}
+		limitExpr := fmt.Sprintf("%s OVER (PARTITION BY %s) as limit_metric",
+			getLimitFnStr(*input.LimitAggregator, col),
+			strings.Join(groupAliases, ", "))
+
+		selectCols = append(selectCols, limitExpr)
 	}
 
-	base := 5 + len(input.MetricTypes)
-	if input.SavedMetricState != nil {
-		base += 1
-	}
+	fromSb.Select(selectCols...)
 
-	groupByCols := []string{"1"}
-	for i := base; i < base+len(input.GroupBy); i++ {
-		groupByCols = append(groupByCols, strconv.Itoa(i))
+	groupByCols := []string{"bucket_index"}
+	orderByCols := []string{"bucket_index"}
+	if useLimit {
+		groupByCols = append(groupByCols, "limit_metric")
+		orderByCols = append(orderByCols, "limit_metric DESC")
 	}
+	groupByCols = append(groupByCols, groupAliases...)
+	orderByCols = append(orderByCols, groupAliases...)
 
 	addAttributes(config, attributeFields, input.ProjectIDs, input.Params, fromSb)
 
@@ -1301,15 +1287,33 @@ func (client *Client) ReadMetrics(ctx context.Context, input ReadMetricsInput) (
 	for idx, metricType := range input.MetricTypes {
 		outerSelect = append(outerSelect, fmt.Sprintf("%s as metric_value%d", getFnStr(metricType, "metric_value", true, input.SavedMetricState != nil), idx))
 	}
-	for idx := range input.GroupBy {
-		outerSelect = append(outerSelect, fmt.Sprintf("g%d", idx))
+	outerSelect = append(outerSelect, groupAliases...)
+	if useLimit {
+		outerSelect = append(outerSelect, fmt.Sprintf("dense_rank() OVER (ORDER BY limit_metric DESC, %s) as limit_rank", strings.Join(groupAliases, ", ")))
 	}
 	fromSb.Select(outerSelect...)
 	fromSb.From(fromSb.BuilderAs(innerSb, "inner"))
 
 	fromSb.GroupBy(groupByCols...)
-	fromSb.OrderBy(groupByCols...)
+	fromSb.OrderBy(orderByCols...)
 	fromSb.Limit(10000)
+
+	if useLimit {
+		outerSelect := []string{"bucket_index", "sample_factor", "min", "max"}
+		if input.SavedMetricState != nil {
+			outerSelect = append(outerSelect, "max_block_number")
+		}
+		for idx := range input.MetricTypes {
+			outerSelect = append(outerSelect, fmt.Sprintf("metric_value%d", idx))
+		}
+		outerSelect = append(outerSelect, groupAliases...)
+
+		innerSb := fromSb
+		fromSb = sqlbuilder.NewSelectBuilder()
+		fromSb.Select(outerSelect...)
+		fromSb.From(fromSb.BuilderAs(innerSb, "outer"))
+		fromSb.Where(fromSb.LessEqualThan("limit_rank", limitCount))
+	}
 
 	if input.SavedMetricState != nil {
 		if err := client.saveMetricHistory(ctx, fromSb, input); err != nil {
