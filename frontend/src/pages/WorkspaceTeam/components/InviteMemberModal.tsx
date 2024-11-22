@@ -107,7 +107,7 @@ function InviteMemberModal({
 			.catch((error) => {
 				toast.error(`Couldn't send workspace invite`, {
 					duration: 5000,
-					content: <Text>{error.message}</Text>,
+					content: <Text size="xSmall">{error.message}</Text>,
 				})
 			})
 	}
