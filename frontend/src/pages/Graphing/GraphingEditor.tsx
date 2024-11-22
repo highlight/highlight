@@ -7,6 +7,7 @@ import {
 	IconSolidClock,
 	Input,
 	Select,
+	Stack,
 	TagSwitchGroup,
 	Text,
 } from '@highlight-run/ui/components'
@@ -18,7 +19,6 @@ import React, {
 	useEffect,
 	useId,
 	useMemo,
-	useRef,
 	useState,
 } from 'react'
 import { Helmet } from 'react-helmet'
@@ -38,6 +38,7 @@ import {
 	MetricAggregator,
 	ProductType,
 	Graph as GraphType,
+	MetricExpression,
 } from '@/graph/generated/schemas'
 import useFeatureFlag, { Feature } from '@/hooks/useFeatureFlag/useFeatureFlag'
 import { useProjectId } from '@/hooks/useProjectId'
@@ -200,6 +201,7 @@ type GraphSettings = {
 	bucketInterval: number
 	bucketBySetting: BucketBySetting
 	fetchedLimitMetric: string
+	expressions: MetricExpression[]
 }
 
 export const GraphingEditor: React.FC = () => {
@@ -271,7 +273,6 @@ export const GraphingEditor: React.FC = () => {
 			bucketInterval:
 				bucketBySetting === 'Interval' ? Number(bucketInterval) : null,
 			display,
-			functionType,
 			groupByKeys: groupByEnabled ? groupByKeys : null,
 			limit: groupByEnabled ? Number(limit) : null,
 			limitFunctionType: groupByEnabled ? limitFunctionType : null,
@@ -280,12 +281,12 @@ export const GraphingEditor: React.FC = () => {
 				viewType === 'Funnel chart'
 					? funnelSteps.map((s) => omit(s, 'event'))
 					: [],
-			metric: fetchedMetric,
 			nullHandling,
 			productType,
 			query: debouncedQuery,
-			title: metricViewTitle || tempMetricViewTitle?.current,
+			title: metricViewTitle || tempMetricViewTitle,
 			type: viewType,
+			expressions: expressions,
 		}
 
 		if (isEdit) {
@@ -379,7 +380,7 @@ export const GraphingEditor: React.FC = () => {
 		const viewType = g.type as View
 		setProductType(g.productType)
 		setViewType(viewType)
-		setFunctionType(g.functionType)
+		setExpressions(g.expressions)
 
 		if (viewType === 'Line chart') {
 			setLineNullHandling(g.nullHandling as LineNullHandling)
@@ -394,7 +395,6 @@ export const GraphingEditor: React.FC = () => {
 
 		setQuery(g.query)
 		setDebouncedQuery(g.query)
-		setMetric(g.metric)
 		setMetricViewTitle(g.title)
 		setGroupByEnabled((g.groupByKeys ?? []).length > 0)
 		setGroupByKeys(g.groupByKeys ?? [])
@@ -453,9 +453,13 @@ export const GraphingEditor: React.FC = () => {
 	const setViewType = (vt: View) => {
 		if (vt === 'Funnel chart') {
 			setBucketBySetting('None')
-			setFunctionType(MetricAggregator.CountDistinct)
 			// once events have other session attributes, we can support per-user aggregation
-			setMetric('secure_session_id')
+			setExpressions([
+				{
+					aggregator: MetricAggregator.CountDistinct,
+					column: 'secure_session_id',
+				},
+			])
 			setGroupByEnabled(true)
 			setGroupByKeys(['secure_session_id'])
 			setLimit(NO_LIMIT)
@@ -496,19 +500,18 @@ export const GraphingEditor: React.FC = () => {
 		[query],
 	)
 
-	const [functionType, setFunctionType] = useState(
-		initialSettings?.functionType ?? FUNCTION_TYPES[0],
+	const [expressions, setExpressions] = useState(
+		initialSettings?.expressions ?? [
+			{
+				aggregator: FUNCTION_TYPES[0],
+				column: '',
+			},
+		],
 	)
-	const [metric, setMetric] = useState(initialSettings?.fetchedMetric ?? '')
-
-	const fetchedMetric = useMemo(() => {
-		return functionType === MetricAggregator.Count ? '' : metric
-	}, [functionType, metric])
 
 	const [metricViewTitle, setMetricViewTitle] = useState(
 		initialSettings?.metricViewTitle ?? '',
 	)
-	const tempMetricViewTitle = useRef<string>('')
 	const [groupByEnabled, setGroupByEnabled] = useState(
 		initialSettings?.groupByEnabled ?? false,
 	)
@@ -544,21 +547,11 @@ export const GraphingEditor: React.FC = () => {
 
 	const [completed, setCompleted] = useState(!isEdit)
 
-	tempMetricViewTitle.current = useMemo(() => {
-		let newViewTitle = ''
-		const stringifiedFunctionType = functionType?.toString() ?? ''
-		newViewTitle = metricViewTitle || stringifiedFunctionType || ''
-		if (
-			newViewTitle === stringifiedFunctionType &&
-			stringifiedFunctionType
-		) {
-			newViewTitle += fetchedMetric ? `(${fetchedMetric})` : ''
-		}
-		newViewTitle = newViewTitle
-			? `${newViewTitle} Of ${productType?.toString() ?? ''}`
-			: newViewTitle
-		return newViewTitle
-	}, [fetchedMetric, functionType, metricViewTitle, productType])
+	let tempMetricViewTitle = expressions.at(0)?.aggregator?.toString() ?? ''
+	if (expressions.at(0)?.column) {
+		tempMetricViewTitle += `(${expressions.at(0)?.column})`
+	}
+	tempMetricViewTitle += ` of ${productType?.toString() ?? ''}`
 
 	let display: string | undefined
 	let nullHandling: string | undefined
@@ -596,14 +589,12 @@ export const GraphingEditor: React.FC = () => {
 	const settings = {
 		productType,
 		viewType,
-		functionType,
 		lineNullHandling,
 		lineDisplay,
 		barDisplay,
 		funnelDisplay,
 		tableNullHandling,
 		query,
-		fetchedMetric,
 		metricViewTitle,
 		groupByEnabled,
 		groupByKeys,
@@ -615,6 +606,7 @@ export const GraphingEditor: React.FC = () => {
 		bucketInterval,
 		bucketBySetting,
 		fetchedLimitMetric,
+		expressions,
 	}
 
 	const settingsEncoded = btoa(JSON.stringify(settings))
@@ -631,7 +623,6 @@ export const GraphingEditor: React.FC = () => {
 
 		settings.productType = graphPreview.productType
 		settings.viewType = viewType
-		settings.functionType = graphPreview.functionType
 
 		if (viewType === 'Line chart') {
 			settings.lineNullHandling =
@@ -647,11 +638,7 @@ export const GraphingEditor: React.FC = () => {
 		}
 
 		settings.query = graphPreview.query
-		settings.fetchedMetric =
-			graphPreview.functionType === MetricAggregator.Count
-				? ''
-				: graphPreview.metric
-		console.log('fetchedMetric', settings.fetchedMetric)
+		settings.expressions = graphPreview.expressions
 		settings.metricViewTitle = graphPreview.title
 		settings.groupByEnabled = (graphPreview.groupByKeys ?? []).length > 0
 		settings.groupByKeys = graphPreview.groupByKeys ?? []
@@ -810,7 +797,7 @@ export const GraphingEditor: React.FC = () => {
 											<Graph
 												title={
 													metricViewTitle ||
-													tempMetricViewTitle?.current
+													tempMetricViewTitle
 												}
 												viewConfig={viewConfig}
 												productType={productType}
@@ -819,8 +806,6 @@ export const GraphingEditor: React.FC = () => {
 												selectedPreset={selectedPreset}
 												endDate={endDate}
 												query={debouncedQuery}
-												metric={metric}
-												functionType={functionType}
 												bucketByKey={getBucketByKey(
 													bucketBySetting,
 													bucketByKey,
@@ -1065,45 +1050,53 @@ export const GraphingEditor: React.FC = () => {
 											name="function"
 											tooltip="Determines how data points are aggregated. If the function requires a numeric field as input, one can be chosen."
 										>
-											<OptionDropdown
-												options={FUNCTION_TYPES}
-												selection={
-													settings.functionType
-												}
-												setSelection={setFunctionType}
-												disabled={
-													settings.viewType ===
-														'Funnel chart' ||
-													isPreview
-												}
-											/>
-											<Combobox
-												selection={
-													settings.fetchedMetric
-												}
-												setSelection={setMetric}
-												searchConfig={
-													searchOptionsConfig
-												}
-												disabled={
-													settings.functionType ===
-														MetricAggregator.Count ||
-													settings.viewType ===
-														'Funnel chart' ||
-													isPreview
-												}
-												onlyNumericKeys={
-													settings.functionType !==
-													MetricAggregator.CountDistinct
-												}
-												defaultKeys={variableKeys}
-												placeholder={
-													settings.functionType ===
-													MetricAggregator.Count
-														? 'Rows'
-														: undefined
-												}
-											/>
+											<Stack
+												direction="row"
+												width="full"
+												gap="4"
+											>
+												<OptionDropdown
+													options={FUNCTION_TYPES}
+													selection={
+														settings.functionType
+													}
+													setSelection={
+														setFunctionType
+													}
+													disabled={
+														settings.viewType ===
+															'Funnel chart' ||
+														isPreview
+													}
+												/>
+												<Combobox
+													selection={
+														settings.fetchedMetric
+													}
+													setSelection={setMetric}
+													searchConfig={
+														searchOptionsConfig
+													}
+													disabled={
+														settings.functionType ===
+															MetricAggregator.Count ||
+														settings.viewType ===
+															'Funnel chart' ||
+														isPreview
+													}
+													onlyNumericKeys={
+														settings.functionType !==
+														MetricAggregator.CountDistinct
+													}
+													defaultKeys={variableKeys}
+													placeholder={
+														settings.functionType ===
+														MetricAggregator.Count
+															? 'Rows'
+															: undefined
+													}
+												/>
+											</Stack>
 										</LabeledRow>
 										<LabeledRow
 											label="Group by"

@@ -40,6 +40,7 @@ import { GetMetricsQuery } from '@/graph/generated/operations'
 import {
 	Maybe,
 	MetricAggregator,
+	MetricExpression,
 	PredictionSettings,
 	ProductType,
 	ThresholdCondition,
@@ -139,8 +140,6 @@ export interface ChartProps<TConfig> {
 	endDate: Date
 	selectedPreset?: DateRangePreset
 	query: string
-	metric: string
-	functionType: MetricAggregator
 	groupByKeys?: string[]
 	bucketByKey?: string
 	bucketCount?: number
@@ -157,6 +156,7 @@ export interface ChartProps<TConfig> {
 	variables?: Map<string, string[]>
 	predictionSettings?: PredictionSettings
 	thresholdSettings?: ThresholdSettings
+	expressions: MetricExpression[]
 }
 
 export interface InnerChartProps<TConfig> {
@@ -893,8 +893,6 @@ const Graph = ({
 	startDate,
 	endDate,
 	query,
-	metric,
-	functionType,
 	groupByKeys,
 	bucketByKey,
 	bucketByWindow,
@@ -913,6 +911,7 @@ const Graph = ({
 	variables,
 	predictionSettings,
 	thresholdSettings,
+	expressions,
 	children,
 }: React.PropsWithChildren<ChartProps<ViewConfig>>) => {
 	const { setGraphData } = useGraphContext()

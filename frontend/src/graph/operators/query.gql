@@ -2636,6 +2636,7 @@ query GetMetrics(
 			bucket_min
 			bucket_max
 			group
+			column
 			metric_type
 			metric_value
 			yhat_lower
@@ -2654,8 +2655,6 @@ query GetGraphTemplates {
 		description
 		productType
 		query
-		metric
-		functionType
 		groupByKeys
 		bucketByKey
 		bucketCount
@@ -2669,6 +2668,10 @@ query GetGraphTemplates {
 		}
 		display
 		nullHandling
+		expressions {
+			aggregator
+			column
+		}
 	}
 }
 
@@ -2692,8 +2695,6 @@ query GetVisualization($id: ID!) {
 			description
 			productType
 			query
-			metric
-			functionType
 			groupByKeys
 			bucketByKey
 			bucketCount
@@ -2707,6 +2708,10 @@ query GetVisualization($id: ID!) {
 			}
 			display
 			nullHandling
+			expressions {
+				aggregator
+				column
+			}
 		}
 		updatedByAdmin {
 			id
@@ -2748,8 +2753,6 @@ query GetVisualizations(
 				title
 				productType
 				query
-				metric
-				functionType
 				groupByKeys
 				bucketByKey
 				bucketCount
@@ -2763,6 +2766,10 @@ query GetVisualizations(
 				}
 				display
 				nullHandling
+				expressions {
+					aggregator
+					column
+				}
 			}
 			updatedByAdmin {
 				id

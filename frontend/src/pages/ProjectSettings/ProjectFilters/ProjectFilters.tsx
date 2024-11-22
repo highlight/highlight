@@ -14,7 +14,6 @@ import { namedOperations } from '@graph/operations'
 import {
 	AllWorkspaceSettings,
 	MetricAggregator,
-	MetricColumn,
 	PlanType,
 	ProductType,
 	Sampling,
@@ -516,7 +515,7 @@ const IngestTimeline: React.FC<{
 		variables: {
 			product_type: ProductType.Traces,
 			project_id: projectId,
-			column: MetricColumn.Duration,
+			column: 'duration',
 			metric_types: [MetricAggregator.CountDistinctKey],
 			group_by: ['ingested'],
 			bucket_by: TIMESTAMP_KEY,

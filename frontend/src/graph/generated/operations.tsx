@@ -1606,8 +1606,6 @@ export type UpsertGraphMutation = { __typename?: 'Mutation' } & {
 		| 'title'
 		| 'productType'
 		| 'query'
-		| 'metric'
-		| 'functionType'
 		| 'groupByKeys'
 		| 'bucketByKey'
 		| 'bucketCount'
@@ -1623,6 +1621,12 @@ export type UpsertGraphMutation = { __typename?: 'Mutation' } & {
 						Types.FunnelStep,
 						'title' | 'query'
 					>
+				>
+			>
+			expressions: Array<
+				{ __typename?: 'MetricExpression' } & Pick<
+					Types.MetricExpression,
+					'aggregator' | 'column'
 				>
 			>
 		}
@@ -5193,6 +5197,7 @@ export type GetMetricsQuery = { __typename?: 'Query' } & {
 					| 'bucket_min'
 					| 'bucket_max'
 					| 'group'
+					| 'column'
 					| 'metric_type'
 					| 'metric_value'
 					| 'yhat_lower'
@@ -5216,8 +5221,6 @@ export type GetGraphTemplatesQuery = { __typename?: 'Query' } & {
 			| 'description'
 			| 'productType'
 			| 'query'
-			| 'metric'
-			| 'functionType'
 			| 'groupByKeys'
 			| 'bucketByKey'
 			| 'bucketCount'
@@ -5234,6 +5237,12 @@ export type GetGraphTemplatesQuery = { __typename?: 'Query' } & {
 							Types.FunnelStep,
 							'title' | 'query'
 						>
+					>
+				>
+				expressions: Array<
+					{ __typename?: 'MetricExpression' } & Pick<
+						Types.MetricExpression,
+						'aggregator' | 'column'
 					>
 				>
 			}
@@ -5264,8 +5273,6 @@ export type GetVisualizationQuery = { __typename?: 'Query' } & {
 					| 'description'
 					| 'productType'
 					| 'query'
-					| 'metric'
-					| 'functionType'
 					| 'groupByKeys'
 					| 'bucketByKey'
 					| 'bucketCount'
@@ -5282,6 +5289,12 @@ export type GetVisualizationQuery = { __typename?: 'Query' } & {
 									Types.FunnelStep,
 									'title' | 'query'
 								>
+							>
+						>
+						expressions: Array<
+							{ __typename?: 'MetricExpression' } & Pick<
+								Types.MetricExpression,
+								'aggregator' | 'column'
 							>
 						>
 					}
@@ -5329,8 +5342,6 @@ export type GetVisualizationsQuery = { __typename?: 'Query' } & {
 								| 'title'
 								| 'productType'
 								| 'query'
-								| 'metric'
-								| 'functionType'
 								| 'groupByKeys'
 								| 'bucketByKey'
 								| 'bucketCount'
@@ -5349,6 +5360,14 @@ export type GetVisualizationsQuery = { __typename?: 'Query' } & {
 												Types.FunnelStep,
 												'title' | 'query'
 											>
+										>
+									>
+									expressions: Array<
+										{
+											__typename?: 'MetricExpression'
+										} & Pick<
+											Types.MetricExpression,
+											'aggregator' | 'column'
 										>
 									>
 								}

@@ -5752,8 +5752,6 @@ export const UpsertGraphDocument = gql`
 			title
 			productType
 			query
-			metric
-			functionType
 			groupByKeys
 			bucketByKey
 			bucketCount
@@ -5766,6 +5764,10 @@ export const UpsertGraphDocument = gql`
 			}
 			display
 			nullHandling
+			expressions {
+				aggregator
+				column
+			}
 		}
 	}
 `
@@ -15047,6 +15049,7 @@ export const GetMetricsDocument = gql`
 				bucket_min
 				bucket_max
 				group
+				column
 				metric_type
 				metric_value
 				yhat_lower
@@ -15125,8 +15128,6 @@ export const GetGraphTemplatesDocument = gql`
 			description
 			productType
 			query
-			metric
-			functionType
 			groupByKeys
 			bucketByKey
 			bucketCount
@@ -15140,6 +15141,10 @@ export const GetGraphTemplatesDocument = gql`
 			}
 			display
 			nullHandling
+			expressions {
+				aggregator
+				column
+			}
 		}
 	}
 `
@@ -15212,8 +15217,6 @@ export const GetVisualizationDocument = gql`
 				description
 				productType
 				query
-				metric
-				functionType
 				groupByKeys
 				bucketByKey
 				bucketCount
@@ -15227,6 +15230,10 @@ export const GetVisualizationDocument = gql`
 				}
 				display
 				nullHandling
+				expressions {
+					aggregator
+					column
+				}
 			}
 			updatedByAdmin {
 				id
@@ -15318,8 +15325,6 @@ export const GetVisualizationsDocument = gql`
 					title
 					productType
 					query
-					metric
-					functionType
 					groupByKeys
 					bucketByKey
 					bucketCount
@@ -15333,6 +15338,10 @@ export const GetVisualizationsDocument = gql`
 					}
 					display
 					nullHandling
+					expressions {
+						aggregator
+						column
+					}
 				}
 				updatedByAdmin {
 					id
