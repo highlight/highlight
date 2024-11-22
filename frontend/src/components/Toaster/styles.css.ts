@@ -16,5 +16,9 @@ export const toastItem = style({
 	animationIterationCount: 1,
 	animationName: fadeInAnimation,
 	animationDuration: '0.3s',
+	position: 'fixed',
+	bottom: '16px',
+	right: '16px',
 	width: '280px',
+	zIndex: 99999,
 })

@@ -16,7 +16,7 @@ import {
 } from '@highlight-run/ui/components'
 import { vars } from '@highlight-run/ui/vars'
 import { getWorkspaceInvitationLink } from '@pages/WorkspaceTeam/utils'
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { StringParam, useQueryParam } from 'use-query-params'
 
 import { useAuthContext } from '@/authentication/AuthContext'
@@ -40,6 +40,7 @@ function InviteMemberModal({
 	workspaceInviteLinks?: any
 	toggleShowModal: (value: boolean) => void
 }) {
+	const emailInputRef = useRef<HTMLInputElement>(null)
 	const [email, setEmail] = useState('')
 	const [newAdminRole, setNewAdminRole] = useState<AdminRole>(
 		AdminRole.Member,
@@ -80,7 +81,6 @@ function InviteMemberModal({
 		})
 			.then(() => {
 				resetForm()
-				toggleShowModal(false)
 				toast.success(`Invite email sent!`, {
 					duration: 10000,
 					content: (
@@ -103,6 +103,7 @@ function InviteMemberModal({
 						</Stack>
 					),
 				})
+				emailInputRef.current?.focus()
 			})
 			.catch((error) => {
 				toast.error(`Couldn't send workspace invite`, {
@@ -159,6 +160,7 @@ function InviteMemberModal({
 				<Modal.Body>
 					<Stack direction="column" gap="16">
 						<Form.Input
+							ref={emailInputRef}
 							name="email"
 							label="User email"
 							value={email}
@@ -269,8 +271,7 @@ function InviteMemberModal({
 								kind="secondary"
 								onClick={() => {
 									toggleShowModal(false)
-									setEmail('')
-									sendInviteReset()
+									resetForm()
 								}}
 							>
 								Cancel
