@@ -1,5 +1,3 @@
-import Alert from '@components/Alert/Alert'
-import CopyText from '@components/CopyText/CopyText'
 import { toast } from '@components/Toaster'
 import { useSendAdminWorkspaceInviteMutation } from '@graph/hooks'
 import { namedOperations } from '@graph/operations'
@@ -14,10 +12,11 @@ import {
 	Modal,
 	Stack,
 	Text,
+	Tooltip,
 } from '@highlight-run/ui/components'
 import { vars } from '@highlight-run/ui/vars'
 import { getWorkspaceInvitationLink } from '@pages/WorkspaceTeam/utils'
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { StringParam, useQueryParam } from 'use-query-params'
 
 import { useAuthContext } from '@/authentication/AuthContext'
@@ -29,15 +28,17 @@ import {
 import { useApplicationContext } from '@/routers/AppRouter/context/ApplicationContext'
 
 function InviteMemberModal({
-	toggleShowModal,
+	showModal,
 	workspaceId,
 	workspaceName,
 	workspaceInviteLinks,
+	toggleShowModal,
 }: {
-	toggleShowModal: (value: boolean) => void
+	showModal: boolean
 	workspaceId?: string
 	workspaceName?: string
 	workspaceInviteLinks?: any
+	toggleShowModal: (value: boolean) => void
 }) {
 	const [email, setEmail] = useState('')
 	const [newAdminRole, setNewAdminRole] = useState<AdminRole>(
@@ -45,7 +46,6 @@ function InviteMemberModal({
 	)
 	const [newProjectIds, setNewProjectIds] = useState<string[]>([])
 	const [autoinvite_email] = useQueryParam('autoinvite_email', StringParam)
-	const emailRef = useRef<null | HTMLInputElement>(null)
 
 	useEffect(() => {
 		if (autoinvite_email) {
@@ -57,12 +57,7 @@ function InviteMemberModal({
 
 	const [
 		sendInviteEmail,
-		{
-			loading: sendLoading,
-			data: sendData,
-			error: sendError,
-			reset: sendReset,
-		},
+		{ loading: sendInviteLoading, reset: sendInviteReset },
 	] = useSendAdminWorkspaceInviteMutation({
 		fetchPolicy: 'no-cache',
 		refetchQueries: [namedOperations.Query.GetWorkspaceSettings],
@@ -82,11 +77,39 @@ function InviteMemberModal({
 				role: newAdminRole,
 				projectIds: newProjectIds,
 			},
-		}).then(() => {
-			setEmail('')
-			toast.success(`Invite email sent to ${email}!`, { duration: 5000 })
-			emailRef.current?.focus()
 		})
+			.then(() => {
+				resetForm()
+				toggleShowModal(false)
+				toast.success(`Invite email sent!`, {
+					duration: 10000,
+					content: (
+						<Stack direction="column" gap="12" pb="6">
+							<Text size="xSmall">
+								A welcome email has been sent to {email}. You
+								can also share this invite link with them.
+							</Text>
+							<Button
+								trackingId="invite-admin-modal_copy-invite-link"
+								iconLeft={<IconSolidClipboard />}
+								kind="secondary"
+								onClick={(e) => {
+									e.stopPropagation()
+									navigator.clipboard.writeText(inviteLink)
+								}}
+							>
+								Copy invite link
+							</Button>
+						</Stack>
+					),
+				})
+			})
+			.catch((error) => {
+				toast.error(`Couldn't send workspace invite`, {
+					duration: 5000,
+					content: <Text>{error.message}</Text>,
+				})
+			})
 	}
 
 	const { allProjects } = useApplicationContext()
@@ -96,81 +119,102 @@ function InviteMemberModal({
 	const roleOptions =
 		workspaceRole === AdminRole.Admin ? RoleOptions : [RoleOptions[0]]
 
-	// const disabledReason =
-	// 	newAdminRole === AdminRole.Admin ? DISABLED_REASON_IS_ADMIN : undefined
+	const disabledReason =
+		newAdminRole === AdminRole.Admin ? DISABLED_REASON_IS_ADMIN : undefined
 
 	const inviteLink = getWorkspaceInvitationLink(
 		workspaceInviteLinks?.secret || '',
 		workspaceId!,
 	)
 
-	const disabledReason =
-		newAdminRole === AdminRole.Admin ? DISABLED_REASON_IS_ADMIN : undefined
+	const resetForm = () => {
+		setEmail('')
+		setNewAdminRole(AdminRole.Member)
+		setNewProjectIds([])
+		sendInviteReset()
+	}
 
 	return (
 		<Modal
+			open={showModal}
 			onClose={() => {
-				// TODO: This doesn't seem to be firing
 				toggleShowModal(false)
-				setEmail('')
-				sendReset()
+				resetForm()
 			}}
 		>
-			<Modal.Header>
-				<IconSolidUserAdd color={vars.color.n11} />
-				<Text size="xxSmall" color="moderate">
-					Invite users to {workspaceName}
-				</Text>
-			</Modal.Header>
-			<Modal.Body>
-				<Form>
+			<Form
+				defaultValues={{
+					email,
+					role: newAdminRole,
+					projects: newProjectIds,
+				}}
+				onSubmit={onSubmit}
+			>
+				<Modal.Header>
+					<IconSolidUserAdd color={vars.color.n11} />
+					<Text size="xxSmall" color="moderate">
+						Invite users to {workspaceName}
+					</Text>
+				</Modal.Header>
+				<Modal.Body>
 					<Stack direction="column" gap="16">
+						<Form.Input
+							name="email"
+							label="User email"
+							value={email}
+							required
+							type="email"
+							onChange={(e) => {
+								setEmail(e.target.value)
+							}}
+						/>
 						<Stack direction="row" gap="8">
 							<Box style={{ width: '50%' }}>
 								<Form.Select
 									name="role"
 									label="Role"
-									icon={
-										<IconSolidInformationCircle
-											color={vars.color.n8}
-										/>
-									}
-									onChange={(e) => {
-										setNewAdminRole(
-											e.target.value as AdminRole,
-										)
+									onValueChange={(option) => {
+										setNewAdminRole(option.value)
 										setNewProjectIds([])
 									}}
 								>
 									{roleOptions.map((role) => (
-										<option key={role.key} value={role.key}>
+										<Form.Option
+											key={role.key}
+											value={role.key}
+										>
 											{role.render}
-										</option>
+										</Form.Option>
 									))}
 								</Form.Select>
 							</Box>
 
 							<Box style={{ width: '50%' }}>
-								{/* TODO: Add disabled logic (disabledReason) */}
-								{/* TODO: Fix for selecting multiple projects */}
-								<Form.Select
-									name="projects"
-									label="Project Access"
-									icon={
-										<IconSolidInformationCircle
-											color={vars.color.n8}
+								<Tooltip
+									disabled={!disabledReason}
+									style={{ display: 'block' }}
+									trigger={
+										<Form.Select
+											name="projects"
+											label="Project Access"
+											disabled={!!disabledReason}
+											options={
+												allProjects?.map(
+													(p) => p?.name ?? '',
+												) ?? []
+											}
+											icon={
+												<IconSolidInformationCircle
+													color={vars.color.n8}
+												/>
+											}
 										/>
 									}
 								>
-									{allProjects?.map((project) => (
-										<option
-											key={project?.id}
-											value={project?.id}
-										>
-											{project?.name}
-										</option>
-									))}
-								</Form.Select>
+									<Box p="4">
+										<Text>{disabledReason}</Text>
+									</Box>
+								</Tooltip>
 							</Box>
 						</Stack>
 
@@ -216,171 +260,34 @@ function InviteMemberModal({
 							</Stack>
 						</Form.NamedSection>
 					</Stack>
-				</Form>
-				{/* TODO: See if we can delete PopoverCell */}
-				{/* <form onSubmit={onSubmit}>
-					<p className={styles.boxSubTitle}>
-						Invite a team member to '{`${workspaceName}`}' by
-						entering an email below.
-					</p>
-					<Stack direction="row" alignItems="center">
-						<Stack direction="row" alignItems="center">
-							<Text lines="1">Role</Text>
-							<Box
-								borderRadius="4"
-								p="4"
-								cssClass={styles.popover}
+				</Modal.Body>
+				<Modal.Footer
+					actions={
+						<>
+							<Button
+								trackingId="invite-admin-modal_cancel"
+								kind="secondary"
+								onClick={() => {
+									toggleShowModal(false)
+									setEmail('')
+									sendInviteReset()
+								}}
 							>
-								<PopoverCell
-									label="roles"
-									options={roleOptions}
-									initialSelection={newAdminRole}
-									onChange={(role) => {
-										setNewAdminRole(role)
-										setNewProjectIds([])
-									}}
-								/>
-							</Box>
-						</Stack>
-						<Stack direction="row" alignItems="center">
-							<Text lines="1">Project Access</Text>
-							<Box
-								borderRadius="4"
-								p="4"
-								cssClass={styles.popover}
+								Cancel
+							</Button>
+							<Button
+								trackingId="invite-admin-modal_invite"
+								kind="primary"
+								loading={sendInviteLoading}
+								disabled={sendInviteLoading}
+								type="submit"
 							>
-								<PopoverCell
-									label="projects"
-									options={allProjects?.map((p) => ({
-										key: p?.id ?? '0',
-										render: p?.name ?? '',
-									}))}
-									initialSelection={newProjectIds}
-									filter
-									onChange={setNewProjectIds}
-									disabledReason={disabledReason}
-								/>
-							</Box>
-						</Stack>
-					</Stack>
-					<div className={styles.buttonRow}>
-						<Input
-							ref={emailRef}
-							className={styles.emailInput}
-							placeholder="Email"
-							type="email"
-							required
-							name="invitedEmail"
-							autoFocus
-							value={email}
-							onChange={(e) => {
-								setEmail(e.target.value)
-							}}
-						/>
-						<Button
-							trackingId="WorkspaceInviteMember"
-							type="primary"
-							className={clsx(
-								commonStyles.submitButton,
-								styles.inviteButton,
-							)}
-							htmlType="submit"
-						>
-							{sendLoading ? (
-								<CircularSpinner
-									style={{
-										fontSize: 18,
-										color: 'var(--text-primary-inverted)',
-									}}
-								/>
-							) : (
-								'Invite'
-							)}
-						</Button>
-					</div>
-				</form> */}
-				{/* TODO: Discuss w/ Julian what we want to do with this alert */}
-				{sendData?.sendAdminWorkspaceInvite && (
-					<Alert
-						shouldAlwaysShow
-						trackingId="InviteAdminToWorkspaceConfirmation"
-						message="An invite email has been sent!"
-						type="success"
-						description={
-							<>
-								You can also share with them this link:{' '}
-								<span>
-									<CopyText
-										text={sendData.sendAdminWorkspaceInvite}
-										onCopyTooltipText="Copied invite link to clipboard!"
-										inline
-									/>
-								</span>
-							</>
-						}
-					/>
-				)}
-				{sendError && (
-					<Alert
-						shouldAlwaysShow
-						trackingId="InviteAdminToWorkspaceError"
-						message="Couldn't send workspace invite"
-						type="error"
-						description={sendError.message}
-					/>
-				)}
-				{/* <hr className={styles.hr} />
-				<p className={styles.boxSubTitle}>
-					Or share this link with them (this link expires{' '}
-					{moment(workspaceInviteLinks?.expiration_date).fromNow()}
-					).
-				</p>
-				<CopyText
-					text={getWorkspaceInvitationLink(
-						workspaceInviteLinks?.secret || '',
-						workspaceId!,
-					)}
-					onCopyTooltipText="Copied invite link to clipboard!"
-				/> */}
-			</Modal.Body>
-			<Modal.Footer
-				actions={
-					<>
-						<Button
-							trackingId="invite-admin-modal_cancel"
-							kind="secondary"
-							onClick={() => {
-								toggleShowModal(false)
-								setEmail('')
-								sendReset()
-							}}
-						>
-							Cancel
-						</Button>
-						<Button
-							trackingId="invite-admin-modal_invite"
-							kind="primary"
-							onClick={onSubmit}
-							loading={sendLoading}
-							disabled={!email || sendLoading}
-						>
-							Invite user
-						</Button>
-					</>
-				}
-			>
-				{/* TODO: Ask Julian what this should do */}
-				<Button
-					iconLeft={
-						<IconSolidInformationCircle color={vars.color.n11} />
+								Invite user
+							</Button>
+						</>
 					}
-					trackingId="invite-admin-modal_learn-more"
-					emphasis="low"
-					kind="secondary"
-				>
-					Learn more
-				</Button>
-			</Modal.Footer>
+				/>
+			</Form>
 		</Modal>
 	)
 }

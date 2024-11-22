@@ -97,11 +97,12 @@ export const Form: FormComponent = ({
 	children,
 	defaultValues,
 	store,
+	noValidate = false, // use browser validation by default
 	...props
 }: Props) => {
 	return (
 		<Ariakit.FormProvider defaultValues={defaultValues} store={store}>
-			<Ariakit.Form {...props} role="form">
+			<Ariakit.Form noValidate={noValidate} {...props}>
 				{children}
 			</Ariakit.Form>
 		</Ariakit.FormProvider>

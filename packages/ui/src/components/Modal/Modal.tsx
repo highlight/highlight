@@ -48,6 +48,12 @@ export const Modal: ModalComponent = ({
 				hideOnInteractOutside={hideOnInteractOutside}
 				unmountOnHide={unmountOnHide}
 				onClose={onClose}
+				backdrop={
+					<Box
+						// TODO: Hard-coding to match mock until scrim variable is updated.
+						style={{ backgroundColor: '#6F6E77', opacity: 0.48 }}
+					/>
+				}
 			>
 				{children}
 			</Ariakit.Dialog>
