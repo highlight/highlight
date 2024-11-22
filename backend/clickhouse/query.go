@@ -1236,6 +1236,8 @@ func (client *Client) ReadMetrics(ctx context.Context, input ReadMetricsInput) (
 		groupAliases = append(groupAliases, groupAlias)
 
 		selectCols = append(selectCols, fromSb.As(groupCol, groupAlias))
+
+		fromSb.Where(fromSb.NotEqual(groupAlias, ""))
 	}
 
 	limitCount := 10
