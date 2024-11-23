@@ -394,6 +394,7 @@ export const useSavedSegments = ({
 								e.preventDefault()
 								setSegmentModalState(SegmentModalState.CREATE)
 							}}
+							className="w-full"
 						>
 							<Text lines="1">Save</Text>
 						</Menu.Button>
@@ -408,9 +409,10 @@ export const useSavedSegments = ({
 								border: 'none',
 								borderRadius: '8px 0 0 8px',
 							}}
+							className={`${!selectedSegment?.name ? 'w-full' : ''}`}
 						>
 							<Text lines="1">
-								{selectedSegment?.name || '-none-'}
+								{selectedSegment?.name || 'none'}
 							</Text>
 						</Menu.Button>
 						<Menu.List cssClass={styles.menuList}>
