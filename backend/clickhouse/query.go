@@ -90,7 +90,7 @@ func readObjects[TObj interface{}](ctx context.Context, client *Client, config m
 		if err != nil {
 			return nil, err
 		}
-		beforeSb.Distinct().Limit(limit/2 + 1)
+		beforeSb.Limit(limit/2 + 1)
 
 		atSb, _, err := makeSelectBuilder(
 			innerTableConfig,
@@ -103,7 +103,6 @@ func readObjects[TObj interface{}](ctx context.Context, client *Client, config m
 		if err != nil {
 			return nil, err
 		}
-		atSb.Distinct()
 
 		afterSb, _, err := makeSelectBuilder(
 			innerTableConfig,
@@ -116,19 +115,18 @@ func readObjects[TObj interface{}](ctx context.Context, client *Client, config m
 		if err != nil {
 			return nil, err
 		}
-		afterSb.Distinct().Limit(limit/2 + 1)
+		afterSb.Limit(limit/2 + 1)
 
 		ub := sqlbuilder.UnionAll(beforeSb, atSb, afterSb)
 		sb.Select(outerSelect).
-			Distinct().
 			From(config.TableName).
 			Where(sb.Equal("ProjectId", projectID)).
 			Where(sb.In(fmt.Sprintf("(%s)", strings.Join(innerSelect, ",")), ub)).
 			OrderBy(orderForward)
 	} else {
-		fromSb, _, err := makeSelectBuilder(
+		sb, _, err = makeSelectBuilder(
 			innerTableConfig,
-			innerSelect,
+			config.SelectColumns,
 			[]int{projectID},
 			params,
 			pagination)
@@ -136,14 +134,7 @@ func readObjects[TObj interface{}](ctx context.Context, client *Client, config m
 			return nil, err
 		}
 
-		fromSb.Distinct().Limit(limit + 1)
-		sb.Select(outerSelect).
-			Distinct().
-			From(config.TableName).
-			Where(sb.Equal("ProjectId", projectID)).
-			Where(sb.In(fmt.Sprintf("(%s)", strings.Join(innerSelect, ",")), fromSb)).
-			OrderBy(orderForward).
-			Limit(limit + 1)
+		sb.Limit(limit + 1)
 	}
 
 	sql, args := sb.BuildWithFlavor(sqlbuilder.ClickHouse)
@@ -190,7 +181,11 @@ func makeSelectBuilder(
 
 	sb.Select(selectCols...)
 	sb.From(config.TableName)
-	sb.Where(sb.In("ProjectId", projectIDs))
+	if len(projectIDs) == 1 {
+		sb.Where(sb.Equal("ProjectId", projectIDs[0]))
+	} else {
+		sb.Where(sb.In("ProjectId", projectIDs))
+	}
 
 	if pagination.After != nil && len(*pagination.After) > 1 {
 		timestamp, uuid, err := decodeCursor(*pagination.After)
@@ -203,7 +198,7 @@ func makeSelectBuilder(
 			sb.Where(sb.GreaterEqualThan("Timestamp", timestamp)).
 				Where(sb.LessEqualThan("Timestamp", params.DateRange.EndDate)).
 				Where(
-					sb.Or(
+					sb.And(
 						sb.GreaterThan("Timestamp", timestamp),
 						sb.GreaterThan("UUID", uuid),
 					),
@@ -212,7 +207,7 @@ func makeSelectBuilder(
 			sb.Where(sb.LessEqualThan("Timestamp", timestamp)).
 				Where(sb.GreaterEqualThan("Timestamp", params.DateRange.StartDate)).
 				Where(
-					sb.Or(
+					sb.And(
 						sb.LessThan("Timestamp", timestamp),
 						sb.LessThan("UUID", uuid),
 					),
@@ -238,7 +233,7 @@ func makeSelectBuilder(
 			sb.Where(sb.LessEqualThan("Timestamp", timestamp)).
 				Where(sb.GreaterEqualThan("Timestamp", params.DateRange.StartDate)).
 				Where(
-					sb.Or(
+					sb.And(
 						sb.LessThan("Timestamp", timestamp),
 						sb.LessThan("UUID", uuid),
 					),
@@ -247,7 +242,7 @@ func makeSelectBuilder(
 			sb.Where(sb.GreaterEqualThan("Timestamp", timestamp)).
 				Where(sb.LessEqualThan("Timestamp", params.DateRange.EndDate)).
 				Where(
-					sb.Or(
+					sb.And(
 						sb.GreaterThan("Timestamp", timestamp),
 						sb.GreaterThan("UUID", uuid),
 					),
