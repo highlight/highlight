@@ -1,12 +1,8 @@
 import { Meta } from '@storybook/react'
 
-import { Button } from '@/components/Button/Button'
-import {
-	IconSolidInformationCircle,
-	IconSolidUserAdd,
-} from '@/components/icons'
-import { Stack } from '@/components/Stack/Stack'
-
+import { Button } from '../Button/Button'
+import { IconSolidInformationCircle, IconSolidUserAdd } from '../icons'
+import { Stack } from '../Stack/Stack'
 import { Text } from '../Text/Text'
 import { Modal } from './Modal'
 
