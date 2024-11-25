@@ -1,10 +1,13 @@
 import { toast } from '@components/Toaster'
 import {
 	Box,
+	Button,
+	ButtonIcon,
 	DateRangePicker,
 	DEFAULT_TIME_PRESETS,
 	Form,
 	IconSolidClock,
+	IconSolidX,
 	Input,
 	Select,
 	Stack,
@@ -25,7 +28,6 @@ import { Helmet } from 'react-helmet'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { useDebounce } from 'react-use'
 
-import { Button } from '@/components/Button'
 import { SearchContext } from '@/components/Search/SearchContext'
 import { Search } from '@/components/Search/SearchForm/SearchForm'
 import {
@@ -705,7 +707,6 @@ export const GraphingEditor: React.FC = () => {
 						</Text>
 						<Box display="flex" gap="4">
 							<Button
-								trackingId="showTemplates"
 								emphasis="medium"
 								kind="secondary"
 								onClick={() => setShowTemplates(true)}
@@ -729,7 +730,6 @@ export const GraphingEditor: React.FC = () => {
 							<HeaderDivider />
 
 							<Button
-								trackingId="MetricViewCancel"
 								emphasis="low"
 								kind="secondary"
 								onClick={redirectToDashboard}
@@ -737,16 +737,11 @@ export const GraphingEditor: React.FC = () => {
 								Cancel
 							</Button>
 							{isEdit && (
-								<Button
-									trackingId="MetricViewDelete"
-									kind="danger"
-									onClick={onDelete}
-								>
+								<Button kind="danger" onClick={onDelete}>
 									Delete metric view
 								</Button>
 							)}
 							<Button
-								trackingId="MetricViewSave"
 								disabled={upsertGraphContext.loading}
 								onClick={onSave}
 							>
@@ -1051,97 +1046,128 @@ export const GraphingEditor: React.FC = () => {
 											name="function"
 											tooltip="Determines how data points are aggregated. If the function requires a numeric field as input, one can be chosen."
 										>
-											{settings.expressions.map(
-												(e, i) => (
-													<Stack
-														direction="row"
-														width="full"
-														gap="4"
-														key={i}
-													>
-														<OptionDropdown
-															options={
-																FUNCTION_TYPES
-															}
-															selection={
-																e.aggregator
-															}
-															setSelection={(
-																aggregator: MetricAggregator,
-															) => {
-																setExpressions(
-																	(
-																		expressions,
-																	) => {
-																		const copy =
-																			[
-																				...expressions,
-																			]
-																		copy[
-																			i
-																		].aggregator =
-																			aggregator
-																		return copy
-																	},
-																)
-															}}
-															disabled={
-																settings.viewType ===
-																	'Funnel chart' ||
-																isPreview
-															}
-														/>
-														<Combobox
-															selection={e.column}
-															setSelection={(
-																column: string,
-															) => {
-																setExpressions(
-																	(
-																		expressions,
-																	) => {
-																		const copy =
-																			[
-																				...expressions,
-																			]
-																		copy[
-																			i
-																		].column =
-																			column
-																		return copy
-																	},
-																)
-															}}
-															searchConfig={
-																searchOptionsConfig
-															}
-															disabled={
-																e.aggregator ===
-																	MetricAggregator.Count ||
-																settings.viewType ===
-																	'Funnel chart' ||
-																isPreview
-															}
-															onlyNumericKeys={
-																e.aggregator !==
-																MetricAggregator.CountDistinct
-															}
-															defaultKeys={
-																variableKeys
-															}
-															placeholder={
-																e.aggregator ===
-																MetricAggregator.Count
-																	? 'Rows'
-																	: undefined
-															}
-														/>
-													</Stack>
-												),
-											)}
+											<Stack width="full">
+												{settings.expressions.map(
+													(e, i) => (
+														<Stack
+															direction="row"
+															width="full"
+															gap="4"
+															key={`${e.aggregator}:${e.column}:${i}`}
+														>
+															<OptionDropdown
+																options={
+																	FUNCTION_TYPES
+																}
+																selection={
+																	e.aggregator
+																}
+																setSelection={(
+																	aggregator: MetricAggregator,
+																) => {
+																	setExpressions(
+																		(
+																			expressions,
+																		) => {
+																			const copy =
+																				[
+																					...expressions,
+																				]
+																			copy[
+																				i
+																			].aggregator =
+																				aggregator
+																			return copy
+																		},
+																	)
+																}}
+																disabled={
+																	settings.viewType ===
+																		'Funnel chart' ||
+																	isPreview
+																}
+															/>
+															<Combobox
+																selection={
+																	e.column
+																}
+																setSelection={(
+																	column: string,
+																) => {
+																	setExpressions(
+																		(
+																			expressions,
+																		) => {
+																			const copy =
+																				[
+																					...expressions,
+																				]
+																			copy[
+																				i
+																			].column =
+																				column
+																			return copy
+																		},
+																	)
+																}}
+																searchConfig={
+																	searchOptionsConfig
+																}
+																disabled={
+																	e.aggregator ===
+																		MetricAggregator.Count ||
+																	settings.viewType ===
+																		'Funnel chart' ||
+																	isPreview
+																}
+																onlyNumericKeys={
+																	e.aggregator !==
+																	MetricAggregator.CountDistinct
+																}
+																defaultKeys={
+																	variableKeys
+																}
+																placeholder={
+																	e.aggregator ===
+																	MetricAggregator.Count
+																		? 'Rows'
+																		: undefined
+																}
+															/>
+															{expressions.length >
+																1 && (
+																<ButtonIcon
+																	icon={
+																		<IconSolidX />
+																	}
+																	onClick={() => {
+																		setExpressions(
+																			(
+																				expressions,
+																			) => {
+																				const copy =
+																					[
+																						...expressions,
+																					]
+																				copy.splice(
+																					i,
+																					1,
+																				)
+																				return copy
+																			},
+																		)
+																	}}
+																	kind="secondary"
+																	emphasis="low"
+																/>
+															)}
+														</Stack>
+													),
+												)}
+											</Stack>
 										</LabeledRow>
 										<Button
-											trackingId=""
+											kind="secondary"
 											onClick={() => {
 												setExpressions(
 													(expressions) => {
@@ -1157,7 +1183,7 @@ export const GraphingEditor: React.FC = () => {
 												)
 											}}
 										>
-											Add
+											Add function
 										</Button>
 										<LabeledRow
 											label="Group by"
