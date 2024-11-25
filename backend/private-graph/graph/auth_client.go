@@ -22,6 +22,7 @@ import (
 	"golang.org/x/oauth2/google"
 	"google.golang.org/api/option"
 	"net/http"
+	"regexp"
 	"strings"
 	"time"
 )
@@ -357,6 +358,31 @@ func (c *OAuthAuthClient) updateContextWithAuthenticatedUser(ctx context.Context
 		return nil, err
 	}
 
+	// check that the oidc email domain matches allowed domains
+	if env.Config.OAuthAllowedDomains != "" {
+		_, err = mail.ParseEmail(claims.Email)
+		if err != nil {
+			return nil, err
+		}
+		parts := strings.Split(claims.Email, "@")
+		domain := parts[1]
+		var validated bool
+		for _, dom := range strings.Split(env.Config.OAuthAllowedDomains, ",") {
+			if dom == domain {
+				validated = true
+				break
+			}
+			if patt, err := regexp.Compile(dom); err == nil && patt.MatchString(domain) {
+				validated = true
+				break
+			}
+		}
+		if !validated {
+			msg := fmt.Sprintf("user email %s does not match allowed domains", claims.Email)
+			log.WithContext(ctx).WithField("allowed_domains", env.Config.OAuthAllowedDomains).Error(msg)
+			return nil, e.New(msg)
+		}
+	}
 	ctx = context.WithValue(ctx, model.ContextKeys.UID, claims.Subject)
 	ctx = context.WithValue(ctx, model.ContextKeys.Email, claims.Email)
 	return ctx, nil
