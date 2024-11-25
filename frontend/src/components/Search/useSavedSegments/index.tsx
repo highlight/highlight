@@ -202,7 +202,7 @@ export const useSavedSegments = ({
 									: 'hidden',
 							}}
 						/>
-						<Text lines="1">- none -</Text>
+						<Text>- none -</Text>
 					</Box>
 				</Menu.Item>
 				{segmentOptions.map((segment, idx) => {
@@ -230,7 +230,7 @@ export const useSavedSegments = ({
 											: 'hidden',
 									}}
 								/>
-								<Text lines="1">{segment.name}</Text>
+								<Text>{segment.name}</Text>
 							</Box>
 						</Menu.Item>
 					)
@@ -377,14 +377,7 @@ export const useSavedSegments = ({
 				}
 
 		return (
-			<Box
-				display="flex"
-				alignItems="center"
-				gap="0"
-				flexDirection="row"
-				border="secondary"
-				borderRadius="8"
-			>
+			<Box display="flex" alignItems="center" gap="0" flexDirection="row">
 				{mode === BuilderMode.SEGMENT_NEW ? (
 					<Menu>
 						<Menu.Button
@@ -396,7 +389,7 @@ export const useSavedSegments = ({
 							}}
 							className="w-full"
 						>
-							<Text lines="1">Save</Text>
+							<Text>Save</Text>
 						</Menu.Button>
 					</Menu>
 				) : (
@@ -411,9 +404,7 @@ export const useSavedSegments = ({
 							}}
 							className={`${!selectedSegment?.name ? 'w-full' : ''}`}
 						>
-							<Text lines="1">
-								{selectedSegment?.name || 'none'}
-							</Text>
+							<Text>{selectedSegment?.name || 'none'}</Text>
 						</Menu.Button>
 						<Menu.List cssClass={styles.menuList}>
 							{menuOptions}
@@ -422,7 +413,6 @@ export const useSavedSegments = ({
 				)}
 				<Menu>
 					<Menu.Button
-						disabled={segmentsLoading}
 						iconRight={<IconSolidSelector size={12} />}
 						{...buttonProps}
 						style={{
