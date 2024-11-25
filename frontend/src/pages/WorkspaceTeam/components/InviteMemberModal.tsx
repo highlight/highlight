@@ -132,11 +132,20 @@ function InviteMemberModal({
 		workspaceId!,
 	)
 
+	const formStore = Form.useStore({
+		defaultValues: {
+			email,
+			role: newAdminRole,
+			projects: newProjectIds,
+		},
+	})
+
 	const resetForm = () => {
 		setEmail('')
 		setNewAdminRole(AdminRole.Member)
 		setNewProjectIds([])
 		sendInviteReset()
+		formStore?.reset()
 	}
 
 	return (
@@ -147,14 +156,7 @@ function InviteMemberModal({
 				resetForm()
 			}}
 		>
-			<Form
-				defaultValues={{
-					email,
-					role: newAdminRole,
-					projects: newProjectIds,
-				}}
-				onSubmit={onSubmit}
-			>
+			<Form onSubmit={onSubmit} store={formStore}>
 				<Modal.Header>
 					<IconSolidUserAdd color={vars.color.n11} />
 					<Text size="xxSmall" color="moderate">
@@ -203,7 +205,25 @@ function InviteMemberModal({
 										<Form.Select
 											name="projects"
 											label="Project Access"
+											renderValue={(options) => {
+												const selectedOptionNames =
+													Array.isArray(options)
+														? options.join(', ')
+														: options
+
+												return newAdminRole ===
+													AdminRole.Admin
+													? 'All'
+													: options.length
+														? selectedOptionNames
+														: 'Select...'
+											}}
 											disabled={!!disabledReason}
+											placeholder={
+												!!disabledReason
+													? 'All projects'
+													: 'Select projects'
+											}
 											options={
 												allProjects?.map(
 													(p) => p?.name ?? '',

@@ -292,6 +292,7 @@ export const Select = ({
 					name={name}
 					tag={tag}
 					optional={optional}
+					disabled={disabled}
 				/>
 			)}
 			<Ariakit.FormInput
