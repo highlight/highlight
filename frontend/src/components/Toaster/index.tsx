@@ -9,7 +9,6 @@ import {
 	IconSolidXCircle,
 	Stack,
 	Text,
-	Ariakit,
 } from '@highlight-run/ui/components'
 import React from 'react'
 
@@ -93,21 +92,20 @@ export const toast = {
 
 export const Toaster: React.FC = () => {
 	const toasts = useReactiveVar(toastVar)
+
 	return (
-		<Ariakit.DialogProvider>
-			<Stack
-				cssClass={styles.toastContainer}
-				pr="32"
-				pb="32"
-				gap="16"
-				role="region"
-				aria-label="Notifications"
-			>
-				{toasts.map((toast) => (
-					<ToastItem key={toast.id} toast={toast} />
-				))}
-			</Stack>
-		</Ariakit.DialogProvider>
+		<Stack
+			cssClass={styles.toastContainer}
+			gap="16"
+			role="region"
+			aria-label="Notifications"
+			aria-hidden={toasts.length === 0}
+			data-persistent-element
+		>
+			{toasts.map((toast) => (
+				<ToastItem key={toast.id} toast={toast} />
+			))}
+		</Stack>
 	)
 }
 
@@ -139,50 +137,41 @@ const ToastItem: React.FC<ToastItemProps> = ({ toast }) => {
 	}
 
 	return (
-		<Ariakit.Dialog
-			role="alert"
-			aria-live={toast.type === ToastType.error ? 'assertive' : 'polite'}
-			className={styles.toastItem}
-			open
-			portal
-			modal={false}
+		<Box
+			backgroundColor="white"
+			gap="6"
+			p="8"
+			borderRadius="6"
+			border="divider"
+			display="flex"
+			boxShadow="medium"
+			cssClass={styles.toastItem}
+			role="status"
+			aria-live={toast.type === ToastType.error ? 'assertive' : 'off'}
 		>
-			<Box
-				backgroundColor="white"
-				gap="6"
-				p="8"
-				borderRadius="6"
-				border="divider"
-				display="flex"
-				boxShadow="medium"
-			>
-				<Box display="flex" alignItems="flex-start" pt="2">
-					{typeInfo.icon}
-				</Box>
-				<Stack
-					direction="row"
-					justifyContent="space-between"
-					width="full"
-				>
-					<Stack direction="column" gap="8">
-						<Box display="flex" alignItems="flex-start" py="4">
-							<Text weight="medium">{toast.message}</Text>
-						</Box>
-						{!!toast.content && (
-							<Box display="flex">{toast.content}</Box>
-						)}
-					</Stack>
-					<Box display="flex" alignItems="flex-start">
-						<ButtonIcon
-							icon={<IconSolidX size={14} />}
-							kind="secondary"
-							size="minimal"
-							emphasis="low"
-							onClick={handleClose}
-						/>
-					</Box>
-				</Stack>
+			<Box display="flex" alignItems="flex-start" pt="2">
+				{typeInfo.icon}
 			</Box>
-		</Ariakit.Dialog>
+			<Stack direction="row" justifyContent="space-between" width="full">
+				<Stack direction="column" gap="8">
+					<Box display="flex" alignItems="flex-start" py="4">
+						<Text weight="medium">{toast.message}</Text>
+					</Box>
+					{!!toast.content && (
+						<Box display="flex">{toast.content}</Box>
+					)}
+				</Stack>
+				<Box display="flex" alignItems="flex-start">
+					<ButtonIcon
+						icon={<IconSolidX size={14} />}
+						kind="secondary"
+						size="minimal"
+						emphasis="low"
+						onClick={handleClose}
+						aria-label="Close"
+					/>
+				</Box>
+			</Stack>
+		</Box>
 	)
 }

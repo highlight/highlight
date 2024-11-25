@@ -71,12 +71,17 @@ function InviteMemberModal({
 			return
 		}
 
+		const projectIdsToSend =
+			newAdminRole !== AdminRole.Admin && newProjectIds.length === 0
+				? (allProjects?.map((p) => p?.id).filter(Boolean) as string[])
+				: newProjectIds
+
 		sendInviteEmail({
 			variables: {
 				workspace_id: workspaceId!,
 				email,
 				role: newAdminRole,
-				projectIds: newProjectIds,
+				projectIds: projectIdsToSend,
 			},
 		})
 			.then(() => {
@@ -206,17 +211,17 @@ function InviteMemberModal({
 											name="projects"
 											label="Project Access"
 											renderValue={(options) => {
-												const selectedOptionNames =
-													Array.isArray(options)
-														? options.join(', ')
-														: options
+												if (
+													newAdminRole ===
+														AdminRole.Admin ||
+													options.length === 0
+												) {
+													return 'All'
+												}
 
-												return newAdminRole ===
-													AdminRole.Admin
-													? 'All'
-													: options.length
-														? selectedOptionNames
-														: 'Select...'
+												return Array.isArray(options)
+													? options.join(', ')
+													: options
 											}}
 											disabled={!!disabledReason}
 											placeholder={

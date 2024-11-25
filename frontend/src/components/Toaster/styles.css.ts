@@ -2,9 +2,9 @@ import { keyframes, style } from '@vanilla-extract/css'
 
 export const toastContainer = style({
 	position: 'fixed',
-	bottom: 0,
-	right: 0,
-	zIndex: 99999,
+	bottom: 32,
+	right: 32,
+	zIndex: 999999,
 })
 
 const fadeInAnimation = keyframes({
@@ -16,9 +16,6 @@ export const toastItem = style({
 	animationIterationCount: 1,
 	animationName: fadeInAnimation,
 	animationDuration: '0.3s',
-	position: 'fixed',
-	bottom: '16px',
-	right: '16px',
 	width: '280px',
-	zIndex: 99999,
+	zIndex: 999999,
 })

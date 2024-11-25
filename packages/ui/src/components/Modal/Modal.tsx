@@ -48,10 +48,21 @@ export const Modal: ModalComponent = ({
 				hideOnInteractOutside={hideOnInteractOutside}
 				unmountOnHide={unmountOnHide}
 				onClose={onClose}
+				getPersistentElements={() => {
+					// Provides a mechanism to allow other elements to be interacted with
+					// when the modal is open. Important for things like toasts messages.
+					return Array.from(
+						document.querySelectorAll<HTMLElement>(
+							'[data-persistent-element]',
+						),
+					).filter((el): el is HTMLElement => el != null)
+				}}
 				backdrop={
 					<Box
 						// TODO: Hard-coding to match mock until scrim variable is updated.
-						style={{ backgroundColor: '#6F6E77', opacity: 0.48 }}
+						style={{
+							backgroundColor: 'rgba(111, 110, 119, 0.48)',
+						}}
 					/>
 				}
 			>

@@ -5865,19 +5865,16 @@ body {
 }
 .hhlnpm0 {
   position: fixed;
-  bottom: 0;
-  right: 0;
-  z-index: 99999;
+  bottom: 32px;
+  right: 32px;
+  z-index: 999999;
 }
 .hhlnpm2 {
   animation-iteration-count: 1;
   animation-name: hhlnpm1;
   animation-duration: 0.3s;
-  position: fixed;
-  bottom: 16px;
-  right: 16px;
   width: 280px;
-  z-index: 99999;
+  z-index: 999999;
 }
 @keyframes _1wdh3sj0 {
   0% {
