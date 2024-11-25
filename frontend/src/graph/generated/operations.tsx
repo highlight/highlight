@@ -5173,8 +5173,6 @@ export type GetMetricsQueryVariables = Types.Exact<{
 	product_type: Types.ProductType
 	project_id: Types.Scalars['ID']
 	params: Types.QueryInput
-	column: Types.Scalars['String']
-	metric_types: Array<Types.MetricAggregator> | Types.MetricAggregator
 	group_by: Array<Types.Scalars['String']> | Types.Scalars['String']
 	bucket_by: Types.Scalars['String']
 	bucket_count?: Types.Maybe<Types.Scalars['Int']>
@@ -5183,6 +5181,9 @@ export type GetMetricsQueryVariables = Types.Exact<{
 	limit_aggregator?: Types.Maybe<Types.MetricAggregator>
 	limit_column?: Types.Maybe<Types.Scalars['String']>
 	prediction_settings?: Types.Maybe<Types.PredictionSettings>
+	expressions:
+		| Array<Types.MetricExpressionInput>
+		| Types.MetricExpressionInput
 }>
 
 export type GetMetricsQuery = { __typename?: 'Query' } & {

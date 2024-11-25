@@ -750,7 +750,7 @@ export const GraphingEditor: React.FC = () => {
 								disabled={upsertGraphContext.loading}
 								onClick={onSave}
 							>
-								Save&nbsp;
+								Save
 							</Button>
 						</Box>
 					</Box>
@@ -844,6 +844,7 @@ export const GraphingEditor: React.FC = () => {
 												funnelSteps={funnelSteps}
 												setTimeRange={updateSearchTime}
 												variables={values}
+												expressions={expressions}
 											/>
 										</Box>
 									)}
@@ -868,7 +869,7 @@ export const GraphingEditor: React.FC = () => {
 												type="text"
 												name="title"
 												placeholder={
-													tempMetricViewTitle?.current ||
+													tempMetricViewTitle ||
 													'Untitled metric view'
 												}
 												value={settings.metricViewTitle}
@@ -1050,54 +1051,114 @@ export const GraphingEditor: React.FC = () => {
 											name="function"
 											tooltip="Determines how data points are aggregated. If the function requires a numeric field as input, one can be chosen."
 										>
-											<Stack
-												direction="row"
-												width="full"
-												gap="4"
-											>
-												<OptionDropdown
-													options={FUNCTION_TYPES}
-													selection={
-														settings.functionType
-													}
-													setSelection={
-														setFunctionType
-													}
-													disabled={
-														settings.viewType ===
-															'Funnel chart' ||
-														isPreview
-													}
-												/>
-												<Combobox
-													selection={
-														settings.fetchedMetric
-													}
-													setSelection={setMetric}
-													searchConfig={
-														searchOptionsConfig
-													}
-													disabled={
-														settings.functionType ===
-															MetricAggregator.Count ||
-														settings.viewType ===
-															'Funnel chart' ||
-														isPreview
-													}
-													onlyNumericKeys={
-														settings.functionType !==
-														MetricAggregator.CountDistinct
-													}
-													defaultKeys={variableKeys}
-													placeholder={
-														settings.functionType ===
-														MetricAggregator.Count
-															? 'Rows'
-															: undefined
-													}
-												/>
-											</Stack>
+											{settings.expressions.map(
+												(e, i) => (
+													<Stack
+														direction="row"
+														width="full"
+														gap="4"
+														key={i}
+													>
+														<OptionDropdown
+															options={
+																FUNCTION_TYPES
+															}
+															selection={
+																e.aggregator
+															}
+															setSelection={(
+																aggregator: MetricAggregator,
+															) => {
+																setExpressions(
+																	(
+																		expressions,
+																	) => {
+																		const copy =
+																			[
+																				...expressions,
+																			]
+																		copy[
+																			i
+																		].aggregator =
+																			aggregator
+																		return copy
+																	},
+																)
+															}}
+															disabled={
+																settings.viewType ===
+																	'Funnel chart' ||
+																isPreview
+															}
+														/>
+														<Combobox
+															selection={e.column}
+															setSelection={(
+																column: string,
+															) => {
+																setExpressions(
+																	(
+																		expressions,
+																	) => {
+																		const copy =
+																			[
+																				...expressions,
+																			]
+																		copy[
+																			i
+																		].column =
+																			column
+																		return copy
+																	},
+																)
+															}}
+															searchConfig={
+																searchOptionsConfig
+															}
+															disabled={
+																e.aggregator ===
+																	MetricAggregator.Count ||
+																settings.viewType ===
+																	'Funnel chart' ||
+																isPreview
+															}
+															onlyNumericKeys={
+																e.aggregator !==
+																MetricAggregator.CountDistinct
+															}
+															defaultKeys={
+																variableKeys
+															}
+															placeholder={
+																e.aggregator ===
+																MetricAggregator.Count
+																	? 'Rows'
+																	: undefined
+															}
+														/>
+													</Stack>
+												),
+											)}
 										</LabeledRow>
+										<Button
+											trackingId=""
+											onClick={() => {
+												setExpressions(
+													(expressions) => {
+														return [
+															...expressions,
+															{
+																aggregator:
+																	MetricAggregator.Count,
+																column: '',
+															},
+														]
+													},
+												)
+											}}
+										>
+											Add
+										</Button>
 										<LabeledRow
 											label="Group by"
 											name="groupBy"

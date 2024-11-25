@@ -131,7 +131,6 @@ export const TracesPage: React.FC = () => {
 		variables: {
 			product_type: ProductType.Traces,
 			project_id: projectId!,
-			column: 'duration',
 			group_by: [],
 			params: {
 				query,
@@ -144,14 +143,26 @@ export const TracesPage: React.FC = () => {
 					),
 				},
 			},
-			metric_types: [
-				MetricAggregator.Count,
-				MetricAggregator.Avg,
-				MetricAggregator.P50,
-				MetricAggregator.P90,
-			],
 			bucket_by: TIMESTAMP_KEY,
 			bucket_count: 45,
+			expressions: [
+				{
+					aggregator: MetricAggregator.Count,
+					column: 'duration',
+				},
+				{
+					aggregator: MetricAggregator.Avg,
+					column: 'duration',
+				},
+				{
+					aggregator: MetricAggregator.P50,
+					column: 'duration',
+				},
+				{
+					aggregator: MetricAggregator.P90,
+					column: 'duration',
+				},
+			],
 		},
 		skip: !projectId,
 		fetchPolicy: 'cache-and-network',

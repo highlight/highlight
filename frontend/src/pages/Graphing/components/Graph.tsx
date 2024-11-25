@@ -1026,8 +1026,11 @@ const Graph = ({
 	}, [selectedPreset, startDate, endDate])
 
 	const xAxisMetric = bucketByKey !== undefined ? bucketByKey : GROUP_KEY
-	const yAxisMetric = functionType === MetricAggregator.Count ? '' : metric
-	const yAxisFunction = functionType
+	const yAxisMetric =
+		expressions[0].aggregator === MetricAggregator.Count
+			? ''
+			: expressions[0].column
+	const yAxisFunction = expressions[0].aggregator
 
 	// set the fetch dates and poll interval when selected date changes
 	useEffect(() => {
@@ -1061,8 +1064,6 @@ const Graph = ({
 				},
 				query: replaceQueryVariables(query, variables),
 			},
-			column: matchParamVariables(yAxisMetric, variables).at(0) ?? '',
-			metric_types: [functionType],
 			group_by:
 				groupByKeys !== undefined
 					? matchParamVariables(groupByKeys, variables)
@@ -1079,6 +1080,7 @@ const Graph = ({
 				? matchParamVariables(limitMetric, variables).at(0)
 				: undefined,
 			prediction_settings: predictionSettings,
+			expressions: expressions,
 		}
 
 		setLoading(true)
@@ -1129,7 +1131,6 @@ const Graph = ({
 		bucketByWindow,
 		fetchEnd,
 		fetchStart,
-		functionType,
 		getMetrics,
 		groupByKeys,
 		limit,
@@ -1143,6 +1144,7 @@ const Graph = ({
 		query,
 		variables,
 		predictionSettings,
+		expressions,
 	])
 
 	const graphData = useGraphData(

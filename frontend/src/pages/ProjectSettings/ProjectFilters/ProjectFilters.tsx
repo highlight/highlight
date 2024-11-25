@@ -515,8 +515,6 @@ const IngestTimeline: React.FC<{
 		variables: {
 			product_type: ProductType.Traces,
 			project_id: projectId,
-			column: 'duration',
-			metric_types: [MetricAggregator.CountDistinctKey],
 			group_by: ['ingested'],
 			bucket_by: TIMESTAMP_KEY,
 			params: {
@@ -526,6 +524,12 @@ const IngestTimeline: React.FC<{
 					end_date: moment(dateRange.end).format(TIME_FORMAT),
 				},
 			},
+			expressions: [
+				{
+					aggregator: MetricAggregator.CountDistinctKey,
+					column: 'duration',
+				},
+			],
 		},
 	})
 

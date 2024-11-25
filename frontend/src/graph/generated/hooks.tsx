@@ -15018,8 +15018,6 @@ export const GetMetricsDocument = gql`
 		$product_type: ProductType!
 		$project_id: ID!
 		$params: QueryInput!
-		$column: String!
-		$metric_types: [MetricAggregator!]!
 		$group_by: [String!]!
 		$bucket_by: String!
 		$bucket_count: Int
@@ -15028,13 +15026,12 @@ export const GetMetricsDocument = gql`
 		$limit_aggregator: MetricAggregator
 		$limit_column: String
 		$prediction_settings: PredictionSettings
+		$expressions: [MetricExpressionInput!]!
 	) {
 		metrics(
 			product_type: $product_type
 			project_id: $project_id
 			params: $params
-			column: $column
-			metric_types: $metric_types
 			group_by: $group_by
 			bucket_by: $bucket_by
 			bucket_window: $bucket_window
@@ -15043,6 +15040,7 @@ export const GetMetricsDocument = gql`
 			limit_aggregator: $limit_aggregator
 			limit_column: $limit_column
 			prediction_settings: $prediction_settings
+			expressions: $expressions
 		) {
 			buckets {
 				bucket_id
@@ -15076,8 +15074,6 @@ export const GetMetricsDocument = gql`
  *      product_type: // value for 'product_type'
  *      project_id: // value for 'project_id'
  *      params: // value for 'params'
- *      column: // value for 'column'
- *      metric_types: // value for 'metric_types'
  *      group_by: // value for 'group_by'
  *      bucket_by: // value for 'bucket_by'
  *      bucket_count: // value for 'bucket_count'
@@ -15086,6 +15082,7 @@ export const GetMetricsDocument = gql`
  *      limit_aggregator: // value for 'limit_aggregator'
  *      limit_column: // value for 'limit_column'
  *      prediction_settings: // value for 'prediction_settings'
+ *      expressions: // value for 'expressions'
  *   },
  * });
  */
