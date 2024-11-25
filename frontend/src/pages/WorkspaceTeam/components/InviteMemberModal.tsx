@@ -89,17 +89,21 @@ function InviteMemberModal({
 								A welcome email has been sent to {email}. You
 								can also share this invite link with them.
 							</Text>
-							<Button
-								trackingId="invite-admin-modal_copy-invite-link"
-								iconLeft={<IconSolidClipboard />}
-								kind="secondary"
-								onClick={(e) => {
-									e.stopPropagation()
-									navigator.clipboard.writeText(inviteLink)
-								}}
-							>
-								Copy invite link
-							</Button>
+							<Box display="inline-block">
+								<Button
+									trackingId="invite-admin-modal_copy-invite-link"
+									iconLeft={<IconSolidClipboard />}
+									kind="secondary"
+									onClick={(e) => {
+										e.stopPropagation()
+										navigator.clipboard.writeText(
+											inviteLink,
+										)
+									}}
+								>
+									Copy invite link
+								</Button>
+							</Box>
 						</Stack>
 					),
 				})
