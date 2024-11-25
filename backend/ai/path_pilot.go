@@ -68,6 +68,10 @@ func GetPathPilotSessionNarration(ctx context.Context, sc storage.Client, projec
 	if err := json.Unmarshal(body, &ingestJson); err != nil {
 		return "", err
 	}
+	if len(ingestJson) < 1 {
+		log.WithContext(ctx).WithField("projectID", projectID).WithField("sessionID", sessionID).WithField("body", body).Error("no session narration run id")
+		return "", e.New("no session narration run id")
+	}
 	runId := ingestJson[0].RunID
 
 	req, _ = retryablehttp.NewRequest(http.MethodGet, fmt.Sprintf("https://uxob-api-e4fc.onrender.com/beta/ingest/run/%s/narration", runId), nil)
