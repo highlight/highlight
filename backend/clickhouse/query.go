@@ -190,7 +190,12 @@ func makeSelectBuilder(
 
 	sb.Select(selectCols...)
 	sb.From(config.TableName)
-	sb.Where(sb.In("ProjectId", projectIDs))
+
+	if len(projectIDs) == 1 {
+		sb.Where(sb.Equal("ProjectId", projectIDs[0]))
+	} else {
+		sb.Where(sb.In("ProjectId", projectIDs))
+	}
 
 	if pagination.After != nil && len(*pagination.After) > 1 {
 		timestamp, uuid, err := decodeCursor(*pagination.After)
