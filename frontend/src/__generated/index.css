@@ -5461,8 +5461,8 @@ body {
   position: fixed;
   z-index: 1000;
   left: 50%;
-  top: 50%;
-  transform: translate(-50%, -50%);
+  top: 40px;
+  transform: translate(-50%, 0);
 }
 ._1oemo0l0 {
   display: none;
