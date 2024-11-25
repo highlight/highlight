@@ -1273,7 +1273,7 @@ func (client *Client) ReadMetrics(ctx context.Context, input ReadMetricsInput) (
 	orderByCols := []string{"bucket_index"}
 	if useLimit {
 		groupByCols = append(groupByCols, "limit_metric")
-		orderByCols = append(orderByCols, "limit_metric DESC")
+		orderByCols = append(orderByCols, "limit_rank")
 	}
 	groupByCols = append(groupByCols, groupAliases...)
 	orderByCols = append(orderByCols, groupAliases...)
@@ -1297,8 +1297,6 @@ func (client *Client) ReadMetrics(ctx context.Context, input ReadMetricsInput) (
 	fromSb.From(fromSb.BuilderAs(innerSb, "inner"))
 
 	fromSb.GroupBy(groupByCols...)
-	fromSb.OrderBy(orderByCols...)
-	fromSb.Limit(10000)
 
 	if useLimit {
 		outerSelect := []string{"bucket_index", "sample_factor", "min", "max"}
@@ -1316,6 +1314,9 @@ func (client *Client) ReadMetrics(ctx context.Context, input ReadMetricsInput) (
 		fromSb.From(fromSb.BuilderAs(innerSb, "outer"))
 		fromSb.Where(fromSb.LessEqualThan("limit_rank", limitCount))
 	}
+
+	fromSb.OrderBy(orderByCols...)
+	fromSb.Limit(10000)
 
 	if input.SavedMetricState != nil {
 		if err := client.saveMetricHistory(ctx, fromSb, input); err != nil {
