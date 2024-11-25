@@ -92,6 +92,13 @@ func sendSessionAlert(ctx context.Context, slackAccessToken string, alertInput *
 	sessionBlock := slack.NewTextBlockObject(slack.MarkdownType, sessionString, false, false)
 	bodyBlockSet = append(bodyBlockSet, slack.NewSectionBlock(sessionBlock, nil, nil))
 
+	// summary
+	if alertInput.SessionInput.Summary != "" {
+		summaryString := fmt.Sprintf("*Narration*: %s", alertInput.SessionInput.Summary)
+		summaryBlock := slack.NewTextBlockObject(slack.MarkdownType, summaryString, false, false)
+		bodyBlockSet = append(bodyBlockSet, slack.NewSectionBlock(summaryBlock, nil, nil))
+	}
+
 	// user identifier
 	sessionUserIdentifier := alertInput.SessionInput.Identifier
 	if sessionUserIdentifier == "" {
