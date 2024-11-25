@@ -202,7 +202,7 @@ export const useSavedSegments = ({
 									: 'hidden',
 							}}
 						/>
-						<Text>- none -</Text>
+						<Text>None</Text>
 					</Box>
 				</Menu.Item>
 				{segmentOptions.map((segment, idx) => {
@@ -230,7 +230,7 @@ export const useSavedSegments = ({
 											: 'hidden',
 									}}
 								/>
-								<Text>{segment.name}</Text>
+								<Text lines="1">{segment.name}</Text>
 							</Box>
 						</Menu.Item>
 					)
@@ -404,7 +404,9 @@ export const useSavedSegments = ({
 							}}
 							className={`${!selectedSegment?.name ? 'w-full' : ''}`}
 						>
-							<Text>{selectedSegment?.name || 'none'}</Text>
+							<Text lines="1">
+								{selectedSegment?.name || 'none'}
+							</Text>
 						</Menu.Button>
 						<Menu.List cssClass={styles.menuList}>
 							{menuOptions}
