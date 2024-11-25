@@ -102,7 +102,7 @@ export const Form: FormComponent = ({
 }: Props) => {
 	return (
 		<Ariakit.FormProvider defaultValues={defaultValues} store={store}>
-			<Ariakit.Form noValidate={noValidate} {...props}>
+			<Ariakit.Form noValidate={noValidate} {...props} role="form">
 				{children}
 			</Ariakit.Form>
 		</Ariakit.FormProvider>
