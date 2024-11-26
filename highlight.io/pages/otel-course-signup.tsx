@@ -33,6 +33,9 @@ export default function OTelCourseSignup() {
 					inlineMessage:
 						"You're signed up! You will be redirected shortly.",
 					onFormSubmit: () => {
+						if (window.dataLayer) {
+							window.dataLayer.push({ event: 'course_submit' })
+						}
 						localStorage.setItem(LOCAL_STORAGE_KEY, 'true')
 						router.push(COURSE_URL + '?signedup=true')
 					},
