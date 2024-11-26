@@ -14,8 +14,8 @@ type LoginCredentials struct {
 const (
 	stateCookieName                 = "state"
 	tokenCookieName                 = "token"
-	loginExpiry                     = time.Minute
-	adminPasswordTokenDuration      = time.Minute
+	loginExpiry                     = time.Hour * 24 * 30
+	adminPasswordTokenDuration      = time.Hour * 24 * 30
 	loginError                      = "invalid email/password provided"
 	passwordLoginConfigurationError = "password auth mode not properly configured"
 	oauthCallbackError              = "oauth2 callback failed"
