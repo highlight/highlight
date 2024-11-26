@@ -440,7 +440,13 @@ export const TracesPage: React.FC = () => {
 								}
 								metrics={metricsData}
 								loading={metricsLoading}
-								series={[MetricAggregator.Count]}
+								series={[
+									{
+										aggregator: MetricAggregator.Count,
+										column: '',
+										groups: [],
+									},
+								]}
 							/>
 						</Box>
 						<Box
@@ -484,9 +490,21 @@ export const TracesPage: React.FC = () => {
 								metrics={metricsData}
 								loading={metricsLoading}
 								series={[
-									MetricAggregator.P90,
-									MetricAggregator.P50,
-									MetricAggregator.Avg,
+									{
+										aggregator: MetricAggregator.P90,
+										column: 'duration',
+										groups: [],
+									},
+									{
+										aggregator: MetricAggregator.P50,
+										column: 'duration',
+										groups: [],
+									},
+									{
+										aggregator: MetricAggregator.Avg,
+										column: 'duration',
+										groups: [],
+									},
 								]}
 								lineChart
 							/>

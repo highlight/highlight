@@ -6,6 +6,7 @@ import { ReferenceArea } from 'recharts'
 import { GetMetricsQuery } from '@/graph/generated/operations'
 import { BarChart } from '@/pages/Graphing/components/BarChart'
 import {
+	Series,
 	TIMESTAMP_KEY,
 	useGraphData,
 	useGraphSeries,
@@ -38,7 +39,7 @@ interface LogsHistogramChartProps {
 	endDate: Date
 	loadingState: LoadingState | undefined
 	metrics: GetMetricsQuery | undefined
-	series?: string[]
+	series?: Series[]
 	onDatesChange?: (startDate: Date, endDate: Date) => void
 	noPadding?: boolean
 }
@@ -142,14 +143,11 @@ const LogsHistogram = ({
 						<BarChart
 							data={data}
 							xAxisMetric="Timestamp"
-							yAxisMetric=""
-							yAxisFunction=""
 							viewConfig={{
 								type: 'Bar chart',
 								showLegend: false,
 								display: 'Stacked',
 							}}
-							series={series}
 							showYAxis={false}
 							strokeColors={LEVEL_COLOR_MAPPING}
 							setTimeRange={onDatesChange}
@@ -178,13 +176,10 @@ const LogsHistogram = ({
 						<LineChart
 							data={data}
 							xAxisMetric="Timestamp"
-							yAxisMetric="duration"
-							yAxisFunction=""
 							viewConfig={{
 								type: 'Line chart',
 								showLegend: false,
 							}}
-							series={series}
 							showYAxis={false}
 							strokeColors={LEVEL_COLOR_MAPPING}
 							setTimeRange={onDatesChange}

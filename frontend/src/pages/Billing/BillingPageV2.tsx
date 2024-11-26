@@ -41,7 +41,6 @@ import {
 } from '@/graph/generated/hooks'
 import {
 	AwsMarketplaceSubscription,
-	MetricAggregator,
 	PlanType,
 	ProductType,
 	RetentionPeriod,
@@ -417,10 +416,7 @@ const UsageCard = ({
 									(b.bucket_min + b.bucket_max) / 2,
 								['Ingested']: b.metric_value,
 							}))}
-							yAxisFunction={MetricAggregator.Count}
 							xAxisMetric={TIMESTAMP_KEY}
-							yAxisMetric="Ingested"
-							series={['Ingested']}
 							strokeColors={[vars.theme.static.content.moderate]}
 							viewConfig={{
 								type: 'Bar chart',

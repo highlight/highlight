@@ -574,10 +574,7 @@ const IngestTimeline: React.FC<{
 		<Box width="full" style={{ height: 100 }}>
 			<BarChart
 				data={histogramBuckets}
-				yAxisFunction={MetricAggregator.Count}
 				xAxisMetric={TIMESTAMP_KEY}
-				yAxisMetric="percent"
-				series={['percent']}
 				strokeColors={[vars.theme.static.content.moderate]}
 				viewConfig={{
 					type: 'Bar chart',
