@@ -188,7 +188,12 @@ func makeSelectBuilder(
 
 	sb.Select(selectCols...)
 	sb.From(config.TableName)
-	sb.Where(sb.In("ProjectId", projectIDs))
+
+	if len(projectIDs) == 1 {
+		sb.Where(sb.Equal("ProjectId", projectIDs[0]))
+	} else {
+		sb.Where(sb.In("ProjectId", projectIDs))
+	}
 
 	if pagination.After != nil && len(*pagination.After) > 1 {
 		timestamp, uuid, err := decodeCursor(*pagination.After)
@@ -1221,6 +1226,8 @@ func (client *Client) ReadMetrics(ctx context.Context, input ReadMetricsInput) (
 		groupAliases = append(groupAliases, groupAlias)
 
 		selectCols = append(selectCols, fromSb.As(groupCol, groupAlias))
+
+		fromSb.Where(fromSb.NotEqual(groupAlias, ""))
 	}
 
 	limitCount := 10
@@ -1256,7 +1263,7 @@ func (client *Client) ReadMetrics(ctx context.Context, input ReadMetricsInput) (
 	orderByCols := []string{"bucket_index"}
 	if useLimit {
 		groupByCols = append(groupByCols, "limit_metric")
-		orderByCols = append(orderByCols, "limit_metric DESC")
+		orderByCols = append(orderByCols, "limit_rank")
 	}
 	groupByCols = append(groupByCols, groupAliases...)
 	orderByCols = append(orderByCols, groupAliases...)
@@ -1280,8 +1287,6 @@ func (client *Client) ReadMetrics(ctx context.Context, input ReadMetricsInput) (
 	fromSb.From(fromSb.BuilderAs(innerSb, "inner"))
 
 	fromSb.GroupBy(groupByCols...)
-	fromSb.OrderBy(orderByCols...)
-	fromSb.Limit(10000)
 
 	if useLimit {
 		outerSelect := []string{"bucket_index", "sample_factor", "min", "max"}
@@ -1299,6 +1304,9 @@ func (client *Client) ReadMetrics(ctx context.Context, input ReadMetricsInput) (
 		fromSb.From(fromSb.BuilderAs(innerSb, "outer"))
 		fromSb.Where(fromSb.LessEqualThan("limit_rank", limitCount))
 	}
+
+	fromSb.OrderBy(orderByCols...)
+	fromSb.Limit(10000)
 
 	if input.SavedMetricState != nil {
 		if err := client.saveMetricHistory(ctx, fromSb, input); err != nil {
