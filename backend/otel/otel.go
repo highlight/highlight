@@ -64,7 +64,7 @@ func cast[T string | int64 | float64](v interface{}, fallback T) T {
 
 func getBackendError(ctx context.Context, ts time.Time, fields *extractedFields, traceID, spanID string, logCursor *string) (bool, *model.BackendErrorObjectInput) {
 	if fields.exceptionType == "" && fields.exceptionMessage == "" {
-		lg(ctx, fields).Error("otel received exception with no type and no message")
+		// provided input is not an error
 		return false, nil
 	} else if fields.exceptionStackTrace == "" || fields.exceptionStackTrace == "null" {
 		lg(ctx, fields).Warn("otel received exception with no stacktrace")
@@ -466,9 +466,7 @@ func (o *Handler) HandleLog(w http.ResponseWriter, r *http.Request) {
 				}
 
 				_, backendError := getBackendError(ctx, fields.timestamp, fields, traceID, logRecord.SpanID().String(), pointy.String(logRow.Cursor()))
-				if backendError == nil {
-					lg(ctx, fields).Error("otel span error got no session and no project")
-				} else {
+				if backendError != nil {
 					if _, ok := projectSessionErrors[fields.projectID]; !ok {
 						projectSessionErrors[fields.projectID] = make(map[string][]*model.BackendErrorObjectInput)
 					}
