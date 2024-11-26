@@ -21,6 +21,9 @@ updatedAt: 2022-04-01T19:52:59.000Z
     <DocsCard title="Firebase Functions" href="../js/firebase">
         {"Get started with Firebase Functions"}
     </DocsCard>
+    <DocsCard title="Hono" href="../js/hono">
+        {"Get started with Hono"}
+    </DocsCard>
     <DocsCard title="Next.js" href="../../fullstack-frameworks/next-js">
         {"Get started with Next.js"}
     </DocsCard>

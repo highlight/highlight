@@ -85,6 +85,7 @@ import { RubyRailsTracesContent } from './traces/ruby/rails'
 import { RubyOtherTracesContent } from './traces/ruby/other'
 import { RustTracesContent } from './traces/rust'
 import { AWSLambdaContent } from './traces/serverless/lambda'
+import { JSHonoContent } from './backend/js/hono'
 
 export type QuickStartOptions = {
 	title: string
@@ -149,6 +150,7 @@ export enum QuickStartType {
 	GoGorm = 'gorm',
 	GoLogrus = 'logrus',
 	GoOther = 'other',
+	JSHono = 'hono',
 	JSApollo = 'apollo',
 	JSAWSFn = 'aws-lambda-node',
 	JSCloudflare = 'cloudflare',
@@ -241,6 +243,7 @@ export const quickStartContent = {
 			[QuickStartType.JSCloudflare]: JSCloudflareContent,
 			[QuickStartType.JSExpress]: JSExpressContent,
 			[QuickStartType.JSFirebase]: JSFirebaseContent,
+			[QuickStartType.JSHono]: JSHonoContent,
 			[QuickStartType.JSNodejs]: JSNodeContent,
 			[QuickStartType.JSNestjs]: JSNestContent,
 			[QuickStartType.JStRPC]: JStRPCContent,

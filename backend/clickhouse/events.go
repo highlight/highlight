@@ -74,9 +74,6 @@ var eventsTableConfig = model.TableConfig{
 
 var EventsSampleableTableConfig = SampleableTableConfig{
 	tableConfig: eventsTableConfig,
-	useSampling: func(d time.Duration) bool {
-		return false
-	},
 }
 
 type SessionEventRow struct {

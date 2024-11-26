@@ -9238,10 +9238,11 @@ func (r *queryResolver) SessionExports(ctx context.Context, projectID int) ([]*m
 	var sessionExports []*modelInputs.SessionExportWithSession
 	if err := r.DB.
 		WithContext(ctx).
-		Table("session_exports").
-		Joins("INNER JOIN sessions s ON s.id = session_exports.session_id").
+		Select("se.*, s.secure_id, s.identifier, s.active_length").
+		Table("session_exports se").
+		Joins("INNER JOIN sessions s ON s.id = se.session_id").
 		Where(`s.project_id = ?`, projectID).
-		Order("session_exports.id DESC").
+		Order("se.created_at DESC").
 		Scan(&sessionExports).Error; err != nil {
 		return nil, err
 	}

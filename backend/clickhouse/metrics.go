@@ -2,7 +2,6 @@ package clickhouse
 
 import (
 	"context"
-	"fmt"
 	"time"
 
 	"github.com/aws/smithy-go/ptr"
@@ -31,15 +30,13 @@ var metricsSamplingTableConfig = model.TableConfig{
 	KeysToColumns:    metricsTableConfig.KeysToColumns,
 	ReservedKeys:     metricsTableConfig.ReservedKeys,
 	SelectColumns:    metricsTableConfig.SelectColumns,
-	TableName:        fmt.Sprintf("%s SAMPLE %d", TracesSamplingTable, SamplingRows),
+	TableName:        TracesSamplingTable,
 }
 
 var MetricsSampleableTableConfig = SampleableTableConfig{
 	tableConfig:         metricsTableConfig,
 	samplingTableConfig: metricsSamplingTableConfig,
-	useSampling: func(d time.Duration) bool {
-		return d >= time.Hour
-	},
+	sampleSizeRows:      20_000_000,
 }
 
 func (client *Client) ReadEventMetrics(ctx context.Context, projectID int, params modelInputs.QueryInput, column string, metricTypes []modelInputs.MetricAggregator, groupBy []string, nBuckets *int, bucketBy string, bucketWindow *int, limit *int, limitAggregator *modelInputs.MetricAggregator, limitColumn *string) (*modelInputs.MetricsBuckets, error) {
