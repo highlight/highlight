@@ -1,8 +1,10 @@
 import { OTLPTraceExporter } from '@opentelemetry/exporter-trace-otlp-http'
 import type { ReadableSpan } from '@opentelemetry/sdk-trace-web'
+import { OTLPExporterError } from '@opentelemetry/otlp-exporter-base'
 
 type ExporterConfig = ConstructorParameters<typeof OTLPTraceExporter>[0]
 type SendOnErrorCallback = Parameters<OTLPTraceExporter['send']>[2]
+const MAX_RETRIES = 10
 
 // This custom exporter is a temporary workaround for an issue we are having
 // with requests stalling in the browser using the sendBeacon API. There is work
@@ -28,19 +30,18 @@ export class OTLPTraceExporterBrowserWithXhrRetry extends OTLPTraceExporter {
 		onSuccess: () => void,
 		onError: SendOnErrorCallback,
 	): void {
-		super.send(items, onSuccess, (error) => {
-			if (error.message.toLocaleLowerCase().includes('beacon')) {
-				this.xhrTraceExporter.send(items, onSuccess, (xhrError) => {
-					onError({
-						...error,
-						message: `${error.message} --- [XHR retry message: ${xhrError.message}; code: ${xhrError.code}].`,
-						code: error.code,
-						data: `${error.data} --- [XHR retry data: ${xhrError.data}].`,
-					})
+		let retries = 0
+		const retry = (error: OTLPExporterError) => {
+			retries++
+			if (retries > MAX_RETRIES) {
+				onError({
+					...error,
 				})
 			} else {
-				onError(error)
+				this.xhrTraceExporter.send(items, onSuccess, retry)
 			}
-		})
+		}
+
+		super.send(items, onSuccess, retry)
 	}
 }
