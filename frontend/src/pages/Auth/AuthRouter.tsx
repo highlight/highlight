@@ -12,6 +12,7 @@ import { Route, Routes } from 'react-router-dom'
 import { SignInRedirect } from '@/pages/Auth/SignInRedirect'
 
 import * as styles from './AuthRouter.css'
+import { AUTH_MODE } from '@/constants'
 
 export const SIGN_IN_ROUTE = '/sign_in'
 export const SIGN_UP_ROUTE = '/sign_up'
@@ -34,7 +35,16 @@ export const AuthRouter: React.FC = () => {
 						path={SIGN_IN_ROUTE}
 						element={<SignIn setResolver={setResolver} />}
 					/>
-					<Route path={SIGN_UP_ROUTE} element={<SignUp />} />
+					<Route
+						path={SIGN_UP_ROUTE}
+						element={
+							AUTH_MODE !== 'firebase' ? (
+								<SignIn setResolver={setResolver} />
+							) : (
+								<SignUp />
+							)
+						}
+					/>
 					<Route
 						path="/multi_factor"
 						element={<MultiFactor resolver={resolver} />}

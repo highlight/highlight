@@ -161,36 +161,42 @@ func TestReadTracesWithEnvironmentFilter(t *testing.T) {
 	defer teardown(t)
 
 	now := time.Now()
-	rows := []*ClickhouseTraceRow{
-		NewTraceRow(now, 1).AsClickhouseTraceRow(),
-		NewTraceRow(now, 1).WithEnvironment("production").AsClickhouseTraceRow(),
-		NewTraceRow(now, 1).WithEnvironment("development").AsClickhouseTraceRow(),
+	for i := 0; i < 10; i++ {
+		now = time.Now()
+		rows := []*ClickhouseTraceRow{
+			NewTraceRow(now, 1).WithSpanName("Span B").WithDuration(now, now.Add(300*time.Nanosecond)).WithTraceAttributes(map[string]string{"host.name": "c"}).AsClickhouseTraceRow(),
+			NewTraceRow(now, 1).WithSpanName("Span B").WithDuration(now, now.Add(300*time.Nanosecond)).WithTraceAttributes(map[string]string{"host.name": "c"}).WithEnvironment("production").AsClickhouseTraceRow(),
+			NewTraceRow(now, 1).WithSpanName("Span B").WithDuration(now, now.Add(300*time.Nanosecond)).WithTraceAttributes(map[string]string{"host.name": "c"}).WithEnvironment("development").AsClickhouseTraceRow(),
+		}
+		assert.NoError(t, client.BatchWriteTraceRows(ctx, rows))
 	}
-
-	assert.NoError(t, client.BatchWriteTraceRows(ctx, rows))
 
 	payload, err := client.ReadTraces(ctx, 1, modelInputs.QueryInput{
 		DateRange: makeDateWithinRange(now),
 		Query:     "environment:production",
 	}, Pagination{})
 	assert.NoError(t, err)
-	assert.Len(t, payload.Edges, 1)
-	assert.Equal(t, "production", payload.Edges[0].Node.Environment)
+	assert.Len(t, payload.Edges, 10)
+	if len(payload.Edges) > 0 {
+		assert.Equal(t, "production", payload.Edges[0].Node.Environment)
+	}
 
 	payload, err = client.ReadTraces(ctx, 1, modelInputs.QueryInput{
 		DateRange: makeDateWithinRange(now),
 		Query:     "environment:*dev*",
 	}, Pagination{})
 	assert.NoError(t, err)
-	assert.Len(t, payload.Edges, 1)
-	assert.Equal(t, "development", payload.Edges[0].Node.Environment)
+	assert.Len(t, payload.Edges, 10)
+	if len(payload.Edges) > 0 {
+		assert.Equal(t, "development", payload.Edges[0].Node.Environment)
+	}
 
 	payload, err = client.ReadTraces(ctx, 1, modelInputs.QueryInput{
 		DateRange: makeDateWithinRange(now),
 		Query:     "environment:(production OR development)",
 	}, Pagination{})
 	assert.NoError(t, err)
-	assert.Len(t, payload.Edges, 2)
+	assert.Len(t, payload.Edges, 20)
 }
 
 func TestReadTracesWithSorting(t *testing.T) {
