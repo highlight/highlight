@@ -122,31 +122,61 @@ var TracesSampleableTableConfig = SampleableTableConfig{
 }
 
 type ClickhouseTraceRow struct {
-	Timestamp        time.Time
-	UUID             string
-	TraceId          string
-	SpanId           string
-	ParentSpanId     string
-	ProjectId        uint32
-	SecureSessionId  string
-	TraceState       string
-	SpanName         string
-	SpanKind         string
-	Duration         int64
-	ServiceName      string
-	ServiceVersion   string
-	TraceAttributes  map[string]string
-	StatusCode       string
-	StatusMessage    string
-	Environment      string
-	HasErrors        bool
-	EventsTimestamp  []time.Time         `json:"Events.Timestamp" ch:"Events.Timestamp"`
-	EventsName       []string            `json:"Events.Name" ch:"Events.Name"`
-	EventsAttributes []map[string]string `json:"Events.Attributes" ch:"Events.Attributes"`
-	LinksTraceId     []string            `json:"Links.TraceId" ch:"Links.TraceId"`
-	LinksSpanId      []string            `json:"Links.SpanId" ch:"Links.SpanId"`
-	LinksTraceState  []string            `json:"Links.TraceState" ch:"Links.TraceState"`
-	LinksAttributes  []map[string]string `json:"Links.Attributes" ch:"Links.Attributes"`
+	Timestamp           time.Time
+	UUID                string
+	TraceId             string
+	SpanId              string
+	ParentSpanId        string
+	ProjectId           uint32
+	SecureSessionId     string
+	TraceState          string
+	SpanName            string
+	SpanKind            string
+	Duration            int64
+	ServiceName         string
+	ServiceVersion      string
+	TraceAttributes     map[string]string
+	StatusCode          string
+	StatusMessage       string
+	Environment         string
+	HasErrors           bool
+	EventsTimestamp     []time.Time         `json:"Events.Timestamp" ch:"Events.Timestamp"`
+	EventsName          []string            `json:"Events.Name" ch:"Events.Name"`
+	EventsAttributes    []map[string]string `json:"Events.Attributes" ch:"Events.Attributes"`
+	LinksTraceId        []string            `json:"Links.TraceId" ch:"Links.TraceId"`
+	LinksSpanId         []string            `json:"Links.SpanId" ch:"Links.SpanId"`
+	LinksTraceState     []string            `json:"Links.TraceState" ch:"Links.TraceState"`
+	LinksAttributes     []map[string]string `json:"Links.Attributes" ch:"Links.Attributes"`
+	HttpResponseBody    string
+	HttpRequestBody     string
+	HttpUrl             string
+	HighlightKey        string
+	HighlightType       string
+	HttpAttributes      map[string]string
+	ProcessAttributes   map[string]string
+	OsAttributes        map[string]string
+	TelemetryAttributes map[string]string
+	WsAttributes        map[string]string
+	EventAttributes     map[string]string
+	DbAttributes        map[string]string
+}
+
+func getSubAttributes(attributes map[string]string, prefix string) map[string]string {
+	results := map[string]string{}
+	for k, v := range attributes {
+		if strings.HasPrefix(k, prefix) {
+			results[k] = v
+		}
+	}
+	return results
+}
+
+func getHttpAttributes(attributes map[string]string) map[string]string {
+	httpAttributes := getSubAttributes(attributes, "http.")
+	delete(httpAttributes, "http.response.body")
+	delete(httpAttributes, "http.request.body")
+	delete(httpAttributes, "http.url")
+	return httpAttributes
 }
 
 func ConvertTraceRow(traceRow *TraceRow) *ClickhouseTraceRow {
@@ -154,31 +184,43 @@ func ConvertTraceRow(traceRow *TraceRow) *ClickhouseTraceRow {
 	linkTraceIds, linkSpanIds, linkStates, linkAttrs := convertLinks(traceRow)
 
 	return &ClickhouseTraceRow{
-		Timestamp:        traceRow.Timestamp,
-		UUID:             traceRow.UUID,
-		TraceId:          traceRow.TraceId,
-		SpanId:           traceRow.SpanId,
-		ParentSpanId:     traceRow.ParentSpanId,
-		ProjectId:        traceRow.ProjectId,
-		SecureSessionId:  traceRow.SecureSessionId,
-		TraceState:       traceRow.TraceState,
-		SpanName:         traceRow.SpanName,
-		SpanKind:         traceRow.SpanKind,
-		Duration:         traceRow.Duration,
-		ServiceName:      traceRow.ServiceName,
-		ServiceVersion:   traceRow.ServiceVersion,
-		TraceAttributes:  traceRow.TraceAttributes,
-		StatusCode:       traceRow.StatusCode,
-		StatusMessage:    traceRow.StatusMessage,
-		Environment:      traceRow.Environment,
-		HasErrors:        traceRow.HasErrors,
-		EventsTimestamp:  traceTimes,
-		EventsName:       traceNames,
-		EventsAttributes: traceAttrs,
-		LinksTraceId:     linkTraceIds,
-		LinksSpanId:      linkSpanIds,
-		LinksTraceState:  linkStates,
-		LinksAttributes:  linkAttrs,
+		Timestamp:           traceRow.Timestamp,
+		UUID:                traceRow.UUID,
+		TraceId:             traceRow.TraceId,
+		SpanId:              traceRow.SpanId,
+		ParentSpanId:        traceRow.ParentSpanId,
+		ProjectId:           traceRow.ProjectId,
+		SecureSessionId:     traceRow.SecureSessionId,
+		TraceState:          traceRow.TraceState,
+		SpanName:            traceRow.SpanName,
+		SpanKind:            traceRow.SpanKind,
+		Duration:            traceRow.Duration,
+		ServiceName:         traceRow.ServiceName,
+		ServiceVersion:      traceRow.ServiceVersion,
+		TraceAttributes:     traceRow.TraceAttributes,
+		StatusCode:          traceRow.StatusCode,
+		StatusMessage:       traceRow.StatusMessage,
+		Environment:         traceRow.Environment,
+		HasErrors:           traceRow.HasErrors,
+		EventsTimestamp:     traceTimes,
+		EventsName:          traceNames,
+		EventsAttributes:    traceAttrs,
+		LinksTraceId:        linkTraceIds,
+		LinksSpanId:         linkSpanIds,
+		LinksTraceState:     linkStates,
+		LinksAttributes:     linkAttrs,
+		HttpResponseBody:    traceRow.TraceAttributes["http.response.body"],
+		HttpRequestBody:     traceRow.TraceAttributes["http.request.body"],
+		HttpUrl:             traceRow.TraceAttributes["http.url"],
+		HighlightKey:        traceRow.TraceAttributes["highlight.key"],
+		HighlightType:       traceRow.TraceAttributes["highlight.type"],
+		HttpAttributes:      getHttpAttributes(traceRow.TraceAttributes),
+		ProcessAttributes:   getSubAttributes(traceRow.TraceAttributes, "process."),
+		OsAttributes:        getSubAttributes(traceRow.TraceAttributes, "os."),
+		TelemetryAttributes: getSubAttributes(traceRow.TraceAttributes, "telemetry."),
+		WsAttributes:        getSubAttributes(traceRow.TraceAttributes, "ws."),
+		EventAttributes:     getSubAttributes(traceRow.TraceAttributes, "event."),
+		DbAttributes:        getSubAttributes(traceRow.TraceAttributes, "db."),
 	}
 }
 
