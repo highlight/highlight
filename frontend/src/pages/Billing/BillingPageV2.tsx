@@ -25,7 +25,15 @@ import {
 } from '@highlight-run/ui/components'
 import { vars } from '@highlight-run/ui/vars'
 import { BarChart } from '@pages/Graphing/components/BarChart'
-import { TIMESTAMP_KEY } from '@pages/Graphing/components/Graph'
+import {
+	AGGREGATOR_KEY,
+	COLUMN_KEY,
+	getSeriesKey,
+	GROUPS_KEY,
+	SERIES_KEY,
+	TIMESTAMP_KEY,
+	VALUE_KEY,
+} from '@pages/Graphing/components/Graph'
 import { dinero, toDecimal } from 'dinero.js'
 import moment from 'moment'
 import React, { useEffect } from 'react'
@@ -411,11 +419,22 @@ const UsageCard = ({
 				>
 					{usageHistory?.buckets ? (
 						<BarChart
-							data={usageHistory.buckets.map((b) => ({
-								[TIMESTAMP_KEY]:
-									(b.bucket_min + b.bucket_max) / 2,
-								['Ingested']: b.metric_value,
-							}))}
+							data={usageHistory.buckets.map((b) => {
+								const series = {
+									[AGGREGATOR_KEY]: b.metric_type,
+									[COLUMN_KEY]: b.column,
+									[GROUPS_KEY]: b.group,
+								}
+								const seriesKey = getSeriesKey(series)
+								return {
+									[TIMESTAMP_KEY]:
+										(b.bucket_min + b.bucket_max) / 2,
+									[seriesKey]: {
+										[SERIES_KEY]: series,
+										[VALUE_KEY]: b.metric_value,
+									},
+								}
+							})}
 							xAxisMetric={TIMESTAMP_KEY}
 							strokeColors={[vars.theme.static.content.moderate]}
 							viewConfig={{
