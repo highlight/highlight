@@ -64,6 +64,7 @@ import {
 	DEMO_PROJECT_ID,
 	DEMO_WORKSPACE_PROXY_APPLICATION_ID,
 } from '@/components/DemoWorkspaceButton/DemoWorkspaceButton'
+import { GetMetricsQuery } from '@/graph/generated/operations'
 
 export type TracesOutletContext = Partial<Trace>[]
 
@@ -148,7 +149,7 @@ export const TracesPage: React.FC = () => {
 			expressions: [
 				{
 					aggregator: MetricAggregator.Count,
-					column: 'duration',
+					column: '',
 				},
 				{
 					aggregator: MetricAggregator.Avg,
@@ -167,6 +168,28 @@ export const TracesPage: React.FC = () => {
 		skip: !projectId,
 		fetchPolicy: 'cache-and-network',
 	})
+
+	const durationData: GetMetricsQuery | undefined = metricsData
+		? {
+				metrics: {
+					...metricsData?.metrics,
+					buckets: metricsData.metrics.buckets.filter(
+						(b) => b.column === 'duration',
+					),
+				},
+			}
+		: undefined
+
+	const countData: GetMetricsQuery | undefined = metricsData
+		? {
+				metrics: {
+					...metricsData?.metrics,
+					buckets: metricsData.metrics.buckets.filter(
+						(b) => b.column === '',
+					),
+				},
+			}
+		: undefined
 
 	const fetchMoreWhenScrolled = React.useCallback(
 		(containerRefElement?: HTMLDivElement | null) => {
@@ -438,15 +461,8 @@ export const TracesPage: React.FC = () => {
 								onDatesChange={
 									searchTimeContext.updateSearchTime
 								}
-								metrics={metricsData}
+								metrics={countData}
 								loading={metricsLoading}
-								series={[
-									{
-										aggregator: MetricAggregator.Count,
-										column: '',
-										groups: [],
-									},
-								]}
 							/>
 						</Box>
 						<Box
@@ -487,25 +503,8 @@ export const TracesPage: React.FC = () => {
 								onDatesChange={
 									searchTimeContext.updateSearchTime
 								}
-								metrics={metricsData}
+								metrics={durationData}
 								loading={metricsLoading}
-								series={[
-									{
-										aggregator: MetricAggregator.P90,
-										column: 'duration',
-										groups: [],
-									},
-									{
-										aggregator: MetricAggregator.P50,
-										column: 'duration',
-										groups: [],
-									},
-									{
-										aggregator: MetricAggregator.Avg,
-										column: 'duration',
-										groups: [],
-									},
-								]}
 								lineChart
 							/>
 						</Box>

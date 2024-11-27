@@ -1046,7 +1046,7 @@ export const GraphingEditor: React.FC = () => {
 											name="function"
 											tooltip="Determines how data points are aggregated. If the function requires a numeric field as input, one can be chosen."
 										>
-											<Stack width="full">
+											<Stack width="full" gap="12">
 												{settings.expressions.map(
 													(e, i) => (
 														<Stack

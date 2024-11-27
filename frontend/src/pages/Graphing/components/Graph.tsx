@@ -906,11 +906,19 @@ export const useFunnelData = (
 		return Object.values(buckets).map((r, idx) => {
 			const query = funnelSteps?.at(idx)?.query || ''
 			const key = funnelSteps?.at(idx)?.title || query
+			const series = {
+				aggregator: MetricAggregator.CountDistinct,
+				column: 'secure_session_id',
+				groups: [key],
+			}
 			return {
 				[GROUPS_KEY]: [key],
 				[PERCENT_KEY]: r.percent,
 				[QUERY_KEY]: query,
-				[key]: r.value,
+				[getSeriesKey(series)]: {
+					[SERIES_KEY]: series,
+					value: r.value,
+				},
 			}
 		})
 	}, [funnelSteps, results])
@@ -936,9 +944,8 @@ export const useGraphSeries = (
 			data
 				?.flatMap((d) => Object.entries(d))
 				.filter(([key]) => !excluded.includes(key))
-				.map(
-					([_, value]: [string, any]) => value[SERIES_KEY] as Series,
-				) ?? []
+				.map(([_, value]: [string, any]) => value[SERIES_KEY] as Series)
+				.filter((v) => v !== undefined) ?? []
 		const deduped = _.uniqBy(series, getSeriesKey)
 		const isMultiFunction =
 			_.uniq(series.map((s) => `${s.aggregator}_${s.column}`)).length > 1
@@ -1115,7 +1122,7 @@ const Graph = ({
 		})
 	}
 
-	const [getMetrics, { called }] = useGetMetricsLazyQuery()
+	const [getMetrics, { called }] = useGetMetricsLazyQuery({})
 
 	const rebaseFetchTime = useCallback(() => {
 		if (!selectedPreset) {
@@ -1186,7 +1193,7 @@ const Graph = ({
 				? matchParamVariables(limitMetric, variables).at(0)
 				: undefined,
 			prediction_settings: predictionSettings,
-			expressions: expressions,
+			expressions: expressions.map((e) => ({ ...e })), // This is a hack but Apollo isn't noticing a change otherwise
 		}
 
 		setLoading(true)
@@ -1210,6 +1217,7 @@ const Graph = ({
 				getMetrics({ variables: getMetricsVariables }),
 			]
 		}
+
 		Promise.all(getMetricsPromises)
 			.then((results: GetMetricsQueryResult[]) => {
 				setResults(results.filter((r) => r.data).map((r) => r.data!))
@@ -1252,13 +1260,63 @@ const Graph = ({
 		expressions,
 	])
 
+	useEffect(() => {
+		console.log('bucketByKey')
+	}, [bucketByKey])
+	useEffect(() => {
+		console.log('bucketByWindow')
+	}, [bucketByWindow])
+	useEffect(() => {
+		console.log('fetchEnd')
+	}, [fetchEnd])
+	useEffect(() => {
+		console.log('fetchStart')
+	}, [fetchStart])
+	useEffect(() => {
+		console.log('getMetrics')
+	}, [getMetrics])
+	useEffect(() => {
+		console.log('groupByKeys')
+	}, [groupByKeys])
+	useEffect(() => {
+		console.log('limit')
+	}, [limit])
+	useEffect(() => {
+		console.log('limitFunctionType')
+	}, [limitFunctionType])
+	useEffect(() => {
+		console.log('limitMetric')
+	}, [limitMetric])
+	useEffect(() => {
+		console.log('funnelSteps')
+	}, [funnelSteps])
+	useEffect(() => {
+		console.log('productType')
+	}, [productType])
+	useEffect(() => {
+		console.log('projectId')
+	}, [projectId])
+	useEffect(() => {
+		console.log('queriedBucketCount')
+	}, [queriedBucketCount])
+	useEffect(() => {
+		console.log('query')
+	}, [query])
+	useEffect(() => {
+		console.log('variables')
+	}, [variables])
+	useEffect(() => {
+		console.log('predictionSettings')
+	}, [predictionSettings])
+	useEffect(() => {
+		console.log('expressions')
+	}, [expressions])
+
 	const graphData = useGraphData(
 		results?.at(0),
 		xAxisMetric,
 		thresholdSettings,
 	)
-
-	console.log('graphData', graphData)
 
 	const funnelData = useFunnelData(results, funnelSteps)
 	const data = viewConfig.type === 'Funnel chart' ? funnelData : graphData
