@@ -7,20 +7,22 @@ import {
 	Text,
 } from '@highlight-run/ui/components'
 import clsx from 'clsx'
-import _ from 'lodash'
 
 import {
 	BUCKET_MAX_KEY,
 	BUCKET_MIN_KEY,
+	getSeriesKey,
 	getTickFormatter,
-	GROUP_KEY,
+	GROUPS_KEY,
 	InnerChartProps,
 	SeriesInfo,
+	useGraphSeries,
 	VizId,
 } from '@/pages/Graphing/components/Graph'
 
 import * as style from './Table.css'
 import useLocalStorage from '@rehooks/local-storage'
+import _ from 'lodash'
 
 export type TableNullHandling = 'Hide row' | 'Blank' | 'Zero'
 export const TABLE_NULL_HANDLING: TableNullHandling[] = [
@@ -35,31 +37,26 @@ export type TableConfig = {
 	nullHandling?: TableNullHandling
 }
 
-const getMetricDisplay = (yAxisMetric: string, yAxisFunction: string) => {
-	if (yAxisFunction === 'Count') {
-		return 'Count'
+const formatXAxisMetric = (xAxisMetric: string) => {
+	if (xAxisMetric === GROUPS_KEY) {
+		return 'Group'
 	}
-	return `${yAxisFunction}(${yAxisMetric})`
+	return xAxisMetric
 }
 
 export const MetricTable = ({
 	data,
 	xAxisMetric,
-	yAxisMetric,
-	yAxisFunction,
-	series,
 	viewConfig,
 	disabled,
 	loadExemplars,
 	visualizationId,
 }: InnerChartProps<TableConfig> & SeriesInfo & VizId) => {
+	const series = useGraphSeries(data, xAxisMetric)
 	const xAxisTickFormatter = getTickFormatter(xAxisMetric)
-	const valueFormatter = getTickFormatter(yAxisMetric)
 
 	const showXAxisColumn =
-		xAxisMetric !== GROUP_KEY || (data && data?.length > 1)
-
-	const showMetricFn = series.join('') === ''
+		xAxisMetric !== GROUPS_KEY || (data && data?.length > 1)
 
 	const [sortAsc, setSortAsc] = useLocalStorage<boolean>(
 		`sort-asc-${visualizationId}`,
@@ -89,7 +86,8 @@ export const MetricTable = ({
 			return d[xAxisMetric]
 		}
 
-		return d[series[sortColumn]]
+		const seriesKey = getSeriesKey(series[sortColumn])
+		return d[seriesKey]?.value
 	})
 
 	if (!sortAsc) {
@@ -110,7 +108,7 @@ export const MetricTable = ({
 									alignItems="center"
 								>
 									<Text lines="1" cssClass={style.firstCell}>
-										{xAxisMetric}
+										{formatXAxisMetric(xAxisMetric)}
 									</Text>
 									{sortColumn === -1 && sortIcon}
 								</Stack>
@@ -124,14 +122,7 @@ export const MetricTable = ({
 									justifyContent="space-between"
 									alignItems="center"
 								>
-									<Text lines="1">
-										{showMetricFn
-											? getMetricDisplay(
-													yAxisMetric,
-													yAxisFunction,
-												)
-											: s}
-									</Text>
+									<Text lines="1">{s.name}</Text>
 									{sortColumn === i && sortIcon}
 								</Stack>
 							</Table.Header>
@@ -149,9 +140,13 @@ export const MetricTable = ({
 							// If every value for the bucket is null, skip this row
 							if (
 								viewConfig.nullHandling === 'Hide row' &&
-								series.find(
-									(s) => d[s] !== null && d[s] !== undefined,
-								) === undefined
+								series
+									.map((s) => getSeriesKey(s))
+									.find(
+										(seriesKey) =>
+											d[seriesKey] !== null &&
+											d[seriesKey] !== undefined,
+									) === undefined
 							) {
 								return null
 							}
@@ -171,7 +166,7 @@ export const MetricTable = ({
 																d[
 																	BUCKET_MAX_KEY
 																],
-																d[GROUP_KEY],
+																d[GROUPS_KEY],
 															)
 													: undefined
 											}
@@ -189,7 +184,8 @@ export const MetricTable = ({
 										</Table.Cell>
 									)}
 									{series.map((s, i) => {
-										let value = d[s]
+										const seriesKey = getSeriesKey(s)
+										let value = d[seriesKey]?.value
 
 										if (
 											value === null ||
@@ -207,10 +203,17 @@ export const MetricTable = ({
 										}
 
 										if (value !== '') {
-											value = valueFormatter(value)
+											value = getTickFormatter(s.column)(
+												value,
+											)
 										}
 
-										const out = (
+										const groups =
+											GROUPS_KEY in d
+												? d[GROUPS_KEY]
+												: s.groups
+
+										return (
 											<Table.Cell
 												key={i}
 												onClick={
@@ -223,7 +226,7 @@ export const MetricTable = ({
 																	d[
 																		BUCKET_MAX_KEY
 																	],
-																	s,
+																	groups,
 																)
 														: undefined
 												}
@@ -237,7 +240,6 @@ export const MetricTable = ({
 												</Text>
 											</Table.Cell>
 										)
-										return out
 									})}
 								</Table.Row>
 							)

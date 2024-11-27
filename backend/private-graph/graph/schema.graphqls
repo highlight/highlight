@@ -1138,8 +1138,14 @@ enum MetricAggregator {
 	None
 }
 
-enum MetricColumn {
-	Duration
+type MetricExpression {
+	aggregator: MetricAggregator!
+	column: String!
+}
+
+input MetricExpressionInput {
+	aggregator: MetricAggregator!
+	column: String!
 }
 
 enum MetricBucketBy {
@@ -1153,7 +1159,7 @@ type MetricBucket {
 	bucket_min: Float!
 	bucket_max: Float!
 	group: [String!]!
-	column: MetricColumn!
+	column: String!
 	metric_type: MetricAggregator!
 	metric_value: Float
 	yhat_lower: Float
@@ -2033,8 +2039,6 @@ type Graph {
 	description: String!
 	productType: ProductType!
 	query: String!
-	metric: String!
-	functionType: MetricAggregator!
 	groupByKeys: StringArray
 	bucketByKey: String
 	bucketCount: Int
@@ -2045,6 +2049,7 @@ type Graph {
 	funnelSteps: [FunnelStep!]
 	display: String
 	nullHandling: String
+	expressions: [MetricExpression!]!
 }
 
 type Variable {
@@ -2083,8 +2088,6 @@ input GraphInput {
 	title: String!
 	productType: ProductType!
 	query: String!
-	metric: String!
-	functionType: MetricAggregator!
 	groupByKeys: StringArray
 	bucketByKey: String
 	bucketCount: Int
@@ -2095,6 +2098,7 @@ input GraphInput {
 	funnelSteps: [FunnelStepInput!]
 	display: String
 	nullHandling: String
+	expressions: [MetricExpressionInput!]!
 }
 
 input VariableInput {
@@ -2397,11 +2401,12 @@ type Query {
 		limit: Int
 	): LogConnection!
 	logs_histogram(project_id: ID!, params: QueryInput!): LogsHistogram!
+	# deprecated - use `metrics` instead
 	logs_metrics(
 		project_id: ID!
 		params: QueryInput!
-		column: String!
-		metric_types: [MetricAggregator!]!
+		column: String # deprecated - use `expressions` instead
+		metric_types: [MetricAggregator!] # deprecated - use `expressions` instead
 		group_by: [String!]!
 		bucket_by: String!
 		bucket_count: Int
@@ -2409,6 +2414,7 @@ type Query {
 		limit: Int
 		limit_aggregator: MetricAggregator
 		limit_column: String
+		expressions: [MetricExpressionInput!]
 	): MetricsBuckets!
 	logs_keys(
 		project_id: ID!
@@ -2458,11 +2464,12 @@ type Query {
 		direction: SortDirection!
 		limit: Int
 	): TraceConnection!
+	# deprecated - use `metrics` instead
 	traces_metrics(
 		project_id: ID!
 		params: QueryInput!
-		column: String!
-		metric_types: [MetricAggregator!]!
+		column: String # deprecated - use `expressions` instead
+		metric_types: [MetricAggregator!] # deprecated - use `expressions` instead
 		group_by: [String!]!
 		bucket_by: String
 		bucket_count: Int
@@ -2470,6 +2477,7 @@ type Query {
 		limit: Int
 		limit_aggregator: MetricAggregator
 		limit_column: String
+		expressions: [MetricExpressionInput!]
 	): MetricsBuckets!
 	traces_keys(
 		project_id: ID!
@@ -2497,11 +2505,12 @@ type Query {
 		query: String
 		count: Int
 	): [String!]!
+	# deprecated - use `metrics` instead
 	errors_metrics(
 		project_id: ID!
 		params: QueryInput!
-		column: String!
-		metric_types: [MetricAggregator!]!
+		column: String # deprecated - use `expressions` instead
+		metric_types: [MetricAggregator!] # deprecated - use `expressions` instead
 		group_by: [String!]!
 		bucket_by: String!
 		bucket_count: Int
@@ -2509,6 +2518,7 @@ type Query {
 		limit: Int
 		limit_aggregator: MetricAggregator
 		limit_column: String
+		expressions: [MetricExpressionInput!]
 	): MetricsBuckets!
 	sessions_keys(
 		project_id: ID!
@@ -2523,11 +2533,12 @@ type Query {
 		query: String
 		count: Int
 	): [String!]!
+	# deprecated - use `metrics` instead
 	sessions_metrics(
 		project_id: ID!
 		params: QueryInput!
-		column: String!
-		metric_types: [MetricAggregator!]!
+		column: String # deprecated - use `expressions` instead
+		metric_types: [MetricAggregator!] # deprecated - use `expressions` instead
 		group_by: [String!]!
 		bucket_by: String!
 		bucket_count: Int
@@ -2535,6 +2546,7 @@ type Query {
 		limit: Int
 		limit_aggregator: MetricAggregator
 		limit_column: String
+		expressions: [MetricExpressionInput!]
 	): MetricsBuckets!
 	events_keys(
 		project_id: ID!
@@ -2551,11 +2563,12 @@ type Query {
 		count: Int
 		event: String
 	): [String!]!
+	# deprecated - use `metrics` instead
 	events_metrics(
 		project_id: ID!
 		params: QueryInput!
-		column: String!
-		metric_types: [MetricAggregator!]!
+		column: String # deprecated - use `expressions` instead
+		metric_types: [MetricAggregator!] # deprecated - use `expressions` instead
 		group_by: [String!]!
 		bucket_by: String!
 		bucket_count: Int
@@ -2563,6 +2576,7 @@ type Query {
 		limit: Int
 		limit_aggregator: MetricAggregator
 		limit_column: String
+		expressions: [MetricExpressionInput!]
 	): MetricsBuckets!
 	event_sessions(
 		project_id: ID!
@@ -2576,8 +2590,8 @@ type Query {
 		product_type: ProductType!
 		project_id: ID!
 		params: QueryInput!
-		column: String!
-		metric_types: [MetricAggregator!]!
+		column: String # deprecated - use `expressions` instead
+		metric_types: [MetricAggregator!] # deprecated - use `expressions` instead
 		group_by: [String!]!
 		bucket_by: String!
 		bucket_count: Int
@@ -2586,6 +2600,7 @@ type Query {
 		limit_aggregator: MetricAggregator
 		limit_column: String
 		prediction_settings: PredictionSettings
+		expressions: [MetricExpressionInput!]
 	): MetricsBuckets!
 	keys(
 		product_type: ProductType

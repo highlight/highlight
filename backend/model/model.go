@@ -1418,6 +1418,7 @@ type Graph struct {
 	FunnelSteps       *string `gorm:"type:jsonb"`
 	Display           *string
 	NullHandling      *string
+	Expressions       *string `gorm:"type:jsonb"`
 }
 
 type Visualization struct {

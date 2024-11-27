@@ -44,7 +44,6 @@ import {
 } from '@/graph/generated/hooks'
 import {
 	MetricAggregator,
-	MetricColumn,
 	ProductType,
 	SavedSegmentEntityType,
 	SortDirection,
@@ -65,6 +64,7 @@ import {
 	DEMO_PROJECT_ID,
 	DEMO_WORKSPACE_PROXY_APPLICATION_ID,
 } from '@/components/DemoWorkspaceButton/DemoWorkspaceButton'
+import { GetMetricsQuery } from '@/graph/generated/operations'
 
 export type TracesOutletContext = Partial<Trace>[]
 
@@ -132,7 +132,6 @@ export const TracesPage: React.FC = () => {
 		variables: {
 			product_type: ProductType.Traces,
 			project_id: projectId!,
-			column: MetricColumn.Duration,
 			group_by: [],
 			params: {
 				query,
@@ -145,18 +144,52 @@ export const TracesPage: React.FC = () => {
 					),
 				},
 			},
-			metric_types: [
-				MetricAggregator.Count,
-				MetricAggregator.Avg,
-				MetricAggregator.P50,
-				MetricAggregator.P90,
-			],
 			bucket_by: TIMESTAMP_KEY,
 			bucket_count: 45,
+			expressions: [
+				{
+					aggregator: MetricAggregator.Count,
+					column: '',
+				},
+				{
+					aggregator: MetricAggregator.Avg,
+					column: 'duration',
+				},
+				{
+					aggregator: MetricAggregator.P50,
+					column: 'duration',
+				},
+				{
+					aggregator: MetricAggregator.P90,
+					column: 'duration',
+				},
+			],
 		},
 		skip: !projectId,
 		fetchPolicy: 'cache-and-network',
 	})
+
+	const durationData: GetMetricsQuery | undefined = metricsData
+		? {
+				metrics: {
+					...metricsData?.metrics,
+					buckets: metricsData.metrics.buckets.filter(
+						(b) => b.column === 'duration',
+					),
+				},
+			}
+		: undefined
+
+	const countData: GetMetricsQuery | undefined = metricsData
+		? {
+				metrics: {
+					...metricsData?.metrics,
+					buckets: metricsData.metrics.buckets.filter(
+						(b) => b.column === '',
+					),
+				},
+			}
+		: undefined
 
 	const fetchMoreWhenScrolled = React.useCallback(
 		(containerRefElement?: HTMLDivElement | null) => {
@@ -428,9 +461,8 @@ export const TracesPage: React.FC = () => {
 								onDatesChange={
 									searchTimeContext.updateSearchTime
 								}
-								metrics={metricsData}
+								metrics={countData}
 								loading={metricsLoading}
-								series={[MetricAggregator.Count]}
 							/>
 						</Box>
 						<Box
@@ -471,13 +503,8 @@ export const TracesPage: React.FC = () => {
 								onDatesChange={
 									searchTimeContext.updateSearchTime
 								}
-								metrics={metricsData}
+								metrics={durationData}
 								loading={metricsLoading}
-								series={[
-									MetricAggregator.P90,
-									MetricAggregator.P50,
-									MetricAggregator.Avg,
-								]}
 								lineChart
 							/>
 						</Box>

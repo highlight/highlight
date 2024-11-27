@@ -13,12 +13,14 @@ import {
 	CustomXAxisTick,
 	CustomYAxisTick,
 	getColor,
+	getSeriesKey,
 	getTickFormatter,
 	InnerChartProps,
 	isActive,
 	SeriesInfo,
 	TooltipSettings,
 	useGraphCallbacks,
+	useGraphSeries,
 } from '@/pages/Graphing/components/Graph'
 
 export type BarDisplay = 'Grouped' | 'Stacked'
@@ -65,9 +67,6 @@ const RoundedBar = (id: string, isLast: boolean) => (props: any) => {
 export const BarChart = ({
 	data,
 	xAxisMetric,
-	yAxisMetric,
-	yAxisFunction,
-	series,
 	spotlight,
 	strokeColors,
 	viewConfig,
@@ -80,8 +79,13 @@ export const BarChart = ({
 }: React.PropsWithChildren<
 	InnerChartProps<BarChartConfig> & SeriesInfo & AxisConfig
 >) => {
+	const series = useGraphSeries(data, xAxisMetric)
+
 	const xAxisTickFormatter = getTickFormatter(xAxisMetric, data)
-	const yAxisTickFormatter = getTickFormatter(yAxisMetric, data)
+	const yAxisTickFormatter = getTickFormatter(
+		series.at(0)?.column ?? '',
+		data,
+	)
 
 	// used to give svg masks an id unique to the page
 	const id = useId()
@@ -97,8 +101,6 @@ export const BarChart = ({
 		onMouseLeave,
 	} = useGraphCallbacks(
 		xAxisMetric,
-		yAxisMetric,
-		yAxisFunction,
 		setTimeRange,
 		loadExemplars,
 		viewConfig?.tooltipSettings,
@@ -165,7 +167,7 @@ export const BarChart = ({
 				)}
 
 				{series.length > 0 &&
-					series.map((key, idx) => {
+					series.map((s, idx) => {
 						if (!isActive(spotlight, idx)) {
 							return null
 						}
@@ -175,11 +177,14 @@ export const BarChart = ({
 							spotlight === idx ||
 							idx === series.length - 1
 
+						const seriesKey = getSeriesKey(s)
+
 						return (
 							<Bar
-								key={key}
-								dataKey={key}
-								fill={getColor(idx, key, strokeColors)}
+								key={seriesKey}
+								dataKey={`${seriesKey}.value`}
+								name={s.name}
+								fill={getColor(idx, seriesKey, strokeColors)}
 								isAnimationActive={false}
 								stackId={
 									viewConfig.display === 'Stacked' ? 1 : idx
