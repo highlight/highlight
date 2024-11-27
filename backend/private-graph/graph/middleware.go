@@ -112,7 +112,7 @@ func PrivateMiddleware(next http.Handler) http.Handler {
 		}
 
 		if token != "" {
-			ctx, err = AuthClient.updateContextWithAuthenticatedUser(ctx, token)
+			ctx, err = AuthClient.updateContextWithAuthenticatedUser(ctx, w, r, token)
 			if err != nil {
 				http.Error(w, err.Error(), http.StatusInternalServerError)
 				return
@@ -156,7 +156,7 @@ func WebsocketInitializationFunction() transport.WebsocketInitFunc {
 		if initPayload["token"] != nil {
 			token = fmt.Sprintf("%v", initPayload["token"])
 		}
-		ctx, err := AuthClient.updateContextWithAuthenticatedUser(socketContext, token)
+		ctx, err := AuthClient.updateContextWithAuthenticatedUser(socketContext, nil, nil, token)
 		if err != nil {
 			log.WithContext(ctx).Errorf("Unable to authenticate/initialize websocket: %s", err.Error())
 		}

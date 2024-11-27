@@ -28,7 +28,7 @@ import (
 )
 
 type Client interface {
-	updateContextWithAuthenticatedUser(ctx context.Context, token string) (context.Context, error)
+	updateContextWithAuthenticatedUser(ctx context.Context, w http.ResponseWriter, r *http.Request, token string) (context.Context, error)
 	GetUser(ctx context.Context, uid string) (*auth.UserRecord, error)
 	SetupListeners(r chi.Router)
 }
@@ -155,7 +155,7 @@ func (c *PasswordAuthClient) performLogin(_ context.Context, credentials LoginCr
 	return response, nil
 }
 
-func (c *PasswordAuthClient) updateContextWithAuthenticatedUser(ctx context.Context, token string) (context.Context, error) {
+func (c *PasswordAuthClient) updateContextWithAuthenticatedUser(ctx context.Context, w http.ResponseWriter, r *http.Request, token string) (context.Context, error) {
 	return updateContextWithJWTToken(ctx, token)
 }
 
@@ -168,7 +168,7 @@ func (c *SimpleAuthClient) GetUser(_ context.Context, uid string) (*auth.UserRec
 
 func (c *SimpleAuthClient) SetupListeners(_ chi.Router) {}
 
-func (c *SimpleAuthClient) updateContextWithAuthenticatedUser(ctx context.Context, token string) (context.Context, error) {
+func (c *SimpleAuthClient) updateContextWithAuthenticatedUser(ctx context.Context, w http.ResponseWriter, r *http.Request, token string) (context.Context, error) {
 	ctx = context.WithValue(ctx, model.ContextKeys.UID, "demo@example.com")
 	ctx = context.WithValue(ctx, model.ContextKeys.Email, "demo@example.com")
 	return ctx, nil
@@ -180,7 +180,7 @@ func (c *FirebaseAuthClient) GetUser(ctx context.Context, uid string) (*auth.Use
 
 func (c *FirebaseAuthClient) SetupListeners(_ chi.Router) {}
 
-func (c *FirebaseAuthClient) updateContextWithAuthenticatedUser(ctx context.Context, token string) (context.Context, error) {
+func (c *FirebaseAuthClient) updateContextWithAuthenticatedUser(ctx context.Context, w http.ResponseWriter, r *http.Request, token string) (context.Context, error) {
 	var uid string
 	email := ""
 	if token != "" {
@@ -252,7 +252,7 @@ func (c *OAuthAuthClient) validateToken(w http.ResponseWriter, req *http.Request
 		return
 	}
 
-	ctx, err = c.updateContextWithAuthenticatedUser(ctx, t.Value)
+	ctx, err = c.updateContextWithAuthenticatedUser(ctx, w, req, t.Value)
 	if err != nil {
 		log.WithContext(ctx).Error(e.New(loginError))
 		http.Error(w, "", http.StatusUnauthorized)
@@ -291,8 +291,10 @@ func (c *OAuthAuthClient) handleRedirect(w http.ResponseWriter, r *http.Request)
 }
 
 func (c *OAuthAuthClient) handleLogout(w http.ResponseWriter, req *http.Request) {
-	c.setCallbackCookie(w, req, tokenCookieName, "")
-	w.WriteHeader(http.StatusOK)
+	if w != nil && req != nil {
+		c.setCallbackCookie(w, req, tokenCookieName, "")
+		w.WriteHeader(http.StatusOK)
+	}
 }
 
 func (c *OAuthAuthClient) handleOAuth2Callback(w http.ResponseWriter, r *http.Request) {
@@ -344,18 +346,22 @@ func (c *OAuthAuthClient) handleOAuth2Callback(w http.ResponseWriter, r *http.Re
 
 }
 
-func (c *OAuthAuthClient) updateContextWithAuthenticatedUser(ctx context.Context, token string) (context.Context, error) {
+func (c *OAuthAuthClient) updateContextWithAuthenticatedUser(ctx context.Context, w http.ResponseWriter, req *http.Request, token string) (context.Context, error) {
 	// Parse and verify ID Token payload.
 	verifier := c.oidcProvider.Verifier(&oidc.Config{ClientID: c.clientID})
 	idToken, err := verifier.Verify(ctx, token)
 	if err != nil {
-		return nil, err
+		log.WithContext(ctx).WithField("token", token).WithError(err).Info("invalid user token")
+		c.handleLogout(w, req)
+		return ctx, nil
 	}
 
 	// Extract claims
 	var claims oidc.UserInfo
 	if err := idToken.Claims(&claims); err != nil {
-		return nil, err
+		log.WithContext(ctx).WithField("token", token).WithError(err).Info("invalid user claim")
+		c.handleLogout(w, req)
+		return ctx, nil
 	}
 
 	// check that the oidc email domain matches allowed domains
