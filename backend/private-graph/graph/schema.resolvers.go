@@ -9111,8 +9111,9 @@ func (r *queryResolver) LogsMetrics(ctx context.Context, projectID int, params m
 		return nil, err
 	}
 
-	if column != nil && len(expressions) == 0 {
-
+	expressions, err = normalizeExpressions(column, metricTypes, expressions)
+	if err != nil {
+		return nil, err
 	}
 
 	return r.ClickhouseClient.ReadLogsMetrics(ctx, project.ID, params, groupBy, bucketCount, bucketBy, bucketWindow, limit, limitAggregator, limitColumn, expressions)
