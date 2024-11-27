@@ -52,7 +52,6 @@ export const MetricTable = ({
 	loadExemplars,
 	visualizationId,
 }: InnerChartProps<TableConfig> & SeriesInfo & VizId) => {
-	console.log('sup', data, xAxisMetric)
 	const series = useGraphSeries(data, xAxisMetric)
 	const xAxisTickFormatter = getTickFormatter(xAxisMetric)
 
@@ -186,13 +185,6 @@ export const MetricTable = ({
 									)}
 									{series.map((s, i) => {
 										const seriesKey = getSeriesKey(s)
-										console.log(
-											'getvalue',
-											s,
-											seriesKey,
-											d,
-											d[seriesKey],
-										)
 										let value = d[seriesKey]?.value
 
 										if (

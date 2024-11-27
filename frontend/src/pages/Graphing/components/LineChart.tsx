@@ -92,7 +92,6 @@ export const LineChart = ({
 	)
 
 	// Fill nulls as a copy of data
-	// ZANETODO: verify this (zero mode)
 	const filledData = useMemo(() => {
 		const filled = data?.slice()
 		if (viewConfig.nullHandling === 'Zero' && filled !== undefined) {

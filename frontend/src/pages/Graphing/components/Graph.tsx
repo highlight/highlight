@@ -615,7 +615,7 @@ const getCustomTooltip =
 												loadExemplars(
 													p.payload[BUCKET_MIN_KEY],
 													p.payload[BUCKET_MAX_KEY],
-													seriesInfo.groups, // ZANETODO: verify drilldown
+													seriesInfo.groups,
 													p.payload[QUERY_KEY],
 												)
 										}}

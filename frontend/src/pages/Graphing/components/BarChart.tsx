@@ -81,8 +81,6 @@ export const BarChart = ({
 >) => {
 	const series = useGraphSeries(data, xAxisMetric)
 
-	console.log('inner series', series)
-
 	const xAxisTickFormatter = getTickFormatter(xAxisMetric, data)
 	const yAxisTickFormatter = getTickFormatter(
 		series.at(0)?.column ?? '',
