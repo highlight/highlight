@@ -595,7 +595,10 @@ export const Search: React.FC<{
 		}
 	}, [showValues])
 
-	const handleItemSelect = (item: SearchResult) => {
+	const handleItemSelect = (
+		item: SearchResult,
+		selectNewItem: boolean = false,
+	) => {
 		const isValueSelect = item.type === 'Value'
 		const isExists = !!EXISTS_OPERATORS.find((eo) => eo === item.name)
 		let cursorShift = 0
@@ -633,8 +636,13 @@ export const Search: React.FC<{
 			activePart.stop = activePart.start + activePart.key.length
 		}
 
-		const newQuery = stringifySearchQuery(queryParts)
-		const newCursorPosition = activePart.stop + cursorShift
+		let newQuery = stringifySearchQuery(queryParts)
+		let newCursorPosition = activePart.stop + cursorShift
+
+		if (selectNewItem && isValueSelect) {
+			newQuery += ' '
+			newCursorPosition += 1
+		}
 
 		startTransition(() => {
 			setQuery(newQuery)
@@ -650,16 +658,24 @@ export const Search: React.FC<{
 		comboboxStore.setState('moves', 0)
 	}
 
-	const handleHistorySelction = (
-		query: string,
+	const handleHistorySelection = (
 		queryParts: SearchExpression[],
+		selectNewItem: boolean = false,
 	) => {
-		const newQuery = stringifySearchQuery(queryParts)
+		let newQuery = stringifySearchQuery(queryParts)
+		let newCursorPosition = newQuery.length
+
+		if (selectNewItem) {
+			newQuery += ' '
+			newCursorPosition += 1
+		}
+
 		startTransition(() => {
 			submitQuery(newQuery)
 			comboboxStore.setOpen(false)
 		})
-		setCursorIndex(newQuery.length)
+
+		setCursorIndex(newCursorPosition)
 		comboboxStore.setActiveId(null)
 	}
 
@@ -933,10 +949,11 @@ export const Search: React.FC<{
 														styles.comboboxItem
 													}
 													key={index}
-													onClick={() => {
-														handleHistorySelction(
-															data.query,
+													onClick={(e) => {
+														handleHistorySelection(
 															data.queryParts,
+															e.metaKey ||
+																e.ctrlKey,
 														)
 													}}
 													store={comboboxStore}
@@ -999,9 +1016,12 @@ export const Search: React.FC<{
 										<Combobox.Item
 											className={styles.comboboxItem}
 											key={index}
-											onClick={() =>
-												handleItemSelect(key)
-											}
+											onClick={(e) => {
+												handleItemSelect(
+													key,
+													e.metaKey || e.ctrlKey,
+												)
+											}}
 											store={comboboxStore}
 											value={key.name}
 											hideOnClick={false}
@@ -1071,6 +1091,27 @@ export const Search: React.FC<{
 									Select
 								</Text>
 							</Box>
+							{activePart.key !== BODY_KEY && !showOperators && (
+								<Box
+									display="inline-flex"
+									flexDirection="row"
+									alignItems="center"
+									gap="6"
+								>
+									<Badge
+										variant="gray"
+										size="small"
+										label={
+											/mac/i.test(navigator.userAgent)
+												? 'Cmd+Enter'
+												: 'Ctrl+Enter'
+										}
+									/>
+									<Text color="weak" size="xSmall">
+										Select + New
+									</Text>
+								</Box>
+							)}
 						</Box>
 						<Box
 							display="inline-flex"
@@ -1138,7 +1179,7 @@ const getVisibleKeys = (
 	activeQueryPart?: SearchExpression,
 	keys?: Keys,
 ) => {
-	const startingNewPart = queryText.endsWith(' ')
+	const startingNewPart = queryText.length === 0 || queryText.endsWith(' ')
 
 	return (
 		keys?.filter(
