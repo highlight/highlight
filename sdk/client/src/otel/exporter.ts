@@ -1,11 +1,7 @@
 import { OTLPTraceExporter } from '@opentelemetry/exporter-trace-otlp-http'
 import type { ReadableSpan } from '@opentelemetry/sdk-trace-web'
 import { OTLPExporterError } from '@opentelemetry/otlp-exporter-base'
-import {
-	BACKOFF_DELAY_MS,
-	BASE_DELAY_MS,
-	MAX_PUBLIC_GRAPH_RETRY_ATTEMPTS,
-} from '../utils/graph'
+import { MAX_PUBLIC_GRAPH_RETRY_ATTEMPTS } from '../utils/graph'
 
 type ExporterConfig = ConstructorParameters<typeof OTLPTraceExporter>[0]
 type SendOnErrorCallback = Parameters<OTLPTraceExporter['send']>[2]
@@ -35,7 +31,7 @@ export class OTLPTraceExporterBrowserWithXhrRetry extends OTLPTraceExporter {
 		onError: SendOnErrorCallback,
 	): void {
 		let retries = 0
-		const retry = async (error: OTLPExporterError) => {
+		const retry = (error: OTLPExporterError) => {
 			retries++
 			if (retries > MAX_PUBLIC_GRAPH_RETRY_ATTEMPTS) {
 				console.error(
@@ -44,12 +40,6 @@ export class OTLPTraceExporterBrowserWithXhrRetry extends OTLPTraceExporter {
 				)
 				onError(error)
 			} else {
-				await new Promise((resolve) =>
-					setTimeout(
-						resolve,
-						BASE_DELAY_MS + BACKOFF_DELAY_MS * Math.pow(2, retries),
-					),
-				)
 				this.xhrTraceExporter.send(items, onSuccess, retry)
 			}
 		}
