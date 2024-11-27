@@ -10,7 +10,8 @@ ADD COLUMN IF NOT EXISTS HttpResponseBody String DEFAULT TraceAttributes ['http.
             'http.response.body',
             'http.request.body',
             'http.url'
-        ) TraceAttributes
+        ),
+        TraceAttributes
     ),
     ADD COLUMN IF NOT EXISTS ProcessAttributes Map(LowCardinality(String), String) DEFAULT mapFilter(
         (k, v)->startsWith(k, 'process.'),
@@ -40,42 +41,7 @@ ADD COLUMN IF NOT EXISTS HttpResponseBody String,
     ADD COLUMN IF NOT EXISTS WsAttributes Map(LowCardinality(String), String),
     ADD COLUMN IF NOT EXISTS EventAttributes Map(LowCardinality(String), String),
     ADD COLUMN IF NOT EXISTS DbAttributes Map(LowCardinality(String), String);
-ALTER TABLE traces_sampling_new_mv TO traces_sampling_new (
-        `Timestamp` DateTime64(9),
-        `UUID` UUID,
-        `TraceId` String,
-        `SpanId` String,
-        `ParentSpanId` String,
-        `ProjectId` UInt32,
-        `SecureSessionId` String,
-        `TraceState` String,
-        `SpanName` LowCardinality(String),
-        `SpanKind` LowCardinality(String),
-        `Duration` Int64,
-        `ServiceName` LowCardinality(String),
-        `ServiceVersion` String,
-        `TraceAttributes` Map(LowCardinality(String), String),
-        `StatusCode` LowCardinality(String),
-        `StatusMessage` String,
-        `Events.Timestamp` Array(DateTime64(9)),
-        `Events.Name` Array(LowCardinality(String)),
-        `Events.Attributes` Array(Map(LowCardinality(String), String)),
-        `Links.TraceId` Array(String),
-        `Links.SpanId` Array(String),
-        `Links.TraceState` Array(String),
-        `Links.Attributes` Array(Map(LowCardinality(String), String)),
-        `HttpResponseBody` String,
-        `HttpRequestBody` String,
-        `HttpUrl` String,
-        `HighlightKey` String,
-        `HighlightType` String,
-        `HttpAttributes` Map(LowCardinality(String), String),
-        `ProcessAttributes` Map(LowCardinality(String), String),
-        `OsAttributes` Map(LowCardinality(String), String),
-        `TelemetryAttributes` Map(LowCardinality(String), String),
-        `WsAttributes` Map(LowCardinality(String), String),
-        `EventAttributes` Map(LowCardinality(String), String),
-        `DbAttributes` Map(LowCardinality(String), String)
-    ) AS
+ALTER TABLE traces_sampling_new_mv
+MODIFY QUERY
 SELECT *
 FROM traces;
