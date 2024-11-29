@@ -8,7 +8,7 @@ export type WorkspaceSettingsTab =
 	| 'current-plan'
 	| 'upgrade-plan'
 	| 'harold-ai'
-	| 'intergations'
+	| 'integrations'
 
 export const isSettingsPath = (path: string[]) => {
 	const settingsPaths: (WorkspaceSettingsTab | SettingGroups)[] = [
@@ -18,7 +18,7 @@ export const isSettingsPath = (path: string[]) => {
 		'current-plan',
 		'upgrade-plan',
 		'harold-ai',
-		'intergations',
+		'integrations',
 	]
 	return settingsPaths.some(
 		(settingsPath) => path.indexOf(settingsPath) !== -1,

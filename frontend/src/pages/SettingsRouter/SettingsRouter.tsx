@@ -51,8 +51,8 @@ const getTitle = (tab: WorkspaceSettingsTab | string): string => {
 			return 'Upgrade plan'
 		case 'harold-ai':
 			return 'Harold AI'
-		case 'intergations':
-			return 'Intergations'
+		case 'integrations':
+			return 'Integrations'
 		case 'plan-features':
 			return 'Plan comparison'
 		default:
@@ -129,8 +129,8 @@ export const SettingsRouter = () => {
 			panelContent: <HaroldAISettings />,
 		},
 		{
-			key: `intergations`,
-			title: getTitle('intergations'),
+			key: `integrations`,
+			title: getTitle('integrations'),
 			pathParam: '/:intergate_type',
 			panelContent: <IntergationPage />,
 		},
@@ -315,7 +315,7 @@ export const SettingsRouter = () => {
 									)
 								})}
 								<Route
-									path="intergations"
+									path="integrations"
 									element={<IntergationPage />}
 								/>
 								<Route

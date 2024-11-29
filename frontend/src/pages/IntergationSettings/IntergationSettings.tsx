@@ -240,13 +240,13 @@ export default function IntergationSettings() {
 							color="secondaryContentText"
 							cssClass={styles.menuTitle}
 						>
-							Enabled Intergations
+							Enabled Integrations
 						</Text>
 					</Box>
 					{enabledIntergation.map((tab) => (
 						<NavLink
 							key={tab.key}
-							to={`/w/${workspace_id}/intergations/${tab.key}`}
+							to={`/w/${workspace_id}/integrations/${tab.key}`}
 							className={({ isActive }) =>
 								clsx(styles.menuItem, {
 									[styles.menuItemActive]: isActive,
@@ -275,13 +275,13 @@ export default function IntergationSettings() {
 							color="secondaryContentText"
 							cssClass={styles.menuTitle}
 						>
-							Available Intergations
+							Available Integrations
 						</Text>
 					</Box>
 					{availableIntergation.map((tab) => (
 						<NavLink
 							key={tab.key}
-							to={`/w/${workspace_id}/intergations/${tab.key}`}
+							to={`/w/${workspace_id}/integrations/${tab.key}`}
 							className={({ isActive }) =>
 								clsx(styles.menuItem, {
 									[styles.menuItemActive]: isActive,
