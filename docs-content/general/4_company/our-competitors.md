@@ -31,6 +31,9 @@ We respect our competitors. In fact, we're not in the business of trying to conv
     <DocsCard title="Sentry" href="https://highlight.io/compare/highlight-vs-sentry">
         {"Learn more about how we compare to Sentry."}
     </DocsCard>
+    <DocsCard title="Mouseflow" href="https://highlight.io/compare/highlight-vs-mouseflow">
+        {"Learn more about how we compare to Mouseflow."}
+    </DocsCard>
 </DocsCardGroup>
 
 ## Error Monitoring Competitors
