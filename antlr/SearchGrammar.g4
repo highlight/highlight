@@ -26,8 +26,8 @@ search_expr
   | negation_op search_expr # negated_search_expr
   | search_expr and_op search_expr # and_search_expr
   | search_expr or_op search_expr # or_search_expr
-  | search_expr implicit_and_op search_expr # implicit_and_search_expr
-  | search_key bin_op top_col_expr # key_val_search_expr
+  | search_expr SPACE+ search_expr # implicit_and_search_expr
+  | search_key SPACE* bin_op SPACE* top_col_expr? # key_val_search_expr
   | search_key exists_op # exists_search_expr
   | top_col_expr # body_search_expr
   ;
@@ -38,10 +38,6 @@ search_key
 
 and_op
   : AND
-  ;
-
-implicit_and_op
-  :
   ;
 
 or_op
@@ -91,8 +87,9 @@ RPAREN : ')' ;
 COLON : ':' ;
 ID : [A-Z_0-9.\-*]+ ;
 STRING : ('"' ( '\\"' | ~["] )* '"' | '\'' ( '\\\'' | ~['] )* '\'') | '`' ( '\\`' | ~[`] )* '`' ;
-VALUE: ~[ \t\n\r\f=><:!)(]+ ;
-WS : [ \t\n\r\f]+ -> channel(HIDDEN) ;
+VALUE : ~[ \t\n\r\f=><:!)(]+ ;
+SPACE : ' ' ;
+WS : [ \t\n\r\f]+ ;
 
 // Handle characters which failed to match any other token. This ensures all
 // characters are tokenized.

@@ -1,4 +1,4 @@
-// Code generated from ./antlr/SearchGrammar.g4 by ANTLR 4.13.1. DO NOT EDIT.
+// Code generated from ./antlr/SearchGrammar.g4 by ANTLR 4.13.2. DO NOT EDIT.
 
 package parser // SearchGrammar
 
@@ -64,9 +64,6 @@ type SearchGrammarListener interface {
 
 	// EnterAnd_op is called when entering the and_op production.
 	EnterAnd_op(c *And_opContext)
-
-	// EnterImplicit_and_op is called when entering the implicit_and_op production.
-	EnterImplicit_and_op(c *Implicit_and_opContext)
 
 	// EnterOr_op is called when entering the or_op production.
 	EnterOr_op(c *Or_opContext)
@@ -139,9 +136,6 @@ type SearchGrammarListener interface {
 
 	// ExitAnd_op is called when exiting the and_op production.
 	ExitAnd_op(c *And_opContext)
-
-	// ExitImplicit_and_op is called when exiting the implicit_and_op production.
-	ExitImplicit_and_op(c *Implicit_and_opContext)
 
 	// ExitOr_op is called when exiting the or_op production.
 	ExitOr_op(c *Or_opContext)

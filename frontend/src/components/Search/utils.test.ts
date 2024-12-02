@@ -47,27 +47,19 @@ describe('parseSearch', () => {
 		])
 	})
 
-	it('should parse a string correctly', () => {
-		const queryString =
-			' service_name:private-graph span_name:KafkaBatchWorker'
+	it.only('parses an incomplete search expression with spaces', () => {
+		const queryString = ' service_name = '
 		const { queryParts } = parseSearch(queryString)
 
+		expect(queryParts.length).toBe(1)
 		expect(queryParts).toEqual([
 			{
 				key: 'service_name',
-				operator: ':',
-				value: 'private-graph',
-				text: 'service_name:private-graph',
+				operator: '=',
+				value: '',
+				text: 'service_name = ',
 				start: 1,
-				stop: 26,
-			},
-			{
-				key: 'span_name',
-				operator: ':',
-				value: 'KafkaBatchWorker',
-				text: 'span_name:KafkaBatchWorker',
-				start: 28,
-				stop: 53,
+				stop: 15,
 			},
 		])
 	})

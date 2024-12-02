@@ -1,4 +1,4 @@
-// Code generated from ./antlr/SearchGrammar.g4 by ANTLR 4.13.1. DO NOT EDIT.
+// Code generated from ./antlr/SearchGrammar.g4 by ANTLR 4.13.2. DO NOT EDIT.
 
 package parser // SearchGrammar
 
@@ -136,12 +136,6 @@ func (s *BaseSearchGrammarListener) EnterAnd_op(ctx *And_opContext) {}
 
 // ExitAnd_op is called when production and_op is exited.
 func (s *BaseSearchGrammarListener) ExitAnd_op(ctx *And_opContext) {}
-
-// EnterImplicit_and_op is called when production implicit_and_op is entered.
-func (s *BaseSearchGrammarListener) EnterImplicit_and_op(ctx *Implicit_and_opContext) {}
-
-// ExitImplicit_and_op is called when production implicit_and_op is exited.
-func (s *BaseSearchGrammarListener) ExitImplicit_and_op(ctx *Implicit_and_opContext) {}
 
 // EnterOr_op is called when production or_op is entered.
 func (s *BaseSearchGrammarListener) EnterOr_op(ctx *Or_opContext) {}
