@@ -1,5 +1,12 @@
 # @highlight-run/node
 
+## 3.11.0
+
+### Minor Changes
+
+-   ed9cb32: disable noisy fs and http instrumentation by default
+-   e89e41c: add Prisma autoinstrumentation
+
 ## 3.10.1
 
 ### Patch Changes
