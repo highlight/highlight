@@ -37,6 +37,9 @@ We respect our competitors. In fact, we're not in the business of trying to conv
     <DocsCard title="Sprig" href="https://highlight.io/compare/highlight-vs-sprig">
         {"Learn more about how we compare to Sprig."}
     </DocsCard>
+    <DocsCard title="Mouseflow" href="https://highlight.io/compare/highlight-vs-mouseflow">
+        {"Learn more about how we compare to Mouseflow."}
+    </DocsCard>
 </DocsCardGroup>
 
 ## Error Monitoring Competitors

@@ -8,6 +8,7 @@ import { SentrySpec } from './sentry'
 import { SmartlookSpec } from './smartlook'
 import { Site24x7Spec } from './site24x7'
 import { SprigSpec } from './sprig'
+import { MouseflowSpec } from './mouseflow'
 
 export type ComparisonTableRow = {
 	feature: string
@@ -48,4 +49,5 @@ export const COMPETITORS: { [k: string]: Competitor } = {
 	'highlight-vs-sentry': SentrySpec,
 	'highlight-vs-site24x7': Site24x7Spec,
 	'highlight-vs-sprig': SprigSpec,
+	'highlight-vs-mouseflow': MouseflowSpec,
 }
