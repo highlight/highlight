@@ -404,7 +404,9 @@ export const Search: React.FC<{
 		// TODO: code smell, user is not able to use "message" as a search key
 		// because we are reserving it for the body implicitly
 		activePart.key !== BODY_KEY &&
-		activePart.text.trim().endsWith(activePart.operator)
+		activePart.text
+			.replace(/\s+/g, '')
+			.startsWith(`${activePart.key}${activePart.operator}`)
 	const loading = showValues ? valuesLoading : keysLoading
 	const showValueSelect =
 		activePart.text.replace(/\s+/g, '') ===
@@ -619,16 +621,19 @@ export const Search: React.FC<{
 			activePart.text = `${key}${space}${activePart.operator}`
 			activePart.stop = activePart.start + activePart.text.length
 		} else if (isValueSelect) {
+			const beforeOp =
+				activePart.text.match(
+					`${activePart.key}(\\s*)${activePart.operator}`,
+				)?.[1] || ''
+			const afterOp =
+				activePart.text.match(`${activePart.operator}(\\s*)`)?.[1] || ''
+
 			const creatableType = creatables?.[activePart.key]
-			if (!!creatableType) {
-				activePart.value = quoteQueryValue(creatableType.value)
-			} else {
-				activePart.value = quoteQueryValue(item.name)
-			}
-			// Preserve existing spaces around the operator
-			const [keyPart, ...rest] = activePart.text.split(/(\s*[=!<>]+\s*)/)
-			const operatorPart = rest.join('')
-			activePart.text = `${keyPart}${operatorPart}${activePart.value}`
+			activePart.value = quoteQueryValue(
+				creatableType ? creatableType.value : item.name,
+			)
+
+			activePart.text = `${activePart.key}${beforeOp}${activePart.operator}${afterOp}${activePart.value}`
 			activePart.stop = activePart.start + activePart.text.length
 		} else {
 			activePart.key = item.name
@@ -764,6 +769,8 @@ export const Search: React.FC<{
 							ref={inputRef}
 							style={{ resize: 'none', overflowY: 'hidden' }}
 							spellCheck={false}
+							autoCorrect="off"
+							autoCapitalize="off"
 						/>
 					}
 					value={query}
