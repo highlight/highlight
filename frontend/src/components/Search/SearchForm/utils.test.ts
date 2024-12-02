@@ -175,16 +175,15 @@ describe('getActivePart', () => {
 		expect(getActivePart(7, queryParts).text).toEqual(queryString)
 	})
 
-	it.only('handles end of operator correctly', () => {
+	it('handles end of operator correctly', () => {
 		const queryString = 'span_name=gorm.Query service_name ='
 		const { queryParts } = parseSearch(queryString)
 		expect(getActivePart(35, queryParts).text).toEqual('service_name =')
 	})
 
-	it.only('handles earlier expression correctly', () => {
+	it('handles earlier expression correctly', () => {
 		const queryString = 'span_name=gorm.Query service_name=frontend'
 		const { queryParts } = parseSearch(queryString)
-		console.log(queryParts)
 		expect(getActivePart(20, queryParts).text).toEqual(
 			'span_name=gorm.Query',
 		)

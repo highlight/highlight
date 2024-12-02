@@ -47,7 +47,7 @@ describe('parseSearch', () => {
 		])
 	})
 
-	it.only('parses an incomplete search expression with spaces', () => {
+	it('parses an incomplete search expression with spaces', () => {
 		const queryString = ' service_name = '
 		const { queryParts } = parseSearch(queryString)
 

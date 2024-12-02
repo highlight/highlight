@@ -26,7 +26,7 @@ search_expr
   | negation_op search_expr # negated_search_expr
   | search_expr and_op search_expr # and_search_expr
   | search_expr or_op search_expr # or_search_expr
-  | search_expr SPACE+ search_expr # implicit_and_search_expr
+  | search_expr implicit_and_op search_expr # implicit_and_search_expr
   | search_key SPACE* bin_op SPACE* top_col_expr? # key_val_search_expr
   | search_key exists_op # exists_search_expr
   | top_col_expr # body_search_expr
@@ -38,6 +38,10 @@ search_key
 
 and_op
   : AND
+  ;
+
+implicit_and_op
+  : SPACE+
   ;
 
 or_op
