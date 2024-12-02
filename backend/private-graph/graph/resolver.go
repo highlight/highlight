@@ -3644,6 +3644,34 @@ func (r *Resolver) UpsertDiscordChannel(workspaceId int, name string) (*model.Di
 	}, nil
 }
 
+func normalizeExpressions(column *string, metricTypes []modelInputs.MetricAggregator, expressions []*modelInputs.MetricExpressionInput) ([]*modelInputs.MetricExpressionInput, error) {
+	if len(metricTypes) == 0 && len(expressions) == 0 {
+		return nil, errors.New("No expressions provided")
+	}
+
+	if len(metricTypes) > 0 && len(expressions) > 0 {
+		return nil, errors.New("Cannot use both metricTypes and expressions")
+	}
+
+	if len(expressions) > 0 {
+		return expressions, nil
+	}
+
+	columnDeref := ""
+	if column != nil {
+		columnDeref = *column
+	}
+
+	newExpressions := []*modelInputs.MetricExpressionInput{}
+	for _, t := range metricTypes {
+		newExpressions = append(newExpressions, &modelInputs.MetricExpressionInput{
+			Aggregator: t,
+			Column:     columnDeref,
+		})
+	}
+	return newExpressions, nil
+}
+
 func GetMetricTimeline(ctx context.Context, ccClient *clickhouse.Client, projectID int, metricName string, params modelInputs.DashboardParamsInput) (payload []*modelInputs.DashboardPayload, err error) {
 	const numBuckets = 48
 	agg := params.Aggregator
@@ -3659,7 +3687,7 @@ func GetMetricTimeline(ctx context.Context, ccClient *clickhouse.Client, project
 	metrics, err := ccClient.ReadEventMetrics(ctx, projectID, modelInputs.QueryInput{
 		Query:     strings.Join(parts, " "),
 		DateRange: params.DateRange,
-	}, metricName, []modelInputs.MetricAggregator{agg}, params.Groups, pointy.Int(numBuckets), string(modelInputs.MetricBucketByTimestamp), nil, nil, nil, nil)
+	}, pointy.String(metricName), []modelInputs.MetricAggregator{agg}, params.Groups, pointy.Int(numBuckets), string(modelInputs.MetricBucketByTimestamp), nil, nil, nil, nil)
 	if err != nil {
 		return nil, err
 	}

@@ -184,8 +184,8 @@ export const Dashboard = () => {
 			exportGraph(
 				g.id,
 				g.title,
-				g.functionType,
-				g.metric,
+				g.expressions.at(0)?.aggregator ?? '',
+				g.expressions.at(0)?.column ?? '',
 				graphContext.graphData.current
 					? graphContext.graphData.current[g.id]
 					: [],
@@ -390,8 +390,6 @@ export const Dashboard = () => {
 																						g.bucketInterval,
 																					display:
 																						g.display,
-																					functionType:
-																						g.functionType,
 																					groupByKeys:
 																						g.groupByKeys,
 																					limit: g.limit,
@@ -401,7 +399,6 @@ export const Dashboard = () => {
 																						g.limitMetric,
 																					funnelSteps:
 																						g.funnelSteps,
-																					metric: g.metric,
 																					nullHandling:
 																						g.nullHandling,
 																					productType:
@@ -409,6 +406,8 @@ export const Dashboard = () => {
 																					query: g.query,
 																					title: g.title,
 																					type: g.type,
+																					expressions:
+																						g.expressions,
 																				}
 
 																			upsertGraph(
@@ -633,11 +632,8 @@ export const Dashboard = () => {
 																	endDate
 																}
 																query={g.query}
-																metric={
-																	g.metric
-																}
-																functionType={
-																	g.functionType
+																expressions={
+																	g.expressions
 																}
 																bucketByKey={
 																	g.bucketByKey ??

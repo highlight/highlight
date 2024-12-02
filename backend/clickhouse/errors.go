@@ -671,13 +671,11 @@ func ErrorMatchesQuery(errorObject *model2.BackendErrorObjectInput, filters list
 	return matchesQuery(errorObject, BackendErrorObjectInputConfig, filters, listener.OperatorAnd)
 }
 
-func (client *Client) ReadErrorsMetrics(ctx context.Context, projectID int, params modelInputs.QueryInput, column string, metricTypes []modelInputs.MetricAggregator, groupBy []string, nBuckets *int, bucketBy string, bucketWindow *int, limit *int, limitAggregator *modelInputs.MetricAggregator, limitColumn *string) (*modelInputs.MetricsBuckets, error) {
+func (client *Client) ReadErrorsMetrics(ctx context.Context, projectID int, params modelInputs.QueryInput, groupBy []string, nBuckets *int, bucketBy string, bucketWindow *int, limit *int, limitAggregator *modelInputs.MetricAggregator, limitColumn *string, expressions []*modelInputs.MetricExpressionInput) (*modelInputs.MetricsBuckets, error) {
 	return client.ReadMetrics(ctx, ReadMetricsInput{
 		SampleableConfig: ErrorsSampleableTableConfig,
 		ProjectIDs:       []int{projectID},
 		Params:           params,
-		Column:           column,
-		MetricTypes:      metricTypes,
 		GroupBy:          groupBy,
 		BucketCount:      nBuckets,
 		BucketWindow:     bucketWindow,
@@ -685,6 +683,7 @@ func (client *Client) ReadErrorsMetrics(ctx context.Context, projectID int, para
 		Limit:            limit,
 		LimitAggregator:  limitAggregator,
 		LimitColumn:      limitColumn,
+		Expressions:      expressions,
 	})
 }
 
@@ -695,10 +694,11 @@ func (client *Client) ReadWorkspaceErrorCounts(ctx context.Context, projectIDs [
 			SampleableConfig: ErrorsSampleableTableConfig,
 			ProjectIDs:       projectIDs,
 			Params:           params,
-			Column:           "id",
-			MetricTypes:      []modelInputs.MetricAggregator{modelInputs.MetricAggregatorCount},
 			BucketCount:      pointy.Int(12),
 			BucketBy:         modelInputs.MetricBucketByTimestamp.String(),
+			Expressions: []*modelInputs.MetricExpressionInput{{
+				Aggregator: modelInputs.MetricAggregatorCount,
+			}},
 		})
 }
 

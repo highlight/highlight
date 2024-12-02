@@ -1,5 +1,12 @@
 # highlight.run
 
+## 9.7.2
+
+### Patch Changes
+
+-   02fad3d: add url.\* attributes to fetch and xhr traces
+-   da5662e: avoid setting up promise monkeypatch by default to avoid breaking libraries that depend on the native promise implementation
+
 ## 9.7.1
 
 ### Patch Changes

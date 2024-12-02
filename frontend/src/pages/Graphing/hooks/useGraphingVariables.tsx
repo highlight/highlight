@@ -33,7 +33,8 @@ export function useGraphingVariables(
 			}
 		})
 		return values
-	}, [data?.visualization.variables, params])
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [data?.visualization.variables])
 
 	const defaultValues = useMemo(() => {
 		const defaultValues = new Map<string, string[]>()

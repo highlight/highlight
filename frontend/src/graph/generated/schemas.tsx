@@ -771,14 +771,13 @@ export type Graph = {
 	bucketInterval?: Maybe<Scalars['Int']>
 	description: Scalars['String']
 	display?: Maybe<Scalars['String']>
-	functionType: MetricAggregator
+	expressions: Array<MetricExpression>
 	funnelSteps?: Maybe<Array<FunnelStep>>
 	groupByKeys?: Maybe<Scalars['StringArray']>
 	id: Scalars['ID']
 	limit?: Maybe<Scalars['Int']>
 	limitFunctionType?: Maybe<MetricAggregator>
 	limitMetric?: Maybe<Scalars['String']>
-	metric: Scalars['String']
 	nullHandling?: Maybe<Scalars['String']>
 	productType: ProductType
 	query: Scalars['String']
@@ -792,14 +791,13 @@ export type GraphInput = {
 	bucketCount?: InputMaybe<Scalars['Int']>
 	bucketInterval?: InputMaybe<Scalars['Int']>
 	display?: InputMaybe<Scalars['String']>
-	functionType: MetricAggregator
+	expressions: Array<MetricExpressionInput>
 	funnelSteps?: InputMaybe<Array<FunnelStepInput>>
 	groupByKeys?: InputMaybe<Scalars['StringArray']>
 	id?: InputMaybe<Scalars['ID']>
 	limit?: InputMaybe<Scalars['Int']>
 	limitFunctionType?: InputMaybe<MetricAggregator>
 	limitMetric?: InputMaybe<Scalars['String']>
-	metric: Scalars['String']
 	nullHandling?: InputMaybe<Scalars['String']>
 	productType: ProductType
 	query: Scalars['String']
@@ -1109,7 +1107,7 @@ export type MetricBucket = {
 	bucket_id: Scalars['UInt64']
 	bucket_max: Scalars['Float']
 	bucket_min: Scalars['Float']
-	column: MetricColumn
+	column: Scalars['String']
 	group: Array<Scalars['String']>
 	metric_type: MetricAggregator
 	metric_value?: Maybe<Scalars['Float']>
@@ -1123,8 +1121,15 @@ export enum MetricBucketBy {
 	Timestamp = 'Timestamp',
 }
 
-export enum MetricColumn {
-	Duration = 'Duration',
+export type MetricExpression = {
+	__typename?: 'MetricExpression'
+	aggregator: MetricAggregator
+	column: Scalars['String']
+}
+
+export type MetricExpressionInput = {
+	aggregator: MetricAggregator
+	column: Scalars['String']
 }
 
 export type MetricMonitor = {
@@ -2455,12 +2460,13 @@ export type QueryErrors_MetricsArgs = {
 	bucket_by: Scalars['String']
 	bucket_count?: InputMaybe<Scalars['Int']>
 	bucket_window?: InputMaybe<Scalars['Int']>
-	column: Scalars['String']
+	column?: InputMaybe<Scalars['String']>
+	expressions?: InputMaybe<Array<MetricExpressionInput>>
 	group_by: Array<Scalars['String']>
 	limit?: InputMaybe<Scalars['Int']>
 	limit_aggregator?: InputMaybe<MetricAggregator>
 	limit_column?: InputMaybe<Scalars['String']>
-	metric_types: Array<MetricAggregator>
+	metric_types?: InputMaybe<Array<MetricAggregator>>
 	params: QueryInput
 	project_id: Scalars['ID']
 }
@@ -2508,12 +2514,13 @@ export type QueryEvents_MetricsArgs = {
 	bucket_by: Scalars['String']
 	bucket_count?: InputMaybe<Scalars['Int']>
 	bucket_window?: InputMaybe<Scalars['Int']>
-	column: Scalars['String']
+	column?: InputMaybe<Scalars['String']>
+	expressions?: InputMaybe<Array<MetricExpressionInput>>
 	group_by: Array<Scalars['String']>
 	limit?: InputMaybe<Scalars['Int']>
 	limit_aggregator?: InputMaybe<MetricAggregator>
 	limit_column?: InputMaybe<Scalars['String']>
-	metric_types: Array<MetricAggregator>
+	metric_types?: InputMaybe<Array<MetricAggregator>>
 	params: QueryInput
 	project_id: Scalars['ID']
 }
@@ -2684,12 +2691,13 @@ export type QueryLogs_MetricsArgs = {
 	bucket_by: Scalars['String']
 	bucket_count?: InputMaybe<Scalars['Int']>
 	bucket_window?: InputMaybe<Scalars['Int']>
-	column: Scalars['String']
+	column?: InputMaybe<Scalars['String']>
+	expressions?: InputMaybe<Array<MetricExpressionInput>>
 	group_by: Array<Scalars['String']>
 	limit?: InputMaybe<Scalars['Int']>
 	limit_aggregator?: InputMaybe<MetricAggregator>
 	limit_column?: InputMaybe<Scalars['String']>
-	metric_types: Array<MetricAggregator>
+	metric_types?: InputMaybe<Array<MetricAggregator>>
 	params: QueryInput
 	project_id: Scalars['ID']
 }
@@ -2719,12 +2727,13 @@ export type QueryMetricsArgs = {
 	bucket_by: Scalars['String']
 	bucket_count?: InputMaybe<Scalars['Int']>
 	bucket_window?: InputMaybe<Scalars['Int']>
-	column: Scalars['String']
+	column?: InputMaybe<Scalars['String']>
+	expressions?: InputMaybe<Array<MetricExpressionInput>>
 	group_by: Array<Scalars['String']>
 	limit?: InputMaybe<Scalars['Int']>
 	limit_aggregator?: InputMaybe<MetricAggregator>
 	limit_column?: InputMaybe<Scalars['String']>
-	metric_types: Array<MetricAggregator>
+	metric_types?: InputMaybe<Array<MetricAggregator>>
 	params: QueryInput
 	prediction_settings?: InputMaybe<PredictionSettings>
 	product_type: ProductType
@@ -2916,12 +2925,13 @@ export type QuerySessions_MetricsArgs = {
 	bucket_by: Scalars['String']
 	bucket_count?: InputMaybe<Scalars['Int']>
 	bucket_window?: InputMaybe<Scalars['Int']>
-	column: Scalars['String']
+	column?: InputMaybe<Scalars['String']>
+	expressions?: InputMaybe<Array<MetricExpressionInput>>
 	group_by: Array<Scalars['String']>
 	limit?: InputMaybe<Scalars['Int']>
 	limit_aggregator?: InputMaybe<MetricAggregator>
 	limit_column?: InputMaybe<Scalars['String']>
-	metric_types: Array<MetricAggregator>
+	metric_types?: InputMaybe<Array<MetricAggregator>>
 	params: QueryInput
 	project_id: Scalars['ID']
 }
@@ -2992,12 +3002,13 @@ export type QueryTraces_MetricsArgs = {
 	bucket_by?: InputMaybe<Scalars['String']>
 	bucket_count?: InputMaybe<Scalars['Int']>
 	bucket_window?: InputMaybe<Scalars['Int']>
-	column: Scalars['String']
+	column?: InputMaybe<Scalars['String']>
+	expressions?: InputMaybe<Array<MetricExpressionInput>>
 	group_by: Array<Scalars['String']>
 	limit?: InputMaybe<Scalars['Int']>
 	limit_aggregator?: InputMaybe<MetricAggregator>
 	limit_column?: InputMaybe<Scalars['String']>
-	metric_types: Array<MetricAggregator>
+	metric_types?: InputMaybe<Array<MetricAggregator>>
 	params: QueryInput
 	project_id: Scalars['ID']
 }

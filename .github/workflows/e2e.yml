@@ -121,8 +121,13 @@ jobs:
             - name: Dump docker container logs on failure
               if: failure()
               run: |
-                  cd docker;
+                  pushd docker;
                   docker compose logs;
+                  popd;
+
+                  pushd e2e/opentelemetry/filelog;
+                  docker compose logs;
+                  popd;
 
             - name: Dump databases on failure
               if: failure()

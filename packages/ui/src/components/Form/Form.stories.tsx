@@ -51,6 +51,7 @@ export const Basic = () => {
 						name="priority"
 						label="Priority"
 						options={PRIORITIES}
+						onValueChange={(value) => setPriority(value)}
 						value={priority}
 					/>
 					<Form.Input
@@ -59,6 +60,7 @@ export const Basic = () => {
 						label="Issue Number"
 						step="5"
 						defaultValue="10"
+						disabled={values.issueType === ISSUE_TYPES[0]}
 						min={0}
 						max={500}
 					/>

@@ -1,5 +1,4 @@
 import LoadingBox from '@components/LoadingBox'
-import { MetricAggregator } from '@graph/schemas'
 import { Box, Text } from '@highlight-run/ui/components'
 import SvgActivityIcon from '@icons/ActivityIcon'
 import SvgCarDashboardIcon from '@icons/CarDashboardIcon'
@@ -142,10 +141,7 @@ const PerformancePage = React.memo(({}: Props) => {
 							</Box>
 							<LineChart
 								data={data}
-								yAxisFunction={MetricAggregator.Count}
 								xAxisMetric={TIMESTAMP_KEY}
-								yAxisMetric={key}
-								series={[key]}
 								strokeColors={[strokeColor]}
 								viewConfig={{
 									type: 'Line chart',

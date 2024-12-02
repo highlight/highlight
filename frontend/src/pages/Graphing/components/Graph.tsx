@@ -23,7 +23,6 @@ import {
 } from '@pages/Graphing/components/FunnelChart'
 import { FunnelDisplay } from '@pages/Graphing/components/types'
 import clsx from 'clsx'
-import _ from 'lodash'
 import moment from 'moment'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Area, Tooltip as RechartsTooltip, ReferenceArea } from 'recharts'
@@ -40,6 +39,7 @@ import { GetMetricsQuery } from '@/graph/generated/operations'
 import {
 	Maybe,
 	MetricAggregator,
+	MetricExpression,
 	PredictionSettings,
 	ProductType,
 	ThresholdCondition,
@@ -67,6 +67,7 @@ import * as style from './Graph.css'
 import { EventSelectionStep } from '@pages/Graphing/util'
 import { useGraphContext } from '../context/GraphContext'
 import { TIME_METRICS } from '@pages/Graphing/constants'
+import _ from 'lodash'
 
 export type View = 'Line chart' | 'Bar chart' | 'Funnel chart' | 'Table'
 
@@ -94,9 +95,13 @@ export const VIEW_OPTIONS = [
 ]
 
 export const TIMESTAMP_KEY = 'Timestamp'
-export const GROUP_KEY = 'Group'
+export const GROUPS_KEY = 'groups'
 export const PERCENT_KEY = 'Percent'
 export const QUERY_KEY = 'Query'
+export const COLUMN_KEY = 'column'
+export const AGGREGATOR_KEY = 'aggregator'
+export const VALUE_KEY = 'value'
+export const SERIES_KEY = 'series'
 export const BUCKET_MIN_KEY = 'BucketMin'
 export const BUCKET_MAX_KEY = 'BucketMax'
 export const YHAT_UPPER_KEY = 'yhat_upper'
@@ -139,8 +144,6 @@ export interface ChartProps<TConfig> {
 	endDate: Date
 	selectedPreset?: DateRangePreset
 	query: string
-	metric: string
-	functionType: MetricAggregator
 	groupByKeys?: string[]
 	bucketByKey?: string
 	bucketCount?: number
@@ -157,13 +160,12 @@ export interface ChartProps<TConfig> {
 	variables?: Map<string, string[]>
 	predictionSettings?: PredictionSettings
 	thresholdSettings?: ThresholdSettings
+	expressions: MetricExpression[]
 }
 
 export interface InnerChartProps<TConfig> {
 	data: any[] | undefined
 	xAxisMetric: string
-	yAxisMetric: string
-	yAxisFunction: string
 	title?: string
 	loading?: boolean
 	viewConfig: TConfig
@@ -173,7 +175,6 @@ export interface InnerChartProps<TConfig> {
 }
 
 export interface SeriesInfo {
-	series: string[]
 	spotlight?: number | undefined
 	strokeColors?: string[] | Map<string, string>
 }
@@ -193,7 +194,7 @@ export interface AxisConfig {
 export type LoadExemplars = (
 	bucketMin: number | undefined,
 	bucketMax: number | undefined,
-	group: string | undefined,
+	groups: string[] | undefined,
 	stepQuery?: string,
 ) => void
 
@@ -219,8 +220,6 @@ export interface TooltipSettings {
 
 export const useGraphCallbacks = (
 	xAxisMetric: string,
-	yAxisMetric: string,
-	yAxisFunction: string,
 	setTimeRange?: SetTimeRange,
 	loadExemplars?: LoadExemplars,
 	tooltipSettings?: TooltipSettings,
@@ -315,8 +314,6 @@ export const useGraphCallbacks = (
 		<RechartsTooltip
 			content={getCustomTooltip(
 				xAxisMetric,
-				yAxisMetric,
-				yAxisFunction,
 				frozenTooltip,
 				tooltipRef,
 				onMouseLeave,
@@ -404,6 +401,28 @@ const durationUnitMap: [number, string][] = [
 
 const DEFAULT_TIME_METRIC = 'ns'
 
+export enum FormatType {
+	Date = 'Date',
+	Duration = 'Duration',
+	Percent = 'Percent',
+	Group = 'Group',
+	Number = 'Number',
+}
+
+export const getFormatType = (metric: string) => {
+	if (metric === 'Timestamp' || metric === 'timestamp') {
+		return FormatType.Date
+	} else if (Object.hasOwn(TIME_METRICS, metric)) {
+		return FormatType.Duration
+	} else if (metric === 'percent') {
+		return FormatType.Percent
+	} else if (metric === GROUPS_KEY) {
+		return FormatType.Group
+	} else {
+		return FormatType.Number
+	}
+}
+
 export const getTickFormatter = (metric: string, data?: any[] | undefined) => {
 	if (metric === 'Timestamp' || metric === 'timestamp') {
 		if (data === undefined) {
@@ -411,6 +430,7 @@ export const getTickFormatter = (metric: string, data?: any[] | undefined) => {
 				moment(value * 1000).format('MMM D, h:mm:ss A')
 		}
 
+		// ZANETODO: test below with new data format
 		const start = data.at(0).Timestamp * 1000
 		const end = data.at(data.length - 1).Timestamp * 1000
 		const diffMinutes = moment(end).diff(start, 'minutes')
@@ -446,7 +466,7 @@ export const getTickFormatter = (metric: string, data?: any[] | undefined) => {
 		return (value: any) => {
 			return `${value.toFixed(1)}%`
 		}
-	} else if (metric === GROUP_KEY) {
+	} else if (metric === GROUPS_KEY) {
 		const maxChars = Math.max(MAX_LABEL_CHARS / (data?.length || 1), 10)
 		return (value: any) => {
 			let result = value.toString() as string
@@ -466,8 +486,6 @@ export const getTickFormatter = (metric: string, data?: any[] | undefined) => {
 const getCustomTooltip =
 	(
 		xAxisMetric: string,
-		yAxisMetric: string,
-		yAxisFunction: string,
 		frozenTooltip?: CategoricalChartState | undefined,
 		tooltipRef?: React.MutableRefObject<HTMLDivElement | null>,
 		onMouseLeave?: () => void,
@@ -498,7 +516,7 @@ const getCustomTooltip =
 					{isValid && getTickFormatter(xAxisMetric)(label)}
 				</Text>
 				{payload
-					.filter(
+					?.filter(
 						(p: any) =>
 							![
 								YHAT_LOWER_REGION_KEY,
@@ -509,89 +527,103 @@ const getCustomTooltip =
 					.sort(
 						(p1: any, p2: any) => (p2.value ?? 0) - (p1.value ?? 0),
 					)
-					.map((p: any, idx: number) => (
-						<Box
-							display="flex"
-							key={idx}
-							justifyContent="space-between"
-							gap="4"
-							cssClass={style.tooltipRow}
-						>
+					.map((p: any, idx: number) => {
+						// `dataKey` includes `.value` - trim this off
+						const seriesKey = p.dataKey.slice(
+							0,
+							-VALUE_KEY.length - 1,
+						)
+						const seriesInfo = p.payload[seriesKey][
+							SERIES_KEY
+						] as Series
+						return (
 							<Box
 								display="flex"
-								flexDirection="row"
-								alignItems="center"
+								key={idx}
+								justifyContent="space-between"
 								gap="4"
+								cssClass={style.tooltipRow}
 							>
 								<Box
-									style={{
-										backgroundColor: p.color,
-									}}
-									cssClass={style.tooltipDot}
-								></Box>
-								<Badge
-									size="small"
-									shape="basic"
-									label={
-										isValid &&
-										getTickFormatter(yAxisMetric)(p.value)
-									}
+									display="flex"
+									flexDirection="row"
+									alignItems="center"
+									gap="4"
 								>
-									<Text
-										lines="1"
-										size="xSmall"
-										weight="medium"
-										color="default"
-										cssClass={style.tooltipText}
-									></Text>
-								</Badge>
-								{funnelMode ? (
-									<Text
-										lines="1"
-										size="xSmall"
-										weight="medium"
-										color="default"
-										cssClass={style.tooltipText}
+									<Box
+										style={{
+											backgroundColor: p.color,
+										}}
+										cssClass={style.tooltipDot}
+									></Box>
+									<Badge
+										size="small"
+										shape="basic"
+										label={
+											isValid
+												? getTickFormatter(
+														seriesInfo.column,
+													)(p.value)
+												: ''
+										}
 									>
-										{(p.payload[PERCENT_KEY] * 100).toFixed(
-											1,
-										)}
-										%
-									</Text>
-								) : (
-									<Text
-										lines="1"
-										size="xxSmall"
-										weight="medium"
-										color="default"
-										cssClass={style.tooltipText}
-									>
-										{p.name ? p.name : yAxisFunction}
-									</Text>
+										<Text
+											lines="1"
+											size="xSmall"
+											weight="medium"
+											color="default"
+											cssClass={style.tooltipText}
+										></Text>
+									</Badge>
+									{funnelMode ? (
+										<Text
+											lines="1"
+											size="xSmall"
+											weight="medium"
+											color="default"
+											cssClass={style.tooltipText}
+										>
+											{(
+												p.payload[PERCENT_KEY] * 100
+											).toFixed(1)}
+											%
+										</Text>
+									) : (
+										<Text
+											lines="1"
+											size="xxSmall"
+											weight="medium"
+											color="default"
+											cssClass={style.tooltipText}
+										>
+											{p.name}
+										</Text>
+									)}
+								</Box>
+								{frozenTooltip && (
+									<ButtonIcon
+										icon={
+											<IconSolidExternalLink size={16} />
+										}
+										size="minimal"
+										shape="square"
+										emphasis="low"
+										kind="secondary"
+										cssClass={style.exemplarButton}
+										onClick={() => {
+											loadExemplars &&
+												loadExemplars(
+													p.payload[BUCKET_MIN_KEY],
+													p.payload[BUCKET_MAX_KEY],
+													seriesInfo.groups,
+													p.payload[QUERY_KEY],
+												)
+										}}
+									/>
 								)}
 							</Box>
-							{frozenTooltip && (
-								<ButtonIcon
-									icon={<IconSolidExternalLink size={16} />}
-									size="minimal"
-									shape="square"
-									emphasis="low"
-									kind="secondary"
-									cssClass={style.exemplarButton}
-									onClick={() => {
-										loadExemplars &&
-											loadExemplars(
-												p.payload[BUCKET_MIN_KEY],
-												p.payload[BUCKET_MAX_KEY],
-												p.dataKey ||
-													p.payload[GROUP_KEY],
-												p.payload[QUERY_KEY],
-											)
-									}}
-								/>
-							)}
-						</Box>
-					))}
+						)
+					})}
 			</Box>
 		)
 	}
@@ -691,6 +723,42 @@ export const getViewConfig = (
 	return viewConfig
 }
 
+export const getGroupKey = (groups: string[]) => {
+	return groups?.join(', ') || NO_GROUP_PLACEHOLDER
+}
+
+export interface Series {
+	aggregator: string
+	column: string
+	groups: string[]
+}
+
+export interface NamedSeries extends Series {
+	name: string
+}
+
+export const getSeriesKey = (s: Series) => {
+	return btoa(JSON.stringify([s.aggregator, s.column, s.groups]))
+}
+
+export const getSeriesName = (
+	s: Series,
+	isMultiFunction: boolean,
+	isGrouped: boolean,
+) => {
+	let columnExpr = `(${s.column})`
+	if (s.aggregator === MetricAggregator.Count) {
+		columnExpr = ''
+	}
+	if (isMultiFunction && isGrouped) {
+		return `${s.aggregator}${columnExpr} - ${getGroupKey(s.groups)}`
+	} else if (isGrouped) {
+		return getGroupKey(s.groups)
+	} else {
+		return `${s.aggregator}${columnExpr}`
+	}
+}
+
 export const useGraphData = (
 	metrics: GetMetricsQuery | undefined,
 	xAxisMetric: string,
@@ -716,8 +784,9 @@ export const useGraphData = (
 
 		let data: any[] | undefined
 		if (metrics?.metrics?.buckets) {
-			if (xAxisMetric !== GROUP_KEY) {
-				data = []
+			data = []
+
+			if (xAxisMetric !== GROUPS_KEY) {
 				for (let i = 0; i < metrics.metrics.bucket_count; i++) {
 					data.push({})
 				}
@@ -727,14 +796,23 @@ export const useGraphData = (
 					undefined
 
 				for (const b of metrics.metrics.buckets) {
-					const seriesKey = hasGroups
-						? b.group.join(', ') || NO_GROUP_PLACEHOLDER
-						: b.metric_type
+					const seriesKey = getSeriesKey({
+						aggregator: b.metric_type,
+						column: b.column,
+						groups: b.group,
+					})
 					data[b.bucket_id][xAxisMetric] =
 						(b.bucket_min + b.bucket_max) / 2
-					data[b.bucket_id][seriesKey] = b.metric_value
 					data[b.bucket_id][BUCKET_MIN_KEY] = b.bucket_min
 					data[b.bucket_id][BUCKET_MAX_KEY] = b.bucket_max
+					data[b.bucket_id][seriesKey] = {
+						[VALUE_KEY]: b.metric_value,
+						[SERIES_KEY]: {
+							[AGGREGATOR_KEY]: b.metric_type,
+							[COLUMN_KEY]: b.column,
+							[GROUPS_KEY]: b.group,
+						},
+					}
 
 					const bucketUpper = b.yhat_upper || upperThreshold
 					const bucketLower = b.yhat_lower || lowerThreshold
@@ -762,12 +840,29 @@ export const useGraphData = (
 					}
 				}
 			} else {
-				data = []
+				const mapData: any = {}
 				for (const b of metrics.metrics.buckets) {
-					data.push({
-						[GROUP_KEY]: b.group.join(', '),
-						'': b.metric_value,
+					const groupKey = getGroupKey(b.group)
+					const seriesKey = getSeriesKey({
+						aggregator: b.metric_type,
+						column: b.column,
+						groups: [],
 					})
+					mapData[groupKey] = {
+						...mapData[groupKey],
+						[seriesKey]: {
+							[SERIES_KEY]: {
+								[AGGREGATOR_KEY]: b.metric_type,
+								[COLUMN_KEY]: b.column,
+								[GROUPS_KEY]: [],
+							},
+							[VALUE_KEY]: b.metric_value,
+						},
+						[GROUPS_KEY]: b.group,
+					}
+				}
+				for (const d of Object.values(mapData)) {
+					data.push(d)
 				}
 			}
 		}
@@ -811,11 +906,19 @@ export const useFunnelData = (
 		return Object.values(buckets).map((r, idx) => {
 			const query = funnelSteps?.at(idx)?.query || ''
 			const key = funnelSteps?.at(idx)?.title || query
+			const series = {
+				aggregator: MetricAggregator.CountDistinct,
+				column: 'secure_session_id',
+				groups: [key],
+			}
 			return {
-				[GROUP_KEY]: key,
+				[GROUPS_KEY]: [key],
 				[PERCENT_KEY]: r.percent,
 				[QUERY_KEY]: query,
-				[key]: r.value,
+				[getSeriesKey(series)]: {
+					[SERIES_KEY]: series,
+					value: r.value,
+				},
 			}
 		})
 	}, [funnelSteps, results])
@@ -824,7 +927,7 @@ export const useFunnelData = (
 export const useGraphSeries = (
 	data: any[] | undefined,
 	xAxisMetric: string,
-) => {
+): NamedSeries[] => {
 	return useMemo(() => {
 		const excluded = [
 			xAxisMetric,
@@ -837,9 +940,24 @@ export const useGraphSeries = (
 			PERCENT_KEY,
 			QUERY_KEY,
 		]
-		return _.uniq(data?.flatMap((d) => Object.keys(d))).filter(
-			(key) => !excluded.includes(key),
-		)
+		const series =
+			data
+				?.flatMap((d) => Object.entries(d))
+				.filter(([key]) => !excluded.includes(key))
+				.map(([_, value]: [string, any]) => value[SERIES_KEY] as Series)
+				.filter((v) => v !== undefined) ?? []
+		const deduped = _.uniqBy(series, getSeriesKey)
+		const isMultiFunction =
+			_.uniq(series.map((s) => `${s.aggregator}_${s.column}`)).length > 1
+		const isGrouped =
+			_.uniq(series.map((s) => getGroupKey(s.groups))).length > 1
+
+		const named = deduped.map((d) => ({
+			...d,
+			name: getSeriesName(d, isMultiFunction, isGrouped),
+		}))
+
+		return named
 	}, [data, xAxisMetric])
 }
 
@@ -893,8 +1011,6 @@ const Graph = ({
 	startDate,
 	endDate,
 	query,
-	metric,
-	functionType,
 	groupByKeys,
 	bucketByKey,
 	bucketByWindow,
@@ -913,6 +1029,7 @@ const Graph = ({
 	variables,
 	predictionSettings,
 	thresholdSettings,
+	expressions,
 	children,
 }: React.PropsWithChildren<ChartProps<ViewConfig>>) => {
 	const { setGraphData } = useGraphContext()
@@ -930,7 +1047,7 @@ const Graph = ({
 	const loadExemplars = (
 		bucketMin: number | undefined,
 		bucketMax: number | undefined,
-		groups: string | undefined,
+		groups: string[] | undefined,
 		stepQuery: string | undefined,
 	) => {
 		let relatedResourceType:
@@ -968,7 +1085,7 @@ const Graph = ({
 			variables,
 		)
 		if (groupByKeys !== undefined && groupByKeys.length > 0) {
-			groups?.split(', ').forEach((group, idx) => {
+			groups?.forEach((group, idx) => {
 				if (!groupByKeys) {
 					return
 				}
@@ -1005,7 +1122,7 @@ const Graph = ({
 		})
 	}
 
-	const [getMetrics, { called }] = useGetMetricsLazyQuery()
+	const [getMetrics, { called }] = useGetMetricsLazyQuery({})
 
 	const rebaseFetchTime = useCallback(() => {
 		if (!selectedPreset) {
@@ -1026,9 +1143,7 @@ const Graph = ({
 		setFetchEnd(moment().toDate())
 	}, [selectedPreset, startDate, endDate])
 
-	const xAxisMetric = bucketByKey !== undefined ? bucketByKey : GROUP_KEY
-	const yAxisMetric = functionType === MetricAggregator.Count ? '' : metric
-	const yAxisFunction = functionType
+	const xAxisMetric = bucketByKey !== undefined ? bucketByKey : GROUPS_KEY
 
 	// set the fetch dates and poll interval when selected date changes
 	useEffect(() => {
@@ -1062,8 +1177,6 @@ const Graph = ({
 				},
 				query: replaceQueryVariables(query, variables),
 			},
-			column: matchParamVariables(yAxisMetric, variables).at(0) ?? '',
-			metric_types: [functionType],
 			group_by:
 				groupByKeys !== undefined
 					? matchParamVariables(groupByKeys, variables)
@@ -1080,6 +1193,7 @@ const Graph = ({
 				? matchParamVariables(limitMetric, variables).at(0)
 				: undefined,
 			prediction_settings: predictionSettings,
+			expressions: expressions.map((e) => ({ ...e })), // This is a hack but Apollo isn't noticing a change otherwise
 		}
 
 		setLoading(true)
@@ -1103,6 +1217,7 @@ const Graph = ({
 				getMetrics({ variables: getMetricsVariables }),
 			]
 		}
+
 		Promise.all(getMetricsPromises)
 			.then((results: GetMetricsQueryResult[]) => {
 				setResults(results.filter((r) => r.data).map((r) => r.data!))
@@ -1130,27 +1245,79 @@ const Graph = ({
 		bucketByWindow,
 		fetchEnd,
 		fetchStart,
-		functionType,
 		getMetrics,
 		groupByKeys,
 		limit,
 		limitFunctionType,
 		limitMetric,
 		funnelSteps,
-		yAxisMetric,
 		productType,
 		projectId,
 		queriedBucketCount,
 		query,
 		variables,
 		predictionSettings,
+		expressions,
 	])
+
+	useEffect(() => {
+		console.log('bucketByKey')
+	}, [bucketByKey])
+	useEffect(() => {
+		console.log('bucketByWindow')
+	}, [bucketByWindow])
+	useEffect(() => {
+		console.log('fetchEnd')
+	}, [fetchEnd])
+	useEffect(() => {
+		console.log('fetchStart')
+	}, [fetchStart])
+	useEffect(() => {
+		console.log('getMetrics')
+	}, [getMetrics])
+	useEffect(() => {
+		console.log('groupByKeys')
+	}, [groupByKeys])
+	useEffect(() => {
+		console.log('limit')
+	}, [limit])
+	useEffect(() => {
+		console.log('limitFunctionType')
+	}, [limitFunctionType])
+	useEffect(() => {
+		console.log('limitMetric')
+	}, [limitMetric])
+	useEffect(() => {
+		console.log('funnelSteps')
+	}, [funnelSteps])
+	useEffect(() => {
+		console.log('productType')
+	}, [productType])
+	useEffect(() => {
+		console.log('projectId')
+	}, [projectId])
+	useEffect(() => {
+		console.log('queriedBucketCount')
+	}, [queriedBucketCount])
+	useEffect(() => {
+		console.log('query')
+	}, [query])
+	useEffect(() => {
+		console.log('variables')
+	}, [variables])
+	useEffect(() => {
+		console.log('predictionSettings')
+	}, [predictionSettings])
+	useEffect(() => {
+		console.log('expressions')
+	}, [expressions])
 
 	const graphData = useGraphData(
 		results?.at(0),
 		xAxisMetric,
 		thresholdSettings,
 	)
+
 	const funnelData = useFunnelData(results, funnelSteps)
 	const data = viewConfig.type === 'Funnel chart' ? funnelData : graphData
 	const series = useGraphSeries(data, xAxisMetric)
@@ -1209,10 +1376,7 @@ const Graph = ({
 					<LineChart
 						data={data}
 						xAxisMetric={xAxisMetric}
-						yAxisMetric={yAxisMetric}
-						yAxisFunction={yAxisFunction}
 						viewConfig={viewConfig}
-						series={series}
 						spotlight={spotlight}
 						setTimeRange={setTimeRange}
 						loadExemplars={loadExemplars}
@@ -1253,10 +1417,7 @@ const Graph = ({
 					<BarChart
 						data={data}
 						xAxisMetric={xAxisMetric}
-						yAxisMetric={yAxisMetric}
-						yAxisFunction={yAxisFunction}
 						viewConfig={viewConfig}
-						series={series}
 						spotlight={spotlight}
 						setTimeRange={setTimeRange}
 						loadExemplars={loadExemplars}
@@ -1272,8 +1433,6 @@ const Graph = ({
 						<BarChart
 							data={data}
 							xAxisMetric={xAxisMetric}
-							yAxisMetric={yAxisMetric}
-							yAxisFunction={yAxisFunction}
 							viewConfig={{
 								shadeToPrevious: true,
 								showLegend: true,
@@ -1281,7 +1440,6 @@ const Graph = ({
 								display: 'Stacked',
 								tooltipSettings: { funnelMode: true },
 							}}
-							series={series}
 							spotlight={spotlight}
 							setTimeRange={setTimeRange}
 							loadExemplars={loadExemplars}
@@ -1295,15 +1453,12 @@ const Graph = ({
 						<LineChart
 							data={data}
 							xAxisMetric={xAxisMetric}
-							yAxisMetric={yAxisMetric}
-							yAxisFunction={yAxisFunction}
 							viewConfig={{
 								showLegend: true,
 								type: 'Line chart',
 								display: 'Stacked area',
 								tooltipSettings: { funnelMode: true },
 							}}
-							series={series}
 							spotlight={spotlight}
 							setTimeRange={setTimeRange}
 							loadExemplars={loadExemplars}
@@ -1317,10 +1472,7 @@ const Graph = ({
 						<FunnelChart
 							data={data}
 							xAxisMetric={xAxisMetric}
-							yAxisMetric={yAxisMetric}
-							yAxisFunction={yAxisFunction}
 							viewConfig={viewConfig}
-							series={series}
 							spotlight={spotlight}
 							setTimeRange={setTimeRange}
 						>
@@ -1334,10 +1486,7 @@ const Graph = ({
 					<MetricTable
 						data={data}
 						xAxisMetric={xAxisMetric}
-						yAxisMetric={yAxisMetric}
-						yAxisFunction={yAxisFunction}
 						viewConfig={viewConfig}
-						series={series}
 						disabled={disabled}
 						loadExemplars={loadExemplars}
 						visualizationId={id}
@@ -1349,7 +1498,8 @@ const Graph = ({
 
 	const showLegend =
 		viewConfig.showLegend &&
-		series.join('') !== yAxisFunction &&
+		// ZANETODO
+		// series.join('') !== yAxisFunction &&
 		series.join('') !== ''
 	return (
 		<Box
@@ -1412,13 +1562,14 @@ const Graph = ({
 				)}
 			{showLegend && (
 				<Box position="relative" cssClass={style.legendWrapper}>
-					{series.map((key, idx) => {
+					{series.map((s, idx) => {
+						const seriesKey = getSeriesKey(s)
 						return (
 							<Button
 								kind="secondary"
 								emphasis="low"
 								size="xSmall"
-								key={key}
+								key={seriesKey}
 								onClick={() => {
 									if (spotlight === idx) {
 										setSpotlight(undefined)
@@ -1440,7 +1591,7 @@ const Graph = ({
 													)
 														? getColor(
 																idx,
-																key,
+																seriesKey,
 																strokeColors,
 															)
 														: undefined,
@@ -1461,14 +1612,13 @@ const Graph = ({
 													}
 													align="left"
 												>
-													{key ||
-														NO_GROUP_PLACEHOLDER}
+													{s.name}
 												</Text>
 											</Box>
 										</>
 									}
 								>
-									{key || NO_GROUP_PLACEHOLDER}
+									{s.name}
 								</Tooltip>
 							</Button>
 						)

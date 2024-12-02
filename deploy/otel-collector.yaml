@@ -15,6 +15,7 @@ receivers:
             grpc:
                 endpoint: '0.0.0.0:4317'
                 include_metadata: true
+                max_recv_msg_size_mib: 1000
             http:
                 endpoint: '0.0.0.0:4318'
                 max_request_body_size: 0
