@@ -6,6 +6,7 @@ import { InspectletSpec } from './inspectlet'
 import { LogRocketSpec } from './logrocket'
 import { SentrySpec } from './sentry'
 import { SmartlookSpec } from './smartlook'
+import { PendoSpec } from './pendo'
 
 export type ComparisonTableRow = {
 	feature: string
@@ -44,4 +45,5 @@ export const COMPETITORS: { [k: string]: Competitor } = {
 	'highlight-vs-inspectlet': InspectletSpec,
 	'highlight-vs-datadog': DatadogSpec,
 	'highlight-vs-sentry': SentrySpec,
+	'highlight-vs-pendo': PendoSpec,
 }
