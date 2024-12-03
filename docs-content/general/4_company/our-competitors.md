@@ -69,6 +69,9 @@ We respect our competitors. In fact, we're not in the business of trying to conv
     <DocsCard title="Better Stack" href="https://highlight.io/compare/highlight-vs-better-stack">
         {"Learn more about how we compare to Better Stack."}
     </DocsCard>
+    <DocsCard title="HyperDX" href="https://highlight.io/compare/highlight-vs-hyperdx">
+        {"Learn more about how we compare to HyperDX."}
+    </DocsCard>
 </DocsCardGroup>
 
 ## Logging Competitors
@@ -88,5 +91,8 @@ We respect our competitors. In fact, we're not in the business of trying to conv
     </DocsCard>
     <DocsCard title="Better Stack" href="https://highlight.io/compare/highlight-vs-better-stack">
         {"Learn more about how we compare to Better Stack."}
+    </DocsCard>
+    <DocsCard title="HyperDX" href="https://highlight.io/compare/highlight-vs-hyperdx">
+        {"Learn more about how we compare to HyperDX."}
     </DocsCard>
 </DocsCardGroup>
