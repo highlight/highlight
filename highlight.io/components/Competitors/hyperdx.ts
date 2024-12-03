@@ -148,7 +148,7 @@ export const HyperDxSpec: Competitor = {
 		HighlightShipsNewFeatures,
 		{
 			header: 'Full-stack Observability',
-			body: 'While HyperDX provides a comprehensive set of separate features for error monitoring and session replay, it does not support logging. [Highlight.io](https://highlight.io) enables teams to monitor and optimize their entire tech stack, pairing server-side infrastructure with your frontend web applications. This makes Highlight.io a more comprehensive solution for developers who need to monitor their entire tech stack, in a simple, easy to implement solution.',
+			body: 'While HyperDX provides a set of separate features for error monitoring, session replay, and logging, it lacks some more comprehensive features. [Highlight.io](https://highlight.io) enables teams to monitor and optimize their entire tech stack, pairing server-side infrastructure with your frontend web applications. This makes Highlight.io a more comprehensive solution for developers who need to monitor their entire tech stack, in a simple, easy to implement solution.',
 		},
 	],
 }
