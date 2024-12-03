@@ -60,6 +60,9 @@ We respect our competitors. In fact, we're not in the business of trying to conv
     <DocsCard title="Site24x7" href="https://highlight.io/compare/highlight-vs-site24x7">
         {"Learn more about how we compare to Site24x7."}
     </DocsCard>
+    <DocsCard title="LogicMonitor" href="https://highlight.io/compare/highlight-vs-logicmonitor">
+        {"Learn more about how we compare to LogicMonitor."}
+    </DocsCard>
 </DocsCardGroup>
 
 ## Logging Competitors
