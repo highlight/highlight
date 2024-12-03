@@ -31,6 +31,9 @@ We respect our competitors. In fact, we're not in the business of trying to conv
     <DocsCard title="Sentry" href="https://highlight.io/compare/highlight-vs-sentry">
         {"Learn more about how we compare to Sentry."}
     </DocsCard>
+    <DocsCard title="Heap" href="https://highlight.io/compare/highlight-vs-heap">
+        {"Learn more about how we compare to Heap."}
+    </DocsCard>
 </DocsCardGroup>
 
 ## Error Monitoring Competitors
@@ -41,6 +44,9 @@ We respect our competitors. In fact, we're not in the business of trying to conv
     </DocsCard>
     <DocsCard title="Sentry" href="https://highlight.io/compare/highlight-vs-sentry">
         {"Learn more about how we compare to Sentry."}
+    </DocsCard>
+    <DocsCard title="Heap" href="https://highlight.io/compare/highlight-vs-heap">
+        {"Learn more about how we compare to Heap."}
     </DocsCard>
 </DocsCardGroup>
 
