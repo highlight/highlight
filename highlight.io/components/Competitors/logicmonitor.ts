@@ -74,7 +74,7 @@ export const LogicMonitorSpec: Competitor = {
 				{
 					feature: 'Embedded, fullstack error monitoring',
 					highlight: 1,
-					competitor: 0,
+					competitor: 1,
 				},
 				{
 					feature: 'Canvas & WebGL Recording',
@@ -148,7 +148,7 @@ export const LogicMonitorSpec: Competitor = {
 		HighlightShipsNewFeatures,
 		{
 			header: 'Full-stack Observability',
-			body: 'While LogicMonitor provides a comprehensive set of separate features for error monitoring and session replay, it does not support logging. [Highlight.io](https://highlight.io) enables teams to monitor and optimize their entire tech stack, pairing server-side infrastructure with your frontend web applications. This makes Highlight.io a more comprehensive solution for developers who need to monitor their entire tech stack, in a simple, easy to implement solution.',
+			body: 'While LogicMonitor provides a comprehensive set of separate features for error monitoring, it does not support session replay or logging. [Highlight.io](https://highlight.io) enables teams to monitor and optimize their entire tech stack, pairing server-side infrastructure with your frontend web applications. This makes Highlight.io a more comprehensive solution for developers who need to monitor their entire tech stack, in a simple, easy to implement solution.',
 		},
 	],
 }
