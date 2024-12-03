@@ -45,5 +45,5 @@ export const COMPETITORS: { [k: string]: Competitor } = {
 	'highlight-vs-inspectlet': InspectletSpec,
 	'highlight-vs-datadog': DatadogSpec,
 	'highlight-vs-sentry': SentrySpec,
-	'highlight-vs-heap': HeapSpec
+	'highlight-vs-heap': HeapSpec,
 }
