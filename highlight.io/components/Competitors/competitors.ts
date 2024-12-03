@@ -13,6 +13,7 @@ import { PendoSpec } from './pendo'
 import { HeapSpec } from './heap'
 import { LogicMonitorSpec } from './logicmonitor'
 import { Last9Spec } from './last9'
+import { AxiomSpec } from './axiom'
 
 export type ComparisonTableRow = {
 	feature: string
@@ -58,4 +59,5 @@ export const COMPETITORS: { [k: string]: Competitor } = {
 	'highlight-vs-heap': HeapSpec,
 	'highlight-vs-logicmonitor': LogicMonitorSpec,
 	'highlight-vs-last9': Last9Spec,
+	'highlight-vs-axiom': AxiomSpec,
 }

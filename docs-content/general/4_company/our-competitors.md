@@ -63,6 +63,9 @@ We respect our competitors. In fact, we're not in the business of trying to conv
     <DocsCard title="LogicMonitor" href="https://highlight.io/compare/highlight-vs-logicmonitor">
         {"Learn more about how we compare to LogicMonitor."}
     </DocsCard>
+    <DocsCard title="Axiom" href="https://highlight.io/compare/highlight-vs-axiom">
+        {"Learn more about how we compare to Axiom."}
+    </DocsCard>
 </DocsCardGroup>
 
 ## Logging Competitors
@@ -76,5 +79,8 @@ We respect our competitors. In fact, we're not in the business of trying to conv
     </DocsCard>
     <DocsCard title="Last9" href="https://highlight.io/compare/highlight-vs-last9">
         {"Learn more about how we compare to Last9."}
+    </DocsCard>
+    <DocsCard title="Axiom" href="https://highlight.io/compare/highlight-vs-axiom">
+        {"Learn more about how we compare to Axiom."}
     </DocsCard>
 </DocsCardGroup>
