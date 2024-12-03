@@ -273,6 +273,8 @@ func processMetricAlert(ctx context.Context, DB *gorm.DB, MailClient *sendgrid.C
 
 	for _, bucket := range bucketsInner {
 		if bucket.MetricValue == nil {
+			alertStateChange := getAlertStateChange(curDate, false, alert.ID, strings.Join(bucket.Group, ""), lastAlerts, cooldown)
+			stateChanges = append(stateChanges, alertStateChange)
 			continue
 		}
 
