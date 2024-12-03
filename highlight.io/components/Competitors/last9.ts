@@ -143,11 +143,11 @@ export const Last9Spec: Competitor = {
 		},
 	],
 	paragraphs: [
-		HighlightIsOpenAndTransparent('Sentry'),
+		HighlightIsOpenAndTransparent('Last9'),
 		HighlightShipsNewFeatures,
 		{
 			header: 'Full-stack Observability',
-			body: 'While Sentry provides a comprehensive set of separate features for error monitoring and session replay, it does not support logging. [Highlight.io](https://highlight.io) enables teams to monitor and optimize their entire tech stack, pairing server-side infrastructure with your frontend web applications. This makes Highlight.io a more comprehensive solution for developers who need to monitor their entire tech stack, in a simple, easy to implement solution.',
+			body: 'While Last9 provides a comprehensive set of separate features for logging, it does not support error monitoring or session replay. [Highlight.io](https://highlight.io) enables teams to monitor and optimize their entire tech stack, pairing server-side infrastructure with your frontend web applications. This makes Highlight.io a more comprehensive solution for developers who need to monitor their entire tech stack, in a simple, easy to implement solution.',
 		},
 	],
 }
