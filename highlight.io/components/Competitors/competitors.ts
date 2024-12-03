@@ -10,6 +10,7 @@ import { Site24x7Spec } from './site24x7'
 import { SprigSpec } from './sprig'
 import { MouseflowSpec } from './mouseflow'
 import { PendoSpec } from './pendo'
+import { HeapSpec } from './heap'
 
 export type ComparisonTableRow = {
 	feature: string
@@ -52,4 +53,5 @@ export const COMPETITORS: { [k: string]: Competitor } = {
 	'highlight-vs-sprig': SprigSpec,
 	'highlight-vs-mouseflow': MouseflowSpec,
 	'highlight-vs-pendo': PendoSpec,
+	'highlight-vs-heap': HeapSpec,
 }
