@@ -16,6 +16,7 @@ import { Last9Spec } from './last9'
 import { AxiomSpec } from './axiom'
 import { BetterStackSpec } from './better-stack'
 import { HyperDxSpec } from './hyperdx'
+import { Dash0Spec } from './dash0'
 
 export type ComparisonTableRow = {
 	feature: string
@@ -64,4 +65,5 @@ export const COMPETITORS: { [k: string]: Competitor } = {
 	'highlight-vs-axiom': AxiomSpec,
 	'highlight-vs-better-stack': BetterStackSpec,
 	'highlight-vs-hyperdx': HyperDxSpec,
+	'highlight-vs-dash0': Dash0Spec,
 }

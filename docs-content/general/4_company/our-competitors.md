@@ -95,4 +95,7 @@ We respect our competitors. In fact, we're not in the business of trying to conv
     <DocsCard title="HyperDX" href="https://highlight.io/compare/highlight-vs-hyperdx">
         {"Learn more about how we compare to HyperDX."}
     </DocsCard>
+    <DocsCard title="Dash0" href="https://highlight.io/compare/highlight-vs-dash0">
+        {"Learn more about how we compare to Dash0."}
+    </DocsCard>
 </DocsCardGroup>
