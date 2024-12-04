@@ -27,11 +27,18 @@ type FormComponent = React.FC<Props> & {
 interface LabelProps {
 	label: string
 	name: InputProps['name']
+	disabled?: boolean
 	tag?: ReactNode
 	optional?: boolean
 }
 
-export const Label: React.FC<LabelProps> = ({ label, name, tag, optional }) => {
+export const Label: React.FC<LabelProps> = ({
+	label,
+	name,
+	tag,
+	optional,
+	disabled,
+}) => {
 	return (
 		<Box display="flex" flexDirection="row" gap="6">
 			{label && (
@@ -46,7 +53,9 @@ export const Label: React.FC<LabelProps> = ({ label, name, tag, optional }) => {
 							userSelect="none"
 							size="xSmall"
 							weight="medium"
-							color="weak"
+							color={
+								disabled ? 'secondaryContentOnDisabled' : 'weak'
+							}
 						>
 							{label}
 						</Text>
@@ -62,6 +71,7 @@ export const Label: React.FC<LabelProps> = ({ label, name, tag, optional }) => {
 type HasLabel = {
 	name: Ariakit.FormInputProps['name']
 	label?: string
+	disabled?: boolean
 	optional?: boolean
 	tag?: ReactNode
 	icon?: ReactNode
@@ -69,6 +79,7 @@ type HasLabel = {
 export const NamedSection = ({
 	children,
 	label,
+	disabled,
 	name,
 	tag,
 	icon,
@@ -77,7 +88,14 @@ export const NamedSection = ({
 	return label ? (
 		<Box display="flex" flexDirection="column" width="full" gap="4">
 			<Box display="flex" flexDirection="row" gap="6" alignItems="center">
-				{label && <Label label={label} name={name} tag={tag} />}
+				{label && (
+					<Label
+						label={label}
+						name={name}
+						tag={tag}
+						disabled={disabled}
+					/>
+				)}
 				{optional && (
 					<Badge shape="basic" size="small" label="Optional" />
 				)}
@@ -97,11 +115,12 @@ export const Form: FormComponent = ({
 	children,
 	defaultValues,
 	store,
+	noValidate = false, // use browser validation by default
 	...props
 }: Props) => {
 	return (
 		<Ariakit.FormProvider defaultValues={defaultValues} store={store}>
-			<Ariakit.Form {...props} role="form">
+			<Ariakit.Form noValidate={noValidate} {...props} role="form">
 				{children}
 			</Ariakit.Form>
 		</Ariakit.FormProvider>
@@ -167,7 +186,13 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
 		}
 
 		return (
-			<NamedSection label={label} name={name} icon={icon} tag={labelTag}>
+			<NamedSection
+				label={label}
+				name={name}
+				icon={icon}
+				tag={labelTag}
+				disabled={props.disabled}
+			>
 				<Box position="relative" flex="stretch">
 					<Ariakit.FormInput
 						ref={inputRef}
@@ -267,6 +292,7 @@ export const Select = ({
 					name={name}
 					tag={tag}
 					optional={optional}
+					disabled={disabled}
 				/>
 			)}
 			<Ariakit.FormInput

@@ -413,25 +413,24 @@ type GitlabProject struct {
 }
 
 type GraphInput struct {
-	ID                *int               `json:"id,omitempty"`
-	VisualizationID   int                `json:"visualizationId"`
-	AfterGraphID      *int               `json:"afterGraphId,omitempty"`
-	Type              string             `json:"type"`
-	Title             string             `json:"title"`
-	ProductType       ProductType        `json:"productType"`
-	Query             string             `json:"query"`
-	Metric            string             `json:"metric"`
-	FunctionType      MetricAggregator   `json:"functionType"`
-	GroupByKeys       pq.StringArray     `json:"groupByKeys,omitempty"`
-	BucketByKey       *string            `json:"bucketByKey,omitempty"`
-	BucketCount       *int               `json:"bucketCount,omitempty"`
-	BucketInterval    *int               `json:"bucketInterval,omitempty"`
-	Limit             *int               `json:"limit,omitempty"`
-	LimitFunctionType *MetricAggregator  `json:"limitFunctionType,omitempty"`
-	LimitMetric       *string            `json:"limitMetric,omitempty"`
-	FunnelSteps       []*FunnelStepInput `json:"funnelSteps,omitempty"`
-	Display           *string            `json:"display,omitempty"`
-	NullHandling      *string            `json:"nullHandling,omitempty"`
+	ID                *int                     `json:"id,omitempty"`
+	VisualizationID   int                      `json:"visualizationId"`
+	AfterGraphID      *int                     `json:"afterGraphId,omitempty"`
+	Type              string                   `json:"type"`
+	Title             string                   `json:"title"`
+	ProductType       ProductType              `json:"productType"`
+	Query             string                   `json:"query"`
+	GroupByKeys       pq.StringArray           `json:"groupByKeys,omitempty"`
+	BucketByKey       *string                  `json:"bucketByKey,omitempty"`
+	BucketCount       *int                     `json:"bucketCount,omitempty"`
+	BucketInterval    *int                     `json:"bucketInterval,omitempty"`
+	Limit             *int                     `json:"limit,omitempty"`
+	LimitFunctionType *MetricAggregator        `json:"limitFunctionType,omitempty"`
+	LimitMetric       *string                  `json:"limitMetric,omitempty"`
+	FunnelSteps       []*FunnelStepInput       `json:"funnelSteps,omitempty"`
+	Display           *string                  `json:"display,omitempty"`
+	NullHandling      *string                  `json:"nullHandling,omitempty"`
+	Expressions       []*MetricExpressionInput `json:"expressions"`
 }
 
 type HeightList struct {
@@ -613,11 +612,21 @@ type MetricBucket struct {
 	BucketMin   float64          `json:"bucket_min"`
 	BucketMax   float64          `json:"bucket_max"`
 	Group       []string         `json:"group"`
-	Column      MetricColumn     `json:"column"`
+	Column      string           `json:"column"`
 	MetricType  MetricAggregator `json:"metric_type"`
 	MetricValue *float64         `json:"metric_value,omitempty"`
 	YhatLower   *float64         `json:"yhat_lower,omitempty"`
 	YhatUpper   *float64         `json:"yhat_upper,omitempty"`
+}
+
+type MetricExpression struct {
+	Aggregator MetricAggregator `json:"aggregator"`
+	Column     string           `json:"column"`
+}
+
+type MetricExpressionInput struct {
+	Aggregator MetricAggregator `json:"aggregator"`
+	Column     string           `json:"column"`
 }
 
 type MetricPreview struct {
@@ -1709,45 +1718,6 @@ func (e *MetricBucketBy) UnmarshalGQL(v interface{}) error {
 }
 
 func (e MetricBucketBy) MarshalGQL(w io.Writer) {
-	fmt.Fprint(w, strconv.Quote(e.String()))
-}
-
-type MetricColumn string
-
-const (
-	MetricColumnDuration MetricColumn = "Duration"
-)
-
-var AllMetricColumn = []MetricColumn{
-	MetricColumnDuration,
-}
-
-func (e MetricColumn) IsValid() bool {
-	switch e {
-	case MetricColumnDuration:
-		return true
-	}
-	return false
-}
-
-func (e MetricColumn) String() string {
-	return string(e)
-}
-
-func (e *MetricColumn) UnmarshalGQL(v interface{}) error {
-	str, ok := v.(string)
-	if !ok {
-		return fmt.Errorf("enums must be strings")
-	}
-
-	*e = MetricColumn(str)
-	if !e.IsValid() {
-		return fmt.Errorf("%s is not a valid MetricColumn", str)
-	}
-	return nil
-}
-
-func (e MetricColumn) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(e.String()))
 }
 

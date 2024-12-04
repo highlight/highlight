@@ -165,8 +165,6 @@ export const ExpandedGraph = () => {
 									endDate={endDate}
 									selectedPreset={selectedPreset}
 									query={g.query}
-									metric={g.metric}
-									functionType={g.functionType}
 									bucketByKey={g.bucketByKey ?? undefined}
 									bucketByWindow={
 										g.bucketInterval ?? undefined
@@ -180,6 +178,7 @@ export const ExpandedGraph = () => {
 									limitMetric={g.limitMetric ?? undefined}
 									setTimeRange={updateSearchTime}
 									variables={values}
+									expressions={g.expressions}
 								/>
 							</Box>
 						</GraphBackgroundWrapper>

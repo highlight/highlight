@@ -1606,8 +1606,6 @@ export type UpsertGraphMutation = { __typename?: 'Mutation' } & {
 		| 'title'
 		| 'productType'
 		| 'query'
-		| 'metric'
-		| 'functionType'
 		| 'groupByKeys'
 		| 'bucketByKey'
 		| 'bucketCount'
@@ -1623,6 +1621,12 @@ export type UpsertGraphMutation = { __typename?: 'Mutation' } & {
 						Types.FunnelStep,
 						'title' | 'query'
 					>
+				>
+			>
+			expressions: Array<
+				{ __typename?: 'MetricExpression' } & Pick<
+					Types.MetricExpression,
+					'aggregator' | 'column'
 				>
 			>
 		}
@@ -5169,8 +5173,6 @@ export type GetMetricsQueryVariables = Types.Exact<{
 	product_type: Types.ProductType
 	project_id: Types.Scalars['ID']
 	params: Types.QueryInput
-	column: Types.Scalars['String']
-	metric_types: Array<Types.MetricAggregator> | Types.MetricAggregator
 	group_by: Array<Types.Scalars['String']> | Types.Scalars['String']
 	bucket_by: Types.Scalars['String']
 	bucket_count?: Types.Maybe<Types.Scalars['Int']>
@@ -5179,6 +5181,9 @@ export type GetMetricsQueryVariables = Types.Exact<{
 	limit_aggregator?: Types.Maybe<Types.MetricAggregator>
 	limit_column?: Types.Maybe<Types.Scalars['String']>
 	prediction_settings?: Types.Maybe<Types.PredictionSettings>
+	expressions:
+		| Array<Types.MetricExpressionInput>
+		| Types.MetricExpressionInput
 }>
 
 export type GetMetricsQuery = { __typename?: 'Query' } & {
@@ -5193,6 +5198,7 @@ export type GetMetricsQuery = { __typename?: 'Query' } & {
 					| 'bucket_min'
 					| 'bucket_max'
 					| 'group'
+					| 'column'
 					| 'metric_type'
 					| 'metric_value'
 					| 'yhat_lower'
@@ -5216,8 +5222,6 @@ export type GetGraphTemplatesQuery = { __typename?: 'Query' } & {
 			| 'description'
 			| 'productType'
 			| 'query'
-			| 'metric'
-			| 'functionType'
 			| 'groupByKeys'
 			| 'bucketByKey'
 			| 'bucketCount'
@@ -5234,6 +5238,12 @@ export type GetGraphTemplatesQuery = { __typename?: 'Query' } & {
 							Types.FunnelStep,
 							'title' | 'query'
 						>
+					>
+				>
+				expressions: Array<
+					{ __typename?: 'MetricExpression' } & Pick<
+						Types.MetricExpression,
+						'aggregator' | 'column'
 					>
 				>
 			}
@@ -5264,8 +5274,6 @@ export type GetVisualizationQuery = { __typename?: 'Query' } & {
 					| 'description'
 					| 'productType'
 					| 'query'
-					| 'metric'
-					| 'functionType'
 					| 'groupByKeys'
 					| 'bucketByKey'
 					| 'bucketCount'
@@ -5282,6 +5290,12 @@ export type GetVisualizationQuery = { __typename?: 'Query' } & {
 									Types.FunnelStep,
 									'title' | 'query'
 								>
+							>
+						>
+						expressions: Array<
+							{ __typename?: 'MetricExpression' } & Pick<
+								Types.MetricExpression,
+								'aggregator' | 'column'
 							>
 						>
 					}
@@ -5329,8 +5343,6 @@ export type GetVisualizationsQuery = { __typename?: 'Query' } & {
 								| 'title'
 								| 'productType'
 								| 'query'
-								| 'metric'
-								| 'functionType'
 								| 'groupByKeys'
 								| 'bucketByKey'
 								| 'bucketCount'
@@ -5349,6 +5361,14 @@ export type GetVisualizationsQuery = { __typename?: 'Query' } & {
 												Types.FunnelStep,
 												'title' | 'query'
 											>
+										>
+									>
+									expressions: Array<
+										{
+											__typename?: 'MetricExpression'
+										} & Pick<
+											Types.MetricExpression,
+											'aggregator' | 'column'
 										>
 									>
 								}

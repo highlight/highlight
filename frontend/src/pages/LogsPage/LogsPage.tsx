@@ -212,11 +212,12 @@ const LogsPageInner = ({ timeMode, logCursor, presetDefault }: Props) => {
 						),
 					},
 				},
-				column: '',
-				metric_types: MetricAggregator.Count,
 				group_by: 'level',
 				bucket_by: TIMESTAMP_KEY,
 				bucket_count: 90,
+				expressions: [
+					{ aggregator: MetricAggregator.Count, column: '' },
+				],
 			},
 			skip: !projectId,
 		})

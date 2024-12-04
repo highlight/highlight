@@ -144,7 +144,7 @@ export const SignIn: React.FC<Props> = ({ setResolver }) => {
 								? `You're invited to join ‘${workspaceInvite.workspace_name}’`
 								: 'Welcome back.'}
 						</Heading>
-						{AUTH_MODE !== 'oauth' ? (
+						{AUTH_MODE === 'firebase' ? (
 							<Text>
 								New here?{' '}
 								<Link to={SIGN_UP_ROUTE} state={{ email }}>

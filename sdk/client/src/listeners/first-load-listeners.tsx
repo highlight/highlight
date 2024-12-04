@@ -55,7 +55,7 @@ export class FirstLoadListeners {
 		this.options = options
 		this.disableConsoleRecording = !!options.disableConsoleRecording
 		this.reportConsoleErrors = options.reportConsoleErrors ?? false
-		this.enablePromisePatch = options.enablePromisePatch ?? true
+		this.enablePromisePatch = options.enablePromisePatch ?? false
 		this.consoleMethodsToRecord = options.consoleMethodsToRecord || [
 			...ALL_CONSOLE_METHODS,
 		]
