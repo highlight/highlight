@@ -480,6 +480,14 @@ export const Search: React.FC<{
 			return
 		}
 
+		let query = debouncedValue
+
+		// debouncedValue might not be updated if we just selected a value, so
+		// override it when starting a new filter.
+		if (activePart.key === BODY_KEY && activePart.value === '') {
+			query = activePart.value
+		}
+
 		getKeys({
 			variables: {
 				product_type: productType,
@@ -488,7 +496,7 @@ export const Search: React.FC<{
 					start_date: moment(startDate).format(TIME_FORMAT),
 					end_date: moment(endDate).format(TIME_FORMAT),
 				},
-				query: debouncedValue,
+				query,
 				event: event,
 			},
 			fetchPolicy: 'cache-first',
@@ -496,6 +504,7 @@ export const Search: React.FC<{
 				setKeys(data.keys)
 			},
 		})
+		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [
 		debouncedValue,
 		showValues,
