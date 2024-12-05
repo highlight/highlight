@@ -1057,12 +1057,12 @@ export const Search: React.FC<{
 							right: 0,
 						}}
 					>
-						<Box display="flex" flexDirection="row" gap="20">
+						<Box display="flex" flexDirection="row" gap="16">
 							<Box
 								display="inline-flex"
 								flexDirection="row"
 								alignItems="center"
-								gap="6"
+								gap="4"
 							>
 								<Badge
 									variant="gray"
@@ -1077,7 +1077,7 @@ export const Search: React.FC<{
 								display="inline-flex"
 								flexDirection="row"
 								alignItems="center"
-								gap="6"
+								gap="4"
 							>
 								<Badge
 									variant="gray"
@@ -1093,7 +1093,7 @@ export const Search: React.FC<{
 									display="inline-flex"
 									flexDirection="row"
 									alignItems="center"
-									gap="6"
+									gap="4"
 								>
 									<Badge
 										variant="gray"
@@ -1105,7 +1105,7 @@ export const Search: React.FC<{
 										}
 									/>
 									<Text color="weak" size="xSmall">
-										Select + New
+										Select+New
 									</Text>
 								</Box>
 							)}
