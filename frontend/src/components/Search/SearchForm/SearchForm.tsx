@@ -54,11 +54,11 @@ import {
 	useGetKeyValuesLazyQuery,
 } from '@/graph/generated/hooks'
 import { ProductType, SavedSegmentEntityType } from '@/graph/generated/schemas'
-import { useDebounce } from '@/hooks/useDebounce'
 import { useApplicationContext } from '@/routers/AppRouter/context/ApplicationContext'
 import { SearchEntry } from './hooks'
 import { AiSearch } from './AiSearch'
 import * as styles from './SearchForm.css'
+import { debounce } from 'lodash'
 
 export const QueryParam = withDefault(StringParam, '')
 export const FixedRangePreset = DEFAULT_TIME_PRESETS[0]
@@ -389,9 +389,6 @@ export const Search: React.FC<{
 	const [isPending, startTransition] = React.useTransition()
 
 	const activePart = getActivePart(cursorIndex, queryParts)
-	const { debouncedValue, setDebouncedValue } = useDebounce<string>(
-		activePart.value,
-	)
 
 	useEffect(() => {
 		// necessary to update the combobox with the URL state
@@ -480,20 +477,26 @@ export const Search: React.FC<{
 		}
 	}
 
+	const debouncedGetKeysRef =
+		React.useRef<ReturnType<typeof debounce<typeof getKeys>>>()
+	if (!debouncedGetKeysRef.current) {
+		debouncedGetKeysRef.current = debounce(getKeys, 300, { leading: true })
+	}
+
+	const debouncedGetKeyValuesRef =
+		React.useRef<ReturnType<typeof debounce<typeof getKeyValues>>>()
+	if (!debouncedGetKeyValuesRef.current) {
+		debouncedGetKeyValuesRef.current = debounce(getKeyValues, 300, {
+			leading: true,
+		})
+	}
+
 	useEffect(() => {
-		if (showValues) {
+		if (showValues || !debouncedGetKeysRef.current) {
 			return
 		}
 
-		let query = debouncedValue
-
-		// debouncedValue might not be updated if we just selected a value, so
-		// override it when starting a new filter.
-		if (activePart.key === BODY_KEY && activePart.value === '') {
-			query = ''
-		}
-
-		getKeys({
+		debouncedGetKeysRef.current({
 			variables: {
 				product_type: productType,
 				project_id: project_id!,
@@ -501,7 +504,7 @@ export const Search: React.FC<{
 					start_date: moment(startDate).format(TIME_FORMAT),
 					end_date: moment(endDate).format(TIME_FORMAT),
 				},
-				query,
+				query: activePart.value,
 				event: event,
 			},
 			fetchPolicy: 'cache-first',
@@ -510,18 +513,10 @@ export const Search: React.FC<{
 			},
 		})
 		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [debouncedValue, showValues, startDate, endDate, productType, event])
+	}, [activePart.value, showValues, startDate, endDate, productType, event])
 
 	useEffect(() => {
-		// When we transition to a new key we don't want to wait for the debounce
-		// delay to update the value for key fetching.
-		if (activePart.value === '' && activePart.key === BODY_KEY) {
-			setDebouncedValue('')
-		}
-	}, [activePart.key, activePart.value, setDebouncedValue])
-
-	useEffect(() => {
-		if (!showValues) {
+		if (!showValues || !debouncedGetKeyValuesRef.current) {
 			return
 		}
 
@@ -531,15 +526,7 @@ export const Search: React.FC<{
 			return
 		}
 
-		let query = debouncedValue
-
-		// debouncedValue might not be updated if we just selected an operator, so
-		// override it to prevent querying with the stale value.
-		if (activePart.key !== BODY_KEY && activePart.value === '') {
-			query = ''
-		}
-
-		getKeyValues({
+		debouncedGetKeyValuesRef.current({
 			variables: {
 				product_type: productType,
 				project_id: project_id!,
@@ -548,7 +535,7 @@ export const Search: React.FC<{
 					start_date: moment(startDate).format(TIME_FORMAT),
 					end_date: moment(endDate).format(TIME_FORMAT),
 				},
-				query,
+				query: activePart.value,
 				count: 25,
 				event,
 			},
@@ -558,7 +545,7 @@ export const Search: React.FC<{
 			},
 		})
 		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [debouncedValue, showValues, startDate, endDate, productType, event])
+	}, [activePart.value, showValues, startDate, endDate, productType, event])
 
 	useEffect(() => {
 		// Ensure the cursor is placed in the correct position after updating the
