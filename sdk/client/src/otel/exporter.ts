@@ -1,5 +1,7 @@
 import { OTLPTraceExporter } from '@opentelemetry/exporter-trace-otlp-http'
 import type { ReadableSpan } from '@opentelemetry/sdk-trace-web'
+import { OTLPExporterError } from '@opentelemetry/otlp-exporter-base'
+import { MAX_PUBLIC_GRAPH_RETRY_ATTEMPTS } from '../utils/graph'
 
 type ExporterConfig = ConstructorParameters<typeof OTLPTraceExporter>[0]
 type SendOnErrorCallback = Parameters<OTLPTraceExporter['send']>[2]
@@ -28,19 +30,20 @@ export class OTLPTraceExporterBrowserWithXhrRetry extends OTLPTraceExporter {
 		onSuccess: () => void,
 		onError: SendOnErrorCallback,
 	): void {
-		super.send(items, onSuccess, (error) => {
-			if (error.message.toLocaleLowerCase().includes('beacon')) {
-				this.xhrTraceExporter.send(items, onSuccess, (xhrError) => {
-					onError({
-						...error,
-						message: `${error.message} --- [XHR retry message: ${xhrError.message}; code: ${xhrError.code}].`,
-						code: error.code,
-						data: `${error.data} --- [XHR retry data: ${xhrError.data}].`,
-					})
-				})
-			} else {
+		let retries = 0
+		const retry = (error: OTLPExporterError) => {
+			retries++
+			if (retries > MAX_PUBLIC_GRAPH_RETRY_ATTEMPTS) {
+				console.error(
+					`[highlight.io] failed to export OTeL traces: ${error.message}`,
+					error,
+				)
 				onError(error)
+			} else {
+				this.xhrTraceExporter.send(items, onSuccess, retry)
 			}
-		})
+		}
+
+		super.send(items, onSuccess, retry)
 	}
 }
