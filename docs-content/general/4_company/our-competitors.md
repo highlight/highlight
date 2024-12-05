@@ -34,6 +34,9 @@ We respect our competitors. In fact, we're not in the business of trying to conv
     <DocsCard title="Mouseflow" href="https://highlight.io/compare/highlight-vs-mouseflow">
         {"Learn more about how we compare to Mouseflow."}
     </DocsCard>
+    <DocsCard title="Site24x7" href="https://highlight.io/compare/highlight-vs-site24x7">
+        {"Learn more about how we compare to Site24x7."}
+    </DocsCard>
 </DocsCardGroup>
 
 ## Error Monitoring Competitors
@@ -45,6 +48,9 @@ We respect our competitors. In fact, we're not in the business of trying to conv
     <DocsCard title="Sentry" href="https://highlight.io/compare/highlight-vs-sentry">
         {"Learn more about how we compare to Sentry."}
     </DocsCard>
+    <DocsCard title="Site24x7" href="https://highlight.io/compare/highlight-vs-site24x7">
+        {"Learn more about how we compare to Site24x7."}
+    </DocsCard>
 </DocsCardGroup>
 
 ## Logging Competitors
@@ -52,5 +58,8 @@ We respect our competitors. In fact, we're not in the business of trying to conv
 <DocsCardGroup>
     <DocsCard title="Datadog" href="https://highlight.io/compare/highlight-vs-datadog">
         {"Learn more about how we compare to Datadog."}
+    </DocsCard>
+    <DocsCard title="Site24x7" href="https://highlight.io/compare/highlight-vs-site24x7">
+        {"Learn more about how we compare to Site24x7."}
     </DocsCard>
 </DocsCardGroup>

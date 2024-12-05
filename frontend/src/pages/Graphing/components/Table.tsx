@@ -5,6 +5,7 @@ import {
 	Stack,
 	Table,
 	Text,
+	Tooltip,
 } from '@highlight-run/ui/components'
 import clsx from 'clsx'
 
@@ -171,16 +172,27 @@ export const MetricTable = ({
 													: undefined
 											}
 										>
-											<Text
-												size="small"
-												color="default"
-												lines="1"
-												cssClass={style.firstCell}
+											<Tooltip
+												delayed
+												trigger={
+													<Text
+														size="small"
+														color="default"
+														lines="1"
+														cssClass={
+															style.firstCell
+														}
+													>
+														{xAxisTickFormatter(
+															d[xAxisMetric],
+														)}
+													</Text>
+												}
 											>
 												{xAxisTickFormatter(
 													d[xAxisMetric],
 												)}
-											</Text>
+											</Tooltip>
 										</Table.Cell>
 									)}
 									{series.map((s, i) => {
@@ -231,13 +243,20 @@ export const MetricTable = ({
 														: undefined
 												}
 											>
-												<Text
-													size="small"
-													color="default"
-													lines="1"
+												<Tooltip
+													delayed
+													trigger={
+														<Text
+															size="small"
+															color="default"
+															lines="1"
+														>
+															{value}
+														</Text>
+													}
 												>
 													{value}
-												</Text>
+												</Tooltip>
 											</Table.Cell>
 										)
 									})}
