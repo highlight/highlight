@@ -297,14 +297,19 @@ const SearchForm: React.FC<SearchFormProps> = ({
 				) : (
 					<>
 						{SearchComponent}
-						<Box display="flex" pr="8" py="6" gap="6">
+						<Box
+							alignItems="flex-start"
+							display="flex"
+							pr="8"
+							py="6"
+							gap="6"
+						>
 							{SegmentMenu}
 							{displaySeparator && (
 								<Box
 									as="span"
 									borderRight="dividerWeak"
-									mt="4"
-									style={{ height: 18 }}
+									style={{ marginTop: 5, height: 18 }}
 								/>
 							)}
 							{AlertComponent}
@@ -485,7 +490,7 @@ export const Search: React.FC<{
 		// debouncedValue might not be updated if we just selected a value, so
 		// override it when starting a new filter.
 		if (activePart.key === BODY_KEY && activePart.value === '') {
-			query = activePart.value
+			query = ''
 		}
 
 		getKeys({
@@ -505,16 +510,7 @@ export const Search: React.FC<{
 			},
 		})
 		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [
-		debouncedValue,
-		showValues,
-		startDate,
-		endDate,
-		project_id,
-		getKeys,
-		productType,
-		event,
-	])
+	}, [debouncedValue, showValues, startDate, endDate, productType, event])
 
 	useEffect(() => {
 		// When we transition to a new key we don't want to wait for the debounce
@@ -535,6 +531,14 @@ export const Search: React.FC<{
 			return
 		}
 
+		let query = debouncedValue
+
+		// debouncedValue might not be updated if we just selected an operator, so
+		// override it to prevent querying with the stale value.
+		if (activePart.key !== BODY_KEY && activePart.value === '') {
+			query = ''
+		}
+
 		getKeyValues({
 			variables: {
 				product_type: productType,
@@ -544,27 +548,17 @@ export const Search: React.FC<{
 					start_date: moment(startDate).format(TIME_FORMAT),
 					end_date: moment(endDate).format(TIME_FORMAT),
 				},
-				query: debouncedValue,
+				query,
 				count: 25,
-				event: event,
+				event,
 			},
 			fetchPolicy: 'cache-first',
 			onCompleted: (data) => {
 				setValues(data.key_values)
 			},
 		})
-	}, [
-		debouncedValue,
-		activePart.key,
-		creatables,
-		endDate,
-		getKeyValues,
-		productType,
-		project_id,
-		showValues,
-		startDate,
-		event,
-	])
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [debouncedValue, showValues, startDate, endDate, productType, event])
 
 	useEffect(() => {
 		// Ensure the cursor is placed in the correct position after updating the
@@ -834,7 +828,13 @@ export const Search: React.FC<{
 				/>
 
 				{isDirty && !disabled && (
-					<Box pt="8" pr="8">
+					<Box
+						position="absolute"
+						style={{
+							right: 8,
+							top: 8,
+						}}
+					>
 						<IconSolidXCircle
 							size={16}
 							onClick={(e) => {
@@ -860,7 +860,7 @@ export const Search: React.FC<{
 					}}
 					store={comboboxStore}
 					gutter={10}
-					sameWidth
+					fixed
 				>
 					<Box cssClass={styles.comboboxResults}>
 						{aiSupportedSearch && activePart.text === '' && (
@@ -1081,9 +1081,9 @@ export const Search: React.FC<{
 									variant="gray"
 									size="small"
 									iconStart={<IconSolidSwitchVertical />}
-								/>{' '}
+								/>
 								<Text color="weak" size="xSmall">
-									Select
+									Navigate
 								</Text>
 							</Box>
 							<Box
@@ -1113,7 +1113,7 @@ export const Search: React.FC<{
 										size="small"
 										label={
 											/mac/i.test(navigator.userAgent)
-												? 'Cmd+Enter'
+												? '⌘+Enter'
 												: 'Ctrl+Enter'
 										}
 									/>
