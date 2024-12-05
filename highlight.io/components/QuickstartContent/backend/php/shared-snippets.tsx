@@ -3,7 +3,7 @@ import { QuickStartStep } from '../../QuickstartContent'
 
 export const installSdk: QuickStartStep = {
 	title: 'Install the Highlight PHP SDK via Composer.',
-	content: 'Add Highlight to your maven pom file.',
+	content: 'Run the following command to install the Highlight SDK for PHP:',
 	code: [
 		{
 			text: `composer require highlight/php-sdk`,
@@ -14,7 +14,7 @@ export const installSdk: QuickStartStep = {
 
 export const initializeSdk: QuickStartStep = {
 	title: 'Initialize the Highlight PHP SDK.',
-	content: '`Highlight.init()` initializes the Highlight backend SDK.',
+	content: 'To initialize the Highlight backend SDK, use one of the initializer methods:',
 	code: [
 		{
 			text: `use Highlight\\SDK\\Common\\HighlightOptions;
@@ -48,12 +48,12 @@ if (!Highlight::isInitialized()) {
 export const customError: QuickStartStep = {
 	title: 'Record custom errors. (optional)',
 	content:
-		'If you want to explicitly send an error to Highlight, you can use the `Highlight.captureException()` method.',
+		'If you want to explicitly send an error to Highlight, you can use the `Highlight::captureException()` method.',
 	code: [
 		{
 			text: `use Highlight\\SDK\\Highlight;
 
-Highlight->captureException(new Exception('This is a test exception'));
+Highlight::captureException(new \\Exception('This is a test exception'));
 `,
 			language: 'php',
 		},

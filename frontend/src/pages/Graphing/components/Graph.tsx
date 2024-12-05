@@ -533,9 +533,9 @@ const getCustomTooltip =
 							0,
 							-VALUE_KEY.length - 1,
 						)
-						const seriesInfo = p.payload[seriesKey][
-							SERIES_KEY
-						] as Series
+						const seriesInfo = p.payload[seriesKey]?.series as
+							| Series
+							| undefined
 						return (
 							<Box
 								display="flex"
@@ -562,7 +562,8 @@ const getCustomTooltip =
 										label={
 											isValid
 												? getTickFormatter(
-														seriesInfo.column,
+														seriesInfo?.column ??
+															'',
 													)(p.value)
 												: ''
 										}
@@ -615,7 +616,7 @@ const getCustomTooltip =
 												loadExemplars(
 													p.payload[BUCKET_MIN_KEY],
 													p.payload[BUCKET_MAX_KEY],
-													seriesInfo.groups,
+													seriesInfo?.groups,
 													p.payload[QUERY_KEY],
 												)
 										}}
@@ -737,7 +738,10 @@ export interface NamedSeries extends Series {
 	name: string
 }
 
-export const getSeriesKey = (s: Series) => {
+export const getSeriesKey = (s: Series | undefined): string => {
+	if (s === undefined) {
+		return 'undefined'
+	}
 	return btoa(JSON.stringify([s.aggregator, s.column, s.groups]))
 }
 
@@ -943,7 +947,10 @@ export const useGraphSeries = (
 		const series =
 			data
 				?.flatMap((d) => Object.entries(d))
-				.filter(([key]) => !excluded.includes(key))
+				.filter(
+					([key, value]) =>
+						!excluded.includes(key) && value !== undefined,
+				)
 				.map(([_, value]: [string, any]) => value[SERIES_KEY] as Series)
 				.filter((v) => v !== undefined) ?? []
 		const deduped = _.uniqBy(series, getSeriesKey)
@@ -1259,58 +1266,6 @@ const Graph = ({
 		predictionSettings,
 		expressions,
 	])
-
-	useEffect(() => {
-		console.log('bucketByKey')
-	}, [bucketByKey])
-	useEffect(() => {
-		console.log('bucketByWindow')
-	}, [bucketByWindow])
-	useEffect(() => {
-		console.log('fetchEnd')
-	}, [fetchEnd])
-	useEffect(() => {
-		console.log('fetchStart')
-	}, [fetchStart])
-	useEffect(() => {
-		console.log('getMetrics')
-	}, [getMetrics])
-	useEffect(() => {
-		console.log('groupByKeys')
-	}, [groupByKeys])
-	useEffect(() => {
-		console.log('limit')
-	}, [limit])
-	useEffect(() => {
-		console.log('limitFunctionType')
-	}, [limitFunctionType])
-	useEffect(() => {
-		console.log('limitMetric')
-	}, [limitMetric])
-	useEffect(() => {
-		console.log('funnelSteps')
-	}, [funnelSteps])
-	useEffect(() => {
-		console.log('productType')
-	}, [productType])
-	useEffect(() => {
-		console.log('projectId')
-	}, [projectId])
-	useEffect(() => {
-		console.log('queriedBucketCount')
-	}, [queriedBucketCount])
-	useEffect(() => {
-		console.log('query')
-	}, [query])
-	useEffect(() => {
-		console.log('variables')
-	}, [variables])
-	useEffect(() => {
-		console.log('predictionSettings')
-	}, [predictionSettings])
-	useEffect(() => {
-		console.log('expressions')
-	}, [expressions])
 
 	const graphData = useGraphData(
 		results?.at(0),
