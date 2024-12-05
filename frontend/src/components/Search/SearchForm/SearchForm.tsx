@@ -558,7 +558,7 @@ export const Search: React.FC<{
 	])
 
 	useEffect(() => {
-		// Ensure the cursor is placed in the correct position after update the
+		// Ensure the cursor is placed in the correct position after updating the
 		// query from selecting a dropdown item.
 		inputRef.current?.setSelectionRange(cursorIndex, cursorIndex)
 		// eslint-disable-next-line react-hooks/exhaustive-deps
@@ -646,13 +646,14 @@ export const Search: React.FC<{
 
 		startTransition(() => {
 			setQuery(newQuery)
-			setCursorIndex(newCursorPosition)
 
-			if (isValueSelect || isExists) {
+			if ((isValueSelect && !selectNewItem) || isExists) {
 				submitQuery(newQuery)
 				comboboxStore.setOpen(false)
 			}
 		})
+
+		setCursorIndex(newCursorPosition)
 
 		comboboxStore.setActiveId(null)
 		comboboxStore.setState('moves', 0)
@@ -1091,7 +1092,7 @@ export const Search: React.FC<{
 									Select
 								</Text>
 							</Box>
-							{activePart.key !== BODY_KEY && !showOperators && (
+							{showValues && (
 								<Box
 									display="inline-flex"
 									flexDirection="row"
