@@ -14,7 +14,8 @@ export const installSdk: QuickStartStep = {
 
 export const initializeSdk: QuickStartStep = {
 	title: 'Initialize the Highlight PHP SDK.',
-	content: 'To initialize the Highlight backend SDK, use one of the initializer methods:',
+	content:
+		'To initialize the Highlight backend SDK, use one of the initializer methods:',
 	code: [
 		{
 			text: `use Highlight\\SDK\\Common\\HighlightOptions;
