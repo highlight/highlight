@@ -43,6 +43,7 @@ import { SearchContext } from '@/components/Search/SearchContext'
 import { useRelatedResource } from '@/components/RelatedResources/hooks'
 
 import { ConsolePage } from './ConsolePage/ConsolePage'
+import { TracesPage } from './TracesPage/TracesPage'
 import * as styles from './style.css'
 
 const DEFAULT_LOG_SEARCH = `source=${LogSource.Frontend} `
@@ -205,6 +206,9 @@ const DevToolsWindowV2: React.FC<
 												</Tabs.Tab>
 												<Tabs.Tab id={Tab.Network}>
 													Network
+												</Tabs.Tab>
+												<Tabs.Tab id={Tab.Traces}>
+													Traces
 												</Tabs.Tab>
 												<Tabs.Tab id={Tab.Performance}>
 													Performance
@@ -397,6 +401,16 @@ const DevToolsWindowV2: React.FC<
 										requestStatuses={requestStatuses}
 										filter={filter}
 										time={time}
+									/>
+								</Tabs.Panel>
+								<Tabs.Panel id={Tab.Traces}>
+									<TracesPage
+										autoScroll={autoScroll}
+										// TODO(vkorolik) query/cursor
+										logCursor={logCursor}
+										filter={filter}
+										query={logQuery}
+										panelHeight={panelHeight}
 									/>
 								</Tabs.Panel>
 								<Tabs.Panel id={Tab.Performance}>
