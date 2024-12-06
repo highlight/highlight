@@ -50,6 +50,11 @@ func TestWildcardSearch(t *testing.T) {
 	assert.Equal(t, "SELECT * FROM t WHERE SpanName ILIKE '%asdf%' AND ServiceName ILIKE '%-graph%'", sql)
 }
 
+func TestSpacesInSearch(t *testing.T) {
+	sql, _ := buildSqlForQuery("span_name !=  KafkaWorkersOnStrike")
+	assert.Equal(t, "SELECT * FROM t WHERE NOT (toString(SpanName) = 'KafkaWorkersOnStrike')", sql)
+}
+
 func buildSqlForQuery(query string) (string, error) {
 	sqlBuilder := sqlbuilder.NewSelectBuilder()
 	sb := sqlBuilder.Select("*").From("t")
