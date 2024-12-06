@@ -16,31 +16,29 @@ export const OSSCallToAction = () => {
 				}}
 			>
 				<h3 className="text-center leading-normal">
-					Check out the{' '}
+					Master OpenTelemetry with our{' '}
 					<span className={styles.highlightedText}>
-						Optimizing AI Applications with OpenTelemetry
-					</span>{' '}
-					livestream.
+						Free Comprehensive Course
+					</span>
 				</h3>
 				<div className="text-center px-2 md:px-16 mt-6">
 					<Typography type="copy1" className="leading-relaxed">
-						Join us November 5th at 9am PT to learn about optimizing
-						AI applications. We&apos;ll cover best practices,
-						performance tips, and monitoring strategies to enhance
-						AI-powered software.
+						From fundamentals to advanced implementations, learn how
+						OpenTelemetry can transform your engineering team&apos;s
+						observability practices. Ideal for engineering leaders
+						and developers building production-ready monitoring
+						solutions.
 					</Typography>
 				</div>
 				<div className="flex justify-center mt-8">
 					<div className="flex flex-col lg:flex-row justify-center gap-4 w-full px-5 md:w-auto">
 						<PrimaryButton
-							href="https://www.linuxfoundation.org/webinars/optimizing-ai-applications-with-opentelemetry?hsLang=en&utm_source=highlight-oss-cta"
-							target="_blank"
-							rel="noreferrer"
+							href="/otel-course-signup?utm_source=highlight-oss-cta"
 							className="md:max-w-[180px]"
 						>
 							<div className="flex justify-center items-center gap-3">
 								<Typography type="copy2" emphasis={true}>
-									Register Here
+									Start Learning
 								</Typography>
 							</div>
 						</PrimaryButton>
