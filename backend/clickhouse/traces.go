@@ -41,6 +41,10 @@ var traceKeysToColumns = map[string]string{
 	string(modelInputs.ReservedTraceKeyHasErrors):       "HasErrors",
 	string(modelInputs.ReservedTraceKeyTimestamp):       "Timestamp",
 	string(modelInputs.ReservedTraceKeyHighlightType):   "HighlightType",
+	"highlight.key":      "HighlightKey",
+	"http.response.body": "HttpResponseBody",
+	"http.request.body":  "HttpRequestBody",
+	"http.url":           "HttpUrl",
 }
 
 var traceColumns = []string{

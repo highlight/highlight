@@ -2466,6 +2466,7 @@ type TableConfig struct {
 	BodyColumn       string
 	SeverityColumn   string
 	AttributesColumn string
+	AttributesExpr   func(key string) string
 	AttributesTable  string
 	MetricColumn     *string
 	KeysToColumns    map[string]string
