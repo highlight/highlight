@@ -2,7 +2,7 @@
 Contributors: highlightio
 Tags: session recording, analytics, error monitoring
 Requires at least: 5.0
-Tested up to: 6.6
+Tested up to: 6.7
 Stable tag: 1.0.0
 Requires PHP: 7.2
 License: GPLv2 or later
@@ -41,6 +41,31 @@ Advanced Configuration options include:
 * Tracing Origins: Control which domains are traced, helpful for complex setups with multiple subdomains or external services.
 * Network Recording: When enabled, captures network requests, which can be valuable for debugging API calls or third-party integrations.
 
+== Third-Party Services ==
+
+This plugin sends data to the following external services:
+
+1. Highlight.io
+   * Purpose: Core functionality - session recording, error monitoring, and performance tracking
+   * Service URL: https://highlight.io
+   * Terms of Service: https://highlight.io/terms
+   * Privacy Policy: https://highlight.io/privacy
+
+2. Mixpanel (optional - only if configured)
+   * Purpose: Integrates with Mixpanel if enabled in custom configuration (learn more: https://www.highlight.io/docs/general/integrations/mixpanel-integration)
+   * Service URL: https://mixpanel.com
+   * Privacy Policy: https://mixpanel.com/legal/privacy-policy/
+   * Terms of Service: https://mixpanel.com/legal/terms-of-service/
+
+You can also see mention of https://securetoken.googleapis.com and https://www.googleapis.com/identitytoolkit in the JavaScript source for the Highlight plugin. However, these domains are only strings used as the default values for our urlBlocklist configuration (learn more: https://www.highlight.io/docs/sdk/client#urlBlocklist)
+
+Data Collection and Privacy:
+* All session data, including user interactions and errors, is transmitted to Highlight.io's servers
+* Authentication tokens are processed through Google's Identity Platform
+* Usage analytics are collected through Mixpanel
+* No personal data is stored locally on your WordPress installation
+* All data transmission is encrypted using HTTPS
+
 == Frequently Asked Questions ==
 
 = Where can I find my Project ID? =
@@ -49,7 +74,16 @@ You can find your Project ID in your Highlight.io project settings at https://ap
 
 = Is this plugin GDPR compliant? =
 
-The plugin itself does not store any data. All data collection and storage is handled by Highlight.io. Please refer to Highlight.io's privacy policy and GDPR compliance information.
+The plugin integrates with third-party services for its functionality:
+
+1. All session recording and monitoring data is processed by Highlight.io. Please review Highlight.io's privacy policy and GDPR compliance information at https://highlight.io/privacy.
+2. Optionally, through additional configuration, analytics data can be processed by Mixpanel. Their GDPR compliance information can be found at https://mixpanel.com/legal/privacy-overview/.
+
+To ensure GDPR compliance:
+* Inform your users about data collection through your privacy policy
+* Include appropriate consent mechanisms on your site
+* Configure the plugin's privacy settings according to your needs
+* Review and configure data retention settings in your Highlight.io dashboard
 
 = Are there any best practices for using this plugin? =
 

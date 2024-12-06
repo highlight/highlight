@@ -110,6 +110,11 @@ const nextConfig = {
 					'/docs/getting-started/backend-logging/python/other',
 				permanent: true,
 			},
+			{
+				source: '/docs/wordpress',
+				destination: '/docs/general/integrations/wordpress-integration',
+				permanent: true,
+			},
 		]
 	},
 	async headers() {
