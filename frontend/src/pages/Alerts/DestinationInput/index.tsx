@@ -347,7 +347,7 @@ export const DestinationInput: React.FC<Props> = ({
 						onChange={setSelectedEmails}
 						notFoundContent={<p>No email suggestions</p>}
 						className={styles.selectContainer}
-						mode="multiple"
+						mode="tags"
 						labelInValue
 						value={selectedEmails}
 					/>

@@ -4,7 +4,10 @@ import {
 	W3CBaggagePropagator,
 	W3CTraceContextPropagator,
 } from '@opentelemetry/core'
-import { registerInstrumentations } from '@opentelemetry/instrumentation'
+import {
+	Instrumentation,
+	registerInstrumentations,
+} from '@opentelemetry/instrumentation'
 import { DocumentLoadInstrumentation } from '@opentelemetry/instrumentation-document-load'
 import { FetchInstrumentation } from '@opentelemetry/instrumentation-fetch'
 import { XMLHttpRequestInstrumentation } from '@opentelemetry/instrumentation-xml-http-request'
@@ -18,10 +21,7 @@ import {
 	StackContextManager,
 	WebTracerProvider,
 } from '@opentelemetry/sdk-trace-web'
-import {
-	SEMRESATTRS_DEPLOYMENT_ENVIRONMENT,
-	SEMRESATTRS_SERVICE_NAME,
-} from '@opentelemetry/semantic-conventions'
+import * as SemanticAttributes from '@opentelemetry/semantic-conventions'
 import { parse } from 'graphql'
 import { getResponseBody } from '../listeners/network-listener/utils/fetch-listener'
 import {
@@ -72,9 +72,10 @@ export const setupBrowserTracing = (config: BrowserTracingConfig) => {
 
 	provider = new WebTracerProvider({
 		resource: new Resource({
-			[SEMRESATTRS_SERVICE_NAME]:
+			[SemanticAttributes.ATTR_SERVICE_NAME]:
 				config.serviceName ?? 'highlight-browser',
-			[SEMRESATTRS_DEPLOYMENT_ENVIRONMENT]: environment,
+			[SemanticAttributes.SEMRESATTRS_DEPLOYMENT_ENVIRONMENT]:
+				environment,
 			'highlight.project_id': config.projectId,
 			'highlight.session_id': config.sessionSecureId,
 		}),
@@ -89,27 +90,37 @@ export const setupBrowserTracing = (config: BrowserTracingConfig) => {
 
 	const exporter = new OTLPTraceExporterBrowserWithXhrRetry({
 		url: config.otlpEndpoint + '/v1/traces',
-		concurrencyLimit: 10,
+		concurrencyLimit: 100,
+		timeoutMillis: 30_000,
 		// Using any because we were getting an error importing CompressionAlgorithm
 		// from @opentelemetry/otlp-exporter-base.
 		compression: 'gzip' as any,
+		keepAlive: true,
+		httpAgentOptions: {
+			timeout: 30_000,
+			keepAlive: true,
+		},
 	})
 
 	const spanProcessor = new CustomBatchSpanProcessor(exporter, {
-		maxExportBatchSize: 15,
+		maxExportBatchSize: 100,
+		maxQueueSize: 1_000,
 	})
 	provider.addSpanProcessor(spanProcessor)
 
-	registerInstrumentations({
-		instrumentations: [
-			new DocumentLoadInstrumentation({
-				applyCustomAttributesOnSpan: {
-					documentLoad: assignDocumentDurations,
-					documentFetch: assignDocumentDurations,
-					resourceFetch: assignResourceFetchDurations,
-				},
-			}),
-			new UserInteractionInstrumentation(),
+	let instrumentations: Instrumentation[] = [
+		new DocumentLoadInstrumentation({
+			applyCustomAttributesOnSpan: {
+				documentLoad: assignDocumentDurations,
+				documentFetch: assignDocumentDurations,
+				resourceFetch: assignResourceFetchDurations,
+			},
+		}),
+		new UserInteractionInstrumentation(),
+	]
+
+	if (config.networkRecordingOptions?.enabled) {
+		instrumentations.push(
 			new FetchInstrumentation({
 				propagateTraceHeaderCorsUrls: getCorsUrlsPattern(
 					config.tracingOrigins,
@@ -151,6 +162,9 @@ export const setupBrowserTracing = (config: BrowserTracingConfig) => {
 					span.setAttribute('http.response.body', body)
 				},
 			}),
+		)
+
+		instrumentations.push(
 			new XMLHttpRequestInstrumentation({
 				propagateTraceHeaderCorsUrls: getCorsUrlsPattern(
 					config.tracingOrigins,
@@ -185,8 +199,10 @@ export const setupBrowserTracing = (config: BrowserTracingConfig) => {
 					span.setAttribute('http.request.body', recordedBody)
 				},
 			}),
-		],
-	})
+		)
+	}
+
+	registerInstrumentations({ instrumentations })
 
 	const contextManager = new StackContextManager()
 	contextManager.enable()
@@ -333,6 +349,9 @@ const enhanceSpanWithHttpRequestAttributes = (
 	networkRecordingOptions?: NetworkRecordingOptions,
 ) => {
 	const stringBody = typeof body === 'string' ? body : String(body)
+	const readableSpan = span as unknown as ReadableSpan
+	const url = readableSpan.attributes['http.url'] as string
+	const urlObject = new URL(url)
 
 	let parsedBody
 	try {
@@ -358,7 +377,19 @@ const enhanceSpanWithHttpRequestAttributes = (
 		'highlight.type': 'http.request',
 		'http.request.headers': JSON.stringify(sanitizedHeaders),
 		'http.request.body': stringBody,
+		[SemanticAttributes.ATTR_URL_FULL]: url,
+		[SemanticAttributes.ATTR_URL_PATH]: urlObject.pathname,
+		[SemanticAttributes.ATTR_URL_QUERY]: urlObject.search,
 	})
+
+	if (urlObject.searchParams.size > 0) {
+		span.setAttributes({
+			// Custom attribute that displays query string params as an object.
+			['url.query_params']: JSON.stringify(
+				Object.fromEntries(urlObject.searchParams),
+			),
+		})
+	}
 }
 
 const shouldRecordRequest = (

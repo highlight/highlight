@@ -5752,8 +5752,6 @@ export const UpsertGraphDocument = gql`
 			title
 			productType
 			query
-			metric
-			functionType
 			groupByKeys
 			bucketByKey
 			bucketCount
@@ -5766,6 +5764,10 @@ export const UpsertGraphDocument = gql`
 			}
 			display
 			nullHandling
+			expressions {
+				aggregator
+				column
+			}
 		}
 	}
 `
@@ -9242,10 +9244,6 @@ export const GetErrorGroupDocument = gql`
 			}
 			mapped_stack_trace
 			stack_trace
-			fields {
-				name
-				value
-			}
 			error_frequency
 			error_metrics {
 				error_group_id
@@ -9733,143 +9731,6 @@ export type GetProjectSuggestionLazyQueryHookResult = ReturnType<
 export type GetProjectSuggestionQueryResult = Apollo.QueryResult<
 	Types.GetProjectSuggestionQuery,
 	Types.GetProjectSuggestionQueryVariables
->
-export const GetErrorFieldSuggestionDocument = gql`
-	query GetErrorFieldSuggestion(
-		$project_id: ID!
-		$name: String!
-		$query: String!
-	) {
-		error_field_suggestion(
-			project_id: $project_id
-			name: $name
-			query: $query
-		) {
-			name
-			value
-		}
-	}
-`
-
-/**
- * __useGetErrorFieldSuggestionQuery__
- *
- * To run a query within a React component, call `useGetErrorFieldSuggestionQuery` and pass it any options that fit your needs.
- * When your component renders, `useGetErrorFieldSuggestionQuery` returns an object from Apollo Client that contains loading, error, and data properties
- * you can use to render your UI.
- *
- * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
- *
- * @example
- * const { data, loading, error } = useGetErrorFieldSuggestionQuery({
- *   variables: {
- *      project_id: // value for 'project_id'
- *      name: // value for 'name'
- *      query: // value for 'query'
- *   },
- * });
- */
-export function useGetErrorFieldSuggestionQuery(
-	baseOptions: Apollo.QueryHookOptions<
-		Types.GetErrorFieldSuggestionQuery,
-		Types.GetErrorFieldSuggestionQueryVariables
-	>,
-) {
-	return Apollo.useQuery<
-		Types.GetErrorFieldSuggestionQuery,
-		Types.GetErrorFieldSuggestionQueryVariables
-	>(GetErrorFieldSuggestionDocument, baseOptions)
-}
-export function useGetErrorFieldSuggestionLazyQuery(
-	baseOptions?: Apollo.LazyQueryHookOptions<
-		Types.GetErrorFieldSuggestionQuery,
-		Types.GetErrorFieldSuggestionQueryVariables
-	>,
-) {
-	return Apollo.useLazyQuery<
-		Types.GetErrorFieldSuggestionQuery,
-		Types.GetErrorFieldSuggestionQueryVariables
-	>(GetErrorFieldSuggestionDocument, baseOptions)
-}
-export type GetErrorFieldSuggestionQueryHookResult = ReturnType<
-	typeof useGetErrorFieldSuggestionQuery
->
-export type GetErrorFieldSuggestionLazyQueryHookResult = ReturnType<
-	typeof useGetErrorFieldSuggestionLazyQuery
->
-export type GetErrorFieldSuggestionQueryResult = Apollo.QueryResult<
-	Types.GetErrorFieldSuggestionQuery,
-	Types.GetErrorFieldSuggestionQueryVariables
->
-export const GetErrorSearchSuggestionsDocument = gql`
-	query GetErrorSearchSuggestions($project_id: ID!, $query: String!) {
-		visitedUrls: error_field_suggestion(
-			project_id: $project_id
-			name: "visited_url"
-			query: $query
-		) {
-			name
-			value
-		}
-		fields: error_field_suggestion(
-			project_id: $project_id
-			name: "event"
-			query: $query
-		) {
-			name
-			value
-		}
-	}
-`
-
-/**
- * __useGetErrorSearchSuggestionsQuery__
- *
- * To run a query within a React component, call `useGetErrorSearchSuggestionsQuery` and pass it any options that fit your needs.
- * When your component renders, `useGetErrorSearchSuggestionsQuery` returns an object from Apollo Client that contains loading, error, and data properties
- * you can use to render your UI.
- *
- * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
- *
- * @example
- * const { data, loading, error } = useGetErrorSearchSuggestionsQuery({
- *   variables: {
- *      project_id: // value for 'project_id'
- *      query: // value for 'query'
- *   },
- * });
- */
-export function useGetErrorSearchSuggestionsQuery(
-	baseOptions: Apollo.QueryHookOptions<
-		Types.GetErrorSearchSuggestionsQuery,
-		Types.GetErrorSearchSuggestionsQueryVariables
-	>,
-) {
-	return Apollo.useQuery<
-		Types.GetErrorSearchSuggestionsQuery,
-		Types.GetErrorSearchSuggestionsQueryVariables
-	>(GetErrorSearchSuggestionsDocument, baseOptions)
-}
-export function useGetErrorSearchSuggestionsLazyQuery(
-	baseOptions?: Apollo.LazyQueryHookOptions<
-		Types.GetErrorSearchSuggestionsQuery,
-		Types.GetErrorSearchSuggestionsQueryVariables
-	>,
-) {
-	return Apollo.useLazyQuery<
-		Types.GetErrorSearchSuggestionsQuery,
-		Types.GetErrorSearchSuggestionsQueryVariables
-	>(GetErrorSearchSuggestionsDocument, baseOptions)
-}
-export type GetErrorSearchSuggestionsQueryHookResult = ReturnType<
-	typeof useGetErrorSearchSuggestionsQuery
->
-export type GetErrorSearchSuggestionsLazyQueryHookResult = ReturnType<
-	typeof useGetErrorSearchSuggestionsLazyQuery
->
-export type GetErrorSearchSuggestionsQueryResult = Apollo.QueryResult<
-	Types.GetErrorSearchSuggestionsQuery,
-	Types.GetErrorSearchSuggestionsQueryVariables
 >
 export const GetSessionSearchResultsDocument = gql`
 	query GetSessionSearchResults($project_id: ID!, $query: String!) {
@@ -11397,63 +11258,6 @@ export type GetWorkspaceIsIntegratedWithZapierLazyQueryHookResult = ReturnType<
 export type GetWorkspaceIsIntegratedWithZapierQueryResult = Apollo.QueryResult<
 	Types.GetWorkspaceIsIntegratedWithZapierQuery,
 	Types.GetWorkspaceIsIntegratedWithZapierQueryVariables
->
-export const GetWorkspaceIsIntegratedWithFrontDocument = gql`
-	query GetWorkspaceIsIntegratedWithFront($project_id: ID!) {
-		is_integrated_with_front: is_integrated_with(
-			integration_type: Front
-			project_id: $project_id
-		)
-	}
-`
-
-/**
- * __useGetWorkspaceIsIntegratedWithFrontQuery__
- *
- * To run a query within a React component, call `useGetWorkspaceIsIntegratedWithFrontQuery` and pass it any options that fit your needs.
- * When your component renders, `useGetWorkspaceIsIntegratedWithFrontQuery` returns an object from Apollo Client that contains loading, error, and data properties
- * you can use to render your UI.
- *
- * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
- *
- * @example
- * const { data, loading, error } = useGetWorkspaceIsIntegratedWithFrontQuery({
- *   variables: {
- *      project_id: // value for 'project_id'
- *   },
- * });
- */
-export function useGetWorkspaceIsIntegratedWithFrontQuery(
-	baseOptions: Apollo.QueryHookOptions<
-		Types.GetWorkspaceIsIntegratedWithFrontQuery,
-		Types.GetWorkspaceIsIntegratedWithFrontQueryVariables
-	>,
-) {
-	return Apollo.useQuery<
-		Types.GetWorkspaceIsIntegratedWithFrontQuery,
-		Types.GetWorkspaceIsIntegratedWithFrontQueryVariables
-	>(GetWorkspaceIsIntegratedWithFrontDocument, baseOptions)
-}
-export function useGetWorkspaceIsIntegratedWithFrontLazyQuery(
-	baseOptions?: Apollo.LazyQueryHookOptions<
-		Types.GetWorkspaceIsIntegratedWithFrontQuery,
-		Types.GetWorkspaceIsIntegratedWithFrontQueryVariables
-	>,
-) {
-	return Apollo.useLazyQuery<
-		Types.GetWorkspaceIsIntegratedWithFrontQuery,
-		Types.GetWorkspaceIsIntegratedWithFrontQueryVariables
-	>(GetWorkspaceIsIntegratedWithFrontDocument, baseOptions)
-}
-export type GetWorkspaceIsIntegratedWithFrontQueryHookResult = ReturnType<
-	typeof useGetWorkspaceIsIntegratedWithFrontQuery
->
-export type GetWorkspaceIsIntegratedWithFrontLazyQueryHookResult = ReturnType<
-	typeof useGetWorkspaceIsIntegratedWithFrontLazyQuery
->
-export type GetWorkspaceIsIntegratedWithFrontQueryResult = Apollo.QueryResult<
-	Types.GetWorkspaceIsIntegratedWithFrontQuery,
-	Types.GetWorkspaceIsIntegratedWithFrontQueryVariables
 >
 export const GetWorkspaceIsIntegratedWithDiscordDocument = gql`
 	query GetWorkspaceIsIntegratedWithDiscord($project_id: ID!) {
@@ -14211,10 +14015,12 @@ export const GetWorkspaceSettingsDocument = gql`
 			enable_grafana_dashboard
 			enable_ingest_filtering
 			enable_ingest_sampling
+			enable_jira_integration
 			enable_network_traces
 			enable_project_level_access
 			enable_project_level_access
 			enable_session_export
+			enable_teams_integration
 			enable_unlisted_sharing
 		}
 	}
@@ -15212,8 +15018,6 @@ export const GetMetricsDocument = gql`
 		$product_type: ProductType!
 		$project_id: ID!
 		$params: QueryInput!
-		$column: String!
-		$metric_types: [MetricAggregator!]!
 		$group_by: [String!]!
 		$bucket_by: String!
 		$bucket_count: Int
@@ -15222,13 +15026,12 @@ export const GetMetricsDocument = gql`
 		$limit_aggregator: MetricAggregator
 		$limit_column: String
 		$prediction_settings: PredictionSettings
+		$expressions: [MetricExpressionInput!]!
 	) {
 		metrics(
 			product_type: $product_type
 			project_id: $project_id
 			params: $params
-			column: $column
-			metric_types: $metric_types
 			group_by: $group_by
 			bucket_by: $bucket_by
 			bucket_window: $bucket_window
@@ -15237,12 +15040,14 @@ export const GetMetricsDocument = gql`
 			limit_aggregator: $limit_aggregator
 			limit_column: $limit_column
 			prediction_settings: $prediction_settings
+			expressions: $expressions
 		) {
 			buckets {
 				bucket_id
 				bucket_min
 				bucket_max
 				group
+				column
 				metric_type
 				metric_value
 				yhat_lower
@@ -15269,8 +15074,6 @@ export const GetMetricsDocument = gql`
  *      product_type: // value for 'product_type'
  *      project_id: // value for 'project_id'
  *      params: // value for 'params'
- *      column: // value for 'column'
- *      metric_types: // value for 'metric_types'
  *      group_by: // value for 'group_by'
  *      bucket_by: // value for 'bucket_by'
  *      bucket_count: // value for 'bucket_count'
@@ -15279,6 +15082,7 @@ export const GetMetricsDocument = gql`
  *      limit_aggregator: // value for 'limit_aggregator'
  *      limit_column: // value for 'limit_column'
  *      prediction_settings: // value for 'prediction_settings'
+ *      expressions: // value for 'expressions'
  *   },
  * });
  */
@@ -15321,8 +15125,6 @@ export const GetGraphTemplatesDocument = gql`
 			description
 			productType
 			query
-			metric
-			functionType
 			groupByKeys
 			bucketByKey
 			bucketCount
@@ -15336,6 +15138,10 @@ export const GetGraphTemplatesDocument = gql`
 			}
 			display
 			nullHandling
+			expressions {
+				aggregator
+				column
+			}
 		}
 	}
 `
@@ -15408,8 +15214,6 @@ export const GetVisualizationDocument = gql`
 				description
 				productType
 				query
-				metric
-				functionType
 				groupByKeys
 				bucketByKey
 				bucketCount
@@ -15423,6 +15227,10 @@ export const GetVisualizationDocument = gql`
 				}
 				display
 				nullHandling
+				expressions {
+					aggregator
+					column
+				}
 			}
 			updatedByAdmin {
 				id
@@ -15514,8 +15322,6 @@ export const GetVisualizationsDocument = gql`
 					title
 					productType
 					query
-					metric
-					functionType
 					groupByKeys
 					bucketByKey
 					bucketCount
@@ -15529,6 +15335,10 @@ export const GetVisualizationsDocument = gql`
 					}
 					display
 					nullHandling
+					expressions {
+						aggregator
+						column
+					}
 				}
 				updatedByAdmin {
 					id

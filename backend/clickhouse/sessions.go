@@ -108,6 +108,7 @@ type ClickhouseField struct {
 	SessionCreatedAt int64
 	SessionID        int64
 	Value            string
+	Timestamp        int64
 }
 
 // These keys show up as recommendations, not in fields table due to high cardinality or post processing booleans
@@ -125,6 +126,7 @@ var defaultSessionsKeys = []*modelInputs.QueryKey{
 	{Name: string(modelInputs.ReservedSessionKeySecureID), Type: modelInputs.KeyTypeString},
 	{Name: string(modelInputs.ReservedSessionKeyViewedByAnyone), Type: modelInputs.KeyTypeBoolean},
 	{Name: string(modelInputs.ReservedSessionKeyViewedByMe), Type: modelInputs.KeyTypeBoolean},
+	{Name: string(modelInputs.ReservedSessionKeyTimestamp), Type: modelInputs.KeyTypeNumeric},
 }
 
 var booleanKeys = map[string]bool{
@@ -177,6 +179,7 @@ func (client *Client) WriteSessions(ctx context.Context, sessions []*model.Sessi
 				Value:            field.Value,
 				SessionID:        int64(session.ID),
 				SessionCreatedAt: session.CreatedAt.UnixMicro(),
+				Timestamp:        field.Timestamp.UnixMicro(),
 			}
 			chFields = append(chFields, &chf)
 		}
@@ -521,8 +524,10 @@ var SessionsJoinedTableConfig = model.TableConfig{
 		string(modelInputs.ReservedSessionKeyPagesVisited):       "PagesVisited",
 		string(modelInputs.ReservedSessionKeySecureID):           "SecureID",
 		string(modelInputs.ReservedSessionKeyState):              "State",
+		string(modelInputs.ReservedSessionKeyTimestamp):          "Timestamp",
 		string(modelInputs.ReservedSessionKeyViewedByAnyone):     "Viewed",
 		string(modelInputs.ReservedSessionKeyWithinBillingQuota): "WithinBillingQuota",
+		string(modelInputs.ReservedSessionKeyUpdatedAt):          "UpdatedAt",
 
 		// deprecated but kept in for backwards compatibility of search
 		string(modelInputs.ReservedSessionKeyViewed):    "Viewed",
@@ -539,18 +544,13 @@ var SessionsJoinedTableConfig = model.TableConfig{
 
 var SessionsSampleableTableConfig = SampleableTableConfig{
 	tableConfig: SessionsJoinedTableConfig,
-	useSampling: func(time.Duration) bool {
-		return false
-	},
 }
 
-func (client *Client) ReadSessionsMetrics(ctx context.Context, projectID int, params modelInputs.QueryInput, column string, metricTypes []modelInputs.MetricAggregator, groupBy []string, nBuckets *int, bucketBy string, bucketWindow *int, limit *int, limitAggregator *modelInputs.MetricAggregator, limitColumn *string) (*modelInputs.MetricsBuckets, error) {
+func (client *Client) ReadSessionsMetrics(ctx context.Context, projectID int, params modelInputs.QueryInput, groupBy []string, nBuckets *int, bucketBy string, bucketWindow *int, limit *int, limitAggregator *modelInputs.MetricAggregator, limitColumn *string, expressions []*modelInputs.MetricExpressionInput) (*modelInputs.MetricsBuckets, error) {
 	return client.ReadMetrics(ctx, ReadMetricsInput{
 		SampleableConfig: SessionsSampleableTableConfig,
 		ProjectIDs:       []int{projectID},
 		Params:           params,
-		Column:           column,
-		MetricTypes:      metricTypes,
 		GroupBy:          groupBy,
 		BucketCount:      nBuckets,
 		BucketWindow:     bucketWindow,
@@ -558,6 +558,7 @@ func (client *Client) ReadSessionsMetrics(ctx context.Context, projectID int, pa
 		Limit:            limit,
 		LimitAggregator:  limitAggregator,
 		LimitColumn:      limitColumn,
+		Expressions:      expressions,
 	})
 }
 
@@ -567,10 +568,11 @@ func (client *Client) ReadWorkspaceSessionCounts(ctx context.Context, projectIDs
 		SampleableConfig: SessionsSampleableTableConfig,
 		ProjectIDs:       projectIDs,
 		Params:           params,
-		Column:           "",
-		MetricTypes:      []modelInputs.MetricAggregator{modelInputs.MetricAggregatorCount},
 		BucketCount:      pointy.Int(12),
 		BucketBy:         modelInputs.MetricBucketByTimestamp.String(),
+		Expressions: []*modelInputs.MetricExpressionInput{{
+			Aggregator: modelInputs.MetricAggregatorCount,
+		}},
 	})
 }
 

@@ -1118,10 +1118,6 @@ query GetErrorGroup($secure_id: String!, $use_clickhouse: Boolean) {
 		}
 		mapped_stack_trace
 		stack_trace
-		fields {
-			name
-			value
-		}
 		error_frequency
 		error_metrics {
 			error_group_id
@@ -1291,40 +1287,6 @@ query GetProjectSuggestion($query: String!) {
 		id
 		name
 		workspace_id
-	}
-}
-
-query GetErrorFieldSuggestion(
-	$project_id: ID!
-	$name: String!
-	$query: String!
-) {
-	error_field_suggestion(
-		project_id: $project_id
-		name: $name
-		query: $query
-	) {
-		name
-		value
-	}
-}
-
-query GetErrorSearchSuggestions($project_id: ID!, $query: String!) {
-	visitedUrls: error_field_suggestion(
-		project_id: $project_id
-		name: "visited_url"
-		query: $query
-	) {
-		name
-		value
-	}
-	fields: error_field_suggestion(
-		project_id: $project_id
-		name: "event"
-		query: $query
-	) {
-		name
-		value
 	}
 }
 
@@ -1575,13 +1537,6 @@ query GetWorkspaceIsIntegratedWithLinear($project_id: ID!) {
 query GetWorkspaceIsIntegratedWithZapier($project_id: ID!) {
 	is_integrated_with_linear: is_integrated_with(
 		integration_type: Zapier
-		project_id: $project_id
-	)
-}
-
-query GetWorkspaceIsIntegratedWithFront($project_id: ID!) {
-	is_integrated_with_front: is_integrated_with(
-		integration_type: Front
 		project_id: $project_id
 	)
 }
@@ -2317,10 +2272,12 @@ query GetWorkspaceSettings($workspace_id: ID!) {
 		enable_grafana_dashboard
 		enable_ingest_filtering
 		enable_ingest_sampling
+		enable_jira_integration
 		enable_network_traces
 		enable_project_level_access
 		enable_project_level_access
 		enable_session_export
+		enable_teams_integration
 		enable_unlisted_sharing
 	}
 }
@@ -2648,8 +2605,6 @@ query GetMetrics(
 	$product_type: ProductType!
 	$project_id: ID!
 	$params: QueryInput!
-	$column: String!
-	$metric_types: [MetricAggregator!]!
 	$group_by: [String!]!
 	$bucket_by: String!
 	$bucket_count: Int
@@ -2658,13 +2613,12 @@ query GetMetrics(
 	$limit_aggregator: MetricAggregator
 	$limit_column: String
 	$prediction_settings: PredictionSettings
+	$expressions: [MetricExpressionInput!]!
 ) {
 	metrics(
 		product_type: $product_type
 		project_id: $project_id
 		params: $params
-		column: $column
-		metric_types: $metric_types
 		group_by: $group_by
 		bucket_by: $bucket_by
 		bucket_window: $bucket_window
@@ -2673,12 +2627,14 @@ query GetMetrics(
 		limit_aggregator: $limit_aggregator
 		limit_column: $limit_column
 		prediction_settings: $prediction_settings
+		expressions: $expressions
 	) {
 		buckets {
 			bucket_id
 			bucket_min
 			bucket_max
 			group
+			column
 			metric_type
 			metric_value
 			yhat_lower
@@ -2697,8 +2653,6 @@ query GetGraphTemplates {
 		description
 		productType
 		query
-		metric
-		functionType
 		groupByKeys
 		bucketByKey
 		bucketCount
@@ -2712,6 +2666,10 @@ query GetGraphTemplates {
 		}
 		display
 		nullHandling
+		expressions {
+			aggregator
+			column
+		}
 	}
 }
 
@@ -2735,8 +2693,6 @@ query GetVisualization($id: ID!) {
 			description
 			productType
 			query
-			metric
-			functionType
 			groupByKeys
 			bucketByKey
 			bucketCount
@@ -2750,6 +2706,10 @@ query GetVisualization($id: ID!) {
 			}
 			display
 			nullHandling
+			expressions {
+				aggregator
+				column
+			}
 		}
 		updatedByAdmin {
 			id
@@ -2791,8 +2751,6 @@ query GetVisualizations(
 				title
 				productType
 				query
-				metric
-				functionType
 				groupByKeys
 				bucketByKey
 				bucketCount
@@ -2806,6 +2764,10 @@ query GetVisualizations(
 				}
 				display
 				nullHandling
+				expressions {
+					aggregator
+					column
+				}
 			}
 			updatedByAdmin {
 				id

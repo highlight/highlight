@@ -1,5 +1,59 @@
 # @highlight-run/next
 
+## 7.6.11
+
+### Patch Changes
+
+-   Updated dependencies [02fad3d]
+-   Updated dependencies [ed9cb32]
+-   Updated dependencies [e89e41c]
+-   Updated dependencies [da5662e]
+    -   highlight.run@9.7.2
+    -   @highlight-run/node@3.11.0
+    -   @highlight-run/react@8.0.2
+
+## 7.6.10
+
+### Patch Changes
+
+-   Updated dependencies [847fdc0]
+    -   highlight.run@9.7.1
+    -   @highlight-run/node@3.10.1
+    -   @highlight-run/react@8.0.1
+
+## 7.6.9
+
+### Patch Changes
+
+-   Updated dependencies [ecde630]
+    -   highlight.run@9.7.0
+    -   @highlight-run/node@3.10.1
+    -   @highlight-run/react@8.0.0
+
+## 7.6.8
+
+### Patch Changes
+
+-   Updated dependencies [2d95aba]
+    -   highlight.run@9.5.3
+    -   @highlight-run/node@3.10.1
+    -   @highlight-run/react@7.0.3
+
+## 7.6.7
+
+### Patch Changes
+
+-   Updated dependencies [f06a274]
+    -   @highlight-run/node@3.10.1
+
+## 7.6.6
+
+### Patch Changes
+
+-   236afe0: support span naming in runwithheaders and set a default span name for route middlewares
+-   Updated dependencies [236afe0]
+    -   @highlight-run/node@3.10.0
+
 ## 7.6.5
 
 ### Patch Changes

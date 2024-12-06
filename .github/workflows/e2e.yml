@@ -40,6 +40,9 @@ jobs:
                   python-version: '3.10'
                   cache: 'poetry'
 
+            - name: Install Doppler CLI
+              uses: dopplerhq/cli-action@v3
+
             - name: Install dependencies
               working-directory: ./e2e/tests
               run: poetry install --all-extras
@@ -118,8 +121,13 @@ jobs:
             - name: Dump docker container logs on failure
               if: failure()
               run: |
-                  cd docker;
+                  pushd docker;
                   docker compose logs;
+                  popd;
+
+                  pushd e2e/opentelemetry/filelog;
+                  docker compose logs;
+                  popd;
 
             - name: Dump databases on failure
               if: failure()
@@ -187,6 +195,9 @@ jobs:
               with:
                   python-version: '3.10'
                   cache: 'poetry'
+
+            - name: Install Doppler CLI
+              uses: dopplerhq/cli-action@v3
 
             - name: Install dependencies
               working-directory: ./e2e/tests

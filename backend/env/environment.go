@@ -48,6 +48,7 @@ type Configuration struct {
 	ConsumerFraction            string `mapstructure:"CONSUMER_SPAN_SAMPLING_FRACTION"`
 	DeleteSessionsArn           string `mapstructure:"DELETE_SESSIONS_ARN"`
 	DemoProjectID               string `mapstructure:"DEMO_PROJECT_ID"`
+	DisableCors                 string `mapstructure:"DISABLE_CORS"`
 	DiscordBotId                string `mapstructure:"DISCORD_BOT_ID"`
 	DiscordBotSecret            string `mapstructure:"DISCORD_BOT_SECRET"`
 	DiscordClientId             string `mapstructure:"DISCORD_CLIENT_ID"`
@@ -93,6 +94,7 @@ type Configuration struct {
 	OAuthClientSecret           string `mapstructure:"OAUTH_CLIENT_SECRET"`
 	OAuthProviderUrl            string `mapstructure:"OAUTH_PROVIDER_URL"`
 	OAuthRedirectUrl            string `mapstructure:"OAUTH_REDIRECT_URL"`
+	OAuthAllowedDomains         string `mapstructure:"OAUTH_ALLOWED_DOMAINS"` // comma separated domains, regex allowed
 	OTLPDogfoodEndpoint         string `mapstructure:"OTLP_DOGFOOD_ENDPOINT"`
 	OTLPEndpoint                string `mapstructure:"OTLP_ENDPOINT"`
 	ObjectStorageFS             string `mapstructure:"OBJECT_STORAGE_FS"`
@@ -180,7 +182,7 @@ func GetFrontendDomain() (string, error) {
 	if err != nil {
 		return "", err
 	}
-	return u.Host, nil
+	return u.Hostname(), nil
 }
 
 func IsDevEnv() bool {

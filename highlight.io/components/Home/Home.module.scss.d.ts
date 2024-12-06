@@ -30,6 +30,8 @@ export const codeSnippetTopbar: string
 export const collaborationGraphic: string
 export const collapseHeader: string
 export const companies: string
+export const companiesLastRow: string
+export const companiesLastRowContainer: string
 export const companyLogo: string
 export const ctaBg: string
 export const ctaContainer: string
@@ -81,6 +83,7 @@ export const purpleDiv: string
 export const reviewCard: string
 export const reviewText: string
 export const scaleHeight: string
+export const scaleHeightWhopAndAurora: string
 export const scroll: string
 export const search: string
 export const searchTwoHighlighters: string

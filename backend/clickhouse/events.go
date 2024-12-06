@@ -42,6 +42,7 @@ var eventKeysToColumns = map[string]string{
 	string(modelInputs.ReservedEventKeyOsVersion):           "OSVersion",
 	string(modelInputs.ReservedEventKeySecureSessionID):     "SecureSessionId",
 	string(modelInputs.ReservedEventKeyState):               "State",
+	string(modelInputs.ReservedEventKeyTimestamp):           "Timestamp",
 }
 
 var defaultEventKeys = []*modelInputs.QueryKey{
@@ -51,6 +52,7 @@ var defaultEventKeys = []*modelInputs.QueryKey{
 	{Name: string(modelInputs.ReservedEventKeySessionActiveLength), Type: modelInputs.KeyTypeNumeric},
 	{Name: string(modelInputs.ReservedEventKeySessionLength), Type: modelInputs.KeyTypeNumeric},
 	{Name: string(modelInputs.ReservedEventKeySessionPagesVisited), Type: modelInputs.KeyTypeNumeric},
+	{Name: string(modelInputs.ReservedEventKeyTimestamp), Type: modelInputs.KeyTypeNumeric},
 }
 
 var eventBooleanKeys = map[string]bool{
@@ -72,9 +74,6 @@ var eventsTableConfig = model.TableConfig{
 
 var EventsSampleableTableConfig = SampleableTableConfig{
 	tableConfig: eventsTableConfig,
-	useSampling: func(d time.Duration) bool {
-		return false
-	},
 }
 
 type SessionEventRow struct {
@@ -125,13 +124,11 @@ func (client *Client) BatchWriteSessionEventRows(ctx context.Context, eventRows 
 	return nil
 }
 
-func (client *Client) ReadEventsMetrics(ctx context.Context, projectID int, params modelInputs.QueryInput, column string, metricTypes []modelInputs.MetricAggregator, groupBy []string, nBuckets *int, bucketBy string, bucketWindow *int, limit *int, limitAggregator *modelInputs.MetricAggregator, limitColumn *string) (*modelInputs.MetricsBuckets, error) {
+func (client *Client) ReadEventsMetrics(ctx context.Context, projectID int, params modelInputs.QueryInput, groupBy []string, nBuckets *int, bucketBy string, bucketWindow *int, limit *int, limitAggregator *modelInputs.MetricAggregator, limitColumn *string, expressions []*modelInputs.MetricExpressionInput) (*modelInputs.MetricsBuckets, error) {
 	return client.ReadMetrics(ctx, ReadMetricsInput{
 		SampleableConfig: EventsSampleableTableConfig,
 		ProjectIDs:       []int{projectID},
 		Params:           params,
-		Column:           column,
-		MetricTypes:      metricTypes,
 		GroupBy:          groupBy,
 		BucketCount:      nBuckets,
 		BucketWindow:     bucketWindow,
@@ -139,6 +136,7 @@ func (client *Client) ReadEventsMetrics(ctx context.Context, projectID int, para
 		Limit:            limit,
 		LimitAggregator:  limitAggregator,
 		LimitColumn:      limitColumn,
+		Expressions:      expressions,
 	})
 }
 
@@ -148,10 +146,11 @@ func (client *Client) ReadWorkspaceEventCounts(ctx context.Context, projectIDs [
 		SampleableConfig: EventsSampleableTableConfig,
 		ProjectIDs:       projectIDs,
 		Params:           params,
-		Column:           "",
-		MetricTypes:      []modelInputs.MetricAggregator{modelInputs.MetricAggregatorCount},
 		BucketCount:      pointy.Int(12),
 		BucketBy:         modelInputs.MetricBucketByTimestamp.String(),
+		Expressions: []*modelInputs.MetricExpressionInput{{
+			Aggregator: modelInputs.MetricAggregatorCount,
+		}},
 	})
 }
 

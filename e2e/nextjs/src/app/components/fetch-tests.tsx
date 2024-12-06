@@ -4,7 +4,11 @@ import { Button } from '@/app/components/button'
 import ky from 'ky'
 
 export function FetchTests() {
-	return <Button onClick={fireKy}>Test KY</Button>
+	return (
+		<div style={{ padding: '2rem' }}>
+			<Button onClick={fireKy}>Test KY</Button>
+		</div>
+	)
 }
 
 function fireKy() {

@@ -55,7 +55,7 @@ export class FirstLoadListeners {
 		this.options = options
 		this.disableConsoleRecording = !!options.disableConsoleRecording
 		this.reportConsoleErrors = options.reportConsoleErrors ?? false
-		this.enablePromisePatch = options.enablePromisePatch ?? true
+		this.enablePromisePatch = options.enablePromisePatch ?? false
 		this.consoleMethodsToRecord = options.consoleMethodsToRecord || [
 			...ALL_CONSOLE_METHODS,
 		]
@@ -138,9 +138,7 @@ export class FirstLoadListeners {
 				{ enablePromisePatch: this.enablePromisePatch },
 			),
 		)
-		if (this.options.enableOtelTracing) {
-			this.listeners.push(shutdown)
-		}
+		this.listeners.push(shutdown)
 		FirstLoadListeners.setupNetworkListener(this, this.options)
 	}
 
@@ -268,7 +266,6 @@ export class FirstLoadListeners {
 					tracingOrigins: sThis.tracingOrigins,
 					urlBlocklist: sThis.urlBlocklist,
 					bodyKeysToRecord: sThis.networkBodyKeysToRecord,
-					otelEnabled: !!options.enableOtelTracing,
 				}),
 			)
 		}

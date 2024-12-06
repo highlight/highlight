@@ -168,18 +168,22 @@ var PUBLIC_GRAPH_CORS_OPTIONS = cors.Options{
 }
 
 var PRIVATE_GRAPH_CORS_OPTIONS = cors.Options{
-	AllowOriginRequestFunc: validateOrigin,
-	AllowCredentials:       true,
-	AllowedHeaders:         []string{"*"},
+	AllowOriginVaryRequestFunc: validateOrigin,
+	AllowCredentials:           true,
+	AllowedHeaders:             []string{"*"},
 }
 
-func validateOrigin(_ *http.Request, origin string) bool {
-	isHighlightSubdomain := strings.HasSuffix(origin, ".highlight.io")
-	if origin == env.Config.FrontendUri || origin == env.Config.LandingStagingURL || isHighlightSubdomain {
-		return true
+func validateOrigin(_ *http.Request, origin string) (bool, []string) {
+	if env.Config.DisableCors == "true" {
+		return true, []string{"*"}
 	}
 
-	return false
+	isHighlightSubdomain := strings.HasSuffix(origin, ".highlight.io")
+	if origin == env.Config.FrontendUri || origin == env.Config.LandingStagingURL || isHighlightSubdomain {
+		return true, []string{"*"}
+	}
+
+	return false, []string{"*"}
 }
 
 var defaultPort = "8082"
@@ -465,7 +469,8 @@ func main() {
 							log.WithContext(ctx).Error("Couldn't validate websocket: no origin")
 							return false
 						}
-						return validateOrigin(r, r.Header["Origin"][0])
+						validate, _ := validateOrigin(r, r.Header["Origin"][0])
+						return validate
 					},
 				},
 				KeepAlivePingInterval: 10 * time.Second,

@@ -13,7 +13,11 @@ import api, {
 } from '@opentelemetry/api'
 import { getNodeAutoInstrumentations } from '@opentelemetry/auto-instrumentations-node'
 import { AsyncLocalStorageContextManager } from '@opentelemetry/context-async-hooks'
-import { W3CBaggagePropagator } from '@opentelemetry/core'
+import {
+	W3CBaggagePropagator,
+	W3CTraceContextPropagator,
+	CompositePropagator,
+} from '@opentelemetry/core'
 import { OTLPTraceExporter } from '@opentelemetry/exporter-trace-otlp-http'
 import { registerInstrumentations } from '@opentelemetry/instrumentation'
 import { CompressionAlgorithm } from '@opentelemetry/otlp-exporter-base'
@@ -39,6 +43,7 @@ import { HIGHLIGHT_REQUEST_HEADER } from './sdk.js'
 import { Headers } from 'node-fetch'
 import type { HighlightContext, NodeOptions } from './types.js'
 import * as packageJson from '../package.json'
+import { PrismaInstrumentation } from '@prisma/instrumentation'
 
 const OTLP_HTTP = 'https://otel.highlight.io:4318'
 const FIVE_MINUTES = 1000 * 60 * 5
@@ -51,7 +56,16 @@ type TraceMapValue = {
 
 const instrumentations = getNodeAutoInstrumentations({
 	'@opentelemetry/instrumentation-http': {
-		enabled: false,
+		enabled:
+			(process.env.OTEL_NODE_ENABLED_INSTRUMENTATIONS || '')
+				.split(',')
+				.indexOf('http') !== -1,
+	},
+	'@opentelemetry/instrumentation-fs': {
+		enabled:
+			(process.env.OTEL_NODE_ENABLED_INSTRUMENTATIONS || '')
+				.split(',')
+				.indexOf('fs') !== -1,
 	},
 	'@opentelemetry/instrumentation-pino': {
 		logHook: (span, record, level) => {
@@ -64,6 +78,8 @@ const instrumentations = getNodeAutoInstrumentations({
 	},
 })
 
+instrumentations.push(new PrismaInstrumentation())
+
 /**
  * Baggage propagation does not appear to be patching Fetch at the moment,
  * but we hope it'll get fixed soon:
@@ -71,7 +87,14 @@ const instrumentations = getNodeAutoInstrumentations({
  *
  * Docs: https://github.com/open-telemetry/opentelemetry-js/blob/main/packages/opentelemetry-core/README.md
  */
-propagation.setGlobalPropagator(new W3CBaggagePropagator())
+propagation.setGlobalPropagator(
+	new CompositePropagator({
+		propagators: [
+			new W3CBaggagePropagator(),
+			new W3CTraceContextPropagator(),
+		],
+	}),
+)
 
 registerInstrumentations({ instrumentations })
 
@@ -126,6 +149,12 @@ class CustomSpanProcessor extends BatchSpanProcessorBase<BufferConfig> {
 
 		// @ts-ignore
 		super.onEnd(span)
+	}
+
+	// Only needed to resolve a type error
+	onStart(span: ReadableSpan, parentContext: Context): void {
+		// @ts-ignore
+		super.onStart(span, parentContext)
 	}
 
 	onShutdown(): void {}
@@ -451,16 +480,16 @@ export class Highlight {
 	}
 
 	async runWithHeaders<T>(
+		name: string,
 		headers: Headers | IncomingHttpHeaders,
 		cb: (span: OtelSpan) => T | Promise<T>,
+		options?: SpanOptions,
 	) {
 		const { secureSessionId, requestId } = this.parseHeaders(headers)
-		const { span, ctx } = await this.startWithHeaders(
-			'highlight-ctx',
-			headers,
-		)
+		const { span, ctx } = this.startWithHeaders(name, headers, options)
 		try {
 			return await api.context.with(ctx, async () => {
+				propagation.inject(ctx, headers)
 				return cb(span)
 			})
 		} catch (error) {
@@ -496,13 +525,8 @@ export class Highlight {
 			} as BaggageEntry)
 		}
 
+		propagation.inject(ctx, headers)
 		return { span, ctx: contextWithSpanSet }
-	}
-
-	startActiveSpan(name: string, options?: SpanOptions) {
-		return new Promise<OtelSpan>((resolve) =>
-			this.tracer.startActiveSpan(name, options || {}, resolve),
-		)
 	}
 }
 function parseHeaders(

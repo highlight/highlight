@@ -46,6 +46,7 @@ var defaultLogKeys = []*modelInputs.QueryKey{
 	{Name: string(modelInputs.ReservedLogKeySpanID), Type: modelInputs.KeyTypeString},
 	{Name: string(modelInputs.ReservedLogKeyTraceID), Type: modelInputs.KeyTypeString},
 	{Name: string(modelInputs.ReservedLogKeyMessage), Type: modelInputs.KeyTypeString},
+	{Name: string(modelInputs.ReservedLogKeyTimestamp), Type: modelInputs.KeyTypeNumeric},
 }
 
 var reservedLogKeys = lo.Map(modelInputs.AllReservedLogKey, func(key modelInputs.ReservedLogKey, _ int) string {
@@ -77,7 +78,7 @@ var LogsTableConfig = model.TableConfig{
 }
 
 var logsSamplingTableConfig = model.TableConfig{
-	TableName:        fmt.Sprintf("%s SAMPLE %d", LogsSamplingTable, SamplingRows),
+	TableName:        LogsSamplingTable,
 	KeysToColumns:    logKeysToColumns,
 	ReservedKeys:     reservedLogKeys,
 	BodyColumn:       "Body",
@@ -87,9 +88,7 @@ var logsSamplingTableConfig = model.TableConfig{
 var LogsSampleableTableConfig = SampleableTableConfig{
 	tableConfig:         LogsTableConfig,
 	samplingTableConfig: logsSamplingTableConfig,
-	useSampling: func(d time.Duration) bool {
-		return d >= 24*time.Hour
-	},
+	sampleSizeRows:      20_000_000,
 }
 
 func (client *Client) BatchWriteLogRows(ctx context.Context, logRows []*LogRow) error {
@@ -453,13 +452,11 @@ func (client *Client) ReadLogsHistogram(ctx context.Context, projectID int, para
 	return histogram, err
 }
 
-func (client *Client) ReadLogsMetrics(ctx context.Context, projectID int, params modelInputs.QueryInput, column string, metricTypes []modelInputs.MetricAggregator, groupBy []string, nBuckets *int, bucketBy string, bucketWindow *int, limit *int, limitAggregator *modelInputs.MetricAggregator, limitColumn *string) (*modelInputs.MetricsBuckets, error) {
+func (client *Client) ReadLogsMetrics(ctx context.Context, projectID int, params modelInputs.QueryInput, groupBy []string, nBuckets *int, bucketBy string, bucketWindow *int, limit *int, limitAggregator *modelInputs.MetricAggregator, limitColumn *string, expressions []*modelInputs.MetricExpressionInput) (*modelInputs.MetricsBuckets, error) {
 	return client.ReadMetrics(ctx, ReadMetricsInput{
 		SampleableConfig: LogsSampleableTableConfig,
 		ProjectIDs:       []int{projectID},
 		Params:           params,
-		Column:           column,
-		MetricTypes:      metricTypes,
 		GroupBy:          groupBy,
 		BucketCount:      nBuckets,
 		BucketWindow:     bucketWindow,
@@ -467,6 +464,7 @@ func (client *Client) ReadLogsMetrics(ctx context.Context, projectID int, params
 		Limit:            limit,
 		LimitAggregator:  limitAggregator,
 		LimitColumn:      limitColumn,
+		Expressions:      expressions,
 	})
 }
 
@@ -476,10 +474,11 @@ func (client *Client) ReadWorkspaceLogCounts(ctx context.Context, projectIDs []i
 		SampleableConfig: LogsSampleableTableConfig,
 		ProjectIDs:       projectIDs,
 		Params:           params,
-		Column:           "",
-		MetricTypes:      []modelInputs.MetricAggregator{modelInputs.MetricAggregatorCount},
 		BucketCount:      pointy.Int(12),
 		BucketBy:         modelInputs.MetricBucketByTimestamp.String(),
+		Expressions: []*modelInputs.MetricExpressionInput{{
+			Aggregator: modelInputs.MetricAggregatorCount,
+		}},
 	})
 }
 

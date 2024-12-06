@@ -195,7 +195,7 @@ export const DashboardCard = ({
 							variant="gray"
 							size="small"
 							iconStart={<IconSolidCursorClick />}
-							label="Click on graph to drilldown"
+							label="Click to drilldown"
 							cssClass={style.drilldownHint}
 						/>
 					</Box>

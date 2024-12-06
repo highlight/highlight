@@ -15,7 +15,6 @@ import (
 	"github.com/highlight-run/highlight/backend/model"
 	privateModel "github.com/highlight-run/highlight/backend/private-graph/graph/model"
 	"github.com/highlight-run/highlight/backend/util"
-	"github.com/highlight/highlight/sdk/highlight-go"
 	hmetric "github.com/highlight/highlight/sdk/highlight-go/metric"
 	e "github.com/pkg/errors"
 	"github.com/samber/lo"
@@ -532,25 +531,16 @@ func (k *KafkaBatchWorker) flushDataSync(ctx context.Context, sessionIds []int, 
 				session.Fields = lo.Map(sessionToFields[session.ID], func(sf *sessionField, _ int) *model.Field {
 					return fieldsById[sf.FieldID]
 				})
-				span := util.StartSpan(
-					"IsIngestedBy", util.ResourceName("sampling"),
-					util.Tag(highlight.ProjectIDAttribute, session.ProjectID),
-					util.Tag(highlight.TraceTypeAttribute, highlight.TraceTypeHighlightInternal),
-					util.Tag("product", privateModel.ProductTypeSessions),
-				)
 				// fields are populated, so calculate whether session is excluded
 				if k.Worker.PublicResolver.IsSessionExcludedByFilter(ctx, session) {
 					reason := privateModel.SessionExcludedReasonExclusionFilter
 					session.Excluded = true
 					session.ExcludedReason = &reason
-					span.SetAttribute("reason", session.ExcludedReason)
 					if err := k.Worker.PublicResolver.DB.WithContext(ctx).Model(&model.Session{Model: model.Model{ID: session.ID}}).
 						Select("Excluded", "ExcludedReason").Updates(&session).Error; err != nil {
 						return err
 					}
 				}
-				span.SetAttribute("ingested", !session.Excluded)
-				span.Finish()
 			}
 
 			allSessionObjs = append(allSessionObjs, sessionObjs...)

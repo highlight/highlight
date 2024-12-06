@@ -23,13 +23,15 @@ export interface HighlightInterface {
 
 	// Use runWithHeaders to execute a method with a highlight context
 	runWithHeaders: <T>(
+		name: string,
 		headers: Headers | IncomingHttpHeaders,
 		cb: (span: OtelSpan) => T | Promise<T>,
+		options?: SpanOptions,
 	) => Promise<T>
 	startWithHeaders: (
 		name: string,
 		headers: Headers | IncomingHttpHeaders,
-		options: SpanOptions,
+		options?: SpanOptions,
 	) => { span: OtelSpan; ctx: Context }
 
 	consumeError: (
@@ -61,7 +63,6 @@ export interface HighlightInterface {
 		metadata?: Attributes,
 	) => Promise<void>
 	setAttributes: (attributes: ResourceAttributes) => void
-	startActiveSpan: (name: string, options: SpanOptions) => Promise<OtelSpan>
 	_debug: (...data: any[]) => void
 }
 
@@ -167,8 +168,8 @@ export const H: HighlightInterface = {
 		return highlight_obj.parseHeaders(headers)
 	},
 
-	runWithHeaders: (headers, cb) => {
-		return highlight_obj.runWithHeaders(headers, cb)
+	runWithHeaders: (name, headers, cb, options) => {
+		return highlight_obj.runWithHeaders(name, headers, cb, options)
 	},
 	startWithHeaders: (spanName, headers, options) => {
 		return highlight_obj.startWithHeaders(spanName, headers, options)
@@ -184,9 +185,6 @@ export const H: HighlightInterface = {
 	},
 	setAttributes: (attributes: ResourceAttributes) => {
 		return highlight_obj.setAttributes(attributes)
-	},
-	startActiveSpan: (name: string, options: SpanOptions) => {
-		return highlight_obj.startActiveSpan(name, options)
 	},
 
 	_debug: (...data: any[]) => {

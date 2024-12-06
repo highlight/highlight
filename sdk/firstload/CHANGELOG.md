@@ -1,5 +1,30 @@
 # highlight.run
 
+## 9.7.2
+
+### Patch Changes
+
+-   02fad3d: add url.\* attributes to fetch and xhr traces
+-   da5662e: avoid setting up promise monkeypatch by default to avoid breaking libraries that depend on the native promise implementation
+
+## 9.7.1
+
+### Patch Changes
+
+-   847fdc0: revert single style sheet serialization due to performance regression
+
+## 9.7.0
+
+### Minor Changes
+
+-   ecde630: enable browser OTeL by default
+
+## 9.5.3
+
+### Patch Changes
+
+-   2d95aba: Only send visited-url fields through the session events api
+
 ## 9.5.2
 
 ### Patch Changes

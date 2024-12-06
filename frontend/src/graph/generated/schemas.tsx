@@ -231,9 +231,11 @@ export type AllWorkspaceSettings = {
 	enable_grafana_dashboard: Scalars['Boolean']
 	enable_ingest_filtering: Scalars['Boolean']
 	enable_ingest_sampling: Scalars['Boolean']
+	enable_jira_integration: Scalars['Boolean']
 	enable_network_traces: Scalars['Boolean']
 	enable_project_level_access: Scalars['Boolean']
 	enable_session_export: Scalars['Boolean']
+	enable_teams_integration: Scalars['Boolean']
 	enable_unlisted_sharing: Scalars['Boolean']
 	workspace_id: Scalars['ID']
 }
@@ -546,13 +548,6 @@ export type ErrorDistributionItem = {
 	value: Scalars['Int64']
 }
 
-export type ErrorField = {
-	__typename?: 'ErrorField'
-	name: Scalars['String']
-	project_id?: Maybe<Scalars['Int']>
-	value: Scalars['String']
-}
-
 export type ErrorGroup = {
 	__typename?: 'ErrorGroup'
 	created_at: Scalars['Timestamp']
@@ -561,7 +556,6 @@ export type ErrorGroup = {
 	error_metrics: Array<ErrorDistributionItem>
 	error_tag?: Maybe<ErrorTag>
 	event: Array<Maybe<Scalars['String']>>
-	fields?: Maybe<Array<Maybe<ErrorField>>>
 	first_occurrence?: Maybe<Scalars['Timestamp']>
 	id: Scalars['ID']
 	is_public: Scalars['Boolean']
@@ -777,14 +771,13 @@ export type Graph = {
 	bucketInterval?: Maybe<Scalars['Int']>
 	description: Scalars['String']
 	display?: Maybe<Scalars['String']>
-	functionType: MetricAggregator
+	expressions: Array<MetricExpression>
 	funnelSteps?: Maybe<Array<FunnelStep>>
 	groupByKeys?: Maybe<Scalars['StringArray']>
 	id: Scalars['ID']
 	limit?: Maybe<Scalars['Int']>
 	limitFunctionType?: Maybe<MetricAggregator>
 	limitMetric?: Maybe<Scalars['String']>
-	metric: Scalars['String']
 	nullHandling?: Maybe<Scalars['String']>
 	productType: ProductType
 	query: Scalars['String']
@@ -798,14 +791,13 @@ export type GraphInput = {
 	bucketCount?: InputMaybe<Scalars['Int']>
 	bucketInterval?: InputMaybe<Scalars['Int']>
 	display?: InputMaybe<Scalars['String']>
-	functionType: MetricAggregator
+	expressions: Array<MetricExpressionInput>
 	funnelSteps?: InputMaybe<Array<FunnelStepInput>>
 	groupByKeys?: InputMaybe<Scalars['StringArray']>
 	id?: InputMaybe<Scalars['ID']>
 	limit?: InputMaybe<Scalars['Int']>
 	limitFunctionType?: InputMaybe<MetricAggregator>
 	limitMetric?: InputMaybe<Scalars['String']>
-	metric: Scalars['String']
 	nullHandling?: InputMaybe<Scalars['String']>
 	productType: ProductType
 	query: Scalars['String']
@@ -871,7 +863,6 @@ export enum IntegrationType {
 	ClickUp = 'ClickUp',
 	Cloudflare = 'Cloudflare',
 	Discord = 'Discord',
-	Front = 'Front',
 	GitHub = 'GitHub',
 	GitLab = 'GitLab',
 	Height = 'Height',
@@ -1116,7 +1107,7 @@ export type MetricBucket = {
 	bucket_id: Scalars['UInt64']
 	bucket_max: Scalars['Float']
 	bucket_min: Scalars['Float']
-	column: MetricColumn
+	column: Scalars['String']
 	group: Array<Scalars['String']>
 	metric_type: MetricAggregator
 	metric_value?: Maybe<Scalars['Float']>
@@ -1130,8 +1121,15 @@ export enum MetricBucketBy {
 	Timestamp = 'Timestamp',
 }
 
-export enum MetricColumn {
-	Duration = 'Duration',
+export type MetricExpression = {
+	__typename?: 'MetricExpression'
+	aggregator: MetricAggregator
+	column: Scalars['String']
+}
+
+export type MetricExpressionInput = {
+	aggregator: MetricAggregator
+	column: Scalars['String']
 }
 
 export type MetricMonitor = {
@@ -2099,7 +2097,6 @@ export type Query = {
 	error_comments: Array<Maybe<ErrorComment>>
 	error_comments_for_admin: Array<Maybe<ErrorComment>>
 	error_comments_for_project: Array<Maybe<ErrorComment>>
-	error_field_suggestion?: Maybe<Array<Maybe<ErrorField>>>
 	error_group?: Maybe<ErrorGroup>
 	error_groups: ErrorResults
 	error_groups_clickhouse: ErrorResults
@@ -2379,12 +2376,6 @@ export type QueryError_Comments_For_ProjectArgs = {
 	project_id: Scalars['ID']
 }
 
-export type QueryError_Field_SuggestionArgs = {
-	name: Scalars['String']
-	project_id: Scalars['ID']
-	query: Scalars['String']
-}
-
 export type QueryError_GroupArgs = {
 	secure_id: Scalars['String']
 	use_clickhouse?: InputMaybe<Scalars['Boolean']>
@@ -2469,12 +2460,13 @@ export type QueryErrors_MetricsArgs = {
 	bucket_by: Scalars['String']
 	bucket_count?: InputMaybe<Scalars['Int']>
 	bucket_window?: InputMaybe<Scalars['Int']>
-	column: Scalars['String']
+	column?: InputMaybe<Scalars['String']>
+	expressions?: InputMaybe<Array<MetricExpressionInput>>
 	group_by: Array<Scalars['String']>
 	limit?: InputMaybe<Scalars['Int']>
 	limit_aggregator?: InputMaybe<MetricAggregator>
 	limit_column?: InputMaybe<Scalars['String']>
-	metric_types: Array<MetricAggregator>
+	metric_types?: InputMaybe<Array<MetricAggregator>>
 	params: QueryInput
 	project_id: Scalars['ID']
 }
@@ -2522,12 +2514,13 @@ export type QueryEvents_MetricsArgs = {
 	bucket_by: Scalars['String']
 	bucket_count?: InputMaybe<Scalars['Int']>
 	bucket_window?: InputMaybe<Scalars['Int']>
-	column: Scalars['String']
+	column?: InputMaybe<Scalars['String']>
+	expressions?: InputMaybe<Array<MetricExpressionInput>>
 	group_by: Array<Scalars['String']>
 	limit?: InputMaybe<Scalars['Int']>
 	limit_aggregator?: InputMaybe<MetricAggregator>
 	limit_column?: InputMaybe<Scalars['String']>
-	metric_types: Array<MetricAggregator>
+	metric_types?: InputMaybe<Array<MetricAggregator>>
 	params: QueryInput
 	project_id: Scalars['ID']
 }
@@ -2698,12 +2691,13 @@ export type QueryLogs_MetricsArgs = {
 	bucket_by: Scalars['String']
 	bucket_count?: InputMaybe<Scalars['Int']>
 	bucket_window?: InputMaybe<Scalars['Int']>
-	column: Scalars['String']
+	column?: InputMaybe<Scalars['String']>
+	expressions?: InputMaybe<Array<MetricExpressionInput>>
 	group_by: Array<Scalars['String']>
 	limit?: InputMaybe<Scalars['Int']>
 	limit_aggregator?: InputMaybe<MetricAggregator>
 	limit_column?: InputMaybe<Scalars['String']>
-	metric_types: Array<MetricAggregator>
+	metric_types?: InputMaybe<Array<MetricAggregator>>
 	params: QueryInput
 	project_id: Scalars['ID']
 }
@@ -2733,12 +2727,13 @@ export type QueryMetricsArgs = {
 	bucket_by: Scalars['String']
 	bucket_count?: InputMaybe<Scalars['Int']>
 	bucket_window?: InputMaybe<Scalars['Int']>
-	column: Scalars['String']
+	column?: InputMaybe<Scalars['String']>
+	expressions?: InputMaybe<Array<MetricExpressionInput>>
 	group_by: Array<Scalars['String']>
 	limit?: InputMaybe<Scalars['Int']>
 	limit_aggregator?: InputMaybe<MetricAggregator>
 	limit_column?: InputMaybe<Scalars['String']>
-	metric_types: Array<MetricAggregator>
+	metric_types?: InputMaybe<Array<MetricAggregator>>
 	params: QueryInput
 	prediction_settings?: InputMaybe<PredictionSettings>
 	product_type: ProductType
@@ -2930,12 +2925,13 @@ export type QuerySessions_MetricsArgs = {
 	bucket_by: Scalars['String']
 	bucket_count?: InputMaybe<Scalars['Int']>
 	bucket_window?: InputMaybe<Scalars['Int']>
-	column: Scalars['String']
+	column?: InputMaybe<Scalars['String']>
+	expressions?: InputMaybe<Array<MetricExpressionInput>>
 	group_by: Array<Scalars['String']>
 	limit?: InputMaybe<Scalars['Int']>
 	limit_aggregator?: InputMaybe<MetricAggregator>
 	limit_column?: InputMaybe<Scalars['String']>
-	metric_types: Array<MetricAggregator>
+	metric_types?: InputMaybe<Array<MetricAggregator>>
 	params: QueryInput
 	project_id: Scalars['ID']
 }
@@ -3006,12 +3002,13 @@ export type QueryTraces_MetricsArgs = {
 	bucket_by?: InputMaybe<Scalars['String']>
 	bucket_count?: InputMaybe<Scalars['Int']>
 	bucket_window?: InputMaybe<Scalars['Int']>
-	column: Scalars['String']
+	column?: InputMaybe<Scalars['String']>
+	expressions?: InputMaybe<Array<MetricExpressionInput>>
 	group_by: Array<Scalars['String']>
 	limit?: InputMaybe<Scalars['Int']>
 	limit_aggregator?: InputMaybe<MetricAggregator>
 	limit_column?: InputMaybe<Scalars['String']>
-	metric_types: Array<MetricAggregator>
+	metric_types?: InputMaybe<Array<MetricAggregator>>
 	params: QueryInput
 	project_id: Scalars['ID']
 }
@@ -3204,6 +3201,7 @@ export enum ReservedEventKey {
 	SessionLength = 'session_length',
 	SessionPagesVisited = 'session_pages_visited',
 	State = 'state',
+	Timestamp = 'timestamp',
 }
 
 export enum ReservedLogKey {
@@ -3247,6 +3245,8 @@ export enum ReservedSessionKey {
 	SecureId = 'secure_id',
 	ServiceVersion = 'service_version',
 	State = 'state',
+	Timestamp = 'timestamp',
+	UpdatedAt = 'updated_at',
 	Viewed = 'viewed',
 	ViewedByAnyone = 'viewed_by_anyone',
 	ViewedByMe = 'viewed_by_me',

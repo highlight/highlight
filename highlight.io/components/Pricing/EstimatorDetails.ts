@@ -545,7 +545,7 @@ export const StandardPrices: Record<TierName, PricingTier> = {
 				feature: 'AI error grouping',
 			},
 			{
-				feature: 'Unlimited seats',
+				feature: 'Up to 15 seats',
 			},
 		],
 		buttonLabel: 'Start free trial',
@@ -600,7 +600,7 @@ export const StandardPrices: Record<TierName, PricingTier> = {
 				tooltip: `Ability to filter out data before it is ingested to mitigate costs.`,
 			},
 			{
-				feature: `Everything in pay-as-you-go`,
+				feature: `Everything in Pay-as-you-go`,
 			},
 		],
 		calculateUsage: true,
@@ -612,11 +612,6 @@ export const StandardPrices: Record<TierName, PricingTier> = {
 		subText: 'Contact sales for pricing',
 		prices: enterprisePrices,
 		features: [
-			{
-				feature: 'Volume discounts',
-				tooltip:
-					'At higher volumes, we can heavily discount usage; reach out to learn more.',
-			},
 			{
 				feature: 'SAML & SSO',
 				tooltip:

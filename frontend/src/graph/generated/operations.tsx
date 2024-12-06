@@ -1606,8 +1606,6 @@ export type UpsertGraphMutation = { __typename?: 'Mutation' } & {
 		| 'title'
 		| 'productType'
 		| 'query'
-		| 'metric'
-		| 'functionType'
 		| 'groupByKeys'
 		| 'bucketByKey'
 		| 'bucketCount'
@@ -1623,6 +1621,12 @@ export type UpsertGraphMutation = { __typename?: 'Mutation' } & {
 						Types.FunnelStep,
 						'title' | 'query'
 					>
+				>
+			>
+			expressions: Array<
+				{ __typename?: 'MetricExpression' } & Pick<
+					Types.MetricExpression,
+					'aggregator' | 'column'
 				>
 			>
 		}
@@ -3186,16 +3190,6 @@ export type GetErrorGroupQuery = { __typename?: 'Query' } & {
 						>
 					>
 				>
-				fields?: Types.Maybe<
-					Array<
-						Types.Maybe<
-							{ __typename?: 'ErrorField' } & Pick<
-								Types.ErrorField,
-								'name' | 'value'
-							>
-						>
-					>
-				>
 				error_metrics: Array<
 					{ __typename?: 'ErrorDistributionItem' } & Pick<
 						Types.ErrorDistributionItem,
@@ -3419,53 +3413,6 @@ export type GetProjectSuggestionQuery = { __typename?: 'Query' } & {
 			{ __typename?: 'Project' } & Pick<
 				Types.Project,
 				'id' | 'name' | 'workspace_id'
-			>
-		>
-	>
-}
-
-export type GetErrorFieldSuggestionQueryVariables = Types.Exact<{
-	project_id: Types.Scalars['ID']
-	name: Types.Scalars['String']
-	query: Types.Scalars['String']
-}>
-
-export type GetErrorFieldSuggestionQuery = { __typename?: 'Query' } & {
-	error_field_suggestion?: Types.Maybe<
-		Array<
-			Types.Maybe<
-				{ __typename?: 'ErrorField' } & Pick<
-					Types.ErrorField,
-					'name' | 'value'
-				>
-			>
-		>
-	>
-}
-
-export type GetErrorSearchSuggestionsQueryVariables = Types.Exact<{
-	project_id: Types.Scalars['ID']
-	query: Types.Scalars['String']
-}>
-
-export type GetErrorSearchSuggestionsQuery = { __typename?: 'Query' } & {
-	visitedUrls?: Types.Maybe<
-		Array<
-			Types.Maybe<
-				{ __typename?: 'ErrorField' } & Pick<
-					Types.ErrorField,
-					'name' | 'value'
-				>
-			>
-		>
-	>
-	fields?: Types.Maybe<
-		Array<
-			Types.Maybe<
-				{ __typename?: 'ErrorField' } & Pick<
-					Types.ErrorField,
-					'name' | 'value'
-				>
 			>
 		>
 	>
@@ -3858,14 +3805,6 @@ export type GetWorkspaceIsIntegratedWithZapierQueryVariables = Types.Exact<{
 export type GetWorkspaceIsIntegratedWithZapierQuery = {
 	__typename?: 'Query'
 } & { is_integrated_with_linear: Types.Query['is_integrated_with'] }
-
-export type GetWorkspaceIsIntegratedWithFrontQueryVariables = Types.Exact<{
-	project_id: Types.Scalars['ID']
-}>
-
-export type GetWorkspaceIsIntegratedWithFrontQuery = {
-	__typename?: 'Query'
-} & { is_integrated_with_front: Types.Query['is_integrated_with'] }
 
 export type GetWorkspaceIsIntegratedWithDiscordQueryVariables = Types.Exact<{
 	project_id: Types.Scalars['ID']
@@ -4863,9 +4802,11 @@ export type GetWorkspaceSettingsQuery = { __typename?: 'Query' } & {
 			| 'enable_grafana_dashboard'
 			| 'enable_ingest_filtering'
 			| 'enable_ingest_sampling'
+			| 'enable_jira_integration'
 			| 'enable_network_traces'
 			| 'enable_project_level_access'
 			| 'enable_session_export'
+			| 'enable_teams_integration'
 			| 'enable_unlisted_sharing'
 		>
 	>
@@ -5232,8 +5173,6 @@ export type GetMetricsQueryVariables = Types.Exact<{
 	product_type: Types.ProductType
 	project_id: Types.Scalars['ID']
 	params: Types.QueryInput
-	column: Types.Scalars['String']
-	metric_types: Array<Types.MetricAggregator> | Types.MetricAggregator
 	group_by: Array<Types.Scalars['String']> | Types.Scalars['String']
 	bucket_by: Types.Scalars['String']
 	bucket_count?: Types.Maybe<Types.Scalars['Int']>
@@ -5242,6 +5181,9 @@ export type GetMetricsQueryVariables = Types.Exact<{
 	limit_aggregator?: Types.Maybe<Types.MetricAggregator>
 	limit_column?: Types.Maybe<Types.Scalars['String']>
 	prediction_settings?: Types.Maybe<Types.PredictionSettings>
+	expressions:
+		| Array<Types.MetricExpressionInput>
+		| Types.MetricExpressionInput
 }>
 
 export type GetMetricsQuery = { __typename?: 'Query' } & {
@@ -5256,6 +5198,7 @@ export type GetMetricsQuery = { __typename?: 'Query' } & {
 					| 'bucket_min'
 					| 'bucket_max'
 					| 'group'
+					| 'column'
 					| 'metric_type'
 					| 'metric_value'
 					| 'yhat_lower'
@@ -5279,8 +5222,6 @@ export type GetGraphTemplatesQuery = { __typename?: 'Query' } & {
 			| 'description'
 			| 'productType'
 			| 'query'
-			| 'metric'
-			| 'functionType'
 			| 'groupByKeys'
 			| 'bucketByKey'
 			| 'bucketCount'
@@ -5297,6 +5238,12 @@ export type GetGraphTemplatesQuery = { __typename?: 'Query' } & {
 							Types.FunnelStep,
 							'title' | 'query'
 						>
+					>
+				>
+				expressions: Array<
+					{ __typename?: 'MetricExpression' } & Pick<
+						Types.MetricExpression,
+						'aggregator' | 'column'
 					>
 				>
 			}
@@ -5327,8 +5274,6 @@ export type GetVisualizationQuery = { __typename?: 'Query' } & {
 					| 'description'
 					| 'productType'
 					| 'query'
-					| 'metric'
-					| 'functionType'
 					| 'groupByKeys'
 					| 'bucketByKey'
 					| 'bucketCount'
@@ -5345,6 +5290,12 @@ export type GetVisualizationQuery = { __typename?: 'Query' } & {
 									Types.FunnelStep,
 									'title' | 'query'
 								>
+							>
+						>
+						expressions: Array<
+							{ __typename?: 'MetricExpression' } & Pick<
+								Types.MetricExpression,
+								'aggregator' | 'column'
 							>
 						>
 					}
@@ -5392,8 +5343,6 @@ export type GetVisualizationsQuery = { __typename?: 'Query' } & {
 								| 'title'
 								| 'productType'
 								| 'query'
-								| 'metric'
-								| 'functionType'
 								| 'groupByKeys'
 								| 'bucketByKey'
 								| 'bucketCount'
@@ -5412,6 +5361,14 @@ export type GetVisualizationsQuery = { __typename?: 'Query' } & {
 												Types.FunnelStep,
 												'title' | 'query'
 											>
+										>
+									>
+									expressions: Array<
+										{
+											__typename?: 'MetricExpression'
+										} & Pick<
+											Types.MetricExpression,
+											'aggregator' | 'column'
 										>
 									>
 								}
@@ -5501,8 +5458,6 @@ export const namedOperations = {
 		GetFieldSuggestion: 'GetFieldSuggestion' as const,
 		GetEnvironments: 'GetEnvironments' as const,
 		GetProjectSuggestion: 'GetProjectSuggestion' as const,
-		GetErrorFieldSuggestion: 'GetErrorFieldSuggestion' as const,
-		GetErrorSearchSuggestions: 'GetErrorSearchSuggestions' as const,
 		GetSessionSearchResults: 'GetSessionSearchResults' as const,
 		GetTrackSuggestion: 'GetTrackSuggestion' as const,
 		GetUserSuggestion: 'GetUserSuggestion' as const,
@@ -5535,8 +5490,6 @@ export const namedOperations = {
 			'GetWorkspaceIsIntegratedWithLinear' as const,
 		GetWorkspaceIsIntegratedWithZapier:
 			'GetWorkspaceIsIntegratedWithZapier' as const,
-		GetWorkspaceIsIntegratedWithFront:
-			'GetWorkspaceIsIntegratedWithFront' as const,
 		GetWorkspaceIsIntegratedWithDiscord:
 			'GetWorkspaceIsIntegratedWithDiscord' as const,
 		GetWorkspaceIsIntegratedWithVercel:

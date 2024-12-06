@@ -92,8 +92,16 @@ export const toast = {
 
 export const Toaster: React.FC = () => {
 	const toasts = useReactiveVar(toastVar)
+
 	return (
-		<Stack cssClass={styles.toastContainer} pr="32" pb="32" gap="16">
+		<Stack
+			cssClass={styles.toastContainer}
+			gap="16"
+			role="region"
+			aria-label="Notifications"
+			aria-hidden={toasts.length === 0}
+			data-persistent-element
+		>
 			{toasts.map((toast) => (
 				<ToastItem key={toast.id} toast={toast} />
 			))}
@@ -138,6 +146,8 @@ const ToastItem: React.FC<ToastItemProps> = ({ toast }) => {
 			display="flex"
 			boxShadow="medium"
 			cssClass={styles.toastItem}
+			role="status"
+			aria-live={toast.type === ToastType.error ? 'assertive' : 'off'}
 		>
 			<Box display="flex" alignItems="flex-start" pt="2">
 				{typeInfo.icon}
@@ -147,7 +157,6 @@ const ToastItem: React.FC<ToastItemProps> = ({ toast }) => {
 					<Box display="flex" alignItems="flex-start" py="4">
 						<Text weight="medium">{toast.message}</Text>
 					</Box>
-
 					{!!toast.content && (
 						<Box display="flex">{toast.content}</Box>
 					)}
@@ -159,6 +168,7 @@ const ToastItem: React.FC<ToastItemProps> = ({ toast }) => {
 						size="minimal"
 						emphasis="low"
 						onClick={handleClose}
+						aria-label="Close"
 					/>
 				</Box>
 			</Stack>

@@ -1,14 +1,15 @@
 receivers:
     filelog:
-        include: [/var/log/watch.log]
+        include:
+            - /var/log/watch.log
         start_at: beginning
-exporters:
-    otlp:
-        endpoint: 'http://host.docker.internal:4317'
-        tls:
-            insecure: true
-    otlp/highlight:
-        endpoint: 'https://otel.highlight.io:4317'
+    filelog/json:
+        include:
+            - /var/log/log.json
+        start_at: beginning
+        operators:
+            - type: json_parser
+
 processors:
     attributes/highlight-project:
         actions:
@@ -16,9 +17,39 @@ processors:
               value: '1jdkoe52'
               action: insert
     batch:
+        send_batch_size: 1000
+        send_batch_max_size: 1000 # Adjust as necessary
+
+extensions:
+    file_storage/otc:
+        directory: /data/queue
+        timeout: 10s # in what time a file lock should be obtained
+
+exporters:
+    otlp/highlight:
+        endpoint: 'https://otel.highlight.io:4317'
+
+        timeout: 30s
+        read_buffer_size: 32768
+        write_buffer_size: 32768
+        keepalive:
+            time: 600s
+            timeout: 30s
+
+        sending_queue:
+            num_consumers: 100
+            queue_size: 10000
+            storage: file_storage/otc
+        retry_on_failure:
+            enabled: true
+            initial_interval: 1s
+            max_interval: 30s
+            max_elapsed_time: 300s
+
 service:
+    extensions: [file_storage/otc]
     pipelines:
         logs:
-            receivers: [filelog]
+            receivers: [filelog, filelog/json]
             processors: [attributes/highlight-project, batch]
-            exporters: [otlp, otlp/highlight]
+            exporters: [otlp/highlight]

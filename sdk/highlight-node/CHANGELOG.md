@@ -1,5 +1,24 @@
 # @highlight-run/node
 
+## 3.11.0
+
+### Minor Changes
+
+-   ed9cb32: disable noisy fs and http instrumentation by default
+-   e89e41c: add Prisma autoinstrumentation
+
+## 3.10.1
+
+### Patch Changes
+
+-   f06a274: ensure W3CTraceContext is propagated to distributed services
+
+## 3.10.0
+
+### Minor Changes
+
+-   236afe0: support span naming in runwithheaders and set a default span name for route middlewares
+
 ## 3.9.7
 
 ### Patch Changes

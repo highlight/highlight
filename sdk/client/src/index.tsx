@@ -136,7 +136,6 @@ export type HighlightClassOptions = {
 	storageMode?: 'sessionStorage' | 'localStorage'
 	skipCookieSessionDataLoad?: true
 	sendMode?: 'webworker' | 'local'
-	enableOtelTracing?: HighlightOptions['enableOtelTracing']
 	otlpEndpoint?: HighlightOptions['otlpEndpoint']
 }
 
@@ -921,10 +920,6 @@ SessionSecureID: ${this.sessionData.sessionSecureID}`,
 					} else {
 						this.addCustomEvent<string>('Navigate', url)
 					}
-					highlightThis.addProperties(
-						{ 'visited-url': url },
-						{ type: 'session' },
-					)
 				}),
 			)
 
