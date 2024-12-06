@@ -19,7 +19,6 @@ import (
 	modelInputs "github.com/highlight-run/highlight/backend/private-graph/graph/model"
 	"github.com/huandu/go-sqlbuilder"
 	"github.com/openlyinc/pointy"
-	"golang.org/x/sync/errgroup"
 )
 
 const timeFormat = "2006-01-02T15:04:05.000Z"
@@ -148,7 +147,6 @@ const timeRangeField = "custom_created_at"
 const sampleField = "custom_sample"
 
 func (client *Client) WriteSessions(ctx context.Context, sessions []*model.Session) error {
-	chFields := []interface{}{}
 	chSessions := []interface{}{}
 
 	for _, session := range sessions {
@@ -172,16 +170,6 @@ func (client *Client) WriteSessions(ctx context.Context, sessions []*model.Sessi
 			}
 			fieldKeys = append(fieldKeys, field.Type+"_"+field.Name)
 			fieldKeyValues = append(fieldKeyValues, field.Type+"_"+field.Name+"_"+field.Value)
-			chf := ClickhouseField{
-				ProjectID:        int32(session.ProjectID),
-				Type:             field.Type,
-				Name:             field.Name,
-				Value:            field.Value,
-				SessionID:        int64(session.ID),
-				SessionCreatedAt: session.CreatedAt.UnixMicro(),
-				Timestamp:        field.Timestamp.UnixMicro(),
-			}
-			chFields = append(chFields, &chf)
 		}
 
 		var viewedByAdmins clickhouse.ArraySet
@@ -233,31 +221,47 @@ func (client *Client) WriteSessions(ctx context.Context, sessions []*model.Sessi
 		"wait_for_async_insert": 1,
 	}))
 
-	var g errgroup.Group
-
 	if len(chSessions) > 0 {
-		g.Go(func() error {
-			sessionsSql, sessionsArgs := sqlbuilder.
-				NewStruct(new(ClickhouseSession)).
-				InsertInto(SessionsTable, chSessions...).
-				BuildWithFlavor(sqlbuilder.ClickHouse)
-			sessionsSql, sessionsArgs = replaceTimestampInserts(sessionsSql, sessionsArgs, map[int]bool{6: true, 7: true}, MicroSeconds)
-			return client.conn.Exec(chCtx, sessionsSql, sessionsArgs...)
-		})
+		sessionsSql, sessionsArgs := sqlbuilder.
+			NewStruct(new(ClickhouseSession)).
+			InsertInto(SessionsTable, chSessions...).
+			BuildWithFlavor(sqlbuilder.ClickHouse)
+		sessionsSql, sessionsArgs = replaceTimestampInserts(sessionsSql, sessionsArgs, map[int]bool{6: true, 7: true}, MicroSeconds)
+		return client.conn.Exec(chCtx, sessionsSql, sessionsArgs...)
+	}
+
+	return nil
+}
+
+func (client *Client) BatchWriteSessionFieldRows(ctx context.Context, fieldRows []*ClickhouseField) error {
+	if len(fieldRows) == 0 {
+		return nil
+	}
+
+	chFields := []interface{}{}
+	for _, field := range fieldRows {
+		if field == nil {
+			return errors.New("nil field")
+		}
+
+		chFields = append(chFields, field)
 	}
 
 	if len(chFields) > 0 {
-		g.Go(func() error {
-			fieldsSql, fieldsArgs := sqlbuilder.
-				NewStruct(new(ClickhouseField)).
-				InsertInto(FieldsTable, chFields...).
-				BuildWithFlavor(sqlbuilder.ClickHouse)
-			fieldsSql, fieldsArgs = replaceTimestampInserts(fieldsSql, fieldsArgs, map[int]bool{3: true}, MicroSeconds)
-			return client.conn.Exec(chCtx, fieldsSql, fieldsArgs...)
-		})
+		chCtx := clickhouse.Context(ctx, clickhouse.WithSettings(clickhouse.Settings{
+			"async_insert":          1,
+			"wait_for_async_insert": 1,
+		}))
+
+		fieldsSql, fieldsArgs := sqlbuilder.
+			NewStruct(new(ClickhouseField)).
+			InsertInto(FieldsTable, chFields...).
+			BuildWithFlavor(sqlbuilder.ClickHouse)
+		fieldsSql, fieldsArgs = replaceTimestampInserts(fieldsSql, fieldsArgs, map[int]bool{3: true}, MicroSeconds)
+		return client.conn.Exec(chCtx, fieldsSql, fieldsArgs...)
 	}
 
-	return g.Wait()
+	return nil
 }
 
 func GetSessionsQueryImplDeprecated(admin *model.Admin, query modelInputs.ClickhouseQuery, projectId int, retentionDate time.Time, selectColumns string, groupBy *string, orderBy *string, limit *int, offset *int) (string, []interface{}, bool, error) {
@@ -405,67 +409,6 @@ func (client *Client) QuerySessionHistogramDeprecated(ctx context.Context, admin
 	}
 
 	return bucketTimes, totals, withErrors, withoutErrors, nil
-}
-
-func (client *Client) QueryFieldNames(ctx context.Context, projectId int, start time.Time, end time.Time) ([]*model.Field, error) {
-	sb := sqlbuilder.NewSelectBuilder()
-	sql, args := sb.
-		Select("DISTINCT Type, Name").
-		From("fields").
-		Where(sb.And(
-			sb.Equal("ProjectID", projectId),
-			sb.Between("SessionCreatedAt", start, end))).
-		BuildWithFlavor(sqlbuilder.ClickHouse)
-
-	rows, err := client.conn.Query(ctx, sql, args...)
-	if err != nil {
-		return nil, err
-	}
-
-	fields := []*model.Field{}
-	for rows.Next() {
-		var typ string
-		var name string
-		if err := rows.Scan(&typ, &name); err != nil {
-			return nil, err
-		}
-		fields = append(fields, &model.Field{Type: typ, Name: name})
-	}
-
-	return fields, nil
-}
-
-func (client *Client) QueryFieldValues(ctx context.Context, projectId int, count int, fieldType string, fieldName string, query string, start time.Time, end time.Time) ([]string, error) {
-	sb := sqlbuilder.NewSelectBuilder()
-	sql, args := sb.
-		Select("Value").
-		From("fields").
-		Where(sb.And(
-			sb.Equal("ProjectID", projectId),
-			sb.Equal("Type", fieldType),
-			sb.Equal("Name", fieldName),
-			fmt.Sprintf("Value ILIKE %s", sb.Var("%"+query+"%")),
-			sb.Between("SessionCreatedAt", start, end))).
-		GroupBy("1").
-		OrderBy("count() DESC").
-		Limit(count).
-		BuildWithFlavor(sqlbuilder.ClickHouse)
-
-	rows, err := client.conn.Query(ctx, sql, args...)
-	if err != nil {
-		return nil, err
-	}
-
-	values := []string{}
-	for rows.Next() {
-		var value string
-		if err := rows.Scan(&value); err != nil {
-			return nil, err
-		}
-		values = append(values, value)
-	}
-
-	return values, nil
 }
 
 func (client *Client) DeleteSessions(ctx context.Context, projectId int, sessionIds []int) error {
