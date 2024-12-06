@@ -23,10 +23,11 @@ export const OSSCallToAction = () => {
 				</h3>
 				<div className="text-center px-2 md:px-16 mt-6">
 					<Typography type="copy1" className="leading-relaxed">
-						Learn everything from basic concepts to advanced
-						implementations. Perfect for developers looking to
-						master observability and monitoring in modern
-						applications.
+						From fundamentals to advanced implementations, learn how
+						OpenTelemetry can transform your engineering team&apos;s
+						observability practices. Ideal for engineering leaders
+						and developers building production-ready monitoring
+						solutions.
 					</Typography>
 				</div>
 				<div className="flex justify-center mt-8">
