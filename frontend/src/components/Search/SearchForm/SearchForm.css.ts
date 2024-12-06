@@ -19,7 +19,8 @@ export const searchIconWithActions = style({
 
 export const combobox = style([
 	sprinkles({
-		p: '6',
+		py: '6',
+		pl: '6',
 	}),
 	typographyStyles.family.monospace,
 	typographyStyles.size.small,
@@ -30,6 +31,7 @@ export const combobox = style([
 		display: 'flex',
 		fontFeatureSettings: '"tnum" off', // disable tabular numbers
 		fontWeight: '500 !important',
+		paddingRight: 30,
 		pointerEvents: 'auto',
 		width: '100%',
 		selectors: {
@@ -145,9 +147,9 @@ export const comboboxPopover = style({
 	display: 'flex',
 	flexDirection: 'column',
 	flexGrow: 1,
-	maxWidth: 600,
 	maxHeight: 'min(var(--popover-available-height,300px),300px)',
-	minWidth: 'min(var(--popover-available-width,350px),350px)',
+	minWidth: 450,
+	maxWidth: 600,
 	paddingBottom: 33,
 	zIndex: 10,
 })

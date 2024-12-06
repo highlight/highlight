@@ -6068,6 +6068,7 @@ body {
   display: flex;
   font-feature-settings: "tnum" off;
   font-weight: 500 !important;
+  padding-right: 30px;
   pointer-events: auto;
   width: 100%;
 }
@@ -6193,9 +6194,9 @@ body {
   display: flex;
   flex-direction: column;
   flex-grow: 1;
-  max-width: 600px;
   max-height: min(var(--popover-available-height,300px), 300px);
-  min-width: min(var(--popover-available-width,350px), 350px);
+  min-width: 450px;
+  max-width: 600px;
   padding-bottom: 33px;
   z-index: 10;
 }
