@@ -1,0 +1,43 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "highlight.fullname" . }}-clickhouse
+  labels:
+    app.kubernetes.io/component: clickhouse
+    app.kubernetes.io/part-of: {{ include "highlight.name" . }}
+    {{- include "highlight.labels" . | nindent 4 }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/component: clickhouse
+      app.kubernetes.io/part-of: {{ include "highlight.name" . }}
+      {{- include "highlight.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/component: clickhouse
+        app.kubernetes.io/part-of: {{ include "highlight.name" . }}
+        {{- include "highlight.selectorLabels" . | nindent 8 }}
+    spec:
+      containers:
+        - name: clickhouse
+          image: "{{ .Values.clickhouse.image.repository }}:{{ .Values.clickhouse.image.tag }}"
+          imagePullPolicy: {{ .Values.clickhouse.image.pullPolicy }}
+          volumeMounts:
+            - name: clickhouse-data
+              mountPath: /var/lib/clickhouse
+            - name: clickhouse-logs
+              mountPath: /var/log/clickhouse-server
+          ports:
+            - containerPort: 8123
+              protocol: TCP
+            - containerPort: 9000
+              protocol: TCP
+      volumes:
+        - name: clickhouse-data
+          persistentVolumeClaim:
+            claimName: {{ include "highlight.fullname" . }}-clickhouse-pvc
+        - name: clickhouse-logs
+          persistentVolumeClaim:
+            claimName: {{ include "highlight.fullname" . }}-clickhouse-logs-pvc
