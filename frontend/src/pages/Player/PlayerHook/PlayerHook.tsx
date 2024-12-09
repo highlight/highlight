@@ -520,16 +520,24 @@ export const usePlayer = (
 					},
 				)
 				dispatchAction(startTime, action)
-			} else if (promises.length && blockingLoad.current) {
+			} else if (
+				promises.length &&
+				blockingLoad.current &&
+				state.replayerState === ReplayerState.Paused
+			) {
 				log(
 					'PlayerHook.tsx:ensureChunksLoaded',
-					'calling dispatchAction due to blockingLoad',
+					'calling dispatchAction due to blockingLoad and paused state',
 					{
+						target: target.current?.time,
 						startTime,
 						chunks: chunkEventsRef.current,
 					},
 				)
-				dispatchAction(undefined, blockingLoad.current)
+				dispatchAction(
+					target.current?.time ?? startTime,
+					blockingLoad.current,
+				)
 				blockingLoad.current = undefined
 			}
 		},
