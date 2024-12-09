@@ -5,13 +5,20 @@ import (
 	"fmt"
 	"github.com/highlight-run/highlight/backend/util"
 	e "github.com/pkg/errors"
+	"github.com/samber/lo"
 	"go.opentelemetry.io/collector/pdata/pmetric"
 	"time"
 )
 
-const MetricsTable = "metrics"
+const MetricsSumTable = "metrics_sum"
+const MetricsHistogramTable = "metrics_histogram"
+const MetricsSummaryTable = "metrics_summary"
 
-type MetricRow struct {
+type MetricRow interface {
+	GetType() pmetric.MetricType
+}
+
+type MetricBaseRow struct {
 	ProjectID         uint32
 	ServiceName       string
 	ServiceVersion    string
@@ -33,8 +40,24 @@ type MetricRow struct {
 	ExemplarsTraceID         []string            `json:"Exemplars.TraceID" ch:"Exemplars.TraceID"`
 	ExemplarsSecureSessionID []string            `json:"Exemplars.SecureSessionID" ch:"Exemplars.SecureSessionID"`
 
-	MetricType     pmetric.MetricType `ch:"Type"`
-	Value          float64
+	MetricType pmetric.MetricType `ch:"Type"`
+}
+
+type MetricSumRow struct {
+	MetricBaseRow
+
+	Value                  float64
+	AggregationTemporality int32
+	IsMonotonic            bool
+}
+
+func (m *MetricSumRow) GetType() pmetric.MetricType {
+	return m.MetricType
+}
+
+type MetricHistogramRow struct {
+	MetricBaseRow
+
 	Count          uint64
 	Sum            float64
 	BucketCounts   []uint64
@@ -42,32 +65,79 @@ type MetricRow struct {
 	Min            float64
 	Max            float64
 
+	AggregationTemporality int32
+}
+
+func (m *MetricHistogramRow) GetType() pmetric.MetricType {
+	return m.MetricType
+}
+
+type MetricSummaryRow struct {
+	MetricBaseRow
+
+	Count                    uint64
+	Sum                      float64
 	ValueAtQuantilesQuantile []float64 `json:"ValueAtQuantiles.Quantile" ch:"ValueAtQuantiles.Quantile"`
 	ValueAtQuantilesValue    []float64 `json:"ValueAtQuantiles.Value" ch:"ValueAtQuantiles.Value"`
 }
 
-func (client *Client) BatchWriteMetricRows(ctx context.Context, metricRows []*MetricRow) error {
-	if len(metricRows) == 0 {
-		return nil
-	}
+func (m *MetricSummaryRow) GetType() pmetric.MetricType {
+	return m.MetricType
+}
 
-	span, _ := util.StartSpanFromContext(ctx, util.KafkaBatchWorkerOp, util.ResourceName("worker.kafka.batched.flushMetrics.prepareRows"))
-	span.SetAttribute("BatchSize", len(metricRows))
+func (client *Client) BatchWriteMetricRows(ctx context.Context, metricSumRows []*MetricSumRow, metricHistogramRows []*MetricHistogramRow, metricSummaryRows []*MetricSummaryRow) error {
+	for table, rows := range map[string][]MetricRow{
+		MetricsSumTable: lo.Map(metricSumRows, func(item *MetricSumRow, _ int) MetricRow {
+			return item
+		}),
+		MetricsHistogramTable: lo.Map(metricHistogramRows, func(item *MetricHistogramRow, _ int) MetricRow {
+			return item
+		}),
+		MetricsSummaryTable: lo.Map(metricSummaryRows, func(item *MetricSummaryRow, _ int) MetricRow {
+			return item
+		}),
+	} {
+		if len(rows) == 0 {
+			return nil
+		}
 
-	batch, err := client.conn.PrepareBatch(ctx, fmt.Sprintf("INSERT INTO %s", MetricsTable))
-	if err != nil {
-		span.Finish(err)
-		return e.Wrap(err, "failed to create traces batch")
-	}
+		span, _ := util.StartSpanFromContext(ctx, util.KafkaBatchWorkerOp, util.ResourceName("worker.kafka.batched.otelMetrics.write"))
+		span.SetAttribute("BatchSize", len(rows))
+		span.SetAttribute("Table", table)
 
-	for _, metricRow := range metricRows {
-		err = batch.AppendStruct(metricRow)
+		batch, err := client.conn.PrepareBatch(ctx, fmt.Sprintf("INSERT INTO %s", table))
 		if err != nil {
+			span.Finish(err)
+			return e.Wrap(err, "failed to create metric batch")
+		}
+
+		for _, metricRow := range rows {
+			if r, ok := metricRow.(*MetricSumRow); ok {
+				if err = batch.AppendStruct(r); err != nil {
+					span.Finish(err)
+					return err
+				}
+			}
+			if r, ok := metricRow.(*MetricHistogramRow); ok {
+				if err = batch.AppendStruct(r); err != nil {
+					span.Finish(err)
+					return err
+				}
+			}
+			if r, ok := metricRow.(*MetricSummaryRow); ok {
+				if err = batch.AppendStruct(r); err != nil {
+					span.Finish(err)
+					return err
+				}
+			}
+		}
+
+		if err := batch.Send(); err != nil {
 			span.Finish(err)
 			return err
 		}
-	}
-	span.Finish()
 
-	return batch.Send()
+		span.Finish()
+	}
+	return nil
 }
