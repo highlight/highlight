@@ -117,6 +117,13 @@ const getHighlightConfig = async (
 ) => {
 	const defaultOpts = await getDefaultOpts(config, highlightOpts)
 
+	if (defaultOpts.configureHighlightProxy ){
+			const backendUrl = process.env.NEXT_PUBLIC_HIGHLIGHT_BACKEND_URL;
+			const url = new URL(backendUrl || 'http://localhost:3000');
+			url.pathname = '/highlight-events';
+			defaultOpts.sourceMapsBackendUrl = url.toString();
+	}
+
 	let newRewrites = config.rewrites
 	if (defaultOpts.uploadSourceMaps || defaultOpts.configureHighlightProxy) {
 		newRewrites = async () => {
@@ -145,12 +152,20 @@ const getHighlightConfig = async (
 
 			if (!re || Array.isArray(re)) {
 				re = re ?? []
+
+				// Check if highlight-event is already in the array
+				const isProxyConfigured = re.some(rewrite => rewrite.source === highlightRewrite.source);
+
+				// Add sourcemap rewrite if necessary
 				if (defaultOpts.uploadSourceMaps) {
 					re.push(sourcemapRewrite)
 				}
-				if (defaultOpts.configureHighlightProxy) {
+
+				// Add highlight rewrite if not already configured and necessary
+				if (!isProxyConfigured && defaultOpts.configureHighlightProxy) {
 					re.push(highlightRewrite)
 				}
+
 				return re
 			} else {
 				return {
