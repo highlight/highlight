@@ -1,4 +1,5 @@
 import { GenerateSecureID } from '@highlight-run/client/src/utils/secure-id'
+import { H } from 'highlight.run'
 import Cookies from 'js-cookie'
 
 export const setAttributionData = () => {
@@ -26,4 +27,22 @@ export const getAttributionData = () => {
 		// use clientID to deduplicate attribution
 		clientID,
 	}
+}
+
+export const recordStorageEvents = () => {
+	window.addEventListener(
+		'storage',
+		(e: StorageEvent) => {
+			const details = {
+				storageArea: e.storageArea,
+				key: e.key,
+				newValue: e.newValue,
+				oldValue: e.oldValue,
+				url: e.url,
+			}
+			H.track('storage', details)
+			H.startSpan('storage', { attributes: details }, () => {})
+		},
+		false,
+	)
 }
