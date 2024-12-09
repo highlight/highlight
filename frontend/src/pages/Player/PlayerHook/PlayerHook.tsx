@@ -525,11 +525,15 @@ export const usePlayer = (
 					'PlayerHook.tsx:ensureChunksLoaded',
 					'calling dispatchAction due to blockingLoad',
 					{
+						target: target.current?.time,
 						startTime,
 						chunks: chunkEventsRef.current,
 					},
 				)
-				dispatchAction(startTime, blockingLoad.current)
+				dispatchAction(
+					target.current?.time ?? startTime,
+					blockingLoad.current,
+				)
 				blockingLoad.current = undefined
 			}
 		},
