@@ -163,6 +163,30 @@ func Test_QuerySessionIds(t *testing.T) {
 	client, teardown := setupSessionsTest(t)
 	defer teardown(t)
 
+	f1 := &ClickhouseField{
+		Type:      "session",
+		Name:      "environment",
+		Value:     "production",
+		ProjectID: 1,
+		Timestamp: time.Now().UnixMicro(),
+	}
+
+	f2 := &ClickhouseField{
+		Type:      "session",
+		Name:      "environment",
+		Value:     "dev",
+		ProjectID: 1,
+		Timestamp: time.Now().UnixMicro(),
+	}
+
+	f3 := &ClickhouseField{
+		Type:      "session",
+		Name:      "environment",
+		Value:     "production",
+		ProjectID: 1,
+		Timestamp: time.Now().UnixMicro(),
+	}
+
 	s1 := &model.Session{
 		Model: model.Model{
 			CreatedAt: time.Now(),
@@ -173,10 +197,10 @@ func Test_QuerySessionIds(t *testing.T) {
 				Int64Model: model.Int64Model{
 					CreatedAt: time.Now(),
 				},
-				Type:      "session",
-				Name:      "environment",
-				Value:     "production",
-				ProjectID: 1,
+				Type:      f1.Type,
+				Name:      f1.Name,
+				Value:     f1.Value,
+				ProjectID: int(f1.ProjectID),
 			},
 		},
 		Environment: "production",
@@ -193,10 +217,10 @@ func Test_QuerySessionIds(t *testing.T) {
 				Int64Model: model.Int64Model{
 					CreatedAt: time.Now(),
 				},
-				Type:      "session",
-				Name:      "environment",
-				Value:     "dev",
-				ProjectID: 1,
+				Type:      f3.Type,
+				Name:      f3.Name,
+				Value:     f3.Value,
+				ProjectID: int(f3.ProjectID),
 			},
 		},
 		Environment: "dev",
@@ -213,10 +237,10 @@ func Test_QuerySessionIds(t *testing.T) {
 				Int64Model: model.Int64Model{
 					CreatedAt: time.Now(),
 				},
-				Type:      "session",
-				Name:      "environment",
-				Value:     "production",
-				ProjectID: 1,
+				Type:      f1.Type,
+				Name:      f1.Name,
+				Value:     f1.Value,
+				ProjectID: int(f1.ProjectID),
 			},
 		},
 		Environment: "production",
@@ -226,7 +250,16 @@ func Test_QuerySessionIds(t *testing.T) {
 	assert.NoError(t, DB.Create(s1).Error)
 	assert.NoError(t, DB.Create(s2).Error)
 	assert.NoError(t, DB.Create(s3).Error)
+
+	f1.SessionID = int64(s1.ID)
+	f1.SessionCreatedAt = s1.CreatedAt.UnixMicro()
+	f2.SessionID = int64(s2.ID)
+	f2.SessionCreatedAt = s2.CreatedAt.UnixMicro()
+	f3.SessionID = int64(s3.ID)
+	f3.SessionCreatedAt = s3.CreatedAt.UnixMicro()
+
 	assert.NoError(t, client.WriteSessions(ctx, []*model.Session{s1, s2, s3}))
+	assert.NoError(t, client.BatchWriteSessionFieldRows(ctx, []*ClickhouseField{f1, f2}))
 	// wait for clickhouse to flush the write
 	time.Sleep(time.Second)
 
