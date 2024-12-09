@@ -305,7 +305,7 @@ type OTeLMetricsMessage struct {
 	Failures     int
 	MaxRetries   int
 	KafkaMessage *kafka.Message `json:",omitempty"`
-	*clickhouse.MetricRow
+	clickhouse.MetricRow
 }
 
 func (m *OTeLMetricsMessage) GetType() PayloadType {

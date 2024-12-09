@@ -25,27 +25,29 @@ func (dp *NumberDataPoint) ExtractAttributes() map[string]any {
 	return dp.Attributes().AsRaw()
 }
 
-func (dp *NumberDataPoint) ToMetricRow(ctx context.Context, metricType pmetric.MetricType, fields *extractedFields) *clickhouse.MetricRow {
-	m := clickhouse.MetricRow{
-		ProjectID:         uint32(fields.projectIDInt),
-		ServiceName:       fields.serviceName,
-		ServiceVersion:    fields.serviceVersion,
-		MetricName:        fields.metricName,
-		MetricDescription: fields.metricDescription,
-		MetricUnit:        fields.metricUnit,
-		Attributes:        fields.attrs,
-		MetricType:        metricType,
-		Timestamp:         fields.timestamp,
-		StartTimestamp:    dp.StartTimestamp().AsTime(),
-		RetentionDays:     getMetricRetention(fields.projectIDInt),
-		Flags:             uint32(dp.Flags()),
-		// TODO(vkorolik)
-		ExemplarsAttributes:      nil,
-		ExemplarsTimestamp:       nil,
-		ExemplarsValue:           nil,
-		ExemplarsSpanID:          nil,
-		ExemplarsTraceID:         nil,
-		ExemplarsSecureSessionID: nil,
+func (dp *NumberDataPoint) ToMetricRow(ctx context.Context, metricType pmetric.MetricType, fields *extractedFields) clickhouse.MetricRow {
+	m := clickhouse.MetricSumRow{
+		MetricBaseRow: clickhouse.MetricBaseRow{
+			ProjectID:         uint32(fields.projectIDInt),
+			ServiceName:       fields.serviceName,
+			ServiceVersion:    fields.serviceVersion,
+			MetricName:        fields.metricName,
+			MetricDescription: fields.metricDescription,
+			MetricUnit:        fields.metricUnit,
+			Attributes:        fields.attrs,
+			MetricType:        metricType,
+			Timestamp:         fields.timestamp,
+			StartTimestamp:    dp.StartTimestamp().AsTime(),
+			RetentionDays:     getMetricRetention(fields.projectIDInt),
+			Flags:             uint32(dp.Flags()),
+			// TODO(vkorolik)
+			ExemplarsAttributes:      nil,
+			ExemplarsTimestamp:       nil,
+			ExemplarsValue:           nil,
+			ExemplarsSpanID:          nil,
+			ExemplarsTraceID:         nil,
+			ExemplarsSecureSessionID: nil,
+		},
 	}
 	if dp.ValueType() == pmetric.NumberDataPointValueTypeDouble {
 		m.Value = dp.DoubleValue()
@@ -63,33 +65,35 @@ func (dp *HistogramDataPoint) ExtractAttributes() map[string]any {
 	return dp.Attributes().AsRaw()
 }
 
-func (dp *HistogramDataPoint) ToMetricRow(ctx context.Context, metricType pmetric.MetricType, fields *extractedFields) *clickhouse.MetricRow {
-	m := clickhouse.MetricRow{
-		ProjectID:         uint32(fields.projectIDInt),
-		ServiceName:       fields.serviceName,
-		ServiceVersion:    fields.serviceVersion,
-		MetricName:        fields.metricName,
-		MetricDescription: fields.metricDescription,
-		MetricUnit:        fields.metricUnit,
-		Attributes:        fields.attrs,
-		MetricType:        metricType,
-		Timestamp:         fields.timestamp,
-		StartTimestamp:    dp.StartTimestamp().AsTime(),
-		RetentionDays:     getMetricRetention(fields.projectIDInt),
-		Flags:             uint32(dp.Flags()),
-		Count:             dp.Count(),
-		Sum:               dp.Sum(),
-		BucketCounts:      dp.BucketCounts().AsRaw(),
-		ExplicitBounds:    dp.ExplicitBounds().AsRaw(),
-		Min:               dp.Min(),
-		Max:               dp.Max(),
-		// TODO(vkorolik)
-		ExemplarsAttributes:      nil,
-		ExemplarsTimestamp:       nil,
-		ExemplarsValue:           nil,
-		ExemplarsSpanID:          nil,
-		ExemplarsTraceID:         nil,
-		ExemplarsSecureSessionID: nil,
+func (dp *HistogramDataPoint) ToMetricRow(ctx context.Context, metricType pmetric.MetricType, fields *extractedFields) clickhouse.MetricRow {
+	m := clickhouse.MetricHistogramRow{
+		MetricBaseRow: clickhouse.MetricBaseRow{
+			ProjectID:         uint32(fields.projectIDInt),
+			ServiceName:       fields.serviceName,
+			ServiceVersion:    fields.serviceVersion,
+			MetricName:        fields.metricName,
+			MetricDescription: fields.metricDescription,
+			MetricUnit:        fields.metricUnit,
+			Attributes:        fields.attrs,
+			MetricType:        metricType,
+			Timestamp:         fields.timestamp,
+			StartTimestamp:    dp.StartTimestamp().AsTime(),
+			RetentionDays:     getMetricRetention(fields.projectIDInt),
+			Flags:             uint32(dp.Flags()),
+			// TODO(vkorolik)
+			ExemplarsAttributes:      nil,
+			ExemplarsTimestamp:       nil,
+			ExemplarsValue:           nil,
+			ExemplarsSpanID:          nil,
+			ExemplarsTraceID:         nil,
+			ExemplarsSecureSessionID: nil,
+		},
+		Count:          dp.Count(),
+		Sum:            dp.Sum(),
+		BucketCounts:   dp.BucketCounts().AsRaw(),
+		ExplicitBounds: dp.ExplicitBounds().AsRaw(),
+		Min:            dp.Min(),
+		Max:            dp.Max(),
 	}
 	return &m
 }
@@ -102,7 +106,7 @@ func (dp *ExponentialHistogramDataPoint) ExtractAttributes() map[string]any {
 	return dp.Attributes().AsRaw()
 }
 
-func (dp *ExponentialHistogramDataPoint) ToMetricRow(ctx context.Context, metricType pmetric.MetricType, fields *extractedFields) *clickhouse.MetricRow {
+func (dp *ExponentialHistogramDataPoint) ToMetricRow(ctx context.Context, metricType pmetric.MetricType, fields *extractedFields) clickhouse.MetricRow {
 	log.WithContext(ctx).
 		WithFields(log.Fields{
 			"fields":         fields,
@@ -134,22 +138,24 @@ func (dp *SummaryDataPoint) ExtractAttributes() map[string]any {
 	return dp.Attributes().AsRaw()
 }
 
-func (dp *SummaryDataPoint) ToMetricRow(ctx context.Context, metricType pmetric.MetricType, fields *extractedFields) *clickhouse.MetricRow {
-	m := clickhouse.MetricRow{
-		ProjectID:         uint32(fields.projectIDInt),
-		ServiceName:       fields.serviceName,
-		ServiceVersion:    fields.serviceVersion,
-		MetricName:        fields.metricName,
-		MetricDescription: fields.metricDescription,
-		MetricUnit:        fields.metricUnit,
-		Attributes:        fields.attrs,
-		MetricType:        metricType,
-		Timestamp:         fields.timestamp,
-		StartTimestamp:    dp.StartTimestamp().AsTime(),
-		RetentionDays:     getMetricRetention(fields.projectIDInt),
-		Flags:             uint32(dp.Flags()),
-		Count:             dp.Count(),
-		Sum:               dp.Sum(),
+func (dp *SummaryDataPoint) ToMetricRow(ctx context.Context, metricType pmetric.MetricType, fields *extractedFields) clickhouse.MetricRow {
+	m := clickhouse.MetricSummaryRow{
+		MetricBaseRow: clickhouse.MetricBaseRow{
+			ProjectID:         uint32(fields.projectIDInt),
+			ServiceName:       fields.serviceName,
+			ServiceVersion:    fields.serviceVersion,
+			MetricName:        fields.metricName,
+			MetricDescription: fields.metricDescription,
+			MetricUnit:        fields.metricUnit,
+			Attributes:        fields.attrs,
+			MetricType:        metricType,
+			Timestamp:         fields.timestamp,
+			StartTimestamp:    dp.StartTimestamp().AsTime(),
+			RetentionDays:     getMetricRetention(fields.projectIDInt),
+			Flags:             uint32(dp.Flags()),
+		},
+		Count: dp.Count(),
+		Sum:   dp.Sum(),
 		// TODO(vkorolik) implement
 		ValueAtQuantilesQuantile: nil,
 		ValueAtQuantilesValue:    nil,

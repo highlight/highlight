@@ -216,7 +216,7 @@ func (k *KafkaBatchWorker) flush(ctx context.Context) error {
 		case kafkaqueue.PushOTeLMetrics:
 			metricRow := lastMsg.(*kafka_queue.OTeLMetricsMessage)
 			if metricRow != nil {
-				metricRows = append(metricRows, metricRow.MetricRow)
+				metricRows = append(metricRows, &metricRow.MetricRow)
 			}
 		default:
 			log.WithContext(ctx).Errorf("unknown message type received by batch worker %+v", lastMsg.GetType())
@@ -497,7 +497,7 @@ func (k *KafkaBatchWorker) flushSessionEvents(ctx context.Context, sessionEventR
 	return nil
 }
 
-func (k *KafkaBatchWorker) flushMetrics(ctx context.Context, metricRows []*clickhouse.MetricRow) error {
+func (k *KafkaBatchWorker) flushMetrics(ctx context.Context, metricRows []*fclickhouse.MetricRow) error {
 	span, ctxT := util.StartSpanFromContext(ctx, fmt.Sprintf("worker.kafka.%s.flush.clickhouse", k.Name))
 	span.SetAttribute("NumRows", len(metricRows))
 	span.SetAttribute("PayloadSizeBytes", binary.Size(metricRows))
