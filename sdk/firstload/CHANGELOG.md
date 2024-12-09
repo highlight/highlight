@@ -1,5 +1,11 @@
 # highlight.run
 
+## 9.7.3
+
+### Patch Changes
+
+-   f396ee3: tune opentelemetry traces export from highlight.run
+
 ## 9.7.2
 
 ### Patch Changes
