@@ -95,7 +95,7 @@ func getCursorIdx[T interface{}](edges []*Edge[T], cursor string) int {
 }
 
 func encodeCursor(t time.Time, uuid string) string {
-	key := fmt.Sprintf("%s,%s", t.Format(time.RFC3339), uuid)
+	key := fmt.Sprintf("%s,%s", t.Format(time.RFC3339Nano), uuid)
 	return base64.StdEncoding.EncodeToString([]byte(key))
 }
 func decodeCursor(encodedCursor string) (timestamp time.Time, uuid string, err error) {
@@ -110,7 +110,7 @@ func decodeCursor(encodedCursor string) (timestamp time.Time, uuid string, err e
 		return
 	}
 
-	timestamp, err = time.Parse(time.RFC3339, arrStr[0])
+	timestamp, err = time.Parse(time.RFC3339Nano, arrStr[0])
 	if err != nil {
 		return
 	}

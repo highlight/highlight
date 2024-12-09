@@ -46,7 +46,7 @@ func TestNewLogRowWithTimestamp(t *testing.T) {
 	ts := time.Now()
 	lr := NewLogRow(ts, 1)
 	// log row should be created with second precision, per clickhouse precision
-	assert.Equal(t, ts.Truncate(time.Second), lr.Timestamp)
+	assert.Equal(t, ts, lr.Timestamp)
 }
 
 func TestNewLogRowWithZeroTimestamp(t *testing.T) {
