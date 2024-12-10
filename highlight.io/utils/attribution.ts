@@ -51,11 +51,7 @@ export const setAttributionData = () => {
 	referrer.documentReferrer = document.referrer
 
 	const urlParams = new URLSearchParams(window.location.search)
-	if (urlParams.get('ref')) {
-		referrer = { ...referrer, referrer: urlParams.get('ref') }
-	}
-
-	const utmParams = {
+	const referrerParams = {
 		utm_source: urlParams.get('utm_source'),
 		utm_medium: urlParams.get('utm_medium'),
 		utm_campaign: urlParams.get('utm_campaign'),
@@ -63,12 +59,13 @@ export const setAttributionData = () => {
 		utm_term: urlParams.get('utm_term'),
 		device: urlParams.get('device'),
 		gclid: urlParams.get('gclid'),
+		ref: urlParams.get('ref'),
 	}
 
 	referrer = {
 		...referrer,
 		...Object.fromEntries(
-			Object.entries(utmParams).filter(([_, value]) => !!value),
+			Object.entries(referrerParams).filter(([_, value]) => !!value),
 		),
 	}
 
