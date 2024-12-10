@@ -659,10 +659,7 @@ export const Search: React.FC<{
 		comboboxStore.setState('moves', 0)
 	}
 
-	const handleHistorySelction = (
-		query: string,
-		queryParts: SearchExpression[],
-	) => {
+	const handleHistorySelction = (queryParts: SearchExpression[]) => {
 		const newQuery = stringifySearchQuery(queryParts)
 		startTransition(() => {
 			submitQuery(newQuery)
@@ -946,7 +943,6 @@ export const Search: React.FC<{
 													key={index}
 													onClick={() => {
 														handleHistorySelction(
-															data.query,
 															data.queryParts,
 														)
 													}}

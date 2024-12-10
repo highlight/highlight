@@ -172,7 +172,7 @@ describe('getActivePart', () => {
 	it('handles spaces around operators', () => {
 		const queryString = 'name = '
 		const { queryParts } = parseSearch(queryString)
-		expect(getActivePart(7, queryParts).text).toEqual(queryString)
+		expect(getActivePart(7, queryParts).text).toEqual('name = ')
 	})
 
 	it('handles end of operator correctly', () => {
