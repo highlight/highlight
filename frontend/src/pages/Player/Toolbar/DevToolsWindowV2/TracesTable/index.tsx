@@ -309,15 +309,7 @@ type TracesTableRowProps = {
 }
 
 const TracesTableRow = React.memo<TracesTableRowProps>(
-	({
-		row,
-		rowVirtualizer,
-		virtualRowKey,
-		queryParts,
-		gridColumns,
-		isActive,
-		isPast,
-	}) => {
+	({ row, rowVirtualizer, virtualRowKey, gridColumns, isPast }) => {
 		return (
 			<div
 				key={virtualRowKey}
@@ -331,11 +323,6 @@ const TracesTableRow = React.memo<TracesTableRowProps>(
 					})}
 				>
 					{row.getVisibleCells().map((cell: any) => {
-						console.log('cell', {
-							cell,
-							def: cell.column.columnDef.cell,
-							context: cell.getContext(),
-						})
 						return (
 							<React.Fragment key={cell.column.id}>
 								{flexRender(

@@ -13,7 +13,10 @@ import React from 'react'
 
 import { useRelatedResource } from '@/components/RelatedResources/hooks'
 import { Trace } from '@/graph/generated/schemas'
-import { ColumnRendererProps } from '@/pages/LogsPage/LogsTable/CustomColumns/renderers'
+import {
+	ColumnRendererProps,
+	GoToLogRenderer,
+} from '@/pages/LogsPage/LogsTable/CustomColumns/renderers'
 import { getTraceDurationString } from '@/pages/Traces/utils'
 import analytics from '@/util/analytics'
 
@@ -229,4 +232,5 @@ export const TraceColumnRenderers = {
 	string: StringColumnRenderer,
 	metric_name: StringColumnRenderer,
 	metric_value: StringColumnRenderer,
+	'go-to-trace': GoToLogRenderer,
 }

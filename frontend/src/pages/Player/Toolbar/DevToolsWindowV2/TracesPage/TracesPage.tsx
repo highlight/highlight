@@ -1,4 +1,4 @@
-import { SortDirection, TraceEdge } from '@graph/schemas'
+import { SortDirection } from '@graph/schemas'
 import { Box } from '@highlight-run/ui/components'
 import { useProjectId } from '@hooks/useProjectId'
 import { THROTTLED_UPDATE_MS } from '@pages/Player/PlayerHook/PlayerState'
@@ -66,21 +66,20 @@ export const TracesPage = ({
 	const selectedColumns = useMemo(() => {
 		return [
 			...DEFAULT_TRACE_COLUMNS,
-			// TODO(vkorolik) go to trace
-			// {
-			// 	id: 'go-to-trace',
-			// 	label: '',
-			// 	type: 'go-to-trace',
-			// 	size: '75px',
-			// 	accessor: (row: TraceEdge) => row.node.timestamp,
-			// 	onClick: (traceEdge: any) => {
-			// 		const timestamp =
-			// 			new Date(traceEdge.node.timestamp).getTime() -
-			// 			sessionMetadata.startTime
-			// 		setTime(timestamp)
-			// 		analytics.track('session_go-to-trace_click')
-			// 	},
-			// },
+			{
+				id: 'go-to-trace',
+				label: '',
+				type: 'go-to-trace',
+				size: '75px',
+				accessor: (row) => row.node.timestamp,
+				onClick: (traceEdge: any) => {
+					const timestamp =
+						new Date(traceEdge.node.timestamp).getTime() -
+						sessionMetadata.startTime
+					setTime(timestamp)
+					analytics.track('session_go-to-trace_click')
+				},
+			},
 		] as TraceCustomColumn[]
 	}, [sessionMetadata.startTime, setTime])
 
