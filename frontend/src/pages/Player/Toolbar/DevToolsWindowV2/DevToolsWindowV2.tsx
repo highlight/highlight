@@ -7,6 +7,7 @@ import {
 	IconSolidLogs,
 	IconSolidSearch,
 	IconSolidSwitchHorizontal,
+	IconSolidTraces,
 	Stack,
 	Tabs,
 	Text,
@@ -47,7 +48,6 @@ import { TracesPage } from './TracesPage/TracesPage'
 import * as styles from './style.css'
 
 const DEFAULT_LOG_SEARCH = `source=${LogSource.Frontend} `
-const DEFAULT_TRACE_SEARCH = ``
 const LOG_CURSOR_LOG_SEARCH = `source=(${LogSource.Frontend} OR ${LogSource.Backend})`
 
 const DevToolsWindowV2: React.FC<
@@ -72,11 +72,11 @@ const DevToolsWindowV2: React.FC<
 	const [requestStatuses, setRequestStatuses] = React.useState<
 		RequestStatus[]
 	>([RequestStatus.All])
-	const [logQuery, setLogQuery] = React.useState<string>(
-		logCursor ? LOG_CURSOR_LOG_SEARCH : DEFAULT_LOG_SEARCH,
+	const logSearch = logCursor ? LOG_CURSOR_LOG_SEARCH : DEFAULT_LOG_SEARCH
+	const traceSearch = `service_name=${session?.service_name}`
+	const [query, setQuery] = React.useState<string>(
+		selectedDevToolsTab === Tab.Console ? logSearch : traceSearch,
 	)
-	const [traceQuery, setTraceQuery] =
-		React.useState<string>(DEFAULT_TRACE_SEARCH)
 
 	const formStore = Form.useStore({
 		defaultValues: {
@@ -100,10 +100,12 @@ const DevToolsWindowV2: React.FC<
 
 	const params = buildSessionParams({
 		session,
-		query: logQuery,
+		query: query,
 	})
 
-	const showSearchComponent = selectedDevToolsTab === Tab.Console
+	const showSearchComponent =
+		selectedDevToolsTab === Tab.Console ||
+		selectedDevToolsTab === Tab.Traces
 
 	return (
 		<ResizePanel
@@ -113,7 +115,7 @@ const DevToolsWindowV2: React.FC<
 			heightPersistenceKey="highlight-devToolsPanelHeight"
 		>
 			{({ panelRef, handleRef, panelHeight }) => (
-				<SearchContext initialQuery={logQuery} onSubmit={setLogQuery}>
+				<SearchContext initialQuery={query} onSubmit={setQuery}>
 					<Box
 						bt={showHistogram ? undefined : 'dividerWeak'}
 						cssClass={clsx(
@@ -190,6 +192,11 @@ const DevToolsWindowV2: React.FC<
 							<Tabs
 								onChange={(id) => {
 									setSelectedDevToolsTab(id as Tab)
+									setQuery(
+										(id as Tab) === Tab.Console
+											? logSearch
+											: traceSearch,
+									)
 									formStore.reset()
 								}}
 							>
@@ -260,25 +267,40 @@ const DevToolsWindowV2: React.FC<
 														endDate={params.date_range.end_date.toDate()}
 														placeholder="Search..."
 														productType={
-															ProductType.Logs
+															selectedDevToolsTab ===
+															Tab.Console
+																? ProductType.Logs
+																: ProductType.Traces
 														}
 													/>
 													<Button
 														size="xSmall"
 														kind="secondary"
-														trackingId="session_show-in-log-viewer_click"
+														trackingId="session_show-in-viewer_click"
 														cssClass={
 															styles.autoScroll
 														}
 														iconLeft={
-															<IconSolidLogs
-																width={12}
-																height={12}
-															/>
+															selectedDevToolsTab ===
+															Tab.Console ? (
+																<IconSolidLogs
+																	width={12}
+																	height={12}
+																/>
+															) : (
+																<IconSolidTraces
+																	width={12}
+																	height={12}
+																/>
+															)
 														}
 														onClick={() => {
 															set({
-																type: 'logs',
+																type:
+																	selectedDevToolsTab ===
+																	Tab.Console
+																		? 'logs'
+																		: 'traces',
 																query: params.query,
 																startDate:
 																	params.date_range.start_date.toISOString(),
@@ -287,7 +309,7 @@ const DevToolsWindowV2: React.FC<
 															})
 														}}
 													>
-														Show in log viewer
+														Show in viewer
 													</Button>
 												</>
 											) : (
@@ -385,7 +407,7 @@ const DevToolsWindowV2: React.FC<
 									<ConsolePage
 										autoScroll={autoScroll}
 										filter={filter}
-										query={logQuery}
+										query={query}
 										panelHeight={panelHeight}
 									/>
 								</Tabs.Panel>
@@ -409,7 +431,7 @@ const DevToolsWindowV2: React.FC<
 									<TracesPage
 										autoScroll={autoScroll}
 										filter={filter}
-										query={traceQuery}
+										query={query}
 										panelHeight={panelHeight}
 									/>
 								</Tabs.Panel>
