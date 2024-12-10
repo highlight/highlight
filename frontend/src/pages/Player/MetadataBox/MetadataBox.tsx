@@ -257,9 +257,7 @@ export const MetadataBox = React.memo(() => {
 					}}
 				>
 					<Avatar
-						className={style.avatar}
-						seed={session?.identifier ?? ''}
-						shape="rounded"
+						size={28}
 						customImage={customAvatarImage || enhancedAvatar}
 					/>
 					<Text weight="bold" cssClass={style.defaultText} lines="1">

@@ -128,11 +128,7 @@ const MinimalSessionCard = React.memo(
 				>
 					{!compact && (
 						<div className={styles.avatarWrapper}>
-							<Avatar
-								seed={getDisplayName(session)}
-								style={{ height: 25, width: 25 }}
-								customImage={customAvatarImage}
-							/>
+							<Avatar size={25} customImage={customAvatarImage} />
 						</div>
 					)}
 					<div className={styles.sessionTextSectionWrapper}>

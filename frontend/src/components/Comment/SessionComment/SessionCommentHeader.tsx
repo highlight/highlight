@@ -155,14 +155,7 @@ const SessionCommentHeader: React.FC<Props> = ({ comment, isReply }) => {
 			>
 				<Stack direction="row" gap="4" alignItems="center">
 					{comment.type === SessionCommentType.Feedback ? (
-						<Avatar
-							seed={
-								comment.metadata?.name ||
-								comment.metadata?.email ||
-								'Anonymous'
-							}
-							style={{ height: 20, width: 20 }}
-						/>
+						<Avatar />
 					) : (
 						<AdminAvatar
 							adminInfo={{
