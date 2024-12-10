@@ -194,16 +194,21 @@ export const getActivePart = (
 	cursorIndex: number,
 	queryParts: SearchExpression[],
 ): SearchExpression => {
-	let activePartIndex
+	let activePartIndex = 0
 
 	// Find the part that contains the cursor, including trailing spaces
 	queryParts.find((param, index) => {
-		if (param.stop < cursorIndex - 1) {
-			return false
+		const nextStart = queryParts[index + 1]?.start ?? 0
+
+		if (
+			nextStart === 0 ||
+			(cursorIndex >= param.start && cursorIndex < nextStart)
+		) {
+			activePartIndex = index
+			return true
 		}
 
-		activePartIndex = index
-		return true
+		return false
 	})
 
 	if (activePartIndex === undefined) {

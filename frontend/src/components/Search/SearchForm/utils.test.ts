@@ -188,4 +188,24 @@ describe('getActivePart', () => {
 			'span_name=gorm.Query',
 		)
 	})
+
+	it('handles trailing spaces in earlier expressions correctly', () => {
+		const queryString = 'span_name =  service_name=frontend'
+		const { queryParts } = parseSearch(queryString)
+		expect(getActivePart(12, queryParts).text).toEqual('span_name =')
+	})
+
+	it('handles trailing spaces in earlier expressions correctly', () => {
+		const queryString = 'span_name =  service_name=frontend'
+		const { queryParts } = parseSearch(queryString)
+		expect(getActivePart(13, queryParts).text).toEqual(
+			'service_name=frontend',
+		)
+	})
+
+	it('handles trailing spaces in earlier expressions correctly', () => {
+		const queryString = 'has_errors= span_name =  service_name=frontend'
+		const { queryParts } = parseSearch(queryString)
+		expect(getActivePart(11, queryParts).text).toEqual('has_errors=')
+	})
 })

@@ -548,7 +548,15 @@ export const Search: React.FC<{
 			},
 		})
 		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [activePart.value, showValues, startDate, endDate, productType, event])
+	}, [
+		activePart.value,
+		activePart.key,
+		showValues,
+		startDate,
+		endDate,
+		productType,
+		event,
+	])
 
 	useEffect(() => {
 		// Ensure the cursor is placed in the correct position after updating the
