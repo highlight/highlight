@@ -2,7 +2,7 @@ import { exec as execAsync } from 'child_process'
 import * as util from 'util'
 const exec = util.promisify(execAsync)
 
-const BUCKET = ''
+const BUCKET = 'highlight-frontend'
 const DISTRIBUTION = 'ERPS6ET782WO1'
 
 const isPreview = process.env['PREVIEW'] === 'true'
