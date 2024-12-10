@@ -39,6 +39,7 @@ const RequestIDAttribute = "highlight.trace_id"
 const SourceAttribute = "highlight.source"
 const TraceTypeAttribute = "highlight.type"
 const TraceKeyAttribute = "highlight.key"
+const EnvironmentAttribute = "environment"
 
 const LogEvent = "log"
 const LogSeverityAttribute = "log.severity"
