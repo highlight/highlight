@@ -2,23 +2,36 @@ import { exec as execAsync } from 'child_process'
 import * as util from 'util'
 const exec = util.promisify(execAsync)
 
+const BUCKET = ''
+const DISTRIBUTION = 'ERPS6ET782WO1'
+
 const isPreview = process.env['PREVIEW'] === 'true'
 const gitSHA = process.env['GIT_SHA']
 
-const paths = [`s3://highlight-frontend`]
+let targetDir = ``
 if (isPreview) {
-	paths.push(`s3://highlight-frontend/preview/${gitSHA}`)
+	targetDir = `/preview/${gitSHA}`
 }
 
-for (const path of paths) {
-	try {
-		console.log('Publishing frontend bundle', { isPreview, gitSHA, path })
+try {
+	console.log('Publishing frontend bundle', {
+		isPreview,
+		gitSHA,
+		path: targetDir,
+	})
+	{
 		const { stdout, stderr } = await exec(
-			`aws s3 cp --recursive build ${path}`,
+			`aws s3 cp --recursive build s3://${BUCKET}${targetDir}`,
 		)
 		console.log('Published', { stdout, stderr })
-	} catch (e) {
-		console.error(e)
-		process.exit(1)
 	}
+	{
+		const { stdout, stderr } = await exec(
+			`aws cloudfront create-invalidation --distribution-id ${DISTRIBUTION} --paths '${targetDir}/*'`,
+		)
+		console.log('Cache invalidated', { stdout, stderr })
+	}
+} catch (e) {
+	console.error(e)
+	process.exit(1)
 }
