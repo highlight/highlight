@@ -87,6 +87,7 @@ jobs:
                   APP_VERSION: ${{ github.event.pull_request.head.sha || github.sha }}
 
             - name: Upload frontend code
+              # TODO(vkorolik)
               # if: github.ref == 'refs/heads/main'
               run: yarn publish:frontend
 
