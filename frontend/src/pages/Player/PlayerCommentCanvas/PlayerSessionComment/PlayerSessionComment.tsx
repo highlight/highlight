@@ -185,14 +185,7 @@ const PlayerSessionComment = ({ comment }: Props) => {
 						styles.commentPinButton,
 					)}
 				>
-					<CommentIndicator
-						seed={
-							comment.author?.name ??
-							comment.author?.email ??
-							'Anonymous'
-						}
-						customImage={comment.author?.photo_url}
-					/>
+					<CommentIndicator customImage={comment.author?.photo_url} />
 				</button>
 			</TransparentPopover>
 		</div>
