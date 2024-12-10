@@ -1,4 +1,4 @@
-import { Box, Callout, Stack, Table, Text } from '@highlight-run/ui/components'
+import { Box, Table } from '@highlight-run/ui/components'
 import { TraceColumnRenderers } from '@pages/Traces/CustomColumns/renderers'
 import useLocalStorage from '@rehooks/local-storage'
 import {
@@ -23,7 +23,6 @@ import {
 	SerializedColumn,
 } from '@/components/CustomColumnPopover'
 import { AdditionalFeedResults } from '@/components/FeedResults/FeedResults'
-import { LinkButton } from '@/components/LinkButton'
 import LoadingBox from '@/components/LoadingBox'
 import {
 	RelatedTrace,
