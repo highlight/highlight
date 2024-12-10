@@ -80,6 +80,7 @@ export const setAttributionData = () => {
 	identify(clientID, referrer)
 	Cookies.set('referrer', JSON.stringify(referrer), {
 		domain,
+		expires: 365,
 	})
 
 	return referrer
