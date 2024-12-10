@@ -54,17 +54,22 @@ export const setAttributionData = () => {
 	if (urlParams.get('ref')) {
 		referrer = { ...referrer, referrer: urlParams.get('ref') }
 	}
-	if (urlParams.get('utm_source')) {
-		referrer = {
-			...referrer,
-			utm_source: urlParams.get('utm_source'),
-			utm_medium: urlParams.get('utm_medium'),
-			utm_campaign: urlParams.get('utm_campaign'),
-			utm_content: urlParams.get('utm_content'),
-			utm_term: urlParams.get('utm_term'),
-			device: urlParams.get('device'),
-			gclid: urlParams.get('gclid'),
-		}
+
+	const utmParams = {
+		utm_source: urlParams.get('utm_source'),
+		utm_medium: urlParams.get('utm_medium'),
+		utm_campaign: urlParams.get('utm_campaign'),
+		utm_content: urlParams.get('utm_content'),
+		utm_term: urlParams.get('utm_term'),
+		device: urlParams.get('device'),
+		gclid: urlParams.get('gclid'),
+	}
+
+	referrer = {
+		...referrer,
+		...Object.fromEntries(
+			Object.entries(utmParams).filter(([_, value]) => !!value),
+		),
 	}
 
 	const pathRef =
