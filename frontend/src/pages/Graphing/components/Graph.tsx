@@ -956,8 +956,9 @@ export const useGraphSeries = (
 		const deduped = _.uniqBy(series, getSeriesKey)
 		const isMultiFunction =
 			_.uniq(series.map((s) => `${s.aggregator}_${s.column}`)).length > 1
-		const isGrouped =
-			_.uniq(series.map((s) => getGroupKey(s.groups))).length > 1
+		const isGrouped = !!series
+			.map((s) => getGroupKey(s.groups))
+			.filter((gk) => gk !== NO_GROUP_PLACEHOLDER)?.length
 
 		const named = deduped.map((d) => ({
 			...d,
