@@ -161,10 +161,6 @@ export class SearchListener extends SearchGrammarListener {
 		this.expressions.push(this.currentExpression)
 		this.currentExpression = { ...DEFAULT_EXPRESSION }
 	}
-
-	// exitEveryRule = (ctx: ParserRuleContext) => {
-	// 	console.log('::: exitEveryRule', ctx.constructor.name, ctx.getText())
-	// }
 }
 
 export type SearchError = {
