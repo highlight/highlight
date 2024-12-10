@@ -419,6 +419,7 @@ const (
 	MarkBackendSetupTypeError   MarkBackendSetupType = "error"
 	MarkBackendSetupTypeLogs    MarkBackendSetupType = "logs"
 	MarkBackendSetupTypeTraces  MarkBackendSetupType = "traces"
+	MarkBackendSetupTypeMetrics MarkBackendSetupType = "metrics"
 )
 
 type SetupEvent struct {
