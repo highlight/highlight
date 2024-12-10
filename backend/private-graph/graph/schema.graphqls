@@ -44,6 +44,7 @@ type Session {
 	country: String!
 	postal: String!
 	environment: String
+	service_name: String
 	app_version: String
 	client_version: String
 	firstload_version: String

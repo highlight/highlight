@@ -3,50 +3,30 @@ import { Button } from '@components/Button'
 import { TraceCustomColumn } from '@components/CustomColumnPopover'
 import { Link } from '@components/Link'
 import LoadingBox from '@components/LoadingBox'
-import {
-	Box,
-	Callout,
-	IconSolidCheveronDown,
-	IconSolidCheveronRight,
-	Stack,
-	Table,
-	Text,
-} from '@highlight-run/ui/components'
+import { Box, Callout, Stack, Table, Text } from '@highlight-run/ui/components'
 import { TraceColumnRenderers } from '@pages/Traces/CustomColumns/renderers'
 import { FullScreenContainer } from '@pages/LogsPage/LogsTable/FullScreenContainer'
 import {
 	ColumnDef,
 	createColumnHelper,
-	ExpandedState,
 	flexRender,
 	getCoreRowModel,
-	getExpandedRowModel,
 	Row,
 	useReactTable,
 } from '@tanstack/react-table'
 import { useVirtualizer } from '@tanstack/react-virtual'
 import clsx from 'clsx'
 import _ from 'lodash'
-import React, {
-	Key,
-	useCallback,
-	useEffect,
-	useMemo,
-	useRef,
-	useState,
-} from 'react'
+import React, { Key, useCallback, useEffect, useMemo, useRef } from 'react'
 
 import { ColumnHeader } from '@/components/CustomColumnHeader'
-import { findMatchingAttributes } from '@/components/JsonViewer/utils'
 import { SearchExpression } from '@/components/Search/Parser/listener'
 import { TraceEdge } from '@/graph/generated/schemas'
-import { LogDetails } from '@/pages/LogsPage/LogsTable/LogDetails'
 import { THROTTLED_UPDATE_MS } from '@/pages/Player/PlayerHook/PlayerState'
 import {
 	ReplayerState,
 	useReplayerContext,
 } from '@/pages/Player/ReplayerContext'
-import analytics from '@/util/analytics'
 
 import * as styles from './style.css'
 import { NoTracesFound } from '@pages/Traces/NoTracesFound'
@@ -144,7 +124,6 @@ const TracesTableInner = ({
 	const { state } = useReplayerContext()
 
 	const bodyRef = useRef<HTMLDivElement>(null)
-	const [expanded, setExpanded] = useState<ExpandedState>({})
 
 	useEffect(() => {
 		setTimeout(() => {
@@ -169,26 +148,6 @@ const TracesTableInner = ({
 		const gridColumns: string[] = []
 		const columnHeaders: ColumnHeader[] = []
 		const columns: ColumnDef<TraceEdge, any>[] = []
-
-		gridColumns.push('32px')
-		columnHeaders.push({ id: 'cursor', component: '' })
-		columns.push(
-			columnHelper.accessor('cursor', {
-				cell: ({ row }) => {
-					return (
-						<Table.Cell alignItems="flex-start">
-							<Box flexShrink={0} display="flex" width="full">
-								{row.getIsExpanded() ? (
-									<IconExpanded />
-								) : (
-									<IconCollapsed />
-								)}
-							</Box>
-						</Table.Cell>
-					)
-				},
-			}),
-		)
 
 		selectedColumns.forEach((column, index) => {
 			const first = index === 0
@@ -230,21 +189,7 @@ const TracesTableInner = ({
 	const table = useReactTable({
 		data: traceEdges,
 		columns: columnData.columns,
-		state: {
-			expanded,
-		},
-		onExpandedChange: (expanded) => {
-			setExpanded(expanded)
-
-			if (expanded) {
-				analytics.track('traces_table-row-expand_click')
-			} else {
-				analytics.track('traces_table-row-collapse_click')
-			}
-		},
-		getRowCanExpand: (row) => row.original.node.traceAttributes,
 		getCoreRowModel: getCoreRowModel(),
-		getExpandedRowModel: getExpandedRowModel(),
 	})
 
 	const { rows } = table.getRowModel()
@@ -267,10 +212,6 @@ const TracesTableInner = ({
 	if (!loadingAfter) {
 		paddingBottom += LOADING_AFTER_HEIGHT
 	}
-
-	useEffect(() => {
-		table.toggleAllRowsExpanded(false)
-	}, [table])
 
 	// eslint-disable-next-line react-hooks/exhaustive-deps
 	const scrollFunction = useCallback(
@@ -333,7 +274,6 @@ const TracesTableInner = ({
 							key={virtualRow.key}
 							row={row}
 							rowVirtualizer={rowVirtualizer}
-							expanded={row.getIsExpanded()}
 							virtualRowKey={virtualRow.key}
 							gridColumns={columnData.gridColumns}
 							queryParts={queryParts}
@@ -358,18 +298,9 @@ const TracesTableInner = ({
 	)
 }
 
-export const IconExpanded: React.FC = () => (
-	<IconSolidCheveronDown color="#6F6E77" size="12" />
-)
-
-export const IconCollapsed: React.FC = () => (
-	<IconSolidCheveronRight color="#6F6E77" size="12" />
-)
-
 type TracesTableRowProps = {
 	row: Row<TraceEdge>
 	rowVirtualizer: any
-	expanded: boolean
 	virtualRowKey: Key
 	gridColumns: string[]
 	queryParts: SearchExpression[]
@@ -381,57 +312,12 @@ const TracesTableRow = React.memo<TracesTableRowProps>(
 	({
 		row,
 		rowVirtualizer,
-		expanded,
 		virtualRowKey,
 		queryParts,
 		gridColumns,
 		isActive,
 		isPast,
 	}) => {
-		const attributesRow = (row: TracesTableRowProps['row']) => {
-			const trace = row.original.node
-			const rowExpanded = row.getIsExpanded()
-
-			return (
-				<Table.Row
-					selected={expanded}
-					className={clsx(styles.attributesRow, {
-						[styles.currentRow]: isActive,
-					})}
-					gridColumns={['32px', '1fr']}
-				>
-					{rowExpanded && (
-						<>
-							<Table.Cell py="4" />
-							<Table.Cell py="4" borderTop="dividerWeak">
-								<Text>
-									matching{' '}
-									{JSON.stringify(
-										findMatchingAttributes(queryParts, {
-											...trace.traceAttributes,
-											environment: trace.environment,
-											secure_session_id:
-												trace.secureSessionID,
-											service_name: trace.serviceName,
-											service_version:
-												trace.serviceVersion,
-											span_id: trace.spanID,
-											span_name: trace.spanName,
-											trace_id: trace.traceID,
-										}),
-									)}
-								</Text>
-								<Text>row {JSON.stringify(row)}</Text>
-								<Text>
-									queryParts {JSON.stringify(queryParts)}
-								</Text>
-							</Table.Cell>
-						</>
-					)}
-				</Table.Row>
-			)
-		}
-
 		return (
 			<div
 				key={virtualRowKey}
@@ -440,8 +326,6 @@ const TracesTableRow = React.memo<TracesTableRowProps>(
 			>
 				<Table.Row
 					gridColumns={gridColumns}
-					onClick={row.getToggleExpandedHandler()}
-					selected={expanded}
 					className={clsx(styles.dataRow, {
 						[styles.pastRow]: isPast,
 					})}
@@ -462,14 +346,12 @@ const TracesTableRow = React.memo<TracesTableRowProps>(
 						)
 					})}
 				</Table.Row>
-				{attributesRow(row)}
 			</div>
 		)
 	},
 	(prevProps, nextProps) => {
 		return (
 			prevProps.virtualRowKey === nextProps.virtualRowKey &&
-			prevProps.expanded === nextProps.expanded &&
 			prevProps.isActive === nextProps.isActive &&
 			prevProps.isPast === nextProps.isPast
 		)
