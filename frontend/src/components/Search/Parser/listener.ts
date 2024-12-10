@@ -123,18 +123,22 @@ export class SearchListener extends SearchGrammarListener {
 		const value = match ? match[1] : ''
 		this.currentExpression.value = value
 
-		// If we have an incomplete expression that has trailing spaces after an
-		// operator, add the whitespace to the current expression text.
+		// If we have an incomplete expression add any whitespace to the current
+		// expression text.
 		if (
 			!value.trim() &&
-			this.queryString.endsWith(' ') &&
 			this.queryString.trim().endsWith(this.currentExpression.text)
 		) {
-			const trailingWhitespace = this.queryString.match(/\s+$/)
+			const currentEnd =
+				this.currentExpression.start +
+				this.currentExpression.text.length
 
-			if (trailingWhitespace) {
+			const followingText = this.queryString.slice(currentEnd)
+			const whitespaceMatch = followingText.match(/^\s+/)
+
+			if (whitespaceMatch) {
 				this.currentExpression.text =
-					this.currentExpression.text + trailingWhitespace[0]
+					this.currentExpression.text + whitespaceMatch[0]
 			}
 		}
 
@@ -157,6 +161,10 @@ export class SearchListener extends SearchGrammarListener {
 		this.expressions.push(this.currentExpression)
 		this.currentExpression = { ...DEFAULT_EXPRESSION }
 	}
+
+	// exitEveryRule = (ctx: ParserRuleContext) => {
+	// 	console.log('::: exitEveryRule', ctx.constructor.name, ctx.getText())
+	// }
 }
 
 export type SearchError = {

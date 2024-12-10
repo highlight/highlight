@@ -75,4 +75,29 @@ describe('parseSearch', () => {
 			},
 		])
 	})
+
+	it('handles an incomplete expression preceding a complete expression', () => {
+		const queryString = 'service_name = span_name=gorm.Query'
+		const { queryParts } = parseSearch(queryString)
+
+		expect(queryParts.length).toBe(2)
+		expect(queryParts).toEqual([
+			{
+				key: 'service_name',
+				operator: '=',
+				value: '',
+				text: 'service_name =',
+				start: 0,
+				stop: 13,
+			},
+			{
+				key: 'span_name',
+				operator: '=',
+				value: 'gorm.Query',
+				text: 'span_name=gorm.Query',
+				start: 15,
+				stop: 34,
+			},
+		])
+	})
 })
