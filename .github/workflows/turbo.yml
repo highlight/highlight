@@ -69,8 +69,6 @@ jobs:
               run: doppler run -- yarn build:frontend
               env:
                   DOPPLER_TOKEN: ${{ secrets.DOPPLER_PROD_RENDER_SECRET }}
-                  GIT_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
-                  PREVIEW: ${{ github.event.pull_request.head.repo.full_name == 'highlight/highlight' && github.ref != 'refs/heads/main' }}
 
             - name: Build render
               # does not work for open source builds as doppler is required
@@ -87,9 +85,10 @@ jobs:
                   APP_VERSION: ${{ github.event.pull_request.head.sha || github.sha }}
 
             - name: Upload frontend code
-              # TODO(vkorolik)
-              # if: github.ref == 'refs/heads/main'
               run: yarn publish:frontend
+              env:
+                  GIT_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+                  PREVIEW: ${{ github.event.pull_request.head.repo.full_name == 'highlight/highlight' && github.ref != 'refs/heads/main' }}
 
             - name: Configure yarn npm registry credentials
               if: github.event.pull_request.head.repo.full_name == 'highlight/highlight' || github.ref == 'refs/heads/main'
