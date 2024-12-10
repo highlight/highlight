@@ -38,7 +38,7 @@ export const TracesPage = ({
 		fetchMoreForward,
 		refetch,
 	} = useGetTraces({
-		query,
+		query: params.query,
 		projectId,
 		traceCursor: undefined,
 		startDate: params.date_range.start_date.toDate(),
