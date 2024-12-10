@@ -117,10 +117,31 @@ export class SearchListener extends SearchGrammarListener {
 	exitKey_val_search_expr = (_ctx: Key_val_search_exprContext) => {
 		// everything after the key, operator, and whitespace
 		const regex = new RegExp(
-			`^${this.currentExpression.key}\\s*${this.currentExpression.operator}\\s*(.*)$`,
+			`${this.currentExpression.key}\\s*${this.currentExpression.operator}\\s*(.*)$`,
 		)
 		const match = this.currentExpression.text.match(regex)
-		this.currentExpression.value = match ? match[1] : ''
+		const value = match ? match[1] : ''
+		this.currentExpression.value = value
+
+		// If we have an incomplete expression that has trailing spaces after an
+		// operator, add the whitespace to the current expression text.
+		if (
+			!value.trim() &&
+			this.queryString.endsWith(' ') &&
+			this.queryString.trim().endsWith(this.currentExpression.text)
+		) {
+			const trailingWhitespace = this.queryString.match(/\s+$/)
+
+			if (trailingWhitespace) {
+				this.currentExpression.text =
+					this.currentExpression.text + trailingWhitespace[0]
+			}
+		}
+
+		this.currentExpression.stop =
+			this.currentExpression.start +
+			this.currentExpression.text.length -
+			1
 
 		this.expressions.push(this.currentExpression)
 		this.currentExpression = { ...DEFAULT_EXPRESSION }

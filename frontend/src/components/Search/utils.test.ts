@@ -47,6 +47,18 @@ describe('parseSearch', () => {
 		])
 	})
 
+	it('parses a query using the same key multiple times', () => {
+		const queryString =
+			'span_name=gorm.Query span_name=KafkaWorkerDoingWork'
+		const { queryParts } = parseSearch(queryString)
+
+		expect(queryParts.length).toBe(2)
+		expect(queryParts[0].key).toBe('span_name')
+		expect(queryParts[1].key).toBe('span_name')
+		expect(queryParts[0].value).toBe('gorm.Query')
+		expect(queryParts[1].value).toBe('KafkaWorkerDoingWork')
+	})
+
 	it('parses an incomplete search expression with spaces', () => {
 		const queryString = ' service_name = '
 		const { queryParts } = parseSearch(queryString)
