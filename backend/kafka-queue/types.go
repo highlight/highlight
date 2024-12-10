@@ -6,8 +6,8 @@ import (
 	"time"
 
 	"github.com/highlight-run/highlight/backend/clickhouse"
-
 	customModels "github.com/highlight-run/highlight/backend/public-graph/graph/model"
+	"github.com/highlight-run/highlight/backend/session_replay"
 	"github.com/segmentio/kafka-go"
 )
 
@@ -37,6 +37,7 @@ const (
 	PushLogsFlattened                      PayloadType = iota
 	PushTracesFlattened                    PayloadType = iota
 	PushSessionEvents                      PayloadType = iota
+	PushSessionReplayEvent                 PayloadType = iota
 	HealthCheck                            PayloadType = math.MaxInt
 )
 
@@ -44,6 +45,12 @@ type PushCompressedPayloadArgs struct {
 	SessionSecureID string
 	PayloadID       int
 	Data            string `json:"data"`
+}
+
+type PushSessionEventArgs struct {
+	PayloadID       int
+	SessionSecureID string
+	Event           *session_replay.ReplayEvent
 }
 
 type PushPayloadArgs struct {
@@ -164,6 +171,7 @@ type Message struct {
 	ErrorGroupDataSync    *ErrorGroupDataSyncArgs    `json:",omitempty"`
 	ErrorObjectDataSync   *ErrorObjectDataSyncArgs   `json:",omitempty"`
 	PushCompressedPayload *PushCompressedPayloadArgs `json:",omitempty"`
+	PushSessionEvent      *PushSessionEventArgs      `json:",omitempty"`
 }
 
 func (m *Message) GetType() PayloadType {

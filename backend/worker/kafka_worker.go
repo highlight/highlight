@@ -14,6 +14,7 @@ import (
 	kafkaqueue "github.com/highlight-run/highlight/backend/kafka-queue"
 	"github.com/highlight-run/highlight/backend/model"
 	privateModel "github.com/highlight-run/highlight/backend/private-graph/graph/model"
+	"github.com/highlight-run/highlight/backend/session_replay"
 	"github.com/highlight-run/highlight/backend/util"
 	hmetric "github.com/highlight/highlight/sdk/highlight-go/metric"
 	e "github.com/pkg/errors"
@@ -153,6 +154,7 @@ func (k *KafkaBatchWorker) flush(ctx context.Context) error {
 	var logRows []*clickhouse.LogRow
 	var traceRows []*clickhouse.ClickhouseTraceRow
 	var sessionEventRows []*clickhouse.SessionEventRow
+	var sessionReplayEvents []*clickhouse.SessionReplayEvent
 
 	var lastMsg kafkaqueue.RetryableMessage
 	var oldestMsg = time.Now()
@@ -212,6 +214,11 @@ func (k *KafkaBatchWorker) flush(ctx context.Context) error {
 			if sessionEventRow != nil {
 				sessionEventRows = append(sessionEventRows, sessionEventRow.SessionEventRow)
 			}
+		case kafkaqueue.PushSessionReplayEvent:
+			event := publicWorkerMessage.PushSessionEvent.Event
+			if event != nil {
+				sessionReplayEvents = append(sessionReplayEvents, convertSessionReplayEvent(publicWorkerMessage.PushSessionEvent.SessionSecureID, event))
+			}
 		default:
 			log.WithContext(ctx).Errorf("unknown message type received by batch worker %+v", lastMsg.GetType())
 		}
@@ -254,6 +261,12 @@ func (k *KafkaBatchWorker) flush(ctx context.Context) error {
 			return err
 		}
 	}
+	if len(sessionReplayEvents) > 0 {
+		if err := k.flushSessionReplayEvents(wCtx, sessionReplayEvents); err != nil {
+			workSpan.Finish(err)
+			return err
+		}
+	}
 	if len(sessionEventRows) > 0 {
 		if err := k.flushSessionEvents(wCtx, sessionEventRows); err != nil {
 			workSpan.Finish(err)
@@ -269,6 +282,19 @@ func (k *KafkaBatchWorker) flush(ctx context.Context) error {
 	commitSpan.Finish()
 
 	return nil
+}
+
+func convertSessionReplayEvent(sessionSecureID string, event *session_replay.ReplayEvent) *clickhouse.SessionReplayEvent {
+	ts := time.UnixMilli(int64(event.TimestampRaw))
+	return &clickhouse.SessionReplayEvent{
+		SessionSecureID: sessionSecureID,
+		EventType:       int8(event.Type),
+		EventTimestamp:  int64(event.TimestampRaw),
+		EventSid:        int64(event.SID),
+		EventData:       string(event.Data),
+		//TODO(vkorolik) figure out retention based on project
+		Expires: ts.AddDate(0, 3, 0),
+	}
 }
 
 func (k *KafkaBatchWorker) getQuotaExceededByProject(ctx context.Context, projectIds map[uint32]struct{}, productType model.PricingProductType) (map[uint32]bool, error) {
@@ -635,6 +661,20 @@ func (k *KafkaBatchWorker) flushDataSync(ctx context.Context, sessionIds []int, 
 		}
 		chSpan.Finish()
 	}
+
+	return nil
+}
+
+func (k *KafkaBatchWorker) flushSessionReplayEvents(ctx context.Context, events []*clickhouse.SessionReplayEvent) error {
+	chSpan, _ := util.StartSpanFromContext(ctx, "worker.kafka.datasync.writeClickhouse.sessionReplayEvents")
+
+	k.log(ctx, log.Fields{"events_length": len(events)})
+
+	if err := k.Worker.PublicResolver.Clickhouse.WriteSessionReplayEvents(ctx, events); err != nil {
+		log.WithContext(ctx).Error(err)
+		return err
+	}
+	chSpan.Finish()
 
 	return nil
 }
