@@ -12,6 +12,7 @@ RUN echo  \
   security.protocol=SSL \
   hostname=nhhbsqapco.us-east-2.aws.clickhouse.cloud \
   database=default \
+  # TODO(vkorolik) \
   password=TODO \
   ssl.truststore.location=/tmp/kafka.client.truststore.jks \
   port=8443 \
