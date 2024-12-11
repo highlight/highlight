@@ -58,6 +58,15 @@ export type TokenGroup = {
 
 const QUOTE_CHARS = ['"', "'", '`']
 
+export const OPERATOR_TOKENS = [
+	SearchGrammarLexer.EQ,
+	SearchGrammarLexer.NEQ,
+	SearchGrammarLexer.GT,
+	SearchGrammarLexer.GTE,
+	SearchGrammarLexer.LT,
+	SearchGrammarLexer.LTE,
+]
+
 export const buildTokenGroups = (tokens: SearchToken[]) => {
 	const tokenGroups: TokenGroup[] = []
 	let currentGroup: TokenGroup | null = null
@@ -80,6 +89,16 @@ export const buildTokenGroups = (tokens: SearchToken[]) => {
 		}
 	}
 
+	const isNearOperator = (index: number): boolean => {
+		const prevToken = tokens[index - 1]
+		const nextToken = tokens[index + 1]
+
+		return (
+			(!!prevToken && OPERATOR_TOKENS.includes(prevToken.type)) ||
+			(!!nextToken && OPERATOR_TOKENS.includes(nextToken.type))
+		)
+	}
+
 	tokens.forEach((token, index) => {
 		if (token.type === SearchGrammarLexer.EOF) {
 			return
@@ -95,7 +114,10 @@ export const buildTokenGroups = (tokens: SearchToken[]) => {
 		}
 
 		const tokenIsSeparator =
-			SEPARATOR_TOKENS.includes(token.type) || token.text.trim() === ''
+			(SEPARATOR_TOKENS.includes(token.type) ||
+				token.text.trim() === '') &&
+			// Don't treat spaces as separators if they're around operators
+			!(token.text.trim() === '' && isNearOperator(index))
 
 		// Start a new group if we encounter a space outside of quotes and parentheses
 		if (tokenIsSeparator && !insideQuotes && !insideParens) {
@@ -166,4 +188,46 @@ export const buildTokenGroups = (tokens: SearchToken[]) => {
 	}
 
 	return tokenGroups
+}
+
+export const getActivePart = (
+	cursorIndex: number,
+	queryParts: SearchExpression[],
+): SearchExpression => {
+	let activePartIndex = 0
+
+	// Find the part that contains the cursor, including trailing spaces
+	queryParts.find((param, index) => {
+		const nextStart = queryParts[index + 1]?.start ?? 0
+
+		if (
+			nextStart === 0 ||
+			(cursorIndex >= param.start && cursorIndex < nextStart)
+		) {
+			activePartIndex = index
+			return true
+		}
+
+		return false
+	})
+
+	if (activePartIndex === undefined) {
+		const lastPartStop = Math.max(
+			queryParts[queryParts.length - 1]?.stop + 1,
+			cursorIndex,
+		)
+
+		const activePart = {
+			key: BODY_KEY,
+			operator: DEFAULT_OPERATOR,
+			value: '',
+			text: '',
+			start: lastPartStop,
+			stop: lastPartStop,
+		}
+		queryParts.push(activePart)
+		return activePart
+	} else {
+		return queryParts[activePartIndex]
+	}
 }

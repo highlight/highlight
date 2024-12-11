@@ -70,7 +70,12 @@ export class SearchListener extends SearchGrammarListener {
 		const start = ctx.start.start
 		const stop = ctx.stop ? ctx.stop.stop : ctx.start.stop
 		const text = this.queryString.substring(start, stop + 1)
-		this.currentExpression = { start, stop, text } as SearchExpression
+		this.currentExpression = {
+			start,
+			stop,
+			text,
+			value: '',
+		} as SearchExpression
 	}
 
 	enterExists_search_expr = (ctx: Exists_search_exprContext) => {
@@ -110,10 +115,38 @@ export class SearchListener extends SearchGrammarListener {
 	}
 
 	exitKey_val_search_expr = (_ctx: Key_val_search_exprContext) => {
-		this.currentExpression.value = this.currentExpression.text.substring(
-			this.currentExpression.key.length +
-				this.currentExpression.operator.length,
+		// everything after the key, operator, and whitespace
+		const regex = new RegExp(
+			`${this.currentExpression.key}\\s*${this.currentExpression.operator}\\s*(.*)$`,
 		)
+		const match = this.currentExpression.text.match(regex)
+		const value = match ? match[1] : ''
+		this.currentExpression.value = value
+
+		// If we have an incomplete expression add any whitespace to the current
+		// expression text.
+		if (
+			!value.trim() &&
+			this.queryString.trim().endsWith(this.currentExpression.text)
+		) {
+			const currentEnd =
+				this.currentExpression.start +
+				this.currentExpression.text.length
+
+			const followingText = this.queryString.slice(currentEnd)
+			const whitespaceMatch = followingText.match(/^\s+/)
+
+			if (whitespaceMatch) {
+				this.currentExpression.text =
+					this.currentExpression.text + whitespaceMatch[0]
+			}
+		}
+
+		this.currentExpression.stop =
+			this.currentExpression.start +
+			this.currentExpression.text.length -
+			1
+
 		this.expressions.push(this.currentExpression)
 		this.currentExpression = { ...DEFAULT_EXPRESSION }
 	}

@@ -45,7 +45,7 @@ import {
 import { QueryPart } from '@/components/Search/SearchForm/QueryPart'
 import {
 	BODY_KEY,
-	DEFAULT_OPERATOR,
+	getActivePart,
 	quoteQueryValue,
 	stringifySearchQuery,
 } from '@/components/Search/SearchForm/utils'
@@ -402,14 +402,17 @@ export const Search: React.FC<{
 		}
 	}, [hasErrors, setShowErrors, showErrors])
 
-	// TODO: code smell, user is not able to use "message" as a search key
-	// because we are reserving it for the body implicitly
 	const showValues =
+		// TODO: code smell, user is not able to use "message" as a search key
+		// because we are reserving it for the body implicitly
 		activePart.key !== BODY_KEY &&
-		activePart.text.includes(`${activePart.key}${activePart.operator}`)
+		activePart.text
+			.replace(/\s+/g, '')
+			.startsWith(`${activePart.key}${activePart.operator}`)
 	const loading = showValues ? valuesLoading : keysLoading
 	const showValueSelect =
-		activePart.text === `${activePart.key}${activePart.operator}` ||
+		activePart.text.replace(/\s+/g, '') ===
+			`${activePart.key}${activePart.operator}` ||
 		!!activePart.value?.length
 
 	let visibleItems: SearchResult[] = showValues
@@ -545,7 +548,15 @@ export const Search: React.FC<{
 			},
 		})
 		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [activePart.value, showValues, startDate, endDate, productType, event])
+	}, [
+		activePart.value,
+		activePart.key,
+		showValues,
+		startDate,
+		endDate,
+		productType,
+		event,
+	])
 
 	useEffect(() => {
 		// Ensure the cursor is placed in the correct position after updating the
@@ -611,13 +622,19 @@ export const Search: React.FC<{
 			activePart.text = `${key}${space}${activePart.operator}`
 			activePart.stop = activePart.start + activePart.text.length
 		} else if (isValueSelect) {
+			const beforeOp =
+				activePart.text.match(
+					`${activePart.key}(\\s*)${activePart.operator}`,
+				)?.[1] || ''
+			const afterOp =
+				activePart.text.match(`${activePart.operator}(\\s*)`)?.[1] || ''
+
 			const creatableType = creatables?.[activePart.key]
-			if (!!creatableType) {
-				activePart.value = quoteQueryValue(creatableType.value)
-			} else {
-				activePart.value = quoteQueryValue(item.name)
-			}
-			activePart.text = `${activePart.key}${activePart.operator}${activePart.value}`
+			activePart.value = quoteQueryValue(
+				creatableType ? creatableType.value : item.name,
+			)
+
+			activePart.text = `${activePart.key}${beforeOp}${activePart.operator}${afterOp}${activePart.value}`
 			activePart.stop = activePart.start + activePart.text.length
 		} else {
 			activePart.key = item.name
@@ -767,6 +784,8 @@ export const Search: React.FC<{
 							ref={inputRef}
 							style={{ resize: 'none', overflowY: 'hidden' }}
 							spellCheck={false}
+							autoCorrect="off"
+							autoCapitalize="off"
 						/>
 					}
 					value={query}
@@ -1135,42 +1154,6 @@ export const Search: React.FC<{
 	)
 }
 
-const getActivePart = (
-	cursorIndex: number,
-	queryParts: SearchExpression[],
-): SearchExpression => {
-	let activePartIndex
-
-	queryParts.find((param, index) => {
-		if (param.stop < cursorIndex - 1) {
-			return false
-		}
-
-		activePartIndex = index
-		return true
-	})
-
-	if (activePartIndex === undefined) {
-		const lastPartStop = Math.max(
-			queryParts[queryParts.length - 1]?.stop + 1,
-			cursorIndex,
-		)
-
-		const activePart = {
-			key: BODY_KEY,
-			operator: DEFAULT_OPERATOR,
-			value: '',
-			text: '',
-			start: lastPartStop,
-			stop: lastPartStop,
-		}
-		queryParts.push(activePart)
-		return activePart
-	} else {
-		return queryParts[activePartIndex]
-	}
-}
-
 const getVisibleKeys = (
 	queryText: string,
 	activeQueryPart?: SearchExpression,
@@ -1200,14 +1183,14 @@ const getVisibleValues = (
 	activeQueryPart?: SearchExpression,
 	values?: string[],
 ): SearchResult[] => {
-	const activePart = activeQueryPart?.value ?? ''
+	const activePart = (activeQueryPart?.value ?? '').trim()
 	const filteredValues =
 		values?.filter(
 			(v) =>
 				// Don't filter if no value has been typed
 				!activePart.length ||
 				// Return values that match the query part
-				v.indexOf(activePart) > -1,
+				v.toLowerCase().includes(activePart.toLowerCase()),
 		) || []
 
 	return filteredValues.map((value) => ({
