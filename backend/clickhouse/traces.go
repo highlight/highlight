@@ -61,7 +61,17 @@ var traceColumns = []string{
 	"Duration",
 	"ServiceName",
 	"ServiceVersion",
+	"HttpResponseBody",
+	"HttpRequestBody",
+	"HttpUrl",
 	"TraceAttributes",
+	"HttpAttributes",
+	"ProcessAttributes",
+	"OsAttributes",
+	"TelemetryAttributes",
+	"WsAttributes",
+	"EventAttributes",
+	"DbAttributes",
 	"StatusCode",
 	"StatusMessage",
 	"Environment",
@@ -306,6 +316,24 @@ func (client *Client) ReadTraces(ctx context.Context, projectID int, params mode
 			return nil, err
 		}
 
+		allAttributes := map[string]string{}
+		for _, attrs := range []map[string]string{
+			result.TraceAttributes,
+			result.HttpAttributes,
+			result.OsAttributes,
+			result.TelemetryAttributes,
+			result.WsAttributes,
+			result.EventAttributes,
+			result.DbAttributes,
+		} {
+			for k, v := range attrs {
+				allAttributes[k] = v
+			}
+		}
+		allAttributes["http.response.body"] = result.HttpResponseBody
+		allAttributes["http.request.body"] = result.HttpRequestBody
+		allAttributes["http.url"] = result.HttpUrl
+
 		return &Edge[modelInputs.Trace]{
 			Cursor: encodeCursor(result.Timestamp, result.UUID),
 			Node: &modelInputs.Trace{
@@ -323,7 +351,7 @@ func (client *Client) ReadTraces(ctx context.Context, projectID int, params mode
 				ServiceVersion:  result.ServiceVersion,
 				Environment:     result.Environment,
 				HasErrors:       result.HasErrors,
-				TraceAttributes: expandJSON(result.TraceAttributes),
+				TraceAttributes: expandJSON(allAttributes),
 				StatusCode:      result.StatusCode,
 				StatusMessage:   result.StatusMessage,
 				Events:          extractEvents(result),
