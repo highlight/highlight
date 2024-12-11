@@ -7475,16 +7475,12 @@ body {
   padding: 6px;
 }
 ._1ecj17q0 {
-  height: 28px;
-  width: 28px;
-}
-._1ecj17q1 {
   color: var(--_1pyqka9b);
 }
-._1ecj17q2 {
+._1ecj17q1 {
   color: var(--_1pyqka9y);
 }
-._1ecj17q3 {
+._1ecj17q2 {
   align-items: center;
   column-gap: 14px;
   display: grid;
@@ -7492,7 +7488,7 @@ body {
   padding: 8px;
   position: relative;
 }
-._1ecj17q4 {
+._1ecj17q3 {
   align-items: center;
   color: var(--color-gray-500) !important;
   column-gap: 6px;

@@ -148,11 +148,7 @@ export const SessionFeedCard = React.memo(
 								)}
 							</Box>
 
-							<Avatar
-								seed={getDisplayName(session)}
-								style={{ height: 20, width: 20 }}
-								customImage={customAvatarImage}
-							/>
+							<Avatar customImage={customAvatarImage} />
 						</Box>
 						<Box
 							alignItems="center"
