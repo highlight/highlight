@@ -88,23 +88,15 @@ export const ConsolePage = ({
 	const messageNodes = logEdges.map((message) => message.node)
 	const [lastActiveLogIndex, setLastActiveLogIndex] = useState(-1)
 
-	useEffect(
-		() =>
-			_.throttle(
-				() => {
-					const activeIndex = findLastActiveEventIndex(
-						time,
-						sessionMetadata.startTime,
-						messageNodes,
-					)
+	useEffect(() => {
+		const activeIndex = findLastActiveEventIndex(
+			time,
+			sessionMetadata.startTime,
+			messageNodes,
+		)
 
-					setLastActiveLogIndex(activeIndex)
-				},
-				THROTTLED_UPDATE_MS,
-				{ leading: true, trailing: false },
-			),
-		[time, sessionMetadata.startTime, messageNodes],
-	)
+		setLastActiveLogIndex(activeIndex)
+	}, [time, sessionMetadata.startTime, messageNodes])
 
 	useEffect(() => {
 		analytics.track('session_view-console-logs')

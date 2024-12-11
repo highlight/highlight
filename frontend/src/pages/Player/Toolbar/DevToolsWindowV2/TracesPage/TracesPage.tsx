@@ -86,23 +86,15 @@ export const TracesPage = ({
 	const traceNodes = traceEdges.map((trace) => trace.node)
 	const [lastActiveTraceIndex, setLastActiveTraceIndex] = useState(-1)
 
-	useEffect(
-		() =>
-			_.throttle(
-				() => {
-					const activeIndex = findLastActiveEventIndex(
-						time,
-						sessionMetadata.startTime,
-						traceNodes,
-					)
+	useEffect(() => {
+		const activeIndex = findLastActiveEventIndex(
+			time,
+			sessionMetadata.startTime,
+			traceNodes,
+		)
 
-					setLastActiveTraceIndex(activeIndex)
-				},
-				THROTTLED_UPDATE_MS,
-				{ leading: true, trailing: false },
-			),
-		[time, sessionMetadata.startTime, traceNodes],
-	)
+		setLastActiveTraceIndex(activeIndex)
+	}, [time, sessionMetadata.startTime, traceNodes])
 
 	useEffect(() => {
 		analytics.track('session_view-console-traces')
