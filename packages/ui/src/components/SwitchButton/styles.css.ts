@@ -45,7 +45,7 @@ export const variants = recipe({
 		variant: {
 			checked: {
 				background: vars.theme.interactive.fill.primary.enabled,
-				border: 0,
+				border: vars.border.primaryPressed,
 				color: vars.color.white,
 				boxShadow: shadows.primary,
 				selectors: {

@@ -1,6 +1,7 @@
 import { Checkbox, CheckboxProps, useCheckboxStore } from '@ariakit/react'
 import React from 'react'
 
+import clsx from 'clsx'
 import { Box } from '../Box/Box'
 import { IconProps } from '../icons'
 import { Text } from '../Text/Text'
@@ -13,6 +14,7 @@ type Props = Omit<CheckboxProps, 'size'> &
 	}
 
 export const SwitchButton: React.FC<React.PropsWithChildren<Props>> = ({
+	className,
 	onChange,
 	checked,
 	size,
@@ -21,7 +23,7 @@ export const SwitchButton: React.FC<React.PropsWithChildren<Props>> = ({
 	children,
 	...rest
 }) => {
-	const className = styles.variants({
+	const variants = styles.variants({
 		size,
 		variant: checked ? 'checked' : 'unchecked',
 	})
@@ -30,7 +32,7 @@ export const SwitchButton: React.FC<React.PropsWithChildren<Props>> = ({
 	return (
 		<Checkbox
 			render={<button />}
-			className={className}
+			className={clsx(className, variants)}
 			store={checkbox}
 			onChange={onChange}
 			checked={checked}
