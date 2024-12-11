@@ -3,6 +3,8 @@ package alertsV2
 import (
 	"context"
 	"fmt"
+	"github.com/highlight-run/highlight/backend/ai"
+	"github.com/highlight-run/highlight/backend/store"
 	"net/url"
 	"time"
 
@@ -24,7 +26,7 @@ import (
 	"github.com/highlight-run/highlight/backend/util"
 )
 
-func SendAlerts(ctx context.Context, db *gorm.DB, mailClient *sendgrid.Client, lambdaClient *lambda.Client, alert *model.Alert, alertGroup string, alertGroupValue string, value float64) error {
+func SendAlerts(ctx context.Context, store *store.Store, mailClient *sendgrid.Client, lambdaClient *lambda.Client, alert *model.Alert, alertGroup string, alertGroupValue string, value float64) error {
 	span, ctx := util.StartSpanFromContext(ctx, "SendAlerts")
 	span.SetAttribute("alert_id", alert.ID)
 	span.SetAttribute("project_id", alert.ProjectID)
@@ -32,7 +34,7 @@ func SendAlerts(ctx context.Context, db *gorm.DB, mailClient *sendgrid.Client, l
 	defer span.Finish()
 
 	destinations := []model.AlertDestination{}
-	if err := db.WithContext(ctx).Where("alert_id = ?", alert.ID).Find(&destinations).Error; err != nil {
+	if err := store.DB.WithContext(ctx).Where("alert_id = ?", alert.ID).Find(&destinations).Error; err != nil {
 		return err
 	}
 
@@ -52,7 +54,7 @@ func SendAlerts(ctx context.Context, db *gorm.DB, mailClient *sendgrid.Client, l
 	}
 
 	var project model.Project
-	if err := db.WithContext(ctx).Model(&model.Project{}).Preload("Workspace").Where(&model.Project{Model: model.Model{ID: alert.ProjectID}}).Take(&project).Error; err != nil {
+	if err := store.DB.WithContext(ctx).Model(&model.Project{}).Preload("Workspace").Where(&model.Project{Model: model.Model{ID: alert.ProjectID}}).Take(&project).Error; err != nil {
 		return err
 	}
 
@@ -64,27 +66,28 @@ func SendAlerts(ctx context.Context, db *gorm.DB, mailClient *sendgrid.Client, l
 		Group:       alertGroup,
 		GroupValue:  alertGroupValue,
 		ProjectName: *project.Name,
+		WorkspaceID: project.WorkspaceID,
 	}
 
 	switch alert.ProductType {
 	case modelInputs.ProductTypeSessions:
-		sessionAlertInput, err := buildSessionAlertInput(ctx, db, &alertInput)
+		sessionAlertInput, err := buildSessionAlertInput(ctx, store, &alertInput)
 		if err != nil {
 			return err
 		}
 		alertInput.SessionInput = sessionAlertInput
 	case modelInputs.ProductTypeErrors:
-		errorAlertInput, err := buildErrorAlertInput(ctx, db, &alertInput)
+		errorAlertInput, err := buildErrorAlertInput(ctx, store.DB, &alertInput)
 		if err != nil {
 			return err
 		}
 		alertInput.ErrorInput = errorAlertInput
 	case modelInputs.ProductTypeLogs:
-		alertInput.LogInput = buildLogAlertInput(ctx, db, &alertInput)
+		alertInput.LogInput = buildLogAlertInput(ctx, store.DB, &alertInput)
 	case modelInputs.ProductTypeTraces:
-		alertInput.TraceInput = buildTraceAlertInput(ctx, db, &alertInput)
+		alertInput.TraceInput = buildTraceAlertInput(ctx, store.DB, &alertInput)
 	case modelInputs.ProductTypeMetrics:
-		alertInput.MetricInput = buildMetricAlertInput(ctx, db, &alertInput)
+		alertInput.MetricInput = buildMetricAlertInput(ctx, store.DB, &alertInput)
 	case modelInputs.ProductTypeEvents:
 		// nothing extra needed
 	default:
@@ -111,12 +114,24 @@ func SendAlerts(ctx context.Context, db *gorm.DB, mailClient *sendgrid.Client, l
 	return nil
 }
 
-func buildSessionAlertInput(ctx context.Context, db *gorm.DB, alertInput *destinationsV2.AlertInput) (*destinationsV2.SessionInput, error) {
+func buildSessionAlertInput(ctx context.Context, store *store.Store, alertInput *destinationsV2.AlertInput) (*destinationsV2.SessionInput, error) {
 	sessionSecureID := alertInput.GroupValue
 
 	var session *model.Session
-	if err := db.WithContext(ctx).Where("secure_id = ?", sessionSecureID).Take(&session).Error; err != nil {
+	if err := store.DB.WithContext(ctx).Where("secure_id = ?", sessionSecureID).Take(&session).Error; err != nil {
 		return nil, err
+	}
+
+	settings, err := store.GetAllWorkspaceSettings(ctx, alertInput.WorkspaceID)
+	if err != nil {
+		return nil, err
+	}
+	var narration string
+	if settings.EnableSessionAlertNarration {
+		narration, err = ai.GetPathPilotSessionNarration(ctx, store.StorageClient, session.ProjectID, session.ID)
+		if err != nil {
+			log.WithContext(ctx).WithError(err).Error("session narration failed")
+		}
 	}
 
 	frontendURL := env.Config.FrontendUri
@@ -130,6 +145,7 @@ func buildSessionAlertInput(ctx context.Context, db *gorm.DB, alertInput *destin
 		Identifier:       session.Identifier,
 		SessionLink:      sessionUrl,
 		MoreSessionsLink: moreSessionsURL,
+		Summary:          narration,
 	}, nil
 }
 
