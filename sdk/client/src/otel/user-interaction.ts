@@ -9,7 +9,6 @@ import {
 } from '@opentelemetry/instrumentation-user-interaction'
 import { SpanData } from '@opentelemetry/instrumentation-user-interaction/build/src/internal-types'
 import { getElementXPath } from '@opentelemetry/sdk-trace-web'
-import { version } from '../../package.json'
 import { AsyncTask } from '@opentelemetry/instrumentation-user-interaction/build/esnext/internal-types'
 
 const ZONE_CONTEXT_KEY = 'OT_ZONE_CONTEXT'
@@ -26,7 +25,7 @@ function defaultShouldPreventSpanCreation() {
  * the Highlight SDK.
  */
 export class UserInteractionInstrumentation extends InstrumentationBase {
-	static readonly version = version
+	static readonly version = '0.1.0'
 	static readonly moduleName: string = 'user-interaction'
 	private _spansData = new WeakMap<api.Span, SpanData>()
 	private _zonePatched?: boolean
