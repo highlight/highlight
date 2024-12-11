@@ -56,7 +56,16 @@ type TraceMapValue = {
 
 const instrumentations = getNodeAutoInstrumentations({
 	'@opentelemetry/instrumentation-http': {
-		enabled: false,
+		enabled:
+			(process.env.OTEL_NODE_ENABLED_INSTRUMENTATIONS || '')
+				.split(',')
+				.indexOf('http') !== -1,
+	},
+	'@opentelemetry/instrumentation-fs': {
+		enabled:
+			(process.env.OTEL_NODE_ENABLED_INSTRUMENTATIONS || '')
+				.split(',')
+				.indexOf('fs') !== -1,
 	},
 	'@opentelemetry/instrumentation-pino': {
 		logHook: (span, record, level) => {

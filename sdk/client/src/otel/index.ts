@@ -90,14 +90,21 @@ export const setupBrowserTracing = (config: BrowserTracingConfig) => {
 
 	const exporter = new OTLPTraceExporterBrowserWithXhrRetry({
 		url: config.otlpEndpoint + '/v1/traces',
-		concurrencyLimit: 10,
+		concurrencyLimit: 100,
+		timeoutMillis: 30_000,
 		// Using any because we were getting an error importing CompressionAlgorithm
 		// from @opentelemetry/otlp-exporter-base.
 		compression: 'gzip' as any,
+		keepAlive: true,
+		httpAgentOptions: {
+			timeout: 30_000,
+			keepAlive: true,
+		},
 	})
 
 	const spanProcessor = new CustomBatchSpanProcessor(exporter, {
-		maxExportBatchSize: 15,
+		maxExportBatchSize: 100,
+		maxQueueSize: 1_000,
 	})
 	provider.addSpanProcessor(spanProcessor)
 

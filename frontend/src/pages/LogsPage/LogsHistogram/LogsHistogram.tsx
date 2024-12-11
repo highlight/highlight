@@ -5,11 +5,7 @@ import { ReferenceArea } from 'recharts'
 
 import { GetMetricsQuery } from '@/graph/generated/operations'
 import { BarChart } from '@/pages/Graphing/components/BarChart'
-import {
-	TIMESTAMP_KEY,
-	useGraphData,
-	useGraphSeries,
-} from '@/pages/Graphing/components/Graph'
+import { TIMESTAMP_KEY, useGraphData } from '@/pages/Graphing/components/Graph'
 import { LineChart } from '@/pages/Graphing/components/LineChart'
 import { LEVEL_COLOR_MAPPING } from '@/pages/LogsPage/constants'
 
@@ -38,7 +34,6 @@ interface LogsHistogramChartProps {
 	endDate: Date
 	loadingState: LoadingState | undefined
 	metrics: GetMetricsQuery | undefined
-	series?: string[]
 	onDatesChange?: (startDate: Date, endDate: Date) => void
 	noPadding?: boolean
 }
@@ -54,21 +49,17 @@ const LogsHistogram = ({
 	frequencySeconds,
 	loading,
 	loadingState,
-	series,
 	lineChart,
 	...props
 }: LogsHistogramProps) => {
 	const data = useGraphData(metrics, TIMESTAMP_KEY)
-	const fallbackSeries = useGraphSeries(data, TIMESTAMP_KEY)
-	if (series === undefined) {
-		series = fallbackSeries
-	}
 	let maxValue = 0
 	for (const d of data ?? []) {
 		let curValue = 0
 		for (const [key, value] of Object.entries(d)) {
 			if (key !== TIMESTAMP_KEY) {
-				curValue += (value as number | undefined | null) ?? 0
+				curValue +=
+					((value as any)?.value as number | undefined | null) ?? 0
 			}
 		}
 		if (curValue > maxValue) {
@@ -142,14 +133,11 @@ const LogsHistogram = ({
 						<BarChart
 							data={data}
 							xAxisMetric="Timestamp"
-							yAxisMetric=""
-							yAxisFunction=""
 							viewConfig={{
 								type: 'Bar chart',
 								showLegend: false,
 								display: 'Stacked',
 							}}
-							series={series}
 							showYAxis={false}
 							strokeColors={LEVEL_COLOR_MAPPING}
 							setTimeRange={onDatesChange}
@@ -178,13 +166,10 @@ const LogsHistogram = ({
 						<LineChart
 							data={data}
 							xAxisMetric="Timestamp"
-							yAxisMetric="duration"
-							yAxisFunction=""
 							viewConfig={{
 								type: 'Line chart',
 								showLegend: false,
 							}}
-							series={series}
 							showYAxis={false}
 							strokeColors={LEVEL_COLOR_MAPPING}
 							setTimeRange={onDatesChange}

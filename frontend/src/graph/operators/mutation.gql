@@ -1469,8 +1469,6 @@ mutation UpsertGraph($graph: GraphInput!) {
 		title
 		productType
 		query
-		metric
-		functionType
 		groupByKeys
 		bucketByKey
 		bucketCount
@@ -1483,6 +1481,10 @@ mutation UpsertGraph($graph: GraphInput!) {
 		}
 		display
 		nullHandling
+		expressions {
+			aggregator
+			column
+		}
 	}
 }
 

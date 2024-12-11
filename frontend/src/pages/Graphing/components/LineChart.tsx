@@ -14,12 +14,14 @@ import {
 	CustomXAxisTick,
 	CustomYAxisTick,
 	getColor,
+	getSeriesKey,
 	getTickFormatter,
 	InnerChartProps,
 	isActive,
 	SeriesInfo,
 	TooltipSettings,
 	useGraphCallbacks,
+	useGraphSeries,
 	YHAT_LOWER_KEY,
 	YHAT_UPPER_KEY,
 } from '@/pages/Graphing/components/Graph'
@@ -68,9 +70,6 @@ const isAnomaly = (props: any, key: string) => {
 export const LineChart = ({
 	data,
 	xAxisMetric,
-	yAxisMetric,
-	yAxisFunction,
-	series,
 	spotlight,
 	viewConfig,
 	setTimeRange,
@@ -85,8 +84,12 @@ export const LineChart = ({
 }: React.PropsWithChildren<
 	InnerChartProps<LineChartConfig> & SeriesInfo & AxisConfig
 >) => {
+	const series = useGraphSeries(data, xAxisMetric)
 	const xAxisTickFormatter = getTickFormatter(xAxisMetric, data)
-	const yAxisTickFormatter = getTickFormatter(yAxisMetric, data)
+	const yAxisTickFormatter = getTickFormatter(
+		series.at(0)?.column ?? '',
+		data,
+	)
 
 	// Fill nulls as a copy of data
 	const filledData = useMemo(() => {
@@ -95,7 +98,8 @@ export const LineChart = ({
 			for (let i = 0; i < filled.length; i++) {
 				filled[i] = { ...filled[i] }
 				for (const s of series) {
-					filled[i][s] = filled[i][s] ?? 0
+					const seriesKey = getSeriesKey(s)
+					filled[i][seriesKey] = filled[i][seriesKey] ?? { value: 0 }
 				}
 			}
 		}
@@ -111,14 +115,9 @@ export const LineChart = ({
 		onMouseMove,
 		onMouseUp,
 		onMouseLeave,
-	} = useGraphCallbacks(
-		xAxisMetric,
-		yAxisMetric,
-		yAxisFunction,
-		setTimeRange,
-		loadExemplars,
-		{ dashed: true },
-	)
+	} = useGraphCallbacks(xAxisMetric, setTimeRange, loadExemplars, {
+		dashed: true,
+	})
 
 	const yAxisDomain = useMemo(() => {
 		if (minYAxisMax === undefined && maxYAxisMin === undefined) {
@@ -205,7 +204,9 @@ export const LineChart = ({
 				)}
 
 				{series.length > 0 &&
-					series.map((key, idx) => {
+					series.map((s, idx) => {
+						const seriesKey = getSeriesKey(s)
+
 						if (!isActive(spotlight, idx)) {
 							return null
 						}
@@ -217,7 +218,7 @@ export const LineChart = ({
 
 							const { cx, cy, stroke, index } = props
 
-							if (isAnomaly(props, key)) {
+							if (isAnomaly(props, seriesKey)) {
 								return (
 									<>
 										<svg x={cx - 2} y={cy - 2}>
@@ -248,15 +249,15 @@ export const LineChart = ({
 							const hasPrev =
 								index === 0 ||
 								![null, undefined].includes(
-									data[index - 1][key],
+									data[index - 1][seriesKey],
 								)
 							const hasCur = ![null, undefined].includes(
-								data[index][key],
+								data[index][seriesKey],
 							)
 							const hasNext =
 								index === data.length - 1 ||
 								![null, undefined].includes(
-									data[index + 1][key],
+									data[index + 1][seriesKey],
 								)
 
 							if (hasCur && (!hasPrev || !hasNext)) {
@@ -275,7 +276,7 @@ export const LineChart = ({
 						const ActiveDot = (props: any) => {
 							const { cx, cy, fill } = props
 
-							if (cy === null || isAnomaly(props, key)) {
+							if (cy === null || isAnomaly(props, seriesKey)) {
 								return
 							}
 
@@ -291,16 +292,17 @@ export const LineChart = ({
 						return (
 							<Area
 								isAnimationActive={false}
-								key={key}
-								dataKey={key}
+								key={seriesKey}
+								dataKey={`${seriesKey}.value`}
+								name={s.name}
 								stackId={
 									viewConfig.display === 'Stacked area'
 										? 1
 										: idx
 								}
 								strokeWidth="2px"
-								fill={getColor(idx, key, strokeColors)}
-								stroke={getColor(idx, key, strokeColors)}
+								fill={getColor(idx, seriesKey, strokeColors)}
+								stroke={getColor(idx, seriesKey, strokeColors)}
 								fillOpacity={
 									viewConfig.display === 'Stacked area'
 										? 0.1

@@ -95,7 +95,7 @@ jobs:
         runs-on: codebuild-highlight-github-actions-runner-${{ github.run_id }}-${{ github.run_attempt }}
         services:
             postgres:
-                image: ankane/pgvector
+                image: ankane/pgvector:v0.5.1
                 env:
                     POSTGRES_PASSWORD: postgres
                     POSTGRES_USER: postgres
@@ -108,11 +108,11 @@ jobs:
                 ports:
                     - 5432:5432
             clickhouse:
-                image: clickhouse/clickhouse-server
+                image: clickhouse/clickhouse-server:24.3.14.35-alpine
                 ports:
                     - 9000:9000
             redis:
-                image: redis
+                image: redis:7.4.0
                 ports:
                     - 6379:6379
         env:

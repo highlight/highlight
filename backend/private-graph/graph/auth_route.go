@@ -11,11 +11,17 @@ type LoginCredentials struct {
 	Password string `json:"password" binding:"required"`
 }
 
+const (
+	stateCookieName                 = "state"
+	tokenCookieName                 = "token"
+	loginExpiry                     = time.Hour * 24 * 30
+	adminPasswordTokenDuration      = time.Hour * 24 * 30
+	loginError                      = "invalid email/password provided"
+	passwordLoginConfigurationError = "password auth mode not properly configured"
+	oauthCallbackError              = "oauth2 callback failed"
+)
+
 var adminPassword = env.Config.AuthAdminPassword
-var adminPasswordTokenDuration = time.Hour * 24
-var loginError = "invalid email/password provided"
-var passwordLoginConfigurationError = "password auth mode not properly configured"
-var oauthCallbackError = "oauth2 callback failed"
 
 func GetPasswordAuthUser(email string) *auth.UserInfo {
 	return &auth.UserInfo{

@@ -14,7 +14,6 @@ import { namedOperations } from '@graph/operations'
 import {
 	AllWorkspaceSettings,
 	MetricAggregator,
-	MetricColumn,
 	PlanType,
 	ProductType,
 	Sampling,
@@ -516,8 +515,6 @@ const IngestTimeline: React.FC<{
 		variables: {
 			product_type: ProductType.Traces,
 			project_id: projectId,
-			column: MetricColumn.Duration,
-			metric_types: [MetricAggregator.CountDistinctKey],
 			group_by: ['ingested'],
 			bucket_by: TIMESTAMP_KEY,
 			params: {
@@ -527,6 +524,12 @@ const IngestTimeline: React.FC<{
 					end_date: moment(dateRange.end).format(TIME_FORMAT),
 				},
 			},
+			expressions: [
+				{
+					aggregator: MetricAggregator.CountDistinctKey,
+					column: 'duration',
+				},
+			],
 		},
 	})
 
@@ -571,10 +574,7 @@ const IngestTimeline: React.FC<{
 		<Box width="full" style={{ height: 100 }}>
 			<BarChart
 				data={histogramBuckets}
-				yAxisFunction={MetricAggregator.Count}
 				xAxisMetric={TIMESTAMP_KEY}
-				yAxisMetric="percent"
-				series={['percent']}
 				strokeColors={[vars.theme.static.content.moderate]}
 				viewConfig={{
 					type: 'Bar chart',
