@@ -90,33 +90,44 @@ var reservedTraceKeys = lo.Map(modelInputs.AllReservedTraceKey, func(key modelIn
 	return string(key)
 })
 
+var attributesColumns = []model.ColumnMapping{
+	{Prefix: "http.", Column: "HttpAttributes"},
+	{Prefix: "process.", Column: "ProcessAttributes"},
+	{Prefix: "os.", Column: "OsAttributes"},
+	{Prefix: "telemetry.", Column: "TelemetryAttributes"},
+	{Prefix: "ws.", Column: "WsAttributes"},
+	{Prefix: "event.", Column: "EventAttributes"},
+	{Prefix: "db.", Column: "DbAttributes"},
+	{Prefix: "", Column: "TraceAttributes"},
+}
+
 var TracesTableNoDefaultConfig = model.TableConfig{
-	TableName:        TracesTable,
-	KeysToColumns:    traceKeysToColumns,
-	ReservedKeys:     reservedTraceKeys,
-	BodyColumn:       "SpanName",
-	AttributesColumn: "TraceAttributes",
-	SelectColumns:    traceColumns,
+	TableName:         TracesTable,
+	KeysToColumns:     traceKeysToColumns,
+	ReservedKeys:      reservedTraceKeys,
+	BodyColumn:        "SpanName",
+	AttributesColumns: attributesColumns,
+	SelectColumns:     traceColumns,
 }
 
 var TracesTableConfig = model.TableConfig{
-	TableName:        TracesTableNoDefaultConfig.TableName,
-	KeysToColumns:    TracesTableNoDefaultConfig.KeysToColumns,
-	ReservedKeys:     TracesTableNoDefaultConfig.ReservedKeys,
-	BodyColumn:       TracesTableNoDefaultConfig.BodyColumn,
-	AttributesColumn: TracesTableNoDefaultConfig.AttributesColumn,
-	SelectColumns:    TracesTableNoDefaultConfig.SelectColumns,
-	DefaultFilter:    fmt.Sprintf("%s!=%s %s!=%s", modelInputs.ReservedTraceKeySpanName, highlight.MetricSpanName, modelInputs.ReservedTraceKeyHighlightType, highlight.TraceTypeHighlightInternal),
+	TableName:         TracesTableNoDefaultConfig.TableName,
+	KeysToColumns:     TracesTableNoDefaultConfig.KeysToColumns,
+	ReservedKeys:      TracesTableNoDefaultConfig.ReservedKeys,
+	BodyColumn:        TracesTableNoDefaultConfig.BodyColumn,
+	AttributesColumns: TracesTableNoDefaultConfig.AttributesColumns,
+	SelectColumns:     TracesTableNoDefaultConfig.SelectColumns,
+	DefaultFilter:     fmt.Sprintf("%s!=%s %s!=%s", modelInputs.ReservedTraceKeySpanName, highlight.MetricSpanName, modelInputs.ReservedTraceKeyHighlightType, highlight.TraceTypeHighlightInternal),
 }
 
 var tracesSamplingTableConfig = model.TableConfig{
-	TableName:        TracesSamplingTable,
-	BodyColumn:       "SpanName",
-	KeysToColumns:    traceKeysToColumns,
-	ReservedKeys:     reservedTraceKeys,
-	AttributesColumn: "TraceAttributes",
-	SelectColumns:    traceColumns,
-	DefaultFilter:    fmt.Sprintf("%s!=%s %s!=%s", modelInputs.ReservedTraceKeySpanName, highlight.MetricSpanName, modelInputs.ReservedTraceKeyHighlightType, highlight.TraceTypeHighlightInternal),
+	TableName:         TracesSamplingTable,
+	BodyColumn:        TracesTableNoDefaultConfig.BodyColumn,
+	KeysToColumns:     TracesTableNoDefaultConfig.KeysToColumns,
+	ReservedKeys:      TracesTableNoDefaultConfig.ReservedKeys,
+	AttributesColumns: TracesTableNoDefaultConfig.AttributesColumns,
+	SelectColumns:     TracesTableNoDefaultConfig.SelectColumns,
+	DefaultFilter:     TracesTableConfig.DefaultFilter,
 }
 
 var TracesSampleableTableConfig = SampleableTableConfig{

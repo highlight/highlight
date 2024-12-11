@@ -42,15 +42,15 @@ type Filters []*FilterOperation
 type SearchListener struct {
 	parser.SearchGrammarListener
 
-	currentKey       string
-	currentOp        string
-	rules            []string
-	ops              Filters
-	sb               *sqlbuilder.SelectBuilder
-	attributesColumn string
-	attributesList   bool
-	tableConfig      model.TableConfig
-	IgnoredFilters   map[string]string
+	currentKey        string
+	currentOp         string
+	rules             []string
+	ops               Filters
+	sb                *sqlbuilder.SelectBuilder
+	attributesColumns []model.ColumnMapping
+	attributesList    bool
+	tableConfig       model.TableConfig
+	IgnoredFilters    map[string]string
 }
 
 func (s *SearchListener) GetFilters() Filters {
@@ -59,15 +59,15 @@ func (s *SearchListener) GetFilters() Filters {
 
 func NewSearchListener(sqlBuilder *sqlbuilder.SelectBuilder, tableConfig model.TableConfig) *SearchListener {
 	return &SearchListener{
-		currentKey:       tableConfig.TableName,
-		currentOp:        "=",
-		rules:            []string{},
-		ops:              []*FilterOperation{},
-		sb:               sqlBuilder,
-		attributesColumn: tableConfig.AttributesColumn,
-		attributesList:   tableConfig.AttributesTable != "",
-		tableConfig:      tableConfig,
-		IgnoredFilters:   map[string]string{},
+		currentKey:        tableConfig.TableName,
+		currentOp:         "=",
+		rules:             []string{},
+		ops:               []*FilterOperation{},
+		sb:                sqlBuilder,
+		attributesColumns: tableConfig.AttributesColumns,
+		attributesList:    tableConfig.AttributesTable != "",
+		tableConfig:       tableConfig,
+		IgnoredFilters:    map[string]string{},
 	}
 }
 
@@ -78,15 +78,16 @@ func (s *SearchListener) getAttributeFilterExpr(op Operator, value any) sqlbuild
 		prefix = "toFloat64OrNull("
 		postfix = ")"
 	}
+	attributesColumn := model.GetAttributesColumn(s.attributesColumns, s.currentKey)
 	if s.attributesList {
 		// For NOT EXISTS queries, return true if there is no matching key in the array.
 		if value == "" {
-			return sqlbuilder.Buildf(fmt.Sprintf("empty(arrayFilter((k, v) -> k = %%s, %s))", s.attributesColumn), s.currentKey)
+			return sqlbuilder.Buildf(fmt.Sprintf("empty(arrayFilter((k, v) -> k = %%s, %s))", attributesColumn), s.currentKey)
 		} else {
-			return sqlbuilder.Buildf(fmt.Sprintf("notEmpty(arrayFilter((k, v) -> k = %%s AND %sv%s %s %%s, %s))", prefix, postfix, op, s.attributesColumn), s.currentKey, value)
+			return sqlbuilder.Buildf(fmt.Sprintf("notEmpty(arrayFilter((k, v) -> k = %%s AND %sv%s %s %%s, %s))", prefix, postfix, op, attributesColumn), s.currentKey, value)
 		}
 	}
-	return sqlbuilder.Buildf(prefix+s.attributesColumn+fmt.Sprintf("[%%s]%s %s %%s", postfix, op), s.currentKey, value)
+	return sqlbuilder.Buildf(prefix+attributesColumn+fmt.Sprintf("[%%s]%s %s %%s", postfix, op), s.currentKey, value)
 }
 
 func (s *SearchListener) EnterSearch_query(ctx *parser.Search_queryContext) {}
@@ -330,6 +331,8 @@ func (s *SearchListener) appendRules(value string) {
 		filterKey = fmt.Sprintf("toString(%s)", filterKey)
 	}
 
+	attributesColumn := model.GetAttributesColumn(s.attributesColumns, s.currentKey)
+
 	if s.currentOp == ":" || s.currentOp == "=" || s.currentOp == "!=" {
 		if strings.HasPrefix(value, "/") && strings.HasSuffix(value, "/") {
 			value = strings.Trim(value, "/")
@@ -337,7 +340,7 @@ func (s *SearchListener) appendRules(value string) {
 				s.rules = append(s.rules, s.sb.Var(s.getAttributeFilterExpr(OperatorRegExp, value)))
 				s.ops = append(s.ops, &FilterOperation{
 					Key:      s.currentKey,
-					Column:   s.attributesColumn,
+					Column:   attributesColumn,
 					Operator: OperatorRegExp,
 					Values:   []string{value},
 				})
@@ -356,7 +359,7 @@ func (s *SearchListener) appendRules(value string) {
 				s.rules = append(s.rules, s.sb.Var(s.getAttributeFilterExpr(OperatorILike, value)))
 				s.ops = append(s.ops, &FilterOperation{
 					Key:      s.currentKey,
-					Column:   s.attributesColumn,
+					Column:   attributesColumn,
 					Operator: OperatorLike,
 					Values:   []string{value},
 				})
@@ -373,7 +376,7 @@ func (s *SearchListener) appendRules(value string) {
 				s.rules = append(s.rules, s.sb.Var(s.getAttributeFilterExpr(OperatorEqual, value)))
 				s.ops = append(s.ops, &FilterOperation{
 					Key:      s.currentKey,
-					Column:   s.attributesColumn,
+					Column:   attributesColumn,
 					Operator: OperatorEqual,
 					Values:   []string{value},
 				})
@@ -392,7 +395,7 @@ func (s *SearchListener) appendRules(value string) {
 			s.rules = append(s.rules, s.sb.Var(s.getAttributeFilterExpr(OperatorGreaterThan, numValue)))
 			s.ops = append(s.ops, &FilterOperation{
 				Key:      s.currentKey,
-				Column:   s.attributesColumn,
+				Column:   attributesColumn,
 				Operator: OperatorGreaterThan,
 				Values:   []string{numValue},
 			})
@@ -410,7 +413,7 @@ func (s *SearchListener) appendRules(value string) {
 			s.rules = append(s.rules, s.sb.Var(s.getAttributeFilterExpr(OperatorGreaterThanOrEqualTo, numValue)))
 			s.ops = append(s.ops, &FilterOperation{
 				Key:      s.currentKey,
-				Column:   s.attributesColumn,
+				Column:   attributesColumn,
 				Operator: OperatorGreaterThanOrEqualTo,
 				Values:   []string{numValue},
 			})
@@ -428,7 +431,7 @@ func (s *SearchListener) appendRules(value string) {
 			s.rules = append(s.rules, s.sb.Var(s.getAttributeFilterExpr(OperatorLessThan, numValue)))
 			s.ops = append(s.ops, &FilterOperation{
 				Key:      s.currentKey,
-				Column:   s.attributesColumn,
+				Column:   attributesColumn,
 				Operator: OperatorLessThan,
 				Values:   []string{numValue},
 			})
@@ -446,7 +449,7 @@ func (s *SearchListener) appendRules(value string) {
 			s.rules = append(s.rules, s.sb.Var(s.getAttributeFilterExpr(OperatorLessThanOrEqualTo, numValue)))
 			s.ops = append(s.ops, &FilterOperation{
 				Key:      s.currentKey,
-				Column:   s.attributesColumn,
+				Column:   attributesColumn,
 				Operator: OperatorLessThanOrEqualTo,
 				Values:   []string{numValue},
 			})
