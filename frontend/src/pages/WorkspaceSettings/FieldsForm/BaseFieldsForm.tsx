@@ -5,7 +5,6 @@ import {
 	useGetProjectOrWorkspaceQuery,
 } from '@graph/hooks'
 import { namedOperations } from '@graph/operations'
-import { IconSolidLoading } from '@highlight-run/ui/components'
 import { useParams } from '@util/react-router/useParams'
 import clsx from 'clsx'
 import {
@@ -131,27 +130,12 @@ export const BaseFieldsForm: React.FC<{
 				<div className={styles.fieldKey} />
 				<Button
 					type="submit"
-					// kind="primary"
 					className={clsx(
 						commonStyles.submitButton,
 						styles.saveButton,
 					)}
-					// size="medium"
 					isSubmitting={editProjectLoading || editWorkspaceLoading}
-				>
-					{editProjectLoading || editWorkspaceLoading ? (
-						<IconSolidLoading
-							className={styles.spinner}
-							style={{
-								fontSize: 18,
-								color: 'var(--text-primary-inverted)',
-								animationName: styles.spin,
-							}}
-						/>
-					) : (
-						'Save'
-					)}
-				</Button>
+				/>
 			</div>
 		</Form>
 	)

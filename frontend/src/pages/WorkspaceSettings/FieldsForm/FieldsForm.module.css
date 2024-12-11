@@ -50,7 +50,3 @@
 		background: var(--color-gray-200) !important;
 	}
 }
-
-.spinner {
-	animation: spin 1s linear infinite;
-}
