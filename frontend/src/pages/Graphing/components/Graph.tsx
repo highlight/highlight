@@ -742,7 +742,13 @@ export const getSeriesKey = (s: Series | undefined): string => {
 	if (s === undefined) {
 		return 'undefined'
 	}
-	return btoa(JSON.stringify([s.aggregator, s.column, s.groups]))
+	return btoa(
+		JSON.stringify([
+			s.aggregator,
+			s.column,
+			s.groups.map((g) => encodeURIComponent(g)),
+		]),
+	)
 }
 
 export const getSeriesName = (
