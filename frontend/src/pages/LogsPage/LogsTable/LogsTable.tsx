@@ -123,7 +123,6 @@ type LogsTableInnerProps = {
 	fetchMoreWhenScrolled: (target: HTMLDivElement) => void
 	// necessary for loading most recent loads
 	moreLogs?: number
-	bodyHeight: string
 	clearMoreLogs?: () => void
 	handleAdditionalLogsDateChange?: () => void
 	selectedColumns?: SerializedColumn[]
@@ -141,7 +140,6 @@ const LogsTableInner = ({
 	queryParts,
 	moreLogs,
 	pollingExpired,
-	bodyHeight,
 	clearMoreLogs,
 	handleAdditionalLogsDateChange,
 	fetchMoreWhenScrolled,
@@ -332,7 +330,7 @@ const LogsTableInner = ({
 	}
 
 	return (
-		<Table height="full" noBorder>
+		<Table display="flex" flexDirection="column" height="full" noBorder>
 			<Table.Head>
 				<Table.Row gridColumns={columnData.gridColumns}>
 					{columnData.columnHeaders.map((header) => (
@@ -366,7 +364,6 @@ const LogsTableInner = ({
 			<Table.Body
 				ref={bodyRef}
 				overflowY="auto"
-				style={{ height: bodyHeight }}
 				onScroll={handleFetchMoreWhenScrolled}
 				hiddenScroll
 			>
