@@ -137,7 +137,7 @@ export const NetworkResourceLogs: React.FC<{
 								loadingAfter={loadingAfter}
 								selectedCursor={undefined}
 								fetchMoreWhenScrolled={fetchMoreWhenScrolled}
-								bodyHeight={`calc(100% - ${SEARCH_AND_HEADER_HEIGHT}px)`}
+								// bodyHeight={`calc(100% - ${SEARCH_AND_HEADER_HEIGHT}px)`}
 							/>
 						)}
 					</Box>
