@@ -4,9 +4,8 @@ import { Maybe } from 'graphql/jsutils/Maybe'
 import { Avatar } from '@/components/Avatar/Avatar'
 
 export const CommentIndicator: React.FC<{
-	seed: string
 	customImage?: Maybe<string>
-}> = ({ customImage, seed }) => {
+}> = ({ customImage }) => {
 	return (
 		<Box
 			backgroundColor="white"
@@ -20,12 +19,9 @@ export const CommentIndicator: React.FC<{
 			}}
 		>
 			<Avatar
-				shape="circle"
-				seed={seed}
 				customImage={customImage ?? undefined}
+				size={24}
 				style={{
-					height: 24,
-					width: 24,
 					position: 'absolute',
 					top: 3,
 					left: 3,
