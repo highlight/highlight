@@ -1,4 +1,5 @@
 .container {
+	width: 100%;
 	align-items: flex-start;
 	row-gap: var(--size-xxSmall);
 	display: flex;

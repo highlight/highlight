@@ -13,3 +13,44 @@
 	display: flex;
 	height: 100%;
 }
+
+.saveButton {
+	padding: 4px 16px;
+	width: max-content;
+}
+
+.input {
+	background: var(--color-gray-200) !important;
+	border: 1px solid transparent !important;
+	border-radius: var(--border-radius) !important;
+	color: var(--text-primary) !important;
+	font-size: 16px !important;
+	line-height: initial !important;
+	padding: var(--size-xSmall) var(--size-small) !important;
+	transition: all 0.3s ease !important;
+	width: 100%;
+
+	&:focus,
+	&:active,
+	&:focus-within {
+		background: var(--color-primary-background) !important;
+		border-color: var(--color-purple) !important;
+		box-shadow: 0 0 0 4px rgba(var(--color-purple-rgb), 0.2) !important;
+
+		:global(.ant-input) {
+			background: var(--color-primary-background) !important;
+		}
+	}
+
+	&:hover {
+		border-color: var(--color-purple) !important;
+	}
+
+	&:disabled {
+		background: var(--color-gray-200) !important;
+	}
+}
+
+.spinner {
+	animation: spin 1s linear infinite;
+}
