@@ -1,6 +1,7 @@
 import { HighlightOptions, H as localH } from 'highlight.run'
 import Cookies from 'js-cookie'
 import { useEffect } from 'react'
+import getConfig from 'next/config'
 
 export { ErrorBoundary } from '@highlight-run/react'
 export { localH as H }
@@ -23,9 +24,19 @@ export function HighlightInit({
 			)
 
 		if (shouldRender) {
+			let highlightInitOptions = { ...highlightOptions }
+
+			const { configureHighlightProxy } = getConfig()
+			if (configureHighlightProxy) {
+				highlightInitOptions = {
+					...highlightOptions,
+					backendUrl: '/highlight-events',
+				}
+			}
+
 			const { sessionSecureID } = localH.init(
 				projectId,
-				highlightOptions,
+				highlightInitOptions,
 			) || { sessionSecureID: '' }
 
 			if (sessionSecureID) {
