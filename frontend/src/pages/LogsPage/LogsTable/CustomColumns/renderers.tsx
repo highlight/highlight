@@ -141,7 +141,10 @@ const BodyRenderer: React.FC<ColumnRendererProps> = ({
 	)
 }
 
-const GoToLogRenderer: React.FC<ColumnRendererProps> = ({ onClick, row }) => {
+export const GoToLogRenderer: React.FC<ColumnRendererProps> = ({
+	onClick,
+	row,
+}) => {
 	const handleClick = (e: any) => {
 		if (!!onClick) {
 			e.stopPropagation()

@@ -211,6 +211,7 @@ query GetSession($secure_id: String!) {
 		browser_name
 		browser_version
 		environment
+		service_name
 		app_version
 		ip
 		city

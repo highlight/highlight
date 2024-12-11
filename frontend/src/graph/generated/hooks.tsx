@@ -6333,6 +6333,7 @@ export const GetSessionDocument = gql`
 			browser_name
 			browser_version
 			environment
+			service_name
 			app_version
 			ip
 			city

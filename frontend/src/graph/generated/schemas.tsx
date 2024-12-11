@@ -3455,6 +3455,7 @@ export type Session = {
 	processed?: Maybe<Scalars['Boolean']>
 	resources_url?: Maybe<Scalars['String']>
 	secure_id: Scalars['String']
+	service_name?: Maybe<Scalars['String']>
 	session_feedback?: Maybe<Array<SessionComment>>
 	starred?: Maybe<Scalars['Boolean']>
 	state: Scalars['String']
