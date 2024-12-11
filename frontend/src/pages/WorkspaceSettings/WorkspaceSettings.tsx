@@ -41,11 +41,15 @@ const WorkspaceSettings = () => {
 		checked,
 	}) => (
 		<SwitchButton
-			className={clsx(className, styles.checkbox)}
+			className={clsx(
+				className,
+				styles.checkbox,
+				checked ? styles.isChecked : '',
+			)}
 			onClick={() => {
 				onChange(!checked)
 			}}
-			iconLeft={<IconSolidCheck />}
+			iconLeft={<IconSolidCheck className={styles.checkMark} />}
 			checked={checked}
 		/>
 	)
@@ -67,9 +71,15 @@ const WorkspaceSettings = () => {
 		)
 		const button: React.FC<FormButtonProps> = ({
 			isSubmitting,
+			className,
 			...props
 		}) => (
-			<Button size="medium" kind="primary" {...props}>
+			<Button
+				className={clsx(className, styles.submitButton)}
+				size="medium"
+				kind="primary"
+				{...props}
+			>
 				{isSubmitting ? (
 					<IconSolidLoading
 						className={styles.spinner}
