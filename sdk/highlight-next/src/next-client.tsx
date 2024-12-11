@@ -22,10 +22,15 @@ export function HighlightInit({
 				(hostname) => !window.location.hostname.includes(hostname),
 			)
 
+		const optionsWithBackendUrl = {
+			...highlightOptions,
+			backendUrl: '/highlight-events',
+		}
+
 		if (shouldRender) {
 			const { sessionSecureID } = localH.init(
 				projectId,
-				highlightOptions,
+				optionsWithBackendUrl,
 			) || { sessionSecureID: '' }
 
 			if (sessionSecureID) {
