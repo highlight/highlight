@@ -310,4 +310,24 @@ func TestHandleKinesisFirehoseCloudFrontJson(t *testing.T) {
 		return item.Key == "x-host-header"
 	})
 	assert.Equal(t, "pri.highlight.io", msg.Value.AsString())
+
+	msg, _ = lo.Find(event.Attributes, func(item attribute.KeyValue) bool {
+		return item.Key == "cs(Host)"
+	})
+	assert.Equal(t, "", msg.Value.AsString())
+
+	msg, _ = lo.Find(event.Attributes, func(item attribute.KeyValue) bool {
+		return item.Key == "cs.Host"
+	})
+	assert.Equal(t, "d3tbhpzcw8lafv.cloudfront.net", msg.Value.AsString())
+
+	msg, _ = lo.Find(event.Attributes, func(item attribute.KeyValue) bool {
+		return item.Key == "cs(User-Agent)"
+	})
+	assert.Equal(t, "", msg.Value.AsString())
+
+	msg, _ = lo.Find(event.Attributes, func(item attribute.KeyValue) bool {
+		return item.Key == "cs.User-Agent"
+	})
+	assert.Equal(t, "python-requests/2.31.0", msg.Value.AsString())
 }

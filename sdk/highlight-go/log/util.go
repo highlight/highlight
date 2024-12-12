@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"regexp"
 	"strconv"
 	"strings"
 	"time"
@@ -234,10 +235,14 @@ func SubmitHTTPLog(ctx context.Context, tracer trace.Tracer, projectID int, lg L
 	return nil
 }
 
+// parenKeySyntax matches a parenthesis pattern, i.e. `cs(Referrer)`
+var parenKeySyntax = regexp.MustCompile(`(.+)\((.+)\)`)
+
 func formatLogAttributes(k string, v interface{}, depth uint8) map[string]string {
 	if depth >= MaxLogAttributesDepth {
 		return nil
 	}
+	k = parenKeySyntax.ReplaceAllString(k, "$1.$2")
 	if vStr, ok := v.(string); ok {
 		if len(vStr) > LogAttributeValueLengthLimit {
 			vStr = vStr[:LogAttributeValueLengthLimit] + "..."
