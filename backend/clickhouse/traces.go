@@ -356,6 +356,27 @@ func convertLinks(traceRow *TraceRow) ([]string, []string, []string, []map[strin
 	return traceIDs, spanIDs, states, attrs
 }
 
+func mergeAttributes(result ClickhouseTraceRow) map[string]string {
+	allAttributes := map[string]string{}
+	for _, attrs := range []map[string]string{
+		result.TraceAttributes,
+		result.HttpAttributes,
+		result.OsAttributes,
+		result.TelemetryAttributes,
+		result.WsAttributes,
+		result.EventAttributes,
+		result.DbAttributes,
+	} {
+		for k, v := range attrs {
+			allAttributes[k] = v
+		}
+	}
+	allAttributes[HttpResponseBodyKey] = result.HttpResponseBody
+	allAttributes[HttpRequestBodyKey] = result.HttpRequestBody
+	allAttributes[HttpUrlKey] = result.HttpUrl
+	return allAttributes
+}
+
 func (client *Client) ReadTraces(ctx context.Context, projectID int, params modelInputs.QueryInput, pagination Pagination) (*modelInputs.TraceConnection, error) {
 	scanTrace := func(rows driver.Rows) (*Edge[modelInputs.Trace], error) {
 		var result ClickhouseTraceRow
@@ -363,23 +384,7 @@ func (client *Client) ReadTraces(ctx context.Context, projectID int, params mode
 			return nil, err
 		}
 
-		allAttributes := map[string]string{}
-		for _, attrs := range []map[string]string{
-			result.TraceAttributes,
-			result.HttpAttributes,
-			result.OsAttributes,
-			result.TelemetryAttributes,
-			result.WsAttributes,
-			result.EventAttributes,
-			result.DbAttributes,
-		} {
-			for k, v := range attrs {
-				allAttributes[k] = v
-			}
-		}
-		allAttributes[HttpResponseBodyKey] = result.HttpResponseBody
-		allAttributes[HttpRequestBodyKey] = result.HttpRequestBody
-		allAttributes[HttpUrlKey] = result.HttpUrl
+		allAttributes := mergeAttributes(result)
 
 		return &Edge[modelInputs.Trace]{
 			Cursor: encodeCursor(result.Timestamp, result.UUID),
@@ -478,6 +483,8 @@ func getTracesFromRows(rows driver.Rows) ([]*modelInputs.Trace, error) {
 		}
 		seenUUIDs[result.UUID] = struct{}{}
 
+		allAttributes := mergeAttributes(result)
+
 		traces = append(traces, &modelInputs.Trace{
 			Timestamp:       result.Timestamp,
 			TraceID:         result.TraceId,
@@ -493,7 +500,7 @@ func getTracesFromRows(rows driver.Rows) ([]*modelInputs.Trace, error) {
 			ServiceVersion:  result.ServiceVersion,
 			Environment:     result.Environment,
 			HasErrors:       result.HasErrors,
-			TraceAttributes: expandJSON(result.TraceAttributes),
+			TraceAttributes: expandJSON(allAttributes),
 			StatusCode:      result.StatusCode,
 			StatusMessage:   result.StatusMessage,
 			Events:          extractEvents(result),
