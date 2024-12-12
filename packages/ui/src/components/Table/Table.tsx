@@ -15,7 +15,6 @@ import * as styles from './styles.css'
 export interface Props extends Omit<BoxProps, 'cssClass'> {
 	children: React.ReactNode
 	className?: string
-	height?: BoxProps['height']
 	noBorder?: boolean
 }
 
