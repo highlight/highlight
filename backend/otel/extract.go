@@ -10,7 +10,7 @@ import (
 	"time"
 
 	"github.com/highlight-run/highlight/backend/env"
-	model "github.com/highlight-run/highlight/backend/model"
+	"github.com/highlight-run/highlight/backend/model"
 	modelInputs "github.com/highlight-run/highlight/backend/private-graph/graph/model"
 	"github.com/highlight-run/highlight/backend/public-graph/graph"
 	"github.com/highlight/highlight/sdk/highlight-go"
@@ -295,6 +295,11 @@ func extractFields(ctx context.Context, params extractFieldsParams) (*extractedF
 	if val, ok := fields.attrs[string(semconv.DeploymentEnvironmentKey)]; ok {
 		fields.environment = val
 		delete(fields.attrs, string(semconv.DeploymentEnvironmentKey))
+	}
+
+	if val, ok := fields.attrs[highlight.EnvironmentAttribute]; ok {
+		fields.environment = val
+		delete(fields.attrs, string(highlight.EnvironmentAttribute))
 	}
 
 	if val, ok := fields.attrs[string(semconv.ServiceNameKey)]; ok {

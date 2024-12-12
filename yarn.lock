@@ -9833,7 +9833,6 @@ __metadata:
     react-linkify: "npm:^1.0.0-alpha"
     react-loading-skeleton: "npm:3.0.1"
     react-markdown: "npm:^8.0.5"
-    react-nice-avatar: "npm:^1.2.1"
     react-resizable: "npm:^3.0.4"
     react-resize-aware: "npm:3.1.0"
     react-router-dom: "npm:^6.16.0"
@@ -27666,15 +27665,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"chroma-js@npm:^2.1.2":
-  version: 2.1.2
-  resolution: "chroma-js@npm:2.1.2"
-  dependencies:
-    cross-env: "npm:^6.0.3"
-  checksum: 10/48cbce5a77bc07d6967c1921a8c25fcd75a26dcbb6c469400bee01d1d0aac8ae5949940b875f45f7a7556f14fc1538ac3e057af6d43a5e031d57424177ec8851
-  languageName: node
-  linkType: hard
-
 "chrome-launcher@npm:0.15.1":
   version: 0.15.1
   resolution: "chrome-launcher@npm:0.15.1"
@@ -28870,18 +28860,6 @@ __metadata:
     "@types/luxon": "npm:~3.3.0"
     luxon: "npm:~3.4.0"
   checksum: 10/648faf5da570a4d858434489f8474f1b0f377251a211f6936ac6928d2b548d8dae421f4862be34f448e400df025ee6f1b7bd36a7dde8f300596f44dff15f1a1c
-  languageName: node
-  linkType: hard
-
-"cross-env@npm:^6.0.3":
-  version: 6.0.3
-  resolution: "cross-env@npm:6.0.3"
-  dependencies:
-    cross-spawn: "npm:^7.0.0"
-  bin:
-    cross-env: src/bin/cross-env.js
-    cross-env-shell: src/bin/cross-env-shell.js
-  checksum: 10/f0f0873b9af00e81e8591febc12064254ca2ed9dcae8370d4cd46d1c78a172c40de3f0c7033ee5ba31ec8351ad73ff6b3bc676f4617bd5092e88f56e9ae40dc3
   languageName: node
   linkType: hard
 
@@ -50783,18 +50761,6 @@ __metadata:
     react: ^0.14.0 || ^15.0.0 || ^16 || ^17
     react-dom: ^0.14.0 || ^15.0.0 || ^16 || ^17
   checksum: 10/60211fbd379a5eb26049cac79b07bb60f489f9969290e871fc054bd776160b3d9ce82fbbb450d7efea1581f114944e2149f0603bb0929d1cf15f7381b210b12b
-  languageName: node
-  linkType: hard
-
-"react-nice-avatar@npm:^1.2.1":
-  version: 1.2.1
-  resolution: "react-nice-avatar@npm:1.2.1"
-  dependencies:
-    chroma-js: "npm:^2.1.2"
-    prop-types: "npm:^15.7.2"
-  peerDependencies:
-    react: ">=16.0.0"
-  checksum: 10/d423eb9e3c01c61c37acaa1a04612513dc6522c0d0f8bca10417f5191de5672464cbc7b8e442f592dfb467719f7a399c6d41c00b27ef4517efd0a0d8e57bfcba
   languageName: node
   linkType: hard
 

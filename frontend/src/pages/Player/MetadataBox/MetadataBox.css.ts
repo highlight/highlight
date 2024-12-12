@@ -1,11 +1,6 @@
 import { vars } from '@highlight-run/ui/vars'
 import { style } from '@vanilla-extract/css'
 
-export const avatar = style({
-	height: 28,
-	width: 28,
-})
-
 export const defaultText = style({
 	color: vars.theme.static.content.default,
 })

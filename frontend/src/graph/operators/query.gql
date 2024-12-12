@@ -2605,8 +2605,6 @@ query GetMetrics(
 	$product_type: ProductType!
 	$project_id: ID!
 	$params: QueryInput!
-	$column: String!
-	$metric_types: [MetricAggregator!]!
 	$group_by: [String!]!
 	$bucket_by: String!
 	$bucket_count: Int
@@ -2615,13 +2613,12 @@ query GetMetrics(
 	$limit_aggregator: MetricAggregator
 	$limit_column: String
 	$prediction_settings: PredictionSettings
+	$expressions: [MetricExpressionInput!]!
 ) {
 	metrics(
 		product_type: $product_type
 		project_id: $project_id
 		params: $params
-		column: $column
-		metric_types: $metric_types
 		group_by: $group_by
 		bucket_by: $bucket_by
 		bucket_window: $bucket_window
@@ -2630,12 +2627,14 @@ query GetMetrics(
 		limit_aggregator: $limit_aggregator
 		limit_column: $limit_column
 		prediction_settings: $prediction_settings
+		expressions: $expressions
 	) {
 		buckets {
 			bucket_id
 			bucket_min
 			bucket_max
 			group
+			column
 			metric_type
 			metric_value
 			yhat_lower
@@ -2654,8 +2653,6 @@ query GetGraphTemplates {
 		description
 		productType
 		query
-		metric
-		functionType
 		groupByKeys
 		bucketByKey
 		bucketCount
@@ -2669,6 +2666,10 @@ query GetGraphTemplates {
 		}
 		display
 		nullHandling
+		expressions {
+			aggregator
+			column
+		}
 	}
 }
 
@@ -2692,8 +2693,6 @@ query GetVisualization($id: ID!) {
 			description
 			productType
 			query
-			metric
-			functionType
 			groupByKeys
 			bucketByKey
 			bucketCount
@@ -2707,6 +2706,10 @@ query GetVisualization($id: ID!) {
 			}
 			display
 			nullHandling
+			expressions {
+				aggregator
+				column
+			}
 		}
 		updatedByAdmin {
 			id
@@ -2748,8 +2751,6 @@ query GetVisualizations(
 				title
 				productType
 				query
-				metric
-				functionType
 				groupByKeys
 				bucketByKey
 				bucketCount
@@ -2763,6 +2764,10 @@ query GetVisualizations(
 				}
 				display
 				nullHandling
+				expressions {
+					aggregator
+					column
+				}
 			}
 			updatedByAdmin {
 				id

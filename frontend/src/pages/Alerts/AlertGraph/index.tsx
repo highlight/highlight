@@ -77,8 +77,6 @@ export const AlertGraph: React.FC<Props> = ({
 					selectedPreset={selectedPreset}
 					endDate={endDate}
 					query={query}
-					metric={functionColumn}
-					functionType={functionType}
 					groupByKeys={
 						sessionsProduct || groupByKey === undefined
 							? undefined
@@ -105,6 +103,9 @@ export const AlertGraph: React.FC<Props> = ({
 						thresholdType,
 						thresholdValue,
 					}}
+					expressions={[
+						{ aggregator: functionType, column: functionColumn },
+					]}
 				>
 					{!sessionsProduct &&
 						thresholdType === ThresholdType.Constant && (

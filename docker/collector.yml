@@ -88,6 +88,10 @@ exporters:
             max_interval: 30s
             max_elapsed_time: 300s
 processors:
+    memory_limiter:
+        limit_mib: 14336
+        spike_limit_mib: 1024
+        check_interval: 0.1s
     batch:
         metadata_keys:
             - x-highlight-project
@@ -106,15 +110,15 @@ service:
     pipelines:
         traces:
             receivers: [otlp, otlp/https]
-            processors: [batch]
+            processors: [memory_limiter, batch]
             exporters: [otlphttp, logging]
         metrics:
             receivers: [otlp, otlp/https]
-            processors: [batch]
+            processors: [memory_limiter, batch]
             exporters: [otlphttp, logging]
         logs:
             receivers: [otlp, otlp/https, fluentforward, tcplog, syslog]
-            processors: [batch]
+            processors: [memory_limiter, batch]
             exporters: [otlphttp, logging]
 extensions:
     headers_setter:

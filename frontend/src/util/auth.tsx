@@ -289,8 +289,11 @@ class OAuth extends PasswordAuth implements SimpleAuth {
 		})
 
 		if (response.status !== 200) {
-			// only redirect if we are already not on the sign_in route
-			if (!window.location.href.endsWith('/sign_in')) {
+			// only redirect if we are already not on the sign_in route and not on invite route
+			if (
+				window.location.href.indexOf('/sign_in') === -1 &&
+				window.location.href.indexOf('/invite/') === -1
+			) {
 				window.location.href = `${window.location.origin}/sign_in`
 			}
 

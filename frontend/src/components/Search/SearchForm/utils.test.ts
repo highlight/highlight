@@ -1,12 +1,12 @@
 import { SearchExpression } from '@/components/Search/Parser/listener'
-import { parseSearch } from '@/components/Search/utils'
-
 import {
 	BODY_KEY,
 	buildTokenGroups,
+	getActivePart,
 	quoteQueryValue,
 	stringifySearchQuery,
 } from './utils'
+import { parseSearch } from '@/components/Search/utils'
 
 const complexQueryString = `name:"Eric Thomas" workspace:'Chilly McWilly'  project_id:9 freetext query`
 const complexQueryParams: SearchExpression[] = [
@@ -113,7 +113,7 @@ describe('quoteQueryValue', () => {
 describe('buildTokenGroups', () => {
 	it('builds token groups correctly', () => {
 		const queryString =
-			' service_name=(private-graph  OR public-graph) AND span_name!=gorm.Query asdf fdsa '
+			' service_name=(private-graph  OR public-graph) AND span_name !=  gorm.Query asdf fdsa '
 		const { tokens } = parseSearch(queryString)
 		const tokenGroups = buildTokenGroups(tokens)
 		const tokenGroupStrings = tokenGroups.map((group) =>
@@ -126,7 +126,7 @@ describe('buildTokenGroups', () => {
 			' ',
 			'AND',
 			' ',
-			'span_name!=gorm.Query',
+			'span_name !=  gorm.Query',
 			' ',
 			'asdf',
 			' ',
@@ -159,5 +159,53 @@ describe('buildTokenGroups', () => {
 			' ',
 			'span_name!=gorm.Query',
 		])
+	})
+})
+
+describe('getActivePart', () => {
+	it('returns the active part', () => {
+		expect(getActivePart(10, complexQueryParams)).toEqual(
+			complexQueryParams[0],
+		)
+	})
+
+	it('handles spaces around operators', () => {
+		const queryString = 'name = '
+		const { queryParts } = parseSearch(queryString)
+		expect(getActivePart(7, queryParts).text).toEqual('name = ')
+	})
+
+	it('handles end of operator correctly', () => {
+		const queryString = 'span_name=gorm.Query service_name ='
+		const { queryParts } = parseSearch(queryString)
+		expect(getActivePart(35, queryParts).text).toEqual('service_name =')
+	})
+
+	it('handles earlier expression correctly', () => {
+		const queryString = 'span_name=gorm.Query service_name=frontend'
+		const { queryParts } = parseSearch(queryString)
+		expect(getActivePart(20, queryParts).text).toEqual(
+			'span_name=gorm.Query',
+		)
+	})
+
+	it('handles trailing spaces in earlier expressions correctly', () => {
+		const queryString = 'span_name =  service_name=frontend'
+		const { queryParts } = parseSearch(queryString)
+		expect(getActivePart(12, queryParts).text).toEqual('span_name =')
+	})
+
+	it('handles trailing spaces in earlier expressions correctly', () => {
+		const queryString = 'span_name =  service_name=frontend'
+		const { queryParts } = parseSearch(queryString)
+		expect(getActivePart(13, queryParts).text).toEqual(
+			'service_name=frontend',
+		)
+	})
+
+	it('handles trailing spaces in earlier expressions correctly', () => {
+		const queryString = 'has_errors= span_name =  service_name=frontend'
+		const { queryParts } = parseSearch(queryString)
+		expect(getActivePart(11, queryParts).text).toEqual('has_errors=')
 	})
 })

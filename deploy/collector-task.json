@@ -54,7 +54,13 @@
 					"value": "12GiB"
 				}
 			],
-			"mountPoints": [],
+			"mountPoints": [
+				{
+					"sourceVolume": "opentelemetry-collector-queue",
+					"containerPath": "/data/queue",
+					"readOnly": false
+				}
+			],
 			"volumesFrom": [],
 			"logConfiguration": {
 				"logDriver": "awslogs",
@@ -70,7 +76,15 @@
 	"executionRoleArn": "arn:aws:iam::173971919437:role/HighlightAppProd",
 	"networkMode": "awsvpc",
 	"revision": 8,
-	"volumes": [],
+	"volumes": [
+		{
+			"name": "opentelemetry-collector-queue",
+			"efsVolumeConfiguration": {
+				"fileSystemId": "fs-0a8baf8eb788f79a9",
+				"rootDirectory": "/data/queue"
+			}
+		}
+	],
 	"status": "ACTIVE",
 	"requiresAttributes": [
 		{
