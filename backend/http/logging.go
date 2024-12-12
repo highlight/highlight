@@ -168,7 +168,7 @@ func HandleFirehoseLog(w http.ResponseWriter, r *http.Request) {
 			msg = data
 		}
 
-		for _, payload := range []Payload{&FireLensFluentBitPayload{}, &FireLensPinoPayload{}, &FireLensPayload{}, &CloudWatchPayload{}, &JsonPayload{}} {
+		for _, payload := range []Payload{&CloudFrontJsonPayload{}, &FireLensFluentBitPayload{}, &FireLensPinoPayload{}, &FireLensPayload{}, &CloudWatchPayload{}, &JsonPayload{}} {
 			if payload.Parse(msg) {
 				for _, p := range payload.GetMessages() {
 					t := p.GetTimestamp()
