@@ -16,7 +16,7 @@ import { useGetLogs } from '@pages/LogsPage/useGetLogs'
 import useLocalStorage from '@rehooks/local-storage'
 import { useParams } from '@util/react-router/useParams'
 import moment from 'moment'
-import React, { useEffect, useMemo, useRef, useState } from 'react'
+import React, { useEffect, useMemo, useState } from 'react'
 import { Helmet } from 'react-helmet'
 import { useQueryParam } from 'use-query-params'
 
@@ -88,7 +88,6 @@ const LogsPageInner = ({ timeMode, logCursor, presetDefault }: Props) => {
 		return parseSearch(query).queryParts
 	}, [query])
 
-	const textAreaRef = useRef<HTMLTextAreaElement | null>(null)
 	const [
 		getAiQuerySuggestion,
 		{ data: aiData, error: aiError, loading: aiLoading },
@@ -286,7 +285,6 @@ const LogsPageInner = ({ timeMode, logCursor, presetDefault }: Props) => {
 						productType={ProductType.Logs}
 						timeMode={timeMode}
 						savedSegmentType={SavedSegmentEntityType.Log}
-						textAreaRef={textAreaRef}
 						enableAIMode={
 							workspaceSettings?.workspaceSettings
 								?.ai_query_builder
