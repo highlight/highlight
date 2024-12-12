@@ -47,7 +47,6 @@ import {
 	BODY_KEY,
 	getActivePart,
 	quoteQueryValue,
-	stringifySearchQuery,
 } from '@/components/Search/SearchForm/utils'
 import {
 	useGetKeysLazyQuery,
@@ -427,7 +426,7 @@ export const Search: React.FC<{
 	const showOperators = !!keyMatch
 
 	const visibleRecentSearch = recentSearches.filter((history) => {
-		return stringifySearchQuery(history.queryParts).indexOf(query) > -1
+		return history.query.indexOf(query) > -1
 	})
 
 	if (showOperators) {
@@ -672,10 +671,9 @@ export const Search: React.FC<{
 	}
 
 	const handleHistorySelection = (
-		queryParts: SearchExpression[],
+		newQuery: string,
 		selectNewItem: boolean = false,
 	) => {
-		let newQuery = stringifySearchQuery(queryParts)
 		let newCursorPosition = newQuery.length
 
 		if (selectNewItem) {
@@ -972,7 +970,7 @@ export const Search: React.FC<{
 													key={index}
 													onClick={(e) => {
 														handleHistorySelection(
-															data.queryParts,
+															data.query,
 															e.metaKey ||
 																e.ctrlKey,
 														)
