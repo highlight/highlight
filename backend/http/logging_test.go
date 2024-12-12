@@ -257,3 +257,57 @@ func TestHandleFirehoseFireLens(t *testing.T) {
 		})
 	}
 }
+
+func TestHandleKinesisFirehoseCloudFrontJson(t *testing.T) {
+	b := bytes.Buffer{}
+	gz := gzip.NewWriter(&b)
+	if _, err := gz.Write([]byte(KinesisFirehoseCloudFrontJson)); err != nil {
+		t.Fatal(err)
+	}
+	if err := gz.Close(); err != nil {
+		t.Fatal(err)
+	}
+	bd := fmt.Sprintf(`{"timestamp":%d,"records":[{"data": "%s"}]}`, time.Now().UTC().UnixMilli(), base64.StdEncoding.EncodeToString(b.Bytes()))
+	t.Log("body", bd)
+
+	r, _ := http.NewRequest("POST", "/v1/logs/firehose", strings.NewReader(bd))
+	r.Header.Set("X-Amz-Firehose-Common-Attributes", fmt.Sprintf(`{"commonAttributes":{"x-highlight-project":"%d"}}`, 3))
+	w := &MockResponseWriter{}
+	HandleFirehoseLog(w, r)
+	assert.Equal(t, 200, w.statusCode)
+
+	spans := spanRecorder.Ended()
+	span := spans[len(spans)-1]
+	event := span.Events()[len(span.Events())-1]
+	assert.True(t, span.SpanContext().TraceID().IsValid())
+	assert.Equal(t, "highlight.log", span.Name())
+	assert.Equal(t, "log", event.Name)
+
+	// in the last 30 years to check that time is not unix epoch
+	assert.Less(t, time.Since(event.Time), time.Hour*24*365*30)
+
+	proj, _ := lo.Find(span.Attributes(), func(item attribute.KeyValue) bool {
+		return item.Key == "highlight.project_id"
+	})
+	assert.Equal(t, fmt.Sprintf("%d", 3), proj.Value.AsString())
+
+	serv, _ := lo.Find(event.Attributes, func(item attribute.KeyValue) bool {
+		return item.Key == "service.name"
+	})
+	assert.Equal(t, "firehose.cloudfront", serv.Value.AsString())
+
+	sev, _ := lo.Find(event.Attributes, func(item attribute.KeyValue) bool {
+		return item.Key == "log.severity"
+	})
+	assert.Equal(t, "info", sev.Value.AsString())
+
+	msg, _ := lo.Find(event.Attributes, func(item attribute.KeyValue) bool {
+		return item.Key == "log.message"
+	})
+	assert.Equal(t, "[POST 200] d3tbhpzcw8lafv.cloudfront.net/", msg.Value.AsString())
+
+	msg, _ = lo.Find(event.Attributes, func(item attribute.KeyValue) bool {
+		return item.Key == "x-host-header"
+	})
+	assert.Equal(t, "pri.highlight.io", msg.Value.AsString())
+}

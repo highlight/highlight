@@ -254,55 +254,40 @@ func (p *JsonPayload) GetTimestamp() *time.Time {
 }
 
 func (p *JsonPayload) SetLogAttributes(ctx context.Context, hl *hlog.Log, msg []byte) context.Context {
+	var lgAttrs map[string]interface{}
+	if err := json.Unmarshal(msg, &lgAttrs); err != nil {
+		log.WithContext(ctx).
+			WithError(err).WithField("msg", msg).
+			Error("invalid json log attributes")
+	}
+	for k, v := range lgAttrs {
+		// skip the keys that are part of the message
+		if has := map[string]bool{"msg": true}[k]; has {
+			continue
+		}
+		for key, value := range hlog.FormatLogAttributes(k, v) {
+			hl.Attributes[key] = value
+		}
+	}
 	hl.Attributes[string(semconv.ServiceNameKey)] = "firehose.json"
 	return ctx
 }
 
 type CloudFrontJsonPayload struct {
-	Timestamp               string `json:"timestamp"`      // optional
-	DistributionId          string `json:"DistributionId"` // optional
-	Date                    string `json:"date"`
-	Time                    string `json:"time"`
-	XEdgeLocation           string `json:"x-edge-location"`
-	ScBytes                 string `json:"sc-bytes"`
-	CIp                     string `json:"c-ip"`
-	CsMethod                string `json:"cs-method"`
-	CsHost                  string `json:"cs(Host)"`
-	CsUriStem               string `json:"cs-uri-stem"`
-	ScStatus                string `json:"sc-status"`
-	CsReferer               string `json:"cs(Referer)"`
-	CsUserAgent             string `json:"cs(User-Agent)"`
-	CsUriQuery              string `json:"cs-uri-query"`
-	CsCookie                string `json:"cs(Cookie)"`
-	XEdgeResultType         string `json:"x-edge-result-type"`
-	XEdgeRequestId          string `json:"x-edge-request-id"`
-	XHostHeader             string `json:"x-host-header"`
-	CsProtocol              string `json:"cs-protocol"`
-	CsBytes                 string `json:"cs-bytes"`
-	TimeTaken               string `json:"time-taken"`
-	XForwardedFor           string `json:"x-forwarded-for"`
-	SslProtocol             string `json:"ssl-protocol"`
-	SslCipher               string `json:"ssl-cipher"`
-	XEdgeResponseResultType string `json:"x-edge-response-result-type"`
-	CsProtocolVersion       string `json:"cs-protocol-version"`
-	FleStatus               string `json:"fle-status"`
-	FleEncryptedFields      string `json:"fle-encrypted-fields"`
-	CPort                   string `json:"c-port"`
-	TimeToFirstByte         string `json:"time-to-first-byte"`
-	XEdgeDetailedResultType string `json:"x-edge-detailed-result-type"`
-	ScContentType           string `json:"sc-content-type"`
-	ScContentLen            string `json:"sc-content-len"`
-	ScRangeStart            string `json:"sc-range-start"`
-	ScRangeEnd              string `json:"sc-range-end"`
-	TimestampMs             string `json:"timestamp(ms)"` // optional
-	OriginFbl               string `json:"origin-fbl"`    // optional
-	OriginLbl               string `json:"origin-lbl"`    // optional
-	Asn                     string `json:"asn"`           // optional
+	Date        string `json:"date"`
+	Time        string `json:"time"`
+	Timestamp   string `json:"timestamp"`
+	TimestampMs string `json:"timestamp(ms)"`
+	ScStatus    string `json:"sc-status"`
+	CsMethod    string `json:"cs-method"`
+	CsHost      string `json:"cs(Host)"`
+	CsUriStem   string `json:"cs-uri-stem"`
+	CsUriQuery  string `json:"cs-uri-query"`
 }
 
 func (p *CloudFrontJsonPayload) Parse(msg []byte) bool {
 	err := json.Unmarshal(msg, p)
-	return err == nil && len(p.CsHost) > 0
+	return err == nil && (len(p.CsHost) > 0 || len(p.TimestampMs) > 0 || len(p.Timestamp) > 0 || (len(p.Date) > 0 && len(p.Time) > 0))
 }
 
 func (p *CloudFrontJsonPayload) GetMessages() []PayloadMessage {
@@ -310,7 +295,7 @@ func (p *CloudFrontJsonPayload) GetMessages() []PayloadMessage {
 }
 
 func (p *CloudFrontJsonPayload) GetMessage() string {
-	return fmt.Sprintf("[%s] %s %s%s", p.ScStatus, p.CsHost, p.CsUriStem, p.CsUriQuery)
+	return fmt.Sprintf("[%s %s] %s%s", p.CsMethod, p.ScStatus, p.CsHost, p.CsUriStem)
 }
 
 func (p *CloudFrontJsonPayload) GetLevel() string {
@@ -337,6 +322,17 @@ func (p *CloudFrontJsonPayload) GetTimestamp() *time.Time {
 }
 
 func (p *CloudFrontJsonPayload) SetLogAttributes(ctx context.Context, hl *hlog.Log, msg []byte) context.Context {
+	var lgAttrs map[string]interface{}
+	if err := json.Unmarshal(msg, &lgAttrs); err != nil {
+		log.WithContext(ctx).
+			WithError(err).WithField("msg", msg).
+			Error("invalid json log attributes")
+	}
+	for k, v := range lgAttrs {
+		for key, value := range hlog.FormatLogAttributes(k, v) {
+			hl.Attributes[key] = value
+		}
+	}
 	hl.Attributes[string(semconv.ServiceNameKey)] = "firehose.cloudfront"
 	return ctx
 }
