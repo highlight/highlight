@@ -91,6 +91,8 @@ const KinesisFirehoseFirelensPinoJson = `{
   "ecs_task_definition": "fooAPI:659"
 }`
 
+const KinesisFirehoseCloudFrontJson = `{"timestamp":"1733943532","DistributionId":"E20MFWZTRJBW2X","date":"2024-12-11","time":"18:58:52","x-edge-location":"IAD55-P7","sc-bytes":"2932","c-ip":"52.71.51.89","cs-method":"POST","cs(Host)":"d3tbhpzcw8lafv.cloudfront.net","cs-uri-stem":"/","sc-status":"200","cs(Referer)":"-","cs(User-Agent)":"python-requests/2.31.0","cs-uri-query":"-","cs(Cookie)":"-","x-edge-result-type":"Miss","x-edge-request-id":"Q37mFQxX4juKEkB4xJ6A8ZYHLtMoO_0_fYyLt0H8vnRJywgocMuFbA==","x-host-header":"pri.highlight.io","cs-protocol":"https","cs-bytes":"1428","time-taken":"0.047","x-forwarded-for":"-","ssl-protocol":"TLSv1.3","ssl-cipher":"TLS_AES_128_GCM_SHA256","x-edge-response-result-type":"Miss","cs-protocol-version":"HTTP/1.1","fle-status":"-","fle-encrypted-fields":"-","c-port":"18366","time-to-first-byte":"0.047","x-edge-detailed-result-type":"Miss","sc-content-type":"application/json","sc-content-len":"-","sc-range-start":"-","sc-range-end":"-","timestamp(ms)":"1733943532406","origin-fbl":"0.042","origin-lbl":"0.042","asn":"14618"}`
+
 type MockResponseWriter struct {
 	statusCode int
 }
