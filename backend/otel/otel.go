@@ -543,7 +543,7 @@ func (o *Handler) HandleMetric(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var projectMetrics = make(map[int][]*clickhouse.MetricRow)
+	var projectMetrics = make(map[int][]clickhouse.MetricRow)
 
 	var curTime = time.Now()
 	resourceMetrics := req.Metrics().ResourceMetrics()
@@ -592,7 +592,7 @@ func (o *Handler) HandleMetric(w http.ResponseWriter, r *http.Request) {
 						continue
 					}
 					if _, ok := projectMetrics[fields.projectIDInt]; !ok {
-						projectMetrics[fields.projectIDInt] = []*clickhouse.MetricRow{}
+						projectMetrics[fields.projectIDInt] = []clickhouse.MetricRow{}
 					}
 					projectMetrics[fields.projectIDInt] = append(projectMetrics[fields.projectIDInt], dp.ToMetricRow(ctx, metric.Type(), fields))
 				}
@@ -820,8 +820,8 @@ func (o *Handler) submitTraceSpans(ctx context.Context, traceRows map[string][]*
 	return nil
 }
 
-func (o *Handler) submitProjectMetrics(ctx context.Context, projectMetricRows map[int][]*clickhouse.MetricRow) error {
-	projectIds := lo.MapEntries(projectMetricRows, func(p int, _ []*clickhouse.MetricRow) (uint32, struct{}) {
+func (o *Handler) submitProjectMetrics(ctx context.Context, projectMetricRows map[int][]clickhouse.MetricRow) error {
+	projectIds := lo.MapEntries(projectMetricRows, func(p int, _ []clickhouse.MetricRow) (uint32, struct{}) {
 		return uint32(p), struct{}{}
 	})
 	quotaExceededByProject, err := o.getQuotaExceededByProject(ctx, projectIds, model2.PricingProductTypeMetrics)

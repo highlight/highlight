@@ -20,7 +20,7 @@ import (
 	"time"
 )
 
-func (r *Resolver) IsMetricIngested(ctx context.Context, trace *clickhouse.MetricRow) bool {
+func (r *Resolver) IsMetricIngested(ctx context.Context, trace clickhouse.MetricRow) bool {
 	// TODO(vkorolik) not implemented
 	return true
 }
