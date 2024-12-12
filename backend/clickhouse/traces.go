@@ -269,7 +269,7 @@ func ConvertTraceRow(traceRow *TraceRow) *ClickhouseTraceRow {
 		Duration:            traceRow.Duration,
 		ServiceName:         traceRow.ServiceName,
 		ServiceVersion:      traceRow.ServiceVersion,
-		TraceAttributes:     traceRow.TraceAttributes,
+		TraceAttributes:     filtered,
 		StatusCode:          traceRow.StatusCode,
 		StatusMessage:       traceRow.StatusMessage,
 		Environment:         traceRow.Environment,
