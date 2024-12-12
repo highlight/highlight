@@ -121,7 +121,7 @@ export const NetworkResourceLogs: React.FC<{
 						hideCreateAlert
 						productType={ProductType.Logs}
 					/>
-					<Box height="full" pt="4" px="12" pb="12">
+					<Box height="full" pt="4" px="12" pb="12" overflow="hidden">
 						{(!loading && logEdges.length === 0) || !requestId ? (
 							<NoLogsFound />
 						) : (

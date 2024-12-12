@@ -115,7 +115,7 @@ export const LogsPanel: React.FC<{ resource: RelatedLogs }> = ({
 						hideCreateAlert
 						productType={ProductType.Logs}
 					/>
-					<Box height="full">
+					<Box height="full" overflow="hidden">
 						{!loading && logEdges.length === 0 ? (
 							<Box
 								display="flex"
@@ -137,7 +137,6 @@ export const LogsPanel: React.FC<{ resource: RelatedLogs }> = ({
 								fetchMoreWhenScrolled={fetchMoreWhenScrolled}
 								selectedColumns={selectedColumns}
 								setSelectedColumns={setSelectedColumns}
-								bodyHeight="calc(100% - 64px)"
 							/>
 						)}
 					</Box>
