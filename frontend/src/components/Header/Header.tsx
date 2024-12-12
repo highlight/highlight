@@ -905,12 +905,10 @@ const BillingBanner: React.FC = () => {
 		setHasReportedTrialExtension,
 	])
 
-	const isMaintenance =
-		true ||
-		moment().isBetween(
-			systemData?.system_configuration?.maintenance_start,
-			systemData?.system_configuration?.maintenance_end,
-		)
+	const isMaintenance = moment().isBetween(
+		systemData?.system_configuration?.maintenance_start,
+		systemData?.system_configuration?.maintenance_end,
+	)
 	if (isMaintenance) {
 		return <MaintenanceBanner />
 	}
