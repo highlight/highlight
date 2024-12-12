@@ -13,7 +13,7 @@ func getMetricRetention(projectID int) uint8 {
 }
 
 type DataPoint interface {
-	ToMetricRow(ctx context.Context, metricType pmetric.MetricType, fields *extractedFields) *clickhouse.MetricRow
+	ToMetricRow(ctx context.Context, metricType pmetric.MetricType, fields *extractedFields) clickhouse.MetricRow
 	ExtractAttributes() map[string]any
 }
 

@@ -20,7 +20,7 @@ import (
 	modelInputs "github.com/highlight-run/highlight/backend/public-graph/graph/model"
 )
 
-func (r *Resolver) IsMetricIngested(ctx context.Context, trace *clickhouse.MetricRow) bool {
+func (r *Resolver) IsMetricIngested(ctx context.Context, trace clickhouse.MetricRow) bool {
 	// TODO(vkorolik) not implemented
 	return true
 }
