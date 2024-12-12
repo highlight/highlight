@@ -54,12 +54,12 @@ var reservedLogKeys = lo.Map(modelInputs.AllReservedLogKey, func(key modelInputs
 })
 
 var LogsTableConfig = model.TableConfig{
-	TableName:        LogsTable,
-	KeysToColumns:    logKeysToColumns,
-	ReservedKeys:     reservedLogKeys,
-	BodyColumn:       "Body",
-	SeverityColumn:   "SeverityText",
-	AttributesColumn: "LogAttributes",
+	TableName:         LogsTable,
+	KeysToColumns:     logKeysToColumns,
+	ReservedKeys:      reservedLogKeys,
+	BodyColumn:        "Body",
+	SeverityColumn:    "SeverityText",
+	AttributesColumns: []model.ColumnMapping{{Column: "LogAttributes"}},
 	SelectColumns: []string{
 		"ProjectId",
 		"Timestamp",
@@ -78,11 +78,11 @@ var LogsTableConfig = model.TableConfig{
 }
 
 var logsSamplingTableConfig = model.TableConfig{
-	TableName:        LogsSamplingTable,
-	KeysToColumns:    logKeysToColumns,
-	ReservedKeys:     reservedLogKeys,
-	BodyColumn:       "Body",
-	AttributesColumn: "LogAttributes",
+	TableName:         LogsSamplingTable,
+	KeysToColumns:     logKeysToColumns,
+	ReservedKeys:      reservedLogKeys,
+	BodyColumn:        "Body",
+	AttributesColumns: []model.ColumnMapping{{Column: "LogAttributes"}},
 }
 
 var LogsSampleableTableConfig = SampleableTableConfig{

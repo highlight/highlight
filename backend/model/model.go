@@ -2462,15 +2462,29 @@ func EnableAllWorkspaceSettings(ctx context.Context, db *gorm.DB) error {
 }
 
 type TableConfig struct {
-	TableName        string
-	BodyColumn       string
-	SeverityColumn   string
-	AttributesColumn string
-	AttributesTable  string
-	MetricColumn     *string
-	KeysToColumns    map[string]string
-	ReservedKeys     []string
-	SelectColumns    []string
-	DefaultFilter    string
-	IgnoredFilters   map[string]bool
+	TableName         string
+	BodyColumn        string
+	SeverityColumn    string
+	AttributesColumns []ColumnMapping // A prefix -> column mapping. The column for the first matching prefix will be used.
+	AttributesTable   string
+	MetricColumn      *string
+	KeysToColumns     map[string]string
+	ReservedKeys      []string
+	SelectColumns     []string
+	DefaultFilter     string
+	IgnoredFilters    map[string]bool
+}
+
+type ColumnMapping struct {
+	Prefix string
+	Column string
+}
+
+func GetAttributesColumn(mappings []ColumnMapping, key string) string {
+	for _, m := range mappings {
+		if strings.HasPrefix(key, m.Prefix) {
+			return m.Column
+		}
+	}
+	return ""
 }

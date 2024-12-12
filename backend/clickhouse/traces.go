@@ -23,6 +23,17 @@ const TracesTable = "traces"
 const TracesSamplingTable = "traces_sampling_new"
 const TraceKeysTable = "trace_keys"
 const TraceKeyValuesTable = "trace_key_values"
+const HighlightKeyKey = "highlight.key"
+const HttpResponseBodyKey = "http.response.body"
+const HttpRequestBodyKey = "http.request.body"
+const HttpUrlKey = "http.url"
+const HttpPrefix = "http."
+const ProcessPrefix = "process."
+const OsPrefix = "os."
+const TelemetryPrefix = "telemetry."
+const WsPrefix = "ws."
+const EventPrefix = "event."
+const DbPrefix = "db."
 
 var traceKeysToColumns = map[string]string{
 	string(modelInputs.ReservedTraceKeySecureSessionID): "SecureSessionId",
@@ -41,6 +52,10 @@ var traceKeysToColumns = map[string]string{
 	string(modelInputs.ReservedTraceKeyHasErrors):       "HasErrors",
 	string(modelInputs.ReservedTraceKeyTimestamp):       "Timestamp",
 	string(modelInputs.ReservedTraceKeyHighlightType):   "HighlightType",
+	HighlightKeyKey:     "HighlightKey",
+	HttpResponseBodyKey: "HttpResponseBody",
+	HttpRequestBodyKey:  "HttpRequestBody",
+	HttpUrlKey:          "HttpUrl",
 }
 
 var traceColumns = []string{
@@ -57,7 +72,17 @@ var traceColumns = []string{
 	"Duration",
 	"ServiceName",
 	"ServiceVersion",
+	"HttpResponseBody",
+	"HttpRequestBody",
+	"HttpUrl",
 	"TraceAttributes",
+	"HttpAttributes",
+	"ProcessAttributes",
+	"OsAttributes",
+	"TelemetryAttributes",
+	"WsAttributes",
+	"EventAttributes",
+	"DbAttributes",
 	"StatusCode",
 	"StatusMessage",
 	"Environment",
@@ -86,33 +111,44 @@ var reservedTraceKeys = lo.Map(modelInputs.AllReservedTraceKey, func(key modelIn
 	return string(key)
 })
 
+var attributesColumns = []model.ColumnMapping{
+	{Prefix: HttpPrefix, Column: "HttpAttributes"},
+	{Prefix: ProcessPrefix, Column: "ProcessAttributes"},
+	{Prefix: OsPrefix, Column: "OsAttributes"},
+	{Prefix: TelemetryPrefix, Column: "TelemetryAttributes"},
+	{Prefix: WsPrefix, Column: "WsAttributes"},
+	{Prefix: EventPrefix, Column: "EventAttributes"},
+	{Prefix: DbPrefix, Column: "DbAttributes"},
+	{Column: "TraceAttributes"},
+}
+
 var TracesTableNoDefaultConfig = model.TableConfig{
-	TableName:        TracesTable,
-	KeysToColumns:    traceKeysToColumns,
-	ReservedKeys:     reservedTraceKeys,
-	BodyColumn:       "SpanName",
-	AttributesColumn: "TraceAttributes",
-	SelectColumns:    traceColumns,
+	TableName:         TracesTable,
+	KeysToColumns:     traceKeysToColumns,
+	ReservedKeys:      reservedTraceKeys,
+	BodyColumn:        "SpanName",
+	AttributesColumns: attributesColumns,
+	SelectColumns:     traceColumns,
 }
 
 var TracesTableConfig = model.TableConfig{
-	TableName:        TracesTableNoDefaultConfig.TableName,
-	KeysToColumns:    TracesTableNoDefaultConfig.KeysToColumns,
-	ReservedKeys:     TracesTableNoDefaultConfig.ReservedKeys,
-	BodyColumn:       TracesTableNoDefaultConfig.BodyColumn,
-	AttributesColumn: TracesTableNoDefaultConfig.AttributesColumn,
-	SelectColumns:    TracesTableNoDefaultConfig.SelectColumns,
-	DefaultFilter:    fmt.Sprintf("%s!=%s %s!=%s", modelInputs.ReservedTraceKeySpanName, highlight.MetricSpanName, modelInputs.ReservedTraceKeyHighlightType, highlight.TraceTypeHighlightInternal),
+	TableName:         TracesTableNoDefaultConfig.TableName,
+	KeysToColumns:     TracesTableNoDefaultConfig.KeysToColumns,
+	ReservedKeys:      TracesTableNoDefaultConfig.ReservedKeys,
+	BodyColumn:        TracesTableNoDefaultConfig.BodyColumn,
+	AttributesColumns: TracesTableNoDefaultConfig.AttributesColumns,
+	SelectColumns:     TracesTableNoDefaultConfig.SelectColumns,
+	DefaultFilter:     fmt.Sprintf("%s!=%s %s!=%s", modelInputs.ReservedTraceKeySpanName, highlight.MetricSpanName, modelInputs.ReservedTraceKeyHighlightType, highlight.TraceTypeHighlightInternal),
 }
 
 var tracesSamplingTableConfig = model.TableConfig{
-	TableName:        TracesSamplingTable,
-	BodyColumn:       "SpanName",
-	KeysToColumns:    traceKeysToColumns,
-	ReservedKeys:     reservedTraceKeys,
-	AttributesColumn: "TraceAttributes",
-	SelectColumns:    traceColumns,
-	DefaultFilter:    fmt.Sprintf("%s!=%s %s!=%s", modelInputs.ReservedTraceKeySpanName, highlight.MetricSpanName, modelInputs.ReservedTraceKeyHighlightType, highlight.TraceTypeHighlightInternal),
+	TableName:         TracesSamplingTable,
+	BodyColumn:        TracesTableNoDefaultConfig.BodyColumn,
+	KeysToColumns:     TracesTableNoDefaultConfig.KeysToColumns,
+	ReservedKeys:      TracesTableNoDefaultConfig.ReservedKeys,
+	AttributesColumns: TracesTableNoDefaultConfig.AttributesColumns,
+	SelectColumns:     TracesTableNoDefaultConfig.SelectColumns,
+	DefaultFilter:     TracesTableConfig.DefaultFilter,
 }
 
 var TracesSampleableTableConfig = SampleableTableConfig{
@@ -172,10 +208,10 @@ func getSubAttributes(attributes map[string]string, prefix string) map[string]st
 }
 
 func getHttpAttributes(attributes map[string]string) map[string]string {
-	httpAttributes := getSubAttributes(attributes, "http.")
-	delete(httpAttributes, "http.response.body")
-	delete(httpAttributes, "http.request.body")
-	delete(httpAttributes, "http.url")
+	httpAttributes := getSubAttributes(attributes, HttpPrefix)
+	delete(httpAttributes, HttpResponseBodyKey)
+	delete(httpAttributes, HttpRequestBodyKey)
+	delete(httpAttributes, HttpUrlKey)
 	return httpAttributes
 }
 
@@ -209,18 +245,18 @@ func ConvertTraceRow(traceRow *TraceRow) *ClickhouseTraceRow {
 		LinksSpanId:         linkSpanIds,
 		LinksTraceState:     linkStates,
 		LinksAttributes:     linkAttrs,
-		HttpResponseBody:    traceRow.TraceAttributes["http.response.body"],
-		HttpRequestBody:     traceRow.TraceAttributes["http.request.body"],
-		HttpUrl:             traceRow.TraceAttributes["http.url"],
-		HighlightKey:        traceRow.TraceAttributes["highlight.key"],
+		HttpResponseBody:    traceRow.TraceAttributes[HttpResponseBodyKey],
+		HttpRequestBody:     traceRow.TraceAttributes[HttpRequestBodyKey],
+		HttpUrl:             traceRow.TraceAttributes[HttpUrlKey],
+		HighlightKey:        traceRow.TraceAttributes[HighlightKeyKey],
 		HighlightType:       traceRow.TraceAttributes["highlight.type"],
 		HttpAttributes:      getHttpAttributes(traceRow.TraceAttributes),
-		ProcessAttributes:   getSubAttributes(traceRow.TraceAttributes, "process."),
-		OsAttributes:        getSubAttributes(traceRow.TraceAttributes, "os."),
-		TelemetryAttributes: getSubAttributes(traceRow.TraceAttributes, "telemetry."),
-		WsAttributes:        getSubAttributes(traceRow.TraceAttributes, "ws."),
-		EventAttributes:     getSubAttributes(traceRow.TraceAttributes, "event."),
-		DbAttributes:        getSubAttributes(traceRow.TraceAttributes, "db."),
+		ProcessAttributes:   getSubAttributes(traceRow.TraceAttributes, ProcessPrefix),
+		OsAttributes:        getSubAttributes(traceRow.TraceAttributes, OsPrefix),
+		TelemetryAttributes: getSubAttributes(traceRow.TraceAttributes, TelemetryPrefix),
+		WsAttributes:        getSubAttributes(traceRow.TraceAttributes, WsPrefix),
+		EventAttributes:     getSubAttributes(traceRow.TraceAttributes, EventPrefix),
+		DbAttributes:        getSubAttributes(traceRow.TraceAttributes, DbPrefix),
 	}
 }
 
@@ -291,6 +327,24 @@ func (client *Client) ReadTraces(ctx context.Context, projectID int, params mode
 			return nil, err
 		}
 
+		allAttributes := map[string]string{}
+		for _, attrs := range []map[string]string{
+			result.TraceAttributes,
+			result.HttpAttributes,
+			result.OsAttributes,
+			result.TelemetryAttributes,
+			result.WsAttributes,
+			result.EventAttributes,
+			result.DbAttributes,
+		} {
+			for k, v := range attrs {
+				allAttributes[k] = v
+			}
+		}
+		allAttributes[HttpResponseBodyKey] = result.HttpResponseBody
+		allAttributes[HttpRequestBodyKey] = result.HttpRequestBody
+		allAttributes[HttpUrlKey] = result.HttpUrl
+
 		return &Edge[modelInputs.Trace]{
 			Cursor: encodeCursor(result.Timestamp, result.UUID),
 			Node: &modelInputs.Trace{
@@ -308,7 +362,7 @@ func (client *Client) ReadTraces(ctx context.Context, projectID int, params mode
 				ServiceVersion:  result.ServiceVersion,
 				Environment:     result.Environment,
 				HasErrors:       result.HasErrors,
-				TraceAttributes: expandJSON(result.TraceAttributes),
+				TraceAttributes: expandJSON(allAttributes),
 				StatusCode:      result.StatusCode,
 				StatusMessage:   result.StatusMessage,
 				Events:          extractEvents(result),
