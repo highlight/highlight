@@ -12,7 +12,7 @@ import { vars } from '@highlight-run/ui/vars'
 import { useParams } from '@util/react-router/useParams'
 import { sumBy } from 'lodash'
 import moment from 'moment'
-import React, { useEffect, useMemo, useRef, useState } from 'react'
+import React, { useEffect, useMemo, useState } from 'react'
 import { Helmet } from 'react-helmet'
 import { useNavigate } from 'react-router-dom'
 import { StringParam, useQueryParam } from 'use-query-params'
@@ -83,7 +83,6 @@ export const TracesPage: React.FC = () => {
 		span_id: string
 		trace_cursor: string
 	}>()
-	const textAreaRef = useRef<HTMLTextAreaElement | null>(null)
 	const [query, setQuery] = useQueryParam('query', QueryParam)
 	const [sortColumn] = useQueryParam(SORT_COLUMN, StringParam)
 	const [sortDirection] = useQueryParam(SORT_DIRECTION, StringParam)
@@ -351,6 +350,9 @@ export const TracesPage: React.FC = () => {
 					backgroundColor="white"
 					border="dividerWeak"
 					borderRadius="6"
+					flexDirection="column"
+					display="flex"
+					flexGrow={1}
 					height="full"
 					shadow="medium"
 					overflow="hidden"
@@ -366,7 +368,6 @@ export const TracesPage: React.FC = () => {
 						onDatesChange={searchTimeContext.updateSearchTime}
 						productType={ProductType.Traces}
 						savedSegmentType={SavedSegmentEntityType.Trace}
-						textAreaRef={textAreaRef}
 						enableAIMode={
 							workspaceSettings?.workspaceSettings
 								?.ai_query_builder
@@ -510,19 +511,20 @@ export const TracesPage: React.FC = () => {
 						</Box>
 					</Box>
 
-					<TracesList
-						loading={loading}
-						numMoreTraces={moreTraces}
-						traceEdges={traceEdges}
-						handleAdditionalTracesDateChange={
-							searchTimeContext.rebaseSearchTime
-						}
-						resetMoreTraces={clearMoreTraces}
-						fetchMoreWhenScrolled={fetchMoreWhenScrolled}
-						loadingAfter={loadingAfter}
-						textAreaRef={textAreaRef}
-						pollingExpired={pollingExpired}
-					/>
+					<Box height="full" overflow="hidden">
+						<TracesList
+							loading={loading}
+							numMoreTraces={moreTraces}
+							traceEdges={traceEdges}
+							handleAdditionalTracesDateChange={
+								searchTimeContext.rebaseSearchTime
+							}
+							resetMoreTraces={clearMoreTraces}
+							fetchMoreWhenScrolled={fetchMoreWhenScrolled}
+							loadingAfter={loadingAfter}
+							pollingExpired={pollingExpired}
+						/>
+					</Box>
 				</Box>
 			</Box>
 		</SearchContext>
