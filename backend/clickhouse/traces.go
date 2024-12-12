@@ -24,6 +24,7 @@ const TracesSamplingTable = "traces_sampling_new"
 const TraceKeysTable = "trace_keys"
 const TraceKeyValuesTable = "trace_key_values"
 const HighlightKeyKey = "highlight.key"
+const HighlightTypeKey = "highlight.type"
 const HttpResponseBodyKey = "http.response.body"
 const HttpRequestBodyKey = "http.request.body"
 const HttpUrlKey = "http.url"
@@ -219,6 +220,41 @@ func ConvertTraceRow(traceRow *TraceRow) *ClickhouseTraceRow {
 	traceTimes, traceNames, traceAttrs := convertEvents(traceRow)
 	linkTraceIds, linkSpanIds, linkStates, linkAttrs := convertLinks(traceRow)
 
+	httpResponseBody := traceRow.TraceAttributes[HttpResponseBodyKey]
+	httpRequestBody := traceRow.TraceAttributes[HttpRequestBodyKey]
+	httpUrl := traceRow.TraceAttributes[HttpUrlKey]
+	highlightKey := traceRow.TraceAttributes[HighlightKeyKey]
+	highlightType := traceRow.TraceAttributes[HighlightTypeKey]
+
+	httpAttributes := getHttpAttributes(traceRow.TraceAttributes)
+	processAttributes := getSubAttributes(traceRow.TraceAttributes, ProcessPrefix)
+	osAttributes := getSubAttributes(traceRow.TraceAttributes, OsPrefix)
+	telemetryAttributes := getSubAttributes(traceRow.TraceAttributes, TelemetryPrefix)
+	wsAttributes := getSubAttributes(traceRow.TraceAttributes, WsPrefix)
+	eventAttributes := getSubAttributes(traceRow.TraceAttributes, EventPrefix)
+	dbAttributes := getSubAttributes(traceRow.TraceAttributes, DbPrefix)
+
+	prefixesToRemove := map[string]bool{
+		HttpPrefix:      true,
+		ProcessPrefix:   true,
+		OsPrefix:        true,
+		TelemetryPrefix: true,
+		WsPrefix:        true,
+		EventPrefix:     true,
+		DbPrefix:        true,
+	}
+
+	filtered := map[string]string{}
+	for k, v := range traceRow.TraceAttributes {
+		if k == HighlightKeyKey || k == HighlightTypeKey {
+			continue
+		}
+		if doRemove := prefixesToRemove[strings.SplitAfter(k, ".")[0]]; doRemove {
+			continue
+		}
+		filtered[k] = v
+	}
+
 	return &ClickhouseTraceRow{
 		Timestamp:           traceRow.Timestamp,
 		UUID:                traceRow.UUID,
@@ -245,18 +281,18 @@ func ConvertTraceRow(traceRow *TraceRow) *ClickhouseTraceRow {
 		LinksSpanId:         linkSpanIds,
 		LinksTraceState:     linkStates,
 		LinksAttributes:     linkAttrs,
-		HttpResponseBody:    traceRow.TraceAttributes[HttpResponseBodyKey],
-		HttpRequestBody:     traceRow.TraceAttributes[HttpRequestBodyKey],
-		HttpUrl:             traceRow.TraceAttributes[HttpUrlKey],
-		HighlightKey:        traceRow.TraceAttributes[HighlightKeyKey],
-		HighlightType:       traceRow.TraceAttributes["highlight.type"],
-		HttpAttributes:      getHttpAttributes(traceRow.TraceAttributes),
-		ProcessAttributes:   getSubAttributes(traceRow.TraceAttributes, ProcessPrefix),
-		OsAttributes:        getSubAttributes(traceRow.TraceAttributes, OsPrefix),
-		TelemetryAttributes: getSubAttributes(traceRow.TraceAttributes, TelemetryPrefix),
-		WsAttributes:        getSubAttributes(traceRow.TraceAttributes, WsPrefix),
-		EventAttributes:     getSubAttributes(traceRow.TraceAttributes, EventPrefix),
-		DbAttributes:        getSubAttributes(traceRow.TraceAttributes, DbPrefix),
+		HttpResponseBody:    httpResponseBody,
+		HttpRequestBody:     httpRequestBody,
+		HttpUrl:             httpUrl,
+		HighlightKey:        highlightKey,
+		HighlightType:       highlightType,
+		HttpAttributes:      httpAttributes,
+		ProcessAttributes:   processAttributes,
+		OsAttributes:        osAttributes,
+		TelemetryAttributes: telemetryAttributes,
+		WsAttributes:        wsAttributes,
+		EventAttributes:     eventAttributes,
+		DbAttributes:        dbAttributes,
 	}
 }
 
