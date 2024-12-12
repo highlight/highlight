@@ -842,9 +842,14 @@ func (o *Handler) submitProjectMetrics(ctx context.Context, projectMetricRows ma
 			if !o.resolver.IsMetricIngested(ctx, metricRow) {
 				continue
 			}
+			metricSumRow, _ := metricRow.(*clickhouse.MetricSumRow)
+			metricHistogramRow, _ := metricRow.(*clickhouse.MetricHistogramRow)
+			metricSummaryRow, _ := metricRow.(*clickhouse.MetricSummaryRow)
 			messages = append(messages, &kafkaqueue.OTeLMetricsMessage{
-				Type:      kafkaqueue.PushOTeLMetrics,
-				MetricRow: metricRow,
+				Type:               kafkaqueue.PushOTeLMetrics,
+				MetricSumRow:       metricSumRow,
+				MetricHistogramRow: metricHistogramRow,
+				MetricSummaryRow:   metricSummaryRow,
 			})
 		}
 
