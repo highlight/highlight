@@ -192,7 +192,13 @@ export const NetworkPage = ({
 		)
 
 		setCurrentResourceIdx(activeIndex)
-	}, [resourcesToRender, startTime, time])
+	}, [
+		fetchMoreForward,
+		resourcesToRender,
+		sessionMetadata.startTime,
+		startTime,
+		time,
+	])
 
 	// eslint-disable-next-line react-hooks/exhaustive-deps
 	const scrollFunction = useCallback(

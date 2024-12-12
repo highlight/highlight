@@ -101,7 +101,7 @@ export const TracesPage = ({
 		)
 
 		setLastActiveTraceIndex(activeIndex)
-	}, [time, sessionMetadata.startTime, traceNodes])
+	}, [time, sessionMetadata.startTime, traceNodes, fetchMoreForward])
 
 	useEffect(() => {
 		analytics.track('session_view-console-traces')

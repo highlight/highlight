@@ -103,7 +103,7 @@ export const ConsolePage = ({
 		)
 
 		setLastActiveLogIndex(activeIndex)
-	}, [time, sessionMetadata.startTime, messageNodes])
+	}, [time, sessionMetadata.startTime, messageNodes, fetchMoreForward])
 
 	useEffect(() => {
 		analytics.track('session_view-console-logs')
