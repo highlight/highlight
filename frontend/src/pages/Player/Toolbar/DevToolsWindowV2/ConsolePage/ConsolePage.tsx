@@ -87,6 +87,15 @@ export const ConsolePage = ({
 	const [lastActiveLogIndex, setLastActiveLogIndex] = useState(-1)
 
 	useEffect(() => {
+		// need to load data ahead because the player skipped past the last loaded node
+		const lastTraceTs = messageNodes.at(messageNodes.length - 1)?.timestamp
+		if (lastTraceTs) {
+			const lastTraceTime = new Date(lastTraceTs).getTime()
+			if (sessionMetadata.startTime + time > lastTraceTime) {
+				fetchMoreForward()
+			}
+		}
+
 		const activeIndex = findLastActiveEventIndex(
 			time,
 			sessionMetadata.startTime,

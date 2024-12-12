@@ -85,6 +85,15 @@ export const TracesPage = ({
 	const [lastActiveTraceIndex, setLastActiveTraceIndex] = useState(-1)
 
 	useEffect(() => {
+		// need to load data ahead because the player skipped past the last loaded node
+		const lastTraceTs = traceNodes.at(traceNodes.length - 1)?.timestamp
+		if (lastTraceTs) {
+			const lastTraceTime = new Date(lastTraceTs).getTime()
+			if (sessionMetadata.startTime + time > lastTraceTime) {
+				fetchMoreForward()
+			}
+		}
+
 		const activeIndex = findLastActiveEventIndex(
 			time,
 			sessionMetadata.startTime,
