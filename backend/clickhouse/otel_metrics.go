@@ -85,16 +85,19 @@ func (m *MetricSummaryRow) GetType() pmetric.MetricType {
 	return m.MetricType
 }
 
-func (client *Client) BatchWriteMetricRows(ctx context.Context, metricSumRows []*MetricSumRow, metricHistogramRows []*MetricHistogramRow, metricSummaryRows []*MetricSummaryRow) error {
+func (client *Client) BatchWriteMetricRows(ctx context.Context, metricRows []MetricRow) error {
 	for table, rows := range map[string][]MetricRow{
-		MetricsSumTable: lo.Map(metricSumRows, func(item *MetricSumRow, _ int) MetricRow {
-			return item
+		MetricsSumTable: lo.Filter(metricRows, func(item MetricRow, _ int) bool {
+			_, ok := item.(*MetricSumRow)
+			return ok
 		}),
-		MetricsHistogramTable: lo.Map(metricHistogramRows, func(item *MetricHistogramRow, _ int) MetricRow {
-			return item
+		MetricsHistogramTable: lo.Filter(metricRows, func(item MetricRow, _ int) bool {
+			_, ok := item.(*MetricHistogramRow)
+			return ok
 		}),
-		MetricsSummaryTable: lo.Map(metricSummaryRows, func(item *MetricSummaryRow, _ int) MetricRow {
-			return item
+		MetricsSummaryTable: lo.Filter(metricRows, func(item MetricRow, _ int) bool {
+			_, ok := item.(*MetricSummaryRow)
+			return ok
 		}),
 	} {
 		if len(rows) == 0 {

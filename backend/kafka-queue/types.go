@@ -301,11 +301,13 @@ func (m *SessionEventRowMessage) SetKafkaMessage(value *kafka.Message) {
 }
 
 type OTeLMetricsMessage struct {
-	Type         PayloadType
-	Failures     int
-	MaxRetries   int
-	KafkaMessage *kafka.Message `json:",omitempty"`
-	clickhouse.MetricRow
+	Type               PayloadType
+	Failures           int
+	MaxRetries         int
+	KafkaMessage       *kafka.Message                 `json:",omitempty"`
+	MetricSumRow       *clickhouse.MetricSumRow       `json:",omitempty"`
+	MetricHistogramRow *clickhouse.MetricHistogramRow `json:",omitempty"`
+	MetricSummaryRow   *clickhouse.MetricSummaryRow   `json:",omitempty"`
 }
 
 func (m *OTeLMetricsMessage) GetType() PayloadType {
