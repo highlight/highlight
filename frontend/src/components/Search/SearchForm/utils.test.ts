@@ -168,4 +168,15 @@ describe('getActivePart', () => {
 		const { queryParts } = parseSearch(queryString)
 		expect(getActivePart(11, queryParts).text).toEqual('has_errors=')
 	})
+
+	it('handles trailing spaces on full queries', () => {
+		const queryString = 'service_name=frontend '
+		const { queryParts } = parseSearch(queryString)
+		const activePart = getActivePart(22, queryParts)
+
+		expect(activePart.key).toEqual(BODY_KEY)
+		expect(activePart.operator).toEqual('=')
+		expect(activePart.text).toEqual('')
+		expect(activePart.value).toEqual('')
+	})
 })
