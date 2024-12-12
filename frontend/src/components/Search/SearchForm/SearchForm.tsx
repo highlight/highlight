@@ -602,6 +602,7 @@ export const Search: React.FC<{
 	) => {
 		const isValueSelect = item.type === 'Value'
 		const isExists = !!EXISTS_OPERATORS.find((eo) => eo === item.name)
+		const originalStop = activePart.stop
 		let cursorShift = 0
 
 		if (item.type === 'Operator') {
@@ -643,7 +644,11 @@ export const Search: React.FC<{
 			activePart.stop = activePart.start + activePart.key.length
 		}
 
-		let newQuery = stringifySearchQuery(queryParts)
+		let newQuery =
+			query.substring(0, activePart.start) +
+			activePart.text +
+			query.substring(originalStop + 1)
+
 		let newCursorPosition = activePart.stop + cursorShift
 
 		if (selectNewItem && isValueSelect) {
