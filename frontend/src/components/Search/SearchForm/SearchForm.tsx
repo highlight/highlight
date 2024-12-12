@@ -112,7 +112,6 @@ export type SearchFormProps = {
 	hideDatePicker?: boolean
 	hideCreateAlert?: boolean
 	savedSegmentType?: SavedSegmentEntityType
-	textAreaRef?: React.RefObject<HTMLTextAreaElement>
 	isPanelView?: boolean
 	resultFormatted?: string
 	loading?: boolean
@@ -134,7 +133,6 @@ const SearchForm: React.FC<SearchFormProps> = ({
 	hideDatePicker,
 	hideCreateAlert,
 	savedSegmentType,
-	textAreaRef,
 	isPanelView,
 	resultFormatted,
 	loading,
@@ -183,7 +181,6 @@ const SearchForm: React.FC<SearchFormProps> = ({
 		<Search
 			startDate={startDate}
 			endDate={endDate}
-			textAreaRef={textAreaRef}
 			productType={productType}
 			hideIcon={isPanelView}
 			hasAdditonalActions={!hideCreateAlert || !hideDatePicker}
@@ -333,7 +330,6 @@ export const Search: React.FC<{
 	hideIcon?: boolean
 	placeholder?: string
 	productType: ProductType
-	textAreaRef?: React.RefObject<HTMLTextAreaElement>
 	hasAdditonalActions?: boolean
 	creatables?: { [key: string]: Creatable }
 	defaultValueOptions?: string[]
@@ -345,7 +341,6 @@ export const Search: React.FC<{
 	endDate,
 	hideIcon,
 	placeholder,
-	textAreaRef,
 	productType,
 	hasAdditonalActions,
 	creatables,
@@ -371,8 +366,7 @@ export const Search: React.FC<{
 	const { project_id } = useParams()
 	const [_, setSortColumn] = useQueryParam(SORT_COLUMN, StringParam)
 	const [__, setSortDirection] = useQueryParam(SORT_DIRECTION, StringParam)
-	const defaultInputRef = useRef<HTMLTextAreaElement | null>(null)
-	const inputRef = textAreaRef || defaultInputRef
+	const inputRef = useRef<HTMLTextAreaElement | null>(null)
 	const [keys, setKeys] = useState<Keys | undefined>()
 	const [values, setValues] = useState<string[] | undefined>()
 	const [showErrors, setShowErrors] = useState(false)

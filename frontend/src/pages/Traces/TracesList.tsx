@@ -34,7 +34,6 @@ import {
 	SORT_DIRECTION,
 	useSearchContext,
 } from '@/components/Search/SearchContext'
-import { DEFAULT_INPUT_HEIGHT } from '@/components/Search/SearchForm/SearchForm'
 import {
 	ProductType,
 	SortDirection,
@@ -56,13 +55,10 @@ type Props = {
 	resetMoreTraces?: () => void
 	fetchMoreWhenScrolled: (target: HTMLDivElement) => void
 	loadingAfter: boolean
-	textAreaRef: React.RefObject<HTMLTextAreaElement>
 	pollingExpired: boolean
 }
 
 const LOADING_AFTER_HEIGHT = 28
-const HEADERS_AND_CHARTS_HEIGHT = 120
-const LOAD_BEFORE_HEIGHT = 28
 
 export const TracesList: React.FC<Props> = ({
 	loading,
@@ -73,7 +69,6 @@ export const TracesList: React.FC<Props> = ({
 	resetMoreTraces,
 	fetchMoreWhenScrolled,
 	loadingAfter,
-	textAreaRef,
 }) => {
 	const { query } = useSearchContext()
 	const { integrated } = useTracesIntegration()
@@ -255,21 +250,6 @@ export const TracesList: React.FC<Props> = ({
 		paddingBottom += LOADING_AFTER_HEIGHT
 	}
 
-	const otherElementsHeight = useMemo(() => {
-		let height = HEADERS_AND_CHARTS_HEIGHT
-		if (textAreaRef.current) {
-			height += textAreaRef.current.clientHeight
-		} else {
-			height += DEFAULT_INPUT_HEIGHT
-		}
-
-		if (numMoreTraces && numMoreTraces > 0) {
-			height += LOAD_BEFORE_HEIGHT
-		}
-
-		return height
-	}, [numMoreTraces, textAreaRef])
-
 	const handleFetchMoreWhenScrolled = (
 		e: React.UIEvent<HTMLDivElement, UIEvent>,
 	) => {
@@ -356,7 +336,7 @@ export const TracesList: React.FC<Props> = ({
 	}
 
 	return (
-		<Table height="full" noBorder>
+		<Table display="flex" flexDirection="column" height="full" noBorder>
 			<Table.Head>
 				<Table.Row gridColumns={columnData.gridColumns}>
 					{columnData.columnHeaders.map((header) => (
@@ -394,12 +374,8 @@ export const TracesList: React.FC<Props> = ({
 			) : (
 				<Table.Body
 					ref={bodyRef}
-					height="full"
 					overflowY="auto"
 					onScroll={handleFetchMoreWhenScrolled}
-					style={{
-						height: `calc(100% - ${otherElementsHeight}px)`,
-					}}
 					hiddenScroll
 				>
 					{paddingTop > 0 && <Box style={{ height: paddingTop }} />}

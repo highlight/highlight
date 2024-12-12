@@ -12,26 +12,25 @@ import { Row } from './Row/Row'
 import { Search } from './Search/Search'
 import * as styles from './styles.css'
 
-type Props = {
+export interface Props extends Omit<BoxProps, 'cssClass'> {
 	children: React.ReactNode
 	className?: string
-	height?: BoxProps['height']
 	noBorder?: boolean
 }
 
 const TableComponent: React.FC<Props> = ({
 	children,
 	className,
-	height,
 	noBorder,
+	...boxProps
 }) => {
 	return (
 		<Box
 			cssClass={clsx(styles.table, className, {
 				[styles.noBorder]: noBorder,
 			})}
-			height={height}
 			width="full"
+			{...boxProps}
 		>
 			{children}
 		</Box>
