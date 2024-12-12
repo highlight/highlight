@@ -65,7 +65,7 @@ var reservedEventKeys = lo.Map(modelInputs.AllReservedEventKey, func(key modelIn
 })
 
 var eventsTableConfig = model.TableConfig{
-	AttributesColumns: []model.ColumnMapping{{Prefix: "", Column: "Attributes"}},
+	AttributesColumns: []model.ColumnMapping{{Column: "Attributes"}},
 	BodyColumn:        "Event",
 	KeysToColumns:     eventKeysToColumns,
 	ReservedKeys:      reservedEventKeys,

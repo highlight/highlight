@@ -481,7 +481,7 @@ func (client *Client) DeleteSessions(ctx context.Context, projectId int, session
 var SessionsTableConfig = model.TableConfig{
 	TableName:         SessionsTable,
 	KeysToColumns:     fieldMap,
-	AttributesColumns: []model.ColumnMapping{{Prefix: "", Column: "Fields"}},
+	AttributesColumns: []model.ColumnMapping{{Column: "Fields"}},
 	ReservedKeys: lo.Map(modelInputs.AllReservedSessionKey, func(item modelInputs.ReservedSessionKey, _ int) string {
 		return item.String()
 	}),
@@ -497,7 +497,7 @@ var reservedSessionKeys = lo.Map(modelInputs.AllReservedSessionKey, func(key mod
 
 var SessionsJoinedTableConfig = model.TableConfig{
 	TableName:         SessionsJoinedTable,
-	AttributesColumns: []model.ColumnMapping{{Prefix: "", Column: "RelevantFields"}},
+	AttributesColumns: []model.ColumnMapping{{Column: "RelevantFields"}},
 	AttributesTable:   "fields",
 	BodyColumn:        `concat(coalesce(nullif(arrayFilter((k, v) -> k = 'email', RelevantFields) [1].2,''), nullif(Identifier, ''), nullif(arrayFilter((k, v) -> k = 'device_id', RelevantFields) [1].2, ''), 'unidentified'), ': ', City, if(City != '', ', ', ''), Country)`,
 	KeysToColumns: map[string]string{

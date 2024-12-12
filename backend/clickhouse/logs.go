@@ -59,7 +59,7 @@ var LogsTableConfig = model.TableConfig{
 	ReservedKeys:      reservedLogKeys,
 	BodyColumn:        "Body",
 	SeverityColumn:    "SeverityText",
-	AttributesColumns: []model.ColumnMapping{{Prefix: "", Column: "LogAttributes"}},
+	AttributesColumns: []model.ColumnMapping{{Column: "LogAttributes"}},
 	SelectColumns: []string{
 		"ProjectId",
 		"Timestamp",
@@ -82,7 +82,7 @@ var logsSamplingTableConfig = model.TableConfig{
 	KeysToColumns:     logKeysToColumns,
 	ReservedKeys:      reservedLogKeys,
 	BodyColumn:        "Body",
-	AttributesColumns: []model.ColumnMapping{{Prefix: "", Column: "LogAttributes"}},
+	AttributesColumns: []model.ColumnMapping{{Column: "LogAttributes"}},
 }
 
 var LogsSampleableTableConfig = SampleableTableConfig{

@@ -20,7 +20,7 @@ var tableConfig = model.TableConfig{
 	BodyColumn: "SpanName",
 	AttributesColumns: []model.ColumnMapping{
 		{Prefix: "http.", Column: "HttpAttributes"},
-		{Prefix: "", Column: "TraceAttributes"}},
+		{Column: "TraceAttributes"}},
 }
 
 func TestBasicSqlForSearch(t *testing.T) {

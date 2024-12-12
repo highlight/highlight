@@ -2465,7 +2465,7 @@ type TableConfig struct {
 	TableName         string
 	BodyColumn        string
 	SeverityColumn    string
-	AttributesColumns []ColumnMapping
+	AttributesColumns []ColumnMapping // A prefix -> column mapping. The column for the first matching prefix will be used.
 	AttributesTable   string
 	MetricColumn      *string
 	KeysToColumns     map[string]string

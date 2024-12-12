@@ -707,7 +707,7 @@ func matchFilter[TObj interface{}](row *TObj, config model.TableConfig, filter *
 		rowValue = repr(field)
 	} else if val, ok := getChildValue(v, key); ok {
 		rowValue = val
-	} else if col := model.GetAttributesColumn(config.AttributesColumns, key); col != "" {
+	} else if col := model.GetAttributesColumn(config.AttributesColumns, ""); col != "" {
 		value := v.FieldByName(col)
 		if value.Kind() == reflect.Map {
 			rowValue = repr(value.MapIndex(reflect.ValueOf(key)))
