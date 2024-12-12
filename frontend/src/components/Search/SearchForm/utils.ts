@@ -5,24 +5,6 @@ import { SearchToken } from '@/components/Search/utils'
 export const DEFAULT_OPERATOR = '=' as const
 export const BODY_KEY = 'message' as const
 
-export const stringifySearchQuery = (params: SearchExpression[]) => {
-	const querySegments: string[] = []
-	let currentOffset = 0
-
-	params.forEach(({ text, start }, index) => {
-		const spaces = Math.max(start - currentOffset, index === 0 ? 0 : 1)
-		currentOffset = start + text.length
-
-		if (spaces > 0) {
-			querySegments.push(' '.repeat(spaces))
-		}
-
-		querySegments.push(text)
-	})
-
-	return querySegments.join('').trim()
-}
-
 const NEED_QUOTE_REGEX = /["'` :=><]/
 
 export const quoteQueryValue = (value: string | number) => {

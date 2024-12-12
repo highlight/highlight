@@ -458,7 +458,6 @@ const LogsTableRow: React.FC<LogsTableRowProps> = ({
 									},
 								)}
 								row={row}
-								queryParts={queryParts}
 							/>
 						</Table.Cell>
 					</>

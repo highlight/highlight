@@ -25,12 +25,10 @@ import {
 } from '@/components/JsonViewer/JsonViewerObject'
 import { findMatchingAttributes } from '@/components/JsonViewer/utils'
 import { useRelatedResource } from '@/components/RelatedResources/hooks'
-import { SearchExpression } from '@/components/Search/Parser/listener'
 import { useSearchContext } from '@/components/Search/SearchContext'
 
 type Props = {
 	row: Row<LogEdgeWithResources>
-	queryParts: SearchExpression[]
 	matchedAttributes: ReturnType<typeof findMatchingAttributes>
 }
 
@@ -43,12 +41,8 @@ export const getLogURL = (projectId: string, row: Row<LogEdge>) => {
 	return { origin: currentUrl.origin, path }
 }
 
-export const LogDetails: React.FC<Props> = ({
-	matchedAttributes,
-	row,
-	queryParts,
-}) => {
-	const { disabled, onSubmit } = useSearchContext()
+export const LogDetails: React.FC<Props> = ({ matchedAttributes, row }) => {
+	const { disabled, onSubmit, query } = useSearchContext()
 	const setQuery = disabled ? undefined : onSubmit
 	const { set } = useRelatedResource()
 	const { projectId } = useProjectId()
@@ -109,7 +103,7 @@ export const LogDetails: React.FC<Props> = ({
 								attribute={value as object}
 								label={key}
 								matchedAttributes={matchedAttributes}
-								queryParts={queryParts}
+								query={query}
 								queryBaseKeys={[key]}
 								setQuery={setQuery}
 							/>
@@ -117,8 +111,8 @@ export const LogDetails: React.FC<Props> = ({
 							<JsonViewerValue
 								label={key}
 								value={String(value)}
+								query={query}
 								queryKey={key}
-								queryParts={queryParts}
 								queryMatch={matchedAttributes[key]?.match}
 								setQuery={setQuery}
 							/>
@@ -134,8 +128,8 @@ export const LogDetails: React.FC<Props> = ({
 							<JsonViewerValue
 								label={key}
 								value={value}
+								query={query}
 								queryKey={key}
-								queryParts={queryParts}
 								queryMatch={matchedAttributes[key]?.match}
 								setQuery={setQuery}
 							/>
