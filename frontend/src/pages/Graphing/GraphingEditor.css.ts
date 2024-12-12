@@ -9,16 +9,12 @@ export const editGraphPanel = style({
 	height: 'calc(100% - 40px)',
 })
 
-export const previewWindow = style({
-	width: 'calc(100%)',
+export const editGraphPreview = style({
+	flexGrow: 1,
 })
 
 export const graphBackground = style({
 	zIndex: 0,
-})
-
-export const editGraphSidebar = style({
-	width: 320,
 })
 
 export const editorLabel = style({
