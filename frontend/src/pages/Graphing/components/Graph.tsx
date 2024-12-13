@@ -317,8 +317,6 @@ export const useGraphCallbacks = (
 
 	const onTooltipMouseLeave = () => {
 		setFrozenTooltip(undefined)
-		setRefAreaStart(undefined)
-		setRefAreaEnd(undefined)
 	}
 
 	const tooltip = (
