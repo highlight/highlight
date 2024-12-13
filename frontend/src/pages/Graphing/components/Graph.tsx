@@ -138,6 +138,7 @@ export type ThresholdSettings = {
 export interface ChartProps<TConfig> {
 	id?: string
 	title: string
+	syncId?: string
 	productType: ProductType
 	projectId: string
 	startDate: Date
@@ -167,6 +168,7 @@ export interface InnerChartProps<TConfig> {
 	data: any[] | undefined
 	xAxisMetric: string
 	title?: string
+	syncId?: string
 	loading?: boolean
 	viewConfig: TConfig
 	disabled?: boolean
@@ -1044,6 +1046,7 @@ const Graph = ({
 	predictionSettings,
 	thresholdSettings,
 	expressions,
+	syncId,
 	children,
 }: React.PropsWithChildren<ChartProps<ViewConfig>>) => {
 	const { setGraphData } = useGraphContext()
@@ -1344,6 +1347,7 @@ const Graph = ({
 						loadExemplars={loadExemplars}
 						minYAxisMax={axisLimit}
 						maxYAxisMin={axisLimit}
+						syncId={syncId}
 						showGrid
 					>
 						{children}

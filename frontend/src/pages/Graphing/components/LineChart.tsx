@@ -81,6 +81,7 @@ export const LineChart = ({
 	strokeColors,
 	minYAxisMax,
 	maxYAxisMin,
+	syncId,
 }: React.PropsWithChildren<
 	InnerChartProps<LineChartConfig> & SeriesInfo & AxisConfig
 >) => {
@@ -152,6 +153,7 @@ export const LineChart = ({
 				onMouseUp={onMouseUp}
 				onMouseLeave={onMouseLeave}
 				style={tooltipCanFreeze ? { cursor: 'pointer' } : undefined}
+				syncId={syncId}
 			>
 				{referenceArea}
 				{children}
