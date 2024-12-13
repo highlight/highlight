@@ -156,20 +156,19 @@ export const useRelatedResource = () => {
 				newResource.canGoBack = true
 			}
 
-			const params = new URLSearchParams(location.search)
-			params.set(
+			searchParams.set(
 				RELATED_RESOURCE_PARAM,
 				btoa(JSON.stringify(newResource)), // setSearchParams encodes the string
 			)
 
-			setSearchParams(Object.fromEntries(params.entries()))
+			setSearchParams(Object.fromEntries(searchParams.entries()))
 			setResource(newResource)
 
 			if (pagination !== null) {
 				panelPaginationVar(pagination)
 			}
 		},
-		[resource, setSearchParams],
+		[resource, searchParams, setSearchParams],
 	)
 
 	const remove = useCallback(() => {
@@ -233,10 +232,6 @@ export const useSetRelatedResource = () => {
 		},
 		[setSearchParams],
 	)
-
-	useEffect(() => {
-		console.log('setSearchParams')
-	}, [setSearchParams])
 
 	return set
 }
