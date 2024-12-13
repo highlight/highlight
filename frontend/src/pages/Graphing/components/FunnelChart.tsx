@@ -16,6 +16,7 @@ import {
 	SeriesInfo,
 } from '@/pages/Graphing/components/Graph'
 import { FunnelDisplay } from '@pages/Graphing/components/types'
+import { memo } from 'react'
 
 const getCustomLabel = () => (props: LabelProps) => {
 	return (
@@ -78,7 +79,7 @@ export type FunnelChartConfig = {
 	display?: FunnelDisplay
 }
 
-export const FunnelChart = ({
+const FunnelChartImpl = ({
 	data,
 	children,
 }: React.PropsWithChildren<
@@ -109,3 +110,5 @@ export const FunnelChart = ({
 		</ResponsiveContainer>
 	)
 }
+
+export const FunnelChart = memo(FunnelChartImpl)

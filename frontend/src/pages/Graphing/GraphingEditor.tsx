@@ -47,8 +47,8 @@ import { useProjectId } from '@/hooks/useProjectId'
 import { useSearchTime } from '@/hooks/useSearchTime'
 import { BAR_DISPLAY, BarDisplay } from '@/pages/Graphing/components/BarChart'
 import Graph, {
-	getViewConfig,
 	TIMESTAMP_KEY,
+	useGetViewConfig,
 	View,
 	VIEW_OPTIONS,
 } from '@/pages/Graphing/components/Graph'
@@ -568,7 +568,7 @@ export const GraphingEditor: React.FC = () => {
 	} else if (viewType === 'Table') {
 		nullHandling = tableNullHandling
 	}
-	const viewConfig = getViewConfig(viewType, display, nullHandling)
+	const viewConfig = useGetViewConfig(viewType, display, nullHandling)
 
 	const searchOptionsConfig = useMemo(() => {
 		return {
