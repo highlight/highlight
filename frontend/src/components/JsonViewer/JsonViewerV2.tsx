@@ -11,7 +11,6 @@ type Props = {
 	allExpanded?: boolean
 	matchedAttributes?: JsonViewerObjectProps['matchedAttributes']
 	query?: string
-	queryParts?: JsonViewerObjectProps['queryParts']
 	setQuery?: JsonViewerObjectProps['setQuery']
 }
 
@@ -20,7 +19,6 @@ export const JsonViewerV2: React.FC<Props> = ({
 	allExpanded = false,
 	matchedAttributes = {},
 	query = '',
-	queryParts = [],
 	setQuery,
 }) => {
 	return (
