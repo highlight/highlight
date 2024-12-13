@@ -24,7 +24,7 @@ import {
 import { FunnelDisplay } from '@pages/Graphing/components/types'
 import clsx from 'clsx'
 import moment from 'moment'
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Area, Tooltip as RechartsTooltip, ReferenceArea } from 'recharts'
 import { CategoricalChartState } from 'recharts/types/chart/types'
 
@@ -228,7 +228,6 @@ export const useGraphCallbacks = (
 ) => {
 	const [refAreaStart, setRefAreaStart] = useState<number | undefined>()
 	const [refAreaEnd, setRefAreaEnd] = useState<number | undefined>()
-	const [displayTooltip, setDisplayTooltip] = useState(false)
 
 	const referenceArea =
 		refAreaStart && refAreaEnd ? (
@@ -243,6 +242,7 @@ export const useGraphCallbacks = (
 	const tooltipRef = useRef<HTMLDivElement>(null)
 
 	const [frozenTooltip, setFrozenTooltip] = useState<CategoricalChartState>()
+	const [displayTooltip, setDisplayTooltip] = useState(false)
 
 	const allowDrag = setTimeRange !== undefined
 
@@ -308,13 +308,25 @@ export const useGraphCallbacks = (
 		: undefined
 
 	const onMouseLeave = () => {
+		console.log('Mouse leave')
 		setFrozenTooltip(undefined)
 		setRefAreaStart(undefined)
 		setRefAreaEnd(undefined)
 		setDisplayTooltip(false)
 	}
 
+	const onTooltipMouseLeave = () => {
+		console.log('Tooltip enter')
+		setFrozenTooltip(undefined)
+		setRefAreaStart(undefined)
+		setRefAreaEnd(undefined)
+	}
+
 	const onMouseEnter = () => {
+		console.log('Mouse enter')
+		setFrozenTooltip(undefined)
+		setRefAreaStart(undefined)
+		setRefAreaEnd(undefined)
 		setDisplayTooltip(true)
 	}
 
@@ -324,7 +336,7 @@ export const useGraphCallbacks = (
 				xAxisMetric,
 				frozenTooltip,
 				tooltipRef,
-				onMouseLeave,
+				onTooltipMouseLeave,
 				loadExemplars,
 				tooltipSettings?.funnelMode,
 				displayTooltip,
@@ -501,7 +513,7 @@ const getCustomTooltip =
 		onMouseLeave?: () => void,
 		loadExemplars?: LoadExemplars,
 		funnelMode?: true,
-		displayTooltip?: false,
+		displayTooltip?: boolean,
 	) =>
 	({ active, payload, label }: any) => {
 		if (!displayTooltip) {
