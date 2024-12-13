@@ -100,7 +100,6 @@ export const BarChart = ({
 		onMouseMove,
 		onMouseUp,
 		onMouseLeave,
-		onMouseEnter,
 	} = useGraphCallbacks(
 		xAxisMetric,
 		setTimeRange,
@@ -118,7 +117,6 @@ export const BarChart = ({
 				onMouseMove={onMouseMove}
 				onMouseUp={onMouseUp}
 				onMouseLeave={onMouseLeave}
-				onMouseEnter={onMouseEnter}
 				style={tooltipCanFreeze ? { cursor: 'pointer' } : undefined}
 			>
 				{referenceArea}

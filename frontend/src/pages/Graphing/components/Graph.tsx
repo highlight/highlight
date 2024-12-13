@@ -279,12 +279,13 @@ export const useGraphCallbacks = (
 
 	const onMouseMove = allowDrag
 		? (e: CategoricalChartState) => {
+				setDisplayTooltip(true)
 				if (refAreaStart !== undefined && e.activeLabel !== undefined) {
 					setRefAreaEnd(Number(e.activeLabel))
 					setFrozenTooltip(undefined)
 				}
 			}
-		: undefined
+		: () => setDisplayTooltip(true)
 
 	const onMouseUp = allowDrag
 		? () => {
@@ -308,7 +309,6 @@ export const useGraphCallbacks = (
 		: undefined
 
 	const onMouseLeave = () => {
-		console.log('Mouse leave')
 		setFrozenTooltip(undefined)
 		setRefAreaStart(undefined)
 		setRefAreaEnd(undefined)
@@ -316,18 +316,9 @@ export const useGraphCallbacks = (
 	}
 
 	const onTooltipMouseLeave = () => {
-		console.log('Tooltip enter')
 		setFrozenTooltip(undefined)
 		setRefAreaStart(undefined)
 		setRefAreaEnd(undefined)
-	}
-
-	const onMouseEnter = () => {
-		console.log('Mouse enter')
-		setFrozenTooltip(undefined)
-		setRefAreaStart(undefined)
-		setRefAreaEnd(undefined)
-		setDisplayTooltip(true)
 	}
 
 	const tooltip = (
@@ -376,7 +367,6 @@ export const useGraphCallbacks = (
 		onMouseMove,
 		onMouseUp,
 		onMouseLeave,
-		onMouseEnter,
 	}
 }
 

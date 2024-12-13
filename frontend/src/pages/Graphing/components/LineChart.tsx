@@ -116,7 +116,6 @@ export const LineChart = ({
 		onMouseMove,
 		onMouseUp,
 		onMouseLeave,
-		onMouseEnter,
 	} = useGraphCallbacks(xAxisMetric, setTimeRange, loadExemplars, {
 		dashed: true,
 	})
@@ -154,7 +153,6 @@ export const LineChart = ({
 				onMouseMove={onMouseMove}
 				onMouseUp={onMouseUp}
 				onMouseLeave={onMouseLeave}
-				onMouseEnter={onMouseEnter}
 				style={tooltipCanFreeze ? { cursor: 'pointer' } : undefined}
 			>
 				{referenceArea}
