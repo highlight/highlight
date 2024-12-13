@@ -228,6 +228,7 @@ export const useGraphCallbacks = (
 ) => {
 	const [refAreaStart, setRefAreaStart] = useState<number | undefined>()
 	const [refAreaEnd, setRefAreaEnd] = useState<number | undefined>()
+	const [displayTooltip, setDisplayTooltip] = useState(false)
 
 	const referenceArea =
 		refAreaStart && refAreaEnd ? (
@@ -310,6 +311,11 @@ export const useGraphCallbacks = (
 		setFrozenTooltip(undefined)
 		setRefAreaStart(undefined)
 		setRefAreaEnd(undefined)
+		setDisplayTooltip(false)
+	}
+
+	const onMouseEnter = () => {
+		setDisplayTooltip(true)
 	}
 
 	const tooltip = (
@@ -321,6 +327,7 @@ export const useGraphCallbacks = (
 				onMouseLeave,
 				loadExemplars,
 				tooltipSettings?.funnelMode,
+				displayTooltip,
 			)}
 			cursor={
 				frozenTooltip
@@ -357,6 +364,7 @@ export const useGraphCallbacks = (
 		onMouseMove,
 		onMouseUp,
 		onMouseLeave,
+		onMouseEnter,
 	}
 }
 
@@ -493,8 +501,13 @@ const getCustomTooltip =
 		onMouseLeave?: () => void,
 		loadExemplars?: LoadExemplars,
 		funnelMode?: true,
+		displayTooltip?: false,
 	) =>
 	({ active, payload, label }: any) => {
+		if (!displayTooltip) {
+			return null
+		}
+
 		if (frozenTooltip !== undefined) {
 			active = true
 			payload = frozenTooltip.activePayload
