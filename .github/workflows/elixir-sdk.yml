@@ -10,8 +10,8 @@ on:
             - '.github/workflows/elixir-sdk.yml'
 
 env:
-    ELIXIR_VERSION: "1.13.4"
-    OTP_VERSION: "25.0.1"
+    ELIXIR_VERSION: '1.13.4'
+    OTP_VERSION: '25.0.1'
 
 concurrency: ${{ github.workflow }}-${{ github.ref }}
 jobs:
@@ -24,8 +24,8 @@ jobs:
             - name: Setup Elixir
               uses: erlef/setup-beam@v1
               with:
-                elixir-version: ${{ env.ELIXIR_VERSION }}
-                otp-version: ${{ env.OTP_VERSION }}
+                  elixir-version: ${{ env.ELIXIR_VERSION }}
+                  otp-version: ${{ env.OTP_VERSION }}
             - name: Install Dependencies
               run: mix format
 
@@ -38,8 +38,8 @@ jobs:
             - name: Setup Elixir
               uses: erlef/setup-beam@v1
               with:
-                elixir-version: ${{ env.ELIXIR_VERSION }}
-                otp-version: ${{ env.OTP_VERSION }}
+                  elixir-version: ${{ env.ELIXIR_VERSION }}
+                  otp-version: ${{ env.OTP_VERSION }}
             - name: Install Dependencies
               run: mix deps.get
             - name: Run Tests
@@ -56,11 +56,11 @@ jobs:
             - name: Setup Elixir
               uses: erlef/setup-beam@v1
               with:
-                elixir-version: ${{ env.ELIXIR_VERSION }}
-                otp-version: ${{ env.OTP_VERSION }}
+                  elixir-version: ${{ env.ELIXIR_VERSION }}
+                  otp-version: ${{ env.OTP_VERSION }}
             - name: Publish to Hex
               uses: synchronal/hex-publish-action@v3
               with:
-                name: highlight
-                key: ${{ secrets.HEX_PM_KEY }}
-                tag-release: false
+                  name: highlight
+                  key: ${{ secrets.HEX_PM_KEY }}
+                  tag-release: false
