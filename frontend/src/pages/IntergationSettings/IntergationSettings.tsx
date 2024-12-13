@@ -1,5 +1,4 @@
 import { Box, Stack, Text } from '@highlight-run/ui/components'
-import { useApplicationContext } from '@/routers/AppRouter/context/ApplicationContext'
 import { useAuthContext } from '@/authentication/AuthContext'
 import { useSlackBot } from '@/components/Header/components/ConnectHighlightWithSlackButton/utils/utils'
 import { useEffect, useMemo } from 'react'
@@ -25,6 +24,8 @@ import clsx from 'clsx'
 import { Card } from 'antd'
 import LoadingBox from '@/components/LoadingBox'
 import SwitchIntergations from '../SwitchIntergation/SwitchIntergation'
+import { useApplicationContext } from '@/routers/AppRouter/context/ApplicationContext'
+import { useIntergationProjectConfig } from '../IntegrationsPage/components/common/ProjectSelection'
 
 export default function IntergationSettings() {
 	const { workspace_id, intergate_type } = useParams<{
@@ -32,29 +33,32 @@ export default function IntergationSettings() {
 		intergate_type?: string
 	}>()
 
-	const { isSlackConnectedToWorkspace, loading: loadingSlack } = useSlackBot()
+	const { selectedProject } = useIntergationProjectConfig()
+
+	const { isSlackConnectedToWorkspace, loading: loadingSlack } = useSlackBot(
+		selectedProject.value,
+	)
 	const navigate = useNavigate()
 
 	const { isHighlightAdmin } = useAuthContext()
 	const { currentWorkspace } = useApplicationContext()
-
 	const { isLinearIntegratedWithProject, loading: loadingLinear } =
-		useLinearIntegration()
+		useLinearIntegration(selectedProject.value)
 
 	const { isZapierIntegratedWithProject, loading: loadingZapier } =
-		useZapierIntegration()
+		useZapierIntegration(selectedProject.value)
 
 	const { isClearbitIntegratedWithWorkspace, loading: loadingClearbit } =
-		useClearbitIntegration()
+		useClearbitIntegration(selectedProject.value)
 
 	const { isVercelIntegratedWithProject, loading: loadingVercel } =
-		useVercelIntegration()
+		useVercelIntegration(selectedProject.value)
 
 	const { isDiscordIntegratedWithProject, loading: loadingDiscord } =
-		useDiscordIntegration()
+		useDiscordIntegration(selectedProject.value)
 
 	const { isHerokuConnectedToWorkspace, loading: loadingHeroku } =
-		useHerokuIntegration()
+		useHerokuIntegration(selectedProject.value)
 
 	const { isCloudflareConnectedToWorkspace, loading: loadingCloudflare } =
 		useCloudflareIntegration()
@@ -62,7 +66,7 @@ export default function IntergationSettings() {
 	const {
 		isMicrosoftTeamsConnectedToWorkspace,
 		loading: loadingMicrosoftTeams,
-	} = useMicrosoftTeamsBot()
+	} = useMicrosoftTeamsBot(null, selectedProject.value)
 
 	const {
 		settings: {

@@ -50,6 +50,7 @@ import { DEFAULT_COOLDOWN, SESSION_COOLDOWN } from '@pages/Alerts/AlertForm'
 import Switch from '@/components/Switch/Switch'
 import { getMicrosoftTeamsUrl } from '@/pages/IntegrationsPage/components/MicrosoftTeamsIntegration/utils'
 import { useIntegratedLocalStorage } from '@/util/integrated'
+import { useApplicationContext } from '@/routers/AppRouter/context/ApplicationContext'
 
 interface NotificationOption {
 	name: 'Slack' | 'Discord' | 'Email' | 'Microsoft Teams'
@@ -702,6 +703,7 @@ const IntegrationCallout = function ({
 }) {
 	const { projectId } = useProjectId()
 	const { slackUrl } = useSlackBot(`setup/alerts/slack`)
+	const { currentWorkspace } = useApplicationContext()
 	const name =
 		type === 'slack'
 			? 'Slack'
@@ -715,8 +717,9 @@ const IntegrationCallout = function ({
 				? getDiscordOauthUrl(
 						projectId,
 						`/${projectId}/setup/alerts/discord`,
+						currentWorkspace?.id,
 					)
-				: getMicrosoftTeamsUrl(projectId)
+				: getMicrosoftTeamsUrl(projectId, null, currentWorkspace?.id)
 	const icon = notificationOptions.find((n) => n.name === name)?.logo
 	return (
 		<Modal

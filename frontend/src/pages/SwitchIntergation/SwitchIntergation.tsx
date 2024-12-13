@@ -11,18 +11,13 @@ import {
 	IconSolidDocument,
 	IconSolidGlobe,
 	IconSolidArrowSmRight,
-	IconSolidLink,
-	IconSolidHighlight,
-	IconSolidPlus,
 	Text,
-	Select,
 	Button,
 	Tabs,
 } from '@highlight-run/ui/components'
 import { IntegrationAction } from '../IntegrationsPage/components/Integration'
 import { IntegrationModal } from '../IntegrationsPage/components/IntegrationModal/IntegrationModal'
 import { useState } from 'react'
-import { Divider } from 'antd'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 
 enum IntegrationSettingsTabs {
@@ -251,67 +246,13 @@ const SwitchIntergations = ({ integration }: { integration: Integration }) => {
 												IntegrationSettingsTabs.Configure
 											}
 										>
-											{/*TO DO: This i am not sure. have to check with them*/}
-											<Stack>
-												<Stack
-													direction="row"
-													align="center"
-												>
-													<Text
-														size="medium"
-														weight="medium"
-														cssClass="mr-auto"
-													>
-														Configure{' '}
-														{integration.key}{' '}
-														Integration
-													</Text>
-													<Button>Cancel</Button>
-													<Button
-														iconLeft={
-															<IconSolidLink />
-														}
-													>
-														Link Projects
-													</Button>
-												</Stack>
-												<Stack
-													border="divider"
-													padding="4"
-													gap="0"
-												>
-													<Stack
-														direction="row"
-														alignItems="center"
-													>
-														<Select
-															placeholder="Choose Project "
-															style={{
-																width: '40%',
-															}}
-														></Select>
-														<IconSolidArrowSmRight />
-														<IconSolidHighlight />
-														<Text cssClass="mr-auto">
-															angular
-														</Text>
-													</Stack>
-													<Divider
-														style={{ margin: 10 }}
-													/>
-													<Button
-														iconLeft={
-															<IconSolidPlus />
-														}
-														emphasis="low"
-														kind="secondary"
-														cssClass="mb-2 w-fit self-center"
-													>
-														Create new highlight
-														project
-													</Button>
-												</Stack>
-											</Stack>
+											{configurationPage({
+												setModalOpen:
+													setShowDeleteConfirmation,
+												setIntegrationEnabled,
+												action: IntegrationAction.Settings,
+												isV2: true,
+											})}
 										</Tabs.Panel>
 									</Box>
 								</Tabs>

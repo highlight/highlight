@@ -22,6 +22,7 @@ export interface IntegrationConfigProps {
 	setModalOpen: (newVal: boolean) => void
 	setIntegrationEnabled: (newVal: boolean) => void
 	action: IntegrationAction
+	isV2?: boolean
 }
 
 interface Props {
