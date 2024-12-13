@@ -116,6 +116,7 @@ export const LineChart = ({
 		onMouseMove,
 		onMouseUp,
 		onMouseLeave,
+		onMouseOver,
 	} = useGraphCallbacks(xAxisMetric, setTimeRange, loadExemplars, {
 		dashed: true,
 	})
@@ -145,7 +146,13 @@ export const LineChart = ({
 	}, [maxYAxisMin, minYAxisMax])
 
 	return (
-		<ResponsiveContainer height="100%" width="100%" ref={chartRef}>
+		<ResponsiveContainer
+			height="100%"
+			width="100%"
+			ref={chartRef}
+			onMouseLeave={onMouseLeave}
+			onMouseOver={onMouseOver}
+		>
 			<AreaChart
 				data={filledData}
 				syncId={syncId}
