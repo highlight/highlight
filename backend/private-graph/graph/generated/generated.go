@@ -1327,6 +1327,7 @@ type ComplexityRoot struct {
 		Processed                      func(childComplexity int) int
 		ResourcesURL                   func(childComplexity int) int
 		SecureID                       func(childComplexity int) int
+		ServiceName                    func(childComplexity int) int
 		SessionFeedback                func(childComplexity int) int
 		Starred                        func(childComplexity int) int
 		State                          func(childComplexity int) int
@@ -9805,6 +9806,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Session.SecureID(childComplexity), true
 
+	case "Session.service_name":
+		if e.complexity.Session.ServiceName == nil {
+			break
+		}
+
+		return e.complexity.Session.ServiceName(childComplexity), true
+
 	case "Session.session_feedback":
 		if e.complexity.Session.SessionFeedback == nil {
 			break
@@ -11799,6 +11807,7 @@ type Session {
 	country: String!
 	postal: String!
 	environment: String
+	service_name: String
 	app_version: String
 	client_version: String
 	firstload_version: String
@@ -36678,6 +36687,8 @@ func (ec *executionContext) fieldContext_ErrorObject_session(ctx context.Context
 				return ec.fieldContext_Session_postal(ctx, field)
 			case "environment":
 				return ec.fieldContext_Session_environment(ctx, field)
+			case "service_name":
+				return ec.fieldContext_Session_service_name(ctx, field)
 			case "app_version":
 				return ec.fieldContext_Session_app_version(ctx, field)
 			case "client_version":
@@ -47363,6 +47374,8 @@ func (ec *executionContext) fieldContext_Mutation_markSessionAsViewed(ctx contex
 				return ec.fieldContext_Session_postal(ctx, field)
 			case "environment":
 				return ec.fieldContext_Session_environment(ctx, field)
+			case "service_name":
+				return ec.fieldContext_Session_service_name(ctx, field)
 			case "app_version":
 				return ec.fieldContext_Session_app_version(ctx, field)
 			case "client_version":
@@ -51296,6 +51309,8 @@ func (ec *executionContext) fieldContext_Mutation_updateSessionIsPublic(ctx cont
 				return ec.fieldContext_Session_postal(ctx, field)
 			case "environment":
 				return ec.fieldContext_Session_environment(ctx, field)
+			case "service_name":
+				return ec.fieldContext_Session_service_name(ctx, field)
 			case "app_version":
 				return ec.fieldContext_Session_app_version(ctx, field)
 			case "client_version":
@@ -54705,6 +54720,8 @@ func (ec *executionContext) fieldContext_Query_session(ctx context.Context, fiel
 				return ec.fieldContext_Session_postal(ctx, field)
 			case "environment":
 				return ec.fieldContext_Session_environment(ctx, field)
+			case "service_name":
+				return ec.fieldContext_Session_service_name(ctx, field)
 			case "app_version":
 				return ec.fieldContext_Session_app_version(ctx, field)
 			case "client_version":
@@ -57395,6 +57412,8 @@ func (ec *executionContext) fieldContext_Query_projectHasViewedASession(ctx cont
 				return ec.fieldContext_Session_postal(ctx, field)
 			case "environment":
 				return ec.fieldContext_Session_environment(ctx, field)
+			case "service_name":
+				return ec.fieldContext_Session_service_name(ctx, field)
 			case "app_version":
 				return ec.fieldContext_Session_app_version(ctx, field)
 			case "client_version":
@@ -69473,6 +69492,47 @@ func (ec *executionContext) fieldContext_Session_environment(ctx context.Context
 	return fc, nil
 }
 
+func (ec *executionContext) _Session_service_name(ctx context.Context, field graphql.CollectedField, obj *model1.Session) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Session_service_name(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ServiceName, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalOString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Session_service_name(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Session",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Session_app_version(ctx context.Context, field graphql.CollectedField, obj *model1.Session) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Session_app_version(ctx, field)
 	if err != nil {
@@ -73992,6 +74052,8 @@ func (ec *executionContext) fieldContext_SessionResults_sessions(ctx context.Con
 				return ec.fieldContext_Session_postal(ctx, field)
 			case "environment":
 				return ec.fieldContext_Session_environment(ctx, field)
+			case "service_name":
+				return ec.fieldContext_Session_service_name(ctx, field)
 			case "app_version":
 				return ec.fieldContext_Session_app_version(ctx, field)
 			case "client_version":
@@ -97840,6 +97902,8 @@ func (ec *executionContext) _Session(ctx context.Context, sel ast.SelectionSet, 
 			}
 		case "environment":
 			out.Values[i] = ec._Session_environment(ctx, field, obj)
+		case "service_name":
+			out.Values[i] = ec._Session_service_name(ctx, field, obj)
 		case "app_version":
 			out.Values[i] = ec._Session_app_version(ctx, field, obj)
 		case "client_version":

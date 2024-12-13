@@ -1961,6 +1961,7 @@ export type GetSessionQuery = { __typename?: 'Query' } & {
 			| 'browser_name'
 			| 'browser_version'
 			| 'environment'
+			| 'service_name'
 			| 'app_version'
 			| 'ip'
 			| 'city'
