@@ -76,6 +76,7 @@ export const BarChart = ({
 	showXAxis,
 	showYAxis,
 	showGrid,
+	syncId,
 }: React.PropsWithChildren<
 	InnerChartProps<BarChartConfig> & SeriesInfo & AxisConfig
 >) => {
@@ -110,6 +111,7 @@ export const BarChart = ({
 		<ResponsiveContainer ref={chartRef}>
 			<RechartsBarChart
 				data={data}
+				syncId={syncId}
 				barCategoryGap={1}
 				onMouseDown={onMouseDown}
 				onMouseMove={onMouseMove}

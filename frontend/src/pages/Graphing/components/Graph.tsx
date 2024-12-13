@@ -1340,6 +1340,7 @@ const Graph = ({
 				innerChart = (
 					<LineChart
 						data={data}
+						syncId={syncId}
 						xAxisMetric={xAxisMetric}
 						viewConfig={viewConfig}
 						spotlight={spotlight}
@@ -1347,7 +1348,6 @@ const Graph = ({
 						loadExemplars={loadExemplars}
 						minYAxisMax={axisLimit}
 						maxYAxisMin={axisLimit}
-						syncId={syncId}
 						showGrid
 					>
 						{children}
@@ -1382,6 +1382,7 @@ const Graph = ({
 				innerChart = (
 					<BarChart
 						data={data}
+						syncId={syncId}
 						xAxisMetric={xAxisMetric}
 						viewConfig={viewConfig}
 						spotlight={spotlight}

@@ -148,12 +148,12 @@ export const LineChart = ({
 		<ResponsiveContainer height="100%" width="100%" ref={chartRef}>
 			<AreaChart
 				data={filledData}
+				syncId={syncId}
 				onMouseDown={onMouseDown}
 				onMouseMove={onMouseMove}
 				onMouseUp={onMouseUp}
 				onMouseLeave={onMouseLeave}
 				style={tooltipCanFreeze ? { cursor: 'pointer' } : undefined}
-				syncId={syncId}
 			>
 				{referenceArea}
 				{children}
