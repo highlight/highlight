@@ -22,19 +22,20 @@ export function useGraphingVariables(
 
 	const [params, setParams] = useSearchParams()
 
+	const valuesImpl = new Map<string, string[]>()
+	data?.visualization.variables.forEach((v) => {
+		const paramMarshalled = params.get(getQueryKey(v.key))
+		if (paramMarshalled === null) {
+			valuesImpl.set(v.key, v.defaultValues)
+		} else {
+			valuesImpl.set(v.key, JSON.parse(paramMarshalled))
+		}
+	})
+
 	const values = useMemo(() => {
-		const values = new Map<string, string[]>()
-		data?.visualization.variables.forEach((v) => {
-			const paramMarshalled = params.get(getQueryKey(v.key))
-			if (paramMarshalled === null) {
-				values.set(v.key, v.defaultValues)
-			} else {
-				values.set(v.key, JSON.parse(paramMarshalled))
-			}
-		})
-		return values
+		return valuesImpl
 		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [data?.visualization.variables])
+	}, [JSON.stringify(Object.fromEntries(valuesImpl.entries()))])
 
 	const defaultValues = useMemo(() => {
 		const defaultValues = new Map<string, string[]>()

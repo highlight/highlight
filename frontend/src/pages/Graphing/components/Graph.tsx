@@ -1145,6 +1145,7 @@ const Graph = ({
 
 	const set = useSetRelatedResource()
 
+	const replacedQuery = replaceQueryVariables(query, variables)
 	const loadExemplars = useCallback(
 		(
 			bucketMin: number | undefined,
@@ -1158,6 +1159,7 @@ const Graph = ({
 				| 'sessions'
 				| 'traces'
 				| 'events'
+
 			switch (productType) {
 				case ProductType.Errors:
 					relatedResourceType = 'errors'
@@ -1181,10 +1183,7 @@ const Graph = ({
 					return
 			}
 
-			let relatedResourceQuery = replaceQueryVariables(
-				stepQuery || query,
-				variables,
-			)
+			let relatedResourceQuery = stepQuery || replacedQuery
 			if (
 				productType !== ProductType.Events &&
 				groupByKeys !== undefined &&
@@ -1231,10 +1230,9 @@ const Graph = ({
 			endDate,
 			groupByKeys,
 			productType,
-			query,
+			replacedQuery,
 			set,
 			startDate,
-			variables,
 		],
 	)
 
@@ -1348,7 +1346,6 @@ const Graph = ({
 					) as unknown as number
 				}
 			})
-
 		return () => {
 			if (!!pollTimeout.current) {
 				clearTimeout(pollTimeout.current)
