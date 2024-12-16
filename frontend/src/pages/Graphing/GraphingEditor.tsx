@@ -4,7 +4,6 @@ import {
 	Button,
 	ButtonIcon,
 	DateRangePicker,
-	DEFAULT_TIME_PRESETS,
 	Form,
 	IconSolidClock,
 	IconSolidX,
@@ -44,7 +43,6 @@ import {
 } from '@/graph/generated/schemas'
 import useFeatureFlag, { Feature } from '@/hooks/useFeatureFlag/useFeatureFlag'
 import { useProjectId } from '@/hooks/useProjectId'
-import { useSearchTime } from '@/hooks/useSearchTime'
 import { BAR_DISPLAY, BarDisplay } from '@/pages/Graphing/components/BarChart'
 import Graph, {
 	TIMESTAMP_KEY,
@@ -96,6 +94,7 @@ import { useGraphData } from '@pages/Graphing/hooks/useGraphData'
 import { GraphContextProvider } from './context/GraphContext'
 import TemplateMenu from '@/pages/Graphing/TemplateMenu'
 import { Panel } from '@/pages/Graphing/components/Panel'
+import { useGraphTime } from '@/pages/Graphing/hooks/useGraphTime'
 
 type BucketBy = 'None' | 'Interval' | 'Count'
 const BUCKET_BY_OPTIONS: BucketBy[] = ['None', 'Interval', 'Count']
@@ -228,10 +227,7 @@ export const GraphingEditor: React.FC = () => {
 	const { presets, minDate } = useRetentionPresets()
 
 	const { startDate, endDate, selectedPreset, updateSearchTime } =
-		useSearchTime({
-			presets: presets,
-			initialPreset: DEFAULT_TIME_PRESETS[2],
-		})
+		useGraphTime(presets)
 
 	const [upsertGraph, upsertGraphContext] = useUpsertGraphMutation()
 	const [deleteGraph] = useDeleteGraphMutation()
@@ -799,7 +795,6 @@ export const GraphingEditor: React.FC = () => {
 												productType={productType}
 												projectId={projectId}
 												startDate={startDate}
-												selectedPreset={selectedPreset}
 												endDate={endDate}
 												query={debouncedQuery}
 												bucketByKey={getBucketByKey(

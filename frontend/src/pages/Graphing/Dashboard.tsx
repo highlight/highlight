@@ -25,6 +25,7 @@ import {
 	IconSolidCog,
 	IconSolidPlus,
 	parsePreset,
+	presetStartDate,
 	presetValue,
 	Stack,
 	Tag,
@@ -45,7 +46,6 @@ import {
 import { GetVisualizationQuery } from '@/graph/generated/operations'
 import { GraphInput, Graph as TGraph } from '@/graph/generated/schemas'
 import { useProjectId } from '@/hooks/useProjectId'
-import { useSearchTime } from '@/hooks/useSearchTime'
 import { DashboardCard } from '@/pages/Graphing/components/DashboardCard'
 import { EmptyDashboardCallout } from '@/pages/Graphing/components/EmptyDashboardCallout'
 import Graph, { useGetViewConfig } from '@/pages/Graphing/components/Graph'
@@ -60,6 +60,7 @@ import { loadFunnelStep } from '@pages/Graphing/util'
 import { GraphContextProvider } from './context/GraphContext'
 import { useGraphData } from '@pages/Graphing/hooks/useGraphData'
 import { exportGraph } from '@pages/Graphing/hooks/exportGraph'
+import { useGraphTime } from '@/pages/Graphing/hooks/useGraphTime'
 
 export const HeaderDivider = () => <Box cssClass={style.headerDivider} />
 
@@ -67,7 +68,6 @@ type DashboardCellProps = {
 	g: TGraph
 	startDate: Date
 	endDate: Date
-	selectedPreset: DateRangePreset | undefined
 	updateSearchTime: (start: Date, end: Date, preset?: DateRangePreset) => void
 }
 
@@ -75,7 +75,6 @@ const DashboardCell = ({
 	g,
 	startDate,
 	endDate,
-	selectedPreset,
 	updateSearchTime,
 }: DashboardCellProps) => {
 	const { projectId } = useProjectId()
@@ -264,7 +263,6 @@ const DashboardCell = ({
 				viewConfig={viewConfig}
 				productType={g.productType}
 				projectId={projectId}
-				selectedPreset={selectedPreset}
 				startDate={startDate}
 				endDate={endDate}
 				query={g.query}
@@ -376,7 +374,7 @@ export const Dashboard = () => {
 			const preset = data.visualization.timePreset
 			if (preset) {
 				const parsed = parsePreset(preset)
-				updateSearchTime(new Date(), new Date(), parsed)
+				updateSearchTime(presetStartDate(parsed), new Date(), parsed)
 				setDefaultTimePreset(parsed)
 			}
 		}
@@ -388,10 +386,7 @@ export const Dashboard = () => {
 	const { presets, minDate } = useRetentionPresets()
 
 	const { startDate, endDate, selectedPreset, updateSearchTime } =
-		useSearchTime({
-			presets: presets,
-			initialPreset: DEFAULT_TIME_PRESETS[2],
-		})
+		useGraphTime(presets)
 
 	const navigate = useNavigate()
 
@@ -575,9 +570,6 @@ export const Dashboard = () => {
 														g={g}
 														startDate={startDate}
 														endDate={endDate}
-														selectedPreset={
-															selectedPreset
-														}
 														updateSearchTime={
 															updateSearchTime
 														}
