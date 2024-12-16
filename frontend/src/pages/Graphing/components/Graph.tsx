@@ -3,7 +3,6 @@ import {
 	Box,
 	Button,
 	ButtonIcon,
-	DateRangePreset,
 	IconSolidChartSquareBar,
 	IconSolidChartSquareLine,
 	IconSolidDocumentReport,
@@ -11,7 +10,6 @@ import {
 	IconSolidLoading,
 	IconSolidLocationMarker,
 	IconSolidTable,
-	presetStartDate,
 	Stack,
 	Text,
 	Tooltip,
@@ -150,7 +148,6 @@ export interface ChartProps<TConfig> {
 	projectId: string
 	startDate: Date
 	endDate: Date
-	selectedPreset?: DateRangePreset
 	query: string
 	groupByKeys?: string[]
 	bucketByKey?: string
@@ -1003,9 +1000,6 @@ export const useGraphSeries = (
 	}, [data, xAxisMetric])
 }
 
-const POLL_INTERVAL_VALUE = 1000 * 60
-const LONGER_POLL_INTERVAL_VALUE = 1000 * 60 * 5
-
 const replaceQueryVariables = (
 	text: string,
 	vars: Map<string, string[]> | undefined,
@@ -1152,7 +1146,6 @@ const Graph = ({
 	disabled,
 	height,
 	setTimeRange,
-	selectedPreset,
 	variables,
 	predictionSettings,
 	thresholdSettings,
@@ -1163,10 +1156,6 @@ const Graph = ({
 	const { setGraphData } = useGraphContext()
 	const queriedBucketCount = bucketByKey !== undefined ? bucketCount : 1
 
-	const pollTimeout = useRef<number>()
-	const [pollInterval, setPollInterval] = useState<number>(0)
-	const [fetchStart, setFetchStart] = useState<Date>()
-	const [fetchEnd, setFetchEnd] = useState<Date>()
 	const [results, setResults] = useState<GetMetricsQuery[]>()
 	const [loading, setLoading] = useState<boolean>(true)
 
@@ -1265,46 +1254,17 @@ const Graph = ({
 
 	const [getMetrics, { called }] = useGetMetricsLazyQuery({})
 
-	const rebaseFetchTime = useCallback(() => {
-		if (!selectedPreset) {
-			setPollInterval(0)
-			setFetchStart(startDate)
-			setFetchEnd(endDate)
-			return
-		}
-
-		const newStartFetch = presetStartDate(selectedPreset)
-		const newPollInterval =
-			moment().diff(newStartFetch, 'hours') >= 4
-				? LONGER_POLL_INTERVAL_VALUE
-				: POLL_INTERVAL_VALUE
-
-		setPollInterval(newPollInterval)
-		setFetchStart(newStartFetch)
-		setFetchEnd(moment().toDate())
-	}, [selectedPreset, startDate, endDate])
-
 	const xAxisMetric = bucketByKey !== undefined ? bucketByKey : GROUPS_KEY
-
-	// set the fetch dates and poll interval when selected date changes
-	useEffect(() => {
-		rebaseFetchTime()
-	}, [rebaseFetchTime])
 
 	// fetch new metrics when varaibles change (including polled fetch time)
 	useEffect(() => {
-		if (!fetchStart || !fetchEnd) {
-			return
-		}
+		const useLongerRounding = moment(endDate).diff(startDate, 'hours') >= 4
 
-		const useLongerRounding =
-			moment(fetchEnd).diff(fetchStart, 'hours') >= 4
-
-		const overage = useLongerRounding ? moment(fetchStart).minute() % 5 : 0
-		const start = moment(fetchStart)
+		const overage = useLongerRounding ? moment(startDate).minute() % 5 : 0
+		const start = moment(startDate)
 			.startOf('minute')
 			.subtract(overage, 'minute')
-		const end = moment(fetchEnd)
+		const end = moment(endDate)
 			.startOf('minute')
 			.subtract(overage, 'minute')
 
@@ -1365,26 +1325,11 @@ const Graph = ({
 			})
 			.finally(() => {
 				setLoading(false)
-				// create another poll timeout if pollInterval is set
-				if (pollInterval) {
-					pollTimeout.current = setTimeout(
-						rebaseFetchTime,
-						pollInterval,
-					) as unknown as number
-				}
 			})
-		return () => {
-			if (!!pollTimeout.current) {
-				clearTimeout(pollTimeout.current)
-				pollTimeout.current = undefined
-			}
-		}
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [
 		bucketByKey,
 		bucketByWindow,
-		fetchEnd,
-		fetchStart,
 		getMetrics,
 		groupByKeys,
 		limit,
@@ -1398,6 +1343,8 @@ const Graph = ({
 		variables,
 		predictionSettings,
 		expressions,
+		startDate,
+		endDate,
 	])
 
 	const graphData = useGraphData(

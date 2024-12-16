@@ -26,7 +26,6 @@ import {
 	useUpdateAlertDisabledMutation,
 } from '@/graph/generated/hooks'
 import { useProjectId } from '@/hooks/useProjectId'
-import { useSearchTime } from '@/hooks/useSearchTime'
 import { HeaderDivider } from '@/pages/Graphing/Dashboard'
 import { GraphContextProvider } from '@/pages/Graphing/context/GraphContext'
 import { useGraphData } from '@pages/Graphing/hooks/useGraphData'
@@ -44,6 +43,7 @@ import { AlertTable } from './AlertTable'
 import * as style from './styles.css'
 import SearchPagination from '@/components/SearchPagination/SearchPagination'
 import { NumberParam, useQueryParam, withDefault } from 'use-query-params'
+import { useGraphTime } from '@/pages/Graphing/hooks/useGraphTime'
 
 const START_PAGE = 1
 const PAGE_SIZE = 10
@@ -64,10 +64,7 @@ export const AlertPage: React.FC = () => {
 	const [updateLoading, setUpdateLoading] = useState(false)
 
 	const { startDate, endDate, selectedPreset, updateSearchTime } =
-		useSearchTime({
-			presets: DEFAULT_TIME_PRESETS,
-			initialPreset: DEFAULT_TIME_PRESETS[2],
-		})
+		useGraphTime(DEFAULT_TIME_PRESETS)
 
 	const { data, loading } = useGetAlertQuery({
 		variables: {
@@ -305,7 +302,6 @@ export const AlertPage: React.FC = () => {
 								}
 								startDate={startDate}
 								endDate={endDate}
-								selectedPreset={selectedPreset}
 								updateSearchTime={updateSearchTime}
 								thresholdWindow={
 									data.alert.threshold_window ?? 0
