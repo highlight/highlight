@@ -176,12 +176,12 @@ func HandleFirehoseLog(w http.ResponseWriter, r *http.Request) {
 						t = ptr.Time(time.UnixMilli(lg.Timestamp))
 					}
 					hl := hlog.Log{
-						Message:    p.GetMessage(),
-						Level:      p.GetLevel(),
-						Timestamp:  t.UTC().Format(hlog.TimestampFormat),
 						Attributes: map[string]string{},
 					}
 					ctx := p.SetLogAttributes(r.Context(), &hl, msg)
+					hl.Message = p.GetMessage()
+					hl.Level = p.GetLevel()
+					hl.Timestamp = t.UTC().Format(hlog.TimestampFormat)
 					if err := hlog.SubmitHTTPLog(ctx, tracer, projectID, hl); err != nil {
 						log.WithContext(r.Context()).WithError(err).Error("failed to submit log")
 						http.Error(w, err.Error(), http.StatusBadRequest)

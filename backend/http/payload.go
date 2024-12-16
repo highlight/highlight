@@ -229,12 +229,13 @@ func (p *FireLensPinoPayload) SetLogAttributes(ctx context.Context, hl *hlog.Log
 }
 
 type JsonPayload struct {
-	Message string `json:"msg"`
+	Body map[string]any
 }
 
 func (p *JsonPayload) Parse(msg []byte) bool {
-	p.Message = string(msg)
-	return true
+	p.Body = make(map[string]any)
+	err := json.Unmarshal(msg, &p.Body)
+	return err == nil
 }
 
 func (p *JsonPayload) GetMessages() []PayloadMessage {
@@ -242,32 +243,55 @@ func (p *JsonPayload) GetMessages() []PayloadMessage {
 }
 
 func (p *JsonPayload) GetMessage() string {
-	return p.Message
+	if len(p.Body) == 0 {
+		return "JSON"
+	}
+	data, _ := json.Marshal(p.Body)
+	return string(data)
 }
 
 func (p *JsonPayload) GetLevel() string {
-	return model.LogLevelInfo.String()
+	return model.LogLevelInfo.String() // TODO(vkorolik) map lookup match
+}
+
+func parseTime(v int64) *time.Time {
+	var ts time.Time
+	if v <= 99999999999 {
+		ts = time.Unix(v, 0)
+	} else if v <= 99999999999999 {
+		ts = time.UnixMilli(v)
+	} else if v <= 999999999999999 {
+		ts = time.UnixMicro(v)
+	} else {
+		ts = time.Unix(0, v)
+	}
+	return &ts
 }
 
 func (p *JsonPayload) GetTimestamp() *time.Time {
+	for _, key := range []string{"time", "timestamp", "ts"} {
+		if val, ok := p.Body[key]; ok {
+			// remove the key from the message body
+			delete(p.Body, key)
+			if str, ok := val.(string); ok {
+				if v, err := strconv.ParseInt(str, 10, 64); err == nil {
+					return parseTime(v)
+				}
+			} else if v, ok := val.(float64); ok {
+				return parseTime(int64(v))
+			}
+		}
+	}
 	return nil
 }
 
-func (p *JsonPayload) SetLogAttributes(ctx context.Context, hl *hlog.Log, msg []byte) context.Context {
-	var lgAttrs map[string]interface{}
-	if err := json.Unmarshal(msg, &lgAttrs); err != nil {
-		log.WithContext(ctx).
-			WithError(err).WithField("msg", msg).
-			Error("invalid json log attributes")
-	}
-	for k, v := range lgAttrs {
-		// skip the keys that are part of the message
-		if has := map[string]bool{"msg": true}[k]; has {
-			continue
-		}
+func (p *JsonPayload) SetLogAttributes(ctx context.Context, hl *hlog.Log, _ []byte) context.Context {
+	for k, v := range p.Body {
 		for key, value := range hlog.FormatLogAttributes(k, v) {
 			hl.Attributes[key] = value
 		}
+		// remove the key from the message body
+		delete(p.Body, k)
 	}
 	hl.Attributes[string(semconv.ServiceNameKey)] = "firehose.json"
 	return ctx
