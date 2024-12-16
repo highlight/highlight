@@ -251,7 +251,16 @@ func (p *JsonPayload) GetMessage() string {
 }
 
 func (p *JsonPayload) GetLevel() string {
-	return model.LogLevelInfo.String() // TODO(vkorolik) map lookup match
+	for _, key := range []string{"level", "severity"} {
+		if val, ok := p.Body[key]; ok {
+			// remove the key from the message body
+			delete(p.Body, key)
+			if str, ok := val.(string); ok {
+				return str
+			}
+		}
+	}
+	return model.LogLevelInfo.String()
 }
 
 func parseTime(v int64) *time.Time {
