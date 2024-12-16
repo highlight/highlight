@@ -11,7 +11,6 @@ import moment from 'moment'
 import { ProductType, RetentionPeriod } from '@/graph/generated/schemas'
 import { useApplicationContext } from '@/routers/AppRouter/context/ApplicationContext'
 import { getRetentionDays } from '@/pages/Billing/utils/utils'
-import { SearchExpression } from '../Parser/listener'
 
 export const useRetentionPresets = (productType?: ProductType) => {
 	const { currentWorkspace } = useApplicationContext()
@@ -119,7 +118,6 @@ export interface SearchEntry {
 	timestamp: number
 	count: number
 	title?: string
-	queryParts: SearchExpression[]
 }
 
 const MAX_HISTORY_LENGTH = 10
@@ -131,11 +129,7 @@ function getRecentSearches(moduleName: string): SearchEntry[] {
 		.sort((a, b) => b.timestamp - a.timestamp)
 		.slice(0, MAX_HISTORY_LENGTH)
 }
-function saveSearchQuery(
-	moduleName: string,
-	searchQuery: string,
-	queryParts: SearchExpression[],
-): void {
+function saveSearchQuery(moduleName: string, searchQuery: string): void {
 	const key = `${moduleName}_searchHistory`
 	let history: SearchEntry[] = JSON.parse(localStorage.getItem(key) || '[]')
 
@@ -155,7 +149,6 @@ function saveSearchQuery(
 			query: searchQuery,
 			timestamp: Date.now(),
 			count: 1,
-			queryParts: queryParts,
 		})
 		uniqueQueries.add(searchQuery) // Add to the Set as well
 	}
@@ -170,24 +163,19 @@ function saveSearchQuery(
 
 export const useSearchHistory = () => {
 	const [recentSearches, setRecentSearches] = useState<SearchEntry[]>([])
-	const [historyLoading, setHistoryLoading] = useState(true)
-	const locaiton = useLocation()
+	const location = useLocation()
+
 	//currently we are storing the pathname as identifier. So it is project specific. if we want global search we can tweak the below path and achieve that.
-	const pathName = locaiton?.pathname
+	const pathName = location?.pathname
 	const search = location?.search
 
 	useEffect(() => {
 		setRecentSearches(getRecentSearches(pathName))
-		setHistoryLoading(false)
 	}, [pathName, search])
 
-	const handleSearch = (query: string, queryParts: SearchExpression[]) => {
-		const trimedQuery = queryParts.reduce((acc, part) => {
-			acc = (acc ? `${acc} ` : acc) + part.text.trim()
-			return acc.trim()
-		}, '')
-		if (trimedQuery !== '') {
-			saveSearchQuery(pathName, trimedQuery, queryParts)
+	const handleSearch = (query: string) => {
+		if (query.trim() !== '') {
+			saveSearchQuery(pathName, query)
 			setRecentSearches(getRecentSearches(pathName))
 		}
 	}
@@ -195,6 +183,5 @@ export const useSearchHistory = () => {
 	return {
 		recentSearches,
 		handleSearch,
-		historyLoading,
 	}
 }

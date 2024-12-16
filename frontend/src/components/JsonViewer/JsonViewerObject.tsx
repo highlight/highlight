@@ -9,12 +9,10 @@ import {
 import { useEffect, useState } from 'react'
 
 import { findMatchingAttributes } from '@/components/JsonViewer/utils'
-import { SearchExpression } from '@/components/Search/Parser/listener'
 import {
 	BODY_KEY,
 	DEFAULT_OPERATOR,
 	quoteQueryValue,
-	stringifySearchQuery,
 } from '@/components/Search/SearchForm/utils'
 import TextHighlighter from '@/components/TextHighlighter/TextHighlighter'
 import {
@@ -25,13 +23,14 @@ import { textHighlight } from '@/pages/LogsPage/LogsTable/LogsTable.css'
 import analytics from '@/util/analytics'
 
 import * as styles from './JsonViewerObject.css'
+import { parseSearch } from '@/components/Search/utils'
 
 export type Props = {
 	allExpanded: boolean
 	attribute: string | object | number | null | undefined
 	label: string
+	query: string
 	queryBaseKeys: string[]
-	queryParts: SearchExpression[]
 	matchedAttributes: ReturnType<typeof findMatchingAttributes>
 	setQuery?: (query: string) => void
 }
@@ -41,8 +40,8 @@ export const JsonViewerObject: React.FC<Props> = ({
 	attribute,
 	label,
 	matchedAttributes,
+	query,
 	queryBaseKeys,
-	queryParts,
 	setQuery,
 }) => {
 	const [open, setOpen] = useState(false)
@@ -85,7 +84,7 @@ export const JsonViewerObject: React.FC<Props> = ({
 						attribute={value}
 						label={key}
 						matchedAttributes={matchedAttributes}
-						queryParts={queryParts}
+						query={query}
 						queryBaseKeys={[...queryBaseKeys, key]}
 						setQuery={setQuery}
 					/>
@@ -96,8 +95,8 @@ export const JsonViewerObject: React.FC<Props> = ({
 			<JsonViewerValue
 				label={label}
 				value={String(attribute)}
+				query={query}
 				queryKey={queryKey}
-				queryParts={queryParts}
 				queryMatch={queryMatch?.match}
 				setQuery={setQuery}
 			/>
@@ -108,11 +107,11 @@ export const JsonViewerObject: React.FC<Props> = ({
 export const JsonViewerValue: React.FC<{
 	label: string
 	value: string
-	queryParts: SearchExpression[]
+	query: string
 	queryKey: string
 	queryMatch?: string
 	setQuery?: Props['setQuery']
-}> = ({ label, queryKey, queryParts, value, queryMatch, setQuery }) => {
+}> = ({ label, query, queryKey, value, queryMatch, setQuery }) => {
 	// replace wildcards for highlighting.
 	const matchPattern = queryMatch?.replaceAll('*', '')
 
@@ -148,7 +147,7 @@ export const JsonViewerValue: React.FC<{
 					</Text>
 				</Box>
 				<Box cssClass={styles.attributeActions}>
-					{!!queryParts && !!setQuery && (
+					{!!query && !!setQuery && (
 						<Box>
 							<Tooltip
 								trigger={
@@ -156,6 +155,8 @@ export const JsonViewerValue: React.FC<{
 										className={styles.attributeAction}
 										size="12"
 										onClick={() => {
+											const { queryParts } =
+												parseSearch(query)
 											if (!queryParts || !setQuery) {
 												return
 											}
@@ -163,27 +164,40 @@ export const JsonViewerValue: React.FC<{
 											const index = queryParts.findIndex(
 												(term) => term.key === queryKey,
 											)
+
+											// Build the query part text directly
 											const queryValue =
 												quoteQueryValue(value)
+											const queryPartText =
+												queryKey === BODY_KEY
+													? queryValue
+													: `${queryKey}${DEFAULT_OPERATOR}${queryValue}`
+
+											let newQuery = query // Get existing query string
 
 											if (index !== -1) {
-												queryParts[index].value = value
-												queryParts[index].text =
-													queryKey === BODY_KEY
-														? queryValue
-														: `${queryKey}${DEFAULT_OPERATOR}${queryValue}`
-											}
+												// Replace the existing part
+												const beforeParts =
+													queryParts.slice(0, index)
+												const afterParts =
+													queryParts.slice(index + 1)
 
-											let newQuery =
-												stringifySearchQuery(queryParts)
-
-											if (index === -1) {
-												newQuery +=
-													queryKey === BODY_KEY
-														? ` ${queryValue}`
-														: ` ${queryKey}${DEFAULT_OPERATOR}${queryValue}`
-
-												newQuery = newQuery.trim()
+												newQuery = [
+													...beforeParts.map(
+														(p) => p.text,
+													),
+													queryPartText,
+													...afterParts.map(
+														(p) => p.text,
+													),
+												]
+													.join(' ')
+													.trim()
+											} else {
+												// Append new part
+												newQuery = newQuery
+													? `${newQuery} ${queryPartText}`
+													: queryPartText
 											}
 
 											setQuery(newQuery)
