@@ -280,6 +280,7 @@ const DashboardCell = ({
 				setTimeRange={updateSearchTime}
 				variables={values}
 				height={280}
+				syncId={dashboard_id}
 			/>
 		</DashboardCard>
 	)

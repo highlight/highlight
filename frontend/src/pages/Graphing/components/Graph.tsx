@@ -24,7 +24,14 @@ import {
 import { FunnelDisplay } from '@pages/Graphing/components/types'
 import clsx from 'clsx'
 import moment from 'moment'
-import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import React, {
+	memo,
+	useCallback,
+	useEffect,
+	useMemo,
+	useRef,
+	useState,
+} from 'react'
 import { Area, Tooltip as RechartsTooltip, ReferenceArea } from 'recharts'
 import { CategoricalChartState } from 'recharts/types/chart/types'
 
@@ -138,6 +145,7 @@ export type ThresholdSettings = {
 export interface ChartProps<TConfig> {
 	id?: string
 	title: string
+	syncId?: string
 	productType: ProductType
 	projectId: string
 	startDate: Date
@@ -167,6 +175,7 @@ export interface InnerChartProps<TConfig> {
 	data: any[] | undefined
 	xAxisMetric: string
 	title?: string
+	syncId?: string
 	loading?: boolean
 	viewConfig: TConfig
 	disabled?: boolean
@@ -240,6 +249,7 @@ export const useGraphCallbacks = (
 	const tooltipRef = useRef<HTMLDivElement>(null)
 
 	const [frozenTooltip, setFrozenTooltip] = useState<CategoricalChartState>()
+	const [displayTooltip, setDisplayTooltip] = useState(false)
 
 	const allowDrag = setTimeRange !== undefined
 
@@ -308,6 +318,15 @@ export const useGraphCallbacks = (
 		setFrozenTooltip(undefined)
 		setRefAreaStart(undefined)
 		setRefAreaEnd(undefined)
+		setDisplayTooltip(false)
+	}
+
+	const onMouseOver = () => {
+		setDisplayTooltip(true)
+	}
+
+	const onTooltipMouseLeave = () => {
+		setFrozenTooltip(undefined)
 	}
 
 	const tooltip = (
@@ -316,9 +335,10 @@ export const useGraphCallbacks = (
 				xAxisMetric,
 				frozenTooltip,
 				tooltipRef,
-				onMouseLeave,
+				onTooltipMouseLeave,
 				loadExemplars,
 				tooltipSettings?.funnelMode,
+				displayTooltip,
 			)}
 			cursor={
 				frozenTooltip
@@ -355,6 +375,7 @@ export const useGraphCallbacks = (
 		onMouseMove,
 		onMouseUp,
 		onMouseLeave,
+		onMouseOver,
 	}
 }
 
@@ -491,8 +512,13 @@ const getCustomTooltip =
 		onMouseLeave?: () => void,
 		loadExemplars?: LoadExemplars,
 		funnelMode?: true,
+		displayTooltip?: boolean,
 	) =>
 	({ active, payload, label }: any) => {
+		if (!displayTooltip) {
+			return null
+		}
+
 		if (frozenTooltip !== undefined) {
 			active = true
 			payload = frozenTooltip.activePayload
@@ -1131,6 +1157,7 @@ const Graph = ({
 	predictionSettings,
 	thresholdSettings,
 	expressions,
+	syncId,
 	children,
 }: React.PropsWithChildren<ChartProps<ViewConfig>>) => {
 	const { setGraphData } = useGraphContext()
@@ -1469,6 +1496,7 @@ const Graph = ({
 				innerChart = (
 					<LineChart
 						data={data}
+						syncId={syncId}
 						xAxisMetric={xAxisMetric}
 						viewConfig={viewConfig}
 						spotlight={spotlight}
@@ -1486,6 +1514,7 @@ const Graph = ({
 				innerChart = (
 					<BarChart
 						data={data}
+						syncId={syncId}
 						xAxisMetric={xAxisMetric}
 						viewConfig={viewConfig}
 						spotlight={spotlight}
