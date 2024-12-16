@@ -608,6 +608,9 @@ export const Dashboard = () => {
 														>
 															<Graph
 																id={g.id}
+																syncId={
+																	dashboard_id
+																}
 																title={g.title}
 																viewConfig={getViewConfig(
 																	g.type,
