@@ -1146,6 +1146,33 @@ func (w *Worker) StartSessionDeleteJob(ctx context.Context) {
 	}
 }
 
+func (w *Worker) ScheduledTasks(ctx context.Context) {
+	go w.StartLogAlertWatcher(ctx)
+	go w.StartMetricAlertWatcher(ctx)
+	go w.StartSessionDeleteJob(ctx)
+	go func() {
+		w.ReportStripeUsage(ctx)
+		for range time.Tick(time.Hour) {
+			w.ReportStripeUsage(ctx)
+		}
+	}()
+	go func() {
+		w.RefreshMaterializedViews(ctx)
+		for range time.Tick(time.Hour) {
+			w.RefreshMaterializedViews(ctx)
+		}
+	}()
+	go func() {
+		w.AutoResolveStaleErrors(ctx)
+		for range time.Tick(time.Minute) {
+			w.AutoResolveStaleErrors(ctx)
+		}
+	}()
+
+	// block forever
+	select {}
+}
+
 func (w *Worker) RefreshMaterializedViews(ctx context.Context) {
 	span, _ := util.StartSpanFromContext(ctx, "worker.refreshMaterializedViews",
 		util.ResourceName("worker.refreshMaterializedViews"))
@@ -1334,6 +1361,8 @@ func (w *Worker) GetHandler(ctx context.Context, handlerFlag util.Handler) func(
 		return w.AutoResolveStaleErrors
 	case util.StartSessionDeleteJob:
 		return w.StartSessionDeleteJob
+	case util.ScheduledTasks:
+		return w.ScheduledTasks
 	case "":
 		// no handler provided defaults to the session worker
 		return w.Start
