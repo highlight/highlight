@@ -219,7 +219,7 @@ func main() {
 	highlight.Start(
 		highlight.WithProjectID("1jdkoe52"),
 		highlight.WithEnvironment(env.EnvironmentName()),
-		highlight.WithMetricSamplingRate(1./1_000_000),
+		highlight.WithMetricSamplingRate(1.),
 		highlight.WithSamplingRateMap(samplingMap),
 		highlight.WithServiceName(serviceName),
 		highlight.WithServiceVersion(env.Config.Version),
@@ -313,6 +313,8 @@ func main() {
 	defer kafkaBatchedProducer.Stop(ctx)
 	kafkaTracesProducer := kafkaqueue.New(ctx, kafkaqueue.GetTopic(kafkaqueue.GetTopicOptions{Type: kafkaqueue.TopicTypeTraces}), kafkaqueue.Producer, kCfg)
 	defer kafkaTracesProducer.Stop(ctx)
+	kafkaMetricsProducer := kafkaqueue.New(ctx, kafkaqueue.GetTopic(kafkaqueue.GetTopicOptions{Type: kafkaqueue.TopicTypeMetrics}), kafkaqueue.Producer, kCfg)
+	defer kafkaMetricsProducer.Stop(ctx)
 
 	var lambdaClient *lambda.Client
 	if !env.IsInDocker() {
@@ -337,7 +339,7 @@ func main() {
 		log.WithContext(ctx).Fatalf("error creating oauth client: %v", err)
 	}
 
-	tp, err := highlight.CreateTracerProvider(env.Config.OTLPEndpoint)
+	tp, err := highlight.CreateTracerProvider(ctx, env.Config.OTLPEndpoint)
 	if err != nil {
 		log.WithContext(ctx).Fatalf("error creating collector tracer provider: %v", err)
 	}
@@ -347,7 +349,7 @@ func main() {
 		trace.WithSchemaURL(semconv.SchemaURL),
 	)
 
-	tpNoResources, err := highlight.CreateTracerProvider(env.Config.OTLPEndpoint, sdktrace.WithResource(resource.Empty()))
+	tpNoResources, err := highlight.CreateTracerProvider(ctx, env.Config.OTLPEndpoint, sdktrace.WithResource(resource.Empty()))
 	if err != nil {
 		log.WithContext(ctx).Fatalf("error creating collector tracer provider: %v", err)
 	}
@@ -390,6 +392,7 @@ func main() {
 		Store:                  dataStore,
 		DataSyncQueue:          kafkaDataSyncProducer,
 		TracesQueue:            kafkaTracesProducer,
+		MetricsQueue:           kafkaMetricsProducer,
 	}
 	private.SetupAuthClient(ctx, dataStore, private.GetEnvAuthMode(), oauthSrv, privateResolver.Query().APIKeyToOrgID)
 	r := chi.NewMux()
@@ -506,6 +509,7 @@ func main() {
 			BatchedQueue:      kafkaBatchedProducer,
 			DataSyncQueue:     kafkaDataSyncProducer,
 			TracesQueue:       kafkaTracesProducer,
+			MetricsQueue:      kafkaMetricsProducer,
 			MailClient:        sendgrid.NewSendClient(env.Config.SendgridKey),
 			EmbeddingsClient:  embeddings.New(),
 			StorageClient:     storageClient,
@@ -577,6 +581,7 @@ func main() {
 			BatchedQueue:      kafkaBatchedProducer,
 			DataSyncQueue:     kafkaDataSyncProducer,
 			TracesQueue:       kafkaTracesProducer,
+			MetricsQueue:      kafkaMetricsProducer,
 			MailClient:        sendgrid.NewSendClient(env.Config.SendgridKey),
 			EmbeddingsClient:  embeddings.New(),
 			StorageClient:     storageClient,
@@ -609,6 +614,7 @@ func main() {
 			go w.GetPublicWorker(kafkaqueue.TopicTypeBatched)(ctx)
 			go w.GetPublicWorker(kafkaqueue.TopicTypeDataSync)(ctx)
 			go w.GetPublicWorker(kafkaqueue.TopicTypeTraces)(ctx)
+			go w.GetPublicWorker(kafkaqueue.TopicTypeMetrics)(ctx)
 			go w.StartLogAlertWatcher(ctx)
 			go w.StartMetricAlertWatcher(ctx)
 			go w.StartSessionDeleteJob(ctx)
