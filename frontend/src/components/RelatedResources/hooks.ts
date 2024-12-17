@@ -1,7 +1,11 @@
 import { makeVar, useReactiveVar } from '@apollo/client'
 import useLocalStorage from '@rehooks/local-storage'
 import { useCallback, useEffect, useState } from 'react'
-import { useSearchParams } from 'react-router-dom'
+import {
+	createSearchParams,
+	useNavigate,
+	useSearchParams,
+} from 'react-router-dom'
 
 import { PlayerSearchParameters } from '@/pages/Player/PlayerHook/utils'
 
@@ -198,4 +202,36 @@ export const useRelatedResource = () => {
 		setResource,
 		updateQuery,
 	}
+}
+
+export const useSetRelatedResource = () => {
+	const navigate = useNavigate()
+	const setSearchParams = useCallback(
+		(newParams: URLSearchParams) => {
+			const newSearchParams = createSearchParams(newParams)
+			navigate('?' + newSearchParams)
+		},
+		[navigate],
+	)
+
+	const set = useCallback(
+		(
+			newResource: RelatedResource,
+			pagination: PanelPagination | null = null,
+		) => {
+			const params = new URLSearchParams(location.search)
+			params.set(
+				RELATED_RESOURCE_PARAM,
+				btoa(JSON.stringify(newResource)), // setSearchParams encodes the string
+			)
+			setSearchParams(params)
+
+			if (pagination !== null) {
+				panelPaginationVar(pagination)
+			}
+		},
+		[setSearchParams],
+	)
+
+	return set
 }

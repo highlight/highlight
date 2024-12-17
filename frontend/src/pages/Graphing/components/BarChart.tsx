@@ -1,4 +1,4 @@
-import { useId } from 'react'
+import { memo, useId } from 'react'
 import {
 	Bar,
 	CartesianGrid,
@@ -64,7 +64,7 @@ const RoundedBar = (id: string, isLast: boolean) => (props: any) => {
 	)
 }
 
-export const BarChart = ({
+const BarChartImpl = ({
 	data,
 	xAxisMetric,
 	spotlight,
@@ -208,3 +208,5 @@ export const BarChart = ({
 		</span>
 	)
 }
+
+export const BarChart = memo(BarChartImpl)

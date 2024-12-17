@@ -168,6 +168,7 @@ const SessionColumnRenderer: React.FC<ColumnRendererProps> = ({
 					kind="secondary"
 					shape="basic"
 					iconLeft={<IconSolidPlayCircle />}
+					style={{ cursor: 'pointer' }}
 				>
 					<Text lines="1">{secureSessionID}</Text>
 				</Tag>
