@@ -2,8 +2,10 @@ package clickhouse
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/highlight-run/highlight/backend/session_replay"
 	"strconv"
 	"strings"
 	"time"
@@ -143,6 +145,7 @@ var booleanKeys = map[string]bool{
 const SessionsJoinedTable = "sessions_joined_vw"
 const SessionsTable = "sessions"
 const FieldsTable = "fields"
+const SessionReplayEventsTable = "session_replay_events"
 const SessionKeysTable = "session_keys"
 const timeRangeField = "custom_created_at"
 const sampleField = "custom_sample"
@@ -258,6 +261,28 @@ func (client *Client) WriteSessions(ctx context.Context, sessions []*model.Sessi
 	}
 
 	return g.Wait()
+}
+
+type SessionReplayEvent struct {
+	SessionSecureID string
+	EventSid        int64
+	EventType       int8
+	EventTimestamp  int64
+	EventData       string
+	Expires         time.Time
+}
+
+func (client *Client) WriteSessionReplayEvents(ctx context.Context, events []*SessionReplayEvent) error {
+	var chEvents []interface{}
+	for _, e := range events {
+		chEvents = append(chEvents, e)
+	}
+	sql, args := sqlbuilder.
+		NewStruct(new(SessionReplayEvent)).
+		InsertInto(SessionReplayEventsTable, chEvents...).
+		BuildWithFlavor(sqlbuilder.ClickHouse)
+	sql, args = replaceTimestampInserts(sql, args, map[int]bool{3: true}, MilliSeconds)
+	return client.conn.Exec(ctx, sql, args...)
 }
 
 func GetSessionsQueryImplDeprecated(admin *model.Admin, query modelInputs.ClickhouseQuery, projectId int, retentionDate time.Time, selectColumns string, groupBy *string, orderBy *string, limit *int, offset *int) (string, []interface{}, bool, error) {
@@ -848,6 +873,44 @@ func (client *Client) QuerySessionHistogram(ctx context.Context, admin *model.Ad
 	}
 
 	return bucketTimes, totals, withErrors, withoutErrors, inactiveLengths, activeLengths, nil
+}
+
+func (client *Client) QuerySessionReplayEvents(ctx context.Context, session *model.Session, cursor *model.EventsCursor) ([]any, *model.EventsCursor, error) {
+	sb := sqlbuilder.NewSelectBuilder()
+	sb.Select("*")
+	sb.From(fmt.Sprintf("%s FINAL", SessionReplayEventsTable))
+	sb.Where(sb.Equal("SessionSecureID", session.SecureID))
+	sb.OrderBy("EventSid")
+	sql, args := sb.BuildWithFlavor(sqlbuilder.ClickHouse)
+
+	rows, err := client.conn.Query(ctx, sql, args...)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	var events []any
+	for rows.Next() {
+		var ev struct {
+			SessionSecureID string
+			EventSid        int64
+			EventType       int8
+			EventTimestamp  time.Time
+			EventData       string
+			Expires         time.Time
+		}
+		if err := rows.ScanStruct(&ev); err != nil {
+			return nil, nil, err
+		}
+		events = append(events, &session_replay.ReplayEvent{
+			Type:         session_replay.EventType(ev.EventType),
+			Data:         json.RawMessage(ev.EventData),
+			TimestampRaw: float64(ev.EventTimestamp.UnixMilli()),
+			SID:          float64(ev.EventSid),
+		})
+	}
+
+	// TODO(vkorolik) cursor
+	return events, cursor, nil
 }
 
 func (client *Client) SessionsLogLines(ctx context.Context, projectID int, params modelInputs.QueryInput) ([]*modelInputs.LogLine, error) {
