@@ -37,6 +37,8 @@ const PlanComparisonPage = React.lazy(
 	() => import('../Billing/PlanComparisonPage'),
 )
 
+import IntergationPage from '@/pages/IntergationSettings/IntergationSettings'
+
 const getTitle = (tab: WorkspaceSettingsTab | string): string => {
 	switch (tab) {
 		case 'team':
@@ -49,6 +51,8 @@ const getTitle = (tab: WorkspaceSettingsTab | string): string => {
 			return 'Upgrade plan'
 		case 'harold-ai':
 			return 'Harold AI'
+		case 'integrations':
+			return 'Integrations'
 		case 'plan-features':
 			return 'Plan comparison'
 		default:
@@ -123,6 +127,12 @@ export const SettingsRouter = () => {
 			key: 'harold-ai',
 			title: getTitle('harold-ai'),
 			panelContent: <HaroldAISettings />,
+		},
+		{
+			key: `integrations`,
+			title: getTitle('integrations'),
+			pathParam: '/:intergate_type',
+			panelContent: <IntergationPage />,
 		},
 	]
 
@@ -304,6 +314,10 @@ export const SettingsRouter = () => {
 										/>
 									)
 								})}
+								<Route
+									path="integrations"
+									element={<IntergationPage />}
+								/>
 								<Route
 									path="current-plan/success"
 									element={billingContent}

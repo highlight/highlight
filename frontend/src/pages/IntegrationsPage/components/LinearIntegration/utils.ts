@@ -5,16 +5,13 @@ import {
 } from '@graph/hooks'
 import { namedOperations } from '@graph/operations'
 import { IntegrationType } from '@graph/schemas'
-import { useParams } from '@util/react-router/useParams'
 import { GetBaseURL } from '@util/window'
 import { useCallback } from 'react'
 
 const LINEAR_SCOPES = ['read', 'issues:create', 'comments:create']
 const LINEAR_CLIENT_ID = import.meta.env.LINEAR_CLIENT_ID
 
-export const useLinearIntegration = () => {
-	const { project_id } = useParams<{ project_id: string }>()
-
+export const useLinearIntegration = (project_id: string) => {
 	const [addIntegrationToProject] = useAddIntegrationToProjectMutation({
 		refetchQueries: [
 			namedOperations.Query.GetWorkspaceIsIntegratedWithLinear,
@@ -68,14 +65,24 @@ export const useLinearIntegration = () => {
 	}
 }
 
-export const getLinearOAuthUrl = (projectId: string) => {
+export const getLinearOAuthUrl = (
+	projectId: string,
+	workspaceId: string,
+	next?: string,
+) => {
 	let redirectPath = window.location.pathname
 	if (redirectPath.length > 3) {
 		// remove project_id and prepended slash
 		redirectPath = redirectPath.substring(redirectPath.indexOf('/', 1) + 1)
 	}
 
-	const state = { next: redirectPath, project_id: projectId }
+	redirectPath = next || redirectPath
+
+	const state = {
+		next: redirectPath,
+		project_id: projectId,
+		workspace_id: workspaceId,
+	}
 
 	const redirectUri = `${GetBaseURL()}/callback/linear`
 
