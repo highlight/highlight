@@ -1,15 +1,98 @@
-import Alert from '@components/Alert/Alert'
 import { FieldsBox } from '@components/FieldsBox/FieldsBox'
 import { AdminRole } from '@graph/schemas'
-import { Box } from '@highlight-run/ui/components'
-import { AutoJoinForm } from '@pages/WorkspaceTeam/components/AutoJoinForm'
+import {
+	Box,
+	Button,
+	Callout,
+	Form,
+	IconSolidCheck,
+	IconSolidLoading,
+	Input,
+	SwitchButton,
+	Tooltip,
+} from '@highlight-run/ui/components'
 import { Authorization } from '@util/authorization/authorization'
 
+import {
+	AutoJoinCheckboxProps,
+	AutoJoinTooltipProps,
+	BaseAutoJoinForm,
+} from '@/pages/WorkspaceTeam/components/BaseAutoJoinForm'
+import clsx from 'clsx'
+import React from 'react'
 import layoutStyles from '../../components/layout/LeadAlignLayout.module.css'
-import { FieldsForm } from './FieldsForm/FieldsForm'
+import {
+	BaseFieldsForm,
+	FormButtonProps,
+	FormElementProps,
+	FormInputProps,
+} from './FieldsForm/BaseFieldsForm'
 import styles from './WorkspaceSettings.module.css'
 
 const WorkspaceSettings = () => {
+	const autoJoinSwitch: React.FC<AutoJoinCheckboxProps> = ({
+		className,
+		onChange,
+		checked,
+	}) => (
+		<SwitchButton
+			className={clsx(
+				className,
+				styles.checkbox,
+				checked ? styles.isChecked : '',
+			)}
+			onClick={() => {
+				onChange(!checked)
+			}}
+			iconLeft={<IconSolidCheck className={styles.checkMark} />}
+			checked={checked}
+		/>
+	)
+
+	const autoJoinTooltip: React.FC<AutoJoinTooltipProps> = ({
+		title,
+		children,
+		...props
+	}) => (
+		<Tooltip trigger={children} {...props}>
+			{title}
+		</Tooltip>
+	)
+
+	const FieldsForm = () => {
+		const form: React.FC<FormElementProps> = (props) => <Form {...props} />
+		const input: React.FC<FormInputProps> = ({ name, ...props }) => (
+			<Input name={name || ''} {...props} />
+		)
+		const button: React.FC<FormButtonProps> = ({
+			isSubmitting,
+			className,
+			...props
+		}) => (
+			<Button
+				className={clsx(className, styles.submitButton)}
+				size="medium"
+				kind="primary"
+				{...props}
+			>
+				{isSubmitting ? (
+					<IconSolidLoading
+						className={styles.spinner}
+						style={{
+							fontSize: 18,
+							color: 'var(--text-primary-inverted)',
+							animationName: styles.spin,
+						}}
+					/>
+				) : (
+					'Save'
+				)}
+			</Button>
+		)
+
+		return <BaseFieldsForm form={form} input={input} button={button} />
+	}
+
 	return (
 		<Box>
 			<Box style={{ maxWidth: 560 }} my="40" mx="auto">
@@ -34,15 +117,20 @@ const WorkspaceSettings = () => {
 						<Authorization
 							allowedRoles={[AdminRole.Admin]}
 							forbiddenFallback={
-								<Alert
-									trackingId="AdminNoAccessToAutoJoinDomains"
-									type="info"
-									message="You don't have access to auto-access domains."
-									description={`You don't have permission to configure auto-access domains. Please contact a workspace admin to make changes.`}
-								/>
+								<Callout
+									kind="warning"
+									title="You don't have access to auto-access domains."
+								>
+									You don't have permission to configure
+									auto-access domains. Please contact a
+									workspace admin to make changes.
+								</Callout>
 							}
 						>
-							<AutoJoinForm />
+							<BaseAutoJoinForm
+								checkbox={autoJoinSwitch}
+								tooltip={autoJoinTooltip}
+							/>
 						</Authorization>
 					</FieldsBox>
 				</div>
