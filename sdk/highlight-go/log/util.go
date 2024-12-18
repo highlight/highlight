@@ -242,7 +242,9 @@ func formatLogAttributes(k string, v interface{}, depth uint8) map[string]string
 	if depth >= MaxLogAttributesDepth {
 		return nil
 	}
-	k = parenKeySyntax.ReplaceAllString(k, "$1.$2")
+	if strings.Contains(k, "(") {
+		k = parenKeySyntax.ReplaceAllString(k, "$1.$2")
+	}
 	if vStr, ok := v.(string); ok {
 		if len(vStr) > LogAttributeValueLengthLimit {
 			vStr = vStr[:LogAttributeValueLengthLimit] + "..."

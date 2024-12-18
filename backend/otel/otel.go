@@ -166,8 +166,11 @@ func (o *Handler) HandleTrace(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	span, ctx := highlight.StartTrace(ctx, "otel.proto")
 	req := ptraceotlp.NewExportRequest()
 	err = req.UnmarshalProto(output)
+	span.RecordError(err)
+	highlight.EndTrace(span)
 	if err != nil {
 		log.WithContext(ctx).WithError(err).Error("invalid trace protobuf")
 		http.Error(w, err.Error(), http.StatusBadRequest)
@@ -405,8 +408,11 @@ func (o *Handler) HandleLog(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	span, ctx := highlight.StartTrace(ctx, "otel.proto")
 	req := plogotlp.NewExportRequest()
 	err = req.UnmarshalProto(output)
+	span.RecordError(err)
+	highlight.EndTrace(span)
 	if err != nil {
 		log.WithContext(ctx).WithError(err).Error("invalid log protobuf")
 		http.Error(w, err.Error(), http.StatusBadRequest)
@@ -500,8 +506,11 @@ func (o *Handler) HandleMetric(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	span, ctx := highlight.StartTrace(ctx, "otel.proto")
 	req := pmetricotlp.NewExportRequest()
 	err = req.UnmarshalProto(output)
+	span.RecordError(err)
+	highlight.EndTrace(span)
 	if err != nil {
 		log.WithContext(ctx).WithError(err).Error("invalid metric protobuf")
 		http.Error(w, err.Error(), http.StatusBadRequest)
