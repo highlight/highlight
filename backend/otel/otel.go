@@ -6,18 +6,8 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"io"
-	"net/http"
-	"strconv"
-	"strings"
-	"time"
-
-	"go.opentelemetry.io/collector/pdata/plog/plogotlp"
-	"go.opentelemetry.io/collector/pdata/pmetric/pmetricotlp"
-	"go.opentelemetry.io/collector/pdata/ptrace/ptraceotlp"
-	semconv "go.opentelemetry.io/otel/semconv/v1.25.0"
-
 	"github.com/go-chi/chi"
+	"github.com/golang/snappy"
 	"github.com/highlight-run/highlight/backend/clickhouse"
 	kafkaqueue "github.com/highlight-run/highlight/backend/kafka-queue"
 	model2 "github.com/highlight-run/highlight/backend/model"
@@ -32,6 +22,16 @@ import (
 	e "github.com/pkg/errors"
 	"github.com/samber/lo"
 	log "github.com/sirupsen/logrus"
+	"go.opentelemetry.io/collector/pdata/plog/plogotlp"
+	"go.opentelemetry.io/collector/pdata/pmetric/pmetricotlp"
+	"go.opentelemetry.io/collector/pdata/ptrace/ptraceotlp"
+	semconv "go.opentelemetry.io/otel/semconv/v1.25.0"
+	"go.opentelemetry.io/otel/trace"
+	"io"
+	"net/http"
+	"strconv"
+	"strings"
+	"time"
 )
 
 type Handler struct {
@@ -131,25 +131,37 @@ func getMetric(ctx context.Context, ts time.Time, fields *extractedFields, spanI
 	}, nil
 }
 
-func (o *Handler) HandleTrace(w http.ResponseWriter, r *http.Request) {
-	ctx := r.Context()
+func getBody(ctx context.Context, r *http.Request) ([]byte, error) {
+	span, ctx := highlight.StartTrace(ctx, "otel.getReader")
+	defer highlight.EndTrace(span)
+
 	body, err := io.ReadAll(r.Body)
 	if err != nil {
-		log.WithContext(ctx).WithError(err).Error("invalid trace logBody")
-		http.Error(w, err.Error(), http.StatusBadRequest)
-		return
+		log.WithContext(ctx).WithError(err).Error("invalid logBody")
+		return nil, err
 	}
 
-	gz, err := gzip.NewReader(bytes.NewReader(body))
-	if err != nil {
-		log.WithContext(ctx).WithError(err).Error("invalid gzip format for trace")
-		http.Error(w, err.Error(), http.StatusBadRequest)
-		return
+	var reader io.Reader
+	if enc := r.Header.Get("Content-Encoding"); enc == "gzip" {
+		reader, err = gzip.NewReader(bytes.NewReader(body))
+		if err != nil {
+			return nil, err
+		}
+	} else if enc == "snappy" {
+		reader = snappy.NewReader(bytes.NewReader(body))
+	} else {
+		return nil, e.New("invalid otel content-encoding header")
 	}
 
-	output, err := io.ReadAll(gz)
+	return io.ReadAll(reader)
+}
+
+func (o *Handler) HandleTrace(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	output, err := getBody(ctx, r)
 	if err != nil {
-		log.WithContext(ctx).WithError(err).Error("invalid gzip stream for trace")
+		log.WithContext(ctx).WithError(err).Error("invalid data format for trace")
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
@@ -385,23 +397,10 @@ func (o *Handler) HandleTrace(w http.ResponseWriter, r *http.Request) {
 
 func (o *Handler) HandleLog(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
-	body, err := io.ReadAll(r.Body)
-	if err != nil {
-		log.WithContext(ctx).WithError(err).Error("invalid log logBody")
-		http.Error(w, err.Error(), http.StatusBadRequest)
-		return
-	}
 
-	gz, err := gzip.NewReader(bytes.NewReader(body))
+	output, err := getBody(ctx, r)
 	if err != nil {
-		log.WithContext(ctx).WithError(err).Error("invalid gzip format for log")
-		http.Error(w, err.Error(), http.StatusBadRequest)
-		return
-	}
-
-	output, err := io.ReadAll(gz)
-	if err != nil {
-		log.WithContext(ctx).WithError(err).Error("invalid gzip stream for log")
+		log.WithContext(ctx).WithError(err).Error("invalid data format for trace")
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
@@ -493,23 +492,10 @@ func (o *Handler) HandleLog(w http.ResponseWriter, r *http.Request) {
 
 func (o *Handler) HandleMetric(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
-	body, err := io.ReadAll(r.Body)
-	if err != nil {
-		log.WithContext(ctx).WithError(err).Error("invalid metric body")
-		http.Error(w, err.Error(), http.StatusBadRequest)
-		return
-	}
 
-	gz, err := gzip.NewReader(bytes.NewReader(body))
+	output, err := getBody(ctx, r)
 	if err != nil {
-		log.WithContext(ctx).WithError(err).Error("invalid gzip format for metric")
-		http.Error(w, err.Error(), http.StatusBadRequest)
-		return
-	}
-
-	output, err := io.ReadAll(gz)
-	if err != nil {
-		log.WithContext(ctx).WithError(err).Error("invalid gzip stream for metric")
+		log.WithContext(ctx).WithError(err).Error("invalid data format for trace")
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
@@ -757,7 +743,7 @@ func (o *Handler) matchHerokuDrain(ctx context.Context, herokuDrainToken string)
 
 func (o *Handler) Listen(r *chi.Mux) {
 	r.Route("/otel/v1", func(r chi.Router) {
-		r.Use(highlightChi.Middleware)
+		r.Use(highlightChi.UseMiddleware(trace.WithSpanKind(trace.SpanKindConsumer)))
 		r.HandleFunc("/traces", o.HandleTrace)
 		r.HandleFunc("/logs", o.HandleLog)
 		r.HandleFunc("/metrics", o.HandleMetric)
