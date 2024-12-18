@@ -5,7 +5,7 @@
 			"name": "kafka-connect",
 			"image": "173971919437.dkr.ecr.us-east-2.amazonaws.com/highlight-kafka-connect:latest",
 			"cpu": 0,
-			"memoryReservation": 30720,
+			"memoryReservation": 31744,
 			"portMappings": [
 				{
 					"name": "kafka-connect-rest",
