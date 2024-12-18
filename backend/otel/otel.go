@@ -25,6 +25,7 @@ import (
 	"go.opentelemetry.io/collector/pdata/plog/plogotlp"
 	"go.opentelemetry.io/collector/pdata/pmetric/pmetricotlp"
 	"go.opentelemetry.io/collector/pdata/ptrace/ptraceotlp"
+	"go.opentelemetry.io/otel/attribute"
 	semconv "go.opentelemetry.io/otel/semconv/v1.25.0"
 	"go.opentelemetry.io/otel/trace"
 	"io"
@@ -140,9 +141,12 @@ func getBody(ctx context.Context, r *http.Request) ([]byte, error) {
 		log.WithContext(ctx).WithError(err).Error("invalid logBody")
 		return nil, err
 	}
+	span.SetAttributes(attribute.Int("request.raw.size", len(body)))
 
+	enc := r.Header.Get("Content-Encoding")
+	span.SetAttributes(attribute.String("request.content-encoding", enc))
 	var reader io.Reader
-	if enc := r.Header.Get("Content-Encoding"); enc == "gzip" {
+	if enc == "gzip" {
 		reader, err = gzip.NewReader(bytes.NewReader(body))
 		if err != nil {
 			return nil, err
@@ -153,7 +157,9 @@ func getBody(ctx context.Context, r *http.Request) ([]byte, error) {
 		return nil, e.New("invalid otel content-encoding header")
 	}
 
-	return io.ReadAll(reader)
+	data, err := io.ReadAll(reader)
+	span.SetAttributes(attribute.Int("request.decompressed.size", len(data)))
+	return data, err
 }
 
 func (o *Handler) HandleTrace(w http.ResponseWriter, r *http.Request) {
