@@ -1,62 +1,39 @@
 FROM confluentinc/cp-kafka-connect:latest
 
-RUN curl "https://highlight-client-bundle.s3.us-east-2.amazonaws.com/assets/clickhouse-kafka-connect-v1.2.4-confluent.jar" --output /home/appuser/clickhouse-kafka-connect-v1.2.4.jar
+RUN curl "https://highlight-client-bundle.s3.us-east-2.amazonaws.com/assets/clickhouse-kafka-connect-v1.2.6-confluent.jar" --output /home/appuser/clickhouse-kafka-connect-v1.2.6.jar
 
-RUN echo  \
-  { \
-    "connector.class": "com.clickhouse.kafka.connect.ClickHouseSinkConnector", \
-    "topic2TableMap": "prod_v6_traces=traces", \
-    "tasks.max": "10", \
-    "topics": "prod_v6_traces", \
-    "clickhouseSettings": "date_time_input_format=best_effort", \
-    "ssl": "true", \
-    "security.protocol": "SSL", \
-    "hostname": "nhhbsqapco.us-east-2.aws.clickhouse.cloud", \
-    "database": "default", \
-#    TODO(vkorolik) \
-    "password": "TODO", \
-    "ssl.truststore.location": "/tmp/kafka.client.truststore.jks", \
-    "port": "8443", \
-    "value.converter.schemas.enable": "false", \
-    "value.converter": "org.apache.kafka.connect.json.JsonConverter", \
-    "exactlyOnce": "true", \
-    "username": "default", \
-    "schemas.enable": "false" \
-  } \
- > /etc/kafka-connect/task-definition.json
-
-ARG REST_ADVERTISED_HOST_NAME=localhost:8080
 ARG SECURITY_PROTOCOL=SASL_SSL
 ARG SASL_MECHANISM=SCRAM-SHA-512
-# TODO(vkorolik)
-ARG BOOTSTRAP_SERVERS=localhost:9096
-# TODO(vkorolik)
-ARG SASL_JAAS_CONFIG='org.apache.kafka.common.security.scram.ScramLoginModule required username="prod" password="TODO";'
 
 ENV CLASSPATH=/usr/share/java/monitoring-interceptors/monitoring-interceptors-7.3.0.jar
-ENV CONNECT_BOOTSTRAP_SERVERS=${BOOTSTRAP_SERVERS}
 ENV CONNECT_CONFIG_STORAGE_REPLICATION_FACTOR=3
-ENV CONNECT_CONFIG_STORAGE_TOPIC=traces-connector-configs
-ENV CONNECT_CONSUMER_MAX_POLL_RECORDS=1000000
-ENV CONNECT_CONSUMER_OVERRIDE_MAX_POLL_RECORDS=1000000
-ENV CONNECT_CONSUMER_SASL_JAAS_CONFIG=${SASL_JAAS_CONFIG}
+ENV CONNECT_CONFIG_STORAGE_TOPIC=clickhouse-connector-configs
 ENV CONNECT_CONSUMER_SASL_MECHANISM=${SASL_MECHANISM}
 ENV CONNECT_CONSUMER_SECURITY_PROTOCOL=${SECURITY_PROTOCOL}
-ENV CONNECT_GROUP_ID=traces-connector
+ENV CONNECT_GROUP_ID=clickhouse-connector
 ENV CONNECT_KEY_CONVERTER=org.apache.kafka.connect.storage.StringConverter
-ENV CONNECT_LOG4J_LOGGERS=org.apache.zookeeper=ERROR,org.I0Itec.zkclient=ERROR,org.reflections=ERROR,com.clickhouse=ERROR
+ENV CONNECT_LOG4J_LOGGERS=org.apache.kafka.connect=INFO,com.clickhouse=INFO
 ENV CONNECT_OFFSET_FLUSH_INTERVAL_MS=10000
 ENV CONNECT_OFFSET_STORAGE_REPLICATION_FACTOR=3
-ENV CONNECT_OFFSET_STORAGE_TOPIC=traces-connector-offsets
+ENV CONNECT_OFFSET_STORAGE_TOPIC=clickhouse-connector-offsets
 ENV CONNECT_PLUGIN_PATH="/usr/share/java,/usr/share/confluent-hub-components,/home/appuser"
 ENV CONNECT_REST_PORT=8083
-ENV CONNECT_PRODUCER_SASL_JAAS_CONFIG=${SASL_JAAS_CONFIG}
 ENV CONNECT_PRODUCER_SASL_MECHANISM=${SASL_MECHANISM}
 ENV CONNECT_PRODUCER_SECURITY_PROTOCOL=${SECURITY_PROTOCOL}
-ENV CONNECT_REST_ADVERTISED_HOST_NAME=${REST_ADVERTISED_HOST_NAME}
-ENV CONNECT_SASL_JAAS_CONFIG=${SASL_JAAS_CONFIG}
+ENV CONNECT_REST_ADVERTISED_HOST_NAME=localhost:8080
 ENV CONNECT_SASL_MECHANISM=${SASL_MECHANISM}
 ENV CONNECT_SECURITY_PROTOCOL=${SECURITY_PROTOCOL}
 ENV CONNECT_STATUS_STORAGE_REPLICATION_FACTOR=3
-ENV CONNECT_STATUS_STORAGE_TOPIC=traces-connector-status
+ENV CONNECT_STATUS_STORAGE_TOPIC=clickhouse-connector-status
 ENV CONNECT_VALUE_CONVERTER=org.apache.kafka.connect.json.JsonConverter
+
+# TODO(vkorolik) play with these
+ENV CONNECT_CONSUMER_FETCH_MAX_WAIT_MS=60000
+ENV CONNECT_CONSUMER_FETCH_MIN_BYTES=20971520
+ENV CONNECT_CONSUMER_MAX_PARTITION_FETCH_BYTES=419430400
+ENV CONNECT_CONSUMER_MAX_POLL_RECORDS=1000000
+ENV CONNECT_CONSUMER_REQUEST_TIMEOUT_MS=180000
+ENV CONNECT_CONSUMER_SESSION_TIMEOUT_MS=60000
+
+# TODO(vkorolik) add ecs service json and automation for creating
+ENV KAFKA_HEAP_OPTS="-Xms16g -Xmx30g"
