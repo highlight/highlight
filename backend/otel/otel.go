@@ -532,6 +532,8 @@ func (o *Handler) HandleMetric(w http.ResponseWriter, r *http.Request) {
 }
 
 func (o *Handler) getQuotaExceededByProject(ctx context.Context, projectIds map[uint32]struct{}, productType model2.PricingProductType) (map[uint32]bool, error) {
+	span, ctx := highlight.StartTrace(ctx, "otel.getQuotaExceededByProject", attribute.Int("NumProjects", len(projectIds)), attribute.String("ProductType", string(productType)))
+	defer highlight.EndTrace(span)
 	// If it's saved in Redis that a project has exceeded / not exceeded
 	// its quota, use that value. Else, add the projectId to a list of
 	// projects to query.
@@ -586,6 +588,9 @@ func (o *Handler) getQuotaExceededByProject(ctx context.Context, projectIds map[
 }
 
 func (o *Handler) submitProjectLogs(ctx context.Context, projectLogs map[string][]*clickhouse.LogRow) error {
+	span, ctx := highlight.StartTrace(ctx, "otel.submitProjectLogs")
+	defer highlight.EndTrace(span)
+
 	projectIds := map[uint32]struct{}{}
 	for _, logRows := range projectLogs {
 		for _, logRow := range logRows {
