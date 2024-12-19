@@ -612,12 +612,8 @@ func (o *Handler) submitProjectLogs(ctx context.Context, projectLogs map[string]
 		for _, logRow := range logRows {
 			// create service record for any services found in ingested logs
 			if logRow.ServiceName != "" {
-				project, err := o.resolver.Store.GetProject(c, int(logRow.ProjectId))
-				if err == nil && project != nil {
-					_, err := o.resolver.Store.UpsertService(c, *project, logRow.ServiceName, logRow.LogAttributes)
-					if err != nil {
-						log.WithContext(c).Error(e.Wrap(err, "failed to create service"))
-					}
+				if _, err = o.resolver.Store.UpsertService(c, int(logRow.ProjectId), logRow.ServiceName, logRow.LogAttributes); err != nil {
+					log.WithContext(c).Error(e.Wrap(err, "failed to upsert service"))
 				}
 			}
 

@@ -10,7 +10,7 @@ import (
 )
 
 func (store *Store) GetProject(ctx context.Context, id int) (*model.Project, error) {
-	return redis.CachedEval(ctx, store.Redis, fmt.Sprintf("project-id-%d", id), 150*time.Millisecond, time.Minute, func() (*model.Project, error) {
+	return redis.CachedEval(ctx, store.Redis, fmt.Sprintf("project-id-%d", id), time.Second, time.Minute, func() (*model.Project, error) {
 		var project model.Project
 
 		err := store.DB.WithContext(ctx).Where(&model.Project{
