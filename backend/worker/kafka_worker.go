@@ -374,7 +374,7 @@ func (k *KafkaBatchWorker) flushLogs(ctx context.Context, logRows []*clickhouse.
 
 			project, err := k.Worker.Resolver.Store.GetProject(ctx, int(logRow.ProjectId))
 			if err == nil && project != nil {
-				_, err := k.Worker.Resolver.Store.UpsertService(ctx, *project, logRow.ServiceName, logRow.LogAttributes)
+				_, err := k.Worker.Resolver.Store.UpsertService(ctx, project.ID, logRow.ServiceName, logRow.LogAttributes)
 
 				if err != nil {
 					log.WithContext(ctxX).Error(e.Wrap(err, "failed to create service"))

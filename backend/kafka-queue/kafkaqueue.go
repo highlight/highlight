@@ -5,20 +5,19 @@ import (
 	"crypto/tls"
 	"encoding/json"
 	"fmt"
-	"strings"
-	"time"
-
 	"github.com/highlight-run/highlight/backend/env"
-
+	"github.com/highlight-run/highlight/backend/util"
+	"github.com/highlight/highlight/sdk/highlight-go"
+	hmetric "github.com/highlight/highlight/sdk/highlight-go/metric"
 	"github.com/pkg/errors"
 	"github.com/samber/lo"
 	"github.com/segmentio/kafka-go"
 	"github.com/segmentio/kafka-go/sasl"
 	"github.com/segmentio/kafka-go/sasl/scram"
 	log "github.com/sirupsen/logrus"
-
-	"github.com/highlight-run/highlight/backend/util"
-	hmetric "github.com/highlight/highlight/sdk/highlight-go/metric"
+	"go.opentelemetry.io/otel/attribute"
+	"strings"
+	"time"
 )
 
 // KafkaOperationTimeout The timeout for all kafka send/receive operations.
@@ -307,6 +306,14 @@ func (p *Queue) Stop(ctx context.Context) {
 }
 
 func (p *Queue) Submit(ctx context.Context, partitionKey string, messages ...RetryableMessage) error {
+	span, ctx := highlight.StartTrace(
+		ctx, "kafka.submit",
+		attribute.String("kafka.topic", p.Topic),
+		attribute.String("kafka.key", partitionKey),
+		attribute.Int("kafka.messages", len(messages)),
+	)
+	defer highlight.EndTrace(span)
+
 	if len(messages) == 0 {
 		return nil
 	}
