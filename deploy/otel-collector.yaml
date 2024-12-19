@@ -69,12 +69,9 @@ processors:
         spike_limit_mib: 1024
         check_interval: 0.1s
     batch:
-        metadata_keys:
-            - x-highlight-project
-        metadata_cardinality_limit: 1000
         timeout: 5s
-        send_batch_size: 1000
-        send_batch_max_size: 10000
+        send_batch_size: 10000
+        send_batch_max_size: 100000
 service:
     telemetry:
         logs:
