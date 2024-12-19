@@ -605,17 +605,18 @@ func (o *Handler) submitProjectLogs(ctx context.Context, projectLogs map[string]
 		quotaExceededByProject = map[uint32]bool{}
 	}
 
+	sp, c := highlight.StartTrace(ctx, "otel.upsertServices")
 	var markBackendSetupProjectIds []uint32
 	var filteredRows []*clickhouse.LogRow
 	for _, logRows := range projectLogs {
 		for _, logRow := range logRows {
 			// create service record for any services found in ingested logs
 			if logRow.ServiceName != "" {
-				project, err := o.resolver.Store.GetProject(ctx, int(logRow.ProjectId))
+				project, err := o.resolver.Store.GetProject(c, int(logRow.ProjectId))
 				if err == nil && project != nil {
-					_, err := o.resolver.Store.UpsertService(ctx, *project, logRow.ServiceName, logRow.LogAttributes)
+					_, err := o.resolver.Store.UpsertService(c, *project, logRow.ServiceName, logRow.LogAttributes)
 					if err != nil {
-						log.WithContext(ctx).Error(e.Wrap(err, "failed to create service"))
+						log.WithContext(c).Error(e.Wrap(err, "failed to create service"))
 					}
 				}
 			}
@@ -632,17 +633,21 @@ func (o *Handler) submitProjectLogs(ctx context.Context, projectLogs map[string]
 			filteredRows = append(filteredRows, logRow)
 		}
 	}
+	highlight.EndTrace(sp)
 
+	sp, c = highlight.StartTrace(ctx, "otel.markBackendSetupImpl")
 	for _, projectId := range markBackendSetupProjectIds {
-		err := o.resolver.MarkBackendSetupImpl(ctx, int(projectId), model2.MarkBackendSetupTypeLogs)
+		err := o.resolver.MarkBackendSetupImpl(c, int(projectId), model2.MarkBackendSetupTypeLogs)
 		if err != nil {
-			log.WithContext(ctx).WithError(err).Error("failed to mark backend logs setup")
+			log.WithContext(c).WithError(err).Error("failed to mark backend logs setup")
 		}
 	}
+	highlight.EndTrace(sp)
 
+	sp, c = highlight.StartTrace(ctx, "otel.prepareMessages")
 	var messages []kafkaqueue.RetryableMessage
 	for _, logRow := range filteredRows {
-		if !o.resolver.IsLogIngested(ctx, logRow) {
+		if !o.resolver.IsLogIngested(c, logRow) {
 			continue
 		}
 		messages = append(messages, &kafkaqueue.LogRowMessage{
@@ -650,6 +655,8 @@ func (o *Handler) submitProjectLogs(ctx context.Context, projectLogs map[string]
 			LogRow: logRow,
 		})
 	}
+	highlight.EndTrace(sp)
+
 	err = o.resolver.BatchedQueue.Submit(ctx, "", messages...)
 	if err != nil {
 		return e.Wrap(err, "failed to submit otel project logs to public worker queue")
