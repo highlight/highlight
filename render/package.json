@@ -10,7 +10,7 @@
 		"test:screenshots": "DEV=true node dist/index.js",
 		"test:activity": "DEV=true node dist/activity.js",
 		"test": "yarn test:activity && yarn test:screenshots",
-		"zip": "zip -9 -r function.zip node_modules package.json -x node_modules/\\*\\*/\\*.map -x node_modules/\\*\\*/\\*.d.ts -x node_modules/typescript/\\* -x node_modules/tsup/\\* -x node_modules/@types/\\* -x node_modules/@highlight-run/node/node_modules/typescript/\\* -x node_modules/rrweb/node_modules/typescript/\\* -x node_modules/puppeteer-screen-recorder/node_modules/@ffmpeg-installer/\\* && cd dist && zip ../function.zip * && cd ..",
+		"zip": "zip -9 -r function.zip node_modules package.json -x node_modules/\\*\\*/\\*.map -x node_modules/\\*\\*/\\*.d.ts -x node_modules/typescript/\\* -x node_modules/tsup/\\* -x node_modules/@types/\\* -x node_modules/\\*\\*/node_modules/typescript/\\* -x node_modules/\\*\\*/node_modules/vite/\\* -x node_modules/puppeteer-screen-recorder/node_modules/@ffmpeg-installer/\\* -x node_modules/@esbuild/\\* && cd dist && zip ../function.zip * && cd ..",
 		"check": "node dist/check.js",
 		"update:screenshots": "aws lambda update-function-code --function-name session-screenshots --s3-bucket highlight-lambda-code --s3-key session-screenshots.zip > /dev/null && echo 'session-screenshots lambda updated'",
 		"update:activity": "aws lambda update-function-code --function-name session-activity --s3-bucket highlight-lambda-code --s3-key session-screenshots.zip > /dev/null && echo 'session-activity lambda updated'",
