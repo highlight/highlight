@@ -533,3 +533,52 @@ jobs:
                   task-definition: ${{ steps.image-opentelemetry-collector.outputs.task-definition }}
                   service: opentelemetry-collector-service
                   cluster: highlight-production-cluster
+
+    deploy_kafka_connect:
+        runs-on: codebuild-highlight-github-actions-runner-${{ github.run_id }}-${{ github.run_attempt }}-arm-3.0-large
+        steps:
+            - name: Configure AWS Credentials
+              uses: aws-actions/configure-aws-credentials@v4
+              with:
+                  aws-region: us-east-2
+                  role-to-assume: ${{ secrets.AWS_ROLE_TO_ASSUME }}
+            - name: Login to Amazon ECR
+              id: login-ecr
+              uses: aws-actions/amazon-ecr-login@v2
+
+            - name: Check out the repo
+              uses: actions/checkout@v4
+            - uses: dorny/paths-filter@v2
+              id: filter
+              with:
+                  filters: |
+                      kafka-changed:
+                        - '.github/workflows/deploy.yml'
+                        - 'deploy/kafka-connect.Dockerfile'
+
+            # Edit and deploy kafka connect
+            - name: Build, tag, and push arm64 image to Amazon ECR
+              if: steps.filter.outputs.kafka-changed == 'true'
+              env:
+                  ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+                  ECR_REPOSITORY: highlight-kafka-connect
+                  IMAGE_TAG: ${{ github.sha }}
+              run: |
+                  cd deploy
+                  docker buildx build --platform linux/arm64 -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG.arm64 -f kafka-connect.Dockerfile .
+                  docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG.arm64
+            - name: Replace image label for kafka connect
+              if: steps.filter.outputs.kafka-changed == 'true'
+              id: image-kafka-connect
+              uses: aws-actions/amazon-ecs-render-task-definition@v1
+              with:
+                  task-definition: deploy/kafka-connect-task.json
+                  container-name: kafka-connect
+                  image: ${{ steps.login-ecr.outputs.registry }}/highlight-kafka-connect:${{ github.sha }}.arm64
+            - name: Deploy to Amazon ECS kafka connect service
+              if: steps.filter.outputs.kafka-changed == 'true'
+              uses: aws-actions/amazon-ecs-deploy-task-definition@v1
+              with:
+                  task-definition: ${{ steps.image-kafka-connect.outputs.task-definition }}
+                  service: traces-kafka-connect-service
+                  cluster: highlight-ec2-prod

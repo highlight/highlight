@@ -1,0 +1,132 @@
+{
+	"family": "traces-kafka-connect",
+	"containerDefinitions": [
+		{
+			"name": "kafka-connect",
+			"image": "173971919437.dkr.ecr.us-east-2.amazonaws.com/highlight-kafka-connect:latest",
+			"cpu": 0,
+			"memoryReservation": 31744,
+			"portMappings": [
+				{
+					"name": "kafka-connect-rest",
+					"containerPort": 8083,
+					"hostPort": 8083,
+					"protocol": "tcp",
+					"appProtocol": "http"
+				}
+			],
+			"essential": true,
+			"environment": [],
+			"mountPoints": [],
+			"volumesFrom": [],
+			"secrets": [
+				{
+					"name": "CONNECT_BOOTSTRAP_SERVERS",
+					"valueFrom": "arn:aws:secretsmanager:us-east-2:173971919437:secret:kafka/bootstrap_servers-URhpdm"
+				},
+				{
+					"name": "CONNECT_CONSUMER_SASL_JAAS_CONFIG",
+					"valueFrom": "arn:aws:secretsmanager:us-east-2:173971919437:secret:kafka/sasl_jaas_config-JKQ4tf"
+				},
+				{
+					"name": "CONNECT_PRODUCER_SASL_JAAS_CONFIG",
+					"valueFrom": "arn:aws:secretsmanager:us-east-2:173971919437:secret:kafka/sasl_jaas_config-JKQ4tf"
+				},
+				{
+					"name": "CONNECT_SASL_JAAS_CONFIG",
+					"valueFrom": "arn:aws:secretsmanager:us-east-2:173971919437:secret:kafka/sasl_jaas_config-JKQ4tf"
+				}
+			],
+			"logConfiguration": {
+				"logDriver": "awslogs",
+				"options": {
+					"awslogs-group": "/ecs/traces-kafka-connect",
+					"awslogs-create-group": "true",
+					"awslogs-region": "us-east-2",
+					"awslogs-stream-prefix": "ecs"
+				},
+				"secretOptions": []
+			},
+			"systemControls": []
+		},
+		{
+			"name": "kafka-connect-ui",
+			"image": "provectuslabs/kafka-ui",
+			"cpu": 0,
+			"memoryReservation": 1024,
+			"links": ["kafka-connect:kafka-connect"],
+			"portMappings": [
+				{
+					"name": "kafka-connect-ui",
+					"containerPort": 8080,
+					"hostPort": 8080,
+					"protocol": "tcp",
+					"appProtocol": "http"
+				}
+			],
+			"essential": true,
+			"environment": [
+				{
+					"name": "KAFKA_CLUSTERS_0_NAME",
+					"value": "prod_msk_v3"
+				},
+				{
+					"name": "KAFKA_CLUSTERS_0_PROPERTIES_SECURITY_PROTOCOL",
+					"value": "SASL_SSL"
+				},
+				{
+					"name": "KAFKA_CLUSTERS_0_KAFKACONNECT_0_ADDRESS",
+					"value": "http://kafka-connect:8083"
+				},
+				{
+					"name": "KAFKA_CLUSTERS_0_PROPERTIES_SASL_MECHANISM",
+					"value": "SCRAM-SHA-512"
+				},
+				{
+					"name": "KAFKA_CLUSTERS_0_READONLY",
+					"value": "false"
+				},
+				{
+					"name": "KAFKA_CLUSTERS_0_KAFKACONNECT_0_NAME",
+					"value": "kafka-connect"
+				}
+			],
+			"mountPoints": [],
+			"volumesFrom": [],
+			"secrets": [
+				{
+					"name": "KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS",
+					"valueFrom": "arn:aws:secretsmanager:us-east-2:173971919437:secret:kafka/bootstrap_servers-URhpdm"
+				},
+				{
+					"name": "KAFKA_CLUSTERS_0_PROPERTIES_SASL_JAAS_CONFIG",
+					"valueFrom": "arn:aws:secretsmanager:us-east-2:173971919437:secret:kafka/sasl_jaas_config-JKQ4tf"
+				}
+			],
+			"user": "0",
+			"logConfiguration": {
+				"logDriver": "awslogs",
+				"options": {
+					"awslogs-group": "/ecs/traces-kafka-connect-ui",
+					"awslogs-create-group": "true",
+					"awslogs-region": "us-east-2",
+					"awslogs-stream-prefix": "ecs"
+				},
+				"secretOptions": []
+			},
+			"systemControls": []
+		}
+	],
+	"taskRoleArn": "arn:aws:iam::173971919437:role/ecsTaskExecutionRole",
+	"executionRoleArn": "arn:aws:iam::173971919437:role/ecsTaskExecutionRole",
+	"networkMode": "bridge",
+	"volumes": [],
+	"placementConstraints": [],
+	"requiresCompatibilities": ["EC2"],
+	"cpu": "4096",
+	"memory": "32768",
+	"runtimePlatform": {
+		"cpuArchitecture": "ARM64",
+		"operatingSystemFamily": "LINUX"
+	}
+}
