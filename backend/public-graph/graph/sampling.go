@@ -4,22 +4,20 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"hash/fnv"
-	"regexp"
-	"time"
-
 	"github.com/aws/smithy-go/ptr"
 	"github.com/google/uuid"
-	e "github.com/pkg/errors"
-	log "github.com/sirupsen/logrus"
-
 	"github.com/highlight-run/highlight/backend/clickhouse"
 	"github.com/highlight-run/highlight/backend/model"
 	"github.com/highlight-run/highlight/backend/parser"
 	privateModel "github.com/highlight-run/highlight/backend/private-graph/graph/model"
 	modelInputs "github.com/highlight-run/highlight/backend/public-graph/graph/model"
-	"github.com/highlight-run/highlight/backend/util"
 	"github.com/highlight/highlight/sdk/highlight-go"
+	e "github.com/pkg/errors"
+	log "github.com/sirupsen/logrus"
+	"go.opentelemetry.io/otel/attribute"
+	"hash/fnv"
+	"regexp"
+	"time"
 )
 
 func (r *Resolver) IsTraceIngested(ctx context.Context, trace *clickhouse.TraceRow) bool {
@@ -48,28 +46,25 @@ func (r *Resolver) IsTraceIngestedByFilter(ctx context.Context, trace *clickhous
 }
 
 func (r *Resolver) IsLogIngested(ctx context.Context, logRow *clickhouse.LogRow) bool {
-	span := util.StartSpan(
+	span, ctx := highlight.StartTrace(ctx,
 		"sampling.IsIngestedBy",
-		util.Tag("project", logRow.ProjectId),
-		util.Tag(highlight.TraceKeyAttribute, logRow.UUID),
-		util.Tag("product", privateModel.ProductTypeLogs),
-		util.Tag("ingested", true),
+		attribute.Int("project", int(logRow.ProjectId)),
+		attribute.String(highlight.TraceKeyAttribute, logRow.UUID),
+		attribute.String("product", string(privateModel.ProductTypeLogs)),
+		attribute.Bool("ingested", true),
 	)
-	defer span.Finish()
+	defer span.End()
 
 	if !r.IsLogIngestedBySample(ctx, logRow) {
-		span.SetAttribute("ingested", false)
-		span.SetAttribute("reason", privateModel.IngestReasonSample)
+		span.SetAttributes(attribute.Bool("ingested", false), attribute.String("reason", string(privateModel.IngestReasonSample)))
 		return false
 	}
 	if !r.IsLogIngestedByFilter(ctx, logRow) {
-		span.SetAttribute("ingested", false)
-		span.SetAttribute("reason", privateModel.IngestReasonFilter)
+		span.SetAttributes(attribute.Bool("ingested", false), attribute.String("reason", string(privateModel.IngestReasonFilter)))
 		return false
 	}
 	if !r.IsLogIngestedByRateLimit(ctx, logRow) {
-		span.SetAttribute("ingested", false)
-		span.SetAttribute("reason", privateModel.IngestReasonRate)
+		span.SetAttributes(attribute.Bool("ingested", false), attribute.String("reason", string(privateModel.IngestReasonRate)))
 		return false
 	}
 	return true
