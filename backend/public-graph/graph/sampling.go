@@ -18,6 +18,8 @@ import (
 	"github.com/highlight-run/highlight/backend/parser"
 	privateModel "github.com/highlight-run/highlight/backend/private-graph/graph/model"
 	modelInputs "github.com/highlight-run/highlight/backend/public-graph/graph/model"
+	"github.com/highlight-run/highlight/backend/util"
+	"github.com/highlight/highlight/sdk/highlight-go"
 )
 
 func (r *Resolver) IsTraceIngested(ctx context.Context, trace *clickhouse.TraceRow) bool {
@@ -46,13 +48,28 @@ func (r *Resolver) IsTraceIngestedByFilter(ctx context.Context, trace *clickhous
 }
 
 func (r *Resolver) IsLogIngested(ctx context.Context, logRow *clickhouse.LogRow) bool {
+	span := util.StartSpan(
+		"sampling.IsIngestedBy",
+		util.Tag("project", logRow.ProjectId),
+		util.Tag(highlight.TraceKeyAttribute, logRow.UUID),
+		util.Tag("product", privateModel.ProductTypeLogs),
+		util.Tag("ingested", true),
+	)
+	defer span.Finish()
+
 	if !r.IsLogIngestedBySample(ctx, logRow) {
+		span.SetAttribute("ingested", false)
+		span.SetAttribute("reason", privateModel.IngestReasonSample)
 		return false
 	}
 	if !r.IsLogIngestedByFilter(ctx, logRow) {
+		span.SetAttribute("ingested", false)
+		span.SetAttribute("reason", privateModel.IngestReasonFilter)
 		return false
 	}
 	if !r.IsLogIngestedByRateLimit(ctx, logRow) {
+		span.SetAttribute("ingested", false)
+		span.SetAttribute("reason", privateModel.IngestReasonRate)
 		return false
 	}
 	return true
