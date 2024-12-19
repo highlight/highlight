@@ -43,7 +43,7 @@ receivers:
 exporters:
     otlphttp:
         endpoint: 'http://pub.prod.vpc.highlight.io:8082/otel'
-        compression: gzip
+        compression: snappy
         auth:
             authenticator: headers_setter
         timeout: 30s
