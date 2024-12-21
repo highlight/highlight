@@ -90,6 +90,7 @@ import { RustTracesContent } from './traces/rust'
 import { AWSLambdaContent } from './traces/serverless/lambda'
 import { JSHonoContent } from './backend/js/hono'
 import { ReactNativeContent } from './mobile/react-native'
+import { GoFiberReorganizedContent } from './go/fiber'
 
 export type QuickStartOptions = {
 	title: string
@@ -514,5 +515,8 @@ export const quickStartContent = {
 	other: {
 		[QuickStartType.SelfHost]: SelfHostContent,
 		[QuickStartType.DevDeploy]: DevDeploymentContent,
+	},
+	go: {
+		[QuickStartType.GoFiber]: GoFiberReorganizedContent,
 	},
 } as const
