@@ -89,6 +89,7 @@ import { RubyOtherTracesContent } from './traces/ruby/other'
 import { RustTracesContent } from './traces/rust'
 import { AWSLambdaContent } from './traces/serverless/lambda'
 import { JSHonoContent } from './backend/js/hono'
+import { GoFiberReorganizedContent } from './go/fiber'
 
 export type QuickStartOptions = {
 	title: string
@@ -492,5 +493,8 @@ export const quickStartContent = {
 	other: {
 		[QuickStartType.SelfHost]: SelfHostContent,
 		[QuickStartType.DevDeploy]: DevDeploymentContent,
+	},
+	go: {
+		[QuickStartType.GoFiber]: GoFiberReorganizedContent,
 	},
 } as const
