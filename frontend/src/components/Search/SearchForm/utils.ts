@@ -5,24 +5,6 @@ import { SearchToken } from '@/components/Search/utils'
 export const DEFAULT_OPERATOR = '=' as const
 export const BODY_KEY = 'message' as const
 
-export const stringifySearchQuery = (params: SearchExpression[]) => {
-	const querySegments: string[] = []
-	let currentOffset = 0
-
-	params.forEach(({ text, start }, index) => {
-		const spaces = Math.max(start - currentOffset, index === 0 ? 0 : 1)
-		currentOffset = start + text.length
-
-		if (spaces > 0) {
-			querySegments.push(' '.repeat(spaces))
-		}
-
-		querySegments.push(text)
-	})
-
-	return querySegments.join('').trim()
-}
-
 const NEED_QUOTE_REGEX = /["'` :=><]/
 
 export const quoteQueryValue = (value: string | number) => {
@@ -58,6 +40,15 @@ export type TokenGroup = {
 
 const QUOTE_CHARS = ['"', "'", '`']
 
+export const OPERATOR_TOKENS = [
+	SearchGrammarLexer.EQ,
+	SearchGrammarLexer.NEQ,
+	SearchGrammarLexer.GT,
+	SearchGrammarLexer.GTE,
+	SearchGrammarLexer.LT,
+	SearchGrammarLexer.LTE,
+]
+
 export const buildTokenGroups = (tokens: SearchToken[]) => {
 	const tokenGroups: TokenGroup[] = []
 	let currentGroup: TokenGroup | null = null
@@ -80,6 +71,16 @@ export const buildTokenGroups = (tokens: SearchToken[]) => {
 		}
 	}
 
+	const isNearOperator = (index: number): boolean => {
+		const prevToken = tokens[index - 1]
+		const nextToken = tokens[index + 1]
+
+		return (
+			(!!prevToken && OPERATOR_TOKENS.includes(prevToken.type)) ||
+			(!!nextToken && OPERATOR_TOKENS.includes(nextToken.type))
+		)
+	}
+
 	tokens.forEach((token, index) => {
 		if (token.type === SearchGrammarLexer.EOF) {
 			return
@@ -95,7 +96,10 @@ export const buildTokenGroups = (tokens: SearchToken[]) => {
 		}
 
 		const tokenIsSeparator =
-			SEPARATOR_TOKENS.includes(token.type) || token.text.trim() === ''
+			(SEPARATOR_TOKENS.includes(token.type) ||
+				token.text.trim() === '') &&
+			// Don't treat spaces as separators if they're around operators
+			!(token.text.trim() === '' && isNearOperator(index))
 
 		// Start a new group if we encounter a space outside of quotes and parentheses
 		if (tokenIsSeparator && !insideQuotes && !insideParens) {
@@ -166,4 +170,70 @@ export const buildTokenGroups = (tokens: SearchToken[]) => {
 	}
 
 	return tokenGroups
+}
+
+export const getActivePart = (
+	cursorIndex: number,
+	queryParts: SearchExpression[],
+): SearchExpression => {
+	if (!queryParts.length) {
+		return {
+			key: BODY_KEY,
+			operator: DEFAULT_OPERATOR,
+			value: '',
+			text: '',
+			start: 0,
+			stop: 0,
+		}
+	}
+
+	// Find the part that contains the cursor
+	for (let i = 0; i < queryParts.length; i++) {
+		const currentPart = queryParts[i]
+		const nextPart = queryParts[i + 1]
+
+		// If cursor is within current part's range
+		if (
+			cursorIndex >= currentPart.start &&
+			cursorIndex <= currentPart.stop + 1
+		) {
+			return currentPart
+		}
+
+		// Handle spaces between parts
+		if (
+			nextPart &&
+			cursorIndex > currentPart.stop &&
+			cursorIndex < nextPart.start
+		) {
+			// If cursor is closer to current part, return current part
+			if (!!currentPart.value.trim()) {
+				return {
+					key: BODY_KEY,
+					operator: DEFAULT_OPERATOR,
+					value: '',
+					text: '',
+					start: currentPart.stop + 1,
+					stop: currentPart.stop + 1,
+				}
+			} else if (cursorIndex < nextPart.start) {
+				return currentPart
+			} else {
+				return nextPart
+			}
+		}
+	}
+
+	// If cursor is after all parts, create new part
+	const lastPart = queryParts[queryParts.length - 1]
+	const lastPartStop = Math.max(lastPart.stop + 1, cursorIndex)
+
+	return {
+		key: BODY_KEY,
+		operator: DEFAULT_OPERATOR,
+		value: '',
+		text: '',
+		start: lastPartStop,
+		stop: lastPartStop,
+	}
 }

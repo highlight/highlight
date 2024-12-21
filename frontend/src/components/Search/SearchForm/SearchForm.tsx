@@ -45,9 +45,8 @@ import {
 import { QueryPart } from '@/components/Search/SearchForm/QueryPart'
 import {
 	BODY_KEY,
-	DEFAULT_OPERATOR,
+	getActivePart,
 	quoteQueryValue,
-	stringifySearchQuery,
 } from '@/components/Search/SearchForm/utils'
 import {
 	useGetKeysLazyQuery,
@@ -112,7 +111,6 @@ export type SearchFormProps = {
 	hideDatePicker?: boolean
 	hideCreateAlert?: boolean
 	savedSegmentType?: SavedSegmentEntityType
-	textAreaRef?: React.RefObject<HTMLTextAreaElement>
 	isPanelView?: boolean
 	resultFormatted?: string
 	loading?: boolean
@@ -134,7 +132,6 @@ const SearchForm: React.FC<SearchFormProps> = ({
 	hideDatePicker,
 	hideCreateAlert,
 	savedSegmentType,
-	textAreaRef,
 	isPanelView,
 	resultFormatted,
 	loading,
@@ -183,7 +180,6 @@ const SearchForm: React.FC<SearchFormProps> = ({
 		<Search
 			startDate={startDate}
 			endDate={endDate}
-			textAreaRef={textAreaRef}
 			productType={productType}
 			hideIcon={isPanelView}
 			hasAdditonalActions={!hideCreateAlert || !hideDatePicker}
@@ -333,7 +329,6 @@ export const Search: React.FC<{
 	hideIcon?: boolean
 	placeholder?: string
 	productType: ProductType
-	textAreaRef?: React.RefObject<HTMLTextAreaElement>
 	hasAdditonalActions?: boolean
 	creatables?: { [key: string]: Creatable }
 	defaultValueOptions?: string[]
@@ -345,7 +340,6 @@ export const Search: React.FC<{
 	endDate,
 	hideIcon,
 	placeholder,
-	textAreaRef,
 	productType,
 	hasAdditonalActions,
 	creatables,
@@ -371,8 +365,7 @@ export const Search: React.FC<{
 	const { project_id } = useParams()
 	const [_, setSortColumn] = useQueryParam(SORT_COLUMN, StringParam)
 	const [__, setSortDirection] = useQueryParam(SORT_DIRECTION, StringParam)
-	const defaultInputRef = useRef<HTMLTextAreaElement | null>(null)
-	const inputRef = textAreaRef || defaultInputRef
+	const inputRef = useRef<HTMLTextAreaElement | null>(null)
 	const [keys, setKeys] = useState<Keys | undefined>()
 	const [values, setValues] = useState<string[] | undefined>()
 	const [showErrors, setShowErrors] = useState(false)
@@ -402,14 +395,17 @@ export const Search: React.FC<{
 		}
 	}, [hasErrors, setShowErrors, showErrors])
 
-	// TODO: code smell, user is not able to use "message" as a search key
-	// because we are reserving it for the body implicitly
 	const showValues =
+		// TODO: code smell, user is not able to use "message" as a search key
+		// because we are reserving it for the body implicitly
 		activePart.key !== BODY_KEY &&
-		activePart.text.includes(`${activePart.key}${activePart.operator}`)
+		activePart.text
+			.replace(/\s+/g, '')
+			.startsWith(`${activePart.key}${activePart.operator}`)
 	const loading = showValues ? valuesLoading : keysLoading
 	const showValueSelect =
-		activePart.text === `${activePart.key}${activePart.operator}` ||
+		activePart.text.replace(/\s+/g, '') ===
+			`${activePart.key}${activePart.operator}` ||
 		!!activePart.value?.length
 
 	let visibleItems: SearchResult[] = showValues
@@ -424,7 +420,7 @@ export const Search: React.FC<{
 	const showOperators = !!keyMatch
 
 	const visibleRecentSearch = recentSearches.filter((history) => {
-		return stringifySearchQuery(history.queryParts).indexOf(query) > -1
+		return history.query.indexOf(query) > -1
 	})
 
 	if (showOperators) {
@@ -545,7 +541,15 @@ export const Search: React.FC<{
 			},
 		})
 		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [activePart.value, showValues, startDate, endDate, productType, event])
+	}, [
+		activePart.value,
+		activePart.key,
+		showValues,
+		startDate,
+		endDate,
+		productType,
+		event,
+	])
 
 	useEffect(() => {
 		// Ensure the cursor is placed in the correct position after updating the
@@ -591,6 +595,7 @@ export const Search: React.FC<{
 	) => {
 		const isValueSelect = item.type === 'Value'
 		const isExists = !!EXISTS_OPERATORS.find((eo) => eo === item.name)
+		const originalStop = activePart.stop
 		let cursorShift = 0
 
 		if (item.type === 'Operator') {
@@ -611,13 +616,19 @@ export const Search: React.FC<{
 			activePart.text = `${key}${space}${activePart.operator}`
 			activePart.stop = activePart.start + activePart.text.length
 		} else if (isValueSelect) {
+			const beforeOp =
+				activePart.text.match(
+					`${activePart.key}(\\s*)${activePart.operator}`,
+				)?.[1] || ''
+			const afterOp =
+				activePart.text.match(`${activePart.operator}(\\s*)`)?.[1] || ''
+
 			const creatableType = creatables?.[activePart.key]
-			if (!!creatableType) {
-				activePart.value = quoteQueryValue(creatableType.value)
-			} else {
-				activePart.value = quoteQueryValue(item.name)
-			}
-			activePart.text = `${activePart.key}${activePart.operator}${activePart.value}`
+			activePart.value = quoteQueryValue(
+				creatableType ? creatableType.value : item.name,
+			)
+
+			activePart.text = `${activePart.key}${beforeOp}${activePart.operator}${afterOp}${activePart.value}`
 			activePart.stop = activePart.start + activePart.text.length
 		} else {
 			activePart.key = item.name
@@ -626,7 +637,11 @@ export const Search: React.FC<{
 			activePart.stop = activePart.start + activePart.key.length
 		}
 
-		let newQuery = stringifySearchQuery(queryParts)
+		let newQuery =
+			query.substring(0, activePart.start) +
+			activePart.text +
+			query.substring(originalStop + 1)
+
 		let newCursorPosition = activePart.stop + cursorShift
 
 		if (selectNewItem && isValueSelect) {
@@ -650,10 +665,9 @@ export const Search: React.FC<{
 	}
 
 	const handleHistorySelection = (
-		queryParts: SearchExpression[],
+		newQuery: string,
 		selectNewItem: boolean = false,
 	) => {
-		let newQuery = stringifySearchQuery(queryParts)
 		let newCursorPosition = newQuery.length
 
 		if (selectNewItem) {
@@ -767,6 +781,8 @@ export const Search: React.FC<{
 							ref={inputRef}
 							style={{ resize: 'none', overflowY: 'hidden' }}
 							spellCheck={false}
+							autoCorrect="off"
+							autoCapitalize="off"
 						/>
 					}
 					value={query}
@@ -948,7 +964,7 @@ export const Search: React.FC<{
 													key={index}
 													onClick={(e) => {
 														handleHistorySelection(
-															data.queryParts,
+															data.query,
 															e.metaKey ||
 																e.ctrlKey,
 														)
@@ -1135,42 +1151,6 @@ export const Search: React.FC<{
 	)
 }
 
-const getActivePart = (
-	cursorIndex: number,
-	queryParts: SearchExpression[],
-): SearchExpression => {
-	let activePartIndex
-
-	queryParts.find((param, index) => {
-		if (param.stop < cursorIndex - 1) {
-			return false
-		}
-
-		activePartIndex = index
-		return true
-	})
-
-	if (activePartIndex === undefined) {
-		const lastPartStop = Math.max(
-			queryParts[queryParts.length - 1]?.stop + 1,
-			cursorIndex,
-		)
-
-		const activePart = {
-			key: BODY_KEY,
-			operator: DEFAULT_OPERATOR,
-			value: '',
-			text: '',
-			start: lastPartStop,
-			stop: lastPartStop,
-		}
-		queryParts.push(activePart)
-		return activePart
-	} else {
-		return queryParts[activePartIndex]
-	}
-}
-
 const getVisibleKeys = (
 	queryText: string,
 	activeQueryPart?: SearchExpression,
@@ -1200,14 +1180,14 @@ const getVisibleValues = (
 	activeQueryPart?: SearchExpression,
 	values?: string[],
 ): SearchResult[] => {
-	const activePart = activeQueryPart?.value ?? ''
+	const activePart = (activeQueryPart?.value ?? '').trim()
 	const filteredValues =
 		values?.filter(
 			(v) =>
 				// Don't filter if no value has been typed
 				!activePart.length ||
 				// Return values that match the query part
-				v.indexOf(activePart) > -1,
+				v.toLowerCase().includes(activePart.toLowerCase()),
 		) || []
 
 	return filteredValues.map((value) => ({

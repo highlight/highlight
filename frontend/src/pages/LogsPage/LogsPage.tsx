@@ -16,7 +16,7 @@ import { useGetLogs } from '@pages/LogsPage/useGetLogs'
 import useLocalStorage from '@rehooks/local-storage'
 import { useParams } from '@util/react-router/useParams'
 import moment from 'moment'
-import React, { useEffect, useMemo, useRef, useState } from 'react'
+import React, { useEffect, useMemo, useState } from 'react'
 import { Helmet } from 'react-helmet'
 import { useQueryParam } from 'use-query-params'
 
@@ -30,7 +30,6 @@ import {
 	TIME_MODE,
 } from '@/components/Search/SearchForm/constants'
 import {
-	DEFAULT_INPUT_HEIGHT,
 	FixedRangePreset,
 	PermalinkPreset,
 	QueryParam,
@@ -78,9 +77,6 @@ type Props = {
 	presetDefault: DateRangePreset
 }
 
-const HEADERS_AND_CHARTS_HEIGHT = 189
-const LOAD_MORE_HEIGHT = 28
-
 const LogsPageInner = ({ timeMode, logCursor, presetDefault }: Props) => {
 	const { project_id } = useParams<{
 		project_id: string
@@ -92,7 +88,6 @@ const LogsPageInner = ({ timeMode, logCursor, presetDefault }: Props) => {
 		return parseSearch(query).queryParts
 	}, [query])
 
-	const textAreaRef = useRef<HTMLTextAreaElement | null>(null)
 	const [
 		getAiQuerySuggestion,
 		{ data: aiData, error: aiError, loading: aiLoading },
@@ -227,21 +222,6 @@ const LogsPageInner = ({ timeMode, logCursor, presetDefault }: Props) => {
 		totalCount += b.metric_value ?? 0
 	}
 
-	const otherElementsHeight = useMemo(() => {
-		let height = HEADERS_AND_CHARTS_HEIGHT
-		if (textAreaRef.current) {
-			height += textAreaRef.current.clientHeight
-		} else {
-			height += DEFAULT_INPUT_HEIGHT
-		}
-
-		if (moreLogs) {
-			height += LOAD_MORE_HEIGHT
-		}
-
-		return height
-	}, [moreLogs, textAreaRef])
-
 	useEffect(() => {
 		analytics.page('Logs')
 	}, [])
@@ -291,6 +271,8 @@ const LogsPageInner = ({ timeMode, logCursor, presetDefault }: Props) => {
 					display="flex"
 					flexGrow={1}
 					border="dividerWeak"
+					height="full"
+					overflow="hidden"
 					shadow="medium"
 				>
 					<SearchForm
@@ -303,7 +285,6 @@ const LogsPageInner = ({ timeMode, logCursor, presetDefault }: Props) => {
 						productType={ProductType.Logs}
 						timeMode={timeMode}
 						savedSegmentType={SavedSegmentEntityType.Log}
-						textAreaRef={textAreaRef}
 						enableAIMode={
 							workspaceSettings?.workspaceSettings
 								?.ai_query_builder
@@ -324,7 +305,11 @@ const LogsPageInner = ({ timeMode, logCursor, presetDefault }: Props) => {
 						loading={histogramLoading}
 						metrics={histogramData}
 					/>
-					<Box borderTop="dividerWeak" height="full">
+					<Box
+						borderTop="dividerWeak"
+						height="full"
+						overflow="hidden"
+					>
 						<LogsOverageCard />
 						<IntegrationCta />
 						<LogsTable
@@ -342,7 +327,6 @@ const LogsPageInner = ({ timeMode, logCursor, presetDefault }: Props) => {
 								searchTimeContext.rebaseSearchTime
 							}
 							fetchMoreWhenScrolled={fetchMoreWhenScrolled}
-							bodyHeight={`calc(100vh - ${otherElementsHeight}px)`}
 							selectedColumns={selectedColumns}
 							setSelectedColumns={setSelectedColumns}
 							pollingExpired={pollingExpired}

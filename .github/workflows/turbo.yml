@@ -23,22 +23,6 @@ jobs:
                   submodules: recursive
                   fetch-depth: 0
 
-            - uses: dorny/paths-filter@v2
-              id: filter
-              with:
-                  filters: |
-                      npm-changed:
-                        - 'sdk/client/**'
-                        - 'sdk/firstload/**'
-                        - 'sdk/highlight-apollo/**'
-                        - 'sdk/highlight-cloudflare/**'
-                        - 'sdk/highlight-nest/**'
-                        - 'sdk/highlight-next/**'
-                        - 'sdk/highlight-node/**'
-                        - 'sdk/highlight-react/**'
-                        - 'sdk/highlight-remix/**'
-                        - 'sdk/opentelemetry-sdk-workers/packages/opentelemetry-sdk-workers/**'
-
             # automatically caches dependencies based on yarn.lock
             - name: Setup Node.js environment
               uses: actions/setup-node@v4
@@ -49,7 +33,7 @@ jobs:
             - name: Install js dependencies
               run: yarn
 
-            - name: Check check for duplicate deps
+            - name: Check yarn for duplicate deps
               run: yarn dedupe --check
 
             - name: Check generated files for Reflame
@@ -77,7 +61,15 @@ jobs:
               env:
                   GRAPHCMS_TOKEN: ${{ secrets.GRAPHCMS_TOKEN }}
                   NEXT_PUBLIC_HIGHLIGHT_PROJECT_ID: 1jdkoe52
-                  REACT_APP_COMMIT_SHA: ${{ github.sha }}
+                  REACT_APP_COMMIT_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+
+            - name: Build production frontend
+              # does not work for open source builds as doppler is required
+              if: github.event.pull_request.head.repo.full_name == 'highlight/highlight' || github.ref == 'refs/heads/main' || github.event_name == 'release'
+              run: doppler run -- yarn build:frontend
+              env:
+                  DOPPLER_TOKEN: ${{ secrets.DOPPLER_PROD_RENDER_SECRET }}
+                  REACT_APP_COMMIT_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
 
             - name: Build render
               # does not work for open source builds as doppler is required
@@ -85,6 +77,7 @@ jobs:
               run: doppler run -- yarn build:render
               env:
                   DOPPLER_TOKEN: ${{ secrets.DOPPLER_PROD_RENDER_SECRET }}
+                  REACT_APP_COMMIT_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
 
             - name: Upload frontend sourcemaps
               if: github.ref == 'refs/heads/main'
@@ -92,6 +85,12 @@ jobs:
               env:
                   HIGHLIGHT_API_KEY: ${{ secrets.HIGHLIGHT_SOURCEMAP_API_KEY }}
                   APP_VERSION: ${{ github.event.pull_request.head.sha || github.sha }}
+
+            - name: Upload frontend code
+              run: yarn publish:frontend
+              env:
+                  GIT_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+                  PREVIEW: ${{ github.event.pull_request.head.repo.full_name == 'highlight/highlight' && github.ref != 'refs/heads/main' }}
 
             - name: Configure yarn npm registry credentials
               if: github.event.pull_request.head.repo.full_name == 'highlight/highlight' || github.ref == 'refs/heads/main'

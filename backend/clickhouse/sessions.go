@@ -479,9 +479,9 @@ func (client *Client) DeleteSessions(ctx context.Context, projectId int, session
 }
 
 var SessionsTableConfig = model.TableConfig{
-	TableName:        SessionsTable,
-	KeysToColumns:    fieldMap,
-	AttributesColumn: "Fields",
+	TableName:         SessionsTable,
+	KeysToColumns:     fieldMap,
+	AttributesColumns: []model.ColumnMapping{{Column: "Fields"}},
 	ReservedKeys: lo.Map(modelInputs.AllReservedSessionKey, func(item modelInputs.ReservedSessionKey, _ int) string {
 		return item.String()
 	}),
@@ -496,10 +496,10 @@ var reservedSessionKeys = lo.Map(modelInputs.AllReservedSessionKey, func(key mod
 })
 
 var SessionsJoinedTableConfig = model.TableConfig{
-	TableName:        SessionsJoinedTable,
-	AttributesColumn: "RelevantFields",
-	AttributesTable:  "fields",
-	BodyColumn:       `concat(coalesce(nullif(arrayFilter((k, v) -> k = 'email', RelevantFields) [1].2,''), nullif(Identifier, ''), nullif(arrayFilter((k, v) -> k = 'device_id', RelevantFields) [1].2, ''), 'unidentified'), ': ', City, if(City != '', ', ', ''), Country)`,
+	TableName:         SessionsJoinedTable,
+	AttributesColumns: []model.ColumnMapping{{Column: "RelevantFields"}},
+	AttributesTable:   "fields",
+	BodyColumn:        `concat(coalesce(nullif(arrayFilter((k, v) -> k = 'email', RelevantFields) [1].2,''), nullif(Identifier, ''), nullif(arrayFilter((k, v) -> k = 'device_id', RelevantFields) [1].2, ''), 'unidentified'), ': ', City, if(City != '', ', ', ''), Country)`,
 	KeysToColumns: map[string]string{
 		string(modelInputs.ReservedSessionKeyActiveLength):       "ActiveLength",
 		string(modelInputs.ReservedSessionKeyServiceVersion):     "AppVersion",
@@ -678,8 +678,10 @@ func (client *Client) GetConn() driver.Conn {
 func getAttributeFields(config model.TableConfig, filters listener.Filters) []string {
 	attributeFields := []string{"email", "device_id"}
 	for _, f := range filters {
-		if f.Column == config.AttributesColumn {
-			attributeFields = append(attributeFields, f.Key)
+		for _, c := range config.AttributesColumns {
+			if f.Column == c.Column {
+				attributeFields = append(attributeFields, f.Key)
+			}
 		}
 		attributeFields = append(attributeFields, getAttributeFields(config, f.Filters)...)
 	}
@@ -690,7 +692,7 @@ func addAttributes(config model.TableConfig, attributeFields []string, projectId
 	if config.AttributesTable != "" {
 		joinSb := sqlbuilder.NewSelectBuilder()
 		joinSb.From(config.AttributesTable).
-			Select(fmt.Sprintf("SessionID, groupArray(tuple(Name, Value)) AS %s", config.AttributesColumn)).
+			Select(fmt.Sprintf("SessionID, groupArray(tuple(Name, Value)) AS %s", model.GetAttributesColumn(config.AttributesColumns, ""))).
 			Where(joinSb.In("ProjectID", projectIds)).
 			Where(joinSb.GreaterEqualThan("SessionCreatedAt", params.DateRange.StartDate)).
 			Where(joinSb.LessEqualThan("SessionCreatedAt", params.DateRange.EndDate)).

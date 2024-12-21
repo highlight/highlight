@@ -95,6 +95,7 @@ import {
 import { useGraphData } from '@pages/Graphing/hooks/useGraphData'
 import { GraphContextProvider } from './context/GraphContext'
 import TemplateMenu from '@/pages/Graphing/TemplateMenu'
+import { Panel } from '@/pages/Graphing/components/Panel'
 
 type BucketBy = 'None' | 'Interval' | 'Count'
 const BUCKET_BY_OPTIONS: BucketBy[] = ['None', 'Interval', 'Count']
@@ -757,10 +758,10 @@ export const GraphingEditor: React.FC = () => {
 							cssClass={style.editGraphPanel}
 						>
 							<Box
-								width="full"
 								display="flex"
 								flexDirection="column"
 								justifyContent="space-between"
+								cssClass={style.editGraphPreview}
 							>
 								<VariablesBar dashboardId={dashboard_id!} />
 								<GraphBackgroundWrapper>
@@ -845,16 +846,8 @@ export const GraphingEditor: React.FC = () => {
 									)}
 								</GraphBackgroundWrapper>
 							</Box>
-							<Box
-								display="flex"
-								borderLeft="dividerWeak"
-								height="full"
-								cssClass={style.editGraphSidebar}
-								overflowY="auto"
-								overflowX="hidden"
-								flexShrink={0}
-							>
-								<Form className={style.editGraphSidebar}>
+							<Panel>
+								<Form>
 									<SidebarSection>
 										<LabeledRow
 											label="Metric view title"
@@ -1398,7 +1391,7 @@ export const GraphingEditor: React.FC = () => {
 										)}
 									</SidebarSection>
 								</Form>
-							</Box>
+							</Panel>
 						</Box>
 					</GraphContextProvider>
 				</Box>

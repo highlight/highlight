@@ -91,6 +91,10 @@ const KinesisFirehoseFirelensPinoJson = `{
   "ecs_task_definition": "fooAPI:659"
 }`
 
+const KinesisFirehoseCloudFrontJson = `{"timestamp":"1733943532","DistributionId":"E20MFWZTRJBW2X","date":"2024-12-11","time":"18:58:52","x-edge-location":"IAD55-P7","sc-bytes":"2932","c-ip":"52.71.51.89","cs-method":"POST","cs(Host)":"d3tbhpzcw8lafv.cloudfront.net","cs-uri-stem":"/","sc-status":"200","cs(Referer)":"-","cs(User-Agent)":"python-requests/2.31.0","cs-uri-query":"-","cs(Cookie)":"-","x-edge-result-type":"Miss","x-edge-request-id":"Q37mFQxX4juKEkB4xJ6A8ZYHLtMoO_0_fYyLt0H8vnRJywgocMuFbA==","x-host-header":"pri.highlight.io","cs-protocol":"https","cs-bytes":"1428","time-taken":"0.047","x-forwarded-for":"-","ssl-protocol":"TLSv1.3","ssl-cipher":"TLS_AES_128_GCM_SHA256","x-edge-response-result-type":"Miss","cs-protocol-version":"HTTP/1.1","fle-status":"-","fle-encrypted-fields":"-","c-port":"18366","time-to-first-byte":"0.047","x-edge-detailed-result-type":"Miss","sc-content-type":"application/json","sc-content-len":"-","sc-range-start":"-","sc-range-end":"-","timestamp(ms)":"1733943532406","origin-fbl":"0.042","origin-lbl":"0.042","asn":"14618"}`
+
+const KinesisFirehoseJson = `{"timestamp":1734049709831,"formatVersion":1,"webaclId":"arn:aws:wafv2:us-east-1:173971919437:global/webacl/CreatedByCloudFront-ff696fdc-2ada-4504-a1f8-ee8693866a67/4c7c9db0-8c80-411d-95c0-b54fb42667a8","terminatingRuleId":"Default_Action","terminatingRuleType":"REGULAR","action":"ALLOW","terminatingRuleMatchDetails":[],"httpSourceName":"CF","httpSourceId":"E20MFWZTRJBW2X","ruleGroupList":[{"ruleGroupId":"AWS#AWSManagedRulesAmazonIpReputationList","terminatingRule":null,"nonTerminatingMatchingRules":[],"excludedRules":null,"customerConfig":null},{"ruleGroupId":"AWS#AWSManagedRulesCommonRuleSet","terminatingRule":null,"nonTerminatingMatchingRules":[],"excludedRules":null,"customerConfig":null},{"ruleGroupId":"AWS#AWSManagedRulesKnownBadInputsRuleSet","terminatingRule":null,"nonTerminatingMatchingRules":[],"excludedRules":null,"customerConfig":null},{"ruleGroupId":"AWS#AWSManagedRulesSQLiRuleSet","terminatingRule":null,"nonTerminatingMatchingRules":[],"excludedRules":null,"customerConfig":null}],"rateBasedRuleList":[],"nonTerminatingMatchingRules":[],"requestHeadersInserted":null,"responseCodeSent":null,"httpRequest":{"clientIp":"2403:5808:b0a6:0:2d05:e622:c0b2:5746","country":"AU","headers":[{"name":"host","value":"pri.highlight.io"},{"name":"origin","value":"https://app.highlight.io"},{"name":"sec-fetch-site","value":"same-site"},{"name":"access-control-request-method","value":"POST"},{"name":"access-control-request-headers","value":"content-type,token,traceparent,x-highlight-request"},{"name":"sec-fetch-mode","value":"cors"},{"name":"user-agent","value":"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.2 Safari/605.1.15"},{"name":"referer","value":"https://app.highlight.io/"},{"name":"sec-fetch-dest","value":"empty"},{"name":"content-length","value":"0"},{"name":"accept","value":"*/*"},{"name":"accept-language","value":"en-US,en;q=0.9"},{"name":"priority","value":"u=3, i"},{"name":"accept-encoding","value":"gzip, deflate, br"}],"uri":"/","args":"","httpVersion":"HTTP/2.0","httpMethod":"OPTIONS","requestId":"jCWmLaJY653BbNBZmaW3kE3taUAMakWkk70Q1IH13F1OLO8O9-TAmA=="},"ja3Fingerprint":"773906b0efdefa24a7f2b8eb6985bf37", "level": "warning"}`
+
 type MockResponseWriter struct {
 	statusCode int
 }
@@ -254,4 +258,152 @@ func TestHandleFirehoseFireLens(t *testing.T) {
 			assert.Equal(t, "something happened in this execution.", msg.Value.AsString())
 		})
 	}
+}
+
+func TestHandleKinesisFirehoseCloudFrontJson(t *testing.T) {
+	b := bytes.Buffer{}
+	gz := gzip.NewWriter(&b)
+	if _, err := gz.Write([]byte(KinesisFirehoseCloudFrontJson)); err != nil {
+		t.Fatal(err)
+	}
+	if err := gz.Close(); err != nil {
+		t.Fatal(err)
+	}
+	bd := fmt.Sprintf(`{"timestamp":%d,"records":[{"data": "%s"}]}`, time.Now().UTC().UnixMilli(), base64.StdEncoding.EncodeToString(b.Bytes()))
+	t.Log("body", bd)
+
+	r, _ := http.NewRequest("POST", "/v1/logs/firehose", strings.NewReader(bd))
+	r.Header.Set("X-Amz-Firehose-Common-Attributes", fmt.Sprintf(`{"commonAttributes":{"x-highlight-project":"%d"}}`, 3))
+	w := &MockResponseWriter{}
+	HandleFirehoseLog(w, r)
+	assert.Equal(t, 200, w.statusCode)
+
+	spans := spanRecorder.Ended()
+	span := spans[len(spans)-1]
+	event := span.Events()[len(span.Events())-1]
+	assert.True(t, span.SpanContext().TraceID().IsValid())
+	assert.Equal(t, "highlight.log", span.Name())
+	assert.Equal(t, "log", event.Name)
+
+	// in the last 30 years to check that time is not unix epoch
+	assert.Less(t, time.Since(event.Time), time.Hour*24*365*30)
+
+	proj, _ := lo.Find(span.Attributes(), func(item attribute.KeyValue) bool {
+		return item.Key == "highlight.project_id"
+	})
+	assert.Equal(t, fmt.Sprintf("%d", 3), proj.Value.AsString())
+
+	serv, _ := lo.Find(event.Attributes, func(item attribute.KeyValue) bool {
+		return item.Key == "service.name"
+	})
+	assert.Equal(t, "firehose.cloudfront", serv.Value.AsString())
+
+	sev, _ := lo.Find(event.Attributes, func(item attribute.KeyValue) bool {
+		return item.Key == "log.severity"
+	})
+	assert.Equal(t, "info", sev.Value.AsString())
+
+	msg, _ := lo.Find(event.Attributes, func(item attribute.KeyValue) bool {
+		return item.Key == "log.message"
+	})
+	assert.Equal(t, "[POST 200] d3tbhpzcw8lafv.cloudfront.net/", msg.Value.AsString())
+
+	msg, _ = lo.Find(event.Attributes, func(item attribute.KeyValue) bool {
+		return item.Key == "x-host-header"
+	})
+	assert.Equal(t, "pri.highlight.io", msg.Value.AsString())
+
+	msg, _ = lo.Find(event.Attributes, func(item attribute.KeyValue) bool {
+		return item.Key == "cs(Host)"
+	})
+	assert.Equal(t, "", msg.Value.AsString())
+
+	msg, _ = lo.Find(event.Attributes, func(item attribute.KeyValue) bool {
+		return item.Key == "cs.Host"
+	})
+	assert.Equal(t, "d3tbhpzcw8lafv.cloudfront.net", msg.Value.AsString())
+
+	msg, _ = lo.Find(event.Attributes, func(item attribute.KeyValue) bool {
+		return item.Key == "cs(User-Agent)"
+	})
+	assert.Equal(t, "", msg.Value.AsString())
+
+	msg, _ = lo.Find(event.Attributes, func(item attribute.KeyValue) bool {
+		return item.Key == "cs.User-Agent"
+	})
+	assert.Equal(t, "python-requests/2.31.0", msg.Value.AsString())
+}
+
+func TestHandleKinesisFirehoseJson(t *testing.T) {
+	b := bytes.Buffer{}
+	gz := gzip.NewWriter(&b)
+	if _, err := gz.Write([]byte(KinesisFirehoseJson)); err != nil {
+		t.Fatal(err)
+	}
+	if err := gz.Close(); err != nil {
+		t.Fatal(err)
+	}
+	bd := fmt.Sprintf(`{"timestamp":%d,"records":[{"data": "%s"}]}`, time.Now().UTC().UnixMilli(), base64.StdEncoding.EncodeToString(b.Bytes()))
+	t.Log("body", bd)
+
+	r, _ := http.NewRequest("POST", "/v1/logs/firehose", strings.NewReader(bd))
+	r.Header.Set("X-Amz-Firehose-Common-Attributes", fmt.Sprintf(`{"commonAttributes":{"x-highlight-project":"%d"}}`, 3))
+	w := &MockResponseWriter{}
+	HandleFirehoseLog(w, r)
+	assert.Equal(t, 200, w.statusCode)
+
+	spans := spanRecorder.Ended()
+	span := spans[len(spans)-1]
+	event := span.Events()[len(span.Events())-1]
+	assert.True(t, span.SpanContext().TraceID().IsValid())
+	assert.Equal(t, "highlight.log", span.Name())
+	assert.Equal(t, "log", event.Name)
+
+	// in the last 30 years to check that time is not unix epoch
+	assert.Less(t, time.Since(event.Time), time.Hour*24*365*30)
+
+	proj, _ := lo.Find(span.Attributes(), func(item attribute.KeyValue) bool {
+		return item.Key == "highlight.project_id"
+	})
+	assert.Equal(t, fmt.Sprintf("%d", 3), proj.Value.AsString())
+
+	serv, _ := lo.Find(event.Attributes, func(item attribute.KeyValue) bool {
+		return item.Key == "service.name"
+	})
+	assert.Equal(t, "firehose.json", serv.Value.AsString())
+
+	sev, _ := lo.Find(event.Attributes, func(item attribute.KeyValue) bool {
+		return item.Key == "log.severity"
+	})
+	assert.Equal(t, "warning", sev.Value.AsString())
+
+	msg, _ := lo.Find(event.Attributes, func(item attribute.KeyValue) bool {
+		return item.Key == "log.message"
+	})
+	assert.Equal(t, "JSON", msg.Value.AsString())
+
+	msg, _ = lo.Find(event.Attributes, func(item attribute.KeyValue) bool {
+		return item.Key == "action"
+	})
+	assert.Equal(t, "ALLOW", msg.Value.AsString())
+
+	msg, _ = lo.Find(event.Attributes, func(item attribute.KeyValue) bool {
+		return item.Key == "httpRequest.clientIp"
+	})
+	assert.Equal(t, "2403:5808:b0a6:0:2d05:e622:c0b2:5746", msg.Value.AsString())
+
+	msg, _ = lo.Find(event.Attributes, func(item attribute.KeyValue) bool {
+		return item.Key == "httpRequest.headers.0.name"
+	})
+	assert.Equal(t, "host", msg.Value.AsString())
+
+	msg, _ = lo.Find(event.Attributes, func(item attribute.KeyValue) bool {
+		return item.Key == "httpRequest.headers.0.value"
+	})
+	assert.Equal(t, "pri.highlight.io", msg.Value.AsString())
+
+	msg, _ = lo.Find(event.Attributes, func(item attribute.KeyValue) bool {
+		return item.Key == "ruleGroupList.0.ruleGroupId"
+	})
+	assert.Equal(t, "AWS#AWSManagedRulesAmazonIpReputationList", msg.Value.AsString())
 }

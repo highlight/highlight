@@ -15,9 +15,12 @@ var tableConfig = model.TableConfig{
 		"span_name":    "SpanName",
 		"service_name": "ServiceName",
 		"source":       "Source",
+		"http.url":     "HttpUrl",
 	},
-	BodyColumn:       "SpanName",
-	AttributesColumn: "TraceAttributes",
+	BodyColumn: "SpanName",
+	AttributesColumns: []model.ColumnMapping{
+		{Prefix: "http.", Column: "HttpAttributes"},
+		{Column: "TraceAttributes"}},
 }
 
 func TestBasicSqlForSearch(t *testing.T) {
@@ -41,13 +44,18 @@ func TestMultipleBodyFiltersSearch(t *testing.T) {
 }
 
 func TestAttributesSearch(t *testing.T) {
-	sql, _ := buildSqlForQuery("custom=attribute")
-	assert.Equal(t, "SELECT * FROM t WHERE TraceAttributes['custom'] = 'attribute'", sql)
+	sql, _ := buildSqlForQuery("http.url=attribute1 http.custom=attribute2 custom=attribute3")
+	assert.Equal(t, "SELECT * FROM t WHERE toString(HttpUrl) = 'attribute1' AND HttpAttributes['http.custom'] = 'attribute2' AND TraceAttributes['custom'] = 'attribute3'", sql)
 }
 
 func TestWildcardSearch(t *testing.T) {
 	sql, _ := buildSqlForQuery("*asdf* service_name=*-graph")
 	assert.Equal(t, "SELECT * FROM t WHERE SpanName ILIKE '%asdf%' AND ServiceName ILIKE '%-graph%'", sql)
+}
+
+func TestSpacesInSearch(t *testing.T) {
+	sql, _ := buildSqlForQuery("span_name !=  KafkaWorkersOnStrike")
+	assert.Equal(t, "SELECT * FROM t WHERE NOT (toString(SpanName) = 'KafkaWorkersOnStrike')", sql)
 }
 
 func buildSqlForQuery(query string) (string, error) {

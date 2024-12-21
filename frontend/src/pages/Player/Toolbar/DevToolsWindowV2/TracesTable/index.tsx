@@ -1,64 +1,43 @@
 import { ApolloError } from '@apollo/client'
 import { Button } from '@components/Button'
-import { LogCustomColumn } from '@components/CustomColumnPopover'
+import { TraceCustomColumn } from '@components/CustomColumnPopover'
 import { Link } from '@components/Link'
 import LoadingBox from '@components/LoadingBox'
-import {
-	Box,
-	Callout,
-	IconSolidCheveronDown,
-	IconSolidCheveronRight,
-	Stack,
-	Table,
-	Text,
-} from '@highlight-run/ui/components'
-import { ColumnRenderers } from '@pages/LogsPage/LogsTable/CustomColumns/renderers'
+import { Box, Callout, Stack, Table, Text } from '@highlight-run/ui/components'
+import { TraceColumnRenderers } from '@pages/Traces/CustomColumns/renderers'
 import { FullScreenContainer } from '@pages/LogsPage/LogsTable/FullScreenContainer'
-import { NoLogsFound } from '@pages/LogsPage/LogsTable/NoLogsFound'
-import { LogEdgeWithResources } from '@pages/LogsPage/useGetLogs'
 import {
 	ColumnDef,
 	createColumnHelper,
-	ExpandedState,
 	flexRender,
 	getCoreRowModel,
-	getExpandedRowModel,
 	Row,
 	useReactTable,
 } from '@tanstack/react-table'
 import { useVirtualizer } from '@tanstack/react-virtual'
 import clsx from 'clsx'
 import _ from 'lodash'
-import React, {
-	Key,
-	useCallback,
-	useEffect,
-	useMemo,
-	useRef,
-	useState,
-} from 'react'
+import React, { Key, useCallback, useEffect, useMemo, useRef } from 'react'
 
 import { ColumnHeader } from '@/components/CustomColumnHeader'
-import { findMatchingAttributes } from '@/components/JsonViewer/utils'
 import { SearchExpression } from '@/components/Search/Parser/listener'
-import { LogEdge } from '@/graph/generated/schemas'
-import { LogDetails } from '@/pages/LogsPage/LogsTable/LogDetails'
+import { TraceEdge } from '@/graph/generated/schemas'
 import { THROTTLED_UPDATE_MS } from '@/pages/Player/PlayerHook/PlayerState'
 import {
 	ReplayerState,
 	useReplayerContext,
 } from '@/pages/Player/ReplayerContext'
-import analytics from '@/util/analytics'
 
 import * as styles from './style.css'
+import { NoTracesFound } from '@pages/Traces/NoTracesFound'
 
 type Props = {
 	loading: boolean
 	error: ApolloError | undefined
 	refetch: () => void
-} & ConsoleTableInnerProps
+} & TracesTableInnerProps
 
-export const ConsoleTable = (props: Props) => {
+export const TracesTable = (props: Props) => {
 	if (props.loading) {
 		return (
 			<FullScreenContainer>
@@ -71,17 +50,17 @@ export const ConsoleTable = (props: Props) => {
 		return (
 			<FullScreenContainer>
 				<Box m="auto" style={{ maxWidth: 300 }}>
-					<Callout title="Failed to load logs" kind="error">
+					<Callout title="Failed to load traces" kind="error">
 						<Box mb="6">
 							<Text color="moderate">
-								There was an error loading your logs. Reach out
-								to us if this might be a bug.
+								There was an error loading your traces. Reach
+								out to us if this might be a bug.
 							</Text>
 						</Box>
 						<Stack direction="row">
 							<Button
 								kind="secondary"
-								trackingId="logs-error-reload"
+								trackingId="traces-error-reload"
 								onClick={() => props.refetch()}
 							>
 								Reload query
@@ -105,22 +84,25 @@ export const ConsoleTable = (props: Props) => {
 		)
 	}
 
-	if (props.logEdges.length === 0) {
+	if (props.traceEdges.length === 0) {
 		return (
 			<FullScreenContainer>
-				<NoLogsFound />
+				<NoTracesFound
+					integrated={true}
+					hasQuery={!!props.queryParts.length}
+				/>
 			</FullScreenContainer>
 		)
 	}
 
-	return <ConsoleTableInner {...props} />
+	return <TracesTableInner {...props} />
 }
 
-type ConsoleTableInnerProps = {
-	logEdges: LogEdgeWithResources[]
-	selectedColumns: LogCustomColumn[]
+type TracesTableInnerProps = {
+	traceEdges: TraceEdge[]
+	selectedColumns: TraceCustomColumn[]
 	queryParts: SearchExpression[]
-	lastActiveLogIndex: number
+	lastActiveTraceIndex: number
 	autoScroll: boolean
 	bodyHeight: string
 	loadingAfter: boolean
@@ -129,20 +111,19 @@ type ConsoleTableInnerProps = {
 
 const LOADING_AFTER_HEIGHT = 28
 
-const ConsoleTableInner = ({
-	logEdges,
+const TracesTableInner = ({
+	traceEdges,
 	selectedColumns,
 	queryParts,
-	lastActiveLogIndex,
+	lastActiveTraceIndex,
 	autoScroll,
 	bodyHeight,
 	loadingAfter,
 	fetchMoreWhenScrolled,
-}: ConsoleTableInnerProps) => {
+}: TracesTableInnerProps) => {
 	const { state } = useReplayerContext()
 
 	const bodyRef = useRef<HTMLDivElement>(null)
-	const [expanded, setExpanded] = useState<ExpandedState>({})
 
 	useEffect(() => {
 		setTimeout(() => {
@@ -161,32 +142,12 @@ const ConsoleTableInner = ({
 		}, 0)
 	}
 
-	const columnHelper = createColumnHelper<LogEdge>()
+	const columnHelper = createColumnHelper<TraceEdge>()
 
 	const columnData = useMemo(() => {
 		const gridColumns: string[] = []
 		const columnHeaders: ColumnHeader[] = []
-		const columns: ColumnDef<LogEdge, any>[] = []
-
-		gridColumns.push('32px')
-		columnHeaders.push({ id: 'cursor', component: '' })
-		columns.push(
-			columnHelper.accessor('cursor', {
-				cell: ({ row }) => {
-					return (
-						<Table.Cell alignItems="flex-start">
-							<Box flexShrink={0} display="flex" width="full">
-								{row.getIsExpanded() ? (
-									<IconExpanded />
-								) : (
-									<IconCollapsed />
-								)}
-							</Box>
-						</Table.Cell>
-					)
-				},
-			}),
-		)
+		const columns: ColumnDef<TraceEdge, any>[] = []
 
 		selectedColumns.forEach((column, index) => {
 			const first = index === 0
@@ -200,7 +161,7 @@ const ConsoleTableInner = ({
 			// @ts-ignore
 			const accessor = columnHelper.accessor(column.accessor, {
 				cell: ({ row, getValue }) => {
-					const ColumnRenderer = ColumnRenderers[column.type]
+					const ColumnRenderer = TraceColumnRenderers[column.type]
 					return (
 						<ColumnRenderer
 							key={column.id}
@@ -226,23 +187,9 @@ const ConsoleTableInner = ({
 	}, [columnHelper, queryParts, selectedColumns])
 
 	const table = useReactTable({
-		data: logEdges,
+		data: traceEdges,
 		columns: columnData.columns,
-		state: {
-			expanded,
-		},
-		onExpandedChange: (expanded) => {
-			setExpanded(expanded)
-
-			if (expanded) {
-				analytics.track('console_table-row-expand_click')
-			} else {
-				analytics.track('console_table-row-collapse_click')
-			}
-		},
-		getRowCanExpand: (row) => row.original.node.logAttributes,
 		getCoreRowModel: getCoreRowModel(),
-		getExpandedRowModel: getExpandedRowModel(),
 	})
 
 	const { rows } = table.getRowModel()
@@ -266,10 +213,6 @@ const ConsoleTableInner = ({
 		paddingBottom += LOADING_AFTER_HEIGHT
 	}
 
-	useEffect(() => {
-		table.toggleAllRowsExpanded(false)
-	}, [table])
-
 	// eslint-disable-next-line react-hooks/exhaustive-deps
 	const scrollFunction = useCallback(
 		_.throttle((index: number) => {
@@ -287,12 +230,12 @@ const ConsoleTableInner = ({
 		if (
 			autoScroll &&
 			state === ReplayerState.Playing &&
-			lastActiveLogIndex >= 0 &&
-			!!logEdges.length
+			lastActiveTraceIndex >= 0 &&
+			!!traceEdges.length
 		) {
-			scrollFunction(lastActiveLogIndex)
+			scrollFunction(lastActiveTraceIndex)
 		}
-	}, [lastActiveLogIndex, logEdges, scrollFunction, autoScroll, state])
+	}, [lastActiveTraceIndex, traceEdges, scrollFunction, autoScroll, state])
 
 	return (
 		<Table height="full" noBorder>
@@ -323,15 +266,14 @@ const ConsoleTableInner = ({
 				{paddingTop > 0 && <Box style={{ height: paddingTop }} />}
 				{virtualRows.map((virtualRow) => {
 					const row = rows[virtualRow.index]
-					const isActive = row.index === lastActiveLogIndex
-					const isPast = row.index <= lastActiveLogIndex
+					const isActive = row.index === lastActiveTraceIndex
+					const isPast = row.index <= lastActiveTraceIndex
 
 					return (
-						<ConsoleTableRow
+						<TracesTableRow
 							key={virtualRow.key}
 							row={row}
 							rowVirtualizer={rowVirtualizer}
-							expanded={row.getIsExpanded()}
 							virtualRowKey={virtualRow.key}
 							gridColumns={columnData.gridColumns}
 							queryParts={queryParts}
@@ -356,18 +298,9 @@ const ConsoleTableInner = ({
 	)
 }
 
-export const IconExpanded: React.FC = () => (
-	<IconSolidCheveronDown color="#6F6E77" size="12" />
-)
-
-export const IconCollapsed: React.FC = () => (
-	<IconSolidCheveronRight color="#6F6E77" size="12" />
-)
-
-type ConsoleTableRowProps = {
-	row: Row<LogEdgeWithResources>
+type TracesTableRowProps = {
+	row: Row<TraceEdge>
 	rowVirtualizer: any
-	expanded: boolean
 	virtualRowKey: Key
 	gridColumns: string[]
 	queryParts: SearchExpression[]
@@ -375,59 +308,8 @@ type ConsoleTableRowProps = {
 	isPast: boolean
 }
 
-const ConsoleTableRow = React.memo<ConsoleTableRowProps>(
-	({
-		row,
-		rowVirtualizer,
-		expanded,
-		virtualRowKey,
-		queryParts,
-		gridColumns,
-		isActive,
-		isPast,
-	}) => {
-		const attributesRow = (row: ConsoleTableRowProps['row']) => {
-			const log = row.original.node
-			const rowExpanded = row.getIsExpanded()
-
-			return (
-				<Table.Row
-					selected={expanded}
-					className={clsx(styles.attributesRow, {
-						[styles.currentRow]: isActive,
-					})}
-					gridColumns={['32px', '1fr']}
-				>
-					{rowExpanded && (
-						<>
-							<Table.Cell py="4" />
-							<Table.Cell py="4" borderTop="dividerWeak">
-								<LogDetails
-									matchedAttributes={findMatchingAttributes(
-										queryParts,
-										{
-											...log.logAttributes,
-											environment: log.environment,
-											level: log.level,
-											message: log.message,
-											secure_session_id:
-												log.secureSessionID,
-											service_name: log.serviceName,
-											service_version: log.serviceVersion,
-											source: log.source,
-											span_id: log.spanID,
-											trace_id: log.traceID,
-										},
-									)}
-									row={row}
-								/>
-							</Table.Cell>
-						</>
-					)}
-				</Table.Row>
-			)
-		}
-
+const TracesTableRow = React.memo<TracesTableRowProps>(
+	({ row, rowVirtualizer, virtualRowKey, gridColumns, isPast }) => {
 		return (
 			<div
 				key={virtualRowKey}
@@ -436,8 +318,6 @@ const ConsoleTableRow = React.memo<ConsoleTableRowProps>(
 			>
 				<Table.Row
 					gridColumns={gridColumns}
-					onClick={row.getToggleExpandedHandler()}
-					selected={expanded}
 					className={clsx(styles.dataRow, {
 						[styles.pastRow]: isPast,
 					})}
@@ -453,14 +333,12 @@ const ConsoleTableRow = React.memo<ConsoleTableRowProps>(
 						)
 					})}
 				</Table.Row>
-				{attributesRow(row)}
 			</div>
 		)
 	},
 	(prevProps, nextProps) => {
 		return (
 			prevProps.virtualRowKey === nextProps.virtualRowKey &&
-			prevProps.expanded === nextProps.expanded &&
 			prevProps.isActive === nextProps.isActive &&
 			prevProps.isPast === nextProps.isPast
 		)

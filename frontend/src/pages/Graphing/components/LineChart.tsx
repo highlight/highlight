@@ -81,6 +81,7 @@ export const LineChart = ({
 	strokeColors,
 	minYAxisMax,
 	maxYAxisMin,
+	syncId,
 }: React.PropsWithChildren<
 	InnerChartProps<LineChartConfig> & SeriesInfo & AxisConfig
 >) => {
@@ -115,6 +116,7 @@ export const LineChart = ({
 		onMouseMove,
 		onMouseUp,
 		onMouseLeave,
+		onMouseOver,
 	} = useGraphCallbacks(xAxisMetric, setTimeRange, loadExemplars, {
 		dashed: true,
 	})
@@ -144,179 +146,196 @@ export const LineChart = ({
 	}, [maxYAxisMin, minYAxisMax])
 
 	return (
-		<ResponsiveContainer height="100%" width="100%" ref={chartRef}>
-			<AreaChart
-				data={filledData}
-				onMouseDown={onMouseDown}
-				onMouseMove={onMouseMove}
-				onMouseUp={onMouseUp}
-				onMouseLeave={onMouseLeave}
-				style={tooltipCanFreeze ? { cursor: 'pointer' } : undefined}
-			>
-				{referenceArea}
-				{children}
-				<XAxis
-					dataKey={xAxisMetric}
-					fontSize={10}
-					tick={(props: any) => (
-						<CustomXAxisTick
-							x={props.x}
-							y={props.y}
-							payload={props.payload}
-							tickFormatter={xAxisTickFormatter}
-						/>
-					)}
-					tickFormatter={xAxisTickFormatter}
-					tickLine={{ visibility: 'hidden' }}
-					axisLine={{ visibility: 'hidden' }}
-					height={12}
-					domain={['dataMin', 'dataMax']}
-					hide={showXAxis === false}
-				/>
-
-				{tooltip}
-
-				<YAxis
-					fontSize={10}
-					tickLine={{ visibility: 'hidden' }}
-					axisLine={{ visibility: 'hidden' }}
-					tick={(props: any) => (
-						<CustomYAxisTick
-							y={props.y}
-							payload={props.payload}
-							tickFormatter={yAxisTickFormatter}
-						/>
-					)}
-					tickFormatter={yAxisTickFormatter}
-					tickCount={7}
-					width={32}
-					type="number"
-					hide={showYAxis === false}
-					domain={yAxisDomain}
-				/>
-
-				{showGrid && (
-					<CartesianGrid
-						strokeDasharray=""
-						vertical={false}
-						stroke={vars.theme.static.divider.weak}
+		<span onMouseOver={onMouseOver}>
+			<ResponsiveContainer height="100%" width="100%" ref={chartRef}>
+				<AreaChart
+					data={filledData}
+					syncId={syncId}
+					onMouseDown={onMouseDown}
+					onMouseMove={onMouseMove}
+					onMouseUp={onMouseUp}
+					onMouseLeave={onMouseLeave}
+					style={tooltipCanFreeze ? { cursor: 'pointer' } : undefined}
+				>
+					{referenceArea}
+					{children}
+					<XAxis
+						dataKey={xAxisMetric}
+						fontSize={10}
+						tick={(props: any) => (
+							<CustomXAxisTick
+								x={props.x}
+								y={props.y}
+								payload={props.payload}
+								tickFormatter={xAxisTickFormatter}
+							/>
+						)}
+						tickFormatter={xAxisTickFormatter}
+						tickLine={{ visibility: 'hidden' }}
+						axisLine={{ visibility: 'hidden' }}
+						height={12}
+						domain={['dataMin', 'dataMax']}
+						hide={showXAxis === false}
 					/>
-				)}
 
-				{series.length > 0 &&
-					series.map((s, idx) => {
-						const seriesKey = getSeriesKey(s)
+					{tooltip}
 
-						if (!isActive(spotlight, idx)) {
-							return null
-						}
+					<YAxis
+						fontSize={10}
+						tickLine={{ visibility: 'hidden' }}
+						axisLine={{ visibility: 'hidden' }}
+						tick={(props: any) => (
+							<CustomYAxisTick
+								y={props.y}
+								payload={props.payload}
+								tickFormatter={yAxisTickFormatter}
+							/>
+						)}
+						tickFormatter={yAxisTickFormatter}
+						tickCount={7}
+						width={32}
+						type="number"
+						hide={showYAxis === false}
+						domain={yAxisDomain}
+					/>
 
-						const CustomizedDot = (props: any) => {
-							if (data === undefined) {
+					{showGrid && (
+						<CartesianGrid
+							strokeDasharray=""
+							vertical={false}
+							stroke={vars.theme.static.divider.weak}
+						/>
+					)}
+
+					{series.length > 0 &&
+						series.map((s, idx) => {
+							const seriesKey = getSeriesKey(s)
+
+							if (!isActive(spotlight, idx)) {
 								return null
 							}
 
-							const { cx, cy, stroke, index } = props
+							const CustomizedDot = (props: any) => {
+								if (data === undefined) {
+									return null
+								}
 
-							if (isAnomaly(props, seriesKey)) {
-								return (
-									<>
+								const { cx, cy, stroke, index } = props
+
+								if (isAnomaly(props, seriesKey)) {
+									return (
+										<>
+											<svg x={cx - 2} y={cy - 2}>
+												<g transform="translate(2 2)">
+													<circle
+														r="2"
+														fill="#E5484D"
+													/>
+												</g>
+											</svg>
+											<svg x={cx - 4} y={cy - 4}>
+												<g transform="translate(4 4)">
+													<circle
+														r="4"
+														fill="#E5484D"
+														opacity={0.5}
+													/>
+												</g>
+											</svg>
+										</>
+									)
+								}
+
+								if (
+									viewConfig.nullHandling !== 'Hidden' &&
+									viewConfig.nullHandling !== undefined
+								) {
+									return null
+								}
+
+								const hasPrev =
+									index === 0 ||
+									![null, undefined].includes(
+										data[index - 1][seriesKey],
+									)
+								const hasCur = ![null, undefined].includes(
+									data[index][seriesKey],
+								)
+								const hasNext =
+									index === data.length - 1 ||
+									![null, undefined].includes(
+										data[index + 1][seriesKey],
+									)
+
+								if (hasCur && (!hasPrev || !hasNext)) {
+									return (
 										<svg x={cx - 2} y={cy - 2}>
 											<g transform="translate(2 2)">
-												<circle r="2" fill="#E5484D" />
+												<circle r="2" fill={stroke} />
 											</g>
 										</svg>
-										<svg x={cx - 4} y={cy - 4}>
-											<g transform="translate(4 4)">
-												<circle
-													r="4"
-													fill="#E5484D"
-													opacity={0.5}
-												/>
-											</g>
-										</svg>
-									</>
-								)
-							}
+									)
+								}
 
-							if (
-								viewConfig.nullHandling !== 'Hidden' &&
-								viewConfig.nullHandling !== undefined
-							) {
 								return null
 							}
 
-							const hasPrev =
-								index === 0 ||
-								![null, undefined].includes(
-									data[index - 1][seriesKey],
-								)
-							const hasCur = ![null, undefined].includes(
-								data[index][seriesKey],
-							)
-							const hasNext =
-								index === data.length - 1 ||
-								![null, undefined].includes(
-									data[index + 1][seriesKey],
-								)
+							const ActiveDot = (props: any) => {
+								const { cx, cy, fill } = props
 
-							if (hasCur && (!hasPrev || !hasNext)) {
+								if (
+									cy === null ||
+									isAnomaly(props, seriesKey)
+								) {
+									return
+								}
+
 								return (
-									<svg x={cx - 2} y={cy - 2}>
-										<g transform="translate(2 2)">
-											<circle r="2" fill={stroke} />
+									<svg x={cx - 3} y={cy - 3}>
+										<g transform="translate(3 3)">
+											<circle r="3" fill={fill} />
 										</g>
 									</svg>
 								)
 							}
 
-							return null
-						}
-
-						const ActiveDot = (props: any) => {
-							const { cx, cy, fill } = props
-
-							if (cy === null || isAnomaly(props, seriesKey)) {
-								return
-							}
-
 							return (
-								<svg x={cx - 3} y={cy - 3}>
-									<g transform="translate(3 3)">
-										<circle r="3" fill={fill} />
-									</g>
-								</svg>
+								<Area
+									isAnimationActive={false}
+									key={seriesKey}
+									dataKey={`${seriesKey}.value`}
+									name={s.name}
+									stackId={
+										viewConfig.display === 'Stacked area'
+											? 1
+											: idx
+									}
+									strokeWidth="2px"
+									fill={getColor(
+										idx,
+										seriesKey,
+										strokeColors,
+									)}
+									stroke={getColor(
+										idx,
+										seriesKey,
+										strokeColors,
+									)}
+									fillOpacity={
+										viewConfig.display === 'Stacked area'
+											? 0.1
+											: 0
+									}
+									connectNulls={
+										viewConfig.nullHandling === 'Connected'
+									}
+									activeDot={<ActiveDot />}
+									dot={<CustomizedDot />}
+								/>
 							)
-						}
-
-						return (
-							<Area
-								isAnimationActive={false}
-								key={seriesKey}
-								dataKey={`${seriesKey}.value`}
-								name={s.name}
-								stackId={
-									viewConfig.display === 'Stacked area'
-										? 1
-										: idx
-								}
-								strokeWidth="2px"
-								fill={getColor(idx, seriesKey, strokeColors)}
-								stroke={getColor(idx, seriesKey, strokeColors)}
-								fillOpacity={
-									viewConfig.display === 'Stacked area'
-										? 0.1
-										: 0
-								}
-								connectNulls={
-									viewConfig.nullHandling === 'Connected'
-								}
-								activeDot={<ActiveDot />}
-								dot={<CustomizedDot />}
-							/>
-						)
-					})}
-			</AreaChart>
-		</ResponsiveContainer>
+						})}
+				</AreaChart>
+			</ResponsiveContainer>
+		</span>
 	)
 }

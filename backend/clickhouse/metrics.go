@@ -14,23 +14,23 @@ import (
 const MetricNamesTable = "trace_metrics"
 
 var metricsTableConfig = model.TableConfig{
-	AttributesColumn: TracesTableNoDefaultConfig.AttributesColumn,
-	BodyColumn:       TracesTableNoDefaultConfig.BodyColumn,
-	MetricColumn:     ptr.String("MetricValue"),
-	KeysToColumns:    TracesTableNoDefaultConfig.KeysToColumns,
-	ReservedKeys:     TracesTableNoDefaultConfig.ReservedKeys,
-	SelectColumns:    TracesTableNoDefaultConfig.SelectColumns,
-	TableName:        TracesTableNoDefaultConfig.TableName,
+	AttributesColumns: TracesTableNoDefaultConfig.AttributesColumns,
+	BodyColumn:        TracesTableNoDefaultConfig.BodyColumn,
+	MetricColumn:      ptr.String("MetricValue"),
+	KeysToColumns:     TracesTableNoDefaultConfig.KeysToColumns,
+	ReservedKeys:      TracesTableNoDefaultConfig.ReservedKeys,
+	SelectColumns:     TracesTableNoDefaultConfig.SelectColumns,
+	TableName:         TracesTableNoDefaultConfig.TableName,
 }
 
 var metricsSamplingTableConfig = model.TableConfig{
-	AttributesColumn: metricsTableConfig.AttributesColumn,
-	BodyColumn:       metricsTableConfig.BodyColumn,
-	MetricColumn:     metricsTableConfig.MetricColumn,
-	KeysToColumns:    metricsTableConfig.KeysToColumns,
-	ReservedKeys:     metricsTableConfig.ReservedKeys,
-	SelectColumns:    metricsTableConfig.SelectColumns,
-	TableName:        TracesSamplingTable,
+	AttributesColumns: metricsTableConfig.AttributesColumns,
+	BodyColumn:        metricsTableConfig.BodyColumn,
+	MetricColumn:      metricsTableConfig.MetricColumn,
+	KeysToColumns:     metricsTableConfig.KeysToColumns,
+	ReservedKeys:      metricsTableConfig.ReservedKeys,
+	SelectColumns:     metricsTableConfig.SelectColumns,
+	TableName:         TracesSamplingTable,
 }
 
 var MetricsSampleableTableConfig = SampleableTableConfig{

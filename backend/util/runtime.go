@@ -53,6 +53,7 @@ const (
 	PublicWorkerTraces       Handler = "public-worker-traces"
 	AutoResolveStaleErrors   Handler = "auto-resolve-stale-errors"
 	StartSessionDeleteJob    Handler = "start-session-delete-job"
+	ScheduledTasks           Handler = "scheduled-tasks"
 )
 
 func (lt Handler) IsValid() bool {

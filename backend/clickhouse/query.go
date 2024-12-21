@@ -707,8 +707,8 @@ func matchFilter[TObj interface{}](row *TObj, config model.TableConfig, filter *
 		rowValue = repr(field)
 	} else if val, ok := getChildValue(v, key); ok {
 		rowValue = val
-	} else if config.AttributesColumn != "" {
-		value := v.FieldByName(config.AttributesColumn)
+	} else if col := model.GetAttributesColumn(config.AttributesColumns, ""); col != "" {
+		value := v.FieldByName(col)
 		if value.Kind() == reflect.Map {
 			rowValue = repr(value.MapIndex(reflect.ValueOf(key)))
 		} else if value.Kind() == reflect.Slice {
@@ -883,14 +883,15 @@ func getFnStr(aggregator modelInputs.MetricAggregator, column string, useSamplin
 }
 
 func getAttributeFilterCol(sampleableConfig SampleableTableConfig, value, op string) (column string) {
-	column = fmt.Sprintf("%s[%s]", sampleableConfig.tableConfig.AttributesColumn, value)
+	attributesColumn := model.GetAttributesColumn(sampleableConfig.tableConfig.AttributesColumns, value)
+	column = fmt.Sprintf("%s[%s]", attributesColumn, value)
 	if sampleableConfig.tableConfig.AttributesTable != "" {
 		transform := "v"
 		if op != "" {
 			transform = fmt.Sprintf("%s(%s)", op, transform)
 		}
 		// use the first value from the resulting array, if more than one value provided
-		column = fmt.Sprintf("(arrayMap((k, v) -> %s, arrayFilter((k, v) -> k = %s, %s)))[1]", transform, value, sampleableConfig.tableConfig.AttributesColumn)
+		column = fmt.Sprintf("(arrayMap((k, v) -> %s, arrayFilter((k, v) -> k = %s, %s)))[1]", transform, value, attributesColumn)
 	} else {
 		if op != "" {
 			column = fmt.Sprintf("%s(%s)", op, column)
@@ -1429,7 +1430,8 @@ func formatColumn(input string, column string) string {
 func logLines(ctx context.Context, client *Client, tableConfig model.TableConfig, projectID int, params modelInputs.QueryInput) ([]*modelInputs.LogLine, error) {
 	body := formatColumn(tableConfig.BodyColumn, "Body")
 	severity := formatColumn(tableConfig.SeverityColumn, "Severity")
-	attributes := formatColumn(tableConfig.AttributesColumn, "Labels")
+	allAttributesColumns := lo.Map(tableConfig.AttributesColumns, func(mapping model.ColumnMapping, _ int) string { return mapping.Column })
+	attributes := formatColumn(fmt.Sprintf("mapConcat(%s)", strings.Join(allAttributesColumns, ", ")), "Labels")
 	fromSb, _, err := makeSelectBuilder(
 		tableConfig,
 		[]string{"Timestamp", body, severity, attributes},
@@ -1515,7 +1517,8 @@ func getSortOrders(
 	if col, found := config.KeysToColumns[sortColumn]; found {
 		sortColumn = col
 	} else {
-		sortColumn = fmt.Sprintf("%s[%s]", config.AttributesColumn, sb.Var(sortColumn))
+		attributesColumn := model.GetAttributesColumn(config.AttributesColumns, sortColumn)
+		sortColumn = fmt.Sprintf("%s[%s]", attributesColumn, sb.Var(sortColumn))
 	}
 
 	forwardDirection := "DESC"
