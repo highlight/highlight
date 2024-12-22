@@ -32,7 +32,6 @@ import {
 import {
 	AlertForm,
 	dedupeEnvironments,
-	EnvironmentSuggestion,
 	findAlert,
 	getFrequencyOption,
 } from '@pages/Alerts/utils/AlertsUtils'
@@ -497,8 +496,7 @@ const SessionAlertForm = ({
 	}>()
 	const { alertsPayload } = useAlertsContext()
 	const environments = dedupeEnvironments(
-		(alertsPayload?.environment_suggestion ??
-			[]) as EnvironmentSuggestion[],
+		alertsPayload?.environment_suggestion ?? [],
 	).map((environmentSuggestion) => ({
 		displayValue: environmentSuggestion,
 		value: environmentSuggestion,
