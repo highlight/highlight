@@ -1,5 +1,5 @@
 import { vars } from '@highlight-run/ui/vars'
-import { useMemo } from 'react'
+import { memo, useMemo } from 'react'
 import {
 	Area,
 	AreaChart,
@@ -67,7 +67,7 @@ const isAnomaly = (props: any, key: string) => {
 	return false
 }
 
-export const LineChart = ({
+const LineChartImpl = ({
 	data,
 	xAxisMetric,
 	spotlight,
@@ -339,3 +339,5 @@ export const LineChart = ({
 		</span>
 	)
 }
+
+export const LineChart = memo(LineChartImpl)

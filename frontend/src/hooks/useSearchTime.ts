@@ -63,21 +63,20 @@ export function useSearchTime({
 			: new Date(params.start_date!),
 	)
 
-	const updateSearchTime = (
-		start: Date,
-		end: Date,
-		preset?: DateRangePreset,
-	) => {
-		setStartDate(start)
-		setEndDate(end)
-		setSelectedPreset(preset)
-	}
+	const updateSearchTime = useCallback(
+		(start: Date, end: Date, preset?: DateRangePreset) => {
+			setStartDate(start)
+			setEndDate(end)
+			setSelectedPreset(preset)
+		},
+		[],
+	)
 
-	const resetSearchTime = () => {
+	const resetSearchTime = useCallback(() => {
 		const start = presetStartDate(defaultPreset)
 		const end = moment().toDate()
 		updateSearchTime(start, end, defaultPreset)
-	}
+	}, [defaultPreset, updateSearchTime])
 
 	const rebaseSearchTime = useCallback(() => {
 		if (selectedPreset) {
