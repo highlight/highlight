@@ -317,7 +317,7 @@ export class UserInteractionInstrumentation extends InstrumentationBase {
 						event?.type === 'mousemove' &&
 						Date.now() - lastEventTimestamp < 1000 / 60
 					) {
-						return original.call(this, type, listener, useCapture)
+						return plugin._invokeListener(listener, this, args)
 					}
 
 					lastEventTimestamp = Date.now()
