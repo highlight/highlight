@@ -164,7 +164,7 @@
     "display": "standalone",
     "theme_color": "#5629c6",
     "background_color": "#ffffff"
-  },  
+  },
   "storybookCompatibility": {
     "testStories": true,
   },
@@ -203,7 +203,7 @@
         ],
       },
     },
-    "important":true,
+    "important": true,
   },
   "specifierTransforms": [
     {
@@ -485,6 +485,12 @@
         "/",
         "/adapters/react-router-6"
       ],
+    },
+    "@xyflow/react": {
+      "entryPoints": [
+        "/dist/style.css",
+        "/"
+      ]
     },
   },
 }
