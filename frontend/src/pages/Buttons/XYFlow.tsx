@@ -10,7 +10,7 @@ const initialNodes = [
 const initialEdges = [{ id: 'e1-2', source: '1', target: '2' }]
 
 export function XYFlow() {
-	const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes)
+	const [nodes, _, onNodesChange] = useNodesState(initialNodes)
 	const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges)
 
 	const onConnect = useCallback(
