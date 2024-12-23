@@ -243,9 +243,7 @@ func New(ctx context.Context, topic string, mode Mode, configOverride *ConfigOve
 			ErrorLogger:      getLogger("consumer", topic, log.ErrorLevel),
 			GroupBalancers: []kafka.GroupBalancer{
 				&BalancerWrapper{
-					balancer: kafka.RackAffinityGroupBalancer{
-						Rack: rack,
-					},
+					balancer:       kafka.RoundRobinGroupBalancer{},
 					onAssignGroups: onAssignGroups,
 				},
 			},
