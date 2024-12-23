@@ -13,7 +13,6 @@ import { AsyncTask } from '@opentelemetry/instrumentation-user-interaction/build
 
 const ZONE_CONTEXT_KEY = 'OT_ZONE_CONTEXT'
 const EVENT_NAVIGATION_NAME = 'Navigation:'
-const DEFAULT_EVENT_NAMES = ['click', 'input', 'submit'] as const
 
 function defaultShouldPreventSpanCreation() {
 	return false
@@ -39,7 +38,6 @@ export class UserInteractionInstrumentation extends InstrumentationBase {
 		Event,
 		api.Span
 	>()
-	private _eventNames: Set<EventName>
 	private _shouldPreventSpanCreation: ShouldPreventSpanCreation
 
 	constructor(config: UserInteractionInstrumentationConfig = {}) {
@@ -48,7 +46,6 @@ export class UserInteractionInstrumentation extends InstrumentationBase {
 			UserInteractionInstrumentation.version,
 			config,
 		)
-		this._eventNames = new Set(config?.eventNames ?? DEFAULT_EVENT_NAMES)
 		this._shouldPreventSpanCreation =
 			typeof config?.shouldPreventSpanCreation === 'function'
 				? config.shouldPreventSpanCreation
@@ -82,8 +79,8 @@ export class UserInteractionInstrumentation extends InstrumentationBase {
 	/**
 	 * Controls whether or not to create a span, based on the event type.
 	 */
-	protected _allowEventName(eventName: EventName): boolean {
-		return this._eventNames.has(eventName)
+	protected _allowEventName(_: EventName): boolean {
+		return true
 	}
 
 	/**
@@ -286,7 +283,7 @@ export class UserInteractionInstrumentation extends InstrumentationBase {
 	 */
 	private _patchAddEventListener() {
 		const plugin = this
-		let lastEventTimestamp = 0
+		let lastEventTimestamp = new Map<string, number>()
 
 		return (original: EventTarget['addEventListener']) => {
 			return function addEventListenerPatched(
@@ -312,15 +309,20 @@ export class UserInteractionInstrumentation extends InstrumentationBase {
 					let parentSpan: api.Span | undefined
 					const event: Event | undefined = args[0]
 
+					// Ignore empty event type
+					if (!event?.type) {
+						return plugin._invokeListener(listener, this, args)
+					}
+
 					// Don't capture mousemove events too frequently
 					if (
-						event?.type === 'mousemove' &&
-						Date.now() - lastEventTimestamp < 1000 / 60
+						Date.now() - (lastEventTimestamp.get(event.type) ?? 0) <
+						1000 / 60
 					) {
 						return plugin._invokeListener(listener, this, args)
 					}
 
-					lastEventTimestamp = Date.now()
+					lastEventTimestamp.set(event.type, Date.now())
 
 					if (event) {
 						parentSpan = plugin._eventsSpanMap.get(event)
