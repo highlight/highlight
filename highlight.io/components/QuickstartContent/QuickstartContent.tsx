@@ -86,7 +86,15 @@ import { RubyOtherTracesContent } from './traces/ruby/other'
 import { RustTracesContent } from './traces/rust'
 import { AWSLambdaContent } from './traces/serverless/lambda'
 import { JSHonoContent } from './backend/js/hono'
-import { GoFiberReorganizedContent } from './go/fiber'
+import { GoFiberReorganizedContent } from './server/go/fiber'
+import { GoChiReorganizedContent } from './server/go/chi'
+import { GoEchoReorganizedContent } from './server/go/echo'
+import { GoGinReorganizedContent } from './server/go/gin'
+import { GoGqlgenReorganizedContent } from './server/go/go-gqlgen'
+import { GoMuxReorganizedContent } from './server/go/mux'
+import { GoOtherLogReorganizedContent } from './server/go/logrus'
+import { GormTracesReorganizedContent } from './server/go/gorm'
+import { GoTracesReorganizedContent } from './server/go/go'
 
 export type QuickStartOptions = {
 	title: string
@@ -474,7 +482,17 @@ export const quickStartContent = {
 		[QuickStartType.SelfHost]: SelfHostContent,
 		[QuickStartType.DevDeploy]: DevDeploymentContent,
 	},
-	go: {
-		[QuickStartType.GoFiber]: GoFiberReorganizedContent,
+	server: {
+		go: {
+			[QuickStartType.GoChi]: GoChiReorganizedContent,
+			[QuickStartType.GoEcho]: GoEchoReorganizedContent,
+			[QuickStartType.GoFiber]: GoFiberReorganizedContent,
+			[QuickStartType.GoGin]: GoGinReorganizedContent,
+			[QuickStartType.GoGqlgen]: GoGqlgenReorganizedContent,
+			[QuickStartType.GoMux]: GoMuxReorganizedContent,
+			[QuickStartType.GoLogrus]: GoOtherLogReorganizedContent,
+			[QuickStartType.GoGorm]: GormTracesReorganizedContent,
+			[QuickStartType.GoOther]: GoTracesReorganizedContent,
+		},
 	},
 } as const

@@ -1,14 +1,14 @@
-import { siteUrl } from '../../../utils/urls'
-import { QuickStartContent } from '../QuickstartContent'
-import { frontendInstallSnippet } from '../backend/shared-snippets'
-import { logrusExample } from '../logging/go/shared-snippets'
-import { previousInstallSnippet, verifyLogs } from '../logging/shared-snippets'
+import { siteUrl } from '../../../../utils/urls'
+import { QuickStartContent } from '../../QuickstartContent'
+import { frontendInstallSnippet } from '../shared-snippets-monitoring'
+import { logrusExample } from './shared-snippets-logging'
+import { previousInstallSnippet, verifyLogs } from '../shared-snippets-logging'
 import {
 	customGoError,
 	goGetSnippet,
 	initializeGoSdk,
 	verifyGoErrors,
-} from './shared-snippets'
+} from './shared-snippets-monitoring'
 
 export const GoFiberReorganizedContent: QuickStartContent = {
 	title: 'Go Fiber',
