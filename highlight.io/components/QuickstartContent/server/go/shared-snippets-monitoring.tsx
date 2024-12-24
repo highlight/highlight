@@ -1,5 +1,5 @@
-import { siteUrl } from '../../../utils/urls'
-import { QuickStartStep } from '../QuickstartContent'
+import { siteUrl } from '../../../../utils/urls'
+import { QuickStartStep } from '../../QuickstartContent'
 
 export const goGetSnippet: QuickStartStep = {
 	title: 'Install the Highlight Go SDK.',
