@@ -22,4 +22,8 @@ func TestGetProject(t *testing.T) {
 	foundProject, err := store.GetProject(ctx, project.ID)
 	assert.NoError(t, err)
 	assert.Equal(t, project.ID, foundProject.ID)
+
+	foundProject, err = store.GetProject(ctx, project.ID)
+	assert.NoError(t, err)
+	assert.Equal(t, project.ID, foundProject.ID)
 }

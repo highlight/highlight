@@ -1307,7 +1307,7 @@ func (r *Resolver) InitializeSessionImpl(ctx context.Context, input *kafka_queue
 		attributes := map[string]string{
 			string(semconv.ProcessRuntimeNameKey): "browser",
 		}
-		_, err := r.Store.UpsertService(ctx, *project, session.ServiceName, attributes)
+		_, err := r.Store.UpsertService(ctx, project.ID, session.ServiceName, attributes)
 		if err != nil {
 			log.WithContext(ctx).Error(e.Wrap(err, "failed to create service"))
 		}
@@ -1317,7 +1317,7 @@ func (r *Resolver) InitializeSessionImpl(ctx context.Context, input *kafka_queue
 }
 
 func (r *Resolver) MarkBackendSetupImpl(ctx context.Context, projectID int, setupType model.MarkBackendSetupType) error {
-	_, err := redis.CachedEval(ctx, r.Redis, fmt.Sprintf("mark-backend-setup-%d-%s", projectID, setupType), 150*time.Millisecond, time.Hour, func() (*bool, error) {
+	_, err := redis.CachedEval(ctx, r.Redis, fmt.Sprintf("mark-backend-setup-%d-%s", projectID, setupType), time.Second, time.Hour, func() (*bool, error) {
 		if setupType == model.MarkBackendSetupTypeLogs || setupType == model.MarkBackendSetupTypeError {
 			// Update Hubspot company and projects.backend_setup
 			var backendSetupCount int64
