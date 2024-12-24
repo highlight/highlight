@@ -99,6 +99,7 @@ import { GoMuxReorganizedContent } from './server/go/mux'
 import { GoOtherLogReorganizedContent } from './server/go/logrus'
 import { GormTracesReorganizedContent } from './server/go/gorm'
 import { GoTracesReorganizedContent } from './server/go/go'
+import { JavaOtherReorganizedContent } from './server/java/other'
 
 export type QuickStartOptions = {
 	title: string
@@ -535,6 +536,9 @@ export const quickStartContent = {
 			[QuickStartType.GoLogrus]: GoOtherLogReorganizedContent,
 			[QuickStartType.GoGorm]: GormTracesReorganizedContent,
 			[QuickStartType.GoOther]: GoTracesReorganizedContent,
+		},
+		java: {
+			[QuickStartType.JavaOther]: JavaOtherReorganizedContent,
 		},
 	},
 } as const
