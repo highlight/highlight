@@ -1,9 +1,9 @@
 import { toast } from '@components/Toaster'
 import { namedOperations } from '@graph/operations'
 import { IntegrationType } from '@graph/schemas'
-import { useParams } from '@util/react-router/useParams'
 import { GetBaseURL } from '@util/window'
 import { useCallback, useEffect, useState } from 'react'
+import { useParams } from '@util/react-router/useParams'
 
 import {
 	useAddIntegrationToProjectMutation,
@@ -14,8 +14,11 @@ import {
 const MICROSOFT_TEAMS_BOT_ID = import.meta.env.MICROSOFT_TEAMS_BOT_ID
 const MICROSOFT_SCOPES = ['offline_access', 'openid', 'profile']
 
-export const useMicrosoftTeamsBot = (next?: string) => {
-	const { project_id } = useParams<{ project_id: string }>()
+export const useMicrosoftTeamsBot = (
+	next?: string | null,
+	project_id?: string,
+) => {
+	const { workspace_id } = useParams<{ workspace_id: string }>()
 	const [addIntegrationToProject] = useAddIntegrationToProjectMutation({
 		refetchQueries: [
 			namedOperations.Query.GetAlertsPagePayload,
@@ -74,7 +77,11 @@ export const useMicrosoftTeamsBot = (next?: string) => {
 		)
 	}, [microsoftTeamsIntegResponse, setIsMicrosoftTeamsConnectedToWorkspace])
 
-	const microsoftTeamsAuthUrl = getMicrosoftTeamsUrl(project_id!, next)
+	const microsoftTeamsAuthUrl = getMicrosoftTeamsUrl(
+		project_id!,
+		next || null,
+		workspace_id,
+	)
 
 	const addMicrosoftTeamsToWorkspace = useCallback(
 		async (code: string, projectId?: string) => {
@@ -103,14 +110,22 @@ export const useMicrosoftTeamsBot = (next?: string) => {
 	}
 }
 
-export const getMicrosoftTeamsUrl = (projectId: string, next?: string) => {
+export const getMicrosoftTeamsUrl = (
+	projectId: string,
+	next?: string | null,
+	workspaceId?: string | null,
+) => {
 	let redirectPath = window.location.pathname
 	if (redirectPath.length > 3) {
 		// remove project_id and prepended slash
 		redirectPath = redirectPath.substring(redirectPath.indexOf('/', 1) + 1)
 	}
 
-	const state = { next: next ?? redirectPath, project_id: projectId }
+	const state = {
+		next: next ?? redirectPath,
+		project_id: projectId,
+		workspace_id: workspaceId,
+	}
 	const redirectUri = `${GetBaseURL()}/callback/microsoft_teams`
 
 	const authUrl =

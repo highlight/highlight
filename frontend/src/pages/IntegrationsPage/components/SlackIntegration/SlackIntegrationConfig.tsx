@@ -6,23 +6,35 @@ import {
 	IntegrationAction,
 	IntegrationConfigProps,
 } from '@pages/IntegrationsPage/components/Integration'
-import { useParams } from '@util/react-router/useParams'
 import React from 'react'
 
 import styles from './SlackIntegrationConfig.module.css'
+import ProjectSelection, {
+	useIntergationProjectConfig,
+} from '../common/ProjectSelection'
+import { Box } from '@highlight-run/ui/components'
 
 const SlackIntegrationConfig: React.FC<
 	React.PropsWithChildren<IntegrationConfigProps>
-> = ({ setModalOpen: setModalOpen, setIntegrationEnabled, action }) => {
-	const { project_id } = useParams<{ project_id: string }>()
-	const { slackUrl, removeSlackIntegrationFromProject } = useSlackBot()
+> = ({ setModalOpen: setModalOpen, setIntegrationEnabled, action, isV2 }) => {
+	const { options, selectedProject, setSelectedProject, currentWorkspace } =
+		useIntergationProjectConfig()
+
+	const { value: project_id } = selectedProject
+
+	const { slackUrl, removeSlackIntegrationFromProject } = useSlackBot(
+		null,
+		project_id,
+		currentWorkspace?.id,
+	)
 
 	if (action === IntegrationAction.Disconnect) {
 		return (
 			<>
 				<p className={styles.modalSubTitle}>
-					Disconnecting your Slack workspace from Highlight will
-					require you to reconfigure any alerts you have made!
+					{!isV2
+						? 'Disconnecting your Slack workspace from Highlight will require you to reconfigure any alerts you have made!'
+						: 'Configure Slack Integration'}
 				</p>
 				<footer>
 					<Button
@@ -56,31 +68,52 @@ const SlackIntegrationConfig: React.FC<
 
 	return (
 		<>
-			<p className={styles.modalSubTitle}>
-				Connect Slack to your Highlight workspace to setup alerts and
-				tag teammates in comments
-			</p>
-			<footer>
-				<Button
-					trackingId="IntegrationConfigurationCancel-Slack"
-					className={styles.modalBtn}
-					onClick={() => {
-						setModalOpen(false)
-						setIntegrationEnabled(false)
-					}}
-				>
-					Cancel
-				</Button>
-				<Button
-					trackingId="IntegrationConfigurationSave-Slack"
-					className={styles.modalBtn}
-					type="primary"
-					href={slackUrl}
-				>
-					<AppsIcon className={styles.modalBtnIcon} /> Connect
-					Highlight with Slack
-				</Button>
-			</footer>
+			<Box
+				cssClass={`${isV2 ? 'flex justify-between items-center' : ''}`}
+			>
+				<p className={styles.modalSubTitle}>
+					{!isV2
+						? 'Connect Slack to your Highlight workspace to setup alerts and tag teammates in comments'
+						: 'Configure Slack Integration'}
+				</p>
+				{!isV2 && (
+					<ProjectSelection
+						options={options}
+						selectedProject={selectedProject}
+						setSelectedProject={setSelectedProject}
+					/>
+				)}
+				<footer>
+					{!isV2 && (
+						<Button
+							trackingId="IntegrationConfigurationCancel-Slack"
+							className={styles.modalBtn}
+							onClick={() => {
+								setModalOpen(false)
+								setIntegrationEnabled(false)
+							}}
+						>
+							Cancel
+						</Button>
+					)}
+					<Button
+						trackingId="IntegrationConfigurationSave-Slack"
+						className={styles.modalBtn}
+						type="primary"
+						href={slackUrl}
+					>
+						<AppsIcon className={styles.modalBtnIcon} /> Connect
+						Highlight with Slack
+					</Button>
+				</footer>
+			</Box>
+			{isV2 && (
+				<ProjectSelection
+					options={options}
+					selectedProject={selectedProject}
+					setSelectedProject={setSelectedProject}
+				/>
+			)}
 		</>
 	)
 }

@@ -1,5 +1,4 @@
 import Button from '@components/Button/Button/Button'
-import { useProjectId } from '@hooks/useProjectId'
 import AppsIcon from '@icons/AppsIcon'
 import PlugIcon from '@icons/PlugIcon'
 import {
@@ -10,24 +9,27 @@ import {
 	IntegrationAction,
 	IntegrationConfigProps,
 } from '@pages/IntegrationsPage/components/Integration'
-import { useApplicationContext } from '@routers/AppRouter/context/ApplicationContext'
 import React, { useMemo } from 'react'
 
 import styles from './GitHubIntegrationConfig.module.css'
-
+import { Box } from '@highlight-run/ui/components'
+import ProjectSelection, {
+	useIntergationProjectConfig,
+} from '../common/ProjectSelection'
 const GitHubIntegrationConfig: React.FC<
 	React.PropsWithChildren<IntegrationConfigProps>
-> = ({ setModalOpen: setModalOpen, setIntegrationEnabled, action }) => {
-	const { projectId } = useProjectId()
-	const { currentWorkspace } = useApplicationContext()
+> = ({ setModalOpen: setModalOpen, setIntegrationEnabled, action, isV2 }) => {
+	const { options, selectedProject, setSelectedProject, currentWorkspace } =
+		useIntergationProjectConfig()
+
 	const { removeIntegration } = useGitHubIntegration()
 	const authUrl = useMemo(
 		() =>
 			getGitHubInstallationOAuthUrl(
-				projectId!,
+				selectedProject.value!,
 				currentWorkspace?.id || '',
 			),
-		[currentWorkspace?.id, projectId],
+		[selectedProject, currentWorkspace?.id],
 	)
 	if (action === IntegrationAction.Disconnect) {
 		return (
@@ -69,31 +71,53 @@ const GitHubIntegrationConfig: React.FC<
 
 	return (
 		<>
-			<p className={styles.modalSubTitle}>
-				Connect GitHub to your Highlight workspace to enhance
-				stacktraces and create issues from comments.
-			</p>
-			<footer>
-				<Button
-					trackingId="IntegrationConfigurationCancel-GitHub"
-					className={styles.modalBtn}
-					onClick={() => {
-						setModalOpen(false)
-						setIntegrationEnabled(false)
-					}}
-				>
-					Cancel
-				</Button>
-				<Button
-					trackingId="IntegrationConfigurationSave-GitHub"
-					className={styles.modalBtn}
-					type="primary"
-					href={authUrl}
-				>
-					<AppsIcon className={styles.modalBtnIcon} /> Connect
-					Highlight with GitHub
-				</Button>
-			</footer>
+			<Box
+				cssClass={`${isV2 ? 'flex justify-between items-center' : ''}`}
+			>
+				<p className={styles.modalSubTitle}>
+					{isV2
+						? 'Connect GitHub to your Highlight workspace to enhance stacktraces and create issues from comments.'
+						: 'Configure Github Integration'}
+				</p>
+				{!isV2 && (
+					<ProjectSelection
+						options={options}
+						selectedProject={selectedProject}
+						setSelectedProject={setSelectedProject}
+					/>
+				)}
+				<footer>
+					{!isV2 && (
+						<Button
+							trackingId="IntegrationConfigurationCancel-GitHub"
+							className={styles.modalBtn}
+							onClick={() => {
+								setModalOpen(false)
+								setIntegrationEnabled(false)
+							}}
+						>
+							Cancel
+						</Button>
+					)}
+					<Button
+						trackingId="IntegrationConfigurationSave-GitHub"
+						className={styles.modalBtn}
+						type="primary"
+						disabled={!selectedProject}
+						href={authUrl}
+					>
+						<AppsIcon className={styles.modalBtnIcon} /> Connect
+						Highlight with GitHub
+					</Button>
+				</footer>
+			</Box>
+			{isV2 && (
+				<ProjectSelection
+					options={options}
+					selectedProject={selectedProject}
+					setSelectedProject={setSelectedProject}
+				/>
+			)}
 		</>
 	)
 }

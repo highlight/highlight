@@ -5,10 +5,8 @@ import {
 } from '@graph/hooks'
 import { namedOperations } from '@graph/operations'
 import { mustUpgradeForClearbit } from '@util/billing/billing'
-import { useParams } from '@util/react-router/useParams'
 
-export const useClearbitIntegration = () => {
-	const { project_id } = useParams<{ project_id: string }>()
+export const useClearbitIntegration = (project_id: string) => {
 	const { loading: loadingProject, data: project } = useGetProjectQuery({
 		variables: { id: project_id! },
 		skip: !project_id,

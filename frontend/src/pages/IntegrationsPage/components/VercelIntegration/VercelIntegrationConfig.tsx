@@ -25,6 +25,7 @@ import clsx from 'clsx'
 import React, { useEffect, useState } from 'react'
 
 import styles from './VercelIntegrationConfig.module.css'
+import { useIntergationProjectConfig } from '../common/ProjectSelection'
 
 const VercelIntegrationConfig: React.FC<IntegrationConfigProps> = ({
 	setModalOpen,
@@ -106,7 +107,10 @@ const VercelIntegrationDisconnect: React.FC<IntegrationConfigProps> = ({
 	setModalOpen,
 	setIntegrationEnabled,
 }) => {
-	const { removeVercelIntegrationFromProject } = useVercelIntegration()
+	const { selectedProject } = useIntergationProjectConfig()
+	const { removeVercelIntegrationFromProject } = useVercelIntegration(
+		selectedProject.value!,
+	)
 
 	return (
 		<>
@@ -156,6 +160,7 @@ export const VercelIntegrationSettings: React.FC<
 	IntegrationConfigProps & { onCancel?: () => void; onSuccess?: () => void }
 > = ({ setModalOpen, setIntegrationEnabled, onCancel, onSuccess }) => {
 	const { allProjects: allHighlightProjects } = useApplicationContext()
+	// we can use useIntergationProjectConfig selectedProject.value. for now not changing.
 	const projectId =
 		(allHighlightProjects && allHighlightProjects[0]?.id) ?? '0'
 

@@ -13,13 +13,14 @@ import {
 	IntegrationConfigProps,
 } from '@pages/IntegrationsPage/components/Integration'
 import { useApplicationContext } from '@routers/AppRouter/context/ApplicationContext'
-import { useParams } from '@util/react-router/useParams'
 import useMap from '@util/useMap'
 import { GetBaseURL } from '@util/window'
 import clsx from 'clsx'
 import React, { useEffect } from 'react'
 
 import styles from './HeightIntegrationConfig.module.css'
+import { useIntergationProjectConfig } from '../common/ProjectSelection'
+import { Box } from '@highlight-run/ui/components'
 
 const HEIGHT_CLIENT_ID = import.meta.env.HEIGHT_CLIENT_ID
 
@@ -27,6 +28,7 @@ const HeightIntegrationConfig: React.FC<IntegrationConfigProps> = ({
 	setModalOpen,
 	setIntegrationEnabled,
 	action,
+	isV2,
 }) => {
 	switch (action) {
 		case IntegrationAction.Setup:
@@ -35,6 +37,7 @@ const HeightIntegrationConfig: React.FC<IntegrationConfigProps> = ({
 					setModalOpen={setModalOpen}
 					setIntegrationEnabled={setIntegrationEnabled}
 					action={action}
+					isV2={isV2}
 				/>
 			)
 		case IntegrationAction.Settings:
@@ -43,6 +46,7 @@ const HeightIntegrationConfig: React.FC<IntegrationConfigProps> = ({
 					setModalOpen={setModalOpen}
 					setIntegrationEnabled={setIntegrationEnabled}
 					action={action}
+					isV2={isV2}
 				/>
 			)
 		case IntegrationAction.Disconnect:
@@ -61,48 +65,52 @@ const HeightIntegrationConfig: React.FC<IntegrationConfigProps> = ({
 const HeightIntegrationSetup: React.FC<IntegrationConfigProps> = ({
 	setModalOpen,
 	setIntegrationEnabled,
+	isV2,
 }) => {
-	const { project_id } = useParams<{ project_id: string }>()
-	const { currentWorkspace } = useApplicationContext()
 	const redirectUri = `${GetBaseURL()}/callback/height`
+	const { selectedProject, currentWorkspace } = useIntergationProjectConfig()
 
 	return (
 		<>
-			<p className={styles.modalSubTitle}>
-				Connect Highlight with Height.
-			</p>
-			<footer>
-				<Button
-					trackingId="IntegrationConfigurationCancel-Height"
-					className={styles.modalBtn}
-					onClick={() => {
-						setModalOpen(false)
-						setIntegrationEnabled(false)
-					}}
-				>
-					Cancel
-				</Button>
-				<Button
-					trackingId="IntegrationConfigurationSave-Height"
-					className={styles.modalBtn}
-					type="primary"
-					target="_blank"
-					href={`https://height.app/oauth/authorization?client_id=${HEIGHT_CLIENT_ID}&redirect_uri=${redirectUri}&access_types=appWorkspace&scope=api&state=${btoa(
-						JSON.stringify({
-							project_id: project_id,
-							workspace_id: currentWorkspace?.id,
-						}),
-					)}`}
-					rel="noreferrer"
-				>
-					<span className={styles.modalBtnText}>
-						<Sparkles2Icon className={styles.modalBtnIcon} />
-						<span style={{ marginTop: 4 }}>
-							Connect Highlight with Height
+			<Box
+				cssClass={`${isV2 ? 'flex justify-between items-center' : ''}`}
+			>
+				<p className={styles.modalSubTitle}>
+					Connect Highlight with Height.
+				</p>
+				<footer>
+					<Button
+						trackingId="IntegrationConfigurationCancel-Height"
+						className={styles.modalBtn}
+						onClick={() => {
+							setModalOpen(false)
+							setIntegrationEnabled(false)
+						}}
+					>
+						Cancel
+					</Button>
+					<Button
+						trackingId="IntegrationConfigurationSave-Height"
+						className={styles.modalBtn}
+						type="primary"
+						target="_blank"
+						href={`https://height.app/oauth/authorization?client_id=${HEIGHT_CLIENT_ID}&redirect_uri=${redirectUri}&access_types=appWorkspace&scope=api&state=${btoa(
+							JSON.stringify({
+								project_id: selectedProject?.id,
+								workspace_id: currentWorkspace?.id,
+							}),
+						)}`}
+						rel="noreferrer"
+					>
+						<span className={styles.modalBtnText}>
+							<Sparkles2Icon className={styles.modalBtnIcon} />
+							<span style={{ marginTop: 4 }}>
+								Connect Highlight with Height
+							</span>
 						</span>
-					</span>
-				</Button>
-			</footer>
+					</Button>
+				</footer>
+			</Box>
 		</>
 	)
 }
