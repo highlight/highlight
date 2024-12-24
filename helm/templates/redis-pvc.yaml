@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ include "highlight.fullname" . }}-redis-pvc
+spec:
+  resources:
+    requests:
+      storage: {{ .Values.redis.config.storageSize }}
+  volumeMode: Filesystem
+  accessModes:
+    - ReadWriteOnce
