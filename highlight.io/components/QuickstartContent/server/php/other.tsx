@@ -1,6 +1,7 @@
 import { siteUrl } from '../../../../utils/urls'
 import { QuickStartContent } from '../../QuickstartContent'
 import { previousInstallSnippet, verifyLogs } from '../shared-snippets-logging'
+import { verifyTraces } from '../shared-snippets-tracing'
 import {
 	customError,
 	initializeSdk,
@@ -34,5 +35,20 @@ export const PHPOtherReorganizedContent: QuickStartContent = {
 			],
 		},
 		verifyLogs,
+		{
+			title: 'Record a trace.',
+			content: 'Use the Highlight SDK to create spans and events.',
+			code: [
+				{
+					text: `use Highlight\\SDK\\Highlight;
+		
+		$tracer = Highlight::HighlightLogger(Highlight::$highlight)
+		$tracer->process(Highlight::HighlightErrorRecord()->build());
+		`,
+					language: 'php',
+				},
+			],
+		},
+		verifyTraces,
 	],
 }

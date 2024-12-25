@@ -112,6 +112,23 @@ import { JSWinstonHTTPJSONLogReorganizedContent } from './server/js/winston'
 import { JSManualTracesReorganizedContent } from './server/js/manual'
 import { NextJsTracesReorganizedContent } from './server/js/nextjs'
 import { PHPOtherReorganizedContent } from './server/php/other'
+import { PythonAWSReorganizedContext } from './server/python/aws'
+import { PythonAzureReorganizedContext } from './server/python/azure'
+import { PythonDjangoReorganizedContext } from './server/python/django'
+import { PythonFastAPIReorganizedContext } from './server/python/fastapi'
+import { PythonFlaskReorganizedContext } from './server/python/flask'
+import { PythonGCPReorganizedContext } from './server/python/gcp'
+import { PythonLoguruLogReorganizedContent } from './server/python/loguru'
+import { PythonOtherReorganizedContext } from './server/python/other'
+import { PythonLibrariesTracesReorganizedContent } from './server/python/python-libraries'
+import { PythonAITracesReorganizedContent } from './server/python/python-ai'
+import { RubyOtherReorganizedContent } from './server/ruby/other'
+import { RubyRailsReorganizedContent } from './server/ruby/rails'
+import { RustActixReorganizedContent } from './server/rust/actix'
+import { RustOtherReorganizedContent } from './server/rust/other'
+import { OTLPReorganizedContent } from './server/otlp'
+import { DotNetOTLPReorganizedContent } from './server/dotnet/dot-net'
+import { DotNet4OTLPReorganizedContent } from './server/dotnet/dot-net-4'
 
 export type QuickStartOptions = {
 	title: string
@@ -535,6 +552,32 @@ export const quickStartContent = {
 		},
 		php: {
 			[QuickStartType.Other]: PHPOtherReorganizedContent,
+		},
+		python: {
+			[QuickStartType.PythonAWSFn]: PythonAWSReorganizedContext,
+			[QuickStartType.PythonAzureFn]: PythonAzureReorganizedContext,
+			[QuickStartType.PythonDjango]: PythonDjangoReorganizedContext,
+			[QuickStartType.PythonFastAPI]: PythonFastAPIReorganizedContext,
+			[QuickStartType.PythonFlask]: PythonFlaskReorganizedContext,
+			[QuickStartType.PythonGCPFn]: PythonGCPReorganizedContext,
+			[QuickStartType.PythonLoguru]: PythonLoguruLogReorganizedContent,
+			[QuickStartType.PythonOther]: PythonOtherReorganizedContext,
+			[QuickStartType.PythonLibraries]:
+				PythonLibrariesTracesReorganizedContent,
+			[QuickStartType.PythonAI]: PythonAITracesReorganizedContent,
+		},
+		ruby: {
+			[QuickStartType.RubyOther]: RubyOtherReorganizedContent,
+			[QuickStartType.RubyRails]: RubyRailsReorganizedContent,
+		},
+		rust: {
+			[QuickStartType.RustActix]: RustActixReorganizedContent,
+			[QuickStartType.RustOther]: RustOtherReorganizedContent,
+		},
+		otlp: {
+			[QuickStartType.OTLP]: OTLPReorganizedContent,
+			[QuickStartType.OTLPDotNet]: DotNetOTLPReorganizedContent,
+			[QuickStartType.OTLPDotNet4]: DotNet4OTLPReorganizedContent,
 		},
 	},
 } as const
