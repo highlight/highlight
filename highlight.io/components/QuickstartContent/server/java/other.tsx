@@ -15,6 +15,7 @@ export const JavaOtherReorganizedContent: QuickStartContent = {
 		'Learn how to set up highlight.io on your Java backend with Java log ingestion.',
 	logoUrl: siteUrl('/images/quickstart/java.svg'),
 	entries: [
+		previousInstallSnippet('java'),
 		installSdk,
 		initializeSdk,
 		{
@@ -31,7 +32,6 @@ export const JavaOtherReorganizedContent: QuickStartContent = {
 		verifyErrors,
 		customError,
 		sessionUsage,
-		previousInstallSnippet('java'),
 		{
 			title: 'Set up and call the Highlight Logger.',
 			content:

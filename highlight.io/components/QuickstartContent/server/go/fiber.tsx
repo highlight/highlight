@@ -16,6 +16,7 @@ export const GoFiberReorganizedContent: QuickStartContent = {
 		'Learn how to set up highlight.io monitoring and logging on your Go Fiber backend.',
 	logoUrl: siteUrl('/images/quickstart/fiber.svg'),
 	entries: [
+		previousInstallSnippet('go'),
 		frontendInstallSnippet,
 		goGetSnippet,
 		initializeGoSdk,
@@ -41,7 +42,6 @@ func main() {
 		},
 		customGoError,
 		verifyGoErrors,
-		previousInstallSnippet('go'),
 		...logrusExample(
 			'c.Context()',
 			`package main
