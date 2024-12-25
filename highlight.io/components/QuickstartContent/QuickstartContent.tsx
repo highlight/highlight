@@ -211,6 +211,7 @@ export enum QuickStartType {
 	JSExpress = 'express',
 	JSFirebase = 'firebase',
 	JSNodejs = 'nodejs',
+	JSNodejsLogging = 'nodejs-logging',
 	JSNextjs = 'nextjs',
 	JSManual = 'manual',
 	JSNestjs = 'nestjs',
