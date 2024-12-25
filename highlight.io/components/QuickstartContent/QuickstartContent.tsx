@@ -96,6 +96,21 @@ import { GoOtherLogReorganizedContent } from './server/go/logrus'
 import { GormTracesReorganizedContent } from './server/go/gorm'
 import { GoTracesReorganizedContent } from './server/go/go'
 import { JavaOtherReorganizedContent } from './server/java/other'
+import { JSAWSLambdaReorganizedContent } from './server/js/aws-lambda'
+import { JSApolloReorganizedContent } from './server/js/apollo'
+import { JSCloudflareReorganizedContent } from './server/js/cloudflare'
+import { JSExpressReorganizedContent } from './server/js/express'
+import { JSFirebaseReorganizedContent } from './server/js/firebase'
+import { JSHonoReorganizedContent } from './server/js/hono'
+import { JSNodeReorganizedContent } from './server/js/nodejs'
+import { JSNestReorganizedContent } from './server/js/nestjs'
+import { JStRPCReorganizedContent } from './server/js/trpc'
+import { JSOtherLogReorganizedContent } from './server/js/other'
+import { JSPinoHTTPJSONLogReorganizedContent } from './server/js/pino'
+import { JSWinstonHTTPJSONLogReorganizedContent } from './server/js/winston'
+import { JSManualTracesReorganizedContent } from './server/js/manual'
+import { NextJsTracesReorganizedContent } from './server/js/nextjs'
+import { PHPOtherReorganizedContent } from './server/php/other'
 
 export type QuickStartOptions = {
 	title: string
@@ -167,6 +182,7 @@ export enum QuickStartType {
 	JSExpress = 'express',
 	JSFirebase = 'firebase',
 	JSNodejs = 'nodejs',
+	JSNodejsLogging = 'nodejs-logging',
 	JSNextjs = 'nextjs',
 	JSManual = 'manual',
 	JSNestjs = 'nestjs',
@@ -497,6 +513,25 @@ export const quickStartContent = {
 		},
 		java: {
 			[QuickStartType.JavaOther]: JavaOtherReorganizedContent,
+		},
+		js: {
+			[QuickStartType.JSApollo]: JSApolloReorganizedContent,
+			[QuickStartType.JSAWSFn]: JSAWSLambdaReorganizedContent,
+			[QuickStartType.JSCloudflare]: JSCloudflareReorganizedContent,
+			[QuickStartType.JSExpress]: JSExpressReorganizedContent,
+			[QuickStartType.JSFirebase]: JSFirebaseReorganizedContent,
+			[QuickStartType.JSHono]: JSHonoReorganizedContent,
+			[QuickStartType.JSNodejs]: JSNodeReorganizedContent,
+			[QuickStartType.JSNestjs]: JSNestReorganizedContent,
+			[QuickStartType.JStRPC]: JStRPCReorganizedContent,
+			[QuickStartType.JSNodejsLogging]: JSOtherLogReorganizedContent,
+			[QuickStartType.JSPino]: JSPinoHTTPJSONLogReorganizedContent,
+			[QuickStartType.JSWinston]: JSWinstonHTTPJSONLogReorganizedContent,
+			[QuickStartType.JSManual]: JSManualTracesReorganizedContent,
+			[QuickStartType.JSNextjs]: NextJsTracesReorganizedContent,
+		},
+		php: {
+			[QuickStartType.Other]: PHPOtherReorganizedContent,
 		},
 	},
 } as const
