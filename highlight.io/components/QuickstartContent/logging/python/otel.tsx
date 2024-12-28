@@ -64,7 +64,7 @@ logger.addHandler(console_handler)`,
 			title: 'Send logs using OpenTelemetry!',
 			content:
 				'Logs are reported automatically from OpenTelemetry logging methods. ' +
-				'Visit the [highlight logs portal](http://app.highlight.io/logs) and check that backend logs are coming in.',
+				'Visit the [highlight logs portal](https://app.highlight.io/logs) and check that backend logs are coming in.',
 			code: [
 				{
 					text: `import logging
