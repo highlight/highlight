@@ -6,7 +6,7 @@ export const PythonOtelLogContent: QuickStartContent = {
 	title: 'Sending and Filtering Python Logs with OpenTelemetry',
 	subtitle:
 		'Learn how to set up highlight.io with logs from Python using OpenTelemetry.',
-	logoUrl: siteUrl('/images/quickstart/python-otel.png'),
+	logoUrl: siteUrl('/images/quickstart/python.svg'),
 	entries: [
 		{
 			title: 'Set up OpenTelemetry for logging.',
