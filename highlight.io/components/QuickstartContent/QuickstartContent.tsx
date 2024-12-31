@@ -55,6 +55,7 @@ import { JSWinstonHTTPJSONLogContent } from './logging/js/winston'
 import { OTLPLoggingContent } from './logging/otlp'
 import { PHPOtherLogContent } from './logging/php/other'
 import { PythonLoguruLogContent } from './logging/python/loguru'
+import { PythonOtelLogContent } from './logging/python/otel'
 import { PythonOtherLogContent } from './logging/python/other'
 import { RubyOtherLogContent } from './logging/ruby/other'
 import { RubyRailsLogContent } from './logging/ruby/rails'
@@ -135,6 +136,7 @@ export enum QuickStartType {
 	PythonDjango = 'django',
 	PythonFastAPI = 'fastapi',
 	PythonLoguru = 'loguru',
+	PythonOtel = 'otel',
 	PythonOther = 'other',
 	PythonAWSFn = 'aws-lambda-python',
 	PythonAzureFn = 'azure-functions',
@@ -304,6 +306,7 @@ export const quickStartContent = {
 			logoUrl: siteUrl('/images/quickstart/python.svg'),
 			[QuickStartType.PythonLoguru]: PythonLoguruLogContent,
 			[QuickStartType.PythonOther]: PythonOtherLogContent,
+			[QuickStartType.PythonOtel]: PythonOtelLogContent,
 		},
 		go: {
 			title: 'Go',
