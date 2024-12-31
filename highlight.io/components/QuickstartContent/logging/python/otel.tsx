@@ -50,7 +50,7 @@ logger.setLevel(logging.DEBUG)
 handler = LoggingHandler(level=logging.DEBUG, logger_provider=logger_provider)
 logger.addHandler(handler)
 
-# Add console handler for stdout
+# Add console handler for stdout (optional)
 console_handler = logging.StreamHandler(sys.stdout)
 console_handler.setLevel(logging.DEBUG)
 formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
