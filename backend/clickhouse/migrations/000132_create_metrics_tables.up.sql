@@ -25,7 +25,7 @@ CREATE TABLE IF NOT EXISTS metrics_sum
 ) ENGINE = MergeTree()
       TTL toDateTime(Timestamp) + toIntervalDay(RetentionDays)
       PARTITION BY toStartOfDay(Timestamp)
-      ORDER BY (ProjectID, toUnixTimestamp64Nano(Timestamp))
+      ORDER BY (ProjectID, ServiceName, MetricName, toUnixTimestamp64Nano(Timestamp))
       SETTINGS min_rows_for_wide_part = 0,
           min_bytes_for_wide_part = 0,
           ttl_only_drop_parts = 1,
@@ -63,7 +63,7 @@ CREATE TABLE IF NOT EXISTS metrics_histogram
 ) ENGINE = MergeTree()
       TTL toDateTime(Timestamp) + toIntervalDay(RetentionDays)
       PARTITION BY toStartOfDay(Timestamp)
-      ORDER BY (ProjectID, toUnixTimestamp64Nano(Timestamp))
+      ORDER BY (ProjectID, ServiceName, MetricName, toUnixTimestamp64Nano(Timestamp))
       SETTINGS min_rows_for_wide_part = 0,
           min_bytes_for_wide_part = 0,
           ttl_only_drop_parts = 1,
@@ -92,7 +92,7 @@ CREATE TABLE IF NOT EXISTS metrics_summary
 ) ENGINE = MergeTree()
       TTL toDateTime(Timestamp) + toIntervalDay(RetentionDays)
       PARTITION BY toStartOfDay(Timestamp)
-      ORDER BY (ProjectID, toUnixTimestamp64Nano(Timestamp))
+      ORDER BY (ProjectID, ServiceName, MetricName, toUnixTimestamp64Nano(Timestamp))
       SETTINGS min_rows_for_wide_part = 0,
           min_bytes_for_wide_part = 0,
           ttl_only_drop_parts = 1,

@@ -3,6 +3,7 @@ package clickhouse
 import (
 	"context"
 	"fmt"
+	modelInputs "github.com/highlight-run/highlight/backend/private-graph/graph/model"
 	"github.com/highlight-run/highlight/backend/util"
 	e "github.com/pkg/errors"
 	"github.com/samber/lo"
@@ -143,4 +144,12 @@ func (client *Client) BatchWriteMetricRows(ctx context.Context, metricRows []Met
 		span.Finish()
 	}
 	return nil
+}
+
+func (client *Client) ReadMetricsDailySum(ctx context.Context, projectIds []int, dateRange modelInputs.DateRangeRequiredInput) (uint64, error) {
+	return readDailyImpl[uint64](ctx, client, "metric_count_daily_mv", "count", projectIds, dateRange, []string{"ServiceName", "MetricName"})
+}
+
+func (client *Client) ReadMetricsDailyAverage(ctx context.Context, projectIds []int, dateRange modelInputs.DateRangeRequiredInput) (float64, error) {
+	return readDailyImpl[float64](ctx, client, "metric_count_daily_mv", "count", projectIds, dateRange, []string{"ServiceName", "MetricName"})
 }
