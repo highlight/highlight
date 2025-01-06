@@ -9,12 +9,11 @@ import {
 	ThresholdType,
 } from '@/graph/generated/schemas'
 import { useProjectId } from '@/hooks/useProjectId'
-import Graph, {
-	getViewConfig,
-	SetTimeRange,
-} from '@/pages/Graphing/components/Graph'
+import Graph, { SetTimeRange } from '@/pages/Graphing/components/Graph'
 
 import * as style from './styles.css'
+import { BarChartConfig } from '@/pages/Graphing/components/BarChart'
+import { LineChartConfig } from '@/pages/Graphing/components/LineChart'
 
 type Props = {
 	alertName: string
@@ -31,6 +30,19 @@ type Props = {
 	endDate: Date
 	selectedPreset?: DateRangePreset
 	updateSearchTime: SetTimeRange
+}
+
+const BAR_CONFIG: BarChartConfig = {
+	type: 'Bar chart',
+	showLegend: true,
+	display: 'Stacked',
+}
+
+const LINE_CONFIG: LineChartConfig = {
+	type: 'Line chart',
+	showLegend: true,
+	display: 'Line',
+	nullHandling: 'Zero',
 }
 
 export const AlertGraph: React.FC<Props> = ({
@@ -54,9 +66,7 @@ export const AlertGraph: React.FC<Props> = ({
 		productType === ProductType.Sessions &&
 		thresholdType === ThresholdType.Constant
 
-	const viewConfig = sessionsProduct
-		? getViewConfig('Bar chart', 'Stacked', 'Zero')
-		: getViewConfig('Line chart', 'Line', 'Zero')
+	const viewConfig = sessionsProduct ? BAR_CONFIG : LINE_CONFIG
 
 	return (
 		<Box cssClass={style.graphWrapper} shadow="small">
