@@ -374,7 +374,7 @@ func (o *Handler) HandleTrace(w http.ResponseWriter, r *http.Request) {
 						Metrics:          []*model.MetricInput{metric},
 					}})
 			}
-			err = o.resolver.ProducerQueue.Submit(ctx, sessionID, messages...)
+			err = o.resolver.AsyncProducerQueue.Submit(ctx, sessionID, messages...)
 			if err != nil {
 				log.WithContext(ctx).WithError(err).Error("failed to submit otel project metrics to public worker queue")
 				w.WriteHeader(http.StatusServiceUnavailable)
@@ -683,7 +683,7 @@ func (o *Handler) submitProjectSessionErrors(ctx context.Context, projectSession
 		}
 	}
 	for key, messages := range keyedErrorMessages {
-		err := o.resolver.ProducerQueue.Submit(ctx, key, messages...)
+		err := o.resolver.AsyncProducerQueue.Submit(ctx, key, messages...)
 		if err != nil {
 			return e.Wrap(err, "failed to submit otel errors to public worker queue")
 		}
