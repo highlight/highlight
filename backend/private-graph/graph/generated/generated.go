@@ -231,6 +231,9 @@ type ComplexityRoot struct {
 		LogsMeter            func(childComplexity int) int
 		MembersMeter         func(childComplexity int) int
 		Meter                func(childComplexity int) int
+		MetricsBillingLimit  func(childComplexity int) int
+		MetricsDailyAverage  func(childComplexity int) int
+		MetricsMeter         func(childComplexity int) int
 		Plan                 func(childComplexity int) int
 		SessionsBillingLimit func(childComplexity int) int
 		SessionsDailyAverage func(childComplexity int) int
@@ -912,7 +915,7 @@ type ComplexityRoot struct {
 		ReplyToErrorComment                   func(childComplexity int, commentID int, text string, textForEmail string, errorURL string, taggedAdmins []*model.SanitizedAdminInput, taggedSlackUsers []*model.SanitizedSlackChannelInput) int
 		ReplyToSessionComment                 func(childComplexity int, commentID int, text string, textForEmail string, sessionURL string, taggedAdmins []*model.SanitizedAdminInput, taggedSlackUsers []*model.SanitizedSlackChannelInput) int
 		RequestAccess                         func(childComplexity int, projectID int) int
-		SaveBillingPlan                       func(childComplexity int, workspaceID int, sessionsLimitCents *int, sessionsRetention model.RetentionPeriod, errorsLimitCents *int, errorsRetention model.RetentionPeriod, logsLimitCents *int, logsRetention model.RetentionPeriod, tracesLimitCents *int, tracesRetention model.RetentionPeriod) int
+		SaveBillingPlan                       func(childComplexity int, workspaceID int, sessionsLimitCents *int, sessionsRetention model.RetentionPeriod, errorsLimitCents *int, errorsRetention model.RetentionPeriod, logsLimitCents *int, logsRetention model.RetentionPeriod, tracesLimitCents *int, tracesRetention model.RetentionPeriod, metricsLimitCents *int, metricsRetention model.RetentionPeriod) int
 		SendAdminWorkspaceInvite              func(childComplexity int, workspaceID int, email string, role string, projectIds []int) int
 		SubmitRegistrationForm                func(childComplexity int, workspaceID int, teamSize string, role string, useCase string, heardAbout string, pun *string) int
 		SyncSlackIntegration                  func(childComplexity int, projectID int) int
@@ -978,6 +981,8 @@ type ComplexityRoot struct {
 		LogsLimit           func(childComplexity int) int
 		LogsRate            func(childComplexity int) int
 		MembersLimit        func(childComplexity int) int
+		MetricsLimit        func(childComplexity int) int
+		MetricsRate         func(childComplexity int) int
 		SessionsLimit       func(childComplexity int) int
 		SessionsRate        func(childComplexity int) int
 		TracesLimit         func(childComplexity int) int
@@ -1099,6 +1104,7 @@ type ComplexityRoot struct {
 		MetricTagValues                  func(childComplexity int, projectID int, metricName string, tagName string) int
 		MetricTags                       func(childComplexity int, projectID int, metricName string, query *string) int
 		Metrics                          func(childComplexity int, productType model.ProductType, projectID int, params model.QueryInput, column *string, metricTypes []model.MetricAggregator, groupBy []string, bucketBy string, bucketCount *int, bucketWindow *int, limit *int, limitAggregator *model.MetricAggregator, limitColumn *string, predictionSettings *model.PredictionSettings, expressions []*model.MetricExpressionInput) int
+		MetricsIntegration               func(childComplexity int, projectID int) int
 		MetricsTimeline                  func(childComplexity int, projectID int, metricName string, params model.DashboardParamsInput) int
 		MicrosoftTeamsChannelSuggestions func(childComplexity int, projectID int) int
 		NetworkHistogram                 func(childComplexity int, projectID int, params model.NetworkHistogramParamsInput) int
@@ -1680,6 +1686,9 @@ type ComplexityRoot struct {
 		ErrorsRetentionPeriod       func(childComplexity int) int
 		ID                          func(childComplexity int) int
 		LogsMaxCents                func(childComplexity int) int
+		LogsRetentionPeriod         func(childComplexity int) int
+		MetricsMaxCents             func(childComplexity int) int
+		MetricsRetentionPeriod      func(childComplexity int) int
 		Name                        func(childComplexity int) int
 		NextInvoiceDate             func(childComplexity int) int
 		PlanTier                    func(childComplexity int) int
@@ -1689,6 +1698,7 @@ type ComplexityRoot struct {
 		SlackChannels               func(childComplexity int) int
 		SlackWebhookChannel         func(childComplexity int) int
 		TracesMaxCents              func(childComplexity int) int
+		TracesRetentionPeriod       func(childComplexity int) int
 		TrialEndDate                func(childComplexity int) int
 		TrialExtensionEnabled       func(childComplexity int) int
 		UnlimitedMembers            func(childComplexity int) int
@@ -1814,7 +1824,7 @@ type MutationResolver interface {
 	CreateOrUpdateStripeSubscription(ctx context.Context, workspaceID int) (*string, error)
 	HandleAWSMarketplace(ctx context.Context, workspaceID int, code string) (*bool, error)
 	UpdateBillingDetails(ctx context.Context, workspaceID int) (*bool, error)
-	SaveBillingPlan(ctx context.Context, workspaceID int, sessionsLimitCents *int, sessionsRetention model.RetentionPeriod, errorsLimitCents *int, errorsRetention model.RetentionPeriod, logsLimitCents *int, logsRetention model.RetentionPeriod, tracesLimitCents *int, tracesRetention model.RetentionPeriod) (*bool, error)
+	SaveBillingPlan(ctx context.Context, workspaceID int, sessionsLimitCents *int, sessionsRetention model.RetentionPeriod, errorsLimitCents *int, errorsRetention model.RetentionPeriod, logsLimitCents *int, logsRetention model.RetentionPeriod, tracesLimitCents *int, tracesRetention model.RetentionPeriod, metricsLimitCents *int, metricsRetention model.RetentionPeriod) (*bool, error)
 	CreateSessionComment(ctx context.Context, projectID int, sessionSecureID string, sessionTimestamp int, text string, textForEmail string, xCoordinate float64, yCoordinate float64, taggedAdmins []*model.SanitizedAdminInput, taggedSlackUsers []*model.SanitizedSlackChannelInput, sessionURL string, time float64, authorName string, sessionImage *string, issueTitle *string, issueDescription *string, issueTeamID *string, issueTypeID *string, integrations []*model.IntegrationType, tags []*model.SessionCommentTagInput, additionalContext *string) (*model1.SessionComment, error)
 	CreateSessionCommentWithExistingIssue(ctx context.Context, projectID int, sessionSecureID string, sessionTimestamp int, text string, textForEmail string, xCoordinate float64, yCoordinate float64, taggedAdmins []*model.SanitizedAdminInput, taggedSlackUsers []*model.SanitizedSlackChannelInput, sessionURL string, time float64, authorName string, sessionImage *string, tags []*model.SessionCommentTagInput, integrations []*model.IntegrationType, issueTitle *string, issueURL string, issueID string, additionalContext *string) (*model1.SessionComment, error)
 	CreateIssueForSessionComment(ctx context.Context, projectID int, sessionURL string, sessionCommentID int, authorName string, textForAttachment string, time float64, issueTitle *string, issueDescription *string, issueTeamID *string, issueTypeID *string, integrations []*model.IntegrationType) (*model1.SessionComment, error)
@@ -1915,6 +1925,7 @@ type QueryResolver interface {
 	ServerIntegration(ctx context.Context, projectID int) (*model.IntegrationStatus, error)
 	LogsIntegration(ctx context.Context, projectID int) (*model.IntegrationStatus, error)
 	TracesIntegration(ctx context.Context, projectID int) (*model.IntegrationStatus, error)
+	MetricsIntegration(ctx context.Context, projectID int) (*model.IntegrationStatus, error)
 	UnprocessedSessionsCount(ctx context.Context, projectID int) (*int64, error)
 	LiveUsersCount(ctx context.Context, projectID int) (*int64, error)
 	AdminHasCreatedComment(ctx context.Context, adminID int) (*bool, error)
@@ -2977,6 +2988,27 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.BillingDetails.Meter(childComplexity), true
+
+	case "BillingDetails.metricsBillingLimit":
+		if e.complexity.BillingDetails.MetricsBillingLimit == nil {
+			break
+		}
+
+		return e.complexity.BillingDetails.MetricsBillingLimit(childComplexity), true
+
+	case "BillingDetails.metricsDailyAverage":
+		if e.complexity.BillingDetails.MetricsDailyAverage == nil {
+			break
+		}
+
+		return e.complexity.BillingDetails.MetricsDailyAverage(childComplexity), true
+
+	case "BillingDetails.metricsMeter":
+		if e.complexity.BillingDetails.MetricsMeter == nil {
+			break
+		}
+
+		return e.complexity.BillingDetails.MetricsMeter(childComplexity), true
 
 	case "BillingDetails.plan":
 		if e.complexity.BillingDetails.Plan == nil {
@@ -6444,7 +6476,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.SaveBillingPlan(childComplexity, args["workspace_id"].(int), args["sessionsLimitCents"].(*int), args["sessionsRetention"].(model.RetentionPeriod), args["errorsLimitCents"].(*int), args["errorsRetention"].(model.RetentionPeriod), args["logsLimitCents"].(*int), args["logsRetention"].(model.RetentionPeriod), args["tracesLimitCents"].(*int), args["tracesRetention"].(model.RetentionPeriod)), true
+		return e.complexity.Mutation.SaveBillingPlan(childComplexity, args["workspace_id"].(int), args["sessionsLimitCents"].(*int), args["sessionsRetention"].(model.RetentionPeriod), args["errorsLimitCents"].(*int), args["errorsRetention"].(model.RetentionPeriod), args["logsLimitCents"].(*int), args["logsRetention"].(model.RetentionPeriod), args["tracesLimitCents"].(*int), args["tracesRetention"].(model.RetentionPeriod), args["metricsLimitCents"].(*int), args["metricsRetention"].(model.RetentionPeriod)), true
 
 	case "Mutation.sendAdminWorkspaceInvite":
 		if e.complexity.Mutation.SendAdminWorkspaceInvite == nil {
@@ -6950,6 +6982,20 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Plan.MembersLimit(childComplexity), true
+
+	case "Plan.metricsLimit":
+		if e.complexity.Plan.MetricsLimit == nil {
+			break
+		}
+
+		return e.complexity.Plan.MetricsLimit(childComplexity), true
+
+	case "Plan.metricsRate":
+		if e.complexity.Plan.MetricsRate == nil {
+			break
+		}
+
+		return e.complexity.Plan.MetricsRate(childComplexity), true
 
 	case "Plan.sessionsLimit":
 		if e.complexity.Plan.SessionsLimit == nil {
@@ -8205,6 +8251,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Query.Metrics(childComplexity, args["product_type"].(model.ProductType), args["project_id"].(int), args["params"].(model.QueryInput), args["column"].(*string), args["metric_types"].([]model.MetricAggregator), args["group_by"].([]string), args["bucket_by"].(string), args["bucket_count"].(*int), args["bucket_window"].(*int), args["limit"].(*int), args["limit_aggregator"].(*model.MetricAggregator), args["limit_column"].(*string), args["prediction_settings"].(*model.PredictionSettings), args["expressions"].([]*model.MetricExpressionInput)), true
+
+	case "Query.metricsIntegration":
+		if e.complexity.Query.MetricsIntegration == nil {
+			break
+		}
+
+		args, err := ec.field_Query_metricsIntegration_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.MetricsIntegration(childComplexity, args["project_id"].(int)), true
 
 	case "Query.metrics_timeline":
 		if e.complexity.Query.MetricsTimeline == nil {
@@ -11400,6 +11458,27 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Workspace.LogsMaxCents(childComplexity), true
 
+	case "Workspace.logs_retention_period":
+		if e.complexity.Workspace.LogsRetentionPeriod == nil {
+			break
+		}
+
+		return e.complexity.Workspace.LogsRetentionPeriod(childComplexity), true
+
+	case "Workspace.metrics_max_cents":
+		if e.complexity.Workspace.MetricsMaxCents == nil {
+			break
+		}
+
+		return e.complexity.Workspace.MetricsMaxCents(childComplexity), true
+
+	case "Workspace.metrics_retention_period":
+		if e.complexity.Workspace.MetricsRetentionPeriod == nil {
+			break
+		}
+
+		return e.complexity.Workspace.MetricsRetentionPeriod(childComplexity), true
+
 	case "Workspace.name":
 		if e.complexity.Workspace.Name == nil {
 			break
@@ -11462,6 +11541,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Workspace.TracesMaxCents(childComplexity), true
+
+	case "Workspace.traces_retention_period":
+		if e.complexity.Workspace.TracesRetentionPeriod == nil {
+			break
+		}
+
+		return e.complexity.Workspace.TracesRetentionPeriod(childComplexity), true
 
 	case "Workspace.trial_end_date":
 		if e.complexity.Workspace.TrialEndDate == nil {
@@ -11915,14 +12001,17 @@ type BillingDetails {
 	errorsMeter: Int64!
 	logsMeter: Int64!
 	tracesMeter: Int64!
+	metricsMeter: Int64!
 	sessionsDailyAverage: Float!
 	errorsDailyAverage: Float!
 	logsDailyAverage: Float!
 	tracesDailyAverage: Float!
+	metricsDailyAverage: Float!
 	sessionsBillingLimit: Int64
 	errorsBillingLimit: Int64
 	logsBillingLimit: Int64
 	tracesBillingLimit: Int64
+	metricsBillingLimit: Int64
 }
 
 type UsageHistory {
@@ -11965,11 +12054,13 @@ type Plan {
 	errorsLimit: Int64!
 	logsLimit: Int64!
 	tracesLimit: Int64!
+	metricsLimit: Int64!
 
 	sessionsRate: Float!
 	errorsRate: Float!
 	logsRate: Float!
 	tracesRate: Float!
+	metricsRate: Float!
 }
 
 type AWSMarketplaceSubscription {
@@ -12396,10 +12487,14 @@ type Workspace {
 	clearbit_enabled: Boolean!
 	retention_period: RetentionPeriod!
 	errors_retention_period: RetentionPeriod!
+	logs_retention_period: RetentionPeriod!
+	traces_retention_period: RetentionPeriod!
+	metrics_retention_period: RetentionPeriod!
 	sessions_max_cents: Int
 	errors_max_cents: Int
 	logs_max_cents: Int
 	traces_max_cents: Int
+	metrics_max_cents: Int
 	cloudflare_proxy: String
 }
 
@@ -13956,6 +14051,7 @@ type Query {
 	serverIntegration(project_id: ID!): IntegrationStatus!
 	logsIntegration(project_id: ID!): IntegrationStatus!
 	tracesIntegration(project_id: ID!): IntegrationStatus!
+	metricsIntegration(project_id: ID!): IntegrationStatus!
 	unprocessedSessionsCount(project_id: ID!): Int64
 	liveUsersCount(project_id: ID!): Int64
 	adminHasCreatedComment(admin_id: ID!): Boolean
@@ -14497,6 +14593,8 @@ type Mutation {
 		logsRetention: RetentionPeriod!
 		tracesLimitCents: Int
 		tracesRetention: RetentionPeriod!
+		metricsLimitCents: Int
+		metricsRetention: RetentionPeriod!
 	): Boolean
 	createSessionComment(
 		project_id: ID!
@@ -17497,6 +17595,24 @@ func (ec *executionContext) field_Mutation_saveBillingPlan_args(ctx context.Cont
 		}
 	}
 	args["tracesRetention"] = arg8
+	var arg9 *int
+	if tmp, ok := rawArgs["metricsLimitCents"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("metricsLimitCents"))
+		arg9, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["metricsLimitCents"] = arg9
+	var arg10 model.RetentionPeriod
+	if tmp, ok := rawArgs["metricsRetention"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("metricsRetention"))
+		arg10, err = ec.unmarshalNRetentionPeriod2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐRetentionPeriod(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["metricsRetention"] = arg10
 	return args, nil
 }
 
@@ -21265,6 +21381,21 @@ func (ec *executionContext) field_Query_metric_tags_args(ctx context.Context, ra
 		}
 	}
 	args["query"] = arg2
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_metricsIntegration_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 int
+	if tmp, ok := rawArgs["project_id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("project_id"))
+		arg0, err = ec.unmarshalNID2int(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["project_id"] = arg0
 	return args, nil
 }
 
@@ -28321,6 +28452,8 @@ func (ec *executionContext) fieldContext_BillingDetails_plan(ctx context.Context
 				return ec.fieldContext_Plan_logsLimit(ctx, field)
 			case "tracesLimit":
 				return ec.fieldContext_Plan_tracesLimit(ctx, field)
+			case "metricsLimit":
+				return ec.fieldContext_Plan_metricsLimit(ctx, field)
 			case "sessionsRate":
 				return ec.fieldContext_Plan_sessionsRate(ctx, field)
 			case "errorsRate":
@@ -28329,6 +28462,8 @@ func (ec *executionContext) fieldContext_BillingDetails_plan(ctx context.Context
 				return ec.fieldContext_Plan_logsRate(ctx, field)
 			case "tracesRate":
 				return ec.fieldContext_Plan_tracesRate(ctx, field)
+			case "metricsRate":
+				return ec.fieldContext_Plan_metricsRate(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Plan", field.Name)
 		},
@@ -28556,6 +28691,50 @@ func (ec *executionContext) fieldContext_BillingDetails_tracesMeter(ctx context.
 	return fc, nil
 }
 
+func (ec *executionContext) _BillingDetails_metricsMeter(ctx context.Context, field graphql.CollectedField, obj *model.BillingDetails) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_BillingDetails_metricsMeter(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.MetricsMeter, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int64)
+	fc.Result = res
+	return ec.marshalNInt642int64(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_BillingDetails_metricsMeter(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "BillingDetails",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int64 does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _BillingDetails_sessionsDailyAverage(ctx context.Context, field graphql.CollectedField, obj *model.BillingDetails) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_BillingDetails_sessionsDailyAverage(ctx, field)
 	if err != nil {
@@ -28732,6 +28911,50 @@ func (ec *executionContext) fieldContext_BillingDetails_tracesDailyAverage(ctx c
 	return fc, nil
 }
 
+func (ec *executionContext) _BillingDetails_metricsDailyAverage(ctx context.Context, field graphql.CollectedField, obj *model.BillingDetails) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_BillingDetails_metricsDailyAverage(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.MetricsDailyAverage, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(float64)
+	fc.Result = res
+	return ec.marshalNFloat2float64(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_BillingDetails_metricsDailyAverage(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "BillingDetails",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Float does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _BillingDetails_sessionsBillingLimit(ctx context.Context, field graphql.CollectedField, obj *model.BillingDetails) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_BillingDetails_sessionsBillingLimit(ctx, field)
 	if err != nil {
@@ -28884,6 +29107,47 @@ func (ec *executionContext) _BillingDetails_tracesBillingLimit(ctx context.Conte
 }
 
 func (ec *executionContext) fieldContext_BillingDetails_tracesBillingLimit(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "BillingDetails",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int64 does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _BillingDetails_metricsBillingLimit(ctx context.Context, field graphql.CollectedField, obj *model.BillingDetails) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_BillingDetails_metricsBillingLimit(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.MetricsBillingLimit, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*int64)
+	fc.Result = res
+	return ec.marshalOInt642ᚖint64(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_BillingDetails_metricsBillingLimit(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "BillingDetails",
 		Field:      field,
@@ -46679,6 +46943,12 @@ func (ec *executionContext) fieldContext_Mutation_createWorkspace(ctx context.Co
 				return ec.fieldContext_Workspace_retention_period(ctx, field)
 			case "errors_retention_period":
 				return ec.fieldContext_Workspace_errors_retention_period(ctx, field)
+			case "logs_retention_period":
+				return ec.fieldContext_Workspace_logs_retention_period(ctx, field)
+			case "traces_retention_period":
+				return ec.fieldContext_Workspace_traces_retention_period(ctx, field)
+			case "metrics_retention_period":
+				return ec.fieldContext_Workspace_metrics_retention_period(ctx, field)
 			case "sessions_max_cents":
 				return ec.fieldContext_Workspace_sessions_max_cents(ctx, field)
 			case "errors_max_cents":
@@ -46687,6 +46957,8 @@ func (ec *executionContext) fieldContext_Mutation_createWorkspace(ctx context.Co
 				return ec.fieldContext_Workspace_logs_max_cents(ctx, field)
 			case "traces_max_cents":
 				return ec.fieldContext_Workspace_traces_max_cents(ctx, field)
+			case "metrics_max_cents":
+				return ec.fieldContext_Workspace_metrics_max_cents(ctx, field)
 			case "cloudflare_proxy":
 				return ec.fieldContext_Workspace_cloudflare_proxy(ctx, field)
 			}
@@ -46943,6 +47215,12 @@ func (ec *executionContext) fieldContext_Mutation_editWorkspace(ctx context.Cont
 				return ec.fieldContext_Workspace_retention_period(ctx, field)
 			case "errors_retention_period":
 				return ec.fieldContext_Workspace_errors_retention_period(ctx, field)
+			case "logs_retention_period":
+				return ec.fieldContext_Workspace_logs_retention_period(ctx, field)
+			case "traces_retention_period":
+				return ec.fieldContext_Workspace_traces_retention_period(ctx, field)
+			case "metrics_retention_period":
+				return ec.fieldContext_Workspace_metrics_retention_period(ctx, field)
 			case "sessions_max_cents":
 				return ec.fieldContext_Workspace_sessions_max_cents(ctx, field)
 			case "errors_max_cents":
@@ -46951,6 +47229,8 @@ func (ec *executionContext) fieldContext_Mutation_editWorkspace(ctx context.Cont
 				return ec.fieldContext_Workspace_logs_max_cents(ctx, field)
 			case "traces_max_cents":
 				return ec.fieldContext_Workspace_traces_max_cents(ctx, field)
+			case "metrics_max_cents":
+				return ec.fieldContext_Workspace_metrics_max_cents(ctx, field)
 			case "cloudflare_proxy":
 				return ec.fieldContext_Workspace_cloudflare_proxy(ctx, field)
 			}
@@ -48368,7 +48648,7 @@ func (ec *executionContext) _Mutation_saveBillingPlan(ctx context.Context, field
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().SaveBillingPlan(rctx, fc.Args["workspace_id"].(int), fc.Args["sessionsLimitCents"].(*int), fc.Args["sessionsRetention"].(model.RetentionPeriod), fc.Args["errorsLimitCents"].(*int), fc.Args["errorsRetention"].(model.RetentionPeriod), fc.Args["logsLimitCents"].(*int), fc.Args["logsRetention"].(model.RetentionPeriod), fc.Args["tracesLimitCents"].(*int), fc.Args["tracesRetention"].(model.RetentionPeriod))
+		return ec.resolvers.Mutation().SaveBillingPlan(rctx, fc.Args["workspace_id"].(int), fc.Args["sessionsLimitCents"].(*int), fc.Args["sessionsRetention"].(model.RetentionPeriod), fc.Args["errorsLimitCents"].(*int), fc.Args["errorsRetention"].(model.RetentionPeriod), fc.Args["logsLimitCents"].(*int), fc.Args["logsRetention"].(model.RetentionPeriod), fc.Args["tracesLimitCents"].(*int), fc.Args["tracesRetention"].(model.RetentionPeriod), fc.Args["metricsLimitCents"].(*int), fc.Args["metricsRetention"].(model.RetentionPeriod))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -51483,6 +51763,12 @@ func (ec *executionContext) fieldContext_Mutation_updateAllowMeterOverage(ctx co
 				return ec.fieldContext_Workspace_retention_period(ctx, field)
 			case "errors_retention_period":
 				return ec.fieldContext_Workspace_errors_retention_period(ctx, field)
+			case "logs_retention_period":
+				return ec.fieldContext_Workspace_logs_retention_period(ctx, field)
+			case "traces_retention_period":
+				return ec.fieldContext_Workspace_traces_retention_period(ctx, field)
+			case "metrics_retention_period":
+				return ec.fieldContext_Workspace_metrics_retention_period(ctx, field)
 			case "sessions_max_cents":
 				return ec.fieldContext_Workspace_sessions_max_cents(ctx, field)
 			case "errors_max_cents":
@@ -51491,6 +51777,8 @@ func (ec *executionContext) fieldContext_Mutation_updateAllowMeterOverage(ctx co
 				return ec.fieldContext_Workspace_logs_max_cents(ctx, field)
 			case "traces_max_cents":
 				return ec.fieldContext_Workspace_traces_max_cents(ctx, field)
+			case "metrics_max_cents":
+				return ec.fieldContext_Workspace_metrics_max_cents(ctx, field)
 			case "cloudflare_proxy":
 				return ec.fieldContext_Workspace_cloudflare_proxy(ctx, field)
 			}
@@ -53608,6 +53896,50 @@ func (ec *executionContext) fieldContext_Plan_tracesLimit(ctx context.Context, f
 	return fc, nil
 }
 
+func (ec *executionContext) _Plan_metricsLimit(ctx context.Context, field graphql.CollectedField, obj *model.Plan) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Plan_metricsLimit(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.MetricsLimit, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int64)
+	fc.Result = res
+	return ec.marshalNInt642int64(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Plan_metricsLimit(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Plan",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int64 does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Plan_sessionsRate(ctx context.Context, field graphql.CollectedField, obj *model.Plan) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Plan_sessionsRate(ctx, field)
 	if err != nil {
@@ -53772,6 +54104,50 @@ func (ec *executionContext) _Plan_tracesRate(ctx context.Context, field graphql.
 }
 
 func (ec *executionContext) fieldContext_Plan_tracesRate(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Plan",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Float does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Plan_metricsRate(ctx context.Context, field graphql.CollectedField, obj *model.Plan) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Plan_metricsRate(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.MetricsRate, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(float64)
+	fc.Result = res
+	return ec.marshalNFloat2float64(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Plan_metricsRate(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "Plan",
 		Field:      field,
@@ -54112,6 +54488,12 @@ func (ec *executionContext) fieldContext_Project_workspace(ctx context.Context, 
 				return ec.fieldContext_Workspace_retention_period(ctx, field)
 			case "errors_retention_period":
 				return ec.fieldContext_Workspace_errors_retention_period(ctx, field)
+			case "logs_retention_period":
+				return ec.fieldContext_Workspace_logs_retention_period(ctx, field)
+			case "traces_retention_period":
+				return ec.fieldContext_Workspace_traces_retention_period(ctx, field)
+			case "metrics_retention_period":
+				return ec.fieldContext_Workspace_metrics_retention_period(ctx, field)
 			case "sessions_max_cents":
 				return ec.fieldContext_Workspace_sessions_max_cents(ctx, field)
 			case "errors_max_cents":
@@ -54120,6 +54502,8 @@ func (ec *executionContext) fieldContext_Project_workspace(ctx context.Context, 
 				return ec.fieldContext_Workspace_logs_max_cents(ctx, field)
 			case "traces_max_cents":
 				return ec.fieldContext_Workspace_traces_max_cents(ctx, field)
+			case "metrics_max_cents":
+				return ec.fieldContext_Workspace_metrics_max_cents(ctx, field)
 			case "cloudflare_proxy":
 				return ec.fieldContext_Workspace_cloudflare_proxy(ctx, field)
 			}
@@ -57098,6 +57482,69 @@ func (ec *executionContext) fieldContext_Query_tracesIntegration(ctx context.Con
 	return fc, nil
 }
 
+func (ec *executionContext) _Query_metricsIntegration(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Query_metricsIntegration(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().MetricsIntegration(rctx, fc.Args["project_id"].(int))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*model.IntegrationStatus)
+	fc.Result = res
+	return ec.marshalNIntegrationStatus2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐIntegrationStatus(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Query_metricsIntegration(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "integrated":
+				return ec.fieldContext_IntegrationStatus_integrated(ctx, field)
+			case "resourceType":
+				return ec.fieldContext_IntegrationStatus_resourceType(ctx, field)
+			case "createdAt":
+				return ec.fieldContext_IntegrationStatus_createdAt(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type IntegrationStatus", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_metricsIntegration_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Query_unprocessedSessionsCount(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Query_unprocessedSessionsCount(ctx, field)
 	if err != nil {
@@ -58424,6 +58871,8 @@ func (ec *executionContext) fieldContext_Query_billingDetailsForProject(ctx cont
 				return ec.fieldContext_BillingDetails_logsMeter(ctx, field)
 			case "tracesMeter":
 				return ec.fieldContext_BillingDetails_tracesMeter(ctx, field)
+			case "metricsMeter":
+				return ec.fieldContext_BillingDetails_metricsMeter(ctx, field)
 			case "sessionsDailyAverage":
 				return ec.fieldContext_BillingDetails_sessionsDailyAverage(ctx, field)
 			case "errorsDailyAverage":
@@ -58432,6 +58881,8 @@ func (ec *executionContext) fieldContext_Query_billingDetailsForProject(ctx cont
 				return ec.fieldContext_BillingDetails_logsDailyAverage(ctx, field)
 			case "tracesDailyAverage":
 				return ec.fieldContext_BillingDetails_tracesDailyAverage(ctx, field)
+			case "metricsDailyAverage":
+				return ec.fieldContext_BillingDetails_metricsDailyAverage(ctx, field)
 			case "sessionsBillingLimit":
 				return ec.fieldContext_BillingDetails_sessionsBillingLimit(ctx, field)
 			case "errorsBillingLimit":
@@ -58440,6 +58891,8 @@ func (ec *executionContext) fieldContext_Query_billingDetailsForProject(ctx cont
 				return ec.fieldContext_BillingDetails_logsBillingLimit(ctx, field)
 			case "tracesBillingLimit":
 				return ec.fieldContext_BillingDetails_tracesBillingLimit(ctx, field)
+			case "metricsBillingLimit":
+				return ec.fieldContext_BillingDetails_metricsBillingLimit(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type BillingDetails", field.Name)
 		},
@@ -58509,6 +58962,8 @@ func (ec *executionContext) fieldContext_Query_billingDetails(ctx context.Contex
 				return ec.fieldContext_BillingDetails_logsMeter(ctx, field)
 			case "tracesMeter":
 				return ec.fieldContext_BillingDetails_tracesMeter(ctx, field)
+			case "metricsMeter":
+				return ec.fieldContext_BillingDetails_metricsMeter(ctx, field)
 			case "sessionsDailyAverage":
 				return ec.fieldContext_BillingDetails_sessionsDailyAverage(ctx, field)
 			case "errorsDailyAverage":
@@ -58517,6 +58972,8 @@ func (ec *executionContext) fieldContext_Query_billingDetails(ctx context.Contex
 				return ec.fieldContext_BillingDetails_logsDailyAverage(ctx, field)
 			case "tracesDailyAverage":
 				return ec.fieldContext_BillingDetails_tracesDailyAverage(ctx, field)
+			case "metricsDailyAverage":
+				return ec.fieldContext_BillingDetails_metricsDailyAverage(ctx, field)
 			case "sessionsBillingLimit":
 				return ec.fieldContext_BillingDetails_sessionsBillingLimit(ctx, field)
 			case "errorsBillingLimit":
@@ -58525,6 +58982,8 @@ func (ec *executionContext) fieldContext_Query_billingDetails(ctx context.Contex
 				return ec.fieldContext_BillingDetails_logsBillingLimit(ctx, field)
 			case "tracesBillingLimit":
 				return ec.fieldContext_BillingDetails_tracesBillingLimit(ctx, field)
+			case "metricsBillingLimit":
+				return ec.fieldContext_BillingDetails_metricsBillingLimit(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type BillingDetails", field.Name)
 		},
@@ -58867,6 +59326,12 @@ func (ec *executionContext) fieldContext_Query_workspaces(ctx context.Context, f
 				return ec.fieldContext_Workspace_retention_period(ctx, field)
 			case "errors_retention_period":
 				return ec.fieldContext_Workspace_errors_retention_period(ctx, field)
+			case "logs_retention_period":
+				return ec.fieldContext_Workspace_logs_retention_period(ctx, field)
+			case "traces_retention_period":
+				return ec.fieldContext_Workspace_traces_retention_period(ctx, field)
+			case "metrics_retention_period":
+				return ec.fieldContext_Workspace_metrics_retention_period(ctx, field)
 			case "sessions_max_cents":
 				return ec.fieldContext_Workspace_sessions_max_cents(ctx, field)
 			case "errors_max_cents":
@@ -58875,6 +59340,8 @@ func (ec *executionContext) fieldContext_Query_workspaces(ctx context.Context, f
 				return ec.fieldContext_Workspace_logs_max_cents(ctx, field)
 			case "traces_max_cents":
 				return ec.fieldContext_Workspace_traces_max_cents(ctx, field)
+			case "metrics_max_cents":
+				return ec.fieldContext_Workspace_metrics_max_cents(ctx, field)
 			case "cloudflare_proxy":
 				return ec.fieldContext_Workspace_cloudflare_proxy(ctx, field)
 			}
@@ -58998,6 +59465,12 @@ func (ec *executionContext) fieldContext_Query_joinable_workspaces(ctx context.C
 				return ec.fieldContext_Workspace_retention_period(ctx, field)
 			case "errors_retention_period":
 				return ec.fieldContext_Workspace_errors_retention_period(ctx, field)
+			case "logs_retention_period":
+				return ec.fieldContext_Workspace_logs_retention_period(ctx, field)
+			case "traces_retention_period":
+				return ec.fieldContext_Workspace_traces_retention_period(ctx, field)
+			case "metrics_retention_period":
+				return ec.fieldContext_Workspace_metrics_retention_period(ctx, field)
 			case "sessions_max_cents":
 				return ec.fieldContext_Workspace_sessions_max_cents(ctx, field)
 			case "errors_max_cents":
@@ -59006,6 +59479,8 @@ func (ec *executionContext) fieldContext_Query_joinable_workspaces(ctx context.C
 				return ec.fieldContext_Workspace_logs_max_cents(ctx, field)
 			case "traces_max_cents":
 				return ec.fieldContext_Workspace_traces_max_cents(ctx, field)
+			case "metrics_max_cents":
+				return ec.fieldContext_Workspace_metrics_max_cents(ctx, field)
 			case "cloudflare_proxy":
 				return ec.fieldContext_Workspace_cloudflare_proxy(ctx, field)
 			}
@@ -61842,6 +62317,12 @@ func (ec *executionContext) fieldContext_Query_workspace(ctx context.Context, fi
 				return ec.fieldContext_Workspace_retention_period(ctx, field)
 			case "errors_retention_period":
 				return ec.fieldContext_Workspace_errors_retention_period(ctx, field)
+			case "logs_retention_period":
+				return ec.fieldContext_Workspace_logs_retention_period(ctx, field)
+			case "traces_retention_period":
+				return ec.fieldContext_Workspace_traces_retention_period(ctx, field)
+			case "metrics_retention_period":
+				return ec.fieldContext_Workspace_metrics_retention_period(ctx, field)
 			case "sessions_max_cents":
 				return ec.fieldContext_Workspace_sessions_max_cents(ctx, field)
 			case "errors_max_cents":
@@ -61850,6 +62331,8 @@ func (ec *executionContext) fieldContext_Query_workspace(ctx context.Context, fi
 				return ec.fieldContext_Workspace_logs_max_cents(ctx, field)
 			case "traces_max_cents":
 				return ec.fieldContext_Workspace_traces_max_cents(ctx, field)
+			case "metrics_max_cents":
+				return ec.fieldContext_Workspace_metrics_max_cents(ctx, field)
 			case "cloudflare_proxy":
 				return ec.fieldContext_Workspace_cloudflare_proxy(ctx, field)
 			}
@@ -62241,6 +62724,12 @@ func (ec *executionContext) fieldContext_Query_workspace_for_project(ctx context
 				return ec.fieldContext_Workspace_retention_period(ctx, field)
 			case "errors_retention_period":
 				return ec.fieldContext_Workspace_errors_retention_period(ctx, field)
+			case "logs_retention_period":
+				return ec.fieldContext_Workspace_logs_retention_period(ctx, field)
+			case "traces_retention_period":
+				return ec.fieldContext_Workspace_traces_retention_period(ctx, field)
+			case "metrics_retention_period":
+				return ec.fieldContext_Workspace_metrics_retention_period(ctx, field)
 			case "sessions_max_cents":
 				return ec.fieldContext_Workspace_sessions_max_cents(ctx, field)
 			case "errors_max_cents":
@@ -62249,6 +62738,8 @@ func (ec *executionContext) fieldContext_Query_workspace_for_project(ctx context
 				return ec.fieldContext_Workspace_logs_max_cents(ctx, field)
 			case "traces_max_cents":
 				return ec.fieldContext_Workspace_traces_max_cents(ctx, field)
+			case "metrics_max_cents":
+				return ec.fieldContext_Workspace_metrics_max_cents(ctx, field)
 			case "cloudflare_proxy":
 				return ec.fieldContext_Workspace_cloudflare_proxy(ctx, field)
 			}
@@ -81476,6 +81967,138 @@ func (ec *executionContext) fieldContext_Workspace_errors_retention_period(ctx c
 	return fc, nil
 }
 
+func (ec *executionContext) _Workspace_logs_retention_period(ctx context.Context, field graphql.CollectedField, obj *model1.Workspace) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Workspace_logs_retention_period(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.LogsRetentionPeriod, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*model.RetentionPeriod)
+	fc.Result = res
+	return ec.marshalNRetentionPeriod2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐRetentionPeriod(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Workspace_logs_retention_period(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Workspace",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type RetentionPeriod does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Workspace_traces_retention_period(ctx context.Context, field graphql.CollectedField, obj *model1.Workspace) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Workspace_traces_retention_period(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.TracesRetentionPeriod, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*model.RetentionPeriod)
+	fc.Result = res
+	return ec.marshalNRetentionPeriod2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐRetentionPeriod(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Workspace_traces_retention_period(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Workspace",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type RetentionPeriod does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Workspace_metrics_retention_period(ctx context.Context, field graphql.CollectedField, obj *model1.Workspace) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Workspace_metrics_retention_period(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.MetricsRetentionPeriod, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*model.RetentionPeriod)
+	fc.Result = res
+	return ec.marshalNRetentionPeriod2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐRetentionPeriod(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Workspace_metrics_retention_period(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Workspace",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type RetentionPeriod does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Workspace_sessions_max_cents(ctx context.Context, field graphql.CollectedField, obj *model1.Workspace) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Workspace_sessions_max_cents(ctx, field)
 	if err != nil {
@@ -81628,6 +82251,47 @@ func (ec *executionContext) _Workspace_traces_max_cents(ctx context.Context, fie
 }
 
 func (ec *executionContext) fieldContext_Workspace_traces_max_cents(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Workspace",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Workspace_metrics_max_cents(ctx context.Context, field graphql.CollectedField, obj *model1.Workspace) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Workspace_metrics_max_cents(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.MetricsMaxCents, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*int)
+	fc.Result = res
+	return ec.marshalOInt2ᚖint(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Workspace_metrics_max_cents(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "Workspace",
 		Field:      field,
@@ -87343,6 +88007,11 @@ func (ec *executionContext) _BillingDetails(ctx context.Context, sel ast.Selecti
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
+		case "metricsMeter":
+			out.Values[i] = ec._BillingDetails_metricsMeter(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
 		case "sessionsDailyAverage":
 			out.Values[i] = ec._BillingDetails_sessionsDailyAverage(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
@@ -87363,6 +88032,11 @@ func (ec *executionContext) _BillingDetails(ctx context.Context, sel ast.Selecti
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
+		case "metricsDailyAverage":
+			out.Values[i] = ec._BillingDetails_metricsDailyAverage(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
 		case "sessionsBillingLimit":
 			out.Values[i] = ec._BillingDetails_sessionsBillingLimit(ctx, field, obj)
 		case "errorsBillingLimit":
@@ -87371,6 +88045,8 @@ func (ec *executionContext) _BillingDetails(ctx context.Context, sel ast.Selecti
 			out.Values[i] = ec._BillingDetails_logsBillingLimit(ctx, field, obj)
 		case "tracesBillingLimit":
 			out.Values[i] = ec._BillingDetails_tracesBillingLimit(ctx, field, obj)
+		case "metricsBillingLimit":
+			out.Values[i] = ec._BillingDetails_metricsBillingLimit(ctx, field, obj)
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -93179,6 +93855,11 @@ func (ec *executionContext) _Plan(ctx context.Context, sel ast.SelectionSet, obj
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
+		case "metricsLimit":
+			out.Values[i] = ec._Plan_metricsLimit(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
 		case "sessionsRate":
 			out.Values[i] = ec._Plan_sessionsRate(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
@@ -93196,6 +93877,11 @@ func (ec *executionContext) _Plan(ctx context.Context, sel ast.SelectionSet, obj
 			}
 		case "tracesRate":
 			out.Values[i] = ec._Plan_tracesRate(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "metricsRate":
+			out.Values[i] = ec._Plan_metricsRate(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
@@ -94081,6 +94767,28 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_tracesIntegration(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx,
+					func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
+		case "metricsIntegration":
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_metricsIntegration(ctx, field)
 				if res == graphql.Null {
 					atomic.AddUint32(&fs.Invalids, 1)
 				}
@@ -101052,6 +101760,21 @@ func (ec *executionContext) _Workspace(ctx context.Context, sel ast.SelectionSet
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
+		case "logs_retention_period":
+			out.Values[i] = ec._Workspace_logs_retention_period(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "traces_retention_period":
+			out.Values[i] = ec._Workspace_traces_retention_period(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "metrics_retention_period":
+			out.Values[i] = ec._Workspace_metrics_retention_period(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
 		case "sessions_max_cents":
 			out.Values[i] = ec._Workspace_sessions_max_cents(ctx, field, obj)
 		case "errors_max_cents":
@@ -101060,6 +101783,8 @@ func (ec *executionContext) _Workspace(ctx context.Context, sel ast.SelectionSet
 			out.Values[i] = ec._Workspace_logs_max_cents(ctx, field, obj)
 		case "traces_max_cents":
 			out.Values[i] = ec._Workspace_traces_max_cents(ctx, field, obj)
+		case "metrics_max_cents":
+			out.Values[i] = ec._Workspace_metrics_max_cents(ctx, field, obj)
 		case "cloudflare_proxy":
 			out.Values[i] = ec._Workspace_cloudflare_proxy(ctx, field, obj)
 		default:

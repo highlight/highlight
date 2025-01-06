@@ -255,6 +255,9 @@ export type BillingDetails = {
 	logsMeter: Scalars['Int64']
 	membersMeter: Scalars['Int64']
 	meter: Scalars['Int64']
+	metricsBillingLimit?: Maybe<Scalars['Int64']>
+	metricsDailyAverage: Scalars['Float']
+	metricsMeter: Scalars['Int64']
 	plan: Plan
 	sessionsBillingLimit?: Maybe<Scalars['Int64']>
 	sessionsDailyAverage: Scalars['Float']
@@ -1719,6 +1722,8 @@ export type MutationSaveBillingPlanArgs = {
 	errorsRetention: RetentionPeriod
 	logsLimitCents?: InputMaybe<Scalars['Int']>
 	logsRetention: RetentionPeriod
+	metricsLimitCents?: InputMaybe<Scalars['Int']>
+	metricsRetention: RetentionPeriod
 	sessionsLimitCents?: InputMaybe<Scalars['Int']>
 	sessionsRetention: RetentionPeriod
 	tracesLimitCents?: InputMaybe<Scalars['Int']>
@@ -2000,6 +2005,8 @@ export type Plan = {
 	logsLimit: Scalars['Int64']
 	logsRate: Scalars['Float']
 	membersLimit?: Maybe<Scalars['Int64']>
+	metricsLimit: Scalars['Int64']
+	metricsRate: Scalars['Float']
 	sessionsLimit: Scalars['Int64']
 	sessionsRate: Scalars['Float']
 	tracesLimit: Scalars['Int64']
@@ -2150,6 +2157,7 @@ export type Query = {
 	metric_tag_values: Array<Scalars['String']>
 	metric_tags: Array<Scalars['String']>
 	metrics: MetricsBuckets
+	metricsIntegration: IntegrationStatus
 	metrics_timeline: Array<Maybe<DashboardPayload>>
 	microsoft_teams_channel_suggestions: Array<MicrosoftTeamsChannel>
 	network_histogram?: Maybe<CategoryHistogramPayload>
@@ -2728,6 +2736,10 @@ export type QueryMetricsArgs = {
 	params: QueryInput
 	prediction_settings?: InputMaybe<PredictionSettings>
 	product_type: ProductType
+	project_id: Scalars['ID']
+}
+
+export type QueryMetricsIntegrationArgs = {
 	project_id: Scalars['ID']
 }
 
@@ -3998,6 +4010,9 @@ export type Workspace = {
 	errors_retention_period: RetentionPeriod
 	id: Scalars['ID']
 	logs_max_cents?: Maybe<Scalars['Int']>
+	logs_retention_period: RetentionPeriod
+	metrics_max_cents?: Maybe<Scalars['Int']>
+	metrics_retention_period: RetentionPeriod
 	name: Scalars['String']
 	next_invoice_date?: Maybe<Scalars['Timestamp']>
 	plan_tier: Scalars['String']
@@ -4007,6 +4022,7 @@ export type Workspace = {
 	slack_channels?: Maybe<Scalars['String']>
 	slack_webhook_channel?: Maybe<Scalars['String']>
 	traces_max_cents?: Maybe<Scalars['Int']>
+	traces_retention_period: RetentionPeriod
 	trial_end_date?: Maybe<Scalars['Timestamp']>
 	trial_extension_enabled: Scalars['Boolean']
 	unlimited_members: Scalars['Boolean']

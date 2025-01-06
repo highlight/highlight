@@ -1495,7 +1495,7 @@ func (r *mutationResolver) UpdateBillingDetails(ctx context.Context, workspaceID
 }
 
 // SaveBillingPlan is the resolver for the saveBillingPlan field.
-func (r *mutationResolver) SaveBillingPlan(ctx context.Context, workspaceID int, sessionsLimitCents *int, sessionsRetention modelInputs.RetentionPeriod, errorsLimitCents *int, errorsRetention modelInputs.RetentionPeriod, logsLimitCents *int, logsRetention modelInputs.RetentionPeriod, tracesLimitCents *int, tracesRetention modelInputs.RetentionPeriod) (*bool, error) {
+func (r *mutationResolver) SaveBillingPlan(ctx context.Context, workspaceID int, sessionsLimitCents *int, sessionsRetention modelInputs.RetentionPeriod, errorsLimitCents *int, errorsRetention modelInputs.RetentionPeriod, logsLimitCents *int, logsRetention modelInputs.RetentionPeriod, tracesLimitCents *int, tracesRetention modelInputs.RetentionPeriod, metricsLimitCents *int, metricsRetention modelInputs.RetentionPeriod) (*bool, error) {
 	workspace, err := r.isUserWorkspaceAdmin(ctx, workspaceID)
 	if err != nil {
 		return nil, err
@@ -1525,14 +1525,16 @@ func (r *mutationResolver) SaveBillingPlan(ctx context.Context, workspaceID int,
 	if err := r.DB.WithContext(ctx).Model(&workspace).
 		Select(columns[0], columns[1:]...).
 		Updates(&model.Workspace{
-			SessionsMaxCents:      sessionsLimitCents,
-			RetentionPeriod:       &sessionsRetention,
-			ErrorsMaxCents:        errorsLimitCents,
-			ErrorsRetentionPeriod: &errorsRetention,
-			LogsMaxCents:          logsLimitCents,
-			LogsRetentionPeriod:   &logsRetention,
-			TracesMaxCents:        tracesLimitCents,
-			TracesRetentionPeriod: &tracesRetention,
+			SessionsMaxCents:       sessionsLimitCents,
+			RetentionPeriod:        &sessionsRetention,
+			ErrorsMaxCents:         errorsLimitCents,
+			ErrorsRetentionPeriod:  &errorsRetention,
+			LogsMaxCents:           logsLimitCents,
+			LogsRetentionPeriod:    &logsRetention,
+			TracesMaxCents:         tracesLimitCents,
+			TracesRetentionPeriod:  &tracesRetention,
+			MetricsMaxCents:        metricsLimitCents,
+			MetricsRetentionPeriod: &metricsRetention,
 		}).Error; err != nil {
 		return nil, e.Wrap(err, "error updating workspace")
 	}
@@ -6087,7 +6089,34 @@ func (r *queryResolver) TracesIntegration(ctx context.Context, projectID int) (*
 	err = r.DB.WithContext(ctx).Model(&model.SetupEvent{}).Where("project_id = ? AND type = ?", projectID, model.MarkBackendSetupTypeTraces).Take(&setupEvent).Error
 	if err != nil {
 		if !e.Is(err, gorm.ErrRecordNotFound) {
-			return nil, e.Wrap(err, "error querying logging setup event")
+			return nil, e.Wrap(err, "error querying trace setup event")
+		}
+	}
+
+	if setupEvent.ID != 0 {
+		integration.Integrated = true
+		integration.CreatedAt = &setupEvent.CreatedAt
+	}
+
+	return integration, nil
+}
+
+// MetricsIntegration is the resolver for the metricsIntegration field.
+func (r *queryResolver) MetricsIntegration(ctx context.Context, projectID int) (*modelInputs.IntegrationStatus, error) {
+	integration := &modelInputs.IntegrationStatus{
+		Integrated:   false,
+		ResourceType: "Metric",
+	}
+	_, err := r.isUserInProjectOrDemoProject(ctx, projectID)
+	if err != nil {
+		return nil, err
+	}
+
+	setupEvent := model.SetupEvent{}
+	err = r.DB.WithContext(ctx).Model(&model.SetupEvent{}).Where("project_id = ? AND type = ?", projectID, model.MarkBackendSetupTypeMetrics).Take(&setupEvent).Error
+	if err != nil {
+		if !e.Is(err, gorm.ErrRecordNotFound) {
+			return nil, e.Wrap(err, "error querying metric setup event")
 		}
 	}
 

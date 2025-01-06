@@ -145,14 +145,17 @@ type BillingDetails struct {
 	ErrorsMeter          int64   `json:"errorsMeter"`
 	LogsMeter            int64   `json:"logsMeter"`
 	TracesMeter          int64   `json:"tracesMeter"`
+	MetricsMeter         int64   `json:"metricsMeter"`
 	SessionsDailyAverage float64 `json:"sessionsDailyAverage"`
 	ErrorsDailyAverage   float64 `json:"errorsDailyAverage"`
 	LogsDailyAverage     float64 `json:"logsDailyAverage"`
 	TracesDailyAverage   float64 `json:"tracesDailyAverage"`
+	MetricsDailyAverage  float64 `json:"metricsDailyAverage"`
 	SessionsBillingLimit *int64  `json:"sessionsBillingLimit,omitempty"`
 	ErrorsBillingLimit   *int64  `json:"errorsBillingLimit,omitempty"`
 	LogsBillingLimit     *int64  `json:"logsBillingLimit,omitempty"`
 	TracesBillingLimit   *int64  `json:"tracesBillingLimit,omitempty"`
+	MetricsBillingLimit  *int64  `json:"metricsBillingLimit,omitempty"`
 }
 
 type CategoryHistogramBucket struct {
@@ -697,10 +700,12 @@ type Plan struct {
 	ErrorsLimit         int64                       `json:"errorsLimit"`
 	LogsLimit           int64                       `json:"logsLimit"`
 	TracesLimit         int64                       `json:"tracesLimit"`
+	MetricsLimit        int64                       `json:"metricsLimit"`
 	SessionsRate        float64                     `json:"sessionsRate"`
 	ErrorsRate          float64                     `json:"errorsRate"`
 	LogsRate            float64                     `json:"logsRate"`
 	TracesRate          float64                     `json:"tracesRate"`
+	MetricsRate         float64                     `json:"metricsRate"`
 }
 
 type PredictionSettings struct {
