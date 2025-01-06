@@ -127,13 +127,14 @@ func TestHandler_HandleLog(t *testing.T) {
 
 	producer := MockKafkaProducer{}
 	resolver := &public.Resolver{
-		Redis:         red,
-		Store:         store.NewStore(db, red, integrations.NewIntegrationsClient(db), &storage.FilesystemClient{}, &producer, nil),
-		ProducerQueue: &producer,
-		BatchedQueue:  &producer,
-		TracesQueue:   &producer,
-		DB:            db,
-		Clickhouse:    chClient,
+		Redis:              red,
+		Store:              store.NewStore(db, red, integrations.NewIntegrationsClient(db), &storage.FilesystemClient{}, &producer, nil),
+		AsyncProducerQueue: &producer,
+		ProducerQueue:      &producer,
+		BatchedQueue:       &producer,
+		TracesQueue:        &producer,
+		DB:                 db,
+		Clickhouse:         chClient,
 	}
 	h := Handler{
 		resolver: resolver,
@@ -216,13 +217,14 @@ func TestHandler_HandleTrace(t *testing.T) {
 
 		producer := MockKafkaProducer{}
 		resolver := &public.Resolver{
-			Redis:         red,
-			Store:         store.NewStore(db, red, integrations.NewIntegrationsClient(db), &storage.FilesystemClient{}, &producer, nil),
-			ProducerQueue: &producer,
-			BatchedQueue:  &producer,
-			TracesQueue:   &producer,
-			DB:            db,
-			Clickhouse:    chClient,
+			Redis:              red,
+			Store:              store.NewStore(db, red, integrations.NewIntegrationsClient(db), &storage.FilesystemClient{}, &producer, nil),
+			AsyncProducerQueue: &producer,
+			ProducerQueue:      &producer,
+			BatchedQueue:       &producer,
+			TracesQueue:        &producer,
+			DB:                 db,
+			Clickhouse:         chClient,
 		}
 		h := Handler{
 			resolver: resolver,
@@ -374,13 +376,14 @@ func BenchmarkHandleTrace(b *testing.B) {
 
 	producer := MockKafkaProducer{}
 	resolver := &public.Resolver{
-		Redis:         red,
-		Store:         store.NewStore(db, red, integrations.NewIntegrationsClient(db), &storage.FilesystemClient{}, &producer, nil),
-		ProducerQueue: &producer,
-		BatchedQueue:  &producer,
-		TracesQueue:   &producer,
-		DB:            db,
-		Clickhouse:    chClient,
+		Redis:              red,
+		Store:              store.NewStore(db, red, integrations.NewIntegrationsClient(db), &storage.FilesystemClient{}, &producer, nil),
+		AsyncProducerQueue: &producer,
+		ProducerQueue:      &producer,
+		BatchedQueue:       &producer,
+		TracesQueue:        &producer,
+		DB:                 db,
+		Clickhouse:         chClient,
 	}
 	h := Handler{
 		resolver: resolver,
