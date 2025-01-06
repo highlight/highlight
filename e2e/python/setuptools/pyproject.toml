@@ -3,4 +3,3 @@ name = "highlight_example"
 classifiers = ["Private :: Do Not Upload"]
 version = "0"
 dependencies = ["highlight-io"]
-
