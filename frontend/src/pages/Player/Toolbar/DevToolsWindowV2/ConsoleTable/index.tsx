@@ -420,7 +420,6 @@ const ConsoleTableRow = React.memo<ConsoleTableRowProps>(
 										},
 									)}
 									row={row}
-									queryParts={queryParts}
 								/>
 							</Table.Cell>
 						</>

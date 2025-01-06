@@ -56,8 +56,7 @@ interface SearchContext extends Partial<ReturnType<typeof useSearchTime>> {
 	aiSuggestionError?: ApolloError
 	defaultValues?: string[]
 	recentSearches: SearchEntry[]
-	handleSearch: (query: string, queryParts: SearchExpression[]) => void
-	historyLoading: boolean
+	handleSearch: (query: string) => void
 }
 
 export const [useSearchContext, SearchContextProvider] =
@@ -114,16 +113,12 @@ export const SearchContext: React.FC<Props> = ({
 	const [aiQuery, setAiQuery] = useState('')
 	const { queryParts, tokens } = parseSearch(query)
 	const tokenGroups = buildTokenGroups(tokens)
-	const { handleSearch, recentSearches, historyLoading } = useSearchHistory()
+	const { handleSearch, recentSearches } = useSearchHistory()
 	const handleSubmit = (query: string) => {
 		onSubmit(query)
 		if (query) {
-			const queryParts = parseSearch(query)?.queryParts || []
 			try {
-				const newQueryParts = JSON.parse(
-					JSON.stringify(queryParts || []),
-				)
-				handleSearch?.(query, newQueryParts)
+				handleSearch?.(query)
 			} catch (err) {
 				//do nothing
 				console.error(
@@ -164,7 +159,6 @@ export const SearchContext: React.FC<Props> = ({
 				aiSuggestionError,
 				recentSearches,
 				handleSearch,
-				historyLoading,
 				...searchTimeContext,
 			}}
 		>

@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"regexp"
 	"strconv"
 	"strings"
 	"time"
@@ -234,10 +235,14 @@ func SubmitHTTPLog(ctx context.Context, tracer trace.Tracer, projectID int, lg L
 	return nil
 }
 
+// parenKeySyntax matches a parenthesis pattern, i.e. `cs(Referrer)`
+var parenKeySyntax = regexp.MustCompile(`(.+)\((.+)\)`)
+
 func formatLogAttributes(k string, v interface{}, depth uint8) map[string]string {
 	if depth >= MaxLogAttributesDepth {
 		return nil
 	}
+	k = parenKeySyntax.ReplaceAllString(k, "$1.$2")
 	if vStr, ok := v.(string); ok {
 		if len(vStr) > LogAttributeValueLengthLimit {
 			vStr = vStr[:LogAttributeValueLengthLimit] + "..."
@@ -250,7 +255,17 @@ func formatLogAttributes(k string, v interface{}, depth uint8) map[string]string
 	if vFlt, ok := v.(float64); ok {
 		return map[string]string{k: strconv.FormatFloat(vFlt, 'f', -1, 64)}
 	}
-	if vMap, ok := v.(map[string]interface{}); ok {
+	if vSlice, ok := v.([]interface{}); ok && len(vSlice) > 0 {
+		m := make(map[string]string)
+		for idx, sliceV := range vSlice {
+			sliceKey := fmt.Sprintf("%s.%d", k, idx)
+			for k2, v2 := range formatLogAttributes(sliceKey, sliceV, depth+1) {
+				m[k2] = v2
+			}
+		}
+		return m
+	}
+	if vMap, ok := v.(map[string]interface{}); ok && len(vMap) > 0 {
 		m := make(map[string]string)
 		for mapKey, mapV := range vMap {
 			for k2, v2 := range formatLogAttributes(mapKey, mapV, depth+1) {

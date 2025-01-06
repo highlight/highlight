@@ -14,7 +14,7 @@ type Props = {
 export const TraceSpanAttributes: React.FC<Props> = ({ span }) => {
 	const attributes: { [key: string]: any } = { ...span }
 	const formattedSpan = formatTraceAttributes(attributes)
-	const { onSubmit, queryParts } = useSearchContext()
+	const { onSubmit, queryParts, query } = useSearchContext()
 
 	const matchedAttributes = useMemo(
 		() =>
@@ -31,7 +31,7 @@ export const TraceSpanAttributes: React.FC<Props> = ({ span }) => {
 			allExpanded
 			attribute={formattedSpan}
 			matchedAttributes={matchedAttributes}
-			queryParts={queryParts}
+			query={query}
 			setQuery={onSubmit}
 		/>
 	)

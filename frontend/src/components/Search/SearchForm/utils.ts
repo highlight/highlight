@@ -5,24 +5,6 @@ import { SearchToken } from '@/components/Search/utils'
 export const DEFAULT_OPERATOR = '=' as const
 export const BODY_KEY = 'message' as const
 
-export const stringifySearchQuery = (params: SearchExpression[]) => {
-	const querySegments: string[] = []
-	let currentOffset = 0
-
-	params.forEach(({ text, start }, index) => {
-		const spaces = Math.max(start - currentOffset, index === 0 ? 0 : 1)
-		currentOffset = start + text.length
-
-		if (spaces > 0) {
-			querySegments.push(' '.repeat(spaces))
-		}
-
-		querySegments.push(text)
-	})
-
-	return querySegments.join('').trim()
-}
-
 const NEED_QUOTE_REGEX = /["'` :=><]/
 
 export const quoteQueryValue = (value: string | number) => {
@@ -194,40 +176,64 @@ export const getActivePart = (
 	cursorIndex: number,
 	queryParts: SearchExpression[],
 ): SearchExpression => {
-	let activePartIndex = 0
-
-	// Find the part that contains the cursor, including trailing spaces
-	queryParts.find((param, index) => {
-		const nextStart = queryParts[index + 1]?.start ?? 0
-
-		if (
-			nextStart === 0 ||
-			(cursorIndex >= param.start && cursorIndex < nextStart)
-		) {
-			activePartIndex = index
-			return true
-		}
-
-		return false
-	})
-
-	if (activePartIndex === undefined) {
-		const lastPartStop = Math.max(
-			queryParts[queryParts.length - 1]?.stop + 1,
-			cursorIndex,
-		)
-
-		const activePart = {
+	if (!queryParts.length) {
+		return {
 			key: BODY_KEY,
 			operator: DEFAULT_OPERATOR,
 			value: '',
 			text: '',
-			start: lastPartStop,
-			stop: lastPartStop,
+			start: 0,
+			stop: 0,
 		}
-		queryParts.push(activePart)
-		return activePart
-	} else {
-		return queryParts[activePartIndex]
+	}
+
+	// Find the part that contains the cursor
+	for (let i = 0; i < queryParts.length; i++) {
+		const currentPart = queryParts[i]
+		const nextPart = queryParts[i + 1]
+
+		// If cursor is within current part's range
+		if (
+			cursorIndex >= currentPart.start &&
+			cursorIndex <= currentPart.stop + 1
+		) {
+			return currentPart
+		}
+
+		// Handle spaces between parts
+		if (
+			nextPart &&
+			cursorIndex > currentPart.stop &&
+			cursorIndex < nextPart.start
+		) {
+			// If cursor is closer to current part, return current part
+			if (!!currentPart.value.trim()) {
+				return {
+					key: BODY_KEY,
+					operator: DEFAULT_OPERATOR,
+					value: '',
+					text: '',
+					start: currentPart.stop + 1,
+					stop: currentPart.stop + 1,
+				}
+			} else if (cursorIndex < nextPart.start) {
+				return currentPart
+			} else {
+				return nextPart
+			}
+		}
+	}
+
+	// If cursor is after all parts, create new part
+	const lastPart = queryParts[queryParts.length - 1]
+	const lastPartStop = Math.max(lastPart.stop + 1, cursorIndex)
+
+	return {
+		key: BODY_KEY,
+		operator: DEFAULT_OPERATOR,
+		value: '',
+		text: '',
+		start: lastPartStop,
+		stop: lastPartStop,
 	}
 }

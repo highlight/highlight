@@ -4,11 +4,9 @@ import {
 	buildTokenGroups,
 	getActivePart,
 	quoteQueryValue,
-	stringifySearchQuery,
 } from './utils'
 import { parseSearch } from '@/components/Search/utils'
 
-const complexQueryString = `name:"Eric Thomas" workspace:'Chilly McWilly'  project_id:9 freetext query`
 const complexQueryParams: SearchExpression[] = [
 	{
 		key: 'name',
@@ -43,44 +41,6 @@ const complexQueryParams: SearchExpression[] = [
 		stop: 75,
 	},
 ]
-
-describe('stringifyLogsQuery', () => {
-	it('parses simple params to a query string', () => {
-		expect(
-			stringifySearchQuery([
-				{
-					key: BODY_KEY,
-					operator: '=',
-					value: 'a test query',
-					text: 'a test query',
-					start: 0,
-					stop: 12,
-				},
-			]),
-		).toEqual('a test query')
-	})
-
-	it('parses complex params to a query string', () => {
-		expect(stringifySearchQuery(complexQueryParams)).toEqual(
-			complexQueryString,
-		)
-	})
-
-	it('includes quotes for the body query', () => {
-		expect(
-			stringifySearchQuery([
-				{
-					key: BODY_KEY,
-					operator: '=',
-					value: '"Error updating filter group: Filtering out noisy error"',
-					text: '"Error updating filter group: Filtering out noisy error"',
-					start: 0,
-					stop: 62,
-				},
-			]),
-		).toEqual('"Error updating filter group: Filtering out noisy error"')
-	})
-})
 
 describe('quoteQueryValue', () => {
 	it('quotes strings with spaces', () => {
@@ -207,5 +167,26 @@ describe('getActivePart', () => {
 		const queryString = 'has_errors= span_name =  service_name=frontend'
 		const { queryParts } = parseSearch(queryString)
 		expect(getActivePart(11, queryParts).text).toEqual('has_errors=')
+	})
+
+	it('handles trailing spaces in earlier expressions correctly', () => {
+		const queryString = 'span_name = gorm.Query  service_name=frontend'
+		const { queryParts } = parseSearch(queryString)
+		const activePart = getActivePart(23, queryParts)
+		expect(activePart.key).toEqual(BODY_KEY)
+		expect(activePart.operator).toEqual('=')
+		expect(activePart.text).toEqual('')
+		expect(activePart.value).toEqual('')
+	})
+
+	it('handles trailing spaces on full queries', () => {
+		const queryString = 'service_name=frontend '
+		const { queryParts } = parseSearch(queryString)
+		const activePart = getActivePart(22, queryParts)
+
+		expect(activePart.key).toEqual(BODY_KEY)
+		expect(activePart.operator).toEqual('=')
+		expect(activePart.text).toEqual('')
+		expect(activePart.value).toEqual('')
 	})
 })

@@ -93,7 +93,7 @@ func (r *allWorkspaceSettingsResolver) EnableBusinessDashboards(ctx context.Cont
 		return false, e.Wrap(err, "error querying workspace visualizations")
 	}
 
-	return obj.EnableUnlimitedDashboards || numDashboards < 2, nil
+	return obj.EnableUnlimitedDashboards || numDashboards <= 2, nil
 }
 
 // EnableBusinessProjects is the resolver for the enable_business_projects field.
