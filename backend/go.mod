@@ -27,13 +27,13 @@ require (
 	github.com/PaesslerAG/jsonpath v0.1.1
 	github.com/andybalholm/brotli v1.1.0
 	github.com/antlr4-go/antlr/v4 v4.13.0
-	github.com/aws/aws-sdk-go-v2 v1.29.0
-	github.com/aws/aws-sdk-go-v2/config v1.27.11
+	github.com/aws/aws-sdk-go-v2 v1.32.7
+	github.com/aws/aws-sdk-go-v2/config v1.28.7
 	github.com/aws/aws-sdk-go-v2/feature/cloudfront/sign v1.7.9
 	github.com/aws/aws-sdk-go-v2/service/marketplaceentitlementservice v1.20.2
 	github.com/aws/aws-sdk-go-v2/service/marketplacemetering v1.21.2
 	github.com/aws/aws-sdk-go-v2/service/s3 v1.53.1
-	github.com/aws/smithy-go v1.20.2
+	github.com/aws/smithy-go v1.22.1
 	github.com/bradleyfalzon/ghinstallation/v2 v2.10.0
 	github.com/clearbit/clearbit-go v1.1.0
 	github.com/cloudflare/cloudflare-go v0.97.0
@@ -87,9 +87,9 @@ require (
 	github.com/vektah/gqlparser/v2 v2.5.15
 	go.openly.dev/pointy v1.3.0
 	go.opentelemetry.io/collector/pdata v1.7.0
-	go.opentelemetry.io/otel v1.29.0
+	go.opentelemetry.io/otel v1.33.0
 	go.opentelemetry.io/otel/sdk v1.29.0
-	go.opentelemetry.io/otel/trace v1.29.0
+	go.opentelemetry.io/otel/trace v1.33.0
 	golang.org/x/mod v0.16.0
 	golang.org/x/oauth2 v0.21.0
 	golang.org/x/sync v0.7.0
@@ -113,11 +113,13 @@ require (
 	github.com/PaesslerAG/gval v1.2.2 // indirect
 	github.com/ProtonMail/go-crypto v1.0.0 // indirect
 	github.com/aws/aws-sdk-go-v2/aws/protocol/eventstream v1.6.2 // indirect
-	github.com/aws/aws-sdk-go-v2/internal/configsources v1.3.5 // indirect
-	github.com/aws/aws-sdk-go-v2/internal/endpoints/v2 v2.6.5 // indirect
+	github.com/aws/aws-sdk-go-v2/internal/configsources v1.3.26 // indirect
+	github.com/aws/aws-sdk-go-v2/internal/endpoints/v2 v2.6.26 // indirect
 	github.com/aws/aws-sdk-go-v2/internal/v4a v1.3.5 // indirect
+	github.com/aws/aws-sdk-go-v2/service/cloudwatch v1.43.4 // indirect
+	github.com/aws/aws-sdk-go-v2/service/ec2 v1.198.1 // indirect
 	github.com/aws/aws-sdk-go-v2/service/internal/checksum v1.3.7 // indirect
-	github.com/aws/aws-sdk-go-v2/service/ssooidc v1.23.4 // indirect
+	github.com/aws/aws-sdk-go-v2/service/ssooidc v1.28.7 // indirect
 	github.com/cenkalti/backoff/v4 v4.3.0 // indirect
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
 	github.com/cloudflare/circl v1.3.7 // indirect
@@ -146,6 +148,7 @@ require (
 	github.com/huandu/xstrings v1.4.0 // indirect
 	github.com/imdario/mergo v0.3.16 // indirect
 	github.com/jackc/puddle/v2 v2.2.1 // indirect
+	github.com/jmespath/go-jmespath v0.4.0 // indirect
 	github.com/json-iterator/go v1.1.12 // indirect
 	github.com/lestrrat-go/backoff/v2 v2.0.8 // indirect
 	github.com/lestrrat-go/blackmagic v1.0.2 // indirect
@@ -189,7 +192,7 @@ require (
 	go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp v0.49.0 // indirect
 	go.opentelemetry.io/otel/exporters/otlp/otlptrace v1.29.0 // indirect
 	go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracehttp v1.26.0 // indirect
-	go.opentelemetry.io/otel/metric v1.29.0 // indirect
+	go.opentelemetry.io/otel/metric v1.33.0 // indirect
 	go.opentelemetry.io/proto/otlp v1.3.1 // indirect
 	go.uber.org/atomic v1.11.0 // indirect
 	go.uber.org/multierr v1.11.0 // indirect
@@ -208,15 +211,15 @@ require (
 	github.com/ReneKroon/ttlcache v1.7.0
 	github.com/agnivade/levenshtein v1.1.1 // indirect
 	github.com/aws/aws-lambda-go v1.46.0
-	github.com/aws/aws-sdk-go-v2/credentials v1.17.11 // indirect
-	github.com/aws/aws-sdk-go-v2/feature/ec2/imds v1.16.1 // indirect
-	github.com/aws/aws-sdk-go-v2/internal/ini v1.8.0 // indirect
-	github.com/aws/aws-sdk-go-v2/service/internal/accept-encoding v1.11.2 // indirect
-	github.com/aws/aws-sdk-go-v2/service/internal/presigned-url v1.11.7 // indirect
+	github.com/aws/aws-sdk-go-v2/credentials v1.17.48 // indirect
+	github.com/aws/aws-sdk-go-v2/feature/ec2/imds v1.16.22 // indirect
+	github.com/aws/aws-sdk-go-v2/internal/ini v1.8.1 // indirect
+	github.com/aws/aws-sdk-go-v2/service/internal/accept-encoding v1.12.1 // indirect
+	github.com/aws/aws-sdk-go-v2/service/internal/presigned-url v1.12.7 // indirect
 	github.com/aws/aws-sdk-go-v2/service/internal/s3shared v1.17.5 // indirect
 	github.com/aws/aws-sdk-go-v2/service/sfn v1.26.2
-	github.com/aws/aws-sdk-go-v2/service/sso v1.20.5 // indirect
-	github.com/aws/aws-sdk-go-v2/service/sts v1.28.6
+	github.com/aws/aws-sdk-go-v2/service/sso v1.24.8 // indirect
+	github.com/aws/aws-sdk-go-v2/service/sts v1.33.3
 	github.com/bwmarrin/discordgo v0.27.1
 	github.com/cpuguy83/go-md2man/v2 v2.0.4 // indirect
 	github.com/dghubble/sling v1.4.2 // indirect
@@ -237,7 +240,7 @@ require (
 	github.com/pierrec/lz4/v4 v4.1.21 // indirect
 	github.com/russross/blackfriday/v2 v2.1.0 // indirect
 	github.com/sendgrid/rest v2.6.9+incompatible // indirect
-	github.com/stretchr/testify v1.9.0
+	github.com/stretchr/testify v1.10.0
 	github.com/tdewolff/parse v2.3.4+incompatible
 	go.opencensus.io v0.24.0 // indirect
 	golang.org/x/crypto v0.27.0
