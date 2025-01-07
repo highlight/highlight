@@ -1615,12 +1615,10 @@ export type UpsertGraphMutation = { __typename?: 'Mutation' } & {
 		| 'display'
 		| 'nullHandling'
 	> & {
-			funnelSteps?: Types.Maybe<
-				Array<
-					{ __typename?: 'FunnelStep' } & Pick<
-						Types.FunnelStep,
-						'title' | 'query'
-					>
+			funnelSteps: Array<
+				{ __typename?: 'FunnelStep' } & Pick<
+					Types.FunnelStep,
+					'title' | 'query'
 				>
 			>
 			expressions: Array<
@@ -4249,12 +4247,10 @@ export type GetAlertsPagePayloadQuery = { __typename?: 'Query' } & {
 							'url' | 'authorization'
 						>
 					>
-					filters?: Types.Maybe<
-						Array<
-							{ __typename?: 'MetricTagFilter' } & Pick<
-								Types.MetricTagFilter,
-								'tag' | 'op' | 'value'
-							>
+					filters: Array<
+						{ __typename?: 'MetricTagFilter' } & Pick<
+							Types.MetricTagFilter,
+							'tag' | 'op' | 'value'
 						>
 					>
 				}
@@ -4495,14 +4491,10 @@ export type GetDashboardDefinitionsQuery = { __typename?: 'Query' } & {
 							| 'max_percentile'
 							| 'groups'
 						> & {
-								filters?: Types.Maybe<
-									Array<
-										{
-											__typename?: 'MetricTagFilter'
-										} & Pick<
-											Types.MetricTagFilter,
-											'value' | 'op' | 'tag'
-										>
+								filters: Array<
+									{ __typename?: 'MetricTagFilter' } & Pick<
+										Types.MetricTagFilter,
+										'value' | 'op' | 'tag'
 									>
 								>
 							}
@@ -5233,12 +5225,10 @@ export type GetGraphTemplatesQuery = { __typename?: 'Query' } & {
 			| 'display'
 			| 'nullHandling'
 		> & {
-				funnelSteps?: Types.Maybe<
-					Array<
-						{ __typename?: 'FunnelStep' } & Pick<
-							Types.FunnelStep,
-							'title' | 'query'
-						>
+				funnelSteps: Array<
+					{ __typename?: 'FunnelStep' } & Pick<
+						Types.FunnelStep,
+						'title' | 'query'
 					>
 				>
 				expressions: Array<
@@ -5285,12 +5275,10 @@ export type GetVisualizationQuery = { __typename?: 'Query' } & {
 					| 'display'
 					| 'nullHandling'
 				> & {
-						funnelSteps?: Types.Maybe<
-							Array<
-								{ __typename?: 'FunnelStep' } & Pick<
-									Types.FunnelStep,
-									'title' | 'query'
-								>
+						funnelSteps: Array<
+							{ __typename?: 'FunnelStep' } & Pick<
+								Types.FunnelStep,
+								'title' | 'query'
 							>
 						>
 						expressions: Array<
@@ -5354,14 +5342,10 @@ export type GetVisualizationsQuery = { __typename?: 'Query' } & {
 								| 'display'
 								| 'nullHandling'
 							> & {
-									funnelSteps?: Types.Maybe<
-										Array<
-											{
-												__typename?: 'FunnelStep'
-											} & Pick<
-												Types.FunnelStep,
-												'title' | 'query'
-											>
+									funnelSteps: Array<
+										{ __typename?: 'FunnelStep' } & Pick<
+											Types.FunnelStep,
+											'title' | 'query'
 										>
 									>
 									expressions: Array<
@@ -5402,6 +5386,32 @@ export type GetAiQuerySuggestionQuery = { __typename?: 'Query' } & {
 				'start_date' | 'end_date'
 			>
 		}
+}
+
+export type GetAwsEc2InstancesQueryVariables = Types.Exact<{
+	credentials_id: Types.Scalars['ID']
+}>
+
+export type GetAwsEc2InstancesQuery = { __typename?: 'Query' } & {
+	aws_ec2_instances: Array<
+		{ __typename?: 'AwsEc2Instance' } & Pick<
+			Types.AwsEc2Instance,
+			'id' | 'name' | 'instance_id' | 'state' | 'metrics_enabled'
+		>
+	>
+}
+
+export type SyncAwsEc2InstancesMutationVariables = Types.Exact<{
+	credentials_id: Types.Scalars['ID']
+}>
+
+export type SyncAwsEc2InstancesMutation = { __typename?: 'Mutation' } & {
+	sync_aws_ec2_instances: Array<
+		{ __typename?: 'AwsEc2Instance' } & Pick<
+			Types.AwsEc2Instance,
+			'id' | 'name' | 'instance_id' | 'state' | 'metrics_enabled'
+		>
+	>
 }
 
 export const namedOperations = {
@@ -5551,6 +5561,7 @@ export const namedOperations = {
 		GetVisualization: 'GetVisualization' as const,
 		GetVisualizations: 'GetVisualizations' as const,
 		GetAIQuerySuggestion: 'GetAIQuerySuggestion' as const,
+		GetAwsEc2Instances: 'GetAwsEc2Instances' as const,
 	},
 	Mutation: {
 		MarkErrorGroupAsViewed: 'MarkErrorGroupAsViewed' as const,
@@ -5649,6 +5660,7 @@ export const namedOperations = {
 		DeleteGraph: 'DeleteGraph' as const,
 		CreateCloudflareProxy: 'CreateCloudflareProxy' as const,
 		SendAdminWorkspaceInvite: 'SendAdminWorkspaceInvite' as const,
+		SyncAwsEc2Instances: 'SyncAwsEc2Instances' as const,
 	},
 	Subscription: {
 		OnSessionPayloadAppended: 'OnSessionPayloadAppended' as const,

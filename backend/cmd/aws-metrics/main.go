@@ -25,7 +25,7 @@ func main() {
 	}
 
 	if cfg.Region == "" {
-		cfg.Region = "us-west-2" // default region
+		cfg.Region = "us-east-2" // default region
 	}
 
 	// Create CloudWatch client

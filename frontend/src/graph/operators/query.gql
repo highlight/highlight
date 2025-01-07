@@ -2799,3 +2799,23 @@ query GetAIQuerySuggestion(
 		}
 	}
 }
+
+query GetAwsEc2Instances($credentials_id: ID!) {
+	aws_ec2_instances(credentials_id: $credentials_id) {
+		id
+		name
+		instance_id
+		state
+		metrics_enabled
+	}
+}
+
+mutation SyncAwsEc2Instances($credentials_id: ID!) {
+	sync_aws_ec2_instances(credentials_id: $credentials_id) {
+		id
+		name
+		instance_id
+		state
+		metrics_enabled
+	}
+}

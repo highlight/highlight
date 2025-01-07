@@ -574,7 +574,7 @@ func (r *Resolver) isUserInWorkspace(ctx context.Context, workspaceID int) (*mod
 			FROM workspace_admins wa
 			WHERE wa.admin_id = ?
 			AND (
-				wa.role = 'ADMIN' 
+				wa.role = 'ADMIN'
 				OR wa.project_ids IS NULL
 			)
 		)

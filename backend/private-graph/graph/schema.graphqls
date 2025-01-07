@@ -306,7 +306,7 @@ type AccessibleJiraResources {
 	id: String!
 	url: String!
 	name: String!
-	scopes: [String!]
+	scopes: [String!]!
 	avatarUrl: String!
 }
 
@@ -927,7 +927,7 @@ type Service {
 	githubRepoPath: String
 	buildPrefix: String
 	githubPrefix: String
-	errorDetails: [String!]
+	errorDetails: [String!]!
 }
 
 type ServiceNode {
@@ -938,7 +938,7 @@ type ServiceNode {
 	githubRepoPath: String
 	buildPrefix: String
 	githubPrefix: String
-	errorDetails: [String!]
+	errorDetails: [String!]!
 }
 
 type ServiceEdge implements Edge {
@@ -1217,8 +1217,8 @@ input DashboardParamsInput {
 	timezone: String
 	units: String
 	aggregator: MetricAggregator!
-	filters: [MetricTagFilterInput!]
-	groups: [String!]
+	filters: [MetricTagFilterInput!]!
+	groups: [String!]!
 }
 
 input ErrorGroupFrequenciesParamsInput {
@@ -1894,8 +1894,8 @@ input DashboardMetricConfigInput {
 	min_percentile: Float
 	max_value: Float
 	max_percentile: Float
-	filters: [MetricTagFilterInput!]
-	groups: [String!]
+	filters: [MetricTagFilterInput!]!
+	groups: [String!]!
 }
 
 enum MetricViewComponentType {
@@ -1923,8 +1923,8 @@ type DashboardMetricConfig {
 	min_percentile: Float
 	max_value: Float
 	max_percentile: Float
-	filters: [MetricTagFilter!]
-	groups: [String!]
+	filters: [MetricTagFilter!]!
+	groups: [String!]!
 }
 
 type DashboardDefinition {
@@ -1958,7 +1958,7 @@ type MetricMonitor {
 	threshold: Float!
 	units: String
 	disabled: Boolean!
-	filters: [MetricTagFilter!]
+	filters: [MetricTagFilter!]!
 }
 
 type EventChunk {
@@ -2047,7 +2047,7 @@ type Graph {
 	limit: Int
 	limitFunctionType: MetricAggregator
 	limitMetric: String
-	funnelSteps: [FunnelStep!]
+	funnelSteps: [FunnelStep!]!
 	display: String
 	nullHandling: String
 	expressions: [MetricExpression!]!
@@ -2096,7 +2096,7 @@ input GraphInput {
 	limit: Int
 	limitFunctionType: MetricAggregator
 	limitMetric: String
-	funnelSteps: [FunnelStepInput!]
+	funnelSteps: [FunnelStepInput!]!
 	display: String
 	nullHandling: String
 	expressions: [MetricExpressionInput!]!
@@ -2113,9 +2113,9 @@ input VisualizationInput {
 	id: ID
 	projectId: ID!
 	name: String
-	graphIds: [ID!]
+	graphIds: [ID!]!
 	timePreset: String
-	variables: [VariableInput!]
+	variables: [VariableInput!]!
 }
 
 scalar Upload
@@ -2634,6 +2634,9 @@ type Query {
 		project_id: ID!
 		params: QueryInput!
 	): [LogLine!]!
+
+	aws_credentials(workspace_id: ID!): [AwsCredentials!]!
+	aws_ec2_instances(credentials_id: ID!): [AwsEc2Instance!]!
 }
 
 type Mutation {
@@ -3100,6 +3103,14 @@ type Mutation {
 	deleteVisualization(id: ID!): Boolean!
 	upsertGraph(graph: GraphInput!): Graph!
 	deleteGraph(id: ID!): Boolean!
+
+	create_aws_credentials(input: AwsCredentialsInput!): AwsCredentials!
+	delete_aws_credentials(id: ID!): Boolean!
+	update_aws_ec2_instance(
+		id: ID!
+		input: UpdateAwsEc2InstanceInput!
+	): AwsEc2Instance!
+	sync_aws_ec2_instances(credentials_id: ID!): [AwsEc2Instance!]!
 }
 
 type Subscription {
@@ -3107,4 +3118,34 @@ type Subscription {
 		session_secure_id: String!
 		initial_events_count: Int!
 	): SessionPayload
+}
+
+type AwsCredentials {
+	id: ID!
+	workspace_id: ID!
+	name: String!
+	region: String!
+	access_key_id: String!
+}
+
+type AwsEc2Instance {
+	id: ID!
+	credentials_id: ID!
+	instance_id: String!
+	name: String
+	state: String!
+	metrics_enabled: Boolean!
+}
+
+input AwsCredentialsInput {
+	workspace_id: ID!
+	name: String!
+	region: String!
+	access_key_id: String!
+	secret_access_key: String!
+}
+
+input UpdateAwsEc2InstanceInput {
+	instance_id: String!
+	metrics_enabled: Boolean!
 }

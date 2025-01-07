@@ -37,7 +37,7 @@ export type AccessibleJiraResources = {
 	avatarUrl: Scalars['String']
 	id: Scalars['String']
 	name: Scalars['String']
-	scopes?: Maybe<Array<Scalars['String']>>
+	scopes: Array<Scalars['String']>
 	url: Scalars['String']
 }
 
@@ -245,6 +245,33 @@ export type AverageSessionLength = {
 	length: Scalars['Float']
 }
 
+export type AwsCredentials = {
+	__typename?: 'AwsCredentials'
+	access_key_id: Scalars['String']
+	id: Scalars['ID']
+	name: Scalars['String']
+	region: Scalars['String']
+	workspace_id: Scalars['ID']
+}
+
+export type AwsCredentialsInput = {
+	access_key_id: Scalars['String']
+	name: Scalars['String']
+	region: Scalars['String']
+	secret_access_key: Scalars['String']
+	workspace_id: Scalars['ID']
+}
+
+export type AwsEc2Instance = {
+	__typename?: 'AwsEc2Instance'
+	credentials_id: Scalars['ID']
+	id: Scalars['ID']
+	instance_id: Scalars['String']
+	metrics_enabled: Scalars['Boolean']
+	name?: Maybe<Scalars['String']>
+	state: Scalars['String']
+}
+
 export type BillingDetails = {
 	__typename?: 'BillingDetails'
 	errorsBillingLimit?: Maybe<Scalars['Int64']>
@@ -383,8 +410,8 @@ export type DashboardMetricConfig = {
 	chart_type?: Maybe<DashboardChartType>
 	component_type?: Maybe<MetricViewComponentType>
 	description: Scalars['String']
-	filters?: Maybe<Array<MetricTagFilter>>
-	groups?: Maybe<Array<Scalars['String']>>
+	filters: Array<MetricTagFilter>
+	groups: Array<Scalars['String']>
 	help_article?: Maybe<Scalars['String']>
 	max_good_value?: Maybe<Scalars['Float']>
 	max_needs_improvement_value?: Maybe<Scalars['Float']>
@@ -402,8 +429,8 @@ export type DashboardMetricConfigInput = {
 	chart_type?: InputMaybe<DashboardChartType>
 	component_type?: InputMaybe<MetricViewComponentType>
 	description: Scalars['String']
-	filters?: InputMaybe<Array<MetricTagFilterInput>>
-	groups?: InputMaybe<Array<Scalars['String']>>
+	filters: Array<MetricTagFilterInput>
+	groups: Array<Scalars['String']>
 	help_article?: InputMaybe<Scalars['String']>
 	max_good_value?: InputMaybe<Scalars['Float']>
 	max_needs_improvement_value?: InputMaybe<Scalars['Float']>
@@ -419,8 +446,8 @@ export type DashboardMetricConfigInput = {
 export type DashboardParamsInput = {
 	aggregator: MetricAggregator
 	date_range: DateRangeRequiredInput
-	filters?: InputMaybe<Array<MetricTagFilterInput>>
-	groups?: InputMaybe<Array<Scalars['String']>>
+	filters: Array<MetricTagFilterInput>
+	groups: Array<Scalars['String']>
 	resolution_minutes?: InputMaybe<Scalars['Int']>
 	timezone?: InputMaybe<Scalars['String']>
 	units?: InputMaybe<Scalars['String']>
@@ -772,7 +799,7 @@ export type Graph = {
 	description: Scalars['String']
 	display?: Maybe<Scalars['String']>
 	expressions: Array<MetricExpression>
-	funnelSteps?: Maybe<Array<FunnelStep>>
+	funnelSteps: Array<FunnelStep>
 	groupByKeys?: Maybe<Scalars['StringArray']>
 	id: Scalars['ID']
 	limit?: Maybe<Scalars['Int']>
@@ -792,7 +819,7 @@ export type GraphInput = {
 	bucketInterval?: InputMaybe<Scalars['Int']>
 	display?: InputMaybe<Scalars['String']>
 	expressions: Array<MetricExpressionInput>
-	funnelSteps?: InputMaybe<Array<FunnelStepInput>>
+	funnelSteps: Array<FunnelStepInput>
 	groupByKeys?: InputMaybe<Scalars['StringArray']>
 	id?: InputMaybe<Scalars['ID']>
 	limit?: InputMaybe<Scalars['Int']>
@@ -1139,7 +1166,7 @@ export type MetricMonitor = {
 	disabled: Scalars['Boolean']
 	discord_channels_to_notify: Array<DiscordChannel>
 	emails_to_notify: Array<Maybe<Scalars['String']>>
-	filters?: Maybe<Array<MetricTagFilter>>
+	filters: Array<MetricTagFilter>
 	id: Scalars['ID']
 	last_admin_to_edit_id: Scalars['ID']
 	metric_to_monitor: Scalars['String']
@@ -1225,6 +1252,7 @@ export type Mutation = {
 	createSessionComment?: Maybe<SessionComment>
 	createSessionCommentWithExistingIssue?: Maybe<SessionComment>
 	createWorkspace?: Maybe<Workspace>
+	create_aws_credentials: AwsCredentials
 	deleteAdminFromWorkspace?: Maybe<Scalars['ID']>
 	deleteAlert: Scalars['Boolean']
 	deleteDashboard: Scalars['Boolean']
@@ -1240,6 +1268,7 @@ export type Mutation = {
 	deleteSessionComment?: Maybe<Scalars['Boolean']>
 	deleteSessions: Scalars['Boolean']
 	deleteVisualization: Scalars['Boolean']
+	delete_aws_credentials: Scalars['Boolean']
 	editProject?: Maybe<Project>
 	editProjectSettings?: Maybe<AllProjectSettings>
 	editSavedSegment?: Maybe<Scalars['Boolean']>
@@ -1267,6 +1296,7 @@ export type Mutation = {
 	sendAdminWorkspaceInvite?: Maybe<Scalars['String']>
 	submitRegistrationForm?: Maybe<Scalars['Boolean']>
 	syncSlackIntegration: SlackSyncResponse
+	sync_aws_ec2_instances: Array<AwsEc2Instance>
 	testErrorEnhancement?: Maybe<ErrorObject>
 	updateAdminAboutYouDetails: Scalars['Boolean']
 	updateAdminAndCreateWorkspace?: Maybe<Project>
@@ -1291,6 +1321,7 @@ export type Mutation = {
 	updateSessionAlertIsDisabled?: Maybe<SessionAlert>
 	updateSessionIsPublic?: Maybe<Session>
 	updateVercelProjectMappings: Scalars['Boolean']
+	update_aws_ec2_instance: AwsEc2Instance
 	upsertDashboard: Scalars['ID']
 	upsertDiscordChannel: DiscordChannel
 	upsertGraph: Graph
@@ -1493,6 +1524,10 @@ export type MutationCreateWorkspaceArgs = {
 	promo_code?: InputMaybe<Scalars['String']>
 }
 
+export type MutationCreate_Aws_CredentialsArgs = {
+	input: AwsCredentialsInput
+}
+
 export type MutationDeleteAdminFromWorkspaceArgs = {
 	admin_id: Scalars['ID']
 	workspace_id: Scalars['ID']
@@ -1559,6 +1594,10 @@ export type MutationDeleteSessionsArgs = {
 }
 
 export type MutationDeleteVisualizationArgs = {
+	id: Scalars['ID']
+}
+
+export type MutationDelete_Aws_CredentialsArgs = {
 	id: Scalars['ID']
 }
 
@@ -1755,6 +1794,10 @@ export type MutationSyncSlackIntegrationArgs = {
 	project_id: Scalars['ID']
 }
 
+export type MutationSync_Aws_Ec2_InstancesArgs = {
+	credentials_id: Scalars['ID']
+}
+
 export type MutationTestErrorEnhancementArgs = {
 	build_prefix?: InputMaybe<Scalars['String']>
 	error_object_id: Scalars['ID']
@@ -1916,6 +1959,11 @@ export type MutationUpdateVercelProjectMappingsArgs = {
 	project_mappings: Array<VercelProjectMappingInput>
 }
 
+export type MutationUpdate_Aws_Ec2_InstanceArgs = {
+	id: Scalars['ID']
+	input: UpdateAwsEc2InstanceInput
+}
+
 export type MutationUpsertDashboardArgs = {
 	id?: InputMaybe<Scalars['ID']>
 	is_default?: InputMaybe<Scalars['Boolean']>
@@ -2075,6 +2123,8 @@ export type Query = {
 	alerts: Array<Maybe<Alert>>
 	api_key_to_org_id?: Maybe<Scalars['ID']>
 	averageSessionLength?: Maybe<AverageSessionLength>
+	aws_credentials: Array<AwsCredentials>
+	aws_ec2_instances: Array<AwsEc2Instance>
 	billingDetails: BillingDetails
 	billingDetailsForProject?: Maybe<BillingDetails>
 	clickup_folderless_lists: Array<ClickUpList>
@@ -2280,6 +2330,14 @@ export type QueryApi_Key_To_Org_IdArgs = {
 export type QueryAverageSessionLengthArgs = {
 	lookback_days: Scalars['Float']
 	project_id: Scalars['ID']
+}
+
+export type QueryAws_CredentialsArgs = {
+	workspace_id: Scalars['ID']
+}
+
+export type QueryAws_Ec2_InstancesArgs = {
+	credentials_id: Scalars['ID']
 }
 
 export type QueryBillingDetailsArgs = {
@@ -3369,7 +3427,7 @@ export type SearchParams = {
 export type Service = {
 	__typename?: 'Service'
 	buildPrefix?: Maybe<Scalars['String']>
-	errorDetails?: Maybe<Array<Scalars['String']>>
+	errorDetails: Array<Scalars['String']>
 	githubPrefix?: Maybe<Scalars['String']>
 	githubRepoPath?: Maybe<Scalars['String']>
 	id: Scalars['ID']
@@ -3393,7 +3451,7 @@ export type ServiceEdge = Edge & {
 export type ServiceNode = {
 	__typename?: 'ServiceNode'
 	buildPrefix?: Maybe<Scalars['String']>
-	errorDetails?: Maybe<Array<Scalars['String']>>
+	errorDetails: Array<Scalars['String']>
 	githubPrefix?: Maybe<Scalars['String']>
 	githubRepoPath?: Maybe<Scalars['String']>
 	id: Scalars['ID']
@@ -3878,6 +3936,11 @@ export type TrackPropertyInput = {
 	value: Scalars['String']
 }
 
+export type UpdateAwsEc2InstanceInput = {
+	instance_id: Scalars['String']
+	metrics_enabled: Scalars['Boolean']
+}
+
 export type UsageHistory = {
 	__typename?: 'UsageHistory'
 	usage: MetricsBuckets
@@ -3960,12 +4023,12 @@ export type Visualization = {
 }
 
 export type VisualizationInput = {
-	graphIds?: InputMaybe<Array<Scalars['ID']>>
+	graphIds: Array<Scalars['ID']>
 	id?: InputMaybe<Scalars['ID']>
 	name?: InputMaybe<Scalars['String']>
 	projectId: Scalars['ID']
 	timePreset?: InputMaybe<Scalars['String']>
-	variables?: InputMaybe<Array<VariableInput>>
+	variables: Array<VariableInput>
 }
 
 export type VisualizationsResponse = {

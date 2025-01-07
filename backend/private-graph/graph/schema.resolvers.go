@@ -36,6 +36,7 @@ import (
 	alertsV2 "github.com/highlight-run/highlight/backend/alerts/v2"
 	destinationsV2 "github.com/highlight-run/highlight/backend/alerts/v2/destinations"
 	"github.com/highlight-run/highlight/backend/apolloio"
+	"github.com/highlight-run/highlight/backend/awsmetrics"
 	"github.com/highlight-run/highlight/backend/clickhouse"
 	"github.com/highlight-run/highlight/backend/clickup"
 	Email "github.com/highlight-run/highlight/backend/email"
@@ -125,6 +126,11 @@ func (r *allWorkspaceSettingsResolver) EnableIngestFiltering(ctx context.Context
 	}
 
 	return w.PlanTier != modelInputs.PlanTypeFree.String(), nil
+}
+
+// Name is the resolver for the name field.
+func (r *awsCredentialsResolver) Name(ctx context.Context, obj *model.AwsCredentials) (string, error) {
+	panic(fmt.Errorf("not implemented: Name - name"))
 }
 
 // Author is the resolver for the author field.
@@ -4918,6 +4924,121 @@ func (r *mutationResolver) DeleteGraph(ctx context.Context, id int) (bool, error
 	return true, nil
 }
 
+// CreateAwsCredentials is the resolver for the create_aws_credentials field.
+func (r *mutationResolver) CreateAwsCredentials(ctx context.Context, input modelInputs.AwsCredentialsInput) (*model.AwsCredentials, error) {
+	cred := &model.AwsCredentials{
+		WorkspaceID:     input.WorkspaceID,
+		Region:          input.Region,
+		AccessKeyID:     input.AccessKeyID,
+		SecretAccessKey: input.SecretAccessKey,
+	}
+
+	if err := r.DB.WithContext(ctx).Create(cred).Error; err != nil {
+		return nil, fmt.Errorf("failed to create AWS credentials: %w", err)
+	}
+
+	return cred, nil
+}
+
+// DeleteAwsCredentials is the resolver for the delete_aws_credentials field.
+func (r *mutationResolver) DeleteAwsCredentials(ctx context.Context, id int) (bool, error) {
+	// Delete associated instances first
+	if err := r.DB.WithContext(ctx).Where("credentials_id = ?", id).Delete(&model.AwsEc2Instance{}).Error; err != nil {
+		return false, fmt.Errorf("failed to delete associated AWS instances: %w", err)
+	}
+
+	if err := r.DB.WithContext(ctx).Delete(&model.AwsCredentials{}, id).Error; err != nil {
+		return false, fmt.Errorf("failed to delete AWS credentials: %w", err)
+	}
+
+	return true, nil
+}
+
+// UpdateAwsEc2Instance is the resolver for the update_aws_ec2_instance field.
+func (r *mutationResolver) UpdateAwsEc2Instance(ctx context.Context, id int, input modelInputs.UpdateAwsEc2InstanceInput) (*model.AwsEc2Instance, error) {
+	var instance model.AwsEc2Instance
+	if err := r.DB.WithContext(ctx).First(&instance, id).Error; err != nil {
+		return nil, fmt.Errorf("failed to find AWS instance: %w", err)
+	}
+
+	instance.MetricsEnabled = input.MetricsEnabled
+	if err := r.DB.WithContext(ctx).Save(&instance).Error; err != nil {
+		return nil, fmt.Errorf("failed to update AWS instance: %w", err)
+	}
+
+	return &instance, nil
+}
+
+// SyncAwsEc2Instances is the resolver for the sync_aws_ec2_instances field.
+func (r *mutationResolver) SyncAwsEc2Instances(ctx context.Context, credentialsID int) ([]*model.AwsEc2Instance, error) {
+	// Get credentials
+	var creds model.AwsCredentials
+	if err := r.DB.WithContext(ctx).First(&creds, credentialsID).Error; err != nil {
+		return nil, fmt.Errorf("failed to find AWS credentials: %w", err)
+	}
+
+	// Create AWS config
+	cfg := &awsmetrics.Config{
+		Region:          creds.Region,
+		AccessKeyID:     creds.AccessKeyID,
+		SecretAccessKey: creds.SecretAccessKey,
+	}
+
+	// Create EC2 client
+	ec2Client, err := awsmetrics.NewEC2Client(ctx, cfg)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create EC2 client: %w", err)
+	}
+
+	// Get instances from AWS
+	instances, err := awsmetrics.DescribeInstances(ctx, ec2Client)
+	if err != nil {
+		return nil, fmt.Errorf("failed to describe instances: %w", err)
+	}
+
+	// Update local database
+	var result []*model.AwsEc2Instance
+	for _, inst := range instances.Reservations {
+		for _, i := range inst.Instances {
+			name := ""
+			for _, tag := range i.Tags {
+				if *tag.Key == "Name" {
+					name = *tag.Value
+					break
+				}
+			}
+
+			// Try to find existing instance
+			var dbInstance model.AwsEc2Instance
+			err := r.DB.WithContext(ctx).Where("credentials_id = ? AND instance_id = ?", credentialsID, *i.InstanceId).First(&dbInstance).Error
+			if err != nil {
+				// Create new instance if not found
+				dbInstance = model.AwsEc2Instance{
+					CredentialsID:  credentialsID,
+					InstanceID:     *i.InstanceId,
+					Name:           name,
+					State:          string(i.State.Name),
+					MetricsEnabled: false,
+				}
+				if err := r.DB.WithContext(ctx).Create(&dbInstance).Error; err != nil {
+					return nil, fmt.Errorf("failed to create AWS instance: %w", err)
+				}
+			} else {
+				// Update existing instance
+				dbInstance.Name = name
+				dbInstance.State = string(i.State.Name)
+				if err := r.DB.WithContext(ctx).Save(&dbInstance).Error; err != nil {
+					return nil, fmt.Errorf("failed to update AWS instance: %w", err)
+				}
+			}
+
+			result = append(result, &dbInstance)
+		}
+	}
+
+	return result, nil
+}
+
 // Accounts is the resolver for the accounts field.
 func (r *queryResolver) Accounts(ctx context.Context) ([]*modelInputs.Account, error) {
 	if !r.isWhitelistedAccount(ctx) {
@@ -7046,7 +7167,7 @@ func (r *queryResolver) Projects(ctx context.Context) ([]*model.Project, error) 
 			ON p.workspace_id = wa.workspace_id
 			AND wa.admin_id = ?
 			AND (
-				wa.project_ids IS NULL 
+				wa.project_ids IS NULL
 				OR p.id = ANY(wa.project_ids))
 		)
 	`, admin.ID).Scan(&projects).Error; err != nil {
@@ -8871,15 +8992,15 @@ func (r *queryResolver) AiQuerySuggestion(ctx context.Context, timeZone string, 
 	log.WithContext(ctx).Infof("search specific doc: %s", searchSpecificDoc)
 
 	systemPrompt := fmt.Sprintf(`
-You are a simple system used by an observability product in which, 
-given a %s query in english, you output a structured query that the system 
+You are a simple system used by an observability product in which,
+given a %s query in english, you output a structured query that the system
 can use to parse (which ultimately queries an internal database).
 
-The input query will be a string which describes what the user wants in plain English.	
+The input query will be a string which describes what the user wants in plain English.
 
 ## Output Overview:
 
-The output query should be in a json format with two keys: "query" and "date_range". 
+The output query should be in a json format with two keys: "query" and "date_range".
 
 Below are descriptions of the keys:
 "query": A string that represents the query that the system should use to query the internal database, which must use the key-value pairs provided below. See below for the syntax rules of the language.
@@ -9784,6 +9905,21 @@ func (r *queryResolver) LogLines(ctx context.Context, productType modelInputs.Pr
 	}
 }
 
+// AwsCredentials is the resolver for the aws_credentials field.
+func (r *queryResolver) AwsCredentials(ctx context.Context, workspaceID int) ([]*model.AwsCredentials, error) {
+	var credentials []*model.AwsCredentials
+	if err := r.DB.WithContext(ctx).Where("workspace_id = ?", workspaceID).Find(&credentials).Error; err != nil {
+		return nil, fmt.Errorf("failed to fetch AWS credentials: %w", err)
+	}
+
+	return credentials, nil
+}
+
+// AwsEc2Instances is the resolver for the aws_ec2_instances field.
+func (r *queryResolver) AwsEc2Instances(ctx context.Context, credentialsID int) ([]*model.AwsEc2Instance, error) {
+	panic(fmt.Errorf("not implemented: AwsEc2Instances - aws_ec2_instances"))
+}
+
 // Params is the resolver for the params field.
 func (r *savedSegmentResolver) Params(ctx context.Context, obj *model.SavedSegment) (*model.SearchParams, error) {
 	params := &model.SearchParams{}
@@ -10152,6 +10288,11 @@ func (r *Resolver) AllWorkspaceSettings() generated.AllWorkspaceSettingsResolver
 	return &allWorkspaceSettingsResolver{r}
 }
 
+// AwsCredentials returns generated.AwsCredentialsResolver implementation.
+func (r *Resolver) AwsCredentials() generated.AwsCredentialsResolver {
+	return &awsCredentialsResolver{r}
+}
+
 // CommentReply returns generated.CommentReplyResolver implementation.
 func (r *Resolver) CommentReply() generated.CommentReplyResolver { return &commentReplyResolver{r} }
 
@@ -10216,6 +10357,7 @@ func (r *Resolver) TimelineIndicatorEvent() generated.TimelineIndicatorEventReso
 func (r *Resolver) Visualization() generated.VisualizationResolver { return &visualizationResolver{r} }
 
 type allWorkspaceSettingsResolver struct{ *Resolver }
+type awsCredentialsResolver struct{ *Resolver }
 type commentReplyResolver struct{ *Resolver }
 type errorAlertResolver struct{ *Resolver }
 type errorCommentResolver struct{ *Resolver }
@@ -10235,3 +10377,13 @@ type sessionCommentResolver struct{ *Resolver }
 type subscriptionResolver struct{ *Resolver }
 type timelineIndicatorEventResolver struct{ *Resolver }
 type visualizationResolver struct{ *Resolver }
+
+// !!! WARNING !!!
+// The code below was going to be deleted when updating resolvers. It has been copied here so you have
+// one last chance to move it out of harms way if you want. There are two reasons this happens:
+//   - When renaming or deleting a resolver the old code will be put in here. You can safely delete
+//     it when you're done.
+//   - You have helper methods in this file. Move them out to keep these resolver files clean.
+func (r *queryResolver) AwsInstances(ctx context.Context, credentialsID int) ([]*model.AwsEc2Instance, error) {
+	panic(fmt.Errorf("not implemented: AwsInstances - aws_instances"))
+}

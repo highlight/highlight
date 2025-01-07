@@ -31,7 +31,7 @@ type AccessibleJiraResources struct {
 	ID        string   `json:"id"`
 	URL       string   `json:"url"`
 	Name      string   `json:"name"`
-	Scopes    []string `json:"scopes,omitempty"`
+	Scopes    []string `json:"scopes"`
 	AvatarURL string   `json:"avatarUrl"`
 }
 
@@ -138,6 +138,14 @@ type AverageSessionLength struct {
 	Length float64 `json:"length"`
 }
 
+type AwsCredentialsInput struct {
+	WorkspaceID     int    `json:"workspace_id"`
+	Name            string `json:"name"`
+	Region          string `json:"region"`
+	AccessKeyID     string `json:"access_key_id"`
+	SecretAccessKey string `json:"secret_access_key"`
+}
+
 type BillingDetails struct {
 	Plan                 *Plan   `json:"plan"`
 	Meter                int64   `json:"meter"`
@@ -233,8 +241,8 @@ type DashboardMetricConfig struct {
 	MinPercentile            *float64                 `json:"min_percentile,omitempty"`
 	MaxValue                 *float64                 `json:"max_value,omitempty"`
 	MaxPercentile            *float64                 `json:"max_percentile,omitempty"`
-	Filters                  []*MetricTagFilter       `json:"filters,omitempty"`
-	Groups                   []string                 `json:"groups,omitempty"`
+	Filters                  []*MetricTagFilter       `json:"filters"`
+	Groups                   []string                 `json:"groups"`
 }
 
 type DashboardMetricConfigInput struct {
@@ -252,8 +260,8 @@ type DashboardMetricConfigInput struct {
 	MinPercentile            *float64                 `json:"min_percentile,omitempty"`
 	MaxValue                 *float64                 `json:"max_value,omitempty"`
 	MaxPercentile            *float64                 `json:"max_percentile,omitempty"`
-	Filters                  []*MetricTagFilterInput  `json:"filters,omitempty"`
-	Groups                   []string                 `json:"groups,omitempty"`
+	Filters                  []*MetricTagFilterInput  `json:"filters"`
+	Groups                   []string                 `json:"groups"`
 }
 
 type DashboardParamsInput struct {
@@ -262,8 +270,8 @@ type DashboardParamsInput struct {
 	Timezone          *string                 `json:"timezone,omitempty"`
 	Units             *string                 `json:"units,omitempty"`
 	Aggregator        MetricAggregator        `json:"aggregator"`
-	Filters           []*MetricTagFilterInput `json:"filters,omitempty"`
-	Groups            []string                `json:"groups,omitempty"`
+	Filters           []*MetricTagFilterInput `json:"filters"`
+	Groups            []string                `json:"groups"`
 }
 
 type DashboardPayload struct {
@@ -427,7 +435,7 @@ type GraphInput struct {
 	Limit             *int                     `json:"limit,omitempty"`
 	LimitFunctionType *MetricAggregator        `json:"limitFunctionType,omitempty"`
 	LimitMetric       *string                  `json:"limitMetric,omitempty"`
-	FunnelSteps       []*FunnelStepInput       `json:"funnelSteps,omitempty"`
+	FunnelSteps       []*FunnelStepInput       `json:"funnelSteps"`
 	Display           *string                  `json:"display,omitempty"`
 	NullHandling      *string                  `json:"nullHandling,omitempty"`
 	Expressions       []*MetricExpressionInput `json:"expressions"`
@@ -820,7 +828,7 @@ type ServiceNode struct {
 	GithubRepoPath *string       `json:"githubRepoPath,omitempty"`
 	BuildPrefix    *string       `json:"buildPrefix,omitempty"`
 	GithubPrefix   *string       `json:"githubPrefix,omitempty"`
-	ErrorDetails   []string      `json:"errorDetails,omitempty"`
+	ErrorDetails   []string      `json:"errorDetails"`
 }
 
 type SessionAlertInput struct {
@@ -1018,6 +1026,11 @@ type TrackPropertyInput struct {
 	Value string `json:"value"`
 }
 
+type UpdateAwsEc2InstanceInput struct {
+	InstanceID     string `json:"instance_id"`
+	MetricsEnabled bool   `json:"metrics_enabled"`
+}
+
 type UsageHistory struct {
 	Usage *MetricsBuckets `json:"usage"`
 }
@@ -1077,9 +1090,9 @@ type VisualizationInput struct {
 	ID         *int             `json:"id,omitempty"`
 	ProjectID  int              `json:"projectId"`
 	Name       *string          `json:"name,omitempty"`
-	GraphIds   []int            `json:"graphIds,omitempty"`
+	GraphIds   []int            `json:"graphIds"`
 	TimePreset *string          `json:"timePreset,omitempty"`
-	Variables  []*VariableInput `json:"variables,omitempty"`
+	Variables  []*VariableInput `json:"variables"`
 }
 
 type WebSocketEvent struct {

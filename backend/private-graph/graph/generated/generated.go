@@ -43,6 +43,7 @@ type Config struct {
 
 type ResolverRoot interface {
 	AllWorkspaceSettings() AllWorkspaceSettingsResolver
+	AwsCredentials() AwsCredentialsResolver
 	CommentReply() CommentReplyResolver
 	ErrorAlert() ErrorAlertResolver
 	ErrorComment() ErrorCommentResolver
@@ -220,6 +221,23 @@ type ComplexityRoot struct {
 
 	AverageSessionLength struct {
 		Length func(childComplexity int) int
+	}
+
+	AwsCredentials struct {
+		AccessKeyID func(childComplexity int) int
+		ID          func(childComplexity int) int
+		Name        func(childComplexity int) int
+		Region      func(childComplexity int) int
+		WorkspaceID func(childComplexity int) int
+	}
+
+	AwsEc2Instance struct {
+		CredentialsID  func(childComplexity int) int
+		ID             func(childComplexity int) int
+		InstanceID     func(childComplexity int) int
+		MetricsEnabled func(childComplexity int) int
+		Name           func(childComplexity int) int
+		State          func(childComplexity int) int
 	}
 
 	BillingDetails struct {
@@ -861,6 +879,7 @@ type ComplexityRoot struct {
 		ChangeProjectMembership               func(childComplexity int, workspaceID int, adminID int, projectIds []int) int
 		CreateAdmin                           func(childComplexity int) int
 		CreateAlert                           func(childComplexity int, projectID int, name string, productType model.ProductType, functionType model.MetricAggregator, functionColumn *string, query *string, groupByKey *string, defaultArg *bool, thresholdValue *float64, thresholdWindow *int, thresholdCooldown *int, thresholdType *model.ThresholdType, thresholdCondition *model.ThresholdCondition, destinations []*model.AlertDestinationInput) int
+		CreateAwsCredentials                  func(childComplexity int, input model.AwsCredentialsInput) int
 		CreateCloudflareProxy                 func(childComplexity int, workspaceID int, proxySubdomain string) int
 		CreateErrorComment                    func(childComplexity int, projectID int, errorGroupSecureID string, text string, textForEmail string, taggedAdmins []*model.SanitizedAdminInput, taggedSlackUsers []*model.SanitizedSlackChannelInput, errorURL string, authorName string, issueTitle *string, issueDescription *string, issueTeamID *string, issueTypeID *string, integrations []*model.IntegrationType) int
 		CreateErrorCommentForExistingIssue    func(childComplexity int, projectID int, errorGroupSecureID string, text string, textForEmail string, taggedAdmins []*model.SanitizedAdminInput, taggedSlackUsers []*model.SanitizedSlackChannelInput, errorURL string, authorName string, issueURL string, issueTitle string, issueID string, integrations []*model.IntegrationType) int
@@ -876,6 +895,7 @@ type ComplexityRoot struct {
 		CreateWorkspace                       func(childComplexity int, name string, promoCode *string) int
 		DeleteAdminFromWorkspace              func(childComplexity int, workspaceID int, adminID int) int
 		DeleteAlert                           func(childComplexity int, projectID int, alertID int) int
+		DeleteAwsCredentials                  func(childComplexity int, id int) int
 		DeleteDashboard                       func(childComplexity int, id int) int
 		DeleteErrorAlert                      func(childComplexity int, projectID int, errorAlertID int) int
 		DeleteErrorComment                    func(childComplexity int, id int) int
@@ -915,6 +935,7 @@ type ComplexityRoot struct {
 		SaveBillingPlan                       func(childComplexity int, workspaceID int, sessionsLimitCents *int, sessionsRetention model.RetentionPeriod, errorsLimitCents *int, errorsRetention model.RetentionPeriod, logsLimitCents *int, logsRetention model.RetentionPeriod, tracesLimitCents *int, tracesRetention model.RetentionPeriod) int
 		SendAdminWorkspaceInvite              func(childComplexity int, workspaceID int, email string, role string, projectIds []int) int
 		SubmitRegistrationForm                func(childComplexity int, workspaceID int, teamSize string, role string, useCase string, heardAbout string, pun *string) int
+		SyncAwsEc2Instances                   func(childComplexity int, credentialsID int) int
 		SyncSlackIntegration                  func(childComplexity int, projectID int) int
 		TestErrorEnhancement                  func(childComplexity int, errorObjectID int, githubRepoPath string, githubPrefix *string, buildPrefix *string, saveError *bool) int
 		UpdateAdminAboutYouDetails            func(childComplexity int, adminDetails model.AdminAboutYouDetails) int
@@ -923,6 +944,7 @@ type ComplexityRoot struct {
 		UpdateAlertDisabled                   func(childComplexity int, projectID int, alertID int, disabled bool) int
 		UpdateAllowMeterOverage               func(childComplexity int, workspaceID int, allowMeterOverage bool) int
 		UpdateAllowedEmailOrigins             func(childComplexity int, workspaceID int, allowedAutoJoinEmailOrigins string) int
+		UpdateAwsEc2Instance                  func(childComplexity int, id int, input model.UpdateAwsEc2InstanceInput) int
 		UpdateBillingDetails                  func(childComplexity int, workspaceID int) int
 		UpdateClickUpProjectMappings          func(childComplexity int, workspaceID int, projectMappings []*model.ClickUpProjectMappingInput) int
 		UpdateEmailOptOut                     func(childComplexity int, token *string, adminID *int, category model.EmailOptOutCategory, isOptOut bool, projectID *int) int
@@ -1015,6 +1037,8 @@ type ComplexityRoot struct {
 		AlertingAlertStateChanges        func(childComplexity int, alertID int, startDate time.Time, endDate time.Time, page *int, count *int) int
 		Alerts                           func(childComplexity int, projectID int) int
 		AverageSessionLength             func(childComplexity int, projectID int, lookbackDays float64) int
+		AwsCredentials                   func(childComplexity int, workspaceID int) int
+		AwsEc2Instances                  func(childComplexity int, credentialsID int) int
 		BillingDetails                   func(childComplexity int, workspaceID int) int
 		BillingDetailsForProject         func(childComplexity int, projectID int) int
 		ClickupFolderlessLists           func(childComplexity int, projectID int) int
@@ -1729,6 +1753,9 @@ type AllWorkspaceSettingsResolver interface {
 
 	EnableIngestFiltering(ctx context.Context, obj *model1.AllWorkspaceSettings) (bool, error)
 }
+type AwsCredentialsResolver interface {
+	Name(ctx context.Context, obj *model1.AwsCredentials) (string, error)
+}
 type CommentReplyResolver interface {
 	Author(ctx context.Context, obj *model1.CommentReply) (*model.SanitizedAdmin, error)
 }
@@ -1876,6 +1903,10 @@ type MutationResolver interface {
 	DeleteVisualization(ctx context.Context, id int) (bool, error)
 	UpsertGraph(ctx context.Context, graph model.GraphInput) (*model1.Graph, error)
 	DeleteGraph(ctx context.Context, id int) (bool, error)
+	CreateAwsCredentials(ctx context.Context, input model.AwsCredentialsInput) (*model1.AwsCredentials, error)
+	DeleteAwsCredentials(ctx context.Context, id int) (bool, error)
+	UpdateAwsEc2Instance(ctx context.Context, id int, input model.UpdateAwsEc2InstanceInput) (*model1.AwsEc2Instance, error)
+	SyncAwsEc2Instances(ctx context.Context, credentialsID int) ([]*model1.AwsEc2Instance, error)
 }
 type QueryResolver interface {
 	Accounts(ctx context.Context) ([]*model.Account, error)
@@ -2047,6 +2078,8 @@ type QueryResolver interface {
 	Graph(ctx context.Context, id int) (*model1.Graph, error)
 	GraphTemplates(ctx context.Context) ([]*model1.Graph, error)
 	LogLines(ctx context.Context, productType model.ProductType, projectID int, params model.QueryInput) ([]*model.LogLine, error)
+	AwsCredentials(ctx context.Context, workspaceID int) ([]*model1.AwsCredentials, error)
+	AwsEc2Instances(ctx context.Context, credentialsID int) ([]*model1.AwsEc2Instance, error)
 }
 type SavedSegmentResolver interface {
 	Params(ctx context.Context, obj *model1.SavedSegment) (*model1.SearchParams, error)
@@ -2921,6 +2954,83 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.AverageSessionLength.Length(childComplexity), true
+
+	case "AwsCredentials.access_key_id":
+		if e.complexity.AwsCredentials.AccessKeyID == nil {
+			break
+		}
+
+		return e.complexity.AwsCredentials.AccessKeyID(childComplexity), true
+
+	case "AwsCredentials.id":
+		if e.complexity.AwsCredentials.ID == nil {
+			break
+		}
+
+		return e.complexity.AwsCredentials.ID(childComplexity), true
+
+	case "AwsCredentials.name":
+		if e.complexity.AwsCredentials.Name == nil {
+			break
+		}
+
+		return e.complexity.AwsCredentials.Name(childComplexity), true
+
+	case "AwsCredentials.region":
+		if e.complexity.AwsCredentials.Region == nil {
+			break
+		}
+
+		return e.complexity.AwsCredentials.Region(childComplexity), true
+
+	case "AwsCredentials.workspace_id":
+		if e.complexity.AwsCredentials.WorkspaceID == nil {
+			break
+		}
+
+		return e.complexity.AwsCredentials.WorkspaceID(childComplexity), true
+
+	case "AwsEc2Instance.credentials_id":
+		if e.complexity.AwsEc2Instance.CredentialsID == nil {
+			break
+		}
+
+		return e.complexity.AwsEc2Instance.CredentialsID(childComplexity), true
+
+	case "AwsEc2Instance.id":
+		if e.complexity.AwsEc2Instance.ID == nil {
+			break
+		}
+
+		return e.complexity.AwsEc2Instance.ID(childComplexity), true
+
+	case "AwsEc2Instance.instance_id":
+		if e.complexity.AwsEc2Instance.InstanceID == nil {
+			break
+		}
+
+		return e.complexity.AwsEc2Instance.InstanceID(childComplexity), true
+
+	case "AwsEc2Instance.metrics_enabled":
+		if e.complexity.AwsEc2Instance.MetricsEnabled == nil {
+			break
+		}
+
+		return e.complexity.AwsEc2Instance.MetricsEnabled(childComplexity), true
+
+	case "AwsEc2Instance.name":
+		if e.complexity.AwsEc2Instance.Name == nil {
+			break
+		}
+
+		return e.complexity.AwsEc2Instance.Name(childComplexity), true
+
+	case "AwsEc2Instance.state":
+		if e.complexity.AwsEc2Instance.State == nil {
+			break
+		}
+
+		return e.complexity.AwsEc2Instance.State(childComplexity), true
 
 	case "BillingDetails.errorsBillingLimit":
 		if e.complexity.BillingDetails.ErrorsBillingLimit == nil {
@@ -5822,6 +5932,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Mutation.CreateAlert(childComplexity, args["project_id"].(int), args["name"].(string), args["product_type"].(model.ProductType), args["function_type"].(model.MetricAggregator), args["function_column"].(*string), args["query"].(*string), args["group_by_key"].(*string), args["default"].(*bool), args["threshold_value"].(*float64), args["threshold_window"].(*int), args["threshold_cooldown"].(*int), args["threshold_type"].(*model.ThresholdType), args["threshold_condition"].(*model.ThresholdCondition), args["destinations"].([]*model.AlertDestinationInput)), true
 
+	case "Mutation.create_aws_credentials":
+		if e.complexity.Mutation.CreateAwsCredentials == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_create_aws_credentials_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.CreateAwsCredentials(childComplexity, args["input"].(model.AwsCredentialsInput)), true
+
 	case "Mutation.createCloudflareProxy":
 		if e.complexity.Mutation.CreateCloudflareProxy == nil {
 			break
@@ -6001,6 +6123,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.DeleteAlert(childComplexity, args["project_id"].(int), args["alert_id"].(int)), true
+
+	case "Mutation.delete_aws_credentials":
+		if e.complexity.Mutation.DeleteAwsCredentials == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_delete_aws_credentials_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.DeleteAwsCredentials(childComplexity, args["id"].(int)), true
 
 	case "Mutation.deleteDashboard":
 		if e.complexity.Mutation.DeleteDashboard == nil {
@@ -6470,6 +6604,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Mutation.SubmitRegistrationForm(childComplexity, args["workspace_id"].(int), args["team_size"].(string), args["role"].(string), args["use_case"].(string), args["heard_about"].(string), args["pun"].(*string)), true
 
+	case "Mutation.sync_aws_ec2_instances":
+		if e.complexity.Mutation.SyncAwsEc2Instances == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_sync_aws_ec2_instances_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.SyncAwsEc2Instances(childComplexity, args["credentials_id"].(int)), true
+
 	case "Mutation.syncSlackIntegration":
 		if e.complexity.Mutation.SyncSlackIntegration == nil {
 			break
@@ -6565,6 +6711,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.UpdateAllowedEmailOrigins(childComplexity, args["workspace_id"].(int), args["allowed_auto_join_email_origins"].(string)), true
+
+	case "Mutation.update_aws_ec2_instance":
+		if e.complexity.Mutation.UpdateAwsEc2Instance == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_update_aws_ec2_instance_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.UpdateAwsEc2Instance(childComplexity, args["id"].(int), args["input"].(model.UpdateAwsEc2InstanceInput)), true
 
 	case "Mutation.updateBillingDetails":
 		if e.complexity.Mutation.UpdateBillingDetails == nil {
@@ -7217,6 +7375,30 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Query.AverageSessionLength(childComplexity, args["project_id"].(int), args["lookback_days"].(float64)), true
+
+	case "Query.aws_credentials":
+		if e.complexity.Query.AwsCredentials == nil {
+			break
+		}
+
+		args, err := ec.field_Query_aws_credentials_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.AwsCredentials(childComplexity, args["workspace_id"].(int)), true
+
+	case "Query.aws_ec2_instances":
+		if e.complexity.Query.AwsEc2Instances == nil {
+			break
+		}
+
+		args, err := ec.field_Query_aws_ec2_instances_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.AwsEc2Instances(childComplexity, args["credentials_id"].(int)), true
 
 	case "Query.billingDetails":
 		if e.complexity.Query.BillingDetails == nil {
@@ -11614,6 +11796,7 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 		ec.unmarshalInputAdminAboutYouDetails,
 		ec.unmarshalInputAdminAndWorkspaceDetails,
 		ec.unmarshalInputAlertDestinationInput,
+		ec.unmarshalInputAwsCredentialsInput,
 		ec.unmarshalInputClickUpProjectMappingInput,
 		ec.unmarshalInputClickhouseQuery,
 		ec.unmarshalInputDashboardMetricConfigInput,
@@ -11642,6 +11825,7 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 		ec.unmarshalInputSessionCommentTagInput,
 		ec.unmarshalInputSortInput,
 		ec.unmarshalInputTrackPropertyInput,
+		ec.unmarshalInputUpdateAwsEc2InstanceInput,
 		ec.unmarshalInputUserPropertyInput,
 		ec.unmarshalInputVariableInput,
 		ec.unmarshalInputVercelProjectMappingInput,
@@ -12069,7 +12253,7 @@ type AccessibleJiraResources {
 	id: String!
 	url: String!
 	name: String!
-	scopes: [String!]
+	scopes: [String!]!
 	avatarUrl: String!
 }
 
@@ -12690,7 +12874,7 @@ type Service {
 	githubRepoPath: String
 	buildPrefix: String
 	githubPrefix: String
-	errorDetails: [String!]
+	errorDetails: [String!]!
 }
 
 type ServiceNode {
@@ -12701,7 +12885,7 @@ type ServiceNode {
 	githubRepoPath: String
 	buildPrefix: String
 	githubPrefix: String
-	errorDetails: [String!]
+	errorDetails: [String!]!
 }
 
 type ServiceEdge implements Edge {
@@ -12980,8 +13164,8 @@ input DashboardParamsInput {
 	timezone: String
 	units: String
 	aggregator: MetricAggregator!
-	filters: [MetricTagFilterInput!]
-	groups: [String!]
+	filters: [MetricTagFilterInput!]!
+	groups: [String!]!
 }
 
 input ErrorGroupFrequenciesParamsInput {
@@ -13657,8 +13841,8 @@ input DashboardMetricConfigInput {
 	min_percentile: Float
 	max_value: Float
 	max_percentile: Float
-	filters: [MetricTagFilterInput!]
-	groups: [String!]
+	filters: [MetricTagFilterInput!]!
+	groups: [String!]!
 }
 
 enum MetricViewComponentType {
@@ -13686,8 +13870,8 @@ type DashboardMetricConfig {
 	min_percentile: Float
 	max_value: Float
 	max_percentile: Float
-	filters: [MetricTagFilter!]
-	groups: [String!]
+	filters: [MetricTagFilter!]!
+	groups: [String!]!
 }
 
 type DashboardDefinition {
@@ -13721,7 +13905,7 @@ type MetricMonitor {
 	threshold: Float!
 	units: String
 	disabled: Boolean!
-	filters: [MetricTagFilter!]
+	filters: [MetricTagFilter!]!
 }
 
 type EventChunk {
@@ -13810,7 +13994,7 @@ type Graph {
 	limit: Int
 	limitFunctionType: MetricAggregator
 	limitMetric: String
-	funnelSteps: [FunnelStep!]
+	funnelSteps: [FunnelStep!]!
 	display: String
 	nullHandling: String
 	expressions: [MetricExpression!]!
@@ -13859,7 +14043,7 @@ input GraphInput {
 	limit: Int
 	limitFunctionType: MetricAggregator
 	limitMetric: String
-	funnelSteps: [FunnelStepInput!]
+	funnelSteps: [FunnelStepInput!]!
 	display: String
 	nullHandling: String
 	expressions: [MetricExpressionInput!]!
@@ -13876,9 +14060,9 @@ input VisualizationInput {
 	id: ID
 	projectId: ID!
 	name: String
-	graphIds: [ID!]
+	graphIds: [ID!]!
 	timePreset: String
-	variables: [VariableInput!]
+	variables: [VariableInput!]!
 }
 
 scalar Upload
@@ -14397,6 +14581,9 @@ type Query {
 		project_id: ID!
 		params: QueryInput!
 	): [LogLine!]!
+
+	aws_credentials(workspace_id: ID!): [AwsCredentials!]!
+	aws_ec2_instances(credentials_id: ID!): [AwsEc2Instance!]!
 }
 
 type Mutation {
@@ -14863,6 +15050,14 @@ type Mutation {
 	deleteVisualization(id: ID!): Boolean!
 	upsertGraph(graph: GraphInput!): Graph!
 	deleteGraph(id: ID!): Boolean!
+
+	create_aws_credentials(input: AwsCredentialsInput!): AwsCredentials!
+	delete_aws_credentials(id: ID!): Boolean!
+	update_aws_ec2_instance(
+		id: ID!
+		input: UpdateAwsEc2InstanceInput!
+	): AwsEc2Instance!
+	sync_aws_ec2_instances(credentials_id: ID!): [AwsEc2Instance!]!
 }
 
 type Subscription {
@@ -14870,6 +15065,36 @@ type Subscription {
 		session_secure_id: String!
 		initial_events_count: Int!
 	): SessionPayload
+}
+
+type AwsCredentials {
+	id: ID!
+	workspace_id: ID!
+	name: String!
+	region: String!
+	access_key_id: String!
+}
+
+type AwsEc2Instance {
+	id: ID!
+	credentials_id: ID!
+	instance_id: String!
+	name: String
+	state: String!
+	metrics_enabled: Boolean!
+}
+
+input AwsCredentialsInput {
+	workspace_id: ID!
+	name: String!
+	region: String!
+	access_key_id: String!
+	secret_access_key: String!
+}
+
+input UpdateAwsEc2InstanceInput {
+	instance_id: String!
+	metrics_enabled: Boolean!
 }
 `, BuiltIn: false},
 }
@@ -16235,6 +16460,21 @@ func (ec *executionContext) field_Mutation_createWorkspace_args(ctx context.Cont
 	return args, nil
 }
 
+func (ec *executionContext) field_Mutation_create_aws_credentials_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 model.AwsCredentialsInput
+	if tmp, ok := rawArgs["input"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
+		arg0, err = ec.unmarshalNAwsCredentialsInput2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐAwsCredentialsInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["input"] = arg0
+	return args, nil
+}
+
 func (ec *executionContext) field_Mutation_deleteAdminFromWorkspace_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
@@ -16527,6 +16767,21 @@ func (ec *executionContext) field_Mutation_deleteSessions_args(ctx context.Conte
 }
 
 func (ec *executionContext) field_Mutation_deleteVisualization_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 int
+	if tmp, ok := rawArgs["id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
+		arg0, err = ec.unmarshalNID2int(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["id"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_delete_aws_credentials_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
 	var arg0 int
@@ -17711,6 +17966,21 @@ func (ec *executionContext) field_Mutation_syncSlackIntegration_args(ctx context
 	return args, nil
 }
 
+func (ec *executionContext) field_Mutation_sync_aws_ec2_instances_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 int
+	if tmp, ok := rawArgs["credentials_id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("credentials_id"))
+		arg0, err = ec.unmarshalNID2int(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["credentials_id"] = arg0
+	return args, nil
+}
+
 func (ec *executionContext) field_Mutation_testErrorEnhancement_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
@@ -18677,6 +18947,30 @@ func (ec *executionContext) field_Mutation_updateVercelProjectMappings_args(ctx 
 	return args, nil
 }
 
+func (ec *executionContext) field_Mutation_update_aws_ec2_instance_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 int
+	if tmp, ok := rawArgs["id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
+		arg0, err = ec.unmarshalNID2int(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["id"] = arg0
+	var arg1 model.UpdateAwsEc2InstanceInput
+	if tmp, ok := rawArgs["input"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
+		arg1, err = ec.unmarshalNUpdateAwsEc2InstanceInput2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐUpdateAwsEc2InstanceInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["input"] = arg1
+	return args, nil
+}
+
 func (ec *executionContext) field_Mutation_upsertDashboard_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
@@ -19049,6 +19343,36 @@ func (ec *executionContext) field_Query_averageSessionLength_args(ctx context.Co
 		}
 	}
 	args["lookback_days"] = arg1
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_aws_credentials_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 int
+	if tmp, ok := rawArgs["workspace_id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("workspace_id"))
+		arg0, err = ec.unmarshalNID2int(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["workspace_id"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_aws_ec2_instances_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 int
+	if tmp, ok := rawArgs["credentials_id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("credentials_id"))
+		arg0, err = ec.unmarshalNID2int(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["credentials_id"] = arg0
 	return args, nil
 }
 
@@ -23608,11 +23932,14 @@ func (ec *executionContext) _AccessibleJiraResources_scopes(ctx context.Context,
 		return graphql.Null
 	}
 	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
 		return graphql.Null
 	}
 	res := resTmp.([]string)
 	fc.Result = res
-	return ec.marshalOString2ᚕstringᚄ(ctx, field.Selections, res)
+	return ec.marshalNString2ᚕstringᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_AccessibleJiraResources_scopes(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -28358,6 +28685,487 @@ func (ec *executionContext) fieldContext_AverageSessionLength_length(ctx context
 	return fc, nil
 }
 
+func (ec *executionContext) _AwsCredentials_id(ctx context.Context, field graphql.CollectedField, obj *model1.AwsCredentials) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_AwsCredentials_id(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	fc.Result = res
+	return ec.marshalNID2int(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_AwsCredentials_id(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "AwsCredentials",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type ID does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _AwsCredentials_workspace_id(ctx context.Context, field graphql.CollectedField, obj *model1.AwsCredentials) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_AwsCredentials_workspace_id(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.WorkspaceID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	fc.Result = res
+	return ec.marshalNID2int(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_AwsCredentials_workspace_id(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "AwsCredentials",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type ID does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _AwsCredentials_name(ctx context.Context, field graphql.CollectedField, obj *model1.AwsCredentials) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_AwsCredentials_name(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.AwsCredentials().Name(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_AwsCredentials_name(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "AwsCredentials",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _AwsCredentials_region(ctx context.Context, field graphql.CollectedField, obj *model1.AwsCredentials) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_AwsCredentials_region(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Region, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_AwsCredentials_region(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "AwsCredentials",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _AwsCredentials_access_key_id(ctx context.Context, field graphql.CollectedField, obj *model1.AwsCredentials) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_AwsCredentials_access_key_id(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.AccessKeyID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_AwsCredentials_access_key_id(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "AwsCredentials",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _AwsEc2Instance_id(ctx context.Context, field graphql.CollectedField, obj *model1.AwsEc2Instance) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_AwsEc2Instance_id(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	fc.Result = res
+	return ec.marshalNID2int(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_AwsEc2Instance_id(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "AwsEc2Instance",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type ID does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _AwsEc2Instance_credentials_id(ctx context.Context, field graphql.CollectedField, obj *model1.AwsEc2Instance) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_AwsEc2Instance_credentials_id(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.CredentialsID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	fc.Result = res
+	return ec.marshalNID2int(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_AwsEc2Instance_credentials_id(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "AwsEc2Instance",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type ID does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _AwsEc2Instance_instance_id(ctx context.Context, field graphql.CollectedField, obj *model1.AwsEc2Instance) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_AwsEc2Instance_instance_id(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.InstanceID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_AwsEc2Instance_instance_id(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "AwsEc2Instance",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _AwsEc2Instance_name(ctx context.Context, field graphql.CollectedField, obj *model1.AwsEc2Instance) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_AwsEc2Instance_name(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Name, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalOString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_AwsEc2Instance_name(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "AwsEc2Instance",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _AwsEc2Instance_state(ctx context.Context, field graphql.CollectedField, obj *model1.AwsEc2Instance) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_AwsEc2Instance_state(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.State, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_AwsEc2Instance_state(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "AwsEc2Instance",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _AwsEc2Instance_metrics_enabled(ctx context.Context, field graphql.CollectedField, obj *model1.AwsEc2Instance) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_AwsEc2Instance_metrics_enabled(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.MetricsEnabled, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_AwsEc2Instance_metrics_enabled(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "AwsEc2Instance",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _BillingDetails_plan(ctx context.Context, field graphql.CollectedField, obj *model.BillingDetails) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_BillingDetails_plan(ctx, field)
 	if err != nil {
@@ -31448,11 +32256,14 @@ func (ec *executionContext) _DashboardMetricConfig_filters(ctx context.Context, 
 		return graphql.Null
 	}
 	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
 		return graphql.Null
 	}
 	res := resTmp.([]*model.MetricTagFilter)
 	fc.Result = res
-	return ec.marshalOMetricTagFilter2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐMetricTagFilterᚄ(ctx, field.Selections, res)
+	return ec.marshalNMetricTagFilter2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐMetricTagFilterᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_DashboardMetricConfig_filters(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -31497,11 +32308,14 @@ func (ec *executionContext) _DashboardMetricConfig_groups(ctx context.Context, f
 		return graphql.Null
 	}
 	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
 		return graphql.Null
 	}
 	res := resTmp.([]string)
 	fc.Result = res
-	return ec.marshalOString2ᚕstringᚄ(ctx, field.Selections, res)
+	return ec.marshalNString2ᚕstringᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_DashboardMetricConfig_groups(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -39889,11 +40703,14 @@ func (ec *executionContext) _Graph_funnelSteps(ctx context.Context, field graphq
 		return graphql.Null
 	}
 	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
 		return graphql.Null
 	}
 	res := resTmp.([]*model.FunnelStep)
 	fc.Result = res
-	return ec.marshalOFunnelStep2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐFunnelStepᚄ(ctx, field.Selections, res)
+	return ec.marshalNFunnelStep2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐFunnelStepᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Graph_funnelSteps(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -45922,11 +46739,14 @@ func (ec *executionContext) _MetricMonitor_filters(ctx context.Context, field gr
 		return graphql.Null
 	}
 	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
 		return graphql.Null
 	}
 	res := resTmp.([]*model.MetricTagFilter)
 	fc.Result = res
-	return ec.marshalOMetricTagFilter2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐMetricTagFilterᚄ(ctx, field.Selections, res)
+	return ec.marshalNMetricTagFilter2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐMetricTagFilterᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_MetricMonitor_filters(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -52858,6 +53678,266 @@ func (ec *executionContext) fieldContext_Mutation_deleteGraph(ctx context.Contex
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_Mutation_deleteGraph_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_create_aws_credentials(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_create_aws_credentials(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().CreateAwsCredentials(rctx, fc.Args["input"].(model.AwsCredentialsInput))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*model1.AwsCredentials)
+	fc.Result = res
+	return ec.marshalNAwsCredentials2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐAwsCredentials(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Mutation_create_aws_credentials(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_AwsCredentials_id(ctx, field)
+			case "workspace_id":
+				return ec.fieldContext_AwsCredentials_workspace_id(ctx, field)
+			case "name":
+				return ec.fieldContext_AwsCredentials_name(ctx, field)
+			case "region":
+				return ec.fieldContext_AwsCredentials_region(ctx, field)
+			case "access_key_id":
+				return ec.fieldContext_AwsCredentials_access_key_id(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type AwsCredentials", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_create_aws_credentials_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_delete_aws_credentials(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_delete_aws_credentials(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().DeleteAwsCredentials(rctx, fc.Args["id"].(int))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Mutation_delete_aws_credentials(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_delete_aws_credentials_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_update_aws_ec2_instance(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_update_aws_ec2_instance(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().UpdateAwsEc2Instance(rctx, fc.Args["id"].(int), fc.Args["input"].(model.UpdateAwsEc2InstanceInput))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*model1.AwsEc2Instance)
+	fc.Result = res
+	return ec.marshalNAwsEc2Instance2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐAwsEc2Instance(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Mutation_update_aws_ec2_instance(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_AwsEc2Instance_id(ctx, field)
+			case "credentials_id":
+				return ec.fieldContext_AwsEc2Instance_credentials_id(ctx, field)
+			case "instance_id":
+				return ec.fieldContext_AwsEc2Instance_instance_id(ctx, field)
+			case "name":
+				return ec.fieldContext_AwsEc2Instance_name(ctx, field)
+			case "state":
+				return ec.fieldContext_AwsEc2Instance_state(ctx, field)
+			case "metrics_enabled":
+				return ec.fieldContext_AwsEc2Instance_metrics_enabled(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type AwsEc2Instance", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_update_aws_ec2_instance_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_sync_aws_ec2_instances(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_sync_aws_ec2_instances(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().SyncAwsEc2Instances(rctx, fc.Args["credentials_id"].(int))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]*model1.AwsEc2Instance)
+	fc.Result = res
+	return ec.marshalNAwsEc2Instance2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐAwsEc2Instanceᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Mutation_sync_aws_ec2_instances(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_AwsEc2Instance_id(ctx, field)
+			case "credentials_id":
+				return ec.fieldContext_AwsEc2Instance_credentials_id(ctx, field)
+			case "instance_id":
+				return ec.fieldContext_AwsEc2Instance_instance_id(ctx, field)
+			case "name":
+				return ec.fieldContext_AwsEc2Instance_name(ctx, field)
+			case "state":
+				return ec.fieldContext_AwsEc2Instance_state(ctx, field)
+			case "metrics_enabled":
+				return ec.fieldContext_AwsEc2Instance_metrics_enabled(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type AwsEc2Instance", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_sync_aws_ec2_instances_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return fc, err
 	}
@@ -66047,6 +67127,142 @@ func (ec *executionContext) fieldContext_Query_log_lines(ctx context.Context, fi
 	return fc, nil
 }
 
+func (ec *executionContext) _Query_aws_credentials(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Query_aws_credentials(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().AwsCredentials(rctx, fc.Args["workspace_id"].(int))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]*model1.AwsCredentials)
+	fc.Result = res
+	return ec.marshalNAwsCredentials2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐAwsCredentialsᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Query_aws_credentials(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_AwsCredentials_id(ctx, field)
+			case "workspace_id":
+				return ec.fieldContext_AwsCredentials_workspace_id(ctx, field)
+			case "name":
+				return ec.fieldContext_AwsCredentials_name(ctx, field)
+			case "region":
+				return ec.fieldContext_AwsCredentials_region(ctx, field)
+			case "access_key_id":
+				return ec.fieldContext_AwsCredentials_access_key_id(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type AwsCredentials", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_aws_credentials_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Query_aws_ec2_instances(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Query_aws_ec2_instances(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().AwsEc2Instances(rctx, fc.Args["credentials_id"].(int))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]*model1.AwsEc2Instance)
+	fc.Result = res
+	return ec.marshalNAwsEc2Instance2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐAwsEc2Instanceᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Query_aws_ec2_instances(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_AwsEc2Instance_id(ctx, field)
+			case "credentials_id":
+				return ec.fieldContext_AwsEc2Instance_credentials_id(ctx, field)
+			case "instance_id":
+				return ec.fieldContext_AwsEc2Instance_instance_id(ctx, field)
+			case "name":
+				return ec.fieldContext_AwsEc2Instance_name(ctx, field)
+			case "state":
+				return ec.fieldContext_AwsEc2Instance_state(ctx, field)
+			case "metrics_enabled":
+				return ec.fieldContext_AwsEc2Instance_metrics_enabled(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type AwsEc2Instance", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_aws_ec2_instances_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Query___type(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Query___type(ctx, field)
 	if err != nil {
@@ -68312,11 +69528,14 @@ func (ec *executionContext) _Service_errorDetails(ctx context.Context, field gra
 		return graphql.Null
 	}
 	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
 		return graphql.Null
 	}
 	res := resTmp.([]string)
 	fc.Result = res
-	return ec.marshalOString2ᚕstringᚄ(ctx, field.Selections, res)
+	return ec.marshalNString2ᚕstringᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Service_errorDetails(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -68862,11 +70081,14 @@ func (ec *executionContext) _ServiceNode_errorDetails(ctx context.Context, field
 		return graphql.Null
 	}
 	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
 		return graphql.Null
 	}
 	res := resTmp.([]string)
 	fc.Result = res
-	return ec.marshalOString2ᚕstringᚄ(ctx, field.Selections, res)
+	return ec.marshalNString2ᚕstringᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_ServiceNode_errorDetails(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -84531,6 +85753,61 @@ func (ec *executionContext) unmarshalInputAlertDestinationInput(ctx context.Cont
 	return it, nil
 }
 
+func (ec *executionContext) unmarshalInputAwsCredentialsInput(ctx context.Context, obj interface{}) (model.AwsCredentialsInput, error) {
+	var it model.AwsCredentialsInput
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"workspace_id", "name", "region", "access_key_id", "secret_access_key"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "workspace_id":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("workspace_id"))
+			data, err := ec.unmarshalNID2int(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.WorkspaceID = data
+		case "name":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("name"))
+			data, err := ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Name = data
+		case "region":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("region"))
+			data, err := ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Region = data
+		case "access_key_id":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("access_key_id"))
+			data, err := ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.AccessKeyID = data
+		case "secret_access_key":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("secret_access_key"))
+			data, err := ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.SecretAccessKey = data
+		}
+	}
+
+	return it, nil
+}
+
 func (ec *executionContext) unmarshalInputClickUpProjectMappingInput(ctx context.Context, obj interface{}) (model.ClickUpProjectMappingInput, error) {
 	var it model.ClickUpProjectMappingInput
 	asMap := map[string]interface{}{}
@@ -84720,14 +85997,14 @@ func (ec *executionContext) unmarshalInputDashboardMetricConfigInput(ctx context
 			it.MaxPercentile = data
 		case "filters":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("filters"))
-			data, err := ec.unmarshalOMetricTagFilterInput2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐMetricTagFilterInputᚄ(ctx, v)
+			data, err := ec.unmarshalNMetricTagFilterInput2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐMetricTagFilterInputᚄ(ctx, v)
 			if err != nil {
 				return it, err
 			}
 			it.Filters = data
 		case "groups":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("groups"))
-			data, err := ec.unmarshalOString2ᚕstringᚄ(ctx, v)
+			data, err := ec.unmarshalNString2ᚕstringᚄ(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -84789,14 +86066,14 @@ func (ec *executionContext) unmarshalInputDashboardParamsInput(ctx context.Conte
 			it.Aggregator = data
 		case "filters":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("filters"))
-			data, err := ec.unmarshalOMetricTagFilterInput2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐMetricTagFilterInputᚄ(ctx, v)
+			data, err := ec.unmarshalNMetricTagFilterInput2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐMetricTagFilterInputᚄ(ctx, v)
 			if err != nil {
 				return it, err
 			}
 			it.Filters = data
 		case "groups":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("groups"))
-			data, err := ec.unmarshalOString2ᚕstringᚄ(ctx, v)
+			data, err := ec.unmarshalNString2ᚕstringᚄ(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -85166,7 +86443,7 @@ func (ec *executionContext) unmarshalInputGraphInput(ctx context.Context, obj in
 			it.LimitMetric = data
 		case "funnelSteps":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("funnelSteps"))
-			data, err := ec.unmarshalOFunnelStepInput2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐFunnelStepInputᚄ(ctx, v)
+			data, err := ec.unmarshalNFunnelStepInput2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐFunnelStepInputᚄ(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -86029,6 +87306,40 @@ func (ec *executionContext) unmarshalInputTrackPropertyInput(ctx context.Context
 	return it, nil
 }
 
+func (ec *executionContext) unmarshalInputUpdateAwsEc2InstanceInput(ctx context.Context, obj interface{}) (model.UpdateAwsEc2InstanceInput, error) {
+	var it model.UpdateAwsEc2InstanceInput
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"instance_id", "metrics_enabled"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "instance_id":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("instance_id"))
+			data, err := ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.InstanceID = data
+		case "metrics_enabled":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("metrics_enabled"))
+			data, err := ec.unmarshalNBoolean2bool(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.MetricsEnabled = data
+		}
+	}
+
+	return it, nil
+}
+
 func (ec *executionContext) unmarshalInputUserPropertyInput(ctx context.Context, obj interface{}) (model.UserPropertyInput, error) {
 	var it model.UserPropertyInput
 	asMap := map[string]interface{}{}
@@ -86196,7 +87507,7 @@ func (ec *executionContext) unmarshalInputVisualizationInput(ctx context.Context
 			it.Name = data
 		case "graphIds":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("graphIds"))
-			data, err := ec.unmarshalOID2ᚕintᚄ(ctx, v)
+			data, err := ec.unmarshalNID2ᚕintᚄ(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -86210,7 +87521,7 @@ func (ec *executionContext) unmarshalInputVisualizationInput(ctx context.Context
 			it.TimePreset = data
 		case "variables":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("variables"))
-			data, err := ec.unmarshalOVariableInput2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐVariableInputᚄ(ctx, v)
+			data, err := ec.unmarshalNVariableInput2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐVariableInputᚄ(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -86400,6 +87711,9 @@ func (ec *executionContext) _AccessibleJiraResources(ctx context.Context, sel as
 			}
 		case "scopes":
 			out.Values[i] = ec._AccessibleJiraResources_scopes(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
 		case "avatarUrl":
 			out.Values[i] = ec._AccessibleJiraResources_avatarUrl(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
@@ -87396,6 +88710,157 @@ func (ec *executionContext) _AverageSessionLength(ctx context.Context, sel ast.S
 	return out
 }
 
+var awsCredentialsImplementors = []string{"AwsCredentials"}
+
+func (ec *executionContext) _AwsCredentials(ctx context.Context, sel ast.SelectionSet, obj *model1.AwsCredentials) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, awsCredentialsImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("AwsCredentials")
+		case "id":
+			out.Values[i] = ec._AwsCredentials_id(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&out.Invalids, 1)
+			}
+		case "workspace_id":
+			out.Values[i] = ec._AwsCredentials_workspace_id(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&out.Invalids, 1)
+			}
+		case "name":
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._AwsCredentials_name(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
+				return res
+			}
+
+			if field.Deferrable != nil {
+				dfs, ok := deferred[field.Deferrable.Label]
+				di := 0
+				if ok {
+					dfs.AddField(field)
+					di = len(dfs.Values) - 1
+				} else {
+					dfs = graphql.NewFieldSet([]graphql.CollectedField{field})
+					deferred[field.Deferrable.Label] = dfs
+				}
+				dfs.Concurrently(di, func(ctx context.Context) graphql.Marshaler {
+					return innerFunc(ctx, dfs)
+				})
+
+				// don't run the out.Concurrently() call below
+				out.Values[i] = graphql.Null
+				continue
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+		case "region":
+			out.Values[i] = ec._AwsCredentials_region(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&out.Invalids, 1)
+			}
+		case "access_key_id":
+			out.Values[i] = ec._AwsCredentials_access_key_id(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&out.Invalids, 1)
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.processDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
+var awsEc2InstanceImplementors = []string{"AwsEc2Instance"}
+
+func (ec *executionContext) _AwsEc2Instance(ctx context.Context, sel ast.SelectionSet, obj *model1.AwsEc2Instance) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, awsEc2InstanceImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("AwsEc2Instance")
+		case "id":
+			out.Values[i] = ec._AwsEc2Instance_id(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "credentials_id":
+			out.Values[i] = ec._AwsEc2Instance_credentials_id(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "instance_id":
+			out.Values[i] = ec._AwsEc2Instance_instance_id(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "name":
+			out.Values[i] = ec._AwsEc2Instance_name(ctx, field, obj)
+		case "state":
+			out.Values[i] = ec._AwsEc2Instance_state(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "metrics_enabled":
+			out.Values[i] = ec._AwsEc2Instance_metrics_enabled(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.processDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
 var billingDetailsImplementors = []string{"BillingDetails"}
 
 func (ec *executionContext) _BillingDetails(ctx context.Context, sel ast.SelectionSet, obj *model.BillingDetails) graphql.Marshaler {
@@ -88204,8 +89669,14 @@ func (ec *executionContext) _DashboardMetricConfig(ctx context.Context, sel ast.
 			out.Values[i] = ec._DashboardMetricConfig_max_percentile(ctx, field, obj)
 		case "filters":
 			out.Values[i] = ec._DashboardMetricConfig_filters(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
 		case "groups":
 			out.Values[i] = ec._DashboardMetricConfig_groups(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -90327,6 +91798,9 @@ func (ec *executionContext) _Graph(ctx context.Context, sel ast.SelectionSet, ob
 					}
 				}()
 				res = ec._Graph_funnelSteps(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
 				return res
 			}
 
@@ -92309,6 +93783,9 @@ func (ec *executionContext) _MetricMonitor(ctx context.Context, sel ast.Selectio
 					}
 				}()
 				res = ec._MetricMonitor_filters(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
 				return res
 			}
 
@@ -93010,6 +94487,34 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 		case "deleteGraph":
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._Mutation_deleteGraph(ctx, field)
+			})
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "create_aws_credentials":
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_create_aws_credentials(ctx, field)
+			})
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "delete_aws_credentials":
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_delete_aws_credentials(ctx, field)
+			})
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "update_aws_ec2_instance":
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_update_aws_ec2_instance(ctx, field)
+			})
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "sync_aws_ec2_instances":
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_sync_aws_ec2_instances(ctx, field)
 			})
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
@@ -96980,6 +98485,50 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 			}
 
 			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
+		case "aws_credentials":
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_aws_credentials(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx,
+					func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
+		case "aws_ec2_instances":
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_aws_ec2_instances(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx,
+					func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
 		case "__type":
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._Query___type(ctx, field)
@@ -97631,6 +99180,9 @@ func (ec *executionContext) _Service(ctx context.Context, sel ast.SelectionSet, 
 					}
 				}()
 				res = ec._Service_errorDetails(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
 				return res
 			}
 
@@ -97804,6 +99356,9 @@ func (ec *executionContext) _ServiceNode(ctx context.Context, sel ast.SelectionS
 			out.Values[i] = ec._ServiceNode_githubPrefix(ctx, field, obj)
 		case "errorDetails":
 			out.Values[i] = ec._ServiceNode_errorDetails(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -101985,6 +103540,127 @@ func (ec *executionContext) marshalNAny2ᚕinterface(ctx context.Context, sel as
 	return ret
 }
 
+func (ec *executionContext) marshalNAwsCredentials2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐAwsCredentials(ctx context.Context, sel ast.SelectionSet, v model1.AwsCredentials) graphql.Marshaler {
+	return ec._AwsCredentials(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNAwsCredentials2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐAwsCredentialsᚄ(ctx context.Context, sel ast.SelectionSet, v []*model1.AwsCredentials) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNAwsCredentials2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐAwsCredentials(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
+}
+
+func (ec *executionContext) marshalNAwsCredentials2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐAwsCredentials(ctx context.Context, sel ast.SelectionSet, v *model1.AwsCredentials) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._AwsCredentials(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalNAwsCredentialsInput2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐAwsCredentialsInput(ctx context.Context, v interface{}) (model.AwsCredentialsInput, error) {
+	res, err := ec.unmarshalInputAwsCredentialsInput(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNAwsEc2Instance2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐAwsEc2Instance(ctx context.Context, sel ast.SelectionSet, v model1.AwsEc2Instance) graphql.Marshaler {
+	return ec._AwsEc2Instance(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNAwsEc2Instance2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐAwsEc2Instanceᚄ(ctx context.Context, sel ast.SelectionSet, v []*model1.AwsEc2Instance) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNAwsEc2Instance2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐAwsEc2Instance(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
+}
+
+func (ec *executionContext) marshalNAwsEc2Instance2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐAwsEc2Instance(ctx context.Context, sel ast.SelectionSet, v *model1.AwsEc2Instance) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._AwsEc2Instance(ctx, sel, v)
+}
+
 func (ec *executionContext) marshalNBillingDetails2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐBillingDetails(ctx context.Context, sel ast.SelectionSet, v model.BillingDetails) graphql.Marshaler {
 	return ec._BillingDetails(ctx, sel, &v)
 }
@@ -103576,6 +105252,50 @@ func (ec *executionContext) marshalNFloat2float64(ctx context.Context, sel ast.S
 	return res
 }
 
+func (ec *executionContext) marshalNFunnelStep2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐFunnelStepᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.FunnelStep) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNFunnelStep2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐFunnelStep(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
+}
+
 func (ec *executionContext) marshalNFunnelStep2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐFunnelStep(ctx context.Context, sel ast.SelectionSet, v *model.FunnelStep) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
@@ -103584,6 +105304,23 @@ func (ec *executionContext) marshalNFunnelStep2ᚖgithubᚗcomᚋhighlightᚑrun
 		return graphql.Null
 	}
 	return ec._FunnelStep(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalNFunnelStepInput2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐFunnelStepInputᚄ(ctx context.Context, v interface{}) ([]*model.FunnelStepInput, error) {
+	var vSlice []interface{}
+	if v != nil {
+		vSlice = graphql.CoerceList(v)
+	}
+	var err error
+	res := make([]*model.FunnelStepInput, len(vSlice))
+	for i := range vSlice {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
+		res[i], err = ec.unmarshalNFunnelStepInput2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐFunnelStepInput(ctx, vSlice[i])
+		if err != nil {
+			return nil, err
+		}
+	}
+	return res, nil
 }
 
 func (ec *executionContext) unmarshalNFunnelStepInput2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐFunnelStepInput(ctx context.Context, v interface{}) (*model.FunnelStepInput, error) {
@@ -104816,6 +106553,50 @@ func (ec *executionContext) marshalNMetricMonitor2ᚕᚖgithubᚗcomᚋhighlight
 	return ret
 }
 
+func (ec *executionContext) marshalNMetricTagFilter2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐMetricTagFilterᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.MetricTagFilter) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNMetricTagFilter2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐMetricTagFilter(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
+}
+
 func (ec *executionContext) marshalNMetricTagFilter2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐMetricTagFilter(ctx context.Context, sel ast.SelectionSet, v *model.MetricTagFilter) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
@@ -104824,6 +106605,23 @@ func (ec *executionContext) marshalNMetricTagFilter2ᚖgithubᚗcomᚋhighlight�
 		return graphql.Null
 	}
 	return ec._MetricTagFilter(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalNMetricTagFilterInput2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐMetricTagFilterInputᚄ(ctx context.Context, v interface{}) ([]*model.MetricTagFilterInput, error) {
+	var vSlice []interface{}
+	if v != nil {
+		vSlice = graphql.CoerceList(v)
+	}
+	var err error
+	res := make([]*model.MetricTagFilterInput, len(vSlice))
+	for i := range vSlice {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
+		res[i], err = ec.unmarshalNMetricTagFilterInput2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐMetricTagFilterInput(ctx, vSlice[i])
+		if err != nil {
+			return nil, err
+		}
+	}
+	return res, nil
 }
 
 func (ec *executionContext) unmarshalNMetricTagFilterInput2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐMetricTagFilterInput(ctx context.Context, v interface{}) (*model.MetricTagFilterInput, error) {
@@ -106754,6 +108552,11 @@ func (ec *executionContext) marshalNUInt642uint64(ctx context.Context, sel ast.S
 	return res
 }
 
+func (ec *executionContext) unmarshalNUpdateAwsEc2InstanceInput2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐUpdateAwsEc2InstanceInput(ctx context.Context, v interface{}) (model.UpdateAwsEc2InstanceInput, error) {
+	res, err := ec.unmarshalInputUpdateAwsEc2InstanceInput(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
 func (ec *executionContext) marshalNUsageHistory2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐUsageHistory(ctx context.Context, sel ast.SelectionSet, v model.UsageHistory) graphql.Marshaler {
 	return ec._UsageHistory(ctx, sel, &v)
 }
@@ -106880,6 +108683,23 @@ func (ec *executionContext) marshalNVariable2ᚖgithubᚗcomᚋhighlightᚑrun�
 		return graphql.Null
 	}
 	return ec._Variable(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalNVariableInput2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐVariableInputᚄ(ctx context.Context, v interface{}) ([]*model.VariableInput, error) {
+	var vSlice []interface{}
+	if v != nil {
+		vSlice = graphql.CoerceList(v)
+	}
+	var err error
+	res := make([]*model.VariableInput, len(vSlice))
+	for i := range vSlice {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
+		res[i], err = ec.unmarshalNVariableInput2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐVariableInput(ctx, vSlice[i])
+		if err != nil {
+			return nil, err
+		}
+	}
+	return res, nil
 }
 
 func (ec *executionContext) unmarshalNVariableInput2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐVariableInput(ctx context.Context, v interface{}) (*model.VariableInput, error) {
@@ -108132,73 +109952,6 @@ func (ec *executionContext) marshalOFloat2ᚖfloat64(ctx context.Context, sel as
 	return res
 }
 
-func (ec *executionContext) marshalOFunnelStep2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐFunnelStepᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.FunnelStep) graphql.Marshaler {
-	if v == nil {
-		return graphql.Null
-	}
-	ret := make(graphql.Array, len(v))
-	var wg sync.WaitGroup
-	isLen1 := len(v) == 1
-	if !isLen1 {
-		wg.Add(len(v))
-	}
-	for i := range v {
-		i := i
-		fc := &graphql.FieldContext{
-			Index:  &i,
-			Result: &v[i],
-		}
-		ctx := graphql.WithFieldContext(ctx, fc)
-		f := func(i int) {
-			defer func() {
-				if r := recover(); r != nil {
-					ec.Error(ctx, ec.Recover(ctx, r))
-					ret = nil
-				}
-			}()
-			if !isLen1 {
-				defer wg.Done()
-			}
-			ret[i] = ec.marshalNFunnelStep2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐFunnelStep(ctx, sel, v[i])
-		}
-		if isLen1 {
-			f(i)
-		} else {
-			go f(i)
-		}
-
-	}
-	wg.Wait()
-
-	for _, e := range ret {
-		if e == graphql.Null {
-			return graphql.Null
-		}
-	}
-
-	return ret
-}
-
-func (ec *executionContext) unmarshalOFunnelStepInput2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐFunnelStepInputᚄ(ctx context.Context, v interface{}) ([]*model.FunnelStepInput, error) {
-	if v == nil {
-		return nil, nil
-	}
-	var vSlice []interface{}
-	if v != nil {
-		vSlice = graphql.CoerceList(v)
-	}
-	var err error
-	res := make([]*model.FunnelStepInput, len(vSlice))
-	for i := range vSlice {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
-		res[i], err = ec.unmarshalNFunnelStepInput2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐFunnelStepInput(ctx, vSlice[i])
-		if err != nil {
-			return nil, err
-		}
-	}
-	return res, nil
-}
-
 func (ec *executionContext) marshalOGitHubRepo2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐGitHubRepoᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.GitHubRepo) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
@@ -108301,44 +110054,6 @@ func (ec *executionContext) unmarshalOID2int(ctx context.Context, v interface{})
 func (ec *executionContext) marshalOID2int(ctx context.Context, sel ast.SelectionSet, v int) graphql.Marshaler {
 	res := graphql.MarshalIntID(v)
 	return res
-}
-
-func (ec *executionContext) unmarshalOID2ᚕintᚄ(ctx context.Context, v interface{}) ([]int, error) {
-	if v == nil {
-		return nil, nil
-	}
-	var vSlice []interface{}
-	if v != nil {
-		vSlice = graphql.CoerceList(v)
-	}
-	var err error
-	res := make([]int, len(vSlice))
-	for i := range vSlice {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
-		res[i], err = ec.unmarshalNID2int(ctx, vSlice[i])
-		if err != nil {
-			return nil, err
-		}
-	}
-	return res, nil
-}
-
-func (ec *executionContext) marshalOID2ᚕintᚄ(ctx context.Context, sel ast.SelectionSet, v []int) graphql.Marshaler {
-	if v == nil {
-		return graphql.Null
-	}
-	ret := make(graphql.Array, len(v))
-	for i := range v {
-		ret[i] = ec.marshalNID2int(ctx, sel, v[i])
-	}
-
-	for _, e := range ret {
-		if e == graphql.Null {
-			return graphql.Null
-		}
-	}
-
-	return ret
 }
 
 func (ec *executionContext) unmarshalOID2ᚖint(ctx context.Context, v interface{}) (*int, error) {
@@ -108783,53 +110498,6 @@ func (ec *executionContext) marshalOMetricMonitor2ᚖgithubᚗcomᚋhighlightᚑ
 		return graphql.Null
 	}
 	return ec._MetricMonitor(ctx, sel, v)
-}
-
-func (ec *executionContext) marshalOMetricTagFilter2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐMetricTagFilterᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.MetricTagFilter) graphql.Marshaler {
-	if v == nil {
-		return graphql.Null
-	}
-	ret := make(graphql.Array, len(v))
-	var wg sync.WaitGroup
-	isLen1 := len(v) == 1
-	if !isLen1 {
-		wg.Add(len(v))
-	}
-	for i := range v {
-		i := i
-		fc := &graphql.FieldContext{
-			Index:  &i,
-			Result: &v[i],
-		}
-		ctx := graphql.WithFieldContext(ctx, fc)
-		f := func(i int) {
-			defer func() {
-				if r := recover(); r != nil {
-					ec.Error(ctx, ec.Recover(ctx, r))
-					ret = nil
-				}
-			}()
-			if !isLen1 {
-				defer wg.Done()
-			}
-			ret[i] = ec.marshalNMetricTagFilter2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐMetricTagFilter(ctx, sel, v[i])
-		}
-		if isLen1 {
-			f(i)
-		} else {
-			go f(i)
-		}
-
-	}
-	wg.Wait()
-
-	for _, e := range ret {
-		if e == graphql.Null {
-			return graphql.Null
-		}
-	}
-
-	return ret
 }
 
 func (ec *executionContext) unmarshalOMetricTagFilterInput2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐMetricTagFilterInputᚄ(ctx context.Context, v interface{}) ([]*model.MetricTagFilterInput, error) {
@@ -109720,26 +111388,6 @@ func (ec *executionContext) marshalOUserProperty2ᚖgithubᚗcomᚋhighlightᚑr
 		return graphql.Null
 	}
 	return ec._UserProperty(ctx, sel, v)
-}
-
-func (ec *executionContext) unmarshalOVariableInput2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐVariableInputᚄ(ctx context.Context, v interface{}) ([]*model.VariableInput, error) {
-	if v == nil {
-		return nil, nil
-	}
-	var vSlice []interface{}
-	if v != nil {
-		vSlice = graphql.CoerceList(v)
-	}
-	var err error
-	res := make([]*model.VariableInput, len(vSlice))
-	for i := range vSlice {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
-		res[i], err = ec.unmarshalNVariableInput2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐVariableInput(ctx, vSlice[i])
-		if err != nil {
-			return nil, err
-		}
-	}
-	return res, nil
 }
 
 func (ec *executionContext) marshalOWorkspace2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐWorkspace(ctx context.Context, sel ast.SelectionSet, v []*model1.Workspace) graphql.Marshaler {

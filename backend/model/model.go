@@ -130,6 +130,8 @@ var ContextKeys = struct {
 
 var Models = []interface{}{
 	&AWSMarketplaceCustomer{},
+	&AwsCredentials{},
+	&AwsEc2Instance{},
 	&ErrorObject{},
 	&ErrorGroup{},
 	&ErrorGroupEmbeddings{},
@@ -2487,4 +2489,21 @@ func GetAttributesColumn(mappings []ColumnMapping, key string) string {
 		}
 	}
 	return ""
+}
+
+type AwsCredentials struct {
+	Model
+	WorkspaceID     int
+	Region          string
+	AccessKeyID     string
+	SecretAccessKey string
+}
+
+type AwsEc2Instance struct {
+	Model
+	CredentialsID  int
+	InstanceID     string
+	Name           string
+	State          string
+	MetricsEnabled bool
 }

@@ -15476,3 +15476,116 @@ export type GetAiQuerySuggestionQueryResult = Apollo.QueryResult<
 	Types.GetAiQuerySuggestionQuery,
 	Types.GetAiQuerySuggestionQueryVariables
 >
+export const GetAwsEc2InstancesDocument = gql`
+	query GetAwsEc2Instances($credentials_id: ID!) {
+		aws_ec2_instances(credentials_id: $credentials_id) {
+			id
+			name
+			instance_id
+			state
+			metrics_enabled
+		}
+	}
+`
+
+/**
+ * __useGetAwsEc2InstancesQuery__
+ *
+ * To run a query within a React component, call `useGetAwsEc2InstancesQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetAwsEc2InstancesQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetAwsEc2InstancesQuery({
+ *   variables: {
+ *      credentials_id: // value for 'credentials_id'
+ *   },
+ * });
+ */
+export function useGetAwsEc2InstancesQuery(
+	baseOptions: Apollo.QueryHookOptions<
+		Types.GetAwsEc2InstancesQuery,
+		Types.GetAwsEc2InstancesQueryVariables
+	>,
+) {
+	return Apollo.useQuery<
+		Types.GetAwsEc2InstancesQuery,
+		Types.GetAwsEc2InstancesQueryVariables
+	>(GetAwsEc2InstancesDocument, baseOptions)
+}
+export function useGetAwsEc2InstancesLazyQuery(
+	baseOptions?: Apollo.LazyQueryHookOptions<
+		Types.GetAwsEc2InstancesQuery,
+		Types.GetAwsEc2InstancesQueryVariables
+	>,
+) {
+	return Apollo.useLazyQuery<
+		Types.GetAwsEc2InstancesQuery,
+		Types.GetAwsEc2InstancesQueryVariables
+	>(GetAwsEc2InstancesDocument, baseOptions)
+}
+export type GetAwsEc2InstancesQueryHookResult = ReturnType<
+	typeof useGetAwsEc2InstancesQuery
+>
+export type GetAwsEc2InstancesLazyQueryHookResult = ReturnType<
+	typeof useGetAwsEc2InstancesLazyQuery
+>
+export type GetAwsEc2InstancesQueryResult = Apollo.QueryResult<
+	Types.GetAwsEc2InstancesQuery,
+	Types.GetAwsEc2InstancesQueryVariables
+>
+export const SyncAwsEc2InstancesDocument = gql`
+	mutation SyncAwsEc2Instances($credentials_id: ID!) {
+		sync_aws_ec2_instances(credentials_id: $credentials_id) {
+			id
+			name
+			instance_id
+			state
+			metrics_enabled
+		}
+	}
+`
+export type SyncAwsEc2InstancesMutationFn = Apollo.MutationFunction<
+	Types.SyncAwsEc2InstancesMutation,
+	Types.SyncAwsEc2InstancesMutationVariables
+>
+
+/**
+ * __useSyncAwsEc2InstancesMutation__
+ *
+ * To run a mutation, you first call `useSyncAwsEc2InstancesMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useSyncAwsEc2InstancesMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [syncAwsEc2InstancesMutation, { data, loading, error }] = useSyncAwsEc2InstancesMutation({
+ *   variables: {
+ *      credentials_id: // value for 'credentials_id'
+ *   },
+ * });
+ */
+export function useSyncAwsEc2InstancesMutation(
+	baseOptions?: Apollo.MutationHookOptions<
+		Types.SyncAwsEc2InstancesMutation,
+		Types.SyncAwsEc2InstancesMutationVariables
+	>,
+) {
+	return Apollo.useMutation<
+		Types.SyncAwsEc2InstancesMutation,
+		Types.SyncAwsEc2InstancesMutationVariables
+	>(SyncAwsEc2InstancesDocument, baseOptions)
+}
+export type SyncAwsEc2InstancesMutationHookResult = ReturnType<
+	typeof useSyncAwsEc2InstancesMutation
+>
+export type SyncAwsEc2InstancesMutationResult =
+	Apollo.MutationResult<Types.SyncAwsEc2InstancesMutation>
+export type SyncAwsEc2InstancesMutationOptions = Apollo.BaseMutationOptions<
+	Types.SyncAwsEc2InstancesMutation,
+	Types.SyncAwsEc2InstancesMutationVariables
+>
