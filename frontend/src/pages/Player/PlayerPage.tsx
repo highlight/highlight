@@ -52,7 +52,7 @@ import {
 	useGetAiQuerySuggestionLazyQuery,
 	useGetBillingDetailsForProjectQuery,
 } from '@/graph/generated/hooks'
-import { PlanType, ProductType } from '@/graph/generated/schemas'
+import { ProductType } from '@/graph/generated/schemas'
 import { useSearchTime } from '@/hooks/useSearchTime'
 import { useSessionFeedConfiguration } from '@/pages/Sessions/SessionsFeedV3/hooks/useSessionFeedConfiguration'
 import { useGetSessions } from '@/pages/Sessions/useGetSessions'
@@ -228,8 +228,6 @@ export const PlayerPage = () => {
 			integrated &&
 			projectId !== DEMO_PROJECT_ID &&
 			projectId !== DEMO_WORKSPACE_PROXY_APPLICATION_ID &&
-			billingDetails.billingDetailsForProject.plan.type ===
-				PlanType.Free &&
 			billingDetails.billingDetailsForProject.meter < 15
 
 		const defaultValue = showLiveSessions
