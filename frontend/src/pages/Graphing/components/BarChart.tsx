@@ -22,6 +22,7 @@ import {
 	useGraphCallbacks,
 	useGraphSeries,
 } from '@/pages/Graphing/components/Graph'
+import { syncTimestamp } from '@/pages/Graphing/components/utils'
 
 export type BarDisplay = 'Grouped' | 'Stacked'
 export const BAR_DISPLAY: BarDisplay[] = ['Grouped', 'Stacked']
@@ -114,6 +115,7 @@ const BarChartImpl = ({
 				<RechartsBarChart
 					data={data}
 					syncId={syncId}
+					syncMethod={syncTimestamp}
 					barCategoryGap={1}
 					onMouseDown={onMouseDown}
 					onMouseMove={onMouseMove}

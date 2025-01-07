@@ -1162,6 +1162,7 @@ const Graph = ({
 }: React.PropsWithChildren<ChartProps<ViewConfig>>) => {
 	const { setGraphData } = useGraphContext()
 	const queriedBucketCount = bucketByKey !== undefined ? bucketCount : 1
+	const bucketByTimestamp = bucketByKey === TIMESTAMP_KEY
 
 	const pollTimeout = useRef<number>()
 	const [pollInterval, setPollInterval] = useState<number>(0)
@@ -1496,7 +1497,7 @@ const Graph = ({
 				innerChart = (
 					<LineChart
 						data={data}
-						syncId={syncId}
+						syncId={bucketByTimestamp ? syncId : undefined}
 						xAxisMetric={xAxisMetric}
 						viewConfig={viewConfig}
 						spotlight={spotlight}
@@ -1514,7 +1515,7 @@ const Graph = ({
 				innerChart = (
 					<BarChart
 						data={data}
-						syncId={syncId}
+						syncId={bucketByTimestamp ? syncId : undefined}
 						xAxisMetric={xAxisMetric}
 						viewConfig={viewConfig}
 						spotlight={spotlight}

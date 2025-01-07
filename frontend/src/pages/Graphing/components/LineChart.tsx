@@ -8,6 +8,7 @@ import {
 	XAxis,
 	YAxis,
 } from 'recharts'
+import { AxisDomain } from 'recharts/types/util/types'
 
 import {
 	AxisConfig,
@@ -25,7 +26,7 @@ import {
 	YHAT_LOWER_KEY,
 	YHAT_UPPER_KEY,
 } from '@/pages/Graphing/components/Graph'
-import { AxisDomain } from 'recharts/types/util/types'
+import { syncTimestamp } from '@/pages/Graphing/components/utils'
 
 export type LineNullHandling = 'Hidden' | 'Connected' | 'Zero'
 export const LINE_NULL_HANDLING: LineNullHandling[] = [
@@ -151,6 +152,7 @@ const LineChartImpl = ({
 				<AreaChart
 					data={filledData}
 					syncId={syncId}
+					syncMethod={syncTimestamp}
 					onMouseDown={onMouseDown}
 					onMouseMove={onMouseMove}
 					onMouseUp={onMouseUp}
