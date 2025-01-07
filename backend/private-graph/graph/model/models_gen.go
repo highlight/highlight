@@ -139,7 +139,7 @@ type AverageSessionLength struct {
 }
 
 type AwsCredentialsInput struct {
-	WorkspaceID     int    `json:"workspace_id"`
+	ProjectID       int    `json:"project_id"`
 	Name            string `json:"name"`
 	Region          string `json:"region"`
 	AccessKeyID     string `json:"access_key_id"`

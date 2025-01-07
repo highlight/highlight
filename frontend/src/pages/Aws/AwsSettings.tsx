@@ -4,8 +4,10 @@ import { Button } from '@components/Button'
 import { toast } from '@components/Toaster'
 import { AwsEc2InstancesList } from './AwsEc2InstancesList'
 import { useCreateAwsCredentialsMutation } from '@/graph/generated/hooks'
+import { useProjectId } from '@/hooks/useProjectId'
 
 export const AwsSettings: React.FC = () => {
+	const { projectId } = useProjectId()
 	const [selectedCredentialsId, setSelectedCredentialsId] =
 		useState<string>('')
 	const formStore = Form.useStore({
@@ -34,7 +36,7 @@ export const AwsSettings: React.FC = () => {
 						region: formState.values.region,
 						access_key_id: formState.values.accessKeyId,
 						secret_access_key: formState.values.secretAccessKey,
-						workspace_id: '1', // You'll need to get this from your workspace context
+						project_id: projectId,
 					},
 				},
 			})

@@ -4922,7 +4922,7 @@ func (r *mutationResolver) DeleteGraph(ctx context.Context, id int) (bool, error
 // CreateAwsCredentials is the resolver for the create_aws_credentials field.
 func (r *mutationResolver) CreateAwsCredentials(ctx context.Context, input modelInputs.AwsCredentialsInput) (*model.AwsCredentials, error) {
 	cred := &model.AwsCredentials{
-		WorkspaceID:     input.WorkspaceID,
+		ProjectID:       input.ProjectID,
 		Region:          input.Region,
 		AccessKeyID:     input.AccessKeyID,
 		SecretAccessKey: input.SecretAccessKey,
@@ -10366,13 +10366,3 @@ type sessionCommentResolver struct{ *Resolver }
 type subscriptionResolver struct{ *Resolver }
 type timelineIndicatorEventResolver struct{ *Resolver }
 type visualizationResolver struct{ *Resolver }
-
-// !!! WARNING !!!
-// The code below was going to be deleted when updating resolvers. It has been copied here so you have
-// one last chance to move it out of harms way if you want. There are two reasons this happens:
-//   - When renaming or deleting a resolver the old code will be put in here. You can safely delete
-//     it when you're done.
-//   - You have helper methods in this file. Move them out to keep these resolver files clean.
-func (r *queryResolver) AwsInstances(ctx context.Context, credentialsID int) ([]*model.AwsEc2Instance, error) {
-	panic(fmt.Errorf("not implemented: AwsInstances - aws_instances"))
-}

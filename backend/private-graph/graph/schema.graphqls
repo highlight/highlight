@@ -3122,8 +3122,7 @@ type Subscription {
 
 type AwsCredentials {
 	id: ID!
-	workspace_id: ID!
-	name: String!
+	project_id: ID!
 	region: String!
 	access_key_id: String!
 }
@@ -3138,7 +3137,7 @@ type AwsEc2Instance {
 }
 
 input AwsCredentialsInput {
-	workspace_id: ID!
+	project_id: ID!
 	name: String!
 	region: String!
 	access_key_id: String!

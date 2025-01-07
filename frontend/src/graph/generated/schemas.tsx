@@ -250,16 +250,16 @@ export type AwsCredentials = {
 	access_key_id: Scalars['String']
 	id: Scalars['ID']
 	name: Scalars['String']
+	project_id: Scalars['ID']
 	region: Scalars['String']
-	workspace_id: Scalars['ID']
 }
 
 export type AwsCredentialsInput = {
 	access_key_id: Scalars['String']
 	name: Scalars['String']
+	project_id: Scalars['ID']
 	region: Scalars['String']
 	secret_access_key: Scalars['String']
-	workspace_id: Scalars['ID']
 }
 
 export type AwsEc2Instance = {

@@ -2493,7 +2493,7 @@ func GetAttributesColumn(mappings []ColumnMapping, key string) string {
 
 type AwsCredentials struct {
 	Model
-	WorkspaceID     int
+	ProjectID       int
 	Region          string
 	AccessKeyID     string
 	SecretAccessKey string

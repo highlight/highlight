@@ -43,7 +43,6 @@ type Config struct {
 
 type ResolverRoot interface {
 	AllWorkspaceSettings() AllWorkspaceSettingsResolver
-	AwsCredentials() AwsCredentialsResolver
 	CommentReply() CommentReplyResolver
 	ErrorAlert() ErrorAlertResolver
 	ErrorComment() ErrorCommentResolver
@@ -226,9 +225,8 @@ type ComplexityRoot struct {
 	AwsCredentials struct {
 		AccessKeyID func(childComplexity int) int
 		ID          func(childComplexity int) int
-		Name        func(childComplexity int) int
+		ProjectID   func(childComplexity int) int
 		Region      func(childComplexity int) int
-		WorkspaceID func(childComplexity int) int
 	}
 
 	AwsEc2Instance struct {
@@ -1753,9 +1751,6 @@ type AllWorkspaceSettingsResolver interface {
 
 	EnableIngestFiltering(ctx context.Context, obj *model1.AllWorkspaceSettings) (bool, error)
 }
-type AwsCredentialsResolver interface {
-	Name(ctx context.Context, obj *model1.AwsCredentials) (string, error)
-}
 type CommentReplyResolver interface {
 	Author(ctx context.Context, obj *model1.CommentReply) (*model.SanitizedAdmin, error)
 }
@@ -2969,12 +2964,12 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.AwsCredentials.ID(childComplexity), true
 
-	case "AwsCredentials.name":
-		if e.complexity.AwsCredentials.Name == nil {
+	case "AwsCredentials.project_id":
+		if e.complexity.AwsCredentials.ProjectID == nil {
 			break
 		}
 
-		return e.complexity.AwsCredentials.Name(childComplexity), true
+		return e.complexity.AwsCredentials.ProjectID(childComplexity), true
 
 	case "AwsCredentials.region":
 		if e.complexity.AwsCredentials.Region == nil {
@@ -2982,13 +2977,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.AwsCredentials.Region(childComplexity), true
-
-	case "AwsCredentials.workspace_id":
-		if e.complexity.AwsCredentials.WorkspaceID == nil {
-			break
-		}
-
-		return e.complexity.AwsCredentials.WorkspaceID(childComplexity), true
 
 	case "AwsEc2Instance.credentials_id":
 		if e.complexity.AwsEc2Instance.CredentialsID == nil {
@@ -15069,8 +15057,7 @@ type Subscription {
 
 type AwsCredentials {
 	id: ID!
-	workspace_id: ID!
-	name: String!
+	project_id: ID!
 	region: String!
 	access_key_id: String!
 }
@@ -15085,7 +15072,7 @@ type AwsEc2Instance {
 }
 
 input AwsCredentialsInput {
-	workspace_id: ID!
+	project_id: ID!
 	name: String!
 	region: String!
 	access_key_id: String!
@@ -28726,8 +28713,8 @@ func (ec *executionContext) fieldContext_AwsCredentials_id(ctx context.Context, 
 	return fc, nil
 }
 
-func (ec *executionContext) _AwsCredentials_workspace_id(ctx context.Context, field graphql.CollectedField, obj *model1.AwsCredentials) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_AwsCredentials_workspace_id(ctx, field)
+func (ec *executionContext) _AwsCredentials_project_id(ctx context.Context, field graphql.CollectedField, obj *model1.AwsCredentials) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_AwsCredentials_project_id(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -28740,7 +28727,7 @@ func (ec *executionContext) _AwsCredentials_workspace_id(ctx context.Context, fi
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.WorkspaceID, nil
+		return obj.ProjectID, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -28757,7 +28744,7 @@ func (ec *executionContext) _AwsCredentials_workspace_id(ctx context.Context, fi
 	return ec.marshalNID2int(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_AwsCredentials_workspace_id(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_AwsCredentials_project_id(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "AwsCredentials",
 		Field:      field,
@@ -28765,50 +28752,6 @@ func (ec *executionContext) fieldContext_AwsCredentials_workspace_id(ctx context
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type ID does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _AwsCredentials_name(ctx context.Context, field graphql.CollectedField, obj *model1.AwsCredentials) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_AwsCredentials_name(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.AwsCredentials().Name(rctx, obj)
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(string)
-	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_AwsCredentials_name(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "AwsCredentials",
-		Field:      field,
-		IsMethod:   true,
-		IsResolver: true,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type String does not have child fields")
 		},
 	}
 	return fc, nil
@@ -53710,10 +53653,8 @@ func (ec *executionContext) fieldContext_Mutation_create_aws_credentials(ctx con
 			switch field.Name {
 			case "id":
 				return ec.fieldContext_AwsCredentials_id(ctx, field)
-			case "workspace_id":
-				return ec.fieldContext_AwsCredentials_workspace_id(ctx, field)
-			case "name":
-				return ec.fieldContext_AwsCredentials_name(ctx, field)
+			case "project_id":
+				return ec.fieldContext_AwsCredentials_project_id(ctx, field)
 			case "region":
 				return ec.fieldContext_AwsCredentials_region(ctx, field)
 			case "access_key_id":
@@ -67153,10 +67094,8 @@ func (ec *executionContext) fieldContext_Query_aws_credentials(ctx context.Conte
 			switch field.Name {
 			case "id":
 				return ec.fieldContext_AwsCredentials_id(ctx, field)
-			case "workspace_id":
-				return ec.fieldContext_AwsCredentials_workspace_id(ctx, field)
-			case "name":
-				return ec.fieldContext_AwsCredentials_name(ctx, field)
+			case "project_id":
+				return ec.fieldContext_AwsCredentials_project_id(ctx, field)
 			case "region":
 				return ec.fieldContext_AwsCredentials_region(ctx, field)
 			case "access_key_id":
@@ -85739,20 +85678,20 @@ func (ec *executionContext) unmarshalInputAwsCredentialsInput(ctx context.Contex
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"workspace_id", "name", "region", "access_key_id", "secret_access_key"}
+	fieldsInOrder := [...]string{"project_id", "name", "region", "access_key_id", "secret_access_key"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
 			continue
 		}
 		switch k {
-		case "workspace_id":
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("workspace_id"))
+		case "project_id":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("project_id"))
 			data, err := ec.unmarshalNID2int(ctx, v)
 			if err != nil {
 				return it, err
 			}
-			it.WorkspaceID = data
+			it.ProjectID = data
 		case "name":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("name"))
 			data, err := ec.unmarshalNString2string(ctx, v)
@@ -88700,58 +88639,22 @@ func (ec *executionContext) _AwsCredentials(ctx context.Context, sel ast.Selecti
 		case "id":
 			out.Values[i] = ec._AwsCredentials_id(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&out.Invalids, 1)
+				out.Invalids++
 			}
-		case "workspace_id":
-			out.Values[i] = ec._AwsCredentials_workspace_id(ctx, field, obj)
+		case "project_id":
+			out.Values[i] = ec._AwsCredentials_project_id(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&out.Invalids, 1)
+				out.Invalids++
 			}
-		case "name":
-			field := field
-
-			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._AwsCredentials_name(ctx, field, obj)
-				if res == graphql.Null {
-					atomic.AddUint32(&fs.Invalids, 1)
-				}
-				return res
-			}
-
-			if field.Deferrable != nil {
-				dfs, ok := deferred[field.Deferrable.Label]
-				di := 0
-				if ok {
-					dfs.AddField(field)
-					di = len(dfs.Values) - 1
-				} else {
-					dfs = graphql.NewFieldSet([]graphql.CollectedField{field})
-					deferred[field.Deferrable.Label] = dfs
-				}
-				dfs.Concurrently(di, func(ctx context.Context) graphql.Marshaler {
-					return innerFunc(ctx, dfs)
-				})
-
-				// don't run the out.Concurrently() call below
-				out.Values[i] = graphql.Null
-				continue
-			}
-
-			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
 		case "region":
 			out.Values[i] = ec._AwsCredentials_region(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&out.Invalids, 1)
+				out.Invalids++
 			}
 		case "access_key_id":
 			out.Values[i] = ec._AwsCredentials_access_key_id(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&out.Invalids, 1)
+				out.Invalids++
 			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
