@@ -889,8 +889,8 @@ type ComplexityRoot struct {
 		DeleteSessionComment                  func(childComplexity int, id int) int
 		DeleteSessions                        func(childComplexity int, projectID int, params model.QueryInput, sessionCount int) int
 		DeleteVisualization                   func(childComplexity int, id int) int
-		EditProject                           func(childComplexity int, id int, name *string, billingEmail *string, excludedUsers pq.StringArray, errorFilters pq.StringArray, errorJSONPaths pq.StringArray, rageClickWindowSeconds *int, rageClickRadiusPixels *int, rageClickCount *int, filterChromeExtension *bool) int
-		EditProjectSettings                   func(childComplexity int, projectID int, name *string, billingEmail *string, excludedUsers pq.StringArray, errorFilters pq.StringArray, errorJSONPaths pq.StringArray, rageClickWindowSeconds *int, rageClickRadiusPixels *int, rageClickCount *int, filterChromeExtension *bool, filterSessionsWithoutError *bool, autoResolveStaleErrorsDayInterval *int, sampling *model.SamplingInput) int
+		EditProject                           func(childComplexity int, id int, name *string, billingEmail *string) int
+		EditProjectSettings                   func(childComplexity int, projectID int, excludedUsers pq.StringArray, errorFilters pq.StringArray, errorJSONPaths pq.StringArray, rageClickWindowSeconds *int, rageClickRadiusPixels *int, rageClickCount *int, filterChromeExtension *bool, filterSessionsWithoutError *bool, autoResolveStaleErrorsDayInterval *int, sampling *model.SamplingInput) int
 		EditSavedSegment                      func(childComplexity int, id int, projectID int, name string, entityType model.SavedSegmentEntityType, query string) int
 		EditServiceGithubSettings             func(childComplexity int, id int, projectID int, githubRepoPath *string, buildPrefix *string, githubPrefix *string) int
 		EditWorkspace                         func(childComplexity int, id int, name *string) int
@@ -1790,8 +1790,8 @@ type MutationResolver interface {
 	CreateAdmin(ctx context.Context) (*model1.Admin, error)
 	CreateProject(ctx context.Context, name string, workspaceID int) (*model1.Project, error)
 	CreateWorkspace(ctx context.Context, name string, promoCode *string) (*model1.Workspace, error)
-	EditProject(ctx context.Context, id int, name *string, billingEmail *string, excludedUsers pq.StringArray, errorFilters pq.StringArray, errorJSONPaths pq.StringArray, rageClickWindowSeconds *int, rageClickRadiusPixels *int, rageClickCount *int, filterChromeExtension *bool) (*model1.Project, error)
-	EditProjectSettings(ctx context.Context, projectID int, name *string, billingEmail *string, excludedUsers pq.StringArray, errorFilters pq.StringArray, errorJSONPaths pq.StringArray, rageClickWindowSeconds *int, rageClickRadiusPixels *int, rageClickCount *int, filterChromeExtension *bool, filterSessionsWithoutError *bool, autoResolveStaleErrorsDayInterval *int, sampling *model.SamplingInput) (*model.AllProjectSettings, error)
+	EditProject(ctx context.Context, id int, name *string, billingEmail *string) (*model1.Project, error)
+	EditProjectSettings(ctx context.Context, projectID int, excludedUsers pq.StringArray, errorFilters pq.StringArray, errorJSONPaths pq.StringArray, rageClickWindowSeconds *int, rageClickRadiusPixels *int, rageClickCount *int, filterChromeExtension *bool, filterSessionsWithoutError *bool, autoResolveStaleErrorsDayInterval *int, sampling *model.SamplingInput) (*model.AllProjectSettings, error)
 	EditWorkspace(ctx context.Context, id int, name *string) (*model1.Workspace, error)
 	EditWorkspaceSettings(ctx context.Context, workspaceID int, aiApplication *bool, aiInsights *bool, aiQueryBuilder *bool) (*model1.AllWorkspaceSettings, error)
 	ExportSession(ctx context.Context, sessionSecureID string) (bool, error)
@@ -6168,7 +6168,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.EditProject(childComplexity, args["id"].(int), args["name"].(*string), args["billing_email"].(*string), args["excluded_users"].(pq.StringArray), args["error_filters"].(pq.StringArray), args["error_json_paths"].(pq.StringArray), args["rage_click_window_seconds"].(*int), args["rage_click_radius_pixels"].(*int), args["rage_click_count"].(*int), args["filter_chrome_extension"].(*bool)), true
+		return e.complexity.Mutation.EditProject(childComplexity, args["id"].(int), args["name"].(*string), args["billing_email"].(*string)), true
 
 	case "Mutation.editProjectSettings":
 		if e.complexity.Mutation.EditProjectSettings == nil {
@@ -6180,7 +6180,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.EditProjectSettings(childComplexity, args["projectId"].(int), args["name"].(*string), args["billing_email"].(*string), args["excluded_users"].(pq.StringArray), args["error_filters"].(pq.StringArray), args["error_json_paths"].(pq.StringArray), args["rage_click_window_seconds"].(*int), args["rage_click_radius_pixels"].(*int), args["rage_click_count"].(*int), args["filter_chrome_extension"].(*bool), args["filterSessionsWithoutError"].(*bool), args["autoResolveStaleErrorsDayInterval"].(*int), args["sampling"].(*model.SamplingInput)), true
+		return e.complexity.Mutation.EditProjectSettings(childComplexity, args["projectId"].(int), args["excluded_users"].(pq.StringArray), args["error_filters"].(pq.StringArray), args["error_json_paths"].(pq.StringArray), args["rage_click_window_seconds"].(*int), args["rage_click_radius_pixels"].(*int), args["rage_click_count"].(*int), args["filter_chrome_extension"].(*bool), args["filterSessionsWithoutError"].(*bool), args["autoResolveStaleErrorsDayInterval"].(*int), args["sampling"].(*model.SamplingInput)), true
 
 	case "Mutation.editSavedSegment":
 		if e.complexity.Mutation.EditSavedSegment == nil {
@@ -14407,22 +14407,9 @@ type Mutation {
 	createAdmin: Admin!
 	createProject(name: String!, workspace_id: ID!): Project
 	createWorkspace(name: String!, promo_code: String): Workspace
-	editProject(
-		id: ID!
-		name: String
-		billing_email: String
-		excluded_users: StringArray
-		error_filters: StringArray
-		error_json_paths: StringArray
-		rage_click_window_seconds: Int
-		rage_click_radius_pixels: Int
-		rage_click_count: Int
-		filter_chrome_extension: Boolean
-	): Project
+	editProject(id: ID!, name: String, billing_email: String): Project
 	editProjectSettings(
 		projectId: ID!
-		name: String
-		billing_email: String
 		excluded_users: StringArray
 		error_filters: StringArray
 		error_json_paths: StringArray
@@ -16553,114 +16540,96 @@ func (ec *executionContext) field_Mutation_editProjectSettings_args(ctx context.
 		}
 	}
 	args["projectId"] = arg0
-	var arg1 *string
-	if tmp, ok := rawArgs["name"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("name"))
-		arg1, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["name"] = arg1
-	var arg2 *string
-	if tmp, ok := rawArgs["billing_email"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("billing_email"))
-		arg2, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["billing_email"] = arg2
-	var arg3 pq.StringArray
+	var arg1 pq.StringArray
 	if tmp, ok := rawArgs["excluded_users"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("excluded_users"))
+		arg1, err = ec.unmarshalOStringArray2githubᚗcomᚋlibᚋpqᚐStringArray(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["excluded_users"] = arg1
+	var arg2 pq.StringArray
+	if tmp, ok := rawArgs["error_filters"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("error_filters"))
+		arg2, err = ec.unmarshalOStringArray2githubᚗcomᚋlibᚋpqᚐStringArray(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["error_filters"] = arg2
+	var arg3 pq.StringArray
+	if tmp, ok := rawArgs["error_json_paths"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("error_json_paths"))
 		arg3, err = ec.unmarshalOStringArray2githubᚗcomᚋlibᚋpqᚐStringArray(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["excluded_users"] = arg3
-	var arg4 pq.StringArray
-	if tmp, ok := rawArgs["error_filters"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("error_filters"))
-		arg4, err = ec.unmarshalOStringArray2githubᚗcomᚋlibᚋpqᚐStringArray(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["error_filters"] = arg4
-	var arg5 pq.StringArray
-	if tmp, ok := rawArgs["error_json_paths"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("error_json_paths"))
-		arg5, err = ec.unmarshalOStringArray2githubᚗcomᚋlibᚋpqᚐStringArray(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["error_json_paths"] = arg5
-	var arg6 *int
+	args["error_json_paths"] = arg3
+	var arg4 *int
 	if tmp, ok := rawArgs["rage_click_window_seconds"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("rage_click_window_seconds"))
+		arg4, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["rage_click_window_seconds"] = arg4
+	var arg5 *int
+	if tmp, ok := rawArgs["rage_click_radius_pixels"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("rage_click_radius_pixels"))
+		arg5, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["rage_click_radius_pixels"] = arg5
+	var arg6 *int
+	if tmp, ok := rawArgs["rage_click_count"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("rage_click_count"))
 		arg6, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["rage_click_window_seconds"] = arg6
-	var arg7 *int
-	if tmp, ok := rawArgs["rage_click_radius_pixels"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("rage_click_radius_pixels"))
-		arg7, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["rage_click_radius_pixels"] = arg7
-	var arg8 *int
-	if tmp, ok := rawArgs["rage_click_count"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("rage_click_count"))
-		arg8, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["rage_click_count"] = arg8
-	var arg9 *bool
+	args["rage_click_count"] = arg6
+	var arg7 *bool
 	if tmp, ok := rawArgs["filter_chrome_extension"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("filter_chrome_extension"))
-		arg9, err = ec.unmarshalOBoolean2ᚖbool(ctx, tmp)
+		arg7, err = ec.unmarshalOBoolean2ᚖbool(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["filter_chrome_extension"] = arg9
-	var arg10 *bool
+	args["filter_chrome_extension"] = arg7
+	var arg8 *bool
 	if tmp, ok := rawArgs["filterSessionsWithoutError"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("filterSessionsWithoutError"))
-		arg10, err = ec.unmarshalOBoolean2ᚖbool(ctx, tmp)
+		arg8, err = ec.unmarshalOBoolean2ᚖbool(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["filterSessionsWithoutError"] = arg10
-	var arg11 *int
+	args["filterSessionsWithoutError"] = arg8
+	var arg9 *int
 	if tmp, ok := rawArgs["autoResolveStaleErrorsDayInterval"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("autoResolveStaleErrorsDayInterval"))
-		arg11, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
+		arg9, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["autoResolveStaleErrorsDayInterval"] = arg11
-	var arg12 *model.SamplingInput
+	args["autoResolveStaleErrorsDayInterval"] = arg9
+	var arg10 *model.SamplingInput
 	if tmp, ok := rawArgs["sampling"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("sampling"))
-		arg12, err = ec.unmarshalOSamplingInput2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐSamplingInput(ctx, tmp)
+		arg10, err = ec.unmarshalOSamplingInput2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐSamplingInput(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["sampling"] = arg12
+	args["sampling"] = arg10
 	return args, nil
 }
 
@@ -16694,69 +16663,6 @@ func (ec *executionContext) field_Mutation_editProject_args(ctx context.Context,
 		}
 	}
 	args["billing_email"] = arg2
-	var arg3 pq.StringArray
-	if tmp, ok := rawArgs["excluded_users"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("excluded_users"))
-		arg3, err = ec.unmarshalOStringArray2githubᚗcomᚋlibᚋpqᚐStringArray(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["excluded_users"] = arg3
-	var arg4 pq.StringArray
-	if tmp, ok := rawArgs["error_filters"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("error_filters"))
-		arg4, err = ec.unmarshalOStringArray2githubᚗcomᚋlibᚋpqᚐStringArray(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["error_filters"] = arg4
-	var arg5 pq.StringArray
-	if tmp, ok := rawArgs["error_json_paths"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("error_json_paths"))
-		arg5, err = ec.unmarshalOStringArray2githubᚗcomᚋlibᚋpqᚐStringArray(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["error_json_paths"] = arg5
-	var arg6 *int
-	if tmp, ok := rawArgs["rage_click_window_seconds"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("rage_click_window_seconds"))
-		arg6, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["rage_click_window_seconds"] = arg6
-	var arg7 *int
-	if tmp, ok := rawArgs["rage_click_radius_pixels"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("rage_click_radius_pixels"))
-		arg7, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["rage_click_radius_pixels"] = arg7
-	var arg8 *int
-	if tmp, ok := rawArgs["rage_click_count"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("rage_click_count"))
-		arg8, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["rage_click_count"] = arg8
-	var arg9 *bool
-	if tmp, ok := rawArgs["filter_chrome_extension"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("filter_chrome_extension"))
-		arg9, err = ec.unmarshalOBoolean2ᚖbool(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["filter_chrome_extension"] = arg9
 	return args, nil
 }
 
@@ -46815,7 +46721,7 @@ func (ec *executionContext) _Mutation_editProject(ctx context.Context, field gra
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().EditProject(rctx, fc.Args["id"].(int), fc.Args["name"].(*string), fc.Args["billing_email"].(*string), fc.Args["excluded_users"].(pq.StringArray), fc.Args["error_filters"].(pq.StringArray), fc.Args["error_json_paths"].(pq.StringArray), fc.Args["rage_click_window_seconds"].(*int), fc.Args["rage_click_radius_pixels"].(*int), fc.Args["rage_click_count"].(*int), fc.Args["filter_chrome_extension"].(*bool))
+		return ec.resolvers.Mutation().EditProject(rctx, fc.Args["id"].(int), fc.Args["name"].(*string), fc.Args["billing_email"].(*string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -46897,7 +46803,7 @@ func (ec *executionContext) _Mutation_editProjectSettings(ctx context.Context, f
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().EditProjectSettings(rctx, fc.Args["projectId"].(int), fc.Args["name"].(*string), fc.Args["billing_email"].(*string), fc.Args["excluded_users"].(pq.StringArray), fc.Args["error_filters"].(pq.StringArray), fc.Args["error_json_paths"].(pq.StringArray), fc.Args["rage_click_window_seconds"].(*int), fc.Args["rage_click_radius_pixels"].(*int), fc.Args["rage_click_count"].(*int), fc.Args["filter_chrome_extension"].(*bool), fc.Args["filterSessionsWithoutError"].(*bool), fc.Args["autoResolveStaleErrorsDayInterval"].(*int), fc.Args["sampling"].(*model.SamplingInput))
+		return ec.resolvers.Mutation().EditProjectSettings(rctx, fc.Args["projectId"].(int), fc.Args["excluded_users"].(pq.StringArray), fc.Args["error_filters"].(pq.StringArray), fc.Args["error_json_paths"].(pq.StringArray), fc.Args["rage_click_window_seconds"].(*int), fc.Args["rage_click_radius_pixels"].(*int), fc.Args["rage_click_count"].(*int), fc.Args["filter_chrome_extension"].(*bool), fc.Args["filterSessionsWithoutError"].(*bool), fc.Args["autoResolveStaleErrorsDayInterval"].(*int), fc.Args["sampling"].(*model.SamplingInput))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
