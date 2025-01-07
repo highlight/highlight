@@ -29,15 +29,16 @@ func Middleware() echo.MiddlewareFunc {
 				ctx = context.WithValue(ctx, highlight.ContextKeys.RequestID, ids[1])
 			}
 
-			span, hCtx := highlight.StartTrace(ctx, "highlight.echo")
+			attrs, requestName := middleware.GetRequestAttributes(c.Request())
+			span, hCtx := highlight.StartTrace(ctx, requestName)
 			defer highlight.EndTrace(span)
 			defer middleware.Recoverer(span, c.Response(), c.Request())
 
 			c.SetRequest(c.Request().WithContext(hCtx))
 			err := next(c)
 
-			span.SetAttributes(attribute.String(highlight.SourceAttribute, "GoGinMiddleware"))
-			span.SetAttributes(middleware.GetRequestAttributes(c.Request())...)
+			span.SetAttributes(attribute.String(highlight.SourceAttribute, "go.echo"))
+			span.SetAttributes(attrs...)
 
 			if err != nil {
 				highlight.RecordSpanError(span, err)

@@ -1564,26 +1564,17 @@ export type MutationDeleteVisualizationArgs = {
 
 export type MutationEditProjectArgs = {
 	billing_email?: InputMaybe<Scalars['String']>
-	error_filters?: InputMaybe<Scalars['StringArray']>
-	error_json_paths?: InputMaybe<Scalars['StringArray']>
-	excluded_users?: InputMaybe<Scalars['StringArray']>
-	filter_chrome_extension?: InputMaybe<Scalars['Boolean']>
 	id: Scalars['ID']
 	name?: InputMaybe<Scalars['String']>
-	rage_click_count?: InputMaybe<Scalars['Int']>
-	rage_click_radius_pixels?: InputMaybe<Scalars['Int']>
-	rage_click_window_seconds?: InputMaybe<Scalars['Int']>
 }
 
 export type MutationEditProjectSettingsArgs = {
 	autoResolveStaleErrorsDayInterval?: InputMaybe<Scalars['Int']>
-	billing_email?: InputMaybe<Scalars['String']>
 	error_filters?: InputMaybe<Scalars['StringArray']>
 	error_json_paths?: InputMaybe<Scalars['StringArray']>
 	excluded_users?: InputMaybe<Scalars['StringArray']>
 	filterSessionsWithoutError?: InputMaybe<Scalars['Boolean']>
 	filter_chrome_extension?: InputMaybe<Scalars['Boolean']>
-	name?: InputMaybe<Scalars['String']>
 	projectId: Scalars['ID']
 	rage_click_count?: InputMaybe<Scalars['Int']>
 	rage_click_radius_pixels?: InputMaybe<Scalars['Int']>

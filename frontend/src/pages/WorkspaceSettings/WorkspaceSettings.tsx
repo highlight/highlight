@@ -4,12 +4,18 @@ import { AdminRole } from '@graph/schemas'
 import { Box } from '@highlight-run/ui/components'
 import { AutoJoinForm } from '@pages/WorkspaceTeam/components/AutoJoinForm'
 import { Authorization } from '@util/authorization/authorization'
+import { useApplicationContext } from '@routers/AppRouter/context/ApplicationContext'
+import { useAuthContext } from '@/authentication/AuthContext'
 
 import layoutStyles from '../../components/layout/LeadAlignLayout.module.css'
 import { FieldsForm } from './FieldsForm/FieldsForm'
 import styles from './WorkspaceSettings.module.css'
 
 const WorkspaceSettings = () => {
+	const { currentWorkspace } = useApplicationContext()
+	const { workspaceRole } = useAuthContext()
+	const isAdminRole = workspaceRole === AdminRole.Admin
+
 	return (
 		<Box>
 			<Box style={{ maxWidth: 560 }} my="40" mx="auto">
@@ -23,7 +29,10 @@ const WorkspaceSettings = () => {
 						</div>
 					</div>
 					<FieldsBox id="workspace">
-						<FieldsForm />
+						<FieldsForm
+							defaultName={currentWorkspace?.name}
+							disabled={!isAdminRole}
+						/>
 					</FieldsBox>
 					<FieldsBox id="autojoin">
 						<h3>Auto Join</h3>

@@ -2644,22 +2644,9 @@ type Mutation {
 	createAdmin: Admin!
 	createProject(name: String!, workspace_id: ID!): Project
 	createWorkspace(name: String!, promo_code: String): Workspace
-	editProject(
-		id: ID!
-		name: String
-		billing_email: String
-		excluded_users: StringArray
-		error_filters: StringArray
-		error_json_paths: StringArray
-		rage_click_window_seconds: Int
-		rage_click_radius_pixels: Int
-		rage_click_count: Int
-		filter_chrome_extension: Boolean
-	): Project
+	editProject(id: ID!, name: String, billing_email: String): Project
 	editProjectSettings(
 		projectId: ID!
-		name: String
-		billing_email: String
 		excluded_users: StringArray
 		error_filters: StringArray
 		error_json_paths: StringArray

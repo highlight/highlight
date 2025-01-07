@@ -309,6 +309,8 @@ func main() {
 
 	// async writes for workers (where order of write between workers does not matter)
 	kCfg := &kafkaqueue.ConfigOverride{Async: ptr.Bool(true)}
+	kafkaAsyncProducer := kafkaqueue.New(ctx, kafkaqueue.GetTopic(kafkaqueue.GetTopicOptions{Type: kafkaqueue.TopicTypeDefault}), kafkaqueue.Producer, kCfg)
+	defer kafkaAsyncProducer.Stop(ctx)
 	kafkaBatchedProducer := kafkaqueue.New(ctx, kafkaqueue.GetTopic(kafkaqueue.GetTopicOptions{Type: kafkaqueue.TopicTypeBatched}), kafkaqueue.Producer, kCfg)
 	defer kafkaBatchedProducer.Stop(ctx)
 	kafkaTracesProducer := kafkaqueue.New(ctx, kafkaqueue.GetTopic(kafkaqueue.GetTopicOptions{Type: kafkaqueue.TopicTypeTraces}), kafkaqueue.Producer, kCfg)
@@ -499,22 +501,23 @@ func main() {
 			log.Fatalf("error initializing lru cache: %v", err)
 		}
 		publicResolver := &public.Resolver{
-			DB:                db,
-			Tracer:            tracer,
-			TracerNoResources: tracerNoResources,
-			ProducerQueue:     kafkaProducer,
-			BatchedQueue:      kafkaBatchedProducer,
-			DataSyncQueue:     kafkaDataSyncProducer,
-			TracesQueue:       kafkaTracesProducer,
-			MailClient:        sendgrid.NewSendClient(env.Config.SendgridKey),
-			EmbeddingsClient:  embeddings.New(),
-			StorageClient:     storageClient,
-			Redis:             redisClient,
-			Clickhouse:        clickhouseClient,
-			RH:                &rh,
-			Store:             dataStore,
-			LambdaClient:      lambdaClient,
-			SessionCache:      sessionCache,
+			DB:                 db,
+			Tracer:             tracer,
+			TracerNoResources:  tracerNoResources,
+			ProducerQueue:      kafkaProducer,
+			AsyncProducerQueue: kafkaAsyncProducer,
+			BatchedQueue:       kafkaBatchedProducer,
+			DataSyncQueue:      kafkaDataSyncProducer,
+			TracesQueue:        kafkaTracesProducer,
+			MailClient:         sendgrid.NewSendClient(env.Config.SendgridKey),
+			EmbeddingsClient:   embeddings.New(),
+			StorageClient:      storageClient,
+			Redis:              redisClient,
+			Clickhouse:         clickhouseClient,
+			RH:                 &rh,
+			Store:              dataStore,
+			LambdaClient:       lambdaClient,
+			SessionCache:       sessionCache,
 		}
 		publicEndpoint := "/public"
 		if runtimeParsed == util.PublicGraph {
@@ -570,22 +573,23 @@ func main() {
 			log.Fatalf("error initializing lru cache: %v", err)
 		}
 		publicResolver := &public.Resolver{
-			DB:                db,
-			Tracer:            tracer,
-			TracerNoResources: tracerNoResources,
-			ProducerQueue:     kafkaProducer,
-			BatchedQueue:      kafkaBatchedProducer,
-			DataSyncQueue:     kafkaDataSyncProducer,
-			TracesQueue:       kafkaTracesProducer,
-			MailClient:        sendgrid.NewSendClient(env.Config.SendgridKey),
-			EmbeddingsClient:  embeddings.New(),
-			StorageClient:     storageClient,
-			Redis:             redisClient,
-			Clickhouse:        clickhouseClient,
-			RH:                &rh,
-			Store:             dataStore,
-			LambdaClient:      lambdaClient,
-			SessionCache:      sessionCache,
+			DB:                 db,
+			Tracer:             tracer,
+			TracerNoResources:  tracerNoResources,
+			ProducerQueue:      kafkaProducer,
+			AsyncProducerQueue: kafkaAsyncProducer,
+			BatchedQueue:       kafkaBatchedProducer,
+			DataSyncQueue:      kafkaDataSyncProducer,
+			TracesQueue:        kafkaTracesProducer,
+			MailClient:         sendgrid.NewSendClient(env.Config.SendgridKey),
+			EmbeddingsClient:   embeddings.New(),
+			StorageClient:      storageClient,
+			Redis:              redisClient,
+			Clickhouse:         clickhouseClient,
+			RH:                 &rh,
+			Store:              dataStore,
+			LambdaClient:       lambdaClient,
+			SessionCache:       sessionCache,
 		}
 		w := &worker.Worker{Resolver: privateResolver, PublicResolver: publicResolver, StorageClient: storageClient}
 		if runtimeParsed == util.Worker {
