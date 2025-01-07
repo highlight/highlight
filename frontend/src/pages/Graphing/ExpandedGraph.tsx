@@ -2,7 +2,6 @@ import {
 	Box,
 	Button,
 	DateRangePicker,
-	DEFAULT_TIME_PRESETS,
 	IconSolidChartBar,
 	IconSolidCheveronRight,
 	IconSolidClock,
@@ -16,7 +15,6 @@ import { Link, useNavigate } from 'react-router-dom'
 
 import { useGetVisualizationQuery } from '@/graph/generated/hooks'
 import { useProjectId } from '@/hooks/useProjectId'
-import { useSearchTime } from '@/hooks/useSearchTime'
 import Graph, { useGetViewConfig } from '@/pages/Graphing/components/Graph'
 import { HeaderDivider } from '@/pages/Graphing/Dashboard'
 import { GraphBackgroundWrapper } from '@/pages/Graphing/GraphingEditor'
@@ -27,6 +25,7 @@ import { useGraphingVariables } from '@/pages/Graphing/hooks/useGraphingVariable
 import { useRetentionPresets } from '@/components/Search/SearchForm/hooks'
 import { GraphContextProvider } from '@pages/Graphing/context/GraphContext'
 import { useGraphData } from '@pages/Graphing/hooks/useGraphData'
+import { useGraphTime } from '@/pages/Graphing/hooks/useGraphTime'
 
 export const ExpandedGraph = () => {
 	const { dashboard_id, graph_id } = useParams<{
@@ -44,10 +43,7 @@ export const ExpandedGraph = () => {
 	const { presets, minDate } = useRetentionPresets()
 
 	const { startDate, endDate, selectedPreset, updateSearchTime } =
-		useSearchTime({
-			presets: presets,
-			initialPreset: DEFAULT_TIME_PRESETS[2],
-		})
+		useGraphTime(presets)
 
 	const navigate = useNavigate()
 
@@ -166,7 +162,6 @@ export const ExpandedGraph = () => {
 									projectId={projectId}
 									startDate={startDate}
 									endDate={endDate}
-									selectedPreset={selectedPreset}
 									query={g.query}
 									bucketByKey={g.bucketByKey ?? undefined}
 									bucketByWindow={

@@ -1,4 +1,4 @@
-import { Box, DateRangePreset } from '@highlight-run/ui/components'
+import { Box } from '@highlight-run/ui/components'
 import React from 'react'
 import { ReferenceArea, ReferenceLine } from 'recharts'
 
@@ -28,7 +28,6 @@ type Props = {
 	thresholdCondition: ThresholdCondition
 	startDate: Date
 	endDate: Date
-	selectedPreset?: DateRangePreset
 	updateSearchTime: SetTimeRange
 }
 
@@ -58,7 +57,6 @@ export const AlertGraph: React.FC<Props> = ({
 	thresholdCondition,
 	startDate,
 	endDate,
-	selectedPreset,
 	updateSearchTime,
 }) => {
 	const { projectId } = useProjectId()
@@ -84,7 +82,6 @@ export const AlertGraph: React.FC<Props> = ({
 					productType={productType}
 					projectId={projectId}
 					startDate={startDate}
-					selectedPreset={selectedPreset}
 					endDate={endDate}
 					query={query}
 					groupByKeys={
