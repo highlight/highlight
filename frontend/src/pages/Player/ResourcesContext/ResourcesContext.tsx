@@ -182,7 +182,7 @@ export const useResources = (
 		loadingAfter,
 		fetchMoreForward,
 	} = useGetTraces({
-		query: `secure_session_id=${session?.secure_id} AND highlight.type=http.request`,
+		query: `secure_session_id=${session?.secure_id} AND highlight_type=http.request`,
 		projectId,
 		startDate: moment(session?.created_at).toDate(),
 		endDate: moment(session?.created_at).add(4, 'hours').toDate(),
