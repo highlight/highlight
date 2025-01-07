@@ -3,7 +3,7 @@ import { QuickStartContent } from '../../QuickstartContent'
 import { verifyLogs } from '../shared-snippets'
 
 export const PythonOtelLogContent: QuickStartContent = {
-	title: 'Sending and Filtering Python Logs with OpenTelemetry',
+	title: 'Logging with OpenTelemetry in Python',
 	subtitle:
 		'Learn how to set up highlight.io with logs from Python using OpenTelemetry.',
 	logoUrl: siteUrl('/images/quickstart/python.svg'),
