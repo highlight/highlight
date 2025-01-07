@@ -40,7 +40,7 @@ import { clearInterval } from 'timers'
 import { hookConsole } from './hooks.js'
 import log from './log.js'
 import { HIGHLIGHT_REQUEST_HEADER } from './sdk.js'
-import { Headers } from 'node-fetch'
+import type { Headers } from 'node-fetch'
 import type { HighlightContext, NodeOptions } from './types.js'
 import * as packageJson from '../package.json'
 import { PrismaInstrumentation } from '@prisma/instrumentation'
@@ -553,8 +553,10 @@ function extractIncomingHttpHeaders(headers?: any): IncomingHttpHeaders {
 			headers.forEach(
 				(value: any, key: any) => (requestHeaders[key] = value),
 			)
-		} else if (headers instanceof Headers) {
-			headers.forEach((value, key) => (requestHeaders[key] = value))
+		} else if (headers.hasOwnProperty('forEach')) {
+			;(headers as Headers).forEach(
+				(value, key) => (requestHeaders[key] = value),
+			)
 		} else if (headers) {
 			requestHeaders = headers
 		}
