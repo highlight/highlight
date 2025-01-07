@@ -306,7 +306,7 @@ type AccessibleJiraResources {
 	id: String!
 	url: String!
 	name: String!
-	scopes: [String!]!
+	scopes: [String!]
 	avatarUrl: String!
 }
 
@@ -927,7 +927,7 @@ type Service {
 	githubRepoPath: String
 	buildPrefix: String
 	githubPrefix: String
-	errorDetails: [String!]!
+	errorDetails: [String!]
 }
 
 type ServiceNode {
@@ -938,7 +938,7 @@ type ServiceNode {
 	githubRepoPath: String
 	buildPrefix: String
 	githubPrefix: String
-	errorDetails: [String!]!
+	errorDetails: [String!]
 }
 
 type ServiceEdge implements Edge {
@@ -1217,8 +1217,8 @@ input DashboardParamsInput {
 	timezone: String
 	units: String
 	aggregator: MetricAggregator!
-	filters: [MetricTagFilterInput!]!
-	groups: [String!]!
+	filters: [MetricTagFilterInput!]
+	groups: [String!]
 }
 
 input ErrorGroupFrequenciesParamsInput {
@@ -1894,8 +1894,8 @@ input DashboardMetricConfigInput {
 	min_percentile: Float
 	max_value: Float
 	max_percentile: Float
-	filters: [MetricTagFilterInput!]!
-	groups: [String!]!
+	filters: [MetricTagFilterInput!]
+	groups: [String!]
 }
 
 enum MetricViewComponentType {
@@ -1923,8 +1923,8 @@ type DashboardMetricConfig {
 	min_percentile: Float
 	max_value: Float
 	max_percentile: Float
-	filters: [MetricTagFilter!]!
-	groups: [String!]!
+	filters: [MetricTagFilter!]
+	groups: [String!]
 }
 
 type DashboardDefinition {
@@ -1958,7 +1958,7 @@ type MetricMonitor {
 	threshold: Float!
 	units: String
 	disabled: Boolean!
-	filters: [MetricTagFilter!]!
+	filters: [MetricTagFilter!]
 }
 
 type EventChunk {
@@ -2047,7 +2047,7 @@ type Graph {
 	limit: Int
 	limitFunctionType: MetricAggregator
 	limitMetric: String
-	funnelSteps: [FunnelStep!]!
+	funnelSteps: [FunnelStep!]
 	display: String
 	nullHandling: String
 	expressions: [MetricExpression!]!
@@ -2096,10 +2096,10 @@ input GraphInput {
 	limit: Int
 	limitFunctionType: MetricAggregator
 	limitMetric: String
-	funnelSteps: [FunnelStepInput!]!
+	funnelSteps: [FunnelStepInput!]
 	display: String
 	nullHandling: String
-	expressions: [MetricExpressionInput!]!
+	expressions: [MetricExpressionInput!]
 }
 
 input VariableInput {

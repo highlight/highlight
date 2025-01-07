@@ -31,7 +31,7 @@ type AccessibleJiraResources struct {
 	ID        string   `json:"id"`
 	URL       string   `json:"url"`
 	Name      string   `json:"name"`
-	Scopes    []string `json:"scopes"`
+	Scopes    []string `json:"scopes,omitempty"`
 	AvatarURL string   `json:"avatarUrl"`
 }
 
@@ -241,8 +241,8 @@ type DashboardMetricConfig struct {
 	MinPercentile            *float64                 `json:"min_percentile,omitempty"`
 	MaxValue                 *float64                 `json:"max_value,omitempty"`
 	MaxPercentile            *float64                 `json:"max_percentile,omitempty"`
-	Filters                  []*MetricTagFilter       `json:"filters"`
-	Groups                   []string                 `json:"groups"`
+	Filters                  []*MetricTagFilter       `json:"filters,omitempty"`
+	Groups                   []string                 `json:"groups,omitempty"`
 }
 
 type DashboardMetricConfigInput struct {
@@ -260,8 +260,8 @@ type DashboardMetricConfigInput struct {
 	MinPercentile            *float64                 `json:"min_percentile,omitempty"`
 	MaxValue                 *float64                 `json:"max_value,omitempty"`
 	MaxPercentile            *float64                 `json:"max_percentile,omitempty"`
-	Filters                  []*MetricTagFilterInput  `json:"filters"`
-	Groups                   []string                 `json:"groups"`
+	Filters                  []*MetricTagFilterInput  `json:"filters,omitempty"`
+	Groups                   []string                 `json:"groups,omitempty"`
 }
 
 type DashboardParamsInput struct {
@@ -270,8 +270,8 @@ type DashboardParamsInput struct {
 	Timezone          *string                 `json:"timezone,omitempty"`
 	Units             *string                 `json:"units,omitempty"`
 	Aggregator        MetricAggregator        `json:"aggregator"`
-	Filters           []*MetricTagFilterInput `json:"filters"`
-	Groups            []string                `json:"groups"`
+	Filters           []*MetricTagFilterInput `json:"filters,omitempty"`
+	Groups            []string                `json:"groups,omitempty"`
 }
 
 type DashboardPayload struct {
@@ -435,10 +435,10 @@ type GraphInput struct {
 	Limit             *int                     `json:"limit,omitempty"`
 	LimitFunctionType *MetricAggregator        `json:"limitFunctionType,omitempty"`
 	LimitMetric       *string                  `json:"limitMetric,omitempty"`
-	FunnelSteps       []*FunnelStepInput       `json:"funnelSteps"`
+	FunnelSteps       []*FunnelStepInput       `json:"funnelSteps,omitempty"`
 	Display           *string                  `json:"display,omitempty"`
 	NullHandling      *string                  `json:"nullHandling,omitempty"`
-	Expressions       []*MetricExpressionInput `json:"expressions"`
+	Expressions       []*MetricExpressionInput `json:"expressions,omitempty"`
 }
 
 type HeightList struct {
@@ -828,7 +828,7 @@ type ServiceNode struct {
 	GithubRepoPath *string       `json:"githubRepoPath,omitempty"`
 	BuildPrefix    *string       `json:"buildPrefix,omitempty"`
 	GithubPrefix   *string       `json:"githubPrefix,omitempty"`
-	ErrorDetails   []string      `json:"errorDetails"`
+	ErrorDetails   []string      `json:"errorDetails,omitempty"`
 }
 
 type SessionAlertInput struct {
