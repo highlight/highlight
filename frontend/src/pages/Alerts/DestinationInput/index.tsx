@@ -248,7 +248,7 @@ export const DestinationInput: React.FC<Props> = ({
 		<>
 			{selectedChannelIds.includes(AlertDestinationType.Slack) && (
 				<LabeledRow
-					label="Slack channels to notifiy"
+					label="Slack channels to notify"
 					name={AlertDestinationType.Slack}
 				>
 					<Select
@@ -281,7 +281,7 @@ export const DestinationInput: React.FC<Props> = ({
 			)}
 			{selectedChannelIds.includes(AlertDestinationType.Discord) && (
 				<LabeledRow
-					label="Discord channels to notifiy"
+					label="Discord channels to notify"
 					name={AlertDestinationType.Slack}
 				>
 					<Select
@@ -310,7 +310,7 @@ export const DestinationInput: React.FC<Props> = ({
 				AlertDestinationType.MicrosoftTeams,
 			) && (
 				<LabeledRow
-					label="Microsoft Teams channels to notifiy"
+					label="Microsoft Teams channels to notify"
 					name={AlertDestinationType.Slack}
 				>
 					<Select
@@ -337,7 +337,7 @@ export const DestinationInput: React.FC<Props> = ({
 			)}
 			{selectedChannelIds.includes(AlertDestinationType.Email) && (
 				<LabeledRow
-					label="Emails to notifiy"
+					label="Emails to notify"
 					name={AlertDestinationType.Email}
 				>
 					<Select
@@ -355,7 +355,7 @@ export const DestinationInput: React.FC<Props> = ({
 			)}
 			{selectedChannelIds.includes(AlertDestinationType.Webhook) && (
 				<LabeledRow
-					label="Webhooks to notifiy"
+					label="Webhooks to notify"
 					name={AlertDestinationType.Webhook}
 				>
 					<Select
