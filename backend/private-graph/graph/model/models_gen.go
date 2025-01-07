@@ -438,7 +438,7 @@ type GraphInput struct {
 	FunnelSteps       []*FunnelStepInput       `json:"funnelSteps,omitempty"`
 	Display           *string                  `json:"display,omitempty"`
 	NullHandling      *string                  `json:"nullHandling,omitempty"`
-	Expressions       []*MetricExpressionInput `json:"expressions,omitempty"`
+	Expressions       []*MetricExpressionInput `json:"expressions"`
 }
 
 type HeightList struct {
@@ -1090,9 +1090,9 @@ type VisualizationInput struct {
 	ID         *int             `json:"id,omitempty"`
 	ProjectID  int              `json:"projectId"`
 	Name       *string          `json:"name,omitempty"`
-	GraphIds   []int            `json:"graphIds"`
+	GraphIds   []int            `json:"graphIds,omitempty"`
 	TimePreset *string          `json:"timePreset,omitempty"`
-	Variables  []*VariableInput `json:"variables"`
+	Variables  []*VariableInput `json:"variables,omitempty"`
 }
 
 type WebSocketEvent struct {

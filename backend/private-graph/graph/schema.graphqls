@@ -2099,7 +2099,7 @@ input GraphInput {
 	funnelSteps: [FunnelStepInput!]
 	display: String
 	nullHandling: String
-	expressions: [MetricExpressionInput!]
+	expressions: [MetricExpressionInput!]!
 }
 
 input VariableInput {
@@ -2113,9 +2113,9 @@ input VisualizationInput {
 	id: ID
 	projectId: ID!
 	name: String
-	graphIds: [ID!]!
+	graphIds: [ID!]
 	timePreset: String
-	variables: [VariableInput!]!
+	variables: [VariableInput!]
 }
 
 scalar Upload
