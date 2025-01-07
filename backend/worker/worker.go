@@ -457,16 +457,22 @@ func (w *Worker) PublicWorker(ctx context.Context, topic kafkaqueue.TopicType) {
 		FlushTimeout: sys.DataSyncTimeout,
 	}
 	// TODO(vkorolik) try replace with kafka connect
-	metricsConfig := WorkerConfig{
-		Topic: kafkaqueue.TopicTypeMetrics,
-		// TODO(vkorolik) new config
-		Workers:      sys.TraceWorkers,
-		FlushSize:    sys.TraceFlushSize,
-		QueueSize:    sys.TraceQueueSize,
-		FlushTimeout: sys.TraceFlushTimeout,
+	workers := []WorkerConfig{mainConfig, logsConfig, tracesConfig, dataSyncConfig}
+	for _, tp := range []kafkaqueue.TopicType{
+		kafkaqueue.TopicTypeMetricSum,
+		kafkaqueue.TopicTypeMetricHistogram,
+		kafkaqueue.TopicTypeMetricSummary,
+	} {
+		workers = append(workers, WorkerConfig{
+			Topic:        tp,
+			Workers:      sys.MetricWorkers,
+			FlushSize:    sys.MetricFlushSize,
+			QueueSize:    sys.MetricQueueSize,
+			FlushTimeout: sys.MetricFlushTimeout,
+		})
 	}
 
-	kafkaWorkerConfigs := lo.Filter([]WorkerConfig{mainConfig, logsConfig, tracesConfig, dataSyncConfig, metricsConfig}, func(cfg WorkerConfig, _ int) bool {
+	kafkaWorkerConfigs := lo.Filter(workers, func(cfg WorkerConfig, _ int) bool {
 		return cfg.Topic == topic
 	})
 
@@ -1366,8 +1372,12 @@ func (w *Worker) GetHandler(ctx context.Context, handlerFlag util.Handler) func(
 		return w.GetPublicWorker(kafkaqueue.TopicTypeDataSync)
 	case util.PublicWorkerTraces:
 		return w.GetPublicWorker(kafkaqueue.TopicTypeTraces)
-	case util.PublicWorkerMetrics:
-		return w.GetPublicWorker(kafkaqueue.TopicTypeMetrics)
+	case util.PublicWorkerMetricSum:
+		return w.GetPublicWorker(kafkaqueue.TopicTypeMetricSum)
+	case util.PublicWorkerMetricSummary:
+		return w.GetPublicWorker(kafkaqueue.TopicTypeMetricHistogram)
+	case util.PublicWorkerMetricHistogram:
+		return w.GetPublicWorker(kafkaqueue.TopicTypeMetricSummary)
 	case util.AutoResolveStaleErrors:
 		return w.AutoResolveStaleErrors
 	case util.StartSessionDeleteJob:

@@ -1368,24 +1368,28 @@ type UserJourneyStep struct {
 }
 
 type SystemConfiguration struct {
-	Active            bool `gorm:"primary_key"`
-	MaintenanceStart  time.Time
-	MaintenanceEnd    time.Time
-	ErrorFilters      pq.StringArray `gorm:"type:text[]"`
-	IgnoredFiles      pq.StringArray `gorm:"type:text[]"`
-	MainWorkers       int            `gorm:"default:64"`
-	LogsWorkers       int            `gorm:"default:1"`
-	LogsFlushSize     int            `gorm:"type:bigint;default:1000"`
-	LogsQueueSize     int            `gorm:"type:bigint;default:100"`
-	LogsFlushTimeout  time.Duration  `gorm:"type:bigint;default:1000000000"`
-	DataSyncWorkers   int            `gorm:"default:1"`
-	DataSyncFlushSize int            `gorm:"type:bigint;default:1000"`
-	DataSyncQueueSize int            `gorm:"type:bigint;default:100"`
-	DataSyncTimeout   time.Duration  `gorm:"type:bigint;default:1000000000"`
-	TraceWorkers      int            `gorm:"default:1"`
-	TraceFlushSize    int            `gorm:"type:bigint;default:1000"`
-	TraceQueueSize    int            `gorm:"type:bigint;default:100"`
-	TraceFlushTimeout time.Duration  `gorm:"type:bigint;default:1000000000"`
+	Active             bool `gorm:"primary_key"`
+	MaintenanceStart   time.Time
+	MaintenanceEnd     time.Time
+	ErrorFilters       pq.StringArray `gorm:"type:text[]"`
+	IgnoredFiles       pq.StringArray `gorm:"type:text[]"`
+	MainWorkers        int            `gorm:"default:64"`
+	LogsWorkers        int            `gorm:"default:1"`
+	LogsFlushSize      int            `gorm:"type:bigint;default:1000"`
+	LogsQueueSize      int            `gorm:"type:bigint;default:100"`
+	LogsFlushTimeout   time.Duration  `gorm:"type:bigint;default:1000000000"`
+	DataSyncWorkers    int            `gorm:"default:1"`
+	DataSyncFlushSize  int            `gorm:"type:bigint;default:1000"`
+	DataSyncQueueSize  int            `gorm:"type:bigint;default:100"`
+	DataSyncTimeout    time.Duration  `gorm:"type:bigint;default:1000000000"`
+	TraceWorkers       int            `gorm:"default:1"`
+	TraceFlushSize     int            `gorm:"type:bigint;default:1000"`
+	TraceQueueSize     int            `gorm:"type:bigint;default:100"`
+	TraceFlushTimeout  time.Duration  `gorm:"type:bigint;default:1000000000"`
+	MetricWorkers      int            `gorm:"default:1"`
+	MetricFlushSize    int            `gorm:"type:bigint;default:1000"`
+	MetricQueueSize    int            `gorm:"type:bigint;default:100"`
+	MetricFlushTimeout time.Duration  `gorm:"type:bigint;default:1000000000"`
 }
 
 type RetryableType string

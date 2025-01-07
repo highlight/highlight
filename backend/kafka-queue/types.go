@@ -37,7 +37,9 @@ const (
 	PushLogsFlattened                      PayloadType = iota
 	PushTracesFlattened                    PayloadType = iota
 	PushSessionEvents                      PayloadType = iota
-	PushOTeLMetrics                        PayloadType = iota
+	PushOTeLMetricSum                      PayloadType = iota
+	PushOTeLMetricHistogram                PayloadType = iota
+	PushOTeLMetricSummary                  PayloadType = iota
 	HealthCheck                            PayloadType = math.MaxInt
 )
 
@@ -300,40 +302,108 @@ func (m *SessionEventRowMessage) SetKafkaMessage(value *kafka.Message) {
 	m.KafkaMessage = value
 }
 
-type OTeLMetricsMessage struct {
-	Type               PayloadType
-	Failures           int
-	MaxRetries         int
-	KafkaMessage       *kafka.Message                 `json:",omitempty"`
-	MetricSumRow       *clickhouse.MetricSumRow       `json:",omitempty"`
-	MetricHistogramRow *clickhouse.MetricHistogramRow `json:",omitempty"`
-	MetricSummaryRow   *clickhouse.MetricSummaryRow   `json:",omitempty"`
+type OTeLMetricSumRow struct {
+	Type         PayloadType
+	Failures     int
+	MaxRetries   int
+	KafkaMessage *kafka.Message `json:",omitempty"`
+	MetricSumRow *clickhouse.MetricSumRow
 }
 
-func (m *OTeLMetricsMessage) GetType() PayloadType {
-	return PushOTeLMetrics
+func (m *OTeLMetricSumRow) GetType() PayloadType {
+	return PushOTeLMetricSum
 }
 
-func (m *OTeLMetricsMessage) GetFailures() int {
+func (m *OTeLMetricSumRow) GetFailures() int {
 	return m.Failures
 }
 
-func (m *OTeLMetricsMessage) SetFailures(value int) {
+func (m *OTeLMetricSumRow) SetFailures(value int) {
 	m.Failures = value
 }
 
-func (m *OTeLMetricsMessage) GetMaxRetries() int {
+func (m *OTeLMetricSumRow) GetMaxRetries() int {
 	return m.MaxRetries
 }
 
-func (m *OTeLMetricsMessage) SetMaxRetries(value int) {
+func (m *OTeLMetricSumRow) SetMaxRetries(value int) {
 	m.MaxRetries = value
 }
 
-func (m *OTeLMetricsMessage) GetKafkaMessage() *kafka.Message {
+func (m *OTeLMetricSumRow) GetKafkaMessage() *kafka.Message {
 	return m.KafkaMessage
 }
-func (m *OTeLMetricsMessage) SetKafkaMessage(value *kafka.Message) {
+func (m *OTeLMetricSumRow) SetKafkaMessage(value *kafka.Message) {
+	m.KafkaMessage = value
+}
+
+type OTeLMetricHistogramRow struct {
+	Type               PayloadType
+	Failures           int
+	MaxRetries         int
+	KafkaMessage       *kafka.Message `json:",omitempty"`
+	MetricHistogramRow *clickhouse.MetricHistogramRow
+}
+
+func (m *OTeLMetricHistogramRow) GetType() PayloadType {
+	return PushOTeLMetricHistogram
+}
+
+func (m *OTeLMetricHistogramRow) GetFailures() int {
+	return m.Failures
+}
+
+func (m *OTeLMetricHistogramRow) SetFailures(value int) {
+	m.Failures = value
+}
+
+func (m *OTeLMetricHistogramRow) GetMaxRetries() int {
+	return m.MaxRetries
+}
+
+func (m *OTeLMetricHistogramRow) SetMaxRetries(value int) {
+	m.MaxRetries = value
+}
+
+func (m *OTeLMetricHistogramRow) GetKafkaMessage() *kafka.Message {
+	return m.KafkaMessage
+}
+func (m *OTeLMetricHistogramRow) SetKafkaMessage(value *kafka.Message) {
+	m.KafkaMessage = value
+}
+
+type OTeLMetricSummaryRow struct {
+	Type             PayloadType
+	Failures         int
+	MaxRetries       int
+	KafkaMessage     *kafka.Message `json:",omitempty"`
+	MetricSummaryRow *clickhouse.MetricSummaryRow
+}
+
+func (m *OTeLMetricSummaryRow) GetType() PayloadType {
+	return PushOTeLMetricSummary
+}
+
+func (m *OTeLMetricSummaryRow) GetFailures() int {
+	return m.Failures
+}
+
+func (m *OTeLMetricSummaryRow) SetFailures(value int) {
+	m.Failures = value
+}
+
+func (m *OTeLMetricSummaryRow) GetMaxRetries() int {
+	return m.MaxRetries
+}
+
+func (m *OTeLMetricSummaryRow) SetMaxRetries(value int) {
+	m.MaxRetries = value
+}
+
+func (m *OTeLMetricSummaryRow) GetKafkaMessage() *kafka.Message {
+	return m.KafkaMessage
+}
+func (m *OTeLMetricSummaryRow) SetKafkaMessage(value *kafka.Message) {
 	m.KafkaMessage = value
 }
 

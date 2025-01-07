@@ -164,7 +164,7 @@ func (k *KafkaBatchWorker) flush(ctx context.Context) error {
 		}
 
 		publicWorkerMessage, ok := lastMsg.(*kafka_queue.Message)
-		if !ok && lastMsg.GetType() != kafkaqueue.PushLogsFlattened && lastMsg.GetType() != kafkaqueue.PushTracesFlattened && lastMsg.GetType() != kafkaqueue.PushOTeLMetrics && lastMsg.GetType() != kafkaqueue.PushSessionEvents {
+		if !ok && lastMsg.GetType() != kafkaqueue.PushLogsFlattened && lastMsg.GetType() != kafkaqueue.PushTracesFlattened && lastMsg.GetType() != kafkaqueue.PushOTeLMetricSum && lastMsg.GetType() != kafkaqueue.PushOTeLMetricHistogram && lastMsg.GetType() != kafkaqueue.PushOTeLMetricSummary && lastMsg.GetType() != kafkaqueue.PushSessionEvents {
 			log.WithContext(ctx).Errorf("type assertion failed for *kafka_queue.Message")
 			continue
 		}
@@ -213,14 +213,18 @@ func (k *KafkaBatchWorker) flush(ctx context.Context) error {
 			if sessionEventRow != nil {
 				sessionEventRows = append(sessionEventRows, sessionEventRow.SessionEventRow)
 			}
-		case kafkaqueue.PushOTeLMetrics:
-			metricRow := lastMsg.(*kafka_queue.OTeLMetricsMessage)
+		case kafkaqueue.PushOTeLMetricSum:
+			metricRow := lastMsg.(*kafka_queue.OTeLMetricSumRow)
 			if metricRow != nil && metricRow.MetricSumRow != nil {
 				metricRows = append(metricRows, metricRow.MetricSumRow)
 			}
+		case kafkaqueue.PushOTeLMetricHistogram:
+			metricRow := lastMsg.(*kafka_queue.OTeLMetricHistogramRow)
 			if metricRow != nil && metricRow.MetricHistogramRow != nil {
 				metricRows = append(metricRows, metricRow.MetricHistogramRow)
 			}
+		case kafkaqueue.PushOTeLMetricSummary:
+			metricRow := lastMsg.(*kafka_queue.OTeLMetricSummaryRow)
 			if metricRow != nil && metricRow.MetricSummaryRow != nil {
 				metricRows = append(metricRows, metricRow.MetricSummaryRow)
 			}

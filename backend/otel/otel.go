@@ -830,7 +830,7 @@ func (o *Handler) submitProjectMetrics(ctx context.Context, projectMetricRows ma
 		quotaExceededByProject = map[uint32]bool{}
 	}
 
-	var messages []kafkaqueue.RetryableMessage
+	var sumMessages, histogramMessages, summaryMessages []kafkaqueue.RetryableMessage
 	for projectID, metricRows := range projectMetricRows {
 		for _, metricRow := range metricRows {
 			if metricRow == nil {
@@ -842,21 +842,38 @@ func (o *Handler) submitProjectMetrics(ctx context.Context, projectMetricRows ma
 			if !o.resolver.IsMetricIngested(ctx, metricRow) {
 				continue
 			}
-			metricSumRow, _ := metricRow.(*clickhouse.MetricSumRow)
-			metricHistogramRow, _ := metricRow.(*clickhouse.MetricHistogramRow)
-			metricSummaryRow, _ := metricRow.(*clickhouse.MetricSummaryRow)
-			messages = append(messages, &kafkaqueue.OTeLMetricsMessage{
-				Type:               kafkaqueue.PushOTeLMetrics,
-				MetricSumRow:       metricSumRow,
-				MetricHistogramRow: metricHistogramRow,
-				MetricSummaryRow:   metricSummaryRow,
-			})
+			if metricSumRow, ok := metricRow.(*clickhouse.MetricSumRow); ok {
+				sumMessages = append(sumMessages, &kafkaqueue.OTeLMetricSumRow{
+					Type:         kafkaqueue.PushOTeLMetricSum,
+					MetricSumRow: metricSumRow,
+				})
+			}
+			if metricHistogramRow, ok := metricRow.(*clickhouse.MetricHistogramRow); ok {
+				histogramMessages = append(histogramMessages, &kafkaqueue.OTeLMetricHistogramRow{
+					Type:               kafkaqueue.PushOTeLMetricHistogram,
+					MetricHistogramRow: metricHistogramRow,
+				})
+			}
+			if metricSummaryRow, ok := metricRow.(*clickhouse.MetricSummaryRow); ok {
+				summaryMessages = append(summaryMessages, &kafkaqueue.OTeLMetricSummaryRow{
+					Type:             kafkaqueue.PushOTeLMetricSummary,
+					MetricSummaryRow: metricSummaryRow,
+				})
+			}
 		}
 
 		// no ordering for metrics data
-		err := o.resolver.MetricsQueue.Submit(ctx, "", messages...)
+		err := o.resolver.MetricSumQueue.Submit(ctx, "", sumMessages...)
 		if err != nil {
-			return e.Wrap(err, "failed to submit otel project metrics to public worker queue")
+			return e.Wrap(err, "failed to submit otel project sum metrics to public worker queue")
+		}
+		err = o.resolver.MetricHistogramQueue.Submit(ctx, "", histogramMessages...)
+		if err != nil {
+			return e.Wrap(err, "failed to submit otel project histogram metrics to public worker queue")
+		}
+		err = o.resolver.MetricSummaryQueue.Submit(ctx, "", summaryMessages...)
+		if err != nil {
+			return e.Wrap(err, "failed to submit otel project summary metrics to public worker queue")
 		}
 	}
 

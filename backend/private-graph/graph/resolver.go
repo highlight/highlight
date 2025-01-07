@@ -156,7 +156,9 @@ type Resolver struct {
 	Store                  *store.Store
 	DataSyncQueue          kafka_queue.MessageQueue
 	TracesQueue            kafka_queue.MessageQueue
-	MetricsQueue           kafka_queue.MessageQueue
+	MetricSumQueue         kafka_queue.MessageQueue
+	MetricHistogramQueue   kafka_queue.MessageQueue
+	MetricSummaryQueue     kafka_queue.MessageQueue
 	EmbeddingsClient       embeddings.Client
 	OpenAiClient           openai_client.OpenAiInterface
 }

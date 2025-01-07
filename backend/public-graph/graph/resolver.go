@@ -78,24 +78,26 @@ import (
 // It serves as dependency injection for your app, add any dependencies you require here.
 
 type Resolver struct {
-	DB                 *gorm.DB
-	Tracer             trace.Tracer
-	TracerNoResources  trace.Tracer
-	AsyncProducerQueue kafka_queue.MessageQueue
-	ProducerQueue      kafka_queue.MessageQueue
-	BatchedQueue       kafka_queue.MessageQueue
-	DataSyncQueue      kafka_queue.MessageQueue
-	TracesQueue        kafka_queue.MessageQueue
-	MetricsQueue      kafka_queue.MessageQueue
-	MailClient         *sendgrid.Client
-	StorageClient      storage.Client
-	EmbeddingsClient   embeddings.Client
-	Redis              *redis.Client
-	Clickhouse         *clickhouse.Client
-	RH                 *resthooks.Resthook
-	Store              *store.Store
-	LambdaClient       *lambda.Client
-	SessionCache       *lru.Cache[string, *model.Session]
+	DB                   *gorm.DB
+	Tracer               trace.Tracer
+	TracerNoResources    trace.Tracer
+	AsyncProducerQueue   kafka_queue.MessageQueue
+	ProducerQueue        kafka_queue.MessageQueue
+	BatchedQueue         kafka_queue.MessageQueue
+	DataSyncQueue        kafka_queue.MessageQueue
+	TracesQueue          kafka_queue.MessageQueue
+	MetricSumQueue       kafka_queue.MessageQueue
+	MetricHistogramQueue kafka_queue.MessageQueue
+	MetricSummaryQueue   kafka_queue.MessageQueue
+	MailClient           *sendgrid.Client
+	StorageClient        storage.Client
+	EmbeddingsClient     embeddings.Client
+	Redis                *redis.Client
+	Clickhouse           *clickhouse.Client
+	RH                   *resthooks.Resthook
+	Store                *store.Store
+	LambdaClient         *lambda.Client
+	SessionCache         *lru.Cache[string, *model.Session]
 }
 
 type Location struct {

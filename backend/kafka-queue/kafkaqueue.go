@@ -68,11 +68,13 @@ type MessageQueue interface {
 type TopicType string
 
 const (
-	TopicTypeDefault  TopicType = "default"
-	TopicTypeBatched  TopicType = "batched"
-	TopicTypeDataSync TopicType = "datasync"
-	TopicTypeTraces   TopicType = "traces"
-	TopicTypeMetrics  TopicType = "metrics"
+	TopicTypeDefault         TopicType = "default"
+	TopicTypeBatched         TopicType = "batched"
+	TopicTypeDataSync        TopicType = "datasync"
+	TopicTypeTraces          TopicType = "traces"
+	TopicTypeMetricSum       TopicType = "metric_sum"
+	TopicTypeMetricHistogram TopicType = "metric_histogram"
+	TopicTypeMetricSummary   TopicType = "metric_summary"
 )
 
 type GetTopicOptions struct {
@@ -489,8 +491,12 @@ func (p *Queue) deserializeMessage(compressed []byte) (RetryableMessage, error) 
 		msg = &TraceRowMessage{}
 	} else if msgType.Type == PushSessionEvents {
 		msg = &SessionEventRowMessage{}
-	} else if msgType.Type == PushOTeLMetrics {
-		msg = &OTeLMetricsMessage{}
+	} else if msgType.Type == PushOTeLMetricSum {
+		msg = &OTeLMetricSumRow{}
+	} else if msgType.Type == PushOTeLMetricHistogram {
+		msg = &OTeLMetricHistogramRow{}
+	} else if msgType.Type == PushOTeLMetricSummary {
+		msg = &OTeLMetricSummaryRow{}
 	} else {
 		msg = &Message{}
 	}
