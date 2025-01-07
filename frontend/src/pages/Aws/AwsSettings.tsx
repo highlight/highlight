@@ -1,9 +1,12 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Box, Form, Stack, Text } from '@highlight-run/ui/components'
 import { Button } from '@components/Button'
 import { toast } from '@components/Toaster'
 import { AwsEc2InstancesList } from './AwsEc2InstancesList'
-import { useCreateAwsCredentialsMutation } from '@/graph/generated/hooks'
+import {
+	useCreateAwsCredentialsMutation,
+	useGetAwsCredentialsQuery,
+} from '@/graph/generated/hooks'
 import { useProjectId } from '@/hooks/useProjectId'
 
 export const AwsSettings: React.FC = () => {
@@ -12,8 +15,7 @@ export const AwsSettings: React.FC = () => {
 		useState<string>('')
 	const formStore = Form.useStore({
 		defaultValues: {
-			name: '',
-			region: '',
+			region: 'us-east-2',
 			accessKeyId: '',
 			secretAccessKey: '',
 		},
@@ -21,6 +23,16 @@ export const AwsSettings: React.FC = () => {
 
 	const [createAwsCredentials, { loading }] =
 		useCreateAwsCredentialsMutation()
+
+	const { data: credentialsData } = useGetAwsCredentialsQuery({
+		variables: { project_id: projectId },
+	})
+
+	useEffect(() => {
+		if (credentialsData?.aws_credentials?.[0]?.id) {
+			setSelectedCredentialsId(credentialsData.aws_credentials[0].id)
+		}
+	}, [credentialsData])
 
 	formStore.useSubmit(async (formState) => {
 		if (!formState.valid) {
@@ -32,7 +44,6 @@ export const AwsSettings: React.FC = () => {
 			const response = await createAwsCredentials({
 				variables: {
 					input: {
-						name: formState.values.name,
 						region: formState.values.region,
 						access_key_id: formState.values.accessKeyId,
 						secret_access_key: formState.values.secretAccessKey,
@@ -55,51 +66,51 @@ export const AwsSettings: React.FC = () => {
 
 	return (
 		<Box p="20">
-			<Form store={formStore}>
+			{!selectedCredentialsId ? (
+				<Form store={formStore}>
+					<Stack gap="12">
+						<Text size="large" weight="bold">
+							AWS Credentials
+						</Text>
+
+						<Form.Select
+							name={formStore.names.region}
+							options={['us-east-1', 'us-east-2', 'us-west-1']}
+							label="AWS Region"
+							required
+						/>
+
+						<Form.Input
+							name={formStore.names.accessKeyId}
+							label="Access Key ID"
+							required
+						/>
+
+						<Form.Input
+							name={formStore.names.secretAccessKey}
+							label="Secret Access Key"
+							type="password"
+							required
+						/>
+
+						<Button
+							type="submit"
+							loading={loading}
+							trackingId="save-aws-credentials"
+						>
+							Save Credentials
+						</Button>
+					</Stack>
+				</Form>
+			) : (
 				<Stack gap="12">
 					<Text size="large" weight="bold">
-						AWS Credentials
+						AWS Instances
 					</Text>
-
-					<Form.Input
-						name={formStore.names.name}
-						label="Credential Name"
-						placeholder="e.g. Production AWS"
-						required
+					<AwsEc2InstancesList
+						credentialsId={selectedCredentialsId}
 					/>
-
-					<Form.Select
-						name={formStore.names.region}
-						options={['us-east-1', 'us-east-2', 'us-west-1']}
-						label="AWS Region"
-						required
-					/>
-
-					<Form.Input
-						name={formStore.names.accessKeyId}
-						label="Access Key ID"
-						required
-					/>
-
-					<Form.Input
-						name={formStore.names.secretAccessKey}
-						label="Secret Access Key"
-						type="password"
-						required
-					/>
-
-					<Button
-						type="submit"
-						loading={loading}
-						trackingId="save-aws-credentials"
-					>
-						Save Credentials
-					</Button>
 				</Stack>
-			</Form>
-
-			{selectedCredentialsId && (
-				<AwsEc2InstancesList credentialsId={selectedCredentialsId} />
 			)}
 		</Box>
 	)

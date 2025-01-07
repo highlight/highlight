@@ -2800,6 +2800,14 @@ query GetAIQuerySuggestion(
 	}
 }
 
+query GetAwsCredentials($project_id: ID!) {
+	aws_credentials(project_id: $project_id) {
+		id
+		region
+		access_key_id
+	}
+}
+
 query GetAwsEc2Instances($credentials_id: ID!) {
 	aws_ec2_instances(credentials_id: $credentials_id) {
 		id

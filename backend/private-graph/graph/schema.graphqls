@@ -2635,7 +2635,7 @@ type Query {
 		params: QueryInput!
 	): [LogLine!]!
 
-	aws_credentials(workspace_id: ID!): [AwsCredentials!]!
+	aws_credentials(project_id: ID!): [AwsCredentials!]!
 	aws_ec2_instances(credentials_id: ID!): [AwsEc2Instance!]!
 }
 
@@ -3138,7 +3138,6 @@ type AwsEc2Instance {
 
 input AwsCredentialsInput {
 	project_id: ID!
-	name: String!
 	region: String!
 	access_key_id: String!
 	secret_access_key: String!

@@ -9901,9 +9901,9 @@ func (r *queryResolver) LogLines(ctx context.Context, productType modelInputs.Pr
 }
 
 // AwsCredentials is the resolver for the aws_credentials field.
-func (r *queryResolver) AwsCredentials(ctx context.Context, workspaceID int) ([]*model.AwsCredentials, error) {
+func (r *queryResolver) AwsCredentials(ctx context.Context, projectID int) ([]*model.AwsCredentials, error) {
 	var credentials []*model.AwsCredentials
-	if err := r.DB.WithContext(ctx).Where("workspace_id = ?", workspaceID).Find(&credentials).Error; err != nil {
+	if err := r.DB.WithContext(ctx).Where("project_id = ?", projectID).Find(&credentials).Error; err != nil {
 		return nil, fmt.Errorf("failed to fetch AWS credentials: %w", err)
 	}
 
@@ -9912,7 +9912,12 @@ func (r *queryResolver) AwsCredentials(ctx context.Context, workspaceID int) ([]
 
 // AwsEc2Instances is the resolver for the aws_ec2_instances field.
 func (r *queryResolver) AwsEc2Instances(ctx context.Context, credentialsID int) ([]*model.AwsEc2Instance, error) {
-	panic(fmt.Errorf("not implemented: AwsEc2Instances - aws_ec2_instances"))
+	var instances []*model.AwsEc2Instance
+	if err := r.DB.WithContext(ctx).Where("credentials_id = ?", credentialsID).Find(&instances).Error; err != nil {
+		return nil, fmt.Errorf("failed to fetch AWS EC2 instances: %w", err)
+	}
+
+	return instances, nil
 }
 
 // Params is the resolver for the params field.

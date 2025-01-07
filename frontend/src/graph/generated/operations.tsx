@@ -1658,7 +1658,7 @@ export type CreateAwsCredentialsMutationVariables = Types.Exact<{
 export type CreateAwsCredentialsMutation = { __typename?: 'Mutation' } & {
 	create_aws_credentials: { __typename?: 'AwsCredentials' } & Pick<
 		Types.AwsCredentials,
-		'id' | 'name' | 'region' | 'access_key_id'
+		'id' | 'region' | 'access_key_id'
 	>
 }
 
@@ -5415,6 +5415,19 @@ export type GetAiQuerySuggestionQuery = { __typename?: 'Query' } & {
 		}
 }
 
+export type GetAwsCredentialsQueryVariables = Types.Exact<{
+	project_id: Types.Scalars['ID']
+}>
+
+export type GetAwsCredentialsQuery = { __typename?: 'Query' } & {
+	aws_credentials: Array<
+		{ __typename?: 'AwsCredentials' } & Pick<
+			Types.AwsCredentials,
+			'id' | 'region' | 'access_key_id'
+		>
+	>
+}
+
 export type GetAwsEc2InstancesQueryVariables = Types.Exact<{
 	credentials_id: Types.Scalars['ID']
 }>
@@ -5588,6 +5601,7 @@ export const namedOperations = {
 		GetVisualization: 'GetVisualization' as const,
 		GetVisualizations: 'GetVisualizations' as const,
 		GetAIQuerySuggestion: 'GetAIQuerySuggestion' as const,
+		GetAwsCredentials: 'GetAwsCredentials' as const,
 		GetAwsEc2Instances: 'GetAwsEc2Instances' as const,
 	},
 	Mutation: {

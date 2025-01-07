@@ -1035,7 +1035,7 @@ type ComplexityRoot struct {
 		AlertingAlertStateChanges        func(childComplexity int, alertID int, startDate time.Time, endDate time.Time, page *int, count *int) int
 		Alerts                           func(childComplexity int, projectID int) int
 		AverageSessionLength             func(childComplexity int, projectID int, lookbackDays float64) int
-		AwsCredentials                   func(childComplexity int, workspaceID int) int
+		AwsCredentials                   func(childComplexity int, projectID int) int
 		AwsEc2Instances                  func(childComplexity int, credentialsID int) int
 		BillingDetails                   func(childComplexity int, workspaceID int) int
 		BillingDetailsForProject         func(childComplexity int, projectID int) int
@@ -2073,7 +2073,7 @@ type QueryResolver interface {
 	Graph(ctx context.Context, id int) (*model1.Graph, error)
 	GraphTemplates(ctx context.Context) ([]*model1.Graph, error)
 	LogLines(ctx context.Context, productType model.ProductType, projectID int, params model.QueryInput) ([]*model.LogLine, error)
-	AwsCredentials(ctx context.Context, workspaceID int) ([]*model1.AwsCredentials, error)
+	AwsCredentials(ctx context.Context, projectID int) ([]*model1.AwsCredentials, error)
 	AwsEc2Instances(ctx context.Context, credentialsID int) ([]*model1.AwsEc2Instance, error)
 }
 type SavedSegmentResolver interface {
@@ -7374,7 +7374,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Query.AwsCredentials(childComplexity, args["workspace_id"].(int)), true
+		return e.complexity.Query.AwsCredentials(childComplexity, args["project_id"].(int)), true
 
 	case "Query.aws_ec2_instances":
 		if e.complexity.Query.AwsEc2Instances == nil {
@@ -14570,7 +14570,7 @@ type Query {
 		params: QueryInput!
 	): [LogLine!]!
 
-	aws_credentials(workspace_id: ID!): [AwsCredentials!]!
+	aws_credentials(project_id: ID!): [AwsCredentials!]!
 	aws_ec2_instances(credentials_id: ID!): [AwsEc2Instance!]!
 }
 
@@ -15073,7 +15073,6 @@ type AwsEc2Instance {
 
 input AwsCredentialsInput {
 	project_id: ID!
-	name: String!
 	region: String!
 	access_key_id: String!
 	secret_access_key: String!
@@ -19337,14 +19336,14 @@ func (ec *executionContext) field_Query_aws_credentials_args(ctx context.Context
 	var err error
 	args := map[string]interface{}{}
 	var arg0 int
-	if tmp, ok := rawArgs["workspace_id"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("workspace_id"))
+	if tmp, ok := rawArgs["project_id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("project_id"))
 		arg0, err = ec.unmarshalNID2int(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["workspace_id"] = arg0
+	args["project_id"] = arg0
 	return args, nil
 }
 
@@ -67067,7 +67066,7 @@ func (ec *executionContext) _Query_aws_credentials(ctx context.Context, field gr
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().AwsCredentials(rctx, fc.Args["workspace_id"].(int))
+		return ec.resolvers.Query().AwsCredentials(rctx, fc.Args["project_id"].(int))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -85678,7 +85677,7 @@ func (ec *executionContext) unmarshalInputAwsCredentialsInput(ctx context.Contex
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"project_id", "name", "region", "access_key_id", "secret_access_key"}
+	fieldsInOrder := [...]string{"project_id", "region", "access_key_id", "secret_access_key"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -85692,13 +85691,6 @@ func (ec *executionContext) unmarshalInputAwsCredentialsInput(ctx context.Contex
 				return it, err
 			}
 			it.ProjectID = data
-		case "name":
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("name"))
-			data, err := ec.unmarshalNString2string(ctx, v)
-			if err != nil {
-				return it, err
-			}
-			it.Name = data
 		case "region":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("region"))
 			data, err := ec.unmarshalNString2string(ctx, v)

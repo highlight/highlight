@@ -249,14 +249,12 @@ export type AwsCredentials = {
 	__typename?: 'AwsCredentials'
 	access_key_id: Scalars['String']
 	id: Scalars['ID']
-	name: Scalars['String']
 	project_id: Scalars['ID']
 	region: Scalars['String']
 }
 
 export type AwsCredentialsInput = {
 	access_key_id: Scalars['String']
-	name: Scalars['String']
 	project_id: Scalars['ID']
 	region: Scalars['String']
 	secret_access_key: Scalars['String']
@@ -2333,7 +2331,7 @@ export type QueryAverageSessionLengthArgs = {
 }
 
 export type QueryAws_CredentialsArgs = {
-	workspace_id: Scalars['ID']
+	project_id: Scalars['ID']
 }
 
 export type QueryAws_Ec2_InstancesArgs = {

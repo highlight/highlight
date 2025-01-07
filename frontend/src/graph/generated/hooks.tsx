@@ -5918,7 +5918,6 @@ export const CreateAwsCredentialsDocument = gql`
 	mutation CreateAwsCredentials($input: AwsCredentialsInput!) {
 		create_aws_credentials(input: $input) {
 			id
-			name
 			region
 			access_key_id
 		}
@@ -15527,6 +15526,64 @@ export type GetAiQuerySuggestionLazyQueryHookResult = ReturnType<
 export type GetAiQuerySuggestionQueryResult = Apollo.QueryResult<
 	Types.GetAiQuerySuggestionQuery,
 	Types.GetAiQuerySuggestionQueryVariables
+>
+export const GetAwsCredentialsDocument = gql`
+	query GetAwsCredentials($project_id: ID!) {
+		aws_credentials(project_id: $project_id) {
+			id
+			region
+			access_key_id
+		}
+	}
+`
+
+/**
+ * __useGetAwsCredentialsQuery__
+ *
+ * To run a query within a React component, call `useGetAwsCredentialsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetAwsCredentialsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetAwsCredentialsQuery({
+ *   variables: {
+ *      project_id: // value for 'project_id'
+ *   },
+ * });
+ */
+export function useGetAwsCredentialsQuery(
+	baseOptions: Apollo.QueryHookOptions<
+		Types.GetAwsCredentialsQuery,
+		Types.GetAwsCredentialsQueryVariables
+	>,
+) {
+	return Apollo.useQuery<
+		Types.GetAwsCredentialsQuery,
+		Types.GetAwsCredentialsQueryVariables
+	>(GetAwsCredentialsDocument, baseOptions)
+}
+export function useGetAwsCredentialsLazyQuery(
+	baseOptions?: Apollo.LazyQueryHookOptions<
+		Types.GetAwsCredentialsQuery,
+		Types.GetAwsCredentialsQueryVariables
+	>,
+) {
+	return Apollo.useLazyQuery<
+		Types.GetAwsCredentialsQuery,
+		Types.GetAwsCredentialsQueryVariables
+	>(GetAwsCredentialsDocument, baseOptions)
+}
+export type GetAwsCredentialsQueryHookResult = ReturnType<
+	typeof useGetAwsCredentialsQuery
+>
+export type GetAwsCredentialsLazyQueryHookResult = ReturnType<
+	typeof useGetAwsCredentialsLazyQuery
+>
+export type GetAwsCredentialsQueryResult = Apollo.QueryResult<
+	Types.GetAwsCredentialsQuery,
+	Types.GetAwsCredentialsQueryVariables
 >
 export const GetAwsEc2InstancesDocument = gql`
 	query GetAwsEc2Instances($credentials_id: ID!) {
