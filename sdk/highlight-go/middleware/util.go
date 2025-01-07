@@ -39,7 +39,8 @@ func GetIPAddress(r *http.Request) string {
 	return IPAddress
 }
 
-func GetRequestAttributes(r *http.Request) []attribute.KeyValue {
+func GetRequestAttributes(r *http.Request) ([]attribute.KeyValue, string) {
+	name := r.Method
 	attrs := []attribute.KeyValue{
 		attribute.String(string(semconv.HTTPMethodKey), r.Method),
 		attribute.String(string(semconv.ClientAddressKey), GetIPAddress(r)),
@@ -49,11 +50,12 @@ func GetRequestAttributes(r *http.Request) []attribute.KeyValue {
 			attribute.String(string(semconv.HTTPURLKey), r.URL.String()),
 			attribute.String(string(semconv.HTTPRouteKey), r.URL.RequestURI()),
 		)
+		name = fmt.Sprintf("%s %s", name, r.URL.RequestURI())
 	}
 	if r.Response != nil {
 		attrs = append(attrs, attribute.Int(string(semconv.HTTPStatusCodeKey), r.Response.StatusCode))
 	}
-	return attrs
+	return attrs, name
 }
 
 func RecoverToError(r interface{}) error {
