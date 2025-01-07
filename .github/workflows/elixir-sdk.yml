@@ -26,7 +26,8 @@ jobs:
               with:
                   elixir-version: ${{ env.ELIXIR_VERSION }}
                   otp-version: ${{ env.OTP_VERSION }}
-            - name: Install Dependencies
+            - name: Format
+              working-directory: sdk/highlight-ex
               run: mix format
 
     test:
@@ -41,8 +42,10 @@ jobs:
                   elixir-version: ${{ env.ELIXIR_VERSION }}
                   otp-version: ${{ env.OTP_VERSION }}
             - name: Install Dependencies
+              working-directory: sdk/highlight-ex
               run: mix deps.get
             - name: Run Tests
+              working-directory: sdk/highlight-ex
               run: mix test
 
     publish:
@@ -60,6 +63,7 @@ jobs:
                   otp-version: ${{ env.OTP_VERSION }}
             - name: Publish to Hex
               uses: synchronal/hex-publish-action@v3
+              working-directory: sdk/highlight-ex
               with:
                   name: highlight
                   key: ${{ secrets.HEX_PM_KEY }}
