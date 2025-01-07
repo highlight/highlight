@@ -1,39 +1,34 @@
 import Input from '@components/Input/Input'
+import { Tooltip } from '@highlight-run/ui/components'
 import { toast } from '@components/Toaster'
-import {
-	useEditProjectMutation,
-	useEditWorkspaceMutation,
-	useGetProjectOrWorkspaceQuery,
-} from '@graph/hooks'
+import { useEditProjectMutation, useEditWorkspaceMutation } from '@graph/hooks'
 import { namedOperations } from '@graph/operations'
 import { useParams } from '@util/react-router/useParams'
-import clsx from 'clsx'
-import { useEffect, useState } from 'react'
+import React, { useState } from 'react'
 
 import commonStyles from '../../../Common.module.css'
 import Button from '../../../components/Button/Button/Button'
-import {
-	CircularSpinner,
-	LoadingBar,
-} from '../../../components/Loading/Loading'
+import { CircularSpinner } from '../../../components/Loading/Loading'
 import styles from './FieldsForm.module.css'
 
-export const FieldsForm = () => {
+type Props = {
+	defaultName?: string | null
+	defaultEmail?: string | null
+	disabled?: boolean
+}
+
+export const FieldsForm: React.FC<Props> = ({
+	defaultName,
+	defaultEmail,
+	disabled: formDisabled,
+}) => {
 	const { project_id, workspace_id } = useParams<{
 		project_id: string
 		workspace_id: string
 	}>()
 	const isWorkspace = !!workspace_id
-	const [name, setName] = useState('')
-	const [email, setEmail] = useState('')
-	const { data, loading } = useGetProjectOrWorkspaceQuery({
-		variables: {
-			project_id: project_id!,
-			workspace_id: workspace_id!,
-			is_workspace: isWorkspace,
-		},
-		skip: !project_id || !workspace_id,
-	})
+	const [name, setName] = useState(defaultName || '')
+	const [email, setEmail] = useState(defaultEmail || '')
 
 	const [editProject, { loading: editProjectLoading }] =
 		useEditProjectMutation({
@@ -70,19 +65,6 @@ export const FieldsForm = () => {
 		}
 	}
 
-	const editingObj = isWorkspace ? data?.workspace : data?.project
-
-	useEffect(() => {
-		if (!loading) {
-			setName(editingObj?.name || '')
-			setEmail(data?.project?.billing_email || '')
-		}
-	}, [data?.project?.billing_email, editingObj?.name, loading])
-
-	if (loading) {
-		return <LoadingBar />
-	}
-
 	return (
 		<form onSubmit={onSubmit} key={project_id}>
 			<div className={styles.fieldRow}>
@@ -93,6 +75,7 @@ export const FieldsForm = () => {
 					onChange={(e) => {
 						setName(e.target.value)
 					}}
+					disabled={formDisabled}
 				/>
 			</div>
 			{isWorkspace ? null : (
@@ -108,34 +91,40 @@ export const FieldsForm = () => {
 							onChange={(e) => {
 								setEmail(e.target.value)
 							}}
+							disabled={formDisabled}
 						/>
 					</div>
 				</>
 			)}
 			<div className={styles.fieldRow}>
-				<div className={styles.fieldKey} />
-				<Button
-					trackingId={`${
-						isWorkspace ? 'Workspace' : 'Project'
-					}Update`}
-					htmlType="submit"
-					type="primary"
-					className={clsx(
-						commonStyles.submitButton,
-						styles.saveButton,
-					)}
+				<Tooltip
+					disabled={!formDisabled}
+					trigger={
+						<Button
+							trackingId={`${
+								isWorkspace ? 'Workspace' : 'Project'
+							}Update`}
+							htmlType="submit"
+							type="primary"
+							className={commonStyles.submitButton}
+							disabled={formDisabled}
+						>
+							{editProjectLoading || editWorkspaceLoading ? (
+								<CircularSpinner
+									style={{
+										fontSize: 18,
+										color: 'var(--text-primary-inverted)',
+									}}
+								/>
+							) : (
+								'Save changes'
+							)}
+						</Button>
+					}
 				>
-					{editProjectLoading || editWorkspaceLoading ? (
-						<CircularSpinner
-							style={{
-								fontSize: 18,
-								color: 'var(--text-primary-inverted)',
-							}}
-						/>
-					) : (
-						'Save'
-					)}
-				</Button>
+					You do not have permission to edit these settings. Please
+					contact your workspace admin.
+				</Tooltip>
 			</div>
 		</form>
 	)

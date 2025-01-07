@@ -77,7 +77,7 @@ func NewClient() *Client {
 	var lfu cache.LocalCache
 	// disable lfu cache locally to allow flushing cache between test-cases
 	if !env.IsTestEnv() {
-		lfu = cache.NewTinyLFU(10_000, time.Second)
+		lfu = cache.NewTinyLFU(100_000, 5*time.Second)
 	}
 	if env.IsDevOrTestEnv() {
 		client := redis.NewClient(&redis.Options{

@@ -6,18 +6,8 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"io"
-	"net/http"
-	"strconv"
-	"strings"
-	"time"
-
-	"go.opentelemetry.io/collector/pdata/plog/plogotlp"
-	"go.opentelemetry.io/collector/pdata/pmetric/pmetricotlp"
-	"go.opentelemetry.io/collector/pdata/ptrace/ptraceotlp"
-	semconv "go.opentelemetry.io/otel/semconv/v1.25.0"
-
 	"github.com/go-chi/chi"
+	"github.com/golang/snappy"
 	"github.com/highlight-run/highlight/backend/clickhouse"
 	kafkaqueue "github.com/highlight-run/highlight/backend/kafka-queue"
 	model2 "github.com/highlight-run/highlight/backend/model"
@@ -32,6 +22,17 @@ import (
 	e "github.com/pkg/errors"
 	"github.com/samber/lo"
 	log "github.com/sirupsen/logrus"
+	"go.opentelemetry.io/collector/pdata/plog/plogotlp"
+	"go.opentelemetry.io/collector/pdata/pmetric/pmetricotlp"
+	"go.opentelemetry.io/collector/pdata/ptrace/ptraceotlp"
+	"go.opentelemetry.io/otel/attribute"
+	semconv "go.opentelemetry.io/otel/semconv/v1.25.0"
+	"go.opentelemetry.io/otel/trace"
+	"io"
+	"net/http"
+	"strconv"
+	"strings"
+	"time"
 )
 
 type Handler struct {
@@ -131,31 +132,51 @@ func getMetric(ctx context.Context, ts time.Time, fields *extractedFields, spanI
 	}, nil
 }
 
-func (o *Handler) HandleTrace(w http.ResponseWriter, r *http.Request) {
-	ctx := r.Context()
+func getBody(ctx context.Context, r *http.Request) ([]byte, error) {
+	span, ctx := highlight.StartTrace(ctx, "otel.getReader")
+	defer highlight.EndTrace(span)
+
 	body, err := io.ReadAll(r.Body)
 	if err != nil {
-		log.WithContext(ctx).WithError(err).Error("invalid trace logBody")
-		http.Error(w, err.Error(), http.StatusBadRequest)
-		return
+		log.WithContext(ctx).WithError(err).Error("invalid logBody")
+		return nil, err
+	}
+	span.SetAttributes(attribute.Int("request.raw.size", len(body)))
+
+	enc := r.Header.Get("Content-Encoding")
+	span.SetAttributes(attribute.String("request.content-encoding", enc))
+	var reader io.Reader
+	if enc == "gzip" {
+		reader, err = gzip.NewReader(bytes.NewReader(body))
+		if err != nil {
+			return nil, err
+		}
+	} else if enc == "snappy" {
+		reader = snappy.NewReader(bytes.NewReader(body))
+	} else {
+		return nil, e.New("invalid otel content-encoding header")
 	}
 
-	gz, err := gzip.NewReader(bytes.NewReader(body))
+	data, err := io.ReadAll(reader)
+	span.SetAttributes(attribute.Int("request.decompressed.size", len(data)))
+	return data, err
+}
+
+func (o *Handler) HandleTrace(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	output, err := getBody(ctx, r)
 	if err != nil {
-		log.WithContext(ctx).WithError(err).Error("invalid gzip format for trace")
+		log.WithContext(ctx).WithError(err).Error("invalid data format for trace")
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
-	output, err := io.ReadAll(gz)
-	if err != nil {
-		log.WithContext(ctx).WithError(err).Error("invalid gzip stream for trace")
-		http.Error(w, err.Error(), http.StatusBadRequest)
-		return
-	}
-
+	span, _ := highlight.StartTrace(ctx, "otel.proto")
 	req := ptraceotlp.NewExportRequest()
 	err = req.UnmarshalProto(output)
+	span.RecordError(err)
+	highlight.EndTrace(span)
 	if err != nil {
 		log.WithContext(ctx).WithError(err).Error("invalid trace protobuf")
 		http.Error(w, err.Error(), http.StatusBadRequest)
@@ -189,7 +210,7 @@ func (o *Handler) HandleTrace(w http.ResponseWriter, r *http.Request) {
 					}
 				}
 
-				fields, err := extractFields(r.Context(), extractFieldsParams{
+				fields, err := extractFields(ctx, extractFieldsParams{
 					headers:  r.Header,
 					resource: &resource,
 					span:     &span,
@@ -208,7 +229,7 @@ func (o *Handler) HandleTrace(w http.ResponseWriter, r *http.Request) {
 						break
 					}
 					event := events.At(l)
-					fields, err := extractFields(r.Context(), extractFieldsParams{
+					fields, err := extractFields(ctx, extractFieldsParams{
 						headers:  r.Header,
 						resource: &resource,
 						span:     &span,
@@ -353,7 +374,7 @@ func (o *Handler) HandleTrace(w http.ResponseWriter, r *http.Request) {
 						Metrics:          []*model.MetricInput{metric},
 					}})
 			}
-			err = o.resolver.ProducerQueue.Submit(ctx, sessionID, messages...)
+			err = o.resolver.AsyncProducerQueue.Submit(ctx, sessionID, messages...)
 			if err != nil {
 				log.WithContext(ctx).WithError(err).Error("failed to submit otel project metrics to public worker queue")
 				w.WriteHeader(http.StatusServiceUnavailable)
@@ -385,29 +406,19 @@ func (o *Handler) HandleTrace(w http.ResponseWriter, r *http.Request) {
 
 func (o *Handler) HandleLog(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
-	body, err := io.ReadAll(r.Body)
+
+	output, err := getBody(ctx, r)
 	if err != nil {
-		log.WithContext(ctx).WithError(err).Error("invalid log logBody")
+		log.WithContext(ctx).WithError(err).Error("invalid data format for trace")
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
-	gz, err := gzip.NewReader(bytes.NewReader(body))
-	if err != nil {
-		log.WithContext(ctx).WithError(err).Error("invalid gzip format for log")
-		http.Error(w, err.Error(), http.StatusBadRequest)
-		return
-	}
-
-	output, err := io.ReadAll(gz)
-	if err != nil {
-		log.WithContext(ctx).WithError(err).Error("invalid gzip stream for log")
-		http.Error(w, err.Error(), http.StatusBadRequest)
-		return
-	}
-
+	span, _ := highlight.StartTrace(ctx, "otel.proto")
 	req := plogotlp.NewExportRequest()
 	err = req.UnmarshalProto(output)
+	span.RecordError(err)
+	highlight.EndTrace(span)
 	if err != nil {
 		log.WithContext(ctx).WithError(err).Error("invalid log protobuf")
 		http.Error(w, err.Error(), http.StatusBadRequest)
@@ -429,7 +440,7 @@ func (o *Handler) HandleLog(w http.ResponseWriter, r *http.Request) {
 			for k := 0; k < logRecords.Len(); k++ {
 				logRecord := logRecords.At(k)
 
-				fields, err := extractFields(r.Context(), extractFieldsParams{
+				fields, err := extractFields(ctx, extractFieldsParams{
 					headers:                r.Header,
 					resource:               &resource,
 					logRecord:              &logRecord,
@@ -493,29 +504,19 @@ func (o *Handler) HandleLog(w http.ResponseWriter, r *http.Request) {
 
 func (o *Handler) HandleMetric(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
-	body, err := io.ReadAll(r.Body)
+
+	output, err := getBody(ctx, r)
 	if err != nil {
-		log.WithContext(ctx).WithError(err).Error("invalid metric body")
+		log.WithContext(ctx).WithError(err).Error("invalid data format for trace")
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
-	gz, err := gzip.NewReader(bytes.NewReader(body))
-	if err != nil {
-		log.WithContext(ctx).WithError(err).Error("invalid gzip format for metric")
-		http.Error(w, err.Error(), http.StatusBadRequest)
-		return
-	}
-
-	output, err := io.ReadAll(gz)
-	if err != nil {
-		log.WithContext(ctx).WithError(err).Error("invalid gzip stream for metric")
-		http.Error(w, err.Error(), http.StatusBadRequest)
-		return
-	}
-
+	span, _ := highlight.StartTrace(ctx, "otel.proto")
 	req := pmetricotlp.NewExportRequest()
 	err = req.UnmarshalProto(output)
+	span.RecordError(err)
+	highlight.EndTrace(span)
 	if err != nil {
 		log.WithContext(ctx).WithError(err).Error("invalid metric protobuf")
 		http.Error(w, err.Error(), http.StatusBadRequest)
@@ -531,6 +532,8 @@ func (o *Handler) HandleMetric(w http.ResponseWriter, r *http.Request) {
 }
 
 func (o *Handler) getQuotaExceededByProject(ctx context.Context, projectIds map[uint32]struct{}, productType model2.PricingProductType) (map[uint32]bool, error) {
+	span, ctx := highlight.StartTrace(ctx, "otel.getQuotaExceededByProject", attribute.Int("NumProjects", len(projectIds)), attribute.String("ProductType", string(productType)))
+	defer highlight.EndTrace(span)
 	// If it's saved in Redis that a project has exceeded / not exceeded
 	// its quota, use that value. Else, add the projectId to a list of
 	// projects to query.
@@ -585,6 +588,9 @@ func (o *Handler) getQuotaExceededByProject(ctx context.Context, projectIds map[
 }
 
 func (o *Handler) submitProjectLogs(ctx context.Context, projectLogs map[string][]*clickhouse.LogRow) error {
+	span, ctx := highlight.StartTrace(ctx, "otel.submitProjectLogs")
+	defer highlight.EndTrace(span)
+
 	projectIds := map[uint32]struct{}{}
 	for _, logRows := range projectLogs {
 		for _, logRow := range logRows {
@@ -599,18 +605,15 @@ func (o *Handler) submitProjectLogs(ctx context.Context, projectLogs map[string]
 		quotaExceededByProject = map[uint32]bool{}
 	}
 
+	sp, c := highlight.StartTrace(ctx, "otel.upsertServices")
 	var markBackendSetupProjectIds []uint32
 	var filteredRows []*clickhouse.LogRow
 	for _, logRows := range projectLogs {
 		for _, logRow := range logRows {
 			// create service record for any services found in ingested logs
 			if logRow.ServiceName != "" {
-				project, err := o.resolver.Store.GetProject(ctx, int(logRow.ProjectId))
-				if err == nil && project != nil {
-					_, err := o.resolver.Store.UpsertService(ctx, *project, logRow.ServiceName, logRow.LogAttributes)
-					if err != nil {
-						log.WithContext(ctx).Error(e.Wrap(err, "failed to create service"))
-					}
+				if _, err = o.resolver.Store.UpsertService(c, int(logRow.ProjectId), logRow.ServiceName, logRow.LogAttributes); err != nil {
+					log.WithContext(c).Error(e.Wrap(err, "failed to upsert service"))
 				}
 			}
 
@@ -626,17 +629,21 @@ func (o *Handler) submitProjectLogs(ctx context.Context, projectLogs map[string]
 			filteredRows = append(filteredRows, logRow)
 		}
 	}
+	highlight.EndTrace(sp)
 
+	sp, c = highlight.StartTrace(ctx, "otel.markBackendSetupImpl")
 	for _, projectId := range markBackendSetupProjectIds {
-		err := o.resolver.MarkBackendSetupImpl(ctx, int(projectId), model2.MarkBackendSetupTypeLogs)
+		err := o.resolver.MarkBackendSetupImpl(c, int(projectId), model2.MarkBackendSetupTypeLogs)
 		if err != nil {
-			log.WithContext(ctx).WithError(err).Error("failed to mark backend logs setup")
+			log.WithContext(c).WithError(err).Error("failed to mark backend logs setup")
 		}
 	}
+	highlight.EndTrace(sp)
 
+	sp, c = highlight.StartTrace(ctx, "otel.prepareMessages")
 	var messages []kafkaqueue.RetryableMessage
 	for _, logRow := range filteredRows {
-		if !o.resolver.IsLogIngested(ctx, logRow) {
+		if !o.resolver.IsLogIngested(c, logRow) {
 			continue
 		}
 		messages = append(messages, &kafkaqueue.LogRowMessage{
@@ -644,6 +651,8 @@ func (o *Handler) submitProjectLogs(ctx context.Context, projectLogs map[string]
 			LogRow: logRow,
 		})
 	}
+	highlight.EndTrace(sp)
+
 	err = o.resolver.BatchedQueue.Submit(ctx, "", messages...)
 	if err != nil {
 		return e.Wrap(err, "failed to submit otel project logs to public worker queue")
@@ -674,7 +683,7 @@ func (o *Handler) submitProjectSessionErrors(ctx context.Context, projectSession
 		}
 	}
 	for key, messages := range keyedErrorMessages {
-		err := o.resolver.ProducerQueue.Submit(ctx, key, messages...)
+		err := o.resolver.AsyncProducerQueue.Submit(ctx, key, messages...)
 		if err != nil {
 			return e.Wrap(err, "failed to submit otel errors to public worker queue")
 		}
@@ -757,7 +766,7 @@ func (o *Handler) matchHerokuDrain(ctx context.Context, herokuDrainToken string)
 
 func (o *Handler) Listen(r *chi.Mux) {
 	r.Route("/otel/v1", func(r chi.Router) {
-		r.Use(highlightChi.Middleware)
+		r.Use(highlightChi.UseMiddleware(trace.WithSpanKind(trace.SpanKindConsumer)))
 		r.HandleFunc("/traces", o.HandleTrace)
 		r.HandleFunc("/logs", o.HandleLog)
 		r.HandleFunc("/metrics", o.HandleMetric)

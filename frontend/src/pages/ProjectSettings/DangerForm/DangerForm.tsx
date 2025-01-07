@@ -8,6 +8,8 @@ import { useParams } from '@util/react-router/useParams'
 import clsx from 'clsx'
 import { useState } from 'react'
 import { Navigate } from 'react-router-dom'
+import { useAuthContext } from '@/authentication/AuthContext'
+import { AdminRole } from '@/graph/generated/schemas'
 
 import commonStyles from '../../../Common.module.css'
 import Button from '../../../components/Button/Button/Button'
@@ -20,6 +22,9 @@ export const DangerForm = () => {
 		skip: !project_id,
 	})
 	const [confirmationText, setConfirmationText] = useState('')
+
+	const { workspaceRole } = useAuthContext()
+	const isAdminRole = workspaceRole === AdminRole.Admin
 
 	const [deleteProject, { loading: deleteLoading, data: deleteData }] =
 		useDeleteProjectMutation({
@@ -37,51 +42,58 @@ export const DangerForm = () => {
 		<>
 			<FieldsBox id="project">
 				<h3>Project Properties</h3>
-				<FieldsForm />
+				<FieldsForm
+					defaultName={data?.project?.name}
+					defaultEmail={data?.project?.billing_email}
+					disabled={!isAdminRole}
+				/>
 			</FieldsBox>
-			<FieldsBox id="danger">
-				<h3>Danger Zone</h3>
+			{isAdminRole && (
+				<FieldsBox id="danger">
+					<h3>Danger Zone</h3>
 
-				<form onSubmit={onSubmit}>
-					{loading ? (
-						<LoadingBox />
-					) : (
-						<>
-							<p className={styles.dangerSubTitle}>
-								This will immediately delete all session and
-								errors in this project. Please type '
-								{`${data?.project?.name}`}' to confirm.
-							</p>
-							<div className={styles.dangerRow}>
-								<Input
-									placeholder={`${data?.project?.name}`}
-									name="text"
-									value={confirmationText}
-									onChange={(e) => {
-										setConfirmationText(e.target.value)
-									}}
-								/>
-								<Button
-									trackingId="DeleteProject"
-									danger
-									type="primary"
-									className={clsx(
-										commonStyles.submitButton,
-										styles.deleteButton,
-									)}
-									disabled={
-										confirmationText !== data?.project?.name
-									}
-									htmlType="submit"
-									loading={deleteLoading}
-								>
-									Delete
-								</Button>
-							</div>
-						</>
-					)}
-				</form>
-			</FieldsBox>
+					<form onSubmit={onSubmit}>
+						{loading ? (
+							<LoadingBox />
+						) : (
+							<>
+								<p className={styles.dangerSubTitle}>
+									This will immediately delete all session and
+									errors in this project. Please type '
+									{`${data?.project?.name}`}' to confirm.
+								</p>
+								<div className={styles.dangerRow}>
+									<Input
+										placeholder={`${data?.project?.name}`}
+										name="text"
+										value={confirmationText}
+										onChange={(e) => {
+											setConfirmationText(e.target.value)
+										}}
+									/>
+									<Button
+										trackingId="DeleteProject"
+										danger
+										type="primary"
+										className={clsx(
+											commonStyles.submitButton,
+											styles.deleteButton,
+										)}
+										disabled={
+											confirmationText !==
+											data?.project?.name
+										}
+										htmlType="submit"
+										loading={deleteLoading}
+									>
+										Delete
+									</Button>
+								</div>
+							</>
+						)}
+					</form>
+				</FieldsBox>
+			)}
 		</>
 	)
 }

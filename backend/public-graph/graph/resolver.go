@@ -78,22 +78,23 @@ import (
 // It serves as dependency injection for your app, add any dependencies you require here.
 
 type Resolver struct {
-	DB                *gorm.DB
-	Tracer            trace.Tracer
-	TracerNoResources trace.Tracer
-	ProducerQueue     kafka_queue.MessageQueue
-	BatchedQueue      kafka_queue.MessageQueue
-	DataSyncQueue     kafka_queue.MessageQueue
-	TracesQueue       kafka_queue.MessageQueue
-	MailClient        *sendgrid.Client
-	StorageClient     storage.Client
-	EmbeddingsClient  embeddings.Client
-	Redis             *redis.Client
-	Clickhouse        *clickhouse.Client
-	RH                *resthooks.Resthook
-	Store             *store.Store
-	LambdaClient      *lambda.Client
-	SessionCache      *lru.Cache[string, *model.Session]
+	DB                 *gorm.DB
+	Tracer             trace.Tracer
+	TracerNoResources  trace.Tracer
+	AsyncProducerQueue kafka_queue.MessageQueue
+	ProducerQueue      kafka_queue.MessageQueue
+	BatchedQueue       kafka_queue.MessageQueue
+	DataSyncQueue      kafka_queue.MessageQueue
+	TracesQueue        kafka_queue.MessageQueue
+	MailClient         *sendgrid.Client
+	StorageClient      storage.Client
+	EmbeddingsClient   embeddings.Client
+	Redis              *redis.Client
+	Clickhouse         *clickhouse.Client
+	RH                 *resthooks.Resthook
+	Store              *store.Store
+	LambdaClient       *lambda.Client
+	SessionCache       *lru.Cache[string, *model.Session]
 }
 
 type Location struct {
@@ -1307,7 +1308,7 @@ func (r *Resolver) InitializeSessionImpl(ctx context.Context, input *kafka_queue
 		attributes := map[string]string{
 			string(semconv.ProcessRuntimeNameKey): "browser",
 		}
-		_, err := r.Store.UpsertService(ctx, *project, session.ServiceName, attributes)
+		_, err := r.Store.UpsertService(ctx, project.ID, session.ServiceName, attributes)
 		if err != nil {
 			log.WithContext(ctx).Error(e.Wrap(err, "failed to create service"))
 		}
@@ -1317,7 +1318,7 @@ func (r *Resolver) InitializeSessionImpl(ctx context.Context, input *kafka_queue
 }
 
 func (r *Resolver) MarkBackendSetupImpl(ctx context.Context, projectID int, setupType model.MarkBackendSetupType) error {
-	_, err := redis.CachedEval(ctx, r.Redis, fmt.Sprintf("mark-backend-setup-%d-%s", projectID, setupType), 150*time.Millisecond, time.Hour, func() (*bool, error) {
+	_, err := redis.CachedEval(ctx, r.Redis, fmt.Sprintf("mark-backend-setup-%d-%s", projectID, setupType), time.Second, time.Hour, func() (*bool, error) {
 		if setupType == model.MarkBackendSetupTypeLogs || setupType == model.MarkBackendSetupTypeError {
 			// Update Hubspot company and projects.backend_setup
 			var backendSetupCount int64

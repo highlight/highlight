@@ -5,6 +5,7 @@ import (
 	"compress/gzip"
 	"context"
 	"fmt"
+	"github.com/golang/snappy"
 	"github.com/highlight-run/highlight/backend/env"
 	"github.com/highlight/highlight/sdk/highlight-go"
 	"go.opentelemetry.io/collector/pdata/plog"
@@ -111,27 +112,29 @@ func TestHandler_HandleLog(t *testing.T) {
 	}
 
 	b := bytes.Buffer{}
-	gz := gzip.NewWriter(&b)
-	if _, err := gz.Write(body); err != nil {
+	bw := snappy.NewBufferedWriter(&b)
+	if _, err := bw.Write(body); err != nil {
 		t.Fatal(err)
 	}
-	if err := gz.Close(); err != nil {
+	if err := bw.Close(); err != nil {
 		t.Fatal(err)
 	}
 
 	w := &MockResponseWriter{}
 	r, _ := http.NewRequest("POST", "", bytes.NewReader(b.Bytes()))
 	r.Header.Set(highlight.ProjectIDHeader, "123")
+	r.Header.Set("content-encoding", "snappy")
 
 	producer := MockKafkaProducer{}
 	resolver := &public.Resolver{
-		Redis:         red,
-		Store:         store.NewStore(db, red, integrations.NewIntegrationsClient(db), &storage.FilesystemClient{}, &producer, nil),
-		ProducerQueue: &producer,
-		BatchedQueue:  &producer,
-		TracesQueue:   &producer,
-		DB:            db,
-		Clickhouse:    chClient,
+		Redis:              red,
+		Store:              store.NewStore(db, red, integrations.NewIntegrationsClient(db), &storage.FilesystemClient{}, &producer, nil),
+		AsyncProducerQueue: &producer,
+		ProducerQueue:      &producer,
+		BatchedQueue:       &producer,
+		TracesQueue:        &producer,
+		DB:                 db,
+		Clickhouse:         chClient,
 	}
 	h := Handler{
 		resolver: resolver,
@@ -212,22 +215,25 @@ func TestHandler_HandleTrace(t *testing.T) {
 			t.Fatal(err)
 		}
 
-		w := &MockResponseWriter{}
-		r, _ := http.NewRequest("POST", "", bytes.NewReader(b.Bytes()))
-
 		producer := MockKafkaProducer{}
 		resolver := &public.Resolver{
-			Redis:         red,
-			Store:         store.NewStore(db, red, integrations.NewIntegrationsClient(db), &storage.FilesystemClient{}, &producer, nil),
-			ProducerQueue: &producer,
-			BatchedQueue:  &producer,
-			TracesQueue:   &producer,
-			DB:            db,
-			Clickhouse:    chClient,
+			Redis:              red,
+			Store:              store.NewStore(db, red, integrations.NewIntegrationsClient(db), &storage.FilesystemClient{}, &producer, nil),
+			AsyncProducerQueue: &producer,
+			ProducerQueue:      &producer,
+			BatchedQueue:       &producer,
+			TracesQueue:        &producer,
+			DB:                 db,
+			Clickhouse:         chClient,
 		}
 		h := Handler{
 			resolver: resolver,
 		}
+
+		producer.messages = []kafkaqueue.RetryableMessage{}
+		w := &MockResponseWriter{}
+		r, _ := http.NewRequest("POST", "", bytes.NewReader(b.Bytes()))
+		r.Header.Set("content-encoding", "gzip")
 		h.HandleTrace(w, r)
 
 		var appDirError *model2.BackendErrorObjectInput
@@ -317,4 +323,110 @@ func TestExtractFields_Syslog(t *testing.T) {
 		"priority": "40",
 		"proc_id":  "1",
 	}, fields.attrs)
+}
+
+func BenchmarkHandleTrace(b *testing.B) {
+	tc := struct {
+		expectedMessageCounts map[kafkaqueue.PayloadType]int
+		expectedLogCounts     map[privateModel.LogSource]int
+		expectedErrors        *int
+		expectedErrorEvent    *string
+		external              bool
+	}{
+		expectedMessageCounts: map[kafkaqueue.PayloadType]int{
+			kafkaqueue.PushBackendPayload:  4,   // 4 exceptions, pushed as individual messages
+			kafkaqueue.PushLogsFlattened:   15,  // 4 exceptions, 11 logs
+			kafkaqueue.PushTracesFlattened: 512, // 512 spans, of which 11 are logs that also save a span
+		},
+		expectedLogCounts: map[privateModel.LogSource]int{
+			privateModel.LogSourceFrontend: 1,
+			privateModel.LogSourceBackend:  14,
+		},
+	}
+
+	if tc.external {
+		env.Config.Doppler = "prod_aws"
+	} else {
+		env.Config.Doppler = ""
+	}
+
+	inputBytes, err := os.ReadFile("./samples/traces.json")
+	if err != nil {
+		b.Fatalf("error reading: %v", err)
+	}
+
+	req := ptraceotlp.NewExportRequest()
+	if err := req.UnmarshalJSON(inputBytes); err != nil {
+		b.Fatal(err)
+	}
+
+	body, err := req.MarshalProto()
+	if err != nil {
+		b.Fatal(err)
+	}
+
+	bu := bytes.Buffer{}
+	gz := gzip.NewWriter(&bu)
+	if _, err := gz.Write(body); err != nil {
+		b.Fatal(err)
+	}
+	if err := gz.Close(); err != nil {
+		b.Fatal(err)
+	}
+
+	producer := MockKafkaProducer{}
+	resolver := &public.Resolver{
+		Redis:              red,
+		Store:              store.NewStore(db, red, integrations.NewIntegrationsClient(db), &storage.FilesystemClient{}, &producer, nil),
+		AsyncProducerQueue: &producer,
+		ProducerQueue:      &producer,
+		BatchedQueue:       &producer,
+		TracesQueue:        &producer,
+		DB:                 db,
+		Clickhouse:         chClient,
+	}
+	h := Handler{
+		resolver: resolver,
+	}
+
+	for i := 0; i < b.N; i++ {
+		producer.messages = []kafkaqueue.RetryableMessage{}
+		w := &MockResponseWriter{}
+		r, _ := http.NewRequest("POST", "", bytes.NewReader(bu.Bytes()))
+		r.Header.Set("content-encoding", "gzip")
+		h.HandleTrace(w, r)
+
+		var appDirError *model2.BackendErrorObjectInput
+		numErrors := 0
+		logCountsBySource := map[privateModel.LogSource]int{}
+		messageCountsByType := map[kafkaqueue.PayloadType]int{}
+		for _, message := range producer.messages {
+			messageCountsByType[message.GetType()]++
+			if message.GetType() == kafkaqueue.PushLogsFlattened {
+				logRowMessage := message.(*kafka_queue.LogRowMessage)
+				logCountsBySource[logRowMessage.Source]++
+			} else if message.GetType() == kafkaqueue.PushBackendPayload {
+				pushPayloadMessage := message.(*kafka_queue.Message)
+				appDirError = pushPayloadMessage.PushBackendPayload.Errors[0]
+				numErrors += len(pushPayloadMessage.PushBackendPayload.Errors)
+			}
+		}
+
+		if tc.expectedMessageCounts != nil {
+			assert.Equal(b, fmt.Sprintf("%+v", tc.expectedMessageCounts), fmt.Sprintf("%+v", messageCountsByType))
+		}
+
+		if tc.expectedErrors != nil {
+			assert.Equal(b, *tc.expectedErrors, numErrors)
+		}
+
+		if tc.expectedErrorEvent != nil {
+			assert.Equal(b, appDirError.Event, *tc.expectedErrorEvent)
+			assert.Greater(b, len(appDirError.StackTrace), 100)
+		}
+
+		if tc.expectedLogCounts != nil {
+			assert.Equal(b, fmt.Sprintf("%+v", tc.expectedLogCounts), fmt.Sprintf("%+v", logCountsBySource))
+		}
+	}
 }
