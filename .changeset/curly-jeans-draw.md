@@ -4,4 +4,4 @@
 '@highlight-run/node': patch
 ---
 
-fix node-fetch import breaking edge runtime compatability
+fix node-fetch import breaking edge runtime compatibility
