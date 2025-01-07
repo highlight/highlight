@@ -1,6 +1,6 @@
 import { siteUrl } from '../../../../utils/urls'
 import { QuickStartContent } from '../../QuickstartContent'
-import { verifyLogs } from '../shared-snippets'
+import { verifyLogs } from '../shared-snippets-logging'
 
 export const HostingFlyIOLogContent: QuickStartContent = {
 	title: 'Logging with the Fly.io Log Shipper',

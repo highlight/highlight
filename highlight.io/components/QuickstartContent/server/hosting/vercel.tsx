@@ -1,6 +1,6 @@
 import { siteUrl } from '../../../../utils/urls'
 import { QuickStartContent } from '../../QuickstartContent'
-import { verifyLogs } from '../shared-snippets'
+import { verifyLogs } from '../shared-snippets-logging'
 
 export const HostingVercelLogContent: QuickStartContent = {
 	title: 'Logging with the Vercel Log Drain',
