@@ -1498,3 +1498,12 @@ mutation CreateCloudflareProxy($workspace_id: ID!, $proxy_subdomain: String!) {
 		proxy_subdomain: $proxy_subdomain
 	)
 }
+
+mutation CreateAwsCredentials($input: AwsCredentialsInput!) {
+	create_aws_credentials(input: $input) {
+		id
+		name
+		region
+		access_key_id
+	}
+}

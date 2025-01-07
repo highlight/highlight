@@ -128,11 +128,6 @@ func (r *allWorkspaceSettingsResolver) EnableIngestFiltering(ctx context.Context
 	return w.PlanTier != modelInputs.PlanTypeFree.String(), nil
 }
 
-// Name is the resolver for the name field.
-func (r *awsCredentialsResolver) Name(ctx context.Context, obj *model.AwsCredentials) (string, error) {
-	panic(fmt.Errorf("not implemented: Name - name"))
-}
-
 // Author is the resolver for the author field.
 func (r *commentReplyResolver) Author(ctx context.Context, obj *model.CommentReply) (*modelInputs.SanitizedAdmin, error) {
 	admin := &model.Admin{}
@@ -10288,11 +10283,6 @@ func (r *Resolver) AllWorkspaceSettings() generated.AllWorkspaceSettingsResolver
 	return &allWorkspaceSettingsResolver{r}
 }
 
-// AwsCredentials returns generated.AwsCredentialsResolver implementation.
-func (r *Resolver) AwsCredentials() generated.AwsCredentialsResolver {
-	return &awsCredentialsResolver{r}
-}
-
 // CommentReply returns generated.CommentReplyResolver implementation.
 func (r *Resolver) CommentReply() generated.CommentReplyResolver { return &commentReplyResolver{r} }
 
@@ -10357,7 +10347,6 @@ func (r *Resolver) TimelineIndicatorEvent() generated.TimelineIndicatorEventReso
 func (r *Resolver) Visualization() generated.VisualizationResolver { return &visualizationResolver{r} }
 
 type allWorkspaceSettingsResolver struct{ *Resolver }
-type awsCredentialsResolver struct{ *Resolver }
 type commentReplyResolver struct{ *Resolver }
 type errorAlertResolver struct{ *Resolver }
 type errorCommentResolver struct{ *Resolver }

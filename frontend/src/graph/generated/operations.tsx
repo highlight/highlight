@@ -1615,10 +1615,12 @@ export type UpsertGraphMutation = { __typename?: 'Mutation' } & {
 		| 'display'
 		| 'nullHandling'
 	> & {
-			funnelSteps: Array<
-				{ __typename?: 'FunnelStep' } & Pick<
-					Types.FunnelStep,
-					'title' | 'query'
+			funnelSteps?: Types.Maybe<
+				Array<
+					{ __typename?: 'FunnelStep' } & Pick<
+						Types.FunnelStep,
+						'title' | 'query'
+					>
 				>
 			>
 			expressions: Array<
@@ -1648,6 +1650,17 @@ export type CreateCloudflareProxyMutation = { __typename?: 'Mutation' } & Pick<
 	Types.Mutation,
 	'createCloudflareProxy'
 >
+
+export type CreateAwsCredentialsMutationVariables = Types.Exact<{
+	input: Types.AwsCredentialsInput
+}>
+
+export type CreateAwsCredentialsMutation = { __typename?: 'Mutation' } & {
+	create_aws_credentials: { __typename?: 'AwsCredentials' } & Pick<
+		Types.AwsCredentials,
+		'id' | 'name' | 'region' | 'access_key_id'
+	>
+}
 
 export type SessionPayloadFragmentFragment = {
 	__typename?: 'SessionPayload'
@@ -4247,10 +4260,12 @@ export type GetAlertsPagePayloadQuery = { __typename?: 'Query' } & {
 							'url' | 'authorization'
 						>
 					>
-					filters: Array<
-						{ __typename?: 'MetricTagFilter' } & Pick<
-							Types.MetricTagFilter,
-							'tag' | 'op' | 'value'
+					filters?: Types.Maybe<
+						Array<
+							{ __typename?: 'MetricTagFilter' } & Pick<
+								Types.MetricTagFilter,
+								'tag' | 'op' | 'value'
+							>
 						>
 					>
 				}
@@ -4491,10 +4506,14 @@ export type GetDashboardDefinitionsQuery = { __typename?: 'Query' } & {
 							| 'max_percentile'
 							| 'groups'
 						> & {
-								filters: Array<
-									{ __typename?: 'MetricTagFilter' } & Pick<
-										Types.MetricTagFilter,
-										'value' | 'op' | 'tag'
+								filters?: Types.Maybe<
+									Array<
+										{
+											__typename?: 'MetricTagFilter'
+										} & Pick<
+											Types.MetricTagFilter,
+											'value' | 'op' | 'tag'
+										>
 									>
 								>
 							}
@@ -5225,10 +5244,12 @@ export type GetGraphTemplatesQuery = { __typename?: 'Query' } & {
 			| 'display'
 			| 'nullHandling'
 		> & {
-				funnelSteps: Array<
-					{ __typename?: 'FunnelStep' } & Pick<
-						Types.FunnelStep,
-						'title' | 'query'
+				funnelSteps?: Types.Maybe<
+					Array<
+						{ __typename?: 'FunnelStep' } & Pick<
+							Types.FunnelStep,
+							'title' | 'query'
+						>
 					>
 				>
 				expressions: Array<
@@ -5275,10 +5296,12 @@ export type GetVisualizationQuery = { __typename?: 'Query' } & {
 					| 'display'
 					| 'nullHandling'
 				> & {
-						funnelSteps: Array<
-							{ __typename?: 'FunnelStep' } & Pick<
-								Types.FunnelStep,
-								'title' | 'query'
+						funnelSteps?: Types.Maybe<
+							Array<
+								{ __typename?: 'FunnelStep' } & Pick<
+									Types.FunnelStep,
+									'title' | 'query'
+								>
 							>
 						>
 						expressions: Array<
@@ -5342,10 +5365,14 @@ export type GetVisualizationsQuery = { __typename?: 'Query' } & {
 								| 'display'
 								| 'nullHandling'
 							> & {
-									funnelSteps: Array<
-										{ __typename?: 'FunnelStep' } & Pick<
-											Types.FunnelStep,
-											'title' | 'query'
+									funnelSteps?: Types.Maybe<
+										Array<
+											{
+												__typename?: 'FunnelStep'
+											} & Pick<
+												Types.FunnelStep,
+												'title' | 'query'
+											>
 										>
 									>
 									expressions: Array<
@@ -5659,6 +5686,7 @@ export const namedOperations = {
 		UpsertGraph: 'UpsertGraph' as const,
 		DeleteGraph: 'DeleteGraph' as const,
 		CreateCloudflareProxy: 'CreateCloudflareProxy' as const,
+		CreateAwsCredentials: 'CreateAwsCredentials' as const,
 		SendAdminWorkspaceInvite: 'SendAdminWorkspaceInvite' as const,
 		SyncAwsEc2Instances: 'SyncAwsEc2Instances' as const,
 	},

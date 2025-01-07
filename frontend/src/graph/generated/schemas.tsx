@@ -37,7 +37,7 @@ export type AccessibleJiraResources = {
 	avatarUrl: Scalars['String']
 	id: Scalars['String']
 	name: Scalars['String']
-	scopes: Array<Scalars['String']>
+	scopes?: Maybe<Array<Scalars['String']>>
 	url: Scalars['String']
 }
 
@@ -410,8 +410,8 @@ export type DashboardMetricConfig = {
 	chart_type?: Maybe<DashboardChartType>
 	component_type?: Maybe<MetricViewComponentType>
 	description: Scalars['String']
-	filters: Array<MetricTagFilter>
-	groups: Array<Scalars['String']>
+	filters?: Maybe<Array<MetricTagFilter>>
+	groups?: Maybe<Array<Scalars['String']>>
 	help_article?: Maybe<Scalars['String']>
 	max_good_value?: Maybe<Scalars['Float']>
 	max_needs_improvement_value?: Maybe<Scalars['Float']>
@@ -429,8 +429,8 @@ export type DashboardMetricConfigInput = {
 	chart_type?: InputMaybe<DashboardChartType>
 	component_type?: InputMaybe<MetricViewComponentType>
 	description: Scalars['String']
-	filters: Array<MetricTagFilterInput>
-	groups: Array<Scalars['String']>
+	filters?: InputMaybe<Array<MetricTagFilterInput>>
+	groups?: InputMaybe<Array<Scalars['String']>>
 	help_article?: InputMaybe<Scalars['String']>
 	max_good_value?: InputMaybe<Scalars['Float']>
 	max_needs_improvement_value?: InputMaybe<Scalars['Float']>
@@ -446,8 +446,8 @@ export type DashboardMetricConfigInput = {
 export type DashboardParamsInput = {
 	aggregator: MetricAggregator
 	date_range: DateRangeRequiredInput
-	filters: Array<MetricTagFilterInput>
-	groups: Array<Scalars['String']>
+	filters?: InputMaybe<Array<MetricTagFilterInput>>
+	groups?: InputMaybe<Array<Scalars['String']>>
 	resolution_minutes?: InputMaybe<Scalars['Int']>
 	timezone?: InputMaybe<Scalars['String']>
 	units?: InputMaybe<Scalars['String']>
@@ -799,7 +799,7 @@ export type Graph = {
 	description: Scalars['String']
 	display?: Maybe<Scalars['String']>
 	expressions: Array<MetricExpression>
-	funnelSteps: Array<FunnelStep>
+	funnelSteps?: Maybe<Array<FunnelStep>>
 	groupByKeys?: Maybe<Scalars['StringArray']>
 	id: Scalars['ID']
 	limit?: Maybe<Scalars['Int']>
@@ -819,7 +819,7 @@ export type GraphInput = {
 	bucketInterval?: InputMaybe<Scalars['Int']>
 	display?: InputMaybe<Scalars['String']>
 	expressions: Array<MetricExpressionInput>
-	funnelSteps: Array<FunnelStepInput>
+	funnelSteps?: InputMaybe<Array<FunnelStepInput>>
 	groupByKeys?: InputMaybe<Scalars['StringArray']>
 	id?: InputMaybe<Scalars['ID']>
 	limit?: InputMaybe<Scalars['Int']>
@@ -1166,7 +1166,7 @@ export type MetricMonitor = {
 	disabled: Scalars['Boolean']
 	discord_channels_to_notify: Array<DiscordChannel>
 	emails_to_notify: Array<Maybe<Scalars['String']>>
-	filters: Array<MetricTagFilter>
+	filters?: Maybe<Array<MetricTagFilter>>
 	id: Scalars['ID']
 	last_admin_to_edit_id: Scalars['ID']
 	metric_to_monitor: Scalars['String']
@@ -3427,7 +3427,7 @@ export type SearchParams = {
 export type Service = {
 	__typename?: 'Service'
 	buildPrefix?: Maybe<Scalars['String']>
-	errorDetails: Array<Scalars['String']>
+	errorDetails?: Maybe<Array<Scalars['String']>>
 	githubPrefix?: Maybe<Scalars['String']>
 	githubRepoPath?: Maybe<Scalars['String']>
 	id: Scalars['ID']
@@ -3451,7 +3451,7 @@ export type ServiceEdge = Edge & {
 export type ServiceNode = {
 	__typename?: 'ServiceNode'
 	buildPrefix?: Maybe<Scalars['String']>
-	errorDetails: Array<Scalars['String']>
+	errorDetails?: Maybe<Array<Scalars['String']>>
 	githubPrefix?: Maybe<Scalars['String']>
 	githubRepoPath?: Maybe<Scalars['String']>
 	id: Scalars['ID']
@@ -4023,12 +4023,12 @@ export type Visualization = {
 }
 
 export type VisualizationInput = {
-	graphIds: Array<Scalars['ID']>
+	graphIds?: InputMaybe<Array<Scalars['ID']>>
 	id?: InputMaybe<Scalars['ID']>
 	name?: InputMaybe<Scalars['String']>
 	projectId: Scalars['ID']
 	timePreset?: InputMaybe<Scalars['String']>
-	variables: Array<VariableInput>
+	variables?: InputMaybe<Array<VariableInput>>
 }
 
 export type VisualizationsResponse = {

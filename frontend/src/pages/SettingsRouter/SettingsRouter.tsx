@@ -31,6 +31,7 @@ import { useGlobalContext } from '@/routers/ProjectRouter/context/GlobalContext'
 import { auth } from '@/util/auth'
 
 import * as styles from './SettingsRouter.css'
+import { AwsSettings } from '@/pages/Aws/AwsSettings'
 
 const BillingPageV2 = React.lazy(() => import('../Billing/BillingPageV2'))
 const PlanComparisonPage = React.lazy(
@@ -304,6 +305,7 @@ export const SettingsRouter = () => {
 										/>
 									)
 								})}
+								<Route path="aws" element={<AwsSettings />} />
 								<Route
 									path="current-plan/success"
 									element={billingContent}
