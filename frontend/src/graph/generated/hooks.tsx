@@ -5965,6 +5965,56 @@ export type CreateAwsCredentialsMutationOptions = Apollo.BaseMutationOptions<
 	Types.CreateAwsCredentialsMutation,
 	Types.CreateAwsCredentialsMutationVariables
 >
+export const UpdateAwsEc2InstanceDocument = gql`
+	mutation UpdateAwsEc2Instance($input: UpdateAwsEc2InstanceInput!) {
+		update_aws_ec2_instance(input: $input) {
+			id
+			metrics_enabled
+		}
+	}
+`
+export type UpdateAwsEc2InstanceMutationFn = Apollo.MutationFunction<
+	Types.UpdateAwsEc2InstanceMutation,
+	Types.UpdateAwsEc2InstanceMutationVariables
+>
+
+/**
+ * __useUpdateAwsEc2InstanceMutation__
+ *
+ * To run a mutation, you first call `useUpdateAwsEc2InstanceMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useUpdateAwsEc2InstanceMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [updateAwsEc2InstanceMutation, { data, loading, error }] = useUpdateAwsEc2InstanceMutation({
+ *   variables: {
+ *      input: // value for 'input'
+ *   },
+ * });
+ */
+export function useUpdateAwsEc2InstanceMutation(
+	baseOptions?: Apollo.MutationHookOptions<
+		Types.UpdateAwsEc2InstanceMutation,
+		Types.UpdateAwsEc2InstanceMutationVariables
+	>,
+) {
+	return Apollo.useMutation<
+		Types.UpdateAwsEc2InstanceMutation,
+		Types.UpdateAwsEc2InstanceMutationVariables
+	>(UpdateAwsEc2InstanceDocument, baseOptions)
+}
+export type UpdateAwsEc2InstanceMutationHookResult = ReturnType<
+	typeof useUpdateAwsEc2InstanceMutation
+>
+export type UpdateAwsEc2InstanceMutationResult =
+	Apollo.MutationResult<Types.UpdateAwsEc2InstanceMutation>
+export type UpdateAwsEc2InstanceMutationOptions = Apollo.BaseMutationOptions<
+	Types.UpdateAwsEc2InstanceMutation,
+	Types.UpdateAwsEc2InstanceMutationVariables
+>
 export const GetMetricsTimelineDocument = gql`
 	query GetMetricsTimeline(
 		$project_id: ID!
@@ -15586,8 +15636,8 @@ export type GetAwsCredentialsQueryResult = Apollo.QueryResult<
 	Types.GetAwsCredentialsQueryVariables
 >
 export const GetAwsEc2InstancesDocument = gql`
-	query GetAwsEc2Instances($credentials_id: ID!) {
-		aws_ec2_instances(credentials_id: $credentials_id) {
+	query GetAwsEc2Instances($project_id: ID!) {
+		aws_ec2_instances(project_id: $project_id) {
 			id
 			name
 			instance_id
@@ -15609,7 +15659,7 @@ export const GetAwsEc2InstancesDocument = gql`
  * @example
  * const { data, loading, error } = useGetAwsEc2InstancesQuery({
  *   variables: {
- *      credentials_id: // value for 'credentials_id'
+ *      project_id: // value for 'project_id'
  *   },
  * });
  */
@@ -15646,8 +15696,8 @@ export type GetAwsEc2InstancesQueryResult = Apollo.QueryResult<
 	Types.GetAwsEc2InstancesQueryVariables
 >
 export const SyncAwsEc2InstancesDocument = gql`
-	mutation SyncAwsEc2Instances($credentials_id: ID!) {
-		sync_aws_ec2_instances(credentials_id: $credentials_id) {
+	mutation SyncAwsEc2Instances($project_id: ID!) {
+		sync_aws_ec2_instances(project_id: $project_id) {
 			id
 			name
 			instance_id
@@ -15674,7 +15724,7 @@ export type SyncAwsEc2InstancesMutationFn = Apollo.MutationFunction<
  * @example
  * const [syncAwsEc2InstancesMutation, { data, loading, error }] = useSyncAwsEc2InstancesMutation({
  *   variables: {
- *      credentials_id: // value for 'credentials_id'
+ *      project_id: // value for 'project_id'
  *   },
  * });
  */

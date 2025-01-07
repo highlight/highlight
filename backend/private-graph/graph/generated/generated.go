@@ -230,11 +230,11 @@ type ComplexityRoot struct {
 	}
 
 	AwsEc2Instance struct {
-		CredentialsID  func(childComplexity int) int
 		ID             func(childComplexity int) int
 		InstanceID     func(childComplexity int) int
 		MetricsEnabled func(childComplexity int) int
 		Name           func(childComplexity int) int
+		ProjectID      func(childComplexity int) int
 		State          func(childComplexity int) int
 	}
 
@@ -893,7 +893,7 @@ type ComplexityRoot struct {
 		CreateWorkspace                       func(childComplexity int, name string, promoCode *string) int
 		DeleteAdminFromWorkspace              func(childComplexity int, workspaceID int, adminID int) int
 		DeleteAlert                           func(childComplexity int, projectID int, alertID int) int
-		DeleteAwsCredentials                  func(childComplexity int, id int) int
+		DeleteAwsCredentials                  func(childComplexity int, projectID int) int
 		DeleteDashboard                       func(childComplexity int, id int) int
 		DeleteErrorAlert                      func(childComplexity int, projectID int, errorAlertID int) int
 		DeleteErrorComment                    func(childComplexity int, id int) int
@@ -933,7 +933,7 @@ type ComplexityRoot struct {
 		SaveBillingPlan                       func(childComplexity int, workspaceID int, sessionsLimitCents *int, sessionsRetention model.RetentionPeriod, errorsLimitCents *int, errorsRetention model.RetentionPeriod, logsLimitCents *int, logsRetention model.RetentionPeriod, tracesLimitCents *int, tracesRetention model.RetentionPeriod) int
 		SendAdminWorkspaceInvite              func(childComplexity int, workspaceID int, email string, role string, projectIds []int) int
 		SubmitRegistrationForm                func(childComplexity int, workspaceID int, teamSize string, role string, useCase string, heardAbout string, pun *string) int
-		SyncAwsEc2Instances                   func(childComplexity int, credentialsID int) int
+		SyncAwsEc2Instances                   func(childComplexity int, projectID int) int
 		SyncSlackIntegration                  func(childComplexity int, projectID int) int
 		TestErrorEnhancement                  func(childComplexity int, errorObjectID int, githubRepoPath string, githubPrefix *string, buildPrefix *string, saveError *bool) int
 		UpdateAdminAboutYouDetails            func(childComplexity int, adminDetails model.AdminAboutYouDetails) int
@@ -942,7 +942,7 @@ type ComplexityRoot struct {
 		UpdateAlertDisabled                   func(childComplexity int, projectID int, alertID int, disabled bool) int
 		UpdateAllowMeterOverage               func(childComplexity int, workspaceID int, allowMeterOverage bool) int
 		UpdateAllowedEmailOrigins             func(childComplexity int, workspaceID int, allowedAutoJoinEmailOrigins string) int
-		UpdateAwsEc2Instance                  func(childComplexity int, id int, input model.UpdateAwsEc2InstanceInput) int
+		UpdateAwsEc2Instance                  func(childComplexity int, input model.UpdateAwsEc2InstanceInput) int
 		UpdateBillingDetails                  func(childComplexity int, workspaceID int) int
 		UpdateClickUpProjectMappings          func(childComplexity int, workspaceID int, projectMappings []*model.ClickUpProjectMappingInput) int
 		UpdateEmailOptOut                     func(childComplexity int, token *string, adminID *int, category model.EmailOptOutCategory, isOptOut bool, projectID *int) int
@@ -1036,7 +1036,7 @@ type ComplexityRoot struct {
 		Alerts                           func(childComplexity int, projectID int) int
 		AverageSessionLength             func(childComplexity int, projectID int, lookbackDays float64) int
 		AwsCredentials                   func(childComplexity int, projectID int) int
-		AwsEc2Instances                  func(childComplexity int, credentialsID int) int
+		AwsEc2Instances                  func(childComplexity int, projectID int) int
 		BillingDetails                   func(childComplexity int, workspaceID int) int
 		BillingDetailsForProject         func(childComplexity int, projectID int) int
 		ClickupFolderlessLists           func(childComplexity int, projectID int) int
@@ -1899,9 +1899,9 @@ type MutationResolver interface {
 	UpsertGraph(ctx context.Context, graph model.GraphInput) (*model1.Graph, error)
 	DeleteGraph(ctx context.Context, id int) (bool, error)
 	CreateAwsCredentials(ctx context.Context, input model.AwsCredentialsInput) (*model1.AwsCredentials, error)
-	DeleteAwsCredentials(ctx context.Context, id int) (bool, error)
-	UpdateAwsEc2Instance(ctx context.Context, id int, input model.UpdateAwsEc2InstanceInput) (*model1.AwsEc2Instance, error)
-	SyncAwsEc2Instances(ctx context.Context, credentialsID int) ([]*model1.AwsEc2Instance, error)
+	DeleteAwsCredentials(ctx context.Context, projectID int) (bool, error)
+	UpdateAwsEc2Instance(ctx context.Context, input model.UpdateAwsEc2InstanceInput) (*model1.AwsEc2Instance, error)
+	SyncAwsEc2Instances(ctx context.Context, projectID int) ([]*model1.AwsEc2Instance, error)
 }
 type QueryResolver interface {
 	Accounts(ctx context.Context) ([]*model.Account, error)
@@ -2074,7 +2074,7 @@ type QueryResolver interface {
 	GraphTemplates(ctx context.Context) ([]*model1.Graph, error)
 	LogLines(ctx context.Context, productType model.ProductType, projectID int, params model.QueryInput) ([]*model.LogLine, error)
 	AwsCredentials(ctx context.Context, projectID int) ([]*model1.AwsCredentials, error)
-	AwsEc2Instances(ctx context.Context, credentialsID int) ([]*model1.AwsEc2Instance, error)
+	AwsEc2Instances(ctx context.Context, projectID int) ([]*model1.AwsEc2Instance, error)
 }
 type SavedSegmentResolver interface {
 	Params(ctx context.Context, obj *model1.SavedSegment) (*model1.SearchParams, error)
@@ -2978,13 +2978,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.AwsCredentials.Region(childComplexity), true
 
-	case "AwsEc2Instance.credentials_id":
-		if e.complexity.AwsEc2Instance.CredentialsID == nil {
-			break
-		}
-
-		return e.complexity.AwsEc2Instance.CredentialsID(childComplexity), true
-
 	case "AwsEc2Instance.id":
 		if e.complexity.AwsEc2Instance.ID == nil {
 			break
@@ -3012,6 +3005,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.AwsEc2Instance.Name(childComplexity), true
+
+	case "AwsEc2Instance.project_id":
+		if e.complexity.AwsEc2Instance.ProjectID == nil {
+			break
+		}
+
+		return e.complexity.AwsEc2Instance.ProjectID(childComplexity), true
 
 	case "AwsEc2Instance.state":
 		if e.complexity.AwsEc2Instance.State == nil {
@@ -6122,7 +6122,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.DeleteAwsCredentials(childComplexity, args["id"].(int)), true
+		return e.complexity.Mutation.DeleteAwsCredentials(childComplexity, args["project_id"].(int)), true
 
 	case "Mutation.deleteDashboard":
 		if e.complexity.Mutation.DeleteDashboard == nil {
@@ -6602,7 +6602,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.SyncAwsEc2Instances(childComplexity, args["credentials_id"].(int)), true
+		return e.complexity.Mutation.SyncAwsEc2Instances(childComplexity, args["project_id"].(int)), true
 
 	case "Mutation.syncSlackIntegration":
 		if e.complexity.Mutation.SyncSlackIntegration == nil {
@@ -6710,7 +6710,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.UpdateAwsEc2Instance(childComplexity, args["id"].(int), args["input"].(model.UpdateAwsEc2InstanceInput)), true
+		return e.complexity.Mutation.UpdateAwsEc2Instance(childComplexity, args["input"].(model.UpdateAwsEc2InstanceInput)), true
 
 	case "Mutation.updateBillingDetails":
 		if e.complexity.Mutation.UpdateBillingDetails == nil {
@@ -7386,7 +7386,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Query.AwsEc2Instances(childComplexity, args["credentials_id"].(int)), true
+		return e.complexity.Query.AwsEc2Instances(childComplexity, args["project_id"].(int)), true
 
 	case "Query.billingDetails":
 		if e.complexity.Query.BillingDetails == nil {
@@ -14571,7 +14571,7 @@ type Query {
 	): [LogLine!]!
 
 	aws_credentials(project_id: ID!): [AwsCredentials!]!
-	aws_ec2_instances(credentials_id: ID!): [AwsEc2Instance!]!
+	aws_ec2_instances(project_id: ID!): [AwsEc2Instance!]!
 }
 
 type Mutation {
@@ -15040,12 +15040,9 @@ type Mutation {
 	deleteGraph(id: ID!): Boolean!
 
 	create_aws_credentials(input: AwsCredentialsInput!): AwsCredentials!
-	delete_aws_credentials(id: ID!): Boolean!
-	update_aws_ec2_instance(
-		id: ID!
-		input: UpdateAwsEc2InstanceInput!
-	): AwsEc2Instance!
-	sync_aws_ec2_instances(credentials_id: ID!): [AwsEc2Instance!]!
+	delete_aws_credentials(project_id: ID!): Boolean!
+	update_aws_ec2_instance(input: UpdateAwsEc2InstanceInput!): AwsEc2Instance!
+	sync_aws_ec2_instances(project_id: ID!): [AwsEc2Instance!]!
 }
 
 type Subscription {
@@ -15064,7 +15061,7 @@ type AwsCredentials {
 
 type AwsEc2Instance {
 	id: ID!
-	credentials_id: ID!
+	project_id: ID!
 	instance_id: String!
 	name: String
 	state: String!
@@ -16771,14 +16768,14 @@ func (ec *executionContext) field_Mutation_delete_aws_credentials_args(ctx conte
 	var err error
 	args := map[string]interface{}{}
 	var arg0 int
-	if tmp, ok := rawArgs["id"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
+	if tmp, ok := rawArgs["project_id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("project_id"))
 		arg0, err = ec.unmarshalNID2int(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["id"] = arg0
+	args["project_id"] = arg0
 	return args, nil
 }
 
@@ -17956,14 +17953,14 @@ func (ec *executionContext) field_Mutation_sync_aws_ec2_instances_args(ctx conte
 	var err error
 	args := map[string]interface{}{}
 	var arg0 int
-	if tmp, ok := rawArgs["credentials_id"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("credentials_id"))
+	if tmp, ok := rawArgs["project_id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("project_id"))
 		arg0, err = ec.unmarshalNID2int(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["credentials_id"] = arg0
+	args["project_id"] = arg0
 	return args, nil
 }
 
@@ -18936,24 +18933,15 @@ func (ec *executionContext) field_Mutation_updateVercelProjectMappings_args(ctx 
 func (ec *executionContext) field_Mutation_update_aws_ec2_instance_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
-	var arg0 int
-	if tmp, ok := rawArgs["id"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
-		arg0, err = ec.unmarshalNID2int(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["id"] = arg0
-	var arg1 model.UpdateAwsEc2InstanceInput
+	var arg0 model.UpdateAwsEc2InstanceInput
 	if tmp, ok := rawArgs["input"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
-		arg1, err = ec.unmarshalNUpdateAwsEc2InstanceInput2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐUpdateAwsEc2InstanceInput(ctx, tmp)
+		arg0, err = ec.unmarshalNUpdateAwsEc2InstanceInput2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐUpdateAwsEc2InstanceInput(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["input"] = arg1
+	args["input"] = arg0
 	return args, nil
 }
 
@@ -19351,14 +19339,14 @@ func (ec *executionContext) field_Query_aws_ec2_instances_args(ctx context.Conte
 	var err error
 	args := map[string]interface{}{}
 	var arg0 int
-	if tmp, ok := rawArgs["credentials_id"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("credentials_id"))
+	if tmp, ok := rawArgs["project_id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("project_id"))
 		arg0, err = ec.unmarshalNID2int(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["credentials_id"] = arg0
+	args["project_id"] = arg0
 	return args, nil
 }
 
@@ -28888,8 +28876,8 @@ func (ec *executionContext) fieldContext_AwsEc2Instance_id(ctx context.Context, 
 	return fc, nil
 }
 
-func (ec *executionContext) _AwsEc2Instance_credentials_id(ctx context.Context, field graphql.CollectedField, obj *model1.AwsEc2Instance) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_AwsEc2Instance_credentials_id(ctx, field)
+func (ec *executionContext) _AwsEc2Instance_project_id(ctx context.Context, field graphql.CollectedField, obj *model1.AwsEc2Instance) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_AwsEc2Instance_project_id(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -28902,7 +28890,7 @@ func (ec *executionContext) _AwsEc2Instance_credentials_id(ctx context.Context, 
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.CredentialsID, nil
+		return obj.ProjectID, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -28919,7 +28907,7 @@ func (ec *executionContext) _AwsEc2Instance_credentials_id(ctx context.Context, 
 	return ec.marshalNID2int(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_AwsEc2Instance_credentials_id(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_AwsEc2Instance_project_id(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "AwsEc2Instance",
 		Field:      field,
@@ -53690,7 +53678,7 @@ func (ec *executionContext) _Mutation_delete_aws_credentials(ctx context.Context
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().DeleteAwsCredentials(rctx, fc.Args["id"].(int))
+		return ec.resolvers.Mutation().DeleteAwsCredentials(rctx, fc.Args["project_id"].(int))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -53745,7 +53733,7 @@ func (ec *executionContext) _Mutation_update_aws_ec2_instance(ctx context.Contex
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().UpdateAwsEc2Instance(rctx, fc.Args["id"].(int), fc.Args["input"].(model.UpdateAwsEc2InstanceInput))
+		return ec.resolvers.Mutation().UpdateAwsEc2Instance(rctx, fc.Args["input"].(model.UpdateAwsEc2InstanceInput))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -53772,8 +53760,8 @@ func (ec *executionContext) fieldContext_Mutation_update_aws_ec2_instance(ctx co
 			switch field.Name {
 			case "id":
 				return ec.fieldContext_AwsEc2Instance_id(ctx, field)
-			case "credentials_id":
-				return ec.fieldContext_AwsEc2Instance_credentials_id(ctx, field)
+			case "project_id":
+				return ec.fieldContext_AwsEc2Instance_project_id(ctx, field)
 			case "instance_id":
 				return ec.fieldContext_AwsEc2Instance_instance_id(ctx, field)
 			case "name":
@@ -53814,7 +53802,7 @@ func (ec *executionContext) _Mutation_sync_aws_ec2_instances(ctx context.Context
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().SyncAwsEc2Instances(rctx, fc.Args["credentials_id"].(int))
+		return ec.resolvers.Mutation().SyncAwsEc2Instances(rctx, fc.Args["project_id"].(int))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -53841,8 +53829,8 @@ func (ec *executionContext) fieldContext_Mutation_sync_aws_ec2_instances(ctx con
 			switch field.Name {
 			case "id":
 				return ec.fieldContext_AwsEc2Instance_id(ctx, field)
-			case "credentials_id":
-				return ec.fieldContext_AwsEc2Instance_credentials_id(ctx, field)
+			case "project_id":
+				return ec.fieldContext_AwsEc2Instance_project_id(ctx, field)
 			case "instance_id":
 				return ec.fieldContext_AwsEc2Instance_instance_id(ctx, field)
 			case "name":
@@ -67131,7 +67119,7 @@ func (ec *executionContext) _Query_aws_ec2_instances(ctx context.Context, field 
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().AwsEc2Instances(rctx, fc.Args["credentials_id"].(int))
+		return ec.resolvers.Query().AwsEc2Instances(rctx, fc.Args["project_id"].(int))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -67158,8 +67146,8 @@ func (ec *executionContext) fieldContext_Query_aws_ec2_instances(ctx context.Con
 			switch field.Name {
 			case "id":
 				return ec.fieldContext_AwsEc2Instance_id(ctx, field)
-			case "credentials_id":
-				return ec.fieldContext_AwsEc2Instance_credentials_id(ctx, field)
+			case "project_id":
+				return ec.fieldContext_AwsEc2Instance_project_id(ctx, field)
 			case "instance_id":
 				return ec.fieldContext_AwsEc2Instance_instance_id(ctx, field)
 			case "name":
@@ -88687,8 +88675,8 @@ func (ec *executionContext) _AwsEc2Instance(ctx context.Context, sel ast.Selecti
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
-		case "credentials_id":
-			out.Values[i] = ec._AwsEc2Instance_credentials_id(ctx, field, obj)
+		case "project_id":
+			out.Values[i] = ec._AwsEc2Instance_project_id(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}

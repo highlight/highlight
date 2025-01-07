@@ -262,11 +262,11 @@ export type AwsCredentialsInput = {
 
 export type AwsEc2Instance = {
 	__typename?: 'AwsEc2Instance'
-	credentials_id: Scalars['ID']
 	id: Scalars['ID']
 	instance_id: Scalars['String']
 	metrics_enabled: Scalars['Boolean']
 	name?: Maybe<Scalars['String']>
+	project_id: Scalars['ID']
 	state: Scalars['String']
 }
 
@@ -1596,7 +1596,7 @@ export type MutationDeleteVisualizationArgs = {
 }
 
 export type MutationDelete_Aws_CredentialsArgs = {
-	id: Scalars['ID']
+	project_id: Scalars['ID']
 }
 
 export type MutationEditProjectArgs = {
@@ -1793,7 +1793,7 @@ export type MutationSyncSlackIntegrationArgs = {
 }
 
 export type MutationSync_Aws_Ec2_InstancesArgs = {
-	credentials_id: Scalars['ID']
+	project_id: Scalars['ID']
 }
 
 export type MutationTestErrorEnhancementArgs = {
@@ -1958,7 +1958,6 @@ export type MutationUpdateVercelProjectMappingsArgs = {
 }
 
 export type MutationUpdate_Aws_Ec2_InstanceArgs = {
-	id: Scalars['ID']
 	input: UpdateAwsEc2InstanceInput
 }
 
@@ -2335,7 +2334,7 @@ export type QueryAws_CredentialsArgs = {
 }
 
 export type QueryAws_Ec2_InstancesArgs = {
-	credentials_id: Scalars['ID']
+	project_id: Scalars['ID']
 }
 
 export type QueryBillingDetailsArgs = {

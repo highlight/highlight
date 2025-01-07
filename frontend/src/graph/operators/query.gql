@@ -2808,8 +2808,8 @@ query GetAwsCredentials($project_id: ID!) {
 	}
 }
 
-query GetAwsEc2Instances($credentials_id: ID!) {
-	aws_ec2_instances(credentials_id: $credentials_id) {
+query GetAwsEc2Instances($project_id: ID!) {
+	aws_ec2_instances(project_id: $project_id) {
 		id
 		name
 		instance_id
@@ -2818,8 +2818,8 @@ query GetAwsEc2Instances($credentials_id: ID!) {
 	}
 }
 
-mutation SyncAwsEc2Instances($credentials_id: ID!) {
-	sync_aws_ec2_instances(credentials_id: $credentials_id) {
+mutation SyncAwsEc2Instances($project_id: ID!) {
+	sync_aws_ec2_instances(project_id: $project_id) {
 		id
 		name
 		instance_id

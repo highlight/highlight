@@ -2501,7 +2501,7 @@ type AwsCredentials struct {
 
 type AwsEc2Instance struct {
 	Model
-	CredentialsID  int
+	ProjectID      int
 	InstanceID     string
 	Name           string
 	State          string

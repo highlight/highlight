@@ -41,7 +41,10 @@ export const Button: React.FC<ButtonProps> = ({
 	}
 
 	const iconLeft = loading ? (
-		<IconSolidLoading className={style.loadingIcon} />
+		<IconSolidLoading
+			className={style.loadingIcon}
+			color={props.kind === 'primary' ? 'white' : undefined}
+		/>
 	) : (
 		iconLeftProp
 	)

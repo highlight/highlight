@@ -11,8 +11,10 @@ import { useProjectId } from '@/hooks/useProjectId'
 
 export const AwsSettings: React.FC = () => {
 	const { projectId } = useProjectId()
+	// TODO: Remove
 	const [selectedCredentialsId, setSelectedCredentialsId] =
 		useState<string>('')
+
 	const formStore = Form.useStore({
 		defaultValues: {
 			region: 'us-east-2',
@@ -107,9 +109,7 @@ export const AwsSettings: React.FC = () => {
 					<Text size="large" weight="bold">
 						AWS Instances
 					</Text>
-					<AwsEc2InstancesList
-						credentialsId={selectedCredentialsId}
-					/>
+					<AwsEc2InstancesList />
 				</Stack>
 			)}
 		</Box>

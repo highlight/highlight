@@ -1506,3 +1506,10 @@ mutation CreateAwsCredentials($input: AwsCredentialsInput!) {
 		access_key_id
 	}
 }
+
+mutation UpdateAwsEc2Instance($input: UpdateAwsEc2InstanceInput!) {
+	update_aws_ec2_instance(input: $input) {
+		id
+		metrics_enabled
+	}
+}

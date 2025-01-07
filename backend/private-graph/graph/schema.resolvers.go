@@ -4936,13 +4936,13 @@ func (r *mutationResolver) CreateAwsCredentials(ctx context.Context, input model
 }
 
 // DeleteAwsCredentials is the resolver for the delete_aws_credentials field.
-func (r *mutationResolver) DeleteAwsCredentials(ctx context.Context, id int) (bool, error) {
+func (r *mutationResolver) DeleteAwsCredentials(ctx context.Context, projectID int) (bool, error) {
 	// Delete associated instances first
-	if err := r.DB.WithContext(ctx).Where("credentials_id = ?", id).Delete(&model.AwsEc2Instance{}).Error; err != nil {
+	if err := r.DB.WithContext(ctx).Where("project_id = ?", projectID).Delete(&model.AwsEc2Instance{}).Error; err != nil {
 		return false, fmt.Errorf("failed to delete associated AWS instances: %w", err)
 	}
 
-	if err := r.DB.WithContext(ctx).Delete(&model.AwsCredentials{}, id).Error; err != nil {
+	if err := r.DB.WithContext(ctx).Delete(&model.AwsCredentials{}, projectID).Error; err != nil {
 		return false, fmt.Errorf("failed to delete AWS credentials: %w", err)
 	}
 
@@ -4950,9 +4950,9 @@ func (r *mutationResolver) DeleteAwsCredentials(ctx context.Context, id int) (bo
 }
 
 // UpdateAwsEc2Instance is the resolver for the update_aws_ec2_instance field.
-func (r *mutationResolver) UpdateAwsEc2Instance(ctx context.Context, id int, input modelInputs.UpdateAwsEc2InstanceInput) (*model.AwsEc2Instance, error) {
+func (r *mutationResolver) UpdateAwsEc2Instance(ctx context.Context, input modelInputs.UpdateAwsEc2InstanceInput) (*model.AwsEc2Instance, error) {
 	var instance model.AwsEc2Instance
-	if err := r.DB.WithContext(ctx).First(&instance, id).Error; err != nil {
+	if err := r.DB.WithContext(ctx).Where("instance_id = ?", input.InstanceID).First(&instance).Error; err != nil {
 		return nil, fmt.Errorf("failed to find AWS instance: %w", err)
 	}
 
@@ -4965,10 +4965,10 @@ func (r *mutationResolver) UpdateAwsEc2Instance(ctx context.Context, id int, inp
 }
 
 // SyncAwsEc2Instances is the resolver for the sync_aws_ec2_instances field.
-func (r *mutationResolver) SyncAwsEc2Instances(ctx context.Context, credentialsID int) ([]*model.AwsEc2Instance, error) {
+func (r *mutationResolver) SyncAwsEc2Instances(ctx context.Context, projectID int) ([]*model.AwsEc2Instance, error) {
 	// Get credentials
 	var creds model.AwsCredentials
-	if err := r.DB.WithContext(ctx).First(&creds, credentialsID).Error; err != nil {
+	if err := r.DB.WithContext(ctx).Where("project_id = ?", projectID).First(&creds).Error; err != nil {
 		return nil, fmt.Errorf("failed to find AWS credentials: %w", err)
 	}
 
@@ -5005,11 +5005,11 @@ func (r *mutationResolver) SyncAwsEc2Instances(ctx context.Context, credentialsI
 
 			// Try to find existing instance
 			var dbInstance model.AwsEc2Instance
-			err := r.DB.WithContext(ctx).Where("credentials_id = ? AND instance_id = ?", credentialsID, *i.InstanceId).First(&dbInstance).Error
+			err := r.DB.WithContext(ctx).Where("project_id = ? AND instance_id = ?", projectID, *i.InstanceId).First(&dbInstance).Error
 			if err != nil {
 				// Create new instance if not found
 				dbInstance = model.AwsEc2Instance{
-					CredentialsID:  credentialsID,
+					ProjectID:      projectID,
 					InstanceID:     *i.InstanceId,
 					Name:           name,
 					State:          string(i.State.Name),
@@ -9911,9 +9911,9 @@ func (r *queryResolver) AwsCredentials(ctx context.Context, projectID int) ([]*m
 }
 
 // AwsEc2Instances is the resolver for the aws_ec2_instances field.
-func (r *queryResolver) AwsEc2Instances(ctx context.Context, credentialsID int) ([]*model.AwsEc2Instance, error) {
+func (r *queryResolver) AwsEc2Instances(ctx context.Context, projectID int) ([]*model.AwsEc2Instance, error) {
 	var instances []*model.AwsEc2Instance
-	if err := r.DB.WithContext(ctx).Where("credentials_id = ?", credentialsID).Find(&instances).Error; err != nil {
+	if err := r.DB.WithContext(ctx).Where("project_id = ?", projectID).Order("name ASC, instance_id ASC").Find(&instances).Error; err != nil {
 		return nil, fmt.Errorf("failed to fetch AWS EC2 instances: %w", err)
 	}
 

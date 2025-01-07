@@ -2636,7 +2636,7 @@ type Query {
 	): [LogLine!]!
 
 	aws_credentials(project_id: ID!): [AwsCredentials!]!
-	aws_ec2_instances(credentials_id: ID!): [AwsEc2Instance!]!
+	aws_ec2_instances(project_id: ID!): [AwsEc2Instance!]!
 }
 
 type Mutation {
@@ -3105,12 +3105,9 @@ type Mutation {
 	deleteGraph(id: ID!): Boolean!
 
 	create_aws_credentials(input: AwsCredentialsInput!): AwsCredentials!
-	delete_aws_credentials(id: ID!): Boolean!
-	update_aws_ec2_instance(
-		id: ID!
-		input: UpdateAwsEc2InstanceInput!
-	): AwsEc2Instance!
-	sync_aws_ec2_instances(credentials_id: ID!): [AwsEc2Instance!]!
+	delete_aws_credentials(project_id: ID!): Boolean!
+	update_aws_ec2_instance(input: UpdateAwsEc2InstanceInput!): AwsEc2Instance!
+	sync_aws_ec2_instances(project_id: ID!): [AwsEc2Instance!]!
 }
 
 type Subscription {
@@ -3129,7 +3126,7 @@ type AwsCredentials {
 
 type AwsEc2Instance {
 	id: ID!
-	credentials_id: ID!
+	project_id: ID!
 	instance_id: String!
 	name: String
 	state: String!

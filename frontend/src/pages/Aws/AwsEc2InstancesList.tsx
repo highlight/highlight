@@ -1,19 +1,31 @@
 import React, { useState } from 'react'
-import { Table, Text } from '@highlight-run/ui/components'
+import { Box, Stack, Text } from '@highlight-run/ui/components'
 import { toast } from '@components/Toaster'
 import {
 	useGetAwsEc2InstancesQuery,
 	useSyncAwsEc2InstancesMutation,
+	useUpdateAwsEc2InstanceMutation,
 } from '@/graph/generated/hooks'
 import { Button } from '@/components/Button'
+import { useProjectId } from '@/hooks/useProjectId'
+import Switch from '@/components/Switch/Switch'
 
-export const AwsEc2InstancesList: React.FC<{ credentialsId: string }> = ({
-	credentialsId,
-}) => {
+export const AwsEc2InstancesList: React.FC = () => {
+	const { projectId } = useProjectId()
 	const [syncing, setSyncing] = useState(false)
 
 	const { data, loading, refetch } = useGetAwsEc2InstancesQuery({
-		variables: { credentials_id: String(credentialsId) },
+		variables: { project_id: projectId },
+	})
+
+	const [updateInstance] = useUpdateAwsEc2InstanceMutation({
+		onCompleted: () => {
+			toast.success('Successfully updated EC2 instance')
+			refetch()
+		},
+		onError: (error) => {
+			toast.error(`Failed to update instance: ${error.message}`)
+		},
 	})
 
 	const [syncInstances] = useSyncAwsEc2InstancesMutation({
@@ -31,7 +43,21 @@ export const AwsEc2InstancesList: React.FC<{ credentialsId: string }> = ({
 	const handleSync = async () => {
 		setSyncing(true)
 		await syncInstances({
-			variables: { credentials_id: String(credentialsId) },
+			variables: { project_id: projectId },
+		})
+	}
+
+	const handleMetricsToggle = async (
+		instanceId: string,
+		enabled: boolean,
+	) => {
+		await updateInstance({
+			variables: {
+				input: {
+					instance_id: instanceId,
+					metrics_enabled: enabled,
+				},
+			},
 		})
 	}
 
@@ -49,52 +75,63 @@ export const AwsEc2InstancesList: React.FC<{ credentialsId: string }> = ({
 				</Button>
 			</div>
 
-			<Table>
-				<Table.Header>
-					<Table.Row>
-						<Table.Header>Name</Table.Header>
-						<Table.Header>Instance ID</Table.Header>
-						<Table.Header>Type</Table.Header>
-						<Table.Header>State</Table.Header>
-						<Table.Header>Private IP</Table.Header>
-						<Table.Header>Public IP</Table.Header>
-					</Table.Row>
-				</Table.Header>
-				<Table.Body>
-					{loading ? (
-						<Table.Row>
-							<Table.Cell colSpan={6}>
-								<Text align="center">Loading...</Text>
-							</Table.Cell>
-						</Table.Row>
-					) : data?.aws_ec2_instances?.length ? (
-						data.aws_ec2_instances.map((instance) => (
-							<Table.Row key={instance.instance_id}>
-								<Table.Cell>{instance.name}</Table.Cell>
-								<Table.Cell>{instance.instance_id}</Table.Cell>
-								<Table.Cell>{instance.state}</Table.Cell>
-								<Table.Cell>
-									<span
-										className={`inline-flex items-center rounded-full px-2 py-1 text-xs ${
-											instance.state === 'running'
-												? 'bg-green-100 text-green-800'
-												: 'bg-gray-100 text-gray-800'
-										}`}
-									>
-										{instance.state}
-									</span>
-								</Table.Cell>
-							</Table.Row>
-						))
-					) : (
-						<Table.Row>
-							<Table.Cell colSpan={6}>
-								<Text align="center">No instances found</Text>
-							</Table.Cell>
-						</Table.Row>
-					)}
-				</Table.Body>
-			</Table>
+			{loading ? (
+				<Text align="center">Loading...</Text>
+			) : data?.aws_ec2_instances?.length ? (
+				<Stack direction="column" gap="16">
+					{data.aws_ec2_instances.map((instance) => (
+						<Box
+							key={instance.instance_id}
+							p="16"
+							borderRadius="8"
+							border="dividerWeak"
+						>
+							<Stack
+								direction="row"
+								justify="space-between"
+								align="center"
+							>
+								<Stack direction="column" gap="8">
+									<Text weight="bold">
+										{instance.name || 'Unnamed Instance'}
+									</Text>
+									<Stack direction="row" gap="16">
+										<Text color="moderate">
+											ID: {instance.instance_id}
+										</Text>
+										<span
+											className={`inline-flex items-center rounded-full px-2 py-1 text-xs ${
+												instance.state === 'running'
+													? 'bg-green-100 text-green-800'
+													: 'bg-gray-100 text-gray-800'
+											}`}
+										>
+											{instance.state}
+										</span>
+									</Stack>
+								</Stack>
+								<Stack direction="row" gap="8" align="center">
+									<Text color="moderate">
+										Collect Metrics
+									</Text>
+									<Switch
+										trackingId="aws-settings_toggle-ec2-metrics"
+										checked={instance.metrics_enabled}
+										onChange={(checked) =>
+											handleMetricsToggle(
+												instance.instance_id,
+												checked,
+											)
+										}
+									/>
+								</Stack>
+							</Stack>
+						</Box>
+					))}
+				</Stack>
+			) : (
+				<Text align="center">No instances found</Text>
+			)}
 		</div>
 	)
 }

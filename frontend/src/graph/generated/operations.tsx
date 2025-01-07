@@ -1662,6 +1662,17 @@ export type CreateAwsCredentialsMutation = { __typename?: 'Mutation' } & {
 	>
 }
 
+export type UpdateAwsEc2InstanceMutationVariables = Types.Exact<{
+	input: Types.UpdateAwsEc2InstanceInput
+}>
+
+export type UpdateAwsEc2InstanceMutation = { __typename?: 'Mutation' } & {
+	update_aws_ec2_instance: { __typename?: 'AwsEc2Instance' } & Pick<
+		Types.AwsEc2Instance,
+		'id' | 'metrics_enabled'
+	>
+}
+
 export type SessionPayloadFragmentFragment = {
 	__typename?: 'SessionPayload'
 } & Pick<Types.SessionPayload, 'events' | 'last_user_interaction_time'> & {
@@ -5429,7 +5440,7 @@ export type GetAwsCredentialsQuery = { __typename?: 'Query' } & {
 }
 
 export type GetAwsEc2InstancesQueryVariables = Types.Exact<{
-	credentials_id: Types.Scalars['ID']
+	project_id: Types.Scalars['ID']
 }>
 
 export type GetAwsEc2InstancesQuery = { __typename?: 'Query' } & {
@@ -5442,7 +5453,7 @@ export type GetAwsEc2InstancesQuery = { __typename?: 'Query' } & {
 }
 
 export type SyncAwsEc2InstancesMutationVariables = Types.Exact<{
-	credentials_id: Types.Scalars['ID']
+	project_id: Types.Scalars['ID']
 }>
 
 export type SyncAwsEc2InstancesMutation = { __typename?: 'Mutation' } & {
@@ -5701,6 +5712,7 @@ export const namedOperations = {
 		DeleteGraph: 'DeleteGraph' as const,
 		CreateCloudflareProxy: 'CreateCloudflareProxy' as const,
 		CreateAwsCredentials: 'CreateAwsCredentials' as const,
+		UpdateAwsEc2Instance: 'UpdateAwsEc2Instance' as const,
 		SendAdminWorkspaceInvite: 'SendAdminWorkspaceInvite' as const,
 		SyncAwsEc2Instances: 'SyncAwsEc2Instances' as const,
 	},
