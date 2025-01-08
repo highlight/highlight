@@ -9,9 +9,9 @@ updatedAt: 2024-08-01T00:00:00.000Z
 
 ## Overview
 
-Metrics drilldown is a way to look closer at the underlying data from the graphs in your metrics dashboards. You can get started with metrics [here](./1_overview.md).
+Graph drilldown is a way to look closer at the underlying data from the graphs in your dashboards. You can get started with dashboards [here](./1_overview.md).
 
-## Using metrics drilldown
+## Using graph drilldown
 
 When the tooltip is shown on any graph, you can click to freeze the tooltip and show drilldown links. Clicking on one of these drilldown links will open a panel with the relevant logs, traces, errors, or sessions.
 

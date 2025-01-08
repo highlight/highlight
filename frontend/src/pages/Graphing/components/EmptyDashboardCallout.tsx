@@ -51,7 +51,7 @@ export const EmptyDashboardCallout = () => {
 						kind="secondary"
 						onClick={() => {
 							window.open(
-								'https://www.highlight.io/docs/general/product-features/metrics/overview',
+								'https://www.highlight.io/docs/general/product-features/dashboards/overview',
 								'_blank',
 							)
 						}}

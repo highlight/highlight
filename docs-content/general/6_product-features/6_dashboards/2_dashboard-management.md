@@ -7,9 +7,9 @@ slug: dashboard-management
 
 ## Dashboard overview
 
-At [app.highlight.io/metrics](https://app.highlight.io/metrics), there is an overview of all dashboards in your project. Here, you can create or delete dashboards, or click into the dashboard you want to view / edit. If your project has many dashboards, you can filter on their name using the search.
+At [app.highlight.io/dashboards](https://app.highlight.io/dashboards), there is an overview of all dashboards in your project. Here, you can create or delete dashboards, or click into the dashboard you want to view / edit. If your project has many dashboards, you can filter on their name using the search.
 
-By default, all projects have an "Insights" dashboard automatically created to show useful graphs and showcase many of the highlight.io metrics features.
+By default, all projects have an "Insights" dashboard automatically created to show useful graphs and showcase many of the highlight.io dashboards features.
 
 ## Viewing / editing a dashboard
 

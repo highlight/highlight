@@ -559,7 +559,7 @@ export const StandardPrices: Record<TierName, PricingTier> = {
 		features: [
 			{
 				feature: 'Up to 3 dashboards',
-				tooltip: `Create up to 3 dashboards in the metrics product.`,
+				tooltip: `Create up to 3 dashboards.`,
 			},
 			{
 				feature: 'Up to 2 projects',

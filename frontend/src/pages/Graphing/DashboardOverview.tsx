@@ -40,8 +40,8 @@ import * as style from './DashboardOverview.css'
 
 const ITEMS_PER_PAGE = 10
 
-const METRICS_DOCS_LINK =
-	'https://www.highlight.io/docs/general/product-features/metrics/overview'
+const DASHBOARDS_DOCS_LINK =
+	'https://www.highlight.io/docs/general/product-features/dashboards/overview'
 
 export const DashboardOverview: React.FC = () => {
 	const { projectId } = useProjectId()
@@ -81,7 +81,7 @@ export const DashboardOverview: React.FC = () => {
 	return (
 		<>
 			<Helmet>
-				<title>Metrics</title>
+				<title>Dashboards</title>
 			</Helmet>
 			<Box width="full" background="raised" p="8">
 				<CreateDashboardModal
@@ -113,23 +113,23 @@ export const DashboardOverview: React.FC = () => {
 							<Stack gap="24" width="full">
 								<Stack gap="16" direction="column" width="full">
 									<Heading mt="16" level="h4">
-										Metrics
+										Dashboards
 									</Heading>
 									<Text
 										weight="medium"
 										size="small"
 										color="default"
 									>
-										Metrics allow you to visualize what's
+										Dashboards allow you to visualize what's
 										happening in your app. Understand error
 										rates, APM trends, and user engagement.
 										Learn more about building dashboards{' '}
-										<a href={METRICS_DOCS_LINK}>here</a>.
+										<a href={DASHBOARDS_DOCS_LINK}>here</a>.
 									</Text>
 									{visible && (
 										<Callout
 											title="Want to learn more about
-												Metrics?"
+												Dashboards?"
 											icon={false}
 											handleCloseClick={() =>
 												setVisible(false)
@@ -146,7 +146,9 @@ export const DashboardOverview: React.FC = () => {
 														kind="secondary"
 														emphasis="high"
 														trackingId="dashboard-read-docs"
-														to={METRICS_DOCS_LINK}
+														to={
+															DASHBOARDS_DOCS_LINK
+														}
 													>
 														Learn more
 													</LinkButton>
