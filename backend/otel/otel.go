@@ -5,6 +5,7 @@ import (
 	"compress/gzip"
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"github.com/go-chi/chi"
 	"github.com/golang/snappy"
@@ -28,6 +29,7 @@ import (
 	"go.opentelemetry.io/otel/attribute"
 	semconv "go.opentelemetry.io/otel/semconv/v1.25.0"
 	"go.opentelemetry.io/otel/trace"
+	"gorm.io/gorm"
 	"io"
 	"net/http"
 	"strconv"
@@ -217,7 +219,10 @@ func (o *Handler) HandleTrace(w http.ResponseWriter, r *http.Request) {
 					curTime:  curTime,
 				})
 				if err != nil {
-					lg(ctx, fields).WithError(err).Info("failed to extract fields from span")
+					lg(ctx, fields).
+						WithError(err).
+						WithField("traceID", span.TraceID().String()).
+						Debug("failed to extract fields from span")
 					continue
 				}
 				traceID := cast(fields.requestID, span.TraceID().String())
@@ -237,7 +242,11 @@ func (o *Handler) HandleTrace(w http.ResponseWriter, r *http.Request) {
 						curTime:  curTime,
 					})
 					if err != nil {
-						lg(ctx, fields).WithError(err).Info("failed to extract fields from trace")
+						lg(ctx, fields).
+							WithError(err).
+							WithField("traceID", span.TraceID().String()).
+							WithField("event", event.Name()).
+							Debug("failed to extract fields from span event")
 						continue
 					}
 
@@ -326,7 +335,9 @@ func (o *Handler) HandleTrace(w http.ResponseWriter, r *http.Request) {
 					// skip unless workspace setting is on
 					settings, err := o.resolver.Store.GetAllWorkspaceSettingsByProject(ctx, fields.projectIDInt)
 					if err != nil {
-						log.WithContext(ctx).WithError(err).Error("failed to get workspace settings")
+						if !errors.Is(err, gorm.ErrRecordNotFound) {
+							log.WithContext(ctx).WithError(err).Error("failed to get workspace settings")
+						}
 						continue
 					}
 					if settings == nil {
@@ -448,7 +459,11 @@ func (o *Handler) HandleLog(w http.ResponseWriter, r *http.Request) {
 					herokuProjectExtractor: o.matchHerokuDrain,
 				})
 				if err != nil {
-					lg(ctx, fields).WithError(err).WithField("body", logRecord.Body().AsRaw()).Info("failed to extract fields from log")
+					lg(ctx, fields).
+						WithError(err).
+						WithField("traceID", logRecord.TraceID().String()).
+						WithField("body", logRecord.Body().AsRaw()).
+						Debug("failed to extract fields from log")
 					continue
 				}
 

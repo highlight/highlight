@@ -3,16 +3,13 @@ package main
 import (
 	"context"
 	"fmt"
+	publicModel "github.com/highlight-run/highlight/backend/public-graph/graph/model"
 	"io"
 	"math/rand"
 	"net/http"
 	"strings"
 	"sync"
 	"time"
-
-	"github.com/highlight-run/highlight/backend/enterprise"
-	"github.com/highlight-run/highlight/backend/env"
-	"github.com/highlight-run/highlight/backend/pricing"
 
 	ghandler "github.com/99designs/gqlgen/graphql/handler"
 	"github.com/99designs/gqlgen/graphql/handler/extension"
@@ -33,6 +30,8 @@ import (
 	"github.com/highlight-run/highlight/backend/clickhouse"
 	dd "github.com/highlight-run/highlight/backend/datadog"
 	"github.com/highlight-run/highlight/backend/embeddings"
+	"github.com/highlight-run/highlight/backend/enterprise"
+	"github.com/highlight-run/highlight/backend/env"
 	highlightHttp "github.com/highlight-run/highlight/backend/http"
 	"github.com/highlight-run/highlight/backend/integrations"
 	kafkaqueue "github.com/highlight-run/highlight/backend/kafka-queue"
@@ -42,6 +41,7 @@ import (
 	"github.com/highlight-run/highlight/backend/openai_client"
 	"github.com/highlight-run/highlight/backend/otel"
 	"github.com/highlight-run/highlight/backend/phonehome"
+	"github.com/highlight-run/highlight/backend/pricing"
 	private "github.com/highlight-run/highlight/backend/private-graph/graph"
 	privategen "github.com/highlight-run/highlight/backend/private-graph/graph/generated"
 	public "github.com/highlight-run/highlight/backend/public-graph/graph"
@@ -546,7 +546,7 @@ func main() {
 			})
 
 			publicServer.Use(htrace.NewGraphqlTracer(string(util.PublicGraph)))
-			publicServer.SetErrorPresenter(htrace.GraphQLErrorPresenter(string(util.PublicGraph)))
+			publicServer.SetErrorPresenter(htrace.GraphQLErrorPresenter(string(util.PublicGraph), htrace.WithGraphQLErrorPresenterIgnoredErrors(e.New(string(publicModel.PublicGraphErrorBillingQuotaExceeded)))))
 			publicServer.SetRecoverFunc(htrace.GraphQLRecoverFunc())
 			r.HandleFunc("/cors", assets.HandleAsset)
 			r.Handle("/",

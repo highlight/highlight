@@ -114,12 +114,34 @@ func GraphQLRecoverFunc() graphql.RecoverFunc {
 	}
 }
 
-func GraphQLErrorPresenter(service string) func(ctx context.Context, e error) *gqlerror.Error {
+type GraphQLErrorPresenterConfig struct {
+	IgnoreLoggingErrors []error
+}
+
+type GraphQLErrorPresenterOption func(cfg *GraphQLErrorPresenterConfig)
+
+func WithGraphQLErrorPresenterIgnoredErrors(errs ...error) GraphQLErrorPresenterOption {
+	return func(cfg *GraphQLErrorPresenterConfig) {
+		cfg.IgnoreLoggingErrors = errs
+	}
+}
+
+func GraphQLErrorPresenter(service string, opts ...GraphQLErrorPresenterOption) func(ctx context.Context, e error) *gqlerror.Error {
+	var cfg GraphQLErrorPresenterConfig
+	for _, opt := range opts {
+		opt(&cfg)
+	}
+
 	return func(ctx context.Context, e error) *gqlerror.Error {
 		var gqlerr *gqlerror.Error
 		switch t := e.(type) {
 		case *gqlerror.Error:
 			gqlerr = t
+			for _, err := range cfg.IgnoreLoggingErrors {
+				if errors.Is(gqlerr, err) {
+					return gqlerr
+				}
+			}
 			log.WithContext(ctx).WithError(t).WithFields(log.Fields{
 				"message":    t.Message,
 				"rule":       t.Rule,
@@ -129,6 +151,11 @@ func GraphQLErrorPresenter(service string) func(ctx context.Context, e error) *g
 			}).Errorf("%s graphql request failed", service)
 		default:
 			gqlerr = gqlerror.Errorf("%s", e.Error())
+			for _, err := range cfg.IgnoreLoggingErrors {
+				if errors.Is(e, err) {
+					return gqlerr
+				}
+			}
 			log.WithContext(ctx).WithError(e).WithFields(log.Fields{
 				"error": e,
 				"path":  graphql.GetPath(ctx),
