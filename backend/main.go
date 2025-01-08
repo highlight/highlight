@@ -30,6 +30,7 @@ import (
 	golang_lru "github.com/hashicorp/golang-lru/v2"
 	"github.com/highlight-run/go-resthooks"
 	"github.com/highlight-run/highlight/backend/assets"
+	"github.com/highlight-run/highlight/backend/awsmetrics"
 	"github.com/highlight-run/highlight/backend/clickhouse"
 	dd "github.com/highlight-run/highlight/backend/datadog"
 	"github.com/highlight-run/highlight/backend/embeddings"
@@ -492,6 +493,15 @@ func main() {
 				privateServer,
 			)
 		})
+
+		// Set up AWS metrics collection
+		awsPoller, err := awsmetrics.Setup(ctx, db, env.Config.OTLPEndpoint, tracer)
+		if err != nil {
+			log.WithContext(ctx).WithError(err).Error("Failed to set up AWS metrics collection")
+		}
+		if awsPoller != nil {
+			defer awsPoller.Stop()
+		}
 	}
 	if runtimeParsed.IsPublicGraph() {
 		sessionCache, err := golang_lru.New[string, *model.Session](100_000)

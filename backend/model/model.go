@@ -2501,9 +2501,10 @@ type AwsCredentials struct {
 
 type AwsEc2Instance struct {
 	Model
-	ProjectID      int
-	InstanceID     string
-	Name           string
-	State          string
-	MetricsEnabled bool
+	ProjectID              int
+	InstanceID             string
+	Name                   string
+	State                  string
+	MetricsEnabled         bool
+	LastMetricsCollectedAt *time.Time `gorm:"index"` // When metrics were last collected for this instance
 }

@@ -8,33 +8,43 @@ import (
 
 type Poller struct {
 	collector *Collector
-	interval  time.Duration
+	done      chan struct{}
 }
 
-func NewPoller(collector *Collector, interval time.Duration) *Poller {
+func NewPoller(collector *Collector) *Poller {
 	return &Poller{
 		collector: collector,
-		interval:  interval,
+		done:      make(chan struct{}),
 	}
 }
 
+// Start begins polling EC2 metrics every 5 minutes
 func (p *Poller) Start(ctx context.Context) error {
-	ticker := time.NewTicker(p.interval)
+	fmt.Println("::: Starting AWS metrics poller")
+	ticker := time.NewTicker(30 * time.Second)
 	defer ticker.Stop()
 
-	fmt.Printf("Starting AWS metrics collection with interval %s...\n", p.interval)
+	// Do an initial collection
+	if err := p.collector.CollectEC2Metrics(ctx); err != nil {
+		return fmt.Errorf("initial metrics collection failed: %w", err)
+	}
 
 	for {
 		select {
 		case <-ctx.Done():
 			return ctx.Err()
+		case <-p.done:
+			return nil
 		case <-ticker.C:
-			fmt.Printf("Collecting EC2 metrics...\n")
-
 			if err := p.collector.CollectEC2Metrics(ctx); err != nil {
-				fmt.Printf("Failed to collect EC2 metrics: %v\n", err)
-				continue
+				// Log error but continue polling
+				fmt.Printf("Error collecting EC2 metrics: %v\n", err)
 			}
 		}
 	}
+}
+
+// Stop gracefully stops the poller
+func (p *Poller) Stop() {
+	close(p.done)
 }

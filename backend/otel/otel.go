@@ -522,9 +522,10 @@ func (o *Handler) HandleMetric(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	metrics := req.Metrics()
 	log.WithContext(ctx).
-		WithField("count", req.Metrics().MetricCount()).
-		WithField("dp_count", req.Metrics().DataPointCount()).
+		WithField("metric_count", metrics.MetricCount()).
+		WithField("datapoint_count", metrics.DataPointCount()).
 		Info("received otel metrics")
 
 	w.WriteHeader(http.StatusOK)
