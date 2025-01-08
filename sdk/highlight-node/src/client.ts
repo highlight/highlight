@@ -35,12 +35,14 @@ import {
 	SEMRESATTRS_SERVICE_NAME,
 	SEMRESATTRS_SERVICE_VERSION,
 } from '@opentelemetry/semantic-conventions'
-import type { IncomingHttpHeaders } from 'http'
 import { clearInterval } from 'timers'
 import { hookConsole } from './hooks.js'
 import log from './log.js'
-import { HIGHLIGHT_REQUEST_HEADER } from './sdk.js'
-import type { Headers } from 'node-fetch'
+import {
+	HIGHLIGHT_REQUEST_HEADER,
+	type Headers,
+	type IncomingHttpHeaders,
+} from './sdk.js'
 import type { HighlightContext, NodeOptions } from './types.js'
 import * as packageJson from '../package.json'
 import { PrismaInstrumentation } from '@prisma/instrumentation'
@@ -549,13 +551,10 @@ function extractIncomingHttpHeaders(headers?: any): IncomingHttpHeaders {
 			requestHeaders[HIGHLIGHT_REQUEST_HEADER] = (
 				headers as { [HIGHLIGHT_REQUEST_HEADER]: string }
 			)[HIGHLIGHT_REQUEST_HEADER]
-		} else if (typeof headers.forEach === 'function') {
-			headers.forEach(
-				(value: any, key: any) => (requestHeaders[key] = value),
-			)
 		} else if (headers.hasOwnProperty('forEach')) {
-			;(headers as Headers).forEach(
-				(value, key) => (requestHeaders[key] = value),
+			headers.forEach(
+				(value: string | string[] | undefined, key: string) =>
+					(requestHeaders[key] = value),
 			)
 		} else if (headers) {
 			requestHeaders = headers
