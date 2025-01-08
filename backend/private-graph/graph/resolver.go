@@ -3555,20 +3555,30 @@ func (r *Resolver) GetSlackChannelsFromSlack(ctx context.Context, workspaceId in
 		}
 
 		for _, channel := range allSlackChannelsFromAPI {
-			_, exists := channelsAndUsers[channel.ID]
+			name := fmt.Sprintf("#%s", channel.Name)
+			prev, exists := channelsAndUsers[channel.ID]
+			// if the channel name has changed, update it
+			if prev.WebhookChannel != name {
+				exists = false
+			}
 			if !exists && channel.IsChannel && channel.ID != "" {
 				newChannelsCount++
-				slackChannel := model.SlackChannel{WebhookChannelID: channel.ID, WebhookChannel: fmt.Sprintf("#%s", channel.Name)}
+				slackChannel := model.SlackChannel{WebhookChannelID: channel.ID, WebhookChannel: name}
 				channelsAndUsers[channel.ID] = slackChannel
 				existingChannels = append(existingChannels, slackChannel)
 			}
 		}
 
 		for _, user := range users {
-			_, exists := channelsAndUsers[user.ID]
+			name := fmt.Sprintf("@%s", user.Name)
+			prev, exists := channelsAndUsers[user.ID]
+			// if the channel name has changed, update it
+			if prev.WebhookChannel != name {
+				exists = false
+			}
 			if !exists && !user.IsBot && !user.Deleted && strings.ToLower(user.Name) != "slackbot" {
 				newChannelsCount++
-				slackChannel := model.SlackChannel{WebhookChannelID: user.ID, WebhookChannel: fmt.Sprintf("@%s", user.Name)}
+				slackChannel := model.SlackChannel{WebhookChannelID: user.ID, WebhookChannel: name}
 				channelsAndUsers[user.ID] = slackChannel
 				existingChannels = append(existingChannels, slackChannel)
 			}

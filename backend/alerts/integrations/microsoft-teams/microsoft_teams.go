@@ -5,6 +5,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/highlight-run/highlight/backend/env"
+	"github.com/highlight/highlight/sdk/highlight-go"
+	"go.opentelemetry.io/otel/attribute"
 	"io"
 	"net/http"
 	nUrl "net/url"
@@ -60,12 +62,17 @@ type GraphResponse[T any] struct {
 	Value   []T    `json:"value"`
 }
 
-func GetTeamsFromWorkspace(workspace *model.Workspace) ([]TeamResponse, error) {
+func GetTeamsFromWorkspace(ctx context.Context, workspace *model.Workspace) ([]TeamResponse, error) {
+	span, ctx := highlight.StartTrace(
+		ctx, "microsoft_teams.GetTeamsFromWorkspace",
+		attribute.Int("workspace", workspace.ID),
+	)
+	defer highlight.EndTrace(span)
+
 	if workspace.MicrosoftTeamsTenantId == nil {
 		return nil, errors.Errorf("MicrosoftTeamsTenantId is nil: workspace %d", workspace.ID)
 	}
 
-	ctx := context.Background()
 	accessToken, err := GetAccessToken(ctx, *workspace.MicrosoftTeamsTenantId)
 	if err != nil {
 		return nil, err
@@ -110,8 +117,13 @@ func GetTeamsFromWorkspace(workspace *model.Workspace) ([]TeamResponse, error) {
 	}), nil
 }
 
-func GetChannels(tenantID string, teamResponse TeamResponse) ([]*model.MicrosoftTeamsChannel, error) {
-	ctx := context.Background()
+func GetChannels(ctx context.Context, tenantID string, teamResponse TeamResponse) ([]*model.MicrosoftTeamsChannel, error) {
+	span, ctx := highlight.StartTrace(
+		ctx, "microsoft_teams.GetTeamsFromWorkspace",
+		attribute.String("tenantID", tenantID),
+	)
+	defer highlight.EndTrace(span)
+
 	accessToken, err := GetAccessToken(ctx, tenantID)
 
 	if err != nil {
@@ -244,8 +256,14 @@ func doRequest[T any](method string, accessToken string, url string, body string
 	return unmarshalled, nil
 }
 
-func GetChannelSuggestions(workspace *model.Workspace) ([]*model.MicrosoftTeamsChannel, error) {
-	teams, err := GetTeamsFromWorkspace(workspace)
+func GetChannelSuggestions(ctx context.Context, workspace *model.Workspace) ([]*model.MicrosoftTeamsChannel, error) {
+	span, ctx := highlight.StartTrace(
+		ctx, "microsoft_teams.GetChannelSuggestions",
+		attribute.Int("workspace", workspace.ID),
+	)
+	defer highlight.EndTrace(span)
+
+	teams, err := GetTeamsFromWorkspace(ctx, workspace)
 	if err != nil {
 		return nil, err
 	}
@@ -257,7 +275,7 @@ func GetChannelSuggestions(workspace *model.Workspace) ([]*model.MicrosoftTeamsC
 		idx := idx
 		team := team
 		g.Go(func() error {
-			channels, err := GetChannels(*workspace.MicrosoftTeamsTenantId, team)
+			channels, err := GetChannels(ctx, *workspace.MicrosoftTeamsTenantId, team)
 			if err != nil {
 				return err
 			}
