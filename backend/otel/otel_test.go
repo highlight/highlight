@@ -134,7 +134,7 @@ func TestHandler_HandleLog(t *testing.T) {
 		ProducerQueue:      &producer,
 		BatchedQueue:       &producer,
 		TracesQueue:        &producer,
-		MetricsQueue:  &producer,
+		MetricsQueue:       &producer,
 		DB:                 db,
 		Clickhouse:         chClient,
 	}
@@ -225,7 +225,7 @@ func TestHandler_HandleTrace(t *testing.T) {
 			ProducerQueue:      &producer,
 			BatchedQueue:       &producer,
 			TracesQueue:        &producer,
-			MetricsQueue:  &producer,
+			MetricsQueue:       &producer,
 			DB:                 db,
 			Clickhouse:         chClient,
 		}
@@ -334,7 +334,6 @@ func TestHandler_HandleMetric(t *testing.T) {
 			}
 		}
 
-		// TODO(vkorolik) elaborate on this test
 		if tc.expectedMetrics != nil {
 			assert.Equal(t, fmt.Sprintf("%+v", *tc.expectedMetrics), fmt.Sprintf("%+v", metricCount))
 		}

@@ -7,13 +7,8 @@ import (
 	"go.opentelemetry.io/collector/pdata/pmetric"
 )
 
-func getMetricRetention(projectID int) uint8 {
-	// TODO(vkorolik) customizeable metrics retention
-	return 30
-}
-
 type DataPoint interface {
-	ToMetricRow(ctx context.Context, metricType pmetric.MetricType, fields *extractedFields) clickhouse.MetricRow
+	ToMetricRow(ctx context.Context, retentionDays uint8, metricType pmetric.MetricType, fields *extractedFields) clickhouse.MetricRow
 	ExtractAttributes() map[string]any
 }
 
@@ -25,7 +20,7 @@ func (dp *NumberDataPoint) ExtractAttributes() map[string]any {
 	return dp.Attributes().AsRaw()
 }
 
-func (dp *NumberDataPoint) ToMetricRow(ctx context.Context, metricType pmetric.MetricType, fields *extractedFields) clickhouse.MetricRow {
+func (dp *NumberDataPoint) ToMetricRow(ctx context.Context, retentionDays uint8, metricType pmetric.MetricType, fields *extractedFields) clickhouse.MetricRow {
 	m := clickhouse.MetricSumRow{
 		MetricBaseRow: clickhouse.MetricBaseRow{
 			ProjectID:         uint32(fields.projectIDInt),
@@ -38,7 +33,7 @@ func (dp *NumberDataPoint) ToMetricRow(ctx context.Context, metricType pmetric.M
 			MetricType:        metricType,
 			Timestamp:         fields.timestamp,
 			StartTimestamp:    dp.StartTimestamp().AsTime(),
-			RetentionDays:     getMetricRetention(fields.projectIDInt),
+			RetentionDays:     retentionDays,
 			Flags:             uint32(dp.Flags()),
 			// TODO(vkorolik)
 			ExemplarsAttributes:      nil,
@@ -65,7 +60,7 @@ func (dp *HistogramDataPoint) ExtractAttributes() map[string]any {
 	return dp.Attributes().AsRaw()
 }
 
-func (dp *HistogramDataPoint) ToMetricRow(ctx context.Context, metricType pmetric.MetricType, fields *extractedFields) clickhouse.MetricRow {
+func (dp *HistogramDataPoint) ToMetricRow(ctx context.Context, retentionDays uint8, metricType pmetric.MetricType, fields *extractedFields) clickhouse.MetricRow {
 	m := clickhouse.MetricHistogramRow{
 		MetricBaseRow: clickhouse.MetricBaseRow{
 			ProjectID:         uint32(fields.projectIDInt),
@@ -78,7 +73,7 @@ func (dp *HistogramDataPoint) ToMetricRow(ctx context.Context, metricType pmetri
 			MetricType:        metricType,
 			Timestamp:         fields.timestamp,
 			StartTimestamp:    dp.StartTimestamp().AsTime(),
-			RetentionDays:     getMetricRetention(fields.projectIDInt),
+			RetentionDays:     retentionDays,
 			Flags:             uint32(dp.Flags()),
 			// TODO(vkorolik)
 			ExemplarsAttributes:      nil,
@@ -106,7 +101,7 @@ func (dp *ExponentialHistogramDataPoint) ExtractAttributes() map[string]any {
 	return dp.Attributes().AsRaw()
 }
 
-func (dp *ExponentialHistogramDataPoint) ToMetricRow(ctx context.Context, metricType pmetric.MetricType, fields *extractedFields) clickhouse.MetricRow {
+func (dp *ExponentialHistogramDataPoint) ToMetricRow(ctx context.Context, retentionDays uint8, metricType pmetric.MetricType, fields *extractedFields) clickhouse.MetricRow {
 	log.WithContext(ctx).
 		WithFields(log.Fields{
 			"fields":         fields,
@@ -138,7 +133,7 @@ func (dp *SummaryDataPoint) ExtractAttributes() map[string]any {
 	return dp.Attributes().AsRaw()
 }
 
-func (dp *SummaryDataPoint) ToMetricRow(ctx context.Context, metricType pmetric.MetricType, fields *extractedFields) clickhouse.MetricRow {
+func (dp *SummaryDataPoint) ToMetricRow(ctx context.Context, retentionDays uint8, metricType pmetric.MetricType, fields *extractedFields) clickhouse.MetricRow {
 	m := clickhouse.MetricSummaryRow{
 		MetricBaseRow: clickhouse.MetricBaseRow{
 			ProjectID:         uint32(fields.projectIDInt),
@@ -151,7 +146,7 @@ func (dp *SummaryDataPoint) ToMetricRow(ctx context.Context, metricType pmetric.
 			MetricType:        metricType,
 			Timestamp:         fields.timestamp,
 			StartTimestamp:    dp.StartTimestamp().AsTime(),
-			RetentionDays:     getMetricRetention(fields.projectIDInt),
+			RetentionDays:     retentionDays,
 			Flags:             uint32(dp.Flags()),
 		},
 		Count: dp.Count(),
