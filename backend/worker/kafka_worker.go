@@ -49,13 +49,13 @@ func (k *KafkaWorker) log(ctx context.Context, task kafkaqueue.RetryableMessage,
 	if m == nil {
 		return
 	}
-	if m.Partition == 408 || m.Partition == 58 || m.Partition == 289 {
+	if m.Partition%100 == 0 {
 		log.WithContext(ctx).
 			WithField("key", string(m.Key)).
 			WithField("offset", m.Offset).
 			WithField("taskType", task.GetType()).
 			WithField("partition", m.Partition).
-			Info(msg...)
+			Debug(msg...)
 	}
 }
 
@@ -84,7 +84,7 @@ func (k *KafkaWorker) ProcessMessages(ctx context.Context) {
 
 			s2, _ := util.StartSpanFromContext(sCtx, "worker.kafka.processMessage")
 			for i := 0; i <= task.GetMaxRetries(); i++ {
-				k.log(ctx, task, "starting processing", i)
+				k.log(ctx, task, "starting processing ", i)
 				start := time.Now()
 				publicWorkerMessage, ok := task.(*kafka_queue.Message)
 				if !ok {
@@ -97,7 +97,7 @@ func (k *KafkaWorker) ProcessMessages(ctx context.Context) {
 					break
 				}
 			}
-			k.log(ctx, task, "finished processing", task.GetFailures())
+			k.log(ctx, task, "finished processing ", task.GetFailures())
 			s.SetAttribute("taskFailures", task.GetFailures())
 			s2.Finish(err)
 
@@ -131,12 +131,12 @@ func (k *KafkaBatchWorker) log(ctx context.Context, fields log.Fields, msg ...in
 	}
 
 	partitionId := *k.lastPartitionId
-	if partitionId%25 == 0 {
+	if partitionId%10 == 0 {
 		log.WithContext(ctx).
 			WithField("worker_name", k.Name).
 			WithField("partition", partitionId).
 			WithFields(fields).
-			Info(msg...)
+			Debug(msg...)
 	}
 }
 

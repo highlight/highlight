@@ -44,7 +44,9 @@ func ParseConsoleMessages(messages string) ([]*Message, error) {
 			AttributesRaw: message.AttributesRaw,
 			Attributes:    map[string]any{},
 		}
-		if attrString, ok := message.AttributesRaw.(string); ok && attrString != "" {
+		if message.AttributesRaw == nil {
+			// no attributes
+		} else if attrString, ok := message.AttributesRaw.(string); ok && attrString != "" {
 			if err := json.Unmarshal([]byte(attrString), &msg.Attributes); err != nil {
 				log.WithField("attributes.raw", message.AttributesRaw).WithError(err).Warn("error decoding message attributes")
 				msg.Attributes["attributes.raw"] = message.AttributesRaw
