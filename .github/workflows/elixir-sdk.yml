@@ -63,7 +63,6 @@ jobs:
                   otp-version: ${{ env.OTP_VERSION }}
             - name: Publish to Hex
               uses: synchronal/hex-publish-action@v3
-              working-directory: sdk/highlight-ex
               with:
                   name: highlight
                   key: ${{ secrets.HEX_PM_KEY }}
