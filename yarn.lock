@@ -10134,11 +10134,12 @@ __metadata:
   resolution: "@highlight-run/react@workspace:sdk/highlight-react"
   dependencies:
     "@types/node": "npm:^20.14.7"
-    "@types/react": "npm:^18.3.3"
-    "@types/react-dom": "npm:^18.3.0"
+    "@types/react": "npm:^19.0.4"
+    "@types/react-dom": "npm:^19.0.2"
     classnames: "npm:^2.5.1"
     css-tree: "npm:^2.3.1"
     esbuild-css-modules-plugin: "npm:^2.7.1"
+    react: "npm:^19.0.0"
     tsup: "npm:^8.2.4"
     typescript: "npm:^5.5.2"
   peerDependencies:
@@ -19596,21 +19597,29 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@tanstack/query-core@npm:5.62.16":
-  version: 5.62.16
-  resolution: "@tanstack/query-core@npm:5.62.16"
-  checksum: 10/30652be262ee2e7afa7d75e081cbe6710ef05f7838be532ddf33dc63309d1520e0cba5f76c5ecebe17540ff5b50f38758a1462575966d65fbf7162c02b3244e7
+"@tanstack/query-core@npm:4.36.1":
+  version: 4.36.1
+  resolution: "@tanstack/query-core@npm:4.36.1"
+  checksum: 10/7c648872cd491bcab2aa4c18e0b7ca130c072f05c277a5876977fa3bfa87634bbfde46e9d249236587d78c39866889a02e4e202b478dc6074ff96093732ae56d
   languageName: node
   linkType: hard
 
-"@tanstack/react-query@npm:^5.63.0":
-  version: 5.63.0
-  resolution: "@tanstack/react-query@npm:5.63.0"
+"@tanstack/react-query@npm:^4.36.1":
+  version: 4.36.1
+  resolution: "@tanstack/react-query@npm:4.36.1"
   dependencies:
-    "@tanstack/query-core": "npm:5.62.16"
+    "@tanstack/query-core": "npm:4.36.1"
+    use-sync-external-store: "npm:^1.2.0"
   peerDependencies:
-    react: ^18 || ^19
-  checksum: 10/5bcfd26bbd0c1fa6b7b3b73359ddb9cb64bdda5441db24ec16478eaef7cbb21ce96856b041147480621593142b5e40aacacbfe3173eef7fb3ff3d64b6f90f278
+    react: ^16.8.0 || ^17.0.0 || ^18.0.0
+    react-dom: ^16.8.0 || ^17.0.0 || ^18.0.0
+    react-native: "*"
+  peerDependenciesMeta:
+    react-dom:
+      optional: true
+    react-native:
+      optional: true
+  checksum: 10/764b860c3ac8d254fc6b07e01054a0f58058644d59626c724b213293fbf1e31c198cbb26e4c32c0d16dcaec0353c0ae19147d9c667675b31f8cea1d64f1ff4ac
   languageName: node
   linkType: hard
 
@@ -19829,7 +19838,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@trpc/client@npm:^10.45.2":
+"@trpc/client@npm:^10.38.5":
   version: 10.45.2
   resolution: "@trpc/client@npm:10.45.2"
   peerDependencies:
@@ -19838,7 +19847,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@trpc/next@npm:^10.45.2":
+"@trpc/next@npm:^10.44.1":
   version: 10.45.2
   resolution: "@trpc/next@npm:10.45.2"
   peerDependencies:
@@ -19853,7 +19862,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@trpc/react-query@npm:^10.45.2":
+"@trpc/react-query@npm:^10.38.5":
   version: 10.45.2
   resolution: "@trpc/react-query@npm:10.45.2"
   peerDependencies:
@@ -19866,7 +19875,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@trpc/server@npm:^10.45.2":
+"@trpc/server@npm:^10.38.5, @trpc/server@npm:^10.45.2":
   version: 10.45.2
   resolution: "@trpc/server@npm:10.45.2"
   checksum: 10/0f3fdb5cd505c9f6947e00d67d61663cf87c51c9a591e5f3443f62b37b7d78e1f729cc6784090ec46e4a3c38e73277170590be8eeb8c4ee3dffcc80a3557c1a4
@@ -21437,12 +21446,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/react@npm:*, @types/react@npm:>=16, @types/react@npm:^19.0.3":
-  version: 19.0.3
-  resolution: "@types/react@npm:19.0.3"
+"@types/react@npm:*, @types/react@npm:>=16, @types/react@npm:^19.0.3, @types/react@npm:^19.0.4":
+  version: 19.0.4
+  resolution: "@types/react@npm:19.0.4"
   dependencies:
     csstype: "npm:^3.0.2"
-  checksum: 10/f984eff815e7fcb09b1ec16b2e450850c3b120ba8051d6811493eeb08d88dd4f7bbfca8d75e9ade64489b96c1e52c0a922242a7a877d8f6960de5c7ca419fe7b
+  checksum: 10/9c20c1bafc21b2022bb8d3cc168ec646ae91580f769218cf0040a789c6b757412b6f4462b475a229039e99cc2727af03ca87b6b39b16930928c717cfe8e06e67
   languageName: node
   linkType: hard
 
@@ -46045,11 +46054,11 @@ __metadata:
     "@highlight-run/pino": "workspace:*"
     "@next/env": "npm:^15.1.4"
     "@prisma/client": "npm:^6.2.1"
-    "@tanstack/react-query": "npm:^5.63.0"
-    "@trpc/client": "npm:^10.45.2"
-    "@trpc/next": "npm:^10.45.2"
-    "@trpc/react-query": "npm:^10.45.2"
-    "@trpc/server": "npm:^10.45.2"
+    "@tanstack/react-query": "npm:^4.36.1"
+    "@trpc/client": "npm:^10.38.5"
+    "@trpc/next": "npm:^10.44.1"
+    "@trpc/react-query": "npm:^10.38.5"
+    "@trpc/server": "npm:^10.38.5"
     "@types/node": "npm:^22.10.5"
     "@types/pg": "npm:^8.11.10"
     "@types/react": "npm:^19.0.3"

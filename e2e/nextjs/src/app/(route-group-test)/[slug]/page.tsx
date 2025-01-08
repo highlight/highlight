@@ -1,6 +1,9 @@
 import Link from 'next/link'
 
-export default function AnotherPage({ params }: { params: { slug: string } }) {
+type Params = Promise<{ slug: string }>
+
+export default async function AnotherPage(props: { params: Params }) {
+	const params = await props.params
 	return (
 		<div>
 			<h1>This is a route group slug page</h1>

@@ -1,7 +1,7 @@
-import type { NextRequest } from 'next/server'
+import { cookies } from 'next/headers'
 
-export function highlightMiddleware(request: NextRequest) {
-	const sessionSecureID = request.cookies.get('sessionSecureID')?.value
+export async function highlightMiddleware(request: Request) {
+	const sessionSecureID = (await cookies()).get('sessionSecureID')?.value
 	const xHighlightRequest = request.headers.get('x-highlight-request')
 	if (!xHighlightRequest && sessionSecureID) {
 		request.headers.set('x-highlight-request', `${sessionSecureID}/`)
