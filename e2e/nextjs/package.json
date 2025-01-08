@@ -12,6 +12,9 @@
 		"prisma:pull": "prisma db pull",
 		"prisma:generate": "prisma generate"
 	},
+	"installConfig": {
+		"hoistingLimits": "workspaces"
+	},
 	"dependencies": {
 		"@highlight-run/next": "workspace:*",
 		"@highlight-run/pino": "workspace:*",
@@ -44,6 +47,6 @@
 	"devDependencies": {
 		"@prisma/client": "^6.2.1",
 		"prisma": "^6.2.1",
-		"vercel": "^39.2.6"
+		"vercel": "^33.7.1"
 	}
 }
