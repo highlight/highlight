@@ -23,7 +23,7 @@
 		"@trpc/server": "^10.38.5",
 		"@types/node": "^22.10.5",
 		"@types/pg": "^8.11.10",
-		"@types/react": "^19.0.3",
+		"@types/react": "^19.0.4",
 		"@types/react-dom": "^19.0.2",
 		"babylonjs": "^7.42.0",
 		"classnames": "^2.5.1",
