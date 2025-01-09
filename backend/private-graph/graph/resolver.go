@@ -3744,6 +3744,8 @@ func GetRetentionDate(retentionPeriodPtr *modelInputs.RetentionPeriod) time.Time
 	switch retentionPeriod {
 	case modelInputs.RetentionPeriodSevenDays:
 		return time.Now().AddDate(0, 0, -7)
+	case modelInputs.RetentionPeriodThirtyDays:
+		return time.Now().AddDate(0, 0, -30)
 	case modelInputs.RetentionPeriodThreeMonths:
 		return time.Now().AddDate(0, -3, 0)
 	case modelInputs.RetentionPeriodSixMonths:

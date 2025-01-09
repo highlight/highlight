@@ -1683,7 +1683,7 @@ func (r *Resolver) IsWithinQuota(ctx context.Context, productType model.PricingP
 
 	meter, err := cfg.Meter(ctx, r.DB, r.Clickhouse, r.Redis, workspace)
 	if err != nil {
-		log.WithContext(ctx).Warn(fmt.Sprintf("error getting %s meter for workspace %d", productType, workspace.ID))
+		log.WithContext(ctx).WithError(err).Warn(fmt.Sprintf("error getting %s meter for workspace %d", productType, workspace.ID))
 	}
 
 	includedQuantity := cfg.Included(workspace)

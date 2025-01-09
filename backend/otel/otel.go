@@ -34,6 +34,7 @@ import (
 	"go.opentelemetry.io/otel/trace"
 	"gorm.io/gorm"
 	"io"
+	"math"
 	"net/http"
 	"strconv"
 	"strings"
@@ -925,7 +926,7 @@ func (o *Handler) Listen(r *chi.Mux) {
 }
 
 func (o *Handler) getProjectRetention(ctx context.Context, projectID int) uint8 {
-	data, err := redis.CachedEval(ctx, o.resolver.Redis, fmt.Sprintf("getProjectRetention-%s", projectID), time.Minute, time.Second, func() (*uint8, error) {
+	data, err := redis.CachedEval(ctx, o.resolver.Redis, fmt.Sprintf("getProjectRetention-%d", projectID), time.Minute, time.Second, func() (*uint8, error) {
 		proj, err := o.resolver.Store.GetProject(ctx, projectID)
 		if err != nil {
 			return nil, err
@@ -936,7 +937,9 @@ func (o *Handler) getProjectRetention(ctx context.Context, projectID int) uint8 
 			return nil, err
 		}
 
-		return ptr.Uint8(uint8(privateGraph.GetRetentionDate(ws.MetricsRetentionPeriod).Sub(time.Now()).Hours() / 24)), nil
+		hours := time.Now().Sub(privateGraph.GetRetentionDate(ws.MetricsRetentionPeriod)).Hours()
+		days := math.Round(hours / 24.)
+		return ptr.Uint8(uint8(days)), nil
 	})
 	if err != nil || data == nil {
 		log.WithContext(ctx).WithError(err).Error("failed to getProjectRetention")

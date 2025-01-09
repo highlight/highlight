@@ -39,11 +39,11 @@ func (r *Resolver) IsMetricIngestedBySample(_ context.Context, _ clickhouse.Metr
 }
 
 func (r *Resolver) IsMetricIngestedByRateLimit(ctx context.Context, metric clickhouse.MetricRow) bool {
-	return r.isItemIngestedByRate(ctx, metric.GetTimestamp(), privateModel.ProductTypeMetrics, int(metric.GetProjectID()))
+	return r.isItemIngestedByRate(ctx, metric.GetTimestamp(), privateModel.ProductTypeMetrics, int(metric.GetProjectId()))
 }
 
 func (r *Resolver) IsMetricIngestedByFilter(ctx context.Context, metric clickhouse.MetricRow) bool {
-	return r.isItemIngestedByFilter(ctx, privateModel.ProductTypeMetrics, int(metric.GetProjectID()), metric)
+	return r.isItemIngestedByFilter(ctx, privateModel.ProductTypeMetrics, int(metric.GetProjectId()), metric)
 }
 
 func (r *Resolver) IsTraceIngested(ctx context.Context, trace *clickhouse.TraceRow) bool {

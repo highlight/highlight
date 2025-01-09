@@ -3,8 +3,11 @@ package otel
 import (
 	"context"
 	"github.com/highlight-run/highlight/backend/clickhouse"
+	"github.com/highlight/highlight/sdk/highlight-go"
+	hlog "github.com/highlight/highlight/sdk/highlight-go/log"
 	log "github.com/sirupsen/logrus"
 	"go.opentelemetry.io/collector/pdata/pmetric"
+	"time"
 )
 
 type DataPoint interface {
@@ -21,27 +24,27 @@ func (dp *NumberDataPoint) ExtractAttributes() map[string]any {
 }
 
 func (dp *NumberDataPoint) ToMetricRow(ctx context.Context, retentionDays uint8, metricType pmetric.MetricType, fields *extractedFields) clickhouse.MetricRow {
+	ex := extractExemplars(dp.Exemplars())
 	m := clickhouse.MetricSumRow{
 		MetricBaseRow: clickhouse.MetricBaseRow{
-			ProjectID:         uint32(fields.projectIDInt),
-			ServiceName:       fields.serviceName,
-			ServiceVersion:    fields.serviceVersion,
-			MetricName:        fields.metricName,
-			MetricDescription: fields.metricDescription,
-			MetricUnit:        fields.metricUnit,
-			Attributes:        fields.attrs,
-			MetricType:        metricType,
-			Timestamp:         fields.timestamp,
-			StartTimestamp:    dp.StartTimestamp().AsTime(),
-			RetentionDays:     retentionDays,
-			Flags:             uint32(dp.Flags()),
-			// TODO(vkorolik)
-			ExemplarsAttributes:      nil,
-			ExemplarsTimestamp:       nil,
-			ExemplarsValue:           nil,
-			ExemplarsSpanID:          nil,
-			ExemplarsTraceID:         nil,
-			ExemplarsSecureSessionID: nil,
+			ProjectId:                uint32(fields.projectIDInt),
+			ServiceName:              fields.serviceName,
+			ServiceVersion:           fields.serviceVersion,
+			MetricName:               fields.metricName,
+			MetricDescription:        fields.metricDescription,
+			MetricUnit:               fields.metricUnit,
+			Attributes:               fields.attrs,
+			MetricType:               metricType,
+			Timestamp:                fields.timestamp,
+			StartTimestamp:           dp.StartTimestamp().AsTime(),
+			RetentionDays:            retentionDays,
+			Flags:                    uint32(dp.Flags()),
+			ExemplarsAttributes:      ex.Attributes,
+			ExemplarsTimestamp:       ex.Timestamps,
+			ExemplarsValue:           ex.Values,
+			ExemplarsSpanID:          ex.SpanIDs,
+			ExemplarsTraceID:         ex.TraceIDs,
+			ExemplarsSecureSessionID: ex.SecureSessionIDs,
 		},
 	}
 	if dp.ValueType() == pmetric.NumberDataPointValueTypeDouble {
@@ -61,27 +64,27 @@ func (dp *HistogramDataPoint) ExtractAttributes() map[string]any {
 }
 
 func (dp *HistogramDataPoint) ToMetricRow(ctx context.Context, retentionDays uint8, metricType pmetric.MetricType, fields *extractedFields) clickhouse.MetricRow {
+	ex := extractExemplars(dp.Exemplars())
 	m := clickhouse.MetricHistogramRow{
 		MetricBaseRow: clickhouse.MetricBaseRow{
-			ProjectID:         uint32(fields.projectIDInt),
-			ServiceName:       fields.serviceName,
-			ServiceVersion:    fields.serviceVersion,
-			MetricName:        fields.metricName,
-			MetricDescription: fields.metricDescription,
-			MetricUnit:        fields.metricUnit,
-			Attributes:        fields.attrs,
-			MetricType:        metricType,
-			Timestamp:         fields.timestamp,
-			StartTimestamp:    dp.StartTimestamp().AsTime(),
-			RetentionDays:     retentionDays,
-			Flags:             uint32(dp.Flags()),
-			// TODO(vkorolik)
-			ExemplarsAttributes:      nil,
-			ExemplarsTimestamp:       nil,
-			ExemplarsValue:           nil,
-			ExemplarsSpanID:          nil,
-			ExemplarsTraceID:         nil,
-			ExemplarsSecureSessionID: nil,
+			ProjectId:                uint32(fields.projectIDInt),
+			ServiceName:              fields.serviceName,
+			ServiceVersion:           fields.serviceVersion,
+			MetricName:               fields.metricName,
+			MetricDescription:        fields.metricDescription,
+			MetricUnit:               fields.metricUnit,
+			Attributes:               fields.attrs,
+			MetricType:               metricType,
+			Timestamp:                fields.timestamp,
+			StartTimestamp:           dp.StartTimestamp().AsTime(),
+			RetentionDays:            retentionDays,
+			Flags:                    uint32(dp.Flags()),
+			ExemplarsAttributes:      ex.Attributes,
+			ExemplarsTimestamp:       ex.Timestamps,
+			ExemplarsValue:           ex.Values,
+			ExemplarsSpanID:          ex.SpanIDs,
+			ExemplarsTraceID:         ex.TraceIDs,
+			ExemplarsSecureSessionID: ex.SecureSessionIDs,
 		},
 		Count:          dp.Count(),
 		Sum:            dp.Sum(),
@@ -134,9 +137,10 @@ func (dp *SummaryDataPoint) ExtractAttributes() map[string]any {
 }
 
 func (dp *SummaryDataPoint) ToMetricRow(ctx context.Context, retentionDays uint8, metricType pmetric.MetricType, fields *extractedFields) clickhouse.MetricRow {
+	quantiles := extractQuantiles(dp.QuantileValues())
 	m := clickhouse.MetricSummaryRow{
 		MetricBaseRow: clickhouse.MetricBaseRow{
-			ProjectID:         uint32(fields.projectIDInt),
+			ProjectId:         uint32(fields.projectIDInt),
 			ServiceName:       fields.serviceName,
 			ServiceVersion:    fields.serviceVersion,
 			MetricName:        fields.metricName,
@@ -149,11 +153,83 @@ func (dp *SummaryDataPoint) ToMetricRow(ctx context.Context, retentionDays uint8
 			RetentionDays:     retentionDays,
 			Flags:             uint32(dp.Flags()),
 		},
-		Count: dp.Count(),
-		Sum:   dp.Sum(),
-		// TODO(vkorolik) implement
-		ValueAtQuantilesQuantile: nil,
-		ValueAtQuantilesValue:    nil,
+		Count:                    dp.Count(),
+		Sum:                      dp.Sum(),
+		ValueAtQuantilesQuantile: quantiles.Quantiles,
+		ValueAtQuantilesValue:    quantiles.Values,
 	}
 	return &m
+}
+
+type quantiles struct {
+	Quantiles []float64
+	Values    []float64
+}
+
+func extractQuantiles(quantSlice pmetric.SummaryDataPointValueAtQuantileSlice) *quantiles {
+	quantiles := quantiles{
+		Quantiles: make([]float64, quantSlice.Len()),
+		Values:    make([]float64, quantSlice.Len()),
+	}
+	for i := 0; i < quantSlice.Len(); i++ {
+		q := quantSlice.At(i)
+		quantiles.Quantiles = append(quantiles.Quantiles, q.Quantile())
+		quantiles.Values = append(quantiles.Values, q.Value())
+	}
+	return &quantiles
+}
+
+type exemplars struct {
+	Attributes       []map[string]string
+	Timestamps       []time.Time
+	Values           []float64
+	SpanIDs          []string
+	TraceIDs         []string
+	SecureSessionIDs []string
+}
+
+func extractExemplars(exSlice pmetric.ExemplarSlice) *exemplars {
+	ex := exemplars{
+		Attributes:       make([]map[string]string, exSlice.Len()),
+		Timestamps:       make([]time.Time, exSlice.Len()),
+		Values:           make([]float64, exSlice.Len()),
+		SpanIDs:          make([]string, exSlice.Len()),
+		TraceIDs:         make([]string, exSlice.Len()),
+		SecureSessionIDs: make([]string, exSlice.Len()),
+	}
+	for i := 0; i < exSlice.Len(); i++ {
+		e := exSlice.At(i)
+
+		var sessionID string
+		attributes := make(map[string]string)
+		for k, v := range e.FilteredAttributes().AsRaw() {
+			if k == highlight.DeprecatedSessionIDAttribute || k == highlight.SessionIDAttribute {
+				if val, ok := v.(string); ok {
+					sessionID = val
+					continue
+				}
+			}
+
+			for key, value := range hlog.FormatLogAttributes(k, v) {
+				if v != "" {
+					attributes[key] = value
+				}
+			}
+		}
+
+		var value float64
+		if e.ValueType() == pmetric.ExemplarValueTypeDouble {
+			value = e.DoubleValue()
+		} else if e.ValueType() == pmetric.ExemplarValueTypeInt {
+			value = float64(e.IntValue())
+		}
+
+		ex.Attributes = append(ex.Attributes, attributes)
+		ex.Timestamps = append(ex.Timestamps, e.Timestamp().AsTime())
+		ex.Values = append(ex.Values, value)
+		ex.SpanIDs = append(ex.SpanIDs, e.SpanID().String())
+		ex.TraceIDs = append(ex.TraceIDs, e.TraceID().String())
+		ex.SecureSessionIDs = append(ex.SecureSessionIDs, sessionID)
+	}
+	return &ex
 }

@@ -17,12 +17,12 @@ const MetricsSummaryTable = "metrics_summary"
 
 type MetricRow interface {
 	GetType() pmetric.MetricType
-	GetProjectID() uint32
+	GetProjectId() uint32
 	GetTimestamp() time.Time
 }
 
 type MetricBaseRow struct {
-	ProjectID         uint32
+	ProjectId         uint32
 	ServiceName       string
 	ServiceVersion    string
 	MetricName        string
@@ -57,8 +57,8 @@ type MetricSumRow struct {
 func (m *MetricSumRow) GetType() pmetric.MetricType {
 	return m.MetricType
 }
-func (m *MetricSumRow) GetProjectID() uint32 {
-	return m.ProjectID
+func (m *MetricSumRow) GetProjectId() uint32 {
+	return m.ProjectId
 }
 func (m *MetricSumRow) GetTimestamp() time.Time {
 	return m.Timestamp
@@ -80,8 +80,8 @@ type MetricHistogramRow struct {
 func (m *MetricHistogramRow) GetType() pmetric.MetricType {
 	return m.MetricType
 }
-func (m *MetricHistogramRow) GetProjectID() uint32 {
-	return m.ProjectID
+func (m *MetricHistogramRow) GetProjectId() uint32 {
+	return m.ProjectId
 }
 func (m *MetricHistogramRow) GetTimestamp() time.Time {
 	return m.Timestamp
@@ -99,8 +99,8 @@ type MetricSummaryRow struct {
 func (m *MetricSummaryRow) GetType() pmetric.MetricType {
 	return m.MetricType
 }
-func (m *MetricSummaryRow) GetProjectID() uint32 {
-	return m.ProjectID
+func (m *MetricSummaryRow) GetProjectId() uint32 {
+	return m.ProjectId
 }
 func (m *MetricSummaryRow) GetTimestamp() time.Time {
 	return m.Timestamp

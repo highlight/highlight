@@ -1,41 +1,41 @@
 CREATE TABLE metric_count_daily_mv
 (
-    `ProjectID`   UInt32,
+    `ProjectId`   UInt32,
     `Day`         DateTime,
     `ServiceName` LowCardinality(String),
     `MetricName`  String,
     `Count`       UInt64
-) ENGINE = SummingMergeTree ORDER BY (ProjectID, Day, ServiceName, MetricName);
+) ENGINE = SummingMergeTree ORDER BY (ProjectId, Day, ServiceName, MetricName);
 
 CREATE MATERIALIZED VIEW metric_count_daily_mv_sum
     TO metric_count_daily_mv
 AS
-SELECT ProjectID,
+SELECT ProjectId,
        toStartOfDay(Timestamp) AS Day,
        ServiceName,
        MetricName,
        count()                 as Count
 FROM metrics_sum
-GROUP BY ProjectID, Day, ServiceName, MetricName;
+GROUP BY ProjectId, Day, ServiceName, MetricName;
 
 CREATE MATERIALIZED VIEW metric_count_daily_mv_histogram
     TO metric_count_daily_mv
 AS
-SELECT ProjectID,
+SELECT ProjectId,
        toStartOfDay(Timestamp) AS Day,
        ServiceName,
        MetricName,
        count()                 as Count
 FROM metrics_histogram
-GROUP BY ProjectID, Day, ServiceName, MetricName;
+GROUP BY ProjectId, Day, ServiceName, MetricName;
 
 CREATE MATERIALIZED VIEW metric_count_daily_mv_summary
     TO metric_count_daily_mv
 AS
-SELECT ProjectID,
+SELECT ProjectId,
        toStartOfDay(Timestamp) AS Day,
        ServiceName,
        MetricName,
        count()                 as Count
 FROM metrics_summary
-GROUP BY ProjectID, Day, ServiceName, MetricName;
+GROUP BY ProjectId, Day, ServiceName, MetricName;
