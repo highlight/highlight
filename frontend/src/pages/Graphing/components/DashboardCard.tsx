@@ -18,6 +18,7 @@ import clsx from 'clsx'
 
 import * as style from './DashboardCard.css'
 import { useState } from 'react'
+import useLocalStorage from '@rehooks/local-storage'
 
 export const DashboardCard = ({
 	id,
@@ -51,6 +52,11 @@ export const DashboardCard = ({
 	}
 
 	const [graphHover, setGraphHover] = useState(false)
+
+	const [hasDrilledDown] = useLocalStorage<boolean>(
+		'highlight-used-drilldown',
+		false,
+	)
 
 	return (
 		<Box
@@ -191,13 +197,15 @@ export const DashboardCard = ({
 								</Menu>
 							)}
 						</Box>
-						<Badge
-							variant="gray"
-							size="small"
-							iconStart={<IconSolidCursorClick />}
-							label="Click to drilldown"
-							cssClass={style.drilldownHint}
-						/>
+						{!hasDrilledDown && (
+							<Badge
+								variant="gray"
+								size="small"
+								iconStart={<IconSolidCursorClick />}
+								label="Click to drilldown"
+								cssClass={style.drilldownHint}
+							/>
+						)}
 					</Box>
 				)}
 				{children}

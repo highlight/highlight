@@ -73,6 +73,7 @@ import { useGraphContext } from '../context/GraphContext'
 import { TIME_METRICS } from '@pages/Graphing/constants'
 import _ from 'lodash'
 import { useSetRelatedResource } from '@/components/RelatedResources/hooks'
+import useLocalStorage from '@rehooks/local-storage'
 
 export type View = 'Line chart' | 'Bar chart' | 'Funnel chart' | 'Table'
 
@@ -1163,6 +1164,12 @@ const Graph = ({
 	const set = useSetRelatedResource()
 
 	const replacedQuery = replaceQueryVariables(query, variables)
+
+	const [hasDrilledDown, setHasDrilledDown] = useLocalStorage<boolean>(
+		'highlight-used-drilldown',
+		false,
+	)
+
 	const loadExemplars = useCallback(
 		(
 			bucketMin: number | undefined,
@@ -1170,6 +1177,10 @@ const Graph = ({
 			groups: string[] | undefined,
 			stepQuery: string | undefined,
 		) => {
+			if (!hasDrilledDown) {
+				setHasDrilledDown(true)
+			}
+
 			let relatedResourceType:
 				| 'logs'
 				| 'errors'
@@ -1246,9 +1257,11 @@ const Graph = ({
 			bucketByKey,
 			endDate,
 			groupByKeys,
+			hasDrilledDown,
 			productType,
 			replacedQuery,
 			set,
+			setHasDrilledDown,
 			startDate,
 		],
 	)
