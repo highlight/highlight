@@ -510,11 +510,11 @@ func main() {
 			log.Fatalf("error initializing lru cache: %v", err)
 		}
 		publicResolver := &public.Resolver{
-			DB:                   db,
-			Tracer:               tracer,
-			TracerNoResources:    tracerNoResources,
-			ProducerQueue:        kafkaProducer,
-			AsyncProducerQueue: kafkaAsyncProducer,BatchedQueue:         kafkaBatchedProducer,
+			DB:                 db,
+			Tracer:             tracer,
+			TracerNoResources:  tracerNoResources,
+			ProducerQueue:      kafkaProducer,
+			AsyncProducerQueue: kafkaAsyncProducer, BatchedQueue: kafkaBatchedProducer,
 			DataSyncQueue:        kafkaDataSyncProducer,
 			TracesQueue:          kafkaTracesProducer,
 			MetricSumQueue:       kafkaMetricSumProducer,
@@ -584,11 +584,11 @@ func main() {
 			log.Fatalf("error initializing lru cache: %v", err)
 		}
 		publicResolver := &public.Resolver{
-			DB:                   db,
-			Tracer:               tracer,
-			TracerNoResources:    tracerNoResources,
-			ProducerQueue:        kafkaProducer,
-			AsyncProducerQueue: kafkaAsyncProducer,BatchedQueue:         kafkaBatchedProducer,
+			DB:                 db,
+			Tracer:             tracer,
+			TracerNoResources:  tracerNoResources,
+			ProducerQueue:      kafkaProducer,
+			AsyncProducerQueue: kafkaAsyncProducer, BatchedQueue: kafkaBatchedProducer,
 			DataSyncQueue:        kafkaDataSyncProducer,
 			TracesQueue:          kafkaTracesProducer,
 			MetricSumQueue:       kafkaMetricSumProducer,
