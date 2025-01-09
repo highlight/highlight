@@ -227,6 +227,15 @@ export const AlertForm: React.FC = () => {
 			setThresholdValue(DEFAULT_CONFIDENCE_OPTION.value)
 		} else if (value === ThresholdType.Constant) {
 			setThresholdValue(DEFAULT_THRESHOLD)
+
+			// errors and sessions are currently only grouped by secure_id
+			if (
+				productType === ProductType.Sessions ||
+				productType === ProductType.Errors
+			) {
+				setGroupByEnabled(true)
+				setGroupByKey('secure_id')
+			}
 		}
 
 		setThresholdTypeImpl(value)
@@ -752,7 +761,9 @@ export const AlertForm: React.FC = () => {
 											<OptionDropdown<ThresholdType>
 												options={THRESHOLD_TYPE_OPTIONS}
 												selection={thresholdType}
-												setSelection={setThresholdType}
+												setSelection={
+													handleThresholdTypeChange
+												}
 											/>
 										</LabeledRow>
 										{(isAnomaly || !isSessionAlert) && (
