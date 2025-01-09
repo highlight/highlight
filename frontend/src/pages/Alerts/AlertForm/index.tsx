@@ -761,9 +761,7 @@ export const AlertForm: React.FC = () => {
 											<OptionDropdown<ThresholdType>
 												options={THRESHOLD_TYPE_OPTIONS}
 												selection={thresholdType}
-												setSelection={
-													handleThresholdTypeChange
-												}
+												setSelection={setThresholdType}
 											/>
 										</LabeledRow>
 										{(isAnomaly || !isSessionAlert) && (
