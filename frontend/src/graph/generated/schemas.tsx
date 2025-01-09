@@ -3300,6 +3300,9 @@ export type Sampling = {
 	log_exclusion_query?: Maybe<Scalars['String']>
 	log_minute_rate_limit?: Maybe<Scalars['Int64']>
 	log_sampling_rate: Scalars['Float']
+	metric_exclusion_query?: Maybe<Scalars['String']>
+	metric_minute_rate_limit?: Maybe<Scalars['Int64']>
+	metric_sampling_rate: Scalars['Float']
 	session_exclusion_query?: Maybe<Scalars['String']>
 	session_minute_rate_limit?: Maybe<Scalars['Int64']>
 	session_sampling_rate: Scalars['Float']
@@ -3315,6 +3318,9 @@ export type SamplingInput = {
 	log_exclusion_query?: InputMaybe<Scalars['String']>
 	log_minute_rate_limit?: InputMaybe<Scalars['Int64']>
 	log_sampling_rate?: InputMaybe<Scalars['Float']>
+	metric_exclusion_query?: InputMaybe<Scalars['String']>
+	metric_minute_rate_limit?: InputMaybe<Scalars['Int64']>
+	metric_sampling_rate?: InputMaybe<Scalars['Float']>
 	session_exclusion_query?: InputMaybe<Scalars['String']>
 	session_minute_rate_limit?: InputMaybe<Scalars['Int64']>
 	session_sampling_rate?: InputMaybe<Scalars['Float']>

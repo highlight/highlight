@@ -407,14 +407,17 @@ type Sampling {
 	error_sampling_rate: Float!
 	log_sampling_rate: Float!
 	trace_sampling_rate: Float!
+	metric_sampling_rate: Float!
 	session_minute_rate_limit: Int64
 	error_minute_rate_limit: Int64
 	log_minute_rate_limit: Int64
 	trace_minute_rate_limit: Int64
+	metric_minute_rate_limit: Int64
 	session_exclusion_query: String
 	error_exclusion_query: String
 	log_exclusion_query: String
 	trace_exclusion_query: String
+	metric_exclusion_query: String
 }
 
 input SamplingInput {
@@ -422,14 +425,17 @@ input SamplingInput {
 	error_sampling_rate: Float
 	log_sampling_rate: Float
 	trace_sampling_rate: Float
+	metric_sampling_rate: Float
 	session_minute_rate_limit: Int64
 	error_minute_rate_limit: Int64
 	log_minute_rate_limit: Int64
 	trace_minute_rate_limit: Int64
+	metric_minute_rate_limit: Int64
 	session_exclusion_query: String
 	error_exclusion_query: String
 	log_exclusion_query: String
 	trace_exclusion_query: String
+	metric_exclusion_query: String
 }
 
 type SocialLink {

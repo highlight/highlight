@@ -17,6 +17,8 @@ const MetricsSummaryTable = "metrics_summary"
 
 type MetricRow interface {
 	GetType() pmetric.MetricType
+	GetProjectID() uint32
+	GetTimestamp() time.Time
 }
 
 type MetricBaseRow struct {
@@ -55,6 +57,12 @@ type MetricSumRow struct {
 func (m *MetricSumRow) GetType() pmetric.MetricType {
 	return m.MetricType
 }
+func (m *MetricSumRow) GetProjectID() uint32 {
+	return m.ProjectID
+}
+func (m *MetricSumRow) GetTimestamp() time.Time {
+	return m.Timestamp
+}
 
 type MetricHistogramRow struct {
 	MetricBaseRow
@@ -72,6 +80,12 @@ type MetricHistogramRow struct {
 func (m *MetricHistogramRow) GetType() pmetric.MetricType {
 	return m.MetricType
 }
+func (m *MetricHistogramRow) GetProjectID() uint32 {
+	return m.ProjectID
+}
+func (m *MetricHistogramRow) GetTimestamp() time.Time {
+	return m.Timestamp
+}
 
 type MetricSummaryRow struct {
 	MetricBaseRow
@@ -84,6 +98,12 @@ type MetricSummaryRow struct {
 
 func (m *MetricSummaryRow) GetType() pmetric.MetricType {
 	return m.MetricType
+}
+func (m *MetricSummaryRow) GetProjectID() uint32 {
+	return m.ProjectID
+}
+func (m *MetricSummaryRow) GetTimestamp() time.Time {
+	return m.Timestamp
 }
 
 func (client *Client) BatchWriteMetricRows(ctx context.Context, metricRows []MetricRow) error {

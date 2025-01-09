@@ -1223,6 +1223,9 @@ type ComplexityRoot struct {
 		LogExclusionQuery      func(childComplexity int) int
 		LogMinuteRateLimit     func(childComplexity int) int
 		LogSamplingRate        func(childComplexity int) int
+		MetricExclusionQuery   func(childComplexity int) int
+		MetricMinuteRateLimit  func(childComplexity int) int
+		MetricSamplingRate     func(childComplexity int) int
 		SessionExclusionQuery  func(childComplexity int) int
 		SessionMinuteRateLimit func(childComplexity int) int
 		SessionSamplingRate    func(childComplexity int) int
@@ -9283,6 +9286,27 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Sampling.LogSamplingRate(childComplexity), true
 
+	case "Sampling.metric_exclusion_query":
+		if e.complexity.Sampling.MetricExclusionQuery == nil {
+			break
+		}
+
+		return e.complexity.Sampling.MetricExclusionQuery(childComplexity), true
+
+	case "Sampling.metric_minute_rate_limit":
+		if e.complexity.Sampling.MetricMinuteRateLimit == nil {
+			break
+		}
+
+		return e.complexity.Sampling.MetricMinuteRateLimit(childComplexity), true
+
+	case "Sampling.metric_sampling_rate":
+		if e.complexity.Sampling.MetricSamplingRate == nil {
+			break
+		}
+
+		return e.complexity.Sampling.MetricSamplingRate(childComplexity), true
+
 	case "Sampling.session_exclusion_query":
 		if e.complexity.Sampling.SessionExclusionQuery == nil {
 			break
@@ -12256,14 +12280,17 @@ type Sampling {
 	error_sampling_rate: Float!
 	log_sampling_rate: Float!
 	trace_sampling_rate: Float!
+	metric_sampling_rate: Float!
 	session_minute_rate_limit: Int64
 	error_minute_rate_limit: Int64
 	log_minute_rate_limit: Int64
 	trace_minute_rate_limit: Int64
+	metric_minute_rate_limit: Int64
 	session_exclusion_query: String
 	error_exclusion_query: String
 	log_exclusion_query: String
 	trace_exclusion_query: String
+	metric_exclusion_query: String
 }
 
 input SamplingInput {
@@ -12271,14 +12298,17 @@ input SamplingInput {
 	error_sampling_rate: Float
 	log_sampling_rate: Float
 	trace_sampling_rate: Float
+	metric_sampling_rate: Float
 	session_minute_rate_limit: Int64
 	error_minute_rate_limit: Int64
 	log_minute_rate_limit: Int64
 	trace_minute_rate_limit: Int64
+	metric_minute_rate_limit: Int64
 	session_exclusion_query: String
 	error_exclusion_query: String
 	log_exclusion_query: String
 	trace_exclusion_query: String
+	metric_exclusion_query: String
 }
 
 type SocialLink {
@@ -27492,6 +27522,8 @@ func (ec *executionContext) fieldContext_AllProjectSettings_sampling(ctx context
 				return ec.fieldContext_Sampling_log_sampling_rate(ctx, field)
 			case "trace_sampling_rate":
 				return ec.fieldContext_Sampling_trace_sampling_rate(ctx, field)
+			case "metric_sampling_rate":
+				return ec.fieldContext_Sampling_metric_sampling_rate(ctx, field)
 			case "session_minute_rate_limit":
 				return ec.fieldContext_Sampling_session_minute_rate_limit(ctx, field)
 			case "error_minute_rate_limit":
@@ -27500,6 +27532,8 @@ func (ec *executionContext) fieldContext_AllProjectSettings_sampling(ctx context
 				return ec.fieldContext_Sampling_log_minute_rate_limit(ctx, field)
 			case "trace_minute_rate_limit":
 				return ec.fieldContext_Sampling_trace_minute_rate_limit(ctx, field)
+			case "metric_minute_rate_limit":
+				return ec.fieldContext_Sampling_metric_minute_rate_limit(ctx, field)
 			case "session_exclusion_query":
 				return ec.fieldContext_Sampling_session_exclusion_query(ctx, field)
 			case "error_exclusion_query":
@@ -27508,6 +27542,8 @@ func (ec *executionContext) fieldContext_AllProjectSettings_sampling(ctx context
 				return ec.fieldContext_Sampling_log_exclusion_query(ctx, field)
 			case "trace_exclusion_query":
 				return ec.fieldContext_Sampling_trace_exclusion_query(ctx, field)
+			case "metric_exclusion_query":
+				return ec.fieldContext_Sampling_metric_exclusion_query(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Sampling", field.Name)
 		},
@@ -67544,6 +67580,50 @@ func (ec *executionContext) fieldContext_Sampling_trace_sampling_rate(ctx contex
 	return fc, nil
 }
 
+func (ec *executionContext) _Sampling_metric_sampling_rate(ctx context.Context, field graphql.CollectedField, obj *model.Sampling) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Sampling_metric_sampling_rate(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.MetricSamplingRate, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(float64)
+	fc.Result = res
+	return ec.marshalNFloat2float64(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Sampling_metric_sampling_rate(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Sampling",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Float does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Sampling_session_minute_rate_limit(ctx context.Context, field graphql.CollectedField, obj *model.Sampling) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Sampling_session_minute_rate_limit(ctx, field)
 	if err != nil {
@@ -67708,6 +67788,47 @@ func (ec *executionContext) fieldContext_Sampling_trace_minute_rate_limit(ctx co
 	return fc, nil
 }
 
+func (ec *executionContext) _Sampling_metric_minute_rate_limit(ctx context.Context, field graphql.CollectedField, obj *model.Sampling) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Sampling_metric_minute_rate_limit(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.MetricMinuteRateLimit, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*int64)
+	fc.Result = res
+	return ec.marshalOInt642ᚖint64(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Sampling_metric_minute_rate_limit(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Sampling",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int64 does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Sampling_session_exclusion_query(ctx context.Context, field graphql.CollectedField, obj *model.Sampling) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Sampling_session_exclusion_query(ctx, field)
 	if err != nil {
@@ -67860,6 +67981,47 @@ func (ec *executionContext) _Sampling_trace_exclusion_query(ctx context.Context,
 }
 
 func (ec *executionContext) fieldContext_Sampling_trace_exclusion_query(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Sampling",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Sampling_metric_exclusion_query(ctx context.Context, field graphql.CollectedField, obj *model.Sampling) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Sampling_metric_exclusion_query(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.MetricExclusionQuery, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Sampling_metric_exclusion_query(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "Sampling",
 		Field:      field,
@@ -86186,7 +86348,7 @@ func (ec *executionContext) unmarshalInputSamplingInput(ctx context.Context, obj
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"session_sampling_rate", "error_sampling_rate", "log_sampling_rate", "trace_sampling_rate", "session_minute_rate_limit", "error_minute_rate_limit", "log_minute_rate_limit", "trace_minute_rate_limit", "session_exclusion_query", "error_exclusion_query", "log_exclusion_query", "trace_exclusion_query"}
+	fieldsInOrder := [...]string{"session_sampling_rate", "error_sampling_rate", "log_sampling_rate", "trace_sampling_rate", "metric_sampling_rate", "session_minute_rate_limit", "error_minute_rate_limit", "log_minute_rate_limit", "trace_minute_rate_limit", "metric_minute_rate_limit", "session_exclusion_query", "error_exclusion_query", "log_exclusion_query", "trace_exclusion_query", "metric_exclusion_query"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -86221,6 +86383,13 @@ func (ec *executionContext) unmarshalInputSamplingInput(ctx context.Context, obj
 				return it, err
 			}
 			it.TraceSamplingRate = data
+		case "metric_sampling_rate":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("metric_sampling_rate"))
+			data, err := ec.unmarshalOFloat2ᚖfloat64(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.MetricSamplingRate = data
 		case "session_minute_rate_limit":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("session_minute_rate_limit"))
 			data, err := ec.unmarshalOInt642ᚖint64(ctx, v)
@@ -86249,6 +86418,13 @@ func (ec *executionContext) unmarshalInputSamplingInput(ctx context.Context, obj
 				return it, err
 			}
 			it.TraceMinuteRateLimit = data
+		case "metric_minute_rate_limit":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("metric_minute_rate_limit"))
+			data, err := ec.unmarshalOInt642ᚖint64(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.MetricMinuteRateLimit = data
 		case "session_exclusion_query":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("session_exclusion_query"))
 			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
@@ -86277,6 +86453,13 @@ func (ec *executionContext) unmarshalInputSamplingInput(ctx context.Context, obj
 				return it, err
 			}
 			it.TraceExclusionQuery = data
+		case "metric_exclusion_query":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("metric_exclusion_query"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.MetricExclusionQuery = data
 		}
 	}
 
@@ -97947,6 +98130,11 @@ func (ec *executionContext) _Sampling(ctx context.Context, sel ast.SelectionSet,
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
+		case "metric_sampling_rate":
+			out.Values[i] = ec._Sampling_metric_sampling_rate(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
 		case "session_minute_rate_limit":
 			out.Values[i] = ec._Sampling_session_minute_rate_limit(ctx, field, obj)
 		case "error_minute_rate_limit":
@@ -97955,6 +98143,8 @@ func (ec *executionContext) _Sampling(ctx context.Context, sel ast.SelectionSet,
 			out.Values[i] = ec._Sampling_log_minute_rate_limit(ctx, field, obj)
 		case "trace_minute_rate_limit":
 			out.Values[i] = ec._Sampling_trace_minute_rate_limit(ctx, field, obj)
+		case "metric_minute_rate_limit":
+			out.Values[i] = ec._Sampling_metric_minute_rate_limit(ctx, field, obj)
 		case "session_exclusion_query":
 			out.Values[i] = ec._Sampling_session_exclusion_query(ctx, field, obj)
 		case "error_exclusion_query":
@@ -97963,6 +98153,8 @@ func (ec *executionContext) _Sampling(ctx context.Context, sel ast.SelectionSet,
 			out.Values[i] = ec._Sampling_log_exclusion_query(ctx, field, obj)
 		case "trace_exclusion_query":
 			out.Values[i] = ec._Sampling_trace_exclusion_query(ctx, field, obj)
+		case "metric_exclusion_query":
+			out.Values[i] = ec._Sampling_metric_exclusion_query(ctx, field, obj)
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}

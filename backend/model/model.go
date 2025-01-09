@@ -443,14 +443,17 @@ type ProjectFilterSettings struct {
 	ErrorSamplingRate                 float64 `gorm:"default:1"`
 	LogSamplingRate                   float64 `gorm:"default:1"`
 	TraceSamplingRate                 float64 `gorm:"default:1"`
+	MetricSamplingRate                float64 `gorm:"default:1"`
 	SessionMinuteRateLimit            *int64
 	ErrorMinuteRateLimit              *int64
 	LogMinuteRateLimit                *int64
 	TraceMinuteRateLimit              *int64
+	MetricMinuteRateLimit             *int64
 	SessionExclusionQuery             *string
 	ErrorExclusionQuery               *string
 	LogExclusionQuery                 *string
 	TraceExclusionQuery               *string
+	MetricExclusionQuery              *string
 }
 
 type AllWorkspaceSettings struct {
