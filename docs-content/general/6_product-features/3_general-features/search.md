@@ -152,4 +152,4 @@ See the links below for more details on searching in specific parts of the produ
 * [Error search](../2_error-monitoring/error-search.md)
 * [Log Search](../4_logging/log-search.md)
 * [Trace Search](../5_tracing/trace-search.md)
-* [Event search](../6_metrics/5_event-search.md)
+* [Event search](../6_dashboards/5_event-search.md)
