@@ -14,6 +14,7 @@ import {
 	IconSolidInformationCircle,
 	IconSolidLightningBolt,
 	IconSolidLogs,
+	IconSolidMetrics,
 	IconSolidPencil,
 	IconSolidPlayCircle,
 	IconSolidTraces,
@@ -830,8 +831,7 @@ const BillingPageV2 = ({}: BillingPageProps) => {
 							includedQuantity: includedTraces,
 						},
 						{
-							// TODO(vkorolik) update icon
-							icon: <IconSolidTraces />,
+							icon: <IconSolidMetrics />,
 							productType: ProductType.Metrics,
 							rate: metricsRate,
 							retentionPeriod: metricsRetention,

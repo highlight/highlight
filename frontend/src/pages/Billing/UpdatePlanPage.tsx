@@ -17,6 +17,7 @@ import {
 	IconSolidInformationCircle,
 	IconSolidLightningBolt,
 	IconSolidLogs,
+	IconSolidMetrics,
 	IconSolidOfficeBuilding,
 	IconSolidPlayCircle,
 	IconSolidPlus,
@@ -1075,8 +1076,7 @@ const UpdatePlanPage = ({
 					<Box borderBottom="divider" />
 					<ProductCard
 						productIcon={
-							/*TODO(vkorolik) update icon*/
-							<IconSolidTraces
+							<IconSolidMetrics
 								color={vars.theme.static.content.weak}
 							/>
 						}

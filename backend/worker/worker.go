@@ -456,7 +456,6 @@ func (w *Worker) PublicWorker(ctx context.Context, topic kafkaqueue.TopicType) {
 		QueueSize:    sys.DataSyncQueueSize,
 		FlushTimeout: sys.DataSyncTimeout,
 	}
-	// TODO(vkorolik) try replace with kafka connect
 	workers := []WorkerConfig{mainConfig, logsConfig, tracesConfig, dataSyncConfig}
 	for _, tp := range []kafkaqueue.TopicType{
 		kafkaqueue.TopicTypeMetricSum,
