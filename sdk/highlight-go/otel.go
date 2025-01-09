@@ -5,20 +5,16 @@ import (
 	"encoding/base64"
 	"encoding/binary"
 	"fmt"
-	"go.opentelemetry.io/otel/exporters/otlp/otlplog/otlploghttp"
-	"go.opentelemetry.io/otel/exporters/otlp/otlpmetric/otlpmetrichttp"
-	"go.opentelemetry.io/otel/metric"
-	"net/url"
-	"reflect"
-	"strings"
-	"time"
-
 	"github.com/pkg/errors"
 	"github.com/samber/lo"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"
+	"go.opentelemetry.io/otel/exporters/otlp/otlplog/otlploghttp"
+	"go.opentelemetry.io/otel/exporters/otlp/otlpmetric/otlpmetrichttp"
 	"go.opentelemetry.io/otel/exporters/otlp/otlptrace"
 	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracehttp"
+	"go.opentelemetry.io/otel/log"
+	"go.opentelemetry.io/otel/metric"
 	"go.opentelemetry.io/otel/propagation"
 	sdklog "go.opentelemetry.io/otel/sdk/log"
 	sdkmetric "go.opentelemetry.io/otel/sdk/metric"
@@ -26,6 +22,10 @@ import (
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
 	semconv "go.opentelemetry.io/otel/semconv/v1.25.0"
 	"go.opentelemetry.io/otel/trace"
+	"net/url"
+	"reflect"
+	"strings"
+	"time"
 )
 
 const OTLPDefaultEndpoint = "https://otel.highlight.io:4318"
@@ -145,6 +145,16 @@ func getOTLPOptions(endpoint string) (traceOpts []otlptracehttp.Option, logOpts 
 	logOpts = append(logOpts, otlploghttp.WithCompression(otlploghttp.GzipCompression))
 	metricOpts = append(metricOpts, otlpmetrichttp.WithCompression(otlpmetrichttp.GzipCompression))
 	return
+}
+
+func getTraceID(requestID string) trace.TraceID {
+	tid, err := trace.TraceIDFromHex(requestID)
+	if err != nil {
+		data, _ := base64.StdEncoding.DecodeString(requestID)
+		hex := fmt.Sprintf("%032x", data)
+		tid, _ = trace.TraceIDFromHex(hex)
+	}
+	return tid
 }
 
 func CreateTracerProvider(ctx context.Context, endpoint string, opts ...sdktrace.TracerProviderOption) (*sdktrace.TracerProvider, error) {
@@ -320,12 +330,7 @@ func StartTraceWithTracer(ctx context.Context, tracer trace.Tracer, name string,
 	spanCtx := trace.SpanContextFromContext(ctx)
 	if requestID != "" {
 		// try parse the requestID as hex; fall back to parsing as base64
-		tid, err := trace.TraceIDFromHex(requestID)
-		if err != nil {
-			data, _ := base64.StdEncoding.DecodeString(requestID)
-			hex := fmt.Sprintf("%032x", data)
-			tid, _ = trace.TraceIDFromHex(hex)
-		}
+		tid := getTraceID(requestID)
 		spanCtx = spanCtx.WithTraceID(tid)
 	}
 	opts = append(opts, trace.WithTimestamp(t))
@@ -360,12 +365,7 @@ func RecordGaugeWithMeter(ctx context.Context, meter metric.Meter, name string, 
 	spanCtx := trace.SpanContextFromContext(ctx)
 	if requestID != "" {
 		// try parse the requestID as hex; fall back to parsing as base64
-		tid, err := trace.TraceIDFromHex(requestID)
-		if err != nil {
-			data, _ := base64.StdEncoding.DecodeString(requestID)
-			hex := fmt.Sprintf("%032x", data)
-			tid, _ = trace.TraceIDFromHex(hex)
-		}
+		tid := getTraceID(requestID)
 		spanCtx = spanCtx.WithTraceID(tid)
 	}
 	gauge, err := meter.Float64Gauge(name)
@@ -381,7 +381,7 @@ func RecordGaugeWithMeter(ctx context.Context, meter metric.Meter, name string, 
 	opts = append(opts, metric.WithAttributes(
 		tags...,
 	))
-	gauge.Record(ctx, value, opts...)
+	gauge.Record(trace.ContextWithSpanContext(ctx, spanCtx), value, opts...)
 	return nil
 }
 
@@ -396,6 +396,35 @@ func RecordMetric(ctx context.Context, name string, value float64, tags ...attri
 		metric.WithInstrumentationVersion("v0.1.0"),
 		metric.WithSchemaURL(semconv.SchemaURL),
 	), name, value, nil, tags...)
+}
+
+func RecordLogWithLogger(ctx context.Context, lg log.Logger, record log.Record, tags ...log.KeyValue) error {
+	sessionID, requestID, _ := validateRequest(ctx)
+	spanCtx := trace.SpanContextFromContext(ctx)
+	if requestID != "" {
+		// try parse the requestID as hex; fall back to parsing as base64
+		tid := getTraceID(requestID)
+		spanCtx = spanCtx.WithTraceID(tid)
+	}
+	// prioritize values passed in tags for project, session, request ids
+	tags = append([]log.KeyValue{
+		log.String(SessionIDAttribute, sessionID),
+		log.String(RequestIDAttribute, requestID)},
+		tags...,
+	)
+	record.AddAttributes()
+	lg.Emit(trace.ContextWithSpanContext(ctx, spanCtx), record)
+	return nil
+}
+
+// RecordLog is used to record arbitrary logs in your golang backend.
+// This function is under active development as the OpenTelemetry logging API is still in beta.
+func RecordLog(ctx context.Context, record log.Record, tags ...log.KeyValue) error {
+	return RecordLogWithLogger(ctx, defaultLoggerProvider.Logger(
+		"github.com/highlight/highlight/sdk/highlight-go",
+		log.WithInstrumentationVersion("v0.1.0"),
+		log.WithSchemaURL(semconv.SchemaURL),
+	), record, tags...)
 }
 
 // RecordError processes `err` to be recorded as a part of the session or network request.
