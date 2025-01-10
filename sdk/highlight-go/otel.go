@@ -412,7 +412,7 @@ func RecordLogWithLogger(ctx context.Context, lg log.Logger, record log.Record, 
 		log.String(RequestIDAttribute, requestID)},
 		tags...,
 	)
-	record.AddAttributes()
+	record.AddAttributes(tags...)
 	lg.Emit(trace.ContextWithSpanContext(ctx, spanCtx), record)
 	return nil
 }
