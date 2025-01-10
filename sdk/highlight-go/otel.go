@@ -402,9 +402,9 @@ func getMetricContext(ctx context.Context, opts []metric.RecordOption, tags ...a
 	return trace.ContextWithSpanContext(ctx, spanCtx), tags
 }
 
-var float64Gauges = make(map[string]metric.Float64Gauge)
-var float64Histograms = make(map[string]metric.Float64Histogram)
-var int64Counters = make(map[string]metric.Int64Counter)
+var float64Gauges = make(map[string]metric.Float64Gauge, 1000)
+var float64Histograms = make(map[string]metric.Float64Histogram, 1000)
+var int64Counters = make(map[string]metric.Int64Counter, 1000)
 
 // RecordMetric is used to record arbitrary metrics in your golang backend.
 // Highlight will process these metrics in the context of your session and expose them
@@ -412,7 +412,7 @@ var int64Counters = make(map[string]metric.Int64Counter)
 // as a metric that you would like to graph and monitor. You'll be able to view the metric
 // in the context of the session and network request and recorded it.
 func RecordMetric(ctx context.Context, name string, value float64, tags ...attribute.KeyValue) {
-	if _, ok := float64Gauges[name]; !ok {
+	if g := float64Gauges[name]; g == nil {
 		var err error
 		float64Gauges[name], err = defaultMeter.Float64Gauge(name)
 		if err != nil {
@@ -425,7 +425,7 @@ func RecordMetric(ctx context.Context, name string, value float64, tags ...attri
 }
 
 func RecordHistogram(ctx context.Context, name string, value float64, tags ...attribute.KeyValue) {
-	if _, ok := float64Histograms[name]; !ok {
+	if h := float64Histograms[name]; h == nil {
 		var err error
 		float64Histograms[name], err = defaultMeter.Float64Histogram(name)
 		if err != nil {
@@ -438,7 +438,7 @@ func RecordHistogram(ctx context.Context, name string, value float64, tags ...at
 }
 
 func RecordCount(ctx context.Context, name string, value int64, tags ...attribute.KeyValue) {
-	if _, ok := int64Counters[name]; !ok {
+	if c := int64Counters[name]; c == nil {
 		var err error
 		int64Counters[name], err = defaultMeter.Int64Counter(name)
 		if err != nil {
