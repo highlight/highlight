@@ -937,7 +937,7 @@ func (o *Handler) getProjectRetention(ctx context.Context, projectID int) uint8 
 			return nil, err
 		}
 
-		hours := time.Now().Sub(privateGraph.GetRetentionDate(ws.MetricsRetentionPeriod)).Hours()
+		hours := time.Since(privateGraph.GetRetentionDate(ws.MetricsRetentionPeriod)).Hours()
 		days := math.Round(hours / 24.)
 		return ptr.Uint8(uint8(days)), nil
 	})

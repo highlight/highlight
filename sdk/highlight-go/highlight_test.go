@@ -64,8 +64,7 @@ func TestRecordMetric(t *testing.T) {
 	for name, input := range tests {
 		t.Run(name, func(t *testing.T) {
 			Start()
-			err := RecordMetric(input.contextInput, input.metricInput.name, input.metricInput.value)
-			assert.NoError(t, err)
+			RecordMetric(input.contextInput, input.metricInput.name, input.metricInput.value)
 		})
 	}
 	Stop()

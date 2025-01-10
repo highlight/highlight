@@ -3,7 +3,6 @@ package hmetric
 import (
 	"context"
 	"github.com/highlight/highlight/sdk/highlight-go"
-	log "github.com/sirupsen/logrus"
 	"go.opentelemetry.io/otel/attribute"
 	"math"
 	"math/rand"
@@ -15,9 +14,7 @@ func Histogram(ctx context.Context, name string, value float64, tags []attribute
 	if rand.Float64() > math.Min(rate, highlight.GetMetricSamplingRate()) {
 		return
 	}
-	if err := highlight.RecordMetric(ctx, name, value, tags...); err != nil {
-		log.WithContext(ctx).WithError(err).WithField("name", name).WithField("value", value).Error("failed to record histogram")
-	}
+	highlight.RecordMetric(ctx, name, value, tags...)
 }
 
 // Timing sends timing information, it is an alias for TimeInMilliseconds
@@ -26,9 +23,7 @@ func Timing(ctx context.Context, name string, value time.Duration, tags []attrib
 	if rand.Float64() > math.Min(rate, highlight.GetMetricSamplingRate()) {
 		return
 	}
-	if err := highlight.RecordMetric(ctx, name, value.Seconds(), tags...); err != nil {
-		log.WithContext(ctx).WithError(err).WithField("name", name).WithField("value", value).Error("failed to record timing")
-	}
+	highlight.RecordMetric(ctx, name, value.Seconds(), tags...)
 }
 
 // Incr is just Count of 1
@@ -37,9 +32,7 @@ func Incr(ctx context.Context, name string, tags []attribute.KeyValue, rate floa
 	if rand.Float64() > math.Min(rate, highlight.GetMetricSamplingRate()) {
 		return
 	}
-	if err := highlight.RecordMetric(ctx, name, 1, tags...); err != nil {
-		log.WithContext(ctx).WithError(err).WithField("name", name).WithField("value", 1).Error("failed to record incr")
-	}
+	highlight.RecordMetric(ctx, name, 1, tags...)
 }
 
 // Gauge measures the value of a metric at a particular time.
@@ -47,7 +40,5 @@ func Gauge(ctx context.Context, name string, value float64, tags []attribute.Key
 	if rand.Float64() > math.Min(rate, highlight.GetMetricSamplingRate()) {
 		return
 	}
-	if err := highlight.RecordMetric(ctx, name, value, tags...); err != nil {
-		log.WithContext(ctx).WithError(err).WithField("name", name).WithField("value", value).Error("failed to record gauge")
-	}
+	highlight.RecordMetric(ctx, name, value, tags...)
 }

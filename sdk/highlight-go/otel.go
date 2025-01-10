@@ -360,7 +360,7 @@ func EndTrace(span trace.Span) {
 	span.End(trace.WithStackTrace(true))
 }
 
-func RecordGaugeWithMeter(ctx context.Context, meter metric.Meter, name string, value float64, opts []metric.RecordOption, tags ...attribute.KeyValue) error {
+func RecordGaugeWithMeter(ctx context.Context, meter metric.Meter, name string, value float64, opts []metric.RecordOption, tags ...attribute.KeyValue) {
 	sessionID, requestID, _ := validateRequest(ctx)
 	spanCtx := trace.SpanContextFromContext(ctx)
 	if requestID != "" {
@@ -370,7 +370,8 @@ func RecordGaugeWithMeter(ctx context.Context, meter metric.Meter, name string, 
 	}
 	gauge, err := meter.Float64Gauge(name)
 	if err != nil {
-		return err
+		fmt.Printf("error creating float64 gauge %s: %v", name, err)
+		return
 	}
 	// prioritize values passed in tags for project, session, request ids
 	tags = append([]attribute.KeyValue{
@@ -382,7 +383,6 @@ func RecordGaugeWithMeter(ctx context.Context, meter metric.Meter, name string, 
 		tags...,
 	))
 	gauge.Record(trace.ContextWithSpanContext(ctx, spanCtx), value, opts...)
-	return nil
 }
 
 // RecordMetric is used to record arbitrary metrics in your golang backend.
@@ -390,8 +390,8 @@ func RecordGaugeWithMeter(ctx context.Context, meter metric.Meter, name string, 
 // through dashboards. For example, you may want to record the latency of a DB query
 // as a metric that you would like to graph and monitor. You'll be able to view the metric
 // in the context of the session and network request and recorded it.
-func RecordMetric(ctx context.Context, name string, value float64, tags ...attribute.KeyValue) error {
-	return RecordGaugeWithMeter(ctx, defaultMeterProvider.Meter(
+func RecordMetric(ctx context.Context, name string, value float64, tags ...attribute.KeyValue) {
+	RecordGaugeWithMeter(ctx, defaultMeterProvider.Meter(
 		"github.com/highlight/highlight/sdk/highlight-go",
 		metric.WithInstrumentationVersion("v0.1.0"),
 		metric.WithSchemaURL(semconv.SchemaURL),
