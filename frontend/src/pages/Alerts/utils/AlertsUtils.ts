@@ -9,16 +9,9 @@ import {
 	FREQUENCIES,
 } from '@/pages/Alerts/AlertConfigurationCard/AlertConfigurationConstants'
 
-export interface EnvironmentSuggestion {
-	name: string
-	value: string
-}
-
-export const dedupeEnvironments = (
-	environmentsFromApi: EnvironmentSuggestion[],
-) => {
+export const dedupeEnvironments = (environmentsFromApi: string[]) => {
 	const allEnvironments = new Set([
-		...environmentsFromApi.map(({ value }) => value),
+		...environmentsFromApi,
 		...DEFAULT_HIGHLIGHT_ENVIRONMENTS,
 	])
 

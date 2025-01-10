@@ -3347,45 +3347,6 @@ export type GetErrorInstanceQuery = { __typename?: 'Query' } & {
 	>
 }
 
-export type GetResourcesQueryVariables = Types.Exact<{
-	session_secure_id: Types.Scalars['String']
-}>
-
-export type GetResourcesQuery = { __typename?: 'Query' } & Pick<
-	Types.Query,
-	'resources'
->
-
-export type GetFieldSuggestionQueryVariables = Types.Exact<{
-	project_id: Types.Scalars['ID']
-	name: Types.Scalars['String']
-	query: Types.Scalars['String']
-}>
-
-export type GetFieldSuggestionQuery = { __typename?: 'Query' } & {
-	field_suggestion?: Types.Maybe<
-		Array<
-			Types.Maybe<
-				{ __typename?: 'Field' } & Pick<Types.Field, 'name' | 'value'>
-			>
-		>
-	>
-}
-
-export type GetEnvironmentsQueryVariables = Types.Exact<{
-	project_id: Types.Scalars['ID']
-}>
-
-export type GetEnvironmentsQuery = { __typename?: 'Query' } & {
-	environment_suggestion?: Types.Maybe<
-		Array<
-			Types.Maybe<
-				{ __typename?: 'Field' } & Pick<Types.Field, 'name' | 'value'>
-			>
-		>
-	>
-}
-
 export type GetProjectSuggestionQueryVariables = Types.Exact<{
 	query: Types.Scalars['String']
 }>
@@ -3396,54 +3357,6 @@ export type GetProjectSuggestionQuery = { __typename?: 'Query' } & {
 			{ __typename?: 'Project' } & Pick<
 				Types.Project,
 				'id' | 'name' | 'workspace_id'
-			>
-		>
-	>
-}
-
-export type GetSessionSearchResultsQueryVariables = Types.Exact<{
-	project_id: Types.Scalars['ID']
-	query: Types.Scalars['String']
-}>
-
-export type GetSessionSearchResultsQuery = { __typename?: 'Query' } & {
-	trackProperties?: Types.Maybe<
-		Array<
-			Types.Maybe<
-				{ __typename?: 'Field' } & Pick<
-					Types.Field,
-					'id' | 'name' | 'value'
-				>
-			>
-		>
-	>
-	userProperties?: Types.Maybe<
-		Array<
-			Types.Maybe<
-				{ __typename?: 'Field' } & Pick<
-					Types.Field,
-					'id' | 'name' | 'value'
-				>
-			>
-		>
-	>
-	visitedUrls?: Types.Maybe<
-		Array<
-			Types.Maybe<
-				{ __typename?: 'Field' } & Pick<
-					Types.Field,
-					'id' | 'name' | 'value'
-				>
-			>
-		>
-	>
-	referrers?: Types.Maybe<
-		Array<
-			Types.Maybe<
-				{ __typename?: 'Field' } & Pick<
-					Types.Field,
-					'id' | 'name' | 'value'
-				>
 			>
 		>
 	>
@@ -4085,220 +3998,218 @@ export type GetAlertsPagePayloadQueryVariables = Types.Exact<{
 	project_id: Types.Scalars['ID']
 }>
 
-export type GetAlertsPagePayloadQuery = { __typename?: 'Query' } & {
-	is_integrated_with_slack: Types.Query['is_integrated_with']
-	is_integrated_with_discord: Types.Query['is_integrated_with']
-	is_integrated_with_microsoft_teams: Types.Query['is_integrated_with']
-} & {
-	slack_channel_suggestion: Array<
-		{ __typename?: 'SanitizedSlackChannel' } & Pick<
-			Types.SanitizedSlackChannel,
-			'webhook_channel' | 'webhook_channel_id'
-		>
-	>
-	discord_channel_suggestions: Array<
-		{ __typename?: 'DiscordChannel' } & DiscordChannelFragmentFragment
-	>
-	microsoft_teams_channel_suggestions: Array<
-		{
-			__typename?: 'MicrosoftTeamsChannel'
-		} & MicrosoftTeamsChannelFragmentFragment
-	>
-	admins: Array<
-		{ __typename?: 'WorkspaceAdminRole' } & Pick<
-			Types.WorkspaceAdminRole,
-			'workspaceId'
-		> & {
-				admin: { __typename?: 'Admin' } & Pick<
-					Types.Admin,
-					'id' | 'name' | 'email' | 'photo_url'
-				>
-			}
-	>
-	environment_suggestion?: Types.Maybe<
-		Array<
-			Types.Maybe<
-				{ __typename?: 'Field' } & Pick<Types.Field, 'name' | 'value'>
+export type GetAlertsPagePayloadQuery = { __typename?: 'Query' } & Pick<
+	Types.Query,
+	'environment_suggestion'
+> & {
+		is_integrated_with_slack: Types.Query['is_integrated_with']
+		is_integrated_with_discord: Types.Query['is_integrated_with']
+		is_integrated_with_microsoft_teams: Types.Query['is_integrated_with']
+	} & {
+		slack_channel_suggestion: Array<
+			{ __typename?: 'SanitizedSlackChannel' } & Pick<
+				Types.SanitizedSlackChannel,
+				'webhook_channel' | 'webhook_channel_id'
 			>
 		>
-	>
-	error_alerts: Array<
-		Types.Maybe<
-			{ __typename?: 'ErrorAlert' } & Pick<
-				Types.ErrorAlert,
-				| 'EmailsToNotify'
-				| 'updated_at'
-				| 'CountThreshold'
-				| 'LastAdminToEditID'
-				| 'ThresholdWindow'
-				| 'RegexGroups'
-				| 'Frequency'
-				| 'id'
-				| 'Type'
-				| 'Name'
-				| 'DailyFrequency'
-				| 'disabled'
-				| 'default'
-				| 'Query'
+		discord_channel_suggestions: Array<
+			{ __typename?: 'DiscordChannel' } & DiscordChannelFragmentFragment
+		>
+		microsoft_teams_channel_suggestions: Array<
+			{
+				__typename?: 'MicrosoftTeamsChannel'
+			} & MicrosoftTeamsChannelFragmentFragment
+		>
+		admins: Array<
+			{ __typename?: 'WorkspaceAdminRole' } & Pick<
+				Types.WorkspaceAdminRole,
+				'workspaceId'
 			> & {
-					ChannelsToNotify: Array<
-						Types.Maybe<
-							{ __typename?: 'SanitizedSlackChannel' } & Pick<
-								Types.SanitizedSlackChannel,
-								'webhook_channel' | 'webhook_channel_id'
-							>
-						>
-					>
-					DiscordChannelsToNotify: Array<
-						{
-							__typename?: 'DiscordChannel'
-						} & DiscordChannelFragmentFragment
-					>
-					MicrosoftTeamsChannelsToNotify: Array<
-						{
-							__typename?: 'MicrosoftTeamsChannel'
-						} & MicrosoftTeamsChannelFragmentFragment
-					>
-					WebhookDestinations: Array<
-						{ __typename?: 'WebhookDestination' } & Pick<
-							Types.WebhookDestination,
-							'url' | 'authorization'
-						>
+					admin: { __typename?: 'Admin' } & Pick<
+						Types.Admin,
+						'id' | 'name' | 'email' | 'photo_url'
 					>
 				}
 		>
-	>
-	new_session_alerts: Array<
-		Types.Maybe<
-			{ __typename?: 'SessionAlert' } & SessionAlertFragmentFragment
+		error_alerts: Array<
+			Types.Maybe<
+				{ __typename?: 'ErrorAlert' } & Pick<
+					Types.ErrorAlert,
+					| 'EmailsToNotify'
+					| 'updated_at'
+					| 'CountThreshold'
+					| 'LastAdminToEditID'
+					| 'ThresholdWindow'
+					| 'RegexGroups'
+					| 'Frequency'
+					| 'id'
+					| 'Type'
+					| 'Name'
+					| 'DailyFrequency'
+					| 'disabled'
+					| 'default'
+					| 'Query'
+				> & {
+						ChannelsToNotify: Array<
+							Types.Maybe<
+								{ __typename?: 'SanitizedSlackChannel' } & Pick<
+									Types.SanitizedSlackChannel,
+									'webhook_channel' | 'webhook_channel_id'
+								>
+							>
+						>
+						DiscordChannelsToNotify: Array<
+							{
+								__typename?: 'DiscordChannel'
+							} & DiscordChannelFragmentFragment
+						>
+						MicrosoftTeamsChannelsToNotify: Array<
+							{
+								__typename?: 'MicrosoftTeamsChannel'
+							} & MicrosoftTeamsChannelFragmentFragment
+						>
+						WebhookDestinations: Array<
+							{ __typename?: 'WebhookDestination' } & Pick<
+								Types.WebhookDestination,
+								'url' | 'authorization'
+							>
+						>
+					}
+			>
 		>
-	>
-	rage_click_alerts: Array<
-		Types.Maybe<
-			{ __typename?: 'SessionAlert' } & SessionAlertFragmentFragment
-		>
-	>
-	new_user_alerts?: Types.Maybe<
-		Array<
+		new_session_alerts: Array<
 			Types.Maybe<
 				{ __typename?: 'SessionAlert' } & SessionAlertFragmentFragment
 			>
 		>
-	>
-	track_properties_alerts: Array<
-		Types.Maybe<
-			{ __typename?: 'SessionAlert' } & SessionAlertFragmentFragment
+		rage_click_alerts: Array<
+			Types.Maybe<
+				{ __typename?: 'SessionAlert' } & SessionAlertFragmentFragment
+			>
 		>
-	>
-	user_properties_alerts: Array<
-		Types.Maybe<
-			{ __typename?: 'SessionAlert' } & SessionAlertFragmentFragment
+		new_user_alerts?: Types.Maybe<
+			Array<
+				Types.Maybe<
+					{
+						__typename?: 'SessionAlert'
+					} & SessionAlertFragmentFragment
+				>
+			>
 		>
-	>
-	metric_monitors: Array<
-		Types.Maybe<
-			{ __typename?: 'MetricMonitor' } & Pick<
-				Types.MetricMonitor,
-				| 'id'
-				| 'updated_at'
-				| 'name'
-				| 'emails_to_notify'
-				| 'aggregator'
-				| 'period_minutes'
-				| 'metric_to_monitor'
-				| 'last_admin_to_edit_id'
-				| 'threshold'
-				| 'units'
-				| 'disabled'
-			> & {
-					channels_to_notify: Array<
-						Types.Maybe<
+		track_properties_alerts: Array<
+			Types.Maybe<
+				{ __typename?: 'SessionAlert' } & SessionAlertFragmentFragment
+			>
+		>
+		user_properties_alerts: Array<
+			Types.Maybe<
+				{ __typename?: 'SessionAlert' } & SessionAlertFragmentFragment
+			>
+		>
+		metric_monitors: Array<
+			Types.Maybe<
+				{ __typename?: 'MetricMonitor' } & Pick<
+					Types.MetricMonitor,
+					| 'id'
+					| 'updated_at'
+					| 'name'
+					| 'emails_to_notify'
+					| 'aggregator'
+					| 'period_minutes'
+					| 'metric_to_monitor'
+					| 'last_admin_to_edit_id'
+					| 'threshold'
+					| 'units'
+					| 'disabled'
+				> & {
+						channels_to_notify: Array<
+							Types.Maybe<
+								{ __typename?: 'SanitizedSlackChannel' } & Pick<
+									Types.SanitizedSlackChannel,
+									'webhook_channel' | 'webhook_channel_id'
+								>
+							>
+						>
+						discord_channels_to_notify: Array<
+							{ __typename?: 'DiscordChannel' } & Pick<
+								Types.DiscordChannel,
+								'id' | 'name'
+							>
+						>
+						webhook_destinations: Array<
+							{ __typename?: 'WebhookDestination' } & Pick<
+								Types.WebhookDestination,
+								'url' | 'authorization'
+							>
+						>
+						filters?: Types.Maybe<
+							Array<
+								{ __typename?: 'MetricTagFilter' } & Pick<
+									Types.MetricTagFilter,
+									'tag' | 'op' | 'value'
+								>
+							>
+						>
+					}
+			>
+		>
+		log_alerts: Array<
+			Types.Maybe<
+				{ __typename?: 'LogAlert' } & Pick<
+					Types.LogAlert,
+					| 'CountThreshold'
+					| 'DailyFrequency'
+					| 'disabled'
+					| 'default'
+					| 'EmailsToNotify'
+					| 'id'
+					| 'LastAdminToEditID'
+					| 'Name'
+					| 'updated_at'
+					| 'ThresholdWindow'
+					| 'Type'
+					| 'query'
+				> & {
+						ChannelsToNotify: Array<
 							{ __typename?: 'SanitizedSlackChannel' } & Pick<
 								Types.SanitizedSlackChannel,
 								'webhook_channel' | 'webhook_channel_id'
 							>
 						>
-					>
-					discord_channels_to_notify: Array<
-						{ __typename?: 'DiscordChannel' } & Pick<
-							Types.DiscordChannel,
-							'id' | 'name'
+						DiscordChannelsToNotify: Array<
+							{
+								__typename?: 'DiscordChannel'
+							} & DiscordChannelFragmentFragment
 						>
-					>
-					webhook_destinations: Array<
-						{ __typename?: 'WebhookDestination' } & Pick<
-							Types.WebhookDestination,
-							'url' | 'authorization'
+						MicrosoftTeamsChannelsToNotify: Array<
+							{
+								__typename?: 'MicrosoftTeamsChannel'
+							} & MicrosoftTeamsChannelFragmentFragment
 						>
-					>
-					filters?: Types.Maybe<
-						Array<
-							{ __typename?: 'MetricTagFilter' } & Pick<
-								Types.MetricTagFilter,
-								'tag' | 'op' | 'value'
+					}
+			>
+		>
+		alerts: Array<
+			Types.Maybe<
+				{ __typename?: 'Alert' } & Pick<
+					Types.Alert,
+					'id' | 'updated_at' | 'name' | 'product_type' | 'disabled'
+				> & {
+						destinations: Array<
+							Types.Maybe<
+								{ __typename?: 'AlertDestination' } & Pick<
+									Types.AlertDestination,
+									| 'id'
+									| 'destination_type'
+									| 'type_id'
+									| 'type_name'
+								>
 							>
 						>
-					>
-				}
+					}
+			>
 		>
-	>
-	log_alerts: Array<
-		Types.Maybe<
-			{ __typename?: 'LogAlert' } & Pick<
-				Types.LogAlert,
-				| 'CountThreshold'
-				| 'DailyFrequency'
-				| 'disabled'
-				| 'default'
-				| 'EmailsToNotify'
-				| 'id'
-				| 'LastAdminToEditID'
-				| 'Name'
-				| 'updated_at'
-				| 'ThresholdWindow'
-				| 'Type'
-				| 'query'
-			> & {
-					ChannelsToNotify: Array<
-						{ __typename?: 'SanitizedSlackChannel' } & Pick<
-							Types.SanitizedSlackChannel,
-							'webhook_channel' | 'webhook_channel_id'
-						>
-					>
-					DiscordChannelsToNotify: Array<
-						{
-							__typename?: 'DiscordChannel'
-						} & DiscordChannelFragmentFragment
-					>
-					MicrosoftTeamsChannelsToNotify: Array<
-						{
-							__typename?: 'MicrosoftTeamsChannel'
-						} & MicrosoftTeamsChannelFragmentFragment
-					>
-				}
-		>
-	>
-	alerts: Array<
-		Types.Maybe<
-			{ __typename?: 'Alert' } & Pick<
-				Types.Alert,
-				'id' | 'updated_at' | 'name' | 'product_type' | 'disabled'
-			> & {
-					destinations: Array<
-						Types.Maybe<
-							{ __typename?: 'AlertDestination' } & Pick<
-								Types.AlertDestination,
-								| 'id'
-								| 'destination_type'
-								| 'type_id'
-								| 'type_name'
-							>
-						>
-					>
-				}
-		>
-	>
-}
+	}
 
 export type GetAlertQueryVariables = Types.Exact<{
 	id: Types.Scalars['ID']
@@ -5437,11 +5348,7 @@ export const namedOperations = {
 		GetErrorObjectForLog: 'GetErrorObjectForLog' as const,
 		GetErrorObject: 'GetErrorObject' as const,
 		GetErrorInstance: 'GetErrorInstance' as const,
-		GetResources: 'GetResources' as const,
-		GetFieldSuggestion: 'GetFieldSuggestion' as const,
-		GetEnvironments: 'GetEnvironments' as const,
 		GetProjectSuggestion: 'GetProjectSuggestion' as const,
-		GetSessionSearchResults: 'GetSessionSearchResults' as const,
 		GetTrackSuggestion: 'GetTrackSuggestion' as const,
 		GetUserSuggestion: 'GetUserSuggestion' as const,
 		GetSavedSegments: 'GetSavedSegments' as const,

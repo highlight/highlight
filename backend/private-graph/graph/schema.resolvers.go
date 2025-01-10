@@ -21,7 +21,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/DmitriyVTitov/size"
 	"github.com/PaesslerAG/jsonpath"
 	mpeTypes "github.com/aws/aws-sdk-go-v2/service/marketplaceentitlementservice/types"
 	"github.com/aws/aws-sdk-go-v2/service/marketplacemetering"
@@ -5732,37 +5731,6 @@ func (r *queryResolver) Errors(ctx context.Context, sessionSecureID string) ([]*
 	return errorsObj, nil
 }
 
-// Resources is the resolver for the resources field.
-func (r *queryResolver) Resources(ctx context.Context, sessionSecureID string) ([]interface{}, error) {
-	s, err := r.canAdminViewSession(ctx, sessionSecureID)
-	if err != nil {
-		return nil, err
-	}
-
-	s3Resources, err := r.StorageClient.GetRawData(ctx, s.ID, s.ProjectID, model.PayloadTypeResources)
-	if err != nil {
-		return nil, e.Wrap(err, "error retrieving events objects from S3")
-	}
-
-	resources, err := r.Redis.GetResources(ctx, s, s3Resources)
-	if err != nil {
-		return nil, e.Wrap(err, "error getting resources from redis")
-	}
-
-	resourceSize := size.Of(resources)
-	log.WithContext(ctx).WithFields(
-		log.Fields{
-			"size":            resourceSize,
-			"sessionSecureID": sessionSecureID,
-		}).Info("[Resources] Fetched resources size")
-
-	if resourceSize > MaxDownloadSize {
-		return nil, fmt.Errorf("resource size (%v) exceeds max download size", resourceSize)
-	}
-
-	return resources, nil
-}
-
 // WebVitals is the resolver for the web_vitals field.
 func (r *queryResolver) WebVitals(ctx context.Context, sessionSecureID string) ([]*model.Metric, error) {
 	s, err := r.canAdminViewSession(ctx, sessionSecureID)
@@ -7009,25 +6977,6 @@ func (r *queryResolver) UsageHistory(ctx context.Context, workspaceID int, produ
 	}, nil
 }
 
-// FieldSuggestion is the resolver for the field_suggestion field.
-func (r *queryResolver) FieldSuggestion(ctx context.Context, projectID int, name string, query string) ([]*model.Field, error) {
-	fields := []*model.Field{}
-	if _, err := r.isUserInProjectOrDemoProject(ctx, projectID); err != nil {
-		return fields, nil
-	}
-	res := r.DB.WithContext(ctx).Where(&model.Field{Name: name}).
-		Where("project_id = ?", projectID).
-		Where("length(value) > ?", 0).
-		Where("value ILIKE ?", "%"+query+"%").
-		Limit(model.SUGGESTION_LIMIT_CONSTANT).
-		Find(&fields)
-	if err := res.Error; err != nil {
-		log.WithContext(ctx).Error(err)
-		return fields, nil
-	}
-	return fields, nil
-}
-
 // PropertySuggestion is the resolver for the property_suggestion field.
 func (r *queryResolver) PropertySuggestion(ctx context.Context, projectID int, query string, typeArg string) ([]*model.Field, error) {
 	if _, err := r.isUserInProjectOrDemoProject(ctx, projectID); err != nil {
@@ -7356,20 +7305,12 @@ func (r *queryResolver) ProjectSuggestion(ctx context.Context, query string) ([]
 }
 
 // EnvironmentSuggestion is the resolver for the environment_suggestion field.
-func (r *queryResolver) EnvironmentSuggestion(ctx context.Context, projectID int) ([]*model.Field, error) {
+func (r *queryResolver) EnvironmentSuggestion(ctx context.Context, projectID int) ([]string, error) {
 	if _, err := r.isUserInProjectOrDemoProject(ctx, projectID); err != nil {
 		return nil, err
 	}
-	fields := []*model.Field{}
-	res := r.DB.WithContext(ctx).Where(&model.Field{Type: "session", Name: "environment"}).
-		Where("project_id = ?", projectID).
-		Where("length(value) > ?", 0).
-		Distinct("value").
-		Find(&fields)
-	if err := res.Error; err != nil {
-		return nil, e.Wrap(err, "error querying field suggestion")
-	}
-	return fields, nil
+
+	return r.ClickhouseClient.SessionsKeyValues(ctx, projectID, "environment", time.Now().AddDate(0, -1, 0), time.Now(), nil, nil)
 }
 
 // IdentifierSuggestion is the resolver for the identifier_suggestion field.
@@ -7378,8 +7319,9 @@ func (r *queryResolver) IdentifierSuggestion(ctx context.Context, projectID int,
 		return nil, err
 	}
 
-	// Suggest identifiers for sessions >= 1 month old
-	return r.ClickhouseClient.QueryFieldValues(ctx, projectID, 50, "user", "identifier", query, time.Now().AddDate(0, -1, 0), time.Now())
+	limit := 50
+	// Suggest identifiers for sessions <= 1 month old
+	return r.ClickhouseClient.SessionsKeyValues(ctx, projectID, "identifier", time.Now().AddDate(0, -1, 0), time.Now(), &query, &limit)
 }
 
 // SlackChannelSuggestion is the resolver for the slack_channel_suggestion field.

@@ -488,6 +488,8 @@ func (p *Queue) deserializeMessage(compressed []byte) (RetryableMessage, error) 
 		msg = &TraceRowMessage{}
 	} else if msgType.Type == PushSessionEvents {
 		msg = &SessionEventRowMessage{}
+	} else if msgType.Type == PushSessionFields {
+		msg = &SessionFieldRowMessage{}
 	} else {
 		msg = &Message{}
 	}

@@ -2081,7 +2081,7 @@ export type Query = {
 	discord_channel_suggestions: Array<DiscordChannel>
 	email_opt_outs: Array<EmailOptOutCategory>
 	enhanced_user_details?: Maybe<EnhancedUserDetailsResult>
-	environment_suggestion?: Maybe<Array<Maybe<Field>>>
+	environment_suggestion: Array<Scalars['String']>
 	errorGroupFrequencies: Array<Maybe<ErrorDistributionItem>>
 	errorGroupTags: Array<ErrorGroupTagAggregation>
 	error_alerts: Array<Maybe<ErrorAlert>>
@@ -2112,7 +2112,6 @@ export type Query = {
 	events_keys: Array<QueryKey>
 	events_metrics: MetricsBuckets
 	existing_logs_traces: Array<Scalars['String']>
-	field_suggestion?: Maybe<Array<Maybe<Field>>>
 	generate_zapier_access_token: Scalars['String']
 	get_source_map_upload_urls: Array<Scalars['String']>
 	github_issue_labels: Array<Scalars['String']>
@@ -2167,7 +2166,6 @@ export type Query = {
 	rage_click_alerts: Array<Maybe<SessionAlert>>
 	rage_clicks: Array<RageClickEvent>
 	referrers: Array<Maybe<ReferrerTablePayload>>
-	resources?: Maybe<Array<Maybe<Scalars['Any']>>>
 	saved_segments?: Maybe<Array<Maybe<SavedSegment>>>
 	search_issues: Array<IssuesSearchResult>
 	serverIntegration: IntegrationStatus
@@ -2522,12 +2520,6 @@ export type QueryExisting_Logs_TracesArgs = {
 	trace_ids: Array<Scalars['String']>
 }
 
-export type QueryField_SuggestionArgs = {
-	name: Scalars['String']
-	project_id: Scalars['ID']
-	query: Scalars['String']
-}
-
 export type QueryGenerate_Zapier_Access_TokenArgs = {
 	project_id: Scalars['ID']
 }
@@ -2801,10 +2793,6 @@ export type QueryRage_ClicksArgs = {
 export type QueryReferrersArgs = {
 	lookback_days: Scalars['Float']
 	project_id: Scalars['ID']
-}
-
-export type QueryResourcesArgs = {
-	session_secure_id: Scalars['String']
 }
 
 export type QuerySaved_SegmentsArgs = {
