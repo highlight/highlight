@@ -128,15 +128,17 @@ func TestHandler_HandleLog(t *testing.T) {
 
 	producer := MockKafkaProducer{}
 	resolver := &public.Resolver{
-		Redis:              red,
-		Store:              store.NewStore(db, red, integrations.NewIntegrationsClient(db), &storage.FilesystemClient{}, &producer, nil),
-		AsyncProducerQueue: &producer,
-		ProducerQueue:      &producer,
-		BatchedQueue:       &producer,
-		TracesQueue:        &producer,
-		MetricsQueue:       &producer,
-		DB:                 db,
-		Clickhouse:         chClient,
+		Redis:                red,
+		Store:                store.NewStore(db, red, integrations.NewIntegrationsClient(db), &storage.FilesystemClient{}, &producer, nil),
+		AsyncProducerQueue:   &producer,
+		ProducerQueue:        &producer,
+		BatchedQueue:         &producer,
+		TracesQueue:          &producer,
+		MetricSumQueue:       &producer,
+		MetricSummaryQueue:   &producer,
+		MetricHistogramQueue: &producer,
+		DB:                   db,
+		Clickhouse:           chClient,
 	}
 	h := Handler{
 		resolver: resolver,
@@ -219,15 +221,17 @@ func TestHandler_HandleTrace(t *testing.T) {
 
 		producer := MockKafkaProducer{}
 		resolver := &public.Resolver{
-			Redis:              red,
-			Store:              store.NewStore(db, red, integrations.NewIntegrationsClient(db), &storage.FilesystemClient{}, &producer, nil),
-			AsyncProducerQueue: &producer,
-			ProducerQueue:      &producer,
-			BatchedQueue:       &producer,
-			TracesQueue:        &producer,
-			MetricsQueue:       &producer,
-			DB:                 db,
-			Clickhouse:         chClient,
+			Redis:                red,
+			Store:                store.NewStore(db, red, integrations.NewIntegrationsClient(db), &storage.FilesystemClient{}, &producer, nil),
+			AsyncProducerQueue:   &producer,
+			ProducerQueue:        &producer,
+			BatchedQueue:         &producer,
+			TracesQueue:          &producer,
+			MetricSumQueue:       &producer,
+			MetricSummaryQueue:   &producer,
+			MetricHistogramQueue: &producer,
+			DB:                   db,
+			Clickhouse:           chClient,
 		}
 		h := Handler{
 			resolver: resolver,
@@ -312,14 +316,16 @@ func TestHandler_HandleMetric(t *testing.T) {
 
 		producer := MockKafkaProducer{}
 		resolver := &public.Resolver{
-			Redis:         red,
-			Store:         store.NewStore(db, red, integrations.NewIntegrationsClient(db), &storage.FilesystemClient{}, &producer, nil),
-			ProducerQueue: &producer,
-			BatchedQueue:  &producer,
-			TracesQueue:   &producer,
-			MetricsQueue:  &producer,
-			DB:            db,
-			Clickhouse:    chClient,
+			Redis:                red,
+			Store:                store.NewStore(db, red, integrations.NewIntegrationsClient(db), &storage.FilesystemClient{}, &producer, nil),
+			ProducerQueue:        &producer,
+			BatchedQueue:         &producer,
+			TracesQueue:          &producer,
+			MetricSumQueue:       &producer,
+			MetricSummaryQueue:   &producer,
+			MetricHistogramQueue: &producer,
+			DB:                   db,
+			Clickhouse:           chClient,
 		}
 		h := Handler{
 			resolver: resolver,
@@ -328,7 +334,7 @@ func TestHandler_HandleMetric(t *testing.T) {
 
 		metricCount := 0
 		for _, message := range producer.messages {
-			if message.GetType() == kafkaqueue.PushOTeLMetrics {
+			if message.GetType() == kafkaqueue.PushOTeLMetricSum || message.GetType() == kafkaqueue.PushOTeLMetricSummary || message.GetType() == kafkaqueue.PushOTeLMetricHistogram {
 				//msg := message.(*kafka_queue.OTeLMetricsMessage)
 				metricCount += 1
 			}
