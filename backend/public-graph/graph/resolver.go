@@ -1241,8 +1241,13 @@ func (r *Resolver) InitializeSessionImpl(ctx context.Context, input *kafka_queue
 	log.WithContext(ctx).WithFields(log.Fields{"session_id": session.ID, "project_id": session.ProjectID, "identifier": session.Identifier}).
 		Infof("initialized session %d: %s", session.ID, session.Identifier)
 
-	highlight.RecordMetric(
-		ctx, "sessions", float64(session.ID),
+	highlight.RecordCount(ctx,
+		"sessions.initialized", 1,
+		attribute.String(highlight.TraceTypeAttribute, string(highlight.TraceTypeHighlightInternal)),
+		attribute.Int(highlight.ProjectIDAttribute, session.ProjectID),
+	)
+	span, ctx := highlight.StartTrace(
+		ctx, "public.resolver.initialize-session",
 		attribute.String("Bot", fmt.Sprintf("%v", deviceDetails.IsBot)),
 		attribute.String("Browser", deviceDetails.BrowserName),
 		attribute.String("BrowserVersion", deviceDetails.BrowserVersion),
@@ -1256,11 +1261,14 @@ func (r *Resolver) InitializeSessionImpl(ctx context.Context, input *kafka_queue
 		attribute.String("OSVersion", session.OSVersion),
 		attribute.String("Postal", session.Postal),
 		attribute.String("State", session.State),
+		attribute.String("State", session.State),
+		attribute.Int("ID", session.ID),
 		attribute.Int(highlight.ProjectIDAttribute, session.ProjectID),
 		attribute.String(highlight.SessionIDAttribute, session.SecureID),
 		attribute.String(highlight.TraceTypeAttribute, string(highlight.TraceTypeHighlightInternal)),
 		attribute.String(highlight.TraceKeyAttribute, session.SecureID),
 	)
+	defer highlight.EndTrace(span)
 	if err := r.PushMetricsImpl(ctx, nil, &session.SecureID, []*publicModel.MetricInput{
 		{
 			SessionSecureID: session.SecureID,
@@ -1567,18 +1575,12 @@ func (r *Resolver) IdentifySessionImpl(ctx context.Context, sessionSecureID stri
 	}
 
 	hTags := []attribute.KeyValue{
-		attribute.String("Identifier", session.Identifier),
 		attribute.Bool("Identified", session.Identified),
 		attribute.Bool("FirstTime", *session.FirstTime),
 		attribute.Int(highlight.ProjectIDAttribute, session.ProjectID),
-		attribute.String(highlight.SessionIDAttribute, session.SecureID),
 		attribute.String(highlight.TraceTypeAttribute, string(highlight.TraceTypeHighlightInternal)),
-		attribute.String(highlight.TraceKeyAttribute, session.Identifier),
 	}
-	for k, v := range allUserProperties {
-		hTags = append(hTags, attribute.String(k, v))
-	}
-	highlight.RecordMetric(ctx, "users", 1, hTags...)
+	highlight.RecordCount(ctx, "users", 1, hTags...)
 
 	tags := []*publicModel.MetricTag{
 		{Name: "Identifier", Value: session.Identifier},
@@ -2060,11 +2062,10 @@ func (r *Resolver) updateErrorsCount(ctx context.Context, projectID int, errorsB
 	defer dailyErrorCountSpan.Finish()
 
 	for sessionSecureId, count := range errorsBySession {
-		highlight.RecordMetric(
-			ctx, "errors", float64(count),
+		highlight.RecordCount(
+			ctx, "errors", count,
 			attribute.String("error.type", errorType),
 			attribute.Int(highlight.ProjectIDAttribute, projectID),
-			attribute.String(highlight.SessionIDAttribute, sessionSecureId),
 			attribute.String(highlight.TraceTypeAttribute, string(highlight.TraceTypeHighlightInternal)),
 		)
 		if err := r.PushMetricsImpl(context.Background(), nil, &sessionSecureId, []*publicModel.MetricInput{

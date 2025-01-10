@@ -345,7 +345,7 @@ func (r *Resolver) isUserInProjectOrDemoProject(ctx context.Context, project_id 
 	defer authSpan.Finish()
 	start := time.Now()
 	defer func() {
-		highlight.RecordMetric(
+		highlight.RecordHistogram(
 			ctx, "resolver.internal.auth.isAdminInProjectOrDemoProject", time.Since(start).Seconds(),
 		)
 	}()
