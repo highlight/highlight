@@ -1,0 +1,70 @@
+name: 'Elixir SDK code checks'
+
+on:
+    push:
+        branches: ['main']
+    pull_request:
+        types: [opened, reopened, synchronize, assigned, review_requested]
+        paths:
+            - 'sdk/highlight-ex/**'
+            - '.github/workflows/elixir-sdk.yml'
+
+env:
+    ELIXIR_VERSION: '1.13.4'
+    OTP_VERSION: '25.0.1'
+
+concurrency: ${{ github.workflow }}-${{ github.ref }}
+jobs:
+    format:
+        name: format elixir files
+        runs-on: ubuntu-latest
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v4
+            - name: Setup Elixir
+              uses: erlef/setup-beam@v1
+              with:
+                  elixir-version: ${{ env.ELIXIR_VERSION }}
+                  otp-version: ${{ env.OTP_VERSION }}
+            - name: Format
+              working-directory: sdk/highlight-ex
+              run: mix format
+
+    test:
+        name: test package
+        runs-on: ubuntu-latest
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v4
+            - name: Setup Elixir
+              uses: erlef/setup-beam@v1
+              with:
+                  elixir-version: ${{ env.ELIXIR_VERSION }}
+                  otp-version: ${{ env.OTP_VERSION }}
+            - name: Install Dependencies
+              working-directory: sdk/highlight-ex
+              run: mix deps.get
+            - name: Run Tests
+              working-directory: sdk/highlight-ex
+              run: mix test
+
+    publish:
+        name: publish package
+        runs-on: ubuntu-latest
+        if: github.ref == 'ref/heads/main'
+        needs: test
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v4
+            - name: Setup Elixir
+              uses: erlef/setup-beam@v1
+              with:
+                  elixir-version: ${{ env.ELIXIR_VERSION }}
+                  otp-version: ${{ env.OTP_VERSION }}
+            - name: Publish to Hex
+              uses: synchronal/hex-publish-action@v3
+              with:
+                  name: highlight
+                  key: ${{ secrets.HEX_PM_KEY }}
+                  tag-release: false
+                  working-directory: sdk/highlight-ex
