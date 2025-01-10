@@ -360,18 +360,28 @@ func EndTrace(span trace.Span) {
 	span.End(trace.WithStackTrace(true))
 }
 
+// this is a temporary workaround. api will be modified to
+// provide helpers for creating and using gauges to report metrics
+var float64Gauges = make(map[string]metric.Float64Gauge)
+
 func RecordGaugeWithMeter(ctx context.Context, meter metric.Meter, name string, value float64, opts []metric.RecordOption, tags ...attribute.KeyValue) {
+	gauge, ok := float64Gauges[name]
+	if !ok {
+		var err error
+		gauge, err = meter.Float64Gauge(name)
+		if err != nil {
+			fmt.Printf("error creating float64 gauge %s: %v", name, err)
+			return
+		}
+		float64Gauges[name] = gauge
+	}
+
 	sessionID, requestID, _ := validateRequest(ctx)
 	spanCtx := trace.SpanContextFromContext(ctx)
 	if requestID != "" {
 		// try parse the requestID as hex; fall back to parsing as base64
 		tid := getTraceID(requestID)
 		spanCtx = spanCtx.WithTraceID(tid)
-	}
-	gauge, err := meter.Float64Gauge(name)
-	if err != nil {
-		fmt.Printf("error creating float64 gauge %s: %v", name, err)
-		return
 	}
 	// prioritize values passed in tags for project, session, request ids
 	tags = append([]attribute.KeyValue{
