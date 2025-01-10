@@ -2,6 +2,7 @@ package worker
 
 import (
 	"context"
+	"fmt"
 	"github.com/sendgrid/sendgrid-go"
 	"go.opentelemetry.io/collector/pdata/pmetric"
 	"io"
@@ -995,8 +996,38 @@ func TestCalculateOverages(t *testing.T) {
 						StartTimestamp: time.Now(),
 						RetentionDays:  1,
 						MetricType:     pmetric.MetricTypeGauge,
+						ServiceName:    "foo",
+						MetricName:     fmt.Sprintf("bar.%d", idx),
 					},
-					Value: 1,
+					Value: 5,
+				})
+				metrics = append(metrics, &clickhouse.MetricHistogramRow{
+					MetricBaseRow: clickhouse.MetricBaseRow{
+						ProjectId:      uint32(p.ID),
+						Timestamp:      time.Now(),
+						StartTimestamp: time.Now(),
+						RetentionDays:  1,
+						MetricType:     pmetric.MetricTypeGauge,
+						ServiceName:    "foo2",
+						MetricName:     fmt.Sprintf("bar.%d", idx),
+					},
+					Count: 10,
+					Sum:   2,
+					Min:   1,
+					Max:   3,
+				})
+				metrics = append(metrics, &clickhouse.MetricSummaryRow{
+					MetricBaseRow: clickhouse.MetricBaseRow{
+						ProjectId:      uint32(p.ID),
+						Timestamp:      time.Now(),
+						StartTimestamp: time.Now(),
+						RetentionDays:  1,
+						MetricType:     pmetric.MetricTypeGauge,
+						ServiceName:    "foo3",
+						MetricName:     fmt.Sprintf("bar.%d", idx),
+					},
+					Count: 20,
+					Sum:   100,
 				})
 				if err := chClient.BatchWriteMetricRows(ctx, metrics); err != nil {
 					t.Error(e.Wrap(err, "error inserting metrics"))
