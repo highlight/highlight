@@ -842,7 +842,7 @@ func TestFullSnapshotProcessed(t *testing.T) {
 }
 
 func TestCalculateOverages(t *testing.T) {
-	defer func(inclSessions, inclErrors, inclLogs, inclTraces int64) {
+	defer func(inclSessions, inclErrors, inclLogs, inclTraces, inclMetrics int64) {
 		pricing.ProductPrices[model2.PlanTypeGraduated][model.PricingProductTypeSessions] = pricing.ProductPricing{
 			Included: inclSessions,
 			Items:    pricing.ProductPrices[model2.PlanTypeGraduated][model.PricingProductTypeSessions].Items,
@@ -859,11 +859,16 @@ func TestCalculateOverages(t *testing.T) {
 			Included: inclTraces,
 			Items:    pricing.ProductPrices[model2.PlanTypeGraduated][model.PricingProductTypeTraces].Items,
 		}
+		pricing.ProductPrices[model2.PlanTypeGraduated][model.PricingProductTypeMetrics] = pricing.ProductPricing{
+			Included: inclMetrics,
+			Items:    pricing.ProductPrices[model2.PlanTypeGraduated][model.PricingProductTypeMetrics].Items,
+		}
 	}(
 		pricing.ProductPrices[model2.PlanTypeGraduated][model.PricingProductTypeSessions].Included,
 		pricing.ProductPrices[model2.PlanTypeGraduated][model.PricingProductTypeErrors].Included,
 		pricing.ProductPrices[model2.PlanTypeGraduated][model.PricingProductTypeLogs].Included,
 		pricing.ProductPrices[model2.PlanTypeGraduated][model.PricingProductTypeTraces].Included,
+		pricing.ProductPrices[model2.PlanTypeGraduated][model.PricingProductTypeMetrics].Included,
 	)
 
 	pricing.ProductPrices[model2.PlanTypeGraduated][model.PricingProductTypeSessions] = pricing.ProductPricing{
@@ -881,6 +886,10 @@ func TestCalculateOverages(t *testing.T) {
 	pricing.ProductPrices[model2.PlanTypeGraduated][model.PricingProductTypeTraces] = pricing.ProductPricing{
 		Included: 5,
 		Items:    pricing.ProductPrices[model2.PlanTypeGraduated][model.PricingProductTypeTraces].Items,
+	}
+	pricing.ProductPrices[model2.PlanTypeGraduated][model.PricingProductTypeMetrics] = pricing.ProductPricing{
+		Included: 6,
+		Items:    pricing.ProductPrices[model2.PlanTypeGraduated][model.PricingProductTypeMetrics].Items,
 	}
 
 	ctx := context.TODO()
@@ -975,6 +984,15 @@ func TestCalculateOverages(t *testing.T) {
 					return
 				}
 			}
+
+			for idx := 0; idx < 14; idx++ {
+				var metrics []clickhouse.MetricRow
+				metrics = append(metrics, &clickhouse.MetricSumRow{})
+				if err := chClient.BatchWriteMetricRows(ctx, metrics); err != nil {
+					t.Error(e.Wrap(err, "error inserting metrics"))
+					return
+				}
+			}
 		}
 	}
 
@@ -983,7 +1001,7 @@ func TestCalculateOverages(t *testing.T) {
 	for _, w := range []*model.Workspace{&w, &wMP} {
 		overages, err := pWorker.CalculateOverages(ctx, w.ID)
 		assert.NoError(t, err)
-		assert.Len(t, overages, 5)
+		assert.Len(t, overages, 6)
 		for product, overage := range overages {
 			assert.Greaterf(t, overage, int64(1), "expected an overage for %d %s", w.ID, product)
 		}

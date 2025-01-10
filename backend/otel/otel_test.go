@@ -313,6 +313,7 @@ func TestHandler_HandleMetric(t *testing.T) {
 
 		w := &MockResponseWriter{}
 		r, _ := http.NewRequest("POST", "", bytes.NewReader(b.Bytes()))
+		r.Header.Set("content-encoding", "gzip")
 
 		producer := MockKafkaProducer{}
 		resolver := &public.Resolver{
@@ -335,7 +336,6 @@ func TestHandler_HandleMetric(t *testing.T) {
 		metricCount := 0
 		for _, message := range producer.messages {
 			if message.GetType() == kafkaqueue.PushOTeLMetricSum || message.GetType() == kafkaqueue.PushOTeLMetricSummary || message.GetType() == kafkaqueue.PushOTeLMetricHistogram {
-				//msg := message.(*kafka_queue.OTeLMetricsMessage)
 				metricCount += 1
 			}
 		}

@@ -1009,7 +1009,7 @@ var ProductTypeToQuotaConfig = map[model.PricingProductType]overageConfig{
 			return limit
 		},
 		email.BillingMetricsOverage,
-		1_000_000,
+		1_000,
 	},
 }
 

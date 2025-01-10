@@ -1287,6 +1287,7 @@ func (w *Worker) RefreshMaterializedViews(ctx context.Context) {
 			attribute.Int64(phonehome.ErrorCount, c.ErrorCount),
 			attribute.Int64(phonehome.LogCount, c.LogCount),
 			attribute.Int64(phonehome.TraceCount, c.TraceCount),
+			// TODO(vkorolik) metrics
 		})
 	}
 }
