@@ -41,24 +41,27 @@ func (lt Runtime) IsWorker() bool {
 type Handler string
 
 const (
-	ReportStripeUsage        Handler = "report-stripe-usage"
-	MigrateDB                Handler = "migrate-db"
-	MetricMonitors           Handler = "metric-monitors"
-	LogAlerts                Handler = "log-alerts"
-	BackfillStackFrames      Handler = "backfill-stack-frames"
-	RefreshMaterializedViews Handler = "refresh-materialized-views"
-	PublicWorkerMain         Handler = "public-worker-main"
-	PublicWorkerBatched      Handler = "public-worker-batched"
-	PublicWorkerDataSync     Handler = "public-worker-datasync"
-	PublicWorkerTraces       Handler = "public-worker-traces"
-	AutoResolveStaleErrors   Handler = "auto-resolve-stale-errors"
-	StartSessionDeleteJob    Handler = "start-session-delete-job"
-	ScheduledTasks           Handler = "scheduled-tasks"
+	ReportStripeUsage           Handler = "report-stripe-usage"
+	MigrateDB                   Handler = "migrate-db"
+	MetricMonitors              Handler = "metric-monitors"
+	LogAlerts                   Handler = "log-alerts"
+	BackfillStackFrames         Handler = "backfill-stack-frames"
+	RefreshMaterializedViews    Handler = "refresh-materialized-views"
+	PublicWorkerMain            Handler = "public-worker-main"
+	PublicWorkerBatched         Handler = "public-worker-batched"
+	PublicWorkerDataSync        Handler = "public-worker-datasync"
+	PublicWorkerTraces          Handler = "public-worker-traces"
+	PublicWorkerMetricSum       Handler = "public-worker-metric-sum"
+	PublicWorkerMetricHistogram Handler = "public-worker-metric-histogram"
+	PublicWorkerMetricSummary   Handler = "public-worker-metric-summary"
+	AutoResolveStaleErrors      Handler = "auto-resolve-stale-errors"
+	StartSessionDeleteJob       Handler = "start-session-delete-job"
+	ScheduledTasks              Handler = "scheduled-tasks"
 )
 
 func (lt Handler) IsValid() bool {
 	switch lt {
-	case ReportStripeUsage, MigrateDB, MetricMonitors, LogAlerts, BackfillStackFrames, RefreshMaterializedViews, PublicWorkerMain, PublicWorkerBatched, PublicWorkerDataSync, PublicWorkerTraces, AutoResolveStaleErrors:
+	case ReportStripeUsage, MigrateDB, MetricMonitors, LogAlerts, BackfillStackFrames, RefreshMaterializedViews, PublicWorkerMain, PublicWorkerBatched, PublicWorkerDataSync, PublicWorkerTraces, PublicWorkerMetricSum, PublicWorkerMetricHistogram, PublicWorkerMetricSummary, AutoResolveStaleErrors:
 		return true
 	}
 	return false

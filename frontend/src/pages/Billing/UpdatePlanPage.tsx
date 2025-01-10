@@ -17,6 +17,7 @@ import {
 	IconSolidInformationCircle,
 	IconSolidLightningBolt,
 	IconSolidLogs,
+	IconSolidMetrics,
 	IconSolidOfficeBuilding,
 	IconSolidPlayCircle,
 	IconSolidPlus,
@@ -69,7 +70,6 @@ import * as style from './UpdatePlanPage.css'
 
 const STANDARD_RETENTION = RetentionPeriod.SevenDays
 
-// TODO(vkorolik) billing for metrics ingest
 // TODO(spenny): better way to add new searches without needing to add a new billable product
 const RETENTION_OPTIONS = {
 	Sessions: [
@@ -88,7 +88,14 @@ const RETENTION_OPTIONS = {
 	],
 	Logs: [RetentionPeriod.ThirtyDays],
 	Traces: [RetentionPeriod.ThirtyDays],
-	Metrics: [RetentionPeriod.ThirtyDays],
+	Metrics: [
+		RetentionPeriod.SevenDays,
+		RetentionPeriod.ThirtyDays,
+		RetentionPeriod.ThreeMonths,
+		RetentionPeriod.SixMonths,
+		RetentionPeriod.TwelveMonths,
+		RetentionPeriod.TwoYears,
+	],
 	Events: [],
 } as const
 
@@ -105,9 +112,9 @@ const RETENTION_MULTIPLIER = {
 const BASE_UNIT_COST_CENTS = {
 	Sessions: 2000,
 	Errors: 20,
-	Logs: 150,
-	Traces: 150,
-	Metrics: 150,
+	Logs: 250,
+	Traces: 250,
+	Metrics: 250,
 	Events: 0,
 } as const
 
@@ -116,7 +123,7 @@ const UNIT_QUANTITY = {
 	Errors: 1_000,
 	Logs: 1_000_000,
 	Traces: 1_000_000,
-	Metrics: 1_000_000,
+	Metrics: 1_000,
 	Events: 1_000,
 } as const
 
@@ -190,6 +197,8 @@ interface UpdatePlanForm {
 	logsLimitCents: number | undefined
 	tracesRetention: RetentionPeriod
 	tracesLimitCents: number | undefined
+	metricsRetention: RetentionPeriod
+	metricsLimitCents: number | undefined
 }
 
 type LimitButtonProps = {
@@ -608,6 +617,8 @@ const UpdatePlanPage = ({
 			logsLimitCents: undefined,
 			tracesRetention: RetentionPeriod.ThirtyDays,
 			tracesLimitCents: undefined,
+			metricsRetention: RetentionPeriod.ThirtyDays,
+			metricsLimitCents: undefined,
 		},
 	})
 	const formState = formStore.useState()
@@ -632,10 +643,19 @@ const UpdatePlanPage = ({
 					data.workspace?.errors_retention_period ??
 					RetentionPeriod.SixMonths,
 				errorsLimitCents: data.workspace?.errors_max_cents ?? undefined,
-				logsRetention: RetentionPeriod.ThirtyDays,
+				logsRetention:
+					data.workspace?.logs_retention_period ??
+					RetentionPeriod.ThirtyDays,
 				logsLimitCents: data.workspace?.logs_max_cents ?? undefined,
-				tracesRetention: RetentionPeriod.ThirtyDays,
+				tracesRetention:
+					data.workspace?.traces_retention_period ??
+					RetentionPeriod.ThirtyDays,
 				tracesLimitCents: data.workspace?.traces_max_cents ?? undefined,
+				metricsRetention:
+					data.workspace?.metrics_retention_period ??
+					RetentionPeriod.ThirtyDays,
+				metricsLimitCents:
+					data.workspace?.metrics_max_cents ?? undefined,
 			})
 		},
 	})
@@ -806,6 +826,35 @@ const UpdatePlanPage = ({
 	}
 	predictedTracesCost = Math.max(predictedTracesCost, actualTracesCost)
 
+	const metricsUsage = isPaying ? (data?.billingDetails.metricsMeter ?? 0) : 0
+	const predictedMetricsUsage = Math.ceil(
+		metricsUsage +
+			daysUntilNextBillingDate *
+				(data?.billingDetails.metricsDailyAverage ?? 0),
+	)
+	const includedMetrics = data?.billingDetails.plan.metricsLimit ?? 0
+	let predictedMetricsCost = getCostCents(
+		ProductType.Metrics,
+		data?.billingDetails.plan.metricsRate,
+		formState.values.metricsRetention,
+		predictedMetricsUsage,
+		includedMetrics,
+	)
+	const actualMetricsCost = getCostCents(
+		ProductType.Metrics,
+		data?.billingDetails.plan.metricsRate,
+		formState.values.logsRetention,
+		metricsUsage,
+		includedMetrics,
+	)
+	if (formState.values.metricsLimitCents !== undefined) {
+		predictedMetricsCost = Math.min(
+			predictedMetricsCost,
+			formState.values.metricsLimitCents,
+		)
+	}
+	predictedMetricsCost = Math.max(predictedMetricsCost, actualMetricsCost)
+
 	const baseAmount =
 		PLAN_BASE_FEES[selectedPlanType as keyof typeof PLAN_BASE_FEES] * 100
 	const discountPercent = data?.subscription_details.discount?.percent ?? 0
@@ -815,7 +864,8 @@ const UpdatePlanPage = ({
 		predictedSessionsCost +
 		predictedErrorsCost +
 		predictedLogsCost +
-		predictedTracesCost
+		predictedTracesCost +
+		predictedMetricsCost
 
 	const discountRatio = (100 - discountPercent) / 100
 
@@ -1024,6 +1074,38 @@ const UpdatePlanPage = ({
 						setStep={setStep}
 					/>
 					<Box borderBottom="divider" />
+					<ProductCard
+						productIcon={
+							<IconSolidMetrics
+								color={vars.theme.static.content.weak}
+							/>
+						}
+						productType={ProductType.Metrics}
+						rate={data?.billingDetails.plan.metricsRate}
+						retentionPeriod={formState.values.metricsRetention}
+						setRetentionPeriod={(rp) =>
+							formStore.setValue(
+								formStore.names.metricsRetention,
+								rp,
+							)
+						}
+						enableBillingLimits={!!enableBillingLimits}
+						limitCents={formState.values.metricsLimitCents}
+						setLimitCents={(l) => {
+							formStore.setValue(
+								formStore.names.metricsLimitCents,
+								l,
+							)
+							setHasChanges(true)
+						}}
+						setHasChanges={setHasChanges}
+						usageAmount={metricsUsage}
+						predictedUsageAmount={predictedMetricsUsage}
+						includedQuantity={includedMetrics}
+						planType={selectedPlanType}
+						setStep={setStep}
+					/>
+					<Box borderBottom="divider" />
 					{selectedPlanType === PlanType.Free ? null : (
 						<>
 							<Box
@@ -1186,6 +1268,12 @@ const UpdatePlanPage = ({
 											tracesRetention:
 												formState.values
 													.tracesRetention,
+											metricsLimitCents:
+												formState.values
+													.metricsLimitCents,
+											metricsRetention:
+												formState.values
+													.metricsRetention,
 										},
 									})
 										.then(() => {

@@ -3,16 +3,15 @@ package highlight
 import (
 	"context"
 	"fmt"
-	"net/http/httptest"
-	"testing"
-
+	"github.com/pkg/errors"
+	"github.com/stretchr/testify/assert"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"
+	"go.opentelemetry.io/otel/log"
 	"go.opentelemetry.io/otel/propagation"
 	"go.opentelemetry.io/otel/trace"
-
-	"github.com/huandu/go-assert"
-	"github.com/pkg/errors"
+	"net/http/httptest"
+	"testing"
 )
 
 // TestConsumeError tests every case for ConsumeError
@@ -43,7 +42,7 @@ func TestConsumeError(t *testing.T) {
 	Stop()
 }
 
-// TestConsumeError tests every case for RecordMetric
+// TestRecordMetric tests every case for RecordMetric
 func TestRecordMetric(t *testing.T) {
 	ctx := context.Background()
 	ctx = context.WithValue(ctx, ContextKeys.SessionSecureID, "0")
@@ -66,6 +65,38 @@ func TestRecordMetric(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			Start()
 			RecordMetric(input.contextInput, input.metricInput.name, input.metricInput.value)
+		})
+	}
+	Stop()
+}
+
+func TestRecordLog(t *testing.T) {
+	ctx := context.Background()
+	ctx = context.WithValue(ctx, ContextKeys.SessionSecureID, "1")
+	ctx = context.WithValue(ctx, ContextKeys.RequestID, "2")
+	record := log.Record{}
+	record.SetBody(log.StringValue("hello"))
+	tests := map[string]struct {
+		logInput struct {
+			record log.Record
+			tags   []log.KeyValue
+		}
+		contextInput      context.Context
+		expectedFlushSize int
+	}{
+		"test": {expectedFlushSize: 1, contextInput: ctx, logInput: struct {
+			record log.Record
+			tags   []log.KeyValue
+		}{
+			record: record, tags: []log.KeyValue{},
+		}},
+	}
+
+	for name, input := range tests {
+		t.Run(name, func(t *testing.T) {
+			Start()
+			err := RecordLog(input.contextInput, input.logInput.record, input.logInput.tags...)
+			assert.NoError(t, err)
 		})
 	}
 	Stop()

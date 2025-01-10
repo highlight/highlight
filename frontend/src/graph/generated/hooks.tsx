@@ -480,6 +480,8 @@ export const SaveBillingPlanDocument = gql`
 		$logsRetention: RetentionPeriod!
 		$tracesLimitCents: Int
 		$tracesRetention: RetentionPeriod!
+		$metricsLimitCents: Int
+		$metricsRetention: RetentionPeriod!
 	) {
 		saveBillingPlan(
 			workspace_id: $workspace_id
@@ -491,6 +493,8 @@ export const SaveBillingPlanDocument = gql`
 			logsRetention: $logsRetention
 			tracesLimitCents: $tracesLimitCents
 			tracesRetention: $tracesRetention
+			metricsLimitCents: $metricsLimitCents
+			metricsRetention: $metricsRetention
 		)
 	}
 `
@@ -521,6 +525,8 @@ export type SaveBillingPlanMutationFn = Apollo.MutationFunction<
  *      logsRetention: // value for 'logsRetention'
  *      tracesLimitCents: // value for 'tracesLimitCents'
  *      tracesRetention: // value for 'tracesRetention'
+ *      metricsLimitCents: // value for 'metricsLimitCents'
+ *      metricsRetention: // value for 'metricsRetention'
  *   },
  * });
  */
@@ -1571,14 +1577,17 @@ export const EditProjectSettingsDocument = gql`
 				error_sampling_rate
 				log_sampling_rate
 				trace_sampling_rate
+				metric_sampling_rate
 				session_minute_rate_limit
 				error_minute_rate_limit
 				log_minute_rate_limit
 				trace_minute_rate_limit
+				metric_minute_rate_limit
 				session_exclusion_query
 				error_exclusion_query
 				log_exclusion_query
 				trace_exclusion_query
+				metric_exclusion_query
 			}
 		}
 	}
@@ -8168,6 +8177,9 @@ export const GetWorkspacesDocument = gql`
 			name
 			retention_period
 			errors_retention_period
+			logs_retention_period
+			traces_retention_period
+			metrics_retention_period
 		}
 		joinable_workspaces {
 			id
@@ -8832,20 +8844,24 @@ export const GetBillingDetailsForProjectDocument = gql`
 				errorsLimit
 				logsLimit
 				tracesLimit
+				metricsLimit
 				sessionsRate
 				errorsRate
 				logsRate
 				tracesRate
+				metricsRate
 			}
 			meter
 			membersMeter
 			errorsMeter
 			logsMeter
 			tracesMeter
+			metricsMeter
 			sessionsBillingLimit
 			errorsBillingLimit
 			logsBillingLimit
 			tracesBillingLimit
+			metricsBillingLimit
 		}
 		project(id: $project_id) {
 			workspace {
@@ -9003,10 +9019,12 @@ export const GetBillingDetailsDocument = gql`
 				errorsLimit
 				logsLimit
 				tracesLimit
+				metricsLimit
 				sessionsRate
 				errorsRate
 				logsRate
 				tracesRate
+				metricsRate
 				enableBillingLimits
 			}
 			meter
@@ -9014,14 +9032,17 @@ export const GetBillingDetailsDocument = gql`
 			errorsMeter
 			logsMeter
 			tracesMeter
+			metricsMeter
 			sessionsBillingLimit
 			errorsBillingLimit
 			logsBillingLimit
 			tracesBillingLimit
+			metricsBillingLimit
 			sessionsDailyAverage
 			errorsDailyAverage
 			logsDailyAverage
 			tracesDailyAverage
+			metricsDailyAverage
 		}
 		subscription_details(workspace_id: $workspace_id) {
 			baseAmount
@@ -9051,10 +9072,14 @@ export const GetBillingDetailsDocument = gql`
 			eligible_for_trial_extension
 			retention_period
 			errors_retention_period
+			logs_retention_period
+			traces_retention_period
+			metrics_retention_period
 			sessions_max_cents
 			errors_max_cents
 			logs_max_cents
 			traces_max_cents
+			metrics_max_cents
 		}
 	}
 `
@@ -10202,6 +10227,64 @@ export type GetTracesIntegrationLazyQueryHookResult = ReturnType<
 export type GetTracesIntegrationQueryResult = Apollo.QueryResult<
 	Types.GetTracesIntegrationQuery,
 	Types.GetTracesIntegrationQueryVariables
+>
+export const GetMetricsIntegrationDocument = gql`
+	query GetMetricsIntegration($project_id: ID!) {
+		metricsIntegration(project_id: $project_id) {
+			integrated
+			resourceType
+			createdAt
+		}
+	}
+`
+
+/**
+ * __useGetMetricsIntegrationQuery__
+ *
+ * To run a query within a React component, call `useGetMetricsIntegrationQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetMetricsIntegrationQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetMetricsIntegrationQuery({
+ *   variables: {
+ *      project_id: // value for 'project_id'
+ *   },
+ * });
+ */
+export function useGetMetricsIntegrationQuery(
+	baseOptions: Apollo.QueryHookOptions<
+		Types.GetMetricsIntegrationQuery,
+		Types.GetMetricsIntegrationQueryVariables
+	>,
+) {
+	return Apollo.useQuery<
+		Types.GetMetricsIntegrationQuery,
+		Types.GetMetricsIntegrationQueryVariables
+	>(GetMetricsIntegrationDocument, baseOptions)
+}
+export function useGetMetricsIntegrationLazyQuery(
+	baseOptions?: Apollo.LazyQueryHookOptions<
+		Types.GetMetricsIntegrationQuery,
+		Types.GetMetricsIntegrationQueryVariables
+	>,
+) {
+	return Apollo.useLazyQuery<
+		Types.GetMetricsIntegrationQuery,
+		Types.GetMetricsIntegrationQueryVariables
+	>(GetMetricsIntegrationDocument, baseOptions)
+}
+export type GetMetricsIntegrationQueryHookResult = ReturnType<
+	typeof useGetMetricsIntegrationQuery
+>
+export type GetMetricsIntegrationLazyQueryHookResult = ReturnType<
+	typeof useGetMetricsIntegrationLazyQuery
+>
+export type GetMetricsIntegrationQueryResult = Apollo.QueryResult<
+	Types.GetMetricsIntegrationQuery,
+	Types.GetMetricsIntegrationQueryVariables
 >
 export const GetKeyPerformanceIndicatorsDocument = gql`
 	query GetKeyPerformanceIndicators(
@@ -13784,14 +13867,17 @@ export const GetProjectSettingsDocument = gql`
 				error_sampling_rate
 				log_sampling_rate
 				trace_sampling_rate
+				metric_sampling_rate
 				session_exclusion_query
 				error_exclusion_query
 				log_exclusion_query
 				trace_exclusion_query
+				metric_exclusion_query
 				session_minute_rate_limit
 				error_minute_rate_limit
 				log_minute_rate_limit
 				trace_minute_rate_limit
+				metric_minute_rate_limit
 			}
 		}
 	}

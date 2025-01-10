@@ -62,6 +62,8 @@ export type SaveBillingPlanMutationVariables = Types.Exact<{
 	logsRetention: Types.RetentionPeriod
 	tracesLimitCents?: Types.Maybe<Types.Scalars['Int']>
 	tracesRetention: Types.RetentionPeriod
+	metricsLimitCents?: Types.Maybe<Types.Scalars['Int']>
+	metricsRetention: Types.RetentionPeriod
 }>
 
 export type SaveBillingPlanMutation = { __typename?: 'Mutation' } & Pick<
@@ -300,14 +302,17 @@ export type EditProjectSettingsMutation = { __typename?: 'Mutation' } & {
 					| 'error_sampling_rate'
 					| 'log_sampling_rate'
 					| 'trace_sampling_rate'
+					| 'metric_sampling_rate'
 					| 'session_minute_rate_limit'
 					| 'error_minute_rate_limit'
 					| 'log_minute_rate_limit'
 					| 'trace_minute_rate_limit'
+					| 'metric_minute_rate_limit'
 					| 'session_exclusion_query'
 					| 'error_exclusion_query'
 					| 'log_exclusion_query'
 					| 'trace_exclusion_query'
+					| 'metric_exclusion_query'
 				>
 			}
 	>
@@ -2676,6 +2681,9 @@ export type GetWorkspacesQuery = { __typename?: 'Query' } & {
 					| 'name'
 					| 'retention_period'
 					| 'errors_retention_period'
+					| 'logs_retention_period'
+					| 'traces_retention_period'
+					| 'metrics_retention_period'
 				>
 			>
 		>
@@ -2938,10 +2946,12 @@ export type GetBillingDetailsForProjectQuery = { __typename?: 'Query' } & {
 			| 'errorsMeter'
 			| 'logsMeter'
 			| 'tracesMeter'
+			| 'metricsMeter'
 			| 'sessionsBillingLimit'
 			| 'errorsBillingLimit'
 			| 'logsBillingLimit'
 			| 'tracesBillingLimit'
+			| 'metricsBillingLimit'
 		> & {
 				plan: { __typename?: 'Plan' } & Pick<
 					Types.Plan,
@@ -2952,10 +2962,12 @@ export type GetBillingDetailsForProjectQuery = { __typename?: 'Query' } & {
 					| 'errorsLimit'
 					| 'logsLimit'
 					| 'tracesLimit'
+					| 'metricsLimit'
 					| 'sessionsRate'
 					| 'errorsRate'
 					| 'logsRate'
 					| 'tracesRate'
+					| 'metricsRate'
 				> & {
 						aws_mp_subscription?: Types.Maybe<
 							{
@@ -3028,14 +3040,17 @@ export type GetBillingDetailsQuery = { __typename?: 'Query' } & {
 		| 'errorsMeter'
 		| 'logsMeter'
 		| 'tracesMeter'
+		| 'metricsMeter'
 		| 'sessionsBillingLimit'
 		| 'errorsBillingLimit'
 		| 'logsBillingLimit'
 		| 'tracesBillingLimit'
+		| 'metricsBillingLimit'
 		| 'sessionsDailyAverage'
 		| 'errorsDailyAverage'
 		| 'logsDailyAverage'
 		| 'tracesDailyAverage'
+		| 'metricsDailyAverage'
 	> & {
 			plan: { __typename?: 'Plan' } & Pick<
 				Types.Plan,
@@ -3046,10 +3061,12 @@ export type GetBillingDetailsQuery = { __typename?: 'Query' } & {
 				| 'errorsLimit'
 				| 'logsLimit'
 				| 'tracesLimit'
+				| 'metricsLimit'
 				| 'sessionsRate'
 				| 'errorsRate'
 				| 'logsRate'
 				| 'tracesRate'
+				| 'metricsRate'
 				| 'enableBillingLimits'
 			> & {
 					aws_mp_subscription?: Types.Maybe<
@@ -3095,10 +3112,14 @@ export type GetBillingDetailsQuery = { __typename?: 'Query' } & {
 			| 'eligible_for_trial_extension'
 			| 'retention_period'
 			| 'errors_retention_period'
+			| 'logs_retention_period'
+			| 'traces_retention_period'
+			| 'metrics_retention_period'
 			| 'sessions_max_cents'
 			| 'errors_max_cents'
 			| 'logs_max_cents'
 			| 'traces_max_cents'
+			| 'metrics_max_cents'
 		>
 	>
 }
@@ -3547,6 +3568,17 @@ export type GetTracesIntegrationQueryVariables = Types.Exact<{
 
 export type GetTracesIntegrationQuery = { __typename?: 'Query' } & {
 	tracesIntegration: { __typename?: 'IntegrationStatus' } & Pick<
+		Types.IntegrationStatus,
+		'integrated' | 'resourceType' | 'createdAt'
+	>
+}
+
+export type GetMetricsIntegrationQueryVariables = Types.Exact<{
+	project_id: Types.Scalars['ID']
+}>
+
+export type GetMetricsIntegrationQuery = { __typename?: 'Query' } & {
+	metricsIntegration: { __typename?: 'IntegrationStatus' } & Pick<
 		Types.IntegrationStatus,
 		'integrated' | 'resourceType' | 'createdAt'
 	>
@@ -4727,14 +4759,17 @@ export type GetProjectSettingsQuery = { __typename?: 'Query' } & {
 					| 'error_sampling_rate'
 					| 'log_sampling_rate'
 					| 'trace_sampling_rate'
+					| 'metric_sampling_rate'
 					| 'session_exclusion_query'
 					| 'error_exclusion_query'
 					| 'log_exclusion_query'
 					| 'trace_exclusion_query'
+					| 'metric_exclusion_query'
 					| 'session_minute_rate_limit'
 					| 'error_minute_rate_limit'
 					| 'log_minute_rate_limit'
 					| 'trace_minute_rate_limit'
+					| 'metric_minute_rate_limit'
 				>
 			}
 	>
@@ -5449,6 +5484,7 @@ export const namedOperations = {
 		GetServerIntegration: 'GetServerIntegration' as const,
 		GetLogsIntegration: 'GetLogsIntegration' as const,
 		GetTracesIntegration: 'GetTracesIntegration' as const,
+		GetMetricsIntegration: 'GetMetricsIntegration' as const,
 		GetKeyPerformanceIndicators: 'GetKeyPerformanceIndicators' as const,
 		GetReferrersCount: 'GetReferrersCount' as const,
 		GetNewUsersCount: 'GetNewUsersCount' as const,

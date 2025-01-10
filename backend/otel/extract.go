@@ -3,6 +3,7 @@ package otel
 import (
 	"context"
 	"fmt"
+	"go.opentelemetry.io/collector/pdata/pmetric"
 	"net/http"
 	"regexp"
 	"strconv"
@@ -31,7 +32,6 @@ type extractedFields struct {
 	projectIDInt   int
 	sessionID      string
 	requestID      string
-	logBody        string
 	environment    string
 	source         modelInputs.LogSource
 	serviceName    string
@@ -39,6 +39,7 @@ type extractedFields struct {
 
 	timestamp time.Time
 
+	logBody     string
 	logSeverity string
 	logMessage  string
 
@@ -47,8 +48,10 @@ type extractedFields struct {
 	exceptionStackTrace string
 	errorUrl            string
 
-	metricEventName  string
-	metricEventValue float64
+	metricName        string
+	metricDescription string
+	metricUnit        string
+	metricEventValue  float64
 
 	events []map[string]any
 	links  []map[string]any
@@ -71,13 +74,15 @@ func newExtractedFields() *extractedFields {
 }
 
 type extractFieldsParams struct {
-	headers   http.Header
-	resource  *pcommon.Resource
-	span      *ptrace.Span
-	event     *ptrace.SpanEvent
-	scopeLogs *plog.ScopeLogs
-	logRecord *plog.LogRecord
-	curTime   time.Time
+	headers          http.Header
+	resource         *pcommon.Resource
+	scope            *pcommon.InstrumentationScope
+	span             *ptrace.Span
+	event            *ptrace.SpanEvent
+	logRecord        *plog.LogRecord
+	metric           *pmetric.Metric
+	metricAttributes map[string]any
+	curTime          time.Time
 
 	herokuProjectExtractor func(context.Context, string) (string, int)
 }
@@ -85,7 +90,7 @@ type extractFieldsParams struct {
 func extractFields(ctx context.Context, params extractFieldsParams) (*extractedFields, error) {
 	fields := newExtractedFields()
 
-	var resourceAttributes, spanAttributes, eventAttributes, scopeAttributes, logAttributes map[string]any
+	var resourceAttributes, scopeAttributes, spanAttributes, spanEventAttributes, logAttributes, metricMetadata, metricAttributes map[string]any
 	if params.resource != nil {
 		resourceAttributes = params.resource.Attributes().AsRaw()
 	}
@@ -129,12 +134,12 @@ func extractFields(ctx context.Context, params extractFieldsParams) (*extractedF
 	}
 
 	if params.event != nil {
-		eventAttributes = params.event.Attributes().AsRaw()
+		spanEventAttributes = params.event.Attributes().AsRaw()
 		fields.timestamp = params.event.Timestamp().AsTime()
 	}
 
-	if params.scopeLogs != nil {
-		scopeAttributes = params.scopeLogs.Scope().Attributes().AsRaw()
+	if params.scope != nil {
+		scopeAttributes = params.scope.Attributes().AsRaw()
 	}
 
 	if params.logRecord != nil {
@@ -166,12 +171,25 @@ func extractFields(ctx context.Context, params extractFieldsParams) (*extractedF
 		}
 	}
 
+	if params.metric != nil {
+		metricMetadata = params.metric.Metadata().AsRaw()
+		fields.metricName = params.metric.Name()
+		fields.metricDescription = params.metric.Description()
+		fields.metricUnit = params.metric.Unit()
+	}
+
+	if params.metricAttributes != nil {
+		metricAttributes = params.metricAttributes
+	}
+
 	originalAttrs := mergeMaps(
 		resourceAttributes,
 		spanAttributes,
-		eventAttributes,
+		spanEventAttributes,
 		scopeAttributes,
 		logAttributes,
+		metricMetadata,
+		metricAttributes,
 	)
 
 	if val, ok := originalAttrs[highlight.DeprecatedSourceAttribute]; ok {
@@ -255,7 +273,7 @@ func extractFields(ctx context.Context, params extractFieldsParams) (*extractedF
 	}
 
 	if val, ok := fields.attrs[highlight.MetricEventName]; ok {
-		fields.metricEventName = val
+		fields.metricName = val
 		delete(fields.attrs, highlight.MetricEventName)
 	}
 

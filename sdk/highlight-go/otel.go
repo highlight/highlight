@@ -5,23 +5,27 @@ import (
 	"encoding/base64"
 	"encoding/binary"
 	"fmt"
-	"net/url"
-	"reflect"
-	"strings"
-	"time"
-
-	"github.com/samber/lo"
-
 	"github.com/pkg/errors"
+	"github.com/samber/lo"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"
+	"go.opentelemetry.io/otel/exporters/otlp/otlplog/otlploghttp"
+	"go.opentelemetry.io/otel/exporters/otlp/otlpmetric/otlpmetrichttp"
 	"go.opentelemetry.io/otel/exporters/otlp/otlptrace"
 	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracehttp"
+	"go.opentelemetry.io/otel/log"
+	"go.opentelemetry.io/otel/metric"
 	"go.opentelemetry.io/otel/propagation"
+	sdklog "go.opentelemetry.io/otel/sdk/log"
+	sdkmetric "go.opentelemetry.io/otel/sdk/metric"
 	"go.opentelemetry.io/otel/sdk/resource"
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
 	semconv "go.opentelemetry.io/otel/semconv/v1.25.0"
 	"go.opentelemetry.io/otel/trace"
+	"net/url"
+	"reflect"
+	"strings"
+	"time"
 )
 
 const OTLPDefaultEndpoint = "https://otel.highlight.io:4318"
@@ -67,6 +71,8 @@ const TraceTypePhoneHome TraceType = "highlight.phonehome"
 
 type OTLP struct {
 	tracerProvider *sdktrace.TracerProvider
+	loggerProvider *sdklog.LoggerProvider
+	meterProvider  *sdkmetric.MeterProvider
 }
 
 type ErrorWithStack interface {
@@ -123,18 +129,38 @@ func getSampler() highlightSampler {
 	}
 }
 
-func CreateTracerProvider(endpoint string, opts ...sdktrace.TracerProviderOption) (*sdktrace.TracerProvider, error) {
-	var options []otlptracehttp.Option
+func getOTLPOptions(endpoint string) (traceOpts []otlptracehttp.Option, logOpts []otlploghttp.Option, metricOpts []otlpmetrichttp.Option) {
 	if strings.HasPrefix(endpoint, "http://") {
-		options = append(options, otlptracehttp.WithEndpoint(endpoint[7:]), otlptracehttp.WithInsecure())
+		traceOpts = append(traceOpts, otlptracehttp.WithEndpoint(endpoint[7:]), otlptracehttp.WithInsecure())
+		logOpts = append(logOpts, otlploghttp.WithEndpoint(endpoint[7:]), otlploghttp.WithInsecure())
+		metricOpts = append(metricOpts, otlpmetrichttp.WithEndpoint(endpoint[7:]), otlpmetrichttp.WithInsecure())
 	} else if strings.HasPrefix(endpoint, "https://") {
-		options = append(options, otlptracehttp.WithEndpoint(endpoint[8:]))
+		traceOpts = append(traceOpts, otlptracehttp.WithEndpoint(endpoint[8:]))
+		logOpts = append(logOpts, otlploghttp.WithEndpoint(endpoint[8:]))
+		metricOpts = append(metricOpts, otlpmetrichttp.WithEndpoint(endpoint[8:]))
 	} else {
 		logger.Errorf("an invalid otlp endpoint was configured %s", endpoint)
 	}
-	options = append(options, otlptracehttp.WithCompression(otlptracehttp.GzipCompression))
+	traceOpts = append(traceOpts, otlptracehttp.WithCompression(otlptracehttp.GzipCompression))
+	logOpts = append(logOpts, otlploghttp.WithCompression(otlploghttp.GzipCompression))
+	metricOpts = append(metricOpts, otlpmetrichttp.WithCompression(otlpmetrichttp.GzipCompression))
+	return
+}
+
+func getTraceID(requestID string) trace.TraceID {
+	tid, err := trace.TraceIDFromHex(requestID)
+	if err != nil {
+		data, _ := base64.StdEncoding.DecodeString(requestID)
+		hex := fmt.Sprintf("%032x", data)
+		tid, _ = trace.TraceIDFromHex(hex)
+	}
+	return tid
+}
+
+func CreateTracerProvider(ctx context.Context, endpoint string, opts ...sdktrace.TracerProviderOption) (*sdktrace.TracerProvider, error) {
+	options, _, _ := getOTLPOptions(endpoint)
 	client := otlptracehttp.NewClient(options...)
-	exporter, err := otlptrace.New(context.Background(), client)
+	exporter, err := otlptrace.New(ctx, client)
 	if err != nil {
 		return nil, fmt.Errorf("creating OTLP trace exporter: %w", err)
 	}
@@ -142,8 +168,9 @@ func CreateTracerProvider(endpoint string, opts ...sdktrace.TracerProviderOption
 		conf.resourceAttributes,
 		semconv.TelemetryDistroName("github.com/highlight/highlight/sdk/highlight-go"),
 		semconv.TelemetryDistroVersion(Version),
+		attribute.String(ProjectIDAttribute, conf.projectID),
 	)
-	resources, err := resource.New(context.Background(),
+	resources, err := resource.New(ctx,
 		resource.WithFromEnv(),
 		resource.WithHost(),
 		resource.WithContainer(),
@@ -167,11 +194,90 @@ func CreateTracerProvider(endpoint string, opts ...sdktrace.TracerProviderOption
 	return sdktrace.NewTracerProvider(opts...), nil
 }
 
+func CreateLoggerProvider(ctx context.Context, endpoint string, opts ...sdklog.LoggerProviderOption) (*sdklog.LoggerProvider, error) {
+	_, options, _ := getOTLPOptions(endpoint)
+	exporter, err := otlploghttp.New(ctx, options...)
+	if err != nil {
+		return nil, fmt.Errorf("creating OTLP trace exporter: %w", err)
+	}
+	conf.resourceAttributes = append(
+		conf.resourceAttributes,
+		semconv.TelemetryDistroName("github.com/highlight/highlight/sdk/highlight-go"),
+		semconv.TelemetryDistroVersion(Version),
+	)
+	resources, err := resource.New(ctx,
+		resource.WithFromEnv(),
+		resource.WithHost(),
+		resource.WithContainer(),
+		resource.WithOS(),
+		resource.WithProcess(),
+		resource.WithAttributes(conf.resourceAttributes...),
+	)
+	if err != nil {
+		return nil, fmt.Errorf("creating OTLP resource context: %w", err)
+	}
+	opts = append([]sdklog.LoggerProviderOption{
+		sdklog.WithProcessor(sdklog.NewBatchProcessor(exporter,
+			sdklog.WithExportTimeout(30*time.Second),
+			sdklog.WithExportMaxBatchSize(1024*1024),
+			sdklog.WithMaxQueueSize(1024*1024),
+		)),
+		sdklog.WithResource(resources),
+	}, opts...)
+	return sdklog.NewLoggerProvider(opts...), nil
+}
+
+func CreateMeterProvider(ctx context.Context, endpoint string, opts ...sdkmetric.Option) (*sdkmetric.MeterProvider, error) {
+	_, _, options := getOTLPOptions(endpoint)
+	exporter, err := otlpmetrichttp.New(ctx, options...)
+	if err != nil {
+		return nil, fmt.Errorf("creating OTLP trace exporter: %w", err)
+	}
+	conf.resourceAttributes = append(
+		conf.resourceAttributes,
+		semconv.TelemetryDistroName("github.com/highlight/highlight/sdk/highlight-go"),
+		semconv.TelemetryDistroVersion(Version),
+	)
+	resources, err := resource.New(ctx,
+		resource.WithFromEnv(),
+		resource.WithHost(),
+		resource.WithContainer(),
+		resource.WithOS(),
+		resource.WithProcess(),
+		resource.WithAttributes(conf.resourceAttributes...),
+	)
+	if err != nil {
+		return nil, fmt.Errorf("creating OTLP resource context: %w", err)
+	}
+	opts = append([]sdkmetric.Option{
+		sdkmetric.WithReader(sdkmetric.NewPeriodicReader(exporter,
+			sdkmetric.WithInterval(time.Second),
+			sdkmetric.WithTimeout(30*time.Second),
+		)),
+		sdkmetric.WithResource(resources),
+	}, opts...)
+	return sdkmetric.NewMeterProvider(opts...), nil
+}
+
 // default tracer is a noop tracer
 var defaultTracerProvider = otel.GetTracerProvider()
+var defaultLoggerProvider *sdklog.LoggerProvider
+var defaultMeterProvider = otel.GetMeterProvider()
 
 func StartOTLP() (*OTLP, error) {
-	tracerProvider, err := CreateTracerProvider(conf.otlpEndpoint)
+	ctx := context.Background()
+
+	tracerProvider, err := CreateTracerProvider(ctx, conf.otlpEndpoint)
+	if err != nil {
+		return nil, err
+	}
+
+	loggerProvider, err := CreateLoggerProvider(ctx, conf.otlpEndpoint)
+	if err != nil {
+		return nil, err
+	}
+
+	meterProvider, err := CreateMeterProvider(ctx, conf.otlpEndpoint)
 	if err != nil {
 		return nil, err
 	}
@@ -182,18 +288,38 @@ func StartOTLP() (*OTLP, error) {
 	)
 	otel.SetTextMapPropagator(propagator)
 
-	h := &OTLP{tracerProvider: tracerProvider}
+	h := &OTLP{tracerProvider: tracerProvider, loggerProvider: loggerProvider, meterProvider: meterProvider}
 	defaultTracerProvider = tracerProvider
+	defaultLoggerProvider = loggerProvider
+	defaultMeterProvider = meterProvider
 	otel.SetTracerProvider(h.tracerProvider)
+	otel.SetMeterProvider(h.meterProvider)
 	return h, nil
 }
 
 func (o *OTLP) shutdown() {
-	err := o.tracerProvider.ForceFlush(context.Background())
+	ctx := context.Background()
+	err := o.tracerProvider.ForceFlush(ctx)
 	if err != nil {
 		logger.Error(err)
 	}
-	err = o.tracerProvider.Shutdown(context.Background())
+	err = o.tracerProvider.Shutdown(ctx)
+	if err != nil {
+		logger.Error(err)
+	}
+	err = o.loggerProvider.ForceFlush(ctx)
+	if err != nil {
+		logger.Error(err)
+	}
+	err = o.loggerProvider.Shutdown(ctx)
+	if err != nil {
+		logger.Error(err)
+	}
+	err = o.meterProvider.ForceFlush(ctx)
+	if err != nil {
+		logger.Error(err)
+	}
+	err = o.meterProvider.Shutdown(ctx)
 	if err != nil {
 		logger.Error(err)
 	}
@@ -204,18 +330,12 @@ func StartTraceWithTracer(ctx context.Context, tracer trace.Tracer, name string,
 	spanCtx := trace.SpanContextFromContext(ctx)
 	if requestID != "" {
 		// try parse the requestID as hex; fall back to parsing as base64
-		tid, err := trace.TraceIDFromHex(requestID)
-		if err != nil {
-			data, _ := base64.StdEncoding.DecodeString(requestID)
-			hex := fmt.Sprintf("%032x", data)
-			tid, _ = trace.TraceIDFromHex(hex)
-		}
+		tid := getTraceID(requestID)
 		spanCtx = spanCtx.WithTraceID(tid)
 	}
 	opts = append(opts, trace.WithTimestamp(t))
 	ctx, span := tracer.Start(trace.ContextWithSpanContext(ctx, spanCtx), name, opts...)
 	span.SetAttributes(
-		attribute.String(ProjectIDAttribute, conf.projectID),
 		attribute.String(SessionIDAttribute, sessionID),
 		attribute.String(RequestIDAttribute, requestID),
 	)
@@ -240,15 +360,71 @@ func EndTrace(span trace.Span) {
 	span.End(trace.WithStackTrace(true))
 }
 
+func RecordGaugeWithMeter(ctx context.Context, meter metric.Meter, name string, value float64, opts []metric.RecordOption, tags ...attribute.KeyValue) {
+	sessionID, requestID, _ := validateRequest(ctx)
+	spanCtx := trace.SpanContextFromContext(ctx)
+	if requestID != "" {
+		// try parse the requestID as hex; fall back to parsing as base64
+		tid := getTraceID(requestID)
+		spanCtx = spanCtx.WithTraceID(tid)
+	}
+	gauge, err := meter.Float64Gauge(name)
+	if err != nil {
+		fmt.Printf("error creating float64 gauge %s: %v", name, err)
+		return
+	}
+	// prioritize values passed in tags for project, session, request ids
+	tags = append([]attribute.KeyValue{
+		attribute.String(SessionIDAttribute, sessionID),
+		attribute.String(RequestIDAttribute, requestID)},
+		tags...,
+	)
+	opts = append(opts, metric.WithAttributes(
+		tags...,
+	))
+	gauge.Record(trace.ContextWithSpanContext(ctx, spanCtx), value, opts...)
+}
+
 // RecordMetric is used to record arbitrary metrics in your golang backend.
 // Highlight will process these metrics in the context of your session and expose them
 // through dashboards. For example, you may want to record the latency of a DB query
 // as a metric that you would like to graph and monitor. You'll be able to view the metric
 // in the context of the session and network request and recorded it.
 func RecordMetric(ctx context.Context, name string, value float64, tags ...attribute.KeyValue) {
-	span, _ := StartTraceWithTimestamp(ctx, MetricSpanName, time.Now(), []trace.SpanStartOption{trace.WithSpanKind(trace.SpanKindClient)}, tags...)
-	defer EndTrace(span)
-	span.AddEvent(MetricEvent, trace.WithAttributes(attribute.String(MetricEventName, name), attribute.Float64(MetricEventValue, value)))
+	RecordGaugeWithMeter(ctx, defaultMeterProvider.Meter(
+		"github.com/highlight/highlight/sdk/highlight-go",
+		metric.WithInstrumentationVersion("v0.1.0"),
+		metric.WithSchemaURL(semconv.SchemaURL),
+	), name, value, nil, tags...)
+}
+
+func RecordLogWithLogger(ctx context.Context, lg log.Logger, record log.Record, tags ...log.KeyValue) error {
+	sessionID, requestID, _ := validateRequest(ctx)
+	spanCtx := trace.SpanContextFromContext(ctx)
+	if requestID != "" {
+		// try parse the requestID as hex; fall back to parsing as base64
+		tid := getTraceID(requestID)
+		spanCtx = spanCtx.WithTraceID(tid)
+	}
+	// prioritize values passed in tags for project, session, request ids
+	tags = append([]log.KeyValue{
+		log.String(SessionIDAttribute, sessionID),
+		log.String(RequestIDAttribute, requestID)},
+		tags...,
+	)
+	record.AddAttributes(tags...)
+	lg.Emit(trace.ContextWithSpanContext(ctx, spanCtx), record)
+	return nil
+}
+
+// RecordLog is used to record arbitrary logs in your golang backend.
+// This function is under active development as the OpenTelemetry logging API is still in beta.
+func RecordLog(ctx context.Context, record log.Record, tags ...log.KeyValue) error {
+	return RecordLogWithLogger(ctx, defaultLoggerProvider.Logger(
+		"github.com/highlight/highlight/sdk/highlight-go",
+		log.WithInstrumentationVersion("v0.1.0"),
+		log.WithSchemaURL(semconv.SchemaURL),
+	), record, tags...)
 }
 
 // RecordError processes `err` to be recorded as a part of the session or network request.

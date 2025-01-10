@@ -1,19 +1,15 @@
 import EnterpriseFeatureButton from '@components/Billing/EnterpriseFeatureButton'
 import { Button } from '@components/Button'
-import LoadingBox from '@components/LoadingBox'
-import { TIME_FORMAT } from '@components/Search/SearchForm/constants'
 import { SearchForm } from '@components/Search/SearchForm/SearchForm'
 import {
 	useEditProjectSettingsMutation,
 	useGetBillingDetailsForProjectQuery,
-	useGetMetricsQuery,
 	useGetProjectSettingsQuery,
 	useGetWorkspaceSettingsQuery,
 } from '@graph/hooks'
 import { namedOperations } from '@graph/operations'
 import {
 	AllWorkspaceSettings,
-	MetricAggregator,
 	PlanType,
 	ProductType,
 	Sampling,
@@ -34,12 +30,9 @@ import {
 	Tag,
 	Text,
 } from '@highlight-run/ui/components'
-import { vars } from '@highlight-run/ui/vars'
 import { useProjectId } from '@hooks/useProjectId'
-import { BarChart } from '@pages/Graphing/components/BarChart'
-import { TIMESTAMP_KEY } from '@pages/Graphing/components/Graph'
 import { useApplicationContext } from '@routers/AppRouter/context/ApplicationContext'
-import { groupBy, upperFirst } from 'lodash'
+import { upperFirst } from 'lodash'
 import moment from 'moment'
 import React from 'react'
 import { useNavigate } from 'react-router-dom'
@@ -111,6 +104,8 @@ export const ProjectFilters: React.FC = () => {
 			<ProjectProductFilters view product={ProductType.Logs} />
 			<Box my="20" borderBottom="dividerWeak" />
 			<ProjectProductFilters view product={ProductType.Traces} />
+			<Box my="20" borderBottom="dividerWeak" />
+			<ProjectProductFilters view product={ProductType.Metrics} />
 		</Stack>
 	)
 }
@@ -185,6 +180,7 @@ export const ProjectProductFilters: React.FC<{
 						| 'error_exclusion_query'
 						| 'log_exclusion_query'
 						| 'trace_exclusion_query'
+						| 'metric_exclusion_query'
 					>
 				],
 			sampling_rate:
@@ -197,6 +193,7 @@ export const ProjectProductFilters: React.FC<{
 						| 'error_sampling_rate'
 						| 'log_sampling_rate'
 						| 'trace_sampling_rate'
+						| 'metric_sampling_rate'
 					>
 				],
 			minute_rate_limit:
@@ -209,6 +206,7 @@ export const ProjectProductFilters: React.FC<{
 						| 'error_minute_rate_limit'
 						| 'log_minute_rate_limit'
 						| 'trace_minute_rate_limit'
+						| 'metric_minute_rate_limit'
 					>
 				],
 		}
@@ -397,9 +395,6 @@ export const ProjectProductFilters: React.FC<{
 						emphasis="low"
 					/>
 				</Box>
-				<Box display="flex" width="full">
-					<IngestTimeline product={product} dateRange={dateRange} />
-				</Box>
 				<Form store={formStore}>
 					<Box display="flex" width="full">
 						{view ? null : (
@@ -503,84 +498,5 @@ const FilterPaywall: React.FC<
 		>
 			{children}
 		</EnterpriseFeatureButton>
-	)
-}
-
-const IngestTimeline: React.FC<{
-	product: ProductType
-	dateRange: DateRange
-}> = ({ product, dateRange }) => {
-	const { projectId } = useProjectId()
-	const { data, loading } = useGetMetricsQuery({
-		variables: {
-			product_type: ProductType.Traces,
-			project_id: projectId,
-			group_by: ['ingested'],
-			bucket_by: TIMESTAMP_KEY,
-			params: {
-				query: `span_name:IsIngestedBy product:${product}`,
-				date_range: {
-					start_date: moment(dateRange.start).format(TIME_FORMAT),
-					end_date: moment(dateRange.end).format(TIME_FORMAT),
-				},
-			},
-			expressions: [
-				{
-					aggregator: MetricAggregator.CountDistinctKey,
-					column: 'duration',
-				},
-			],
-		},
-	})
-
-	const groupedByBucket = groupBy(
-		data?.metrics.buckets.map((b) => ({
-			...b,
-			group: b.group[0] || 'true',
-		})),
-		(i) => i.bucket_id,
-	)
-
-	const histogramBuckets = data?.metrics.buckets.map((b) => ({
-		[TIMESTAMP_KEY]: (b.bucket_min + b.bucket_max) / 2,
-		['percent']:
-			(100 *
-				(groupedByBucket[b.bucket_id].find((g) => g.group === 'true')
-					?.metric_value ?? 0)) /
-			(groupedByBucket[b.bucket_id]
-				.map((g) => g?.metric_value ?? 0)
-				.reduce((a, b) => a + b, 0) || 1),
-	}))
-
-	if (loading) {
-		return <LoadingBox />
-	} else if (!data?.metrics.buckets?.length) {
-		return (
-			<Box
-				display="flex"
-				alignItems="center"
-				justifyContent="center"
-				width="full"
-				height="full"
-			>
-				<Tag shape="basic" size="large" kind="secondary" emphasis="low">
-					No {product?.toLocaleLowerCase()} ingested.
-				</Tag>
-			</Box>
-		)
-	}
-
-	return (
-		<Box width="full" style={{ height: 100 }}>
-			<BarChart
-				data={histogramBuckets}
-				xAxisMetric={TIMESTAMP_KEY}
-				strokeColors={[vars.theme.static.content.moderate]}
-				viewConfig={{
-					type: 'Bar chart',
-					showLegend: true,
-				}}
-			/>
-		</Box>
 	)
 }

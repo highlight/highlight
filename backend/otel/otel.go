@@ -7,11 +7,13 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/aws/smithy-go/ptr"
 	"github.com/go-chi/chi"
 	"github.com/golang/snappy"
 	"github.com/highlight-run/highlight/backend/clickhouse"
 	kafkaqueue "github.com/highlight-run/highlight/backend/kafka-queue"
 	model2 "github.com/highlight-run/highlight/backend/model"
+	privateGraph "github.com/highlight-run/highlight/backend/private-graph/graph"
 	privateModel "github.com/highlight-run/highlight/backend/private-graph/graph/model"
 	"github.com/highlight-run/highlight/backend/public-graph/graph"
 	"github.com/highlight-run/highlight/backend/public-graph/graph/model"
@@ -24,13 +26,15 @@ import (
 	"github.com/samber/lo"
 	log "github.com/sirupsen/logrus"
 	"go.opentelemetry.io/collector/pdata/plog/plogotlp"
+	"go.opentelemetry.io/collector/pdata/pmetric"
 	"go.opentelemetry.io/collector/pdata/pmetric/pmetricotlp"
 	"go.opentelemetry.io/collector/pdata/ptrace/ptraceotlp"
 	"go.opentelemetry.io/otel/attribute"
-	semconv "go.opentelemetry.io/otel/semconv/v1.25.0"
+	semconv "go.opentelemetry.io/otel/semconv/v1.26.0"
 	"go.opentelemetry.io/otel/trace"
 	"gorm.io/gorm"
 	"io"
+	"math"
 	"net/http"
 	"strconv"
 	"strings"
@@ -104,7 +108,7 @@ func getBackendError(ctx context.Context, ts time.Time, fields *extractedFields,
 }
 
 func getMetric(ctx context.Context, ts time.Time, fields *extractedFields, spanID, parentSpanID, traceID string) (*model.MetricInput, error) {
-	if fields.metricEventName == "" {
+	if fields.metricName == "" {
 		return nil, e.New("otel received metric with no name")
 	}
 	tags := lo.Map(lo.Entries(fields.attrs), func(t lo.Entry[string, string], i int) *model.MetricTag {
@@ -126,7 +130,7 @@ func getMetric(ctx context.Context, ts time.Time, fields *extractedFields, spanI
 		ParentSpanID:    pointy.String(parentSpanID),
 		TraceID:         pointy.String(traceID),
 		Group:           pointy.String(fields.requestID),
-		Name:            fields.metricEventName,
+		Name:            fields.metricName,
 		Value:           fields.metricEventValue,
 		Category:        pointy.String(fields.source.String()),
 		Timestamp:       ts,
@@ -196,9 +200,10 @@ func (o *Handler) HandleTrace(w http.ResponseWriter, r *http.Request) {
 	spans := req.Traces().ResourceSpans()
 	for i := 0; i < spans.Len(); i++ {
 		resource := spans.At(i).Resource()
-		scopeScans := spans.At(i).ScopeSpans()
-		for j := 0; j < scopeScans.Len(); j++ {
-			spans := scopeScans.At(j).Spans()
+		scopeSpans := spans.At(i).ScopeSpans()
+		for j := 0; j < scopeSpans.Len(); j++ {
+			scope := scopeSpans.At(j).Scope()
+			spans := scopeSpans.At(j).Spans()
 			for k := 0; k < spans.Len(); k++ {
 				span := spans.At(k)
 				events := span.Events()
@@ -237,6 +242,7 @@ func (o *Handler) HandleTrace(w http.ResponseWriter, r *http.Request) {
 					fields, err := extractFields(ctx, extractFieldsParams{
 						headers:  r.Header,
 						resource: &resource,
+						scope:    &scope,
 						span:     &span,
 						event:    &event,
 						curTime:  curTime,
@@ -446,14 +452,16 @@ func (o *Handler) HandleLog(w http.ResponseWriter, r *http.Request) {
 		resource := resourceLogs.At(i).Resource()
 		scopeLogs := resourceLogs.At(i).ScopeLogs()
 		for j := 0; j < scopeLogs.Len(); j++ {
-			scopeLogs := scopeLogs.At(j)
-			logRecords := scopeLogs.LogRecords()
+			scopeLog := scopeLogs.At(j)
+			scope := scopeLog.Scope()
+			logRecords := scopeLog.LogRecords()
 			for k := 0; k < logRecords.Len(); k++ {
 				logRecord := logRecords.At(k)
 
 				fields, err := extractFields(ctx, extractFieldsParams{
 					headers:                r.Header,
 					resource:               &resource,
+					scope:                  &scope,
 					logRecord:              &logRecord,
 					curTime:                curTime,
 					herokuProjectExtractor: o.matchHerokuDrain,
@@ -538,10 +546,72 @@ func (o *Handler) HandleMetric(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	log.WithContext(ctx).
-		WithField("count", req.Metrics().MetricCount()).
-		WithField("dp_count", req.Metrics().DataPointCount()).
-		Info("received otel metrics")
+	var projectMetrics = make(map[int][]clickhouse.MetricRow)
+	var projectRetentions = make(map[int]uint8)
+
+	var curTime = time.Now()
+	resourceMetrics := req.Metrics().ResourceMetrics()
+	for i := 0; i < resourceMetrics.Len(); i++ {
+		resource := resourceMetrics.At(i).Resource()
+		scopeMetrics := resourceMetrics.At(i).ScopeMetrics()
+		for j := 0; j < scopeMetrics.Len(); j++ {
+			scopeMetric := scopeMetrics.At(j)
+			scope := scopeMetric.Scope()
+			metrics := scopeMetric.Metrics()
+			for k := 0; k < metrics.Len(); k++ {
+				metric := metrics.At(k)
+				var dps []DataPoint
+				if metric.Type() == pmetric.MetricTypeGauge {
+					for l := 0; l < metric.Gauge().DataPoints().Len(); l++ {
+						dps = append(dps, &NumberDataPoint{metric.Gauge().DataPoints().At(l)})
+					}
+				} else if metric.Type() == pmetric.MetricTypeSum {
+					for l := 0; l < metric.Sum().DataPoints().Len(); l++ {
+						dps = append(dps, &NumberDataPoint{metric.Sum().DataPoints().At(l)})
+					}
+				} else if metric.Type() == pmetric.MetricTypeHistogram {
+					for l := 0; l < metric.Histogram().DataPoints().Len(); l++ {
+						dps = append(dps, &HistogramDataPoint{metric.Histogram().DataPoints().At(l)})
+					}
+				} else if metric.Type() == pmetric.MetricTypeExponentialHistogram {
+					for l := 0; l < metric.ExponentialHistogram().DataPoints().Len(); l++ {
+						dps = append(dps, &ExponentialHistogramDataPoint{metric.ExponentialHistogram().DataPoints().At(l)})
+					}
+				} else if metric.Type() == pmetric.MetricTypeSummary {
+					for l := 0; l < metric.Summary().DataPoints().Len(); l++ {
+						dps = append(dps, &SummaryDataPoint{metric.Summary().DataPoints().At(l)})
+					}
+				}
+				for _, dp := range dps {
+					fields, err := extractFields(r.Context(), extractFieldsParams{
+						headers:          r.Header,
+						resource:         &resource,
+						scope:            &scope,
+						metric:           &metric,
+						metricAttributes: dp.ExtractAttributes(),
+						curTime:          curTime,
+					})
+					if err != nil {
+						lg(ctx, fields).WithError(err).Info("failed to extract fields from metric data point")
+						continue
+					}
+					if _, ok := projectRetentions[fields.projectIDInt]; !ok {
+						projectRetentions[fields.projectIDInt] = o.getProjectRetention(ctx, fields.projectIDInt)
+					}
+					if _, ok := projectMetrics[fields.projectIDInt]; !ok {
+						projectMetrics[fields.projectIDInt] = []clickhouse.MetricRow{}
+					}
+					projectMetrics[fields.projectIDInt] = append(projectMetrics[fields.projectIDInt], dp.ToMetricRow(ctx, projectRetentions[fields.projectIDInt], metric.Type(), fields))
+				}
+			}
+		}
+	}
+
+	if err := o.submitProjectMetrics(ctx, projectMetrics); err != nil {
+		log.WithContext(ctx).WithError(err).Error("failed to submit otel project metrics")
+		w.WriteHeader(http.StatusServiceUnavailable)
+		return
+	}
 
 	w.WriteHeader(http.StatusOK)
 }
@@ -757,6 +827,73 @@ func (o *Handler) submitTraceSpans(ctx context.Context, traceRows map[string][]*
 	return nil
 }
 
+func (o *Handler) submitProjectMetrics(ctx context.Context, projectMetricRows map[int][]clickhouse.MetricRow) error {
+	projectIds := lo.MapEntries(projectMetricRows, func(p int, _ []clickhouse.MetricRow) (uint32, struct{}) {
+		return uint32(p), struct{}{}
+	})
+	quotaExceededByProject, err := o.getQuotaExceededByProject(ctx, projectIds, model2.PricingProductTypeMetrics)
+	if err != nil {
+		log.WithContext(ctx).Error(err)
+		quotaExceededByProject = map[uint32]bool{}
+	}
+
+	var sumMessages, histogramMessages, summaryMessages []kafkaqueue.RetryableMessage
+	for projectID, metricRows := range projectMetricRows {
+		for _, metricRow := range metricRows {
+			if metricRow == nil {
+				continue
+			}
+			if quotaExceededByProject[uint32(projectID)] {
+				continue
+			}
+			if !o.resolver.IsMetricIngested(ctx, metricRow) {
+				continue
+			}
+			if metricSumRow, ok := metricRow.(*clickhouse.MetricSumRow); ok {
+				sumMessages = append(sumMessages, &kafkaqueue.OTeLMetricSumRow{
+					Type:         kafkaqueue.PushOTeLMetricSum,
+					MetricSumRow: metricSumRow,
+				})
+			}
+			if metricHistogramRow, ok := metricRow.(*clickhouse.MetricHistogramRow); ok {
+				histogramMessages = append(histogramMessages, &kafkaqueue.OTeLMetricHistogramRow{
+					Type:               kafkaqueue.PushOTeLMetricHistogram,
+					MetricHistogramRow: metricHistogramRow,
+				})
+			}
+			if metricSummaryRow, ok := metricRow.(*clickhouse.MetricSummaryRow); ok {
+				summaryMessages = append(summaryMessages, &kafkaqueue.OTeLMetricSummaryRow{
+					Type:             kafkaqueue.PushOTeLMetricSummary,
+					MetricSummaryRow: metricSummaryRow,
+				})
+			}
+		}
+
+		// no ordering for metrics data
+		err := o.resolver.MetricSumQueue.Submit(ctx, "", sumMessages...)
+		if err != nil {
+			return e.Wrap(err, "failed to submit otel project sum metrics to public worker queue")
+		}
+		err = o.resolver.MetricHistogramQueue.Submit(ctx, "", histogramMessages...)
+		if err != nil {
+			return e.Wrap(err, "failed to submit otel project histogram metrics to public worker queue")
+		}
+		err = o.resolver.MetricSummaryQueue.Submit(ctx, "", summaryMessages...)
+		if err != nil {
+			return e.Wrap(err, "failed to submit otel project summary metrics to public worker queue")
+		}
+	}
+
+	for projectId := range projectIds {
+		err := o.resolver.MarkBackendSetupImpl(ctx, int(projectId), model2.MarkBackendSetupTypeMetrics)
+		if err != nil {
+			log.WithContext(ctx).WithError(err).Error("failed to mark backend metrics setup")
+		}
+	}
+
+	return nil
+}
+
 func (o *Handler) matchHerokuDrain(ctx context.Context, herokuDrainToken string) (string, int) {
 	data, err := redis.CachedEval(ctx, o.resolver.Redis, fmt.Sprintf("matchHerokuDrain-%s", herokuDrainToken), time.Minute, time.Second, func() (*int, error) {
 		projectMapping := &model2.IntegrationProjectMapping{
@@ -786,6 +923,29 @@ func (o *Handler) Listen(r *chi.Mux) {
 		r.HandleFunc("/logs", o.HandleLog)
 		r.HandleFunc("/metrics", o.HandleMetric)
 	})
+}
+
+func (o *Handler) getProjectRetention(ctx context.Context, projectID int) uint8 {
+	data, err := redis.CachedEval(ctx, o.resolver.Redis, fmt.Sprintf("getProjectRetention-%d", projectID), time.Minute, time.Second, func() (*uint8, error) {
+		proj, err := o.resolver.Store.GetProject(ctx, projectID)
+		if err != nil {
+			return nil, err
+		}
+
+		ws, err := o.resolver.Store.GetWorkspace(ctx, proj.WorkspaceID)
+		if err != nil {
+			return nil, err
+		}
+
+		hours := time.Since(privateGraph.GetRetentionDate(ws.MetricsRetentionPeriod)).Hours()
+		days := math.Round(hours / 24.)
+		return ptr.Uint8(uint8(days)), nil
+	})
+	if err != nil || data == nil {
+		log.WithContext(ctx).WithError(err).Error("failed to getProjectRetention")
+		return 30
+	}
+	return *data
 }
 
 func New(resolver *graph.Resolver) *Handler {

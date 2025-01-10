@@ -653,3 +653,11 @@ func TraceMatchesQuery(trace *TraceRow, filters listener.Filters) bool {
 func (client *Client) TracesLogLines(ctx context.Context, projectID int, params modelInputs.QueryInput) ([]*modelInputs.LogLine, error) {
 	return logLines(ctx, client, TracesTableConfig, projectID, params)
 }
+
+func (client *Client) ReadTracesDailySum(ctx context.Context, projectIds []int, dateRange modelInputs.DateRangeRequiredInput) (uint64, error) {
+	return readDailyImpl[uint64](ctx, client, "trace_count_daily_mv", "sum", projectIds, dateRange, nil)
+}
+
+func (client *Client) ReadTracesDailyAverage(ctx context.Context, projectIds []int, dateRange modelInputs.DateRangeRequiredInput) (float64, error) {
+	return readDailyImpl[float64](ctx, client, "trace_count_daily_mv", "avg", projectIds, dateRange, nil)
+}

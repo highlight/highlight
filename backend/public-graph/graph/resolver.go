@@ -78,23 +78,26 @@ import (
 // It serves as dependency injection for your app, add any dependencies you require here.
 
 type Resolver struct {
-	DB                 *gorm.DB
-	Tracer             trace.Tracer
-	TracerNoResources  trace.Tracer
-	AsyncProducerQueue kafka_queue.MessageQueue
-	ProducerQueue      kafka_queue.MessageQueue
-	BatchedQueue       kafka_queue.MessageQueue
-	DataSyncQueue      kafka_queue.MessageQueue
-	TracesQueue        kafka_queue.MessageQueue
-	MailClient         *sendgrid.Client
-	StorageClient      storage.Client
-	EmbeddingsClient   embeddings.Client
-	Redis              *redis.Client
-	Clickhouse         *clickhouse.Client
-	RH                 *resthooks.Resthook
-	Store              *store.Store
-	LambdaClient       *lambda.Client
-	SessionCache       *lru.Cache[string, *model.Session]
+	DB                   *gorm.DB
+	Tracer               trace.Tracer
+	TracerNoResources    trace.Tracer
+	AsyncProducerQueue   kafka_queue.MessageQueue
+	ProducerQueue        kafka_queue.MessageQueue
+	BatchedQueue         kafka_queue.MessageQueue
+	DataSyncQueue        kafka_queue.MessageQueue
+	TracesQueue          kafka_queue.MessageQueue
+	MetricSumQueue       kafka_queue.MessageQueue
+	MetricHistogramQueue kafka_queue.MessageQueue
+	MetricSummaryQueue   kafka_queue.MessageQueue
+	MailClient           *sendgrid.Client
+	StorageClient        storage.Client
+	EmbeddingsClient     embeddings.Client
+	Redis                *redis.Client
+	Clickhouse           *clickhouse.Client
+	RH                   *resthooks.Resthook
+	Store                *store.Store
+	LambdaClient         *lambda.Client
+	SessionCache         *lru.Cache[string, *model.Session]
 }
 
 type Location struct {
@@ -1680,7 +1683,7 @@ func (r *Resolver) IsWithinQuota(ctx context.Context, productType model.PricingP
 
 	meter, err := cfg.Meter(ctx, r.DB, r.Clickhouse, r.Redis, workspace)
 	if err != nil {
-		log.WithContext(ctx).Warn(fmt.Sprintf("error getting %s meter for workspace %d", productType, workspace.ID))
+		log.WithContext(ctx).WithError(err).Warn(fmt.Sprintf("error getting %s meter for workspace %d", productType, workspace.ID))
 	}
 
 	includedQuantity := cfg.Included(workspace)
@@ -2020,7 +2023,7 @@ func (r *Resolver) PushMetricsImpl(ctx context.Context, projectVerboseID *string
 			WithEvents([]map[string]any{event}))
 	}
 
-	// TODO(vkorolik) write to an actual metrics table
+	// TODO(vkorolik) write to an actual metrics table via kafka_queue.PushOTeLMetrics
 	var messages []kafka_queue.RetryableMessage
 	for _, traceRow := range traceRows {
 		if !r.IsTraceIngested(ctx, traceRow) {

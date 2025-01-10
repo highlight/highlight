@@ -90,14 +90,17 @@ func TestMain(m *testing.M) {
 
 	redisClient := redis.NewClient()
 	resolver = &Resolver{
-		DB:               db,
-		Redis:            redisClient,
-		Clickhouse:       chClient,
-		StorageClient:    &storage.FilesystemClient{},
-		Store:            store.NewStore(db, redisClient, integrations.NewIntegrationsClient(db), &storage.FilesystemClient{}, &kafka_queue.MockMessageQueue{}, nil),
-		EmbeddingsClient: &mockEmbeddingsClient{},
-		DataSyncQueue:    &kafka_queue.MockMessageQueue{},
-		TracesQueue:      &kafka_queue.MockMessageQueue{},
+		DB:                   db,
+		Redis:                redisClient,
+		Clickhouse:           chClient,
+		StorageClient:        &storage.FilesystemClient{},
+		Store:                store.NewStore(db, redisClient, integrations.NewIntegrationsClient(db), &storage.FilesystemClient{}, &kafka_queue.MockMessageQueue{}, nil),
+		EmbeddingsClient:     &mockEmbeddingsClient{},
+		DataSyncQueue:        &kafka_queue.MockMessageQueue{},
+		TracesQueue:          &kafka_queue.MockMessageQueue{},
+		MetricSumQueue:       &kafka_queue.MockMessageQueue{},
+		MetricSummaryQueue:   &kafka_queue.MockMessageQueue{},
+		MetricHistogramQueue: &kafka_queue.MockMessageQueue{},
 	}
 	code := m.Run()
 	os.Exit(code)

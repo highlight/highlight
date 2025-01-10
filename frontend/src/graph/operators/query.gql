@@ -783,6 +783,9 @@ query GetWorkspaces {
 		name
 		retention_period
 		errors_retention_period
+		logs_retention_period
+		traces_retention_period
+		metrics_retention_period
 	}
 	joinable_workspaces {
 		id
@@ -950,20 +953,24 @@ query GetBillingDetailsForProject($project_id: ID!) {
 			errorsLimit
 			logsLimit
 			tracesLimit
+			metricsLimit
 			sessionsRate
 			errorsRate
 			logsRate
 			tracesRate
+			metricsRate
 		}
 		meter
 		membersMeter
 		errorsMeter
 		logsMeter
 		tracesMeter
+		metricsMeter
 		sessionsBillingLimit
 		errorsBillingLimit
 		logsBillingLimit
 		tracesBillingLimit
+		metricsBillingLimit
 	}
 	project(id: $project_id) {
 		workspace {
@@ -1019,10 +1026,12 @@ query GetBillingDetails($workspace_id: ID!) {
 			errorsLimit
 			logsLimit
 			tracesLimit
+			metricsLimit
 			sessionsRate
 			errorsRate
 			logsRate
 			tracesRate
+			metricsRate
 			enableBillingLimits
 		}
 		meter
@@ -1030,14 +1039,17 @@ query GetBillingDetails($workspace_id: ID!) {
 		errorsMeter
 		logsMeter
 		tracesMeter
+		metricsMeter
 		sessionsBillingLimit
 		errorsBillingLimit
 		logsBillingLimit
 		tracesBillingLimit
+		metricsBillingLimit
 		sessionsDailyAverage
 		errorsDailyAverage
 		logsDailyAverage
 		tracesDailyAverage
+		metricsDailyAverage
 	}
 	subscription_details(workspace_id: $workspace_id) {
 		baseAmount
@@ -1067,10 +1079,14 @@ query GetBillingDetails($workspace_id: ID!) {
 		eligible_for_trial_extension
 		retention_period
 		errors_retention_period
+		logs_retention_period
+		traces_retention_period
+		metrics_retention_period
 		sessions_max_cents
 		errors_max_cents
 		logs_max_cents
 		traces_max_cents
+		metrics_max_cents
 	}
 }
 
@@ -1385,6 +1401,14 @@ query GetLogsIntegration($project_id: ID!) {
 
 query GetTracesIntegration($project_id: ID!) {
 	tracesIntegration(project_id: $project_id) {
+		integrated
+		resourceType
+		createdAt
+	}
+}
+
+query GetMetricsIntegration($project_id: ID!) {
+	metricsIntegration(project_id: $project_id) {
 		integrated
 		resourceType
 		createdAt
@@ -2233,14 +2257,17 @@ query GetProjectSettings($projectId: ID!) {
 			error_sampling_rate
 			log_sampling_rate
 			trace_sampling_rate
+			metric_sampling_rate
 			session_exclusion_query
 			error_exclusion_query
 			log_exclusion_query
 			trace_exclusion_query
+			metric_exclusion_query
 			session_minute_rate_limit
 			error_minute_rate_limit
 			log_minute_rate_limit
 			trace_minute_rate_limit
+			metric_minute_rate_limit
 		}
 	}
 }

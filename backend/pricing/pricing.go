@@ -139,6 +139,24 @@ var ProductPrices = map[backend.PlanType]map[model.PricingProductType]ProductPri
 				Rate: 0.5 / 1_000_000,
 			}},
 		},
+		model.PricingProductTypeMetrics: {
+			Included: 1_000,
+			Items: []GraduatedPriceItem{{
+				Rate:  2.5 / 1_000,
+				Count: 1_000,
+			}, {
+				Rate:  2. / 1_000,
+				Count: 10_000,
+			}, {
+				Rate:  1.5 / 1_000,
+				Count: 100_000,
+			}, {
+				Rate:  1. / 1_000,
+				Count: 1_000_000,
+			}, {
+				Rate: 0.5 / 1_000,
+			}},
+		},
 	},
 	backend.PlanTypeUsageBased: {
 		model.PricingProductTypeSessions: {
@@ -163,6 +181,12 @@ var ProductPrices = map[backend.PlanType]map[model.PricingProductType]ProductPri
 			Included: 1_000_000,
 			Items: []GraduatedPriceItem{{
 				Rate: 1.5 / 1_000_000,
+			}},
+		},
+		model.PricingProductTypeMetrics: {
+			Included: 1_000,
+			Items: []GraduatedPriceItem{{
+				Rate: 1.5 / 1_000,
 			}},
 		},
 	},
@@ -191,6 +215,12 @@ var ProductPrices = map[backend.PlanType]map[model.PricingProductType]ProductPri
 				Rate: 1.5 / 1_000_000,
 			}},
 		},
+		model.PricingProductTypeMetrics: {
+			Included: 2_000,
+			Items: []GraduatedPriceItem{{
+				Rate: 1.5 / 1_000,
+			}},
+		},
 	},
 	backend.PlanTypeBasic: {
 		model.PricingProductTypeSessions: {
@@ -215,6 +245,12 @@ var ProductPrices = map[backend.PlanType]map[model.PricingProductType]ProductPri
 			Included: 20_000_000,
 			Items: []GraduatedPriceItem{{
 				Rate: 1.5 / 1_000_000,
+			}},
+		},
+		model.PricingProductTypeMetrics: {
+			Included: 3_000,
+			Items: []GraduatedPriceItem{{
+				Rate: 1.5 / 1_000,
 			}},
 		},
 	},
@@ -243,6 +279,12 @@ var ProductPrices = map[backend.PlanType]map[model.PricingProductType]ProductPri
 				Rate: 1.5 / 1_000_000,
 			}},
 		},
+		model.PricingProductTypeMetrics: {
+			Included: 6_000,
+			Items: []GraduatedPriceItem{{
+				Rate: 1.5 / 1_000,
+			}},
+		},
 	},
 	backend.PlanTypeEnterprise: {
 		model.PricingProductTypeSessions: {
@@ -269,6 +311,12 @@ var ProductPrices = map[backend.PlanType]map[model.PricingProductType]ProductPri
 				Rate: 1.5 / 1_000_000,
 			}},
 		},
+		model.PricingProductTypeMetrics: {
+			Included: 24_000,
+			Items: []GraduatedPriceItem{{
+				Rate: 1.5 / 1_000,
+			}},
+		},
 	},
 	backend.PlanTypeFree: {
 		model.PricingProductTypeSessions: {
@@ -293,6 +341,12 @@ var ProductPrices = map[backend.PlanType]map[model.PricingProductType]ProductPri
 			Included: 25_000_000,
 			Items: []GraduatedPriceItem{{
 				Rate: 1.5 / 1_000_000,
+			}},
+		},
+		model.PricingProductTypeMetrics: {
+			Included: 1_000,
+			Items: []GraduatedPriceItem{{
+				Rate: 1.5 / 1_000,
 			}},
 		},
 	},
@@ -429,6 +483,8 @@ func get7DayAverageImpl(ctx context.Context, DB *gorm.DB, ccClient *clickhouse.C
 		avgFn = ccClient.ReadLogsDailyAverage
 	case model.PricingProductTypeTraces:
 		avgFn = ccClient.ReadTracesDailyAverage
+	case model.PricingProductTypeMetrics:
+		avgFn = ccClient.ReadMetricsDailyAverage
 	default:
 		return 0, fmt.Errorf("invalid product type %s", productType)
 	}
@@ -467,6 +523,8 @@ func getWorkspaceMeterImpl(ctx context.Context, DB *gorm.DB, ccClient *clickhous
 		sumFn = ccClient.ReadLogsDailySum
 	case model.PricingProductTypeTraces:
 		sumFn = ccClient.ReadTracesDailySum
+	case model.PricingProductTypeMetrics:
+		sumFn = ccClient.ReadMetricsDailySum
 	default:
 		return 0, fmt.Errorf("invalid product type %s", productType)
 	}
@@ -493,6 +551,10 @@ func GetTraces7DayAverage(ctx context.Context, DB *gorm.DB, ccClient *clickhouse
 
 func GetWorkspaceTracesMeter(ctx context.Context, DB *gorm.DB, ccClient *clickhouse.Client, redis *redis.Client, workspace *model.Workspace) (int64, error) {
 	return getWorkspaceMeterImpl(ctx, DB, ccClient, workspace, model.PricingProductTypeTraces)
+}
+
+func GetWorkspaceMetricsMeter(ctx context.Context, DB *gorm.DB, ccClient *clickhouse.Client, redis *redis.Client, workspace *model.Workspace) (int64, error) {
+	return getWorkspaceMeterImpl(ctx, DB, ccClient, workspace, model.PricingProductTypeMetrics)
 }
 
 func GetLimitAmount(limitCostCents *int, productType model.PricingProductType, planType backend.PlanType, retentionPeriod backend.RetentionPeriod) *int64 {
@@ -727,9 +789,10 @@ func GetStripePrices(pricingClient *Client, workspace *model.Workspace, productT
 	// logs and traces are only available with three month retention
 	logsLookupKey := GetOverageKey(model.PricingProductTypeLogs, backend.RetentionPeriodThreeMonths, productTier)
 	tracesLookupKey := GetOverageKey(model.PricingProductTypeTraces, backend.RetentionPeriodThreeMonths, productTier)
+	metricsLookupKey := GetOverageKey(model.PricingProductTypeMetrics, backend.RetentionPeriodThreeMonths, productTier)
 
 	priceListParams := stripe.PriceListParams{}
-	priceListParams.LookupKeys = []*string{&baseLookupKey, &sessionsLookupKey, &membersLookupKey, &errorsLookupKey, &logsLookupKey, &tracesLookupKey}
+	priceListParams.LookupKeys = []*string{&baseLookupKey, &sessionsLookupKey, &membersLookupKey, &errorsLookupKey, &logsLookupKey, &tracesLookupKey, &metricsLookupKey}
 	prices := pricingClient.Prices.List(&priceListParams).PriceList().Data
 
 	priceMap := map[model.PricingProductType]*stripe.Price{}
@@ -747,6 +810,8 @@ func GetStripePrices(pricingClient *Client, workspace *model.Workspace, productT
 			priceMap[model.PricingProductTypeLogs] = price
 		case tracesLookupKey:
 			priceMap[model.PricingProductTypeTraces] = price
+		case metricsLookupKey:
+			priceMap[model.PricingProductTypeMetrics] = price
 		}
 	}
 
@@ -756,6 +821,7 @@ func GetStripePrices(pricingClient *Client, workspace *model.Workspace, productT
 		model.PricingProductTypeErrors:   workspace.StripeErrorOveragePriceID,
 		model.PricingProductTypeLogs:     workspace.StripeLogOveragePriceID,
 		model.PricingProductTypeTraces:   workspace.StripeTracesOveragePriceID,
+		model.PricingProductTypeMetrics:  workspace.StripeMetricsOveragePriceID,
 	} {
 		if priceID != nil {
 			price, err := pricingClient.Prices.Get(*priceID, &stripe.PriceParams{})
@@ -925,6 +991,25 @@ var ProductTypeToQuotaConfig = map[model.PricingProductType]overageConfig{
 		},
 		email.BillingTracesOverage,
 		1_000_000,
+	},
+	model.PricingProductTypeMetrics: {
+		func(w *model.Workspace) *int { return w.MetricsMaxCents },
+		GetWorkspaceMetricsMeter,
+		func(w *model.Workspace) backend.RetentionPeriod {
+			if w.MetricsRetentionPeriod == nil {
+				return backend.RetentionPeriodThirtyDays
+			}
+			return *w.MetricsRetentionPeriod
+		},
+		func(w *model.Workspace) int64 {
+			limit := IncludedAmount(backend.PlanType(w.PlanTier), model.PricingProductTypeMetrics)
+			if w.MonthlyMetricsLimit != nil {
+				limit = int64(*w.MonthlyMetricsLimit)
+			}
+			return limit
+		},
+		email.BillingMetricsOverage,
+		1_000,
 	},
 }
 
@@ -1165,6 +1250,7 @@ func (w *Worker) reportStripeUsage(ctx context.Context, workspaceID int) error {
 		model.PricingProductTypeErrors,
 		model.PricingProductTypeLogs,
 		model.PricingProductTypeTraces,
+		model.PricingProductTypeMetrics,
 	} {
 		if err := w.AddOrUpdateOverageItem(prices[productType], invoiceLines[productType], c, subscription, overages[productType]); err != nil {
 			return e.Wrapf(err, "BILLING_ERROR error updating overage item for product %s", productType)

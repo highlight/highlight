@@ -152,14 +152,17 @@ type BillingDetails {
 	errorsMeter: Int64!
 	logsMeter: Int64!
 	tracesMeter: Int64!
+	metricsMeter: Int64!
 	sessionsDailyAverage: Float!
 	errorsDailyAverage: Float!
 	logsDailyAverage: Float!
 	tracesDailyAverage: Float!
+	metricsDailyAverage: Float!
 	sessionsBillingLimit: Int64
 	errorsBillingLimit: Int64
 	logsBillingLimit: Int64
 	tracesBillingLimit: Int64
+	metricsBillingLimit: Int64
 }
 
 type UsageHistory {
@@ -202,11 +205,13 @@ type Plan {
 	errorsLimit: Int64!
 	logsLimit: Int64!
 	tracesLimit: Int64!
+	metricsLimit: Int64!
 
 	sessionsRate: Float!
 	errorsRate: Float!
 	logsRate: Float!
 	tracesRate: Float!
+	metricsRate: Float!
 }
 
 type AWSMarketplaceSubscription {
@@ -402,14 +407,17 @@ type Sampling {
 	error_sampling_rate: Float!
 	log_sampling_rate: Float!
 	trace_sampling_rate: Float!
+	metric_sampling_rate: Float!
 	session_minute_rate_limit: Int64
 	error_minute_rate_limit: Int64
 	log_minute_rate_limit: Int64
 	trace_minute_rate_limit: Int64
+	metric_minute_rate_limit: Int64
 	session_exclusion_query: String
 	error_exclusion_query: String
 	log_exclusion_query: String
 	trace_exclusion_query: String
+	metric_exclusion_query: String
 }
 
 input SamplingInput {
@@ -417,14 +425,17 @@ input SamplingInput {
 	error_sampling_rate: Float
 	log_sampling_rate: Float
 	trace_sampling_rate: Float
+	metric_sampling_rate: Float
 	session_minute_rate_limit: Int64
 	error_minute_rate_limit: Int64
 	log_minute_rate_limit: Int64
 	trace_minute_rate_limit: Int64
+	metric_minute_rate_limit: Int64
 	session_exclusion_query: String
 	error_exclusion_query: String
 	log_exclusion_query: String
 	trace_exclusion_query: String
+	metric_exclusion_query: String
 }
 
 type SocialLink {
@@ -633,10 +644,14 @@ type Workspace {
 	clearbit_enabled: Boolean!
 	retention_period: RetentionPeriod!
 	errors_retention_period: RetentionPeriod!
+	logs_retention_period: RetentionPeriod!
+	traces_retention_period: RetentionPeriod!
+	metrics_retention_period: RetentionPeriod!
 	sessions_max_cents: Int
 	errors_max_cents: Int
 	logs_max_cents: Int
 	traces_max_cents: Int
+	metrics_max_cents: Int
 	cloudflare_proxy: String
 }
 
@@ -2193,6 +2208,7 @@ type Query {
 	serverIntegration(project_id: ID!): IntegrationStatus!
 	logsIntegration(project_id: ID!): IntegrationStatus!
 	tracesIntegration(project_id: ID!): IntegrationStatus!
+	metricsIntegration(project_id: ID!): IntegrationStatus!
 	unprocessedSessionsCount(project_id: ID!): Int64
 	liveUsersCount(project_id: ID!): Int64
 	adminHasCreatedComment(admin_id: ID!): Boolean
@@ -2734,6 +2750,8 @@ type Mutation {
 		logsRetention: RetentionPeriod!
 		tracesLimitCents: Int
 		tracesRetention: RetentionPeriod!
+		metricsLimitCents: Int
+		metricsRetention: RetentionPeriod!
 	): Boolean
 	createSessionComment(
 		project_id: ID!
