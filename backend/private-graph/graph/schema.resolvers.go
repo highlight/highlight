@@ -9500,7 +9500,7 @@ func (r *queryResolver) SessionsKeyValues(ctx context.Context, projectID int, ke
 }
 
 // SessionsMetrics is the resolver for the sessions_metrics field.
-func (r *queryResolver) SessionsMetrics(ctx context.Context, projectID int, params modelInputs.QueryInput, column *string, metricTypes []modelInputs.MetricAggregator, groupBy []string, bucketBy string, bucketCount *int, bucketWindow *int, limit *int, limitAggregator *modelInputs.MetricAggregator, limitColumn *string, expressions []*modelInputs.MetricExpressionInput) (*modelInputs.MetricsBuckets, error) {
+func (r *queryResolver) SessionsMetrics(ctx context.Context, projectID int, params modelInputs.QueryInput, sql *string, column *string, metricTypes []modelInputs.MetricAggregator, groupBy []string, bucketBy string, bucketCount *int, bucketWindow *int, limit *int, limitAggregator *modelInputs.MetricAggregator, limitColumn *string, expressions []*modelInputs.MetricExpressionInput) (*modelInputs.MetricsBuckets, error) {
 	project, err := r.isUserInProjectOrDemoProject(ctx, projectID)
 	if err != nil {
 		return nil, err
@@ -9511,7 +9511,7 @@ func (r *queryResolver) SessionsMetrics(ctx context.Context, projectID int, para
 		return nil, err
 	}
 
-	return r.ClickhouseClient.ReadSessionsMetrics(ctx, project.ID, params, groupBy, bucketCount, bucketBy, bucketWindow, limit, limitAggregator, limitColumn, expressions)
+	return r.ClickhouseClient.ReadSessionsMetrics(ctx, project.ID, params, sql, groupBy, bucketCount, bucketBy, bucketWindow, limit, limitAggregator, limitColumn, expressions)
 }
 
 // EventsKeys is the resolver for the events_keys field.
@@ -9585,7 +9585,7 @@ func (r *queryResolver) EventSessions(ctx context.Context, projectID int, count 
 }
 
 // Metrics is the resolver for the metrics field.
-func (r *queryResolver) Metrics(ctx context.Context, productType modelInputs.ProductType, projectID int, params modelInputs.QueryInput, column *string, metricTypes []modelInputs.MetricAggregator, groupBy []string, bucketBy string, bucketCount *int, bucketWindow *int, limit *int, limitAggregator *modelInputs.MetricAggregator, limitColumn *string, predictionSettings *modelInputs.PredictionSettings, expressions []*modelInputs.MetricExpressionInput) (*modelInputs.MetricsBuckets, error) {
+func (r *queryResolver) Metrics(ctx context.Context, productType modelInputs.ProductType, projectID int, params modelInputs.QueryInput, column *string, metricTypes []modelInputs.MetricAggregator, sql *string, groupBy []string, bucketBy string, bucketCount *int, bucketWindow *int, limit *int, limitAggregator *modelInputs.MetricAggregator, limitColumn *string, predictionSettings *modelInputs.PredictionSettings, expressions []*modelInputs.MetricExpressionInput) (*modelInputs.MetricsBuckets, error) {
 	project, err := r.isUserInProjectOrDemoProject(ctx, projectID)
 	if err != nil {
 		return nil, err

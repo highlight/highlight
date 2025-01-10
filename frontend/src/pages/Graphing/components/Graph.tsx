@@ -149,6 +149,7 @@ export interface ChartProps<TConfig> {
 	projectId: string
 	startDate: Date
 	endDate: Date
+	sql?: string
 	query: string
 	groupByKeys?: string[]
 	bucketByKey?: string

@@ -2729,6 +2729,7 @@ export type QueryMetricsArgs = {
 	prediction_settings?: InputMaybe<PredictionSettings>
 	product_type: ProductType
 	project_id: Scalars['ID']
+	sql?: InputMaybe<Scalars['String']>
 }
 
 export type QueryMetrics_TimelineArgs = {

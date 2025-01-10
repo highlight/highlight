@@ -1098,7 +1098,7 @@ type ComplexityRoot struct {
 		MetricMonitors                   func(childComplexity int, projectID int, metricName *string) int
 		MetricTagValues                  func(childComplexity int, projectID int, metricName string, tagName string) int
 		MetricTags                       func(childComplexity int, projectID int, metricName string, query *string) int
-		Metrics                          func(childComplexity int, productType model.ProductType, projectID int, params model.QueryInput, column *string, metricTypes []model.MetricAggregator, groupBy []string, bucketBy string, bucketCount *int, bucketWindow *int, limit *int, limitAggregator *model.MetricAggregator, limitColumn *string, predictionSettings *model.PredictionSettings, expressions []*model.MetricExpressionInput) int
+		Metrics                          func(childComplexity int, productType model.ProductType, projectID int, params model.QueryInput, column *string, metricTypes []model.MetricAggregator, sql *string, groupBy []string, bucketBy string, bucketCount *int, bucketWindow *int, limit *int, limitAggregator *model.MetricAggregator, limitColumn *string, predictionSettings *model.PredictionSettings, expressions []*model.MetricExpressionInput) int
 		MetricsTimeline                  func(childComplexity int, projectID int, metricName string, params model.DashboardParamsInput) int
 		MicrosoftTeamsChannelSuggestions func(childComplexity int, projectID int) int
 		NetworkHistogram                 func(childComplexity int, projectID int, params model.NetworkHistogramParamsInput) int
@@ -2039,7 +2039,7 @@ type QueryResolver interface {
 	EventsKeyValues(ctx context.Context, projectID int, keyName string, dateRange model.DateRangeRequiredInput, query *string, count *int, event *string) ([]string, error)
 	EventsMetrics(ctx context.Context, projectID int, params model.QueryInput, column *string, metricTypes []model.MetricAggregator, groupBy []string, bucketBy string, bucketCount *int, bucketWindow *int, limit *int, limitAggregator *model.MetricAggregator, limitColumn *string, expressions []*model.MetricExpressionInput) (*model.MetricsBuckets, error)
 	EventSessions(ctx context.Context, projectID int, count int, params model.QueryInput, sortField *string, sortDesc bool, page *int) (*model1.SessionResults, error)
-	Metrics(ctx context.Context, productType model.ProductType, projectID int, params model.QueryInput, column *string, metricTypes []model.MetricAggregator, groupBy []string, bucketBy string, bucketCount *int, bucketWindow *int, limit *int, limitAggregator *model.MetricAggregator, limitColumn *string, predictionSettings *model.PredictionSettings, expressions []*model.MetricExpressionInput) (*model.MetricsBuckets, error)
+	Metrics(ctx context.Context, productType model.ProductType, projectID int, params model.QueryInput, column *string, metricTypes []model.MetricAggregator, sql *string, groupBy []string, bucketBy string, bucketCount *int, bucketWindow *int, limit *int, limitAggregator *model.MetricAggregator, limitColumn *string, predictionSettings *model.PredictionSettings, expressions []*model.MetricExpressionInput) (*model.MetricsBuckets, error)
 	Keys(ctx context.Context, productType *model.ProductType, projectID int, dateRange model.DateRangeRequiredInput, query *string, typeArg *model.KeyType, event *string) ([]*model.QueryKey, error)
 	KeyValues(ctx context.Context, productType *model.ProductType, projectID int, keyName string, dateRange model.DateRangeRequiredInput, query *string, count *int, event *string) ([]string, error)
 	Visualization(ctx context.Context, id int) (*model1.Visualization, error)
@@ -8204,7 +8204,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Query.Metrics(childComplexity, args["product_type"].(model.ProductType), args["project_id"].(int), args["params"].(model.QueryInput), args["column"].(*string), args["metric_types"].([]model.MetricAggregator), args["group_by"].([]string), args["bucket_by"].(string), args["bucket_count"].(*int), args["bucket_window"].(*int), args["limit"].(*int), args["limit_aggregator"].(*model.MetricAggregator), args["limit_column"].(*string), args["prediction_settings"].(*model.PredictionSettings), args["expressions"].([]*model.MetricExpressionInput)), true
+		return e.complexity.Query.Metrics(childComplexity, args["product_type"].(model.ProductType), args["project_id"].(int), args["params"].(model.QueryInput), args["column"].(*string), args["metric_types"].([]model.MetricAggregator), args["sql"].(*string), args["group_by"].([]string), args["bucket_by"].(string), args["bucket_count"].(*int), args["bucket_window"].(*int), args["limit"].(*int), args["limit_aggregator"].(*model.MetricAggregator), args["limit_column"].(*string), args["prediction_settings"].(*model.PredictionSettings), args["expressions"].([]*model.MetricExpressionInput)), true
 
 	case "Query.metrics_timeline":
 		if e.complexity.Query.MetricsTimeline == nil {
@@ -14356,6 +14356,7 @@ type Query {
 		params: QueryInput!
 		column: String # deprecated - use ` + "`" + `expressions` + "`" + ` instead
 		metric_types: [MetricAggregator!] # deprecated - use ` + "`" + `expressions` + "`" + ` instead
+		sql: String
 		group_by: [String!]!
 		bucket_by: String!
 		bucket_count: Int
@@ -21316,87 +21317,96 @@ func (ec *executionContext) field_Query_metrics_args(ctx context.Context, rawArg
 		}
 	}
 	args["metric_types"] = arg4
-	var arg5 []string
+	var arg5 *string
+	if tmp, ok := rawArgs["sql"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("sql"))
+		arg5, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["sql"] = arg5
+	var arg6 []string
 	if tmp, ok := rawArgs["group_by"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("group_by"))
-		arg5, err = ec.unmarshalNString2ᚕstringᚄ(ctx, tmp)
+		arg6, err = ec.unmarshalNString2ᚕstringᚄ(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["group_by"] = arg5
-	var arg6 string
+	args["group_by"] = arg6
+	var arg7 string
 	if tmp, ok := rawArgs["bucket_by"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("bucket_by"))
-		arg6, err = ec.unmarshalNString2string(ctx, tmp)
+		arg7, err = ec.unmarshalNString2string(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["bucket_by"] = arg6
-	var arg7 *int
+	args["bucket_by"] = arg7
+	var arg8 *int
 	if tmp, ok := rawArgs["bucket_count"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("bucket_count"))
-		arg7, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["bucket_count"] = arg7
-	var arg8 *int
-	if tmp, ok := rawArgs["bucket_window"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("bucket_window"))
 		arg8, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["bucket_window"] = arg8
+	args["bucket_count"] = arg8
 	var arg9 *int
-	if tmp, ok := rawArgs["limit"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("limit"))
+	if tmp, ok := rawArgs["bucket_window"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("bucket_window"))
 		arg9, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["limit"] = arg9
-	var arg10 *model.MetricAggregator
+	args["bucket_window"] = arg9
+	var arg10 *int
+	if tmp, ok := rawArgs["limit"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("limit"))
+		arg10, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["limit"] = arg10
+	var arg11 *model.MetricAggregator
 	if tmp, ok := rawArgs["limit_aggregator"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("limit_aggregator"))
-		arg10, err = ec.unmarshalOMetricAggregator2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐMetricAggregator(ctx, tmp)
+		arg11, err = ec.unmarshalOMetricAggregator2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐMetricAggregator(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["limit_aggregator"] = arg10
-	var arg11 *string
+	args["limit_aggregator"] = arg11
+	var arg12 *string
 	if tmp, ok := rawArgs["limit_column"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("limit_column"))
-		arg11, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
+		arg12, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["limit_column"] = arg11
-	var arg12 *model.PredictionSettings
+	args["limit_column"] = arg12
+	var arg13 *model.PredictionSettings
 	if tmp, ok := rawArgs["prediction_settings"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("prediction_settings"))
-		arg12, err = ec.unmarshalOPredictionSettings2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐPredictionSettings(ctx, tmp)
+		arg13, err = ec.unmarshalOPredictionSettings2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐPredictionSettings(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["prediction_settings"] = arg12
-	var arg13 []*model.MetricExpressionInput
+	args["prediction_settings"] = arg13
+	var arg14 []*model.MetricExpressionInput
 	if tmp, ok := rawArgs["expressions"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("expressions"))
-		arg13, err = ec.unmarshalOMetricExpressionInput2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐMetricExpressionInputᚄ(ctx, tmp)
+		arg14, err = ec.unmarshalOMetricExpressionInput2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐMetricExpressionInputᚄ(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["expressions"] = arg13
+	args["expressions"] = arg14
 	return args, nil
 }
 
@@ -65418,7 +65428,7 @@ func (ec *executionContext) _Query_metrics(ctx context.Context, field graphql.Co
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().Metrics(rctx, fc.Args["product_type"].(model.ProductType), fc.Args["project_id"].(int), fc.Args["params"].(model.QueryInput), fc.Args["column"].(*string), fc.Args["metric_types"].([]model.MetricAggregator), fc.Args["group_by"].([]string), fc.Args["bucket_by"].(string), fc.Args["bucket_count"].(*int), fc.Args["bucket_window"].(*int), fc.Args["limit"].(*int), fc.Args["limit_aggregator"].(*model.MetricAggregator), fc.Args["limit_column"].(*string), fc.Args["prediction_settings"].(*model.PredictionSettings), fc.Args["expressions"].([]*model.MetricExpressionInput))
+		return ec.resolvers.Query().Metrics(rctx, fc.Args["product_type"].(model.ProductType), fc.Args["project_id"].(int), fc.Args["params"].(model.QueryInput), fc.Args["column"].(*string), fc.Args["metric_types"].([]model.MetricAggregator), fc.Args["sql"].(*string), fc.Args["group_by"].([]string), fc.Args["bucket_by"].(string), fc.Args["bucket_count"].(*int), fc.Args["bucket_window"].(*int), fc.Args["limit"].(*int), fc.Args["limit_aggregator"].(*model.MetricAggregator), fc.Args["limit_column"].(*string), fc.Args["prediction_settings"].(*model.PredictionSettings), fc.Args["expressions"].([]*model.MetricExpressionInput))
 	})
 	if err != nil {
 		ec.Error(ctx, err)

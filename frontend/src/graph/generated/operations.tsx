@@ -5156,6 +5156,7 @@ export type GetMetricsQueryVariables = Types.Exact<{
 	product_type: Types.ProductType
 	project_id: Types.Scalars['ID']
 	params: Types.QueryInput
+	sql?: Types.Maybe<Types.Scalars['String']>
 	group_by: Array<Types.Scalars['String']> | Types.Scalars['String']
 	bucket_by: Types.Scalars['String']
 	bucket_count?: Types.Maybe<Types.Scalars['Int']>

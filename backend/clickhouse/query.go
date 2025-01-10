@@ -41,6 +41,7 @@ type SampleableTableConfig struct {
 type ReadMetricsInput struct {
 	SampleableConfig   SampleableTableConfig
 	ProjectIDs         []int
+	Sql                *string
 	Params             modelInputs.QueryInput
 	GroupBy            []string
 	BucketCount        *int

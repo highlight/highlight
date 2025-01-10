@@ -484,6 +484,18 @@ export const GraphingEditor: React.FC = () => {
 		initialSettings?.funnelDisplay ?? FUNNEL_DISPLAY[0],
 	)
 
+	const [sql, setSql] = useState('')
+	const [debouncedSql, setDebouncedSql] = useState(
+		initialSettings?.query ?? '',
+	)
+	useDebounce(
+		() => {
+			setDebouncedSql(sql)
+		},
+		300,
+		[sql],
+	)
+
 	const [query, setQuery] = useState(initialSettings?.query ?? '')
 	const [funnelSteps, setFunnelSteps] = useState<EventSelectionStep[]>(
 		initialSettings?.funnelSteps ?? [],
@@ -796,6 +808,7 @@ export const GraphingEditor: React.FC = () => {
 												projectId={projectId}
 												startDate={startDate}
 												endDate={endDate}
+												sql={debouncedSql}
 												query={debouncedQuery}
 												bucketByKey={getBucketByKey(
 													bucketBySetting,
@@ -958,6 +971,21 @@ export const GraphingEditor: React.FC = () => {
 												disabled={isPreview}
 											/>
 										)}
+									</SidebarSection>
+									<Divider className="m-0" />
+									<SidebarSection>
+										<LabeledRow
+											label="SQL"
+											name="sql"
+											tooltip="The search query used to filter which data points are included before aggregating."
+										>
+											<textarea
+												value={sql}
+												onChange={(e) => {
+													setSql(e.target.value)
+												}}
+											/>
+										</LabeledRow>
 									</SidebarSection>
 									<Divider className="m-0" />
 									<SidebarSection>

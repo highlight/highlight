@@ -2593,6 +2593,7 @@ type Query {
 		params: QueryInput!
 		column: String # deprecated - use `expressions` instead
 		metric_types: [MetricAggregator!] # deprecated - use `expressions` instead
+		sql: String
 		group_by: [String!]!
 		bucket_by: String!
 		bucket_count: Int

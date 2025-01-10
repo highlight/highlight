@@ -2606,6 +2606,7 @@ query GetMetrics(
 	$product_type: ProductType!
 	$project_id: ID!
 	$params: QueryInput!
+	$sql: String
 	$group_by: [String!]!
 	$bucket_by: String!
 	$bucket_count: Int
@@ -2620,6 +2621,7 @@ query GetMetrics(
 		product_type: $product_type
 		project_id: $project_id
 		params: $params
+		sql: $sql
 		group_by: $group_by
 		bucket_by: $bucket_by
 		bucket_window: $bucket_window
