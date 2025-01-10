@@ -51,7 +51,7 @@ jobs:
     publish:
         name: publish package
         runs-on: ubuntu-latest
-        # if: github.ref == 'ref/heads/main'
+        if: github.ref == 'ref/heads/main'
         needs: test
         steps:
             - name: Checkout
