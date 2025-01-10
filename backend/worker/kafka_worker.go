@@ -106,7 +106,7 @@ func (k *KafkaWorker) ProcessMessages(ctx context.Context) {
 			k.log(ctx, task, "committed")
 			s3.Finish()
 
-			hmetric.Incr(ctx, "worker.kafka.processed.total", nil, 1)
+			hmetric.Incr(ctx, "worker.kafka.processed.count", nil, 1)
 		}()
 	}
 }

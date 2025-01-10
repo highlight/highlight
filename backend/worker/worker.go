@@ -344,9 +344,9 @@ func (w *Worker) processPublicWorkerMessage(ctx context.Context, task *kafkaqueu
 			attribute.Bool("success", err == nil),
 		}
 		if s != nil {
-			tags = append(tags, attribute.String("secure_id", s.SecureID), attribute.Int("project_id", s.ProjectID))
+			tags = append(tags, attribute.Int("project_id", s.ProjectID))
 		}
-		hmetric.Incr(ctx, "worker.initializeSession.count", tags, 1)
+		hmetric.Incr(ctx, "worker.session.initialize.count", tags, 1)
 		if err != nil {
 			log.WithContext(ctx).WithError(err).WithField("type", task.Type).WithField("key", string(task.KafkaMessage.Key)).Error("failed to process task")
 			return err
@@ -1113,7 +1113,7 @@ func (w *Worker) Start(ctx context.Context) {
 				if err := w.Resolver.Redis.RemoveSessionToProcess(ctx, session.ID); err != nil {
 					log.WithContext(ctx).Error(err)
 				}
-				hmetric.Incr(ctx, "sessionsProcessed", nil, 1)
+				hmetric.Incr(ctx, "worker.session.process.count", nil, 1)
 				span.Finish()
 			})
 		}

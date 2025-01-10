@@ -341,7 +341,7 @@ func (p *Queue) Submit(ctx context.Context, partitionKey string, messages ...Ret
 			Key:   []byte(partitionKey),
 			Value: msgBytes,
 		})
-		hmetric.Incr(ctx, p.metricPrefix()+"produceMessageCount", nil, 1)
+		hmetric.Incr(ctx, p.metricPrefix()+"produce.count", nil, 1)
 	}
 
 	ctx, cancel := context.WithTimeout(ctx, KafkaOperationTimeout)
@@ -372,7 +372,7 @@ func (p *Queue) Receive(ctx context.Context) (msg RetryableMessage) {
 		return nil
 	}
 	msg.SetKafkaMessage(&m)
-	hmetric.Incr(ctx, p.metricPrefix()+"consumeMessageCount", nil, 1)
+	hmetric.Incr(ctx, p.metricPrefix()+"consume.count", nil, 1)
 	hmetric.Histogram(ctx, p.metricPrefix()+"receiveSec", time.Since(start).Seconds(), nil, 1)
 	return
 }
@@ -429,7 +429,7 @@ func (p *Queue) Commit(ctx context.Context, msg *kafka.Message) {
 	if err != nil {
 		log.WithContext(ctx).Error(errors.Wrap(err, "failed to commit message"))
 	} else {
-		hmetric.Incr(ctx, p.metricPrefix()+"commitMessageCount", nil, 1)
+		hmetric.Incr(ctx, p.metricPrefix()+"commit.count", nil, 1)
 		hmetric.Histogram(ctx, p.metricPrefix()+"commitSec", time.Since(start).Seconds(), nil, 1)
 	}
 }
