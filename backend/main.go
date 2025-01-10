@@ -219,7 +219,6 @@ func main() {
 	highlight.Start(
 		highlight.WithProjectID("1jdkoe52"),
 		highlight.WithEnvironment(env.EnvironmentName()),
-		highlight.WithMetricSamplingRate(1.),
 		highlight.WithSamplingRateMap(samplingMap),
 		highlight.WithServiceName(serviceName),
 		highlight.WithServiceVersion(env.Config.Version),

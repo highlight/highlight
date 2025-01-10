@@ -22,7 +22,6 @@ type config struct {
 	otlpEndpoint       string
 	projectID          string
 	resourceAttributes []attribute.KeyValue
-	metricSamplingRate float64
 	samplingRateMap    map[trace.SpanKind]float64
 }
 
@@ -30,8 +29,7 @@ var (
 	interruptChan chan bool
 	signalChan    chan os.Signal
 	conf          = &config{
-		otlpEndpoint:       OTLPDefaultEndpoint,
-		metricSamplingRate: 1.,
+		otlpEndpoint: OTLPDefaultEndpoint,
 		samplingRateMap: map[trace.SpanKind]float64{
 			trace.SpanKindUnspecified: 1.,
 		},
@@ -51,12 +49,6 @@ func (fn option) apply(conf *config) {
 func WithProjectID(projectID string) Option {
 	return option(func(conf *config) {
 		conf.projectID = projectID
-	})
-}
-
-func WithMetricSamplingRate(samplingRate float64) Option {
-	return option(func(conf *config) {
-		conf.metricSamplingRate = samplingRate
 	})
 }
 
@@ -229,10 +221,6 @@ func SetProjectID(id string) {
 
 func GetProjectID() string {
 	return conf.projectID
-}
-
-func GetMetricSamplingRate() float64 {
-	return conf.metricSamplingRate
 }
 
 // InterceptRequest calls InterceptRequestWithContext using the request object's context
