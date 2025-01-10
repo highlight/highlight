@@ -44,9 +44,9 @@ const FeatureDropdown = ({
 			sameTab: true,
 		},
 		{
-			title: 'Metrics',
+			title: 'Dashboards',
 			icon: <Icons.HiChartBar className={styles.copyOnLight} />,
-			link: '/metrics',
+			link: '/dashboards',
 			sameTab: true,
 		},
 	]

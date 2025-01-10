@@ -103,4 +103,4 @@ export const SUGGESTION_TYPES: SuggestionType[] = [
 ]
 
 export const GRAPHING_FIELD_DOCS_LINK =
-	'https://www.highlight.io/docs/general/product-features/metrics/graphing#graphing-fields'
+	'https://www.highlight.io/docs/general/product-features/dashboards/graphing#graphing-fields'

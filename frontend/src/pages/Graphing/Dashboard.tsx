@@ -441,7 +441,7 @@ export const Dashboard = () => {
 										kind="secondary"
 										iconLeft={<IconSolidChartBar />}
 									>
-										Metrics
+										Dashboards
 									</Tag>
 								</Stack>
 							</Link>
