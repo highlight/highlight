@@ -1146,7 +1146,7 @@ func (r *Resolver) getSessionInsight(ctx context.Context, session *model.Session
 	6 -	Plugin
 	`
 
-	events, err, _ := r.getEvents(ctx, session, model.EventsCursor{EventIndex: 0, EventObjectIndex: nil})
+	events, _, err := r.getEvents(ctx, session, model.EventsCursor{EventIndex: 0, EventObjectIndex: nil})
 	if err != nil {
 		log.WithContext(ctx).Error(err, "SessionInsight: GetEvents error")
 		return nil, err
@@ -3479,17 +3479,8 @@ func (r *Resolver) isBrotliAccepted(ctx context.Context) bool {
 	return strings.Contains(acceptEncodingString, "br")
 }
 
-func (r *Resolver) getEvents(ctx context.Context, s *model.Session, cursor model.EventsCursor) ([]interface{}, error, *model.EventsCursor) {
-	isLive := cursor.EventObjectIndex != nil
-	s3Events := map[int]string{}
-	if !isLive {
-		var err error
-		s3Events, err = r.StorageClient.GetRawData(ctx, s.ID, s.ProjectID, model.PayloadTypeEvents)
-		if err != nil {
-			return nil, errors.Wrap(err, "error retrieving events objects from S3"), nil
-		}
-	}
-	return r.Redis.GetEvents(ctx, s, cursor, s3Events)
+func (r *Resolver) getEvents(ctx context.Context, s *model.Session, cursor model.EventsCursor) ([]interface{}, *model.EventsCursor, error) {
+	return r.ClickhouseClient.QuerySessionReplayEvents(ctx, s, &cursor)
 }
 
 func (r *Resolver) GetSlackChannelsFromSlack(ctx context.Context, workspaceId int) (*[]model.SlackChannel, int, error) {

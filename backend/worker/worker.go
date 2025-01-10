@@ -5,6 +5,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"github.com/highlight-run/highlight/backend/session_replay"
 	"math"
 	"math/rand"
 	"sort"
@@ -117,16 +118,16 @@ func (w *Worker) writeToEventChunk(ctx context.Context, manager *payload.Payload
 
 	chunkIdx := 0
 	hadFullSnapshot := false
-	var eventChunks [][]*parse.ReplayEvent
+	var eventChunks [][]*session_replay.ReplayEvent
 	for _, event := range events.Events {
-		if event.Type == parse.FullSnapshot {
+		if event.Type == session_replay.FullSnapshot {
 			if hadFullSnapshot {
 				chunkIdx++
 			}
 			hadFullSnapshot = true
 		}
 		if len(eventChunks) <= chunkIdx {
-			eventChunks = append(eventChunks, []*parse.ReplayEvent{})
+			eventChunks = append(eventChunks, []*session_replay.ReplayEvent{})
 		}
 		eventChunks[chunkIdx] = append(eventChunks[chunkIdx], event)
 	}
@@ -169,7 +170,7 @@ func (w *Worker) writeToEventChunk(ctx context.Context, manager *payload.Payload
 			}
 			accumulator.EventChunks = append(accumulator.EventChunks, eventChunk)
 		}
-		eventsBytes, err := json.Marshal(&parse.ReplayEvents{Events: events})
+		eventsBytes, err := json.Marshal(&session_replay.ReplayEvents{Events: events})
 		if err != nil {
 			return errors.Wrap(err, "error marshalling chunked events")
 		}
@@ -651,7 +652,7 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 	}
 
 	userInteractionEvents := accumulator.UserInteractionEvents
-	userInteractionEvents = append(userInteractionEvents, []*parse.ReplayEvent{{
+	userInteractionEvents = append(userInteractionEvents, []*session_replay.ReplayEvent{{
 		Timestamp: accumulator.FirstFullSnapshotTimestamp,
 	}, {
 		Timestamp: accumulator.LastEventTimestamp,
@@ -1404,9 +1405,9 @@ type EventProcessingAccumulator struct {
 	// TimestampCounts represents a count of all user interaction events per second
 	TimestampCounts map[time.Time]int
 	// UserInteractionEvents represents the user interaction events in the session from rrweb
-	UserInteractionEvents []*parse.ReplayEvent
+	UserInteractionEvents []*session_replay.ReplayEvent
 	// EventsForTimelineIndicator represents the custom events that will be shown on the timeline indicator
-	EventsForTimelineIndicator []*parse.ReplayEvent
+	EventsForTimelineIndicator []*session_replay.ReplayEvent
 	// LatestSID represents the last sequential ID seen
 	LatestSID int
 	// AreEventsOutOfOrder is true if the list of event SID's is not monotonically increasing from 1
@@ -1429,8 +1430,8 @@ func MakeEventProcessingAccumulator(sessionSecureID string, rageClickSettings Ra
 		LastEventTimestamp:         time.Time{},
 		ActiveDuration:             0,
 		TimestampCounts:            map[time.Time]int{},
-		UserInteractionEvents:      []*parse.ReplayEvent{},
-		EventsForTimelineIndicator: []*parse.ReplayEvent{},
+		UserInteractionEvents:      []*session_replay.ReplayEvent{},
+		EventsForTimelineIndicator: []*session_replay.ReplayEvent{},
 		LatestSID:                  0,
 		AreEventsOutOfOrder:        false,
 		Error:                      nil,
@@ -1467,13 +1468,13 @@ func processEventChunk(ctx context.Context, a EventProcessingAccumulator, events
 		a.LatestSID = sequentialID
 		// If FirstFullSnapshotTimestamp is uninitialized and a first snapshot has not been found yet
 		if a.FirstFullSnapshotTimestamp.IsZero() {
-			if event.Type == parse.FullSnapshot {
+			if event.Type == session_replay.FullSnapshot {
 				a.FirstFullSnapshotTimestamp = event.Timestamp
-			} else if event.Type == parse.IncrementalSnapshot {
+			} else if event.Type == session_replay.IncrementalSnapshot {
 				continue
 			}
 		}
-		if event.Type == parse.IncrementalSnapshot {
+		if event.Type == session_replay.IncrementalSnapshot {
 			var diff time.Duration
 			if !a.LastEventTimestamp.IsZero() {
 				diff = event.Timestamp.Sub(a.LastEventTimestamp)
@@ -1486,7 +1487,7 @@ func processEventChunk(ctx context.Context, a EventProcessingAccumulator, events
 			// purge old clicks
 			var toRemove []*list.Element
 			for element := a.ClickEventQueue.Front(); element != nil; element = element.Next() {
-				if event.Timestamp.Sub(element.Value.(*parse.ReplayEvent).Timestamp) > a.RageClickSettings.Window {
+				if event.Timestamp.Sub(element.Value.(*session_replay.ReplayEvent).Timestamp) > a.RageClickSettings.Window {
 					toRemove = append(toRemove, element)
 				}
 			}
@@ -1500,9 +1501,9 @@ func processEventChunk(ctx context.Context, a EventProcessingAccumulator, events
 				a.Error = err
 				return a
 			}
-			if _, ok := map[parse.EventSource]bool{
-				parse.MouseMove: true, parse.MouseInteraction: true, parse.Scroll: true,
-				parse.Input: true, parse.TouchMove: true, parse.Drag: true,
+			if _, ok := map[session_replay.EventSource]bool{
+				session_replay.MouseMove: true, session_replay.MouseInteraction: true, session_replay.Scroll: true,
+				session_replay.Input: true, session_replay.TouchMove: true, session_replay.Drag: true,
 			}[*mouseInteractionEventData.Source]; !ok {
 				continue
 			}
@@ -1520,12 +1521,12 @@ func processEventChunk(ctx context.Context, a EventProcessingAccumulator, events
 				// all values must be not nil on a click/touch event
 				continue
 			}
-			if *mouseInteractionEventData.Source != parse.MouseInteraction {
+			if *mouseInteractionEventData.Source != session_replay.MouseInteraction {
 				// Source must be MouseInteraction for a click/touch event
 				continue
 			}
-			if _, ok := map[parse.MouseInteractions]bool{parse.Click: true,
-				parse.DblClick: true}[*mouseInteractionEventData.Type]; !ok {
+			if _, ok := map[session_replay.MouseInteractions]bool{session_replay.Click: true,
+				session_replay.DblClick: true}[*mouseInteractionEventData.Type]; !ok {
 				// Type must be a Click, Double Click, or Touch Start for a click/touch event
 				continue
 			}
@@ -1538,7 +1539,7 @@ func processEventChunk(ctx context.Context, a EventProcessingAccumulator, events
 				TotalClicks: a.RageClickSettings.Count,
 			}
 			for element := a.ClickEventQueue.Front(); element != nil; element = element.Next() {
-				el := element.Value.(*parse.ReplayEvent)
+				el := element.Value.(*session_replay.ReplayEvent)
 				if el == event {
 					continue
 				}
@@ -1571,7 +1572,7 @@ func processEventChunk(ctx context.Context, a EventProcessingAccumulator, events
 			} else if a.CurrentlyInRageClickSet {
 				a.CurrentlyInRageClickSet = false
 			}
-		} else if event.Type == parse.Custom {
+		} else if event.Type == session_replay.Custom {
 			ts := event.Timestamp.Round(time.Millisecond)
 			if _, ok := a.TimestampCounts[ts]; !ok {
 				a.TimestampCounts[ts] = 0

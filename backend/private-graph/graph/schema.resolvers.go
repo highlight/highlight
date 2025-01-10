@@ -14,7 +14,6 @@ import (
 	"math"
 	"math/rand"
 	"net/url"
-	"os"
 	"regexp"
 	"sort"
 	"strconv"
@@ -5183,23 +5182,11 @@ func (r *queryResolver) Session(ctx context.Context, secureID string) (*model.Se
 
 // Events is the resolver for the events field.
 func (r *queryResolver) Events(ctx context.Context, sessionSecureID string) ([]interface{}, error) {
-	if env.IsDevEnv() && sessionSecureID == "repro" {
-		file, err := os.ReadFile("./tmp/events.json")
-		if err != nil {
-			return nil, e.Wrap(err, "Failed to read temp file")
-		}
-		var data []interface{}
-
-		if err := json.Unmarshal([]byte(file), &data); err != nil {
-			return nil, e.Wrap(err, "Failed to unmarshal data from file")
-		}
-		return data, nil
-	}
 	session, err := r.canAdminViewSession(ctx, sessionSecureID)
 	if err != nil {
 		return nil, err
 	}
-	events, err, _ := r.getEvents(ctx, session, model.EventsCursor{EventIndex: 0, EventObjectIndex: nil})
+	events, _, err := r.getEvents(ctx, session, model.EventsCursor{EventIndex: 0, EventObjectIndex: nil})
 	return events, err
 }
 
@@ -10082,7 +10069,7 @@ func (r *subscriptionResolver) SessionPayloadAppended(ctx context.Context, sessi
 			}
 			// Use context.Background() here as the original ctx seems to
 			// be cancelled after 30 seconds, which cancels the redis query.
-			events, err, nextCursor := r.getEvents(context.Background(), session, cursor)
+			events, nextCursor, err := r.getEvents(context.Background(), session, cursor)
 			if err != nil {
 				log.WithContext(ctx).Error(e.Wrap(err, "error fetching events incrementally"))
 				return

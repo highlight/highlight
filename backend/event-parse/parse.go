@@ -8,6 +8,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/highlight-run/highlight/backend/env"
+	"github.com/highlight-run/highlight/backend/session_replay"
 	"io"
 	"net/http"
 	"net/url"
@@ -31,51 +32,6 @@ import (
 	"github.com/samber/lo"
 	log "github.com/sirupsen/logrus"
 	"github.com/tdewolff/parse/css"
-)
-
-type EventType int
-
-const (
-	DomContentLoaded EventType = iota
-	Load
-	FullSnapshot
-	IncrementalSnapshot
-	Meta
-	Custom
-)
-
-type EventSource int
-
-const (
-	Mutation EventSource = iota
-	MouseMove
-	MouseInteraction
-	Scroll
-	ViewportResize
-	Input
-	TouchMove
-	MediaInteraction
-	StyleSheetRule
-	CanvasMutation
-	Font
-	Log
-	Drag
-)
-
-type MouseInteractions int
-
-const (
-	MouseUp MouseInteractions = iota
-	MouseDown
-	Click
-	ContextMenu
-	DblClick
-	Focus
-	Blur
-	TouchStart
-	TouchMove_Departed
-	TouchEnd
-	TouchCancel
 )
 
 const (
@@ -175,49 +131,9 @@ func init() {
 	fetch = networkFetcher{}
 }
 
-// ReplayEvent represents a single event that represents a change on the DOM.
-type ReplayEvent struct {
-	Timestamp    time.Time       `json:"-"`
-	Type         EventType       `json:"type"`
-	Data         json.RawMessage `json:"data"`
-	TimestampRaw float64         `json:"timestamp"`
-	SID          float64         `json:"_sid"`
-}
-
-// ReplayEvents is a set of ReplayEvent(s).
-type ReplayEvents struct {
-	Events []*ReplayEvent `json:"events"`
-}
-
-func (r *ReplayEvent) UnmarshalJSON(b []byte) error {
-	aux := struct {
-		Timestamp float64         `json:"timestamp"`
-		Type      EventType       `json:"type"`
-		Data      json.RawMessage `json:"data"`
-		SID       float64         `json:"_sid"`
-	}{}
-	if err := json.Unmarshal(b, &aux); err != nil {
-		return errors.Wrap(err, "error with custom unmarshal of events")
-	}
-	r.Data = aux.Data
-	r.Type = aux.Type
-	r.Timestamp = javascriptToGolangTime(aux.Timestamp)
-	r.TimestampRaw = aux.Timestamp
-	r.SID = aux.SID
-	return nil
-}
-
-// MouseInteractionEventData represents the data field for click events from the following parent events
-type MouseInteractionEventData struct {
-	X      *float64           `json:"x"`
-	Y      *float64           `json:"y"`
-	Source *EventSource       `json:"source"`
-	Type   *MouseInteractions `json:"type"`
-}
-
 // EventsFromString parses a json string in the form {events: [ev1, ev2, ...]}.
-func EventsFromString(eventsString string) (*ReplayEvents, error) {
-	events := &ReplayEvents{}
+func EventsFromString(eventsString string) (*session_replay.ReplayEvents, error) {
+	events := &session_replay.ReplayEvents{}
 	err := json.Unmarshal([]byte(eventsString), &events)
 	if err != nil {
 		return nil, errors.Wrapf(err, "error parsing events into ReplayEvents for string '%v'", eventsString)
@@ -806,13 +722,8 @@ func tryGetAssetUrls(ctx context.Context, projectId int, node map[string]interfa
 	return
 }
 
-func javascriptToGolangTime(t float64) time.Time {
-	tInt := int64(t)
-	return time.Unix(tInt/1000, (tInt%1000)*1000*1000).UTC()
-}
-
-func UnmarshallMouseInteractionEvent(data json.RawMessage) (*MouseInteractionEventData, error) {
-	aux := MouseInteractionEventData{}
+func UnmarshallMouseInteractionEvent(data json.RawMessage) (*session_replay.MouseInteractionEventData, error) {
+	aux := session_replay.MouseInteractionEventData{}
 	err := json.Unmarshal(data, &aux)
 	if err != nil {
 		return nil, err
@@ -825,7 +736,7 @@ func UnmarshallMouseInteractionEvent(data json.RawMessage) (*MouseInteractionEve
 }
 
 type Event struct {
-	Type      EventType
+	Type      session_replay.EventType
 	Timestamp int64
 	Data      interface{}
 }
@@ -839,13 +750,13 @@ func FilterEventsForInsights(events []interface{}) ([]*Event, error) {
 			}
 
 			if eMap["type"] != nil {
-				eventType := EventType(int(eMap["type"].(float64)))
+				eventType := session_replay.EventType(int(eMap["type"].(float64)))
 				timestamp := int64(eMap["timestamp"].(float64))
 
 				switch eventType {
-				case FullSnapshot:
-				case IncrementalSnapshot:
-				case Custom:
+				case session_replay.FullSnapshot:
+				case session_replay.IncrementalSnapshot:
+				case session_replay.Custom:
 					data, _ := json.Marshal(eMap["data"])
 					stringifiedData := string(data)
 
@@ -869,12 +780,12 @@ func FilterEventsForInsights(events []interface{}) ([]*Event, error) {
 	return parsedEvents, nil
 }
 
-func GetHostUrlFromEvents(events []*ReplayEvent) *string {
+func GetHostUrlFromEvents(events []*session_replay.ReplayEvent) *string {
 	if len(events) == 0 {
 		return nil
 	}
 
-	if events[0].Type != Meta {
+	if events[0].Type != session_replay.Meta {
 		return nil
 	}
 
