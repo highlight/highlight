@@ -67,3 +67,4 @@ jobs:
                   name: highlight
                   key: ${{ secrets.HEX_PM_KEY }}
                   tag-release: false
+                  working-directory: sdk/highlight-ex
