@@ -1223,6 +1223,7 @@ func (w *Worker) RefreshMaterializedViews(ctx context.Context) {
 		ErrorCount   int64 `json:"error_count"`
 		LogCount     int64 `json:"log_count"`
 		TraceCount   int64 `json:"trace_count"`
+		MetricCount  int64 `json:"metric_count"`
 	}
 	var counts []*AggregateSessionCount
 
@@ -1271,6 +1272,13 @@ func (w *Worker) RefreshMaterializedViews(ctx context.Context) {
 			EndDate:   time.Now(),
 		})
 		c.TraceCount = int64(count)
+		count, _ = w.Resolver.ClickhouseClient.ReadMetricsDailySum(ctx, lo.Map(workspace.Projects, func(p model.Project, index int) int {
+			return p.ID
+		}), backend.DateRangeRequiredInput{
+			StartDate: time.Now().AddDate(0, 0, -1),
+			EndDate:   time.Now(),
+		})
+		c.MetricCount = int64(count)
 	}
 
 	for _, c := range counts {
@@ -1279,7 +1287,7 @@ func (w *Worker) RefreshMaterializedViews(ctx context.Context) {
 			attribute.Int64(phonehome.ErrorCount, c.ErrorCount),
 			attribute.Int64(phonehome.LogCount, c.LogCount),
 			attribute.Int64(phonehome.TraceCount, c.TraceCount),
-			// TODO(vkorolik) metrics
+			attribute.Int64(phonehome.MetricCount, c.MetricCount),
 		})
 	}
 }
