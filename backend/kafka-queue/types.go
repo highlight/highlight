@@ -307,7 +307,7 @@ type OTeLMetricSumRow struct {
 	Failures     int
 	MaxRetries   int
 	KafkaMessage *kafka.Message `json:",omitempty"`
-	MetricSumRow *clickhouse.MetricSumRow
+	*clickhouse.MetricSumRow
 }
 
 func (m *OTeLMetricSumRow) GetType() PayloadType {
@@ -338,11 +338,11 @@ func (m *OTeLMetricSumRow) SetKafkaMessage(value *kafka.Message) {
 }
 
 type OTeLMetricHistogramRow struct {
-	Type               PayloadType
-	Failures           int
-	MaxRetries         int
-	KafkaMessage       *kafka.Message `json:",omitempty"`
-	MetricHistogramRow *clickhouse.MetricHistogramRow
+	Type         PayloadType
+	Failures     int
+	MaxRetries   int
+	KafkaMessage *kafka.Message `json:",omitempty"`
+	*clickhouse.MetricHistogramRow
 }
 
 func (m *OTeLMetricHistogramRow) GetType() PayloadType {
@@ -373,11 +373,11 @@ func (m *OTeLMetricHistogramRow) SetKafkaMessage(value *kafka.Message) {
 }
 
 type OTeLMetricSummaryRow struct {
-	Type             PayloadType
-	Failures         int
-	MaxRetries       int
-	KafkaMessage     *kafka.Message `json:",omitempty"`
-	MetricSummaryRow *clickhouse.MetricSummaryRow
+	Type         PayloadType
+	Failures     int
+	MaxRetries   int
+	KafkaMessage *kafka.Message `json:",omitempty"`
+	*clickhouse.MetricSummaryRow
 }
 
 func (m *OTeLMetricSummaryRow) GetType() PayloadType {

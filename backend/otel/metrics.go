@@ -200,6 +200,19 @@ func extractExemplars(exSlice pmetric.ExemplarSlice) *exemplars {
 	for i := 0; i < exSlice.Len(); i++ {
 		e := exSlice.At(i)
 
+		var value float64
+		if e.ValueType() == pmetric.ExemplarValueTypeDouble {
+			value = e.DoubleValue()
+		} else if e.ValueType() == pmetric.ExemplarValueTypeInt {
+			value = float64(e.IntValue())
+		} else {
+			continue
+		}
+
+		if e.Timestamp().AsTime().IsZero() {
+			continue
+		}
+
 		var sessionID string
 		attributes := make(map[string]string)
 		for k, v := range e.FilteredAttributes().AsRaw() {
@@ -215,13 +228,6 @@ func extractExemplars(exSlice pmetric.ExemplarSlice) *exemplars {
 					attributes[key] = value
 				}
 			}
-		}
-
-		var value float64
-		if e.ValueType() == pmetric.ExemplarValueTypeDouble {
-			value = e.DoubleValue()
-		} else if e.ValueType() == pmetric.ExemplarValueTypeInt {
-			value = float64(e.IntValue())
 		}
 
 		ex.Attributes = append(ex.Attributes, attributes)

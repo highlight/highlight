@@ -251,7 +251,7 @@ func CreateMeterProvider(ctx context.Context, endpoint string, opts ...sdkmetric
 	}
 	opts = append([]sdkmetric.Option{
 		sdkmetric.WithReader(sdkmetric.NewPeriodicReader(exporter,
-			sdkmetric.WithInterval(time.Second),
+			sdkmetric.WithInterval(5*time.Second),
 			sdkmetric.WithTimeout(30*time.Second),
 		)),
 		sdkmetric.WithResource(resources),
@@ -263,6 +263,18 @@ func CreateMeterProvider(ctx context.Context, endpoint string, opts ...sdkmetric
 var defaultTracerProvider = otel.GetTracerProvider()
 var defaultLoggerProvider *sdklog.LoggerProvider
 var defaultMeterProvider = otel.GetMeterProvider()
+
+var defaultTracer = defaultTracerProvider.Tracer(
+	"github.com/highlight/highlight/sdk/highlight-go",
+	trace.WithInstrumentationVersion(Version),
+	trace.WithSchemaURL(semconv.SchemaURL),
+)
+var defaultLogger log.Logger
+var defaultMeter = defaultMeterProvider.Meter(
+	"github.com/highlight/highlight/sdk/highlight-go",
+	metric.WithInstrumentationVersion(Version),
+	metric.WithSchemaURL(semconv.SchemaURL),
+)
 
 func StartOTLP() (*OTLP, error) {
 	ctx := context.Background()
@@ -294,6 +306,23 @@ func StartOTLP() (*OTLP, error) {
 	defaultMeterProvider = meterProvider
 	otel.SetTracerProvider(h.tracerProvider)
 	otel.SetMeterProvider(h.meterProvider)
+
+	defaultTracer = defaultTracerProvider.Tracer(
+		"github.com/highlight/highlight/sdk/highlight-go",
+		trace.WithInstrumentationVersion(Version),
+		trace.WithSchemaURL(semconv.SchemaURL),
+	)
+	defaultLogger = defaultLoggerProvider.Logger(
+		"github.com/highlight/highlight/sdk/highlight-go",
+		log.WithInstrumentationVersion(Version),
+		log.WithSchemaURL(semconv.SchemaURL),
+	)
+	defaultMeter = defaultMeterProvider.Meter(
+		"github.com/highlight/highlight/sdk/highlight-go",
+		metric.WithInstrumentationVersion(Version),
+		metric.WithSchemaURL(semconv.SchemaURL),
+	)
+
 	return h, nil
 }
 
@@ -345,11 +374,7 @@ func StartTraceWithTracer(ctx context.Context, tracer trace.Tracer, name string,
 }
 
 func StartTraceWithTimestamp(ctx context.Context, name string, t time.Time, opts []trace.SpanStartOption, tags ...attribute.KeyValue) (trace.Span, context.Context) {
-	return StartTraceWithTracer(ctx, defaultTracerProvider.Tracer(
-		"github.com/highlight/highlight/sdk/highlight-go",
-		trace.WithInstrumentationVersion("v0.1.0"),
-		trace.WithSchemaURL(semconv.SchemaURL),
-	), name, t, opts, tags...)
+	return StartTraceWithTracer(ctx, defaultTracer, name, t, opts, tags...)
 }
 
 func StartTrace(ctx context.Context, name string, tags ...attribute.KeyValue) (trace.Span, context.Context) {
@@ -360,7 +385,7 @@ func EndTrace(span trace.Span) {
 	span.End(trace.WithStackTrace(true))
 }
 
-func RecordGaugeWithMeter(ctx context.Context, meter metric.Meter, name string, value float64, opts []metric.RecordOption, tags ...attribute.KeyValue) {
+func getMetricContext(ctx context.Context, opts []metric.RecordOption, tags ...attribute.KeyValue) (context.Context, []attribute.KeyValue) {
 	sessionID, requestID, _ := validateRequest(ctx)
 	spanCtx := trace.SpanContextFromContext(ctx)
 	if requestID != "" {
@@ -368,22 +393,18 @@ func RecordGaugeWithMeter(ctx context.Context, meter metric.Meter, name string, 
 		tid := getTraceID(requestID)
 		spanCtx = spanCtx.WithTraceID(tid)
 	}
-	gauge, err := meter.Float64Gauge(name)
-	if err != nil {
-		fmt.Printf("error creating float64 gauge %s: %v", name, err)
-		return
-	}
 	// prioritize values passed in tags for project, session, request ids
 	tags = append([]attribute.KeyValue{
 		attribute.String(SessionIDAttribute, sessionID),
 		attribute.String(RequestIDAttribute, requestID)},
 		tags...,
 	)
-	opts = append(opts, metric.WithAttributes(
-		tags...,
-	))
-	gauge.Record(trace.ContextWithSpanContext(ctx, spanCtx), value, opts...)
+	return trace.ContextWithSpanContext(ctx, spanCtx), tags
 }
+
+var float64Gauges = make(map[string]metric.Float64Gauge, 1000)
+var float64Histograms = make(map[string]metric.Float64Histogram, 1000)
+var int64Counters = make(map[string]metric.Int64Counter, 1000)
 
 // RecordMetric is used to record arbitrary metrics in your golang backend.
 // Highlight will process these metrics in the context of your session and expose them
@@ -391,11 +412,42 @@ func RecordGaugeWithMeter(ctx context.Context, meter metric.Meter, name string, 
 // as a metric that you would like to graph and monitor. You'll be able to view the metric
 // in the context of the session and network request and recorded it.
 func RecordMetric(ctx context.Context, name string, value float64, tags ...attribute.KeyValue) {
-	RecordGaugeWithMeter(ctx, defaultMeterProvider.Meter(
-		"github.com/highlight/highlight/sdk/highlight-go",
-		metric.WithInstrumentationVersion("v0.1.0"),
-		metric.WithSchemaURL(semconv.SchemaURL),
-	), name, value, nil, tags...)
+	if g := float64Gauges[name]; g == nil {
+		var err error
+		float64Gauges[name], err = defaultMeter.Float64Gauge(name)
+		if err != nil {
+			fmt.Printf("error creating float64 gauge %s: %v", name, err)
+			return
+		}
+	}
+	metricCtx, tags := getMetricContext(ctx, nil, tags...)
+	float64Gauges[name].Record(metricCtx, value, metric.WithAttributes(tags...))
+}
+
+func RecordHistogram(ctx context.Context, name string, value float64, tags ...attribute.KeyValue) {
+	if h := float64Histograms[name]; h == nil {
+		var err error
+		float64Histograms[name], err = defaultMeter.Float64Histogram(name)
+		if err != nil {
+			fmt.Printf("error creating float64 histogram %s: %v", name, err)
+			return
+		}
+	}
+	metricCtx, tags := getMetricContext(ctx, nil, tags...)
+	float64Histograms[name].Record(metricCtx, value, metric.WithAttributes(tags...))
+}
+
+func RecordCount(ctx context.Context, name string, value int64, tags ...attribute.KeyValue) {
+	if c := int64Counters[name]; c == nil {
+		var err error
+		int64Counters[name], err = defaultMeter.Int64Counter(name)
+		if err != nil {
+			fmt.Printf("error creating float64 histogram %s: %v", name, err)
+			return
+		}
+	}
+	metricCtx, tags := getMetricContext(ctx, nil, tags...)
+	int64Counters[name].Add(metricCtx, value, metric.WithAttributes(tags...))
 }
 
 func RecordLogWithLogger(ctx context.Context, lg log.Logger, record log.Record, tags ...log.KeyValue) error {
@@ -420,11 +472,7 @@ func RecordLogWithLogger(ctx context.Context, lg log.Logger, record log.Record, 
 // RecordLog is used to record arbitrary logs in your golang backend.
 // This function is under active development as the OpenTelemetry logging API is still in beta.
 func RecordLog(ctx context.Context, record log.Record, tags ...log.KeyValue) error {
-	return RecordLogWithLogger(ctx, defaultLoggerProvider.Logger(
-		"github.com/highlight/highlight/sdk/highlight-go",
-		log.WithInstrumentationVersion("v0.1.0"),
-		log.WithSchemaURL(semconv.SchemaURL),
-	), record, tags...)
+	return RecordLogWithLogger(ctx, defaultLogger, record, tags...)
 }
 
 // RecordError processes `err` to be recorded as a part of the session or network request.

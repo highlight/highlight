@@ -270,7 +270,7 @@ func (pm *PayloadManager) ReportPayloadSizes() error {
 		if err != nil {
 			return errors.Wrap(err, "error getting file info")
 		}
-		hmetric.Histogram(context.Background(), fmt.Sprintf("worker.processSession.%s", fileInfo.ddTag), float64(eventInfo.Size()), nil, 1) //nolint
+		hmetric.Histogram(context.Background(), fmt.Sprintf("worker.session.processed.%s", fileInfo.ddTag), float64(eventInfo.Size()), nil, 1) //nolint
 	}
 	return nil
 }

@@ -128,9 +128,9 @@ func NewClient() *Client {
 				}
 				hmetric.Histogram(ctx, "redis.hits", float64(stats.Hits), nil, 1)
 				hmetric.Histogram(ctx, "redis.misses", float64(stats.Misses), nil, 1)
-				hmetric.Histogram(ctx, "redis.idle-conns", float64(stats.IdleConns), nil, 1)
-				hmetric.Histogram(ctx, "redis.stale-conns", float64(stats.StaleConns), nil, 1)
-				hmetric.Histogram(ctx, "redis.total-conns", float64(stats.TotalConns), nil, 1)
+				hmetric.Histogram(ctx, "redis.idle_conns", float64(stats.IdleConns), nil, 1)
+				hmetric.Histogram(ctx, "redis.stale_conns", float64(stats.StaleConns), nil, 1)
+				hmetric.Histogram(ctx, "redis.total_conns", float64(stats.TotalConns), nil, 1)
 				hmetric.Histogram(ctx, "redis.timeouts", float64(stats.Timeouts), nil, 1)
 
 				if stats := rCache.Stats(); stats != nil {

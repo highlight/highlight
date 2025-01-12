@@ -43,7 +43,7 @@ type MetricBaseRow struct {
 	ExemplarsTraceID         []string            `json:"Exemplars.TraceID" ch:"Exemplars.TraceID"`
 	ExemplarsSecureSessionID []string            `json:"Exemplars.SecureSessionID" ch:"Exemplars.SecureSessionID"`
 
-	MetricType pmetric.MetricType `ch:"Type"`
+	MetricType pmetric.MetricType `ch:"MetricType"`
 }
 
 type MetricSumRow struct {

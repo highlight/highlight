@@ -3,18 +3,9 @@
 	"containerDefinitions": [
 		{
 			"name": "kafka-connect",
-			"image": "173971919437.dkr.ecr.us-east-2.amazonaws.com/highlight-kafka-connect:latest",
+			"image": "173971919437.dkr.ecr.us-east-2.amazonaws.com/highlight-kafka-connect:5283c77f170a05d37b73e6c338fd2fa55eb5a65e.arm64",
 			"cpu": 0,
-			"memoryReservation": 31744,
-			"portMappings": [
-				{
-					"name": "kafka-connect-rest",
-					"containerPort": 8083,
-					"hostPort": 8083,
-					"protocol": "tcp",
-					"appProtocol": "http"
-				}
-			],
+			"portMappings": [],
 			"essential": true,
 			"environment": [],
 			"mountPoints": [],
@@ -53,13 +44,12 @@
 			"name": "kafka-connect-ui",
 			"image": "provectuslabs/kafka-ui",
 			"cpu": 0,
-			"memoryReservation": 1024,
 			"links": ["kafka-connect:kafka-connect"],
 			"portMappings": [
 				{
 					"name": "kafka-connect-ui",
 					"containerPort": 8080,
-					"hostPort": 8080,
+					"hostPort": 0,
 					"protocol": "tcp",
 					"appProtocol": "http"
 				}

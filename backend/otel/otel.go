@@ -592,7 +592,10 @@ func (o *Handler) HandleMetric(w http.ResponseWriter, r *http.Request) {
 						curTime:          curTime,
 					})
 					if err != nil {
-						lg(ctx, fields).WithError(err).Info("failed to extract fields from metric data point")
+						lg(ctx, fields).
+							WithError(err).
+							WithField("name", metric.Name()).
+							Debug("failed to extract fields from metric")
 						continue
 					}
 					if _, ok := projectRetentions[fields.projectIDInt]; !ok {

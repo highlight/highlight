@@ -341,7 +341,7 @@ func (p *Queue) Submit(ctx context.Context, partitionKey string, messages ...Ret
 			Key:   []byte(partitionKey),
 			Value: msgBytes,
 		})
-		hmetric.Incr(ctx, p.metricPrefix()+"produceMessageCount", nil, 1)
+		hmetric.Incr(ctx, p.metricPrefix()+"produce.count", nil, 1)
 	}
 
 	ctx, cancel := context.WithTimeout(ctx, KafkaOperationTimeout)
@@ -351,7 +351,7 @@ func (p *Queue) Submit(ctx context.Context, partitionKey string, messages ...Ret
 		log.WithContext(ctx).WithError(err).WithField("topic", p.Topic).WithField("partition_key", partitionKey).WithField("num_messages", len(messages)).Errorf("failed to send kafka messages")
 		return err
 	}
-	hmetric.Histogram(ctx, p.metricPrefix()+"submitSec", time.Since(start).Seconds(), nil, 1)
+	hmetric.Histogram(ctx, p.metricPrefix()+"submit.sec", time.Since(start).Seconds(), nil, 1)
 	return nil
 }
 
@@ -372,8 +372,8 @@ func (p *Queue) Receive(ctx context.Context) (msg RetryableMessage) {
 		return nil
 	}
 	msg.SetKafkaMessage(&m)
-	hmetric.Incr(ctx, p.metricPrefix()+"consumeMessageCount", nil, 1)
-	hmetric.Histogram(ctx, p.metricPrefix()+"receiveSec", time.Since(start).Seconds(), nil, 1)
+	hmetric.Incr(ctx, p.metricPrefix()+"consume.count", nil, 1)
+	hmetric.Histogram(ctx, p.metricPrefix()+"receive.sec", time.Since(start).Seconds(), nil, 1)
 	return
 }
 
@@ -429,8 +429,8 @@ func (p *Queue) Commit(ctx context.Context, msg *kafka.Message) {
 	if err != nil {
 		log.WithContext(ctx).Error(errors.Wrap(err, "failed to commit message"))
 	} else {
-		hmetric.Incr(ctx, p.metricPrefix()+"commitMessageCount", nil, 1)
-		hmetric.Histogram(ctx, p.metricPrefix()+"commitSec", time.Since(start).Seconds(), nil, 1)
+		hmetric.Incr(ctx, p.metricPrefix()+"commit.count", nil, 1)
+		hmetric.Histogram(ctx, p.metricPrefix()+"commit.sec", time.Since(start).Seconds(), nil, 1)
 	}
 }
 
@@ -440,28 +440,28 @@ func (p *Queue) LogStats() {
 		stats := p.kafkaP.Stats()
 		log.WithContext(ctx).WithField("topic", stats.Topic).WithField("stats", stats).Debug("Kafka Producer Stats")
 
-		hmetric.Histogram(ctx, p.metricPrefix()+"produceBatchAvgSec", stats.BatchTime.Avg.Seconds(), nil, 1)
-		hmetric.Histogram(ctx, p.metricPrefix()+"produceWriteAvgSec", stats.WriteTime.Avg.Seconds(), nil, 1)
-		hmetric.Histogram(ctx, p.metricPrefix()+"produceWaitAvgSec", stats.WaitTime.Avg.Seconds(), nil, 1)
-		hmetric.Histogram(ctx, p.metricPrefix()+"produceBatchSize", float64(stats.BatchSize.Avg), nil, 1)
-		hmetric.Histogram(ctx, p.metricPrefix()+"produceBatchBytes", float64(stats.BatchBytes.Avg), nil, 1)
-		hmetric.Histogram(ctx, p.metricPrefix()+"produceQueueCapacity", float64(stats.QueueCapacity), nil, 1)
-		hmetric.Histogram(ctx, p.metricPrefix()+"produceQueueLength", float64(stats.QueueLength), nil, 1)
-		hmetric.Histogram(ctx, p.metricPrefix()+"produceBytes", float64(stats.Bytes), nil, 1)
-		hmetric.Histogram(ctx, p.metricPrefix()+"produceErrors", float64(stats.Errors), nil, 1)
+		hmetric.Gauge(ctx, p.metricPrefix()+"produceBatchAvgSec", stats.BatchTime.Avg.Seconds(), nil, 1)
+		hmetric.Gauge(ctx, p.metricPrefix()+"produceWriteAvgSec", stats.WriteTime.Avg.Seconds(), nil, 1)
+		hmetric.Gauge(ctx, p.metricPrefix()+"produceWaitAvgSec", stats.WaitTime.Avg.Seconds(), nil, 1)
+		hmetric.Gauge(ctx, p.metricPrefix()+"produceBatchSize", float64(stats.BatchSize.Avg), nil, 1)
+		hmetric.Gauge(ctx, p.metricPrefix()+"produceBatchBytes", float64(stats.BatchBytes.Avg), nil, 1)
+		hmetric.Gauge(ctx, p.metricPrefix()+"produceQueueCapacity", float64(stats.QueueCapacity), nil, 1)
+		hmetric.Gauge(ctx, p.metricPrefix()+"produceQueueLength", float64(stats.QueueLength), nil, 1)
+		hmetric.Gauge(ctx, p.metricPrefix()+"produceBytes", float64(stats.Bytes), nil, 1)
+		hmetric.Gauge(ctx, p.metricPrefix()+"produceErrors", float64(stats.Errors), nil, 1)
 	}
 	if p.kafkaC != nil {
 		stats := p.kafkaC.Stats()
 		log.WithContext(context.Background()).WithField("topic", stats.Topic).WithField("partition", stats.Partition).WithField("stats", stats).Debug("Kafka Consumer Stats")
 
-		hmetric.Histogram(ctx, p.metricPrefix()+"consumeReadAvgSec", stats.ReadTime.Avg.Seconds(), nil, 1)
-		hmetric.Histogram(ctx, p.metricPrefix()+"consumeWaitAvgSec", stats.WaitTime.Avg.Seconds(), nil, 1)
-		hmetric.Histogram(ctx, p.metricPrefix()+"consumeFetchSize", float64(stats.FetchSize.Avg), nil, 1)
-		hmetric.Histogram(ctx, p.metricPrefix()+"consumeFetchBytes", float64(stats.FetchBytes.Avg), nil, 1)
-		hmetric.Histogram(ctx, p.metricPrefix()+"consumeQueueCapacity", float64(stats.QueueCapacity), nil, 1)
-		hmetric.Histogram(ctx, p.metricPrefix()+"consumeQueueLength", float64(stats.QueueLength), nil, 1)
-		hmetric.Histogram(ctx, p.metricPrefix()+"consumeBytes", float64(stats.Bytes), nil, 1)
-		hmetric.Histogram(ctx, p.metricPrefix()+"consumeErrors", float64(stats.Errors), nil, 1)
+		hmetric.Gauge(ctx, p.metricPrefix()+"consumeReadAvgSec", stats.ReadTime.Avg.Seconds(), nil, 1)
+		hmetric.Gauge(ctx, p.metricPrefix()+"consumeWaitAvgSec", stats.WaitTime.Avg.Seconds(), nil, 1)
+		hmetric.Gauge(ctx, p.metricPrefix()+"consumeFetchSize", float64(stats.FetchSize.Avg), nil, 1)
+		hmetric.Gauge(ctx, p.metricPrefix()+"consumeFetchBytes", float64(stats.FetchBytes.Avg), nil, 1)
+		hmetric.Gauge(ctx, p.metricPrefix()+"consumeQueueCapacity", float64(stats.QueueCapacity), nil, 1)
+		hmetric.Gauge(ctx, p.metricPrefix()+"consumeQueueLength", float64(stats.QueueLength), nil, 1)
+		hmetric.Gauge(ctx, p.metricPrefix()+"consumeBytes", float64(stats.Bytes), nil, 1)
+		hmetric.Gauge(ctx, p.metricPrefix()+"consumeErrors", float64(stats.Errors), nil, 1)
 	}
 }
 

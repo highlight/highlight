@@ -5638,7 +5638,7 @@ func (r *queryResolver) EnhancedUserDetails(ctx context.Context, sessionSecureID
 				return nil, nil
 			}
 			log.WithContext(ctx).Infof("retrieving api response for clearbit lookup")
-			hmetric.Incr(ctx, "private-graph.enhancedDetails.miss", nil, 1)
+			hmetric.Incr(ctx, "private-graph.enhanced_detail.miss", nil, 1)
 			clearbitApiRequestSpan, _ := util.StartSpanFromContext(ctx, "private-graph.EnhancedUserDetails",
 				util.ResourceName("clearbit.api.request"),
 				util.Tag("session_id", s.ID), util.Tag("workspace_id", w.ID), util.Tag("project_id", p.ID), util.Tag("plan_tier", w.PlanTier))
@@ -5673,7 +5673,7 @@ func (r *queryResolver) EnhancedUserDetails(ctx context.Context, sessionSecureID
 			}
 		} else {
 			log.WithContext(ctx).Infof("retrieving cache db entry of clearbit lookup")
-			hmetric.Incr(ctx, "private-graph.enhancedDetails.hit", nil, 1)
+			hmetric.Incr(ctx, "private-graph.enhanced_detail.hit", nil, 1)
 			if userDetailsModel.PersonJSON != nil && userDetailsModel.CompanyJSON != nil {
 				if err := json.Unmarshal([]byte(*userDetailsModel.PersonJSON), &p); err != nil {
 					log.WithContext(ctx).Errorf("error unmarshaling person: %v", err)
