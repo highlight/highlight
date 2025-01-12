@@ -863,15 +863,11 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 		ctx, mgraph.SessionActiveMetricName, float64(accumulator.ActiveDuration),
 		attribute.Bool("Excluded", false),
 		attribute.Bool("Processed", true),
-		attribute.Int(highlight.ProjectIDAttribute, s.ProjectID),
-		attribute.String(highlight.TraceTypeAttribute, string(highlight.TraceTypeHighlightInternal)),
 	)
 	highlight.RecordCount(
 		ctx, mgraph.SessionProcessedMetricName, 1,
 		attribute.Bool("Excluded", false),
 		attribute.Bool("Processed", true),
-		attribute.Int(highlight.ProjectIDAttribute, s.ProjectID),
-		attribute.String(highlight.TraceTypeAttribute, string(highlight.TraceTypeHighlightInternal)),
 	)
 	if err := w.PublicResolver.PushMetricsImpl(ctx, nil, &s.SecureID, []*publicModel.MetricInput{
 		{
@@ -1022,7 +1018,7 @@ func (w *Worker) GetSessionsToProcess(ctx context.Context, payloadLookbackPeriod
 	})
 
 	// Sends a "count" metric to datadog so that we can see how many sessions are being queried.
-	hmetric.Histogram(ctx, "worker.sessionsQuery.sessionCount", float64(len(sessions)), nil, 1)
+	hmetric.Histogram(ctx, "worker.session.process.query.count", float64(len(sessions)), nil, 1)
 
 	return sessions, nil
 }
@@ -1044,7 +1040,7 @@ func (w *Worker) Start(ctx context.Context) {
 			continue
 		}
 		// Sends a "count" metric so that we can see how many sessions are being queried.
-		hmetric.Histogram(ctx, "worker.sessionsQuery.sessionCount", float64(len(sessions)), nil, 1) //nolint
+		hmetric.Histogram(ctx, "worker.session.query.count", float64(len(sessions)), nil, 1) //nolint
 
 		type SessionLog struct {
 			SessionID int
@@ -1077,7 +1073,7 @@ func (w *Worker) Start(ctx context.Context) {
 					vmStat, _ = mem.VirtualMemory()
 				}
 
-				span, ctx := util.StartSpanFromContext(ctx, "worker.operation", util.ResourceName("worker.processSession"), util.Tag("project_id", session.ProjectID), util.Tag("session_secure_id", session.SecureID))
+				span, ctx := util.StartSpanFromContext(ctx, "worker.operation", util.ResourceName("worker.process.session"), util.Tag("project_id", session.ProjectID), util.Tag("session_secure_id", session.SecureID))
 				if err := w.processSession(ctx, session); err != nil {
 					nextCount := session.RetryCount + 1
 					var excluded bool

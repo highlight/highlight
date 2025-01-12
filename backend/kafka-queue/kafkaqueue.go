@@ -351,7 +351,7 @@ func (p *Queue) Submit(ctx context.Context, partitionKey string, messages ...Ret
 		log.WithContext(ctx).WithError(err).WithField("topic", p.Topic).WithField("partition_key", partitionKey).WithField("num_messages", len(messages)).Errorf("failed to send kafka messages")
 		return err
 	}
-	hmetric.Histogram(ctx, p.metricPrefix()+"submitSec", time.Since(start).Seconds(), nil, 1)
+	hmetric.Histogram(ctx, p.metricPrefix()+"submit.sec", time.Since(start).Seconds(), nil, 1)
 	return nil
 }
 
@@ -373,7 +373,7 @@ func (p *Queue) Receive(ctx context.Context) (msg RetryableMessage) {
 	}
 	msg.SetKafkaMessage(&m)
 	hmetric.Incr(ctx, p.metricPrefix()+"consume.count", nil, 1)
-	hmetric.Histogram(ctx, p.metricPrefix()+"receiveSec", time.Since(start).Seconds(), nil, 1)
+	hmetric.Histogram(ctx, p.metricPrefix()+"receive.sec", time.Since(start).Seconds(), nil, 1)
 	return
 }
 
@@ -430,7 +430,7 @@ func (p *Queue) Commit(ctx context.Context, msg *kafka.Message) {
 		log.WithContext(ctx).Error(errors.Wrap(err, "failed to commit message"))
 	} else {
 		hmetric.Incr(ctx, p.metricPrefix()+"commit.count", nil, 1)
-		hmetric.Histogram(ctx, p.metricPrefix()+"commitSec", time.Since(start).Seconds(), nil, 1)
+		hmetric.Histogram(ctx, p.metricPrefix()+"commit.sec", time.Since(start).Seconds(), nil, 1)
 	}
 }
 

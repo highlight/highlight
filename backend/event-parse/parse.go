@@ -232,7 +232,7 @@ type Snapshot struct {
 
 func NewSnapshot(inputData json.RawMessage, hostUrl *string) (*Snapshot, error) {
 	data := []byte(inputData)
-	hmetric.Histogram(context.Background(), "snapshot-length", float64(len(data)), nil, 1)
+	hmetric.Histogram(context.Background(), "snapshot.length", float64(len(data)), nil, 1)
 
 	if len(data) > MaxSnapshotSize {
 		return nil, errors.New(fmt.Sprintf("event snapshot too large: %d", len(data)))

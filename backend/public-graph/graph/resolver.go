@@ -734,7 +734,7 @@ func (r *Resolver) GetTopErrorGroupMatch(ctx context.Context, event string, proj
 		Scan(&result).Error; err != nil {
 		return nil, e.Wrap(err, "error querying top error group match")
 	}
-	hmetric.Histogram(ctx, "GetTopErrorGroupMatch.groupSQL.durationMs", float64(time.Since(start).Milliseconds()), nil, 1)
+	hmetric.Histogram(ctx, "GetTopErrorGroupMatch.groupSQL.duration_ms", float64(time.Since(start).Milliseconds()), nil, 1)
 
 	minScore := 10 + len(restMeta) - 1
 	if len(restCode) > len(restMeta) {
@@ -1242,9 +1242,7 @@ func (r *Resolver) InitializeSessionImpl(ctx context.Context, input *kafka_queue
 		Infof("initialized session %d: %s", session.ID, session.Identifier)
 
 	highlight.RecordCount(ctx,
-		"sessions.initialized", 1,
-		attribute.String(highlight.TraceTypeAttribute, string(highlight.TraceTypeHighlightInternal)),
-		attribute.Int(highlight.ProjectIDAttribute, session.ProjectID),
+		"session.initialized", 1,
 	)
 	span, ctx := highlight.StartTrace(
 		ctx, "public.resolver.initialize-session",
@@ -1577,8 +1575,6 @@ func (r *Resolver) IdentifySessionImpl(ctx context.Context, sessionSecureID stri
 	hTags := []attribute.KeyValue{
 		attribute.Bool("Identified", session.Identified),
 		attribute.Bool("FirstTime", *session.FirstTime),
-		attribute.Int(highlight.ProjectIDAttribute, session.ProjectID),
-		attribute.String(highlight.TraceTypeAttribute, string(highlight.TraceTypeHighlightInternal)),
 	}
 	highlight.RecordCount(ctx, "users", 1, hTags...)
 
@@ -2065,8 +2061,6 @@ func (r *Resolver) updateErrorsCount(ctx context.Context, projectID int, errorsB
 		highlight.RecordCount(
 			ctx, "errors", count,
 			attribute.String("error.type", errorType),
-			attribute.Int(highlight.ProjectIDAttribute, projectID),
-			attribute.String(highlight.TraceTypeAttribute, string(highlight.TraceTypeHighlightInternal)),
 		)
 		if err := r.PushMetricsImpl(context.Background(), nil, &sessionSecureId, []*publicModel.MetricInput{
 			{

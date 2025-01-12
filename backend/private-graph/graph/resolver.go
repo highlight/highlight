@@ -86,8 +86,8 @@ import (
 // It serves as dependency injection for your app, add any dependencies you require here.
 
 const ErrorGroupLookbackDays = 7
-const SessionActiveMetricName = "sessionActiveLength"
-const SessionProcessedMetricName = "sessionProcessed"
+const SessionActiveMetricName = "sessions.active_length"
+const SessionProcessedMetricName = "sessions.processed"
 const MaxDownloadSize = 32 * 1024 * 1024 // 32MB
 
 var AuthenticationError = errors.New("401 - AuthenticationError")
