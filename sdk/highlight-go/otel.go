@@ -230,7 +230,7 @@ func CreateLoggerProvider(ctx context.Context, endpoint string, opts ...sdklog.L
 
 func CreateMeterProvider(ctx context.Context, endpoint string, opts ...sdkmetric.Option) (*sdkmetric.MeterProvider, error) {
 	_, _, options := getOTLPOptions(endpoint)
-	exporter, err := otlpmetrichttp.New(ctx, options...)
+	_, err := otlpmetrichttp.New(ctx, options...)
 	if err != nil {
 		return nil, fmt.Errorf("creating OTLP trace exporter: %w", err)
 	}
@@ -251,10 +251,11 @@ func CreateMeterProvider(ctx context.Context, endpoint string, opts ...sdkmetric
 		return nil, fmt.Errorf("creating OTLP resource context: %w", err)
 	}
 	opts = append([]sdkmetric.Option{
-		sdkmetric.WithReader(sdkmetric.NewPeriodicReader(exporter,
-			sdkmetric.WithInterval(5*time.Second),
-			sdkmetric.WithTimeout(30*time.Second),
-		)),
+		// TODO(vkorolik)
+		//sdkmetric.WithReader(sdkmetric.NewPeriodicReader(exporter,
+		//	sdkmetric.WithInterval(5*time.Second),
+		//	sdkmetric.WithTimeout(30*time.Second),
+		//)),
 		sdkmetric.WithResource(resources),
 	}, opts...)
 	return sdkmetric.NewMeterProvider(opts...), nil
