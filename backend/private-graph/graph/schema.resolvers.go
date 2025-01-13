@@ -1506,9 +1506,9 @@ func (r *mutationResolver) SaveBillingPlan(ctx context.Context, workspaceID int,
 		return nil, err
 	}
 
-	columns := []interface{}{"errors_retention_period", "retention_period"}
+	columns := []interface{}{"errors_retention_period", "retention_period", "logs_retention_period", "traces_retention_period", "metrics_retention_period"}
 	if settings.EnableBillingLimits {
-		columns = append(columns, "sessions_max_cents", "errors_max_cents", "logs_max_cents", "traces_max_cents")
+		columns = append(columns, "sessions_max_cents", "errors_max_cents", "logs_max_cents", "traces_max_cents", "metrics_max_cents")
 	} else {
 		// allow disabling products by setting a limit of 0, even when billing limits are disabled
 		for column, value := range map[string]*int{
@@ -1516,6 +1516,7 @@ func (r *mutationResolver) SaveBillingPlan(ctx context.Context, workspaceID int,
 			"errors_max_cents":   errorsLimitCents,
 			"logs_max_cents":     logsLimitCents,
 			"traces_max_cents":   tracesLimitCents,
+			"metrics_max_cents":  metricsLimitCents,
 		} {
 			if pointy.IntValue(value, 0) == 0 {
 				columns = append(columns, column)
