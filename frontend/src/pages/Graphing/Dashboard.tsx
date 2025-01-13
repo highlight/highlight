@@ -57,7 +57,7 @@ import { VariablesBar } from '@/pages/Graphing/components/VariablesBar'
 import { useGraphingVariables } from '@/pages/Graphing/hooks/useGraphingVariables'
 import { useRetentionPresets } from '@/components/Search/SearchForm/hooks'
 import { loadFunnelStep } from '@pages/Graphing/util'
-import { GraphContextProvider } from './context/GraphContext'
+import { GraphContextProvider, useGraphContext } from './context/GraphContext'
 import { useGraphData } from '@pages/Graphing/hooks/useGraphData'
 import { exportGraph } from '@pages/Graphing/hooks/exportGraph'
 import { useGraphTime } from '@/pages/Graphing/hooks/useGraphTime'
@@ -82,28 +82,27 @@ const DashboardCell = ({
 		dashboard_id: string
 	}>()
 
+	const graphContext = useGraphContext()
+
 	const isTemp = g.id.startsWith('temp-')
 	const [deleteGraph] = useDeleteGraphMutation()
 	const [upsertGraph] = useUpsertGraphMutation()
 	const tempId = useId()
-
-	const graphContext = useGraphData()
 
 	const { values } = useGraphingVariables(dashboard_id!)
 
 	const navigate = useNavigate()
 
 	const onDownload = useCallback(
-		(g: TGraph) =>
-			exportGraph(
+		(g: TGraph) => {
+			return exportGraph(
 				g.id,
 				g.title,
-				g.expressions.at(0)?.aggregator ?? '',
-				g.expressions.at(0)?.column ?? '',
 				graphContext.graphData.current
 					? graphContext.graphData.current[g.id]
 					: [],
-			),
+			)
+		},
 		[graphContext.graphData],
 	)
 
