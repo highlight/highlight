@@ -71,6 +71,14 @@ services:
             - -runtime=worker
             - -worker-handler=public-worker-traces
 
+    backend-public-worker-metrics:
+        extends: backend-session-worker
+        container_name: backend-public-worker-metrics
+        command:
+            - /build/backend
+            - -runtime=worker
+            - -worker-handler=public-worker-metrics
+
     backend-scheduled-tasks-worker:
         extends: backend-session-worker
         container_name: backend-scheduled-tasks-worker
