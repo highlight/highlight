@@ -5,13 +5,11 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/aws/smithy-go/ptr"
 	"github.com/go-chi/chi"
 	"github.com/highlight-run/highlight/backend/clickhouse"
 	highlightHttp "github.com/highlight-run/highlight/backend/http"
 	kafkaqueue "github.com/highlight-run/highlight/backend/kafka-queue"
 	model2 "github.com/highlight-run/highlight/backend/model"
-	privateGraph "github.com/highlight-run/highlight/backend/private-graph/graph"
 	privateModel "github.com/highlight-run/highlight/backend/private-graph/graph/model"
 	"github.com/highlight-run/highlight/backend/public-graph/graph"
 	"github.com/highlight-run/highlight/backend/public-graph/graph/model"
@@ -31,7 +29,6 @@ import (
 	semconv "go.opentelemetry.io/otel/semconv/v1.26.0"
 	"go.opentelemetry.io/otel/trace"
 	"gorm.io/gorm"
-	"math"
 	"net/http"
 	"strconv"
 	"strings"
@@ -566,7 +563,7 @@ func (o *Handler) HandleMetric(w http.ResponseWriter, r *http.Request) {
 						continue
 					}
 					if _, ok := projectRetentions[fields.projectIDInt]; !ok {
-						projectRetentions[fields.projectIDInt] = o.getProjectRetention(ctx, fields.projectIDInt)
+						projectRetentions[fields.projectIDInt] = o.resolver.GetProjectMetricRetention(ctx, fields.projectIDInt)
 					}
 					if _, ok := projectMetrics[fields.projectIDInt]; !ok {
 						projectMetrics[fields.projectIDInt] = []clickhouse.MetricRow{}
@@ -893,29 +890,6 @@ func (o *Handler) Listen(r *chi.Mux) {
 		r.HandleFunc("/logs", o.HandleLog)
 		r.HandleFunc("/metrics", o.HandleMetric)
 	})
-}
-
-func (o *Handler) getProjectRetention(ctx context.Context, projectID int) uint8 {
-	data, err := redis.CachedEval(ctx, o.resolver.Redis, fmt.Sprintf("getProjectRetention-%d", projectID), time.Minute, time.Second, func() (*uint8, error) {
-		proj, err := o.resolver.Store.GetProject(ctx, projectID)
-		if err != nil {
-			return nil, err
-		}
-
-		ws, err := o.resolver.Store.GetWorkspace(ctx, proj.WorkspaceID)
-		if err != nil {
-			return nil, err
-		}
-
-		hours := time.Since(privateGraph.GetRetentionDate(ws.MetricsRetentionPeriod)).Hours()
-		days := math.Round(hours / 24.)
-		return ptr.Uint8(uint8(days)), nil
-	})
-	if err != nil || data == nil {
-		log.WithContext(ctx).WithError(err).Error("failed to getProjectRetention")
-		return 30
-	}
-	return *data
 }
 
 func New(resolver *graph.Resolver) *Handler {

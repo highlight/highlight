@@ -611,32 +611,8 @@ func (client *Client) SessionsKeys(ctx context.Context, projectID int, startDate
 }
 
 func (client *Client) QuerySessionCustomMetrics(ctx context.Context, projectId int, sessionSecureId string, metricNames []string) ([]*model.Metric, error) {
-	sb := sqlbuilder.NewSelectBuilder()
-	sql, args := sb.
-		Select("Name, Value").
-		From("session_metrics").
-		Where(sb.And(
-			sb.Equal("ProjectId", projectId),
-			sb.Equal("SecureSessionId", sessionSecureId),
-			sb.In("Name", metricNames))).
-		BuildWithFlavor(sqlbuilder.ClickHouse)
-
-	rows, err := client.conn.Query(ctx, sql, args...)
-	if err != nil {
-		return nil, err
-	}
-
-	metrics := []*model.Metric{}
-	for rows.Next() {
-		var name string
-		var value float64
-		if err := rows.Scan(&name, &value); err != nil {
-			return nil, err
-		}
-		metrics = append(metrics, &model.Metric{Name: name, Value: value})
-	}
-
-	return metrics, nil
+	// TODO(vkorolik) metrics query path
+	return nil, nil
 }
 
 func (client *Client) SessionsKeyValues(ctx context.Context, projectID int, keyName string, startDate time.Time, endDate time.Time, query *string, limit *int) ([]string, error) {
