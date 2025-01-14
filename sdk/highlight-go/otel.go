@@ -25,6 +25,7 @@ import (
 	"net/url"
 	"reflect"
 	"strings"
+	"sync"
 	"time"
 )
 
@@ -402,8 +403,11 @@ func getMetricContext(ctx context.Context, opts []metric.RecordOption, tags ...a
 	return trace.ContextWithSpanContext(ctx, spanCtx), tags
 }
 
+var float64GaugesLock = sync.RWMutex{}
 var float64Gauges = make(map[string]metric.Float64Gauge, 1000)
+var float64HistogramsLock = sync.RWMutex{}
 var float64Histograms = make(map[string]metric.Float64Histogram, 1000)
+var int64CountersLock = sync.RWMutex{}
 var int64Counters = make(map[string]metric.Int64Counter, 1000)
 
 // RecordMetric is used to record arbitrary metrics in your golang backend.
@@ -412,39 +416,57 @@ var int64Counters = make(map[string]metric.Int64Counter, 1000)
 // as a metric that you would like to graph and monitor. You'll be able to view the metric
 // in the context of the session and network request and recorded it.
 func RecordMetric(ctx context.Context, name string, value float64, tags ...attribute.KeyValue) {
+	var err error
+	float64GaugesLock.RLock()
 	if g := float64Gauges[name]; g == nil {
-		var err error
+		float64GaugesLock.RUnlock()
+		float64GaugesLock.Lock()
 		float64Gauges[name], err = defaultMeter.Float64Gauge(name)
+		float64GaugesLock.Unlock()
 		if err != nil {
 			fmt.Printf("error creating float64 gauge %s: %v", name, err)
 			return
 		}
+	} else {
+		float64GaugesLock.RUnlock()
 	}
 	metricCtx, tags := getMetricContext(ctx, nil, tags...)
 	float64Gauges[name].Record(metricCtx, value, metric.WithAttributes(tags...))
 }
 
 func RecordHistogram(ctx context.Context, name string, value float64, tags ...attribute.KeyValue) {
+	var err error
+	float64HistogramsLock.RLock()
 	if h := float64Histograms[name]; h == nil {
-		var err error
+		float64HistogramsLock.RUnlock()
+		float64HistogramsLock.Lock()
 		float64Histograms[name], err = defaultMeter.Float64Histogram(name)
+		float64HistogramsLock.Unlock()
 		if err != nil {
 			fmt.Printf("error creating float64 histogram %s: %v", name, err)
 			return
 		}
+	} else {
+		float64HistogramsLock.RUnlock()
 	}
 	metricCtx, tags := getMetricContext(ctx, nil, tags...)
 	float64Histograms[name].Record(metricCtx, value, metric.WithAttributes(tags...))
 }
 
 func RecordCount(ctx context.Context, name string, value int64, tags ...attribute.KeyValue) {
+	var err error
+	int64CountersLock.RLock()
 	if c := int64Counters[name]; c == nil {
-		var err error
+		int64CountersLock.RUnlock()
+		int64CountersLock.Lock()
 		int64Counters[name], err = defaultMeter.Int64Counter(name)
+		int64CountersLock.Unlock()
 		if err != nil {
 			fmt.Printf("error creating float64 histogram %s: %v", name, err)
 			return
 		}
+	} else {
+		int64CountersLock.RUnlock()
 	}
 	metricCtx, tags := getMetricContext(ctx, nil, tags...)
 	int64Counters[name].Add(metricCtx, value, metric.WithAttributes(tags...))
