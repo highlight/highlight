@@ -24,8 +24,6 @@ export function Highlight(env: HighlightEnv) {
 				env.enableFsInstrumentation = false
 			}
 
-			// TODO(vkorolik)
-			console.log('vadim', { context })
 			H.initEdge(
 				request,
 				env,
