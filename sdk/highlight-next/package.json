@@ -64,7 +64,8 @@
 		"@highlight-run/react": "workspace:*",
 		"@highlight-run/sourcemap-uploader": "workspace:*",
 		"highlight.run": "workspace:*",
-		"js-cookie": "^3.0.5"
+		"js-cookie": "^3.0.5",
+		"next": ">=13"
 	},
 	"devDependencies": {
 		"@cloudflare/workers-types": "^4.20231016.0",
