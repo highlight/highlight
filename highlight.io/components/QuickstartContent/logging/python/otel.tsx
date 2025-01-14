@@ -1,6 +1,8 @@
 import { siteUrl } from '../../../../utils/urls'
 import { QuickStartContent } from '../../QuickstartContent'
 import { verifyLogs } from '../shared-snippets'
+import pythonOtelTraceCode from './python_otel_trace.snippet.py'
+import pythonOtelLogCode from './python_otel_log.snippet.py'
 
 export const PythonOtelLogContent: QuickStartContent = {
 	title: 'Sending and Filtering Python Logs with OpenTelemetry',
@@ -14,56 +16,26 @@ export const PythonOtelLogContent: QuickStartContent = {
 				'Configure OpenTelemetry to send logs to highlight.io without requiring the Highlight SDK.',
 			code: [
 				{
-					text: `import logging
-from opentelemetry import trace
-from opentelemetry._logs import set_logger_provider
-from opentelemetry.exporter.otlp.proto.grpc._log_exporter import OTLPLogExporter
-from opentelemetry.sdk._logs import LoggerProvider, LoggingHandler
-from opentelemetry.sdk._logs.export import BatchLogRecordProcessor
-from opentelemetry.sdk.resources import Resource
-import sys
-
-# Define the service name and environment
-service_name = "my-service"
-environment = "production"
-
-# Create a resource with service name and highlight project ID
-resource = Resource.create({
-    "service.name": service_name,
-    "highlight.project_id": "<YOUR_PROJECT_ID>",
-    "environment": environment
-})
-
-# Set up the logger provider with the resource
-logger_provider = LoggerProvider(resource=resource)
-set_logger_provider(logger_provider)
-
-# Configure the OTLP log exporter
-exporter = OTLPLogExporter(endpoint="https://otel.highlight.io:4317", insecure=True)
-logger_provider.add_log_record_processor(BatchLogRecordProcessor(exporter))
-
-# Set up the logger
-logger = logging.getLogger(service_name)
-logger.setLevel(logging.DEBUG)
-
-# Add the OpenTelemetry logging handler
-handler = LoggingHandler(level=logging.DEBUG, logger_provider=logger_provider)
-logger.addHandler(handler)
-
-# Add console handler for stdout (optional)
-console_handler = logging.StreamHandler(sys.stdout)
-console_handler.setLevel(logging.DEBUG)
-formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-console_handler.setFormatter(formatter)
-logger.addHandler(console_handler)`,
+					text: pythonOtelLogCode,
 					language: 'python',
 				},
 			],
 		},
 		{
-			title: 'Send logs using OpenTelemetry!',
+			title: 'Set up OpenTelemetry for tracing.',
 			content:
-				'Logs are reported automatically from OpenTelemetry logging methods. ' +
+				'Configure OpenTelemetry to send traces to highlight.io without requiring the Highlight SDK.',
+			code: [
+				{
+					text: pythonOtelTraceCode,
+					language: 'python',
+				},
+			],
+		},
+		{
+			title: 'Send logs and traces using OpenTelemetry!',
+			content:
+				'Logs and traces are reported automatically from OpenTelemetry logging and tracing methods. ' +
 				'Visit the [highlight logs portal](https://app.highlight.io/logs) and check that backend logs are coming in.',
 			code: [
 				{
