@@ -1,8 +1,11 @@
 import type { NodeOptions } from '@highlight-run/node'
 import { H } from './highlight-edge'
 import { ExtendedExecutionContext } from './types'
-import type { NextRequest, NextFetchEvent } from 'next/server'
-export type { NextRequest, NextFetchEvent }
+
+export type NextFetchEvent = {
+	params: Promise<Record<string, string>>
+}
+export type NextRequest = any
 
 export type HighlightEnv = NodeOptions
 
