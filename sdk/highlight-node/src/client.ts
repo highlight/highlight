@@ -45,6 +45,7 @@ import {
 } from './sdk.js'
 import type { HighlightContext, NodeOptions } from './types.js'
 import * as packageJson from '../package.json'
+import { PrismaInstrumentation } from '@prisma/instrumentation'
 
 const OTLP_HTTP = 'https://otel.highlight.io:4318'
 const FIVE_MINUTES = 1000 * 60 * 5
@@ -78,14 +79,7 @@ const instrumentations = getNodeAutoInstrumentations({
 		},
 	},
 })
-
-// @ts-ignore peer dependency
-import('@prisma/instrumentation')
-	.then(({ PrismaInstrumentation }) => {
-		instrumentations.push(new PrismaInstrumentation())
-		console.info('@prisma/instrumentation enabled')
-	})
-	.catch(() => {})
+instrumentations.push(new PrismaInstrumentation())
 
 /**
  * Baggage propagation does not appear to be patching Fetch at the moment,

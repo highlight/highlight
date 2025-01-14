@@ -26,9 +26,6 @@
 	"publishConfig": {
 		"access": "public"
 	},
-	"peerDependencies": {
-		"@prisma/instrumentation": ">=5.0.0"
-	},
 	"dependencies": {
 		"require-in-the-middle": "^7.4.0"
 	},
@@ -45,6 +42,7 @@
 		"@opentelemetry/sdk-trace-base": "^1.26.0",
 		"@opentelemetry/semantic-conventions": "^1.27.0",
 		"@opentelemetry/winston-transport": ">=0.6.0",
+		"@prisma/instrumentation": ">=5.0.0",
 		"@rollup/plugin-commonjs": "^25.0.7",
 		"@rollup/plugin-json": "^6.0.1",
 		"@rollup/plugin-node-resolve": "^15.2.3",
