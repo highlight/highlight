@@ -361,5 +361,7 @@ func Listen(r *chi.Mux, t trace.Tracer) {
 		r.HandleFunc("/logs/raw", HandleRawLog)
 		r.HandleFunc("/logs/json", HandleJSONLog)
 		r.HandleFunc("/logs/firehose", HandleFirehoseLog)
+		// TODO: Add metrics and configure metrics stream/firehose in AWS to push.
+		// r.HandleFunc("/metrics/firehose", HandleFirehoseMetric)
 	})
 }

@@ -13,6 +13,7 @@ import (
 	"time"
 
 	"go.opentelemetry.io/collector/pdata/plog/plogotlp"
+	"go.opentelemetry.io/collector/pdata/pmetric"
 	"go.opentelemetry.io/collector/pdata/pmetric/pmetricotlp"
 	"go.opentelemetry.io/collector/pdata/ptrace/ptraceotlp"
 	semconv "go.opentelemetry.io/otel/semconv/v1.25.0"
@@ -527,6 +528,63 @@ func (o *Handler) HandleMetric(w http.ResponseWriter, r *http.Request) {
 		WithField("metric_count", metrics.MetricCount()).
 		WithField("datapoint_count", metrics.DataPointCount()).
 		Info("received otel metrics")
+
+	// iterate over resourece metrics and log them out
+	for i := 0; i < metrics.ResourceMetrics().Len(); i++ {
+		resourceMetrics := metrics.ResourceMetrics().At(i)
+		scopeMetrics := resourceMetrics.ScopeMetrics()
+		for j := 0; j < scopeMetrics.Len(); j++ {
+			var dataTimestamp time.Time
+			var dataValue float64
+			scopeMetrics := scopeMetrics.At(j)
+			metrics := scopeMetrics.Metrics()
+			for k := 0; k < metrics.Len(); k++ {
+				metric := metrics.At(k)
+				fmt.Println("::: metric info:", metric.Name(), metric.Type())
+
+				if metric.Type() == pmetric.MetricTypeGauge {
+					gauge := metric.Gauge()
+					if gauge.DataPoints().Len() == 0 {
+						fmt.Println("::: WARNING: received gauge metric with no datapoints")
+						continue
+					}
+					for i := 0; i < gauge.DataPoints().Len(); i++ {
+						dataPoint := gauge.DataPoints().At(i)
+						dataTimestamp = dataPoint.Timestamp().AsTime()
+						dataValue = dataPoint.DoubleValue()
+						fmt.Printf("::: metric: name=%s type=gauge value=%f timestamp=%s attributes=%v\n",
+							metric.Name(), dataValue, dataTimestamp, dataPoint.Attributes().AsRaw())
+					}
+				}
+
+				if metric.Type() == pmetric.MetricTypeSum {
+					sum := metric.Sum()
+					if sum.DataPoints().Len() == 0 {
+						fmt.Println("::: WARNING: received sum metric with no datapoints")
+						continue
+					}
+					for i := 0; i < sum.DataPoints().Len(); i++ {
+						dataPoint := sum.DataPoints().At(i)
+						dataTimestamp = dataPoint.Timestamp().AsTime()
+						dataValue = dataPoint.DoubleValue()
+						fmt.Printf("::: metric: name=%s type=sum value=%f timestamp=%s attributes=%v\n",
+							metric.Name(), dataValue, dataTimestamp, dataPoint.Attributes().AsRaw())
+					}
+				}
+
+				if metric.Type() == pmetric.MetricTypeHistogram {
+					histogram := metric.Histogram()
+					for i := 0; i < histogram.DataPoints().Len(); i++ {
+						dataPoint := histogram.DataPoints().At(i)
+						dataTimestamp = dataPoint.Timestamp().AsTime()
+						dataValue = float64(dataPoint.Count())
+						fmt.Printf("::: metric: name=%s type=histogram value=%f timestamp=%s attributes=%v\n",
+							metric.Name(), dataValue, dataTimestamp, dataPoint.Attributes().AsRaw())
+					}
+				}
+			}
+		}
+	}
 
 	w.WriteHeader(http.StatusOK)
 }

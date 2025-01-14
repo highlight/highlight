@@ -15,6 +15,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/cloudwatch/types"
 	"github.com/aws/aws-sdk-go-v2/service/ec2"
 	"github.com/highlight-run/highlight/backend/model"
+	"github.com/highlight/highlight/sdk/highlight-go"
 	log "github.com/sirupsen/logrus"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/codes"
@@ -106,8 +107,24 @@ func (c *Collector) getOrCreateGauge(metricName string) (metric.Float64Observabl
 				accountID := parts[1]
 				instanceID := parts[2]
 
-				fmt.Println("::: Observing metric value")
-				fmt.Println(metricName, accountID, instanceID, value)
+				// Temporary way of storing metrics so we can build a chart with them.
+				// For some reason calling highlight.RecordMetric wasn't working.
+				span, _ := highlight.StartTraceWithTimestamp(
+					ctx,
+					highlight.MetricSpanName,
+					time.Now(),
+					[]trace.SpanStartOption{trace.WithSpanKind(trace.SpanKindClient)},
+					attribute.String("highlight.project_id", accountID),
+					attribute.String("metric_name", metricName),
+					attribute.Float64("metric_value", value),
+					attribute.String("account_id", accountID),
+					attribute.String("instance_id", instanceID),
+				)
+				span.AddEvent(highlight.MetricEvent, trace.WithAttributes(
+					attribute.String(highlight.MetricEventName, metricName),
+					attribute.Float64(highlight.MetricEventValue, value),
+				))
+				span.End()
 
 				o.Observe(value,
 					metric.WithAttributes(
@@ -149,7 +166,6 @@ func (c *Collector) CollectEC2Metrics(ctx context.Context) error {
 		span.SetStatus(codes.Error, "failed to get AWS credentials")
 		return fmt.Errorf("failed to get AWS credentials from database: %w", err)
 	}
-	fmt.Println("::: Found", len(allCreds), "AWS accounts")
 
 	span.SetAttributes(attribute.Int("aws_accounts", len(allCreds)))
 	if len(allCreds) == 0 {
@@ -178,7 +194,6 @@ func (c *Collector) CollectEC2Metrics(ctx context.Context) error {
 			credSpan.End()
 			continue
 		}
-		fmt.Println("::: Found", len(instances), "EC2 instances needing metric collection")
 
 		credSpan.SetAttributes(attribute.Int("instances_count", len(instances)))
 		if len(instances) == 0 {
@@ -195,7 +210,6 @@ func (c *Collector) CollectEC2Metrics(ctx context.Context) error {
 			)),
 		)
 		if err != nil {
-			fmt.Println("::: Failed to load AWS config for account")
 			credSpan.RecordError(err)
 			log.WithContext(ctx).WithError(err).WithField("aws_account", creds.AccessKeyID).
 				Error("Failed to load AWS config for account")
@@ -207,7 +221,6 @@ func (c *Collector) CollectEC2Metrics(ctx context.Context) error {
 
 		// For each instance that needs collection
 		for _, instance := range instances {
-			fmt.Println("::: Collecting metrics for instance", instance.InstanceID)
 			instanceCtx, instanceSpan := c.tracer.Start(credCtx, "CollectInstanceMetrics",
 				trace.WithAttributes(
 					attribute.String("instance_id", instance.InstanceID),
@@ -217,12 +230,13 @@ func (c *Collector) CollectEC2Metrics(ctx context.Context) error {
 
 			// Calculate collection time range
 			endTime := time.Now()
-			startTime := endTime.Add(-5 * time.Minute)
+			var startTime time.Time
 
-			// If never collected before, start from 24h ago
 			if instance.LastMetricsCollectedAt == nil {
 				startTime = endTime.Add(-24 * time.Hour)
 				instanceSpan.SetAttributes(attribute.Bool("backfill", true))
+			} else {
+				startTime = *instance.LastMetricsCollectedAt
 			}
 
 			instanceSpan.SetAttributes(
@@ -230,8 +244,10 @@ func (c *Collector) CollectEC2Metrics(ctx context.Context) error {
 				attribute.String("end_time", endTime.Format(time.RFC3339)),
 			)
 
-			fmt.Println("::: Building metric queries for instance", instance.InstanceID)
-
+			// TODO: Should we allow users to select which metrics to collect, polling
+			// interval, etc?
+			// TODO: Remove static set of metrics and collect everything. Capture all
+			// attributes about the instances on the metrics.
 			// Build metric queries for all metrics
 			var metricDataQueries []types.MetricDataQuery
 			for i, metric := range ec2Metrics {
@@ -260,7 +276,6 @@ func (c *Collector) CollectEC2Metrics(ctx context.Context) error {
 			var lastTimestamp time.Time
 			var metricsCollected int
 
-			fmt.Println("::: Splitting queries into chunks of", maxMetricsPerRequest, "metrics")
 			// Split queries into chunks of maxMetricsPerRequest
 			for i := 0; i < len(metricDataQueries); i += maxMetricsPerRequest {
 				end := i + maxMetricsPerRequest
@@ -282,7 +297,6 @@ func (c *Collector) CollectEC2Metrics(ctx context.Context) error {
 					MetricDataQueries: metricDataQueries[i:end],
 				}
 
-				fmt.Println("::: Getting metric data for instance", instance.InstanceID)
 				// Get the data
 				paginator := cloudwatch.NewGetMetricDataPaginator(cwClient, input)
 				for paginator.HasMorePages() {
@@ -309,31 +323,32 @@ func (c *Collector) CollectEC2Metrics(ctx context.Context) error {
 						}
 						metricName := *ec2Metrics[metricIdx].MetricName
 
-						// Store the latest value
-						value := result.Values[len(result.Values)-1]
-						timestamp := result.Timestamps[len(result.Timestamps)-1]
-						if timestamp.After(lastTimestamp) {
-							lastTimestamp = timestamp
-						}
+						// Process all values and timestamps
+						for i := range result.Values {
+							value := result.Values[i]
+							timestamp := result.Timestamps[i]
+							if timestamp.After(lastTimestamp) {
+								lastTimestamp = timestamp
+							}
 
-						c.mu.Lock()
-						c.values[fmt.Sprintf("%s:%d:%s", metricName, instance.ProjectID, instance.InstanceID)] = value
-						c.mu.Unlock()
+							c.mu.Lock()
+							c.values[fmt.Sprintf("%s:%d:%s", metricName, instance.ProjectID, instance.InstanceID)] = value
+							c.mu.Unlock()
 
-						metricsCollected++
+							metricsCollected++
 
-						// Create/update gauge for this metric
-						_, err = c.getOrCreateGauge(metricName)
-						if err != nil {
-							querySpan.RecordError(err)
-							log.WithContext(ctx).WithError(err).
-								WithField("project_id", instance.ProjectID).
-								WithField("metric_name", metricName).
-								Error("Failed to create gauge")
+							// Create/update gauge for this metric
+							_, err = c.getOrCreateGauge(metricName)
+							if err != nil {
+								querySpan.RecordError(err)
+								log.WithContext(ctx).WithError(err).
+									WithField("project_id", instance.ProjectID).
+									WithField("metric_name", metricName).
+									Error("Failed to create gauge")
+							}
 						}
 					}
 				}
-				fmt.Println("::: Metrics collected for instance", instance.InstanceID)
 				querySpan.SetAttributes(attribute.Int("metrics_collected", metricsCollected))
 				querySpan.End()
 			}
@@ -356,7 +371,6 @@ func (c *Collector) CollectEC2Metrics(ctx context.Context) error {
 			instanceSpan.End()
 		}
 
-		fmt.Println("::: Ensuring all metrics are registered with the meter")
 		// After collecting metrics for each instance, ensure they're registered with the meter
 		log.WithContext(ctx).WithField("gauge_count", len(c.gauges)).Info("Registering metrics with meter")
 		for metricName := range c.gauges {

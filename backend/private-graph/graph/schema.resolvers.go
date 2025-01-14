@@ -4932,6 +4932,8 @@ func (r *mutationResolver) CreateAwsCredentials(ctx context.Context, input model
 		return nil, fmt.Errorf("failed to create AWS credentials: %w", err)
 	}
 
+	r.SyncAwsEc2Instances(ctx, cred.ProjectID)
+
 	return cred, nil
 }
 
