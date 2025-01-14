@@ -39,10 +39,8 @@ export const PythonOtelLogContent: QuickStartContent = {
 				'Visit the [highlight logs portal](https://app.highlight.io/logs) and check that backend logs are coming in.',
 			code: [
 				{
-					text: `import logging
-from opentelemetry import trace
-
-tracer = trace.get_tracer(__name__)
+					text: `
+...
 
 def main():
     with tracer.start_as_current_span("example-span"):
