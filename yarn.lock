@@ -9824,10 +9824,10 @@ __metadata:
     "@types/lodash": "npm:^4.17.0"
     "@types/node": "npm:^18.11.15"
     "@types/randomcolor": "npm:^0.5.5"
-    "@types/react": "npm:^19.0.4"
+    "@types/react": "npm:^18.3.18"
     "@types/react-copy-to-clipboard": "npm:^4.3.0"
     "@types/react-date-range": "npm:^1.4.9"
-    "@types/react-dom": "npm:^19.0.2"
+    "@types/react-dom": "npm:^18.3.5"
     "@types/react-grid-layout": "npm:^1.3.0"
     "@types/react-helmet": "npm:^6.1.4"
     "@types/react-highlight-words": "npm:^0.16.1"
@@ -9885,14 +9885,14 @@ __metadata:
     query-string: "npm:6.14.1"
     randomcolor: "npm:^0.6.2"
     rc-slider: "npm:^10.1.1"
-    react: "npm:^19.0.0"
+    react: "npm:^18.3.1"
     react-autosize-textarea: "npm:^7.1.0"
     react-awesome-query-builder: "npm:^4.8.0"
     react-calendly: "npm:^4.3.0"
     react-collapsible: "npm:^2.8.1"
     react-command-palette: "npm:0.16.0"
     react-copy-to-clipboard: "npm:^5.0.2"
-    react-dom: "npm:^19.0.0"
+    react-dom: "npm:^18.3.1"
     react-files-hooks: "npm:^2.0.0"
     react-grid-layout: "npm:^1.3.3"
     react-helmet: "npm:^6.1.0"
@@ -10229,8 +10229,8 @@ __metadata:
     moment: "npm:2.29.4"
     npm-run-all: "npm:^4.1.5"
     prop-types: "npm:^15.8.1"
-    react: "npm:^19.0.0"
-    react-dom: "npm:^19.0.0"
+    react: "npm:^18.3.1"
+    react-dom: "npm:^18.3.1"
     storybook: "npm:^8.2.6"
     svgo: "npm:^3.0.2"
     typescript: "npm:^4.8.4"
@@ -21213,7 +21213,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/react-dom@npm:^18.0.0, @types/react-dom@npm:^18.0.6":
+"@types/react-dom@npm:^18.0.0, @types/react-dom@npm:^18.0.6, @types/react-dom@npm:^18.3.5":
   version: 18.3.5
   resolution: "@types/react-dom@npm:18.3.5"
   peerDependencies:
@@ -21384,13 +21384,13 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/react@npm:^16.8.0 || ^17.0.0 || ^18.0.0, @types/react@npm:^18.2.45":
-  version: 18.3.11
-  resolution: "@types/react@npm:18.3.11"
+"@types/react@npm:^16.8.0 || ^17.0.0 || ^18.0.0, @types/react@npm:^18.2.45, @types/react@npm:^18.3.18":
+  version: 18.3.18
+  resolution: "@types/react@npm:18.3.18"
   dependencies:
     "@types/prop-types": "npm:*"
     csstype: "npm:^3.0.2"
-  checksum: 10/a36f0707fdfe9fe19cbe5892bcdab0f042ecadb501ea4e1c39519943f3e74cffbd31e892d3860f5c87cf33f5f223552b246a552bed0087b95954f2cb39d5cf65
+  checksum: 10/7fdd8b853e0d291d4138133f93f8d5c333da918e5804afcea61a923aab4bdfc9bb15eb21a5640959b452972b8715ddf10ffb12b3bd071898b9e37738636463f2
   languageName: node
   linkType: hard
 
@@ -37609,10 +37609,10 @@ __metadata:
     "@types/lodash.debounce": "npm:^4.0.7"
     "@types/node": "npm:18.11.18"
     "@types/nprogress": "npm:^0.2.0"
-    "@types/react": "npm:^19.0.4"
+    "@types/react": "npm:^18.3.18"
     "@types/react-collapse": "npm:^5.0.1"
     "@types/react-copy-to-clipboard": "npm:^5.0.2"
-    "@types/react-dom": "npm:^19.0.2"
+    "@types/react-dom": "npm:^18.3.5"
     "@types/react-highlight-words": "npm:^0.16.4"
     "@types/react-swipe": "npm:^6.0.2"
     "@types/react-syntax-highlighter": "npm:^15.5.11"
@@ -37648,7 +37648,7 @@ __metadata:
     postcss: "npm:^8.4.35"
     prettier: "npm:^3.3.3"
     prettier-plugin-organize-imports: "npm:^3.2.2"
-    react: "npm:^19.0.0"
+    react: "npm:^18.3.1"
     react-aria: "npm:^3.20.0"
     react-calendly: "npm:^4.3.0"
     react-code-blocks: "npm:^0.1.6"
@@ -37657,7 +37657,7 @@ __metadata:
     react-compare-image: "npm:^3.4.0"
     react-copy-to-clipboard: "npm:^5.1.0"
     react-device-detect: "npm:^2.2.3"
-    react-dom: "npm:^19.0.0"
+    react-dom: "npm:^18.3.1"
     react-github-btn: "npm:^1.4.0"
     react-highlight-words: "npm:^0.20.0"
     react-icons: "npm:^4.11.0"
@@ -50890,7 +50890,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-dom@npm:^16.8.0 || ^17.0.0 || ^18.0.0, react-dom@npm:^18.2.0":
+"react-dom@npm:^16.8.0 || ^17.0.0 || ^18.0.0, react-dom@npm:^18.2.0, react-dom@npm:^18.3.1":
   version: 18.3.1
   resolution: "react-dom@npm:18.3.1"
   dependencies:
@@ -51918,7 +51918,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react@npm:^16.8.0 || ^17.0.0 || ^18.0.0, react@npm:^18.2.0":
+"react@npm:^16.8.0 || ^17.0.0 || ^18.0.0, react@npm:^18.2.0, react@npm:^18.3.1":
   version: 18.3.1
   resolution: "react@npm:18.3.1"
   dependencies:
