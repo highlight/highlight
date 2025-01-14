@@ -79,12 +79,13 @@ const instrumentations = getNodeAutoInstrumentations({
 	},
 })
 
-try {
-	// @ts-ignore peer dependency
-	const { PrismaInstrumentation } = await import('@prisma/instrumentation')
-	instrumentations.push(new PrismaInstrumentation())
-	console.info('@prisma/instrumentation enabled')
-} catch (e) {}
+// @ts-ignore peer dependency
+import('@prisma/instrumentation')
+	.then(({ PrismaInstrumentation }) => {
+		instrumentations.push(new PrismaInstrumentation())
+		console.info('@prisma/instrumentation enabled')
+	})
+	.catch(() => {})
 
 /**
  * Baggage propagation does not appear to be patching Fetch at the moment,
