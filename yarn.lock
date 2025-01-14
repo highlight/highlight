@@ -9802,7 +9802,7 @@ __metadata:
     "@highlight-run/react-mentions": "npm:4.4.2"
     "@highlight-run/sourcemap-uploader": "workspace:*"
     "@highlight-run/ui": "workspace:*"
-    "@inkeep/uikit": "npm:^0.3.16"
+    "@inkeep/uikit": "npm:^0.3.19"
     "@mux/mux-player": "npm:^2.4.1"
     "@mux/mux-player-react": "npm:^2.4.1"
     "@opentelemetry/api": "npm:^1.9.0"
@@ -10551,16 +10551,16 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@inkeep/styled-system@npm:^0.1.12, @inkeep/styled-system@npm:^0.1.13":
-  version: 0.1.13
-  resolution: "@inkeep/styled-system@npm:0.1.13"
-  checksum: 10/3d34c91a7d784157a1efc56796a6b134c992ecbcca02b8470dd35608f16306854ca6eac3168fcadece9b9057081a809fe2b69f5d69680fbbc21e1d1a2c5a28dd
+"@inkeep/styled-system@npm:^0.1.12, @inkeep/styled-system@npm:^0.1.14":
+  version: 0.1.14
+  resolution: "@inkeep/styled-system@npm:0.1.14"
+  checksum: 10/252a96fd7f722d28c4fd413bf6df035ca9b824f834cbcb8288505d8f454dc94f72d83b18d0a1c82e3c74722dae071ef3183acce897bc9eb276c806e8e0006c76
   languageName: node
   linkType: hard
 
-"@inkeep/uikit@npm:^0.3.16":
-  version: 0.3.16
-  resolution: "@inkeep/uikit@npm:0.3.16"
+"@inkeep/uikit@npm:^0.3.19":
+  version: 0.3.19
+  resolution: "@inkeep/uikit@npm:0.3.19"
   dependencies:
     "@apollo/client": "npm:^3.8.1"
     "@ark-ui/react": "npm:^0.15.0"
@@ -10569,7 +10569,7 @@ __metadata:
     "@inkeep/preset": "npm:^0.1.4"
     "@inkeep/preset-chakra": "npm:^0.1.4"
     "@inkeep/shared": "npm:^0.1.4"
-    "@inkeep/styled-system": "npm:^0.1.13"
+    "@inkeep/styled-system": "npm:^0.1.14"
     "@radix-ui/react-scroll-area": "npm:^1.1.0"
     "@types/lodash.isequal": "npm:^4.5.7"
     graphql: "npm:^16.8.1"
@@ -10593,7 +10593,7 @@ __metadata:
   peerDependencies:
     react: ^18.2.0
     react-dom: ^18.2.0
-  checksum: 10/152eac6bf0b4351f5e4063b957ed2f9e8ed034f62c9df814f5b33b73dc2340b1ad71177392c470d3bd61cbb5605577485ddd71a0bf9db3f9739d1d7cc37752dc
+  checksum: 10/da33544fb68f961ad37f4399b9ba0e3088ca6d203ece23f768006af28098095ab096f2374b8cc9474f5ad6215a249529afaea42c95690d075eb6e38a2bcedf81
   languageName: node
   linkType: hard
 
@@ -37600,7 +37600,7 @@ __metadata:
     "@headlessui/react": "npm:^1.7.4"
     "@heroicons/react": "npm:^2.0.13"
     "@highlight-run/next": "workspace:*"
-    "@inkeep/uikit": "npm:^0.3.16"
+    "@inkeep/uikit": "npm:^0.3.19"
     "@radix-ui/react-slider": "npm:^1.1.0"
     "@supabase/supabase-js": "npm:^2.7.1"
     "@svgr/webpack": "npm:^8.1.0"
