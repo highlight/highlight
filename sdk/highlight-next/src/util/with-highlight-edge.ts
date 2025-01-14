@@ -1,21 +1,19 @@
 import type { NodeOptions } from '@highlight-run/node'
 import { H } from './highlight-edge'
 import { ExtendedExecutionContext } from './types'
-
-export type NextContext = {
-	params: Promise<Record<string, string>>
-}
+import type { NextRequest, NextFetchEvent } from 'next/server'
+export type { NextRequest, NextFetchEvent }
 
 export type HighlightEnv = NodeOptions
 
 export type EdgeHandler = (
-	request: Request,
-	context: NextContext,
+	request: NextRequest,
+	context: NextFetchEvent,
 ) => Promise<Response>
 
 export function Highlight(env: HighlightEnv) {
 	return function withHighlight(handler: EdgeHandler) {
-		return async function (request: Request, context: NextContext) {
+		return async function (request: NextRequest, context: NextFetchEvent) {
 			if (env.enableFsInstrumentation) {
 				console.warn(
 					'enableFsInstrumentation is incompatible with Edge... disabling now.',

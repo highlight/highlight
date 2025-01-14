@@ -3,7 +3,11 @@ import * as withHighlightNodeJsPageRouter from './util/with-highlight-nodejs-pag
 
 import { isNodeJsRuntime } from './util/is-node-js-runtime'
 import type { HighlightEnv } from './util/types'
-import type { EdgeHandler, NextContext } from './util/with-highlight-edge'
+import type {
+	EdgeHandler,
+	NextRequest,
+	NextFetchEvent,
+} from './util/with-highlight-edge'
 
 export { H } from '@highlight-run/node' // Imports from server.edge.ts for the edge runtime
 export { highlightMiddleware } from './util/highlight-middleware'
@@ -42,6 +46,6 @@ export function EdgeHighlight(
 	_: HighlightEnv,
 ): (
 	handler: EdgeHandler,
-) => (request: Request, context: NextContext) => Promise<Response> {
+) => (request: NextRequest, context: NextFetchEvent) => Promise<Response> {
 	throw new Error(`unsupported NEXT_RUNTIME: ${process.env.NEXT_RUNTIME}`)
 }
