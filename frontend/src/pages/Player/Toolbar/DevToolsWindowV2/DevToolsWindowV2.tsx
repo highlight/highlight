@@ -73,7 +73,9 @@ const DevToolsWindowV2: React.FC<
 		RequestStatus[]
 	>([RequestStatus.All])
 	const logSearch = logCursor ? LOG_CURSOR_LOG_SEARCH : DEFAULT_LOG_SEARCH
-	const traceSearch = `service_name=${session?.service_name}`
+	const traceSearch = session?.service_name
+		? `service_name=${session?.service_name}`
+		: ''
 	const [query, setQuery] = React.useState<string>(
 		selectedDevToolsTab === Tab.Console ? logSearch : traceSearch,
 	)
