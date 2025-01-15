@@ -12,6 +12,7 @@ import {
 	IconSolidLogs,
 	IconSolidSparkles,
 	IconSolidTerminal,
+	IconSolidTraces,
 	IconSolidUserAdd,
 	IconSolidViewGridAdd,
 	Stack,
@@ -49,6 +50,9 @@ import {
 import { AlertsSetup } from './AlertsSetup'
 import * as styles from './SetupRouter.css'
 import InkeepChatButton from '@/pages/Setup/SetupInkeepChatButton'
+import { onlyAllowHighlightStaff } from '@/util/authorization/authorizationUtils'
+import { useAuthContext } from '@/authentication/AuthContext'
+import { InfrastructureSetup } from '@/pages/Setup/SetupRouter/InfrastructureSetup'
 
 export const SetupRouter = () => {
 	const { toggleShowBanner } = useGlobalContext()
@@ -78,6 +82,7 @@ export const SetupRouter = () => {
 	const { data } = useGetProjectQuery({ variables: { id: projectId! } })
 	const projectVerboseId = data?.project?.verbose_id
 	const location = useLocation()
+	const { admin } = useAuthContext()
 
 	toggleShowBanner(false)
 
@@ -208,7 +213,7 @@ export const SetupRouter = () => {
 							pr="8"
 						>
 							<Stack direction="row" align="center" gap="4">
-								<IconSolidSparkles />
+								<IconSolidTraces />
 								<Text>Traces</Text>
 							</Stack>
 							{tracesIntegration?.integrated && (
@@ -216,6 +221,28 @@ export const SetupRouter = () => {
 							)}
 						</Stack>
 					</NavLink>
+					{onlyAllowHighlightStaff(admin) && (
+						<NavLink
+							to="infrastructure"
+							className={({ isActive }) =>
+								clsx(styles.menuItem, {
+									[styles.menuItemActive]: isActive,
+								})
+							}
+						>
+							<Stack
+								direction="row"
+								align="center"
+								justify="space-between"
+								pr="8"
+							>
+								<Stack direction="row" align="center" gap="4">
+									<IconSolidSparkles />
+									<Text>Infrastructure monitoring</Text>
+								</Stack>
+							</Stack>
+						</NavLink>
+					)}
 					<NavLink
 						to="alerts"
 						className={({ isActive }) =>
@@ -329,6 +356,10 @@ export const SetupRouter = () => {
 										projectVerboseId={projectVerboseId}
 									/>
 								}
+							/>
+							<Route
+								path="infrastructure"
+								element={<InfrastructureSetup />}
 							/>
 
 							{/* Redirect to default docs. */}

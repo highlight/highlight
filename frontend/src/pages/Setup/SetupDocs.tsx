@@ -52,7 +52,7 @@ export const SetupDocs: React.FC<Props> = ({ projectVerboseId }) => {
 
 	return (
 		<Box>
-			<Box style={{ maxWidth: 560 }} my="40" mx="auto">
+			<Box style={{ maxWidth: 560 }} my="40" mx="auto" pb="40">
 				<Header title={guide.title} subtitle={guide.subtitle} />
 
 				<Stack gap="8" py="10">

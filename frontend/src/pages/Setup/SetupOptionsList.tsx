@@ -61,7 +61,7 @@ export const SetupOptionsList: React.FC = () => {
 
 	return (
 		<Box>
-			<Box style={{ maxWidth: 560 }} my="40" mx="auto">
+			<Box style={{ maxWidth: 560 }} my="40" mx="auto" pb="40">
 				<Header
 					title={docsSection.title}
 					subtitle={docsSection.subtitle}
