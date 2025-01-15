@@ -30,7 +30,7 @@ updatedAt: 2022-04-01T19:52:59.000Z
     <DocsCard title="Other" href="../python/other">
         {"Get started without a framework"}
     </DocsCard>
-    <DocsCard title="Python OpenTelemetry" href="../../7_native-opentelemetry/2_error-monitoring.md">
+    <DocsCard title="Python OpenTelemetry" href="../../8_native-opentelemetry/2_error-monitoring.md">
         {"Get started with OpenTelemetry"}
     </DocsCard>
 </DocsCardGroup>
