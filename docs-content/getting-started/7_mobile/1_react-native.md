@@ -1,6 +1,6 @@
 ---
-title: React Native
-heading: Using highlight.io with React Native
+title: React Native (beta)
+heading: Using highlight.io with React Native (beta)
 slug: react-native
 quickstart: react-native
 ---
