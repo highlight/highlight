@@ -19,6 +19,8 @@
 		"@highlight-run/node": "workspace:*",
 		"@highlight-run/pino": "workspace:*",
 		"@opentelemetry/api": "^1.9.0",
+		"@prisma/client": "^6.2.1",
+		"@prisma/instrumentation": "^6.2.1",
 		"dotenv": "^16.3.1",
 		"express": "^4.19.2",
 		"graphql": "^16.8.1",
