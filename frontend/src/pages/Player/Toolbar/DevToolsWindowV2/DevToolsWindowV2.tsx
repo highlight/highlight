@@ -107,6 +107,15 @@ const DevToolsWindowV2: React.FC<
 		selectedDevToolsTab === Tab.Console ||
 		selectedDevToolsTab === Tab.Traces
 
+	const handleShowInViewer = () => {
+		set({
+			type: selectedDevToolsTab === Tab.Console ? 'logs' : 'traces',
+			query: params.query,
+			startDate: params.date_range.start_date.toISOString(),
+			endDate: params.date_range.end_date.toISOString(),
+		})
+	}
+
 	return (
 		<ResizePanel
 			defaultHeight={defaultHeight}
@@ -294,20 +303,9 @@ const DevToolsWindowV2: React.FC<
 																/>
 															)
 														}
-														onClick={() => {
-															set({
-																type:
-																	selectedDevToolsTab ===
-																	Tab.Console
-																		? 'logs'
-																		: 'traces',
-																query: params.query,
-																startDate:
-																	params.date_range.start_date.toISOString(),
-																endDate:
-																	params.date_range.end_date.toISOString(),
-															})
-														}}
+														onClick={
+															handleShowInViewer
+														}
 													>
 														Show in viewer
 													</Button>

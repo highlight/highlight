@@ -31,8 +31,10 @@ export const buildSessionParams = ({
 	return {
 		query: searchQuery.trim(),
 		date_range: {
-			start_date: moment(session?.created_at),
-			end_date: moment(session?.created_at).add(4, 'hours'),
+			start_date: moment(session?.created_at).subtract(5, 'minutes'),
+			end_date: moment(session?.created_at)
+				.add(session?.length, 'milliseconds')
+				.add(5, 'minutes'),
 		},
 	}
 }
