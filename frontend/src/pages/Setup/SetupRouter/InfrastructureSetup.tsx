@@ -14,9 +14,7 @@ const AWS_REGIONS = [
 const CLOUDFORMATION_URL =
 	'https://console.aws.amazon.com/cloudformation/home?region=[REGION]#/stacks/quickcreate?templateURL=https://highlight-demo-video.s3.us-west-2.amazonaws.com/cloudformation-templates/metric-stream.yaml'
 
-// const OTEL_ENDPOINT = 'http://otel.highlight.io:4318/v1/metrics'
-const OTEL_ENDPOINT =
-	'https://c916-174-102-176-170.ngrok-free.app/v1/metrics/firehose'
+const DESTINATION_ENDPOINT = 'https://pub.highlight.io/v1/firehose/metrics'
 
 // TODO: Update
 const STACK_NAME = 'highlight-metrics-stream-local-test'
@@ -26,7 +24,7 @@ export const InfrastructureSetup: React.FC = () => {
 	const { projectId } = useProjectId()
 	const url =
 		CLOUDFORMATION_URL.replace('[REGION]', selectedRegion.toString()) +
-		`&stackName=${STACK_NAME}&param_HighlightProjectID=${projectId}&param_OTeLEndpoint=${encodeURIComponent(OTEL_ENDPOINT)}`
+		`&stackName=${STACK_NAME}&param_HighlightProjectID=${projectId}&param_OTeLEndpoint=${encodeURIComponent(DESTINATION_ENDPOINT)}`
 	return (
 		<Form>
 			<Box style={{ maxWidth: 560 }} my="40" mx="auto">
