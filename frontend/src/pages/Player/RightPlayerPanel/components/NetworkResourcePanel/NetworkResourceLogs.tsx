@@ -53,7 +53,7 @@ export const NetworkResourceLogs: React.FC<{
 		const resourceEnd =
 			resource.responseEndAbs ?? sessionStartTime + resource.responseEnd
 
-		return new Date(resourceEnd - TIME_BUFFER)
+		return new Date(resourceEnd + TIME_BUFFER)
 	}, [sessionStartTime, resource.responseEndAbs, resource.responseEnd])
 
 	const {
