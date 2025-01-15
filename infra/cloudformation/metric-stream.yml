@@ -6,7 +6,7 @@ Parameters:
         Type: String
         Description: Your Highlight.io Project ID
 
-    OTeLEndpoint:
+    DestinationEndpoint:
         Type: String
         Description: OpenTelemetry endpoint URL for metrics
         Default: https://otel.highlight.io:4318/v1/metrics
@@ -35,6 +35,8 @@ Resources:
 
     BackupBucket:
         Type: AWS::S3::Bucket
+        DeletionPolicy: Delete
+        UpdateReplacePolicy: Delete
         Properties:
             LifecycleConfiguration:
                 Rules:
@@ -76,7 +78,7 @@ Resources:
             DeliveryStreamType: DirectPut
             HttpEndpointDestinationConfiguration:
                 EndpointConfiguration:
-                    Url: !Ref OTeLEndpoint
+                    Url: !Ref DestinationEndpoint
                 RequestConfiguration:
                     ContentEncoding: GZIP
                     CommonAttributes:

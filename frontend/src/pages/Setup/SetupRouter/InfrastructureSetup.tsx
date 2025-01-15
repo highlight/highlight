@@ -17,14 +17,14 @@ const CLOUDFORMATION_URL =
 const DESTINATION_ENDPOINT = 'https://pub.highlight.io/v1/firehose/metrics'
 
 // TODO: Update
-const STACK_NAME = 'highlight-metrics-stream-local-test'
+const STACK_NAME = 'highlight-metrics-stream'
 
 export const InfrastructureSetup: React.FC = () => {
 	const [selectedRegion, setSelectedRegion] = useState<string>('us-east-2')
 	const { projectId } = useProjectId()
 	const url =
 		CLOUDFORMATION_URL.replace('[REGION]', selectedRegion.toString()) +
-		`&stackName=${STACK_NAME}&param_HighlightProjectID=${projectId}&param_OTeLEndpoint=${encodeURIComponent(DESTINATION_ENDPOINT)}`
+		`&stackName=${STACK_NAME}&param_HighlightProjectID=${projectId}&param_DestinationEndpoint=${encodeURIComponent(DESTINATION_ENDPOINT)}`
 	return (
 		<Form>
 			<Box style={{ maxWidth: 560 }} my="40" mx="auto">
