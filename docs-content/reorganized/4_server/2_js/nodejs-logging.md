@@ -1,5 +1,5 @@
 ---
-toc: "JS: Node.js Logging"
+toc: "Node.js Logging"
 title: Logging in Node.js
 slug: nodejs
 createdAt: 2022-03-28T20:31:15.000Z
