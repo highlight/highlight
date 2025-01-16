@@ -9616,7 +9616,7 @@ func (r *queryResolver) EventSessions(ctx context.Context, projectID int, count 
 
 // Metrics is the resolver for the metrics field.
 func (r *queryResolver) Metrics(ctx context.Context, productType modelInputs.ProductType, projectID int, params modelInputs.QueryInput, column *string, metricTypes []modelInputs.MetricAggregator, groupBy []string, bucketBy string, bucketCount *int, bucketWindow *int, limit *int, limitAggregator *modelInputs.MetricAggregator, limitColumn *string, predictionSettings *modelInputs.PredictionSettings, expressions []*modelInputs.MetricExpressionInput) (*modelInputs.MetricsBuckets, error) {
-	project, err := r.isUserInProjectOrDemoProject(ctx, projectID)
+	_, err := r.isUserInProjectOrDemoProject(ctx, projectID)
 	if err != nil {
 		return nil, err
 	}
@@ -9624,7 +9624,7 @@ func (r *queryResolver) Metrics(ctx context.Context, productType modelInputs.Pro
 	var results *modelInputs.MetricsBuckets
 	switch productType {
 	case modelInputs.ProductTypeMetrics:
-		results, err = r.ClickhouseClient.ReadEventMetrics(ctx, project.ID, params, column, metricTypes, groupBy, bucketCount, bucketBy, bucketWindow, limit, limitAggregator, limitColumn)
+		results, err = r.MetricsAggregated(ctx, projectID, params, column, metricTypes, groupBy, bucketBy, bucketCount, bucketWindow, limit, limitAggregator, limitColumn, expressions)
 	case modelInputs.ProductTypeTraces:
 		results, err = r.TracesMetrics(ctx, projectID, params, column, metricTypes, groupBy, &bucketBy, bucketCount, bucketWindow, limit, limitAggregator, limitColumn, expressions)
 	case modelInputs.ProductTypeLogs:
@@ -9667,7 +9667,7 @@ func (r *queryResolver) Keys(ctx context.Context, productType *modelInputs.Produ
 
 	switch *productType {
 	case modelInputs.ProductTypeMetrics:
-		return r.ClickhouseClient.MetricsKeys(ctx, project.ID, dateRange.StartDate, dateRange.EndDate, query, typeArg)
+		return r.MetricsKeys(ctx, projectID, dateRange, query, typeArg)
 	case modelInputs.ProductTypeTraces:
 		return r.TracesKeys(ctx, projectID, dateRange, query, typeArg)
 	case modelInputs.ProductTypeLogs:
@@ -9696,7 +9696,7 @@ func (r *queryResolver) KeyValues(ctx context.Context, productType *modelInputs.
 
 	switch *productType {
 	case modelInputs.ProductTypeMetrics:
-		return r.ClickhouseClient.MetricsKeyValues(ctx, project.ID, keyName, dateRange.StartDate, dateRange.EndDate, query, count)
+		return r.MetricsKeyValues(ctx, projectID, keyName, dateRange, query, count)
 	case modelInputs.ProductTypeTraces:
 		return r.TracesKeyValues(ctx, projectID, keyName, dateRange, query, count)
 	case modelInputs.ProductTypeLogs:

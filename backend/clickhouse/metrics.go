@@ -13,6 +13,9 @@ import (
 	"time"
 )
 
+// TODO(vkorolik) drop trace_metrics
+// TODO(vkorolik) create metric_keys, metric_key_values
+
 const MetricsSumTable = "metrics_sum"
 
 // TODO(vkorolik) query using MV
@@ -26,8 +29,10 @@ var reservedMetricsSumKeys = lo.Map(modelInputs.AllReservedMetricKey, func(key m
 })
 
 var metricsSumKeysToColumns = map[string]string{
-	string(modelInputs.ReservedMetricKeyServiceName):            "ServiceName",
-	string(modelInputs.ReservedMetricKeyMetricName):             "MetricName",
+	string(modelInputs.ReservedMetricKeyServiceName): "ServiceName",
+	string(modelInputs.ReservedMetricKeyMetricName):  "MetricName",
+	// TODO(vkorolik) depends on the metric source table
+	string(modelInputs.ReservedMetricKeyMetricValue):            "Sum",
 	string(modelInputs.ReservedMetricKeyMetricDescription):      "MetricDescription",
 	string(modelInputs.ReservedMetricKeyMetricUnit):             "MetricUnit",
 	string(modelInputs.ReservedMetricKeyTimestamp):              "Timestamp",
@@ -63,7 +68,8 @@ var metricsSumColumns = []string{
 }
 
 var MetricsTableNoDefaultConfig = model.TableConfig{
-	TableName:     MetricsSumTable,
+	// TODO(vkorolik) mv
+	TableName:     MetricsSummaryTable,
 	KeysToColumns: metricsSumKeysToColumns,
 	ReservedKeys:  reservedMetricsSumKeys,
 	BodyColumn:    "MetricName",
@@ -247,6 +253,7 @@ func (client *Client) ReadMetricsDailyAverage(ctx context.Context, projectIds []
 }
 
 func (client *Client) ReadMetricsAggregated(ctx context.Context, projectID int, params modelInputs.QueryInput, groupBy []string, nBuckets *int, bucketBy string, bucketWindow *int, limit *int, limitAggregator *modelInputs.MetricAggregator, limitColumn *string, expressions []*modelInputs.MetricExpressionInput) (*modelInputs.MetricsBuckets, error) {
+	// TODO(vkorolik) default to processing metric_value column
 	return client.ReadMetrics(ctx, ReadMetricsInput{
 		SampleableConfig: MetricsSampleableTableConfig,
 		ProjectIDs:       []int{projectID},
@@ -264,38 +271,7 @@ func (client *Client) ReadMetricsAggregated(ctx context.Context, projectID int, 
 
 // TODO(vkorolik) merge with new stuff
 
-func (client *Client) ReadEventMetrics(ctx context.Context, projectID int, params modelInputs.QueryInput, column *string, metricTypes []modelInputs.MetricAggregator, groupBy []string, nBuckets *int, bucketBy string, bucketWindow *int, limit *int, limitAggregator *modelInputs.MetricAggregator, limitColumn *string) (*modelInputs.MetricsBuckets, error) {
-	columnDeref := ""
-	if column != nil {
-		columnDeref = *column
-	}
-
-	expressions := []*modelInputs.MetricExpressionInput{}
-	for _, t := range metricTypes {
-		expressions = append(expressions, &modelInputs.MetricExpressionInput{
-			Aggregator: t,
-			Column:     columnDeref,
-		})
-	}
-
-	params.Query = params.Query + " " + modelInputs.ReservedTraceKeyMetricName.String() + "=" + columnDeref
-	return client.ReadMetrics(ctx, ReadMetricsInput{
-		SampleableConfig: MetricsSampleableTableConfig,
-		ProjectIDs:       []int{projectID},
-		Params:           params,
-		GroupBy:          groupBy,
-		BucketCount:      nBuckets,
-		BucketWindow:     bucketWindow,
-		BucketBy:         bucketBy,
-		Limit:            limit,
-		LimitAggregator:  limitAggregator,
-		LimitColumn:      limitColumn,
-		Expressions:      expressions,
-	})
-}
-
 func (client *Client) ReadWorkspaceMetricCounts(ctx context.Context, projectIDs []int, params modelInputs.QueryInput) (*modelInputs.MetricsBuckets, error) {
-	params.Query = params.Query + " " + modelInputs.ReservedTraceKeyMetricValue.String() + " exists"
 	// 12 buckets - 12 months in a year, or 12 weeks in a quarter
 	return client.ReadMetrics(ctx, ReadMetricsInput{
 		SampleableConfig: MetricsSampleableTableConfig,
@@ -310,22 +286,14 @@ func (client *Client) ReadWorkspaceMetricCounts(ctx context.Context, projectIDs 
 }
 
 func (client *Client) MetricsKeys(ctx context.Context, projectID int, startDate time.Time, endDate time.Time, query *string, typeArg *modelInputs.KeyType) ([]*modelInputs.QueryKey, error) {
-	if typeArg != nil && *typeArg == modelInputs.KeyTypeNumeric {
-		metricKeys, err := KeysAggregated(ctx, client, MetricsSumTable, projectID, startDate, endDate, query, typeArg, nil)
-		if err != nil {
-			return nil, err
-		}
-
-		return metricKeys, nil
-	}
-
-	return client.TracesKeys(ctx, projectID, startDate, endDate, query, typeArg)
+	return KeysAggregated(ctx, client, MetricsSumTable, projectID, startDate, endDate, query, typeArg, nil)
 }
 
 func (client *Client) MetricsKeyValues(ctx context.Context, projectID int, keyName string, startDate time.Time, endDate time.Time, query *string, limit *int) ([]string, error) {
-	return KeyValuesAggregated(ctx, client, TraceKeyValuesTable, projectID, keyName, startDate, endDate, query, limit, nil)
+	return KeyValuesAggregated(ctx, client, MetricsSumTable, projectID, keyName, startDate, endDate, query, limit, nil)
 }
 
+// TODO(vkorolik) is this used?
 func (client *Client) MetricsLogLines(ctx context.Context, projectID int, params modelInputs.QueryInput) ([]*modelInputs.LogLine, error) {
 	return logLines(ctx, client, MetricsTableConfig, projectID, params)
 }

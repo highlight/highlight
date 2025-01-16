@@ -37,7 +37,6 @@ import {
 	ThresholdCondition,
 	ThresholdType,
 } from '@/graph/generated/schemas'
-import useFeatureFlag, { Feature } from '@/hooks/useFeatureFlag/useFeatureFlag'
 import { useProjectId } from '@/hooks/useProjectId'
 import { FREQUENCIES } from '@/pages/Alerts/AlertConfigurationCard/AlertConfigurationConstants'
 import {
@@ -46,11 +45,7 @@ import {
 } from '@/pages/Alerts/constants'
 import { DestinationInput } from '@/pages/Alerts/DestinationInput'
 import { Combobox } from '@/pages/Graphing/Combobox'
-import {
-	FUNCTION_TYPES,
-	PRODUCT_OPTIONS,
-	PRODUCT_OPTIONS_WITH_EVENTS,
-} from '@/pages/Graphing/constants'
+import { FUNCTION_TYPES, PRODUCT_OPTIONS } from '@/pages/Graphing/constants'
 import { HeaderDivider } from '@/pages/Graphing/Dashboard'
 import { LabeledRow } from '@/pages/Graphing/LabeledRow'
 import { OptionDropdown } from '@/pages/Graphing/OptionDropdown'
@@ -145,14 +140,6 @@ export const AlertForm: React.FC = () => {
 	}>()
 	const [searchParams, setSearchParams] = useSearchParams()
 
-	const eventSearchEnabled = useFeatureFlag(Feature.EventSearch)
-	const productOptions = useMemo(() => {
-		if (!eventSearchEnabled) {
-			return PRODUCT_OPTIONS
-		}
-		return PRODUCT_OPTIONS_WITH_EVENTS
-	}, [eventSearchEnabled])
-
 	const isEdit = alert_id !== undefined
 
 	const { startDate, endDate, selectedPreset, updateSearchTime } =
@@ -189,7 +176,7 @@ export const AlertForm: React.FC = () => {
 	const [productType, setProductType] = useState(
 		(searchParams.get('source') as ProductType) ||
 			initialSettings?.productType ||
-			productOptions[0].value,
+			PRODUCT_OPTIONS[0].value,
 	)
 	const [functionType, setFunctionType] = useState(
 		initialSettings?.functionType ?? MetricAggregator.Count,
@@ -631,7 +618,7 @@ export const AlertForm: React.FC = () => {
 										tooltip="The resource being queried, one of the five highlight.io resources."
 									>
 										<OptionDropdown
-											options={productOptions}
+											options={PRODUCT_OPTIONS}
 											selection={productType}
 											setSelection={handleProductChange}
 										/>
