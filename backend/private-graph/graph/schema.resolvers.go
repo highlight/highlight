@@ -578,11 +578,33 @@ func (r *mutationResolver) CreateWorkspace(ctx context.Context, name string, pro
 }
 
 // EditProject is the resolver for the editProject field.
-func (r *mutationResolver) EditProject(ctx context.Context, id int, name *string, billingEmail *string, excludedUsers pq.StringArray, errorFilters pq.StringArray, errorJSONPaths pq.StringArray, rageClickWindowSeconds *int, rageClickRadiusPixels *int, rageClickCount *int, filterChromeExtension *bool) (*model.Project, error) {
+func (r *mutationResolver) EditProject(ctx context.Context, id int, name *string, billingEmail *string) (*model.Project, error) {
 	project, err := r.isUserInProject(ctx, id)
 	if err != nil {
 		return nil, err
 	}
+	if err := r.validateAdminRole(ctx, project.WorkspaceID); err != nil {
+		return nil, err
+	}
+
+	updates := &model.Project{
+		Name:         name,
+		BillingEmail: billingEmail,
+	}
+
+	if err := r.DB.WithContext(ctx).Model(project).Updates(updates).Error; err != nil {
+		return nil, e.Wrap(err, "error updating project fields")
+	}
+	return project, nil
+}
+
+// EditProjectSettings is the resolver for the editProjectSettings field.
+func (r *mutationResolver) EditProjectSettings(ctx context.Context, projectID int, excludedUsers pq.StringArray, errorFilters pq.StringArray, errorJSONPaths pq.StringArray, rageClickWindowSeconds *int, rageClickRadiusPixels *int, rageClickCount *int, filterChromeExtension *bool, filterSessionsWithoutError *bool, autoResolveStaleErrorsDayInterval *int, sampling *modelInputs.SamplingInput) (*modelInputs.AllProjectSettings, error) {
+	project, err := r.isUserInProject(ctx, projectID)
+	if err != nil {
+		return nil, err
+	}
+
 	for _, expression := range excludedUsers {
 		_, err := regexp.Compile(expression)
 		if err != nil {
@@ -597,9 +619,7 @@ func (r *mutationResolver) EditProject(ctx context.Context, id int, name *string
 		}
 	}
 
-	updates := &model.Project{
-		Name:                  name,
-		BillingEmail:          billingEmail,
+	projectUpdates := &model.Project{
 		ExcludedUsers:         excludedUsers,
 		ErrorFilters:          errorFilters,
 		ErrorJsonPaths:        errorJSONPaths,
@@ -607,28 +627,19 @@ func (r *mutationResolver) EditProject(ctx context.Context, id int, name *string
 	}
 
 	if rageClickWindowSeconds != nil {
-		updates.RageClickWindowSeconds = *rageClickWindowSeconds
+		projectUpdates.RageClickWindowSeconds = *rageClickWindowSeconds
 	}
 
 	if rageClickRadiusPixels != nil {
-		updates.RageClickRadiusPixels = *rageClickRadiusPixels
+		projectUpdates.RageClickRadiusPixels = *rageClickRadiusPixels
 	}
 
 	if rageClickCount != nil {
-		updates.RageClickCount = *rageClickCount
+		projectUpdates.RageClickCount = *rageClickCount
 	}
 
-	if err := r.DB.WithContext(ctx).Model(project).Updates(updates).Error; err != nil {
+	if err := r.DB.WithContext(ctx).Model(project).Updates(projectUpdates).Error; err != nil {
 		return nil, e.Wrap(err, "error updating project fields")
-	}
-	return project, nil
-}
-
-// EditProjectSettings is the resolver for the editProjectSettings field.
-func (r *mutationResolver) EditProjectSettings(ctx context.Context, projectID int, name *string, billingEmail *string, excludedUsers pq.StringArray, errorFilters pq.StringArray, errorJSONPaths pq.StringArray, rageClickWindowSeconds *int, rageClickRadiusPixels *int, rageClickCount *int, filterChromeExtension *bool, filterSessionsWithoutError *bool, autoResolveStaleErrorsDayInterval *int, sampling *modelInputs.SamplingInput) (*modelInputs.AllProjectSettings, error) {
-	project, err := r.EditProject(ctx, projectID, name, billingEmail, excludedUsers, errorFilters, errorJSONPaths, rageClickWindowSeconds, rageClickRadiusPixels, rageClickCount, filterChromeExtension)
-	if err != nil {
-		return nil, err
 	}
 
 	allProjectSettings := modelInputs.AllProjectSettings{
@@ -676,8 +687,12 @@ func (r *mutationResolver) EditProjectSettings(ctx context.Context, projectID in
 func (r *mutationResolver) EditWorkspace(ctx context.Context, id int, name *string) (*model.Workspace, error) {
 	workspace, err := r.isUserInWorkspace(ctx, id)
 	if err != nil {
-		return nil, e.Wrap(err, "error querying workspace")
+		return nil, err
 	}
+	if err := r.validateAdminRole(ctx, id); err != nil {
+		return nil, err
+	}
+
 	if err := r.DB.WithContext(ctx).Model(workspace).Updates(&model.Workspace{
 		Name: name,
 	}).Error; err != nil {

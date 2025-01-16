@@ -25,6 +25,7 @@
 		"@tanstack/react-table": "^8.7.9",
 		"@tanstack/react-virtual": "3.0.0-beta.52",
 		"@vanilla-extract/recipes": "^0.5.2",
+		"@xyflow/react": "^12.3.6",
 		"antd": "4.22.8",
 		"antlr4": "4.13.1-patch-1",
 		"clsx": "^1.2.1",

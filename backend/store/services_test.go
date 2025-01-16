@@ -20,12 +20,12 @@ func TestUpsertService(t *testing.T) {
 	project := model.Project{}
 	store.DB.Create(&project)
 
-	service, err := store.UpsertService(ctx, project, "public-graph", map[string]string{})
+	service, err := store.UpsertService(ctx, project.ID, "public-graph", map[string]string{})
 	assert.NoError(t, err)
 
 	assert.NotNil(t, service.ID)
 
-	foundService, err := store.UpsertService(ctx, project, "public-graph", map[string]string{})
+	foundService, err := store.UpsertService(ctx, project.ID, "public-graph", map[string]string{})
 	assert.NoError(t, err)
 	assert.Equal(t, service.ID, foundService.ID)
 }
@@ -42,7 +42,7 @@ func TestUpsertServiceWithAttributes(t *testing.T) {
 		err := store.Redis.Del(context.TODO(), cacheKey)
 		assert.NoError(t, err)
 
-		createdService, err := store.UpsertService(ctx, project, serviceName, map[string]string{
+		createdService, err := store.UpsertService(ctx, project.ID, serviceName, map[string]string{
 			"process.runtime.name":        "go",
 			"process.runtime.version":     "go1.20.5",
 			"process.runtime.description": "go version go1.20.5 darwin/arm64",
@@ -60,7 +60,7 @@ func TestUpsertServiceWithAttributes(t *testing.T) {
 		err = store.DB.Model(&createdService).Update("GithubRepoPath", "highlight/highlight").Error
 		assert.NoError(t, err)
 
-		updatedService, err := store.UpsertService(ctx, project, serviceName, map[string]string{
+		updatedService, err := store.UpsertService(ctx, project.ID, serviceName, map[string]string{
 			"process.runtime.name":        "ruby",
 			"process.runtime.version":     "2.6.10",
 			"process.runtime.description": "ruby 2.6.10p210 (2022-04-12 revision 67958) [x86_64-linux]",
@@ -74,7 +74,7 @@ func TestUpsertServiceWithAttributes(t *testing.T) {
 		assert.Equal(t, "highlight/highlight", *updatedService.GithubRepoPath)
 
 		// hits cache
-		cachedService, err := store.UpsertService(ctx, project, serviceName, map[string]string{
+		cachedService, err := store.UpsertService(ctx, project.ID, serviceName, map[string]string{
 			"process.runtime.name":        *createdService.ProcessName,
 			"process.runtime.version":     *createdService.ProcessVersion,
 			"process.runtime.description": *createdService.ProcessDescription,

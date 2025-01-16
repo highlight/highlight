@@ -8,5 +8,5 @@ services:
             pull: true
         volumes:
             - ./otel-collector.yaml:/etc/otel-collector-config.yaml
-            - ${EXAMPLE_LOG_FILE_PATH-log.json}:/var/log/watch.log
-            - ./log.json:/var/log/log.json
+            - ${EXAMPLE_LOG_FILE_PATH-example.json}:/var/log/watch.log
+            - ./example.json:/var/log/example.json

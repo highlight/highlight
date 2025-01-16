@@ -24,12 +24,18 @@ import {
 import { FunnelDisplay } from '@pages/Graphing/components/types'
 import clsx from 'clsx'
 import moment from 'moment'
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import React, {
+	memo,
+	useCallback,
+	useEffect,
+	useMemo,
+	useRef,
+	useState,
+} from 'react'
 import { Area, Tooltip as RechartsTooltip, ReferenceArea } from 'recharts'
 import { CategoricalChartState } from 'recharts/types/chart/types'
 
 import { loadingIcon } from '@/components/Button/style.css'
-import { useRelatedResource } from '@/components/RelatedResources/hooks'
 import { TIME_FORMAT } from '@/components/Search/SearchForm/constants'
 import {
 	GetMetricsQueryResult,
@@ -68,6 +74,7 @@ import { EventSelectionStep } from '@pages/Graphing/util'
 import { useGraphContext } from '../context/GraphContext'
 import { TIME_METRICS } from '@pages/Graphing/constants'
 import _ from 'lodash'
+import { useSetRelatedResource } from '@/components/RelatedResources/hooks'
 
 export type View = 'Line chart' | 'Bar chart' | 'Funnel chart' | 'Table'
 
@@ -703,44 +710,46 @@ export const CustomXAxisTick = ({
 export const isActive = (spotlight: number | undefined, idx: number) =>
 	spotlight === undefined || spotlight === idx
 
-export const getViewConfig = (
+export const useGetViewConfig = (
 	viewType: string,
 	display?: Maybe<string>,
 	nullHandling?: Maybe<string>,
 ): ViewConfig => {
-	let viewConfig: ViewConfig
-	if (viewType === 'Line chart') {
-		viewConfig = {
-			type: viewType,
-			showLegend: true,
-			display: display as LineDisplay,
-			nullHandling: nullHandling as LineNullHandling,
+	return useMemo(() => {
+		let viewConfig: ViewConfig
+		if (viewType === 'Line chart') {
+			viewConfig = {
+				type: viewType,
+				showLegend: true,
+				display: display as LineDisplay,
+				nullHandling: nullHandling as LineNullHandling,
+			}
+		} else if (viewType === 'Bar chart') {
+			viewConfig = {
+				type: viewType,
+				showLegend: true,
+				display: display as BarDisplay,
+			}
+		} else if (viewType === 'Funnel chart') {
+			viewConfig = {
+				type: viewType,
+				showLegend: true,
+				display: display as FunnelDisplay,
+			}
+		} else if (viewType === 'Table') {
+			viewConfig = {
+				type: viewType,
+				showLegend: false,
+				nullHandling: nullHandling as TableNullHandling,
+			}
+		} else {
+			viewConfig = {
+				type: 'Line chart',
+				showLegend: true,
+			}
 		}
-	} else if (viewType === 'Bar chart') {
-		viewConfig = {
-			type: viewType,
-			showLegend: true,
-			display: display as BarDisplay,
-		}
-	} else if (viewType === 'Funnel chart') {
-		viewConfig = {
-			type: viewType,
-			showLegend: true,
-			display: display as FunnelDisplay,
-		}
-	} else if (viewType === 'Table') {
-		viewConfig = {
-			type: viewType,
-			showLegend: false,
-			nullHandling: nullHandling as TableNullHandling,
-		}
-	} else {
-		viewConfig = {
-			type: 'Line chart',
-			showLegend: true,
-		}
-	}
-	return viewConfig
+		return viewConfig
+	}, [display, nullHandling, viewType])
 }
 
 export const getGroupKey = (groups: string[]) => {
@@ -1038,6 +1047,91 @@ const matchParamVariables = (
 	}
 }
 
+const FUNNEL_BAR_CONFIG: BarChartConfig = {
+	shadeToPrevious: true,
+	showLegend: true,
+	type: 'Bar chart',
+	display: 'Stacked',
+	tooltipSettings: { funnelMode: true },
+}
+
+const FUNNEL_LINE_CONFIG: LineChartConfig = {
+	showLegend: true,
+	type: 'Line chart',
+	display: 'Stacked area',
+	tooltipSettings: { funnelMode: true },
+}
+
+type LegendProps = {
+	series: NamedSeries[]
+	spotlight: number | undefined
+	setSpotlight: React.Dispatch<React.SetStateAction<number | undefined>>
+}
+
+const Legend = memo(({ series, spotlight, setSpotlight }: LegendProps) => {
+	return (
+		<Box position="relative" cssClass={style.legendWrapper}>
+			{series.map((s, idx) => {
+				const seriesKey = getSeriesKey(s)
+				return (
+					<Button
+						kind="secondary"
+						emphasis="low"
+						size="xSmall"
+						key={seriesKey}
+						onClick={() => {
+							if (spotlight === idx) {
+								setSpotlight(undefined)
+							} else {
+								setSpotlight(idx)
+							}
+						}}
+						cssClass={style.legendTextButton}
+					>
+						<Tooltip
+							delayed
+							trigger={
+								<>
+									<Box
+										style={{
+											backgroundColor: isActive(
+												spotlight,
+												idx,
+											)
+												? getColor(
+														idx,
+														seriesKey,
+														strokeColors,
+													)
+												: undefined,
+										}}
+										cssClass={style.legendDot}
+									></Box>
+									<Box cssClass={style.legendTextWrapper}>
+										<Text
+											lines="1"
+											color={
+												isActive(spotlight, idx)
+													? undefined
+													: 'n8'
+											}
+											align="left"
+										>
+											{s.name}
+										</Text>
+									</Box>
+								</>
+							}
+						>
+							{s.name}
+						</Tooltip>
+					</Button>
+				)
+			})}
+		</Box>
+	)
+})
+
 const Graph = ({
 	productType,
 	projectId,
@@ -1076,85 +1170,98 @@ const Graph = ({
 	const [results, setResults] = useState<GetMetricsQuery[]>()
 	const [loading, setLoading] = useState<boolean>(true)
 
-	const { set } = useRelatedResource()
+	const set = useSetRelatedResource()
 
-	const loadExemplars = (
-		bucketMin: number | undefined,
-		bucketMax: number | undefined,
-		groups: string[] | undefined,
-		stepQuery: string | undefined,
-	) => {
-		let relatedResourceType:
-			| 'logs'
-			| 'errors'
-			| 'sessions'
-			| 'traces'
-			| 'events'
-		switch (productType) {
-			case ProductType.Errors:
-				relatedResourceType = 'errors'
-				break
-			case ProductType.Logs:
-				relatedResourceType = 'logs'
-				break
-			case ProductType.Sessions:
-				relatedResourceType = 'sessions'
-				break
-			case ProductType.Traces:
-				relatedResourceType = 'traces'
-				break
-			case ProductType.Metrics:
-				relatedResourceType = 'sessions'
-				break
-			case ProductType.Events:
-				relatedResourceType = 'events'
-				groupByKeys = undefined
-				break
-			default:
-				return
-		}
+	const replacedQuery = replaceQueryVariables(query, variables)
+	const loadExemplars = useCallback(
+		(
+			bucketMin: number | undefined,
+			bucketMax: number | undefined,
+			groups: string[] | undefined,
+			stepQuery: string | undefined,
+		) => {
+			let relatedResourceType:
+				| 'logs'
+				| 'errors'
+				| 'sessions'
+				| 'traces'
+				| 'events'
 
-		let relatedResourceQuery = replaceQueryVariables(
-			stepQuery || query,
-			variables,
-		)
-		if (groupByKeys !== undefined && groupByKeys.length > 0) {
-			groups?.forEach((group, idx) => {
-				if (!groupByKeys) {
+			switch (productType) {
+				case ProductType.Errors:
+					relatedResourceType = 'errors'
+					break
+				case ProductType.Logs:
+					relatedResourceType = 'logs'
+					break
+				case ProductType.Sessions:
+					relatedResourceType = 'sessions'
+					break
+				case ProductType.Traces:
+					relatedResourceType = 'traces'
+					break
+				case ProductType.Metrics:
+					relatedResourceType = 'sessions'
+					break
+				case ProductType.Events:
+					relatedResourceType = 'events'
+					break
+				default:
 					return
-				}
-				if (group !== NO_GROUP_PLACEHOLDER && group !== '') {
-					relatedResourceQuery += ` ${groupByKeys[idx]}="${group}"`
-				} else {
-					relatedResourceQuery += ` ${groupByKeys[idx]} not exists`
-				}
-			})
-		}
-		if (![undefined, TIMESTAMP_KEY].includes(bucketByKey)) {
-			if (relatedResourceQuery !== '') {
-				relatedResourceQuery += ' '
 			}
-			relatedResourceQuery += `${bucketByKey}>=${bucketMin} ${bucketByKey}<${bucketMax}`
-		}
 
-		let startDateStr = moment(startDate).toISOString()
-		let endDateStr = moment(endDate).toISOString()
-		if (bucketByKey === TIMESTAMP_KEY && bucketMin && bucketMax) {
-			startDateStr = (
-				bucketMin ? new Date(bucketMin * 1000) : startDate
-			).toISOString()
-			endDateStr = (
-				bucketMax ? new Date(bucketMax * 1000) : endDate
-			).toISOString()
-		}
+			let relatedResourceQuery = stepQuery || replacedQuery
+			if (
+				productType !== ProductType.Events &&
+				groupByKeys !== undefined &&
+				groupByKeys.length > 0
+			) {
+				groups?.forEach((group, idx) => {
+					if (!groupByKeys) {
+						return
+					}
+					if (group !== NO_GROUP_PLACEHOLDER && group !== '') {
+						relatedResourceQuery += ` ${groupByKeys[idx]}="${group}"`
+					} else {
+						relatedResourceQuery += ` ${groupByKeys[idx]} not exists`
+					}
+				})
+			}
+			if (![undefined, TIMESTAMP_KEY].includes(bucketByKey)) {
+				if (relatedResourceQuery !== '') {
+					relatedResourceQuery += ' '
+				}
+				relatedResourceQuery += `${bucketByKey}>=${bucketMin} ${bucketByKey}<${bucketMax}`
+			}
 
-		set({
-			type: relatedResourceType,
-			query: relatedResourceQuery,
-			startDate: startDateStr,
-			endDate: endDateStr,
-		})
-	}
+			let startDateStr = moment(startDate).toISOString()
+			let endDateStr = moment(endDate).toISOString()
+			if (bucketByKey === TIMESTAMP_KEY && bucketMin && bucketMax) {
+				startDateStr = (
+					bucketMin ? new Date(bucketMin * 1000) : startDate
+				).toISOString()
+				endDateStr = (
+					bucketMax ? new Date(bucketMax * 1000) : endDate
+				).toISOString()
+			}
+
+			set({
+				type: relatedResourceType,
+				query: relatedResourceQuery,
+				startDate: startDateStr,
+				endDate: endDateStr,
+			})
+		},
+		[
+			bucketByKey,
+			endDate,
+			groupByKeys,
+			productType,
+			replacedQuery,
+			set,
+			startDate,
+		],
+	)
 
 	const [getMetrics, { called }] = useGetMetricsLazyQuery({})
 
@@ -1266,7 +1373,6 @@ const Graph = ({
 					) as unknown as number
 				}
 			})
-
 		return () => {
 			if (!!pollTimeout.current) {
 				clearTimeout(pollTimeout.current)
@@ -1326,6 +1432,39 @@ const Graph = ({
 		}
 	}
 
+	const lineChildren = useMemo(
+		() => (
+			<>
+				{children}
+				<Area
+					isAnimationActive={false}
+					dataKey={YHAT_LOWER_REGION_KEY}
+					strokeWidth="2px"
+					strokeDasharray="8 8"
+					strokeLinecap="round"
+					stroke="#C8C7CB"
+					fillOpacity={0}
+					stackId={-1}
+					connectNulls
+					activeDot={<></>}
+				/>
+				<Area
+					isAnimationActive={false}
+					dataKey={YHAT_UPPER_REGION_KEY}
+					strokeWidth="2px"
+					strokeDasharray="8 8"
+					strokeLinecap="round"
+					fill="#F9F8F9"
+					stroke="#C8C7CB"
+					stackId={-1}
+					connectNulls
+					activeDot={<></>}
+				/>
+			</>
+		),
+		[children],
+	)
+
 	let innerChart: JSX.Element | null = null
 	if (isEmpty) {
 		innerChart = (
@@ -1367,31 +1506,7 @@ const Graph = ({
 						maxYAxisMin={axisLimit}
 						showGrid
 					>
-						{children}
-						<Area
-							isAnimationActive={false}
-							dataKey={YHAT_LOWER_REGION_KEY}
-							strokeWidth="2px"
-							strokeDasharray="8 8"
-							strokeLinecap="round"
-							stroke="#C8C7CB"
-							fillOpacity={0}
-							stackId={-1}
-							connectNulls
-							activeDot={<></>}
-						/>
-						<Area
-							isAnimationActive={false}
-							dataKey={YHAT_UPPER_REGION_KEY}
-							strokeWidth="2px"
-							strokeDasharray="8 8"
-							strokeLinecap="round"
-							fill="#F9F8F9"
-							stroke="#C8C7CB"
-							stackId={-1}
-							connectNulls
-							activeDot={<></>}
-						/>
+						{lineChildren}
 					</LineChart>
 				)
 				break
@@ -1417,13 +1532,7 @@ const Graph = ({
 						<BarChart
 							data={data}
 							xAxisMetric={xAxisMetric}
-							viewConfig={{
-								shadeToPrevious: true,
-								showLegend: true,
-								type: 'Bar chart',
-								display: 'Stacked',
-								tooltipSettings: { funnelMode: true },
-							}}
+							viewConfig={FUNNEL_BAR_CONFIG}
 							spotlight={spotlight}
 							setTimeRange={setTimeRange}
 							loadExemplars={loadExemplars}
@@ -1437,12 +1546,7 @@ const Graph = ({
 						<LineChart
 							data={data}
 							xAxisMetric={xAxisMetric}
-							viewConfig={{
-								showLegend: true,
-								type: 'Line chart',
-								display: 'Stacked area',
-								tooltipSettings: { funnelMode: true },
-							}}
+							viewConfig={FUNNEL_LINE_CONFIG}
 							spotlight={spotlight}
 							setTimeRange={setTimeRange}
 							loadExemplars={loadExemplars}
@@ -1480,11 +1584,7 @@ const Graph = ({
 		}
 	}
 
-	const showLegend =
-		viewConfig.showLegend &&
-		// ZANETODO
-		// series.join('') !== yAxisFunction &&
-		series.join('') !== ''
+	const showLegend = viewConfig.showLegend && series.join('') !== ''
 	return (
 		<Box
 			position="relative"
@@ -1545,69 +1645,11 @@ const Graph = ({
 					<Box position="relative" cssClass={style.legendLoading} />
 				)}
 			{showLegend && (
-				<Box position="relative" cssClass={style.legendWrapper}>
-					{series.map((s, idx) => {
-						const seriesKey = getSeriesKey(s)
-						return (
-							<Button
-								kind="secondary"
-								emphasis="low"
-								size="xSmall"
-								key={seriesKey}
-								onClick={() => {
-									if (spotlight === idx) {
-										setSpotlight(undefined)
-									} else {
-										setSpotlight(idx)
-									}
-								}}
-								cssClass={style.legendTextButton}
-							>
-								<Tooltip
-									delayed
-									trigger={
-										<>
-											<Box
-												style={{
-													backgroundColor: isActive(
-														spotlight,
-														idx,
-													)
-														? getColor(
-																idx,
-																seriesKey,
-																strokeColors,
-															)
-														: undefined,
-												}}
-												cssClass={style.legendDot}
-											></Box>
-											<Box
-												cssClass={
-													style.legendTextWrapper
-												}
-											>
-												<Text
-													lines="1"
-													color={
-														isActive(spotlight, idx)
-															? undefined
-															: 'n8'
-													}
-													align="left"
-												>
-													{s.name}
-												</Text>
-											</Box>
-										</>
-									}
-								>
-									{s.name}
-								</Tooltip>
-							</Button>
-						)
-					})}
-				</Box>
+				<Legend
+					series={series}
+					spotlight={spotlight}
+					setSpotlight={setSpotlight}
+				/>
 			)}
 		</Box>
 	)

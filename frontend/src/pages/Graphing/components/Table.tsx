@@ -24,6 +24,7 @@ import {
 import * as style from './Table.css'
 import useLocalStorage from '@rehooks/local-storage'
 import _ from 'lodash'
+import { memo } from 'react'
 
 export type TableNullHandling = 'Hide row' | 'Blank' | 'Zero'
 export const TABLE_NULL_HANDLING: TableNullHandling[] = [
@@ -45,7 +46,7 @@ const formatXAxisMetric = (xAxisMetric: string) => {
 	return xAxisMetric
 }
 
-export const MetricTable = ({
+const MetricTableImpl = ({
 	data,
 	xAxisMetric,
 	viewConfig,
@@ -269,3 +270,5 @@ export const MetricTable = ({
 		</Box>
 	)
 }
+
+export const MetricTable = memo(MetricTableImpl)

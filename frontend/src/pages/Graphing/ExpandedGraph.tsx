@@ -17,7 +17,7 @@ import { Link, useNavigate } from 'react-router-dom'
 import { useGetVisualizationQuery } from '@/graph/generated/hooks'
 import { useProjectId } from '@/hooks/useProjectId'
 import { useSearchTime } from '@/hooks/useSearchTime'
-import Graph, { getViewConfig } from '@/pages/Graphing/components/Graph'
+import Graph, { useGetViewConfig } from '@/pages/Graphing/components/Graph'
 import { HeaderDivider } from '@/pages/Graphing/Dashboard'
 import { GraphBackgroundWrapper } from '@/pages/Graphing/GraphingEditor'
 import { useParams } from '@/util/react-router/useParams'
@@ -54,6 +54,13 @@ export const ExpandedGraph = () => {
 	const { values } = useGraphingVariables(dashboard_id!)
 
 	const g = data?.visualization.graphs.find((g) => g.id === graph_id)
+
+	const viewConfig = useGetViewConfig(
+		g?.type ?? '',
+		g?.display,
+		g?.nullHandling,
+	)
+
 	if (g === undefined) {
 		return null
 	}
@@ -154,11 +161,7 @@ export const ExpandedGraph = () => {
 							<Box px="16" py="12" width="full" height="full">
 								<Graph
 									title={g.title}
-									viewConfig={getViewConfig(
-										g.type,
-										g.display,
-										g.nullHandling,
-									)}
+									viewConfig={viewConfig}
 									productType={g.productType}
 									projectId={projectId}
 									startDate={startDate}
