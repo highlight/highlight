@@ -1,8 +1,8 @@
 import { siteUrl } from '../../../../utils/urls'
 import { QuickStartContent } from '../../QuickstartContent'
-import { verifyLogs } from '../shared-snippets'
+import { verifyLogs } from '../shared-snippets-logging'
 
-export const HostingHerokuLogContent: QuickStartContent = {
+export const HostingHerokuLogReorganizedContent: QuickStartContent = {
 	title: 'Logging with Heroku',
 	subtitle:
 		'Learn how to setup Highlight log ingestion on Heroku as a log stream. ' +

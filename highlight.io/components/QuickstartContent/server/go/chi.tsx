@@ -1,11 +1,12 @@
 import { siteUrl } from '../../../../utils/urls'
 import { QuickStartContent } from '../../QuickstartContent'
+import { verifyLogs } from '../shared-snippets-logging'
 import { frontendInstallSnippet } from '../shared-snippets-monitoring'
+import { verifyTraces } from '../shared-snippets-tracing'
 import {
 	customGoError,
 	goGetSnippet,
 	initializeGoSdk,
-	setUpLogging,
 	verifyCustomError,
 } from './shared-snippets-monitoring'
 
@@ -40,6 +41,7 @@ func main() {
 		},
 		customGoError,
 		verifyCustomError,
-		setUpLogging('chi'),
+		verifyLogs,
+		verifyTraces,
 	],
 }
