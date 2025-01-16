@@ -49,9 +49,9 @@ export default function Home() {
 			<PrismaQueries />
 
 			<div style={{ paddingBottom: '1rem', paddingTop: '1rem' }}>
-				<a href="/server-actions" style={{ color: 'white' }}>
+				<Link href="/server-actions" style={{ color: 'white' }}>
 					Server Actions
-				</a>
+				</Link>
 			</div>
 
 			<Link href="/another-page">Navigation Test</Link>

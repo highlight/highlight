@@ -6,7 +6,7 @@ import type {
 	GraphQLRequestContextDidEncounterErrors,
 	GraphQLRequestListener,
 } from 'apollo-server-plugin-base'
-import { IncomingHttpHeaders } from 'http'
+import type { IncomingHttpHeaders } from 'http'
 
 export const ApolloServerV3HighlightPlugin = function <T extends BaseContext>(
 	options: NodeOptions,

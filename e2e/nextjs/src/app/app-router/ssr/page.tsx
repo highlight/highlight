@@ -2,13 +2,13 @@
 import logger from '@/highlight.logger'
 
 type Props = {
-	searchParams: { error?: string }
+	searchParams: Promise<{ error?: string }>
 }
 
 export default async function SsrPage({ searchParams }: Props) {
 	logger.info({}, `ssr page`)
 
-	if (searchParams.error) {
+	if ((await searchParams).error) {
 		throw new Error(
 			'🎉 SSR Error with use-server: src/app-router/ssr/page.tsx',
 		)

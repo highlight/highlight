@@ -88,14 +88,7 @@ const RETENTION_OPTIONS = {
 	],
 	Logs: [RetentionPeriod.ThirtyDays],
 	Traces: [RetentionPeriod.ThirtyDays],
-	Metrics: [
-		RetentionPeriod.SevenDays,
-		RetentionPeriod.ThirtyDays,
-		RetentionPeriod.ThreeMonths,
-		RetentionPeriod.SixMonths,
-		RetentionPeriod.TwelveMonths,
-		RetentionPeriod.TwoYears,
-	],
+	Metrics: [RetentionPeriod.ThirtyDays],
 	Events: [],
 } as const
 
