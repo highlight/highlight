@@ -5,13 +5,14 @@ import {
 	SpanOptions,
 } from '@opentelemetry/api'
 import { ResourceAttributes } from '@opentelemetry/resources'
-import { IncomingHttpHeaders } from 'http'
-import type { Headers } from 'node-fetch'
 import { Highlight } from './client'
 import log from './log'
 import type { HighlightContext, NodeOptions } from './types.js'
 
 export const HIGHLIGHT_REQUEST_HEADER = 'x-highlight-request'
+
+export type Headers = Iterable<string | string[] | undefined>
+export type IncomingHttpHeaders = NodeJS.Dict<string | string[] | undefined>
 
 export interface HighlightInterface {
 	init: (options: NodeOptions) => Highlight

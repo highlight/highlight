@@ -35,12 +35,14 @@ import {
 	SEMRESATTRS_SERVICE_NAME,
 	SEMRESATTRS_SERVICE_VERSION,
 } from '@opentelemetry/semantic-conventions'
-import type { IncomingHttpHeaders } from 'http'
 import { clearInterval } from 'timers'
 import { hookConsole } from './hooks.js'
 import log from './log.js'
-import { HIGHLIGHT_REQUEST_HEADER } from './sdk.js'
-import { Headers } from 'node-fetch'
+import {
+	HIGHLIGHT_REQUEST_HEADER,
+	type Headers,
+	type IncomingHttpHeaders,
+} from './sdk.js'
 import type { HighlightContext, NodeOptions } from './types.js'
 import * as packageJson from '../package.json'
 import { PrismaInstrumentation } from '@prisma/instrumentation'
@@ -68,7 +70,7 @@ const instrumentations = getNodeAutoInstrumentations({
 				.indexOf('fs') !== -1,
 	},
 	'@opentelemetry/instrumentation-pino': {
-		logHook: (span, record, level) => {
+		logHook: (span, record, _) => {
 			// @ts-ignore
 			const attrs = span.attributes
 			for (const [key, value] of Object.entries(attrs)) {
@@ -77,7 +79,6 @@ const instrumentations = getNodeAutoInstrumentations({
 		},
 	},
 })
-
 instrumentations.push(new PrismaInstrumentation())
 
 /**
@@ -543,24 +544,27 @@ function parseHeaders(
 }
 
 function extractIncomingHttpHeaders(headers?: any): IncomingHttpHeaders {
-	if (headers) {
+	if (headers !== undefined && headers !== null) {
 		let requestHeaders: IncomingHttpHeaders = {}
-		if (headers.hasOwnProperty(HIGHLIGHT_REQUEST_HEADER)) {
+		if (typeof headers.get === 'function') {
+			requestHeaders[HIGHLIGHT_REQUEST_HEADER] = headers.get(
+				HIGHLIGHT_REQUEST_HEADER,
+			)
+		} else if (typeof headers.forEach === 'function') {
+			headers.forEach(
+				(value: string | string[] | undefined, key: string) =>
+					(requestHeaders[key] = value),
+			)
+		} else if (headers[HIGHLIGHT_REQUEST_HEADER]) {
 			requestHeaders[HIGHLIGHT_REQUEST_HEADER] = (
 				headers as { [HIGHLIGHT_REQUEST_HEADER]: string }
 			)[HIGHLIGHT_REQUEST_HEADER]
-		} else if (typeof headers.forEach === 'function') {
-			headers.forEach(
-				(value: any, key: any) => (requestHeaders[key] = value),
-			)
-		} else if (headers instanceof Headers) {
-			headers.forEach((value, key) => (requestHeaders[key] = value))
-		} else if (headers) {
+		} else {
 			requestHeaders = headers
 		}
 
 		return requestHeaders
 	} else {
-		return { secureSessionId: undefined, requestId: undefined }
+		return {}
 	}
 }

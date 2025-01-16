@@ -6,7 +6,7 @@ import type {
 } from '@apollo/server'
 import type { NodeOptions } from '@highlight-run/node'
 import { H } from '@highlight-run/node'
-import { IncomingHttpHeaders } from 'http'
+import type { IncomingHttpHeaders } from 'http'
 
 export const ApolloServerHighlightPlugin = function <T extends BaseContext>(
 	options: NodeOptions,

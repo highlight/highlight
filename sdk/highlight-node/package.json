@@ -27,7 +27,7 @@
 		"access": "public"
 	},
 	"dependencies": {
-		"@prisma/instrumentation": "^5.22.0",
+		"@prisma/instrumentation": ">=5.0.0",
 		"require-in-the-middle": "^7.4.0"
 	},
 	"devDependencies": {
@@ -53,7 +53,6 @@
 		"check-dependencies": "^2.0.0",
 		"encoding": "^0.1.13",
 		"highlight.run": "workspace:*",
-		"node-fetch": "^3.3.2",
 		"rollup": "^4.1.4",
 		"typescript": "^5.0.4",
 		"vitest": "^2.1.3"
