@@ -3,6 +3,15 @@ receivers:
         endpoint: '0.0.0.0:24224'
     tcplog:
         listen_address: '0.0.0.0:34302'
+    awsfirehose/cwmetrics:
+        endpoint: '0.0.0.0:4433'
+        record_type: cwmetrics
+    awsfirehose/cwlogs:
+        endpoint: '0.0.0.0:4434'
+        record_type: cwlogs
+    awsfirehose/otlp_v1:
+        endpoint: '0.0.0.0:4435'
+        record_type: otlp_v1
     syslog:
         udp:
             listen_address: '0.0.0.0:6513'
@@ -69,9 +78,12 @@ processors:
         spike_limit_mib: 1024
         check_interval: 0.1s
     batch:
-        timeout: 5s
-        send_batch_size: 10000
-        send_batch_max_size: 100000
+        metadata_keys:
+            - x-highlight-project
+        metadata_cardinality_limit: 1000
+        timeout: 1s
+        send_batch_size: 1000
+        send_batch_max_size: 10000
 service:
     telemetry:
         logs:
@@ -86,11 +98,11 @@ service:
             processors: [memory_limiter, batch]
             exporters: [otlphttp]
         metrics:
-            receivers: [otlp]
+            receivers: [otlp, awsfirehose/cwmetrics, awsfirehose/otlp_v1]
             processors: [memory_limiter, batch]
             exporters: [otlphttp]
         logs:
-            receivers: [otlp, fluentforward, tcplog, syslog]
+            receivers: [otlp, fluentforward, tcplog, syslog, awsfirehose/cwlogs]
             processors: [memory_limiter, batch]
             exporters: [otlphttp]
 extensions:
