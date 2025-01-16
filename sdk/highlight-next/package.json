@@ -1,6 +1,6 @@
 {
 	"name": "@highlight-run/next",
-	"version": "7.6.12",
+	"version": "7.7.0",
 	"description": "Client for interfacing with Highlight in next.js",
 	"files": [
 		"dist",
