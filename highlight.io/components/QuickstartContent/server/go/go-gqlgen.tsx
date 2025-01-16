@@ -13,6 +13,7 @@ export const GoGqlgenReorganizedContent: QuickStartContent = {
 	subtitle:
 		'Learn how to set up highlight.io monitoring on your Go gqlgen backend.',
 	logoUrl: siteUrl('/images/quickstart/gqlgen.svg'),
+	products: ['Errors', 'Logs', 'Traces'],
 	entries: [
 		frontendInstallSnippet,
 		goGetSnippet,

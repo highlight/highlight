@@ -13,6 +13,7 @@ export const JStRPCReorganizedContent: QuickStartContent = {
 	title: 'tRPC',
 	subtitle: 'Learn how to set up highlight.io in tRPC.',
 	logoUrl: siteUrl('/images/quickstart/javascript.svg'),
+	products: ['Errors', 'Logs', 'Traces'],
 	entries: [
 		frontendInstallSnippet,
 		jsGetSnippet(['node']),

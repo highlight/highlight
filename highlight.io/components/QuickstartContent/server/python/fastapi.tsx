@@ -1,9 +1,9 @@
 import { siteUrl } from '../../../../utils/urls'
 import { QuickStartContent } from '../../QuickstartContent'
+import { frontendInstallSnippet } from '../shared-snippets-monitoring'
 import {
 	downloadSnippet,
 	init,
-	setupFrontendSnippet,
 	setupLogging,
 } from './shared-snippets-monitoring'
 
@@ -12,8 +12,9 @@ export const PythonFastAPIReorganizedContext: QuickStartContent = {
 	subtitle:
 		'Learn how to set up highlight.io on your Python FastAPI backend API.',
 	logoUrl: siteUrl('/images/quickstart/fastapi.svg'),
+	products: ['Errors', 'Logs', 'Traces'],
 	entries: [
-		setupFrontendSnippet,
+		frontendInstallSnippet,
 		downloadSnippet(),
 		{
 			title: 'Initialize the Highlight SDK.',

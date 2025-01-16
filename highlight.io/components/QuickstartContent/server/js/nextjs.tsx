@@ -8,6 +8,7 @@ export const NextJsTracesReorganizedContent: QuickStartContent = {
 	subtitle:
 		'Learn how to set up highlight.io tracing for your Next.js application.',
 	logoUrl: siteUrl('/images/quickstart/nextjs.svg'),
+	products: ['Errors', 'Logs', 'Traces'],
 	entries: [
 		jsGetSnippet(['next']),
 		{

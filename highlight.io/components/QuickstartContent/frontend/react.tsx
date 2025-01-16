@@ -21,6 +21,7 @@ export const ReactContent: QuickStartContent = {
 	title: 'React.js',
 	subtitle: 'Learn how to set up highlight.io with your React application.',
 	logoUrl: siteUrl('/images/quickstart/react.svg'),
+	products: ['Sessions', 'Errors', 'Logs', 'Traces', 'Metrics'],
 	entries: [
 		{
 			title: 'Install the npm package & SDK.',

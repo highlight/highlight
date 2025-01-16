@@ -11,6 +11,7 @@ export const PythonAWSReorganizedContext: QuickStartContent = {
 	title: 'Logging from Python AWS Lambda',
 	subtitle: 'Learn how to set up highlight.io on AWS Lambda.',
 	logoUrl: siteUrl('/images/quickstart/aws-lambda.svg'),
+	products: ['Errors', 'Logs', 'Traces'],
 	entries: [
 		setupFrontendSnippet,
 		downloadSnippet(),

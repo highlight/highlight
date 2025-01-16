@@ -35,6 +35,7 @@ export const PythonAITracesReorganizedContent: QuickStartContent = {
 	subtitle:
 		'Learn how to set up highlight.io tracing for common Python AI / LLM libraries to automatically instrument model training, inference, and evaluation.',
 	logoUrl: siteUrl('/images/quickstart/python.svg'),
+	products: ['Errors', 'Logs', 'Traces'],
 	entries: [
 		{
 			title: 'Supported Python libraries',

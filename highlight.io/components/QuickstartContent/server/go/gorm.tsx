@@ -2,13 +2,16 @@ import { siteUrl } from '../../../../utils/urls'
 import { goGetSnippet, initializeGoSdk } from './shared-snippets-monitoring'
 import { QuickStartContent } from '../../QuickstartContent'
 import { verifyTraces } from '../shared-snippets-tracing'
+import { frontendInstallSnippet } from '../shared-snippets-monitoring'
 
 export const GormTracesReorganizedContent: QuickStartContent = {
 	title: 'Tracing with GORM',
 	subtitle:
 		'Learn how to set up auto-instrumented tracing for your database calls using the GORM library.',
 	logoUrl: siteUrl('/images/quickstart/go.svg'),
+	products: ['Errors', 'Logs', 'Traces'],
 	entries: [
+		frontendInstallSnippet,
 		goGetSnippet,
 		initializeGoSdk,
 		{

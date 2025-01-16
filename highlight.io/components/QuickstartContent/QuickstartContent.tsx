@@ -148,6 +148,7 @@ export type QuickStartContent = {
 	subtitle: string
 	logoUrl?: string
 	entries: Array<QuickStartStep>
+	products?: ('Sessions' | 'Errors' | 'Traces' | 'Logs' | 'Metrics')[]
 }
 
 export type QuickStartCodeBlock = {
