@@ -18,7 +18,6 @@ export const GoFiberReorganizedContent: QuickStartContent = {
 	logoUrl: siteUrl('/images/quickstart/fiber.svg'),
 	products: ['Errors', 'Logs', 'Traces'],
 	entries: [
-		previousInstallSnippet('go'),
 		frontendInstallSnippet,
 		goGetSnippet,
 		initializeGoSdk,
