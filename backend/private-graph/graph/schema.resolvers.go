@@ -5767,7 +5767,7 @@ func (r *queryResolver) Resources(ctx context.Context, sessionSecureID string) (
 }
 
 // WebVitals is the resolver for the web_vitals field.
-func (r *queryResolver) WebVitals(ctx context.Context, sessionSecureID string) ([]*model.Metric, error) {
+func (r *queryResolver) WebVitals(ctx context.Context, sessionSecureID string) ([]*modelInputs.MetricRow, error) {
 	s, err := r.canAdminViewSession(ctx, sessionSecureID)
 	if err != nil {
 		return nil, nil

@@ -9,7 +9,6 @@ import (
 	"fmt"
 	"github.com/PaesslerAG/jsonpath"
 	"github.com/aws/smithy-go/ptr"
-	"github.com/google/uuid"
 	lru "github.com/hashicorp/golang-lru/v2"
 	"github.com/highlight-run/go-resthooks"
 	"github.com/highlight-run/highlight/backend/alerts"
@@ -1999,13 +1998,6 @@ func (r *Resolver) PushMetricsImpl(ctx context.Context, projectVerboseID *string
 	var metricRows []*clickhouse.MetricSumRow
 	for _, m := range metrics {
 		var spanID, traceID = ptr.ToString(m.SpanID), ptr.ToString(m.TraceID)
-		if spanID == "" {
-			spanID = uuid.New().String()
-		}
-		if traceID == "" {
-			traceID = uuid.New().String()
-		}
-
 		var serviceName, serviceVersion = session.ServiceName, ptr.ToString(session.AppVersion)
 		attributes := map[string]string{}
 		for _, t := range m.Tags {
@@ -2025,7 +2017,6 @@ func (r *Resolver) PushMetricsImpl(ctx context.Context, projectVerboseID *string
 		attributes[highlight.EnvironmentAttribute] = session.Environment
 
 		timestamp := ClampTime(m.Timestamp, curTime)
-		// TODO(vkorolik) should this instead use the highlight SDK to write a metric
 		metricRows = append(metricRows, &clickhouse.MetricSumRow{
 			MetricBaseRow: clickhouse.MetricBaseRow{
 				ProjectId:                uint32(projectID),

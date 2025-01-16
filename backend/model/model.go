@@ -164,8 +164,6 @@ var Models = []interface{}{
 	&WorkspaceAccessRequest{},
 	&EnhancedUserDetails{},
 	&RegistrationData{},
-	&MetricGroup{},
-	&Metric{},
 	&MetricMonitor{},
 	&ErrorFingerprint{},
 	&EventChunk{},
@@ -934,22 +932,6 @@ type MessagesObject struct {
 	SessionID int
 	Messages  string
 	IsBeacon  bool `gorm:"default:false"`
-}
-
-type Metric struct {
-	CreatedAt     time.Time `json:"created_at" deep:"-"`
-	MetricGroupID int       `gorm:"index"`
-	Name          string
-	Value         float64
-	Category      string
-}
-
-type MetricGroup struct {
-	ID        int `gorm:"primary_key;type:bigint;autoIncrement" json:"id" deep:"-"`
-	GroupName string
-	SessionID int
-	ProjectID int
-	Metrics   []*Metric `gorm:"foreignKey:MetricGroupID;"`
 }
 
 type MetricMonitor struct {
