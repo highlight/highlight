@@ -586,34 +586,6 @@ func (o *Handler) HandleMetric(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 }
 
-func (o *Handler) HandleFirehoseMetric(w http.ResponseWriter, r *http.Request) {
-	ctx := r.Context()
-
-	output, err := highlightHttp.GetBody(ctx, r)
-	if err != nil {
-		log.WithContext(ctx).WithError(err).Error("invalid data format for metric")
-		http.Error(w, err.Error(), http.StatusBadRequest)
-		return
-	}
-
-	_, _, records, err := highlightHttp.ExtractFirehoseMetadata(r, output)
-	if err != nil {
-		log.WithContext(ctx).WithError(err).Error("failed to parse otel firsehose metrics payload")
-		w.WriteHeader(http.StatusServiceUnavailable)
-		return
-	}
-
-	for _, rec := range records {
-		req := pmetricotlp.NewExportRequest()
-		err = req.UnmarshalProto(rec)
-		if err != nil {
-			log.WithContext(ctx).WithError(err).Error("invalid metric protobuf")
-			http.Error(w, err.Error(), http.StatusBadRequest)
-			return
-		}
-	}
-}
-
 func (o *Handler) getQuotaExceededByProject(ctx context.Context, projectIds map[uint32]struct{}, productType model2.PricingProductType) (map[uint32]bool, error) {
 	span, ctx := highlight.StartTrace(ctx, "otel.getQuotaExceededByProject", attribute.Int("NumProjects", len(projectIds)), attribute.String("ProductType", string(productType)))
 	defer highlight.EndTrace(span)
@@ -920,9 +892,6 @@ func (o *Handler) Listen(r *chi.Mux) {
 		r.HandleFunc("/traces", o.HandleTrace)
 		r.HandleFunc("/logs", o.HandleLog)
 		r.HandleFunc("/metrics", o.HandleMetric)
-		r.Route("/firehose", func(r chi.Router) {
-			r.HandleFunc("/metrics", o.HandleFirehoseMetric)
-		})
 	})
 }
 
