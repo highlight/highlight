@@ -1,8 +1,8 @@
 import { siteUrl } from '../../../../utils/urls'
 import { QuickStartContent } from '../../QuickstartContent'
-import { verifyLogs } from '../shared-snippets'
+import { verifyLogs } from '../shared-snippets-logging'
 
-export const HostingFlyIOLogContent: QuickStartContent = {
+export const HostingFlyIOLogReorganizedContent: QuickStartContent = {
 	title: 'Logging with the Fly.io Log Shipper',
 	subtitle:
 		'Learn how to setup Highlight log ingestion on [Fly.io](https://fly.io/blog/shipping-logs/). ' +

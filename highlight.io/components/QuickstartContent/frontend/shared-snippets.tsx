@@ -45,6 +45,8 @@ export const sourceMapDetailsLink = siteUrl(
 	'/docs/getting-started/client-sdk/replay-configuration/sourcemaps',
 )
 
+export const browserGettingStartedLink = siteUrl('/docs/reorganized/overview')
+
 export const configureSourcemapsCI = (docsLink?: string): QuickStartStep => {
 	return {
 		title: 'Configure sourcemaps in CI. (optional)',

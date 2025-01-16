@@ -4,7 +4,6 @@ import {
 	customGoError,
 	goGetSnippet,
 	initializeGoSdk,
-	setUpLogging,
 	verifyCustomError,
 } from './shared-snippets-monitoring'
 
@@ -38,6 +37,5 @@ func main() {
 		},
 		customGoError,
 		verifyCustomError,
-		setUpLogging('gin'),
 	],
 }
