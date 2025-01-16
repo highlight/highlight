@@ -11,6 +11,7 @@ export const JSOtherLogReorganizedContent: QuickStartContent = {
 	subtitle:
 		'Learn how to set up highlight.io JS log ingestion without a logging library.',
 	logoUrl: siteUrl('/images/quickstart/javascript.svg'),
+	products: ['Errors', 'Logs', 'Traces'],
 	entries: [
 		previousInstallSnippet('js'),
 		jsGetSnippet(['node']),

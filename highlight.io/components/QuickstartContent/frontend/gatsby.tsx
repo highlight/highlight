@@ -35,6 +35,7 @@ export const GatsbyContent: QuickStartContent = {
 	title: 'Gatsby',
 	subtitle: 'Learn how to set up highlight.io with your Gatsby application.',
 	logoUrl: siteUrl('/images/quickstart/gatsby.svg'),
+	products: ['Sessions', 'Errors', 'Logs', 'Traces', 'Metrics'],
 	entries: [
 		{
 			title: 'Install the gatsby plugin.',

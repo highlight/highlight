@@ -1,14 +1,16 @@
 import { siteUrl } from '../../../../utils/urls'
 import { downloadSnippet } from '../../backend/python/shared-snippets'
 import { QuickStartContent } from '../../QuickstartContent'
-import { previousInstallSnippet, verifyLogs } from '../shared-snippets-logging'
+import { verifyLogs } from '../shared-snippets-logging'
+import { frontendInstallSnippet } from '../shared-snippets-monitoring'
 
 export const PythonLoguruLogReorganizedContent: QuickStartContent = {
 	title: 'Logging from Python with Loguru',
 	subtitle: 'Learn how to set up highlight.io with logs from Python Loguru.',
 	logoUrl: siteUrl('/images/quickstart/python-loguru.png'),
+	products: ['Errors', 'Logs', 'Traces'],
 	entries: [
-		previousInstallSnippet('python'),
+		frontendInstallSnippet,
 		downloadSnippet(),
 		{
 			title: 'Initialize the Highlight SDK.',

@@ -38,6 +38,7 @@ export const SvelteKitContent: QuickStartContent = {
 	subtitle:
 		'Learn how to set up highlight.io with your SvelteKit application.',
 	logoUrl: siteUrl('/images/quickstart/sveltekit.svg'),
+	products: ['Sessions', 'Errors', 'Logs', 'Traces', 'Metrics'],
 	entries: [
 		packageInstallSnippet,
 		{

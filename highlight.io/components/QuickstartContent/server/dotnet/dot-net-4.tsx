@@ -11,6 +11,7 @@ import {
 export const DotNet4OTLPReorganizedContent: QuickStartContent = {
 	title: 'Error Monitoring / Logging / Tracing in .NET 4.x via the OpenTelemetry Protocol (OTLP)',
 	subtitle: `Error Monitoring / Logging / Tracing in .NET 4.x via the OpenTelemetry Protocol (OTLP).`,
+	products: ['Errors', 'Logs', 'Traces', 'Metrics'],
 	entries: [
 		downloadSnippet('ASP4'),
 		{

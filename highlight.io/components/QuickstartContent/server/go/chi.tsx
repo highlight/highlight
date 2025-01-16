@@ -15,6 +15,7 @@ export const GoChiReorganizedContent: QuickStartContent = {
 	subtitle:
 		'Learn how to set up highlight.io monitoring on your Go chi backend.',
 	logoUrl: siteUrl('/images/quickstart/chi.svg'),
+	products: ['Errors', 'Logs', 'Traces'],
 	entries: [
 		frontendInstallSnippet,
 		goGetSnippet,

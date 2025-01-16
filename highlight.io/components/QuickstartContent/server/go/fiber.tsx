@@ -2,21 +2,22 @@ import { siteUrl } from '../../../../utils/urls'
 import { QuickStartContent } from '../../QuickstartContent'
 import { frontendInstallSnippet } from '../shared-snippets-monitoring'
 import { logrusExample } from './shared-snippets-logging'
-import { previousInstallSnippet, verifyLogs } from '../shared-snippets-logging'
+import { verifyLogs } from '../shared-snippets-logging'
 import {
 	customGoError,
 	goGetSnippet,
 	initializeGoSdk,
 	verifyGoErrors,
 } from './shared-snippets-monitoring'
+import { verifyTraces } from '../shared-snippets-tracing'
 
 export const GoFiberReorganizedContent: QuickStartContent = {
 	title: 'Go Fiber',
 	subtitle:
 		'Learn how to set up highlight.io monitoring and logging on your Go Fiber backend.',
 	logoUrl: siteUrl('/images/quickstart/fiber.svg'),
+	products: ['Errors', 'Logs', 'Traces'],
 	entries: [
-		previousInstallSnippet('go'),
 		frontendInstallSnippet,
 		goGetSnippet,
 		initializeGoSdk,
@@ -82,5 +83,6 @@ func main() {
 }`,
 		),
 		verifyLogs,
+		verifyTraces,
 	],
 }
