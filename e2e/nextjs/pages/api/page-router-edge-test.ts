@@ -1,10 +1,8 @@
 // pages/api/test.ts
-import { NextRequest } from 'next/server'
-
 import { withEdgeHighlight } from '@/app/_utils/edge-highlight.config'
 import { z } from 'zod'
 
-export default withEdgeHighlight(async function handler(request: NextRequest) {
+export default withEdgeHighlight(async function handler(request: Request) {
 	const { searchParams } = new URL(request.url)
 	const success = z.enum(['true', 'false']).parse(searchParams.get('success'))
 
