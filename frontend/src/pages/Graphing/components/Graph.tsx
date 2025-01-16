@@ -1134,6 +1134,7 @@ const Graph = ({
 	startDate,
 	endDate,
 	query,
+	sql,
 	groupByKeys,
 	bucketByKey,
 	bucketByWindow,
@@ -1293,6 +1294,7 @@ const Graph = ({
 				},
 				query: replaceQueryVariables(query, variables),
 			},
+			sql: sql,
 			group_by:
 				groupByKeys !== undefined
 					? matchParamVariables(groupByKeys, variables)
@@ -1346,6 +1348,7 @@ const Graph = ({
 		bucketByKey,
 		bucketByWindow,
 		getMetrics,
+		sql,
 		groupByKeys,
 		limit,
 		limitFunctionType,

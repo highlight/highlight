@@ -8,6 +8,7 @@ import (
 	"reflect"
 	"regexp"
 	"sort"
+	"strconv"
 	"strings"
 	"time"
 
@@ -23,6 +24,8 @@ import (
 	"github.com/nqd/flat"
 	e "github.com/pkg/errors"
 	"github.com/samber/lo"
+
+	sqlparser "github.com/AfterShip/clickhouse-sql-parser/parser"
 )
 
 const SamplingRows = 20_000_000
@@ -174,6 +177,163 @@ func readObjects[TObj interface{}](ctx context.Context, client *Client, config m
 
 	span.Finish(rows.Err())
 	return getConnection(edges, pagination), nil
+}
+
+func builderFromSql(
+	config model.TableConfig,
+	sql string,
+	projectId int,
+) (*sqlbuilder.SelectBuilder, []string, error) {
+	parser := sqlparser.NewParser(sql)
+	statements, err := parser.ParseStmts()
+	if err != nil {
+		return nil, nil, err
+	}
+
+	if len(statements) != 1 {
+		return nil, nil, e.Errorf("Expected 1 SQL statement, found %d", len(statements))
+	}
+	stmt := statements[0]
+
+	tableReplacementVisitor := sqlparser.DefaultASTVisitor{}
+	tableReplacementVisitor.Visit = func(expr sqlparser.Expr) error {
+		switch typed := expr.(type) {
+		case *sqlparser.TableIdentifier:
+			typed.Table.Name = config.TableName
+		}
+		return nil
+	}
+
+	// Ignore function, alias, and table names
+	ignoreList := []sqlparser.Expr{}
+	ignoreVisitor := sqlparser.DefaultASTVisitor{}
+	ignoreVisitor.Visit = func(expr sqlparser.Expr) error {
+		switch typed := expr.(type) {
+		case *sqlparser.FunctionExpr:
+			ignoreList = append(ignoreList, typed.Name)
+		case *sqlparser.AliasExpr:
+			switch inner := typed.Alias.(type) {
+			case *sqlparser.Ident:
+				ignoreList = append(ignoreList, inner)
+			}
+		case *sqlparser.TableIdentifier:
+			ignoreList = append(ignoreList, typed.Table)
+		}
+		return nil
+	}
+
+	fields := []string{}
+	columnReplacementVisitor := sqlparser.DefaultASTVisitor{}
+	columnReplacementVisitor.Visit = func(expr sqlparser.Expr) error {
+		switch typed := expr.(type) {
+		case *sqlparser.Ident:
+			if lo.Contains(ignoreList, expr) {
+				break
+			}
+			if col, found := config.KeysToColumns[typed.Name]; found {
+				typed.Name = col
+			} else {
+				fields = append(fields, typed.Name)
+				typed.Name = fmt.Sprintf("%s['%s']", model.GetAttributesColumn(config.AttributesColumns, typed.Name), typed.Name)
+			}
+		}
+		return nil
+	}
+
+	if err := stmt.Accept(&tableReplacementVisitor); err != nil {
+		return nil, nil, err
+	}
+	if err := stmt.Accept(&ignoreVisitor); err != nil {
+		return nil, nil, err
+	}
+	if err := stmt.Accept(&columnReplacementVisitor); err != nil {
+		return nil, nil, err
+	}
+
+	sb := sqlbuilder.ClickHouse.NewSelectBuilder()
+
+	switch typed := stmt.(type) {
+	case *sqlparser.SelectQuery:
+		selectStrs := []string{}
+		for _, item := range typed.SelectItems {
+			selectStrs = append(selectStrs, item.String())
+		}
+		sb.Select(selectStrs...)
+		if typed.From != nil {
+			sb.From(strings.TrimPrefix(typed.From.String(), "FROM "))
+		}
+		if typed.Where != nil {
+			sb.Where(strings.TrimPrefix(typed.Where.String(), "WHERE "))
+		}
+		if typed.GroupBy != nil {
+			sb.GroupBy(strings.TrimPrefix(typed.GroupBy.String(), "GROUP BY "))
+		}
+		if typed.Having != nil {
+			sb.Having(strings.TrimPrefix(typed.Having.String(), "HAVING "))
+		}
+		if typed.OrderBy != nil {
+			sb.OrderBy(strings.TrimPrefix(typed.OrderBy.String(), "ORDER BY "))
+		}
+		if typed.Limit != nil {
+			if typed.Limit.Limit != nil {
+				limitInt, err := strconv.Atoi(typed.Limit.Limit.String())
+				if err != nil {
+					return nil, nil, err
+				}
+				sb.Limit(limitInt)
+			}
+			if typed.Limit.Offset != nil {
+				offsetInt, err := strconv.Atoi(typed.Limit.Offset.String())
+				if err != nil {
+					return nil, nil, err
+				}
+				sb.Offset(offsetInt)
+			}
+		}
+	default:
+		return nil, nil, e.New("SQL statement must be SelectQuery")
+	}
+
+	if config.TableName == "sessions" || config.TableName == "errors" {
+		sb.Where(sb.Equal("ProjectID", projectId))
+	} else {
+		sb.Where(sb.Equal("ProjectId", projectId))
+	}
+
+	// ZANETODO: handle default filters
+
+	return sb, fields, nil
+}
+
+func GetTables(sql string) ([]string, error) {
+	parser := sqlparser.NewParser(sql)
+	statements, err := parser.ParseStmts()
+	if err != nil {
+		return nil, err
+	}
+
+	if len(statements) != 1 {
+		return nil, e.Errorf("Expected 1 SQL statement, found %d", len(statements))
+	}
+	stmt := statements[0]
+
+	tables := []string{}
+	visitor := sqlparser.DefaultASTVisitor{}
+	visitor.Visit = func(expr sqlparser.Expr) error {
+		switch typed := expr.(type) {
+		case *sqlparser.TableIdentifier:
+			if typed.Table != nil {
+				tables = append(tables, typed.Table.Name)
+			}
+		}
+		return nil
+	}
+
+	if err := stmt.Accept(&visitor); err != nil {
+		return nil, err
+	}
+
+	return lo.Uniq(tables), nil
 }
 
 func makeSelectBuilder(
@@ -1052,6 +1212,84 @@ func (client *Client) getSamplingStats(ctx context.Context, tables []string, pro
 	return statsByTable, nil
 }
 
+func (client *Client) readMetricsSql(ctx context.Context, input ReadMetricsInput, config model.TableConfig) (*modelInputs.MetricsBuckets, error) {
+	if len(input.ProjectIDs) != 1 {
+		return nil, e.Errorf("SQL queries must use 1 project id, %d found", len(input.ProjectIDs))
+	}
+	projectId := input.ProjectIDs[0]
+	fromSb, attributeFields, err := builderFromSql(config, *input.Sql, projectId)
+	if err != nil {
+		return nil, err
+	}
+	applyBlockFilter(fromSb, input)
+	addAttributes(config, attributeFields, input.ProjectIDs, input.Params, fromSb)
+
+	sql, args := fromSb.BuildWithFlavor(sqlbuilder.ClickHouse)
+
+	span, ctx := util.StartSpanFromContext(ctx, "readMetrics.query")
+	span.SetAttribute("sql", sql)
+	span.SetAttribute("args", args)
+	rows, err := client.conn.Query(
+		ctx,
+		sql,
+		args...,
+	)
+	span.Finish(err)
+
+	if err != nil {
+		return nil, err
+	}
+
+	var (
+		// groupKey     uint64
+		// sampleFactor float64
+		// min          float64
+		// max          float64
+		result float64
+	)
+
+	scanResults := []interface{}{}
+	scanResults = append(scanResults, &result)
+	// scanResults = append(scanResults, &groupKey)
+	// scanResults = append(scanResults, &sampleFactor)
+	// scanResults = append(scanResults, &min)
+	// scanResults = append(scanResults, &max)
+
+	nBuckets := 1
+
+	metrics := &modelInputs.MetricsBuckets{
+		Buckets: []*modelInputs.MetricBucket{},
+	}
+	// lastBucketId := -1
+	for rows.Next() {
+		if err := rows.Scan(scanResults...); err != nil {
+			return nil, err
+		}
+
+		// bucketId := groupKey
+		// if bucketId >= uint64(nBuckets) {
+		// continue
+		// }
+
+		metrics.Buckets = append(metrics.Buckets, &modelInputs.MetricBucket{
+			BucketID: uint64(0),
+			// BucketMin:   float64(i)*(max-min)/float64(nBuckets) + min,
+			// BucketMax:   float64(i+1)*(max-min)/float64(nBuckets) + min,
+			// Group:       append(make([]string, 0), groupByColResults...),
+			// MetricType:  e.Aggregator,
+			// Column:      e.Column,
+			MetricValue: &result,
+		})
+
+		// lastBucketId = int(bucketId)
+	}
+
+	// metrics.SampleFactor = sampleFactor
+	metrics.BucketCount = uint64(nBuckets)
+
+	return metrics, err
+}
+
 func (client *Client) ReadMetrics(ctx context.Context, input ReadMetricsInput) (*modelInputs.MetricsBuckets, error) {
 	if input.Params.DateRange == nil {
 		input.Params.DateRange = &modelInputs.DateRangeRequiredInput{
@@ -1119,8 +1357,6 @@ func (client *Client) ReadMetrics(ctx context.Context, input ReadMetricsInput) (
 
 	keysToColumns := input.SampleableConfig.tableConfig.KeysToColumns
 
-	var fromSb *sqlbuilder.SelectBuilder
-	var err error
 	var config model.TableConfig
 	useSampling := sampleRatio != 0
 	if useSampling {
@@ -1134,6 +1370,11 @@ func (client *Client) ReadMetrics(ctx context.Context, input ReadMetricsInput) (
 			config.DefaultFilter = ""
 		}
 	}
+
+	if input.Sql != nil {
+		return client.readMetricsSql(ctx, input, config)
+	}
+
 	fromSb, filters, err := makeSelectBuilder(
 		config,
 		nil,
@@ -1145,9 +1386,9 @@ func (client *Client) ReadMetrics(ctx context.Context, input ReadMetricsInput) (
 		return nil, err
 	}
 
-	attributeFields := getAttributeFields(config, filters)
-
 	applyBlockFilter(fromSb, input)
+
+	attributeFields := getAttributeFields(config, filters)
 
 	bucketExpr := "toFloat64(Timestamp)"
 	if input.BucketBy != modelInputs.MetricBucketByNone.String() && input.BucketBy != modelInputs.MetricBucketByTimestamp.String() {

@@ -204,6 +204,7 @@ require (
 	cloud.google.com/go v0.115.0 // indirect
 	cloud.google.com/go/firestore v1.15.0 // indirect
 	cloud.google.com/go/storage v1.41.0 // indirect
+	github.com/AfterShip/clickhouse-sql-parser v0.4.2
 	github.com/ClickHouse/clickhouse-go/v2 v2.21.1
 	github.com/ReneKroon/ttlcache v1.7.0
 	github.com/agnivade/levenshtein v1.1.1 // indirect

@@ -2406,6 +2406,7 @@ type Query {
 	logs_metrics(
 		project_id: ID!
 		params: QueryInput!
+		sql: String
 		column: String # deprecated - use `expressions` instead
 		metric_types: [MetricAggregator!] # deprecated - use `expressions` instead
 		group_by: [String!]!
@@ -2469,6 +2470,7 @@ type Query {
 	traces_metrics(
 		project_id: ID!
 		params: QueryInput!
+		sql: String
 		column: String # deprecated - use `expressions` instead
 		metric_types: [MetricAggregator!] # deprecated - use `expressions` instead
 		group_by: [String!]!
@@ -2510,6 +2512,7 @@ type Query {
 	errors_metrics(
 		project_id: ID!
 		params: QueryInput!
+		sql: String
 		column: String # deprecated - use `expressions` instead
 		metric_types: [MetricAggregator!] # deprecated - use `expressions` instead
 		group_by: [String!]!
@@ -2538,6 +2541,7 @@ type Query {
 	sessions_metrics(
 		project_id: ID!
 		params: QueryInput!
+		sql: String
 		column: String # deprecated - use `expressions` instead
 		metric_types: [MetricAggregator!] # deprecated - use `expressions` instead
 		group_by: [String!]!
@@ -2568,6 +2572,7 @@ type Query {
 	events_metrics(
 		project_id: ID!
 		params: QueryInput!
+		sql: String
 		column: String # deprecated - use `expressions` instead
 		metric_types: [MetricAggregator!] # deprecated - use `expressions` instead
 		group_by: [String!]!

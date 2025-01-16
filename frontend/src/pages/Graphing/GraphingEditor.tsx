@@ -980,8 +980,11 @@ export const GraphingEditor: React.FC = () => {
 											tooltip="The search query used to filter which data points are included before aggregating."
 										>
 											<textarea
-												value={sql}
-												onChange={(e) => {
+												// value={sql}
+												// onChange={(e) => {
+												// 	setSql(e.target.value)
+												// }}
+												onBlur={(e) => {
 													setSql(e.target.value)
 												}}
 											/>

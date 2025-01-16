@@ -39,7 +39,7 @@ var MetricsSampleableTableConfig = SampleableTableConfig{
 	sampleSizeRows:      20_000_000,
 }
 
-func (client *Client) ReadEventMetrics(ctx context.Context, projectID int, params modelInputs.QueryInput, column *string, metricTypes []modelInputs.MetricAggregator, groupBy []string, nBuckets *int, bucketBy string, bucketWindow *int, limit *int, limitAggregator *modelInputs.MetricAggregator, limitColumn *string) (*modelInputs.MetricsBuckets, error) {
+func (client *Client) ReadEventMetrics(ctx context.Context, projectID int, params modelInputs.QueryInput, sql *string, column *string, metricTypes []modelInputs.MetricAggregator, groupBy []string, nBuckets *int, bucketBy string, bucketWindow *int, limit *int, limitAggregator *modelInputs.MetricAggregator, limitColumn *string) (*modelInputs.MetricsBuckets, error) {
 	columnDeref := ""
 	if column != nil {
 		columnDeref = *column
@@ -58,6 +58,7 @@ func (client *Client) ReadEventMetrics(ctx context.Context, projectID int, param
 		SampleableConfig: MetricsSampleableTableConfig,
 		ProjectIDs:       []int{projectID},
 		Params:           params,
+		Sql:              sql,
 		GroupBy:          groupBy,
 		BucketCount:      nBuckets,
 		BucketWindow:     bucketWindow,

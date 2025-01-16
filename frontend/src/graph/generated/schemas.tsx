@@ -2460,6 +2460,7 @@ export type QueryErrors_MetricsArgs = {
 	metric_types?: InputMaybe<Array<MetricAggregator>>
 	params: QueryInput
 	project_id: Scalars['ID']
+	sql?: InputMaybe<Scalars['String']>
 }
 
 export type QueryEvent_Chunk_UrlArgs = {
@@ -2514,6 +2515,7 @@ export type QueryEvents_MetricsArgs = {
 	metric_types?: InputMaybe<Array<MetricAggregator>>
 	params: QueryInput
 	project_id: Scalars['ID']
+	sql?: InputMaybe<Scalars['String']>
 }
 
 export type QueryExisting_Logs_TracesArgs = {
@@ -2691,6 +2693,7 @@ export type QueryLogs_MetricsArgs = {
 	metric_types?: InputMaybe<Array<MetricAggregator>>
 	params: QueryInput
 	project_id: Scalars['ID']
+	sql?: InputMaybe<Scalars['String']>
 }
 
 export type QueryMatch_Error_TagArgs = {
@@ -2926,6 +2929,7 @@ export type QuerySessions_MetricsArgs = {
 	metric_types?: InputMaybe<Array<MetricAggregator>>
 	params: QueryInput
 	project_id: Scalars['ID']
+	sql?: InputMaybe<Scalars['String']>
 }
 
 export type QuerySlack_Channel_SuggestionArgs = {
@@ -3003,6 +3007,7 @@ export type QueryTraces_MetricsArgs = {
 	metric_types?: InputMaybe<Array<MetricAggregator>>
 	params: QueryInput
 	project_id: Scalars['ID']
+	sql?: InputMaybe<Scalars['String']>
 }
 
 export type QueryTrack_Properties_AlertsArgs = {
