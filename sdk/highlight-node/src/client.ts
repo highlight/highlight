@@ -70,7 +70,7 @@ const instrumentations = getNodeAutoInstrumentations({
 				.indexOf('fs') !== -1,
 	},
 	'@opentelemetry/instrumentation-pino': {
-		logHook: (span, record, level) => {
+		logHook: (span, record, _) => {
 			// @ts-ignore
 			const attrs = span.attributes
 			for (const [key, value] of Object.entries(attrs)) {
@@ -544,23 +544,27 @@ function parseHeaders(
 }
 
 function extractIncomingHttpHeaders(headers?: any): IncomingHttpHeaders {
-	if (headers) {
+	if (headers !== undefined && headers !== null) {
 		let requestHeaders: IncomingHttpHeaders = {}
-		if (headers.hasOwnProperty(HIGHLIGHT_REQUEST_HEADER)) {
-			requestHeaders[HIGHLIGHT_REQUEST_HEADER] = (
-				headers as { [HIGHLIGHT_REQUEST_HEADER]: string }
-			)[HIGHLIGHT_REQUEST_HEADER]
-		} else if (headers.hasOwnProperty('forEach')) {
+		if (typeof headers.get === 'function') {
+			requestHeaders[HIGHLIGHT_REQUEST_HEADER] = headers.get(
+				HIGHLIGHT_REQUEST_HEADER,
+			)
+		} else if (typeof headers.forEach === 'function') {
 			headers.forEach(
 				(value: string | string[] | undefined, key: string) =>
 					(requestHeaders[key] = value),
 			)
-		} else if (headers) {
+		} else if (headers[HIGHLIGHT_REQUEST_HEADER]) {
+			requestHeaders[HIGHLIGHT_REQUEST_HEADER] = (
+				headers as { [HIGHLIGHT_REQUEST_HEADER]: string }
+			)[HIGHLIGHT_REQUEST_HEADER]
+		} else {
 			requestHeaders = headers
 		}
 
 		return requestHeaders
 	} else {
-		return { secureSessionId: undefined, requestId: undefined }
+		return {}
 	}
 }
