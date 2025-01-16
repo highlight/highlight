@@ -217,10 +217,20 @@ class ReactNativeOTLPTraceExporter implements SpanExporter {
 				{
 					key: 'logger',
 					language: 'typescript',
-					text: `type LogLevel = 'DEBUG' | 'INFO' | 'WARN' | 'ERROR';
+					text: `const ConsoleLevels = {
+	debug: 'debug',
+	info: 'info',
+	log: 'info',
+	count: 'info',
+	dir: 'info',
+	warn: 'warn',
+	assert: 'warn',
+	error: 'error',
+	trace: 'trace',
+} as const
 
 // send logs via trace
-export const log = (level: LogLevel, message: string, attributes = {}) => {
+export const log = (level: keyof typeof ConsoleLevels, message: string, attributes = {}) => {
     const span = tracer.startSpan('highlight.log')
     span.addEvent('log', {
       ...attributes,
@@ -253,6 +263,96 @@ export const error = (message: string, attributes = {}) => {
 			],
 		},
 		{
+			title: 'Monkeypatch the console.log functions',
+			content:
+				'Overwrite the console.log functions to additionally send to highlight.io',
+			code: [
+				{
+					key: 'console.log',
+					language: 'typescript',
+					text: `// monkey patch console
+type ConsoleFn = (...data: any) => void
+
+let consoleHooked = false
+
+function hookConsole(
+) {
+	if (consoleHooked) return
+	consoleHooked = true
+	for (const [level, highlightLevel] of Object.entries(ConsoleLevels)) {
+		const origWrite = console[level as keyof Console] as ConsoleFn
+		;(console[level as keyof Console] as ConsoleFn) = function (
+			...data: any[]
+		) {
+			const date = new Date()
+			try {
+				return origWrite(...data)
+			} finally {
+				const o: { stack: any } = { stack: {} }
+				Error.captureStackTrace(o)
+				const message = data.map((o) =>
+							typeof o === 'object' ? safeStringify(o) : o,
+						)
+
+        const attributes = data.filter((d) => typeof d === 'object').reduce((a, b) => ({ ...a, ...b }), {})
+
+        if (level === 'error') {
+          attributes['exception.stacktrace'] = JSON.stringify(o.stack)
+          attributes['exception.type'] = "console.error" // set to treat as an error event
+        }
+
+				log(
+          highlightLevel,
+          message.join(' '),
+          attributes
+			  )
+      }
+		}
+	}
+}
+
+// https://stackoverflow.com/a/2805230
+const MAX_RECURSION = 128
+
+export function safeStringify(obj: any): string {
+	function replacer(input: any, depth?: number): any {
+		if ((depth ?? 0) > MAX_RECURSION) {
+			throw new Error('max recursion exceeded')
+		}
+		if (input && typeof input === 'object') {
+			for (let k in input) {
+				if (typeof input[k] === 'object') {
+					replacer(input[k], (depth ?? 0) + 1)
+				} else if (!canStringify(input[k])) {
+					input[k] = input[k].toString()
+				}
+			}
+		}
+		return input
+	}
+
+	function canStringify(value: any): boolean {
+		try {
+			JSON.stringify(value)
+			return true
+		} catch (e) {
+			return false
+		}
+	}
+
+	try {
+		return JSON.stringify(replacer(obj))
+	} catch (e) {
+		return obj.toString()
+	}
+}
+
+// call the hook
+hookConsole()`,
+				},
+			],
+		},
+		{
 			title: 'Execution of functions',
 			content: 'Call the tracer, log, and error when needed',
 			code: [
@@ -274,19 +374,19 @@ span.end()`,
 				{
 					key: 'log',
 					language: 'typescript',
-					text: `H.log('WARN', 'Default sending information loaded', { sender: "spencer" })`,
+					text: `H.log('warn', 'Default sending information loaded', { sender: "spencer" })`,
 				},
 				{
 					key: 'error',
 					language: 'typescript',
 					text: `H.error('Divide by 0 error', { numerator: 623 })`,
 				},
+				{
+					key: 'import',
+					language: 'typescript',
+					text: `console.log("Hello World") // after calling hookConsole()`,
+				},
 			],
-		},
-		{
-			title: 'Monkey patching console.log and errors',
-			content:
-				'More coming soon on how to best monkey patch console.log and errors, so they can be sent to highlight.io.',
 		},
 	],
 }
