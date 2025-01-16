@@ -86,7 +86,7 @@
 		"@types/remove-markdown": "^0.3.1",
 		"@types/youtube": "^0.1.0",
 		"autoprefixer": "^10.4.14",
-		"eslint": "8.39.0",
+		"eslint": "^9.18.0",
 		"eslint-config-next": "^15.1.4",
 		"postcss": "^8.4.35",
 		"prettier": "^3.3.3",

@@ -33972,7 +33972,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"eslint@npm:^9.17.0":
+"eslint@npm:^9.17.0, eslint@npm:^9.18.0":
   version: 9.18.0
   resolution: "eslint@npm:9.18.0"
   dependencies:
@@ -37643,7 +37643,7 @@ __metadata:
     dexie: "npm:^3.2.4"
     docs-content: "workspace:*"
     embla-carousel-react: "npm:^7.0.5"
-    eslint: "npm:8.39.0"
+    eslint: "npm:^9.18.0"
     eslint-config-next: "npm:^15.1.4"
     framer-motion: "npm:^8.5.2"
     fuse.js: "npm:^6.6.2"
