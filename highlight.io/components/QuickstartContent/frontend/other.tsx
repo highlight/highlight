@@ -14,6 +14,7 @@ export const OtherContext: QuickStartContent = {
 	subtitle:
 		'Learn how to set up highlight.io with any browser-based framework.',
 	logoUrl: siteUrl('/images/quickstart/javascript.svg'),
+	products: ['Sessions', 'Errors', 'Logs', 'Traces', 'Metrics'],
 	entries: [
 		{
 			title: 'Import the script in your index html file.',

@@ -1,20 +1,17 @@
 import { siteUrl } from '../../../../utils/urls'
 import { QuickStartContent } from '../../QuickstartContent'
-import { previousInstallSnippet, verifyLogs } from '../shared-snippets-logging'
+import { verifyLogs } from '../shared-snippets-logging'
+import { frontendInstallSnippet } from '../shared-snippets-monitoring'
 import { verifyTraces } from '../shared-snippets-tracing'
-import {
-	downloadSnippet,
-	init,
-	setupFrontendSnippet,
-} from './shared-snippets-monitoring'
+import { downloadSnippet, init } from './shared-snippets-monitoring'
 
 export const PythonOtherReorganizedContext: QuickStartContent = {
 	title: 'Python',
 	subtitle: 'Learn how to set up highlight.io in your Python app.',
 	logoUrl: siteUrl('/images/quickstart/python.svg'),
+	products: ['Errors', 'Logs', 'Traces'],
 	entries: [
-		previousInstallSnippet('python'),
-		setupFrontendSnippet,
+		frontendInstallSnippet,
 		downloadSnippet(),
 		{
 			title: 'Initialize the Highlight SDK.',

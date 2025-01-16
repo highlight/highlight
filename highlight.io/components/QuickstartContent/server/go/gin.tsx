@@ -1,5 +1,7 @@
 import { QuickStartContent } from '../../QuickstartContent'
+import { verifyLogs } from '../shared-snippets-logging'
 import { frontendInstallSnippet } from '../shared-snippets-monitoring'
+import { verifyTraces } from '../shared-snippets-tracing'
 import {
 	customGoError,
 	goGetSnippet,
@@ -11,6 +13,7 @@ export const GoGinReorganizedContent: QuickStartContent = {
 	title: 'Go Gin',
 	subtitle:
 		'Learn how to set up highlight.io monitoring on your Go Gin backend.',
+	products: ['Errors', 'Logs', 'Traces'],
 	entries: [
 		frontendInstallSnippet,
 		goGetSnippet,
@@ -37,5 +40,7 @@ func main() {
 		},
 		customGoError,
 		verifyCustomError,
+		verifyLogs,
+		verifyTraces,
 	],
 }

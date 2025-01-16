@@ -1,6 +1,8 @@
 import { siteUrl } from '../../../../utils/urls'
 import { QuickStartContent } from '../../QuickstartContent'
+import { verifyLogs } from '../shared-snippets-logging'
 import { frontendInstallSnippet } from '../shared-snippets-monitoring'
+import { verifyTraces } from '../shared-snippets-tracing'
 import {
 	customGoError,
 	goGetSnippet,
@@ -13,6 +15,7 @@ export const GoEchoReorganizedContent: QuickStartContent = {
 	subtitle:
 		'Learn how to set up highlight.io monitoring on your Go Echo backend.',
 	logoUrl: siteUrl('/images/quickstart/echo.svg'),
+	products: ['Errors', 'Logs', 'Traces'],
 	entries: [
 		frontendInstallSnippet,
 		goGetSnippet,
@@ -39,5 +42,7 @@ func main() {
 		},
 		customGoError,
 		verifyGoErrors,
+		verifyLogs,
+		verifyTraces,
 	],
 }

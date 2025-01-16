@@ -1,6 +1,7 @@
 import { siteUrl } from '../../../../utils/urls'
 import { QuickStartContent } from '../../QuickstartContent'
-import { previousInstallSnippet, verifyLogs } from '../shared-snippets-logging'
+import { verifyLogs } from '../shared-snippets-logging'
+import { frontendInstallSnippet } from '../shared-snippets-monitoring'
 import {
 	customError,
 	initializeSdk,
@@ -14,8 +15,9 @@ export const JavaOtherReorganizedContent: QuickStartContent = {
 	subtitle:
 		'Learn how to set up highlight.io on your Java backend with Java log ingestion.',
 	logoUrl: siteUrl('/images/quickstart/java.svg'),
+	products: ['Errors', 'Logs', 'Traces'],
 	entries: [
-		previousInstallSnippet('java'),
+		frontendInstallSnippet,
 		installSdk,
 		initializeSdk,
 		{
