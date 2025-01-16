@@ -1,8 +1,8 @@
 import { siteUrl } from '../../../../utils/urls'
 import { QuickStartContent } from '../../QuickstartContent'
-import { verifyLogs } from '../shared-snippets'
+import { verifyLogs } from '../shared-snippets-logging'
 
-export const HostingRenderLogContent: QuickStartContent = {
+export const HostingRenderLogReorganizedContent: QuickStartContent = {
 	title: 'Logging with Render',
 	subtitle:
 		'Learn how to setup Highlight log ingestion on Render as a log stream. ' +

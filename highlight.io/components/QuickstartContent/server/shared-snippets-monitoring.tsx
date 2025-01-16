@@ -1,21 +1,12 @@
-import { fullstackMappingLink } from '../frontend/shared-snippets'
+import {
+	browserGettingStartedLink,
+	fullstackMappingLink,
+} from '../frontend/shared-snippets'
 import { QuickStartStep } from '../QuickstartContent'
 
 export const frontendInstallSnippet: QuickStartStep = {
-	title: 'Add `tracingOrigins` to your client Highlight snippet.',
-	content: `This backend SDK requires one of the Highlight frontend SDKs to be installed, so please make sure you've followed the [fullstack mapping guide](${fullstackMappingLink}#How-can-I-start-using-this) first.`,
-	code: [
-		{
-			text: `H.init("<YOUR_PROJECT_ID>", {
-  tracingOrigins: ['localhost', 'example.myapp.com/backend'],
-  networkRecording: {
-    enabled: true,
-    recordHeadersAndBody: true,
-  },
-});`,
-			language: 'js',
-		},
-	],
+	title: 'Configure client-side Highlight. (optional)',
+	content: `If you're using Highlight on the frontend for your application, make sure you've [initialized it correctly](${browserGettingStartedLink}#for-your-frontend) and followed the [fullstack mapping guide](${fullstackMappingLink}#How-can-I-start-using-this).`,
 }
 
 export const verifyErrors: QuickStartStep = {
