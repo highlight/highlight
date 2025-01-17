@@ -3,6 +3,7 @@ import { QuickStartContent } from '../../QuickstartContent'
 import { tsconfig } from '../../shared-snippets'
 import { previousInstallSnippet, verifyLogs } from '../shared-snippets-logging'
 import { frontendInstallSnippet } from '../shared-snippets-monitoring'
+import { verifyTraces } from '../shared-snippets-tracing'
 import {
 	addIntegrationContent,
 	jsGetSnippet,
@@ -62,5 +63,6 @@ export default {
 		),
 		tsconfig,
 		verifyLogs,
+		verifyTraces,
 	],
 }

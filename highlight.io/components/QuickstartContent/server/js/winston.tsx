@@ -4,7 +4,7 @@ import { previousInstallSnippet, verifyLogs } from '../shared-snippets-logging'
 export const JSWinstonHTTPJSONLogReorganizedContent: QuickStartContent = {
 	title: 'Logging with Winston.JS',
 	subtitle: 'Learn how to set up highlight.io log ingestion for Winston JS.',
-	products: ['Errors', 'Logs', 'Traces'],
+	products: ['Logs'],
 	entries: [
 		previousInstallSnippet('nodejs'),
 		{

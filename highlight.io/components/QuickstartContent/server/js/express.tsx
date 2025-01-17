@@ -1,11 +1,12 @@
 import { siteUrl } from '../../../../utils/urls'
 import { QuickStartContent } from '../../QuickstartContent'
+import { verifyLogs } from '../shared-snippets-logging'
 import { frontendInstallSnippet } from '../shared-snippets-monitoring'
+import { verifyTraces } from '../shared-snippets-tracing'
 import {
 	addIntegrationContent,
 	initializeNodeSDK,
 	jsGetSnippet,
-	setupLogging,
 	verifyError,
 } from './shared-snippets-monitoring'
 
@@ -94,6 +95,7 @@ app.get('/async', async (req: Request, res: Response) => {
   res.send(\`Hello World! ${Math.random()}\`)
 })`,
 		),
-		setupLogging('express'),
+		verifyLogs,
+		verifyTraces,
 	],
 }
