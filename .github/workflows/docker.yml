@@ -84,13 +84,10 @@ jobs:
         name: Test Docker Image
         needs:
             - publish-docker
-        runs-on: buildjet-4vcpu-ubuntu-2204
+        runs-on: buildjet-8vcpu-ubuntu-2204
         timeout-minutes: 90
 
         steps:
-            - name: Enable debug logging
-              run: echo "ACTIONS_STEP_DEBUG=true" >> $GITHUB_ENV
-
             - name: Checkout
               uses: actions/checkout@v4
               with:
