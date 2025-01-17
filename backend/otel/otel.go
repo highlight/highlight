@@ -101,34 +101,26 @@ func getBackendError(ctx context.Context, ts time.Time, fields *extractedFields,
 	}
 }
 
-func getMetric(ctx context.Context, ts time.Time, fields *extractedFields, spanID, parentSpanID, traceID string) (*model.MetricInput, error) {
+func (o *Handler) getMetric(ctx context.Context, ts time.Time, fields *extractedFields) (*clickhouse.MetricSumRow, error) {
 	if fields.metricName == "" {
 		return nil, e.New("otel received metric with no name")
 	}
-	tags := lo.Map(lo.Entries(fields.attrs), func(t lo.Entry[string, string], i int) *model.MetricTag {
-		return &model.MetricTag{
-			Name:  t.Key,
-			Value: t.Value,
-		}
-	})
-	tags = append(tags, &model.MetricTag{
-		Name:  string(semconv.ServiceNameKey),
-		Value: fields.serviceName,
-	}, &model.MetricTag{
-		Name:  string(semconv.ServiceVersionKey),
-		Value: fields.serviceVersion,
-	})
-	return &model.MetricInput{
-		SessionSecureID: fields.sessionID,
-		SpanID:          pointy.String(spanID),
-		ParentSpanID:    pointy.String(parentSpanID),
-		TraceID:         pointy.String(traceID),
-		Group:           pointy.String(fields.requestID),
-		Name:            fields.metricName,
-		Value:           fields.metricEventValue,
-		Category:        pointy.String(fields.source.String()),
-		Timestamp:       ts,
-		Tags:            tags,
+	return &clickhouse.MetricSumRow{
+		MetricBaseRow: clickhouse.MetricBaseRow{
+			ProjectId:         uint32(fields.projectIDInt),
+			ServiceName:       fields.serviceName,
+			ServiceVersion:    fields.serviceVersion,
+			MetricName:        fields.metricName,
+			MetricDescription: fields.metricDescription,
+			MetricUnit:        fields.metricUnit,
+			Attributes:        fields.attrs,
+			MetricType:        pmetric.MetricTypeGauge,
+			Timestamp:         fields.timestamp,
+			StartTimestamp:    ts,
+			RetentionDays:     o.resolver.GetProjectMetricRetention(ctx, fields.projectIDInt),
+			Flags:             0,
+		},
+		Value: fields.metricEventValue,
 	}, nil
 }
 
@@ -157,7 +149,7 @@ func (o *Handler) HandleTrace(w http.ResponseWriter, r *http.Request) {
 	var projectLogs = make(map[string][]*clickhouse.LogRow)
 
 	var traceSpans = make(map[string][]*clickhouse.TraceRow)
-	var projectTraceMetrics = make(map[string]map[string][]*model.MetricInput)
+	var projectTraceMetrics = make(map[string]map[string][]*clickhouse.MetricSumRow)
 
 	curTime := time.Now()
 
@@ -282,13 +274,13 @@ func (o *Handler) HandleTrace(w http.ResponseWriter, r *http.Request) {
 
 						projectLogs[fields.projectID] = append(projectLogs[fields.projectID], logRow)
 					} else if event.Name() == highlight.MetricEvent {
-						metric, err := getMetric(ctx, fields.timestamp, fields, spanID, span.ParentSpanID().String(), traceID)
+						metric, err := o.getMetric(ctx, fields.timestamp, fields)
 						if err != nil {
 							lg(ctx, fields).WithError(err).Error("failed to create metric")
 							continue
 						}
 						if _, ok := projectTraceMetrics[fields.projectID]; !ok {
-							projectTraceMetrics[fields.projectID] = make(map[string][]*model.MetricInput)
+							projectTraceMetrics[fields.projectID] = make(map[string][]*clickhouse.MetricSumRow)
 						}
 						projectTraceMetrics[fields.projectID][fields.sessionID] = append(projectTraceMetrics[fields.projectID][fields.sessionID], metric)
 					}
@@ -343,19 +335,16 @@ func (o *Handler) HandleTrace(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	for projectID, traceMetrics := range projectTraceMetrics {
+	for _, traceMetrics := range projectTraceMetrics {
 		for sessionID, metrics := range traceMetrics {
 			var messages []kafkaqueue.RetryableMessage
 			for _, metric := range metrics {
-				messages = append(messages, &kafkaqueue.Message{
-					Type: kafkaqueue.PushMetrics,
-					PushMetrics: &kafkaqueue.PushMetricsArgs{
-						ProjectVerboseID: &projectID,
-						SessionSecureID:  &sessionID,
-						Metrics:          []*model.MetricInput{metric},
-					}})
+				messages = append(messages, &kafkaqueue.OTeLMetricSumRow{
+					Type:         kafkaqueue.PushOTeLMetricSum,
+					MetricSumRow: metric,
+				})
 			}
-			err = o.resolver.AsyncProducerQueue.Submit(ctx, sessionID, messages...)
+			err = o.resolver.MetricSumQueue.Submit(ctx, sessionID, messages...)
 			if err != nil {
 				log.WithContext(ctx).WithError(err).Error("failed to submit otel project metrics to public worker queue")
 				w.WriteHeader(http.StatusServiceUnavailable)
