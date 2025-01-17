@@ -1,7 +1,11 @@
 import { siteUrl } from '../../../../utils/urls'
 import { QuickStartContent } from '../../QuickstartContent'
-import { frontendInstallSnippet } from '../shared-snippets-monitoring'
-import { downloadSnippet, setupLogging } from './shared-snippets-monitoring'
+import { verifyLogs } from '../shared-snippets-logging'
+import {
+	frontendInstallSnippet,
+} from '../shared-snippets-monitoring'
+import { verifyTraces } from '../shared-snippets-tracing'
+import { downloadSnippet } from './shared-snippets-monitoring'
 
 export const PythonFlaskReorganizedContext: QuickStartContent = {
 	title: 'Python Flask',
@@ -98,6 +102,7 @@ if __name__ == "__main__":
 				},
 			],
 		},
-		setupLogging('flask'),
+		verifyLogs,
+		verifyTraces,
 	],
 }

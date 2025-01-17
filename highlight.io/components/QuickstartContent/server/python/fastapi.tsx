@@ -1,11 +1,9 @@
 import { siteUrl } from '../../../../utils/urls'
 import { QuickStartContent } from '../../QuickstartContent'
+import { verifyLogs } from '../shared-snippets-logging'
 import { frontendInstallSnippet } from '../shared-snippets-monitoring'
-import {
-	downloadSnippet,
-	init,
-	setupLogging,
-} from './shared-snippets-monitoring'
+import { verifyTraces } from '../shared-snippets-tracing'
+import { downloadSnippet, init } from './shared-snippets-monitoring'
 
 export const PythonFastAPIReorganizedContext: QuickStartContent = {
 	title: 'Python FastAPI',
@@ -63,6 +61,7 @@ async def root(request: Request):
 				},
 			],
 		},
-		setupLogging('fastapi'),
+		verifyLogs,
+		verifyTraces,
 	],
 }
