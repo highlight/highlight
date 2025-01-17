@@ -89,7 +89,7 @@ jobs:
 
         steps:
             - name: Enable debug logging
-              run: echo "::set-env name=ACTIONS_STEP_DEBUG::true"
+              run: echo "ACTIONS_STEP_DEBUG=true" >> $GITHUB_ENV
 
             - name: Checkout
               uses: actions/checkout@v4
