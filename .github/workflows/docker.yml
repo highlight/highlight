@@ -88,6 +88,9 @@ jobs:
         timeout-minutes: 90
 
         steps:
+            - name: Enable debug logging
+              run: echo "::set-env name=ACTIONS_STEP_DEBUG::true"
+
             - name: Checkout
               uses: actions/checkout@v4
               with:
