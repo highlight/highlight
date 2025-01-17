@@ -2,7 +2,6 @@ import { siteUrl } from '../../../../utils/urls'
 import { QuickStartContent } from '../../QuickstartContent'
 import { verifyLogs } from '../shared-snippets-logging'
 import { verifyTraces } from '../shared-snippets-tracing'
-import { setUpLogging } from './shared-snippets-monitoring'
 
 export const RustOtherReorganizedContent: QuickStartContent = {
 	title: 'Rust',
