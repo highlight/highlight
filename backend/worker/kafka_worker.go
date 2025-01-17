@@ -64,7 +64,7 @@ func (k *KafkaWorker) ProcessMessages(ctx context.Context) {
 		func() {
 			var err error
 			defer util.Recover()
-			s, ctx := util.StartSpanFromContext(ctx, "processPublicWorkerMessage", util.ResourceName("worker.kafka.process"), util.WithSpanKind(trace.SpanKindConsumer))
+			s, ctx := util.StartSpanFromContext(ctx, "worker.kafka.process", util.WithSpanKind(trace.SpanKindConsumer))
 			s.SetAttribute("worker.goroutine", k.WorkerThread)
 			defer s.Finish(err)
 
@@ -393,7 +393,7 @@ func (k *KafkaBatchWorker) flushLogs(ctx context.Context, logRows []*clickhouse.
 	for _, logRow := range logRows {
 		// create service record for any services found in ingested logs
 		if logRow.ServiceName != "" {
-			spanX, ctxX := util.StartSpanFromContext(ctx, fmt.Sprintf("worker.kafka.%s.UpsertService", k.Name))
+			spanX, ctxX := util.StartSpanFromContext(ctx, fmt.Sprintf("worker.kafka.%s.upsertService", k.Name))
 
 			project, err := k.Worker.Resolver.Store.GetProject(ctx, int(logRow.ProjectId))
 			if err == nil && project != nil {
@@ -434,7 +434,7 @@ func (k *KafkaBatchWorker) flushLogs(ctx context.Context, logRows []*clickhouse.
 		}
 	}
 
-	span, ctxT := util.StartSpanFromContext(wCtx, fmt.Sprintf("worker.kafka.%s.flush.clickhouse.logs", k.Name))
+	span, ctxT := util.StartSpanFromContext(wCtx, fmt.Sprintf("worker.kafka.%s.flush.clickhouseLogs", k.Name))
 	span.SetAttribute("NumLogRows", len(logRows))
 	span.SetAttribute("NumFilteredRows", len(filteredRows))
 	err = k.Worker.PublicResolver.Clickhouse.BatchWriteLogRows(ctxT, filteredRows)
