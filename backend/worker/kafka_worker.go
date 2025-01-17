@@ -59,9 +59,9 @@ func (k *KafkaWorker) log(ctx context.Context, task kafkaqueue.RetryableMessage,
 	}
 }
 
-func (k *KafkaWorker) ProcessMessages(ctx context.Context) {
+func (k *KafkaWorker) ProcessMessages() {
 	for {
-		func() {
+		func(ctx context.Context) {
 			var err error
 			defer util.Recover()
 			s, ctx := util.StartSpanFromContext(ctx, "worker.kafka.process", util.WithSpanKind(trace.SpanKindConsumer))
@@ -107,7 +107,7 @@ func (k *KafkaWorker) ProcessMessages(ctx context.Context) {
 			s3.Finish()
 
 			hmetric.Incr(ctx, "worker.kafka.processed.count", nil, 1)
-		}()
+		}(context.Background())
 	}
 }
 
@@ -683,9 +683,9 @@ func (k *KafkaBatchWorker) processWorkerError(ctx context.Context, attempt int, 
 	time.Sleep(MinRetryDelay * time.Duration(math.Pow(2, float64(attempt))))
 }
 
-func (k *KafkaBatchWorker) ProcessMessages(ctx context.Context) {
+func (k *KafkaBatchWorker) ProcessMessages() {
 	for {
-		func() {
+		func(ctx context.Context) {
 			defer util.Recover()
 			s, ctx := util.StartSpanFromContext(ctx, util.KafkaBatchWorkerOp, util.ResourceName(fmt.Sprintf("worker.kafka.%s.process", k.Name)), util.WithHighlightTracingDisabled(k.TracingDisabled), util.WithSpanKind(trace.SpanKindConsumer))
 			s.SetAttribute("worker.goroutine", k.WorkerThread)
@@ -720,7 +720,7 @@ func (k *KafkaBatchWorker) ProcessMessages(ctx context.Context) {
 				}
 				k.lastFlush = time.Now()
 			}
-		}()
+		}(context.Background())
 	}
 }
 
