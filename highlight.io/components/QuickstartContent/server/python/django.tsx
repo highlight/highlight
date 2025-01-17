@@ -1,7 +1,9 @@
 import { siteUrl } from '../../../../utils/urls'
 import { QuickStartContent } from '../../QuickstartContent'
+import { verifyLogs } from '../shared-snippets-logging'
 import { frontendInstallSnippet } from '../shared-snippets-monitoring'
-import { downloadSnippet, setupLogging } from './shared-snippets-monitoring'
+import { verifyTraces } from '../shared-snippets-tracing'
+import { downloadSnippet } from './shared-snippets-monitoring'
 
 export const PythonDjangoReorganizedContext: QuickStartContent = {
 	title: 'Python Django',
@@ -58,6 +60,7 @@ def index(request: HttpRequest):
 				},
 			],
 		},
-		setupLogging('django'),
+		verifyLogs,
+		verifyTraces,
 	],
 }

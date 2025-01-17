@@ -1,10 +1,11 @@
 import { siteUrl } from '../../../../utils/urls'
 import { QuickStartContent } from '../../QuickstartContent'
+import { verifyLogs } from '../shared-snippets-logging'
+import { verifyTraces } from '../shared-snippets-tracing'
 import {
 	downloadSnippet,
 	init,
 	setupFrontendSnippet,
-	setupLogging,
 } from './shared-snippets-monitoring'
 
 export const PythonAWSReorganizedContext: QuickStartContent = {
@@ -63,6 +64,7 @@ def lambda_handler(event, context):
 				},
 			],
 		},
-		setupLogging('aws'),
+		verifyLogs,
+		verifyTraces,
 	],
 }

@@ -2,6 +2,7 @@ import { siteUrl } from '../../../../utils/urls'
 import { QuickStartContent } from '../../QuickstartContent'
 import { verifyLogs } from '../shared-snippets-logging'
 import { frontendInstallSnippet } from '../shared-snippets-monitoring'
+import { verifyTraces } from '../shared-snippets-tracing'
 import {
 	customError,
 	initializeSdk,
@@ -62,5 +63,6 @@ export const JavaOtherReorganizedContent: QuickStartContent = {
 			],
 		},
 		verifyLogs,
+		verifyTraces,
 	],
 }
