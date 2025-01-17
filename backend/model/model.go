@@ -879,9 +879,8 @@ type DailySessionCount struct {
 }
 
 const (
-	SESSIONS_TBL                    = "sessions"
-	METRIC_GROUPS_NAME_SESSION_UNIQ = "metric_groups_name_session_uniq"
-	DASHBOARD_METRIC_FILTERS_UNIQ   = "dashboard_metric_filters_uniq"
+	SESSIONS_TBL                  = "sessions"
+	DASHBOARD_METRIC_FILTERS_UNIQ = "dashboard_metric_filters_uniq"
 )
 
 type DailyErrorCount struct {
@@ -1588,26 +1587,6 @@ func MigrateDB(ctx context.Context, DB *gorm.DB) (bool, error) {
 		END $$;
 	`).Error; err != nil {
 		return false, e.Wrap(err, "Error creating email_history_active_workspace_type_idx")
-	}
-
-	if err := DB.Exec(fmt.Sprintf(`
-		DO $$
-			BEGIN
-				BEGIN
-					IF NOT EXISTS
-						(SELECT constraint_name from information_schema.constraint_column_usage where table_name = 'metric_groups' and constraint_name = '%s')
-					THEN
-						ALTER TABLE metric_groups
-						ADD CONSTRAINT %s
-							UNIQUE (group_name, session_id);
-					END IF;
-				EXCEPTION
-					WHEN duplicate_table
-					THEN RAISE NOTICE 'metric_groups.%s already exists';
-				END;
-			END $$;
-	`, METRIC_GROUPS_NAME_SESSION_UNIQ, METRIC_GROUPS_NAME_SESSION_UNIQ, METRIC_GROUPS_NAME_SESSION_UNIQ)).Error; err != nil {
-		return false, e.Wrap(err, "Error adding unique constraint on metric_groups")
 	}
 
 	if err := DB.Exec(fmt.Sprintf(`
