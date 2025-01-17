@@ -769,8 +769,9 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 	}
 	log.WithContext(ctx).
 		WithFields(log.Fields{
+			"project_id":          s.ProjectID,
 			"session_id":          s.ID,
-			"secure_session_id":   s.SecureID,
+			"session_secure_id":   s.SecureID,
 			"old_active_duration": oldActiveDuration,
 			"new_active_duration": accumulator.ActiveDuration,
 			"num_intervals":       len(finalIntervals),
