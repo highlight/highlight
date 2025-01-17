@@ -1,6 +1,7 @@
 import { siteUrl } from '../../../../utils/urls'
 import { QuickStartContent } from '../../QuickstartContent'
-import { verifyLogs } from '../shared-snippets'
+import { verifyTraces } from '../../traces/shared-snippets'
+import { verifyLogs, verifyMetrics } from '../shared-snippets'
 
 export const PythonOtelLogContent: QuickStartContent = {
 	title: 'Sending and Filtering Python Logs with OpenTelemetry',
@@ -9,23 +10,27 @@ export const PythonOtelLogContent: QuickStartContent = {
 	logoUrl: siteUrl('/images/quickstart/python.svg'),
 	entries: [
 		{
+			title: 'Install OpenTelemetry',
+			content: 'Install OpenTelemetry in your Python environment.',
+			code: [
+				{
+					text: `pip install opentelemetry-api opentelemetry-sdk opentelemetry-exporter-otlp opentelemetry-instrumentation`,
+					language: 'bash',
+				},
+			],
+		},
+		{
 			title: 'Set up OpenTelemetry for logging.',
 			content:
 				'Configure OpenTelemetry to send logs to highlight.io without requiring the Highlight SDK.',
 			code: [
 				{
-					text: `
-import logging
-from opentelemetry import trace
+					text: `import logging
 from opentelemetry._logs import set_logger_provider
 from opentelemetry.exporter.otlp.proto.grpc._log_exporter import OTLPLogExporter
 from opentelemetry.sdk._logs import LoggerProvider, LoggingHandler
 from opentelemetry.sdk._logs.export import BatchLogRecordProcessor
 from opentelemetry.sdk.resources import Resource
-from opentelemetry.sdk.trace import TracerProvider
-from opentelemetry.sdk.trace.export import BatchSpanProcessor
-from opentelemetry.sdk.trace.export import ConsoleSpanExporter
-from opentelemetry.exporter.otlp.proto.grpc.trace_exporter import OTLPSpanExporter
 
 import sys
 
@@ -67,26 +72,18 @@ logger.addHandler(console_handler)
 				},
 			],
 		},
+		verifyLogs,
 		{
 			title: 'Set up OpenTelemetry for tracing.',
 			content:
 				'Configure OpenTelemetry to send traces to highlight.io without requiring the Highlight SDK.',
 			code: [
 				{
-					text: `
-import logging
-from opentelemetry import trace
-from opentelemetry._logs import set_logger_provider
-from opentelemetry.exporter.otlp.proto.grpc._log_exporter import OTLPLogExporter
-from opentelemetry.sdk._logs import LoggerProvider, LoggingHandler
-from opentelemetry.sdk._logs.export import BatchLogRecordProcessor
+					text: `from opentelemetry import trace
 from opentelemetry.sdk.resources import Resource
 from opentelemetry.sdk.trace import TracerProvider
 from opentelemetry.sdk.trace.export import BatchSpanProcessor
-from opentelemetry.sdk.trace.export import ConsoleSpanExporter
 from opentelemetry.exporter.otlp.proto.grpc.trace_exporter import OTLPSpanExporter
-
-import sys
 
 # Define the service name and environment
 service_name = "my-service"
@@ -111,24 +108,47 @@ tracer = trace.get_tracer(service_name)
 				},
 			],
 		},
+		verifyTraces,
 		{
-			title: 'Send logs and traces using OpenTelemetry!',
+			title: 'Send metrics using OpenTelemetry',
 			content:
-				'Logs and traces are reported automatically from OpenTelemetry logging and tracing methods. ' +
-				'Visit the [highlight logs portal](https://app.highlight.io/logs) and check that backend logs are coming in.',
+				'Metrics are reported via OpenTelemetry metrics methods; this example will send a simple count metric. For a full guide on how to send metrics, check out the [OpenTelemetry Python docs](https://opentelemetry-python.readthedocs.io/en/latest/sdk/metrics.html).',
 			code: [
 				{
-					text: `
-...
+					text: `from opentelemetry.sdk.metrics import MeterProvider
+from opentelemetry.sdk.metrics.export import PeriodicExportingMetricReader
+from opentelemetry.exporter.otlp.proto.grpc.metric_exporter import OTLPMetricExporter
+from opentelemetry.sdk.resources import Resource
 
-def main():
-    with tracer.start_as_current_span("example-span"):
-        logger.info('hello, world!')
-        logger.warning('whoa there', {'key': 'value'})`,
+service_name = "my-service"
+environment = "production"
+otel_endpoint = "https://otel.highlight.io:4317"
+
+otlp_metric_reader = PeriodicExportingMetricReader(exporter=OTLPMetricExporter(endpoint=otel_endpoint, insecure=True),
+                                                   export_interval_millis=1000)
+
+# create a provider
+provider = MeterProvider(resource=Resource.create(
+    {
+        "service.name": service_name,
+        "highlight.project_id": "<YOUR_PROJECT_ID>",
+        "environment": environment,
+    }
+), metric_readers=[otlp_metric_reader])
+
+# Create a meter
+meter = provider.get_meter(service_name)
+
+# Create a counter
+counter = meter.create_counter(name="my_counter", description="A simple counter")
+
+# Increment the counter
+counter.add(1)
+					`,
 					language: 'python',
 				},
 			],
 		},
-		verifyLogs,
+		verifyMetrics,
 	],
 }

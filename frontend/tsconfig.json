@@ -1,6 +1,5 @@
 {
 	"compilerOptions": {
-		"allowArbitraryExtensions": true,
 		"target": "ESNext",
 		"lib": ["dom", "es2019", "dom.iterable", "esnext"],
 		"skipLibCheck": true,

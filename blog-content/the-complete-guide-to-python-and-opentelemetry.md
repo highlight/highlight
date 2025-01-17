@@ -197,9 +197,15 @@ tracer = trace.get_tracer(service_name)
 At this point, once you've instrumented your application to send logs and traces to an OpenTelemetry backend, you can start using the `tracer` and `logger` objects to start sending data to your backend, like so:
 
 ```python
-    with tracer.start_as_current_span("example-span"):
-        logger.info('hello, world!')
-        logger.warning('whoa there', {'key': 'value'})`,
+    with tracer.start_as_current_span("example-span") as span:
+	        logger.info('hello, world!')
+	        span.set_attributes(
+	            {
+	                "category": "special",
+	                "rows_affected": 123
+	            }
+	        )
+	        logger.warning('whoa there', {'key': 'value'})`,
 ```
 
 ### **Metrics**

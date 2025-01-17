@@ -6,5 +6,5 @@
 		"skipLibCheck": true,
 		"jsx": "react-jsx",
 		"incremental": false
-	},
+	}
 }

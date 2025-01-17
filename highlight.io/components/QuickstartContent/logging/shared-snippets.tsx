@@ -16,6 +16,12 @@ export const verifyLogs: QuickStartStep = {
 		'Visit the [highlight logs portal](http://app.highlight.io/logs) and check that backend logs are coming in.',
 }
 
+export const verifyMetrics: QuickStartStep = {
+	title: 'Verify your backend metrics are being recorded.',
+	content:
+		'Visit the [highlight metrics portal](http://app.highlight.io/dashboards) and check that backend metrics are coming in.',
+}
+
 export const curlExample: QuickStartStep = {
 	title: 'Send structured logs from curl via the OTLP HTTPS protocol.',
 	content:

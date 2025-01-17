@@ -1,5 +1,5 @@
 ---
-toc: Python Basic Apps
+toc: Python Simple Quickstart   
 title: Python Logging Quick Start
 slug: other
 quickstart: true
