@@ -1,16 +1,14 @@
 package otel
 
 import (
-	"bytes"
-	"compress/gzip"
 	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
 	"github.com/aws/smithy-go/ptr"
 	"github.com/go-chi/chi"
-	"github.com/golang/snappy"
 	"github.com/highlight-run/highlight/backend/clickhouse"
+	highlightHttp "github.com/highlight-run/highlight/backend/http"
 	kafkaqueue "github.com/highlight-run/highlight/backend/kafka-queue"
 	model2 "github.com/highlight-run/highlight/backend/model"
 	privateGraph "github.com/highlight-run/highlight/backend/private-graph/graph"
@@ -33,7 +31,6 @@ import (
 	semconv "go.opentelemetry.io/otel/semconv/v1.26.0"
 	"go.opentelemetry.io/otel/trace"
 	"gorm.io/gorm"
-	"io"
 	"math"
 	"net/http"
 	"strconv"
@@ -138,40 +135,10 @@ func getMetric(ctx context.Context, ts time.Time, fields *extractedFields, spanI
 	}, nil
 }
 
-func getBody(ctx context.Context, r *http.Request) ([]byte, error) {
-	span, ctx := highlight.StartTrace(ctx, "otel.getReader")
-	defer highlight.EndTrace(span)
-
-	body, err := io.ReadAll(r.Body)
-	if err != nil {
-		log.WithContext(ctx).WithError(err).Error("invalid logBody")
-		return nil, err
-	}
-	span.SetAttributes(attribute.Int("request.raw.size", len(body)))
-
-	enc := r.Header.Get("Content-Encoding")
-	span.SetAttributes(attribute.String("request.content-encoding", enc))
-	var reader io.Reader
-	if enc == "gzip" {
-		reader, err = gzip.NewReader(bytes.NewReader(body))
-		if err != nil {
-			return nil, err
-		}
-	} else if enc == "snappy" {
-		reader = snappy.NewReader(bytes.NewReader(body))
-	} else {
-		return nil, e.New("invalid otel content-encoding header")
-	}
-
-	data, err := io.ReadAll(reader)
-	span.SetAttributes(attribute.Int("request.decompressed.size", len(data)))
-	return data, err
-}
-
 func (o *Handler) HandleTrace(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
-	output, err := getBody(ctx, r)
+	output, err := highlightHttp.GetBody(ctx, r)
 	if err != nil {
 		log.WithContext(ctx).WithError(err).Error("invalid data format for trace")
 		http.Error(w, err.Error(), http.StatusBadRequest)
@@ -424,7 +391,7 @@ func (o *Handler) HandleTrace(w http.ResponseWriter, r *http.Request) {
 func (o *Handler) HandleLog(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
-	output, err := getBody(ctx, r)
+	output, err := highlightHttp.GetBody(ctx, r)
 	if err != nil {
 		log.WithContext(ctx).WithError(err).Error("invalid data format for trace")
 		http.Error(w, err.Error(), http.StatusBadRequest)
@@ -528,9 +495,9 @@ func (o *Handler) HandleLog(w http.ResponseWriter, r *http.Request) {
 func (o *Handler) HandleMetric(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
-	output, err := getBody(ctx, r)
+	output, err := highlightHttp.GetBody(ctx, r)
 	if err != nil {
-		log.WithContext(ctx).WithError(err).Error("invalid data format for trace")
+		log.WithContext(ctx).WithError(err).Error("invalid data format for metric")
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}

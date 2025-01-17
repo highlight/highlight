@@ -2,25 +2,25 @@ package http
 
 import (
 	"compress/gzip"
-	"encoding/base64"
+	"context"
 	"encoding/json"
 	"errors"
-	"io"
-	"net/http"
-	"regexp"
-	"strings"
-	"time"
-
 	"github.com/aws/smithy-go/ptr"
 	"github.com/go-chi/chi"
-	"github.com/google/uuid"
+	"github.com/golang/snappy"
 	model2 "github.com/highlight-run/highlight/backend/model"
 	"github.com/highlight-run/highlight/backend/private-graph/graph/model"
+	"github.com/highlight/highlight/sdk/highlight-go"
 	hlog "github.com/highlight/highlight/sdk/highlight-go/log"
 	highlightChi "github.com/highlight/highlight/sdk/highlight-go/middleware/chi"
 	log "github.com/sirupsen/logrus"
+	"go.opentelemetry.io/otel/attribute"
 	semconv "go.opentelemetry.io/otel/semconv/v1.25.0"
 	"go.opentelemetry.io/otel/trace"
+	"io"
+	"net/http"
+	"regexp"
+	"time"
 )
 
 const (
@@ -30,24 +30,37 @@ const (
 	LogDrainServiceHeader     = "x-highlight-service"
 )
 
-func getBody(r *http.Request) (body io.Reader, err error) {
-	body = r.Body
-	if r.Header.Get("Content-Encoding") == "gzip" {
-		body, err = gzip.NewReader(r.Body)
+func GetBody(ctx context.Context, r *http.Request) ([]byte, error) {
+	span, ctx := highlight.StartTrace(ctx, "http.getReader")
+	defer highlight.EndTrace(span)
+
+	enc := r.Header.Get("Content-Encoding")
+	span.SetAttributes(attribute.String("request.content-encoding", enc))
+	span.SetAttributes(attribute.Int64("request.compressed.size", r.ContentLength))
+	var reader io.Reader
+	var err error
+	if enc == "gzip" {
+		reader, err = gzip.NewReader(r.Body)
 		if err != nil {
-			return
+			return nil, err
 		}
+	} else if enc == "snappy" {
+		reader = snappy.NewReader(r.Body)
+	} else {
+		reader = r.Body
 	}
-	return
+
+	data, err := io.ReadAll(reader)
+	if err != nil {
+		log.WithContext(ctx).WithError(err).Error("invalid http body")
+		return nil, err
+	}
+	span.SetAttributes(attribute.Int("request.decompressed.size", len(data)))
+	return data, err
 }
 
 func getJSONLogs(r *http.Request) (logs [][]byte, err error) {
-	var requestBody io.Reader
-	requestBody, err = getBody(r)
-	if err != nil {
-		return
-	}
-	body, err := io.ReadAll(requestBody)
+	body, err := GetBody(r.Context(), r)
 	if err != nil {
 		return
 	}
@@ -99,77 +112,23 @@ func parsePinoLevel(level uint8) string {
 }
 
 func HandleFirehoseLog(w http.ResponseWriter, r *http.Request) {
-	requestBody, err := getBody(r)
-	if err != nil {
-		log.WithContext(r.Context()).WithError(err).Error("invalid http firehose gzip")
-		http.Error(w, err.Error(), http.StatusBadRequest)
-		return
-	}
-	body, err := io.ReadAll(requestBody)
+	body, err := GetBody(r.Context(), r)
 	if err != nil {
 		log.WithContext(r.Context()).WithError(err).Error("invalid http firehose body")
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
-	var lg struct {
-		RequestId string
-		Timestamp int64
-		Records   []struct {
-			Data string
-		}
-	}
-	if err := json.Unmarshal(body, &lg); err != nil {
-		log.WithContext(r.Context()).WithError(err).Error("invalid http firehose json")
-		http.Error(w, err.Error(), http.StatusBadRequest)
-		return
-	}
-
-	if lg.RequestId == "" {
-		lg.RequestId = uuid.New().String()
-	}
-
-	attributesMap := struct {
-		CommonAttributes struct {
-			ProjectID string `json:"x-highlight-project"`
-		} `json:"commonAttributes"`
-	}{}
-	if err := json.Unmarshal([]byte(r.Header.Get("X-Amz-Firehose-Common-Attributes")), &attributesMap); err != nil {
-		log.WithContext(r.Context()).WithError(err).Error("invalid http firehose attriutes")
-		http.Error(w, err.Error(), http.StatusBadRequest)
-		return
-	}
-	projectID, err := model2.FromVerboseID(attributesMap.CommonAttributes.ProjectID)
+	projectID, lg, rawRecords, err := ExtractFirehoseMetadata(r, body)
 	if err != nil {
-		log.WithContext(r.Context()).WithError(err).WithField("projectVerboseID", attributesMap.CommonAttributes.ProjectID).Error("invalid highlight project id from http firehose request")
+		log.WithContext(r.Context()).WithError(err).Error("invalid http firehose metadata")
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
-	for _, l := range lg.Records {
-		data, err := base64.StdEncoding.DecodeString(l.Data)
-		if err != nil {
-			log.WithContext(r.Context()).WithError(err).WithField("data", data).Error("invalid base64 firehose record")
-			http.Error(w, err.Error(), http.StatusBadRequest)
-			return
-		}
-
-		var msg []byte
-		// try to load data as gzip. if it is not, assume it is not compressed
-		gz, err := gzip.NewReader(strings.NewReader(string(data)))
-		if err == nil {
-			msg, err = io.ReadAll(gz)
-			if err != nil {
-				log.WithContext(r.Context()).WithError(err).WithField("data", data).Error("invalid http firehose record data reading gzip")
-				http.Error(w, err.Error(), http.StatusBadRequest)
-				return
-			}
-		} else {
-			msg = data
-		}
-
+	for _, rec := range rawRecords {
 		for _, payload := range []Payload{&CloudFrontJsonPayload{}, &FireLensFluentBitPayload{}, &FireLensPinoPayload{}, &FireLensPayload{}, &CloudWatchPayload{}, &JsonPayload{}} {
-			if payload.Parse(msg) {
+			if payload.Parse(rec) {
 				for _, p := range payload.GetMessages() {
 					t := p.GetTimestamp()
 					if t == nil {
@@ -179,7 +138,7 @@ func HandleFirehoseLog(w http.ResponseWriter, r *http.Request) {
 						Attributes: map[string]string{},
 						Level:      p.GetLevel(),
 					}
-					ctx := p.SetLogAttributes(r.Context(), &hl, msg)
+					ctx := p.SetLogAttributes(r.Context(), &hl, rec)
 					hl.Message = p.GetMessage()
 					hl.Timestamp = t.UTC().Format(hlog.TimestampFormat)
 					if err := hlog.SubmitHTTPLog(ctx, tracer, projectID, hl); err != nil {
@@ -319,16 +278,9 @@ func HandleRawLog(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	requestBody, err := getBody(r)
+	body, err := GetBody(r.Context(), r)
 	if err != nil {
-		log.WithContext(r.Context()).WithError(err).Error("invalid http firehose gzip")
-		http.Error(w, err.Error(), http.StatusBadRequest)
-		return
-	}
-
-	body, err := io.ReadAll(requestBody)
-	if err != nil {
-		log.WithContext(r.Context()).WithError(err).Error("invalid http logs body")
+		log.WithContext(r.Context()).WithError(err).Error("invalid http firehose body")
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
