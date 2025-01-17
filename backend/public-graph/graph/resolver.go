@@ -1927,10 +1927,13 @@ func (r *Resolver) sendErrorAlert(ctx context.Context, projectID int, sessionObj
 		}
 	}()
 }
+
+// Deprecated: SubmitMetricsMessage pushes kafka messages for session metrics which are then
+// read by the main worker and pushed as OTeL Sum Gauge metrics table
+// as `PushOTeLMetricSum` kafka messages.
 func (r *Resolver) SubmitMetricsMessage(ctx context.Context, metrics []*publicModel.MetricInput) (int, error) {
 	if len(metrics) == 0 {
-		log.WithContext(ctx).Errorf("got no metrics for pushmetrics: %+v", metrics)
-		return -1, e.New("no metrics provided")
+		return 0, nil
 	}
 	sessionMetrics := make(map[string][]*publicModel.MetricInput)
 	for _, m := range metrics {
@@ -3390,7 +3393,7 @@ func (r *Resolver) submitFrontendWebsocketMetric(sessionObj *model.Session, even
 		if err := json.Unmarshal([]byte(event.Message), &requestBody); event.Message != "" && err == nil {
 			attributes = append(attributes, attribute.String("ws.message.type", "json"))
 			for k, v := range requestBody {
-				for key, value := range hlog.FormatLogAttributes(k, v) {
+				for key, value := range hlog.FormatAttributes(k, v) {
 					if v != "" {
 						attributes = append(attributes, attribute.String(fmt.Sprintf("ws.json.%s", key), value))
 					}
@@ -3435,7 +3438,7 @@ func (r *Resolver) submitFrontendConsoleMessages(ctx context.Context, sessionObj
 			hlog.LogMessageKey.String(message),
 		}
 		for k, v := range row.Attributes {
-			for key, value := range hlog.FormatLogAttributes(k, v) {
+			for key, value := range hlog.FormatAttributes(k, v) {
 				if v != "" {
 					attrs = append(attrs, attribute.String(key, value))
 				}
