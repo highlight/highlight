@@ -1,7 +1,6 @@
 package http
 
 import (
-	"bytes"
 	"compress/gzip"
 	"context"
 	"encoding/json"
@@ -14,7 +13,6 @@ import (
 	"github.com/highlight/highlight/sdk/highlight-go"
 	hlog "github.com/highlight/highlight/sdk/highlight-go/log"
 	highlightChi "github.com/highlight/highlight/sdk/highlight-go/middleware/chi"
-	e "github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 	"go.opentelemetry.io/otel/attribute"
 	semconv "go.opentelemetry.io/otel/semconv/v1.25.0"
@@ -36,28 +34,27 @@ func GetBody(ctx context.Context, r *http.Request) ([]byte, error) {
 	span, ctx := highlight.StartTrace(ctx, "http.getReader")
 	defer highlight.EndTrace(span)
 
-	body, err := io.ReadAll(r.Body)
-	if err != nil {
-		log.WithContext(ctx).WithError(err).Error("invalid http body")
-		return nil, err
-	}
-	span.SetAttributes(attribute.Int("request.raw.size", len(body)))
-
 	enc := r.Header.Get("Content-Encoding")
 	span.SetAttributes(attribute.String("request.content-encoding", enc))
+	span.SetAttributes(attribute.Int64("request.compressed.size", r.ContentLength))
 	var reader io.Reader
+	var err error
 	if enc == "gzip" {
-		reader, err = gzip.NewReader(bytes.NewReader(body))
+		reader, err = gzip.NewReader(r.Body)
 		if err != nil {
 			return nil, err
 		}
 	} else if enc == "snappy" {
-		reader = snappy.NewReader(bytes.NewReader(body))
+		reader = snappy.NewReader(r.Body)
 	} else {
-		return nil, e.New("invalid http content-encoding header")
+		reader = r.Body
 	}
 
 	data, err := io.ReadAll(reader)
+	if err != nil {
+		log.WithContext(ctx).WithError(err).Error("invalid http body")
+		return nil, err
+	}
 	span.SetAttributes(attribute.Int("request.decompressed.size", len(data)))
 	return data, err
 }
