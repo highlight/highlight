@@ -1,11 +1,12 @@
 import { siteUrl } from '../../../../utils/urls'
 import { QuickStartContent } from '../../QuickstartContent'
+import { verifyLogs } from '../shared-snippets-logging'
 import { frontendInstallSnippet } from '../shared-snippets-monitoring'
+import { verifyTraces } from '../shared-snippets-tracing'
 import {
 	initializeNodeSDK,
 	jsGetSnippet,
 	manualError,
-	setupLogging,
 	verifyError,
 } from './shared-snippets-monitoring'
 
@@ -56,6 +57,7 @@ const server = new ApolloServer({
   },
 });`,
 		),
-		setupLogging('apollo'),
+		verifyLogs,
+		verifyTraces,
 	],
 }

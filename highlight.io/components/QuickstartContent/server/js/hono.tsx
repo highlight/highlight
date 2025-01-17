@@ -1,10 +1,11 @@
 import { siteUrl } from '../../../../utils/urls'
 import { QuickStartContent } from '../../QuickstartContent'
+import { verifyLogs } from '../shared-snippets-logging'
 import { frontendInstallSnippet } from '../shared-snippets-monitoring'
+import { verifyTraces } from '../shared-snippets-tracing'
 import {
 	addIntegrationContent,
 	jsGetSnippet,
-	setupLogging,
 	verifyError,
 } from './shared-snippets-monitoring'
 
@@ -59,5 +60,7 @@ app.get('/error', (c) => {
     return c.text('Error route')
 })`,
 		),
+		verifyLogs,
+		verifyTraces,
 	],
 }

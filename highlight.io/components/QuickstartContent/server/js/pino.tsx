@@ -5,7 +5,7 @@ import { previousInstallSnippet, verifyLogs } from '../shared-snippets-logging'
 export const JSPinoHTTPJSONLogReorganizedContent: QuickStartContent = {
 	title: 'Logging with Pino.JS',
 	subtitle: 'Learn how to set up highlight.io log ingestion for Pino.JS.',
-	products: ['Errors', 'Logs', 'Traces'],
+	products: ['Logs'],
 	entries: [
 		previousInstallSnippet('nodejs'),
 		jsGetSnippet(['node', 'pino']),

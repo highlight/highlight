@@ -1,11 +1,12 @@
 import { siteUrl } from '../../../../utils/urls'
 import { QuickStartContent } from '../../QuickstartContent'
+import { verifyLogs } from '../shared-snippets-logging'
 import { frontendInstallSnippet } from '../shared-snippets-monitoring'
+import { verifyTraces } from '../shared-snippets-tracing'
 import {
 	addIntegrationContent,
 	initializeNodeSDK,
 	jsGetSnippet,
-	setupLogging,
 	verifyError,
 } from './shared-snippets-monitoring'
 
@@ -72,6 +73,7 @@ exports.exampleHttp = functions.https.onRequest(
   ),
 )`,
 		),
-		setupLogging('firebase'),
+		verifyLogs,
+		verifyTraces,
 	],
 }
