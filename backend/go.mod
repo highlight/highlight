@@ -67,7 +67,7 @@ require (
 	github.com/lib/pq v1.10.9
 	github.com/lukasbob/srcset v0.0.0-20231122134231-06e7f27b6370
 	github.com/mitchellh/mapstructure v1.5.0
-	github.com/mssola/user_agent v0.6.0
+	github.com/mssola/useragent v1.0.0
 	github.com/openlyinc/pointy v1.2.1
 	github.com/oschwald/geoip2-golang v1.11.0
 	github.com/pkg/errors v0.9.1
