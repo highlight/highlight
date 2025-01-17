@@ -759,6 +759,24 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 		log.WithContext(ctx).Error(e.Wrap(err, "error creating session activity intervals"))
 	}
 
+	// recalculate active duration for the whole session
+	oldActiveDuration := accumulator.ActiveDuration
+	accumulator.ActiveDuration = 0
+	for _, interval := range finalIntervals {
+		if interval.Active {
+			accumulator.ActiveDuration += time.Duration(interval.Duration) * time.Millisecond
+		}
+	}
+	log.WithContext(ctx).
+		WithFields(log.Fields{
+			"session_id":          s.ID,
+			"secure_session_id":   s.SecureID,
+			"old_active_duration": oldActiveDuration,
+			"new_active_duration": accumulator.ActiveDuration,
+			"num_intervals":       len(finalIntervals),
+		}).
+		Info("new session active duration calculation")
+
 	var eventCountsLen int64 = 100
 	window := float64(accumulator.LastEventTimestamp.Sub(accumulator.FirstFullSnapshotTimestamp).Milliseconds()) / float64(eventCountsLen)
 	eventCounts := make([]int64, eventCountsLen)
