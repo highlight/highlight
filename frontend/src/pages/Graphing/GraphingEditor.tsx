@@ -95,6 +95,7 @@ import { GraphContextProvider } from './context/GraphContext'
 import TemplateMenu from '@/pages/Graphing/TemplateMenu'
 import { Panel } from '@/pages/Graphing/components/Panel'
 import { useGraphTime } from '@/pages/Graphing/hooks/useGraphTime'
+import { SqlEditor } from '@/pages/Graphing/components/SqlEditor'
 
 type BucketBy = 'None' | 'Interval' | 'Count'
 const BUCKET_BY_OPTIONS: BucketBy[] = ['None', 'Interval', 'Count']
@@ -484,6 +485,7 @@ export const GraphingEditor: React.FC = () => {
 		initialSettings?.funnelDisplay ?? FUNNEL_DISPLAY[0],
 	)
 
+	const [sqlEnabled, setSqlEnabled] = useState(false)
 	const [sql, setSql] = useState('')
 	const [debouncedSql, setDebouncedSql] = useState(
 		initialSettings?.query ?? '',
@@ -618,6 +620,8 @@ export const GraphingEditor: React.FC = () => {
 		bucketBySetting,
 		fetchedLimitMetric,
 		expressions,
+		sqlEnabled,
+		sql,
 	}
 
 	const settingsEncoded = btoa(JSON.stringify(settings))
@@ -882,31 +886,6 @@ export const GraphingEditor: React.FC = () => {
 									<Divider className="m-0" />
 									<SidebarSection>
 										<LabeledRow
-											label="Source"
-											name="source"
-											tooltip="The resource being queried, one of the five highlight.io resources."
-										>
-											<OptionDropdown<ProductType>
-												options={productOptions.filter(
-													(p) =>
-														p.value ===
-															ProductType.Events ||
-														viewType !==
-															'Funnel chart',
-												)}
-												selection={settings.productType}
-												setSelection={(s) => {
-													s !==
-														settings.productType &&
-														setProductType(s)
-												}}
-												disabled={isPreview}
-											/>
-										</LabeledRow>
-									</SidebarSection>
-									<Divider className="m-0" />
-									<SidebarSection>
-										<LabeledRow
 											label="View type"
 											name="viewType"
 										>
@@ -977,340 +956,407 @@ export const GraphingEditor: React.FC = () => {
 										<LabeledRow
 											label="SQL"
 											name="sql"
-											tooltip="The search query used to filter which data points are included before aggregating."
+											enabled={settings.sqlEnabled}
+											setEnabled={setSqlEnabled}
 										>
-											<textarea
-												// value={sql}
-												// onChange={(e) => {
-												// 	setSql(e.target.value)
-												// }}
-												onBlur={(e) => {
-													setSql(e.target.value)
-												}}
-											/>
+											<SqlEditor setValue={setSql} />
 										</LabeledRow>
 									</SidebarSection>
 									<Divider className="m-0" />
-									<SidebarSection>
-										{settings.productType ===
-										ProductType.Events ? (
-											settings.viewType ===
-											'Funnel chart' ? (
-												<EventSteps
-													steps={settings.funnelSteps}
-													setSteps={setFunnelSteps}
-													startDate={startDate}
-													endDate={endDate}
-													// disabled={isPreview}
-												/>
-											) : (
-												<EventSelection
-													initialQuery={
-														settings.query
-													}
-													setQuery={setQuery}
-													startDate={startDate}
-													endDate={endDate}
-													// disabled={isPreview}
-												/>
-											)
-										) : (
-											<LabeledRow
-												label="Filters"
-												name="query"
-												tooltip="The search query used to filter which data points are included before aggregating."
-											>
-												<Box
-													border="divider"
-													width="full"
-													borderRadius="6"
+									{!settings.sqlEnabled && (
+										<>
+											<SidebarSection>
+												<LabeledRow
+													label="Source"
+													name="source"
+													tooltip="The resource being queried, one of the five highlight.io resources."
 												>
-													<SearchContext
-														initialQuery={
-															settings.query
+													<OptionDropdown<ProductType>
+														options={productOptions.filter(
+															(p) =>
+																p.value ===
+																	ProductType.Events ||
+																viewType !==
+																	'Funnel chart',
+														)}
+														selection={
+															settings.productType
 														}
-														onSubmit={setQuery}
+														setSelection={(s) => {
+															s !==
+																settings.productType &&
+																setProductType(
+																	s,
+																)
+														}}
 														disabled={isPreview}
-													>
-														<Search
+													/>
+												</LabeledRow>
+											</SidebarSection>
+											<Divider className="m-0" />
+											<SidebarSection>
+												{settings.productType ===
+												ProductType.Events ? (
+													settings.viewType ===
+													'Funnel chart' ? (
+														<EventSteps
+															steps={
+																settings.funnelSteps
+															}
+															setSteps={
+																setFunnelSteps
+															}
 															startDate={
-																new Date(
-																	startDate,
-																)
+																startDate
 															}
-															endDate={
-																new Date(
-																	endDate,
-																)
-															}
-															productType={
-																productType
-															}
-															hideIcon
-															defaultValueOptions={
-																variableKeys
-															}
+															endDate={endDate}
+															// disabled={isPreview}
 														/>
-													</SearchContext>
-												</Box>
-											</LabeledRow>
-										)}
-									</SidebarSection>
-									<Box px="12">
-										<Divider className="m-0" />
-									</Box>
-									<SidebarSection>
-										<LabeledRow
-											label="Function"
-											name="function"
-											tooltip="Determines how data points are aggregated. If the function requires a numeric field as input, one can be chosen."
-										>
-											<Stack width="full" gap="12">
-												{settings.expressions.map(
-													(e, i) => (
-														<Stack
-															direction="row"
+													) : (
+														<EventSelection
+															initialQuery={
+																settings.query
+															}
+															setQuery={setQuery}
+															startDate={
+																startDate
+															}
+															endDate={endDate}
+															// disabled={isPreview}
+														/>
+													)
+												) : (
+													<LabeledRow
+														label="Filters"
+														name="query"
+														tooltip="The search query used to filter which data points are included before aggregating."
+													>
+														<Box
+															border="divider"
 															width="full"
-															gap="4"
-															key={`${e.aggregator}:${e.column}:${i}`}
+															borderRadius="6"
+														>
+															<SearchContext
+																initialQuery={
+																	settings.query
+																}
+																onSubmit={
+																	setQuery
+																}
+																disabled={
+																	isPreview
+																}
+															>
+																<Search
+																	startDate={
+																		new Date(
+																			startDate,
+																		)
+																	}
+																	endDate={
+																		new Date(
+																			endDate,
+																		)
+																	}
+																	productType={
+																		productType
+																	}
+																	hideIcon
+																	defaultValueOptions={
+																		variableKeys
+																	}
+																/>
+															</SearchContext>
+														</Box>
+													</LabeledRow>
+												)}
+											</SidebarSection>
+											<Box px="12">
+												<Divider className="m-0" />
+											</Box>
+											<SidebarSection>
+												<LabeledRow
+													label="Function"
+													name="function"
+													tooltip="Determines how data points are aggregated. If the function requires a numeric field as input, one can be chosen."
+												>
+													<Stack
+														width="full"
+														gap="12"
+													>
+														{settings.expressions.map(
+															(e, i) => (
+																<Stack
+																	direction="row"
+																	width="full"
+																	gap="4"
+																	key={`${e.aggregator}:${e.column}:${i}`}
+																>
+																	<OptionDropdown
+																		options={
+																			FUNCTION_TYPES
+																		}
+																		selection={
+																			e.aggregator
+																		}
+																		setSelection={(
+																			aggregator: MetricAggregator,
+																		) => {
+																			setExpressions(
+																				(
+																					expressions,
+																				) => {
+																					const copy =
+																						[
+																							...expressions,
+																						]
+																					copy[
+																						i
+																					].aggregator =
+																						aggregator
+																					return copy
+																				},
+																			)
+																		}}
+																		disabled={
+																			settings.viewType ===
+																				'Funnel chart' ||
+																			isPreview
+																		}
+																	/>
+																	<Combobox
+																		selection={
+																			e.column
+																		}
+																		setSelection={(
+																			column: string,
+																		) => {
+																			setExpressions(
+																				(
+																					expressions,
+																				) => {
+																					const copy =
+																						[
+																							...expressions,
+																						]
+																					copy[
+																						i
+																					].column =
+																						column
+																					return copy
+																				},
+																			)
+																		}}
+																		searchConfig={
+																			searchOptionsConfig
+																		}
+																		disabled={
+																			e.aggregator ===
+																				MetricAggregator.Count ||
+																			settings.viewType ===
+																				'Funnel chart' ||
+																			isPreview
+																		}
+																		onlyNumericKeys={
+																			e.aggregator !==
+																			MetricAggregator.CountDistinct
+																		}
+																		defaultKeys={
+																			variableKeys
+																		}
+																		placeholder={
+																			e.aggregator ===
+																			MetricAggregator.Count
+																				? 'Rows'
+																				: undefined
+																		}
+																	/>
+																	{expressions.length >
+																		1 && (
+																		<ButtonIcon
+																			icon={
+																				<IconSolidX />
+																			}
+																			onClick={() => {
+																				setExpressions(
+																					(
+																						expressions,
+																					) => {
+																						const copy =
+																							[
+																								...expressions,
+																							]
+																						copy.splice(
+																							i,
+																							1,
+																						)
+																						return copy
+																					},
+																				)
+																			}}
+																			kind="secondary"
+																			emphasis="low"
+																		/>
+																	)}
+																</Stack>
+															),
+														)}
+													</Stack>
+												</LabeledRow>
+												<Button
+													kind="secondary"
+													onClick={() => {
+														setExpressions(
+															(expressions) => {
+																return [
+																	...expressions,
+																	{
+																		aggregator:
+																			MetricAggregator.Count,
+																		column: '',
+																	},
+																]
+															},
+														)
+													}}
+												>
+													Add function
+												</Button>
+												<LabeledRow
+													label="Group by"
+													name="groupBy"
+													enabled={
+														settings.groupByEnabled
+													}
+													setEnabled={
+														setGroupByEnabled
+													}
+													disabled={
+														settings.viewType ===
+															'Funnel chart' ||
+														isPreview
+													}
+													tooltip="A categorical field for grouping results into separate series."
+												>
+													<Combobox
+														selection={
+															settings.groupByKeys
+														}
+														setSelection={
+															setGroupByKeys
+														}
+														searchConfig={
+															searchOptionsConfig
+														}
+														defaultKeys={
+															variableKeys
+														}
+														disabled={
+															settings.viewType ===
+																'Funnel chart' ||
+															isPreview
+														}
+													/>
+												</LabeledRow>
+												{settings.groupByEnabled &&
+												viewType !== 'Table' &&
+												viewType !== 'Funnel chart' ? (
+													<Box
+														display="flex"
+														flexDirection="row"
+														gap="4"
+													>
+														<LabeledRow
+															label="Limit"
+															name="limit"
+															tooltip="The maximum number of groups to include. Currently, the max is 100."
+														>
+															<Input
+																type="number"
+																name="limit"
+																placeholder="Enter limit"
+																value={
+																	settings.limit
+																}
+																onChange={(
+																	e,
+																) => {
+																	const value =
+																		Math.min(
+																			viewType ===
+																				'Table'
+																				? NO_LIMIT
+																				: MAX_LIMIT_SIZE,
+																			parseInt(
+																				e
+																					.target
+																					.value,
+																			),
+																		)
+																	setLimit(
+																		value,
+																	)
+																}}
+																cssClass={
+																	style.input
+																}
+																disabled={
+																	isPreview
+																}
+															/>
+														</LabeledRow>
+														<LabeledRow
+															label="By"
+															name="limitBy"
+															tooltip="The function used to determine which groups are included."
 														>
 															<OptionDropdown
 																options={
 																	FUNCTION_TYPES
 																}
 																selection={
-																	e.aggregator
+																	settings.limitFunctionType
 																}
-																setSelection={(
-																	aggregator: MetricAggregator,
-																) => {
-																	setExpressions(
-																		(
-																			expressions,
-																		) => {
-																			const copy =
-																				[
-																					...expressions,
-																				]
-																			copy[
-																				i
-																			].aggregator =
-																				aggregator
-																			return copy
-																		},
-																	)
-																}}
+																setSelection={
+																	setLimitFunctionType
+																}
 																disabled={
-																	settings.viewType ===
-																		'Funnel chart' ||
 																	isPreview
 																}
 															/>
 															<Combobox
 																selection={
-																	e.column
+																	settings.fetchedLimitMetric
 																}
-																setSelection={(
-																	column: string,
-																) => {
-																	setExpressions(
-																		(
-																			expressions,
-																		) => {
-																			const copy =
-																				[
-																					...expressions,
-																				]
-																			copy[
-																				i
-																			].column =
-																				column
-																			return copy
-																		},
-																	)
-																}}
+																setSelection={
+																	setLimitMetric
+																}
 																searchConfig={
 																	searchOptionsConfig
 																}
 																disabled={
-																	e.aggregator ===
+																	settings.limitFunctionType ===
 																		MetricAggregator.Count ||
-																	settings.viewType ===
-																		'Funnel chart' ||
 																	isPreview
 																}
-																onlyNumericKeys={
-																	e.aggregator !==
-																	MetricAggregator.CountDistinct
-																}
+																onlyNumericKeys
 																defaultKeys={
 																	variableKeys
 																}
 																placeholder={
-																	e.aggregator ===
+																	settings.limitFunctionType ===
 																	MetricAggregator.Count
 																		? 'Rows'
 																		: undefined
 																}
 															/>
-															{expressions.length >
-																1 && (
-																<ButtonIcon
-																	icon={
-																		<IconSolidX />
-																	}
-																	onClick={() => {
-																		setExpressions(
-																			(
-																				expressions,
-																			) => {
-																				const copy =
-																					[
-																						...expressions,
-																					]
-																				copy.splice(
-																					i,
-																					1,
-																				)
-																				return copy
-																			},
-																		)
-																	}}
-																	kind="secondary"
-																	emphasis="low"
-																/>
-															)}
-														</Stack>
-													),
-												)}
-											</Stack>
-										</LabeledRow>
-										<Button
-											kind="secondary"
-											onClick={() => {
-												setExpressions(
-													(expressions) => {
-														return [
-															...expressions,
-															{
-																aggregator:
-																	MetricAggregator.Count,
-																column: '',
-															},
-														]
-													},
-												)
-											}}
-										>
-											Add function
-										</Button>
-										<LabeledRow
-											label="Group by"
-											name="groupBy"
-											enabled={settings.groupByEnabled}
-											setEnabled={setGroupByEnabled}
-											disabled={
-												settings.viewType ===
-													'Funnel chart' || isPreview
-											}
-											tooltip="A categorical field for grouping results into separate series."
-										>
-											<Combobox
-												selection={settings.groupByKeys}
-												setSelection={setGroupByKeys}
-												searchConfig={
-													searchOptionsConfig
-												}
-												defaultKeys={variableKeys}
-												disabled={
-													settings.viewType ===
-														'Funnel chart' ||
-													isPreview
-												}
-											/>
-										</LabeledRow>
-										{settings.groupByEnabled &&
-										viewType !== 'Table' &&
-										viewType !== 'Funnel chart' ? (
-											<Box
-												display="flex"
-												flexDirection="row"
-												gap="4"
-											>
-												<LabeledRow
-													label="Limit"
-													name="limit"
-													tooltip="The maximum number of groups to include. Currently, the max is 100."
-												>
-													<Input
-														type="number"
-														name="limit"
-														placeholder="Enter limit"
-														value={settings.limit}
-														onChange={(e) => {
-															const value =
-																Math.min(
-																	viewType ===
-																		'Table'
-																		? NO_LIMIT
-																		: MAX_LIMIT_SIZE,
-																	parseInt(
-																		e.target
-																			.value,
-																	),
-																)
-															setLimit(value)
-														}}
-														cssClass={style.input}
-														disabled={isPreview}
-													/>
-												</LabeledRow>
-												<LabeledRow
-													label="By"
-													name="limitBy"
-													tooltip="The function used to determine which groups are included."
-												>
-													<OptionDropdown
-														options={FUNCTION_TYPES}
-														selection={
-															settings.limitFunctionType
-														}
-														setSelection={
-															setLimitFunctionType
-														}
-														disabled={isPreview}
-													/>
-													<Combobox
-														selection={
-															settings.fetchedLimitMetric
-														}
-														setSelection={
-															setLimitMetric
-														}
-														searchConfig={
-															searchOptionsConfig
-														}
-														disabled={
-															settings.limitFunctionType ===
-																MetricAggregator.Count ||
-															isPreview
-														}
-														onlyNumericKeys
-														defaultKeys={
-															variableKeys
-														}
-														placeholder={
-															settings.limitFunctionType ===
-															MetricAggregator.Count
-																? 'Rows'
-																: undefined
-														}
-													/>
-												</LabeledRow>
-											</Box>
-										) : null}
-									</SidebarSection>
-									<Divider className="m-0" />
+														</LabeledRow>
+													</Box>
+												) : null}
+											</SidebarSection>
+											<Divider className="m-0" />
+										</>
+									)}
 									<SidebarSection>
 										{settings.viewType ===
 										'Funnel chart' ? null : (

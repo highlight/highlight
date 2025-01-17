@@ -784,7 +784,7 @@ export const getSeriesName = (
 	isGrouped: boolean,
 ) => {
 	let columnExpr = `(${s.column})`
-	if (s.aggregator === MetricAggregator.Count) {
+	if (s.aggregator === MetricAggregator.Count || s.column === '') {
 		columnExpr = ''
 	}
 	if (isMultiFunction && isGrouped) {

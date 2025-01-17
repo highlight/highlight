@@ -9131,7 +9131,7 @@ func (r *queryResolver) LogsMetrics(ctx context.Context, projectID int, params m
 		return nil, err
 	}
 
-	return r.ClickhouseClient.ReadLogsMetrics(ctx, project.ID, params, nil, groupBy, bucketCount, bucketBy, bucketWindow, limit, limitAggregator, limitColumn, expressions)
+	return r.ClickhouseClient.ReadLogsMetrics(ctx, project.ID, params, sql, groupBy, bucketCount, bucketBy, bucketWindow, limit, limitAggregator, limitColumn, expressions)
 }
 
 // LogsKeys is the resolver for the logs_keys field.
@@ -9410,7 +9410,7 @@ func (r *queryResolver) TracesMetrics(ctx context.Context, projectID int, params
 		return nil, err
 	}
 
-	return r.ClickhouseClient.ReadTracesMetrics(ctx, project.ID, params, nil, groupBy, bucketCount, bucketByDeref, bucketWindow, limit, limitAggregator, limitColumn, expressions)
+	return r.ClickhouseClient.ReadTracesMetrics(ctx, project.ID, params, sql, groupBy, bucketCount, bucketByDeref, bucketWindow, limit, limitAggregator, limitColumn, expressions)
 }
 
 // TracesKeys is the resolver for the traces_keys field.
@@ -9546,7 +9546,7 @@ func (r *queryResolver) EventsMetrics(ctx context.Context, projectID int, params
 		return nil, err
 	}
 
-	return r.ClickhouseClient.ReadEventsMetrics(ctx, project.ID, params, nil, groupBy, bucketCount, bucketBy, bucketWindow, limit, limitAggregator, limitColumn, expressions)
+	return r.ClickhouseClient.ReadEventsMetrics(ctx, project.ID, params, sql, groupBy, bucketCount, bucketBy, bucketWindow, limit, limitAggregator, limitColumn, expressions)
 }
 
 // EventSessions is the resolver for the event_sessions field.
