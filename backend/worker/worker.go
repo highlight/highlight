@@ -490,7 +490,6 @@ func (w *Worker) PublicWorker(ctx context.Context, topic kafkaqueue.TopicType) {
 		for i := 0; i < cfg.Workers; i++ {
 			if cfg.Topic == kafkaqueue.TopicTypeDefault {
 				go func(config WorkerConfig, workerId int) {
-					ctx := context.Background()
 					k := KafkaWorker{
 						KafkaQueue: kafkaqueue.New(ctx,
 							kafkaqueue.GetTopic(kafkaqueue.GetTopicOptions{Type: kafkaqueue.TopicTypeDefault}),
@@ -503,12 +502,11 @@ func (w *Worker) PublicWorker(ctx context.Context, topic kafkaqueue.TopicType) {
 						Worker:       w,
 						WorkerThread: workerId,
 					}
-					k.ProcessMessages(ctx)
+					k.ProcessMessages()
 					wg.Done()
 				}(cfg, i)
 			} else {
 				go func(config WorkerConfig, workerId int) {
-					ctx := context.Background()
 					k := KafkaBatchWorker{
 						KafkaQueue: kafkaqueue.New(
 							ctx,
@@ -521,7 +519,7 @@ func (w *Worker) PublicWorker(ctx context.Context, topic kafkaqueue.TopicType) {
 						Name:                string(config.Topic),
 						TracingDisabled:     config.TracingDisabled,
 					}
-					k.ProcessMessages(ctx)
+					k.ProcessMessages()
 					wg.Done()
 				}(cfg, i)
 			}
