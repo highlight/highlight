@@ -1160,12 +1160,16 @@ export default function DocPage({
 														<picture>
 															<Image
 																{...props}
-																width={Number(
-																	props.width,
-																)}
-																height={Number(
-																	props.height,
-																)}
+																width={
+																	Number(
+																		props.width,
+																	) || 1280
+																}
+																height={
+																	Number(
+																		props.height,
+																	) || 720
+																}
 																src={String(
 																	props.src,
 																)}
