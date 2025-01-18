@@ -59,7 +59,6 @@
 	"runtimePlatform": {
 		"cpuArchitecture": "ARM64"
 	},
-	"enableFaultInjection": false,
 	"tags": [
 		{
 			"key": "ecs:taskDefinition:createdFrom",
