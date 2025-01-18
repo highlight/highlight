@@ -1,0 +1,124 @@
+{
+	"$schema": "https://mintlify.com/schema.json",
+	"name": "Starter Kit",
+	"logo": {
+		"dark": "/logo/logo-light-dark.svg",
+		"light": "/logo/logo-light-dark.svg"
+	},
+	"primaryTab": { "name": "General Docs" },
+	"favicon": "/favicon-32x32.png",
+	"font": {
+		"family": "Poppins"
+	},
+	"colors": {
+		"background": {
+			"dark": "#0d0225"
+		},
+		"primary": "#0D9373",
+		"light": "#07C983",
+		"dark": "#0D9373",
+		"anchors": {
+			"from": "#0D9373",
+			"to": "#07C983"
+		}
+	},
+	"topbarLinks": [
+		{
+			"name": "Support",
+			"url": "mailto:sales@highlight.io"
+		}
+	],
+	"topbarCtaButton": {
+		"name": "Dashboard",
+		"url": "https://app.highlight.io"
+	},
+	"tabs": [
+		{
+			"name": "General Docs",
+			"url": "general"
+		},
+		{
+			"name": "Setup Docs",
+			"url": "getting-started"
+		},
+		{
+			"name": "SDK Reference",
+			"url": "sdk"
+		}
+	],
+	"anchors": [
+		{
+			"name": "Documentation",
+			"icon": "book-open-cover",
+			"url": "https://mintlify.com/docs"
+		},
+		{
+			"name": "Community",
+			"icon": "slack",
+			"url": "https://mintlify.com/community"
+		},
+		{
+			"name": "Blog",
+			"icon": "newspaper",
+			"url": "https://highlight.com/blog"
+		}
+	],
+	"navigation": [
+		{
+			"group": "General Docs",
+			"pages": [
+				"general/welcome",
+				{
+					"group": "About Us",
+					"pages": [
+						"general/company/compliance-and-security",
+						"general/company/our-competitors",
+						"general/company/product-philosophy",
+						"general/company/values"
+					]
+				}
+			]
+		},
+		{
+			"group": "Self Host & Contributing",
+			"pages": [
+				{
+					"group": "Self Hosting",
+					"pages": [
+						"contributing/getting-started",
+						"contributing/backend",
+						"contributing/frontend",
+						"contributing/landing-site",
+						"contributing/docs",
+						"contributing/adding-an-sdk",
+						"contributing/architecture",
+						"contributing/code-spaces",
+						"contributing/code-style",
+						"contributing/good-first-issues"
+					]
+				},
+				{
+					"group": "Open Source",
+					"pages": [
+						"hosting/self-host-dev",
+						"hosting/self-host-enterprise",
+						"hosting/self-host-hobby"
+					]
+				}
+			]
+		},
+		{
+			"group": "Setup Docs",
+			"pages": ["getting-started/overview"]
+		},
+		{
+			"group": "SDK Reference",
+			"pages": ["sdk/overview"]
+		}
+	],
+	"footerSocials": {
+		"x": "https://x.com/highlightio",
+		"github": "https://github.com/highlight/highlight",
+		"linkedin": "https://www.linkedin.com/company/highlightio"
+	}
+}
