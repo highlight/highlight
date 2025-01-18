@@ -6,6 +6,7 @@ import { verifyTraces } from './shared-snippets-tracing'
 export const OTLPReorganizedContent: QuickStartContent = {
 	title: 'Logging via the OpenTelemetry Protocol (OTLP)',
 	subtitle: `Learn how to export errors to highlight.io via one of the OpenTelemetry SDKs.`,
+	products: ['Logs', 'Errors', 'Traces'],
 	entries: [
 		{
 			title: 'Export your errors to the highlight.io collector.',

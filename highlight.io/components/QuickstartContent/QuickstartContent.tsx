@@ -131,6 +131,13 @@ import { RustOtherReorganizedContent } from './server/rust/other'
 import { OTLPReorganizedContent } from './server/otlp'
 import { DotNetOTLPReorganizedContent } from './server/dotnet/dot-net'
 import { DotNet4OTLPReorganizedContent } from './server/dotnet/dot-net-4'
+import { FluentForwardReorganizedContent } from './server/fluentd'
+import { FileReorganizedContent } from './server/file'
+import { DockerReorganizedContent } from './server/docker'
+import { HTTPReorganizedContent } from './server/http'
+import { SyslogReorganizedContent } from './server/syslog'
+import { SystemdReorganizedContent } from './server/systemd'
+import { AWSLambdaReorganizedContent } from './server/serverless/lambda'
 
 export type QuickStartOptions = {
 	title: string
@@ -615,6 +622,23 @@ export const quickStartContent = {
 			[QuickStartType.OTLP]: OTLPReorganizedContent,
 			[QuickStartType.OTLPDotNet]: DotNetOTLPReorganizedContent,
 			[QuickStartType.OTLPDotNet4]: DotNet4OTLPReorganizedContent,
+		},
+		serverless: {
+			title: 'Serverless',
+			subtitle: 'Install tracing in your Serverless application.',
+			logoUrl: siteUrl('/images/quickstart/serverless.svg'),
+			[QuickStartType.AWSLambda]: AWSLambdaReorganizedContent,
+		},
+		other: {
+			title: 'Infrastructure / Other',
+			subtitle:
+				'Get started with logging in your application via HTTP or OTLP.',
+			[QuickStartType.FluentForward]: FluentForwardReorganizedContent,
+			[QuickStartType.File]: FileReorganizedContent,
+			[QuickStartType.Docker]: DockerReorganizedContent,
+			[QuickStartType.HTTPOTLP]: HTTPReorganizedContent,
+			[QuickStartType.Syslog]: SyslogReorganizedContent,
+			[QuickStartType.Systemd]: SystemdReorganizedContent,
 		},
 	},
 } as const
