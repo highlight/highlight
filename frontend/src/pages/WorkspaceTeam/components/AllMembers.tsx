@@ -182,7 +182,7 @@ export const RoleOptions: Option[] = [
 	},
 ]
 
-const GRID_COLUMNS = ['3fr', '3fr', '1fr', '1fr', '30px']
+const GRID_COLUMNS = ['3fr', '3fr', 'auto', '1fr', '30px']
 
 const DISABLED_REASON_NOT_ADMIN =
 	'You must have Admin role to update user access.'
