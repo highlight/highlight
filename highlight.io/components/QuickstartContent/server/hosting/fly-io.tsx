@@ -9,6 +9,7 @@ export const HostingFlyIOLogReorganizedContent: QuickStartContent = {
 		'As a prerequisite, we assume you already have an application ' +
 		'deployed on Fly.io and `flyctl` configured locally.',
 	logoUrl: siteUrl('/images/quickstart/fly-io.svg'),
+	products: ['Logs'],
 	entries: [
 		{
 			title: 'Configure and launch the fly.io logs shipper, configured for the highlight log drain.',

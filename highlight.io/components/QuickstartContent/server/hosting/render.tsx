@@ -9,6 +9,7 @@ export const HostingRenderLogReorganizedContent: QuickStartContent = {
 		'As a prerequisite, we assume you already have an application ' +
 		'deployed on Render.',
 	logoUrl: siteUrl('/images/quickstart/render.png'),
+	products: ['Logs'],
 	entries: [
 		{
 			title: 'Visit your Render settings and find the Log Streams tab.',
