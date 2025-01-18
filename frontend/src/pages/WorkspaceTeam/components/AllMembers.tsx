@@ -304,22 +304,26 @@ const AllMembers = ({
 										}}
 									/>
 									<Stack gap="4">
-										<Tooltip
-											delayed
-											trigger={
-												<Text color="default" lines="1">
-													{admin.name
-														? admin.name
-														: getDisplayNameFromEmail(
-																admin.email,
-															)}{' '}
-													{isSelf && '(You)'}
-												</Text>
-											}
-										>
-											{admin.email}
-										</Tooltip>
+										<Text color="default" lines="1">
+											{admin.name
+												? admin.name
+												: getDisplayNameFromEmail(
+														admin.email,
+													)}{' '}
+											{isSelf && '(You)'}
+										</Text>
 									</Stack>
+								</Stack>
+							</Table.Cell>
+							<Table.Cell>
+								<Stack
+									direction="row"
+									gap="6"
+									alignItems="center"
+								>
+									<Text color="default" lines="1">
+										{admin.email}
+									</Text>
 								</Stack>
 							</Table.Cell>
 							<Table.Cell padding="0">
