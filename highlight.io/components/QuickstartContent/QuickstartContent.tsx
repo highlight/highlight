@@ -138,6 +138,7 @@ import { HTTPReorganizedContent } from './server/http'
 import { SyslogReorganizedContent } from './server/syslog'
 import { SystemdReorganizedContent } from './server/systemd'
 import { AWSLambdaReorganizedContent } from './server/serverless/lambda'
+import { ElixirOtherReorganizedContent } from './server/elixir/other'
 
 export type QuickStartOptions = {
 	title: string
@@ -617,6 +618,9 @@ export const quickStartContent = {
 		rust: {
 			[QuickStartType.RustActix]: RustActixReorganizedContent,
 			[QuickStartType.RustOther]: RustOtherReorganizedContent,
+		},
+		elixir: {
+			[QuickStartType.ElixirOther]: ElixirOtherReorganizedContent,
 		},
 		otlp: {
 			[QuickStartType.OTLP]: OTLPReorganizedContent,
