@@ -9,6 +9,7 @@ export const HostingHerokuLogReorganizedContent: QuickStartContent = {
 		'As a prerequisite, we assume you already have an application ' +
 		'deployed on Heroku.',
 	logoUrl: siteUrl('/images/quickstart/Heroku.png'),
+	products: ['Logs'],
 	entries: [
 		{
 			title: 'Add a Syslog Log Drain to your heroku app.',
