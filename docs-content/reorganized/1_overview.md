@@ -12,40 +12,38 @@ Highlight.io allows you to get full-stack visibility into issues across your who
 Installing highlight.io in javascript will automatically instrument frontend error collection and session replay. highlight.io supports any framework that uses modern web browsers (i.e. depends on using the [DOM](https://www.w3schools.com/js/js_htmldom.asp)) under the hood, and we support all modern browsers to date. Take a look at our guides for the following frameworks:
 
 <DocsCardGroup>
-    <DocsCard title="React" href="./client-sdk/reactjs.md">
+    <DocsCard title="React" href="./browser/reactjs.md">
         {"Get started in your React.js app"}
     </DocsCard>
-    <DocsCard title="Angular"  href="./client-sdk/angular.md">
+    <DocsCard title="Angular"  href="./browser/angular.md">
         {"Get started in your Angular.js app"}
     </DocsCard>
-    <DocsCard title="Gatsby"  href="./client-sdk/gatsbyjs.md">
+    <DocsCard title="Gatsby"  href="./browser/gatsbyjs.md">
         {"Get started in your Gatsby app"}
     </DocsCard>
-    <DocsCard title="Next.js"  href="./client-sdk/nextjs.md">
+    <DocsCard title="Next.js"  href="./browser/nextjs.md">
         {"Get started in your Next.js app"}
     </DocsCard>
-    <DocsCard title="Remix"  href="./client-sdk/remix.md">
+    <DocsCard title="Remix"  href="./browser/remix.md">
         {"Get started in your Remix app"}
     </DocsCard>
-    <DocsCard title="VueJS"  href="./client-sdk/vuejs.md">
+    <DocsCard title="VueJS"  href="./browser/vuejs.md">
         {"Get started in your VueJS app"}
     </DocsCard>
-    <DocsCard title="SvelteKit"  href="./3_client-sdk/6_sveltekit.md">
+    <DocsCard title="SvelteKit"  href="./browser/6_sveltekit.md">
         {"Get started in your SvelteKit app"}
     </DocsCard>
-    <DocsCard title="Electron"  href="./3_client-sdk/7_electron.md">
+    <DocsCard title="Electron"  href="./browser/7_electron.md">
         {"Get started in your Electron app"}
     </DocsCard>
-    <DocsCard title="Other HTML"  href="./3_client-sdk/8_other.md">
+    <DocsCard title="Other HTML"  href="./browser/8_other.md">
         {"Get started in any HTML/JS app"}
     </DocsCard>
 </DocsCardGroup>
 
-## For your Backend: Error Monitoring
+## For your Backend
 
 Highlight.io also supports reporting errors from your backend and mapping these to corresponding sessions. This gives you and your team a full picture of your application's state. Supported frameworks / languages below:
-
-### Application Error Monitoring
 
 <DocsCardGroup>
     <DocsCard title="Python" href="./backend-sdk/python/overview">
