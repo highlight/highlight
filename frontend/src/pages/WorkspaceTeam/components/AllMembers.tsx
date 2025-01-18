@@ -182,7 +182,7 @@ export const RoleOptions: Option[] = [
 	},
 ]
 
-const GRID_COLUMNS = ['3fr', '2fr', '1fr', '30px']
+const GRID_COLUMNS = ['3fr', '3fr', '1fr', '1fr', '30px']
 
 const DISABLED_REASON_NOT_ADMIN =
 	'You must have Admin role to update user access.'
@@ -260,6 +260,7 @@ const AllMembers = ({
 			<Table.Head>
 				<Table.Row gridColumns={GRID_COLUMNS}>
 					<Table.Header>User</Table.Header>
+					<Table.Header>Email</Table.Header>
 					<Table.Header>Project Access</Table.Header>
 					<Table.Header>Role</Table.Header>
 					<Table.Header></Table.Header>
