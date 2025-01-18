@@ -73,7 +73,7 @@ tracer = trace.get_tracer("my-service")
 
 ### **Processor**
 
-A processor defines any pre-processing that should be done on the created signals, such as batching, sampling, filtering or even enriching data.  This is important because you may have specific needs on the machine that you're sending data from that require customization. As a very simple example, a `BatchSpanProcessor` collects spans in batches and sends them to the exporter, which is more efficient than sending each span individually. 
+A processor defines any pre-processing that should be done on the created signals, such as batching, sampling, filtering or even enriching data. This is important because you may have specific needs on the machine that you're sending data from that require customization. As a very simple example, a `BatchSpanProcessor` collects spans in batches and sends them to the exporter, which is more efficient than sending each span individually. 
 
 Here's an example of how you might configure a `BatchSpanProcessor`:
 
