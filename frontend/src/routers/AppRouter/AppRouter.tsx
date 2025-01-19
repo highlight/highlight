@@ -93,6 +93,15 @@ const DebugRoutes: React.FC<React.PropsWithChildren> = ({ children }) => {
 	return <>{children}</>
 }
 
+const isValidLastVisitedRoute = (route: string) => {
+	return (
+		route.includes('/sessions') ||
+		route.includes('/errors') ||
+		route.includes('/logs') ||
+		route.includes('/traces')
+	)
+}
+
 export const AppRouter = () => {
 	const { admin, isLoggedIn, isAuthLoading, isHighlightAdmin } =
 		useAuthContext()
@@ -115,12 +124,28 @@ export const AppRouter = () => {
 	const isNewWorkspacePage = !!newProjectMatch
 	const isJoinWorkspacePage = !!joinWorkspaceMatch
 	const [inviteCode, setInviteCode] = useLocalStorage('highlightInviteCode')
+	const [lastVisitedRoute, setLastVisitedRoute] =
+		useLocalStorage('lastVisitedRoute')
 	const { projectId } = useNumericProjectId(previousLocation)
 	const [nextParam] = useQueryParam('next', StringParam)
 	const [configurationIdParam] = useQueryParam('configurationId', StringParam)
 	const isVercelIntegrationFlow = !!nextParam || !!configurationIdParam
 	const navigate = useNavigate()
 	const isValidProjectId = Number.isInteger(Number(projectId))
+
+	useEffect(() => {
+		if (isValidLastVisitedRoute(location.pathname)) {
+			setLastVisitedRoute(location.pathname)
+		}
+	}, [location.pathname])
+
+	useEffect(() => {
+		if (isLoggedIn) {
+			if (lastVisitedRoute && isValidLastVisitedRoute(lastVisitedRoute)) {
+				navigate(lastVisitedRoute, { replace: true })
+			}
+		}
+	}, [isLoggedIn])
 
 	const { data, loading } = useGetDropdownOptionsQuery({
 		skip: !isLoggedIn,
