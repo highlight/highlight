@@ -1,12 +1,13 @@
 import { QuickStartContent } from '../../QuickstartContent'
-import { previousInstallSnippet, verifyLogs } from '../shared-snippets-logging'
+import { verifyLogs } from '../shared-snippets-logging'
+import { frontendInstallSnippet } from '../shared-snippets-monitoring'
 
 export const JSWinstonHTTPJSONLogReorganizedContent: QuickStartContent = {
 	title: 'Logging with Winston.JS',
 	subtitle: 'Learn how to set up highlight.io log ingestion for Winston JS.',
 	products: ['Logs'],
 	entries: [
-		previousInstallSnippet('nodejs'),
+		frontendInstallSnippet,
 		{
 			title: 'Setup the Winston HTTP transport.',
 			content:

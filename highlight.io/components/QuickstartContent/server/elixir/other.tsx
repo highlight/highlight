@@ -1,6 +1,7 @@
 import { siteUrl } from '../../../../utils/urls'
 import { QuickStartContent } from '../../QuickstartContent'
 import { verifyLogs } from '../shared-snippets-logging'
+import { frontendInstallSnippet } from '../shared-snippets-monitoring'
 
 export const ElixirOtherReorganizedContent: QuickStartContent = {
 	title: 'Elixir',
@@ -8,6 +9,7 @@ export const ElixirOtherReorganizedContent: QuickStartContent = {
 	logoUrl: siteUrl('/images/quickstart/elixir.svg'),
 	products: ['Errors', 'Logs'],
 	entries: [
+		frontendInstallSnippet,
 		{
 			title: 'Install the Highlight Elixir SDK.',
 			content: 'Add Highlight to your mix.exs file.',
