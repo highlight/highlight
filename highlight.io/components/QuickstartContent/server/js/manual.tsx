@@ -1,8 +1,8 @@
 import { siteUrl } from '../../../../utils/urls'
 import { initializeNodeSDK, jsGetSnippet } from './shared-snippets-monitoring'
-import { previousInstallSnippet } from '../shared-snippets-logging'
 import { QuickStartContent } from '../../QuickstartContent'
 import { verifyTraces } from '../shared-snippets-tracing'
+import { frontendInstallSnippet } from '../shared-snippets-monitoring'
 
 export const JSManualTracesReorganizedContent: QuickStartContent = {
 	title: 'Tracing from a Node.js App',
@@ -11,7 +11,7 @@ export const JSManualTracesReorganizedContent: QuickStartContent = {
 	logoUrl: siteUrl('/images/quickstart/javascript.svg'),
 	products: ['Traces'],
 	entries: [
-		previousInstallSnippet('js'),
+		frontendInstallSnippet,
 		jsGetSnippet(['node']),
 		initializeNodeSDK('node'),
 		{

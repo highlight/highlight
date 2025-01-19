@@ -1,12 +1,9 @@
 import { siteUrl } from '../../../../utils/urls'
 import { QuickStartContent } from '../../QuickstartContent'
 import { verifyLogs } from '../shared-snippets-logging'
+import { frontendInstallSnippet } from '../shared-snippets-monitoring'
 import { verifyTraces } from '../shared-snippets-tracing'
-import {
-	downloadSnippet,
-	init,
-	setupFrontendSnippet,
-} from './shared-snippets-monitoring'
+import { downloadSnippet, init } from './shared-snippets-monitoring'
 
 export const PythonAWSReorganizedContext: QuickStartContent = {
 	title: 'Logging from Python AWS Lambda',
@@ -14,7 +11,7 @@ export const PythonAWSReorganizedContext: QuickStartContent = {
 	logoUrl: siteUrl('/images/quickstart/aws-lambda.svg'),
 	products: ['Errors', 'Logs', 'Traces'],
 	entries: [
-		setupFrontendSnippet,
+		frontendInstallSnippet,
 		downloadSnippet(),
 		{
 			title: 'Initialize the Highlight SDK.',

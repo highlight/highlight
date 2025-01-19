@@ -1,7 +1,7 @@
 import { siteUrl } from '../../../../utils/urls'
 import { QuickStartContent } from '../../QuickstartContent'
 import { tsconfig } from '../../shared-snippets'
-import { previousInstallSnippet, verifyLogs } from '../shared-snippets-logging'
+import { verifyLogs } from '../shared-snippets-logging'
 import { frontendInstallSnippet } from '../shared-snippets-monitoring'
 import { verifyTraces } from '../shared-snippets-tracing'
 import {
@@ -16,7 +16,6 @@ export const JSCloudflareReorganizedContent: QuickStartContent = {
 	logoUrl: siteUrl('/images/quickstart/cloudflare.svg'),
 	products: ['Errors', 'Logs', 'Traces'],
 	entries: [
-		previousInstallSnippet('cloudflare'),
 		frontendInstallSnippet,
 		jsGetSnippet(['cloudflare']),
 		{

@@ -1,6 +1,6 @@
 import { siteUrl } from '../../../../utils/urls'
 import { QuickStartContent } from '../../QuickstartContent'
-import { previousInstallSnippet, verifyLogs } from '../shared-snippets-logging'
+import { verifyLogs } from '../shared-snippets-logging'
 import { frontendInstallSnippet } from '../shared-snippets-monitoring'
 import { verifyTraces } from '../shared-snippets-tracing'
 import {
@@ -15,7 +15,6 @@ export const JSNestReorganizedContent: QuickStartContent = {
 	logoUrl: siteUrl('/images/quickstart/nestjs.svg'),
 	products: ['Errors', 'Logs', 'Traces'],
 	entries: [
-		previousInstallSnippet('nestjs'),
 		frontendInstallSnippet,
 		jsGetSnippet(['nest']),
 		{

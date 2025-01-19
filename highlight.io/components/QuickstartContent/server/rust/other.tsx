@@ -1,6 +1,7 @@
 import { siteUrl } from '../../../../utils/urls'
 import { QuickStartContent } from '../../QuickstartContent'
 import { verifyLogs } from '../shared-snippets-logging'
+import { frontendInstallSnippet } from '../shared-snippets-monitoring'
 import { verifyTraces } from '../shared-snippets-tracing'
 
 export const RustOtherReorganizedContent: QuickStartContent = {
@@ -8,6 +9,7 @@ export const RustOtherReorganizedContent: QuickStartContent = {
 	subtitle: 'Learn how to set up highlight.io without a framework.',
 	logoUrl: siteUrl('/images/quickstart/rust.svg'),
 	entries: [
+		frontendInstallSnippet,
 		{
 			title: 'Install the Highlight Rust SDK.',
 			content:
