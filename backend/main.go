@@ -3,16 +3,13 @@ package main
 import (
 	"context"
 	"fmt"
+	publicModel "github.com/highlight-run/highlight/backend/public-graph/graph/model"
 	"io"
 	"math/rand"
 	"net/http"
 	"strings"
 	"sync"
 	"time"
-
-	"github.com/highlight-run/highlight/backend/enterprise"
-	"github.com/highlight-run/highlight/backend/env"
-	"github.com/highlight-run/highlight/backend/pricing"
 
 	ghandler "github.com/99designs/gqlgen/graphql/handler"
 	"github.com/99designs/gqlgen/graphql/handler/extension"
@@ -33,6 +30,8 @@ import (
 	"github.com/highlight-run/highlight/backend/clickhouse"
 	dd "github.com/highlight-run/highlight/backend/datadog"
 	"github.com/highlight-run/highlight/backend/embeddings"
+	"github.com/highlight-run/highlight/backend/enterprise"
+	"github.com/highlight-run/highlight/backend/env"
 	highlightHttp "github.com/highlight-run/highlight/backend/http"
 	"github.com/highlight-run/highlight/backend/integrations"
 	kafkaqueue "github.com/highlight-run/highlight/backend/kafka-queue"
@@ -42,6 +41,7 @@ import (
 	"github.com/highlight-run/highlight/backend/openai_client"
 	"github.com/highlight-run/highlight/backend/otel"
 	"github.com/highlight-run/highlight/backend/phonehome"
+	"github.com/highlight-run/highlight/backend/pricing"
 	private "github.com/highlight-run/highlight/backend/private-graph/graph"
 	privategen "github.com/highlight-run/highlight/backend/private-graph/graph/generated"
 	public "github.com/highlight-run/highlight/backend/public-graph/graph"
@@ -219,7 +219,6 @@ func main() {
 	highlight.Start(
 		highlight.WithProjectID("1jdkoe52"),
 		highlight.WithEnvironment(env.EnvironmentName()),
-		highlight.WithMetricSamplingRate(1./1_000_000),
 		highlight.WithSamplingRateMap(samplingMap),
 		highlight.WithServiceName(serviceName),
 		highlight.WithServiceVersion(env.Config.Version),
@@ -309,10 +308,18 @@ func main() {
 
 	// async writes for workers (where order of write between workers does not matter)
 	kCfg := &kafkaqueue.ConfigOverride{Async: ptr.Bool(true)}
+	kafkaAsyncProducer := kafkaqueue.New(ctx, kafkaqueue.GetTopic(kafkaqueue.GetTopicOptions{Type: kafkaqueue.TopicTypeDefault}), kafkaqueue.Producer, kCfg)
+	defer kafkaAsyncProducer.Stop(ctx)
 	kafkaBatchedProducer := kafkaqueue.New(ctx, kafkaqueue.GetTopic(kafkaqueue.GetTopicOptions{Type: kafkaqueue.TopicTypeBatched}), kafkaqueue.Producer, kCfg)
 	defer kafkaBatchedProducer.Stop(ctx)
 	kafkaTracesProducer := kafkaqueue.New(ctx, kafkaqueue.GetTopic(kafkaqueue.GetTopicOptions{Type: kafkaqueue.TopicTypeTraces}), kafkaqueue.Producer, kCfg)
 	defer kafkaTracesProducer.Stop(ctx)
+	kafkaMetricSumProducer := kafkaqueue.New(ctx, kafkaqueue.GetTopic(kafkaqueue.GetTopicOptions{Type: kafkaqueue.TopicTypeMetricSum}), kafkaqueue.Producer, kCfg)
+	defer kafkaMetricSumProducer.Stop(ctx)
+	kafkaMetricHistogramProducer := kafkaqueue.New(ctx, kafkaqueue.GetTopic(kafkaqueue.GetTopicOptions{Type: kafkaqueue.TopicTypeMetricHistogram}), kafkaqueue.Producer, kCfg)
+	defer kafkaMetricHistogramProducer.Stop(ctx)
+	kafkaMetricSummaryProducer := kafkaqueue.New(ctx, kafkaqueue.GetTopic(kafkaqueue.GetTopicOptions{Type: kafkaqueue.TopicTypeMetricSummary}), kafkaqueue.Producer, kCfg)
+	defer kafkaMetricSummaryProducer.Stop(ctx)
 
 	var lambdaClient *lambda.Client
 	if !env.IsInDocker() {
@@ -337,7 +344,7 @@ func main() {
 		log.WithContext(ctx).Fatalf("error creating oauth client: %v", err)
 	}
 
-	tp, err := highlight.CreateTracerProvider(env.Config.OTLPEndpoint)
+	tp, err := highlight.CreateTracerProvider(ctx, env.Config.OTLPEndpoint)
 	if err != nil {
 		log.WithContext(ctx).Fatalf("error creating collector tracer provider: %v", err)
 	}
@@ -347,7 +354,7 @@ func main() {
 		trace.WithSchemaURL(semconv.SchemaURL),
 	)
 
-	tpNoResources, err := highlight.CreateTracerProvider(env.Config.OTLPEndpoint, sdktrace.WithResource(resource.Empty()))
+	tpNoResources, err := highlight.CreateTracerProvider(ctx, env.Config.OTLPEndpoint, sdktrace.WithResource(resource.Empty()))
 	if err != nil {
 		log.WithContext(ctx).Fatalf("error creating collector tracer provider: %v", err)
 	}
@@ -390,6 +397,9 @@ func main() {
 		Store:                  dataStore,
 		DataSyncQueue:          kafkaDataSyncProducer,
 		TracesQueue:            kafkaTracesProducer,
+		MetricSumQueue:         kafkaMetricSumProducer,
+		MetricHistogramQueue:   kafkaMetricHistogramProducer,
+		MetricSummaryQueue:     kafkaMetricSummaryProducer,
 	}
 	private.SetupAuthClient(ctx, dataStore, private.GetEnvAuthMode(), oauthSrv, privateResolver.Query().APIKeyToOrgID)
 	r := chi.NewMux()
@@ -499,22 +509,25 @@ func main() {
 			log.Fatalf("error initializing lru cache: %v", err)
 		}
 		publicResolver := &public.Resolver{
-			DB:                db,
-			Tracer:            tracer,
-			TracerNoResources: tracerNoResources,
-			ProducerQueue:     kafkaProducer,
-			BatchedQueue:      kafkaBatchedProducer,
-			DataSyncQueue:     kafkaDataSyncProducer,
-			TracesQueue:       kafkaTracesProducer,
-			MailClient:        sendgrid.NewSendClient(env.Config.SendgridKey),
-			EmbeddingsClient:  embeddings.New(),
-			StorageClient:     storageClient,
-			Redis:             redisClient,
-			Clickhouse:        clickhouseClient,
-			RH:                &rh,
-			Store:             dataStore,
-			LambdaClient:      lambdaClient,
-			SessionCache:      sessionCache,
+			DB:                 db,
+			Tracer:             tracer,
+			TracerNoResources:  tracerNoResources,
+			ProducerQueue:      kafkaProducer,
+			AsyncProducerQueue: kafkaAsyncProducer, BatchedQueue: kafkaBatchedProducer,
+			DataSyncQueue:        kafkaDataSyncProducer,
+			TracesQueue:          kafkaTracesProducer,
+			MetricSumQueue:       kafkaMetricSumProducer,
+			MetricHistogramQueue: kafkaMetricHistogramProducer,
+			MetricSummaryQueue:   kafkaMetricSummaryProducer,
+			MailClient:           sendgrid.NewSendClient(env.Config.SendgridKey),
+			EmbeddingsClient:     embeddings.New(),
+			StorageClient:        storageClient,
+			Redis:                redisClient,
+			Clickhouse:           clickhouseClient,
+			RH:                   &rh,
+			Store:                dataStore,
+			LambdaClient:         lambdaClient,
+			SessionCache:         sessionCache,
 		}
 		publicEndpoint := "/public"
 		if runtimeParsed == util.PublicGraph {
@@ -543,7 +556,7 @@ func main() {
 			})
 
 			publicServer.Use(htrace.NewGraphqlTracer(string(util.PublicGraph)))
-			publicServer.SetErrorPresenter(htrace.GraphQLErrorPresenter(string(util.PublicGraph)))
+			publicServer.SetErrorPresenter(htrace.GraphQLErrorPresenter(string(util.PublicGraph), htrace.WithGraphQLErrorPresenterIgnoredErrors(e.New(string(publicModel.PublicGraphErrorBillingQuotaExceeded)))))
 			publicServer.SetRecoverFunc(htrace.GraphQLRecoverFunc())
 			r.HandleFunc("/cors", assets.HandleAsset)
 			r.Handle("/",
@@ -570,22 +583,25 @@ func main() {
 			log.Fatalf("error initializing lru cache: %v", err)
 		}
 		publicResolver := &public.Resolver{
-			DB:                db,
-			Tracer:            tracer,
-			TracerNoResources: tracerNoResources,
-			ProducerQueue:     kafkaProducer,
-			BatchedQueue:      kafkaBatchedProducer,
-			DataSyncQueue:     kafkaDataSyncProducer,
-			TracesQueue:       kafkaTracesProducer,
-			MailClient:        sendgrid.NewSendClient(env.Config.SendgridKey),
-			EmbeddingsClient:  embeddings.New(),
-			StorageClient:     storageClient,
-			Redis:             redisClient,
-			Clickhouse:        clickhouseClient,
-			RH:                &rh,
-			Store:             dataStore,
-			LambdaClient:      lambdaClient,
-			SessionCache:      sessionCache,
+			DB:                 db,
+			Tracer:             tracer,
+			TracerNoResources:  tracerNoResources,
+			ProducerQueue:      kafkaProducer,
+			AsyncProducerQueue: kafkaAsyncProducer, BatchedQueue: kafkaBatchedProducer,
+			DataSyncQueue:        kafkaDataSyncProducer,
+			TracesQueue:          kafkaTracesProducer,
+			MetricSumQueue:       kafkaMetricSumProducer,
+			MetricHistogramQueue: kafkaMetricHistogramProducer,
+			MetricSummaryQueue:   kafkaMetricSummaryProducer,
+			MailClient:           sendgrid.NewSendClient(env.Config.SendgridKey),
+			EmbeddingsClient:     embeddings.New(),
+			StorageClient:        storageClient,
+			Redis:                redisClient,
+			Clickhouse:           clickhouseClient,
+			RH:                   &rh,
+			Store:                dataStore,
+			LambdaClient:         lambdaClient,
+			SessionCache:         sessionCache,
 		}
 		w := &worker.Worker{Resolver: privateResolver, PublicResolver: publicResolver, StorageClient: storageClient}
 		if runtimeParsed == util.Worker {
@@ -609,27 +625,10 @@ func main() {
 			go w.GetPublicWorker(kafkaqueue.TopicTypeBatched)(ctx)
 			go w.GetPublicWorker(kafkaqueue.TopicTypeDataSync)(ctx)
 			go w.GetPublicWorker(kafkaqueue.TopicTypeTraces)(ctx)
-			go w.StartLogAlertWatcher(ctx)
-			go w.StartMetricAlertWatcher(ctx)
-			go w.StartSessionDeleteJob(ctx)
-			go func() {
-				w.ReportStripeUsage(ctx)
-				for range time.Tick(time.Hour) {
-					w.ReportStripeUsage(ctx)
-				}
-			}()
-			go func() {
-				w.RefreshMaterializedViews(ctx)
-				for range time.Tick(time.Hour) {
-					w.RefreshMaterializedViews(ctx)
-				}
-			}()
-			go func() {
-				w.AutoResolveStaleErrors(ctx)
-				for range time.Tick(time.Minute) {
-					w.AutoResolveStaleErrors(ctx)
-				}
-			}()
+			go w.GetPublicWorker(kafkaqueue.TopicTypeMetricSum)(ctx)
+			go w.GetPublicWorker(kafkaqueue.TopicTypeMetricHistogram)(ctx)
+			go w.GetPublicWorker(kafkaqueue.TopicTypeMetricSummary)(ctx)
+			go w.ScheduledTasks(ctx)
 			if env.IsDevEnv() && env.UseSSL() {
 				log.WithContext(ctx).
 					WithField("runtime", runtimeParsed).

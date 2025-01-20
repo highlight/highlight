@@ -53,7 +53,10 @@ const ApplicationRouter: React.FC = () => {
 						/>
 
 						<Route path="setup/*" element={<SetupRouter />} />
-						<Route path="metrics/*" element={<DashboardRouter />} />
+						<Route
+							path="dashboards/*"
+							element={<DashboardRouter />}
+						/>
 						<Route
 							path="*"
 							element={<Navigate to={BASE_PATH} replace />}

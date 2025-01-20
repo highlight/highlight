@@ -6,8 +6,8 @@ export const monitoringscreenshotKey = '/images/monitoringscreenshot.png'
 export const sessionscreenshotKey = '/images/sessionscreenshot.png'
 export const tracesHeroKey = '/images/traces.png'
 export const tracesscreenshotKey = '/images/tracesmobile.svg'
-export const metricsMobileKey = '/images/metricsmobile.png'
-export const metricsHeroKey = '/images/metricshero.webp'
+export const dashboardsMobileKey = '/images/dashboardsmobile.png'
+export const dashboardsHeroKey = '/images/dashboardshero.webp'
 
 const sessionReplay2 = '/images/features/sessionReplay2.png'
 const sessionReplay3 = '/images/landingInfoRow1.png'
@@ -19,8 +19,8 @@ const tracing1 = '/images/features/tracing1.png'
 const tracing2 = '/images/features/tracing2.png'
 const clickhouse = '/images/features/clickhouse.png'
 
-const metrics1 = '/images/features/metricserrorrate.png'
-const metrics2 = '/images/features/metricsengagement.png'
+const dashboards1 = '/images/features/dashboardserrorrate.png'
+const dashboards2 = '/images/features/dashboardsengagement.png'
 
 type InfoRow = {
 	header: string
@@ -319,14 +319,14 @@ export const FEATURES: { [k: string]: iFeature } = {
 		],
 	},
 
-	metrics: {
-		slug: 'metrics',
-		header: 'Metrics & APM for modern web apps',
+	dashboards: {
+		slug: 'dashboards',
+		header: 'Dashboards & APM for modern web apps',
 		subheader:
 			'Visualize and analyze your observability data on a single pane.',
-		docsLink: '/docs/general/product-features/metrics/overview',
-		slantedImage: metricsHeroKey,
-		regularImage: metricsMobileKey,
+		docsLink: '/docs/general/product-features/dashboards/overview',
+		slantedImage: dashboardsHeroKey,
+		regularImage: dashboardsMobileKey,
 		header2Selection: 4,
 		subheader2:
 			'A suite of tools for visualizing and manipulating data on your web application.',
@@ -335,24 +335,24 @@ export const FEATURES: { [k: string]: iFeature } = {
 				header: 'From downtime to regressions.',
 				subheader:
 					'Understand the real reason why your web app has slow downs, increased error rates, and more.',
-				link: '/docs/general/product-features/metrics/overview',
+				link: '/docs/general/product-features/dashboards/overview',
 				linkText: 'Read the Docs',
-				imgSrc: metrics1,
+				imgSrc: dashboards1,
 				invert: true,
 			},
 			{
 				header: 'Understand user engagement across your application',
 				subheader: 'Visualize the reason why users stay and leave.',
-				link: '/docs/general/product-features/metrics/overview',
+				link: '/docs/general/product-features/dashboards/overview',
 				linkText: 'Read the Docs',
-				imgSrc: metrics2,
+				imgSrc: dashboards2,
 				invert: false,
 			},
 			{
 				header: 'Insane Performance. Powered by ClickHouse.',
 				subheader:
 					'Perform fast queries across all of your resources. Powered by ClickHouse, an industry leading time-series database.',
-				link: '/docs/general/product-features/metrics/overview',
+				link: '/docs/general/product-features/dashboards/overview',
 				linkText: 'Read the Docs',
 				imgSrc: clickhouse,
 				invert: true,
@@ -361,7 +361,7 @@ export const FEATURES: { [k: string]: iFeature } = {
 				header: 'Get alerted across each resource',
 				subheader:
 					'Create alerts to make sure the right teams know when something goes wrong.',
-				link: '/docs/general/product-features/metrics/overview',
+				link: '/docs/general/product-features/dashboards/overview',
 				linkText: 'Read the Docs',
 				imgSrc: logging1,
 				invert: false,

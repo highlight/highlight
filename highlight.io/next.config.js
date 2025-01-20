@@ -24,18 +24,14 @@ const nextConfig = {
 			},
 		],
 	},
-	experimental: {
-		serverComponentsExternalPackages: [
-			'pino',
-			'pino-pretty',
-			'@highlight-run/node',
-			'require-in-the-middle',
-		],
-		instrumentationHook: true,
-	},
+	serverExternalPackages: [
+		'pino',
+		'pino-pretty',
+		'@highlight-run/node',
+		'require-in-the-middle',
+	],
 	productionBrowserSourceMaps: true,
 	reactStrictMode: true,
-	swcMinify: true,
 	env: {
 		staticPages: getStaticPages(),
 	},
@@ -108,6 +104,11 @@ const nextConfig = {
 				source: '/docs/general/getting-started/backend-sdk/python',
 				destination:
 					'/docs/getting-started/backend-logging/python/other',
+				permanent: true,
+			},
+			{
+				source: '/docs/wordpress',
+				destination: '/docs/general/integrations/wordpress-integration',
 				permanent: true,
 			},
 		]

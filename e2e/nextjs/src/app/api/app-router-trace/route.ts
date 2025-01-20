@@ -2,12 +2,9 @@
 import { withAppRouterHighlight } from '@/app/_utils/app-router-highlight.config'
 import logger from '@/highlight.logger'
 import { H } from '@highlight-run/next/server'
-import { NextRequest } from 'next/server'
-import { propagation, context } from '@opentelemetry/api'
+import { context, propagation } from '@opentelemetry/api'
 
-export const GET = withAppRouterHighlight(async function GET(
-	request: NextRequest,
-) {
+export const GET = withAppRouterHighlight(async function GET(request: Request) {
 	return new Promise(async (resolve) => {
 		const { span } = H.startWithHeaders('app-router-span', {})
 

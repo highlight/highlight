@@ -3,6 +3,18 @@ receivers:
         endpoint: '0.0.0.0:24224'
     tcplog:
         listen_address: '0.0.0.0:34302'
+    awsfirehose/cwmetrics:
+        endpoint: '0.0.0.0:4433'
+        record_type: cwmetrics
+        include_metadata: true
+    awsfirehose/cwlogs:
+        endpoint: '0.0.0.0:4434'
+        record_type: cwlogs
+        include_metadata: true
+    awsfirehose/otlp_v1:
+        endpoint: '0.0.0.0:4435'
+        record_type: otlp_v1
+        include_metadata: true
     syslog:
         udp:
             listen_address: '0.0.0.0:6513'
@@ -15,6 +27,7 @@ receivers:
             grpc:
                 endpoint: '0.0.0.0:4317'
                 include_metadata: true
+                max_recv_msg_size_mib: 1000
             http:
                 endpoint: '0.0.0.0:4318'
                 max_request_body_size: 0
@@ -66,19 +79,23 @@ receivers:
                     cert_file: '/server.crt'
                     key_file: '/server.key'
 exporters:
-    logging:
+    debug:
         sampling_initial: 60
         sampling_thereafter: 1000
     otlphttp:
         endpoint: 'https://host.docker.internal:8082/otel'
-        auth:
-            authenticator: headers_setter
+        compression: snappy
         tls:
             insecure_skip_verify: true
         timeout: 30s
-        read_buffer_size: 32768
-        write_buffer_size: 32768
+        http2_read_idle_timeout: 30s
+        http2_ping_timeout: 30s
+        idle_conn_timeout: 60s
+        max_idle_conns: 100
+        max_idle_conns_per_host: 100
         max_conns_per_host: 1000
+        read_buffer_size: 32768
+        write_buffer_size: 131072
         sending_queue:
             num_consumers: 100
             queue_size: 10000
@@ -99,6 +116,11 @@ processors:
         timeout: 1s
         send_batch_size: 1000
         send_batch_max_size: 10000
+    attributes:
+        actions:
+            - key: highlight.project_id
+              from_context: metadata.x-highlight-project
+              action: insert
 service:
     telemetry:
         logs:
@@ -106,26 +128,30 @@ service:
         metrics:
             address: '0.0.0.0:8888'
             level: detailed
-    extensions: [headers_setter, health_check]
+    extensions: [health_check]
     pipelines:
         traces:
             receivers: [otlp, otlp/https]
-            processors: [memory_limiter, batch]
-            exporters: [otlphttp, logging]
+            processors: [memory_limiter, batch, attributes]
+            exporters: [otlphttp, debug]
         metrics:
-            receivers: [otlp, otlp/https]
-            processors: [memory_limiter, batch]
-            exporters: [otlphttp, logging]
+            receivers:
+                [otlp, otlp/https, awsfirehose/cwmetrics, awsfirehose/otlp_v1]
+            processors: [memory_limiter, batch, attributes]
+            exporters: [otlphttp, debug]
         logs:
-            receivers: [otlp, otlp/https, fluentforward, tcplog, syslog]
-            processors: [memory_limiter, batch]
-            exporters: [otlphttp, logging]
+            receivers:
+                [
+                    otlp,
+                    otlp/https,
+                    fluentforward,
+                    tcplog,
+                    syslog,
+                    awsfirehose/cwlogs,
+                ]
+            processors: [memory_limiter, batch, attributes]
+            exporters: [otlphttp, debug]
 extensions:
-    headers_setter:
-        headers:
-            - action: upsert
-              key: x-highlight-project
-              from_context: x-highlight-project
     health_check:
         endpoint: '0.0.0.0:4319'
         path: '/health/status'

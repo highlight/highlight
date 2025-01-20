@@ -78,22 +78,26 @@ import (
 // It serves as dependency injection for your app, add any dependencies you require here.
 
 type Resolver struct {
-	DB                *gorm.DB
-	Tracer            trace.Tracer
-	TracerNoResources trace.Tracer
-	ProducerQueue     kafka_queue.MessageQueue
-	BatchedQueue      kafka_queue.MessageQueue
-	DataSyncQueue     kafka_queue.MessageQueue
-	TracesQueue       kafka_queue.MessageQueue
-	MailClient        *sendgrid.Client
-	StorageClient     storage.Client
-	EmbeddingsClient  embeddings.Client
-	Redis             *redis.Client
-	Clickhouse        *clickhouse.Client
-	RH                *resthooks.Resthook
-	Store             *store.Store
-	LambdaClient      *lambda.Client
-	SessionCache      *lru.Cache[string, *model.Session]
+	DB                   *gorm.DB
+	Tracer               trace.Tracer
+	TracerNoResources    trace.Tracer
+	AsyncProducerQueue   kafka_queue.MessageQueue
+	ProducerQueue        kafka_queue.MessageQueue
+	BatchedQueue         kafka_queue.MessageQueue
+	DataSyncQueue        kafka_queue.MessageQueue
+	TracesQueue          kafka_queue.MessageQueue
+	MetricSumQueue       kafka_queue.MessageQueue
+	MetricHistogramQueue kafka_queue.MessageQueue
+	MetricSummaryQueue   kafka_queue.MessageQueue
+	MailClient           *sendgrid.Client
+	StorageClient        storage.Client
+	EmbeddingsClient     embeddings.Client
+	Redis                *redis.Client
+	Clickhouse           *clickhouse.Client
+	RH                   *resthooks.Resthook
+	Store                *store.Store
+	LambdaClient         *lambda.Client
+	SessionCache         *lru.Cache[string, *model.Session]
 }
 
 type Location struct {
@@ -730,7 +734,7 @@ func (r *Resolver) GetTopErrorGroupMatch(ctx context.Context, event string, proj
 		Scan(&result).Error; err != nil {
 		return nil, e.Wrap(err, "error querying top error group match")
 	}
-	hmetric.Histogram(ctx, "GetTopErrorGroupMatch.groupSQL.durationMs", float64(time.Since(start).Milliseconds()), nil, 1)
+	hmetric.Histogram(ctx, "GetTopErrorGroupMatch.groupSQL.duration_ms", float64(time.Since(start).Milliseconds()), nil, 1)
 
 	minScore := 10 + len(restMeta) - 1
 	if len(restCode) > len(restMeta) {
@@ -1237,8 +1241,11 @@ func (r *Resolver) InitializeSessionImpl(ctx context.Context, input *kafka_queue
 	log.WithContext(ctx).WithFields(log.Fields{"session_id": session.ID, "project_id": session.ProjectID, "identifier": session.Identifier}).
 		Infof("initialized session %d: %s", session.ID, session.Identifier)
 
-	highlight.RecordMetric(
-		ctx, "sessions", float64(session.ID),
+	highlight.RecordCount(ctx,
+		"session.initialized", 1,
+	)
+	span, ctx := highlight.StartTrace(
+		ctx, "public.resolver.initialize-session",
 		attribute.String("Bot", fmt.Sprintf("%v", deviceDetails.IsBot)),
 		attribute.String("Browser", deviceDetails.BrowserName),
 		attribute.String("BrowserVersion", deviceDetails.BrowserVersion),
@@ -1252,11 +1259,14 @@ func (r *Resolver) InitializeSessionImpl(ctx context.Context, input *kafka_queue
 		attribute.String("OSVersion", session.OSVersion),
 		attribute.String("Postal", session.Postal),
 		attribute.String("State", session.State),
+		attribute.String("State", session.State),
+		attribute.Int("ID", session.ID),
 		attribute.Int(highlight.ProjectIDAttribute, session.ProjectID),
 		attribute.String(highlight.SessionIDAttribute, session.SecureID),
 		attribute.String(highlight.TraceTypeAttribute, string(highlight.TraceTypeHighlightInternal)),
 		attribute.String(highlight.TraceKeyAttribute, session.SecureID),
 	)
+	defer highlight.EndTrace(span)
 	if err := r.PushMetricsImpl(ctx, nil, &session.SecureID, []*publicModel.MetricInput{
 		{
 			SessionSecureID: session.SecureID,
@@ -1307,7 +1317,7 @@ func (r *Resolver) InitializeSessionImpl(ctx context.Context, input *kafka_queue
 		attributes := map[string]string{
 			string(semconv.ProcessRuntimeNameKey): "browser",
 		}
-		_, err := r.Store.UpsertService(ctx, *project, session.ServiceName, attributes)
+		_, err := r.Store.UpsertService(ctx, project.ID, session.ServiceName, attributes)
 		if err != nil {
 			log.WithContext(ctx).Error(e.Wrap(err, "failed to create service"))
 		}
@@ -1317,7 +1327,7 @@ func (r *Resolver) InitializeSessionImpl(ctx context.Context, input *kafka_queue
 }
 
 func (r *Resolver) MarkBackendSetupImpl(ctx context.Context, projectID int, setupType model.MarkBackendSetupType) error {
-	_, err := redis.CachedEval(ctx, r.Redis, fmt.Sprintf("mark-backend-setup-%d-%s", projectID, setupType), 150*time.Millisecond, time.Hour, func() (*bool, error) {
+	_, err := redis.CachedEval(ctx, r.Redis, fmt.Sprintf("mark-backend-setup-%d-%s", projectID, setupType), time.Second, time.Hour, func() (*bool, error) {
 		if setupType == model.MarkBackendSetupTypeLogs || setupType == model.MarkBackendSetupTypeError {
 			// Update Hubspot company and projects.backend_setup
 			var backendSetupCount int64
@@ -1563,18 +1573,10 @@ func (r *Resolver) IdentifySessionImpl(ctx context.Context, sessionSecureID stri
 	}
 
 	hTags := []attribute.KeyValue{
-		attribute.String("Identifier", session.Identifier),
 		attribute.Bool("Identified", session.Identified),
 		attribute.Bool("FirstTime", *session.FirstTime),
-		attribute.Int(highlight.ProjectIDAttribute, session.ProjectID),
-		attribute.String(highlight.SessionIDAttribute, session.SecureID),
-		attribute.String(highlight.TraceTypeAttribute, string(highlight.TraceTypeHighlightInternal)),
-		attribute.String(highlight.TraceKeyAttribute, session.Identifier),
 	}
-	for k, v := range allUserProperties {
-		hTags = append(hTags, attribute.String(k, v))
-	}
-	highlight.RecordMetric(ctx, "users", 1, hTags...)
+	highlight.RecordCount(ctx, "users", 1, hTags...)
 
 	tags := []*publicModel.MetricTag{
 		{Name: "Identifier", Value: session.Identifier},
@@ -1679,7 +1681,7 @@ func (r *Resolver) IsWithinQuota(ctx context.Context, productType model.PricingP
 
 	meter, err := cfg.Meter(ctx, r.DB, r.Clickhouse, r.Redis, workspace)
 	if err != nil {
-		log.WithContext(ctx).Warn(fmt.Sprintf("error getting %s meter for workspace %d", productType, workspace.ID))
+		log.WithContext(ctx).WithError(err).Warn(fmt.Sprintf("error getting %s meter for workspace %d", productType, workspace.ID))
 	}
 
 	includedQuantity := cfg.Included(workspace)
@@ -2019,7 +2021,7 @@ func (r *Resolver) PushMetricsImpl(ctx context.Context, projectVerboseID *string
 			WithEvents([]map[string]any{event}))
 	}
 
-	// TODO(vkorolik) write to an actual metrics table
+	// TODO(vkorolik) write to an actual metrics table via kafka_queue.PushOTeLMetrics
 	var messages []kafka_queue.RetryableMessage
 	for _, traceRow := range traceRows {
 		if !r.IsTraceIngested(ctx, traceRow) {
@@ -2056,12 +2058,9 @@ func (r *Resolver) updateErrorsCount(ctx context.Context, projectID int, errorsB
 	defer dailyErrorCountSpan.Finish()
 
 	for sessionSecureId, count := range errorsBySession {
-		highlight.RecordMetric(
-			ctx, "errors", float64(count),
+		highlight.RecordCount(
+			ctx, "errors", count,
 			attribute.String("error.type", errorType),
-			attribute.Int(highlight.ProjectIDAttribute, projectID),
-			attribute.String(highlight.SessionIDAttribute, sessionSecureId),
-			attribute.String(highlight.TraceTypeAttribute, string(highlight.TraceTypeHighlightInternal)),
 		)
 		if err := r.PushMetricsImpl(context.Background(), nil, &sessionSecureId, []*publicModel.MetricInput{
 			{

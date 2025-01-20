@@ -1,9 +1,7 @@
 import { LogEdge, SortDirection } from '@graph/schemas'
 import { Box } from '@highlight-run/ui/components'
 import { useProjectId } from '@hooks/useProjectId'
-import { THROTTLED_UPDATE_MS } from '@pages/Player/PlayerHook/PlayerState'
 import { findLastActiveEventIndex } from '@pages/Player/Toolbar/DevToolsWindowV2/utils'
-import _ from 'lodash'
 import React, { useCallback, useEffect, useMemo, useState } from 'react'
 import { useGetLogs } from '@/pages/LogsPage/useGetLogs'
 import { LogCustomColumn } from '@/components/CustomColumnPopover'
@@ -21,7 +19,6 @@ export const ConsolePage = ({
 	query,
 }: {
 	autoScroll: boolean
-	logCursor: string | null
 	filter: string
 	panelHeight: number
 	query: string
@@ -89,23 +86,24 @@ export const ConsolePage = ({
 	const messageNodes = logEdges.map((message) => message.node)
 	const [lastActiveLogIndex, setLastActiveLogIndex] = useState(-1)
 
-	useEffect(
-		() =>
-			_.throttle(
-				() => {
-					const activeIndex = findLastActiveEventIndex(
-						time,
-						sessionMetadata.startTime,
-						messageNodes,
-					)
+	useEffect(() => {
+		// need to load data ahead because the player skipped past the last loaded node
+		const lastTraceTs = messageNodes.at(messageNodes.length - 1)?.timestamp
+		if (lastTraceTs) {
+			const lastTraceTime = new Date(lastTraceTs).getTime()
+			if (sessionMetadata.startTime + time > lastTraceTime) {
+				fetchMoreForward()
+			}
+		}
 
-					setLastActiveLogIndex(activeIndex)
-				},
-				THROTTLED_UPDATE_MS,
-				{ leading: true, trailing: false },
-			),
-		[time, sessionMetadata.startTime, messageNodes],
-	)
+		const activeIndex = findLastActiveEventIndex(
+			time,
+			sessionMetadata.startTime,
+			messageNodes,
+		)
+
+		setLastActiveLogIndex(activeIndex)
+	}, [time, sessionMetadata.startTime, messageNodes, fetchMoreForward])
 
 	useEffect(() => {
 		analytics.track('session_view-console-logs')

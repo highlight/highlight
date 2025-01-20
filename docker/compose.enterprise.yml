@@ -71,13 +71,13 @@ services:
             - -runtime=worker
             - -worker-handler=public-worker-traces
 
-    backend-session-cleanup-worker:
+    backend-scheduled-tasks-worker:
         extends: backend-session-worker
-        container_name: backend-session-cleanup-worker
+        container_name: backend-scheduled-tasks-worker
         command:
             - /build/backend
             - -runtime=worker
-            - -worker-handler=start-session-delete-job
+            - -worker-handler=scheduled-tasks
 
     frontend:
         container_name: frontend

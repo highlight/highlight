@@ -16,11 +16,11 @@ import (
 	"gorm.io/gorm/clause"
 )
 
-func (store *Store) UpsertService(ctx context.Context, project model.Project, name string, attributes map[string]string) (*model.Service, error) {
-	return redis.CachedEval(ctx, store.Redis, CacheServiceKey(name, project.ID), 150*time.Millisecond, time.Minute, func() (*model.Service, error) {
+func (store *Store) UpsertService(ctx context.Context, projectID int, name string, attributes map[string]string) (*model.Service, error) {
+	return redis.CachedEval(ctx, store.Redis, CacheServiceKey(name, projectID), time.Second, time.Minute, func() (*model.Service, error) {
 		service := model.Service{
 			Name:      name,
-			ProjectID: project.ID,
+			ProjectID: projectID,
 		}
 
 		if val, ok := attributes[string(semconv.ProcessRuntimeNameKey)]; ok {
@@ -45,7 +45,7 @@ func (store *Store) UpsertService(ctx context.Context, project model.Project, na
 
 		err = store.DB.WithContext(ctx).Model(&model.Service{}).Where(model.Service{
 			Name:      name,
-			ProjectID: project.ID,
+			ProjectID: projectID,
 		}).Take(&service).Error
 
 		return &service, err
@@ -53,7 +53,7 @@ func (store *Store) UpsertService(ctx context.Context, project model.Project, na
 }
 
 func (store *Store) FindService(ctx context.Context, projectID int, name string) (*model.Service, error) {
-	return redis.CachedEval(ctx, store.Redis, CacheServiceKey(name, projectID), 150*time.Millisecond, time.Minute, func() (*model.Service, error) {
+	return redis.CachedEval(ctx, store.Redis, CacheServiceKey(name, projectID), time.Second, time.Minute, func() (*model.Service, error) {
 		service := model.Service{}
 
 		err := store.DB.WithContext(ctx).Where(&model.Service{

@@ -27,7 +27,7 @@ import errorMonitoring from '../../../public/images/error-monitoring.webp'
 import fullstackLogging from '../../../public/images/fullstack-logging.webp'
 import githubscreenshot from '../../../public/images/githubscreenshot.png'
 import loggingscreenshot from '../../../public/images/loggingscreenshot.png'
-import metrics from '../../../public/images/metrics.webp'
+import dashboards from '../../../public/images/dashboards.webp'
 import monitoringscreenshot from '../../../public/images/monitoringscreenshot.png'
 import openSource from '../../../public/images/open-source.webp'
 import sessionReplay from '../../../public/images/session-replay.webp'
@@ -135,12 +135,12 @@ const features: Feature[] = [
 		link: '/traces',
 	},
 	{
-		name: 'Metrics',
-		title: 'Metrics & APM',
+		name: 'Dashboards',
+		title: 'Dashboards & APM',
 		description:
 			'Visualize and analyze your observability data on a single pane.',
 		thumbnail: <HiChartBar className="h-[25px] w-[25px]" />,
-		desktopImage: metrics,
+		desktopImage: dashboards,
 		mobileImage: tracesscreenshot,
 		right: true,
 		feature1: 'Customizable dashboards',
@@ -149,7 +149,7 @@ const features: Feature[] = [
 		featureImage2: <HiChartBar className="h-[20px] w-[20px]" />,
 		feature3: 'User analytics',
 		featureImage3: <HiUsers className="h-[20px] w-[20px]" />,
-		link: '/metrics',
+		link: '/dashboards',
 	},
 	{
 		name: 'Self-Hosting',
@@ -165,7 +165,7 @@ const features: Feature[] = [
 			`cd docker;`,
 			`./run-hobby.sh;`,
 		],
-		link: '/docs/general/product-features/metrics/overview',
+		link: '/docs/getting-started/self-host/overview',
 	},
 ]
 

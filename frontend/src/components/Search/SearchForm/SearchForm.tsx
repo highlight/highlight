@@ -45,20 +45,19 @@ import {
 import { QueryPart } from '@/components/Search/SearchForm/QueryPart'
 import {
 	BODY_KEY,
-	DEFAULT_OPERATOR,
+	getActivePart,
 	quoteQueryValue,
-	stringifySearchQuery,
 } from '@/components/Search/SearchForm/utils'
 import {
 	useGetKeysLazyQuery,
 	useGetKeyValuesLazyQuery,
 } from '@/graph/generated/hooks'
 import { ProductType, SavedSegmentEntityType } from '@/graph/generated/schemas'
-import { useDebounce } from '@/hooks/useDebounce'
 import { useApplicationContext } from '@/routers/AppRouter/context/ApplicationContext'
 import { SearchEntry } from './hooks'
 import { AiSearch } from './AiSearch'
 import * as styles from './SearchForm.css'
+import { debounce } from 'lodash'
 
 export const QueryParam = withDefault(StringParam, '')
 export const FixedRangePreset = DEFAULT_TIME_PRESETS[0]
@@ -112,7 +111,6 @@ export type SearchFormProps = {
 	hideDatePicker?: boolean
 	hideCreateAlert?: boolean
 	savedSegmentType?: SavedSegmentEntityType
-	textAreaRef?: React.RefObject<HTMLTextAreaElement>
 	isPanelView?: boolean
 	resultFormatted?: string
 	loading?: boolean
@@ -134,7 +132,6 @@ const SearchForm: React.FC<SearchFormProps> = ({
 	hideDatePicker,
 	hideCreateAlert,
 	savedSegmentType,
-	textAreaRef,
 	isPanelView,
 	resultFormatted,
 	loading,
@@ -183,7 +180,6 @@ const SearchForm: React.FC<SearchFormProps> = ({
 		<Search
 			startDate={startDate}
 			endDate={endDate}
-			textAreaRef={textAreaRef}
 			productType={productType}
 			hideIcon={isPanelView}
 			hasAdditonalActions={!hideCreateAlert || !hideDatePicker}
@@ -297,14 +293,19 @@ const SearchForm: React.FC<SearchFormProps> = ({
 				) : (
 					<>
 						{SearchComponent}
-						<Box display="flex" pr="8" py="6" gap="6">
+						<Box
+							alignItems="flex-start"
+							display="flex"
+							pr="8"
+							py="6"
+							gap="6"
+						>
 							{SegmentMenu}
 							{displaySeparator && (
 								<Box
 									as="span"
 									borderRight="dividerWeak"
-									mt="4"
-									style={{ height: 18 }}
+									style={{ marginTop: 5, height: 18 }}
 								/>
 							)}
 							{AlertComponent}
@@ -328,7 +329,6 @@ export const Search: React.FC<{
 	hideIcon?: boolean
 	placeholder?: string
 	productType: ProductType
-	textAreaRef?: React.RefObject<HTMLTextAreaElement>
 	hasAdditonalActions?: boolean
 	creatables?: { [key: string]: Creatable }
 	defaultValueOptions?: string[]
@@ -340,7 +340,6 @@ export const Search: React.FC<{
 	endDate,
 	hideIcon,
 	placeholder,
-	textAreaRef,
 	productType,
 	hasAdditonalActions,
 	creatables,
@@ -366,8 +365,7 @@ export const Search: React.FC<{
 	const { project_id } = useParams()
 	const [_, setSortColumn] = useQueryParam(SORT_COLUMN, StringParam)
 	const [__, setSortDirection] = useQueryParam(SORT_DIRECTION, StringParam)
-	const defaultInputRef = useRef<HTMLTextAreaElement | null>(null)
-	const inputRef = textAreaRef || defaultInputRef
+	const inputRef = useRef<HTMLTextAreaElement | null>(null)
 	const [keys, setKeys] = useState<Keys | undefined>()
 	const [values, setValues] = useState<string[] | undefined>()
 	const [showErrors, setShowErrors] = useState(false)
@@ -384,9 +382,6 @@ export const Search: React.FC<{
 	const [isPending, startTransition] = React.useTransition()
 
 	const activePart = getActivePart(cursorIndex, queryParts)
-	const { debouncedValue, setDebouncedValue } = useDebounce<string>(
-		activePart.value,
-	)
 
 	useEffect(() => {
 		// necessary to update the combobox with the URL state
@@ -400,14 +395,17 @@ export const Search: React.FC<{
 		}
 	}, [hasErrors, setShowErrors, showErrors])
 
-	// TODO: code smell, user is not able to use "message" as a search key
-	// because we are reserving it for the body implicitly
 	const showValues =
+		// TODO: code smell, user is not able to use "message" as a search key
+		// because we are reserving it for the body implicitly
 		activePart.key !== BODY_KEY &&
-		activePart.text.includes(`${activePart.key}${activePart.operator}`)
+		activePart.text
+			.replace(/\s+/g, '')
+			.startsWith(`${activePart.key}${activePart.operator}`)
 	const loading = showValues ? valuesLoading : keysLoading
 	const showValueSelect =
-		activePart.text === `${activePart.key}${activePart.operator}` ||
+		activePart.text.replace(/\s+/g, '') ===
+			`${activePart.key}${activePart.operator}` ||
 		!!activePart.value?.length
 
 	let visibleItems: SearchResult[] = showValues
@@ -422,7 +420,7 @@ export const Search: React.FC<{
 	const showOperators = !!keyMatch
 
 	const visibleRecentSearch = recentSearches.filter((history) => {
-		return stringifySearchQuery(history.queryParts).indexOf(query) > -1
+		return history.query.indexOf(query) > -1
 	})
 
 	if (showOperators) {
@@ -475,12 +473,26 @@ export const Search: React.FC<{
 		}
 	}
 
+	const debouncedGetKeysRef =
+		React.useRef<ReturnType<typeof debounce<typeof getKeys>>>()
+	if (!debouncedGetKeysRef.current) {
+		debouncedGetKeysRef.current = debounce(getKeys, 300, { leading: true })
+	}
+
+	const debouncedGetKeyValuesRef =
+		React.useRef<ReturnType<typeof debounce<typeof getKeyValues>>>()
+	if (!debouncedGetKeyValuesRef.current) {
+		debouncedGetKeyValuesRef.current = debounce(getKeyValues, 300, {
+			leading: true,
+		})
+	}
+
 	useEffect(() => {
-		if (showValues) {
+		if (showValues || !debouncedGetKeysRef.current) {
 			return
 		}
 
-		getKeys({
+		debouncedGetKeysRef.current({
 			variables: {
 				product_type: productType,
 				project_id: project_id!,
@@ -488,7 +500,7 @@ export const Search: React.FC<{
 					start_date: moment(startDate).format(TIME_FORMAT),
 					end_date: moment(endDate).format(TIME_FORMAT),
 				},
-				query: debouncedValue,
+				query: activePart.value,
 				event: event,
 			},
 			fetchPolicy: 'cache-first',
@@ -496,27 +508,11 @@ export const Search: React.FC<{
 				setKeys(data.keys)
 			},
 		})
-	}, [
-		debouncedValue,
-		showValues,
-		startDate,
-		endDate,
-		project_id,
-		getKeys,
-		productType,
-		event,
-	])
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [activePart.value, showValues, startDate, endDate, productType, event])
 
 	useEffect(() => {
-		// When we transition to a new key we don't want to wait for the debounce
-		// delay to update the value for key fetching.
-		if (activePart.value === '' && activePart.key === BODY_KEY) {
-			setDebouncedValue('')
-		}
-	}, [activePart.key, activePart.value, setDebouncedValue])
-
-	useEffect(() => {
-		if (!showValues) {
+		if (!showValues || !debouncedGetKeyValuesRef.current) {
 			return
 		}
 
@@ -526,7 +522,7 @@ export const Search: React.FC<{
 			return
 		}
 
-		getKeyValues({
+		debouncedGetKeyValuesRef.current({
 			variables: {
 				product_type: productType,
 				project_id: project_id!,
@@ -535,30 +531,28 @@ export const Search: React.FC<{
 					start_date: moment(startDate).format(TIME_FORMAT),
 					end_date: moment(endDate).format(TIME_FORMAT),
 				},
-				query: debouncedValue,
+				query: activePart.value,
 				count: 25,
-				event: event,
+				event,
 			},
 			fetchPolicy: 'cache-first',
 			onCompleted: (data) => {
 				setValues(data.key_values)
 			},
 		})
+		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [
-		debouncedValue,
+		activePart.value,
 		activePart.key,
-		creatables,
-		endDate,
-		getKeyValues,
-		productType,
-		project_id,
 		showValues,
 		startDate,
+		endDate,
+		productType,
 		event,
 	])
 
 	useEffect(() => {
-		// Ensure the cursor is placed in the correct position after update the
+		// Ensure the cursor is placed in the correct position after updating the
 		// query from selecting a dropdown item.
 		inputRef.current?.setSelectionRange(cursorIndex, cursorIndex)
 		// eslint-disable-next-line react-hooks/exhaustive-deps
@@ -595,9 +589,13 @@ export const Search: React.FC<{
 		}
 	}, [showValues])
 
-	const handleItemSelect = (item: SearchResult) => {
+	const handleItemSelect = (
+		item: SearchResult,
+		selectNewItem: boolean = false,
+	) => {
 		const isValueSelect = item.type === 'Value'
 		const isExists = !!EXISTS_OPERATORS.find((eo) => eo === item.name)
+		const originalStop = activePart.stop
 		let cursorShift = 0
 
 		if (item.type === 'Operator') {
@@ -618,13 +616,19 @@ export const Search: React.FC<{
 			activePart.text = `${key}${space}${activePart.operator}`
 			activePart.stop = activePart.start + activePart.text.length
 		} else if (isValueSelect) {
+			const beforeOp =
+				activePart.text.match(
+					`${activePart.key}(\\s*)${activePart.operator}`,
+				)?.[1] || ''
+			const afterOp =
+				activePart.text.match(`${activePart.operator}(\\s*)`)?.[1] || ''
+
 			const creatableType = creatables?.[activePart.key]
-			if (!!creatableType) {
-				activePart.value = quoteQueryValue(creatableType.value)
-			} else {
-				activePart.value = quoteQueryValue(item.name)
-			}
-			activePart.text = `${activePart.key}${activePart.operator}${activePart.value}`
+			activePart.value = quoteQueryValue(
+				creatableType ? creatableType.value : item.name,
+			)
+
+			activePart.text = `${activePart.key}${beforeOp}${activePart.operator}${afterOp}${activePart.value}`
 			activePart.stop = activePart.start + activePart.text.length
 		} else {
 			activePart.key = item.name
@@ -633,33 +637,50 @@ export const Search: React.FC<{
 			activePart.stop = activePart.start + activePart.key.length
 		}
 
-		const newQuery = stringifySearchQuery(queryParts)
-		const newCursorPosition = activePart.stop + cursorShift
+		let newQuery =
+			query.substring(0, activePart.start) +
+			activePart.text +
+			query.substring(originalStop + 1)
+
+		let newCursorPosition = activePart.stop + cursorShift
+
+		if (selectNewItem && isValueSelect) {
+			newQuery += ' '
+			newCursorPosition += 1
+		}
 
 		startTransition(() => {
 			setQuery(newQuery)
-			setCursorIndex(newCursorPosition)
 
-			if (isValueSelect || isExists) {
+			if ((isValueSelect && !selectNewItem) || isExists) {
 				submitQuery(newQuery)
 				comboboxStore.setOpen(false)
 			}
 		})
 
+		setCursorIndex(newCursorPosition)
+
 		comboboxStore.setActiveId(null)
 		comboboxStore.setState('moves', 0)
 	}
 
-	const handleHistorySelction = (
-		query: string,
-		queryParts: SearchExpression[],
+	const handleHistorySelection = (
+		newQuery: string,
+		selectNewItem: boolean = false,
 	) => {
-		const newQuery = stringifySearchQuery(queryParts)
+		let newCursorPosition = newQuery.length
+
+		if (selectNewItem) {
+			newQuery += ' '
+			newCursorPosition += 1
+		}
+
 		startTransition(() => {
 			submitQuery(newQuery)
 			comboboxStore.setOpen(false)
 		})
-		setCursorIndex(newQuery.length)
+
+		setCursorIndex(newCursorPosition)
 		comboboxStore.setActiveId(null)
 	}
 
@@ -760,6 +781,8 @@ export const Search: React.FC<{
 							ref={inputRef}
 							style={{ resize: 'none', overflowY: 'hidden' }}
 							spellCheck={false}
+							autoCorrect="off"
+							autoCapitalize="off"
 						/>
 					}
 					value={query}
@@ -808,7 +831,13 @@ export const Search: React.FC<{
 				/>
 
 				{isDirty && !disabled && (
-					<Box pt="8" pr="8">
+					<Box
+						position="absolute"
+						style={{
+							right: 8,
+							top: 8,
+						}}
+					>
 						<IconSolidXCircle
 							size={16}
 							onClick={(e) => {
@@ -834,7 +863,7 @@ export const Search: React.FC<{
 					}}
 					store={comboboxStore}
 					gutter={10}
-					sameWidth
+					fixed
 				>
 					<Box cssClass={styles.comboboxResults}>
 						{aiSupportedSearch && activePart.text === '' && (
@@ -933,10 +962,11 @@ export const Search: React.FC<{
 														styles.comboboxItem
 													}
 													key={index}
-													onClick={() => {
-														handleHistorySelction(
+													onClick={(e) => {
+														handleHistorySelection(
 															data.query,
-															data.queryParts,
+															e.metaKey ||
+																e.ctrlKey,
 														)
 													}}
 													store={comboboxStore}
@@ -999,9 +1029,12 @@ export const Search: React.FC<{
 										<Combobox.Item
 											className={styles.comboboxItem}
 											key={index}
-											onClick={() =>
-												handleItemSelect(key)
-											}
+											onClick={(e) => {
+												handleItemSelect(
+													key,
+													e.metaKey || e.ctrlKey,
+												)
+											}}
 											store={comboboxStore}
 											value={key.name}
 											hideOnClick={false}
@@ -1040,27 +1073,27 @@ export const Search: React.FC<{
 							right: 0,
 						}}
 					>
-						<Box display="flex" flexDirection="row" gap="20">
+						<Box display="flex" flexDirection="row" gap="16">
 							<Box
 								display="inline-flex"
 								flexDirection="row"
 								alignItems="center"
-								gap="6"
+								gap="4"
 							>
 								<Badge
 									variant="gray"
 									size="small"
 									iconStart={<IconSolidSwitchVertical />}
-								/>{' '}
+								/>
 								<Text color="weak" size="xSmall">
-									Select
+									Navigate
 								</Text>
 							</Box>
 							<Box
 								display="inline-flex"
 								flexDirection="row"
 								alignItems="center"
-								gap="6"
+								gap="4"
 							>
 								<Badge
 									variant="gray"
@@ -1071,6 +1104,27 @@ export const Search: React.FC<{
 									Select
 								</Text>
 							</Box>
+							{showValues && (
+								<Box
+									display="inline-flex"
+									flexDirection="row"
+									alignItems="center"
+									gap="4"
+								>
+									<Badge
+										variant="gray"
+										size="small"
+										label={
+											/mac/i.test(navigator.userAgent)
+												? '⌘+Enter'
+												: 'Ctrl+Enter'
+										}
+									/>
+									<Text color="weak" size="xSmall">
+										Select+New
+									</Text>
+								</Box>
+							)}
 						</Box>
 						<Box
 							display="inline-flex"
@@ -1097,48 +1151,12 @@ export const Search: React.FC<{
 	)
 }
 
-const getActivePart = (
-	cursorIndex: number,
-	queryParts: SearchExpression[],
-): SearchExpression => {
-	let activePartIndex
-
-	queryParts.find((param, index) => {
-		if (param.stop < cursorIndex - 1) {
-			return false
-		}
-
-		activePartIndex = index
-		return true
-	})
-
-	if (activePartIndex === undefined) {
-		const lastPartStop = Math.max(
-			queryParts[queryParts.length - 1]?.stop + 1,
-			cursorIndex,
-		)
-
-		const activePart = {
-			key: BODY_KEY,
-			operator: DEFAULT_OPERATOR,
-			value: '',
-			text: '',
-			start: lastPartStop,
-			stop: lastPartStop,
-		}
-		queryParts.push(activePart)
-		return activePart
-	} else {
-		return queryParts[activePartIndex]
-	}
-}
-
 const getVisibleKeys = (
 	queryText: string,
 	activeQueryPart?: SearchExpression,
 	keys?: Keys,
 ) => {
-	const startingNewPart = queryText.endsWith(' ')
+	const startingNewPart = queryText.length === 0 || queryText.endsWith(' ')
 
 	return (
 		keys?.filter(
@@ -1162,14 +1180,14 @@ const getVisibleValues = (
 	activeQueryPart?: SearchExpression,
 	values?: string[],
 ): SearchResult[] => {
-	const activePart = activeQueryPart?.value ?? ''
+	const activePart = (activeQueryPart?.value ?? '').trim()
 	const filteredValues =
 		values?.filter(
 			(v) =>
 				// Don't filter if no value has been typed
 				!activePart.length ||
 				// Return values that match the query part
-				v.indexOf(activePart) > -1,
+				v.toLowerCase().includes(activePart.toLowerCase()),
 		) || []
 
 	return filteredValues.map((value) => ({

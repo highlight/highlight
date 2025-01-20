@@ -14,23 +14,23 @@ import (
 const MetricNamesTable = "trace_metrics"
 
 var metricsTableConfig = model.TableConfig{
-	AttributesColumn: TracesTableNoDefaultConfig.AttributesColumn,
-	BodyColumn:       TracesTableNoDefaultConfig.BodyColumn,
-	MetricColumn:     ptr.String("MetricValue"),
-	KeysToColumns:    TracesTableNoDefaultConfig.KeysToColumns,
-	ReservedKeys:     TracesTableNoDefaultConfig.ReservedKeys,
-	SelectColumns:    TracesTableNoDefaultConfig.SelectColumns,
-	TableName:        TracesTableNoDefaultConfig.TableName,
+	AttributesColumns: TracesTableNoDefaultConfig.AttributesColumns,
+	BodyColumn:        TracesTableNoDefaultConfig.BodyColumn,
+	MetricColumn:      ptr.String("MetricValue"),
+	KeysToColumns:     TracesTableNoDefaultConfig.KeysToColumns,
+	ReservedKeys:      TracesTableNoDefaultConfig.ReservedKeys,
+	SelectColumns:     TracesTableNoDefaultConfig.SelectColumns,
+	TableName:         TracesTableNoDefaultConfig.TableName,
 }
 
 var metricsSamplingTableConfig = model.TableConfig{
-	AttributesColumn: metricsTableConfig.AttributesColumn,
-	BodyColumn:       metricsTableConfig.BodyColumn,
-	MetricColumn:     metricsTableConfig.MetricColumn,
-	KeysToColumns:    metricsTableConfig.KeysToColumns,
-	ReservedKeys:     metricsTableConfig.ReservedKeys,
-	SelectColumns:    metricsTableConfig.SelectColumns,
-	TableName:        TracesSamplingTable,
+	AttributesColumns: metricsTableConfig.AttributesColumns,
+	BodyColumn:        metricsTableConfig.BodyColumn,
+	MetricColumn:      metricsTableConfig.MetricColumn,
+	KeysToColumns:     metricsTableConfig.KeysToColumns,
+	ReservedKeys:      metricsTableConfig.ReservedKeys,
+	SelectColumns:     metricsTableConfig.SelectColumns,
+	TableName:         TracesSamplingTable,
 }
 
 var MetricsSampleableTableConfig = SampleableTableConfig{
@@ -39,14 +39,25 @@ var MetricsSampleableTableConfig = SampleableTableConfig{
 	sampleSizeRows:      20_000_000,
 }
 
-func (client *Client) ReadEventMetrics(ctx context.Context, projectID int, params modelInputs.QueryInput, column string, metricTypes []modelInputs.MetricAggregator, groupBy []string, nBuckets *int, bucketBy string, bucketWindow *int, limit *int, limitAggregator *modelInputs.MetricAggregator, limitColumn *string) (*modelInputs.MetricsBuckets, error) {
-	params.Query = params.Query + " " + modelInputs.ReservedTraceKeyMetricName.String() + "=" + column
+func (client *Client) ReadEventMetrics(ctx context.Context, projectID int, params modelInputs.QueryInput, column *string, metricTypes []modelInputs.MetricAggregator, groupBy []string, nBuckets *int, bucketBy string, bucketWindow *int, limit *int, limitAggregator *modelInputs.MetricAggregator, limitColumn *string) (*modelInputs.MetricsBuckets, error) {
+	columnDeref := ""
+	if column != nil {
+		columnDeref = *column
+	}
+
+	expressions := []*modelInputs.MetricExpressionInput{}
+	for _, t := range metricTypes {
+		expressions = append(expressions, &modelInputs.MetricExpressionInput{
+			Aggregator: t,
+			Column:     columnDeref,
+		})
+	}
+
+	params.Query = params.Query + " " + modelInputs.ReservedTraceKeyMetricName.String() + "=" + columnDeref
 	return client.ReadMetrics(ctx, ReadMetricsInput{
 		SampleableConfig: MetricsSampleableTableConfig,
 		ProjectIDs:       []int{projectID},
 		Params:           params,
-		Column:           column,
-		MetricTypes:      metricTypes,
 		GroupBy:          groupBy,
 		BucketCount:      nBuckets,
 		BucketWindow:     bucketWindow,
@@ -54,6 +65,7 @@ func (client *Client) ReadEventMetrics(ctx context.Context, projectID int, param
 		Limit:            limit,
 		LimitAggregator:  limitAggregator,
 		LimitColumn:      limitColumn,
+		Expressions:      expressions,
 	})
 }
 
@@ -64,10 +76,11 @@ func (client *Client) ReadWorkspaceMetricCounts(ctx context.Context, projectIDs 
 		SampleableConfig: MetricsSampleableTableConfig,
 		ProjectIDs:       projectIDs,
 		Params:           params,
-		Column:           "",
-		MetricTypes:      []modelInputs.MetricAggregator{modelInputs.MetricAggregatorCount},
 		BucketCount:      pointy.Int(12),
 		BucketBy:         modelInputs.MetricBucketByTimestamp.String(),
+		Expressions: []*modelInputs.MetricExpressionInput{{
+			Aggregator: modelInputs.MetricAggregatorCount,
+		}},
 	})
 }
 

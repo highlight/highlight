@@ -1,26 +1,17 @@
 package otel
 
 import (
-	"bytes"
-	"compress/gzip"
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
-	"io"
-	"net/http"
-	"strconv"
-	"strings"
-	"time"
-
-	"go.opentelemetry.io/collector/pdata/plog/plogotlp"
-	"go.opentelemetry.io/collector/pdata/pmetric/pmetricotlp"
-	"go.opentelemetry.io/collector/pdata/ptrace/ptraceotlp"
-	semconv "go.opentelemetry.io/otel/semconv/v1.25.0"
-
+	"github.com/aws/smithy-go/ptr"
 	"github.com/go-chi/chi"
 	"github.com/highlight-run/highlight/backend/clickhouse"
+	highlightHttp "github.com/highlight-run/highlight/backend/http"
 	kafkaqueue "github.com/highlight-run/highlight/backend/kafka-queue"
 	model2 "github.com/highlight-run/highlight/backend/model"
+	privateGraph "github.com/highlight-run/highlight/backend/private-graph/graph"
 	privateModel "github.com/highlight-run/highlight/backend/private-graph/graph/model"
 	"github.com/highlight-run/highlight/backend/public-graph/graph"
 	"github.com/highlight-run/highlight/backend/public-graph/graph/model"
@@ -32,6 +23,19 @@ import (
 	e "github.com/pkg/errors"
 	"github.com/samber/lo"
 	log "github.com/sirupsen/logrus"
+	"go.opentelemetry.io/collector/pdata/plog/plogotlp"
+	"go.opentelemetry.io/collector/pdata/pmetric"
+	"go.opentelemetry.io/collector/pdata/pmetric/pmetricotlp"
+	"go.opentelemetry.io/collector/pdata/ptrace/ptraceotlp"
+	"go.opentelemetry.io/otel/attribute"
+	semconv "go.opentelemetry.io/otel/semconv/v1.26.0"
+	"go.opentelemetry.io/otel/trace"
+	"gorm.io/gorm"
+	"math"
+	"net/http"
+	"strconv"
+	"strings"
+	"time"
 )
 
 type Handler struct {
@@ -64,7 +68,7 @@ func cast[T string | int64 | float64](v interface{}, fallback T) T {
 
 func getBackendError(ctx context.Context, ts time.Time, fields *extractedFields, traceID, spanID string, logCursor *string) (bool, *model.BackendErrorObjectInput) {
 	if fields.exceptionType == "" && fields.exceptionMessage == "" {
-		lg(ctx, fields).Error("otel received exception with no type and no message")
+		// provided input is not an error
 		return false, nil
 	} else if fields.exceptionStackTrace == "" || fields.exceptionStackTrace == "null" {
 		lg(ctx, fields).Warn("otel received exception with no stacktrace")
@@ -101,7 +105,7 @@ func getBackendError(ctx context.Context, ts time.Time, fields *extractedFields,
 }
 
 func getMetric(ctx context.Context, ts time.Time, fields *extractedFields, spanID, parentSpanID, traceID string) (*model.MetricInput, error) {
-	if fields.metricEventName == "" {
+	if fields.metricName == "" {
 		return nil, e.New("otel received metric with no name")
 	}
 	tags := lo.Map(lo.Entries(fields.attrs), func(t lo.Entry[string, string], i int) *model.MetricTag {
@@ -123,7 +127,7 @@ func getMetric(ctx context.Context, ts time.Time, fields *extractedFields, spanI
 		ParentSpanID:    pointy.String(parentSpanID),
 		TraceID:         pointy.String(traceID),
 		Group:           pointy.String(fields.requestID),
-		Name:            fields.metricEventName,
+		Name:            fields.metricName,
 		Value:           fields.metricEventValue,
 		Category:        pointy.String(fields.source.String()),
 		Timestamp:       ts,
@@ -133,29 +137,19 @@ func getMetric(ctx context.Context, ts time.Time, fields *extractedFields, spanI
 
 func (o *Handler) HandleTrace(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
-	body, err := io.ReadAll(r.Body)
+
+	output, err := highlightHttp.GetBody(ctx, r)
 	if err != nil {
-		log.WithContext(ctx).WithError(err).Error("invalid trace logBody")
+		log.WithContext(ctx).WithError(err).Error("invalid data format for trace")
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
-	gz, err := gzip.NewReader(bytes.NewReader(body))
-	if err != nil {
-		log.WithContext(ctx).WithError(err).Error("invalid gzip format for trace")
-		http.Error(w, err.Error(), http.StatusBadRequest)
-		return
-	}
-
-	output, err := io.ReadAll(gz)
-	if err != nil {
-		log.WithContext(ctx).WithError(err).Error("invalid gzip stream for trace")
-		http.Error(w, err.Error(), http.StatusBadRequest)
-		return
-	}
-
+	span, _ := highlight.StartTrace(ctx, "otel.proto")
 	req := ptraceotlp.NewExportRequest()
 	err = req.UnmarshalProto(output)
+	span.RecordError(err)
+	highlight.EndTrace(span)
 	if err != nil {
 		log.WithContext(ctx).WithError(err).Error("invalid trace protobuf")
 		http.Error(w, err.Error(), http.StatusBadRequest)
@@ -173,9 +167,10 @@ func (o *Handler) HandleTrace(w http.ResponseWriter, r *http.Request) {
 	spans := req.Traces().ResourceSpans()
 	for i := 0; i < spans.Len(); i++ {
 		resource := spans.At(i).Resource()
-		scopeScans := spans.At(i).ScopeSpans()
-		for j := 0; j < scopeScans.Len(); j++ {
-			spans := scopeScans.At(j).Spans()
+		scopeSpans := spans.At(i).ScopeSpans()
+		for j := 0; j < scopeSpans.Len(); j++ {
+			scope := scopeSpans.At(j).Scope()
+			spans := scopeSpans.At(j).Spans()
 			for k := 0; k < spans.Len(); k++ {
 				span := spans.At(k)
 				events := span.Events()
@@ -189,14 +184,17 @@ func (o *Handler) HandleTrace(w http.ResponseWriter, r *http.Request) {
 					}
 				}
 
-				fields, err := extractFields(r.Context(), extractFieldsParams{
+				fields, err := extractFields(ctx, extractFieldsParams{
 					headers:  r.Header,
 					resource: &resource,
 					span:     &span,
 					curTime:  curTime,
 				})
 				if err != nil {
-					lg(ctx, fields).WithError(err).Info("failed to extract fields from span")
+					lg(ctx, fields).
+						WithError(err).
+						WithField("traceID", span.TraceID().String()).
+						Debug("failed to extract fields from span")
 					continue
 				}
 				traceID := cast(fields.requestID, span.TraceID().String())
@@ -208,15 +206,20 @@ func (o *Handler) HandleTrace(w http.ResponseWriter, r *http.Request) {
 						break
 					}
 					event := events.At(l)
-					fields, err := extractFields(r.Context(), extractFieldsParams{
+					fields, err := extractFields(ctx, extractFieldsParams{
 						headers:  r.Header,
 						resource: &resource,
+						scope:    &scope,
 						span:     &span,
 						event:    &event,
 						curTime:  curTime,
 					})
 					if err != nil {
-						lg(ctx, fields).WithError(err).Info("failed to extract fields from trace")
+						lg(ctx, fields).
+							WithError(err).
+							WithField("traceID", span.TraceID().String()).
+							WithField("event", event.Name()).
+							Debug("failed to extract fields from span event")
 						continue
 					}
 
@@ -305,7 +308,9 @@ func (o *Handler) HandleTrace(w http.ResponseWriter, r *http.Request) {
 					// skip unless workspace setting is on
 					settings, err := o.resolver.Store.GetAllWorkspaceSettingsByProject(ctx, fields.projectIDInt)
 					if err != nil {
-						log.WithContext(ctx).WithError(err).Error("failed to get workspace settings")
+						if !errors.Is(err, gorm.ErrRecordNotFound) {
+							log.WithContext(ctx).WithError(err).Error("failed to get workspace settings")
+						}
 						continue
 					}
 					if settings == nil {
@@ -353,7 +358,7 @@ func (o *Handler) HandleTrace(w http.ResponseWriter, r *http.Request) {
 						Metrics:          []*model.MetricInput{metric},
 					}})
 			}
-			err = o.resolver.ProducerQueue.Submit(ctx, sessionID, messages...)
+			err = o.resolver.AsyncProducerQueue.Submit(ctx, sessionID, messages...)
 			if err != nil {
 				log.WithContext(ctx).WithError(err).Error("failed to submit otel project metrics to public worker queue")
 				w.WriteHeader(http.StatusServiceUnavailable)
@@ -385,29 +390,19 @@ func (o *Handler) HandleTrace(w http.ResponseWriter, r *http.Request) {
 
 func (o *Handler) HandleLog(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
-	body, err := io.ReadAll(r.Body)
+
+	output, err := highlightHttp.GetBody(ctx, r)
 	if err != nil {
-		log.WithContext(ctx).WithError(err).Error("invalid log logBody")
+		log.WithContext(ctx).WithError(err).Error("invalid data format for trace")
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
-	gz, err := gzip.NewReader(bytes.NewReader(body))
-	if err != nil {
-		log.WithContext(ctx).WithError(err).Error("invalid gzip format for log")
-		http.Error(w, err.Error(), http.StatusBadRequest)
-		return
-	}
-
-	output, err := io.ReadAll(gz)
-	if err != nil {
-		log.WithContext(ctx).WithError(err).Error("invalid gzip stream for log")
-		http.Error(w, err.Error(), http.StatusBadRequest)
-		return
-	}
-
+	span, _ := highlight.StartTrace(ctx, "otel.proto")
 	req := plogotlp.NewExportRequest()
 	err = req.UnmarshalProto(output)
+	span.RecordError(err)
+	highlight.EndTrace(span)
 	if err != nil {
 		log.WithContext(ctx).WithError(err).Error("invalid log protobuf")
 		http.Error(w, err.Error(), http.StatusBadRequest)
@@ -424,20 +419,26 @@ func (o *Handler) HandleLog(w http.ResponseWriter, r *http.Request) {
 		resource := resourceLogs.At(i).Resource()
 		scopeLogs := resourceLogs.At(i).ScopeLogs()
 		for j := 0; j < scopeLogs.Len(); j++ {
-			scopeLogs := scopeLogs.At(j)
-			logRecords := scopeLogs.LogRecords()
+			scopeLog := scopeLogs.At(j)
+			scope := scopeLog.Scope()
+			logRecords := scopeLog.LogRecords()
 			for k := 0; k < logRecords.Len(); k++ {
 				logRecord := logRecords.At(k)
 
-				fields, err := extractFields(r.Context(), extractFieldsParams{
+				fields, err := extractFields(ctx, extractFieldsParams{
 					headers:                r.Header,
 					resource:               &resource,
+					scope:                  &scope,
 					logRecord:              &logRecord,
 					curTime:                curTime,
 					herokuProjectExtractor: o.matchHerokuDrain,
 				})
 				if err != nil {
-					lg(ctx, fields).WithError(err).WithField("body", logRecord.Body().AsRaw()).Info("failed to extract fields from log")
+					lg(ctx, fields).
+						WithError(err).
+						WithField("traceID", logRecord.TraceID().String()).
+						WithField("body", logRecord.Body().AsRaw()).
+						Debug("failed to extract fields from log")
 					continue
 				}
 
@@ -466,9 +467,7 @@ func (o *Handler) HandleLog(w http.ResponseWriter, r *http.Request) {
 				}
 
 				_, backendError := getBackendError(ctx, fields.timestamp, fields, traceID, logRecord.SpanID().String(), pointy.String(logRow.Cursor()))
-				if backendError == nil {
-					lg(ctx, fields).Error("otel span error got no session and no project")
-				} else {
+				if backendError != nil {
 					if _, ok := projectSessionErrors[fields.projectID]; !ok {
 						projectSessionErrors[fields.projectID] = make(map[string][]*model.BackendErrorObjectInput)
 					}
@@ -495,44 +494,101 @@ func (o *Handler) HandleLog(w http.ResponseWriter, r *http.Request) {
 
 func (o *Handler) HandleMetric(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
-	body, err := io.ReadAll(r.Body)
+
+	output, err := highlightHttp.GetBody(ctx, r)
 	if err != nil {
-		log.WithContext(ctx).WithError(err).Error("invalid metric body")
+		log.WithContext(ctx).WithError(err).Error("invalid data format for metric")
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
-	gz, err := gzip.NewReader(bytes.NewReader(body))
-	if err != nil {
-		log.WithContext(ctx).WithError(err).Error("invalid gzip format for metric")
-		http.Error(w, err.Error(), http.StatusBadRequest)
-		return
-	}
-
-	output, err := io.ReadAll(gz)
-	if err != nil {
-		log.WithContext(ctx).WithError(err).Error("invalid gzip stream for metric")
-		http.Error(w, err.Error(), http.StatusBadRequest)
-		return
-	}
-
+	span, _ := highlight.StartTrace(ctx, "otel.proto")
 	req := pmetricotlp.NewExportRequest()
 	err = req.UnmarshalProto(output)
+	span.RecordError(err)
+	highlight.EndTrace(span)
 	if err != nil {
 		log.WithContext(ctx).WithError(err).Error("invalid metric protobuf")
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
-	log.WithContext(ctx).
-		WithField("count", req.Metrics().MetricCount()).
-		WithField("dp_count", req.Metrics().DataPointCount()).
-		Info("received otel metrics")
+	var projectMetrics = make(map[int][]clickhouse.MetricRow)
+	var projectRetentions = make(map[int]uint8)
+
+	var curTime = time.Now()
+	resourceMetrics := req.Metrics().ResourceMetrics()
+	for i := 0; i < resourceMetrics.Len(); i++ {
+		resource := resourceMetrics.At(i).Resource()
+		scopeMetrics := resourceMetrics.At(i).ScopeMetrics()
+		for j := 0; j < scopeMetrics.Len(); j++ {
+			scopeMetric := scopeMetrics.At(j)
+			scope := scopeMetric.Scope()
+			metrics := scopeMetric.Metrics()
+			for k := 0; k < metrics.Len(); k++ {
+				metric := metrics.At(k)
+				var dps []DataPoint
+				if metric.Type() == pmetric.MetricTypeGauge {
+					for l := 0; l < metric.Gauge().DataPoints().Len(); l++ {
+						dps = append(dps, &NumberDataPoint{metric.Gauge().DataPoints().At(l)})
+					}
+				} else if metric.Type() == pmetric.MetricTypeSum {
+					for l := 0; l < metric.Sum().DataPoints().Len(); l++ {
+						dps = append(dps, &NumberDataPoint{metric.Sum().DataPoints().At(l)})
+					}
+				} else if metric.Type() == pmetric.MetricTypeHistogram {
+					for l := 0; l < metric.Histogram().DataPoints().Len(); l++ {
+						dps = append(dps, &HistogramDataPoint{metric.Histogram().DataPoints().At(l)})
+					}
+				} else if metric.Type() == pmetric.MetricTypeExponentialHistogram {
+					for l := 0; l < metric.ExponentialHistogram().DataPoints().Len(); l++ {
+						dps = append(dps, &ExponentialHistogramDataPoint{metric.ExponentialHistogram().DataPoints().At(l)})
+					}
+				} else if metric.Type() == pmetric.MetricTypeSummary {
+					for l := 0; l < metric.Summary().DataPoints().Len(); l++ {
+						dps = append(dps, &SummaryDataPoint{metric.Summary().DataPoints().At(l)})
+					}
+				}
+				for _, dp := range dps {
+					fields, err := extractFields(r.Context(), extractFieldsParams{
+						headers:          r.Header,
+						resource:         &resource,
+						scope:            &scope,
+						metric:           &metric,
+						metricAttributes: dp.ExtractAttributes(),
+						curTime:          curTime,
+					})
+					if err != nil {
+						lg(ctx, fields).
+							WithError(err).
+							WithField("name", metric.Name()).
+							Debug("failed to extract fields from metric")
+						continue
+					}
+					if _, ok := projectRetentions[fields.projectIDInt]; !ok {
+						projectRetentions[fields.projectIDInt] = o.getProjectRetention(ctx, fields.projectIDInt)
+					}
+					if _, ok := projectMetrics[fields.projectIDInt]; !ok {
+						projectMetrics[fields.projectIDInt] = []clickhouse.MetricRow{}
+					}
+					projectMetrics[fields.projectIDInt] = append(projectMetrics[fields.projectIDInt], dp.ToMetricRow(ctx, projectRetentions[fields.projectIDInt], metric.Type(), fields))
+				}
+			}
+		}
+	}
+
+	if err := o.submitProjectMetrics(ctx, projectMetrics); err != nil {
+		log.WithContext(ctx).WithError(err).Error("failed to submit otel project metrics")
+		w.WriteHeader(http.StatusServiceUnavailable)
+		return
+	}
 
 	w.WriteHeader(http.StatusOK)
 }
 
 func (o *Handler) getQuotaExceededByProject(ctx context.Context, projectIds map[uint32]struct{}, productType model2.PricingProductType) (map[uint32]bool, error) {
+	span, ctx := highlight.StartTrace(ctx, "otel.getQuotaExceededByProject", attribute.Int("NumProjects", len(projectIds)), attribute.String("ProductType", string(productType)))
+	defer highlight.EndTrace(span)
 	// If it's saved in Redis that a project has exceeded / not exceeded
 	// its quota, use that value. Else, add the projectId to a list of
 	// projects to query.
@@ -587,6 +643,9 @@ func (o *Handler) getQuotaExceededByProject(ctx context.Context, projectIds map[
 }
 
 func (o *Handler) submitProjectLogs(ctx context.Context, projectLogs map[string][]*clickhouse.LogRow) error {
+	span, ctx := highlight.StartTrace(ctx, "otel.submitProjectLogs")
+	defer highlight.EndTrace(span)
+
 	projectIds := map[uint32]struct{}{}
 	for _, logRows := range projectLogs {
 		for _, logRow := range logRows {
@@ -601,18 +660,15 @@ func (o *Handler) submitProjectLogs(ctx context.Context, projectLogs map[string]
 		quotaExceededByProject = map[uint32]bool{}
 	}
 
+	sp, c := highlight.StartTrace(ctx, "otel.upsertServices")
 	var markBackendSetupProjectIds []uint32
 	var filteredRows []*clickhouse.LogRow
 	for _, logRows := range projectLogs {
 		for _, logRow := range logRows {
 			// create service record for any services found in ingested logs
 			if logRow.ServiceName != "" {
-				project, err := o.resolver.Store.GetProject(ctx, int(logRow.ProjectId))
-				if err == nil && project != nil {
-					_, err := o.resolver.Store.UpsertService(ctx, *project, logRow.ServiceName, logRow.LogAttributes)
-					if err != nil {
-						log.WithContext(ctx).Error(e.Wrap(err, "failed to create service"))
-					}
+				if _, err = o.resolver.Store.UpsertService(c, int(logRow.ProjectId), logRow.ServiceName, logRow.LogAttributes); err != nil {
+					log.WithContext(c).Error(e.Wrap(err, "failed to upsert service"))
 				}
 			}
 
@@ -628,17 +684,21 @@ func (o *Handler) submitProjectLogs(ctx context.Context, projectLogs map[string]
 			filteredRows = append(filteredRows, logRow)
 		}
 	}
+	highlight.EndTrace(sp)
 
+	sp, c = highlight.StartTrace(ctx, "otel.markBackendSetupImpl")
 	for _, projectId := range markBackendSetupProjectIds {
-		err := o.resolver.MarkBackendSetupImpl(ctx, int(projectId), model2.MarkBackendSetupTypeLogs)
+		err := o.resolver.MarkBackendSetupImpl(c, int(projectId), model2.MarkBackendSetupTypeLogs)
 		if err != nil {
-			log.WithContext(ctx).WithError(err).Error("failed to mark backend logs setup")
+			log.WithContext(c).WithError(err).Error("failed to mark backend logs setup")
 		}
 	}
+	highlight.EndTrace(sp)
 
+	sp, c = highlight.StartTrace(ctx, "otel.prepareMessages")
 	var messages []kafkaqueue.RetryableMessage
 	for _, logRow := range filteredRows {
-		if !o.resolver.IsLogIngested(ctx, logRow) {
+		if !o.resolver.IsLogIngested(c, logRow) {
 			continue
 		}
 		messages = append(messages, &kafkaqueue.LogRowMessage{
@@ -646,6 +706,8 @@ func (o *Handler) submitProjectLogs(ctx context.Context, projectLogs map[string]
 			LogRow: logRow,
 		})
 	}
+	highlight.EndTrace(sp)
+
 	err = o.resolver.BatchedQueue.Submit(ctx, "", messages...)
 	if err != nil {
 		return e.Wrap(err, "failed to submit otel project logs to public worker queue")
@@ -676,7 +738,7 @@ func (o *Handler) submitProjectSessionErrors(ctx context.Context, projectSession
 		}
 	}
 	for key, messages := range keyedErrorMessages {
-		err := o.resolver.ProducerQueue.Submit(ctx, key, messages...)
+		err := o.resolver.AsyncProducerQueue.Submit(ctx, key, messages...)
 		if err != nil {
 			return e.Wrap(err, "failed to submit otel errors to public worker queue")
 		}
@@ -735,6 +797,73 @@ func (o *Handler) submitTraceSpans(ctx context.Context, traceRows map[string][]*
 	return nil
 }
 
+func (o *Handler) submitProjectMetrics(ctx context.Context, projectMetricRows map[int][]clickhouse.MetricRow) error {
+	projectIds := lo.MapEntries(projectMetricRows, func(p int, _ []clickhouse.MetricRow) (uint32, struct{}) {
+		return uint32(p), struct{}{}
+	})
+	quotaExceededByProject, err := o.getQuotaExceededByProject(ctx, projectIds, model2.PricingProductTypeMetrics)
+	if err != nil {
+		log.WithContext(ctx).Error(err)
+		quotaExceededByProject = map[uint32]bool{}
+	}
+
+	var sumMessages, histogramMessages, summaryMessages []kafkaqueue.RetryableMessage
+	for projectID, metricRows := range projectMetricRows {
+		for _, metricRow := range metricRows {
+			if metricRow == nil {
+				continue
+			}
+			if quotaExceededByProject[uint32(projectID)] {
+				continue
+			}
+			if !o.resolver.IsMetricIngested(ctx, metricRow) {
+				continue
+			}
+			if metricSumRow, ok := metricRow.(*clickhouse.MetricSumRow); ok {
+				sumMessages = append(sumMessages, &kafkaqueue.OTeLMetricSumRow{
+					Type:         kafkaqueue.PushOTeLMetricSum,
+					MetricSumRow: metricSumRow,
+				})
+			}
+			if metricHistogramRow, ok := metricRow.(*clickhouse.MetricHistogramRow); ok {
+				histogramMessages = append(histogramMessages, &kafkaqueue.OTeLMetricHistogramRow{
+					Type:               kafkaqueue.PushOTeLMetricHistogram,
+					MetricHistogramRow: metricHistogramRow,
+				})
+			}
+			if metricSummaryRow, ok := metricRow.(*clickhouse.MetricSummaryRow); ok {
+				summaryMessages = append(summaryMessages, &kafkaqueue.OTeLMetricSummaryRow{
+					Type:             kafkaqueue.PushOTeLMetricSummary,
+					MetricSummaryRow: metricSummaryRow,
+				})
+			}
+		}
+
+		// no ordering for metrics data
+		err := o.resolver.MetricSumQueue.Submit(ctx, "", sumMessages...)
+		if err != nil {
+			return e.Wrap(err, "failed to submit otel project sum metrics to public worker queue")
+		}
+		err = o.resolver.MetricHistogramQueue.Submit(ctx, "", histogramMessages...)
+		if err != nil {
+			return e.Wrap(err, "failed to submit otel project histogram metrics to public worker queue")
+		}
+		err = o.resolver.MetricSummaryQueue.Submit(ctx, "", summaryMessages...)
+		if err != nil {
+			return e.Wrap(err, "failed to submit otel project summary metrics to public worker queue")
+		}
+	}
+
+	for projectId := range projectIds {
+		err := o.resolver.MarkBackendSetupImpl(ctx, int(projectId), model2.MarkBackendSetupTypeMetrics)
+		if err != nil {
+			log.WithContext(ctx).WithError(err).Error("failed to mark backend metrics setup")
+		}
+	}
+
+	return nil
+}
+
 func (o *Handler) matchHerokuDrain(ctx context.Context, herokuDrainToken string) (string, int) {
 	data, err := redis.CachedEval(ctx, o.resolver.Redis, fmt.Sprintf("matchHerokuDrain-%s", herokuDrainToken), time.Minute, time.Second, func() (*int, error) {
 		projectMapping := &model2.IntegrationProjectMapping{
@@ -759,11 +888,34 @@ func (o *Handler) matchHerokuDrain(ctx context.Context, herokuDrainToken string)
 
 func (o *Handler) Listen(r *chi.Mux) {
 	r.Route("/otel/v1", func(r chi.Router) {
-		r.Use(highlightChi.Middleware)
+		r.Use(highlightChi.UseMiddleware(trace.WithSpanKind(trace.SpanKindConsumer)))
 		r.HandleFunc("/traces", o.HandleTrace)
 		r.HandleFunc("/logs", o.HandleLog)
 		r.HandleFunc("/metrics", o.HandleMetric)
 	})
+}
+
+func (o *Handler) getProjectRetention(ctx context.Context, projectID int) uint8 {
+	data, err := redis.CachedEval(ctx, o.resolver.Redis, fmt.Sprintf("getProjectRetention-%d", projectID), time.Minute, time.Second, func() (*uint8, error) {
+		proj, err := o.resolver.Store.GetProject(ctx, projectID)
+		if err != nil {
+			return nil, err
+		}
+
+		ws, err := o.resolver.Store.GetWorkspace(ctx, proj.WorkspaceID)
+		if err != nil {
+			return nil, err
+		}
+
+		hours := time.Since(privateGraph.GetRetentionDate(ws.MetricsRetentionPeriod)).Hours()
+		days := math.Round(hours / 24.)
+		return ptr.Uint8(uint8(days)), nil
+	})
+	if err != nil || data == nil {
+		log.WithContext(ctx).WithError(err).Error("failed to getProjectRetention")
+		return 30
+	}
+	return *data
 }
 
 func New(resolver *graph.Resolver) *Handler {

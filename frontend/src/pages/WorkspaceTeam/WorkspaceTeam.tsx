@@ -63,14 +63,13 @@ const WorkspaceTeam = () => {
 					<Authorization allowedRoles={[AdminRole.Admin]}>
 						<AutoJoinForm />
 					</Authorization>
-					{showModal ? (
-						<InviteMemberModal
-							workspaceId={workspace_id}
-							workspaceName={data?.workspace?.name}
-							workspaceInviteLinks={data?.workspace_invite_links}
-							toggleShowModal={toggleShowModal}
-						/>
-					) : null}
+					<InviteMemberModal
+						workspaceId={workspace_id}
+						workspaceName={data?.workspace?.name}
+						workspaceInviteLinks={data?.workspace_invite_links}
+						showModal={showModal}
+						toggleShowModal={toggleShowModal}
+					/>
 				</div>
 
 				<Tabs<MemberKeyType>

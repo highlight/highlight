@@ -331,11 +331,12 @@ export const LogAlertPage = () => {
 						end_date: moment(endDate).format(TIME_FORMAT),
 					},
 				},
-				column: '',
-				metric_types: MetricAggregator.Count,
 				group_by: 'level',
 				bucket_by: TIMESTAMP_KEY,
 				bucket_count: 48,
+				expressions: [
+					{ aggregator: MetricAggregator.Count, column: '' },
+				],
 			},
 			skip: !projectId,
 		})

@@ -12,7 +12,7 @@ import { vars } from '@highlight-run/ui/vars'
 import { useParams } from '@util/react-router/useParams'
 import { sumBy } from 'lodash'
 import moment from 'moment'
-import React, { useEffect, useMemo, useRef, useState } from 'react'
+import React, { useEffect, useMemo, useState } from 'react'
 import { Helmet } from 'react-helmet'
 import { useNavigate } from 'react-router-dom'
 import { StringParam, useQueryParam } from 'use-query-params'
@@ -44,7 +44,6 @@ import {
 } from '@/graph/generated/hooks'
 import {
 	MetricAggregator,
-	MetricColumn,
 	ProductType,
 	SavedSegmentEntityType,
 	SortDirection,
@@ -65,6 +64,7 @@ import {
 	DEMO_PROJECT_ID,
 	DEMO_WORKSPACE_PROXY_APPLICATION_ID,
 } from '@/components/DemoWorkspaceButton/DemoWorkspaceButton'
+import { GetMetricsQuery } from '@/graph/generated/operations'
 
 export type TracesOutletContext = Partial<Trace>[]
 
@@ -83,7 +83,6 @@ export const TracesPage: React.FC = () => {
 		span_id: string
 		trace_cursor: string
 	}>()
-	const textAreaRef = useRef<HTMLTextAreaElement | null>(null)
 	const [query, setQuery] = useQueryParam('query', QueryParam)
 	const [sortColumn] = useQueryParam(SORT_COLUMN, StringParam)
 	const [sortDirection] = useQueryParam(SORT_DIRECTION, StringParam)
@@ -132,7 +131,6 @@ export const TracesPage: React.FC = () => {
 		variables: {
 			product_type: ProductType.Traces,
 			project_id: projectId!,
-			column: MetricColumn.Duration,
 			group_by: [],
 			params: {
 				query,
@@ -145,18 +143,52 @@ export const TracesPage: React.FC = () => {
 					),
 				},
 			},
-			metric_types: [
-				MetricAggregator.Count,
-				MetricAggregator.Avg,
-				MetricAggregator.P50,
-				MetricAggregator.P90,
-			],
 			bucket_by: TIMESTAMP_KEY,
 			bucket_count: 45,
+			expressions: [
+				{
+					aggregator: MetricAggregator.Count,
+					column: '',
+				},
+				{
+					aggregator: MetricAggregator.Avg,
+					column: 'duration',
+				},
+				{
+					aggregator: MetricAggregator.P50,
+					column: 'duration',
+				},
+				{
+					aggregator: MetricAggregator.P90,
+					column: 'duration',
+				},
+			],
 		},
 		skip: !projectId,
 		fetchPolicy: 'cache-and-network',
 	})
+
+	const durationData: GetMetricsQuery | undefined = metricsData
+		? {
+				metrics: {
+					...metricsData?.metrics,
+					buckets: metricsData.metrics.buckets.filter(
+						(b) => b.column === 'duration',
+					),
+				},
+			}
+		: undefined
+
+	const countData: GetMetricsQuery | undefined = metricsData
+		? {
+				metrics: {
+					...metricsData?.metrics,
+					buckets: metricsData.metrics.buckets.filter(
+						(b) => b.column === '',
+					),
+				},
+			}
+		: undefined
 
 	const fetchMoreWhenScrolled = React.useCallback(
 		(containerRefElement?: HTMLDivElement | null) => {
@@ -318,6 +350,9 @@ export const TracesPage: React.FC = () => {
 					backgroundColor="white"
 					border="dividerWeak"
 					borderRadius="6"
+					flexDirection="column"
+					display="flex"
+					flexGrow={1}
 					height="full"
 					shadow="medium"
 					overflow="hidden"
@@ -333,7 +368,6 @@ export const TracesPage: React.FC = () => {
 						onDatesChange={searchTimeContext.updateSearchTime}
 						productType={ProductType.Traces}
 						savedSegmentType={SavedSegmentEntityType.Trace}
-						textAreaRef={textAreaRef}
 						enableAIMode={
 							workspaceSettings?.workspaceSettings
 								?.ai_query_builder
@@ -428,9 +462,8 @@ export const TracesPage: React.FC = () => {
 								onDatesChange={
 									searchTimeContext.updateSearchTime
 								}
-								metrics={metricsData}
+								metrics={countData}
 								loading={metricsLoading}
-								series={[MetricAggregator.Count]}
 							/>
 						</Box>
 						<Box
@@ -471,31 +504,27 @@ export const TracesPage: React.FC = () => {
 								onDatesChange={
 									searchTimeContext.updateSearchTime
 								}
-								metrics={metricsData}
+								metrics={durationData}
 								loading={metricsLoading}
-								series={[
-									MetricAggregator.P90,
-									MetricAggregator.P50,
-									MetricAggregator.Avg,
-								]}
 								lineChart
 							/>
 						</Box>
 					</Box>
 
-					<TracesList
-						loading={loading}
-						numMoreTraces={moreTraces}
-						traceEdges={traceEdges}
-						handleAdditionalTracesDateChange={
-							searchTimeContext.rebaseSearchTime
-						}
-						resetMoreTraces={clearMoreTraces}
-						fetchMoreWhenScrolled={fetchMoreWhenScrolled}
-						loadingAfter={loadingAfter}
-						textAreaRef={textAreaRef}
-						pollingExpired={pollingExpired}
-					/>
+					<Box height="full" overflow="hidden">
+						<TracesList
+							loading={loading}
+							numMoreTraces={moreTraces}
+							traceEdges={traceEdges}
+							handleAdditionalTracesDateChange={
+								searchTimeContext.rebaseSearchTime
+							}
+							resetMoreTraces={clearMoreTraces}
+							fetchMoreWhenScrolled={fetchMoreWhenScrolled}
+							loadingAfter={loadingAfter}
+							pollingExpired={pollingExpired}
+						/>
+					</Box>
 				</Box>
 			</Box>
 		</SearchContext>

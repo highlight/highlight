@@ -7,7 +7,10 @@ export const setAttributionData = () => {
 	const originalReferrer = Cookies.get('referrer')
 
 	if (referrer && !originalReferrer) {
-		Cookies.set('referrer', referrer, { domain: 'highlight.io' })
+		Cookies.set('referrer', referrer, {
+			domain: 'highlight.io',
+			expires: 365,
+		})
 	}
 }
 

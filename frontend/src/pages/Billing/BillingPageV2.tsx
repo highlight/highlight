@@ -14,6 +14,7 @@ import {
 	IconSolidInformationCircle,
 	IconSolidLightningBolt,
 	IconSolidLogs,
+	IconSolidMetrics,
 	IconSolidPencil,
 	IconSolidPlayCircle,
 	IconSolidTraces,
@@ -25,7 +26,15 @@ import {
 } from '@highlight-run/ui/components'
 import { vars } from '@highlight-run/ui/vars'
 import { BarChart } from '@pages/Graphing/components/BarChart'
-import { TIMESTAMP_KEY } from '@pages/Graphing/components/Graph'
+import {
+	AGGREGATOR_KEY,
+	COLUMN_KEY,
+	getSeriesKey,
+	GROUPS_KEY,
+	SERIES_KEY,
+	TIMESTAMP_KEY,
+	VALUE_KEY,
+} from '@pages/Graphing/components/Graph'
 import { dinero, toDecimal } from 'dinero.js'
 import moment from 'moment'
 import React, { useEffect } from 'react'
@@ -41,7 +50,6 @@ import {
 } from '@/graph/generated/hooks'
 import {
 	AwsMarketplaceSubscription,
-	MetricAggregator,
 	PlanType,
 	ProductType,
 	RetentionPeriod,
@@ -412,15 +420,23 @@ const UsageCard = ({
 				>
 					{usageHistory?.buckets ? (
 						<BarChart
-							data={usageHistory.buckets.map((b) => ({
-								[TIMESTAMP_KEY]:
-									(b.bucket_min + b.bucket_max) / 2,
-								['Ingested']: b.metric_value,
-							}))}
-							yAxisFunction={MetricAggregator.Count}
+							data={usageHistory.buckets.map((b) => {
+								const series = {
+									[AGGREGATOR_KEY]: b.metric_type,
+									[COLUMN_KEY]: b.column,
+									[GROUPS_KEY]: b.group,
+								}
+								const seriesKey = getSeriesKey(series)
+								return {
+									[TIMESTAMP_KEY]:
+										(b.bucket_min + b.bucket_max) / 2,
+									[seriesKey]: {
+										[SERIES_KEY]: series,
+										[VALUE_KEY]: b.metric_value,
+									},
+								}
+							})}
 							xAxisMetric={TIMESTAMP_KEY}
-							yAxisMetric="Ingested"
-							series={['Ingested']}
 							strokeColors={[vars.theme.static.content.moderate]}
 							viewConfig={{
 								type: 'Bar chart',
@@ -503,6 +519,7 @@ const BillingPageV2 = ({}: BillingPageProps) => {
 	const errorsRate = data?.billingDetails.plan.errorsRate ?? 0
 	const logsRate = data?.billingDetails.plan.logsRate ?? 0
 	const tracesRate = data?.billingDetails.plan.tracesRate ?? 0
+	const metricsRate = data?.billingDetails.plan.metricsRate ?? 0
 
 	const sessionsRetention =
 		data?.workspace?.retention_period ?? RetentionPeriod.SixMonths
@@ -510,23 +527,30 @@ const BillingPageV2 = ({}: BillingPageProps) => {
 	const errorsRetention =
 		data?.workspace?.errors_retention_period ?? RetentionPeriod.SixMonths
 
-	const logsRetention = RetentionPeriod.ThirtyDays
-	const tracesRetention = RetentionPeriod.ThirtyDays
+	const logsRetention =
+		data?.workspace?.logs_retention_period ?? RetentionPeriod.ThirtyDays
+	const tracesRetention =
+		data?.workspace?.traces_retention_period ?? RetentionPeriod.ThirtyDays
+	const metricsRetention =
+		data?.workspace?.metrics_retention_period ?? RetentionPeriod.ThirtyDays
 
 	const sessionsUsage = data?.billingDetails.meter ?? 0
 	const errorsUsage = data?.billingDetails.errorsMeter ?? 0
 	const logsUsage = data?.billingDetails.logsMeter ?? 0
 	const tracesUsage = data?.billingDetails.tracesMeter ?? 0
+	const metricsUsage = data?.billingDetails.metricsMeter ?? 0
 
 	const sessionsLimit = data?.billingDetails.sessionsBillingLimit ?? undefined
 	const errorsLimit = data?.billingDetails.errorsBillingLimit ?? undefined
 	const logsLimit = data?.billingDetails.logsBillingLimit ?? undefined
 	const tracesLimit = data?.billingDetails.tracesBillingLimit ?? undefined
+	const metricsLimit = data?.billingDetails.metricsBillingLimit ?? undefined
 
 	const includedSessions = data?.billingDetails.plan.sessionsLimit ?? 0
 	const includedErrors = data?.billingDetails.plan.errorsLimit ?? 0
 	const includedLogs = data?.billingDetails.plan.logsLimit ?? 0
 	const includedTraces = data?.billingDetails.plan.tracesLimit ?? 0
+	const includedMetrics = data?.billingDetails.plan.metricsLimit ?? 0
 
 	const planType = data?.billingDetails.plan.type ?? PlanType.Free
 
@@ -558,6 +582,13 @@ const BillingPageV2 = ({}: BillingPageProps) => {
 			tracesRetention,
 			tracesUsage,
 			includedTraces,
+		) +
+		getCostCents(
+			ProductType.Metrics,
+			metricsRate,
+			metricsRetention,
+			metricsUsage,
+			includedMetrics,
 		)
 
 	const discountRatio = (100 - discountPercent) / 100
@@ -591,6 +622,10 @@ const BillingPageV2 = ({}: BillingPageProps) => {
 
 	const tracesSpendLimit = isPaying
 		? (data?.workspace?.traces_max_cents ?? undefined)
+		: 0
+
+	const metricsSpendLimit = isPaying
+		? (data?.workspace?.metrics_max_cents ?? undefined)
 		: 0
 
 	const hasExtras = baseAmount !== 0 || discountCents !== 0
@@ -794,6 +829,16 @@ const BillingPageV2 = ({}: BillingPageProps) => {
 							usageAmount: tracesUsage,
 							usageLimitAmount: tracesLimit,
 							includedQuantity: includedTraces,
+						},
+						{
+							icon: <IconSolidMetrics />,
+							productType: ProductType.Metrics,
+							rate: metricsRate,
+							retentionPeriod: metricsRetention,
+							billingLimitCents: metricsSpendLimit,
+							usageAmount: metricsUsage,
+							usageLimitAmount: metricsLimit,
+							includedQuantity: includedMetrics,
 						},
 					].map((product, idx) => (
 						<>

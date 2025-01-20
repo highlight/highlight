@@ -1,5 +1,27 @@
 # @highlight-run/react
 
+## 8.1.0
+
+### Minor Changes
+
+-   c647d66: ensure compatibility with react 19 and next 15
+
+## 8.0.3
+
+### Patch Changes
+
+-   Updated dependencies [d0e47ed]
+-   Updated dependencies [f396ee3]
+    -   highlight.run@9.7.3
+
+## 8.0.2
+
+### Patch Changes
+
+-   Updated dependencies [02fad3d]
+-   Updated dependencies [da5662e]
+    -   highlight.run@9.7.2
+
 ## 8.0.1
 
 ### Patch Changes

@@ -27,6 +27,7 @@ import { RubyOtherContent } from './backend/ruby/other'
 import { RubyRailsContent } from './backend/ruby/rails'
 import { RustActixContent } from './backend/rust/actix'
 import { RustOtherContent } from './backend/rust/other'
+import { ElixirOtherContent } from './backend/elixir/other'
 import { AngularContent } from './frontend/angular'
 import { ElectronContext } from './frontend/electron'
 import { GatsbyContent } from './frontend/gatsby'
@@ -55,11 +56,13 @@ import { JSWinstonHTTPJSONLogContent } from './logging/js/winston'
 import { OTLPLoggingContent } from './logging/otlp'
 import { PHPOtherLogContent } from './logging/php/other'
 import { PythonLoguruLogContent } from './logging/python/loguru'
+import { PythonOtelLogContent } from './logging/python/otel'
 import { PythonOtherLogContent } from './logging/python/other'
 import { RubyOtherLogContent } from './logging/ruby/other'
 import { RubyRailsLogContent } from './logging/ruby/rails'
 import { RustActixLogContent } from './logging/rust/actix'
 import { RustOtherLogContent } from './logging/rust/other'
+import { ElixirOtherLogContent } from './logging/elixir/other'
 import { SyslogContent } from './logging/syslog'
 import { SystemdContent } from './logging/systemd'
 import { DevDeploymentContent } from './self-host/dev-deploy'
@@ -135,6 +138,7 @@ export enum QuickStartType {
 	PythonDjango = 'django',
 	PythonFastAPI = 'fastapi',
 	PythonLoguru = 'loguru',
+	PythonOtel = 'otel',
 	PythonOther = 'other',
 	PythonAWSFn = 'aws-lambda-python',
 	PythonAzureFn = 'azure-functions',
@@ -173,6 +177,7 @@ export enum QuickStartType {
 	RubyRails = 'rails',
 	RustOther = 'other',
 	RustActix = 'actix',
+	ElixirOther = 'other',
 	JavaOther = 'other',
 	HostingVercel = 'vercel',
 	HostingFlyIO = 'fly-io',
@@ -264,6 +269,13 @@ export const quickStartContent = {
 			[QuickStartType.RustActix]: RustActixContent,
 			[QuickStartType.RustOther]: RustOtherContent,
 		},
+		elixir: {
+			title: 'Elixir',
+			subtitle:
+				'Select your Elixir framework to install error monitoring for your application.',
+			logoUrl: siteUrl('/images/quickstart/elixir.svg'),
+			[QuickStartType.ElixirOther]: ElixirOtherContent,
+		},
 		java: {
 			title: 'Java',
 			subtitle:
@@ -304,6 +316,7 @@ export const quickStartContent = {
 			logoUrl: siteUrl('/images/quickstart/python.svg'),
 			[QuickStartType.PythonLoguru]: PythonLoguruLogContent,
 			[QuickStartType.PythonOther]: PythonOtherLogContent,
+			[QuickStartType.PythonOtel]: PythonOtelLogContent,
 		},
 		go: {
 			title: 'Go',
@@ -351,6 +364,13 @@ export const quickStartContent = {
 			logoUrl: siteUrl('/images/quickstart/rust.svg'),
 			[QuickStartType.RustActix]: RustActixLogContent,
 			[QuickStartType.RustOther]: RustOtherLogContent,
+		},
+		elixir: {
+			title: 'Elixir',
+			subtitle:
+				'Select your Elixir framework to install logging in your application.',
+			logoUrl: siteUrl('/images/quickstart/elixir.svg'),
+			[QuickStartType.ElixirOther]: ElixirOtherLogContent,
 		},
 		java: {
 			title: 'Java',

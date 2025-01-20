@@ -4,21 +4,47 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"hash/fnv"
-	"regexp"
-	"time"
-
 	"github.com/aws/smithy-go/ptr"
 	"github.com/google/uuid"
-	e "github.com/pkg/errors"
-	log "github.com/sirupsen/logrus"
-
 	"github.com/highlight-run/highlight/backend/clickhouse"
 	"github.com/highlight-run/highlight/backend/model"
 	"github.com/highlight-run/highlight/backend/parser"
 	privateModel "github.com/highlight-run/highlight/backend/private-graph/graph/model"
 	modelInputs "github.com/highlight-run/highlight/backend/public-graph/graph/model"
+	"github.com/highlight/highlight/sdk/highlight-go"
+	e "github.com/pkg/errors"
+	log "github.com/sirupsen/logrus"
+	"go.opentelemetry.io/otel/attribute"
+	"hash/fnv"
+	"regexp"
+	"time"
 )
+
+func (r *Resolver) IsMetricIngested(ctx context.Context, metric clickhouse.MetricRow) bool {
+	if !r.IsMetricIngestedByFilter(ctx, metric) {
+		return false
+	}
+	if !r.IsMetricIngestedBySample(ctx, metric) {
+		return false
+	}
+	if !r.IsMetricIngestedByRateLimit(ctx, metric) {
+		return false
+	}
+	return true
+}
+
+func (r *Resolver) IsMetricIngestedBySample(_ context.Context, _ clickhouse.MetricRow) bool {
+	// metrics cannot be sampled on ingest
+	return true
+}
+
+func (r *Resolver) IsMetricIngestedByRateLimit(ctx context.Context, metric clickhouse.MetricRow) bool {
+	return r.isItemIngestedByRate(ctx, metric.GetTimestamp(), privateModel.ProductTypeMetrics, int(metric.GetProjectId()))
+}
+
+func (r *Resolver) IsMetricIngestedByFilter(ctx context.Context, metric clickhouse.MetricRow) bool {
+	return r.isItemIngestedByFilter(ctx, privateModel.ProductTypeMetrics, int(metric.GetProjectId()), metric)
+}
 
 func (r *Resolver) IsTraceIngested(ctx context.Context, trace *clickhouse.TraceRow) bool {
 	if !r.IsTraceIngestedByFilter(ctx, trace) {
@@ -46,13 +72,25 @@ func (r *Resolver) IsTraceIngestedByFilter(ctx context.Context, trace *clickhous
 }
 
 func (r *Resolver) IsLogIngested(ctx context.Context, logRow *clickhouse.LogRow) bool {
+	span, ctx := highlight.StartTrace(ctx,
+		"sampling.IsIngestedBy",
+		attribute.Int("project", int(logRow.ProjectId)),
+		attribute.String(highlight.TraceKeyAttribute, logRow.UUID),
+		attribute.String("product", string(privateModel.ProductTypeLogs)),
+		attribute.Bool("ingested", true),
+	)
+	defer span.End()
+
 	if !r.IsLogIngestedBySample(ctx, logRow) {
+		span.SetAttributes(attribute.Bool("ingested", false), attribute.String("reason", string(privateModel.IngestReasonSample)))
 		return false
 	}
 	if !r.IsLogIngestedByFilter(ctx, logRow) {
+		span.SetAttributes(attribute.Bool("ingested", false), attribute.String("reason", string(privateModel.IngestReasonFilter)))
 		return false
 	}
 	if !r.IsLogIngestedByRateLimit(ctx, logRow) {
+		span.SetAttributes(attribute.Bool("ingested", false), attribute.String("reason", string(privateModel.IngestReasonRate)))
 		return false
 	}
 	return true
@@ -266,6 +304,8 @@ func (r *Resolver) isItemIngestedBySample(ctx context.Context, product privateMo
 			return settings.LogSamplingRate
 		case privateModel.ProductTypeTraces:
 			return settings.TraceSamplingRate
+		case privateModel.ProductTypeMetrics:
+			return settings.MetricSamplingRate
 		}
 		return 1.
 	}()
@@ -289,6 +329,8 @@ func (r *Resolver) isItemIngestedByRate(ctx context.Context, when time.Time, pro
 			return settings.LogMinuteRateLimit
 		case privateModel.ProductTypeTraces:
 			return settings.TraceMinuteRateLimit
+		case privateModel.ProductTypeMetrics:
+			return settings.MetricMinuteRateLimit
 		}
 		return nil
 	}()
@@ -315,6 +357,8 @@ func (r *Resolver) isItemIngestedByFilter(ctx context.Context, product privateMo
 			return ptr.ToString(settings.LogExclusionQuery)
 		case privateModel.ProductTypeTraces:
 			return ptr.ToString(settings.TraceExclusionQuery)
+		case privateModel.ProductTypeMetrics:
+			return ptr.ToString(settings.MetricExclusionQuery)
 		}
 		return ""
 	}()
@@ -336,6 +380,9 @@ func (r *Resolver) isItemIngestedByFilter(ctx context.Context, product privateMo
 		case privateModel.ProductTypeTraces:
 			filters := parser.Parse(query, clickhouse.TracesTableNoDefaultConfig)
 			return clickhouse.TraceMatchesQuery(object.(*clickhouse.TraceRow), filters)
+		case privateModel.ProductTypeMetrics:
+			// TODO(vkorolik) implement metrics querying
+			return false
 		}
 		return false
 	}()

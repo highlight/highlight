@@ -479,9 +479,9 @@ func (client *Client) DeleteSessions(ctx context.Context, projectId int, session
 }
 
 var SessionsTableConfig = model.TableConfig{
-	TableName:        SessionsTable,
-	KeysToColumns:    fieldMap,
-	AttributesColumn: "Fields",
+	TableName:         SessionsTable,
+	KeysToColumns:     fieldMap,
+	AttributesColumns: []model.ColumnMapping{{Column: "Fields"}},
 	ReservedKeys: lo.Map(modelInputs.AllReservedSessionKey, func(item modelInputs.ReservedSessionKey, _ int) string {
 		return item.String()
 	}),
@@ -496,10 +496,10 @@ var reservedSessionKeys = lo.Map(modelInputs.AllReservedSessionKey, func(key mod
 })
 
 var SessionsJoinedTableConfig = model.TableConfig{
-	TableName:        SessionsJoinedTable,
-	AttributesColumn: "RelevantFields",
-	AttributesTable:  "fields",
-	BodyColumn:       `concat(coalesce(nullif(arrayFilter((k, v) -> k = 'email', RelevantFields) [1].2,''), nullif(Identifier, ''), nullif(arrayFilter((k, v) -> k = 'device_id', RelevantFields) [1].2, ''), 'unidentified'), ': ', City, if(City != '', ', ', ''), Country)`,
+	TableName:         SessionsJoinedTable,
+	AttributesColumns: []model.ColumnMapping{{Column: "RelevantFields"}},
+	AttributesTable:   "fields",
+	BodyColumn:        `concat(coalesce(nullif(arrayFilter((k, v) -> k = 'email', RelevantFields) [1].2,''), nullif(Identifier, ''), nullif(arrayFilter((k, v) -> k = 'device_id', RelevantFields) [1].2, ''), 'unidentified'), ': ', City, if(City != '', ', ', ''), Country)`,
 	KeysToColumns: map[string]string{
 		string(modelInputs.ReservedSessionKeyActiveLength):       "ActiveLength",
 		string(modelInputs.ReservedSessionKeyServiceVersion):     "AppVersion",
@@ -546,13 +546,11 @@ var SessionsSampleableTableConfig = SampleableTableConfig{
 	tableConfig: SessionsJoinedTableConfig,
 }
 
-func (client *Client) ReadSessionsMetrics(ctx context.Context, projectID int, params modelInputs.QueryInput, column string, metricTypes []modelInputs.MetricAggregator, groupBy []string, nBuckets *int, bucketBy string, bucketWindow *int, limit *int, limitAggregator *modelInputs.MetricAggregator, limitColumn *string) (*modelInputs.MetricsBuckets, error) {
+func (client *Client) ReadSessionsMetrics(ctx context.Context, projectID int, params modelInputs.QueryInput, groupBy []string, nBuckets *int, bucketBy string, bucketWindow *int, limit *int, limitAggregator *modelInputs.MetricAggregator, limitColumn *string, expressions []*modelInputs.MetricExpressionInput) (*modelInputs.MetricsBuckets, error) {
 	return client.ReadMetrics(ctx, ReadMetricsInput{
 		SampleableConfig: SessionsSampleableTableConfig,
 		ProjectIDs:       []int{projectID},
 		Params:           params,
-		Column:           column,
-		MetricTypes:      metricTypes,
 		GroupBy:          groupBy,
 		BucketCount:      nBuckets,
 		BucketWindow:     bucketWindow,
@@ -560,6 +558,7 @@ func (client *Client) ReadSessionsMetrics(ctx context.Context, projectID int, pa
 		Limit:            limit,
 		LimitAggregator:  limitAggregator,
 		LimitColumn:      limitColumn,
+		Expressions:      expressions,
 	})
 }
 
@@ -569,10 +568,11 @@ func (client *Client) ReadWorkspaceSessionCounts(ctx context.Context, projectIDs
 		SampleableConfig: SessionsSampleableTableConfig,
 		ProjectIDs:       projectIDs,
 		Params:           params,
-		Column:           "",
-		MetricTypes:      []modelInputs.MetricAggregator{modelInputs.MetricAggregatorCount},
 		BucketCount:      pointy.Int(12),
 		BucketBy:         modelInputs.MetricBucketByTimestamp.String(),
+		Expressions: []*modelInputs.MetricExpressionInput{{
+			Aggregator: modelInputs.MetricAggregatorCount,
+		}},
 	})
 }
 
@@ -678,8 +678,10 @@ func (client *Client) GetConn() driver.Conn {
 func getAttributeFields(config model.TableConfig, filters listener.Filters) []string {
 	attributeFields := []string{"email", "device_id"}
 	for _, f := range filters {
-		if f.Column == config.AttributesColumn {
-			attributeFields = append(attributeFields, f.Key)
+		for _, c := range config.AttributesColumns {
+			if f.Column == c.Column {
+				attributeFields = append(attributeFields, f.Key)
+			}
 		}
 		attributeFields = append(attributeFields, getAttributeFields(config, f.Filters)...)
 	}
@@ -690,7 +692,7 @@ func addAttributes(config model.TableConfig, attributeFields []string, projectId
 	if config.AttributesTable != "" {
 		joinSb := sqlbuilder.NewSelectBuilder()
 		joinSb.From(config.AttributesTable).
-			Select(fmt.Sprintf("SessionID, groupArray(tuple(Name, Value)) AS %s", config.AttributesColumn)).
+			Select(fmt.Sprintf("SessionID, groupArray(tuple(Name, Value)) AS %s", model.GetAttributesColumn(config.AttributesColumns, ""))).
 			Where(joinSb.In("ProjectID", projectIds)).
 			Where(joinSb.GreaterEqualThan("SessionCreatedAt", params.DateRange.StartDate)).
 			Where(joinSb.LessEqualThan("SessionCreatedAt", params.DateRange.EndDate)).

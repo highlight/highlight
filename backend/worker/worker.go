@@ -344,9 +344,9 @@ func (w *Worker) processPublicWorkerMessage(ctx context.Context, task *kafkaqueu
 			attribute.Bool("success", err == nil),
 		}
 		if s != nil {
-			tags = append(tags, attribute.String("secure_id", s.SecureID), attribute.Int("project_id", s.ProjectID))
+			tags = append(tags, attribute.Int("project_id", s.ProjectID))
 		}
-		hmetric.Incr(ctx, "worker.initializeSession.count", tags, 1)
+		hmetric.Incr(ctx, "worker.session.initialize.count", tags, 1)
 		if err != nil {
 			log.WithContext(ctx).WithError(err).WithField("type", task.Type).WithField("key", string(task.KafkaMessage.Key)).Error("failed to process task")
 			return err
@@ -456,8 +456,22 @@ func (w *Worker) PublicWorker(ctx context.Context, topic kafkaqueue.TopicType) {
 		QueueSize:    sys.DataSyncQueueSize,
 		FlushTimeout: sys.DataSyncTimeout,
 	}
+	workers := []WorkerConfig{mainConfig, logsConfig, tracesConfig, dataSyncConfig}
+	for _, tp := range []kafkaqueue.TopicType{
+		kafkaqueue.TopicTypeMetricSum,
+		kafkaqueue.TopicTypeMetricHistogram,
+		kafkaqueue.TopicTypeMetricSummary,
+	} {
+		workers = append(workers, WorkerConfig{
+			Topic:        tp,
+			Workers:      sys.MetricWorkers,
+			FlushSize:    sys.MetricFlushSize,
+			QueueSize:    sys.MetricQueueSize,
+			FlushTimeout: sys.MetricFlushTimeout,
+		})
+	}
 
-	kafkaWorkerConfigs := lo.Filter([]WorkerConfig{mainConfig, logsConfig, tracesConfig, dataSyncConfig}, func(cfg WorkerConfig, _ int) bool {
+	kafkaWorkerConfigs := lo.Filter(workers, func(cfg WorkerConfig, _ int) bool {
 		return cfg.Topic == topic
 	})
 
@@ -476,7 +490,6 @@ func (w *Worker) PublicWorker(ctx context.Context, topic kafkaqueue.TopicType) {
 		for i := 0; i < cfg.Workers; i++ {
 			if cfg.Topic == kafkaqueue.TopicTypeDefault {
 				go func(config WorkerConfig, workerId int) {
-					ctx := context.Background()
 					k := KafkaWorker{
 						KafkaQueue: kafkaqueue.New(ctx,
 							kafkaqueue.GetTopic(kafkaqueue.GetTopicOptions{Type: kafkaqueue.TopicTypeDefault}),
@@ -489,12 +502,11 @@ func (w *Worker) PublicWorker(ctx context.Context, topic kafkaqueue.TopicType) {
 						Worker:       w,
 						WorkerThread: workerId,
 					}
-					k.ProcessMessages(ctx)
+					k.ProcessMessages()
 					wg.Done()
 				}(cfg, i)
 			} else {
 				go func(config WorkerConfig, workerId int) {
-					ctx := context.Background()
 					k := KafkaBatchWorker{
 						KafkaQueue: kafkaqueue.New(
 							ctx,
@@ -507,7 +519,7 @@ func (w *Worker) PublicWorker(ctx context.Context, topic kafkaqueue.TopicType) {
 						Name:                string(config.Topic),
 						TracingDisabled:     config.TracingDisabled,
 					}
-					k.ProcessMessages(ctx)
+					k.ProcessMessages()
 					wg.Done()
 				}(cfg, i)
 			}
@@ -845,23 +857,15 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 		}
 	}
 
-	highlight.RecordMetric(
+	highlight.RecordHistogram(
 		ctx, mgraph.SessionActiveMetricName, float64(accumulator.ActiveDuration),
 		attribute.Bool("Excluded", false),
 		attribute.Bool("Processed", true),
-		attribute.Int(highlight.ProjectIDAttribute, s.ProjectID),
-		attribute.String(highlight.SessionIDAttribute, s.SecureID),
-		attribute.String(highlight.TraceTypeAttribute, string(highlight.TraceTypeHighlightInternal)),
-		attribute.String(highlight.TraceKeyAttribute, s.SecureID),
 	)
-	highlight.RecordMetric(
-		ctx, mgraph.SessionProcessedMetricName, float64(s.ID),
+	highlight.RecordCount(
+		ctx, mgraph.SessionProcessedMetricName, 1,
 		attribute.Bool("Excluded", false),
 		attribute.Bool("Processed", true),
-		attribute.Int(highlight.ProjectIDAttribute, s.ProjectID),
-		attribute.String(highlight.SessionIDAttribute, s.SecureID),
-		attribute.String(highlight.TraceTypeAttribute, string(highlight.TraceTypeHighlightInternal)),
-		attribute.String(highlight.TraceKeyAttribute, s.SecureID),
 	)
 	if err := w.PublicResolver.PushMetricsImpl(ctx, nil, &s.SecureID, []*publicModel.MetricInput{
 		{
@@ -1012,7 +1016,7 @@ func (w *Worker) GetSessionsToProcess(ctx context.Context, payloadLookbackPeriod
 	})
 
 	// Sends a "count" metric to datadog so that we can see how many sessions are being queried.
-	hmetric.Histogram(ctx, "worker.sessionsQuery.sessionCount", float64(len(sessions)), nil, 1)
+	hmetric.Histogram(ctx, "worker.session.process.query.count", float64(len(sessions)), nil, 1)
 
 	return sessions, nil
 }
@@ -1034,7 +1038,7 @@ func (w *Worker) Start(ctx context.Context) {
 			continue
 		}
 		// Sends a "count" metric so that we can see how many sessions are being queried.
-		hmetric.Histogram(ctx, "worker.sessionsQuery.sessionCount", float64(len(sessions)), nil, 1) //nolint
+		hmetric.Histogram(ctx, "worker.session.query.count", float64(len(sessions)), nil, 1) //nolint
 
 		type SessionLog struct {
 			SessionID int
@@ -1067,7 +1071,7 @@ func (w *Worker) Start(ctx context.Context) {
 					vmStat, _ = mem.VirtualMemory()
 				}
 
-				span, ctx := util.StartSpanFromContext(ctx, "worker.operation", util.ResourceName("worker.processSession"), util.Tag("project_id", session.ProjectID), util.Tag("session_secure_id", session.SecureID))
+				span, ctx := util.StartSpanFromContext(ctx, "worker.operation", util.ResourceName("worker.process.session"), util.Tag("project_id", session.ProjectID), util.Tag("session_secure_id", session.SecureID))
 				if err := w.processSession(ctx, session); err != nil {
 					nextCount := session.RetryCount + 1
 					var excluded bool
@@ -1103,7 +1107,7 @@ func (w *Worker) Start(ctx context.Context) {
 				if err := w.Resolver.Redis.RemoveSessionToProcess(ctx, session.ID); err != nil {
 					log.WithContext(ctx).Error(err)
 				}
-				hmetric.Incr(ctx, "sessionsProcessed", nil, 1)
+				hmetric.Incr(ctx, "worker.session.process.count", nil, 1)
 				span.Finish()
 			})
 		}
@@ -1144,6 +1148,33 @@ func (w *Worker) StartSessionDeleteJob(ctx context.Context) {
 	for range time.Tick(time.Hour * 24) {
 		deleteHandlers.ProcessRetentionDeletions(ctx)
 	}
+}
+
+func (w *Worker) ScheduledTasks(ctx context.Context) {
+	go w.StartLogAlertWatcher(ctx)
+	go w.StartMetricAlertWatcher(ctx)
+	go w.StartSessionDeleteJob(ctx)
+	go func() {
+		w.ReportStripeUsage(ctx)
+		for range time.Tick(time.Hour) {
+			w.ReportStripeUsage(ctx)
+		}
+	}()
+	go func() {
+		w.RefreshMaterializedViews(ctx)
+		for range time.Tick(time.Hour) {
+			w.RefreshMaterializedViews(ctx)
+		}
+	}()
+	go func() {
+		w.AutoResolveStaleErrors(ctx)
+		for range time.Tick(time.Minute) {
+			w.AutoResolveStaleErrors(ctx)
+		}
+	}()
+
+	// block forever
+	select {}
 }
 
 func (w *Worker) RefreshMaterializedViews(ctx context.Context) {
@@ -1190,6 +1221,7 @@ func (w *Worker) RefreshMaterializedViews(ctx context.Context) {
 		ErrorCount   int64 `json:"error_count"`
 		LogCount     int64 `json:"log_count"`
 		TraceCount   int64 `json:"trace_count"`
+		MetricCount  int64 `json:"metric_count"`
 	}
 	var counts []*AggregateSessionCount
 
@@ -1238,6 +1270,13 @@ func (w *Worker) RefreshMaterializedViews(ctx context.Context) {
 			EndDate:   time.Now(),
 		})
 		c.TraceCount = int64(count)
+		count, _ = w.Resolver.ClickhouseClient.ReadMetricsDailySum(ctx, lo.Map(workspace.Projects, func(p model.Project, index int) int {
+			return p.ID
+		}), backend.DateRangeRequiredInput{
+			StartDate: time.Now().AddDate(0, 0, -1),
+			EndDate:   time.Now(),
+		})
+		c.MetricCount = int64(count)
 	}
 
 	for _, c := range counts {
@@ -1246,6 +1285,7 @@ func (w *Worker) RefreshMaterializedViews(ctx context.Context) {
 			attribute.Int64(phonehome.ErrorCount, c.ErrorCount),
 			attribute.Int64(phonehome.LogCount, c.LogCount),
 			attribute.Int64(phonehome.TraceCount, c.TraceCount),
+			attribute.Int64(phonehome.MetricCount, c.MetricCount),
 		})
 	}
 }
@@ -1330,10 +1370,18 @@ func (w *Worker) GetHandler(ctx context.Context, handlerFlag util.Handler) func(
 		return w.GetPublicWorker(kafkaqueue.TopicTypeDataSync)
 	case util.PublicWorkerTraces:
 		return w.GetPublicWorker(kafkaqueue.TopicTypeTraces)
+	case util.PublicWorkerMetricSum:
+		return w.GetPublicWorker(kafkaqueue.TopicTypeMetricSum)
+	case util.PublicWorkerMetricSummary:
+		return w.GetPublicWorker(kafkaqueue.TopicTypeMetricHistogram)
+	case util.PublicWorkerMetricHistogram:
+		return w.GetPublicWorker(kafkaqueue.TopicTypeMetricSummary)
 	case util.AutoResolveStaleErrors:
 		return w.AutoResolveStaleErrors
 	case util.StartSessionDeleteJob:
 		return w.StartSessionDeleteJob
+	case util.ScheduledTasks:
+		return w.ScheduledTasks
 	case "":
 		// no handler provided defaults to the session worker
 		return w.Start

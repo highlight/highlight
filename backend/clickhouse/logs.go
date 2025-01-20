@@ -54,12 +54,12 @@ var reservedLogKeys = lo.Map(modelInputs.AllReservedLogKey, func(key modelInputs
 })
 
 var LogsTableConfig = model.TableConfig{
-	TableName:        LogsTable,
-	KeysToColumns:    logKeysToColumns,
-	ReservedKeys:     reservedLogKeys,
-	BodyColumn:       "Body",
-	SeverityColumn:   "SeverityText",
-	AttributesColumn: "LogAttributes",
+	TableName:         LogsTable,
+	KeysToColumns:     logKeysToColumns,
+	ReservedKeys:      reservedLogKeys,
+	BodyColumn:        "Body",
+	SeverityColumn:    "SeverityText",
+	AttributesColumns: []model.ColumnMapping{{Column: "LogAttributes"}},
 	SelectColumns: []string{
 		"ProjectId",
 		"Timestamp",
@@ -78,11 +78,11 @@ var LogsTableConfig = model.TableConfig{
 }
 
 var logsSamplingTableConfig = model.TableConfig{
-	TableName:        LogsSamplingTable,
-	KeysToColumns:    logKeysToColumns,
-	ReservedKeys:     reservedLogKeys,
-	BodyColumn:       "Body",
-	AttributesColumn: "LogAttributes",
+	TableName:         LogsSamplingTable,
+	KeysToColumns:     logKeysToColumns,
+	ReservedKeys:      reservedLogKeys,
+	BodyColumn:        "Body",
+	AttributesColumns: []model.ColumnMapping{{Column: "LogAttributes"}},
 }
 
 var LogsSampleableTableConfig = SampleableTableConfig{
@@ -293,25 +293,21 @@ type number interface {
 	uint64 | float64
 }
 
-func (client *Client) ReadTracesDailySum(ctx context.Context, projectIds []int, dateRange modelInputs.DateRangeRequiredInput) (uint64, error) {
-	return readDailyImpl[uint64](ctx, client, "trace_count_daily_mv", "sum", projectIds, dateRange)
-}
-
-func (client *Client) ReadTracesDailyAverage(ctx context.Context, projectIds []int, dateRange modelInputs.DateRangeRequiredInput) (float64, error) {
-	return readDailyImpl[float64](ctx, client, "trace_count_daily_mv", "avg", projectIds, dateRange)
-}
-
 func (client *Client) ReadLogsDailySum(ctx context.Context, projectIds []int, dateRange modelInputs.DateRangeRequiredInput) (uint64, error) {
-	return readDailyImpl[uint64](ctx, client, "log_count_daily_mv", "sum", projectIds, dateRange)
+	return readDailyImpl[uint64](ctx, client, "log_count_daily_mv", "sum", projectIds, dateRange, nil)
 }
 
 func (client *Client) ReadLogsDailyAverage(ctx context.Context, projectIds []int, dateRange modelInputs.DateRangeRequiredInput) (float64, error) {
-	return readDailyImpl[float64](ctx, client, "log_count_daily_mv", "avg", projectIds, dateRange)
+	return readDailyImpl[float64](ctx, client, "log_count_daily_mv", "avg", projectIds, dateRange, nil)
 }
 
-func readDailyImpl[N number](ctx context.Context, client *Client, table string, aggFn string, projectIds []int, dateRange modelInputs.DateRangeRequiredInput) (N, error) {
+func readDailyImpl[N number](ctx context.Context, client *Client, table string, aggFn string, projectIds []int, dateRange modelInputs.DateRangeRequiredInput, distinct []string) (N, error) {
 	sb := sqlbuilder.NewSelectBuilder()
-	sb.Select(fmt.Sprintf("COALESCE(%s(Count), 0) AS Count", aggFn)).
+	sel := fmt.Sprintf("%s(Count)", aggFn)
+	if len(distinct) > 0 {
+		sel = fmt.Sprintf("%s(DISTINCT %s)", aggFn, strings.Join(distinct, ", "))
+	}
+	sb.Select(fmt.Sprintf("COALESCE(%s, 0) AS Count", sel)).
 		From(table).
 		Where(sb.In("ProjectId", projectIds)).
 		Where(sb.LessThan("toUInt64(Day)", uint64(dateRange.EndDate.Unix()))).
@@ -452,13 +448,11 @@ func (client *Client) ReadLogsHistogram(ctx context.Context, projectID int, para
 	return histogram, err
 }
 
-func (client *Client) ReadLogsMetrics(ctx context.Context, projectID int, params modelInputs.QueryInput, column string, metricTypes []modelInputs.MetricAggregator, groupBy []string, nBuckets *int, bucketBy string, bucketWindow *int, limit *int, limitAggregator *modelInputs.MetricAggregator, limitColumn *string) (*modelInputs.MetricsBuckets, error) {
+func (client *Client) ReadLogsMetrics(ctx context.Context, projectID int, params modelInputs.QueryInput, groupBy []string, nBuckets *int, bucketBy string, bucketWindow *int, limit *int, limitAggregator *modelInputs.MetricAggregator, limitColumn *string, expressions []*modelInputs.MetricExpressionInput) (*modelInputs.MetricsBuckets, error) {
 	return client.ReadMetrics(ctx, ReadMetricsInput{
 		SampleableConfig: LogsSampleableTableConfig,
 		ProjectIDs:       []int{projectID},
 		Params:           params,
-		Column:           column,
-		MetricTypes:      metricTypes,
 		GroupBy:          groupBy,
 		BucketCount:      nBuckets,
 		BucketWindow:     bucketWindow,
@@ -466,6 +460,7 @@ func (client *Client) ReadLogsMetrics(ctx context.Context, projectID int, params
 		Limit:            limit,
 		LimitAggregator:  limitAggregator,
 		LimitColumn:      limitColumn,
+		Expressions:      expressions,
 	})
 }
 
@@ -475,10 +470,11 @@ func (client *Client) ReadWorkspaceLogCounts(ctx context.Context, projectIDs []i
 		SampleableConfig: LogsSampleableTableConfig,
 		ProjectIDs:       projectIDs,
 		Params:           params,
-		Column:           "",
-		MetricTypes:      []modelInputs.MetricAggregator{modelInputs.MetricAggregatorCount},
 		BucketCount:      pointy.Int(12),
 		BucketBy:         modelInputs.MetricBucketByTimestamp.String(),
+		Expressions: []*modelInputs.MetricExpressionInput{{
+			Aggregator: modelInputs.MetricAggregatorCount,
+		}},
 	})
 }
 

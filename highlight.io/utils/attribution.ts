@@ -51,20 +51,22 @@ export const setAttributionData = () => {
 	referrer.documentReferrer = document.referrer
 
 	const urlParams = new URLSearchParams(window.location.search)
-	if (urlParams.get('ref')) {
-		referrer = { ...referrer, referrer: urlParams.get('ref') }
+	const referrerParams = {
+		utm_source: urlParams.get('utm_source'),
+		utm_medium: urlParams.get('utm_medium'),
+		utm_campaign: urlParams.get('utm_campaign'),
+		utm_content: urlParams.get('utm_content'),
+		utm_term: urlParams.get('utm_term'),
+		device: urlParams.get('device'),
+		gclid: urlParams.get('gclid'),
+		ref: urlParams.get('ref'),
 	}
-	if (urlParams.get('utm_source')) {
-		referrer = {
-			...referrer,
-			utm_source: urlParams.get('utm_source'),
-			utm_medium: urlParams.get('utm_medium'),
-			utm_campaign: urlParams.get('utm_campaign'),
-			utm_content: urlParams.get('utm_content'),
-			utm_term: urlParams.get('utm_term'),
-			device: urlParams.get('device'),
-			gclid: urlParams.get('gclid'),
-		}
+
+	referrer = {
+		...referrer,
+		...Object.fromEntries(
+			Object.entries(referrerParams).filter(([_, value]) => !!value),
+		),
 	}
 
 	const pathRef =
@@ -80,6 +82,7 @@ export const setAttributionData = () => {
 	identify(clientID, referrer)
 	Cookies.set('referrer', JSON.stringify(referrer), {
 		domain,
+		expires: 365,
 	})
 
 	return referrer

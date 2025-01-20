@@ -47,8 +47,8 @@ func NewClient(dbName string) (*Client, error) {
 		for {
 			stats := conn.Stats()
 			log.WithContext(context.Background()).WithField("Open", stats.Open).WithField("Idle", stats.Idle).WithField("MaxOpenConns", stats.MaxOpenConns).WithField("MaxIdleConns", stats.MaxIdleConns).Debug("Clickhouse Connection Stats")
-			hmetric.Histogram(context.Background(), "clickhouse.open", float64(stats.Open), nil, 1)
-			hmetric.Histogram(context.Background(), "clickhouse.idle", float64(stats.Idle), nil, 1)
+			hmetric.Gauge(context.Background(), "clickhouse.open", float64(stats.Open), nil, 1)
+			hmetric.Gauge(context.Background(), "clickhouse.idle", float64(stats.Idle), nil, 1)
 			time.Sleep(5 * time.Second)
 		}
 	}()

@@ -449,7 +449,7 @@ const Trigger: React.FC<Omit<SelectProps, 'value' | 'setValue'>> = ({
 		selectValue: Ariakit.SelectStoreState['value'],
 	) => {
 		if (renderValue) {
-			return renderValue(selectValue)
+			return renderValue(selectValue) ?? props.placeholder ?? 'Select...'
 		}
 
 		const selectedOptions = optionsForItems(selectValue)
@@ -459,7 +459,7 @@ const Trigger: React.FC<Omit<SelectProps, 'value' | 'setValue'>> = ({
 				!selectedOptions ||
 				(Array.isArray(selectedOptions) && !selectedOptions.length)
 			) {
-				return 'Select...'
+				return props.placeholder ?? 'Select...'
 			}
 
 			return (
@@ -489,7 +489,7 @@ const Trigger: React.FC<Omit<SelectProps, 'value' | 'setValue'>> = ({
 		if (Array.isArray(selectedOptions)) {
 			return selectedOptions.length
 				? selectedOptions.map((o) => o.name).join(', ')
-				: 'Select...'
+				: (props.placeholder ?? 'Select...')
 		}
 
 		return selectedOptions.name

@@ -1,5 +1,24 @@
 # highlight.run
 
+## 9.7.3
+
+### Patch Changes
+
+-   d0e47ed: fix capture of window user interaction events.
+    the window.addEventListener monkeypatch would
+    break libraries relying on the API because
+    the debounce logic would incorrectly call the
+    listener on the debounce condition.
+    adds additional events to the instrumentation.
+-   f396ee3: tune opentelemetry traces export from highlight.run
+
+## 9.7.2
+
+### Patch Changes
+
+-   02fad3d: add url.\* attributes to fetch and xhr traces
+-   da5662e: avoid setting up promise monkeypatch by default to avoid breaking libraries that depend on the native promise implementation
+
 ## 9.7.1
 
 ### Patch Changes

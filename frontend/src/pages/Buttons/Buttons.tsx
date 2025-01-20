@@ -27,6 +27,7 @@ import {
 	RandomError,
 	WebSocketEvent,
 } from './ButtonsHelper'
+import { XYFlow } from '@pages/Buttons/XYFlow'
 
 export const Buttons = () => {
 	const { setLoadingState } = useAppLoadingContext()
@@ -112,6 +113,7 @@ export const Buttons = () => {
 	return (
 		<div className={styles.container}>
 			<div className={styles.buttonBody}>
+				<XYFlow />
 				<i className="mdi mdi-progress-check mdi-48px"></i>
 				<iframe
 					title="Introducing Superhuman"

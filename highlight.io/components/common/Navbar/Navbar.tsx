@@ -37,38 +37,21 @@ const LaunchWeekBanner = () => {
 	return <Banner>{bannerMessage}</Banner>
 }
 
-const LivestreamBanner = () => {
+const PromotionBanner = () => {
 	return (
 		<Link
-			href="https://www.linuxfoundation.org/webinars/optimizing-ai-applications-with-opentelemetry?hsLang=en&utm_source=highlight-banner"
-			target="_blank"
-			rel="noreferrer"
+			href="/otel-course-signup?utm_source=highlight-banner"
 			className="hidden md:flex text-center justify-center items-center w-full py-2.5 px-3 bg-color-primary-200 text-white hover:bg-opacity-90"
 		>
 			<Typography type="copy3">
-				Learn how to use OpenTelemetry for optimizing AI applications at
-				our livestream on November 5th at 9am PT -{' '}
-				<span className="font-semibold underline">Register here</span>
-			</Typography>
-		</Link>
-	)
-}
-
-const HFSBanner = () => {
-	return (
-		<Link
-			href="/startups"
-			className="flex justify-center items-center w-full h-[40px] bg-color-primary-200 text-white hover:bg-opacity-90"
-		>
-			<Typography type="copy3">
-				Got a startup? Apply for free Highlight credits!
+				Master OpenTelemetry with our free comprehensive course -{' '}
+				<span className="font-semibold underline">Start Learning</span>
 			</Typography>
 		</Link>
 	)
 }
 
 const Navbar = ({
-	hideFreeTrialText,
 	isDocsPage,
 	hideBanner,
 	fixed,
@@ -77,7 +60,6 @@ const Navbar = ({
 	light,
 	hideGitHubPopup,
 }: {
-	hideFreeTrialText?: boolean
 	isDocsPage?: boolean
 	hideBanner?: boolean
 	fixed?: boolean
@@ -125,7 +107,7 @@ const Navbar = ({
 				isLaunchWeek ? (
 					<LaunchWeekBanner />
 				) : (
-					<LivestreamBanner />
+					<PromotionBanner />
 				)
 			) : null}
 			<div

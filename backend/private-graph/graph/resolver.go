@@ -86,8 +86,8 @@ import (
 // It serves as dependency injection for your app, add any dependencies you require here.
 
 const ErrorGroupLookbackDays = 7
-const SessionActiveMetricName = "sessionActiveLength"
-const SessionProcessedMetricName = "sessionProcessed"
+const SessionActiveMetricName = "sessions.active_length"
+const SessionProcessedMetricName = "sessions.processed"
 const MaxDownloadSize = 32 * 1024 * 1024 // 32MB
 
 var AuthenticationError = errors.New("401 - AuthenticationError")
@@ -156,6 +156,9 @@ type Resolver struct {
 	Store                  *store.Store
 	DataSyncQueue          kafka_queue.MessageQueue
 	TracesQueue            kafka_queue.MessageQueue
+	MetricSumQueue         kafka_queue.MessageQueue
+	MetricHistogramQueue   kafka_queue.MessageQueue
+	MetricSummaryQueue     kafka_queue.MessageQueue
 	EmbeddingsClient       embeddings.Client
 	OpenAiClient           openai_client.OpenAiInterface
 }
@@ -342,7 +345,7 @@ func (r *Resolver) isUserInProjectOrDemoProject(ctx context.Context, project_id 
 	defer authSpan.Finish()
 	start := time.Now()
 	defer func() {
-		highlight.RecordMetric(
+		highlight.RecordHistogram(
 			ctx, "resolver.internal.auth.isAdminInProjectOrDemoProject", time.Since(start).Seconds(),
 		)
 	}()
@@ -518,6 +521,7 @@ func (r *Resolver) isUserInWorkspaceReadOnly(ctx context.Context, workspaceID in
 		MonthlyMembersLimit:         workspace.MonthlyMembersLimit,
 		MonthlySessionLimit:         workspace.MonthlySessionLimit,
 		MonthlyTracesLimit:          workspace.MonthlyTracesLimit,
+		MonthlyMetricsLimit:         workspace.MonthlyMetricsLimit,
 		Name:                        workspace.Name,
 		NextInvoiceDate:             workspace.NextInvoiceDate,
 		PlanTier:                    workspace.PlanTier,
@@ -528,8 +532,11 @@ func (r *Resolver) isUserInWorkspaceReadOnly(ctx context.Context, workspaceID in
 		StripeLogOveragePriceID:     workspace.StripeLogOveragePriceID,
 		StripeSessionOveragePriceID: workspace.StripeSessionOveragePriceID,
 		StripeTracesOveragePriceID:  workspace.StripeTracesOveragePriceID,
+		StripeMetricsOveragePriceID: workspace.StripeMetricsOveragePriceID,
 		TracesMaxCents:              workspace.TracesMaxCents,
 		TracesRetentionPeriod:       workspace.TracesRetentionPeriod,
+		MetricsMaxCents:             workspace.MetricsMaxCents,
+		MetricsRetentionPeriod:      workspace.MetricsRetentionPeriod,
 		TrialEndDate:                workspace.TrialEndDate,
 		TrialExtensionEnabled:       workspace.TrialExtensionEnabled,
 		UnlimitedMembers:            workspace.UnlimitedMembers,
@@ -3555,20 +3562,30 @@ func (r *Resolver) GetSlackChannelsFromSlack(ctx context.Context, workspaceId in
 		}
 
 		for _, channel := range allSlackChannelsFromAPI {
-			_, exists := channelsAndUsers[channel.ID]
+			name := fmt.Sprintf("#%s", channel.Name)
+			prev, exists := channelsAndUsers[channel.ID]
+			// if the channel name has changed, update it
+			if prev.WebhookChannel != name {
+				exists = false
+			}
 			if !exists && channel.IsChannel && channel.ID != "" {
 				newChannelsCount++
-				slackChannel := model.SlackChannel{WebhookChannelID: channel.ID, WebhookChannel: fmt.Sprintf("#%s", channel.Name)}
+				slackChannel := model.SlackChannel{WebhookChannelID: channel.ID, WebhookChannel: name}
 				channelsAndUsers[channel.ID] = slackChannel
 				existingChannels = append(existingChannels, slackChannel)
 			}
 		}
 
 		for _, user := range users {
-			_, exists := channelsAndUsers[user.ID]
+			name := fmt.Sprintf("@%s", user.Name)
+			prev, exists := channelsAndUsers[user.ID]
+			// if the channel name has changed, update it
+			if prev.WebhookChannel != name {
+				exists = false
+			}
 			if !exists && !user.IsBot && !user.Deleted && strings.ToLower(user.Name) != "slackbot" {
 				newChannelsCount++
-				slackChannel := model.SlackChannel{WebhookChannelID: user.ID, WebhookChannel: fmt.Sprintf("@%s", user.Name)}
+				slackChannel := model.SlackChannel{WebhookChannelID: user.ID, WebhookChannel: name}
 				channelsAndUsers[user.ID] = slackChannel
 				existingChannels = append(existingChannels, slackChannel)
 			}
@@ -3644,6 +3661,34 @@ func (r *Resolver) UpsertDiscordChannel(workspaceId int, name string) (*model.Di
 	}, nil
 }
 
+func normalizeExpressions(column *string, metricTypes []modelInputs.MetricAggregator, expressions []*modelInputs.MetricExpressionInput) ([]*modelInputs.MetricExpressionInput, error) {
+	if len(metricTypes) == 0 && len(expressions) == 0 {
+		return nil, errors.New("No expressions provided")
+	}
+
+	if len(metricTypes) > 0 && len(expressions) > 0 {
+		return nil, errors.New("Cannot use both metricTypes and expressions")
+	}
+
+	if len(expressions) > 0 {
+		return expressions, nil
+	}
+
+	columnDeref := ""
+	if column != nil {
+		columnDeref = *column
+	}
+
+	newExpressions := []*modelInputs.MetricExpressionInput{}
+	for _, t := range metricTypes {
+		newExpressions = append(newExpressions, &modelInputs.MetricExpressionInput{
+			Aggregator: t,
+			Column:     columnDeref,
+		})
+	}
+	return newExpressions, nil
+}
+
 func GetMetricTimeline(ctx context.Context, ccClient *clickhouse.Client, projectID int, metricName string, params modelInputs.DashboardParamsInput) (payload []*modelInputs.DashboardPayload, err error) {
 	const numBuckets = 48
 	agg := params.Aggregator
@@ -3659,7 +3704,7 @@ func GetMetricTimeline(ctx context.Context, ccClient *clickhouse.Client, project
 	metrics, err := ccClient.ReadEventMetrics(ctx, projectID, modelInputs.QueryInput{
 		Query:     strings.Join(parts, " "),
 		DateRange: params.DateRange,
-	}, metricName, []modelInputs.MetricAggregator{agg}, params.Groups, pointy.Int(numBuckets), string(modelInputs.MetricBucketByTimestamp), nil, nil, nil, nil)
+	}, pointy.String(metricName), []modelInputs.MetricAggregator{agg}, params.Groups, pointy.Int(numBuckets), string(modelInputs.MetricBucketByTimestamp), nil, nil, nil, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -3703,6 +3748,8 @@ func GetRetentionDate(retentionPeriodPtr *modelInputs.RetentionPeriod) time.Time
 	switch retentionPeriod {
 	case modelInputs.RetentionPeriodSevenDays:
 		return time.Now().AddDate(0, 0, -7)
+	case modelInputs.RetentionPeriodThirtyDays:
+		return time.Now().AddDate(0, 0, -30)
 	case modelInputs.RetentionPeriodThreeMonths:
 		return time.Now().AddDate(0, -3, 0)
 	case modelInputs.RetentionPeriodSixMonths:

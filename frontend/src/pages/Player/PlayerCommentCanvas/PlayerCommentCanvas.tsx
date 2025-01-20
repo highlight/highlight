@@ -169,10 +169,7 @@ const PlayerCommentCanvas = ({
 						top: `calc(${indicatorLocation.y}px - var(--comment-indicator-width))`,
 					}}
 				>
-					<CommentIndicator
-						seed={admin?.name ?? admin?.email ?? 'Anonymous'}
-						customImage={admin?.photo_url}
-					/>
+					<CommentIndicator customImage={admin?.photo_url} />
 				</Box>
 			)}
 			{sessionCommentsData?.session_comments.map(

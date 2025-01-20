@@ -39,7 +39,6 @@ import {
 } from '@/graph/generated/schemas'
 import useFeatureFlag, { Feature } from '@/hooks/useFeatureFlag/useFeatureFlag'
 import { useProjectId } from '@/hooks/useProjectId'
-import { useSearchTime } from '@/hooks/useSearchTime'
 import { FREQUENCIES } from '@/pages/Alerts/AlertConfigurationCard/AlertConfigurationConstants'
 import {
 	getThresholdConditionOptions,
@@ -61,6 +60,7 @@ import { useGraphData } from '@pages/Graphing/hooks/useGraphData'
 
 import { AlertGraph } from '../AlertGraph'
 import * as style from './styles.css'
+import { useGraphTime } from '@/pages/Graphing/hooks/useGraphTime'
 
 const SidebarSection = (props: PropsWithChildren) => {
 	return (
@@ -156,10 +156,7 @@ export const AlertForm: React.FC = () => {
 	const isEdit = alert_id !== undefined
 
 	const { startDate, endDate, selectedPreset, updateSearchTime } =
-		useSearchTime({
-			presets: DEFAULT_TIME_PRESETS,
-			initialPreset: DEFAULT_TIME_PRESETS[2],
-		})
+		useGraphTime(DEFAULT_TIME_PRESETS)
 
 	const [createAlert, createAlertContext] = useCreateAlertMutation({
 		refetchQueries: [namedOperations.Query.GetAlertsPagePayload],
@@ -230,6 +227,15 @@ export const AlertForm: React.FC = () => {
 			setThresholdValue(DEFAULT_CONFIDENCE_OPTION.value)
 		} else if (value === ThresholdType.Constant) {
 			setThresholdValue(DEFAULT_THRESHOLD)
+
+			// errors and sessions are currently only grouped by secure_id
+			if (
+				productType === ProductType.Sessions ||
+				productType === ProductType.Errors
+			) {
+				setGroupByEnabled(true)
+				setGroupByKey('secure_id')
+			}
 		}
 
 		setThresholdTypeImpl(value)
@@ -587,7 +593,6 @@ export const AlertForm: React.FC = () => {
 									thresholdCondition={thresholdCondition}
 									startDate={startDate}
 									endDate={endDate}
-									selectedPreset={selectedPreset}
 									updateSearchTime={updateSearchTime}
 								/>
 							</Box>

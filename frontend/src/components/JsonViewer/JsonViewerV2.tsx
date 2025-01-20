@@ -10,7 +10,7 @@ type Props = {
 	attribute: JsonViewerObjectProps['attribute']
 	allExpanded?: boolean
 	matchedAttributes?: JsonViewerObjectProps['matchedAttributes']
-	queryParts?: JsonViewerObjectProps['queryParts']
+	query?: string
 	setQuery?: JsonViewerObjectProps['setQuery']
 }
 
@@ -18,7 +18,7 @@ export const JsonViewerV2: React.FC<Props> = ({
 	attribute,
 	allExpanded = false,
 	matchedAttributes = {},
-	queryParts = [],
+	query = '',
 	setQuery,
 }) => {
 	return (
@@ -34,7 +34,7 @@ export const JsonViewerV2: React.FC<Props> = ({
 								attribute={value as object}
 								label={key}
 								matchedAttributes={matchedAttributes}
-								queryParts={queryParts}
+								query={query}
 								queryBaseKeys={[key]}
 								setQuery={setQuery}
 							/>
@@ -42,9 +42,9 @@ export const JsonViewerV2: React.FC<Props> = ({
 							<JsonViewerValue
 								label={key}
 								value={String(value)}
+								query={query}
 								queryKey={key}
 								queryMatch={matchedAttributes[key]?.match}
-								queryParts={queryParts}
 								setQuery={setQuery}
 							/>
 						)}

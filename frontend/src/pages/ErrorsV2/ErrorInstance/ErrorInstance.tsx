@@ -446,11 +446,7 @@ const User: React.FC<{
 					gap="4"
 				>
 					<Box alignItems="center" display="flex" gap="8">
-						<Avatar
-							seed={displayName}
-							style={{ height: 28, width: 28 }}
-							customImage={avatarImage}
-						/>
+						<Avatar size={28} customImage={avatarImage} />
 						<Text lines="1">{displayName}</Text>
 					</Box>
 

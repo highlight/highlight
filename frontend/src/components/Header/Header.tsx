@@ -198,7 +198,7 @@ export const Header: React.FC<Props> = ({ fullyIntegrated }) => {
 			icon: IconSolidTraces,
 		},
 		{
-			key: 'metrics',
+			key: 'dashboards',
 			icon: IconSolidChartBar,
 		},
 		{

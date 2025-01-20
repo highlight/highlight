@@ -47,27 +47,56 @@ describe('parseSearch', () => {
 		])
 	})
 
-	it('should parse a string correctly', () => {
+	it('parses a query using the same key multiple times', () => {
 		const queryString =
-			' service_name:private-graph span_name:KafkaBatchWorker'
+			'span_name=gorm.Query span_name=KafkaWorkerDoingWork'
 		const { queryParts } = parseSearch(queryString)
 
+		expect(queryParts.length).toBe(2)
+		expect(queryParts[0].key).toBe('span_name')
+		expect(queryParts[1].key).toBe('span_name')
+		expect(queryParts[0].value).toBe('gorm.Query')
+		expect(queryParts[1].value).toBe('KafkaWorkerDoingWork')
+	})
+
+	it('parses an incomplete search expression with spaces', () => {
+		const queryString = ' service_name = '
+		const { queryParts } = parseSearch(queryString)
+
+		expect(queryParts.length).toBe(1)
 		expect(queryParts).toEqual([
 			{
 				key: 'service_name',
-				operator: ':',
-				value: 'private-graph',
-				text: 'service_name:private-graph',
+				operator: '=',
+				value: '',
+				text: 'service_name = ',
 				start: 1,
-				stop: 26,
+				stop: 15,
+			},
+		])
+	})
+
+	it('handles an incomplete expression preceding a complete expression', () => {
+		const queryString = 'service_name = span_name=gorm.Query'
+		const { queryParts } = parseSearch(queryString)
+
+		expect(queryParts.length).toBe(2)
+		expect(queryParts).toEqual([
+			{
+				key: 'service_name',
+				operator: '=',
+				value: '',
+				text: 'service_name =',
+				start: 0,
+				stop: 13,
 			},
 			{
 				key: 'span_name',
-				operator: ':',
-				value: 'KafkaBatchWorker',
-				text: 'span_name:KafkaBatchWorker',
-				start: 28,
-				stop: 53,
+				operator: '=',
+				value: 'gorm.Query',
+				text: 'span_name=gorm.Query',
+				start: 15,
+				stop: 34,
 			},
 		])
 	})

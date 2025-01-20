@@ -1,4 +1,4 @@
-import { Box, DateRangePreset } from '@highlight-run/ui/components'
+import { Box } from '@highlight-run/ui/components'
 import React from 'react'
 import { ReferenceArea, ReferenceLine } from 'recharts'
 
@@ -9,12 +9,11 @@ import {
 	ThresholdType,
 } from '@/graph/generated/schemas'
 import { useProjectId } from '@/hooks/useProjectId'
-import Graph, {
-	getViewConfig,
-	SetTimeRange,
-} from '@/pages/Graphing/components/Graph'
+import Graph, { SetTimeRange } from '@/pages/Graphing/components/Graph'
 
 import * as style from './styles.css'
+import { BarChartConfig } from '@/pages/Graphing/components/BarChart'
+import { LineChartConfig } from '@/pages/Graphing/components/LineChart'
 
 type Props = {
 	alertName: string
@@ -29,8 +28,20 @@ type Props = {
 	thresholdCondition: ThresholdCondition
 	startDate: Date
 	endDate: Date
-	selectedPreset?: DateRangePreset
 	updateSearchTime: SetTimeRange
+}
+
+const BAR_CONFIG: BarChartConfig = {
+	type: 'Bar chart',
+	showLegend: true,
+	display: 'Stacked',
+}
+
+const LINE_CONFIG: LineChartConfig = {
+	type: 'Line chart',
+	showLegend: true,
+	display: 'Line',
+	nullHandling: 'Zero',
 }
 
 export const AlertGraph: React.FC<Props> = ({
@@ -46,7 +57,6 @@ export const AlertGraph: React.FC<Props> = ({
 	thresholdCondition,
 	startDate,
 	endDate,
-	selectedPreset,
 	updateSearchTime,
 }) => {
 	const { projectId } = useProjectId()
@@ -54,9 +64,7 @@ export const AlertGraph: React.FC<Props> = ({
 		productType === ProductType.Sessions &&
 		thresholdType === ThresholdType.Constant
 
-	const viewConfig = sessionsProduct
-		? getViewConfig('Bar chart', 'Stacked', 'Zero')
-		: getViewConfig('Line chart', 'Line', 'Zero')
+	const viewConfig = sessionsProduct ? BAR_CONFIG : LINE_CONFIG
 
 	return (
 		<Box cssClass={style.graphWrapper} shadow="small">
@@ -74,11 +82,8 @@ export const AlertGraph: React.FC<Props> = ({
 					productType={productType}
 					projectId={projectId}
 					startDate={startDate}
-					selectedPreset={selectedPreset}
 					endDate={endDate}
 					query={query}
-					metric={functionColumn}
-					functionType={functionType}
 					groupByKeys={
 						sessionsProduct || groupByKey === undefined
 							? undefined
@@ -105,6 +110,9 @@ export const AlertGraph: React.FC<Props> = ({
 						thresholdType,
 						thresholdValue,
 					}}
+					expressions={[
+						{ aggregator: functionType, column: functionColumn },
+					]}
 				>
 					{!sessionsProduct &&
 						thresholdType === ThresholdType.Constant && (

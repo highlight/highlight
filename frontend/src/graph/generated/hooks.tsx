@@ -480,6 +480,8 @@ export const SaveBillingPlanDocument = gql`
 		$logsRetention: RetentionPeriod!
 		$tracesLimitCents: Int
 		$tracesRetention: RetentionPeriod!
+		$metricsLimitCents: Int
+		$metricsRetention: RetentionPeriod!
 	) {
 		saveBillingPlan(
 			workspace_id: $workspace_id
@@ -491,6 +493,8 @@ export const SaveBillingPlanDocument = gql`
 			logsRetention: $logsRetention
 			tracesLimitCents: $tracesLimitCents
 			tracesRetention: $tracesRetention
+			metricsLimitCents: $metricsLimitCents
+			metricsRetention: $metricsRetention
 		)
 	}
 `
@@ -521,6 +525,8 @@ export type SaveBillingPlanMutationFn = Apollo.MutationFunction<
  *      logsRetention: // value for 'logsRetention'
  *      tracesLimitCents: // value for 'tracesLimitCents'
  *      tracesRetention: // value for 'tracesRetention'
+ *      metricsLimitCents: // value for 'metricsLimitCents'
+ *      metricsRetention: // value for 'metricsRetention'
  *   },
  * });
  */
@@ -1475,40 +1481,11 @@ export type CreateWorkspaceMutationOptions = Apollo.BaseMutationOptions<
 	Types.CreateWorkspaceMutationVariables
 >
 export const EditProjectDocument = gql`
-	mutation EditProject(
-		$id: ID!
-		$name: String
-		$billing_email: String
-		$excluded_users: StringArray
-		$error_filters: StringArray
-		$error_json_paths: StringArray
-		$filter_chrome_extension: Boolean
-		$rage_click_window_seconds: Int
-		$rage_click_radius_pixels: Int
-		$rage_click_count: Int
-	) {
-		editProject(
-			id: $id
-			name: $name
-			billing_email: $billing_email
-			excluded_users: $excluded_users
-			error_filters: $error_filters
-			error_json_paths: $error_json_paths
-			filter_chrome_extension: $filter_chrome_extension
-			rage_click_window_seconds: $rage_click_window_seconds
-			rage_click_radius_pixels: $rage_click_radius_pixels
-			rage_click_count: $rage_click_count
-		) {
+	mutation EditProject($id: ID!, $name: String, $billing_email: String) {
+		editProject(id: $id, name: $name, billing_email: $billing_email) {
 			id
 			name
 			billing_email
-			excluded_users
-			error_filters
-			error_json_paths
-			filter_chrome_extension
-			rage_click_window_seconds
-			rage_click_radius_pixels
-			rage_click_count
 		}
 	}
 `
@@ -1533,13 +1510,6 @@ export type EditProjectMutationFn = Apollo.MutationFunction<
  *      id: // value for 'id'
  *      name: // value for 'name'
  *      billing_email: // value for 'billing_email'
- *      excluded_users: // value for 'excluded_users'
- *      error_filters: // value for 'error_filters'
- *      error_json_paths: // value for 'error_json_paths'
- *      filter_chrome_extension: // value for 'filter_chrome_extension'
- *      rage_click_window_seconds: // value for 'rage_click_window_seconds'
- *      rage_click_radius_pixels: // value for 'rage_click_radius_pixels'
- *      rage_click_count: // value for 'rage_click_count'
  *   },
  * });
  */
@@ -1566,8 +1536,6 @@ export type EditProjectMutationOptions = Apollo.BaseMutationOptions<
 export const EditProjectSettingsDocument = gql`
 	mutation EditProjectSettings(
 		$projectId: ID!
-		$name: String
-		$billing_email: String
 		$excluded_users: StringArray
 		$error_filters: StringArray
 		$error_json_paths: StringArray
@@ -1581,8 +1549,6 @@ export const EditProjectSettingsDocument = gql`
 	) {
 		editProjectSettings(
 			projectId: $projectId
-			name: $name
-			billing_email: $billing_email
 			excluded_users: $excluded_users
 			error_filters: $error_filters
 			error_json_paths: $error_json_paths
@@ -1611,14 +1577,17 @@ export const EditProjectSettingsDocument = gql`
 				error_sampling_rate
 				log_sampling_rate
 				trace_sampling_rate
+				metric_sampling_rate
 				session_minute_rate_limit
 				error_minute_rate_limit
 				log_minute_rate_limit
 				trace_minute_rate_limit
+				metric_minute_rate_limit
 				session_exclusion_query
 				error_exclusion_query
 				log_exclusion_query
 				trace_exclusion_query
+				metric_exclusion_query
 			}
 		}
 	}
@@ -1642,8 +1611,6 @@ export type EditProjectSettingsMutationFn = Apollo.MutationFunction<
  * const [editProjectSettingsMutation, { data, loading, error }] = useEditProjectSettingsMutation({
  *   variables: {
  *      projectId: // value for 'projectId'
- *      name: // value for 'name'
- *      billing_email: // value for 'billing_email'
  *      excluded_users: // value for 'excluded_users'
  *      error_filters: // value for 'error_filters'
  *      error_json_paths: // value for 'error_json_paths'
@@ -5752,8 +5719,6 @@ export const UpsertGraphDocument = gql`
 			title
 			productType
 			query
-			metric
-			functionType
 			groupByKeys
 			bucketByKey
 			bucketCount
@@ -5766,6 +5731,10 @@ export const UpsertGraphDocument = gql`
 			}
 			display
 			nullHandling
+			expressions {
+				aggregator
+				column
+			}
 		}
 	}
 `
@@ -6331,6 +6300,7 @@ export const GetSessionDocument = gql`
 			browser_name
 			browser_version
 			environment
+			service_name
 			app_version
 			ip
 			city
@@ -8207,6 +8177,9 @@ export const GetWorkspacesDocument = gql`
 			name
 			retention_period
 			errors_retention_period
+			logs_retention_period
+			traces_retention_period
+			metrics_retention_period
 		}
 		joinable_workspaces {
 			id
@@ -8871,20 +8844,24 @@ export const GetBillingDetailsForProjectDocument = gql`
 				errorsLimit
 				logsLimit
 				tracesLimit
+				metricsLimit
 				sessionsRate
 				errorsRate
 				logsRate
 				tracesRate
+				metricsRate
 			}
 			meter
 			membersMeter
 			errorsMeter
 			logsMeter
 			tracesMeter
+			metricsMeter
 			sessionsBillingLimit
 			errorsBillingLimit
 			logsBillingLimit
 			tracesBillingLimit
+			metricsBillingLimit
 		}
 		project(id: $project_id) {
 			workspace {
@@ -9042,10 +9019,12 @@ export const GetBillingDetailsDocument = gql`
 				errorsLimit
 				logsLimit
 				tracesLimit
+				metricsLimit
 				sessionsRate
 				errorsRate
 				logsRate
 				tracesRate
+				metricsRate
 				enableBillingLimits
 			}
 			meter
@@ -9053,14 +9032,17 @@ export const GetBillingDetailsDocument = gql`
 			errorsMeter
 			logsMeter
 			tracesMeter
+			metricsMeter
 			sessionsBillingLimit
 			errorsBillingLimit
 			logsBillingLimit
 			tracesBillingLimit
+			metricsBillingLimit
 			sessionsDailyAverage
 			errorsDailyAverage
 			logsDailyAverage
 			tracesDailyAverage
+			metricsDailyAverage
 		}
 		subscription_details(workspace_id: $workspace_id) {
 			baseAmount
@@ -9090,10 +9072,14 @@ export const GetBillingDetailsDocument = gql`
 			eligible_for_trial_extension
 			retention_period
 			errors_retention_period
+			logs_retention_period
+			traces_retention_period
+			metrics_retention_period
 			sessions_max_cents
 			errors_max_cents
 			logs_max_cents
 			traces_max_cents
+			metrics_max_cents
 		}
 	}
 `
@@ -10241,6 +10227,64 @@ export type GetTracesIntegrationLazyQueryHookResult = ReturnType<
 export type GetTracesIntegrationQueryResult = Apollo.QueryResult<
 	Types.GetTracesIntegrationQuery,
 	Types.GetTracesIntegrationQueryVariables
+>
+export const GetMetricsIntegrationDocument = gql`
+	query GetMetricsIntegration($project_id: ID!) {
+		metricsIntegration(project_id: $project_id) {
+			integrated
+			resourceType
+			createdAt
+		}
+	}
+`
+
+/**
+ * __useGetMetricsIntegrationQuery__
+ *
+ * To run a query within a React component, call `useGetMetricsIntegrationQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetMetricsIntegrationQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetMetricsIntegrationQuery({
+ *   variables: {
+ *      project_id: // value for 'project_id'
+ *   },
+ * });
+ */
+export function useGetMetricsIntegrationQuery(
+	baseOptions: Apollo.QueryHookOptions<
+		Types.GetMetricsIntegrationQuery,
+		Types.GetMetricsIntegrationQueryVariables
+	>,
+) {
+	return Apollo.useQuery<
+		Types.GetMetricsIntegrationQuery,
+		Types.GetMetricsIntegrationQueryVariables
+	>(GetMetricsIntegrationDocument, baseOptions)
+}
+export function useGetMetricsIntegrationLazyQuery(
+	baseOptions?: Apollo.LazyQueryHookOptions<
+		Types.GetMetricsIntegrationQuery,
+		Types.GetMetricsIntegrationQueryVariables
+	>,
+) {
+	return Apollo.useLazyQuery<
+		Types.GetMetricsIntegrationQuery,
+		Types.GetMetricsIntegrationQueryVariables
+	>(GetMetricsIntegrationDocument, baseOptions)
+}
+export type GetMetricsIntegrationQueryHookResult = ReturnType<
+	typeof useGetMetricsIntegrationQuery
+>
+export type GetMetricsIntegrationLazyQueryHookResult = ReturnType<
+	typeof useGetMetricsIntegrationLazyQuery
+>
+export type GetMetricsIntegrationQueryResult = Apollo.QueryResult<
+	Types.GetMetricsIntegrationQuery,
+	Types.GetMetricsIntegrationQueryVariables
 >
 export const GetKeyPerformanceIndicatorsDocument = gql`
 	query GetKeyPerformanceIndicators(
@@ -13823,14 +13867,17 @@ export const GetProjectSettingsDocument = gql`
 				error_sampling_rate
 				log_sampling_rate
 				trace_sampling_rate
+				metric_sampling_rate
 				session_exclusion_query
 				error_exclusion_query
 				log_exclusion_query
 				trace_exclusion_query
+				metric_exclusion_query
 				session_minute_rate_limit
 				error_minute_rate_limit
 				log_minute_rate_limit
 				trace_minute_rate_limit
+				metric_minute_rate_limit
 			}
 		}
 	}
@@ -15016,8 +15063,6 @@ export const GetMetricsDocument = gql`
 		$product_type: ProductType!
 		$project_id: ID!
 		$params: QueryInput!
-		$column: String!
-		$metric_types: [MetricAggregator!]!
 		$group_by: [String!]!
 		$bucket_by: String!
 		$bucket_count: Int
@@ -15026,13 +15071,12 @@ export const GetMetricsDocument = gql`
 		$limit_aggregator: MetricAggregator
 		$limit_column: String
 		$prediction_settings: PredictionSettings
+		$expressions: [MetricExpressionInput!]!
 	) {
 		metrics(
 			product_type: $product_type
 			project_id: $project_id
 			params: $params
-			column: $column
-			metric_types: $metric_types
 			group_by: $group_by
 			bucket_by: $bucket_by
 			bucket_window: $bucket_window
@@ -15041,12 +15085,14 @@ export const GetMetricsDocument = gql`
 			limit_aggregator: $limit_aggregator
 			limit_column: $limit_column
 			prediction_settings: $prediction_settings
+			expressions: $expressions
 		) {
 			buckets {
 				bucket_id
 				bucket_min
 				bucket_max
 				group
+				column
 				metric_type
 				metric_value
 				yhat_lower
@@ -15073,8 +15119,6 @@ export const GetMetricsDocument = gql`
  *      product_type: // value for 'product_type'
  *      project_id: // value for 'project_id'
  *      params: // value for 'params'
- *      column: // value for 'column'
- *      metric_types: // value for 'metric_types'
  *      group_by: // value for 'group_by'
  *      bucket_by: // value for 'bucket_by'
  *      bucket_count: // value for 'bucket_count'
@@ -15083,6 +15127,7 @@ export const GetMetricsDocument = gql`
  *      limit_aggregator: // value for 'limit_aggregator'
  *      limit_column: // value for 'limit_column'
  *      prediction_settings: // value for 'prediction_settings'
+ *      expressions: // value for 'expressions'
  *   },
  * });
  */
@@ -15125,8 +15170,6 @@ export const GetGraphTemplatesDocument = gql`
 			description
 			productType
 			query
-			metric
-			functionType
 			groupByKeys
 			bucketByKey
 			bucketCount
@@ -15140,6 +15183,10 @@ export const GetGraphTemplatesDocument = gql`
 			}
 			display
 			nullHandling
+			expressions {
+				aggregator
+				column
+			}
 		}
 	}
 `
@@ -15212,8 +15259,6 @@ export const GetVisualizationDocument = gql`
 				description
 				productType
 				query
-				metric
-				functionType
 				groupByKeys
 				bucketByKey
 				bucketCount
@@ -15227,6 +15272,10 @@ export const GetVisualizationDocument = gql`
 				}
 				display
 				nullHandling
+				expressions {
+					aggregator
+					column
+				}
 			}
 			updatedByAdmin {
 				id
@@ -15318,8 +15367,6 @@ export const GetVisualizationsDocument = gql`
 					title
 					productType
 					query
-					metric
-					functionType
 					groupByKeys
 					bucketByKey
 					bucketCount
@@ -15333,6 +15380,10 @@ export const GetVisualizationsDocument = gql`
 					}
 					display
 					nullHandling
+					expressions {
+						aggregator
+						column
+					}
 				}
 				updatedByAdmin {
 					id

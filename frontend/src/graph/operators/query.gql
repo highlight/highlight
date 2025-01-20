@@ -211,6 +211,7 @@ query GetSession($secure_id: String!) {
 		browser_name
 		browser_version
 		environment
+		service_name
 		app_version
 		ip
 		city
@@ -782,6 +783,9 @@ query GetWorkspaces {
 		name
 		retention_period
 		errors_retention_period
+		logs_retention_period
+		traces_retention_period
+		metrics_retention_period
 	}
 	joinable_workspaces {
 		id
@@ -949,20 +953,24 @@ query GetBillingDetailsForProject($project_id: ID!) {
 			errorsLimit
 			logsLimit
 			tracesLimit
+			metricsLimit
 			sessionsRate
 			errorsRate
 			logsRate
 			tracesRate
+			metricsRate
 		}
 		meter
 		membersMeter
 		errorsMeter
 		logsMeter
 		tracesMeter
+		metricsMeter
 		sessionsBillingLimit
 		errorsBillingLimit
 		logsBillingLimit
 		tracesBillingLimit
+		metricsBillingLimit
 	}
 	project(id: $project_id) {
 		workspace {
@@ -1018,10 +1026,12 @@ query GetBillingDetails($workspace_id: ID!) {
 			errorsLimit
 			logsLimit
 			tracesLimit
+			metricsLimit
 			sessionsRate
 			errorsRate
 			logsRate
 			tracesRate
+			metricsRate
 			enableBillingLimits
 		}
 		meter
@@ -1029,14 +1039,17 @@ query GetBillingDetails($workspace_id: ID!) {
 		errorsMeter
 		logsMeter
 		tracesMeter
+		metricsMeter
 		sessionsBillingLimit
 		errorsBillingLimit
 		logsBillingLimit
 		tracesBillingLimit
+		metricsBillingLimit
 		sessionsDailyAverage
 		errorsDailyAverage
 		logsDailyAverage
 		tracesDailyAverage
+		metricsDailyAverage
 	}
 	subscription_details(workspace_id: $workspace_id) {
 		baseAmount
@@ -1066,10 +1079,14 @@ query GetBillingDetails($workspace_id: ID!) {
 		eligible_for_trial_extension
 		retention_period
 		errors_retention_period
+		logs_retention_period
+		traces_retention_period
+		metrics_retention_period
 		sessions_max_cents
 		errors_max_cents
 		logs_max_cents
 		traces_max_cents
+		metrics_max_cents
 	}
 }
 
@@ -1384,6 +1401,14 @@ query GetLogsIntegration($project_id: ID!) {
 
 query GetTracesIntegration($project_id: ID!) {
 	tracesIntegration(project_id: $project_id) {
+		integrated
+		resourceType
+		createdAt
+	}
+}
+
+query GetMetricsIntegration($project_id: ID!) {
+	metricsIntegration(project_id: $project_id) {
 		integrated
 		resourceType
 		createdAt
@@ -2232,14 +2257,17 @@ query GetProjectSettings($projectId: ID!) {
 			error_sampling_rate
 			log_sampling_rate
 			trace_sampling_rate
+			metric_sampling_rate
 			session_exclusion_query
 			error_exclusion_query
 			log_exclusion_query
 			trace_exclusion_query
+			metric_exclusion_query
 			session_minute_rate_limit
 			error_minute_rate_limit
 			log_minute_rate_limit
 			trace_minute_rate_limit
+			metric_minute_rate_limit
 		}
 	}
 }
@@ -2605,8 +2633,6 @@ query GetMetrics(
 	$product_type: ProductType!
 	$project_id: ID!
 	$params: QueryInput!
-	$column: String!
-	$metric_types: [MetricAggregator!]!
 	$group_by: [String!]!
 	$bucket_by: String!
 	$bucket_count: Int
@@ -2615,13 +2641,12 @@ query GetMetrics(
 	$limit_aggregator: MetricAggregator
 	$limit_column: String
 	$prediction_settings: PredictionSettings
+	$expressions: [MetricExpressionInput!]!
 ) {
 	metrics(
 		product_type: $product_type
 		project_id: $project_id
 		params: $params
-		column: $column
-		metric_types: $metric_types
 		group_by: $group_by
 		bucket_by: $bucket_by
 		bucket_window: $bucket_window
@@ -2630,12 +2655,14 @@ query GetMetrics(
 		limit_aggregator: $limit_aggregator
 		limit_column: $limit_column
 		prediction_settings: $prediction_settings
+		expressions: $expressions
 	) {
 		buckets {
 			bucket_id
 			bucket_min
 			bucket_max
 			group
+			column
 			metric_type
 			metric_value
 			yhat_lower
@@ -2654,8 +2681,6 @@ query GetGraphTemplates {
 		description
 		productType
 		query
-		metric
-		functionType
 		groupByKeys
 		bucketByKey
 		bucketCount
@@ -2669,6 +2694,10 @@ query GetGraphTemplates {
 		}
 		display
 		nullHandling
+		expressions {
+			aggregator
+			column
+		}
 	}
 }
 
@@ -2692,8 +2721,6 @@ query GetVisualization($id: ID!) {
 			description
 			productType
 			query
-			metric
-			functionType
 			groupByKeys
 			bucketByKey
 			bucketCount
@@ -2707,6 +2734,10 @@ query GetVisualization($id: ID!) {
 			}
 			display
 			nullHandling
+			expressions {
+				aggregator
+				column
+			}
 		}
 		updatedByAdmin {
 			id
@@ -2748,8 +2779,6 @@ query GetVisualizations(
 				title
 				productType
 				query
-				metric
-				functionType
 				groupByKeys
 				bucketByKey
 				bucketCount
@@ -2763,6 +2792,10 @@ query GetVisualizations(
 				}
 				display
 				nullHandling
+				expressions {
+					aggregator
+					column
+				}
 			}
 			updatedByAdmin {
 				id

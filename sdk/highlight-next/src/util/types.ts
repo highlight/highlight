@@ -7,7 +7,6 @@ import type {
 import type { WorkersSDK } from '@highlight-run/opentelemetry-sdk-workers'
 import type { Attributes, SpanOptions } from '@opentelemetry/api'
 import type { ResourceAttributes } from '@opentelemetry/resources/build/src/types'
-import type { IncomingHttpHeaders } from 'http'
 
 export type HighlightEnv = NodeOptions
 

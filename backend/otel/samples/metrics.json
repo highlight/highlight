@@ -1,0 +1,5724 @@
+{
+	"resourceMetrics": [
+		{
+			"resource": {
+				"attributes": [
+					{
+						"key": "container.id",
+						"value": {
+							"stringValue": "7cc63382fd31"
+						}
+					},
+					{
+						"key": "deployment.environment",
+						"value": {
+							"stringValue": "dev"
+						}
+					},
+					{
+						"key": "highlight.project_id",
+						"value": {
+							"stringValue": "1jdkoe52"
+						}
+					},
+					{
+						"key": "host.name",
+						"value": {
+							"stringValue": "vadim-pc"
+						}
+					},
+					{
+						"key": "os.description",
+						"value": {
+							"stringValue": "Ubuntu 24.04.1 LTS (Noble Numbat) (Linux vadim-pc 6.8.0-48-generic #48-Ubuntu SMP PREEMPT_DYNAMIC Fri Sep 27 14:04:52 UTC 2024 x86_64)"
+						}
+					},
+					{
+						"key": "os.type",
+						"value": {
+							"stringValue": "linux"
+						}
+					},
+					{
+						"key": "process.command_args",
+						"value": {
+							"arrayValue": {
+								"values": [
+									{
+										"stringValue": "/home/vkorolik/work/highlight/backend/tmp/main"
+									}
+								]
+							}
+						}
+					},
+					{
+						"key": "process.executable.name",
+						"value": {
+							"stringValue": "main"
+						}
+					},
+					{
+						"key": "process.executable.path",
+						"value": {
+							"stringValue": "/home/vkorolik/work/highlight/backend/tmp/main"
+						}
+					},
+					{
+						"key": "process.owner",
+						"value": {
+							"stringValue": "vkorolik"
+						}
+					},
+					{
+						"key": "process.pid",
+						"value": {
+							"intValue": "433648"
+						}
+					},
+					{
+						"key": "process.runtime.description",
+						"value": {
+							"stringValue": "go version go1.23.1 linux/amd64"
+						}
+					},
+					{
+						"key": "process.runtime.name",
+						"value": {
+							"stringValue": "go"
+						}
+					},
+					{
+						"key": "process.runtime.version",
+						"value": {
+							"stringValue": "go1.23.1"
+						}
+					},
+					{
+						"key": "service.name",
+						"value": {
+							"stringValue": "all"
+						}
+					},
+					{
+						"key": "service.version",
+						"value": {
+							"stringValue": "asdf"
+						}
+					},
+					{
+						"key": "telemetry.distro.name",
+						"value": {
+							"stringValue": "github.com/highlight/highlight/sdk/highlight-go"
+						}
+					},
+					{
+						"key": "telemetry.distro.version",
+						"value": {
+							"stringValue": "v0.11.1"
+						}
+					}
+				]
+			},
+			"scopeMetrics": [
+				{
+					"scope": {
+						"name": "github.com/highlight/highlight/sdk/highlight-go",
+						"version": "v0.1.0"
+					},
+					"metrics": [
+						{
+							"name": "worker.kafka.dev_vadim_dev.produceBatchAvgSec",
+							"gauge": {
+								"dataPoints": [
+									{
+										"attributes": [
+											{
+												"key": "highlight.session_id",
+												"value": {
+													"stringValue": ""
+												}
+											},
+											{
+												"key": "highlight.trace_id",
+												"value": {
+													"stringValue": ""
+												}
+											}
+										],
+										"startTimeUnixNano": "1730781846503684879",
+										"timeUnixNano": "1730781852937978619",
+										"asDouble": 0.100530892
+									}
+								]
+							}
+						},
+						{
+							"name": "worker.kafka.dev_vadim_dev.produceWriteAvgSec",
+							"gauge": {
+								"dataPoints": [
+									{
+										"attributes": [
+											{
+												"key": "highlight.session_id",
+												"value": {
+													"stringValue": ""
+												}
+											},
+											{
+												"key": "highlight.trace_id",
+												"value": {
+													"stringValue": ""
+												}
+											}
+										],
+										"startTimeUnixNano": "1730781846503753458",
+										"timeUnixNano": "1730781852937985321",
+										"asDouble": 0.001821595
+									}
+								]
+							}
+						},
+						{
+							"name": "worker.kafka.dev_vadim_dev.produceWaitAvgSec",
+							"gauge": {
+								"dataPoints": [
+									{
+										"attributes": [
+											{
+												"key": "highlight.session_id",
+												"value": {
+													"stringValue": ""
+												}
+											},
+											{
+												"key": "highlight.trace_id",
+												"value": {
+													"stringValue": ""
+												}
+											}
+										],
+										"startTimeUnixNano": "1730781846503795076",
+										"timeUnixNano": "1730781852937987084",
+										"asDouble": 0
+									}
+								]
+							}
+						},
+						{
+							"name": "worker.kafka.dev_vadim_dev.produceBatchSize",
+							"gauge": {
+								"dataPoints": [
+									{
+										"attributes": [
+											{
+												"key": "highlight.session_id",
+												"value": {
+													"stringValue": ""
+												}
+											},
+											{
+												"key": "highlight.trace_id",
+												"value": {
+													"stringValue": ""
+												}
+											}
+										],
+										"startTimeUnixNano": "1730781846503822868",
+										"timeUnixNano": "1730781852937988597",
+										"asDouble": 2
+									}
+								]
+							}
+						},
+						{
+							"name": "worker.kafka.dev_vadim_dev.produceBatchBytes",
+							"gauge": {
+								"dataPoints": [
+									{
+										"attributes": [
+											{
+												"key": "highlight.session_id",
+												"value": {
+													"stringValue": ""
+												}
+											},
+											{
+												"key": "highlight.trace_id",
+												"value": {
+													"stringValue": ""
+												}
+											}
+										],
+										"startTimeUnixNano": "1730781846503848626",
+										"timeUnixNano": "1730781852937990411",
+										"asDouble": 3879
+									}
+								]
+							}
+						},
+						{
+							"name": "worker.kafka.dev_vadim_dev.produceQueueCapacity",
+							"gauge": {
+								"dataPoints": [
+									{
+										"attributes": [
+											{
+												"key": "highlight.session_id",
+												"value": {
+													"stringValue": ""
+												}
+											},
+											{
+												"key": "highlight.trace_id",
+												"value": {
+													"stringValue": ""
+												}
+											}
+										],
+										"startTimeUnixNano": "1730781846503876869",
+										"timeUnixNano": "1730781852937992074",
+										"asDouble": 0
+									}
+								]
+							}
+						},
+						{
+							"name": "worker.kafka.dev_vadim_dev.produceQueueLength",
+							"gauge": {
+								"dataPoints": [
+									{
+										"attributes": [
+											{
+												"key": "highlight.session_id",
+												"value": {
+													"stringValue": ""
+												}
+											},
+											{
+												"key": "highlight.trace_id",
+												"value": {
+													"stringValue": ""
+												}
+											}
+										],
+										"startTimeUnixNano": "1730781846503904852",
+										"timeUnixNano": "1730781852937993987",
+										"asDouble": 0
+									}
+								]
+							}
+						},
+						{
+							"name": "worker.kafka.dev_vadim_dev.produceBytes",
+							"gauge": {
+								"dataPoints": [
+									{
+										"attributes": [
+											{
+												"key": "highlight.session_id",
+												"value": {
+													"stringValue": ""
+												}
+											},
+											{
+												"key": "highlight.trace_id",
+												"value": {
+													"stringValue": ""
+												}
+											}
+										],
+										"startTimeUnixNano": "1730781846503927625",
+										"timeUnixNano": "1730781852937995701",
+										"asDouble": 34915
+									}
+								]
+							}
+						},
+						{
+							"name": "worker.kafka.dev_vadim_dev.produceErrors",
+							"gauge": {
+								"dataPoints": [
+									{
+										"attributes": [
+											{
+												"key": "highlight.session_id",
+												"value": {
+													"stringValue": ""
+												}
+											},
+											{
+												"key": "highlight.trace_id",
+												"value": {
+													"stringValue": ""
+												}
+											}
+										],
+										"startTimeUnixNano": "1730781846503961468",
+										"timeUnixNano": "1730781852937997073",
+										"asDouble": 0
+									}
+								]
+							}
+						},
+						{
+							"name": "worker.kafka.dev_vadim_dev_datasync.produceBatchAvgSec",
+							"gauge": {
+								"dataPoints": [
+									{
+										"attributes": [
+											{
+												"key": "highlight.session_id",
+												"value": {
+													"stringValue": ""
+												}
+											},
+											{
+												"key": "highlight.trace_id",
+												"value": {
+													"stringValue": ""
+												}
+											}
+										],
+										"startTimeUnixNano": "1730781846505533801",
+										"timeUnixNano": "1730781852937998696",
+										"asDouble": 0.0000149
+									}
+								]
+							}
+						},
+						{
+							"name": "worker.kafka.dev_vadim_dev_datasync.produceWriteAvgSec",
+							"gauge": {
+								"dataPoints": [
+									{
+										"attributes": [
+											{
+												"key": "highlight.session_id",
+												"value": {
+													"stringValue": ""
+												}
+											},
+											{
+												"key": "highlight.trace_id",
+												"value": {
+													"stringValue": ""
+												}
+											}
+										],
+										"startTimeUnixNano": "1730781846505577073",
+										"timeUnixNano": "1730781852938002023",
+										"asDouble": 0.001903954
+									}
+								]
+							}
+						},
+						{
+							"name": "worker.kafka.dev_vadim_dev_datasync.produceWaitAvgSec",
+							"gauge": {
+								"dataPoints": [
+									{
+										"attributes": [
+											{
+												"key": "highlight.session_id",
+												"value": {
+													"stringValue": ""
+												}
+											},
+											{
+												"key": "highlight.trace_id",
+												"value": {
+													"stringValue": ""
+												}
+											}
+										],
+										"startTimeUnixNano": "1730781846505607069",
+										"timeUnixNano": "1730781852938003445",
+										"asDouble": 0
+									}
+								]
+							}
+						},
+						{
+							"name": "worker.kafka.dev_vadim_dev_datasync.produceBatchSize",
+							"gauge": {
+								"dataPoints": [
+									{
+										"attributes": [
+											{
+												"key": "highlight.session_id",
+												"value": {
+													"stringValue": ""
+												}
+											},
+											{
+												"key": "highlight.trace_id",
+												"value": {
+													"stringValue": ""
+												}
+											}
+										],
+										"startTimeUnixNano": "1730781846505627698",
+										"timeUnixNano": "1730781852938004738",
+										"asDouble": 1
+									}
+								]
+							}
+						},
+						{
+							"name": "worker.kafka.dev_vadim_dev_datasync.produceBatchBytes",
+							"gauge": {
+								"dataPoints": [
+									{
+										"attributes": [
+											{
+												"key": "highlight.session_id",
+												"value": {
+													"stringValue": ""
+												}
+											},
+											{
+												"key": "highlight.trace_id",
+												"value": {
+													"stringValue": ""
+												}
+											}
+										],
+										"startTimeUnixNano": "1730781846505653316",
+										"timeUnixNano": "1730781852938006481",
+										"asDouble": 109
+									}
+								]
+							}
+						},
+						{
+							"name": "worker.kafka.dev_vadim_dev_datasync.produceQueueCapacity",
+							"gauge": {
+								"dataPoints": [
+									{
+										"attributes": [
+											{
+												"key": "highlight.session_id",
+												"value": {
+													"stringValue": ""
+												}
+											},
+											{
+												"key": "highlight.trace_id",
+												"value": {
+													"stringValue": ""
+												}
+											}
+										],
+										"startTimeUnixNano": "1730781846505691979",
+										"timeUnixNano": "1730781852938008174",
+										"asDouble": 0
+									}
+								]
+							}
+						},
+						{
+							"name": "worker.kafka.dev_vadim_dev_datasync.produceQueueLength",
+							"gauge": {
+								"dataPoints": [
+									{
+										"attributes": [
+											{
+												"key": "highlight.session_id",
+												"value": {
+													"stringValue": ""
+												}
+											},
+											{
+												"key": "highlight.trace_id",
+												"value": {
+													"stringValue": ""
+												}
+											}
+										],
+										"startTimeUnixNano": "1730781846505714681",
+										"timeUnixNano": "1730781852938010048",
+										"asDouble": 0
+									}
+								]
+							}
+						},
+						{
+							"name": "worker.kafka.dev_vadim_dev_datasync.produceBytes",
+							"gauge": {
+								"dataPoints": [
+									{
+										"attributes": [
+											{
+												"key": "highlight.session_id",
+												"value": {
+													"stringValue": ""
+												}
+											},
+											{
+												"key": "highlight.trace_id",
+												"value": {
+													"stringValue": ""
+												}
+											}
+										],
+										"startTimeUnixNano": "1730781846505739828",
+										"timeUnixNano": "1730781852938011601",
+										"asDouble": 2735
+									}
+								]
+							}
+						},
+						{
+							"name": "worker.kafka.dev_vadim_dev_datasync.produceErrors",
+							"gauge": {
+								"dataPoints": [
+									{
+										"attributes": [
+											{
+												"key": "highlight.session_id",
+												"value": {
+													"stringValue": ""
+												}
+											},
+											{
+												"key": "highlight.trace_id",
+												"value": {
+													"stringValue": ""
+												}
+											}
+										],
+										"startTimeUnixNano": "1730781846505758323",
+										"timeUnixNano": "1730781852938012863",
+										"asDouble": 0
+									}
+								]
+							}
+						},
+						{
+							"name": "worker.kafka.dev_vadim_dev_batched.produceBatchAvgSec",
+							"gauge": {
+								"dataPoints": [
+									{
+										"attributes": [
+											{
+												"key": "highlight.session_id",
+												"value": {
+													"stringValue": ""
+												}
+											},
+											{
+												"key": "highlight.trace_id",
+												"value": {
+													"stringValue": ""
+												}
+											}
+										],
+										"startTimeUnixNano": "1730781846507319635",
+										"timeUnixNano": "1730781852938014115",
+										"asDouble": 0.100489112
+									}
+								]
+							}
+						},
+						{
+							"name": "worker.kafka.dev_vadim_dev_batched.produceWriteAvgSec",
+							"gauge": {
+								"dataPoints": [
+									{
+										"attributes": [
+											{
+												"key": "highlight.session_id",
+												"value": {
+													"stringValue": ""
+												}
+											},
+											{
+												"key": "highlight.trace_id",
+												"value": {
+													"stringValue": ""
+												}
+											}
+										],
+										"startTimeUnixNano": "1730781846507355693",
+										"timeUnixNano": "1730781852938016339",
+										"asDouble": 0.001760001
+									}
+								]
+							}
+						},
+						{
+							"name": "worker.kafka.dev_vadim_dev_batched.produceWaitAvgSec",
+							"gauge": {
+								"dataPoints": [
+									{
+										"attributes": [
+											{
+												"key": "highlight.session_id",
+												"value": {
+													"stringValue": ""
+												}
+											},
+											{
+												"key": "highlight.trace_id",
+												"value": {
+													"stringValue": ""
+												}
+											}
+										],
+										"startTimeUnixNano": "1730781846507386621",
+										"timeUnixNano": "1730781852938017441",
+										"asDouble": 0
+									}
+								]
+							}
+						},
+						{
+							"name": "worker.kafka.dev_vadim_dev_batched.produceBatchSize",
+							"gauge": {
+								"dataPoints": [
+									{
+										"attributes": [
+											{
+												"key": "highlight.session_id",
+												"value": {
+													"stringValue": ""
+												}
+											},
+											{
+												"key": "highlight.trace_id",
+												"value": {
+													"stringValue": ""
+												}
+											}
+										],
+										"startTimeUnixNano": "1730781846507414574",
+										"timeUnixNano": "1730781852938018874",
+										"asDouble": 8
+									}
+								]
+							}
+						},
+						{
+							"name": "worker.kafka.dev_vadim_dev_batched.produceBatchBytes",
+							"gauge": {
+								"dataPoints": [
+									{
+										"attributes": [
+											{
+												"key": "highlight.session_id",
+												"value": {
+													"stringValue": ""
+												}
+											},
+											{
+												"key": "highlight.trace_id",
+												"value": {
+													"stringValue": ""
+												}
+											}
+										],
+										"startTimeUnixNano": "1730781846507433539",
+										"timeUnixNano": "1730781852938020487",
+										"asDouble": 39163
+									}
+								]
+							}
+						},
+						{
+							"name": "worker.kafka.dev_vadim_dev_batched.produceQueueCapacity",
+							"gauge": {
+								"dataPoints": [
+									{
+										"attributes": [
+											{
+												"key": "highlight.session_id",
+												"value": {
+													"stringValue": ""
+												}
+											},
+											{
+												"key": "highlight.trace_id",
+												"value": {
+													"stringValue": ""
+												}
+											}
+										],
+										"startTimeUnixNano": "1730781846507456302",
+										"timeUnixNano": "1730781852938021609",
+										"asDouble": 0
+									}
+								]
+							}
+						},
+						{
+							"name": "worker.kafka.dev_vadim_dev_batched.produceQueueLength",
+							"gauge": {
+								"dataPoints": [
+									{
+										"attributes": [
+											{
+												"key": "highlight.session_id",
+												"value": {
+													"stringValue": ""
+												}
+											},
+											{
+												"key": "highlight.trace_id",
+												"value": {
+													"stringValue": ""
+												}
+											}
+										],
+										"startTimeUnixNano": "1730781846507476771",
+										"timeUnixNano": "1730781852938023272",
+										"asDouble": 0
+									}
+								]
+							}
+						},
+						{
+							"name": "worker.kafka.dev_vadim_dev_batched.produceBytes",
+							"gauge": {
+								"dataPoints": [
+									{
+										"attributes": [
+											{
+												"key": "highlight.session_id",
+												"value": {
+													"stringValue": ""
+												}
+											},
+											{
+												"key": "highlight.trace_id",
+												"value": {
+													"stringValue": ""
+												}
+											}
+										],
+										"startTimeUnixNano": "1730781846507494614",
+										"timeUnixNano": "1730781852938024765",
+										"asDouble": 352470
+									}
+								]
+							}
+						},
+						{
+							"name": "worker.kafka.dev_vadim_dev_batched.produceErrors",
+							"gauge": {
+								"dataPoints": [
+									{
+										"attributes": [
+											{
+												"key": "highlight.session_id",
+												"value": {
+													"stringValue": ""
+												}
+											},
+											{
+												"key": "highlight.trace_id",
+												"value": {
+													"stringValue": ""
+												}
+											}
+										],
+										"startTimeUnixNano": "1730781846507528087",
+										"timeUnixNano": "1730781852938025957",
+										"asDouble": 0
+									}
+								]
+							}
+						},
+						{
+							"name": "worker.kafka.dev_vadim_dev_traces.produceBatchAvgSec",
+							"gauge": {
+								"dataPoints": [
+									{
+										"attributes": [
+											{
+												"key": "highlight.session_id",
+												"value": {
+													"stringValue": ""
+												}
+											},
+											{
+												"key": "highlight.trace_id",
+												"value": {
+													"stringValue": ""
+												}
+											}
+										],
+										"startTimeUnixNano": "1730781846509009329",
+										"timeUnixNano": "1730781852938027751",
+										"asDouble": 0.100314633
+									}
+								]
+							}
+						},
+						{
+							"name": "worker.kafka.dev_vadim_dev_traces.produceWriteAvgSec",
+							"gauge": {
+								"dataPoints": [
+									{
+										"attributes": [
+											{
+												"key": "highlight.session_id",
+												"value": {
+													"stringValue": ""
+												}
+											},
+											{
+												"key": "highlight.trace_id",
+												"value": {
+													"stringValue": ""
+												}
+											}
+										],
+										"startTimeUnixNano": "1730781846509037432",
+										"timeUnixNano": "1730781852938029504",
+										"asDouble": 0.004518779
+									}
+								]
+							}
+						},
+						{
+							"name": "worker.kafka.dev_vadim_dev_traces.produceWaitAvgSec",
+							"gauge": {
+								"dataPoints": [
+									{
+										"attributes": [
+											{
+												"key": "highlight.session_id",
+												"value": {
+													"stringValue": ""
+												}
+											},
+											{
+												"key": "highlight.trace_id",
+												"value": {
+													"stringValue": ""
+												}
+											}
+										],
+										"startTimeUnixNano": "1730781846509072728",
+										"timeUnixNano": "1730781852938030496",
+										"asDouble": 0
+									}
+								]
+							}
+						},
+						{
+							"name": "worker.kafka.dev_vadim_dev_traces.produceBatchSize",
+							"gauge": {
+								"dataPoints": [
+									{
+										"attributes": [
+											{
+												"key": "highlight.session_id",
+												"value": {
+													"stringValue": ""
+												}
+											},
+											{
+												"key": "highlight.trace_id",
+												"value": {
+													"stringValue": ""
+												}
+											}
+										],
+										"startTimeUnixNano": "1730781846509091193",
+										"timeUnixNano": "1730781852938031728",
+										"asDouble": 95
+									}
+								]
+							}
+						},
+						{
+							"name": "worker.kafka.dev_vadim_dev_traces.produceBatchBytes",
+							"gauge": {
+								"dataPoints": [
+									{
+										"attributes": [
+											{
+												"key": "highlight.session_id",
+												"value": {
+													"stringValue": ""
+												}
+											},
+											{
+												"key": "highlight.trace_id",
+												"value": {
+													"stringValue": ""
+												}
+											}
+										],
+										"startTimeUnixNano": "1730781846509114557",
+										"timeUnixNano": "1730781852938033251",
+										"asDouble": 143905
+									}
+								]
+							}
+						},
+						{
+							"name": "worker.kafka.dev_vadim_dev_traces.produceQueueCapacity",
+							"gauge": {
+								"dataPoints": [
+									{
+										"attributes": [
+											{
+												"key": "highlight.session_id",
+												"value": {
+													"stringValue": ""
+												}
+											},
+											{
+												"key": "highlight.trace_id",
+												"value": {
+													"stringValue": ""
+												}
+											}
+										],
+										"startTimeUnixNano": "1730781846509145485",
+										"timeUnixNano": "1730781852938034453",
+										"asDouble": 0
+									}
+								]
+							}
+						},
+						{
+							"name": "worker.kafka.dev_vadim_dev_traces.produceQueueLength",
+							"gauge": {
+								"dataPoints": [
+									{
+										"attributes": [
+											{
+												"key": "highlight.session_id",
+												"value": {
+													"stringValue": ""
+												}
+											},
+											{
+												"key": "highlight.trace_id",
+												"value": {
+													"stringValue": ""
+												}
+											}
+										],
+										"startTimeUnixNano": "1730781846509169590",
+										"timeUnixNano": "1730781852938035646",
+										"asDouble": 0
+									}
+								]
+							}
+						},
+						{
+							"name": "worker.kafka.dev_vadim_dev_traces.produceBytes",
+							"gauge": {
+								"dataPoints": [
+									{
+										"attributes": [
+											{
+												"key": "highlight.session_id",
+												"value": {
+													"stringValue": ""
+												}
+											},
+											{
+												"key": "highlight.trace_id",
+												"value": {
+													"stringValue": ""
+												}
+											}
+										],
+										"startTimeUnixNano": "1730781846509196571",
+										"timeUnixNano": "1730781852938037519",
+										"asDouble": 8058728
+									}
+								]
+							}
+						},
+						{
+							"name": "worker.kafka.dev_vadim_dev_traces.produceErrors",
+							"gauge": {
+								"dataPoints": [
+									{
+										"attributes": [
+											{
+												"key": "highlight.session_id",
+												"value": {
+													"stringValue": ""
+												}
+											},
+											{
+												"key": "highlight.trace_id",
+												"value": {
+													"stringValue": ""
+												}
+											}
+										],
+										"startTimeUnixNano": "1730781846509213763",
+										"timeUnixNano": "1730781852938038691",
+										"asDouble": 0
+									}
+								]
+							}
+						},
+						{
+							"name": "worker.kafka.dev_vadim_dev_metrics.produceBatchAvgSec",
+							"gauge": {
+								"dataPoints": [
+									{
+										"attributes": [
+											{
+												"key": "highlight.session_id",
+												"value": {
+													"stringValue": ""
+												}
+											},
+											{
+												"key": "highlight.trace_id",
+												"value": {
+													"stringValue": ""
+												}
+											}
+										],
+										"startTimeUnixNano": "1730781846510988777",
+										"timeUnixNano": "1730781852938043711",
+										"asDouble": 0.100589161
+									}
+								]
+							}
+						},
+						{
+							"name": "worker.kafka.dev_vadim_dev_metrics.produceWriteAvgSec",
+							"gauge": {
+								"dataPoints": [
+									{
+										"attributes": [
+											{
+												"key": "highlight.session_id",
+												"value": {
+													"stringValue": ""
+												}
+											},
+											{
+												"key": "highlight.trace_id",
+												"value": {
+													"stringValue": ""
+												}
+											}
+										],
+										"startTimeUnixNano": "1730781846511060922",
+										"timeUnixNano": "1730781852938046195",
+										"asDouble": 0.003871147
+									}
+								]
+							}
+						},
+						{
+							"name": "worker.kafka.dev_vadim_dev_metrics.produceWaitAvgSec",
+							"gauge": {
+								"dataPoints": [
+									{
+										"attributes": [
+											{
+												"key": "highlight.session_id",
+												"value": {
+													"stringValue": ""
+												}
+											},
+											{
+												"key": "highlight.trace_id",
+												"value": {
+													"stringValue": ""
+												}
+											}
+										],
+										"startTimeUnixNano": "1730781846511092652",
+										"timeUnixNano": "1730781852938047468",
+										"asDouble": 0
+									}
+								]
+							}
+						},
+						{
+							"name": "worker.kafka.dev_vadim_dev_metrics.produceBatchSize",
+							"gauge": {
+								"dataPoints": [
+									{
+										"attributes": [
+											{
+												"key": "highlight.session_id",
+												"value": {
+													"stringValue": ""
+												}
+											},
+											{
+												"key": "highlight.trace_id",
+												"value": {
+													"stringValue": ""
+												}
+											}
+										],
+										"startTimeUnixNano": "1730781846511133839",
+										"timeUnixNano": "1730781852938049141",
+										"asDouble": 109
+									}
+								]
+							}
+						},
+						{
+							"name": "worker.kafka.dev_vadim_dev_metrics.produceBatchBytes",
+							"gauge": {
+								"dataPoints": [
+									{
+										"attributes": [
+											{
+												"key": "highlight.session_id",
+												"value": {
+													"stringValue": ""
+												}
+											},
+											{
+												"key": "highlight.trace_id",
+												"value": {
+													"stringValue": ""
+												}
+											}
+										],
+										"startTimeUnixNano": "1730781846511163946",
+										"timeUnixNano": "1730781852938050814",
+										"asDouble": 141187
+									}
+								]
+							}
+						},
+						{
+							"name": "worker.kafka.dev_vadim_dev_metrics.produceQueueCapacity",
+							"gauge": {
+								"dataPoints": [
+									{
+										"attributes": [
+											{
+												"key": "highlight.session_id",
+												"value": {
+													"stringValue": ""
+												}
+											},
+											{
+												"key": "highlight.trace_id",
+												"value": {
+													"stringValue": ""
+												}
+											}
+										],
+										"startTimeUnixNano": "1730781846511195224",
+										"timeUnixNano": "1730781852938052046",
+										"asDouble": 0
+									}
+								]
+							}
+						},
+						{
+							"name": "worker.kafka.dev_vadim_dev_metrics.produceQueueLength",
+							"gauge": {
+								"dataPoints": [
+									{
+										"attributes": [
+											{
+												"key": "highlight.session_id",
+												"value": {
+													"stringValue": ""
+												}
+											},
+											{
+												"key": "highlight.trace_id",
+												"value": {
+													"stringValue": ""
+												}
+											}
+										],
+										"startTimeUnixNano": "1730781846511233306",
+										"timeUnixNano": "1730781852938053189",
+										"asDouble": 0
+									}
+								]
+							}
+						},
+						{
+							"name": "worker.kafka.dev_vadim_dev_metrics.produceBytes",
+							"gauge": {
+								"dataPoints": [
+									{
+										"attributes": [
+											{
+												"key": "highlight.session_id",
+												"value": {
+													"stringValue": ""
+												}
+											},
+											{
+												"key": "highlight.trace_id",
+												"value": {
+													"stringValue": ""
+												}
+											}
+										],
+										"startTimeUnixNano": "1730781846511271618",
+										"timeUnixNano": "1730781852938054972",
+										"asDouble": 847123
+									}
+								]
+							}
+						},
+						{
+							"name": "worker.kafka.dev_vadim_dev_metrics.produceErrors",
+							"gauge": {
+								"dataPoints": [
+									{
+										"attributes": [
+											{
+												"key": "highlight.session_id",
+												"value": {
+													"stringValue": ""
+												}
+											},
+											{
+												"key": "highlight.trace_id",
+												"value": {
+													"stringValue": ""
+												}
+											}
+										],
+										"startTimeUnixNano": "1730781846511301003",
+										"timeUnixNano": "1730781852938056515",
+										"asDouble": 0
+									}
+								]
+							}
+						},
+						{
+							"name": "clickhouse.open",
+							"gauge": {
+								"dataPoints": [
+									{
+										"attributes": [
+											{
+												"key": "highlight.session_id",
+												"value": {
+													"stringValue": ""
+												}
+											},
+											{
+												"key": "highlight.trace_id",
+												"value": {
+													"stringValue": ""
+												}
+											}
+										],
+										"startTimeUnixNano": "1730781846511470021",
+										"timeUnixNano": "1730781852938057767",
+										"asDouble": 0
+									}
+								]
+							}
+						},
+						{
+							"name": "clickhouse.idle",
+							"gauge": {
+								"dataPoints": [
+									{
+										"attributes": [
+											{
+												"key": "highlight.session_id",
+												"value": {
+													"stringValue": ""
+												}
+											},
+											{
+												"key": "highlight.trace_id",
+												"value": {
+													"stringValue": ""
+												}
+											}
+										],
+										"startTimeUnixNano": "1730781846511497582",
+										"timeUnixNano": "1730781852938059591",
+										"asDouble": 3
+									}
+								]
+							}
+						},
+						{
+							"name": "worker.kafka.dev_vadim_dev.consumeReadAvgSec",
+							"gauge": {
+								"dataPoints": [
+									{
+										"attributes": [
+											{
+												"key": "highlight.session_id",
+												"value": {
+													"stringValue": ""
+												}
+											},
+											{
+												"key": "highlight.trace_id",
+												"value": {
+													"stringValue": ""
+												}
+											}
+										],
+										"startTimeUnixNano": "1730781846550661448",
+										"timeUnixNano": "1730781852938060813",
+										"asDouble": 0
+									}
+								]
+							}
+						},
+						{
+							"name": "worker.kafka.dev_vadim_dev.consumeWaitAvgSec",
+							"gauge": {
+								"dataPoints": [
+									{
+										"attributes": [
+											{
+												"key": "highlight.session_id",
+												"value": {
+													"stringValue": ""
+												}
+											},
+											{
+												"key": "highlight.trace_id",
+												"value": {
+													"stringValue": ""
+												}
+											}
+										],
+										"startTimeUnixNano": "1730781846550722603",
+										"timeUnixNano": "1730781852938062857",
+										"asDouble": 0
+									}
+								]
+							}
+						},
+						{
+							"name": "worker.kafka.dev_vadim_dev.consumeFetchSize",
+							"gauge": {
+								"dataPoints": [
+									{
+										"attributes": [
+											{
+												"key": "highlight.session_id",
+												"value": {
+													"stringValue": ""
+												}
+											},
+											{
+												"key": "highlight.trace_id",
+												"value": {
+													"stringValue": ""
+												}
+											}
+										],
+										"startTimeUnixNano": "1730781846550757098",
+										"timeUnixNano": "1730781852938064560",
+										"asDouble": 0
+									}
+								]
+							}
+						},
+						{
+							"name": "worker.kafka.dev_vadim_dev.consumeFetchBytes",
+							"gauge": {
+								"dataPoints": [
+									{
+										"attributes": [
+											{
+												"key": "highlight.session_id",
+												"value": {
+													"stringValue": ""
+												}
+											},
+											{
+												"key": "highlight.trace_id",
+												"value": {
+													"stringValue": ""
+												}
+											}
+										],
+										"startTimeUnixNano": "1730781846550792705",
+										"timeUnixNano": "1730781852938065752",
+										"asDouble": 0
+									}
+								]
+							}
+						},
+						{
+							"name": "worker.kafka.dev_vadim_dev_traces.consumeReadAvgSec",
+							"gauge": {
+								"dataPoints": [
+									{
+										"attributes": [
+											{
+												"key": "highlight.session_id",
+												"value": {
+													"stringValue": ""
+												}
+											},
+											{
+												"key": "highlight.trace_id",
+												"value": {
+													"stringValue": ""
+												}
+											}
+										],
+										"startTimeUnixNano": "1730781846550828262",
+										"timeUnixNano": "1730781852938066975",
+										"asDouble": 0.490456122
+									}
+								]
+							}
+						},
+						{
+							"name": "worker.kafka.dev_vadim_dev_traces.consumeWaitAvgSec",
+							"gauge": {
+								"dataPoints": [
+									{
+										"attributes": [
+											{
+												"key": "highlight.session_id",
+												"value": {
+													"stringValue": ""
+												}
+											},
+											{
+												"key": "highlight.trace_id",
+												"value": {
+													"stringValue": ""
+												}
+											}
+										],
+										"startTimeUnixNano": "1730781846550883425",
+										"timeUnixNano": "1730781852938069519",
+										"asDouble": 0.032002001
+									}
+								]
+							}
+						},
+						{
+							"name": "worker.kafka.dev_vadim_dev.consumeQueueCapacity",
+							"gauge": {
+								"dataPoints": [
+									{
+										"attributes": [
+											{
+												"key": "highlight.session_id",
+												"value": {
+													"stringValue": ""
+												}
+											},
+											{
+												"key": "highlight.trace_id",
+												"value": {
+													"stringValue": ""
+												}
+											}
+										],
+										"startTimeUnixNano": "1730781846550982131",
+										"timeUnixNano": "1730781852938070712",
+										"asDouble": 1000
+									}
+								]
+							}
+						},
+						{
+							"name": "worker.kafka.dev_vadim_dev.consumeQueueLength",
+							"gauge": {
+								"dataPoints": [
+									{
+										"attributes": [
+											{
+												"key": "highlight.session_id",
+												"value": {
+													"stringValue": ""
+												}
+											},
+											{
+												"key": "highlight.trace_id",
+												"value": {
+													"stringValue": ""
+												}
+											}
+										],
+										"startTimeUnixNano": "1730781846551025222",
+										"timeUnixNano": "1730781852938072244",
+										"asDouble": 0
+									}
+								]
+							}
+						},
+						{
+							"name": "worker.kafka.dev_vadim_dev.consumeBytes",
+							"gauge": {
+								"dataPoints": [
+									{
+										"attributes": [
+											{
+												"key": "highlight.session_id",
+												"value": {
+													"stringValue": ""
+												}
+											},
+											{
+												"key": "highlight.trace_id",
+												"value": {
+													"stringValue": ""
+												}
+											}
+										],
+										"startTimeUnixNano": "1730781846551085224",
+										"timeUnixNano": "1730781852938080310",
+										"asDouble": 0
+									}
+								]
+							}
+						},
+						{
+							"name": "worker.kafka.dev_vadim_dev.consumeErrors",
+							"gauge": {
+								"dataPoints": [
+									{
+										"attributes": [
+											{
+												"key": "highlight.session_id",
+												"value": {
+													"stringValue": ""
+												}
+											},
+											{
+												"key": "highlight.trace_id",
+												"value": {
+													"stringValue": ""
+												}
+											}
+										],
+										"startTimeUnixNano": "1730781846551132573",
+										"timeUnixNano": "1730781852938081492",
+										"asDouble": 0
+									}
+								]
+							}
+						},
+						{
+							"name": "worker.kafka.dev_vadim_dev_datasync.consumeReadAvgSec",
+							"gauge": {
+								"dataPoints": [
+									{
+										"attributes": [
+											{
+												"key": "highlight.session_id",
+												"value": {
+													"stringValue": ""
+												}
+											},
+											{
+												"key": "highlight.trace_id",
+												"value": {
+													"stringValue": ""
+												}
+											}
+										],
+										"startTimeUnixNano": "1730781846551639686",
+										"timeUnixNano": "1730781852938082854",
+										"asDouble": 0.000041129
+									}
+								]
+							}
+						},
+						{
+							"name": "worker.kafka.dev_vadim_dev_datasync.consumeWaitAvgSec",
+							"gauge": {
+								"dataPoints": [
+									{
+										"attributes": [
+											{
+												"key": "highlight.session_id",
+												"value": {
+													"stringValue": ""
+												}
+											},
+											{
+												"key": "highlight.trace_id",
+												"value": {
+													"stringValue": ""
+												}
+											}
+										],
+										"startTimeUnixNano": "1730781846551678128",
+										"timeUnixNano": "1730781852938086371",
+										"asDouble": 0.344670261
+									}
+								]
+							}
+						},
+						{
+							"name": "worker.kafka.dev_vadim_dev_datasync.consumeFetchSize",
+							"gauge": {
+								"dataPoints": [
+									{
+										"attributes": [
+											{
+												"key": "highlight.session_id",
+												"value": {
+													"stringValue": ""
+												}
+											},
+											{
+												"key": "highlight.trace_id",
+												"value": {
+													"stringValue": ""
+												}
+											}
+										],
+										"startTimeUnixNano": "1730781846551715188",
+										"timeUnixNano": "1730781852938088265",
+										"asDouble": 1
+									}
+								]
+							}
+						},
+						{
+							"name": "worker.kafka.dev_vadim_dev_datasync.consumeFetchBytes",
+							"gauge": {
+								"dataPoints": [
+									{
+										"attributes": [
+											{
+												"key": "highlight.session_id",
+												"value": {
+													"stringValue": ""
+												}
+											},
+											{
+												"key": "highlight.trace_id",
+												"value": {
+													"stringValue": ""
+												}
+											}
+										],
+										"startTimeUnixNano": "1730781846551751736",
+										"timeUnixNano": "1730781852938089437",
+										"asDouble": 93
+									}
+								]
+							}
+						},
+						{
+							"name": "worker.kafka.dev_vadim_dev_datasync.consumeQueueCapacity",
+							"gauge": {
+								"dataPoints": [
+									{
+										"attributes": [
+											{
+												"key": "highlight.session_id",
+												"value": {
+													"stringValue": ""
+												}
+											},
+											{
+												"key": "highlight.trace_id",
+												"value": {
+													"stringValue": ""
+												}
+											}
+										],
+										"startTimeUnixNano": "1730781846551782364",
+										"timeUnixNano": "1730781852938091070",
+										"asDouble": 100
+									}
+								]
+							}
+						},
+						{
+							"name": "worker.kafka.dev_vadim_dev_datasync.consumeQueueLength",
+							"gauge": {
+								"dataPoints": [
+									{
+										"attributes": [
+											{
+												"key": "highlight.session_id",
+												"value": {
+													"stringValue": ""
+												}
+											},
+											{
+												"key": "highlight.trace_id",
+												"value": {
+													"stringValue": ""
+												}
+											}
+										],
+										"startTimeUnixNano": "1730781846551813061",
+										"timeUnixNano": "1730781852938092252",
+										"asDouble": 0
+									}
+								]
+							}
+						},
+						{
+							"name": "worker.kafka.dev_vadim_dev_datasync.consumeBytes",
+							"gauge": {
+								"dataPoints": [
+									{
+										"attributes": [
+											{
+												"key": "highlight.session_id",
+												"value": {
+													"stringValue": ""
+												}
+											},
+											{
+												"key": "highlight.trace_id",
+												"value": {
+													"stringValue": ""
+												}
+											}
+										],
+										"startTimeUnixNano": "1730781846551836175",
+										"timeUnixNano": "1730781852938093324",
+										"asDouble": 2160
+									}
+								]
+							}
+						},
+						{
+							"name": "worker.kafka.dev_vadim_dev_datasync.consumeErrors",
+							"gauge": {
+								"dataPoints": [
+									{
+										"attributes": [
+											{
+												"key": "highlight.session_id",
+												"value": {
+													"stringValue": ""
+												}
+											},
+											{
+												"key": "highlight.trace_id",
+												"value": {
+													"stringValue": ""
+												}
+											}
+										],
+										"startTimeUnixNano": "1730781846551867203",
+										"timeUnixNano": "1730781852938095027",
+										"asDouble": 0
+									}
+								]
+							}
+						},
+						{
+							"name": "worker.kafka.dev_vadim_dev_traces.consumeFetchSize",
+							"gauge": {
+								"dataPoints": [
+									{
+										"attributes": [
+											{
+												"key": "highlight.session_id",
+												"value": {
+													"stringValue": ""
+												}
+											},
+											{
+												"key": "highlight.trace_id",
+												"value": {
+													"stringValue": ""
+												}
+											}
+										],
+										"startTimeUnixNano": "1730781846552408630",
+										"timeUnixNano": "1730781852938096270",
+										"asDouble": 313
+									}
+								]
+							}
+						},
+						{
+							"name": "worker.kafka.dev_vadim_dev_traces.consumeFetchBytes",
+							"gauge": {
+								"dataPoints": [
+									{
+										"attributes": [
+											{
+												"key": "highlight.session_id",
+												"value": {
+													"stringValue": ""
+												}
+											},
+											{
+												"key": "highlight.trace_id",
+												"value": {
+													"stringValue": ""
+												}
+											}
+										],
+										"startTimeUnixNano": "1730781846552457392",
+										"timeUnixNano": "1730781852938097632",
+										"asDouble": 467737
+									}
+								]
+							}
+						},
+						{
+							"name": "worker.kafka.dev_vadim_dev_traces.consumeQueueCapacity",
+							"gauge": {
+								"dataPoints": [
+									{
+										"attributes": [
+											{
+												"key": "highlight.session_id",
+												"value": {
+													"stringValue": ""
+												}
+											},
+											{
+												"key": "highlight.trace_id",
+												"value": {
+													"stringValue": ""
+												}
+											}
+										],
+										"startTimeUnixNano": "1730781846552486647",
+										"timeUnixNano": "1730781852938099165",
+										"asDouble": 100
+									}
+								]
+							}
+						},
+						{
+							"name": "worker.kafka.dev_vadim_dev_traces.consumeQueueLength",
+							"gauge": {
+								"dataPoints": [
+									{
+										"attributes": [
+											{
+												"key": "highlight.session_id",
+												"value": {
+													"stringValue": ""
+												}
+											},
+											{
+												"key": "highlight.trace_id",
+												"value": {
+													"stringValue": ""
+												}
+											}
+										],
+										"startTimeUnixNano": "1730781846552521743",
+										"timeUnixNano": "1730781852938100227",
+										"asDouble": 100
+									}
+								]
+							}
+						},
+						{
+							"name": "worker.kafka.dev_vadim_dev_traces.consumeBytes",
+							"gauge": {
+								"dataPoints": [
+									{
+										"attributes": [
+											{
+												"key": "highlight.session_id",
+												"value": {
+													"stringValue": ""
+												}
+											},
+											{
+												"key": "highlight.trace_id",
+												"value": {
+													"stringValue": ""
+												}
+											}
+										],
+										"startTimeUnixNano": "1730781846552556267",
+										"timeUnixNano": "1730781852938101539",
+										"asDouble": 14369202
+									}
+								]
+							}
+						},
+						{
+							"name": "worker.kafka.dev_vadim_dev_traces.consumeErrors",
+							"gauge": {
+								"dataPoints": [
+									{
+										"attributes": [
+											{
+												"key": "highlight.session_id",
+												"value": {
+													"stringValue": ""
+												}
+											},
+											{
+												"key": "highlight.trace_id",
+												"value": {
+													"stringValue": ""
+												}
+											}
+										],
+										"startTimeUnixNano": "1730781846552592205",
+										"timeUnixNano": "1730781852938103283",
+										"asDouble": 0
+									}
+								]
+							}
+						},
+						{
+							"name": "worker.kafka.dev_vadim_dev_metrics.consumeReadAvgSec",
+							"gauge": {
+								"dataPoints": [
+									{
+										"attributes": [
+											{
+												"key": "highlight.session_id",
+												"value": {
+													"stringValue": ""
+												}
+											},
+											{
+												"key": "highlight.trace_id",
+												"value": {
+													"stringValue": ""
+												}
+											}
+										],
+										"startTimeUnixNano": "1730781846555646571",
+										"timeUnixNano": "1730781852938104645",
+										"asDouble": 0.091591449
+									}
+								]
+							}
+						},
+						{
+							"name": "worker.kafka.dev_vadim_dev_metrics.consumeWaitAvgSec",
+							"gauge": {
+								"dataPoints": [
+									{
+										"attributes": [
+											{
+												"key": "highlight.session_id",
+												"value": {
+													"stringValue": ""
+												}
+											},
+											{
+												"key": "highlight.trace_id",
+												"value": {
+													"stringValue": ""
+												}
+											}
+										],
+										"startTimeUnixNano": "1730781846555689011",
+										"timeUnixNano": "1730781852938106409",
+										"asDouble": 0.278033561
+									}
+								]
+							}
+						},
+						{
+							"name": "worker.kafka.dev_vadim_dev_metrics.consumeFetchSize",
+							"gauge": {
+								"dataPoints": [
+									{
+										"attributes": [
+											{
+												"key": "highlight.session_id",
+												"value": {
+													"stringValue": ""
+												}
+											},
+											{
+												"key": "highlight.trace_id",
+												"value": {
+													"stringValue": ""
+												}
+											}
+										],
+										"startTimeUnixNano": "1730781846555718787",
+										"timeUnixNano": "1730781852938108062",
+										"asDouble": 193
+									}
+								]
+							}
+						},
+						{
+							"name": "worker.kafka.dev_vadim_dev_metrics.consumeFetchBytes",
+							"gauge": {
+								"dataPoints": [
+									{
+										"attributes": [
+											{
+												"key": "highlight.session_id",
+												"value": {
+													"stringValue": ""
+												}
+											},
+											{
+												"key": "highlight.trace_id",
+												"value": {
+													"stringValue": ""
+												}
+											}
+										],
+										"startTimeUnixNano": "1730781846555758121",
+										"timeUnixNano": "1730781852938109354",
+										"asDouble": 249551
+									}
+								]
+							}
+						},
+						{
+							"name": "worker.kafka.dev_vadim_dev_metrics.consumeQueueCapacity",
+							"gauge": {
+								"dataPoints": [
+									{
+										"attributes": [
+											{
+												"key": "highlight.session_id",
+												"value": {
+													"stringValue": ""
+												}
+											},
+											{
+												"key": "highlight.trace_id",
+												"value": {
+													"stringValue": ""
+												}
+											}
+										],
+										"startTimeUnixNano": "1730781846555787967",
+										"timeUnixNano": "1730781852938110376",
+										"asDouble": 100
+									}
+								]
+							}
+						},
+						{
+							"name": "worker.kafka.dev_vadim_dev_metrics.consumeQueueLength",
+							"gauge": {
+								"dataPoints": [
+									{
+										"attributes": [
+											{
+												"key": "highlight.session_id",
+												"value": {
+													"stringValue": ""
+												}
+											},
+											{
+												"key": "highlight.trace_id",
+												"value": {
+													"stringValue": ""
+												}
+											}
+										],
+										"startTimeUnixNano": "1730781846555821761",
+										"timeUnixNano": "1730781852938111989",
+										"asDouble": 0
+									}
+								]
+							}
+						},
+						{
+							"name": "worker.kafka.dev_vadim_dev_metrics.consumeBytes",
+							"gauge": {
+								"dataPoints": [
+									{
+										"attributes": [
+											{
+												"key": "highlight.session_id",
+												"value": {
+													"stringValue": ""
+												}
+											},
+											{
+												"key": "highlight.trace_id",
+												"value": {
+													"stringValue": ""
+												}
+											}
+										],
+										"startTimeUnixNano": "1730781846555959790",
+										"timeUnixNano": "1730781852938113111",
+										"asDouble": 2245963
+									}
+								]
+							}
+						},
+						{
+							"name": "worker.kafka.dev_vadim_dev_metrics.consumeErrors",
+							"gauge": {
+								"dataPoints": [
+									{
+										"attributes": [
+											{
+												"key": "highlight.session_id",
+												"value": {
+													"stringValue": ""
+												}
+											},
+											{
+												"key": "highlight.trace_id",
+												"value": {
+													"stringValue": ""
+												}
+											}
+										],
+										"startTimeUnixNano": "1730781846556009493",
+										"timeUnixNano": "1730781852938114514",
+										"asDouble": 0
+									}
+								]
+							}
+						},
+						{
+							"name": "worker.kafka.dev_vadim_dev_batched.consumeReadAvgSec",
+							"gauge": {
+								"dataPoints": [
+									{
+										"attributes": [
+											{
+												"key": "highlight.session_id",
+												"value": {
+													"stringValue": ""
+												}
+											},
+											{
+												"key": "highlight.trace_id",
+												"value": {
+													"stringValue": ""
+												}
+											}
+										],
+										"startTimeUnixNano": "1730781846556994313",
+										"timeUnixNano": "1730781852938116037",
+										"asDouble": 0.000943884
+									}
+								]
+							}
+						},
+						{
+							"name": "worker.kafka.dev_vadim_dev_batched.consumeWaitAvgSec",
+							"gauge": {
+								"dataPoints": [
+									{
+										"attributes": [
+											{
+												"key": "highlight.session_id",
+												"value": {
+													"stringValue": ""
+												}
+											},
+											{
+												"key": "highlight.trace_id",
+												"value": {
+													"stringValue": ""
+												}
+											}
+										],
+										"startTimeUnixNano": "1730781846557058243",
+										"timeUnixNano": "1730781852938118030",
+										"asDouble": 0.295883869
+									}
+								]
+							}
+						},
+						{
+							"name": "worker.kafka.dev_vadim_dev_batched.consumeFetchSize",
+							"gauge": {
+								"dataPoints": [
+									{
+										"attributes": [
+											{
+												"key": "highlight.session_id",
+												"value": {
+													"stringValue": ""
+												}
+											},
+											{
+												"key": "highlight.trace_id",
+												"value": {
+													"stringValue": ""
+												}
+											}
+										],
+										"startTimeUnixNano": "1730781846557102325",
+										"timeUnixNano": "1730781852938119553",
+										"asDouble": 11
+									}
+								]
+							}
+						},
+						{
+							"name": "worker.kafka.dev_vadim_dev_batched.consumeFetchBytes",
+							"gauge": {
+								"dataPoints": [
+									{
+										"attributes": [
+											{
+												"key": "highlight.session_id",
+												"value": {
+													"stringValue": ""
+												}
+											},
+											{
+												"key": "highlight.trace_id",
+												"value": {
+													"stringValue": ""
+												}
+											}
+										],
+										"startTimeUnixNano": "1730781846557133143",
+										"timeUnixNano": "1730781852938121056",
+										"asDouble": 42481
+									}
+								]
+							}
+						},
+						{
+							"name": "worker.kafka.dev_vadim_dev_batched.consumeQueueCapacity",
+							"gauge": {
+								"dataPoints": [
+									{
+										"attributes": [
+											{
+												"key": "highlight.session_id",
+												"value": {
+													"stringValue": ""
+												}
+											},
+											{
+												"key": "highlight.trace_id",
+												"value": {
+													"stringValue": ""
+												}
+											}
+										],
+										"startTimeUnixNano": "1730781846557164362",
+										"timeUnixNano": "1730781852938122569",
+										"asDouble": 100
+									}
+								]
+							}
+						},
+						{
+							"name": "worker.kafka.dev_vadim_dev_batched.consumeQueueLength",
+							"gauge": {
+								"dataPoints": [
+									{
+										"attributes": [
+											{
+												"key": "highlight.session_id",
+												"value": {
+													"stringValue": ""
+												}
+											},
+											{
+												"key": "highlight.trace_id",
+												"value": {
+													"stringValue": ""
+												}
+											}
+										],
+										"startTimeUnixNano": "1730781846557200330",
+										"timeUnixNano": "1730781852938123601",
+										"asDouble": 0
+									}
+								]
+							}
+						},
+						{
+							"name": "worker.kafka.dev_vadim_dev_batched.consumeBytes",
+							"gauge": {
+								"dataPoints": [
+									{
+										"attributes": [
+											{
+												"key": "highlight.session_id",
+												"value": {
+													"stringValue": ""
+												}
+											},
+											{
+												"key": "highlight.trace_id",
+												"value": {
+													"stringValue": ""
+												}
+											}
+										],
+										"startTimeUnixNano": "1730781846557228082",
+										"timeUnixNano": "1730781852938125364",
+										"asDouble": 382333
+									}
+								]
+							}
+						},
+						{
+							"name": "worker.kafka.dev_vadim_dev_batched.consumeErrors",
+							"gauge": {
+								"dataPoints": [
+									{
+										"attributes": [
+											{
+												"key": "highlight.session_id",
+												"value": {
+													"stringValue": ""
+												}
+											},
+											{
+												"key": "highlight.trace_id",
+												"value": {
+													"stringValue": ""
+												}
+											}
+										],
+										"startTimeUnixNano": "1730781846557272255",
+										"timeUnixNano": "1730781852938126847",
+										"asDouble": 0
+									}
+								]
+							}
+						},
+						{
+							"name": "worker.kafka.dev_vadim_dev_batched.produceMessageCount",
+							"gauge": {
+								"dataPoints": [
+									{
+										"attributes": [
+											{
+												"key": "highlight.session_id",
+												"value": {
+													"stringValue": ""
+												}
+											},
+											{
+												"key": "highlight.trace_id",
+												"value": {
+													"stringValue": ""
+												}
+											}
+										],
+										"startTimeUnixNano": "1730781846651374584",
+										"timeUnixNano": "1730781852938128069",
+										"asDouble": 1,
+										"exemplars": [
+											{
+												"timeUnixNano": "1730781852688487413",
+												"asDouble": 1,
+												"spanId": "1111111111111111",
+												"traceId": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+											},
+											{
+												"timeUnixNano": "1730781852688507311",
+												"asDouble": 1,
+												"spanId": "1111111111111111",
+												"traceId": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+											},
+											{
+												"timeUnixNano": "1730781852688525805",
+												"asDouble": 1,
+												"spanId": "1111111111111111",
+												"traceId": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+											},
+											{
+												"timeUnixNano": "1730781852688541665",
+												"asDouble": 1,
+												"spanId": "1111111111111111",
+												"traceId": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+											},
+											{
+												"timeUnixNano": "1730781852688559078",
+												"asDouble": 1,
+												"spanId": "1111111111111111",
+												"traceId": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+											},
+											{
+												"timeUnixNano": "1730781852688576481",
+												"asDouble": 1,
+												"spanId": "1111111111111111",
+												"traceId": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+											},
+											{
+												"timeUnixNano": "1730781852688592080",
+												"asDouble": 1,
+												"spanId": "1111111111111111",
+												"traceId": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+											},
+											{
+												"timeUnixNano": "1730781852688894798",
+												"asDouble": 1,
+												"spanId": "1111111111111111",
+												"traceId": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+											},
+											{
+												"timeUnixNano": "1730781850966363041",
+												"asDouble": 1,
+												"spanId": "1111111111111111",
+												"traceId": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+											},
+											{
+												"timeUnixNano": "1730781850966404249",
+												"asDouble": 1,
+												"spanId": "1111111111111111",
+												"traceId": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+											},
+											{
+												"timeUnixNano": "1730781850966438964",
+												"asDouble": 1,
+												"spanId": "1111111111111111",
+												"traceId": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+											},
+											{
+												"timeUnixNano": "1730781851706200868",
+												"asDouble": 1,
+												"spanId": "1111111111111111",
+												"traceId": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+											},
+											{
+												"timeUnixNano": "1730781851706218591",
+												"asDouble": 1,
+												"spanId": "1111111111111111",
+												"traceId": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+											},
+											{
+												"timeUnixNano": "1730781851706235924",
+												"asDouble": 1,
+												"spanId": "1111111111111111",
+												"traceId": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+											},
+											{
+												"timeUnixNano": "1730781851706252785",
+												"asDouble": 1,
+												"spanId": "1111111111111111",
+												"traceId": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+											},
+											{
+												"timeUnixNano": "1730781851706269757",
+												"asDouble": 1,
+												"spanId": "1111111111111111",
+												"traceId": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+											},
+											{
+												"timeUnixNano": "1730781851706286529",
+												"asDouble": 1,
+												"spanId": "1111111111111111",
+												"traceId": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+											},
+											{
+												"timeUnixNano": "1730781851706302018",
+												"asDouble": 1,
+												"spanId": "1111111111111111",
+												"traceId": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+											},
+											{
+												"timeUnixNano": "1730781851706317196",
+												"asDouble": 1,
+												"spanId": "1111111111111111",
+												"traceId": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+											},
+											{
+												"timeUnixNano": "1730781851706333427",
+												"asDouble": 1,
+												"spanId": "1111111111111111",
+												"traceId": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+											},
+											{
+												"timeUnixNano": "1730781851706351090",
+												"asDouble": 1,
+												"spanId": "1111111111111111",
+												"traceId": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+											},
+											{
+												"timeUnixNano": "1730781851706653678",
+												"asDouble": 1,
+												"spanId": "1111111111111111",
+												"traceId": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+											},
+											{
+												"timeUnixNano": "1730781851706671462",
+												"asDouble": 1,
+												"spanId": "1111111111111111",
+												"traceId": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+											},
+											{
+												"timeUnixNano": "1730781851706688444",
+												"asDouble": 1,
+												"spanId": "1111111111111111",
+												"traceId": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+											}
+										]
+									}
+								]
+							}
+						},
+						{
+							"name": "worker.kafka.dev_vadim_dev_batched.submitSec",
+							"gauge": {
+								"dataPoints": [
+									{
+										"attributes": [
+											{
+												"key": "highlight.session_id",
+												"value": {
+													"stringValue": ""
+												}
+											},
+											{
+												"key": "highlight.trace_id",
+												"value": {
+													"stringValue": ""
+												}
+											}
+										],
+										"startTimeUnixNano": "1730781846651489951",
+										"timeUnixNano": "1730781852938133159",
+										"asDouble": 0.000548099,
+										"exemplars": [
+											{
+												"timeUnixNano": "1730781852689010215",
+												"asDouble": 0.000548099,
+												"spanId": "1111111111111111",
+												"traceId": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+											},
+											{
+												"timeUnixNano": "1730781851706826132",
+												"asDouble": 0.000648648,
+												"spanId": "1111111111111111",
+												"traceId": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+											},
+											{
+												"timeUnixNano": "1730781846823210711",
+												"asDouble": 0.000106961,
+												"spanId": "1111111111111111",
+												"traceId": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+											}
+										]
+									}
+								]
+							}
+						},
+						{
+							"name": "worker.kafka.dev_vadim_dev_traces.produceMessageCount",
+							"gauge": {
+								"dataPoints": [
+									{
+										"attributes": [
+											{
+												"key": "highlight.session_id",
+												"value": {
+													"stringValue": ""
+												}
+											},
+											{
+												"key": "highlight.trace_id",
+												"value": {
+													"stringValue": ""
+												}
+											}
+										],
+										"startTimeUnixNano": "1730781846655002117",
+										"timeUnixNano": "1730781852938135173",
+										"asDouble": 1,
+										"exemplars": [
+											{
+												"timeUnixNano": "1730781852683859702",
+												"asDouble": 1,
+												"spanId": "1111111111111111",
+												"traceId": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+											},
+											{
+												"timeUnixNano": "1730781852677701596",
+												"asDouble": 1,
+												"spanId": "1111111111111111",
+												"traceId": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+											},
+											{
+												"timeUnixNano": "1730781852685745053",
+												"asDouble": 1,
+												"spanId": "1111111111111111",
+												"traceId": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+											},
+											{
+												"timeUnixNano": "1730781852676994418",
+												"asDouble": 1,
+												"spanId": "1111111111111111",
+												"traceId": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+											},
+											{
+												"timeUnixNano": "1730781852674549746",
+												"asDouble": 1,
+												"spanId": "1111111111111111",
+												"traceId": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+											},
+											{
+												"timeUnixNano": "1730781852668928198",
+												"asDouble": 1,
+												"spanId": "1111111111111111",
+												"traceId": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+											},
+											{
+												"timeUnixNano": "1730781852682862950",
+												"asDouble": 1,
+												"spanId": "1111111111111111",
+												"traceId": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+											},
+											{
+												"timeUnixNano": "1730781852679012478",
+												"asDouble": 1,
+												"spanId": "1111111111111111",
+												"traceId": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+											},
+											{
+												"timeUnixNano": "1730781852677780835",
+												"asDouble": 1,
+												"spanId": "1111111111111111",
+												"traceId": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+											},
+											{
+												"timeUnixNano": "1730781852677293429",
+												"asDouble": 1,
+												"spanId": "1111111111111111",
+												"traceId": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+											},
+											{
+												"timeUnixNano": "1730781852681306045",
+												"asDouble": 1,
+												"spanId": "1111111111111111",
+												"traceId": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+											},
+											{
+												"timeUnixNano": "1730781852678592228",
+												"asDouble": 1,
+												"spanId": "1111111111111111",
+												"traceId": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+											},
+											{
+												"timeUnixNano": "1730781852686527943",
+												"asDouble": 1,
+												"spanId": "1111111111111111",
+												"traceId": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+											},
+											{
+												"timeUnixNano": "1730781852683763000",
+												"asDouble": 1,
+												"spanId": "1111111111111111",
+												"traceId": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+											},
+											{
+												"timeUnixNano": "1730781852686260962",
+												"asDouble": 1,
+												"spanId": "1111111111111111",
+												"traceId": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+											},
+											{
+												"timeUnixNano": "1730781852677892615",
+												"asDouble": 1,
+												"spanId": "1111111111111111",
+												"traceId": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+											},
+											{
+												"timeUnixNano": "1730781852672758842",
+												"asDouble": 1,
+												"spanId": "1111111111111111",
+												"traceId": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+											},
+											{
+												"timeUnixNano": "1730781852675177365",
+												"asDouble": 1,
+												"spanId": "1111111111111111",
+												"traceId": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+											},
+											{
+												"timeUnixNano": "1730781852676357281",
+												"asDouble": 1,
+												"spanId": "1111111111111111",
+												"traceId": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+											},
+											{
+												"timeUnixNano": "1730781852677830778",
+												"asDouble": 1,
+												"spanId": "1111111111111111",
+												"traceId": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+											},
+											{
+												"timeUnixNano": "1730781852670861850",
+												"asDouble": 1,
+												"spanId": "1111111111111111",
+												"traceId": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+											},
+											{
+												"timeUnixNano": "1730781852677366236",
+												"asDouble": 1,
+												"spanId": "1111111111111111",
+												"traceId": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+											},
+											{
+												"timeUnixNano": "1730781852672615203",
+												"asDouble": 1,
+												"spanId": "1111111111111111",
+												"traceId": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+											},
+											{
+												"timeUnixNano": "1730781852670755029",
+												"asDouble": 1,
+												"spanId": "1111111111111111",
+												"traceId": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+											}
+										]
+									}
+								]
+							}
+						},
+						{
+							"name": "worker.kafka.dev_vadim_dev_traces.submitSec",
+							"gauge": {
+								"dataPoints": [
+									{
+										"attributes": [
+											{
+												"key": "highlight.session_id",
+												"value": {
+													"stringValue": ""
+												}
+											},
+											{
+												"key": "highlight.trace_id",
+												"value": {
+													"stringValue": ""
+												}
+											}
+										],
+										"startTimeUnixNano": "1730781846655091686",
+										"timeUnixNano": "1730781852938138980",
+										"asDouble": 0.000037671,
+										"exemplars": [
+											{
+												"timeUnixNano": "1730781852674143904",
+												"asDouble": 0.000038122,
+												"spanId": "1111111111111111",
+												"traceId": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+											},
+											{
+												"timeUnixNano": "1730781852687863361",
+												"asDouble": 0.000040035,
+												"spanId": "1111111111111111",
+												"traceId": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+											},
+											{
+												"timeUnixNano": "1730781852677630122",
+												"asDouble": 0.000040035,
+												"spanId": "1111111111111111",
+												"traceId": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+											},
+											{
+												"timeUnixNano": "1730781852682691778",
+												"asDouble": 0.000046457,
+												"spanId": "1111111111111111",
+												"traceId": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+											},
+											{
+												"timeUnixNano": "1730781852679521965",
+												"asDouble": 0.000038141,
+												"spanId": "1111111111111111",
+												"traceId": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+											},
+											{
+												"timeUnixNano": "1730781852687278032",
+												"asDouble": 0.000039004,
+												"spanId": "1111111111111111",
+												"traceId": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+											},
+											{
+												"timeUnixNano": "1730781852678776184",
+												"asDouble": 0.000037209,
+												"spanId": "1111111111111111",
+												"traceId": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+											},
+											{
+												"timeUnixNano": "1730781852673375240",
+												"asDouble": 0.000038683,
+												"spanId": "1111111111111111",
+												"traceId": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+											},
+											{
+												"timeUnixNano": "1730781852673293907",
+												"asDouble": 0.000039394,
+												"spanId": "1111111111111111",
+												"traceId": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+											},
+											{
+												"timeUnixNano": "1730781852673456673",
+												"asDouble": 0.000039485,
+												"spanId": "1111111111111111",
+												"traceId": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+											},
+											{
+												"timeUnixNano": "1730781852681690437",
+												"asDouble": 0.000022382,
+												"spanId": "1111111111111111",
+												"traceId": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+											},
+											{
+												"timeUnixNano": "1730781852681783682",
+												"asDouble": 0.000023704,
+												"spanId": "1111111111111111",
+												"traceId": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+											},
+											{
+												"timeUnixNano": "1730781852687031138",
+												"asDouble": 0.000038002,
+												"spanId": "1111111111111111",
+												"traceId": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+											},
+											{
+												"timeUnixNano": "1730781852679021575",
+												"asDouble": 0.000040085,
+												"spanId": "1111111111111111",
+												"traceId": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+											},
+											{
+												"timeUnixNano": "1730781852678853639",
+												"asDouble": 0.000037891,
+												"spanId": "1111111111111111",
+												"traceId": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+											},
+											{
+												"timeUnixNano": "1730781852671839155",
+												"asDouble": 0.000039064,
+												"spanId": "1111111111111111",
+												"traceId": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+											},
+											{
+												"timeUnixNano": "1730781852674065096",
+												"asDouble": 0.000045445,
+												"spanId": "1111111111111111",
+												"traceId": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+											},
+											{
+												"timeUnixNano": "1730781852686951939",
+												"asDouble": 0.000041568,
+												"spanId": "1111111111111111",
+												"traceId": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+											},
+											{
+												"timeUnixNano": "1730781852680891487",
+												"asDouble": 0.000039364,
+												"spanId": "1111111111111111",
+												"traceId": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+											},
+											{
+												"timeUnixNano": "1730781852672169796",
+												"asDouble": 0.000040677,
+												"spanId": "1111111111111111",
+												"traceId": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+											},
+											{
+												"timeUnixNano": "1730781852682222667",
+												"asDouble": 0.000046327,
+												"spanId": "1111111111111111",
+												"traceId": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+											},
+											{
+												"timeUnixNano": "1730781852675119757",
+												"asDouble": 0.000039604,
+												"spanId": "1111111111111111",
+												"traceId": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+											},
+											{
+												"timeUnixNano": "1730781852681109526",
+												"asDouble": 0.000024616,
+												"spanId": "1111111111111111",
+												"traceId": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+											},
+											{
+												"timeUnixNano": "1730781852682963218",
+												"asDouble": 0.000041477,
+												"spanId": "1111111111111111",
+												"traceId": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+											}
+										]
+									}
+								]
+							}
+						},
+						{
+							"name": "worker.kafka.dev_vadim_dev.produceMessageCount",
+							"gauge": {
+								"dataPoints": [
+									{
+										"attributes": [
+											{
+												"key": "highlight.session_id",
+												"value": {
+													"stringValue": ""
+												}
+											},
+											{
+												"key": "highlight.trace_id",
+												"value": {
+													"stringValue": ""
+												}
+											}
+										],
+										"startTimeUnixNano": "1730781846658962606",
+										"timeUnixNano": "1730781852938143689",
+										"asDouble": 1,
+										"exemplars": [
+											{
+												"timeUnixNano": "1730781847982375543",
+												"asDouble": 1,
+												"spanId": "1111111111111111",
+												"traceId": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+											},
+											{
+												"timeUnixNano": "1730781847982455683",
+												"asDouble": 1,
+												"spanId": "1111111111111111",
+												"traceId": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+											},
+											{
+												"timeUnixNano": "1730781848596806916",
+												"asDouble": 1,
+												"spanId": "1111111111111111",
+												"traceId": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+											},
+											{
+												"timeUnixNano": "1730781848596833466",
+												"asDouble": 1,
+												"spanId": "1111111111111111",
+												"traceId": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+											},
+											{
+												"timeUnixNano": "1730781848596854004",
+												"asDouble": 1,
+												"spanId": "1111111111111111",
+												"traceId": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+											},
+											{
+												"timeUnixNano": "1730781848596870806",
+												"asDouble": 1,
+												"spanId": "1111111111111111",
+												"traceId": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+											},
+											{
+												"timeUnixNano": "1730781847599643359",
+												"asDouble": 1,
+												"spanId": "1111111111111111",
+												"traceId": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+											},
+											{
+												"timeUnixNano": "1730781847599678254",
+												"asDouble": 1,
+												"spanId": "1111111111111111",
+												"traceId": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+											},
+											{
+												"timeUnixNano": "1730781847720948079",
+												"asDouble": 1,
+												"spanId": "1111111111111111",
+												"traceId": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+											},
+											{
+												"timeUnixNano": "1730781847848880567",
+												"asDouble": 1,
+												"spanId": "1111111111111111",
+												"traceId": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+											}
+										]
+									}
+								]
+							}
+						},
+						{
+							"name": "worker.kafka.dev_vadim_dev.submitSec",
+							"gauge": {
+								"dataPoints": [
+									{
+										"attributes": [
+											{
+												"key": "highlight.session_id",
+												"value": {
+													"stringValue": ""
+												}
+											},
+											{
+												"key": "highlight.trace_id",
+												"value": {
+													"stringValue": ""
+												}
+											}
+										],
+										"startTimeUnixNano": "1730781846766569750",
+										"timeUnixNano": "1730781852938146263",
+										"asDouble": 0.102870337,
+										"exemplars": [
+											{
+												"timeUnixNano": "1730781847949909737",
+												"asDouble": 0.101046332,
+												"spanId": "1111111111111111",
+												"traceId": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+											},
+											{
+												"timeUnixNano": "1730781848699647267",
+												"asDouble": 0.102870337,
+												"spanId": "1111111111111111",
+												"traceId": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+											}
+										]
+									}
+								]
+							}
+						},
+						{
+							"name": "worker.kafka.dev_vadim_dev_metrics.produceMessageCount",
+							"gauge": {
+								"dataPoints": [
+									{
+										"attributes": [
+											{
+												"key": "highlight.session_id",
+												"value": {
+													"stringValue": ""
+												}
+											},
+											{
+												"key": "highlight.trace_id",
+												"value": {
+													"stringValue": ""
+												}
+											}
+										],
+										"startTimeUnixNano": "1730781846840021394",
+										"timeUnixNano": "1730781852938148488",
+										"asDouble": 1,
+										"exemplars": [
+											{
+												"timeUnixNano": "1730781852350890882",
+												"asDouble": 1,
+												"spanId": "1111111111111111",
+												"traceId": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+											},
+											{
+												"timeUnixNano": "1730781852350166651",
+												"asDouble": 1,
+												"spanId": "1111111111111111",
+												"traceId": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+											},
+											{
+												"timeUnixNano": "1730781852351449070",
+												"asDouble": 1,
+												"spanId": "1111111111111111",
+												"traceId": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+											},
+											{
+												"timeUnixNano": "1730781852351464810",
+												"asDouble": 1,
+												"spanId": "1111111111111111",
+												"traceId": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+											},
+											{
+												"timeUnixNano": "1730781852351374540",
+												"asDouble": 1,
+												"spanId": "1111111111111111",
+												"traceId": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+											},
+											{
+												"timeUnixNano": "1730781852351145680",
+												"asDouble": 1,
+												"spanId": "1111111111111111",
+												"traceId": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+											},
+											{
+												"timeUnixNano": "1730781852350678753",
+												"asDouble": 1,
+												"spanId": "1111111111111111",
+												"traceId": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+											},
+											{
+												"timeUnixNano": "1730781852351543377",
+												"asDouble": 1,
+												"spanId": "1111111111111111",
+												"traceId": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+											},
+											{
+												"timeUnixNano": "1730781852350303018",
+												"asDouble": 1,
+												"spanId": "1111111111111111",
+												"traceId": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+											},
+											{
+												"timeUnixNano": "1730781852351498142",
+												"asDouble": 1,
+												"spanId": "1111111111111111",
+												"traceId": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+											},
+											{
+												"timeUnixNano": "1730781852351418863",
+												"asDouble": 1,
+												"spanId": "1111111111111111",
+												"traceId": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+											},
+											{
+												"timeUnixNano": "1730781852350211516",
+												"asDouble": 1,
+												"spanId": "1111111111111111",
+												"traceId": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+											},
+											{
+												"timeUnixNano": "1730781852350196427",
+												"asDouble": 1,
+												"spanId": "1111111111111111",
+												"traceId": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+											},
+											{
+												"timeUnixNano": "1730781852351481210",
+												"asDouble": 1,
+												"spanId": "1111111111111111",
+												"traceId": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+											},
+											{
+												"timeUnixNano": "1730781852350563847",
+												"asDouble": 1,
+												"spanId": "1111111111111111",
+												"traceId": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+											},
+											{
+												"timeUnixNano": "1730781852349894701",
+												"asDouble": 1,
+												"spanId": "1111111111111111",
+												"traceId": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+											},
+											{
+												"timeUnixNano": "1730781852349753155",
+												"asDouble": 1,
+												"spanId": "1111111111111111",
+												"traceId": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+											},
+											{
+												"timeUnixNano": "1730781852350921179",
+												"asDouble": 1,
+												"spanId": "1111111111111111",
+												"traceId": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+											},
+											{
+												"timeUnixNano": "1730781852350754956",
+												"asDouble": 1,
+												"spanId": "1111111111111111",
+												"traceId": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+											},
+											{
+												"timeUnixNano": "1730781852350951275",
+												"asDouble": 1,
+												"spanId": "1111111111111111",
+												"traceId": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+											},
+											{
+												"timeUnixNano": "1730781852349816574",
+												"asDouble": 1,
+												"spanId": "1111111111111111",
+												"traceId": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+											},
+											{
+												"timeUnixNano": "1730781852350426149",
+												"asDouble": 1,
+												"spanId": "1111111111111111",
+												"traceId": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+											},
+											{
+												"timeUnixNano": "1730781852350090809",
+												"asDouble": 1,
+												"spanId": "1111111111111111",
+												"traceId": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+											},
+											{
+												"timeUnixNano": "1730781852350034663",
+												"asDouble": 1,
+												"spanId": "1111111111111111",
+												"traceId": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+											}
+										]
+									}
+								]
+							}
+						},
+						{
+							"name": "worker.kafka.dev_vadim_dev_metrics.submitSec",
+							"gauge": {
+								"dataPoints": [
+									{
+										"attributes": [
+											{
+												"key": "highlight.session_id",
+												"value": {
+													"stringValue": ""
+												}
+											},
+											{
+												"key": "highlight.trace_id",
+												"value": {
+													"stringValue": ""
+												}
+											}
+										],
+										"startTimeUnixNano": "1730781846841974553",
+										"timeUnixNano": "1730781852938152455",
+										"asDouble": 0.002322843,
+										"exemplars": [
+											{
+												"timeUnixNano": "1730781852351773740",
+												"asDouble": 0.002322843,
+												"spanId": "1111111111111111",
+												"traceId": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+											}
+										]
+									}
+								]
+							}
+						},
+						{
+							"name": "worker.sessionsQuery.sessionCount",
+							"gauge": {
+								"dataPoints": [
+									{
+										"attributes": [
+											{
+												"key": "highlight.session_id",
+												"value": {
+													"stringValue": ""
+												}
+											},
+											{
+												"key": "highlight.trace_id",
+												"value": {
+													"stringValue": ""
+												}
+											}
+										],
+										"startTimeUnixNano": "1730781847536171418",
+										"timeUnixNano": "1730781852938154268",
+										"asDouble": 0,
+										"exemplars": [
+											{
+												"timeUnixNano": "1730781852541103762",
+												"asDouble": 0,
+												"spanId": "1111111111111111",
+												"traceId": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+											},
+											{
+												"timeUnixNano": "1730781852541109623",
+												"asDouble": 0,
+												"spanId": "1111111111111111",
+												"traceId": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+											}
+										]
+									}
+								]
+							}
+						},
+						{
+							"name": "worker.kafka.dev_vadim_dev.consumeMessageCount",
+							"gauge": {
+								"dataPoints": [
+									{
+										"attributes": [
+											{
+												"key": "highlight.session_id",
+												"value": {
+													"stringValue": ""
+												}
+											},
+											{
+												"key": "highlight.trace_id",
+												"value": {
+													"stringValue": ""
+												}
+											}
+										],
+										"startTimeUnixNano": "1730781849561378810",
+										"timeUnixNano": "1730781852938156302",
+										"asDouble": 1
+									}
+								]
+							}
+						},
+						{
+							"name": "worker.kafka.dev_vadim_dev.receiveSec",
+							"gauge": {
+								"dataPoints": [
+									{
+										"attributes": [
+											{
+												"key": "highlight.session_id",
+												"value": {
+													"stringValue": ""
+												}
+											},
+											{
+												"key": "highlight.trace_id",
+												"value": {
+													"stringValue": ""
+												}
+											}
+										],
+										"startTimeUnixNano": "1730781849561444393",
+										"timeUnixNano": "1730781852938158406",
+										"asDouble": 0.000243788
+									}
+								]
+							}
+						},
+						{
+							"name": "errors",
+							"gauge": {
+								"dataPoints": [
+									{
+										"attributes": [
+											{
+												"key": "error.type",
+												"value": {
+													"stringValue": "Backend"
+												}
+											},
+											{
+												"key": "highlight.project_id",
+												"value": {
+													"intValue": "1"
+												}
+											},
+											{
+												"key": "highlight.session_id",
+												"value": {
+													"stringValue": ""
+												}
+											},
+											{
+												"key": "highlight.trace_id",
+												"value": {
+													"stringValue": ""
+												}
+											},
+											{
+												"key": "highlight.type",
+												"value": {
+													"stringValue": "highlight.internal"
+												}
+											}
+										],
+										"startTimeUnixNano": "1730781849565405042",
+										"timeUnixNano": "1730781852938159779",
+										"asDouble": 1,
+										"exemplars": [
+											{
+												"timeUnixNano": "1730781851108079528",
+												"asDouble": 1,
+												"spanId": "1111111111111111",
+												"traceId": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+											},
+											{
+												"timeUnixNano": "1730781851380549551",
+												"asDouble": 1,
+												"spanId": "1111111111111111",
+												"traceId": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+											},
+											{
+												"timeUnixNano": "1730781851651677234",
+												"asDouble": 1,
+												"spanId": "1111111111111111",
+												"traceId": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+											},
+											{
+												"timeUnixNano": "1730781851930864734",
+												"asDouble": 1,
+												"spanId": "1111111111111111",
+												"traceId": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+											}
+										]
+									}
+								]
+							}
+						},
+						{
+							"name": "sessions",
+							"gauge": {
+								"dataPoints": [
+									{
+										"attributes": [
+											{
+												"key": "Bot",
+												"value": {
+													"stringValue": "false"
+												}
+											},
+											{
+												"key": "Browser",
+												"value": {
+													"stringValue": "Chrome"
+												}
+											},
+											{
+												"key": "BrowserVersion",
+												"value": {
+													"stringValue": "130.0.0.0"
+												}
+											},
+											{
+												"key": "City",
+												"value": {
+													"stringValue": ""
+												}
+											},
+											{
+												"key": "ClientID",
+												"value": {
+													"stringValue": "4s4GH6xM6igOKcVL1V1EfbuHQkvV"
+												}
+											},
+											{
+												"key": "Country",
+												"value": {
+													"stringValue": ""
+												}
+											},
+											{
+												"key": "IP",
+												"value": {
+													"stringValue": ""
+												}
+											},
+											{
+												"key": "Identifier",
+												"value": {
+													"stringValue": ""
+												}
+											},
+											{
+												"key": "Language",
+												"value": {
+													"stringValue": "en-US,en;q=0.9,ru;q=0.8,ko;q=0.7"
+												}
+											},
+											{
+												"key": "OS",
+												"value": {
+													"stringValue": "Linux"
+												}
+											},
+											{
+												"key": "OSVersion",
+												"value": {
+													"stringValue": ""
+												}
+											},
+											{
+												"key": "Postal",
+												"value": {
+													"stringValue": ""
+												}
+											},
+											{
+												"key": "State",
+												"value": {
+													"stringValue": ""
+												}
+											},
+											{
+												"key": "highlight.key",
+												"value": {
+													"stringValue": "BeDeV3gGRK0HE2hAkfmVn9QAZ0qT"
+												}
+											},
+											{
+												"key": "highlight.project_id",
+												"value": {
+													"intValue": "1"
+												}
+											},
+											{
+												"key": "highlight.session_id",
+												"value": {
+													"stringValue": "BeDeV3gGRK0HE2hAkfmVn9QAZ0qT"
+												}
+											},
+											{
+												"key": "highlight.trace_id",
+												"value": {
+													"stringValue": ""
+												}
+											},
+											{
+												"key": "highlight.type",
+												"value": {
+													"stringValue": "highlight.internal"
+												}
+											}
+										],
+										"startTimeUnixNano": "1730781849567403716",
+										"timeUnixNano": "1730781852938162013",
+										"asDouble": 30000160,
+										"exemplars": [
+											{
+												"timeUnixNano": "1730781849567441838",
+												"asDouble": 30000160,
+												"spanId": "1111111111111111",
+												"traceId": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+											}
+										]
+									},
+									{
+										"attributes": [
+											{
+												"key": "Bot",
+												"value": {
+													"stringValue": "false"
+												}
+											},
+											{
+												"key": "Browser",
+												"value": {
+													"stringValue": "Chrome"
+												}
+											},
+											{
+												"key": "BrowserVersion",
+												"value": {
+													"stringValue": "130.0.0.0"
+												}
+											},
+											{
+												"key": "City",
+												"value": {
+													"stringValue": ""
+												}
+											},
+											{
+												"key": "ClientID",
+												"value": {
+													"stringValue": "4s4GH6xM6igOKcVL1V1EfbuHQkvV"
+												}
+											},
+											{
+												"key": "Country",
+												"value": {
+													"stringValue": ""
+												}
+											},
+											{
+												"key": "IP",
+												"value": {
+													"stringValue": ""
+												}
+											},
+											{
+												"key": "Identifier",
+												"value": {
+													"stringValue": ""
+												}
+											},
+											{
+												"key": "Language",
+												"value": {
+													"stringValue": "en-US,en;q=0.9,ru;q=0.8,ko;q=0.7"
+												}
+											},
+											{
+												"key": "OS",
+												"value": {
+													"stringValue": "Linux"
+												}
+											},
+											{
+												"key": "OSVersion",
+												"value": {
+													"stringValue": ""
+												}
+											},
+											{
+												"key": "Postal",
+												"value": {
+													"stringValue": ""
+												}
+											},
+											{
+												"key": "State",
+												"value": {
+													"stringValue": ""
+												}
+											},
+											{
+												"key": "highlight.key",
+												"value": {
+													"stringValue": "gk00T6E89uztYRNZ3Udj6abu0RKz"
+												}
+											},
+											{
+												"key": "highlight.project_id",
+												"value": {
+													"intValue": "1"
+												}
+											},
+											{
+												"key": "highlight.session_id",
+												"value": {
+													"stringValue": "gk00T6E89uztYRNZ3Udj6abu0RKz"
+												}
+											},
+											{
+												"key": "highlight.trace_id",
+												"value": {
+													"stringValue": ""
+												}
+											},
+											{
+												"key": "highlight.type",
+												"value": {
+													"stringValue": "highlight.internal"
+												}
+											}
+										],
+										"startTimeUnixNano": "1730781849567403716",
+										"timeUnixNano": "1730781852938162013",
+										"asDouble": 30000161,
+										"exemplars": [
+											{
+												"timeUnixNano": "1730781849567645139",
+												"asDouble": 30000161,
+												"spanId": "1111111111111111",
+												"traceId": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+											}
+										]
+									},
+									{
+										"attributes": [
+											{
+												"key": "Bot",
+												"value": {
+													"stringValue": "false"
+												}
+											},
+											{
+												"key": "Browser",
+												"value": {
+													"stringValue": "Chrome"
+												}
+											},
+											{
+												"key": "BrowserVersion",
+												"value": {
+													"stringValue": "130.0.0.0"
+												}
+											},
+											{
+												"key": "City",
+												"value": {
+													"stringValue": ""
+												}
+											},
+											{
+												"key": "ClientID",
+												"value": {
+													"stringValue": "4s4GH6xM6igOKcVL1V1EfbuHQkvV"
+												}
+											},
+											{
+												"key": "Country",
+												"value": {
+													"stringValue": ""
+												}
+											},
+											{
+												"key": "IP",
+												"value": {
+													"stringValue": ""
+												}
+											},
+											{
+												"key": "Identifier",
+												"value": {
+													"stringValue": ""
+												}
+											},
+											{
+												"key": "Language",
+												"value": {
+													"stringValue": "en-US,en;q=0.9,ru;q=0.8,ko;q=0.7"
+												}
+											},
+											{
+												"key": "OS",
+												"value": {
+													"stringValue": "Linux"
+												}
+											},
+											{
+												"key": "OSVersion",
+												"value": {
+													"stringValue": ""
+												}
+											},
+											{
+												"key": "Postal",
+												"value": {
+													"stringValue": ""
+												}
+											},
+											{
+												"key": "State",
+												"value": {
+													"stringValue": ""
+												}
+											},
+											{
+												"key": "highlight.key",
+												"value": {
+													"stringValue": "rVAb5B7hSn2cpYrC9r6WPko0D9vi"
+												}
+											},
+											{
+												"key": "highlight.project_id",
+												"value": {
+													"intValue": "1"
+												}
+											},
+											{
+												"key": "highlight.session_id",
+												"value": {
+													"stringValue": "rVAb5B7hSn2cpYrC9r6WPko0D9vi"
+												}
+											},
+											{
+												"key": "highlight.trace_id",
+												"value": {
+													"stringValue": ""
+												}
+											},
+											{
+												"key": "highlight.type",
+												"value": {
+													"stringValue": "highlight.internal"
+												}
+											}
+										],
+										"startTimeUnixNano": "1730781849567403716",
+										"timeUnixNano": "1730781852938162013",
+										"asDouble": 30000162,
+										"exemplars": [
+											{
+												"timeUnixNano": "1730781849667513348",
+												"asDouble": 30000162,
+												"spanId": "1111111111111111",
+												"traceId": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+											}
+										]
+									},
+									{
+										"attributes": [
+											{
+												"key": "Bot",
+												"value": {
+													"stringValue": "false"
+												}
+											},
+											{
+												"key": "Browser",
+												"value": {
+													"stringValue": "Chrome"
+												}
+											},
+											{
+												"key": "BrowserVersion",
+												"value": {
+													"stringValue": "130.0.0.0"
+												}
+											},
+											{
+												"key": "City",
+												"value": {
+													"stringValue": ""
+												}
+											},
+											{
+												"key": "ClientID",
+												"value": {
+													"stringValue": "4s4GH6xM6igOKcVL1V1EfbuHQkvV"
+												}
+											},
+											{
+												"key": "Country",
+												"value": {
+													"stringValue": ""
+												}
+											},
+											{
+												"key": "IP",
+												"value": {
+													"stringValue": ""
+												}
+											},
+											{
+												"key": "Identifier",
+												"value": {
+													"stringValue": ""
+												}
+											},
+											{
+												"key": "Language",
+												"value": {
+													"stringValue": "en-US,en;q=0.9,ru;q=0.8,ko;q=0.7"
+												}
+											},
+											{
+												"key": "OS",
+												"value": {
+													"stringValue": "Linux"
+												}
+											},
+											{
+												"key": "OSVersion",
+												"value": {
+													"stringValue": ""
+												}
+											},
+											{
+												"key": "Postal",
+												"value": {
+													"stringValue": ""
+												}
+											},
+											{
+												"key": "State",
+												"value": {
+													"stringValue": ""
+												}
+											},
+											{
+												"key": "highlight.key",
+												"value": {
+													"stringValue": "aC6RmAJ3zQOqWmbuLs89ybOB98pi"
+												}
+											},
+											{
+												"key": "highlight.project_id",
+												"value": {
+													"intValue": "1"
+												}
+											},
+											{
+												"key": "highlight.session_id",
+												"value": {
+													"stringValue": "aC6RmAJ3zQOqWmbuLs89ybOB98pi"
+												}
+											},
+											{
+												"key": "highlight.trace_id",
+												"value": {
+													"stringValue": ""
+												}
+											},
+											{
+												"key": "highlight.type",
+												"value": {
+													"stringValue": "highlight.internal"
+												}
+											}
+										],
+										"startTimeUnixNano": "1730781849567403716",
+										"timeUnixNano": "1730781852938162013",
+										"asDouble": 30000163,
+										"exemplars": [
+											{
+												"timeUnixNano": "1730781851103868890",
+												"asDouble": 30000163,
+												"spanId": "1111111111111111",
+												"traceId": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+											}
+										]
+									}
+								]
+							}
+						},
+						{
+							"name": "worker.kafka.dev_vadim_dev_datasync.produceMessageCount",
+							"gauge": {
+								"dataPoints": [
+									{
+										"attributes": [
+											{
+												"key": "highlight.session_id",
+												"value": {
+													"stringValue": ""
+												}
+											},
+											{
+												"key": "highlight.trace_id",
+												"value": {
+													"stringValue": ""
+												}
+											}
+										],
+										"startTimeUnixNano": "1730781849571957198",
+										"timeUnixNano": "1730781852938169547",
+										"asDouble": 1,
+										"exemplars": [
+											{
+												"timeUnixNano": "1730781852192395161",
+												"asDouble": 1,
+												"spanId": "1111111111111111",
+												"traceId": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+											},
+											{
+												"timeUnixNano": "1730781852195442394",
+												"asDouble": 1,
+												"spanId": "1111111111111111",
+												"traceId": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+											},
+											{
+												"timeUnixNano": "1730781851106576746",
+												"asDouble": 1,
+												"spanId": "1111111111111111",
+												"traceId": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+											},
+											{
+												"timeUnixNano": "1730781851106978480",
+												"asDouble": 1,
+												"spanId": "1111111111111111",
+												"traceId": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+											},
+											{
+												"timeUnixNano": "1730781851376276877",
+												"asDouble": 1,
+												"spanId": "1111111111111111",
+												"traceId": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+											},
+											{
+												"timeUnixNano": "1730781851379228941",
+												"asDouble": 1,
+												"spanId": "1111111111111111",
+												"traceId": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+											},
+											{
+												"timeUnixNano": "1730781851641633510",
+												"asDouble": 1,
+												"spanId": "1111111111111111",
+												"traceId": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+											},
+											{
+												"timeUnixNano": "1730781851650033356",
+												"asDouble": 1,
+												"spanId": "1111111111111111",
+												"traceId": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+											},
+											{
+												"timeUnixNano": "1730781851922945330",
+												"asDouble": 1,
+												"spanId": "1111111111111111",
+												"traceId": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+											},
+											{
+												"timeUnixNano": "1730781851928451311",
+												"asDouble": 1,
+												"spanId": "1111111111111111",
+												"traceId": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+											},
+											{
+												"timeUnixNano": "1730781849608644683",
+												"asDouble": 1,
+												"spanId": "1111111111111111",
+												"traceId": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+											},
+											{
+												"timeUnixNano": "1730781849670499727",
+												"asDouble": 1,
+												"spanId": "1111111111111111",
+												"traceId": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+											},
+											{
+												"timeUnixNano": "1730781849671291955",
+												"asDouble": 1,
+												"spanId": "1111111111111111",
+												"traceId": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+											}
+										]
+									}
+								]
+							}
+						},
+						{
+							"name": "worker.kafka.dev_vadim_dev_datasync.submitSec",
+							"gauge": {
+								"dataPoints": [
+									{
+										"attributes": [
+											{
+												"key": "highlight.session_id",
+												"value": {
+													"stringValue": ""
+												}
+											},
+											{
+												"key": "highlight.trace_id",
+												"value": {
+													"stringValue": ""
+												}
+											}
+										],
+										"startTimeUnixNano": "1730781849572540494",
+										"timeUnixNano": "1730781852938172393",
+										"asDouble": 0.00024491,
+										"exemplars": [
+											{
+												"timeUnixNano": "1730781852193053487",
+												"asDouble": 0.000663897,
+												"spanId": "1111111111111111",
+												"traceId": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+											},
+											{
+												"timeUnixNano": "1730781852195683216",
+												"asDouble": 0.00024491,
+												"spanId": "1111111111111111",
+												"traceId": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+											},
+											{
+												"timeUnixNano": "1730781851106915842",
+												"asDouble": 0.000348134,
+												"spanId": "1111111111111111",
+												"traceId": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+											},
+											{
+												"timeUnixNano": "1730781851107259738",
+												"asDouble": 0.000281689,
+												"spanId": "1111111111111111",
+												"traceId": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+											},
+											{
+												"timeUnixNano": "1730781851376643936",
+												"asDouble": 0.000373291,
+												"spanId": "1111111111111111",
+												"traceId": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+											},
+											{
+												"timeUnixNano": "1730781851379647527",
+												"asDouble": 0.000419408,
+												"spanId": "1111111111111111",
+												"traceId": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+											},
+											{
+												"timeUnixNano": "1730781851642062476",
+												"asDouble": 0.000448442,
+												"spanId": "1111111111111111",
+												"traceId": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+											},
+											{
+												"timeUnixNano": "1730781851650463063",
+												"asDouble": 0.000437813,
+												"spanId": "1111111111111111",
+												"traceId": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+											},
+											{
+												"timeUnixNano": "1730781851923587055",
+												"asDouble": 0.000633931,
+												"spanId": "1111111111111111",
+												"traceId": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+											},
+											{
+												"timeUnixNano": "1730781851929263566",
+												"asDouble": 0.000807657,
+												"spanId": "1111111111111111",
+												"traceId": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+											},
+											{
+												"timeUnixNano": "1730781849608951790",
+												"asDouble": 0.000317136,
+												"spanId": "1111111111111111",
+												"traceId": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+											},
+											{
+												"timeUnixNano": "1730781849671035614",
+												"asDouble": 0.000553831,
+												"spanId": "1111111111111111",
+												"traceId": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+											},
+											{
+												"timeUnixNano": "1730781849671583823",
+												"asDouble": 0.000296527,
+												"spanId": "1111111111111111",
+												"traceId": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+											}
+										]
+									}
+								]
+							}
+						},
+						{
+							"name": "worker.initializeSession.count",
+							"gauge": {
+								"dataPoints": [
+									{
+										"attributes": [
+											{
+												"key": "highlight.session_id",
+												"value": {
+													"stringValue": ""
+												}
+											},
+											{
+												"key": "highlight.trace_id",
+												"value": {
+													"stringValue": ""
+												}
+											},
+											{
+												"key": "project_id",
+												"value": {
+													"intValue": "1"
+												}
+											},
+											{
+												"key": "secure_id",
+												"value": {
+													"stringValue": "rVAb5B7hSn2cpYrC9r6WPko0D9vi"
+												}
+											},
+											{
+												"key": "success",
+												"value": {
+													"boolValue": true
+												}
+											}
+										],
+										"startTimeUnixNano": "1730781849574549747",
+										"timeUnixNano": "1730781852938175599",
+										"asDouble": 1,
+										"exemplars": [
+											{
+												"timeUnixNano": "1730781849671781615",
+												"asDouble": 1,
+												"spanId": "1111111111111111",
+												"traceId": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+											}
+										]
+									},
+									{
+										"attributes": [
+											{
+												"key": "highlight.session_id",
+												"value": {
+													"stringValue": ""
+												}
+											},
+											{
+												"key": "highlight.trace_id",
+												"value": {
+													"stringValue": ""
+												}
+											},
+											{
+												"key": "project_id",
+												"value": {
+													"intValue": "1"
+												}
+											},
+											{
+												"key": "secure_id",
+												"value": {
+													"stringValue": "aC6RmAJ3zQOqWmbuLs89ybOB98pi"
+												}
+											},
+											{
+												"key": "success",
+												"value": {
+													"boolValue": true
+												}
+											}
+										],
+										"startTimeUnixNano": "1730781849574549747",
+										"timeUnixNano": "1730781852938175599",
+										"asDouble": 1,
+										"exemplars": [
+											{
+												"timeUnixNano": "1730781851107500260",
+												"asDouble": 1,
+												"spanId": "1111111111111111",
+												"traceId": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+											}
+										]
+									},
+									{
+										"attributes": [
+											{
+												"key": "highlight.session_id",
+												"value": {
+													"stringValue": ""
+												}
+											},
+											{
+												"key": "highlight.trace_id",
+												"value": {
+													"stringValue": ""
+												}
+											},
+											{
+												"key": "project_id",
+												"value": {
+													"intValue": "1"
+												}
+											},
+											{
+												"key": "secure_id",
+												"value": {
+													"stringValue": "gk00T6E89uztYRNZ3Udj6abu0RKz"
+												}
+											},
+											{
+												"key": "success",
+												"value": {
+													"boolValue": true
+												}
+											}
+										],
+										"startTimeUnixNano": "1730781849574549747",
+										"timeUnixNano": "1730781852938175599",
+										"asDouble": 1,
+										"exemplars": [
+											{
+												"timeUnixNano": "1730781849574578541",
+												"asDouble": 1,
+												"spanId": "1111111111111111",
+												"traceId": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+											}
+										]
+									},
+									{
+										"attributes": [
+											{
+												"key": "highlight.session_id",
+												"value": {
+													"stringValue": ""
+												}
+											},
+											{
+												"key": "highlight.trace_id",
+												"value": {
+													"stringValue": ""
+												}
+											},
+											{
+												"key": "project_id",
+												"value": {
+													"intValue": "1"
+												}
+											},
+											{
+												"key": "secure_id",
+												"value": {
+													"stringValue": "BeDeV3gGRK0HE2hAkfmVn9QAZ0qT"
+												}
+											},
+											{
+												"key": "success",
+												"value": {
+													"boolValue": true
+												}
+											}
+										],
+										"startTimeUnixNano": "1730781849574549747",
+										"timeUnixNano": "1730781852938175599",
+										"asDouble": 1,
+										"exemplars": [
+											{
+												"timeUnixNano": "1730781849574614148",
+												"asDouble": 1,
+												"spanId": "1111111111111111",
+												"traceId": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+											},
+											{
+												"timeUnixNano": "1730781849604402075",
+												"asDouble": 1,
+												"spanId": "1111111111111111",
+												"traceId": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+											}
+										]
+									}
+								]
+							}
+						},
+						{
+							"name": "worker.kafka.dev_vadim_dev.commitMessageCount",
+							"gauge": {
+								"dataPoints": [
+									{
+										"attributes": [
+											{
+												"key": "highlight.session_id",
+												"value": {
+													"stringValue": ""
+												}
+											},
+											{
+												"key": "highlight.trace_id",
+												"value": {
+													"stringValue": ""
+												}
+											}
+										],
+										"startTimeUnixNano": "1730781849574618356",
+										"timeUnixNano": "1730781852938181981",
+										"asDouble": 1
+									}
+								]
+							}
+						},
+						{
+							"name": "worker.kafka.dev_vadim_dev.commitSec",
+							"gauge": {
+								"dataPoints": [
+									{
+										"attributes": [
+											{
+												"key": "highlight.session_id",
+												"value": {
+													"stringValue": ""
+												}
+											},
+											{
+												"key": "highlight.trace_id",
+												"value": {
+													"stringValue": ""
+												}
+											}
+										],
+										"startTimeUnixNano": "1730781849574670955",
+										"timeUnixNano": "1730781852938183393",
+										"asDouble": 0.000022903
+									}
+								]
+							}
+						},
+						{
+							"name": "worker.kafka.processed.total",
+							"gauge": {
+								"dataPoints": [
+									{
+										"attributes": [
+											{
+												"key": "highlight.session_id",
+												"value": {
+													"stringValue": ""
+												}
+											},
+											{
+												"key": "highlight.trace_id",
+												"value": {
+													"stringValue": ""
+												}
+											}
+										],
+										"startTimeUnixNano": "1730781849574743762",
+										"timeUnixNano": "1730781852938184656",
+										"asDouble": 1
+									}
+								]
+							}
+						},
+						{
+							"name": "worker.kafka.dev_vadim_dev_batched.consumeMessageCount",
+							"gauge": {
+								"dataPoints": [
+									{
+										"attributes": [
+											{
+												"key": "highlight.session_id",
+												"value": {
+													"stringValue": ""
+												}
+											},
+											{
+												"key": "highlight.trace_id",
+												"value": {
+													"stringValue": ""
+												}
+											}
+										],
+										"startTimeUnixNano": "1730781849580082559",
+										"timeUnixNano": "1730781852938186749",
+										"asDouble": 1,
+										"exemplars": [
+											{
+												"timeUnixNano": "1730781852790551496",
+												"asDouble": 1,
+												"spanId": "1111111111111111",
+												"traceId": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+											},
+											{
+												"timeUnixNano": "1730781852790661493",
+												"asDouble": 1,
+												"spanId": "1111111111111111",
+												"traceId": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+											},
+											{
+												"timeUnixNano": "1730781852790753726",
+												"asDouble": 1,
+												"spanId": "1111111111111111",
+												"traceId": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+											},
+											{
+												"timeUnixNano": "1730781852790841792",
+												"asDouble": 1,
+												"spanId": "1111111111111111",
+												"traceId": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+											},
+											{
+												"timeUnixNano": "1730781852790924146",
+												"asDouble": 1,
+												"spanId": "1111111111111111",
+												"traceId": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+											},
+											{
+												"timeUnixNano": "1730781852791006261",
+												"asDouble": 1,
+												"spanId": "1111111111111111",
+												"traceId": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+											},
+											{
+												"timeUnixNano": "1730781852791100548",
+												"asDouble": 1,
+												"spanId": "1111111111111111",
+												"traceId": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+											},
+											{
+												"timeUnixNano": "1730781852792639428",
+												"asDouble": 1,
+												"spanId": "1111111111111111",
+												"traceId": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+											},
+											{
+												"timeUnixNano": "1730781851070148097",
+												"asDouble": 1,
+												"spanId": "1111111111111111",
+												"traceId": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+											},
+											{
+												"timeUnixNano": "1730781851070230301",
+												"asDouble": 1,
+												"spanId": "1111111111111111",
+												"traceId": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+											},
+											{
+												"timeUnixNano": "1730781851070307967",
+												"asDouble": 1,
+												"spanId": "1111111111111111",
+												"traceId": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+											},
+											{
+												"timeUnixNano": "1730781851808612133",
+												"asDouble": 1,
+												"spanId": "1111111111111111",
+												"traceId": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+											},
+											{
+												"timeUnixNano": "1730781851845593160",
+												"asDouble": 1,
+												"spanId": "1111111111111111",
+												"traceId": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+											},
+											{
+												"timeUnixNano": "1730781851845675334",
+												"asDouble": 1,
+												"spanId": "1111111111111111",
+												"traceId": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+											},
+											{
+												"timeUnixNano": "1730781851845755435",
+												"asDouble": 1,
+												"spanId": "1111111111111111",
+												"traceId": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+											},
+											{
+												"timeUnixNano": "1730781851845828943",
+												"asDouble": 1,
+												"spanId": "1111111111111111",
+												"traceId": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+											},
+											{
+												"timeUnixNano": "1730781851845906699",
+												"asDouble": 1,
+												"spanId": "1111111111111111",
+												"traceId": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+											},
+											{
+												"timeUnixNano": "1730781851845988292",
+												"asDouble": 1,
+												"spanId": "1111111111111111",
+												"traceId": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+											},
+											{
+												"timeUnixNano": "1730781851846082930",
+												"asDouble": 1,
+												"spanId": "1111111111111111",
+												"traceId": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+											},
+											{
+												"timeUnixNano": "1730781851846161397",
+												"asDouble": 1,
+												"spanId": "1111111111111111",
+												"traceId": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+											},
+											{
+												"timeUnixNano": "1730781851846238311",
+												"asDouble": 1,
+												"spanId": "1111111111111111",
+												"traceId": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+											},
+											{
+												"timeUnixNano": "1730781851847599929",
+												"asDouble": 1,
+												"spanId": "1111111111111111",
+												"traceId": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+											},
+											{
+												"timeUnixNano": "1730781851847681041",
+												"asDouble": 1,
+												"spanId": "1111111111111111",
+												"traceId": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+											},
+											{
+												"timeUnixNano": "1730781851847754309",
+												"asDouble": 1,
+												"spanId": "1111111111111111",
+												"traceId": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+											}
+										]
+									}
+								]
+							}
+						},
+						{
+							"name": "worker.kafka.dev_vadim_dev_batched.receiveSec",
+							"gauge": {
+								"dataPoints": [
+									{
+										"attributes": [
+											{
+												"key": "highlight.session_id",
+												"value": {
+													"stringValue": ""
+												}
+											},
+											{
+												"key": "highlight.trace_id",
+												"value": {
+													"stringValue": ""
+												}
+											}
+										],
+										"startTimeUnixNano": "1730781849580175213",
+										"timeUnixNano": "1730781852938193141",
+										"asDouble": 0.001519484,
+										"exemplars": [
+											{
+												"timeUnixNano": "1730781852790561746",
+												"asDouble": 0.942709263,
+												"spanId": "1111111111111111",
+												"traceId": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+											},
+											{
+												"timeUnixNano": "1730781852790665420",
+												"asDouble": 0.000072817,
+												"spanId": "1111111111111111",
+												"traceId": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+											},
+											{
+												"timeUnixNano": "1730781852790757313",
+												"asDouble": 0.000073258,
+												"spanId": "1111111111111111",
+												"traceId": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+											},
+											{
+												"timeUnixNano": "1730781852790845258",
+												"asDouble": 0.000069681,
+												"spanId": "1111111111111111",
+												"traceId": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+											},
+											{
+												"timeUnixNano": "1730781852790927683",
+												"asDouble": 0.000065553,
+												"spanId": "1111111111111111",
+												"traceId": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+											},
+											{
+												"timeUnixNano": "1730781852791009647",
+												"asDouble": 0.000066635,
+												"spanId": "1111111111111111",
+												"traceId": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+											},
+											{
+												"timeUnixNano": "1730781852791105487",
+												"asDouble": 0.000073678,
+												"spanId": "1111111111111111",
+												"traceId": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+											},
+											{
+												"timeUnixNano": "1730781852792643736",
+												"asDouble": 0.001519484,
+												"spanId": "1111111111111111",
+												"traceId": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+											},
+											{
+												"timeUnixNano": "1730781851070151974",
+												"asDouble": 0.001344215,
+												"spanId": "1111111111111111",
+												"traceId": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+											},
+											{
+												"timeUnixNano": "1730781851070233677",
+												"asDouble": 0.000063238,
+												"spanId": "1111111111111111",
+												"traceId": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+											},
+											{
+												"timeUnixNano": "1730781851070311423",
+												"asDouble": 0.000062888,
+												"spanId": "1111111111111111",
+												"traceId": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+											},
+											{
+												"timeUnixNano": "1730781851808617894",
+												"asDouble": 0.738289398,
+												"spanId": "1111111111111111",
+												"traceId": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+											},
+											{
+												"timeUnixNano": "1730781851845598259",
+												"asDouble": 0.000076995,
+												"spanId": "1111111111111111",
+												"traceId": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+											},
+											{
+												"timeUnixNano": "1730781851845678700",
+												"asDouble": 0.000063179,
+												"spanId": "1111111111111111",
+												"traceId": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+											},
+											{
+												"timeUnixNano": "1730781851845758721",
+												"asDouble": 0.000062437,
+												"spanId": "1111111111111111",
+												"traceId": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+											},
+											{
+												"timeUnixNano": "1730781851845832299",
+												"asDouble": 0.00005873,
+												"spanId": "1111111111111111",
+												"traceId": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+											},
+											{
+												"timeUnixNano": "1730781851845910095",
+												"asDouble": 0.000062127,
+												"spanId": "1111111111111111",
+												"traceId": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+											},
+											{
+												"timeUnixNano": "1730781851845991808",
+												"asDouble": 0.000067086,
+												"spanId": "1111111111111111",
+												"traceId": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+											},
+											{
+												"timeUnixNano": "1730781851846086436",
+												"asDouble": 0.000077616,
+												"spanId": "1111111111111111",
+												"traceId": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+											},
+											{
+												"timeUnixNano": "1730781851846164894",
+												"asDouble": 0.000061877,
+												"spanId": "1111111111111111",
+												"traceId": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+											},
+											{
+												"timeUnixNano": "1730781851846241758",
+												"asDouble": 0.000060183,
+												"spanId": "1111111111111111",
+												"traceId": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+											},
+											{
+												"timeUnixNano": "1730781851847603666",
+												"asDouble": 0.001345667,
+												"spanId": "1111111111111111",
+												"traceId": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+											},
+											{
+												"timeUnixNano": "1730781851847684347",
+												"asDouble": 0.000061336,
+												"spanId": "1111111111111111",
+												"traceId": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+											},
+											{
+												"timeUnixNano": "1730781851847757635",
+												"asDouble": 0.000059101,
+												"spanId": "1111111111111111",
+												"traceId": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+											}
+										]
+									}
+								]
+							}
+						},
+						{
+							"name": "worker.kafka.dev_vadim_dev_datasync.consumeMessageCount",
+							"gauge": {
+								"dataPoints": [
+									{
+										"attributes": [
+											{
+												"key": "highlight.session_id",
+												"value": {
+													"stringValue": ""
+												}
+											},
+											{
+												"key": "highlight.trace_id",
+												"value": {
+													"stringValue": ""
+												}
+											}
+										],
+										"startTimeUnixNano": "1730781849580433668",
+										"timeUnixNano": "1730781852938198792",
+										"asDouble": 1,
+										"exemplars": [
+											{
+												"timeUnixNano": "1730781852193206515",
+												"asDouble": 1,
+												"spanId": "1111111111111111",
+												"traceId": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+											},
+											{
+												"timeUnixNano": "1730781852195771983",
+												"asDouble": 1,
+												"spanId": "1111111111111111",
+												"traceId": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+											},
+											{
+												"timeUnixNano": "1730781851107095159",
+												"asDouble": 1,
+												"spanId": "1111111111111111",
+												"traceId": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+											},
+											{
+												"timeUnixNano": "1730781851107357492",
+												"asDouble": 1,
+												"spanId": "1111111111111111",
+												"traceId": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+											},
+											{
+												"timeUnixNano": "1730781851376747811",
+												"asDouble": 1,
+												"spanId": "1111111111111111",
+												"traceId": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+											},
+											{
+												"timeUnixNano": "1730781851379728149",
+												"asDouble": 1,
+												"spanId": "1111111111111111",
+												"traceId": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+											},
+											{
+												"timeUnixNano": "1730781851642172733",
+												"asDouble": 1,
+												"spanId": "1111111111111111",
+												"traceId": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+											},
+											{
+												"timeUnixNano": "1730781851659818444",
+												"asDouble": 1,
+												"spanId": "1111111111111111",
+												"traceId": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+											},
+											{
+												"timeUnixNano": "1730781851923729963",
+												"asDouble": 1,
+												"spanId": "1111111111111111",
+												"traceId": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+											},
+											{
+												"timeUnixNano": "1730781851929425430",
+												"asDouble": 1,
+												"spanId": "1111111111111111",
+												"traceId": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+											},
+											{
+												"timeUnixNano": "1730781849609059813",
+												"asDouble": 1,
+												"spanId": "1111111111111111",
+												"traceId": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+											},
+											{
+												"timeUnixNano": "1730781849671233365",
+												"asDouble": 1,
+												"spanId": "1111111111111111",
+												"traceId": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+											},
+											{
+												"timeUnixNano": "1730781849671815008",
+												"asDouble": 1,
+												"spanId": "1111111111111111",
+												"traceId": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+											}
+										]
+									}
+								]
+							}
+						},
+						{
+							"name": "worker.kafka.dev_vadim_dev_datasync.receiveSec",
+							"gauge": {
+								"dataPoints": [
+									{
+										"attributes": [
+											{
+												"key": "highlight.session_id",
+												"value": {
+													"stringValue": ""
+												}
+											},
+											{
+												"key": "highlight.trace_id",
+												"value": {
+													"stringValue": ""
+												}
+											}
+										],
+										"startTimeUnixNano": "1730781849580533436",
+										"timeUnixNano": "1730781852938203230",
+										"asDouble": 0.002539459,
+										"exemplars": [
+											{
+												"timeUnixNano": "1730781852193211845",
+												"asDouble": 0.263706804,
+												"spanId": "1111111111111111",
+												"traceId": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+											},
+											{
+												"timeUnixNano": "1730781852195777123",
+												"asDouble": 0.002539459,
+												"spanId": "1111111111111111",
+												"traceId": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+											},
+											{
+												"timeUnixNano": "1730781851107100519",
+												"asDouble": 0.005464073,
+												"spanId": "1111111111111111",
+												"traceId": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+											},
+											{
+												"timeUnixNano": "1730781851107366268",
+												"asDouble": 0.000231615,
+												"spanId": "1111111111111111",
+												"traceId": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+											},
+											{
+												"timeUnixNano": "1730781851376756107",
+												"asDouble": 0.269361345,
+												"spanId": "1111111111111111",
+												"traceId": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+											},
+											{
+												"timeUnixNano": "1730781851379734912",
+												"asDouble": 0.002952456,
+												"spanId": "1111111111111111",
+												"traceId": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+											},
+											{
+												"timeUnixNano": "1730781851642180768",
+												"asDouble": 0.262414177,
+												"spanId": "1111111111111111",
+												"traceId": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+											},
+											{
+												"timeUnixNano": "1730781851659824836",
+												"asDouble": 0.000032521,
+												"spanId": "1111111111111111",
+												"traceId": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+											},
+											{
+												"timeUnixNano": "1730781851923739501",
+												"asDouble": 0.263888486,
+												"spanId": "1111111111111111",
+												"traceId": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+											},
+											{
+												"timeUnixNano": "1730781851929436251",
+												"asDouble": 0.005633901,
+												"spanId": "1111111111111111",
+												"traceId": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+											},
+											{
+												"timeUnixNano": "1730781849609068419",
+												"asDouble": 0.001822833,
+												"spanId": "1111111111111111",
+												"traceId": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+											},
+											{
+												"timeUnixNano": "1730781849671246440",
+												"asDouble": 0.062136383,
+												"spanId": "1111111111111111",
+												"traceId": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+											},
+											{
+												"timeUnixNano": "1730781849671826269",
+												"asDouble": 0.000528102,
+												"spanId": "1111111111111111",
+												"traceId": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+											}
+										]
+									}
+								]
+							}
+						},
+						{
+							"name": "worker.kafka.dev_vadim_dev_traces.consumeMessageCount",
+							"gauge": {
+								"dataPoints": [
+									{
+										"attributes": [
+											{
+												"key": "highlight.session_id",
+												"value": {
+													"stringValue": ""
+												}
+											},
+											{
+												"key": "highlight.trace_id",
+												"value": {
+													"stringValue": ""
+												}
+											}
+										],
+										"startTimeUnixNano": "1730781849580715347",
+										"timeUnixNano": "1730781852938205785",
+										"asDouble": 1
+									}
+								]
+							}
+						},
+						{
+							"name": "worker.kafka.dev_vadim_dev_traces.receiveSec",
+							"gauge": {
+								"dataPoints": [
+									{
+										"attributes": [
+											{
+												"key": "highlight.session_id",
+												"value": {
+													"stringValue": ""
+												}
+											},
+											{
+												"key": "highlight.trace_id",
+												"value": {
+													"stringValue": ""
+												}
+											}
+										],
+										"startTimeUnixNano": "1730781849580766724",
+										"timeUnixNano": "1730781852938206998",
+										"asDouble": 0.000059552
+									}
+								]
+							}
+						},
+						{
+							"name": "worker.kafka.dev_vadim_dev_metrics.consumeMessageCount",
+							"gauge": {
+								"dataPoints": [
+									{
+										"attributes": [
+											{
+												"key": "highlight.session_id",
+												"value": {
+													"stringValue": ""
+												}
+											},
+											{
+												"key": "highlight.trace_id",
+												"value": {
+													"stringValue": ""
+												}
+											}
+										],
+										"startTimeUnixNano": "1730781849599771929",
+										"timeUnixNano": "1730781852938208731",
+										"asDouble": 1,
+										"exemplars": [
+											{
+												"timeUnixNano": "1730781852463055375",
+												"asDouble": 1,
+												"spanId": "1111111111111111",
+												"traceId": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+											},
+											{
+												"timeUnixNano": "1730781852460754243",
+												"asDouble": 1,
+												"spanId": "1111111111111111",
+												"traceId": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+											},
+											{
+												"timeUnixNano": "1730781852462383683",
+												"asDouble": 1,
+												"spanId": "1111111111111111",
+												"traceId": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+											},
+											{
+												"timeUnixNano": "1730781852462874746",
+												"asDouble": 1,
+												"spanId": "1111111111111111",
+												"traceId": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+											},
+											{
+												"timeUnixNano": "1730781852455414514",
+												"asDouble": 1,
+												"spanId": "1111111111111111",
+												"traceId": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+											},
+											{
+												"timeUnixNano": "1730781852455490176",
+												"asDouble": 1,
+												"spanId": "1111111111111111",
+												"traceId": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+											},
+											{
+												"timeUnixNano": "1730781852457404221",
+												"asDouble": 1,
+												"spanId": "1111111111111111",
+												"traceId": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+											},
+											{
+												"timeUnixNano": "1730781852461370250",
+												"asDouble": 1,
+												"spanId": "1111111111111111",
+												"traceId": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+											},
+											{
+												"timeUnixNano": "1730781852455711923",
+												"asDouble": 1,
+												"spanId": "1111111111111111",
+												"traceId": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+											},
+											{
+												"timeUnixNano": "1730781852464815040",
+												"asDouble": 1,
+												"spanId": "1111111111111111",
+												"traceId": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+											},
+											{
+												"timeUnixNano": "1730781852463461979",
+												"asDouble": 1,
+												"spanId": "1111111111111111",
+												"traceId": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+											},
+											{
+												"timeUnixNano": "1730781852458138721",
+												"asDouble": 1,
+												"spanId": "1111111111111111",
+												"traceId": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+											},
+											{
+												"timeUnixNano": "1730781852461824192",
+												"asDouble": 1,
+												"spanId": "1111111111111111",
+												"traceId": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+											},
+											{
+												"timeUnixNano": "1730781852462789115",
+												"asDouble": 1,
+												"spanId": "1111111111111111",
+												"traceId": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+											},
+											{
+												"timeUnixNano": "1730781852463302058",
+												"asDouble": 1,
+												"spanId": "1111111111111111",
+												"traceId": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+											},
+											{
+												"timeUnixNano": "1730781852456248731",
+												"asDouble": 1,
+												"spanId": "1111111111111111",
+												"traceId": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+											},
+											{
+												"timeUnixNano": "1730781852464093144",
+												"asDouble": 1,
+												"spanId": "1111111111111111",
+												"traceId": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+											},
+											{
+												"timeUnixNano": "1730781852458600408",
+												"asDouble": 1,
+												"spanId": "1111111111111111",
+												"traceId": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+											},
+											{
+												"timeUnixNano": "1730781852459906671",
+												"asDouble": 1,
+												"spanId": "1111111111111111",
+												"traceId": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+											},
+											{
+												"timeUnixNano": "1730781852456553974",
+												"asDouble": 1,
+												"spanId": "1111111111111111",
+												"traceId": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+											},
+											{
+												"timeUnixNano": "1730781852460906108",
+												"asDouble": 1,
+												"spanId": "1111111111111111",
+												"traceId": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+											},
+											{
+												"timeUnixNano": "1730781852457499109",
+												"asDouble": 1,
+												"spanId": "1111111111111111",
+												"traceId": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+											},
+											{
+												"timeUnixNano": "1730781852463540767",
+												"asDouble": 1,
+												"spanId": "1111111111111111",
+												"traceId": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+											},
+											{
+												"timeUnixNano": "1730781852460524892",
+												"asDouble": 1,
+												"spanId": "1111111111111111",
+												"traceId": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+											}
+										]
+									}
+								]
+							}
+						},
+						{
+							"name": "worker.kafka.dev_vadim_dev_metrics.receiveSec",
+							"gauge": {
+								"dataPoints": [
+									{
+										"attributes": [
+											{
+												"key": "highlight.session_id",
+												"value": {
+													"stringValue": ""
+												}
+											},
+											{
+												"key": "highlight.trace_id",
+												"value": {
+													"stringValue": ""
+												}
+											}
+										],
+										"startTimeUnixNano": "1730781849599865184",
+										"timeUnixNano": "1730781852938212448",
+										"asDouble": 0.000059813,
+										"exemplars": [
+											{
+												"timeUnixNano": "1730781852455070117",
+												"asDouble": 0.976995928,
+												"spanId": "1111111111111111",
+												"traceId": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+											},
+											{
+												"timeUnixNano": "1730781852458829979",
+												"asDouble": 0.000059272,
+												"spanId": "1111111111111111",
+												"traceId": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+											},
+											{
+												"timeUnixNano": "1730781852459068146",
+												"asDouble": 0.000067817,
+												"spanId": "1111111111111111",
+												"traceId": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+											},
+											{
+												"timeUnixNano": "1730781852458299042",
+												"asDouble": 0.000057859,
+												"spanId": "1111111111111111",
+												"traceId": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+											},
+											{
+												"timeUnixNano": "1730781852458982034",
+												"asDouble": 0.000059211,
+												"spanId": "1111111111111111",
+												"traceId": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+											},
+											{
+												"timeUnixNano": "1730781852455493502",
+												"asDouble": 0.000058801,
+												"spanId": "1111111111111111",
+												"traceId": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+											},
+											{
+												"timeUnixNano": "1730781852461298335",
+												"asDouble": 0.000058951,
+												"spanId": "1111111111111111",
+												"traceId": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+											},
+											{
+												"timeUnixNano": "1730781852457733169",
+												"asDouble": 0.000059141,
+												"spanId": "1111111111111111",
+												"traceId": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+											},
+											{
+												"timeUnixNano": "1730781852457167737",
+												"asDouble": 0.000060433,
+												"spanId": "1111111111111111",
+												"traceId": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+											},
+											{
+												"timeUnixNano": "1730781852455788016",
+												"asDouble": 0.000059011,
+												"spanId": "1111111111111111",
+												"traceId": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+											},
+											{
+												"timeUnixNano": "1730781852465066282",
+												"asDouble": 0.000073728,
+												"spanId": "1111111111111111",
+												"traceId": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+											},
+											{
+												"timeUnixNano": "1730781852461677136",
+												"asDouble": 0.000057599,
+												"spanId": "1111111111111111",
+												"traceId": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+											},
+											{
+												"timeUnixNano": "1730781852460377395",
+												"asDouble": 0.00005812,
+												"spanId": "1111111111111111",
+												"traceId": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+											},
+											{
+												"timeUnixNano": "1730781852465222705",
+												"asDouble": 0.000058539,
+												"spanId": "1111111111111111",
+												"traceId": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+											},
+											{
+												"timeUnixNano": "1730781852459987323",
+												"asDouble": 0.000059522,
+												"spanId": "1111111111111111",
+												"traceId": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+											},
+											{
+												"timeUnixNano": "1730781852457323379",
+												"asDouble": 0.000061456,
+												"spanId": "1111111111111111",
+												"traceId": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+											},
+											{
+												"timeUnixNano": "1730781852460833652",
+												"asDouble": 0.000059321,
+												"spanId": "1111111111111111",
+												"traceId": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+											},
+											{
+												"timeUnixNano": "1730781852463857081",
+												"asDouble": 0.000058309,
+												"spanId": "1111111111111111",
+												"traceId": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+											},
+											{
+												"timeUnixNano": "1730781852456483782",
+												"asDouble": 0.000060384,
+												"spanId": "1111111111111111",
+												"traceId": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+											},
+											{
+												"timeUnixNano": "1730781852456557270",
+												"asDouble": 0.000057649,
+												"spanId": "1111111111111111",
+												"traceId": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+											},
+											{
+												"timeUnixNano": "1730781852458451809",
+												"asDouble": 0.000060253,
+												"spanId": "1111111111111111",
+												"traceId": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+											},
+											{
+												"timeUnixNano": "1730781852460680244",
+												"asDouble": 0.00005872,
+												"spanId": "1111111111111111",
+												"traceId": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+											},
+											{
+												"timeUnixNano": "1730781852464550333",
+												"asDouble": 0.000057689,
+												"spanId": "1111111111111111",
+												"traceId": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+											},
+											{
+												"timeUnixNano": "1730781852456856452",
+												"asDouble": 0.000060454,
+												"spanId": "1111111111111111",
+												"traceId": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+											}
+										]
+									}
+								]
+							}
+						},
+						{
+							"name": "worker.kafka.dev_vadim_dev_metrics.commitMessageCount",
+							"gauge": {
+								"dataPoints": [
+									{
+										"attributes": [
+											{
+												"key": "highlight.session_id",
+												"value": {
+													"stringValue": ""
+												}
+											},
+											{
+												"key": "highlight.trace_id",
+												"value": {
+													"stringValue": ""
+												}
+											}
+										],
+										"startTimeUnixNano": "1730781849752894588",
+										"timeUnixNano": "1730781852938215654",
+										"asDouble": 1,
+										"exemplars": [
+											{
+												"timeUnixNano": "1730781851467987885",
+												"asDouble": 1,
+												"spanId": "1111111111111111",
+												"traceId": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+											}
+										]
+									}
+								]
+							}
+						},
+						{
+							"name": "worker.kafka.dev_vadim_dev_metrics.commitSec",
+							"gauge": {
+								"dataPoints": [
+									{
+										"attributes": [
+											{
+												"key": "highlight.session_id",
+												"value": {
+													"stringValue": ""
+												}
+											},
+											{
+												"key": "highlight.trace_id",
+												"value": {
+													"stringValue": ""
+												}
+											}
+										],
+										"startTimeUnixNano": "1730781849752957967",
+										"timeUnixNano": "1730781852938217918",
+										"asDouble": 0.000016531,
+										"exemplars": [
+											{
+												"timeUnixNano": "1730781851467992914",
+												"asDouble": 0.000016531,
+												"spanId": "1111111111111111",
+												"traceId": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+											}
+										]
+									}
+								]
+							}
+						},
+						{
+							"name": "worker.kafka.dev_vadim_dev_traces.commitMessageCount",
+							"gauge": {
+								"dataPoints": [
+									{
+										"attributes": [
+											{
+												"key": "highlight.session_id",
+												"value": {
+													"stringValue": ""
+												}
+											},
+											{
+												"key": "highlight.trace_id",
+												"value": {
+													"stringValue": ""
+												}
+											}
+										],
+										"startTimeUnixNano": "1730781849769535002",
+										"timeUnixNano": "1730781852938219541",
+										"asDouble": 1
+									}
+								]
+							}
+						},
+						{
+							"name": "worker.kafka.dev_vadim_dev_traces.commitSec",
+							"gauge": {
+								"dataPoints": [
+									{
+										"attributes": [
+											{
+												"key": "highlight.session_id",
+												"value": {
+													"stringValue": ""
+												}
+											},
+											{
+												"key": "highlight.trace_id",
+												"value": {
+													"stringValue": ""
+												}
+											}
+										],
+										"startTimeUnixNano": "1730781849769574496",
+										"timeUnixNano": "1730781852938221475",
+										"asDouble": 0.000034685
+									}
+								]
+							}
+						},
+						{
+							"name": "worker.kafka.dev_vadim_dev_datasync.commitMessageCount",
+							"gauge": {
+								"dataPoints": [
+									{
+										"attributes": [
+											{
+												"key": "highlight.session_id",
+												"value": {
+													"stringValue": ""
+												}
+											},
+											{
+												"key": "highlight.trace_id",
+												"value": {
+													"stringValue": ""
+												}
+											}
+										],
+										"startTimeUnixNano": "1730781850638648049",
+										"timeUnixNano": "1730781852938223368",
+										"asDouble": 1,
+										"exemplars": [
+											{
+												"timeUnixNano": "1730781851659747902",
+												"asDouble": 1,
+												"spanId": "1111111111111111",
+												"traceId": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+											}
+										]
+									}
+								]
+							}
+						},
+						{
+							"name": "worker.kafka.dev_vadim_dev_datasync.commitSec",
+							"gauge": {
+								"dataPoints": [
+									{
+										"attributes": [
+											{
+												"key": "highlight.session_id",
+												"value": {
+													"stringValue": ""
+												}
+											},
+											{
+												"key": "highlight.trace_id",
+												"value": {
+													"stringValue": ""
+												}
+											}
+										],
+										"startTimeUnixNano": "1730781850638702972",
+										"timeUnixNano": "1730781852938225152",
+										"asDouble": 0.000017092,
+										"exemplars": [
+											{
+												"timeUnixNano": "1730781851659755746",
+												"asDouble": 0.000017092,
+												"spanId": "1111111111111111",
+												"traceId": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+											}
+										]
+									}
+								]
+							}
+						},
+						{
+							"name": "highlight-num-cpu",
+							"gauge": {
+								"dataPoints": [
+									{
+										"attributes": [
+											{
+												"key": "highlight.session_id",
+												"value": {
+													"stringValue": ""
+												}
+											},
+											{
+												"key": "highlight.trace_id",
+												"value": {
+													"stringValue": ""
+												}
+											}
+										],
+										"startTimeUnixNano": "1730781850714228521",
+										"timeUnixNano": "1730781852938226825",
+										"asDouble": 24
+									}
+								]
+							}
+						},
+						{
+							"name": "highlight-mem-used-percent",
+							"gauge": {
+								"dataPoints": [
+									{
+										"attributes": [
+											{
+												"key": "highlight.session_id",
+												"value": {
+													"stringValue": ""
+												}
+											},
+											{
+												"key": "highlight.trace_id",
+												"value": {
+													"stringValue": ""
+												}
+											}
+										],
+										"startTimeUnixNano": "1730781850714259970",
+										"timeUnixNano": "1730781852938229159",
+										"asDouble": 57.214501339623745
+									}
+								]
+							}
+						},
+						{
+							"name": "highlight-mem-total",
+							"gauge": {
+								"dataPoints": [
+									{
+										"attributes": [
+											{
+												"key": "highlight.session_id",
+												"value": {
+													"stringValue": ""
+												}
+											},
+											{
+												"key": "highlight.trace_id",
+												"value": {
+													"stringValue": ""
+												}
+											}
+										],
+										"startTimeUnixNano": "1730781850714281661",
+										"timeUnixNano": "1730781852938230432",
+										"asDouble": 67320156160
+									}
+								]
+							}
+						},
+						{
+							"name": "worker.kafka.dev_vadim_dev_batched.commitMessageCount",
+							"gauge": {
+								"dataPoints": [
+									{
+										"attributes": [
+											{
+												"key": "highlight.session_id",
+												"value": {
+													"stringValue": ""
+												}
+											},
+											{
+												"key": "highlight.trace_id",
+												"value": {
+													"stringValue": ""
+												}
+											}
+										],
+										"startTimeUnixNano": "1730781850770268854",
+										"timeUnixNano": "1730781852938232125",
+										"asDouble": 1,
+										"exemplars": [
+											{
+												"timeUnixNano": "1730781851845490958",
+												"asDouble": 1,
+												"spanId": "1111111111111111",
+												"traceId": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+											}
+										]
+									}
+								]
+							}
+						},
+						{
+							"name": "worker.kafka.dev_vadim_dev_batched.commitSec",
+							"gauge": {
+								"dataPoints": [
+									{
+										"attributes": [
+											{
+												"key": "highlight.session_id",
+												"value": {
+													"stringValue": ""
+												}
+											},
+											{
+												"key": "highlight.trace_id",
+												"value": {
+													"stringValue": ""
+												}
+											}
+										],
+										"startTimeUnixNano": "1730781850770304190",
+										"timeUnixNano": "1730781852938234720",
+										"asDouble": 0.00001572,
+										"exemplars": [
+											{
+												"timeUnixNano": "1730781851845496438",
+												"asDouble": 0.00001572,
+												"spanId": "1111111111111111",
+												"traceId": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+											}
+										]
+									}
+								]
+							}
+						}
+					],
+					"schemaUrl": "https://opentelemetry.io/schemas/1.25.0"
+				}
+			],
+			"schemaUrl": "https://opentelemetry.io/schemas/1.26.0"
+		}
+	]
+}

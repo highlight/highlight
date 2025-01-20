@@ -231,7 +231,7 @@ func buildTraceAlertInput(ctx context.Context, db *gorm.DB, alertInput *destinat
 
 func buildMetricAlertInput(ctx context.Context, db *gorm.DB, alertInput *destinationsV2.AlertInput) *destinationsV2.MetricInput {
 	return &destinationsV2.MetricInput{
-		DashboardLink: fmt.Sprintf("%s/%d/metrics", env.Config.FrontendUri, alertInput.Alert.ProjectID),
+		DashboardLink: fmt.Sprintf("%s/%d/dashboards", env.Config.FrontendUri, alertInput.Alert.ProjectID),
 	}
 }
 

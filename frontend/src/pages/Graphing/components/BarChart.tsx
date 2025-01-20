@@ -1,4 +1,4 @@
-import { useId } from 'react'
+import { memo, useId } from 'react'
 import {
 	Bar,
 	CartesianGrid,
@@ -13,13 +13,16 @@ import {
 	CustomXAxisTick,
 	CustomYAxisTick,
 	getColor,
+	getSeriesKey,
 	getTickFormatter,
 	InnerChartProps,
 	isActive,
 	SeriesInfo,
 	TooltipSettings,
 	useGraphCallbacks,
+	useGraphSeries,
 } from '@/pages/Graphing/components/Graph'
+import { syncTimestamp } from '@/pages/Graphing/components/utils'
 
 export type BarDisplay = 'Grouped' | 'Stacked'
 export const BAR_DISPLAY: BarDisplay[] = ['Grouped', 'Stacked']
@@ -62,12 +65,9 @@ const RoundedBar = (id: string, isLast: boolean) => (props: any) => {
 	)
 }
 
-export const BarChart = ({
+const BarChartImpl = ({
 	data,
 	xAxisMetric,
-	yAxisMetric,
-	yAxisFunction,
-	series,
 	spotlight,
 	strokeColors,
 	viewConfig,
@@ -77,11 +77,17 @@ export const BarChart = ({
 	showXAxis,
 	showYAxis,
 	showGrid,
+	syncId,
 }: React.PropsWithChildren<
 	InnerChartProps<BarChartConfig> & SeriesInfo & AxisConfig
 >) => {
+	const series = useGraphSeries(data, xAxisMetric)
+
 	const xAxisTickFormatter = getTickFormatter(xAxisMetric, data)
-	const yAxisTickFormatter = getTickFormatter(yAxisMetric, data)
+	const yAxisTickFormatter = getTickFormatter(
+		series.at(0)?.column ?? '',
+		data,
+	)
 
 	// used to give svg masks an id unique to the page
 	const id = useId()
@@ -95,100 +101,114 @@ export const BarChart = ({
 		onMouseMove,
 		onMouseUp,
 		onMouseLeave,
+		onMouseOver,
 	} = useGraphCallbacks(
 		xAxisMetric,
-		yAxisMetric,
-		yAxisFunction,
 		setTimeRange,
 		loadExemplars,
 		viewConfig?.tooltipSettings,
 	)
 
 	return (
-		<ResponsiveContainer ref={chartRef}>
-			<RechartsBarChart
-				data={data}
-				barCategoryGap={1}
-				onMouseDown={onMouseDown}
-				onMouseMove={onMouseMove}
-				onMouseUp={onMouseUp}
-				onMouseLeave={onMouseLeave}
-				style={tooltipCanFreeze ? { cursor: 'pointer' } : undefined}
-			>
-				{referenceArea}
-				{children}
-				<XAxis
-					dataKey={xAxisMetric}
-					fontSize={10}
-					tick={(props: any) => (
-						<CustomXAxisTick
-							x={props.x}
-							y={props.y}
-							payload={props.payload}
-							tickFormatter={xAxisTickFormatter}
-						/>
-					)}
-					tickFormatter={xAxisTickFormatter}
-					tickLine={{ visibility: 'hidden' }}
-					axisLine={{ visibility: 'hidden' }}
-					height={12}
-					domain={['dataMin', 'dataMax']}
-					hide={showXAxis === false}
-				/>
-
-				{tooltip}
-
-				<YAxis
-					fontSize={10}
-					tickLine={{ visibility: 'hidden' }}
-					axisLine={{ visibility: 'hidden' }}
-					tick={(props: any) => (
-						<CustomYAxisTick
-							y={props.y}
-							payload={props.payload}
-							tickFormatter={yAxisTickFormatter}
-						/>
-					)}
-					tickFormatter={yAxisTickFormatter}
-					tickCount={7}
-					width={32}
-					type="number"
-					hide={showYAxis === false}
-				/>
-
-				{showGrid && (
-					<CartesianGrid
-						strokeDasharray=""
-						vertical={false}
-						stroke="var(--color-gray-200)"
-					/>
-				)}
-
-				{series.length > 0 &&
-					series.map((key, idx) => {
-						if (!isActive(spotlight, idx)) {
-							return null
-						}
-
-						const isLastBar =
-							viewConfig.display !== 'Stacked' ||
-							spotlight === idx ||
-							idx === series.length - 1
-
-						return (
-							<Bar
-								key={key}
-								dataKey={key}
-								fill={getColor(idx, key, strokeColors)}
-								isAnimationActive={false}
-								stackId={
-									viewConfig.display === 'Stacked' ? 1 : idx
-								}
-								shape={RoundedBar(id, isLastBar)}
+		<span onMouseOver={onMouseOver}>
+			<ResponsiveContainer ref={chartRef}>
+				<RechartsBarChart
+					data={data}
+					syncId={syncId}
+					syncMethod={syncTimestamp}
+					barCategoryGap={1}
+					onMouseDown={onMouseDown}
+					onMouseMove={onMouseMove}
+					onMouseUp={onMouseUp}
+					onMouseLeave={onMouseLeave}
+					style={tooltipCanFreeze ? { cursor: 'pointer' } : undefined}
+				>
+					{referenceArea}
+					{children}
+					<XAxis
+						dataKey={xAxisMetric}
+						fontSize={10}
+						tick={(props: any) => (
+							<CustomXAxisTick
+								x={props.x}
+								y={props.y}
+								payload={props.payload}
+								tickFormatter={xAxisTickFormatter}
 							/>
-						)
-					})}
-			</RechartsBarChart>
-		</ResponsiveContainer>
+						)}
+						tickFormatter={xAxisTickFormatter}
+						tickLine={{ visibility: 'hidden' }}
+						axisLine={{ visibility: 'hidden' }}
+						height={12}
+						domain={['dataMin', 'dataMax']}
+						hide={showXAxis === false}
+					/>
+
+					{tooltip}
+
+					<YAxis
+						fontSize={10}
+						tickLine={{ visibility: 'hidden' }}
+						axisLine={{ visibility: 'hidden' }}
+						tick={(props: any) => (
+							<CustomYAxisTick
+								y={props.y}
+								payload={props.payload}
+								tickFormatter={yAxisTickFormatter}
+							/>
+						)}
+						tickFormatter={yAxisTickFormatter}
+						tickCount={7}
+						width={32}
+						type="number"
+						hide={showYAxis === false}
+					/>
+
+					{showGrid && (
+						<CartesianGrid
+							strokeDasharray=""
+							vertical={false}
+							stroke="var(--color-gray-200)"
+						/>
+					)}
+
+					{series.length > 0 &&
+						series.map((s, idx) => {
+							if (!isActive(spotlight, idx)) {
+								return null
+							}
+
+							const isLastBar =
+								viewConfig.display !== 'Stacked' ||
+								spotlight === idx ||
+								idx === series.length - 1
+
+							const seriesKey = getSeriesKey(s)
+
+							return (
+								<Bar
+									key={seriesKey}
+									dataKey={`${seriesKey}.value`}
+									name={s.name}
+									fill={getColor(
+										idx,
+										seriesKey,
+										strokeColors,
+									)}
+									isAnimationActive={false}
+									stackId={
+										viewConfig.display === 'Stacked'
+											? 1
+											: idx
+									}
+									shape={RoundedBar(id, isLastBar)}
+								/>
+							)
+						})}
+				</RechartsBarChart>
+			</ResponsiveContainer>
+		</span>
 	)
 }
+
+export const BarChart = memo(BarChartImpl)

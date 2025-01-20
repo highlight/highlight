@@ -49,6 +49,7 @@ const (
 	BillingTracesUsage80Percent   EmailType = "BillingTracesUsage80Percent"
 	BillingTracesUsage100Percent  EmailType = "BillingTracesUsage100Percent"
 	BillingTracesOverage          EmailType = "BillingTracesOverage"
+	BillingMetricsOverage         EmailType = "BillingMetricsOverage"
 	BillingInvalidPayment         EmailType = "BillingInvalidPayment"
 )
 
@@ -57,6 +58,7 @@ var OneTimeBillingNotifications = []EmailType{
 	BillingErrorsOverage,
 	BillingLogsOverage,
 	BillingTracesOverage,
+	BillingMetricsOverage,
 }
 
 func SendReactEmailAlert(ctx context.Context, MailClient *sendgrid.Client, email string, html string, subjectLine string) error {
@@ -180,6 +182,8 @@ func getBillingNotificationSubject(emailType EmailType) string {
 		return "[Highlight] billing limits - 100% of your traces usage"
 	case BillingTracesOverage:
 		return "[Highlight] overages charges - traces over your included amount"
+	case BillingMetricsOverage:
+		return "[Highlight] overages charges - metrics over your included amount"
 	case BillingInvalidPayment:
 		return "[Highlight] invalid billing - issues with your payment method"
 	default:
@@ -238,6 +242,8 @@ func getBillingNotificationMessage(workspaceId int, emailType EmailType) string 
 		return getExceededLimitMessage("traces", workspaceId)
 	case BillingTracesOverage:
 		return getOverageMessage("traces", workspaceId)
+	case BillingMetricsOverage:
+		return getOverageMessage("metrics", workspaceId)
 	case BillingInvalidPayment:
 		return fmt.Sprintf(`
 			We're having issues validating your payment details!<br>

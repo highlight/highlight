@@ -145,14 +145,17 @@ type BillingDetails struct {
 	ErrorsMeter          int64   `json:"errorsMeter"`
 	LogsMeter            int64   `json:"logsMeter"`
 	TracesMeter          int64   `json:"tracesMeter"`
+	MetricsMeter         int64   `json:"metricsMeter"`
 	SessionsDailyAverage float64 `json:"sessionsDailyAverage"`
 	ErrorsDailyAverage   float64 `json:"errorsDailyAverage"`
 	LogsDailyAverage     float64 `json:"logsDailyAverage"`
 	TracesDailyAverage   float64 `json:"tracesDailyAverage"`
+	MetricsDailyAverage  float64 `json:"metricsDailyAverage"`
 	SessionsBillingLimit *int64  `json:"sessionsBillingLimit,omitempty"`
 	ErrorsBillingLimit   *int64  `json:"errorsBillingLimit,omitempty"`
 	LogsBillingLimit     *int64  `json:"logsBillingLimit,omitempty"`
 	TracesBillingLimit   *int64  `json:"tracesBillingLimit,omitempty"`
+	MetricsBillingLimit  *int64  `json:"metricsBillingLimit,omitempty"`
 }
 
 type CategoryHistogramBucket struct {
@@ -413,25 +416,24 @@ type GitlabProject struct {
 }
 
 type GraphInput struct {
-	ID                *int               `json:"id,omitempty"`
-	VisualizationID   int                `json:"visualizationId"`
-	AfterGraphID      *int               `json:"afterGraphId,omitempty"`
-	Type              string             `json:"type"`
-	Title             string             `json:"title"`
-	ProductType       ProductType        `json:"productType"`
-	Query             string             `json:"query"`
-	Metric            string             `json:"metric"`
-	FunctionType      MetricAggregator   `json:"functionType"`
-	GroupByKeys       pq.StringArray     `json:"groupByKeys,omitempty"`
-	BucketByKey       *string            `json:"bucketByKey,omitempty"`
-	BucketCount       *int               `json:"bucketCount,omitempty"`
-	BucketInterval    *int               `json:"bucketInterval,omitempty"`
-	Limit             *int               `json:"limit,omitempty"`
-	LimitFunctionType *MetricAggregator  `json:"limitFunctionType,omitempty"`
-	LimitMetric       *string            `json:"limitMetric,omitempty"`
-	FunnelSteps       []*FunnelStepInput `json:"funnelSteps,omitempty"`
-	Display           *string            `json:"display,omitempty"`
-	NullHandling      *string            `json:"nullHandling,omitempty"`
+	ID                *int                     `json:"id,omitempty"`
+	VisualizationID   int                      `json:"visualizationId"`
+	AfterGraphID      *int                     `json:"afterGraphId,omitempty"`
+	Type              string                   `json:"type"`
+	Title             string                   `json:"title"`
+	ProductType       ProductType              `json:"productType"`
+	Query             string                   `json:"query"`
+	GroupByKeys       pq.StringArray           `json:"groupByKeys,omitempty"`
+	BucketByKey       *string                  `json:"bucketByKey,omitempty"`
+	BucketCount       *int                     `json:"bucketCount,omitempty"`
+	BucketInterval    *int                     `json:"bucketInterval,omitempty"`
+	Limit             *int                     `json:"limit,omitempty"`
+	LimitFunctionType *MetricAggregator        `json:"limitFunctionType,omitempty"`
+	LimitMetric       *string                  `json:"limitMetric,omitempty"`
+	FunnelSteps       []*FunnelStepInput       `json:"funnelSteps,omitempty"`
+	Display           *string                  `json:"display,omitempty"`
+	NullHandling      *string                  `json:"nullHandling,omitempty"`
+	Expressions       []*MetricExpressionInput `json:"expressions"`
 }
 
 type HeightList struct {
@@ -613,11 +615,21 @@ type MetricBucket struct {
 	BucketMin   float64          `json:"bucket_min"`
 	BucketMax   float64          `json:"bucket_max"`
 	Group       []string         `json:"group"`
-	Column      MetricColumn     `json:"column"`
+	Column      string           `json:"column"`
 	MetricType  MetricAggregator `json:"metric_type"`
 	MetricValue *float64         `json:"metric_value,omitempty"`
 	YhatLower   *float64         `json:"yhat_lower,omitempty"`
 	YhatUpper   *float64         `json:"yhat_upper,omitempty"`
+}
+
+type MetricExpression struct {
+	Aggregator MetricAggregator `json:"aggregator"`
+	Column     string           `json:"column"`
+}
+
+type MetricExpressionInput struct {
+	Aggregator MetricAggregator `json:"aggregator"`
+	Column     string           `json:"column"`
 }
 
 type MetricPreview struct {
@@ -688,10 +700,12 @@ type Plan struct {
 	ErrorsLimit         int64                       `json:"errorsLimit"`
 	LogsLimit           int64                       `json:"logsLimit"`
 	TracesLimit         int64                       `json:"tracesLimit"`
+	MetricsLimit        int64                       `json:"metricsLimit"`
 	SessionsRate        float64                     `json:"sessionsRate"`
 	ErrorsRate          float64                     `json:"errorsRate"`
 	LogsRate            float64                     `json:"logsRate"`
 	TracesRate          float64                     `json:"tracesRate"`
+	MetricsRate         float64                     `json:"metricsRate"`
 }
 
 type PredictionSettings struct {
@@ -739,14 +753,17 @@ type Sampling struct {
 	ErrorSamplingRate      float64 `json:"error_sampling_rate"`
 	LogSamplingRate        float64 `json:"log_sampling_rate"`
 	TraceSamplingRate      float64 `json:"trace_sampling_rate"`
+	MetricSamplingRate     float64 `json:"metric_sampling_rate"`
 	SessionMinuteRateLimit *int64  `json:"session_minute_rate_limit,omitempty"`
 	ErrorMinuteRateLimit   *int64  `json:"error_minute_rate_limit,omitempty"`
 	LogMinuteRateLimit     *int64  `json:"log_minute_rate_limit,omitempty"`
 	TraceMinuteRateLimit   *int64  `json:"trace_minute_rate_limit,omitempty"`
+	MetricMinuteRateLimit  *int64  `json:"metric_minute_rate_limit,omitempty"`
 	SessionExclusionQuery  *string `json:"session_exclusion_query,omitempty"`
 	ErrorExclusionQuery    *string `json:"error_exclusion_query,omitempty"`
 	LogExclusionQuery      *string `json:"log_exclusion_query,omitempty"`
 	TraceExclusionQuery    *string `json:"trace_exclusion_query,omitempty"`
+	MetricExclusionQuery   *string `json:"metric_exclusion_query,omitempty"`
 }
 
 type SamplingInput struct {
@@ -754,14 +771,17 @@ type SamplingInput struct {
 	ErrorSamplingRate      *float64 `json:"error_sampling_rate,omitempty"`
 	LogSamplingRate        *float64 `json:"log_sampling_rate,omitempty"`
 	TraceSamplingRate      *float64 `json:"trace_sampling_rate,omitempty"`
+	MetricSamplingRate     *float64 `json:"metric_sampling_rate,omitempty"`
 	SessionMinuteRateLimit *int64   `json:"session_minute_rate_limit,omitempty"`
 	ErrorMinuteRateLimit   *int64   `json:"error_minute_rate_limit,omitempty"`
 	LogMinuteRateLimit     *int64   `json:"log_minute_rate_limit,omitempty"`
 	TraceMinuteRateLimit   *int64   `json:"trace_minute_rate_limit,omitempty"`
+	MetricMinuteRateLimit  *int64   `json:"metric_minute_rate_limit,omitempty"`
 	SessionExclusionQuery  *string  `json:"session_exclusion_query,omitempty"`
 	ErrorExclusionQuery    *string  `json:"error_exclusion_query,omitempty"`
 	LogExclusionQuery      *string  `json:"log_exclusion_query,omitempty"`
 	TraceExclusionQuery    *string  `json:"trace_exclusion_query,omitempty"`
+	MetricExclusionQuery   *string  `json:"metric_exclusion_query,omitempty"`
 }
 
 type SanitizedAdmin struct {
@@ -1709,45 +1729,6 @@ func (e *MetricBucketBy) UnmarshalGQL(v interface{}) error {
 }
 
 func (e MetricBucketBy) MarshalGQL(w io.Writer) {
-	fmt.Fprint(w, strconv.Quote(e.String()))
-}
-
-type MetricColumn string
-
-const (
-	MetricColumnDuration MetricColumn = "Duration"
-)
-
-var AllMetricColumn = []MetricColumn{
-	MetricColumnDuration,
-}
-
-func (e MetricColumn) IsValid() bool {
-	switch e {
-	case MetricColumnDuration:
-		return true
-	}
-	return false
-}
-
-func (e MetricColumn) String() string {
-	return string(e)
-}
-
-func (e *MetricColumn) UnmarshalGQL(v interface{}) error {
-	str, ok := v.(string)
-	if !ok {
-		return fmt.Errorf("enums must be strings")
-	}
-
-	*e = MetricColumn(str)
-	if !e.IsValid() {
-		return fmt.Errorf("%s is not a valid MetricColumn", str)
-	}
-	return nil
-}
-
-func (e MetricColumn) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(e.String()))
 }
 

@@ -128,7 +128,7 @@ export class ErrorBoundary extends React.Component<
 		const { error, componentStack, showingDialog } = this.state
 
 		if (error) {
-			let element: React.ReactElement | undefined = undefined
+			let element: React.ReactElement | undefined
 			if (typeof fallback === 'function') {
 				element = fallback({
 					error,

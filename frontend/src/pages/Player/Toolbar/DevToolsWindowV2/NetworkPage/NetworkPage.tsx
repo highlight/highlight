@@ -173,23 +173,32 @@ export const NetworkPage = ({
 
 	const [currentResourceIdx, setCurrentResourceIdx] = useState(-1)
 
-	useEffect(
-		() =>
-			_.throttle(
-				() => {
-					const activeIndex = findLastActiveEventIndex(
-						Math.round(time),
-						startTime,
-						resourcesToRender,
-					)
+	useEffect(() => {
+		// need to load data ahead because the player skipped past the last loaded node
+		const lastTraceTs = resourcesToRender.at(
+			resourcesToRender.length - 1,
+		)?.timestamp
+		if (lastTraceTs) {
+			const lastTraceTime = new Date(lastTraceTs).getTime()
+			if (sessionMetadata.startTime + time > lastTraceTime) {
+				fetchMoreForward()
+			}
+		}
 
-					setCurrentResourceIdx(activeIndex)
-				},
-				THROTTLED_UPDATE_MS,
-				{ leading: true, trailing: false },
-			),
-		[resourcesToRender, startTime, time],
-	)
+		const activeIndex = findLastActiveEventIndex(
+			Math.round(time),
+			startTime,
+			resourcesToRender,
+		)
+
+		setCurrentResourceIdx(activeIndex)
+	}, [
+		fetchMoreForward,
+		resourcesToRender,
+		sessionMetadata.startTime,
+		startTime,
+		time,
+	])
 
 	// eslint-disable-next-line react-hooks/exhaustive-deps
 	const scrollFunction = useCallback(

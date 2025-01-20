@@ -255,6 +255,9 @@ export type BillingDetails = {
 	logsMeter: Scalars['Int64']
 	membersMeter: Scalars['Int64']
 	meter: Scalars['Int64']
+	metricsBillingLimit?: Maybe<Scalars['Int64']>
+	metricsDailyAverage: Scalars['Float']
+	metricsMeter: Scalars['Int64']
 	plan: Plan
 	sessionsBillingLimit?: Maybe<Scalars['Int64']>
 	sessionsDailyAverage: Scalars['Float']
@@ -771,14 +774,13 @@ export type Graph = {
 	bucketInterval?: Maybe<Scalars['Int']>
 	description: Scalars['String']
 	display?: Maybe<Scalars['String']>
-	functionType: MetricAggregator
+	expressions: Array<MetricExpression>
 	funnelSteps?: Maybe<Array<FunnelStep>>
 	groupByKeys?: Maybe<Scalars['StringArray']>
 	id: Scalars['ID']
 	limit?: Maybe<Scalars['Int']>
 	limitFunctionType?: Maybe<MetricAggregator>
 	limitMetric?: Maybe<Scalars['String']>
-	metric: Scalars['String']
 	nullHandling?: Maybe<Scalars['String']>
 	productType: ProductType
 	query: Scalars['String']
@@ -792,14 +794,13 @@ export type GraphInput = {
 	bucketCount?: InputMaybe<Scalars['Int']>
 	bucketInterval?: InputMaybe<Scalars['Int']>
 	display?: InputMaybe<Scalars['String']>
-	functionType: MetricAggregator
+	expressions: Array<MetricExpressionInput>
 	funnelSteps?: InputMaybe<Array<FunnelStepInput>>
 	groupByKeys?: InputMaybe<Scalars['StringArray']>
 	id?: InputMaybe<Scalars['ID']>
 	limit?: InputMaybe<Scalars['Int']>
 	limitFunctionType?: InputMaybe<MetricAggregator>
 	limitMetric?: InputMaybe<Scalars['String']>
-	metric: Scalars['String']
 	nullHandling?: InputMaybe<Scalars['String']>
 	productType: ProductType
 	query: Scalars['String']
@@ -1109,7 +1110,7 @@ export type MetricBucket = {
 	bucket_id: Scalars['UInt64']
 	bucket_max: Scalars['Float']
 	bucket_min: Scalars['Float']
-	column: MetricColumn
+	column: Scalars['String']
 	group: Array<Scalars['String']>
 	metric_type: MetricAggregator
 	metric_value?: Maybe<Scalars['Float']>
@@ -1123,8 +1124,15 @@ export enum MetricBucketBy {
 	Timestamp = 'Timestamp',
 }
 
-export enum MetricColumn {
-	Duration = 'Duration',
+export type MetricExpression = {
+	__typename?: 'MetricExpression'
+	aggregator: MetricAggregator
+	column: Scalars['String']
+}
+
+export type MetricExpressionInput = {
+	aggregator: MetricAggregator
+	column: Scalars['String']
 }
 
 export type MetricMonitor = {
@@ -1559,26 +1567,17 @@ export type MutationDeleteVisualizationArgs = {
 
 export type MutationEditProjectArgs = {
 	billing_email?: InputMaybe<Scalars['String']>
-	error_filters?: InputMaybe<Scalars['StringArray']>
-	error_json_paths?: InputMaybe<Scalars['StringArray']>
-	excluded_users?: InputMaybe<Scalars['StringArray']>
-	filter_chrome_extension?: InputMaybe<Scalars['Boolean']>
 	id: Scalars['ID']
 	name?: InputMaybe<Scalars['String']>
-	rage_click_count?: InputMaybe<Scalars['Int']>
-	rage_click_radius_pixels?: InputMaybe<Scalars['Int']>
-	rage_click_window_seconds?: InputMaybe<Scalars['Int']>
 }
 
 export type MutationEditProjectSettingsArgs = {
 	autoResolveStaleErrorsDayInterval?: InputMaybe<Scalars['Int']>
-	billing_email?: InputMaybe<Scalars['String']>
 	error_filters?: InputMaybe<Scalars['StringArray']>
 	error_json_paths?: InputMaybe<Scalars['StringArray']>
 	excluded_users?: InputMaybe<Scalars['StringArray']>
 	filterSessionsWithoutError?: InputMaybe<Scalars['Boolean']>
 	filter_chrome_extension?: InputMaybe<Scalars['Boolean']>
-	name?: InputMaybe<Scalars['String']>
 	projectId: Scalars['ID']
 	rage_click_count?: InputMaybe<Scalars['Int']>
 	rage_click_radius_pixels?: InputMaybe<Scalars['Int']>
@@ -1723,6 +1722,8 @@ export type MutationSaveBillingPlanArgs = {
 	errorsRetention: RetentionPeriod
 	logsLimitCents?: InputMaybe<Scalars['Int']>
 	logsRetention: RetentionPeriod
+	metricsLimitCents?: InputMaybe<Scalars['Int']>
+	metricsRetention: RetentionPeriod
 	sessionsLimitCents?: InputMaybe<Scalars['Int']>
 	sessionsRetention: RetentionPeriod
 	tracesLimitCents?: InputMaybe<Scalars['Int']>
@@ -2004,6 +2005,8 @@ export type Plan = {
 	logsLimit: Scalars['Int64']
 	logsRate: Scalars['Float']
 	membersLimit?: Maybe<Scalars['Int64']>
+	metricsLimit: Scalars['Int64']
+	metricsRate: Scalars['Float']
 	sessionsLimit: Scalars['Int64']
 	sessionsRate: Scalars['Float']
 	tracesLimit: Scalars['Int64']
@@ -2154,6 +2157,7 @@ export type Query = {
 	metric_tag_values: Array<Scalars['String']>
 	metric_tags: Array<Scalars['String']>
 	metrics: MetricsBuckets
+	metricsIntegration: IntegrationStatus
 	metrics_timeline: Array<Maybe<DashboardPayload>>
 	microsoft_teams_channel_suggestions: Array<MicrosoftTeamsChannel>
 	network_histogram?: Maybe<CategoryHistogramPayload>
@@ -2455,12 +2459,13 @@ export type QueryErrors_MetricsArgs = {
 	bucket_by: Scalars['String']
 	bucket_count?: InputMaybe<Scalars['Int']>
 	bucket_window?: InputMaybe<Scalars['Int']>
-	column: Scalars['String']
+	column?: InputMaybe<Scalars['String']>
+	expressions?: InputMaybe<Array<MetricExpressionInput>>
 	group_by: Array<Scalars['String']>
 	limit?: InputMaybe<Scalars['Int']>
 	limit_aggregator?: InputMaybe<MetricAggregator>
 	limit_column?: InputMaybe<Scalars['String']>
-	metric_types: Array<MetricAggregator>
+	metric_types?: InputMaybe<Array<MetricAggregator>>
 	params: QueryInput
 	project_id: Scalars['ID']
 }
@@ -2508,12 +2513,13 @@ export type QueryEvents_MetricsArgs = {
 	bucket_by: Scalars['String']
 	bucket_count?: InputMaybe<Scalars['Int']>
 	bucket_window?: InputMaybe<Scalars['Int']>
-	column: Scalars['String']
+	column?: InputMaybe<Scalars['String']>
+	expressions?: InputMaybe<Array<MetricExpressionInput>>
 	group_by: Array<Scalars['String']>
 	limit?: InputMaybe<Scalars['Int']>
 	limit_aggregator?: InputMaybe<MetricAggregator>
 	limit_column?: InputMaybe<Scalars['String']>
-	metric_types: Array<MetricAggregator>
+	metric_types?: InputMaybe<Array<MetricAggregator>>
 	params: QueryInput
 	project_id: Scalars['ID']
 }
@@ -2684,12 +2690,13 @@ export type QueryLogs_MetricsArgs = {
 	bucket_by: Scalars['String']
 	bucket_count?: InputMaybe<Scalars['Int']>
 	bucket_window?: InputMaybe<Scalars['Int']>
-	column: Scalars['String']
+	column?: InputMaybe<Scalars['String']>
+	expressions?: InputMaybe<Array<MetricExpressionInput>>
 	group_by: Array<Scalars['String']>
 	limit?: InputMaybe<Scalars['Int']>
 	limit_aggregator?: InputMaybe<MetricAggregator>
 	limit_column?: InputMaybe<Scalars['String']>
-	metric_types: Array<MetricAggregator>
+	metric_types?: InputMaybe<Array<MetricAggregator>>
 	params: QueryInput
 	project_id: Scalars['ID']
 }
@@ -2719,15 +2726,20 @@ export type QueryMetricsArgs = {
 	bucket_by: Scalars['String']
 	bucket_count?: InputMaybe<Scalars['Int']>
 	bucket_window?: InputMaybe<Scalars['Int']>
-	column: Scalars['String']
+	column?: InputMaybe<Scalars['String']>
+	expressions?: InputMaybe<Array<MetricExpressionInput>>
 	group_by: Array<Scalars['String']>
 	limit?: InputMaybe<Scalars['Int']>
 	limit_aggregator?: InputMaybe<MetricAggregator>
 	limit_column?: InputMaybe<Scalars['String']>
-	metric_types: Array<MetricAggregator>
+	metric_types?: InputMaybe<Array<MetricAggregator>>
 	params: QueryInput
 	prediction_settings?: InputMaybe<PredictionSettings>
 	product_type: ProductType
+	project_id: Scalars['ID']
+}
+
+export type QueryMetricsIntegrationArgs = {
 	project_id: Scalars['ID']
 }
 
@@ -2916,12 +2928,13 @@ export type QuerySessions_MetricsArgs = {
 	bucket_by: Scalars['String']
 	bucket_count?: InputMaybe<Scalars['Int']>
 	bucket_window?: InputMaybe<Scalars['Int']>
-	column: Scalars['String']
+	column?: InputMaybe<Scalars['String']>
+	expressions?: InputMaybe<Array<MetricExpressionInput>>
 	group_by: Array<Scalars['String']>
 	limit?: InputMaybe<Scalars['Int']>
 	limit_aggregator?: InputMaybe<MetricAggregator>
 	limit_column?: InputMaybe<Scalars['String']>
-	metric_types: Array<MetricAggregator>
+	metric_types?: InputMaybe<Array<MetricAggregator>>
 	params: QueryInput
 	project_id: Scalars['ID']
 }
@@ -2992,12 +3005,13 @@ export type QueryTraces_MetricsArgs = {
 	bucket_by?: InputMaybe<Scalars['String']>
 	bucket_count?: InputMaybe<Scalars['Int']>
 	bucket_window?: InputMaybe<Scalars['Int']>
-	column: Scalars['String']
+	column?: InputMaybe<Scalars['String']>
+	expressions?: InputMaybe<Array<MetricExpressionInput>>
 	group_by: Array<Scalars['String']>
 	limit?: InputMaybe<Scalars['Int']>
 	limit_aggregator?: InputMaybe<MetricAggregator>
 	limit_column?: InputMaybe<Scalars['String']>
-	metric_types: Array<MetricAggregator>
+	metric_types?: InputMaybe<Array<MetricAggregator>>
 	params: QueryInput
 	project_id: Scalars['ID']
 }
@@ -3286,6 +3300,9 @@ export type Sampling = {
 	log_exclusion_query?: Maybe<Scalars['String']>
 	log_minute_rate_limit?: Maybe<Scalars['Int64']>
 	log_sampling_rate: Scalars['Float']
+	metric_exclusion_query?: Maybe<Scalars['String']>
+	metric_minute_rate_limit?: Maybe<Scalars['Int64']>
+	metric_sampling_rate: Scalars['Float']
 	session_exclusion_query?: Maybe<Scalars['String']>
 	session_minute_rate_limit?: Maybe<Scalars['Int64']>
 	session_sampling_rate: Scalars['Float']
@@ -3301,6 +3318,9 @@ export type SamplingInput = {
 	log_exclusion_query?: InputMaybe<Scalars['String']>
 	log_minute_rate_limit?: InputMaybe<Scalars['Int64']>
 	log_sampling_rate?: InputMaybe<Scalars['Float']>
+	metric_exclusion_query?: InputMaybe<Scalars['String']>
+	metric_minute_rate_limit?: InputMaybe<Scalars['Int64']>
+	metric_sampling_rate?: InputMaybe<Scalars['Float']>
 	session_exclusion_query?: InputMaybe<Scalars['String']>
 	session_minute_rate_limit?: InputMaybe<Scalars['Int64']>
 	session_sampling_rate?: InputMaybe<Scalars['Float']>
@@ -3444,6 +3464,7 @@ export type Session = {
 	processed?: Maybe<Scalars['Boolean']>
 	resources_url?: Maybe<Scalars['String']>
 	secure_id: Scalars['String']
+	service_name?: Maybe<Scalars['String']>
 	session_feedback?: Maybe<Array<SessionComment>>
 	starred?: Maybe<Scalars['Boolean']>
 	state: Scalars['String']
@@ -3995,6 +4016,9 @@ export type Workspace = {
 	errors_retention_period: RetentionPeriod
 	id: Scalars['ID']
 	logs_max_cents?: Maybe<Scalars['Int']>
+	logs_retention_period: RetentionPeriod
+	metrics_max_cents?: Maybe<Scalars['Int']>
+	metrics_retention_period: RetentionPeriod
 	name: Scalars['String']
 	next_invoice_date?: Maybe<Scalars['Timestamp']>
 	plan_tier: Scalars['String']
@@ -4004,6 +4028,7 @@ export type Workspace = {
 	slack_channels?: Maybe<Scalars['String']>
 	slack_webhook_channel?: Maybe<Scalars['String']>
 	traces_max_cents?: Maybe<Scalars['Int']>
+	traces_retention_period: RetentionPeriod
 	trial_end_date?: Maybe<Scalars['Timestamp']>
 	trial_extension_enabled: Scalars['Boolean']
 	unlimited_members: Scalars['Boolean']

@@ -34,6 +34,8 @@ mutation SaveBillingPlan(
 	$logsRetention: RetentionPeriod!
 	$tracesLimitCents: Int
 	$tracesRetention: RetentionPeriod!
+	$metricsLimitCents: Int
+	$metricsRetention: RetentionPeriod!
 ) {
 	saveBillingPlan(
 		workspace_id: $workspace_id
@@ -45,6 +47,8 @@ mutation SaveBillingPlan(
 		logsRetention: $logsRetention
 		tracesLimitCents: $tracesLimitCents
 		tracesRetention: $tracesRetention
+		metricsLimitCents: $metricsLimitCents
+		metricsRetention: $metricsRetention
 	)
 }
 
@@ -218,47 +222,16 @@ mutation CreateWorkspace($name: String!, $promo_code: String) {
 	}
 }
 
-mutation EditProject(
-	$id: ID!
-	$name: String
-	$billing_email: String
-	$excluded_users: StringArray
-	$error_filters: StringArray
-	$error_json_paths: StringArray
-	$filter_chrome_extension: Boolean
-	$rage_click_window_seconds: Int
-	$rage_click_radius_pixels: Int
-	$rage_click_count: Int
-) {
-	editProject(
-		id: $id
-		name: $name
-		billing_email: $billing_email
-		excluded_users: $excluded_users
-		error_filters: $error_filters
-		error_json_paths: $error_json_paths
-		filter_chrome_extension: $filter_chrome_extension
-		rage_click_window_seconds: $rage_click_window_seconds
-		rage_click_radius_pixels: $rage_click_radius_pixels
-		rage_click_count: $rage_click_count
-	) {
+mutation EditProject($id: ID!, $name: String, $billing_email: String) {
+	editProject(id: $id, name: $name, billing_email: $billing_email) {
 		id
 		name
 		billing_email
-		excluded_users
-		error_filters
-		error_json_paths
-		filter_chrome_extension
-		rage_click_window_seconds
-		rage_click_radius_pixels
-		rage_click_count
 	}
 }
 
 mutation EditProjectSettings(
 	$projectId: ID!
-	$name: String
-	$billing_email: String
 	$excluded_users: StringArray
 	$error_filters: StringArray
 	$error_json_paths: StringArray
@@ -272,8 +245,6 @@ mutation EditProjectSettings(
 ) {
 	editProjectSettings(
 		projectId: $projectId
-		name: $name
-		billing_email: $billing_email
 		excluded_users: $excluded_users
 		error_filters: $error_filters
 		error_json_paths: $error_json_paths
@@ -302,14 +273,17 @@ mutation EditProjectSettings(
 			error_sampling_rate
 			log_sampling_rate
 			trace_sampling_rate
+			metric_sampling_rate
 			session_minute_rate_limit
 			error_minute_rate_limit
 			log_minute_rate_limit
 			trace_minute_rate_limit
+			metric_minute_rate_limit
 			session_exclusion_query
 			error_exclusion_query
 			log_exclusion_query
 			trace_exclusion_query
+			metric_exclusion_query
 		}
 	}
 }
@@ -1469,8 +1443,6 @@ mutation UpsertGraph($graph: GraphInput!) {
 		title
 		productType
 		query
-		metric
-		functionType
 		groupByKeys
 		bucketByKey
 		bucketCount
@@ -1483,6 +1455,10 @@ mutation UpsertGraph($graph: GraphInput!) {
 		}
 		display
 		nullHandling
+		expressions {
+			aggregator
+			column
+		}
 	}
 }
 

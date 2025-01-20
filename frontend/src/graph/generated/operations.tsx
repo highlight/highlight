@@ -62,6 +62,8 @@ export type SaveBillingPlanMutationVariables = Types.Exact<{
 	logsRetention: Types.RetentionPeriod
 	tracesLimitCents?: Types.Maybe<Types.Scalars['Int']>
 	tracesRetention: Types.RetentionPeriod
+	metricsLimitCents?: Types.Maybe<Types.Scalars['Int']>
+	metricsRetention: Types.RetentionPeriod
 }>
 
 export type SaveBillingPlanMutation = { __typename?: 'Mutation' } & Pick<
@@ -252,37 +254,19 @@ export type EditProjectMutationVariables = Types.Exact<{
 	id: Types.Scalars['ID']
 	name?: Types.Maybe<Types.Scalars['String']>
 	billing_email?: Types.Maybe<Types.Scalars['String']>
-	excluded_users?: Types.Maybe<Types.Scalars['StringArray']>
-	error_filters?: Types.Maybe<Types.Scalars['StringArray']>
-	error_json_paths?: Types.Maybe<Types.Scalars['StringArray']>
-	filter_chrome_extension?: Types.Maybe<Types.Scalars['Boolean']>
-	rage_click_window_seconds?: Types.Maybe<Types.Scalars['Int']>
-	rage_click_radius_pixels?: Types.Maybe<Types.Scalars['Int']>
-	rage_click_count?: Types.Maybe<Types.Scalars['Int']>
 }>
 
 export type EditProjectMutation = { __typename?: 'Mutation' } & {
 	editProject?: Types.Maybe<
 		{ __typename?: 'Project' } & Pick<
 			Types.Project,
-			| 'id'
-			| 'name'
-			| 'billing_email'
-			| 'excluded_users'
-			| 'error_filters'
-			| 'error_json_paths'
-			| 'filter_chrome_extension'
-			| 'rage_click_window_seconds'
-			| 'rage_click_radius_pixels'
-			| 'rage_click_count'
+			'id' | 'name' | 'billing_email'
 		>
 	>
 }
 
 export type EditProjectSettingsMutationVariables = Types.Exact<{
 	projectId: Types.Scalars['ID']
-	name?: Types.Maybe<Types.Scalars['String']>
-	billing_email?: Types.Maybe<Types.Scalars['String']>
 	excluded_users?: Types.Maybe<Types.Scalars['StringArray']>
 	error_filters?: Types.Maybe<Types.Scalars['StringArray']>
 	error_json_paths?: Types.Maybe<Types.Scalars['StringArray']>
@@ -318,14 +302,17 @@ export type EditProjectSettingsMutation = { __typename?: 'Mutation' } & {
 					| 'error_sampling_rate'
 					| 'log_sampling_rate'
 					| 'trace_sampling_rate'
+					| 'metric_sampling_rate'
 					| 'session_minute_rate_limit'
 					| 'error_minute_rate_limit'
 					| 'log_minute_rate_limit'
 					| 'trace_minute_rate_limit'
+					| 'metric_minute_rate_limit'
 					| 'session_exclusion_query'
 					| 'error_exclusion_query'
 					| 'log_exclusion_query'
 					| 'trace_exclusion_query'
+					| 'metric_exclusion_query'
 				>
 			}
 	>
@@ -1606,8 +1593,6 @@ export type UpsertGraphMutation = { __typename?: 'Mutation' } & {
 		| 'title'
 		| 'productType'
 		| 'query'
-		| 'metric'
-		| 'functionType'
 		| 'groupByKeys'
 		| 'bucketByKey'
 		| 'bucketCount'
@@ -1623,6 +1608,12 @@ export type UpsertGraphMutation = { __typename?: 'Mutation' } & {
 						Types.FunnelStep,
 						'title' | 'query'
 					>
+				>
+			>
+			expressions: Array<
+				{ __typename?: 'MetricExpression' } & Pick<
+					Types.MetricExpression,
+					'aggregator' | 'column'
 				>
 			>
 		}
@@ -1957,6 +1948,7 @@ export type GetSessionQuery = { __typename?: 'Query' } & {
 			| 'browser_name'
 			| 'browser_version'
 			| 'environment'
+			| 'service_name'
 			| 'app_version'
 			| 'ip'
 			| 'city'
@@ -2689,6 +2681,9 @@ export type GetWorkspacesQuery = { __typename?: 'Query' } & {
 					| 'name'
 					| 'retention_period'
 					| 'errors_retention_period'
+					| 'logs_retention_period'
+					| 'traces_retention_period'
+					| 'metrics_retention_period'
 				>
 			>
 		>
@@ -2951,10 +2946,12 @@ export type GetBillingDetailsForProjectQuery = { __typename?: 'Query' } & {
 			| 'errorsMeter'
 			| 'logsMeter'
 			| 'tracesMeter'
+			| 'metricsMeter'
 			| 'sessionsBillingLimit'
 			| 'errorsBillingLimit'
 			| 'logsBillingLimit'
 			| 'tracesBillingLimit'
+			| 'metricsBillingLimit'
 		> & {
 				plan: { __typename?: 'Plan' } & Pick<
 					Types.Plan,
@@ -2965,10 +2962,12 @@ export type GetBillingDetailsForProjectQuery = { __typename?: 'Query' } & {
 					| 'errorsLimit'
 					| 'logsLimit'
 					| 'tracesLimit'
+					| 'metricsLimit'
 					| 'sessionsRate'
 					| 'errorsRate'
 					| 'logsRate'
 					| 'tracesRate'
+					| 'metricsRate'
 				> & {
 						aws_mp_subscription?: Types.Maybe<
 							{
@@ -3041,14 +3040,17 @@ export type GetBillingDetailsQuery = { __typename?: 'Query' } & {
 		| 'errorsMeter'
 		| 'logsMeter'
 		| 'tracesMeter'
+		| 'metricsMeter'
 		| 'sessionsBillingLimit'
 		| 'errorsBillingLimit'
 		| 'logsBillingLimit'
 		| 'tracesBillingLimit'
+		| 'metricsBillingLimit'
 		| 'sessionsDailyAverage'
 		| 'errorsDailyAverage'
 		| 'logsDailyAverage'
 		| 'tracesDailyAverage'
+		| 'metricsDailyAverage'
 	> & {
 			plan: { __typename?: 'Plan' } & Pick<
 				Types.Plan,
@@ -3059,10 +3061,12 @@ export type GetBillingDetailsQuery = { __typename?: 'Query' } & {
 				| 'errorsLimit'
 				| 'logsLimit'
 				| 'tracesLimit'
+				| 'metricsLimit'
 				| 'sessionsRate'
 				| 'errorsRate'
 				| 'logsRate'
 				| 'tracesRate'
+				| 'metricsRate'
 				| 'enableBillingLimits'
 			> & {
 					aws_mp_subscription?: Types.Maybe<
@@ -3108,10 +3112,14 @@ export type GetBillingDetailsQuery = { __typename?: 'Query' } & {
 			| 'eligible_for_trial_extension'
 			| 'retention_period'
 			| 'errors_retention_period'
+			| 'logs_retention_period'
+			| 'traces_retention_period'
+			| 'metrics_retention_period'
 			| 'sessions_max_cents'
 			| 'errors_max_cents'
 			| 'logs_max_cents'
 			| 'traces_max_cents'
+			| 'metrics_max_cents'
 		>
 	>
 }
@@ -3560,6 +3568,17 @@ export type GetTracesIntegrationQueryVariables = Types.Exact<{
 
 export type GetTracesIntegrationQuery = { __typename?: 'Query' } & {
 	tracesIntegration: { __typename?: 'IntegrationStatus' } & Pick<
+		Types.IntegrationStatus,
+		'integrated' | 'resourceType' | 'createdAt'
+	>
+}
+
+export type GetMetricsIntegrationQueryVariables = Types.Exact<{
+	project_id: Types.Scalars['ID']
+}>
+
+export type GetMetricsIntegrationQuery = { __typename?: 'Query' } & {
+	metricsIntegration: { __typename?: 'IntegrationStatus' } & Pick<
 		Types.IntegrationStatus,
 		'integrated' | 'resourceType' | 'createdAt'
 	>
@@ -4740,14 +4759,17 @@ export type GetProjectSettingsQuery = { __typename?: 'Query' } & {
 					| 'error_sampling_rate'
 					| 'log_sampling_rate'
 					| 'trace_sampling_rate'
+					| 'metric_sampling_rate'
 					| 'session_exclusion_query'
 					| 'error_exclusion_query'
 					| 'log_exclusion_query'
 					| 'trace_exclusion_query'
+					| 'metric_exclusion_query'
 					| 'session_minute_rate_limit'
 					| 'error_minute_rate_limit'
 					| 'log_minute_rate_limit'
 					| 'trace_minute_rate_limit'
+					| 'metric_minute_rate_limit'
 				>
 			}
 	>
@@ -5169,8 +5191,6 @@ export type GetMetricsQueryVariables = Types.Exact<{
 	product_type: Types.ProductType
 	project_id: Types.Scalars['ID']
 	params: Types.QueryInput
-	column: Types.Scalars['String']
-	metric_types: Array<Types.MetricAggregator> | Types.MetricAggregator
 	group_by: Array<Types.Scalars['String']> | Types.Scalars['String']
 	bucket_by: Types.Scalars['String']
 	bucket_count?: Types.Maybe<Types.Scalars['Int']>
@@ -5179,6 +5199,9 @@ export type GetMetricsQueryVariables = Types.Exact<{
 	limit_aggregator?: Types.Maybe<Types.MetricAggregator>
 	limit_column?: Types.Maybe<Types.Scalars['String']>
 	prediction_settings?: Types.Maybe<Types.PredictionSettings>
+	expressions:
+		| Array<Types.MetricExpressionInput>
+		| Types.MetricExpressionInput
 }>
 
 export type GetMetricsQuery = { __typename?: 'Query' } & {
@@ -5193,6 +5216,7 @@ export type GetMetricsQuery = { __typename?: 'Query' } & {
 					| 'bucket_min'
 					| 'bucket_max'
 					| 'group'
+					| 'column'
 					| 'metric_type'
 					| 'metric_value'
 					| 'yhat_lower'
@@ -5216,8 +5240,6 @@ export type GetGraphTemplatesQuery = { __typename?: 'Query' } & {
 			| 'description'
 			| 'productType'
 			| 'query'
-			| 'metric'
-			| 'functionType'
 			| 'groupByKeys'
 			| 'bucketByKey'
 			| 'bucketCount'
@@ -5234,6 +5256,12 @@ export type GetGraphTemplatesQuery = { __typename?: 'Query' } & {
 							Types.FunnelStep,
 							'title' | 'query'
 						>
+					>
+				>
+				expressions: Array<
+					{ __typename?: 'MetricExpression' } & Pick<
+						Types.MetricExpression,
+						'aggregator' | 'column'
 					>
 				>
 			}
@@ -5264,8 +5292,6 @@ export type GetVisualizationQuery = { __typename?: 'Query' } & {
 					| 'description'
 					| 'productType'
 					| 'query'
-					| 'metric'
-					| 'functionType'
 					| 'groupByKeys'
 					| 'bucketByKey'
 					| 'bucketCount'
@@ -5282,6 +5308,12 @@ export type GetVisualizationQuery = { __typename?: 'Query' } & {
 									Types.FunnelStep,
 									'title' | 'query'
 								>
+							>
+						>
+						expressions: Array<
+							{ __typename?: 'MetricExpression' } & Pick<
+								Types.MetricExpression,
+								'aggregator' | 'column'
 							>
 						>
 					}
@@ -5329,8 +5361,6 @@ export type GetVisualizationsQuery = { __typename?: 'Query' } & {
 								| 'title'
 								| 'productType'
 								| 'query'
-								| 'metric'
-								| 'functionType'
 								| 'groupByKeys'
 								| 'bucketByKey'
 								| 'bucketCount'
@@ -5349,6 +5379,14 @@ export type GetVisualizationsQuery = { __typename?: 'Query' } & {
 												Types.FunnelStep,
 												'title' | 'query'
 											>
+										>
+									>
+									expressions: Array<
+										{
+											__typename?: 'MetricExpression'
+										} & Pick<
+											Types.MetricExpression,
+											'aggregator' | 'column'
 										>
 									>
 								}
@@ -5446,6 +5484,7 @@ export const namedOperations = {
 		GetServerIntegration: 'GetServerIntegration' as const,
 		GetLogsIntegration: 'GetLogsIntegration' as const,
 		GetTracesIntegration: 'GetTracesIntegration' as const,
+		GetMetricsIntegration: 'GetMetricsIntegration' as const,
 		GetKeyPerformanceIndicators: 'GetKeyPerformanceIndicators' as const,
 		GetReferrersCount: 'GetReferrersCount' as const,
 		GetNewUsersCount: 'GetNewUsersCount' as const,

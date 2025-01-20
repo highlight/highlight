@@ -1,21 +1,22 @@
 import type { NodeOptions } from '@highlight-run/node'
-import type { NextFetchEvent, NextRequest } from 'next/server'
 import { H } from './highlight-edge'
 import { ExtendedExecutionContext } from './types'
+
+export type NextFetchEvent = {
+	params: Promise<Record<string, string>>
+}
+export type NextRequest = any
 
 export type HighlightEnv = NodeOptions
 
 export type EdgeHandler = (
 	request: NextRequest,
-	event: NextFetchEvent,
+	context: NextFetchEvent,
 ) => Promise<Response>
 
 export function Highlight(env: HighlightEnv) {
 	return function withHighlight(handler: EdgeHandler) {
-		return async function (
-			request: NextRequest,
-			event: NextFetchEvent & ExtendedExecutionContext,
-		) {
+		return async function (request: NextRequest, context: NextFetchEvent) {
 			if (env.enableFsInstrumentation) {
 				console.warn(
 					'enableFsInstrumentation is incompatible with Edge... disabling now.',
@@ -24,14 +25,18 @@ export function Highlight(env: HighlightEnv) {
 				env.enableFsInstrumentation = false
 			}
 
-			H.initEdge(request, env, event)
+			H.initEdge(
+				request,
+				env,
+				context as unknown as ExtendedExecutionContext,
+			)
 
 			try {
 				const response = await H.runWithHeaders(
 					`${request.method?.toUpperCase()} - ${request.url}`,
 					request.headers as any,
 					async () => {
-						return await handler(request, event)
+						return await handler(request, context)
 					},
 				)
 
@@ -44,16 +49,6 @@ export function Highlight(env: HighlightEnv) {
 				)
 				if (error instanceof Error) {
 					H.consumeError(error, secureSessionId, requestId)
-				}
-
-				/**
-				 * H.consumeError is completely async, so if we throw the error too quickly after
-				 * calling H.consumeError, we're effectively short-circuiting ctx.waitUntil.
-				 *
-				 * ctx.waitUntilFinished will wait for the promises to settle before throwing.
-				 */
-				if (event.waitUntilFinished) {
-					await event.waitUntilFinished()
 				}
 
 				throw error

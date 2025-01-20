@@ -195,8 +195,6 @@ func processMetricAlert(ctx context.Context, DB *gorm.DB, MailClient *sendgrid.C
 				EndDate:   endDate,
 			},
 		},
-		Column:           column,
-		MetricTypes:      []modelInputs.MetricAggregator{alert.FunctionType},
 		GroupBy:          groupBy,
 		BucketCount:      &bucketCount,
 		BucketBy:         modelInputs.MetricBucketByTimestamp.String(),
@@ -204,6 +202,10 @@ func processMetricAlert(ctx context.Context, DB *gorm.DB, MailClient *sendgrid.C
 		LimitAggregator:  &aggregatorCount,
 		SavedMetricState: savedState,
 		NoBucketMax:      true,
+		Expressions: []*modelInputs.MetricExpressionInput{{
+			Aggregator: alert.FunctionType,
+			Column:     column,
+		}},
 	})
 	if err != nil {
 		return err
@@ -271,6 +273,8 @@ func processMetricAlert(ctx context.Context, DB *gorm.DB, MailClient *sendgrid.C
 
 	for _, bucket := range bucketsInner {
 		if bucket.MetricValue == nil {
+			alertStateChange := getAlertStateChange(curDate, false, alert.ID, strings.Join(bucket.Group, ""), lastAlerts, cooldown)
+			stateChanges = append(stateChanges, alertStateChange)
 			continue
 		}
 
