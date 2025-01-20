@@ -1,6 +1,6 @@
 {
 	"$schema": "https://mintlify.com/schema.json",
-	"name": "Starter Kit",
+	"name": "Highlight Docs",
 	"logo": {
 		"dark": "/logo/logo-light-dark.svg",
 		"light": "/logo/logo-light-dark.svg"
@@ -25,7 +25,7 @@
 	"topbarLinks": [
 		{
 			"name": "Support",
-			"url": "mailto:sales@highlight.io"
+			"url": "mailto:support@highlight.io"
 		}
 	],
 	"topbarCtaButton": {
@@ -34,11 +34,11 @@
 	},
 	"tabs": [
 		{
-			"name": "General Docs",
+			"name": "Product Docs",
 			"url": "general"
 		},
 		{
-			"name": "Setup Docs",
+			"name": "Setup & Connect",
 			"url": "getting-started"
 		},
 		{
@@ -48,72 +48,410 @@
 	],
 	"anchors": [
 		{
-			"name": "Documentation",
-			"icon": "book-open-cover",
-			"url": "https://mintlify.com/docs"
-		},
-		{
 			"name": "Community",
-			"icon": "slack",
-			"url": "https://mintlify.com/community"
+			"icon": "discord",
+			"url": "https://highlight.io/community"
 		},
 		{
 			"name": "Blog",
 			"icon": "newspaper",
-			"url": "https://highlight.com/blog"
+			"url": "https://highlight.io/blog"
+		},
+		{
+			"name": "Dashboard",
+			"icon": "newspaper",
+			"url": "https://app.highlight.io"
 		}
 	],
 	"navigation": [
 		{
-			"group": "General Docs",
+			"group": "Getting Started",
+			"pages": [
+				"getting-started/overview",
+				"getting-started/frontend-backend-mapping",
+				{
+					"group": "Self Host",
+					"pages": [
+						"getting-started/self-host/overview",
+						"getting-started/self-host/dev-deployment-guide",
+						"getting-started/self-host/self-hosted-hobby-guide",
+						"getting-started/self-host/integrations/teams",
+						"getting-started/self-host/traefik-proxy"
+					]
+				},
+				{
+					"group": "Fullstack Frameworks",
+					"pages": [
+						"getting-started/fullstack-frameworks/next-js/overview",
+						"getting-started/fullstack-frameworks/remix",
+						"getting-started/fullstack-frameworks/next-js/edge-runtime",
+						"getting-started/fullstack-frameworks/next-js/page-router",
+						"getting-started/fullstack-frameworks/next-js/app-router",
+						"getting-started/fullstack-frameworks/next-js/advanced-config"
+					]
+				},
+				{
+					"group": "Native OpenTelemetry",
+					"pages": [
+						"getting-started/native-opentelemetry/overview",
+						"getting-started/native-opentelemetry/logging",
+						"getting-started/native-opentelemetry/browser",
+						"getting-started/native-opentelemetry/error-monitoring",
+						"getting-started/native-opentelemetry/tracing"
+					]
+				},
+				{
+					"group": "Native OpenTelemetry",
+					"pages": [
+						"getting-started/native-opentelemetry/overview",
+						"getting-started/native-opentelemetry/logging",
+						"getting-started/native-opentelemetry/browser",
+						"getting-started/native-opentelemetry/error-monitoring",
+						"getting-started/native-opentelemetry/tracing"
+					]
+				},
+				{
+					"group": "Backend Tracing",
+					"pages": [
+						"getting-started/backend-tracing/go/overview",
+						"getting-started/backend-tracing/go/gorm",
+						"getting-started/backend-tracing/go/manual",
+						"getting-started/backend-tracing/python/python-ai",
+						"getting-started/backend-tracing/python/overview",
+						"getting-started/backend-tracing/python/flask",
+						"getting-started/backend-tracing/python/fastapi",
+						"getting-started/backend-tracing/python/aws-lambda",
+						"getting-started/backend-tracing/python/azure-functions",
+						"getting-started/backend-tracing/python/python-libraries",
+						"getting-started/backend-tracing/python/google-cloud-functions",
+						"getting-started/backend-tracing/python/manual",
+						"getting-started/backend-tracing/python/django",
+						"getting-started/backend-tracing/serverless/aws-lambda",
+						"getting-started/backend-tracing/rust/overview",
+						"getting-started/backend-tracing/rust/actix",
+						"getting-started/backend-tracing/rust/manual",
+						"getting-started/backend-tracing/php",
+						"getting-started/backend-tracing/dotnet",
+						"getting-started/backend-tracing/node-js/overview",
+						"getting-started/backend-tracing/node-js/nextjs",
+						"getting-started/backend-tracing/node-js/manual",
+						"getting-started/backend-tracing/ruby/overview",
+						"getting-started/backend-tracing/ruby/rails",
+						"getting-started/backend-tracing/ruby/other",
+						"getting-started/backend-tracing/dotnet-4"
+					]
+				},
+				{
+					"group": "Client SDK",
+					"pages": [
+						"getting-started/client-sdk/replay-configuration/monkey-patches",
+						"getting-started/client-sdk/replay-configuration/session-data-export",
+						"getting-started/client-sdk/replay-configuration/console-messages",
+						"getting-started/client-sdk/replay-configuration/overview",
+						"getting-started/client-sdk/replay-configuration/salesforce-lwc",
+						"getting-started/client-sdk/replay-configuration/versioning-sessions-and-errors",
+						"getting-started/client-sdk/replay-configuration/sourcemaps",
+						"getting-started/client-sdk/replay-configuration/upgrading-highlight",
+						"getting-started/client-sdk/replay-configuration/recording-web-socket-events",
+						"getting-started/client-sdk/replay-configuration/react-error-boundary",
+						"getting-started/client-sdk/replay-configuration/canvas",
+						"getting-started/client-sdk/replay-configuration/recording-network-requests-and-responses",
+						"getting-started/client-sdk/replay-configuration/tracking-events",
+						"getting-started/client-sdk/replay-configuration/identifying-sessions",
+						"getting-started/client-sdk/replay-configuration/iframes",
+						"getting-started/client-sdk/replay-configuration/troubleshooting",
+						"getting-started/client-sdk/replay-configuration/persistent-assets",
+						"getting-started/client-sdk/replay-configuration/proxying-highlight",
+						"getting-started/client-sdk/replay-configuration/opentelemetry",
+						"getting-started/client-sdk/replay-configuration/privacy",
+						"getting-started/client-sdk/gatsbyjs",
+						"getting-started/client-sdk/angular",
+						"getting-started/client-sdk/sveltekit",
+						"getting-started/client-sdk/nextjs",
+						"getting-started/client-sdk/electron",
+						"getting-started/client-sdk/remix",
+						"getting-started/client-sdk/reactjs",
+						"getting-started/client-sdk/vuejs",
+						"getting-started/client-sdk/other"
+					]
+				},
+				{
+					"group": "Backend SDK",
+					"pages": [
+						{
+							"group": "Go",
+							"pages": [
+								"getting-started/backend-sdk/go/echo",
+								"getting-started/backend-sdk/go/gqlgen",
+								"getting-started/backend-sdk/go/overview",
+								"getting-started/backend-sdk/go/chi",
+								"getting-started/backend-sdk/go/gin",
+								"getting-started/backend-sdk/go/mux",
+								"getting-started/backend-sdk/go/fiber"
+							]
+						},
+						{
+							"group": "Python",
+							"pages": [
+								"getting-started/backend-sdk/python/overview",
+								"getting-started/backend-sdk/python/flask",
+								"getting-started/backend-sdk/python/fastapi",
+								"getting-started/backend-sdk/python/aws-lambda",
+								"getting-started/backend-sdk/python/azure-functions",
+								"getting-started/backend-sdk/python/google-cloud-functions",
+								"getting-started/backend-sdk/python/django",
+								"getting-started/backend-sdk/python/other"
+							]
+						},
+						{
+							"group": "Elixir",
+							"pages": [
+								"getting-started/backend-sdk/elixir/overview",
+								"getting-started/backend-sdk/elixir/other"
+							]
+						},
+						{
+							"group": "JavaScript",
+							"pages": [
+								"getting-started/backend-sdk/js/cloudflare",
+								"getting-started/backend-sdk/js/firebase",
+								"getting-started/backend-sdk/js/express",
+								"getting-started/backend-sdk/js/overview",
+								"getting-started/backend-sdk/js/hono",
+								"getting-started/backend-sdk/js/nodejs",
+								"getting-started/backend-sdk/js/nestjs",
+								"getting-started/backend-sdk/js/aws-lambda",
+								"getting-started/backend-sdk/js/apollo",
+								"getting-started/backend-sdk/js/trpc"
+							]
+						},
+						{
+							"group": "Rust",
+							"pages": [
+								"getting-started/backend-sdk/rust/overview",
+								"getting-started/backend-sdk/rust/actix",
+								"getting-started/backend-sdk/rust/other"
+							]
+						},
+						{
+							"group": "Java",
+							"pages": [
+								"getting-started/backend-sdk/java/overview",
+								"getting-started/backend-sdk/java/other"
+							]
+						},
+						{
+							"group": "PHP",
+							"pages": [
+								"getting-started/backend-sdk/php/overview",
+								"getting-started/backend-sdk/php/other"
+							]
+						},
+						{
+							"group": "DotNet",
+							"pages": [
+								"getting-started/backend-sdk/dotnet",
+								"getting-started/backend-sdk/dotnet-4"
+							]
+						},
+						{
+							"group": "Ruby",
+							"pages": [
+								"getting-started/backend-sdk/ruby/overview",
+								"getting-started/backend-sdk/ruby/rails",
+								"getting-started/backend-sdk/ruby/other"
+							]
+						}
+					]
+				}
+			]
+		},
+		{
+			"group": "Product",
 			"pages": [
 				"general/welcome",
+				"general/getting-started",
+				"general/roadmap",
 				{
-					"group": "About Us",
+					"group": "Company",
 					"pages": [
 						"general/company/compliance-and-security",
 						"general/company/our-competitors",
 						"general/company/product-philosophy",
-						"general/company/values"
-					]
-				}
-			]
-		},
-		{
-			"group": "Self Host & Contributing",
-			"pages": [
-				{
-					"group": "Self Hosting",
-					"pages": [
-						"contributing/getting-started",
-						"contributing/backend",
-						"contributing/frontend",
-						"contributing/landing-site",
-						"contributing/docs",
-						"contributing/adding-an-sdk",
-						"contributing/architecture",
-						"contributing/code-spaces",
-						"contributing/code-style",
-						"contributing/good-first-issues"
+						"general/company/values",
+						{
+							"group": "Open Source",
+							"pages": [
+								{
+									"group": "Self Hosting",
+									"pages": [
+										"general/company/open-source/hosting/self-host-dev",
+										"general/company/open-source/hosting/self-host-enterprise",
+										"general/company/open-source/hosting/self-host-hobby",
+										"general/company/open-source/hosting/telemetry"
+									]
+								},
+								{
+									"group": "Contributing",
+									"pages": [
+										"general/company/open-source/contributing/getting-started",
+										"general/company/open-source/contributing/good-first-issues",
+										"general/company/open-source/contributing/code-style",
+										"general/company/open-source/contributing/code-spaces",
+										"general/company/open-source/contributing/adding-an-sdk",
+										"general/company/open-source/contributing/end-to-end-sdk-examples",
+										"general/company/open-source/contributing/docs",
+										"general/company/open-source/contributing/landing-site",
+										"general/company/open-source/contributing/frontend",
+										"general/company/open-source/contributing/backend"
+									]
+								}
+							]
+						}
 					]
 				},
 				{
-					"group": "Open Source",
+					"group": "Product Features",
 					"pages": [
-						"hosting/self-host-dev",
-						"hosting/self-host-enterprise",
-						"hosting/self-host-hobby"
+						{
+							"group": "Tracing",
+							"pages": [
+								"general/product-features/tracing/overview",
+								"general/product-features/tracing/trace-search"
+							]
+						},
+						{
+							"group": "Session Replay",
+							"pages": [
+								"general/product-features/session-replay/canvas-iframe",
+								"general/product-features/session-replay/dev-tools",
+								"general/product-features/session-replay/events-and-users",
+								"general/product-features/session-replay/filtering-sessions",
+								"general/product-features/session-replay/graphql",
+								"general/product-features/session-replay/live-mode",
+								"general/product-features/session-replay/overview",
+								"general/product-features/session-replay/performance-impact",
+								"general/product-features/session-replay/player-session-caching",
+								"general/product-features/session-replay/rage-clicks",
+								"general/product-features/session-replay/request-proxying",
+								"general/product-features/session-replay/session-search",
+								"general/product-features/session-replay/session-url",
+								"general/product-features/session-replay/sessions-search-deep-linking",
+								"general/product-features/session-replay/shadow-dom-web-components"
+							]
+						},
+						{
+							"group": "Logging",
+							"pages": [
+								"general/product-features/logging/overview",
+								"general/product-features/logging/log-alerts",
+								"general/product-features/logging/log-search"
+							]
+						},
+						{
+							"group": "General",
+							"pages": [
+								"general/product-features/general-features/overview",
+								"general/product-features/general-features/alerts",
+								"general/product-features/general-features/comments",
+								"general/product-features/general-features/digests",
+								"general/product-features/general-features/environments",
+								"general/product-features/general-features/search",
+								"general/product-features/general-features/segments",
+								"general/product-features/general-features/webhooks"
+							]
+						},
+						{
+							"group": "Error Monitoring",
+							"pages": [
+								"general/product-features/error-monitoring/overview",
+								"general/product-features/error-monitoring/sourcemaps",
+								"general/product-features/error-monitoring/manually-send-errors",
+								"general/product-features/error-monitoring/managing-errors",
+								"general/product-features/error-monitoring/index",
+								"general/product-features/error-monitoring/grouping-errors",
+								"general/product-features/error-monitoring/filtering-errors",
+								"general/product-features/error-monitoring/error-search",
+								"general/product-features/error-monitoring/enhancing-errors-with-github"
+							]
+						},
+						{
+							"group": "Dashboards",
+							"pages": [
+								"general/product-features/dashboards/overview",
+								"general/product-features/dashboards/variables",
+								"general/product-features/dashboards/graphing",
+								"general/product-features/dashboards/event-search",
+								"general/product-features/dashboards/drilldown",
+								"general/product-features/dashboards/dashboard-management",
+								{
+									"group": "Tutorials",
+									"pages": [
+										"general/product-features/dashboards/dashboards-tutorials/user-analytics",
+										"general/product-features/dashboards/dashboards-tutorials/service-latency",
+										"general/product-features/dashboards/dashboards-tutorials/user-engagement",
+										"general/product-features/dashboards/dashboards-tutorials/web-vitals-page-speed"
+									]
+								}
+							]
+						},
+						"general/product-features/frequently-asked-questions"
+					]
+				},
+				{
+					"group": "Changelog",
+					"pages": [
+						"general/changelog/changelog-12",
+						"general/changelog/changelog-13",
+						"general/changelog/changelog-14",
+						"general/changelog/changelog-15",
+						"general/changelog/changelog-16",
+						"general/changelog/changelog-17",
+						"general/changelog/changelog-18",
+						"general/changelog/changelog-19",
+						"general/changelog/changelog-20",
+						"general/changelog/changelog-21",
+						"general/changelog/changelog-22",
+						"general/changelog/changelog-23",
+						"general/changelog/changelog-24",
+						"general/changelog/changelog-25",
+						"general/changelog/changelog-26",
+						"general/changelog/changelog-27",
+						"general/changelog/changelog-28",
+						"general/changelog/changelog-29"
+					]
+				},
+				{
+					"group": "Integrations",
+					"pages": [
+						{
+							"group": "Grafana Integration",
+							"pages": [
+								"general/integrations/grafana-integration/overview",
+								"general/integrations/grafana-integration/setup",
+								"general/integrations/grafana-integration/dashboards",
+								"general/integrations/grafana-integration/alerts"
+							]
+						},
+						"general/integrations/amplitude-integration",
+						"general/integrations/clickup-integration",
+						"general/integrations/discord-integration",
+						"general/integrations/electron-integration",
+						"general/integrations/front-integration",
+						"general/integrations/github-integration",
+						"general/integrations/height-integration",
+						"general/integrations/intercom-integration",
+						"general/integrations/jira-integration",
+						"general/integrations/linear-integration",
+						"general/integrations/mixpanel-integration",
+						"general/integrations/pendo-integration",
+						"general/integrations/segment-integration",
+						"general/integrations/slack-integration",
+						"general/integrations/vercel-integration",
+						"general/integrations/wordpress-integration"
 					]
 				}
 			]
-		},
-		{
-			"group": "Setup Docs",
-			"pages": ["getting-started/overview"]
-		},
-		{
-			"group": "SDK Reference",
-			"pages": ["sdk/overview"]
 		}
 	],
 	"footerSocials": {
