@@ -283,17 +283,11 @@ const MetricTableRow = ({
 										)
 								: undefined
 						}
+						title={value}
 					>
-						<Tooltip
-							delayed
-							trigger={
-								<Text size="small" color="default" lines="1">
-									{value}
-								</Text>
-							}
-						>
+						<Text size="small" color="default" lines="1">
 							{value}
-						</Tooltip>
+						</Text>
 					</Table.Cell>
 				)
 			})}
