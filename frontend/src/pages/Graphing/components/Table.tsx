@@ -174,117 +174,16 @@ const MetricTableImpl = ({
 							const d = orderedData[virtualRow.index]
 
 							return (
-								<Table.Row
+								<MetricTableRow
+									row={d}
 									key={virtualRow.index}
-									className={style.tableRow}
-								>
-									{showXAxisColumn && (
-										<Table.Cell
-											key={virtualRow.index}
-											onClick={
-												loadExemplars
-													? () =>
-															loadExemplars(
-																d[
-																	BUCKET_MIN_KEY
-																],
-																d[
-																	BUCKET_MAX_KEY
-																],
-																d[GROUPS_KEY],
-															)
-													: undefined
-											}
-										>
-											<Tooltip
-												delayed
-												trigger={
-													<Text
-														size="small"
-														color="default"
-														lines="1"
-														cssClass={
-															style.firstCell
-														}
-													>
-														{xAxisTickFormatter(
-															d[xAxisMetric],
-														)}
-													</Text>
-												}
-											>
-												{xAxisTickFormatter(
-													d[xAxisMetric],
-												)}
-											</Tooltip>
-										</Table.Cell>
-									)}
-									{series.map((s, i) => {
-										const seriesKey = getSeriesKey(s)
-										let value = d[seriesKey]?.value
-
-										if (
-											value === null ||
-											value === undefined
-										) {
-											switch (viewConfig.nullHandling) {
-												case 'Blank':
-												case 'Hide row':
-													value = ''
-													break
-												case 'Zero':
-													value = 0
-													break
-											}
-										}
-
-										if (value !== '') {
-											value = getTickFormatter(s.column)(
-												value,
-											)
-										}
-
-										const groups =
-											GROUPS_KEY in d
-												? d[GROUPS_KEY]
-												: s.groups
-
-										return (
-											<Table.Cell
-												key={i}
-												onClick={
-													loadExemplars
-														? () =>
-																loadExemplars(
-																	d[
-																		BUCKET_MIN_KEY
-																	],
-																	d[
-																		BUCKET_MAX_KEY
-																	],
-																	groups,
-																)
-														: undefined
-												}
-											>
-												<Tooltip
-													delayed
-													trigger={
-														<Text
-															size="small"
-															color="default"
-															lines="1"
-														>
-															{value}
-														</Text>
-													}
-												>
-													{value}
-												</Tooltip>
-											</Table.Cell>
-										)
-									})}
-								</Table.Row>
+									showXAxisColumn={showXAxisColumn}
+									loadExemplars={loadExemplars}
+									xAxisTickFormatter={xAxisTickFormatter}
+									xAxisMetric={xAxisMetric}
+									series={series}
+									nullHandling={viewConfig.nullHandling}
+								/>
 							)
 						})}
 					</Table.Body>
@@ -295,3 +194,97 @@ const MetricTableImpl = ({
 }
 
 export const MetricTable = memo(MetricTableImpl)
+
+const MetricTableRow = ({
+	row,
+	showXAxisColumn,
+	loadExemplars,
+	xAxisTickFormatter,
+	xAxisMetric,
+	series,
+	nullHandling,
+}: any) => {
+	return (
+		<Table.Row className={style.tableRow}>
+			{showXAxisColumn && (
+				<Table.Cell
+					onClick={
+						loadExemplars
+							? () =>
+									loadExemplars(
+										row[BUCKET_MIN_KEY],
+										row[BUCKET_MAX_KEY],
+										row[GROUPS_KEY],
+									)
+							: undefined
+					}
+				>
+					<Tooltip
+						delayed
+						trigger={
+							<Text
+								size="small"
+								color="default"
+								lines="1"
+								cssClass={style.firstCell}
+							>
+								{xAxisTickFormatter(row[xAxisMetric])}
+							</Text>
+						}
+					>
+						{xAxisTickFormatter(row[xAxisMetric])}
+					</Tooltip>
+				</Table.Cell>
+			)}
+			{series.map((s: any, i: number) => {
+				const seriesKey = getSeriesKey(s)
+				let value = row[seriesKey]?.value
+
+				if (value === null || value === undefined) {
+					switch (nullHandling) {
+						case 'Blank':
+						case 'Hide row':
+							value = ''
+							break
+						case 'Zero':
+							value = 0
+							break
+					}
+				}
+
+				if (value !== '') {
+					value = getTickFormatter(s.column)(value)
+				}
+
+				const groups = GROUPS_KEY in row ? row[GROUPS_KEY] : s.groups
+
+				return (
+					<Table.Cell
+						key={i}
+						onClick={
+							loadExemplars
+								? () =>
+										loadExemplars(
+											row[BUCKET_MIN_KEY],
+											row[BUCKET_MAX_KEY],
+											groups,
+										)
+								: undefined
+						}
+					>
+						<Tooltip
+							delayed
+							trigger={
+								<Text size="small" color="default" lines="1">
+									{value}
+								</Text>
+							}
+						>
+							{value}
+						</Tooltip>
+					</Table.Cell>
+				)
+			})}
+		</Table.Row>
+	)
+}
