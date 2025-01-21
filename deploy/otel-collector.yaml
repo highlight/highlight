@@ -3,6 +3,18 @@ receivers:
         endpoint: '0.0.0.0:24224'
     tcplog:
         listen_address: '0.0.0.0:34302'
+    awsfirehose/cwmetrics:
+        endpoint: '0.0.0.0:4433'
+        record_type: cwmetrics
+        include_metadata: true
+    awsfirehose/cwlogs:
+        endpoint: '0.0.0.0:4434'
+        record_type: cwlogs
+        include_metadata: true
+    awsfirehose/otlp_v1:
+        endpoint: '0.0.0.0:4435'
+        record_type: otlp_v1
+        include_metadata: true
     syslog:
         udp:
             listen_address: '0.0.0.0:6513'
@@ -44,8 +56,6 @@ exporters:
     otlphttp:
         endpoint: 'http://pub.prod.vpc.highlight.io:8082/otel'
         compression: snappy
-        auth:
-            authenticator: headers_setter
         timeout: 30s
         http2_read_idle_timeout: 30s
         http2_ping_timeout: 30s
@@ -69,9 +79,17 @@ processors:
         spike_limit_mib: 1024
         check_interval: 0.1s
     batch:
-        timeout: 5s
-        send_batch_size: 10000
-        send_batch_max_size: 100000
+        metadata_keys:
+            - x-highlight-project
+        metadata_cardinality_limit: 1000
+        timeout: 1s
+        send_batch_size: 1000
+        send_batch_max_size: 10000
+    attributes:
+        actions:
+            - key: highlight.project_id
+              from_context: metadata.x-highlight-project
+              action: insert
 service:
     telemetry:
         logs:
@@ -79,26 +97,21 @@ service:
         metrics:
             address: '0.0.0.0:8888'
             level: detailed
-    extensions: [headers_setter, health_check]
+    extensions: [health_check]
     pipelines:
         traces:
             receivers: [otlp]
-            processors: [memory_limiter, batch]
+            processors: [memory_limiter, batch, attributes]
             exporters: [otlphttp]
         metrics:
-            receivers: [otlp]
-            processors: [memory_limiter, batch]
+            receivers: [otlp, awsfirehose/cwmetrics, awsfirehose/otlp_v1]
+            processors: [memory_limiter, batch, attributes]
             exporters: [otlphttp]
         logs:
-            receivers: [otlp, fluentforward, tcplog, syslog]
-            processors: [memory_limiter, batch]
+            receivers: [otlp, fluentforward, tcplog, syslog, awsfirehose/cwlogs]
+            processors: [memory_limiter, batch, attributes]
             exporters: [otlphttp]
 extensions:
-    headers_setter:
-        headers:
-            - action: upsert
-              key: x-highlight-project
-              from_context: x-highlight-project
     health_check:
         endpoint: '0.0.0.0:4319'
         path: '/health/status'

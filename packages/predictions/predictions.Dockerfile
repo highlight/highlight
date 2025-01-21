@@ -1,4 +1,4 @@
-ARG IMAGE_BASE_NAME="python:3.12"
+ARG IMAGE_BASE_NAME="python:3.12.8"
 FROM ${IMAGE_BASE_NAME}
 
 WORKDIR /highlight/packages/predictions

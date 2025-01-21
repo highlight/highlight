@@ -48,7 +48,7 @@ require (
 	github.com/go-test/deep v1.1.0
 	github.com/gofiber/fiber/v2 v2.52.5
 	github.com/golang-jwt/jwt v3.2.2+incompatible
-	github.com/golang-jwt/jwt/v4 v4.5.0
+	github.com/golang-jwt/jwt/v4 v4.5.1
 	github.com/golang/snappy v0.0.4
 	github.com/google/go-github/v50 v50.2.0
 	github.com/google/uuid v1.6.0
@@ -86,7 +86,7 @@ require (
 	github.com/urfave/cli/v2 v2.27.2
 	github.com/vektah/gqlparser/v2 v2.5.15
 	go.openly.dev/pointy v1.3.0
-	go.opentelemetry.io/collector/pdata v1.7.0
+	go.opentelemetry.io/collector/pdata v1.23.0
 	go.opentelemetry.io/otel v1.33.0
 	go.opentelemetry.io/otel/sdk v1.33.0
 	go.opentelemetry.io/otel/trace v1.33.0
