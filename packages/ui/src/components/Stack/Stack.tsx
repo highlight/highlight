@@ -16,15 +16,15 @@ type Props = React.PropsWithChildren & {
 export const Stack: React.FC<Props> = React.forwardRef(
 	(
 		{
-			as,
 			align,
 			children,
-			direction,
 			flex,
-			gap,
 			justify,
 			wrap,
 			width,
+			as = 'div',
+			gap = '16',
+			direction = 'column',
 			...props
 		},
 		ref,
@@ -52,9 +52,3 @@ export const Stack: React.FC<Props> = React.forwardRef(
 		)
 	},
 )
-
-Stack.defaultProps = {
-	as: 'div',
-	gap: '16',
-	direction: 'column',
-}

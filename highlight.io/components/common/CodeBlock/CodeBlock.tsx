@@ -79,6 +79,7 @@ export const CodeBlock = ({
 				/>
 				{!hideCopy && (
 					<span className={styles.copyButton}>
+						{/*@ts-ignore invalid types for react*/}
 						<CopyToClipboard
 							text={text}
 							onCopy={() => {

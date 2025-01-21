@@ -226,6 +226,11 @@ func extractFields(ctx context.Context, params extractFieldsParams) (*extractedF
 		delete(fields.attrs, highlight.DeprecatedProjectIDAttribute)
 	}
 
+	if val, ok := fields.attrs[highlight.ProjectIDHeader]; ok {
+		fields.projectID = val
+		delete(fields.attrs, highlight.ProjectIDHeader)
+	}
+
 	if val, ok := fields.attrs[highlight.ProjectIDAttribute]; ok {
 		fields.projectID = val
 		delete(fields.attrs, highlight.ProjectIDAttribute)

@@ -29,8 +29,8 @@ export const Canvas = ({
 	sceneOptions?: SceneOptions
 }) => {
 	const reactCanvas = useRef(null)
-	const loadTimer = useRef<number>()
-	const load = useRef<() => void>()
+	const loadTimer = useRef<number | undefined>(undefined)
+	const load = useRef<() => void>(() => {})
 
 	const [loaded, setLoaded] = useState(false)
 	const [canvas, setCanvas] = useState<{

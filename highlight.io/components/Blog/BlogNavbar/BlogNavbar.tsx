@@ -57,7 +57,7 @@ const BlogNavbar = ({
 						</li>
 						<li>
 							<Link
-								href={'/#customers'}
+								href={'/customers'}
 								className={styles.menuItem}
 							>
 								Customers
@@ -138,7 +138,7 @@ const BlogNavbar = ({
 								<li>
 									<Typography type="copy3" emphasis={true}>
 										<Link
-											href={'/#customers'}
+											href={'/customers'}
 											className={styles.menuItemLarge}
 										>
 											Customers

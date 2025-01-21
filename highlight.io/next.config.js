@@ -24,18 +24,14 @@ const nextConfig = {
 			},
 		],
 	},
-	experimental: {
-		serverComponentsExternalPackages: [
-			'pino',
-			'pino-pretty',
-			'@highlight-run/node',
-			'require-in-the-middle',
-		],
-		instrumentationHook: true,
-	},
+	serverExternalPackages: [
+		'pino',
+		'pino-pretty',
+		'@highlight-run/node',
+		'require-in-the-middle',
+	],
 	productionBrowserSourceMaps: true,
 	reactStrictMode: true,
-	swcMinify: true,
 	env: {
 		staticPages: getStaticPages(),
 	},

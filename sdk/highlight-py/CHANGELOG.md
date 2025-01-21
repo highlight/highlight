@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.9.1 (2025-01-16)
+
+- Update dependencies with known security vulnerabilities
+
 ## v0.5.6 (2023-08-07)
 
 ### Feature

@@ -1,14 +1,11 @@
 // app/api/app-router-test/route.ts
 import { withAppRouterHighlight } from '@/app/_utils/app-router-highlight.config'
 import logger from '@/highlight.logger'
-import { NextRequest, NextResponse } from 'next/server'
 import { statfsSync } from 'node:fs'
 import { Client } from 'pg'
 import { z } from 'zod'
 
-export const GET = withAppRouterHighlight(async function GET(
-	request: NextRequest,
-) {
+export const GET = withAppRouterHighlight(async function GET(request: Request) {
 	const { searchParams } = new URL(request.url)
 	const sql = z.enum(['true', 'false']).parse(searchParams.get('sql'))
 	const success = z.enum(['true', 'false']).parse(searchParams.get('success'))
@@ -63,7 +60,7 @@ export const POST = withAppRouterHighlight(async function POST(
 	logger.info({}, `app router test post`)
 	const headers = Object.fromEntries(request.headers.entries())
 
-	return NextResponse.json({
+	return Response.json({
 		body: { headers },
 	})
 })

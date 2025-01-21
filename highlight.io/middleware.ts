@@ -156,7 +156,7 @@ export const DOCS_REDIRECTS = {
 	wordpress: '/docs/getting-started/client-sdk/wordpress',
 }
 
-export default function middleware(req: NextRequest) {
+export default async function middleware(req: NextRequest) {
 	const { pathname } = req.nextUrl
 	const hostname = req.headers.get('host')
 	for (const [k, v] of Object.entries(SUBDOMAIN_LANDING_PAGES)) {
@@ -178,6 +178,6 @@ export default function middleware(req: NextRequest) {
 		}
 	}
 
-	highlightMiddleware(req)
+	await highlightMiddleware(req)
 	return NextResponse.next()
 }

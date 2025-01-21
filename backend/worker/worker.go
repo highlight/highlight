@@ -490,7 +490,6 @@ func (w *Worker) PublicWorker(ctx context.Context, topic kafkaqueue.TopicType) {
 		for i := 0; i < cfg.Workers; i++ {
 			if cfg.Topic == kafkaqueue.TopicTypeDefault {
 				go func(config WorkerConfig, workerId int) {
-					ctx := context.Background()
 					k := KafkaWorker{
 						KafkaQueue: kafkaqueue.New(ctx,
 							kafkaqueue.GetTopic(kafkaqueue.GetTopicOptions{Type: kafkaqueue.TopicTypeDefault}),
@@ -503,12 +502,11 @@ func (w *Worker) PublicWorker(ctx context.Context, topic kafkaqueue.TopicType) {
 						Worker:       w,
 						WorkerThread: workerId,
 					}
-					k.ProcessMessages(ctx)
+					k.ProcessMessages()
 					wg.Done()
 				}(cfg, i)
 			} else {
 				go func(config WorkerConfig, workerId int) {
-					ctx := context.Background()
 					k := KafkaBatchWorker{
 						KafkaQueue: kafkaqueue.New(
 							ctx,
@@ -521,7 +519,7 @@ func (w *Worker) PublicWorker(ctx context.Context, topic kafkaqueue.TopicType) {
 						Name:                string(config.Topic),
 						TracingDisabled:     config.TracingDisabled,
 					}
-					k.ProcessMessages(ctx)
+					k.ProcessMessages()
 					wg.Done()
 				}(cfg, i)
 			}
@@ -753,13 +751,41 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 			StartTime:       startInterval.StartTime,
 			EndTime:         allIntervals[len(allIntervals)-1].EndTime,
 			Duration:        int(allIntervals[len(allIntervals)-1].EndTime.Sub(startInterval.StartTime).Milliseconds()),
-			Active:          allIntervals[len(allIntervals)-1].Active,
+			Active:          activeInterval,
 		})
 	}
 
 	if err := w.Resolver.DB.WithContext(ctx).Create(finalIntervals).Error; err != nil {
 		log.WithContext(ctx).Error(e.Wrap(err, "error creating session activity intervals"))
 	}
+
+	// recalculate active duration for the whole session
+	newActiveDuration := time.Duration(0.)
+	for _, interval := range finalIntervals {
+		if interval.Active {
+			newActiveDuration += time.Duration(interval.Duration) * time.Millisecond
+		}
+	}
+	oldActiveDuration := accumulator.ActiveDuration
+	// feature flag new active length logic off for specific workspaces
+	if project.WorkspaceID != 5422 && project.WorkspaceID != 27699 {
+		accumulator.ActiveDuration = newActiveDuration
+	}
+
+	log.WithContext(ctx).
+		WithFields(log.Fields{
+			"project_id":             s.ProjectID,
+			"session_id":             s.ID,
+			"session_secure_id":      s.SecureID,
+			"old_active_duration_ms": oldActiveDuration.Milliseconds(),
+			"new_active_duration_ms": newActiveDuration.Milliseconds(),
+			"persisted_duration_ms":  accumulator.ActiveDuration.Milliseconds(),
+			"old_active_duration":    oldActiveDuration,
+			"new_active_duration":    newActiveDuration,
+			"persisted_duration":     accumulator.ActiveDuration,
+			"num_intervals":          len(finalIntervals),
+		}).
+		Info("new session active duration calculation")
 
 	var eventCountsLen int64 = 100
 	window := float64(accumulator.LastEventTimestamp.Sub(accumulator.FirstFullSnapshotTimestamp).Milliseconds()) / float64(eventCountsLen)
