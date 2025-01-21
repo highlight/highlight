@@ -109,7 +109,7 @@ func (client *Client) BatchWriteSessionEventRows(ctx context.Context, eventRows 
 	if len(chEvents) > 0 {
 		chCtx := clickhouse.Context(ctx, clickhouse.WithSettings(clickhouse.Settings{
 			"async_insert":          1,
-			"wait_for_async_insert": 1,
+			"wait_for_async_insert": 0,
 		}))
 
 		eventsSql, eventsArgs := sqlbuilder.

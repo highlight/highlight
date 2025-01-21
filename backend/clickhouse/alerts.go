@@ -60,7 +60,7 @@ func (client *Client) WriteAlertStateChanges(ctx context.Context, projectId int,
 
 	chCtx := clickhouse.Context(ctx, clickhouse.WithSettings(clickhouse.Settings{
 		"async_insert":          1,
-		"wait_for_async_insert": 1,
+		"wait_for_async_insert": 0,
 	}))
 
 	ib := sqlbuilder.

@@ -230,7 +230,7 @@ func (client *Client) WriteSessions(ctx context.Context, sessions []*model.Sessi
 
 	chCtx := clickhouse.Context(ctx, clickhouse.WithSettings(clickhouse.Settings{
 		"async_insert":          1,
-		"wait_for_async_insert": 1,
+		"wait_for_async_insert": 0,
 	}))
 
 	var g errgroup.Group

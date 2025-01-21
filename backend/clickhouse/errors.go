@@ -83,7 +83,7 @@ func (client *Client) WriteErrorGroups(ctx context.Context, groups []*model.Erro
 
 	chCtx := clickhouse.Context(ctx, clickhouse.WithSettings(clickhouse.Settings{
 		"async_insert":          1,
-		"wait_for_async_insert": 1,
+		"wait_for_async_insert": 0,
 	}))
 
 	if len(chGroups) > 0 {
@@ -149,7 +149,7 @@ func (client *Client) WriteErrorObjects(ctx context.Context, objects []*model.Er
 
 	chCtx := clickhouse.Context(ctx, clickhouse.WithSettings(clickhouse.Settings{
 		"async_insert":          1,
-		"wait_for_async_insert": 1,
+		"wait_for_async_insert": 0,
 	}))
 
 	if len(chObjects) > 0 {
