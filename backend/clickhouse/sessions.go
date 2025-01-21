@@ -73,8 +73,8 @@ type ClickhouseSession struct {
 	ViewedByAdmins     clickhouse.ArraySet
 	FieldKeys          clickhouse.ArraySet
 	FieldKeyValues     clickhouse.ArraySet
-	CreatedAt          int64
-	UpdatedAt          int64
+	CreatedAt          time.Time
+	UpdatedAt          time.Time
 	SecureID           string
 	Identified         bool
 	Identifier         string
@@ -106,10 +106,10 @@ type ClickhouseField struct {
 	ProjectID        int32
 	Type             string
 	Name             string
-	SessionCreatedAt int64
+	SessionCreatedAt time.Time
 	SessionID        int64
 	Value            string
-	Timestamp        int64
+	Timestamp        time.Time
 }
 
 // These keys show up as recommendations, not in fields table due to high cardinality or post processing booleans
@@ -179,8 +179,8 @@ func (client *Client) WriteSessions(ctx context.Context, sessions []*model.Sessi
 				Name:             field.Name,
 				Value:            field.Value,
 				SessionID:        int64(session.ID),
-				SessionCreatedAt: session.CreatedAt.UnixMicro(),
-				Timestamp:        field.Timestamp.UnixMicro(),
+				SessionCreatedAt: session.CreatedAt,
+				Timestamp:        field.Timestamp,
 			}
 			chFields = append(chFields, &chf)
 		}
@@ -197,8 +197,8 @@ func (client *Client) WriteSessions(ctx context.Context, sessions []*model.Sessi
 			ViewedByAdmins:     viewedByAdmins,
 			FieldKeys:          fieldKeys,
 			FieldKeyValues:     fieldKeyValues,
-			CreatedAt:          session.CreatedAt.UnixMicro(),
-			UpdatedAt:          session.UpdatedAt.UnixMicro(),
+			CreatedAt:          session.CreatedAt,
+			UpdatedAt:          session.UpdatedAt,
 			SecureID:           session.SecureID,
 			Identified:         session.Identified,
 			Identifier:         session.Identifier,

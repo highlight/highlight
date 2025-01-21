@@ -85,16 +85,35 @@ type SessionEventRow struct {
 	Attributes       map[string]string
 }
 
+type sessionEventRow struct {
+	UUID             string
+	ProjectID        uint32
+	SessionID        uint64
+	SessionCreatedAt time.Time
+	Timestamp        time.Time
+	Event            string
+	Attributes       map[string]string
+}
+
 func (client *Client) BatchWriteSessionEventRows(ctx context.Context, eventRows []*SessionEventRow) error {
 	if len(eventRows) == 0 {
 		return nil
 	}
 
-	rows := lo.Map(eventRows, func(l *SessionEventRow, _ int) interface{} {
-		if len(l.UUID) == 0 {
-			l.UUID = uuid.New().String()
+	rows := lo.Map(eventRows, func(row *SessionEventRow, _ int) interface{} {
+		r := sessionEventRow{
+			UUID:             row.UUID,
+			ProjectID:        row.ProjectID,
+			SessionID:        row.SessionID,
+			SessionCreatedAt: time.UnixMicro(row.SessionCreatedAt),
+			Timestamp:        time.UnixMicro(row.Timestamp),
+			Event:            row.Event,
+			Attributes:       row.Attributes,
 		}
-		return l
+		if len(r.UUID) == 0 {
+			r.UUID = uuid.New().String()
+		}
+		return &r
 	})
 
 	batch, err := client.conn.PrepareBatch(ctx, fmt.Sprintf("INSERT INTO %s", SessionEventsTable))
