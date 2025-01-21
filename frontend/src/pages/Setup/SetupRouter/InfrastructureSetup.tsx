@@ -25,6 +25,7 @@ export const InfrastructureSetup: React.FC = () => {
 	const url =
 		CLOUDFORMATION_URL.replace('[REGION]', selectedRegion.toString()) +
 		`&stackName=${STACK_NAME}&param_HighlightProjectID=${projectId}&param_DestinationEndpoint=${encodeURIComponent(DESTINATION_ENDPOINT)}`
+
 	return (
 		<Form>
 			<Box style={{ maxWidth: 560 }} my="40" mx="auto">
