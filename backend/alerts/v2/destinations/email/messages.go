@@ -3,6 +3,8 @@ package emailV2
 import (
 	"context"
 	"fmt"
+	"github.com/samber/lo"
+	"strings"
 
 	"github.com/pkg/errors"
 	"github.com/sendgrid/sendgrid-go"
@@ -264,6 +266,19 @@ func SendNotifications(ctx context.Context, mailClient *sendgrid.Client, lambdaC
 	}
 }
 
+var alertModifyNotificationIgnoredDomains = map[string]bool{
+	"steelhouse.pagerduty.com": true,
+}
+
+func isModifyIgnored(item model.AlertDestination, index int) bool {
+	domain := item.TypeID
+	at := strings.LastIndex(domain, "@")
+	if at >= 0 {
+		domain = item.TypeID[at+1:]
+	}
+	return !alertModifyNotificationIgnoredDomains[domain]
+}
+
 func sendAlertCreatedNotification(ctx context.Context, mailClient *sendgrid.Client, lambdaClient *lambda.Client, notificationInput destinationsV2.NotificationInput, destinations []model.AlertDestination) {
 	name := notificationInput.AlertUpsertInput.Admin.Name
 	if name == nil {
@@ -284,7 +299,7 @@ func sendAlertCreatedNotification(ctx context.Context, mailClient *sendgrid.Clie
 		},
 	}
 
-	deliverAlerts(ctx, mailClient, lambdaClient, emailData, destinations)
+	deliverAlerts(ctx, mailClient, lambdaClient, emailData, lo.Filter(destinations, isModifyIgnored))
 }
 
 func sendAlertUpdatedNotification(ctx context.Context, mailClient *sendgrid.Client, lambdaClient *lambda.Client, notificationInput destinationsV2.NotificationInput, destinations []model.AlertDestination) {
@@ -307,7 +322,7 @@ func sendAlertUpdatedNotification(ctx context.Context, mailClient *sendgrid.Clie
 		},
 	}
 
-	deliverAlerts(ctx, mailClient, lambdaClient, emailData, destinations)
+	deliverAlerts(ctx, mailClient, lambdaClient, emailData, lo.Filter(destinations, isModifyIgnored))
 }
 
 func deliverAlerts(ctx context.Context, mailClient *sendgrid.Client, lambdaClient *lambda.Client, emailTemplate *EmailData, destinations []model.AlertDestination) {
