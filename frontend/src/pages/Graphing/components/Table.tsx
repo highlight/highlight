@@ -16,6 +16,8 @@ import {
 	getTickFormatter,
 	GROUPS_KEY,
 	InnerChartProps,
+	LoadExemplars,
+	NamedSeries,
 	SeriesInfo,
 	useGraphSeries,
 	VizId,
@@ -195,6 +197,16 @@ const MetricTableImpl = ({
 
 export const MetricTable = memo(MetricTableImpl)
 
+interface MetricTableRowProps {
+	row: any
+	showXAxisColumn?: boolean
+	loadExemplars?: LoadExemplars
+	xAxisTickFormatter: (value: any) => string
+	xAxisMetric: string
+	series: NamedSeries[]
+	nullHandling?: TableNullHandling
+}
+
 const MetricTableRow = ({
 	row,
 	showXAxisColumn,
@@ -203,7 +215,7 @@ const MetricTableRow = ({
 	xAxisMetric,
 	series,
 	nullHandling,
-}: any) => {
+}: MetricTableRowProps) => {
 	return (
 		<Table.Row className={style.tableRow}>
 			{showXAxisColumn && (
@@ -236,7 +248,7 @@ const MetricTableRow = ({
 					</Tooltip>
 				</Table.Cell>
 			)}
-			{series.map((s: any, i: number) => {
+			{series.map((s, i) => {
 				const seriesKey = getSeriesKey(s)
 				let value = row[seriesKey]?.value
 
