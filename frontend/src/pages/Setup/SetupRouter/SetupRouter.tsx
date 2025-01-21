@@ -9,8 +9,6 @@ import {
 	IconSolidClipboard,
 	IconSolidDesktopComputer,
 	IconSolidGlobe,
-	IconSolidLogs,
-	IconSolidSparkles,
 	IconSolidTerminal,
 	IconSolidUserAdd,
 	IconSolidViewGridAdd,
@@ -148,7 +146,7 @@ export const SetupRouter = () => {
 						</Stack>
 					</NavLink>
 					<NavLink
-						to="backend"
+						to="server"
 						className={({ isActive }) =>
 							clsx(styles.menuItem, {
 								[styles.menuItemActive]: isActive,
@@ -163,55 +161,9 @@ export const SetupRouter = () => {
 						>
 							<Stack direction="row" align="center" gap="4">
 								<IconSolidTerminal />
-								<Text>Backend error monitoring</Text>
+								<Text>Server monitoring</Text>
 							</Stack>
 							{serverIntegration?.integrated && (
-								<IconSolidCheckCircle />
-							)}
-						</Stack>
-					</NavLink>
-					<NavLink
-						to="backend-logging"
-						className={({ isActive }) =>
-							clsx(styles.menuItem, {
-								[styles.menuItemActive]: isActive,
-							})
-						}
-					>
-						<Stack
-							direction="row"
-							align="center"
-							justify="space-between"
-							pr="8"
-						>
-							<Stack direction="row" align="center" gap="4">
-								<IconSolidLogs />
-								<Text>Logging</Text>
-							</Stack>
-							{logsIntegration?.integrated && (
-								<IconSolidCheckCircle />
-							)}
-						</Stack>
-					</NavLink>
-					<NavLink
-						to="traces"
-						className={({ isActive }) =>
-							clsx(styles.menuItem, {
-								[styles.menuItemActive]: isActive,
-							})
-						}
-					>
-						<Stack
-							direction="row"
-							align="center"
-							justify="space-between"
-							pr="8"
-						>
-							<Stack direction="row" align="center" gap="4">
-								<IconSolidSparkles />
-								<Text>Traces</Text>
-							</Stack>
-							{tracesIntegration?.integrated && (
 								<IconSolidCheckCircle />
 							)}
 						</Stack>
