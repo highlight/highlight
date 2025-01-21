@@ -228,7 +228,6 @@ export function hookConsole() {
 		;(console[level as keyof Console] as ConsoleFn) = function (
 			...data: any[]
 		) {
-			const date = new Date()
 			try {
 				return origWrite(...data)
 			} finally {
@@ -263,7 +262,7 @@ export function safeStringify(obj: any): string {
 			throw new Error('max recursion exceeded')
 		}
 		if (input && typeof input === 'object') {
-			for (let k in input) {
+			for (const k in input) {
 				if (typeof input[k] === 'object') {
 					replacer(input[k], (depth ?? 0) + 1)
 				} else if (!canStringify(input[k])) {
