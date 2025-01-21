@@ -24,7 +24,8 @@ import {
 import * as style from './Table.css'
 import useLocalStorage from '@rehooks/local-storage'
 import _ from 'lodash'
-import { memo } from 'react'
+import { memo, useMemo, useRef } from 'react'
+import { useVirtualizer } from '@tanstack/react-virtual'
 
 export type TableNullHandling = 'Hide row' | 'Blank' | 'Zero'
 export const TABLE_NULL_HANDLING: TableNullHandling[] = [
@@ -54,6 +55,8 @@ const MetricTableImpl = ({
 	loadExemplars,
 	visualizationId,
 }: InnerChartProps<TableConfig> & SeriesInfo & VizId) => {
+	const bodyRef = useRef<HTMLDivElement>(null)
+
 	const series = useGraphSeries(data, xAxisMetric)
 	const xAxisTickFormatter = getTickFormatter(xAxisMetric)
 
@@ -83,17 +86,41 @@ const MetricTableImpl = ({
 		<IconSolidSortDescending size={14} />
 	)
 
-	const sortedData = _.sortBy(data, (d: any) => {
-		if (sortColumn === -1) {
-			return d[xAxisMetric]
-		}
+	const filteredData = useMemo(() => {
+		const sortedData = _.sortBy(data, (d: any) => {
+			if (sortColumn === -1) {
+				return d[xAxisMetric]
+			}
 
-		const seriesKey = getSeriesKey(series[sortColumn])
-		return d[seriesKey]?.value
+			const seriesKey = getSeriesKey(series[sortColumn])
+			return d[seriesKey]?.value
+		})
+
+		return sortedData.filter((d) => {
+			// If every value for the bucket is null, skip this row
+			return (
+				viewConfig.nullHandling !== 'Hide row' ||
+				series
+					.map((s) => getSeriesKey(s))
+					.find(
+						(seriesKey) =>
+							d[seriesKey] !== null && d[seriesKey] !== undefined,
+					) !== undefined
+			)
+		})
+	}, [data, series, sortColumn, viewConfig.nullHandling, xAxisMetric])
+
+	const rowVirtualizer = useVirtualizer({
+		count: filteredData?.length,
+		estimateSize: () => 25,
+		getScrollElement: () => bodyRef.current,
+		overscan: 50,
 	})
 
+	const virtualRows = rowVirtualizer.getVirtualItems()
+
 	if (!sortAsc) {
-		sortedData.reverse()
+		filteredData.reverse()
 	}
 
 	return (
@@ -137,27 +164,18 @@ const MetricTableImpl = ({
 						[style.preventScroll]: disabled,
 					})}
 				>
-					<Table.Body>
-						{sortedData?.map((d, i) => {
-							// If every value for the bucket is null, skip this row
-							if (
-								viewConfig.nullHandling === 'Hide row' &&
-								series
-									.map((s) => getSeriesKey(s))
-									.find(
-										(seriesKey) =>
-											d[seriesKey] !== null &&
-											d[seriesKey] !== undefined,
-									) === undefined
-							) {
-								return null
-							}
+					<Table.Body ref={bodyRef}>
+						{virtualRows?.map((virtualRow) => {
+							const d = filteredData[virtualRow.index]
 
 							return (
-								<Table.Row key={i} className={style.tableRow}>
+								<Table.Row
+									key={virtualRow.index}
+									className={style.tableRow}
+								>
 									{showXAxisColumn && (
 										<Table.Cell
-											key={i}
+											key={virtualRow.index}
 											onClick={
 												loadExemplars
 													? () =>
