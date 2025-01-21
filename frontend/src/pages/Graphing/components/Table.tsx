@@ -86,7 +86,7 @@ const MetricTableImpl = ({
 		<IconSolidSortDescending size={14} />
 	)
 
-	const filteredData = useMemo(() => {
+	const orderedData = useMemo(() => {
 		const sortedData = _.sortBy(data, (d: any) => {
 			if (sortColumn === -1) {
 				return d[xAxisMetric]
@@ -96,7 +96,7 @@ const MetricTableImpl = ({
 			return d[seriesKey]?.value
 		})
 
-		return sortedData.filter((d) => {
+		const filteredData = sortedData.filter((d) => {
 			// If every value for the bucket is null, skip this row
 			return (
 				viewConfig.nullHandling !== 'Hide row' ||
@@ -108,20 +108,25 @@ const MetricTableImpl = ({
 					) !== undefined
 			)
 		})
-	}, [data, series, sortColumn, viewConfig.nullHandling, xAxisMetric])
+
+		return sortAsc ? filteredData : filteredData.reverse()
+	}, [
+		data,
+		series,
+		sortAsc,
+		sortColumn,
+		viewConfig.nullHandling,
+		xAxisMetric,
+	])
 
 	const rowVirtualizer = useVirtualizer({
-		count: filteredData?.length,
+		count: orderedData?.length,
 		estimateSize: () => 25,
 		getScrollElement: () => bodyRef.current,
 		overscan: 50,
 	})
 
 	const virtualRows = rowVirtualizer.getVirtualItems()
-
-	if (!sortAsc) {
-		filteredData.reverse()
-	}
 
 	return (
 		<Box height="full" cssClass={style.tableWrapper}>
@@ -166,7 +171,7 @@ const MetricTableImpl = ({
 				>
 					<Table.Body ref={bodyRef}>
 						{virtualRows?.map((virtualRow) => {
-							const d = filteredData[virtualRow.index]
+							const d = orderedData[virtualRow.index]
 
 							return (
 								<Table.Row
