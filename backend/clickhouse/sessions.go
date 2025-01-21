@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	e "github.com/pkg/errors"
 	"strconv"
 	"strings"
 	"time"
@@ -148,8 +149,8 @@ const timeRangeField = "custom_created_at"
 const sampleField = "custom_sample"
 
 func (client *Client) WriteSessions(ctx context.Context, sessions []*model.Session) error {
-	chFields := []interface{}{}
-	chSessions := []interface{}{}
+	var chFields []*ClickhouseField
+	var chSessions []*ClickhouseSession
 
 	for _, session := range sessions {
 		if session == nil {
@@ -228,32 +229,45 @@ func (client *Client) WriteSessions(ctx context.Context, sessions []*model.Sessi
 		chSessions = append(chSessions, &chs)
 	}
 
-	chCtx := clickhouse.Context(ctx, clickhouse.WithSettings(clickhouse.Settings{
-		"async_insert":          1,
-		"wait_for_async_insert": 0,
-	}))
-
 	var g errgroup.Group
 
 	if len(chSessions) > 0 {
 		g.Go(func() error {
-			sessionsSql, sessionsArgs := sqlbuilder.
-				NewStruct(new(ClickhouseSession)).
-				InsertInto(SessionsTable, chSessions...).
-				BuildWithFlavor(sqlbuilder.ClickHouse)
-			sessionsSql, sessionsArgs = replaceTimestampInserts(sessionsSql, sessionsArgs, map[int]bool{6: true, 7: true}, MicroSeconds)
-			return client.conn.Exec(chCtx, sessionsSql, sessionsArgs...)
+			batch, err := client.conn.PrepareBatch(ctx, fmt.Sprintf("INSERT INTO %s", SessionsTable))
+			if err != nil {
+				return e.Wrap(err, "failed to create session batch")
+			}
+
+			for _, event := range lo.Map(chSessions, func(l *ClickhouseSession, _ int) interface{} {
+				return l
+			}) {
+				err = batch.AppendStruct(event)
+				if err != nil {
+					return err
+				}
+			}
+
+			return batch.Send()
 		})
 	}
 
 	if len(chFields) > 0 {
 		g.Go(func() error {
-			fieldsSql, fieldsArgs := sqlbuilder.
-				NewStruct(new(ClickhouseField)).
-				InsertInto(FieldsTable, chFields...).
-				BuildWithFlavor(sqlbuilder.ClickHouse)
-			fieldsSql, fieldsArgs = replaceTimestampInserts(fieldsSql, fieldsArgs, map[int]bool{3: true}, MicroSeconds)
-			return client.conn.Exec(chCtx, fieldsSql, fieldsArgs...)
+			batch, err := client.conn.PrepareBatch(ctx, fmt.Sprintf("INSERT INTO %s", FieldsTable))
+			if err != nil {
+				return e.Wrap(err, "failed to create fields batch")
+			}
+
+			for _, event := range lo.Map(chFields, func(l *ClickhouseField, _ int) interface{} {
+				return l
+			}) {
+				err = batch.AppendStruct(event)
+				if err != nil {
+					return err
+				}
+			}
+
+			return batch.Send()
 		})
 	}
 
