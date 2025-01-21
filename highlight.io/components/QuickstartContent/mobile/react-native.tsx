@@ -36,7 +36,7 @@ pnpm add @opentelemetry/api @opentelemetry/core @opentelemetry/resources @opente
 			title: 'Create the OpenTelemetry tracer.',
 			content: `Some OpenTelemetry packages can't be used with the React Native's bundler, metro, due to some
 browser compatibility issues. As a work around, we created a custom exporter to serialize the data. A bundler-based
-solution is also in progress`,
+solution is also in progress. Save this code to a "highlight.ts" file to be referenced in your app.`,
 			code: [
 				{
 					key: 'tracer',
@@ -104,6 +104,7 @@ class ReactNativeOTLPTraceExporter implements SpanExporter {
 
   _buildResourceSpans(spans: ReadableSpan[] = []) {
     const resource = spans[0]?.resource;
+    const scope = spans[0]?.instrumentationLibrary;
 
     return JSON.stringify({
       "resourceSpans": [
@@ -114,8 +115,8 @@ class ReactNativeOTLPTraceExporter implements SpanExporter {
           "scopeSpans": [
             {
               "scope": {
-                "name": "@opentelemetry/instrumentation-http",
-                "version": "0.41.0",
+                "name": scope?.name,
+                "version": scope?.version
               },
               "spans": spans.map(this._convertToOTLPFormat),
             },
@@ -275,8 +276,7 @@ type ConsoleFn = (...data: any) => void
 
 let consoleHooked = false
 
-function hookConsole(
-) {
+export function hookConsole() {
 	if (consoleHooked) return
 	consoleHooked = true
 	for (const [level, highlightLevel] of Object.entries(ConsoleLevels)) {
@@ -297,8 +297,9 @@ function hookConsole(
         const attributes = data.filter((d) => typeof d === 'object').reduce((a, b) => ({ ...a, ...b }), {})
 
         if (level === 'error') {
+          attributes['exception.type'] = "Error"
+          attributes['exception.message'] = message.join('')
           attributes['exception.stacktrace'] = JSON.stringify(o.stack)
-          attributes['exception.type'] = "console.error" // set to treat as an error event
         }
 
 				log(
@@ -345,10 +346,7 @@ export function safeStringify(obj: any): string {
 	} catch (e) {
 		return obj.toString()
 	}
-}
-
-// call the hook
-hookConsole()`,
+}`,
 				},
 			],
 		},
@@ -359,7 +357,7 @@ hookConsole()`,
 				{
 					key: 'import',
 					language: 'typescript',
-					text: `import * as H from "[PATH TO HIGHLIGHT FILE]"`,
+					text: `import * as H from "./highlight.ts" // path to highlight functions`,
 				},
 				{
 					key: 'trace',
@@ -382,9 +380,10 @@ span.end()`,
 					text: `H.error('Divide by 0 error', { numerator: 623 })`,
 				},
 				{
-					key: 'import',
+					key: 'hook',
 					language: 'typescript',
-					text: `console.log("Hello World") // after calling hookConsole()`,
+					text: `H.hookConsole()
+console.log("Hello World")`,
 				},
 			],
 		},
