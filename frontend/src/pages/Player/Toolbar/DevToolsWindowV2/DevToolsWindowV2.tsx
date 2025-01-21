@@ -73,7 +73,9 @@ const DevToolsWindowV2: React.FC<
 		RequestStatus[]
 	>([RequestStatus.All])
 	const logSearch = logCursor ? LOG_CURSOR_LOG_SEARCH : DEFAULT_LOG_SEARCH
-	const traceSearch = `service_name=${session?.service_name}`
+	const traceSearch = session?.service_name
+		? `service_name=${session?.service_name}`
+		: ''
 	const [query, setQuery] = React.useState<string>(
 		selectedDevToolsTab === Tab.Console ? logSearch : traceSearch,
 	)
@@ -106,6 +108,15 @@ const DevToolsWindowV2: React.FC<
 	const showSearchComponent =
 		selectedDevToolsTab === Tab.Console ||
 		selectedDevToolsTab === Tab.Traces
+
+	const handleShowInViewer = () => {
+		set({
+			type: selectedDevToolsTab === Tab.Console ? 'logs' : 'traces',
+			query: params.query,
+			startDate: params.date_range.start_date.toISOString(),
+			endDate: params.date_range.end_date.toISOString(),
+		})
+	}
 
 	return (
 		<ResizePanel
@@ -294,20 +305,9 @@ const DevToolsWindowV2: React.FC<
 																/>
 															)
 														}
-														onClick={() => {
-															set({
-																type:
-																	selectedDevToolsTab ===
-																	Tab.Console
-																		? 'logs'
-																		: 'traces',
-																query: params.query,
-																startDate:
-																	params.date_range.start_date.toISOString(),
-																endDate:
-																	params.date_range.end_date.toISOString(),
-															})
-														}}
+														onClick={
+															handleShowInViewer
+														}
 													>
 														Show in viewer
 													</Button>
