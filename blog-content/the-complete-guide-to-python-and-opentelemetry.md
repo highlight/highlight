@@ -57,7 +57,7 @@ Here's a quick example of what this looks like in code:
 ```python
 from opentelemetry import trace
 from opentelemetry.sdk.trace import TracerProvider
-
+from opentelemetry.sdk.resources import Resource
 
 provider = TracerProvider(resource=Resource.create(
     {
@@ -80,6 +80,7 @@ Here's an example of how you might configure a `BatchSpanProcessor`:
 ```python
 from opentelemetry.sdk.trace import TracerProvider
 from opentelemetry.sdk.trace.export import BatchSpanProcessor
+from opentelemetry.exporter.otlp.proto.grpc.trace_exporter import OTLPSpanExporter
 
 processor = BatchSpanProcessor(
     exporter=OTLPSpanExporter(endpoint="https://otel.highlight.io:4317"),
