@@ -213,7 +213,8 @@ class ReactNativeOTLPTraceExporter implements SpanExporter {
 		},
 		{
 			title: 'Create logging function',
-			content: 'Send logs to highlight.io via creating a log trace.',
+			content:
+				'Send logs to highlight.io via creating a log trace. The parameters can be simplified or modified to better fit your use case.',
 			code: [
 				{
 					key: 'logger',
@@ -245,7 +246,8 @@ export const log = (level: keyof typeof ConsoleLevels, message: string, attribut
 		},
 		{
 			title: 'Create error function',
-			content: 'Send errors to highlight.io',
+			content:
+				'Send errors to highlight.io via a trace. The parameters can be simplified or modified to better fit your use case.',
 			code: [
 				{
 					key: 'error',
@@ -264,9 +266,9 @@ export const error = (message: string, attributes = {}) => {
 			],
 		},
 		{
-			title: 'Monkeypatch the console.log functions',
+			title: 'Monkeypatch the console functions',
 			content:
-				'Overwrite the console.log functions to additionally send to highlight.io',
+				'This overrides the console functions so that any console logs, errors, warnings, and other calls will send to highlight.io by default.',
 			code: [
 				{
 					key: 'console.log',
@@ -352,7 +354,8 @@ export function safeStringify(obj: any): string {
 		},
 		{
 			title: 'Execution of functions',
-			content: 'Call the tracer, log, and error when needed',
+			content:
+				'Here are some examples of how to use the functions we set up above.',
 			code: [
 				{
 					key: 'import',
