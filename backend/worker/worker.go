@@ -760,21 +760,30 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 	}
 
 	// recalculate active duration for the whole session
-	oldActiveDuration := accumulator.ActiveDuration
-	accumulator.ActiveDuration = 0
+	newActiveDuration := time.Duration(0.)
 	for _, interval := range finalIntervals {
 		if interval.Active {
-			accumulator.ActiveDuration += time.Duration(interval.Duration) * time.Millisecond
+			newActiveDuration += time.Duration(interval.Duration) * time.Millisecond
 		}
 	}
+	oldActiveDuration := accumulator.ActiveDuration
+	// feature flag new active length logic off for specific workspaces
+	if project.WorkspaceID != 5422 && project.WorkspaceID != 27699 {
+		accumulator.ActiveDuration = newActiveDuration
+	}
+
 	log.WithContext(ctx).
 		WithFields(log.Fields{
-			"project_id":          s.ProjectID,
-			"session_id":          s.ID,
-			"session_secure_id":   s.SecureID,
-			"old_active_duration": oldActiveDuration,
-			"new_active_duration": accumulator.ActiveDuration,
-			"num_intervals":       len(finalIntervals),
+			"project_id":             s.ProjectID,
+			"session_id":             s.ID,
+			"session_secure_id":      s.SecureID,
+			"old_active_duration_ms": oldActiveDuration.Milliseconds(),
+			"new_active_duration_ms": newActiveDuration.Milliseconds(),
+			"persisted_duration_ms":  accumulator.ActiveDuration.Milliseconds(),
+			"old_active_duration":    oldActiveDuration,
+			"new_active_duration":    newActiveDuration,
+			"persisted_duration":     accumulator.ActiveDuration,
+			"num_intervals":          len(finalIntervals),
 		}).
 		Info("new session active duration calculation")
 
