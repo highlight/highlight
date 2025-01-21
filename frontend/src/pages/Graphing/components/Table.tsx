@@ -5,7 +5,6 @@ import {
 	Stack,
 	Table,
 	Text,
-	Tooltip,
 } from '@highlight-run/ui/components'
 import clsx from 'clsx'
 
@@ -216,6 +215,8 @@ const MetricTableRow = ({
 	series,
 	nullHandling,
 }: MetricTableRowProps) => {
+	const xAxisTitle = xAxisTickFormatter(row[xAxisMetric])
+
 	return (
 		<Table.Row className={style.tableRow}>
 			{showXAxisColumn && (
@@ -230,22 +231,16 @@ const MetricTableRow = ({
 									)
 							: undefined
 					}
+					title={xAxisTitle}
 				>
-					<Tooltip
-						delayed
-						trigger={
-							<Text
-								size="small"
-								color="default"
-								lines="1"
-								cssClass={style.firstCell}
-							>
-								{xAxisTickFormatter(row[xAxisMetric])}
-							</Text>
-						}
+					<Text
+						size="small"
+						color="default"
+						lines="1"
+						cssClass={style.firstCell}
 					>
-						{xAxisTickFormatter(row[xAxisMetric])}
-					</Tooltip>
+						{xAxisTitle}
+					</Text>
 				</Table.Cell>
 			)}
 			{series.map((s, i) => {
