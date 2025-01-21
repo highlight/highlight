@@ -53,7 +53,9 @@ export const SetupOptionsList: React.FC = () => {
 
 		return {
 			key: optionKey,
-			name: optionDocs.title,
+			name:
+				optionDocs.title ??
+				optionKey[0].toUpperCase() + optionKey.slice(1),
 			imageUrl: optionDocs.logoUrl,
 			path: onlyOneOption ? `${optionKey}/${optionKeys[0]}` : optionKey,
 		}
