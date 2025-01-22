@@ -94,12 +94,8 @@ const DebugRoutes: React.FC<React.PropsWithChildren> = ({ children }) => {
 }
 
 const isValidLastVisitedRoute = (route: string) => {
-	return (
-		route.includes('/sessions') ||
-		route.includes('/errors') ||
-		route.includes('/logs') ||
-		route.includes('/traces')
-	)
+	// match routes like /1/sessions, /1/errors, /1/logs, /1/traces
+	return /^\/\d+\/(sessions|errors|logs|traces)/.test(route)
 }
 
 export const AppRouter = () => {
@@ -135,7 +131,17 @@ export const AppRouter = () => {
 
 	useEffect(() => {
 		if (isValidLastVisitedRoute(location.pathname)) {
-			setLastVisitedRoute(location.pathname)
+			// can be /sessions, /errors, /logs, /traces
+			const routeType = location.pathname.split('/')[2]
+
+			// get the route like /1/sessions, /1/errors, /1/logs, /1/traces
+			const indexOfRouteType = location.pathname.indexOf(routeType)
+			const route = location.pathname.slice(
+				0,
+				indexOfRouteType + routeType.length,
+			)
+
+			setLastVisitedRoute(route)
 		}
 	}, [location.pathname, setLastVisitedRoute])
 
@@ -146,7 +152,7 @@ export const AppRouter = () => {
 			}
 		}
 		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [isLoggedIn, lastVisitedRoute])
+	}, [isLoggedIn])
 
 	const { data, loading } = useGetDropdownOptionsQuery({
 		skip: !isLoggedIn,
