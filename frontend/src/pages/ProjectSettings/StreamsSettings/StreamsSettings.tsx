@@ -10,9 +10,9 @@ const AWS_REGIONS = [
 	{ value: 'us-east-2', name: 'US East (Ohio)' },
 ]
 
+// NOTE: Can't use static.highlight.io alias - must be a full S3 URL.
 const CLOUDFORMATION_URL =
-	'https://console.aws.amazon.com/cloudformation/home?region=[REGION]#/stacks/quickcreate?templateURL=https://highlight-demo-video.s3.us-west-2.amazonaws.com/cloudformation-templates/metric-stream.yaml'
-const DESTINATION_ENDPOINT = 'https://otlpv1.firehose.highlight.io'
+	'https://console.aws.amazon.com/cloudformation/home?region=[REGION]#/stacks/quickcreate?templateURL=https://highlight-client-bundle.s3.us-east-2.amazonaws.com/cloudformation-templates/metric-stream.yaml'
 const STACK_NAME = 'highlight-metrics-stream'
 
 export const StreamsSettings: React.FC = () => {
@@ -20,7 +20,7 @@ export const StreamsSettings: React.FC = () => {
 	const { projectId } = useProjectId()
 	const url =
 		CLOUDFORMATION_URL.replace('[REGION]', selectedRegion.toString()) +
-		`&stackName=${STACK_NAME}&param_HighlightProjectID=${projectId}&param_DestinationEndpoint=${encodeURIComponent(DESTINATION_ENDPOINT)}`
+		`&stackName=${STACK_NAME}&param_HighlightProjectID=${projectId}`
 
 	return (
 		<Stack gap="32">
