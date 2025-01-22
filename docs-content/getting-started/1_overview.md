@@ -72,7 +72,7 @@ Highlight.io also supports reporting errors from your backend and mapping these 
     <DocsCard title="PHP" href="./4_backend-sdk/php/1_overview.md">
         {"Get started with error monitoring in PHP"}
     </DocsCard>
-    <DocsCard title="Native OpenTelemetry" href="./7_native-opentelemetry/2_error-monitoring.md">
+    <DocsCard title="Native OpenTelemetry" href="./8_native-opentelemetry/2_error-monitoring.md">
         {"Get started with OpenTelemetry"}
     </DocsCard>
 </DocsCardGroup>
@@ -108,7 +108,7 @@ Highlight.io also supports logging from your backend and mapping these to corres
     <DocsCard title="PHP" href="./backend-logging/15_php.md">
         {"Get started with logging in PHP"}
     </DocsCard>
-    <DocsCard title="Native OpenTelemetry" href="./7_native-opentelemetry/3_logging.md">
+    <DocsCard title="Native OpenTelemetry" href="./8_native-opentelemetry/3_logging.md">
         {"Get started with OpenTelemetry"}
     </DocsCard>
 </DocsCardGroup>
@@ -158,8 +158,18 @@ Highlight.io also supports tracing from your backend and mapping these to corres
     <DocsCard title="PHP" href="./backend-tracing/6_php.md">
         {"Get started with tracing in PHP"}
     </DocsCard>
-    <DocsCard title="Native OpenTelemetry" href="./7_native-opentelemetry/4_tracing.md">
+    <DocsCard title="Native OpenTelemetry" href="./8_native-opentelemetry/4_tracing.md">
         {"Get started with tracing in OpenTelemetry"}
+    </DocsCard>
+</DocsCardGroup>
+
+## For Mobile
+
+Highlight.io can be used for error monitoring, logging, and tracing for mobile apps using OpenTelemetry. There is currently a guide for React Native, and more coming soon.
+
+<DocsCardGroup>
+    <DocsCard title="React Native" href="./7_mobile/1_react-native.md">
+        {"Get started with React Native"}
     </DocsCard>
 </DocsCardGroup>
 
