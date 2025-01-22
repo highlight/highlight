@@ -4468,9 +4468,25 @@ export type GetWebVitalsQueryVariables = Types.Exact<{
 }>
 
 export type GetWebVitalsQuery = { __typename?: 'Query' } & {
-	web_vitals: Array<
-		{ __typename?: 'Metric' } & Pick<Types.Metric, 'name' | 'value'>
-	>
+	web_vitals: { __typename?: 'MetricsBuckets' } & Pick<
+		Types.MetricsBuckets,
+		'bucket_count' | 'sample_factor'
+	> & {
+			buckets: Array<
+				{ __typename?: 'MetricBucket' } & Pick<
+					Types.MetricBucket,
+					| 'bucket_id'
+					| 'bucket_min'
+					| 'bucket_max'
+					| 'group'
+					| 'column'
+					| 'metric_type'
+					| 'metric_value'
+					| 'yhat_lower'
+					| 'yhat_upper'
+				>
+			>
+		}
 }
 
 export type GetDashboardDefinitionsQueryVariables = Types.Exact<{

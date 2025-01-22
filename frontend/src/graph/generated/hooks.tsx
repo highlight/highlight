@@ -12912,8 +12912,19 @@ export type OnSessionPayloadAppendedSubscriptionResult =
 export const GetWebVitalsDocument = gql`
 	query GetWebVitals($session_secure_id: String!) {
 		web_vitals(session_secure_id: $session_secure_id) {
-			name
-			value
+			buckets {
+				bucket_id
+				bucket_min
+				bucket_max
+				group
+				column
+				metric_type
+				metric_value
+				yhat_lower
+				yhat_upper
+			}
+			bucket_count
+			sample_factor
 		}
 	}
 `

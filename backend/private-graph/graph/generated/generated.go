@@ -1943,7 +1943,7 @@ type QueryResolver interface {
 	EnhancedUserDetails(ctx context.Context, sessionSecureID string) (*model.EnhancedUserDetailsResult, error)
 	Errors(ctx context.Context, sessionSecureID string) ([]*model1.ErrorObject, error)
 	Resources(ctx context.Context, sessionSecureID string) ([]interface{}, error)
-	WebVitals(ctx context.Context, sessionSecureID string) ([]*model.MetricRow, error)
+	WebVitals(ctx context.Context, sessionSecureID string) (*model.MetricsBuckets, error)
 	SessionComments(ctx context.Context, sessionSecureID string) ([]*model1.SessionComment, error)
 	SessionCommentTagsForProject(ctx context.Context, projectID int) ([]*model1.SessionCommentTag, error)
 	SessionCommentsForAdmin(ctx context.Context) ([]*model1.SessionComment, error)
@@ -14310,7 +14310,7 @@ type Query {
 	enhanced_user_details(session_secure_id: String!): EnhancedUserDetailsResult
 	errors(session_secure_id: String!): [ErrorObject]
 	resources(session_secure_id: String!): [Any]
-	web_vitals(session_secure_id: String!): [MetricRow!]!
+	web_vitals(session_secure_id: String!): MetricsBuckets!
 	session_comments(session_secure_id: String!): [SessionComment]!
 	session_comment_tags_for_project(project_id: ID!): [SessionCommentTag!]!
 	session_comments_for_admin: [SessionComment]!
@@ -57716,9 +57716,9 @@ func (ec *executionContext) _Query_web_vitals(ctx context.Context, field graphql
 		}
 		return graphql.Null
 	}
-	res := resTmp.([]*model.MetricRow)
+	res := resTmp.(*model.MetricsBuckets)
 	fc.Result = res
-	return ec.marshalNMetricRow2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐMetricRowᚄ(ctx, field.Selections, res)
+	return ec.marshalNMetricsBuckets2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐMetricsBuckets(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Query_web_vitals(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -57729,36 +57729,14 @@ func (ec *executionContext) fieldContext_Query_web_vitals(ctx context.Context, f
 		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
-			case "projectID":
-				return ec.fieldContext_MetricRow_projectID(ctx, field)
-			case "timestamp":
-				return ec.fieldContext_MetricRow_timestamp(ctx, field)
-			case "serviceName":
-				return ec.fieldContext_MetricRow_serviceName(ctx, field)
-			case "metricName":
-				return ec.fieldContext_MetricRow_metricName(ctx, field)
-			case "metricDescription":
-				return ec.fieldContext_MetricRow_metricDescription(ctx, field)
-			case "metricUnit":
-				return ec.fieldContext_MetricRow_metricUnit(ctx, field)
-			case "attributes":
-				return ec.fieldContext_MetricRow_attributes(ctx, field)
-			case "startTimestamp":
-				return ec.fieldContext_MetricRow_startTimestamp(ctx, field)
-			case "type":
-				return ec.fieldContext_MetricRow_type(ctx, field)
-			case "flags":
-				return ec.fieldContext_MetricRow_flags(ctx, field)
-			case "value":
-				return ec.fieldContext_MetricRow_value(ctx, field)
-			case "exemplars":
-				return ec.fieldContext_MetricRow_exemplars(ctx, field)
-			case "aggregationTemporality":
-				return ec.fieldContext_MetricRow_aggregationTemporality(ctx, field)
-			case "isMonotonic":
-				return ec.fieldContext_MetricRow_isMonotonic(ctx, field)
+			case "buckets":
+				return ec.fieldContext_MetricsBuckets_buckets(ctx, field)
+			case "bucket_count":
+				return ec.fieldContext_MetricsBuckets_bucket_count(ctx, field)
+			case "sample_factor":
+				return ec.fieldContext_MetricsBuckets_sample_factor(ctx, field)
 			}
-			return nil, fmt.Errorf("no field named %q was found under type MetricRow", field.Name)
+			return nil, fmt.Errorf("no field named %q was found under type MetricsBuckets", field.Name)
 		},
 	}
 	defer func() {
@@ -107158,50 +107136,6 @@ func (ec *executionContext) marshalNMetricMonitor2ᚕᚖgithubᚗcomᚋhighlight
 
 	}
 	wg.Wait()
-
-	return ret
-}
-
-func (ec *executionContext) marshalNMetricRow2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐMetricRowᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.MetricRow) graphql.Marshaler {
-	ret := make(graphql.Array, len(v))
-	var wg sync.WaitGroup
-	isLen1 := len(v) == 1
-	if !isLen1 {
-		wg.Add(len(v))
-	}
-	for i := range v {
-		i := i
-		fc := &graphql.FieldContext{
-			Index:  &i,
-			Result: &v[i],
-		}
-		ctx := graphql.WithFieldContext(ctx, fc)
-		f := func(i int) {
-			defer func() {
-				if r := recover(); r != nil {
-					ec.Error(ctx, ec.Recover(ctx, r))
-					ret = nil
-				}
-			}()
-			if !isLen1 {
-				defer wg.Done()
-			}
-			ret[i] = ec.marshalNMetricRow2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐMetricRow(ctx, sel, v[i])
-		}
-		if isLen1 {
-			f(i)
-		} else {
-			go f(i)
-		}
-
-	}
-	wg.Wait()
-
-	for _, e := range ret {
-		if e == graphql.Null {
-			return graphql.Null
-		}
-	}
 
 	return ret
 }

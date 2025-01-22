@@ -3,6 +3,7 @@ package clickhouse
 import (
 	"context"
 	"fmt"
+	"github.com/aws/smithy-go/ptr"
 	"github.com/highlight-run/highlight/backend/model"
 	modelInputs "github.com/highlight-run/highlight/backend/private-graph/graph/model"
 	"github.com/highlight-run/highlight/backend/util"
@@ -281,12 +282,20 @@ func (client *Client) ReadMetricsAggregated(ctx context.Context, projectID int, 
 	})
 }
 
-func (client *Client) QuerySessionCustomMetrics(ctx context.Context, projectId int, sessionSecureId string, metricNames []string) ([]*modelInputs.MetricRow, error) {
-	// TODO(vkorolik) metrics query path
-	return nil, nil
+func (client *Client) QuerySessionCustomMetrics(ctx context.Context, projectId int, sessionSecureId string, created time.Time, metricNames []string) (*modelInputs.MetricsBuckets, error) {
+	query := strings.Join(lo.Map(metricNames, func(m string, _ int) string {
+		return fmt.Sprintf("%s=%s", modelInputs.ReservedMetricKeyMetricName.String(), m)
+	}), " OR ")
+	query = fmt.Sprintf("%s=%s AND %s", modelInputs.ReservedMetricKeySecureSessionID.String(), sessionSecureId, query)
+	params := modelInputs.QueryInput{
+		Query: query,
+		DateRange: &modelInputs.DateRangeRequiredInput{
+			StartDate: created,
+			EndDate:   created.Add(4 * time.Hour),
+		},
+	}
+	return client.ReadMetricsAggregated(ctx, projectId, params, []string{modelInputs.ReservedMetricKeyMetricName.String()}, nil, modelInputs.MetricBucketByTimestamp.String(), ptr.Int(int(time.Hour.Seconds())), nil, nil, nil, nil)
 }
-
-// TODO(vkorolik) merge with new stuff
 
 func (client *Client) ReadWorkspaceMetricCounts(ctx context.Context, projectIDs []int, params modelInputs.QueryInput) (*modelInputs.MetricsBuckets, error) {
 	// 12 buckets - 12 months in a year, or 12 weeks in a quarter

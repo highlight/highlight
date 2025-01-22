@@ -5767,7 +5767,8 @@ func (r *queryResolver) Resources(ctx context.Context, sessionSecureID string) (
 }
 
 // WebVitals is the resolver for the web_vitals field.
-func (r *queryResolver) WebVitals(ctx context.Context, sessionSecureID string) ([]*modelInputs.MetricRow, error) {
+func (r *queryResolver) WebVitals(ctx context.Context, sessionSecureID string) (*modelInputs.MetricsBuckets, error) {
+	// TODO(vkorolik) can be replaced with frontend query to GetMetrics
 	s, err := r.canAdminViewSession(ctx, sessionSecureID)
 	if err != nil {
 		return nil, nil
@@ -5777,7 +5778,7 @@ func (r *queryResolver) WebVitals(ctx context.Context, sessionSecureID string) (
 		"CLS", "FCP", "FID", "LCP", "TTFB",
 	}
 
-	webVitals, err := r.ClickhouseClient.QuerySessionCustomMetrics(ctx, s.ProjectID, sessionSecureID, webVitalNames)
+	webVitals, err := r.ClickhouseClient.QuerySessionCustomMetrics(ctx, s.ProjectID, sessionSecureID, s.CreatedAt, webVitalNames)
 	if err != nil {
 		return nil, err
 	}
@@ -9804,8 +9805,7 @@ func (r *queryResolver) GraphTemplates(ctx context.Context) ([]*model.Graph, err
 	return graphs, nil
 }
 
-// LogLines is the resolver for the log_lines field.
-// This endpoint is used by the Grafana plugin.
+// LogLines is the resolver for the log_lines field, used by the Grafana plugin.
 func (r *queryResolver) LogLines(ctx context.Context, productType modelInputs.ProductType, projectID int, params modelInputs.QueryInput) ([]*modelInputs.LogLine, error) {
 	project, err := r.isUserInProjectOrDemoProject(ctx, projectID)
 	if err != nil {
@@ -9911,18 +9911,19 @@ func (r *sessionResolver) TimelineIndicatorsURL(ctx context.Context, obj *model.
 
 // DeviceMemory is the resolver for the deviceMemory field.
 func (r *sessionResolver) DeviceMemory(ctx context.Context, obj *model.Session) (*int, error) {
-	metrics, err := r.ClickhouseClient.QuerySessionCustomMetrics(ctx, obj.ProjectID, obj.SecureID, []string{
+	// TODO(vkorolik) can be replaced with frontend query to GetMetrics
+	metrics, err := r.ClickhouseClient.QuerySessionCustomMetrics(ctx, obj.ProjectID, obj.SecureID, obj.CreatedAt, []string{
 		"DeviceMemory",
 	})
 	if err != nil {
 		return nil, err
 	}
 
-	if len(metrics) == 0 {
+	if len(metrics.Buckets) == 0 || metrics.Buckets[0].MetricValue == nil {
 		return nil, nil
 	}
 
-	deviceMemory := int(metrics[0].Value)
+	deviceMemory := int(*metrics.Buckets[0].MetricValue)
 	return &deviceMemory, nil
 }
 
