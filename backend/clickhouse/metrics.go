@@ -14,8 +14,6 @@ import (
 	"time"
 )
 
-// TODO(vkorolik) drop trace_metrics
-
 const MetricsSumTable = "metrics_sum"
 const MetricsHistogramTable = "metrics_histogram"
 const MetricsSummaryTable = "metrics_summary"
