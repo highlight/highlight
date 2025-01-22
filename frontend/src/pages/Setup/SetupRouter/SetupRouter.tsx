@@ -52,7 +52,6 @@ import * as styles from './SetupRouter.css'
 import InkeepChatButton from '@/pages/Setup/SetupInkeepChatButton'
 import { onlyAllowHighlightStaff } from '@/util/authorization/authorizationUtils'
 import { useAuthContext } from '@/authentication/AuthContext'
-import { InfrastructureSetup } from '@/pages/Setup/SetupRouter/InfrastructureSetup'
 
 export const SetupRouter = () => {
 	const { toggleShowBanner } = useGlobalContext()
@@ -356,10 +355,6 @@ export const SetupRouter = () => {
 										projectVerboseId={projectVerboseId}
 									/>
 								}
-							/>
-							<Route
-								path="infrastructure"
-								element={<InfrastructureSetup />}
 							/>
 
 							{/* Redirect to default docs. */}

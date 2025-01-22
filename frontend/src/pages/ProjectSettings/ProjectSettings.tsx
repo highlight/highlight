@@ -36,6 +36,7 @@ import { AutoresolveStaleErrorsForm } from '@/pages/ProjectSettings/AutoresolveS
 import { ProjectSettingsContextProvider } from '@/pages/ProjectSettings/ProjectSettingsContext/ProjectSettingsContext'
 
 import { SessionFiltersCallout } from './SessionFiltersCallout/SessionFiltersCallout'
+import { StreamsSettings } from './StreamsSettings/StreamsSettings'
 
 enum ProjectSettingsTabs {
 	General = 'general',
@@ -43,6 +44,7 @@ enum ProjectSettingsTabs {
 	Errors = 'errors',
 	Services = 'services',
 	Filters = 'filters',
+	Streams = 'streams',
 }
 
 const ProjectSettings = () => {
@@ -148,6 +150,9 @@ const ProjectSettings = () => {
 								<Tabs.Tab id={ProjectSettingsTabs.Filters}>
 									Filters
 								</Tabs.Tab>
+								<Tabs.Tab id={ProjectSettingsTabs.Streams}>
+									Streams
+								</Tabs.Tab>
 							</Tabs.List>
 							<Box mt="24">
 								<Tabs.Panel id={ProjectSettingsTabs.General}>
@@ -238,6 +243,9 @@ const ProjectSettings = () => {
 								</Tabs.Panel>
 								<Tabs.Panel id={ProjectSettingsTabs.Filters}>
 									<ProjectFilters />
+								</Tabs.Panel>
+								<Tabs.Panel id={ProjectSettingsTabs.Streams}>
+									<StreamsSettings />
 								</Tabs.Panel>
 							</Box>
 						</Tabs>
