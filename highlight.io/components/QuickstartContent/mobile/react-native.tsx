@@ -43,7 +43,7 @@ solution is also in progress. Save this code to a "highlight.ts" file to be refe
 					language: 'typescript',
 					text: `// create tracer with resource
 const resource = new Resource({
-  "highlight.project_id": "YOUR_PROJECT_ID",
+  "highlight.project_id": "<YOUR_PROJECT_ID>",
   // add more resource attributes here for every trace/log/error
   "service.name": "reactnativeapp"
   // see more in @opentelemetry/semantic-conventions
