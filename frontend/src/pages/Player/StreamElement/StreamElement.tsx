@@ -63,7 +63,7 @@ export const getEventRenderDetails = (
 			case 'Web Vitals':
 				details.displayValue = (
 					<WebVitalSimpleRenderer
-						vitals={payload.vitals.map((v) => ({
+						vitals={payload.vitals.map((v: any) => ({
 							...v,
 							value: v.value ?? 0,
 						}))}
