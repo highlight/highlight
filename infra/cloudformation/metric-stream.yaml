@@ -9,7 +9,7 @@ Parameters:
     DestinationEndpoint:
         Type: String
         Description: OpenTelemetry endpoint URL for metrics
-        Default: https://otel.highlight.io:4318/v1/metrics
+        Default: https://otlpv1.firehose.highlight.io
 
 Resources:
     MetricStreamRole:
