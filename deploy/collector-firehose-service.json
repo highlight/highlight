@@ -2,48 +2,29 @@
 	"containerDefinitions": [
 		{
 			"name": "highlight-collector",
-			"image": "173971919437.dkr.ecr.us-east-2.amazonaws.com/highlight-collector:dd297174659d5afb8dfb61e68d27e35727f5f4bd.arm64",
+			"image": "173971919437.dkr.ecr.us-east-2.amazonaws.com/highlight-collector:bb84dab01aab4ec223632814b244e3381e074b26.arm64",
 			"cpu": 0,
 			"portMappings": [
 				{
-					"name": "highlight-collector-4317-tcp",
-					"containerPort": 4317,
-					"hostPort": 4317,
-					"protocol": "tcp",
-					"appProtocol": "grpc"
-				},
-				{
-					"name": "highlight-collector-4318-tcp",
-					"containerPort": 4318,
-					"hostPort": 4318,
-					"protocol": "tcp",
-					"appProtocol": "http2"
-				},
-				{
-					"name": "highlight-collector-4319-tcp",
-					"containerPort": 4319,
-					"hostPort": 4319,
+					"name": "highlight-collector-4433-tcp",
+					"containerPort": 4433,
+					"hostPort": 4433,
 					"protocol": "tcp",
 					"appProtocol": "http"
 				},
 				{
-					"name": "highlight-collector-8888-tcp",
-					"containerPort": 8888,
-					"hostPort": 8888,
+					"name": "highlight-collector-4434-tcp",
+					"containerPort": 4434,
+					"hostPort": 4434,
 					"protocol": "tcp",
 					"appProtocol": "http"
 				},
 				{
-					"name": "highlight-collector-24224-tcp",
-					"containerPort": 24224,
-					"hostPort": 24224,
-					"protocol": "tcp"
-				},
-				{
-					"name": "highlight-collector-34302-tcp",
-					"containerPort": 34302,
-					"hostPort": 34302,
-					"protocol": "tcp"
+					"name": "highlight-collector-4435-tcp",
+					"containerPort": 4435,
+					"hostPort": 4435,
+					"protocol": "tcp",
+					"appProtocol": "http"
 				}
 			],
 			"essential": true,
@@ -61,11 +42,13 @@
 					"awslogs-group": "/ecs/opentelemetry-collector-task",
 					"awslogs-region": "us-east-2",
 					"awslogs-stream-prefix": "ecs"
-				}
-			}
+				},
+				"secretOptions": []
+			},
+			"systemControls": []
 		}
 	],
-	"family": "opentelemetry-collector-service",
+	"family": "opentelemetry-collector-firehose-service",
 	"executionRoleArn": "arn:aws:iam::173971919437:role/HighlightAppProd",
 	"networkMode": "awsvpc",
 	"volumes": [],
