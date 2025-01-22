@@ -2442,10 +2442,12 @@ type TableConfig struct {
 	AttributesTable   string
 	MetricColumn      *string
 	KeysToColumns     map[string]string
-	ReservedKeys      []string
-	SelectColumns     []string
-	DefaultFilter     string
-	IgnoredFilters    map[string]bool
+	// contains ClickHouse column names that are multi-value arrays that should be filtered.
+	ArrayColumns   map[string]bool
+	ReservedKeys   []string
+	SelectColumns  []string
+	DefaultFilter  string
+	IgnoredFilters map[string]bool
 }
 
 type ColumnMapping struct {

@@ -40,13 +40,13 @@ var metricsKeysToColumns = map[string]string{
 	string(modelInputs.ReservedMetricKeyMetricUnit):        "MetricUnit",
 	string(modelInputs.ReservedMetricKeyStartTimestamp):    "StartTimestamp",
 	string(modelInputs.ReservedMetricKeyValue):             "Sum / Count",
+	string(modelInputs.ReservedMetricKeySecureSessionID):   "Exemplars.SecureSessionID",
+	string(modelInputs.ReservedMetricKeyTraceID):           "Exemplars.TraceID",
+	string(modelInputs.ReservedMetricKeySpanID):            "Exemplars.SpanID",
 	// TODO(vkorolik) exemplars
 	//"Exemplars.Attributes",
 	//"Exemplars.Timestamp",
 	//"Exemplars.Value",
-	//"Exemplars.SecureSessionID",
-	//"Exemplars.TraceID",
-	//"Exemplars.SpanID",
 	// TODO(vkorolik) special columns
 	//"Min",
 	//"Max",
@@ -54,6 +54,12 @@ var metricsKeysToColumns = map[string]string{
 	//"ExplicitBounds",
 	//"ValueAtQuantiles.Quantile",
 	//"ValueAtQuantiles.Value",
+}
+
+var metricsArrayColumns = map[string]bool{
+	"Exemplars.SecureSessionID": true,
+	"Exemplars.TraceID":         true,
+	"Exemplars.SpanID":          true,
 }
 
 var metricsColumns = []string{
@@ -85,6 +91,7 @@ var metricsColumns = []string{
 var MetricsTableNoDefaultConfig = model.TableConfig{
 	TableName:         MetricsTable,
 	KeysToColumns:     metricsKeysToColumns,
+	ArrayColumns:      metricsArrayColumns,
 	ReservedKeys:      reservedMetricsKeys,
 	BodyColumn:        "MetricName",
 	SelectColumns:     metricsColumns,
@@ -94,6 +101,7 @@ var MetricsTableNoDefaultConfig = model.TableConfig{
 var MetricsTableConfig = model.TableConfig{
 	TableName:         MetricsTableNoDefaultConfig.TableName,
 	KeysToColumns:     MetricsTableNoDefaultConfig.KeysToColumns,
+	ArrayColumns:      MetricsTableNoDefaultConfig.ArrayColumns,
 	ReservedKeys:      MetricsTableNoDefaultConfig.ReservedKeys,
 	BodyColumn:        MetricsTableNoDefaultConfig.BodyColumn,
 	AttributesColumns: MetricsTableNoDefaultConfig.AttributesColumns,
@@ -283,6 +291,7 @@ func (client *Client) ReadMetricsAggregated(ctx context.Context, projectID int, 
 }
 
 func (client *Client) QuerySessionCustomMetrics(ctx context.Context, projectId int, sessionSecureId string, created time.Time, metricNames []string) (*modelInputs.MetricsBuckets, error) {
+	day := 24 * time.Hour
 	query := strings.Join(lo.Map(metricNames, func(m string, _ int) string {
 		return fmt.Sprintf("%s=%s", modelInputs.ReservedMetricKeyMetricName.String(), m)
 	}), " OR ")
@@ -291,10 +300,15 @@ func (client *Client) QuerySessionCustomMetrics(ctx context.Context, projectId i
 		Query: query,
 		DateRange: &modelInputs.DateRangeRequiredInput{
 			StartDate: created,
-			EndDate:   created.Add(4 * time.Hour),
+			EndDate:   created.Add(day),
 		},
 	}
-	return client.ReadMetricsAggregated(ctx, projectId, params, []string{modelInputs.ReservedMetricKeyMetricName.String()}, nil, modelInputs.MetricBucketByTimestamp.String(), ptr.Int(int(time.Hour.Seconds())), nil, nil, nil, nil)
+	return client.ReadMetricsAggregated(ctx, projectId, params, []string{modelInputs.ReservedMetricKeyMetricName.String()}, nil, modelInputs.MetricBucketByTimestamp.String(), ptr.Int(int(day.Seconds())), nil, nil, nil, []*modelInputs.MetricExpressionInput{
+		{
+			Aggregator: modelInputs.MetricAggregatorAvg,
+			Column:     modelInputs.ReservedMetricKeyValue.String(),
+		},
+	})
 }
 
 func (client *Client) ReadWorkspaceMetricCounts(ctx context.Context, projectIDs []int, params modelInputs.QueryInput) (*modelInputs.MetricsBuckets, error) {
