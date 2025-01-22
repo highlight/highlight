@@ -10,11 +10,11 @@ import (
 	e "github.com/pkg/errors"
 	"github.com/samber/lo"
 	"go.opentelemetry.io/collector/pdata/pmetric"
+	"strings"
 	"time"
 )
 
 // TODO(vkorolik) drop trace_metrics
-// TODO(vkorolik) create metric_keys, metric_key_values
 
 const MetricsSumTable = "metrics_sum"
 const MetricsHistogramTable = "metrics_histogram"
@@ -22,6 +22,11 @@ const MetricsSummaryTable = "metrics_summary"
 const MetricsTable = "metrics"
 const MetricKeysTable = "metric_keys"
 const MetricKeyValuesTable = "metric_key_values"
+
+// These keys show up as recommendations, but with no recommended values due to high cardinality
+var defaultMetricKeys = []*modelInputs.QueryKey{
+	{Name: string(modelInputs.ReservedMetricKeyValue), Type: modelInputs.KeyTypeNumeric},
+}
 
 var reservedMetricsKeys = lo.Map(modelInputs.AllReservedMetricKey, func(key modelInputs.ReservedMetricKey, _ int) string {
 	return string(key)
@@ -79,11 +84,12 @@ var metricsColumns = []string{
 }
 
 var MetricsTableNoDefaultConfig = model.TableConfig{
-	TableName:     MetricsTable,
-	KeysToColumns: metricsKeysToColumns,
-	ReservedKeys:  reservedMetricsKeys,
-	BodyColumn:    "MetricName",
-	SelectColumns: metricsColumns,
+	TableName:         MetricsTable,
+	KeysToColumns:     metricsKeysToColumns,
+	ReservedKeys:      reservedMetricsKeys,
+	BodyColumn:        "MetricName",
+	SelectColumns:     metricsColumns,
+	AttributesColumns: []model.ColumnMapping{{Column: "Attributes"}},
 }
 
 var MetricsTableConfig = model.TableConfig{
@@ -262,7 +268,6 @@ func (client *Client) ReadMetricsDailyAverage(ctx context.Context, projectIds []
 }
 
 func (client *Client) ReadMetricsAggregated(ctx context.Context, projectID int, params modelInputs.QueryInput, groupBy []string, nBuckets *int, bucketBy string, bucketWindow *int, limit *int, limitAggregator *modelInputs.MetricAggregator, limitColumn *string, expressions []*modelInputs.MetricExpressionInput) (*modelInputs.MetricsBuckets, error) {
-	// TODO(vkorolik) default to processing metric_value column
 	return client.ReadMetrics(ctx, ReadMetricsInput{
 		SampleableConfig: MetricsSampleableTableConfig,
 		ProjectIDs:       []int{projectID},
@@ -276,6 +281,11 @@ func (client *Client) ReadMetricsAggregated(ctx context.Context, projectID int, 
 		LimitColumn:      limitColumn,
 		Expressions:      expressions,
 	})
+}
+
+func (client *Client) QuerySessionCustomMetrics(ctx context.Context, projectId int, sessionSecureId string, metricNames []string) ([]*modelInputs.MetricRow, error) {
+	// TODO(vkorolik) metrics query path
+	return nil, nil
 }
 
 // TODO(vkorolik) merge with new stuff
@@ -295,7 +305,23 @@ func (client *Client) ReadWorkspaceMetricCounts(ctx context.Context, projectIDs 
 }
 
 func (client *Client) MetricsKeys(ctx context.Context, projectID int, startDate time.Time, endDate time.Time, query *string, typeArg *modelInputs.KeyType) ([]*modelInputs.QueryKey, error) {
-	return KeysAggregated(ctx, client, MetricKeysTable, projectID, startDate, endDate, query, typeArg, nil)
+	metricKeys, err := KeysAggregated(ctx, client, MetricKeysTable, projectID, startDate, endDate, query, typeArg, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	if query == nil || *query == "" {
+		metricKeys = append(metricKeys, defaultMetricKeys...)
+	} else {
+		queryLower := strings.ToLower(*query)
+		for _, key := range defaultMetricKeys {
+			if strings.Contains(key.Name, queryLower) {
+				metricKeys = append(metricKeys, key)
+			}
+		}
+	}
+
+	return metricKeys, nil
 }
 
 func (client *Client) MetricsKeyValues(ctx context.Context, projectID int, keyName string, startDate time.Time, endDate time.Time, query *string, limit *int) ([]string, error) {

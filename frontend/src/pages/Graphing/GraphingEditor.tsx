@@ -433,6 +433,24 @@ export const GraphingEditor: React.FC = () => {
 		if (productType !== ProductType.Events && viewType === 'Funnel chart') {
 			setViewType(VIEW_OPTIONS[0].value as View)
 		}
+		if (productType === ProductType.Metrics && pt !== ProductType.Metrics) {
+			setExpressions([
+				{
+					aggregator: FUNCTION_TYPES[0],
+					column: '',
+				},
+			])
+		} else if (
+			productType !== ProductType.Metrics &&
+			pt === ProductType.Metrics
+		) {
+			setExpressions([
+				{
+					aggregator: MetricAggregator.Avg,
+					column: 'value',
+				},
+			])
+		}
 		setProductTypeImpl(pt)
 	}
 

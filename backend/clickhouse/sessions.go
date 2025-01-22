@@ -610,11 +610,6 @@ func (client *Client) SessionsKeys(ctx context.Context, projectID int, startDate
 	return sessionKeys, nil
 }
 
-func (client *Client) QuerySessionCustomMetrics(ctx context.Context, projectId int, sessionSecureId string, metricNames []string) ([]*modelInputs.MetricRow, error) {
-	// TODO(vkorolik) metrics query path
-	return nil, nil
-}
-
 func (client *Client) SessionsKeyValues(ctx context.Context, projectID int, keyName string, startDate time.Time, endDate time.Time, query *string, limit *int) ([]string, error) {
 	if booleanKeys[keyName] {
 		return []string{"true", "false"}, nil

@@ -6,9 +6,7 @@ import {
 	IconSolidPlayCircle,
 	IconSolidTraces,
 	IconSolidMetrics,
-	Box,
 } from '@highlight-run/ui/components'
-import { betaTag } from '@/components/Header/styles.css'
 import {
 	MetricAggregator,
 	ProductType,
@@ -54,11 +52,7 @@ export const PRODUCT_OPTIONS = [
 	{
 		name: ProductType.Metrics,
 		value: ProductType.Metrics,
-		icon: (
-			<Box cssClass={betaTag} key="events">
-				<IconSolidMetrics key="metrics" />
-			</Box>
-		),
+		icon: <IconSolidMetrics key="metrics" />,
 	},
 	{
 		name: ProductType.Events,
