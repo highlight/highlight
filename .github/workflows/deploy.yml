@@ -533,6 +533,21 @@ jobs:
                   task-definition: ${{ steps.image-opentelemetry-collector.outputs.task-definition }}
                   service: opentelemetry-collector-service
                   cluster: highlight-production-cluster
+            - name: Replace image label for opentelemetry firehose collector
+              if: steps.filter.outputs.otel-changed == 'true'
+              id: image-opentelemetry-firehose-collector
+              uses: aws-actions/amazon-ecs-render-task-definition@v1
+              with:
+                  task-definition: deploy/collector-firehose-service.json
+                  container-name: highlight-collector
+                  image: ${{ steps.login-ecr.outputs.registry }}/highlight-collector:${{ github.sha }}.arm64
+            - name: Deploy to Amazon ECS opentelemetry firehose collector service
+              if: steps.filter.outputs.otel-changed == 'true'
+              uses: aws-actions/amazon-ecs-deploy-task-definition@v1
+              with:
+                  task-definition: ${{ steps.image-opentelemetry-firehose-collector.outputs.task-definition }}
+                  service: opentelemetry-collector-firehose-service
+                  cluster: highlight-production-cluster
 
     deploy_kafka_connect:
         runs-on: codebuild-highlight-github-actions-runner-${{ github.run_id }}-${{ github.run_attempt }}-arm-3.0-large

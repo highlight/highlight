@@ -66,13 +66,16 @@ def test_record_exception(
 
     for i in range(10):
         logging.info(f"hey there! {i}")
-        with h.trace(session_id, request_id):
+        with h.trace(
+            span_name="my-super-span", session_id=session_id, request_id=request_id
+        ):
             logging.info(f"trace! {i}")
         h.record_exception(
             FileNotFoundError(f"test! {i}"), attributes={"hello": "there"}
         )
 
     assert len(spy.call_args_list) == 10
+    assert next(filter(lambda t: t.args[0], spy.call_args_list))
 
 
 def test_log_no_trace(mock_trace):

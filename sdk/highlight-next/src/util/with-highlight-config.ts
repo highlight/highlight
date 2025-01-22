@@ -193,6 +193,12 @@ const getHighlightConfig = async (
 
 	return {
 		...config,
+		env: {
+			...config.env,
+			configureHighlightProxy: defaultOpts.configureHighlightProxy
+				? 'true'
+				: '',
+		},
 		productionBrowserSourceMaps:
 			defaultOpts.uploadSourceMaps || config.productionBrowserSourceMaps,
 		rewrites: newRewrites,

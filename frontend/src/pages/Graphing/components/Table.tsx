@@ -5,7 +5,6 @@ import {
 	Stack,
 	Table,
 	Text,
-	Tooltip,
 } from '@highlight-run/ui/components'
 import clsx from 'clsx'
 
@@ -16,6 +15,8 @@ import {
 	getTickFormatter,
 	GROUPS_KEY,
 	InnerChartProps,
+	LoadExemplars,
+	NamedSeries,
 	SeriesInfo,
 	useGraphSeries,
 	VizId,
@@ -24,7 +25,8 @@ import {
 import * as style from './Table.css'
 import useLocalStorage from '@rehooks/local-storage'
 import _ from 'lodash'
-import { memo } from 'react'
+import { memo, useMemo, useRef } from 'react'
+import { useVirtualizer } from '@tanstack/react-virtual'
 
 export type TableNullHandling = 'Hide row' | 'Blank' | 'Zero'
 export const TABLE_NULL_HANDLING: TableNullHandling[] = [
@@ -54,6 +56,8 @@ const MetricTableImpl = ({
 	loadExemplars,
 	visualizationId,
 }: InnerChartProps<TableConfig> & SeriesInfo & VizId) => {
+	const bodyRef = useRef<HTMLDivElement>(null)
+
 	const series = useGraphSeries(data, xAxisMetric)
 	const xAxisTickFormatter = getTickFormatter(xAxisMetric)
 
@@ -83,18 +87,47 @@ const MetricTableImpl = ({
 		<IconSolidSortDescending size={14} />
 	)
 
-	const sortedData = _.sortBy(data, (d: any) => {
-		if (sortColumn === -1) {
-			return d[xAxisMetric]
-		}
+	const orderedData = useMemo(() => {
+		const sortedData = _.sortBy(data, (d: any) => {
+			if (sortColumn === -1) {
+				return d[xAxisMetric]
+			}
 
-		const seriesKey = getSeriesKey(series[sortColumn])
-		return d[seriesKey]?.value
+			const seriesKey = getSeriesKey(series[sortColumn])
+			return d[seriesKey]?.value
+		})
+
+		const filteredData = sortedData.filter((d) => {
+			// If every value for the bucket is null, skip this row
+			return (
+				viewConfig.nullHandling !== 'Hide row' ||
+				series
+					.map((s) => getSeriesKey(s))
+					.find(
+						(seriesKey) =>
+							d[seriesKey] !== null && d[seriesKey] !== undefined,
+					) !== undefined
+			)
+		})
+
+		return sortAsc ? filteredData : filteredData.reverse()
+	}, [
+		data,
+		series,
+		sortAsc,
+		sortColumn,
+		viewConfig.nullHandling,
+		xAxisMetric,
+	])
+
+	const rowVirtualizer = useVirtualizer({
+		count: orderedData?.length,
+		estimateSize: () => 25,
+		getScrollElement: () => bodyRef.current,
+		overscan: 50,
 	})
 
-	if (!sortAsc) {
-		sortedData.reverse()
-	}
+	const virtualRows = rowVirtualizer.getVirtualItems()
 
 	return (
 		<Box height="full" cssClass={style.tableWrapper}>
@@ -137,131 +170,21 @@ const MetricTableImpl = ({
 						[style.preventScroll]: disabled,
 					})}
 				>
-					<Table.Body>
-						{sortedData?.map((d, i) => {
-							// If every value for the bucket is null, skip this row
-							if (
-								viewConfig.nullHandling === 'Hide row' &&
-								series
-									.map((s) => getSeriesKey(s))
-									.find(
-										(seriesKey) =>
-											d[seriesKey] !== null &&
-											d[seriesKey] !== undefined,
-									) === undefined
-							) {
-								return null
-							}
+					<Table.Body ref={bodyRef}>
+						{virtualRows?.map((virtualRow) => {
+							const d = orderedData[virtualRow.index]
 
 							return (
-								<Table.Row key={i} className={style.tableRow}>
-									{showXAxisColumn && (
-										<Table.Cell
-											key={i}
-											onClick={
-												loadExemplars
-													? () =>
-															loadExemplars(
-																d[
-																	BUCKET_MIN_KEY
-																],
-																d[
-																	BUCKET_MAX_KEY
-																],
-																d[GROUPS_KEY],
-															)
-													: undefined
-											}
-										>
-											<Tooltip
-												delayed
-												trigger={
-													<Text
-														size="small"
-														color="default"
-														lines="1"
-														cssClass={
-															style.firstCell
-														}
-													>
-														{xAxisTickFormatter(
-															d[xAxisMetric],
-														)}
-													</Text>
-												}
-											>
-												{xAxisTickFormatter(
-													d[xAxisMetric],
-												)}
-											</Tooltip>
-										</Table.Cell>
-									)}
-									{series.map((s, i) => {
-										const seriesKey = getSeriesKey(s)
-										let value = d[seriesKey]?.value
-
-										if (
-											value === null ||
-											value === undefined
-										) {
-											switch (viewConfig.nullHandling) {
-												case 'Blank':
-												case 'Hide row':
-													value = ''
-													break
-												case 'Zero':
-													value = 0
-													break
-											}
-										}
-
-										if (value !== '') {
-											value = getTickFormatter(s.column)(
-												value,
-											)
-										}
-
-										const groups =
-											GROUPS_KEY in d
-												? d[GROUPS_KEY]
-												: s.groups
-
-										return (
-											<Table.Cell
-												key={i}
-												onClick={
-													loadExemplars
-														? () =>
-																loadExemplars(
-																	d[
-																		BUCKET_MIN_KEY
-																	],
-																	d[
-																		BUCKET_MAX_KEY
-																	],
-																	groups,
-																)
-														: undefined
-												}
-											>
-												<Tooltip
-													delayed
-													trigger={
-														<Text
-															size="small"
-															color="default"
-															lines="1"
-														>
-															{value}
-														</Text>
-													}
-												>
-													{value}
-												</Tooltip>
-											</Table.Cell>
-										)
-									})}
-								</Table.Row>
+								<MetricTableRow
+									row={d}
+									key={virtualRow.index}
+									showXAxisColumn={showXAxisColumn}
+									loadExemplars={loadExemplars}
+									xAxisTickFormatter={xAxisTickFormatter}
+									xAxisMetric={xAxisMetric}
+									series={series}
+									nullHandling={viewConfig.nullHandling}
+								/>
 							)
 						})}
 					</Table.Body>
@@ -272,3 +195,97 @@ const MetricTableImpl = ({
 }
 
 export const MetricTable = memo(MetricTableImpl)
+
+interface MetricTableRowProps {
+	row: any
+	showXAxisColumn?: boolean
+	loadExemplars?: LoadExemplars
+	xAxisTickFormatter: (value: any) => string
+	xAxisMetric: string
+	series: NamedSeries[]
+	nullHandling?: TableNullHandling
+}
+
+const MetricTableRow = ({
+	row,
+	showXAxisColumn,
+	loadExemplars,
+	xAxisTickFormatter,
+	xAxisMetric,
+	series,
+	nullHandling,
+}: MetricTableRowProps) => {
+	const xAxisTitle = xAxisTickFormatter(row[xAxisMetric])
+
+	return (
+		<Table.Row className={style.tableRow}>
+			{showXAxisColumn && (
+				<Table.Cell
+					onClick={
+						loadExemplars
+							? () =>
+									loadExemplars(
+										row[BUCKET_MIN_KEY],
+										row[BUCKET_MAX_KEY],
+										row[GROUPS_KEY],
+									)
+							: undefined
+					}
+					title={xAxisTitle}
+				>
+					<Text
+						size="small"
+						color="default"
+						lines="1"
+						cssClass={style.firstCell}
+					>
+						{xAxisTitle}
+					</Text>
+				</Table.Cell>
+			)}
+			{series.map((s, i) => {
+				const seriesKey = getSeriesKey(s)
+				let value = row[seriesKey]?.value
+
+				if (value === null || value === undefined) {
+					switch (nullHandling) {
+						case 'Blank':
+						case 'Hide row':
+							value = ''
+							break
+						case 'Zero':
+							value = 0
+							break
+					}
+				}
+
+				if (value !== '') {
+					value = getTickFormatter(s.column)(value)
+				}
+
+				const groups = GROUPS_KEY in row ? row[GROUPS_KEY] : s.groups
+
+				return (
+					<Table.Cell
+						key={i}
+						onClick={
+							loadExemplars
+								? () =>
+										loadExemplars(
+											row[BUCKET_MIN_KEY],
+											row[BUCKET_MAX_KEY],
+											groups,
+										)
+								: undefined
+						}
+						title={value}
+					>
+						<Text size="small" color="default" lines="1">
+							{value}
+						</Text>
+					</Table.Cell>
+				)
+			})}
+		</Table.Row>
+	)
+}
