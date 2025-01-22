@@ -328,7 +328,6 @@ func (client *Client) MetricsKeyValues(ctx context.Context, projectID int, keyNa
 	return KeyValuesAggregated(ctx, client, MetricKeyValuesTable, projectID, keyName, startDate, endDate, query, limit, nil)
 }
 
-// TODO(vkorolik) is this used?
 func (client *Client) MetricsLogLines(ctx context.Context, projectID int, params modelInputs.QueryInput) ([]*modelInputs.LogLine, error) {
 	return logLines(ctx, client, MetricsTableConfig, projectID, params)
 }

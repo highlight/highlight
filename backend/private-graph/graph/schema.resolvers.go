@@ -9805,6 +9805,7 @@ func (r *queryResolver) GraphTemplates(ctx context.Context) ([]*model.Graph, err
 }
 
 // LogLines is the resolver for the log_lines field.
+// This endpoint is used by the Grafana plugin.
 func (r *queryResolver) LogLines(ctx context.Context, productType modelInputs.ProductType, projectID int, params modelInputs.QueryInput) ([]*modelInputs.LogLine, error) {
 	project, err := r.isUserInProjectOrDemoProject(ctx, projectID)
 	if err != nil {
