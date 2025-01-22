@@ -431,4 +431,6 @@ console.log("I'm sending to Highlight")
 
 In this guide, we've gone through everything you need to use OpenTelemetry in React Native to be able to send Highlight your logs, traces, and errors. OpenTelemetry is flexible, so this solution is not the only one. Feel free to edit resources, methods, and classes to what works best for your application.
 
+Check out the [example app](https://github.com/highlight/highlight/tree/main/e2e/react-native) and [Highlight code snippets](https://github.com/highlight/highlight/blob/main/e2e/react-native/app/highlight.ts).
+
 If you have any questions, please feel free to reach out to us on [Twitter](https://twitter.com/highlight_io) or [Discord](https://highlight.io/community).
