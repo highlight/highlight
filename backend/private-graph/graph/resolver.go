@@ -3704,7 +3704,7 @@ func GetMetricTimeline(ctx context.Context, ccClient *clickhouse.Client, project
 	}
 	expressions := []*modelInputs.MetricExpressionInput{{
 		Aggregator: agg,
-		Column:     string(modelInputs.ReservedMetricKeyMetricValue),
+		Column:     string(modelInputs.ReservedMetricKeyValue),
 	}}
 
 	metrics, err := ccClient.ReadMetricsAggregated(ctx, projectID, modelInputs.QueryInput{

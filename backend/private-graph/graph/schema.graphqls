@@ -1049,20 +1049,19 @@ enum ReservedTraceKey {
 }
 
 enum ReservedMetricKey {
-	aggregation_temporality
-	environment
-	flags
-	is_monotonic
+	count
+	max
 	metric_description
 	metric_name
 	metric_unit
-	metric_value
+	min
 	retention_days
 	secure_session_id
 	service_name
 	service_version
 	span_id
 	start_timestamp
+	sum
 	timestamp
 	trace_id
 	type

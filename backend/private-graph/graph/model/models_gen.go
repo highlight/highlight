@@ -2444,41 +2444,39 @@ func (e ReservedLogKey) MarshalGQL(w io.Writer) {
 type ReservedMetricKey string
 
 const (
-	ReservedMetricKeyAggregationTemporality ReservedMetricKey = "aggregation_temporality"
-	ReservedMetricKeyEnvironment            ReservedMetricKey = "environment"
-	ReservedMetricKeyFlags                  ReservedMetricKey = "flags"
-	ReservedMetricKeyIsMonotonic            ReservedMetricKey = "is_monotonic"
-	ReservedMetricKeyMetricDescription      ReservedMetricKey = "metric_description"
-	ReservedMetricKeyMetricName             ReservedMetricKey = "metric_name"
-	ReservedMetricKeyMetricUnit             ReservedMetricKey = "metric_unit"
-	ReservedMetricKeyMetricValue            ReservedMetricKey = "metric_value"
-	ReservedMetricKeyRetentionDays          ReservedMetricKey = "retention_days"
-	ReservedMetricKeySecureSessionID        ReservedMetricKey = "secure_session_id"
-	ReservedMetricKeyServiceName            ReservedMetricKey = "service_name"
-	ReservedMetricKeyServiceVersion         ReservedMetricKey = "service_version"
-	ReservedMetricKeySpanID                 ReservedMetricKey = "span_id"
-	ReservedMetricKeyStartTimestamp         ReservedMetricKey = "start_timestamp"
-	ReservedMetricKeyTimestamp              ReservedMetricKey = "timestamp"
-	ReservedMetricKeyTraceID                ReservedMetricKey = "trace_id"
-	ReservedMetricKeyType                   ReservedMetricKey = "type"
-	ReservedMetricKeyValue                  ReservedMetricKey = "value"
+	ReservedMetricKeyCount             ReservedMetricKey = "count"
+	ReservedMetricKeyMax               ReservedMetricKey = "max"
+	ReservedMetricKeyMetricDescription ReservedMetricKey = "metric_description"
+	ReservedMetricKeyMetricName        ReservedMetricKey = "metric_name"
+	ReservedMetricKeyMetricUnit        ReservedMetricKey = "metric_unit"
+	ReservedMetricKeyMin               ReservedMetricKey = "min"
+	ReservedMetricKeyRetentionDays     ReservedMetricKey = "retention_days"
+	ReservedMetricKeySecureSessionID   ReservedMetricKey = "secure_session_id"
+	ReservedMetricKeyServiceName       ReservedMetricKey = "service_name"
+	ReservedMetricKeyServiceVersion    ReservedMetricKey = "service_version"
+	ReservedMetricKeySpanID            ReservedMetricKey = "span_id"
+	ReservedMetricKeyStartTimestamp    ReservedMetricKey = "start_timestamp"
+	ReservedMetricKeySum               ReservedMetricKey = "sum"
+	ReservedMetricKeyTimestamp         ReservedMetricKey = "timestamp"
+	ReservedMetricKeyTraceID           ReservedMetricKey = "trace_id"
+	ReservedMetricKeyType              ReservedMetricKey = "type"
+	ReservedMetricKeyValue             ReservedMetricKey = "value"
 )
 
 var AllReservedMetricKey = []ReservedMetricKey{
-	ReservedMetricKeyAggregationTemporality,
-	ReservedMetricKeyEnvironment,
-	ReservedMetricKeyFlags,
-	ReservedMetricKeyIsMonotonic,
+	ReservedMetricKeyCount,
+	ReservedMetricKeyMax,
 	ReservedMetricKeyMetricDescription,
 	ReservedMetricKeyMetricName,
 	ReservedMetricKeyMetricUnit,
-	ReservedMetricKeyMetricValue,
+	ReservedMetricKeyMin,
 	ReservedMetricKeyRetentionDays,
 	ReservedMetricKeySecureSessionID,
 	ReservedMetricKeyServiceName,
 	ReservedMetricKeyServiceVersion,
 	ReservedMetricKeySpanID,
 	ReservedMetricKeyStartTimestamp,
+	ReservedMetricKeySum,
 	ReservedMetricKeyTimestamp,
 	ReservedMetricKeyTraceID,
 	ReservedMetricKeyType,
@@ -2487,7 +2485,7 @@ var AllReservedMetricKey = []ReservedMetricKey{
 
 func (e ReservedMetricKey) IsValid() bool {
 	switch e {
-	case ReservedMetricKeyAggregationTemporality, ReservedMetricKeyEnvironment, ReservedMetricKeyFlags, ReservedMetricKeyIsMonotonic, ReservedMetricKeyMetricDescription, ReservedMetricKeyMetricName, ReservedMetricKeyMetricUnit, ReservedMetricKeyMetricValue, ReservedMetricKeyRetentionDays, ReservedMetricKeySecureSessionID, ReservedMetricKeyServiceName, ReservedMetricKeyServiceVersion, ReservedMetricKeySpanID, ReservedMetricKeyStartTimestamp, ReservedMetricKeyTimestamp, ReservedMetricKeyTraceID, ReservedMetricKeyType, ReservedMetricKeyValue:
+	case ReservedMetricKeyCount, ReservedMetricKeyMax, ReservedMetricKeyMetricDescription, ReservedMetricKeyMetricName, ReservedMetricKeyMetricUnit, ReservedMetricKeyMin, ReservedMetricKeyRetentionDays, ReservedMetricKeySecureSessionID, ReservedMetricKeyServiceName, ReservedMetricKeyServiceVersion, ReservedMetricKeySpanID, ReservedMetricKeyStartTimestamp, ReservedMetricKeySum, ReservedMetricKeyTimestamp, ReservedMetricKeyTraceID, ReservedMetricKeyType, ReservedMetricKeyValue:
 		return true
 	}
 	return false

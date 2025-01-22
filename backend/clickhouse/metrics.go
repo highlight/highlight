@@ -17,64 +17,73 @@ import (
 // TODO(vkorolik) create metric_keys, metric_key_values
 
 const MetricsSumTable = "metrics_sum"
-
-// TODO(vkorolik) query using MV
 const MetricsHistogramTable = "metrics_histogram"
-
-// TODO(vkorolik) remove everywhere
 const MetricsSummaryTable = "metrics_summary"
+const MetricsTable = "metrics"
+const MetricKeysTable = "metric_keys"
+const MetricKeyValuesTable = "metric_key_values"
 
-var reservedMetricsSumKeys = lo.Map(modelInputs.AllReservedMetricKey, func(key modelInputs.ReservedMetricKey, _ int) string {
+var reservedMetricsKeys = lo.Map(modelInputs.AllReservedMetricKey, func(key modelInputs.ReservedMetricKey, _ int) string {
 	return string(key)
 })
 
-var metricsSumKeysToColumns = map[string]string{
-	string(modelInputs.ReservedMetricKeyServiceName): "ServiceName",
-	string(modelInputs.ReservedMetricKeyMetricName):  "MetricName",
-	// TODO(vkorolik) depends on the metric source table
-	string(modelInputs.ReservedMetricKeyMetricValue):            "Sum",
-	string(modelInputs.ReservedMetricKeyMetricDescription):      "MetricDescription",
-	string(modelInputs.ReservedMetricKeyMetricUnit):             "MetricUnit",
-	string(modelInputs.ReservedMetricKeyTimestamp):              "Timestamp",
-	string(modelInputs.ReservedMetricKeyStartTimestamp):         "StartTimestamp",
-	string(modelInputs.ReservedMetricKeyType):                   "Type",
-	string(modelInputs.ReservedMetricKeyFlags):                  "Flags",
-	string(modelInputs.ReservedMetricKeyValue):                  "Value",
-	string(modelInputs.ReservedMetricKeyAggregationTemporality): "AggregationTemporality",
-	string(modelInputs.ReservedMetricKeyIsMonotonic):            "IsMonotonic",
+var metricsKeysToColumns = map[string]string{
+	string(modelInputs.ReservedMetricKeyServiceName):       "ServiceName",
+	string(modelInputs.ReservedMetricKeyMetricName):        "MetricName",
+	string(modelInputs.ReservedMetricKeyType):              "Type",
+	string(modelInputs.ReservedMetricKeyTimestamp):         "Timestamp",
+	string(modelInputs.ReservedMetricKeyMetricDescription): "MetricDescription",
+	string(modelInputs.ReservedMetricKeyMetricUnit):        "MetricUnit",
+	string(modelInputs.ReservedMetricKeyStartTimestamp):    "StartTimestamp",
+	string(modelInputs.ReservedMetricKeyValue):             "Sum / Count",
 	// TODO(vkorolik) exemplars
+	//"Exemplars.Attributes",
+	//"Exemplars.Timestamp",
+	//"Exemplars.Value",
+	//"Exemplars.SecureSessionID",
+	//"Exemplars.TraceID",
+	//"Exemplars.SpanID",
+	// TODO(vkorolik) special columns
+	//"Min",
+	//"Max",
+	//"BucketCounts",
+	//"ExplicitBounds",
+	//"ValueAtQuantiles.Quantile",
+	//"ValueAtQuantiles.Value",
 }
 
-var metricsSumColumns = []string{
+var metricsColumns = []string{
 	"ProjectId",
-	"Timestamp",
 	"ServiceName",
 	"MetricName",
+	"Type",
+	"Timestamp",
 	"MetricDescription",
 	"MetricUnit",
 	"Attributes",
 	"StartTimestamp",
-	"Type",
-	"Flags",
 	"Exemplars.Attributes",
 	"Exemplars.Timestamp",
 	"Exemplars.Value",
 	"Exemplars.SecureSessionID",
 	"Exemplars.TraceID",
 	"Exemplars.SpanID",
-	"Value",
-	"AggregationTemporality",
-	"IsMonotonic",
+	"Min",
+	"Max",
+	"BucketCounts",
+	"ExplicitBounds",
+	"ValueAtQuantiles.Quantile",
+	"ValueAtQuantiles.Value",
+	"Count",
+	"Sum",
 }
 
 var MetricsTableNoDefaultConfig = model.TableConfig{
-	// TODO(vkorolik) mv
-	TableName:     MetricsSummaryTable,
-	KeysToColumns: metricsSumKeysToColumns,
-	ReservedKeys:  reservedMetricsSumKeys,
+	TableName:     MetricsTable,
+	KeysToColumns: metricsKeysToColumns,
+	ReservedKeys:  reservedMetricsKeys,
 	BodyColumn:    "MetricName",
-	// TODO(vkorolik) should we implement AttributesColumns from the start?
-	SelectColumns: metricsSumColumns,
+	SelectColumns: metricsColumns,
 }
 
 var MetricsTableConfig = model.TableConfig{
@@ -286,11 +295,11 @@ func (client *Client) ReadWorkspaceMetricCounts(ctx context.Context, projectIDs 
 }
 
 func (client *Client) MetricsKeys(ctx context.Context, projectID int, startDate time.Time, endDate time.Time, query *string, typeArg *modelInputs.KeyType) ([]*modelInputs.QueryKey, error) {
-	return KeysAggregated(ctx, client, MetricsSumTable, projectID, startDate, endDate, query, typeArg, nil)
+	return KeysAggregated(ctx, client, MetricKeysTable, projectID, startDate, endDate, query, typeArg, nil)
 }
 
 func (client *Client) MetricsKeyValues(ctx context.Context, projectID int, keyName string, startDate time.Time, endDate time.Time, query *string, limit *int) ([]string, error) {
-	return KeyValuesAggregated(ctx, client, MetricsSumTable, projectID, keyName, startDate, endDate, query, limit, nil)
+	return KeyValuesAggregated(ctx, client, MetricKeyValuesTable, projectID, keyName, startDate, endDate, query, limit, nil)
 }
 
 // TODO(vkorolik) is this used?
