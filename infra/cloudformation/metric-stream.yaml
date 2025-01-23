@@ -102,11 +102,11 @@ Resources:
         Type: AWS::CloudWatch::MetricStream
         Properties:
             FirehoseArn: !GetAtt DeliveryStream.Arn
-            IncludeFilters:
-                # Someday we may make this configurable
-                - Namespace: AWS/EC2
-                - Namespace: AWS/Lambda
-                - Namespace: AWS/RDS
+            # Someday we may filter this down and make it configurable
+            # IncludeFilters:
+            #     - Namespace: AWS/EC2
+            #     - Namespace: AWS/Lambda
+            #     - Namespace: AWS/RDS
             OutputFormat: opentelemetry1.0
             RoleArn: !GetAtt MetricStreamRole.Arn
 
