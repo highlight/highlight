@@ -39,6 +39,7 @@ const NoLimit = 1_000_000_000_000
 const bucketIndexAlias = "__highlight_bucket_index"
 const minAlias = "__highlight_min"
 const maxAlias = "__highlight_max"
+const projectIdSetting = "SQL_highlight_project_id"
 
 type SampleableTableConfig struct {
 	tableConfig         model.TableConfig
@@ -1293,18 +1294,20 @@ func (client *Client) readMetricsSql(ctx context.Context, input ReadMetricsInput
 
 	sql, args := builderInfo.Builder.BuildWithFlavor(sqlbuilder.ClickHouse)
 
-	sql += fmt.Sprintf(" SETTINGS SQL_highlight_project_id=%d", input.ProjectIDs[0])
+	if strings.Contains(sql, projectIdSetting) {
+		return nil, e.New("User cannot modify project id setting in query")
+	}
 
 	span, ctx := util.StartSpanFromContext(ctx, "readMetric.sql.query")
 	span.SetAttribute("sql", sql)
 	span.SetAttribute("args", args)
 
-	if len(input.ProjectIDs) != 1 {
-		return nil, e.Errorf("SQL queries must use 1 project id, %d found", len(input.ProjectIDs))
-	}
+	chCtx := clickhouse.Context(ctx, clickhouse.WithSettings(clickhouse.Settings{
+		projectIdSetting: clickhouse.CustomSetting{Value: strconv.Itoa(input.ProjectIDs[0])},
+	}))
 
 	rows, err := client.connReadonly.Query(
-		ctx,
+		chCtx,
 		sql,
 		args...,
 	)
