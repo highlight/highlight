@@ -98,10 +98,9 @@ var MetricsTableConfig = model.TableConfig{
 	DefaultFilter:     "",
 }
 
+// no sampling for metrics
 var MetricsSampleableTableConfig = SampleableTableConfig{
-	tableConfig:         MetricsTableConfig,
-	samplingTableConfig: MetricsTableConfig,
-	sampleSizeRows:      NoLimit,
+	tableConfig: MetricsTableConfig,
 }
 
 type MetricRow interface {
@@ -284,7 +283,7 @@ func (client *Client) QuerySessionCustomMetrics(ctx context.Context, projectId i
 	query := strings.Join(lo.Map(metricNames, func(m string, _ int) string {
 		return fmt.Sprintf("%s=%s", modelInputs.ReservedMetricKeyMetricName.String(), m)
 	}), " OR ")
-	query = fmt.Sprintf("%s=%s AND %s", modelInputs.ReservedMetricKeySecureSessionID.String(), sessionSecureId, query)
+	query = fmt.Sprintf("%s=%s AND (%s)", modelInputs.ReservedMetricKeySecureSessionID.String(), sessionSecureId, query)
 	params := modelInputs.QueryInput{
 		Query: query,
 		DateRange: &modelInputs.DateRangeRequiredInput{
