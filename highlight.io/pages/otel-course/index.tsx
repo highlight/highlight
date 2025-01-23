@@ -4,8 +4,8 @@ import Head from 'next/head'
 import Image from 'next/image'
 import { useRouter } from 'next/router'
 import { useEffect, useRef, useState } from 'react'
-import { Typography } from '../components/common/Typography/Typography'
-import { LOCAL_STORAGE_KEY } from './otel-course-signup'
+import { Typography } from '../../components/common/Typography/Typography'
+import { LOCAL_STORAGE_KEY } from './signup'
 
 type CourseVideo = {
 	id: string | undefined
@@ -31,14 +31,19 @@ const COURSE_VIDEOS: CourseVideo[] = [
 	{
 		id: 'biloVamYVVA',
 		title: 'Architecture and Components of OpenTelemetry',
-		description:
-			'Covers OpenTelemetry’s core components and architecture, including the SDK, API, and the role of the OpenTelemetry Collector in the observability pipeline.',
+		description: `Covers OpenTelemetry's core components and architecture, including the SDK, API, and the role of the OpenTelemetry Collector in the observability pipeline.`,
 	},
 	{
 		id: 'G9yadsMgzu0',
 		title: 'Setting up the Collector',
 		description:
 			'Learn how to set up the OpenTelemetry Collector to receive and process telemetry data from your applications.',
+	},
+	{
+		id: undefined,
+		title: 'OpenTelemetry Logging',
+		description:
+			'Learn about structured logging and how to integrate logging with OpenTelemetry, collecting and exporting logs to various backend systems for analysis.',
 	},
 	{
 		id: undefined,
@@ -51,12 +56,6 @@ const COURSE_VIDEOS: CourseVideo[] = [
 		title: 'OpenTelemetry Metrics',
 		description:
 			'Focuses on metrics collection and exporting, explaining different types of metrics (counters, gauges, histograms) and how to use OpenTelemetry to monitor application performance.',
-	},
-	{
-		id: undefined,
-		title: 'OpenTelemetry Logging',
-		description:
-			'Learn about structured logging and how to integrate logging with OpenTelemetry, collecting and exporting logs to various backend systems for analysis.',
 	},
 	{
 		id: undefined,
@@ -78,7 +77,7 @@ const COURSE_VIDEOS: CourseVideo[] = [
 	},
 	{
 		id: undefined,
-		title: 'Advanced Topics and Future of OpenTelemetry',
+		title: 'Advanced Topics and the Future of OpenTelemetry',
 		description:
 			'Explore advanced custom instrumentation, monitoring for AI/ML applications, and the future trends of OpenTelemetry in observability and beyond.',
 	},
@@ -86,11 +85,10 @@ const COURSE_VIDEOS: CourseVideo[] = [
 
 export default function OTelCourse() {
 	const [isAuthorized, setIsAuthorized] = useState(false)
-	const [currentVideo, setCurrentVideo] = useState<string | null>(null)
+	const [currentVideo, setCurrentVideo] = useState<CourseVideo['id']>()
 	const [videoProgressData, setVideoProgressData] = useState<
 		CourseVideoProgress[]
 	>([])
-
 	const router = useRouter()
 	const [player, setPlayer] = useState<YT.Player | null>(null)
 
@@ -103,11 +101,11 @@ export default function OTelCourse() {
 			const authorized =
 				localStorage.getItem(LOCAL_STORAGE_KEY) === 'true'
 
-			if (!authorized && typeof window !== 'undefined') {
-				router.push('/otel-course-signup')
-			} else {
-				setIsAuthorized(true)
-			}
+			// if (!authorized && typeof window !== 'undefined') {
+			// 	router.push('/otel-course/signup')
+			// } else {
+			setIsAuthorized(true)
+			// }
 		}
 
 		checkAuthorization()
@@ -172,9 +170,11 @@ export default function OTelCourse() {
 		}
 	}, [router])
 
-	const initializePlayer = (videoId: string) => {
+	const initializePlayer = (videoId: string | undefined) => {
+		if (!videoId) return
+
 		const newPlayer = new window.YT.Player('youtube-player', {
-			height: 558,
+			width: '100%',
 			videoId,
 			playerVars: {
 				autoplay: 1,
@@ -224,14 +224,16 @@ export default function OTelCourse() {
 		return () => clearInterval(progressInterval as any)
 	}
 
-	const loadVideo = (videoId: string) => {
+	const loadVideo = (videoId: string | undefined) => {
+		if (!videoId) return
+
 		if (player && player.loadVideoById) {
 			player.loadVideoById(videoId)
 			setCurrentVideo(videoId)
 		}
 	}
 
-	const handleVideoClick = (videoId: string) => {
+	const handleVideoClick = (videoId: string | undefined) => {
 		if (!player) {
 			initializePlayer(videoId)
 			setCurrentVideo(videoId)
@@ -254,10 +256,20 @@ export default function OTelCourse() {
 		return null
 	}
 
+	const findVideoProgress = (videoId: string | undefined) => {
+		return (
+			videoProgressData.find((vp) => vp.videoId === videoId) ?? {
+				videoId,
+				progress: 0,
+				started: false,
+			}
+		)
+	}
+
 	return (
-		<div className="container mx-auto px-4 py-8 max-w-5xl">
+		<div className="min-h-screen bg-gray-50">
 			{showToast && (
-				<div className="fixed top-8 left-1/2 transform -translate-x-1/2 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg transition-opacity duration-300 flex items-center space-x-2">
+				<div className="fixed top-8 left-1/2 transform -translate-x-1/2 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg transition-opacity duration-300 flex items-center space-x-2 z-50">
 					<svg
 						xmlns="http://www.w3.org/2000/svg"
 						className="h-6 w-6"
@@ -284,141 +296,128 @@ export default function OTelCourse() {
 				/>
 			</Head>
 
-			<div className="text-center mb-8">
-				<Typography type="copyHeader" className="mb-6">
-					Your Path to Becoming an OpenTelemetry Expert
-				</Typography>
-			</div>
-
-			<div className="mb-8">
-				<div className="aspect-w-16 aspect-h-9 h-[558px] flex items-center justify-center relative">
-					<div id="youtube-player" className="w-full h-full"></div>
-					{!currentVideo && (
-						<div className="w-full h-full flex items-center justify-center absolute top-0 left-0 bg-black bg-opacity-40">
-							<div className="text-center">
-								<Typography type="copy2" className="mb-4">
-									Select a video to start learning
-								</Typography>
-								<br />
-								<button
-									className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition-colors"
-									onClick={() => {
-										if (COURSE_VIDEOS[0].id) {
-											handleVideoClick(
-												COURSE_VIDEOS[0].id,
-											)
-										}
-									}}
-								>
-									Start First Video
-								</button>
-							</div>
-						</div>
-					)}
-				</div>
-			</div>
-
-			<div className="grid grid-cols-1 gap-8">
-				{COURSE_VIDEOS.map((video, index) => {
-					const videoProgress = videoProgressData.find(
-						(vp) => vp.videoId === video.id,
-					) ?? {
-						videoId: video.id,
-						progress: 0,
-						started: false,
-					}
-
-					return (
-						<div
-							key={`${video.id}-${index}`}
-							className="bg-white rounded-lg shadow-lg overflow-hidden flex flex-col md:flex-row hover:shadow-xl transition-shadow duration-300"
+			<div className="flex h-screen">
+				{/* Sidebar */}
+				<div className="w-80 bg-white border-r border-gray-200 overflow-y-auto flex-shrink-0">
+					<div className="p-6">
+						<Typography
+							type="copy2"
+							className="font-bold text-xl text-gray-800 mb-4"
 						>
-							<div className="relative w-full md:w-1/3">
-								<div className="w-full h-48 md:h-full relative">
-									{video.id ? (
-										<Image
-											src={`https://img.youtube.com/vi/${video.id}/maxresdefault.jpg`}
-											alt={video.title}
-											fill
-											className="object-cover"
-										/>
-									) : (
-										<div className="w-full h-full flex items-center justify-center bg-gray-200">
+							Course Content
+						</Typography>
+					</div>
+					<nav className="px-4 space-y-1">
+						{COURSE_VIDEOS.map((video, videoIndex) => {
+							const progress = findVideoProgress(video.id)
+							return (
+								<button
+									key={`video-${videoIndex}`}
+									className={`w-full text-left px-3 py-3 rounded-lg transition-colors ${
+										currentVideo === video.id
+											? 'bg-blue-50 text-blue-700'
+											: 'hover:bg-gray-50'
+									}`}
+									onClick={() => handleVideoClick(video.id)}
+								>
+									<div className="flex items-start gap-3 flex-col">
+										<div className="flex-1">
 											<Typography
-												type="copy2"
-												className="text-gray-500"
+												type="copy3"
+												className="font-medium text-gray-900"
 											>
-												Coming Soon
+												{video.title}
 											</Typography>
+											{progress.started && (
+												<div className="mt-2 w-full bg-gray-200 rounded-full h-1">
+													<div
+														className="bg-blue-600 h-1 rounded-full transition-all duration-300"
+														style={{
+															width: `${progress.progress}%`,
+														}}
+													></div>
+												</div>
+											)}
 										</div>
-									)}
-									<div className="absolute inset-0 bg-black bg-opacity-40 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity duration-300">
+										{!video.id && (
+											<span className="px-2 py-1 text-xs font-medium bg-gray-100 text-gray-600 rounded shrink-0">
+												Coming Soon
+											</span>
+										)}
+									</div>
+								</button>
+							)
+						})}
+					</nav>
+				</div>
+
+				{/* Main Content */}
+				<div className="flex-1 overflow-y-auto">
+					<div className="p-8">
+						{/* Video Player */}
+						<div
+							className="aspect-w-16 aspect-h-9 bg-gray-900 rounded-lg overflow-hidden mb-8 relative"
+							style={{ paddingBottom: '56.25%' }}
+						>
+							<div
+								id="youtube-player"
+								className="w-full h-full absolute top-0 left-0"
+							></div>
+							{!currentVideo && (
+								<div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-40">
+									<div className="text-center text-white flex flex-col items-center justify-center">
+										<Typography
+											type="copy2"
+											className="mb-4"
+										>
+											Select a video to start learning
+										</Typography>
 										<button
-											className="bg-red-600 text-white rounded-full p-3 hover:bg-red-700 transition-colors transform hover:scale-110 duration-300"
+											className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition-colors"
 											onClick={() => {
-												if (video.id) {
-													handleVideoClick(video.id)
+												if (COURSE_VIDEOS[0].id) {
+													handleVideoClick(
+														COURSE_VIDEOS[0].id,
+													)
 												}
 											}}
 										>
-											<svg
-												xmlns="http://www.w3.org/2000/svg"
-												className="h-8 w-8"
-												fill="currentColor"
-												viewBox="0 0 20 20"
-											>
-												<path
-													fillRule="evenodd"
-													d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z"
-													clipRule="evenodd"
-												/>
-											</svg>
+											Start First Video
 										</button>
 									</div>
 								</div>
-							</div>
-							<div className="w-full md:w-2/3 p-6 flex flex-col justify-between">
-								<div>
-									<Typography
-										type="copy2"
-										className="font-bold text-xl mb-2 text-gray-800"
-									>
-										{video.title}
-									</Typography>
-									<br />
-									<Typography
-										type="copy3"
-										className="text-gray-600 mb-4"
-									>
-										{video.description}
-									</Typography>
-								</div>
-								<div className="mt-4">
-									<div className="w-full bg-gray-200 rounded-full h-2 mb-2">
-										<div
-											className="bg-blue-600 h-2 rounded-full transition-all duration-300 ease-in-out"
-											style={{
-												width: `${videoProgress.progress}%`,
-											}}
-										></div>
-									</div>
-									<Typography
-										type="copy3"
-										className={`${
-											videoProgress.started
-												? 'text-green-600'
-												: 'text-gray-500'
-										} font-semibold`}
-									>
-										{videoProgress.started
-											? `${videoProgress.progress}% complete`
-											: 'Not started'}
-									</Typography>
-								</div>
-							</div>
+							)}
 						</div>
-					)
-				})}
+
+						{/* Video Content */}
+						{currentVideo && (
+							<div className="max-w-3xl flex flex-col gap-4">
+								<Typography
+									type="copy2"
+									className="text-2xl font-bold text-gray-900 mb-2"
+								>
+									{
+										COURSE_VIDEOS.find(
+											(video) =>
+												video.id === currentVideo,
+										)?.title
+									}
+								</Typography>
+								<Typography
+									type="copy3"
+									className="text-gray-600 mb-6"
+								>
+									{
+										COURSE_VIDEOS.find(
+											(video) =>
+												video.id === currentVideo,
+										)?.description
+									}
+								</Typography>
+							</div>
+						)}
+					</div>
+				</div>
 			</div>
 		</div>
 	)

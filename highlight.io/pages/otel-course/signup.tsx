@@ -4,7 +4,7 @@ import Head from 'next/head'
 import { useRouter } from 'next/router'
 import { useEffect, useState } from 'react'
 
-import '../styles/otel-course.scss'
+import './styles.scss'
 
 const COURSE_URL = '/otel-course'
 export const LOCAL_STORAGE_KEY = 'otelCourseAuthorized'
