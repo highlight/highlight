@@ -15,7 +15,7 @@ metaTitle: "How to instrument your React Native app with OpenTelemetry"
 ---
 
 ```hint
-Highlight.io is an [open source](https://github.com/highlight/highlight) monitoring platform. If you’re interested in learning more, get started at [highlight.io](https://highlight.io).
+Highlight.io is an [open source](https://github.com/highlight/highlight) monitoring platform. If you’re interested in learning more, get started at [highlight.io](https://highlight.io). Check out the React Native [example app](https://github.com/highlight/highlight/tree/main/e2e/react-native) and [Highlight code snippets](https://github.com/highlight/highlight/blob/main/e2e/react-native/app/highlight.ts) to follow along.
 ```
 
 OpenTelemetry is an open-source observability framework that provides tools, APIs, and SDKs to collect, process, and export telemetry data like traces, metrics, and logs from applications. It is designed to help developers monitor and troubleshoot distributed systems by providing standardized data formats and integration points for observability tools. If you're new to OpenTelemetry, you can learn more about it [here](https://www.youtube.com/watch?v=ASgosEzG4Pw). 
@@ -46,7 +46,7 @@ const tracerProvider = new BasicTracerProvider({ resource })
 
 ### **Exporter**
 
-An exporter sends the telemetry data to the backend. This is where you configure the endpoint and any other necessary settings related to the backend you're sending data to. In our example, we built a custom exporter as a workaround to some OpenTelemetry package issues with the React Native's bundler, Metro. A bundler-based solution is also in progress.
+An exporter sends the telemetry data to the backend. This is where you configure the endpoint and any other necessary settings related to the backend you're sending data to. In our example, we built a custom exporter as a workaround to some OpenTelemetry package issues with the React Native's bundler, Metro. A bundler-based solution is also in progress to use OpenTelemetry's [OTLPTraceExporter](https://www.npmjs.com/package/@opentelemetry/exporter-trace-otlp-http), and substitute out our custom exporter.
 
 Here's an example of how you might build a custom React Native exporter class that serializes and sends traces over http. Notice the majority of logic is serializing the batched spans:
 
