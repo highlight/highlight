@@ -266,7 +266,7 @@ func SendNotifications(ctx context.Context, mailClient *sendgrid.Client, lambdaC
 
 var alertModifyNotificationIgnored = regexp.MustCompile(`.+@(.+\.)?pagerduty.com`)
 
-func isModifyIgnored(item model.AlertDestination, index int) bool {
+func shouldKeepDestination(item model.AlertDestination, _ int) bool {
 	return !alertModifyNotificationIgnored.MatchString(item.TypeID)
 }
 
@@ -290,7 +290,7 @@ func sendAlertCreatedNotification(ctx context.Context, mailClient *sendgrid.Clie
 		},
 	}
 
-	deliverAlerts(ctx, mailClient, lambdaClient, emailData, lo.Filter(destinations, isModifyIgnored))
+	deliverAlerts(ctx, mailClient, lambdaClient, emailData, lo.Filter(destinations, shouldKeepDestination))
 }
 
 func sendAlertUpdatedNotification(ctx context.Context, mailClient *sendgrid.Client, lambdaClient *lambda.Client, notificationInput destinationsV2.NotificationInput, destinations []model.AlertDestination) {
@@ -313,7 +313,7 @@ func sendAlertUpdatedNotification(ctx context.Context, mailClient *sendgrid.Clie
 		},
 	}
 
-	deliverAlerts(ctx, mailClient, lambdaClient, emailData, lo.Filter(destinations, isModifyIgnored))
+	deliverAlerts(ctx, mailClient, lambdaClient, emailData, lo.Filter(destinations, shouldKeepDestination))
 }
 
 func deliverAlerts(ctx context.Context, mailClient *sendgrid.Client, lambdaClient *lambda.Client, emailTemplate *EmailData, destinations []model.AlertDestination) {
