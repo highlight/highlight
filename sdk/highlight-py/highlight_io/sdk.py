@@ -295,7 +295,7 @@ class H(object):
             span.set_attributes({"highlight.session_id": session_id})
             span.set_attributes({"highlight.trace_id": request_id})
 
-            self._context_map.put(span.context.trace_id, (session_id, request_id))
+            self._context_map.put(span.get_span_context().trace_id, (session_id, request_id))
 
             try:
                 yield span
