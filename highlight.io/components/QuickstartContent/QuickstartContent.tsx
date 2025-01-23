@@ -550,6 +550,10 @@ export const quickStartContent = {
 	},
 	server: {
 		go: {
+			title: 'Go',
+			subtitle:
+				'Select your Go framework to install Highlight for your application.',
+			logoUrl: siteUrl('/images/quickstart/go.svg'),
 			[QuickStartType.GoChi]: GoChiReorganizedContent,
 			[QuickStartType.GoEcho]: GoEchoReorganizedContent,
 			[QuickStartType.GoFiber]: GoFiberReorganizedContent,
@@ -561,9 +565,17 @@ export const quickStartContent = {
 			[QuickStartType.GoOther]: GoTracesReorganizedContent,
 		},
 		java: {
+			title: 'Java',
+			subtitle:
+				'Select your Java framework to install Highlight in your application.',
+			logoUrl: siteUrl('/images/quickstart/java.svg'),
 			[QuickStartType.JavaOther]: JavaOtherReorganizedContent,
 		},
 		js: {
+			title: 'JavaScript',
+			subtitle:
+				'Select your JavaScript framework to install Highlight for your application.',
+			logoUrl: siteUrl('/images/quickstart/javascript.svg'),
 			[QuickStartType.JSApollo]: JSApolloReorganizedContent,
 			[QuickStartType.JSAWSFn]: JSAWSLambdaReorganizedContent,
 			[QuickStartType.JSCloudflare]: JSCloudflareReorganizedContent,
@@ -579,9 +591,17 @@ export const quickStartContent = {
 			[QuickStartType.JSNextjs]: NextJsTracesReorganizedContent,
 		},
 		php: {
+			title: 'PHP',
+			subtitle:
+				'Select your PHP framework to install Highlight for your application.',
+			logoUrl: siteUrl('/images/quickstart/php.svg'),
 			[QuickStartType.Other]: PHPOtherReorganizedContent,
 		},
 		python: {
+			title: 'Python',
+			subtitle:
+				'Select your Python framework to install Highlight in your application.',
+			logoUrl: siteUrl('/images/quickstart/python.svg'),
 			[QuickStartType.PythonAWSFn]: PythonAWSReorganizedContext,
 			[QuickStartType.PythonAzureFn]: PythonAzureReorganizedContext,
 			[QuickStartType.PythonDjango]: PythonDjangoReorganizedContext,
@@ -595,17 +615,31 @@ export const quickStartContent = {
 			[QuickStartType.PythonAI]: PythonAITracesReorganizedContent,
 		},
 		ruby: {
+			title: 'Ruby',
+			subtitle:
+				'Select your Ruby framework to install Highlight for your application.',
+			logoUrl: siteUrl('/images/quickstart/ruby.svg'),
 			[QuickStartType.RubyOther]: RubyOtherReorganizedContent,
 			[QuickStartType.RubyRails]: RubyRailsReorganizedContent,
 		},
 		rust: {
+			title: 'Rust',
+			subtitle:
+				'Select your Rust framework to install Highlight for your application.',
+			logoUrl: siteUrl('/images/quickstart/rust.svg'),
 			[QuickStartType.RustActix]: RustActixReorganizedContent,
 			[QuickStartType.RustOther]: RustOtherReorganizedContent,
 		},
 		elixir: {
+			title: 'Elixir',
+			subtitle:
+				'Select your Elixir framework to install Highlight for your application.',
+			logoUrl: siteUrl('/images/quickstart/elixir.svg'),
 			[QuickStartType.ElixirOther]: ElixirOtherReorganizedContent,
 		},
 		otlp: {
+			title: 'OpenTelemetry',
+			subtitle: 'OpenTelemetry Protocol (OTLP)',
 			[QuickStartType.OTLP]: OTLPReorganizedContent,
 			[QuickStartType.OTLPDotNet]: DotNetOTLPReorganizedContent,
 			[QuickStartType.OTLPDotNet4]: DotNet4OTLPReorganizedContent,
