@@ -40,7 +40,7 @@ enum NetworkRequestTabs {
 	Errors = 'Errors',
 	Logs = 'Logs',
 	Trace = 'Trace',
-	Graph = 'Graph',
+	Latency = 'Latency',
 }
 
 enum WebSocketTabs {
@@ -321,8 +321,8 @@ function NetworkResourceDetails({
 							<Tabs.Tab id={NetworkRequestTabs.Trace}>
 								Trace
 							</Tabs.Tab>
-							<Tabs.Tab id={NetworkRequestTabs.Trace}>
-								Graph
+							<Tabs.Tab id={NetworkRequestTabs.Latency}>
+								Latency
 							</Tabs.Tab>
 						</>
 					)}
@@ -357,7 +357,7 @@ function NetworkResourceDetails({
 					</Tabs.Panel>
 				)}
 				{isNetworkRequest && (
-					<Tabs.Panel id={NetworkRequestTabs.Graph}>
+					<Tabs.Panel id={NetworkRequestTabs.Latency}>
 						<RequestMetrics resource={resource} />
 					</Tabs.Panel>
 				)}

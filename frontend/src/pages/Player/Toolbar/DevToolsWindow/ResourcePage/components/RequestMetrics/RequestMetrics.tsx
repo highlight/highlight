@@ -1,4 +1,3 @@
-import DataCard from '@components/DataCard/DataCard'
 import {
 	useGetDashboardDefinitionsQuery,
 	useGetMetricsQuery,
@@ -15,7 +14,6 @@ import { LineChart } from '@/pages/Graphing/components/LineChart'
 import { NetworkResource } from '@pages/Player/Toolbar/DevToolsWindowV2/utils'
 import { getGraphQLResolverName } from '@pages/Player/utils/utils'
 import { useParams } from '@util/react-router/useParams'
-import { Dropdown, Menu } from 'antd'
 import moment from 'moment'
 import React from 'react'
 import { Link } from 'react-router-dom'
@@ -117,41 +115,17 @@ const RequestMetrics: React.FC<Props> = ({ resource }) => {
 
 	return (
 		<div className={styles.requestMetrics}>
-			<DataCard
-				title={
-					<>
-						<h2>Request Metrics</h2>
-
-						{dashboardWithMetric ? (
-							<Link
-								to={`/${project_id}/dashboards/${dashboardWithMetric.id}`}
-							>
-								View on Dashboard
-							</Link>
-						) : (
-							<Dropdown.Button
-								size="small"
-								overlay={<Menu items={dashboardItems} />}
-							>
-								Add to Dashboard
-							</Dropdown.Button>
-						)}
-					</>
-				}
-				fullWidth
-			>
-				<div className={styles.chartContainer}>
-					<LineChart
-						data={chartData}
-						xAxisMetric={TIMESTAMP_KEY}
-						viewConfig={{
-							type: 'Line chart',
-							showLegend: false,
-						}}
-						showGrid
-					/>
-				</div>
-			</DataCard>
+			<div className={styles.chartContainer}>
+				<LineChart
+					data={chartData}
+					xAxisMetric={TIMESTAMP_KEY}
+					viewConfig={{
+						type: 'Line chart',
+						showLegend: false,
+					}}
+					showGrid
+				/>
+			</div>
 		</div>
 	)
 }
