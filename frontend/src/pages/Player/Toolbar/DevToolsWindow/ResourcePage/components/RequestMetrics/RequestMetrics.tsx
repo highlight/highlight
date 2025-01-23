@@ -1,46 +1,16 @@
-import {
-	useGetDashboardDefinitionsQuery,
-	useGetMetricsQuery,
-} from '@graph/hooks'
-import {
-	DashboardDefinition,
-	DashboardMetricConfig,
-	Maybe,
-	MetricAggregator,
-	MetricBucketBy,
-	ProductType,
-} from '@graph/schemas'
+import { useGetMetricsQuery } from '@graph/hooks'
+import { MetricAggregator, MetricBucketBy, ProductType } from '@graph/schemas'
 import { LineChart } from '@/pages/Graphing/components/LineChart'
 import { NetworkResource } from '@pages/Player/Toolbar/DevToolsWindowV2/utils'
 import { getGraphQLResolverName } from '@pages/Player/utils/utils'
 import { useParams } from '@util/react-router/useParams'
 import moment from 'moment'
 import React from 'react'
-import { Link } from 'react-router-dom'
 import styles from './RequestMetrics.module.css'
 import { TIMESTAMP_KEY, useGraphData } from '@pages/Graphing/components/Graph'
 
 interface Props {
 	resource: NetworkResource
-}
-
-const findDashboardMetric = (
-	dashboard: Maybe<DashboardDefinition>,
-	metricConfig: DashboardMetricConfig,
-) => {
-	return dashboard?.metrics.find((metric) => {
-		let isMatch = metric.name === metricConfig.name
-
-		if (isMatch && metricConfig.filters) {
-			isMatch = metricConfig.filters?.every((f) =>
-				metric.filters?.some(
-					(fi) => fi.tag === f.tag && fi.value === f.value,
-				),
-			)
-		}
-
-		return isMatch ? metric : false
-	})
 }
 
 const RequestMetrics: React.FC<Props> = ({ resource }) => {
@@ -76,38 +46,6 @@ const RequestMetrics: React.FC<Props> = ({ resource }) => {
 	})
 
 	const chartData = useGraphData(data, TIMESTAMP_KEY)
-
-	const { data: dashboardsData } = useGetDashboardDefinitionsQuery({
-		variables: { project_id: project_id! },
-		skip: !project_id,
-	})
-
-	const metricConfig = {
-		name: 'latency',
-		description: `Latency (${graphQlOperation || resource.name})`,
-		// TODO(vkorolik)
-		filters: [],
-	}
-
-	const dashboardWithMetric = dashboardsData?.dashboard_definitions.find(
-		(dashboard) => findDashboardMetric(dashboard, metricConfig),
-	)
-
-	const dashboardItems = dashboardsData?.dashboard_definitions
-		.filter((dd) => dd?.name !== 'Home')
-		.map((dd) => ({
-			label: (
-				<Link
-					to={{
-						pathname: `/${project_id}/dashboards/${dd?.id}`,
-					}}
-					state={{ metricConfig }}
-				>
-					{dd?.name}
-				</Link>
-			),
-			key: dd?.id || 0,
-		}))
 
 	if (!data?.metrics?.buckets) {
 		return null
