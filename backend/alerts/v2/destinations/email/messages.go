@@ -3,12 +3,11 @@ package emailV2
 import (
 	"context"
 	"fmt"
-	"github.com/samber/lo"
-	"strings"
-
 	"github.com/pkg/errors"
+	"github.com/samber/lo"
 	"github.com/sendgrid/sendgrid-go"
 	log "github.com/sirupsen/logrus"
+	"regexp"
 
 	destinationsV2 "github.com/highlight-run/highlight/backend/alerts/v2/destinations"
 	Email "github.com/highlight-run/highlight/backend/email"
@@ -266,17 +265,10 @@ func SendNotifications(ctx context.Context, mailClient *sendgrid.Client, lambdaC
 	}
 }
 
-var alertModifyNotificationIgnoredDomains = map[string]bool{
-	"steelhouse.pagerduty.com": true,
-}
+var alertModifyNotificationIgnored = regexp.MustCompile(`.+@(.+\.)?pagerduty.com`)
 
 func isModifyIgnored(item model.AlertDestination, index int) bool {
-	domain := item.TypeID
-	at := strings.LastIndex(domain, "@")
-	if at >= 0 {
-		domain = item.TypeID[at+1:]
-	}
-	return !alertModifyNotificationIgnoredDomains[domain]
+	return !alertModifyNotificationIgnored.MatchString(item.TypeID)
 }
 
 func sendAlertCreatedNotification(ctx context.Context, mailClient *sendgrid.Client, lambdaClient *lambda.Client, notificationInput destinationsV2.NotificationInput, destinations []model.AlertDestination) {
