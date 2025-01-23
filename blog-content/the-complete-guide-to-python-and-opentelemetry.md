@@ -274,6 +274,6 @@ The great thing about middleware is that it doesn't require that you change the 
 
 ## **Conclusion**
 
-In this guide, we've gone through everyting you need to use OpenTelemetry in Python, including the high-level concepts as well as how to send traces and logs to your OpenTelemetry backend of choice. 
+In this guide, we've gone through everything you need to use OpenTelemetry in Python, including the high-level concepts as well as how to send traces and logs to your OpenTelemetry backend of choice. 
 
 If you have any questions, please feel free to reach out to us on [Twitter](https://twitter.com/highlight_io) or [Discord](https://highlight.io/community).
