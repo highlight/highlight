@@ -6,9 +6,8 @@ import {
 	Button,
 	IconSolidArrowsExpand,
 	IconSolidCursorClick,
-	IconSolidDesktopComputer,
 	IconSolidDocumentDownload,
-	IconSolidDotsHorizontal,
+	IconSolidDragger,
 	IconSolidDuplicate,
 	IconSolidPencil,
 	IconSolidTrash,
@@ -85,25 +84,15 @@ export const DashboardCard = ({
 				{graphHover && (
 					<Box cssClass={style.buttonContainer}>
 						<Box>
-							<Button
-								size="xSmall"
-								emphasis="low"
-								kind="secondary"
-								iconLeft={
-									<IconSolidArrowsExpand
-										style={{
-											cursor: isDragging
-												? 'grabbing'
-												: 'grab',
-										}}
-									/>
-								}
-								ref={setActivatorNodeRef}
-								{...listeners}
-								style={{
-									cursor: isDragging ? 'grabbing' : 'grab',
-								}}
-							/>
+							{onExpand && (
+								<Button
+									size="xSmall"
+									emphasis="low"
+									kind="secondary"
+									iconLeft={<IconSolidArrowsExpand />}
+									onClick={onExpand}
+								/>
+							)}
 							{onEdit !== undefined && (
 								<Button
 									size="xSmall"
@@ -113,89 +102,82 @@ export const DashboardCard = ({
 									onClick={onEdit}
 								/>
 							)}
-							{(onExpand || onDelete || onClone) && (
-								<Menu>
-									<Menu.Button
-										size="xSmall"
-										emphasis="low"
-										kind="secondary"
-										iconLeft={<IconSolidDotsHorizontal />}
-										onClick={(e: any) => {
-											e.stopPropagation()
-										}}
-									/>
-									<Menu.List>
-										{onExpand && (
-											<Menu.Item
-												onClick={(e) => {
-													e.stopPropagation()
-													onExpand()
-												}}
+							<Menu>
+								<Menu.Button
+									size="xSmall"
+									emphasis="low"
+									kind="secondary"
+									iconLeft={
+										<IconSolidDragger
+											style={{
+												cursor: isDragging
+													? 'grabbing'
+													: 'grab',
+											}}
+										/>
+									}
+									ref={setActivatorNodeRef}
+									style={{
+										cursor: isDragging
+											? 'grabbing'
+											: 'grab',
+									}}
+									{...listeners}
+								/>
+								<Menu.List>
+									{onDownload && (
+										<Menu.Item
+											onClick={(e) => {
+												e.stopPropagation()
+												onDownload()
+											}}
+										>
+											<Box
+												display="flex"
+												alignItems="center"
+												gap="4"
 											>
-												<Box
-													display="flex"
-													alignItems="center"
-													gap="4"
-												>
-													<IconSolidDesktopComputer />
-													Expand metric view
-												</Box>
-											</Menu.Item>
-										)}
-										{onDownload && (
-											<Menu.Item
-												onClick={(e) => {
-													e.stopPropagation()
-													onDownload()
-												}}
+												<IconSolidDocumentDownload />
+												Download CSV
+											</Box>
+										</Menu.Item>
+									)}
+									{onClone && (
+										<Menu.Item
+											onClick={(e) => {
+												e.stopPropagation()
+												onClone()
+											}}
+										>
+											<Box
+												display="flex"
+												alignItems="center"
+												gap="4"
 											>
-												<Box
-													display="flex"
-													alignItems="center"
-													gap="4"
-												>
-													<IconSolidDocumentDownload />
-													Download CSV
-												</Box>
-											</Menu.Item>
-										)}
-										{onClone && (
-											<Menu.Item
-												onClick={(e) => {
-													e.stopPropagation()
-													onClone()
-												}}
+												<IconSolidDuplicate />
+												Clone metric view
+											</Box>
+										</Menu.Item>
+									)}
+									{onDelete && (
+										<Menu.Item
+											onClick={(e) => {
+												e.stopPropagation()
+												onDelete()
+											}}
+										>
+											<Box
+												display="flex"
+												alignItems="center"
+												gap="4"
 											>
-												<Box
-													display="flex"
-													alignItems="center"
-													gap="4"
-												>
-													<IconSolidDuplicate />
-													Clone metric view
-												</Box>
-											</Menu.Item>
-										)}
-										{onDelete && (
-											<Menu.Item
-												onClick={(e) => {
-													e.stopPropagation()
-													onDelete()
-												}}
-											>
-												<Box
-													display="flex"
-													alignItems="center"
-													gap="4"
-												>
-													<IconSolidTrash />
-													Delete metric view
-												</Box>
-											</Menu.Item>
-										)}
-									</Menu.List>
-								</Menu>
-							)}
+												<IconSolidTrash />
+												Delete metric view
+											</Box>
+										</Menu.Item>
+									)}
+								</Menu.List>
+							</Menu>
 						</Box>
 						{!hasDrilledDown && (
 							<Badge
