@@ -11,7 +11,7 @@ jobs:
     e2e-cypress:
         name: E2E Client Cypress
         timeout-minutes: 60
-        runs-on: codebuild-highlight-github-actions-runner-${{ github.run_id }}-${{ github.run_attempt }}-arm-3.0-large
+        runs-on: buildjet-8vcpu-ubuntu-2204
 
         steps:
             - name: Checkout
@@ -20,13 +20,13 @@ jobs:
                   submodules: recursive
 
             - name: Setup Node.js environment
-              uses: actions/setup-node@v4
+              uses: buildjet/setup-node@v4
               with:
                   node-version: lts/*
                   cache: 'yarn'
 
             - name: Setup Golang environment
-              uses: actions/setup-go@v5
+              uses: buildjet/setup-go@v5
               with:
                   go-version-file: 'backend/go.mod'
                   cache-dependency-path: '**/go.sum'
@@ -162,7 +162,7 @@ jobs:
     e2e-frontend-backend:
         name: E2E Frontend / Backend
         timeout-minutes: 60
-        runs-on: codebuild-highlight-github-actions-runner-${{ github.run_id }}-${{ github.run_attempt }}-arm-3.0
+        runs-on: buildjet-4vcpu-ubuntu-2204
 
         steps:
             - name: Checkout
@@ -171,13 +171,13 @@ jobs:
                   submodules: recursive
 
             - name: Setup Node.js environment
-              uses: actions/setup-node@v4
+              uses: buildjet/setup-node@v4
               with:
                   node-version: lts/*
                   cache: 'yarn'
 
             - name: Setup Golang environment
-              uses: actions/setup-go@v5
+              uses: buildjet/setup-go@v5
               with:
                   go-version-file: 'backend/go.mod'
                   cache-dependency-path: '**/go.sum'
@@ -271,7 +271,7 @@ jobs:
     e2e-docker:
         name: E2E Dockerized Apps
         timeout-minutes: 60
-        runs-on: codebuild-highlight-github-actions-runner-${{ github.run_id }}-${{ github.run_attempt }}-arm-3.0
+        runs-on: buildjet-4vcpu-ubuntu-2204
         strategy:
             matrix:
                 app: ['dotnet', 'dotnet4', 'go', 'python', 'ruby']
