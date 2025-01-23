@@ -502,6 +502,11 @@ export const quickStartContent = {
 			[QuickStartType.OTLPDotNet]: DotNetOTLPTracingContent,
 			[QuickStartType.OTLPDotNet4]: DotNet4OTLPTracingContent,
 		},
+		otlp: {
+			title: 'OpenTelemetry',
+			subtitle: 'OpenTelemetry Protocol (OTLP)',
+			[QuickStartType.OTLP]: OTLPTracesContent,
+		},
 	},
 	mobile: {
 		[QuickStartType.ReactNative]: ReactNativeContent,
