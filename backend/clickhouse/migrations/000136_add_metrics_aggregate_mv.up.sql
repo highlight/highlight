@@ -4,11 +4,11 @@ CREATE TABLE IF NOT EXISTS default.metrics
     `ServiceName`       String,
     `MetricName`        String,
     `MetricType`        Enum8('Empty' = 0, 'Gauge' = 1, 'Sum' = 2, 'Histogram' = 3, 'ExponentialHistogram' = 4, 'Summary' = 5),
+    `Attributes`        Map(LowCardinality(String), String),
     `Timestamp`         DateTime CODEC (Delta(4), ZSTD(1)),
     -- meta
     `MetricDescription` SimpleAggregateFunction(anyLast, String),
     `MetricUnit`        SimpleAggregateFunction(anyLast, String),
-    `Attributes`        SimpleAggregateFunction(maxMap, Map(String, String)),
     `StartTimestamp`    SimpleAggregateFunction(min, DateTime64(9)) CODEC (Delta(8), ZSTD(1)),
     `RetentionDays`     SimpleAggregateFunction(max, UInt8) DEFAULT 30,
     `Exemplars.Attributes` SimpleAggregateFunction(groupArrayArray, Array(Map(String, String))),
@@ -31,7 +31,7 @@ CREATE TABLE IF NOT EXISTS default.metrics
 )
     ENGINE = AggregatingMergeTree()
     PARTITION BY toStartOfDay(Timestamp)
-    ORDER BY (ProjectId, ServiceName, MetricName, MetricType, toUnixTimestamp(Timestamp))
+    ORDER BY (ProjectId, ServiceName, MetricName, MetricType, Attributes, toUnixTimestamp(Timestamp))
     TTL toDateTime(Timestamp) + toIntervalDay(RetentionDays);
 
 CREATE MATERIALIZED VIEW IF NOT EXISTS metrics_sum_mv TO metrics AS
@@ -39,11 +39,11 @@ SELECT ProjectId,
        ServiceName,
        MetricName,
        MetricType,
+       Attributes,
        toDateTime(toStartOfSecond(Timestamp))                as Timestamp,
        -- meta
        anyLastSimpleState(MetricDescription)                 as MetricDescription,
        anyLastSimpleState(MetricUnit)                        as MetricUnit,
-       maxMapSimpleState(Attributes)                         as Attributes,
        minSimpleState(StartTimestamp)                        as StartTimestamp,
        maxSimpleState(RetentionDays)                         as RetentionDays,
        groupArrayArraySimpleState(Exemplars.Attributes)      as `Exemplars.Attributes`,
@@ -63,11 +63,11 @@ SELECT ProjectId,
        ServiceName,
        MetricName,
        'Histogram'                                           as MetricType,
+       Attributes,
        toDateTime(toStartOfSecond(Timestamp))                as Timestamp,
        -- meta
        anyLastSimpleState(MetricDescription)                 as MetricDescription,
        anyLastSimpleState(MetricUnit)                        as MetricUnit,
-       maxMapSimpleState(Attributes)                         as Attributes,
        minSimpleState(StartTimestamp)                        as StartTimestamp,
        maxSimpleState(RetentionDays)                         as RetentionDays,
        groupArrayArraySimpleState(Exemplars.Attributes)      as `Exemplars.Attributes`,
@@ -91,11 +91,11 @@ SELECT ProjectId,
        ServiceName,
        MetricName,
        'Summary'                                             as MetricType,
+       Attributes,
        toDateTime(toStartOfSecond(Timestamp))                as Timestamp,
        -- meta
        anyLastSimpleState(MetricDescription)                 as MetricDescription,
        anyLastSimpleState(MetricUnit)                        as MetricUnit,
-       maxMapSimpleState(Attributes)                         as Attributes,
        minSimpleState(StartTimestamp)                        as StartTimestamp,
        maxSimpleState(RetentionDays)                         as RetentionDays,
        -- summary
