@@ -11,6 +11,7 @@ import (
 
 	"github.com/highlight-run/highlight/backend/env"
 	"github.com/samber/lo"
+	"go.opentelemetry.io/otel/attribute"
 
 	"github.com/ClickHouse/clickhouse-go/v2"
 	"github.com/ClickHouse/clickhouse-go/v2/lib/driver"
@@ -56,9 +57,10 @@ func NewClient(dbName string) (*Client, error) {
 			for _, c := range []driver.Conn{conn, connReadonly} {
 				stats := c.Stats()
 				name := lo.Ternary(c == conn, "conn", "connReadonly")
-				log.WithContext(context.Background()).WithField("Open", stats.Open).WithField("Idle", stats.Idle).WithField("MaxOpenConns", stats.MaxOpenConns).WithField("MaxIdleConns", stats.MaxIdleConns).Debugf("Clickhouse Connection Stats - %s", name)
-				hmetric.Gauge(context.Background(), "clickhouse.open", float64(stats.Open), nil, 1)
-				hmetric.Gauge(context.Background(), "clickhouse.idle", float64(stats.Idle), nil, 1)
+				log.WithContext(context.Background()).WithField("Open", stats.Open).WithField("Idle", stats.Idle).WithField("MaxOpenConns", stats.MaxOpenConns).WithField("MaxIdleConns", stats.MaxIdleConns).WithField("Name", name).Debug("Clickhouse Connection Stats")
+				tags := []attribute.KeyValue{attribute.String("name", name)}
+				hmetric.Gauge(context.Background(), "clickhouse.open", float64(stats.Open), tags, 1)
+				hmetric.Gauge(context.Background(), "clickhouse.idle", float64(stats.Idle), tags, 1)
 			}
 			time.Sleep(5 * time.Second)
 		}
