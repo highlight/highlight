@@ -269,6 +269,7 @@ func builderFromSql(
 		switch typed := expr.(type) {
 		case *sqlparser.FunctionExpr:
 			if typed.Name != nil && typed.Name.Name == "$time_interval" {
+				// Replace toStartOfInterval with the relevant $time_interval
 				typed.Name.Name = "toStartOfInterval"
 				if typed.Params.Items == nil {
 					return e.New("$time_interval called with empty argument list")
@@ -295,6 +296,13 @@ func builderFromSql(
 						Expr: stringLiteral,
 						Unit: &sqlparser.Ident{},
 					},
+				}
+			} else if typed.Name != nil {
+				// Apply _sample_factor to count or sum functions
+				isSample := strings.Contains(strings.ToLower(config.TableName), "sample")
+				funcLower := strings.ToLower(typed.Name.Name)
+				if isSample && (strings.Contains(funcLower, "sum") || strings.Contains(funcLower, "count")) {
+					typed.Name.Name = fmt.Sprintf("_sample_factor * %s", typed.Name.Name)
 				}
 			}
 		}
@@ -1321,8 +1329,6 @@ func (client *Client) readMetricsSql(ctx context.Context, input ReadMetricsInput
 
 		selectNames = append(selectNames, t.Name())
 	}
-
-	// ZANETODO: handle sample_factor
 
 	results := map[int]*float64{}
 	for i := 0; rows.Next(); i++ {

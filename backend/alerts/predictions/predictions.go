@@ -52,7 +52,6 @@ func AddPredictions(ctx context.Context, metricBuckets []*modelInputs.MetricBuck
 				max = *b.BucketMax
 				min = *b.BucketMin
 			}
-			// ZANETODO: validate predictions
 			y[b.BucketID] = value
 			ds[b.BucketID] = time.Unix(int64((max+min)/2), 0).Format("2006-01-02T15:04:05")
 		}

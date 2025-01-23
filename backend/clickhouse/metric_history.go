@@ -124,7 +124,6 @@ func (client *Client) AggregateMetricStates(ctx context.Context, metricId string
 		}
 
 		if windowSeconds != nil {
-			// ZANETODO: change this with new bucket ids
 			newBucket.BucketMin = pointy.Float64(float64(startDate.Unix()) + float64(result.BucketId*uint64(*windowSeconds)))
 			newBucket.BucketMax = pointy.Float64(float64(startDate.Unix()) + float64((result.BucketId+1)*uint64(*windowSeconds)))
 		}
