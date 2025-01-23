@@ -20,6 +20,8 @@ jobs:
                 working-directory: ./sdk/highlight-py
         steps:
             - uses: actions/checkout@v4
+            - name: Install pipx
+              run: python3 -m pip install pipx
             - name: Install poetry
               run: pipx install poetry
             - uses: actions/setup-python@v4
@@ -60,6 +62,8 @@ jobs:
 
         steps:
             - uses: actions/checkout@v4
+            - name: Install pipx
+              run: python3 -m pip install pipx
             - name: Install poetry
               run: pipx install poetry
             - uses: actions/setup-python@v4
