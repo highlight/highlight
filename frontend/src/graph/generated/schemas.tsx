@@ -781,6 +781,7 @@ export type Graph = {
 	nullHandling?: Maybe<Scalars['String']>
 	productType: ProductType
 	query: Scalars['String']
+	sql?: Maybe<Scalars['String']>
 	title: Scalars['String']
 	type: Scalars['String']
 }
@@ -801,6 +802,7 @@ export type GraphInput = {
 	nullHandling?: InputMaybe<Scalars['String']>
 	productType: ProductType
 	query: Scalars['String']
+	sql?: InputMaybe<Scalars['String']>
 	title: Scalars['String']
 	type: Scalars['String']
 	visualizationId: Scalars['ID']
@@ -1105,8 +1107,9 @@ export enum MetricAggregator {
 export type MetricBucket = {
 	__typename?: 'MetricBucket'
 	bucket_id: Scalars['UInt64']
-	bucket_max: Scalars['Float']
-	bucket_min: Scalars['Float']
+	bucket_max?: Maybe<Scalars['Float']>
+	bucket_min?: Maybe<Scalars['Float']>
+	bucket_value?: Maybe<Scalars['Float']>
 	column: Scalars['String']
 	group: Array<Scalars['String']>
 	metric_type: MetricAggregator

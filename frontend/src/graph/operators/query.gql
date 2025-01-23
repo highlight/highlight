@@ -2636,6 +2636,7 @@ query GetMetrics(
 			bucket_id
 			bucket_min
 			bucket_max
+			bucket_value
 			group
 			column
 			metric_type
@@ -2673,6 +2674,7 @@ query GetGraphTemplates {
 			aggregator
 			column
 		}
+		sql
 	}
 }
 
@@ -2713,6 +2715,7 @@ query GetVisualization($id: ID!) {
 				aggregator
 				column
 			}
+			sql
 		}
 		updatedByAdmin {
 			id
@@ -2771,6 +2774,7 @@ query GetVisualizations(
 					aggregator
 					column
 				}
+				sql
 			}
 			updatedByAdmin {
 				id

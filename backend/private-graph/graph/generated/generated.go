@@ -607,6 +607,7 @@ type ComplexityRoot struct {
 		NullHandling      func(childComplexity int) int
 		ProductType       func(childComplexity int) int
 		Query             func(childComplexity int) int
+		Sql               func(childComplexity int) int
 		Title             func(childComplexity int) int
 		Type              func(childComplexity int) int
 	}
@@ -800,6 +801,7 @@ type ComplexityRoot struct {
 		BucketID    func(childComplexity int) int
 		BucketMax   func(childComplexity int) int
 		BucketMin   func(childComplexity int) int
+		BucketValue func(childComplexity int) int
 		Column      func(childComplexity int) int
 		Group       func(childComplexity int) int
 		MetricType  func(childComplexity int) int
@@ -4728,6 +4730,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Graph.Query(childComplexity), true
 
+	case "Graph.sql":
+		if e.complexity.Graph.Sql == nil {
+			break
+		}
+
+		return e.complexity.Graph.Sql(childComplexity), true
+
 	case "Graph.title":
 		if e.complexity.Graph.Title == nil {
 			break
@@ -5511,6 +5520,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.MetricBucket.BucketMin(childComplexity), true
+
+	case "MetricBucket.bucket_value":
+		if e.complexity.MetricBucket.BucketValue == nil {
+			break
+		}
+
+		return e.complexity.MetricBucket.BucketValue(childComplexity), true
 
 	case "MetricBucket.column":
 		if e.complexity.MetricBucket.Column == nil {
@@ -12920,8 +12936,9 @@ enum MetricBucketBy {
 
 type MetricBucket {
 	bucket_id: UInt64!
-	bucket_min: Float!
-	bucket_max: Float!
+	bucket_min: Float
+	bucket_max: Float
+	bucket_value: Float
 	group: [String!]!
 	column: String!
 	metric_type: MetricAggregator!
@@ -13814,6 +13831,7 @@ type Graph {
 	display: String
 	nullHandling: String
 	expressions: [MetricExpression!]!
+	sql: String
 }
 
 type Variable {
@@ -13863,6 +13881,7 @@ input GraphInput {
 	display: String
 	nullHandling: String
 	expressions: [MetricExpressionInput!]!
+	sql: String
 }
 
 input VariableInput {
@@ -40013,6 +40032,47 @@ func (ec *executionContext) fieldContext_Graph_expressions(ctx context.Context, 
 	return fc, nil
 }
 
+func (ec *executionContext) _Graph_sql(ctx context.Context, field graphql.CollectedField, obj *model1.Graph) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Graph_sql(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Sql, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Graph_sql(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Graph",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _HeightList_id(ctx context.Context, field graphql.CollectedField, obj *model.HeightList) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_HeightList_id(ctx, field)
 	if err != nil {
@@ -44829,14 +44889,11 @@ func (ec *executionContext) _MetricBucket_bucket_min(ctx context.Context, field 
 		return graphql.Null
 	}
 	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
 		return graphql.Null
 	}
-	res := resTmp.(float64)
+	res := resTmp.(*float64)
 	fc.Result = res
-	return ec.marshalNFloat2float64(ctx, field.Selections, res)
+	return ec.marshalOFloat2ᚖfloat64(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_MetricBucket_bucket_min(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -44873,17 +44930,55 @@ func (ec *executionContext) _MetricBucket_bucket_max(ctx context.Context, field 
 		return graphql.Null
 	}
 	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
 		return graphql.Null
 	}
-	res := resTmp.(float64)
+	res := resTmp.(*float64)
 	fc.Result = res
-	return ec.marshalNFloat2float64(ctx, field.Selections, res)
+	return ec.marshalOFloat2ᚖfloat64(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_MetricBucket_bucket_max(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "MetricBucket",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Float does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _MetricBucket_bucket_value(ctx context.Context, field graphql.CollectedField, obj *model.MetricBucket) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_MetricBucket_bucket_value(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.BucketValue, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*float64)
+	fc.Result = res
+	return ec.marshalOFloat2ᚖfloat64(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_MetricBucket_bucket_value(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "MetricBucket",
 		Field:      field,
@@ -46181,6 +46276,8 @@ func (ec *executionContext) fieldContext_MetricsBuckets_buckets(ctx context.Cont
 				return ec.fieldContext_MetricBucket_bucket_min(ctx, field)
 			case "bucket_max":
 				return ec.fieldContext_MetricBucket_bucket_max(ctx, field)
+			case "bucket_value":
+				return ec.fieldContext_MetricBucket_bucket_value(ctx, field)
 			case "group":
 				return ec.fieldContext_MetricBucket_group(ctx, field)
 			case "column":
@@ -52757,6 +52854,8 @@ func (ec *executionContext) fieldContext_Mutation_upsertGraph(ctx context.Contex
 				return ec.fieldContext_Graph_nullHandling(ctx, field)
 			case "expressions":
 				return ec.fieldContext_Graph_expressions(ctx, field)
+			case "sql":
+				return ec.fieldContext_Graph_sql(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Graph", field.Name)
 		},
@@ -65850,6 +65949,8 @@ func (ec *executionContext) fieldContext_Query_graph(ctx context.Context, field 
 				return ec.fieldContext_Graph_nullHandling(ctx, field)
 			case "expressions":
 				return ec.fieldContext_Graph_expressions(ctx, field)
+			case "sql":
+				return ec.fieldContext_Graph_sql(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Graph", field.Name)
 		},
@@ -65941,6 +66042,8 @@ func (ec *executionContext) fieldContext_Query_graph_templates(ctx context.Conte
 				return ec.fieldContext_Graph_nullHandling(ctx, field)
 			case "expressions":
 				return ec.fieldContext_Graph_expressions(ctx, field)
+			case "sql":
+				return ec.fieldContext_Graph_sql(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Graph", field.Name)
 		},
@@ -80219,6 +80322,8 @@ func (ec *executionContext) fieldContext_Visualization_graphs(ctx context.Contex
 				return ec.fieldContext_Graph_nullHandling(ctx, field)
 			case "expressions":
 				return ec.fieldContext_Graph_expressions(ctx, field)
+			case "sql":
+				return ec.fieldContext_Graph_sql(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Graph", field.Name)
 		},
@@ -85025,7 +85130,7 @@ func (ec *executionContext) unmarshalInputGraphInput(ctx context.Context, obj in
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"id", "visualizationId", "afterGraphId", "type", "title", "productType", "query", "groupByKeys", "bucketByKey", "bucketCount", "bucketInterval", "limit", "limitFunctionType", "limitMetric", "funnelSteps", "display", "nullHandling", "expressions"}
+	fieldsInOrder := [...]string{"id", "visualizationId", "afterGraphId", "type", "title", "productType", "query", "groupByKeys", "bucketByKey", "bucketCount", "bucketInterval", "limit", "limitFunctionType", "limitMetric", "funnelSteps", "display", "nullHandling", "expressions", "sql"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -85158,6 +85263,13 @@ func (ec *executionContext) unmarshalInputGraphInput(ctx context.Context, obj in
 				return it, err
 			}
 			it.Expressions = data
+		case "sql":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("sql"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.SQL = data
 		}
 	}
 
@@ -90356,6 +90468,8 @@ func (ec *executionContext) _Graph(ctx context.Context, sel ast.SelectionSet, ob
 			}
 
 			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+		case "sql":
+			out.Values[i] = ec._Graph_sql(ctx, field, obj)
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -91970,14 +92084,10 @@ func (ec *executionContext) _MetricBucket(ctx context.Context, sel ast.Selection
 			}
 		case "bucket_min":
 			out.Values[i] = ec._MetricBucket_bucket_min(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				out.Invalids++
-			}
 		case "bucket_max":
 			out.Values[i] = ec._MetricBucket_bucket_max(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				out.Invalids++
-			}
+		case "bucket_value":
+			out.Values[i] = ec._MetricBucket_bucket_value(ctx, field, obj)
 		case "group":
 			out.Values[i] = ec._MetricBucket_group(ctx, field, obj)
 			if out.Values[i] == graphql.Null {

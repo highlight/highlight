@@ -5726,6 +5726,7 @@ export const UpsertGraphDocument = gql`
 				aggregator
 				column
 			}
+			sql
 		}
 	}
 `
@@ -15007,6 +15008,7 @@ export const GetMetricsDocument = gql`
 				bucket_id
 				bucket_min
 				bucket_max
+				bucket_value
 				group
 				column
 				metric_type
@@ -15104,6 +15106,7 @@ export const GetGraphTemplatesDocument = gql`
 				aggregator
 				column
 			}
+			sql
 		}
 	}
 `
@@ -15193,6 +15196,7 @@ export const GetVisualizationDocument = gql`
 					aggregator
 					column
 				}
+				sql
 			}
 			updatedByAdmin {
 				id
@@ -15301,6 +15305,7 @@ export const GetVisualizationsDocument = gql`
 						aggregator
 						column
 					}
+					sql
 				}
 				updatedByAdmin {
 					id

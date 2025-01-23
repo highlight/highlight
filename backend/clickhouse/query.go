@@ -24,7 +24,7 @@ import (
 	"github.com/nqd/flat"
 	e "github.com/pkg/errors"
 	"github.com/samber/lo"
-	"github.com/unknwon/log"
+	"go.openly.dev/pointy"
 
 	sqlparser "github.com/AfterShip/clickhouse-sql-parser/parser"
 )
@@ -185,10 +185,8 @@ func readObjects[TObj interface{}](ctx context.Context, client *Client, config m
 }
 
 type BuilderInfo struct {
-	Builder     *sqlbuilder.SelectBuilder
-	SelectItems []string
-	Fields      []string
-	BucketCount int
+	Builder *sqlbuilder.SelectBuilder
+	Fields  []string
 }
 
 func builderFromSql(
@@ -220,15 +218,6 @@ func builderFromSql(
 		return nil, e.New("SQL statement must be SelectQuery")
 	}
 
-	selectItems := []string{}
-	for _, item := range selectQuery.SelectItems {
-		str := item.String()
-		if item.Alias != nil {
-			str = item.Alias.Name
-		}
-		selectItems = append(selectItems, str)
-	}
-
 	tableReplacementVisitor := sqlparser.DefaultASTVisitor{}
 	tableReplacementVisitor.Visit = func(expr sqlparser.Expr) error {
 		switch typed := expr.(type) {
@@ -256,16 +245,13 @@ func builderFromSql(
 	}
 
 	sb := sqlbuilder.ClickHouse.NewSelectBuilder()
-	bucketingInfo := getBucketing(config, input, sb)
-	sb.GroupBy(bucketIndexAlias)
-	sb.OrderBy(bucketIndexAlias)
 
-	fields := bucketingInfo.NewAttributeFields
+	fields := []string{}
 	columnReplacementVisitor := sqlparser.DefaultASTVisitor{}
 	columnReplacementVisitor.Visit = func(expr sqlparser.Expr) error {
 		switch typed := expr.(type) {
 		case *sqlparser.Ident:
-			if lo.Contains(ignoreList, expr) {
+			if typed.Name == "*" || lo.Contains(ignoreList, expr) {
 				break
 			}
 			if col, found := config.KeysToColumns[typed.Name]; found {
@@ -273,6 +259,43 @@ func builderFromSql(
 			} else {
 				fields = append(fields, typed.Name)
 				typed.Name = fmt.Sprintf("%s['%s']", model.GetAttributesColumn(config.AttributesColumns, typed.Name), typed.Name)
+			}
+		}
+		return nil
+	}
+
+	functionReplacementVisitor := sqlparser.DefaultASTVisitor{}
+	functionReplacementVisitor.Visit = func(expr sqlparser.Expr) error {
+		switch typed := expr.(type) {
+		case *sqlparser.FunctionExpr:
+			if typed.Name != nil && typed.Name.Name == "$time_interval" {
+				typed.Name.Name = "toStartOfInterval"
+				if typed.Params.Items == nil {
+					return e.New("$time_interval called with empty argument list")
+				}
+
+				if len(typed.Params.Items.Items) != 1 {
+					return e.Errorf("Expecting 1 argument for $time_interval, found %d", len(typed.Params.Items.Items))
+				}
+
+				columnExpr, ok := typed.Params.Items.Items[0].(*sqlparser.ColumnExpr)
+				if !ok {
+					return e.Errorf("Expecting $time_interval argument to be a string literal.")
+				}
+				stringLiteral, ok := columnExpr.Expr.(*sqlparser.StringLiteral)
+				if !ok {
+					return e.Errorf("Expecting $time_interval argument to be a string literal.")
+				}
+
+				typed.Params.Items.Items = []sqlparser.Expr{
+					&sqlparser.ColumnExpr{
+						Expr: &sqlparser.Ident{Name: "Timestamp"},
+					},
+					&sqlparser.IntervalExpr{
+						Expr: stringLiteral,
+						Unit: &sqlparser.Ident{},
+					},
+				}
 			}
 		}
 		return nil
@@ -287,12 +310,14 @@ func builderFromSql(
 	if err := stmt.Accept(&columnReplacementVisitor); err != nil {
 		return nil, err
 	}
+	if err := stmt.Accept(&functionReplacementVisitor); err != nil {
+		return nil, err
+	}
 
 	selectStrs := []string{}
 	for _, item := range selectQuery.SelectItems {
 		selectStrs = append(selectStrs, item.String())
 	}
-	selectStrs = append(selectStrs, bucketingInfo.NewSelectItems...)
 	sb.Select(selectStrs...)
 	if selectQuery.From != nil {
 		sb.From(strings.TrimPrefix(selectQuery.From.String(), "FROM "))
@@ -309,6 +334,8 @@ func builderFromSql(
 	if selectQuery.OrderBy != nil {
 		sb.OrderBy(strings.TrimPrefix(selectQuery.OrderBy.String(), "ORDER BY "))
 	}
+
+	sb.Limit(1000) // Limit to 1000 results by default
 	if selectQuery.Limit != nil {
 		if selectQuery.Limit.Limit != nil {
 			limitInt, err := strconv.Atoi(selectQuery.Limit.Limit.String())
@@ -336,10 +363,8 @@ func builderFromSql(
 	sb.Where(sb.LessEqualThan("Timestamp", input.Params.DateRange.EndDate))
 
 	return &BuilderInfo{
-		Builder:     sb,
-		Fields:      fields,
-		SelectItems: selectItems,
-		BucketCount: bucketingInfo.BucketCount,
+		Builder: sb,
+		Fields:  fields,
 	}, nil
 }
 
@@ -1256,20 +1281,26 @@ func (client *Client) readMetricsSql(ctx context.Context, input ReadMetricsInput
 		return nil, err
 	}
 	applyBlockFilter(builderInfo.Builder, input)
-
-	// ZANETODO: confirm this works w/ sessions / events
-	addAttributes(config, builderInfo.Fields, input.ProjectIDs, input.Params, builderInfo.Builder)
+	addAttributes(config, builderInfo.Fields, input.ProjectIDs, input.Params, builderInfo.Builder, true)
 
 	sql, args := builderInfo.Builder.BuildWithFlavor(sqlbuilder.ClickHouse)
 
-	span, ctx := util.StartSpanFromContext(ctx, "readMetrics.query")
+	sql += fmt.Sprintf(" SETTINGS SQL_highlight_project_id=%d", input.ProjectIDs[0])
+
+	span, ctx := util.StartSpanFromContext(ctx, "readMetric.sql.query")
 	span.SetAttribute("sql", sql)
 	span.SetAttribute("args", args)
-	rows, err := client.conn.Query(
+
+	if len(input.ProjectIDs) != 1 {
+		return nil, e.Errorf("SQL queries must use 1 project id, %d found", len(input.ProjectIDs))
+	}
+
+	rows, err := client.connReadonly.Query(
 		ctx,
 		sql,
 		args...,
 	)
+
 	span.Finish(err)
 
 	if err != nil {
@@ -1279,127 +1310,68 @@ func (client *Client) readMetricsSql(ctx context.Context, input ReadMetricsInput
 	metrics := &modelInputs.MetricsBuckets{
 		Buckets: []*modelInputs.MetricBucket{},
 	}
+
 	types := rows.ColumnTypes()
-	log.Info("%v", types)
 	scanResults := []interface{}{}
+	selectNames := []string{}
 	for _, t := range types {
-		rv := reflect.New(t.ScanType())
-		vi := rv.Interface()
-		scanResults = append(scanResults, vi)
+		typ := t.ScanType()
+		rv := reflect.New(typ).Interface()
+		scanResults = append(scanResults, rv)
+
+		selectNames = append(selectNames, t.Name())
 	}
 
-	lastBucketId := -1
-	results := map[int]float64{}
-	var bucketId uint64
-	var min, max float64
-	var groups []string
-	for rows.Next() {
+	// ZANETODO: handle sample_factor
+
+	results := map[int]*float64{}
+	for i := 0; rows.Next(); i++ {
 		if err := rows.Scan(scanResults...); err != nil {
 			return nil, err
 		}
 
-		// bucketId := groupKey
-		// if bucketId >= uint64(nBuckets) {
-		// continue
-		// }
+		var bucketId uint64
+		var bucketValue *float64
+		groups := []string{}
+		for idx, r := range scanResults {
+			rv := reflect.ValueOf(r)
 
-		groups = []string{}
-		for idx, r := range scanResults[:len(scanResults)-3] {
-			if typed, ok := r.(*string); ok {
-				groups = append(groups, *typed)
+			// Unwrap nested pointers - e.g. `Nullable(Nullable(Int))` -> `Int`
+			for ; rv.Kind() == reflect.Pointer && !rv.IsNil(); rv = rv.Elem() {
 			}
-			if typed, ok := r.(*bool); ok {
-				groups = append(groups, strconv.FormatBool(*typed))
-			}
-			if typed, ok := r.(*float32); ok {
-				results[idx] = float64(*typed)
-			}
-			if typed, ok := r.(*float64); ok {
-				results[idx] = *typed
-			}
-			if typed, ok := r.(*int); ok {
-				results[idx] = float64(*typed)
-			}
-			if typed, ok := r.(*int8); ok {
-				results[idx] = float64(*typed)
-			}
-			if typed, ok := r.(*int16); ok {
-				results[idx] = float64(*typed)
-			}
-			if typed, ok := r.(*int32); ok {
-				results[idx] = float64(*typed)
-			}
-			if typed, ok := r.(*int64); ok {
-				results[idx] = float64(*typed)
-			}
-			if typed, ok := r.(*uint); ok {
-				results[idx] = float64(*typed)
-			}
-			if typed, ok := r.(*uint8); ok {
-				results[idx] = float64(*typed)
-			}
-			if typed, ok := r.(*uint16); ok {
-				results[idx] = float64(*typed)
-			}
-			if typed, ok := r.(*uint32); ok {
-				results[idx] = float64(*typed)
-			}
-			if typed, ok := r.(*uint64); ok {
-				results[idx] = float64(*typed)
-			}
-			if typed, ok := r.(*time.Time); ok {
-				results[idx] = float64(typed.Unix())
-			}
-		}
 
-		bucketId = *scanResults[len(scanResults)-3].(*uint64)
-		min = *scanResults[len(scanResults)-2].(*float64)
-		max = *scanResults[len(scanResults)-1].(*float64)
-
-		// Interpolate any missing buckets
-		for i := lastBucketId + 1; i < int(bucketId); i++ {
-			for idx, _ := range results {
-				metrics.Buckets = append(metrics.Buckets, &modelInputs.MetricBucket{
-					BucketID:    uint64(i),
-					BucketMin:   float64(i)*(max-min)/float64(builderInfo.BucketCount) + min,
-					BucketMax:   float64(i+1)*(max-min)/float64(builderInfo.BucketCount) + min,
-					Group:       groups,
-					MetricType:  modelInputs.MetricAggregator(builderInfo.SelectItems[idx]),
-					MetricValue: nil,
-				})
+			switch rv.Kind() {
+			case reflect.Struct:
+				switch typed := rv.Interface().(type) {
+				case time.Time:
+					bucketId = uint64(typed.Unix())
+					bucketValue = pointy.Float64(float64(typed.Unix()))
+				}
+			case reflect.String:
+				groups = append(groups, rv.String())
+			case reflect.Bool:
+				groups = append(groups, strconv.FormatBool(rv.Bool()))
+			case reflect.Float32, reflect.Float64:
+				results[idx] = pointy.Float64(rv.Float())
+			case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
+				results[idx] = pointy.Float64(float64(rv.Int()))
+			case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
+				results[idx] = pointy.Float64(float64(rv.Uint()))
+			case reflect.Pointer:
+				results[idx] = nil
 			}
 		}
 
 		for idx, r := range results {
 			metrics.Buckets = append(metrics.Buckets, &modelInputs.MetricBucket{
 				BucketID:    bucketId,
-				BucketMin:   float64(bucketId)*(max-min)/float64(builderInfo.BucketCount) + min,
-				BucketMax:   float64(bucketId+1)*(max-min)/float64(builderInfo.BucketCount) + min,
+				BucketValue: bucketValue,
 				Group:       groups,
-				MetricType:  modelInputs.MetricAggregator(builderInfo.SelectItems[idx]),
-				MetricValue: &r,
-			})
-		}
-
-		lastBucketId = int(bucketId)
-	}
-
-	// Interpolate any missing buckets
-	for i := lastBucketId + 1; i < builderInfo.BucketCount; i++ {
-		for idx, _ := range results {
-			metrics.Buckets = append(metrics.Buckets, &modelInputs.MetricBucket{
-				BucketID:    uint64(i),
-				BucketMin:   float64(i)*(max-min)/float64(builderInfo.BucketCount) + min,
-				BucketMax:   float64(i+1)*(max-min)/float64(builderInfo.BucketCount) + min,
-				Group:       groups,
-				MetricType:  modelInputs.MetricAggregator(builderInfo.SelectItems[idx]),
-				MetricValue: nil,
+				MetricType:  modelInputs.MetricAggregator(selectNames[idx]),
+				MetricValue: r,
 			})
 		}
 	}
-
-	// metrics.SampleFactor = sampleFactor
-	metrics.BucketCount = uint64(builderInfo.BucketCount)
 
 	return metrics, err
 }
@@ -1638,7 +1610,7 @@ func (client *Client) ReadMetrics(ctx context.Context, input ReadMetricsInput) (
 	groupByCols = append(groupByCols, groupAliases...)
 	orderByCols = append(orderByCols, groupAliases...)
 
-	addAttributes(config, attributeFields, input.ProjectIDs, input.Params, fromSb)
+	addAttributes(config, attributeFields, input.ProjectIDs, input.Params, fromSb, false)
 
 	innerSb := fromSb
 	fromSb = sqlbuilder.NewSelectBuilder()
@@ -1741,8 +1713,8 @@ func (client *Client) ReadMetrics(ctx context.Context, input ReadMetricsInput) (
 			for _, e := range input.Expressions {
 				metrics.Buckets = append(metrics.Buckets, &modelInputs.MetricBucket{
 					BucketID:    uint64(i),
-					BucketMin:   float64(i)*(max-min)/float64(bucketingInfo.BucketCount) + min,
-					BucketMax:   float64(i+1)*(max-min)/float64(bucketingInfo.BucketCount) + min,
+					BucketMin:   pointy.Float64(float64(i)*(max-min)/float64(bucketingInfo.BucketCount) + min),
+					BucketMax:   pointy.Float64(float64(i+1)*(max-min)/float64(bucketingInfo.BucketCount) + min),
 					Group:       append(make([]string, 0), groupByColResults...),
 					MetricType:  e.Aggregator,
 					Column:      e.Column,
@@ -1755,8 +1727,8 @@ func (client *Client) ReadMetrics(ctx context.Context, input ReadMetricsInput) (
 			result := metricResults[idx]
 			metrics.Buckets = append(metrics.Buckets, &modelInputs.MetricBucket{
 				BucketID:    bucketId,
-				BucketMin:   float64(bucketId)*(max-min)/float64(bucketingInfo.BucketCount) + min,
-				BucketMax:   float64(bucketId+1)*(max-min)/float64(bucketingInfo.BucketCount) + min,
+				BucketMin:   pointy.Float64(float64(bucketId)*(max-min)/float64(bucketingInfo.BucketCount) + min),
+				BucketMax:   pointy.Float64(float64(bucketId+1)*(max-min)/float64(bucketingInfo.BucketCount) + min),
 				Group:       append(make([]string, 0), groupByColResults...),
 				MetricType:  e.Aggregator,
 				Column:      e.Column,
@@ -1772,8 +1744,8 @@ func (client *Client) ReadMetrics(ctx context.Context, input ReadMetricsInput) (
 		for _, e := range input.Expressions {
 			metrics.Buckets = append(metrics.Buckets, &modelInputs.MetricBucket{
 				BucketID:    uint64(i),
-				BucketMin:   float64(i)*(max-min)/float64(bucketingInfo.BucketCount) + min,
-				BucketMax:   float64(i+1)*(max-min)/float64(bucketingInfo.BucketCount) + min,
+				BucketMin:   pointy.Float64(float64(i)*(max-min)/float64(bucketingInfo.BucketCount) + min),
+				BucketMax:   pointy.Float64(float64(i+1)*(max-min)/float64(bucketingInfo.BucketCount) + min),
 				Group:       append(make([]string, 0), groupByColResults...),
 				MetricType:  e.Aggregator,
 				Column:      e.Column,

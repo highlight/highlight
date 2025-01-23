@@ -4869,6 +4869,7 @@ func (r *mutationResolver) UpsertGraph(ctx context.Context, graph modelInputs.Gr
 		Display:           graph.Display,
 		NullHandling:      graph.NullHandling,
 		Expressions:       ptr.String(string(expressionsStr)),
+		Sql:               graph.SQL,
 	}
 
 	if err := r.DB.Transaction(func(tx *gorm.DB) error {
@@ -9609,6 +9610,8 @@ func (r *queryResolver) Metrics(ctx context.Context, productType modelInputs.Pro
 			productType = modelInputs.ProductTypeLogs
 		case "traces":
 			productType = modelInputs.ProductTypeTraces
+		case "events":
+			productType = modelInputs.ProductTypeEvents
 		default:
 			return nil, e.Errorf("Unknown table %s", table)
 		}

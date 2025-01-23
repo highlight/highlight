@@ -1157,8 +1157,9 @@ enum MetricBucketBy {
 
 type MetricBucket {
 	bucket_id: UInt64!
-	bucket_min: Float!
-	bucket_max: Float!
+	bucket_min: Float
+	bucket_max: Float
+	bucket_value: Float
 	group: [String!]!
 	column: String!
 	metric_type: MetricAggregator!
@@ -2051,6 +2052,7 @@ type Graph {
 	display: String
 	nullHandling: String
 	expressions: [MetricExpression!]!
+	sql: String
 }
 
 type Variable {
@@ -2100,6 +2102,7 @@ input GraphInput {
 	display: String
 	nullHandling: String
 	expressions: [MetricExpressionInput!]!
+	sql: String
 }
 
 input VariableInput {

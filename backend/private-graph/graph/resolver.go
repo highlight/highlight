@@ -3710,6 +3710,7 @@ func GetMetricTimeline(ctx context.Context, ccClient *clickhouse.Client, project
 		if len(item.Group) > 0 {
 			group = pointy.String(strings.Join(item.Group, "-"))
 		}
+		// ZANETODO: needs updating based on new bucketing logic
 		date := params.DateRange.StartDate.Add(bucketLength * time.Duration(item.BucketID))
 		return &modelInputs.DashboardPayload{
 			Date:       date.Format(time.RFC3339),

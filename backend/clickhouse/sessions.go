@@ -689,11 +689,16 @@ func getAttributeFields(config model.TableConfig, filters listener.Filters) []st
 	return attributeFields
 }
 
-func addAttributes(config model.TableConfig, attributeFields []string, projectIds []int, params modelInputs.QueryInput, sb *sqlbuilder.SelectBuilder) {
+func addAttributes(config model.TableConfig, attributeFields []string, projectIds []int, params modelInputs.QueryInput, sb *sqlbuilder.SelectBuilder, castToMap bool) {
 	if config.AttributesTable != "" {
+		innerExpr := "groupArray(tuple(Name, Value))"
+		if castToMap {
+			innerExpr = "CAST(groupArray(tuple(Name, Value)), 'Map(String, String)')"
+		}
+
 		joinSb := sqlbuilder.NewSelectBuilder()
 		joinSb.From(config.AttributesTable).
-			Select(fmt.Sprintf("SessionID, groupArray(tuple(Name, Value)) AS %s", model.GetAttributesColumn(config.AttributesColumns, ""))).
+			Select(fmt.Sprintf("SessionID, %s AS %s", innerExpr, model.GetAttributesColumn(config.AttributesColumns, ""))).
 			Where(joinSb.In("ProjectID", projectIds)).
 			Where(joinSb.GreaterEqualThan("SessionCreatedAt", params.DateRange.StartDate)).
 			Where(joinSb.LessEqualThan("SessionCreatedAt", params.DateRange.EndDate)).
@@ -755,7 +760,7 @@ func GetSessionsQueryImpl(admin *model.Admin, params modelInputs.QueryInput, pro
 	}
 
 	attributeFields := getAttributeFields(SessionsJoinedTableConfig, listener.GetFilters())
-	addAttributes(SessionsJoinedTableConfig, attributeFields, []int{projectId}, params, sb)
+	addAttributes(SessionsJoinedTableConfig, attributeFields, []int{projectId}, params, sb, false)
 
 	if useRandomSample {
 		sbOuter := sqlbuilder.NewSelectBuilder()

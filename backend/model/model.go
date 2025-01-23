@@ -1419,6 +1419,7 @@ type Graph struct {
 	Display           *string
 	NullHandling      *string
 	Expressions       *string `gorm:"type:jsonb"`
+	Sql               *string
 }
 
 type Visualization struct {
