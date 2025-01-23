@@ -101,23 +101,6 @@ fragment MicrosoftTeamsChannelFragment on MicrosoftTeamsChannel {
 	id
 }
 
-query GetMetricsTimeline(
-	$project_id: ID!
-	$metric_name: String!
-	$params: DashboardParamsInput!
-) {
-	metrics_timeline(
-		project_id: $project_id
-		metric_name: $metric_name
-		params: $params
-	) {
-		date
-		value
-		aggregator
-		group
-	}
-}
-
 query GetNetworkHistogram(
 	$project_id: ID!
 	$params: NetworkHistogramParamsInput!

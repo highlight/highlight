@@ -1136,7 +1136,6 @@ type ComplexityRoot struct {
 		MetricTags                       func(childComplexity int, projectID int, metricName string, query *string) int
 		Metrics                          func(childComplexity int, productType model.ProductType, projectID int, params model.QueryInput, column *string, metricTypes []model.MetricAggregator, groupBy []string, bucketBy string, bucketCount *int, bucketWindow *int, limit *int, limitAggregator *model.MetricAggregator, limitColumn *string, predictionSettings *model.PredictionSettings, expressions []*model.MetricExpressionInput) int
 		MetricsIntegration               func(childComplexity int, projectID int) int
-		MetricsTimeline                  func(childComplexity int, projectID int, metricName string, params model.DashboardParamsInput) int
 		MicrosoftTeamsChannelSuggestions func(childComplexity int, projectID int) int
 		NetworkHistogram                 func(childComplexity int, projectID int, params model.NetworkHistogramParamsInput) int
 		NewSessionAlerts                 func(childComplexity int, projectID int) int
@@ -2044,7 +2043,6 @@ type QueryResolver interface {
 	DashboardDefinitions(ctx context.Context, projectID int) ([]*model.DashboardDefinition, error)
 	MetricTags(ctx context.Context, projectID int, metricName string, query *string) ([]string, error)
 	MetricTagValues(ctx context.Context, projectID int, metricName string, tagName string) ([]string, error)
-	MetricsTimeline(ctx context.Context, projectID int, metricName string, params model.DashboardParamsInput) ([]*model.DashboardPayload, error)
 	NetworkHistogram(ctx context.Context, projectID int, params model.NetworkHistogramParamsInput) (*model.CategoryHistogramPayload, error)
 	MetricMonitors(ctx context.Context, projectID int, metricName *string) ([]*model1.MetricMonitor, error)
 	EventChunkURL(ctx context.Context, secureID string, index int) (string, error)
@@ -8452,18 +8450,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Query.MetricsIntegration(childComplexity, args["project_id"].(int)), true
 
-	case "Query.metrics_timeline":
-		if e.complexity.Query.MetricsTimeline == nil {
-			break
-		}
-
-		args, err := ec.field_Query_metrics_timeline_args(context.TODO(), rawArgs)
-		if err != nil {
-			return 0, false
-		}
-
-		return e.complexity.Query.MetricsTimeline(childComplexity, args["project_id"].(int), args["metric_name"].(string), args["params"].(model.DashboardParamsInput)), true
-
 	case "Query.microsoft_teams_channel_suggestions":
 		if e.complexity.Query.MicrosoftTeamsChannelSuggestions == nil {
 			break
@@ -14504,11 +14490,6 @@ type Query {
 		metric_name: String!
 		tag_name: String!
 	): [String!]!
-	metrics_timeline(
-		project_id: ID!
-		metric_name: String!
-		params: DashboardParamsInput!
-	): [DashboardPayload]!
 	network_histogram(
 		project_id: ID!
 		params: NetworkHistogramParamsInput!
@@ -21803,39 +21784,6 @@ func (ec *executionContext) field_Query_metrics_args(ctx context.Context, rawArg
 		}
 	}
 	args["expressions"] = arg13
-	return args, nil
-}
-
-func (ec *executionContext) field_Query_metrics_timeline_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
-	var err error
-	args := map[string]interface{}{}
-	var arg0 int
-	if tmp, ok := rawArgs["project_id"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("project_id"))
-		arg0, err = ec.unmarshalNID2int(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["project_id"] = arg0
-	var arg1 string
-	if tmp, ok := rawArgs["metric_name"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("metric_name"))
-		arg1, err = ec.unmarshalNString2string(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["metric_name"] = arg1
-	var arg2 model.DashboardParamsInput
-	if tmp, ok := rawArgs["params"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("params"))
-		arg2, err = ec.unmarshalNDashboardParamsInput2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐDashboardParamsInput(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["params"] = arg2
 	return args, nil
 }
 
@@ -64742,71 +64690,6 @@ func (ec *executionContext) fieldContext_Query_metric_tag_values(ctx context.Con
 	return fc, nil
 }
 
-func (ec *executionContext) _Query_metrics_timeline(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Query_metrics_timeline(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().MetricsTimeline(rctx, fc.Args["project_id"].(int), fc.Args["metric_name"].(string), fc.Args["params"].(model.DashboardParamsInput))
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.([]*model.DashboardPayload)
-	fc.Result = res
-	return ec.marshalNDashboardPayload2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐDashboardPayload(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_Query_metrics_timeline(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "Query",
-		Field:      field,
-		IsMethod:   true,
-		IsResolver: true,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			switch field.Name {
-			case "date":
-				return ec.fieldContext_DashboardPayload_date(ctx, field)
-			case "value":
-				return ec.fieldContext_DashboardPayload_value(ctx, field)
-			case "aggregator":
-				return ec.fieldContext_DashboardPayload_aggregator(ctx, field)
-			case "group":
-				return ec.fieldContext_DashboardPayload_group(ctx, field)
-			}
-			return nil, fmt.Errorf("no field named %q was found under type DashboardPayload", field.Name)
-		},
-	}
-	defer func() {
-		if r := recover(); r != nil {
-			err = ec.Recover(ctx, r)
-			ec.Error(ctx, err)
-		}
-	}()
-	ctx = graphql.WithFieldContext(ctx, fc)
-	if fc.Args, err = ec.field_Query_metrics_timeline_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
-		ec.Error(ctx, err)
-		return fc, err
-	}
-	return fc, nil
-}
-
 func (ec *executionContext) _Query_network_histogram(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Query_network_histogram(ctx, field)
 	if err != nil {
@@ -98246,28 +98129,6 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 			}
 
 			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
-		case "metrics_timeline":
-			field := field
-
-			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._Query_metrics_timeline(ctx, field)
-				if res == graphql.Null {
-					atomic.AddUint32(&fs.Invalids, 1)
-				}
-				return res
-			}
-
-			rrm := func(ctx context.Context) graphql.Marshaler {
-				return ec.OperationContext.RootResolverMiddleware(ctx,
-					func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
-			}
-
-			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
 		case "network_histogram":
 			field := field
 
@@ -104938,49 +104799,6 @@ func (ec *executionContext) unmarshalNDashboardMetricConfigInput2ᚖgithubᚗcom
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalNDashboardParamsInput2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐDashboardParamsInput(ctx context.Context, v interface{}) (model.DashboardParamsInput, error) {
-	res, err := ec.unmarshalInputDashboardParamsInput(ctx, v)
-	return res, graphql.ErrorOnPath(ctx, err)
-}
-
-func (ec *executionContext) marshalNDashboardPayload2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐDashboardPayload(ctx context.Context, sel ast.SelectionSet, v []*model.DashboardPayload) graphql.Marshaler {
-	ret := make(graphql.Array, len(v))
-	var wg sync.WaitGroup
-	isLen1 := len(v) == 1
-	if !isLen1 {
-		wg.Add(len(v))
-	}
-	for i := range v {
-		i := i
-		fc := &graphql.FieldContext{
-			Index:  &i,
-			Result: &v[i],
-		}
-		ctx := graphql.WithFieldContext(ctx, fc)
-		f := func(i int) {
-			defer func() {
-				if r := recover(); r != nil {
-					ec.Error(ctx, ec.Recover(ctx, r))
-					ret = nil
-				}
-			}()
-			if !isLen1 {
-				defer wg.Done()
-			}
-			ret[i] = ec.marshalODashboardPayload2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐDashboardPayload(ctx, sel, v[i])
-		}
-		if isLen1 {
-			f(i)
-		} else {
-			go f(i)
-		}
-
-	}
-	wg.Wait()
-
-	return ret
-}
-
 func (ec *executionContext) unmarshalNDateHistogramBucketSize2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐDateHistogramBucketSize(ctx context.Context, v interface{}) (*model.DateHistogramBucketSize, error) {
 	res, err := ec.unmarshalInputDateHistogramBucketSize(ctx, v)
 	return &res, graphql.ErrorOnPath(ctx, err)
@@ -110253,13 +110071,6 @@ func (ec *executionContext) marshalODashboardDefinition2ᚖgithubᚗcomᚋhighli
 		return graphql.Null
 	}
 	return ec._DashboardDefinition(ctx, sel, v)
-}
-
-func (ec *executionContext) marshalODashboardPayload2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐDashboardPayload(ctx context.Context, sel ast.SelectionSet, v *model.DashboardPayload) graphql.Marshaler {
-	if v == nil {
-		return graphql.Null
-	}
-	return ec._DashboardPayload(ctx, sel, v)
 }
 
 func (ec *executionContext) unmarshalODateRangeRequiredInput2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐDateRangeRequiredInput(ctx context.Context, v interface{}) (*model.DateRangeRequiredInput, error) {

@@ -1778,23 +1778,6 @@ export type MicrosoftTeamsChannelFragmentFragment = {
 	__typename?: 'MicrosoftTeamsChannel'
 } & Pick<Types.MicrosoftTeamsChannel, 'name' | 'id'>
 
-export type GetMetricsTimelineQueryVariables = Types.Exact<{
-	project_id: Types.Scalars['ID']
-	metric_name: Types.Scalars['String']
-	params: Types.DashboardParamsInput
-}>
-
-export type GetMetricsTimelineQuery = { __typename?: 'Query' } & {
-	metrics_timeline: Array<
-		Types.Maybe<
-			{ __typename?: 'DashboardPayload' } & Pick<
-				Types.DashboardPayload,
-				'date' | 'value' | 'aggregator' | 'group'
-			>
-		>
-	>
-}
-
 export type GetNetworkHistogramQueryVariables = Types.Exact<{
 	project_id: Types.Scalars['ID']
 	params: Types.NetworkHistogramParamsInput
@@ -5439,7 +5422,6 @@ export type GetAiQuerySuggestionQuery = { __typename?: 'Query' } & {
 
 export const namedOperations = {
 	Query: {
-		GetMetricsTimeline: 'GetMetricsTimeline' as const,
 		GetNetworkHistogram: 'GetNetworkHistogram' as const,
 		GetSessionPayload: 'GetSessionPayload' as const,
 		GetCommentTagsForProject: 'GetCommentTagsForProject' as const,

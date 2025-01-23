@@ -2201,7 +2201,6 @@ export type Query = {
 	metric_tags: Array<Scalars['String']>
 	metrics: MetricsBuckets
 	metricsIntegration: IntegrationStatus
-	metrics_timeline: Array<Maybe<DashboardPayload>>
 	microsoft_teams_channel_suggestions: Array<MicrosoftTeamsChannel>
 	network_histogram?: Maybe<CategoryHistogramPayload>
 	newUsersCount?: Maybe<NewUsersCount>
@@ -2783,12 +2782,6 @@ export type QueryMetricsArgs = {
 }
 
 export type QueryMetricsIntegrationArgs = {
-	project_id: Scalars['ID']
-}
-
-export type QueryMetrics_TimelineArgs = {
-	metric_name: Scalars['String']
-	params: DashboardParamsInput
 	project_id: Scalars['ID']
 }
 

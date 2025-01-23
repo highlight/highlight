@@ -43,17 +43,6 @@ var metricsKeysToColumns = map[string]string{
 	string(modelInputs.ReservedMetricKeySecureSessionID):   "Exemplars.SecureSessionID",
 	string(modelInputs.ReservedMetricKeyTraceID):           "Exemplars.TraceID",
 	string(modelInputs.ReservedMetricKeySpanID):            "Exemplars.SpanID",
-	// TODO(vkorolik) exemplars
-	//"Exemplars.Attributes",
-	//"Exemplars.Timestamp",
-	//"Exemplars.Value",
-	// TODO(vkorolik) special columns
-	//"Min",
-	//"Max",
-	//"BucketCounts",
-	//"ExplicitBounds",
-	//"ValueAtQuantiles.Quantile",
-	//"ValueAtQuantiles.Value",
 }
 
 var metricsArrayColumns = map[string]bool{

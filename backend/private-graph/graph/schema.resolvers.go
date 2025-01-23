@@ -5768,7 +5768,7 @@ func (r *queryResolver) Resources(ctx context.Context, sessionSecureID string) (
 
 // WebVitals is the resolver for the web_vitals field.
 func (r *queryResolver) WebVitals(ctx context.Context, sessionSecureID string) (*modelInputs.MetricsBuckets, error) {
-	// TODO(vkorolik) can be replaced with frontend query to GetMetrics
+	// this function can be replaced with frontend query to GetMetrics
 	s, err := r.canAdminViewSession(ctx, sessionSecureID)
 	if err != nil {
 		return nil, nil
@@ -8659,14 +8659,6 @@ func (r *queryResolver) MetricTagValues(ctx context.Context, projectID int, metr
 	return r.ClickhouseClient.TracesKeyValues(ctx, projectID, tagName, time.Now().Add(-30*24*time.Hour), time.Now(), nil, nil)
 }
 
-// MetricsTimeline is the resolver for the metrics_timeline field.
-func (r *queryResolver) MetricsTimeline(ctx context.Context, projectID int, metricName string, params modelInputs.DashboardParamsInput) ([]*modelInputs.DashboardPayload, error) {
-	if _, err := r.isUserInProjectOrDemoProject(ctx, projectID); err != nil {
-		return nil, err
-	}
-	return GetMetricTimeline(ctx, r.ClickhouseClient, projectID, metricName, params)
-}
-
 // NetworkHistogram is the resolver for the network_histogram field.
 func (r *queryResolver) NetworkHistogram(ctx context.Context, projectID int, params modelInputs.NetworkHistogramParamsInput) (*modelInputs.CategoryHistogramPayload, error) {
 	_, err := r.isUserInProjectOrDemoProject(ctx, projectID)
@@ -9911,7 +9903,7 @@ func (r *sessionResolver) TimelineIndicatorsURL(ctx context.Context, obj *model.
 
 // DeviceMemory is the resolver for the deviceMemory field.
 func (r *sessionResolver) DeviceMemory(ctx context.Context, obj *model.Session) (*int, error) {
-	// TODO(vkorolik) can be replaced with frontend query to GetMetrics
+	// this function can be replaced with frontend query to GetMetrics
 	metrics, err := r.ClickhouseClient.QuerySessionCustomMetrics(ctx, obj.ProjectID, obj.SecureID, obj.CreatedAt, []string{
 		"DeviceMemory",
 	})

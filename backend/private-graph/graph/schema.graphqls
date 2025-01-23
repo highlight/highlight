@@ -2446,11 +2446,6 @@ type Query {
 		metric_name: String!
 		tag_name: String!
 	): [String!]!
-	metrics_timeline(
-		project_id: ID!
-		metric_name: String!
-		params: DashboardParamsInput!
-	): [DashboardPayload]!
 	network_histogram(
 		project_id: ID!
 		params: NetworkHistogramParamsInput!

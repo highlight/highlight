@@ -3689,50 +3689,6 @@ func normalizeExpressions(column *string, metricTypes []modelInputs.MetricAggreg
 	return newExpressions, nil
 }
 
-// TODO(vkorolik) do we need this?
-func GetMetricTimeline(ctx context.Context, ccClient *clickhouse.Client, projectID int, metricName string, params modelInputs.DashboardParamsInput) (payload []*modelInputs.DashboardPayload, err error) {
-	const numBuckets = 48
-	agg := params.Aggregator
-	parts := []string{string(modelInputs.ReservedMetricKeyMetricName) + "=" + metricName}
-	for _, filter := range params.Filters {
-		switch filter.Op {
-		case modelInputs.MetricTagFilterOpEquals:
-			parts = append(parts, fmt.Sprintf("%s:%v", filter.Tag, filter.Value))
-		case modelInputs.MetricTagFilterOpContains:
-			parts = append(parts, fmt.Sprintf("%s:%%%v%%", filter.Tag, filter.Value))
-		}
-	}
-	expressions := []*modelInputs.MetricExpressionInput{{
-		Aggregator: agg,
-		Column:     string(modelInputs.ReservedMetricKeyValue),
-	}}
-
-	metrics, err := ccClient.ReadMetricsAggregated(ctx, projectID, modelInputs.QueryInput{
-		Query:     strings.Join(parts, " "),
-		DateRange: params.DateRange,
-	}, params.Groups, pointy.Int(numBuckets), string(modelInputs.MetricBucketByTimestamp), nil, nil, nil, nil, expressions)
-	if err != nil {
-		return nil, err
-	}
-	bucketLength := params.DateRange.EndDate.Sub(params.DateRange.StartDate) / numBuckets
-	nonNil := lo.Filter(metrics.Buckets, func(item *modelInputs.MetricBucket, _ int) bool {
-		return item.MetricValue != nil
-	})
-	return lo.Map(nonNil, func(item *modelInputs.MetricBucket, index int) *modelInputs.DashboardPayload {
-		var group *string
-		if len(item.Group) > 0 {
-			group = pointy.String(strings.Join(item.Group, "-"))
-		}
-		date := params.DateRange.StartDate.Add(bucketLength * time.Duration(item.BucketID))
-		return &modelInputs.DashboardPayload{
-			Date:       date.Format(time.RFC3339),
-			Value:      *item.MetricValue,
-			Aggregator: agg,
-			Group:      group,
-		}
-	}), nil
-}
-
 func (r *Resolver) GetProjectRetentionDate(projectId int) (time.Time, error) {
 	var project *model.Project
 	if err := r.DB.WithContext(context.TODO()).Model(&model.Project{}).Where("id = ?", projectId).Take(&project).Error; err != nil {
