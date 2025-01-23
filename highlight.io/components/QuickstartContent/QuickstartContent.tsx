@@ -138,6 +138,7 @@ import { SyslogReorganizedContent } from './server/syslog'
 import { SystemdReorganizedContent } from './server/systemd'
 import { AWSLambdaReorganizedContent } from './server/serverless/lambda'
 import { ElixirOtherReorganizedContent } from './server/elixir/other'
+import { ReactNativeContent } from './mobile/react-native'
 
 export type QuickStartOptions = {
 	title: string
@@ -233,6 +234,7 @@ export enum QuickStartType {
 	HostingFlyIO = 'fly-io',
 	HostingRender = 'render',
 	HostingHeroku = 'heroku',
+	ReactNative = 'react-native',
 	OTLP = 'otlp',
 	OTLPDotNet = 'dot-net',
 	OTLPDotNet4 = 'dot-net-4',
@@ -538,6 +540,9 @@ export const quickStartContent = {
 			[QuickStartType.RubyRails]: RubyRailsTracesContent,
 			[QuickStartType.RubyOther]: RubyOtherTracesContent,
 		},
+	},
+	mobile: {
+		[QuickStartType.ReactNative]: ReactNativeContent,
 	},
 	other: {
 		[QuickStartType.SelfHost]: SelfHostContent,

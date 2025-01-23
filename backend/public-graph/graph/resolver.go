@@ -38,7 +38,7 @@ import (
 	"github.com/google/uuid"
 	lru "github.com/hashicorp/golang-lru/v2"
 	"github.com/highlight-run/go-resthooks"
-	"github.com/mssola/user_agent"
+	"github.com/mssola/useragent"
 	"github.com/openlyinc/pointy"
 	e "github.com/pkg/errors"
 	"github.com/samber/lo"
@@ -110,11 +110,16 @@ type Location struct {
 }
 
 type DeviceDetails struct {
-	IsBot          bool   `json:"is_bot"`
-	OSName         string `json:"os_name"`
-	OSVersion      string `json:"os_version"`
 	BrowserName    string `json:"browser_name"`
 	BrowserVersion string `json:"browser_version"`
+	IsBot          bool   `json:"is_bot"`
+	IsMobile       bool   `json:"is_mobile"`
+	Localization   string `json:"localization"`
+	Model          string `json:"model"`
+	OSName         string `json:"os_name"`
+	OSVersion      string `json:"os_version"`
+	Platform       string `json:"platform"`
+	UserAgent      string `json:"user_agent"`
 }
 
 type Property string
@@ -1013,11 +1018,16 @@ func GetLocationFromIP(ctx context.Context, ip string) (location *Location, err 
 }
 
 func GetDeviceDetails(userAgentString string) (deviceDetails DeviceDetails) {
-	userAgent := user_agent.New(userAgentString)
+	userAgent := useragent.New(userAgentString)
+	deviceDetails.BrowserName, deviceDetails.BrowserVersion = userAgent.Browser()
 	deviceDetails.IsBot = userAgent.Bot()
+	deviceDetails.IsMobile = userAgent.Mobile()
 	deviceDetails.OSName = userAgent.OSInfo().Name
 	deviceDetails.OSVersion = userAgent.OSInfo().Version
-	deviceDetails.BrowserName, deviceDetails.BrowserVersion = userAgent.Browser()
+	deviceDetails.Localization = userAgent.Localization()
+	deviceDetails.Model = userAgent.Model()
+	deviceDetails.Platform = userAgent.Platform()
+	deviceDetails.UserAgent = userAgent.UA()
 	return deviceDetails
 }
 
@@ -1240,6 +1250,19 @@ func (r *Resolver) InitializeSessionImpl(ctx context.Context, input *kafka_queue
 
 	log.WithContext(ctx).WithFields(log.Fields{"session_id": session.ID, "project_id": session.ProjectID, "identifier": session.Identifier}).
 		Infof("initialized session %d: %s", session.ID, session.Identifier)
+
+	if err := r.AddSessionPropertiesImpl(ctx, session.SecureID, map[string]interface{}{
+		"is_mobile":       deviceDetails.IsMobile,
+		"localization":    deviceDetails.Localization,
+		"device_model":    deviceDetails.Model,
+		"device_platform": deviceDetails.Platform,
+		"user_agent":      deviceDetails.UserAgent,
+	}); err != nil {
+		log.WithContext(ctx).
+			WithError(err).
+			WithField("session_secure_id", session.SecureID).
+			Error("failed to record session device properties")
+	}
 
 	highlight.RecordCount(ctx,
 		"session.initialized", 1,

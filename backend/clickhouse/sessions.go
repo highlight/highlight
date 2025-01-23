@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	e "github.com/pkg/errors"
 	"strconv"
 	"strings"
 	"time"
@@ -72,8 +73,8 @@ type ClickhouseSession struct {
 	ViewedByAdmins     clickhouse.ArraySet
 	FieldKeys          clickhouse.ArraySet
 	FieldKeyValues     clickhouse.ArraySet
-	CreatedAt          int64
-	UpdatedAt          int64
+	CreatedAt          time.Time
+	UpdatedAt          time.Time
 	SecureID           string
 	Identified         bool
 	Identifier         string
@@ -105,10 +106,10 @@ type ClickhouseField struct {
 	ProjectID        int32
 	Type             string
 	Name             string
-	SessionCreatedAt int64
+	SessionCreatedAt time.Time
 	SessionID        int64
 	Value            string
-	Timestamp        int64
+	Timestamp        time.Time
 }
 
 // These keys show up as recommendations, not in fields table due to high cardinality or post processing booleans
@@ -148,8 +149,8 @@ const timeRangeField = "custom_created_at"
 const sampleField = "custom_sample"
 
 func (client *Client) WriteSessions(ctx context.Context, sessions []*model.Session) error {
-	chFields := []interface{}{}
-	chSessions := []interface{}{}
+	var chFields []*ClickhouseField
+	var chSessions []*ClickhouseSession
 
 	for _, session := range sessions {
 		if session == nil {
@@ -178,8 +179,8 @@ func (client *Client) WriteSessions(ctx context.Context, sessions []*model.Sessi
 				Name:             field.Name,
 				Value:            field.Value,
 				SessionID:        int64(session.ID),
-				SessionCreatedAt: session.CreatedAt.UnixMicro(),
-				Timestamp:        field.Timestamp.UnixMicro(),
+				SessionCreatedAt: session.CreatedAt,
+				Timestamp:        field.Timestamp,
 			}
 			chFields = append(chFields, &chf)
 		}
@@ -196,8 +197,8 @@ func (client *Client) WriteSessions(ctx context.Context, sessions []*model.Sessi
 			ViewedByAdmins:     viewedByAdmins,
 			FieldKeys:          fieldKeys,
 			FieldKeyValues:     fieldKeyValues,
-			CreatedAt:          session.CreatedAt.UnixMicro(),
-			UpdatedAt:          session.UpdatedAt.UnixMicro(),
+			CreatedAt:          session.CreatedAt,
+			UpdatedAt:          session.UpdatedAt,
 			SecureID:           session.SecureID,
 			Identified:         session.Identified,
 			Identifier:         session.Identifier,
@@ -228,32 +229,45 @@ func (client *Client) WriteSessions(ctx context.Context, sessions []*model.Sessi
 		chSessions = append(chSessions, &chs)
 	}
 
-	chCtx := clickhouse.Context(ctx, clickhouse.WithSettings(clickhouse.Settings{
-		"async_insert":          1,
-		"wait_for_async_insert": 1,
-	}))
-
 	var g errgroup.Group
 
 	if len(chSessions) > 0 {
 		g.Go(func() error {
-			sessionsSql, sessionsArgs := sqlbuilder.
-				NewStruct(new(ClickhouseSession)).
-				InsertInto(SessionsTable, chSessions...).
-				BuildWithFlavor(sqlbuilder.ClickHouse)
-			sessionsSql, sessionsArgs = replaceTimestampInserts(sessionsSql, sessionsArgs, map[int]bool{6: true, 7: true}, MicroSeconds)
-			return client.conn.Exec(chCtx, sessionsSql, sessionsArgs...)
+			batch, err := client.conn.PrepareBatch(ctx, fmt.Sprintf("INSERT INTO %s", SessionsTable))
+			if err != nil {
+				return e.Wrap(err, "failed to create session batch")
+			}
+
+			for _, event := range lo.Map(chSessions, func(l *ClickhouseSession, _ int) interface{} {
+				return l
+			}) {
+				err = batch.AppendStruct(event)
+				if err != nil {
+					return err
+				}
+			}
+
+			return batch.Send()
 		})
 	}
 
 	if len(chFields) > 0 {
 		g.Go(func() error {
-			fieldsSql, fieldsArgs := sqlbuilder.
-				NewStruct(new(ClickhouseField)).
-				InsertInto(FieldsTable, chFields...).
-				BuildWithFlavor(sqlbuilder.ClickHouse)
-			fieldsSql, fieldsArgs = replaceTimestampInserts(fieldsSql, fieldsArgs, map[int]bool{3: true}, MicroSeconds)
-			return client.conn.Exec(chCtx, fieldsSql, fieldsArgs...)
+			batch, err := client.conn.PrepareBatch(ctx, fmt.Sprintf("INSERT INTO %s", FieldsTable))
+			if err != nil {
+				return e.Wrap(err, "failed to create fields batch")
+			}
+
+			for _, event := range lo.Map(chFields, func(l *ClickhouseField, _ int) interface{} {
+				return l
+			}) {
+				err = batch.AppendStruct(event)
+				if err != nil {
+					return err
+				}
+			}
+
+			return batch.Send()
 		})
 	}
 

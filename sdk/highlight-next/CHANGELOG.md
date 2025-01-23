@@ -1,5 +1,11 @@
 # @highlight-run/next
 
+## 7.8.0
+
+### Minor Changes
+
+-   0dfc3f2: automatically use /highlight-events proxy URL on the frontend when proxying is configured
+
 ## 7.7.0
 
 ### Minor Changes

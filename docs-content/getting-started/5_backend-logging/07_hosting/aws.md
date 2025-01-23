@@ -52,22 +52,65 @@ Here's a sample task definition (based on the [AWS docs](https://github.com/aws-
 
 ## AWS Kinesis Firehose for logs from infrastructure or other services
 
+```hint
+This is a manual guide for setting up metrics export. 
+An automated CloudFormation template integration is coming soon to the app.highlight.io UI.
+```
+
 Let's say you are running RDS Postgres or MSK Kafka services that are core infrastructure for your application, and you are interested in searching and browsing the logs. The best way to export such infrastructure logs is via [AWS Kinesis Firehose shipping to our HTTP logs endpoint](https://aws.amazon.com/blogs/big-data/stream-data-to-an-http-endpoint-with-amazon-kinesis-data-firehose/). 
 
 First, create a Kinesis Data Stream.
 
-![](/images/aws/kinesis/step1.png)
+![](/images/aws/kinesis/logs/step1.png)
 
 Next, create a Kinesis Data Firehose with an HTTP destination to route data to highlight.
 
-Configure your Kinesis data stream to ship logs to HTTP https://pub.highlight.io/v1/logs/firehose, enabling GZIP content encoding and passing paramater `x-highlight-project` with your highlight project ID.
+Configure your Kinesis data stream to ship logs to HTTP https://cwlogs.firehose.highlight.io, enabling GZIP content encoding and passing paramater `x-highlight-project` with your highlight project ID.
 
 
-![](/images/aws/kinesis/step2.png)
+![](/images/aws/kinesis/logs/step2.png)
 
 Finally, connect your AWS CloudWatch Log Stream to the Kinesis Data Stream via a Kinesis Subscription Filter.
 
-![](/images/aws/kinesis/step3.png)
+![](/images/aws/kinesis/logs/step3.png)
+
+Your logs will now be streaming to the highlight OpenTelemetry collector and ingested into your project.
+
+If you have any questions with your setup, don't hesitate to [reach out](https://community.highlight.io)!
+
+
+## AWS Kinesis Firehose with CloudWatch Metric Streams for infrastructure metrics
+
+```hint
+This is a manual guide for setting up metrics export. 
+An automated CloudFormation template integration is coming soon to the app.highlight.io UI.
+```
+
+You may want to export CloudWatch metrics to highlight to render infrastructure telemetry, ie. your RDS Database CPU load.
+
+First, create a Direct PUT Source [Kinesis Firehose streams](https://aws.amazon.com/firehose/).
+
+Configure your Kinesis data stream to ship metrics to our `OpenTelemetry 1.0 Firehose metrics format` ingest endpoint https://otlpv1.firehose.highlight.io, enabling GZIP content encoding and passing paramater `x-highlight-project` with your highlight project ID.
+
+```hint
+You will next set up your CloudWatch stream with a metric data format. 
+The above assumed the OpenTelemetry 1.0 format will be used.
+
+If you want to instead use the JSON Firehose metrics format,
+set your endpoint to https://cwmetrics.firehose.highlight.io
+```
+
+![](/images/aws/kinesis/metrics/step1.png)
+
+
+![](/images/aws/kinesis/metrics/step2.png)
+
+Next, create a [CloudWatch Metric Stream](https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/CloudWatch-Metric-Streams.html) to send metrics to the Firehose stream. Select [OpenTelemetry 1.0](https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/CloudWatch-metric-streams-formats-opentelemetry-100.html) as the data format and select the stream you created.
+
+![](/images/aws/kinesis/metrics/step3.png)
+
+
+Your metrics will now be streaming to the highlight OpenTelemetry collector and ingested into your project.
 
 If you have any questions with your setup, don't hesitate to [reach out](https://community.highlight.io)!
 
