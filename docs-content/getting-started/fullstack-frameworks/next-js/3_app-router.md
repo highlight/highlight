@@ -152,7 +152,7 @@ function ThrowerOfErrors({
 
 ## Enable server-side tracing
 
-We use [`instrumentation.js`](https://nextjs.org/docs/app/api-reference/file-conventions/instrumentation) to to capture [Next.js's automatic instrumentation](https://nextjs.org/docs/app/building-your-application/optimizing/open-telemetry). This method captures detailed API route tracing as well as server-side errors.
+We use [`instrumentation.ts`](https://nextjs.org/docs/app/api-reference/file-conventions/instrumentation) to configure [Next.js's automatic instrumentation](https://nextjs.org/docs/app/building-your-application/optimizing/open-telemetry). This approach captures detailed API route tracing as well as server-side errors.
 
 ```hint
  If you are using Next.js <15, you need to manually activate the instrumentation.ts file by activating instrumentationHook (an experimental feature). **On Next.js 15+ this is already on by default and you can skip this step.**
