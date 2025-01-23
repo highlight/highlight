@@ -264,7 +264,7 @@ func SendNotifications(ctx context.Context, mailClient *sendgrid.Client, lambdaC
 	}
 }
 
-var alertModifyNotificationIgnored = regexp.MustCompile(`.+@(.+\.)?pagerduty.com`)
+var alertModifyNotificationIgnored = regexp.MustCompile(`.+@(.+\.)?pagerduty\.com`)
 
 func shouldKeepDestination(item model.AlertDestination, _ int) bool {
 	return !alertModifyNotificationIgnored.MatchString(item.TypeID)
