@@ -53,7 +53,7 @@ const WorkspaceTeam = () => {
 
 	return (
 		<Box>
-			<Box style={{ maxWidth: 560 }} my="40" mx="auto">
+			<Box style={{ maxWidth: 1080 }} my="40" mx="auto">
 				<div className={styles.titleContainer}>
 					<h3>Members</h3>
 					<p className={layoutStyles.subTitle}>

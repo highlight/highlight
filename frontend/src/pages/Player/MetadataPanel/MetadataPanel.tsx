@@ -127,6 +127,15 @@ const MetadataPanel = () => {
 			valueDisplayValue: formatShortTime(session.active_length / 1000),
 		})
 	}
+	if (session?.fields) {
+		session.fields.forEach((field) => {
+			if (!field) return
+			sessionData.push({
+				keyDisplayValue: field.name,
+				valueDisplayValue: field.value,
+			})
+		})
+	}
 
 	// Data exposed to Highlight employees.
 	if (isHighlightAdmin) {

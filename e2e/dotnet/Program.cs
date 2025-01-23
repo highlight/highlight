@@ -13,13 +13,13 @@ builder.Services.AddRazorComponents()
 builder.Services
     .AddHighlightInstrumentation(options => {
         options.ProjectId = "1";
-        options.ServiceName = "example-dotnet-backend";
+        options.ServiceName = serviceName;
         options.OtlpEndpoint = "http://localhost:4318";
     });
 builder.Logging
     .AddHighlightInstrumentation(options => {
         options.ProjectId = "1";
-        options.ServiceName = "example-dotnet-backend";
+        options.ServiceName = serviceName;
         options.OtlpEndpoint = "http://localhost:4318";
     });
 Log.Logger = new LoggerConfiguration()

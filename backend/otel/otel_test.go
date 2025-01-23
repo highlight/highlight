@@ -10,6 +10,7 @@ import (
 	"github.com/highlight/highlight/sdk/highlight-go"
 	"go.opentelemetry.io/collector/pdata/plog"
 	"go.opentelemetry.io/collector/pdata/plog/plogotlp"
+	"go.opentelemetry.io/collector/pdata/pmetric/pmetricotlp"
 	"gorm.io/gorm"
 	"net/http"
 	"os"
@@ -127,14 +128,17 @@ func TestHandler_HandleLog(t *testing.T) {
 
 	producer := MockKafkaProducer{}
 	resolver := &public.Resolver{
-		Redis:              red,
-		Store:              store.NewStore(db, red, integrations.NewIntegrationsClient(db), &storage.FilesystemClient{}, &producer, nil),
-		AsyncProducerQueue: &producer,
-		ProducerQueue:      &producer,
-		BatchedQueue:       &producer,
-		TracesQueue:        &producer,
-		DB:                 db,
-		Clickhouse:         chClient,
+		Redis:                red,
+		Store:                store.NewStore(db, red, integrations.NewIntegrationsClient(db), &storage.FilesystemClient{}, &producer, nil),
+		AsyncProducerQueue:   &producer,
+		ProducerQueue:        &producer,
+		BatchedQueue:         &producer,
+		TracesQueue:          &producer,
+		MetricSumQueue:       &producer,
+		MetricSummaryQueue:   &producer,
+		MetricHistogramQueue: &producer,
+		DB:                   db,
+		Clickhouse:           chClient,
 	}
 	h := Handler{
 		resolver: resolver,
@@ -217,14 +221,17 @@ func TestHandler_HandleTrace(t *testing.T) {
 
 		producer := MockKafkaProducer{}
 		resolver := &public.Resolver{
-			Redis:              red,
-			Store:              store.NewStore(db, red, integrations.NewIntegrationsClient(db), &storage.FilesystemClient{}, &producer, nil),
-			AsyncProducerQueue: &producer,
-			ProducerQueue:      &producer,
-			BatchedQueue:       &producer,
-			TracesQueue:        &producer,
-			DB:                 db,
-			Clickhouse:         chClient,
+			Redis:                red,
+			Store:                store.NewStore(db, red, integrations.NewIntegrationsClient(db), &storage.FilesystemClient{}, &producer, nil),
+			AsyncProducerQueue:   &producer,
+			ProducerQueue:        &producer,
+			BatchedQueue:         &producer,
+			TracesQueue:          &producer,
+			MetricSumQueue:       &producer,
+			MetricSummaryQueue:   &producer,
+			MetricHistogramQueue: &producer,
+			DB:                   db,
+			Clickhouse:           chClient,
 		}
 		h := Handler{
 			resolver: resolver,
@@ -267,6 +274,74 @@ func TestHandler_HandleTrace(t *testing.T) {
 
 		if tc.expectedLogCounts != nil {
 			assert.Equal(t, fmt.Sprintf("%+v", tc.expectedLogCounts), fmt.Sprintf("%+v", logCountsBySource))
+		}
+	}
+
+}
+
+func TestHandler_HandleMetric(t *testing.T) {
+	for file, tc := range map[string]struct {
+		expectedMetrics *int
+	}{
+		"./samples/metrics.json": {
+			expectedMetrics: pointy.Int(131),
+		},
+	} {
+		inputBytes, err := os.ReadFile(file)
+		if err != nil {
+			t.Fatalf("error reading: %v", err)
+		}
+
+		req := pmetricotlp.NewExportRequest()
+		if err := req.UnmarshalJSON(inputBytes); err != nil {
+			t.Fatal(err)
+		}
+
+		body, err := req.MarshalProto()
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		b := bytes.Buffer{}
+		gz := gzip.NewWriter(&b)
+		if _, err := gz.Write(body); err != nil {
+			t.Fatal(err)
+		}
+		if err := gz.Close(); err != nil {
+			t.Fatal(err)
+		}
+
+		w := &MockResponseWriter{}
+		r, _ := http.NewRequest("POST", "", bytes.NewReader(b.Bytes()))
+		r.Header.Set("content-encoding", "gzip")
+
+		producer := MockKafkaProducer{}
+		resolver := &public.Resolver{
+			Redis:                red,
+			Store:                store.NewStore(db, red, integrations.NewIntegrationsClient(db), &storage.FilesystemClient{}, &producer, nil),
+			ProducerQueue:        &producer,
+			BatchedQueue:         &producer,
+			TracesQueue:          &producer,
+			MetricSumQueue:       &producer,
+			MetricSummaryQueue:   &producer,
+			MetricHistogramQueue: &producer,
+			DB:                   db,
+			Clickhouse:           chClient,
+		}
+		h := Handler{
+			resolver: resolver,
+		}
+		h.HandleMetric(w, r)
+
+		metricCount := 0
+		for _, message := range producer.messages {
+			if message.GetType() == kafkaqueue.PushOTeLMetricSum || message.GetType() == kafkaqueue.PushOTeLMetricSummary || message.GetType() == kafkaqueue.PushOTeLMetricHistogram {
+				metricCount += 1
+			}
+		}
+
+		if tc.expectedMetrics != nil {
+			assert.Equal(t, fmt.Sprintf("%+v", *tc.expectedMetrics), fmt.Sprintf("%+v", metricCount))
 		}
 	}
 

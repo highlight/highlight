@@ -1,5 +1,14 @@
 # @highlight-run/apollo
 
+## 3.4.26
+
+### Patch Changes
+
+-   c647d66: fix node-fetch import breaking edge runtime compatibility
+-   Updated dependencies [c647d66]
+-   Updated dependencies [c647d66]
+    -   @highlight-run/node@3.11.1
+
 ## 3.4.25
 
 ### Patch Changes

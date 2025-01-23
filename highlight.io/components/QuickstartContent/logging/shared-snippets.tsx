@@ -13,7 +13,13 @@ export const previousInstallSnippet: (slug: string) => QuickStartStep = (
 export const verifyLogs: QuickStartStep = {
 	title: 'Verify your backend logs are being recorded.',
 	content:
-		'Visit the [highlight logs portal](http://app.highlight.io/logs) and check that backend logs are coming in.',
+		'Visit the [highlight logs portal](https://app.highlight.io/logs) and check that backend logs are coming in.',
+}
+
+export const verifyMetrics: QuickStartStep = {
+	title: 'Verify your backend metrics are being recorded.',
+	content:
+		'Visit the [highlight metrics portal](https://app.highlight.io/dashboards) and check that backend metrics are coming in.',
 }
 
 export const curlExample: QuickStartStep = {

@@ -1,5 +1,20 @@
 # @highlight-run/next
 
+## 7.7.0
+
+### Minor Changes
+
+-   c647d66: ensure compatibility with react 19 and next 15
+
+### Patch Changes
+
+-   c647d66: fix node-fetch import breaking edge runtime compatibility
+-   Updated dependencies [c647d66]
+-   Updated dependencies [c647d66]
+-   Updated dependencies [c647d66]
+    -   @highlight-run/node@3.11.1
+    -   @highlight-run/react@8.1.0
+
 ## 7.6.12
 
 ### Patch Changes

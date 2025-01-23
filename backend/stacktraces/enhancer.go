@@ -139,6 +139,9 @@ func limitMaxSize(value *string) *string {
 var OSSSourceMapper = map[string]string{
 	"@commerce-apps/core": "https://raw.githubusercontent.com/SalesforceCommerceCloud/commerce-sdk-core/refs/heads/main",
 }
+var OSSNPMMapper = map[string]string{
+	"@commerce-apps/core": "https://unpkg.com/@commerce-apps/core@1.7.0",
+}
 
 /*
 * EnhanceStackTrace makes no DB changes
@@ -403,6 +406,12 @@ func processStackFrame(ctx context.Context, projectId int, version *string, stac
 			} else {
 				stackTraceFilePath = matches[3]
 				stackTraceFileURL = fmt.Sprintf("https://unpkg.com/%s", stackTraceFilePath)
+				for pkg, source := range OSSNPMMapper {
+					if after, found := strings.CutPrefix(stackTraceFilePath, pkg); found {
+						stackTraceFileURL = strings.Join([]string{source, after}, "")
+						break
+					}
+				}
 			}
 			stackFileNameIndex = strings.Index(stackTraceFileURL, path.Base(stackTraceFileURL))
 		} else if stackTraceFilePath[0:1] == "/" {
@@ -542,6 +551,9 @@ func fetchContentFromSource(ctx context.Context, sourceFileName string) string {
 	var err error
 	var paths = []string{sourceFileName}
 	for pkg, dst := range OSSSourceMapper {
+		if source := OSSNPMMapper[pkg]; source != "" {
+			pkg = source
+		}
 		parts := strings.Split(sourceFileName, pkg)
 		if len(parts) > 1 {
 			paths = append(paths, strings.Join([]string{dst, parts[1]}, ""))

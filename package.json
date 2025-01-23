@@ -69,7 +69,7 @@
 		"frontend:start": "yarn dev:frontend",
 		"g": "yarn generate",
 		"generate": "hygen",
-		"lint": "yarn run turbo lint --filter=!rrweb --filter=!@rrweb/types --filter=!rrweb-snapshot --filter=!rrweb-player --filter=!rrdom --filter=!rrdom-nodejs",
+		"lint": "yarn run turbo lint --filter=!rrweb --filter=!@rrweb/types --filter=!rrweb-snapshot --filter=!rrweb-player --filter=!rrdom --filter=!rrdom-nodejs --filter=!react-native",
 		"prepare": "husky",
 		"preinstall": "git submodule update --init --recursive || true",
 		"validate": "yarn workspace scripts validate:client",
@@ -130,6 +130,7 @@
 		"path-to-regexp@6.2.1": "6.3.0",
 		"tough-cookie@~2.5.0": "4.1.3",
 		"xml2js@^0.4.17": "0.5.0",
-		"uplot@1.6.30": "1.6.31"
+		"uplot@1.6.30": "1.6.31",
+		"@types/react@*": "18.3.18"
 	}
 }

@@ -1,5 +1,4 @@
 {
-	"taskDefinitionArn": "arn:aws:ecs:us-east-2:173971919437:task-definition/opentelemetry-collector-service:8",
 	"containerDefinitions": [
 		{
 			"name": "highlight-collector",
@@ -54,13 +53,7 @@
 					"value": "12GiB"
 				}
 			],
-			"mountPoints": [
-				{
-					"sourceVolume": "opentelemetry-collector-queue",
-					"containerPath": "/data/queue",
-					"readOnly": false
-				}
-			],
+			"mountPoints": [],
 			"volumesFrom": [],
 			"logConfiguration": {
 				"logDriver": "awslogs",
@@ -75,50 +68,14 @@
 	"family": "opentelemetry-collector-service",
 	"executionRoleArn": "arn:aws:iam::173971919437:role/HighlightAppProd",
 	"networkMode": "awsvpc",
-	"revision": 8,
-	"volumes": [
-		{
-			"name": "opentelemetry-collector-queue",
-			"efsVolumeConfiguration": {
-				"fileSystemId": "fs-0a8baf8eb788f79a9",
-				"rootDirectory": "/data/queue"
-			}
-		}
-	],
-	"status": "ACTIVE",
-	"requiresAttributes": [
-		{
-			"name": "com.amazonaws.ecs.capability.logging-driver.awslogs"
-		},
-		{
-			"name": "ecs.capability.execution-role-awslogs"
-		},
-		{
-			"name": "com.amazonaws.ecs.capability.ecr-auth"
-		},
-		{
-			"name": "com.amazonaws.ecs.capability.docker-remote-api.1.19"
-		},
-		{
-			"name": "ecs.capability.execution-role-ecr-pull"
-		},
-		{
-			"name": "com.amazonaws.ecs.capability.docker-remote-api.1.18"
-		},
-		{
-			"name": "ecs.capability.task-eni"
-		}
-	],
+	"volumes": [],
 	"placementConstraints": [],
-	"compatibilities": ["EC2", "FARGATE"],
 	"requiresCompatibilities": ["FARGATE"],
 	"cpu": "4096",
 	"memory": "16384",
 	"runtimePlatform": {
 		"cpuArchitecture": "ARM64"
 	},
-	"registeredAt": "2023-01-26T21:49:32.433Z",
-	"registeredBy": "arn:aws:iam::173971919437:user/vadim",
 	"tags": [
 		{
 			"key": "ecs:taskDefinition:createdFrom",

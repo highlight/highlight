@@ -1495,7 +1495,7 @@ func (r *mutationResolver) UpdateBillingDetails(ctx context.Context, workspaceID
 }
 
 // SaveBillingPlan is the resolver for the saveBillingPlan field.
-func (r *mutationResolver) SaveBillingPlan(ctx context.Context, workspaceID int, sessionsLimitCents *int, sessionsRetention modelInputs.RetentionPeriod, errorsLimitCents *int, errorsRetention modelInputs.RetentionPeriod, logsLimitCents *int, logsRetention modelInputs.RetentionPeriod, tracesLimitCents *int, tracesRetention modelInputs.RetentionPeriod) (*bool, error) {
+func (r *mutationResolver) SaveBillingPlan(ctx context.Context, workspaceID int, sessionsLimitCents *int, sessionsRetention modelInputs.RetentionPeriod, errorsLimitCents *int, errorsRetention modelInputs.RetentionPeriod, logsLimitCents *int, logsRetention modelInputs.RetentionPeriod, tracesLimitCents *int, tracesRetention modelInputs.RetentionPeriod, metricsLimitCents *int, metricsRetention modelInputs.RetentionPeriod) (*bool, error) {
 	workspace, err := r.isUserWorkspaceAdmin(ctx, workspaceID)
 	if err != nil {
 		return nil, err
@@ -1506,9 +1506,9 @@ func (r *mutationResolver) SaveBillingPlan(ctx context.Context, workspaceID int,
 		return nil, err
 	}
 
-	columns := []interface{}{"errors_retention_period", "retention_period"}
+	columns := []interface{}{"errors_retention_period", "retention_period", "logs_retention_period", "traces_retention_period", "metrics_retention_period"}
 	if settings.EnableBillingLimits {
-		columns = append(columns, "sessions_max_cents", "errors_max_cents", "logs_max_cents", "traces_max_cents")
+		columns = append(columns, "sessions_max_cents", "errors_max_cents", "logs_max_cents", "traces_max_cents", "metrics_max_cents")
 	} else {
 		// allow disabling products by setting a limit of 0, even when billing limits are disabled
 		for column, value := range map[string]*int{
@@ -1516,6 +1516,7 @@ func (r *mutationResolver) SaveBillingPlan(ctx context.Context, workspaceID int,
 			"errors_max_cents":   errorsLimitCents,
 			"logs_max_cents":     logsLimitCents,
 			"traces_max_cents":   tracesLimitCents,
+			"metrics_max_cents":  metricsLimitCents,
 		} {
 			if pointy.IntValue(value, 0) == 0 {
 				columns = append(columns, column)
@@ -1525,14 +1526,16 @@ func (r *mutationResolver) SaveBillingPlan(ctx context.Context, workspaceID int,
 	if err := r.DB.WithContext(ctx).Model(&workspace).
 		Select(columns[0], columns[1:]...).
 		Updates(&model.Workspace{
-			SessionsMaxCents:      sessionsLimitCents,
-			RetentionPeriod:       &sessionsRetention,
-			ErrorsMaxCents:        errorsLimitCents,
-			ErrorsRetentionPeriod: &errorsRetention,
-			LogsMaxCents:          logsLimitCents,
-			LogsRetentionPeriod:   &logsRetention,
-			TracesMaxCents:        tracesLimitCents,
-			TracesRetentionPeriod: &tracesRetention,
+			SessionsMaxCents:       sessionsLimitCents,
+			RetentionPeriod:        &sessionsRetention,
+			ErrorsMaxCents:         errorsLimitCents,
+			ErrorsRetentionPeriod:  &errorsRetention,
+			LogsMaxCents:           logsLimitCents,
+			LogsRetentionPeriod:    &logsRetention,
+			TracesMaxCents:         tracesLimitCents,
+			TracesRetentionPeriod:  &tracesRetention,
+			MetricsMaxCents:        metricsLimitCents,
+			MetricsRetentionPeriod: &metricsRetention,
 		}).Error; err != nil {
 		return nil, e.Wrap(err, "error updating workspace")
 	}
@@ -5637,7 +5640,7 @@ func (r *queryResolver) EnhancedUserDetails(ctx context.Context, sessionSecureID
 				return nil, nil
 			}
 			log.WithContext(ctx).Infof("retrieving api response for clearbit lookup")
-			hmetric.Incr(ctx, "private-graph.enhancedDetails.miss", nil, 1)
+			hmetric.Incr(ctx, "private-graph.enhanced_detail.miss", nil, 1)
 			clearbitApiRequestSpan, _ := util.StartSpanFromContext(ctx, "private-graph.EnhancedUserDetails",
 				util.ResourceName("clearbit.api.request"),
 				util.Tag("session_id", s.ID), util.Tag("workspace_id", w.ID), util.Tag("project_id", p.ID), util.Tag("plan_tier", w.PlanTier))
@@ -5672,7 +5675,7 @@ func (r *queryResolver) EnhancedUserDetails(ctx context.Context, sessionSecureID
 			}
 		} else {
 			log.WithContext(ctx).Infof("retrieving cache db entry of clearbit lookup")
-			hmetric.Incr(ctx, "private-graph.enhancedDetails.hit", nil, 1)
+			hmetric.Incr(ctx, "private-graph.enhanced_detail.hit", nil, 1)
 			if userDetailsModel.PersonJSON != nil && userDetailsModel.CompanyJSON != nil {
 				if err := json.Unmarshal([]byte(*userDetailsModel.PersonJSON), &p); err != nil {
 					log.WithContext(ctx).Errorf("error unmarshaling person: %v", err)
@@ -6088,7 +6091,34 @@ func (r *queryResolver) TracesIntegration(ctx context.Context, projectID int) (*
 	err = r.DB.WithContext(ctx).Model(&model.SetupEvent{}).Where("project_id = ? AND type = ?", projectID, model.MarkBackendSetupTypeTraces).Take(&setupEvent).Error
 	if err != nil {
 		if !e.Is(err, gorm.ErrRecordNotFound) {
-			return nil, e.Wrap(err, "error querying logging setup event")
+			return nil, e.Wrap(err, "error querying trace setup event")
+		}
+	}
+
+	if setupEvent.ID != 0 {
+		integration.Integrated = true
+		integration.CreatedAt = &setupEvent.CreatedAt
+	}
+
+	return integration, nil
+}
+
+// MetricsIntegration is the resolver for the metricsIntegration field.
+func (r *queryResolver) MetricsIntegration(ctx context.Context, projectID int) (*modelInputs.IntegrationStatus, error) {
+	integration := &modelInputs.IntegrationStatus{
+		Integrated:   false,
+		ResourceType: "Metric",
+	}
+	_, err := r.isUserInProjectOrDemoProject(ctx, projectID)
+	if err != nil {
+		return nil, err
+	}
+
+	setupEvent := model.SetupEvent{}
+	err = r.DB.WithContext(ctx).Model(&model.SetupEvent{}).Where("project_id = ? AND type = ?", projectID, model.MarkBackendSetupTypeMetrics).Take(&setupEvent).Error
+	if err != nil {
+		if !e.Is(err, gorm.ErrRecordNotFound) {
+			return nil, e.Wrap(err, "error querying metric setup event")
 		}
 	}
 

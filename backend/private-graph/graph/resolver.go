@@ -86,8 +86,8 @@ import (
 // It serves as dependency injection for your app, add any dependencies you require here.
 
 const ErrorGroupLookbackDays = 7
-const SessionActiveMetricName = "sessionActiveLength"
-const SessionProcessedMetricName = "sessionProcessed"
+const SessionActiveMetricName = "sessions.active_length"
+const SessionProcessedMetricName = "sessions.processed"
 const MaxDownloadSize = 32 * 1024 * 1024 // 32MB
 
 var AuthenticationError = errors.New("401 - AuthenticationError")
@@ -156,6 +156,9 @@ type Resolver struct {
 	Store                  *store.Store
 	DataSyncQueue          kafka_queue.MessageQueue
 	TracesQueue            kafka_queue.MessageQueue
+	MetricSumQueue         kafka_queue.MessageQueue
+	MetricHistogramQueue   kafka_queue.MessageQueue
+	MetricSummaryQueue     kafka_queue.MessageQueue
 	EmbeddingsClient       embeddings.Client
 	OpenAiClient           openai_client.OpenAiInterface
 }
@@ -342,7 +345,7 @@ func (r *Resolver) isUserInProjectOrDemoProject(ctx context.Context, project_id 
 	defer authSpan.Finish()
 	start := time.Now()
 	defer func() {
-		highlight.RecordMetric(
+		highlight.RecordHistogram(
 			ctx, "resolver.internal.auth.isAdminInProjectOrDemoProject", time.Since(start).Seconds(),
 		)
 	}()
@@ -518,6 +521,7 @@ func (r *Resolver) isUserInWorkspaceReadOnly(ctx context.Context, workspaceID in
 		MonthlyMembersLimit:         workspace.MonthlyMembersLimit,
 		MonthlySessionLimit:         workspace.MonthlySessionLimit,
 		MonthlyTracesLimit:          workspace.MonthlyTracesLimit,
+		MonthlyMetricsLimit:         workspace.MonthlyMetricsLimit,
 		Name:                        workspace.Name,
 		NextInvoiceDate:             workspace.NextInvoiceDate,
 		PlanTier:                    workspace.PlanTier,
@@ -528,8 +532,11 @@ func (r *Resolver) isUserInWorkspaceReadOnly(ctx context.Context, workspaceID in
 		StripeLogOveragePriceID:     workspace.StripeLogOveragePriceID,
 		StripeSessionOveragePriceID: workspace.StripeSessionOveragePriceID,
 		StripeTracesOveragePriceID:  workspace.StripeTracesOveragePriceID,
+		StripeMetricsOveragePriceID: workspace.StripeMetricsOveragePriceID,
 		TracesMaxCents:              workspace.TracesMaxCents,
 		TracesRetentionPeriod:       workspace.TracesRetentionPeriod,
+		MetricsMaxCents:             workspace.MetricsMaxCents,
+		MetricsRetentionPeriod:      workspace.MetricsRetentionPeriod,
 		TrialEndDate:                workspace.TrialEndDate,
 		TrialExtensionEnabled:       workspace.TrialExtensionEnabled,
 		UnlimitedMembers:            workspace.UnlimitedMembers,
@@ -3741,6 +3748,8 @@ func GetRetentionDate(retentionPeriodPtr *modelInputs.RetentionPeriod) time.Time
 	switch retentionPeriod {
 	case modelInputs.RetentionPeriodSevenDays:
 		return time.Now().AddDate(0, 0, -7)
+	case modelInputs.RetentionPeriodThirtyDays:
+		return time.Now().AddDate(0, 0, -30)
 	case modelInputs.RetentionPeriodThreeMonths:
 		return time.Now().AddDate(0, -3, 0)
 	case modelInputs.RetentionPeriodSixMonths:

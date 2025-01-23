@@ -2,13 +2,13 @@ import logger from '@/highlight.logger'
 import { redirect } from 'next/navigation'
 
 type Props = {
-	searchParams: { shouldRedirect?: boolean }
+	searchParams: Promise<{ shouldRedirect?: boolean }>
 }
 
-export default function RedirectPage({ searchParams }: Props) {
+export default async function RedirectPage({ searchParams }: Props) {
 	logger.info({}, `redirect page`)
 
-	if (searchParams.shouldRedirect) {
+	if ((await searchParams).shouldRedirect) {
 		return redirect(`/ssr`)
 	}
 

@@ -1,7 +1,7 @@
 import { NodeOptions } from '@highlight-run/node'
 import { H } from './highlight-node'
 
-import { IncomingHttpHeaders } from 'http'
+import type { IncomingHttpHeaders } from 'http'
 
 export declare type HasHeaders = {
 	headers: IncomingHttpHeaders

@@ -17,8 +17,8 @@ import {
 	iFeature,
 	loggingHeroKey,
 	loggingscreenshotKey,
-	metricsHeroKey,
-	metricsMobileKey,
+	dashboardsHeroKey,
+	dashboardsMobileKey,
 	monitoringscreenshotKey,
 	sessionReplayHeroKey,
 	sessionscreenshotKey,
@@ -34,8 +34,8 @@ import errorMonitoringHero from '../public/images/features/errorMonitoringHero.p
 import loggingHero from '../public/images/features/loggingHero.png'
 import sessionReplayHero from '../public/images/features/sessionReplayHero.png'
 import loggingscreenshot from '../public/images/loggingscreenshot.png'
-import metricsHero from '../public/images/metricshero.webp'
-import metricsScreenshot from '../public/images/metricsmobile.png'
+import dashboardsHero from '../public/images/dashboardshero.webp'
+import dashboardsScreenshot from '../public/images/dashboardsmobile.png'
 import monitoringscreenshot from '../public/images/monitoringscreenshot.png'
 import sessionscreenshot from '../public/images/sessionscreenshot.png'
 import tracingHero from '../public/images/traces.png'
@@ -57,8 +57,8 @@ const IMAGE_MAP = {
 	[loggingscreenshotKey]: loggingscreenshot,
 	[monitoringscreenshotKey]: monitoringscreenshot,
 	[sessionscreenshotKey]: sessionscreenshot,
-	[metricsHeroKey]: metricsHero,
-	[metricsMobileKey]: metricsScreenshot,
+	[dashboardsHeroKey]: dashboardsHero,
+	[dashboardsMobileKey]: dashboardsScreenshot,
 } as Record<string, StaticImageData>
 
 const ShowcasePage = ({ feature }: { feature: iFeature }) => {

@@ -26,7 +26,7 @@ If you don't see one of your languages / frameworks below, reach out to us in ou
     <DocsCard title="Cloudflare" href="./cloudflare.md">
         {"Integrate logging in Cloudflare Workers."}
     </DocsCard>
-    <DocsCard title="Node.js OpenTelemetry" href="../../7_native-opentelemetry/3_logging.md">
+    <DocsCard title="Node.js OpenTelemetry" href="../../8_native-opentelemetry/3_logging.md">
         {"Integrate logging with Native OpenTelemetry."}
     </DocsCard>
 </DocsCardGroup>

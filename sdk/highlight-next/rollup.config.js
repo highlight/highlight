@@ -10,7 +10,12 @@ const config = {
 		'src/server.ts',
 		'src/ssr.tsx',
 	],
-	external: ['next', 'react', 'require-in-the-middle'],
+	external: [
+		'@prisma/instrumentation',
+		'next',
+		'react',
+		'require-in-the-middle',
+	],
 	plugins: [typescript(), terser()],
 	output: [
 		{

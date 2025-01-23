@@ -3,11 +3,6 @@ package emailV2
 import (
 	"context"
 	"fmt"
-
-	"github.com/pkg/errors"
-	"github.com/sendgrid/sendgrid-go"
-	log "github.com/sirupsen/logrus"
-
 	destinationsV2 "github.com/highlight-run/highlight/backend/alerts/v2/destinations"
 	Email "github.com/highlight-run/highlight/backend/email"
 	"github.com/highlight-run/highlight/backend/env"
@@ -15,6 +10,11 @@ import (
 	"github.com/highlight-run/highlight/backend/model"
 	modelInputs "github.com/highlight-run/highlight/backend/private-graph/graph/model"
 	"github.com/highlight-run/highlight/backend/util"
+	"github.com/pkg/errors"
+	"github.com/samber/lo"
+	"github.com/sendgrid/sendgrid-go"
+	log "github.com/sirupsen/logrus"
+	"regexp"
 )
 
 type EmailData struct {
@@ -264,6 +264,12 @@ func SendNotifications(ctx context.Context, mailClient *sendgrid.Client, lambdaC
 	}
 }
 
+var alertModifyNotificationIgnored = regexp.MustCompile(`.+@(.+\.)?pagerduty\.com`)
+
+func shouldKeepDestination(item model.AlertDestination, _ int) bool {
+	return !alertModifyNotificationIgnored.MatchString(item.TypeID)
+}
+
 func sendAlertCreatedNotification(ctx context.Context, mailClient *sendgrid.Client, lambdaClient *lambda.Client, notificationInput destinationsV2.NotificationInput, destinations []model.AlertDestination) {
 	name := notificationInput.AlertUpsertInput.Admin.Name
 	if name == nil {
@@ -284,7 +290,7 @@ func sendAlertCreatedNotification(ctx context.Context, mailClient *sendgrid.Clie
 		},
 	}
 
-	deliverAlerts(ctx, mailClient, lambdaClient, emailData, destinations)
+	deliverAlerts(ctx, mailClient, lambdaClient, emailData, lo.Filter(destinations, shouldKeepDestination))
 }
 
 func sendAlertUpdatedNotification(ctx context.Context, mailClient *sendgrid.Client, lambdaClient *lambda.Client, notificationInput destinationsV2.NotificationInput, destinations []model.AlertDestination) {
@@ -307,7 +313,7 @@ func sendAlertUpdatedNotification(ctx context.Context, mailClient *sendgrid.Clie
 		},
 	}
 
-	deliverAlerts(ctx, mailClient, lambdaClient, emailData, destinations)
+	deliverAlerts(ctx, mailClient, lambdaClient, emailData, lo.Filter(destinations, shouldKeepDestination))
 }
 
 func deliverAlerts(ctx context.Context, mailClient *sendgrid.Client, lambdaClient *lambda.Client, emailTemplate *EmailData, destinations []model.AlertDestination) {

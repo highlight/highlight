@@ -20,6 +20,32 @@ import (
 	"time"
 )
 
+func (r *Resolver) IsMetricIngested(ctx context.Context, metric clickhouse.MetricRow) bool {
+	if !r.IsMetricIngestedByFilter(ctx, metric) {
+		return false
+	}
+	if !r.IsMetricIngestedBySample(ctx, metric) {
+		return false
+	}
+	if !r.IsMetricIngestedByRateLimit(ctx, metric) {
+		return false
+	}
+	return true
+}
+
+func (r *Resolver) IsMetricIngestedBySample(_ context.Context, _ clickhouse.MetricRow) bool {
+	// metrics cannot be sampled on ingest
+	return true
+}
+
+func (r *Resolver) IsMetricIngestedByRateLimit(ctx context.Context, metric clickhouse.MetricRow) bool {
+	return r.isItemIngestedByRate(ctx, metric.GetTimestamp(), privateModel.ProductTypeMetrics, int(metric.GetProjectId()))
+}
+
+func (r *Resolver) IsMetricIngestedByFilter(ctx context.Context, metric clickhouse.MetricRow) bool {
+	return r.isItemIngestedByFilter(ctx, privateModel.ProductTypeMetrics, int(metric.GetProjectId()), metric)
+}
+
 func (r *Resolver) IsTraceIngested(ctx context.Context, trace *clickhouse.TraceRow) bool {
 	if !r.IsTraceIngestedByFilter(ctx, trace) {
 		return false
@@ -278,6 +304,8 @@ func (r *Resolver) isItemIngestedBySample(ctx context.Context, product privateMo
 			return settings.LogSamplingRate
 		case privateModel.ProductTypeTraces:
 			return settings.TraceSamplingRate
+		case privateModel.ProductTypeMetrics:
+			return settings.MetricSamplingRate
 		}
 		return 1.
 	}()
@@ -301,6 +329,8 @@ func (r *Resolver) isItemIngestedByRate(ctx context.Context, when time.Time, pro
 			return settings.LogMinuteRateLimit
 		case privateModel.ProductTypeTraces:
 			return settings.TraceMinuteRateLimit
+		case privateModel.ProductTypeMetrics:
+			return settings.MetricMinuteRateLimit
 		}
 		return nil
 	}()
@@ -327,6 +357,8 @@ func (r *Resolver) isItemIngestedByFilter(ctx context.Context, product privateMo
 			return ptr.ToString(settings.LogExclusionQuery)
 		case privateModel.ProductTypeTraces:
 			return ptr.ToString(settings.TraceExclusionQuery)
+		case privateModel.ProductTypeMetrics:
+			return ptr.ToString(settings.MetricExclusionQuery)
 		}
 		return ""
 	}()
@@ -348,6 +380,9 @@ func (r *Resolver) isItemIngestedByFilter(ctx context.Context, product privateMo
 		case privateModel.ProductTypeTraces:
 			filters := parser.Parse(query, clickhouse.TracesTableNoDefaultConfig)
 			return clickhouse.TraceMatchesQuery(object.(*clickhouse.TraceRow), filters)
+		case privateModel.ProductTypeMetrics:
+			// TODO(vkorolik) implement metrics querying
+			return false
 		}
 		return false
 	}()

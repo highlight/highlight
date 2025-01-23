@@ -3,11 +3,13 @@ import http
 import json
 import logging
 
-import pkg_resources
+import importlib
+
 import sys
 import traceback
 import typing
 
+from importlib import metadata
 from opentelemetry import trace as otel_trace, _logs
 from opentelemetry._logs.severity import std_to_otel
 from opentelemetry.baggage import set_baggage, get_baggage
@@ -552,8 +554,6 @@ def _build_resource(
         attrs[ResourceAttributes.DEPLOYMENT_ENVIRONMENT] = environment
     if environment:
         attrs["telemetry.distro.name"] = "highlight_io"
-        attrs["telemetry.distro.version"] = pkg_resources.get_distribution(
-            "highlight_io"
-        ).version
+        attrs["telemetry.distro.version"] = metadata.version("highlight_io")
 
     return Resource.create(attrs)

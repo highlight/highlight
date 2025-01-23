@@ -11,7 +11,7 @@ import (
 	"go.opentelemetry.io/otel/trace"
 )
 
-const KafkaBatchWorkerOp = "KafkaBatchWorker"
+const KafkaBatchWorkerOp = "worker.kafka.batch"
 
 type MultiSpan struct {
 	hSpan trace.Span

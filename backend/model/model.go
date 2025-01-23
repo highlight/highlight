@@ -279,18 +279,22 @@ type Workspace struct {
 	MonthlyErrorsLimit          *int
 	MonthlyLogsLimit            *int
 	MonthlyTracesLimit          *int
+	MonthlyMetricsLimit         *int
 	RetentionPeriod             *modelInputs.RetentionPeriod `gorm:"default:SevenDays"`
 	ErrorsRetentionPeriod       *modelInputs.RetentionPeriod `gorm:"default:SevenDays"`
 	LogsRetentionPeriod         *modelInputs.RetentionPeriod `gorm:"default:ThirtyDays"`
 	TracesRetentionPeriod       *modelInputs.RetentionPeriod `gorm:"default:ThirtyDays"`
+	MetricsRetentionPeriod      *modelInputs.RetentionPeriod `gorm:"default:ThirtyDays"`
 	SessionsMaxCents            *int
 	ErrorsMaxCents              *int
 	LogsMaxCents                *int
 	TracesMaxCents              *int
+	MetricsMaxCents             *int
 	StripeSessionOveragePriceID *string
 	StripeErrorOveragePriceID   *string
 	StripeLogOveragePriceID     *string
 	StripeTracesOveragePriceID  *string
+	StripeMetricsOveragePriceID *string
 	TrialEndDate                *time.Time `json:"trial_end_date"`
 	AllowMeterOverage           bool       `gorm:"default:true"`
 	AllowedAutoJoinEmailOrigins *string    `json:"allowed_auto_join_email_origins"`
@@ -419,6 +423,7 @@ const (
 	MarkBackendSetupTypeError   MarkBackendSetupType = "error"
 	MarkBackendSetupTypeLogs    MarkBackendSetupType = "logs"
 	MarkBackendSetupTypeTraces  MarkBackendSetupType = "traces"
+	MarkBackendSetupTypeMetrics MarkBackendSetupType = "metrics"
 )
 
 type SetupEvent struct {
@@ -438,14 +443,17 @@ type ProjectFilterSettings struct {
 	ErrorSamplingRate                 float64 `gorm:"default:1"`
 	LogSamplingRate                   float64 `gorm:"default:1"`
 	TraceSamplingRate                 float64 `gorm:"default:1"`
+	MetricSamplingRate                float64 `gorm:"default:1"`
 	SessionMinuteRateLimit            *int64
 	ErrorMinuteRateLimit              *int64
 	LogMinuteRateLimit                *int64
 	TraceMinuteRateLimit              *int64
+	MetricMinuteRateLimit             *int64
 	SessionExclusionQuery             *string
 	ErrorExclusionQuery               *string
 	LogExclusionQuery                 *string
 	TraceExclusionQuery               *string
+	MetricExclusionQuery              *string
 }
 
 type AllWorkspaceSettings struct {
@@ -1363,24 +1371,28 @@ type UserJourneyStep struct {
 }
 
 type SystemConfiguration struct {
-	Active            bool `gorm:"primary_key"`
-	MaintenanceStart  time.Time
-	MaintenanceEnd    time.Time
-	ErrorFilters      pq.StringArray `gorm:"type:text[]"`
-	IgnoredFiles      pq.StringArray `gorm:"type:text[]"`
-	MainWorkers       int            `gorm:"default:64"`
-	LogsWorkers       int            `gorm:"default:1"`
-	LogsFlushSize     int            `gorm:"type:bigint;default:1000"`
-	LogsQueueSize     int            `gorm:"type:bigint;default:100"`
-	LogsFlushTimeout  time.Duration  `gorm:"type:bigint;default:1000000000"`
-	DataSyncWorkers   int            `gorm:"default:1"`
-	DataSyncFlushSize int            `gorm:"type:bigint;default:1000"`
-	DataSyncQueueSize int            `gorm:"type:bigint;default:100"`
-	DataSyncTimeout   time.Duration  `gorm:"type:bigint;default:1000000000"`
-	TraceWorkers      int            `gorm:"default:1"`
-	TraceFlushSize    int            `gorm:"type:bigint;default:1000"`
-	TraceQueueSize    int            `gorm:"type:bigint;default:100"`
-	TraceFlushTimeout time.Duration  `gorm:"type:bigint;default:1000000000"`
+	Active             bool `gorm:"primary_key"`
+	MaintenanceStart   time.Time
+	MaintenanceEnd     time.Time
+	ErrorFilters       pq.StringArray `gorm:"type:text[]"`
+	IgnoredFiles       pq.StringArray `gorm:"type:text[]"`
+	MainWorkers        int            `gorm:"default:64"`
+	LogsWorkers        int            `gorm:"default:1"`
+	LogsFlushSize      int            `gorm:"type:bigint;default:1000"`
+	LogsQueueSize      int            `gorm:"type:bigint;default:100"`
+	LogsFlushTimeout   time.Duration  `gorm:"type:bigint;default:1000000000"`
+	DataSyncWorkers    int            `gorm:"default:1"`
+	DataSyncFlushSize  int            `gorm:"type:bigint;default:1000"`
+	DataSyncQueueSize  int            `gorm:"type:bigint;default:100"`
+	DataSyncTimeout    time.Duration  `gorm:"type:bigint;default:1000000000"`
+	TraceWorkers       int            `gorm:"default:1"`
+	TraceFlushSize     int            `gorm:"type:bigint;default:1000"`
+	TraceQueueSize     int            `gorm:"type:bigint;default:100"`
+	TraceFlushTimeout  time.Duration  `gorm:"type:bigint;default:1000000000"`
+	MetricWorkers      int            `gorm:"default:1"`
+	MetricFlushSize    int            `gorm:"type:bigint;default:1000"`
+	MetricQueueSize    int            `gorm:"type:bigint;default:100"`
+	MetricFlushTimeout time.Duration  `gorm:"type:bigint;default:1000000000"`
 }
 
 type RetryableType string

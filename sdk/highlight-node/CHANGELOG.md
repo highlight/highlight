@@ -1,5 +1,12 @@
 # @highlight-run/node
 
+## 3.11.1
+
+### Patch Changes
+
+-   c647d66: fix node-fetch import breaking edge runtime compatibility
+-   c647d66: update @highlight-run/node dependency on @prisma/instrumentation
+
 ## 3.11.0
 
 ### Minor Changes

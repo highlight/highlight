@@ -38,5 +38,25 @@
 		"exactlyOnce": "true",
 		"username": "default",
 		"schemas.enable": "false"
+	},
+	"metrics-v7-connector": {
+		"connector.class": "com.clickhouse.kafka.connect.ClickHouseSinkConnector",
+		"topic2TableMap": "prod_v6_metrics_sum=metrics_sum,prod_v6_metrics_histogram=metrics_histogram,prod_v6_metrics_summary=metrics_summary",
+		"tasks.max": "1",
+		"topics": "prod_v6_metrics_sum,prod_v6_metrics_histogram,prod_v6_metrics_summary",
+		"clickhouseSettings": "date_time_input_format=best_effort",
+		"ssl": "true",
+		"security.protocol": "SSL",
+		"hostname": "REDACTED",
+		"database": "default",
+		"password": "REDACTED",
+		"ssl.truststore.location": "/tmp/kafka.client.truststore.jks",
+		"port": "8443",
+		"key.converter": "org.apache.kafka.connect.storage.StringConverter",
+		"value.converter.schemas.enable": "false",
+		"value.converter": "org.apache.kafka.connect.json.JsonConverter",
+		"exactlyOnce": "true",
+		"username": "default",
+		"schemas.enable": "false"
 	}
 }

@@ -165,7 +165,7 @@ export default withHighlightConfig(nextConfig)
  Otherwise, the next server will not enable the `instrumentationHook` in your production deploy.
 ```
 
-2. Call `registerHighlight` in `instrumentation.ts` or `src/instrumentation.ts` if you're using a `/src` folder. Make sure that `instrumentation.ts` is a sibling of your `pages` folder. 
+2. Call `registerHighlight` in `instrumentation.ts` or `src/instrumentation.ts` if you're using a `/src` folder. Make sure that `instrumentation.ts` is a sibling of your `app` folder.
 ```jsx
 // instrumentation.ts or src/instrumentation.ts
 import { CONSTANTS } from './constants'
@@ -431,8 +431,8 @@ import type { NextRequest } from 'next/server'
 import { NextResponse } from 'next/server'
 import { highlightMiddleware } from '@highlight-run/next/server'
 
-export function middleware(request: NextRequest) {
-	highlightMiddleware(request)
+export async function middleware(request: NextRequest) {
+	await highlightMiddleware(request)
 
 	return NextResponse.next()
 }
