@@ -254,6 +254,17 @@ export const AlertForm: React.FC = () => {
 			return
 		}
 
+		if (
+			productType !== ProductType.Metrics &&
+			product === ProductType.Metrics
+		) {
+			setFunctionType(MetricAggregator.Avg)
+			setFunctionColumn('value')
+		} else {
+			setFunctionType(MetricAggregator.Count)
+			setFunctionColumn('')
+		}
+
 		setProductType(product)
 		if (product === ProductType.Sessions && !isAnomaly) {
 			// locked session settings -> group by secure_id
@@ -278,8 +289,6 @@ export const AlertForm: React.FC = () => {
 		setThresholdCondition(DEFAULT_THRESHOLD_CONDITON)
 		setThresholdValue(DEFAULT_THRESHOLD)
 		setQuery('')
-		setFunctionType(MetricAggregator.Count)
-		setFunctionColumn('')
 	}
 
 	const redirectToAlert = (id?: string) => {
@@ -694,6 +703,7 @@ export const AlertForm: React.FC = () => {
 												tooltip="Determines how data points are aggregated. If the function requires a numeric field as input, one can be chosen."
 											>
 												<OptionDropdown
+													key={functionType}
 													options={FUNCTION_TYPES}
 													selection={functionType}
 													setSelection={
@@ -701,6 +711,7 @@ export const AlertForm: React.FC = () => {
 													}
 												/>
 												<Combobox
+													key={fetchedFunctionColumn}
 													selection={
 														fetchedFunctionColumn
 													}
