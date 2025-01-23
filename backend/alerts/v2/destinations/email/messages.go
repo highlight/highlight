@@ -3,12 +3,6 @@ package emailV2
 import (
 	"context"
 	"fmt"
-	"github.com/pkg/errors"
-	"github.com/samber/lo"
-	"github.com/sendgrid/sendgrid-go"
-	log "github.com/sirupsen/logrus"
-	"regexp"
-
 	destinationsV2 "github.com/highlight-run/highlight/backend/alerts/v2/destinations"
 	Email "github.com/highlight-run/highlight/backend/email"
 	"github.com/highlight-run/highlight/backend/env"
@@ -16,6 +10,11 @@ import (
 	"github.com/highlight-run/highlight/backend/model"
 	modelInputs "github.com/highlight-run/highlight/backend/private-graph/graph/model"
 	"github.com/highlight-run/highlight/backend/util"
+	"github.com/pkg/errors"
+	"github.com/samber/lo"
+	"github.com/sendgrid/sendgrid-go"
+	log "github.com/sirupsen/logrus"
+	"regexp"
 )
 
 type EmailData struct {
