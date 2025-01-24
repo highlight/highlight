@@ -9,7 +9,7 @@ on:
 concurrency: ${{ github.workflow }}-${{ github.ref }}
 jobs:
     code-setup:
-        runs-on: codebuild-highlight-github-actions-runner-${{ github.run_id }}-${{ github.run_attempt }}
+        runs-on: codebuild-highlight-github-actions-runner-${{ github.run_id }}-${{ github.run_attempt }}-arm-3.0-large
         steps:
             - name: Checkout
               uses: actions/checkout@v4
@@ -21,7 +21,7 @@ jobs:
 
     code-quality-check:
         needs: code-setup
-        runs-on: codebuild-highlight-github-actions-runner-${{ github.run_id }}-${{ github.run_attempt }}
+        runs-on: codebuild-highlight-github-actions-runner-${{ github.run_id }}-${{ github.run_attempt }}-arm-3.0-large
         steps:
             - name: Checkout
               uses: actions/checkout@v4
@@ -51,7 +51,7 @@ jobs:
 
     make-check:
         needs: [code-setup]
-        runs-on: codebuild-highlight-github-actions-runner-${{ github.run_id }}-${{ github.run_attempt }}
+        runs-on: codebuild-highlight-github-actions-runner-${{ github.run_id }}-${{ github.run_attempt }}-arm-3.0-large
         steps:
             - name: Checkout
               uses: actions/checkout@v4
@@ -78,7 +78,7 @@ jobs:
 
     build:
         needs: code-quality-check
-        runs-on: codebuild-highlight-github-actions-runner-${{ github.run_id }}-${{ github.run_attempt }}
+        runs-on: codebuild-highlight-github-actions-runner-${{ github.run_id }}-${{ github.run_attempt }}-arm-3.0-large
         steps:
             - name: Checkout
               uses: actions/checkout@v4
@@ -92,7 +92,7 @@ jobs:
 
     test:
         needs: code-quality-check
-        runs-on: codebuild-highlight-github-actions-runner-${{ github.run_id }}-${{ github.run_attempt }}
+        runs-on: codebuild-highlight-github-actions-runner-${{ github.run_id }}-${{ github.run_attempt }}-arm-3.0-large
         services:
             postgres:
                 image: ankane/pgvector:v0.5.1

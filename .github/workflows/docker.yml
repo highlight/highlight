@@ -14,7 +14,7 @@ jobs:
         strategy:
             matrix:
                 container: ['frontend', 'backend']
-        runs-on: buildjet-4vcpu-ubuntu-2204
+        runs-on: buildjet-8vcpu-ubuntu-2204
         timeout-minutes: 30
         # does not work for open source builds as doppler is required
         if: github.event.pull_request.head.repo.full_name == 'highlight/highlight' || github.ref == 'refs/heads/main' || github.event_name == 'release'
@@ -84,7 +84,7 @@ jobs:
         name: Test Docker Image
         needs:
             - publish-docker
-        runs-on: buildjet-4vcpu-ubuntu-2204
+        runs-on: buildjet-16vcpu-ubuntu-2204
         timeout-minutes: 90
 
         steps:

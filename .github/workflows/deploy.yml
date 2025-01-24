@@ -16,7 +16,7 @@ on:
 concurrency: ${{ github.workflow }}-${{ github.ref }}
 jobs:
     migrate-database:
-        runs-on: codebuild-highlight-github-actions-runner-${{ github.run_id }}-${{ github.run_attempt }}
+        runs-on: codebuild-highlight-github-actions-runner-${{ github.run_id }}-${{ github.run_attempt }}-arm-3.0-large
         steps:
             - name: Checkout
               uses: actions/checkout@v4
@@ -36,7 +36,7 @@ jobs:
 
     deploy-session-delete-lambdas:
         needs: migrate-database
-        runs-on: codebuild-highlight-github-actions-runner-${{ github.run_id }}-${{ github.run_attempt }}
+        runs-on: codebuild-highlight-github-actions-runner-${{ github.run_id }}-${{ github.run_attempt }}-arm-3.0-large
         steps:
             - name: Checkout
               uses: actions/checkout@v4
@@ -93,7 +93,7 @@ jobs:
 
     deploy-session-export-lambdas:
         needs: migrate-database
-        runs-on: codebuild-highlight-github-actions-runner-${{ github.run_id }}-${{ github.run_attempt }}
+        runs-on: codebuild-highlight-github-actions-runner-${{ github.run_id }}-${{ github.run_attempt }}-arm-3.0-large
         steps:
             - name: Checkout
               uses: actions/checkout@v4
@@ -132,7 +132,7 @@ jobs:
 
     deploy-digest-lambdas:
         needs: migrate-database
-        runs-on: codebuild-highlight-github-actions-runner-${{ github.run_id }}-${{ github.run_attempt }}
+        runs-on: codebuild-highlight-github-actions-runner-${{ github.run_id }}-${{ github.run_attempt }}-arm-3.0-large
         steps:
             - name: Checkout
               uses: actions/checkout@v4
@@ -177,7 +177,7 @@ jobs:
 
     deploy-session-insights-lambdas:
         needs: migrate-database
-        runs-on: codebuild-highlight-github-actions-runner-${{ github.run_id }}-${{ github.run_attempt }}
+        runs-on: codebuild-highlight-github-actions-runner-${{ github.run_id }}-${{ github.run_attempt }}-arm-3.0-large
         steps:
             - name: Checkout
               uses: actions/checkout@v4
@@ -216,7 +216,7 @@ jobs:
 
     deploy-metering-lambdas:
         needs: migrate-database
-        runs-on: codebuild-highlight-github-actions-runner-${{ github.run_id }}-${{ github.run_attempt }}
+        runs-on: codebuild-highlight-github-actions-runner-${{ github.run_id }}-${{ github.run_attempt }}-arm-3.0-large
         steps:
             - name: Checkout
               uses: actions/checkout@v4
@@ -249,7 +249,7 @@ jobs:
 
     deploy-user-journey-lambdas:
         needs: migrate-database
-        runs-on: codebuild-highlight-github-actions-runner-${{ github.run_id }}-${{ github.run_attempt }}
+        runs-on: codebuild-highlight-github-actions-runner-${{ github.run_id }}-${{ github.run_attempt }}-arm-3.0-large
         steps:
             - name: Checkout
               uses: actions/checkout@v4
