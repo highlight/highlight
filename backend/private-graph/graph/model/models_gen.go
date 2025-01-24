@@ -622,6 +622,22 @@ type MetricBucket struct {
 	YhatUpper   *float64         `json:"yhat_upper,omitempty"`
 }
 
+type MetricConnection struct {
+	Edges    []*MetricEdge `json:"edges"`
+	PageInfo *PageInfo     `json:"pageInfo"`
+}
+
+func (MetricConnection) IsConnection()               {}
+func (this MetricConnection) GetPageInfo() *PageInfo { return this.PageInfo }
+
+type MetricEdge struct {
+	Cursor string     `json:"cursor"`
+	Node   *MetricRow `json:"node"`
+}
+
+func (MetricEdge) IsEdge()                {}
+func (this MetricEdge) GetCursor() string { return this.Cursor }
+
 type MetricExpression struct {
 	Aggregator MetricAggregator `json:"aggregator"`
 	Column     string           `json:"column"`
@@ -635,6 +651,32 @@ type MetricExpressionInput struct {
 type MetricPreview struct {
 	Date  time.Time `json:"date"`
 	Value float64   `json:"value"`
+}
+
+type MetricRow struct {
+	ProjectID              int                    `json:"projectID"`
+	Timestamp              time.Time              `json:"timestamp"`
+	ServiceName            string                 `json:"serviceName"`
+	MetricName             string                 `json:"metricName"`
+	MetricDescription      string                 `json:"metricDescription"`
+	MetricUnit             string                 `json:"metricUnit"`
+	Attributes             map[string]interface{} `json:"attributes"`
+	StartTimestamp         time.Time              `json:"startTimestamp"`
+	Type                   MetricRowType          `json:"type"`
+	Flags                  uint64                 `json:"flags"`
+	Value                  float64                `json:"value"`
+	Exemplars              []*MetricRowExemplar   `json:"exemplars"`
+	AggregationTemporality int                    `json:"aggregationTemporality"`
+	IsMonotonic            bool                   `json:"isMonotonic"`
+}
+
+type MetricRowExemplar struct {
+	Timestamp       time.Time              `json:"timestamp"`
+	TraceID         string                 `json:"traceID"`
+	SpanID          string                 `json:"spanID"`
+	Attributes      map[string]interface{} `json:"attributes"`
+	SecureSessionID string                 `json:"secureSessionID"`
+	Value           float64                `json:"value"`
 }
 
 type MetricTagFilter struct {
@@ -1732,6 +1774,55 @@ func (e MetricBucketBy) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(e.String()))
 }
 
+type MetricRowType string
+
+const (
+	MetricRowTypeEmpty                MetricRowType = "empty"
+	MetricRowTypeGauge                MetricRowType = "gauge"
+	MetricRowTypeSum                  MetricRowType = "sum"
+	MetricRowTypeHistogram            MetricRowType = "histogram"
+	MetricRowTypeExponentialHistogram MetricRowType = "exponentialHistogram"
+	MetricRowTypeSummary              MetricRowType = "summary"
+)
+
+var AllMetricRowType = []MetricRowType{
+	MetricRowTypeEmpty,
+	MetricRowTypeGauge,
+	MetricRowTypeSum,
+	MetricRowTypeHistogram,
+	MetricRowTypeExponentialHistogram,
+	MetricRowTypeSummary,
+}
+
+func (e MetricRowType) IsValid() bool {
+	switch e {
+	case MetricRowTypeEmpty, MetricRowTypeGauge, MetricRowTypeSum, MetricRowTypeHistogram, MetricRowTypeExponentialHistogram, MetricRowTypeSummary:
+		return true
+	}
+	return false
+}
+
+func (e MetricRowType) String() string {
+	return string(e)
+}
+
+func (e *MetricRowType) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = MetricRowType(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid MetricRowType", str)
+	}
+	return nil
+}
+
+func (e MetricRowType) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
 type MetricTagFilterOp string
 
 const (
@@ -2347,6 +2438,77 @@ func (e *ReservedLogKey) UnmarshalGQL(v interface{}) error {
 }
 
 func (e ReservedLogKey) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+type ReservedMetricKey string
+
+const (
+	ReservedMetricKeyCount             ReservedMetricKey = "count"
+	ReservedMetricKeyMax               ReservedMetricKey = "max"
+	ReservedMetricKeyMetricDescription ReservedMetricKey = "metric_description"
+	ReservedMetricKeyMetricName        ReservedMetricKey = "metric_name"
+	ReservedMetricKeyMetricUnit        ReservedMetricKey = "metric_unit"
+	ReservedMetricKeyMin               ReservedMetricKey = "min"
+	ReservedMetricKeyRetentionDays     ReservedMetricKey = "retention_days"
+	ReservedMetricKeySecureSessionID   ReservedMetricKey = "secure_session_id"
+	ReservedMetricKeyServiceName       ReservedMetricKey = "service_name"
+	ReservedMetricKeyServiceVersion    ReservedMetricKey = "service_version"
+	ReservedMetricKeySpanID            ReservedMetricKey = "span_id"
+	ReservedMetricKeyStartTimestamp    ReservedMetricKey = "start_timestamp"
+	ReservedMetricKeySum               ReservedMetricKey = "sum"
+	ReservedMetricKeyTimestamp         ReservedMetricKey = "timestamp"
+	ReservedMetricKeyTraceID           ReservedMetricKey = "trace_id"
+	ReservedMetricKeyType              ReservedMetricKey = "type"
+	ReservedMetricKeyValue             ReservedMetricKey = "value"
+)
+
+var AllReservedMetricKey = []ReservedMetricKey{
+	ReservedMetricKeyCount,
+	ReservedMetricKeyMax,
+	ReservedMetricKeyMetricDescription,
+	ReservedMetricKeyMetricName,
+	ReservedMetricKeyMetricUnit,
+	ReservedMetricKeyMin,
+	ReservedMetricKeyRetentionDays,
+	ReservedMetricKeySecureSessionID,
+	ReservedMetricKeyServiceName,
+	ReservedMetricKeyServiceVersion,
+	ReservedMetricKeySpanID,
+	ReservedMetricKeyStartTimestamp,
+	ReservedMetricKeySum,
+	ReservedMetricKeyTimestamp,
+	ReservedMetricKeyTraceID,
+	ReservedMetricKeyType,
+	ReservedMetricKeyValue,
+}
+
+func (e ReservedMetricKey) IsValid() bool {
+	switch e {
+	case ReservedMetricKeyCount, ReservedMetricKeyMax, ReservedMetricKeyMetricDescription, ReservedMetricKeyMetricName, ReservedMetricKeyMetricUnit, ReservedMetricKeyMin, ReservedMetricKeyRetentionDays, ReservedMetricKeySecureSessionID, ReservedMetricKeyServiceName, ReservedMetricKeyServiceVersion, ReservedMetricKeySpanID, ReservedMetricKeyStartTimestamp, ReservedMetricKeySum, ReservedMetricKeyTimestamp, ReservedMetricKeyTraceID, ReservedMetricKeyType, ReservedMetricKeyValue:
+		return true
+	}
+	return false
+}
+
+func (e ReservedMetricKey) String() string {
+	return string(e)
+}
+
+func (e *ReservedMetricKey) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = ReservedMetricKey(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid ReservedMetricKey", str)
+	}
+	return nil
+}
+
+func (e ReservedMetricKey) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(e.String()))
 }
 

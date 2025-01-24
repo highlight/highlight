@@ -4,14 +4,12 @@ import { useEffect, useMemo } from 'react'
 
 import { TableList, TableListItem } from '@/components/TableList/TableList'
 import { ErrorObject } from '@/graph/generated/schemas'
-import RequestMetrics from '@/pages/Player/Toolbar/DevToolsWindow/ResourcePage/components/RequestMetrics/RequestMetrics'
 import { UnknownRequestStatusCode } from '@/pages/Player/Toolbar/DevToolsWindowV2/NetworkPage/NetworkPage'
 import {
 	formatSize,
 	getNetworkResourcesDisplayName,
 	NetworkResource,
 } from '@/pages/Player/Toolbar/DevToolsWindowV2/utils'
-import { REQUEST_INITIATOR_TYPES } from '@/pages/Player/utils/utils'
 import { CodeBlock } from '@/pages/Setup/CodeBlock/CodeBlock'
 import analytics from '@/util/analytics'
 import { formatTime } from '@/util/time'
@@ -133,12 +131,6 @@ export const NetworkResourceInfo = ({
 					},
 				]),
 	]
-
-	const showRequestMetrics =
-		selectedNetworkResource &&
-		REQUEST_INITIATOR_TYPES.indexOf(
-			selectedNetworkResource.initiatorType as (typeof REQUEST_INITIATOR_TYPES)[number],
-		) > -1
 
 	if (selectedNetworkResource?.requestResponsePairs) {
 		const { request, response, urlBlocked } =
@@ -333,10 +325,6 @@ export const NetworkResourceInfo = ({
 
 	return (
 		<Box>
-			{showRequestMetrics && (
-				<RequestMetrics resource={selectedNetworkResource} />
-			)}
-
 			{sections.map(([key, value]) => (
 				<Box key={key} p="20">
 					<Box

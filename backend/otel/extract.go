@@ -207,7 +207,7 @@ func extractFields(ctx context.Context, params extractFieldsParams) (*extractedF
 	}
 
 	for k, v := range originalAttrs {
-		for key, value := range hlog.FormatLogAttributes(k, v) {
+		for key, value := range hlog.FormatAttributes(k, v) {
 			if v != "" {
 				fields.attrs[key] = value
 			}
