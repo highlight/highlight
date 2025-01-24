@@ -1,0 +1,124 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: 'CloudFormation template for Highlight.io metrics integration'
+
+Parameters:
+    HighlightProjectID:
+        Type: String
+        Description: Your Highlight.io Project ID
+
+    DestinationEndpoint:
+        Type: String
+        Description: OpenTelemetry endpoint URL for metrics
+        Default: https://otlpv1.firehose.highlight.io
+
+Resources:
+    MetricStreamRole:
+        Type: AWS::IAM::Role
+        Properties:
+            AssumeRolePolicyDocument:
+                Version: '2012-10-17'
+                Statement:
+                    - Effect: Allow
+                      Principal:
+                          Service: streams.metrics.cloudwatch.amazonaws.com
+                      Action: sts:AssumeRole
+            Policies:
+                - PolicyName: MetricStreamPolicy
+                  PolicyDocument:
+                      Version: '2012-10-17'
+                      Statement:
+                          - Effect: Allow
+                            Action:
+                                - firehose:PutRecord
+                                - firehose:PutRecordBatch
+                            Resource: !GetAtt DeliveryStream.Arn
+
+    BackupBucket:
+        Type: AWS::S3::Bucket
+        DeletionPolicy: Delete
+        UpdateReplacePolicy: Delete
+        Properties:
+            LifecycleConfiguration:
+                Rules:
+                    - Id: DeleteOldBackups
+                      Status: Enabled
+                      ExpirationInDays: 14
+
+    FirehoseRole:
+        Type: AWS::IAM::Role
+        Properties:
+            AssumeRolePolicyDocument:
+                Version: '2012-10-17'
+                Statement:
+                    - Effect: Allow
+                      Principal:
+                          Service: firehose.amazonaws.com
+                      Action: sts:AssumeRole
+            Policies:
+                - PolicyName: FirehosePolicy
+                  PolicyDocument:
+                      Version: '2012-10-17'
+                      Statement:
+                          - Effect: Allow
+                            Action:
+                                - logs:CreateLogStream
+                                - logs:PutLogEvents
+                                - logs:CreateLogGroup
+                            Resource: !Sub arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/kinesisfirehose/${AWS::StackName}:*
+                          - Effect: Allow
+                            Action:
+                                - s3:PutObject
+                                - s3:GetObject
+                            Resource:
+                                - !Sub ${BackupBucket.Arn}/*
+
+    DeliveryStream:
+        Type: AWS::KinesisFirehose::DeliveryStream
+        Properties:
+            DeliveryStreamType: DirectPut
+            HttpEndpointDestinationConfiguration:
+                EndpointConfiguration:
+                    Url: !Ref DestinationEndpoint
+                RequestConfiguration:
+                    ContentEncoding: GZIP
+                    CommonAttributes:
+                        - AttributeName: x-highlight-project
+                          AttributeValue: !Ref HighlightProjectID
+                BufferingHints:
+                    IntervalInSeconds: 60
+                    SizeInMBs: 1
+                RoleARN: !GetAtt FirehoseRole.Arn
+                S3BackupMode: FailedDataOnly
+                S3Configuration:
+                    BucketARN: !GetAtt BackupBucket.Arn
+                    BufferingHints:
+                        IntervalInSeconds: 300
+                        SizeInMBs: 5
+                    CompressionFormat: GZIP
+                    RoleARN: !GetAtt FirehoseRole.Arn
+                    Prefix: failed-metrics/
+
+    MetricStream:
+        Type: AWS::CloudWatch::MetricStream
+        Properties:
+            FirehoseArn: !GetAtt DeliveryStream.Arn
+            # Someday we may filter this down and make it configurable
+            # IncludeFilters:
+            #     - Namespace: AWS/EC2
+            #     - Namespace: AWS/Lambda
+            #     - Namespace: AWS/RDS
+            OutputFormat: opentelemetry1.0
+            RoleArn: !GetAtt MetricStreamRole.Arn
+
+Outputs:
+    MetricStreamArn:
+        Description: ARN of the created metric stream
+        Value: !GetAtt MetricStream.Arn
+
+    FirehoseArn:
+        Description: ARN of the created Kinesis Firehose
+        Value: !GetAtt DeliveryStream.Arn
+
+    BackupBucketName:
+        Description: Name of the S3 bucket for failed delivery backups
+        Value: !Ref BackupBucket
