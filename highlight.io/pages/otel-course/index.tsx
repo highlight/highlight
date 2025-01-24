@@ -313,12 +313,18 @@ export default function OTelCourse() {
 							return (
 								<button
 									key={`video-${videoIndex}`}
-									className={`w-full text-left px-3 py-3 rounded-lg transition-colors ${
+									className={`w-full text-left px-3 py-3 rounded-lg transition-colors relative overflow-hidden ${
+										currentVideo &&
 										currentVideo === video.id
 											? 'bg-blue-50 text-blue-700'
 											: 'hover:bg-gray-50'
 									}`}
 									onClick={() => handleVideoClick(video.id)}
+									style={{
+										background: progress.started
+											? `linear-gradient(to right, rgba(219, 234, 254, 0.75) ${progress.progress}%, transparent ${progress.progress}%)`
+											: undefined,
+									}}
 								>
 									<div className="flex items-start gap-3 flex-col">
 										<div className="flex-1">
@@ -328,16 +334,6 @@ export default function OTelCourse() {
 											>
 												{video.title}
 											</Typography>
-											{progress.started && (
-												<div className="mt-2 w-full bg-gray-200 rounded-full h-1">
-													<div
-														className="bg-blue-600 h-1 rounded-full transition-all duration-300"
-														style={{
-															width: `${progress.progress}%`,
-														}}
-													></div>
-												</div>
-											)}
 										</div>
 										{!video.id && (
 											<span className="px-2 py-1 text-xs font-medium bg-gray-100 text-gray-600 rounded shrink-0">
