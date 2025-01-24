@@ -1,13 +1,12 @@
 import {
 	IconSolidChartBar,
 	IconSolidFire,
-	Box,
 	IconSolidLightningBolt,
 	IconSolidLogs,
 	IconSolidPlayCircle,
 	IconSolidTraces,
+	IconSolidMetrics,
 } from '@highlight-run/ui/components'
-import { betaTag } from '@/components/Header/styles.css'
 import {
 	MetricAggregator,
 	ProductType,
@@ -50,32 +49,24 @@ export const PRODUCT_OPTIONS = [
 		value: ProductType.Errors,
 		icon: <IconSolidLightningBolt key="errors" />,
 	},
-	// TODO(vkorolik) metrics disabled in the frontend to avoid confusion
-	// {
-	// 	name: ProductType.Metrics,
-	// 	value: ProductType.Metrics,
-	// 	icon: <IconSolidChartBar key="metrics" />,
-	// }
-]
-
-export const PRODUCT_OPTIONS_WITH_EVENTS = PRODUCT_OPTIONS.concat([
+	{
+		name: ProductType.Metrics,
+		value: ProductType.Metrics,
+		icon: <IconSolidMetrics key="metrics" />,
+	},
 	{
 		name: ProductType.Events,
 		value: ProductType.Events,
-		icon: (
-			<Box cssClass={betaTag} key="events">
-				Beta
-			</Box>
-		),
+		icon: <IconSolidChartBar key="events" />,
 	},
-])
+]
 
 export const PRODUCTS_TO_ICONS = {
 	[ProductType.Logs]: <IconSolidLogs key="logs" />,
 	[ProductType.Traces]: <IconSolidTraces key="traces" />,
 	[ProductType.Sessions]: <IconSolidPlayCircle key="sessions" />,
 	[ProductType.Errors]: <IconSolidLightningBolt key="errors" />,
-	[ProductType.Metrics]: <IconSolidChartBar key="metrics" />,
+	[ProductType.Metrics]: <IconSolidMetrics key="metrics" />,
 	[ProductType.Events]: <IconSolidFire key="events" />,
 }
 

@@ -2,14 +2,11 @@ import contextlib
 import http
 import json
 import logging
-
-import importlib
-
-import sys
 import traceback
 import typing
-
 from importlib import metadata
+
+import sys
 from opentelemetry import trace as otel_trace, _logs
 from opentelemetry._logs.severity import std_to_otel
 from opentelemetry.baggage import set_baggage, get_baggage
@@ -32,8 +29,8 @@ from opentelemetry.trace import INVALID_SPAN
 
 from highlight_io.integrations import Integration
 from highlight_io.integrations.all import DEFAULT_INTEGRATIONS
-from highlight_io.utils.lru_cache import LRUCache
 from highlight_io.utils.dict import flatten_dict
+from highlight_io.utils.lru_cache import LRUCache
 
 
 class LogHandler(logging.Handler):
@@ -295,7 +292,9 @@ class H(object):
             span.set_attributes({"highlight.session_id": session_id})
             span.set_attributes({"highlight.trace_id": request_id})
 
-            self._context_map.put(span.context.trace_id, (session_id, request_id))
+            self._context_map.put(
+                span.get_span_context().trace_id, (session_id, request_id)
+            )
 
             try:
                 yield span

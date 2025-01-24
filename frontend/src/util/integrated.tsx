@@ -3,6 +3,7 @@ import {
 	useGetAlertsPagePayloadQuery,
 	useGetClientIntegrationQuery,
 	useGetLogsIntegrationQuery,
+	useGetMetricsIntegrationQuery,
 	useGetProjectQuery,
 	useGetServerIntegrationQuery,
 	useGetTracesIntegrationQuery,
@@ -19,7 +20,14 @@ const POLL_INTERVAL_MS = 5000
 
 export const useIntegratedLocalStorage = (
 	projectId: string | number,
-	area: 'client' | 'server' | 'logs' | 'alerts' | 'team' | 'traces',
+	area:
+		| 'client'
+		| 'server'
+		| 'logs'
+		| 'alerts'
+		| 'team'
+		| 'traces'
+		| 'metrics',
 ) => {
 	return useLocalStorage<LocalStorageIntegrationData>(
 		`highlight-${projectId}-${area}-integration`,
@@ -260,6 +268,64 @@ export const useTracesIntegration = () => {
 	}, [
 		admin?.email,
 		data?.tracesIntegration,
+		localStorageIntegrated.integrated,
+		projectId,
+		setLocalStorageIntegrated,
+	])
+
+	return localStorageIntegrated
+}
+
+export const useMetricsIntegration = () => {
+	const { admin, isLoggedIn } = useAuthContext()
+	const { projectId } = useNumericProjectId()
+	const [localStorageIntegrated, setLocalStorageIntegrated] =
+		useIntegratedLocalStorage(projectId!, 'metrics')
+
+	const { data, startPolling, stopPolling } = useGetMetricsIntegrationQuery({
+		variables: { project_id: projectId! },
+		skip: localStorageIntegrated.integrated,
+		fetchPolicy: 'cache-and-network',
+	})
+
+	useEffect(() => {
+		if (!isLoggedIn) return
+		if (!localStorageIntegrated.integrated) {
+			startPolling(POLL_INTERVAL_MS)
+
+			return () => {
+				stopPolling()
+			}
+		} else {
+			stopPolling()
+		}
+	}, [
+		localStorageIntegrated.integrated,
+		isLoggedIn,
+		startPolling,
+		stopPolling,
+	])
+
+	useEffect(() => {
+		if (data?.metricsIntegration !== undefined && admin?.email) {
+			if (
+				!localStorageIntegrated.integrated &&
+				data?.metricsIntegration.integrated
+			) {
+				analytics.track('integrated-metrics', { id: projectId })
+				analytics.trackGaEvent('integrated_metrics', {
+					email: admin?.email,
+				})
+			}
+
+			setLocalStorageIntegrated({
+				loading: false,
+				...data?.metricsIntegration,
+			})
+		}
+	}, [
+		admin?.email,
+		data?.metricsIntegration,
 		localStorageIntegrated.integrated,
 		projectId,
 		setLocalStorageIntegrated,

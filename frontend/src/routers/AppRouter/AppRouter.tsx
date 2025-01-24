@@ -93,11 +93,6 @@ const DebugRoutes: React.FC<React.PropsWithChildren> = ({ children }) => {
 	return <>{children}</>
 }
 
-const isValidLastVisitedRoute = (route: string) => {
-	// match routes like /1/sessions, /1/errors, /1/logs, /1/traces
-	return /^\/\d+\/(sessions|errors|logs|traces)/.test(route)
-}
-
 export const AppRouter = () => {
 	const { admin, isLoggedIn, isAuthLoading, isHighlightAdmin } =
 		useAuthContext()
@@ -120,39 +115,12 @@ export const AppRouter = () => {
 	const isNewWorkspacePage = !!newProjectMatch
 	const isJoinWorkspacePage = !!joinWorkspaceMatch
 	const [inviteCode, setInviteCode] = useLocalStorage('highlightInviteCode')
-	const [lastVisitedRoute, setLastVisitedRoute] =
-		useLocalStorage('lastVisitedRoute')
 	const { projectId } = useNumericProjectId(previousLocation)
 	const [nextParam] = useQueryParam('next', StringParam)
 	const [configurationIdParam] = useQueryParam('configurationId', StringParam)
 	const isVercelIntegrationFlow = !!nextParam || !!configurationIdParam
 	const navigate = useNavigate()
 	const isValidProjectId = Number.isInteger(Number(projectId))
-
-	useEffect(() => {
-		if (isValidLastVisitedRoute(location.pathname)) {
-			// can be /sessions, /errors, /logs, /traces
-			const routeType = location.pathname.split('/')[2]
-
-			// get the route like /1/sessions, /1/errors, /1/logs, /1/traces
-			const indexOfRouteType = location.pathname.indexOf(routeType)
-			const route = location.pathname.slice(
-				0,
-				indexOfRouteType + routeType.length,
-			)
-
-			setLastVisitedRoute(route)
-		}
-	}, [location.pathname, setLastVisitedRoute])
-
-	useEffect(() => {
-		if (isLoggedIn) {
-			if (lastVisitedRoute && isValidLastVisitedRoute(lastVisitedRoute)) {
-				navigate(lastVisitedRoute, { replace: true })
-			}
-		}
-		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [isLoggedIn])
 
 	const { data, loading } = useGetDropdownOptionsQuery({
 		skip: !isLoggedIn,

@@ -491,6 +491,23 @@ export const quickStartContent = {
 			[QuickStartType.RubyOther]: RubyOtherTracesContent,
 		},
 	},
+	metrics: {
+		title: 'Select your language',
+		subtitle:
+			'Metrics are supported with the Highlight SDKs or via the OpenTelemetry protocol (OTLP).',
+		dotnet: {
+			title: 'C# .NET',
+			subtitle: 'ASP C# .NET Applications',
+			logoUrl: siteUrl('/images/quickstart/dotnet.svg'),
+			[QuickStartType.OTLPDotNet]: DotNetOTLPTracingContent,
+			[QuickStartType.OTLPDotNet4]: DotNet4OTLPTracingContent,
+		},
+		otlp: {
+			title: 'OpenTelemetry',
+			subtitle: 'OpenTelemetry Protocol (OTLP)',
+			[QuickStartType.OTLP]: OTLPTracesContent,
+		},
+	},
 	mobile: {
 		[QuickStartType.ReactNative]: ReactNativeContent,
 	},

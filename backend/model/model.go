@@ -164,8 +164,6 @@ var Models = []interface{}{
 	&WorkspaceAccessRequest{},
 	&EnhancedUserDetails{},
 	&RegistrationData{},
-	&MetricGroup{},
-	&Metric{},
 	&MetricMonitor{},
 	&ErrorFingerprint{},
 	&EventChunk{},
@@ -881,9 +879,8 @@ type DailySessionCount struct {
 }
 
 const (
-	SESSIONS_TBL                    = "sessions"
-	METRIC_GROUPS_NAME_SESSION_UNIQ = "metric_groups_name_session_uniq"
-	DASHBOARD_METRIC_FILTERS_UNIQ   = "dashboard_metric_filters_uniq"
+	SESSIONS_TBL                  = "sessions"
+	DASHBOARD_METRIC_FILTERS_UNIQ = "dashboard_metric_filters_uniq"
 )
 
 type DailyErrorCount struct {
@@ -934,22 +931,6 @@ type MessagesObject struct {
 	SessionID int
 	Messages  string
 	IsBeacon  bool `gorm:"default:false"`
-}
-
-type Metric struct {
-	CreatedAt     time.Time `json:"created_at" deep:"-"`
-	MetricGroupID int       `gorm:"index"`
-	Name          string
-	Value         float64
-	Category      string
-}
-
-type MetricGroup struct {
-	ID        int `gorm:"primary_key;type:bigint;autoIncrement" json:"id" deep:"-"`
-	GroupName string
-	SessionID int
-	ProjectID int
-	Metrics   []*Metric `gorm:"foreignKey:MetricGroupID;"`
 }
 
 type MetricMonitor struct {
@@ -1606,26 +1587,6 @@ func MigrateDB(ctx context.Context, DB *gorm.DB) (bool, error) {
 		END $$;
 	`).Error; err != nil {
 		return false, e.Wrap(err, "Error creating email_history_active_workspace_type_idx")
-	}
-
-	if err := DB.Exec(fmt.Sprintf(`
-		DO $$
-			BEGIN
-				BEGIN
-					IF NOT EXISTS
-						(SELECT constraint_name from information_schema.constraint_column_usage where table_name = 'metric_groups' and constraint_name = '%s')
-					THEN
-						ALTER TABLE metric_groups
-						ADD CONSTRAINT %s
-							UNIQUE (group_name, session_id);
-					END IF;
-				EXCEPTION
-					WHEN duplicate_table
-					THEN RAISE NOTICE 'metric_groups.%s already exists';
-				END;
-			END $$;
-	`, METRIC_GROUPS_NAME_SESSION_UNIQ, METRIC_GROUPS_NAME_SESSION_UNIQ, METRIC_GROUPS_NAME_SESSION_UNIQ)).Error; err != nil {
-		return false, e.Wrap(err, "Error adding unique constraint on metric_groups")
 	}
 
 	if err := DB.Exec(fmt.Sprintf(`
@@ -2481,10 +2442,12 @@ type TableConfig struct {
 	AttributesTable   string
 	MetricColumn      *string
 	KeysToColumns     map[string]string
-	ReservedKeys      []string
-	SelectColumns     []string
-	DefaultFilter     string
-	IgnoredFilters    map[string]bool
+	// contains ClickHouse column names that are multi-value arrays that should be filtered.
+	ArrayColumns   map[string]bool
+	ReservedKeys   []string
+	SelectColumns  []string
+	DefaultFilter  string
+	IgnoredFilters map[string]bool
 }
 
 type ColumnMapping struct {

@@ -30,18 +30,17 @@ import { useDebounce } from 'react-use'
 import { SearchContext } from '@/components/Search/SearchContext'
 import { Search } from '@/components/Search/SearchForm/SearchForm'
 import {
+	useDeleteGraphMutation,
 	useGetVisualizationQuery,
 	useUpsertGraphMutation,
-	useDeleteGraphMutation,
 } from '@/graph/generated/hooks'
 import {
+	Graph as GraphType,
 	GraphInput,
 	MetricAggregator,
-	ProductType,
-	Graph as GraphType,
 	MetricExpression,
+	ProductType,
 } from '@/graph/generated/schemas'
-import useFeatureFlag, { Feature } from '@/hooks/useFeatureFlag/useFeatureFlag'
 import { useProjectId } from '@/hooks/useProjectId'
 import { BAR_DISPLAY, BarDisplay } from '@/pages/Graphing/components/BarChart'
 import Graph, {
@@ -68,14 +67,13 @@ import {
 	DEFAULT_BUCKET_INTERVAL,
 	FUNCTION_TYPES,
 	PRODUCT_OPTIONS,
-	PRODUCT_OPTIONS_WITH_EVENTS,
 } from './constants'
 import * as style from './GraphingEditor.css'
 import { LabeledRow } from './LabeledRow'
 import { OptionDropdown } from './OptionDropdown'
 import {
-	FunnelChartSettings,
 	BarChartSettings,
+	FunnelChartSettings,
 	LineChartSettings,
 	TableSettings,
 } from './Settings'
@@ -211,14 +209,6 @@ export const GraphingEditor: React.FC = () => {
 		dashboard_id: string
 		graph_id: string
 	}>()
-
-	const eventSearchEnabled = useFeatureFlag(Feature.EventSearch)
-	const productOptions = useMemo(() => {
-		if (!eventSearchEnabled) {
-			return PRODUCT_OPTIONS
-		}
-		return PRODUCT_OPTIONS_WITH_EVENTS
-	}, [eventSearchEnabled])
 
 	const [showTemplates, setShowTemplates] = useState(false)
 
@@ -437,11 +427,29 @@ export const GraphingEditor: React.FC = () => {
 	)
 
 	const [productType, setProductTypeImpl] = useState(
-		initialSettings?.productType ?? productOptions[0].value,
+		initialSettings?.productType ?? PRODUCT_OPTIONS[0].value,
 	)
 	const setProductType = (pt: ProductType) => {
 		if (productType !== ProductType.Events && viewType === 'Funnel chart') {
 			setViewType(VIEW_OPTIONS[0].value as View)
+		}
+		if (productType === ProductType.Metrics && pt !== ProductType.Metrics) {
+			setExpressions([
+				{
+					aggregator: FUNCTION_TYPES[0],
+					column: '',
+				},
+			])
+		} else if (
+			productType !== ProductType.Metrics &&
+			pt === ProductType.Metrics
+		) {
+			setExpressions([
+				{
+					aggregator: MetricAggregator.Avg,
+					column: 'value',
+				},
+			])
 		}
 		setProductTypeImpl(pt)
 	}
@@ -874,7 +882,7 @@ export const GraphingEditor: React.FC = () => {
 											tooltip="The resource being queried, one of the five highlight.io resources."
 										>
 											<OptionDropdown<ProductType>
-												options={productOptions.filter(
+												options={PRODUCT_OPTIONS.filter(
 													(p) =>
 														p.value ===
 															ProductType.Events ||

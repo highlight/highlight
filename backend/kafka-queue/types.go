@@ -20,7 +20,7 @@ const (
 	AddTrackProperties                     PayloadType = iota // Deprecated: track events are now processed in pushPayload
 	AddSessionProperties                   PayloadType = iota
 	PushBackendPayload                     PayloadType = iota
-	PushMetrics                            PayloadType = iota
+	PushMetrics                            PayloadType = iota // Deprecated: use OTeL native metrics
 	MarkBackendSetup                       PayloadType = iota // Deprecated: setup events are written from other payload processing
 	AddSessionFeedback                     PayloadType = iota
 	PushLogs                               PayloadType = iota // Deprecated: use a LogRowMessage with payload type PushLogsFlattened

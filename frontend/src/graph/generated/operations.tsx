@@ -1778,23 +1778,6 @@ export type MicrosoftTeamsChannelFragmentFragment = {
 	__typename?: 'MicrosoftTeamsChannel'
 } & Pick<Types.MicrosoftTeamsChannel, 'name' | 'id'>
 
-export type GetMetricsTimelineQueryVariables = Types.Exact<{
-	project_id: Types.Scalars['ID']
-	metric_name: Types.Scalars['String']
-	params: Types.DashboardParamsInput
-}>
-
-export type GetMetricsTimelineQuery = { __typename?: 'Query' } & {
-	metrics_timeline: Array<
-		Types.Maybe<
-			{ __typename?: 'DashboardPayload' } & Pick<
-				Types.DashboardPayload,
-				'date' | 'value' | 'aggregator' | 'group'
-			>
-		>
-	>
-}
-
 export type GetNetworkHistogramQueryVariables = Types.Exact<{
 	project_id: Types.Scalars['ID']
 	params: Types.NetworkHistogramParamsInput
@@ -4468,9 +4451,25 @@ export type GetWebVitalsQueryVariables = Types.Exact<{
 }>
 
 export type GetWebVitalsQuery = { __typename?: 'Query' } & {
-	web_vitals: Array<
-		{ __typename?: 'Metric' } & Pick<Types.Metric, 'name' | 'value'>
-	>
+	web_vitals: { __typename?: 'MetricsBuckets' } & Pick<
+		Types.MetricsBuckets,
+		'bucket_count' | 'sample_factor'
+	> & {
+			buckets: Array<
+				{ __typename?: 'MetricBucket' } & Pick<
+					Types.MetricBucket,
+					| 'bucket_id'
+					| 'bucket_min'
+					| 'bucket_max'
+					| 'group'
+					| 'column'
+					| 'metric_type'
+					| 'metric_value'
+					| 'yhat_lower'
+					| 'yhat_upper'
+				>
+			>
+		}
 }
 
 export type GetDashboardDefinitionsQueryVariables = Types.Exact<{
@@ -5423,7 +5422,6 @@ export type GetAiQuerySuggestionQuery = { __typename?: 'Query' } & {
 
 export const namedOperations = {
 	Query: {
-		GetMetricsTimeline: 'GetMetricsTimeline' as const,
 		GetNetworkHistogram: 'GetNetworkHistogram' as const,
 		GetSessionPayload: 'GetSessionPayload' as const,
 		GetCommentTagsForProject: 'GetCommentTagsForProject' as const,
