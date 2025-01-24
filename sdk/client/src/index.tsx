@@ -65,7 +65,7 @@ import {
 } from './listeners/viewport-resize-listener'
 import { WebVitalsListener } from './listeners/web-vitals-listener/web-vitals-listener'
 import { Logger } from './logger'
-import { getTracer, setupBrowserTracing } from './otel'
+import { getMeter, getTracer, setupBrowserTracing } from './otel'
 import {
 	HighlightIframeMessage,
 	HighlightIframeReponse,
@@ -1437,6 +1437,7 @@ export {
 	GenerateSecureID,
 	getPreviousSessionData,
 	getTracer,
+	getMeter,
 	MetricCategory,
 	setupBrowserTracing,
 }

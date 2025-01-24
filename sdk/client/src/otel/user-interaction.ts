@@ -1,3 +1,5 @@
+/// <reference types="zone.js" />
+
 import { InstrumentationBase, isWrapped } from '@opentelemetry/instrumentation'
 
 import * as api from '@opentelemetry/api'

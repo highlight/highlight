@@ -28,7 +28,14 @@ import {
 	loadCookieSessionData,
 } from '@highlight-run/client/src/utils/sessionStorage/highlightSession.js'
 import { setCookieWriteEnabled } from '@highlight-run/client/src/utils/storage'
-import type { Context, Span, SpanOptions, Tracer } from '@opentelemetry/api'
+import {
+	Context,
+	Span,
+	SpanOptions,
+	Tracer,
+	Meter,
+	Gauge,
+} from '@opentelemetry/api'
 import firstloadVersion from './__generated/version.js'
 import { listenToChromeExtensionMessage } from './browserExtension/extensionListener.js'
 import configureElectronHighlight from './environments/electron.js'
@@ -75,6 +82,8 @@ let first_load_listeners: FirstLoadListeners
 let init_called = false
 type Callback = (span?: Span) => any
 let getTracer: () => Tracer
+let getMeter: () => Meter
+let gauges: Map<string, Gauge> = new Map<string, Gauge>()
 const H: HighlightPublicInterface = {
 	options: undefined,
 	init: (projectID?: string | number, options?: HighlightOptions) => {
@@ -122,6 +131,7 @@ const H: HighlightPublicInterface = {
 					Highlight,
 					setupBrowserTracing,
 					getTracer: otelGetTracer,
+					getMeter: otelGetMeter,
 				}) => {
 					setupBrowserTracing({
 						otlpEndpoint:
@@ -139,6 +149,7 @@ const H: HighlightPublicInterface = {
 							options?.serviceName ?? 'highlight-browser',
 					})
 					getTracer = otelGetTracer
+					getMeter = otelGetMeter
 
 					highlight_obj = new Highlight(
 						client_options,
@@ -360,6 +371,9 @@ const H: HighlightPublicInterface = {
 		}
 	},
 	metrics: (metrics: Metric[]) => {
+		for (const m of metrics) {
+			H.gauge(m)
+		}
 		try {
 			H.onHighlightReady(() =>
 				highlight_obj.recordMetric(
@@ -372,6 +386,20 @@ const H: HighlightPublicInterface = {
 		} catch (e) {
 			HighlightWarning('metrics', e)
 		}
+	},
+	gauge: (metric: Metric) => {
+		const meter = typeof getMeter === 'function' ? getMeter() : undefined
+		if (!meter) return
+
+		let gauge = gauges.get(metric.name)
+		if (!gauge) {
+			gauge = meter.createGauge(metric.name)
+			gauges.set(metric.name, gauge)
+		}
+		gauge.record(
+			metric.value,
+			metric.tags?.reduce((a, b) => ({ ...a, [b.name]: b.value }), {}),
+		)
 	},
 	startSpan: (
 		name: string,

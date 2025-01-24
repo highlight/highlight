@@ -270,6 +270,10 @@ export declare interface HighlightPublicInterface {
 	 */
 	metrics: (metrics: Metric[]) => void
 	/**
+	 * Reports a metric value via the OpenTelemetry metrics export.
+	 */
+	gauge: (metric: Metric) => void
+	/**
 	 * Starts a new span for tracing in Highlight. The span will be ended when the
 	 * callback function returns.
 	 *
