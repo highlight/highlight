@@ -75,13 +75,16 @@ const EventStreamV2 = function () {
 	useEffect(() => {
 		const events = [...replayerEvents]
 		if (data?.web_vitals?.buckets) {
+			const filteredVitals = data.web_vitals.buckets
+				.filter((bucket) => bucket.bucket_id != 0)
+				.map((bucket) => ({
+					name: bucket.group,
+					value: bucket.metric_value,
+				}))
 			const webVitalEvent = {
 				data: {
 					payload: {
-						vitals: data.web_vitals.buckets.map((bucket) => ({
-							name: bucket.group,
-							value: bucket.metric_value,
-						})),
+						vitals: filteredVitals,
 					},
 					tag: 'Web Vitals',
 				},
