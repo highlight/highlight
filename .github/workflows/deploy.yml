@@ -22,7 +22,7 @@ jobs:
               uses: actions/checkout@v4
             - name: Install dependencies
               run: |
-                  sudo yum -y install gnupg gpg
+                  sudo yum -y install gnupg2
             - name: Setup Go
               uses: actions/setup-go@v5
               with:
@@ -45,7 +45,7 @@ jobs:
               uses: actions/checkout@v4
             - name: Install dependencies
               run: |
-                  sudo yum -y install gnupg gpg
+                  sudo yum -y install gnupg2
             - name: Setup Go
               uses: actions/setup-go@v5
               with:
@@ -105,7 +105,7 @@ jobs:
               uses: actions/checkout@v4
             - name: Install dependencies
               run: |
-                  sudo yum -y install gnupg gpg
+                  sudo yum -y install gnupg2
             - name: Setup Go
               uses: actions/setup-go@v5
               with:
@@ -147,7 +147,7 @@ jobs:
               uses: actions/checkout@v4
             - name: Install dependencies
               run: |
-                  sudo yum -y install gnupg gpg
+                  sudo yum -y install gnupg2
             - name: Setup Go
               uses: actions/setup-go@v5
               with:
@@ -195,7 +195,7 @@ jobs:
               uses: actions/checkout@v4
             - name: Install dependencies
               run: |
-                  sudo yum -y install gnupg gpg
+                  sudo yum -y install gnupg2
             - name: Setup Go
               uses: actions/setup-go@v5
               with:
@@ -237,7 +237,7 @@ jobs:
               uses: actions/checkout@v4
             - name: Install dependencies
               run: |
-                  sudo yum -y install gnupg gpg
+                  sudo yum -y install gnupg2
             - name: Setup Go
               uses: actions/setup-go@v5
               with:
@@ -273,7 +273,7 @@ jobs:
               uses: actions/checkout@v4
             - name: Install dependencies
               run: |
-                  sudo yum -y install gnupg gpg
+                  sudo yum -y install gnupg2
             - name: Setup Go
               uses: actions/setup-go@v5
               with:
