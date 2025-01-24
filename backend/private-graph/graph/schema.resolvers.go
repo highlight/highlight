@@ -5783,6 +5783,10 @@ func (r *queryResolver) WebVitals(ctx context.Context, sessionSecureID string) (
 		return nil, err
 	}
 
+	if webVitals.BucketCount == 0 {
+		return nil, nil
+	}
+
 	return webVitals, nil
 }
 
