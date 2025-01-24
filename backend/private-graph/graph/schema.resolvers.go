@@ -5775,7 +5775,7 @@ func (r *queryResolver) WebVitals(ctx context.Context, sessionSecureID string) (
 	}
 
 	webVitalNames := []string{
-		"CLS", "FCP", "FID", "LCP", "TTFB",
+		"CLS", "FCP", "FID", "LCP", "TTFB", "INP",
 	}
 
 	webVitals, err := r.ClickhouseClient.QuerySessionCustomMetrics(ctx, s.ProjectID, sessionSecureID, s.CreatedAt, webVitalNames)
