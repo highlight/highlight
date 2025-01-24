@@ -100,15 +100,15 @@ export const setupBrowserTracing = (config: BrowserTracingConfig) => {
 		maxQueueSize: 1_000,
 	})
 
+	const resource = new Resource({
+		[SemanticAttributes.ATTR_SERVICE_NAME]:
+			config.serviceName ?? 'highlight-browser',
+		[SemanticAttributes.SEMRESATTRS_DEPLOYMENT_ENVIRONMENT]: environment,
+		'highlight.project_id': config.projectId,
+		'highlight.session_id': config.sessionSecureId,
+	})
 	providers.tracerProvider = new WebTracerProvider({
-		resource: new Resource({
-			[SemanticAttributes.ATTR_SERVICE_NAME]:
-				config.serviceName ?? 'highlight-browser',
-			[SemanticAttributes.SEMRESATTRS_DEPLOYMENT_ENVIRONMENT]:
-				environment,
-			'highlight.project_id': config.projectId,
-			'highlight.session_id': config.sessionSecureId,
-		}),
+		resource,
 		spanProcessors: isDebug
 			? [
 					new SimpleSpanProcessor(new ConsoleSpanExporter()),
@@ -125,10 +125,11 @@ export const setupBrowserTracing = (config: BrowserTracingConfig) => {
 	const reader = new PeriodicExportingMetricReader({
 		exporter: meterExporter,
 		exportIntervalMillis: 1000,
+		exportTimeoutMillis: exporterOptions.timeoutMillis,
 	})
 
-	const meterProvider = new MeterProvider({ readers: [reader] })
-	api.metrics.setGlobalMeterProvider(meterProvider)
+	providers.meterProvider = new MeterProvider({ resource, readers: [reader] })
+	api.metrics.setGlobalMeterProvider(providers.meterProvider)
 
 	let instrumentations: Instrumentation[] = [
 		new DocumentLoadInstrumentation({
