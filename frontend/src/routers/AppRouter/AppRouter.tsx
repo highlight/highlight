@@ -145,15 +145,6 @@ export const AppRouter = () => {
 		}
 	}, [location.pathname, setLastVisitedRoute])
 
-	useEffect(() => {
-		if (isLoggedIn) {
-			if (lastVisitedRoute && isValidLastVisitedRoute(lastVisitedRoute)) {
-				navigate(lastVisitedRoute, { replace: true })
-			}
-		}
-		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [isLoggedIn])
-
 	const { data, loading } = useGetDropdownOptionsQuery({
 		skip: !isLoggedIn,
 	})
@@ -207,6 +198,15 @@ export const AppRouter = () => {
 			!isJoinWorkspacePage
 		) {
 			navigate(ABOUT_YOU_ROUTE, { replace: true })
+			return
+		}
+
+		if (
+			lastVisitedRoute &&
+			isValidLastVisitedRoute(lastVisitedRoute) &&
+			location.pathname === '/'
+		) {
+			navigate(lastVisitedRoute, { replace: true })
 			return
 		}
 
