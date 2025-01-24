@@ -11,7 +11,7 @@ jobs:
     yarn-monorepo:
         name: Build Yarn Turborepo
         timeout-minutes: 60
-        runs-on: buildjet-4vcpu-ubuntu-2204
+        runs-on: ubuntu-latest
         # configures turborepo Remote Caching
         env:
             TURBO_TOKEN: ${{ secrets.TURBO_TOKEN }}
@@ -80,7 +80,6 @@ jobs:
                   REACT_APP_COMMIT_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
 
             - name: Upload frontend sourcemaps
-              if: github.ref == 'refs/heads/main'
               run: yarn sourcemaps:frontend
               env:
                   HIGHLIGHT_API_KEY: ${{ secrets.HIGHLIGHT_SOURCEMAP_API_KEY }}
@@ -101,7 +100,6 @@ jobs:
                   NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
 
             - name: Publish npm packages
-              if: github.ref == 'refs/heads/main'
               id: changesets-publish
               uses: changesets/action@v1
               with:
@@ -112,19 +110,15 @@ jobs:
                   NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
             - name: Publish ai lambda
-              if: github.ref == 'refs/heads/main'
               run: yarn publish:ai
 
             - name: Publish session-insights-email lambda
-              if: github.ref == 'refs/heads/main'
               run: yarn publish:react-email-templates
 
             - name: Publish render lambda
-              if: github.ref == 'refs/heads/main'
               run: yarn publish:render
 
             - name: Release changesets
-              if: github.ref == 'refs/heads/main'
               id: changesets-version
               uses: changesets/action@v1
               with:
