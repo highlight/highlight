@@ -1,11 +1,12 @@
 'use client'
 
 import Head from 'next/head'
-import Image from 'next/image'
 import { useRouter } from 'next/router'
 import { useEffect, useRef, useState } from 'react'
 import { Typography } from '../../components/common/Typography/Typography'
 import { LOCAL_STORAGE_KEY } from './signup'
+import ReactMarkdown from 'react-markdown'
+import rehypeRaw from 'rehype-raw'
 
 type CourseVideo = {
 	id: string | undefined
@@ -40,10 +41,20 @@ const COURSE_VIDEOS: CourseVideo[] = [
 			'Learn how to set up the OpenTelemetry Collector to receive and process telemetry data from your applications.',
 	},
 	{
-		id: undefined,
+		id: 'G9yadsMgzuasd0',
 		title: 'OpenTelemetry Logging',
-		description:
-			'Learn about structured logging and how to integrate logging with OpenTelemetry, collecting and exporting logs to various backend systems for analysis.',
+		description: `
+Learn about structured logging and how to integrate logging with OpenTelemetry, collecting and exporting logs to various backend systems for analysis.
+
+<iframe src="https://codesandbox.io/embed/g2k8zm?view=editor+%2B+preview&module=%2Fsrc%2Findex.mjs&hidenavigation=1&expanddevtools=1"
+style="width:100%; height: 500px; border:0; border-radius: 4px; overflow:hidden;"
+title="opentelemetry-logs-console-exporter"
+allow="accelerometer; ambient-light-sensor; camera; encrypted-media; geolocation; gyroscope; hid; microphone; midi; payment; usb; vr; xr-spatial-tracking"
+sandbox="allow-forms allow-modals allow-popups allow-presentation allow-same-origin allow-scripts"
+></iframe>
+
+Another paragraph.
+			`,
 	},
 	{
 		id: undefined,
@@ -170,6 +181,13 @@ export default function OTelCourse() {
 		}
 	}, [router])
 
+	useEffect(() => {
+		console.log(
+			COURSE_VIDEOS.find((video) => video.id === currentVideo)
+				?.description ?? '',
+		)
+	}, [currentVideo])
+
 	const initializePlayer = (videoId: string | undefined) => {
 		if (!videoId) return
 
@@ -267,7 +285,7 @@ export default function OTelCourse() {
 	}
 
 	return (
-		<div className="min-h-screen bg-gray-50">
+		<div className="min-h-screen bg-gray-50 otel-course">
 			{showToast && (
 				<div className="fixed top-8 left-1/2 transform -translate-x-1/2 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg transition-opacity duration-300 flex items-center space-x-2 z-50">
 					<svg
@@ -387,7 +405,7 @@ export default function OTelCourse() {
 
 						{/* Video Content */}
 						{currentVideo && (
-							<div className="max-w-3xl flex flex-col gap-4">
+							<div className="flex flex-col gap-4">
 								<Typography
 									type="copy2"
 									className="text-2xl font-bold text-gray-900 mb-2"
@@ -399,17 +417,22 @@ export default function OTelCourse() {
 										)?.title
 									}
 								</Typography>
-								<Typography
-									type="copy3"
-									className="text-gray-600 mb-6"
-								>
-									{
-										COURSE_VIDEOS.find(
+								<div className="prose prose-sm max-w-none text-black">
+									<ReactMarkdown
+										components={{
+											iframe: ({ node, ...props }) => (
+												<iframe {...props} />
+											),
+										}}
+										// Required for iframes to render
+										rehypePlugins={[rehypeRaw as any]}
+									>
+										{COURSE_VIDEOS.find(
 											(video) =>
 												video.id === currentVideo,
-										)?.description
-									}
-								</Typography>
+										)?.description ?? ''}
+									</ReactMarkdown>
+								</div>
 							</div>
 						)}
 					</div>
