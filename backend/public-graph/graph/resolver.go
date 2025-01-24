@@ -2052,7 +2052,7 @@ func (r *Resolver) PushMetricsImpl(ctx context.Context, projectVerboseID *string
 			MetricSumRow: metricRow,
 		})
 	}
-	return r.TracesQueue.Submit(ctx, "", messages...)
+	return r.MetricSumQueue.Submit(ctx, "", messages...)
 }
 
 func (r *Resolver) GetProjectMetricRetention(ctx context.Context, projectID int) uint8 {
