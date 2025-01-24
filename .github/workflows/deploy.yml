@@ -24,7 +24,7 @@ jobs:
               run: |
                   sudo rpm --import 'https://packages.doppler.com/public/cli/gpg.DE2A7741A397C129.key'
                   curl -sLf --retry 3 --tlsv1.2 --proto "=https" 'https://packages.doppler.com/public/cli/config.rpm.txt' | sudo tee /etc/yum.repos.d/doppler-cli.repo
-                  sudo yum update -y && sudo yum install doppler
+                  sudo yum update -y && sudo yum -y install doppler
             - name: Setup Go
               uses: actions/setup-go@v5
               with:
@@ -47,7 +47,7 @@ jobs:
               run: |
                   sudo rpm --import 'https://packages.doppler.com/public/cli/gpg.DE2A7741A397C129.key'
                   curl -sLf --retry 3 --tlsv1.2 --proto "=https" 'https://packages.doppler.com/public/cli/config.rpm.txt' | sudo tee /etc/yum.repos.d/doppler-cli.repo
-                  sudo yum update -y && sudo yum install doppler
+                  sudo yum update -y && sudo yum -y install doppler
             - name: Setup Go
               uses: actions/setup-go@v5
               with:
@@ -107,7 +107,7 @@ jobs:
               run: |
                   sudo rpm --import 'https://packages.doppler.com/public/cli/gpg.DE2A7741A397C129.key'
                   curl -sLf --retry 3 --tlsv1.2 --proto "=https" 'https://packages.doppler.com/public/cli/config.rpm.txt' | sudo tee /etc/yum.repos.d/doppler-cli.repo
-                  sudo yum update -y && sudo yum install doppler
+                  sudo yum update -y && sudo yum -y install doppler
             - name: Setup Go
               uses: actions/setup-go@v5
               with:
@@ -149,7 +149,7 @@ jobs:
               run: |
                   sudo rpm --import 'https://packages.doppler.com/public/cli/gpg.DE2A7741A397C129.key'
                   curl -sLf --retry 3 --tlsv1.2 --proto "=https" 'https://packages.doppler.com/public/cli/config.rpm.txt' | sudo tee /etc/yum.repos.d/doppler-cli.repo
-                  sudo yum update -y && sudo yum install doppler
+                  sudo yum update -y && sudo yum -y install doppler
             - name: Setup Go
               uses: actions/setup-go@v5
               with:
@@ -197,7 +197,7 @@ jobs:
               run: |
                   sudo rpm --import 'https://packages.doppler.com/public/cli/gpg.DE2A7741A397C129.key'
                   curl -sLf --retry 3 --tlsv1.2 --proto "=https" 'https://packages.doppler.com/public/cli/config.rpm.txt' | sudo tee /etc/yum.repos.d/doppler-cli.repo
-                  sudo yum update -y && sudo yum install doppler
+                  sudo yum update -y && sudo yum -y install doppler
             - name: Setup Go
               uses: actions/setup-go@v5
               with:
@@ -239,7 +239,7 @@ jobs:
               run: |
                   sudo rpm --import 'https://packages.doppler.com/public/cli/gpg.DE2A7741A397C129.key'
                   curl -sLf --retry 3 --tlsv1.2 --proto "=https" 'https://packages.doppler.com/public/cli/config.rpm.txt' | sudo tee /etc/yum.repos.d/doppler-cli.repo
-                  sudo yum update -y && sudo yum install doppler
+                  sudo yum update -y && sudo yum -y install doppler
             - name: Setup Go
               uses: actions/setup-go@v5
               with:
@@ -275,7 +275,7 @@ jobs:
               run: |
                   sudo rpm --import 'https://packages.doppler.com/public/cli/gpg.DE2A7741A397C129.key'
                   curl -sLf --retry 3 --tlsv1.2 --proto "=https" 'https://packages.doppler.com/public/cli/config.rpm.txt' | sudo tee /etc/yum.repos.d/doppler-cli.repo
-                  sudo yum update -y && sudo yum install doppler
+                  sudo yum update -y && sudo yum -y install doppler
             - name: Setup Go
               uses: actions/setup-go@v5
               with:
