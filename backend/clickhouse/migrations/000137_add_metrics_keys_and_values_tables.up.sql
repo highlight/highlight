@@ -6,31 +6,30 @@ CREATE TABLE IF NOT EXISTS metric_key_values
     `Value`     String,
     `Count`     UInt64
 ) ENGINE = SummingMergeTree
-           ORDER BY (ProjectId, Key, Day, Value) TTL Day + toIntervalDay(31);
+      ORDER BY (ProjectId, Key, Day, Value) TTL Day + toIntervalDay(31);
 
 CREATE MATERIALIZED VIEW IF NOT EXISTS metric_attributes_mv
-            TO metric_key_values
+    TO metric_key_values
 AS
 SELECT ProjectId,
-       arrayJoin(Attributes).1 AS Key,
-        toStartOfDay(Timestamp) AS Day,
-       arrayJoin(Attributes).2 AS Value,
-        count()                 AS Count
+       Attributes.1            AS Key,
+       toStartOfDay(Timestamp) AS Day,
+       Attributes.2            AS Value,
+       count()                 AS Count
 FROM metrics
-WHERE (
-    Key NOT IN (
-                'metric_name',
-                'service_name',
-                'secure_session_id',
-                'trace_id',
-                'span_id'
-        )
+         ARRAY JOIN Attributes
+WHERE Key NOT IN (
+                  'metric_name',
+                  'service_name',
+                  'secure_session_id',
+                  'trace_id',
+                  'span_id'
     )
-  AND (Value != '')
+  AND Value != ''
 GROUP BY ALL;
 
 CREATE MATERIALIZED VIEW IF NOT EXISTS metric_metric_name_mv
-            TO metric_key_values
+    TO metric_key_values
 AS
 SELECT ProjectId,
        'metric_name'           AS Key,
@@ -42,7 +41,7 @@ WHERE (MetricName != '')
 GROUP BY ALL;
 
 CREATE MATERIALIZED VIEW IF NOT EXISTS metric_service_name_mv
-            TO metric_key_values
+    TO metric_key_values
 AS
 SELECT ProjectId,
        'service_name'          AS Key,
@@ -54,7 +53,7 @@ WHERE (ServiceName != '')
 GROUP BY ALL;
 
 CREATE MATERIALIZED VIEW IF NOT EXISTS metric_secure_session_id_mv
-            TO metric_key_values
+    TO metric_key_values
 AS
 SELECT ProjectId,
        'secure_session_id'       AS Key,
@@ -62,12 +61,12 @@ SELECT ProjectId,
        Exemplars.SecureSessionID AS Value,
        count()                   AS Count
 FROM metrics
-    ARRAY JOIN `Exemplars.SecureSessionID`
+         ARRAY JOIN `Exemplars.SecureSessionID`
 WHERE (`Exemplars.SecureSessionID` != '')
 GROUP BY ALL;
 
 CREATE MATERIALIZED VIEW IF NOT EXISTS metric_trace_id_mv
-            TO metric_key_values
+    TO metric_key_values
 AS
 SELECT ProjectId,
        'trace_id'              AS Key,
@@ -75,12 +74,12 @@ SELECT ProjectId,
        `Exemplars.TraceID`     AS Value,
        count()                 AS Count
 FROM metrics
-    ARRAY JOIN `Exemplars.TraceID`
+         ARRAY JOIN `Exemplars.TraceID`
 WHERE (`Exemplars.TraceID` != '')
 GROUP BY ALL;
 
 CREATE MATERIALIZED VIEW IF NOT EXISTS metric_span_id_mv
-            TO metric_key_values
+    TO metric_key_values
 AS
 SELECT ProjectId,
        'span_id'               AS Key,
@@ -88,7 +87,7 @@ SELECT ProjectId,
        `Exemplars.SpanID`      AS Value,
        count()                 AS Count
 FROM metrics
-    ARRAY JOIN `Exemplars.SpanID`
+         ARRAY JOIN `Exemplars.SpanID`
 WHERE (`Exemplars.SpanID` != '')
 GROUP BY ALL;
 
@@ -100,16 +99,16 @@ CREATE TABLE IF NOT EXISTS metric_keys
     `Type`      LowCardinality(String),
     `Count`     UInt64
 ) ENGINE = SummingMergeTree
-           ORDER BY (ProjectId, Key, Day, Type) TTL Day + toIntervalDay(31);
+      ORDER BY (ProjectId, Key, Day, Type) TTL Day + toIntervalDay(31);
 
 CREATE MATERIALIZED VIEW IF NOT EXISTS metric_keys_mv
-            TO metric_keys
+    TO metric_keys
 AS
 SELECT ProjectId,
        Key,
        Day,
        if(
-           isNull(toFloat64OrNull(Value)),
+               isNull(toFloat64OrNull(Value)),
                'String',
                'Numeric'
        )          AS Type,

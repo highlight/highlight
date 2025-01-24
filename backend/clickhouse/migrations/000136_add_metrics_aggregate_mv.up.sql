@@ -30,9 +30,9 @@ CREATE TABLE IF NOT EXISTS default.metrics
     `Sum`               SimpleAggregateFunction(sum, Float64)
 )
     ENGINE = AggregatingMergeTree()
-    PARTITION BY toStartOfDay(Timestamp)
-    ORDER BY (ProjectId, ServiceName, MetricName, MetricType, Attributes, toUnixTimestamp(Timestamp))
-    TTL toDateTime(Timestamp) + toIntervalDay(RetentionDays);
+        PARTITION BY toStartOfDay(Timestamp)
+        ORDER BY (ProjectId, ServiceName, MetricName, MetricType, Attributes, toUnixTimestamp(Timestamp))
+        TTL toDateTime(Timestamp) + toIntervalDay(RetentionDays);
 
 CREATE MATERIALIZED VIEW IF NOT EXISTS metrics_sum_mv TO metrics AS
 SELECT ProjectId,
@@ -47,13 +47,13 @@ SELECT ProjectId,
        minSimpleState(StartTimestamp)                        as StartTimestamp,
        maxSimpleState(RetentionDays)                         as RetentionDays,
        groupArrayArraySimpleState(Exemplars.Attributes)      as `Exemplars.Attributes`,
-        groupArrayArraySimpleState(Exemplars.Timestamp)       as `Exemplars.Timestamp`,
-        groupArrayArraySimpleState(Exemplars.Value)           as `Exemplars.Value`,
-        groupArrayArraySimpleState(Exemplars.SpanID)          as `Exemplars.SpanID`,
-        groupArrayArraySimpleState(Exemplars.TraceID)         as `Exemplars.TraceID`,
-        groupArrayArraySimpleState(Exemplars.SecureSessionID) as `Exemplars.SecureSessionID`,
+       groupArrayArraySimpleState(Exemplars.Timestamp)       as `Exemplars.Timestamp`,
+       groupArrayArraySimpleState(Exemplars.Value)           as `Exemplars.Value`,
+       groupArrayArraySimpleState(Exemplars.SpanID)          as `Exemplars.SpanID`,
+       groupArrayArraySimpleState(Exemplars.TraceID)         as `Exemplars.TraceID`,
+       groupArrayArraySimpleState(Exemplars.SecureSessionID) as `Exemplars.SecureSessionID`,
        -- sum
-        sumSimpleState(1)                                     as Count,
+       sumSimpleState(1)                                     as Count,
        sumSimpleState(Value)                                 as Sum
 FROM metrics_sum
 GROUP BY all;
@@ -71,13 +71,13 @@ SELECT ProjectId,
        minSimpleState(StartTimestamp)                        as StartTimestamp,
        maxSimpleState(RetentionDays)                         as RetentionDays,
        groupArrayArraySimpleState(Exemplars.Attributes)      as `Exemplars.Attributes`,
-        groupArrayArraySimpleState(Exemplars.Timestamp)       as `Exemplars.Timestamp`,
-        groupArrayArraySimpleState(Exemplars.Value)           as `Exemplars.Value`,
-        groupArrayArraySimpleState(Exemplars.SpanID)          as `Exemplars.SpanID`,
-        groupArrayArraySimpleState(Exemplars.TraceID)         as `Exemplars.TraceID`,
-        groupArrayArraySimpleState(Exemplars.SecureSessionID) as `Exemplars.SecureSessionID`,
+       groupArrayArraySimpleState(Exemplars.Timestamp)       as `Exemplars.Timestamp`,
+       groupArrayArraySimpleState(Exemplars.Value)           as `Exemplars.Value`,
+       groupArrayArraySimpleState(Exemplars.SpanID)          as `Exemplars.SpanID`,
+       groupArrayArraySimpleState(Exemplars.TraceID)         as `Exemplars.TraceID`,
+       groupArrayArraySimpleState(Exemplars.SecureSessionID) as `Exemplars.SecureSessionID`,
        -- histogram
-        minSimpleState(Min)                                   as Min,
+       minSimpleState(Min)                                   as Min,
        minSimpleState(Max)                                   as Max,
        groupArrayArraySimpleState(BucketCounts)              as BucketCounts,
        groupArrayArraySimpleState(ExplicitBounds)            as ExplicitBounds,
@@ -100,8 +100,8 @@ SELECT ProjectId,
        maxSimpleState(RetentionDays)                         as RetentionDays,
        -- summary
        groupArrayArraySimpleState(ValueAtQuantiles.Quantile) as `ValueAtQuantiles.Quantile`,
-        groupArrayArraySimpleState(ValueAtQuantiles.Value)    as `ValueAtQuantiles.Value`,
-        sumSimpleState(Count)                                 as Count,
+       groupArrayArraySimpleState(ValueAtQuantiles.Value)    as `ValueAtQuantiles.Value`,
+       sumSimpleState(Count)                                 as Count,
        sumSimpleState(Sum)                                   as Sum
 FROM metrics_summary
 GROUP BY all;
