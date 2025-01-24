@@ -1,25 +1,13 @@
 import { useAuthContext } from '@/authentication/AuthContext'
 import { FieldsBox } from '@components/FieldsBox/FieldsBox'
 import { AdminRole } from '@graph/schemas'
-import {
-	Box,
-	Button,
-	Callout,
-	Form,
-	IconSolidCheck,
-	IconSolidLoading,
-	Input,
-	SwitchButton,
-	Tooltip,
-} from '@highlight-run/ui/components'
-import { useApplicationContext } from '@routers/AppRouter/context/ApplicationContext'
-import { Authorization } from '@util/authorization/authorization'
 
-import {
-	AutoJoinCheckboxProps,
-	AutoJoinTooltipProps,
-	BaseAutoJoinForm,
-} from '@/pages/WorkspaceTeam/components/BaseAutoJoinForm'
+import { IconAnimatedLoading } from '@/components/Loading/IconAnimatedLoading'
+import { AutoJoinForm } from '@/pages/WorkspaceTeam/components/AutoJoinForm'
+import { useApplicationContext } from '@routers/AppRouter/context/ApplicationContext'
+
+import { Box, Button, Callout, Form, Input } from '@highlight-run/ui/components'
+import { Authorization } from '@util/authorization/authorization'
 import clsx from 'clsx'
 import React from 'react'
 import layoutStyles from '../../components/layout/LeadAlignLayout.module.css'
@@ -35,34 +23,6 @@ const WorkspaceSettings = () => {
 	const { currentWorkspace } = useApplicationContext()
 	const { workspaceRole } = useAuthContext()
 	const isAdminRole = workspaceRole === AdminRole.Admin
-	const autoJoinSwitch: React.FC<AutoJoinCheckboxProps> = ({
-		className,
-		onChange,
-		checked,
-	}) => (
-		<SwitchButton
-			className={clsx(
-				className,
-				styles.checkbox,
-				checked ? styles.isChecked : '',
-			)}
-			onClick={() => {
-				onChange(!checked)
-			}}
-			iconLeft={<IconSolidCheck className={styles.checkMark} />}
-			checked={checked}
-		/>
-	)
-
-	const autoJoinTooltip: React.FC<AutoJoinTooltipProps> = ({
-		title,
-		children,
-		...props
-	}) => (
-		<Tooltip trigger={children} {...props}>
-			{title}
-		</Tooltip>
-	)
 
 	const FieldsForm = () => {
 		const form: React.FC<FormElementProps> = (props) => <Form {...props} />
@@ -81,12 +41,10 @@ const WorkspaceSettings = () => {
 				{...props}
 			>
 				{isSubmitting ? (
-					<IconSolidLoading
-						className={styles.spinner}
+					<IconAnimatedLoading
 						style={{
 							fontSize: 18,
 							color: 'var(--text-primary-inverted)',
-							animationName: styles.spin,
 						}}
 					/>
 				) : (
@@ -140,10 +98,7 @@ const WorkspaceSettings = () => {
 								</Callout>
 							}
 						>
-							<BaseAutoJoinForm
-								checkbox={autoJoinSwitch}
-								tooltip={autoJoinTooltip}
-							/>
+							<AutoJoinForm />
 						</Authorization>
 					</FieldsBox>
 				</div>

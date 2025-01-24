@@ -1,7 +1,14 @@
 import { IconSolidLoading } from '@highlight-run/ui/components'
 import { motion } from 'framer-motion'
+import { CSSProperties } from 'react'
 
-export const IconAnimatedLoading = ({ size }: { size?: string | number }) => {
+export const IconAnimatedLoading = ({
+	size,
+	style,
+}: {
+	size?: string | number
+	style?: CSSProperties
+}) => {
 	return (
 		<motion.div
 			animate={{ rotate: 360 }}
@@ -16,6 +23,7 @@ export const IconAnimatedLoading = ({ size }: { size?: string | number }) => {
 				alignItems: 'center',
 				width: 14,
 				height: 14,
+				...style,
 			}}
 		>
 			<IconSolidLoading size={size} />

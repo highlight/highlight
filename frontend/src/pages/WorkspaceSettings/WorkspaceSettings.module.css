@@ -45,24 +45,9 @@
 	height: 0px;
 }
 
-
-
 .submitButton {
 	background-color: #5629c6;
 	transition: all 0.3s;
-}
-
-.spinner {
-	animation: spin 1s linear infinite;
-}
-@keyframes spin {
-	from {
-		transform: rotate(0deg);
-	}
-
-	to {
-		transform: rotate(360deg);
-	}
 }
 
 
