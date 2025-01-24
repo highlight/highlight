@@ -1,4 +1,4 @@
-CREATE TABLE IF NOT EXISTS default.metrics
+CREATE TABLE IF NOT EXISTS metrics
 (
     `ProjectId`         UInt32,
     `ServiceName`       String,
