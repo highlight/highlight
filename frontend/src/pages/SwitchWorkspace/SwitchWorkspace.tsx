@@ -1,6 +1,6 @@
 import Button from '@components/Button/Button/Button'
 import ButtonLink from '@components/Button/ButtonLink/ButtonLink'
-import { CircularSpinner, LoadingBar } from '@components/Loading/Loading'
+import { IconAnimatedLoading, LoadingBar } from '@components/Loading/Loading'
 import Select from '@components/Select/Select'
 import Tag from '@components/Tag/Tag'
 import { toast } from '@components/Toaster'
@@ -162,7 +162,7 @@ const SwitchWorkspace = () => {
 						disabled={selectedWorkspace.length === 0}
 					>
 						{joinLoading ? (
-							<CircularSpinner
+							<IconAnimatedLoading
 								style={{
 									fontSize: 18,
 									color: 'var(--text-primary-inverted)',

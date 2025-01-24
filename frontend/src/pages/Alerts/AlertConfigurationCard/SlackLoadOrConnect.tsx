@@ -1,4 +1,4 @@
-import { CircularSpinner } from '@components/Loading/Loading'
+import { IconAnimatedLoading } from '@components/Loading/Loading'
 import { Box } from '@highlight-run/ui/components'
 import { Link } from 'react-router-dom'
 
@@ -28,7 +28,7 @@ const SlackLoadOrConnect = ({
 
 			{isLoading ? (
 				<Box display="flex" alignItems="center" gap="16">
-					<CircularSpinner />
+					<IconAnimatedLoading />
 					No results... checking Slack
 				</Box>
 			) : null}

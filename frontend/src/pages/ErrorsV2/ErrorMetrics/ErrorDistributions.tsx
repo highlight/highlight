@@ -1,4 +1,4 @@
-import { CircularSpinner } from '@components/Loading/Loading'
+import { IconAnimatedLoading } from '@components/Loading/Loading'
 import { getPercentageDisplayValue } from '@components/ProgressBarTable/utils/utils'
 import { useGetErrorGroupTagsQuery } from '@graph/hooks'
 import { GetErrorGroupQuery } from '@graph/operations'
@@ -113,7 +113,7 @@ const Distribution: React.FC<
 				</Box>
 
 				{!hasBuckets ? (
-					<CircularSpinner />
+					<IconAnimatedLoading />
 				) : (
 					<Buckets buckets={aggregation.buckets} />
 				)}
