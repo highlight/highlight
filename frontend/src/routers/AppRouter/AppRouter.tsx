@@ -233,6 +233,7 @@ export const AppRouter = () => {
 		location.pathname,
 		location.search,
 		isFirebasePage,
+		lastVisitedRoute,
 	])
 
 	useEffect(() => {
