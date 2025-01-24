@@ -71,6 +71,30 @@ services:
             - -runtime=worker
             - -worker-handler=public-worker-traces
 
+    backend-public-worker-metric-sum:
+        extends: backend-session-worker
+        container_name: backend-public-worker-metric-sum
+        command:
+            - /build/backend
+            - -runtime=worker
+            - -worker-handler=public-worker-metric-sum
+
+    backend-public-worker-metric-histogram:
+        extends: backend-session-worker
+        container_name: backend-public-worker-metric-histogram
+        command:
+            - /build/backend
+            - -runtime=worker
+            - -worker-handler=public-worker-metric-histogram
+
+    backend-public-worker-metric-summary:
+        extends: backend-session-worker
+        container_name: backend-public-worker-metric-summary
+        command:
+            - /build/backend
+            - -runtime=worker
+            - -worker-handler=public-worker-metric-summary
+
     backend-scheduled-tasks-worker:
         extends: backend-session-worker
         container_name: backend-scheduled-tasks-worker

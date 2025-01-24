@@ -63,14 +63,14 @@ jobs:
                   IMAGE_TAG=$(echo ${{ github.ref_name }} | sed 's/\//-/g')-${{ github.sha }}
                   IMAGE_TAG=ghcr.io/highlight/$IMAGE_NAME:$IMAGE_TAG
                   if [[ ${{ github.event_name }} == 'release' ]]; then
-                    IMAGE_TAG=ghcr.io/highlight/$IMAGE_NAME:latest
-                    PUSH="--push"
+                    IMAGE_TAG=${{ github.event.release.tag_name }}
+                    IMAGE_TAG=ghcr.io/highlight/$IMAGE_NAME:$IMAGE_TAG
+                    PUSH="--push -t $IMAGE_TAG -t ghcr.io/highlight/$IMAGE_NAME:latest"
                   elif [[ ${REF} == 'refs/heads/main' || ${REPO} == 'highlight/highlight' ]]; then
-                    PUSH="--push"
+                    PUSH="--push -t $IMAGE_TAG"
                   else
                     PUSH=""
                   fi
-                  PUSH="$PUSH -t $IMAGE_TAG"
 
                   export PUSH
                   export PLATFORM="--platform linux/arm64,linux/amd64"
