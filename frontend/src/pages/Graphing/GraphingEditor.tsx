@@ -500,7 +500,10 @@ export const GraphingEditor: React.FC = () => {
 	)
 
 	const [sqlEnabled, setSqlEnabled] = useState(!!initialSettings?.sql)
-	const [sql, setSql] = useState(initialSettings?.sql ?? DEFAULT_SQL)
+	const [sqlInternal, setSqlInternal] = useState(
+		initialSettings?.sql ?? DEFAULT_SQL,
+	)
+	const [sql, setSql] = useState(sqlInternal)
 
 	const [query, setQuery] = useState(initialSettings?.query ?? '')
 	const [funnelSteps, setFunnelSteps] = useState<EventSelectionStep[]>(
@@ -970,10 +973,34 @@ export const GraphingEditor: React.FC = () => {
 														settings.sqlEnabled
 													}
 													setEnabled={setSqlEnabled}
+													headerContent={
+														<div
+															className={
+																style.runQuery
+															}
+														>
+															<Button
+																disabled={
+																	upsertGraphContext.loading
+																}
+																onClick={() => {
+																	setSql(
+																		sqlInternal,
+																	)
+																}}
+															>
+																Run query
+															</Button>
+														</div>
+													}
 												>
 													<SqlEditor
-														value={sql}
-														setValue={setSql}
+														value={sqlInternal}
+														setValue={
+															setSqlInternal
+														}
+														startDate={startDate}
+														endDate={endDate}
 													/>
 												</LabeledRow>
 											</SidebarSection>

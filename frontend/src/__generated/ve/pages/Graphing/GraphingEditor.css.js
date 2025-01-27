@@ -6,6 +6,7 @@ var editorLabel = "gw96js4";
 var graphBackground = "gw96js3";
 var graphWrapper = "gw96js6";
 var input = "gw96js5";
+var runQuery = "gw96js8";
 var tagSwitch = "gw96js7";
 export {
   editGraphHeader,
@@ -15,5 +16,6 @@ export {
   graphBackground,
   graphWrapper,
   input,
+  runQuery,
   tagSwitch
 };

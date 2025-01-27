@@ -36,3 +36,9 @@ export const graphWrapper = style({
 export const tagSwitch = style({
 	width: '100%',
 })
+
+export const runQuery = style({
+	display: 'flex',
+	justifyContent: 'flex-end',
+	width: '100%',
+})
