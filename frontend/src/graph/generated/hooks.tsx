@@ -5735,6 +5735,7 @@ export const UpsertGraphDocument = gql`
 				aggregator
 				column
 			}
+			sql
 		}
 	}
 `
@@ -15005,6 +15006,7 @@ export const GetMetricsDocument = gql`
 		$product_type: ProductType!
 		$project_id: ID!
 		$params: QueryInput!
+		$sql: String
 		$group_by: [String!]!
 		$bucket_by: String!
 		$bucket_count: Int
@@ -15019,6 +15021,7 @@ export const GetMetricsDocument = gql`
 			product_type: $product_type
 			project_id: $project_id
 			params: $params
+			sql: $sql
 			group_by: $group_by
 			bucket_by: $bucket_by
 			bucket_window: $bucket_window
@@ -15033,6 +15036,7 @@ export const GetMetricsDocument = gql`
 				bucket_id
 				bucket_min
 				bucket_max
+				bucket_value
 				group
 				column
 				metric_type
@@ -15061,6 +15065,7 @@ export const GetMetricsDocument = gql`
  *      product_type: // value for 'product_type'
  *      project_id: // value for 'project_id'
  *      params: // value for 'params'
+ *      sql: // value for 'sql'
  *      group_by: // value for 'group_by'
  *      bucket_by: // value for 'bucket_by'
  *      bucket_count: // value for 'bucket_count'
@@ -15129,6 +15134,7 @@ export const GetGraphTemplatesDocument = gql`
 				aggregator
 				column
 			}
+			sql
 		}
 	}
 `
@@ -15218,6 +15224,7 @@ export const GetVisualizationDocument = gql`
 					aggregator
 					column
 				}
+				sql
 			}
 			updatedByAdmin {
 				id
@@ -15326,6 +15333,7 @@ export const GetVisualizationsDocument = gql`
 						aggregator
 						column
 					}
+					sql
 				}
 				updatedByAdmin {
 					id

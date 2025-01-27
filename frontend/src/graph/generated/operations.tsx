@@ -1601,6 +1601,7 @@ export type UpsertGraphMutation = { __typename?: 'Mutation' } & {
 		| 'limitMetric'
 		| 'display'
 		| 'nullHandling'
+		| 'sql'
 	> & {
 			funnelSteps?: Types.Maybe<
 				Array<
@@ -5190,6 +5191,7 @@ export type GetMetricsQueryVariables = Types.Exact<{
 	product_type: Types.ProductType
 	project_id: Types.Scalars['ID']
 	params: Types.QueryInput
+	sql?: Types.Maybe<Types.Scalars['String']>
 	group_by: Array<Types.Scalars['String']> | Types.Scalars['String']
 	bucket_by: Types.Scalars['String']
 	bucket_count?: Types.Maybe<Types.Scalars['Int']>
@@ -5214,6 +5216,7 @@ export type GetMetricsQuery = { __typename?: 'Query' } & {
 					| 'bucket_id'
 					| 'bucket_min'
 					| 'bucket_max'
+					| 'bucket_value'
 					| 'group'
 					| 'column'
 					| 'metric_type'
@@ -5248,6 +5251,7 @@ export type GetGraphTemplatesQuery = { __typename?: 'Query' } & {
 			| 'limitMetric'
 			| 'display'
 			| 'nullHandling'
+			| 'sql'
 		> & {
 				funnelSteps?: Types.Maybe<
 					Array<
@@ -5300,6 +5304,7 @@ export type GetVisualizationQuery = { __typename?: 'Query' } & {
 					| 'limitMetric'
 					| 'display'
 					| 'nullHandling'
+					| 'sql'
 				> & {
 						funnelSteps?: Types.Maybe<
 							Array<
@@ -5369,6 +5374,7 @@ export type GetVisualizationsQuery = { __typename?: 'Query' } & {
 								| 'limitMetric'
 								| 'display'
 								| 'nullHandling'
+								| 'sql'
 							> & {
 									funnelSteps?: Types.Maybe<
 										Array<

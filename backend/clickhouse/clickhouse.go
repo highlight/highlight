@@ -3,11 +3,15 @@ package clickhouse
 import (
 	"context"
 	"crypto/tls"
+	"errors"
 	"fmt"
-	"github.com/highlight-run/highlight/backend/env"
 	"path/filepath"
 	"strings"
 	"time"
+
+	"github.com/highlight-run/highlight/backend/env"
+	"github.com/samber/lo"
+	"go.opentelemetry.io/otel/attribute"
 
 	"github.com/ClickHouse/clickhouse-go/v2"
 	"github.com/ClickHouse/clickhouse-go/v2/lib/driver"
@@ -16,19 +20,20 @@ import (
 	_ "github.com/golang-migrate/migrate/v4/source/file"
 	"github.com/highlight-run/highlight/backend/projectpath"
 	hmetric "github.com/highlight/highlight/sdk/highlight-go/metric"
-	e "github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 )
 
 type Client struct {
-	conn driver.Conn
+	conn         driver.Conn
+	connReadonly driver.Conn
 }
 
 var (
 	ServerAddr      = env.Config.ClickhouseAddress
 	PrimaryDatabase = env.Config.ClickhouseDatabase // typically 'default', clickhouse needs an existing database to handle connections
 	TestDatabase    = env.Config.ClickhouseTestDatabase
-	Username        = env.Config.ClickhouseUsername
+	DefaultUser     = env.Config.ClickhouseUsername
+	ReadonlyUser    = env.Config.ClickhouseUsernameReadOnly
 	Password        = env.Config.ClickhousePassword
 )
 
@@ -37,29 +42,38 @@ func GetPostgresConnectionString() string {
 }
 
 func NewClient(dbName string) (*Client, error) {
-	opts := getClickhouseOptions(dbName)
+	opts := getClickhouseOptions(dbName, DefaultUser)
 	opts.MaxIdleConns = 10
 	opts.MaxOpenConns = 100
-
 	conn, err := clickhouse.Open(opts)
+
+	optsReadonly := getClickhouseOptions(dbName, ReadonlyUser)
+	optsReadonly.MaxIdleConns = 10
+	optsReadonly.MaxOpenConns = 100
+	connReadonly, errReadonly := clickhouse.Open(optsReadonly)
 
 	go func() {
 		for {
-			stats := conn.Stats()
-			log.WithContext(context.Background()).WithField("Open", stats.Open).WithField("Idle", stats.Idle).WithField("MaxOpenConns", stats.MaxOpenConns).WithField("MaxIdleConns", stats.MaxIdleConns).Debug("Clickhouse Connection Stats")
-			hmetric.Gauge(context.Background(), "clickhouse.open", float64(stats.Open), nil, 1)
-			hmetric.Gauge(context.Background(), "clickhouse.idle", float64(stats.Idle), nil, 1)
+			for _, c := range []driver.Conn{conn, connReadonly} {
+				stats := c.Stats()
+				name := lo.Ternary(c == conn, "conn", "connReadonly")
+				log.WithContext(context.Background()).WithField("Open", stats.Open).WithField("Idle", stats.Idle).WithField("MaxOpenConns", stats.MaxOpenConns).WithField("MaxIdleConns", stats.MaxIdleConns).WithField("Name", name).Debug("Clickhouse Connection Stats")
+				tags := []attribute.KeyValue{attribute.String("name", name)}
+				hmetric.Gauge(context.Background(), "clickhouse.open", float64(stats.Open), tags, 1)
+				hmetric.Gauge(context.Background(), "clickhouse.idle", float64(stats.Idle), tags, 1)
+			}
 			time.Sleep(5 * time.Second)
 		}
 	}()
 
 	return &Client{
-		conn: conn,
-	}, err
+		conn:         conn,
+		connReadonly: connReadonly,
+	}, errors.Join(err, errReadonly)
 }
 
 func RunMigrations(ctx context.Context, dbName string) {
-	options := getClickhouseOptions(dbName)
+	options := getClickhouseOptions(dbName, DefaultUser)
 	db := clickhouse.OpenDB(options)
 	driver, err := clickhouseMigrate.WithInstance(db, &clickhouseMigrate.Config{
 		MigrationsTableEngine: "MergeTree",
@@ -102,7 +116,7 @@ func (client *Client) HealthCheck(ctx context.Context) error {
 	if err != nil {
 		return err
 	} else if v != 1 {
-		return e.New("invalid value returned from clickhouse")
+		return errors.New("invalid value returned from clickhouse")
 	}
 	return nil
 }
@@ -111,12 +125,12 @@ func useTLS() bool {
 	return strings.HasSuffix(ServerAddr, "9440")
 }
 
-func getClickhouseOptions(dbName string) *clickhouse.Options {
+func getClickhouseOptions(dbName string, username string) *clickhouse.Options {
 	options := &clickhouse.Options{
 		Addr: []string{ServerAddr},
 		Auth: clickhouse.Auth{
 			Database: dbName,
-			Username: Username,
+			Username: username,
 			Password: Password,
 		},
 		DialTimeout: time.Duration(25) * time.Second,

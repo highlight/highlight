@@ -115,6 +115,7 @@ export const YHAT_LOWER_KEY = 'yhat_lower'
 export const YHAT_UPPER_REGION_KEY = 'yhat_upper_region'
 export const YHAT_LOWER_REGION_KEY = 'yhat_lower_region'
 export const NO_GROUP_PLACEHOLDER = '<empty>'
+export const TIME_INTERVAL_MACRO = '$time_interval'
 const MAX_LABEL_CHARS = 100
 
 export type PieChartConfig = {
@@ -149,6 +150,7 @@ export interface ChartProps<TConfig> {
 	projectId: string
 	startDate: Date
 	endDate: Date
+	sql?: string
 	query: string
 	groupByKeys?: string[]
 	bucketByKey?: string
@@ -783,7 +785,7 @@ export const getSeriesName = (
 	isGrouped: boolean,
 ) => {
 	let columnExpr = `(${s.column})`
-	if (s.aggregator === MetricAggregator.Count) {
+	if (s.aggregator === MetricAggregator.Count || s.column === '') {
 		columnExpr = ''
 	}
 	if (isMultiFunction && isGrouped) {
@@ -821,27 +823,36 @@ export const useGraphData = (
 		let data: any[] | undefined
 		if (metrics?.metrics?.buckets) {
 			data = []
+			const mapData: any = {}
 
 			if (xAxisMetric !== GROUPS_KEY) {
-				for (let i = 0; i < metrics.metrics.bucket_count; i++) {
-					data.push({})
-				}
-
 				const hasGroups =
 					metrics.metrics.buckets.find((b) => b.group.length) !==
 					undefined
 
 				for (const b of metrics.metrics.buckets) {
+					if (mapData[b.bucket_id] === undefined) {
+						mapData[b.bucket_id] = {}
+					}
 					const seriesKey = getSeriesKey({
 						aggregator: b.metric_type,
 						column: b.column,
 						groups: b.group,
 					})
-					data[b.bucket_id][xAxisMetric] =
-						(b.bucket_min + b.bucket_max) / 2
-					data[b.bucket_id][BUCKET_MIN_KEY] = b.bucket_min
-					data[b.bucket_id][BUCKET_MAX_KEY] = b.bucket_max
-					data[b.bucket_id][seriesKey] = {
+
+					if (
+						b.bucket_value !== null &&
+						b.bucket_value !== undefined
+					) {
+						mapData[b.bucket_id][xAxisMetric] = b.bucket_value
+					} else {
+						mapData[b.bucket_id][xAxisMetric] =
+							((b.bucket_min ?? 0) + (b.bucket_max ?? 0)) / 2
+					}
+
+					mapData[b.bucket_id][BUCKET_MIN_KEY] = b.bucket_min
+					mapData[b.bucket_id][BUCKET_MAX_KEY] = b.bucket_max
+					mapData[b.bucket_id][seriesKey] = {
 						[VALUE_KEY]: b.metric_value,
 						[SERIES_KEY]: {
 							[AGGREGATOR_KEY]: b.metric_type,
@@ -854,26 +865,29 @@ export const useGraphData = (
 					const bucketLower = b.yhat_lower || lowerThreshold
 
 					if (bucketUpper) {
-						data[b.bucket_id][YHAT_UPPER_KEY] = {
+						mapData[b.bucket_id][YHAT_UPPER_KEY] = {
 							[seriesKey]: bucketUpper,
-							...data[b.bucket_id][YHAT_UPPER_KEY],
+							...mapData[b.bucket_id][YHAT_UPPER_KEY],
 						}
 						if (!hasGroups) {
-							data[b.bucket_id][YHAT_UPPER_REGION_KEY] =
+							mapData[b.bucket_id][YHAT_UPPER_REGION_KEY] =
 								bucketUpper - (b.yhat_lower ?? 0)
 						}
 					}
 
 					if (bucketLower) {
-						data[b.bucket_id][YHAT_LOWER_KEY] = {
+						mapData[b.bucket_id][YHAT_LOWER_KEY] = {
 							[seriesKey]: bucketLower,
-							...data[b.bucket_id][YHAT_LOWER_KEY],
+							...mapData[b.bucket_id][YHAT_LOWER_KEY],
 						}
 						if (!hasGroups) {
-							data[b.bucket_id][YHAT_LOWER_REGION_KEY] =
+							mapData[b.bucket_id][YHAT_LOWER_REGION_KEY] =
 								bucketLower
 						}
 					}
+				}
+				for (const d of Object.values(mapData)) {
+					data.push(d)
 				}
 			} else {
 				const mapData: any = {}
@@ -1133,6 +1147,7 @@ const Graph = ({
 	startDate,
 	endDate,
 	query,
+	sql,
 	groupByKeys,
 	bucketByKey,
 	bucketByWindow,
@@ -1267,7 +1282,14 @@ const Graph = ({
 
 	const [getMetrics, { called }] = useGetMetricsLazyQuery({})
 
-	const xAxisMetric = bucketByKey !== undefined ? bucketByKey : GROUPS_KEY
+	let xAxisMetric = GROUPS_KEY
+	if (sql) {
+		if (sql.includes(TIME_INTERVAL_MACRO)) {
+			xAxisMetric = TIMESTAMP_KEY
+		}
+	} else if (bucketByKey !== undefined) {
+		xAxisMetric = bucketByKey
+	}
 
 	// fetch new metrics when varaibles change (including polled fetch time)
 	useEffect(() => {
@@ -1291,6 +1313,7 @@ const Graph = ({
 				},
 				query: replaceQueryVariables(query, variables),
 			},
+			sql: sql,
 			group_by:
 				groupByKeys !== undefined
 					? matchParamVariables(groupByKeys, variables)
@@ -1344,6 +1367,7 @@ const Graph = ({
 		bucketByKey,
 		bucketByWindow,
 		getMetrics,
+		sql,
 		groupByKeys,
 		limit,
 		limitFunctionType,

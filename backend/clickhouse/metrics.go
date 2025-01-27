@@ -3,6 +3,9 @@ package clickhouse
 import (
 	"context"
 	"fmt"
+	"strings"
+	"time"
+
 	"github.com/aws/smithy-go/ptr"
 	"github.com/highlight-run/highlight/backend/model"
 	modelInputs "github.com/highlight-run/highlight/backend/private-graph/graph/model"
@@ -11,8 +14,6 @@ import (
 	e "github.com/pkg/errors"
 	"github.com/samber/lo"
 	"go.opentelemetry.io/collector/pdata/pmetric"
-	"strings"
-	"time"
 )
 
 const MetricsSumTable = "metrics_sum"
@@ -262,11 +263,12 @@ func (client *Client) ReadMetricsDailyAverage(ctx context.Context, projectIds []
 	return readDailyImpl[float64](ctx, client, "metric_count_daily_mv", "count", projectIds, dateRange, []string{"ServiceName", "MetricName"})
 }
 
-func (client *Client) ReadMetricsAggregated(ctx context.Context, projectID int, params modelInputs.QueryInput, groupBy []string, nBuckets *int, bucketBy string, bucketWindow *int, limit *int, limitAggregator *modelInputs.MetricAggregator, limitColumn *string, expressions []*modelInputs.MetricExpressionInput) (*modelInputs.MetricsBuckets, error) {
+func (client *Client) ReadMetricsAggregated(ctx context.Context, projectID int, params modelInputs.QueryInput, sql *string, groupBy []string, nBuckets *int, bucketBy string, bucketWindow *int, limit *int, limitAggregator *modelInputs.MetricAggregator, limitColumn *string, expressions []*modelInputs.MetricExpressionInput) (*modelInputs.MetricsBuckets, error) {
 	return client.ReadMetrics(ctx, ReadMetricsInput{
 		SampleableConfig: MetricsSampleableTableConfig,
 		ProjectIDs:       []int{projectID},
 		Params:           params,
+		Sql:              sql,
 		GroupBy:          groupBy,
 		BucketCount:      nBuckets,
 		BucketWindow:     bucketWindow,
@@ -291,7 +293,7 @@ func (client *Client) QuerySessionCustomMetrics(ctx context.Context, projectId i
 			EndDate:   created.Add(day),
 		},
 	}
-	return client.ReadMetricsAggregated(ctx, projectId, params, []string{modelInputs.ReservedMetricKeyMetricName.String()}, nil, modelInputs.MetricBucketByTimestamp.String(), ptr.Int(int(day.Seconds())), nil, nil, nil, []*modelInputs.MetricExpressionInput{
+	return client.ReadMetricsAggregated(ctx, projectId, params, nil, []string{modelInputs.ReservedMetricKeyMetricName.String()}, nil, modelInputs.MetricBucketByTimestamp.String(), ptr.Int(int(day.Seconds())), nil, nil, nil, []*modelInputs.MetricExpressionInput{
 		{
 			Aggregator: modelInputs.MetricAggregatorAvg,
 			Column:     modelInputs.ReservedMetricKeyValue.String(),

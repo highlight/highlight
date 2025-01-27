@@ -1237,8 +1237,9 @@ enum MetricBucketBy {
 
 type MetricBucket {
 	bucket_id: UInt64!
-	bucket_min: Float!
-	bucket_max: Float!
+	bucket_min: Float
+	bucket_max: Float
+	bucket_value: Float
 	group: [String!]!
 	column: String!
 	metric_type: MetricAggregator!
@@ -2126,6 +2127,7 @@ type Graph {
 	display: String
 	nullHandling: String
 	expressions: [MetricExpression!]!
+	sql: String
 }
 
 type Variable {
@@ -2175,6 +2177,7 @@ input GraphInput {
 	display: String
 	nullHandling: String
 	expressions: [MetricExpressionInput!]!
+	sql: String
 }
 
 input VariableInput {
@@ -2477,6 +2480,7 @@ type Query {
 	logs_metrics(
 		project_id: ID!
 		params: QueryInput!
+		sql: String
 		column: String # deprecated - use `expressions` instead
 		metric_types: [MetricAggregator!] # deprecated - use `expressions` instead
 		group_by: [String!]!
@@ -2540,6 +2544,7 @@ type Query {
 	traces_metrics(
 		project_id: ID!
 		params: QueryInput!
+		sql: String
 		column: String # deprecated - use `expressions` instead
 		metric_types: [MetricAggregator!] # deprecated - use `expressions` instead
 		group_by: [String!]!
@@ -2581,6 +2586,7 @@ type Query {
 	errors_metrics(
 		project_id: ID!
 		params: QueryInput!
+		sql: String
 		column: String # deprecated - use `expressions` instead
 		metric_types: [MetricAggregator!] # deprecated - use `expressions` instead
 		group_by: [String!]!
@@ -2609,6 +2615,7 @@ type Query {
 	sessions_metrics(
 		project_id: ID!
 		params: QueryInput!
+		sql: String
 		column: String # deprecated - use `expressions` instead
 		metric_types: [MetricAggregator!] # deprecated - use `expressions` instead
 		group_by: [String!]!
@@ -2639,6 +2646,7 @@ type Query {
 	events_metrics(
 		project_id: ID!
 		params: QueryInput!
+		sql: String
 		column: String # deprecated - use `expressions` instead
 		metric_types: [MetricAggregator!] # deprecated - use `expressions` instead
 		group_by: [String!]!
@@ -2664,6 +2672,7 @@ type Query {
 		params: QueryInput!
 		column: String # deprecated - use `expressions` instead
 		metric_types: [MetricAggregator!] # deprecated - use `expressions` instead
+		sql: String
 		group_by: [String!]!
 		bucket_by: String!
 		bucket_count: Int

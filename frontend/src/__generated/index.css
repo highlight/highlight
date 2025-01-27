@@ -8225,6 +8225,11 @@ body {
 .gw96js7 {
   width: 100%;
 }
+.gw96js8 {
+  display: flex;
+  justify-content: flex-end;
+  width: 100%;
+}
 .k0as8h0 {
   width: 100%;
 }
@@ -8265,6 +8270,15 @@ body {
 }
 ._1axi0ww0:focus {
   background-color: var(--_1pyqka91m);
+}
+._1yiubn60 {
+  width: 100%;
+  background-color: var(--_1pyqka90);
+  border: var(--_1pyqka9j) solid 1px;
+  border-radius: 6px;
+}
+._1yiubn60 .cm-focused {
+  outline: initial;
 }
 ._1n2x7d50 {
   width: 100%;

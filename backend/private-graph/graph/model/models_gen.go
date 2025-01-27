@@ -434,6 +434,7 @@ type GraphInput struct {
 	Display           *string                  `json:"display,omitempty"`
 	NullHandling      *string                  `json:"nullHandling,omitempty"`
 	Expressions       []*MetricExpressionInput `json:"expressions"`
+	SQL               *string                  `json:"sql,omitempty"`
 }
 
 type HeightList struct {
@@ -612,8 +613,9 @@ type MatchedErrorTag struct {
 
 type MetricBucket struct {
 	BucketID    uint64           `json:"bucket_id"`
-	BucketMin   float64          `json:"bucket_min"`
-	BucketMax   float64          `json:"bucket_max"`
+	BucketMin   *float64         `json:"bucket_min,omitempty"`
+	BucketMax   *float64         `json:"bucket_max,omitempty"`
+	BucketValue *float64         `json:"bucket_value,omitempty"`
 	Group       []string         `json:"group"`
 	Column      string           `json:"column"`
 	MetricType  MetricAggregator `json:"metric_type"`

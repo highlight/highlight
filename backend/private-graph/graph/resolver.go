@@ -4015,7 +4015,7 @@ func (r *Resolver) CreateDefaultDashboard(ctx context.Context, projectID int) (*
 	}, nil
 }
 
-func (r *Resolver) MetricsAggregated(ctx context.Context, projectID int, params modelInputs.QueryInput, column *string, metricTypes []modelInputs.MetricAggregator, groupBy []string, bucketBy string, bucketCount *int, bucketWindow *int, limit *int, limitAggregator *modelInputs.MetricAggregator, limitColumn *string, expressions []*modelInputs.MetricExpressionInput) (*modelInputs.MetricsBuckets, error) {
+func (r *Resolver) MetricsAggregated(ctx context.Context, projectID int, params modelInputs.QueryInput, sql *string, column *string, metricTypes []modelInputs.MetricAggregator, groupBy []string, bucketBy string, bucketCount *int, bucketWindow *int, limit *int, limitAggregator *modelInputs.MetricAggregator, limitColumn *string, expressions []*modelInputs.MetricExpressionInput) (*modelInputs.MetricsBuckets, error) {
 	project, err := r.isUserInProjectOrDemoProject(ctx, projectID)
 	if err != nil {
 		return nil, err
@@ -4026,7 +4026,7 @@ func (r *Resolver) MetricsAggregated(ctx context.Context, projectID int, params 
 		return nil, err
 	}
 
-	return r.ClickhouseClient.ReadMetricsAggregated(ctx, project.ID, params, groupBy, bucketCount, bucketBy, bucketWindow, limit, limitAggregator, limitColumn, expressions)
+	return r.ClickhouseClient.ReadMetricsAggregated(ctx, project.ID, params, sql, groupBy, bucketCount, bucketBy, bucketWindow, limit, limitAggregator, limitColumn, expressions)
 }
 
 func (r *Resolver) MetricsKeys(ctx context.Context, projectID int, dateRange modelInputs.DateRangeRequiredInput, query *string, typeArg *modelInputs.KeyType) ([]*modelInputs.QueryKey, error) {
