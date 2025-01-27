@@ -82,8 +82,6 @@ let first_load_listeners: FirstLoadListeners
 let init_called = false
 type Callback = (span?: Span) => any
 let getTracer: () => Tracer
-let getMeter: () => Meter
-let gauges: Map<string, Gauge> = new Map<string, Gauge>()
 const H: HighlightPublicInterface = {
 	options: undefined,
 	init: (projectID?: string | number, options?: HighlightOptions) => {
@@ -131,7 +129,6 @@ const H: HighlightPublicInterface = {
 					Highlight,
 					setupBrowserTracing,
 					getTracer: otelGetTracer,
-					getMeter: otelGetMeter,
 				}) => {
 					setupBrowserTracing({
 						otlpEndpoint:
@@ -149,7 +146,6 @@ const H: HighlightPublicInterface = {
 							options?.serviceName ?? 'highlight-browser',
 					})
 					getTracer = otelGetTracer
-					getMeter = otelGetMeter
 
 					highlight_obj = new Highlight(
 						client_options,
@@ -371,10 +367,10 @@ const H: HighlightPublicInterface = {
 		}
 	},
 	metrics: (metrics: Metric[]) => {
-		for (const m of metrics) {
-			H.gauge(m)
-		}
 		try {
+			for (const m of metrics) {
+				H.gauge(m)
+			}
 			H.onHighlightReady(() =>
 				highlight_obj.recordMetric(
 					metrics.map((m) => ({
@@ -388,18 +384,13 @@ const H: HighlightPublicInterface = {
 		}
 	},
 	gauge: (metric: Metric) => {
-		const meter = typeof getMeter === 'function' ? getMeter() : undefined
-		if (!meter) return
-
-		let gauge = gauges.get(metric.name)
-		if (!gauge) {
-			gauge = meter.createGauge(metric.name)
-			gauges.set(metric.name, gauge)
+		try {
+			H.onHighlightReady(() => {
+				highlight_obj.gauge(metric)
+			})
+		} catch (e) {
+			HighlightWarning('metrics', e)
 		}
-		gauge.record(
-			metric.value,
-			metric.tags?.reduce((a, b) => ({ ...a, [b.name]: b.value }), {}),
-		)
 	},
 	startSpan: (
 		name: string,

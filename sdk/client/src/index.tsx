@@ -97,6 +97,7 @@ import type { HighlightClientRequestWorker } from './workers/highlight-client-wo
 import HighlightClientWorker from './workers/highlight-client-worker?worker&inline'
 import { MessageType, PropertyType, Source } from './workers/types'
 import { parseError } from './utils/errors'
+import { Gauge } from '@opentelemetry/api'
 
 export const HighlightWarning = (context: string, msg: any) => {
 	console.warn(`Highlight Warning: (${context}): `, { output: msg })
@@ -192,6 +193,7 @@ export class Highlight {
 	reloaded!: boolean
 	_hasPreviouslyInitialized!: boolean
 	_recordStop!: listenerHandler | undefined
+	_gauges: Map<string, Gauge> = new Map<string, Gauge>()
 
 	static create(options: HighlightClassOptions): Highlight {
 		return new Highlight(options)
@@ -1129,6 +1131,27 @@ SessionSecureID: ${this.sessionData.sessionSecureID}`,
 				group: window.location.href,
 			},
 		])
+	}
+
+	gauge(metric: {
+		name: string
+		value: number
+		category?: MetricCategory
+		group?: string
+		tags?: { name: string; value: string }[]
+	}) {
+		const meter = typeof getMeter === 'function' ? getMeter() : undefined
+		if (!meter) return
+
+		let gauge = this._gauges.get(metric.name)
+		if (!gauge) {
+			gauge = meter.createGauge(metric.name)
+			this._gauges.set(metric.name, gauge)
+		}
+		gauge.record(
+			metric.value,
+			metric.tags?.reduce((a, b) => ({ ...a, [b.name]: b.value }), {}),
+		)
 	}
 
 	recordMetric(
