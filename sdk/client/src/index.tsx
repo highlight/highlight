@@ -1163,21 +1163,15 @@ SessionSecureID: ${this.sessionData.sessionSecureID}`,
 			tags?: { name: string; value: string }[]
 		}[],
 	) {
-		for (const m of metrics) {
+		for (const m of metrics.map((m) => ({
+			...m,
+			tags: m.tags || [],
+			group: m.group || window.location.href,
+			category: m.category || MetricCategory.Frontend,
+			timestamp: new Date(),
+		}))) {
 			this.gauge(m)
 		}
-		this._worker.postMessage({
-			message: {
-				type: MessageType.Metrics,
-				metrics: metrics.map((m) => ({
-					...m,
-					tags: m.tags || [],
-					group: m.group || window.location.href,
-					category: m.category || MetricCategory.Frontend,
-					timestamp: new Date(),
-				})),
-			},
-		})
 	}
 
 	/**
