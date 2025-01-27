@@ -293,7 +293,7 @@ func (client *Client) QuerySessionCustomMetrics(ctx context.Context, projectId i
 			EndDate:   created.Add(day),
 		},
 	}
-	return client.ReadMetricsAggregated(ctx, projectId, params, []string{modelInputs.ReservedMetricKeyMetricName.String()}, nil, modelInputs.MetricBucketByTimestamp.String(), ptr.Int(int(day.Seconds())), nil, nil, nil, []*modelInputs.MetricExpressionInput{
+	return client.ReadMetricsAggregated(ctx, projectId, params, nil, []string{modelInputs.ReservedMetricKeyMetricName.String()}, nil, modelInputs.MetricBucketByTimestamp.String(), ptr.Int(int(day.Seconds())), nil, nil, nil, []*modelInputs.MetricExpressionInput{
 		{
 			Aggregator: modelInputs.MetricAggregatorAvg,
 			Column:     modelInputs.ReservedMetricKeyValue.String(),
