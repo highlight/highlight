@@ -1163,6 +1163,9 @@ SessionSecureID: ${this.sessionData.sessionSecureID}`,
 			tags?: { name: string; value: string }[]
 		}[],
 	) {
+		for (const m of metrics) {
+			this.gauge(m)
+		}
 		this._worker.postMessage({
 			message: {
 				type: MessageType.Metrics,
