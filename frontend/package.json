@@ -4,7 +4,7 @@
 	"private": true,
 	"dependencies": {
 		"@ant-design/icons": "^4.7.0",
-		"@apollo/client": "3.7.17",
+		"@apollo/client": "3.11.9",
 		"@ctrl/tinycolor": "^3.4.1",
 		"@dinero.js/currencies": "2.0.0-alpha.14",
 		"@dnd-kit/core": "^6.1.0",
