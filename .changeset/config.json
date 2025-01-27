@@ -13,6 +13,7 @@
 		"@highlight-run/client",
 		"@highlight-run/component-preview",
 		"@highlight-run/frontend",
+		"react-native",
 		"rrdom",
 		"rrdom-nodejs",
 		"rrweb",
