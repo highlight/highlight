@@ -10,7 +10,7 @@ authorLinkedIn: 'https://www.linkedin.com/in/vkorolik/'
 authorGithub: 'https://github.com/Vadman97'
 authorWebsite: 'https://vadweb.us'
 authorPFP: 'https://lh3.googleusercontent.com/a-/AOh14Gh1k7XsVMGxHMLJZ7qesyddqn1y4EKjfbodEYiY=s96-c'
-tags: 'Developer Tooling, Monitoring, Observability'
+tags: Developer Tooling, Monitoring, Observability
 metaTitle: 'Building an Efficient OpenTelemetry Metrics Schema in Clickhouse'
 ---
 
