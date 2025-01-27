@@ -12,7 +12,7 @@ To get started with sending OTel metrics to Highlight using Python, for example,
 
 ## Querying these metrics in the Highlight UI
 
-Querying metrics in Highlight is similar to querying traces and logs. You can use the [Highlight Query Language](https://highlight.io/docs/query-language) to query metrics on our dashboard page, like so: 
+Querying metrics in Highlight is similar to querying traces and logs. You can use the [Highlight Query Language](../3_general-features/search.md) to query metrics on our dashboard page, like so: 
 
 ![Basic metrics usage](/images/docs/graphing/dashboard-choices.png)
 
