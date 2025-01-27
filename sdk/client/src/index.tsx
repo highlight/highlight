@@ -1148,10 +1148,11 @@ SessionSecureID: ${this.sessionData.sessionSecureID}`,
 			gauge = meter.createGauge(metric.name)
 			this._gauges.set(metric.name, gauge)
 		}
-		gauge.record(
-			metric.value,
-			metric.tags?.reduce((a, b) => ({ ...a, [b.name]: b.value }), {}),
-		)
+		gauge.record(metric.value, {
+			...metric.tags?.reduce((a, b) => ({ ...a, [b.name]: b.value }), {}),
+			group: metric.group,
+			category: metric.category,
+		})
 	}
 
 	recordMetric(
@@ -1165,9 +1166,9 @@ SessionSecureID: ${this.sessionData.sessionSecureID}`,
 	) {
 		for (const m of metrics.map((m) => ({
 			...m,
-			tags: m.tags || [],
-			group: m.group || window.location.href,
-			category: m.category || MetricCategory.Frontend,
+			tags: m.tags ?? [],
+			group: m.group ?? window.location.href,
+			category: m.category ?? MetricCategory.Frontend,
 			timestamp: new Date(),
 		}))) {
 			this.gauge(m)
