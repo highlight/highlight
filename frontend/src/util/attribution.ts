@@ -36,14 +36,14 @@ export const recordStorageEvents = () => {
 	window.addEventListener(
 		'storage',
 		(e: StorageEvent) => {
-			const details = {
+			const details: any = {
 				storageArea: e.storageArea,
 				key: e.key,
 				newValue: e.newValue,
 				oldValue: e.oldValue,
 				url: e.url,
 			}
-			H.track('storage', details)
+			H.track('storage')
 			H.startSpan('storage', { attributes: details }, () => {})
 		},
 		false,
