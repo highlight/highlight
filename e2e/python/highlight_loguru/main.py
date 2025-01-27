@@ -12,7 +12,7 @@ H = highlight_io.H(
     instrument_logging=False,
     service_name="my-loguru-app",
     service_version="1.0.0",
-    otlp_endpoint="http://localhost:4318",
+    otlp_endpoint="http://localhost:4317",
     environment="e2e-test",
 )
 
