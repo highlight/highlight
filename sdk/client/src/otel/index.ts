@@ -37,6 +37,7 @@ import type { NetworkRecordingOptions } from '../types/client'
 import {
 	OTLPMetricExporterBrowser,
 	OTLPTraceExporterBrowserWithXhrRetry,
+	TraceExporterConfig,
 } from './exporter'
 import { UserInteractionInstrumentation } from './user-interaction'
 import {
@@ -80,16 +81,16 @@ export const setupBrowserTracing = (config: BrowserTracingConfig) => {
 	const isDebug = import.meta.env.DEBUG === 'true'
 	const environment = config.environment ?? 'production'
 
-	const exporterOptions = {
+	const exporterOptions: TraceExporterConfig = {
 		url: config.otlpEndpoint + '/v1/traces',
 		concurrencyLimit: 100,
-		timeoutMillis: 30_000,
+		timeoutMillis: 5_000,
 		// Using any because we were getting an error importing CompressionAlgorithm
 		// from @opentelemetry/otlp-exporter-base.
 		compression: 'gzip' as any,
 		keepAlive: true,
 		httpAgentOptions: {
-			timeout: 30_000,
+			timeout: 5_000,
 			keepAlive: true,
 		},
 	}
@@ -98,6 +99,8 @@ export const setupBrowserTracing = (config: BrowserTracingConfig) => {
 	const spanProcessor = new CustomBatchSpanProcessor(exporter, {
 		maxExportBatchSize: 100,
 		maxQueueSize: 1_000,
+		exportTimeoutMillis: exporterOptions.timeoutMillis,
+		scheduledDelayMillis: exporterOptions.timeoutMillis,
 	})
 
 	const resource = new Resource({
@@ -124,7 +127,7 @@ export const setupBrowserTracing = (config: BrowserTracingConfig) => {
 	})
 	const reader = new PeriodicExportingMetricReader({
 		exporter: meterExporter,
-		exportIntervalMillis: 1000,
+		exportIntervalMillis: exporterOptions.timeoutMillis,
 		exportTimeoutMillis: exporterOptions.timeoutMillis,
 	})
 

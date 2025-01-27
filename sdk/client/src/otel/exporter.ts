@@ -2,8 +2,14 @@ import { OTLPTraceExporter } from '@opentelemetry/exporter-trace-otlp-http'
 import { OTLPMetricExporter } from '@opentelemetry/exporter-metrics-otlp-http'
 import { MAX_PUBLIC_GRAPH_RETRY_ATTEMPTS } from '../utils/graph'
 import { ExportResult, ExportResultCode } from '@opentelemetry/core'
+import { AggregationTemporalityPreference } from '@opentelemetry/exporter-metrics-otlp-http/build/src/OTLPMetricExporterOptions'
 
-type ExporterConfig = ConstructorParameters<typeof OTLPTraceExporter>[0]
+export type TraceExporterConfig = ConstructorParameters<
+	typeof OTLPTraceExporter
+>[0]
+export type MetricExporterConfig = ConstructorParameters<
+	typeof OTLPMetricExporter
+>[0]
 
 // This custom exporter is a temporary workaround for an issue we are having
 // with requests stalling in the browser using the sendBeacon API. There is work
@@ -16,7 +22,7 @@ type ExporterConfig = ConstructorParameters<typeof OTLPTraceExporter>[0]
 export class OTLPTraceExporterBrowserWithXhrRetry extends OTLPTraceExporter {
 	private readonly xhrTraceExporter: OTLPTraceExporter
 
-	constructor(config?: ExporterConfig) {
+	constructor(config?: TraceExporterConfig) {
 		super(config)
 		this.xhrTraceExporter = new OTLPTraceExporter({
 			...(config ?? {}),
@@ -49,10 +55,11 @@ export class OTLPTraceExporterBrowserWithXhrRetry extends OTLPTraceExporter {
 export class OTLPMetricExporterBrowser extends OTLPMetricExporter {
 	private readonly xhrMeterExporter: OTLPMetricExporter
 
-	constructor(config?: ExporterConfig) {
+	constructor(config?: MetricExporterConfig) {
 		super(config)
 		this.xhrMeterExporter = new OTLPMetricExporter({
 			...(config ?? {}),
+			temporalityPreference: AggregationTemporalityPreference.DELTA,
 			headers: {}, // a truthy value enables sending with XHR instead of beacon
 		})
 	}

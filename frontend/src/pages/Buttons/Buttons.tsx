@@ -353,6 +353,31 @@ export const Buttons = () => {
 					</button>
 					<button
 						className={commonStyles.submitButton}
+						onClick={async () => {
+							H.gauge({
+								name: 'client-highlight-gauge',
+								value: Math.random(),
+							})
+						}}
+					>
+						H.gauge
+					</button>
+					<button
+						className={commonStyles.submitButton}
+						onClick={async () => {
+							const { metrics } = await import(
+								'@opentelemetry/api'
+							)
+							const meter = metrics.getMeter('Buttons.tsx')
+							const gauge =
+								meter.createGauge('client-meter-gauge')
+							gauge.record(Math.random())
+						}}
+					>
+						otel metrics gauge
+					</button>
+					<button
+						className={commonStyles.submitButton}
 						onClick={() => {
 							H.consumeError(
 								new Error('Highlight H.consumeError', {
