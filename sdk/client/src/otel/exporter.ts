@@ -2,7 +2,6 @@ import { OTLPTraceExporter } from '@opentelemetry/exporter-trace-otlp-http'
 import { OTLPMetricExporter } from '@opentelemetry/exporter-metrics-otlp-http'
 import { MAX_PUBLIC_GRAPH_RETRY_ATTEMPTS } from '../utils/graph'
 import { ExportResult, ExportResultCode } from '@opentelemetry/core'
-import { AggregationTemporalityPreference } from '@opentelemetry/exporter-metrics-otlp-http/build/src/OTLPMetricExporterOptions'
 
 export type TraceExporterConfig = ConstructorParameters<
 	typeof OTLPTraceExporter
