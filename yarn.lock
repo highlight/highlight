@@ -5219,7 +5219,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@codemirror/autocomplete@npm:^6.0.0":
+"@codemirror/autocomplete@npm:^6.0.0, @codemirror/autocomplete@npm:^6.18.4":
   version: 6.18.4
   resolution: "@codemirror/autocomplete@npm:6.18.4"
   dependencies:
@@ -5314,7 +5314,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@codemirror/view@npm:^6.0.0, @codemirror/view@npm:^6.17.0, @codemirror/view@npm:^6.23.0, @codemirror/view@npm:^6.27.0, @codemirror/view@npm:^6.35.0":
+"@codemirror/view@npm:^6.0.0, @codemirror/view@npm:^6.17.0, @codemirror/view@npm:^6.23.0, @codemirror/view@npm:^6.27.0, @codemirror/view@npm:^6.35.0, @codemirror/view@npm:^6.36.2":
   version: 6.36.2
   resolution: "@codemirror/view@npm:6.36.2"
   dependencies:
@@ -10518,7 +10518,9 @@ __metadata:
     "@ant-design/icons": "npm:^4.7.0"
     "@apollo/client": "npm:3.7.17"
     "@babel/core": "npm:^7.19.0"
+    "@codemirror/autocomplete": "npm:^6.18.4"
     "@codemirror/lang-sql": "npm:^6.8.0"
+    "@codemirror/view": "npm:^6.36.2"
     "@ctrl/tinycolor": "npm:^3.4.1"
     "@dinero.js/currencies": "npm:2.0.0-alpha.14"
     "@dnd-kit/core": "npm:^6.1.0"
@@ -10613,8 +10615,6 @@ __metadata:
     lodash: "npm:^4.17.21"
     lottie-react: "npm:^2.1.0"
     moment: "npm:2.29.4"
-    monaco-editor: "npm:^0.52.2"
-    monaco-sql-languages: "npm:^0.12.2"
     npm-run-all: "npm:^4.1.5"
     postcss: "npm:^8.4.35"
     postcss-custom-properties: "npm:^12.1.7"
@@ -26792,28 +26792,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"antlr4-c3@npm:3.3.7":
-  version: 3.3.7
-  resolution: "antlr4-c3@npm:3.3.7"
-  dependencies:
-    antlr4ng: "npm:2.0.11"
-  checksum: 10/746af7403960f5915bdfbf74f3cc9fa05e65b47e5d16069a53376387c86ee4ec1fb7715664fd608b1c4c72358f1b594f23966144a3de6303b7b10b00c31f3820
-  languageName: node
-  linkType: hard
-
 "antlr4@npm:4.13.1-patch-1":
   version: 4.13.1-patch-1
   resolution: "antlr4@npm:4.13.1-patch-1"
   checksum: 10/c8b8804be3e233d9c6321bf70a779a47c26b9216e5d9dbb7e8ef66d32038d9160549f3b2f3caf19afa4d1d0736f61237fcafc0311636a9a3a29d9b892d2804d7
-  languageName: node
-  linkType: hard
-
-"antlr4ng@npm:2.0.11":
-  version: 2.0.11
-  resolution: "antlr4ng@npm:2.0.11"
-  peerDependencies:
-    antlr4ng-cli: 1.0.7
-  checksum: 10/ff9b4fb8dff7af4bc096756e7c8090661aca701f82d0940344bfd4745215c0f2a671035e01031f4b168854805329fc89cf8367e03220921aca3dc7852a7c341c
   languageName: node
   linkType: hard
 
@@ -32729,16 +32711,6 @@ __metadata:
   version: 3.1.4
   resolution: "dset@npm:3.1.4"
   checksum: 10/6268c9e2049c8effe6e5a1952f02826e8e32468b5ced781f15f8f3b1c290da37626246fec014fbdd1503413f981dff6abd8a4c718ec9952fd45fccb6ac9de43f
-  languageName: node
-  linkType: hard
-
-"dt-sql-parser@npm:4.0.2":
-  version: 4.0.2
-  resolution: "dt-sql-parser@npm:4.0.2"
-  dependencies:
-    antlr4-c3: "npm:3.3.7"
-    antlr4ng: "npm:2.0.11"
-  checksum: 10/bff66d3c22b7f33e4c10012ea391685b2e43266542aee1cba7376c90f6c79756e368ad4deabcf0436c68ebe51f8a8e1e82b67328735ffaaca2ce566fc230853e
   languageName: node
   linkType: hard
 
@@ -47855,24 +47827,6 @@ __metadata:
   version: 0.34.0
   resolution: "monaco-editor@npm:0.34.0"
   checksum: 10/c7c2c88bc8f83817e67ab55d84a4469af7f5f566cc3df1c27bdd00ad2071b88688b23847608e8c948a445afa543929b7bcd9b5ff5b7b53da15f6f2b628eb76ac
-  languageName: node
-  linkType: hard
-
-"monaco-editor@npm:^0.52.2":
-  version: 0.52.2
-  resolution: "monaco-editor@npm:0.52.2"
-  checksum: 10/0d4962d69ffa0a8df040faa9c582cef1893fa3fb617feca8f1425c5e670e74c2856104b9a2b01cbda0103a5e5f92f58843206bc9a0e070471c0c1270d7f52a96
-  languageName: node
-  linkType: hard
-
-"monaco-sql-languages@npm:^0.12.2":
-  version: 0.12.2
-  resolution: "monaco-sql-languages@npm:0.12.2"
-  dependencies:
-    dt-sql-parser: "npm:4.0.2"
-  peerDependencies:
-    monaco-editor: ">=0.31.0"
-  checksum: 10/ec38bc4907eac6e7690ba89ce669e4ea1051447f0550468b9cefe8a91ffb0583dae97305345e964826ad7ac0207639c563e658a7f2cc521856b0989e504bc471
   languageName: node
   linkType: hard
 

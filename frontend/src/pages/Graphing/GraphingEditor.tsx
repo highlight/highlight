@@ -95,8 +95,9 @@ import { GraphContextProvider } from './context/GraphContext'
 import TemplateMenu from '@/pages/Graphing/TemplateMenu'
 import { Panel } from '@/pages/Graphing/components/Panel'
 import { useGraphTime } from '@/pages/Graphing/hooks/useGraphTime'
-import { DEFAULT_SQL, SqlEditor } from '@/pages/Graphing/components/SqlEditor'
+
 import { useAuthContext } from '@/authentication/AuthContext'
+import { DEFAULT_SQL, SqlEditor } from '@/pages/Graphing/components/SqlEditor'
 
 type BucketBy = 'None' | 'Interval' | 'Count'
 const BUCKET_BY_OPTIONS: BucketBy[] = ['None', 'Interval', 'Count']
