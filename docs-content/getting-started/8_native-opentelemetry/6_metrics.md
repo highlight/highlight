@@ -10,7 +10,7 @@ quickstart: true
 
 If you want to send OpenTelemetry metrics to Highlight you can do this by making a couple tweaks to your metrics configuration.
 
-### 1. Add span resource atributes
+### 1. Add resource attributes
 
 In order to associate spans with your project and sessions in Highlight, you'll need to add a few attributes:
 
