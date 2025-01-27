@@ -8129,6 +8129,41 @@ body {
 .u1xyjd5:hover {
   background: var(--_1pyqka91x);
 }
+._10okd9v0 {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 10px;
+  padding: 8px;
+}
+._10okd9v1 {
+  border: var(--_1pyqka91o) solid 1px;
+  border-radius: 4px;
+  display: flex;
+  padding: 1px;
+}
+.wxpajd0 {
+  position: absolute;
+  right: 0;
+  top: -6px;
+}
+.wxpajd1 {
+  background-color: var(--_1pyqka92);
+  border: var(--_1pyqka9k) solid 1px;
+  border-radius: 6px;
+  display: block;
+  padding: 0;
+  position: relative;
+}
+.wxpajd1 code {
+  padding-bottom: 8px !important;
+  padding-top: 8px !important;
+}
+.dy6d9j0 {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 10px;
+  padding: 8px;
+}
 ._10o9hoe1 {
   min-width: 400px;
   right: 0;

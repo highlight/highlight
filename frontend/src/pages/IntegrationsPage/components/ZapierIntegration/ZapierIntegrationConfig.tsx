@@ -7,7 +7,7 @@ import {
 	IntegrationConfigProps,
 } from '@pages/IntegrationsPage/components/Integration'
 import { useZapierIntegration } from '@pages/IntegrationsPage/components/ZapierIntegration/utils'
-import { CodeBlock } from '@pages/Setup/CodeBlock/CodeBlock'
+import { CodeBlock } from '@/pages/Connect/CodeBlock'
 import React, { useEffect } from 'react'
 import { coy as lightTheme } from 'react-syntax-highlighter/dist/esm/styles/prism'
 

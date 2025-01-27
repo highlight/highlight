@@ -6,8 +6,8 @@ import { verifyTraces } from '../shared-snippets'
 import { downloadSnippet, setupFrontendSnippet } from './shared-snippets'
 
 export const DotNetOTLPTracingContent: QuickStartContent = {
-	title: 'Error Monitoring / Logging / Tracing in .NET 6.x / 8.x via the OpenTelemetry Protocol (OTLP)',
-	subtitle: `Error Monitoring / Logging / Tracing in .NET 6.x / 8.x via the OpenTelemetry Protocol (OTLP).`,
+	title: '.NET 6.x / 8.x via the OpenTelemetry Protocol (OTLP)',
+	subtitle: `.NET 6.x / 8.x via the OpenTelemetry Protocol (OTLP).`,
 	entries: [
 		downloadSnippet(),
 		{

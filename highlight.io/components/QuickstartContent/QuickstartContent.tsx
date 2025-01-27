@@ -663,3 +663,136 @@ export const quickStartContent = {
 		},
 	},
 } as const
+
+export const quickStartContentReorganized = {
+	client: {
+		title: 'Client',
+		sdks: {
+			[QuickStartType.React]: ReactContent,
+			[QuickStartType.Angular]: AngularContent,
+			[QuickStartType.Next]: NextContent,
+			[QuickStartType.Remix]: RemixContent,
+			[QuickStartType.Vue]: VueContent,
+			[QuickStartType.SvelteKit]: SvelteKitContent,
+			[QuickStartType.Gatsby]: GatsbyContent,
+			[QuickStartType.Electron]: ElectronContext,
+			[QuickStartType.Other]: OtherContext,
+		},
+	},
+	mobile: {
+		title: 'Mobile',
+		sdks: {
+			[QuickStartType.ReactNative]: ReactNativeContent,
+		},
+	},
+	dotnet: {
+		title: '.NET',
+		sdks: {
+			[QuickStartType.OTLPDotNet]: DotNetOTLPReorganizedContent,
+			[QuickStartType.OTLPDotNet4]: DotNet4OTLPReorganizedContent,
+		},
+	},
+	elixir: {
+		title: 'Elixir',
+		sdks: {
+			[QuickStartType.ElixirOther]: ElixirOtherReorganizedContent,
+		},
+	},
+	go: {
+		title: 'Golang',
+		sdks: {
+			[QuickStartType.GoChi]: GoChiReorganizedContent,
+			[QuickStartType.GoEcho]: GoEchoReorganizedContent,
+			[QuickStartType.GoFiber]: GoFiberReorganizedContent,
+			[QuickStartType.GoGin]: GoGinReorganizedContent,
+			[QuickStartType.GoGqlgen]: GoGqlgenReorganizedContent,
+			[QuickStartType.GoMux]: GoMuxReorganizedContent,
+			[QuickStartType.GoLogrus]: GoOtherLogReorganizedContent,
+			[QuickStartType.GoGorm]: GormTracesReorganizedContent,
+			[QuickStartType.GoOther]: GoTracesReorganizedContent,
+		},
+	},
+	infra: {
+		title: 'Infrastructure / Other',
+		sdks: {
+			[QuickStartType.FluentForward]: FluentForwardReorganizedContent,
+			[QuickStartType.File]: FileReorganizedContent,
+			[QuickStartType.Docker]: DockerReorganizedContent,
+			[QuickStartType.HTTPOTLP]: HTTPReorganizedContent,
+			[QuickStartType.Syslog]: SyslogReorganizedContent,
+			[QuickStartType.Systemd]: SystemdReorganizedContent,
+		},
+	},
+	java: {
+		title: 'Java',
+		sdks: {
+			[QuickStartType.JavaOther]: JavaOtherReorganizedContent,
+		},
+	},
+	js: {
+		title: 'JavaScript',
+		sdks: {
+			[QuickStartType.JSApollo]: JSApolloReorganizedContent,
+			[QuickStartType.JSAWSFn]: JSAWSLambdaReorganizedContent,
+			[QuickStartType.JSCloudflare]: JSCloudflareReorganizedContent,
+			[QuickStartType.JSExpress]: JSExpressReorganizedContent,
+			[QuickStartType.JSFirebase]: JSFirebaseReorganizedContent,
+			[QuickStartType.JSHono]: JSHonoReorganizedContent,
+			[QuickStartType.JSNodejs]: JSNodeReorganizedContent,
+			[QuickStartType.JSNestjs]: JSNestReorganizedContent,
+			[QuickStartType.JStRPC]: JStRPCReorganizedContent,
+			[QuickStartType.JSPino]: JSPinoHTTPJSONLogReorganizedContent,
+			[QuickStartType.JSWinston]: JSWinstonHTTPJSONLogReorganizedContent,
+			[QuickStartType.JSManual]: JSManualTracesReorganizedContent,
+			[QuickStartType.JSNextjs]: NextJsTracesReorganizedContent,
+		},
+	},
+	otlp: {
+		title: 'OpenTelemetry',
+		sdks: {
+			[QuickStartType.OTLP]: OTLPReorganizedContent,
+		},
+	},
+	php: {
+		title: 'PHP',
+		sdks: {
+			[QuickStartType.Other]: PHPOtherReorganizedContent,
+		},
+	},
+	python: {
+		title: 'Python',
+		sdks: {
+			[QuickStartType.PythonAWSFn]: PythonAWSReorganizedContext,
+			[QuickStartType.PythonAzureFn]: PythonAzureReorganizedContext,
+			[QuickStartType.PythonDjango]: PythonDjangoReorganizedContext,
+			[QuickStartType.PythonFastAPI]: PythonFastAPIReorganizedContext,
+			[QuickStartType.PythonFlask]: PythonFlaskReorganizedContext,
+			[QuickStartType.PythonGCPFn]: PythonGCPReorganizedContext,
+			[QuickStartType.PythonLoguru]: PythonLoguruLogReorganizedContent,
+			[QuickStartType.PythonOther]: PythonOtherReorganizedContext,
+			[QuickStartType.PythonLibraries]:
+				PythonLibrariesTracesReorganizedContent,
+			[QuickStartType.PythonAI]: PythonAITracesReorganizedContent,
+		},
+	},
+	ruby: {
+		title: 'Ruby',
+		sdks: {
+			[QuickStartType.RubyOther]: RubyOtherReorganizedContent,
+			[QuickStartType.RubyRails]: RubyRailsReorganizedContent,
+		},
+	},
+	rust: {
+		title: 'Rust',
+		sdks: {
+			[QuickStartType.RustActix]: RustActixReorganizedContent,
+			[QuickStartType.RustOther]: RustOtherReorganizedContent,
+		},
+	},
+	serverless: {
+		title: 'Serverless',
+		sdks: {
+			[QuickStartType.AWSLambda]: AWSLambdaReorganizedContent,
+		},
+	},
+}

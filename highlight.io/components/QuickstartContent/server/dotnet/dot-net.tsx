@@ -9,8 +9,8 @@ import {
 } from './shared-snippets-tracing'
 
 export const DotNetOTLPReorganizedContent: QuickStartContent = {
-	title: 'Error Monitoring / Logging / Tracing in .NET 6.x / 8.x via the OpenTelemetry Protocol (OTLP)',
-	subtitle: `Error Monitoring / Logging / Tracing in .NET 6.x / 8.x via the OpenTelemetry Protocol (OTLP).`,
+	title: '.NET 6.x / 8.x via the OpenTelemetry Protocol (OTLP)',
+	subtitle: `.NET 6.x / 8.x via the OpenTelemetry Protocol (OTLP).`,
 	products: ['Errors', 'Logs', 'Traces', 'Metrics'],
 	entries: [
 		downloadSnippet(),

@@ -12,7 +12,7 @@ import {
 	NetworkResource,
 } from '@/pages/Player/Toolbar/DevToolsWindowV2/utils'
 import { REQUEST_INITIATOR_TYPES } from '@/pages/Player/utils/utils'
-import { CodeBlock } from '@/pages/Setup/CodeBlock/CodeBlock'
+import { CodeBlock } from '@/pages/Connect/CodeBlock'
 import analytics from '@/util/analytics'
 import { formatTime } from '@/util/time'
 
