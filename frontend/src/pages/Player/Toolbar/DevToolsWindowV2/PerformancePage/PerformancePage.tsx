@@ -64,6 +64,8 @@ const PerformancePage = React.memo(({}: Props) => {
 	const isLoading = performancePayloads.length === 0
 	const hasNoPerformancePayloads = performancePayloads.length === 0
 
+	console.log('vadim', { performanceData })
+
 	return (
 		<div className={styles.container}>
 			{isLoading && <LoadingBox />}
