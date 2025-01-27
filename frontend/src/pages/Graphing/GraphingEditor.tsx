@@ -404,6 +404,9 @@ export const GraphingEditor: React.FC = () => {
 		setBucketBySetting(
 			g.bucketInterval ? 'Interval' : g.bucketCount ? 'Count' : 'None',
 		)
+		setSqlEnabled(!!g.sql)
+		setSqlInternal(g.sql ?? DEFAULT_SQL)
+		setSql(g.sql ?? DEFAULT_SQL)
 	}
 
 	useGetVisualizationQuery({
@@ -981,7 +984,9 @@ export const GraphingEditor: React.FC = () => {
 														>
 															<Button
 																disabled={
-																	upsertGraphContext.loading
+																	upsertGraphContext.loading ||
+																	sqlInternal ===
+																		sql
 																}
 																onClick={() => {
 																	setSql(
@@ -989,7 +994,7 @@ export const GraphingEditor: React.FC = () => {
 																	)
 																}}
 															>
-																Run query
+																Update query
 															</Button>
 														</div>
 													}

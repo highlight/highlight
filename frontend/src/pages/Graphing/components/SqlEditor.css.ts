@@ -11,3 +11,7 @@ export const editorWrapper = style({
 globalStyle(`${editorWrapper} .cm-focused`, {
 	outline: 'initial',
 })
+
+globalStyle(`${editorWrapper} .cm-tooltip`, {
+	maxWidth: '400px',
+})

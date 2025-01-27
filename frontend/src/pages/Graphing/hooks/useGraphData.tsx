@@ -1,8 +1,9 @@
-import { useRef } from 'react'
+import { useRef, useState } from 'react'
 import { GraphContext, GraphData } from '@pages/Graphing/context/GraphContext'
 
 export function useGraphData(): GraphContext {
 	const graphData = useRef<GraphData>({})
+	const [errors, setErrors] = useState<string[]>([])
 
 	return {
 		graphData,
@@ -15,5 +16,7 @@ export function useGraphData(): GraphContext {
 				graphData.current = graph
 			}
 		},
+		errors,
+		setErrors,
 	}
 }

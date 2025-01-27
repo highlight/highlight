@@ -332,7 +332,7 @@ func builderFromSql(
 		sb.From(strings.TrimPrefix(selectQuery.From.String(), "FROM "))
 	}
 	if selectQuery.Where != nil {
-		sb.Where(strings.TrimPrefix(selectQuery.Where.String(), "WHERE "))
+		sb.Where("(" + strings.TrimPrefix(selectQuery.Where.String(), "WHERE ") + ")")
 	}
 	if selectQuery.GroupBy != nil {
 		sb.GroupBy(strings.TrimPrefix(selectQuery.GroupBy.String(), "GROUP BY "))

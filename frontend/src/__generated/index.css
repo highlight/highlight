@@ -8280,6 +8280,9 @@ body {
 ._1yiubn60 .cm-focused {
   outline: initial;
 }
+._1yiubn60 .cm-tooltip {
+  max-width: 400px;
+}
 ._1n2x7d50 {
   width: 100%;
   height: 100%;
