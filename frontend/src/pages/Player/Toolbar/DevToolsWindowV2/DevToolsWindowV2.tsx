@@ -435,8 +435,11 @@ const DevToolsWindowV2: React.FC<
 										panelHeight={panelHeight}
 									/>
 								</Tabs.Panel>
-								<Tabs.Panel id={Tab.Performance}>
-									<PerformancePage time={time} />
+								<Tabs.Panel
+									id={Tab.Performance}
+									style={{ height: '100%' }}
+								>
+									<PerformancePage />
 								</Tabs.Panel>
 							</Tabs>
 						)}

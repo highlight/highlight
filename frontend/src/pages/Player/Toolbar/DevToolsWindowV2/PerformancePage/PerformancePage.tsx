@@ -1,71 +1,51 @@
 import LoadingBox from '@components/LoadingBox'
 import { Box, Text } from '@highlight-run/ui/components'
-import SvgActivityIcon from '@icons/ActivityIcon'
-import SvgCarDashboardIcon from '@icons/CarDashboardIcon'
-import SvgTimerIcon from '@icons/TimerIcon'
-import { TIMESTAMP_KEY } from '@pages/Graphing/components/Graph'
+import { TIMESTAMP_KEY, useGraphData } from '@pages/Graphing/components/Graph'
 import { LineChart } from '@pages/Graphing/components/LineChart'
 import { useReplayerContext } from '@pages/Player/ReplayerContext'
 import React from 'react'
 
 import * as styles from './style.css'
+import { TIME_FORMAT } from '@components/Search/SearchForm/constants'
+import { useParams } from '@util/react-router/useParams'
+import { useGetMetricsQuery } from '@/graph/generated/hooks'
+import { MetricAggregator, ProductType } from '@/graph/generated/schemas'
+import moment from 'moment'
 
-type Props = {
-	time: number
-}
-
-interface PerformanceData {
-	timestamp: number
-	jank: {
-		amount?: number
-		selector?: string
-		newLocation?: string
-	}
-	fps?: number
-	memoryUsagePercent?: number
-}
+type Props = {}
 
 const PerformancePage = React.memo(({}: Props) => {
-	const { performancePayloads, sessionMetadata, jankPayloads } =
-		useReplayerContext()
+	const { session, sessionMetadata } = useReplayerContext()
+	const { project_id } = useParams<{ project_id: string }>()
 
-	const performanceData: PerformanceData[] = performancePayloads.map(
-		(payload) => {
-			return {
-				timestamp:
-					payload.relativeTimestamp * 1000 +
-					sessionMetadata.startTime,
-				fps: payload.fps,
-				jank: {},
-				memoryUsagePercent:
-					(payload.usedJSHeapSize / payload.jsHeapSizeLimit) * 100,
-			}
-		},
-	)
-	performanceData.push(
-		...jankPayloads.map((j) => {
-			const absTime =
-				j.relativeTimestamp * 1000 + sessionMetadata.startTime
-			const perf = performanceData.find((p) => p.timestamp >= absTime)
-			return {
-				timestamp: absTime,
-				jank: {
-					amount: j.jankAmount,
-					selector: j.querySelector,
-					newLocation: j.newLocation,
+	const start = moment(sessionMetadata.startTime)
+	const end = moment(sessionMetadata.endTime)
+	const { data: metricsData, loading: isLoading } = useGetMetricsQuery({
+		variables: {
+			product_type: ProductType.Metrics,
+			project_id: project_id!,
+			params: {
+				date_range: {
+					start_date: start.format(TIME_FORMAT),
+					end_date: end.format(TIME_FORMAT),
 				},
-				fps: perf?.fps,
-				memoryUsagePercent: perf?.memoryUsagePercent,
-			}
-		}),
-	)
-	performanceData.sort((a, b) => a.timestamp - b.timestamp)
+				query: `secure_session_id=${session?.secure_id} AND (metric_name=Jank OR metric_name=usedJSHeapSize OR metric_name=fps)`,
+			},
+			group_by: ['metric_name'],
+			bucket_by: TIMESTAMP_KEY,
+			bucket_count: 60,
+			limit: 1_000,
+			expressions: [
+				{ aggregator: MetricAggregator.Avg, column: 'value' },
+			],
+		},
+	})
 
-	const isLoading = performancePayloads.length === 0
-	const hasNoPerformancePayloads = performancePayloads.length === 0
+	const data = useGraphData(metricsData, TIMESTAMP_KEY) ?? []
 
-	console.log('vadim', { performanceData })
+	const hasNoPerformancePayloads = metricsData?.metrics?.buckets?.length === 0
 
+	console.log('vadim', { metricsData, data })
 	return (
 		<div className={styles.container}>
 			{isLoading && <LoadingBox />}
@@ -76,82 +56,20 @@ const PerformancePage = React.memo(({}: Props) => {
 					</div>
 				</div>
 			)}
-			{!isLoading &&
-				[
-					{
-						key: 'fps' as keyof PerformanceData,
-						strokeColor: 'var(--color-green-700)',
-						fillColor: 'var(--color-green-400)',
-						yAxisLabel: 'Frames per Second',
-						tooltipIcon: <SvgTimerIcon />,
-						chartLabel: 'Frames Per Second',
-						helpLink:
-							'https://developer.mozilla.org/en-US/docs/Web/Performance/Animation_performance_and_frame_rate',
-					},
-					{
-						key: 'memoryUsagePercent' as keyof PerformanceData,
-						strokeColor: 'var(--color-blue-700)',
-						fillColor: 'var(--color-blue-400)',
-						yAxisTickFormatter: (tickItem: number) =>
-							`${(tickItem * 100).toFixed(0)}%`,
-						yAxisLabel: 'Memory Used',
-						tooltipIcon: <SvgCarDashboardIcon />,
-						chartLabel: 'Device Memory',
-						helpLink:
-							'https://developer.mozilla.org/en-US/docs/Web/API/Performance/memory',
-					},
-					{
-						key: 'jank' as keyof PerformanceData,
-						yAxisTickFormatter: (tickItem: number | string) =>
-							typeof tickItem === 'number'
-								? `${tickItem.toFixed(0)} ms`
-								: `${tickItem}`,
-						strokeColor: 'var(--color-purple-700)',
-						fillColor: 'var(--color-purple-400)',
-						yAxisLabel: 'ms',
-						noTooltipLabel: true,
-						tooltipIcon: <SvgActivityIcon />,
-						chartLabel: 'Jank',
-						helpLink:
-							'https://developer.mozilla.org/en-US/docs/Glossary/Jank',
-					},
-				].map(({ key, strokeColor, yAxisLabel }, idx) => {
-					const data = performanceData.map((b) => ({
-						[TIMESTAMP_KEY]: b.timestamp,
-						[key]: b[key],
-					}))
-
-					const hasData = data.some((data: any) => !isNaN(data[key]))
-					if (data.length === 0 || !hasData) {
-						return null
-					}
-
-					return (
-						<Box
-							key={key}
-							width="full"
-							my={idx === 0 ? undefined : '32'}
-							px="16"
-							style={{ height: 60 }}
-						>
-							<Box position="relative" my="8" px="28">
-								<Text lines="1" color="n8" align="left">
-									{yAxisLabel || '<empty>'}
-								</Text>
-							</Box>
-							<LineChart
-								data={data}
-								xAxisMetric={TIMESTAMP_KEY}
-								strokeColors={[strokeColor]}
-								viewConfig={{
-									type: 'Line chart',
-									display: 'Stacked area',
-									showLegend: true,
-								}}
-							/>
-						</Box>
-					)
-				})}
+			{!isLoading && !hasNoPerformancePayloads ? (
+				<Box width="full" height="full" p="16">
+					<LineChart
+						data={data}
+						xAxisMetric={TIMESTAMP_KEY}
+						viewConfig={{
+							type: 'Line chart',
+							display: 'Line',
+							showLegend: true,
+							nullHandling: 'Connected',
+						}}
+					/>
+				</Box>
+			) : null}
 		</div>
 	)
 })
