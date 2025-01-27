@@ -59,7 +59,6 @@ export class OTLPMetricExporterBrowser extends OTLPMetricExporter {
 		super(config)
 		this.xhrMeterExporter = new OTLPMetricExporter({
 			...(config ?? {}),
-			temporalityPreference: AggregationTemporalityPreference.DELTA,
 			headers: {}, // a truthy value enables sending with XHR instead of beacon
 		})
 	}
