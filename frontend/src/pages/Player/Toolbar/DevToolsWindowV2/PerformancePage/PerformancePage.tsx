@@ -31,7 +31,7 @@ const PerformanceGraph = React.memo(
 					viewConfig={{
 						type: 'Line chart',
 						display: 'Line',
-						showLegend: true,
+						showLegend: false,
 						nullHandling: 'Connected',
 					}}
 					syncId="session"
