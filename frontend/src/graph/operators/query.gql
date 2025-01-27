@@ -101,23 +101,6 @@ fragment MicrosoftTeamsChannelFragment on MicrosoftTeamsChannel {
 	id
 }
 
-query GetMetricsTimeline(
-	$project_id: ID!
-	$metric_name: String!
-	$params: DashboardParamsInput!
-) {
-	metrics_timeline(
-		project_id: $project_id
-		metric_name: $metric_name
-		params: $params
-	) {
-		date
-		value
-		aggregator
-		group
-	}
-}
-
 query GetNetworkHistogram(
 	$project_id: ID!
 	$params: NetworkHistogramParamsInput!
@@ -2025,8 +2008,19 @@ subscription OnSessionPayloadAppended(
 
 query GetWebVitals($session_secure_id: String!) {
 	web_vitals(session_secure_id: $session_secure_id) {
-		name
-		value
+		buckets {
+			bucket_id
+			bucket_min
+			bucket_max
+			group
+			column
+			metric_type
+			metric_value
+			yhat_lower
+			yhat_upper
+		}
+		bucket_count
+		sample_factor
 	}
 }
 

@@ -5768,19 +5768,24 @@ func (r *queryResolver) Resources(ctx context.Context, sessionSecureID string) (
 }
 
 // WebVitals is the resolver for the web_vitals field.
-func (r *queryResolver) WebVitals(ctx context.Context, sessionSecureID string) ([]*model.Metric, error) {
+func (r *queryResolver) WebVitals(ctx context.Context, sessionSecureID string) (*modelInputs.MetricsBuckets, error) {
+	// this function can be replaced with frontend query to GetMetrics
 	s, err := r.canAdminViewSession(ctx, sessionSecureID)
 	if err != nil {
 		return nil, nil
 	}
 
 	webVitalNames := []string{
-		"CLS", "FCP", "FID", "LCP", "TTFB",
+		"CLS", "FCP", "FID", "LCP", "TTFB", "INP",
 	}
 
-	webVitals, err := r.ClickhouseClient.QuerySessionCustomMetrics(ctx, s.ProjectID, sessionSecureID, webVitalNames)
+	webVitals, err := r.ClickhouseClient.QuerySessionCustomMetrics(ctx, s.ProjectID, sessionSecureID, s.CreatedAt, webVitalNames)
 	if err != nil {
 		return nil, err
+	}
+
+	if webVitals.BucketCount == 0 {
+		return nil, nil
 	}
 
 	return webVitals, nil
@@ -8659,14 +8664,6 @@ func (r *queryResolver) MetricTagValues(ctx context.Context, projectID int, metr
 	return r.ClickhouseClient.TracesKeyValues(ctx, projectID, tagName, time.Now().Add(-30*24*time.Hour), time.Now(), nil, nil)
 }
 
-// MetricsTimeline is the resolver for the metrics_timeline field.
-func (r *queryResolver) MetricsTimeline(ctx context.Context, projectID int, metricName string, params modelInputs.DashboardParamsInput) ([]*modelInputs.DashboardPayload, error) {
-	if _, err := r.isUserInProjectOrDemoProject(ctx, projectID); err != nil {
-		return nil, err
-	}
-	return GetMetricTimeline(ctx, r.ClickhouseClient, projectID, metricName, params)
-}
-
 // NetworkHistogram is the resolver for the network_histogram field.
 func (r *queryResolver) NetworkHistogram(ctx context.Context, projectID int, params modelInputs.NetworkHistogramParamsInput) (*modelInputs.CategoryHistogramPayload, error) {
 	_, err := r.isUserInProjectOrDemoProject(ctx, projectID)
@@ -9617,7 +9614,7 @@ func (r *queryResolver) EventSessions(ctx context.Context, projectID int, count 
 
 // Metrics is the resolver for the metrics field.
 func (r *queryResolver) Metrics(ctx context.Context, productType modelInputs.ProductType, projectID int, params modelInputs.QueryInput, column *string, metricTypes []modelInputs.MetricAggregator, sql *string, groupBy []string, bucketBy string, bucketCount *int, bucketWindow *int, limit *int, limitAggregator *modelInputs.MetricAggregator, limitColumn *string, predictionSettings *modelInputs.PredictionSettings, expressions []*modelInputs.MetricExpressionInput) (*modelInputs.MetricsBuckets, error) {
-	project, err := r.isUserInProjectOrDemoProject(ctx, projectID)
+	_, err := r.isUserInProjectOrDemoProject(ctx, projectID)
 	if err != nil {
 		return nil, err
 	}
@@ -9650,7 +9647,7 @@ func (r *queryResolver) Metrics(ctx context.Context, productType modelInputs.Pro
 	var results *modelInputs.MetricsBuckets
 	switch productType {
 	case modelInputs.ProductTypeMetrics:
-		results, err = r.ClickhouseClient.ReadEventMetrics(ctx, project.ID, params, sql, column, metricTypes, groupBy, bucketCount, bucketBy, bucketWindow, limit, limitAggregator, limitColumn)
+		results, err = r.MetricsAggregated(ctx, projectID, params, sql, column, metricTypes, groupBy, bucketBy, bucketCount, bucketWindow, limit, limitAggregator, limitColumn, expressions)
 	case modelInputs.ProductTypeTraces:
 		results, err = r.TracesMetrics(ctx, projectID, params, sql, column, metricTypes, groupBy, &bucketBy, bucketCount, bucketWindow, limit, limitAggregator, limitColumn, expressions)
 	case modelInputs.ProductTypeLogs:
@@ -9693,7 +9690,7 @@ func (r *queryResolver) Keys(ctx context.Context, productType *modelInputs.Produ
 
 	switch *productType {
 	case modelInputs.ProductTypeMetrics:
-		return r.ClickhouseClient.MetricsKeys(ctx, project.ID, dateRange.StartDate, dateRange.EndDate, query, typeArg)
+		return r.MetricsKeys(ctx, projectID, dateRange, query, typeArg)
 	case modelInputs.ProductTypeTraces:
 		return r.TracesKeys(ctx, projectID, dateRange, query, typeArg)
 	case modelInputs.ProductTypeLogs:
@@ -9722,7 +9719,7 @@ func (r *queryResolver) KeyValues(ctx context.Context, productType *modelInputs.
 
 	switch *productType {
 	case modelInputs.ProductTypeMetrics:
-		return r.ClickhouseClient.MetricsKeyValues(ctx, project.ID, keyName, dateRange.StartDate, dateRange.EndDate, query, count)
+		return r.MetricsKeyValues(ctx, projectID, keyName, dateRange, query, count)
 	case modelInputs.ProductTypeTraces:
 		return r.TracesKeyValues(ctx, projectID, keyName, dateRange, query, count)
 	case modelInputs.ProductTypeLogs:
@@ -9830,7 +9827,7 @@ func (r *queryResolver) GraphTemplates(ctx context.Context) ([]*model.Graph, err
 	return graphs, nil
 }
 
-// LogLines is the resolver for the log_lines field.
+// LogLines is the resolver for the log_lines field, used by the Grafana plugin.
 func (r *queryResolver) LogLines(ctx context.Context, productType modelInputs.ProductType, projectID int, params modelInputs.QueryInput) ([]*modelInputs.LogLine, error) {
 	project, err := r.isUserInProjectOrDemoProject(ctx, projectID)
 	if err != nil {
@@ -9936,18 +9933,19 @@ func (r *sessionResolver) TimelineIndicatorsURL(ctx context.Context, obj *model.
 
 // DeviceMemory is the resolver for the deviceMemory field.
 func (r *sessionResolver) DeviceMemory(ctx context.Context, obj *model.Session) (*int, error) {
-	metrics, err := r.ClickhouseClient.QuerySessionCustomMetrics(ctx, obj.ProjectID, obj.SecureID, []string{
+	// this function can be replaced with frontend query to GetMetrics
+	metrics, err := r.ClickhouseClient.QuerySessionCustomMetrics(ctx, obj.ProjectID, obj.SecureID, obj.CreatedAt, []string{
 		"DeviceMemory",
 	})
 	if err != nil {
 		return nil, err
 	}
 
-	if len(metrics) == 0 {
+	if len(metrics.Buckets) == 0 || metrics.Buckets[0].MetricValue == nil {
 		return nil, nil
 	}
 
-	deviceMemory := int(metrics[0].Value)
+	deviceMemory := int(*metrics.Buckets[0].MetricValue)
 	return &deviceMemory, nil
 }
 

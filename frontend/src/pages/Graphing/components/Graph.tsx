@@ -1217,8 +1217,7 @@ const Graph = ({
 					relatedResourceType = 'traces'
 					break
 				case ProductType.Metrics:
-					relatedResourceType = 'sessions'
-					break
+					return
 				case ProductType.Events:
 					relatedResourceType = 'events'
 					break

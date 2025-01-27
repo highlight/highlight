@@ -5,13 +5,11 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/aws/smithy-go/ptr"
 	"github.com/go-chi/chi"
 	"github.com/highlight-run/highlight/backend/clickhouse"
 	highlightHttp "github.com/highlight-run/highlight/backend/http"
 	kafkaqueue "github.com/highlight-run/highlight/backend/kafka-queue"
 	model2 "github.com/highlight-run/highlight/backend/model"
-	privateGraph "github.com/highlight-run/highlight/backend/private-graph/graph"
 	privateModel "github.com/highlight-run/highlight/backend/private-graph/graph/model"
 	"github.com/highlight-run/highlight/backend/public-graph/graph"
 	"github.com/highlight-run/highlight/backend/public-graph/graph/model"
@@ -31,7 +29,6 @@ import (
 	semconv "go.opentelemetry.io/otel/semconv/v1.26.0"
 	"go.opentelemetry.io/otel/trace"
 	"gorm.io/gorm"
-	"math"
 	"net/http"
 	"strconv"
 	"strings"
@@ -104,34 +101,26 @@ func getBackendError(ctx context.Context, ts time.Time, fields *extractedFields,
 	}
 }
 
-func getMetric(ctx context.Context, ts time.Time, fields *extractedFields, spanID, parentSpanID, traceID string) (*model.MetricInput, error) {
+func (o *Handler) getMetric(ctx context.Context, ts time.Time, fields *extractedFields) (*clickhouse.MetricSumRow, error) {
 	if fields.metricName == "" {
 		return nil, e.New("otel received metric with no name")
 	}
-	tags := lo.Map(lo.Entries(fields.attrs), func(t lo.Entry[string, string], i int) *model.MetricTag {
-		return &model.MetricTag{
-			Name:  t.Key,
-			Value: t.Value,
-		}
-	})
-	tags = append(tags, &model.MetricTag{
-		Name:  string(semconv.ServiceNameKey),
-		Value: fields.serviceName,
-	}, &model.MetricTag{
-		Name:  string(semconv.ServiceVersionKey),
-		Value: fields.serviceVersion,
-	})
-	return &model.MetricInput{
-		SessionSecureID: fields.sessionID,
-		SpanID:          pointy.String(spanID),
-		ParentSpanID:    pointy.String(parentSpanID),
-		TraceID:         pointy.String(traceID),
-		Group:           pointy.String(fields.requestID),
-		Name:            fields.metricName,
-		Value:           fields.metricEventValue,
-		Category:        pointy.String(fields.source.String()),
-		Timestamp:       ts,
-		Tags:            tags,
+	return &clickhouse.MetricSumRow{
+		MetricBaseRow: clickhouse.MetricBaseRow{
+			ProjectId:         uint32(fields.projectIDInt),
+			ServiceName:       fields.serviceName,
+			ServiceVersion:    fields.serviceVersion,
+			MetricName:        fields.metricName,
+			MetricDescription: fields.metricDescription,
+			MetricUnit:        fields.metricUnit,
+			Attributes:        fields.attrs,
+			MetricType:        pmetric.MetricTypeGauge,
+			Timestamp:         fields.timestamp,
+			StartTimestamp:    ts,
+			RetentionDays:     o.resolver.GetProjectMetricRetention(ctx, fields.projectIDInt),
+			Flags:             0,
+		},
+		Value: fields.metricEventValue,
 	}, nil
 }
 
@@ -160,7 +149,7 @@ func (o *Handler) HandleTrace(w http.ResponseWriter, r *http.Request) {
 	var projectLogs = make(map[string][]*clickhouse.LogRow)
 
 	var traceSpans = make(map[string][]*clickhouse.TraceRow)
-	var projectTraceMetrics = make(map[string]map[string][]*model.MetricInput)
+	var projectTraceMetrics = make(map[string]map[string][]*clickhouse.MetricSumRow)
 
 	curTime := time.Now()
 
@@ -285,13 +274,13 @@ func (o *Handler) HandleTrace(w http.ResponseWriter, r *http.Request) {
 
 						projectLogs[fields.projectID] = append(projectLogs[fields.projectID], logRow)
 					} else if event.Name() == highlight.MetricEvent {
-						metric, err := getMetric(ctx, fields.timestamp, fields, spanID, span.ParentSpanID().String(), traceID)
+						metric, err := o.getMetric(ctx, fields.timestamp, fields)
 						if err != nil {
 							lg(ctx, fields).WithError(err).Error("failed to create metric")
 							continue
 						}
 						if _, ok := projectTraceMetrics[fields.projectID]; !ok {
-							projectTraceMetrics[fields.projectID] = make(map[string][]*model.MetricInput)
+							projectTraceMetrics[fields.projectID] = make(map[string][]*clickhouse.MetricSumRow)
 						}
 						projectTraceMetrics[fields.projectID][fields.sessionID] = append(projectTraceMetrics[fields.projectID][fields.sessionID], metric)
 					}
@@ -346,19 +335,16 @@ func (o *Handler) HandleTrace(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	for projectID, traceMetrics := range projectTraceMetrics {
+	for _, traceMetrics := range projectTraceMetrics {
 		for sessionID, metrics := range traceMetrics {
 			var messages []kafkaqueue.RetryableMessage
 			for _, metric := range metrics {
-				messages = append(messages, &kafkaqueue.Message{
-					Type: kafkaqueue.PushMetrics,
-					PushMetrics: &kafkaqueue.PushMetricsArgs{
-						ProjectVerboseID: &projectID,
-						SessionSecureID:  &sessionID,
-						Metrics:          []*model.MetricInput{metric},
-					}})
+				messages = append(messages, &kafkaqueue.OTeLMetricSumRow{
+					Type:         kafkaqueue.PushOTeLMetricSum,
+					MetricSumRow: metric,
+				})
 			}
-			err = o.resolver.AsyncProducerQueue.Submit(ctx, sessionID, messages...)
+			err = o.resolver.MetricSumQueue.Submit(ctx, sessionID, messages...)
 			if err != nil {
 				log.WithContext(ctx).WithError(err).Error("failed to submit otel project metrics to public worker queue")
 				w.WriteHeader(http.StatusServiceUnavailable)
@@ -566,7 +552,7 @@ func (o *Handler) HandleMetric(w http.ResponseWriter, r *http.Request) {
 						continue
 					}
 					if _, ok := projectRetentions[fields.projectIDInt]; !ok {
-						projectRetentions[fields.projectIDInt] = o.getProjectRetention(ctx, fields.projectIDInt)
+						projectRetentions[fields.projectIDInt] = o.resolver.GetProjectMetricRetention(ctx, fields.projectIDInt)
 					}
 					if _, ok := projectMetrics[fields.projectIDInt]; !ok {
 						projectMetrics[fields.projectIDInt] = []clickhouse.MetricRow{}
@@ -893,29 +879,6 @@ func (o *Handler) Listen(r *chi.Mux) {
 		r.HandleFunc("/logs", o.HandleLog)
 		r.HandleFunc("/metrics", o.HandleMetric)
 	})
-}
-
-func (o *Handler) getProjectRetention(ctx context.Context, projectID int) uint8 {
-	data, err := redis.CachedEval(ctx, o.resolver.Redis, fmt.Sprintf("getProjectRetention-%d", projectID), time.Minute, time.Second, func() (*uint8, error) {
-		proj, err := o.resolver.Store.GetProject(ctx, projectID)
-		if err != nil {
-			return nil, err
-		}
-
-		ws, err := o.resolver.Store.GetWorkspace(ctx, proj.WorkspaceID)
-		if err != nil {
-			return nil, err
-		}
-
-		hours := time.Since(privateGraph.GetRetentionDate(ws.MetricsRetentionPeriod)).Hours()
-		days := math.Round(hours / 24.)
-		return ptr.Uint8(uint8(days)), nil
-	})
-	if err != nil || data == nil {
-		log.WithContext(ctx).WithError(err).Error("failed to getProjectRetention")
-		return 30
-	}
-	return *data
 }
 
 func New(resolver *graph.Resolver) *Handler {
