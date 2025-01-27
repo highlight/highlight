@@ -175,6 +175,10 @@ func readObjects[TObj interface{}](ctx context.Context, client *Client, config m
 	return getConnection(edges, pagination), nil
 }
 
+func getTsNano(timestamp time.Time) string {
+	return fmt.Sprintf("toDateTime64('%d', 9)", timestamp.UnixNano())
+}
+
 func makeSelectBuilder(
 	config model.TableConfig,
 	selectCols []string,
@@ -203,20 +207,20 @@ func makeSelectBuilder(
 
 		// See https://dba.stackexchange.com/a/206811
 		if pagination.Direction == modelInputs.SortDirectionAsc {
-			sb.Where(sb.GreaterEqualThan("Timestamp", timestamp)).
-				Where(sb.LessEqualThan("Timestamp", params.DateRange.EndDate)).
+			sb.Where(fmt.Sprintf("Timestamp >= %s", getTsNano(timestamp))).
+				Where(fmt.Sprintf("Timestamp <= %s", getTsNano(params.DateRange.EndDate))).
 				Where(
 					sb.Or(
-						sb.GreaterThan("Timestamp", timestamp),
+						fmt.Sprintf("Timestamp > %s", getTsNano(timestamp)),
 						sb.GreaterThan("UUID", uuid),
 					),
 				)
 		} else {
-			sb.Where(sb.LessEqualThan("Timestamp", timestamp)).
-				Where(sb.GreaterEqualThan("Timestamp", params.DateRange.StartDate)).
+			sb.Where(fmt.Sprintf("Timestamp <= %s", getTsNano(timestamp))).
+				Where(fmt.Sprintf("Timestamp >= %s", getTsNano(params.DateRange.StartDate))).
 				Where(
 					sb.Or(
-						sb.LessThan("Timestamp", timestamp),
+						fmt.Sprintf("Timestamp < %s", getTsNano(timestamp)),
 						sb.LessThan("UUID", uuid),
 					),
 				)
@@ -228,7 +232,7 @@ func makeSelectBuilder(
 		if err != nil {
 			return nil, nil, err
 		}
-		sb.Where(sb.Equal("Timestamp", timestamp)).
+		sb.Where(fmt.Sprintf("Timestamp = %s", getTsNano(timestamp))).
 			Where(sb.Equal("UUID", uuid))
 	} else if pagination.Before != nil && len(*pagination.Before) > 1 {
 		timestamp, uuid, err := decodeCursor(*pagination.Before)
@@ -238,20 +242,20 @@ func makeSelectBuilder(
 
 		// See https://dba.stackexchange.com/a/206811
 		if pagination.Direction == modelInputs.SortDirectionAsc {
-			sb.Where(sb.LessEqualThan("Timestamp", timestamp)).
-				Where(sb.GreaterEqualThan("Timestamp", params.DateRange.StartDate)).
+			sb.Where(fmt.Sprintf("Timestamp <= %s", getTsNano(timestamp))).
+				Where(fmt.Sprintf("Timestamp >= %s", getTsNano(params.DateRange.StartDate))).
 				Where(
 					sb.Or(
-						sb.LessThan("Timestamp", timestamp),
+						fmt.Sprintf("Timestamp < %s", getTsNano(timestamp)),
 						sb.LessThan("UUID", uuid),
 					),
 				)
 		} else {
-			sb.Where(sb.GreaterEqualThan("Timestamp", timestamp)).
-				Where(sb.LessEqualThan("Timestamp", params.DateRange.EndDate)).
+			sb.Where(fmt.Sprintf("Timestamp >= %s", getTsNano(timestamp))).
+				Where(fmt.Sprintf("Timestamp <= %s", getTsNano(params.DateRange.EndDate))).
 				Where(
 					sb.Or(
-						sb.GreaterThan("Timestamp", timestamp),
+						fmt.Sprintf("Timestamp > %s", getTsNano(timestamp)),
 						sb.GreaterThan("UUID", uuid),
 					),
 				)
@@ -259,8 +263,8 @@ func makeSelectBuilder(
 
 		sb.OrderBy(orderBackward)
 	} else {
-		sb.Where(sb.LessEqualThan("Timestamp", params.DateRange.EndDate)).
-			Where(sb.GreaterEqualThan("Timestamp", params.DateRange.StartDate))
+		sb.Where(fmt.Sprintf("Timestamp <= %s", getTsNano(params.DateRange.EndDate))).
+			Where(fmt.Sprintf("Timestamp >= %s", getTsNano(params.DateRange.StartDate)))
 
 		if !pagination.CountOnly { // count queries can't be ordered because we don't include Timestamp in the select
 			sb.OrderBy(orderForward)
