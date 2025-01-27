@@ -9,7 +9,7 @@ import { useGraphData } from '@pages/Graphing/hooks/useGraphData'
 import { GraphContextProvider } from '@/pages/Graphing/context/GraphContext'
 
 const PerformanceGraph = React.memo(
-	({ metricName, color }: { metricName: string; color?: string }) => {
+	({ metricName, title }: { metricName: string; title: string }) => {
 		const { session, sessionMetadata } = useReplayerContext()
 		const { project_id } = useParams<{ project_id: string }>()
 		return (
@@ -24,7 +24,7 @@ const PerformanceGraph = React.memo(
 					bucketByKey={TIMESTAMP_KEY}
 					bucketCount={60}
 					limit={1_000}
-					title={metricName}
+					title={title}
 					expressions={[
 						{ aggregator: MetricAggregator.Avg, column: 'value' },
 					]}
@@ -46,9 +46,12 @@ const PerformancePage = React.memo(() => {
 	return (
 		<GraphContextProvider value={graphContext}>
 			<Box width="full" height="full" display="flex">
-				<PerformanceGraph metricName="usedJSHeapSize" color="#0090FF" />
-				<PerformanceGraph metricName="fps" color="#D6409F" />
-				<PerformanceGraph metricName="Jank" color="#744ED4" />
+				<PerformanceGraph
+					metricName="usedJSHeapSize"
+					title="Browser Memory Usage"
+				/>
+				<PerformanceGraph metricName="fps" title="Render FPS" />
+				<PerformanceGraph metricName="Jank" title="Render Jank" />
 			</Box>
 		</GraphContextProvider>
 	)
