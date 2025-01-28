@@ -170,7 +170,7 @@ export const ConnectPage = () => {
 										kind="secondary"
 										emphasis="medium"
 										iconLeft={<IconSolidPencilAlt />}
-										to={`/${projectId}/setup/new`}
+										to={`/${projectId}/connect/new`}
 									>
 										Edit platforms
 									</LinkButton>
