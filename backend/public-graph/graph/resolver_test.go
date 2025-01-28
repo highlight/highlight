@@ -396,6 +396,7 @@ func TestHandleErrorAndGroup(t *testing.T) {
 
 			var i int
 			for _, errorGroup := range receivedErrorGroups {
+				assert.Equal(t, tc.expectedErrorGroups[i].ProjectID, errorGroup.ProjectID)
 				assert.Equal(t, tc.expectedErrorGroups[i].State, errorGroup.State)
 				assert.Equal(t, tc.expectedErrorGroups[i].ErrorTagID, errorGroup.ErrorTagID)
 				i++
