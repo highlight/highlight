@@ -47,13 +47,25 @@ func (r *Resolver) IsMetricIngestedByFilter(ctx context.Context, metric clickhou
 }
 
 func (r *Resolver) IsTraceIngested(ctx context.Context, trace *clickhouse.TraceRow) bool {
-	if !r.IsTraceIngestedByFilter(ctx, trace) {
+	attrs := []attribute.KeyValue{
+		attribute.Int("project", int(trace.ProjectId)),
+		attribute.String("product", string(privateModel.ProductTypeTraces)),
+		attribute.Bool("ingested", true),
+	}
+	defer func() {
+		highlight.RecordCount(ctx, "sampling.IsIngestedBy", 1, attrs...)
+	}()
+
+	if !r.IsTraceIngestedBySample(ctx, trace) {
+		attrs = append(attrs, attribute.String("ingested", "false"), attribute.String("reason", string(privateModel.IngestReasonSample)))
 		return false
 	}
-	if !r.IsTraceIngestedBySample(ctx, trace) {
+	if !r.IsTraceIngestedByFilter(ctx, trace) {
+		attrs = append(attrs, attribute.String("ingested", "false"), attribute.String("reason", string(privateModel.IngestReasonFilter)))
 		return false
 	}
 	if !r.IsTraceIngestedByRateLimit(ctx, trace) {
+		attrs = append(attrs, attribute.String("ingested", "false"), attribute.String("reason", string(privateModel.IngestReasonRate)))
 		return false
 	}
 	return true
@@ -72,25 +84,25 @@ func (r *Resolver) IsTraceIngestedByFilter(ctx context.Context, trace *clickhous
 }
 
 func (r *Resolver) IsLogIngested(ctx context.Context, logRow *clickhouse.LogRow) bool {
-	span, ctx := highlight.StartTrace(ctx,
-		"sampling.IsIngestedBy",
+	attrs := []attribute.KeyValue{
 		attribute.Int("project", int(logRow.ProjectId)),
-		attribute.String(highlight.TraceKeyAttribute, logRow.UUID),
 		attribute.String("product", string(privateModel.ProductTypeLogs)),
 		attribute.Bool("ingested", true),
-	)
-	defer span.End()
+	}
+	defer func() {
+		highlight.RecordCount(ctx, "sampling.IsIngestedBy", 1, attrs...)
+	}()
 
 	if !r.IsLogIngestedBySample(ctx, logRow) {
-		span.SetAttributes(attribute.Bool("ingested", false), attribute.String("reason", string(privateModel.IngestReasonSample)))
+		attrs = append(attrs, attribute.Bool("ingested", false), attribute.String("reason", string(privateModel.IngestReasonSample)))
 		return false
 	}
 	if !r.IsLogIngestedByFilter(ctx, logRow) {
-		span.SetAttributes(attribute.Bool("ingested", false), attribute.String("reason", string(privateModel.IngestReasonFilter)))
+		attrs = append(attrs, attribute.Bool("ingested", false), attribute.String("reason", string(privateModel.IngestReasonFilter)))
 		return false
 	}
 	if !r.IsLogIngestedByRateLimit(ctx, logRow) {
-		span.SetAttributes(attribute.Bool("ingested", false), attribute.String("reason", string(privateModel.IngestReasonRate)))
+		attrs = append(attrs, attribute.Bool("ingested", false), attribute.String("reason", string(privateModel.IngestReasonRate)))
 		return false
 	}
 	return true
@@ -109,6 +121,15 @@ func (r *Resolver) IsLogIngestedByFilter(ctx context.Context, logRow *clickhouse
 }
 
 func (r *Resolver) IsFrontendErrorIngested(ctx context.Context, projectID int, session *model.Session, frontendError *modelInputs.ErrorObjectInput) bool {
+	attrs := []attribute.KeyValue{
+		attribute.Int("project", projectID),
+		attribute.String("product", string(privateModel.ProductTypeErrors)),
+		attribute.Bool("ingested", true),
+	}
+	defer func() {
+		highlight.RecordCount(ctx, "sampling.IsIngestedBy", 1, attrs...)
+	}()
+
 	stack, _ := json.Marshal(frontendError.StackTrace)
 	errorObject := &modelInputs.BackendErrorObjectInput{
 		Environment:     session.Environment,
@@ -126,25 +147,40 @@ func (r *Resolver) IsFrontendErrorIngested(ctx context.Context, projectID int, s
 		URL:        frontendError.URL,
 	}
 	if !r.IsErrorIngestedBySample(ctx, projectID, errorObject) {
+		attrs = append(attrs, attribute.Bool("ingested", false), attribute.String("reason", string(privateModel.IngestReasonSample)))
 		return false
 	}
 	if !r.IsErrorIngestedByFilter(ctx, projectID, errorObject) {
+		attrs = append(attrs, attribute.Bool("ingested", false), attribute.String("reason", string(privateModel.IngestReasonFilter)))
 		return false
 	}
 	if !r.IsErrorIngestedByRateLimit(ctx, projectID, errorObject) {
+		attrs = append(attrs, attribute.Bool("ingested", false), attribute.String("reason", string(privateModel.IngestReasonRate)))
 		return false
 	}
 	return true
 }
 
 func (r *Resolver) IsErrorIngested(ctx context.Context, projectID int, errorObject *modelInputs.BackendErrorObjectInput) bool {
+	attrs := []attribute.KeyValue{
+		attribute.Int("project", projectID),
+		attribute.String("product", string(privateModel.ProductTypeErrors)),
+		attribute.Bool("ingested", true),
+	}
+	defer func() {
+		highlight.RecordCount(ctx, "sampling.IsIngestedBy", 1, attrs...)
+	}()
+
 	if !r.IsErrorIngestedBySample(ctx, projectID, errorObject) {
+		attrs = append(attrs, attribute.Bool("ingested", false), attribute.String("reason", string(privateModel.IngestReasonSample)))
 		return false
 	}
 	if !r.IsErrorIngestedByFilter(ctx, projectID, errorObject) {
+		attrs = append(attrs, attribute.Bool("ingested", false), attribute.String("reason", string(privateModel.IngestReasonFilter)))
 		return false
 	}
 	if !r.IsErrorIngestedByRateLimit(ctx, projectID, errorObject) {
+		attrs = append(attrs, attribute.Bool("ingested", false), attribute.String("reason", string(privateModel.IngestReasonRate)))
 		return false
 	}
 	return true
@@ -184,6 +220,15 @@ func (r *Resolver) IsErrorIngestedByFilter(ctx context.Context, projectID int, e
 }
 
 func (r *Resolver) IsSessionExcluded(ctx context.Context, s *model.Session, sessionHasErrors bool) (bool, *privateModel.SessionExcludedReason) {
+	attrs := []attribute.KeyValue{
+		attribute.Int("project", s.ProjectID),
+		attribute.String("product", string(privateModel.ProductTypeSessions)),
+		attribute.Bool("ingested", true),
+	}
+	defer func() {
+		highlight.RecordCount(ctx, "sampling.IsIngestedBy", 1, attrs...)
+	}()
+
 	var excluded bool
 	var reason privateModel.SessionExcludedReason
 
@@ -223,6 +268,7 @@ func (r *Resolver) IsSessionExcluded(ctx context.Context, s *model.Session, sess
 		reason = privateModel.SessionExcludedReasonRateLimitMinute
 	}
 
+	attrs = append(attrs, attribute.Bool("ingested", !excluded), attribute.String("reason", reason.String()))
 	return excluded, &reason
 }
 
