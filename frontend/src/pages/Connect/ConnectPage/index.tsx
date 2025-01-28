@@ -44,6 +44,7 @@ export const ConnectPage = () => {
 		fetchPolicy: 'no-cache',
 	})
 	const projectVerboseId = data?.project?.verbose_id
+	const platforms = data?.project?.platforms
 
 	useEffect(() => {
 		if (data?.project && !data?.project?.platforms?.length) {
@@ -72,7 +73,7 @@ export const ConnectPage = () => {
 		] as QuickStartContent
 	}, [language, platform, data])
 
-	if (!projectVerboseId) {
+	if (!projectVerboseId || !platforms?.length) {
 		return <LoadingBox />
 	}
 
