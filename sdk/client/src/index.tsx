@@ -97,6 +97,7 @@ import { getDefaultDataURLOptions } from './utils/utils'
 import type { HighlightClientRequestWorker } from './workers/highlight-client-worker'
 import HighlightClientWorker from './workers/highlight-client-worker?worker&inline'
 import { MessageType, PropertyType, Source } from './workers/types'
+import { parseError } from './utils/errors'
 
 export const HighlightWarning = (context: string, msg: any) => {
 	console.warn(`Highlight Warning: (${context}): `, { output: msg })
@@ -480,7 +481,7 @@ export class Highlight {
 		if (type === 'React.ErrorBoundary') {
 			event = 'ErrorBoundary: ' + event
 		}
-		const res = ErrorStackParser.parse(error)
+		const res = parseError(error)
 		this._firstLoadListeners.errors.push({
 			event,
 			type: type ?? 'custom',
