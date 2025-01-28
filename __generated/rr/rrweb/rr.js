@@ -63,12 +63,10 @@ function getUntaintedPrototype$1(key) {
     const iframeEl = document.createElement("iframe");
     document.body.appendChild(iframeEl);
     const win = iframeEl.contentWindow;
-    if (!win)
-      return defaultObj.prototype;
+    if (!win) return defaultObj.prototype;
     const untaintedObject = win[key].prototype;
     document.body.removeChild(iframeEl);
-    if (!untaintedObject)
-      return defaultPrototype;
+    if (!untaintedObject) return defaultPrototype;
     return untaintedBasePrototype$1[key] = untaintedObject;
   } catch {
     return defaultPrototype;
@@ -87,8 +85,7 @@ function getUntaintedAccessor$1(key, instance, accessor) {
     untaintedPrototype,
     accessor
   )) == null ? void 0 : _a2.get;
-  if (!untaintedAccessor)
-    return instance[accessor];
+  if (!untaintedAccessor) return instance[accessor];
   untaintedAccessorCache$1[cacheKey] = untaintedAccessor;
   return untaintedAccessor.call(instance);
 }
@@ -101,8 +98,7 @@ function getUntaintedMethod$1(key, instance, method) {
     );
   const untaintedPrototype = getUntaintedPrototype$1(key);
   const untaintedMethod = untaintedPrototype[method];
-  if (typeof untaintedMethod !== "function")
-    return instance[method];
+  if (typeof untaintedMethod !== "function") return instance[method];
   untaintedMethodCache$1[cacheKey] = untaintedMethod;
   return untaintedMethod.bind(instance);
 }
@@ -125,16 +121,14 @@ function getRootNode$1(n2) {
   return getUntaintedMethod$1("Node", n2, "getRootNode")();
 }
 function host$1(n2) {
-  if (!n2 || !("host" in n2))
-    return null;
+  if (!n2 || !("host" in n2)) return null;
   return getUntaintedAccessor$1("ShadowRoot", n2, "host");
 }
 function styleSheets$1(n2) {
   return n2.styleSheets;
 }
 function shadowRoot$1(n2) {
-  if (!n2 || !("shadowRoot" in n2))
-    return null;
+  if (!n2 || !("shadowRoot" in n2)) return null;
   return getUntaintedAccessor$1("Element", n2, "shadowRoot");
 }
 function querySelector$1(n2, selectors) {
@@ -10383,12 +10377,10 @@ function getUntaintedPrototype(key) {
     const iframeEl = document.createElement("iframe");
     document.body.appendChild(iframeEl);
     const win = iframeEl.contentWindow;
-    if (!win)
-      return defaultObj.prototype;
+    if (!win) return defaultObj.prototype;
     const untaintedObject = win[key].prototype;
     document.body.removeChild(iframeEl);
-    if (!untaintedObject)
-      return defaultPrototype;
+    if (!untaintedObject) return defaultPrototype;
     return untaintedBasePrototype[key] = untaintedObject;
   } catch {
     return defaultPrototype;
@@ -10407,8 +10399,7 @@ function getUntaintedAccessor(key, instance, accessor) {
     untaintedPrototype,
     accessor
   )) == null ? void 0 : _a2.get;
-  if (!untaintedAccessor)
-    return instance[accessor];
+  if (!untaintedAccessor) return instance[accessor];
   untaintedAccessorCache[cacheKey] = untaintedAccessor;
   return untaintedAccessor.call(instance);
 }
@@ -10421,8 +10412,7 @@ function getUntaintedMethod(key, instance, method) {
     );
   const untaintedPrototype = getUntaintedPrototype(key);
   const untaintedMethod = untaintedPrototype[method];
-  if (typeof untaintedMethod !== "function")
-    return instance[method];
+  if (typeof untaintedMethod !== "function") return instance[method];
   untaintedMethodCache[cacheKey] = untaintedMethod;
   return untaintedMethod.bind(instance);
 }
@@ -10445,16 +10435,14 @@ function getRootNode(n2) {
   return getUntaintedMethod("Node", n2, "getRootNode")();
 }
 function host(n2) {
-  if (!n2 || !("host" in n2))
-    return null;
+  if (!n2 || !("host" in n2)) return null;
   return getUntaintedAccessor("ShadowRoot", n2, "host");
 }
 function styleSheets(n2) {
   return n2.styleSheets;
 }
 function shadowRoot(n2) {
-  if (!n2 || !("shadowRoot" in n2))
-    return null;
+  if (!n2 || !("shadowRoot" in n2)) return null;
   return getUntaintedAccessor("Element", n2, "shadowRoot");
 }
 function querySelector(n2, selectors) {

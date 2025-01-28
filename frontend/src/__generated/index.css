@@ -68,7 +68,7 @@
   --_1pyqka91u: #e7defc;
   --_1pyqka91v: rgba(237, 231, 254, 0.0);
   --_1pyqka91w: rgba(238, 237, 239, 0.0);
-  --_1pyqka91x: #eeedef;
+  --_1pyqka91x: rgba(22, 22, 24, 0.05);
   --_1pyqka91y: #e9e8ea;
   --_1pyqka91z: rgba(238, 237, 239, 0.0);
   --_1pyqka920: rgba(238, 237, 239, 0.64);
@@ -7933,29 +7933,6 @@ body {
   width: 100%;
   height: 24px;
   align-items: center;
-}
-._1a2ilcb0 {
-  height: 100%;
-  width: 100%;
-  padding-top: 16px;
-}
-._1a2ilcb1 {
-  height: 100%;
-  width: 100%;
-  padding: 24px;
-  padding-top: 0;
-}
-._1a2ilcb2 {
-  align-items: center;
-  display: flex;
-  height: 100%;
-  justify-content: center;
-}
-._1a2ilcb3 {
-  align-items: center;
-  display: flex;
-  height: 50%;
-  justify-content: center;
 }
 ._1p577ua0 {
   font-size: 13px;
