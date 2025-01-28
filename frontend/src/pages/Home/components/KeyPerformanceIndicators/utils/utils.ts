@@ -15,12 +15,14 @@ function parseTime(val: number) {
 }
 
 export function formatShortTime(
-	timeSeconds: number,
+	timeSeconds: number | undefined,
 	formats = ['d', 'h', 'm', 's'],
 	space = '',
 	toFixedValue?: number,
 	single?: boolean,
 ) {
+	if (timeSeconds === undefined) return ''
+
 	const { days, hours, minutes, seconds, ms } = parseTime(timeSeconds)
 	let t = ''
 
