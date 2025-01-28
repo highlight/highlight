@@ -7,7 +7,7 @@ import {
 	IconSolidArrowsExpand,
 	IconSolidCursorClick,
 	IconSolidDocumentDownload,
-	IconSolidDragger,
+	IconSolidDotsHorizontal,
 	IconSolidDuplicate,
 	IconSolidPencil,
 	IconSolidTrash,
@@ -81,116 +81,109 @@ export const DashboardCard = ({
 				style={dndStyle}
 				{...attributes}
 			>
-				{graphHover && (
-					<Box cssClass={style.buttonContainer}>
-						<Box>
-							{onExpand && (
-								<Button
-									size="xSmall"
-									emphasis="low"
-									kind="secondary"
-									iconLeft={<IconSolidArrowsExpand />}
-									onClick={onExpand}
+				<Box
+					ref={setActivatorNodeRef}
+					style={{
+						cursor: isDragging ? 'grabbing' : 'grab',
+					}}
+					{...listeners}
+				>
+					{graphHover && (
+						<Box cssClass={style.buttonContainer}>
+							<Box>
+								{onExpand && (
+									<Button
+										size="xSmall"
+										emphasis="low"
+										kind="secondary"
+										iconLeft={<IconSolidArrowsExpand />}
+										onClick={onExpand}
+									/>
+								)}
+								{onEdit !== undefined && (
+									<Button
+										size="xSmall"
+										emphasis="low"
+										kind="secondary"
+										iconLeft={<IconSolidPencil />}
+										onClick={onEdit}
+									/>
+								)}
+								<Menu>
+									<Menu.Button
+										size="xSmall"
+										emphasis="low"
+										kind="secondary"
+										iconLeft={<IconSolidDotsHorizontal />}
+									/>
+									<Menu.List>
+										{onDownload && (
+											<Menu.Item
+												onClick={(e) => {
+													e.stopPropagation()
+													onDownload()
+												}}
+											>
+												<Box
+													display="flex"
+													alignItems="center"
+													gap="4"
+												>
+													<IconSolidDocumentDownload />
+													Download CSV
+												</Box>
+											</Menu.Item>
+										)}
+										{onClone && (
+											<Menu.Item
+												onClick={(e) => {
+													e.stopPropagation()
+													onClone()
+												}}
+											>
+												<Box
+													display="flex"
+													alignItems="center"
+													gap="4"
+												>
+													<IconSolidDuplicate />
+													Clone metric view
+												</Box>
+											</Menu.Item>
+										)}
+										{onDelete && (
+											<Menu.Item
+												onClick={(e) => {
+													e.stopPropagation()
+													onDelete()
+												}}
+											>
+												<Box
+													display="flex"
+													alignItems="center"
+													gap="4"
+												>
+													<IconSolidTrash />
+													Delete metric view
+												</Box>
+											</Menu.Item>
+										)}
+									</Menu.List>
+								</Menu>
+							</Box>
+							{!hasDrilledDown && (
+								<Badge
+									variant="gray"
+									size="small"
+									iconStart={<IconSolidCursorClick />}
+									label="Click to drilldown"
+									cssClass={style.drilldownHint}
 								/>
 							)}
-							{onEdit !== undefined && (
-								<Button
-									size="xSmall"
-									emphasis="low"
-									kind="secondary"
-									iconLeft={<IconSolidPencil />}
-									onClick={onEdit}
-								/>
-							)}
-							<Menu>
-								<Menu.Button
-									size="xSmall"
-									emphasis="low"
-									kind="secondary"
-									iconLeft={
-										<IconSolidDragger
-											style={{
-												cursor: isDragging
-													? 'grabbing'
-													: 'grab',
-											}}
-										/>
-									}
-									ref={setActivatorNodeRef}
-									style={{
-										cursor: isDragging
-											? 'grabbing'
-											: 'grab',
-									}}
-									{...listeners}
-								/>
-								<Menu.List>
-									{onDownload && (
-										<Menu.Item
-											onClick={(e) => {
-												e.stopPropagation()
-												onDownload()
-											}}
-										>
-											<Box
-												display="flex"
-												alignItems="center"
-												gap="4"
-											>
-												<IconSolidDocumentDownload />
-												Download CSV
-											</Box>
-										</Menu.Item>
-									)}
-									{onClone && (
-										<Menu.Item
-											onClick={(e) => {
-												e.stopPropagation()
-												onClone()
-											}}
-										>
-											<Box
-												display="flex"
-												alignItems="center"
-												gap="4"
-											>
-												<IconSolidDuplicate />
-												Clone metric view
-											</Box>
-										</Menu.Item>
-									)}
-									{onDelete && (
-										<Menu.Item
-											onClick={(e) => {
-												e.stopPropagation()
-												onDelete()
-											}}
-										>
-											<Box
-												display="flex"
-												alignItems="center"
-												gap="4"
-											>
-												<IconSolidTrash />
-												Delete metric view
-											</Box>
-										</Menu.Item>
-									)}
-								</Menu.List>
-							</Menu>
 						</Box>
-						{!hasDrilledDown && (
-							<Badge
-								variant="gray"
-								size="small"
-								iconStart={<IconSolidCursorClick />}
-								label="Click to drilldown"
-								cssClass={style.drilldownHint}
-							/>
-						)}
-					</Box>
-				)}
-				{children}
+					)}
+					{children}
+				</Box>
 			</Box>
 		</Box>
 	)
