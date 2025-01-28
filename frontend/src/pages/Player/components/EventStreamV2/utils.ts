@@ -140,6 +140,9 @@ export const getFilteredEvents = (
 						}[]
 					}
 					return vitals.some(({ name, value }) => {
+						if (!name) {
+							return false
+						}
 						return searchTokens.every((searchToken) => {
 							return (
 								name?.toLowerCase()?.includes(searchToken) ||
