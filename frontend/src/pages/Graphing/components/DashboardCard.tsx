@@ -81,13 +81,20 @@ export const DashboardCard = ({
 				style={dndStyle}
 				{...attributes}
 			>
-				<Box
-					ref={setActivatorNodeRef}
-					style={{
-						cursor: isDragging ? 'grabbing' : 'grab',
-					}}
-					{...listeners}
-				>
+				<Box>
+					<Box
+						style={{
+							position: 'absolute',
+							left: 0,
+							width: '80%',
+							zIndex: 2,
+							lineHeight: '24px',
+							height: '24px',
+							cursor: isDragging ? 'grabbing' : 'grab',
+						}}
+						ref={setActivatorNodeRef}
+						{...listeners}
+					/>
 					{graphHover && (
 						<Box cssClass={style.buttonContainer}>
 							<Box>

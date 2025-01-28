@@ -289,9 +289,7 @@ export const Dashboard = () => {
 	}>()
 
 	const sensors = useSensors(
-		useSensor(PointerSensor, {
-			activationConstraint: { delay: (1000 / 120) * 10, tolerance: 5 },
-		}),
+		useSensor(PointerSensor),
 		useSensor(KeyboardSensor, {
 			coordinateGetter: sortableKeyboardCoordinates,
 		}),
