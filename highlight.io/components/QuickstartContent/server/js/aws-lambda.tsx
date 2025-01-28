@@ -11,7 +11,7 @@ import {
 } from './shared-snippets-monitoring'
 
 export const JSAWSLambdaReorganizedContent: QuickStartContent = {
-	title: 'Error Handling from Python AWS Lambda',
+	title: 'Javascript AWS Lambda',
 	subtitle: 'Learn how to set up highlight.io on AWS Lambda.',
 	logoUrl: siteUrl('/images/quickstart/aws-lambda.svg'),
 	products: ['Errors', 'Logs', 'Traces'],

@@ -5,11 +5,13 @@ import {
 	IconSolidCheckCircle,
 	Stack,
 	Text,
+	Tooltip,
 } from '@highlight-run/ui/components'
 import { vars } from '@highlight-run/ui/vars'
 import { quickStartContentReorganized, QuickStartContent } from 'highlight.io'
 
 import CollapsibleSection from '@/components/CollapsibleSection'
+import { PRODUCT_AREAS, ProductArea } from '@/pages/Connect/constants'
 
 import * as styles from './style.css'
 
@@ -134,6 +136,7 @@ const LanguageOption: React.FC<LanguageOptionProps> = ({
 	handleSelect,
 	selected,
 }) => {
+	const { title, logoUrl, products = [] } = sdk
 	const handleSelectOption = () => {
 		handleSelect(identifier, selected)
 	}
@@ -163,19 +166,28 @@ const LanguageOption: React.FC<LanguageOptionProps> = ({
 					border="secondary"
 					borderWidth="medium"
 				>
-					{sdk?.logoUrl ? (
+					{logoUrl ? (
 						<img
-							alt={sdk.title}
-							src={sdk.logoUrl}
+							alt={title}
+							src={logoUrl}
 							style={{ height: 30, width: 30, borderRadius: 5 }}
 						/>
 					) : (
 						<Text userSelect="none" weight="bold">
-							{sdk.title[0].toUpperCase()}
+							{title[0].toUpperCase()}
 						</Text>
 					)}
 				</Box>
-				<Text weight="bold">{sdk.title}</Text>
+				<Stack gap="4" align="flex-start">
+					<Text weight="bold" align="left">
+						{title}
+					</Text>
+					{!!products.length && (
+						<ProductAreaIcons
+							products={products as ProductArea[]}
+						/>
+					)}
+				</Stack>
 			</Stack>
 			<div
 				className={styles.checkbox}
@@ -189,4 +201,41 @@ const LanguageOption: React.FC<LanguageOptionProps> = ({
 			</div>
 		</Stack>
 	)
+}
+
+const ProductAreaIcons = ({ products }: { products: ProductArea[] }) => {
+	const Icons = (
+		<Box pt="4" display="flex" flexDirection="row" gap="4">
+			{products.map((product) => {
+				const { title, icon } = PRODUCT_AREAS[product]
+				return (
+					<Badge
+						key={title}
+						variant="purple"
+						label={title}
+						iconStart={icon}
+						size="small"
+					/>
+				)
+			})}
+		</Box>
+	)
+
+	if (products.length > 2) {
+		return (
+			<Tooltip
+				trigger={
+					<Badge
+						label={`${products.length} products`}
+						variant="green"
+						size="small"
+					/>
+				}
+			>
+				{Icons}
+			</Tooltip>
+		)
+	}
+
+	return Icons
 }

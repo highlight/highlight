@@ -9,8 +9,9 @@ import {
 } from './shared-snippets-tracing'
 
 export const DotNet4OTLPReorganizedContent: QuickStartContent = {
-	title: '.NET 4.x via the OpenTelemetry Protocol (OTLP)',
+	title: '.NET 4.x via the OpenTelemetry Protocol',
 	subtitle: `.NET 4.x via the OpenTelemetry Protocol (OTLP).`,
+	logoUrl: siteUrl('/images/quickstart/dotnet.svg'),
 	products: ['Errors', 'Logs', 'Traces', 'Metrics'],
 	entries: [
 		downloadSnippet('ASP4'),
