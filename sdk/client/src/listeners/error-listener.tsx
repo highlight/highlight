@@ -1,4 +1,4 @@
-import ErrorStackParser from 'error-stack-parser'
+import type { StackFrame } from 'error-stack-parser'
 import stringify from 'json-stringify-safe'
 import { ErrorMessage } from '../types/shared-types'
 import { parseError } from '../utils/errors'
@@ -106,9 +106,7 @@ export const ErrorListener = (
 	}
 }
 
-const removeHighlightFrameIfExists = (
-	frames: ErrorStackParser.StackFrame[],
-): ErrorStackParser.StackFrame[] => {
+const removeHighlightFrameIfExists = (frames: StackFrame[]): StackFrame[] => {
 	if (frames.length === 0) {
 		return frames
 	}

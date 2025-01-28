@@ -1,6 +1,5 @@
 import { getRecordSequentialIdPlugin } from '@rrweb/rrweb-plugin-sequential-id-record'
 import { eventWithTime, listenerHandler } from '@rrweb/types'
-import ErrorStackParser from 'error-stack-parser'
 import { print } from 'graphql'
 import { GraphQLClient } from 'graphql-request'
 import stringify from 'json-stringify-safe'

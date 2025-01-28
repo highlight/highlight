@@ -1,4 +1,4 @@
-import ErrorStackParser from 'error-stack-parser'
+import type { StackFrame } from 'error-stack-parser'
 import { ConsoleMethods } from '../types/client'
 import { ConsoleMessage } from '../types/shared-types'
 import { patch, stringify } from '../utils/utils'
@@ -72,7 +72,7 @@ export function ConsoleListener(
 		if (window) {
 			const errorHandler = (event: ErrorEvent) => {
 				const { message, error } = event
-				let trace: ErrorStackParser.StackFrame[] = []
+				let trace: StackFrame[] = []
 				if (error) {
 					trace = parseError(error)
 				}
