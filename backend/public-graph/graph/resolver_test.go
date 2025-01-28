@@ -220,10 +220,9 @@ func TestHandleErrorAndGroup(t *testing.T) {
 			},
 			expectedErrorGroups: []model.ErrorGroup{
 				{
-					Event:        "error",
-					ProjectID:    projectID,
-					State:        privateModel.ErrorStateOpen,
-					Environments: `{"dev":2}`,
+					Event:     "error",
+					ProjectID: projectID,
+					State:     privateModel.ErrorStateOpen,
 				},
 			},
 			withEmbeddings: false,
@@ -247,10 +246,9 @@ func TestHandleErrorAndGroup(t *testing.T) {
 			},
 			expectedErrorGroups: []model.ErrorGroup{
 				{
-					Event:        "error",
-					ProjectID:    projectID,
-					State:        privateModel.ErrorStateOpen,
-					Environments: `{"dev":1,"prod":1}`,
+					Event:     "error",
+					ProjectID: projectID,
+					State:     privateModel.ErrorStateOpen,
 				},
 			},
 		},
@@ -272,10 +270,9 @@ func TestHandleErrorAndGroup(t *testing.T) {
 			},
 			expectedErrorGroups: []model.ErrorGroup{
 				{
-					Event:        "error",
-					ProjectID:    projectID,
-					State:        privateModel.ErrorStateOpen,
-					Environments: `{"dev":1}`,
+					Event:     "error",
+					ProjectID: projectID,
+					State:     privateModel.ErrorStateOpen,
 				},
 			},
 		},
@@ -296,11 +293,10 @@ func TestHandleErrorAndGroup(t *testing.T) {
 			},
 			expectedErrorGroups: []model.ErrorGroup{
 				{
-					Event:        "error",
-					ProjectID:    projectID,
-					StackTrace:   shortTraceStr,
-					State:        privateModel.ErrorStateOpen,
-					Environments: `{}`,
+					Event:      "error",
+					ProjectID:  projectID,
+					StackTrace: shortTraceStr,
+					State:      privateModel.ErrorStateOpen,
 				},
 			},
 		},
@@ -321,11 +317,10 @@ func TestHandleErrorAndGroup(t *testing.T) {
 			},
 			expectedErrorGroups: []model.ErrorGroup{
 				{
-					Event:        "error",
-					ProjectID:    projectID,
-					StackTrace:   longTraceStr,
-					Environments: `{}`,
-					State:        privateModel.ErrorStateOpen,
+					Event:      "error",
+					ProjectID:  projectID,
+					StackTrace: longTraceStr,
+					State:      privateModel.ErrorStateOpen,
 				},
 			},
 		},
