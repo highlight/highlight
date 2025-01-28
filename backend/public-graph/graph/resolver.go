@@ -505,10 +505,9 @@ func (r *Resolver) GetOrCreateErrorGroup(ctx context.Context, errorObj *model.Er
 
 		errorGroup = newErrorGroup
 	} else {
-		if err := r.DB.WithContext(ctx).
-			Select("id", "state", "error_tag_id").
-			Where(&model.ErrorGroup{Model: model.Model{ID: *match}}).
-			Take(&errorGroup).Error; err != nil {
+		if err := r.DB.WithContext(ctx).Where(&model.ErrorGroup{
+			Model: model.Model{ID: *match},
+		}).Take(&errorGroup).Error; err != nil {
 			return nil, e.Wrap(err, "error retrieving top matched error group")
 		}
 
