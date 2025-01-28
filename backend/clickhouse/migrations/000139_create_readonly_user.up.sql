@@ -25,4 +25,5 @@ CREATE ROW POLICY IF NOT EXISTS traces_readonly ON traces USING ProjectId = getS
 CREATE ROW POLICY IF NOT EXISTS traces_sampling_new_readonly ON traces_sampling_new USING ProjectId = getSetting('SQL_highlight_project_id') TO highlight_readonly_role;
 CREATE ROW POLICY IF NOT EXISTS logs_readonly ON logs USING ProjectId = getSetting('SQL_highlight_project_id') TO highlight_readonly_role;
 CREATE ROW POLICY IF NOT EXISTS logs_sampling_readonly ON logs_sampling USING ProjectId = getSetting('SQL_highlight_project_id') TO highlight_readonly_role;
+SET DEFAULT ROLE highlight_readonly_role TO highlight_readonly;
 GRANT highlight_readonly_role TO highlight_readonly;

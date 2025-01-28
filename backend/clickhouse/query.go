@@ -303,7 +303,7 @@ func builderFromSql(
 				isSample := strings.Contains(strings.ToLower(config.TableName), "sample")
 				funcLower := strings.ToLower(typed.Name.Name)
 				if isSample && (strings.Contains(funcLower, "sum") || strings.Contains(funcLower, "count")) {
-					typed.Name.Name = fmt.Sprintf("_sample_factor * %s", typed.Name.Name)
+					typed.Name.Name = fmt.Sprintf("any(_sample_factor) * %s", typed.Name.Name)
 				}
 			}
 		}
