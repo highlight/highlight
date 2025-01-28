@@ -10,7 +10,7 @@ The SQL editor lets you write custom `SELECT` queries to retrieve your highlight
 ![SQL editor](/images/docs/graphing/sql_editor.png)
 
 ## ClickHouse SQL
-Highlight.io metadata is stored in ClickHouse and the SQL editor supports the ClickHouse SQL dialect. For questions about supported syntax or functions, you can check out the ClickHouse [docs](https://clickhouse.com/docs/en/sql-reference).
+Highlight.io metadata is stored in ClickHouse, and the SQL editor supports the ClickHouse SQL dialect. For questions about supported syntax or functions, you can check out the ClickHouse [docs](https://clickhouse.com/docs/en/sql-reference).
 
 ## Time series data
 We added a built-in macro `$time_interval(<duration>)` to make time series queries easier to write. On our backend, this macro expands to `toStartOfInterval(Timestamp, <duration>)`. You can use this macro to group results by their timestamp. For example, returning a count for every hour:
