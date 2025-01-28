@@ -144,6 +144,7 @@ export const getFilteredEvents = (
 							return false
 						}
 						return searchTokens.every((searchToken) => {
+							console.log('vadim', { name, value, searchToken })
 							return (
 								name?.toLowerCase()?.includes(searchToken) ||
 								value?.toString()?.includes(searchToken)
