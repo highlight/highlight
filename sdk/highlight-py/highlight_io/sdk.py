@@ -469,6 +469,16 @@ class H(object):
         value: float,
         attributes: typing.Optional[typing.Dict[str, any]] = None,
     ):
+        """
+        Record arbitrary metric values via as a Gauge.
+        A Gauge records any point-in-time measurement, such as the current CPU utilization %.
+        Values with the same metric name and attributes are aggregated via the OTel SDK.
+        See https://opentelemetry.io/docs/specs/otel/metrics/data-model/ for more details.
+        :param name: the name of the metric.
+        :param value: the float value of the metric.
+        :param attributes: additional metadata which can be used to filter and group values.
+        :return: None
+        """
         if name not in self._gauges:
             self._gauges[name] = self.meter.create_gauge(name)
         self._gauges[name].set(value, attributes=attributes)
@@ -479,6 +489,16 @@ class H(object):
         value: int,
         attributes: typing.Optional[typing.Dict[str, any]] = None,
     ):
+        """
+        Record arbitrary metric values via as a Counter.
+        A Counter efficiently records an increment in a metric, such as number of cache hits.
+        Values with the same metric name and attributes are aggregated via the OTel SDK.
+        See https://opentelemetry.io/docs/specs/otel/metrics/data-model/ for more details.
+        :param name: the name of the metric.
+        :param value: the float value of the metric.
+        :param attributes: additional metadata which can be used to filter and group values.
+        :return: None
+        """
         if name not in self._counters:
             self._counters[name] = self.meter.create_counter(name)
         self._counters[name].add(value, attributes=attributes)
@@ -486,6 +506,15 @@ class H(object):
     def record_incr(
         self, name: str, attributes: typing.Optional[typing.Dict[str, any]] = None
     ):
+        """
+        Record arbitrary metric +1 increment via as a Counter.
+        A Counter efficiently records an increment in a metric, such as number of cache hits.
+        Values with the same metric name and attributes are aggregated via the OTel SDK.
+        See https://opentelemetry.io/docs/specs/otel/metrics/data-model/ for more details.
+        :param name: the name of the metric.
+        :param attributes: additional metadata which can be used to filter and group values.
+        :return: None
+        """
         return self.record_count(name, 1, attributes)
 
     def record_histogram(
@@ -494,6 +523,16 @@ class H(object):
         value: float,
         attributes: typing.Optional[typing.Dict[str, any]] = None,
     ):
+        """
+        Record arbitrary metric values via as a Histogram.
+        A Histogram efficiently records near-by point-in-time measurement into a bucketed aggregate.
+        Values with the same metric name and attributes are aggregated via the OTel SDK.
+        See https://opentelemetry.io/docs/specs/otel/metrics/data-model/ for more details.
+        :param name: the name of the metric.
+        :param value: the float value of the metric.
+        :param attributes: additional metadata which can be used to filter and group values.
+        :return: None
+        """
         if name not in self._histograms:
             self._histograms[name] = self.meter.create_histogram(name)
         self._histograms[name].record(value, attributes=attributes)
@@ -504,6 +543,16 @@ class H(object):
         value: int,
         attributes: typing.Optional[typing.Dict[str, any]] = None,
     ):
+        """
+        Record arbitrary metric values via as a UpDownCounter.
+        A UpDownCounter efficiently records an increment or decrement in a metric, such as number of paying customers.
+        Values with the same metric name and attributes are aggregated via the OTel SDK.
+        See https://opentelemetry.io/docs/specs/otel/metrics/data-model/ for more details.
+        :param name: the name of the metric.
+        :param value: the float value of the metric.
+        :param attributes: additional metadata which can be used to filter and group values.
+        :return: None
+        """
         if name not in self._up_down_counters:
             self._up_down_counters[name] = self.meter.create_up_down_counter(name)
         self._up_down_counters[name].add(value, attributes=attributes)
