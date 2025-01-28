@@ -175,7 +175,7 @@ export const SqlEditor: React.FC<Props> = ({
 	const backendErrorLinter = linter((view: EditorView) => {
 		const diagnostics: Diagnostic[] = []
 		for (const e of errors) {
-			const matches = /^line (\d):(\d).*?(\^+)\n$/s.exec(e)
+			const matches = /^line (\d+):(\d+).*?(\^+)\n$/s.exec(e)
 			const lineStr = matches?.at(1)
 			const columnStr = matches?.at(2)
 			const length = matches?.at(3)?.length
@@ -211,7 +211,6 @@ export const SqlEditor: React.FC<Props> = ({
 		<div className={styles.editorWrapper}>
 			<CodeMirror
 				basicSetup={{
-					lineNumbers: false,
 					foldGutter: false,
 					highlightActiveLine: false,
 					indentOnInput: false,
@@ -226,8 +225,8 @@ export const SqlEditor: React.FC<Props> = ({
 						autocomplete: completeSql,
 					}),
 					keymap.of([{ key: 'Tab', run: acceptCompletion }]),
-					EditorView.lineWrapping,
 					backendErrorLinter,
+					EditorView.lineWrapping,
 				]}
 				theme={vscodeLightInit({
 					settings: {
