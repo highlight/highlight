@@ -117,9 +117,13 @@ export const SqlEditor: React.FC<Props> = ({
 
 		const filteredTables = ['from'].includes(lastToken ?? '') ? tables : []
 
-		const functionCompletions: Completion[] = ['select'].includes(
-			lastKeyword ?? '',
-		)
+		const functionCompletions: Completion[] = [
+			'select',
+			'where',
+			'group by',
+			'order by',
+			'having',
+		].includes(lastKeyword ?? '')
 			? functionTemplates.map((t) => {
 					return snippetCompletion(t, {
 						label: t.split('(')[0],
@@ -129,9 +133,13 @@ export const SqlEditor: React.FC<Props> = ({
 				})
 			: []
 
-		const columnCompletions: Completion[] = ['select'].includes(
-			lastKeyword ?? '',
-		)
+		const columnCompletions: Completion[] = [
+			'select',
+			'where',
+			'group by',
+			'order by',
+			'having',
+		].includes(lastKeyword ?? '')
 			? (data?.keys.map((k) => ({
 					label: k.name,
 					type: 'text',
