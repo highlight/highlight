@@ -396,8 +396,13 @@ func TestHandleErrorAndGroup(t *testing.T) {
 
 			var i int
 			for _, errorGroup := range receivedErrorGroups {
-				assert.Equal(t, tc.expectedErrorGroups[i].State, errorGroup.State)
-				assert.Equal(t, tc.expectedErrorGroups[i].ErrorTagID, errorGroup.ErrorTagID)
+				isEqual, diff, err := areErrorGroupsEqual(&errorGroup, &tc.expectedErrorGroups[i])
+				if err != nil {
+					t.Fatal(e.Wrap(err, "error comparing two error groups"))
+				}
+				if !isEqual {
+					t.Fatalf("received error group not equal to expected error group. diff: %+v", diff)
+				}
 				i++
 			}
 		})
