@@ -303,7 +303,7 @@ func builderFromSql(
 				isSample := strings.Contains(strings.ToLower(config.TableName), "sample")
 				funcLower := strings.ToLower(typed.Name.Name)
 				if isSample && (strings.Contains(funcLower, "sum") || strings.Contains(funcLower, "count")) {
-					typed.Name.Name = fmt.Sprintf("_sample_factor * %s", typed.Name.Name)
+					typed.Name.Name = fmt.Sprintf("any(_sample_factor) * %s", typed.Name.Name)
 				}
 			}
 		}
@@ -332,7 +332,7 @@ func builderFromSql(
 		sb.From(strings.TrimPrefix(selectQuery.From.String(), "FROM "))
 	}
 	if selectQuery.Where != nil {
-		sb.Where(strings.TrimPrefix(selectQuery.Where.String(), "WHERE "))
+		sb.Where("(" + strings.TrimPrefix(selectQuery.Where.String(), "WHERE ") + ")")
 	}
 	if selectQuery.GroupBy != nil {
 		sb.GroupBy(strings.TrimPrefix(selectQuery.GroupBy.String(), "GROUP BY "))

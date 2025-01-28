@@ -7,6 +7,7 @@
 		"@apollo/client": "3.7.17",
 		"@codemirror/autocomplete": "^6.18.4",
 		"@codemirror/lang-sql": "^6.8.0",
+		"@codemirror/lint": "^6.8.4",
 		"@codemirror/view": "^6.36.2",
 		"@ctrl/tinycolor": "^3.4.1",
 		"@dinero.js/currencies": "2.0.0-alpha.14",

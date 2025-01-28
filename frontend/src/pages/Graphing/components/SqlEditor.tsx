@@ -11,6 +11,7 @@ import {
 	snippetCompletion,
 } from '@codemirror/autocomplete'
 import { EditorView, keymap } from '@codemirror/view'
+import { linter, Diagnostic } from '@codemirror/lint'
 
 import * as styles from './SqlEditor.css'
 import { useGetKeysQuery } from '@/graph/generated/hooks'
@@ -18,6 +19,7 @@ import { TIME_FORMAT } from '@/components/Search/SearchForm/constants'
 import { useProjectId } from '@/hooks/useProjectId'
 import moment from 'moment'
 import { TIME_INTERVAL_MACRO } from '@/pages/Graphing/components/Graph'
+import { useGraphContext } from '@/pages/Graphing/context/GraphContext'
 
 interface Props {
 	value: string
@@ -64,6 +66,8 @@ export const SqlEditor: React.FC<Props> = ({
 	startDate,
 	endDate,
 }: Props) => {
+	const { errors, setErrors } = useGraphContext()
+
 	const { projectId } = useProjectId()
 
 	const { data } = useGetKeysQuery({
@@ -113,9 +117,13 @@ export const SqlEditor: React.FC<Props> = ({
 
 		const filteredTables = ['from'].includes(lastToken ?? '') ? tables : []
 
-		const functionCompletions: Completion[] = ['select'].includes(
-			lastKeyword ?? '',
-		)
+		const functionCompletions: Completion[] = [
+			'select',
+			'where',
+			'group by',
+			'order by',
+			'having',
+		].includes(lastKeyword ?? '')
 			? functionTemplates.map((t) => {
 					return snippetCompletion(t, {
 						label: t.split('(')[0],
@@ -125,9 +133,13 @@ export const SqlEditor: React.FC<Props> = ({
 				})
 			: []
 
-		const columnCompletions: Completion[] = ['select'].includes(
-			lastKeyword ?? '',
-		)
+		const columnCompletions: Completion[] = [
+			'select',
+			'where',
+			'group by',
+			'order by',
+			'having',
+		].includes(lastKeyword ?? '')
 			? (data?.keys.map((k) => ({
 					label: k.name,
 					type: 'text',
@@ -168,11 +180,45 @@ export const SqlEditor: React.FC<Props> = ({
 		}),
 	})
 
+	const backendErrorLinter = linter((view: EditorView) => {
+		const diagnostics: Diagnostic[] = []
+		for (const e of errors) {
+			const matches = /^line (\d+):(\d+).*?(\^+)\n$/s.exec(e)
+			const lineStr = matches?.at(1)
+			const columnStr = matches?.at(2)
+			const length = matches?.at(3)?.length
+			if (
+				lineStr !== undefined &&
+				columnStr !== undefined &&
+				length !== undefined
+			) {
+				const line = view.state.doc.line(parseInt(lineStr) + 1)
+				const column = parseInt(columnStr)
+				const from = line.from + column
+				const to = from + length
+				diagnostics.push({
+					from,
+					to,
+					severity: 'error',
+					message: e,
+				})
+			} else {
+				diagnostics.push({
+					from: 0,
+					to: view.state.doc.length,
+					severity: 'error',
+					message: e,
+				})
+			}
+		}
+
+		return diagnostics
+	})
+
 	return (
 		<div className={styles.editorWrapper}>
 			<CodeMirror
 				basicSetup={{
-					lineNumbers: false,
 					foldGutter: false,
 					highlightActiveLine: false,
 					indentOnInput: false,
@@ -187,6 +233,7 @@ export const SqlEditor: React.FC<Props> = ({
 						autocomplete: completeSql,
 					}),
 					keymap.of([{ key: 'Tab', run: acceptCompletion }]),
+					backendErrorLinter,
 					EditorView.lineWrapping,
 				]}
 				theme={vscodeLightInit({
@@ -196,7 +243,11 @@ export const SqlEditor: React.FC<Props> = ({
 							'Consolas, Monaco, "Andale Mono", "Ubuntu Mono", monospace',
 					},
 				})}
-				onChange={setValue}
+				onChange={(val) => {
+					// Clear any existing errors after updating
+					setErrors([])
+					setValue(val)
+				}}
 				indentWithTab={false}
 			/>
 		</div>

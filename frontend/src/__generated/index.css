@@ -8227,8 +8227,22 @@ body {
 }
 .gw96js8 {
   display: flex;
-  justify-content: flex-end;
+  justify-content: space-between;
   width: 100%;
+  border-bottom: var(--_1pyqka9j) solid 1px;
+  padding: 6px;
+}
+.gw96js9 {
+  width: fit-content;
+}
+.gw96jsa {
+  border: var(--_1pyqka9j) solid 1px;
+  border-radius: 6px;
+}
+.gw96jsb {
+  background-color: var(--_1pyqka90);
+  border-bottom-left-radius: 6px;
+  border-bottom-right-radius: 6px;
 }
 .k0as8h0 {
   width: 100%;
@@ -8273,12 +8287,35 @@ body {
 }
 ._1yiubn60 {
   width: 100%;
-  background-color: var(--_1pyqka90);
-  border: var(--_1pyqka9j) solid 1px;
-  border-radius: 6px;
 }
 ._1yiubn60 .cm-focused {
   outline: initial;
+}
+._1yiubn60 .cm-tooltip {
+  max-width: 400px;
+  border-radius: 6px;
+  background-color: var(--_1pyqka91);
+  border: var(--_1pyqka9j) solid 1px;
+  overflow: hidden;
+}
+._1yiubn60 .cm-diagnosticText {
+  color: #383a42;
+}
+._1yiubn60 .cm-tooltip-autocomplete ul li {
+  font-family:
+    Consolas,
+    Monaco,
+    "Andale Mono",
+    "Ubuntu Mono",
+    monospace;
+  color: #383a42;
+}
+._1yiubn60 .cm-tooltip-autocomplete ul li[aria-selected] {
+  background-color: var(--_1pyqka91x);
+  color: #383a42;
+}
+._1yiubn60 .cm-completionIcon {
+  display: none;
 }
 ._1n2x7d50 {
   width: 100%;

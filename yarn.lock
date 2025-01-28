@@ -5271,7 +5271,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@codemirror/lint@npm:^6.0.0":
+"@codemirror/lint@npm:^6.0.0, @codemirror/lint@npm:^6.8.4":
   version: 6.8.4
   resolution: "@codemirror/lint@npm:6.8.4"
   dependencies:
@@ -10520,6 +10520,7 @@ __metadata:
     "@babel/core": "npm:^7.19.0"
     "@codemirror/autocomplete": "npm:^6.18.4"
     "@codemirror/lang-sql": "npm:^6.8.0"
+    "@codemirror/lint": "npm:^6.8.4"
     "@codemirror/view": "npm:^6.36.2"
     "@ctrl/tinycolor": "npm:^3.4.1"
     "@dinero.js/currencies": "npm:2.0.0-alpha.14"
