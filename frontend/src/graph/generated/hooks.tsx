@@ -205,6 +205,7 @@ export const ProjectFragmentDoc = gql`
 		rage_click_window_seconds
 		rage_click_radius_pixels
 		rage_click_count
+		platforms
 	}
 `
 export const ErrorTagFragmentDoc = gql`

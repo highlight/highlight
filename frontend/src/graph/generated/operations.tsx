@@ -3327,6 +3327,7 @@ export type ProjectFragment = { __typename?: 'Project' } & Pick<
 	| 'rage_click_window_seconds'
 	| 'rage_click_radius_pixels'
 	| 'rage_click_count'
+	| 'platforms'
 > & {
 		workspace?: Types.Maybe<
 			{ __typename?: 'Workspace' } & Pick<Types.Workspace, 'id'>
