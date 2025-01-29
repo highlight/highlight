@@ -37,7 +37,7 @@ export const QuickStartGuide: React.FC<Props> = ({
 	}
 
 	return (
-		<Box py="8">
+		<Box pt="2" gap="8">
 			<Text color="moderate">Installation guide: {guide.title}</Text>
 			{!!guide.products?.length && (
 				<Box pt="8" display="flex" flexDirection="row" gap="4">

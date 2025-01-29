@@ -3,6 +3,7 @@ import {
 	Badge,
 	Box,
 	IconSolidCheckCircle,
+	IconSolidInformationCircle,
 	Stack,
 	Text,
 	Tooltip,
@@ -178,7 +179,7 @@ const LanguageOption: React.FC<LanguageOptionProps> = ({
 						</Text>
 					)}
 				</Box>
-				<Stack gap="4" align="flex-start">
+				<Stack gap="8" align="flex-start" py="4">
 					<Text weight="bold" align="left">
 						{title}
 					</Text>
@@ -205,7 +206,7 @@ const LanguageOption: React.FC<LanguageOptionProps> = ({
 
 const ProductAreaIcons = ({ products }: { products: ProductArea[] }) => {
 	const Icons = (
-		<Box pt="4" display="flex" flexDirection="row" gap="4">
+		<Box p="4" display="flex" flexDirection="row" gap="4">
 			{products.map((product) => {
 				const { title, icon } = PRODUCT_AREAS[product]
 				return (
@@ -221,21 +222,18 @@ const ProductAreaIcons = ({ products }: { products: ProductArea[] }) => {
 		</Box>
 	)
 
-	if (products.length > 2) {
-		return (
-			<Tooltip
-				trigger={
-					<Badge
-						label={`${products.length} products`}
-						variant="green"
-						size="small"
-					/>
-				}
-			>
-				{Icons}
-			</Tooltip>
-		)
-	}
-
-	return Icons
+	return (
+		<Tooltip
+			trigger={
+				<Badge
+					label="Products"
+					variant="gray"
+					size="small"
+					iconStart={<IconSolidInformationCircle />}
+				/>
+			}
+		>
+			{Icons}
+		</Tooltip>
+	)
 }

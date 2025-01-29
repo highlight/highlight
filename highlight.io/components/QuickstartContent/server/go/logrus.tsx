@@ -8,7 +8,7 @@ export const GoOtherLogReorganizedContent: QuickStartContent = {
 	title: 'Logging from a Go App',
 	subtitle: 'Learn how to set up highlight.io Go log ingestion with logrus.',
 	logoUrl: siteUrl('/images/quickstart/go.svg'),
-	products: ['Errors', 'Logs', 'Traces'],
+	products: ['Logs'],
 	entries: [
 		frontendInstallSnippet,
 		...logrusExample(

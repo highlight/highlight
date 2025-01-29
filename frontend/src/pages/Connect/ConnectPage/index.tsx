@@ -100,65 +100,23 @@ export const ConnectPage = () => {
 					flexDirection="column"
 					display="flex"
 					flexGrow={1}
+					p="40"
 					border="dividerWeak"
-					height="full"
-					overflow="hidden"
+					overflowY="auto"
 					shadow="medium"
 				>
-					<Stack
-						height="full"
-						px="40"
-						pt="40"
-						mx="auto"
-						style={{ maxWidth: 1080 }}
-						width="full"
-					>
+					<Stack mx="auto" style={{ maxWidth: 960 }} width="full">
 						<Heading level="h2" mb="40">
 							Connect platforms
 						</Heading>
-						<Stack direction="row" gap="32" overflowY="hidden">
+						<Stack direction="row" gap="32">
 							<Stack
 								gap="12"
 								flexGrow={0}
-								style={{ maxWidth: 350 }}
+								style={{ maxWidth: 310 }}
 							>
-								<Stack
-									direction="row"
-									border="dividerWeak"
-									borderRadius="6"
-									justifyContent="space-between"
-									px="4"
-									background="raised"
-								>
-									<Stack
-										direction="row"
-										gap="6"
-										align="center"
-									>
-										<Text color="moderate" size="xSmall">
-											Project ID:
-										</Text>
-										<Tag
-											kind="secondary"
-											emphasis="low"
-											shape="basic"
-											onClick={copyProjectId}
-										>
-											{projectVerboseId}
-										</Tag>
-									</Stack>
-									<ButtonIcon
-										kind="secondary"
-										emphasis="low"
-										icon={<IconSolidClipboard />}
-										onClick={copyProjectId}
-									/>
-								</Stack>
-								<Stack>
-									<Box>
-										<Text color="moderate">Platforms:</Text>
-									</Box>
-
+								<Stack pt="2" gap="8">
+									<Text color="moderate">Platforms</Text>
 									<SelectedPlatformButtons
 										projectId={projectId!}
 										platforms={
@@ -175,7 +133,7 @@ export const ConnectPage = () => {
 										Edit platforms
 									</LinkButton>
 								</Stack>
-								<Box as="span" borderBottom="secondary" />
+								<Box as="span" borderBottom="divider" />
 								<Text color="moderate">
 									Don't see your platform? Let us know in the
 									Discord channel.
@@ -228,8 +186,41 @@ export const ConnectPage = () => {
 										</Badge>
 									</a>
 								</Box>
+								<Box as="span" borderBottom="divider" />
+								<Stack
+									direction="row"
+									border="dividerWeak"
+									borderRadius="6"
+									justifyContent="space-between"
+									px="4"
+									background="raised"
+								>
+									<Stack
+										direction="row"
+										gap="6"
+										align="center"
+									>
+										<Text color="moderate" size="xSmall">
+											Project ID:
+										</Text>
+										<Tag
+											kind="secondary"
+											emphasis="low"
+											shape="basic"
+											onClick={copyProjectId}
+										>
+											{projectVerboseId}
+										</Tag>
+									</Stack>
+									<ButtonIcon
+										kind="secondary"
+										emphasis="low"
+										icon={<IconSolidClipboard />}
+										onClick={copyProjectId}
+									/>
+								</Stack>
 							</Stack>
-							<Stack flexGrow={1} overflowY="auto">
+							<Stack flexGrow={1} style={{ maxWidth: 650 }}>
 								<FeatureHealthCheck />
 								<QuickStartGuide
 									guide={guide}

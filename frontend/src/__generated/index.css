@@ -8077,7 +8077,6 @@ body {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
   gap: 10px;
-  padding: 8px;
 }
 ._10o9hoe1 {
   min-width: 400px;

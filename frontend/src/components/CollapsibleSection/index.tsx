@@ -4,7 +4,6 @@ import {
 	ButtonIcon,
 	IconSolidCheveronDown,
 	IconSolidCheveronUp,
-	Text,
 } from '@highlight-run/ui/components'
 import clsx from 'clsx'
 import { PropsWithChildren, useState } from 'react'
@@ -33,19 +32,7 @@ const CollapsibleSection = function ({
 			justifyContent="space-between"
 			alignItems="center"
 		>
-			{typeof title === 'string' ? (
-				<Text
-					color="secondaryContentOnEnabled"
-					as="span"
-					size="small"
-					weight="medium"
-				>
-					{title}
-				</Text>
-			) : (
-				title
-			)}
-
+			{title}
 			<Box display="flex" gap="4" alignItems="center">
 				<ButtonIcon
 					icon={
@@ -75,6 +62,10 @@ const CollapsibleSection = function ({
 			)}
 		>
 			{children}
+			<Box
+				width="full"
+				borderBottom={hideBorder ? undefined : 'secondary'}
+			/>
 		</ReactCollapsible>
 	)
 }

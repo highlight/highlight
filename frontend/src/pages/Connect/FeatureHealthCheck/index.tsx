@@ -14,16 +14,14 @@ import * as styles from './style.css'
 
 export const FeatureHealthCheck: React.FC = () => {
 	return (
-		<Box>
-			<Box py="8">
-				<Text color="moderate">Health</Text>
-			</Box>
+		<Stack pt="2" gap="8">
+			<Text color="moderate">Health</Text>
 			<div className={styles.featureGrid}>
 				{PRODUCT_AREA_KEYS.map((area: ProductArea) => (
 					<FeatureIntegrationCheck key={area} product={area} />
 				))}
 			</div>
-		</Box>
+		</Stack>
 	)
 }
 

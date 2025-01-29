@@ -99,86 +99,30 @@ export const NewSetupPage = () => {
 					flexDirection="column"
 					display="flex"
 					flexGrow={1}
+					p="40"
 					border="dividerWeak"
-					height="full"
-					overflow="hidden"
+					overflowY="auto"
 					shadow="medium"
 				>
-					<Stack
-						height="full"
-						px="40"
-						pt="40"
-						mx="auto"
-						style={{ maxWidth: 1080 }}
-						width="full"
-					>
-						<Stack direction="row" justifyContent="space-between">
-							<Heading level="h2" mb="40">
-								Select your platforms
-							</Heading>
-							<Button
-								trackingId="setup-save-selected-platforms"
-								onClick={handleSave}
-								disabled={
-									loading || selectedPlatforms.size === 0
-								}
-								kind="primary"
-								iconRight={
-									<IconSolidArrowRight color="white" />
-								}
-							>
-								Integrate selected platforms
-							</Button>
-						</Stack>
-						<Stack direction="row" gap="32" overflowY="hidden">
+					<Stack mx="auto" style={{ maxWidth: 960 }} width="full">
+						<Heading level="h2" mb="40">
+							Select your platforms
+						</Heading>
+						<Stack direction="row" gap="32">
 							<Stack
 								gap="12"
 								flexGrow={0}
 								style={{ maxWidth: 350 }}
 							>
-								<Stack
-									direction="row"
-									border="dividerWeak"
-									borderRadius="6"
-									justifyContent="space-between"
-									px="4"
-									background="raised"
-								>
-									<Stack
-										direction="row"
-										gap="6"
-										align="center"
-									>
-										<Text color="moderate" size="xSmall">
-											Project ID:
-										</Text>
-										<Tag
-											kind="secondary"
-											emphasis="low"
-											shape="basic"
-											onClick={copyProjectId}
-										>
-											{projectVerboseId}
-										</Tag>
-									</Stack>
-									<ButtonIcon
-										kind="secondary"
-										emphasis="low"
-										icon={<IconSolidClipboard />}
-										onClick={copyProjectId}
-									/>
-								</Stack>
-								<Stack>
-									<Box>
-										<Text color="moderate">
-											Current Selection:
-										</Text>
-									</Box>
+								<Stack pt="2" gap="8">
+									<Text color="moderate">
+										Current Selection
+									</Text>
 									<SelectedPlatformIcons
 										platforms={selectedPlatforms}
 									/>
 								</Stack>
-								<Box as="span" borderBottom="secondary" />
+								<Box as="span" borderBottom="divider" />
 								<Text color="moderate">
 									Don't see your platform? Let us know in the
 									Discord channel.
@@ -231,17 +175,65 @@ export const NewSetupPage = () => {
 										</Badge>
 									</a>
 								</Box>
+								<Box as="span" borderBottom="divider" />
+								<Stack
+									direction="row"
+									border="dividerWeak"
+									borderRadius="6"
+									justifyContent="space-between"
+									px="4"
+									background="raised"
+								>
+									<Stack
+										direction="row"
+										gap="6"
+										align="center"
+									>
+										<Text color="moderate" size="xSmall">
+											Project ID:
+										</Text>
+										<Tag
+											kind="secondary"
+											emphasis="low"
+											shape="basic"
+											onClick={copyProjectId}
+										>
+											{projectVerboseId}
+										</Tag>
+									</Stack>
+									<ButtonIcon
+										kind="secondary"
+										emphasis="low"
+										icon={<IconSolidClipboard />}
+										onClick={copyProjectId}
+									/>
+								</Stack>
 							</Stack>
-							<Stack
-								flexGrow={1}
-								border="secondary"
-								borderRadius="8"
-								overflowY="auto"
-							>
-								<PlatformSelection
-									selectedPlatforms={selectedPlatforms}
-									setSelectedPlatforms={setSelectedPlatforms}
-								/>
+							<Stack flexGrow={1} style={{ maxWidth: 610 }}>
+								<Stack border="secondary" borderRadius="8">
+									<PlatformSelection
+										selectedPlatforms={selectedPlatforms}
+										setSelectedPlatforms={
+											setSelectedPlatforms
+										}
+									/>
+								</Stack>
+								<Box>
+									<Button
+										trackingId="setup-save-selected-platforms"
+										onClick={handleSave}
+										disabled={
+											loading ||
+											selectedPlatforms.size === 0
+										}
+										kind="primary"
+										iconRight={
+											<IconSolidArrowRight color="white" />
+										}
+									>
+										Integrate selected platforms
+									</Button>
+								</Box>
 							</Stack>
 						</Stack>
 					</Stack>
