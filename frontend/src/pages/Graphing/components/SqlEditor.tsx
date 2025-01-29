@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
-import React from 'react'
+import React, { useCallback } from 'react'
 import CodeMirror from '@uiw/react-codemirror'
 import { sql } from '@codemirror/lang-sql'
 import { vscodeLightInit } from '@uiw/codemirror-theme-vscode'
@@ -14,7 +14,7 @@ import { EditorView, keymap } from '@codemirror/view'
 import { linter, Diagnostic } from '@codemirror/lint'
 
 import * as styles from './SqlEditor.css'
-import { useGetKeysQuery } from '@/graph/generated/hooks'
+import { useGetKeysLazyQuery } from '@/graph/generated/hooks'
 import { TIME_FORMAT } from '@/components/Search/SearchForm/constants'
 import { useProjectId } from '@/hooks/useProjectId'
 import moment from 'moment'
@@ -28,7 +28,7 @@ interface Props {
 	endDate: Date
 }
 
-const tables = ['sessions', 'logs', 'traces', 'events', 'errors']
+const tables = ['sessions', 'logs', 'traces', 'events', 'errors', 'metrics']
 
 const keywords = [
 	'select',
@@ -70,7 +70,7 @@ export const SqlEditor: React.FC<Props> = ({
 
 	const { projectId } = useProjectId()
 
-	const { data } = useGetKeysQuery({
+	const [getKeys] = useGetKeysLazyQuery({
 		variables: {
 			project_id: projectId,
 			date_range: {
@@ -80,98 +80,117 @@ export const SqlEditor: React.FC<Props> = ({
 		},
 	})
 
-	const completeSql = (context: CompletionContext) => {
-		const word = context.matchBefore(/\w*/)
+	const completeSql = useCallback(
+		(context: CompletionContext) => {
+			const word = context.matchBefore(/\w*/)
 
-		const priorText = context.state.doc.toString().substring(0, word?.from)
+			const priorText = context.state.doc
+				.toString()
+				.substring(0, word?.from)
 
-		const orderedTokens = priorText
-			.toLowerCase()
-			.split(/\s+/)
-			.filter((t) => t !== '')
+			const orderedTokens = priorText
+				.toLowerCase()
+				.split(/\s+/)
+				.filter((t) => t !== '')
 
-		const mergedTokens = []
-		// Handle "group by" and "order by" as a single token
-		for (let i = 0; i < orderedTokens.length; i++) {
-			const combinedToken = orderedTokens[i] + ' ' + orderedTokens[i + 1]
-			if (keywords.includes(combinedToken)) {
-				mergedTokens.push(combinedToken)
-				i++
-			} else {
-				mergedTokens.push(orderedTokens[i])
+			const mergedTokens = []
+			// Handle "group by" and "order by" as a single token
+			for (let i = 0; i < orderedTokens.length; i++) {
+				const combinedToken =
+					orderedTokens[i] + ' ' + orderedTokens[i + 1]
+				if (keywords.includes(combinedToken)) {
+					mergedTokens.push(combinedToken)
+					i++
+				} else {
+					mergedTokens.push(orderedTokens[i])
+				}
 			}
-		}
 
-		const lastToken = mergedTokens[mergedTokens.length - 1]
-		const tokens = new Set(mergedTokens)
-		const unusedKeywords: string[] = []
-		let lastKeyword: string | undefined
-		for (const k of keywords.toReversed()) {
-			if (!tokens.has(k.toLowerCase())) {
-				unusedKeywords.push(k)
-			} else {
-				lastKeyword = k
-				break
+			const lastToken = mergedTokens[mergedTokens.length - 1]
+			const tokens = new Set(mergedTokens)
+			const unusedKeywords: string[] = []
+			let lastKeyword: string | undefined
+			for (const k of keywords.toReversed()) {
+				if (!tokens.has(k.toLowerCase())) {
+					unusedKeywords.push(k)
+				} else {
+					lastKeyword = k
+					break
+				}
 			}
-		}
 
-		const filteredTables = ['from'].includes(lastToken ?? '') ? tables : []
+			const filteredTables = ['from'].includes(lastToken ?? '')
+				? tables
+				: []
 
-		const functionCompletions: Completion[] = [
-			'select',
-			'where',
-			'group by',
-			'order by',
-			'having',
-		].includes(lastKeyword ?? '')
-			? functionTemplates.map((t) => {
-					return snippetCompletion(t, {
-						label: t.split('(')[0],
-						type: 'function',
-						boost: 4,
+			const functionCompletions: Completion[] = [
+				'select',
+				'where',
+				'group by',
+				'order by',
+				'having',
+			].includes(lastKeyword ?? '')
+				? functionTemplates.map((t) => {
+						return snippetCompletion(t, {
+							label: t.split('(')[0],
+							type: 'function',
+							boost: 4,
+						})
 					})
+				: []
+
+			const keywordCompletions: Completion[] = unusedKeywords
+				.map((k) => ({
+					label: k.toUpperCase(),
+					type: 'keyword',
+				}))
+				.filter((k) => {
+					return word?.text !== ''
 				})
-			: []
 
-		const columnCompletions: Completion[] = [
-			'select',
-			'where',
-			'group by',
-			'order by',
-			'having',
-		].includes(lastKeyword ?? '')
-			? (data?.keys.map((k) => ({
-					label: k.name,
-					type: 'text',
-					boost: 3,
-				})) ?? [])
-			: []
-
-		const keywordCompletions: Completion[] = unusedKeywords
-			.map((k) => ({
-				label: k.toUpperCase(),
-				type: 'keyword',
+			const tableCompletions: Completion[] = filteredTables.map((k) => ({
+				label: k,
+				type: 'text',
+				boost: 2,
 			}))
-			.filter((k) => {
-				return word?.text !== ''
+
+			return getKeys({
+				variables: {
+					project_id: projectId,
+					date_range: {
+						start_date: moment(startDate).format(TIME_FORMAT),
+						end_date: moment(endDate).format(TIME_FORMAT),
+					},
+					query: word?.text,
+				},
+			}).then((result) => {
+				const columnCompletions: Completion[] = [
+					'select',
+					'where',
+					'group by',
+					'order by',
+					'having',
+				].includes(lastKeyword ?? '')
+					? (result.data?.keys.map((k) => ({
+							label: k.name,
+							type: 'text',
+							boost: 3,
+						})) ?? [])
+					: []
+
+				const allOptions = keywordCompletions
+					.concat(tableCompletions)
+					.concat(columnCompletions)
+					.concat(functionCompletions)
+
+				return {
+					from: word?.from,
+					options: allOptions,
+				}
 			})
-
-		const tableCompletions: Completion[] = filteredTables.map((k) => ({
-			label: k,
-			type: 'text',
-			boost: 2,
-		}))
-
-		const allOptions = keywordCompletions
-			.concat(tableCompletions)
-			.concat(columnCompletions)
-			.concat(functionCompletions)
-
-		return {
-			from: word?.from,
-			options: allOptions,
-		}
-	}
+		},
+		[endDate, getKeys, projectId, startDate],
+	)
 
 	const sqlLang = sql({
 		keywordCompletion: () => ({
