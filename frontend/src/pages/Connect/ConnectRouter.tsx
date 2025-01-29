@@ -1,7 +1,7 @@
 import { Route, Routes } from 'react-router-dom'
 
 import InkeepChatButton from './SetupInkeepChatButton'
-import { NewSetupPage } from './NewSetupPage'
+import { NewConnectPage } from './NewConnectPage'
 import { ConnectPage } from './ConnectPage'
 import { Helmet } from 'react-helmet'
 
@@ -12,7 +12,7 @@ export const ConnectRouter = () => {
 				<title>Connect</title>
 			</Helmet>
 			<Routes>
-				<Route path="new" element={<NewSetupPage />} />
+				<Route path="new" element={<NewConnectPage />} />
 				<Route path=":language?/:platform?" element={<ConnectPage />} />
 			</Routes>
 			<InkeepChatButton />

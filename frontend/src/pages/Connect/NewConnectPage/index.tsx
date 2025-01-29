@@ -30,7 +30,7 @@ import { useNavigate } from 'react-router-dom'
 
 const ICON_FILL = vars.theme.interactive.fill.secondary.content.text
 
-export const NewSetupPage = () => {
+export const NewConnectPage = () => {
 	const { projectId } = useProjectId()
 	const navigate = useNavigate()
 
@@ -105,13 +105,34 @@ export const NewSetupPage = () => {
 					</Heading>
 					<Stack direction="row" gap="32">
 						<Stack gap="12" flexGrow={0} style={{ maxWidth: 350 }}>
-							<Stack pt="2" gap="8">
-								<Text color="moderate">Current Selection</Text>
-								<SelectedPlatformIcons
-									platforms={selectedPlatforms}
+							<Stack
+								direction="row"
+								border="dividerWeak"
+								borderRadius="6"
+								justifyContent="space-between"
+								px="4"
+								background="raised"
+							>
+								<Stack direction="row" gap="6" align="center">
+									<Text color="moderate" size="xSmall">
+										Project ID:
+									</Text>
+									<Tag
+										kind="secondary"
+										emphasis="low"
+										shape="basic"
+										onClick={copyProjectId}
+									>
+										{projectVerboseId}
+									</Tag>
+								</Stack>
+								<ButtonIcon
+									kind="secondary"
+									emphasis="low"
+									icon={<IconSolidClipboard />}
+									onClick={copyProjectId}
 								/>
 							</Stack>
-							<Box as="span" borderBottom="divider" />
 							<Text color="moderate">
 								Don't see your platform? Let us know in the
 								Discord channel.
@@ -165,32 +186,11 @@ export const NewSetupPage = () => {
 								</a>
 							</Box>
 							<Box as="span" borderBottom="divider" />
-							<Stack
-								direction="row"
-								border="dividerWeak"
-								borderRadius="6"
-								justifyContent="space-between"
-								px="4"
-								background="raised"
-							>
-								<Stack direction="row" gap="6" align="center">
-									<Text color="moderate" size="xSmall">
-										Project ID:
-									</Text>
-									<Tag
-										kind="secondary"
-										emphasis="low"
-										shape="basic"
-										onClick={copyProjectId}
-									>
-										{projectVerboseId}
-									</Tag>
-								</Stack>
-								<ButtonIcon
-									kind="secondary"
-									emphasis="low"
-									icon={<IconSolidClipboard />}
-									onClick={copyProjectId}
+
+							<Stack pt="2" gap="8">
+								<Text color="moderate">Current Selection</Text>
+								<SelectedPlatformIcons
+									platforms={selectedPlatforms}
 								/>
 							</Stack>
 						</Stack>
