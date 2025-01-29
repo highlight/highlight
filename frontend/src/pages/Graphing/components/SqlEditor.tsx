@@ -28,7 +28,7 @@ interface Props {
 	endDate: Date
 }
 
-const tables = ['sessions', 'logs', 'traces', 'events', 'errors']
+const tables = ['sessions', 'logs', 'traces', 'events', 'errors', 'metrics']
 
 const keywords = [
 	'select',

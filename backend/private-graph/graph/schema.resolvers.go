@@ -9639,6 +9639,8 @@ func (r *queryResolver) Metrics(ctx context.Context, productType modelInputs.Pro
 			productType = modelInputs.ProductTypeTraces
 		case "events":
 			productType = modelInputs.ProductTypeEvents
+		case "metrics":
+			productType = modelInputs.ProductTypeMetrics
 		default:
 			return nil, e.Errorf("Unknown table %s", table)
 		}
