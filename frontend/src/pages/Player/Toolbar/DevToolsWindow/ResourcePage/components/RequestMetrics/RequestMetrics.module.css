@@ -1,8 +1,9 @@
 .requestMetrics {
 	width: 100%;
+	padding: 20px;
 }
 
 .chartContainer {
-	height: 200px;
+	height: 300px;
 	margin-top: var(--size-medium);
 }

@@ -911,6 +911,51 @@ type TraceConnection implements Connection {
 	sampled: Boolean!
 }
 
+enum MetricRowType {
+	empty
+	gauge
+	sum
+	histogram
+	exponentialHistogram
+	summary
+}
+
+type MetricRowExemplar {
+	timestamp: Timestamp!
+	traceID: String!
+	spanID: String!
+	attributes: Map!
+	secureSessionID: String!
+	value: Float!
+}
+
+type MetricRow {
+	projectID: Int!
+	timestamp: Timestamp!
+	serviceName: String!
+	metricName: String!
+	metricDescription: String!
+	metricUnit: String!
+	attributes: Map!
+	startTimestamp: Timestamp!
+	type: MetricRowType!
+	flags: UInt64!
+	value: Float!
+	exemplars: [MetricRowExemplar!]!
+	aggregationTemporality: Int!
+	isMonotonic: Boolean!
+}
+
+type MetricEdge implements Edge {
+	cursor: String!
+	node: MetricRow!
+}
+
+type MetricConnection implements Connection {
+	edges: [MetricEdge!]!
+	pageInfo: PageInfo!
+}
+
 type ErrorObjectNodeSession {
 	secureID: String!
 	email: String
@@ -1002,6 +1047,26 @@ enum ReservedTraceKey {
 	service_version
 	timestamp
 	highlight_type
+}
+
+enum ReservedMetricKey {
+	count
+	max
+	metric_description
+	metric_name
+	metric_unit
+	min
+	retention_days
+	secure_session_id
+	service_name
+	service_version
+	span_id
+	start_timestamp
+	sum
+	timestamp
+	trace_id
+	type
+	value
 }
 
 enum ReservedErrorObjectKey {
@@ -1173,8 +1238,9 @@ enum MetricBucketBy {
 
 type MetricBucket {
 	bucket_id: UInt64!
-	bucket_min: Float!
-	bucket_max: Float!
+	bucket_min: Float
+	bucket_max: Float
+	bucket_value: Float
 	group: [String!]!
 	column: String!
 	metric_type: MetricAggregator!
@@ -1855,11 +1921,6 @@ type SessionPayload {
 	last_user_interaction_time: Timestamp!
 }
 
-type Metric {
-	name: String!
-	value: Float!
-}
-
 type DashboardPayload {
 	date: String!
 	value: Float!
@@ -2067,6 +2128,7 @@ type Graph {
 	display: String
 	nullHandling: String
 	expressions: [MetricExpression!]!
+	sql: String
 }
 
 type Variable {
@@ -2116,6 +2178,7 @@ input GraphInput {
 	display: String
 	nullHandling: String
 	expressions: [MetricExpressionInput!]!
+	sql: String
 }
 
 input VariableInput {
@@ -2193,7 +2256,7 @@ type Query {
 	enhanced_user_details(session_secure_id: String!): EnhancedUserDetailsResult
 	errors(session_secure_id: String!): [ErrorObject]
 	resources(session_secure_id: String!): [Any]
-	web_vitals(session_secure_id: String!): [Metric!]!
+	web_vitals(session_secure_id: String!): MetricsBuckets!
 	session_comments(session_secure_id: String!): [SessionComment]!
 	session_comment_tags_for_project(project_id: ID!): [SessionCommentTag!]!
 	session_comments_for_admin: [SessionComment]!
@@ -2387,11 +2450,6 @@ type Query {
 		metric_name: String!
 		tag_name: String!
 	): [String!]!
-	metrics_timeline(
-		project_id: ID!
-		metric_name: String!
-		params: DashboardParamsInput!
-	): [DashboardPayload]!
 	network_histogram(
 		project_id: ID!
 		params: NetworkHistogramParamsInput!
@@ -2423,6 +2481,7 @@ type Query {
 	logs_metrics(
 		project_id: ID!
 		params: QueryInput!
+		sql: String
 		column: String # deprecated - use `expressions` instead
 		metric_types: [MetricAggregator!] # deprecated - use `expressions` instead
 		group_by: [String!]!
@@ -2486,6 +2545,7 @@ type Query {
 	traces_metrics(
 		project_id: ID!
 		params: QueryInput!
+		sql: String
 		column: String # deprecated - use `expressions` instead
 		metric_types: [MetricAggregator!] # deprecated - use `expressions` instead
 		group_by: [String!]!
@@ -2527,6 +2587,7 @@ type Query {
 	errors_metrics(
 		project_id: ID!
 		params: QueryInput!
+		sql: String
 		column: String # deprecated - use `expressions` instead
 		metric_types: [MetricAggregator!] # deprecated - use `expressions` instead
 		group_by: [String!]!
@@ -2555,6 +2616,7 @@ type Query {
 	sessions_metrics(
 		project_id: ID!
 		params: QueryInput!
+		sql: String
 		column: String # deprecated - use `expressions` instead
 		metric_types: [MetricAggregator!] # deprecated - use `expressions` instead
 		group_by: [String!]!
@@ -2585,6 +2647,7 @@ type Query {
 	events_metrics(
 		project_id: ID!
 		params: QueryInput!
+		sql: String
 		column: String # deprecated - use `expressions` instead
 		metric_types: [MetricAggregator!] # deprecated - use `expressions` instead
 		group_by: [String!]!
@@ -2610,6 +2673,7 @@ type Query {
 		params: QueryInput!
 		column: String # deprecated - use `expressions` instead
 		metric_types: [MetricAggregator!] # deprecated - use `expressions` instead
+		sql: String
 		group_by: [String!]!
 		bucket_by: String!
 		bucket_count: Int

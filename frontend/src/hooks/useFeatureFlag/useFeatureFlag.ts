@@ -14,7 +14,6 @@ interface Config {
 }
 
 export enum Feature {
-	EventSearch,
 	PlayerNoChunkRemoval,
 	SessionResultsVerbose,
 }
@@ -22,10 +21,6 @@ export enum Feature {
 // configures the criteria and percentage of population for which the feature is active.
 // can configure to rollout by project, workspace, or admin
 export const FeatureConfig: { [key: number]: Config } = {
-	[Feature.EventSearch]: {
-		workspace: true,
-		percent: 100,
-	},
 	[Feature.PlayerNoChunkRemoval]: {
 		workspace: true,
 		percent: 0,

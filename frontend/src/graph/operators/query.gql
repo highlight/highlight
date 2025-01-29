@@ -101,23 +101,6 @@ fragment MicrosoftTeamsChannelFragment on MicrosoftTeamsChannel {
 	id
 }
 
-query GetMetricsTimeline(
-	$project_id: ID!
-	$metric_name: String!
-	$params: DashboardParamsInput!
-) {
-	metrics_timeline(
-		project_id: $project_id
-		metric_name: $metric_name
-		params: $params
-	) {
-		date
-		value
-		aggregator
-		group
-	}
-}
-
 query GetNetworkHistogram(
 	$project_id: ID!
 	$params: NetworkHistogramParamsInput!
@@ -2026,8 +2009,19 @@ subscription OnSessionPayloadAppended(
 
 query GetWebVitals($session_secure_id: String!) {
 	web_vitals(session_secure_id: $session_secure_id) {
-		name
-		value
+		buckets {
+			bucket_id
+			bucket_min
+			bucket_max
+			group
+			column
+			metric_type
+			metric_value
+			yhat_lower
+			yhat_upper
+		}
+		bucket_count
+		sample_factor
 	}
 }
 
@@ -2634,6 +2628,7 @@ query GetMetrics(
 	$product_type: ProductType!
 	$project_id: ID!
 	$params: QueryInput!
+	$sql: String
 	$group_by: [String!]!
 	$bucket_by: String!
 	$bucket_count: Int
@@ -2648,6 +2643,7 @@ query GetMetrics(
 		product_type: $product_type
 		project_id: $project_id
 		params: $params
+		sql: $sql
 		group_by: $group_by
 		bucket_by: $bucket_by
 		bucket_window: $bucket_window
@@ -2662,6 +2658,7 @@ query GetMetrics(
 			bucket_id
 			bucket_min
 			bucket_max
+			bucket_value
 			group
 			column
 			metric_type
@@ -2699,6 +2696,7 @@ query GetGraphTemplates {
 			aggregator
 			column
 		}
+		sql
 	}
 }
 
@@ -2739,6 +2737,7 @@ query GetVisualization($id: ID!) {
 				aggregator
 				column
 			}
+			sql
 		}
 		updatedByAdmin {
 			id
@@ -2797,6 +2796,7 @@ query GetVisualizations(
 					aggregator
 					column
 				}
+				sql
 			}
 			updatedByAdmin {
 				id

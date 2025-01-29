@@ -560,11 +560,12 @@ var SessionsSampleableTableConfig = SampleableTableConfig{
 	tableConfig: SessionsJoinedTableConfig,
 }
 
-func (client *Client) ReadSessionsMetrics(ctx context.Context, projectID int, params modelInputs.QueryInput, groupBy []string, nBuckets *int, bucketBy string, bucketWindow *int, limit *int, limitAggregator *modelInputs.MetricAggregator, limitColumn *string, expressions []*modelInputs.MetricExpressionInput) (*modelInputs.MetricsBuckets, error) {
+func (client *Client) ReadSessionsMetrics(ctx context.Context, projectID int, params modelInputs.QueryInput, sql *string, groupBy []string, nBuckets *int, bucketBy string, bucketWindow *int, limit *int, limitAggregator *modelInputs.MetricAggregator, limitColumn *string, expressions []*modelInputs.MetricExpressionInput) (*modelInputs.MetricsBuckets, error) {
 	return client.ReadMetrics(ctx, ReadMetricsInput{
 		SampleableConfig: SessionsSampleableTableConfig,
 		ProjectIDs:       []int{projectID},
 		Params:           params,
+		Sql:              sql,
 		GroupBy:          groupBy,
 		BucketCount:      nBuckets,
 		BucketWindow:     bucketWindow,
@@ -608,35 +609,6 @@ func (client *Client) SessionsKeys(ctx context.Context, projectID int, startDate
 	}
 
 	return sessionKeys, nil
-}
-
-func (client *Client) QuerySessionCustomMetrics(ctx context.Context, projectId int, sessionSecureId string, metricNames []string) ([]*model.Metric, error) {
-	sb := sqlbuilder.NewSelectBuilder()
-	sql, args := sb.
-		Select("Name, Value").
-		From("session_metrics").
-		Where(sb.And(
-			sb.Equal("ProjectId", projectId),
-			sb.Equal("SecureSessionId", sessionSecureId),
-			sb.In("Name", metricNames))).
-		BuildWithFlavor(sqlbuilder.ClickHouse)
-
-	rows, err := client.conn.Query(ctx, sql, args...)
-	if err != nil {
-		return nil, err
-	}
-
-	metrics := []*model.Metric{}
-	for rows.Next() {
-		var name string
-		var value float64
-		if err := rows.Scan(&name, &value); err != nil {
-			return nil, err
-		}
-		metrics = append(metrics, &model.Metric{Name: name, Value: value})
-	}
-
-	return metrics, nil
 }
 
 func (client *Client) SessionsKeyValues(ctx context.Context, projectID int, keyName string, startDate time.Time, endDate time.Time, query *string, limit *int) ([]string, error) {
@@ -702,11 +674,16 @@ func getAttributeFields(config model.TableConfig, filters listener.Filters) []st
 	return attributeFields
 }
 
-func addAttributes(config model.TableConfig, attributeFields []string, projectIds []int, params modelInputs.QueryInput, sb *sqlbuilder.SelectBuilder) {
+func addAttributes(config model.TableConfig, attributeFields []string, projectIds []int, params modelInputs.QueryInput, sb *sqlbuilder.SelectBuilder, castToMap bool) {
 	if config.AttributesTable != "" {
+		innerExpr := "groupArray(tuple(Name, Value))"
+		if castToMap {
+			innerExpr = "CAST(groupArray(tuple(Name, Value)), 'Map(String, String)')"
+		}
+
 		joinSb := sqlbuilder.NewSelectBuilder()
 		joinSb.From(config.AttributesTable).
-			Select(fmt.Sprintf("SessionID, groupArray(tuple(Name, Value)) AS %s", model.GetAttributesColumn(config.AttributesColumns, ""))).
+			Select(fmt.Sprintf("SessionID, %s AS %s", innerExpr, model.GetAttributesColumn(config.AttributesColumns, ""))).
 			Where(joinSb.In("ProjectID", projectIds)).
 			Where(joinSb.GreaterEqualThan("SessionCreatedAt", params.DateRange.StartDate)).
 			Where(joinSb.LessEqualThan("SessionCreatedAt", params.DateRange.EndDate)).
@@ -768,7 +745,7 @@ func GetSessionsQueryImpl(admin *model.Admin, params modelInputs.QueryInput, pro
 	}
 
 	attributeFields := getAttributeFields(SessionsJoinedTableConfig, listener.GetFilters())
-	addAttributes(SessionsJoinedTableConfig, attributeFields, []int{projectId}, params, sb)
+	addAttributes(SessionsJoinedTableConfig, attributeFields, []int{projectId}, params, sb, false)
 
 	if useRandomSample {
 		sbOuter := sqlbuilder.NewSelectBuilder()

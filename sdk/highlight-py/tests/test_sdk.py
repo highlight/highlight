@@ -1,5 +1,5 @@
 import logging
-import time
+from typing import Optional
 
 import pytest
 from opentelemetry.sdk._logs._internal.export import BatchLogRecordProcessor
@@ -76,6 +76,41 @@ def test_record_exception(
 
     assert len(spy.call_args_list) == 10
     assert next(filter(lambda t: t.args[0], spy.call_args_list))
+
+
+def test_trace_non_recording_span(mocker, mock_otlp):
+    from opentelemetry.trace import (
+        TracerProvider,
+        NonRecordingSpan,
+        set_tracer_provider,
+        Context,
+    )
+    from opentelemetry.trace.span import INVALID_SPAN_CONTEXT
+
+    class NonRecordingTracerProvider(TracerProvider):
+        def get_tracer(self, *args, **kwargs):
+            return NonRecordingTracer()
+
+    class NonRecordingTracer:
+        def start_as_current_span(self, *args, **kwargs):
+            return NonRecordingSpan(INVALID_SPAN_CONTEXT)
+
+    set_tracer_provider(NonRecordingTracerProvider())
+
+    integrations, instrument_logging = mock_otlp
+    h = highlight_io.H(
+        "1",
+        integrations=integrations,
+        instrument_logging=instrument_logging,
+    )
+
+    for i in range(10):
+        logging.info(f"hey there! {i}")
+        with h.trace(
+            span_name="my-non-recording-span",
+        ) as span:
+            logging.info(f"trace! {i}")
+            span.set_attribute("foo", 1.23)
 
 
 def test_log_no_trace(mock_trace):

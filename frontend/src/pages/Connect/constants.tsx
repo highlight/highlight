@@ -11,6 +11,7 @@ import {
 	useLogsIntegration,
 	useServerIntegration,
 	useTracesIntegration,
+	useMetricsIntegration,
 } from '@/util/integrated'
 
 export enum ProductArea {
@@ -58,8 +59,7 @@ export const PRODUCT_AREAS: Record<ProductArea, ProductAreaInfo> = {
 		title: 'Metrics',
 		link: '/metrics',
 		icon: <IconSolidCheck />,
-		useIntegration: () => ({ integrated: false }),
-		hidden: true,
+		useIntegration: useMetricsIntegration,
 	},
 }
 
