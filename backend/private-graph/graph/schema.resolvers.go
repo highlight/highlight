@@ -683,6 +683,23 @@ func (r *mutationResolver) EditProjectSettings(ctx context.Context, projectID in
 	return &allProjectSettings, nil
 }
 
+// EditProjectPlatforms is the resolver for the editProjectPlatforms field.
+func (r *mutationResolver) EditProjectPlatforms(ctx context.Context, projectID int, platforms pq.StringArray) (bool, error) {
+	project, err := r.isUserInProject(ctx, projectID)
+	if err != nil {
+		return false, err
+	}
+
+	updates := map[string]interface{}{
+		"Platforms": platforms,
+	}
+
+	if err := r.DB.WithContext(ctx).Model(project).Updates(updates).Error; err != nil {
+		return false, err
+	}
+	return true, nil
+}
+
 // EditWorkspace is the resolver for the editWorkspace field.
 func (r *mutationResolver) EditWorkspace(ctx context.Context, id int, name *string) (*model.Workspace, error) {
 	workspace, err := r.isUserInWorkspace(ctx, id)
@@ -9639,8 +9656,6 @@ func (r *queryResolver) Metrics(ctx context.Context, productType modelInputs.Pro
 			productType = modelInputs.ProductTypeTraces
 		case "events":
 			productType = modelInputs.ProductTypeEvents
-		case "metrics":
-			productType = modelInputs.ProductTypeMetrics
 		default:
 			return nil, e.Errorf("Unknown table %s", table)
 		}

@@ -1238,6 +1238,7 @@ fragment Project on Project {
 	rage_click_window_seconds
 	rage_click_radius_pixels
 	rage_click_count
+	platforms
 }
 
 query GetErrorObject($id: ID!) {

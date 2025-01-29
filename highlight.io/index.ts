@@ -1,4 +1,7 @@
-export { quickStartContent } from './components/QuickstartContent/QuickstartContent'
+export {
+	quickStartContent,
+	quickStartContentReorganized,
+} from './components/QuickstartContent/QuickstartContent'
 export type {
 	QuickStartContent,
 	QuickStartOptions,

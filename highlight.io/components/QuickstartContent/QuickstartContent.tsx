@@ -89,6 +89,55 @@ import { RubyOtherTracesContent } from './traces/ruby/other'
 import { RustTracesContent } from './traces/rust'
 import { AWSLambdaContent } from './traces/serverless/lambda'
 import { JSHonoContent } from './backend/js/hono'
+import { GoFiberReorganizedContent } from './server/go/fiber'
+import { GoChiReorganizedContent } from './server/go/chi'
+import { GoEchoReorganizedContent } from './server/go/echo'
+import { GoGinReorganizedContent } from './server/go/gin'
+import { GoGqlgenReorganizedContent } from './server/go/go-gqlgen'
+import { GoMuxReorganizedContent } from './server/go/mux'
+import { GoOtherLogReorganizedContent } from './server/go/logrus'
+import { GormTracesReorganizedContent } from './server/go/gorm'
+import { GoTracesReorganizedContent } from './server/go/go'
+import { JavaOtherReorganizedContent } from './server/java/other'
+import { JSAWSLambdaReorganizedContent } from './server/js/aws-lambda'
+import { JSApolloReorganizedContent } from './server/js/apollo'
+import { JSCloudflareReorganizedContent } from './server/js/cloudflare'
+import { JSExpressReorganizedContent } from './server/js/express'
+import { JSFirebaseReorganizedContent } from './server/js/firebase'
+import { JSHonoReorganizedContent } from './server/js/hono'
+import { JSNodeReorganizedContent } from './server/js/nodejs'
+import { JSNestReorganizedContent } from './server/js/nestjs'
+import { JStRPCReorganizedContent } from './server/js/trpc'
+import { JSPinoHTTPJSONLogReorganizedContent } from './server/js/pino'
+import { JSWinstonHTTPJSONLogReorganizedContent } from './server/js/winston'
+import { JSManualTracesReorganizedContent } from './server/js/manual'
+import { NextJsTracesReorganizedContent } from './server/js/nextjs'
+import { PHPOtherReorganizedContent } from './server/php/other'
+import { PythonAWSReorganizedContext } from './server/python/aws'
+import { PythonAzureReorganizedContext } from './server/python/azure'
+import { PythonDjangoReorganizedContext } from './server/python/django'
+import { PythonFastAPIReorganizedContext } from './server/python/fastapi'
+import { PythonFlaskReorganizedContext } from './server/python/flask'
+import { PythonGCPReorganizedContext } from './server/python/gcp'
+import { PythonLoguruLogReorganizedContent } from './server/python/loguru'
+import { PythonOtherReorganizedContext } from './server/python/other'
+import { PythonLibrariesTracesReorganizedContent } from './server/python/python-libraries'
+import { PythonAITracesReorganizedContent } from './server/python/python-ai'
+import { RubyOtherReorganizedContent } from './server/ruby/other'
+import { RubyRailsReorganizedContent } from './server/ruby/rails'
+import { RustActixReorganizedContent } from './server/rust/actix'
+import { RustOtherReorganizedContent } from './server/rust/other'
+import { OTLPReorganizedContent } from './server/otlp'
+import { DotNetOTLPReorganizedContent } from './server/dotnet/dot-net'
+import { DotNet4OTLPReorganizedContent } from './server/dotnet/dot-net-4'
+import { FluentForwardReorganizedContent } from './server/fluentd'
+import { FileReorganizedContent } from './server/file'
+import { DockerReorganizedContent } from './server/docker'
+import { HTTPReorganizedContent } from './server/http'
+import { SyslogReorganizedContent } from './server/syslog'
+import { SystemdReorganizedContent } from './server/systemd'
+import { AWSLambdaReorganizedContent } from './server/serverless/lambda'
+import { ElixirOtherReorganizedContent } from './server/elixir/other'
 import { ReactNativeContent } from './mobile/react-native'
 
 export type QuickStartOptions = {
@@ -106,6 +155,7 @@ export type QuickStartContent = {
 	subtitle: string
 	logoUrl?: string
 	entries: Array<QuickStartStep>
+	products?: ('Sessions' | 'Errors' | 'Traces' | 'Logs' | 'Metrics')[]
 }
 
 export type QuickStartCodeBlock = {
@@ -516,3 +566,136 @@ export const quickStartContent = {
 		[QuickStartType.DevDeploy]: DevDeploymentContent,
 	},
 } as const
+
+export const quickStartContentReorganized = {
+	client: {
+		title: 'Client',
+		sdks: {
+			[QuickStartType.React]: ReactContent,
+			[QuickStartType.Angular]: AngularContent,
+			[QuickStartType.Next]: NextContent,
+			[QuickStartType.Remix]: RemixContent,
+			[QuickStartType.Vue]: VueContent,
+			[QuickStartType.SvelteKit]: SvelteKitContent,
+			[QuickStartType.Gatsby]: GatsbyContent,
+			[QuickStartType.Electron]: ElectronContext,
+			[QuickStartType.Other]: OtherContext,
+		},
+	},
+	mobile: {
+		title: 'Mobile',
+		sdks: {
+			[QuickStartType.ReactNative]: ReactNativeContent,
+		},
+	},
+	dotnet: {
+		title: '.NET',
+		sdks: {
+			[QuickStartType.OTLPDotNet]: DotNetOTLPReorganizedContent,
+			[QuickStartType.OTLPDotNet4]: DotNet4OTLPReorganizedContent,
+		},
+	},
+	elixir: {
+		title: 'Elixir',
+		sdks: {
+			[QuickStartType.ElixirOther]: ElixirOtherReorganizedContent,
+		},
+	},
+	go: {
+		title: 'Golang',
+		sdks: {
+			[QuickStartType.GoChi]: GoChiReorganizedContent,
+			[QuickStartType.GoEcho]: GoEchoReorganizedContent,
+			[QuickStartType.GoFiber]: GoFiberReorganizedContent,
+			[QuickStartType.GoGin]: GoGinReorganizedContent,
+			[QuickStartType.GoGqlgen]: GoGqlgenReorganizedContent,
+			[QuickStartType.GoMux]: GoMuxReorganizedContent,
+			[QuickStartType.GoLogrus]: GoOtherLogReorganizedContent,
+			[QuickStartType.GoGorm]: GormTracesReorganizedContent,
+			[QuickStartType.GoOther]: GoTracesReorganizedContent,
+		},
+	},
+	infra: {
+		title: 'Infrastructure / Other',
+		sdks: {
+			[QuickStartType.FluentForward]: FluentForwardReorganizedContent,
+			[QuickStartType.File]: FileReorganizedContent,
+			[QuickStartType.Docker]: DockerReorganizedContent,
+			[QuickStartType.HTTPOTLP]: HTTPReorganizedContent,
+			[QuickStartType.Syslog]: SyslogReorganizedContent,
+			[QuickStartType.Systemd]: SystemdReorganizedContent,
+		},
+	},
+	java: {
+		title: 'Java',
+		sdks: {
+			[QuickStartType.JavaOther]: JavaOtherReorganizedContent,
+		},
+	},
+	js: {
+		title: 'JavaScript',
+		sdks: {
+			[QuickStartType.JSApollo]: JSApolloReorganizedContent,
+			[QuickStartType.JSAWSFn]: JSAWSLambdaReorganizedContent,
+			[QuickStartType.JSCloudflare]: JSCloudflareReorganizedContent,
+			[QuickStartType.JSExpress]: JSExpressReorganizedContent,
+			[QuickStartType.JSFirebase]: JSFirebaseReorganizedContent,
+			[QuickStartType.JSHono]: JSHonoReorganizedContent,
+			[QuickStartType.JSNodejs]: JSNodeReorganizedContent,
+			[QuickStartType.JSNestjs]: JSNestReorganizedContent,
+			[QuickStartType.JStRPC]: JStRPCReorganizedContent,
+			[QuickStartType.JSPino]: JSPinoHTTPJSONLogReorganizedContent,
+			[QuickStartType.JSWinston]: JSWinstonHTTPJSONLogReorganizedContent,
+			[QuickStartType.JSManual]: JSManualTracesReorganizedContent,
+			[QuickStartType.JSNextjs]: NextJsTracesReorganizedContent,
+		},
+	},
+	otlp: {
+		title: 'OpenTelemetry',
+		sdks: {
+			[QuickStartType.OTLP]: OTLPReorganizedContent,
+		},
+	},
+	php: {
+		title: 'PHP',
+		sdks: {
+			[QuickStartType.Other]: PHPOtherReorganizedContent,
+		},
+	},
+	python: {
+		title: 'Python',
+		sdks: {
+			[QuickStartType.PythonAWSFn]: PythonAWSReorganizedContext,
+			[QuickStartType.PythonAzureFn]: PythonAzureReorganizedContext,
+			[QuickStartType.PythonDjango]: PythonDjangoReorganizedContext,
+			[QuickStartType.PythonFastAPI]: PythonFastAPIReorganizedContext,
+			[QuickStartType.PythonFlask]: PythonFlaskReorganizedContext,
+			[QuickStartType.PythonGCPFn]: PythonGCPReorganizedContext,
+			[QuickStartType.PythonLoguru]: PythonLoguruLogReorganizedContent,
+			[QuickStartType.PythonOther]: PythonOtherReorganizedContext,
+			[QuickStartType.PythonLibraries]:
+				PythonLibrariesTracesReorganizedContent,
+			[QuickStartType.PythonAI]: PythonAITracesReorganizedContent,
+		},
+	},
+	ruby: {
+		title: 'Ruby',
+		sdks: {
+			[QuickStartType.RubyOther]: RubyOtherReorganizedContent,
+			[QuickStartType.RubyRails]: RubyRailsReorganizedContent,
+		},
+	},
+	rust: {
+		title: 'Rust',
+		sdks: {
+			[QuickStartType.RustActix]: RustActixReorganizedContent,
+			[QuickStartType.RustOther]: RustOtherReorganizedContent,
+		},
+	},
+	serverless: {
+		title: 'Serverless',
+		sdks: {
+			[QuickStartType.AWSLambda]: AWSLambdaReorganizedContent,
+		},
+	},
+}
