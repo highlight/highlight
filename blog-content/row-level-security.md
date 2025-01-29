@@ -15,12 +15,12 @@ metaTitle: 'Data isolation with ClickHouse row policies'
 ---
 
 ```hint
-Highlight.io is an [open source](https://github.com/highlight/highlight) monitoring platform. If you’re interested in learning more, get started at [highlight.io](https://highlight.io).
+This blog post discusses the tradeoffs between physical and logical database isolation, and then dives into how we solved for this at highlight.io with our multitenant Clickhouse cluster. Highlight.io is an [open source](https://github.com/highlight/highlight) monitoring platform. If you’re interested in learning more, get started at [highlight.io](https://highlight.io).
 ```
 
 ## Physical and logical data isolation
 
-Data isolation means separating the data for each of your application’s users to make it harder for a data breach to occur. In a multitenant application, two methods for accomplishing this are physical isolation and logical isolation. With physical isolation, you maintain separate infrastructure for each of your tenants - this can be a separate database instance, separate tables, or whatever else best fits your application’s needs. With logical isolation, your tenants can share the same infrastructure, but you rely on application code to restrict what is and isn’t visible to each tenant. For example, if you have a table with rows that should be isolated between tenants, you could use logical isolation by appending a where clause:
+In databases, data isolation means separating the data for each of your application’s users to prevent data breaches. In a multitenant application, two methods for accomplishing this are physical isolation and logical isolation. With physical isolation, you maintain separate infrastructure for each of your tenants - this can be a separate database instance, separate tables, or whatever else best fits your application’s needs. With logical isolation, your tenants can share the same infrastructure, but you rely on application code to restrict what is and isn’t visible to each tenant. For example, if you have a table with rows that should be isolated between tenants, you could use logical isolation by appending a where clause:
 
 ```sql
 WHERE tenant_id = 123
@@ -95,3 +95,7 @@ rows, err := client.connReadonly.Query(
 ```
 
 Compared to the earlier examples of logical data isolation, one of the big advantages of this approach is that if the `SQL_tenant_id` setting is omitted, the query fails with an error `Unknown setting 'SQL_tenant_id'`. This guards against a developer accidentally omitting the setting in their query. Also, because the `tenant_id` is provided in the context rather than merged into a where clause, it is less error prone and more resistant to SQL injection. For security, we only have to check that the select query we execute doesn’t contain a settings clause, since this would allow an attacker to override the application-set `tenant_id` with their own value. As future work, there may be other methods of increasing the security of this approach - for example, instead of using a guessable id, each tenant could have their own secret key stored on each row, so that attempts to guess a nonexistent secret key will almost always return 0 rows and can be easily detected.
+
+## Conclusion
+
+To conclude, at Highlight, we implemented a hybrid approach using ClickHouse row policies and custom settings to handle data isolation in our multitenant environment. This solution ensures secure tenant-level isolation, reduces the risk of errors and SQL injection attacks, and avoids the complexity of managing thousands of roles and policies. If you have feedback, feel free to reach out to us on our [Discord](https://discord.gg/yxaXEAqgwN).
