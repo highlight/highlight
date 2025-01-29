@@ -26,11 +26,7 @@ import { ErrorBoundary } from '@highlight-run/react'
 import useLocalStorage from '@rehooks/local-storage'
 import { AppRouter } from '@routers/AppRouter/AppRouter'
 import analytics from '@util/analytics'
-import {
-	getAttributionData,
-	setAttributionData,
-	recordStorageEvents,
-} from '@util/attribution'
+import { getAttributionData, setAttributionData } from '@util/attribution'
 import { auth } from '@util/auth'
 import { showHiringMessage } from '@util/console/hiringMessage'
 import { client } from '@util/graph'
@@ -157,7 +153,6 @@ if (!isOnPrem) {
 
 showHiringMessage()
 setAttributionData()
-recordStorageEvents()
 
 const App = () => {
 	const [loadingState, setLoadingState] = useState<AppLoadingState>(
