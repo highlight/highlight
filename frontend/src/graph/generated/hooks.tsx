@@ -5735,6 +5735,7 @@ export const UpsertGraphDocument = gql`
 				aggregator
 				column
 			}
+			sql
 		}
 	}
 `
@@ -5880,75 +5881,6 @@ export type CreateCloudflareProxyMutationResult =
 export type CreateCloudflareProxyMutationOptions = Apollo.BaseMutationOptions<
 	Types.CreateCloudflareProxyMutation,
 	Types.CreateCloudflareProxyMutationVariables
->
-export const GetMetricsTimelineDocument = gql`
-	query GetMetricsTimeline(
-		$project_id: ID!
-		$metric_name: String!
-		$params: DashboardParamsInput!
-	) {
-		metrics_timeline(
-			project_id: $project_id
-			metric_name: $metric_name
-			params: $params
-		) {
-			date
-			value
-			aggregator
-			group
-		}
-	}
-`
-
-/**
- * __useGetMetricsTimelineQuery__
- *
- * To run a query within a React component, call `useGetMetricsTimelineQuery` and pass it any options that fit your needs.
- * When your component renders, `useGetMetricsTimelineQuery` returns an object from Apollo Client that contains loading, error, and data properties
- * you can use to render your UI.
- *
- * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
- *
- * @example
- * const { data, loading, error } = useGetMetricsTimelineQuery({
- *   variables: {
- *      project_id: // value for 'project_id'
- *      metric_name: // value for 'metric_name'
- *      params: // value for 'params'
- *   },
- * });
- */
-export function useGetMetricsTimelineQuery(
-	baseOptions: Apollo.QueryHookOptions<
-		Types.GetMetricsTimelineQuery,
-		Types.GetMetricsTimelineQueryVariables
-	>,
-) {
-	return Apollo.useQuery<
-		Types.GetMetricsTimelineQuery,
-		Types.GetMetricsTimelineQueryVariables
-	>(GetMetricsTimelineDocument, baseOptions)
-}
-export function useGetMetricsTimelineLazyQuery(
-	baseOptions?: Apollo.LazyQueryHookOptions<
-		Types.GetMetricsTimelineQuery,
-		Types.GetMetricsTimelineQueryVariables
-	>,
-) {
-	return Apollo.useLazyQuery<
-		Types.GetMetricsTimelineQuery,
-		Types.GetMetricsTimelineQueryVariables
-	>(GetMetricsTimelineDocument, baseOptions)
-}
-export type GetMetricsTimelineQueryHookResult = ReturnType<
-	typeof useGetMetricsTimelineQuery
->
-export type GetMetricsTimelineLazyQueryHookResult = ReturnType<
-	typeof useGetMetricsTimelineLazyQuery
->
-export type GetMetricsTimelineQueryResult = Apollo.QueryResult<
-	Types.GetMetricsTimelineQuery,
-	Types.GetMetricsTimelineQueryVariables
 >
 export const GetNetworkHistogramDocument = gql`
 	query GetNetworkHistogram(
@@ -12912,8 +12844,19 @@ export type OnSessionPayloadAppendedSubscriptionResult =
 export const GetWebVitalsDocument = gql`
 	query GetWebVitals($session_secure_id: String!) {
 		web_vitals(session_secure_id: $session_secure_id) {
-			name
-			value
+			buckets {
+				bucket_id
+				bucket_min
+				bucket_max
+				group
+				column
+				metric_type
+				metric_value
+				yhat_lower
+				yhat_upper
+			}
+			bucket_count
+			sample_factor
 		}
 	}
 `
@@ -15063,6 +15006,7 @@ export const GetMetricsDocument = gql`
 		$product_type: ProductType!
 		$project_id: ID!
 		$params: QueryInput!
+		$sql: String
 		$group_by: [String!]!
 		$bucket_by: String!
 		$bucket_count: Int
@@ -15077,6 +15021,7 @@ export const GetMetricsDocument = gql`
 			product_type: $product_type
 			project_id: $project_id
 			params: $params
+			sql: $sql
 			group_by: $group_by
 			bucket_by: $bucket_by
 			bucket_window: $bucket_window
@@ -15091,6 +15036,7 @@ export const GetMetricsDocument = gql`
 				bucket_id
 				bucket_min
 				bucket_max
+				bucket_value
 				group
 				column
 				metric_type
@@ -15119,6 +15065,7 @@ export const GetMetricsDocument = gql`
  *      product_type: // value for 'product_type'
  *      project_id: // value for 'project_id'
  *      params: // value for 'params'
+ *      sql: // value for 'sql'
  *      group_by: // value for 'group_by'
  *      bucket_by: // value for 'bucket_by'
  *      bucket_count: // value for 'bucket_count'
@@ -15187,6 +15134,7 @@ export const GetGraphTemplatesDocument = gql`
 				aggregator
 				column
 			}
+			sql
 		}
 	}
 `
@@ -15276,6 +15224,7 @@ export const GetVisualizationDocument = gql`
 					aggregator
 					column
 				}
+				sql
 			}
 			updatedByAdmin {
 				id
@@ -15384,6 +15333,7 @@ export const GetVisualizationsDocument = gql`
 						aggregator
 						column
 					}
+					sql
 				}
 				updatedByAdmin {
 					id

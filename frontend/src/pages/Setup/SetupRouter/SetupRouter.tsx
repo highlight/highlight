@@ -10,8 +10,9 @@ import {
 	IconSolidDesktopComputer,
 	IconSolidGlobe,
 	IconSolidLogs,
-	IconSolidSparkles,
+	IconSolidMetrics,
 	IconSolidTerminal,
+	IconSolidTraces,
 	IconSolidUserAdd,
 	IconSolidViewGridAdd,
 	Stack,
@@ -44,6 +45,7 @@ import {
 	useServerIntegration,
 	useTeamIntegration,
 	useTracesIntegration,
+	useMetricsIntegration,
 } from '@/util/integrated'
 
 import { AlertsSetup } from './AlertsSetup'
@@ -58,6 +60,7 @@ export const SetupRouter = () => {
 	const serverIntegration = useServerIntegration()
 	const logsIntegration = useLogsIntegration()
 	const tracesIntegration = useTracesIntegration()
+	const metricsIntegration = useMetricsIntegration()
 	const alertsIntegration = useAlertsIntegration()
 	const teamIntegration = useTeamIntegration()
 	const integrationData =
@@ -73,7 +76,9 @@ export const SetupRouter = () => {
 							? teamIntegration
 							: area === 'traces'
 								? tracesIntegration
-								: undefined
+								: area === 'metrics'
+									? metricsIntegration
+									: undefined
 	const { projectId } = useProjectId()
 	const { data } = useGetProjectQuery({ variables: { id: projectId! } })
 	const projectVerboseId = data?.project?.verbose_id
@@ -208,10 +213,33 @@ export const SetupRouter = () => {
 							pr="8"
 						>
 							<Stack direction="row" align="center" gap="4">
-								<IconSolidSparkles />
+								<IconSolidTraces />
 								<Text>Traces</Text>
 							</Stack>
 							{tracesIntegration?.integrated && (
+								<IconSolidCheckCircle />
+							)}
+						</Stack>
+					</NavLink>
+					<NavLink
+						to="metrics"
+						className={({ isActive }) =>
+							clsx(styles.menuItem, {
+								[styles.menuItemActive]: isActive,
+							})
+						}
+					>
+						<Stack
+							direction="row"
+							align="center"
+							justify="space-between"
+							pr="8"
+						>
+							<Stack direction="row" align="center" gap="4">
+								<IconSolidMetrics />
+								<Text>Metrics</Text>
+							</Stack>
+							{metricsIntegration?.integrated && (
 								<IconSolidCheckCircle />
 							)}
 						</Stack>

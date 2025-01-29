@@ -784,6 +784,7 @@ export type Graph = {
 	nullHandling?: Maybe<Scalars['String']>
 	productType: ProductType
 	query: Scalars['String']
+	sql?: Maybe<Scalars['String']>
 	title: Scalars['String']
 	type: Scalars['String']
 }
@@ -804,6 +805,7 @@ export type GraphInput = {
 	nullHandling?: InputMaybe<Scalars['String']>
 	productType: ProductType
 	query: Scalars['String']
+	sql?: InputMaybe<Scalars['String']>
 	title: Scalars['String']
 	type: Scalars['String']
 	visualizationId: Scalars['ID']
@@ -1084,12 +1086,6 @@ export type MatchedErrorTag = {
 	title: Scalars['String']
 }
 
-export type Metric = {
-	__typename?: 'Metric'
-	name: Scalars['String']
-	value: Scalars['Float']
-}
-
 export enum MetricAggregator {
 	Avg = 'Avg',
 	Count = 'Count',
@@ -1108,8 +1104,9 @@ export enum MetricAggregator {
 export type MetricBucket = {
 	__typename?: 'MetricBucket'
 	bucket_id: Scalars['UInt64']
-	bucket_max: Scalars['Float']
-	bucket_min: Scalars['Float']
+	bucket_max?: Maybe<Scalars['Float']>
+	bucket_min?: Maybe<Scalars['Float']>
+	bucket_value?: Maybe<Scalars['Float']>
 	column: Scalars['String']
 	group: Array<Scalars['String']>
 	metric_type: MetricAggregator
@@ -1122,6 +1119,18 @@ export enum MetricBucketBy {
 	Histogram = 'Histogram',
 	None = 'None',
 	Timestamp = 'Timestamp',
+}
+
+export type MetricConnection = Connection & {
+	__typename?: 'MetricConnection'
+	edges: Array<MetricEdge>
+	pageInfo: PageInfo
+}
+
+export type MetricEdge = Edge & {
+	__typename?: 'MetricEdge'
+	cursor: Scalars['String']
+	node: MetricRow
 }
 
 export type MetricExpression = {
@@ -1158,6 +1167,43 @@ export type MetricPreview = {
 	__typename?: 'MetricPreview'
 	date: Scalars['Timestamp']
 	value: Scalars['Float']
+}
+
+export type MetricRow = {
+	__typename?: 'MetricRow'
+	aggregationTemporality: Scalars['Int']
+	attributes: Scalars['Map']
+	exemplars: Array<MetricRowExemplar>
+	flags: Scalars['UInt64']
+	isMonotonic: Scalars['Boolean']
+	metricDescription: Scalars['String']
+	metricName: Scalars['String']
+	metricUnit: Scalars['String']
+	projectID: Scalars['Int']
+	serviceName: Scalars['String']
+	startTimestamp: Scalars['Timestamp']
+	timestamp: Scalars['Timestamp']
+	type: MetricRowType
+	value: Scalars['Float']
+}
+
+export type MetricRowExemplar = {
+	__typename?: 'MetricRowExemplar'
+	attributes: Scalars['Map']
+	secureSessionID: Scalars['String']
+	spanID: Scalars['String']
+	timestamp: Scalars['Timestamp']
+	traceID: Scalars['String']
+	value: Scalars['Float']
+}
+
+export enum MetricRowType {
+	Empty = 'empty',
+	ExponentialHistogram = 'exponentialHistogram',
+	Gauge = 'gauge',
+	Histogram = 'histogram',
+	Sum = 'sum',
+	Summary = 'summary',
 }
 
 export type MetricTagFilter = {
@@ -2158,7 +2204,6 @@ export type Query = {
 	metric_tags: Array<Scalars['String']>
 	metrics: MetricsBuckets
 	metricsIntegration: IntegrationStatus
-	metrics_timeline: Array<Maybe<DashboardPayload>>
 	microsoft_teams_channel_suggestions: Array<MicrosoftTeamsChannel>
 	network_histogram?: Maybe<CategoryHistogramPayload>
 	newUsersCount?: Maybe<NewUsersCount>
@@ -2219,7 +2264,7 @@ export type Query = {
 	vercel_projects: Array<VercelProject>
 	visualization: Visualization
 	visualizations: VisualizationsResponse
-	web_vitals: Array<Metric>
+	web_vitals: MetricsBuckets
 	websocket_events?: Maybe<Array<Maybe<Scalars['Any']>>>
 	workspace?: Maybe<Workspace>
 	workspacePendingInvites: Array<Maybe<WorkspaceInviteLink>>
@@ -2468,6 +2513,7 @@ export type QueryErrors_MetricsArgs = {
 	metric_types?: InputMaybe<Array<MetricAggregator>>
 	params: QueryInput
 	project_id: Scalars['ID']
+	sql?: InputMaybe<Scalars['String']>
 }
 
 export type QueryEvent_Chunk_UrlArgs = {
@@ -2522,6 +2568,7 @@ export type QueryEvents_MetricsArgs = {
 	metric_types?: InputMaybe<Array<MetricAggregator>>
 	params: QueryInput
 	project_id: Scalars['ID']
+	sql?: InputMaybe<Scalars['String']>
 }
 
 export type QueryExisting_Logs_TracesArgs = {
@@ -2699,6 +2746,7 @@ export type QueryLogs_MetricsArgs = {
 	metric_types?: InputMaybe<Array<MetricAggregator>>
 	params: QueryInput
 	project_id: Scalars['ID']
+	sql?: InputMaybe<Scalars['String']>
 }
 
 export type QueryMatch_Error_TagArgs = {
@@ -2737,15 +2785,10 @@ export type QueryMetricsArgs = {
 	prediction_settings?: InputMaybe<PredictionSettings>
 	product_type: ProductType
 	project_id: Scalars['ID']
+	sql?: InputMaybe<Scalars['String']>
 }
 
 export type QueryMetricsIntegrationArgs = {
-	project_id: Scalars['ID']
-}
-
-export type QueryMetrics_TimelineArgs = {
-	metric_name: Scalars['String']
-	params: DashboardParamsInput
 	project_id: Scalars['ID']
 }
 
@@ -2937,6 +2980,7 @@ export type QuerySessions_MetricsArgs = {
 	metric_types?: InputMaybe<Array<MetricAggregator>>
 	params: QueryInput
 	project_id: Scalars['ID']
+	sql?: InputMaybe<Scalars['String']>
 }
 
 export type QuerySlack_Channel_SuggestionArgs = {
@@ -3014,6 +3058,7 @@ export type QueryTraces_MetricsArgs = {
 	metric_types?: InputMaybe<Array<MetricAggregator>>
 	params: QueryInput
 	project_id: Scalars['ID']
+	sql?: InputMaybe<Scalars['String']>
 }
 
 export type QueryTrack_Properties_AlertsArgs = {
@@ -3219,6 +3264,26 @@ export enum ReservedLogKey {
 	SpanId = 'span_id',
 	Timestamp = 'timestamp',
 	TraceId = 'trace_id',
+}
+
+export enum ReservedMetricKey {
+	Count = 'count',
+	Max = 'max',
+	MetricDescription = 'metric_description',
+	MetricName = 'metric_name',
+	MetricUnit = 'metric_unit',
+	Min = 'min',
+	RetentionDays = 'retention_days',
+	SecureSessionId = 'secure_session_id',
+	ServiceName = 'service_name',
+	ServiceVersion = 'service_version',
+	SpanId = 'span_id',
+	StartTimestamp = 'start_timestamp',
+	Sum = 'sum',
+	Timestamp = 'timestamp',
+	TraceId = 'trace_id',
+	Type = 'type',
+	Value = 'value',
 }
 
 export enum ReservedSessionKey {

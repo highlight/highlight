@@ -53,7 +53,7 @@ func (l *Log) GetMessageMap() map[string]string {
 	result := make(map[string]string)
 	if m, ok := l.Message.(map[string]interface{}); ok {
 		for k, v := range m {
-			for kp, vp := range FormatLogAttributes(k, v) {
+			for kp, vp := range FormatAttributes(k, v) {
 				result[kp] = vp
 			}
 		}
@@ -150,7 +150,7 @@ func submitVercelLog(ctx context.Context, tracer trace.Tracer, projectID int, se
 	if bytes, err := json.Marshal(&log); err == nil {
 		logMap := map[string]interface{}{}
 		if err := json.Unmarshal(bytes, &logMap); err == nil {
-			for k, v := range FormatLogAttributes("vercel", logMap) {
+			for k, v := range FormatAttributes("vercel", logMap) {
 				if !reservedVercelLogAttributes[k] && v != "" {
 					attrs = append(attrs, attribute.String(k, v))
 				}
@@ -238,13 +238,14 @@ func SubmitHTTPLog(ctx context.Context, tracer trace.Tracer, projectID int, lg L
 // parenKeySyntax matches a parenthesis pattern, i.e. `cs(Referrer)`
 var parenKeySyntax = regexp.MustCompile(`(.+)\((.+)\)`)
 
-func formatLogAttributes(k string, v interface{}, depth uint8) map[string]string {
+func formatAttributes(k string, v interface{}, depth uint8) map[string]string {
 	if depth >= MaxLogAttributesDepth {
 		return nil
 	}
 	if strings.Contains(k, "(") {
 		k = parenKeySyntax.ReplaceAllString(k, "$1.$2")
 	}
+	k = strings.ReplaceAll(k, " ", "_")
 	if vStr, ok := v.(string); ok {
 		if len(vStr) > LogAttributeValueLengthLimit {
 			vStr = vStr[:LogAttributeValueLengthLimit] + "..."
@@ -261,7 +262,7 @@ func formatLogAttributes(k string, v interface{}, depth uint8) map[string]string
 		m := make(map[string]string)
 		for idx, sliceV := range vSlice {
 			sliceKey := fmt.Sprintf("%s.%d", k, idx)
-			for k2, v2 := range formatLogAttributes(sliceKey, sliceV, depth+1) {
+			for k2, v2 := range formatAttributes(sliceKey, sliceV, depth+1) {
 				m[k2] = v2
 			}
 		}
@@ -270,7 +271,7 @@ func formatLogAttributes(k string, v interface{}, depth uint8) map[string]string
 	if vMap, ok := v.(map[string]interface{}); ok && len(vMap) > 0 {
 		m := make(map[string]string)
 		for mapKey, mapV := range vMap {
-			for k2, v2 := range formatLogAttributes(mapKey, mapV, depth+1) {
+			for k2, v2 := range formatAttributes(mapKey, mapV, depth+1) {
 				m[fmt.Sprintf("%s.%s", k, k2)] = v2
 			}
 		}
@@ -279,6 +280,6 @@ func formatLogAttributes(k string, v interface{}, depth uint8) map[string]string
 	return nil
 }
 
-func FormatLogAttributes(k string, v interface{}) map[string]string {
-	return formatLogAttributes(k, v, 0)
+func FormatAttributes(k string, v interface{}) map[string]string {
+	return formatAttributes(k, v, 0)
 }

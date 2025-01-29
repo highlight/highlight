@@ -10,6 +10,7 @@ import (
 	"testing"
 	"time"
 
+	golang_lru "github.com/hashicorp/golang-lru/v2"
 	"github.com/highlight-run/highlight/backend/clickhouse"
 	"github.com/highlight-run/highlight/backend/integrations"
 	kafka_queue "github.com/highlight-run/highlight/backend/kafka-queue"
@@ -89,6 +90,11 @@ func TestMain(m *testing.M) {
 	}
 
 	redisClient := redis.NewClient()
+	sessionCache, err := golang_lru.New[string, *model.Session](100)
+	if err != nil {
+		testLogger.Error(e.Wrap(err, "error creating session lru"))
+	}
+
 	resolver = &Resolver{
 		DB:                   db,
 		Redis:                redisClient,
@@ -101,6 +107,7 @@ func TestMain(m *testing.M) {
 		MetricSumQueue:       &kafka_queue.MockMessageQueue{},
 		MetricSummaryQueue:   &kafka_queue.MockMessageQueue{},
 		MetricHistogramQueue: &kafka_queue.MockMessageQueue{},
+		SessionCache:         sessionCache,
 	}
 	code := m.Run()
 	os.Exit(code)
@@ -213,10 +220,9 @@ func TestHandleErrorAndGroup(t *testing.T) {
 			},
 			expectedErrorGroups: []model.ErrorGroup{
 				{
-					Event:        "error",
-					ProjectID:    projectID,
-					State:        privateModel.ErrorStateOpen,
-					Environments: `{"dev":2}`,
+					Event:     "error",
+					ProjectID: projectID,
+					State:     privateModel.ErrorStateOpen,
 				},
 			},
 			withEmbeddings: false,
@@ -240,10 +246,9 @@ func TestHandleErrorAndGroup(t *testing.T) {
 			},
 			expectedErrorGroups: []model.ErrorGroup{
 				{
-					Event:        "error",
-					ProjectID:    projectID,
-					State:        privateModel.ErrorStateOpen,
-					Environments: `{"dev":1,"prod":1}`,
+					Event:     "error",
+					ProjectID: projectID,
+					State:     privateModel.ErrorStateOpen,
 				},
 			},
 		},
@@ -265,10 +270,9 @@ func TestHandleErrorAndGroup(t *testing.T) {
 			},
 			expectedErrorGroups: []model.ErrorGroup{
 				{
-					Event:        "error",
-					ProjectID:    projectID,
-					State:        privateModel.ErrorStateOpen,
-					Environments: `{"dev":1}`,
+					Event:     "error",
+					ProjectID: projectID,
+					State:     privateModel.ErrorStateOpen,
 				},
 			},
 		},
@@ -289,11 +293,10 @@ func TestHandleErrorAndGroup(t *testing.T) {
 			},
 			expectedErrorGroups: []model.ErrorGroup{
 				{
-					Event:        "error",
-					ProjectID:    projectID,
-					StackTrace:   shortTraceStr,
-					State:        privateModel.ErrorStateOpen,
-					Environments: `{}`,
+					Event:      "error",
+					ProjectID:  projectID,
+					StackTrace: shortTraceStr,
+					State:      privateModel.ErrorStateOpen,
 				},
 			},
 		},
@@ -314,11 +317,10 @@ func TestHandleErrorAndGroup(t *testing.T) {
 			},
 			expectedErrorGroups: []model.ErrorGroup{
 				{
-					Event:        "error",
-					ProjectID:    projectID,
-					StackTrace:   longTraceStr,
-					Environments: `{}`,
-					State:        privateModel.ErrorStateOpen,
+					Event:      "error",
+					ProjectID:  projectID,
+					StackTrace: longTraceStr,
+					State:      privateModel.ErrorStateOpen,
 				},
 			},
 		},

@@ -1,158 +1,59 @@
-import LoadingBox from '@components/LoadingBox'
-import { Box, Text } from '@highlight-run/ui/components'
-import SvgActivityIcon from '@icons/ActivityIcon'
-import SvgCarDashboardIcon from '@icons/CarDashboardIcon'
-import SvgTimerIcon from '@icons/TimerIcon'
-import { TIMESTAMP_KEY } from '@pages/Graphing/components/Graph'
-import { LineChart } from '@pages/Graphing/components/LineChart'
+import { Box } from '@highlight-run/ui/components'
+import Graph, { TIMESTAMP_KEY } from '@pages/Graphing/components/Graph'
 import { useReplayerContext } from '@pages/Player/ReplayerContext'
 import React from 'react'
 
-import * as styles from './style.css'
+import { useParams } from '@util/react-router/useParams'
+import { MetricAggregator, ProductType } from '@/graph/generated/schemas'
+import { useGraphData } from '@pages/Graphing/hooks/useGraphData'
+import { GraphContextProvider } from '@/pages/Graphing/context/GraphContext'
 
-type Props = {
-	time: number
-}
+const PerformanceGraph = React.memo(
+	({ metricName, title }: { metricName: string; title: string }) => {
+		const { session, sessionMetadata } = useReplayerContext()
+		const { project_id } = useParams<{ project_id: string }>()
+		return (
+			<Box width="full" height="full" p="16">
+				<Graph
+					projectId={project_id!}
+					productType={ProductType.Metrics}
+					query={`secure_session_id=${session?.secure_id} AND metric_name=${metricName}`}
+					startDate={new Date(sessionMetadata.startTime)}
+					endDate={new Date(sessionMetadata.endTime)}
+					groupByKeys={['metric_name']}
+					bucketByKey={TIMESTAMP_KEY}
+					bucketCount={60}
+					limit={1_000}
+					title={title}
+					expressions={[
+						{ aggregator: MetricAggregator.Avg, column: 'value' },
+					]}
+					viewConfig={{
+						type: 'Line chart',
+						display: 'Line',
+						showLegend: false,
+						nullHandling: 'Connected',
+					}}
+					syncId="session"
+				/>
+			</Box>
+		)
+	},
+)
 
-interface PerformanceData {
-	timestamp: number
-	jank: {
-		amount?: number
-		selector?: string
-		newLocation?: string
-	}
-	fps?: number
-	memoryUsagePercent?: number
-}
-
-const PerformancePage = React.memo(({}: Props) => {
-	const { performancePayloads, jankPayloads, eventsForTimelineIndicator } =
-		useReplayerContext()
-
-	const performanceData: PerformanceData[] = performancePayloads.map(
-		(payload) => {
-			return {
-				timestamp: payload.relativeTimestamp * 1000,
-				fps: payload.fps,
-				jank: {},
-				memoryUsagePercent:
-					payload.usedJSHeapSize / payload.jsHeapSizeLimit,
-			}
-		},
-	)
-	performanceData.push(
-		...jankPayloads.map((j) => {
-			const perf = performanceData.find(
-				(p) => p.timestamp >= j.relativeTimestamp * 1000,
-			)
-			return {
-				timestamp: j.relativeTimestamp * 1000,
-				jank: {
-					amount: j.jankAmount,
-					selector: j.querySelector,
-					newLocation: j.newLocation,
-				},
-				fps: perf?.fps,
-				memoryUsagePercent: perf?.memoryUsagePercent,
-			}
-		}),
-	)
-	performanceData.sort((a, b) => a.timestamp - b.timestamp)
-
-	const isLoading =
-		eventsForTimelineIndicator.length === 0 &&
-		performancePayloads.length === 0
-	const hasNoPerformancePayloads =
-		eventsForTimelineIndicator.length > 0 &&
-		performancePayloads.length === 0
-
+const PerformancePage = React.memo(() => {
+	const graphContext = useGraphData()
 	return (
-		<div className={styles.container}>
-			{isLoading && <LoadingBox />}
-			{hasNoPerformancePayloads && (
-				<div className={styles.emptyContainer}>
-					<div className={styles.messageContainer}>
-						<Text>This session has no performance data.</Text>
-					</div>
-				</div>
-			)}
-			{!isLoading &&
-				[
-					{
-						key: 'fps' as keyof PerformanceData,
-						strokeColor: 'var(--color-green-700)',
-						fillColor: 'var(--color-green-400)',
-						yAxisLabel: 'Frames per Second',
-						tooltipIcon: <SvgTimerIcon />,
-						chartLabel: 'Frames Per Second',
-						helpLink:
-							'https://developer.mozilla.org/en-US/docs/Web/Performance/Animation_performance_and_frame_rate',
-					},
-					{
-						key: 'memoryUsagePercent' as keyof PerformanceData,
-						strokeColor: 'var(--color-blue-700)',
-						fillColor: 'var(--color-blue-400)',
-						yAxisTickFormatter: (tickItem: number) =>
-							`${(tickItem * 100).toFixed(0)}%`,
-						yAxisLabel: 'Memory Used',
-						tooltipIcon: <SvgCarDashboardIcon />,
-						chartLabel: 'Device Memory',
-						helpLink:
-							'https://developer.mozilla.org/en-US/docs/Web/API/Performance/memory',
-					},
-					{
-						key: 'jank' as keyof PerformanceData,
-						yAxisTickFormatter: (tickItem: number | string) =>
-							typeof tickItem === 'number'
-								? `${tickItem.toFixed(0)} ms`
-								: `${tickItem}`,
-						strokeColor: 'var(--color-purple-700)',
-						fillColor: 'var(--color-purple-400)',
-						yAxisLabel: 'ms',
-						noTooltipLabel: true,
-						tooltipIcon: <SvgActivityIcon />,
-						chartLabel: 'Jank',
-						helpLink:
-							'https://developer.mozilla.org/en-US/docs/Glossary/Jank',
-					},
-				].map(({ key, strokeColor, yAxisLabel }, idx) => {
-					const data = performanceData.map((b) => ({
-						[TIMESTAMP_KEY]: b.timestamp,
-						[key]: b[key],
-					}))
-
-					const hasData = data.some((data: any) => !isNaN(data[key]))
-					if (data.length === 0 || !hasData) {
-						return null
-					}
-
-					return (
-						<Box
-							key={key}
-							width="full"
-							my={idx === 0 ? undefined : '32'}
-							px="16"
-							style={{ height: 60 }}
-						>
-							<Box position="relative" my="8" px="28">
-								<Text lines="1" color="n8" align="left">
-									{yAxisLabel || '<empty>'}
-								</Text>
-							</Box>
-							<LineChart
-								data={data}
-								xAxisMetric={TIMESTAMP_KEY}
-								strokeColors={[strokeColor]}
-								viewConfig={{
-									type: 'Line chart',
-									display: 'Stacked area',
-									showLegend: true,
-								}}
-							/>
-						</Box>
-					)
-				})}
-		</div>
+		<GraphContextProvider value={graphContext}>
+			<Box width="full" height="full" display="flex">
+				<PerformanceGraph
+					metricName="usedJSHeapSize"
+					title="Browser Memory Usage"
+				/>
+				<PerformanceGraph metricName="fps" title="Render FPS" />
+				<PerformanceGraph metricName="Jank" title="Render Jank" />
+			</Box>
+		</GraphContextProvider>
 	)
 })
 

@@ -207,7 +207,7 @@ func extractFields(ctx context.Context, params extractFieldsParams) (*extractedF
 	}
 
 	for k, v := range originalAttrs {
-		for key, value := range hlog.FormatLogAttributes(k, v) {
+		for key, value := range hlog.FormatAttributes(k, v) {
 			if v != "" {
 				fields.attrs[key] = value
 			}
@@ -224,6 +224,11 @@ func extractFields(ctx context.Context, params extractFieldsParams) (*extractedF
 	if val, ok := fields.attrs[highlight.DeprecatedProjectIDAttribute]; ok {
 		fields.projectID = val
 		delete(fields.attrs, highlight.DeprecatedProjectIDAttribute)
+	}
+
+	if val, ok := fields.attrs[highlight.ProjectIDHeader]; ok {
+		fields.projectID = val
+		delete(fields.attrs, highlight.ProjectIDHeader)
 	}
 
 	if val, ok := fields.attrs[highlight.ProjectIDAttribute]; ok {

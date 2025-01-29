@@ -69,7 +69,7 @@
 		"frontend:start": "yarn dev:frontend",
 		"g": "yarn generate",
 		"generate": "hygen",
-		"lint": "yarn run turbo lint --filter=!rrweb --filter=!@rrweb/types --filter=!rrweb-snapshot --filter=!rrweb-player --filter=!rrdom --filter=!rrdom-nodejs",
+		"lint": "yarn run turbo lint --filter=!rrweb --filter=!@rrweb/types --filter=!rrweb-snapshot --filter=!rrweb-player --filter=!rrdom --filter=!rrdom-nodejs --filter=!react-native",
 		"prepare": "husky",
 		"preinstall": "git submodule update --init --recursive || true",
 		"validate": "yarn workspace scripts validate:client",

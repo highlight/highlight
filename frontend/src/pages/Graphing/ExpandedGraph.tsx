@@ -163,6 +163,7 @@ export const ExpandedGraph = () => {
 									startDate={startDate}
 									endDate={endDate}
 									query={g.query}
+									sql={g.sql ?? undefined}
 									bucketByKey={g.bucketByKey ?? undefined}
 									bucketByWindow={
 										g.bucketInterval ?? undefined

@@ -89,6 +89,7 @@ import { RubyOtherTracesContent } from './traces/ruby/other'
 import { RustTracesContent } from './traces/rust'
 import { AWSLambdaContent } from './traces/serverless/lambda'
 import { JSHonoContent } from './backend/js/hono'
+import { ReactNativeContent } from './mobile/react-native'
 
 export type QuickStartOptions = {
 	title: string
@@ -183,6 +184,7 @@ export enum QuickStartType {
 	HostingFlyIO = 'fly-io',
 	HostingRender = 'render',
 	HostingHeroku = 'heroku',
+	ReactNative = 'react-native',
 	OTLP = 'otlp',
 	OTLPDotNet = 'dot-net',
 	OTLPDotNet4 = 'dot-net-4',
@@ -488,6 +490,26 @@ export const quickStartContent = {
 			[QuickStartType.RubyRails]: RubyRailsTracesContent,
 			[QuickStartType.RubyOther]: RubyOtherTracesContent,
 		},
+	},
+	metrics: {
+		title: 'Select your language',
+		subtitle:
+			'Metrics are supported with the Highlight SDKs or via the OpenTelemetry protocol (OTLP).',
+		dotnet: {
+			title: 'C# .NET',
+			subtitle: 'ASP C# .NET Applications',
+			logoUrl: siteUrl('/images/quickstart/dotnet.svg'),
+			[QuickStartType.OTLPDotNet]: DotNetOTLPTracingContent,
+			[QuickStartType.OTLPDotNet4]: DotNet4OTLPTracingContent,
+		},
+		otlp: {
+			title: 'OpenTelemetry',
+			subtitle: 'OpenTelemetry Protocol (OTLP)',
+			[QuickStartType.OTLP]: OTLPTracesContent,
+		},
+	},
+	mobile: {
+		[QuickStartType.ReactNative]: ReactNativeContent,
 	},
 	other: {
 		[QuickStartType.SelfHost]: SelfHostContent,

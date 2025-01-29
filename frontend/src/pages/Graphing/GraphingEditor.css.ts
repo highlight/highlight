@@ -36,3 +36,26 @@ export const graphWrapper = style({
 export const tagSwitch = style({
 	width: '100%',
 })
+
+export const editorHeader = style({
+	display: 'flex',
+	justifyContent: 'space-between',
+	width: '100%',
+	borderBottom: vars.border.divider,
+	padding: '6px',
+})
+
+export const editorSelect = style({
+	width: 'fit-content',
+})
+
+export const editorSection = style({
+	border: vars.border.divider,
+	borderRadius: vars.borderRadius[6],
+})
+
+export const sqlEditorWrapper = style({
+	backgroundColor: vars.theme.static.surface.nested,
+	borderBottomLeftRadius: vars.borderRadius[6],
+	borderBottomRightRadius: vars.borderRadius[6],
+})

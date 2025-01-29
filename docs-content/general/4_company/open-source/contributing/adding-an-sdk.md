@@ -83,7 +83,7 @@ const log = (level: string, message: string) => {
 log('info', 'hello, world!')
 ```
 
-See the OpenTelemetry [getting started guide](../../../../getting-started/7_native-opentelemetry/4_tracing.md) as well for more details.
+See the OpenTelemetry [getting started guide](../../../../getting-started/8_native-opentelemetry/4_tracing.md) as well for more details.
 
 ## Recording an Error
 

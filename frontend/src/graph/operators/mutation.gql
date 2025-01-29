@@ -1459,6 +1459,7 @@ mutation UpsertGraph($graph: GraphInput!) {
 			aggregator
 			column
 		}
+		sql
 	}
 }
 

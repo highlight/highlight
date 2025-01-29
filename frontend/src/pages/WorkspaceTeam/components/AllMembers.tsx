@@ -182,7 +182,7 @@ export const RoleOptions: Option[] = [
 	},
 ]
 
-const GRID_COLUMNS = ['3fr', '2fr', '1fr', '30px']
+const GRID_COLUMNS = ['3fr', '3fr', 'auto', '1fr', '30px']
 
 const DISABLED_REASON_NOT_ADMIN =
 	'You must have Admin role to update user access.'
@@ -260,6 +260,7 @@ const AllMembers = ({
 			<Table.Head>
 				<Table.Row gridColumns={GRID_COLUMNS}>
 					<Table.Header>User</Table.Header>
+					<Table.Header>Email</Table.Header>
 					<Table.Header>Project Access</Table.Header>
 					<Table.Header>Role</Table.Header>
 					<Table.Header></Table.Header>
@@ -304,22 +305,26 @@ const AllMembers = ({
 										}}
 									/>
 									<Stack gap="4">
-										<Tooltip
-											delayed
-											trigger={
-												<Text color="default" lines="1">
-													{admin.name
-														? admin.name
-														: getDisplayNameFromEmail(
-																admin.email,
-															)}{' '}
-													{isSelf && '(You)'}
-												</Text>
-											}
-										>
-											{admin.email}
-										</Tooltip>
+										<Text color="default" lines="1">
+											{admin.name
+												? admin.name
+												: getDisplayNameFromEmail(
+														admin.email,
+													)}{' '}
+											{isSelf && '(You)'}
+										</Text>
 									</Stack>
+								</Stack>
+							</Table.Cell>
+							<Table.Cell>
+								<Stack
+									direction="row"
+									gap="6"
+									alignItems="center"
+								>
+									<Text color="default" lines="1">
+										{admin.email}
+									</Text>
 								</Stack>
 							</Table.Cell>
 							<Table.Cell padding="0">
