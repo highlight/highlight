@@ -7,11 +7,15 @@ import { Typography } from '../../components/common/Typography/Typography'
 import { LOCAL_STORAGE_KEY } from './signup'
 import ReactMarkdown from 'react-markdown'
 import rehypeRaw from 'rehype-raw'
+import { promises as fs } from 'fs'
+import path from 'path'
+import matter from 'gray-matter'
 
 type CourseVideo = {
 	id: string | undefined
 	title: string
 	description: string
+	order: number
 }
 
 type CourseVideoProgress = {
@@ -22,79 +26,43 @@ type CourseVideoProgress = {
 
 const PROGRESS_STORAGE_KEY = 'otel_course_progress'
 
-const COURSE_VIDEOS: CourseVideo[] = [
-	{
-		id: '_FGwkiR_XFM',
-		title: 'Introduction to Observability and OpenTelemetry',
-		description:
-			'Overview of Observability and the importance of monitoring. Introduces OpenTelemetry as a unified standard for distributed tracing, metrics, and logging.',
-	},
-	{
-		id: 'biloVamYVVA',
-		title: 'Architecture and Components of OpenTelemetry',
-		description: `Covers OpenTelemetry's core components and architecture, including the SDK, API, and the role of the OpenTelemetry Collector in the observability pipeline.`,
-	},
-	{
-		id: 'G9yadsMgzu0',
-		title: 'Setting up the Collector',
-		description:
-			'Learn how to set up the OpenTelemetry Collector to receive and process telemetry data from your applications.',
-	},
-	{
-		id: 'G9yadsMgzuasd0',
-		title: 'OpenTelemetry Logging',
-		description: `
-Learn about structured logging and how to integrate logging with OpenTelemetry, collecting and exporting logs to various backend systems for analysis.
+export async function getStaticProps() {
+	const contentDirectory = path.join(
+		process.cwd(),
+		'pages/otel-course/content',
+	)
+	const files = await fs.readdir(contentDirectory)
 
-<iframe src="https://codesandbox.io/embed/g2k8zm?view=editor+%2B+preview&module=%2Fsrc%2Findex.mjs&hidenavigation=1&expanddevtools=1"
-style="width:100%; height: 500px; border:0; border-radius: 4px; overflow:hidden;"
-title="opentelemetry-logs-console-exporter"
-allow="accelerometer; ambient-light-sensor; camera; encrypted-media; geolocation; gyroscope; hid; microphone; midi; payment; usb; vr; xr-spatial-tracking"
-sandbox="allow-forms allow-modals allow-popups allow-presentation allow-same-origin allow-scripts"
-></iframe>
+	const courseVideos = await Promise.all(
+		files.map(async (filename) => {
+			const filePath = path.join(contentDirectory, filename)
+			const fileContents = await fs.readFile(filePath, 'utf8')
+			const { data, content } = matter(fileContents)
 
-Another paragraph.
-			`,
-	},
-	{
-		id: undefined,
-		title: 'OpenTelemetry Tracing',
-		description:
-			'Introduction to distributed tracing with OpenTelemetry. Learn how to instrument applications for tracing across different languages, and how to export trace data to observability platforms.',
-	},
-	{
-		id: undefined,
-		title: 'OpenTelemetry Metrics',
-		description:
-			'Focuses on metrics collection and exporting, explaining different types of metrics (counters, gauges, histograms) and how to use OpenTelemetry to monitor application performance.',
-	},
-	{
-		id: undefined,
-		title: 'OpenTelemetry Collector and Processors',
-		description:
-			'A deep dive into the OpenTelemetry Collector, its setup, and how to configure processors and exporters to tailor data pipelines for different observability needs.',
-	},
-	{
-		id: undefined,
-		title: 'OpenTelemetry in Real-world Scenarios',
-		description:
-			'Explore practical examples of OpenTelemetry in action within microservices, cloud environments (AWS, Google Cloud, Azure), and Kubernetes, showcasing real-world use cases.',
-	},
-	{
-		id: undefined,
-		title: 'Best Practices and Performance Considerations',
-		description:
-			'Guidelines for performance optimization when using OpenTelemetry, avoiding overhead, and securing data collection pipelines to maintain privacy and compliance.',
-	},
-	{
-		id: undefined,
-		title: 'Advanced Topics and the Future of OpenTelemetry',
-		description:
-			'Explore advanced custom instrumentation, monitoring for AI/ML applications, and the future trends of OpenTelemetry in observability and beyond.',
-	},
-]
+			return {
+				id: data.id,
+				title: data.title,
+				description: content.trim(),
+				order: data.order,
+			}
+		}),
+	)
 
-export default function OTelCourse() {
+	// Sort by order
+	courseVideos.sort((a, b) => a.order - b.order)
+
+	return {
+		props: {
+			courseVideos,
+		},
+	}
+}
+
+export default function OTelCourse({
+	courseVideos,
+}: {
+	courseVideos: CourseVideo[]
+}) {
 	const [isAuthorized, setIsAuthorized] = useState(false)
 	const [currentVideo, setCurrentVideo] = useState<CourseVideo['id']>()
 	const [videoProgressData, setVideoProgressData] = useState<
@@ -155,13 +123,13 @@ export default function OTelCourse() {
 		setVideoProgressData(
 			storedProgressJson && storedProgressJson.length > 0
 				? storedProgressJson
-				: COURSE_VIDEOS.map((video) => ({
+				: courseVideos.map((video) => ({
 						videoId: video.id,
 						progress: 0,
 						started: false,
 					})),
 		)
-	}, [])
+	}, [courseVideos])
 
 	useEffect(() => {
 		const signedup = new URLSearchParams(window.location.search).get(
@@ -183,10 +151,10 @@ export default function OTelCourse() {
 
 	useEffect(() => {
 		console.log(
-			COURSE_VIDEOS.find((video) => video.id === currentVideo)
+			courseVideos.find((video) => video.id === currentVideo)
 				?.description ?? '',
 		)
-	}, [currentVideo])
+	}, [currentVideo, courseVideos])
 
 	const initializePlayer = (videoId: string | undefined) => {
 		if (!videoId) return
@@ -326,7 +294,7 @@ export default function OTelCourse() {
 						</Typography>
 					</div>
 					<nav className="px-4 space-y-1">
-						{COURSE_VIDEOS.map((video, videoIndex) => {
+						{courseVideos.map((video, videoIndex) => {
 							const progress = findVideoProgress(video.id)
 							return (
 								<button
@@ -389,9 +357,9 @@ export default function OTelCourse() {
 										<button
 											className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition-colors"
 											onClick={() => {
-												if (COURSE_VIDEOS[0].id) {
+												if (courseVideos[0].id) {
 													handleVideoClick(
-														COURSE_VIDEOS[0].id,
+														courseVideos[0].id,
 													)
 												}
 											}}
@@ -411,7 +379,7 @@ export default function OTelCourse() {
 									className="text-2xl font-bold text-gray-900 mb-2"
 								>
 									{
-										COURSE_VIDEOS.find(
+										courseVideos.find(
 											(video) =>
 												video.id === currentVideo,
 										)?.title
@@ -427,7 +395,7 @@ export default function OTelCourse() {
 										// Required for iframes to render
 										rehypePlugins={[rehypeRaw as any]}
 									>
-										{COURSE_VIDEOS.find(
+										{courseVideos.find(
 											(video) =>
 												video.id === currentVideo,
 										)?.description ?? ''}

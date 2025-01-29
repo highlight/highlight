@@ -1,6 +1,6 @@
 === Highlight.io Session Recording ===
 Contributors: highlightio
-Tags: session recording, analytics, error monitoring
+Tags: session recording, analytics, monitoring
 Requires at least: 5.0
 Tested up to: 6.7
 Stable tag: 1.0.0
@@ -118,11 +118,7 @@ To package the plugin for distribution in the WordPress plugin directory, we use
 2. Run the following command:
 
 ```sh
-# if using yarn
 yarn build:wordpress
-
-# if using npm
-npm run build:wordpress
 ```
 
 3. The script will create a zip file named `highlight-wordpress.zip` in the `sdk/highlight-wordpress` directory.
@@ -140,3 +136,6 @@ Initial release of the Highlight.io WordPress Plugin.
 = How can I contribute to the plugin's development? =
 
 We welcome contributions! Please refer to the "Development" section in this readme for information on how to get started. Make sure to follow WordPress coding standards and thoroughly test your changes before submitting a pull request.
+
+== Screenshots ==
+
