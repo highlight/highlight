@@ -67,7 +67,7 @@ export const FIREBASE_CALLBACK_ROUTE = '/auth/action'
 export const VERIFY_EMAIL_ROUTE = '/verify_email'
 export const ABOUT_YOU_ROUTE = '/about_you'
 export const INVITE_TEAM_ROUTE = '/invite_team'
-export const SETUP_ROUTE = '/setup'
+export const SETUP_ROUTE = '/connect'
 
 // DebugRoutes is a helper for debugging react router navigation.
 // Enable debug logging by setting the localStorage variable `highlight-verbose-logging-enabled` to true.
@@ -93,11 +93,6 @@ const DebugRoutes: React.FC<React.PropsWithChildren> = ({ children }) => {
 	return <>{children}</>
 }
 
-const isValidLastVisitedRoute = (route: string) => {
-	// match routes like /1/sessions, /1/errors, /1/logs, /1/traces
-	return /^\/\d+\/(sessions|errors|logs|traces)/.test(route)
-}
-
 export const AppRouter = () => {
 	const { admin, isLoggedIn, isAuthLoading, isHighlightAdmin } =
 		useAuthContext()
@@ -120,30 +115,12 @@ export const AppRouter = () => {
 	const isNewWorkspacePage = !!newProjectMatch
 	const isJoinWorkspacePage = !!joinWorkspaceMatch
 	const [inviteCode, setInviteCode] = useLocalStorage('highlightInviteCode')
-	const [lastVisitedRoute, setLastVisitedRoute] =
-		useLocalStorage('lastVisitedRoute')
 	const { projectId } = useNumericProjectId(previousLocation)
 	const [nextParam] = useQueryParam('next', StringParam)
 	const [configurationIdParam] = useQueryParam('configurationId', StringParam)
 	const isVercelIntegrationFlow = !!nextParam || !!configurationIdParam
 	const navigate = useNavigate()
 	const isValidProjectId = Number.isInteger(Number(projectId))
-
-	useEffect(() => {
-		if (isValidLastVisitedRoute(location.pathname)) {
-			// can be /sessions, /errors, /logs, /traces
-			const routeType = location.pathname.split('/')[2]
-
-			// get the route like /1/sessions, /1/errors, /1/logs, /1/traces
-			const indexOfRouteType = location.pathname.indexOf(routeType)
-			const route = location.pathname.slice(
-				0,
-				indexOfRouteType + routeType.length,
-			)
-
-			setLastVisitedRoute(route)
-		}
-	}, [location.pathname, setLastVisitedRoute])
 
 	const { data, loading } = useGetDropdownOptionsQuery({
 		skip: !isLoggedIn,
@@ -201,15 +178,6 @@ export const AppRouter = () => {
 			return
 		}
 
-		if (
-			lastVisitedRoute &&
-			isValidLastVisitedRoute(lastVisitedRoute) &&
-			location.pathname === '/'
-		) {
-			navigate(lastVisitedRoute, { replace: true })
-			return
-		}
-
 		// Redirects from `DEMO_PROJECT_ID/*` to `demo/*` so that we can keep the
 		// demo URL schema consistent even if the project changes.
 		const pathSegments = location.pathname.split('/').filter(Boolean)
@@ -233,7 +201,6 @@ export const AppRouter = () => {
 		location.pathname,
 		location.search,
 		isFirebasePage,
-		lastVisitedRoute,
 	])
 
 	useEffect(() => {

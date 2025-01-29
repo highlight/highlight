@@ -318,6 +318,16 @@ export type EditProjectSettingsMutation = { __typename?: 'Mutation' } & {
 	>
 }
 
+export type EditProjectPlatformsMutationVariables = Types.Exact<{
+	projectId: Types.Scalars['ID']
+	platforms?: Types.Maybe<Types.Scalars['StringArray']>
+}>
+
+export type EditProjectPlatformsMutation = { __typename?: 'Mutation' } & Pick<
+	Types.Mutation,
+	'editProjectPlatforms'
+>
+
 export type DeleteProjectMutationVariables = Types.Exact<{
 	id: Types.Scalars['ID']
 }>
@@ -5602,6 +5612,7 @@ export const namedOperations = {
 		CreateWorkspace: 'CreateWorkspace' as const,
 		EditProject: 'EditProject' as const,
 		EditProjectSettings: 'EditProjectSettings' as const,
+		EditProjectPlatforms: 'EditProjectPlatforms' as const,
 		DeleteProject: 'DeleteProject' as const,
 		EditWorkspace: 'EditWorkspace' as const,
 		EditWorkspaceSettings: 'EditWorkspaceSettings' as const,

@@ -8021,12 +8021,24 @@ body {
 .hgp31e0 .ant-modal-body {
   padding: 0;
 }
-._1t72qig0 {
+._10okd9v0 {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 10px;
+  padding: 8px;
+}
+._10okd9v1 {
+  border: var(--_1pyqka91o) solid 1px;
+  border-radius: 4px;
+  display: flex;
+  padding: 1px;
+}
+.wxpajd0 {
   position: absolute;
   right: 0;
   top: -6px;
 }
-._1t72qig1 {
+.wxpajd1 {
   background-color: var(--_1pyqka92);
   border: var(--_1pyqka9k) solid 1px;
   border-radius: 6px;
@@ -8034,77 +8046,14 @@ body {
   padding: 0;
   position: relative;
 }
-._1t72qig1 code {
+.wxpajd1 code {
   padding-bottom: 8px !important;
   padding-top: 8px !important;
 }
-@keyframes bva4e60 {
-  0% {
-    transform: rotate(0deg);
-  }
-  100% {
-    transform: rotate(360deg);
-  }
-}
-.bva4e61 {
-  animation: 1s bva4e60 linear infinite;
-}
-.bva4e62 {
-  border-top-right-radius: 0;
-  border-bottom-right-radius: 0;
-}
-.bva4e63 {
-  border-top-left-radius: 0;
-  border-bottom-left-radius: 0;
-}
-.u1xyjd0 {
-  border-radius: 4px;
-  color: var(--_1pyqka9y);
-  cursor: pointer;
-  padding: 12px 8px;
-  width: 325px;
-}
-.u1xyjd0:hover {
-  background-color: var(--_1pyqka91x);
-  color: var(--_1pyqka9w);
-}
-.u1xyjd1 {
-  background-color: var(--_1pyqka91y);
-  color: var(--_1pyqka9w);
-}
-.u1xyjd2 {
-  background-color: var(--_1pyqka91z);
-  color: var(--_1pyqka9x);
-  cursor: not-allowed;
-}
-.u1xyjd2:hover {
-  background-color: var(--_1pyqka91z);
-  color: var(--_1pyqka9x);
-}
-.u1xyjd3 {
-  align-items: center;
-  display: flex;
-  flex-direction: row;
-  gap: 4px;
-  padding: 8px;
-}
-.u1xyjd4 {
-  align-items: center;
-  border: var(--_1pyqka9k) solid 1px;
-  border-radius: 6px;
-  display: flex;
-  height: 36px;
-  margin-bottom: 6px;
-  justify-content: space-between;
-  padding: 0 8px;
-  width: 325px;
-}
-.u1xyjd5 {
-  width: 240px;
-  color: var(--_1pyqka9b) !important;
-}
-.u1xyjd5:hover {
-  background: var(--_1pyqka91x);
+.dy6d9j0 {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 10px;
 }
 ._10o9hoe1 {
   min-width: 400px;
