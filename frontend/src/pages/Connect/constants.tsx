@@ -1,7 +1,7 @@
 import {
-	IconSolidCheck,
 	IconSolidLightningBolt,
 	IconSolidLogs,
+	IconSolidMetrics,
 	IconSolidPlayCircle,
 	IconSolidTraces,
 } from '@highlight-run/ui/components'
@@ -19,7 +19,7 @@ export enum ProductArea {
 	errors = 'Errors',
 	logs = 'Logs',
 	traces = 'Traces',
-	merics = 'Metrics',
+	metrics = 'Metrics',
 }
 
 type ProductAreaInfo = {
@@ -55,10 +55,10 @@ export const PRODUCT_AREAS: Record<ProductArea, ProductAreaInfo> = {
 		icon: <IconSolidTraces />,
 		useIntegration: useTracesIntegration,
 	},
-	[ProductArea.merics]: {
+	[ProductArea.metrics]: {
 		title: 'Metrics',
 		link: '/metrics',
-		icon: <IconSolidCheck />,
+		icon: <IconSolidMetrics />,
 		useIntegration: useMetricsIntegration,
 	},
 }
