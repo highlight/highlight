@@ -1,4 +1,3 @@
-import { Helmet } from 'react-helmet'
 import { useEffect, useState } from 'react'
 import {
 	Badge,
@@ -82,164 +81,146 @@ export const NewSetupPage = () => {
 	}
 
 	return (
-		<>
-			<Helmet>
-				<title>Setup</title>
-			</Helmet>
+		<Box
+			background="n2"
+			padding="8"
+			flex="stretch"
+			justifyContent="stretch"
+			display="flex"
+		>
 			<Box
-				background="n2"
-				padding="8"
-				flex="stretch"
-				justifyContent="stretch"
+				background="white"
+				borderRadius="6"
+				flexDirection="column"
 				display="flex"
+				flexGrow={1}
+				p="40"
+				border="dividerWeak"
+				overflowY="auto"
+				shadow="medium"
 			>
-				<Box
-					background="white"
-					borderRadius="6"
-					flexDirection="column"
-					display="flex"
-					flexGrow={1}
-					p="40"
-					border="dividerWeak"
-					overflowY="auto"
-					shadow="medium"
-				>
-					<Stack mx="auto" style={{ maxWidth: 960 }} width="full">
-						<Heading level="h2" mb="40">
-							Select your platforms
-						</Heading>
-						<Stack direction="row" gap="32">
-							<Stack
-								gap="12"
-								flexGrow={0}
-								style={{ maxWidth: 350 }}
-							>
-								<Stack pt="2" gap="8">
-									<Text color="moderate">
-										Current Selection
-									</Text>
-									<SelectedPlatformIcons
-										platforms={selectedPlatforms}
-									/>
-								</Stack>
-								<Box as="span" borderBottom="divider" />
-								<Text color="moderate">
-									Don't see your platform? Let us know in the
-									Discord channel.
-								</Text>
-								<Box display="flex" gap="8">
-									<a
-										href="https://discord.gg/yxaXEAqgwN"
-										target="_blank"
-										rel="noreferrer"
-										style={{ display: 'flex' }}
-									>
-										<Badge
-											variant="outlineGray"
-											label="Highlight.io"
-											size="medium"
-											iconStart={
-												<IconSolidDiscord
-													fill={ICON_FILL}
-												/>
-											}
-											iconEnd={
-												<IconSolidExternalLink
-													fill={ICON_FILL}
-												/>
-											}
-										/>
-									</a>
-									<a
-										href="https://www.highlight.io/docs/getting-started/overview"
-										target="_blank"
-										rel="noreferrer"
-										style={{ display: 'flex' }}
-									>
-										<Badge
-											variant="outlineGray"
-											label="Full Documentation"
-											size="medium"
-											iconStart={
-												<IconSolidBookOpen
-													fill={ICON_FILL}
-												/>
-											}
-											iconEnd={
-												<IconSolidExternalLink
-													fill={ICON_FILL}
-												/>
-											}
-										>
-											Highlight.io
-										</Badge>
-									</a>
-								</Box>
-								<Box as="span" borderBottom="divider" />
-								<Stack
-									direction="row"
-									border="dividerWeak"
-									borderRadius="6"
-									justifyContent="space-between"
-									px="4"
-									background="raised"
+				<Stack mx="auto" style={{ maxWidth: 960 }} width="full">
+					<Heading level="h2" mb="40">
+						Select your platforms
+					</Heading>
+					<Stack direction="row" gap="32">
+						<Stack gap="12" flexGrow={0} style={{ maxWidth: 350 }}>
+							<Stack pt="2" gap="8">
+								<Text color="moderate">Current Selection</Text>
+								<SelectedPlatformIcons
+									platforms={selectedPlatforms}
+								/>
+							</Stack>
+							<Box as="span" borderBottom="divider" />
+							<Text color="moderate">
+								Don't see your platform? Let us know in the
+								Discord channel.
+							</Text>
+							<Box display="flex" gap="8">
+								<a
+									href="https://discord.gg/yxaXEAqgwN"
+									target="_blank"
+									rel="noreferrer"
+									style={{ display: 'flex' }}
 								>
-									<Stack
-										direction="row"
-										gap="6"
-										align="center"
+									<Badge
+										variant="outlineGray"
+										label="Highlight.io"
+										size="medium"
+										iconStart={
+											<IconSolidDiscord
+												fill={ICON_FILL}
+											/>
+										}
+										iconEnd={
+											<IconSolidExternalLink
+												fill={ICON_FILL}
+											/>
+										}
+									/>
+								</a>
+								<a
+									href="https://www.highlight.io/docs/getting-started/overview"
+									target="_blank"
+									rel="noreferrer"
+									style={{ display: 'flex' }}
+								>
+									<Badge
+										variant="outlineGray"
+										label="Full Documentation"
+										size="medium"
+										iconStart={
+											<IconSolidBookOpen
+												fill={ICON_FILL}
+											/>
+										}
+										iconEnd={
+											<IconSolidExternalLink
+												fill={ICON_FILL}
+											/>
+										}
 									>
-										<Text color="moderate" size="xSmall">
-											Project ID:
-										</Text>
-										<Tag
-											kind="secondary"
-											emphasis="low"
-											shape="basic"
-											onClick={copyProjectId}
-										>
-											{projectVerboseId}
-										</Tag>
-									</Stack>
-									<ButtonIcon
+										Highlight.io
+									</Badge>
+								</a>
+							</Box>
+							<Box as="span" borderBottom="divider" />
+							<Stack
+								direction="row"
+								border="dividerWeak"
+								borderRadius="6"
+								justifyContent="space-between"
+								px="4"
+								background="raised"
+							>
+								<Stack direction="row" gap="6" align="center">
+									<Text color="moderate" size="xSmall">
+										Project ID:
+									</Text>
+									<Tag
 										kind="secondary"
 										emphasis="low"
-										icon={<IconSolidClipboard />}
+										shape="basic"
 										onClick={copyProjectId}
-									/>
-								</Stack>
-							</Stack>
-							<Stack flexGrow={1} style={{ maxWidth: 610 }}>
-								<Stack border="secondary" borderRadius="8">
-									<PlatformSelection
-										selectedPlatforms={selectedPlatforms}
-										setSelectedPlatforms={
-											setSelectedPlatforms
-										}
-									/>
-								</Stack>
-								<Box>
-									<Button
-										trackingId="setup-save-selected-platforms"
-										onClick={handleSave}
-										disabled={
-											loading ||
-											selectedPlatforms.size === 0
-										}
-										kind="primary"
-										iconRight={
-											<IconSolidArrowRight color="white" />
-										}
 									>
-										Integrate selected platforms
-									</Button>
-								</Box>
+										{projectVerboseId}
+									</Tag>
+								</Stack>
+								<ButtonIcon
+									kind="secondary"
+									emphasis="low"
+									icon={<IconSolidClipboard />}
+									onClick={copyProjectId}
+								/>
 							</Stack>
 						</Stack>
+						<Stack flexGrow={1} style={{ maxWidth: 610 }}>
+							<Stack border="secondary" borderRadius="8">
+								<PlatformSelection
+									selectedPlatforms={selectedPlatforms}
+									setSelectedPlatforms={setSelectedPlatforms}
+								/>
+							</Stack>
+							<Box>
+								<Button
+									trackingId="setup-save-selected-platforms"
+									onClick={handleSave}
+									disabled={
+										loading || selectedPlatforms.size === 0
+									}
+									kind="primary"
+									iconRight={
+										<IconSolidArrowRight color="white" />
+									}
+								>
+									Integrate selected platforms
+								</Button>
+							</Box>
+						</Stack>
 					</Stack>
-				</Box>
+				</Stack>
 			</Box>
-		</>
+		</Box>
 	)
 }
 

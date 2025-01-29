@@ -1,5 +1,4 @@
 import { useEffect, useMemo } from 'react'
-import { Helmet } from 'react-helmet'
 import { useNavigate } from 'react-router-dom'
 import {
 	Badge,
@@ -83,155 +82,140 @@ export const ConnectPage = () => {
 	}
 
 	return (
-		<>
-			<Helmet>
-				<title>Setup</title>
-			</Helmet>
+		<Box
+			background="n2"
+			padding="8"
+			flex="stretch"
+			justifyContent="stretch"
+			display="flex"
+		>
 			<Box
-				background="n2"
-				padding="8"
-				flex="stretch"
-				justifyContent="stretch"
+				background="white"
+				borderRadius="6"
+				flexDirection="column"
 				display="flex"
+				flexGrow={1}
+				p="40"
+				border="dividerWeak"
+				overflowY="auto"
+				shadow="medium"
 			>
-				<Box
-					background="white"
-					borderRadius="6"
-					flexDirection="column"
-					display="flex"
-					flexGrow={1}
-					p="40"
-					border="dividerWeak"
-					overflowY="auto"
-					shadow="medium"
-				>
-					<Stack mx="auto" style={{ maxWidth: 960 }} width="full">
-						<Heading level="h2" mb="40">
-							Connect platforms
-						</Heading>
-						<Stack direction="row" gap="32">
-							<Stack
-								gap="12"
-								flexGrow={0}
-								style={{ maxWidth: 310 }}
-							>
-								<Stack pt="2" gap="8">
-									<Text color="moderate">Platforms</Text>
-									<SelectedPlatformButtons
-										projectId={projectId!}
-										platforms={
-											data?.project?.platforms || []
+				<Stack mx="auto" style={{ maxWidth: 960 }} width="full">
+					<Heading level="h2" mb="40">
+						Connect platforms
+					</Heading>
+					<Stack direction="row" gap="32">
+						<Stack gap="12" flexGrow={0} style={{ maxWidth: 310 }}>
+							<Stack pt="2" gap="8">
+								<Text color="moderate">Platforms</Text>
+								<SelectedPlatformButtons
+									projectId={projectId!}
+									platforms={data?.project?.platforms || []}
+								/>
+								<LinkButton
+									trackingId="edit_platforms"
+									kind="secondary"
+									emphasis="medium"
+									iconLeft={<IconSolidPencilAlt />}
+									to={`/${projectId}/connect/new`}
+								>
+									Edit platforms
+								</LinkButton>
+							</Stack>
+							<Box as="span" borderBottom="divider" />
+							<Text color="moderate">
+								Don't see your platform? Let us know in the
+								Discord channel.
+							</Text>
+							<Box display="flex" gap="8">
+								<a
+									href="https://discord.gg/yxaXEAqgwN"
+									target="_blank"
+									rel="noreferrer"
+									style={{ display: 'flex' }}
+								>
+									<Badge
+										variant="outlineGray"
+										label="Highlight.io"
+										size="medium"
+										iconStart={
+											<IconSolidDiscord
+												fill={ICON_FILL}
+											/>
+										}
+										iconEnd={
+											<IconSolidExternalLink
+												fill={ICON_FILL}
+											/>
 										}
 									/>
-									<LinkButton
-										trackingId="edit_platforms"
-										kind="secondary"
-										emphasis="medium"
-										iconLeft={<IconSolidPencilAlt />}
-										to={`/${projectId}/connect/new`}
-									>
-										Edit platforms
-									</LinkButton>
-								</Stack>
-								<Box as="span" borderBottom="divider" />
-								<Text color="moderate">
-									Don't see your platform? Let us know in the
-									Discord channel.
-								</Text>
-								<Box display="flex" gap="8">
-									<a
-										href="https://discord.gg/yxaXEAqgwN"
-										target="_blank"
-										rel="noreferrer"
-										style={{ display: 'flex' }}
-									>
-										<Badge
-											variant="outlineGray"
-											label="Highlight.io"
-											size="medium"
-											iconStart={
-												<IconSolidDiscord
-													fill={ICON_FILL}
-												/>
-											}
-											iconEnd={
-												<IconSolidExternalLink
-													fill={ICON_FILL}
-												/>
-											}
-										/>
-									</a>
-									<a
-										href="https://www.highlight.io/docs/getting-started/overview"
-										target="_blank"
-										rel="noreferrer"
-										style={{ display: 'flex' }}
-									>
-										<Badge
-											variant="outlineGray"
-											label="Full Documentation"
-											size="medium"
-											iconStart={
-												<IconSolidBookOpen
-													fill={ICON_FILL}
-												/>
-											}
-											iconEnd={
-												<IconSolidExternalLink
-													fill={ICON_FILL}
-												/>
-											}
-										>
-											Highlight.io
-										</Badge>
-									</a>
-								</Box>
-								<Box as="span" borderBottom="divider" />
-								<Stack
-									direction="row"
-									border="dividerWeak"
-									borderRadius="6"
-									justifyContent="space-between"
-									px="4"
-									background="raised"
+								</a>
+								<a
+									href="https://www.highlight.io/docs/getting-started/overview"
+									target="_blank"
+									rel="noreferrer"
+									style={{ display: 'flex' }}
 								>
-									<Stack
-										direction="row"
-										gap="6"
-										align="center"
+									<Badge
+										variant="outlineGray"
+										label="Full Documentation"
+										size="medium"
+										iconStart={
+											<IconSolidBookOpen
+												fill={ICON_FILL}
+											/>
+										}
+										iconEnd={
+											<IconSolidExternalLink
+												fill={ICON_FILL}
+											/>
+										}
 									>
-										<Text color="moderate" size="xSmall">
-											Project ID:
-										</Text>
-										<Tag
-											kind="secondary"
-											emphasis="low"
-											shape="basic"
-											onClick={copyProjectId}
-										>
-											{projectVerboseId}
-										</Tag>
-									</Stack>
-									<ButtonIcon
+										Highlight.io
+									</Badge>
+								</a>
+							</Box>
+							<Box as="span" borderBottom="divider" />
+							<Stack
+								direction="row"
+								border="dividerWeak"
+								borderRadius="6"
+								justifyContent="space-between"
+								px="4"
+								background="raised"
+							>
+								<Stack direction="row" gap="6" align="center">
+									<Text color="moderate" size="xSmall">
+										Project ID:
+									</Text>
+									<Tag
 										kind="secondary"
 										emphasis="low"
-										icon={<IconSolidClipboard />}
+										shape="basic"
 										onClick={copyProjectId}
-									/>
+									>
+										{projectVerboseId}
+									</Tag>
 								</Stack>
-							</Stack>
-							<Stack flexGrow={1} style={{ maxWidth: 650 }}>
-								<FeatureHealthCheck />
-								<QuickStartGuide
-									guide={guide}
-									projectVerboseId={projectVerboseId}
+								<ButtonIcon
+									kind="secondary"
+									emphasis="low"
+									icon={<IconSolidClipboard />}
+									onClick={copyProjectId}
 								/>
 							</Stack>
 						</Stack>
+						<Stack flexGrow={1} style={{ maxWidth: 650 }}>
+							<FeatureHealthCheck />
+							<QuickStartGuide
+								guide={guide}
+								projectVerboseId={projectVerboseId}
+							/>
+						</Stack>
 					</Stack>
-				</Box>
+				</Stack>
 			</Box>
-		</>
+		</Box>
 	)
 }
 
