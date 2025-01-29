@@ -5,7 +5,7 @@ from typing import Callable
 import highlight_io
 from opentelemetry.context import Context
 
-H = highlight_io.H("1", instrument_logging=True, otlp_endpoint="http://localhost:4318")
+H = highlight_io.H("1", instrument_logging=True, otlp_endpoint="http://localhost:4317")
 
 
 def propagate_otel_context_thread(ctx: Context, fn: Callable):

@@ -33,7 +33,7 @@ if __name__ == "__main__":
         "1",
         instrument_logging=False,
         integrations=[CeleryIntegration()],
-        otlp_endpoint="http://localhost:4318",
+        otlp_endpoint="http://localhost:4317",
         service_name="my-celery-worker",
         service_version="1.0.0",
         environment="e2e-test",
