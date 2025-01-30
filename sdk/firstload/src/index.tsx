@@ -391,7 +391,7 @@ const H: HighlightPublicInterface = {
 			HighlightWarning('recordCount', e)
 		}
 	},
-	recordIncr: (metric: Metric) => {
+	recordIncr: (metric: Omit<Metric, 'value'>) => {
 		try {
 			H.onHighlightReady(() => {
 				highlight_obj.recordIncr(metric)
