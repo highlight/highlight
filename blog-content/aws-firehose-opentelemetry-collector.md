@@ -107,12 +107,20 @@ exporters:
     debug:
         sampling_initial: 60
         sampling_thereafter: 1000
+    otlphttp:
+      endpoint: 'http://example-backend/otel'
+      compression: snappy
+    clickhouse:
+        endpoint: "tcp://clickhouse-server:9000"
+        database: "otel_metrics"
+        username: "default"
+        password: ""
     
 service:
     pipelines:
         logs:
         receivers: [awsfirehose/cwmetrics, awsfirehose/cwlogs, awsfirehose/otlp_v1]
-        exporters: [debug]
+        exporters: [debug, otlphttp, clickhouse]
 ```
 
 This configuration sets up 3 Firehose receiver listening on different ports and processes logs and metrics. The `record_type` key determines the expected format (see repo for [record_type definitions](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/awsfirehosereceiver#record-types)). The `debug` exporter allows monitoring the number of records received; for your use-case, you would configure an appropriate exporter to send the data to a data store of your choosing.
