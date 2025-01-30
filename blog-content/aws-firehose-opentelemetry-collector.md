@@ -33,20 +33,21 @@ Before configuring OpenTelemetry, it’s important to understand the format of d
 ### CloudWatch Metrics Stream Format
 
 AWS Firehose can be configured to receive CloudWatch metrics in either OpenTelemetry 1.0 format or JSON format. The key difference is:
-•	OpenTelemetry 1.0 format: Structured for direct ingestion into observability platforms. The data uses the [OTLP Protobuf](https://github.com/open-telemetry/opentelemetry-proto) with a slight twist: batches of binary collector export records can be concatenated. The payload has a header indicating the number of batches, necessary to split the binary data for deserialization. For reference, check out the [opentelemetry-collector-contrib](https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/ff2d5e23033da2a3ce686e1513864a0a0f87b563/receiver/awsfirehosereceiver/internal/unmarshaler/otlpmetricstream/unmarshaler.go#L44-L49) implementation.
-•	Metrics JSON format: A more generic format that requires custom parsing before ingestion into OpenTelemetry.
+
+* OpenTelemetry 1.0 format: Structured for direct ingestion into observability platforms. The data uses the [OTLP Protobuf](https://github.com/open-telemetry/opentelemetry-proto) with a slight twist: batches of binary collector export records can be concatenated. The payload has a header indicating the number of batches, necessary to split the binary data for deserialization. For reference, check out the [opentelemetry-collector-contrib](https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/ff2d5e23033da2a3ce686e1513864a0a0f87b563/receiver/awsfirehosereceiver/internal/unmarshaler/otlpmetricstream/unmarshaler.go#L44-L49) implementation. 
+* Metrics JSON format: A more generic format that requires custom parsing before ingestion into OpenTelemetry.
 
 Example JSON payload from a CloudWatch Metrics stream:
 
 ```json
 {
-    "namespace": "AWS/EC2",
-    "metric_name": "CPUUtilization",
-    "dimensions": {
-      "InstanceId": "i-1234567890abcdef0"
-    },
-    "timestamp": 1706000000,
-    "value": 23.5
+  "namespace": "AWS/EC2",
+  "metric_name": "CPUUtilization",
+  "dimensions": {
+    "InstanceId": "i-1234567890abcdef0"
+  },
+  "timestamp": 1706000000,
+  "value": 23.5
 }
 ```
 
@@ -83,7 +84,7 @@ One such receiver is the AWS Firehose receiver. To integrate Firehose, you just 
 
 ## Custom Receivers
 
-The OpenTelemetry Collector supports custom receivers through the [opentelemetry-collector-contrib])https://github.com/open-telemetry/opentelemetry-collector-contrib) repository. The Firehose receiver is not part of the core OpenTelemetry distribution, so you must use the contrib image.
+The OpenTelemetry Collector supports custom receivers through the [opentelemetry-collector-contrib](https://github.com/open-telemetry/opentelemetry-collector-contrib) repository. The Firehose receiver is not part of the core OpenTelemetry distribution, so you must use the contrib image.
 
 To configure the receivers, modify your OpenTelemetry Collector configuration as follows:
 
