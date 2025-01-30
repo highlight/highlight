@@ -1,7 +1,7 @@
 ---
 title: "Configuring the OpenTelemetry Collector for AWS Firehose"
 createdAt: 2025-01-23T12:00:00Z
-readingTime: 14
+readingTime: 4
 authorFirstName: Vadim
 authorLastName: Korolik
 authorTitle: CTO @ Highlight
@@ -20,20 +20,20 @@ Highlight.io is an [open source](https://github.com/highlight/highlight) monitor
 
 ## Configuring the OpenTelemetry Collector for AWS Firehose
 
-Amazon Kinesis Data Firehose is a fully managed service for delivering real-time streaming data to AWS destinations like S3, Redshift, or Elasticsearch. Integrating Firehose with the OpenTelemetry Collector allows for better observability of logs and metrics flowing through your AWS environment.
+Amazon Kinesis Data Firehose is a fully managed service for delivering real-time streaming data to AWS destinations like S3, Redshift, or Elasticsearch. Integrating Firehose with the OpenTelemetry Collector allows for better observability of logs and metrics flowing through your AWS environment, and allows you to export the data to other destinations.
 
-In this guide, we’ll explore how to configure the OpenTelemetry Collector to receive and process data from AWS Firehose.
+At highlight, we support the Firehose format with our cloud hosted OpenTelemetry collector at https://otlpv1.firehose.highlight.io. Our customers configure firehose to export to our collector to ingest logs and metrics into our platform. The result: management-free data export without the need to spin up additional infrastructure.
+
+In this guide, we’ll explore how we configured the OpenTelemetry Collector to receive and process data from AWS Firehose.
 
 ## AWS Firehose
 
 Before configuring OpenTelemetry, it’s important to understand the format of data sources that Firehose supports. AWS Firehose typically receives data from services like CloudWatch Metrics and CloudWatch Logs.
 
-## Firehose Sources
-
 ### CloudWatch Metrics Stream Format
 
 AWS Firehose can be configured to receive CloudWatch metrics in either OpenTelemetry 1.0 format or JSON format. The key difference is:
-•	OpenTelemetry 1.0 format: Structured for direct ingestion into observability platforms.
+•	OpenTelemetry 1.0 format: Structured for direct ingestion into observability platforms. The data uses the [OTLP Protobuf](https://github.com/open-telemetry/opentelemetry-proto) with a slight twist: batches of binary collector export records can be concatenated. The payload has a header indicating the number of batches, necessary to split the binary data for deserialization. For reference, check out the [opentelemetry-collector-contrib](https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/ff2d5e23033da2a3ce686e1513864a0a0f87b563/receiver/awsfirehosereceiver/internal/unmarshaler/otlpmetricstream/unmarshaler.go#L44-L49) implementation.
 •	Metrics JSON format: A more generic format that requires custom parsing before ingestion into OpenTelemetry.
 
 Example JSON payload from a CloudWatch Metrics stream:
@@ -43,7 +43,7 @@ Example JSON payload from a CloudWatch Metrics stream:
     "namespace": "AWS/EC2",
     "metric_name": "CPUUtilization",
     "dimensions": {
-    "InstanceId": "i-1234567890abcdef0"
+      "InstanceId": "i-1234567890abcdef0"
     },
     "timestamp": 1706000000,
     "value": 23.5
@@ -58,11 +58,16 @@ CloudWatch logs can also be streamed to Firehose, where they are typically forma
 
 ```json
 {
-    "owner": "123456789012",
-    "logGroup": "/aws/lambda/my-function",
-    "logStream": "2025/01/23/[$LATEST]abcdef1234567890",
-    "message": "Function executed successfully",
-    "timestamp": 1706000000
+  "owner": "123456789012",
+  "logGroup": "/aws/lambda/my-function",
+  "logStream": "2025/01/23/[$LATEST]abcdef1234567890",
+  "timestamp": 1706000000,
+  "requestId": "abc-123",
+  "records": [
+    {
+      "data": "c2VjcmV0IG1lc3NhZ2U="
+    }
+  ]
 }
 ```
 
@@ -70,13 +75,13 @@ These logs need to be parsed properly to extract meaningful telemetry data befor
 
 ## OpenTelemetry Collector
 
-The OpenTelemetry Collector is a vendor-agnostic proxy for receiving, processing, and exporting telemetry data. To integrate Firehose, you need to use a custom receiver that can interpret Firehose-formatted payloads.
+The OpenTelemetry Collector is a vendor-agnostic proxy for receiving, processing, and exporting telemetry data. To integrate Firehose, you need to use a custom receiver that can interpret Firehose-formatted payloads. Thankfully, as of October 2024, a firehose receiver has been implemented in the `opentelemetry-collector-contrib` collector image.
 
 ## Custom Receivers
 
-The OpenTelemetry Collector supports custom receivers through the opentelemetry-collector-contrib repository. The Firehose receiver is not part of the core OpenTelemetry distribution, so you must use the contrib image.
+The OpenTelemetry Collector supports custom receivers through the [opentelemetry-collector-contrib])https://github.com/open-telemetry/opentelemetry-collector-contrib) repository. The Firehose receiver is not part of the core OpenTelemetry distribution, so you must use the contrib image.
 
-To use the contrib image, modify your OpenTelemetry Collector configuration as follows:
+To configure the receivers, modify your OpenTelemetry Collector configuration as follows:
 
 ```yaml
 receivers:
@@ -94,25 +99,24 @@ receivers:
         include_metadata: true
     
 exporters:
-    logging:
-    verbosity: detailed
+    debug:
+        sampling_initial: 60
+        sampling_thereafter: 1000
     
 service:
     pipelines:
         logs:
         receivers: [awsfirehose/cwmetrics, awsfirehose/cwlogs, awsfirehose/otlp_v1]
-        exporters: [logging]
+        exporters: [debug]
 ```
 
-This configuration sets up a Firehose receiver that listens on port 8000 and processes logs in JSON format.
+This configuration sets up 3 Firehose receiver listening on different ports and processes logs and metrics. The `record_type` key determines the expected format (see repo for [record_type definitions](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/awsfirehosereceiver#record-types)). The `debug` exporter allows monitoring the number of records received; for your use-case, you would configure an appropriate exporter to send the data to a data store of your choosing.
 
-OpenTelemetry Firehose Receiver
+## Manual Implementation
 
 If a native OpenTelemetry Firehose receiver is unavailable or does not fully meet your needs, you may need to manually implement a receiver.
 
-Manual Implementation
-
-Custom parsing of Firehose logs can be done using a processor within OpenTelemetry. For example, using a custom script to preprocess logs before ingestion:
+Custom parsing of Firehose logs can be done using a processor within OpenTelemetry. For example, you can write a custom golang app to ingest logs:
 
 ```golang
 package http
@@ -174,7 +178,7 @@ func ExtractFirehoseMetadata(r *http.Request, body []byte) (*FirehosePayload, []
 }
 ```
 
-This function extracts key log attributes and reformats them for further processing in OpenTelemetry.
+This function extracts key log attributes and reformats them for further processing.
 
 ## Conclusion
 
