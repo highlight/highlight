@@ -29,6 +29,7 @@ import {
 	Metadata,
 	Metric,
 	PrivacySettingOption,
+	RecordMetric,
 	SamplingStrategy,
 	SessionDetails,
 	StartOptions,
@@ -97,7 +98,7 @@ import type { HighlightClientRequestWorker } from './workers/highlight-client-wo
 import HighlightClientWorker from './workers/highlight-client-worker?worker&inline'
 import { MessageType, PropertyType, Source } from './workers/types'
 import { parseError } from './utils/errors'
-import { Gauge } from '@opentelemetry/api'
+import { Gauge, UpDownCounter, Histogram, Counter } from '@opentelemetry/api'
 
 export const HighlightWarning = (context: string, msg: any) => {
 	console.warn(`Highlight Warning: (${context}): `, { output: msg })
@@ -194,6 +195,12 @@ export class Highlight {
 	_hasPreviouslyInitialized!: boolean
 	_recordStop!: listenerHandler | undefined
 	_gauges: Map<string, Gauge> = new Map<string, Gauge>()
+	_counters: Map<string, Counter> = new Map<string, Counter>()
+	_histograms: Map<string, Histogram> = new Map<string, Histogram>()
+	_up_down_counters: Map<string, UpDownCounter> = new Map<
+		string,
+		UpDownCounter
+	>()
 
 	static create(options: HighlightClassOptions): Highlight {
 		return new Highlight(options)
@@ -1133,13 +1140,7 @@ SessionSecureID: ${this.sessionData.sessionSecureID}`,
 		])
 	}
 
-	gauge(metric: {
-		name: string
-		value: number
-		category?: MetricCategory
-		group?: string
-		tags?: { name: string; value: string }[]
-	}) {
+	recordGauge(metric: RecordMetric) {
 		const meter = typeof getMeter === 'function' ? getMeter() : undefined
 		if (!meter) return
 
@@ -1155,24 +1156,56 @@ SessionSecureID: ${this.sessionData.sessionSecureID}`,
 		})
 	}
 
-	recordMetric(
-		metrics: {
-			name: string
-			value: number
-			category?: MetricCategory
-			group?: string
-			tags?: { name: string; value: string }[]
-		}[],
-	) {
-		for (const m of metrics.map((m) => ({
-			...m,
-			tags: m.tags ?? [],
-			group: m.group ?? window.location.href,
-			category: m.category ?? MetricCategory.Frontend,
-			timestamp: new Date(),
-		}))) {
-			this.gauge(m)
+	recordCount(metric: RecordMetric) {
+		const meter = typeof getMeter === 'function' ? getMeter() : undefined
+		if (!meter) return
+
+		let counter = this._counters.get(metric.name)
+		if (!counter) {
+			counter = meter.createCounter(metric.name)
+			this._counters.set(metric.name, counter)
 		}
+		counter.add(metric.value, {
+			...metric.tags?.reduce((a, b) => ({ ...a, [b.name]: b.value }), {}),
+			group: metric.group,
+			category: metric.category,
+		})
+	}
+
+	recordIncr(metric: Omit<RecordMetric, 'value'>) {
+		this.recordCount({ ...metric, value: 1 })
+	}
+
+	recordHistogram(metric: RecordMetric) {
+		const meter = typeof getMeter === 'function' ? getMeter() : undefined
+		if (!meter) return
+
+		let histogram = this._histograms.get(metric.name)
+		if (!histogram) {
+			histogram = meter.createHistogram(metric.name)
+			this._histograms.set(metric.name, histogram)
+		}
+		histogram.record(metric.value, {
+			...metric.tags?.reduce((a, b) => ({ ...a, [b.name]: b.value }), {}),
+			group: metric.group,
+			category: metric.category,
+		})
+	}
+
+	recordUpDownCounter(metric: RecordMetric) {
+		const meter = typeof getMeter === 'function' ? getMeter() : undefined
+		if (!meter) return
+
+		let up_down_counter = this._up_down_counters.get(metric.name)
+		if (!up_down_counter) {
+			up_down_counter = meter.createUpDownCounter(metric.name)
+			this._up_down_counters.set(metric.name, up_down_counter)
+		}
+		up_down_counter.add(metric.value, {
+			...metric.tags?.reduce((a, b) => ({ ...a, [b.name]: b.value }), {}),
+			group: metric.group,
+			category: metric.category,
+		})
 	}
 
 	/**
