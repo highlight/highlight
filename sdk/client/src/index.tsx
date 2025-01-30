@@ -695,14 +695,12 @@ SessionSecureID: ${this.sessionData.sessionSecureID}`,
 
 			const { getDeviceDetails } = getPerformanceMethods()
 			if (getDeviceDetails) {
-				this.recordMetric([
-					{
-						name: MetricName.DeviceMemory,
-						value: getDeviceDetails().deviceMemory,
-						category: MetricCategory.Device,
-						group: window.location.href,
-					},
-				])
+				this.recordGauge({
+					name: MetricName.DeviceMemory,
+					value: getDeviceDetails().deviceMemory,
+					category: MetricCategory.Device,
+					group: window.location.href,
+				})
 			}
 
 			const emit = (
@@ -971,14 +969,12 @@ SessionSecureID: ${this.sessionData.sessionSecureID}`,
 			this.listeners.push(
 				WebVitalsListener((data) => {
 					const { name, value } = data
-					this.recordMetric([
-						{
-							name,
-							value,
-							group: window.location.href,
-							category: MetricCategory.WebVital,
-						},
-					])
+					this.recordGauge({
+						name,
+						value,
+						group: window.location.href,
+						category: MetricCategory.WebVital,
+					})
 				}),
 			)
 
@@ -995,39 +991,27 @@ SessionSecureID: ${this.sessionData.sessionSecureID}`,
 				this.listeners.push(
 					PerformanceListener((payload: PerformancePayload) => {
 						this.addCustomEvent('Performance', stringify(payload))
-						this.recordMetric(
-							Object.entries(payload)
-								.map(([name, value]) =>
-									value
-										? {
-												name,
-												value,
-												category:
-													MetricCategory.Performance,
-												group: window.location.href,
-											}
-										: undefined,
-								)
-								.filter((m) => m) as {
-								name: string
-								value: any
-								category: MetricCategory
-								group: string
-							}[],
+						Object.entries(payload).forEach(
+							([name, value]) =>
+								value &&
+								this.recordGauge({
+									name,
+									value,
+									category: MetricCategory.Performance,
+									group: window.location.href,
+								}),
 						)
 					}, this._recordingStartTime),
 				)
 				this.listeners.push(
 					JankListener((payload: JankPayload) => {
 						this.addCustomEvent('Jank', stringify(payload))
-						this.recordMetric([
-							{
-								name: 'Jank',
-								value: payload.jankAmount,
-								category: MetricCategory.WebVital,
-								group: payload.querySelector,
-							},
-						])
+						this.recordGauge({
+							name: 'Jank',
+							value: payload.jankAmount,
+							category: MetricCategory.WebVital,
+							group: payload.querySelector,
+						})
 					}, this._recordingStartTime),
 				)
 			}
@@ -1106,38 +1090,36 @@ SessionSecureID: ${this.sessionData.sessionSecureID}`,
 		availHeight,
 		availWidth,
 	}: ViewportResizeListenerArgs) {
-		this.recordMetric([
-			{
-				name: MetricName.ViewportHeight,
-				value: height,
-				category: MetricCategory.Device,
-				group: window.location.href,
-			},
-			{
-				name: MetricName.ViewportWidth,
-				value: width,
-				category: MetricCategory.Device,
-				group: window.location.href,
-			},
-			{
-				name: MetricName.ScreenHeight,
-				value: availHeight,
-				category: MetricCategory.Device,
-				group: window.location.href,
-			},
-			{
-				name: MetricName.ScreenWidth,
-				value: availWidth,
-				category: MetricCategory.Device,
-				group: window.location.href,
-			},
-			{
-				name: MetricName.ViewportArea,
-				value: height * width,
-				category: MetricCategory.Device,
-				group: window.location.href,
-			},
-		])
+		this.recordGauge({
+			name: MetricName.ViewportHeight,
+			value: height,
+			category: MetricCategory.Device,
+			group: window.location.href,
+		})
+		this.recordGauge({
+			name: MetricName.ViewportWidth,
+			value: width,
+			category: MetricCategory.Device,
+			group: window.location.href,
+		})
+		this.recordGauge({
+			name: MetricName.ScreenHeight,
+			value: availHeight,
+			category: MetricCategory.Device,
+			group: window.location.href,
+		})
+		this.recordGauge({
+			name: MetricName.ScreenWidth,
+			value: availWidth,
+			category: MetricCategory.Device,
+			group: window.location.href,
+		})
+		this.recordGauge({
+			name: MetricName.ViewportArea,
+			value: height * width,
+			category: MetricCategory.Device,
+			group: window.location.href,
+		})
 	}
 
 	recordGauge(metric: RecordMetric) {
