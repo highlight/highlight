@@ -250,7 +250,7 @@ const SelectedPlatformIcons = ({ platforms }: { platforms: Set<string> }) => {
 						border="secondary"
 						borderWidth="medium"
 					>
-						{sdk?.logoUrl ? (
+						{sdk.logoUrl ? (
 							<img
 								alt={sdk.title}
 								src={sdk.logoUrl}

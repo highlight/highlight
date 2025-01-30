@@ -12,7 +12,7 @@ import {
 export const GoMuxContent: QuickStartContent = {
 	title: 'Go Mux',
 	subtitle: 'Learn how to set up highlight.io on your Go gqlgen backend.',
-	logoUrl: siteUrl('/images/quickstart/mux.svg'),
+	logoUrl: siteUrl('/images/quickstart/mux.png'),
 	entries: [
 		frontendInstallSnippet,
 		goGetSnippet,
