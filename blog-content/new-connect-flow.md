@@ -8,6 +8,8 @@ authorTitle: Lead Designer @ Highlight
 authorTwitter: 'https://twitter.com/interfacejulian'
 authorLinkedIn: ' https://www.linkedin.com/in/schneider-ui'
 authorPFP: 'https://ca.slack-edge.com/T01AEDTQ8DS-U0424EF3RK7-620a9ad15cd3-512'
+authorGithub: ''
+authorWebsite: ''
 tags: Design
 metaTitle: "Building Highlight’s new 'Connect' flow"
 ---
