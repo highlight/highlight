@@ -1,6 +1,6 @@
 ---
 title: "Configuring the OpenTelemetry Collector for AWS Firehose"
-createdAt: 2025-01-23T12:00:00Z
+createdAt: 2025-01-30T12:00:00Z
 readingTime: 4
 authorFirstName: Vadim
 authorLastName: Korolik
