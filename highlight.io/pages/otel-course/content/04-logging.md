@@ -12,7 +12,7 @@ The beauty of OpenTelemetry is that it’s designed to work with the logs you al
 
 Let’s take a look at how we can start capturing logs in an application. For this example, I have a simple JavaScript file you can execute in Node.js from the terminal and see an example log in the console. Here's a live example of this code running. The code should have automatically run, so you should see logs in the console.
 
-<iframe src="https://stackblitz.com/edit/stackblitz-starters-jmi2jnf3?embed=1&file=log.ts&hideExplorer=1&hideNavigation=1&view=editor&terminalHeight=50&startScript=npm%20run%20log" height="550px" width="100%"></iframe>
+<iframe src="https://stackblitz.com/edit/learn-otel-node-examples?embed=1&file=src%2Flog.ts&hideExplorer=1&hideNavigation=1&view=editor&terminalHeight=50&startScript=log" height="550px" width="100%"></iframe>
 
 Let's review the structure here...
 
@@ -26,10 +26,10 @@ A resource attribute is a key-value pair that describes the resource that the lo
 
 There are many common resource attributes that are automatically added by the SDKs, and OpenTelemetry has a list of conventions for many more. You can also set custom resource attributes to help identify the source of the log. Let's start with setting the service name + a few other common attributes, as well as a custom attribute for our AWS service region.
 
-<iframe src="https://stackblitz.com/edit/stackblitz-starters-jmi2jnf3?embed=1&file=log-with-resources.ts&hideExplorer=1&hideNavigation=1&view=editor&terminalHeight=50&startScript=npm%20run%20log-with-resources" height="550px" width="100%"></iframe>
+<iframe src="https://stackblitz.com/edit/learn-otel-node-examples?embed=1&file=src%2Flog-with-resources.ts&hideExplorer=1&hideNavigation=1&view=editor&terminalHeight=50&startScript=log-with-resources" height="550px" width="100%"></iframe>
 
 Note that the `service.name` attribute is now set, as well as `service.version`, `deployment.environment`, and `aws.region`. These attributes will be present on all logs emitted by this provider.
 
 Another thing you'll notice is the `instrumentationScope` attributes. This is another set of attributes that are set when we initialize the SDK. In this case it's coming from when we create the logger. It's another layer of context that helps idenfity the source of telemetry data. This can be useful if you create multiple loggers in an application and want to segment logs within a service.
 
-We'll talk more about connecting logs with traces and metrics in another lesson. We'll also look at how we can get our existing logs into OTel without completely rewriting our logging code.
+We'll talk more about attributes like `traceId` and `spanId` when we get into connecting logs with other telemetry data in another lesson. We'll also get into some more advanced topics like how to get your existing logs into OTel without completely rewriting your logging code.
