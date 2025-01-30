@@ -1,7 +1,7 @@
 ---
 id: undefined
 title: "Best Practices and Performance Considerations"
-order: 9
+slug: "best-practices"
 ---
 
 Guidelines for performance optimization when using OpenTelemetry, avoiding overhead, and securing data collection pipelines to maintain privacy and compliance.

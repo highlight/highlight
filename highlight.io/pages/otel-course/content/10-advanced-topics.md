@@ -1,7 +1,7 @@
 ---
 id: undefined
 title: "Advanced Topics and the Future of OpenTelemetry"
-order: 10
+slug: "advanced-topics"
 ---
 
 Explore advanced custom instrumentation, monitoring for AI/ML applications, and the future trends of OpenTelemetry in observability and beyond.

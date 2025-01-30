@@ -1,7 +1,7 @@
 ---
 id: undefined
 title: "OpenTelemetry in Real-world Scenarios"
-order: 8
+slug: "real-world-examples"
 ---
 
 Explore practical examples of OpenTelemetry in action within microservices, cloud environments (AWS, Google Cloud, Azure), and Kubernetes, showcasing real-world use cases.

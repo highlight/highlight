@@ -1,7 +1,7 @@
 ---
 id: undefined
 title: "OpenTelemetry Tracing"
-order: 5
+slug: "tracing"
 ---
 
 Introduction to distributed tracing with OpenTelemetry. Learn how to instrument applications for tracing across different languages, and how to export trace data to observability platforms.

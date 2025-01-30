@@ -10,12 +10,14 @@ import rehypeRaw from 'rehype-raw'
 import { promises as fs } from 'fs'
 import path from 'path'
 import matter from 'gray-matter'
+import Link from 'next/link'
 
 type CourseVideo = {
 	id: string | undefined
 	title: string
 	description: string
 	order: number
+	slug: string
 }
 
 type CourseVideoProgress = {
@@ -25,6 +27,18 @@ type CourseVideoProgress = {
 }
 
 const PROGRESS_STORAGE_KEY = 'otel_course_progress'
+
+declare global {
+	interface Window {
+		YT: typeof YT
+		onYouTubeIframeAPIReady: () => void
+	}
+}
+
+export const getFileOrder = (filename: string) => {
+	const match = filename.match(/^(\d+)-/)
+	return match ? parseInt(match[1], 10) : 0
+}
 
 export async function getStaticProps() {
 	const contentDirectory = path.join(
@@ -43,12 +57,13 @@ export async function getStaticProps() {
 				id: data.id,
 				title: data.title,
 				description: content.trim(),
-				order: data.order,
+				order: getFileOrder(filename),
+				slug: data.slug,
 			}
 		}),
 	)
 
-	// Sort by order
+	// Sort by order from filename
 	courseVideos.sort((a, b) => a.order - b.order)
 
 	return {
@@ -60,11 +75,16 @@ export async function getStaticProps() {
 
 export default function OTelCourse({
 	courseVideos,
+	initialLessonId,
 }: {
 	courseVideos: CourseVideo[]
+	initialLessonId?: string
 }) {
 	const [isAuthorized, setIsAuthorized] = useState(false)
 	const [currentVideo, setCurrentVideo] = useState<CourseVideo['id']>()
+	const [currentSlug, setCurrentSlug] = useState<string | undefined>(
+		initialLessonId,
+	)
 	const [videoProgressData, setVideoProgressData] = useState<
 		CourseVideoProgress[]
 	>([])
@@ -99,14 +119,14 @@ export default function OTelCourse({
 	}, [videoProgressData])
 
 	useEffect(() => {
-		const script = document.createElement('script')
-		script.src = 'https://www.youtube.com/iframe_api'
-		script.async = true
-
-		document.body.appendChild(script)
+		// Load YouTube IFrame API
+		const tag = document.createElement('script')
+		tag.src = 'https://www.youtube.com/iframe_api'
+		tag.async = true
+		document.body.appendChild(tag)
 
 		return () => {
-			document.body.removeChild(script)
+			document.body.removeChild(tag)
 		}
 	}, [])
 
@@ -155,6 +175,28 @@ export default function OTelCourse({
 				?.description ?? '',
 		)
 	}, [currentVideo, courseVideos])
+
+	// Set initial lesson when route changes
+	useEffect(() => {
+		if (initialLessonId) {
+			setCurrentSlug(initialLessonId)
+			const video = courseVideos.find((v) => v.slug === initialLessonId)
+			// Only handle video if the lesson has one
+			if (video?.id) {
+				setCurrentVideo(video.id)
+				if (player) {
+					loadVideo(video.id)
+				} else if (window.YT) {
+					initializePlayer(video.id)
+				}
+			} else {
+				setCurrentVideo(undefined)
+				if (player) {
+					setPlayer(null)
+				}
+			}
+		}
+	}, [initialLessonId, courseVideos])
 
 	const initializePlayer = (videoId: string | undefined) => {
 		if (!videoId) return
@@ -220,11 +262,22 @@ export default function OTelCourse({
 	}
 
 	const handleVideoClick = (videoId: string | undefined) => {
-		if (!player) {
-			initializePlayer(videoId)
-			setCurrentVideo(videoId)
-		} else {
-			loadVideo(videoId)
+		if (!videoId) return
+
+		// Update URL when video changes
+		const video = courseVideos.find((v) => v.id === videoId)
+		if (video?.id) {
+			router.push(`/otel-course/${video.slug}`, undefined, {
+				shallow: true,
+			})
+			setCurrentSlug(video.slug)
+			setCurrentVideo(video.id)
+
+			if (!player) {
+				initializePlayer(video.id)
+			} else {
+				loadVideo(video.id)
+			}
 		}
 	}
 
@@ -252,6 +305,10 @@ export default function OTelCourse({
 		)
 	}
 
+	const getCurrentLesson = () => {
+		return courseVideos.find((video) => video.slug === currentSlug)
+	}
+
 	return (
 		<div className="min-h-screen bg-gray-50 otel-course">
 			{showToast && (
@@ -275,7 +332,12 @@ export default function OTelCourse({
 			)}
 
 			<Head>
-				<title>OpenTelemetry Course | Highlight.io</title>
+				<title>
+					{currentVideo
+						? `${courseVideos.find((v) => v.id === currentVideo)?.title} | OpenTelemetry Course`
+						: 'OpenTelemetry Course'}{' '}
+					| Highlight.io
+				</title>
 				<meta
 					name="description"
 					content="Learn OpenTelemetry from the experts"
@@ -286,26 +348,29 @@ export default function OTelCourse({
 				{/* Sidebar */}
 				<div className="w-80 bg-white border-r border-gray-200 overflow-y-auto flex-shrink-0">
 					<div className="p-6">
-						<Typography
-							type="copy2"
-							className="font-bold text-xl text-gray-800 mb-4"
-						>
-							Course Content
-						</Typography>
+						<Link href="/otel-course" className="block">
+							<Typography
+								type="copy2"
+								className="font-bold text-xl text-gray-800 mb-4"
+							>
+								Course Content
+							</Typography>
+						</Link>
 					</div>
 					<nav className="px-4 space-y-1">
 						{courseVideos.map((video, videoIndex) => {
 							const progress = findVideoProgress(video.id)
+							const isActive = currentSlug === video.slug
+
 							return (
-								<button
+								<Link
 									key={`video-${videoIndex}`}
-									className={`w-full text-left px-3 py-3 rounded-lg transition-colors relative overflow-hidden ${
-										currentVideo &&
-										currentVideo === video.id
+									href={`/otel-course/${video.slug}`}
+									className={`block w-full text-left px-3 py-3 rounded-lg transition-colors relative overflow-hidden ${
+										isActive
 											? 'bg-blue-50 text-blue-700'
 											: 'hover:bg-gray-50'
 									}`}
-									onClick={() => handleVideoClick(video.id)}
 									style={{
 										background: progress.started
 											? `linear-gradient(to right, rgba(219, 234, 254, 0.75) ${progress.progress}%, transparent ${progress.progress}%)`
@@ -327,7 +392,7 @@ export default function OTelCourse({
 											</span>
 										)}
 									</div>
-								</button>
+								</Link>
 							)
 						})}
 					</nav>
@@ -336,54 +401,55 @@ export default function OTelCourse({
 				{/* Main Content */}
 				<div className="flex-1 overflow-y-auto">
 					<div className="p-8">
-						{/* Video Player */}
-						<div
-							className="aspect-w-16 aspect-h-9 bg-gray-900 rounded-lg overflow-hidden mb-8 relative"
-							style={{ paddingBottom: '56.25%' }}
-						>
+						{/* Video Player - only show for lessons with video IDs */}
+						{getCurrentLesson()?.id ? (
 							<div
-								id="youtube-player"
-								className="w-full h-full absolute top-0 left-0"
-							></div>
-							{!currentVideo && (
-								<div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-40">
-									<div className="text-center text-white flex flex-col items-center justify-center">
-										<Typography
-											type="copy2"
-											className="mb-4"
-										>
-											Select a video to start learning
-										</Typography>
+								className="aspect-w-16 aspect-h-9 bg-gray-900 rounded-lg overflow-hidden mb-8 relative"
+								style={{ paddingBottom: '56.25%' }}
+							>
+								<div
+									id="youtube-player"
+									className="w-full h-full absolute top-0 left-0"
+								></div>
+							</div>
+						) : currentSlug ? (
+							<div className="aspect-w-16 aspect-h-9 bg-gray-900 rounded-lg overflow-hidden mb-8 relative flex items-center justify-center">
+								<div className="text-center text-white">
+									<Typography type="copy2" className="mb-4">
+										Video coming soon!
+									</Typography>
+								</div>
+							</div>
+						) : (
+							<div className="aspect-w-16 aspect-h-9 bg-gray-900 rounded-lg overflow-hidden mb-8 relative flex items-center justify-center">
+								<div className="text-center text-white">
+									<Typography type="copy2" className="mb-4">
+										Select a lesson to start learning
+									</Typography>
+									{courseVideos[0]?.id && (
 										<button
 											className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition-colors"
-											onClick={() => {
-												if (courseVideos[0].id) {
-													handleVideoClick(
-														courseVideos[0].id,
-													)
-												}
-											}}
+											onClick={() =>
+												handleVideoClick(
+													courseVideos[0].id,
+												)
+											}
 										>
 											Start First Video
 										</button>
-									</div>
+									)}
 								</div>
-							)}
-						</div>
+							</div>
+						)}
 
-						{/* Video Content */}
-						{currentVideo && (
+						{/* Lesson Content - show whenever a lesson is selected */}
+						{currentSlug && (
 							<div className="flex flex-col gap-4">
 								<Typography
 									type="copy2"
 									className="text-2xl font-bold text-gray-900 mb-2"
 								>
-									{
-										courseVideos.find(
-											(video) =>
-												video.id === currentVideo,
-										)?.title
-									}
+									{getCurrentLesson()?.title}
 								</Typography>
 								<div className="prose prose-sm max-w-none text-black">
 									<ReactMarkdown
@@ -392,13 +458,9 @@ export default function OTelCourse({
 												<iframe {...props} />
 											),
 										}}
-										// Required for iframes to render
 										rehypePlugins={[rehypeRaw as any]}
 									>
-										{courseVideos.find(
-											(video) =>
-												video.id === currentVideo,
-										)?.description ?? ''}
+										{getCurrentLesson()?.description ?? ''}
 									</ReactMarkdown>
 								</div>
 							</div>

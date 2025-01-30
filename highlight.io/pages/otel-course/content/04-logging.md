@@ -1,7 +1,7 @@
 ---
 id: "G9yadsMgzuasd0"
 title: "OpenTelemetry Logging"
-order: 4
+slug: "logging"
 ---
 
 We mentioned the 4 categories of telemetry that are supported by OpenTelemetry: Logs, Traces, Metrics, and Baggage. Today we’re going to dive deeper into logs.

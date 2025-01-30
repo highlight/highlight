@@ -1,7 +1,7 @@
 ---
 id: undefined
 title: "OpenTelemetry Collector and Processors"
-order: 7
+slug: "collector-processors"
 ---
 
 A deep dive into the OpenTelemetry Collector, its setup, and how to configure processors and exporters to tailor data pipelines for different observability needs.

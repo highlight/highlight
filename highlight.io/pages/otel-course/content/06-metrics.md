@@ -1,7 +1,7 @@
 ---
 id: undefined
 title: "OpenTelemetry Metrics"
-order: 6
+slug: "metrics"
 ---
 
 Focuses on metrics collection and exporting, explaining different types of metrics (counters, gauges, histograms) and how to use OpenTelemetry to monitor application performance.
