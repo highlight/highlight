@@ -28,6 +28,7 @@ const requestDuration = meter.createHistogram('request_duration', {
 ```
 
 Learn how to:
+
 - Set up metrics collection
 - Configure different metric types
 - Export metrics to your observability backend

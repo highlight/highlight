@@ -44,6 +44,7 @@ service:
 ```
 
 Learn about:
+
 - Collector architecture and components
 - Common processors and their use cases
 - Pipeline configuration

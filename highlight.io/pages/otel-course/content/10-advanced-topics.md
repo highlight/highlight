@@ -7,7 +7,9 @@ order: 10
 Explore advanced custom instrumentation, monitoring for AI/ML applications, and the future trends of OpenTelemetry in observability and beyond.
 
 Advanced Topics:
+
 - Custom Instrumentation
+
   ```typescript
   // Custom span processor
   class CustomSpanProcessor implements SpanProcessor {
@@ -26,6 +28,7 @@ Advanced Topics:
   ```
 
 - AI/ML Monitoring
+
   ```python
   # Monitoring ML model inference
   with tracer.start_as_current_span("model_inference") as span:
@@ -41,8 +44,13 @@ Advanced Topics:
   ```
 
 Future Trends:
+
 - eBPF integration
 - Continuous profiling
 - Automated root cause analysis
 - AI-powered observability
 - Edge computing observability
+
+## Working with Existing Logs
+
+If you already have an app and can't rewrite all your logging code, there's a good chance the OpenTelemetry collector can work with the logs you already have and transform them to meet the spec. This is where [receivers](...) come in. For example, you can use the [filelogreceiver](...) to trail and parse logs that are written to a static file.

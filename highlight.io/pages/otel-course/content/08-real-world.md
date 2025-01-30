@@ -29,6 +29,7 @@ spec:
 ```
 
 Case Studies:
+
 - Microservices observability
 - Cloud-native monitoring
 - Kubernetes integration

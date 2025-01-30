@@ -7,7 +7,9 @@ order: 9
 Guidelines for performance optimization when using OpenTelemetry, avoiding overhead, and securing data collection pipelines to maintain privacy and compliance.
 
 Best Practices:
+
 - Sampling strategies
+
   ```typescript
   const tracerConfig = {
     sampler: new ParentBasedSampler({
@@ -17,6 +19,7 @@ Best Practices:
   ```
 
 - Resource attribution
+
   ```typescript
   const resource = Resource.default().merge(
     new Resource({
@@ -27,6 +30,7 @@ Best Practices:
   ```
 
 - Security considerations
+
   ```yaml
   # Collector security configuration
   receivers:
@@ -39,6 +43,7 @@ Best Practices:
   ```
 
 Performance Tips:
+
 - Batch processing configuration
 - Memory management
 - Network optimization
