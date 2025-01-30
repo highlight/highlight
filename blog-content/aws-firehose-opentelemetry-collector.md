@@ -119,9 +119,7 @@ This configuration sets up 3 Firehose receiver listening on different ports and 
 
 ## Manual Implementation
 
-If a native OpenTelemetry Firehose receiver is unavailable or does not fully meet your needs, you may need to manually implement a receiver.
-
-Custom parsing of Firehose logs can be done using a processor within OpenTelemetry. For example, you can write a custom golang app to ingest logs:
+If a native OpenTelemetry receiver is unavailable or does not fully meet your needs, you may need to manually implement a receiver. For instance, custom parsing of Firehose logs can be done using a processor within OpenTelemetry. You can write a custom implementation to ingest logs:
 
 ```golang
 package http
@@ -183,7 +181,7 @@ func ExtractFirehoseMetadata(r *http.Request, body []byte) (*FirehosePayload, []
 }
 ```
 
-This function extracts key log attributes and reformats them for further processing.
+This function extracts key log attributes and reformats them for further processing. You may deploy it as a standalone web server listening to firehose, but that would still require conecting it ot the rest of your observability pipeline. To incorporate it into the OpenTelemetry ecosystem, you can [create a custom OpenTelemetry Collector Receiver](https://opentelemetry.io/docs/collector/building/receiver/) using this implementation. While it's outside of the scope of this blog to describe this in detail, it would just be a matter of building it into the rest of the collector binary. Thankfully, the `opentelemetry-collector-contrib` implementation supports most popular data formats.
 
 ## Conclusion
 
