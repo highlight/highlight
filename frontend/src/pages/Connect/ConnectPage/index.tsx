@@ -95,15 +95,18 @@ export const ConnectPage = () => {
 				flexDirection="column"
 				display="flex"
 				flexGrow={1}
-				p="40"
+				p="48"
 				border="dividerWeak"
 				overflowY="auto"
 				shadow="medium"
 			>
-				<Stack mx="auto" style={{ maxWidth: 960 }} width="full">
-					<Heading level="h2" mb="40">
-						Connect platforms
-					</Heading>
+				<Stack
+					gap="40"
+					mx="auto"
+					style={{ maxWidth: 960 }}
+					width="full"
+				>
+					<Heading level="h2">Connect Platforms</Heading>
 					<Stack direction="row" gap="32">
 						<Stack gap="12" flexGrow={0} style={{ maxWidth: 310 }}>
 							<Stack pt="2" gap="8">
@@ -204,7 +207,7 @@ export const ConnectPage = () => {
 								</a>
 							</Box>
 						</Stack>
-						<Stack flexGrow={1} style={{ maxWidth: 650 }}>
+						<Stack gap="24" flexGrow={1} style={{ maxWidth: 650 }}>
 							<FeatureHealthCheck />
 							<QuickStartGuide
 								guide={guide}

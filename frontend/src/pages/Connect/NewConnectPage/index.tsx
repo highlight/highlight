@@ -94,15 +94,18 @@ export const NewConnectPage = () => {
 				flexDirection="column"
 				display="flex"
 				flexGrow={1}
-				p="40"
+				p="48"
 				border="dividerWeak"
 				overflowY="auto"
 				shadow="medium"
 			>
-				<Stack mx="auto" style={{ maxWidth: 960 }} width="full">
-					<Heading level="h2" mb="40">
-						Select your platforms
-					</Heading>
+				<Stack
+					gap="40"
+					mx="auto"
+					style={{ maxWidth: 960 }}
+					width="full"
+				>
+					<Heading level="h2">Select your Platforms</Heading>
 					<Stack direction="row" gap="32">
 						<Stack gap="12" flexGrow={0} style={{ maxWidth: 350 }}>
 							<Stack
