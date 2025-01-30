@@ -1,5 +1,11 @@
 # highlight.run
 
+## 9.7.4
+
+### Patch Changes
+
+-   408abc7: reduce noisy ErrorStackParser.parse failures when failing to parse provided error
+
 ## 9.7.3
 
 ### Patch Changes
