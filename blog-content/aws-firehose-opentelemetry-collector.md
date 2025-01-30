@@ -75,7 +75,11 @@ These logs need to be parsed properly to extract meaningful telemetry data befor
 
 ## OpenTelemetry Collector
 
-The OpenTelemetry Collector is a vendor-agnostic proxy for receiving, processing, and exporting telemetry data. To integrate Firehose, you need to use a custom receiver that can interpret Firehose-formatted payloads. Thankfully, as of October 2024, a firehose receiver has been implemented in the `opentelemetry-collector-contrib` collector image.
+The OpenTelemetry Collector is a vendor-agnostic proxy for receiving, processing, and exporting telemetry data. The [OpenTelemetry specification](https://opentelemetry.io/docs/specs/otel/) defines the data format implemented by the collector. The collector has streamlined components to control the data ingest, processing, and export to other destinations. The open source ecosystem continues to add new components to the collector, providing support for new ingest formats and new storage backends. 
+
+Leveraging existing OpenTelemetry receivers can significantly streamline the process of collecting telemetry data by reducing the need for custom parsing and transformation logic. Receivers are purpose-built to handle specific data formats, ensuring compatibility with OpenTelemetry’s internal processing pipeline and reducing engineering overhead. By using a pre-built receiver, you benefit from community support, ongoing maintenance, and optimizations that improve efficiency and reliability. Compared to manual ingestion or custom-built processors, receivers provide a standardized approach that minimizes errors, enhances performance, and simplifies integration with other observability tools.
+
+One such receiver is the AWS Firehose receiver. To integrate Firehose, you just need to use a custom receiver that can interpret Firehose-formatted payloads. Thankfully, as of October 2024, a firehose receiver has been implemented in the `opentelemetry-collector-contrib` collector image.
 
 ## Custom Receivers
 
@@ -182,6 +186,8 @@ This function extracts key log attributes and reformats them for further process
 
 ## Conclusion
 
-Integrating AWS Firehose with OpenTelemetry provides a powerful way to collect and analyze telemetry data from AWS services. Whether you use a native receiver or implement a custom solution, Firehose enables seamless data streaming for improved observability.
+Integrating AWS Firehose with OpenTelemetry provides a powerful way to collect and analyze telemetry data from AWS services. Whether you use a native receiver or implement a custom solution, Firehose enables seamless data streaming for improved observability. At the same time, it's not all that simple...
+
+Don't want to mess with setting any of this up yourself? Try Highlight.io which supports it all out of the box! Just create a [Highlight Cloud](https://app.highlight.io) account and follow our [firehose export setup guide](../docs-content/getting-started/5_backend-logging/07_hosting/aws.md) to configure sending the data over.
 
 If you’re interested in leveraging OpenTelemetry for application monitoring, consider using Highlight.io, an open-source monitoring platform that simplifies observability.
