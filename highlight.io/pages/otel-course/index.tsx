@@ -2,7 +2,7 @@
 
 import Head from 'next/head'
 import { useRouter } from 'next/router'
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState, useCallback } from 'react'
 import { Typography } from '../../components/common/Typography/Typography'
 import { LOCAL_STORAGE_KEY } from './signup'
 import ReactMarkdown from 'react-markdown'
@@ -73,53 +73,14 @@ export async function getStaticProps() {
 	}
 }
 
-export default function OTelCourse({
-	courseVideos,
-	initialLessonId,
-}: {
-	courseVideos: CourseVideo[]
-	initialLessonId?: string
-}) {
-	const [isAuthorized, setIsAuthorized] = useState(false)
-	const [currentVideo, setCurrentVideo] = useState<CourseVideo['id']>()
-	const [currentSlug, setCurrentSlug] = useState<string | undefined>(
-		initialLessonId,
-	)
-	const [videoProgressData, setVideoProgressData] = useState<
-		CourseVideoProgress[]
-	>([])
-	const router = useRouter()
+const useYouTubePlayer = (
+	currentVideo: string | undefined,
+	onProgress: (progress: number) => void,
+) => {
 	const [player, setPlayer] = useState<YT.Player | null>(null)
-
-	const [showToast, setShowToast] = useState(false)
-
-	useEffect(() => {
-		// Check if user is authorized (e.g., by checking a cookie or local storage)
-		const checkAuthorization = () => {
-			// This is a placeholder. Replace with your actual authorization check
-			const authorized =
-				localStorage.getItem(LOCAL_STORAGE_KEY) === 'true'
-
-			// if (!authorized && typeof window !== 'undefined') {
-			// 	router.push('/otel-course/signup')
-			// } else {
-			setIsAuthorized(true)
-			// }
-		}
-
-		checkAuthorization()
-	}, [router])
+	const clearProgressInterval = useRef<() => void>()
 
 	useEffect(() => {
-		// Save progress data to localStorage whenever it changes
-		localStorage.setItem(
-			PROGRESS_STORAGE_KEY,
-			JSON.stringify(videoProgressData),
-		)
-	}, [videoProgressData])
-
-	useEffect(() => {
-		// Load YouTube IFrame API
 		const tag = document.createElement('script')
 		tag.src = 'https://www.youtube.com/iframe_api'
 		tag.async = true
@@ -130,8 +91,70 @@ export default function OTelCourse({
 		}
 	}, [])
 
+	const initializePlayer = useCallback((videoId: string | undefined) => {
+		if (!videoId) return
+
+		const newPlayer = new window.YT.Player('youtube-player', {
+			width: '100%',
+			videoId,
+			playerVars: {
+				autoplay: 1,
+				rel: 0,
+			},
+			events: {
+				onStateChange: onPlayerStateChange,
+			},
+		})
+
+		setPlayer(newPlayer)
+	}, [])
+
+	const startProgressTracking = useCallback(() => {
+		const progressInterval = setInterval(() => {
+			if (player?.getCurrentTime && player?.getDuration) {
+				const currentTime = player.getCurrentTime()
+				const duration = player.getDuration()
+				const progress = Math.round((currentTime / duration) * 100)
+				onProgress(progress)
+			}
+		}, 5000)
+
+		return () => clearInterval(progressInterval)
+	}, [player, onProgress])
+
+	const onPlayerStateChange = useCallback(
+		(event: YT.OnStateChangeEvent) => {
+			if (event.data === window.YT.PlayerState.ENDED) {
+				onProgress(100)
+			} else if (event.data === window.YT.PlayerState.PLAYING) {
+				clearProgressInterval.current = startProgressTracking()
+			} else if (event.data === window.YT.PlayerState.PAUSED) {
+				clearProgressInterval.current?.()
+			}
+		},
+		[onProgress, startProgressTracking],
+	)
+
+	const loadVideo = useCallback(
+		(videoId: string | undefined) => {
+			if (!videoId) return
+
+			if (player?.loadVideoById) {
+				player.loadVideoById(videoId)
+			}
+		},
+		[player],
+	)
+
+	return { player, initializePlayer, loadVideo }
+}
+
+const useVideoProgress = (courseVideos: CourseVideo[]) => {
+	const [videoProgressData, setVideoProgressData] = useState<
+		CourseVideoProgress[]
+	>([])
+
 	useEffect(() => {
-		// Initialize videoProgressData from localStorage or default values
 		const storedProgress =
 			typeof window !== 'undefined'
 				? localStorage.getItem(PROGRESS_STORAGE_KEY)
@@ -152,6 +175,43 @@ export default function OTelCourse({
 	}, [courseVideos])
 
 	useEffect(() => {
+		localStorage.setItem(
+			PROGRESS_STORAGE_KEY,
+			JSON.stringify(videoProgressData),
+		)
+	}, [videoProgressData])
+
+	const updateProgress = useCallback((videoId: string, progress: number) => {
+		setVideoProgressData((prevData) =>
+			prevData.map((video) =>
+				video.videoId === videoId
+					? { ...video, progress, started: true }
+					: video,
+			),
+		)
+	}, [])
+
+	const findProgress = useCallback(
+		(videoId: string | undefined) => {
+			return (
+				videoProgressData.find((vp) => vp.videoId === videoId) ?? {
+					videoId,
+					progress: 0,
+					started: false,
+				}
+			)
+		},
+		[videoProgressData],
+	)
+
+	return { updateProgress, findProgress }
+}
+
+const useSignupToast = () => {
+	const [showToast, setShowToast] = useState(false)
+	const router = useRouter()
+
+	useEffect(() => {
 		const signedup = new URLSearchParams(window.location.search).get(
 			'signedup',
 		)
@@ -169,12 +229,41 @@ export default function OTelCourse({
 		}
 	}, [router])
 
+	return showToast
+}
+
+const useAuthorization = () => {
+	const [isAuthorized, setIsAuthorized] = useState(false)
+	const router = useRouter()
+
 	useEffect(() => {
-		console.log(
-			courseVideos.find((video) => video.id === currentVideo)
-				?.description ?? '',
-		)
-	}, [currentVideo, courseVideos])
+		const authorized = localStorage.getItem(LOCAL_STORAGE_KEY) === 'true'
+		setIsAuthorized(true) // Currently always authorized as per commented code
+		// if (!authorized && typeof window !== 'undefined') {
+		//     router.push('/otel-course/signup')
+		// } else {
+		//     setIsAuthorized(true)
+		// }
+	}, [router])
+
+	return isAuthorized
+}
+
+export default function OTelCourse({
+	courseVideos,
+	initialLessonId,
+}: {
+	courseVideos: CourseVideo[]
+	initialLessonId?: string
+}) {
+	const [currentVideo, setCurrentVideo] = useState<CourseVideo['id']>()
+	const [currentSlug, setCurrentSlug] = useState<string | undefined>(
+		initialLessonId,
+	)
+	const router = useRouter()
+
+	const showToast = useSignupToast()
+	const isAuthorized = useAuthorization()
 
 	// Set initial lesson when route changes
 	useEffect(() => {
@@ -184,82 +273,11 @@ export default function OTelCourse({
 			// Only handle video if the lesson has one
 			if (video?.id) {
 				setCurrentVideo(video.id)
-				if (player) {
-					loadVideo(video.id)
-				} else if (window.YT) {
-					initializePlayer(video.id)
-				}
 			} else {
 				setCurrentVideo(undefined)
-				if (player) {
-					setPlayer(null)
-				}
 			}
 		}
 	}, [initialLessonId, courseVideos])
-
-	const initializePlayer = (videoId: string | undefined) => {
-		if (!videoId) return
-
-		const newPlayer = new window.YT.Player('youtube-player', {
-			width: '100%',
-			videoId,
-			playerVars: {
-				autoplay: 1,
-				rel: 0,
-			},
-			events: {
-				onStateChange: onPlayerStateChange,
-			},
-		})
-
-		setPlayer(newPlayer)
-	}
-
-	const clearProgressInterval = useRef<() => void>()
-	const onPlayerStateChange = (event: YT.OnStateChangeEvent) => {
-		if (event.data === window.YT.PlayerState.ENDED) {
-			updateVideoProgress(currentVideo!, 100)
-		} else if (event.data === window.YT.PlayerState.PLAYING) {
-			clearProgressInterval.current = startProgressTracking()
-		} else if (event.data === window.YT.PlayerState.PAUSED) {
-			clearProgressInterval.current?.()
-		}
-	}
-
-	const startProgressTracking = () => {
-		const progressInterval = setInterval(() => {
-			// Use a callback to get the latest player state
-			setPlayer((currentPlayer) => {
-				if (
-					currentPlayer &&
-					currentPlayer.getCurrentTime &&
-					currentPlayer.getDuration
-				) {
-					const currentTime = currentPlayer.getCurrentTime()
-					const duration = currentPlayer.getDuration()
-					const progress = Math.round((currentTime / duration) * 100)
-
-					setCurrentVideo((prevCurrentVideo) => {
-						updateVideoProgress(prevCurrentVideo!, progress)
-						return prevCurrentVideo
-					})
-				}
-				return currentPlayer // Return the current player to not change the state
-			})
-		}, 5000)
-
-		return () => clearInterval(progressInterval as any)
-	}
-
-	const loadVideo = (videoId: string | undefined) => {
-		if (!videoId) return
-
-		if (player && player.loadVideoById) {
-			player.loadVideoById(videoId)
-			setCurrentVideo(videoId)
-		}
-	}
 
 	const handleVideoClick = (videoId: string | undefined) => {
 		if (!videoId) return
@@ -272,42 +290,25 @@ export default function OTelCourse({
 			})
 			setCurrentSlug(video.slug)
 			setCurrentVideo(video.id)
-
-			if (!player) {
-				initializePlayer(video.id)
-			} else {
-				loadVideo(video.id)
-			}
 		}
 	}
 
-	const updateVideoProgress = (videoId: string, progress: number) => {
-		setVideoProgressData((prevVideoProgressData) =>
-			prevVideoProgressData.map((video) =>
-				video.videoId === videoId
-					? { ...video, progress, started: true }
-					: video,
-			),
-		)
-	}
+	const { updateProgress, findProgress } = useVideoProgress(courseVideos)
 
 	if (!isAuthorized) {
 		return null
 	}
 
-	const findVideoProgress = (videoId: string | undefined) => {
-		return (
-			videoProgressData.find((vp) => vp.videoId === videoId) ?? {
-				videoId,
-				progress: 0,
-				started: false,
-			}
-		)
-	}
-
 	const getCurrentLesson = () => {
 		return courseVideos.find((video) => video.slug === currentSlug)
 	}
+
+	const { player, initializePlayer, loadVideo } = useYouTubePlayer(
+		currentVideo,
+		(progress: number) => {
+			updateProgress(currentVideo!, progress)
+		},
+	)
 
 	return (
 		<div className="min-h-screen bg-gray-50 otel-course">
@@ -359,7 +360,7 @@ export default function OTelCourse({
 					</div>
 					<nav className="px-4 space-y-1">
 						{courseVideos.map((video, videoIndex) => {
-							const progress = findVideoProgress(video.id)
+							const progress = findProgress(video.id)
 							const isActive = currentSlug === video.slug
 
 							return (
