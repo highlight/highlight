@@ -6,6 +6,7 @@ import (
 	"time"
 
 	modelInputs "github.com/highlight-run/highlight/backend/private-graph/graph/model"
+	"go.openly.dev/pointy"
 
 	"github.com/huandu/go-sqlbuilder"
 )
@@ -123,8 +124,8 @@ func (client *Client) AggregateMetricStates(ctx context.Context, metricId string
 		}
 
 		if windowSeconds != nil {
-			newBucket.BucketMin = float64(startDate.Unix()) + float64(result.BucketId*uint64(*windowSeconds))
-			newBucket.BucketMax = float64(startDate.Unix()) + float64((result.BucketId+1)*uint64(*windowSeconds))
+			newBucket.BucketMin = pointy.Float64(float64(startDate.Unix()) + float64(result.BucketId*uint64(*windowSeconds)))
+			newBucket.BucketMax = pointy.Float64(float64(startDate.Unix()) + float64((result.BucketId+1)*uint64(*windowSeconds)))
 		}
 
 		results = append(results, newBucket)

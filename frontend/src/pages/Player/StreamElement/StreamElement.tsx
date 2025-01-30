@@ -62,7 +62,12 @@ export const getEventRenderDetails = (
 				break
 			case 'Web Vitals':
 				details.displayValue = (
-					<WebVitalSimpleRenderer vitals={payload.vitals} />
+					<WebVitalSimpleRenderer
+						vitals={payload.vitals.map((v: any) => ({
+							...v,
+							value: v.value ?? 0,
+						}))}
+					/>
 				)
 				details.isReactNode = true
 				break

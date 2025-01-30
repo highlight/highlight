@@ -106,8 +106,12 @@ const DevToolsWindowV2: React.FC<
 	})
 
 	const showSearchComponent =
-		selectedDevToolsTab === Tab.Console ||
-		selectedDevToolsTab === Tab.Traces
+		selectedDevToolsTab === Tab.Performance
+			? false
+			: selectedDevToolsTab === Tab.Console ||
+				  selectedDevToolsTab === Tab.Traces
+				? 'basic'
+				: 'custom'
 
 	const handleShowInViewer = () => {
 		set({
@@ -264,143 +268,163 @@ const DevToolsWindowV2: React.FC<
 											</Button>
 										</Stack>
 
-										<Stack
-											borderTop="dividerWeak"
-											direction="row"
-											gap="4"
-											py={showSearchComponent ? '0' : '8'}
-											alignItems="center"
-										>
-											{showSearchComponent ? (
-												<>
-													<Search
-														startDate={params.date_range.start_date.toDate()}
-														endDate={params.date_range.end_date.toDate()}
-														placeholder="Search..."
-														productType={
-															selectedDevToolsTab ===
-															Tab.Console
-																? ProductType.Logs
-																: ProductType.Traces
-														}
-													/>
-													<Button
-														size="xSmall"
-														kind="secondary"
-														trackingId="session_show-in-viewer_click"
-														cssClass={
-															styles.autoScroll
-														}
-														iconLeft={
-															selectedDevToolsTab ===
-															Tab.Console ? (
-																<IconSolidLogs
-																	width={12}
-																	height={12}
-																/>
-															) : (
-																<IconSolidTraces
-																	width={12}
-																	height={12}
-																/>
-															)
-														}
-														onClick={
-															handleShowInViewer
-														}
-													>
-														Show in viewer
-													</Button>
-												</>
-											) : (
-												<>
-													<Box
-														display="flex"
-														width="full"
-													>
-														<Form
-															store={formStore}
-															style={{
-																display: 'flex',
-																width: '100%',
-															}}
+										{showSearchComponent ===
+										false ? null : (
+											<Stack
+												borderTop="dividerWeak"
+												direction="row"
+												gap="4"
+												py={
+													showSearchComponent ===
+													'custom'
+														? '8'
+														: '0'
+												}
+												alignItems="center"
+											>
+												{showSearchComponent ===
+												'basic' ? (
+													<>
+														<Search
+															startDate={params.date_range.start_date.toDate()}
+															endDate={params.date_range.end_date.toDate()}
+															placeholder="Search..."
+															productType={
+																selectedDevToolsTab ===
+																Tab.Console
+																	? ProductType.Logs
+																	: ProductType.Traces
+															}
+														/>
+														<Button
+															size="xSmall"
+															kind="secondary"
+															trackingId="session_show-in-viewer_click"
+															cssClass={
+																styles.autoScroll
+															}
+															iconLeft={
+																selectedDevToolsTab ===
+																Tab.Console ? (
+																	<IconSolidLogs
+																		width={
+																			12
+																		}
+																		height={
+																			12
+																		}
+																	/>
+																) : (
+																	<IconSolidTraces
+																		width={
+																			12
+																		}
+																		height={
+																			12
+																		}
+																	/>
+																)
+															}
+															onClick={
+																handleShowInViewer
+															}
 														>
-															<Box
-																display="flex"
-																justifyContent="flex-start"
-																align="center"
-																width="full"
-																gap="4"
+															Show in viewer
+														</Button>
+													</>
+												) : (
+													<>
+														<Box
+															display="flex"
+															width="full"
+														>
+															<Form
+																store={
+																	formStore
+																}
+																style={{
+																	display:
+																		'flex',
+																	width: '100%',
+																}}
 															>
 																<Box
-																	cursor="pointer"
 																	display="flex"
+																	justifyContent="flex-start"
 																	align="center"
-																	color="weak"
+																	width="full"
+																	gap="4"
 																>
-																	<IconSolidSearch
-																		size={
-																			16
+																	<Box
+																		cursor="pointer"
+																		display="flex"
+																		align="center"
+																		color="weak"
+																	>
+																		<IconSolidSearch
+																			size={
+																				16
+																			}
+																		/>
+																	</Box>
+																	<Box width="full">
+																		<Form.Input
+																			name={
+																				formStore
+																					.names
+																					.search
+																			}
+																			placeholder="Search"
+																			size="xSmall"
+																			outline={
+																				false
+																			}
+																			width="100%"
+																		/>
+																	</Box>
+																</Box>
+															</Form>
+														</Box>
+														<Stack
+															direction="row"
+															gap="4"
+															flexShrink={0}
+														>
+															{selectedDevToolsTab ===
+															Tab.Network ? (
+																<>
+																	<RequestTypeFilter
+																		requestTypes={
+																			requestTypes
+																		}
+																		setRequestTypes={
+																			setRequestTypes
+																		}
+																		parsedResources={
+																			parsedResources
 																		}
 																	/>
-																</Box>
-																<Box width="full">
-																	<Form.Input
-																		name={
-																			formStore
-																				.names
-																				.search
+																	<RequestStatusFilter
+																		requestStatuses={
+																			requestStatuses
 																		}
-																		placeholder="Search"
-																		size="xSmall"
-																		outline={
-																			false
+																		setRequestStatuses={
+																			setRequestStatuses
 																		}
-																		width="100%"
+																		parsedResources={
+																			parsedResources
+																		}
+																		requestTypes={
+																			requestTypes
+																		}
 																	/>
-																</Box>
-															</Box>
-														</Form>
-													</Box>
-													<Stack
-														direction="row"
-														gap="4"
-														flexShrink={0}
-													>
-														{selectedDevToolsTab ===
-														Tab.Network ? (
-															<>
-																<RequestTypeFilter
-																	requestTypes={
-																		requestTypes
-																	}
-																	setRequestTypes={
-																		setRequestTypes
-																	}
-																	parsedResources={
-																		parsedResources
-																	}
-																/>
-																<RequestStatusFilter
-																	requestStatuses={
-																		requestStatuses
-																	}
-																	setRequestStatuses={
-																		setRequestStatuses
-																	}
-																	parsedResources={
-																		parsedResources
-																	}
-																	requestTypes={
-																		requestTypes
-																	}
-																/>
-															</>
-														) : null}
-													</Stack>
-												</>
-											)}
-										</Stack>
+																</>
+															) : null}
+														</Stack>
+													</>
+												)}
+											</Stack>
+										)}
 									</Stack>
 								</Tabs.List>
 								<Tabs.Panel id={Tab.Console}>
@@ -435,8 +459,11 @@ const DevToolsWindowV2: React.FC<
 										panelHeight={panelHeight}
 									/>
 								</Tabs.Panel>
-								<Tabs.Panel id={Tab.Performance}>
-									<PerformancePage time={time} />
+								<Tabs.Panel
+									id={Tab.Performance}
+									style={{ height: '100%' }}
+								>
+									<PerformancePage />
 								</Tabs.Panel>
 							</Tabs>
 						)}

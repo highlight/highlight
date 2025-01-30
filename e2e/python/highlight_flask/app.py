@@ -17,7 +17,7 @@ H = highlight_io.H(
     "1",
     integrations=[FlaskIntegration()],
     instrument_logging=True,
-    otlp_endpoint="http://localhost:4318",
+    otlp_endpoint="http://localhost:4317",
     service_name="my-flask-app",
     service_version="1.0.0",
     environment="e2e-test",

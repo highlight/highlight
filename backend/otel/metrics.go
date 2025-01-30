@@ -223,7 +223,7 @@ func extractExemplars(exSlice pmetric.ExemplarSlice) *exemplars {
 				}
 			}
 
-			for key, value := range hlog.FormatLogAttributes(k, v) {
+			for key, value := range hlog.FormatAttributes(k, v) {
 				if v != "" {
 					attributes[key] = value
 				}

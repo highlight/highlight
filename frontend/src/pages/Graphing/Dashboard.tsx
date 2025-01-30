@@ -33,7 +33,7 @@ import {
 } from '@highlight-run/ui/components'
 import { vars } from '@highlight-run/ui/vars'
 import clsx from 'clsx'
-import { useCallback, useEffect, useId, useState } from 'react'
+import { useCallback, useEffect, useId, useMemo, useState } from 'react'
 import { Helmet } from 'react-helmet'
 import { Link, useNavigate } from 'react-router-dom'
 
@@ -110,6 +110,11 @@ const DashboardCell = ({
 		g.type,
 		g.display ?? undefined,
 		g.nullHandling ?? undefined,
+	)
+
+	const funnelSteps = useMemo(
+		() => (g.funnelSteps ?? []).map(loadFunnelStep),
+		[g.funnelSteps],
 	)
 
 	return (
@@ -265,6 +270,7 @@ const DashboardCell = ({
 				startDate={startDate}
 				endDate={endDate}
 				query={g.query}
+				sql={g.sql ?? undefined}
 				expressions={g.expressions}
 				bucketByKey={g.bucketByKey ?? undefined}
 				bucketByWindow={g.bucketInterval ?? undefined}
@@ -273,7 +279,7 @@ const DashboardCell = ({
 				limit={g.limit ?? undefined}
 				limitFunctionType={g.limitFunctionType ?? undefined}
 				limitMetric={g.limitMetric ?? undefined}
-				funnelSteps={(g.funnelSteps ?? []).map(loadFunnelStep)}
+				funnelSteps={funnelSteps}
 				setTimeRange={updateSearchTime}
 				variables={values}
 				height={280}

@@ -162,7 +162,6 @@ export const Header: React.FC<Props> = ({ fullyIntegrated }) => {
 	const goBackPath = useProjectRedirectLink()
 	const parts = location.pathname.split('/')
 	const currentPage = parts.length >= 3 ? parts[2] : undefined
-	const isSetup = parts.indexOf('setup') !== -1
 	const { isSettings } = useIsSettingsPath()
 
 	const { data: workspaceSettingsData } = useGetWorkspaceSettingsQuery({
@@ -253,7 +252,7 @@ export const Header: React.FC<Props> = ({ fullyIntegrated }) => {
 		<>
 			<CommandBarV1 />
 			<Box background="n2" borderBottom="secondary">
-				{!!projectId && !isSettings && getBanner(projectId, isSetup)}
+				{!!projectId && !isSettings && getBanner(projectId)}
 				<Box
 					display="flex"
 					alignItems="center"
@@ -261,7 +260,7 @@ export const Header: React.FC<Props> = ({ fullyIntegrated }) => {
 					py="8"
 					justifyContent="space-between"
 				>
-					{isSetup || (isSettings && localStorageProjectId) ? (
+					{isSettings && localStorageProjectId ? (
 						<LinkButton
 							to={goBackPath || '/'}
 							kind="secondary"
@@ -373,7 +372,7 @@ export const Header: React.FC<Props> = ({ fullyIntegrated }) => {
 												</Menu.Item>
 											</Link>
 											<Link
-												to={`/${projectId}/setup`}
+												to={`/${projectId}/connect`}
 												className={linkStyle}
 											>
 												<Menu.Item>
@@ -393,7 +392,7 @@ export const Header: React.FC<Props> = ({ fullyIntegrated }) => {
 																	.text
 															}
 														/>
-														Setup
+														Connect
 													</Box>
 												</Menu.Item>
 											</Link>
@@ -439,29 +438,26 @@ export const Header: React.FC<Props> = ({ fullyIntegrated }) => {
 							gap="12"
 							style={{ zIndex: 20000, minWidth: 400 }}
 						>
-							{!!projectId &&
-								!fullyIntegrated &&
-								!isSetup &&
-								!isSettings && (
-									<LinkButton
-										to={`/${projectId}/setup`}
-										state={{
-											previousPath: location.pathname,
-										}}
-										trackingId="header_setup-cta"
-										emphasis="low"
+							{!!projectId && !fullyIntegrated && !isSettings && (
+								<LinkButton
+									to={`/${projectId}/setup`}
+									state={{
+										previousPath: location.pathname,
+									}}
+									trackingId="header_setup-cta"
+									emphasis="low"
+								>
+									<Stack
+										direction="row"
+										align="center"
+										gap="4"
 									>
-										<Stack
-											direction="row"
-											align="center"
-											gap="4"
-										>
-											<Text>Finish setup </Text>
-											<IconSolidArrowSmRight />
-										</Stack>
-									</LinkButton>
-								)}
-							{!isSetup && !isSettings && (
+										<Text>Finish setup </Text>
+										<IconSolidArrowSmRight />
+									</Stack>
+								</LinkButton>
+							)}
+							{!isSettings && (
 								<Box display="flex" alignItems="center" gap="4">
 									<CalendlyButton />
 									<Box>
@@ -850,12 +846,12 @@ export const Header: React.FC<Props> = ({ fullyIntegrated }) => {
 	)
 }
 
-const getBanner = (projectId: string, isSetup: boolean) => {
+const getBanner = (projectId: string) => {
 	if (projectId === DEMO_WORKSPACE_PROXY_APPLICATION_ID) {
 		return <DemoWorkspaceBanner />
-	} else if (!isSetup) {
-		return <BillingBanner />
 	}
+
+	return <BillingBanner />
 }
 
 const APPROACHING_QUOTA_THRESHOLD = 0.8

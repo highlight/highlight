@@ -18,6 +18,7 @@ import {
 	InnerChartProps,
 	isActive,
 	SeriesInfo,
+	TIMESTAMP_KEY,
 	TooltipSettings,
 	useGraphCallbacks,
 	useGraphSeries,
@@ -140,6 +141,11 @@ const BarChartImpl = ({
 						tickLine={{ visibility: 'hidden' }}
 						axisLine={{ visibility: 'hidden' }}
 						height={12}
+						type={
+							xAxisMetric === TIMESTAMP_KEY
+								? 'number'
+								: 'category'
+						}
 						domain={['dataMin', 'dataMax']}
 						hide={showXAxis === false}
 					/>

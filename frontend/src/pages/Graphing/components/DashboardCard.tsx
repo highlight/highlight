@@ -6,7 +6,6 @@ import {
 	Button,
 	IconSolidArrowsExpand,
 	IconSolidCursorClick,
-	IconSolidDesktopComputer,
 	IconSolidDocumentDownload,
 	IconSolidDotsHorizontal,
 	IconSolidDuplicate,
@@ -82,66 +81,49 @@ export const DashboardCard = ({
 				style={dndStyle}
 				{...attributes}
 			>
-				{graphHover && (
-					<Box cssClass={style.buttonContainer}>
-						<Box>
-							<Button
-								size="xSmall"
-								emphasis="low"
-								kind="secondary"
-								iconLeft={
-									<IconSolidArrowsExpand
-										style={{
-											cursor: isDragging
-												? 'grabbing'
-												: 'grab',
-										}}
+				<Box>
+					<Box
+						style={{
+							position: 'absolute',
+							left: 0,
+							width: '80%',
+							zIndex: 2,
+							lineHeight: '24px',
+							height: '24px',
+							cursor: isDragging ? 'grabbing' : 'grab',
+						}}
+						ref={setActivatorNodeRef}
+						{...listeners}
+					/>
+					{graphHover && (
+						<Box cssClass={style.buttonContainer}>
+							<Box>
+								{onExpand && (
+									<Button
+										size="xSmall"
+										emphasis="low"
+										kind="secondary"
+										iconLeft={<IconSolidArrowsExpand />}
+										onClick={onExpand}
 									/>
-								}
-								ref={setActivatorNodeRef}
-								{...listeners}
-								style={{
-									cursor: isDragging ? 'grabbing' : 'grab',
-								}}
-							/>
-							{onEdit !== undefined && (
-								<Button
-									size="xSmall"
-									emphasis="low"
-									kind="secondary"
-									iconLeft={<IconSolidPencil />}
-									onClick={onEdit}
-								/>
-							)}
-							{(onExpand || onDelete || onClone) && (
+								)}
+								{onEdit !== undefined && (
+									<Button
+										size="xSmall"
+										emphasis="low"
+										kind="secondary"
+										iconLeft={<IconSolidPencil />}
+										onClick={onEdit}
+									/>
+								)}
 								<Menu>
 									<Menu.Button
 										size="xSmall"
 										emphasis="low"
 										kind="secondary"
 										iconLeft={<IconSolidDotsHorizontal />}
-										onClick={(e: any) => {
-											e.stopPropagation()
-										}}
 									/>
 									<Menu.List>
-										{onExpand && (
-											<Menu.Item
-												onClick={(e) => {
-													e.stopPropagation()
-													onExpand()
-												}}
-											>
-												<Box
-													display="flex"
-													alignItems="center"
-													gap="4"
-												>
-													<IconSolidDesktopComputer />
-													Expand metric view
-												</Box>
-											</Menu.Item>
-										)}
 										{onDownload && (
 											<Menu.Item
 												onClick={(e) => {
@@ -195,20 +177,20 @@ export const DashboardCard = ({
 										)}
 									</Menu.List>
 								</Menu>
+							</Box>
+							{!hasDrilledDown && (
+								<Badge
+									variant="gray"
+									size="small"
+									iconStart={<IconSolidCursorClick />}
+									label="Click to drilldown"
+									cssClass={style.drilldownHint}
+								/>
 							)}
 						</Box>
-						{!hasDrilledDown && (
-							<Badge
-								variant="gray"
-								size="small"
-								iconStart={<IconSolidCursorClick />}
-								label="Click to drilldown"
-								cssClass={style.drilldownHint}
-							/>
-						)}
-					</Box>
-				)}
-				{children}
+					)}
+					{children}
+				</Box>
 			</Box>
 		</Box>
 	)
