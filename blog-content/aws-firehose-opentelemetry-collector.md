@@ -123,7 +123,7 @@ service:
         exporters: [debug, otlphttp, clickhouse]
 ```
 
-This configuration sets up 3 Firehose receiver listening on different ports and processes logs and metrics. The `record_type` key determines the expected format (see repo for [record_type definitions](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/awsfirehosereceiver#record-types)). The `debug` exporter allows monitoring the number of records received; for your use-case, you would configure an appropriate exporter to send the data to a data store of your choosing.
+This configuration sets up 3 Firehose receivers listening on different ports for processing logs and metrics from different sources. The `record_type` key determines the expected format (see [record_type definitions](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/awsfirehosereceiver#record-types) in the contrib repo). The `debug` exporter allows monitoring the number of records received; for your use-case, you would configure an appropriate exporter to send the data to a data store of your choosing.
 
 ## Manual Implementation
 
@@ -196,5 +196,3 @@ This function extracts key log attributes and reformats them for further process
 Integrating AWS Firehose with OpenTelemetry provides a powerful way to collect and analyze telemetry data from AWS services. Whether you use a native receiver or implement a custom solution, Firehose enables seamless data streaming for improved observability. At the same time, it's not all that simple...
 
 Don't want to mess with setting any of this up yourself? Try Highlight.io which supports it all out of the box! Just create a [Highlight Cloud](https://app.highlight.io) account and follow our [firehose export setup guide](../docs-content/getting-started/5_backend-logging/07_hosting/aws.md) to configure sending the data over.
-
-If you’re interested in leveraging OpenTelemetry for application monitoring, consider using Highlight.io, an open-source monitoring platform that simplifies observability.
