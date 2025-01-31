@@ -13,6 +13,7 @@ export const RemixContent: QuickStartContent = {
 	title: 'Remix',
 	subtitle: 'Learn how to set up highlight.io with your Remix application.',
 	logoPath: '/images/quickstart/remix.png',
+	products: ['Sessions', 'Errors', 'Logs', 'Traces'],
 	entries: [
 		{
 			title: 'Install the npm package & SDK.',

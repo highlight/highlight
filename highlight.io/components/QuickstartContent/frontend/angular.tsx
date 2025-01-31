@@ -41,6 +41,7 @@ export const AngularContent: QuickStartContent = {
 	title: 'Angular',
 	subtitle: 'Learn how to set up highlight.io with your Angular application.',
 	logoPath: '/images/quickstart/angular.svg',
+	products: ['Sessions', 'Errors', 'Logs', 'Traces'],
 	entries: [
 		packageInstallSnippet,
 		{

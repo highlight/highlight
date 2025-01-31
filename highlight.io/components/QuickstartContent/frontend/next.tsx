@@ -10,6 +10,7 @@ export const NextContent: QuickStartContent = {
 	subtitle:
 		'Learn how to set up highlight.io with your Next (frontend) application.',
 	logoPath: '/images/quickstart/nextjs.svg',
+	products: ['Sessions', 'Errors', 'Logs', 'Traces'],
 	entries: [
 		{
 			title: 'Install the npm package & SDK.',

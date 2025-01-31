@@ -57,7 +57,7 @@ export const PRODUCT_AREAS: Record<ProductArea, ProductAreaInfo> = {
 	},
 	[ProductArea.metrics]: {
 		title: 'Metrics',
-		link: '/metrics',
+		link: '/dashboards',
 		icon: <IconSolidMetrics />,
 		useIntegration: useMetricsIntegration,
 	},
