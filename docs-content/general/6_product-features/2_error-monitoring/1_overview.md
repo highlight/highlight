@@ -28,7 +28,7 @@ Error monitoring in [highlight.io](https://highlight.io) is different than most 
     <DocsCard title="Sourcemaps"  href="./sourcemaps.md">
         {"Configure sourcemaps for your frontend errors."}
     </DocsCard>
-    <DocsCard title="Versioning Errors."  href="../../../getting-started/3_client-sdk/7_replay-configuration/versioning-sessions-and-errors.md">
+    <DocsCard title="Versioning Errors."  href="../../../getting-started/3_browser/7_replay-configuration/versioning-sessions-and-errors.md">
         {"Send highlight.io metadata so you can version errors across deploys."}
     </DocsCard>
     <DocsCard title="Filtering and Ignoring Errors"  href="./filtering-errors.md">

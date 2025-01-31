@@ -12,7 +12,7 @@ slug: ruby
   </div>
   <div className="right">
     <h6>Just getting started?</h6>
-    <p>Check out our [getting started guide](../getting-started/4_backend-sdk/06_ruby/1_overview.md) to get up and running quickly.</p>
+    <p>Check out our [getting started guide](../getting-started/4_server/4_ruby/1_overview.md) to get up and running quickly.</p>
   </div>
 </section>
 

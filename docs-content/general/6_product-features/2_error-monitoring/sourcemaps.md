@@ -11,7 +11,7 @@ support options for sending sourcemaps to us in the case that your sourcemaps ar
 ## Browser JavaScript Sourcemaps
 
 Read more about it in
-our [getting started doc](../../../getting-started/3_client-sdk/7_replay-configuration/sourcemaps.md)
+our [getting started doc](../../../getting-started/3_browser/7_replay-configuration/sourcemaps.md)
 
 ## Node.js Backend Sourcemaps
 
