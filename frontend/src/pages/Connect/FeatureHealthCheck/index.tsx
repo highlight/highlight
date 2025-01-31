@@ -7,7 +7,6 @@ import {
 	Stack,
 	Text,
 } from '@highlight-run/ui/components'
-import { vars } from '@highlight-run/ui/vars'
 
 import { PRODUCT_AREA_KEYS, PRODUCT_AREAS, ProductArea } from '../constants'
 import * as styles from './style.css'
@@ -44,11 +43,7 @@ const FeatureIntegrationCheck: React.FC<FeatureIntegrationCheckProps> = ({
 			borderRadius="6"
 			p="2"
 			gap="2"
-			style={{
-				background: integrated
-					? vars.theme.interactive.fill.primary.pressed
-					: vars.theme.interactive.fill.secondary.pressed,
-			}}
+			background={integrated ? 'informative' : 'secondaryPressed'}
 		>
 			<Stack
 				direction="row"
@@ -58,7 +53,7 @@ const FeatureIntegrationCheck: React.FC<FeatureIntegrationCheckProps> = ({
 				borderRadius="6"
 				background="default"
 			>
-				<Badge variant="purple" label={title} iconStart={icon} />
+				<Badge variant="outlineGray" label={title} iconStart={icon} />
 				<LinkButton
 					trackingId={`health-check-${product}`}
 					to={link}
@@ -73,15 +68,17 @@ const FeatureIntegrationCheck: React.FC<FeatureIntegrationCheckProps> = ({
 			<Box py="2" display="flex" justifyContent="center">
 				{integrated ? (
 					<Box display="flex" gap="4" align="center">
-						<IconSolidCheck color="white" />
-						<Text color="white" size="xSmall">
+						<IconSolidCheck color="#6346AF" />
+						<Text color="informative" size="xSmall">
 							Installation complete
 						</Text>
 					</Box>
 				) : (
-					<Text color="moderate" size="xSmall">
-						Waiting...
-					</Text>
+					<Box py="4">
+						<Text color="moderate" size="xSmall">
+							Waiting...
+						</Text>
+					</Box>
 				)}
 			</Box>
 		</Stack>
