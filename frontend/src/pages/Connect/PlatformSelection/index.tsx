@@ -170,7 +170,7 @@ const LanguageOption: React.FC<LanguageOptionProps> = ({
 					{logoPath ? (
 						<img
 							alt={title}
-							src={logoPath}
+							src={`/src/${logoPath}`}
 							style={{ height: 30, width: 30, borderRadius: 5 }}
 						/>
 					) : (
