@@ -1115,8 +1115,9 @@ func getFnStr(aggregator modelInputs.MetricAggregator, column string, useSamplin
 	return ""
 }
 
-func getAttributeFilterCol(sampleableConfig SampleableTableConfig, value, op string) (column string) {
-	attributesColumn := model.GetAttributesColumn(sampleableConfig.tableConfig.AttributesColumns, value)
+func getAttributeFilterCol(fromSb *sqlbuilder.SelectBuilder, sampleableConfig SampleableTableConfig, valueUnescaped, op string) (column string) {
+	attributesColumn := model.GetAttributesColumn(sampleableConfig.tableConfig.AttributesColumns, valueUnescaped)
+	value := fromSb.Var(valueUnescaped)
 	column = fmt.Sprintf("%s[%s]", attributesColumn, value)
 	if sampleableConfig.tableConfig.AttributesTable != "" {
 		transform := "v"
@@ -1422,7 +1423,7 @@ func getBucketing(config model.TableConfig, input ReadMetricsInput, fromSb *sqlb
 		if col, found := config.KeysToColumns[strings.ToLower(input.BucketBy)]; found {
 			bucketExpr = fmt.Sprintf("toFloat64(%s)", col)
 		} else {
-			bucketExpr = getAttributeFilterCol(input.SampleableConfig, fromSb.Var(input.BucketBy), "toFloat64OrNull")
+			bucketExpr = getAttributeFilterCol(fromSb, input.SampleableConfig, input.BucketBy, "toFloat64OrNull")
 			attributeFields = append(attributeFields, input.BucketBy)
 		}
 	}
@@ -1536,7 +1537,7 @@ func (client *Client) ReadMetrics(ctx context.Context, input ReadMetricsInput) (
 	for idx, e := range input.Expressions {
 		var col string
 		if col = config.KeysToColumns[strings.ToLower(e.Column)]; col == "" {
-			col = getAttributeFilterCol(input.SampleableConfig, fromSb.Var(e.Column), "")
+			col = getAttributeFilterCol(fromSb, input.SampleableConfig, e.Column, "")
 			attributeFields = append(attributeFields, e.Column)
 		}
 
@@ -1552,7 +1553,7 @@ func (client *Client) ReadMetrics(ctx context.Context, input ReadMetricsInput) (
 		}
 
 		if e.Aggregator == modelInputs.MetricAggregatorCountDistinctKey {
-			metricExpr = getAttributeFilterCol(input.SampleableConfig, highlight.TraceKeyAttribute, "")
+			metricExpr = getAttributeFilterCol(fromSb, input.SampleableConfig, highlight.TraceKeyAttribute, "")
 			attributeFields = append(attributeFields, highlight.TraceKeyAttribute)
 		}
 
@@ -1569,7 +1570,7 @@ func (client *Client) ReadMetrics(ctx context.Context, input ReadMetricsInput) (
 		if col, found := config.KeysToColumns[group]; found {
 			groupCol = fmt.Sprintf("toString(%s)", col)
 		} else {
-			groupCol = getAttributeFilterCol(input.SampleableConfig, fromSb.Var(group), "toString")
+			groupCol = getAttributeFilterCol(fromSb, input.SampleableConfig, group, "toString")
 			attributeFields = append(attributeFields, group)
 		}
 
@@ -1598,7 +1599,7 @@ func (client *Client) ReadMetrics(ctx context.Context, input ReadMetricsInput) (
 			col = topCol
 		} else {
 			attributeFields = append(attributeFields, col)
-			col = getAttributeFilterCol(input.SampleableConfig, fromSb.Var(col), "toFloat64OrNull")
+			col = getAttributeFilterCol(fromSb, input.SampleableConfig, col, "toFloat64OrNull")
 		}
 
 		limitExpr := fmt.Sprintf("%s OVER (PARTITION BY %s) as limit_metric",
