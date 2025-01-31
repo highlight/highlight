@@ -298,7 +298,7 @@ export declare interface HighlightPublicInterface {
 	 * Values with the same metric name and attributes are aggregated via the OTel SDK.
 	 * See https://opentelemetry.io/docs/specs/otel/metrics/data-model/ for more details.
 	 */
-	recordIncr: (metric: Metric) => void
+	recordIncr: (metric: Omit<Metric, 'value'>) => void
 	/**
 	 * Record arbitrary metric values via as a Histogram.
 	 * A Histogram efficiently records near-by point-in-time measurement into a bucketed aggregate.
