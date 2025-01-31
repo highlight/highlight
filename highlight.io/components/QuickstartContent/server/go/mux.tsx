@@ -14,7 +14,7 @@ export const GoMuxReorganizedContent: QuickStartContent = {
 	title: 'Go Mux',
 	subtitle:
 		'Learn how to set up highlight.io monitoring on your Go gorilla/mux backend.',
-	logoUrl: siteUrl('/images/quickstart/mux.png'),
+	logoPath: '/images/quickstart/mux.png',
 	products: ['Errors', 'Logs', 'Traces'],
 	entries: [
 		frontendInstallSnippet,

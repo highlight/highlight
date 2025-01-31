@@ -7,7 +7,7 @@ import { verifyTraces } from '../shared-snippets-tracing'
 export const RustOtherReorganizedContent: QuickStartContent = {
 	title: 'Rust',
 	subtitle: 'Learn how to set up highlight.io without a framework.',
-	logoUrl: siteUrl('/images/quickstart/rust.svg'),
+	logoPath: '/images/quickstart/rust.svg',
 	entries: [
 		frontendInstallSnippet,
 		{

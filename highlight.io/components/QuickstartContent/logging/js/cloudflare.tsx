@@ -7,7 +7,7 @@ export const JSCloudflareLoggingContent: QuickStartContent = {
 	title: 'Logging in Cloudflare Workers',
 	subtitle:
 		'Learn how to set up highlight.io log ingestion in Cloudflare Workers.',
-	logoUrl: siteUrl('/images/quickstart/cloudflare.svg'),
+	logoPath: '/images/quickstart/cloudflare.svg',
 	entries: [
 		previousInstallSnippet('cloudflare'),
 		{

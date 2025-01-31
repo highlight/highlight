@@ -37,7 +37,7 @@ export const ElectronContext: QuickStartContent = {
 	title: 'Electron',
 	subtitle:
 		'Learn how to set up highlight.io with your Electron application.',
-	logoUrl: siteUrl('/images/quickstart/electron.svg'),
+	logoPath: '/images/quickstart/electron.svg',
 	entries: [
 		packageInstallSnippet,
 		initializeSnippet,

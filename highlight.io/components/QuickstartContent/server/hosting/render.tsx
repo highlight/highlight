@@ -8,7 +8,7 @@ export const HostingRenderLogReorganizedContent: QuickStartContent = {
 		'Learn how to setup Highlight log ingestion on Render as a log stream. ' +
 		'As a prerequisite, we assume you already have an application ' +
 		'deployed on Render.',
-	logoUrl: siteUrl('/images/quickstart/render.png'),
+	logoPath: '/images/quickstart/render.png',
 	products: ['Logs'],
 	entries: [
 		{

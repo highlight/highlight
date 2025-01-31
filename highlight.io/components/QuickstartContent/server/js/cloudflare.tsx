@@ -13,7 +13,7 @@ import {
 export const JSCloudflareReorganizedContent: QuickStartContent = {
 	title: 'Cloudflare Workers',
 	subtitle: 'Learn how to set up highlight.io in Cloudflare Workers.',
-	logoUrl: siteUrl('/images/quickstart/cloudflare.svg'),
+	logoPath: '/images/quickstart/cloudflare.svg',
 	products: ['Errors', 'Logs', 'Traces'],
 	entries: [
 		frontendInstallSnippet,

@@ -6,7 +6,7 @@ import { previousInstallSnippet, verifyLogs } from '../shared-snippets'
 export const PythonLoguruLogContent: QuickStartContent = {
 	title: 'Logging from Python with Loguru',
 	subtitle: 'Learn how to set up highlight.io with logs from Python Loguru.',
-	logoUrl: siteUrl('/images/quickstart/python-loguru.png'),
+	logoPath: '/images/quickstart/python-loguru.png',
 	entries: [
 		previousInstallSnippet('python'),
 		downloadSnippet(),

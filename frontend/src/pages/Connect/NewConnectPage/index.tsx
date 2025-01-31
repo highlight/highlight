@@ -14,7 +14,7 @@ import {
 	Text,
 } from '@highlight-run/ui/components'
 import { vars } from '@highlight-run/ui/vars'
-import { quickStartContentReorganized } from 'highlight.io'
+import { QuickStartContent, quickStartContentReorganized } from 'highlight.io'
 
 import { Button } from '@/components/Button'
 import LoadingBox from '@components/LoadingBox'
@@ -237,7 +237,7 @@ const SelectedPlatformIcons = ({ platforms }: { platforms: Set<string> }) => {
 			{Array.from(platforms).map((identifier) => {
 				const [language, platform] = identifier.split('_')
 				const sdk = (quickStartContentReorganized as any)[language]
-					.sdks[platform]
+					.sdks[platform] as QuickStartContent
 
 				return (
 					<Box
@@ -250,10 +250,10 @@ const SelectedPlatformIcons = ({ platforms }: { platforms: Set<string> }) => {
 						border="secondary"
 						borderWidth="medium"
 					>
-						{sdk.logoUrl ? (
+						{sdk.logoPath ? (
 							<img
 								alt={sdk.title}
-								src={sdk.logoUrl}
+								src={sdk.logoPath}
 								style={{
 									height: 30,
 									width: 30,

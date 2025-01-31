@@ -11,7 +11,7 @@ import {
 export const JSHonoContent: QuickStartContent = {
 	title: 'Hono',
 	subtitle: 'Learn how to set up highlight.io in your Hono application.',
-	logoUrl: siteUrl('/images/quickstart/hono.svg'),
+	logoPath: '/images/quickstart/hono.svg',
 	entries: [
 		frontendInstallSnippet,
 		jsGetSnippet(['hono']),

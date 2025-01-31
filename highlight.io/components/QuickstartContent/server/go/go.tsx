@@ -8,7 +8,7 @@ export const GoTracesReorganizedContent: QuickStartContent = {
 	title: 'Tracing from a Go App',
 	subtitle:
 		'Learn how to set up highlight.io tracing for your Go application.',
-	logoUrl: siteUrl('/images/quickstart/go.svg'),
+	logoPath: '/images/quickstart/go.svg',
 	products: ['Traces'],
 	entries: [
 		frontendInstallSnippet,

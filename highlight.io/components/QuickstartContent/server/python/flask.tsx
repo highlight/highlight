@@ -9,7 +9,7 @@ export const PythonFlaskReorganizedContext: QuickStartContent = {
 	title: 'Python Flask',
 	subtitle:
 		'Learn how to set up highlight.io on your Python Flask backend API.',
-	logoUrl: siteUrl('/images/quickstart/flask.svg'),
+	logoPath: '/images/quickstart/flask.svg',
 	products: ['Errors', 'Logs', 'Traces'],
 	entries: [
 		frontendInstallSnippet,

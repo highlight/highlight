@@ -137,7 +137,7 @@ const LanguageOption: React.FC<LanguageOptionProps> = ({
 	handleSelect,
 	selected,
 }) => {
-	const { title, logoUrl, products = [] } = sdk
+	const { title, logoPath, products = [] } = sdk
 	const handleSelectOption = () => {
 		handleSelect(identifier, selected)
 	}
@@ -167,10 +167,10 @@ const LanguageOption: React.FC<LanguageOptionProps> = ({
 					border="secondary"
 					borderWidth="medium"
 				>
-					{logoUrl ? (
+					{logoPath ? (
 						<img
 							alt={title}
-							src={logoUrl}
+							src={logoPath}
 							style={{ height: 30, width: 30, borderRadius: 5 }}
 						/>
 					) : (

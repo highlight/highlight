@@ -12,7 +12,7 @@ import {
 export const GoEchoContent: QuickStartContent = {
 	title: 'Go Echo',
 	subtitle: 'Learn how to set up highlight.io on your Go Echo backend.',
-	logoUrl: siteUrl('/images/quickstart/echo.svg'),
+	logoPath: '/images/quickstart/echo.svg',
 	entries: [
 		frontendInstallSnippet,
 		goGetSnippet,

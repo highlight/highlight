@@ -7,7 +7,7 @@ import { logrusExample } from './shared-snippets-logging'
 export const GoOtherLogReorganizedContent: QuickStartContent = {
 	title: 'Logging from a Go App',
 	subtitle: 'Learn how to set up highlight.io Go log ingestion with logrus.',
-	logoUrl: siteUrl('/images/quickstart/go.svg'),
+	logoPath: '/images/quickstart/go.svg',
 	products: ['Logs'],
 	entries: [
 		frontendInstallSnippet,

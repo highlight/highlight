@@ -13,7 +13,7 @@ import {
 export const JSAWSLambdaReorganizedContent: QuickStartContent = {
 	title: 'Javascript AWS Lambda',
 	subtitle: 'Learn how to set up highlight.io on AWS Lambda.',
-	logoUrl: siteUrl('/images/quickstart/aws-lambda.svg'),
+	logoPath: '/images/quickstart/aws-lambda.svg',
 	products: ['Errors', 'Logs', 'Traces'],
 	entries: [
 		frontendInstallSnippet,

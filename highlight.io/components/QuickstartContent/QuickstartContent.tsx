@@ -144,7 +144,7 @@ export type QuickStartOptions = {
 	title: string
 	metaTitle?: string
 	subtitle: string
-	logoUrl: string
+	logoPath: string
 } & {
 	[key: string]: QuickStartContent
 }
@@ -153,7 +153,7 @@ export type QuickStartContent = {
 	title: string
 	metaTitle?: string
 	subtitle: string
-	logoUrl?: string
+	logoPath?: string
 	entries: Array<QuickStartStep>
 	products?: ('Sessions' | 'Errors' | 'Traces' | 'Logs' | 'Metrics')[]
 }
@@ -244,12 +244,12 @@ export const quickStartContent = {
 	client: {
 		title: 'Client SDKs',
 		subtitle: 'Select a client SDK to get started.',
-		logoUrl: siteUrl('/images/quickstart/javascript.svg'),
+		logoPath: '/images/quickstart/javascript.svg',
 		js: {
 			title: 'Select your client framework',
 			subtitle:
 				'Select a client SDK to install session replay, error monitoring, and logging for your frontend application.',
-			logoUrl: siteUrl('/images/quickstart/javascript.svg'),
+			logoPath: '/images/quickstart/javascript.svg',
 			[QuickStartType.React]: ReactContent,
 			[QuickStartType.Angular]: AngularContent,
 			[QuickStartType.Next]: NextContent,
@@ -269,7 +269,7 @@ export const quickStartContent = {
 			title: 'Python',
 			subtitle:
 				'Select your Python framework to install error monitoring for your application.',
-			logoUrl: siteUrl('/images/quickstart/python.svg'),
+			logoPath: '/images/quickstart/python.svg',
 			[QuickStartType.PythonFlask]: PythonFlaskContext,
 			[QuickStartType.PythonDjango]: PythonDjangoContext,
 			[QuickStartType.PythonFastAPI]: PythonFastAPIContext,
@@ -282,7 +282,7 @@ export const quickStartContent = {
 			title: 'Go',
 			subtitle:
 				'Select your Go framework to install error monitoring for your application.',
-			logoUrl: siteUrl('/images/quickstart/go.svg'),
+			logoPath: '/images/quickstart/go.svg',
 			[QuickStartType.GoGqlgen]: GoGqlgenContent,
 			[QuickStartType.GoFiber]: GoFiberContent,
 			[QuickStartType.GoEcho]: GoEchoContent,
@@ -294,7 +294,7 @@ export const quickStartContent = {
 			title: 'JavaScript',
 			subtitle:
 				'Select your JavaScript framework to install error monitoring for your application.',
-			logoUrl: siteUrl('/images/quickstart/javascript.svg'),
+			logoPath: '/images/quickstart/javascript.svg',
 			[QuickStartType.JSApollo]: JSApolloContent,
 			[QuickStartType.JSAWSFn]: JSAWSLambdaContent,
 			[QuickStartType.JSCloudflare]: JSCloudflareContent,
@@ -309,7 +309,7 @@ export const quickStartContent = {
 			title: 'Ruby',
 			subtitle:
 				'Select your Ruby framework to install error monitoring for your application.',
-			logoUrl: siteUrl('/images/quickstart/ruby.svg'),
+			logoPath: '/images/quickstart/ruby.svg',
 			[QuickStartType.RubyRails]: RubyRailsContent,
 			[QuickStartType.RubyOther]: RubyOtherContent,
 		},
@@ -317,7 +317,7 @@ export const quickStartContent = {
 			title: 'Rust',
 			subtitle:
 				'Select your Rust framework to install error monitoring for your application.',
-			logoUrl: siteUrl('/images/quickstart/rust.svg'),
+			logoPath: '/images/quickstart/rust.svg',
 			[QuickStartType.RustActix]: RustActixContent,
 			[QuickStartType.RustOther]: RustOtherContent,
 		},
@@ -325,27 +325,27 @@ export const quickStartContent = {
 			title: 'Elixir',
 			subtitle:
 				'Select your Elixir framework to install error monitoring for your application.',
-			logoUrl: siteUrl('/images/quickstart/elixir.svg'),
+			logoPath: '/images/quickstart/elixir.svg',
 			[QuickStartType.ElixirOther]: ElixirOtherContent,
 		},
 		java: {
 			title: 'Java',
 			subtitle:
 				'Select your Java framework to install error monitoring for your application.',
-			logoUrl: siteUrl('/images/quickstart/java.svg'),
+			logoPath: '/images/quickstart/java.svg',
 			[QuickStartType.JavaOther]: JavaOtherContent,
 		},
 		php: {
 			title: 'PHP',
 			subtitle:
 				'Select your PHP framework to install error monitoring for your application.',
-			logoUrl: siteUrl('/images/quickstart/php.svg'),
+			logoPath: '/images/quickstart/php.svg',
 			[QuickStartType.Other]: PHPOtherContent,
 		},
 		dotnet: {
 			title: 'C# .NET',
 			subtitle: 'ASP C# .NET Applications',
-			logoUrl: siteUrl('/images/quickstart/dotnet.svg'),
+			logoPath: '/images/quickstart/dotnet.svg',
 			[QuickStartType.OTLPDotNet]: DotNetOTLPTracingContent,
 			[QuickStartType.OTLPDotNet4]: DotNet4OTLPTracingContent,
 		},
@@ -365,7 +365,7 @@ export const quickStartContent = {
 			title: 'Python',
 			subtitle:
 				'Select your Python framework to install logging in your application.',
-			logoUrl: siteUrl('/images/quickstart/python.svg'),
+			logoPath: '/images/quickstart/python.svg',
 			[QuickStartType.PythonLoguru]: PythonLoguruLogContent,
 			[QuickStartType.PythonOther]: PythonOtherLogContent,
 			[QuickStartType.PythonOtel]: PythonOtelLogContent,
@@ -374,7 +374,7 @@ export const quickStartContent = {
 			title: 'Go',
 			subtitle:
 				'Select your Go framework to install logging in your application.',
-			logoUrl: siteUrl('/images/quickstart/go.svg'),
+			logoPath: '/images/quickstart/go.svg',
 			[QuickStartType.GoLogrus]: GoOtherLogContent,
 			[QuickStartType.GoOther]: GoOtherLogContent,
 			[QuickStartType.GoFiber]: GoFiberLogContent,
@@ -383,7 +383,7 @@ export const quickStartContent = {
 			title: 'JavaScript',
 			subtitle:
 				'Select your JavaScript framework to install logging in your application.',
-			logoUrl: siteUrl('/images/quickstart/javascript.svg'),
+			logoPath: '/images/quickstart/javascript.svg',
 			[QuickStartType.JSNodejs]: JSOtherLogContent,
 			[QuickStartType.JSNestjs]: JSNestLogContent,
 			[QuickStartType.JSWinston]: JSWinstonHTTPJSONLogContent,
@@ -405,7 +405,7 @@ export const quickStartContent = {
 			title: 'Ruby',
 			subtitle:
 				'Select your Ruby framework to install logging in your application.',
-			logoUrl: siteUrl('/images/quickstart/ruby.svg'),
+			logoPath: '/images/quickstart/ruby.svg',
 			[QuickStartType.RubyRails]: RubyRailsLogContent,
 			[QuickStartType.RubyOther]: RubyOtherLogContent,
 		},
@@ -413,7 +413,7 @@ export const quickStartContent = {
 			title: 'Rust',
 			subtitle:
 				'Select your Rust framework to install logging in your application.',
-			logoUrl: siteUrl('/images/quickstart/rust.svg'),
+			logoPath: '/images/quickstart/rust.svg',
 			[QuickStartType.RustActix]: RustActixLogContent,
 			[QuickStartType.RustOther]: RustOtherLogContent,
 		},
@@ -421,21 +421,21 @@ export const quickStartContent = {
 			title: 'Elixir',
 			subtitle:
 				'Select your Elixir framework to install logging in your application.',
-			logoUrl: siteUrl('/images/quickstart/elixir.svg'),
+			logoPath: '/images/quickstart/elixir.svg',
 			[QuickStartType.ElixirOther]: ElixirOtherLogContent,
 		},
 		java: {
 			title: 'Java',
 			subtitle:
 				'Select your Java framework to install logging in your application.',
-			logoUrl: siteUrl('/images/quickstart/java.svg'),
+			logoPath: '/images/quickstart/java.svg',
 			[QuickStartType.JavaOther]: JavaOtherLogContent,
 		},
 		php: {
 			title: 'PHP',
 			subtitle:
 				'Select your PHP framework to install error monitoring for your application.',
-			logoUrl: siteUrl('/images/quickstart/php.svg'),
+			logoPath: '/images/quickstart/php.svg',
 			[QuickStartType.Other]: PHPOtherLogContent,
 		},
 		hosting: {
@@ -450,7 +450,7 @@ export const quickStartContent = {
 		dotnet: {
 			title: 'C# .NET',
 			subtitle: 'ASP C# .NET Applications',
-			logoUrl: siteUrl('/images/quickstart/dotnet.svg'),
+			logoPath: '/images/quickstart/dotnet.svg',
 			[QuickStartType.OTLPDotNet]: DotNetOTLPTracingContent,
 			[QuickStartType.OTLPDotNet4]: DotNet4OTLPTracingContent,
 		},
@@ -469,26 +469,26 @@ export const quickStartContent = {
 		'node-js': {
 			title: 'Node.js',
 			subtitle: 'Manually trace your Node.js application.',
-			logoUrl: siteUrl('/images/quickstart/javascript.svg'),
+			logoPath: '/images/quickstart/javascript.svg',
 			[QuickStartType.JSManual]: JSManualTracesContent,
 		},
 		'next-js': {
 			title: 'Next.js',
 			subtitle: 'Trace your Next.js application.',
-			logoUrl: siteUrl('/images/quickstart/nextjs.svg'),
+			logoPath: '/images/quickstart/nextjs.svg',
 			[QuickStartType.JSNextjs]: NextJsTracesContent,
 		},
 		go: {
 			title: 'Go',
 			subtitle: 'Install tracing in your Go application.',
-			logoUrl: siteUrl('/images/quickstart/go.svg'),
+			logoPath: '/images/quickstart/go.svg',
 			[QuickStartType.GoOther]: GoTracesContent,
 			[QuickStartType.GoGorm]: GormTracesContent,
 		},
 		python: {
 			title: 'Python',
 			subtitle: 'Install tracing in your Python application.',
-			logoUrl: siteUrl('/images/quickstart/python.svg'),
+			logoPath: '/images/quickstart/python.svg',
 			[QuickStartType.PythonOther]: PythonManualTracesContent,
 			[QuickStartType.PythonAWSFn]: PythonAWSTracesContent,
 			[QuickStartType.PythonAzureFn]: PythonAzureTracesContent,
@@ -502,13 +502,13 @@ export const quickStartContent = {
 		php: {
 			title: 'PHP',
 			subtitle: 'Install tracing in your PHP application.',
-			logoUrl: siteUrl('/images/quickstart/php.svg'),
+			logoPath: '/images/quickstart/php.svg',
 			[QuickStartType.Other]: PHPTracesContent,
 		},
 		dotnet: {
 			title: 'C# .NET',
 			subtitle: 'ASP C# .NET Applications',
-			logoUrl: siteUrl('/images/quickstart/dotnet.svg'),
+			logoPath: '/images/quickstart/dotnet.svg',
 			[QuickStartType.OTLPDotNet]: DotNetOTLPTracingContent,
 			[QuickStartType.OTLPDotNet4]: DotNet4OTLPTracingContent,
 		},
@@ -523,20 +523,20 @@ export const quickStartContent = {
 			title: 'Rust',
 			subtitle:
 				'Select your Rust framework to install logging in your application.',
-			logoUrl: siteUrl('/images/quickstart/rust.svg'),
+			logoPath: '/images/quickstart/rust.svg',
 			[QuickStartType.RustOther]: RustTracesContent,
 			[QuickStartType.RustActix]: RustTracesContent,
 		},
 		serverless: {
 			title: 'Serverless',
 			subtitle: 'Install tracing in your Serverless application.',
-			logoUrl: siteUrl('/images/quickstart/serverless.svg'),
+			logoPath: '/images/quickstart/serverless.svg',
 			[QuickStartType.AWSLambda]: AWSLambdaContent,
 		},
 		ruby: {
 			title: 'Ruby',
 			subtitle: 'Install tracing in your Ruby application.',
-			logoUrl: siteUrl('/images/quickstart/ruby.svg'),
+			logoPath: '/images/quickstart/ruby.svg',
 			[QuickStartType.RubyRails]: RubyRailsTracesContent,
 			[QuickStartType.RubyOther]: RubyOtherTracesContent,
 		},
@@ -548,7 +548,7 @@ export const quickStartContent = {
 		dotnet: {
 			title: 'C# .NET',
 			subtitle: 'ASP C# .NET Applications',
-			logoUrl: siteUrl('/images/quickstart/dotnet.svg'),
+			logoPath: '/images/quickstart/dotnet.svg',
 			[QuickStartType.OTLPDotNet]: DotNetOTLPTracingContent,
 			[QuickStartType.OTLPDotNet4]: DotNet4OTLPTracingContent,
 		},

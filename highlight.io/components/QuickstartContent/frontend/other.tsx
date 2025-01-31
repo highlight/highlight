@@ -13,7 +13,7 @@ export const OtherContext: QuickStartContent = {
 	title: 'HTML/JS',
 	subtitle:
 		'Learn how to set up highlight.io with any browser-based framework.',
-	logoUrl: siteUrl('/images/quickstart/javascript.svg'),
+	logoPath: '/images/quickstart/javascript.svg',
 	entries: [
 		{
 			title: 'Import the script in your index html file.',

@@ -6,7 +6,7 @@ import { logrusExample } from './shared-snippets'
 export const GoFiberLogContent: QuickStartContent = {
 	title: 'Logging from a Go Fiber App',
 	subtitle: 'Learn how to set up highlight.io Go log ingestion with fiber.',
-	logoUrl: siteUrl('/images/quickstart/go.svg'),
+	logoPath: '/images/quickstart/go.svg',
 	entries: [
 		previousInstallSnippet('go'),
 		...logrusExample(

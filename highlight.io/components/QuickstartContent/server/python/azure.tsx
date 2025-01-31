@@ -8,7 +8,7 @@ import { downloadSnippet, init } from './shared-snippets-monitoring'
 export const PythonAzureReorganizedContext: QuickStartContent = {
 	title: 'Python Azure Functions',
 	subtitle: 'Learn how to set up highlight.io with Azure Functions.',
-	logoUrl: siteUrl('/images/quickstart/azure.svg'),
+	logoPath: '/images/quickstart/azure.svg',
 	products: ['Errors', 'Logs', 'Traces'],
 	entries: [
 		frontendInstallSnippet,

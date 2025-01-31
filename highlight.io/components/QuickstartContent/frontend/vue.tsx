@@ -50,7 +50,7 @@ createApp(App).mount('#app')
 export const VueContent: QuickStartContent = {
 	title: 'Vue.js',
 	subtitle: 'Learn how to set up highlight.io with your React application.',
-	logoUrl: siteUrl('/images/quickstart/vue.svg'),
+	logoPath: '/images/quickstart/vue.svg',
 	entries: [
 		packageInstallSnippet,
 		vueInitSnippet,

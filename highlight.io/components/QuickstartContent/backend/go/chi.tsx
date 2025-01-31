@@ -12,7 +12,7 @@ import {
 export const GoChiContent: QuickStartContent = {
 	title: 'Go Chi',
 	subtitle: 'Learn how to set up highlight.io on your Go chi backend.',
-	logoUrl: siteUrl('/images/quickstart/chi.svg'),
+	logoPath: '/images/quickstart/chi.svg',
 	entries: [
 		frontendInstallSnippet,
 		goGetSnippet,

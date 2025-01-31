@@ -34,7 +34,7 @@ To get started, we recommend setting \`environment\`, \`version\`, and \`network
 export const GatsbyContent: QuickStartContent = {
 	title: 'Gatsby',
 	subtitle: 'Learn how to set up highlight.io with your Gatsby application.',
-	logoUrl: siteUrl('/images/quickstart/gatsby.svg'),
+	logoPath: '/images/quickstart/gatsby.svg',
 	entries: [
 		{
 			title: 'Install the gatsby plugin.',

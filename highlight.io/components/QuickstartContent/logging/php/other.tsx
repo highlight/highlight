@@ -5,7 +5,7 @@ import { previousInstallSnippet, verifyLogs } from '../shared-snippets'
 export const PHPOtherLogContent: QuickStartContent = {
 	title: 'PHP',
 	subtitle: 'Learn how to set up highlight.io PHP log ingestion.',
-	logoUrl: siteUrl('/images/quickstart/php.svg'),
+	logoPath: '/images/quickstart/php.svg',
 	entries: [
 		previousInstallSnippet('php'),
 		{

@@ -14,7 +14,7 @@ export const RubyOtherReorganizedContent: QuickStartContent = {
 	title: 'Ruby',
 	subtitle:
 		'Learn how to set up highlight.io on your non-Rails Ruby backend.',
-	logoUrl: siteUrl('/images/quickstart/ruby.svg'),
+	logoPath: '/images/quickstart/ruby.svg',
 	entries: [
 		frontendInstallSnippet,
 		installSdk,

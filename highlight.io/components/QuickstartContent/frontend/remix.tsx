@@ -12,7 +12,7 @@ const GUIDE_URL = siteUrl('/docs/getting-started/fullstack-frameworks/remix')
 export const RemixContent: QuickStartContent = {
 	title: 'Remix',
 	subtitle: 'Learn how to set up highlight.io with your Remix application.',
-	logoUrl: siteUrl('/images/quickstart/remix.png'),
+	logoPath: '/images/quickstart/remix.png',
 	entries: [
 		{
 			title: 'Install the npm package & SDK.',

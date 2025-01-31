@@ -10,7 +10,7 @@ export const PythonDjangoContext: QuickStartContent = {
 	title: 'Python Django',
 	subtitle:
 		'Learn how to set up highlight.io on your Python Django backend API.',
-	logoUrl: siteUrl('/images/quickstart/django.svg'),
+	logoPath: '/images/quickstart/django.svg',
 	entries: [
 		setupFrontendSnippet,
 		downloadSnippet(),

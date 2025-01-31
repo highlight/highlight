@@ -8,7 +8,7 @@ export const GormTracesReorganizedContent: QuickStartContent = {
 	title: 'Tracing with GORM',
 	subtitle:
 		'Learn how to set up auto-instrumented tracing for your database calls using the GORM library.',
-	logoUrl: siteUrl('/images/quickstart/go.svg'),
+	logoPath: '/images/quickstart/go.svg',
 	products: ['Traces'],
 	entries: [
 		frontendInstallSnippet,

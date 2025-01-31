@@ -10,7 +10,7 @@ import {
 export const PythonOtherContext: QuickStartContent = {
 	title: 'Python',
 	subtitle: 'Learn how to set up highlight.io in your Python app.',
-	logoUrl: siteUrl('/images/quickstart/python.svg'),
+	logoPath: '/images/quickstart/python.svg',
 	entries: [
 		setupFrontendSnippet,
 		downloadSnippet(),

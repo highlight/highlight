@@ -7,7 +7,7 @@ export const PythonLibrariesTracesReorganizedContent: QuickStartContent = {
 	title: 'Python Libraries',
 	subtitle:
 		'Learn how to set up highlight.io tracing for common Python Libraries.',
-	logoUrl: siteUrl('/images/quickstart/python.svg'),
+	logoPath: '/images/quickstart/python.svg',
 	products: ['Errors', 'Logs', 'Traces'],
 	entries: [
 		{

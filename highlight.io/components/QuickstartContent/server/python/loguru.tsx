@@ -7,7 +7,7 @@ import { frontendInstallSnippet } from '../shared-snippets-monitoring'
 export const PythonLoguruLogReorganizedContent: QuickStartContent = {
 	title: 'Logging from Python with Loguru',
 	subtitle: 'Learn how to set up highlight.io with logs from Python Loguru.',
-	logoUrl: siteUrl('/images/quickstart/python-loguru.png'),
+	logoPath: '/images/quickstart/python-loguru.png',
 	products: ['Logs'],
 	entries: [
 		frontendInstallSnippet,

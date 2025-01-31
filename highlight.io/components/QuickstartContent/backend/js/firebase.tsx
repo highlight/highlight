@@ -12,7 +12,7 @@ import {
 export const JSFirebaseContent: QuickStartContent = {
 	title: 'Firebase',
 	subtitle: 'Learn how to set up highlight.io in Firebase Cloud Functions.',
-	logoUrl: siteUrl('/images/quickstart/firebase.svg'),
+	logoPath: '/images/quickstart/firebase.svg',
 	entries: [
 		frontendInstallSnippet,
 		jsGetSnippet(['node']),

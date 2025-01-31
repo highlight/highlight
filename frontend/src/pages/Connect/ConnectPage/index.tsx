@@ -249,7 +249,7 @@ const SelectedPlatformButtons = ({
 			{platforms.map((identifier, index) => {
 				const [sdkLanguage, sdkPlatform] = identifier.split('_')
 				const sdk = (quickStartContentReorganized as any)[sdkLanguage]
-					.sdks[sdkPlatform]
+					.sdks[sdkPlatform] as QuickStartContent
 
 				const selected =
 					!language || !platform
@@ -282,10 +282,10 @@ const SelectedPlatformButtons = ({
 								border="dividerWeak"
 								borderWidth="medium"
 							>
-								{sdk?.logoUrl ? (
+								{sdk.logoPath ? (
 									<img
 										alt={sdk.title}
-										src={sdk.logoUrl}
+										src={sdk.logoPath}
 										style={{
 											height: 30,
 											width: 30,

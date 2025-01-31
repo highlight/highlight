@@ -5,7 +5,7 @@ import { previousInstallSnippet, verifyLogs } from '../shared-snippets'
 export const JavaOtherLogContent: QuickStartContent = {
 	title: 'Java',
 	subtitle: 'Learn how to set up highlight.io Java log ingestion.',
-	logoUrl: siteUrl('/images/quickstart/java.svg'),
+	logoPath: '/images/quickstart/java.svg',
 	entries: [
 		previousInstallSnippet('java'),
 		{
