@@ -1,0 +1,24 @@
+{
+	"name": "highlight-end-to-end-examples",
+	"private": true,
+	"version": "0.0.0",
+	"repository": "git@github.com:highlight-run/highlight.git",
+	"author": "Highlight",
+	"license": "Apache-2.0",
+	"workspaces": [
+		"./*"
+	],
+	"scripts": {
+		"build": "yarn turbo run build",
+		"cloudflare": "yarn turbo run dev --filter cloudflare-worker...",
+		"dev": "yarn turbo run dev",
+		"express": "yarn turbo run dev --filter express...",
+		"nestjs": "yarn turbo run dev --filter nestjs",
+		"nextjs": "yarn turbo run dev --filter nextjs... --filter=!@highlight-run/client --filter=!highlight.run --filter=!@highlight-run/opentelemetry-sdk-workers",
+		"remix": "yarn turbo run dev --filter remix...",
+		"test": "yarn turbo run test"
+	},
+	"devDependencies": {
+		"turbo": "^2.2.3"
+	}
+}
