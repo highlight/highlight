@@ -285,7 +285,7 @@ const SelectedPlatformButtons = ({
 								{sdk.logoPath ? (
 									<img
 										alt={sdk.title}
-										src={`/src/${sdk.logoPath}`}
+										src={`/src/static/${sdk.logoPath}`}
 										style={{
 											height: 30,
 											width: 30,
