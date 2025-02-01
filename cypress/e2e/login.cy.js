@@ -4,6 +4,12 @@ describe('login spec', () => {
 		cy.intercept('POST', '/public', (req) => {
 			req.alias = req.body.operationName
 		})
+		cy.intercept('POST', '/v1/traces', (req) => {
+			req.alias = 'oteltraces'
+		})
+		cy.intercept('POST', '/v1/metrics', (req) => {
+			req.alias = 'otelmetrics'
+		})
 	})
 
 	it('allows you to log in using ADMIN_PASSWORD', () => {
@@ -18,9 +24,12 @@ describe('login spec', () => {
 		cy.get('button[type="submit"]').click().wait(5000)
 
 		// Ensure client requests are made
-		cy.wait('@pushMetrics')
-			.its('request.body.variables')
-			.should('have.property', 'metrics')
+		cy.wait('@otelmetrics')
+			.its('request.body.resourceMetrics.0.scopeMetrics.0.metrics.0')
+			.should('have.property', 'name')
+		cy.wait('@oteltraces')
+			.its('request.body.resourceSpans.0.scopeSpans.0.spans.0')
+			.should('have.property', 'name')
 		cy.wait('@initializeSession')
 			.its('request.body.variables')
 			.should('have.property', 'session_secure_id')
