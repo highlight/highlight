@@ -5,6 +5,8 @@
 	"type": "module",
 	"packageManager": "yarn@3.5.0",
 	"dependencies": {
+		"@opentelemetry/api": "^1.9.0",
+		"@opentelemetry/otlp-transformer": "^0.57.1",
 		"express": "^4.19.2"
 	},
 	"scripts": {

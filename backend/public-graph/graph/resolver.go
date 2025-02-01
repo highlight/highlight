@@ -399,30 +399,6 @@ func (r *Resolver) AppendFields(ctx context.Context, fields []*model.Field, sess
 	return nil
 }
 
-func getIncrementedEnvironmentCount(ctx context.Context, errorGroup *model.ErrorGroup, errorObj *model.ErrorObject) string {
-	environmentsMap := make(map[string]int)
-	if errorGroup.Environments != "" {
-		err := json.Unmarshal([]byte(errorGroup.Environments), &environmentsMap)
-		if err != nil {
-			log.WithContext(ctx).Error(e.Wrap(err, "error unmarshalling environments from error group into map"))
-		}
-	}
-	if len(errorObj.Environment) > 0 {
-		if _, ok := environmentsMap[strings.ToLower(errorObj.Environment)]; ok {
-			environmentsMap[strings.ToLower(errorObj.Environment)]++
-		} else {
-			environmentsMap[strings.ToLower(errorObj.Environment)] = 1
-		}
-	}
-	environmentsBytes, err := json.Marshal(environmentsMap)
-	if err != nil {
-		log.WithContext(ctx).Error(e.Wrap(err, "error marshalling environment map into json"))
-	}
-	environmentsString := string(environmentsBytes)
-
-	return environmentsString
-}
-
 func (r *Resolver) GetErrorAppVersion(ctx context.Context, errorObj *model.ErrorObject) *string {
 	// get version from session
 	var session *model.Session
@@ -503,8 +479,6 @@ func (r *Resolver) GetOrCreateErrorGroup(ctx context.Context, errorObj *model.Er
 	errorGroup := &model.ErrorGroup{}
 
 	if match == nil {
-		environmentsString := getIncrementedEnvironmentCount(ctx, errorGroup, errorObj)
-
 		newErrorGroup := &model.ErrorGroup{
 			ProjectID:        errorObj.ProjectID,
 			Event:            errorObj.Event,
@@ -512,7 +486,6 @@ func (r *Resolver) GetOrCreateErrorGroup(ctx context.Context, errorObj *model.Er
 			MappedStackTrace: errorObj.MappedStackTrace,
 			Type:             errorObj.Type,
 			State:            privateModel.ErrorStateOpen,
-			Environments:     environmentsString,
 			ServiceName:      errorObj.ServiceName,
 		}
 
@@ -538,30 +511,30 @@ func (r *Resolver) GetOrCreateErrorGroup(ctx context.Context, errorObj *model.Er
 			return nil, e.Wrap(err, "error retrieving top matched error group")
 		}
 
-		environmentsString := getIncrementedEnvironmentCount(ctx, errorGroup, errorObj)
-
 		updatedState := errorGroup.State
 
 		// Reopen resolved errors
 		// Note that ignored errors do change state
+		var shouldUpdate bool
 		if updatedState == privateModel.ErrorStateResolved {
 			updatedState = privateModel.ErrorStateOpen
+			shouldUpdate = true
 		}
 
 		if errorGroup.ErrorTagID == nil && tagGroup {
 			errorGroup.ErrorTagID = r.tagErrorGroup(ctx, errorObj)
+			shouldUpdate = true
 		}
-
-		if err := r.DB.WithContext(ctx).Model(errorGroup).Updates(&model.ErrorGroup{
-			StackTrace:       *errorObj.StackTrace,
-			MappedStackTrace: errorObj.MappedStackTrace,
-			Environments:     environmentsString,
-			Event:            errorObj.Event,
-			State:            updatedState,
-			ServiceName:      errorObj.ServiceName,
-			ErrorTagID:       errorGroup.ErrorTagID,
-		}).Error; err != nil {
-			return nil, e.Wrap(err, "Error updating error group")
+		if shouldUpdate {
+			s, sCtx := util.StartSpanFromContext(ctx, "GetOrCreateErrorGroup.Update")
+			if err := r.DB.WithContext(sCtx).Model(errorGroup).Updates(&model.ErrorGroup{
+				State:      updatedState,
+				ErrorTagID: errorGroup.ErrorTagID,
+			}).Error; err != nil {
+				s.Finish(err)
+				return nil, e.Wrap(err, "Error updating error group")
+			}
+			s.Finish()
 		}
 	}
 

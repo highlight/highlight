@@ -1290,6 +1290,7 @@ export type Mutation = {
 	deleteSessions: Scalars['Boolean']
 	deleteVisualization: Scalars['Boolean']
 	editProject?: Maybe<Project>
+	editProjectPlatforms: Scalars['Boolean']
 	editProjectSettings?: Maybe<AllProjectSettings>
 	editSavedSegment?: Maybe<Scalars['Boolean']>
 	editServiceGithubSettings?: Maybe<Service>
@@ -1615,6 +1616,11 @@ export type MutationEditProjectArgs = {
 	billing_email?: InputMaybe<Scalars['String']>
 	id: Scalars['ID']
 	name?: InputMaybe<Scalars['String']>
+}
+
+export type MutationEditProjectPlatformsArgs = {
+	platforms?: InputMaybe<Scalars['StringArray']>
+	projectID: Scalars['ID']
 }
 
 export type MutationEditProjectSettingsArgs = {
@@ -2096,6 +2102,7 @@ export type Project = {
 	filter_chrome_extension?: Maybe<Scalars['Boolean']>
 	id: Scalars['ID']
 	name: Scalars['String']
+	platforms?: Maybe<Scalars['StringArray']>
 	rage_click_count?: Maybe<Scalars['Int']>
 	rage_click_radius_pixels?: Maybe<Scalars['Int']>
 	rage_click_window_seconds?: Maybe<Scalars['Int']>

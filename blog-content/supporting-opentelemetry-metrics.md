@@ -15,7 +15,7 @@ metaTitle: 'Building an Efficient OpenTelemetry Metrics Schema in Clickhouse'
 ---
 
 ```hint
-Highlight.io is an [open source](https://github.com/highlight/highlight) monitoring platform. If you’re interested in learning more, get started at [highlight.io](https://highlight.io). Check out the React Native [example app](https://github.com/highlight/highlight/tree/main/e2e/react-native) and [Highlight code snippets](https://github.com/highlight/highlight/blob/main/e2e/react-native/app/highlight.ts) to follow along.
+Highlight.io is an [open source](https://github.com/highlight/highlight) monitoring platform. If you’re interested in learning more, get started at [highlight.io](https://highlight.io).
 ```
 
 ## OpenTelemetry Metrics

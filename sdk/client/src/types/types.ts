@@ -3,6 +3,7 @@ import {
 	ConsoleMethods,
 	DebugOptions,
 	IntegrationOptions,
+	MetricCategory,
 	NetworkRecordingOptions,
 	SessionShortcutOptions,
 } from './client.js'
@@ -15,6 +16,14 @@ export declare interface Metadata {
 export declare interface Metric {
 	name: string
 	value: number
+	tags?: { name: string; value: string }[]
+}
+
+export interface RecordMetric {
+	name: string
+	value: number
+	category?: MetricCategory
+	group?: string
 	tags?: { name: string; value: string }[]
 }
 
@@ -269,6 +278,41 @@ export declare interface HighlightPublicInterface {
 	 * @see {@link https://docs.highlight.run/frontend-observability} for more information.
 	 */
 	metrics: (metrics: Metric[]) => void
+	/**
+	 * Record arbitrary metric values via as a Gauge.
+	 * A Gauge records any point-in-time measurement, such as the current CPU utilization %.
+	 * Values with the same metric name and attributes are aggregated via the OTel SDK.
+	 * See https://opentelemetry.io/docs/specs/otel/metrics/data-model/ for more details.
+	 */
+	recordMetric: (metric: Metric) => void
+	/**
+	 * Record arbitrary metric values via as a Counter.
+	 * A Counter efficiently records an increment in a metric, such as number of cache hits.
+	 * Values with the same metric name and attributes are aggregated via the OTel SDK.
+	 * See https://opentelemetry.io/docs/specs/otel/metrics/data-model/ for more details.
+	 */
+	recordCount: (metric: Metric) => void
+	/**
+	 * Record arbitrary metric values via as a Counter.
+	 * A Counter efficiently records an increment in a metric, such as number of cache hits.
+	 * Values with the same metric name and attributes are aggregated via the OTel SDK.
+	 * See https://opentelemetry.io/docs/specs/otel/metrics/data-model/ for more details.
+	 */
+	recordIncr: (metric: Omit<Metric, 'value'>) => void
+	/**
+	 * Record arbitrary metric values via as a Histogram.
+	 * A Histogram efficiently records near-by point-in-time measurement into a bucketed aggregate.
+	 * Values with the same metric name and attributes are aggregated via the OTel SDK.
+	 * See https://opentelemetry.io/docs/specs/otel/metrics/data-model/ for more details.
+	 */
+	recordHistogram: (metric: Metric) => void
+	/**
+	 * Record arbitrary metric values via as a UpDownCounter.
+	 * A UpDownCounter efficiently records an increment or decrement in a metric, such as number of paying customers.
+	 * Values with the same metric name and attributes are aggregated via the OTel SDK.
+	 * See https://opentelemetry.io/docs/specs/otel/metrics/data-model/ for more details.
+	 */
+	recordUpDownCounter: (metric: Metric) => void
 	/**
 	 * Starts a new span for tracing in Highlight. The span will be ended when the
 	 * callback function returns.

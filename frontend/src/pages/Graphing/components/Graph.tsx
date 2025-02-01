@@ -1169,7 +1169,7 @@ const Graph = ({
 	syncId,
 	children,
 }: React.PropsWithChildren<ChartProps<ViewConfig>>) => {
-	const { setGraphData } = useGraphContext()
+	const { setGraphData, setErrors } = useGraphContext()
 	const queriedBucketCount = bucketByKey !== undefined ? bucketCount : 1
 	const bucketByTimestamp = bucketByKey === TIMESTAMP_KEY
 
@@ -1358,6 +1358,9 @@ const Graph = ({
 		Promise.all(getMetricsPromises)
 			.then((results: GetMetricsQueryResult[]) => {
 				setResults(results.filter((r) => r.data).map((r) => r.data!))
+				setErrors(
+					results.filter((r) => r.error).map((r) => r.error!.message),
+				)
 			})
 			.finally(() => {
 				setLoading(false)

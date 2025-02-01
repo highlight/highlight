@@ -28,7 +28,7 @@ import {
 	loadCookieSessionData,
 } from '@highlight-run/client/src/utils/sessionStorage/highlightSession.js'
 import { setCookieWriteEnabled } from '@highlight-run/client/src/utils/storage'
-import type { Context, Span, SpanOptions, Tracer } from '@opentelemetry/api'
+import { Context, Span, SpanOptions, Tracer } from '@opentelemetry/api'
 import firstloadVersion from './__generated/version.js'
 import { listenToChromeExtensionMessage } from './browserExtension/extensionListener.js'
 import configureElectronHighlight from './environments/electron.js'
@@ -361,16 +361,61 @@ const H: HighlightPublicInterface = {
 	},
 	metrics: (metrics: Metric[]) => {
 		try {
-			H.onHighlightReady(() =>
-				highlight_obj.recordMetric(
-					metrics.map((m) => ({
-						...m,
-						category: MetricCategory.Frontend,
-					})),
-				),
-			)
+			for (const m of metrics) {
+				H.recordMetric(m)
+			}
 		} catch (e) {
 			HighlightWarning('metrics', e)
+		}
+	},
+	recordMetric: (metric: Metric) => {
+		try {
+			H.onHighlightReady(() => {
+				highlight_obj.recordGauge({
+					...metric,
+					tags: metric.tags ?? [],
+					group: window.location.href,
+					category: MetricCategory.Frontend,
+				})
+			})
+		} catch (e) {
+			HighlightWarning('recordMetric', e)
+		}
+	},
+	recordCount: (metric: Metric) => {
+		try {
+			H.onHighlightReady(() => {
+				highlight_obj.recordCount(metric)
+			})
+		} catch (e) {
+			HighlightWarning('recordCount', e)
+		}
+	},
+	recordIncr: (metric: Omit<Metric, 'value'>) => {
+		try {
+			H.onHighlightReady(() => {
+				highlight_obj.recordIncr(metric)
+			})
+		} catch (e) {
+			HighlightWarning('recordIncr', e)
+		}
+	},
+	recordHistogram: (metric: Metric) => {
+		try {
+			H.onHighlightReady(() => {
+				highlight_obj.recordHistogram(metric)
+			})
+		} catch (e) {
+			HighlightWarning('recordHistogram', e)
+		}
+	},
+	recordUpDownCounter: (metric: Metric) => {
+		try {
+			H.onHighlightReady(() => {
+				highlight_obj.recordUpDownCounter(metric)
+			})
+		} catch (e) {
+			HighlightWarning('recordUpDownCounter', e)
 		}
 	},
 	startSpan: (

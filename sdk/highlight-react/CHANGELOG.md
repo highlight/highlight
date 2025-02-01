@@ -1,5 +1,12 @@
 # @highlight-run/react
 
+## 8.1.1
+
+### Patch Changes
+
+-   Updated dependencies [408abc7]
+    -   highlight.run@9.7.4
+
 ## 8.1.0
 
 ### Minor Changes

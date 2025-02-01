@@ -926,6 +926,7 @@ type ComplexityRoot struct {
 		DeleteSessions                        func(childComplexity int, projectID int, params model.QueryInput, sessionCount int) int
 		DeleteVisualization                   func(childComplexity int, id int) int
 		EditProject                           func(childComplexity int, id int, name *string, billingEmail *string) int
+		EditProjectPlatforms                  func(childComplexity int, projectID int, platforms pq.StringArray) int
 		EditProjectSettings                   func(childComplexity int, projectID int, excludedUsers pq.StringArray, errorFilters pq.StringArray, errorJSONPaths pq.StringArray, rageClickWindowSeconds *int, rageClickRadiusPixels *int, rageClickCount *int, filterChromeExtension *bool, filterSessionsWithoutError *bool, autoResolveStaleErrorsDayInterval *int, sampling *model.SamplingInput) int
 		EditSavedSegment                      func(childComplexity int, id int, projectID int, name string, entityType model.SavedSegmentEntityType, query string) int
 		EditServiceGithubSettings             func(childComplexity int, id int, projectID int, githubRepoPath *string, buildPrefix *string, githubPrefix *string) int
@@ -1031,6 +1032,7 @@ type ComplexityRoot struct {
 		FilterChromeExtension  func(childComplexity int) int
 		ID                     func(childComplexity int) int
 		Name                   func(childComplexity int) int
+		Platforms              func(childComplexity int) int
 		RageClickCount         func(childComplexity int) int
 		RageClickRadiusPixels  func(childComplexity int) int
 		RageClickWindowSeconds func(childComplexity int) int
@@ -1837,6 +1839,7 @@ type MutationResolver interface {
 	CreateWorkspace(ctx context.Context, name string, promoCode *string) (*model1.Workspace, error)
 	EditProject(ctx context.Context, id int, name *string, billingEmail *string) (*model1.Project, error)
 	EditProjectSettings(ctx context.Context, projectID int, excludedUsers pq.StringArray, errorFilters pq.StringArray, errorJSONPaths pq.StringArray, rageClickWindowSeconds *int, rageClickRadiusPixels *int, rageClickCount *int, filterChromeExtension *bool, filterSessionsWithoutError *bool, autoResolveStaleErrorsDayInterval *int, sampling *model.SamplingInput) (*model.AllProjectSettings, error)
+	EditProjectPlatforms(ctx context.Context, projectID int, platforms pq.StringArray) (bool, error)
 	EditWorkspace(ctx context.Context, id int, name *string) (*model1.Workspace, error)
 	EditWorkspaceSettings(ctx context.Context, workspaceID int, aiApplication *bool, aiInsights *bool, aiQueryBuilder *bool) (*model1.AllWorkspaceSettings, error)
 	ExportSession(ctx context.Context, sessionSecureID string) (bool, error)
@@ -6404,6 +6407,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Mutation.EditProject(childComplexity, args["id"].(int), args["name"].(*string), args["billing_email"].(*string)), true
 
+	case "Mutation.editProjectPlatforms":
+		if e.complexity.Mutation.EditProjectPlatforms == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_editProjectPlatforms_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.EditProjectPlatforms(childComplexity, args["projectID"].(int), args["platforms"].(pq.StringArray)), true
+
 	case "Mutation.editProjectSettings":
 		if e.complexity.Mutation.EditProjectSettings == nil {
 			break
@@ -7282,6 +7297,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Project.Name(childComplexity), true
+
+	case "Project.platforms":
+		if e.complexity.Project.Platforms == nil {
+			break
+		}
+
+		return e.complexity.Project.Platforms(childComplexity), true
 
 	case "Project.rage_click_count":
 		if e.complexity.Project.RageClickCount == nil {
@@ -12603,6 +12625,7 @@ type Project {
 	rage_click_radius_pixels: Int
 	rage_click_count: Int
 	filter_chrome_extension: Boolean
+	platforms: StringArray
 }
 
 type AllProjectSettings {
@@ -14798,6 +14821,7 @@ type Mutation {
 		autoResolveStaleErrorsDayInterval: Int
 		sampling: SamplingInput
 	): AllProjectSettings
+	editProjectPlatforms(projectID: ID!, platforms: StringArray): Boolean!
 	editWorkspace(id: ID!, name: String): Workspace
 	editWorkspaceSettings(
 		workspace_id: ID!
@@ -16904,6 +16928,30 @@ func (ec *executionContext) field_Mutation_deleteVisualization_args(ctx context.
 		}
 	}
 	args["id"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_editProjectPlatforms_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 int
+	if tmp, ok := rawArgs["projectID"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("projectID"))
+		arg0, err = ec.unmarshalNID2int(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["projectID"] = arg0
+	var arg1 pq.StringArray
+	if tmp, ok := rawArgs["platforms"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("platforms"))
+		arg1, err = ec.unmarshalOStringArray2githubᚗcomᚋlibᚋpqᚐStringArray(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["platforms"] = arg1
 	return args, nil
 }
 
@@ -48058,6 +48106,8 @@ func (ec *executionContext) fieldContext_Mutation_updateAdminAndCreateWorkspace(
 				return ec.fieldContext_Project_rage_click_count(ctx, field)
 			case "filter_chrome_extension":
 				return ec.fieldContext_Project_filter_chrome_extension(ctx, field)
+			case "platforms":
+				return ec.fieldContext_Project_platforms(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Project", field.Name)
 		},
@@ -48269,6 +48319,8 @@ func (ec *executionContext) fieldContext_Mutation_createProject(ctx context.Cont
 				return ec.fieldContext_Project_rage_click_count(ctx, field)
 			case "filter_chrome_extension":
 				return ec.fieldContext_Project_filter_chrome_extension(ctx, field)
+			case "platforms":
+				return ec.fieldContext_Project_platforms(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Project", field.Name)
 		},
@@ -48457,6 +48509,8 @@ func (ec *executionContext) fieldContext_Mutation_editProject(ctx context.Contex
 				return ec.fieldContext_Project_rage_click_count(ctx, field)
 			case "filter_chrome_extension":
 				return ec.fieldContext_Project_filter_chrome_extension(ctx, field)
+			case "platforms":
+				return ec.fieldContext_Project_platforms(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Project", field.Name)
 		},
@@ -48553,6 +48607,61 @@ func (ec *executionContext) fieldContext_Mutation_editProjectSettings(ctx contex
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_Mutation_editProjectSettings_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_editProjectPlatforms(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_editProjectPlatforms(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().EditProjectPlatforms(rctx, fc.Args["projectID"].(int), fc.Args["platforms"].(pq.StringArray))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Mutation_editProjectPlatforms(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_editProjectPlatforms_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return fc, err
 	}
@@ -56216,6 +56325,47 @@ func (ec *executionContext) fieldContext_Project_filter_chrome_extension(ctx con
 	return fc, nil
 }
 
+func (ec *executionContext) _Project_platforms(ctx context.Context, field graphql.CollectedField, obj *model1.Project) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Project_platforms(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Platforms, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(pq.StringArray)
+	fc.Result = res
+	return ec.marshalOStringArray2githubᚗcomᚋlibᚋpqᚐStringArray(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Project_platforms(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Project",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type StringArray does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Query_accounts(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Query_accounts(ctx, field)
 	if err != nil {
@@ -60667,6 +60817,8 @@ func (ec *executionContext) fieldContext_Query_projects(ctx context.Context, fie
 				return ec.fieldContext_Project_rage_click_count(ctx, field)
 			case "filter_chrome_extension":
 				return ec.fieldContext_Project_filter_chrome_extension(ctx, field)
+			case "platforms":
+				return ec.fieldContext_Project_platforms(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Project", field.Name)
 		},
@@ -62038,6 +62190,8 @@ func (ec *executionContext) fieldContext_Query_projectSuggestion(ctx context.Con
 				return ec.fieldContext_Project_rage_click_count(ctx, field)
 			case "filter_chrome_extension":
 				return ec.fieldContext_Project_filter_chrome_extension(ctx, field)
+			case "platforms":
+				return ec.fieldContext_Project_platforms(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Project", field.Name)
 		},
@@ -63563,6 +63717,8 @@ func (ec *executionContext) fieldContext_Query_project(ctx context.Context, fiel
 				return ec.fieldContext_Project_rage_click_count(ctx, field)
 			case "filter_chrome_extension":
 				return ec.fieldContext_Project_filter_chrome_extension(ctx, field)
+			case "platforms":
+				return ec.fieldContext_Project_platforms(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Project", field.Name)
 		},
@@ -82929,6 +83085,8 @@ func (ec *executionContext) fieldContext_Workspace_projects(ctx context.Context,
 				return ec.fieldContext_Project_rage_click_count(ctx, field)
 			case "filter_chrome_extension":
 				return ec.fieldContext_Project_filter_chrome_extension(ctx, field)
+			case "platforms":
+				return ec.fieldContext_Project_platforms(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Project", field.Name)
 		},
@@ -94913,6 +95071,13 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._Mutation_editProjectSettings(ctx, field)
 			})
+		case "editProjectPlatforms":
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_editProjectPlatforms(ctx, field)
+			})
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
 		case "editWorkspace":
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._Mutation_editWorkspace(ctx, field)
@@ -95696,6 +95861,8 @@ func (ec *executionContext) _Project(ctx context.Context, sel ast.SelectionSet, 
 			out.Values[i] = ec._Project_rage_click_count(ctx, field, obj)
 		case "filter_chrome_extension":
 			out.Values[i] = ec._Project_filter_chrome_extension(ctx, field, obj)
+		case "platforms":
+			out.Values[i] = ec._Project_platforms(ctx, field, obj)
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}

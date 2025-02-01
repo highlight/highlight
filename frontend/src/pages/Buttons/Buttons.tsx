@@ -353,6 +353,74 @@ export const Buttons = () => {
 					</button>
 					<button
 						className={commonStyles.submitButton}
+						onClick={async () => {
+							H.recordMetric({
+								name: 'client-highlight-gauge',
+								value: Math.random(),
+							})
+						}}
+					>
+						H.recordMetric
+					</button>
+					<button
+						className={commonStyles.submitButton}
+						onClick={async () => {
+							H.recordCount({
+								name: 'client-highlight-count',
+								value: Math.random(),
+							})
+						}}
+					>
+						H.recordCount
+					</button>
+					<button
+						className={commonStyles.submitButton}
+						onClick={async () => {
+							H.recordIncr({
+								name: 'client-highlight-incr',
+							})
+						}}
+					>
+						H.recordIncr
+					</button>
+					<button
+						className={commonStyles.submitButton}
+						onClick={async () => {
+							H.recordHistogram({
+								name: 'client-highlight-histogram',
+								value: Math.random(),
+							})
+						}}
+					>
+						H.recordHistogram
+					</button>
+					<button
+						className={commonStyles.submitButton}
+						onClick={async () => {
+							H.recordUpDownCounter({
+								name: 'client-highlight-updown',
+								value: Math.random() > 0.5 ? 1 : -1,
+							})
+						}}
+					>
+						H.recordUpDownCounter
+					</button>
+					<button
+						className={commonStyles.submitButton}
+						onClick={async () => {
+							const { metrics } = await import(
+								'@opentelemetry/api'
+							)
+							const meter = metrics.getMeter('Buttons.tsx')
+							const gauge =
+								meter.createGauge('client-meter-gauge')
+							gauge.record(Math.random())
+						}}
+					>
+						otel metrics gauge
+					</button>
+					<button
+						className={commonStyles.submitButton}
 						onClick={() => {
 							H.consumeError(
 								new Error('Highlight H.consumeError', {

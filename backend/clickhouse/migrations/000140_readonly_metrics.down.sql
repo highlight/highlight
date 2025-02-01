@@ -1,0 +1,1 @@
+DROP ROW POLICY IF EXISTS metrics_readonly ON metrics;

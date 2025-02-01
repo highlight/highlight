@@ -6,6 +6,8 @@ import {
 	IconSolidPlayCircle,
 	IconSolidTraces,
 	IconSolidMetrics,
+	IconSolidChartSquareLine,
+	IconSolidCode,
 } from '@highlight-run/ui/components'
 import {
 	MetricAggregator,
@@ -27,6 +29,24 @@ export const TIME_METRICS = {
 	TTFB: 'ms',
 	INP: 'ms',
 }
+
+export enum Editor {
+	QueryBuilder = 'Query Builder',
+	SqlEditor = 'SQL Editor',
+}
+
+export const EDITOR_OPTIONS = [
+	{
+		value: Editor.QueryBuilder,
+		name: Editor.QueryBuilder,
+		icon: <IconSolidChartSquareLine size={16} />,
+	},
+	{
+		value: Editor.SqlEditor,
+		name: Editor.SqlEditor,
+		icon: <IconSolidCode size={16} />,
+	},
+]
 
 export const PRODUCT_OPTIONS = [
 	{

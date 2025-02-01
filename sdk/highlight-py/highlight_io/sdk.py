@@ -7,19 +7,39 @@ import typing
 from importlib import metadata
 
 import sys
-from opentelemetry import trace as otel_trace, _logs
+from grpc import Compression
+from opentelemetry import trace as otel_trace, _logs, metrics
 from opentelemetry._logs.severity import std_to_otel
 from opentelemetry.baggage import set_baggage, get_baggage
 from opentelemetry.context import Context, attach, get_current
-from opentelemetry.exporter.otlp.proto.http import Compression
-from opentelemetry.exporter.otlp.proto.http._log_exporter import OTLPLogExporter
-from opentelemetry.exporter.otlp.proto.http.trace_exporter import OTLPSpanExporter
+from opentelemetry.exporter.otlp.proto.grpc._log_exporter import OTLPLogExporter
+from opentelemetry.exporter.otlp.proto.grpc.metric_exporter import OTLPMetricExporter
+from opentelemetry.exporter.otlp.proto.grpc.trace_exporter import OTLPSpanExporter
 from opentelemetry.instrumentation.logging import LoggingInstrumentor
+from opentelemetry.metrics import (
+    _Gauge as APIGauge,
+    Histogram as APIHistogram,
+    Counter as APICounter,
+    UpDownCounter as APIUpDownCounter,
+)
 from opentelemetry.sdk._logs import (
     LoggerProvider,
     LogRecord,
 )
 from opentelemetry.sdk._logs.export import BatchLogRecordProcessor
+from opentelemetry.sdk.metrics import (
+    MeterProvider,
+    Counter,
+    UpDownCounter,
+    Histogram,
+    ObservableCounter,
+    ObservableUpDownCounter,
+    ObservableGauge,
+)
+from opentelemetry.sdk.metrics.export import (
+    AggregationTemporality,
+    PeriodicExportingMetricReader,
+)
 from opentelemetry.sdk.resources import Resource
 from opentelemetry.sdk.trace import TracerProvider, Span, SpanProcessor
 from opentelemetry.sdk.trace.export import BatchSpanProcessor
@@ -69,13 +89,18 @@ class LogHandler(logging.Handler):
 
 class H(object):
     REQUEST_HEADER = "X-Highlight-Request"
-    OTLP_HTTP = "https://otel.highlight.io:4318"
+    OTLP_HTTP = "https://otel.highlight.io:4317"
     _instance: "H" = None
     _logging_instrumented = False
     # context is a LRU cache to avoid storing too many trace ids in memory
     # we should not need more than 1000 since Python processes are single-threaded
     # context map is a cache of trace ids to (session_id, request_id) tuples
     _context_map = LRUCache(1000)
+
+    _gauges: dict[str, APIGauge] = dict()
+    _counters: dict[str, APICounter] = dict()
+    _histograms: dict[str, APIHistogram] = dict()
+    _up_down_counters: dict[str, APIUpDownCounter] = dict()
 
     @classmethod
     def get_instance(cls) -> "H":
@@ -122,7 +147,7 @@ class H(object):
         """
         kwargs.update(
             {
-                "schedule_delay_millis": 1000,
+                "schedule_delay_millis": 5_000,
                 "max_export_batch_size": 128 * 1024,
                 "max_queue_size": 1024 * 1024,
             }
@@ -141,10 +166,12 @@ class H(object):
 
         if disable_export_error_logging:
             for logger_name in (
-                "opentelemetry.exporter.otlp.proto.http._log_exporter",
-                "opentelemetry.exporter.otlp.proto.http.trace_exporter",
+                "opentelemetry.exporter.otlp.proto.grpc._log_exporter",
+                "opentelemetry.exporter.otlp.proto.grpc.trace_exporter",
+                "opentelemetry.exporter.otlp.proto.grpc.metric_exporter",
                 "opentelemetry.sdk._logs._internal.export",
                 "opentelemetry.sdk.trace.export",
+                "opentelemetry.sdk.metrics.export",
             ):
                 logging.getLogger(logger_name).setLevel(logging.FATAL)
 
@@ -198,6 +225,7 @@ class H(object):
                 return super().on_start(span, parent_context)
 
         resource = _build_resource(
+            project_id=self._project_id,
             service_name=service_name,
             service_version=service_version,
             environment=environment,
@@ -209,7 +237,7 @@ class H(object):
                 OTLPSpanExporter(
                     f"{self._otlp_endpoint}/v1/traces",
                     compression=Compression.Gzip,
-                    timeout=30,
+                    timeout=kwargs["schedule_delay_millis"],
                 ),
                 **kwargs,
             )
@@ -225,13 +253,38 @@ class H(object):
                 OTLPLogExporter(
                     f"{self._otlp_endpoint}/v1/logs",
                     compression=Compression.Gzip,
-                    timeout=30,
+                    timeout=kwargs["schedule_delay_millis"],
                 ),
                 **kwargs,
             )
         )
         _logs.set_logger_provider(self._log_provider)
         self.log = self._log_provider.get_logger(__name__)
+
+        metric_reader = PeriodicExportingMetricReader(
+            exporter=OTLPMetricExporter(
+                f"{self._otlp_endpoint}/v1/metrics",
+                compression=Compression.Gzip,
+                timeout=kwargs["schedule_delay_millis"],
+                max_export_batch_size=kwargs["max_export_batch_size"],
+                preferred_temporality={
+                    Counter: AggregationTemporality.DELTA,
+                    UpDownCounter: AggregationTemporality.CUMULATIVE,
+                    Histogram: AggregationTemporality.DELTA,
+                    ObservableCounter: AggregationTemporality.DELTA,
+                    ObservableUpDownCounter: AggregationTemporality.CUMULATIVE,
+                    ObservableGauge: AggregationTemporality.CUMULATIVE,
+                },
+            ),
+            export_interval_millis=kwargs["schedule_delay_millis"],
+            export_timeout_millis=kwargs["schedule_delay_millis"],
+        )
+        self._meter_provider = MeterProvider(
+            resource=resource,
+            metric_readers=[metric_reader],
+        )
+        metrics.set_meter_provider(self._meter_provider)
+        self.meter = self._meter_provider.get_meter(__name__)
 
         skip_disabled_integrations = self._disabled_integrations.copy()
 
@@ -246,6 +299,7 @@ class H(object):
     def flush(self):
         self._trace_provider.force_flush()
         self._log_provider.force_flush()
+        self._meter_provider.force_flush()
 
     @contextlib.contextmanager
     def trace(
@@ -409,6 +463,100 @@ class H(object):
 
         span.record_exception(e, attrs)
 
+    def record_metric(
+        self,
+        name: str,
+        value: float,
+        attributes: typing.Optional[typing.Dict[str, any]] = None,
+    ):
+        """
+        Record arbitrary metric values via as a Gauge.
+        A Gauge records any point-in-time measurement, such as the current CPU utilization %.
+        Values with the same metric name and attributes are aggregated via the OTel SDK.
+        See https://opentelemetry.io/docs/specs/otel/metrics/data-model/ for more details.
+        :param name: the name of the metric.
+        :param value: the float value of the metric.
+        :param attributes: additional metadata which can be used to filter and group values.
+        :return: None
+        """
+        if name not in self._gauges:
+            self._gauges[name] = self.meter.create_gauge(name)
+        self._gauges[name].set(value, attributes=attributes)
+
+    def record_count(
+        self,
+        name: str,
+        value: int,
+        attributes: typing.Optional[typing.Dict[str, any]] = None,
+    ):
+        """
+        Record arbitrary metric values via as a Counter.
+        A Counter efficiently records an increment in a metric, such as number of cache hits.
+        Values with the same metric name and attributes are aggregated via the OTel SDK.
+        See https://opentelemetry.io/docs/specs/otel/metrics/data-model/ for more details.
+        :param name: the name of the metric.
+        :param value: the float value of the metric.
+        :param attributes: additional metadata which can be used to filter and group values.
+        :return: None
+        """
+        if name not in self._counters:
+            self._counters[name] = self.meter.create_counter(name)
+        self._counters[name].add(value, attributes=attributes)
+
+    def record_incr(
+        self, name: str, attributes: typing.Optional[typing.Dict[str, any]] = None
+    ):
+        """
+        Record arbitrary metric +1 increment via as a Counter.
+        A Counter efficiently records an increment in a metric, such as number of cache hits.
+        Values with the same metric name and attributes are aggregated via the OTel SDK.
+        See https://opentelemetry.io/docs/specs/otel/metrics/data-model/ for more details.
+        :param name: the name of the metric.
+        :param attributes: additional metadata which can be used to filter and group values.
+        :return: None
+        """
+        return self.record_count(name, 1, attributes)
+
+    def record_histogram(
+        self,
+        name: str,
+        value: float,
+        attributes: typing.Optional[typing.Dict[str, any]] = None,
+    ):
+        """
+        Record arbitrary metric values via as a Histogram.
+        A Histogram efficiently records near-by point-in-time measurement into a bucketed aggregate.
+        Values with the same metric name and attributes are aggregated via the OTel SDK.
+        See https://opentelemetry.io/docs/specs/otel/metrics/data-model/ for more details.
+        :param name: the name of the metric.
+        :param value: the float value of the metric.
+        :param attributes: additional metadata which can be used to filter and group values.
+        :return: None
+        """
+        if name not in self._histograms:
+            self._histograms[name] = self.meter.create_histogram(name)
+        self._histograms[name].record(value, attributes=attributes)
+
+    def record_up_down_counter(
+        self,
+        name: str,
+        value: int,
+        attributes: typing.Optional[typing.Dict[str, any]] = None,
+    ):
+        """
+        Record arbitrary metric values via as a UpDownCounter.
+        A UpDownCounter efficiently records an increment or decrement in a metric, such as number of paying customers.
+        Values with the same metric name and attributes are aggregated via the OTel SDK.
+        See https://opentelemetry.io/docs/specs/otel/metrics/data-model/ for more details.
+        :param name: the name of the metric.
+        :param value: the float value of the metric.
+        :param attributes: additional metadata which can be used to filter and group values.
+        :return: None
+        """
+        if name not in self._up_down_counters:
+            self._up_down_counters[name] = self.meter.create_up_down_counter(name)
+        self._up_down_counters[name].add(value, attributes=attributes)
+
     @property
     def logging_handler(self) -> logging.Handler:
         """A logging handler implementing `logging.Handler` that allows plugging highlight_io
@@ -539,12 +687,15 @@ def trace(func):
 
 
 def _build_resource(
+    project_id: str,
     service_name: str,
     service_version: str,
     environment: str,
 ) -> Resource:
     attrs = {}
 
+    if project_id:
+        attrs["highlight.project_id"] = project_id
     if service_name:
         attrs[ResourceAttributes.SERVICE_NAME] = service_name
     if service_version:

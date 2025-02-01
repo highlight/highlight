@@ -205,6 +205,7 @@ export const ProjectFragmentDoc = gql`
 		rage_click_window_seconds
 		rage_click_radius_pixels
 		rage_click_count
+		platforms
 	}
 `
 export const ErrorTagFragmentDoc = gql`
@@ -1643,6 +1644,54 @@ export type EditProjectSettingsMutationResult =
 export type EditProjectSettingsMutationOptions = Apollo.BaseMutationOptions<
 	Types.EditProjectSettingsMutation,
 	Types.EditProjectSettingsMutationVariables
+>
+export const EditProjectPlatformsDocument = gql`
+	mutation EditProjectPlatforms($projectId: ID!, $platforms: StringArray) {
+		editProjectPlatforms(projectID: $projectId, platforms: $platforms)
+	}
+`
+export type EditProjectPlatformsMutationFn = Apollo.MutationFunction<
+	Types.EditProjectPlatformsMutation,
+	Types.EditProjectPlatformsMutationVariables
+>
+
+/**
+ * __useEditProjectPlatformsMutation__
+ *
+ * To run a mutation, you first call `useEditProjectPlatformsMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useEditProjectPlatformsMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [editProjectPlatformsMutation, { data, loading, error }] = useEditProjectPlatformsMutation({
+ *   variables: {
+ *      projectId: // value for 'projectId'
+ *      platforms: // value for 'platforms'
+ *   },
+ * });
+ */
+export function useEditProjectPlatformsMutation(
+	baseOptions?: Apollo.MutationHookOptions<
+		Types.EditProjectPlatformsMutation,
+		Types.EditProjectPlatformsMutationVariables
+	>,
+) {
+	return Apollo.useMutation<
+		Types.EditProjectPlatformsMutation,
+		Types.EditProjectPlatformsMutationVariables
+	>(EditProjectPlatformsDocument, baseOptions)
+}
+export type EditProjectPlatformsMutationHookResult = ReturnType<
+	typeof useEditProjectPlatformsMutation
+>
+export type EditProjectPlatformsMutationResult =
+	Apollo.MutationResult<Types.EditProjectPlatformsMutation>
+export type EditProjectPlatformsMutationOptions = Apollo.BaseMutationOptions<
+	Types.EditProjectPlatformsMutation,
+	Types.EditProjectPlatformsMutationVariables
 >
 export const DeleteProjectDocument = gql`
 	mutation DeleteProject($id: ID!) {
