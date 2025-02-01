@@ -1,6 +1,7 @@
 ---
 toc: Next.js
-title: Next.js Quick Start
+title: Next.js
+heading: Next.js Quick Start
 slug: nextjs
 quickstart: true
 ---
