@@ -1,5 +1,11 @@
 # highlight.run
 
+## 9.8.0
+
+### Minor Changes
+
+-   0fa5585: introduce otlp native metrics export
+
 ## 9.7.4
 
 ### Patch Changes
