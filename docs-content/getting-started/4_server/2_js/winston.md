@@ -1,6 +1,6 @@
 ---
-title: "Winston"
-heading: Logging in Winston
+title: Winston
+heading: Winston Quick Start
 slug: winston
 quickstart: true
 ---

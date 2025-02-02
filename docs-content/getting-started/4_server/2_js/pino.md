@@ -1,6 +1,6 @@
 ---
-title: "Pino"
-heading: Logging in Pino.js
+title: Pino
+heading: Pino.js Quick Start
 slug: pino
 quickstart: true
 ---
