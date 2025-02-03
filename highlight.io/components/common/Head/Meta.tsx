@@ -34,7 +34,11 @@ export const Meta = ({
 			<meta name="twitter:image" content={img} key="twimage" />
 			<meta name="twitter:title" content={title} key="twtitle" />
 			{/* Open Graph */}
-			<meta property="og:url" content="highlight.io" key="ogurl" />
+			<meta
+				property="og:url"
+				content={`https://www.highlight.io${canonical}`}
+				key="ogurl"
+			/>
 			<meta property="og:type" content="website" key="ogtype" />
 			<meta property="og:image" content={img} key="ogimage" />
 			<meta
@@ -43,11 +47,13 @@ export const Meta = ({
 				key="ogsitename"
 			/>
 			<meta property="og:title" content={title} key="ogtitle" />
-			<meta
-				property="og:description"
-				content={description}
-				key="ogdesc"
-			/>
+			{description && (
+				<meta
+					property="og:description"
+					content={description}
+					key="ogdesc"
+				/>
+			)}
 			{canonical && (
 				<link
 					rel="canonical"
