@@ -1,6 +1,7 @@
 CREATE USER IF NOT EXISTS highlight_readonly IDENTIFIED BY '' SETTINGS readonly = 1;
 CREATE ROLE IF NOT EXISTS highlight_readonly_role;
-ALTER ROLE highlight_readonly_role SETTINGS SQL_highlight_project_id CHANGEABLE_IN_READONLY;
+ALTER ROLE highlight_readonly_role SETTINGS SQL_highlight_project_id CHANGEABLE_IN_READONLY,
+splitby_max_substrings_includes_remaining_string CHANGEABLE_IN_READONLY;
 GRANT SELECT ON error_groups TO highlight_readonly_role;
 GRANT SELECT ON error_objects TO highlight_readonly_role;
 GRANT SELECT ON errors_joined_vw TO highlight_readonly_role;
