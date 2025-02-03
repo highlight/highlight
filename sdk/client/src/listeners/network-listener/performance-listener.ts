@@ -1,9 +1,9 @@
 type NetworkInformation = {
 	downlink: number
 	downlinkMax: number
-	effectiveType: 'slow-2g' | '2g' | '3g' | '4g'
 	rtt: number
 	saveData: boolean
+	effectiveType: 'slow-2g' | '2g' | '3g' | '4g'
 	type:
 		| 'bluetooth'
 		| 'cellular'
