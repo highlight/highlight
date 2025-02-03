@@ -54,7 +54,7 @@ async function generateXML(): Promise<string> {
 	)
 
 	const competitorPages = Object.keys(COMPETITORS).map(
-		(competitorSlug: string) => competitorSlug,
+		(competitorSlug: string) => `compare/${competitorSlug}`,
 	)
 
 	const staticPagePaths = process.env.staticPages?.split(', ') || []
