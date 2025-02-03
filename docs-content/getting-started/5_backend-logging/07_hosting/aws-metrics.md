@@ -34,7 +34,7 @@ By default, the metric stream will export all available CloudWatch metrics from 
 
 You can customize which metrics are exported by editing the metric stream in the AWS console.
 
-TODO: Image of the metric stream in the AWS console
+![Edit metrics stream to change which metrics are exported](/images/aws/kinesis/metrics/edit-stream.png)
 
 ## Viewing Your Metrics
 
