@@ -1,4 +1,3 @@
-import { siteUrl } from '../../../utils/urls'
 import { QuickStartContent } from '../QuickstartContent'
 import {
 	configureSourcemapsCI,
@@ -20,7 +19,8 @@ ReactDOM.render(
 export const ReactContent: QuickStartContent = {
 	title: 'React.js',
 	subtitle: 'Learn how to set up highlight.io with your React application.',
-	logoUrl: siteUrl('/images/quickstart/react.svg'),
+	logoKey: 'react',
+	products: ['Sessions', 'Errors', 'Logs', 'Traces'],
 	entries: [
 		{
 			title: 'Install the npm package & SDK.',

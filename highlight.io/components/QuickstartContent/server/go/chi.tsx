@@ -1,4 +1,3 @@
-import { siteUrl } from '../../../../utils/urls'
 import { QuickStartContent } from '../../QuickstartContent'
 import { verifyLogs } from '../shared-snippets-logging'
 import { frontendInstallSnippet } from '../shared-snippets-monitoring'
@@ -14,7 +13,7 @@ export const GoChiReorganizedContent: QuickStartContent = {
 	title: 'Go Chi',
 	subtitle:
 		'Learn how to set up highlight.io monitoring on your Go chi backend.',
-	logoUrl: siteUrl('/images/quickstart/chi.svg'),
+	logoKey: 'chi',
 	products: ['Errors', 'Logs', 'Traces'],
 	entries: [
 		frontendInstallSnippet,

@@ -1,4 +1,3 @@
-import { siteUrl } from '../../../../utils/urls'
 import { QuickStartContent } from '../../QuickstartContent'
 import { verifyLogs } from '../shared-snippets-logging'
 import { frontendInstallSnippet } from '../shared-snippets-monitoring'
@@ -12,7 +11,7 @@ import {
 export const JSHonoReorganizedContent: QuickStartContent = {
 	title: 'Hono',
 	subtitle: 'Learn how to set up highlight.io in your Hono application.',
-	logoUrl: siteUrl('/images/quickstart/hono.svg'),
+	logoKey: 'hono',
 	products: ['Errors', 'Logs', 'Traces'],
 	entries: [
 		frontendInstallSnippet,

@@ -1,11 +1,10 @@
-import { siteUrl } from '../../../utils/urls'
 import { QuickStartContent } from '../QuickstartContent'
 
 export const ReactNativeContent: QuickStartContent = {
 	title: 'React Native (beta)',
 	subtitle:
 		'Learn how to set up highlight.io errors, logs, and traces in your React Native application using OpenTelemetry.',
-	logoUrl: siteUrl('/images/quickstart/react.svg'),
+	logoKey: 'react',
 	products: ['Errors', 'Logs', 'Traces'],
 	entries: [
 		{

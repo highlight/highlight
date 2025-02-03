@@ -14,7 +14,7 @@ import {
 	Text,
 } from '@highlight-run/ui/components'
 import { vars } from '@highlight-run/ui/vars'
-import { quickStartContentReorganized } from 'highlight.io'
+import { QuickStartContent, quickStartContentReorganized } from 'highlight.io'
 
 import { Button } from '@/components/Button'
 import LoadingBox from '@components/LoadingBox'
@@ -27,6 +27,7 @@ import { useProjectId } from '@hooks/useProjectId'
 import analytics from '@util/analytics'
 import { PlatformSelection } from '@/pages/Connect/PlatformSelection'
 import { useNavigate } from 'react-router-dom'
+import { ICON_MAPPINGS } from '@/pages/Connect/constants'
 
 const ICON_FILL = vars.theme.interactive.fill.secondary.content.text
 
@@ -94,15 +95,18 @@ export const NewConnectPage = () => {
 				flexDirection="column"
 				display="flex"
 				flexGrow={1}
-				p="40"
+				p="48"
 				border="dividerWeak"
 				overflowY="auto"
 				shadow="medium"
 			>
-				<Stack mx="auto" style={{ maxWidth: 960 }} width="full">
-					<Heading level="h2" mb="40">
-						Select your platforms
-					</Heading>
+				<Stack
+					gap="40"
+					mx="auto"
+					style={{ maxWidth: 960 }}
+					width="full"
+				>
+					<Heading level="h2">Select your Platforms</Heading>
 					<Stack direction="row" gap="32">
 						<Stack gap="12" flexGrow={0} style={{ maxWidth: 350 }}>
 							<Stack
@@ -234,7 +238,7 @@ const SelectedPlatformIcons = ({ platforms }: { platforms: Set<string> }) => {
 			{Array.from(platforms).map((identifier) => {
 				const [language, platform] = identifier.split('_')
 				const sdk = (quickStartContentReorganized as any)[language]
-					.sdks[platform]
+					.sdks[platform] as QuickStartContent
 
 				return (
 					<Box
@@ -247,10 +251,11 @@ const SelectedPlatformIcons = ({ platforms }: { platforms: Set<string> }) => {
 						border="secondary"
 						borderWidth="medium"
 					>
-						{sdk?.logoUrl ? (
+						{sdk.logoKey &&
+						ICON_MAPPINGS.hasOwnProperty(sdk.logoKey) ? (
 							<img
 								alt={sdk.title}
-								src={sdk.logoUrl}
+								src={(ICON_MAPPINGS as any)[sdk.logoKey]}
 								style={{
 									height: 30,
 									width: 30,

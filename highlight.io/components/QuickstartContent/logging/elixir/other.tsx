@@ -5,7 +5,6 @@ import { verifyLogs } from '../shared-snippets'
 export const ElixirOtherLogContent: QuickStartContent = {
 	title: 'Logging from Elixir',
 	subtitle: 'Learn how to set up highlight.io Elixir log ingestion.',
-	logoUrl: siteUrl('/images/quickstart/elixir.svg'),
 	entries: [
 		{
 			title: 'Set up your highlight.io SDK.',

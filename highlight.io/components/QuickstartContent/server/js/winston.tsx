@@ -5,6 +5,7 @@ import { frontendInstallSnippet } from '../shared-snippets-monitoring'
 export const JSWinstonHTTPJSONLogReorganizedContent: QuickStartContent = {
 	title: 'Logging with Winston.JS',
 	subtitle: 'Learn how to set up highlight.io log ingestion for Winston JS.',
+	logoKey: 'javascript',
 	products: ['Logs'],
 	entries: [
 		frontendInstallSnippet,

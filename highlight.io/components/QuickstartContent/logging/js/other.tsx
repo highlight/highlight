@@ -1,4 +1,3 @@
-import { siteUrl } from '../../../../utils/urls'
 import {
 	initializeNodeSDK,
 	jsGetSnippet,
@@ -10,7 +9,6 @@ export const JSOtherLogContent: QuickStartContent = {
 	title: 'Logging in a JS App',
 	subtitle:
 		'Learn how to set up highlight.io JS log ingestion without a logging library.',
-	logoUrl: siteUrl('/images/quickstart/javascript.svg'),
 	entries: [
 		previousInstallSnippet('js'),
 		jsGetSnippet(['node']),

@@ -25,6 +25,7 @@ import { vars } from '@highlight-run/ui/vars'
 import { LinkButton } from '@/components/LinkButton'
 import { useParams } from '@util/react-router/useParams'
 
+import { ICON_MAPPINGS } from '../constants'
 import { QuickStartGuide } from '../QuickStartGuide'
 import { FeatureHealthCheck } from '../FeatureHealthCheck'
 
@@ -95,15 +96,18 @@ export const ConnectPage = () => {
 				flexDirection="column"
 				display="flex"
 				flexGrow={1}
-				p="40"
+				p="48"
 				border="dividerWeak"
 				overflowY="auto"
 				shadow="medium"
 			>
-				<Stack mx="auto" style={{ maxWidth: 960 }} width="full">
-					<Heading level="h2" mb="40">
-						Connect platforms
-					</Heading>
+				<Stack
+					gap="40"
+					mx="auto"
+					style={{ maxWidth: 960 }}
+					width="full"
+				>
+					<Heading level="h2">Connect Platforms</Heading>
 					<Stack direction="row" gap="32">
 						<Stack gap="12" flexGrow={0} style={{ maxWidth: 310 }}>
 							<Stack pt="2" gap="8">
@@ -204,7 +208,7 @@ export const ConnectPage = () => {
 								</a>
 							</Box>
 						</Stack>
-						<Stack flexGrow={1} style={{ maxWidth: 650 }}>
+						<Stack gap="24" flexGrow={1} style={{ maxWidth: 650 }}>
 							<FeatureHealthCheck />
 							<QuickStartGuide
 								guide={guide}
@@ -246,7 +250,7 @@ const SelectedPlatformButtons = ({
 			{platforms.map((identifier, index) => {
 				const [sdkLanguage, sdkPlatform] = identifier.split('_')
 				const sdk = (quickStartContentReorganized as any)[sdkLanguage]
-					.sdks[sdkPlatform]
+					.sdks[sdkPlatform] as QuickStartContent
 
 				const selected =
 					!language || !platform
@@ -279,10 +283,13 @@ const SelectedPlatformButtons = ({
 								border="dividerWeak"
 								borderWidth="medium"
 							>
-								{sdk?.logoUrl ? (
+								{sdk.logoKey &&
+								ICON_MAPPINGS.hasOwnProperty(sdk.logoKey) ? (
 									<img
 										alt={sdk.title}
-										src={sdk.logoUrl}
+										src={
+											(ICON_MAPPINGS as any)[sdk.logoKey]
+										}
 										style={{
 											height: 30,
 											width: 30,

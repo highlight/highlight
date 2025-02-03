@@ -1,11 +1,9 @@
-import { siteUrl } from '../../../../utils/urls'
 import { QuickStartContent } from '../../QuickstartContent'
 import { setUpLogging } from './shared-snippets'
 
 export const RustOtherContent: QuickStartContent = {
 	title: 'Rust',
 	subtitle: 'Learn how to set up highlight.io without a framework.',
-	logoUrl: siteUrl('/images/quickstart/rust.svg'),
 	entries: [
 		{
 			title: 'Install the Highlight Rust SDK.',
