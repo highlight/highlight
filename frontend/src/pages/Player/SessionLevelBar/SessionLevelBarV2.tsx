@@ -26,14 +26,12 @@ import {
 	RightPanelView,
 	usePlayerUIContext,
 } from '@pages/Player/context/PlayerUIContext'
-import { changeSession } from '@pages/Player/PlayerHook/utils'
 import usePlayerConfiguration from '@pages/Player/PlayerHook/utils/usePlayerConfiguration'
 import { useReplayerContext } from '@pages/Player/ReplayerContext'
 import analytics from '@util/analytics'
 import { delay } from 'lodash'
 import React, { useMemo, useRef, useState } from 'react'
 import { useHotkeys } from 'react-hotkeys-hook'
-import { useNavigate } from 'react-router-dom'
 
 import { PlayerModeSwitch } from '@/pages/Player/SessionLevelBar/PlayerModeSwitch/PlayerModeSwitch'
 import { useSessionParams } from '@/pages/Sessions/utils'
@@ -56,7 +54,6 @@ export const SessionLevelBarV2: React.FC<
 	}
 > = (props) => {
 	const [page] = useQueryParam('page', PAGE_PARAM)
-	const navigate = useNavigate()
 	const { projectId } = useProjectId()
 	const { sessionSecureId } = useSessionParams()
 	const { sessionResults, session } = useReplayerContext()
@@ -150,25 +147,17 @@ export const SessionLevelBarV2: React.FC<
 					)}
 					<PreviousNextGroup
 						onPrev={() => {
-							if (projectId) {
-								changeSession(
-									projectId,
-									navigate,
-									sessionResults.sessions[prev],
-								)
+							if (projectId && changeResultIndex) {
+								changeResultIndex(prev)
 							}
 						}}
-						canMoveBackward={!!canMoveBackward}
+						canMoveBackward={canMoveBackward}
 						onNext={() => {
-							if (projectId) {
-								changeSession(
-									projectId,
-									navigate,
-									sessionResults.sessions[next],
-								)
+							if (projectId && changeResultIndex) {
+								changeResultIndex(next)
 							}
 						}}
-						canMoveForward={!!canMoveForward}
+						canMoveForward={canMoveForward}
 						size="small"
 					/>
 					<SessionViewportMetadata />

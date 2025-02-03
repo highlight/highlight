@@ -3,11 +3,7 @@ import {
 	RightPanelView,
 	usePlayerUIContext,
 } from '@pages/Player/context/PlayerUIContext'
-import {
-	changeSession,
-	findNextSessionInList,
-	findPreviousSessionInList,
-} from '@pages/Player/PlayerHook/utils'
+
 import usePlayerConfiguration, {
 	PLAYBACK_SPEED_OPTIONS,
 } from '@pages/Player/PlayerHook/utils/usePlayerConfiguration'
@@ -183,50 +179,6 @@ export const usePlayerKeyboardShortcuts = () => {
 			}
 		},
 		[time, replayer, state, pause, play],
-	)
-
-	useHotkeys(
-		'shift+n',
-		(e) => {
-			if (sessionResults.sessions.length > 0 && !!sessionSecureId) {
-				analytics.track('PlayerSkipToNextSessionKeyboardShortcut')
-				moveFocusToDocument(e)
-
-				const nextSession = findNextSessionInList(
-					sessionResults.sessions,
-					sessionSecureId,
-				)
-				changeSession(
-					projectId!,
-					navigate,
-					nextSession,
-					'Playing the next session.',
-				)
-			}
-		},
-		[sessionSecureId, sessionResults.sessions],
-	)
-
-	useHotkeys(
-		'shift+p',
-		(e) => {
-			if (sessionResults.sessions.length > 0 && !!sessionSecureId) {
-				analytics.track('PlayerSkipToPreviousSessionKeyboardShortcut')
-				moveFocusToDocument(e)
-
-				const nextSession = findPreviousSessionInList(
-					sessionResults.sessions,
-					sessionSecureId,
-				)
-				changeSession(
-					projectId!,
-					navigate,
-					nextSession,
-					'Playing the previous session.',
-				)
-			}
-		},
-		[sessionSecureId, sessionResults.sessions],
 	)
 
 	useHotkeys(
