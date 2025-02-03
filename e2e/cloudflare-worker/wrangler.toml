@@ -1,3 +1,0 @@
-name = "cloudflare-worker"
-main = "src/index.ts"
-compatibility_date = "2023-02-14"

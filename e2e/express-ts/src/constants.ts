@@ -1,6 +1,0 @@
-import 'dotenv/config'
-
-export const CONSTANTS = {
-	HIGHLIGHT_PROJECT_ID: process.env.HIGHLIGHT_PROJECT_ID,
-	HIGHLIGHT_OTLP_ENDPOINT: process.env.HIGHLIGHT_OTLP_ENDPOINT,
-}
