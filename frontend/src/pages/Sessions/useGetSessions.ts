@@ -1,4 +1,7 @@
-import { PAGE_SIZE } from '@components/SearchPagination/SearchPagination'
+import {
+	PAGE_PARAM,
+	PAGE_SIZE,
+} from '@components/SearchPagination/SearchPagination'
 import { useGetSessionsLazyQuery, useGetSessionsQuery } from '@graph/hooks'
 import { usePollQuery } from '@util/search'
 import moment from 'moment'
@@ -10,6 +13,9 @@ import {
 	GetSessionsQuery,
 	GetSessionsQueryVariables,
 } from '@/graph/generated/operations'
+import { useQueryParam } from 'use-query-params'
+import { changeSession } from '@pages/Player/PlayerHook/utils'
+import { useNavigate } from 'react-router-dom'
 
 export const useGetSessions = ({
 	query,
@@ -30,6 +36,7 @@ export const useGetSessions = ({
 	sortDesc: boolean
 	presetSelected: boolean
 }) => {
+	const [, setPage] = useQueryParam('page', PAGE_PARAM)
 	// Using these rounded dates to ensure the cache is hit on initial load. The
 	// query will still be sent and the data in the cache will be updated.
 	const roundedStartDate = moment(startDate)
@@ -42,26 +49,91 @@ export const useGetSessions = ({
 		.startOf('minute')
 		.subtract(moment(endDate).minute() % 10, 'minutes')
 
-	const { data, loading, error, refetch } = useGetSessionsQuery({
-		variables: {
-			project_id: project_id!,
-			count: PAGE_SIZE,
-			page,
-			params: {
-				query,
-				date_range: {
-					start_date: roundedStartDate.format(TIME_FORMAT),
-					end_date: roundedEndDate.format(TIME_FORMAT),
-				},
+	const variables = {
+		project_id: project_id!,
+		count: PAGE_SIZE,
+		page,
+		params: {
+			query,
+			date_range: {
+				start_date: roundedStartDate.format(TIME_FORMAT),
+				end_date: roundedEndDate.format(TIME_FORMAT),
 			},
-			sort_desc: sortDesc,
 		},
+		sort_desc: sortDesc,
+	}
+	const { data, loading, error, refetch } = useGetSessionsQuery({
+		variables,
 		fetchPolicy: 'cache-and-network',
 	})
-
+	const [paginationQuery] = useGetSessionsLazyQuery({
+		fetchPolicy: 'cache-first',
+	})
 	const [moreDataQuery] = useGetSessionsLazyQuery({
 		fetchPolicy: 'network-only',
 	})
+
+	const navigate = useNavigate()
+	const changeSessionIndex = useCallback(
+		async (index: number) => {
+			/**
+			 * The Key Idea: Use an Absolute Index
+			 *
+			 * Instead of thinking in terms of “page 1, element 5”, you maintain a single state that represents the absolute index of the selected item in the overall list. For example, if each page shows 10 items, then:
+			 * 	•	The first page contains indices 0–9.
+			 * 	•	The second page contains indices 10–19.
+			 * 	•	And so on.
+			 *
+			 * When the user hits the next key:
+			 * 	•	You increment the absolute index.
+			 * 	•	Then you calculate the page number based on that index.
+			 * 	•	Finally, you ensure that the page is loaded (or fetch it if needed) and that the correct element is highlighted.
+			 */
+			const p =
+				Math.floor(((page - 1) * PAGE_SIZE + index) / PAGE_SIZE) + 1
+			setPage(p)
+
+			let session = data?.sessions?.sessions?.at(index)
+			if (index >= 0 && session !== undefined) {
+				changeSession(project_id!, navigate, session, undefined, p)
+			} else {
+				const { data } = await paginationQuery({
+					variables: {
+						...variables,
+						page: p,
+					},
+					fetchPolicy: 'cache-first',
+				})
+				const newIndex = index % PAGE_SIZE
+				session = data?.sessions?.sessions?.at(newIndex)
+				console.log('vadim', 'internal', {
+					session,
+					index,
+					newIndex,
+					data,
+				})
+				if (session !== undefined) {
+					changeSession(project_id!, navigate, session, undefined, p)
+				}
+			}
+
+			console.log('vadim', 'useGetSessions', {
+				index,
+				p,
+				session,
+				page,
+			})
+		},
+		[
+			data?.sessions?.sessions,
+			navigate,
+			project_id,
+			page,
+			setPage,
+			paginationQuery,
+			variables,
+		],
+	)
 
 	const {
 		numMore: moreSessions,
@@ -114,6 +186,7 @@ export const useGetSessions = ({
 		totalActiveLength: totalActiveLength,
 		histogramBucketSize: determineHistogramBucketSize(startDate, endDate),
 		pollingExpired,
+		changeSessionIndex,
 	}
 }
 

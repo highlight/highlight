@@ -45,7 +45,6 @@ import { useHotkeys } from 'react-hotkeys-hook'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { apiObject } from 'rudder-sdk-js'
 import {
-	NumberParam,
 	StringParam,
 	useQueryParam,
 	useQueryParams,
@@ -55,7 +54,10 @@ import {
 import { DEMO_PROJECT_ID } from '@/components/DemoWorkspaceButton/DemoWorkspaceButton'
 import { AiSuggestion, SearchContext } from '@/components/Search/SearchContext'
 import { useRetentionPresets } from '@/components/Search/SearchForm/hooks'
-import { START_PAGE } from '@/components/SearchPagination/SearchPagination'
+import {
+	PAGE_PARAM,
+	START_PAGE,
+} from '@/components/SearchPagination/SearchPagination'
 import { GetErrorGroupQuery } from '@/graph/generated/operations'
 import {
 	ErrorState as ErrorStateEnum,
@@ -80,7 +82,6 @@ import * as styles from './styles.css'
 
 type Params = { project_id: string; error_secure_id: string; referrer?: string }
 
-const PAGE_PARAM = withDefault(NumberParam, START_PAGE)
 const ERROR_QUERY_PARAM = withDefault(
 	StringParam,
 	`status=${ErrorStateEnum.Open} `,

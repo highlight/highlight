@@ -650,13 +650,16 @@ export const changeSession = (
 	navigate: NavigateFunction,
 	session: Session | null,
 	successMessageText?: string,
+	page?: number,
 ) => {
 	if (!session) {
 		toast.success('No more sessions to play.')
 		return
 	}
 
-	navigate(`/${projectId}/sessions/${session.secure_id}`)
+	navigate(
+		`/${projectId}/sessions/${session.secure_id}${page ? `?page=${page}` : ''}`,
+	)
 	if (successMessageText?.length) {
 		toast.success(successMessageText)
 	}
