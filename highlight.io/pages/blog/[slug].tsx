@@ -49,13 +49,13 @@ const components = {
 	p: (props: any) => {
 		return <p className={styles.blogText} {...props}></p>
 	},
-	h1: (props: any) => <h4 className={styles.blogText}>{props.children}</h4>,
+	h1: (props: any) => <h1 className={styles.blogText}>{props.children}</h1>,
 	h2: (props: any) => {
 		return <h2 className={styles.blogText}>{props.children}</h2>
 	},
-	h3: (props: any) => <h6 className={styles.blogText}>{props.children}</h6>,
-	h4: (props: any) => <h6 className={styles.blogText}>{props.children}</h6>,
-	h5: (props: any) => <h6 className={styles.blogText}>{props.children}</h6>,
+	h3: (props: any) => <h3 className={styles.blogText}>{props.children}</h3>,
+	h4: (props: any) => <h4 className={styles.blogText}>{props.children}</h4>,
+	h5: (props: any) => <h5 className={styles.blogText}>{props.children}</h5>,
 	ol: (props: any) => {
 		if (!Array.isArray(props.children)) {
 			return null
