@@ -48,7 +48,7 @@ export const NetworkPerformanceListener = (
 	let intervalId: number | undefined = undefined
 	intervalId = setInterval(() => {
 		worker()
-	}, 1000 * 5) as unknown as number
+	}, 1000) as unknown as number
 
 	return () => {
 		clearInterval(intervalId)
