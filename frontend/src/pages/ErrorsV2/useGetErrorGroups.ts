@@ -8,7 +8,7 @@ import {
 } from '@graph/hooks'
 import { usePollQuery } from '@util/search'
 import moment from 'moment'
-import { useCallback } from 'react'
+import { useCallback, useMemo } from 'react'
 
 import { TIME_FORMAT } from '@/components/Search/SearchForm/constants'
 import { GetHistogramBucketSize } from '@/components/SearchResultsHistogram/SearchResultsHistogram'
@@ -35,18 +35,21 @@ export const useGetErrorGroups = ({
 	disablePolling?: boolean
 }) => {
 	const [, setPage] = useQueryParam('page', PAGE_PARAM)
-	const variables = {
-		project_id: project_id!,
-		count: PAGE_SIZE,
-		page,
-		params: {
-			query,
-			date_range: {
-				start_date: moment(startDate).format(TIME_FORMAT),
-				end_date: moment(endDate).format(TIME_FORMAT),
+	const variables = useMemo(
+		() => ({
+			project_id: project_id!,
+			count: PAGE_SIZE,
+			page,
+			params: {
+				query,
+				date_range: {
+					start_date: moment(startDate).format(TIME_FORMAT),
+					end_date: moment(endDate).format(TIME_FORMAT),
+				},
 			},
-		},
-	}
+		}),
+		[endDate, page, project_id, query, startDate],
+	)
 	const { data, loading, error, refetch } = useGetErrorGroupsQuery({
 		variables,
 		fetchPolicy: 'cache-and-network',

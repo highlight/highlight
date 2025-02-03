@@ -49,19 +49,22 @@ export const useGetSessions = ({
 		.startOf('minute')
 		.subtract(moment(endDate).minute() % 10, 'minutes')
 
-	const variables = {
-		project_id: project_id!,
-		count: PAGE_SIZE,
-		page,
-		params: {
-			query,
-			date_range: {
-				start_date: roundedStartDate.format(TIME_FORMAT),
-				end_date: roundedEndDate.format(TIME_FORMAT),
+	const variables = useMemo(
+		() => ({
+			project_id: project_id!,
+			count: PAGE_SIZE,
+			page,
+			params: {
+				query,
+				date_range: {
+					start_date: roundedStartDate.format(TIME_FORMAT),
+					end_date: roundedEndDate.format(TIME_FORMAT),
+				},
 			},
-		},
-		sort_desc: sortDesc,
-	}
+			sort_desc: sortDesc,
+		}),
+		[page, project_id, query, roundedEndDate, roundedStartDate, sortDesc],
+	)
 	const { data, loading, error, refetch } = useGetSessionsQuery({
 		variables,
 		fetchPolicy: 'cache-and-network',
