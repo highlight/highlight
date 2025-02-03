@@ -65,6 +65,7 @@ import {
 	type ViewportResizeListenerArgs,
 } from './listeners/viewport-resize-listener'
 import { WebVitalsListener } from './listeners/web-vitals-listener/web-vitals-listener'
+import { NetworkPerformanceListener } from './listeners/network-listener/performance-listener'
 import { Logger } from './logger'
 import { getMeter, getTracer, setupBrowserTracing } from './otel'
 import {
@@ -976,6 +977,21 @@ SessionSecureID: ${this.sessionData.sessionSecureID}`,
 						category: MetricCategory.WebVital,
 					})
 				}),
+			)
+
+			this.listeners.push(
+				NetworkPerformanceListener((payload: PerformancePayload) => {
+					Object.entries(payload).forEach(
+						([name, value]) =>
+							value &&
+							this.recordGauge({
+								name,
+								value,
+								category: MetricCategory.Performance,
+								group: window.location.href,
+							}),
+					)
+				}, this._recordingStartTime),
 			)
 
 			if (this.sessionShortcut) {
