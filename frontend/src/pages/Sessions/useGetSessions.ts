@@ -97,6 +97,7 @@ export const useGetSessions = ({
 			if (index >= 0 && session !== undefined) {
 				changeSession(project_id!, navigate, session, undefined, p)
 			} else {
+				// session must be in the next page; find secure id in the next page
 				const { data } = await paginationQuery({
 					variables: {
 						...variables,
@@ -106,23 +107,10 @@ export const useGetSessions = ({
 				})
 				const newIndex = index % PAGE_SIZE
 				session = data?.sessions?.sessions?.at(newIndex)
-				console.log('vadim', 'internal', {
-					session,
-					index,
-					newIndex,
-					data,
-				})
 				if (session !== undefined) {
 					changeSession(project_id!, navigate, session, undefined, p)
 				}
 			}
-
-			console.log('vadim', 'useGetSessions', {
-				index,
-				p,
-				session,
-				page,
-			})
 		},
 		[
 			data?.sessions?.sessions,
