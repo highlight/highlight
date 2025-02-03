@@ -9,7 +9,7 @@ export const PythonFastAPIReorganizedContext: QuickStartContent = {
 	title: 'Python FastAPI',
 	subtitle:
 		'Learn how to set up highlight.io on your Python FastAPI backend API.',
-	logoPath: '/images/quickstart/fastapi.svg',
+	logoKey: 'fastapi',
 	products: ['Errors', 'Logs', 'Traces'],
 	entries: [
 		frontendInstallSnippet,

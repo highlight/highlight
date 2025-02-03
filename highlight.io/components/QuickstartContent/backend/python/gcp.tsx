@@ -10,7 +10,6 @@ import {
 export const PythonGCPContext: QuickStartContent = {
 	title: 'Python Google Cloud Functions',
 	subtitle: 'Learn how to set up highlight.io on Google Cloud Functions.',
-	logoPath: '/images/quickstart/google-cloud.svg',
 	entries: [
 		setupFrontendSnippet,
 		downloadSnippet(),

@@ -7,7 +7,6 @@ import { verifyTraces } from '../shared-snippets'
 export const RubyOtherTracesContent: QuickStartContent = {
 	title: 'Ruby',
 	subtitle: 'Learn how to set up highlight.io tracing for Ruby applications.',
-	logoPath: '/images/quickstart/ruby.svg',
 	entries: [
 		frontendInstallSnippet,
 		installSdk,

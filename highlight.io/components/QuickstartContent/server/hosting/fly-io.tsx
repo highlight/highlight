@@ -8,7 +8,7 @@ export const HostingFlyIOLogReorganizedContent: QuickStartContent = {
 		'Learn how to setup Highlight log ingestion on [Fly.io](https://fly.io/blog/shipping-logs/). ' +
 		'As a prerequisite, we assume you already have an application ' +
 		'deployed on Fly.io and `flyctl` configured locally.',
-	logoPath: '/images/quickstart/fly-io.svg',
+	logoKey: 'flyio',
 	products: ['Logs'],
 	entries: [
 		{

@@ -12,7 +12,6 @@ import {
 export const JavaOtherContent: QuickStartContent = {
 	title: 'Java',
 	subtitle: 'Learn how to set up highlight.io on your Java backend.',
-	logoPath: '/images/quickstart/java.svg',
 	entries: [
 		installSdk,
 		initializeSdk,

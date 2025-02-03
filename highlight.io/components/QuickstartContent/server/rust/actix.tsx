@@ -7,7 +7,7 @@ import { verifyTraces } from '../shared-snippets-tracing'
 export const RustActixReorganizedContent: QuickStartContent = {
 	title: 'actix-web',
 	subtitle: 'Learn how to set up highlight.io with the actix-web framework.',
-	logoPath: '/images/quickstart/rust.svg',
+	logoKey: 'rust',
 	entries: [
 		frontendInstallSnippet,
 		{

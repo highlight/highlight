@@ -12,7 +12,6 @@ export const RubyRailsTracesContent: QuickStartContent = {
 	title: 'Ruby',
 	subtitle:
 		'Learn how to set up highlight.io tracing for Ruby on Rails applications.',
-	logoPath: '/images/quickstart/ruby.svg',
 	entries: [
 		frontendInstallSnippet,
 		installSdk,

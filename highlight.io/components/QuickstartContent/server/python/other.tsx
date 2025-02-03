@@ -8,7 +8,7 @@ import { downloadSnippet, init } from './shared-snippets-monitoring'
 export const PythonOtherReorganizedContext: QuickStartContent = {
 	title: 'Python',
 	subtitle: 'Learn how to set up highlight.io in your Python app.',
-	logoPath: '/images/quickstart/python.svg',
+	logoKey: 'python',
 	products: ['Errors', 'Logs', 'Traces'],
 	entries: [
 		frontendInstallSnippet,

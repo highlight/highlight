@@ -12,7 +12,6 @@ import {
 export const JSApolloContent: QuickStartContent = {
 	title: 'Apollo',
 	subtitle: 'Learn how to set up highlight.io on your Apollo Server backend.',
-	logoPath: '/images/quickstart/apollo.svg',
 	entries: [
 		frontendInstallSnippet,
 		jsGetSnippet(['node', 'apollo']),

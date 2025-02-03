@@ -9,7 +9,6 @@ import { verifyTraces } from '../shared-snippets'
 export const PythonDjangoTracesContent: QuickStartContent = {
 	title: 'Python Django',
 	subtitle: 'Learn how to set up highlight.io tracing for your Django app.',
-	logoPath: '/images/quickstart/django.svg',
 	entries: [
 		setupFrontendSnippet,
 		downloadSnippet(),

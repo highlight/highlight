@@ -7,7 +7,6 @@ export const PythonOtherLogContent: QuickStartContent = {
 	title: 'Logging from a Python App',
 	subtitle:
 		'Learn how to set up highlight.io Python log ingestion without a logging library.',
-	logoPath: '/images/quickstart/python.svg',
 	entries: [
 		previousInstallSnippet('python'),
 		downloadSnippet(),

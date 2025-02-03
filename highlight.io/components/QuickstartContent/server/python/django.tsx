@@ -9,7 +9,7 @@ export const PythonDjangoReorganizedContext: QuickStartContent = {
 	title: 'Python Django',
 	subtitle:
 		'Learn how to set up highlight.io on your Python Django backend API.',
-	logoPath: '/images/quickstart/django.svg',
+	logoKey: 'django',
 	products: ['Errors', 'Logs', 'Traces'],
 	entries: [
 		frontendInstallSnippet,

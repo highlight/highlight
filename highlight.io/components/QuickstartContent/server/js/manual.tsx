@@ -8,7 +8,7 @@ export const JSManualTracesReorganizedContent: QuickStartContent = {
 	title: 'Tracing from a Node.js App',
 	subtitle:
 		'Learn how to set up highlight.io tracing for your Node.js application.',
-	logoPath: '/images/quickstart/javascript.svg',
+	logoKey: 'javascript',
 	products: ['Traces'],
 	entries: [
 		frontendInstallSnippet,

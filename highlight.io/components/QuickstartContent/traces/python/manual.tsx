@@ -11,7 +11,6 @@ export const PythonManualTracesContent: QuickStartContent = {
 	title: 'Tracing from a Python App',
 	subtitle:
 		'Learn how to set up highlight.io tracing for your Python application.',
-	logoPath: '/images/quickstart/python.svg',
 	entries: [
 		setupFrontendSnippet,
 		downloadSnippet(),

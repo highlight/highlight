@@ -5,7 +5,6 @@ import { verifyTraces } from '../shared-snippets'
 export const AWSLambdaContent: QuickStartContent = {
 	title: 'AWS Lambda',
 	subtitle: 'Learn how to set up highlight.io tracing for on AWS Lambda.',
-	logoPath: '/images/quickstart/aws-lambda.svg',
 	entries: [
 		{
 			title: 'Add the ARN layer.',

@@ -10,7 +10,6 @@ export const JSOtherLogContent: QuickStartContent = {
 	title: 'Logging in a JS App',
 	subtitle:
 		'Learn how to set up highlight.io JS log ingestion without a logging library.',
-	logoPath: '/images/quickstart/javascript.svg',
 	entries: [
 		previousInstallSnippet('js'),
 		jsGetSnippet(['node']),

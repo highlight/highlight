@@ -12,7 +12,6 @@ import {
 export const JSAWSLambdaContent: QuickStartContent = {
 	title: 'Error Handling from Python AWS Lambda',
 	subtitle: 'Learn how to set up highlight.io on AWS Lambda.',
-	logoPath: '/images/quickstart/aws-lambda.svg',
 	entries: [
 		frontendInstallSnippet,
 		jsGetSnippet(['node']),

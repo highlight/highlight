@@ -12,7 +12,7 @@ import {
 export const JSNestReorganizedContent: QuickStartContent = {
 	title: 'Nest.js',
 	subtitle: 'Learn how to set up highlight.io in Nest.js.',
-	logoPath: '/images/quickstart/nestjs.svg',
+	logoKey: 'nestjs',
 	products: ['Errors', 'Logs', 'Traces'],
 	entries: [
 		frontendInstallSnippet,

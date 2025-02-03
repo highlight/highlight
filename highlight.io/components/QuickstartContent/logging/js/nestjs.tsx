@@ -5,7 +5,6 @@ import { previousInstallSnippet, verifyLogs } from '../shared-snippets'
 export const JSNestLogContent: QuickStartContent = {
 	title: 'Logging from Nest.js',
 	subtitle: 'Learn how to set up highlight.io log ingestion in Nest.js.',
-	logoPath: '/images/quickstart/nestjs.svg',
 	entries: [
 		previousInstallSnippet('nestjs'),
 		{

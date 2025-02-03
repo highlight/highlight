@@ -10,7 +10,6 @@ import { verifyTraces } from '../shared-snippets'
 export const PythonAzureTracesContent: QuickStartContent = {
 	title: 'Python Azure Functions',
 	subtitle: 'Learn how to set up highlight.io tracing with Azure Functions.',
-	logoPath: '/images/quickstart/azure.svg',
 	entries: [
 		setupFrontendSnippet,
 		downloadSnippet(),

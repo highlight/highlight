@@ -5,7 +5,6 @@ import { setUpLogging } from './shared-snippets'
 export const RustOtherContent: QuickStartContent = {
 	title: 'Rust',
 	subtitle: 'Learn how to set up highlight.io without a framework.',
-	logoPath: '/images/quickstart/rust.svg',
 	entries: [
 		{
 			title: 'Install the Highlight Rust SDK.',

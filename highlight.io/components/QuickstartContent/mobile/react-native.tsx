@@ -5,7 +5,7 @@ export const ReactNativeContent: QuickStartContent = {
 	title: 'React Native (beta)',
 	subtitle:
 		'Learn how to set up highlight.io errors, logs, and traces in your React Native application using OpenTelemetry.',
-	logoPath: '/images/quickstart/react.svg',
+	logoKey: 'react',
 	products: ['Errors', 'Logs', 'Traces'],
 	entries: [
 		{

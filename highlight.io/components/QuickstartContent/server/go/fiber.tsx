@@ -15,7 +15,7 @@ export const GoFiberReorganizedContent: QuickStartContent = {
 	title: 'Go Fiber',
 	subtitle:
 		'Learn how to set up highlight.io monitoring and logging on your Go Fiber backend.',
-	logoPath: '/images/quickstart/fiber.svg',
+	logoKey: 'fiber',
 	products: ['Errors', 'Logs', 'Traces'],
 	entries: [
 		frontendInstallSnippet,

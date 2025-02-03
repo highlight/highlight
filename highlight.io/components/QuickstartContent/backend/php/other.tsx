@@ -11,7 +11,6 @@ import {
 export const PHPOtherContent: QuickStartContent = {
 	title: 'PHP',
 	subtitle: 'Learn how to set up highlight.io on your PHP backend.',
-	logoPath: '/images/quickstart/php.svg',
 	entries: [
 		installSdk,
 		initializeSdk,

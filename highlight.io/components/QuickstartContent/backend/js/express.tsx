@@ -12,7 +12,6 @@ import {
 export const JSExpressContent: QuickStartContent = {
 	title: 'Express.js',
 	subtitle: 'Learn how to set up highlight.io in Express.js.',
-	logoPath: '/images/quickstart/express.svg',
 	entries: [
 		frontendInstallSnippet,
 		jsGetSnippet(['node']),

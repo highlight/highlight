@@ -8,7 +8,7 @@ export const HostingHerokuLogReorganizedContent: QuickStartContent = {
 		'Learn how to setup Highlight log ingestion on Heroku as a log stream. ' +
 		'As a prerequisite, we assume you already have an application ' +
 		'deployed on Heroku.',
-	logoPath: '/images/quickstart/Heroku.png',
+	logoKey: 'heroku',
 	products: ['Logs'],
 	entries: [
 		{

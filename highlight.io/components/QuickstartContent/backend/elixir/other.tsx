@@ -5,7 +5,6 @@ import { setUpLogging } from './shared-snippets'
 export const ElixirOtherContent: QuickStartContent = {
 	title: 'Elixir',
 	subtitle: 'Learn how to set up highlight.io without a framework.',
-	logoPath: '/images/quickstart/elixir.svg',
 	entries: [
 		{
 			title: 'Install the Highlight Elixir SDK.',

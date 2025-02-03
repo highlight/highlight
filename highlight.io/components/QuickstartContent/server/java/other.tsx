@@ -15,7 +15,7 @@ export const JavaOtherReorganizedContent: QuickStartContent = {
 	title: 'Java',
 	subtitle:
 		'Learn how to set up highlight.io on your Java backend with Java log ingestion.',
-	logoPath: '/images/quickstart/java.svg',
+	logoKey: 'java',
 	products: ['Errors', 'Logs', 'Traces'],
 	entries: [
 		frontendInstallSnippet,

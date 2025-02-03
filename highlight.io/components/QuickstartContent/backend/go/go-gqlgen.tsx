@@ -12,7 +12,6 @@ import {
 export const GoGqlgenContent: QuickStartContent = {
 	title: 'Go Gqlgen',
 	subtitle: 'Learn how to set up highlight.io on your Go gqlgen backend.',
-	logoPath: '/images/quickstart/gqlgen.svg',
 	entries: [
 		frontendInstallSnippet,
 		goGetSnippet,

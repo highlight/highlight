@@ -9,7 +9,6 @@ import { verifyTraces } from '../shared-snippets'
 export const PythonFlaskTracesContent: QuickStartContent = {
 	title: 'Python Flask',
 	subtitle: 'Learn how to set up highlight.io tracing for your Flask app.',
-	logoPath: '/images/quickstart/flask.svg',
 	entries: [
 		setupFrontendSnippet,
 		downloadSnippet(),

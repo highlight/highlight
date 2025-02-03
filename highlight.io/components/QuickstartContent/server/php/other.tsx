@@ -13,7 +13,7 @@ import {
 export const PHPOtherReorganizedContent: QuickStartContent = {
 	title: 'PHP',
 	subtitle: 'Learn how to set up highlight.io on your PHP backend.',
-	logoPath: '/images/quickstart/php.svg',
+	logoKey: 'php',
 	products: ['Errors', 'Logs', 'Traces'],
 	entries: [
 		frontendInstallSnippet,

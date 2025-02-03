@@ -11,7 +11,6 @@ import {
 export const RubyRailsContent: QuickStartContent = {
 	title: 'Rails',
 	subtitle: 'Learn how to set up highlight.io on your Rails backend.',
-	logoPath: '/images/quickstart/rails.svg',
 	entries: [
 		frontendInstallSnippet,
 		installSdk,

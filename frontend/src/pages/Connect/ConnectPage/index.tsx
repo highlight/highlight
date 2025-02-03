@@ -25,6 +25,7 @@ import { vars } from '@highlight-run/ui/vars'
 import { LinkButton } from '@/components/LinkButton'
 import { useParams } from '@util/react-router/useParams'
 
+import { ICON_MAPPINGS } from '../constants'
 import { QuickStartGuide } from '../QuickStartGuide'
 import { FeatureHealthCheck } from '../FeatureHealthCheck'
 
@@ -282,10 +283,13 @@ const SelectedPlatformButtons = ({
 								border="dividerWeak"
 								borderWidth="medium"
 							>
-								{sdk.logoPath ? (
+								{sdk.logoKey &&
+								ICON_MAPPINGS.hasOwnProperty(sdk.logoKey) ? (
 									<img
 										alt={sdk.title}
-										src={`/src/static/${sdk.logoPath}`}
+										src={
+											(ICON_MAPPINGS as any)[sdk.logoKey]
+										}
 										style={{
 											height: 30,
 											width: 30,

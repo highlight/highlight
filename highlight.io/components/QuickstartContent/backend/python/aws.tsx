@@ -10,7 +10,6 @@ import {
 export const PythonAWSContext: QuickStartContent = {
 	title: 'Logging from Python AWS Lambda',
 	subtitle: 'Learn how to set up highlight.io on AWS Lambda.',
-	logoPath: '/images/quickstart/aws-lambda.svg',
 	entries: [
 		setupFrontendSnippet,
 		downloadSnippet(),

@@ -11,7 +11,6 @@ export const PythonGCPTracesContent: QuickStartContent = {
 	title: 'Python Google Cloud Functions',
 	subtitle:
 		'Learn how to set up highlight.io tracing on Google Cloud Functions.',
-	logoPath: '/images/quickstart/google-cloud.svg',
 	entries: [
 		setupFrontendSnippet,
 		downloadSnippet(),

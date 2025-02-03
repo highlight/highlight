@@ -13,7 +13,6 @@ export const RubyOtherContent: QuickStartContent = {
 	title: 'Ruby',
 	subtitle:
 		'Learn how to set up highlight.io on your non-Rails Ruby backend.',
-	logoPath: '/images/quickstart/ruby.svg',
 	entries: [
 		frontendInstallSnippet,
 		installSdk,

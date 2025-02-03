@@ -27,6 +27,7 @@ import { useProjectId } from '@hooks/useProjectId'
 import analytics from '@util/analytics'
 import { PlatformSelection } from '@/pages/Connect/PlatformSelection'
 import { useNavigate } from 'react-router-dom'
+import { ICON_MAPPINGS } from '@/pages/Connect/constants'
 
 const ICON_FILL = vars.theme.interactive.fill.secondary.content.text
 
@@ -250,10 +251,11 @@ const SelectedPlatformIcons = ({ platforms }: { platforms: Set<string> }) => {
 						border="secondary"
 						borderWidth="medium"
 					>
-						{sdk.logoPath ? (
+						{sdk.logoKey &&
+						ICON_MAPPINGS.hasOwnProperty(sdk.logoKey) ? (
 							<img
 								alt={sdk.title}
-								src={`/src/static/${sdk.logoPath}`}
+								src={(ICON_MAPPINGS as any)[sdk.logoKey]}
 								style={{
 									height: 30,
 									width: 30,

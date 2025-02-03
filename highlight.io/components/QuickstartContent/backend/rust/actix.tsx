@@ -6,7 +6,6 @@ import { setUpLogging } from './shared-snippets'
 export const RustActixContent: QuickStartContent = {
 	title: 'actix-web',
 	subtitle: 'Learn how to set up highlight.io without a framework.',
-	logoPath: '/images/quickstart/rust.svg',
 	entries: [
 		frontendInstallSnippet,
 		{

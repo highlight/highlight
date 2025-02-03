@@ -20,7 +20,7 @@ ReactDOM.render(
 export const ReactContent: QuickStartContent = {
 	title: 'React.js',
 	subtitle: 'Learn how to set up highlight.io with your React application.',
-	logoPath: '/images/quickstart/react.svg',
+	logoKey: 'react',
 	products: ['Sessions', 'Errors', 'Logs', 'Traces'],
 	entries: [
 		{

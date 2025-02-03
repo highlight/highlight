@@ -11,7 +11,6 @@ export const PythonFastAPIContext: QuickStartContent = {
 	title: 'Python FastAPI',
 	subtitle:
 		'Learn how to set up highlight.io on your Python FastAPI backend API.',
-	logoPath: '/images/quickstart/fastapi.svg',
 	entries: [
 		setupFrontendSnippet,
 		downloadSnippet(),

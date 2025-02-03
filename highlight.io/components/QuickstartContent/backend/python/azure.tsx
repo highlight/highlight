@@ -10,7 +10,6 @@ import {
 export const PythonAzureContext: QuickStartContent = {
 	title: 'Python Azure Functions',
 	subtitle: 'Learn how to set up highlight.io with Azure Functions.',
-	logoPath: '/images/quickstart/azure.svg',
 	entries: [
 		setupFrontendSnippet,
 		downloadSnippet(),

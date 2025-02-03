@@ -14,7 +14,7 @@ export const GoEchoReorganizedContent: QuickStartContent = {
 	title: 'Go Echo',
 	subtitle:
 		'Learn how to set up highlight.io monitoring on your Go Echo backend.',
-	logoPath: '/images/quickstart/go.svg',
+	logoKey: 'go',
 	products: ['Errors', 'Logs', 'Traces'],
 	entries: [
 		frontendInstallSnippet,

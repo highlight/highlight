@@ -12,7 +12,6 @@ import {
 export const JSNodeContent: QuickStartContent = {
 	title: 'Node.js',
 	subtitle: 'Learn how to set up highlight.io in Node.js.',
-	logoPath: '/images/quickstart/node.svg',
 	entries: [
 		frontendInstallSnippet,
 		jsGetSnippet(['node']),

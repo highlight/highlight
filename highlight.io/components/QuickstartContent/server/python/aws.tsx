@@ -8,7 +8,7 @@ import { downloadSnippet, init } from './shared-snippets-monitoring'
 export const PythonAWSReorganizedContext: QuickStartContent = {
 	title: 'Python AWS Lambda',
 	subtitle: 'Learn how to set up highlight.io on AWS Lambda.',
-	logoPath: '/images/quickstart/aws-lambda.svg',
+	logoKey: 'awslambda',
 	products: ['Errors', 'Logs', 'Traces'],
 	entries: [
 		frontendInstallSnippet,

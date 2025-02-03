@@ -12,7 +12,6 @@ import {
 export const GoFiberContent: QuickStartContent = {
 	title: 'Go Fiber',
 	subtitle: 'Learn how to set up highlight.io on your Go Fiber backend.',
-	logoPath: '/images/quickstart/fiber.svg',
 	entries: [
 		frontendInstallSnippet,
 		goGetSnippet,

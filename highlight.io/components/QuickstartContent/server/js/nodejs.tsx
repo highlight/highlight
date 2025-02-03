@@ -13,7 +13,7 @@ import {
 export const JSNodeReorganizedContent: QuickStartContent = {
 	title: 'Node.js',
 	subtitle: 'Learn how to set up highlight.io in Node.js.',
-	logoPath: '/images/quickstart/node.svg',
+	logoKey: 'node',
 	products: ['Errors', 'Logs', 'Traces'],
 	entries: [
 		frontendInstallSnippet,
