@@ -103,7 +103,8 @@ describe('client recording spec', () => {
 					}
 					const payload = JSON.parse(customEvent.data.payload)
 					if (
-						customEvent.data.tag !== 'Track' ||
+						(customEvent.data.tag !== 'Track' &&
+							customEvent.data.tag !== 'Performance') ||
 						payload.foo !== 'bar' ||
 						payload.event !== 'MyTrackEvent'
 					) {
