@@ -1,17 +1,17 @@
 ---
-title: Introducing the new Highlight Docs 
+title: Introducing the new Highlight Docs
 createdAt: 2022-11-22T12:00:00Z
 readingTime: 7
 authorFirstName: Vadim
 authorLastName: Korolik
-authorTitle: Software Engineer @ Highlight 
+authorTitle: Software Engineer @ Highlight
 authorTwitter: 'https://twitter.com/vkorolik'
 authorLinkedIn: 'https://www.linkedin.com/in/vkorolik/'
 authorGithub: 'https://github.com/Vadman97'
 authorWebsite: 'https://vadweb.us'
 authorPFP: 'https://lh3.googleusercontent.com/a-/AOh14Gh1k7XsVMGxHMLJZ7qesyddqn1y4EKjfbodEYiY=s96-c'
 tags: Highlight Engineering
-metaTitle: Is Kafka the Key? The Evolution of Highlight's Ingest 
+metaTitle: Introducing the new Highlight Docs
 ---
 
 Today, we’re excited to introduce the new Highlight Docs! Over the past several weeks, we’ve been redesigning our docs site from the ground up, to make it more aesthetic, user-friendly, and performant than ever before.
