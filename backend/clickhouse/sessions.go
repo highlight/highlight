@@ -796,14 +796,21 @@ func addAttributesParser(config model.TableConfig, attributeFields []string, pro
 			},
 		}
 
+		aliased := &sqlparser.AliasExpr{
+			Expr: &sqlparser.ParamExprList{
+				Items: &sqlparser.ColumnExprList{
+					Items: []sqlparser.Expr{attributeSelect},
+				},
+			},
+			Alias: &sqlparser.Ident{
+				Name: "join",
+			},
+		}
+
 		join := &sqlparser.JoinExpr{
 			Left: query.From.Expr,
 			Right: &sqlparser.JoinExpr{
-				Left: &sqlparser.ParamExprList{
-					Items: &sqlparser.ColumnExprList{
-						Items: []sqlparser.Expr{attributeSelect},
-					},
-				},
+				Left:      aliased,
 				Modifiers: []string{"INNER", "JOIN"},
 				Constraints: &sqlparser.OnClause{
 					On: &sqlparser.ColumnExprList{
