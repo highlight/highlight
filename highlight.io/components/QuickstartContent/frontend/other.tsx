@@ -6,7 +6,6 @@ import {
 	verifySnippet,
 } from './shared-snippets'
 
-import { siteUrl } from '../../../utils/urls'
 import { QuickStartContent } from '../QuickstartContent'
 
 export const OtherContext: QuickStartContent = {

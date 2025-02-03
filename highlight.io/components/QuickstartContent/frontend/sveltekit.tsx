@@ -7,7 +7,6 @@ import {
 	verifySnippet,
 } from './shared-snippets'
 
-import { siteUrl } from '../../../utils/urls'
 import { QuickStartContent } from '../QuickstartContent'
 
 const svelteKitInitCodeSnippet = `// hooks.client.ts

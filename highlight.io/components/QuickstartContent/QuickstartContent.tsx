@@ -1,4 +1,3 @@
-import { siteUrl } from '../../utils/urls'
 import { GoChiContent } from './backend/go/chi'
 import { GoEchoContent } from './backend/go/echo'
 import { GoFiberContent } from './backend/go/fiber'

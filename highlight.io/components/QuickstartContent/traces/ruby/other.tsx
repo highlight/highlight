@@ -1,4 +1,3 @@
-import { siteUrl } from '../../../../utils/urls'
 import { initializeSdk, installSdk } from '../../backend/ruby/shared-snippets'
 import { frontendInstallSnippet } from '../../backend/shared-snippets'
 import { QuickStartContent } from '../../QuickstartContent'

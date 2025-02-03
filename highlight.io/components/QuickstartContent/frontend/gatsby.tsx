@@ -1,4 +1,3 @@
-import { siteUrl } from '../../../utils/urls'
 import { QuickStartContent, QuickStartStep } from '../QuickstartContent'
 import {
 	configureSourcemapsCI,

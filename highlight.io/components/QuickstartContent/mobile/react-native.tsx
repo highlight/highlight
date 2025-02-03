@@ -1,4 +1,3 @@
-import { siteUrl } from '../../../utils/urls'
 import { QuickStartContent } from '../QuickstartContent'
 
 export const ReactNativeContent: QuickStartContent = {

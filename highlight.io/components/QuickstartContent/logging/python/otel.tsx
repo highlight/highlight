@@ -1,4 +1,3 @@
-import { siteUrl } from '../../../../utils/urls'
 import { QuickStartContent } from '../../QuickstartContent'
 import { verifyTraces } from '../../traces/shared-snippets'
 import { verifyLogs, verifyMetrics } from '../shared-snippets'

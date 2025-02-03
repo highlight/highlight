@@ -1,4 +1,3 @@
-import { siteUrl } from '../../../../utils/urls'
 import { downloadSnippet } from '../../backend/python/shared-snippets'
 import { QuickStartContent } from '../../QuickstartContent'
 import { verifyLogs } from '../shared-snippets-logging'

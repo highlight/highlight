@@ -1,4 +1,3 @@
-import { siteUrl } from '../../../../utils/urls'
 import {
 	customTrace,
 	initializeSdk,

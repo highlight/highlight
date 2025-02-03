@@ -1,4 +1,3 @@
-import { siteUrl } from '../../../../utils/urls'
 import { downloadSnippet, init } from './shared-snippets-monitoring'
 import { QuickStartContent } from '../../QuickstartContent'
 import { verifyTraces } from '../shared-snippets-tracing'

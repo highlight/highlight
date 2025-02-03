@@ -1,4 +1,3 @@
-import { siteUrl } from '../../../../utils/urls'
 import { goGetSnippet, initializeGoSdk } from '../../backend/go/shared-snippets'
 import { QuickStartContent } from '../../QuickstartContent'
 import { verifyTraces } from '../shared-snippets'

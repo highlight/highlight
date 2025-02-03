@@ -1,4 +1,3 @@
-import { siteUrl } from '../../../../utils/urls'
 import { QuickStartContent } from '../../QuickstartContent'
 import { tsconfig } from '../../shared-snippets'
 import { previousInstallSnippet, verifyLogs } from '../shared-snippets'
