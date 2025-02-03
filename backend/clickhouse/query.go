@@ -24,7 +24,6 @@ import (
 	"github.com/nqd/flat"
 	e "github.com/pkg/errors"
 	"github.com/samber/lo"
-	"github.com/sirupsen/logrus"
 	"go.openly.dev/pointy"
 
 	sqlparser "github.com/AfterShip/clickhouse-sql-parser/parser"
@@ -186,7 +185,7 @@ func readObjects[TObj interface{}](ctx context.Context, client *Client, config m
 	return getConnection(edges, pagination), nil
 }
 
-func builderFromSql(
+func transformSql(
 	config model.TableConfig,
 	input ReadMetricsInput,
 ) (string, error) {
@@ -451,7 +450,6 @@ func builderFromSql(
 	}
 
 	sql := expr.String()
-	logrus.Info(sql)
 
 	return sql, nil
 }
@@ -1373,7 +1371,7 @@ func (client *Client) getSamplingStats(ctx context.Context, tables []string, pro
 }
 
 func (client *Client) readMetricsSql(ctx context.Context, input ReadMetricsInput, config model.TableConfig) (*modelInputs.MetricsBuckets, error) {
-	sql, err := builderFromSql(config, input)
+	sql, err := transformSql(config, input)
 	if err != nil {
 		return nil, err
 	}
