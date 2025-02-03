@@ -18,6 +18,14 @@ const stream = createWriteStream({
 	},
 })
 
+const kebabCase = (str: string) =>
+	str
+		.replace(/[^a-zA-Z0-9]/g, '')
+		.replace(/([a-z])([A-Z])/g, '$1-$2')
+		.replace(/ /g, '-')
+		.replace(/([A-Z]+)([A-Z][a-z])/g, '$1-$2')
+		.toLowerCase()
+
 const logger = pino({ level: 'trace' }, stream)
 
 async function generateXML(): Promise<string> {
@@ -39,6 +47,15 @@ async function generateXML(): Promise<string> {
 	const githubBlogPages = githubBlogPosts.map(
 		(path) => `blog/${path.simple_path}`,
 	)
+
+	const githubBlogTags = [
+		...new Set(
+			githubBlogPosts
+				.map((post) => post.tags)
+				.flat()
+				.filter(Boolean),
+		),
+	].map((tag) => `blog/tag/${kebabCase(tag)}`)
 
 	const customerPages = customers.map(
 		(customer: { slug: string }) => `customers/${customer.slug}`,
@@ -65,6 +82,7 @@ async function generateXML(): Promise<string> {
 	const pages = [
 		...staticPages,
 		...githubBlogPages,
+		...githubBlogTags,
 		...customerPages,
 		...docsPages,
 		...productPages,
