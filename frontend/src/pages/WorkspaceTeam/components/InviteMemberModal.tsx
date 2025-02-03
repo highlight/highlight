@@ -1,5 +1,8 @@
 import { toast } from '@components/Toaster'
-import { useSendAdminWorkspaceInviteMutation } from '@graph/hooks'
+import {
+	useGetWorkspaceSettingsQuery,
+	useSendAdminWorkspaceInviteMutation,
+} from '@graph/hooks'
 import { namedOperations } from '@graph/operations'
 import { AdminRole } from '@graph/schemas'
 import {
@@ -23,6 +26,7 @@ import { useAuthContext } from '@/authentication/AuthContext'
 import { Button } from '@/components/Button'
 import {
 	DISABLED_REASON_IS_ADMIN,
+	DISABLED_REASON_NOT_ENTERPRISE,
 	RoleOptions,
 } from '@/pages/WorkspaceTeam/components/AllMembers'
 import { useApplicationContext } from '@/routers/AppRouter/context/ApplicationContext'
@@ -56,6 +60,14 @@ function InviteMemberModal({
 		}
 	}, [autoinvite_email, toggleShowModal])
 
+	const { data: workspaceSettings } = useGetWorkspaceSettingsQuery({
+		variables: { workspace_id: workspaceId! },
+		skip: !workspaceId,
+	})
+
+	const canUpdateProjects =
+		workspaceSettings?.workspaceSettings?.enable_project_level_access ??
+		false
 	const [
 		sendInviteEmail,
 		{ loading: sendInviteLoading, reset: sendInviteReset },
@@ -75,6 +87,8 @@ function InviteMemberModal({
 			newAdminRole !== AdminRole.Admin && newProjectIds.length === 0
 				? (allProjects?.map((p) => p?.id).filter(Boolean) as string[])
 				: newProjectIds
+
+		console.log('vadim', { projectIdsToSend, newAdminRole })
 
 		sendInviteEmail({
 			variables: {
@@ -130,7 +144,11 @@ function InviteMemberModal({
 		workspaceRole === AdminRole.Admin ? RoleOptions : [RoleOptions[0]]
 
 	const disabledReason =
-		newAdminRole === AdminRole.Admin ? DISABLED_REASON_IS_ADMIN : undefined
+		newAdminRole === AdminRole.Admin
+			? DISABLED_REASON_IS_ADMIN
+			: !canUpdateProjects
+				? DISABLED_REASON_NOT_ENTERPRISE
+				: undefined
 
 	const inviteLink = getWorkspaceInvitationLink(
 		workspaceInviteLinks?.secret || '',
@@ -186,6 +204,7 @@ function InviteMemberModal({
 								<Form.Select
 									name="role"
 									label="Role"
+									value={newAdminRole}
 									onValueChange={(option) => {
 										setNewAdminRole(option.value)
 										setNewProjectIds([])
@@ -223,6 +242,42 @@ function InviteMemberModal({
 													? options.join(', ')
 													: options
 											}}
+											value={
+												allProjects
+													?.filter((p) =>
+														newProjectIds.includes(
+															p?.id ?? '',
+														),
+													)
+													?.map((p) => p?.name)
+													?.filter(Boolean) as
+													| string[]
+													| undefined
+											}
+											onValueChange={(
+												values: {
+													name: string
+												}[],
+											) =>
+												setNewProjectIds(
+													(allProjects
+														?.filter((p) =>
+															values
+																.map(
+																	(v) =>
+																		v.name,
+																)
+																.includes(
+																	p?.name ??
+																		'',
+																),
+														)
+														?.map((p) => p?.id)
+														?.filter(Boolean) as
+														| string[]
+														| undefined) ?? [],
+												)
+											}
 											disabled={!!disabledReason}
 											placeholder={
 												!!disabledReason
