@@ -37,18 +37,6 @@ export const useGetSessions = ({
 	presetSelected: boolean
 }) => {
 	const [, setPage] = useQueryParam('page', PAGE_PARAM)
-	// Using these rounded dates to ensure the cache is hit on initial load. The
-	// query will still be sent and the data in the cache will be updated.
-	const roundedStartDate = moment(startDate)
-		.startOf('minute')
-		.subtract(moment(startDate).minute() % 10, 'minutes')
-	const momentEndDate = presetSelected
-		? moment(endDate).add(10, 'minutes')
-		: moment(endDate)
-	const roundedEndDate = momentEndDate
-		.startOf('minute')
-		.subtract(moment(endDate).minute() % 10, 'minutes')
-
 	const variables = useMemo(
 		() => ({
 			project_id: project_id!,
@@ -57,13 +45,13 @@ export const useGetSessions = ({
 			params: {
 				query,
 				date_range: {
-					start_date: roundedStartDate.format(TIME_FORMAT),
-					end_date: roundedEndDate.format(TIME_FORMAT),
+					start_date: moment(startDate).format(TIME_FORMAT),
+					end_date: moment(endDate).format(TIME_FORMAT),
 				},
 			},
 			sort_desc: sortDesc,
 		}),
-		[page, project_id, query, roundedEndDate, roundedStartDate, sortDesc],
+		[page, project_id, query, startDate, endDate, sortDesc],
 	)
 	const { data, loading, error, refetch } = useGetSessionsQuery({
 		variables,
