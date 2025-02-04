@@ -185,196 +185,294 @@ func readObjects[TObj interface{}](ctx context.Context, client *Client, config m
 	return getConnection(edges, pagination), nil
 }
 
-type BuilderInfo struct {
-	Builder *sqlbuilder.SelectBuilder
-	Fields  []string
-}
-
-func builderFromSql(
+func transformSql(
 	config model.TableConfig,
 	input ReadMetricsInput,
-) (*BuilderInfo, error) {
-	if len(input.ProjectIDs) != 1 {
-		return nil, e.Errorf("SQL queries must use 1 project id, %d found", len(input.ProjectIDs))
-	}
-	projectId := input.ProjectIDs[0]
-
+) (string, error) {
 	if input.Sql == nil {
-		return nil, e.Errorf("Sql input cannot be nil")
+		return "", e.Errorf("Sql input cannot be nil")
 	}
 
 	parser := sqlparser.NewParser(*input.Sql)
 	statements, err := parser.ParseStmts()
 	if err != nil {
-		return nil, err
+		return "", err
 	}
 
 	if len(statements) != 1 {
-		return nil, e.Errorf("Expected 1 SQL statement, found %d", len(statements))
+		return "", e.Errorf("Expected 1 SQL statement, found %d", len(statements))
 	}
-	stmt := statements[0]
+	expr := statements[0]
 
-	selectQuery, ok := stmt.(*sqlparser.SelectQuery)
-	if !ok {
-		return nil, e.New("SQL statement must be SelectQuery")
-	}
-
-	tableReplacementVisitor := sqlparser.DefaultASTVisitor{}
-	tableReplacementVisitor.Visit = func(expr sqlparser.Expr) error {
-		switch typed := expr.(type) {
-		case *sqlparser.TableIdentifier:
-			typed.Table.Name = config.TableName
+	settingsVisitor := sqlparser.DefaultASTVisitor{}
+	settingsVisitor.Visit = func(expr sqlparser.Expr) error {
+		_, found := expr.(*sqlparser.SettingsClause)
+		if found {
+			return e.New("SQL statement cannot include a settings clause.")
 		}
 		return nil
 	}
-
-	// Ignore function, alias, and table names
-	ignoreList := []sqlparser.Expr{}
-	ignoreVisitor := sqlparser.DefaultASTVisitor{}
-	ignoreVisitor.Visit = func(expr sqlparser.Expr) error {
-		switch typed := expr.(type) {
-		case *sqlparser.SelectItem:
-			ignoreList = append(ignoreList, typed.Alias)
-		case *sqlparser.FunctionExpr:
-			ignoreList = append(ignoreList, typed.Name)
-		case *sqlparser.AliasExpr:
-			ignoreList = append(ignoreList, typed.Alias)
-		case *sqlparser.TableIdentifier:
-			ignoreList = append(ignoreList, typed.Table)
-		}
-		return nil
+	if err := expr.Accept(&settingsVisitor); err != nil {
+		return "", err
 	}
 
-	sb := sqlbuilder.ClickHouse.NewSelectBuilder()
+	priorVisit := map[sqlparser.Expr]bool{}
 
-	fields := []string{}
-	columnReplacementVisitor := sqlparser.DefaultASTVisitor{}
-	columnReplacementVisitor.Visit = func(expr sqlparser.Expr) error {
-		switch typed := expr.(type) {
-		case *sqlparser.Ident:
-			if typed.Name == "*" || lo.Contains(ignoreList, expr) {
-				break
+	selectVisitor := sqlparser.DefaultASTVisitor{}
+	selectVisitor.Visit = func(expr sqlparser.Expr) error {
+		selectQuery, ok := expr.(*sqlparser.SelectQuery)
+		if !ok {
+			return nil
+		}
+
+		isSystemTable := false
+		if selectQuery.From != nil {
+			fromExpr, ok := selectQuery.From.Expr.(*sqlparser.JoinTableExpr)
+			if !ok || fromExpr == nil || fromExpr.Table == nil {
+				return e.New("Expected FROM expression to be JoinTableExpr")
 			}
-			if col, found := config.KeysToColumns[typed.Name]; found {
-				typed.Name = col
+
+			tableIdentifier, ok := fromExpr.Table.Expr.(*sqlparser.TableIdentifier)
+			if ok && tableIdentifier != nil && tableIdentifier.Table != nil && strings.HasPrefix(config.TableName, tableIdentifier.Table.Name) {
+				isSystemTable = true
+			}
+		}
+
+		// Ignore function, alias, and table names
+		ignoreList := map[sqlparser.Expr]bool{}
+		aliases := map[string]bool{}
+		ignoreVisitor := sqlparser.DefaultASTVisitor{}
+		ignoreVisitor.Visit = func(expr sqlparser.Expr) error {
+			if priorVisit[expr] {
+				return nil
+			}
+			switch typed := expr.(type) {
+			case *sqlparser.SelectItem:
+				ignoreList[typed.Alias] = true
+				if typed.Alias != nil {
+					aliases[typed.Alias.Name] = true
+				}
+			case *sqlparser.FunctionExpr:
+				ignoreList[typed.Name] = true
+			case *sqlparser.AliasExpr:
+				ignoreList[typed.Alias] = true
+				if typed.Alias != nil {
+					aliases[typed.Alias.String()] = true
+				}
+			case *sqlparser.TableIdentifier:
+				ignoreList[typed.Table] = true
+			case *sqlparser.IntervalExpr:
+				ignoreList[typed.Unit] = true
+			}
+
+			return nil
+		}
+
+		fields := []string{}
+		columnReplacementVisitor := sqlparser.DefaultASTVisitor{}
+		columnReplacementVisitor.Visit = func(expr sqlparser.Expr) error {
+			if priorVisit[expr] {
+				return nil
+			}
+			switch typed := expr.(type) {
+			case *sqlparser.Ident:
+				if typed.Name == "*" || ignoreList[expr] || aliases[typed.Name] {
+					break
+				}
+				if col, found := config.KeysToColumns[typed.Name]; found {
+					typed.Name = col
+				} else {
+					fields = append(fields, typed.Name)
+					typed.Name = fmt.Sprintf("%s['%s']", model.GetAttributesColumn(config.AttributesColumns, typed.Name), typed.Name)
+				}
+			}
+			return nil
+		}
+
+		functionReplacementVisitor := sqlparser.DefaultASTVisitor{}
+		functionReplacementVisitor.Visit = func(expr sqlparser.Expr) error {
+			if priorVisit[expr] {
+				return nil
+			}
+			switch typed := expr.(type) {
+			case *sqlparser.FunctionExpr:
+				if typed.Name != nil && typed.Name.Name == "$time_interval" {
+					// Replace toStartOfInterval with the relevant $time_interval
+					typed.Name.Name = "toStartOfInterval"
+					if typed.Params.Items == nil {
+						return e.New("$time_interval called with empty argument list")
+					}
+
+					if len(typed.Params.Items.Items) != 1 {
+						return e.Errorf("Expecting 1 argument for $time_interval, found %d", len(typed.Params.Items.Items))
+					}
+
+					columnExpr, ok := typed.Params.Items.Items[0].(*sqlparser.ColumnExpr)
+					if !ok {
+						return e.Errorf("Expecting $time_interval argument to be a string literal.")
+					}
+					stringLiteral, ok := columnExpr.Expr.(*sqlparser.StringLiteral)
+					if !ok {
+						return e.Errorf("Expecting $time_interval argument to be a string literal.")
+					}
+
+					typed.Params.Items.Items = []sqlparser.Expr{
+						&sqlparser.ColumnExpr{
+							Expr: &sqlparser.Ident{Name: "Timestamp"},
+						},
+						&sqlparser.IntervalExpr{
+							Expr: stringLiteral,
+							Unit: &sqlparser.Ident{},
+						},
+					}
+				} else if typed.Name != nil {
+					// Apply _sample_factor to count or sum functions
+					isSample := strings.Contains(strings.ToLower(config.TableName), "sample")
+					funcLower := strings.ToLower(typed.Name.Name)
+					if isSample && (strings.Contains(funcLower, "sum") || strings.Contains(funcLower, "count")) {
+						typed.Name.Name = fmt.Sprintf("any(_sample_factor) * %s", typed.Name.Name)
+					}
+				}
+			}
+			return nil
+		}
+
+		tableReplacementVisitor := sqlparser.DefaultASTVisitor{}
+		tableReplacementVisitor.Visit = func(expr sqlparser.Expr) error {
+			if priorVisit[expr] {
+				return nil
+			}
+			switch typed := expr.(type) {
+			case *sqlparser.TableIdentifier:
+				typed.Table.Name = config.TableName
+			}
+			return nil
+		}
+
+		priorVisitVisitor := sqlparser.DefaultASTVisitor{}
+		priorVisitVisitor.Visit = func(expr sqlparser.Expr) error {
+			priorVisit[expr] = true
+			return nil
+		}
+
+		if isSystemTable {
+			if err := selectQuery.Accept(&ignoreVisitor); err != nil {
+				return err
+			}
+			if err := selectQuery.Accept(&columnReplacementVisitor); err != nil {
+				return err
+			}
+			if err := selectQuery.Accept(&functionReplacementVisitor); err != nil {
+				return err
+			}
+			if err := selectQuery.Accept(&tableReplacementVisitor); err != nil {
+				return err
+			}
+
+			if len(input.ProjectIDs) != 1 {
+				return e.Errorf("SQL queries must use 1 project id, %d found", len(input.ProjectIDs))
+			}
+			projectId := input.ProjectIDs[0]
+
+			projectIdCol := "ProjectId"
+			if config.TableName == "sessions" || config.TableName == "errors" {
+				projectIdCol = "ProjectID"
+			}
+
+			appendedWhere := &sqlparser.BinaryOperation{
+				LeftExpr: &sqlparser.BinaryOperation{
+					LeftExpr: &sqlparser.Ident{
+						Name: projectIdCol,
+					},
+					RightExpr: &sqlparser.NumberLiteral{
+						Literal: strconv.Itoa(projectId),
+					},
+					Operation: "=",
+				},
+				RightExpr: &sqlparser.BinaryOperation{
+					LeftExpr: &sqlparser.BinaryOperation{
+						LeftExpr: &sqlparser.Ident{
+							Name: "Timestamp",
+						},
+						RightExpr: &sqlparser.FunctionExpr{
+							Name: &sqlparser.Ident{
+								Name: "toDateTime",
+							},
+							Params: &sqlparser.ParamExprList{
+								Items: &sqlparser.ColumnExprList{
+									Items: []sqlparser.Expr{&sqlparser.NumberLiteral{
+										Literal: strconv.FormatInt(input.Params.DateRange.StartDate.Unix(), 10),
+									}},
+								},
+							},
+						},
+						Operation: ">=",
+					},
+					RightExpr: &sqlparser.BinaryOperation{
+						LeftExpr: &sqlparser.Ident{
+							Name: "Timestamp",
+						},
+						RightExpr: &sqlparser.FunctionExpr{
+							Name: &sqlparser.Ident{
+								Name: "toDateTime",
+							},
+							Params: &sqlparser.ParamExprList{
+								Items: &sqlparser.ColumnExprList{
+									Items: []sqlparser.Expr{&sqlparser.NumberLiteral{
+										Literal: strconv.FormatInt(input.Params.DateRange.EndDate.Unix(), 10),
+									}},
+								},
+							},
+						},
+						Operation: "<=",
+					},
+					Operation: "AND",
+				},
+				Operation: "AND",
+			}
+
+			addAttributesParser(config, fields, projectId, input.Params, selectQuery)
+
+			if selectQuery.Where == nil {
+				selectQuery.Where = &sqlparser.WhereClause{
+					Expr: appendedWhere,
+				}
 			} else {
-				fields = append(fields, typed.Name)
-				typed.Name = fmt.Sprintf("%s['%s']", model.GetAttributesColumn(config.AttributesColumns, typed.Name), typed.Name)
+				copiedClause := selectQuery.Where.Expr
+				selectQuery.Where.Expr = &sqlparser.BinaryOperation{
+					LeftExpr: &sqlparser.ParamExprList{
+						Items: &sqlparser.ColumnExprList{
+							Items: []sqlparser.Expr{copiedClause},
+						}},
+					Operation: "AND",
+					RightExpr: appendedWhere,
+				}
 			}
 		}
+
+		if err := selectQuery.Accept(&priorVisitVisitor); err != nil {
+			return err
+		}
+
 		return nil
 	}
 
-	functionReplacementVisitor := sqlparser.DefaultASTVisitor{}
-	functionReplacementVisitor.Visit = func(expr sqlparser.Expr) error {
-		switch typed := expr.(type) {
-		case *sqlparser.FunctionExpr:
-			if typed.Name != nil && typed.Name.Name == "$time_interval" {
-				// Replace toStartOfInterval with the relevant $time_interval
-				typed.Name.Name = "toStartOfInterval"
-				if typed.Params.Items == nil {
-					return e.New("$time_interval called with empty argument list")
-				}
-
-				if len(typed.Params.Items.Items) != 1 {
-					return e.Errorf("Expecting 1 argument for $time_interval, found %d", len(typed.Params.Items.Items))
-				}
-
-				columnExpr, ok := typed.Params.Items.Items[0].(*sqlparser.ColumnExpr)
-				if !ok {
-					return e.Errorf("Expecting $time_interval argument to be a string literal.")
-				}
-				stringLiteral, ok := columnExpr.Expr.(*sqlparser.StringLiteral)
-				if !ok {
-					return e.Errorf("Expecting $time_interval argument to be a string literal.")
-				}
-
-				typed.Params.Items.Items = []sqlparser.Expr{
-					&sqlparser.ColumnExpr{
-						Expr: &sqlparser.Ident{Name: "Timestamp"},
-					},
-					&sqlparser.IntervalExpr{
-						Expr: stringLiteral,
-						Unit: &sqlparser.Ident{},
-					},
-				}
-			} else if typed.Name != nil {
-				// Apply _sample_factor to count or sum functions
-				isSample := strings.Contains(strings.ToLower(config.TableName), "sample")
-				funcLower := strings.ToLower(typed.Name.Name)
-				if isSample && (strings.Contains(funcLower, "sum") || strings.Contains(funcLower, "count")) {
-					typed.Name.Name = fmt.Sprintf("any(_sample_factor) * %s", typed.Name.Name)
-				}
-			}
-		}
-		return nil
+	if err := expr.Accept(&selectVisitor); err != nil {
+		return "", err
 	}
 
-	if err := stmt.Accept(&tableReplacementVisitor); err != nil {
-		return nil, err
-	}
-	if err := stmt.Accept(&ignoreVisitor); err != nil {
-		return nil, err
-	}
-	if err := stmt.Accept(&columnReplacementVisitor); err != nil {
-		return nil, err
-	}
-	if err := stmt.Accept(&functionReplacementVisitor); err != nil {
-		return nil, err
-	}
+	sql := expr.String()
 
-	selectStrs := []string{}
-	for _, item := range selectQuery.SelectItems {
-		selectStrs = append(selectStrs, item.String())
-	}
-	sb.Select(selectStrs...)
-	if selectQuery.From != nil {
-		sb.From(strings.TrimPrefix(selectQuery.From.String(), "FROM "))
-	}
-	if selectQuery.Where != nil {
-		sb.Where("(" + strings.TrimPrefix(selectQuery.Where.String(), "WHERE ") + ")")
-	}
-	if selectQuery.GroupBy != nil {
-		sb.GroupBy(strings.TrimPrefix(selectQuery.GroupBy.String(), "GROUP BY "))
-	}
-	if selectQuery.Having != nil {
-		sb.Having(strings.TrimPrefix(selectQuery.Having.String(), "HAVING "))
-	}
-	if selectQuery.OrderBy != nil {
-		sb.OrderBy(strings.TrimPrefix(selectQuery.OrderBy.String(), "ORDER BY "))
-	}
+	return sql, nil
+}
 
-	sb.Limit(1000) // Limit to 1000 results by default
-	if selectQuery.Limit != nil {
-		if selectQuery.Limit.Limit != nil {
-			limitInt, err := strconv.Atoi(selectQuery.Limit.Limit.String())
-			if err != nil {
-				return nil, err
-			}
-			sb.Limit(limitInt)
-		}
-		if selectQuery.Limit.Offset != nil {
-			offsetInt, err := strconv.Atoi(selectQuery.Limit.Offset.String())
-			if err != nil {
-				return nil, err
-			}
-			sb.Offset(offsetInt)
-		}
-	}
-
-	if config.TableName == "sessions" || config.TableName == "errors" {
-		sb.Where(sb.Equal("ProjectID", projectId))
-	} else {
-		sb.Where(sb.Equal("ProjectId", projectId))
-	}
-
-	sb.Where(sb.GreaterEqualThan("Timestamp", input.Params.DateRange.StartDate))
-	sb.Where(sb.LessEqualThan("Timestamp", input.Params.DateRange.EndDate))
-
-	return &BuilderInfo{
-		Builder: sb,
-		Fields:  fields,
-	}, nil
+var systemTables = map[string]bool{
+	"sessions": true,
+	"errors":   true,
+	"logs":     true,
+	"traces":   true,
+	"events":   true,
+	"metrics":  true,
 }
 
 func GetTables(sql string) ([]string, error) {
@@ -394,7 +492,7 @@ func GetTables(sql string) ([]string, error) {
 	visitor.Visit = func(expr sqlparser.Expr) error {
 		switch typed := expr.(type) {
 		case *sqlparser.TableIdentifier:
-			if typed.Table != nil {
+			if typed.Table != nil && systemTables[typed.Table.Name] {
 				tables = append(tables, typed.Table.Name)
 			}
 		}
@@ -1286,14 +1384,10 @@ func (client *Client) getSamplingStats(ctx context.Context, tables []string, pro
 }
 
 func (client *Client) readMetricsSql(ctx context.Context, input ReadMetricsInput, config model.TableConfig) (*modelInputs.MetricsBuckets, error) {
-	builderInfo, err := builderFromSql(config, input)
+	sql, err := transformSql(config, input)
 	if err != nil {
 		return nil, err
 	}
-	applyBlockFilter(builderInfo.Builder, input)
-	addAttributes(config, builderInfo.Fields, input.ProjectIDs, input.Params, builderInfo.Builder, true)
-
-	sql, args := builderInfo.Builder.BuildWithFlavor(sqlbuilder.ClickHouse)
 
 	if strings.Contains(sql, projectIdSetting) {
 		return nil, e.New("User cannot modify project id setting in query")
@@ -1301,7 +1395,6 @@ func (client *Client) readMetricsSql(ctx context.Context, input ReadMetricsInput
 
 	span, ctx := util.StartSpanFromContext(ctx, "readMetric.sql.query")
 	span.SetAttribute("sql", sql)
-	span.SetAttribute("args", args)
 
 	chCtx := clickhouse.Context(ctx, clickhouse.WithSettings(clickhouse.Settings{
 		projectIdSetting: clickhouse.CustomSetting{Value: strconv.Itoa(input.ProjectIDs[0])},
@@ -1310,7 +1403,6 @@ func (client *Client) readMetricsSql(ctx context.Context, input ReadMetricsInput
 	rows, err := client.connReadonly.Query(
 		chCtx,
 		sql,
-		args...,
 	)
 
 	span.Finish(err)
@@ -1620,7 +1712,7 @@ func (client *Client) ReadMetrics(ctx context.Context, input ReadMetricsInput) (
 	groupByCols = append(groupByCols, groupAliases...)
 	orderByCols = append(orderByCols, groupAliases...)
 
-	addAttributes(config, attributeFields, input.ProjectIDs, input.Params, fromSb, false)
+	addAttributes(config, attributeFields, input.ProjectIDs, input.Params, fromSb)
 
 	innerSb := fromSb
 	fromSb = sqlbuilder.NewSelectBuilder()

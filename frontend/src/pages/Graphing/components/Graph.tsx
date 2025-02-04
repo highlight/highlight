@@ -1284,7 +1284,13 @@ const Graph = ({
 
 	let xAxisMetric = GROUPS_KEY
 	if (sql) {
-		if (sql.includes(TIME_INTERVAL_MACRO)) {
+		const isBucketed =
+			results?.find(
+				(r) =>
+					r.metrics?.buckets.find((b) => b.bucket_value !== null) !==
+					undefined,
+			) !== undefined
+		if (isBucketed) {
 			xAxisMetric = TIMESTAMP_KEY
 		}
 	} else if (bucketByKey !== undefined) {
