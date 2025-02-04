@@ -11,7 +11,7 @@ authorGithub: ''
 authorWebsite: ''
 authorPFP: 'https://www.highlight.io/_next/image?url=https%3A%2F%2Fmedia.graphassets.com%2FfKKhW39R0SE2hTIalLzG&w=1920&q=75'
 image: 'https://www.highlight.io/_next/image?url=https%3A%2F%2Fmedia.graphassets.com%2FFzuqrVP7QHutj0VgCvjz&w=3840&q=75'
-tags: 
+tags: Monitoring, Observability, Debugging & Troubleshooting
 metaTitle: "What Is Full Stack Monitoring and How Does It Work?"
 ---
 
@@ -93,4 +93,4 @@ With Pingdom’s uptime monitoring view, you can find out how long it takes for 
 
 Sorting messy and unstructured logs to troubleshoot errors can be overwhelming. But now that we’ve reviewed frontend monitoring tools to gain greater visibility into your web application’s client-side systems, you can free up resources to build rather than scrambling around to fix issues.
 
-Highlight can help provide you with the insight you need to fix bugs in real-time. So, feel free to explore [what we do and how we do it](https://app.highlight.run/?sign_up=1 "https://app.highlight.run/?sign_up=1").
+Highlight can help provide you with the insight you need to fix bugs in real-time. So, feel free to explore [what we do and how we do it](https://app.highlight.io).
