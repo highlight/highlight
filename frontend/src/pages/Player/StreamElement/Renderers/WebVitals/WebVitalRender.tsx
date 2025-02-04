@@ -39,6 +39,9 @@ const WebVitalSimpleRenderer = React.memo(
 			>
 				{Object.values(deduppedVitals).map(({ name, value }) => {
 					const configuration = WEB_VITALS_CONFIGURATION[name]
+					if (!configuration) {
+						return null
+					}
 
 					if (showDetailedView) {
 						return (
