@@ -1,8 +1,4 @@
-import { gql } from 'graphql-request'
-import pino from 'pino'
-import { stream } from '../app/api/sitemap/route'
 import { Tag } from '../components/Blog/Tag'
-import { GraphQLRequest } from '../utils/graphql'
 
 export const VALID_TAGS: Record<string, Omit<Tag, 'posts'>> = {
 	'All posts': {
