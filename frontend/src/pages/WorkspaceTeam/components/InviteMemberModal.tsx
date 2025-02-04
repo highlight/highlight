@@ -45,7 +45,6 @@ function InviteMemberModal({
 	workspaceInviteLinks?: any
 	toggleShowModal: (value: boolean) => void
 }) {
-	const emailInputRef = useRef<HTMLInputElement>(null)
 	const form = Form.useStore<{
 		email: string
 		role: AdminRole
@@ -57,11 +56,46 @@ function InviteMemberModal({
 			projects: [],
 		},
 	})
+	const emailInputRef = useRef<HTMLInputElement>(null)
 	const [autoinvite_email] = useQueryParam('autoinvite_email', StringParam)
+	const { allProjects } = useApplicationContext()
+	const { workspaceRole } = useAuthContext()
 
 	const email = form.useValue(form.names.email)
 	const newAdminRole = form.useValue(form.names.role)
 	const newProjectIds = form.useValue(form.names.projects)
+
+	const { data: workspaceSettings } = useGetWorkspaceSettingsQuery({
+		variables: { workspace_id: workspaceId! },
+		skip: !workspaceId,
+	})
+
+	const canUpdateProjects =
+		workspaceSettings?.workspaceSettings?.enable_project_level_access ??
+		false
+
+	const [
+		sendInviteEmail,
+		{ loading: sendInviteLoading, reset: sendInviteReset },
+	] = useSendAdminWorkspaceInviteMutation({
+		fetchPolicy: 'no-cache',
+		refetchQueries: [namedOperations.Query.GetWorkspaceSettings],
+	})
+
+	const roleOptions =
+		workspaceRole === AdminRole.Admin ? RoleOptions : [RoleOptions[0]]
+
+	const disabledReason =
+		newAdminRole === AdminRole.Admin
+			? DISABLED_REASON_IS_ADMIN
+			: !canUpdateProjects
+				? DISABLED_REASON_NOT_ENTERPRISE
+				: undefined
+
+	const inviteLink = getWorkspaceInvitationLink(
+		workspaceInviteLinks?.secret || '',
+		workspaceId!,
+	)
 
 	useEffect(() => {
 		if (autoinvite_email) {
@@ -74,25 +108,29 @@ function InviteMemberModal({
 		}
 	}, [autoinvite_email, form, toggleShowModal])
 
-	const { data: workspaceSettings } = useGetWorkspaceSettingsQuery({
-		variables: { workspace_id: workspaceId! },
-		skip: !workspaceId,
-	})
+	const resetForm = useCallback(
+		(close?: true) => {
+			if (close) {
+				toggleShowModal(false)
+			}
+			sendInviteReset()
+			form.reset()
+		},
+		[form, sendInviteReset, toggleShowModal],
+	)
 
-	const canUpdateProjects =
-		workspaceSettings?.workspaceSettings?.enable_project_level_access ??
-		false
-	const [
-		sendInviteEmail,
-		{ loading: sendInviteLoading, reset: sendInviteReset },
-	] = useSendAdminWorkspaceInviteMutation({
-		fetchPolicy: 'no-cache',
-		refetchQueries: [namedOperations.Query.GetWorkspaceSettings],
-	})
+	const projectOptions = useMemo(
+		() =>
+			allProjects?.map((p) => ({
+				name: p?.name ?? '',
+				value: p?.name ?? '',
+				id: p?.id ?? '',
+			})) ?? [],
+		[allProjects],
+	)
 
 	const onSubmit = (e: { preventDefault: () => void }) => {
 		e.preventDefault()
-
 		if (!workspaceId) {
 			return
 		}
@@ -111,7 +149,6 @@ function InviteMemberModal({
 			},
 		})
 			.then(() => {
-				resetForm()
 				toast.success(`Invite email sent!`, {
 					duration: 10000,
 					content: (
@@ -140,6 +177,7 @@ function InviteMemberModal({
 						</Stack>
 					),
 				})
+				form.setValue(form.names.email, '')
 				emailInputRef.current?.focus()
 			})
 			.catch((error) => {
@@ -150,42 +188,8 @@ function InviteMemberModal({
 			})
 	}
 
-	const { allProjects } = useApplicationContext()
-
-	const { workspaceRole } = useAuthContext()
-
-	const roleOptions =
-		workspaceRole === AdminRole.Admin ? RoleOptions : [RoleOptions[0]]
-
-	const disabledReason =
-		newAdminRole === AdminRole.Admin
-			? DISABLED_REASON_IS_ADMIN
-			: !canUpdateProjects
-				? DISABLED_REASON_NOT_ENTERPRISE
-				: undefined
-
-	const inviteLink = getWorkspaceInvitationLink(
-		workspaceInviteLinks?.secret || '',
-		workspaceId!,
-	)
-
-	const resetForm = useCallback(() => {
-		sendInviteReset()
-		toggleShowModal(false)
-	}, [sendInviteReset, toggleShowModal])
-
-	const projectOptions = useMemo(
-		() =>
-			allProjects?.map((p) => ({
-				name: p?.name ?? '',
-				value: p?.name ?? '',
-				id: p?.id ?? '',
-			})) ?? [],
-		[allProjects],
-	)
-
 	return (
-		<Modal open={showModal} onClose={resetForm}>
+		<Modal open={showModal} onClose={() => resetForm(true)}>
 			<Form onSubmit={onSubmit} store={form}>
 				<Modal.Header>
 					<IconSolidUserAdd color={vars.color.n11} />
@@ -197,14 +201,10 @@ function InviteMemberModal({
 					<Stack direction="column" gap="16">
 						<Form.Input
 							ref={emailInputRef}
-							name="email"
+							name={form.names.email}
 							label="User email"
-							value={email}
 							required
 							type="email"
-							onChange={(e) => {
-								form.setValue(form.names.email, e.target.value)
-							}}
 						/>
 						<Stack direction="row" gap="8">
 							<Box style={{ width: '50%' }}>
@@ -254,10 +254,12 @@ function InviteMemberModal({
 											onValueChange={(
 												values: SelectOption[],
 											) => {
-												form.setValue(
-													form.names.projects,
-													values,
-												)
+												if (values?.length) {
+													form.setValue(
+														form.names.projects,
+														values,
+													)
+												}
 											}}
 											icon={
 												<IconSolidInformationCircle
@@ -323,7 +325,7 @@ function InviteMemberModal({
 							<Button
 								trackingId="invite-admin-modal_cancel"
 								kind="secondary"
-								onClick={resetForm}
+								onClick={() => resetForm(true)}
 							>
 								Cancel
 							</Button>

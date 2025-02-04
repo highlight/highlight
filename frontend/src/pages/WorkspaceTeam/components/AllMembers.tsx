@@ -229,6 +229,7 @@ const AllMembers = ({
 
 	const projectOptions = projects?.map((p) => ({
 		key: p.id,
+		value: AdminRole.Admin,
 		render: p.name,
 	}))
 
