@@ -13,13 +13,14 @@ import {
 	IconSolidInformationCircle,
 	IconSolidUserAdd,
 	Modal,
+	SelectOption,
 	Stack,
 	Text,
 	Tooltip,
 } from '@highlight-run/ui/components'
 import { vars } from '@highlight-run/ui/vars'
 import { getWorkspaceInvitationLink } from '@pages/WorkspaceTeam/utils'
-import { useEffect, useRef } from 'react'
+import { useCallback, useEffect, useMemo, useRef } from 'react'
 import { StringParam, useQueryParam } from 'use-query-params'
 
 import { useAuthContext } from '@/authentication/AuthContext'
@@ -58,16 +59,15 @@ function InviteMemberModal({
 	})
 	const [autoinvite_email] = useQueryParam('autoinvite_email', StringParam)
 
-	const email = form.useValue('email')
-	const newAdminRole = form.useValue('role')
-	const newProjectIds = form.useValue('projects')
+	const email = form.useValue(form.names.email)
+	const newAdminRole = form.useValue(form.names.role)
+	const newProjectIds = form.useValue(form.names.projects)
 
 	useEffect(() => {
 		if (autoinvite_email) {
 			form.setValues({
 				email: autoinvite_email,
 				role: AdminRole.Member,
-				// TODO(vkorolik) test that this ok
 				projects: [],
 			})
 			toggleShowModal(true)
@@ -100,7 +100,7 @@ function InviteMemberModal({
 		const projectIdsToSend =
 			newAdminRole !== AdminRole.Admin && newProjectIds.length === 0
 				? (allProjects?.map((p) => p?.id).filter(Boolean) as string[])
-				: newProjectIds
+				: newProjectIds.map((p: { id: string }) => p.id)
 
 		sendInviteEmail({
 			variables: {
@@ -169,19 +169,23 @@ function InviteMemberModal({
 		workspaceId!,
 	)
 
-	const resetForm = () => {
+	const resetForm = useCallback(() => {
 		sendInviteReset()
-		form?.reset()
-	}
+		toggleShowModal(false)
+	}, [sendInviteReset, toggleShowModal])
+
+	const projectOptions = useMemo(
+		() =>
+			allProjects?.map((p) => ({
+				name: p?.name ?? '',
+				value: p?.name ?? '',
+				id: p?.id ?? '',
+			})) ?? [],
+		[allProjects],
+	)
 
 	return (
-		<Modal
-			open={showModal}
-			onClose={() => {
-				toggleShowModal(false)
-				resetForm()
-			}}
-		>
+		<Modal open={showModal} onClose={resetForm}>
 			<Form onSubmit={onSubmit} store={form}>
 				<Modal.Header>
 					<IconSolidUserAdd color={vars.color.n11} />
@@ -246,11 +250,15 @@ function InviteMemberModal({
 													? 'All projects'
 													: 'Select projects'
 											}
-											options={
-												allProjects?.map(
-													(p) => p?.name ?? '',
-												) ?? []
-											}
+											options={projectOptions}
+											onValueChange={(
+												values: SelectOption[],
+											) => {
+												form.setValue(
+													form.names.projects,
+													values,
+												)
+											}}
 											icon={
 												<IconSolidInformationCircle
 													color={vars.color.n8}
@@ -315,10 +323,7 @@ function InviteMemberModal({
 							<Button
 								trackingId="invite-admin-modal_cancel"
 								kind="secondary"
-								onClick={() => {
-									toggleShowModal(false)
-									resetForm()
-								}}
+								onClick={resetForm}
 							>
 								Cancel
 							</Button>
