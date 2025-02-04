@@ -1708,7 +1708,9 @@ func (client *Client) ReadMetrics(ctx context.Context, input ReadMetricsInput) (
 		Buckets: []*modelInputs.MetricBucket{},
 	}
 	lastBucketId := -1
+	hasRows := false
 	for rows.Next() {
+		hasRows = true
 		if err := rows.Scan(scanResults...); err != nil {
 			return nil, err
 		}
@@ -1747,6 +1749,12 @@ func (client *Client) ReadMetrics(ctx context.Context, input ReadMetricsInput) (
 		}
 
 		lastBucketId = int(bucketId)
+	}
+
+	// If no rows in the result set, manually set start / end date to interpolate buckets
+	if input.BucketBy == modelInputs.MetricBucketByTimestamp.String() && !hasRows {
+		min = float64(input.Params.DateRange.StartDate.Unix())
+		max = float64(input.Params.DateRange.EndDate.Unix())
 	}
 
 	// Interpolate any missing buckets

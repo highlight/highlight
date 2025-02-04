@@ -1,5 +1,5 @@
 import { Box } from '@highlight-run/ui/components'
-import React from 'react'
+import React, { useMemo } from 'react'
 import { ReferenceArea, ReferenceLine } from 'recharts'
 
 import {
@@ -66,6 +66,10 @@ export const AlertGraph: React.FC<Props> = ({
 
 	const viewConfig = sessionsProduct ? BAR_CONFIG : LINE_CONFIG
 
+	const expressions = useMemo(() => {
+		return [{ aggregator: functionType, column: functionColumn }]
+	}, [functionColumn, functionType])
+
 	return (
 		<Box cssClass={style.graphWrapper} shadow="small">
 			<Box
@@ -110,9 +114,7 @@ export const AlertGraph: React.FC<Props> = ({
 						thresholdType,
 						thresholdValue,
 					}}
-					expressions={[
-						{ aggregator: functionType, column: functionColumn },
-					]}
+					expressions={expressions}
 				>
 					{!sessionsProduct &&
 						thresholdType === ThresholdType.Constant && (
