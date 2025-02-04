@@ -5,7 +5,6 @@ import { verifyLogs } from '../shared-snippets'
 export const RustOtherLogContent: QuickStartContent = {
 	title: 'Logging from Rust',
 	subtitle: 'Learn how to set up highlight.io Rust log ingestion.',
-	logoUrl: siteUrl('/images/quickstart/rust.svg'),
 	entries: [
 		{
 			title: 'Set up your highlight.io SDK.',

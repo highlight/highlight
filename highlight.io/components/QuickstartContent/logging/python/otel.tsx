@@ -1,4 +1,3 @@
-import { siteUrl } from '../../../../utils/urls'
 import { QuickStartContent } from '../../QuickstartContent'
 import { verifyTraces } from '../../traces/shared-snippets'
 import { verifyLogs, verifyMetrics } from '../shared-snippets'
@@ -7,7 +6,6 @@ export const PythonOtelLogContent: QuickStartContent = {
 	title: 'Logging with OpenTelemetry in Python',
 	subtitle:
 		'Learn how to set up highlight.io with logs from Python using OpenTelemetry.',
-	logoUrl: siteUrl('/images/quickstart/python.svg'),
 	entries: [
 		{
 			title: 'Install OpenTelemetry',

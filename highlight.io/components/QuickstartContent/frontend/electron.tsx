@@ -7,7 +7,6 @@ import {
 	verifySnippet,
 } from './shared-snippets'
 
-import { siteUrl } from '../../../utils/urls'
 import { QuickStartContent } from '../QuickstartContent'
 
 const electronInitCodeSnippet = `// hooks.client.ts
@@ -37,8 +36,8 @@ export const ElectronContext: QuickStartContent = {
 	title: 'Electron',
 	subtitle:
 		'Learn how to set up highlight.io with your Electron application.',
-	logoUrl: siteUrl('/images/quickstart/electron.svg'),
-	products: ['Sessions', 'Errors', 'Logs', 'Traces', 'Metrics'],
+	logoKey: 'electron',
+	products: ['Sessions', 'Errors', 'Logs', 'Traces'],
 	entries: [
 		packageInstallSnippet,
 		initializeSnippet,

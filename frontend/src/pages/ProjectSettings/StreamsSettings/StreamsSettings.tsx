@@ -61,6 +61,7 @@ export const StreamsSettings: React.FC = () => {
 						emphasis="high"
 						disabled={!selectedRegion}
 						trackingId="launch-cloudformation-stacks"
+						target="_blank"
 					>
 						Launch CloudFormation Stack
 					</LinkButton>

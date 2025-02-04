@@ -1,4 +1,3 @@
-import { siteUrl } from '../../../../utils/urls'
 import { QuickStartContent } from '../../QuickstartContent'
 import { verifyLogs } from '../shared-snippets-logging'
 import { frontendInstallSnippet } from '../shared-snippets-monitoring'
@@ -8,7 +7,7 @@ import { downloadSnippet, init } from './shared-snippets-monitoring'
 export const PythonAWSReorganizedContext: QuickStartContent = {
 	title: 'Python AWS Lambda',
 	subtitle: 'Learn how to set up highlight.io on AWS Lambda.',
-	logoUrl: siteUrl('/images/quickstart/aws-lambda.svg'),
+	logoKey: 'awslambda',
 	products: ['Errors', 'Logs', 'Traces'],
 	entries: [
 		frontendInstallSnippet,

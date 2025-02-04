@@ -1,4 +1,3 @@
-import { siteUrl } from '../../../../utils/urls'
 import { initializeNodeSDK, jsGetSnippet } from './shared-snippets-monitoring'
 import { QuickStartContent } from '../../QuickstartContent'
 import { verifyTraces } from '../shared-snippets-tracing'
@@ -8,7 +7,7 @@ export const JSManualTracesReorganizedContent: QuickStartContent = {
 	title: 'Tracing from a Node.js App',
 	subtitle:
 		'Learn how to set up highlight.io tracing for your Node.js application.',
-	logoUrl: siteUrl('/images/quickstart/javascript.svg'),
+	logoKey: 'javascript',
 	products: ['Traces'],
 	entries: [
 		frontendInstallSnippet,

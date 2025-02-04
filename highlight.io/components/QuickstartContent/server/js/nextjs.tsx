@@ -1,4 +1,3 @@
-import { siteUrl } from '../../../../utils/urls'
 import { jsGetSnippet } from './shared-snippets-monitoring'
 import { QuickStartContent } from '../../QuickstartContent'
 import { verifyTraces } from '../shared-snippets-tracing'
@@ -7,7 +6,7 @@ export const NextJsTracesReorganizedContent: QuickStartContent = {
 	title: 'Next.js',
 	subtitle:
 		'Learn how to set up highlight.io tracing for your Next.js application.',
-	logoUrl: siteUrl('/images/quickstart/nextjs.svg'),
+	logoKey: 'nextjs',
 	products: ['Traces'],
 	entries: [
 		jsGetSnippet(['next']),

@@ -1,4 +1,3 @@
-import { siteUrl } from '../../../../utils/urls'
 import { QuickStartContent } from '../../QuickstartContent'
 import { verifyLogs } from '../shared-snippets-logging'
 import { frontendInstallSnippet } from '../shared-snippets-monitoring'
@@ -12,7 +11,7 @@ import {
 export const JSNestReorganizedContent: QuickStartContent = {
 	title: 'Nest.js',
 	subtitle: 'Learn how to set up highlight.io in Nest.js.',
-	logoUrl: siteUrl('/images/quickstart/nestjs.svg'),
+	logoKey: 'nestjs',
 	products: ['Errors', 'Logs', 'Traces'],
 	entries: [
 		frontendInstallSnippet,

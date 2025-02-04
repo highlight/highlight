@@ -1,4 +1,3 @@
-import { siteUrl } from '../../../../utils/urls'
 import { QuickStartContent } from '../../QuickstartContent'
 import { verifyLogs } from '../shared-snippets-logging'
 import { frontendInstallSnippet } from '../shared-snippets-monitoring'
@@ -13,7 +12,7 @@ import {
 export const JSApolloReorganizedContent: QuickStartContent = {
 	title: 'Apollo',
 	subtitle: 'Learn how to set up highlight.io on your Apollo Server backend.',
-	logoUrl: siteUrl('/images/quickstart/apollo.svg'),
+	logoKey: 'apollo',
 	products: ['Errors', 'Logs', 'Traces'],
 	entries: [
 		frontendInstallSnippet,

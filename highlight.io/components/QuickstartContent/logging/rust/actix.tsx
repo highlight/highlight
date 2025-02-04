@@ -5,7 +5,6 @@ import { verifyLogs } from '../shared-snippets'
 export const RustActixLogContent: QuickStartContent = {
 	title: 'Logging from Rust with actix-web',
 	subtitle: 'Learn how to set up highlight.io actix-web log ingestion.',
-	logoUrl: siteUrl('/images/quickstart/rust.svg'),
 	entries: [
 		{
 			title: 'Set up your highlight.io SDK.',

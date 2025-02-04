@@ -1,4 +1,3 @@
-import { siteUrl } from '../../../../utils/urls'
 import { QuickStartContent } from '../../QuickstartContent'
 import { frontendInstallSnippet } from '../shared-snippets-monitoring'
 import {
@@ -12,7 +11,7 @@ export const GoGqlgenReorganizedContent: QuickStartContent = {
 	title: 'Go Gqlgen',
 	subtitle:
 		'Learn how to set up highlight.io monitoring on your Go gqlgen backend.',
-	logoUrl: siteUrl('/images/quickstart/gqlgen.svg'),
+	logoKey: 'gqlgen',
 	products: ['Errors', 'Logs', 'Traces'],
 	entries: [
 		frontendInstallSnippet,

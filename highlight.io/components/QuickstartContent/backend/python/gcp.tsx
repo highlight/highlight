@@ -1,4 +1,3 @@
-import { siteUrl } from '../../../../utils/urls'
 import { QuickStartContent } from '../../QuickstartContent'
 import {
 	downloadSnippet,
@@ -10,7 +9,6 @@ import {
 export const PythonGCPContext: QuickStartContent = {
 	title: 'Python Google Cloud Functions',
 	subtitle: 'Learn how to set up highlight.io on Google Cloud Functions.',
-	logoUrl: siteUrl('/images/quickstart/google-cloud.svg'),
 	entries: [
 		setupFrontendSnippet,
 		downloadSnippet(),

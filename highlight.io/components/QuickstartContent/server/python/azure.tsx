@@ -1,4 +1,3 @@
-import { siteUrl } from '../../../../utils/urls'
 import { QuickStartContent } from '../../QuickstartContent'
 import { verifyLogs } from '../shared-snippets-logging'
 import { frontendInstallSnippet } from '../shared-snippets-monitoring'
@@ -8,7 +7,7 @@ import { downloadSnippet, init } from './shared-snippets-monitoring'
 export const PythonAzureReorganizedContext: QuickStartContent = {
 	title: 'Python Azure Functions',
 	subtitle: 'Learn how to set up highlight.io with Azure Functions.',
-	logoUrl: siteUrl('/images/quickstart/azure.svg'),
+	logoKey: 'azure',
 	products: ['Errors', 'Logs', 'Traces'],
 	entries: [
 		frontendInstallSnippet,

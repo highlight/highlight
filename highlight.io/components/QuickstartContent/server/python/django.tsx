@@ -1,4 +1,3 @@
-import { siteUrl } from '../../../../utils/urls'
 import { QuickStartContent } from '../../QuickstartContent'
 import { verifyLogs } from '../shared-snippets-logging'
 import { frontendInstallSnippet } from '../shared-snippets-monitoring'
@@ -9,7 +8,7 @@ export const PythonDjangoReorganizedContext: QuickStartContent = {
 	title: 'Python Django',
 	subtitle:
 		'Learn how to set up highlight.io on your Python Django backend API.',
-	logoUrl: siteUrl('/images/quickstart/django.svg'),
+	logoKey: 'django',
 	products: ['Errors', 'Logs', 'Traces'],
 	entries: [
 		frontendInstallSnippet,

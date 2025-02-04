@@ -6,6 +6,7 @@ import { frontendInstallSnippet } from '../shared-snippets-monitoring'
 export const JSPinoHTTPJSONLogReorganizedContent: QuickStartContent = {
 	title: 'Logging with Pino.JS',
 	subtitle: 'Learn how to set up highlight.io log ingestion for Pino.JS.',
+	logoKey: 'javascript',
 	products: ['Logs'],
 	entries: [
 		frontendInstallSnippet,

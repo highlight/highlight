@@ -1,4 +1,3 @@
-import { siteUrl } from '../../../../utils/urls'
 import { QuickStartContent } from '../../QuickstartContent'
 import { verifyLogs } from '../shared-snippets-logging'
 import { frontendInstallSnippet } from '../shared-snippets-monitoring'
@@ -7,7 +6,7 @@ import { logrusExample } from './shared-snippets-logging'
 export const GoOtherLogReorganizedContent: QuickStartContent = {
 	title: 'Logging from a Go App',
 	subtitle: 'Learn how to set up highlight.io Go log ingestion with logrus.',
-	logoUrl: siteUrl('/images/quickstart/go.svg'),
+	logoKey: 'go',
 	products: ['Logs'],
 	entries: [
 		frontendInstallSnippet,

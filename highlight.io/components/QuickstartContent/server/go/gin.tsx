@@ -13,6 +13,7 @@ export const GoGinReorganizedContent: QuickStartContent = {
 	title: 'Go Gin',
 	subtitle:
 		'Learn how to set up highlight.io monitoring on your Go Gin backend.',
+	logoKey: 'go',
 	products: ['Errors', 'Logs', 'Traces'],
 	entries: [
 		frontendInstallSnippet,
