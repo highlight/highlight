@@ -191,7 +191,6 @@ const PAGES: Page[] = [
 export const Header: React.FC<Props> = ({ fullyIntegrated }) => {
 	const navigate = useNavigate()
 	const location = useLocation()
-
 	const { projectId } = useProjectId()
 	const { projectId: localStorageProjectId } = useLocalStorageProjectId()
 	const { isLoggedIn, signOut } = useAuthContext()
