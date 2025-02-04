@@ -19,7 +19,7 @@ import {
 } from '@highlight-run/ui/components'
 import { vars } from '@highlight-run/ui/vars'
 import { getWorkspaceInvitationLink } from '@pages/WorkspaceTeam/utils'
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef } from 'react'
 import { StringParam, useQueryParam } from 'use-query-params'
 
 import { useAuthContext } from '@/authentication/AuthContext'
@@ -45,20 +45,34 @@ function InviteMemberModal({
 	toggleShowModal: (value: boolean) => void
 }) {
 	const emailInputRef = useRef<HTMLInputElement>(null)
-	const [email, setEmail] = useState('')
-	const [newAdminRole, setNewAdminRole] = useState<AdminRole>(
-		AdminRole.Member,
-	)
-	const [newProjectIds, setNewProjectIds] = useState<string[]>([])
+	const form = Form.useStore<{
+		email: string
+		role: AdminRole
+		projects: string[]
+	}>({
+		defaultValues: {
+			email: '',
+			role: AdminRole.Member,
+			projects: [],
+		},
+	})
 	const [autoinvite_email] = useQueryParam('autoinvite_email', StringParam)
+
+	const email = form.useValue('email')
+	const newAdminRole = form.useValue('role')
+	const newProjectIds = form.useValue('projects')
 
 	useEffect(() => {
 		if (autoinvite_email) {
-			setEmail(autoinvite_email)
-			setNewAdminRole(AdminRole.Member)
+			form.setValues({
+				email: autoinvite_email,
+				role: AdminRole.Member,
+				// TODO(vkorolik) test that this ok
+				projects: [],
+			})
 			toggleShowModal(true)
 		}
-	}, [autoinvite_email, toggleShowModal])
+	}, [autoinvite_email, form, toggleShowModal])
 
 	const { data: workspaceSettings } = useGetWorkspaceSettingsQuery({
 		variables: { workspace_id: workspaceId! },
@@ -111,7 +125,9 @@ function InviteMemberModal({
 									trackingId="invite-admin-modal_copy-invite-link"
 									iconLeft={<IconSolidClipboard />}
 									kind="secondary"
-									onClick={(e) => {
+									onClick={(e: {
+										stopPropagation: () => void
+									}) => {
 										e.stopPropagation()
 										navigator.clipboard.writeText(
 											inviteLink,
@@ -153,20 +169,9 @@ function InviteMemberModal({
 		workspaceId!,
 	)
 
-	const formStore = Form.useStore({
-		defaultValues: {
-			email,
-			role: newAdminRole,
-			projects: newProjectIds,
-		},
-	})
-
 	const resetForm = () => {
-		setEmail('')
-		setNewAdminRole(AdminRole.Member)
-		setNewProjectIds([])
 		sendInviteReset()
-		formStore?.reset()
+		form?.reset()
 	}
 
 	return (
@@ -177,7 +182,7 @@ function InviteMemberModal({
 				resetForm()
 			}}
 		>
-			<Form onSubmit={onSubmit} store={formStore}>
+			<Form onSubmit={onSubmit} store={form}>
 				<Modal.Header>
 					<IconSolidUserAdd color={vars.color.n11} />
 					<Text size="xxSmall" color="moderate">
@@ -194,19 +199,14 @@ function InviteMemberModal({
 							required
 							type="email"
 							onChange={(e) => {
-								setEmail(e.target.value)
+								form.setValue(form.names.email, e.target.value)
 							}}
 						/>
 						<Stack direction="row" gap="8">
 							<Box style={{ width: '50%' }}>
 								<Form.Select
-									name="role"
+									name={form.names.role}
 									label="Role"
-									value={newAdminRole}
-									onValueChange={(option) => {
-										setNewAdminRole(option.value)
-										setNewProjectIds([])
-									}}
 								>
 									{roleOptions.map((role) => (
 										<Form.Option
@@ -225,7 +225,7 @@ function InviteMemberModal({
 									style={{ display: 'block' }}
 									trigger={
 										<Form.Select
-											name="projects"
+											name={form.names.projects}
 											label="Project Access"
 											renderValue={(options) => {
 												if (
@@ -240,42 +240,6 @@ function InviteMemberModal({
 													? options.join(', ')
 													: options
 											}}
-											value={
-												allProjects
-													?.filter((p) =>
-														newProjectIds.includes(
-															p?.id ?? '',
-														),
-													)
-													?.map((p) => p?.name)
-													?.filter(Boolean) as
-													| string[]
-													| undefined
-											}
-											onValueChange={(
-												values: {
-													name: string
-												}[],
-											) =>
-												setNewProjectIds(
-													(allProjects
-														?.filter((p) =>
-															values
-																.map(
-																	(v) =>
-																		v.name,
-																)
-																.includes(
-																	p?.name ??
-																		'',
-																),
-														)
-														?.map((p) => p?.id)
-														?.filter(Boolean) as
-														| string[]
-														| undefined) ?? [],
-												)
-											}
 											disabled={!!disabledReason}
 											placeholder={
 												!!disabledReason
