@@ -102,18 +102,3 @@ export const BlogPost = ({
 		</Link>
 	)
 }
-
-//get unique tags and prefer tags that have a description
-export function getUniqueTags(tags: Tag[]): Tag[] {
-	const uniqueTags: { [key: string]: Tag } = {}
-	for (const tag of tags) {
-		if (
-			!uniqueTags[tag.slug] ||
-			(!uniqueTags[tag.slug].description &&
-				uniqueTags[tag.slug].description != null)
-		) {
-			uniqueTags[tag.slug] = tag
-		}
-	}
-	return Object.values(uniqueTags)
-}

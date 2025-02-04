@@ -1,239 +1,71 @@
 import { GetStaticProps } from 'next'
-import { getUniqueTags } from '../../../components/Blog/BlogPost/BlogPost'
 import { Tag } from '../../../components/Blog/Tag'
-import { Blog, loadPostsFromGithub, loadTagsFromGithub } from '../index'
+import { loadPostsFromGithub } from '../index'
+import BlogPage from '../../../components/Blog/BlogPage'
 
-export const VALID_TAGS: Record<string, Tag & { description: string }> = {
-	'All posts': {
+export const VALID_TAGS: Tag[] = [
+	{
 		name: 'All posts',
 		slug: 'all',
 		description:
 			'Welcome to the Highlight Blog, where the Highlight team talks about frontend engineering, observability and more!',
 	},
-	AI: {
-		name: 'AI',
-		slug: 'ai',
+	{
+		name: 'Engineering',
+		slug: 'engineering',
 		description:
-			'Exploring artificial intelligence applications in developer tools and observability.',
+			'Deep dives into technical implementations, architecture decisions, and engineering best practices.',
 	},
-	ClickHouse: {
-		name: 'ClickHouse',
-		slug: 'clickhouse',
+	{
+		name: 'Frontend',
+		slug: 'frontend',
 		description:
-			'Technical deep dives into our ClickHouse implementation and optimizations.',
+			'Everything about frontend development, monitoring, debugging, and performance optimization.',
 	},
-	'Debugging & Troubleshooting': {
-		name: 'Debugging & Troubleshooting',
-		slug: 'debugging-and-troubleshooting',
+	{
+		name: 'Backend',
+		slug: 'backend',
 		description:
-			'Tips, techniques, and tools for effective debugging and troubleshooting in modern web applications.',
+			'Backend development, distributed systems, databases, and server-side optimizations.',
 	},
-	Design: {
-		name: 'Design',
-		slug: 'design',
-		description:
-			'Insights into our design process, UI/UX decisions, and design system.',
-	},
-	'Developer Tooling': {
-		name: 'Developer Tooling',
-		slug: 'developer-tooling',
-		description:
-			'Exploring the latest in developer tools, productivity enhancements, and building better software.',
-	},
-	Development: {
-		name: 'Development',
-		slug: 'development',
-		description:
-			'General software development practices, patterns, and techniques.',
-	},
-	'.NET': {
-		name: '.NET',
-		slug: 'dotnet',
-		description:
-			'Development, monitoring, and observability in .NET applications.',
-	},
-	Edge: {
-		name: 'Edge',
-		slug: 'edge',
-		description:
-			'Edge computing, serverless, and edge runtime implementations.',
-	},
-	'Frontend Monitoring': {
-		name: 'Frontend Monitoring',
-		slug: 'frontend-monitoring',
-		description:
-			'Best practices for monitoring frontend applications, error tracking, and improving user experience.',
-	},
-	Grafana: {
-		name: 'Grafana',
-		slug: 'grafana',
-		description:
-			'Integration with Grafana for metrics visualization and dashboards.',
-	},
-	'Highlight Engineering': {
-		name: 'Highlight Engineering',
-		slug: 'highlight-engineering',
-		description:
-			'Deep dives into how we build and scale Highlight, our technical decisions, and lessons learned along the way.',
-	},
-	Java: {
-		name: 'Java',
-		slug: 'java',
-		description:
-			'Java development, monitoring, and observability best practices.',
-	},
-	'Launch Week 1': {
-		name: 'Launch Week 1',
-		slug: 'launch-week-1',
-		description: 'Updates and announcements from our first Launch Week.',
-	},
-	'Launch Week 2': {
-		name: 'Launch Week 2',
-		slug: 'launch-week-2',
-		description: 'Updates and announcements from our second Launch Week.',
-	},
-	'Launch Week 3': {
-		name: 'Launch Week 3',
-		slug: 'launch-week-3',
-		description: 'Updates and announcements from our third Launch Week.',
-	},
-	'Launch Week 4': {
-		name: 'Launch Week 4',
-		slug: 'launch-week-4',
-		description: 'Updates and announcements from our fourth Launch Week.',
-	},
-	'Launch Week 5': {
-		name: 'Launch Week 5',
-		slug: 'launch-week-5',
-		description: 'Updates and announcements from our fifth Launch Week.',
-	},
-	Logging: {
-		name: 'Logging',
-		slug: 'logging',
-		description:
-			'Best practices and implementations for application logging.',
-	},
-	Mobile: {
-		name: 'Mobile',
-		slug: 'mobile',
-		description:
-			'Mobile development topics, focusing on monitoring and debugging mobile applications.',
-	},
-	Monitoring: {
-		name: 'Monitoring',
-		slug: 'monitoring',
-		description:
-			'General monitoring concepts, strategies, and best practices.',
-	},
-	'Next.js': {
-		name: 'Next.js',
-		slug: 'nextjs',
-		description:
-			'Next.js development, monitoring, and observability implementations.',
-	},
-	Observability: {
+	{
 		name: 'Observability',
 		slug: 'observability',
 		description:
-			'Understanding and implementing observability in modern applications.',
+			'Monitoring, logging, tracing, and understanding system behavior in production.',
 	},
-	OpenTelemetry: {
-		name: 'OpenTelemetry',
-		slug: 'opentelemetry',
+	{
+		name: 'Product Updates',
+		slug: 'product-updates',
 		description:
-			'Everything about OpenTelemetry integration, implementation, and best practices.',
+			'New features, improvements, and major updates to the Highlight platform.',
 	},
-	'Performance Monitoring': {
-		name: 'Performance Monitoring',
-		slug: 'performance-monitoring',
+	{
+		name: 'Developer Experience',
+		slug: 'developer-experience',
 		description:
-			'Insights into web performance monitoring, metrics that matter, and how to optimize your application.',
+			'Tools, workflows, and practices that improve the developer experience.',
 	},
-	Podcast: {
-		name: 'Podcast',
-		slug: 'podcast',
-		description: 'Episodes and transcripts from the Highlight podcast.',
-	},
-	Privacy: {
-		name: 'Privacy',
-		slug: 'privacy',
+	{
+		name: 'Company',
+		slug: 'company',
 		description:
-			'Everything about privacy, data protection, and user data.',
+			'Company news, culture, events, and behind-the-scenes at Highlight.',
 	},
-	Programming: {
-		name: 'Programming',
-		slug: 'programming',
-		description:
-			'General programming concepts, patterns, and best practices.',
-	},
-	Python: {
-		name: 'Python',
-		slug: 'python',
-		description:
-			'Python development, monitoring, and observability best practices.',
-	},
-	'React Native': {
-		name: 'React Native',
-		slug: 'react-native',
-		description:
-			'Implementing Highlight and observability in React Native applications.',
-	},
-	Ruby: {
-		name: 'Ruby',
-		slug: 'ruby',
-		description:
-			'Ruby development, monitoring, and observability best practices.',
-	},
-	'Session Replay': {
-		name: 'Session Replay',
-		slug: 'session-replay',
-		description:
-			'Everything about session replay technology, implementation details, and best practices for debugging user sessions.',
-	},
-	'The Startup Stack': {
-		name: 'The Startup Stack',
-		slug: 'the-startup-stack',
-		description:
-			'Exploring the tools, technologies, and practices that power modern startups.',
-	},
-	Tracing: {
-		name: 'Tracing',
-		slug: 'tracing',
-		description:
-			'Distributed tracing concepts, implementation, and best practices.',
-	},
-	Tutorial: {
-		name: 'Tutorial',
-		slug: 'tutorial',
-		description:
-			'Step-by-step guides and tutorials for implementing Highlight and related technologies.',
-	},
-	Vercel: {
-		name: 'Vercel',
-		slug: 'vercel',
-		description:
-			'Deployment, monitoring, and observability with Vercel platform.',
-	},
-} as const
+] as const
 
 export async function getStaticPaths(): Promise<{
 	paths: string[]
 	fallback: string
 }> {
-	const posts = await loadPostsFromGithub()
-	let tags = await loadTagsFromGithub(posts)
-
-	tags = getUniqueTags(tags)
-
 	return {
-		paths: tags.map((tag) => `/blog/tag/${tag}`),
+		paths: VALID_TAGS.map((tag) => `/blog/tag/${tag.slug}`),
 		fallback: 'blocking',
 	}
 }
 
 export const getStaticProps: GetStaticProps = async ({ params }) => {
 	let posts = await loadPostsFromGithub()
-	let tags = await loadTagsFromGithub(posts)
 
 	posts = posts.filter((post) => {
 		return post.tags.some((tag: Tag) => {
@@ -241,21 +73,16 @@ export const getStaticProps: GetStaticProps = async ({ params }) => {
 		})
 	})
 
-	tags = getUniqueTags(tags)
 	posts.sort((a, b) => Date.parse(b.postedAt) - Date.parse(a.postedAt))
 
 	return {
 		props: {
 			posts,
-			tags,
+			tags: VALID_TAGS,
 			currentTagSlug: params!.tag,
 		},
 		revalidate: 60,
 	}
 }
 
-export const getTagDescription = (tagName: string) => {
-	return VALID_TAGS[tagName]?.description
-}
-
-export default Blog
+export default BlogPage

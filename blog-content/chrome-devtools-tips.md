@@ -1,6 +1,6 @@
 ---
-title: "8 Tips to Help You Maximize Chrome DevTools"
-createdAt: 2022-11-03T12:00:00Z
+title: 8 Tips to Help You Maximize Chrome DevTools
+createdAt: 2022-11-03T12:00:00.000Z
 readingTime: 4
 authorFirstName: Haroon
 authorLastName: Choudery
@@ -9,9 +9,10 @@ authorTwitter: 'https://twitter.com/haroonchoudery'
 authorLinkedIn: 'https://linkedin.com/in/haroonchoudery'
 authorGithub: ''
 authorWebsite: ''
-authorPFP: 'https://www.highlight.io/_next/image?url=https%3A%2F%2Fmedia.graphassets.com%2FfKKhW39R0SE2hTIalLzG&w=1920&q=75'
-tags: Developer Tooling 
-metaTitle: "8 Tips to Help You Maximize Chrome DevTools"
+authorPFP: >-
+  https://www.highlight.io/_next/image?url=https%3A%2F%2Fmedia.graphassets.com%2FfKKhW39R0SE2hTIalLzG&w=1920&q=75
+tags: Engineering
+metaTitle: 8 Tips to Help You Maximize Chrome DevTools
 ---
 
 The Chrome Developer Tools are a great asset and an indispensable tool for anyone building for the web.

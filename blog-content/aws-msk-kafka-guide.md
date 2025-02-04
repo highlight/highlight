@@ -1,16 +1,17 @@
 ---
-title: How to Set Up Your Production AWS MSK Kafka Cluster 
-createdAt: 2023-02-15T12:00:00Z
+title: How to Set Up Your Production AWS MSK Kafka Cluster
+createdAt: 2023-02-15T12:00:00.000Z
 readingTime: 18
 authorFirstName: Vadim
 authorLastName: Korolik
-authorTitle: Co-Founder & CTO 
+authorTitle: Co-Founder & CTO
 authorTwitter: 'https://twitter.com/vkorolik'
 authorLinkedIn: 'https://www.linkedin.com/in/vkorolik/'
 authorGithub: 'https://github.com/Vadman97'
 authorWebsite: 'https://vadweb.us'
-authorPFP: 'https://lh3.googleusercontent.com/a-/AOh14Gh1k7XsVMGxHMLJZ7qesyddqn1y4EKjfbodEYiY=s96-c'
-tags: Highlight Engineering
+authorPFP: >-
+  https://lh3.googleusercontent.com/a-/AOh14Gh1k7XsVMGxHMLJZ7qesyddqn1y4EKjfbodEYiY=s96-c
+tags: Engineering
 metaTitle: How to Set Up Your Production AWS MSK Kafka Cluster
 ---
 

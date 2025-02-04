@@ -1,6 +1,6 @@
 ---
 title: Introducing the new Highlight Docs
-createdAt: 2022-11-22T12:00:00Z
+createdAt: 2022-11-22T12:00:00.000Z
 readingTime: 7
 authorFirstName: Vadim
 authorLastName: Korolik
@@ -9,8 +9,9 @@ authorTwitter: 'https://twitter.com/vkorolik'
 authorLinkedIn: 'https://www.linkedin.com/in/vkorolik/'
 authorGithub: 'https://github.com/Vadman97'
 authorWebsite: 'https://vadweb.us'
-authorPFP: 'https://lh3.googleusercontent.com/a-/AOh14Gh1k7XsVMGxHMLJZ7qesyddqn1y4EKjfbodEYiY=s96-c'
-tags: Highlight Engineering
+authorPFP: >-
+  https://lh3.googleusercontent.com/a-/AOh14Gh1k7XsVMGxHMLJZ7qesyddqn1y4EKjfbodEYiY=s96-c
+tags: Engineering
 metaTitle: Introducing the new Highlight Docs
 ---
 

@@ -17,6 +17,7 @@ import { Typography } from '../common/Typography/Typography'
 export type Tag = {
 	name: string
 	slug: string
+	description: string
 }
 
 export const getTagUrl = (slug: string) =>

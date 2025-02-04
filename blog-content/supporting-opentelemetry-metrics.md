@@ -1,6 +1,6 @@
 ---
-title: "Ingest and Visualization for OpenTelemetry Metrics"
-createdAt: 2025-01-23T12:00:00Z
+title: Ingest and Visualization for OpenTelemetry Metrics
+createdAt: 2025-01-23T12:00:00.000Z
 readingTime: 14
 authorFirstName: Vadim
 authorLastName: Korolik
@@ -9,9 +9,10 @@ authorTwitter: 'https://twitter.com/vkorolik'
 authorLinkedIn: 'https://www.linkedin.com/in/vkorolik/'
 authorGithub: 'https://github.com/Vadman97'
 authorWebsite: 'https://vadweb.us'
-authorPFP: 'https://lh3.googleusercontent.com/a-/AOh14Gh1k7XsVMGxHMLJZ7qesyddqn1y4EKjfbodEYiY=s96-c'
-tags: 'Developer Tooling, Monitoring, Observability'
-metaTitle: 'Building an Efficient OpenTelemetry Metrics Schema in Clickhouse'
+authorPFP: >-
+  https://lh3.googleusercontent.com/a-/AOh14Gh1k7XsVMGxHMLJZ7qesyddqn1y4EKjfbodEYiY=s96-c
+tags: 'Engineering, Observability'
+metaTitle: Building an Efficient OpenTelemetry Metrics Schema in Clickhouse
 ---
 
 ```hint

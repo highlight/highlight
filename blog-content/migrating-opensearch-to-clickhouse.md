@@ -1,16 +1,17 @@
 ---
-title: 'Migrating from OpenSearch to Clickhouse'
+title: Migrating from OpenSearch to Clickhouse
 createdAt: 2023-10-18T00:00:00.000Z
 readingTime: 10
 authorFirstName: Zane
 authorLastName: Mayberry
-authorTitle: Software Engineer @ Highlight 
+authorTitle: Software Engineer @ Highlight
 authorTwitter: ''
 authorWebsite: ''
 authorLinkedIn: 'https://www.linkedin.com/in/zane-mayberry-688161165/'
 authorGithub: 'https://github.com/mayberryzane'
-authorPFP: 'https://www.highlight.io/_next/image?url=https%3A%2F%2Fmedia.graphassets.com%2FvrMpBimsRzOGGJSWWppg&w=1920&q=75'
-tags: Launch Week 3
+authorPFP: >-
+  https://www.highlight.io/_next/image?url=https%3A%2F%2Fmedia.graphassets.com%2FvrMpBimsRzOGGJSWWppg&w=1920&q=75
+tags: Product Updates
 ---
 
 # Migrating from OpenSearch to Clickhouse

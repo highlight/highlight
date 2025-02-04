@@ -1,17 +1,18 @@
 ---
-title: A new way of managing errors in Highlight 
-createdAt: 2022-12-08T12:00:00Z
+title: A new way of managing errors in Highlight
+createdAt: 2022-12-08T12:00:00.000Z
 readingTime: 6
 authorFirstName: Chris
 authorLastName: Schmitz
-authorTitle: Software Engineer 
+authorTitle: Software Engineer
 authorTwitter: ''
 authorLinkedIn: ''
 authorGithub: ''
 authorWebsite: ''
-authorPFP: 'https://www.highlight.io/_next/image?url=https%3A%2F%2Fmedia.graphassets.com%2FViK27IG7TCe0YDK20tFy&w=3840&q=75'
-tags: Highlight Engineering
-metaTitle: A new way of managing errors in Highlight 
+authorPFP: >-
+  https://www.highlight.io/_next/image?url=https%3A%2F%2Fmedia.graphassets.com%2FViK27IG7TCe0YDK20tFy&w=3840&q=75
+tags: Engineering
+metaTitle: A new way of managing errors in Highlight
 ---
 
 Today, we are excited to announce the release of a new error monitoring experience in Highlight. Introducing the new and improved **error page UI**!

@@ -1,5 +1,5 @@
 ---
-title: 'LLM-based Grouping of Errors'
+title: LLM-based Grouping of Errors
 createdAt: 2023-10-16T00:00:00.000Z
 readingTime: 7
 authorFirstName: Vadim
@@ -9,10 +9,11 @@ authorTwitter: 'https://twitter.com/vkorolik'
 authorLinkedIn: 'https://www.linkedin.com/in/vkorolik/'
 authorGithub: 'https://github.com/Vadman97'
 authorWebsite: 'https://vadweb.us'
-authorPFP: 'https://lh3.googleusercontent.com/a-/AOh14Gh1k7XsVMGxHMLJZ7qesyddqn1y4EKjfbodEYiY=s96-c'
-image: "/images/blog/ai-grouping-for-errors/error-main-2.png"
-tags: AI, Developer Tooling, Launch Week 3
-metaTitle: "Day 5: Our Partners & Supporters"
+authorPFP: >-
+  https://lh3.googleusercontent.com/a-/AOh14Gh1k7XsVMGxHMLJZ7qesyddqn1y4EKjfbodEYiY=s96-c
+image: /images/blog/ai-grouping-for-errors/error-main-2.png
+tags: 'Engineering, Product Updates'
+metaTitle: 'Day 5: Our Partners & Supporters'
 ---
 
 Highlight offers full stack visibility into errors happening in your application. Often though, it's difficult to differentiate real errors that impact your user experience from noise or other expected errors. To help sift out inconsequential errors from actionable ones, we now group and tag errors using the insights of a trained language learning model. We'll be covering how we did this and how it works with this high level overview.

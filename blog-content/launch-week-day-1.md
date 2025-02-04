@@ -1,18 +1,20 @@
 ---
-title: "Day 1: Error Monitoring - OTEL support, filtering options, webhooks"
-createdAt: 2023-04-17T12:00:00Z
+title: 'Day 1: Error Monitoring - OTEL support, filtering options, webhooks'
+createdAt: 2023-04-17T12:00:00.000Z
 readingTime: 6
 authorFirstName: Jay
 authorLastName: Khatri
-authorTitle: Co-founder, Hype-man & CEO 
+authorTitle: 'Co-founder, Hype-man & CEO'
 authorTwitter: 'https://twitter.com/theJayKhatri'
 authorLinkedIn: 'https://www.linkedin.com/in/jay-khatri/'
 authorGithub: ''
 authorWebsite: ''
-authorPFP: 'https://www.highlight.io/_next/image?url=https%3A%2F%2Fmedia.graphassets.com%2F2wDcc2CoTckAIZVup0NT&w=3840&q=75'
-image: 'https://www.highlight.io/_next/image?url=https%3A%2F%2Fmedia.graphassets.com%2FETwP4qq3RVuVmsipTBaR&w=3840&q=75'
-tags: Launch Week 1
-metaTitle: "Day 1: Error Monitoring - OTEL support, filtering options, webhooks"
+authorPFP: >-
+  https://www.highlight.io/_next/image?url=https%3A%2F%2Fmedia.graphassets.com%2F2wDcc2CoTckAIZVup0NT&w=3840&q=75
+image: >-
+  https://www.highlight.io/_next/image?url=https%3A%2F%2Fmedia.graphassets.com%2FETwP4qq3RVuVmsipTBaR&w=3840&q=75
+tags: Product Updates
+metaTitle: 'Day 1: Error Monitoring - OTEL support, filtering options, webhooks'
 ---
 
 Welcome to the first ever Highlight.io launch week, where we launch a handful of features and efforts we've been working on these past few months. For our first launch this week, we're excited to share several new features to our error monitoring product, namely:

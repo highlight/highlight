@@ -1,6 +1,6 @@
 ---
-title: "Next.JS Tracing on Edge Runtime with @vercel/otel"
-createdAt: 2024-04-29T15:00:00Z
+title: Next.JS Tracing on Edge Runtime with @vercel/otel
+createdAt: 2024-04-29T15:00:00.000Z
 readingTime: 9
 authorFirstName: Vadim
 authorLastName: Korolik
@@ -9,9 +9,10 @@ authorTwitter: 'https://twitter.com/vkorolik'
 authorLinkedIn: 'https://www.linkedin.com/in/vkorolik/'
 authorGithub: 'https://github.com/Vadman97'
 authorWebsite: 'https://vadweb.us'
-authorPFP: 'https://lh3.googleusercontent.com/a-/AOh14Gh1k7XsVMGxHMLJZ7qesyddqn1y4EKjfbodEYiY=s96-c'
-tags: Launch Week 5
-metaTitle: "Next.JS Tracing on Edge Runtime with @vercel/otel"
+authorPFP: >-
+  https://lh3.googleusercontent.com/a-/AOh14Gh1k7XsVMGxHMLJZ7qesyddqn1y4EKjfbodEYiY=s96-c
+tags: Product Updates
+metaTitle: Next.JS Tracing on Edge Runtime with @vercel/otel
 ---
 
 # Next.js Server Traces from the Vercel Edge Runtime

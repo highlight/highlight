@@ -11,7 +11,7 @@ authorGithub: ''
 authorWebsite: ''
 authorPFP: 'https://www.highlight.io/_next/image?url=https%3A%2F%2Fmedia.graphassets.com%2FFwP9r08MSGpeC10aOu9k&w=3840&q=75'
 image: 'https://www.highlight.io/_next/image?url=https%3A%2F%2Fmedia.graphassets.com%2FurHEOO0ZTJavuh4KJDGA&w=3840&q=75'
-tags: 
+tags: 'Engineering, Observability'
 metaTitle: "5 strategies to monitor the health of your web application"
 ---
 
@@ -19,7 +19,7 @@ Modern web applications have grown in complexity, leading to high expectations f
 
 Luckily, there are vast amounts of tools available for web application monitoring. These tools give relevant insights into a specific aspect of its health and inform developers of any unforeseen events that may arise while the web application is in use.
 
-Today, we’ll cover five strategies you can utilize to monitor the health of your web application and make sure your users are happy:
+Today, we'll cover five strategies you can utilize to monitor the health of your web application and make sure your users are happy:
 
 1.  Uptime/Availability
 2.  Performance Stats
@@ -35,7 +35,7 @@ But in reality, it's often unexpected events, like cyber attacks, system failure
 
 Usage of availability monitoring tools is a step in the right direction as they provide means of regularly monitoring web applications to assert uptime, communicate downtime events through various channels and provide relevant information to diagnose the problem. These tools constantly check if your web application is responding to requests and are often run on servers in different parts of the world for a better understanding of how users interact with your application.
 
-There are various tools available for monitoring web application’s uptime, and some of them include:
+There are various tools available for monitoring web application's uptime, and some of them include:
 
 -   [Pingdom](https://pingdom.com/ "https://pingdom.com/")
 -   [Better Uptime](https://betteruptime.com/ "https://betteruptime.com/")
@@ -44,9 +44,9 @@ There are various tools available for monitoring web application’s uptime, and
 
 ## **Performance Stats**
 
-In the previous section, we discussed how it’s crucial for your web application to always be available for your users. The next step is asserting how performant it is when users actually use it!
+In the previous section, we discussed how it's crucial for your web application to always be available for your users. The next step is asserting how performant it is when users actually use it!
 
-Modern web applications are comprised of several components: the user interface, web servers, database servers, storage services, and load balancers, just to mention a few. How performant your users find your web application is based on how well these components work in unison. A web application that responds to user interactions slowly and has a poor user experience leads to frustrated customers and can tarnish your brand’s image.
+Modern web applications are comprised of several components: the user interface, web servers, database servers, storage services, and load balancers, just to mention a few. How performant your users find your web application is based on how well these components work in unison. A web application that responds to user interactions slowly and has a poor user experience leads to frustrated customers and can tarnish your brand's image.
 
 The way web applications are developed today is in continuous cycles, and each release might affect how it performs, which suggests the way users use your application should be constantly monitored for performance issues. This is where web performance monitoring tools shine, as they give relevant insights into how your web application performs, making it easier to pinpoint the location of performance issues to make troubleshooting easier.
 
@@ -87,14 +87,14 @@ Some popular tools for error monitoring are the following:
 
 ## **Security Testing**
 
-One aspect of the health of a web application that’s usually not considered is security, which often happens when more time is spent in the development phase of the project. Nevertheless, it shouldn’t be ignored because a web application that’s susceptible to malicious agents is a serious risk to an organization and its users.
+One aspect of the health of a web application that's usually not considered is security, which often happens when more time is spent in the development phase of the project. Nevertheless, it shouldn't be ignored because a web application that's susceptible to malicious agents is a serious risk to an organization and its users.
 
 Some methods of attack used on web applications are [Cross-Site Scripting (XSS)](https://owasp.org/www-community/attacks/xss/ "https://owasp.org/www-community/attacks/xss/"), [Denial of Service (DoS)](https://owasp.org/www-community/attacks/Denial_of_Service "https://owasp.org/www-community/attacks/Denial_of_Service") and [SQL Injection](https://owasp.org/www-community/attacks/SQL_Injection "https://owasp.org/www-community/attacks/SQL_Injection").
 
 Web application security vulnerabilities are mitigated with strong data encryption, firewalls, and patching software with known vulnerabilities.
 
-Due to the very complex nature of security testing, it’s usually advisable to outsource application security assessments to security professionals for reliable results, but there are also tools like [_HostedScan Security_](https://hostedscan.com/ "https://hostedscan.com/"), [_Intruder_](https://www.intruder.io "https://www.intruder.io"), and [_Upguard_](https://www.upguard.com/ "https://www.upguard.com/") that can monitor for these issues.
+Due to the very complex nature of security testing, it's usually advisable to outsource application security assessments to security professionals for reliable results, but there are also tools like [_HostedScan Security_](https://hostedscan.com/ "https://hostedscan.com/"), [_Intruder_](https://www.intruder.io "https://www.intruder.io"), and [_Upguard_](https://www.upguard.com/ "https://www.upguard.com/") that can monitor for these issues.
 
 ## **Conclusion**
 
-We’ve covered several strategies for monitoring the health of your web application, discussed its benefits, and listed tools you can utilize to get a better understanding of its health and stability. For live monitoring of these health metrics, tools like Highlight can be very useful (and easy to set up!), whereas, for less frequent health checks, tools like Checkly and Raygun are good options.
+We've covered several strategies for monitoring the health of your web application, discussed its benefits, and listed tools you can utilize to get a better understanding of its health and stability. For live monitoring of these health metrics, tools like Highlight can be very useful (and easy to set up!), whereas, for less frequent health checks, tools like Checkly and Raygun are good options.

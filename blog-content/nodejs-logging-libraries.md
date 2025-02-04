@@ -1,17 +1,17 @@
 ---
 title: "5 Best Node.js Logging Libraries"
 createdAt: 2022-10-18T12:00:00Z
-readingTime: 23 
+readingTime: 23
 authorFirstName: Stanley
 authorLastName: Ulili
-authorTitle: Developer 
+authorTitle: Developer
 authorTwitter: 'https://twitter.com/stanulilic'
 authorLinkedIn: ''
 authorGithub: 'https://github.com/stanulilic'
 authorWebsite: 'https://t.co/JsaAbTjyJB'
 authorPFP: 'https://www.highlight.io/_next/image?url=https%3A%2F%2Fmedia.graphassets.com%2FzFqVOJufRBuaxqvIuD9T&w=3840&q=75'
 image: 'https://www.highlight.io/_next/image?url=https%3A%2F%2Fmedia.graphassets.com%2FnTGoZ3jHSS2U4Sv9Zu3X&w=3840&q=75'
-tags: 
+tags: 'Backend, Engineering, Observability'
 metaTitle: "5 Best Node.js Logging Libraries"
 ---
 
@@ -33,7 +33,7 @@ In this article, we'll take a look at the top five logging libraries for Node.js
 -   [Loglevel](https://github.com/pimterry/loglevel "https://github.com/pimterry/loglevel")
 -   [Npmlog](https://github.com/npm/npmlog "https://github.com/npm/npmlog")
 
-We’ll analyze them based on their features and popularity to help you choose the right one for your needs. But first, let’s establish why you’d even want to use a logging library for Node.js.
+We'll analyze them based on their features and popularity to help you choose the right one for your needs. But first, let's establish why you'd even want to use a logging library for Node.js.
 
 ## Why Use Logging Libraries for Node.js?
 
@@ -67,7 +67,7 @@ Now imagine if you had hundreds of these messages.
 
 Not only would be difficult to know the message level or the date the messages were logged, but filtering and sorting the logs would also be a demanding task.
 
-Now let’s compare the output above with a Node.js logging library’s output:
+Now let's compare the output above with a Node.js logging library's output:
 
 ```
 {"level":"error","message":"Error message","timestamp":"2022-09-20T11:39:33.953Z"}
@@ -95,7 +95,7 @@ Another interesting option in the output is the `timestamp` property, which tell
 
 On top of that, the logging tools also allow you to specify the destination you want to save your logs. You can even configure them to send logs to a specific file, database, or even cloud tools.
 
-Now that you know why you should be using a logging library, we’ll go over the five best Node.js logging libraries.
+Now that you know why you should be using a logging library, we'll go over the five best Node.js logging libraries.
 
 ## 5 Best Node.js Logging Libraries
 
@@ -105,7 +105,7 @@ Now that you know why you should be using a logging library, we’ll go over the
 
 Winston currently has 7 million weekly downloads on npm and 19 thousand stars on GitHub, making it the most-starred logging library in Node.js.
 
-Here are some of Winston’s features:
+Here are some of Winston's features:
 
 -   JSON format: it creates JSON logs, which are easier to parse, sort, or filter
 -   Multiple transports: Winston can send logs to files, databases, the console, or tools like [AWS CloudWatch](https://aws.amazon.com/cloudwatch/ "https://aws.amazon.com/cloudwatch/") or [Graylog](https://www.graylog.org/ "https://www.graylog.org/")
@@ -120,7 +120,7 @@ To install Winston, enter the following command in your terminal:
 
 `npm install winston`
 
-Once you’ve installed it, create a `winston_demo.js` file and add the following code:
+Once you've installed it, create a `winston_demo.js` file and add the following code:
 
 ```
 const winston = require("winston");
@@ -136,7 +136,7 @@ logger.verbose("Verbose message");
 logger.debug("Debug message");
 logger.silly("Silly message");
 ```
-To create a Winston logger, you invoke Winston’s `createLogger()` method with a configuration object as its argument. You then assign the object a `transports` property with an instance of `Console()` so that Winston should send all logs to the console. Finally, you call the appropriate level method for each message you want to log.
+To create a Winston logger, you invoke Winston's `createLogger()` method with a configuration object as its argument. You then assign the object a `transports` property with an instance of `Console()` so that Winston should send all logs to the console. Finally, you call the appropriate level method for each message you want to log.
 
 Winston has seven [levels](https://github.com/winstonjs/winston#using-logging-levels "https://github.com/winstonjs/winston#using-logging-levels") (ordered from the most to least important): `error`, `warn`, `info`, `verbose`, `debug`, and `silly`.
 
@@ -228,15 +228,15 @@ When you inspect `app.log`, you will see the following:
 {"level":"info","message":"Info message","timestamp":"2022-09-21T09:01:45.846Z"}
 ```
 
-You now have a general idea of how Winston works. But there’s so much more to unpack in the [Winston documentation](https://github.com/winstonjs/winston "https://github.com/winstonjs/winston") on Github.
+You now have a general idea of how Winston works. But there's so much more to unpack in the [Winston documentation](https://github.com/winstonjs/winston "https://github.com/winstonjs/winston") on Github.
 
 ### #**2 Pino**
 
-[Pino](https://github.com/pinojs "https://github.com/pinojs") is another popular JSON logging tool. It is more lightweight and claims to be 5x faster than other logging libraries. At the time of writing, it has 3 million weekly downloads on npm and has 10K Github stars.
+[Pino](https://github.com/pinojs/pino "https://github.com/pinojs/pino") is another popular JSON logging tool. It is more lightweight and claims to be 5x faster than other logging libraries. At the time of writing, it has 3 million weekly downloads on npm and has 10K Github stars.
 
 The following are some of the features :
 
--   Transports: you can use Pino to send logs to files, the console, or tools like [Sentry](https://sentry.io/ "https://sentry.io/"), [Azure Application Insights](https://docs.microsoft.com/en-us/azure/azure-monitor/app/app-insights-overview "https://docs.microsoft.com/en-us/azure/azure-monitor/app/app-insights-overview"), [CouchDB](https://couchdb.apache.org/ "https://couchdb.apache.org/"), etc. See Pino’s [Known Transports](https://github.com/pinojs/pino/blob/HEAD/docs/transports.md#known-transports "https://github.com/pinojs/pino/blob/HEAD/docs/transports.md#known-transports") section for more details.
+-   Transports: you can use Pino to send logs to files, the console, or tools like [Sentry](https://sentry.io/ "https://sentry.io/"), [Azure Application Insights](https://docs.microsoft.com/en-us/azure/azure-monitor/app/app-insights-overview "https://docs.microsoft.com/en-us/azure/azure-monitor/app/app-insights-overview"), [CouchDB](https://couchdb.apache.org/ "https://couchdb.apache.org/"), etc. See Pino's [Known Transports](https://github.com/pinojs/pino/blob/HEAD/docs/transports.md#known-transports "https://github.com/pinojs/pino/blob/HEAD/docs/transports.md#known-transports") section for more details.
 -   [Web frameworks](https://getpino.io/#/docs/web "https://getpino.io/#/docs/web") support: Pino has modules that support logging in popular Node.js web frameworks, such as [Express](https://expressjs.com/ "https://expressjs.com/"), [Fastify](https://www.fastify.io/ "https://www.fastify.io/"), [Hapi](https://hapi.dev/ "https://hapi.dev/"), etc.
 -   [Browser API](https://github.com/pinojs/pino/blob/master/docs/browser.md#browser-api "https://github.com/pinojs/pino/blob/master/docs/browser.md#browser-api"): Pino can be used for logging in the browser environment
 -   Creating child loggers
@@ -326,7 +326,7 @@ module.exports = pino(
 
 When you save and run the file, you will see that two files in your directory have been created that contain the log contents.
 
-Now that you know the basics of using Pino, see [Pino’s documentation](https://getpino.io/#/ "https://getpino.io/#/") to learn more.
+Now that you know the basics of using Pino, see [Pino's documentation](https://getpino.io/#/ "https://getpino.io/#/") to learn more.
 
 ### #3 **Bunyan**
 
@@ -360,7 +360,7 @@ log.debug("Debug message");
 log.trace("Trace message");
 ```
 
-In the preceding code block, you invoke Bunyan’s `createLogger()` method with a configuration object as an argument. You then assign the application name using the `name` property.
+In the preceding code block, you invoke Bunyan's `createLogger()` method with a configuration object as an argument. You then assign the application name using the `name` property.
 
 Now, run the file:
 
@@ -488,7 +488,7 @@ Running the file yields output that looks like this:
 
 ![npm-log.png](https://media.graphassets.com/YORG7UlfQyW999E54YtG "npm-log.png")
 
-From the output, only levels from `info` to `error` are logged. Also, note that the output is colorized allowing you to differentiate the messages. However, since Npmlog doesn’t use the JSON format, it can be a huge drawback, especially when you want to sort or filter them.
+From the output, only levels from `info` to `error` are logged. Also, note that the output is colorized allowing you to differentiate the messages. However, since Npmlog doesn't use the JSON format, it can be a huge drawback, especially when you want to sort or filter them.
 
 If you want `npmlog` to show all the messages, you can use the `level` property:
 

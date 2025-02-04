@@ -1,6 +1,6 @@
 ---
-title: "How to instrument your React Native app with OpenTelemetry"
-createdAt: 2025-01-22T12:00:00Z
+title: How to instrument your React Native app with OpenTelemetry
+createdAt: 2025-01-22T12:00:00.000Z
 readingTime: 18
 authorFirstName: Spencer
 authorLastName: Amarantides
@@ -10,8 +10,8 @@ authorLinkedIn: 'https://www.linkedin.com/in/spencer-amarantides/'
 authorGithub: 'https://github.com/SpennyNDaJets'
 authorPFP: 'https://avatars.githubusercontent.com/u/17744174?v=4'
 authorWebsite: ''
-tags: Developer Tooling, React Native, Mobile, OpenTelemetry
-metaTitle: "How to instrument your React Native app with OpenTelemetry"
+tags: 'Engineering, Frontend, Observability'
+metaTitle: How to instrument your React Native app with OpenTelemetry
 ---
 
 ```hint

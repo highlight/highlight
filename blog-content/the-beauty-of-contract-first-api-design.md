@@ -1,17 +1,18 @@
 ---
-title: "The beauty of contact-first API design"
-createdAt: 2022-08-24T12:00:00Z
+title: The beauty of contact-first API design
+createdAt: 2022-08-24T12:00:00.000Z
 readingTime: 18
 authorFirstName: François
 authorLastName: Wouts
-authorTitle: Developer Happiness Engineer 
+authorTitle: Developer Happiness Engineer
 authorTwitter: 'https://twitter.com/fwouts'
 authorLinkedIn: 'https://linkedin.com/in/fwouts'
 authorGithub: 'https://github.com/fwouts'
 authorWebsite: 'https://fwouts.com/'
-authorPFP: 'https://www.highlight.io/_next/image?url=https%3A%2F%2Fmedia.graphassets.com%2F39CS6bVyRBWbnq4ileQJ&w=3840&q=75'
-tags: Developer Tooling
-metaTitle: "The beauty of contract-first API design"
+authorPFP: >-
+  https://www.highlight.io/_next/image?url=https%3A%2F%2Fmedia.graphassets.com%2F39CS6bVyRBWbnq4ileQJ&w=3840&q=75
+tags: Engineering
+metaTitle: The beauty of contract-first API design
 ---
 
 Web services have been around for a few decades, and we've seen a number of API patterns evolve over the years. It started with SOAP (originally named XML-RPC, if Wikipedia is to be trusted). Then we saw the rise of REST, often paired with JSON payloads.

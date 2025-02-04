@@ -1,5 +1,5 @@
 ---
-title: 'Building GitHub Enhanced Stacktraces'
+title: Building GitHub Enhanced Stacktraces
 createdAt: 2023-10-13T00:25:04.236Z
 readingTime: 5
 authorFirstName: Spencer
@@ -9,8 +9,9 @@ authorTwitter: 'https://twitter.com/SpennyNDaJets'
 authorLinkedIn: 'https://www.linkedin.com/in/spencer-amarantides/'
 authorGithub: 'https://github.com/SpennyNDaJets'
 authorWebsite: ''
-authorPFP: 'https://lh3.googleusercontent.com/a/AAcHTteOYM6knTAD-uOPM1JP56Yn4WlsGya6Dpnhq_ak6UJUY3Q=s576-c-no'
-tags: Developer Tooling, Launch Week 3
+authorPFP: >-
+  https://lh3.googleusercontent.com/a/AAcHTteOYM6knTAD-uOPM1JP56Yn4WlsGya6Dpnhq_ak6UJUY3Q=s576-c-no
+tags: 'Engineering, Product Updates'
 metaTitle: Enhance your backend errors with code directly from GitHub
 ---
 

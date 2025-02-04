@@ -1,6 +1,6 @@
 ---
-title: Using Github as a Headless CMS 
-createdAt: 2023-06-01T12:00:00Z
+title: Using Github as a Headless CMS
+createdAt: 2023-06-01T12:00:00.000Z
 readingTime: 12
 authorFirstName: Abhishek
 authorLastName: More
@@ -10,8 +10,8 @@ authorLinkedIn: 'https://www.linkedin.com/in/abhishek-more-linked/'
 authorGithub: 'https://github.com/Abhishek-More'
 authorWebsite: 'https://abhishekmore.com'
 authorPFP: 'https://tamuhack.org/static/th-2022/headshots/webp/abhishek.webp'
-tags: Highlight Engineering
-metaTitle: Using Github as a Headless CMS 
+tags: Engineering
+metaTitle: Using Github as a Headless CMS
 ---
 
 A content-management system (CMS) is software used to create, manage, and host content.

@@ -1,16 +1,17 @@
 ---
 title: Our Commitment to OpenTelemetry
-createdAt: 2023-04-04T12:00:00Z
+createdAt: 2023-04-04T12:00:00.000Z
 readingTime: 8
 authorFirstName: Vadim
 authorLastName: Korolik
-authorTitle: CTO @ Highlight 
+authorTitle: CTO @ Highlight
 authorTwitter: 'https://twitter.com/vkorolik'
 authorLinkedIn: 'https://www.linkedin.com/in/vkorolik/'
 authorGithub: 'https://github.com/Vadman97'
 authorWebsite: 'https://vadweb.us'
-authorPFP: 'https://lh3.googleusercontent.com/a-/AOh14Gh1k7XsVMGxHMLJZ7qesyddqn1y4EKjfbodEYiY=s96-c'
-tags: Highlight Engineering
+authorPFP: >-
+  https://lh3.googleusercontent.com/a-/AOh14Gh1k7XsVMGxHMLJZ7qesyddqn1y4EKjfbodEYiY=s96-c
+tags: Engineering
 metaTitle: How OpenTelemetry Helps Our Open Source Community Build SDKs Faster.
 ---
 

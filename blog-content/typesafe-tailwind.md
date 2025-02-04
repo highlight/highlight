@@ -1,6 +1,6 @@
 ---
 title: Building a Type-Safe Tailwind with vanilla-extract
-createdAt: 2023-04-18T12:00:00Z
+createdAt: 2023-04-18T12:00:00.000Z
 readingTime: 13
 authorFirstName: Chris
 authorLastName: Schmitz
@@ -9,8 +9,9 @@ authorTwitter: 'https://twitter.com/ccschmitz'
 authorLinkedIn: 'https://www.linkedin.com/in/ccschmitz'
 authorGithub: 'https://github.com/ccschmitz'
 authorWebsite: ''
-authorPFP: 'https://www.highlight.io/_next/image?url=https%3A%2F%2Fmedia.graphassets.com%2FViK27IG7TCe0YDK20tFy&w=3840&q=75'
-tags: Launch Week 1
+authorPFP: >-
+  https://www.highlight.io/_next/image?url=https%3A%2F%2Fmedia.graphassets.com%2FViK27IG7TCe0YDK20tFy&w=3840&q=75
+tags: Product Updates
 metaTitle: Building a Type-Safe Tailwind with vanilla-extract
 ---
 

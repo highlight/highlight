@@ -1,6 +1,6 @@
 ---
-title: "Vercel Edge Runtime Support"
-createdAt: 2023-10-10T12:00:00Z
+title: Vercel Edge Runtime Support
+createdAt: 2023-10-10T12:00:00.000Z
 readingTime: 5
 authorFirstName: Chris
 authorLastName: Esplin
@@ -9,10 +9,10 @@ authorTwitter: 'https://twitter.com/chrisesplin'
 authorLinkedIn: 'https://www.linkedin.com/in/epsilon/'
 authorGithub: 'https://github.com/deltaepsilon'
 authorWebsite: 'https://www.chrisesplin.com/'
-authorPFP: '/images/blog/podcast/avatars/esplin.jpeg'
-image: '/images/blog/vercel-edge-support/vercel-edge-runtime.jpg'
-tags: Next.js, Vercel, Edge
-metaTitle: "Vercel Edge Runtime Support"
+authorPFP: /images/blog/podcast/avatars/esplin.jpeg
+image: /images/blog/vercel-edge-support/vercel-edge-runtime.jpg
+tags: 'Frontend, Engineering, Backend'
+metaTitle: Vercel Edge Runtime Support
 ---
 
 ## Why Vercel Edge?
