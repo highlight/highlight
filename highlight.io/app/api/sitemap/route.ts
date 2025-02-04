@@ -76,7 +76,7 @@ async function generateXML(): Promise<string> {
 
 	const staticPagePaths = process.env.staticPages?.split(', ') || []
 	const staticPages = staticPagePaths.map((path) => {
-		return `${path.replace('pages', '').replace('index.tsx', '')}`
+		return `${path.replace('pages', '').replace('index.tsx', '').replace('.tsx', '')}`
 	})
 
 	const pages = [
