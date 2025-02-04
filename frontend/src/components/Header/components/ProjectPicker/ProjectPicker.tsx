@@ -87,7 +87,7 @@ const ProjectPicker = () => {
 			: currentProject?.name
 
 	return (
-		<Box>
+		<Box display="flex" flexShrink={0}>
 			<Menu>
 				<Menu.Button
 					kind="secondary"

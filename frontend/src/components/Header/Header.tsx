@@ -61,7 +61,7 @@ import { titleCaseString } from '@util/string'
 import { Divider } from 'antd'
 import clsx from 'clsx'
 import moment from 'moment'
-import React, { useEffect, useMemo } from 'react'
+import React, { useEffect, useMemo, useRef, useState } from 'react'
 import { FaDiscord, FaGithub } from 'react-icons/fa'
 import { Link, matchRoutes, useLocation, useNavigate } from 'react-router-dom'
 import { useSessionStorage } from 'react-use'
@@ -147,9 +147,51 @@ const useProjectRedirectLink = () => {
 	return goBackPath
 }
 
+type Page = {
+	key: string
+	icon: ({ size, ...props }: IconProps) => JSX.Element
+	isBeta?: boolean
+}
+
+const PAGES: Page[] = [
+	{
+		key: 'sessions',
+		icon: IconSolidPlayCircle,
+	},
+	{
+		key: 'errors',
+		icon: IconSolidLightningBolt,
+	},
+	{
+		key: 'logs',
+		icon: IconSolidLogs,
+	},
+	{
+		key: 'traces',
+		icon: IconSolidTraces,
+	},
+	{
+		key: 'dashboards',
+		icon: IconSolidChartBar,
+	},
+	{
+		key: 'alerts',
+		icon: IconSolidSpeakerphone,
+	},
+	{
+		key: 'integrations',
+		icon: IconSolidViewGridAdd,
+	},
+	{
+		key: 'connect',
+		icon: IconSolidDesktopComputer,
+	},
+]
+
 export const Header: React.FC<Props> = ({ fullyIntegrated }) => {
 	const navigate = useNavigate()
 	const location = useLocation()
+
 	const { projectId } = useProjectId()
 	const { projectId: localStorageProjectId } = useLocalStorageProjectId()
 	const { isLoggedIn, signOut } = useAuthContext()
@@ -158,6 +200,10 @@ export const Header: React.FC<Props> = ({ fullyIntegrated }) => {
 	const localStorageProject = allProjects?.find(
 		(p) => String(p?.id) === String(localStorageProjectId),
 	)
+
+	const containerRef = useRef<HTMLDivElement>(null)
+	const [topbarPages, setTopbarPages] = useState<Page[]>(PAGES)
+	const [menuPages, setMenuPages] = useState<Page[]>([])
 
 	const goBackPath = useProjectRedirectLink()
 	const parts = location.pathname.split('/')
@@ -175,37 +221,6 @@ export const Header: React.FC<Props> = ({ fullyIntegrated }) => {
 
 	const { isProjectLevelMember } = useAuthContext()
 
-	const pages: {
-		key: string
-		icon: ({ size, ...props }: IconProps) => JSX.Element
-		isBeta?: boolean
-	}[] = [
-		{
-			key: 'sessions',
-			icon: IconSolidPlayCircle,
-		},
-		{
-			key: 'errors',
-			icon: IconSolidLightningBolt,
-		},
-		{
-			key: 'logs',
-			icon: IconSolidLogs,
-		},
-		{
-			key: 'traces',
-			icon: IconSolidTraces,
-		},
-		{
-			key: 'dashboards',
-			icon: IconSolidChartBar,
-		},
-		{
-			key: 'alerts',
-			icon: IconSolidSpeakerphone,
-		},
-	]
-
 	const inProjectOrWorkspace = isLoggedIn && (projectId || workspaceId)
 
 	const { data: workspacesData, loading: workspacesLoading } =
@@ -221,6 +236,24 @@ export const Header: React.FC<Props> = ({ fullyIntegrated }) => {
 			displayValue: workspace?.name,
 		}))
 	}, [workspacesData?.workspaces, workspacesData?.joinable_workspaces])
+
+	useEffect(() => {
+		const observer = new ResizeObserver(() => {
+			if (!containerRef.current) return
+			const topbarItemCount = Math.floor(
+				containerRef.current.offsetWidth / 100,
+			)
+
+			const newTopbarPages = PAGES.slice(0, topbarItemCount)
+			const newMenuPages = PAGES.slice(topbarItemCount)
+
+			setTopbarPages(newTopbarPages)
+			setMenuPages(newMenuPages)
+		})
+
+		observer.observe(containerRef.current!)
+		return () => observer.disconnect()
+	}, [])
 
 	let grafanaItem = (
 		<Menu.Item disabled={!enableGrafanaDashboard}>
@@ -291,8 +324,14 @@ export const Header: React.FC<Props> = ({ fullyIntegrated }) => {
 						>
 							<ProjectPicker />
 							{projectId && !isSettings && (
-								<Box display="flex" alignItems="center" gap="4">
-									{pages.map((p) => {
+								<Box
+									display="flex"
+									alignItems="center"
+									gap="4"
+									ref={containerRef}
+									width="full"
+								>
+									{topbarPages.map((p) => {
 										return (
 											<LinkButton
 												iconLeft={
@@ -346,57 +385,50 @@ export const Header: React.FC<Props> = ({ fullyIntegrated }) => {
 											kind="secondary"
 										/>
 										<Menu.List>
-											<Link
-												to={`/${projectId}/integrations`}
-												className={linkStyle}
-											>
-												<Menu.Item>
-													<Box
-														display="flex"
-														alignItems="center"
-														gap="4"
-													>
-														<IconSolidViewGridAdd
-															size={14}
-															color={
-																vars.theme
-																	.interactive
-																	.fill
-																	.secondary
-																	.content
-																	.text
-															}
-														/>
-														Integrations
-													</Box>
-												</Menu.Item>
-											</Link>
-											<Link
-												to={`/${projectId}/connect`}
-												className={linkStyle}
-											>
-												<Menu.Item>
-													<Box
-														display="flex"
-														alignItems="center"
-														gap="4"
-													>
-														<IconSolidDesktopComputer
-															size={14}
-															color={
-																vars.theme
-																	.interactive
-																	.fill
-																	.secondary
-																	.content
-																	.text
-															}
-														/>
-														Connect
-													</Box>
-												</Menu.Item>
-											</Link>
-											<Menu.Divider />
+											{menuPages.length > 0 && (
+												<>
+													{menuPages.map((p) => {
+														const Icon = p!.icon
+														return (
+															<Link
+																key={p!.key}
+																to={`/${projectId}/${p!.key}`}
+																className={
+																	linkStyle
+																}
+															>
+																<Menu.Item>
+																	<Box
+																		display="flex"
+																		alignItems="center"
+																		gap="4"
+																	>
+																		<Icon
+																			size={
+																				14
+																			}
+																			color={
+																				vars
+																					.theme
+																					.interactive
+																					.fill
+																					.secondary
+																					.content
+																					.text
+																			}
+																		/>
+																		{titleCaseString(
+																			p!
+																				.key,
+																		)}
+																	</Box>
+																</Menu.Item>
+															</Link>
+														)
+													})}
+													<Menu.Divider />
+												</>
+											)}
 											{grafanaItem}
 										</Menu.List>
 									</Menu>
@@ -433,10 +465,11 @@ export const Header: React.FC<Props> = ({ fullyIntegrated }) => {
 					{inProjectOrWorkspace && (
 						<Box
 							display="flex"
+							flexShrink={0}
 							justifyContent="flex-end"
 							alignItems="center"
 							gap="12"
-							style={{ zIndex: 20000, minWidth: 400 }}
+							style={{ zIndex: 20000 }}
 						>
 							{!!projectId && !fullyIntegrated && !isSettings && (
 								<LinkButton
