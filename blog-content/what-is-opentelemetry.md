@@ -11,7 +11,7 @@ authorGithub: 'https://github.com/cmgriffing'
 authorWebsite: 'https://chrisgriffing.com'
 authorPFP: >-
   https://chrisgriffing.com/static/3053e1631c1e5e072c0c872f7c59f801/6e63d/selfportrait.jpg
-tags: Observability
+tags: 'Observability, OpenTelemetry'
 metaTitle: >-
   Learn about OpenTelemetry and how it can give you superpowers monitoring your
   web applications allowing to find and fix bugs and performance problems

@@ -35,6 +35,12 @@ export const VALID_TAGS: Tag[] = [
 			'Monitoring, logging, tracing, and understanding system behavior in production.',
 	},
 	{
+		name: 'OpenTelemetry',
+		slug: 'opentelemetry',
+		description:
+			'Articles about OpenTelemetry integration, implementation, and best practices.',
+	},
+	{
 		name: 'Product Updates',
 		slug: 'product-updates',
 		description:

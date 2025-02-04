@@ -11,7 +11,7 @@ authorGithub: 'https://github.com/ccschmitz'
 authorWebsite: ''
 authorPFP: >-
   https://www.highlight.io/_next/image?url=https%3A%2F%2Fmedia.graphassets.com%2FViK27IG7TCe0YDK20tFy&w=3840&q=75
-tags: 'Observability, Engineering'
+tags: 'Frontend, Observability, OpenTelemetry'
 metaTitle: null
 ---
 
