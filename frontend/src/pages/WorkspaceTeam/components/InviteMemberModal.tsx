@@ -136,7 +136,7 @@ function InviteMemberModal({
 		}
 
 		const projectIdsToSend =
-			newAdminRole !== AdminRole.Admin && newProjectIds.length === 0
+			newAdminRole !== AdminRole.Admin && !newProjectIds?.length
 				? (allProjects?.map((p) => p?.id).filter(Boolean) as string[])
 				: newProjectIds.map((p: { id: string }) => p.id)
 
