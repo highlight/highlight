@@ -1,138 +1,261 @@
 import { GetStaticProps } from 'next'
-import { getUniqueTags, Post } from '../../../components/Blog/BlogPost/BlogPost'
+import { getUniqueTags } from '../../../components/Blog/BlogPost/BlogPost'
 import { Tag } from '../../../components/Blog/Tag'
-import { loadPostsFromGithub, loadTagsFromGithub } from '../index'
-import { Meta } from '../../../components/common/Head/Meta'
-import { PostTag } from '../../../components/Blog/Tag'
-import { PostAuthor } from '../../../components/Blog/Author'
-import blogStyles from '../../../components/Blog/Blog.module.scss'
-import styles from './[tag].module.scss'
-import Image from 'next/legacy/image'
-import Link from 'next/link'
-import { Typography } from '../../../components/common/Typography/Typography'
-import Navbar from '../../../components/common/Navbar/Navbar'
-import { FooterCallToAction } from '../../../components/common/CallToAction/FooterCallToAction'
-import Footer from '../../../components/common/Footer/Footer'
-import { getAllTags, getTagFromSlug } from '../../../shared/tags'
+import { Blog, loadPostsFromGithub, loadTagsFromGithub } from '../index'
 
-export async function getStaticPaths() {
-	const tags = getAllTags().filter((tag) => tag.slug !== 'all')
+export const VALID_TAGS: Record<string, Tag & { description: string }> = {
+	'All posts': {
+		name: 'All posts',
+		slug: 'all',
+		description:
+			'Welcome to the Highlight Blog, where the Highlight team talks about frontend engineering, observability and more!',
+	},
+	AI: {
+		name: 'AI',
+		slug: 'ai',
+		description:
+			'Exploring artificial intelligence applications in developer tools and observability.',
+	},
+	ClickHouse: {
+		name: 'ClickHouse',
+		slug: 'clickhouse',
+		description:
+			'Technical deep dives into our ClickHouse implementation and optimizations.',
+	},
+	'Debugging & Troubleshooting': {
+		name: 'Debugging & Troubleshooting',
+		slug: 'debugging-and-troubleshooting',
+		description:
+			'Tips, techniques, and tools for effective debugging and troubleshooting in modern web applications.',
+	},
+	Design: {
+		name: 'Design',
+		slug: 'design',
+		description:
+			'Insights into our design process, UI/UX decisions, and design system.',
+	},
+	'Developer Tooling': {
+		name: 'Developer Tooling',
+		slug: 'developer-tooling',
+		description:
+			'Exploring the latest in developer tools, productivity enhancements, and building better software.',
+	},
+	Development: {
+		name: 'Development',
+		slug: 'development',
+		description:
+			'General software development practices, patterns, and techniques.',
+	},
+	'.NET': {
+		name: '.NET',
+		slug: 'dotnet',
+		description:
+			'Development, monitoring, and observability in .NET applications.',
+	},
+	Edge: {
+		name: 'Edge',
+		slug: 'edge',
+		description:
+			'Edge computing, serverless, and edge runtime implementations.',
+	},
+	'Frontend Monitoring': {
+		name: 'Frontend Monitoring',
+		slug: 'frontend-monitoring',
+		description:
+			'Best practices for monitoring frontend applications, error tracking, and improving user experience.',
+	},
+	Grafana: {
+		name: 'Grafana',
+		slug: 'grafana',
+		description:
+			'Integration with Grafana for metrics visualization and dashboards.',
+	},
+	'Highlight Engineering': {
+		name: 'Highlight Engineering',
+		slug: 'highlight-engineering',
+		description:
+			'Deep dives into how we build and scale Highlight, our technical decisions, and lessons learned along the way.',
+	},
+	Java: {
+		name: 'Java',
+		slug: 'java',
+		description:
+			'Java development, monitoring, and observability best practices.',
+	},
+	'Launch Week 1': {
+		name: 'Launch Week 1',
+		slug: 'launch-week-1',
+		description: 'Updates and announcements from our first Launch Week.',
+	},
+	'Launch Week 2': {
+		name: 'Launch Week 2',
+		slug: 'launch-week-2',
+		description: 'Updates and announcements from our second Launch Week.',
+	},
+	'Launch Week 3': {
+		name: 'Launch Week 3',
+		slug: 'launch-week-3',
+		description: 'Updates and announcements from our third Launch Week.',
+	},
+	'Launch Week 4': {
+		name: 'Launch Week 4',
+		slug: 'launch-week-4',
+		description: 'Updates and announcements from our fourth Launch Week.',
+	},
+	'Launch Week 5': {
+		name: 'Launch Week 5',
+		slug: 'launch-week-5',
+		description: 'Updates and announcements from our fifth Launch Week.',
+	},
+	Logging: {
+		name: 'Logging',
+		slug: 'logging',
+		description:
+			'Best practices and implementations for application logging.',
+	},
+	Mobile: {
+		name: 'Mobile',
+		slug: 'mobile',
+		description:
+			'Mobile development topics, focusing on monitoring and debugging mobile applications.',
+	},
+	Monitoring: {
+		name: 'Monitoring',
+		slug: 'monitoring',
+		description:
+			'General monitoring concepts, strategies, and best practices.',
+	},
+	'Next.js': {
+		name: 'Next.js',
+		slug: 'nextjs',
+		description:
+			'Next.js development, monitoring, and observability implementations.',
+	},
+	Observability: {
+		name: 'Observability',
+		slug: 'observability',
+		description:
+			'Understanding and implementing observability in modern applications.',
+	},
+	OpenTelemetry: {
+		name: 'OpenTelemetry',
+		slug: 'opentelemetry',
+		description:
+			'Everything about OpenTelemetry integration, implementation, and best practices.',
+	},
+	'Performance Monitoring': {
+		name: 'Performance Monitoring',
+		slug: 'performance-monitoring',
+		description:
+			'Insights into web performance monitoring, metrics that matter, and how to optimize your application.',
+	},
+	Podcast: {
+		name: 'Podcast',
+		slug: 'podcast',
+		description: 'Episodes and transcripts from the Highlight podcast.',
+	},
+	Privacy: {
+		name: 'Privacy',
+		slug: 'privacy',
+		description:
+			'Everything about privacy, data protection, and user data.',
+	},
+	Programming: {
+		name: 'Programming',
+		slug: 'programming',
+		description:
+			'General programming concepts, patterns, and best practices.',
+	},
+	Python: {
+		name: 'Python',
+		slug: 'python',
+		description:
+			'Python development, monitoring, and observability best practices.',
+	},
+	'React Native': {
+		name: 'React Native',
+		slug: 'react-native',
+		description:
+			'Implementing Highlight and observability in React Native applications.',
+	},
+	Ruby: {
+		name: 'Ruby',
+		slug: 'ruby',
+		description:
+			'Ruby development, monitoring, and observability best practices.',
+	},
+	'Session Replay': {
+		name: 'Session Replay',
+		slug: 'session-replay',
+		description:
+			'Everything about session replay technology, implementation details, and best practices for debugging user sessions.',
+	},
+	'The Startup Stack': {
+		name: 'The Startup Stack',
+		slug: 'the-startup-stack',
+		description:
+			'Exploring the tools, technologies, and practices that power modern startups.',
+	},
+	Tracing: {
+		name: 'Tracing',
+		slug: 'tracing',
+		description:
+			'Distributed tracing concepts, implementation, and best practices.',
+	},
+	Tutorial: {
+		name: 'Tutorial',
+		slug: 'tutorial',
+		description:
+			'Step-by-step guides and tutorials for implementing Highlight and related technologies.',
+	},
+	Vercel: {
+		name: 'Vercel',
+		slug: 'vercel',
+		description:
+			'Deployment, monitoring, and observability with Vercel platform.',
+	},
+} as const
+
+export async function getStaticPaths(): Promise<{
+	paths: string[]
+	fallback: string
+}> {
+	const posts = await loadPostsFromGithub()
+	let tags = await loadTagsFromGithub(posts)
+
+	tags = getUniqueTags(tags)
 
 	return {
-		paths: tags.map((tag) => `/blog/tag/${tag.slug}`),
+		paths: tags.map((tag) => `/blog/tag/${tag}`),
 		fallback: 'blocking',
 	}
 }
 
 export const getStaticProps: GetStaticProps = async ({ params }) => {
-	const posts = await loadPostsFromGithub()
-	const currentTag = getTagFromSlug(params!.tag as string)
+	let posts = await loadPostsFromGithub()
+	let tags = await loadTagsFromGithub(posts)
 
-	if (!currentTag) {
-		return {
-			notFound: true,
-		}
-	}
-
-	const filteredPosts = posts.filter((post) => {
-		return post.tags_relations.some(
-			(tag: Tag) => tag.slug === currentTag.slug,
-		)
+	posts = posts.filter((post) => {
+		return post.tags.some((tag: Tag) => {
+			return tag.slug === (params!.tag as string)
+		})
 	})
 
-	filteredPosts.sort(
-		(a, b) => Date.parse(b.postedAt) - Date.parse(a.postedAt),
-	)
+	tags = getUniqueTags(tags)
+	posts.sort((a, b) => Date.parse(b.postedAt) - Date.parse(a.postedAt))
 
 	return {
 		props: {
-			posts: filteredPosts,
-			currentTag,
+			posts,
+			tags,
+			currentTagSlug: params!.tag,
 		},
 		revalidate: 60,
 	}
 }
 
-const TagPage = ({ posts, currentTag }: { posts: Post[]; currentTag: Tag }) => {
-	return (
-		<>
-			<Navbar />
-			<Meta
-				title={`${currentTag.name} - Highlight Blog`}
-				description={
-					currentTag.description ||
-					`Articles tagged with ${currentTag.name}`
-				}
-				canonical={`/blog/tag/${currentTag.slug}`}
-			/>
-			<main>
-				<div className="flex flex-col w-full gap-8 my-20 desktop:max-w-[1100px] mx-auto items-start px-6">
-					<Link href="/blog" className={styles.backLink}>
-						<Typography type="copy2">
-							← Back to All Posts
-						</Typography>
-					</Link>
-
-					<div className="flex flex-col items-start gap-5">
-						<h3>{currentTag.name}</h3>
-						<Typography type="copy1">
-							{currentTag.description}
-						</Typography>
-					</div>
-
-					<div className={styles.grid}>
-						{posts.map((post) => (
-							<Link key={post.slug} href={`/blog/${post.slug}`}>
-								<div className={styles.card}>
-									{post.image?.url && (
-										<div className={styles.imageContainer}>
-											<Image
-												src={post.image.url}
-												alt={post.title}
-												layout="fill"
-												objectFit="cover"
-												priority
-											/>
-										</div>
-									)}
-
-									<div className={blogStyles.postDateDiv}>
-										<Typography type="copy2">
-											{`${new Date(
-												post.publishedAt,
-											).toLocaleDateString('en-US', {
-												day: 'numeric',
-												year: 'numeric',
-												month: 'short',
-											})} • ${post.readingTime || Math.floor(post.richcontent.markdown.split(' ').length / 200)} min read`}
-										</Typography>
-									</div>
-
-									<h3 className={styles.title}>
-										{post.title}
-									</h3>
-
-									<div className={styles.tags}>
-										{post.tags_relations.map((tag: Tag) => (
-											<PostTag key={tag.slug} {...tag} />
-										))}
-									</div>
-
-									{post.author && (
-										<div className={styles.authorSection}>
-											<PostAuthor {...post.author} />
-										</div>
-									)}
-								</div>
-							</Link>
-						))}
-					</div>
-				</div>
-			</main>
-			<FooterCallToAction />
-			<Footer />
-		</>
-	)
+export const getTagDescription = (tagName: string) => {
+	return VALID_TAGS[tagName]?.description
 }
 
-export default TagPage
+export default Blog

@@ -7,9 +7,7 @@ import { Typography } from '../../components/common/Typography/Typography'
 import classNames from 'classnames'
 import { matchSorter } from 'match-sorter'
 import { GetStaticProps } from 'next'
-import Image from 'next/image'
 import Link from 'next/link'
-import { useRouter } from 'next/router'
 import { useEffect, useState } from 'react'
 import { HiOutlineSearch } from 'react-icons/hi'
 import { PostAuthor } from '../../components/Blog/Author'
@@ -18,11 +16,10 @@ import { FooterCallToAction } from '../../components/common/CallToAction/FooterC
 import Footer from '../../components/common/Footer/Footer'
 import { BLOG_CONTENT_PATH, getBlogPaths } from '../../shared/blog'
 import { readMarkdown } from '../../shared/doc'
+import { getTagDescription, VALID_TAGS } from './tag/[tag]'
 
 export async function loadTagsFromGithub(posts: Post[]) {
-	const tags: Tag[] = Array.from(
-		new Set(posts.flatMap((post) => post.tags_relations)),
-	)
+	const tags: Tag[] = Array.from(new Set(posts.flatMap((post) => post.tags)))
 	return tags
 }
 
@@ -64,6 +61,7 @@ export function markdownToPost(
 	let post: Post = {
 		title: data.title,
 		description: data.description || null,
+		tags,
 		metaDescription: data.metaDescription || data.description || null,
 		metaTitle: data.metaTitle || data.title || null,
 		publishedAt: data.createdAt,
@@ -92,7 +90,6 @@ export function markdownToPost(
 				url: data.authorPFP || null,
 			},
 		},
-		tags_relations: tags || [],
 	}
 
 	return post
@@ -115,6 +112,7 @@ export const getStaticProps: GetStaticProps = async () => {
 			return a
 		})
 		.filter((a) => new Date().getTime() - Date.parse(a.postedAt) >= 0)
+
 	tags = getUniqueTags(tags)
 
 	return {
@@ -126,13 +124,6 @@ export const getStaticProps: GetStaticProps = async () => {
 
 		revalidate: 60 * 60,
 	}
-}
-
-const allTag: Omit<Tag, 'posts'> = {
-	name: 'All posts',
-	slug: 'all',
-	description:
-		'Welcome to the Highlight Blog, where the Highlight team talks about frontend engineering, observability and more!',
 }
 
 // https://usehooks-ts.com/react-hook/use-debounce
@@ -156,92 +147,45 @@ export const Blog = ({
 	currentTagSlug,
 }: {
 	posts: Post[]
-	tags: Omit<Tag, 'posts'>[]
+	tags: Tag[]
 	currentTagSlug: string
 }) => {
-	const pageQuery = useRouter().query.page ?? '1'
-
-	let page = 1
-	if (Array.isArray(pageQuery)) page = parseInt(pageQuery[0])
-	else page = parseInt(pageQuery)
-
-	const shownTags = [allTag, ...tags]
-	const currentTag: Omit<Tag, 'posts'> =
-		tags.find(({ slug }) => slug === currentTagSlug) ?? allTag
-
 	const [searchQuery, setSearchQuery] = useState<string>('')
 	const debouncedSearchQuery = useDebounce(searchQuery, 300)
-	const itemsPerPage = 4
 
-	const shouldFeature =
-		!debouncedSearchQuery && currentTag.slug === allTag.slug && page <= 1
+	const currentTag: Tag =
+		tags.find(({ slug }) => slug === currentTagSlug) ??
+		VALID_TAGS['All posts']
 
-	const filteredPosts = debouncedSearchQuery
+	const displayedPosts = debouncedSearchQuery
 		? matchSorter(posts, debouncedSearchQuery, {
 				keys: [
 					'title',
 					{
-						key: 'tags_relations.name',
+						key: 'tags.name',
 						maxRanking: matchSorter.rankings.CONTAINS,
 					},
 				],
 			})
 		: posts
 
-	page = Math.ceil(Math.min(page, filteredPosts.length / itemsPerPage))
-
-	const displayedPosts = debouncedSearchQuery
-		? filteredPosts
-		: filteredPosts.slice(itemsPerPage * (page - 1), itemsPerPage * page)
-
-	const isStartupStack = currentTag.slug.includes('stack')
-
 	return (
 		<>
 			<Navbar />
 			<main>
 				<div className="flex flex-row w-full gap-8 my-20 desktop:max-w-[1100px] mx-auto items-start px-6">
-					<div
-						/* Main Side */ className="flex flex-col flex-1 w-full gap-11"
-					>
-						<div
-							/* Category Description */ className="flex flex-col items-start gap-5"
-						>
-							<h3>
-								{isStartupStack
-									? 'Welcome to the Startup Stack!'
-									: currentTag.name}
-							</h3>
-							{isStartupStack ? (
-								<Typography
-									className={styles.copyOnDark}
-									type="copy1"
-								>
-									This is where we talk about the tools and
-									tech you can use to build your next Startup!
-									Read through our episodes below or find us{' '}
-									<Link href="https://www.youtube.com/channel/UCATzQs36Mo7Cezt5Ij9ayZQ">
-										on YouTube
-									</Link>
-									.
-								</Typography>
-							) : (
-								<Typography
-									type="copy1"
-									className={styles.copyOnDark}
-								>
-									{currentTag.description ||
-										allTag.description}
-								</Typography>
-							)}
-						</div>
-						<div
-							/* Search and Posts */ className="flex flex-col gap-6"
-						>
-							<div
-								/* Tags Tabs */ className="flex gap-8 overflow-x-scroll scrollbar-hidden"
+					<div className="flex flex-col flex-1 w-full gap-11">
+						<div>
+							<Typography
+								type="copy1"
+								className={styles.copyOnDark}
 							>
-								{shownTags.map((tag) => (
+								{getTagDescription(currentTag.name)}
+							</Typography>
+						</div>
+						<div className="flex flex-col gap-6">
+							<div className="flex gap-8 overflow-x-scroll scrollbar-hidden">
+								{tags.map((tag) => (
 									<TagTab
 										{...tag}
 										key={tag.slug}
@@ -249,13 +193,8 @@ export const Blog = ({
 									/>
 								))}
 							</div>
-							<div
-								/* Search and Pagination */
-								className="flex flex-col justify-between w-full gap-4 mobile:flex-row"
-							>
-								<div /* Search */
-									className="flex items-center flex-grow gap-1 px-2 transition-colors border rounded-lg text-copy-on-dark border-divider-on-dark focus-within:border-copy-on-light h-11"
-								>
+							<div className="flex flex-col justify-between w-full gap-4 mobile:flex-row">
+								<div className="flex items-center flex-grow gap-1 px-2 transition-colors border rounded-lg text-copy-on-dark border-divider-on-dark focus-within:border-copy-on-light h-11">
 									<HiOutlineSearch className="w-5 h-5 text-copy-on-light" />
 									<input
 										type="text"
@@ -276,23 +215,9 @@ export const Blog = ({
 									/>
 								</div>
 							</div>
-							{displayedPosts.map((post) => {
-								return (
-									<>
-										{isStartupStack ? (
-											<EpisodeItem
-												post={post}
-												key={post.slug}
-											/>
-										) : (
-											<PostItem
-												post={post}
-												key={post.slug}
-											/>
-										)}
-									</>
-								)
-							})}
+							{displayedPosts.map((post) => (
+								<PostItem post={post} key={post.slug} />
+							))}
 							{displayedPosts.length < 1 && (
 								<Typography
 									type="copy2"
@@ -301,16 +226,6 @@ export const Blog = ({
 									No Posts Found
 								</Typography>
 							)}
-							{displayedPosts.length > 0 &&
-								!debouncedSearchQuery && (
-									<PageController
-										page={page}
-										count={
-											filteredPosts.length / itemsPerPage
-										}
-										tag={currentTag.slug}
-									/>
-								)}
 						</div>
 					</div>
 				</div>
@@ -388,102 +303,11 @@ const postItemStyle = classNames(
 	'relative w-full gap-3 transition-colors border border-solid rounded-lg bg-dark-background p-7 hover:bg-divider-on-dark border-divider-on-dark hover:border-copy-on-light',
 )
 
-const EpisodeItem = ({ post }: { post: Post } & { feature?: boolean }) => {
-	const firstTag = post.tags_relations[0]
-	return (
-		<>
-			<div className="hidden mobile:block">
-				<div
-					style={{
-						display: 'flex',
-						flexDirection: 'row',
-						border: '1px solid #30294E',
-						padding: 24,
-						borderRadius: 8,
-						gap: 24,
-					}}
-				>
-					{post?.image?.url && (
-						<Image
-							style={{
-								borderRadius: 8,
-								border: '2px solid #30294E',
-								height: 100 * 1.5,
-								width: 190 * 1.5,
-							}}
-							src={post.image?.url}
-							alt={'podcast image'}
-							height={100}
-							width={190}
-						></Image>
-					)}
-					<div>
-						<Typography type="copy4" className="text-copy-on-dark">
-							{getDateAndReadingTime(
-								post.postedAt,
-								post.readingTime ?? 0,
-							)}
-						</Typography>
-
-						<Link href={`/blog/${post.slug}`}>
-							<h5 className="mt-1">{post.title}</h5>
-						</Link>
-						<div className="mt-3">
-							{post.author ? (
-								<PostAuthor
-									hideTitle
-									hidePhoto
-									{...post.author}
-								/>
-							) : (
-								'Missing Post Author!'
-							)}
-						</div>
-					</div>
-				</div>
-			</div>
-			<div className={classNames('mobile:hidden block')}>
-				<div
-					style={{
-						display: 'flex',
-						flexDirection: 'column',
-						border: '1px solid #30294E',
-						padding: 24,
-						borderRadius: 8,
-						gap: 24,
-					}}
-				>
-					<div>
-						{firstTag && <PostTag {...firstTag} />}
-						<Link href={`/blog/${post.slug}`}>
-							<h3 className="mt-3">{post.title}</h3>
-						</Link>
-						<Typography
-							type="copy4"
-							className="mt-1 text-copy-on-dark"
-						>
-							{getDateAndReadingTime(
-								post.postedAt,
-								post.readingTime ?? 0,
-							)}
-						</Typography>
-						<div className="mt-6">
-							{post.author && (
-								<PostAuthor {...post.author} hidePhoto />
-							)}
-						</div>
-					</div>
-				</div>
-			</div>
-		</>
-	)
-}
-
 const PostItem = ({
 	post,
 	feature: featured = false,
 }: { post: Post } & { feature?: boolean }) => {
-	const firstTag = post.tags_relations[0]
+	const firstTag = post.tags[0]
 	return (
 		<>
 			<div
@@ -508,7 +332,7 @@ const PostItem = ({
 					{post.author && <PostAuthor {...post.author} />}
 				</div>
 				<div className="flex gap-2.5 absolute right-7 bottom-7">
-					{post.tags_relations?.map((tag) => (
+					{post.tags?.map((tag) => (
 						<PostTag {...tag} key={tag.slug} />
 					))}
 				</div>

@@ -254,12 +254,10 @@ const PostPage = ({
 	}, [postSections])
 
 	const isStartupStack =
-		post.tags_relations.filter((t) =>
-			t.name.toLocaleLowerCase().includes('stack'),
-		).length > 0
+		post.tags.filter((t) => t.name.toLocaleLowerCase().includes('stack'))
+			.length > 0
 
-	const singleTag =
-		post.tags_relations.length === 1 ? post.tags_relations[0] : undefined
+	const singleTag = post.tags.length === 1 ? post.tags[0] : undefined
 
 	const params = new URLSearchParams()
 	params.set('title', post.title || '')
@@ -322,7 +320,7 @@ const PostPage = ({
 								styles.postTagDiv,
 							)}
 						>
-							{post.tags_relations.map((tag) => (
+							{post.tags.map((tag) => (
 								<PostTag {...tag} key={tag.slug} />
 							))}
 						</div>
