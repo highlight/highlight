@@ -9,6 +9,7 @@ import { withAppRouterHighlight } from '../../../highlight.app.config'
 import { getGithubDocsPaths } from '../../../pages/api/docs/github'
 import { getBlogPaths } from '../../../shared/blog'
 import { GraphQLRequest } from '../../../utils/graphql'
+import { kebabCase } from '../../../shared/tags'
 
 const stream = createWriteStream({
 	url: 'https://pub.highlight.io/v1/logs/json',
@@ -17,15 +18,6 @@ const stream = createWriteStream({
 		'x-highlight-service': 'next-suspense',
 	},
 })
-
-const kebabCase = (str: string) =>
-	str
-		.replace(/[^a-zA-Z0-9]/g, '')
-		.replace(/([a-z])([A-Z])/g, '$1-$2')
-		.replace(/ /g, '-')
-		.replace(/([A-Z]+)([A-Z][a-z])/g, '$1-$2')
-		.toLowerCase()
-
 const logger = pino({ level: 'trace' }, stream)
 
 async function generateXML(): Promise<string> {

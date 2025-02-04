@@ -1,0 +1,116 @@
+.tagPage {
+	min-height: 100vh;
+	padding: var(--size-large);
+	background: var(--color-dark-background);
+	color: var(--color-white);
+}
+
+.container {
+	max-width: 1280px;
+	margin: 0 auto;
+}
+
+.header {
+	font-weight: bold;
+}
+
+.grid {
+	display: grid;
+	gap: 24px;
+	grid-template-columns: 1fr;
+
+	@media (min-width: 768px) {
+		grid-template-columns: repeat(2, 1fr);
+	}
+
+	@media (min-width: 1024px) {
+		grid-template-columns: repeat(3, 1fr);
+	}
+}
+
+.card {
+	border: 1px solid var(--color-divider-on-dark);
+	border-radius: 12px;
+	padding: 24px;
+	background: var(--color-dark-background);
+	transition: all 0.2s ease-in-out;
+	height: 100%;
+	display: flex;
+	flex-direction: column;
+
+	&:hover {
+		border-color: var(--color-copy-on-light);
+		transform: translateY(-2px);
+		box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+
+		.title {
+			color: var(--color-primary);
+		}
+
+		.imageContainer img {
+			transform: scale(1.05);
+		}
+	}
+}
+
+.imageContainer {
+	position: relative;
+	width: 100%;
+	aspect-ratio: 16/9;
+	margin-bottom: 20px;
+	border-radius: 8px;
+	overflow: hidden;
+
+	img {
+		transition: transform 0.3s ease-in-out;
+	}
+}
+
+.title {
+	font-size: 22px;
+	font-weight: var(--font-weight-bold);
+	margin: 16px 0 !important;
+	line-height: 1.4em !important;
+	transition: color 0.2s ease;
+}
+
+.description {
+	color: var(--color-copy-on-dark);
+	margin-bottom: var(--size-medium);
+}
+
+.tags {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 6px;
+	margin: 12px 0;
+
+	:global {
+		.tag {
+			font-size: 12px;
+			padding: 4px 8px;
+			border-radius: 6px;
+			background: var(--color-dark-background-secondary);
+			color: var(--color-copy-on-dark);
+			transition: all 0.2s ease;
+			border: 1px solid var(--color-divider-on-dark);
+
+			&:hover {
+				background: var(--color-dark-background-tertiary);
+				border-color: var(--color-copy-on-dark);
+			}
+		}
+	}
+}
+
+.authorSection {
+	color: var(--color-copy-on-dark);
+	font-size: 14px;
+	font-weight: 500;
+	margin-top: auto;
+	padding-top: 20px;
+	border-top: 1px solid var(--color-divider-on-dark);
+	display: flex;
+	align-items: center;
+	gap: 8px;
+}

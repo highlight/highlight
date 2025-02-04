@@ -1,0 +1,7 @@
+# Highlight.io Monorepo
+
+## Guidelines for ./frontend
+- Don't use Tailwind CSS, use the components in @highlight-run/ui.
+
+## Guidelines for ./highlight.io
+- Don't use Tailwind CSS, use CSS modules instead.
