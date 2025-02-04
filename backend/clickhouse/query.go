@@ -204,6 +204,18 @@ func transformSql(
 	}
 	expr := statements[0]
 
+	settingsVisitor := sqlparser.DefaultASTVisitor{}
+	settingsVisitor.Visit = func(expr sqlparser.Expr) error {
+		_, found := expr.(*sqlparser.SettingsClause)
+		if found {
+			return e.New("SQL statement cannot include a settings clause.")
+		}
+		return nil
+	}
+	if err := expr.Accept(&settingsVisitor); err != nil {
+		return "", err
+	}
+
 	priorVisit := map[sqlparser.Expr]bool{}
 
 	selectVisitor := sqlparser.DefaultASTVisitor{}
