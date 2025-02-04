@@ -52,33 +52,33 @@ export const FRAMEWORKS: {
 			name: 'Go',
 			description:
 				'Set up error monitoring in Go with Chi, Fiber, and more.',
-			link: '/docs/getting-started/backend-sdk/go/overview',
+			link: '/docs/getting-started/server/go/overview',
 			image: '/images/companies/icons/go.svg',
 		},
 		{
 			name: 'Javascript',
 			description:
 				'Set up error monitoring in JS with Express, Node, and more.',
-			link: '/docs/getting-started/backend-sdk/js/overview',
+			link: '/docs/getting-started/server/js/overview',
 			image: '/images/companies/icons/js.svg',
 		},
 		{
 			name: 'Python',
 			description:
 				'Set up error monitoring in Python with Django, Flask, and more.',
-			link: '/docs/getting-started/backend-sdk/python/overview',
+			link: '/docs/getting-started/server/python/overview',
 			image: '/images/companies/icons/python.svg',
 		},
 		{
 			name: 'Ruby',
 			description: 'Set up error monitoring in Ruby on Rails.',
-			link: '/docs/getting-started/backend-sdk/ruby/overview',
+			link: '/docs/getting-started/server/ruby/overview',
 			image: '/images/companies/icons/rails.svg',
 		},
 		{
 			name: 'Rust',
 			description: 'Set up error monitoring in Rust.',
-			link: '/docs/getting-started/backend-sdk/rust/overview',
+			link: '/docs/getting-started/server/rust/overview',
 			image: '/images/companies/icons/rust.svg',
 		},
 	],

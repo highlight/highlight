@@ -34,25 +34,25 @@ export const DOCS_REDIRECTS = {
 	'api/networkrecordingoptions': '/docs/sdk/client#Hinit',
 	'api/nodejs/h-init': '/docs/sdk/nodejs#Hinit',
 	'api/withhighlightconfig': '/docs/sdk/nextjs#withHighlightConfig',
-	'backend-sdk': '/docs/getting-started/4_backend-sdk',
+	server: '/docs/getting-started/server',
 	'clearbit-integration': '/docs/integrations/clearbit-integration',
-	'client-sdk': '/docs/getting-started/client-sdk',
+	browser: '/docs/getting-started/browser',
 	'console-messages': '/docs/session-replay/console-messages',
 	'content-security-policy': '/docs/tips/content-security-policy',
 	'electron-integration': '/docs/integrations/electron-integration',
 	'error-monitoring/sourcemaps':
 		'/docs/general/product-features/error-monitoring/sourcemaps',
-	'express-backend': '/docs/getting-started/4_backend-sdk/nextjs',
+	'express-backend': '/docs/getting-started/server/nextjs',
 	'front-plugin': '/docs/integrations/front-plugin',
 	'frontend-observability':
 		'/docs/getting-started/overview#For-your-Frontend',
-	'general/getting-started/client-sdk/nextjs':
-		'/docs/getting-started/client-sdk/nextjs',
+	'general/getting-started/browser/nextjs':
+		'/docs/getting-started/browser/nextjs',
 	'general/product-features/frontend-observability':
 		'/docs/getting-started/overview#For-your-Frontend',
 	'general/product-features/session-replay/canvas':
-		'/docs/getting-started/client-sdk/replay-configuration/canvas',
-	'go-backend': '/docs/getting-started/4_backend-sdk/go',
+		'/docs/getting-started/browser/replay-configuration/canvas',
+	'go-backend': '/docs/getting-started/server/go',
 	'grouping-errors': '/docs/error-monitoring/grouping-errors',
 	'html-iframe-recording': '/docs/session-replay/html-iframe-recording',
 	'identifying-users': '/docs/session-replay/identifying-sessions',
@@ -61,7 +61,7 @@ export const DOCS_REDIRECTS = {
 	'integrations/mixpanel-integration':
 		'/docs/general/integrations/mixpanel-integration',
 	'integrations/reactjs-integration':
-		'/docs/getting-started/client-sdk/replay-configuration/react-error-boundary',
+		'/docs/getting-started/browser/replay-configuration/react-error-boundary',
 	'integrations/sentry-integration':
 		'/docs/general/product-features/error-monitoring/overview',
 	'intercom-integration': '/docs/integrations/intercom-integration',
@@ -72,9 +72,9 @@ export const DOCS_REDIRECTS = {
 	'mixpanel-integration': '/docs/general/integrations/mixpanel-integration',
 	'monkey-patches': '/docs/tips/monkey-patches',
 	'network-devtools': '/docs/session-replay/network-devtools',
-	'nextjs-backend': '/docs/getting-started/4_backend-sdk/express',
-	'nextjs-sdk': '/docs/getting-started/4_backend-sdk/nextjs',
-	'nodejs-backend': '/docs/getting-started/4_backend-sdk/nodejs',
+	'nextjs-backend': '/docs/getting-started/server/js/express',
+	'nextjs-sdk': '/docs/getting-started/server/js/nextjs',
+	'nodejs-backend': '/docs/getting-started/server/js/nodejs',
 	'performance-data': '/docs/product-features/performance-data',
 	'performance-impact': '/docs/tips/performance-impact',
 	'product-features/canvas':
@@ -97,10 +97,10 @@ export const DOCS_REDIRECTS = {
 		'/docs/general/product-features/session-replay/versioning-sessions',
 	'product-features/web-vitals': '/docs/general/tips/performance-impact',
 	'proxying-highlight':
-		'/docs/getting-started/client-sdk/replay-configuration/proxying-highlight',
+		'/docs/getting-started/browser/replay-configuration/proxying-highlight',
 	'rage-clicks': '/docs/session-replay/rage-clicks',
 	'reactjs-integration':
-		'/docs/getting-started/client-sdk/replay-configuration/react-error-boundary',
+		'/docs/getting-started/browser/replay-configuration/react-error-boundary',
 	'recording-network-requests-and-responses':
 		'/docs/session-replay/recording-network-requests-and-responses',
 	'segment-integration': '/docs/integrations/segment-integration',
@@ -122,7 +122,7 @@ export const DOCS_REDIRECTS = {
 	'slack-integration': '/docs/integrations/slack-integration',
 	'team-management': '/docs/product-features/team-management',
 	'tips/proxying-highlight':
-		'/docs/getting-started/client-sdk/replay-configuration/proxying-highlight',
+		'/docs/getting-started/browser/replay-configuration/proxying-highlight',
 	'tracking-events': '/docs/session-replay/tracking-events',
 	'upgrading-highlight': '/docs/tips/upgrading-highlight',
 	'user-feedback': '/docs/product-features/user-feedback',
@@ -132,28 +132,28 @@ export const DOCS_REDIRECTS = {
 	'web-vitals': '/docs/product-features/web-vitals',
 	alerts: '/docs/product-features/alerts',
 	analytics: '/docs/product-features/analytics',
-	angular: '/docs/getting-started/client-sdk/angular',
+	angular: '/docs/getting-started/browser/angular',
 	api: '/docs/sdk/client#Hinit',
-	canvas: '/docs/getting-started/client-sdk/replay-configuration/canvas',
+	canvas: '/docs/getting-started/browser/replay-configuration/canvas',
 	comments: '/docs/product-features/comments',
 	environments: '/docs/product-features/environments',
-	gatsbyjs: '/docs/getting-started/client-sdk/gatsbyjs',
-	html: '/docs/getting-started/client-sdk/html',
+	gatsbyjs: '/docs/getting-started/browser/gatsbyjs',
+	html: '/docs/getting-started/browser/html',
 	metrics:
 		'/docs/getting-started/fullstack-frameworks/next-js/metrics-overview',
-	nextjs: '/docs/getting-started/client-sdk/nextjs',
-	other: '/docs/getting-started/client-sdk/other',
+	nextjs: '/docs/getting-started/browser/nextjs',
+	other: '/docs/getting-started/browser/other',
 	privacy: '/docs/session-replay/privacy',
 	segments: '/docs/product-features/segments',
-	shopify: '/docs/getting-started/client-sdk/shopify',
+	shopify: '/docs/getting-started/browser/shopify',
 	sourcemaps: '/docs/error-monitoring/sourcemaps',
-	squarespace: '/docs/getting-started/client-sdk/squarespace',
-	sveltekit: '/docs/getting-started/client-sdk/sveltekit',
+	squarespace: '/docs/getting-started/browser/squarespace',
+	sveltekit: '/docs/getting-started/browser/sveltekit',
 	troubleshooting: '/docs/tips/troubleshooting',
-	vuejs: '/docs/getting-started/client-sdk/vuejs',
-	webflow: '/docs/getting-started/client-sdk/webflow',
+	vuejs: '/docs/getting-started/browser/vuejs',
+	webflow: '/docs/getting-started/browser/webflow',
 	webgl: '/docs/product-features/webgl',
-	wordpress: '/docs/getting-started/client-sdk/wordpress',
+	wordpress: '/docs/getting-started/browser/wordpress',
 }
 
 export default async function middleware(req: NextRequest) {

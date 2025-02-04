@@ -459,7 +459,7 @@ export const quickStartContent = {
 			subtitle: 'OpenTelemetry Protocol (OTLP)',
 			[QuickStartType.OTLP]: OTLPLoggingContent,
 			[QuickStartType.OTLPDotNet]: DotNetOTLPTracingContent,
-			[QuickStartType.OTLPDotNet4]: DotNet4OTLPTracingContent,
+			[QuickStartType.OTLPDotNet4]: DotNet4OTLPTracingContent
 		},
 	},
 	traces: {
