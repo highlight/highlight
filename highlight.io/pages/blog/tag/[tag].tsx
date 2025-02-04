@@ -67,9 +67,14 @@ const TagPage = ({ posts, currentTag }: { posts: Post[]; currentTag: Tag }) => {
 			/>
 			<main>
 				<div className="flex flex-col w-full gap-8 my-20 desktop:max-w-[1100px] mx-auto items-start px-6">
+					<Link href="/blog" className={styles.backLink}>
+						<Typography type="copy2">
+							← Back to All Posts
+						</Typography>
+					</Link>
+
 					<div className="flex flex-col items-start gap-5">
 						<h3>{currentTag.name}</h3>
-
 						<Typography type="copy1">
 							{currentTag.description}
 						</Typography>

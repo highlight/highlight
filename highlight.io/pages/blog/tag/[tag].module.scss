@@ -114,3 +114,15 @@
 	align-items: center;
 	gap: 8px;
 }
+
+.backLink {
+	color: var(--color-copy-on-dark);
+	transition: color 0.2s ease;
+	display: inline-flex;
+	align-items: center;
+	gap: 4px;
+
+	&:hover {
+		color: var(--color-primary);
+	}
+}

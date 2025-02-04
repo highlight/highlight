@@ -1,4 +1,5 @@
 export const authorSection: string
+export const backLink: string
 export const card: string
 export const container: string
 export const description: string
