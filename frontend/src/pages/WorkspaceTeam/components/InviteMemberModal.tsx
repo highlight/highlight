@@ -88,8 +88,6 @@ function InviteMemberModal({
 				? (allProjects?.map((p) => p?.id).filter(Boolean) as string[])
 				: newProjectIds
 
-		console.log('vadim', { projectIdsToSend, newAdminRole })
-
 		sendInviteEmail({
 			variables: {
 				workspace_id: workspaceId!,
