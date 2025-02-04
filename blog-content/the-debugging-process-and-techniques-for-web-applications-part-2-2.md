@@ -11,7 +11,7 @@ authorWebsite: ""
 authorLinkedIn: 'https://www.linkedin.com/in/oyinawosan/?originalSubdomain=ng'
 authorPFP: 'https://www.highlight.io/_next/image?url=https%3A%2F%2Fmedia.graphassets.com%2FpiTf6QmMRNijIohKhV7D&w=3840&q=75'
 image: 'https://www.highlight.io/_next/image?url=https%3A%2F%2Fmedia.graphassets.com%2FXlUauJHTRuTBrCMZOWBy&w=3840&q=75'
-tags: 'Observability, Developer Experience'
+tags: 'Frontend, Observability, Developer Experience'
 metaTitle: "The Debugging Process and Techniques for Web Applications (Part 2/2)"
 ---
 

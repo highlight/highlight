@@ -11,7 +11,7 @@ authorGithub: ''
 authorWebsite: ''
 authorPFP: >-
   https://www.highlight.io/_next/image?url=https%3A%2F%2Fmedia.graphassets.com%2FViK27IG7TCe0YDK20tFy&w=3840&q=75
-tags: Engineering
+tags: 'Frontend, Product Updates'
 metaTitle: A new way of managing errors in Highlight
 ---
 
@@ -29,11 +29,11 @@ In addition to being blazing fast, our new error page UI also provides a more in
 
 ## More error context 🧐
 
-Finally, you can navigate between every instance of an error and easily view the associated session and user’s metadata.
+Finally, you can navigate between every instance of an error and easily view the associated session and user's metadata.
 
 ## Keyboard shortcuts ⌨️
 
-Keyboard shortcut aficionados rejoice! We’ve built a few keyboard shortcuts that you might be familiar with into the new error page. For example, you can use the `J` and `K` keys to navigate errors and take action quickly.
+Keyboard shortcut aficionados rejoice! We've built a few keyboard shortcuts that you might be familiar with into the new error page. For example, you can use the `J` and `K` keys to navigate errors and take action quickly.
 
 [Sorry, your browser doesn't support embedded videos.](https://media.graphassets.com/8AMc3uToucT84spgUtQN)
 

@@ -13,15 +13,15 @@ authorPFP: >-
   https://www.highlight.io/_next/image?url=https%3A%2F%2Fmedia.graphassets.com%2F2wDcc2CoTckAIZVup0NT&w=3840&q=75
 image: >-
   https://www.highlight.io/_next/image?url=https%3A%2F%2Fmedia.graphassets.com%2FCALcOK8TCi6D9xScSMMg&w=3840&q=75
-tags: Engineering
+tags: 'Backend, Engineering'
 metaTitle: 'Introducing: Highlight''s Node.js Integration'
 ---
 
-Today, we’re excited to release Highlight’s Node.js Integration! This integration makes it easy for you to make the most of Highlight for tracking information details from your JavaScript backend.
+Today, we're excited to release Highlight's Node.js Integration! This integration makes it easy for you to make the most of Highlight for tracking information details from your JavaScript backend.
 
 ## Record backend errors
 
-Session replay tools don’t capture backend errors, until now. With our Node.js Integration, you can keep track of **all** backend errors in Highlight with just a few lines of code, all on-top of session replay.
+Session replay tools don't capture backend errors, until now. With our Node.js Integration, you can keep track of **all** backend errors in Highlight with just a few lines of code, all on-top of session replay.
 
 ![blog-pic-1.png](https://media.graphassets.com/GHncpi5zQeO6kaY5E7ES "blog-pic-1.png")
 
@@ -45,7 +45,7 @@ With [custom alerts](https://docs.highlight.run/alerts "https://docs.highlight.r
 
 Using a fancier JS backend framework like Next.js or Express.js?
 
-Don’t worry! Highlight’s Node.js Integration works with other backend JS frameworks that use Node.js.
+Don't worry! Highlight's Node.js Integration works with other backend JS frameworks that use Node.js.
 
 ## How to get started with the Node.js Integration
 

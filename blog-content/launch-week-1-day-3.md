@@ -13,7 +13,7 @@ authorPFP: >-
   https://www.highlight.io/_next/image?url=https%3A%2F%2Fmedia.graphassets.com%2F2wDcc2CoTckAIZVup0NT&w=3840&q=75
 image: >-
   https://www.highlight.io/_next/image?url=https%3A%2F%2Fmedia.graphassets.com%2FE7U4wuSyS5mXKGfDOWsz&w=3840&q=75
-tags: Product Updates
+tags: 'Product Updates'
 metaTitle: 'Day 3: Open Sourcing our Company'
 ---
 

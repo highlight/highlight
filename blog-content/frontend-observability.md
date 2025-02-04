@@ -10,7 +10,7 @@ authorLinkedIn: 'https://linkedin.com/in/haroonchoudery'
 authorGithub: ''
 authorWebsite: ''
 authorPFP: 'https://www.highlight.io/_next/image?url=https%3A%2F%2Fmedia.graphassets.com%2FfKKhW39R0SE2hTIalLzG&w=1920&q=75'
-tags: 'Frontend, Observability'
+tags: 'Frontend, Observability, Product Updates'
 metaTitle: "Frontend Observability"
 ---
 

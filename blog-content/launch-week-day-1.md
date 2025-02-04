@@ -13,7 +13,7 @@ authorPFP: >-
   https://www.highlight.io/_next/image?url=https%3A%2F%2Fmedia.graphassets.com%2F2wDcc2CoTckAIZVup0NT&w=3840&q=75
 image: >-
   https://www.highlight.io/_next/image?url=https%3A%2F%2Fmedia.graphassets.com%2FETwP4qq3RVuVmsipTBaR&w=3840&q=75
-tags: Product Updates
+tags: 'Engineering, Product Updates'
 metaTitle: 'Day 1: Error Monitoring - OTEL support, filtering options, webhooks'
 ---
 
@@ -37,13 +37,13 @@ Vadim, our CTO, wrote up a blog post on our commitment to OTEL and open source [
 
 Since launching our error monitoring product a few months ago, we've learned a lot from our customers. In fact, we've learned that we've got a long road ahead of us to perfect the alerting and error monitoring experience in highlight. Today, we're launching a few features to make it easy to filter out errors, and in-turn make error alerts much more consumable. Here's the tea:
 
-#### Filtering errors emitted by chrome extensions
+### Filtering errors emitted by chrome extensions
 
 Everyone knows of a chrome extension on one of our your customers' clients that you get alerted for, but have no impact on the experience of your users. Today we're launching a way to filter these by default; all highlight.io customers can simply update a setting in their project to filter them.
 
 More details in our filtering docs [here](https://www.highlight.io/docs/general/product-features/error-monitoring/filtering-errors).
 
-#### Filter errors by regex expression
+### Filter errors by regex expression
 
 In the same vain, we also got feedback that there were errors being thrown on our users' clients that weren't common among everyone (unlike chrome extensions), so we decided to support even more customization. That is, you can now filter errors based on a regex expression, which gets applied on the body of the error being thrown.
 

@@ -11,7 +11,7 @@ authorGithub: 'https://github.com/SpennyNDaJets'
 authorWebsite: ''
 authorPFP: >-
   https://lh3.googleusercontent.com/a/AAcHTteOYM6knTAD-uOPM1JP56Yn4WlsGya6Dpnhq_ak6UJUY3Q=s576-c-no
-tags: 'Engineering, Product Updates'
+tags: 'Developer Experience, Engineering'
 metaTitle: Enhance your backend errors with code directly from GitHub
 ---
 
@@ -22,7 +22,7 @@ enhanced stacktraces!
 Sourcemaps are able to enhance your stack traces for frontend errors. Most backend languages are
 compiled, causing us to miss out on those direct code mappings. As a result, the stack traces of
 your backend errors appear empty and lack the context to debug an error from the Highlight app.
-Until now! We’ve built a way to provide you with the extra context on your backend errors, so you
+Until now! We've built a way to provide you with the extra context on your backend errors, so you
 can triage, debug, and solve more efficiently.
 
 ![GitHub enhancement](/images/blog/github-enhanced-stacktraces/enhancement.png)

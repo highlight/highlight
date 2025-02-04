@@ -13,7 +13,7 @@ authorPFP: >-
   https://www.highlight.io/_next/image?url=https%3A%2F%2Fmedia.graphassets.com%2F2wDcc2CoTckAIZVup0NT&w=3840&q=75
 image: >-
   https://www.highlight.io/_next/image?url=https%3A%2F%2Fmedia.graphassets.com%2FuoINZ0kXRI2foJbWRVdP&w=3840&q=75
-tags: Product Updates
+tags: 'Engineering, Product Updates'
 metaTitle: 'Day 2: Our Command bar, setup flow, and design system specs'
 ---
 
