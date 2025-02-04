@@ -1,5 +1,11 @@
 # highlight.run
 
+## 9.9.0
+
+### Minor Changes
+
+-   ab181de: add a network performance listener to report network connection properties
+
 ## 9.8.0
 
 ### Minor Changes
