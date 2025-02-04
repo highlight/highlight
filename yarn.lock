@@ -39879,7 +39879,6 @@ __metadata:
     eslint-plugin-jest: "npm:^27.9.0"
     eslint-plugin-tsdoc: "npm:^0.2.17"
     fflate: "npm:^0.8.1"
-    gray-matter: "npm:^4.0.3"
     husky: "npm:^9.1.4"
     hygen: "npm:^6.2.7"
     knip: "npm:^5.16.0"
@@ -39890,7 +39889,6 @@ __metadata:
     prettier: "npm:^3.3.3"
     pretty-quick: "npm:^4.0.0"
     readdirp: "npm:^3.6.0"
-    tsx: "npm:^4.19.2"
     turbo: "npm:^2.2.3"
     typescript: "npm:^5.5.2"
   languageName: unknown
@@ -61160,7 +61158,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"tsx@npm:^4.19.2, tsx@npm:^4.6.2, tsx@npm:^4.7.0, tsx@npm:^4.7.1":
+"tsx@npm:^4.6.2, tsx@npm:^4.7.0, tsx@npm:^4.7.1":
   version: 4.19.2
   resolution: "tsx@npm:4.19.2"
   dependencies:
