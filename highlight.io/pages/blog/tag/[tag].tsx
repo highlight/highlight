@@ -8,55 +8,55 @@ export const VALID_TAGS: Tag[] = [
 		name: 'All posts',
 		slug: 'all',
 		description:
-			'Welcome to the Highlight Blog, where the Highlight team talks about frontend engineering, observability and more!',
+			'Explore the latest insights on frontend engineering, observability, and developer tools from the Highlight engineering team. Learn best practices, tips, and industry trends.',
 	},
 	{
 		name: 'Engineering',
 		slug: 'engineering',
 		description:
-			'Deep dives into technical implementations, architecture decisions, and engineering best practices.',
+			'In-depth technical articles covering system architecture, scalability solutions, performance optimization, and engineering best practices. Learn from real-world implementations and expert insights.',
 	},
 	{
 		name: 'Frontend',
 		slug: 'frontend',
 		description:
-			'Everything about frontend development, monitoring, debugging, and performance optimization.',
+			'Master frontend development with guides on React, Next.js, performance optimization, debugging tools, and modern web development techniques. Improve your web applications with expert tips.',
 	},
 	{
 		name: 'Backend',
 		slug: 'backend',
 		description:
-			'Backend development, distributed systems, databases, and server-side optimizations.',
+			'Expert insights on backend development, including distributed systems design, database optimization, API development, and scalable architecture patterns. Learn modern backend engineering practices.',
 	},
 	{
 		name: 'Observability',
 		slug: 'observability',
 		description:
-			'Monitoring, logging, tracing, and understanding system behavior in production.',
+			'Learn about modern observability practices including monitoring, logging, tracing, and debugging production systems. Master tools and techniques for maintaining reliable applications.',
 	},
 	{
 		name: 'OpenTelemetry',
 		slug: 'opentelemetry',
 		description:
-			'Articles about OpenTelemetry integration, implementation, and best practices.',
+			'Comprehensive guides on implementing OpenTelemetry for application monitoring, distributed tracing, and observability. Learn integration patterns, best practices, and practical use cases.',
 	},
 	{
 		name: 'Product Updates',
 		slug: 'product-updates',
 		description:
-			'New features, improvements, and major updates to the Highlight platform.',
+			'Stay up to date with the latest Highlight platform features, improvements, and product announcements. Discover new tools and capabilities to enhance your development workflow.',
 	},
 	{
 		name: 'Developer Experience',
 		slug: 'developer-experience',
 		description:
-			'Tools, workflows, and practices that improve the developer experience.',
+			'Discover tools, workflows, and best practices that enhance developer productivity and code quality. Learn about modern development environments, testing strategies, and automation techniques.',
 	},
 	{
 		name: 'Company',
 		slug: 'company',
 		description:
-			'Company news, culture, events, and behind-the-scenes at Highlight.',
+			'Get to know the Highlight team, our culture, and our mission. Read about company news, events, engineering culture, and our journey building developer tools.',
 	},
 ] as const
 
