@@ -47,7 +47,6 @@ import SearchPagination, {
 import { useQueryParam } from 'use-query-params'
 import { useGraphTime } from '@/pages/Graphing/hooks/useGraphTime'
 
-const START_PAGE = 1
 const PAGE_SIZE = 10
 
 export const AlertPage: React.FC = () => {

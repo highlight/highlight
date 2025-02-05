@@ -25,7 +25,6 @@ export const useGetSessions = ({
 	page = 1,
 	disablePolling,
 	sortDesc,
-	presetSelected,
 }: {
 	query: string
 	project_id: string | undefined

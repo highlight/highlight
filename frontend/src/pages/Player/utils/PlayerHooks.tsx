@@ -10,10 +10,6 @@ import usePlayerConfiguration, {
 import analytics from '@util/analytics'
 import { useEffect, useRef, useState } from 'react'
 import { useHotkeys } from 'react-hotkeys-hook'
-import { useNavigate } from 'react-router-dom'
-
-import { useProjectId } from '@/hooks/useProjectId'
-import { useSessionParams } from '@/pages/Sessions/utils'
 
 import { ReplayerState, useReplayerContext } from '../ReplayerContext'
 
@@ -45,15 +41,8 @@ export const getNewTimeWithSkip = ({
 }
 
 export const usePlayerKeyboardShortcuts = () => {
-	const {
-		state,
-		play,
-		pause,
-		time,
-		replayer,
-		sessionResults,
-		sessionMetadata,
-	} = useReplayerContext()
+	const { state, play, pause, time, replayer, sessionMetadata } =
+		useReplayerContext()
 	const { setIsPlayerFullscreen, setRightPanelView } = usePlayerUIContext()
 	const {
 		setPlayerSpeedIdx,
@@ -68,9 +57,6 @@ export const usePlayerKeyboardShortcuts = () => {
 		setShowHistogram,
 		showHistogram,
 	} = usePlayerConfiguration()
-	const { projectId } = useProjectId()
-	const { sessionSecureId } = useSessionParams()
-	const navigate = useNavigate()
 
 	/**
 	 * This function needs to be called before each hot key.

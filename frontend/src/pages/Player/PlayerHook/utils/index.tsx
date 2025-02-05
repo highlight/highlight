@@ -657,6 +657,7 @@ export const changeSession = (
 		return
 	}
 
+	// TODO(vkorolik) preserve query string
 	navigate(
 		`/${projectId}/sessions/${session.secure_id}${page ? `?page=${page}` : ''}`,
 	)
