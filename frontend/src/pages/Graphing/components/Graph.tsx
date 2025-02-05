@@ -3,6 +3,7 @@ import {
 	Box,
 	Button,
 	ButtonIcon,
+	DEFAULT_TIME_PRESETS,
 	IconSolidChartSquareBar,
 	IconSolidChartSquareLine,
 	IconSolidDocumentReport,
@@ -1184,6 +1185,28 @@ const Graph = ({
 		'highlight-used-drilldown',
 		false,
 	)
+
+	// Use a smaller bucketByWindow if the selected one is greater than the time range
+	if (
+		moment(startDate).add(bucketByWindow, 'second').isSameOrAfter(endDate)
+	) {
+		let lastPreset = DEFAULT_TIME_PRESETS[0]
+		for (const preset of DEFAULT_TIME_PRESETS) {
+			if (
+				moment(startDate)
+					.add(preset.quantity, preset.unit)
+					.isBefore(endDate)
+			) {
+				lastPreset = preset
+			} else {
+				break
+			}
+		}
+
+		bucketByWindow = moment
+			.duration(lastPreset.quantity, lastPreset.unit)
+			.asSeconds()
+	}
 
 	const loadExemplars = useCallback(
 		(
