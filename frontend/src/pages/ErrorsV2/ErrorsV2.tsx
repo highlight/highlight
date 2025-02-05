@@ -45,7 +45,6 @@ import { useHotkeys } from 'react-hotkeys-hook'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { apiObject } from 'rudder-sdk-js'
 import {
-	NumberParam,
 	StringParam,
 	useQueryParam,
 	useQueryParams,
@@ -55,7 +54,11 @@ import {
 import { DEMO_PROJECT_ID } from '@/components/DemoWorkspaceButton/DemoWorkspaceButton'
 import { AiSuggestion, SearchContext } from '@/components/Search/SearchContext'
 import { useRetentionPresets } from '@/components/Search/SearchForm/hooks'
-import { START_PAGE } from '@/components/SearchPagination/SearchPagination'
+import {
+	PAGE_PARAM,
+	PAGE_SIZE,
+	START_PAGE,
+} from '@/components/SearchPagination/SearchPagination'
 import { GetErrorGroupQuery } from '@/graph/generated/operations'
 import {
 	ErrorState as ErrorStateEnum,
@@ -80,7 +83,6 @@ import * as styles from './styles.css'
 
 type Params = { project_id: string; error_secure_id: string; referrer?: string }
 
-const PAGE_PARAM = withDefault(NumberParam, START_PAGE)
 const ERROR_QUERY_PARAM = withDefault(
 	StringParam,
 	`status=${ErrorStateEnum.Open} `,
@@ -140,7 +142,11 @@ export default function ErrorsV2() {
 	const location = useLocation()
 	const { showSearch } = useShowSearchParam()
 	const [muteErrorCommentThread] = useMuteErrorCommentThreadMutation()
-	const navigation = useErrorPageNavigation(getErrorsData.errorGroupSecureIds)
+	const navigation = useErrorPageNavigation(
+		getErrorsData.changeErrorGroupIndex,
+		getErrorsData.errorGroupSecureIds,
+		getErrorsData.totalCount,
+	)
 
 	const dragHandleRef = useRef<HTMLDivElement>(null)
 	const dragging = useRef(false)
@@ -278,6 +284,7 @@ export default function ErrorsV2() {
 			histogramBucketSize={getErrorsData.histogramBucketSize}
 			page={page}
 			setPage={setPage}
+			changeResultIndex={getErrorsData.changeErrorGroupIndex}
 			pollingExpired={getErrorsData.pollingExpired}
 			aiMode={aiMode}
 			setAiMode={setAiMode}
@@ -388,9 +395,9 @@ function TopBar({
 		showLeftPanel,
 		canMoveBackward,
 		canMoveForward,
-		nextSecureId,
-		previousSecureId,
-		goToErrorGroup,
+		next,
+		prev,
+		changeErrorGroupIndex,
 	} = navigation
 
 	return (isLoggedIn || projectId === DEMO_PROJECT_ID) && !isBlocked ? (
@@ -427,8 +434,8 @@ function TopBar({
 				<PreviousNextGroup
 					canMoveBackward={canMoveBackward}
 					canMoveForward={canMoveForward}
-					onPrev={() => goToErrorGroup(previousSecureId)}
-					onNext={() => goToErrorGroup(nextSecureId)}
+					onPrev={() => changeErrorGroupIndex(prev)}
+					onNext={() => changeErrorGroupIndex(next)}
 				/>
 			</Box>
 			<Box>
@@ -457,30 +464,30 @@ function useAllHotKeys({
 	setShowLeftPanel,
 	canMoveBackward,
 	canMoveForward,
-	nextSecureId,
-	previousSecureId,
-	goToErrorGroup,
+	next,
+	prev,
+	changeErrorGroupIndex,
 }: ReturnType<typeof useErrorPageNavigation>) {
 	useHotkeys(
 		'j',
 		() => {
-			if (canMoveForward) {
+			if (canMoveForward && changeErrorGroupIndex) {
 				analytics.track('NextErrorGroupKeyboardShortcut')
-				goToErrorGroup(nextSecureId)
+				changeErrorGroupIndex(next)
 			}
 		},
-		[canMoveForward, nextSecureId],
+		[canMoveForward, next, changeErrorGroupIndex],
 	)
 
 	useHotkeys(
 		'k',
 		() => {
-			if (canMoveBackward) {
+			if (canMoveBackward && changeErrorGroupIndex) {
 				analytics.track('PrevErrorGroupKeyboardShortcut')
-				goToErrorGroup(previousSecureId)
+				changeErrorGroupIndex(prev)
 			}
 		},
-		[canMoveBackward, previousSecureId],
+		[canMoveBackward, prev, changeErrorGroupIndex],
 	)
 
 	useHotkeys(
@@ -621,33 +628,21 @@ export function useErrorGroup(errorSecureId?: string) {
 	return { data, loading, errorQueryingErrorGroup }
 }
 
-export function useErrorPageNavigation(secureIds: string[] = []) {
-	const navigate = useNavigate()
-	const location = useLocation()
-	const { project_id, error_secure_id } = useParams<Params>()
+export function useErrorPageNavigation(
+	changeErrorGroupIndex: (index: number) => void = () => null,
+	secureIds: string[] = [],
+	totalCount: number = 0,
+) {
+	const [page] = useQueryParam('page', PAGE_PARAM)
+	const { error_secure_id } = useParams<Params>()
 	const { showLeftPanel, setShowLeftPanel } = usePlayerConfiguration()
-	const goToErrorGroup = useCallback(
-		(secureId: string) => {
-			navigate(
-				{
-					pathname: `/${project_id}/errors/${secureId}`,
-					search: location.search,
-				},
-				{
-					replace: true,
-				},
-			)
-		},
-		[navigate, project_id, location.search],
-	)
 	const currentSearchResultIndex = secureIds.findIndex(
 		(secureId) => secureId === error_secure_id,
 	)
-	const canMoveForward =
-		!!secureIds.length && currentSearchResultIndex < secureIds.length - 1
-	const canMoveBackward = !!secureIds.length && currentSearchResultIndex > 0
-	const nextSecureId = secureIds[currentSearchResultIndex + 1]
-	const previousSecureId = secureIds[currentSearchResultIndex - 1]
+	const next = currentSearchResultIndex + 1
+	const prev = currentSearchResultIndex - 1
+	const canMoveForward = (page - 1) * PAGE_SIZE + next < totalCount
+	const canMoveBackward = prev >= 0 || page > 1
 
 	const [leftPanelWidth, setLeftPanelWidth] = useLocalStorage(
 		LOCAL_STORAGE_PANEL_WIDTH_KEY,
@@ -661,9 +656,9 @@ export function useErrorPageNavigation(secureIds: string[] = []) {
 		setShowLeftPanel,
 		canMoveBackward,
 		canMoveForward,
-		nextSecureId,
-		previousSecureId,
-		goToErrorGroup,
+		next,
+		prev,
+		changeErrorGroupIndex,
 	}
 }
 
