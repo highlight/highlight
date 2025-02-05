@@ -36,6 +36,7 @@ export const useGetSessions = ({
 	presetSelected: boolean
 }) => {
 	const [, setPage] = useQueryParam('page', PAGE_PARAM)
+
 	const variables = useMemo(
 		() => ({
 			project_id: project_id!,
@@ -85,7 +86,10 @@ export const useGetSessions = ({
 
 			let session = data?.sessions?.sessions?.at(index)
 			if (index >= 0 && session !== undefined) {
-				changeSession(project_id!, navigate, session, { page: p })
+				changeSession(project_id!, navigate, session, {
+					page: p,
+					query,
+				})
 			} else {
 				// session must be in the next page; find secure id in the next page
 				const { data } = await paginationQuery({
@@ -98,7 +102,10 @@ export const useGetSessions = ({
 				const newIndex = index % PAGE_SIZE
 				session = data?.sessions?.sessions?.at(newIndex)
 				if (session !== undefined) {
-					changeSession(project_id!, navigate, session, { page: p })
+					changeSession(project_id!, navigate, session, {
+						page: p,
+						query,
+					})
 				}
 			}
 		},
@@ -107,6 +114,7 @@ export const useGetSessions = ({
 			navigate,
 			project_id,
 			page,
+			query,
 			setPage,
 			paginationQuery,
 			variables,

@@ -88,7 +88,7 @@ export const useGetErrorGroups = ({
 
 			let eg = data?.error_groups?.error_groups?.at(index)
 			if (index >= 0 && eg !== undefined) {
-				goToErrorGroup(eg.secure_id, p)
+				goToErrorGroup(eg.secure_id, p, query)
 			} else {
 				// session must be in the next page; find secure id in the next page
 				const { data } = await paginationQuery({
@@ -101,13 +101,14 @@ export const useGetErrorGroups = ({
 				const newIndex = index % PAGE_SIZE
 				eg = data?.error_groups?.error_groups?.at(newIndex)
 				if (eg !== undefined) {
-					goToErrorGroup(eg.secure_id, p)
+					goToErrorGroup(eg.secure_id, p, query)
 				}
 			}
 		},
 		[
 			data?.error_groups?.error_groups,
 			page,
+			query,
 			setPage,
 			paginationQuery,
 			variables,
