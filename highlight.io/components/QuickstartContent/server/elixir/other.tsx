@@ -6,7 +6,7 @@ import { frontendInstallSnippet } from '../shared-snippets-monitoring'
 export const ElixirOtherReorganizedContent: QuickStartContent = {
 	title: 'Elixir',
 	subtitle: 'Learn how to set up highlight.io without a framework.',
-	logoUrl: siteUrl('/images/quickstart/elixir.svg'),
+	logoKey: 'elixir',
 	products: ['Errors', 'Logs'],
 	entries: [
 		frontendInstallSnippet,

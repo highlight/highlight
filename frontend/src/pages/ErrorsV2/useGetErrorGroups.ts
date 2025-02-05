@@ -1,11 +1,14 @@
-import { PAGE_SIZE } from '@components/SearchPagination/SearchPagination'
+import {
+	PAGE_PARAM,
+	PAGE_SIZE,
+} from '@components/SearchPagination/SearchPagination'
 import {
 	useGetErrorGroupsLazyQuery,
 	useGetErrorGroupsQuery,
 } from '@graph/hooks'
 import { usePollQuery } from '@util/search'
 import moment from 'moment'
-import { useCallback } from 'react'
+import { useCallback, useMemo } from 'react'
 
 import { TIME_FORMAT } from '@/components/Search/SearchForm/constants'
 import { GetHistogramBucketSize } from '@/components/SearchResultsHistogram/SearchResultsHistogram'
@@ -13,6 +16,8 @@ import {
 	GetErrorGroupsQuery,
 	GetErrorGroupsQueryVariables,
 } from '@/graph/generated/operations'
+import { useNavigate } from 'react-router-dom'
+import { useQueryParam } from 'use-query-params'
 
 export const useGetErrorGroups = ({
 	query,
@@ -29,8 +34,9 @@ export const useGetErrorGroups = ({
 	page?: number
 	disablePolling?: boolean
 }) => {
-	const { data, loading, error, refetch } = useGetErrorGroupsQuery({
-		variables: {
+	const [, setPage] = useQueryParam('page', PAGE_PARAM)
+	const variables = useMemo(
+		() => ({
 			project_id: project_id!,
 			count: PAGE_SIZE,
 			page,
@@ -41,13 +47,74 @@ export const useGetErrorGroups = ({
 					end_date: moment(endDate).format(TIME_FORMAT),
 				},
 			},
-		},
+		}),
+		[endDate, page, project_id, query, startDate],
+	)
+	const { data, loading, error, refetch } = useGetErrorGroupsQuery({
+		variables,
 		fetchPolicy: 'cache-and-network',
 	})
-
+	const [paginationQuery] = useGetErrorGroupsLazyQuery({
+		fetchPolicy: 'cache-first',
+	})
 	const [moreDataQuery] = useGetErrorGroupsLazyQuery({
 		fetchPolicy: 'network-only',
 	})
+
+	const navigate = useNavigate()
+	const goToErrorGroup = useCallback(
+		(secureId: string, page?: number, query?: string) => {
+			// preserve query string
+			const queryStringParts = []
+			if (page) {
+				queryStringParts.push(`page=${page}`)
+			}
+			if (query) {
+				queryStringParts.push(`query=${query}`)
+			}
+			const queryString = queryStringParts.join('&')
+			navigate(
+				`/${project_id}/errors/${secureId}${queryString ? `?${queryString}` : ''}`,
+			)
+		},
+		[navigate, project_id],
+	)
+
+	const changeErrorGroupIndex = useCallback(
+		async (index: number) => {
+			const p =
+				Math.floor(((page - 1) * PAGE_SIZE + index) / PAGE_SIZE) + 1
+			setPage(p)
+
+			let eg = data?.error_groups?.error_groups?.at(index)
+			if (index >= 0 && eg !== undefined) {
+				goToErrorGroup(eg.secure_id, p, query)
+			} else {
+				// session must be in the next page; find secure id in the next page
+				const { data } = await paginationQuery({
+					variables: {
+						...variables,
+						page: p,
+					},
+					fetchPolicy: 'cache-first',
+				})
+				const newIndex = index % PAGE_SIZE
+				eg = data?.error_groups?.error_groups?.at(newIndex)
+				if (eg !== undefined) {
+					goToErrorGroup(eg.secure_id, p, query)
+				}
+			}
+		},
+		[
+			data?.error_groups?.error_groups,
+			page,
+			query,
+			setPage,
+			paginationQuery,
+			variables,
+			goToErrorGroup,
+		],
+	)
 
 	const {
 		numMore: moreErrors,
@@ -89,6 +156,7 @@ export const useGetErrorGroups = ({
 		refetch,
 		totalCount: data?.error_groups?.totalCount || 0,
 		histogramBucketSize: determineHistogramBucketSize(startDate, endDate),
+		changeErrorGroupIndex,
 	}
 }
 

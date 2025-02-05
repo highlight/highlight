@@ -37,11 +37,12 @@ import * as style from './AllMembers.css'
 
 type Option = {
 	key: string
+	value: AdminRole
 	render: string
 }
 
 const ALL_KEY = 'All'
-const ALL_OPTION = { key: ALL_KEY, render: ALL_KEY }
+const ALL_OPTION = { key: ALL_KEY, value: AdminRole.Member, render: ALL_KEY }
 
 export const PopoverCell = <T extends string[] | string>({
 	options,
@@ -174,10 +175,12 @@ export const PopoverCell = <T extends string[] | string>({
 export const RoleOptions: Option[] = [
 	{
 		key: AdminRole.Member,
+		value: AdminRole.Member,
 		render: 'Member',
 	},
 	{
 		key: AdminRole.Admin,
+		value: AdminRole.Admin,
 		render: 'Admin',
 	},
 ]
@@ -188,7 +191,7 @@ const DISABLED_REASON_NOT_ADMIN =
 	'You must have Admin role to update user access.'
 const DISABLED_REASON_IS_SELF = 'You cannot update your own access.'
 export const DISABLED_REASON_IS_ADMIN = 'Admins have access to all projects.'
-const DISABLED_REASON_NOT_ENTERPRISE =
+export const DISABLED_REASON_NOT_ENTERPRISE =
 	'Manage project access with an enterprise plan.'
 
 const AllMembers = ({
@@ -226,6 +229,7 @@ const AllMembers = ({
 
 	const projectOptions = projects?.map((p) => ({
 		key: p.id,
+		value: AdminRole.Admin,
 		render: p.name,
 	}))
 

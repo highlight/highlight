@@ -1,4 +1,3 @@
-import { siteUrl } from '../../../../utils/urls'
 import { QuickStartContent } from '../../QuickstartContent'
 import { verifyLogs } from '../shared-snippets-logging'
 import { frontendInstallSnippet } from '../shared-snippets-monitoring'
@@ -13,7 +12,7 @@ import {
 export const JSFirebaseReorganizedContent: QuickStartContent = {
 	title: 'Firebase',
 	subtitle: 'Learn how to set up highlight.io in Firebase Cloud Functions.',
-	logoUrl: siteUrl('/images/quickstart/firebase.svg'),
+	logoKey: 'firebase',
 	products: ['Errors', 'Logs', 'Traces'],
 	entries: [
 		frontendInstallSnippet,

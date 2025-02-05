@@ -1,11 +1,9 @@
-import { siteUrl } from '../../../../utils/urls'
 import { QuickStartContent } from '../../QuickstartContent'
 import { verifyLogs } from '../shared-snippets'
 
 export const HostingVercelLogContent: QuickStartContent = {
 	title: 'Logging with the Vercel Log Drain',
 	subtitle: 'Learn how to setup Highlight log ingestion on Vercel.',
-	logoUrl: siteUrl('/images/quickstart/vercel.svg'),
 	entries: [
 		{
 			title: 'Setup the Highlight Vercel integration.',

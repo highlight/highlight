@@ -10,7 +10,6 @@ import { verifyTraces } from '../shared-snippets'
 export const PythonAWSTracesContent: QuickStartContent = {
 	title: 'Python AWS Lambda',
 	subtitle: 'Learn how to set up highlight.io tracing for on AWS Lambda.',
-	logoUrl: siteUrl('/images/quickstart/aws-lambda.svg'),
 	entries: [
 		setupFrontendSnippet,
 		{

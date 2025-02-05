@@ -1,5 +1,3 @@
-import { siteUrl } from '../../../../utils/urls'
-import { fullstackMappingLink } from '../../frontend/shared-snippets'
 import { QuickStartStep } from '../../QuickstartContent'
 
 export const setupFrontendSnippet: string = `<script src="https://unpkg.com/highlight.run"></script>

@@ -8039,12 +8039,8 @@ body {
   top: -6px;
 }
 .wxpajd1 {
-  background-color: var(--_1pyqka92);
   border: var(--_1pyqka9k) solid 1px;
   border-radius: 6px;
-  display: block;
-  padding: 0;
-  position: relative;
 }
 .wxpajd1 code {
   padding-bottom: 8px !important;

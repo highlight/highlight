@@ -1,4 +1,3 @@
-import { siteUrl } from '../../../../utils/urls'
 import { QuickStartContent } from '../../QuickstartContent'
 import { frontendInstallSnippet } from '../shared-snippets'
 import { setUpLogging } from './shared-snippets'
@@ -6,7 +5,6 @@ import { setUpLogging } from './shared-snippets'
 export const RustActixContent: QuickStartContent = {
 	title: 'actix-web',
 	subtitle: 'Learn how to set up highlight.io without a framework.',
-	logoUrl: siteUrl('/images/quickstart/rust.svg'),
 	entries: [
 		frontendInstallSnippet,
 		{

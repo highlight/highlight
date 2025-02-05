@@ -1,4 +1,3 @@
-import { siteUrl } from '../../../../utils/urls'
 import { QuickStartContent } from '../../QuickstartContent'
 import { verifyLogs } from '../shared-snippets-logging'
 import { frontendInstallSnippet } from '../shared-snippets-monitoring'
@@ -12,7 +11,7 @@ import {
 export const PythonGCPReorganizedContext: QuickStartContent = {
 	title: 'Python Google Cloud Functions',
 	subtitle: 'Learn how to set up highlight.io on Google Cloud Functions.',
-	logoUrl: siteUrl('/images/quickstart/google-cloud.svg'),
+	logoKey: 'googlecloud',
 	products: ['Errors', 'Logs', 'Traces'],
 	entries: [
 		frontendInstallSnippet,

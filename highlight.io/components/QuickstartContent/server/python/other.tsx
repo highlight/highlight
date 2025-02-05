@@ -1,4 +1,3 @@
-import { siteUrl } from '../../../../utils/urls'
 import { QuickStartContent } from '../../QuickstartContent'
 import { verifyLogs } from '../shared-snippets-logging'
 import { frontendInstallSnippet } from '../shared-snippets-monitoring'
@@ -8,7 +7,7 @@ import { downloadSnippet, init } from './shared-snippets-monitoring'
 export const PythonOtherReorganizedContext: QuickStartContent = {
 	title: 'Python',
 	subtitle: 'Learn how to set up highlight.io in your Python app.',
-	logoUrl: siteUrl('/images/quickstart/python.svg'),
+	logoKey: 'python',
 	products: ['Errors', 'Logs', 'Traces'],
 	entries: [
 		frontendInstallSnippet,

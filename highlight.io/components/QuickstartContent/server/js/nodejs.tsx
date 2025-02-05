@@ -1,4 +1,3 @@
-import { siteUrl } from '../../../../utils/urls'
 import { QuickStartContent } from '../../QuickstartContent'
 import { verifyLogs } from '../shared-snippets-logging'
 import { frontendInstallSnippet } from '../shared-snippets-monitoring'
@@ -13,7 +12,7 @@ import {
 export const JSNodeReorganizedContent: QuickStartContent = {
 	title: 'Node.js',
 	subtitle: 'Learn how to set up highlight.io in Node.js.',
-	logoUrl: siteUrl('/images/quickstart/node.svg'),
+	logoKey: 'node',
 	products: ['Errors', 'Logs', 'Traces'],
 	entries: [
 		frontendInstallSnippet,

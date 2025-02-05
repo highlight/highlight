@@ -1,4 +1,3 @@
-import { siteUrl } from '../../../../utils/urls'
 import { QuickStartContent } from '../../QuickstartContent'
 import { frontendInstallSnippet } from '../shared-snippets'
 import {
@@ -12,7 +11,6 @@ import {
 export const GoEchoContent: QuickStartContent = {
 	title: 'Go Echo',
 	subtitle: 'Learn how to set up highlight.io on your Go Echo backend.',
-	logoUrl: siteUrl('/images/quickstart/echo.svg'),
 	entries: [
 		frontendInstallSnippet,
 		goGetSnippet,

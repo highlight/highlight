@@ -6,14 +6,14 @@ import {
 	verifySnippet,
 } from './shared-snippets'
 
-import { siteUrl } from '../../../utils/urls'
 import { QuickStartContent } from '../QuickstartContent'
 
 export const OtherContext: QuickStartContent = {
 	title: 'HTML/JS',
 	subtitle:
 		'Learn how to set up highlight.io with any browser-based framework.',
-	logoUrl: siteUrl('/images/quickstart/javascript.svg'),
+	logoKey: 'javascript',
+	products: ['Sessions', 'Errors', 'Logs', 'Traces'],
 	entries: [
 		{
 			title: 'Import the script in your index html file.',

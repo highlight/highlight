@@ -12,7 +12,11 @@ import { vars } from '@highlight-run/ui/vars'
 import { quickStartContentReorganized, QuickStartContent } from 'highlight.io'
 
 import CollapsibleSection from '@/components/CollapsibleSection'
-import { PRODUCT_AREAS, ProductArea } from '@/pages/Connect/constants'
+import {
+	ICON_MAPPINGS,
+	PRODUCT_AREAS,
+	ProductArea,
+} from '@/pages/Connect/constants'
 
 import * as styles from './style.css'
 
@@ -137,7 +141,7 @@ const LanguageOption: React.FC<LanguageOptionProps> = ({
 	handleSelect,
 	selected,
 }) => {
-	const { title, logoUrl, products = [] } = sdk
+	const { title, logoKey, products = [] } = sdk
 	const handleSelectOption = () => {
 		handleSelect(identifier, selected)
 	}
@@ -167,10 +171,10 @@ const LanguageOption: React.FC<LanguageOptionProps> = ({
 					border="secondary"
 					borderWidth="medium"
 				>
-					{logoUrl ? (
+					{logoKey && ICON_MAPPINGS.hasOwnProperty(logoKey) ? (
 						<img
 							alt={title}
-							src={logoUrl}
+							src={(ICON_MAPPINGS as any)[logoKey]}
 							style={{ height: 30, width: 30, borderRadius: 5 }}
 						/>
 					) : (

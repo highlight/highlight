@@ -1,4 +1,3 @@
-import { siteUrl } from '../../../../utils/urls'
 import { QuickStartContent } from '../../QuickstartContent'
 import { tsconfig } from '../../shared-snippets'
 import { verifyLogs } from '../shared-snippets-logging'
@@ -13,7 +12,7 @@ import {
 export const JSCloudflareReorganizedContent: QuickStartContent = {
 	title: 'Cloudflare Workers',
 	subtitle: 'Learn how to set up highlight.io in Cloudflare Workers.',
-	logoUrl: siteUrl('/images/quickstart/cloudflare.svg'),
+	logoKey: 'cloudflare',
 	products: ['Errors', 'Logs', 'Traces'],
 	entries: [
 		frontendInstallSnippet,

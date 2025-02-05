@@ -34,12 +34,7 @@ import React, {
 } from 'react'
 import { Helmet } from 'react-helmet'
 import { useNavigate } from 'react-router-dom'
-import {
-	NumberParam,
-	StringParam,
-	useQueryParam,
-	withDefault,
-} from 'use-query-params'
+import { StringParam, useQueryParam, withDefault } from 'use-query-params'
 
 import {
 	DEMO_PROJECT_ID,
@@ -47,7 +42,10 @@ import {
 } from '@/components/DemoWorkspaceButton/DemoWorkspaceButton'
 import { AiSuggestion, SearchContext } from '@/components/Search/SearchContext'
 import { useRetentionPresets } from '@/components/Search/SearchForm/hooks'
-import { START_PAGE } from '@/components/SearchPagination/SearchPagination'
+import {
+	PAGE_PARAM,
+	START_PAGE,
+} from '@/components/SearchPagination/SearchPagination'
 import {
 	useGetAiQuerySuggestionLazyQuery,
 	useGetBillingDetailsForProjectQuery,
@@ -68,8 +66,6 @@ import {
 import { SessionView } from './SessionView'
 import * as style from './styles.css'
 import { formatResult } from '@pages/Sessions/SessionsFeedV3/SessionFeedConfigDropdown/helpers'
-
-const PAGE_PARAM = withDefault(NumberParam, START_PAGE)
 
 const PlayerPageBase: React.FC<{ playerRef: RefObject<HTMLDivElement> }> = ({
 	playerRef,
@@ -333,6 +329,7 @@ export const PlayerPage = () => {
 						page={page}
 						setPage={setPage}
 						pollingExpired={getSessionsData.pollingExpired}
+						changeResultIndex={getSessionsData.changeSessionIndex}
 						aiMode={aiMode}
 						setAiMode={setAiMode}
 						onAiSubmit={onAiSubmit}

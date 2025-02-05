@@ -11,7 +11,7 @@ import {
 export const DotNet4OTLPReorganizedContent: QuickStartContent = {
 	title: '.NET 4.x via the OpenTelemetry Protocol',
 	subtitle: `.NET 4.x via the OpenTelemetry Protocol (OTLP).`,
-	logoUrl: siteUrl('/images/quickstart/dotnet.svg'),
+	logoKey: 'dotnet',
 	products: ['Errors', 'Logs', 'Traces', 'Metrics'],
 	entries: [
 		downloadSnippet('ASP4'),
