@@ -1,3 +1,5 @@
+'use client'
+
 import { Post } from './BlogPost/BlogPost'
 import { PostTag, Tag, TagTab } from './Tag'
 import Navbar from '../common/Navbar/Navbar'
