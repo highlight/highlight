@@ -649,20 +649,27 @@ export const changeSession = (
 	projectId: string,
 	navigate: NavigateFunction,
 	session: Session | null,
-	successMessageText?: string,
-	page?: number,
+	options?: { successMessageText?: string; page?: number; query?: string },
 ) => {
 	if (!session) {
 		toast.success('No more sessions to play.')
 		return
 	}
 
-	// TODO(vkorolik) preserve query string
+	// preserve query string
+	const queryStringParts = []
+	if (options?.page) {
+		queryStringParts.push(`page=${options?.page}`)
+	}
+	if (options?.query) {
+		queryStringParts.push(`query=${options?.query}`)
+	}
+	const queryString = queryStringParts.join('&')
 	navigate(
-		`/${projectId}/sessions/${session.secure_id}${page ? `?page=${page}` : ''}`,
+		`/${projectId}/sessions/${session.secure_id}${queryString ? `?${queryString}` : ''}`,
 	)
-	if (successMessageText?.length) {
-		toast.success(successMessageText)
+	if (options?.successMessageText?.length) {
+		toast.success(options?.successMessageText)
 	}
 }
 

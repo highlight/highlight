@@ -63,9 +63,18 @@ export const useGetErrorGroups = ({
 
 	const navigate = useNavigate()
 	const goToErrorGroup = useCallback(
-		(secureId: string, page?: number) => {
+		(secureId: string, page?: number, query?: string) => {
+			// preserve query string
+			const queryStringParts = []
+			if (page) {
+				queryStringParts.push(`page=${page}`)
+			}
+			if (query) {
+				queryStringParts.push(`query=${query}`)
+			}
+			const queryString = queryStringParts.join('&')
 			navigate(
-				`/${project_id}/errors/${secureId}${page ? `?page=${page}` : ''}`,
+				`/${project_id}/errors/${secureId}${queryString ? `?${queryString}` : ''}`,
 			)
 		},
 		[navigate, project_id],

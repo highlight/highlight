@@ -85,7 +85,7 @@ export const useGetSessions = ({
 
 			let session = data?.sessions?.sessions?.at(index)
 			if (index >= 0 && session !== undefined) {
-				changeSession(project_id!, navigate, session, undefined, p)
+				changeSession(project_id!, navigate, session, { page: p })
 			} else {
 				// session must be in the next page; find secure id in the next page
 				const { data } = await paginationQuery({
@@ -98,7 +98,7 @@ export const useGetSessions = ({
 				const newIndex = index % PAGE_SIZE
 				session = data?.sessions?.sessions?.at(newIndex)
 				if (session !== undefined) {
-					changeSession(project_id!, navigate, session, undefined, p)
+					changeSession(project_id!, navigate, session, { page: p })
 				}
 			}
 		},
