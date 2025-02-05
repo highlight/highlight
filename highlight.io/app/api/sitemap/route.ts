@@ -9,7 +9,7 @@ import { withAppRouterHighlight } from '../../../highlight.app.config'
 import { getGithubDocsPaths } from '../../../pages/api/docs/github'
 import { getBlogPaths } from '../../../shared/blog'
 import { GraphQLRequest } from '../../../utils/graphql'
-import { kebabCase } from '../../../shared/tags'
+import { VALID_TAGS } from '../../../pages/blog/tag/[tag]'
 
 const stream = createWriteStream({
 	url: 'https://pub.highlight.io/v1/logs/json',
@@ -39,16 +39,7 @@ async function generateXML(): Promise<string> {
 	const githubBlogPages = githubBlogPosts.map(
 		(path) => `blog/${path.simple_path}`,
 	)
-
-	const githubBlogTags = [
-		...new Set(
-			githubBlogPosts
-				.map((post) => post.tags)
-				.flat()
-				.filter(Boolean),
-		),
-	].map((tag) => `blog/tag/${kebabCase(tag)}`)
-
+	const githubBlogTags = VALID_TAGS.map((tag) => `blog/tag/${tag.slug}`)
 	const customerPages = customers.map(
 		(customer: { slug: string }) => `customers/${customer.slug}`,
 	)
