@@ -2,6 +2,8 @@
 id: undefined
 title: "OpenTelemetry Logging"
 slug: "logging"
+description: "Learn how to implement logging in OpenTelemetry, from basic setup to advanced resource attributes and instrumentation."
+keywords: "OpenTelemetry, logging, observability, telemetry, resource attributes"
 ---
 
 We mentioned the 4 categories of telemetry that are supported by OpenTelemetry: Logs, Traces, Metrics, and Baggage. Today we're going to dive deeper into logs.
@@ -16,7 +18,13 @@ The beauty of OpenTelemetry is that it's designed to work with the logs you alre
 
 Let's take a look at how we can start capturing logs in an application. For this example, I have a simple JavaScript file you can execute in Node.js from the terminal and see an example log in the console. Here's a live example of this code running. The code should have automatically run, so you should see logs in the console.
 
-<iframe src="https://stackblitz.com/edit/learn-otel-node-examples?embed=1&file=src%2Flog.ts&hideExplorer=1&hideNavigation=1&view=editor&terminalHeight=50&startScript=log&ctl=1" height="550px" width="100%"></iframe>
+<iframe
+  src="https://stackblitz.com/edit/learn-otel-node-examples?embed=1&file=src%2Flog.ts&hideExplorer=1&hideNavigation=1&view=editor&terminalHeight=50&startScript=log&ctl=1"
+  height="550px"
+  width="100%"
+  loading="lazy"
+  title="OpenTelemetry Basic Logging Example"
+></iframe>
 
 You'll notice that we can see some of the attributes we passed in when calling `logger.emit`, but what are all these other attributes? The OpenTelemetry SDKs automatically add some attributes to our logs, traces, and metrics. These attributes provide context about the source of the log. For example, we can see the service name, the version of the application, and some attributes that help us identify what SDK and version was used to collect the data.
 
@@ -30,7 +38,13 @@ A resource attribute is a key-value pair that describes the resource that the lo
 
 There are many common resource attributes that are automatically added by the SDKs, and OpenTelemetry has a list of conventions for many more. You can also set custom resource attributes to help identify the source of the log. Let's start with setting the service name + a few other common attributes, as well as a custom attribute for our AWS service region.
 
-<iframe src="https://stackblitz.com/edit/learn-otel-node-examples?embed=1&file=src%2Flog-with-resources.ts&hideExplorer=1&hideNavigation=1&view=editor&terminalHeight=50&startScript=log-with-resources&ctl=1" height="550px" width="100%"></iframe>
+<iframe
+  src="https://stackblitz.com/edit/learn-otel-node-examples?embed=1&file=src%2Flog-with-resources.ts&hideExplorer=1&hideNavigation=1&view=editor&terminalHeight=50&startScript=log-with-resources&ctl=1"
+  height="550px"
+  width="100%"
+  loading="lazy"
+  title="OpenTelemetry Resource Attributes Example"
+></iframe>
 
 Note that the `service.name` attribute is now set, as well as `service.version`, `deployment.environment`, and `aws.region`. These attributes will be present on all logs emitted by this provider.
 

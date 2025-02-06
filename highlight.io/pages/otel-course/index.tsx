@@ -441,13 +441,8 @@ export default function OTelCourse({
 							</div>
 						</div>
 
-						<div className="flex flex-col gap-4">
-							<Typography
-								type="copy2"
-								className="text-2xl font-bold text-gray-900 mb-2"
-							>
-								{currentLesson?.title}
-							</Typography>
+						<div>
+							<h1>{currentLesson?.title}</h1>
 							<div className="prose prose-sm max-w-none text-black">
 								<ReactMarkdown
 									components={{
