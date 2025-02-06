@@ -1,8 +1,8 @@
 import { ImageResponse } from '@vercel/og'
 import { NextRequest, URLPattern } from 'next/server'
 import { withEdgeRouterHighlight } from '../../../../highlight.edge.config'
-import { backdrop, font, fontLight } from '../util'
 import Image from 'next/image'
+import { getResources } from '../util'
 
 export const config = {
 	runtime: 'edge',
@@ -12,14 +12,10 @@ export const config = {
 //This query is sent from each customer slug to generate the og image
 const handler = async function (req: NextRequest) {
 	const query = req.nextUrl.href
-	const fontData = await font
-	const fontLightData = await fontLight
-	const backdropData = await backdrop
-	const backDropBase64 = btoa(
-		new Uint8Array(backdropData).reduce(function (p, c) {
-			return p + String.fromCharCode(c)
-		}, ''),
-	)
+	const { font, fontLight, backdrop } = await getResources(req)
+	const backDropBase64 = new Uint8Array(backdrop).reduce(function (p, c) {
+		return p + String.fromCharCode(c)
+	}, '')
 
 	const slug = new URLPattern({ pathname: '/api/og/customer/:slug' }).exec(
 		req.url,
@@ -139,13 +135,13 @@ const handler = async function (req: NextRequest) {
 			fonts: [
 				{
 					name: 'Poppins',
-					data: fontData,
+					data: font,
 					weight: 600,
 					style: 'normal',
 				},
 				{
 					name: 'PoppinsLight',
-					data: fontLightData,
+					data: fontLight,
 					weight: 400,
 					style: 'normal',
 				},
