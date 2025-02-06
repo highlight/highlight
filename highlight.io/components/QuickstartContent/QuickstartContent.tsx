@@ -1,4 +1,3 @@
-import { siteUrl } from '../../utils/urls'
 import { GoChiContent } from './backend/go/chi'
 import { GoEchoContent } from './backend/go/echo'
 import { GoFiberContent } from './backend/go/fiber'
@@ -140,21 +139,12 @@ import { AWSLambdaReorganizedContent } from './server/serverless/lambda'
 import { ElixirOtherReorganizedContent } from './server/elixir/other'
 import { ReactNativeContent } from './mobile/react-native'
 
-export type QuickStartOptions = {
-	title: string
-	metaTitle?: string
-	subtitle: string
-	logoUrl: string
-} & {
-	[key: string]: QuickStartContent
-}
-
 export type QuickStartContent = {
 	title: string
-	metaTitle?: string
 	subtitle: string
-	logoUrl?: string
+	logoKey?: string
 	entries: Array<QuickStartStep>
+	// TODO(spenny): make this required once old quickstarts are cleaned up
 	products?: ('Sessions' | 'Errors' | 'Traces' | 'Logs' | 'Metrics')[]
 }
 
@@ -242,14 +232,7 @@ export enum QuickStartType {
 
 export const quickStartContent = {
 	client: {
-		title: 'Client SDKs',
-		subtitle: 'Select a client SDK to get started.',
-		logoUrl: siteUrl('/images/quickstart/javascript.svg'),
 		js: {
-			title: 'Select your client framework',
-			subtitle:
-				'Select a client SDK to install session replay, error monitoring, and logging for your frontend application.',
-			logoUrl: siteUrl('/images/quickstart/javascript.svg'),
 			[QuickStartType.React]: ReactContent,
 			[QuickStartType.Angular]: AngularContent,
 			[QuickStartType.Next]: NextContent,
@@ -262,14 +245,7 @@ export const quickStartContent = {
 		},
 	},
 	backend: {
-		title: 'Select your backend language',
-		subtitle:
-			'Select a backend language to see the SDKs available for setting up error monitoring and logging for your application.',
 		python: {
-			title: 'Python',
-			subtitle:
-				'Select your Python framework to install error monitoring for your application.',
-			logoUrl: siteUrl('/images/quickstart/python.svg'),
 			[QuickStartType.PythonFlask]: PythonFlaskContext,
 			[QuickStartType.PythonDjango]: PythonDjangoContext,
 			[QuickStartType.PythonFastAPI]: PythonFastAPIContext,
@@ -279,10 +255,6 @@ export const quickStartContent = {
 			[QuickStartType.PythonGCPFn]: PythonGCPContext,
 		},
 		go: {
-			title: 'Go',
-			subtitle:
-				'Select your Go framework to install error monitoring for your application.',
-			logoUrl: siteUrl('/images/quickstart/go.svg'),
 			[QuickStartType.GoGqlgen]: GoGqlgenContent,
 			[QuickStartType.GoFiber]: GoFiberContent,
 			[QuickStartType.GoEcho]: GoEchoContent,
@@ -291,10 +263,6 @@ export const quickStartContent = {
 			[QuickStartType.GoGin]: GoGinContent,
 		},
 		js: {
-			title: 'JavaScript',
-			subtitle:
-				'Select your JavaScript framework to install error monitoring for your application.',
-			logoUrl: siteUrl('/images/quickstart/javascript.svg'),
 			[QuickStartType.JSApollo]: JSApolloContent,
 			[QuickStartType.JSAWSFn]: JSAWSLambdaContent,
 			[QuickStartType.JSCloudflare]: JSCloudflareContent,
@@ -306,84 +274,44 @@ export const quickStartContent = {
 			[QuickStartType.JStRPC]: JStRPCContent,
 		},
 		ruby: {
-			title: 'Ruby',
-			subtitle:
-				'Select your Ruby framework to install error monitoring for your application.',
-			logoUrl: siteUrl('/images/quickstart/ruby.svg'),
 			[QuickStartType.RubyRails]: RubyRailsContent,
 			[QuickStartType.RubyOther]: RubyOtherContent,
 		},
 		rust: {
-			title: 'Rust',
-			subtitle:
-				'Select your Rust framework to install error monitoring for your application.',
-			logoUrl: siteUrl('/images/quickstart/rust.svg'),
 			[QuickStartType.RustActix]: RustActixContent,
 			[QuickStartType.RustOther]: RustOtherContent,
 		},
 		elixir: {
-			title: 'Elixir',
-			subtitle:
-				'Select your Elixir framework to install error monitoring for your application.',
-			logoUrl: siteUrl('/images/quickstart/elixir.svg'),
 			[QuickStartType.ElixirOther]: ElixirOtherContent,
 		},
 		java: {
-			title: 'Java',
-			subtitle:
-				'Select your Java framework to install error monitoring for your application.',
-			logoUrl: siteUrl('/images/quickstart/java.svg'),
 			[QuickStartType.JavaOther]: JavaOtherContent,
 		},
 		php: {
-			title: 'PHP',
-			subtitle:
-				'Select your PHP framework to install error monitoring for your application.',
-			logoUrl: siteUrl('/images/quickstart/php.svg'),
 			[QuickStartType.Other]: PHPOtherContent,
 		},
 		dotnet: {
-			title: 'C# .NET',
-			subtitle: 'ASP C# .NET Applications',
-			logoUrl: siteUrl('/images/quickstart/dotnet.svg'),
 			[QuickStartType.OTLPDotNet]: DotNetOTLPTracingContent,
 			[QuickStartType.OTLPDotNet4]: DotNet4OTLPTracingContent,
 		},
 		otlp: {
-			title: 'OpenTelemetry',
-			subtitle: 'OpenTelemetry Protocol (OTLP)',
 			[QuickStartType.OTLP]: OTLPErrorMonitoringContent,
 			[QuickStartType.OTLPDotNet]: DotNetOTLPTracingContent,
 			[QuickStartType.OTLPDotNet4]: DotNet4OTLPTracingContent,
 		},
 	},
 	'backend-logging': {
-		title: 'Select your language',
-		subtitle:
-			'Select your backend language to install logging in your application.',
 		python: {
-			title: 'Python',
-			subtitle:
-				'Select your Python framework to install logging in your application.',
-			logoUrl: siteUrl('/images/quickstart/python.svg'),
 			[QuickStartType.PythonLoguru]: PythonLoguruLogContent,
 			[QuickStartType.PythonOther]: PythonOtherLogContent,
 			[QuickStartType.PythonOtel]: PythonOtelLogContent,
 		},
 		go: {
-			title: 'Go',
-			subtitle:
-				'Select your Go framework to install logging in your application.',
-			logoUrl: siteUrl('/images/quickstart/go.svg'),
 			[QuickStartType.GoLogrus]: GoOtherLogContent,
 			[QuickStartType.GoOther]: GoOtherLogContent,
 			[QuickStartType.GoFiber]: GoFiberLogContent,
 		},
 		js: {
-			title: 'JavaScript',
-			subtitle:
-				'Select your JavaScript framework to install logging in your application.',
-			logoUrl: siteUrl('/images/quickstart/javascript.svg'),
 			[QuickStartType.JSNodejs]: JSOtherLogContent,
 			[QuickStartType.JSNestjs]: JSNestLogContent,
 			[QuickStartType.JSWinston]: JSWinstonHTTPJSONLogContent,
@@ -391,9 +319,6 @@ export const quickStartContent = {
 			[QuickStartType.JSCloudflare]: JSCloudflareLoggingContent,
 		},
 		other: {
-			title: 'Infrastructure / Other',
-			subtitle:
-				'Get started with logging in your application via HTTP or OTLP.',
 			[QuickStartType.FluentForward]: FluentForwardContent,
 			[QuickStartType.File]: FileContent,
 			[QuickStartType.Docker]: DockerContent,
@@ -402,93 +327,50 @@ export const quickStartContent = {
 			[QuickStartType.Systemd]: SystemdContent,
 		},
 		ruby: {
-			title: 'Ruby',
-			subtitle:
-				'Select your Ruby framework to install logging in your application.',
-			logoUrl: siteUrl('/images/quickstart/ruby.svg'),
 			[QuickStartType.RubyRails]: RubyRailsLogContent,
 			[QuickStartType.RubyOther]: RubyOtherLogContent,
 		},
 		rust: {
-			title: 'Rust',
-			subtitle:
-				'Select your Rust framework to install logging in your application.',
-			logoUrl: siteUrl('/images/quickstart/rust.svg'),
 			[QuickStartType.RustActix]: RustActixLogContent,
 			[QuickStartType.RustOther]: RustOtherLogContent,
 		},
 		elixir: {
-			title: 'Elixir',
-			subtitle:
-				'Select your Elixir framework to install logging in your application.',
-			logoUrl: siteUrl('/images/quickstart/elixir.svg'),
 			[QuickStartType.ElixirOther]: ElixirOtherLogContent,
 		},
 		java: {
-			title: 'Java',
-			subtitle:
-				'Select your Java framework to install logging in your application.',
-			logoUrl: siteUrl('/images/quickstart/java.svg'),
 			[QuickStartType.JavaOther]: JavaOtherLogContent,
 		},
 		php: {
-			title: 'PHP',
-			subtitle:
-				'Select your PHP framework to install error monitoring for your application.',
-			logoUrl: siteUrl('/images/quickstart/php.svg'),
 			[QuickStartType.Other]: PHPOtherLogContent,
 		},
 		hosting: {
-			title: 'Cloud Hosting Provider',
-			subtitle:
-				'Select your Hosting provider to setup the Highlight integration and stream logs.',
 			[QuickStartType.HostingVercel]: HostingVercelLogContent,
 			[QuickStartType.HostingFlyIO]: HostingFlyIOLogContent,
 			[QuickStartType.HostingRender]: HostingRenderLogContent,
 			[QuickStartType.HostingHeroku]: HostingHerokuLogContent,
 		},
 		dotnet: {
-			title: 'C# .NET',
-			subtitle: 'ASP C# .NET Applications',
-			logoUrl: siteUrl('/images/quickstart/dotnet.svg'),
 			[QuickStartType.OTLPDotNet]: DotNetOTLPTracingContent,
 			[QuickStartType.OTLPDotNet4]: DotNet4OTLPTracingContent,
 		},
 		otlp: {
-			title: 'OpenTelemetry',
-			subtitle: 'OpenTelemetry Protocol (OTLP)',
 			[QuickStartType.OTLP]: OTLPLoggingContent,
 			[QuickStartType.OTLPDotNet]: DotNetOTLPTracingContent,
 			[QuickStartType.OTLPDotNet4]: DotNet4OTLPTracingContent,
 		},
 	},
 	traces: {
-		title: 'Select your language',
-		subtitle:
-			'Tracing is supported with the Highlight SDKs or via the OpenTelemetry protocol (OTLP).',
 		'node-js': {
-			title: 'Node.js',
-			subtitle: 'Manually trace your Node.js application.',
-			logoUrl: siteUrl('/images/quickstart/javascript.svg'),
 			[QuickStartType.JSManual]: JSManualTracesContent,
 		},
 		'next-js': {
-			title: 'Next.js',
-			subtitle: 'Trace your Next.js application.',
-			logoUrl: siteUrl('/images/quickstart/nextjs.svg'),
 			[QuickStartType.JSNextjs]: NextJsTracesContent,
 		},
 		go: {
-			title: 'Go',
-			subtitle: 'Install tracing in your Go application.',
-			logoUrl: siteUrl('/images/quickstart/go.svg'),
 			[QuickStartType.GoOther]: GoTracesContent,
 			[QuickStartType.GoGorm]: GormTracesContent,
 		},
 		python: {
-			title: 'Python',
-			subtitle: 'Install tracing in your Python application.',
-			logoUrl: siteUrl('/images/quickstart/python.svg'),
 			[QuickStartType.PythonOther]: PythonManualTracesContent,
 			[QuickStartType.PythonAWSFn]: PythonAWSTracesContent,
 			[QuickStartType.PythonAzureFn]: PythonAzureTracesContent,
@@ -500,61 +382,35 @@ export const quickStartContent = {
 			[QuickStartType.PythonAI]: PythonAITracesContent,
 		},
 		php: {
-			title: 'PHP',
-			subtitle: 'Install tracing in your PHP application.',
-			logoUrl: siteUrl('/images/quickstart/php.svg'),
 			[QuickStartType.Other]: PHPTracesContent,
 		},
 		dotnet: {
-			title: 'C# .NET',
-			subtitle: 'ASP C# .NET Applications',
-			logoUrl: siteUrl('/images/quickstart/dotnet.svg'),
 			[QuickStartType.OTLPDotNet]: DotNetOTLPTracingContent,
 			[QuickStartType.OTLPDotNet4]: DotNet4OTLPTracingContent,
 		},
 		otlp: {
-			title: 'OpenTelemetry',
-			subtitle: 'OpenTelemetry Protocol (OTLP)',
 			[QuickStartType.OTLP]: OTLPTracesContent,
 			[QuickStartType.OTLPDotNet]: DotNetOTLPTracingContent,
 			[QuickStartType.OTLPDotNet4]: DotNet4OTLPTracingContent,
 		},
 		rust: {
-			title: 'Rust',
-			subtitle:
-				'Select your Rust framework to install logging in your application.',
-			logoUrl: siteUrl('/images/quickstart/rust.svg'),
 			[QuickStartType.RustOther]: RustTracesContent,
 			[QuickStartType.RustActix]: RustTracesContent,
 		},
 		serverless: {
-			title: 'Serverless',
-			subtitle: 'Install tracing in your Serverless application.',
-			logoUrl: siteUrl('/images/quickstart/serverless.svg'),
 			[QuickStartType.AWSLambda]: AWSLambdaContent,
 		},
 		ruby: {
-			title: 'Ruby',
-			subtitle: 'Install tracing in your Ruby application.',
-			logoUrl: siteUrl('/images/quickstart/ruby.svg'),
 			[QuickStartType.RubyRails]: RubyRailsTracesContent,
 			[QuickStartType.RubyOther]: RubyOtherTracesContent,
 		},
 	},
 	metrics: {
-		title: 'Select your language',
-		subtitle:
-			'Metrics are supported with the Highlight SDKs or via the OpenTelemetry protocol (OTLP).',
 		dotnet: {
-			title: 'C# .NET',
-			subtitle: 'ASP C# .NET Applications',
-			logoUrl: siteUrl('/images/quickstart/dotnet.svg'),
 			[QuickStartType.OTLPDotNet]: DotNetOTLPTracingContent,
 			[QuickStartType.OTLPDotNet4]: DotNet4OTLPTracingContent,
 		},
 		otlp: {
-			title: 'OpenTelemetry',
-			subtitle: 'OpenTelemetry Protocol (OTLP)',
 			[QuickStartType.OTLP]: OTLPTracesContent,
 		},
 	},

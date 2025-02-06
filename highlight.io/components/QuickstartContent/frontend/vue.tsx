@@ -8,8 +8,6 @@ import {
 	verifySnippet,
 } from './shared-snippets'
 
-import { siteUrl } from '../../../utils/urls'
-
 const vueInitSnippet: QuickStartStep = {
 	title: 'Initialize the SDK in your frontend.',
 	content: `Grab your project ID from [app.highlight.io/setup](https://app.highlight.io/setup), and pass it as the first parameter of the \`H.init()\` method.
@@ -50,7 +48,8 @@ createApp(App).mount('#app')
 export const VueContent: QuickStartContent = {
 	title: 'Vue.js',
 	subtitle: 'Learn how to set up highlight.io with your React application.',
-	logoUrl: siteUrl('/images/quickstart/vue.svg'),
+	logoKey: 'vue',
+	products: ['Sessions', 'Errors', 'Logs', 'Traces'],
 	entries: [
 		packageInstallSnippet,
 		vueInitSnippet,

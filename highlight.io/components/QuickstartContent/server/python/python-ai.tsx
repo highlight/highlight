@@ -1,4 +1,3 @@
-import { siteUrl } from '../../../../utils/urls'
 import { downloadSnippet, init } from './shared-snippets-monitoring'
 import { QuickStartContent } from '../../QuickstartContent'
 import { verifyTraces } from '../shared-snippets-tracing'
@@ -34,7 +33,7 @@ export const PythonAITracesReorganizedContent: QuickStartContent = {
 	title: 'Python AI / LLM Libraries',
 	subtitle:
 		'Learn how to set up highlight.io tracing for common Python AI / LLM libraries to automatically instrument model training, inference, and evaluation.',
-	logoUrl: siteUrl('/images/quickstart/python.svg'),
+	logoKey: 'python',
 	products: ['Errors', 'Logs', 'Traces'],
 	entries: [
 		{

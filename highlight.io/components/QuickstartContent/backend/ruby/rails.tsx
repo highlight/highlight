@@ -1,4 +1,3 @@
-import { siteUrl } from '../../../../utils/urls'
 import { QuickStartContent } from '../../QuickstartContent'
 import { frontendInstallSnippet } from '../shared-snippets'
 import {
@@ -11,7 +10,6 @@ import {
 export const RubyRailsContent: QuickStartContent = {
 	title: 'Rails',
 	subtitle: 'Learn how to set up highlight.io on your Rails backend.',
-	logoUrl: siteUrl('/images/quickstart/rails.svg'),
 	entries: [
 		frontendInstallSnippet,
 		installSdk,

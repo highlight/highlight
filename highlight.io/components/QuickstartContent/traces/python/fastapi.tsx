@@ -1,4 +1,3 @@
-import { siteUrl } from '../../../../utils/urls'
 import {
 	downloadSnippet,
 	init,
@@ -10,7 +9,6 @@ import { verifyTraces } from '../shared-snippets'
 export const PythonFastAPITracesContent: QuickStartContent = {
 	title: 'Python FastAPI',
 	subtitle: 'Learn how to set up highlight.io tracing for your FastAPI app.',
-	logoUrl: siteUrl('/images/quickstart/fastapi.svg'),
 	entries: [
 		setupFrontendSnippet,
 		downloadSnippet(),

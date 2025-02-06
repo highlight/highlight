@@ -1,4 +1,3 @@
-import { siteUrl } from '../../../../utils/urls'
 import { QuickStartContent } from '../../QuickstartContent'
 import { verifyLogs } from '../shared-snippets'
 
@@ -8,7 +7,6 @@ export const HostingFlyIOLogContent: QuickStartContent = {
 		'Learn how to setup Highlight log ingestion on [Fly.io](https://fly.io/blog/shipping-logs/). ' +
 		'As a prerequisite, we assume you already have an application ' +
 		'deployed on Fly.io and `flyctl` configured locally.',
-	logoUrl: siteUrl('/images/quickstart/fly-io.svg'),
 	entries: [
 		{
 			title: 'Configure and launch the fly.io logs shipper, configured for the highlight log drain.',

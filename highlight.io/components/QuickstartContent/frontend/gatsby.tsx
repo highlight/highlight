@@ -1,4 +1,3 @@
-import { siteUrl } from '../../../utils/urls'
 import { QuickStartContent, QuickStartStep } from '../QuickstartContent'
 import {
 	configureSourcemapsCI,
@@ -34,7 +33,8 @@ To get started, we recommend setting \`environment\`, \`version\`, and \`network
 export const GatsbyContent: QuickStartContent = {
 	title: 'Gatsby',
 	subtitle: 'Learn how to set up highlight.io with your Gatsby application.',
-	logoUrl: siteUrl('/images/quickstart/gatsby.svg'),
+	logoKey: 'gatsby',
+	products: ['Sessions', 'Errors', 'Logs', 'Traces', 'Metrics'],
 	entries: [
 		{
 			title: 'Install the gatsby plugin.',

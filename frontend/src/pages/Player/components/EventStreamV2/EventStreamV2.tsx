@@ -76,7 +76,10 @@ const EventStreamV2 = function () {
 		const events = [...replayerEvents]
 		if (data?.web_vitals?.buckets) {
 			const filteredVitals = data.web_vitals.buckets
-				.filter((bucket) => bucket.bucket_min != 0)
+				.filter(
+					(bucket) =>
+						bucket.bucket_min != 0 && bucket.metric_value != null,
+				)
 				.map((bucket) => ({
 					name: bucket.group,
 					value: bucket.metric_value,

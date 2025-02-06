@@ -7,7 +7,6 @@ import {
 	verifySnippet,
 } from './shared-snippets'
 
-import { siteUrl } from '../../../utils/urls'
 import { QuickStartContent } from '../QuickstartContent'
 
 const angularInitCodeSnippet = `// app.module.ts
@@ -40,7 +39,8 @@ export class AppModule { }
 export const AngularContent: QuickStartContent = {
 	title: 'Angular',
 	subtitle: 'Learn how to set up highlight.io with your Angular application.',
-	logoUrl: siteUrl('/images/quickstart/angular.svg'),
+	logoKey: 'angular',
+	products: ['Sessions', 'Errors', 'Logs', 'Traces'],
 	entries: [
 		packageInstallSnippet,
 		{

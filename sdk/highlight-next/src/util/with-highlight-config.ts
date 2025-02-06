@@ -138,10 +138,24 @@ const getHighlightConfig = async (
 				destination: '/404',
 			}
 
-			const highlightRewrite = {
-				source: '/highlight-events',
-				destination: 'https://pub.highlight.io',
-			}
+			const highlightRewrites = [
+				{
+					source: '/highlight-events',
+					destination: 'https://pub.highlight.io',
+				},
+				{
+					source: '/v1/traces',
+					destination: 'https://otel.highlight.io/v1/traces',
+				},
+				{
+					source: '/v1/metrics',
+					destination: 'https://otel.highlight.io/v1/metrics',
+				},
+				{
+					source: '/v1/logs',
+					destination: 'https://otel.highlight.io/v1/logs',
+				},
+			]
 
 			if (!re || Array.isArray(re)) {
 				re = re ?? []
@@ -149,7 +163,7 @@ const getHighlightConfig = async (
 					re.push(sourcemapRewrite)
 				}
 				if (defaultOpts.configureHighlightProxy) {
-					re.push(highlightRewrite)
+					re = re.concat(...highlightRewrites)
 				}
 				return re
 			} else {
@@ -158,7 +172,7 @@ const getHighlightConfig = async (
 						? (re.beforeFiles ?? []).concat(sourcemapRewrite)
 						: re.beforeFiles,
 					afterFiles: defaultOpts.configureHighlightProxy
-						? (re.afterFiles ?? []).concat(highlightRewrite)
+						? (re.afterFiles ?? []).concat(...highlightRewrites)
 						: re.afterFiles,
 					fallback: re.fallback,
 				}

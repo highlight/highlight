@@ -14,22 +14,16 @@
 			"dependsOn": [
 				"rrweb#build",
 				"@rrweb/rrweb-plugin-sequential-id-record#build",
-				"@rrweb/types#build"
+				"@rrweb/types#build",
+				"@highlight-run/client#typegen"
 			],
-			"inputs": [
-				"../client/src/**/*.tsx",
-				"../client/src/**/*.ts",
-				"src/**/*.tsx",
-				"src/**/*.ts",
-				"tsconfig.json"
-			],
+			"inputs": ["src/**/*.tsx", "src/**/*.ts", "tsconfig.json"],
 			"outputs": ["dist/**/*.d.ts"]
 		},
 		"highlight.io#build": {
 			"dependsOn": ["^build"],
 			"outputs": [".next/**"],
-			"env": ["GRAPHCMS_TOKEN"],
-			"cache": true
+			"env": ["GRAPHCMS_TOKEN"]
 		},
 		"highlight.io#lint": {
 			"dependsOn": ["^build"]

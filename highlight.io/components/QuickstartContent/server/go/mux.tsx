@@ -1,4 +1,3 @@
-import { siteUrl } from '../../../../utils/urls'
 import { QuickStartContent } from '../../QuickstartContent'
 import { verifyLogs } from '../shared-snippets-logging'
 import { frontendInstallSnippet } from '../shared-snippets-monitoring'
@@ -14,7 +13,7 @@ export const GoMuxReorganizedContent: QuickStartContent = {
 	title: 'Go Mux',
 	subtitle:
 		'Learn how to set up highlight.io monitoring on your Go gorilla/mux backend.',
-	logoUrl: siteUrl('/images/quickstart/mux.svg'),
+	logoKey: 'mux',
 	products: ['Errors', 'Logs', 'Traces'],
 	entries: [
 		frontendInstallSnippet,

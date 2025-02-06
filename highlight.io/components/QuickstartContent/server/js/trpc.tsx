@@ -1,4 +1,3 @@
-import { siteUrl } from '../../../../utils/urls'
 import { QuickStartContent } from '../../QuickstartContent'
 import { verifyLogs } from '../shared-snippets-logging'
 import { frontendInstallSnippet } from '../shared-snippets-monitoring'
@@ -13,7 +12,7 @@ import {
 export const JStRPCReorganizedContent: QuickStartContent = {
 	title: 'tRPC',
 	subtitle: 'Learn how to set up highlight.io in tRPC.',
-	logoUrl: siteUrl('/images/quickstart/javascript.svg'),
+	logoKey: 'javascript',
 	products: ['Errors', 'Logs', 'Traces'],
 	entries: [
 		frontendInstallSnippet,

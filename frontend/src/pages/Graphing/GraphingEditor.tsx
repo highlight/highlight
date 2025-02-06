@@ -282,7 +282,7 @@ export const GraphingEditor: React.FC = () => {
 			title: metricViewTitle || tempMetricViewTitle,
 			type: viewType,
 			expressions: expressions,
-			sql: editor === Editor.SqlEditor ? sql : null,
+			sql: editor === Editor.SqlEditor ? sqlInternal : null,
 		}
 
 		if (isEdit) {

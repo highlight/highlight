@@ -12,7 +12,10 @@ import Head from 'next/head'
 import Analytics from '../components/Analytics'
 import { Meta } from '../components/common/Head/Meta'
 import MetaImage from '../public/images/meta-image.jpg'
-import { ErrorBoundary as HighlightErrorBoundary } from '@highlight-run/next/client'
+import {
+	ErrorBoundary as HighlightErrorBoundary,
+	HighlightInit,
+} from '@highlight-run/next/client'
 
 Router.events.on('routeChangeStart', nProgress.start)
 Router.events.on('routeChangeError', nProgress.done)
@@ -24,19 +27,18 @@ Router.events.on('routeChangeComplete', () => {
 	nProgress.done()
 })
 
-H.init('4d7k1xeo', {
-	inlineStylesheet: true,
-	inlineImages: true,
-	networkRecording: {
-		enabled: true,
-		recordHeadersAndBody: true,
-	},
-	tracingOrigins: true,
-})
-
 function MyApp({ Component, pageProps }: AppProps) {
 	return (
 		<HighlightErrorBoundary showDialog>
+			<HighlightInit
+				projectId={'4d7k1xeo'}
+				serviceName="highlightio-nextjs-frontend"
+				tracingOrigins
+				networkRecording={{
+					enabled: true,
+					recordHeadersAndBody: true,
+				}}
+			/>
 			<Head>
 				<link
 					rel="preconnect"

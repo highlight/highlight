@@ -2,12 +2,13 @@ package otel
 
 import (
 	"context"
+	"time"
+
 	"github.com/highlight-run/highlight/backend/clickhouse"
 	"github.com/highlight/highlight/sdk/highlight-go"
 	hlog "github.com/highlight/highlight/sdk/highlight-go/log"
 	log "github.com/sirupsen/logrus"
 	"go.opentelemetry.io/collector/pdata/pmetric"
-	"time"
 )
 
 type DataPoint interface {
@@ -24,7 +25,7 @@ func (dp *NumberDataPoint) ExtractAttributes() map[string]any {
 }
 
 func (dp *NumberDataPoint) ToMetricRow(ctx context.Context, retentionDays uint8, metricType pmetric.MetricType, fields *extractedFields) clickhouse.MetricRow {
-	ex := extractExemplars(dp.Exemplars())
+	ex := extractExemplars(dp.Exemplars(), fields)
 	m := clickhouse.MetricSumRow{
 		MetricBaseRow: clickhouse.MetricBaseRow{
 			ProjectId:                uint32(fields.projectIDInt),
@@ -64,7 +65,7 @@ func (dp *HistogramDataPoint) ExtractAttributes() map[string]any {
 }
 
 func (dp *HistogramDataPoint) ToMetricRow(ctx context.Context, retentionDays uint8, metricType pmetric.MetricType, fields *extractedFields) clickhouse.MetricRow {
-	ex := extractExemplars(dp.Exemplars())
+	ex := extractExemplars(dp.Exemplars(), fields)
 	m := clickhouse.MetricHistogramRow{
 		MetricBaseRow: clickhouse.MetricBaseRow{
 			ProjectId:                uint32(fields.projectIDInt),
@@ -188,7 +189,7 @@ type exemplars struct {
 	SecureSessionIDs []string
 }
 
-func extractExemplars(exSlice pmetric.ExemplarSlice) *exemplars {
+func extractExemplars(exSlice pmetric.ExemplarSlice, fields *extractedFields) *exemplars {
 	ex := exemplars{
 		Attributes:       make([]map[string]string, exSlice.Len()),
 		Timestamps:       make([]time.Time, exSlice.Len()),
@@ -236,6 +237,15 @@ func extractExemplars(exSlice pmetric.ExemplarSlice) *exemplars {
 		ex.SpanIDs = append(ex.SpanIDs, e.SpanID().String())
 		ex.TraceIDs = append(ex.TraceIDs, e.TraceID().String())
 		ex.SecureSessionIDs = append(ex.SecureSessionIDs, sessionID)
+	}
+	// since the session id is queried as an exemplar, store it from the parsed attributes
+	if fields.sessionID != "" {
+		ex.Attributes = append(ex.Attributes, map[string]string{})
+		ex.Timestamps = append(ex.Timestamps, time.Time{})
+		ex.Values = append(ex.Values, 0)
+		ex.SpanIDs = append(ex.SpanIDs, "")
+		ex.TraceIDs = append(ex.TraceIDs, "")
+		ex.SecureSessionIDs = append(ex.SecureSessionIDs, fields.sessionID)
 	}
 	return &ex
 }

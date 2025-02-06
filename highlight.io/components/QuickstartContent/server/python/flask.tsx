@@ -1,4 +1,3 @@
-import { siteUrl } from '../../../../utils/urls'
 import { QuickStartContent } from '../../QuickstartContent'
 import { verifyLogs } from '../shared-snippets-logging'
 import { frontendInstallSnippet } from '../shared-snippets-monitoring'
@@ -9,7 +8,7 @@ export const PythonFlaskReorganizedContext: QuickStartContent = {
 	title: 'Python Flask',
 	subtitle:
 		'Learn how to set up highlight.io on your Python Flask backend API.',
-	logoUrl: siteUrl('/images/quickstart/flask.svg'),
+	logoKey: 'flask',
 	products: ['Errors', 'Logs', 'Traces'],
 	entries: [
 		frontendInstallSnippet,

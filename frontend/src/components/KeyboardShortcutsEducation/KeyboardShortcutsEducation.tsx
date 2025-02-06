@@ -340,11 +340,11 @@ export const PlayerKeyboardShortcuts: ShortcutItem[] = [
 	DevToolsShortcut,
 	{
 		description: `Play the next session`,
-		shortcut: ['shift', 'N'],
+		shortcut: ['J'],
 	},
 	{
 		description: `Play the previous session`,
-		shortcut: ['shift', 'P'],
+		shortcut: ['K'],
 	},
 	{
 		description: `Decrease the playback speed`,

@@ -1,4 +1,3 @@
-import { siteUrl } from '../../../../utils/urls'
 import { QuickStartContent } from '../../QuickstartContent'
 import {
 	customError,
@@ -12,7 +11,6 @@ import {
 export const JavaOtherContent: QuickStartContent = {
 	title: 'Java',
 	subtitle: 'Learn how to set up highlight.io on your Java backend.',
-	logoUrl: siteUrl('/images/quickstart/java.svg'),
 	entries: [
 		installSdk,
 		initializeSdk,
