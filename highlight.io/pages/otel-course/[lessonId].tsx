@@ -1,5 +1,5 @@
 import React from 'react'
-import OTelCourse from './index'
+import OTelCourse, { CourseVideo } from './index'
 import { promises as fs } from 'fs'
 import path from 'path'
 import matter from 'gray-matter'
@@ -35,7 +35,7 @@ export const getStaticProps: GetStaticProps = async ({ params }) => {
 	return {
 		props: {
 			courseVideos,
-			initialLessonId: params?.lessonId || null,
+			slug: params?.lessonId || null,
 		},
 	}
 }
@@ -65,18 +65,12 @@ export const getStaticPaths: GetStaticPaths = async () => {
 	}
 }
 
-// The page component
 export default function LessonPage({
-	initialLessonId,
+	slug,
 	courseVideos,
 }: {
-	initialLessonId: string
-	courseVideos: any[]
+	slug: string
+	courseVideos: CourseVideo[]
 }) {
-	return (
-		<OTelCourse
-			initialLessonId={initialLessonId}
-			courseVideos={courseVideos}
-		/>
-	)
+	return <OTelCourse courseVideos={courseVideos} slug={slug} />
 }

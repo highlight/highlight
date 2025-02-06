@@ -2,7 +2,7 @@
 
 import Head from 'next/head'
 import { useRouter } from 'next/router'
-import { useEffect, useRef, useState, useCallback } from 'react'
+import { useEffect, useRef, useState, useCallback, useMemo } from 'react'
 import { Typography } from '../../components/common/Typography/Typography'
 import { LOCAL_STORAGE_KEY } from './signup'
 import ReactMarkdown from 'react-markdown'
@@ -12,7 +12,7 @@ import path from 'path'
 import matter from 'gray-matter'
 import Link from 'next/link'
 
-type CourseVideo = {
+export type CourseVideo = {
 	id: string | undefined
 	title: string
 	description: string
@@ -74,40 +74,38 @@ export async function getStaticProps() {
 }
 
 const useYouTubePlayer = (
-	currentVideo: string | undefined,
+	videoId: string | undefined,
 	onProgress: (progress: number) => void,
 ) => {
 	const [player, setPlayer] = useState<YT.Player | null>(null)
+	const [isAPIReady, setIsAPIReady] = useState(false)
 	const clearProgressInterval = useRef<() => void>()
 
+	// Load the YouTube API
 	useEffect(() => {
+		// Save the existing callback if any
+		const existingCallback = window.onYouTubeIframeAPIReady
+
 		const tag = document.createElement('script')
 		tag.src = 'https://www.youtube.com/iframe_api'
 		tag.async = true
 		document.body.appendChild(tag)
 
+		// Set up our callback
+		window.onYouTubeIframeAPIReady = () => {
+			setIsAPIReady(true)
+			// Call the existing callback if there was one
+			existingCallback?.()
+		}
+
 		return () => {
+			if (player) {
+				player.destroy()
+				setPlayer(null)
+			}
 			document.body.removeChild(tag)
 		}
-	}, [])
-
-	const initializePlayer = useCallback((videoId: string | undefined) => {
-		if (!videoId) return
-
-		const newPlayer = new window.YT.Player('youtube-player', {
-			width: '100%',
-			videoId,
-			playerVars: {
-				autoplay: 1,
-				rel: 0,
-			},
-			events: {
-				onStateChange: onPlayerStateChange,
-			},
-		})
-
-		setPlayer(newPlayer)
-	}, [])
+	}, []) // Only run once on mount
 
 	const startProgressTracking = useCallback(() => {
 		const progressInterval = setInterval(() => {
@@ -120,7 +118,7 @@ const useYouTubePlayer = (
 		}, 5000)
 
 		return () => clearInterval(progressInterval)
-	}, [player, onProgress])
+	}, [onProgress])
 
 	const onPlayerStateChange = useCallback(
 		(event: YT.OnStateChangeEvent) => {
@@ -135,18 +133,52 @@ const useYouTubePlayer = (
 		[onProgress, startProgressTracking],
 	)
 
-	const loadVideo = useCallback(
-		(videoId: string | undefined) => {
-			if (!videoId) return
+	// Initialize player and handle video changes
+	useEffect(() => {
+		if (!isAPIReady || typeof window === 'undefined') return
 
+		const setupPlayer = () => {
+			if (!player) {
+				const newPlayer = new window.YT.Player('youtube-player', {
+					width: '100%',
+					videoId,
+					playerVars: {
+						autoplay: 1,
+						rel: 0,
+					},
+					events: {
+						onStateChange: onPlayerStateChange,
+					},
+				})
+
+				setPlayer(newPlayer)
+			}
+		}
+
+		// Small delay to ensure DOM is ready
+		const timeoutId = setTimeout(setupPlayer, 0)
+
+		return () => {
+			clearTimeout(timeoutId)
+		}
+	}, [isAPIReady])
+
+	const loadVideo = useCallback(
+		(videoId: string) => {
 			if (player?.loadVideoById) {
-				player.loadVideoById(videoId)
+				player.loadVideoById({ videoId })
 			}
 		},
 		[player],
 	)
 
-	return { player, initializePlayer, loadVideo }
+	useEffect(() => {
+		if (videoId) {
+			loadVideo(videoId)
+		}
+	}, [videoId])
+
+	return { player, loadVideo }
 }
 
 const useVideoProgress = (courseVideos: CourseVideo[]) => {
@@ -251,64 +283,48 @@ const useAuthorization = () => {
 
 export default function OTelCourse({
 	courseVideos,
-	initialLessonId,
+	slug,
 }: {
 	courseVideos: CourseVideo[]
-	initialLessonId?: string
+	slug?: string
 }) {
-	const [currentVideo, setCurrentVideo] = useState<CourseVideo['id']>()
-	const [currentSlug, setCurrentSlug] = useState<string | undefined>(
-		initialLessonId,
-	)
+	const currentVideoId =
+		courseVideos.find((v) => v.slug === slug)?.id ?? courseVideos[0].id!
+
 	const router = useRouter()
+	useEffect(() => {
+		if (!slug) {
+			router.push(`/otel-course/${courseVideos[0].slug}`)
+		}
+	}, [slug, courseVideos, router])
 
 	const showToast = useSignupToast()
 	const isAuthorized = useAuthorization()
 
-	// Set initial lesson when route changes
-	useEffect(() => {
-		if (initialLessonId) {
-			setCurrentSlug(initialLessonId)
-			const video = courseVideos.find((v) => v.slug === initialLessonId)
-			// Only handle video if the lesson has one
-			if (video?.id) {
-				setCurrentVideo(video.id)
-			} else {
-				setCurrentVideo(undefined)
-			}
-		}
-	}, [initialLessonId, courseVideos])
-
-	const handleVideoClick = (videoId: string | undefined) => {
-		if (!videoId) return
-
-		// Update URL when video changes
-		const video = courseVideos.find((v) => v.id === videoId)
-		if (video?.id) {
-			router.push(`/otel-course/${video.slug}`, undefined, {
-				shallow: true,
-			})
-			setCurrentSlug(video.slug)
-			setCurrentVideo(video.id)
-		}
-	}
-
 	const { updateProgress, findProgress } = useVideoProgress(courseVideos)
+
+	const { loadVideo } = useYouTubePlayer(
+		currentVideoId,
+		(progress: number) => {
+			if (currentVideoId) {
+				updateProgress(currentVideoId, progress)
+			}
+		},
+	)
+
+	useEffect(() => {
+		if (currentVideoId) {
+			loadVideo(currentVideoId)
+		}
+	}, [currentVideoId, loadVideo])
+
+	const currentLesson = useMemo(() => {
+		return courseVideos.find((video) => video.slug === slug)
+	}, [slug])
 
 	if (!isAuthorized) {
 		return null
 	}
-
-	const getCurrentLesson = () => {
-		return courseVideos.find((video) => video.slug === currentSlug)
-	}
-
-	const { player, initializePlayer, loadVideo } = useYouTubePlayer(
-		currentVideo,
-		(progress: number) => {
-			updateProgress(currentVideo!, progress)
-		},
-	)
 
 	return (
 		<div className="min-h-screen bg-gray-50 otel-course">
@@ -334,8 +350,8 @@ export default function OTelCourse({
 
 			<Head>
 				<title>
-					{currentVideo
-						? `${courseVideos.find((v) => v.id === currentVideo)?.title} | OpenTelemetry Course`
+					{currentVideoId
+						? `${courseVideos.find((v) => v.id === currentVideoId)?.title} | OpenTelemetry Course`
 						: 'OpenTelemetry Course'}{' '}
 					| Highlight.io
 				</title>
@@ -361,7 +377,7 @@ export default function OTelCourse({
 					<nav className="px-4 space-y-1">
 						{courseVideos.map((video, videoIndex) => {
 							const progress = findProgress(video.id)
-							const isActive = currentSlug === video.slug
+							const isActive = slug === video.slug
 
 							return (
 								<Link
@@ -401,71 +417,50 @@ export default function OTelCourse({
 
 				{/* Main Content */}
 				<div className="flex-1 overflow-y-auto">
-					<div className="p-8">
-						{/* Video Player - only show for lessons with video IDs */}
-						{getCurrentLesson()?.id ? (
-							<div
-								className="aspect-w-16 aspect-h-9 bg-gray-900 rounded-lg overflow-hidden mb-8 relative"
-								style={{ paddingBottom: '56.25%' }}
-							>
+					<div className="p-8 max-w-[1600px] mx-auto w-full">
+						<div className="relative w-full pb-[56.25%]">
+							<div className="absolute inset-0 bg-gray-900 rounded-lg overflow-hidden">
 								<div
 									id="youtube-player"
-									className="w-full h-full absolute top-0 left-0"
+									className="w-full h-full"
 								></div>
-							</div>
-						) : currentSlug ? (
-							<div className="aspect-w-16 aspect-h-9 bg-gray-900 rounded-lg overflow-hidden mb-8 relative flex items-center justify-center">
-								<div className="text-center text-white">
-									<Typography type="copy2" className="mb-4">
-										Video coming soon!
-									</Typography>
-								</div>
-							</div>
-						) : (
-							<div className="aspect-w-16 aspect-h-9 bg-gray-900 rounded-lg overflow-hidden mb-8 relative flex items-center justify-center">
-								<div className="text-center text-white">
-									<Typography type="copy2" className="mb-4">
-										Select a lesson to start learning
-									</Typography>
-									{courseVideos[0]?.id && (
-										<button
-											className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition-colors"
-											onClick={() =>
-												handleVideoClick(
-													courseVideos[0].id,
-												)
-											}
-										>
-											Start First Video
-										</button>
-									)}
-								</div>
-							</div>
-						)}
 
-						{/* Lesson Content - show whenever a lesson is selected */}
-						{currentSlug && (
-							<div className="flex flex-col gap-4">
-								<Typography
-									type="copy2"
-									className="text-2xl font-bold text-gray-900 mb-2"
-								>
-									{getCurrentLesson()?.title}
-								</Typography>
-								<div className="prose prose-sm max-w-none text-black">
-									<ReactMarkdown
-										components={{
-											iframe: ({ node, ...props }) => (
-												<iframe {...props} />
-											),
-										}}
-										rehypePlugins={[rehypeRaw as any]}
-									>
-										{getCurrentLesson()?.description ?? ''}
-									</ReactMarkdown>
-								</div>
+								{/* IF video unavailable, show a message */}
+								{currentVideoId === 'undefined' && (
+									<div className="absolute inset-0 flex items-center justify-center bg-dark-background">
+										<div className="text-center text-white">
+											<Typography
+												type="copy2"
+												className="text-2xl mb-4"
+											>
+												Video unavailable
+											</Typography>
+										</div>
+									</div>
+								)}
 							</div>
-						)}
+						</div>
+
+						<div className="flex flex-col gap-4">
+							<Typography
+								type="copy2"
+								className="text-2xl font-bold text-gray-900 mb-2"
+							>
+								{currentLesson?.title}
+							</Typography>
+							<div className="prose prose-sm max-w-none text-black">
+								<ReactMarkdown
+									components={{
+										iframe: ({ node, ...props }) => (
+											<iframe {...props} />
+										),
+									}}
+									rehypePlugins={[rehypeRaw as any]}
+								>
+									{currentLesson?.description ?? ''}
+								</ReactMarkdown>
+							</div>
+						</div>
 					</div>
 				</div>
 			</div>
