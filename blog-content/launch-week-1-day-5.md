@@ -1,18 +1,20 @@
 ---
-title: "Day 5: Our Partners & Supporters"
-createdAt: 2023-04-21T12:00:00Z
+title: 'Day 5: Our Partners & Supporters'
+createdAt: 2023-04-21T12:00:00.000Z
 readingTime: 7
 authorFirstName: Vadim
 authorLastName: Korolik
-authorTitle: Co-Founder & CTO 
+authorTitle: Co-Founder & CTO
 authorTwitter: 'https://twitter.com/vkorolik'
 authorLinkedIn: 'https://www.linkedin.com/in/vkorolik/'
 authorGithub: 'https://github.com/Vadman97'
 authorWebsite: 'https://vadweb.us'
-authorPFP: 'https://lh3.googleusercontent.com/a-/AOh14Gh1k7XsVMGxHMLJZ7qesyddqn1y4EKjfbodEYiY=s96-c'
-image: "https://www.highlight.io/_next/image?url=https%3A%2F%2Fmedia.graphassets.com%2Fy11erLrRriQHCiQeXo34&w=3840&q=75"
-tags: Launch Week 1
-metaTitle: "Day 5: Our Partners & Supporters" 
+authorPFP: >-
+  https://lh3.googleusercontent.com/a-/AOh14Gh1k7XsVMGxHMLJZ7qesyddqn1y4EKjfbodEYiY=s96-c
+image: >-
+  https://www.highlight.io/_next/image?url=https%3A%2F%2Fmedia.graphassets.com%2Fy11erLrRriQHCiQeXo34&w=3840&q=75
+tags: Product Updates
+metaTitle: 'Day 5: Our Partners & Supporters'
 ---
 
 Day 5 of launch week is here!

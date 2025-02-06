@@ -1,16 +1,17 @@
 ---
 title: Publishing an NPM Package with Private pnpm Monorepo Dependencies
-createdAt: 2023-01-27T12:00:00Z
+createdAt: 2023-01-27T12:00:00.000Z
 readingTime: 13
 authorFirstName: Vadim
 authorLastName: Korolik
-authorTitle: Software Engineer @ Highlight 
+authorTitle: Software Engineer @ Highlight
 authorTwitter: 'https://twitter.com/vkorolik'
 authorLinkedIn: 'https://www.linkedin.com/in/vkorolik/'
 authorGithub: 'https://github.com/Vadman97'
 authorWebsite: 'https://vadweb.us'
-authorPFP: 'https://lh3.googleusercontent.com/a-/AOh14Gh1k7XsVMGxHMLJZ7qesyddqn1y4EKjfbodEYiY=s96-c'
-tags: Developer Tooling, Highlight Engineering
+authorPFP: >-
+  https://lh3.googleusercontent.com/a-/AOh14Gh1k7XsVMGxHMLJZ7qesyddqn1y4EKjfbodEYiY=s96-c
+tags: Engineering
 metaTitle: Publishing an NPM Package with Private pnpm Monorepo Dependencies
 ---
 

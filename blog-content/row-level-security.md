@@ -1,17 +1,18 @@
 ---
-title: 'Data isolation with ClickHouse row policies'
-createdAt: 2025-01-28T00:00:00Z
+title: Data isolation with ClickHouse row policies
+createdAt: 2025-01-28T00:00:00.000Z
 readingTime: 9
 authorFirstName: Zane
 authorLastName: Mayberry
-authorTitle: Software Engineer @ Highlight 
+authorTitle: Software Engineer @ Highlight
 authorTwitter: ''
 authorWebsite: ''
 authorLinkedIn: 'https://www.linkedin.com/in/zane-mayberry-688161165/'
 authorGithub: 'https://github.com/mayberryzane'
-authorPFP: 'https://www.highlight.io/_next/image?url=https%3A%2F%2Fmedia.graphassets.com%2FvrMpBimsRzOGGJSWWppg&w=1920&q=75'
-tags: ClickHouse, Highlight Engineering
-metaTitle: 'Data isolation with ClickHouse row policies'
+authorPFP: >-
+  https://www.highlight.io/_next/image?url=https%3A%2F%2Fmedia.graphassets.com%2FvrMpBimsRzOGGJSWWppg&w=1920&q=75
+tags: 'Backend, Engineering'
+metaTitle: Data isolation with ClickHouse row policies
 ---
 
 ```hint

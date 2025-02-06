@@ -1,6 +1,6 @@
 ---
-title: "Day 1: OpenTelemetry on Highlight"
-createdAt: 2024-01-29T12:00:00Z
+title: 'Day 1: OpenTelemetry on Highlight'
+createdAt: 2024-01-29T12:00:00.000Z
 readingTime: 3
 authorFirstName: Chris
 authorLastName: Esplin
@@ -9,10 +9,10 @@ authorTwitter: 'https://twitter.com/chrisesplin'
 authorLinkedIn: 'https://www.linkedin.com/in/epsilon/'
 authorGithub: 'https://github.com/deltaepsilon'
 authorWebsite: 'https://www.chrisesplin.com/'
-authorPFP: '/images/blog/podcast/avatars/esplin.jpeg'
-image: '/images/blog/launch-week/4/d1-splash.png'
-tags: Launch Week 4, OpenTelemetry
-metaTitle: "Day 1: Simplify tracing with OpenTelemetry and Highlight"
+authorPFP: /images/blog/podcast/avatars/esplin.jpeg
+image: /images/blog/launch-week/4/d1-splash.png
+tags: 'Engineering, Product Updates, OpenTelemetry'
+metaTitle: 'Day 1: Simplify tracing with OpenTelemetry and Highlight'
 ---
 
 ## Highlight, powered by OpenTelemetry

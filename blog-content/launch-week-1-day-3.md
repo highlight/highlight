@@ -1,18 +1,20 @@
 ---
-title: "Day 3: Open Sourcing our Company"
-createdAt: 2023-04-19T12:00:00Z
+title: 'Day 3: Open Sourcing our Company'
+createdAt: 2023-04-19T12:00:00.000Z
 readingTime: 5
 authorFirstName: Jay
 authorLastName: Khatri
-authorTitle: Co-founder, Hype-man & CEO 
+authorTitle: 'Co-founder, Hype-man & CEO'
 authorTwitter: 'https://twitter.com/theJayKhatri'
 authorLinkedIn: 'https://www.linkedin.com/in/jay-khatri/'
 authorGithub: ''
 authorWebsite: ''
-authorPFP: 'https://www.highlight.io/_next/image?url=https%3A%2F%2Fmedia.graphassets.com%2F2wDcc2CoTckAIZVup0NT&w=3840&q=75'
-image: 'https://www.highlight.io/_next/image?url=https%3A%2F%2Fmedia.graphassets.com%2FE7U4wuSyS5mXKGfDOWsz&w=3840&q=75'
-tags: Launch Week 1
-metaTitle: "Day 3: Open Sourcing our Company"
+authorPFP: >-
+  https://www.highlight.io/_next/image?url=https%3A%2F%2Fmedia.graphassets.com%2F2wDcc2CoTckAIZVup0NT&w=3840&q=75
+image: >-
+  https://www.highlight.io/_next/image?url=https%3A%2F%2Fmedia.graphassets.com%2FE7U4wuSyS5mXKGfDOWsz&w=3840&q=75
+tags: 'Product Updates'
+metaTitle: 'Day 3: Open Sourcing our Company'
 ---
 
 Its day 3 of launch week! Today, we're excited to be launching several efforts we've been putting together to "open source" our company. The truth about open source is that its much bigger than a github repo; in fact, we've learned that since open sourcing our company processes and values, it's started to pay off in super interesting ways. So today, we highlight (no pun intended 😅) a few of the things about how we do things at Highlight, namely:

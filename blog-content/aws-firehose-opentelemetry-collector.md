@@ -1,6 +1,6 @@
 ---
-title: "Configuring the OpenTelemetry Collector for AWS Firehose"
-createdAt: 2025-01-30T12:00:00Z
+title: Configuring the OpenTelemetry Collector for AWS Firehose
+createdAt: 2025-01-30T12:00:00.000Z
 readingTime: 4
 authorFirstName: Vadim
 authorLastName: Korolik
@@ -9,9 +9,13 @@ authorTwitter: 'https://twitter.com/vkorolik'
 authorLinkedIn: 'https://www.linkedin.com/in/vkorolik/'
 authorGithub: 'https://github.com/Vadman97'
 authorWebsite: 'https://vadweb.us'
-authorPFP: 'https://lh3.googleusercontent.com/a-/AOh14Gh1k7XsVMGxHMLJZ7qesyddqn1y4EKjfbodEYiY=s96-c'
-tags: 'Developer Tooling, Monitoring, Observability'
-metaTitle: 'Setting up the OpenTelemetry Collector with a Firehose Receiver'
+authorPFP: >-
+  https://lh3.googleusercontent.com/a-/AOh14Gh1k7XsVMGxHMLJZ7qesyddqn1y4EKjfbodEYiY=s96-c
+tags: 'Engineering, Observability'
+metaTitle: Set up the OpenTelemetry Collector with a Firehose Receiver
+metaDescription: >-
+  Learn how to configure the OpenTelemetry Collector to receive data from AWS
+  Firehose.
 ---
 
 ```hint
@@ -34,7 +38,7 @@ Before configuring OpenTelemetry, it’s important to understand the format of d
 
 AWS Firehose can be configured to receive CloudWatch metrics in either OpenTelemetry 1.0 format or JSON format. The key difference is:
 
-* OpenTelemetry 1.0 format: Structured for direct ingestion into observability platforms. The data uses the [OTLP Protobuf](https://github.com/open-telemetry/opentelemetry-proto) with a slight twist: batches of binary collector export records can be concatenated. The payload has a header indicating the number of batches, necessary to split the binary data for deserialization. For reference, check out the [opentelemetry-collector-contrib](https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/ff2d5e23033da2a3ce686e1513864a0a0f87b563/receiver/awsfirehosereceiver/internal/unmarshaler/otlpmetricstream/unmarshaler.go#L44-L49) implementation. 
+* OpenTelemetry 1.0 format: Structured for direct ingestion into observability platforms. The data uses the [OTLP Protobuf](https://github.com/open-telemetry/opentelemetry-proto) with a slight twist: batches of binary collector export records can be concatenated. The payload has a header indicating the number of batches, necessary to split the binary data for deserialization. For reference, check out the [opentelemetry-collector-contrib](https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/ff2d5e23033da2a3ce686e1513864a0a0f87b563/receiver/awsfirehosereceiver/internal/unmarshaler/otlpmetricstream/unmarshaler.go#L44-L49) implementation.
 * Metrics JSON format: A more generic format that requires custom parsing before ingestion into OpenTelemetry.
 
 Example JSON payload from a CloudWatch Metrics stream:
@@ -76,7 +80,7 @@ These logs need to be parsed properly to extract meaningful telemetry data befor
 
 ## OpenTelemetry Collector
 
-The OpenTelemetry Collector is a vendor-agnostic proxy for receiving, processing, and exporting telemetry data. The [OpenTelemetry specification](https://opentelemetry.io/docs/specs/otel/) defines the data format implemented by the collector. The collector has streamlined components to control the data ingest, processing, and export to other destinations. The open source ecosystem continues to add new components to the collector, providing support for new ingest formats and new storage backends. 
+The OpenTelemetry Collector is a vendor-agnostic proxy for receiving, processing, and exporting telemetry data. The [OpenTelemetry specification](https://opentelemetry.io/docs/specs/otel/) defines the data format implemented by the collector. The collector has streamlined components to control the data ingest, processing, and export to other destinations. The open source ecosystem continues to add new components to the collector, providing support for new ingest formats and new storage backends.
 
 Leveraging existing OpenTelemetry receivers can significantly streamline the process of collecting telemetry data by reducing the need for custom parsing and transformation logic. Receivers are purpose-built to handle specific data formats, ensuring compatibility with OpenTelemetry’s internal processing pipeline and reducing engineering overhead. By using a pre-built receiver, you benefit from community support, ongoing maintenance, and optimizations that improve efficiency and reliability. Compared to manual ingestion or custom-built processors, receivers provide a standardized approach that minimizes errors, enhances performance, and simplifies integration with other observability tools.
 
@@ -102,7 +106,7 @@ receivers:
         endpoint: '0.0.0.0:4435'
         record_type: otlp_v1
         include_metadata: true
-    
+
 exporters:
     debug:
         sampling_initial: 60
@@ -115,7 +119,7 @@ exporters:
         database: "otel_metrics"
         username: "default"
         password: ""
-    
+
 service:
     pipelines:
         logs:

@@ -1,18 +1,20 @@
 ---
-title: "Maximizing Our Machines: Worker Pools At Highlight"
-createdAt: 2022-08-04T12:00:00Z
+title: 'Maximizing Our Machines: Worker Pools At Highlight'
+createdAt: 2022-08-04T12:00:00.000Z
 readingTime: 3
 authorFirstName: Cameron
 authorLastName: Brill
-authorTitle: Software Engineer 
+authorTitle: Software Engineer
 authorTwitter: 'https://twitter.com/c00brill'
 authorLinkedIn: 'https://www.linkedin.com/in/cameronbrill/'
 authorGithub: 'https://github.com/cameronbrill'
 authorWebsite: 'https://www.cameronbrill.me/'
-authorPFP: 'https://www.highlight.io/_next/image?url=https%3A%2F%2Fmedia.graphassets.com%2FHj9YMnNCSUGwgR7KF3Cd&w=3840&q=75'
-image: 'https://www.highlight.io/_next/image?url=https%3A%2F%2Fmedia.graphassets.com%2FXmbzglNdRhezMtFLt9TL&w=3840&q=75'
-tags: Highlight Engineering
-metaTitle: "How-To: Use Worker Pools To Scale Customer Requests Fast"
+authorPFP: >-
+  https://www.highlight.io/_next/image?url=https%3A%2F%2Fmedia.graphassets.com%2FHj9YMnNCSUGwgR7KF3Cd&w=3840&q=75
+image: >-
+  https://www.highlight.io/_next/image?url=https%3A%2F%2Fmedia.graphassets.com%2FXmbzglNdRhezMtFLt9TL&w=3840&q=75
+tags: Engineering
+metaTitle: 'How-To: Use Worker Pools To Scale Customer Requests Fast'
 ---
 
 ## Setting the scene

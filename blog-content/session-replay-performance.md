@@ -1,6 +1,6 @@
 ---
 title: An open-source session replay benchmark
-createdAt: 2023-10-17T12:00:00Z
+createdAt: 2023-10-17T12:00:00.000Z
 readingTime: 14
 authorFirstName: Abhishek
 authorLastName: More
@@ -10,7 +10,7 @@ authorLinkedIn: 'https://www.linkedin.com/in/abhishek-more-linked/'
 authorGithub: 'https://github.com/Abhishek-More'
 authorWebsite: 'https://abhishekmore.com'
 authorPFP: 'https://tamuhack.org/static/th-2022/headshots/webp/abhishek.webp'
-tags: Highlight Engineering
+tags: Engineering
 metaTitle: An open-source session replay benchmark
 ---
 

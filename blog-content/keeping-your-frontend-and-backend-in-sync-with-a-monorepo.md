@@ -1,17 +1,18 @@
 ---
-title: "The power of the monorepo: Keep your fullstack app in sync!"
-createdAt: 2022-08-30T12:00:00Z
+title: 'The power of the monorepo: Keep your fullstack app in sync!'
+createdAt: 2022-08-30T12:00:00.000Z
 readingTime: 22
 authorFirstName: François
 authorLastName: Wouts
-authorTitle: Developer Happiness Engineer 
+authorTitle: Developer Happiness Engineer
 authorTwitter: 'https://twitter.com/fwouts'
 authorLinkedIn: 'https://linkedin.com/in/fwouts'
 authorGithub: 'https://github.com/fwouts'
 authorWebsite: 'https://fwouts.com/'
-authorPFP: 'https://www.highlight.io/_next/image?url=https%3A%2F%2Fmedia.graphassets.com%2F39CS6bVyRBWbnq4ileQJ&w=3840&q=75'
-tags: Developer Tooling
-metaTitle: "The power of the monorepo: Keep your fullstack app in sync!"
+authorPFP: >-
+  https://www.highlight.io/_next/image?url=https%3A%2F%2Fmedia.graphassets.com%2F39CS6bVyRBWbnq4ileQJ&w=3840&q=75
+tags: Engineering
+metaTitle: 'The power of the monorepo: Keep your fullstack app in sync!'
 ---
 
 It's more and more common nowadays to use JavaScript (or better yet TypeScript) for both your frontend and your backend. Pick any random company and I'd bet you'll see a React or Vue frontend making HTTP calls to a NodeJS backend, often using a REST-like JSON API.

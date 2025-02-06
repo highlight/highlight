@@ -1,6 +1,6 @@
 ---
 title: 'Introducing Harold: Highlight’s Observability AI'
-createdAt: 2023-06-13T12:00:00Z
+createdAt: 2023-06-13T12:00:00.000Z
 readingTime: 5
 authorFirstName: Chris
 authorLastName: Schmitz
@@ -9,9 +9,12 @@ authorTwitter: 'https://twitter.com/ccschmitz'
 authorLinkedIn: 'https://www.linkedin.com/in/ccschmitz'
 authorGithub: 'https://github.com/ccschmitz'
 authorWebsite: ''
-authorPFP: 'https://www.highlight.io/_next/image?url=https%3A%2F%2Fmedia.graphassets.com%2FViK27IG7TCe0YDK20tFy&w=3840&q=75'
-tags: AI, Developer Tooling, Launch Week 2
-metaTitle: Get help pulling insights from sessions and fixing errors from Harold, Highlight's AI engineering partner
+authorPFP: >-
+  https://www.highlight.io/_next/image?url=https%3A%2F%2Fmedia.graphassets.com%2FViK27IG7TCe0YDK20tFy&w=3840&q=75
+tags: 'Engineering, Product Updates'
+metaTitle: >-
+  Get help pulling insights from sessions and fixing errors from Harold,
+  Highlight's AI engineering partner
 ---
 
 No matter how simple an application is, your users will end up using it in unexpected ways and it's almost a guarantee that your client and server will throw some errors. Highlight allows you to understand exactly what your users are doing and what issues they ran into, but the question often comes up about what to do with all this information. It isn’t feasible to watch every session and it can be a big time commitment to fix every error. That’s why we’re excited to share the news about Harold, the new Highlight AI assistant.

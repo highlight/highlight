@@ -1,6 +1,6 @@
 ---
-title: "How to instrument your React Native app with OpenTelemetry"
-createdAt: 2025-01-22T12:00:00Z
+title: How to instrument your React Native app with OpenTelemetry
+createdAt: 2025-01-22T12:00:00.000Z
 readingTime: 18
 authorFirstName: Spencer
 authorLastName: Amarantides
@@ -10,15 +10,15 @@ authorLinkedIn: 'https://www.linkedin.com/in/spencer-amarantides/'
 authorGithub: 'https://github.com/SpennyNDaJets'
 authorPFP: 'https://avatars.githubusercontent.com/u/17744174?v=4'
 authorWebsite: ''
-tags: Developer Tooling, React Native, Mobile, OpenTelemetry
-metaTitle: "How to instrument your React Native app with OpenTelemetry"
+tags: 'Engineering, Frontend, OpenTelemetry'
+metaTitle: How to instrument your React Native app with OpenTelemetry
 ---
 
 ```hint
-Highlight.io is an [open source](https://github.com/highlight/highlight) monitoring platform. If you’re interested in learning more, get started at [highlight.io](https://highlight.io). Check out the React Native [example app](https://github.com/highlight/highlight/tree/main/e2e/react-native) and [Highlight code snippets](https://github.com/highlight/highlight/blob/main/e2e/react-native/app/highlight.ts) to follow along.
+Highlight.io is an [open source](https://github.com/highlight/highlight) monitoring platform. If you're interested in learning more, get started at [highlight.io](https://highlight.io). Check out the React Native [example app](https://github.com/highlight/highlight/tree/main/e2e/react-native) and [Highlight code snippets](https://github.com/highlight/highlight/blob/main/e2e/react-native/app/highlight.ts) to follow along.
 ```
 
-OpenTelemetry is an open-source observability framework that provides tools, APIs, and SDKs to collect, process, and export telemetry data like traces, metrics, and logs from applications. It is designed to help developers monitor and troubleshoot distributed systems by providing standardized data formats and integration points for observability tools. If you're new to OpenTelemetry, you can learn more about it [here](https://www.youtube.com/watch?v=ASgosEzG4Pw). 
+OpenTelemetry is an open-source observability framework that provides tools, APIs, and SDKs to collect, process, and export telemetry data like traces, metrics, and logs from applications. It is designed to help developers monitor and troubleshoot distributed systems by providing standardized data formats and integration points for observability tools. If you're new to OpenTelemetry, you can learn more about it [here](https://www.youtube.com/watch?v=ASgosEzG4Pw).
 
 
 Today, we'll go through a guide to using OpenTelemetry in React Native, including the high-level concepts as well as how to send traces, errors, and logs to your OpenTelemetry backend of choice.
@@ -224,7 +224,7 @@ const otlpExporter = new ReactNativeOTLPTraceExporter({
 
 ### **Processor**
 
-Finally, a processor defines any pre-processing that should be done on the created traces, such as batching, sampling, filtering or even enriching data. This is important because you may have specific needs on the machine that you're sending data from that require customization. In our example, we will use a `BatchSpanProcessor` to collect spans in batches and send them to the exporter, which is more efficient than sending each span individually. 
+Finally, a processor defines any pre-processing that should be done on the created traces, such as batching, sampling, filtering or even enriching data. This is important because you may have specific needs on the machine that you're sending data from that require customization. In our example, we will use a `BatchSpanProcessor` to collect spans in batches and send them to the exporter, which is more efficient than sending each span individually.
 
 Here's how we initialized the `BatchSpanProcessor`, and registered the traceProvider:
 
@@ -299,7 +299,7 @@ export const log = (
 }
 ```
 
-The benefit of using this log function is being able to pass in attributes more cleanly to be searched across in Highlight. However, this will only send to Highlight and will not be recorded in the dev tools. We will set up the monkeypatch to record `console` logs later. After you have created your function, you can export this function to be called in your application code. 
+The benefit of using this log function is being able to pass in attributes more cleanly to be searched across in Highlight. However, this will only send to Highlight and will not be recorded in the dev tools. We will set up the monkeypatch to record `console` logs later. After you have created your function, you can export this function to be called in your application code.
 
 ```typescript
 import { log } from "./highlight"
@@ -309,7 +309,7 @@ log("warn", "we are almost finished", { minutesRead: 10 })
 
 ### Errors
 
-In our solution, errors are also sent via traces to Highlight with some configuration details. Again, we will call the trace `highlight.log` to ensure this trace will create a log for you in Highlight. Second, we will record an exception and add any attributes to the span. 
+In our solution, errors are also sent via traces to Highlight with some configuration details. Again, we will call the trace `highlight.log` to ensure this trace will create a log for you in Highlight. Second, we will record an exception and add any attributes to the span.
 
 Here is an example of a error function below:
 

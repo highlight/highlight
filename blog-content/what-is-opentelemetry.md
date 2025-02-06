@@ -1,6 +1,6 @@
 ---
 title: What is OpenTelemetry and Why Should I Care?
-createdAt: 2024-08-07T12:00:00Z
+createdAt: 2024-08-07T12:00:00.000Z
 readingTime: 6
 authorFirstName: Chris
 authorLastName: Griffing
@@ -9,9 +9,13 @@ authorTwitter: 'https://x.com/cmgriffing'
 authorLinkedIn: 'https://www.linkedin.com/in/cmgriffing'
 authorGithub: 'https://github.com/cmgriffing'
 authorWebsite: 'https://chrisgriffing.com'
-authorPFP: 'https://chrisgriffing.com/static/3053e1631c1e5e072c0c872f7c59f801/6e63d/selfportrait.jpg'
-tags: OpenTelemetry
-metaTitle: Learn about OpenTelemetry and how it can give you superpowers monitoring your web applications allowing to find and fix bugs and performance problems easily.
+authorPFP: >-
+  https://chrisgriffing.com/static/3053e1631c1e5e072c0c872f7c59f801/6e63d/selfportrait.jpg
+tags: 'Observability, OpenTelemetry'
+metaTitle: >-
+  Learn about OpenTelemetry and how it can give you superpowers monitoring your
+  web applications allowing to find and fix bugs and performance problems
+  easily.
 ---
 
 OpenTelemetry is a really cool project from the [CNCF](https://www.cncf.io/). In this post, we will cover the origins of OpenTelemetry, also known as OTEL, as well as what it looks like to spin up your own collector. By the end of it, you should have a pretty good understanding about what OpenTelemetry is and how to start collecting OTEL data in your applications. Check out [our article on instrumenting a Next.js app](/blog/how-to-use-opentelemetry-to-monitor-nextjs-apps) to collect OpenTelemetry data and how you can use Highlight to simplify the process while getting additional insights.
