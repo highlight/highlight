@@ -258,6 +258,13 @@ const isHighlightNetworkResourceFilter = (
 		) ||
 	name.toLocaleLowerCase().includes('pub.highlight.io') ||
 	name.toLocaleLowerCase().includes('otel.highlight.io') ||
+	// avoid recording requests to next.js highlight proxy
+	name
+		.toLocaleLowerCase()
+		.includes(`${window.location.origin}/highlight-events`) ||
+	name.toLocaleLowerCase().includes(`${window.location.origin}/v1/traces`) ||
+	name.toLocaleLowerCase().includes(`${window.location.origin}/v1/logs`) ||
+	name.toLocaleLowerCase().includes(`${window.location.origin}/v1/metrics`) ||
 	highlightEndpoints.some((backendUrl) =>
 		name.toLocaleLowerCase().includes(backendUrl),
 	)
