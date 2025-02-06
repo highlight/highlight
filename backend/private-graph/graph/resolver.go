@@ -3877,23 +3877,22 @@ func (r *Resolver) GetGitlabProjects(
 
 func (r *Resolver) CreateDefaultDashboard(ctx context.Context, projectID int) (*model.VisualizationsResponse, error) {
 	viz := model.Visualization{
-		ProjectID:  projectID,
-		Name:       "Insights",
-		TimePreset: pointy.String("last_4_hours"),
+		ProjectID: projectID,
+		Name:      "Insights",
 	}
 
 	countAggregator := modelInputs.MetricAggregatorCount
 
 	graphs := []*model.Graph{
 		{
-			Type:           "Bar chart",
-			Title:          "Active users",
-			ProductType:    "Sessions",
-			Query:          "email exists",
-			BucketByKey:    pointy.String("Timestamp"),
-			BucketInterval: pointy.Int(900),
-			Display:        pointy.String("Stacked"),
-			Expressions:    pointy.String(`[{"column": "", "aggregator": "Count"}]`),
+			Type:        "Bar chart",
+			Title:       "Active users",
+			ProductType: "Sessions",
+			Query:       "email exists",
+			BucketByKey: pointy.String("Timestamp"),
+			BucketCount: pointy.Int(24),
+			Display:     pointy.String("Stacked"),
+			Expressions: pointy.String(`[{"column": "", "aggregator": "Count"}]`),
 		},
 		{
 			Type:              "Bar chart",
@@ -3901,7 +3900,7 @@ func (r *Resolver) CreateDefaultDashboard(ctx context.Context, projectID int) (*
 			ProductType:       "Sessions",
 			GroupByKeys:       []string{"visited-url"},
 			BucketByKey:       pointy.String("Timestamp"),
-			BucketInterval:    pointy.Int(900),
+			BucketCount:       pointy.Int(24),
 			Limit:             pointy.Int(5),
 			LimitFunctionType: &countAggregator,
 			Display:           pointy.String("Stacked"),
@@ -3914,7 +3913,7 @@ func (r *Resolver) CreateDefaultDashboard(ctx context.Context, projectID int) (*
 			Query:             "event exists",
 			GroupByKeys:       []string{"event"},
 			BucketByKey:       pointy.String("Timestamp"),
-			BucketInterval:    pointy.Int(900),
+			BucketCount:       pointy.Int(24),
 			Limit:             pointy.Int(10),
 			LimitFunctionType: &countAggregator,
 			Display:           pointy.String("Stacked area"),
@@ -3922,15 +3921,15 @@ func (r *Resolver) CreateDefaultDashboard(ctx context.Context, projectID int) (*
 			Expressions:       pointy.String(`[{"column": "active_length", "aggregator": "Avg"}]`),
 		},
 		{
-			Type:           "Line chart",
-			Title:          "Sessions with user frustration",
-			ProductType:    "Sessions",
-			Query:          "has_rage_clicks=true",
-			BucketByKey:    pointy.String("Timestamp"),
-			BucketInterval: pointy.Int(900),
-			Display:        pointy.String("Line"),
-			NullHandling:   pointy.String("Hidden"),
-			Expressions:    pointy.String(`[{"column": "", "aggregator": "Count"}]`),
+			Type:         "Line chart",
+			Title:        "Sessions with user frustration",
+			ProductType:  "Sessions",
+			Query:        "has_rage_clicks=true",
+			BucketByKey:  pointy.String("Timestamp"),
+			BucketCount:  pointy.Int(24),
+			Display:      pointy.String("Line"),
+			NullHandling: pointy.String("Hidden"),
+			Expressions:  pointy.String(`[{"column": "", "aggregator": "Count"}]`),
 		},
 		{
 			Type:              "Line chart",
@@ -3943,7 +3942,7 @@ func (r *Resolver) CreateDefaultDashboard(ctx context.Context, projectID int) (*
 			Limit:             pointy.Int(10),
 			LimitFunctionType: &countAggregator,
 			BucketByKey:       pointy.String("Timestamp"),
-			BucketInterval:    pointy.Int(900),
+			BucketCount:       pointy.Int(24),
 			Display:           pointy.String("Line"),
 			NullHandling:      pointy.String("Hidden"),
 			Expressions:       pointy.String(`[{"column": "", "aggregator": "Count"}]`),
