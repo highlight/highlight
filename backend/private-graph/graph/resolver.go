@@ -3949,12 +3949,12 @@ func (r *Resolver) CreateDefaultDashboard(ctx context.Context, projectID int) (*
 			Type:              "Table",
 			Title:             "Errors by browser",
 			ProductType:       "Errors",
-			FunctionType:      "Count",
 			Query:             "browser exists",
 			GroupByKeys:       []string{"browser"},
 			Limit:             pointy.Int(10),
 			LimitFunctionType: &countAggregator,
 			NullHandling:      pointy.String("Hide row"),
+			Expressions:       pointy.String(`[{"column": "", "aggregator": "Count"}]`),
 		},
 	}
 
@@ -3963,8 +3963,6 @@ func (r *Resolver) CreateDefaultDashboard(ctx context.Context, projectID int) (*
 			Type:              "Line chart",
 			Title:             "Web Vitals: " + desc,
 			ProductType:       "Metrics",
-			FunctionType:      "P95",
-			Metric:            vital,
 			GroupByKeys:       []string{"browser"},
 			BucketByKey:       pointy.String("Timestamp"),
 			BucketCount:       pointy.Int(24),
@@ -3972,6 +3970,7 @@ func (r *Resolver) CreateDefaultDashboard(ctx context.Context, projectID int) (*
 			LimitFunctionType: &countAggregator,
 			Display:           pointy.String("Stacked area"),
 			NullHandling:      pointy.String("Hidden"),
+			Expressions:       pointy.String(fmt.Sprintf(`[{"column": "%s", "aggregator": "P95"}]`, vital)),
 		})
 	}
 
