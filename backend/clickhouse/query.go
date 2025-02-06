@@ -233,7 +233,7 @@ func transformSql(
 			}
 
 			tableIdentifier, ok := fromExpr.Table.Expr.(*sqlparser.TableIdentifier)
-			if ok && tableIdentifier != nil && tableIdentifier.Table != nil && strings.HasPrefix(config.TableName, tableIdentifier.Table.Name) {
+			if ok && tableIdentifier != nil && tableIdentifier.Table != nil && systemTables[tableIdentifier.Table.Name] {
 				isSystemTable = true
 			}
 		}
