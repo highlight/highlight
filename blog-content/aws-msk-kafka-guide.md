@@ -29,11 +29,11 @@ Setting up a private AWS MSK cluster is the default. Visit your region of the [A
 
 After picking your public VPC and public subnets, you'll see a note about `Public Access` being off. Public Access can only be turned on after the configuration of the cluster, but it requires some things to be configured a certain way during this initial setup. The AWS docs describe the [requirements here](https://docs.aws.amazon.com/msk/latest/developerguide/public-access.html "https://docs.aws.amazon.com/msk/latest/developerguide/public-access.html"). Pay attention to the original setup flow as these settings cannot be changed after cluster creation. In short, they are:
 
-##### Network
+#### Network
 
 -   The VPC and all Subnets must be public.
 
-##### Security
+#### Security
 
 -   Unauthenticated access must be turned off, and at least one secured access method must be on of SASL/IAM, SASL/SCRAM, or mTLS. You'll likely want to use SASL/SCRAM. You'll need to create a username an password, enroll them in AWS Secrets Manager, and configure Kafka to use that.
 -   Encryption within the cluster must be turned on.
