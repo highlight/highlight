@@ -163,7 +163,7 @@ const getHighlightConfig = async (
 					re.push(sourcemapRewrite)
 				}
 				if (defaultOpts.configureHighlightProxy) {
-					re.concat(...highlightRewrites)
+					re = re.concat(...highlightRewrites)
 				}
 				return re
 			} else {
