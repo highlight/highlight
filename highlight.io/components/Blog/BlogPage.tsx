@@ -61,7 +61,8 @@ const BlogPage = ({
 			<main>
 				<div className="flex flex-row w-full gap-8 my-20 desktop:max-w-[1100px] mx-auto items-start px-6">
 					<div className="flex flex-col flex-1 w-full gap-11">
-						<div>
+						<div className="flex flex-col gap-2">
+							<h2>{currentTag.name} Posts</h2>
 							<Typography
 								type="copy1"
 								className={styles.copyOnDark}
