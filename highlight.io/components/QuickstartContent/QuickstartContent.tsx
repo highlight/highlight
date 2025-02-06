@@ -137,7 +137,7 @@ import { SyslogReorganizedContent } from './server/syslog'
 import { SystemdReorganizedContent } from './server/systemd'
 import { AWSLambdaReorganizedContent } from './server/serverless/lambda'
 import { ElixirOtherReorganizedContent } from './server/elixir/other'
-import { ReactNativeContent } from './mobile/react-native'
+import { ReactNativeContent } from './frontend/react-native'
 import { siteUrl } from '../../utils/urls'
 
 export type QuickStartContent = {
@@ -243,6 +243,7 @@ export const quickStartContent = {
 			[QuickStartType.Gatsby]: GatsbyContent,
 			[QuickStartType.Electron]: ElectronContext,
 			[QuickStartType.Other]: OtherContext,
+			[QuickStartType.ReactNative]: ReactNativeContent,
 		},
 	},
 	backend: {
@@ -357,7 +358,7 @@ export const quickStartContent = {
 		otlp: {
 			[QuickStartType.OTLP]: OTLPLoggingContent,
 			[QuickStartType.OTLPDotNet]: DotNetOTLPTracingContent,
-			[QuickStartType.OTLPDotNet4]: DotNet4OTLPTracingContent
+			[QuickStartType.OTLPDotNet4]: DotNet4OTLPTracingContent,
 		},
 	},
 	traces: {
@@ -414,9 +415,6 @@ export const quickStartContent = {
 		otlp: {
 			[QuickStartType.OTLP]: OTLPTracesContent,
 		},
-	},
-	mobile: {
-		[QuickStartType.ReactNative]: ReactNativeContent,
 	},
 	other: {
 		[QuickStartType.SelfHost]: SelfHostContent,
@@ -551,11 +549,6 @@ export const quickStartContentReorganized = {
 			[QuickStartType.Gatsby]: GatsbyContent,
 			[QuickStartType.Electron]: ElectronContext,
 			[QuickStartType.Other]: OtherContext,
-		},
-	},
-	mobile: {
-		title: 'Mobile',
-		sdks: {
 			[QuickStartType.ReactNative]: ReactNativeContent,
 		},
 	},

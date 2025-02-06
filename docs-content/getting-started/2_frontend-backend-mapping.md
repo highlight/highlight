@@ -55,11 +55,11 @@ Below are solutions for what we support today. If you'd like us to support a new
 
 - [Go Backend Integration](4_server/1_go)
 
-- [Java Backend Integration](4_server/7_java-other.md)
+- [Java Backend Integration](4_server/9_java-other.md)
 
 - [JS Backend Integration](4_server/2_js)
 
-- [PHP Backend Integration](4_server/8_php-other.md)
+- [PHP Backend Integration](4_server/10_php-other.md)
 
 - [Python Backend Integration](4_server/3_python)
 
@@ -67,7 +67,7 @@ Below are solutions for what we support today. If you'd like us to support a new
 
 - [Rust Backend Integration](4_server/5_rust)
 
-- [.NET Backend Integration](4_server/9_dotnet.md)
+- [.NET Backend Integration](4_server/11_dotnet.md)
 
 ## Distributed Tracing
 

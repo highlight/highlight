@@ -39,6 +39,9 @@ Installing highlight.io in javascript will automatically instrument frontend err
     <DocsCard title="Other HTML"  href="./browser/8_other.md">
         {"Get started in any HTML/JS app"}
     </DocsCard>
+    <DocsCard title="React Native" href="./browser/9_react-native.md">
+        {"Get started with React Native"}
+    </DocsCard>
 </DocsCardGroup>
 
 ## For your Server
@@ -108,9 +111,7 @@ Highlight.io provides comprehensive logging support for various hosting platform
 Highlight.io can be used for error monitoring, logging, and tracing for mobile apps using OpenTelemetry. There is currently a guide for React Native, and more coming soon.
 
 <DocsCardGroup>
-    <DocsCard title="React Native" href="./5_mobile/1_react-native.md">
-        {"Get started with React Native"}
-    </DocsCard>
+    
 </DocsCardGroup>
 
 ### Something missing?

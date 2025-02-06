@@ -5,4 +5,4 @@ slug: react-native
 quickstart: react-native
 ---
 
-<QuickStart content={quickStartContent["mobile"]["react-native"]}/>
+<QuickStart content={quickStartContent["client"]["js"]["react-native"]}/>
