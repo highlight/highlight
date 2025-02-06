@@ -240,6 +240,11 @@ func extractExemplars(exSlice pmetric.ExemplarSlice, fields *extractedFields) *e
 	}
 	// since the session id is queried as an exemplar, store it from the parsed attributes
 	if fields.sessionID != "" {
+		ex.Attributes = append(ex.Attributes, map[string]string{})
+		ex.Timestamps = append(ex.Timestamps, time.Time{})
+		ex.Values = append(ex.Values, 0)
+		ex.SpanIDs = append(ex.SpanIDs, "")
+		ex.TraceIDs = append(ex.TraceIDs, "")
 		ex.SecureSessionIDs = append(ex.SecureSessionIDs, fields.sessionID)
 	}
 	return &ex
