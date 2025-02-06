@@ -3936,8 +3936,6 @@ func (r *Resolver) CreateDefaultDashboard(ctx context.Context, projectID int) (*
 			Title:             "Slowest APIs",
 			ProductType:       "Traces",
 			Query:             "http.method exists http.url exists http.url=*api*",
-			FunctionType:      "P95",
-			Metric:            "duration",
 			GroupByKeys:       []string{"span_name"},
 			Limit:             pointy.Int(10),
 			LimitFunctionType: &countAggregator,
@@ -3945,7 +3943,7 @@ func (r *Resolver) CreateDefaultDashboard(ctx context.Context, projectID int) (*
 			BucketCount:       pointy.Int(24),
 			Display:           pointy.String("Line"),
 			NullHandling:      pointy.String("Hidden"),
-			Expressions:       pointy.String(`[{"column": "", "aggregator": "Count"}]`),
+			Expressions:       pointy.String(`[{"column": "duration", "aggregator": "P95"}]`),
 		},
 		{
 			Type:              "Table",
