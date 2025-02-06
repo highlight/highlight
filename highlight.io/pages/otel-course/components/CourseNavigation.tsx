@@ -1,23 +1,29 @@
 import Link from 'next/link'
 import { Typography } from '../../../components/common/Typography/Typography'
-import type { CourseVideo } from '../types'
+import { CourseVideo } from '../types'
 import { useVideoProgress } from '../hooks'
 
 interface CourseNavigationProps {
 	courseVideos: CourseVideo[]
 	currentSlug?: string
+	onNavigate?: () => void
 }
 
 export default function CourseNavigation({
 	courseVideos,
 	currentSlug,
+	onNavigate,
 }: CourseNavigationProps) {
 	const { findProgress } = useVideoProgress(courseVideos)
 
 	return (
-		<div className="w-80 bg-white border-r border-gray-200 overflow-y-auto flex-shrink-0">
+		<div className="w-full h-full overflow-y-auto">
 			<div className="p-6">
-				<Link href="/otel-course" className="block">
+				<Link
+					href="/otel-course"
+					className="block"
+					onClick={onNavigate}
+				>
 					<Typography
 						type="copy2"
 						className="font-bold text-xl text-gray-800 mb-4"
@@ -35,6 +41,7 @@ export default function CourseNavigation({
 						<Link
 							key={`video-${videoIndex}`}
 							href={`/otel-course/${video.slug}`}
+							onClick={onNavigate}
 							className={`block w-full text-left px-3 py-3 rounded-lg transition-colors relative overflow-hidden ${
 								isActive
 									? 'bg-blue-50 text-blue-700'
