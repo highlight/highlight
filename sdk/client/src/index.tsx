@@ -299,7 +299,12 @@ export class Highlight {
 			new FirstLoadListeners({
 				...this.options,
 				// network recording handled by otel instrumentation, not firstload
-				disableNetworkRecording: true,
+				networkRecording: {
+					...(typeof client_options.networkRecording === 'object'
+						? client_options.networkRecording
+						: {}),
+					recordHeadersAndBody: false,
+				},
 			})
 		try {
 			// throws if parent is cross-origin
@@ -347,7 +352,12 @@ export class Highlight {
 		this._firstLoadListeners = new FirstLoadListeners({
 			...this.options,
 			// network recording handled by otel instrumentation, not firstload
-			disableNetworkRecording: true,
+			networkRecording: {
+				...(typeof client_options.networkRecording === 'object'
+					? client_options.networkRecording
+					: {}),
+				recordHeadersAndBody: false,
+			},
 		})
 		await this.initialize()
 		if (user_identifier && user_object) {
