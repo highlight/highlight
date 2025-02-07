@@ -24,7 +24,7 @@ export const CompleteSetup = () => {
 					</Text>
 					<Stack gap="6" direction="row">
 						<LinkButton
-							to={`/${projectId}/setup/backend`}
+							to={`/${projectId}/connect/new`}
 							trackingId="finish-setup-errors"
 						>
 							Finish setup
