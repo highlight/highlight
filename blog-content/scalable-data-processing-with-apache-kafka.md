@@ -1,17 +1,18 @@
 ---
-title: Is Kafka the Key? The Evolution of Highlight's Ingest 
-createdAt: 2022-09-06T12:00:00Z
+title: Is Kafka the Key? The Evolution of Highlight's Ingest
+createdAt: 2022-09-06T12:00:00.000Z
 readingTime: 12
 authorFirstName: Vadim
 authorLastName: Korolik
-authorTitle: Software Engineer @ Highlight 
+authorTitle: Software Engineer @ Highlight
 authorTwitter: 'https://twitter.com/vkorolik'
 authorLinkedIn: 'https://www.linkedin.com/in/vkorolik/'
 authorGithub: 'https://github.com/Vadman97'
 authorWebsite: 'https://vadweb.us'
-authorPFP: 'https://lh3.googleusercontent.com/a-/AOh14Gh1k7XsVMGxHMLJZ7qesyddqn1y4EKjfbodEYiY=s96-c'
-tags: Highlight Engineering
-metaTitle: Is Kafka the Key? The Evolution of Highlight's Ingest 
+authorPFP: >-
+  https://lh3.googleusercontent.com/a-/AOh14Gh1k7XsVMGxHMLJZ7qesyddqn1y4EKjfbodEYiY=s96-c
+tags: Engineering
+metaTitle: Is Kafka the Key? The Evolution of Highlight's Ingest
 ---
 
 At Highlight, we face a unique challenge when it comes to adapting to the load of our customers. Because we record our customers' web apps, we need to be able to handle bursts of traffic as they come from their users.

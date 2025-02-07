@@ -1,16 +1,17 @@
 ---
 title: The 5 Best Logging Libraries for Golang
-createdAt: 2023-01-09T12:00:00Z
+createdAt: 2023-01-09T12:00:00.000Z
 readingTime: 8
 authorFirstName: Vadim
 authorLastName: Korolik
-authorTitle: CTO @ Highlight 
+authorTitle: CTO @ Highlight
 authorTwitter: 'https://twitter.com/vkorolik'
 authorLinkedIn: 'https://www.linkedin.com/in/vkorolik/'
 authorGithub: 'https://github.com/Vadman97'
 authorWebsite: 'https://vadweb.us'
-authorPFP: 'https://lh3.googleusercontent.com/a-/AOh14Gh1k7XsVMGxHMLJZ7qesyddqn1y4EKjfbodEYiY=s96-c'
-tags: Developer Tooling
+authorPFP: >-
+  https://lh3.googleusercontent.com/a-/AOh14Gh1k7XsVMGxHMLJZ7qesyddqn1y4EKjfbodEYiY=s96-c
+tags: Engineering
 metaTitle: The 5 Best Logging Libraries for Go
 ---
 

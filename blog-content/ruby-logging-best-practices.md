@@ -9,8 +9,9 @@ authorTwitter: ''
 authorWebsite: ''
 authorLinkedIn: 'https://www.linkedin.com/in/vkorolik/'
 authorGithub: 'https://github.com/Vadman97'
-authorPFP: 'https://www.highlight.io/_next/image?url=https%3A%2F%2Flh3.googleusercontent.com%2Fa-%2FAOh14Gh1k7XsVMGxHMLJZ7qesyddqn1y4EKjfbodEYiY%3Ds96-c&w=3840&q=75'
-tags: 'Ruby, Logging, Development, Programming'
+authorPFP: >-
+  https://www.highlight.io/_next/image?url=https%3A%2F%2Flh3.googleusercontent.com%2Fa-%2FAOh14Gh1k7XsVMGxHMLJZ7qesyddqn1y4EKjfbodEYiY%3Ds96-c&w=3840&q=75
+tags: 'Backend, Observability, Engineering'
 ---
 
 ## Introduction

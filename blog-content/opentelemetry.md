@@ -1,28 +1,29 @@
 ---
 title: Our Commitment to OpenTelemetry
-createdAt: 2023-04-04T12:00:00Z
+createdAt: 2023-04-04T12:00:00.000Z
 readingTime: 8
 authorFirstName: Vadim
 authorLastName: Korolik
-authorTitle: CTO @ Highlight 
+authorTitle: CTO @ Highlight
 authorTwitter: 'https://twitter.com/vkorolik'
 authorLinkedIn: 'https://www.linkedin.com/in/vkorolik/'
 authorGithub: 'https://github.com/Vadman97'
 authorWebsite: 'https://vadweb.us'
-authorPFP: 'https://lh3.googleusercontent.com/a-/AOh14Gh1k7XsVMGxHMLJZ7qesyddqn1y4EKjfbodEYiY=s96-c'
-tags: Highlight Engineering
+authorPFP: >-
+  https://lh3.googleusercontent.com/a-/AOh14Gh1k7XsVMGxHMLJZ7qesyddqn1y4EKjfbodEYiY=s96-c
+tags: 'Engineering, Observability, OpenTelemetry'
 metaTitle: How OpenTelemetry Helps Our Open Source Community Build SDKs Faster.
 ---
 
 At highlight.io, we [maintain a strong commitment](https://www.highlight.io/docs/general/company/values "https://www.highlight.io/docs/general/company/values") to use open source software for our whole infrastructure stack. In fact, OSS technologies like ClickHouse, Kafka, OpenSearch, InfluxDB, and PostgreSQL allow us to efficiently process more than ~250 TB of customer data per day.
 
-Today, we're excited to announce that all of our language SDKs use OpenTelemetry to keep a consistent open-source standard for ingesting our data. Building SDKs for different programming languages and frameworks can be challenging. If SDKs are implemented individually, it’s inevitable to have an inconsistent specification in the format of the data that is sent. OpenTelemetry defines a standard for how data should be sent, covering standard observability while being flexible enough to send custom data.
+Today, we're excited to announce that all of our language SDKs use OpenTelemetry to keep a consistent open-source standard for ingesting our data. Building SDKs for different programming languages and frameworks can be challenging. If SDKs are implemented individually, it's inevitable to have an inconsistent specification in the format of the data that is sent. OpenTelemetry defines a standard for how data should be sent, covering standard observability while being flexible enough to send custom data.
 
 ![ClickHouse.png](https://media.graphassets.com/IowS7N3SsWav2qCLH6rA "ClickHouse.png")
 
 ## **Consistent Format for Traces, Logs, and Metrics**
 
-We’ve found many of our customers to already be familiar with OpenTelemetry (OTEL) in the context of their application. Yet another advantage of using the standardized spec is that many customers are already familiar with OTEL or have it instrumented. For a customer that already uses OTEL SDKs, sending data to highlight.io is a breeze: as simple as configuring data export to the Highlight cloud gateway. For a customer that doesn’t, it’s simple to gradually adopt OTEL by installing highlight.io throughout parts of their codebase.
+We've found many of our customers to already be familiar with OpenTelemetry (OTEL) in the context of their application. Yet another advantage of using the standardized spec is that many customers are already familiar with OTEL or have it instrumented. For a customer that already uses OTEL SDKs, sending data to highlight.io is a breeze: as simple as configuring data export to the Highlight cloud gateway. For a customer that doesn't, it's simple to gradually adopt OTEL by installing highlight.io throughout parts of their codebase.
 
 ## **Efficient Batched and Compressed Data Transfer**
 

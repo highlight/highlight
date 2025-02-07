@@ -1,16 +1,17 @@
 ---
-title: How to Set Up Your Production AWS MSK Kafka Cluster 
-createdAt: 2023-02-15T12:00:00Z
+title: How to Set Up Your Production AWS MSK Kafka Cluster
+createdAt: 2023-02-15T12:00:00.000Z
 readingTime: 18
 authorFirstName: Vadim
 authorLastName: Korolik
-authorTitle: Co-Founder & CTO 
+authorTitle: Co-Founder & CTO
 authorTwitter: 'https://twitter.com/vkorolik'
 authorLinkedIn: 'https://www.linkedin.com/in/vkorolik/'
 authorGithub: 'https://github.com/Vadman97'
 authorWebsite: 'https://vadweb.us'
-authorPFP: 'https://lh3.googleusercontent.com/a-/AOh14Gh1k7XsVMGxHMLJZ7qesyddqn1y4EKjfbodEYiY=s96-c'
-tags: Highlight Engineering
+authorPFP: >-
+  https://lh3.googleusercontent.com/a-/AOh14Gh1k7XsVMGxHMLJZ7qesyddqn1y4EKjfbodEYiY=s96-c
+tags: Engineering
 metaTitle: How to Set Up Your Production AWS MSK Kafka Cluster
 ---
 
@@ -28,11 +29,11 @@ Setting up a private AWS MSK cluster is the default. Visit your region of the [A
 
 After picking your public VPC and public subnets, you'll see a note about `Public Access` being off. Public Access can only be turned on after the configuration of the cluster, but it requires some things to be configured a certain way during this initial setup. The AWS docs describe the [requirements here](https://docs.aws.amazon.com/msk/latest/developerguide/public-access.html "https://docs.aws.amazon.com/msk/latest/developerguide/public-access.html"). Pay attention to the original setup flow as these settings cannot be changed after cluster creation. In short, they are:
 
-##### Network
+#### Network
 
 -   The VPC and all Subnets must be public.
 
-##### Security
+#### Security
 
 -   Unauthenticated access must be turned off, and at least one secured access method must be on of SASL/IAM, SASL/SCRAM, or mTLS. You'll likely want to use SASL/SCRAM. You'll need to create a username an password, enroll them in AWS Secrets Manager, and configure Kafka to use that.
 -   Encryption within the cluster must be turned on.

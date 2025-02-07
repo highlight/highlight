@@ -1178,6 +1178,7 @@ SessionSecureID: ${this.sessionData.sessionSecureID}`,
 			...metric.tags?.reduce((a, b) => ({ ...a, [b.name]: b.value }), {}),
 			group: metric.group,
 			category: metric.category,
+			'highlight.session_id': this.sessionData.sessionSecureID,
 		})
 	}
 
@@ -1194,6 +1195,7 @@ SessionSecureID: ${this.sessionData.sessionSecureID}`,
 			...metric.tags?.reduce((a, b) => ({ ...a, [b.name]: b.value }), {}),
 			group: metric.group,
 			category: metric.category,
+			'highlight.session_id': this.sessionData.sessionSecureID,
 		})
 	}
 
@@ -1214,6 +1216,7 @@ SessionSecureID: ${this.sessionData.sessionSecureID}`,
 			...metric.tags?.reduce((a, b) => ({ ...a, [b.name]: b.value }), {}),
 			group: metric.group,
 			category: metric.category,
+			'highlight.session_id': this.sessionData.sessionSecureID,
 		})
 	}
 
@@ -1230,6 +1233,7 @@ SessionSecureID: ${this.sessionData.sessionSecureID}`,
 			...metric.tags?.reduce((a, b) => ({ ...a, [b.name]: b.value }), {}),
 			group: metric.group,
 			category: metric.category,
+			'highlight.session_id': this.sessionData.sessionSecureID,
 		})
 	}
 

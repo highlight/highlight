@@ -61,7 +61,7 @@ import { titleCaseString } from '@util/string'
 import { Divider } from 'antd'
 import clsx from 'clsx'
 import moment from 'moment'
-import React, { useEffect, useMemo } from 'react'
+import React, { useEffect, useMemo, useRef, useState } from 'react'
 import { FaDiscord, FaGithub } from 'react-icons/fa'
 import { Link, matchRoutes, useLocation, useNavigate } from 'react-router-dom'
 import { useSessionStorage } from 'react-use'
@@ -147,6 +147,47 @@ const useProjectRedirectLink = () => {
 	return goBackPath
 }
 
+type Page = {
+	key: string
+	icon: ({ size, ...props }: IconProps) => JSX.Element
+	isBeta?: boolean
+}
+
+const PAGES: Page[] = [
+	{
+		key: 'sessions',
+		icon: IconSolidPlayCircle,
+	},
+	{
+		key: 'errors',
+		icon: IconSolidLightningBolt,
+	},
+	{
+		key: 'logs',
+		icon: IconSolidLogs,
+	},
+	{
+		key: 'traces',
+		icon: IconSolidTraces,
+	},
+	{
+		key: 'dashboards',
+		icon: IconSolidChartBar,
+	},
+	{
+		key: 'alerts',
+		icon: IconSolidSpeakerphone,
+	},
+	{
+		key: 'integrations',
+		icon: IconSolidViewGridAdd,
+	},
+	{
+		key: 'connect',
+		icon: IconSolidDesktopComputer,
+	},
+]
+
 export const Header: React.FC<Props> = ({ fullyIntegrated }) => {
 	const navigate = useNavigate()
 	const location = useLocation()
@@ -160,51 +201,11 @@ export const Header: React.FC<Props> = ({ fullyIntegrated }) => {
 	)
 
 	const goBackPath = useProjectRedirectLink()
-	const parts = location.pathname.split('/')
-	const currentPage = parts.length >= 3 ? parts[2] : undefined
 	const { isSettings } = useIsSettingsPath()
-
-	const { data: workspaceSettingsData } = useGetWorkspaceSettingsQuery({
-		variables: { workspace_id: String(currentWorkspace?.id) },
-		skip: !currentWorkspace?.id,
-	})
-	const enableGrafanaDashboard =
-		workspaceSettingsData?.workspaceSettings?.enable_grafana_dashboard
 
 	const { toggleShowKeyboardShortcutsGuide } = useGlobalContext()
 
 	const { isProjectLevelMember } = useAuthContext()
-
-	const pages: {
-		key: string
-		icon: ({ size, ...props }: IconProps) => JSX.Element
-		isBeta?: boolean
-	}[] = [
-		{
-			key: 'sessions',
-			icon: IconSolidPlayCircle,
-		},
-		{
-			key: 'errors',
-			icon: IconSolidLightningBolt,
-		},
-		{
-			key: 'logs',
-			icon: IconSolidLogs,
-		},
-		{
-			key: 'traces',
-			icon: IconSolidTraces,
-		},
-		{
-			key: 'dashboards',
-			icon: IconSolidChartBar,
-		},
-		{
-			key: 'alerts',
-			icon: IconSolidSpeakerphone,
-		},
-	]
 
 	const inProjectOrWorkspace = isLoggedIn && (projectId || workspaceId)
 
@@ -221,32 +222,6 @@ export const Header: React.FC<Props> = ({ fullyIntegrated }) => {
 			displayValue: workspace?.name,
 		}))
 	}, [workspacesData?.workspaces, workspacesData?.joinable_workspaces])
-
-	let grafanaItem = (
-		<Menu.Item disabled={!enableGrafanaDashboard}>
-			<Box display="flex" alignItems="center" gap="4">
-				<IconSolidGrafana
-					size={14}
-					color={vars.theme.interactive.fill.secondary.content.text}
-				/>
-				Grafana Dashboard
-				<Badge
-					shape="basic"
-					size="small"
-					variant="outlineGray"
-					label="Enterprise"
-				/>
-			</Box>
-		</Menu.Item>
-	)
-
-	if (enableGrafanaDashboard) {
-		grafanaItem = (
-			<Link to="https://grafana.highlight.io/" className={linkStyle}>
-				{grafanaItem}
-			</Link>
-		)
-	}
 
 	return (
 		<>
@@ -290,118 +265,7 @@ export const Header: React.FC<Props> = ({ fullyIntegrated }) => {
 							width="full"
 						>
 							<ProjectPicker />
-							{projectId && !isSettings && (
-								<Box display="flex" alignItems="center" gap="4">
-									{pages.map((p) => {
-										return (
-											<LinkButton
-												iconLeft={
-													<p.icon
-														size={14}
-														color={
-															currentPage ===
-															p.key
-																? undefined
-																: vars.theme
-																		.interactive
-																		.fill
-																		.secondary
-																		.content
-																		.text
-														}
-													/>
-												}
-												emphasis={
-													currentPage === p.key
-														? 'high'
-														: 'low'
-												}
-												kind={
-													currentPage === p.key
-														? 'primary'
-														: 'secondary'
-												}
-												to={`/${projectId}/${p.key}`}
-												key={p.key}
-												trackingId={`header-link-click-${p.key}`}
-											>
-												{titleCaseString(p.key)}
-												{p.isBeta ? (
-													<Box cssClass={betaTag}>
-														Beta
-													</Box>
-												) : null}
-											</LinkButton>
-										)
-									})}
-									<Menu>
-										<Menu.Button
-											icon={
-												<IconSolidDotsHorizontal
-													size={14}
-													color={vars.color.n11}
-												/>
-											}
-											emphasis="low"
-											kind="secondary"
-										/>
-										<Menu.List>
-											<Link
-												to={`/${projectId}/integrations`}
-												className={linkStyle}
-											>
-												<Menu.Item>
-													<Box
-														display="flex"
-														alignItems="center"
-														gap="4"
-													>
-														<IconSolidViewGridAdd
-															size={14}
-															color={
-																vars.theme
-																	.interactive
-																	.fill
-																	.secondary
-																	.content
-																	.text
-															}
-														/>
-														Integrations
-													</Box>
-												</Menu.Item>
-											</Link>
-											<Link
-												to={`/${projectId}/connect`}
-												className={linkStyle}
-											>
-												<Menu.Item>
-													<Box
-														display="flex"
-														alignItems="center"
-														gap="4"
-													>
-														<IconSolidDesktopComputer
-															size={14}
-															color={
-																vars.theme
-																	.interactive
-																	.fill
-																	.secondary
-																	.content
-																	.text
-															}
-														/>
-														Connect
-													</Box>
-												</Menu.Item>
-											</Link>
-											<Menu.Divider />
-											{grafanaItem}
-										</Menu.List>
-									</Menu>
-								</Box>
-							)}
+							{projectId && !isSettings && <Navbar />}
 						</Box>
 					) : (
 						<Box
@@ -433,10 +297,11 @@ export const Header: React.FC<Props> = ({ fullyIntegrated }) => {
 					{inProjectOrWorkspace && (
 						<Box
 							display="flex"
+							flexShrink={0}
 							justifyContent="flex-end"
 							alignItems="center"
 							gap="12"
-							style={{ zIndex: 20000, minWidth: 400 }}
+							style={{ zIndex: 20000 }}
 						>
 							{!!projectId && !fullyIntegrated && !isSettings && (
 								<LinkButton
@@ -1134,4 +999,151 @@ const getRedirectLink = (
 	}
 
 	return toVisit
+}
+
+const Navbar: React.FC = () => {
+	const { projectId } = useProjectId()
+	const { currentWorkspace } = useApplicationContext()
+
+	const parts = location.pathname.split('/')
+	const currentPage = parts.length >= 3 ? parts[2] : undefined
+
+	const containerRef = useRef<HTMLDivElement>(null)
+	const [topbarPages, setTopbarPages] = useState<Page[]>(PAGES)
+	const [menuPages, setMenuPages] = useState<Page[]>([])
+
+	const { data: workspaceSettingsData } = useGetWorkspaceSettingsQuery({
+		variables: { workspace_id: String(currentWorkspace?.id) },
+		skip: !currentWorkspace?.id,
+	})
+	const enableGrafanaDashboard =
+		workspaceSettingsData?.workspaceSettings?.enable_grafana_dashboard
+
+	useEffect(() => {
+		const observer = new ResizeObserver(() => {
+			if (!containerRef.current) return
+			const topbarItemCount = Math.floor(
+				containerRef.current.offsetWidth / 100,
+			)
+
+			const newTopbarPages = PAGES.slice(0, topbarItemCount)
+			const newMenuPages = PAGES.slice(topbarItemCount)
+
+			setTopbarPages(newTopbarPages)
+			setMenuPages(newMenuPages)
+		})
+
+		observer.observe(containerRef.current!)
+		return () => observer.disconnect()
+	}, [])
+
+	let grafanaItem = (
+		<Menu.Item disabled={!enableGrafanaDashboard}>
+			<Box display="flex" alignItems="center" gap="4">
+				<IconSolidGrafana
+					size={14}
+					color={vars.theme.interactive.fill.secondary.content.text}
+				/>
+				Grafana Dashboard
+				<Badge
+					shape="basic"
+					size="small"
+					variant="outlineGray"
+					label="Enterprise"
+				/>
+			</Box>
+		</Menu.Item>
+	)
+
+	if (enableGrafanaDashboard) {
+		grafanaItem = (
+			<Link to="https://grafana.highlight.io/" className={linkStyle}>
+				{grafanaItem}
+			</Link>
+		)
+	}
+
+	return (
+		<Box
+			ref={containerRef}
+			display="flex"
+			alignItems="center"
+			gap="4"
+			width="full"
+		>
+			{topbarPages.map((p) => {
+				return (
+					<LinkButton
+						iconLeft={
+							<p.icon
+								size={14}
+								color={
+									currentPage === p.key
+										? undefined
+										: vars.theme.interactive.fill.secondary
+												.content.text
+								}
+							/>
+						}
+						emphasis={currentPage === p.key ? 'high' : 'low'}
+						kind={currentPage === p.key ? 'primary' : 'secondary'}
+						to={`/${projectId}/${p.key}`}
+						key={p.key}
+						trackingId={`header-link-click-${p.key}`}
+					>
+						{titleCaseString(p.key)}
+						{p.isBeta ? <Box cssClass={betaTag}>Beta</Box> : null}
+					</LinkButton>
+				)
+			})}
+			<Menu>
+				<Menu.Button
+					icon={
+						<IconSolidDotsHorizontal
+							size={14}
+							color={vars.color.n11}
+						/>
+					}
+					emphasis="low"
+					kind="secondary"
+				/>
+				<Menu.List>
+					{menuPages.length > 0 && (
+						<>
+							{menuPages.map((p) => {
+								const Icon = p!.icon
+								return (
+									<Link
+										key={p!.key}
+										to={`/${projectId}/${p!.key}`}
+										className={linkStyle}
+									>
+										<Menu.Item>
+											<Box
+												display="flex"
+												alignItems="center"
+												gap="4"
+											>
+												<Icon
+													size={14}
+													color={
+														vars.theme.interactive
+															.fill.secondary
+															.content.text
+													}
+												/>
+												{titleCaseString(p!.key)}
+											</Box>
+										</Menu.Item>
+									</Link>
+								)
+							})}
+							<Menu.Divider />
+						</>
+					)}
+					{grafanaItem}
+				</Menu.List>
+			</Menu>
+		</Box>
+	)
 }

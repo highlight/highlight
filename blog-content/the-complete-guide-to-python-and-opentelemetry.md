@@ -1,17 +1,17 @@
 ---
-title: "The complete guide to OpenTelemetry in Python"
-createdAt: 2025-01-14T12:00:00Z
+title: The complete guide to OpenTelemetry in Python
+createdAt: 2025-01-14T12:00:00.000Z
 readingTime: 18
 authorFirstName: Vadim
 authorLastName: Korolik
-authorTitle: CTO @ Highlight 
+authorTitle: CTO @ Highlight
 authorTwitter: 'https://twitter.com/vkorolik'
 authorLinkedIn: 'https://www.linkedin.com/in/vkorolik/'
 authorGithub: 'https://github.com/Vadman97'
 authorWebsite: 'https://vadweb.us'
 authorPFP: 'https://avatars.githubusercontent.com/u/1351531?v=4'
-tags: Developer Tooling, Python, OpenTelemetry
-metaTitle: "The complete guide to OpenTelemetry in Python"
+tags: 'Engineering, Backend, Observability'
+metaTitle: The complete guide to OpenTelemetry in Python
 ---
 
 ```hint
