@@ -9,6 +9,7 @@ import {
 	DEFAULT_TIME_PRESETS,
 	IconSolidBell,
 	IconSolidChartBar,
+	IconSolidChartSquareLine,
 	IconSolidCheveronDown,
 	IconSolidClock,
 	IconSolidExternalLink,
@@ -197,7 +198,8 @@ const SearchForm: React.FC<SearchFormProps> = ({
 				onClick={(e: React.MouseEvent<HTMLButtonElement>) => {
 					e.stopPropagation()
 				}}
-				iconRight={<IconSolidCheveronDown size={12} />}
+				iconRight={<IconSolidCheveronDown size={14} />}
+				iconLeft={<IconSolidChartSquareLine size={14} />}
 				kind="secondary"
 				emphasis="low"
 			>
