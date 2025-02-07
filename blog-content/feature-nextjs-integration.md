@@ -1,21 +1,23 @@
 ---
-title: "Introducing: Highlight's Next.js Integration"
-createdAt: 2022-10-19T12:00:00Z
+title: 'Introducing: Highlight''s Next.js Integration'
+createdAt: 2022-10-19T12:00:00.000Z
 readingTime: 4
 authorFirstName: Jay
 authorLastName: Khatri
-authorTitle: Co-founder, Hype-man & CEO 
+authorTitle: 'Co-founder, Hype-man & CEO'
 authorTwitter: 'https://twitter.com/theJayKhatri'
 authorLinkedIn: 'https://www.linkedin.com/in/jay-khatri/'
 authorGithub: ''
 authorWebsite: ''
-authorPFP: 'https://www.highlight.io/_next/image?url=https%3A%2F%2Fmedia.graphassets.com%2F2wDcc2CoTckAIZVup0NT&w=3840&q=75'
-image: 'https://www.highlight.io/_next/image?url=https%3A%2F%2Fmedia.graphassets.com%2F5QhKDf7tQxWmchZv2zDp&w=3840&q=75'
-tags: Highlight Engineering
-metaTitle: "Introducing: Highlight's Next.js Integration"
+authorPFP: >-
+  https://www.highlight.io/_next/image?url=https%3A%2F%2Fmedia.graphassets.com%2F2wDcc2CoTckAIZVup0NT&w=3840&q=75
+image: >-
+  https://www.highlight.io/_next/image?url=https%3A%2F%2Fmedia.graphassets.com%2F5QhKDf7tQxWmchZv2zDp&w=3840&q=75
+tags: 'Engineering, Frontend'
+metaTitle: 'Introducing: Highlight''s Next.js Integration'
 ---
 
-We’re excited to introduce Highlight's **Next.js Integration**—a powerful set of features that supercharges your Highlight experience as a Next.js user.
+We're excited to introduce Highlight's **Next.js Integration**—a powerful set of features that supercharges your Highlight experience as a Next.js user.
 
 ## Building for Next.js
 

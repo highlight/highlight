@@ -1,5 +1,11 @@
 # highlight.run
 
+## 9.9.1
+
+### Patch Changes
+
+-   91f82fc: record highlight session id on client-side metrics
+
 ## 9.9.0
 
 ### Minor Changes

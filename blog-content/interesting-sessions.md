@@ -1,16 +1,17 @@
 ---
 title: Finding Interesting Sessions with Markov Chains
-createdAt: 2023-07-20T00:00:00Z
+createdAt: 2023-07-20T00:00:00.000Z
 readingTime: 6
 authorFirstName: Zane
 authorLastName: Mayberry
-authorTitle: Software Engineer @ Highlight 
+authorTitle: Software Engineer @ Highlight
 authorTwitter: ''
 authorWebsite: ''
 authorLinkedIn: 'https://www.linkedin.com/in/zane-mayberry-688161165/'
 authorGithub: 'https://github.com/mayberryzane'
-authorPFP: 'https://www.highlight.io/_next/image?url=https%3A%2F%2Fmedia.graphassets.com%2FvrMpBimsRzOGGJSWWppg&w=1920&q=75'
-tags: Launch Week 2
+authorPFP: >-
+  https://www.highlight.io/_next/image?url=https%3A%2F%2Fmedia.graphassets.com%2FvrMpBimsRzOGGJSWWppg&w=1920&q=75
+tags: Product Updates
 metaTitle: Finding Interesting Sessions with Markov Chains
 ---
 At Highlight, there’s always been an unwritten goal to identify interesting user sessions to make it easier for our customers to understand their users. 

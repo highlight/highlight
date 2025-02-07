@@ -1,6 +1,6 @@
 ---
-title: Error Monitoring - Auto Resolver, Extension Filtering, and the Instance View
-createdAt: 2023-07-17T12:00:00Z
+title: 'Error Monitoring - Auto Resolver, Extension Filtering, and the Instance View'
+createdAt: 2023-07-17T12:00:00.000Z
 readingTime: 2
 authorFirstName: Eric
 authorLastName: Thomas
@@ -9,9 +9,10 @@ authorTwitter: ''
 authorLinkedIn: 'https://www.linkedin.com/in/eric-l-m-thomas/'
 authorGithub: 'https://github.com/et'
 authorWebsite: 'https://elmthomas.com/'
-authorPFP: 'https://www.highlight.io/_next/image?url=https%3A%2F%2Fmedia.graphassets.com%2FnGV2kef5QWrrpTb8zSx3&w=3840&q=75'
-tags: Launch Week 2 
-metaTitle: Error Monitoring - Auto Resolver, Extension Filtering, and the Instance View
+authorPFP: >-
+  https://www.highlight.io/_next/image?url=https%3A%2F%2Fmedia.graphassets.com%2FnGV2kef5QWrrpTb8zSx3&w=3840&q=75
+tags: Product Updates
+metaTitle: 'Error Monitoring - Auto Resolver, Extension Filtering, and the Instance View'
 ---
 
 Getting your application’s errors count down is a never ending battle. The enlightened developer would want the equivalent of Inbox Zero for errors but practically that’s a pipe dream. Errors come in at an inconsistent rate and context switching to fix them is a heavy toll. What’s worse is when you spend an exorbitant amount of time on an error to uncover that it’s completely unrelated to your code.

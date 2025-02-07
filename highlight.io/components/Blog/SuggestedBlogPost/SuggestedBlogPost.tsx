@@ -12,7 +12,7 @@ export const SuggestedBlogPost = ({
 	image,
 	title,
 	publishedAt,
-	tags_relations,
+	tags,
 	readingTime,
 }: Post) => {
 	return (
@@ -62,7 +62,7 @@ export const SuggestedBlogPost = ({
 						</Typography>
 					</div>
 					<div className={styles.tagDiv}>
-						{tags_relations.map((tag) => (
+						{tags.map((tag) => (
 							<PostTag {...tag} key={tag.slug + slug} />
 						))}
 					</div>

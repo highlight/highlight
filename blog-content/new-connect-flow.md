@@ -1,6 +1,6 @@
 ---
-title: "Building Highlight’s new 'Connect' flow"
-createdAt: 2025-01-30T12:00:00Z
+title: Building Highlight’s new 'Connect' flow
+createdAt: 2025-01-30T12:00:00.000Z
 readingTime: 18
 authorFirstName: Julian
 authorLastName: Schneider
@@ -10,8 +10,8 @@ authorLinkedIn: ' https://www.linkedin.com/in/schneider-ui'
 authorPFP: 'https://ca.slack-edge.com/T01AEDTQ8DS-U0424EF3RK7-620a9ad15cd3-512'
 authorGithub: ''
 authorWebsite: ''
-tags: Design
-metaTitle: "Building Highlight’s new 'Connect' flow"
+tags: Company, Product Updates
+metaTitle: Building Highlight’s new 'Connect' flow
 ---
 
 ```hint
@@ -33,7 +33,7 @@ This shift means all relevant observability data starts flowing in immediately.
 
 ## **How It Works**
 
-The first step is navigating to app.highlight.io/connect and choosing your preferred language/framework. 
+The first step is navigating to app.highlight.io/connect and choosing your preferred language/framework.
 
 ![A screenshot of the first screen for connect.](/images/blog/connect-flow/day4-old-new.png)
 

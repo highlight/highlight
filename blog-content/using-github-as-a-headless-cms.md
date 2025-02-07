@@ -1,6 +1,6 @@
 ---
-title: Using Github as a Headless CMS 
-createdAt: 2023-06-01T12:00:00Z
+title: Using Github as a Headless CMS
+createdAt: 2023-06-01T12:00:00.000Z
 readingTime: 12
 authorFirstName: Abhishek
 authorLastName: More
@@ -10,8 +10,8 @@ authorLinkedIn: 'https://www.linkedin.com/in/abhishek-more-linked/'
 authorGithub: 'https://github.com/Abhishek-More'
 authorWebsite: 'https://abhishekmore.com'
 authorPFP: 'https://tamuhack.org/static/th-2022/headshots/webp/abhishek.webp'
-tags: Highlight Engineering
-metaTitle: Using Github as a Headless CMS 
+tags: 'Engineering, Developer Experience'
+metaTitle: Using Github as a Headless CMS
 ---
 
 A content-management system (CMS) is software used to create, manage, and host content.
@@ -30,22 +30,22 @@ Recently, Highlight switched over from [Hygraph](https://hygraph.com) to GitHub 
 ### Speedy Build Times 💨
 
 At the time of writing, we have 48 blog posts. At build time, post content is fetched from the CMS and each post page is statically generated
-on the server (See [Static Site Generation](https://nextjs.org/docs/pages/building-your-application/rendering/static-site-generation)). 
+on the server (See [Static Site Generation](https://nextjs.org/docs/pages/building-your-application/rendering/static-site-generation)).
 This means that we need to make 48 separate API calls to Hygraph to retrieve post content. However, due to API rate limits, we had to introduce a delay for each request. While this worked fine initially, our build time started to suffer as the number of posts increased.
 
 With GitHub, all of our posts are written in markdown files and stored in the repository itself. The server is now able to read the file system and instantly fetch post content without having to make a single API call.
 
 ![build-time-over-time](/images/blog/using-github-as-headless-cms/blog-build-time.png)
 
-Our build time for blog content is now down to **~2 seconds** and will remain constant as the number of posts increases. 
+Our build time for blog content is now down to **~2 seconds** and will remain constant as the number of posts increases.
 
 ### Improved Developer Experience 💡
 
 For our technical content writers, GitHub couldn't be better! With the limited team members allowed by Hygraph, not everyone was able to review blog posts in Hygraph before they get published. Now, our engineers can make PRs and let everyone see the hosted blog post formatted exactly how its supposed to be.
 
-Additionally, we get access to GitHub features, including Issues, Actions, and Projects. This ensures better organization and also provides a centralized platform for collaboration and feedback. 
+Additionally, we get access to GitHub features, including Issues, Actions, and Projects. This ensures better organization and also provides a centralized platform for collaboration and feedback.
 
-## How we did it 
+## How we did it
 
 The original workflow involved:
 
@@ -64,16 +64,16 @@ This worked well, but we found that the existing Rich Text Renderer only rendere
 />
 ```
 
-We included related data, such as title, author information, and tags, at the top of the markdown file itself using [`gray-matter`](https://github.com/jonschlinkert/gray-matter). This data is parsed at build time and the relevant information is rendered accordingly. 
+We included related data, such as title, author information, and tags, at the top of the markdown file itself using [`gray-matter`](https://github.com/jonschlinkert/gray-matter). This data is parsed at build time and the relevant information is rendered accordingly.
 
 ```
 ---
-title: Using Github as a Headless CMS 
+title: Using Github as a Headless CMS
 authorFirstName: Abhishek
 authorLastName: More
 authorTitle: Software Engineer
 tags: Highlight Engineering
-metaTitle: Using Github as a Headless CMS 
+metaTitle: Using Github as a Headless CMS
 ---
 ```
 

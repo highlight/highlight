@@ -1,5 +1,5 @@
 ---
-title: 'WebSocket Recording'
+title: WebSocket Recording
 createdAt: 2023-07-17T15:57:12.147Z
 readingTime: 5
 authorFirstName: Spencer
@@ -9,8 +9,9 @@ authorTwitter: 'https://twitter.com/SpennyNDaJets'
 authorLinkedIn: 'https://www.linkedin.com/in/spencer-amarantides/'
 authorGithub: 'https://github.com/SpennyNDaJets'
 authorWebsite: ''
-authorPFP: 'https://lh3.googleusercontent.com/a/AAcHTteOYM6knTAD-uOPM1JP56Yn4WlsGya6Dpnhq_ak6UJUY3Q=s576-c-no'
-tags: Developer Tooling, Launch Week 2
+authorPFP: >-
+  https://lh3.googleusercontent.com/a/AAcHTteOYM6knTAD-uOPM1JP56Yn4WlsGya6Dpnhq_ak6UJUY3Q=s576-c-no
+tags: 'Engineering, Product Updates'
 metaTitle: Session replay now supports recording WebSocket events
 ---
 
