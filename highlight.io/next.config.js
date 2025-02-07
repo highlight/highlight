@@ -13,14 +13,6 @@ const nextConfig = {
 		if (!dev) {
 			if (isServer) {
 				config.devtool = 'source-map'
-			} else {
-				// process dependencies' sourcemaps
-				config.module.rules.push({
-					test: /\.(js|ts)x?$/,
-					loader: 'source-map-loader',
-					exclude: /node_modules/,
-					enforce: 'pre',
-				})
 			}
 		}
 		return config
