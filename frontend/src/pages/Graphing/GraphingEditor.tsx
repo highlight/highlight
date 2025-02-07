@@ -346,11 +346,11 @@ export const GraphingEditor: React.FC = () => {
 			},
 		})
 			.then(() => {
-				toast.success(`Metric view ${isEdit ? 'updated' : 'created'}`)
+				toast.success(`Graph ${isEdit ? 'updated' : 'created'}`)
 				redirectToDashboard()
 			})
 			.catch(() => {
-				toast.error('Failed to create metric view')
+				toast.error('Failed to create graph')
 			})
 	}
 
@@ -389,10 +389,10 @@ export const GraphingEditor: React.FC = () => {
 			},
 		})
 			.then(() => {
-				toast.success('Metric view deleted')
+				toast.success('Graph deleted')
 				redirectToDashboard()
 			})
-			.catch(() => toast.error('Failed to delete metric view'))
+			.catch(() => toast.error('Failed to delete graph'))
 	}
 
 	const applyGraph = (g: GraphType) => {
@@ -725,7 +725,7 @@ export const GraphingEditor: React.FC = () => {
 	return (
 		<>
 			<Helmet>
-				<title>{isEdit ? 'Edit' : 'Create'} Metric View</title>
+				<title>{isEdit ? 'Edit' : 'Create'} Graph</title>
 			</Helmet>
 			<Box
 				background="n2"
@@ -756,7 +756,7 @@ export const GraphingEditor: React.FC = () => {
 						py="6"
 					>
 						<Text size="small" weight="medium">
-							{isEdit ? 'Edit' : 'Create'} metric view
+							{isEdit ? 'Edit' : 'Create'} graph
 						</Text>
 						<Box display="flex" gap="4">
 							<Button
@@ -791,7 +791,7 @@ export const GraphingEditor: React.FC = () => {
 							</Button>
 							{isEdit && (
 								<Button kind="danger" onClick={onDelete}>
-									Delete metric view
+									Delete graph
 								</Button>
 							)}
 							<Button
@@ -942,7 +942,7 @@ export const GraphingEditor: React.FC = () => {
 									)}
 									<SidebarSection>
 										<LabeledRow
-											label="Metric view title"
+											label="Graph title"
 											name="title"
 										>
 											<Input
@@ -950,7 +950,7 @@ export const GraphingEditor: React.FC = () => {
 												name="title"
 												placeholder={
 													tempMetricViewTitle ||
-													'Untitled metric view'
+													'Untitled graph'
 												}
 												value={settings.metricViewTitle}
 												onChange={(e) => {

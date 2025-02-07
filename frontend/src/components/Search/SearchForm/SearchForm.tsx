@@ -202,6 +202,7 @@ const SearchForm: React.FC<SearchFormProps> = ({
 				iconLeft={<IconSolidChartSquareLine size={14} />}
 				kind="secondary"
 				emphasis="low"
+				disabled={!query}
 			>
 				Monitor
 			</Menu.Button>
@@ -353,8 +354,6 @@ const SearchForm: React.FC<SearchFormProps> = ({
 }
 
 export { SearchForm }
-
-export const DEFAULT_INPUT_HEIGHT = 31
 
 export const Search: React.FC<{
 	startDate: Date
