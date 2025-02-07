@@ -15,6 +15,7 @@ const DashboardRouter = () => {
 				element={<GraphingEditor />}
 			/>
 			<Route path=":dashboard_id/new" element={<GraphingEditor />} />
+			<Route path="new" element={<GraphingEditor />} />
 			<Route
 				path=":dashboard_id/view/:graph_id"
 				element={<ExpandedGraph />}

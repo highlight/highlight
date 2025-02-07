@@ -32,6 +32,7 @@ import { Search } from '@/components/Search/SearchForm/SearchForm'
 import {
 	useDeleteGraphMutation,
 	useGetVisualizationQuery,
+	useGetVisualizationsQuery,
 	useUpsertGraphMutation,
 } from '@/graph/generated/hooks'
 import {
@@ -235,10 +236,32 @@ export const GraphingEditor: React.FC = () => {
 		const params = new URLSearchParams(location.search)
 		params.delete(SETTINGS_PARAM)
 		navigate({
-			pathname: `../${dashboard_id}`,
+			pathname: `../${currentDashboardId}`,
 			search: params.toString(),
 		})
 	}
+
+	const { projectId } = useProjectId()
+
+	const { data: dashboardsData, loading: dashboardsLoading } =
+		useGetVisualizationsQuery({
+			variables: {
+				project_id: projectId,
+				input: '',
+				count: 100,
+				offset: 0,
+			},
+			skip: dashboard_id !== undefined,
+			onCompleted: (data) => {
+				setDashboardIdSetting(data.visualizations.results.at(0)?.id)
+			},
+		})
+
+	const [dashboardIdSetting, setDashboardIdSetting] = useState<
+		string | undefined
+	>()
+
+	const currentDashboardId = dashboard_id ?? dashboardIdSetting ?? ''
 
 	const onSave = () => {
 		let display: string | undefined
@@ -261,7 +284,7 @@ export const GraphingEditor: React.FC = () => {
 		}
 
 		const graphInput: GraphInput = {
-			visualizationId: dashboard_id!,
+			visualizationId: currentDashboardId,
 			bucketByKey: getBucketByKey(bucketBySetting, bucketByKey) ?? null,
 			bucketCount:
 				bucketBySetting === 'Count' ? Number(bucketCount) : null,
@@ -305,7 +328,7 @@ export const GraphingEditor: React.FC = () => {
 					return
 				}
 				const vizId = cache.identify({
-					id: dashboard_id,
+					id: currentDashboardId,
 					__typename: 'Visualization',
 				})
 				const graphId = cache.identify({
@@ -345,7 +368,7 @@ export const GraphingEditor: React.FC = () => {
 			},
 			update(cache) {
 				const vizId = cache.identify({
-					id: dashboard_id,
+					id: currentDashboardId,
 					__typename: 'Visualization',
 				})
 				const graphId = cache.identify({
@@ -411,7 +434,7 @@ export const GraphingEditor: React.FC = () => {
 
 	useGetVisualizationQuery({
 		variables: {
-			id: dashboard_id!,
+			id: currentDashboardId,
 		},
 		onCompleted: (data) => {
 			setCompleted(true)
@@ -425,7 +448,6 @@ export const GraphingEditor: React.FC = () => {
 		},
 	})
 
-	const { projectId } = useProjectId()
 	const graphContext = useGraphData()
 
 	const [searchParams, setSearchParams] = useSearchParams()
@@ -437,7 +459,9 @@ export const GraphingEditor: React.FC = () => {
 	)
 
 	const [productType, setProductTypeImpl] = useState(
-		initialSettings?.productType ?? PRODUCT_OPTIONS[0].value,
+		(searchParams.get('source') as ProductType) ??
+			initialSettings?.productType ??
+			PRODUCT_OPTIONS[0].value,
 	)
 	const setProductType = (pt: ProductType) => {
 		if (productType !== ProductType.Events && viewType === 'Funnel chart') {
@@ -510,7 +534,9 @@ export const GraphingEditor: React.FC = () => {
 	)
 	const [sql, setSql] = useState(sqlInternal)
 
-	const [query, setQuery] = useState(initialSettings?.query ?? '')
+	const [query, setQuery] = useState(
+		searchParams.get('query') ?? initialSettings?.query ?? '',
+	)
 	const [funnelSteps, setFunnelSteps] = useState<EventSelectionStep[]>(
 		initialSettings?.funnelSteps ?? [],
 	)
@@ -600,7 +626,7 @@ export const GraphingEditor: React.FC = () => {
 		}
 	}, [endDate, productType, startDate])
 
-	const { values } = useGraphingVariables(dashboard_id!)
+	const { values } = useGraphingVariables(currentDashboardId)
 
 	const variableKeys = Array.from(values).map(([key]) => {
 		return `$${key}`
@@ -789,7 +815,9 @@ export const GraphingEditor: React.FC = () => {
 								justifyContent="space-between"
 								cssClass={style.editGraphPreview}
 							>
-								<VariablesBar dashboardId={dashboard_id!} />
+								<VariablesBar
+									dashboardId={currentDashboardId}
+								/>
 								<GraphBackgroundWrapper>
 									{showTemplates && (
 										<TemplateMenu
@@ -878,6 +906,40 @@ export const GraphingEditor: React.FC = () => {
 							</Box>
 							<Panel>
 								<Form>
+									{dashboard_id === undefined && (
+										<>
+											<SidebarSection>
+												<LabeledRow
+													label="Dashboard"
+													name="title"
+												>
+													<Select
+														options={
+															dashboardsData?.visualizations.results.map(
+																(r) => ({
+																	name: r.name,
+																	value: r.id,
+																	id: r.id,
+																}),
+															) ?? []
+														}
+														value={
+															dashboardIdSetting
+														}
+														onValueChange={(o) => {
+															setDashboardIdSetting(
+																o.value,
+															)
+														}}
+														loading={
+															dashboardsLoading
+														}
+													/>
+												</LabeledRow>
+											</SidebarSection>
+											<Divider className="m-0" />
+										</>
+									)}
 									<SidebarSection>
 										<LabeledRow
 											label="Metric view title"

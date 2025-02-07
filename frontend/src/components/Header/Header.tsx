@@ -33,7 +33,7 @@ import {
 	IconSolidOfficeBuilding,
 	IconSolidPlayCircle,
 	IconSolidPlusSm,
-	IconSolidSpeakerphone,
+	IconSolidBell,
 	IconSolidSwitchHorizontal,
 	IconSolidTraces,
 	IconSolidUserCircle,
@@ -176,7 +176,7 @@ const PAGES: Page[] = [
 	},
 	{
 		key: 'alerts',
-		icon: IconSolidSpeakerphone,
+		icon: IconSolidBell,
 	},
 	{
 		key: 'integrations',
