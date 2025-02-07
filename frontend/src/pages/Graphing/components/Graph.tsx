@@ -1377,20 +1377,25 @@ const Graph = ({
 		bucketByWindow,
 		getMetrics,
 		sql,
-		groupByKeys,
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+		JSON.stringify(groupByKeys),
 		limit,
 		limitFunctionType,
 		limitMetric,
-		funnelSteps,
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+		JSON.stringify(funnelSteps),
 		productType,
 		projectId,
 		queriedBucketCount,
 		query,
 		variables,
-		predictionSettings,
-		expressions,
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+		JSON.stringify(predictionSettings),
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+		JSON.stringify(expressions),
 		startDate,
 		endDate,
+		setErrors,
 	])
 
 	const graphData = useGraphData(
