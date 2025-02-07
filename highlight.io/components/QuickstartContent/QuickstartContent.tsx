@@ -501,11 +501,6 @@ export const quickStartContentReorganized = {
 			[QuickStartType.JSPino]: JSPinoHTTPJSONLogReorganizedContent,
 			[QuickStartType.JSWinston]: JSWinstonHTTPJSONLogReorganizedContent,
 			[QuickStartType.JSManual]: JSManualTracesReorganizedContent,
-		},
-	},
-	otlp: {
-		title: 'OpenTelemetry',
-		sdks: {
 			[QuickStartType.OTLP]: OTLPReorganizedContent,
 		},
 	},

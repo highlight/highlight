@@ -9,7 +9,7 @@ import {
 } from './shared-snippets-tracing'
 
 export const DotNet4OTLPReorganizedContent: QuickStartContent = {
-	title: '.NET 4.x via the OpenTelemetry Protocol',
+	title: '.NET 4.x',
 	subtitle: `.NET 4.x via the OpenTelemetry Protocol (OTLP).`,
 	logoKey: 'dotnet',
 	products: ['Errors', 'Logs', 'Traces', 'Metrics'],
