@@ -265,8 +265,13 @@ const isHighlightNetworkResourceFilter = (
 	name.toLocaleLowerCase().includes(`${window.location.origin}/v1/traces`) ||
 	name.toLocaleLowerCase().includes(`${window.location.origin}/v1/logs`) ||
 	name.toLocaleLowerCase().includes(`${window.location.origin}/v1/metrics`) ||
-	highlightEndpoints.some((backendUrl) =>
-		name.toLocaleLowerCase().includes(backendUrl),
+	highlightEndpoints.some(
+		(backendUrl) =>
+			// only count backend urls that are full paths
+			backendUrl.startsWith('http') &&
+			// ignore top level origin which is used for otlp proxying
+			backendUrl !== window.location.origin &&
+			name.toLocaleLowerCase().includes(backendUrl),
 	)
 
 // Determines whether we store the network request and show it in the session
