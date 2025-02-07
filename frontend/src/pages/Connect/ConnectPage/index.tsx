@@ -250,7 +250,11 @@ const SelectedPlatformButtons = ({
 			{platforms.map((identifier, index) => {
 				const [sdkLanguage, sdkPlatform] = identifier.split('_')
 				const sdk = (quickStartContentReorganized as any)[sdkLanguage]
-					.sdks[sdkPlatform] as QuickStartContent
+					?.sdks[sdkPlatform] as QuickStartContent
+
+				if (!sdk) {
+					return null
+				}
 
 				const selected =
 					!language || !platform

@@ -1,9 +1,9 @@
 // src/pages/Connect/QuickStartGuide/style.css.ts
-var code = void 0;
 var codeBlock = "wxpajd1";
+var markdown = "wxpajd2";
 var sectionToggle = "wxpajd0";
 export {
-  code,
   codeBlock,
+  markdown,
   sectionToggle
 };

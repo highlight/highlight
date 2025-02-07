@@ -236,6 +236,7 @@ const ProductAreaIcons = ({ products }: { products: ProductArea[] }) => {
 					iconStart={<IconSolidInformationCircle />}
 				/>
 			}
+			delayed
 		>
 			{Icons}
 		</Tooltip>
