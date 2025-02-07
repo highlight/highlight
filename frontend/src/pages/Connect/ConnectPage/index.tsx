@@ -291,6 +291,7 @@ const SelectedPlatformButtons = ({
 								ICON_MAPPINGS.hasOwnProperty(sdk.logoKey) ? (
 									<img
 										alt={sdk.title}
+										title={sdk.title}
 										src={
 											(ICON_MAPPINGS as any)[sdk.logoKey]
 										}
@@ -301,7 +302,11 @@ const SelectedPlatformButtons = ({
 										}}
 									/>
 								) : (
-									<Text userSelect="none" weight="bold">
+									<Text
+										userSelect="none"
+										weight="bold"
+										title={sdk.title}
+									>
 										{sdk.title[0].toUpperCase()}
 									</Text>
 								)}

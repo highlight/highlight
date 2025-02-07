@@ -263,6 +263,7 @@ const SelectedPlatformIcons = ({ platforms }: { platforms: Set<string> }) => {
 						ICON_MAPPINGS.hasOwnProperty(sdk.logoKey) ? (
 							<img
 								alt={sdk.title}
+								title={sdk.title}
 								src={(ICON_MAPPINGS as any)[sdk.logoKey]}
 								style={{
 									height: 30,
@@ -271,7 +272,11 @@ const SelectedPlatformIcons = ({ platforms }: { platforms: Set<string> }) => {
 								}}
 							/>
 						) : (
-							<Text userSelect="none" weight="bold">
+							<Text
+								userSelect="none"
+								weight="bold"
+								title={sdk.title}
+							>
 								{sdk.title[0].toUpperCase()}
 							</Text>
 						)}
