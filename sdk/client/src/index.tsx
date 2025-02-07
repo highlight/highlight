@@ -295,7 +295,12 @@ export class Highlight {
 		this._hasPreviouslyInitialized = false
 		// Old firstLoad versions (Feb 2022) do not pass in FirstLoadListeners, so we have to fallback to creating it
 		this._firstLoadListeners =
-			firstLoadListeners || new FirstLoadListeners(this.options)
+			firstLoadListeners ||
+			new FirstLoadListeners({
+				...this.options,
+				// network recording handled by otel instrumentation, not firstload
+				disableNetworkRecording: true,
+			})
 		try {
 			// throws if parent is cross-origin
 			if (window.parent.document) {
@@ -339,7 +344,11 @@ export class Highlight {
 		this.sessionData.sessionStartTime = Date.now()
 		this.options.sessionSecureID = this.sessionData.sessionSecureID
 		this.stopRecording()
-		this._firstLoadListeners = new FirstLoadListeners(this.options)
+		this._firstLoadListeners = new FirstLoadListeners({
+			...this.options,
+			// network recording handled by otel instrumentation, not firstload
+			disableNetworkRecording: true,
+		})
 		await this.initialize()
 		if (user_identifier && user_object) {
 			this.identify(user_identifier, user_object)

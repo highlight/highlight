@@ -160,7 +160,11 @@ const H: HighlightPublicInterface = {
 				appVersion: options?.version,
 				sessionSecureID,
 			}
-			first_load_listeners = new FirstLoadListeners(client_options)
+			first_load_listeners = new FirstLoadListeners({
+				...client_options,
+				// network recording handled by otel instrumentation, not firstload
+				disableNetworkRecording: true,
+			})
 			if (!options?.manualStart) {
 				// Start some of the listeners before client is loaded, then hand the
 				// listeners over for client to manage
