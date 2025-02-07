@@ -305,7 +305,7 @@ export const Header: React.FC<Props> = ({ fullyIntegrated }) => {
 						>
 							{!!projectId && !fullyIntegrated && !isSettings && (
 								<LinkButton
-									to={`/${projectId}/setup`}
+									to={`/${projectId}/connect`}
 									state={{
 										previousPath: location.pathname,
 									}}

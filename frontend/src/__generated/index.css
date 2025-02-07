@@ -8046,6 +8046,9 @@ body {
   padding-bottom: 8px !important;
   padding-top: 8px !important;
 }
+.wxpajd2 p {
+  line-height: 24px !important;
+}
 .dy6d9j0 {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));

@@ -57,7 +57,20 @@ export const QuickStartGuide: React.FC<Props> = ({
 			<Stack gap="8" py="10">
 				{guide.entries.map((entry, index) => (
 					<Section title={entry.title} key={index} defaultOpen>
-						<ReactMarkdown>{entry.content}</ReactMarkdown>
+						<ReactMarkdown
+							className={styles.markdown}
+							components={{
+								img: ({ src, alt }) => (
+									<img
+										src={src}
+										alt={alt}
+										style={{ maxWidth: '100%' }}
+									/>
+								),
+							}}
+						>
+							{entry.content}
+						</ReactMarkdown>
 						<Stack gap="4">
 							{entry.code?.map((codeBlock) => {
 								let text = codeBlock.text.replaceAll(
