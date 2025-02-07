@@ -3,15 +3,25 @@ const getStaticPages = require('./scripts/get-static-pages')
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-	webpack: (config, { isServer }) => {
+	webpack: (config, { isServer, dev }) => {
 		config.resolve.fallback = {
 			...config.resolve.fallback, // if you miss it, all the other options in fallback, specified
 			// by next.js will be dropped. Doesn't make much sense, but how it is
 			fs: false, // the solution
 		}
 		// configure server-side sourcemaps
-		if (isServer) {
-			config.devtool = 'source-map'
+		if (!dev) {
+			if (isServer) {
+				config.devtool = 'source-map'
+			} else {
+				// process dependencies' sourcemaps
+				config.module.rules.push({
+					test: /\.(js|ts)x?$/,
+					loader: 'source-map-loader',
+					exclude: /node_modules/,
+					enforce: 'pre',
+				})
+			}
 		}
 		return config
 	},
