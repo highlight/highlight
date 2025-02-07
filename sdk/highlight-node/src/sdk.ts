@@ -134,10 +134,7 @@ export const H: HighlightInterface = {
 	},
 	flush: async () => {
 		try {
-			await Promise.allSettled([
-				highlight_obj.waitForFlush(),
-				highlight_obj.flush(),
-			])
+			await highlight_obj.flush()
 		} catch (e) {
 			console.warn('highlight-node flush error: ', e)
 		}

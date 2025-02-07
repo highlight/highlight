@@ -25,17 +25,13 @@ import { processDetectorSync, Resource } from '@opentelemetry/resources'
 import { NodeSDK } from '@opentelemetry/sdk-node'
 import {
 	AlwaysOnSampler,
-	BufferConfig,
-	ReadableSpan,
-	Span,
+	BatchSpanProcessor,
 } from '@opentelemetry/sdk-trace-base'
-import { BatchSpanProcessorBase } from '@opentelemetry/sdk-trace-base/build/src/export/BatchSpanProcessorBase'
 import {
 	SEMRESATTRS_DEPLOYMENT_ENVIRONMENT,
 	SEMRESATTRS_SERVICE_NAME,
 	SEMRESATTRS_SERVICE_VERSION,
 } from '@opentelemetry/semantic-conventions'
-import { clearInterval } from 'timers'
 import { hookConsole } from './hooks.js'
 import log from './log.js'
 import {
@@ -48,13 +44,6 @@ import * as packageJson from '../package.json'
 import { PrismaInstrumentation } from '@prisma/instrumentation'
 
 const OTLP_HTTP = 'https://otel.highlight.io:4318'
-const FIVE_MINUTES = 1000 * 60 * 5
-
-type TraceMapValue = {
-	attributes: { 'highlight.session_id': string; 'highlight.trace_id': string }
-
-	destroy: () => void
-}
 
 const instrumentations = getNodeAutoInstrumentations({
 	'@opentelemetry/instrumentation-http': {
@@ -99,88 +88,6 @@ propagation.setGlobalPropagator(
 
 registerInstrumentations({ instrumentations })
 
-// @ts-ignore
-class CustomSpanProcessor extends BatchSpanProcessorBase<BufferConfig> {
-	private _listeners: Map<Symbol, () => void> = new Map()
-	private traceAttributesMap = new Map<string, TraceMapValue>()
-	private finishedSpanNames = new Set<string>()
-
-	getTraceMetadata(span: ReadableSpan) {
-		return this.traceAttributesMap.get(span.spanContext().traceId)
-	}
-
-	setTraceMetadata(span: OtelSpan, attributes: TraceMapValue['attributes']) {
-		const { traceId } = span.spanContext()
-
-		if (!this.traceAttributesMap.get(traceId)) {
-			const timer = setTimeout(() => destroy(), FIVE_MINUTES)
-			const destroy = () => {
-				this.traceAttributesMap.delete(traceId)
-
-				clearTimeout(timer)
-			}
-
-			return this.traceAttributesMap.set(traceId, { attributes, destroy })
-		}
-	}
-
-	getFinishedSpanNames() {
-		return this.finishedSpanNames
-	}
-
-	clearFinishedSpanNames() {
-		return this.finishedSpanNames.clear()
-	}
-
-	onEnd(span: ReadableSpan) {
-		const traceMetadata = this.getTraceMetadata(span)
-
-		if (traceMetadata) {
-			// @ts-ignore
-			span.resource = span.resource.merge(
-				new Resource(traceMetadata.attributes),
-			)
-		}
-
-		if (!span.parentSpanId && traceMetadata) {
-			traceMetadata.destroy()
-		}
-
-		this.finishedSpanNames.add(span.name)
-
-		// @ts-ignore
-		super.onEnd(span)
-	}
-
-	// Only needed to resolve a type error
-	onStart(span: ReadableSpan, parentContext: Context): void {
-		// @ts-ignore
-		super.onStart(span, parentContext)
-	}
-
-	onShutdown(): void {}
-
-	async forceFlush(): Promise<void> {
-		// @ts-ignore
-		const finishedSpansCount = this._finishedSpans.length
-
-		if (finishedSpansCount > 0) {
-			Array.from(this._listeners.values()).forEach((listener) =>
-				listener(),
-			)
-		}
-
-		await super.forceFlush()
-	}
-
-	registerListener(listener: () => void) {
-		const id = Symbol()
-		this._listeners.set(id, listener)
-
-		return () => this._listeners.delete(id)
-	}
-}
-
 const OTEL_TO_OPTIONS = {
 	[SEMRESATTRS_SERVICE_NAME]: 'serviceName',
 	[SEMRESATTRS_SERVICE_VERSION]: 'serviceVersion',
@@ -193,7 +100,7 @@ export class Highlight {
 	_debug: boolean
 	otel: NodeSDK
 	private tracer: Tracer
-	private processor: CustomSpanProcessor
+	private processor: BatchSpanProcessor
 
 	constructor(options: NodeOptions) {
 		this._debug = !!options.debug
@@ -243,7 +150,7 @@ export class Highlight {
 		this._log('using otlp exporter settings', config)
 		const exporter = new OTLPTraceExporter(config)
 
-		this.processor = new CustomSpanProcessor(exporter, {
+		this.processor = new BatchSpanProcessor(exporter, {
 			scheduledDelayMillis: 1000,
 			maxExportBatchSize: 1024 * 1024,
 			maxQueueSize: 1024 * 1024,
@@ -287,18 +194,6 @@ export class Highlight {
 		}
 
 		this._log(`Initialized SDK for project ${this._projectID}`)
-	}
-
-	get activeSpanProcessor(): CustomSpanProcessor {
-		// @ts-ignore
-		return trace.getTracerProvider()?._delegate.activeSpanProcessor
-			._spanProcessors[0]
-	}
-
-	get finishedSpans(): Span[] {
-		const processor = this.activeSpanProcessor
-		// @ts-ignore
-		return processor?._finishedSpans ?? []
 	}
 
 	async stop() {
@@ -424,54 +319,6 @@ export class Highlight {
 		}
 	}
 
-	async waitForFlush(expectedSpanNames: string[] = []) {
-		return new Promise<string[]>(async (resolve) => {
-			let resolved = false
-			let finishedSpansCount = this.finishedSpans.length
-			let waitingForFinishedSpans = finishedSpansCount > 0
-
-			let intervalTimer = setInterval(async () => {
-				finishedSpansCount = this.finishedSpans.length
-
-				const canFinish =
-					!expectedSpanNames.length ||
-					expectedSpanNames.every((n) =>
-						this.processor.getFinishedSpanNames().has(n),
-					)
-
-				if (finishedSpansCount) {
-					waitingForFinishedSpans = true
-				} else if (canFinish && waitingForFinishedSpans) {
-					finish()
-
-					this.processor.clearFinishedSpanNames()
-				}
-			}, 10)
-
-			this.flush()
-
-			let timer: ReturnType<typeof setTimeout>
-
-			const finish = async () => {
-				clearInterval(intervalTimer)
-				clearTimeout(timer)
-				unlisten()
-
-				if (!resolved) {
-					resolved = true
-
-					resolve(Array.from(this.processor.getFinishedSpanNames()))
-				}
-			}
-
-			if (!expectedSpanNames.length) {
-				timer = setTimeout(finish, 2000)
-			}
-
-			const unlisten = this.processor.registerListener(finish)
-		})
-	}
-
 	setAttributes(attributes: Attributes) {
 		trace.getActiveSpan()?.setAttributes(attributes)
 	}
@@ -501,7 +348,6 @@ export class Highlight {
 			throw error
 		} finally {
 			span.end()
-			await this.waitForFlush()
 		}
 	}
 
@@ -510,13 +356,13 @@ export class Highlight {
 		headers: Headers | IncomingHttpHeaders,
 		options?: SpanOptions,
 	): { span: OtelSpan; ctx: Context } {
-		const ctx = api.context.active()
+		const ctx = propagation.extract(api.context.active(), headers)
 		const span = this.tracer.startSpan(spanName, options, ctx)
 		const contextWithSpanSet = api.trace.setSpan(ctx, span)
 
 		const { secureSessionId, requestId } = this.parseHeaders(headers)
 		if (secureSessionId && requestId) {
-			this.processor.setTraceMetadata(span, {
+			span.setAttributes({
 				'highlight.session_id': secureSessionId,
 				'highlight.trace_id': requestId,
 			})

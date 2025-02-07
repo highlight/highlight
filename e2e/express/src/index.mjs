@@ -8,7 +8,6 @@ const config = {
 	debug: false,
 	serviceName: 'e2e-express',
 	serviceVersion: 'git-sha',
-	otlpEndpoint: 'http://localhost:4318',
 	environment: 'e2e-test',
 	serializeConsoleAttributes: true,
 }
@@ -47,6 +46,22 @@ app.get('/good', (req, res) => {
 
 app.get('/bad', (req, res) => {
 	throw new Error('this is an error')
+})
+
+app.get('/runWithHeaders', async (req, res) => {
+	return await H.runWithHeaders(
+		`handle ${req.url}`,
+		req.headers,
+		async (span) => {
+			const resolved = await fetch(
+				'https://api.sampleapis.com/coffee/hot',
+			)
+			const data = await resolved.json()
+			span.end()
+			res.send(data[0])
+			return data
+		},
+	)
 })
 
 // This should be before any other error middleware and after all controllers (route definitions)
