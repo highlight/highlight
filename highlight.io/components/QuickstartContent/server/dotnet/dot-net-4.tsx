@@ -9,7 +9,7 @@ import {
 } from './shared-snippets-tracing'
 
 export const DotNet4OTLPReorganizedContent: QuickStartContent = {
-	title: '.NET 4.x via the OpenTelemetry Protocol',
+	title: '.NET 4.x',
 	subtitle: `.NET 4.x via the OpenTelemetry Protocol (OTLP).`,
 	logoKey: 'dotnet',
 	products: ['Errors', 'Logs', 'Traces', 'Metrics'],
@@ -18,7 +18,7 @@ export const DotNet4OTLPReorganizedContent: QuickStartContent = {
 		{
 			title: 'Set up your highlight.io browser SDK.',
 			content: `The installation differs from the normal [frontend getting started guide](${siteUrl(
-				'/docs/getting-started/frontend/other',
+				'/docs/getting-started/client-sdk/other',
 			)}) in the configuration of the .NET trace propagation. 
 			The TraceParentContext value is set based on the server trace context so that
 			client side tracing can carry the existing trace ID and session context.

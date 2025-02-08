@@ -1,6 +1,6 @@
 ---
-title: "Next.JS Tracing on Edge Runtime with @vercel/otel"
-createdAt: 2024-04-29T15:00:00Z
+title: Next.JS Tracing on Edge Runtime with @vercel/otel
+createdAt: 2024-04-29T15:00:00.000Z
 readingTime: 9
 authorFirstName: Vadim
 authorLastName: Korolik
@@ -9,9 +9,10 @@ authorTwitter: 'https://twitter.com/vkorolik'
 authorLinkedIn: 'https://www.linkedin.com/in/vkorolik/'
 authorGithub: 'https://github.com/Vadman97'
 authorWebsite: 'https://vadweb.us'
-authorPFP: 'https://lh3.googleusercontent.com/a-/AOh14Gh1k7XsVMGxHMLJZ7qesyddqn1y4EKjfbodEYiY=s96-c'
-tags: Launch Week 5
-metaTitle: "Next.JS Tracing on Edge Runtime with @vercel/otel"
+authorPFP: >-
+  https://lh3.googleusercontent.com/a-/AOh14Gh1k7XsVMGxHMLJZ7qesyddqn1y4EKjfbodEYiY=s96-c
+tags: 'Product Updates, Frontend, OpenTelemetry'
+metaTitle: Next.JS Tracing on Edge Runtime with @vercel/otel
 ---
 
 # Next.js Server Traces from the Vercel Edge Runtime
@@ -25,7 +26,7 @@ architectures like AWS Lambda. Additionally, plugins enable operation in various
 the Vercel Edge runtime, which is based on the Cloudflare Workers runtime and is known for its rapid start times and
 cost-efficiency. However, this runtime has certain limitations, primarily its minimal support for standard Node APIs.
 
-Before diving deeper into these runtimes, let’s consider a situation where it's tough to debug code on the Edge runtime.
+Before diving deeper into these runtimes, let's consider a situation where it's tough to debug code on the Edge runtime.
 For instance, if users face delays when sending frontend API requests to your Edge runtime handler and you're unsure
 why. A practical approach would be to analyze the code execution to pinpoint where delays occur. Using traces could
 help, as they provide a flame graph showing where the code spends most of its time. OpenTelemetry is a useful
@@ -36,7 +37,7 @@ open-source tool for gathering these traces.
 ## What is OpenTelemetry?
 
 OpenTelemetry is an observability specification. It's a collection of tools, APIs, and SDKs used to instrument,
-generate, collect, and export telemetry data (metrics, logs, and traces) to help developers understand their software’s
+generate, collect, and export telemetry data (metrics, logs, and traces) to help developers understand their software's
 performance and behavior. An important aspect of OpenTelemetry is its vendor neutrality, meaning it can be integrated
 with any backend of choice, enhancing its flexibility and usability in diverse environments.
 
@@ -47,10 +48,10 @@ telemetry backend. The caveat though is that the normal OpenTelemetry Node.js SD
 
 Given the runtime's constraints with node APIs, the setup usually involves initializing an OpenTelemetry tracer,
 configuring an exporter that is compatible with the Edge environment, and ensuring that traces are efficiently batched
-and sent without overwhelming the network. With Vercel’s latest work in this space, however, we can leverage the npm
+and sent without overwhelming the network. With Vercel's latest work in this space, however, we can leverage the npm
 package @vercel/otel to connect our instrumentation hook for export. The package bundles both the edge runtime
 compatible @opentelemetry/webjs and @opentelemetry/nodejs depending on the Vercel runtime where the code is running,
-which saves a lot of xxxx when getting tracing working across runtimes. Here’s. An example of the instrumentation hook.
+which saves a lot of xxxx when getting tracing working across runtimes. Here's. An example of the instrumentation hook.
 
 ```tsx
 import {OTLPHttpJsonTraceExporter, registerOTel} from '@vercel/otel'
@@ -82,7 +83,7 @@ export function register() {
 }
 ```
 
-Don’t forget to enable the instrumentation hook in the next.config.js
+Don't forget to enable the instrumentation hook in the next.config.js
 
 ```tsx
 const {withHighlightConfig} = require('@highlight-run/next/config')
@@ -106,7 +107,7 @@ HTTP headers or websockets and ensuring that these IDs are consistently passed t
 helps maintain the trace context across asynchronous operations and service boundaries, providing a complete picture of
 the user journey.
 
-Let’s take our setup and extend it to forward browser trace IDs to the backend. On the browser, we’ll assume we’re using
+Let's take our setup and extend it to forward browser trace IDs to the backend. On the browser, we'll assume we're using
 highlight.run for session replay which will automatically add a x-highlight-request HTTP header to backend calls. We can
 leverage the attributesFromHeaders setting to split the incoming header into span attributes that will be passed to your
 backend.

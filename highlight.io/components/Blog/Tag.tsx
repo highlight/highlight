@@ -13,13 +13,11 @@ import { IoIosStopwatch } from 'react-icons/io'
 
 import { ReactElement } from 'react-markdown/lib/react-markdown'
 import { Typography } from '../common/Typography/Typography'
-import { Post } from './BlogPost/BlogPost'
 
 export type Tag = {
 	name: string
 	slug: string
-	description?: string
-	posts?: Post[]
+	description: string
 }
 
 export const getTagUrl = (slug: string) =>

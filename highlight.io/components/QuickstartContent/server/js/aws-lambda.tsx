@@ -8,6 +8,7 @@ import {
 	jsGetSnippet,
 	verifyError,
 } from './shared-snippets-monitoring'
+import { AWSLambdaTracingSteps } from '../serverless/shared-snippets-aws-lambda'
 
 export const JSAWSLambdaReorganizedContent: QuickStartContent = {
 	title: 'Javascript AWS Lambda',
@@ -16,6 +17,7 @@ export const JSAWSLambdaReorganizedContent: QuickStartContent = {
 	products: ['Errors', 'Logs', 'Traces'],
 	entries: [
 		frontendInstallSnippet,
+		...AWSLambdaTracingSteps,
 		jsGetSnippet(['node']),
 		initializeNodeSDK('node'),
 		{

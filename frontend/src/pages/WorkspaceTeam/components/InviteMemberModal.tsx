@@ -1,5 +1,8 @@
 import { toast } from '@components/Toaster'
-import { useSendAdminWorkspaceInviteMutation } from '@graph/hooks'
+import {
+	useGetWorkspaceSettingsQuery,
+	useSendAdminWorkspaceInviteMutation,
+} from '@graph/hooks'
 import { namedOperations } from '@graph/operations'
 import { AdminRole } from '@graph/schemas'
 import {
@@ -10,19 +13,21 @@ import {
 	IconSolidInformationCircle,
 	IconSolidUserAdd,
 	Modal,
+	SelectOption,
 	Stack,
 	Text,
 	Tooltip,
 } from '@highlight-run/ui/components'
 import { vars } from '@highlight-run/ui/vars'
 import { getWorkspaceInvitationLink } from '@pages/WorkspaceTeam/utils'
-import { useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef } from 'react'
 import { StringParam, useQueryParam } from 'use-query-params'
 
 import { useAuthContext } from '@/authentication/AuthContext'
 import { Button } from '@/components/Button'
 import {
 	DISABLED_REASON_IS_ADMIN,
+	DISABLED_REASON_NOT_ENTERPRISE,
 	RoleOptions,
 } from '@/pages/WorkspaceTeam/components/AllMembers'
 import { useApplicationContext } from '@/routers/AppRouter/context/ApplicationContext'
@@ -40,21 +45,34 @@ function InviteMemberModal({
 	workspaceInviteLinks?: any
 	toggleShowModal: (value: boolean) => void
 }) {
+	const form = Form.useStore<{
+		email: string
+		role: AdminRole
+		projects: string[]
+	}>({
+		defaultValues: {
+			email: '',
+			role: AdminRole.Member,
+			projects: [],
+		},
+	})
 	const emailInputRef = useRef<HTMLInputElement>(null)
-	const [email, setEmail] = useState('')
-	const [newAdminRole, setNewAdminRole] = useState<AdminRole>(
-		AdminRole.Member,
-	)
-	const [newProjectIds, setNewProjectIds] = useState<string[]>([])
 	const [autoinvite_email] = useQueryParam('autoinvite_email', StringParam)
+	const { allProjects } = useApplicationContext()
+	const { workspaceRole } = useAuthContext()
 
-	useEffect(() => {
-		if (autoinvite_email) {
-			setEmail(autoinvite_email)
-			setNewAdminRole(AdminRole.Member)
-			toggleShowModal(true)
-		}
-	}, [autoinvite_email, toggleShowModal])
+	const email = form.useValue(form.names.email)
+	const newAdminRole = form.useValue(form.names.role)
+	const newProjectIds = form.useValue(form.names.projects)
+
+	const { data: workspaceSettings } = useGetWorkspaceSettingsQuery({
+		variables: { workspace_id: workspaceId! },
+		skip: !workspaceId,
+	})
+
+	const canUpdateProjects =
+		workspaceSettings?.workspaceSettings?.enable_project_level_access ??
+		false
 
 	const [
 		sendInviteEmail,
@@ -64,17 +82,63 @@ function InviteMemberModal({
 		refetchQueries: [namedOperations.Query.GetWorkspaceSettings],
 	})
 
+	const roleOptions =
+		workspaceRole === AdminRole.Admin ? RoleOptions : [RoleOptions[0]]
+
+	const disabledReason =
+		newAdminRole === AdminRole.Admin
+			? DISABLED_REASON_IS_ADMIN
+			: !canUpdateProjects
+				? DISABLED_REASON_NOT_ENTERPRISE
+				: undefined
+
+	const inviteLink = getWorkspaceInvitationLink(
+		workspaceInviteLinks?.secret || '',
+		workspaceId!,
+	)
+
+	useEffect(() => {
+		if (autoinvite_email) {
+			form.setValues({
+				email: autoinvite_email,
+				role: AdminRole.Member,
+				projects: [],
+			})
+			toggleShowModal(true)
+		}
+	}, [autoinvite_email, form, toggleShowModal])
+
+	const resetForm = useCallback(
+		(close?: true) => {
+			if (close) {
+				toggleShowModal(false)
+			}
+			sendInviteReset()
+			form.reset()
+		},
+		[form, sendInviteReset, toggleShowModal],
+	)
+
+	const projectOptions = useMemo(
+		() =>
+			allProjects?.map((p) => ({
+				name: p?.name ?? '',
+				value: p?.name ?? '',
+				id: p?.id ?? '',
+			})) ?? [],
+		[allProjects],
+	)
+
 	const onSubmit = (e: { preventDefault: () => void }) => {
 		e.preventDefault()
-
 		if (!workspaceId) {
 			return
 		}
 
 		const projectIdsToSend =
-			newAdminRole !== AdminRole.Admin && newProjectIds.length === 0
+			newAdminRole !== AdminRole.Admin && !newProjectIds?.length
 				? (allProjects?.map((p) => p?.id).filter(Boolean) as string[])
-				: newProjectIds
+				: newProjectIds.map((p: { id: string }) => p.id)
 
 		sendInviteEmail({
 			variables: {
@@ -85,7 +149,6 @@ function InviteMemberModal({
 			},
 		})
 			.then(() => {
-				resetForm()
 				toast.success(`Invite email sent!`, {
 					duration: 10000,
 					content: (
@@ -99,7 +162,9 @@ function InviteMemberModal({
 									trackingId="invite-admin-modal_copy-invite-link"
 									iconLeft={<IconSolidClipboard />}
 									kind="secondary"
-									onClick={(e) => {
+									onClick={(e: {
+										stopPropagation: () => void
+									}) => {
 										e.stopPropagation()
 										navigator.clipboard.writeText(
 											inviteLink,
@@ -112,6 +177,7 @@ function InviteMemberModal({
 						</Stack>
 					),
 				})
+				form.setValue(form.names.email, '')
 				emailInputRef.current?.focus()
 			})
 			.catch((error) => {
@@ -122,46 +188,9 @@ function InviteMemberModal({
 			})
 	}
 
-	const { allProjects } = useApplicationContext()
-
-	const { workspaceRole } = useAuthContext()
-
-	const roleOptions =
-		workspaceRole === AdminRole.Admin ? RoleOptions : [RoleOptions[0]]
-
-	const disabledReason =
-		newAdminRole === AdminRole.Admin ? DISABLED_REASON_IS_ADMIN : undefined
-
-	const inviteLink = getWorkspaceInvitationLink(
-		workspaceInviteLinks?.secret || '',
-		workspaceId!,
-	)
-
-	const formStore = Form.useStore({
-		defaultValues: {
-			email,
-			role: newAdminRole,
-			projects: newProjectIds,
-		},
-	})
-
-	const resetForm = () => {
-		setEmail('')
-		setNewAdminRole(AdminRole.Member)
-		setNewProjectIds([])
-		sendInviteReset()
-		formStore?.reset()
-	}
-
 	return (
-		<Modal
-			open={showModal}
-			onClose={() => {
-				toggleShowModal(false)
-				resetForm()
-			}}
-		>
-			<Form onSubmit={onSubmit} store={formStore}>
+		<Modal open={showModal} onClose={() => resetForm(true)}>
+			<Form onSubmit={onSubmit} store={form}>
 				<Modal.Header>
 					<IconSolidUserAdd color={vars.color.n11} />
 					<Text size="xxSmall" color="moderate">
@@ -172,24 +201,16 @@ function InviteMemberModal({
 					<Stack direction="column" gap="16">
 						<Form.Input
 							ref={emailInputRef}
-							name="email"
+							name={form.names.email}
 							label="User email"
-							value={email}
 							required
 							type="email"
-							onChange={(e) => {
-								setEmail(e.target.value)
-							}}
 						/>
 						<Stack direction="row" gap="8">
 							<Box style={{ width: '50%' }}>
 								<Form.Select
-									name="role"
+									name={form.names.role}
 									label="Role"
-									onValueChange={(option) => {
-										setNewAdminRole(option.value)
-										setNewProjectIds([])
-									}}
 								>
 									{roleOptions.map((role) => (
 										<Form.Option
@@ -208,7 +229,7 @@ function InviteMemberModal({
 									style={{ display: 'block' }}
 									trigger={
 										<Form.Select
-											name="projects"
+											name={form.names.projects}
 											label="Project Access"
 											renderValue={(options) => {
 												if (
@@ -229,11 +250,17 @@ function InviteMemberModal({
 													? 'All projects'
 													: 'Select projects'
 											}
-											options={
-												allProjects?.map(
-													(p) => p?.name ?? '',
-												) ?? []
-											}
+											options={projectOptions}
+											onValueChange={(
+												values: SelectOption[],
+											) => {
+												if (values?.length) {
+													form.setValue(
+														form.names.projects,
+														values,
+													)
+												}
+											}}
 											icon={
 												<IconSolidInformationCircle
 													color={vars.color.n8}
@@ -298,10 +325,7 @@ function InviteMemberModal({
 							<Button
 								trackingId="invite-admin-modal_cancel"
 								kind="secondary"
-								onClick={() => {
-									toggleShowModal(false)
-									resetForm()
-								}}
+								onClick={() => resetForm(true)}
 							>
 								Cancel
 							</Button>

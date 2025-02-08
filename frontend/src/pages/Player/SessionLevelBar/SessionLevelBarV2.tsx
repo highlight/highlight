@@ -26,14 +26,12 @@ import {
 	RightPanelView,
 	usePlayerUIContext,
 } from '@pages/Player/context/PlayerUIContext'
-import { changeSession } from '@pages/Player/PlayerHook/utils'
 import usePlayerConfiguration from '@pages/Player/PlayerHook/utils/usePlayerConfiguration'
 import { useReplayerContext } from '@pages/Player/ReplayerContext'
 import analytics from '@util/analytics'
 import { delay } from 'lodash'
 import React, { useMemo, useRef, useState } from 'react'
 import { useHotkeys } from 'react-hotkeys-hook'
-import { useNavigate } from 'react-router-dom'
 
 import { PlayerModeSwitch } from '@/pages/Player/SessionLevelBar/PlayerModeSwitch/PlayerModeSwitch'
 import { useSessionParams } from '@/pages/Sessions/utils'
@@ -41,6 +39,12 @@ import { ProductType } from '@/graph/generated/schemas'
 
 import SessionShareButtonV2 from '../SessionShareButton/SessionShareButtonV2'
 import * as styles from './SessionLevelBarV2.css'
+import { useSearchContext } from '@components/Search/SearchContext'
+import { useQueryParam } from 'use-query-params'
+import {
+	PAGE_PARAM,
+	PAGE_SIZE,
+} from '@components/SearchPagination/SearchPagination'
 
 const DEFAULT_RIGHT_PANEL_VIEWS = [RightPanelView.Event, RightPanelView.Session]
 
@@ -49,10 +53,11 @@ export const SessionLevelBarV2: React.FC<
 		width: number | string
 	}
 > = (props) => {
-	const navigate = useNavigate()
+	const [page] = useQueryParam('page', PAGE_PARAM)
 	const { projectId } = useProjectId()
 	const { sessionSecureId } = useSessionParams()
 	const { sessionResults, session } = useReplayerContext()
+	const { changeResultIndex } = useSearchContext()
 
 	const { isLoggedIn } = useAuthContext()
 	const {
@@ -87,37 +92,30 @@ export const SessionLevelBarV2: React.FC<
 	)
 	const [prev, next] = [sessionIdx - 1, sessionIdx + 1]
 
-	const canMoveForward = !!projectId && sessionResults.sessions[next]
-	const canMoveBackward = !!projectId && sessionResults.sessions[prev]
+	const canMoveForward =
+		!!projectId && (page - 1) * PAGE_SIZE + next < sessionResults.totalCount
+	const canMoveBackward = !!projectId && (prev >= 0 || page > 1)
 
 	useHotkeys(
 		'j',
 		() => {
-			if (canMoveForward && projectId) {
+			if (canMoveForward && projectId && changeResultIndex) {
 				analytics.track('NextSessionKeyboardShortcut')
-				changeSession(
-					projectId,
-					navigate,
-					sessionResults.sessions[next],
-				)
+				changeResultIndex(next)
 			}
 		},
-		[canMoveForward, next],
+		[canMoveForward, next, changeResultIndex],
 	)
 
 	useHotkeys(
 		'k',
 		() => {
-			if (canMoveBackward && projectId) {
+			if (canMoveBackward && projectId && changeResultIndex) {
 				analytics.track('PrevSessionKeyboardShortcut')
-				changeSession(
-					projectId,
-					navigate,
-					sessionResults.sessions[prev],
-				)
+				changeResultIndex(prev)
 			}
 		},
-		[canMoveBackward, prev],
+		[canMoveBackward, prev, changeResultIndex],
 	)
 
 	return (
@@ -149,25 +147,17 @@ export const SessionLevelBarV2: React.FC<
 					)}
 					<PreviousNextGroup
 						onPrev={() => {
-							if (projectId) {
-								changeSession(
-									projectId,
-									navigate,
-									sessionResults.sessions[prev],
-								)
+							if (projectId && changeResultIndex) {
+								changeResultIndex(prev)
 							}
 						}}
-						canMoveBackward={!!canMoveBackward}
+						canMoveBackward={canMoveBackward}
 						onNext={() => {
-							if (projectId) {
-								changeSession(
-									projectId,
-									navigate,
-									sessionResults.sessions[next],
-								)
+							if (projectId && changeResultIndex) {
+								changeResultIndex(next)
 							}
 						}}
-						canMoveForward={!!canMoveForward}
+						canMoveForward={canMoveForward}
 						size="small"
 					/>
 					<SessionViewportMetadata />

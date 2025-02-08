@@ -1,6 +1,6 @@
 ---
-title: "Tracing Distributed Systems in Next.js"
-createdAt: 2024-04-21T12:00:00Z
+title: Tracing Distributed Systems in Next.js
+createdAt: 2024-04-21T12:00:00.000Z
 readingTime: 6
 authorFirstName: Chris
 authorLastName: Esplin
@@ -9,9 +9,9 @@ authorTwitter: 'https://twitter.com/chrisesplin'
 authorLinkedIn: 'https://www.linkedin.com/in/epsilon/'
 authorGithub: 'https://github.com/deltaepsilon'
 authorWebsite: 'https://www.chrisesplin.com/'
-authorPFP: '/images/blog/podcast/avatars/esplin.jpeg'
-tags: Tutorial
-metaTitle: "Tracing Distributed Systems in Next.js"
+authorPFP: /images/blog/podcast/avatars/esplin.jpeg
+tags: Engineering
+metaTitle: Tracing Distributed Systems in Next.js
 ---
 
 

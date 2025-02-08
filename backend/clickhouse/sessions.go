@@ -4,10 +4,11 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	e "github.com/pkg/errors"
 	"strconv"
 	"strings"
 	"time"
+
+	e "github.com/pkg/errors"
 
 	"github.com/highlight-run/highlight/backend/parser"
 	"github.com/highlight-run/highlight/backend/parser/listener"
@@ -21,6 +22,8 @@ import (
 	"github.com/huandu/go-sqlbuilder"
 	"github.com/openlyinc/pointy"
 	"golang.org/x/sync/errgroup"
+
+	sqlparser "github.com/AfterShip/clickhouse-sql-parser/parser"
 )
 
 const timeFormat = "2006-01-02T15:04:05.000Z"
@@ -674,12 +677,9 @@ func getAttributeFields(config model.TableConfig, filters listener.Filters) []st
 	return attributeFields
 }
 
-func addAttributes(config model.TableConfig, attributeFields []string, projectIds []int, params modelInputs.QueryInput, sb *sqlbuilder.SelectBuilder, castToMap bool) {
+func addAttributes(config model.TableConfig, attributeFields []string, projectIds []int, params modelInputs.QueryInput, sb *sqlbuilder.SelectBuilder) {
 	if config.AttributesTable != "" {
 		innerExpr := "groupArray(tuple(Name, Value))"
-		if castToMap {
-			innerExpr = "CAST(groupArray(tuple(Name, Value)), 'Map(String, String)')"
-		}
 
 		joinSb := sqlbuilder.NewSelectBuilder()
 		joinSb.From(config.AttributesTable).
@@ -690,6 +690,147 @@ func addAttributes(config model.TableConfig, attributeFields []string, projectId
 			Where(joinSb.In("Name", attributeFields)).
 			GroupBy("SessionID")
 		sb.JoinWithOption(sqlbuilder.InnerJoin, sb.BuilderAs(joinSb, "join"), "ID = SessionID")
+	}
+}
+
+func addAttributesParser(config model.TableConfig, attributeFields []string, projectId int, params modelInputs.QueryInput, query *sqlparser.SelectQuery) {
+	if config.AttributesTable != "" && len(attributeFields) > 0 {
+		attributeSelect := &sqlparser.SelectQuery{
+			SelectItems: []*sqlparser.SelectItem{
+				{
+					Expr: &sqlparser.Ident{
+						Name: "SessionID",
+					},
+				},
+				{
+					Expr: &sqlparser.Ident{
+						Name: "CAST(groupArray(tuple(Name, Value)), 'Map(String, String)')",
+					},
+					Alias: &sqlparser.Ident{
+						Name: model.GetAttributesColumn(config.AttributesColumns, ""),
+					},
+				},
+			},
+			From: &sqlparser.FromClause{
+				Expr: &sqlparser.TableExpr{
+					Expr: &sqlparser.Ident{
+						Name: config.AttributesTable,
+					},
+				},
+			},
+			Where: &sqlparser.WhereClause{
+				Expr: &sqlparser.BinaryOperation{
+					LeftExpr: &sqlparser.BinaryOperation{
+						LeftExpr: &sqlparser.BinaryOperation{
+							LeftExpr: &sqlparser.Ident{
+								Name: "ProjectID",
+							},
+							RightExpr: &sqlparser.NumberLiteral{
+								Literal: strconv.Itoa(projectId),
+							},
+							Operation: "=",
+						},
+						RightExpr: &sqlparser.BinaryOperation{
+							LeftExpr: &sqlparser.Ident{
+								Name: "Name",
+							},
+							RightExpr: &sqlparser.ParamExprList{
+								Items: &sqlparser.ColumnExprList{
+									Items: lo.Map(attributeFields, func(field string, _ int) sqlparser.Expr {
+										return &sqlparser.StringLiteral{
+											Literal: field,
+										}
+									}),
+								},
+							},
+							Operation: "IN",
+						},
+						Operation: "AND",
+					},
+					RightExpr: &sqlparser.BinaryOperation{
+						LeftExpr: &sqlparser.BinaryOperation{
+							LeftExpr: &sqlparser.Ident{
+								Name: "SessionCreatedAt",
+							},
+							RightExpr: &sqlparser.FunctionExpr{
+								Name: &sqlparser.Ident{
+									Name: "toDateTime",
+								},
+								Params: &sqlparser.ParamExprList{
+									Items: &sqlparser.ColumnExprList{
+										Items: []sqlparser.Expr{&sqlparser.NumberLiteral{
+											Literal: strconv.FormatInt(params.DateRange.StartDate.Unix(), 10),
+										}},
+									},
+								},
+							},
+							Operation: ">=",
+						},
+						RightExpr: &sqlparser.BinaryOperation{
+							LeftExpr: &sqlparser.Ident{
+								Name: "SessionCreatedAt",
+							},
+							RightExpr: &sqlparser.FunctionExpr{
+								Name: &sqlparser.Ident{
+									Name: "toDateTime",
+								},
+								Params: &sqlparser.ParamExprList{
+									Items: &sqlparser.ColumnExprList{
+										Items: []sqlparser.Expr{&sqlparser.NumberLiteral{
+											Literal: strconv.FormatInt(params.DateRange.EndDate.Unix(), 10),
+										}},
+									},
+								},
+							},
+							Operation: "<=",
+						},
+						Operation: "AND",
+					},
+					Operation: "AND",
+				},
+			},
+			GroupBy: &sqlparser.GroupByClause{
+				Expr: &sqlparser.Ident{
+					Name: "SessionID",
+				},
+			},
+		}
+
+		aliased := &sqlparser.AliasExpr{
+			Expr: &sqlparser.ParamExprList{
+				Items: &sqlparser.ColumnExprList{
+					Items: []sqlparser.Expr{attributeSelect},
+				},
+			},
+			Alias: &sqlparser.Ident{
+				Name: "join",
+			},
+		}
+
+		join := &sqlparser.JoinExpr{
+			Left: query.From.Expr,
+			Right: &sqlparser.JoinExpr{
+				Left:      aliased,
+				Modifiers: []string{"INNER", "JOIN"},
+				Constraints: &sqlparser.OnClause{
+					On: &sqlparser.ColumnExprList{
+						Items: []sqlparser.Expr{
+							&sqlparser.BinaryOperation{
+								LeftExpr: &sqlparser.Ident{
+									Name: "ID",
+								},
+								RightExpr: &sqlparser.Ident{
+									Name: "SessionID",
+								},
+								Operation: "=",
+							},
+						},
+					},
+				},
+			},
+		}
+
+		query.From.Expr = join
 	}
 }
 
@@ -745,7 +886,7 @@ func GetSessionsQueryImpl(admin *model.Admin, params modelInputs.QueryInput, pro
 	}
 
 	attributeFields := getAttributeFields(SessionsJoinedTableConfig, listener.GetFilters())
-	addAttributes(SessionsJoinedTableConfig, attributeFields, []int{projectId}, params, sb, false)
+	addAttributes(SessionsJoinedTableConfig, attributeFields, []int{projectId}, params, sb)
 
 	if useRandomSample {
 		sbOuter := sqlbuilder.NewSelectBuilder()

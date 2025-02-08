@@ -1,6 +1,6 @@
 ---
-title: "Highlight Pod #5: Replo with Yuxin Zhu"
-createdAt: 2024-02-29T12:00:00Z
+title: 'Highlight Pod #5: Replo with Yuxin Zhu'
+createdAt: 2024-02-29T12:00:00.000Z
 readingTime: 2
 authorFirstName: Chris
 authorLastName: Esplin
@@ -9,9 +9,9 @@ authorTwitter: 'https://twitter.com/chrisesplin'
 authorLinkedIn: 'https://www.linkedin.com/in/epsilon/'
 authorGithub: 'https://github.com/deltaepsilon'
 authorWebsite: 'https://www.chrisesplin.com/'
-authorPFP: '/images/blog/podcast/avatars/esplin.jpeg'
-tags: Podcast
-metaTitle: "Highlight Pod Episode #5: Replo with Yuxin Zhu"
+authorPFP: /images/blog/podcast/avatars/esplin.jpeg
+tags: Company
+metaTitle: 'Highlight Pod Episode #5: Replo with Yuxin Zhu'
 ---
 
 [![Watch on YouTube](/images/blog/podcast/5/play.png)](https://youtu.be/T8JH3WSQZHQ)

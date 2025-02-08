@@ -31,6 +31,7 @@ export function HighlightInit({
 				highlightInitOptions = {
 					...highlightOptions,
 					backendUrl: '/highlight-events',
+					otlpEndpoint: window.location.origin,
 				}
 			}
 

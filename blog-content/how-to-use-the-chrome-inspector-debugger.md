@@ -2,8 +2,8 @@
 title: "How To Use The Chrome Inspector & Debugger"
 createdAt: 2022-11-01T12:00:00Z
 readingTime: 11
-authorFirstName: Oyinkansola 
-authorLastName: Awosan 
+authorFirstName: Oyinkansola
+authorLastName: Awosan
 authorTitle: Developer
 authorTwitter: 'https://twitter.com/tire_nii'
 authorGithub: "https://github.com/OyinOlamide"
@@ -11,7 +11,7 @@ authorWebsite: ""
 authorLinkedIn: 'https://www.linkedin.com/in/oyinawosan/?originalSubdomain=ng'
 authorPFP: 'https://www.highlight.io/_next/image?url=https%3A%2F%2Fmedia.graphassets.com%2FpiTf6QmMRNijIohKhV7D&w=3840&q=75'
 image: 'https://www.highlight.io/_next/image?url=https%3A%2F%2Fmedia.graphassets.com%2F6c7wrEm9R2G60dPV0zfN&w=3840&q=75'
-tags: 
+tags: 'Frontend, Developer Experience'
 metaTitle: "How To Use The Chrome Inspector & Debugger"
 ---
 
@@ -91,7 +91,7 @@ The Computed pane can be a helpful way to check if your CSS classes are being ov
 
 This can be especially helpful in troubleshooting sizing problems, as you can see exactly which property is causing the issue.
 
-You can even add new elements to your web page under the Elements pane. To do this, click the "Add Element" button at the pane's top. Here you can put in the HTML for the new element and click ‘OK” to see it added.
+You can even add new elements to your web page under the Elements pane. To do this, click the "Add Element" button at the pane's top. Here you can put in the HTML for the new element and click ‘OK" to see it added.
 
 ### Console
 
@@ -109,7 +109,7 @@ If the code is now working according to what is expected with no issues, you can
 
 Get started with the console tab by writing JavaScript into the console, then click "Enter." The Console will review the code you put in and return the result.
 
-Overall, the Sources tab is a great way to get a closer look at the inner workings of your web page and make changes as needed. So if you’re ever stuck on a coding problem or just want to experiment with some new ideas, be sure to give it a try.
+Overall, the Sources tab is a great way to get a closer look at the inner workings of your web page and make changes as needed. So if you're ever stuck on a coding problem or just want to experiment with some new ideas, be sure to give it a try.
 
 ### Sources
 
@@ -117,7 +117,7 @@ The Sources tab allows you to view and edit both the CSS and JavaScript code of 
 
 To use it, simply select a file, and the contents will open up in the Editor pane. From there, you can make changes to your code and see them implemented in real time. The pages button at the top will show you what file you are currently inspecting.
 
-One handy feature of the Sources tab is the ‘Filesystem’ button at the top, which lets you connect your file directly from your code editor to Chrome DevTools. This can be useful when you are confident about the changes you want to make, as it means that any change made in DevTools will automatically be saved in the source file.
+One handy feature of the Sources tab is the 'Filesystem' button at the top, which lets you connect your file directly from your code editor to Chrome DevTools. This can be useful when you are confident about the changes you want to make, as it means that any change made in DevTools will automatically be saved in the source file.
 
 However, it is essential to note that by default, any changes made in DevTools will not be reflected in your source code unless you connect your code editor to DevTools as well.
 
@@ -145,11 +145,11 @@ The Network tab shows the loads for the URL being viewed. This means you can get
 
 ![network-2.png](https://media.graphassets.com/5Z4WFtwRga404gS73x8w "network-2.png")
 
-You can also use the Network tab to throttle network speed. This can be helpful when you’re trying to test how a website will perform on slower connection speeds. To throttle network speed, simply click the “Network throttling” button at the top of the panel and select the desired connection speed. And then simply click OK to apply the changes.
+You can also use the Network tab to throttle network speed. This can be helpful when you're trying to test how a website will perform on slower connection speeds. To throttle network speed, simply click the "Network throttling" button at the top of the panel and select the desired connection speed. And then simply click OK to apply the changes.
 
 ### Application
 
-The Application tab is a really handy tool that allows you to see what resources are being used by your web application, clear any web app data that you don't need, and [ensure it’s healthy](https://www.highlight.io/blog/5-strategies-monitor-health "https://www.highlight.io/blog/5-strategies-monitor-health").
+The Application tab is a really handy tool that allows you to see what resources are being used by your web application, clear any web app data that you don't need, and [ensure it's healthy](https://www.highlight.io/blog/5-strategies-monitor-health "https://www.highlight.io/blog/5-strategies-monitor-health").
 
 To use the Application tab, simply select a resource under the Resources pane. This will bring up the storage details of that resource.
 

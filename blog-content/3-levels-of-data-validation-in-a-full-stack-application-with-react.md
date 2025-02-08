@@ -1,18 +1,20 @@
 ---
-title: "3 Levels of Data Validation in a Full Stack Application With React"
-createdAt: 2022-09-30T12:00:00Z
+title: 3 Levels of Data Validation in a Full Stack Application With React
+createdAt: 2022-09-30T12:00:00.000Z
 readingTime: 9
 authorFirstName: Paweł
-authorLastName: Dąbrowski 
-authorTitle: Developer 
+authorLastName: Dąbrowski
+authorTitle: Developer
 authorTwitter: ''
 authorLinkedIn: ''
 authorGithub: ''
 authorWebsite: 'https://paweldabrowski.com/articles/categories/ruby?source=longliveruby'
-authorPFP: 'https://www.highlight.io/_next/image?url=https%3A%2F%2Fmedia.graphassets.com%2FAlHke0jkQJWxpmcXBBhZ&w=3840&q=75'
-image: 'https://www.highlight.io/_next/image?url=https%3A%2F%2Fmedia.graphassets.com%2FFzuqrVP7QHutj0VgCvjz&w=3840&q=75'
-tags: Developer Tooling 
-metaTitle: "3 Levels of Data Validation in a Full Stack Application With React"
+authorPFP: >-
+  https://www.highlight.io/_next/image?url=https%3A%2F%2Fmedia.graphassets.com%2FAlHke0jkQJWxpmcXBBhZ&w=3840&q=75
+image: >-
+  https://www.highlight.io/_next/image?url=https%3A%2F%2Fmedia.graphassets.com%2FFzuqrVP7QHutj0VgCvjz&w=3840&q=75
+tags: Engineering
+metaTitle: 3 Levels of Data Validation in a Full Stack Application With React
 ---
 
 Data validation is critical for any application that relies on input from users. Without strong validation, you can end up with malformed data that can break features like filtering and search.

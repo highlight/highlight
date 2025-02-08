@@ -1,6 +1,6 @@
 ---
 title: Monitoring Browser Applications with OpenTelemetry
-createdAt: 2024-08-27T22:00:00Z
+createdAt: 2024-08-27T22:00:00.000Z
 readingTime: 5
 authorFirstName: Chris
 authorLastName: Schmitz
@@ -9,9 +9,10 @@ authorTwitter: 'https://twitter.com/ccschmitz'
 authorLinkedIn: 'https://www.linkedin.com/in/ccschmitz'
 authorGithub: 'https://github.com/ccschmitz'
 authorWebsite: ''
-authorPFP: 'https://www.highlight.io/_next/image?url=https%3A%2F%2Fmedia.graphassets.com%2FViK27IG7TCe0YDK20tFy&w=3840&q=75'
-tags: OpenTelemetry, Developer Tooling
-metaTitle:
+authorPFP: >-
+  https://www.highlight.io/_next/image?url=https%3A%2F%2Fmedia.graphassets.com%2FViK27IG7TCe0YDK20tFy&w=3840&q=75
+tags: 'Frontend, Observability, OpenTelemetry'
+metaTitle: null
 ---
 
 Many development teams leverage [OpenTelemetry](https://opentelemetry.io/) (OTeL) on the server side to collect [signals](https://opentelemetry.io/docs/concepts/signals/) such as logs, traces, and metrics from their applications. However, what's often overlooked is the power of OTeL's browser instrumentation. This client-side observability data can provide meaningful insights and create a comprehensive view of an application's performance by connecting traces between the client and server.

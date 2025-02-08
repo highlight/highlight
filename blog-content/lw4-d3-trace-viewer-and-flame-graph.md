@@ -1,6 +1,6 @@
 ---
-title: "Day 3: Flame Graphs and Integrated Session Views"
-createdAt: 2024-01-31T12:00:00Z
+title: 'Day 3: Flame Graphs and Integrated Session Views'
+createdAt: 2024-01-31T12:00:00.000Z
 readingTime: 3
 authorFirstName: Chris
 authorLastName: Esplin
@@ -9,10 +9,10 @@ authorTwitter: 'https://twitter.com/chrisesplin'
 authorLinkedIn: 'https://www.linkedin.com/in/epsilon/'
 authorGithub: 'https://github.com/deltaepsilon'
 authorWebsite: 'https://www.chrisesplin.com/'
-authorPFP: '/images/blog/podcast/avatars/esplin.jpeg'
-image: '/images/blog/launch-week/4/d3-splash.png'
-tags: Launch Week 4, Tracing, Session Replay
-metaTitle: "Day 3: Flame Graphs and Integrated Session Views"
+authorPFP: /images/blog/podcast/avatars/esplin.jpeg
+image: /images/blog/launch-week/4/d3-splash.png
+tags: 'Product Updates, Observability, Frontend'
+metaTitle: 'Day 3: Flame Graphs and Integrated Session Views'
 ---
 
 ## Transforming Trace Analysis with New Visualization Tools

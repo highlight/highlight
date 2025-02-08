@@ -1,5 +1,24 @@
 # @highlight-run/next
 
+## 7.8.4
+
+### Patch Changes
+
+-   91f82fc: proxy otlp requests via the backend when nextjs proxying is set up
+-   Updated dependencies [91f82fc]
+    -   highlight.run@9.9.1
+    -   @highlight-run/node@3.11.1
+    -   @highlight-run/react@10.0.1
+
+## 7.8.3
+
+### Patch Changes
+
+-   Updated dependencies [ab181de]
+    -   highlight.run@9.9.0
+    -   @highlight-run/node@3.11.1
+    -   @highlight-run/react@10.0.0
+
 ## 7.8.2
 
 ### Patch Changes

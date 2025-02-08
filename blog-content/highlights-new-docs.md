@@ -1,32 +1,33 @@
 ---
-title: Introducing the new Highlight Docs 
-createdAt: 2022-11-22T12:00:00Z
+title: Introducing the new Highlight Docs
+createdAt: 2022-11-22T12:00:00.000Z
 readingTime: 7
 authorFirstName: Vadim
 authorLastName: Korolik
-authorTitle: Software Engineer @ Highlight 
+authorTitle: Software Engineer @ Highlight
 authorTwitter: 'https://twitter.com/vkorolik'
 authorLinkedIn: 'https://www.linkedin.com/in/vkorolik/'
 authorGithub: 'https://github.com/Vadman97'
 authorWebsite: 'https://vadweb.us'
-authorPFP: 'https://lh3.googleusercontent.com/a-/AOh14Gh1k7XsVMGxHMLJZ7qesyddqn1y4EKjfbodEYiY=s96-c'
-tags: Highlight Engineering
-metaTitle: Is Kafka the Key? The Evolution of Highlight's Ingest 
+authorPFP: >-
+  https://lh3.googleusercontent.com/a-/AOh14Gh1k7XsVMGxHMLJZ7qesyddqn1y4EKjfbodEYiY=s96-c
+tags: 'Engineering, Developer Experience'
+metaTitle: Introducing the new Highlight Docs
 ---
 
-Today, we’re excited to introduce the new Highlight Docs! Over the past several weeks, we’ve been redesigning our docs site from the ground up, to make it more aesthetic, user-friendly, and performant than ever before.
+Today, we're excited to introduce the new Highlight Docs! Over the past several weeks, we've been redesigning our docs site from the ground up, to make it more aesthetic, user-friendly, and performant than ever before.
 
 ## Building from scratch
 
 Previously, we built out docs site using a popular documentation platform. The platform allowed us to quickly get our docs up and running, but we eventually ran into limitations.
 
-One aspect of customizability that we desired was to maintain a consistent look and feel between our marketing site, web app, and docs site. As you’ll notice, our new docs site much more neatly aligns with the overall Highlight brand.
+One aspect of customizability that we desired was to maintain a consistent look and feel between our marketing site, web app, and docs site. As you'll notice, our new docs site much more neatly aligns with the overall Highlight brand.
 
 ![Instagram post - 9.png](https://media.graphassets.com/rnEBuu0ZSKK1BVl0CMub "Instagram post - 9.png")
 
 Additionally, we wanted to control how we formatted specific portions of our documentation. For example, we wanted to include rich code examples in our docs that matched our brand exactly.
 
-Although we didn’t get this level of control with a documentation platform previously, the new Highlight docs now includes rich code examples:
+Although we didn't get this level of control with a documentation platform previously, the new Highlight docs now includes rich code examples:
 
 ![Instagram post - 2.png](https://media.graphassets.com/sjE0IYZaQHqdUT6TqB80 "Instagram post - 2.png")
 

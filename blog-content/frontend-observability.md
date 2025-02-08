@@ -1,23 +1,22 @@
 ---
-title: "Introducing: Frontend Monitoring by Highlight"
-createdAt: 2022-09-13T12:00:00Z
-readingTime: 4
-authorFirstName: Jay
-authorLastName: Khatri
-authorTitle: Co-founder, Hype-man & CEO 
-authorTwitter: 'https://twitter.com/theJayKhatri'
-authorLinkedIn: 'https://www.linkedin.com/in/jay-khatri/'
+title: "Frontend Observability"
+createdAt: 2022-10-18T12:00:00Z
+readingTime: 3
+authorFirstName: Haroon
+authorLastName: Choudery
+authorTitle: Growth Manager
+authorTwitter: 'https://twitter.com/haroonchoudery'
+authorLinkedIn: 'https://linkedin.com/in/haroonchoudery'
 authorGithub: ''
 authorWebsite: ''
-authorPFP: 'https://www.highlight.io/_next/image?url=https%3A%2F%2Fmedia.graphassets.com%2F2wDcc2CoTckAIZVup0NT&w=3840&q=75'
-image: 'https://www.highlight.io/_next/image?url=https%3A%2F%2Fmedia.graphassets.com%2FFzuqrVP7QHutj0VgCvjz&w=3840&q=75'
-tags: 
-metaTitle: "Introducing: Frontend Monitoring by Highlight"
+authorPFP: 'https://www.highlight.io/_next/image?url=https%3A%2F%2Fmedia.graphassets.com%2FfKKhW39R0SE2hTIalLzG&w=1920&q=75'
+tags: 'Frontend, Observability, Product Updates'
+metaTitle: "Frontend Observability"
 ---
 
 ## Overview
 
-Today, we’re excited to introduce Frontend Monitoring by Highlight — a growing suite of tools that let you analyze how your web app is performing.
+Today, we're excited to introduce Frontend Monitoring by Highlight — a growing suite of tools that let you analyze how your web app is performing.
 
 Starting today, Frontend Monitoring will launch with two major features: **Web Vitals** and **Performance Metrics**.
 
@@ -39,7 +38,7 @@ With custom alerting, you can set up alerts to notify you if your web vitals are
 
 ## Request Metrics
 
-One of our users’ favorite features is the ability to see network requests from a particular session in Highlight. With Request Metrics, we take this functionality a step further. Starting today, users will also be able to set up custom dashboards to track the performance of network requests over time.
+One of our users' favorite features is the ability to see network requests from a particular session in Highlight. With Request Metrics, we take this functionality a step further. Starting today, users will also be able to set up custom dashboards to track the performance of network requests over time.
 
 ![dashboard.png](https://media.graphassets.com/FhsUTbmoSgaKMvmSu1Ef "dashboard.png")
 

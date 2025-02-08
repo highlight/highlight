@@ -9641,8 +9641,8 @@ func (r *queryResolver) Metrics(ctx context.Context, productType modelInputs.Pro
 		if err != nil {
 			return nil, err
 		}
-		if len(tables) != 1 {
-			return nil, e.Errorf("Expected query to reference 1 table, found %d", len(tables))
+		if len(tables) > 1 {
+			return nil, e.Errorf("Expected query to reference at most 1 table, found %d", len(tables))
 		}
 		table := tables[0]
 		switch table {
@@ -9656,6 +9656,8 @@ func (r *queryResolver) Metrics(ctx context.Context, productType modelInputs.Pro
 			productType = modelInputs.ProductTypeTraces
 		case "events":
 			productType = modelInputs.ProductTypeEvents
+		case "metrics":
+			productType = modelInputs.ProductTypeMetrics
 		default:
 			return nil, e.Errorf("Unknown table %s", table)
 		}
