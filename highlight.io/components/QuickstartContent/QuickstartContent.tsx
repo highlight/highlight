@@ -137,6 +137,8 @@ import { SystemdReorganizedContent } from './server/systemd'
 import { ElixirOtherReorganizedContent } from './server/elixir/other'
 import { ReactNativeContent } from './frontend/react-native'
 import { siteUrl } from '../../utils/urls'
+import { NextJsTracesReorganizedContent } from './server/js/nextjs'
+import { AWSLambdaTracingSteps } from './server/serverless/shared-snippets-aws-lambda'
 
 export type QuickStartContent = {
 	title: string
@@ -513,12 +515,6 @@ export const quickStartContent = {
 			[QuickStartType.OTLP]: OTLPReorganizedContent,
 			[QuickStartType.OTLPDotNet]: DotNetOTLPReorganizedContent,
 			[QuickStartType.OTLPDotNet4]: DotNet4OTLPReorganizedContent,
-		},
-		serverless: {
-			title: 'Serverless',
-			subtitle: 'Install tracing in your Serverless application.',
-			logoUrl: siteUrl('/images/quickstart/serverless.svg'),
-			[QuickStartType.AWSLambda]: AWSLambdaReorganizedContent,
 		},
 		other: {
 			title: 'Infrastructure / Other',
