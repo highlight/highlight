@@ -98,13 +98,6 @@ const DOCS_TYPES: Array<{
 		url: '/docs/sdk/ruby',
 		baseUrl: '/docs/sdk/ruby',
 	},
-	{
-		id: 11,
-		name: 'Reorganized',
-		icon: <DocumentTextIcon />,
-		url: '/docs/reorganized',
-		baseUrl: '/docs/reorganized',
-	},
 ]
 
 const findSelectedDocByArrayPath = (arrayPath: string[]) => {
