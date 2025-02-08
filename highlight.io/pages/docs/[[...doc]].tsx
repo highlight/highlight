@@ -1,6 +1,6 @@
 import { MDXRemote, MDXRemoteSerializeResult } from 'next-mdx-remote'
 import { GetStaticPaths, GetStaticProps } from 'next/types'
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState, Fragment } from 'react'
 import { BiChevronLeft, BiChevronRight } from 'react-icons/bi'
 import { FaDiscord, FaGithub, FaTwitter } from 'react-icons/fa'
 import {
@@ -989,16 +989,15 @@ export default function DocPage({
 											{breadcrumb.title}
 										</Link>
 									) : (
-										<>
+										<Fragment key={i}>
 											{` / `}
 											<Link
 												href={breadcrumb.path}
 												legacyBehavior
-												key={i}
 											>
 												{breadcrumb.title}
 											</Link>
-										</>
+										</Fragment>
 									),
 								)}
 						</div>

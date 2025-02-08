@@ -39,24 +39,19 @@ export const Roadmap = (content: { content: RoadmapProps }) => {
 			<div className="border-[1px] border-divider-on-dark my-10 w-[300px]" />
 			<div className="flex flex-col xl:flex-row w-full gap-16 xl:gap-0">
 				<RoadmapColumn
-					title="Backlog"
-					subTitle="The features and improvements on our radar. Feel free to contribute."
-					issues={data?.column1 || []}
-				/>
-				<RoadmapColumn
 					title="Planned"
 					subTitle="The features that have been scoped out and ready to be built."
-					issues={data?.column2 || []}
+					issues={data?.column1 || []}
 				/>
 				<RoadmapColumn
 					title="In Progress"
 					subTitle="Check out what we're currently bringing to life."
-					issues={data?.column3 || []}
+					issues={data?.column2 || []}
 				/>
 				<RoadmapColumn
 					title="Shipped 🚢"
 					subTitle="What we've delivered so far."
-					issues={data?.column4 || []}
+					issues={data?.column3 || []}
 				/>
 			</div>
 		</>
@@ -98,7 +93,7 @@ const RoadmapCategory = ({
 	label: string
 	items: Issue[]
 }) => {
-	let filteredItems = items.filter((item) => item.labels[0] === label)
+	let filteredItems = items.filter((item) => item.labels.includes(label))
 
 	if (filteredItems.length === 0) {
 		return null

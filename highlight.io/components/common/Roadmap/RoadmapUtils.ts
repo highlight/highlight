@@ -32,20 +32,10 @@ function stringToEmoji(emoji: string) {
 }
 
 export const labels = [
-	'session-replay',
-	'error-monitoring',
-	'logging',
-	'future-work',
-	//'bug',
-	//'dependencies',
-	//'good first issue',
-	//'design',
-	//'enhancement',
-	//'discussion',
-	//'documentation',
-	//'duplicate',
-	//'github_actions',
-	//'go',
+	'OTel Support + Integrations',
+	'Data Cohesion',
+	'Product Polish',
+	'Miscellaneous',
 ]
 
 export const query = gql`
@@ -102,7 +92,6 @@ export type RoadmapProps = {
 	column1: Issue[]
 	column2: Issue[]
 	column3: Issue[]
-	column4: Issue[]
 }
 
 const token = process.env.GITHUB_TOKEN
@@ -121,20 +110,18 @@ export const roadmapFetcher = async (): Promise<{
 	column1: Issue[]
 	column2: Issue[]
 	column3: Issue[]
-	column4: Issue[]
 }> => {
 	let column1: Issue[] = []
 	let column2: Issue[] = []
 	let column3: Issue[] = []
-	let column4: Issue[] = []
 	if (!token) {
-		return { column1, column2, column3, column4 }
+		return { column1, column2, column3 }
 	}
 
 	const response = await fetch('https://api.github.com/graphql', options)
 	const { data } = await response.json()
 	if (!data) {
-		return { column1, column2, column3, column4 }
+		return { column1, column2, column3 }
 	}
 
 	let issues = data.node.items.nodes
@@ -187,18 +174,16 @@ export const roadmapFetcher = async (): Promise<{
 			continue
 		}
 
-		if (issues[i].fieldValueByName?.name === 'Backlog') {
+		if (issues[i].fieldValueByName?.name === 'Planned') {
 			column1.push(issue)
-		} else if (issues[i].fieldValueByName?.name === 'Planned') {
-			column2.push(issue)
 		} else if (issues[i].fieldValueByName?.name === 'In Progress') {
-			column3.push(issue)
+			column2.push(issue)
 		} else if (issues[i].fieldValueByName?.name === 'Done') {
 			issue.linkText = 'Read the Changelog'
 			issue.link = '/docs/general/changelog/overview'
-			column4.push(issue)
+			column3.push(issue)
 		}
 	}
 
-	return { column1, column2, column3, column4 }
+	return { column1, column2, column3 }
 }
