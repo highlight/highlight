@@ -300,8 +300,8 @@ export class Highlight {
 				...this.options,
 				// network recording handled by otel instrumentation, not firstload
 				networkRecording: {
-					...(typeof client_options.networkRecording === 'object'
-						? client_options.networkRecording
+					...(typeof this.options.networkRecording === 'object'
+						? this.options.networkRecording
 						: {}),
 					recordHeadersAndBody: false,
 				},
@@ -353,8 +353,8 @@ export class Highlight {
 			...this.options,
 			// network recording handled by otel instrumentation, not firstload
 			networkRecording: {
-				...(typeof client_options.networkRecording === 'object'
-					? client_options.networkRecording
+				...(typeof this.options.networkRecording === 'object'
+					? this.options.networkRecording
 					: {}),
 				recordHeadersAndBody: false,
 			},
