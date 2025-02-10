@@ -233,7 +233,7 @@ func transformSql(
 			}
 
 			tableIdentifier, ok := fromExpr.Table.Expr.(*sqlparser.TableIdentifier)
-			if ok && tableIdentifier != nil && tableIdentifier.Table != nil && strings.HasPrefix(config.TableName, tableIdentifier.Table.Name) {
+			if ok && tableIdentifier != nil && tableIdentifier.Table != nil && systemTables[tableIdentifier.Table.Name] {
 				isSystemTable = true
 			}
 		}
@@ -349,6 +349,21 @@ func transformSql(
 			return nil
 		}
 
+		hasTimestamp := false
+		timestampVisitor := sqlparser.DefaultASTVisitor{}
+		timestampVisitor.Visit = func(expr sqlparser.Expr) error {
+			if priorVisit[expr] {
+				return nil
+			}
+			switch typed := expr.(type) {
+			case *sqlparser.Ident:
+				if typed.Name == "Timestamp" {
+					hasTimestamp = true
+				}
+			}
+			return nil
+		}
+
 		priorVisitVisitor := sqlparser.DefaultASTVisitor{}
 		priorVisitVisitor.Visit = func(expr sqlparser.Expr) error {
 			priorVisit[expr] = true
@@ -379,65 +394,80 @@ func transformSql(
 				projectIdCol = "ProjectID"
 			}
 
-			appendedWhere := &sqlparser.BinaryOperation{
-				LeftExpr: &sqlparser.BinaryOperation{
-					LeftExpr: &sqlparser.Ident{
-						Name: projectIdCol,
-					},
-					RightExpr: &sqlparser.NumberLiteral{
-						Literal: strconv.Itoa(projectId),
-					},
-					Operation: "=",
+			whereExpr := &sqlparser.BinaryOperation{
+				LeftExpr: &sqlparser.Ident{
+					Name: projectIdCol,
 				},
-				RightExpr: &sqlparser.BinaryOperation{
-					LeftExpr: &sqlparser.BinaryOperation{
-						LeftExpr: &sqlparser.Ident{
-							Name: "Timestamp",
-						},
-						RightExpr: &sqlparser.FunctionExpr{
-							Name: &sqlparser.Ident{
-								Name: "toDateTime",
-							},
-							Params: &sqlparser.ParamExprList{
-								Items: &sqlparser.ColumnExprList{
-									Items: []sqlparser.Expr{&sqlparser.NumberLiteral{
-										Literal: strconv.FormatInt(input.Params.DateRange.StartDate.Unix(), 10),
-									}},
-								},
-							},
-						},
-						Operation: ">=",
-					},
-					RightExpr: &sqlparser.BinaryOperation{
-						LeftExpr: &sqlparser.Ident{
-							Name: "Timestamp",
-						},
-						RightExpr: &sqlparser.FunctionExpr{
-							Name: &sqlparser.Ident{
-								Name: "toDateTime",
-							},
-							Params: &sqlparser.ParamExprList{
-								Items: &sqlparser.ColumnExprList{
-									Items: []sqlparser.Expr{&sqlparser.NumberLiteral{
-										Literal: strconv.FormatInt(input.Params.DateRange.EndDate.Unix(), 10),
-									}},
-								},
-							},
-						},
-						Operation: "<=",
-					},
-					Operation: "AND",
+				RightExpr: &sqlparser.NumberLiteral{
+					Literal: strconv.Itoa(projectId),
 				},
-				Operation: "AND",
+				Operation: "=",
 			}
 
 			addAttributesParser(config, fields, projectId, input.Params, selectQuery)
 
+			timestampCheck := &sqlparser.BinaryOperation{
+				LeftExpr: &sqlparser.BinaryOperation{
+					LeftExpr: &sqlparser.Ident{
+						Name: "Timestamp",
+					},
+					RightExpr: &sqlparser.FunctionExpr{
+						Name: &sqlparser.Ident{
+							Name: "toDateTime",
+						},
+						Params: &sqlparser.ParamExprList{
+							Items: &sqlparser.ColumnExprList{
+								Items: []sqlparser.Expr{&sqlparser.NumberLiteral{
+									Literal: strconv.FormatInt(input.Params.DateRange.StartDate.Unix(), 10),
+								}},
+							},
+						},
+					},
+					Operation: ">=",
+				},
+				RightExpr: &sqlparser.BinaryOperation{
+					LeftExpr: &sqlparser.Ident{
+						Name: "Timestamp",
+					},
+					RightExpr: &sqlparser.FunctionExpr{
+						Name: &sqlparser.Ident{
+							Name: "toDateTime",
+						},
+						Params: &sqlparser.ParamExprList{
+							Items: &sqlparser.ColumnExprList{
+								Items: []sqlparser.Expr{&sqlparser.NumberLiteral{
+									Literal: strconv.FormatInt(input.Params.DateRange.EndDate.Unix(), 10),
+								}},
+							},
+						},
+					},
+					Operation: "<=",
+				},
+				Operation: "AND",
+			}
+
 			if selectQuery.Where == nil {
+				whereExpr = &sqlparser.BinaryOperation{
+					LeftExpr:  whereExpr,
+					RightExpr: timestampCheck,
+					Operation: "AND",
+				}
 				selectQuery.Where = &sqlparser.WhereClause{
-					Expr: appendedWhere,
+					Expr: whereExpr,
 				}
 			} else {
+				// If the WHERE clause does not use timestamp, add the dashboard's start/end dates.
+				if err := selectQuery.Where.Accept(&timestampVisitor); err != nil {
+					return err
+				}
+				if !hasTimestamp {
+					whereExpr = &sqlparser.BinaryOperation{
+						LeftExpr:  whereExpr,
+						RightExpr: timestampCheck,
+						Operation: "AND",
+					}
+				}
+
 				copiedClause := selectQuery.Where.Expr
 				selectQuery.Where.Expr = &sqlparser.BinaryOperation{
 					LeftExpr: &sqlparser.ParamExprList{
@@ -445,7 +475,7 @@ func transformSql(
 							Items: []sqlparser.Expr{copiedClause},
 						}},
 					Operation: "AND",
-					RightExpr: appendedWhere,
+					RightExpr: whereExpr,
 				}
 			}
 		}
