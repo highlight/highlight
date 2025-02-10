@@ -25,9 +25,9 @@ We'll cover two integration methods: Vercel's @vercel/otel package and manual se
 
 Assuming you have your OpenTelemetry collector configured (check out my previous post if you need help with this), we work on configuring Next.js to push data to our Collector. Luckily, Next has a [great article](https://nextjs.org/docs/app/building-your-application/optimizing/open-telemetry) about this process. There are basically 2 ways of integrating OpenTelemetry with Next, a package made by vercel and doing so manually.
 
-One big thing to remember is that this functionality is still experimental in Next. So, you will have to enable the instrumentation hook:
+Before Next.js 15, the instrumentation is experimental, so you will have to enable it explicitly:
 
-```js
+```javascript
 /** @type {import('next').NextConfig} */
 module.exports = {
   experimental: {
@@ -100,7 +100,7 @@ The `@vercel/otel` package is very easy to get started with. It works everywhere
 
 After installation, there is really just one major thing you need to do. YOu will import the package and run the `registerOTel` function with a string for your service name.
 
-```js
+```javascript
 import { registerOTel } from "@vercel/otel";
 
 export function register() {
@@ -140,7 +140,7 @@ Instead of using the `@vercel/otel` package, you can do a manual integration. On
 
 Because of that we need to make sure we only register our instrumentation function in a Node.js based environment:
 
-```js
+```javascript
 export async function register() {
   if (process.env.NEXT_RUNTIME === "nodejs") {
     await import("./instrumentation.node.ts");
@@ -150,7 +150,7 @@ export async function register() {
 
 In the `instrumentation.node.ts` file we can then import the OpenTelemetry Node SDK along with some other classes and start the SDK:
 
-```js
+```javascript
 import { NodeSDK } from "@opentelemetry/sdk-node";
 import { OTLPTraceExporter } from "@opentelemetry/exporter-trace-otlp-http";
 import { Resource } from "@opentelemetry/resources";
@@ -168,7 +168,7 @@ sdk.start();
 
 That's it. Pretty straightforward. There is a lot more you can do with it, though, such as instrumenting other parts of your node application:
 
-```js
+```javascript
 const instrumentations = getNodeAutoInstrumentations({
   "@opentelemetry/instrumentation-pino": {
     logHook: (span, record, level) => {

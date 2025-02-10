@@ -9,7 +9,7 @@ authorTwitter: 'https://twitter.com/vkorolik'
 authorLinkedIn: 'https://www.linkedin.com/in/vkorolik/'
 authorGithub: 'https://github.com/Vadman97'
 authorWebsite: 'https://vadweb.us'
-authorPFP: 'https://avatars.githubusercontent.com/u/1351531?v=4'
+authorPFP: 'https://lh3.googleusercontent.com/a-/AOh14Gh1k7XsVMGxHMLJZ7qesyddqn1y4EKjfbodEYiY=s96-c'
 tags: 'Engineering, Backend, Observability'
 metaTitle: The complete guide to OpenTelemetry in Python
 ---
@@ -271,6 +271,155 @@ def read_root():
 ```
 
 The great thing about middleware is that it doesn't require that you change the way your application is run, and everytime you write signals within each of your endpoints, you'll automatically have traces and logs associated with that request.
+
+## **Putting it all together**
+
+Let's take the various pieces of the OpenTelemetry configuration and put them into a single file that can easily be imported by our application. Create the file `o11y.py` with the following contents:
+
+```python
+import logging
+import os
+from dotenv import load_dotenv
+from typing import Optional
+
+from opentelemetry import metrics, trace
+from opentelemetry.sdk.metrics.export import AggregationTemporality
+from opentelemetry.sdk.metrics import Counter, Histogram, UpDownCounter
+from opentelemetry._logs import set_logger_provider
+from opentelemetry.exporter.otlp.proto.grpc._log_exporter import OTLPLogExporter
+from opentelemetry.exporter.otlp.proto.grpc.metric_exporter import OTLPMetricExporter
+from opentelemetry.exporter.otlp.proto.grpc.trace_exporter import OTLPSpanExporter
+from opentelemetry.sdk._logs import LoggerProvider, LoggingHandler
+from opentelemetry.sdk._logs.export import BatchLogRecordProcessor, ConsoleLogExporter
+from opentelemetry.sdk.metrics import MeterProvider
+from opentelemetry.sdk.metrics.export import ConsoleMetricExporter, PeriodicExportingMetricReader
+from opentelemetry.sdk.resources import Resource
+from opentelemetry.sdk.trace import TracerProvider
+from opentelemetry.sdk.trace.export import BatchSpanProcessor, ConsoleSpanExporter
+
+EXPORTER_OTLP_ENDPOINT = os.getenv("OTEL_ENDPOINT","https://otel.highlight.io:4317")
+
+# read from .env
+load_dotenv()
+
+print("OTEL Endpoint is: ", EXPORTER_OTLP_ENDPOINT)
+HIGHLIGHT_PROJECT_ID = os.getenv("HIGHLIGHT_PROJECT_ID", "EMPTY")
+print("HIGHLIGHT_PROJECT_ID is: ", HIGHLIGHT_PROJECT_ID)
+
+import sys
+
+def create_logger(service_name: str, environment: Optional[str] = "production", local_debug: bool = False) -> logging.Logger:
+    if environment is None:
+        environment = "production"
+    commit = os.getenv("RENDER_GIT_COMMIT", "unknown")
+    resource = Resource.create(
+        {
+            "service.name": service_name,
+            "highlight.project_id": HIGHLIGHT_PROJECT_ID,
+            "environment": environment,
+            "commit": commit
+        }
+    )
+
+    logger_provider = LoggerProvider(resource=resource)
+    set_logger_provider(logger_provider)
+
+    exporter = OTLPLogExporter(endpoint=EXPORTER_OTLP_ENDPOINT, insecure=True) if not local_debug else ConsoleLogExporter()
+
+    logger_provider.add_log_record_processor(BatchLogRecordProcessor(exporter))
+
+    logger = logging.getLogger(service_name)
+    logger.setLevel(logging.DEBUG)
+
+    handler = LoggingHandler(level=logging.DEBUG, logger_provider=logger_provider)
+    logger.addHandler(handler)
+
+    # Add console handler for stdout
+    console_handler = logging.StreamHandler(sys.stdout)
+    console_handler.setLevel(logging.DEBUG)
+    if commit:
+        formatter = logging.Formatter('commit: ' + commit + ' - %(asctime)s - %(name)s - %(levelname)s - %(message)s')
+    else:
+        formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+    console_handler.setFormatter(formatter)
+    logger.addHandler(console_handler)
+
+    return logger
+
+def create_tracer(
+        service_name: str, 
+        environment: Optional[str] = "production", 
+        local_debug: bool = False
+        ) -> trace.Tracer:
+    if environment is None:
+        environment = "production"
+    commit = os.getenv("RENDER_GIT_COMMIT", "unknown")
+    provider = TracerProvider(resource=Resource.create(
+        {
+            "service.name": service_name,
+            "highlight.project_id": HIGHLIGHT_PROJECT_ID,
+            "environment": environment,
+            "commit": commit
+        }
+    ))
+    processor = BatchSpanProcessor(OTLPSpanExporter(endpoint=EXPORTER_OTLP_ENDPOINT, insecure=True)) if not local_debug else BatchSpanProcessor(ConsoleSpanExporter())
+    provider.add_span_processor(processor)
+    trace.set_tracer_provider(provider)
+    tracer = trace.get_tracer(service_name)
+
+    return tracer
+
+def get_meter(service_name: str, environment: Optional[str] = "production", local_debug: bool = False) -> metrics.Meter:
+    if environment is None:
+        environment = "production"
+    commit = os.getenv("RENDER_GIT_COMMIT", "unknown")
+
+
+    preferred_temporality: dict[type, AggregationTemporality] = {
+            Counter: AggregationTemporality.DELTA,
+            UpDownCounter: AggregationTemporality.DELTA,
+            Histogram: AggregationTemporality.DELTA,
+    }
+
+    readers = [PeriodicExportingMetricReader(exporter=OTLPMetricExporter(endpoint=EXPORTER_OTLP_ENDPOINT, insecure=True, preferred_temporality=preferred_temporality))]
+    if local_debug:
+        readers.append(PeriodicExportingMetricReader(exporter=ConsoleMetricExporter(
+            preferred_temporality=preferred_temporality
+        ), export_interval_millis=1000))
+
+    provider = MeterProvider(resource=Resource.create(
+        {
+            "service.name": service_name,
+            "highlight.project_id": HIGHLIGHT_PROJECT_ID,
+            "environment": environment,
+            "commit": commit
+        }
+    ), metric_readers=readers)
+    metrics.set_meter_provider(provider)
+    meter = metrics.get_meter(service_name)
+    return meter
+```
+
+Now, let's use the setup from our Flask app. In our app entrypoint `main.py`, we just need to set up the OpenTelemetry resources:
+
+```python
+import os
+from o11y import create_logger, create_tracer, get_meter
+
+# Initialize observability tools
+service_name = "flask-backend"
+logger = create_logger(service_name, os.getenv("ENVIRONMENT"))
+tracer = create_tracer(service_name, os.getenv("ENVIRONMENT"))
+meter = get_meter(service_name, os.getenv("ENVIRONMENT"))
+
+histogram = meter.create_histogram("request_duration_histogram")
+gauge = meter.create_gauge("request_duration_gauge")
+counter = meter.create_counter("request_count")
+
+logger.info("Starting the application")
+```
+
+See the complete example in our [Python Flask OTel github repository](https://github.com/highlight/otel-flask-example).
 
 ## **Conclusion**
 
