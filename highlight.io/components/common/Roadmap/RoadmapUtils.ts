@@ -31,12 +31,7 @@ function stringToEmoji(emoji: string) {
 	}
 }
 
-export const labels = [
-	'OTel Support + Integrations',
-	'Data Cohesion',
-	'Product Polish',
-	'Miscellaneous',
-]
+export const labels = ['2025 Q1']
 
 export const query = gql`
 	query {
