@@ -40,7 +40,7 @@ export const Roadmap = (content: { content: RoadmapProps }) => {
 			<div className="flex flex-col xl:flex-row w-full gap-16 xl:gap-0">
 				<RoadmapColumn
 					title="Planned"
-					subTitle="The features that have been scoped out and ready to be built."
+					subTitle="The features that have been scoped out for this quarter. Feel free to contribute ideas."
 					issues={data?.column1 || []}
 				/>
 				<RoadmapColumn
