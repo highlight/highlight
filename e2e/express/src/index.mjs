@@ -49,16 +49,18 @@ app.get('/bad', (req, res) => {
 })
 
 app.get('/runWithHeaders', async (req, res) => {
+	console.log('/runWithHeaders')
 	return await H.runWithHeaders(
 		`handle ${req.url}`,
 		req.headers,
 		async (span) => {
+			console.log('/runWithHeaders handle span start')
 			const resolved = await fetch(
 				'https://api.sampleapis.com/coffee/hot',
 			)
 			const data = await resolved.json()
-			span.end()
 			res.send(data[0])
+			console.log('/runWithHeaders ended')
 			return data
 		},
 	)

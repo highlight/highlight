@@ -333,22 +333,18 @@ export class Highlight {
 		cb: (span: OtelSpan) => T | Promise<T>,
 		options?: SpanOptions,
 	) {
-		const { secureSessionId, requestId } = this.parseHeaders(headers)
 		const { span, ctx } = this.startWithHeaders(name, headers, options)
-		try {
-			return await api.context.with(ctx, async () => {
-				propagation.inject(ctx, headers)
-				return cb(span)
-			})
-		} catch (error) {
-			if (error instanceof Error) {
-				this.consumeCustomError(error, secureSessionId, requestId)
+		return await api.context.with(ctx, async () => {
+			propagation.inject(ctx, headers)
+			try {
+				return await cb(span)
+			} catch (error) {
+				span.recordException(error as Error)
+				throw error
+			} finally {
+				span.end()
 			}
-
-			throw error
-		} finally {
-			span.end()
-		}
+		})
 	}
 
 	startWithHeaders<T>(
