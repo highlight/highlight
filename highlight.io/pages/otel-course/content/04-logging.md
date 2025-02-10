@@ -8,9 +8,34 @@ keywords: "OpenTelemetry, logging, observability, telemetry, resource attributes
 
 We mentioned the 4 categories of telemetry that are supported by OpenTelemetry: Logs, Traces, Metrics, and Baggage. Today we're going to dive deeper into logs.
 
+## What Is a Log?
+
+A log is a record of an event that happened in an application. It can be anything from a user request to a database query to an error that occurred, or even just a message to help with debugging. Logs are a way to capture the history of what has happened in an application.
+
+Chances are you're familiar with logs from your development experience. For many developers, `console.log` is their favorite tool for debugging. It's a simple way to print something out to understand the flow and state of an application.
+
+### Log Record
+
+OpenTelemetry defines a `LogRecord` as a record of an event that happened in an application. They've done the work of nailing down the structure of a log record so that it can be easily consumed by any observability tool. Here's a table of the fields that are part of a log record:
+
+| Field Name           | Description                                      |
+|----------------------|--------------------------------------------------|
+| Timestamp            | Time when the event occurred.                    |
+| ObservedTimestamp    | Time when the event was observed.                |
+| TraceId              | Request trace id.                                |
+| SpanId               | Request span id.                                 |
+| TraceFlags           | W3C trace flag.                                  |
+| SeverityText         | The severity text (also known as log level).     |
+| SeverityNumber       | Numerical value of the severity.                 |
+| Body                 | The body of the log record.                      |
+| Resource             | Describes the source of the log.                 |
+| InstrumentationScope | Describes the scope that emitted the log.        |
+| Attributes           | Additional information about the event.          |
+| EventName            | Name that identifies the class/type of event.    |
+
 ## Evolution and Background
 
-Logs were initially not part of the OpenTelemetry spec, but they were already everywhere in applications and demand was high to get them in the spec. There is an ongoing debate about how relevant logs are now that traces and metrics have become more powerful, but the reality is that logs still have a place in any observability stack and are still everywhere in applications.
+Logs were initially not part of the OpenTelemetry spec, but they were already everywhere in applications and demand was high to add support for them. There is an ongoing debate about how relevant logs are now that traces and metrics have become more powerful, but the reality is that logs have a place in any observability stack and are still everywhere in applications today.
 
 The beauty of OpenTelemetry is that it's designed to work with the logs you already have today. It doesn't matter what format your logs are in, OTel has receivers and processors that can help ingest logs from any source and convert them into a structure that follows their logging spec.
 

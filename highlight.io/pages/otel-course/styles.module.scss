@@ -54,4 +54,22 @@
 	iframe {
 		margin: 24px 0;
 	}
+
+	table {
+		width: 100%;
+		border-collapse: collapse;
+		border: 1px solid #ccc;
+
+		th {
+			background-color: #f0f0f0;
+			font-weight: 600;
+			text-align: left;
+		}
+
+		th,
+		td {
+			padding: 8px;
+			border: 1px solid #ccc;
+		}
+	}
 }
