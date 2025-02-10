@@ -1594,7 +1594,7 @@ const Graph = ({
 				justifyContent="space-between"
 			>
 				<Text size="small" color="default" cssClass={style.titleText}>
-					{title || 'Untitled metric view'}
+					{title || 'Untitled graph'}
 				</Text>
 			</Box>
 			<Box

@@ -154,7 +154,7 @@ export const DashboardCard = ({
 													gap="4"
 												>
 													<IconSolidDuplicate />
-													Clone metric view
+													Clone graph
 												</Box>
 											</Menu.Item>
 										)}
@@ -171,7 +171,7 @@ export const DashboardCard = ({
 													gap="4"
 												>
 													<IconSolidTrash />
-													Delete metric view
+													Delete graph
 												</Box>
 											</Menu.Item>
 										)}

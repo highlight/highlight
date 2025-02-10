@@ -18,7 +18,7 @@ import {
 	IconSolidCheveronDown,
 	IconSolidCheveronRight,
 	IconSolidCheveronUp,
-	IconSolidSpeakerphone,
+	IconSolidBell,
 	Menu,
 	Stack,
 	SwitchButton,
@@ -417,7 +417,7 @@ export const SessionAlertPage = () => {
 											size="medium"
 											shape="basic"
 											emphasis="high"
-											iconLeft={<IconSolidSpeakerphone />}
+											iconLeft={<IconSolidBell />}
 											onClick={() => {
 												navigate(
 													`/${project_id}/alerts`,

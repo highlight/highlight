@@ -189,10 +189,10 @@ const DashboardCell = ({
 								},
 							})
 								.then(() => {
-									toast.success(`Metric view cloned`)
+									toast.success(`Graph cloned`)
 								})
 								.catch(() => {
-									toast.error('Failed to clone metric view')
+									toast.error('Failed to clone graph')
 								})
 						}
 			}
@@ -231,11 +231,9 @@ const DashboardCell = ({
 									})
 								},
 							})
-								.then(() =>
-									toast.success('Metric view deleted'),
-								)
+								.then(() => toast.success('Graph deleted'))
 								.catch(() =>
-									toast.error('Failed to delete metric view'),
+									toast.error('Failed to delete graph'),
 								)
 						}
 			}
