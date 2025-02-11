@@ -12,7 +12,7 @@ Easily integrate [Highlight.io](https://highlight.io)'s powerful session recordi
 
 == Description ==
 
-The Highlight.io WordPress Plugin allows you to easily integrate Highlight's powerful session recording and monitoring capabilities into your WordPress site. With this plugin, you can gain valuable insights into user behavior, troubleshoot issues, and improve your website's performance.
+The [Highlight.io](https://highlight.io) WordPress Plugin allows you to easily integrate Highlight's powerful session recording and monitoring capabilities into your WordPress site. With this plugin, you can gain valuable insights into user behavior, troubleshoot issues, and improve your website's performance.
 
 Features:
 
