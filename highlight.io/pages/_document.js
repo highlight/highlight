@@ -35,6 +35,13 @@ class HighlightDocument extends Document {
 						src="//js.hs-scripts.com/20473940.js"
 					></Script>
 					<Script
+						id="ahrefs-script"
+						src="https://analytics.ahrefs.com/analytics.js"
+						data-key="o0qYHhdkiogISL1TftC6FQ"
+						async
+						strategy="afterInteractive"
+					></Script>
+					<Script
 						id="zoho-pagesense-loader"
 						async
 						defer
