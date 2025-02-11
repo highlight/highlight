@@ -63,7 +63,7 @@ jobs:
                   CGO_ENABLED=0 go build -o bootstrap ./lambda-functions/deleteSessions/deleteSessionBatchFromOpenSearch
                   zip deleteSessionBatchFromOpenSearch.zip bootstrap
                   CGO_ENABLED=0 go build -o bootstrap ./lambda-functions/deleteSessions/deleteSessionBatchFromS3
-                  zip deleteSessionBatchFromS3.zip deleteSessionBatchFromS3
+                  zip deleteSessionBatchFromS3.zip bootstrap
                   CGO_ENABLED=0 go build -o bootstrap ./lambda-functions/deleteSessions/sendEmail
                   zip sendEmail.zip bootstrap
             - name: Configure AWS Credentials
