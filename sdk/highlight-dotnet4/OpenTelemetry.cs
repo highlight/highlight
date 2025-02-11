@@ -98,7 +98,7 @@ public static class OpenTelemetry {
             ["highlight.project_id"] = Cfg.ProjectId,
             ["service.name"] = Cfg.ServiceName,
             ["telemetry.distro.name"] = "Highlight.ASP4",
-            ["telemetry.distro.version"] = "0.2.4",
+            ["telemetry.distro.version"] = "0.2.5",
         };
     }
 
@@ -227,6 +227,7 @@ public static class OpenTelemetry {
                 exporterOptions.Endpoint = new Uri(Cfg.OtlpEndpoint + "/v1/traces");
                 exporterOptions.Protocol = ExportProtocol;
                 exporterOptions.BatchExportProcessorOptions.MaxExportBatchSize = 10000;
+                exporterOptions.BatchExportProcessorOptions.MaxQueueSize = 10000;
                 exporterOptions.BatchExportProcessorOptions.ScheduledDelayMilliseconds = 1000;
             })
             .Build();
@@ -256,6 +257,7 @@ public static class OpenTelemetry {
                     exporterOptions.Endpoint = new Uri(Cfg.OtlpEndpoint + "/v1/logs");
                     exporterOptions.Protocol = ExportProtocol;
                     exporterOptions.BatchExportProcessorOptions.MaxExportBatchSize = 10000;
+                    exporterOptions.BatchExportProcessorOptions.MaxQueueSize = 10000;
                     exporterOptions.BatchExportProcessorOptions.ScheduledDelayMilliseconds = 1000;
                 });
             options.IncludeScopes = true;
