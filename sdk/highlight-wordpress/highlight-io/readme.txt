@@ -3,7 +3,7 @@ Contributors: highlightio
 Tags: session recording, analytics, monitoring
 Requires at least: 5.0
 Tested up to: 6.7
-Stable tag: 1.0.1
+Stable tag: 1.0.2
 Requires PHP: 7.2
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
@@ -106,6 +106,9 @@ For further assistance, please refer to our support documentation or contact our
 
 = 1.0.0 =
 * Initial release
+
+= 1.0.2 =
+* Upgrade bundled Highlight JavaScript SDK
 
 == Upgrade Notice ==
 

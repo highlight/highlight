@@ -3,7 +3,7 @@
  * Plugin Name: Highlight.io Session Recording
  * Plugin URI: https://highlight.io/docs/wordpress
  * Description: Enables Highlight.io on your WordPress site. Can be used for session recording, error monitoring, and more.
- * Version: 1.0.1
+ * Version: 1.0.2
  * Author: Highlight.io
  * Author URI: https://highlight.io
  * License: GPL-2.0+
