@@ -335,6 +335,7 @@ func SendSessionExportEmail(ctx context.Context, mailClient *sendgrid.Client, se
 			Error("error sending session export email")
 		return e.New(estr)
 	}
+	lg.Info("succeeded sending session export email")
 
 	return nil
 }
