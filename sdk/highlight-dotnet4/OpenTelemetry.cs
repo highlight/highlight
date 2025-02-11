@@ -98,7 +98,7 @@ public static class OpenTelemetry {
             ["highlight.project_id"] = Cfg.ProjectId,
             ["service.name"] = Cfg.ServiceName,
             ["telemetry.distro.name"] = "Highlight.ASP4",
-            ["telemetry.distro.version"] = "0.2.5",
+            ["telemetry.distro.version"] = "0.2.6",
         };
     }
 
@@ -107,6 +107,9 @@ public static class OpenTelemetry {
 
     static TracerProvider _tracerProvider;
     static MeterProvider _meterProvider;
+
+    static bool _registered;
+    static bool _loggingInstrumented;
 
     public static Dictionary<string, string> GetHighlightContext()
     {
@@ -208,6 +211,10 @@ public static class OpenTelemetry {
 
     public static void Register(Action<Config> configure)
     {
+        if (_registered)
+        {
+            return;
+        }
         configure(Cfg);
         _tracerProvider = Sdk.CreateTracerProviderBuilder()
             .SetSampler(new AlwaysOnSampler())
@@ -232,6 +239,7 @@ public static class OpenTelemetry {
             })
             .Build();
         _meterProvider = Sdk.CreateMeterProviderBuilder()
+            .SetResourceBuilder(ResourceBuilder.CreateDefault().AddAttributes(GetResourceAttributes()))
             .AddMeter(Cfg.ServiceName)
             .AddHttpClientInstrumentation()
             .AddRuntimeInstrumentation()
@@ -244,10 +252,15 @@ public static class OpenTelemetry {
                 Protocol = ExportProtocol
             })))
             .Build();
+        _registered = true;
     }
 
     public static void InstrumentLogging(ILoggingBuilder logging, Action<Config> configure)
     {
+        if (_loggingInstrumented)
+        {
+            return;
+        }
         configure(Cfg);
         logging.AddOpenTelemetry(options => {
             options
@@ -263,6 +276,7 @@ public static class OpenTelemetry {
             options.IncludeScopes = true;
             options.IncludeFormattedMessage = true;
         });
+        _loggingInstrumented = true;
     }
 
     public static void Unregister()
