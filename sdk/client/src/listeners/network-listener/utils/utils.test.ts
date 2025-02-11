@@ -214,14 +214,14 @@ describe('shouldNetworkRequestBeRecorded', () => {
 		).toBe(true)
 	})
 
-	it('does not record highlight endpoints when tracingOrigins is empty', () => {
+	it('records highlight endpoints when tracingOrigins is empty', () => {
 		expect(
 			shouldNetworkRequestBeRecorded(
 				'https://otel.highlight.io/v1/traces',
 				[],
 				[],
 			),
-		).toBe(false)
+		).toBe(true)
 	})
 
 	it('records highlight endpoints when tracingOrigins regex matches', () => {
@@ -254,13 +254,13 @@ describe('shouldNetworkRequestBeRecorded', () => {
 		).toBe(false)
 	})
 
-	it('records highlight endpoints even when they are passed in as an argument if in tracingOrigins', () => {
+	it('does not highlight endpoints even when they are passed in as an argument if in tracingOrigins', () => {
 		expect(
 			shouldNetworkRequestBeRecorded(
 				'https://otel.highlight.io/v1/traces',
 				['otel.highlight.io'],
 				[/.*highlight\.io/],
 			),
-		).toBe(true)
+		).toBe(false)
 	})
 })

@@ -124,6 +124,8 @@ const H: HighlightPublicInterface = {
 					getTracer: otelGetTracer,
 				}) => {
 					setupBrowserTracing({
+						backendUrl:
+							options?.backendUrl ?? 'https://pub.highlight.io',
 						otlpEndpoint:
 							options?.otlpEndpoint ??
 							'https://otel.highlight.io',
