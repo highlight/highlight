@@ -98,7 +98,7 @@ public static class OpenTelemetry {
             ["highlight.project_id"] = Cfg.ProjectId,
             ["service.name"] = Cfg.ServiceName,
             ["telemetry.distro.name"] = "Highlight.ASP4",
-            ["telemetry.distro.version"] = "0.2.7",
+            ["telemetry.distro.version"] = "0.2.8",
         };
     }
 
@@ -220,7 +220,6 @@ public static class OpenTelemetry {
             .SetResourceBuilder(ResourceBuilder.CreateDefault().AddAttributes(GetResourceAttributes()))
             .AddHttpClientInstrumentation()
             .AddSqlClientInstrumentation(option => { option.SetDbStatementForText = true; })
-            .AddQuartzInstrumentation()
             .AddEntityFrameworkCoreInstrumentation()
             .AddAspNetInstrumentation(options => {
                 options.RecordException = true;
