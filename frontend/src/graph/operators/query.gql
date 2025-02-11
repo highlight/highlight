@@ -2113,27 +2113,6 @@ query SearchIssues(
 	}
 }
 
-query GetErrorGroupFrequencies(
-	$project_id: ID!
-	$error_group_secure_ids: [String!]!
-	$params: ErrorGroupFrequenciesParamsInput!
-	$metric: String!
-	$use_clickhouse: Boolean
-) {
-	errorGroupFrequencies(
-		project_id: $project_id
-		error_group_secure_ids: $error_group_secure_ids
-		params: $params
-		metric: $metric
-		use_clickhouse: $use_clickhouse
-	) {
-		error_group_id
-		date
-		name
-		value
-	}
-}
-
 query GetErrorGroupTags(
 	$error_group_secure_id: String!
 	$use_clickhouse: Boolean
