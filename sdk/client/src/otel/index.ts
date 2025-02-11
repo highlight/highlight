@@ -312,8 +312,8 @@ class CustomTraceContextPropagator extends W3CTraceContextPropagator {
 
 			const shouldTrace = shouldNetworkRequestBeTraced(
 				url,
-				this.highlightEndpoints,
-				this.tracingOrigins,
+				this.tracingOrigins ?? [],
+				this.urlBlocklist,
 			)
 			if (!shouldTrace) {
 				return // return early to prevent headers from being injected
