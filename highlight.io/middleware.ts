@@ -154,253 +154,246 @@ export const DOCS_REDIRECTS = {
 	webflow: '/docs/getting-started/browser/webflow',
 	webgl: '/docs/product-features/webgl',
 	wordpress: '/docs/getting-started/browser/wordpress',
-	'/docs/getting-started/backend-sdk/java/overview':
+	'getting-started/backend-sdk/java/overview':
 		'/docs/getting-started/server/java-other',
-	'/docs/getting-started/backend-sdk/java/other':
+	'getting-started/backend-sdk/java/other':
 		'/docs/getting-started/server/java-other',
-	'/docs/getting-started/backend-sdk/php/overview':
+	'getting-started/backend-sdk/php/overview':
 		'/docs/getting-started/server/php-other',
-	'/docs/getting-started/backend-sdk/php/other':
+	'getting-started/backend-sdk/php/other':
 		'/docs/getting-started/server/php-other',
-	'/docs/getting-started/backend-logging/java/overview':
+	'getting-started/backend-logging/java/overview':
 		'/docs/getting-started/server/java-other',
-	'/docs/getting-started/backend-logging/java/other':
+	'getting-started/backend-logging/java/other':
 		'/docs/getting-started/server/java-other',
-	'/docs/getting-started/backend-logging/php':
+	'getting-started/backend-logging/php':
 		'/docs/getting-started/server/php-other',
-	'/docs/getting-started/backend-tracing/php':
+	'getting-started/backend-tracing/php':
 		'/docs/getting-started/server/php-other',
-	'/docs/getting-started/backend-tracing/node-js/manual':
+	'getting-started/backend-tracing/node-js/manual':
 		'/docs/getting-started/server/js/nodejs',
-	'/docs/getting-started/backend-tracing/node-js/nextjs':
+	'getting-started/backend-tracing/node-js/nextjs':
 		'/docs/getting-started/server/js/nextjs',
-	'/docs/getting-started/client-sdk/reactjs':
+	'getting-started/client-sdk/reactjs':
 		'/docs/getting-started/browser/reactjs',
-	'/docs/getting-started/client-sdk/nextjs':
-		'/docs/getting-started/browser/nextjs',
-	'/docs/getting-started/client-sdk/remix':
-		'/docs/getting-started/browser/remix',
-	'/docs/getting-started/client-sdk/vuejs':
-		'/docs/getting-started/browser/vuejs',
-	'/docs/getting-started/client-sdk/angular':
+	'getting-started/client-sdk/nextjs': '/docs/getting-started/browser/nextjs',
+	'getting-started/client-sdk/remix': '/docs/getting-started/browser/remix',
+	'getting-started/client-sdk/vuejs': '/docs/getting-started/browser/vuejs',
+	'getting-started/client-sdk/angular':
 		'/docs/getting-started/browser/angular',
-	'/docs/getting-started/client-sdk/gatsbyjs':
+	'getting-started/client-sdk/gatsbyjs':
 		'/docs/getting-started/browser/gatsbyjs',
-	'/docs/getting-started/client-sdk/sveltekit':
+	'getting-started/client-sdk/sveltekit':
 		'/docs/getting-started/browser/sveltekit',
-	'/docs/getting-started/client-sdk/electron':
+	'getting-started/client-sdk/electron':
 		'/docs/getting-started/browser/electron',
-	'/docs/getting-started/client-sdk/other':
-		'/docs/getting-started/browser/other',
-	'/docs/getting-started/client-sdk/react-native':
+	'getting-started/client-sdk/other': '/docs/getting-started/browser/other',
+	'getting-started/client-sdk/react-native':
 		'/docs/getting-started/browser/react-native',
-	'/docs/getting-started/client-sdk/replay-configuration/overview':
+	'getting-started/client-sdk/replay-configuration/overview':
 		'/docs/getting-started/client-sdk/replay-configuration/overview',
-	'/docs/getting-started/client-sdk/replay-configuration/canvas':
+	'getting-started/client-sdk/replay-configuration/canvas':
 		'/docs/getting-started/client-sdk/replay-configuration/canvas',
-	'/docs/getting-started/client-sdk/replay-configuration/console-messages':
+	'getting-started/client-sdk/replay-configuration/console-messages':
 		'/docs/getting-started/client-sdk/replay-configuration/console-messages',
-	'/docs/getting-started/client-sdk/replay-configuration/content-security-policy':
+	'getting-started/client-sdk/replay-configuration/content-security-policy':
 		'/docs/getting-started/client-sdk/replay-configuration/content-security-policy',
-	'/docs/getting-started/client-sdk/replay-configuration/identifying-sessions':
+	'getting-started/client-sdk/replay-configuration/identifying-sessions':
 		'/docs/getting-started/client-sdk/replay-configuration/identifying-sessions',
-	'/docs/getting-started/client-sdk/replay-configuration/iframes':
+	'getting-started/client-sdk/replay-configuration/iframes':
 		'/docs/getting-started/client-sdk/replay-configuration/iframes',
-	'/docs/getting-started/client-sdk/replay-configuration/monkey-patches':
+	'getting-started/client-sdk/replay-configuration/monkey-patches':
 		'/docs/getting-started/client-sdk/replay-configuration/monkey-patches',
-	'/docs/getting-started/client-sdk/replay-configuration/opentelemetry':
+	'getting-started/client-sdk/replay-configuration/opentelemetry':
 		'/docs/getting-started/client-sdk/replay-configuration/opentelemetry',
-	'/docs/getting-started/client-sdk/replay-configuration/persistent-assets':
+	'getting-started/client-sdk/replay-configuration/persistent-assets':
 		'/docs/getting-started/client-sdk/replay-configuration/persistent-assets',
-	'/docs/getting-started/client-sdk/replay-configuration/privacy':
+	'getting-started/client-sdk/replay-configuration/privacy':
 		'/docs/getting-started/client-sdk/replay-configuration/privacy',
-	'/docs/getting-started/client-sdk/replay-configuration/proxying-highlight':
+	'getting-started/client-sdk/replay-configuration/proxying-highlight':
 		'/docs/getting-started/client-sdk/replay-configuration/proxying-highlight',
-	'/docs/getting-started/client-sdk/replay-configuration/react-error-boundary':
+	'getting-started/client-sdk/replay-configuration/react-error-boundary':
 		'/docs/getting-started/client-sdk/replay-configuration/react-error-boundary',
-	'/docs/getting-started/client-sdk/replay-configuration/recording-network-requests-and-responses':
+	'getting-started/client-sdk/replay-configuration/recording-network-requests-and-responses':
 		'/docs/getting-started/client-sdk/replay-configuration/recording-network-requests-and-responses',
-	'/docs/getting-started/client-sdk/replay-configuration/recording-web-socket-events':
+	'getting-started/client-sdk/replay-configuration/recording-web-socket-events':
 		'/docs/getting-started/client-sdk/replay-configuration/recording-web-socket-events',
-	'/docs/getting-started/client-sdk/replay-configuration/salesforce-lwc':
+	'getting-started/client-sdk/replay-configuration/salesforce-lwc':
 		'/docs/getting-started/client-sdk/replay-configuration/salesforce-lwc',
-	'/docs/getting-started/client-sdk/replay-configuration/session-data-export':
+	'getting-started/client-sdk/replay-configuration/session-data-export':
 		'/docs/getting-started/client-sdk/replay-configuration/session-data-export',
-	'/docs/getting-started/client-sdk/replay-configuration/sourcemaps':
+	'getting-started/client-sdk/replay-configuration/sourcemaps':
 		'/docs/getting-started/client-sdk/replay-configuration/sourcemaps',
-	'/docs/getting-started/client-sdk/replay-configuration/tracking-events':
+	'getting-started/client-sdk/replay-configuration/tracking-events':
 		'/docs/getting-started/client-sdk/replay-configuration/tracking-events',
-	'/docs/getting-started/client-sdk/replay-configuration/troubleshooting':
+	'getting-started/client-sdk/replay-configuration/troubleshooting':
 		'/docs/getting-started/client-sdk/replay-configuration/troubleshooting',
-	'/docs/getting-started/client-sdk/replay-configuration/upgrading-highlight':
+	'getting-started/client-sdk/replay-configuration/upgrading-highlight':
 		'/docs/getting-started/client-sdk/replay-configuration/upgrading-highlight',
-	'/docs/getting-started/client-sdk/replay-configuration/versioning-sessions-and-errors':
+	'getting-started/client-sdk/replay-configuration/versioning-sessions-and-errors':
 		'/docs/getting-started/client-sdk/replay-configuration/versioning-sessions-and-errors',
-	'/docs/getting-started/backend-sdk/go/overview':
+	'getting-started/backend-sdk/go/overview':
 		'/docs/getting-started/server/go/overview',
-	'/docs/getting-started/backend-logging/go/overview':
+	'getting-started/backend-logging/go/overview':
 		'/docs/getting-started/server/go/overview',
-	'/docs/getting-started/backend-tracing/go/overview':
+	'getting-started/backend-tracing/go/overview':
 		'/docs/getting-started/server/go/overview',
-	'/docs/getting-started/backend-sdk/go/chi':
-		'/docs/getting-started/server/go/chi',
-	'/docs/getting-started/backend-sdk/go/echo':
+	'getting-started/backend-sdk/go/chi': '/docs/getting-started/server/go/chi',
+	'getting-started/backend-sdk/go/echo':
 		'/docs/getting-started/server/go/echo',
-	'/docs/getting-started/backend-sdk/go/gin':
-		'/docs/getting-started/server/go/gin',
-	'/docs/getting-started/backend-sdk/go/mux':
-		'/docs/getting-started/server/go/mux',
-	'/docs/getting-started/backend-sdk/go/fiber':
+	'getting-started/backend-sdk/go/gin': '/docs/getting-started/server/go/gin',
+	'getting-started/backend-sdk/go/mux': '/docs/getting-started/server/go/mux',
+	'getting-started/backend-sdk/go/fiber':
 		'/docs/getting-started/server/go/fiber',
-	'/docs/getting-started/backend-logging/go/fiber':
+	'getting-started/backend-logging/go/fiber':
 		'/docs/getting-started/server/go/fiber',
-	'/docs/getting-started/backend-tracing/go/gorm':
+	'getting-started/backend-tracing/go/gorm':
 		'/docs/getting-started/server/go/gorm',
-	'/docs/getting-started/backend-sdk/go/gqlgen':
+	'getting-started/backend-sdk/go/gqlgen':
 		'/docs/getting-started/server/go/gqlgen',
-	'/docs/getting-started/backend-logging/go/logrus':
+	'getting-started/backend-logging/go/logrus':
 		'/docs/getting-started/server/go/logrus',
-	'/docs/getting-started/backend-tracing/go/manual':
+	'getting-started/backend-tracing/go/manual':
 		'/docs/getting-started/server/go/manual',
-	'/docs/getting-started/backend-sdk/js/overview':
+	'getting-started/backend-sdk/js/overview':
 		'/docs/getting-started/server/js/overview',
-	'/docs/getting-started/backend-logging/js/overview':
+	'getting-started/backend-logging/js/overview':
 		'/docs/getting-started/server/js/overview',
-	'/docs/getting-started/backend-sdk/js/apollo':
+	'getting-started/backend-sdk/js/apollo':
 		'/docs/getting-started/server/js/apollo',
-	'/docs/getting-started/backend-sdk/js/aws-lambda':
+	'getting-started/backend-sdk/js/aws-lambda':
 		'/docs/getting-started/server/js/aws-lambda',
-	'/docs/getting-started/backend-sdk/js/cloudflare':
+	'getting-started/backend-sdk/js/cloudflare':
 		'/docs/getting-started/server/js/cloudflare',
-	'/docs/getting-started/backend-logging/js/cloudflare':
+	'getting-started/backend-logging/js/cloudflare':
 		'/docs/getting-started/server/js/cloudflare',
-	'/docs/getting-started/backend-sdk/js/express':
+	'getting-started/backend-sdk/js/express':
 		'/docs/getting-started/server/js/express',
-	'/docs/getting-started/backend-sdk/js/firebase':
+	'getting-started/backend-sdk/js/firebase':
 		'/docs/getting-started/server/js/firebase',
-	'/docs/getting-started/backend-sdk/js/hono':
+	'getting-started/backend-sdk/js/hono':
 		'/docs/getting-started/server/js/hono',
-	'/docs/getting-started/backend-sdk/js/nestjs':
+	'getting-started/backend-sdk/js/nestjs':
 		'/docs/getting-started/server/js/nestjs',
-	'/docs/getting-started/backend-logging/js/nestjs':
+	'getting-started/backend-logging/js/nestjs':
 		'/docs/getting-started/server/js/nestjs',
-	'/docs/getting-started/backend-sdk/js/nextjs':
+	'getting-started/backend-sdk/js/nextjs':
 		'/docs/getting-started/server/js/nextjs',
-	'/docs/getting-started/backend-sdk/js/nodejs':
+	'getting-started/backend-sdk/js/nodejs':
 		'/docs/getting-started/server/js/nodejs',
-	'/docs/getting-started/backend-logging/js/nodejs':
+	'getting-started/backend-logging/js/nodejs':
 		'/docs/getting-started/server/js/nodejs',
-	'/docs/getting-started/backend-logging/js/pino':
+	'getting-started/backend-logging/js/pino':
 		'/docs/getting-started/server/js/pino',
-	'/docs/getting-started/backend-sdk/js/trpc':
+	'getting-started/backend-sdk/js/trpc':
 		'/docs/getting-started/server/js/trpc',
-	'/docs/getting-started/backend-logging/js/winston':
+	'getting-started/backend-logging/js/winston':
 		'/docs/getting-started/server/js/winston',
-	'/docs/getting-started/backend-sdk/python/overview':
+	'getting-started/backend-sdk/python/overview':
 		'/docs/getting-started/server/python/overview',
-	'/docs/getting-started/backend-logging/python/overview':
+	'getting-started/backend-logging/python/overview':
 		'/docs/getting-started/server/python/overview',
-	'/docs/getting-started/backend-tracing/python/overview':
+	'getting-started/backend-tracing/python/overview':
 		'/docs/getting-started/server/python/overview',
-	'/docs/getting-started/backend-sdk/python/aws-lambda':
+	'getting-started/backend-sdk/python/aws-lambda':
 		'/docs/getting-started/server/python/aws-lambda',
-	'/docs/getting-started/backend-tracing/python/aws-lambda':
+	'getting-started/backend-tracing/python/aws-lambda':
 		'/docs/getting-started/server/python/aws-lambda',
-	'/docs/getting-started/backend-sdk/python/azure-functions':
+	'getting-started/backend-sdk/python/azure-functions':
 		'/docs/getting-started/server/python/azure-functions',
-	'/docs/getting-started/backend-tracing/python/azure-functions':
+	'getting-started/backend-tracing/python/azure-functions':
 		'/docs/getting-started/server/python/azure-functions',
-	'/docs/getting-started/backend-sdk/python/django':
+	'getting-started/backend-sdk/python/django':
 		'/docs/getting-started/server/python/django',
-	'/docs/getting-started/backend-tracing/python/django':
+	'getting-started/backend-tracing/python/django':
 		'/docs/getting-started/server/python/django',
-	'/docs/getting-started/backend-sdk/python/fastapi':
+	'getting-started/backend-sdk/python/fastapi':
 		'/docs/getting-started/server/python/fastapi',
-	'/docs/getting-started/backend-tracing/python/fastapi':
+	'getting-started/backend-tracing/python/fastapi':
 		'/docs/getting-started/server/python/fastapi',
-	'/docs/getting-started/backend-sdk/python/flask':
+	'getting-started/backend-sdk/python/flask':
 		'/docs/getting-started/server/python/flask',
-	'/docs/getting-started/backend-tracing/python/flask':
+	'getting-started/backend-tracing/python/flask':
 		'/docs/getting-started/server/python/flask',
-	'/docs/getting-started/backend-sdk/python/google-cloud-functions':
+	'getting-started/backend-sdk/python/google-cloud-functions':
 		'/docs/getting-started/server/python/google-cloud-functions',
-	'/docs/getting-started/backend-tracing/python/google-cloud-functions':
+	'getting-started/backend-tracing/python/google-cloud-functions':
 		'/docs/getting-started/server/python/google-cloud-functions',
-	'/docs/getting-started/backend-logging/python/loguru':
+	'getting-started/backend-logging/python/loguru':
 		'/docs/getting-started/server/python/loguru',
-	'/docs/getting-started/backend-sdk/python/other':
+	'getting-started/backend-sdk/python/other':
 		'/docs/getting-started/server/python/other',
-	'/docs/getting-started/backend-logging/python/other':
+	'getting-started/backend-logging/python/other':
 		'/docs/getting-started/server/python/other',
-	'/docs/getting-started/backend-tracing/python/python-ai':
+	'getting-started/backend-tracing/python/python-ai':
 		'/docs/getting-started/server/python/python-ai',
-	'/docs/getting-started/backend-tracing/python/python-libraries':
+	'getting-started/backend-tracing/python/python-libraries':
 		'/docs/getting-started/server/python/python-libraries',
-	'/docs/getting-started/backend-sdk/ruby/overview':
+	'getting-started/backend-sdk/ruby/overview':
 		'/docs/getting-started/server/ruby/overview',
-	'/docs/getting-started/backend-logging/ruby/overview':
+	'getting-started/backend-logging/ruby/overview':
 		'/docs/getting-started/server/ruby/overview',
-	'/docs/getting-started/backend-tracing/ruby/overview':
+	'getting-started/backend-tracing/ruby/overview':
 		'/docs/getting-started/server/ruby/overview',
-	'/docs/getting-started/backend-sdk/ruby/other':
+	'getting-started/backend-sdk/ruby/other':
 		'/docs/getting-started/server/ruby/other',
-	'/docs/getting-started/backend-logging/ruby/other':
+	'getting-started/backend-logging/ruby/other':
 		'/docs/getting-started/server/ruby/other',
-	'/docs/getting-started/backend-tracing/ruby/other':
+	'getting-started/backend-tracing/ruby/other':
 		'/docs/getting-started/server/ruby/other',
-	'/docs/getting-started/backend-sdk/ruby/rails':
+	'getting-started/backend-sdk/ruby/rails':
 		'/docs/getting-started/server/ruby/rails',
-	'/docs/getting-started/backend-logging/ruby/rails':
+	'getting-started/backend-logging/ruby/rails':
 		'/docs/getting-started/server/ruby/rails',
-	'/docs/getting-started/backend-tracing/ruby/rails':
+	'getting-started/backend-tracing/ruby/rails':
 		'/docs/getting-started/server/ruby/rails',
-	'/docs/getting-started/backend-sdk/rust/overview':
+	'getting-started/backend-sdk/rust/overview':
 		'/docs/getting-started/server/rust/overview',
-	'/docs/getting-started/backend-logging/rust/overview':
+	'getting-started/backend-logging/rust/overview':
 		'/docs/getting-started/server/rust/overview',
-	'/docs/getting-started/backend-tracing/rust/overview':
+	'getting-started/backend-tracing/rust/overview':
 		'/docs/getting-started/server/rust/overview',
-	'/docs/getting-started/backend-sdk/rust/actix':
+	'getting-started/backend-sdk/rust/actix':
 		'/docs/getting-started/server/rust/actix',
-	'/docs/getting-started/backend-logging/rust/actix':
+	'getting-started/backend-logging/rust/actix':
 		'/docs/getting-started/server/rust/actix',
-	'/docs/getting-started/backend-tracing/rust/actix':
+	'getting-started/backend-tracing/rust/actix':
 		'/docs/getting-started/server/rust/actix',
-	'/docs/getting-started/backend-sdk/rust/other':
+	'getting-started/backend-sdk/rust/other':
 		'/docs/getting-started/server/rust/other',
-	'/docs/getting-started/backend-logging/rust/other':
+	'getting-started/backend-logging/rust/other':
 		'/docs/getting-started/server/rust/other',
-	'/docs/getting-started/backend-tracing/rust/other':
+	'getting-started/backend-tracing/rust/other':
 		'/docs/getting-started/server/rust/other',
-	'/docs/getting-started/backend-logging/hosting/overview':
+	'getting-started/backend-logging/hosting/overview':
 		'/docs/getting-started/server/hosting/overview',
-	'/docs/getting-started/backend-logging/hosting/aws-metrics':
+	'getting-started/backend-logging/hosting/aws-metrics':
 		'/docs/getting-started/server/hosting/aws-metrics',
-	'/docs/getting-started/backend-logging/hosting/aws':
+	'getting-started/backend-logging/hosting/aws':
 		'/docs/getting-started/server/hosting/aws',
-	'/docs/getting-started/backend-logging/hosting/azure':
+	'getting-started/backend-logging/hosting/azure':
 		'/docs/getting-started/server/hosting/azure',
-	'/docs/getting-started/backend-logging/hosting/fly-io':
+	'getting-started/backend-logging/hosting/fly-io':
 		'/docs/getting-started/server/hosting/fly-io',
-	'/docs/getting-started/backend-logging/hosting/gcp':
+	'getting-started/backend-logging/hosting/gcp':
 		'/docs/getting-started/server/hosting/gcp',
-	'/docs/getting-started/backend-logging/hosting/heroku':
+	'getting-started/backend-logging/hosting/heroku':
 		'/docs/getting-started/server/hosting/heroku',
-	'/docs/getting-started/backend-logging/hosting/render':
+	'getting-started/backend-logging/hosting/render':
 		'/docs/getting-started/server/hosting/render',
-	'/docs/getting-started/backend-logging/hosting/trigger':
+	'getting-started/backend-logging/hosting/trigger':
 		'/docs/getting-started/server/hosting/trigger',
-	'/docs/getting-started/backend-logging/hosting/vercel':
+	'getting-started/backend-logging/hosting/vercel':
 		'/docs/getting-started/server/hosting/vercel',
-	'/docs/getting-started/backend-sdk/elixir/overview':
+	'getting-started/backend-sdk/elixir/overview':
 		'/docs/getting-started/server/elixir/overview',
-	'/docs/getting-started/backend-logging/elixir/overview':
+	'getting-started/backend-logging/elixir/overview':
 		'/docs/getting-started/server/elixir/overview',
-	'/docs/getting-started/backend-sdk/elixir/other':
+	'getting-started/backend-sdk/elixir/other':
 		'/docs/getting-started/server/elixir/other',
-	'/docs/getting-started/backend-logging/elixir/other':
+	'getting-started/backend-logging/elixir/other':
 		'/docs/getting-started/server/elixir/other',
-	'/docs/getting-started/backend-tracing/serverless/aws-lambda':
+	'getting-started/backend-tracing/serverless/aws-lambda':
 		'/docs/getting-started/server/serverless/aws-lambda',
 }
 
