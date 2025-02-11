@@ -7,6 +7,7 @@ import {
 import { Maybe, Session, SessionsReportRow } from '@graph/schemas'
 import { useProjectId } from '@hooks/useProjectId'
 import moment from 'moment/moment'
+import analytics from '@util/analytics'
 
 export const processRows = <
 	T extends { __typename?: Maybe<string>; user_properties?: Maybe<string> },
@@ -110,6 +111,8 @@ const getSessionRows = (sessions: Session[]) => {
 }
 
 export const exportFile = async (name: string, content: string) => {
+	analytics.track('exportFile', { name, size: content.length })
+
 	const blob = new Blob([content], { type: 'text/csv' })
 	const link = document.createElement('a')
 	link.setAttribute('href', window.URL.createObjectURL(blob))
