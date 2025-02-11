@@ -97,7 +97,7 @@ export default function OTelCourse({
 							emphasis
 							className="text-blue-600 mb-2"
 						>
-							What You'll Get
+							What You&apos;ll Get
 						</Typography>
 						<h2 className="text-3xl font-bold mb-4 text-gray-800">
 							Everything You Need to Master OpenTelemetry
@@ -176,7 +176,7 @@ export default function OTelCourse({
 							Free Course Preview
 						</Typography>
 						<h2 className="text-3xl font-bold mb-4 text-gray-800">
-							Get a Sneak Peek at What You'll Learn
+							Get a Sneak Peek at What You&apos;ll Learn
 						</h2>
 						<Typography
 							type="copy3"
@@ -254,7 +254,7 @@ export default function OTelCourse({
 							className="flex items-center gap-2"
 						>
 							<HiPlay className="w-5 h-5" />
-							<span>Enroll Now - It's Free!</span>
+							<span>Enroll Now - It&apos;s Free!</span>
 						</PrimaryButton>
 					</div>
 					<Typography type="copy4" className="text-gray-400 mt-8">
