@@ -10,7 +10,7 @@ We mentioned the 4 categories of telemetry that are supported by OpenTelemetry: 
 
 ## What Is a Log?
 
-A log is a record of an event that happened in an application. It can be anything from a user request to a database query to an error that occurred, or even just a message to help with debugging. Logs are a way to capture the history of what has happened in an application.
+A log is a record of an event that happened in an application. It can be anything from a user request to a database query to an error that occurred, or even just a message to help with debugging.
 
 Chances are you're familiar with logs from your development experience. For many developers, `console.log` is their favorite tool for debugging. It's a simple way to print something out to understand the flow and state of an application.
 
