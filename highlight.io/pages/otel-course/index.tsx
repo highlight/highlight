@@ -62,9 +62,9 @@ export default function OTelCourse({
 
 			{/* Link to each video */}
 			<div className="flex flex-col gap-4">
-				{courseVideos.map((video) => (
-					<Link href={`/otel-course/${video.slug}`}>
-						{video.title}
+				{courseVideos.map((video, index) => (
+					<Link href={`/otel-course/${video.slug}`} key={index}>
+						{index + 1}. {video.title}
 					</Link>
 				))}
 			</div>

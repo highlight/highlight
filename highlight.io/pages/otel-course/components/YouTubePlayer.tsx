@@ -53,6 +53,7 @@ export default function YouTubePlayer({
 			}
 			document.body.removeChild(tag)
 		}
+		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, []) // Only run once on mount
 
 	const startProgressTracking = useCallback(() => {
@@ -89,7 +90,7 @@ export default function YouTubePlayer({
 	useEffect(() => {
 		if (!isAPIReady || typeof window === 'undefined') return
 
-		if (!player) {
+		if (!player && videoId) {
 			const newPlayer = new window.YT.Player('youtube-player', {
 				width: '100%',
 				videoId,
@@ -103,12 +104,14 @@ export default function YouTubePlayer({
 			})
 			setPlayer(newPlayer)
 		}
+		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [videoId, isAPIReady, player])
 
 	useEffect(() => {
 		if (player) {
 			player.loadVideoById(videoId)
 		}
+		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [videoId])
 
 	return <div id="youtube-player" className="w-full h-full" />
