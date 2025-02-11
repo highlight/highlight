@@ -124,6 +124,8 @@ const H: HighlightPublicInterface = {
 					getTracer: otelGetTracer,
 				}) => {
 					setupBrowserTracing({
+						backendUrl:
+							options?.backendUrl ?? 'https://pub.highlight.io',
 						otlpEndpoint:
 							options?.otlpEndpoint ??
 							'https://otel.highlight.io',
@@ -160,16 +162,7 @@ const H: HighlightPublicInterface = {
 				appVersion: options?.version,
 				sessionSecureID,
 			}
-			first_load_listeners = new FirstLoadListeners({
-				...client_options,
-				// network recording handled by otel instrumentation, not firstload
-				networkRecording: {
-					...(typeof client_options.networkRecording === 'object'
-						? client_options.networkRecording
-						: {}),
-					recordHeadersAndBody: false,
-				},
-			})
+			first_load_listeners = new FirstLoadListeners(client_options)
 			if (!options?.manualStart) {
 				// Start some of the listeners before client is loaded, then hand the
 				// listeners over for client to manage

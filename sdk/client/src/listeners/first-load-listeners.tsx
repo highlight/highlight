@@ -156,9 +156,14 @@ export class FirstLoadListeners {
 		const _backendUrl =
 			options?.backendUrl ||
 			import.meta.env.REACT_APP_PUBLIC_GRAPH_URI ||
-			'https://pub.highlight.run'
+			'https://pub.highlight.io'
 		const otlpEndpoint = options.otlpEndpoint || 'https://otel.highlight.io'
-		sThis.highlightEndpoints = [_backendUrl, otlpEndpoint]
+		sThis.highlightEndpoints = [
+			_backendUrl,
+			`${otlpEndpoint}/v1/traces`,
+			`${otlpEndpoint}/v1/logs`,
+			`${otlpEndpoint}/v1/metrics`,
+		]
 
 		sThis.xhrNetworkContents = []
 		sThis.fetchNetworkContents = []

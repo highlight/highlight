@@ -72,7 +72,7 @@ export const setupBrowserTracing = (config: BrowserTracingConfig) => {
 	const backendUrl =
 		config.backendUrl ||
 		import.meta.env.REACT_APP_PUBLIC_GRAPH_URI ||
-		'https://pub.highlight.run'
+		'https://pub.highlight.io'
 
 	const urlBlocklist = [
 		...(config.networkRecordingOptions?.urlBlocklist ?? []),
@@ -274,7 +274,12 @@ class CustomTraceContextPropagator extends W3CTraceContextPropagator {
 	constructor(config: CustomTraceContextPropagatorConfig) {
 		super()
 
-		this.highlightEndpoints = [config.backendUrl, config.otlpEndpoint]
+		this.highlightEndpoints = [
+			config.backendUrl,
+			`${config.otlpEndpoint}/v1/traces`,
+			`${config.otlpEndpoint}/v1/logs`,
+			`${config.otlpEndpoint}/v1/metrics`,
+		]
 		this.tracingOrigins = config.tracingOrigins
 		this.urlBlocklist = config.urlBlocklist
 	}

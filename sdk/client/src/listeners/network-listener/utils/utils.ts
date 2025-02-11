@@ -251,27 +251,8 @@ const isHighlightNetworkResourceFilter = (
 	name: string,
 	highlightEndpoints: string[],
 ) =>
-	name
-		.toLocaleLowerCase()
-		.includes(
-			import.meta.env.REACT_APP_PUBLIC_GRAPH_URI ?? 'pub.highlight.io',
-		) ||
-	name.toLocaleLowerCase().includes('pub.highlight.io') ||
-	name.toLocaleLowerCase().includes('otel.highlight.io') ||
-	// avoid recording requests to next.js highlight proxy
-	name
-		.toLocaleLowerCase()
-		.includes(`${window.location.origin}/highlight-events`) ||
-	name.toLocaleLowerCase().includes(`${window.location.origin}/v1/traces`) ||
-	name.toLocaleLowerCase().includes(`${window.location.origin}/v1/logs`) ||
-	name.toLocaleLowerCase().includes(`${window.location.origin}/v1/metrics`) ||
-	highlightEndpoints.some(
-		(backendUrl) =>
-			// only count backend urls that are full paths
-			backendUrl.startsWith('http') &&
-			// ignore top level origin which is used for otlp proxying
-			backendUrl !== window.location.origin &&
-			name.toLocaleLowerCase().includes(backendUrl),
+	highlightEndpoints.some((backendUrl) =>
+		name.toLocaleLowerCase().includes(backendUrl),
 	)
 
 // Determines whether we store the network request and show it in the session
@@ -281,10 +262,18 @@ export const shouldNetworkRequestBeRecorded = (
 	highlightEndpoints: string[],
 	tracingOrigins?: boolean | (string | RegExp)[],
 ) => {
-	return (
-		!isHighlightNetworkResourceFilter(url, highlightEndpoints) ||
-		shouldNetworkRequestBeTraced(url, tracingOrigins ?? [], [])
-	)
+	const is = isHighlightNetworkResourceFilter(url, highlightEndpoints)
+	const should = shouldNetworkRequestBeTraced(url, tracingOrigins ?? [], [])
+	const result = !is && should
+	console.log('vadim', {
+		is,
+		should,
+		result,
+		url,
+		highlightEndpoints,
+		tracingOrigins,
+	})
+	return result
 }
 
 // Determines whether we want to attach the x-highlight-request header to the
