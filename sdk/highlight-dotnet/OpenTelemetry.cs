@@ -26,7 +26,7 @@ namespace Serilog
             return loggerConfiguration.OpenTelemetry(options =>
             {
                 options.Protocol = Highlight.OpenTelemetry.Protocol;
-                options.Endpoint = config.OtlpEndpoint + "/v1/logs";
+                options.Endpoint = config.OtlpEndpoint.ToString();
                 options.ResourceAttributes = Highlight.OpenTelemetry.GetResourceAttributes();
             });
         }
@@ -118,7 +118,7 @@ namespace Highlight
         {
             public string ProjectId = "";
             public string ServiceName = "";
-            public string OtlpEndpoint = "https://otel.highlight.io:4317";
+            public Uri OtlpEndpoint = new("https://otel.highlight.io:4317");
 
             public Dictionary<string, object> ResourceAttributes = [];
         };
@@ -130,7 +130,7 @@ namespace Highlight
                 ["highlight.project_id"] = _config.ProjectId,
                 ["service.name"] = _config.ServiceName,
                 ["telemetry.distro.name"] = "Highlight.ASPCore",
-                ["telemetry.distro.version"] = "0.2.13",
+                ["telemetry.distro.version"] = "0.2.14",
             }).ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
         }
 
@@ -141,7 +141,6 @@ namespace Highlight
         };
 
         static readonly Random Random = new();
-        static bool _registered;
 
         public static Dictionary<string, string?> GetHighlightContext()
         {
@@ -238,10 +237,6 @@ namespace Highlight
 
         public static void InstrumentServices(IServiceCollection services, Action<Config> configure)
         {
-            if (_registered)
-            {
-                return;
-            }
             configure(_config);
             services.AddOpenTelemetry()
                 .WithTracing(tracing => tracing
@@ -265,7 +260,7 @@ namespace Highlight
                     .AddProcessor(new TraceProcessor())
                     .AddOtlpExporter(options =>
                     {
-                        options.Endpoint = new Uri(_config.OtlpEndpoint + "/v1/traces");
+                        options.Endpoint = _config.OtlpEndpoint;
                         options.Protocol = ExportProtocol;
                         options.BatchExportProcessorOptions.MaxExportBatchSize = 10000;
                         options.BatchExportProcessorOptions.MaxQueueSize = 10000;
@@ -280,10 +275,9 @@ namespace Highlight
                     .AddAspNetCoreInstrumentation()
                     .AddReader(new PeriodicExportingMetricReader(new OtlpMetricExporter(new OtlpExporterOptions
                     {
-                        Endpoint = new Uri(_config.OtlpEndpoint + "/v1/metrics"),
+                        Endpoint = _config.OtlpEndpoint,
                         Protocol = ExportProtocol
                     }))));
-            _registered = true;
         }
 
         public static void InstrumentLogging(ILoggingBuilder logging, Action<Config> configure)
@@ -296,7 +290,7 @@ namespace Highlight
                     .AddProcessor(new LogProcessor())
                     .AddOtlpExporter(exporterOptions =>
                     {
-                        exporterOptions.Endpoint = new Uri(_config.OtlpEndpoint + "/v1/logs");
+                        exporterOptions.Endpoint = _config.OtlpEndpoint;
                         exporterOptions.Protocol = ExportProtocol;
                         exporterOptions.BatchExportProcessorOptions.MaxExportBatchSize = 10000;
                         exporterOptions.BatchExportProcessorOptions.MaxQueueSize = 10000;
