@@ -174,11 +174,12 @@ const LanguageOption: React.FC<LanguageOptionProps> = ({
 					{logoKey && ICON_MAPPINGS.hasOwnProperty(logoKey) ? (
 						<img
 							alt={title}
+							title={title}
 							src={(ICON_MAPPINGS as any)[logoKey]}
 							style={{ height: 30, width: 30, borderRadius: 5 }}
 						/>
 					) : (
-						<Text userSelect="none" weight="bold">
+						<Text userSelect="none" weight="bold" title={title}>
 							{title[0].toUpperCase()}
 						</Text>
 					)}
@@ -236,6 +237,7 @@ const ProductAreaIcons = ({ products }: { products: ProductArea[] }) => {
 					iconStart={<IconSolidInformationCircle />}
 				/>
 			}
+			delayed
 		>
 			{Icons}
 		</Tooltip>

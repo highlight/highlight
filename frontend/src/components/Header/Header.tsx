@@ -33,7 +33,7 @@ import {
 	IconSolidOfficeBuilding,
 	IconSolidPlayCircle,
 	IconSolidPlusSm,
-	IconSolidSpeakerphone,
+	IconSolidBell,
 	IconSolidSwitchHorizontal,
 	IconSolidTraces,
 	IconSolidUserCircle,
@@ -176,7 +176,7 @@ const PAGES: Page[] = [
 	},
 	{
 		key: 'alerts',
-		icon: IconSolidSpeakerphone,
+		icon: IconSolidBell,
 	},
 	{
 		key: 'integrations',
@@ -305,7 +305,7 @@ export const Header: React.FC<Props> = ({ fullyIntegrated }) => {
 						>
 							{!!projectId && !fullyIntegrated && !isSettings && (
 								<LinkButton
-									to={`/${projectId}/setup`}
+									to={`/${projectId}/connect`}
 									state={{
 										previousPath: location.pathname,
 									}}

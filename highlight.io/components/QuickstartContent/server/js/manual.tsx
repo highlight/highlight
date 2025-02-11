@@ -4,10 +4,10 @@ import { verifyTraces } from '../shared-snippets-tracing'
 import { frontendInstallSnippet } from '../shared-snippets-monitoring'
 
 export const JSManualTracesReorganizedContent: QuickStartContent = {
-	title: 'Tracing from a Node.js App',
+	title: 'Manual Tracing from a Node.js App',
 	subtitle:
 		'Learn how to set up highlight.io tracing for your Node.js application.',
-	logoKey: 'javascript',
+	logoKey: 'node',
 	products: ['Traces'],
 	entries: [
 		frontendInstallSnippet,

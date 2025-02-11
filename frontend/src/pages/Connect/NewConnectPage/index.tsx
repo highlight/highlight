@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import {
 	Badge,
 	Box,
@@ -26,8 +27,8 @@ import {
 import { useProjectId } from '@hooks/useProjectId'
 import analytics from '@util/analytics'
 import { PlatformSelection } from '@/pages/Connect/PlatformSelection'
-import { useNavigate } from 'react-router-dom'
 import { ICON_MAPPINGS } from '@/pages/Connect/constants'
+import { namedOperations } from '@/graph/generated/operations'
 
 const ICON_FILL = vars.theme.interactive.fill.secondary.content.text
 
@@ -41,8 +42,11 @@ export const NewConnectPage = () => {
 	})
 	const projectVerboseId = data?.project?.verbose_id
 
-	const [editProjectPlatforms, { loading }] =
-		useEditProjectPlatformsMutation()
+	const [editProjectPlatforms, { loading }] = useEditProjectPlatformsMutation(
+		{
+			refetchQueries: [namedOperations.Query.GetProject],
+		},
+	)
 
 	const [selectedPlatforms, setSelectedPlatforms] = useState(
 		new Set<string>(),
@@ -53,6 +57,12 @@ export const NewConnectPage = () => {
 			setSelectedPlatforms(new Set(data.project.platforms))
 		}
 	}, [data])
+
+	useEffect(() => analytics.page('New Connect'), [])
+
+	if (!projectVerboseId) {
+		return <LoadingBox />
+	}
 
 	const handleSave = () => {
 		editProjectPlatforms({
@@ -68,12 +78,6 @@ export const NewConnectPage = () => {
 			.catch(() => {
 				toast.error('Failed to update platforms.')
 			})
-	}
-
-	useEffect(() => analytics.page('New Connect'), [])
-
-	if (!projectVerboseId) {
-		return <LoadingBox />
 	}
 
 	const copyProjectId = () => {
@@ -238,7 +242,11 @@ const SelectedPlatformIcons = ({ platforms }: { platforms: Set<string> }) => {
 			{Array.from(platforms).map((identifier) => {
 				const [language, platform] = identifier.split('_')
 				const sdk = (quickStartContentReorganized as any)[language]
-					.sdks[platform] as QuickStartContent
+					?.sdks[platform] as QuickStartContent
+
+				if (!sdk) {
+					return null
+				}
 
 				return (
 					<Box
@@ -255,6 +263,7 @@ const SelectedPlatformIcons = ({ platforms }: { platforms: Set<string> }) => {
 						ICON_MAPPINGS.hasOwnProperty(sdk.logoKey) ? (
 							<img
 								alt={sdk.title}
+								title={sdk.title}
 								src={(ICON_MAPPINGS as any)[sdk.logoKey]}
 								style={{
 									height: 30,
@@ -263,7 +272,11 @@ const SelectedPlatformIcons = ({ platforms }: { platforms: Set<string> }) => {
 								}}
 							/>
 						) : (
-							<Text userSelect="none" weight="bold">
+							<Text
+								userSelect="none"
+								weight="bold"
+								title={sdk.title}
+							>
 								{sdk.title[0].toUpperCase()}
 							</Text>
 						)}

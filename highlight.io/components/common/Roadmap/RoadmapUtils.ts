@@ -31,22 +31,7 @@ function stringToEmoji(emoji: string) {
 	}
 }
 
-export const labels = [
-	'session-replay',
-	'error-monitoring',
-	'logging',
-	'future-work',
-	//'bug',
-	//'dependencies',
-	//'good first issue',
-	//'design',
-	//'enhancement',
-	//'discussion',
-	//'documentation',
-	//'duplicate',
-	//'github_actions',
-	//'go',
-]
+export const labels = ['2025 Q1']
 
 export const query = gql`
 	query {
@@ -184,7 +169,7 @@ export const roadmapFetcher = async (): Promise<{
 			continue
 		}
 
-		if (issues[i].fieldValueByName?.name === 'Under Consideration') {
+		if (issues[i].fieldValueByName?.name === 'Planned') {
 			column1.push(issue)
 		} else if (issues[i].fieldValueByName?.name === 'In Progress') {
 			column2.push(issue)

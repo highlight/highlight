@@ -30,7 +30,6 @@ export interface Post {
 		name: string
 		picture: string
 	}
-	tags_relations: Tag[]
 	readingTime?: number
 	author?: Author
 	richcontent: {
@@ -38,6 +37,7 @@ export interface Post {
 		raw?: any
 	}
 	slug?: string
+	tags: Tag[]
 }
 
 export const BlogPost = ({
@@ -46,7 +46,7 @@ export const BlogPost = ({
 	image,
 	title,
 	publishedAt,
-	tags_relations,
+	tags,
 	readingTime,
 }: Post) => {
 	return (
@@ -82,7 +82,7 @@ export const BlogPost = ({
 					</div>
 					<h3>{title}</h3>
 					<div className={styles.tagDiv}>
-						{tags_relations.map((tag: Tag) => (
+						{tags.map((tag: Tag) => (
 							<Link
 								key={tag.name}
 								href={`/blog?tag=${tag.slug}`}
@@ -101,19 +101,4 @@ export const BlogPost = ({
 			</div>
 		</Link>
 	)
-}
-
-//get unique tags and prefer tags that have a description
-export function getUniqueTags(tags: Tag[]): Tag[] {
-	const uniqueTags: { [key: string]: Tag } = {}
-	for (const tag of tags) {
-		if (
-			!uniqueTags[tag.slug] ||
-			(!uniqueTags[tag.slug].description &&
-				uniqueTags[tag.slug].description != null)
-		) {
-			uniqueTags[tag.slug] = tag
-		}
-	}
-	return Object.values(uniqueTags)
 }

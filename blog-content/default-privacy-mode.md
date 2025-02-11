@@ -9,9 +9,12 @@ authorTwitter: 'https://twitter.com/SpennyNDaJets'
 authorLinkedIn: 'https://www.linkedin.com/in/spencer-amarantides/'
 authorGithub: 'https://github.com/SpennyNDaJets'
 authorWebsite: ''
-authorPFP: 'https://lh3.googleusercontent.com/a/AAcHTteOYM6knTAD-uOPM1JP56Yn4WlsGya6Dpnhq_ak6UJUY3Q=s576-c-no'
-tags: Privacy, Launch Week 3
-metaTitle: Introducing default privacy mode to obfuscate personally identifiable information
+authorPFP: >-
+  https://lh3.googleusercontent.com/a/AAcHTteOYM6knTAD-uOPM1JP56Yn4WlsGya6Dpnhq_ak6UJUY3Q=s576-c-no
+tags: 'Company, Product Updates'
+metaTitle: >-
+  Introducing default privacy mode to obfuscate personally identifiable
+  information
 ---
 
 ![Default privacy mode cover](/images/blog/default-privacy-mode/cover.png)

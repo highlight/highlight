@@ -12,7 +12,13 @@ export const codeBlock = style({
 	borderRadius: 6,
 })
 
-export const code = globalStyle(`${codeBlock} code`, {
+globalStyle(`${codeBlock} code`, {
 	paddingBottom: `8px !important`,
 	paddingTop: `8px !important`,
+})
+
+export const markdown = style({})
+
+globalStyle(`${markdown} p`, {
+	lineHeight: `24px !important`,
 })

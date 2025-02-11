@@ -3,6 +3,7 @@ import {
 	Box,
 	Button,
 	ButtonIcon,
+	DEFAULT_TIME_PRESETS,
 	IconSolidChartSquareBar,
 	IconSolidChartSquareLine,
 	IconSolidDocumentReport,
@@ -1185,6 +1186,28 @@ const Graph = ({
 		false,
 	)
 
+	// Use a smaller bucketByWindow if the selected one is greater than the time range
+	if (
+		moment(startDate).add(bucketByWindow, 'second').isSameOrAfter(endDate)
+	) {
+		let lastPreset = DEFAULT_TIME_PRESETS[0]
+		for (const preset of DEFAULT_TIME_PRESETS) {
+			if (
+				moment(startDate)
+					.add(preset.quantity, preset.unit)
+					.isBefore(endDate)
+			) {
+				lastPreset = preset
+			} else {
+				break
+			}
+		}
+
+		bucketByWindow = moment
+			.duration(lastPreset.quantity, lastPreset.unit)
+			.asSeconds()
+	}
+
 	const loadExemplars = useCallback(
 		(
 			bucketMin: number | undefined,
@@ -1377,20 +1400,25 @@ const Graph = ({
 		bucketByWindow,
 		getMetrics,
 		sql,
-		groupByKeys,
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+		JSON.stringify(groupByKeys),
 		limit,
 		limitFunctionType,
 		limitMetric,
-		funnelSteps,
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+		JSON.stringify(funnelSteps),
 		productType,
 		projectId,
 		queriedBucketCount,
 		query,
 		variables,
-		predictionSettings,
-		expressions,
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+		JSON.stringify(predictionSettings),
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+		JSON.stringify(expressions),
 		startDate,
 		endDate,
+		setErrors,
 	])
 
 	const graphData = useGraphData(
@@ -1594,7 +1622,7 @@ const Graph = ({
 				justifyContent="space-between"
 			>
 				<Text size="small" color="default" cssClass={style.titleText}>
-					{title || 'Untitled metric view'}
+					{title || 'Untitled graph'}
 				</Text>
 			</Box>
 			<Box

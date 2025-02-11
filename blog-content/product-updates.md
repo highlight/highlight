@@ -1,6 +1,6 @@
 ---
-title: "How we Animate Product Updates at Highlight"
-createdAt: 2022-08-09T12:00:00Z
+title: How we Animate Product Updates at Highlight
+createdAt: 2022-08-09T12:00:00.000Z
 readingTime: 8
 authorFirstName: John
 authorLastName: Pham
@@ -9,13 +9,15 @@ authorTwitter: 'https://twitter.com/johnphamous'
 authorLinkedIn: 'https://www.linkedin.com/in/johnphamous/'
 authorGithub: 'https://github.com/JohnPhamous'
 authorWebsite: 'https://www.omakasemoney.com/'
-authorPFP: 'https://www.highlight.io/_next/image?url=https%3A%2F%2Fmedia.graphassets.com%2FolnMfFZmQ36zzUSd1wkO&w=3840&q=75'
-image: 'https://www.highlight.io/_next/image?url=https%3A%2F%2Fmedia.graphassets.com%2FXjBUBiTjSOGpED7glXy2&w=3840&q=75'
-tags: Highlight Engineering
-metaTitle: "How-To: Make Animated Product Updates That Impress Customers"
+authorPFP: >-
+  https://www.highlight.io/_next/image?url=https%3A%2F%2Fmedia.graphassets.com%2FolnMfFZmQ36zzUSd1wkO&w=3840&q=75
+image: >-
+  https://www.highlight.io/_next/image?url=https%3A%2F%2Fmedia.graphassets.com%2FXjBUBiTjSOGpED7glXy2&w=3840&q=75
+tags: 'Engineering, Frontend'
+metaTitle: 'How-To: Make Animated Product Updates That Impress Customers'
 ---
 
-At [Highlight](http://highlight.run/ "http://highlight.run/"), we make it our goal to add sparkles to our product updates when we can. One way we do this is by sharing product updates with dynamic animations rather than with static images. This allows us to tell the story of a product update in its entirety, something that we wouldn't be able to with just an image. We use these animated stories when sharing to [Twitter](https://twitter.com/highlightrun "https://twitter.com/highlightrun"), [LinkedIn](<https://www.linkedin.com/company/highlightrun),> "https://www.linkedin.com/company/highlightrun),") and directly to customers in our product. Below are some examples:
+At [Highlight](http://highlight.run/ "http://highlight.run/"), we make it our goal to add sparkles to our product updates when we can. One way we do this is by sharing product updates with dynamic animations rather than with static images. This allows us to tell the story of a product update in its entirety, something that we wouldn't be able to with just an image. We use these animated stories when sharing to [Twitter](https://twitter.com/highlightrun "https://twitter.com/highlightrun"), [LinkedIn](<https://www.linkedin.com/company/highlightrun),> "https://www.linkedin.com/company/highlightrun"),") and directly to customers in our product. Below are some examples:
 
 ![Animated story from After Effects](https://media.graphassets.com/KDZLYpMITlWhrgMSCgLI "ae-1.gif")
 

@@ -1,6 +1,6 @@
 ---
 title: 'Tracing in Beta: Another Layer of Visibility in Your Applications'
-createdAt: 2023-10-17T12:00:00Z
+createdAt: 2023-10-17T12:00:00.000Z
 readingTime: 3
 authorFirstName: Chris
 authorLastName: Schmitz
@@ -9,9 +9,10 @@ authorTwitter: 'https://twitter.com/ccschmitz'
 authorLinkedIn: 'https://www.linkedin.com/in/ccschmitz'
 authorGithub: 'https://github.com/ccschmitz'
 authorWebsite: ''
-authorPFP: 'https://www.highlight.io/_next/image?url=https%3A%2F%2Fmedia.graphassets.com%2FViK27IG7TCe0YDK20tFy&w=3840&q=75'
-image: "/images/blog/tracing-in-highlight/tracing-in-highlight.png"
-tags: Launch Week 3
+authorPFP: >-
+  https://www.highlight.io/_next/image?url=https%3A%2F%2Fmedia.graphassets.com%2FViK27IG7TCe0YDK20tFy&w=3840&q=75
+image: /images/blog/tracing-in-highlight/tracing-in-highlight.png
+tags: Product Updates
 metaTitle: 'Tracing in Beta: Another Layer of Visibility in Your Applications'
 ---
 

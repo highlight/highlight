@@ -1,6 +1,6 @@
 ---
-title: "Optimizing Clickhouse: The Tactics That Worked for Us"
-createdAt: 2024-04-30T09:00:00Z
+title: 'Optimizing Clickhouse: The Tactics That Worked for Us'
+createdAt: 2024-04-30T09:00:00.000Z
 readingTime: 17
 authorFirstName: Vadim
 authorLastName: Korolik
@@ -9,9 +9,10 @@ authorTwitter: 'https://twitter.com/vkorolik'
 authorLinkedIn: 'https://www.linkedin.com/in/vkorolik/'
 authorGithub: 'https://github.com/Vadman97'
 authorWebsite: 'https://vadweb.us'
-authorPFP: 'https://lh3.googleusercontent.com/a-/AOh14Gh1k7XsVMGxHMLJZ7qesyddqn1y4EKjfbodEYiY=s96-c'
-tags: Launch Week 5
-metaTitle: "Optimizing Clickhouse: The Tactics That Worked for Us"
+authorPFP: >-
+  https://lh3.googleusercontent.com/a-/AOh14Gh1k7XsVMGxHMLJZ7qesyddqn1y4EKjfbodEYiY=s96-c
+tags: Product Updates
+metaTitle: 'Optimizing Clickhouse: The Tactics That Worked for Us'
 ---
 
 ```hint

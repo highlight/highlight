@@ -1,6 +1,6 @@
 ---
-title: How we built logging as a service with ClickHouse 
-createdAt: 2023-04-20T12:00:00Z
+title: How we built logging as a service with ClickHouse
+createdAt: 2023-04-20T12:00:00.000Z
 readingTime: 7
 authorFirstName: Eric
 authorLastName: Thomas
@@ -9,9 +9,10 @@ authorTwitter: ''
 authorLinkedIn: 'https://www.linkedin.com/in/eric-l-m-thomas/'
 authorGithub: 'https://github.com/et'
 authorWebsite: 'https://elmthomas.com/'
-authorPFP: 'https://www.highlight.io/_next/image?url=https%3A%2F%2Fmedia.graphassets.com%2FnGV2kef5QWrrpTb8zSx3&w=3840&q=75'
-tags: Launch Week 1
-metaTitle: How we built logging as a service with ClickHouse 
+authorPFP: >-
+  https://www.highlight.io/_next/image?url=https%3A%2F%2Fmedia.graphassets.com%2FnGV2kef5QWrrpTb8zSx3&w=3840&q=75
+tags: Product Updates
+metaTitle: How we built logging as a service with ClickHouse
 ---
 
 At the end of last year, Highlight released a [_revamped version_](https://www.highlight.io/blog/new-error-management-ui "https://www.highlight.io/blog/new-error-management-ui") of our error monitoring product whereby you could go from stacktrace to session replay to see exactly what the user did to trigger an error. Getting this insight gives developers the cheat code to figuring out how a bug occurred in the first place.

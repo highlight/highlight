@@ -110,7 +110,6 @@ import { JStRPCReorganizedContent } from './server/js/trpc'
 import { JSPinoHTTPJSONLogReorganizedContent } from './server/js/pino'
 import { JSWinstonHTTPJSONLogReorganizedContent } from './server/js/winston'
 import { JSManualTracesReorganizedContent } from './server/js/manual'
-import { NextJsTracesReorganizedContent } from './server/js/nextjs'
 import { PHPOtherReorganizedContent } from './server/php/other'
 import { PythonAWSReorganizedContext } from './server/python/aws'
 import { PythonAzureReorganizedContext } from './server/python/azure'
@@ -135,7 +134,6 @@ import { DockerReorganizedContent } from './server/docker'
 import { HTTPReorganizedContent } from './server/http'
 import { SyslogReorganizedContent } from './server/syslog'
 import { SystemdReorganizedContent } from './server/systemd'
-import { AWSLambdaReorganizedContent } from './server/serverless/lambda'
 import { ElixirOtherReorganizedContent } from './server/elixir/other'
 import { ReactNativeContent } from './mobile/react-native'
 
@@ -425,7 +423,7 @@ export const quickStartContent = {
 
 export const quickStartContentReorganized = {
 	client: {
-		title: 'Client',
+		title: 'Client / Fullstack',
 		sdks: {
 			[QuickStartType.React]: ReactContent,
 			[QuickStartType.Angular]: AngularContent,
@@ -503,12 +501,6 @@ export const quickStartContentReorganized = {
 			[QuickStartType.JSPino]: JSPinoHTTPJSONLogReorganizedContent,
 			[QuickStartType.JSWinston]: JSWinstonHTTPJSONLogReorganizedContent,
 			[QuickStartType.JSManual]: JSManualTracesReorganizedContent,
-			[QuickStartType.JSNextjs]: NextJsTracesReorganizedContent,
-		},
-	},
-	otlp: {
-		title: 'OpenTelemetry',
-		sdks: {
 			[QuickStartType.OTLP]: OTLPReorganizedContent,
 		},
 	},
@@ -546,12 +538,6 @@ export const quickStartContentReorganized = {
 		sdks: {
 			[QuickStartType.RustActix]: RustActixReorganizedContent,
 			[QuickStartType.RustOther]: RustOtherReorganizedContent,
-		},
-	},
-	serverless: {
-		title: 'Serverless',
-		sdks: {
-			[QuickStartType.AWSLambda]: AWSLambdaReorganizedContent,
 		},
 	},
 }

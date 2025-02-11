@@ -1,17 +1,18 @@
 ---
-title: "Introducing The New Timeline Indicator"
-createdAt: 2022-11-08T12:00:00Z
+title: Introducing The New Timeline Indicator
+createdAt: 2022-11-08T12:00:00.000Z
 readingTime: 5
 authorFirstName: Sasha
 authorLastName: Aptlin
-authorTitle: Software Engineer 
+authorTitle: Software Engineer
 authorTwitter: 'https://twitter.com/aptlin'
 authorLinkedIn: 'https://linkedin.com/in/aptlin'
 authorGithub: 'https://github.com/aptlin'
 authorWebsite: ''
-authorPFP: 'https://www.highlight.io/_next/image?url=https%3A%2F%2Fmedia.graphassets.com%2FYLhOFZBtQbaAycTzbVFx&w=3840&q=75'
-tags: Highlight Engineering
-metaTitle: "Introducing The New Timeline Indicator"
+authorPFP: >-
+  https://www.highlight.io/_next/image?url=https%3A%2F%2Fmedia.graphassets.com%2FYLhOFZBtQbaAycTzbVFx&w=3840&q=75
+tags: Engineering
+metaTitle: Introducing The New Timeline Indicator
 ---
 
 Today, the Timeline Indicator gets a major revamp in Highlight, helping users navigate a session to find and fix issues faster than ever.

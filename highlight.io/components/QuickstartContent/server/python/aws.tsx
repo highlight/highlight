@@ -3,6 +3,7 @@ import { verifyLogs } from '../shared-snippets-logging'
 import { frontendInstallSnippet } from '../shared-snippets-monitoring'
 import { verifyTraces } from '../shared-snippets-tracing'
 import { downloadSnippet, init } from './shared-snippets-monitoring'
+import { AWSLambdaTracingSteps } from '../serverless/shared-snippets-aws-lambda'
 
 export const PythonAWSReorganizedContext: QuickStartContent = {
 	title: 'Python AWS Lambda',
@@ -11,6 +12,7 @@ export const PythonAWSReorganizedContext: QuickStartContent = {
 	products: ['Errors', 'Logs', 'Traces'],
 	entries: [
 		frontendInstallSnippet,
+		...AWSLambdaTracingSteps,
 		downloadSnippet(),
 		{
 			title: 'Initialize the Highlight SDK.',

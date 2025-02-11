@@ -1,6 +1,6 @@
 ---
-title: "Ingest and Visualization for OpenTelemetry Metrics"
-createdAt: 2025-01-23T12:00:00Z
+title: Ingest and Visualization for OpenTelemetry Metrics
+createdAt: 2025-01-23T12:00:00.000Z
 readingTime: 14
 authorFirstName: Vadim
 authorLastName: Korolik
@@ -9,13 +9,14 @@ authorTwitter: 'https://twitter.com/vkorolik'
 authorLinkedIn: 'https://www.linkedin.com/in/vkorolik/'
 authorGithub: 'https://github.com/Vadman97'
 authorWebsite: 'https://vadweb.us'
-authorPFP: 'https://lh3.googleusercontent.com/a-/AOh14Gh1k7XsVMGxHMLJZ7qesyddqn1y4EKjfbodEYiY=s96-c'
-tags: 'Developer Tooling, Monitoring, Observability'
-metaTitle: 'Building an Efficient OpenTelemetry Metrics Schema in Clickhouse'
+authorPFP: >-
+  https://lh3.googleusercontent.com/a-/AOh14Gh1k7XsVMGxHMLJZ7qesyddqn1y4EKjfbodEYiY=s96-c
+tags: 'Engineering, Observability, OpenTelemetry'
+metaTitle: Building an Efficient OpenTelemetry Metrics Schema in Clickhouse
 ---
 
 ```hint
-Highlight.io is an [open source](https://github.com/highlight/highlight) monitoring platform. If you’re interested in learning more, get started at [highlight.io](https://highlight.io).
+Highlight.io is an [open source](https://github.com/highlight/highlight) monitoring platform. If you're interested in learning more, get started at [highlight.io](https://highlight.io).
 ```
 
 ## OpenTelemetry Metrics
@@ -26,7 +27,7 @@ offer a high-level view of system performance and health. Efficiently storing an
 for real-time insights, and ClickHouse—a high-performance, columnar database—provides an ideal backend for scalable and
 cost-effective metric ingestion.
 
-At Highlight, we recently introduced support for OTeL metrics ingest. Below, we’ll describe how we structured the
+At Highlight, we recently introduced support for OTeL metrics ingest. Below, we'll describe how we structured the
 implementation to deliver an efficient OpenTelemetry metrics pipeline using ClickHouse, covering ingestion, aggregation,
 querying, and visualization.
 
@@ -81,7 +82,7 @@ The OpenTelemetry Collector is a key component in an OTel pipeline, responsible 
 telemetry data. For metric ingestion into ClickHouse, we configure the collector to receive OTel metrics via the OTLP
 receiver, process them using built-in processors (e.g., batch and transform), and export them to our API.
 
-Here’s an example OpenTelemetry Collector configuration for exporting metrics to our Highlight API which then batch
+Here's an example OpenTelemetry Collector configuration for exporting metrics to our Highlight API which then batch
 exports data to ClickHouse:
 
 ```yaml
@@ -136,13 +137,13 @@ For instance, as shown in the example above, we also set up a receiver for the A
 High-cardinality metrics can quickly balloon in storage size, making efficient aggregation crucial. ClickHouse provides
 materialized views and TTL-based rollups to downsample data while retaining aggregate insights.
 
-Our production data pipeline initially writes the metrics in their OTeL native format to [one of three tables](https://github.com/highlight/highlight/blob/0374e166783956bf6b0eae8133250a52527873d0/backend/clickhouse/migrations/000132_create_metrics_tables.up.sql). Metrics are written to one of the `metrics_sum`, `metrics_histogram`, and `metrics_summary` tables. 
+Our production data pipeline initially writes the metrics in their OTeL native format to [one of three tables](https://github.com/highlight/highlight/blob/0374e166783956bf6b0eae8133250a52527873d0/backend/clickhouse/migrations/000132_create_metrics_tables.up.sql). Metrics are written to one of the `metrics_sum`, `metrics_histogram`, and `metrics_summary` tables.
 
-The frequency of metric data can be a challenge with querying over wide time-ranges. While the OpenTelemetry SDK emitting the metrics may aggregate data, the collector does not perform any additional aggregation. 
+The frequency of metric data can be a challenge with querying over wide time-ranges. While the OpenTelemetry SDK emitting the metrics may aggregate data, the collector does not perform any additional aggregation.
 
 A real-world example: imagine having a 100-node Kubernetes cluster running your application. Each application instance is receiving many requests per second and emitting a number of latency metrics for each API endpoint. Even if the OTeL SDK is configured to aggregate metrics down to each second, each node will still produce one row per second for each of the unique metrics and their attributes. Any unique tags emitted on the metrics will result in unique metric rows written to ClickHouse. On top of that, the 100 nodes will all be sending their respective data which will not be aggregated by the Collector. The result: writing thousands of rows per second to ClickHouse with fine timestamp granularity.
 
-Another reason to transform the data is to aggregate the different OTeL metrics formats into a cohesive one that's easier to query. We went with a an approach that solves both problems, aggregating metric values to 1-second resolution and merging data between the metrics formats. 
+Another reason to transform the data is to aggregate the different OTeL metrics formats into a cohesive one that's easier to query. We went with a an approach that solves both problems, aggregating metric values to 1-second resolution and merging data between the metrics formats.
 
 Below you'll find the schema we adopted for each OTeL metric type along with the materialized views that perform aggregations:
 
