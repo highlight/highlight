@@ -2,6 +2,7 @@
 id: "_FGwkiR_XFM"
 title: "Introduction to Observability and OpenTelemetry"
 slug: "introduction"
+description: "Get started with the fundamentals of observability and discover why OpenTelemetry is becoming the industry standard for telemetry data collection."
 free: true
 ---
 

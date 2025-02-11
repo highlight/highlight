@@ -6,6 +6,7 @@ import { CourseVideo, CourseVideoProgress } from './types'
 
 const PROGRESS_STORAGE_KEY = 'otel_course_progress'
 const LOCAL_STORAGE_KEY = 'otel_course_auth'
+export const OTEL_COURSE_LOCAL_STORAGE_KEY = 'otelCourseAuthorized'
 
 export const useVideoProgress = (courseVideos: CourseVideo[]) => {
 	const [videoProgressData, setVideoProgressData] = useState<

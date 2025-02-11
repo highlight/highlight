@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react'
-import { OTEL_COURSE_LOCAL_STORAGE_KEY } from '../index'
+import { OTEL_COURSE_LOCAL_STORAGE_KEY } from '../hooks'
 
 declare global {
 	interface Window {

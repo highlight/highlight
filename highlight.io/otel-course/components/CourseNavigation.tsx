@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { Typography } from '../../../components/common/Typography/Typography'
+import { Typography } from '../../components/common/Typography/Typography'
 import { CourseVideo } from '../types'
 import { useVideoProgress } from '../hooks'
 
@@ -28,7 +28,7 @@ export default function CourseNavigation({
 						type="copy2"
 						className="font-bold text-xl text-gray-800 mb-4"
 					>
-						Course Content
+						Master OpenTelemetry
 					</Typography>
 				</Link>
 			</div>

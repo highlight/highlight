@@ -1,33 +1,36 @@
 import React, { useState } from 'react'
-import { CourseVideo } from './types'
+import { CourseVideo } from '../../otel-course/types'
 import rehypeRaw from 'rehype-raw'
 import { promises as fs } from 'fs'
 import path from 'path'
 import matter from 'gray-matter'
 import { GetStaticProps, GetStaticPaths } from 'next'
 import Head from 'next/head'
-import CourseNavigation from './components/CourseNavigation'
+import CourseNavigation from '../../otel-course/components/CourseNavigation'
 import { Typography } from '../../components/common/Typography/Typography'
 import dynamic from 'next/dynamic'
-import { otelCourse } from './styles.module.scss'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
-import { OTEL_COURSE_LOCAL_STORAGE_KEY } from './index'
+import { OTEL_COURSE_LOCAL_STORAGE_KEY } from '../../otel-course/hooks'
+import { otelCourse } from '../../otel-course/styles.module.scss'
 
-const ClientSidePlayer = dynamic(() => import('./components/YouTubePlayer'), {
-	ssr: false,
-})
+const ClientSidePlayer = dynamic(
+	() => import('../../otel-course/components/YouTubePlayer'),
+	{
+		ssr: false,
+	},
+)
 
-const HubspotForm = dynamic(() => import('./components/HubspotForm'), {
-	ssr: false,
-})
+const HubspotForm = dynamic(
+	() => import('../../otel-course/components/HubspotForm'),
+	{
+		ssr: false,
+	},
+)
 
 // Define getStaticProps directly here
 export const getStaticProps: GetStaticProps = async ({ params }) => {
-	const contentDirectory = path.join(
-		process.cwd(),
-		'pages/otel-course/content',
-	)
+	const contentDirectory = path.join(process.cwd(), 'otel-course/content')
 	const files = await fs.readdir(contentDirectory)
 
 	const courseVideos = await Promise.all(
@@ -59,10 +62,7 @@ export const getStaticProps: GetStaticProps = async ({ params }) => {
 }
 
 export const getStaticPaths: GetStaticPaths = async () => {
-	const contentDirectory = path.join(
-		process.cwd(),
-		'pages/otel-course/content',
-	)
+	const contentDirectory = path.join(process.cwd(), 'otel-course/content')
 	const files = await fs.readdir(contentDirectory)
 
 	// Read each file to get its slug from frontmatter
