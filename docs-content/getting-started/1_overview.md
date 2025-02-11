@@ -106,14 +106,6 @@ Highlight.io provides comprehensive logging support for various hosting platform
     </DocsCard>
 </DocsCardGroup>
 
-## For Mobile
-
-Highlight.io can be used for error monitoring, logging, and tracing for mobile apps using OpenTelemetry. There is currently a guide for React Native, and more coming soon.
-
-<DocsCardGroup>
-    
-</DocsCardGroup>
-
 ### Something missing?
 
 If there's a guide missing for your framework, feel free to [create an issue](https://github.com/highlight/highlight/issues/new?assignees=&labels=external+bug+%2F+request&template=feature_request.md&title=) or message us on [discord](https://highlight.io/community).
