@@ -320,16 +320,19 @@ func SendSessionExportEmail(ctx context.Context, mailClient *sendgrid.Client, se
 			"session_secure_id": sessionSecureId,
 			"url":               exportUrl,
 			"to_email":          toEmail,
+			"mailClient":        mailClient,
+			"m":                 m,
 		})
 	lg.Info("sending session export email")
 
-	if resp, sendGridErr := mailClient.Send(m); sendGridErr != nil || resp.StatusCode >= 300 {
+	if resp, sendGridErr := mailClient.Send(m); sendGridErr != nil {
 		estr := "error sending sendgrid email -> "
-		estr += fmt.Sprintf("resp-code: %v; ", resp)
-		if sendGridErr != nil {
-			estr += fmt.Sprintf("err: %v", sendGridErr.Error())
+		estr += fmt.Sprintf("err: %v ", sendGridErr.Error())
+		if resp != nil {
+			estr += fmt.Sprintf("resp-code: %+vv; ", resp)
 		}
-		lg.WithError(sendGridErr).Error("error sending session export email")
+		lg.WithError(sendGridErr).
+			Error("error sending session export email")
 		return e.New(estr)
 	}
 
