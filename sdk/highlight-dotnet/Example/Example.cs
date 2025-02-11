@@ -19,7 +19,7 @@ public class Program
             {
                 options.ProjectId = "1";
                 options.ServiceName = "example-dotnet-backend";
-                options.OtlpEndpoint = "http://localhost:4318";
+                options.OtlpEndpoint = new Uri("http://localhost:4317");
             });
 
         Log.Logger = new LoggerConfiguration()
@@ -28,7 +28,7 @@ public class Program
             {
                 options.ProjectId = "1";
                 options.ServiceName = "example-dotnet-backend";
-                options.OtlpEndpoint = "http://localhost:4318";
+                options.OtlpEndpoint = new Uri("http://localhost:4317");
             })
             .CreateLogger();
 
