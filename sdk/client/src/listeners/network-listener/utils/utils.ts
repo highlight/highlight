@@ -262,18 +262,10 @@ export const shouldNetworkRequestBeRecorded = (
 	highlightEndpoints: string[],
 	tracingOrigins?: boolean | (string | RegExp)[],
 ) => {
-	const is = isHighlightNetworkResourceFilter(url, highlightEndpoints)
-	const should = shouldNetworkRequestBeTraced(url, tracingOrigins ?? [], [])
-	const result = !is && should
-	console.log('vadim', {
-		is,
-		should,
-		result,
-		url,
-		highlightEndpoints,
-		tracingOrigins,
-	})
-	return result
+	return (
+		!isHighlightNetworkResourceFilter(url, highlightEndpoints) &&
+		shouldNetworkRequestBeTraced(url, tracingOrigins ?? [], [])
+	)
 }
 
 // Determines whether we want to attach the x-highlight-request header to the
