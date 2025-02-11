@@ -130,7 +130,7 @@ export async function render(
 	await page.goto('about:blank')
 	page.on('console', (message) =>
 		console.log(
-			`${message.type().substr(0, 3).toUpperCase()} ${message.text()}`,
+			`${message.type().slice(0, 3).toUpperCase()} ${message.text()}`,
 		),
 	)
 	const finishedPromise = new Promise<void>(
@@ -201,21 +201,19 @@ export async function render(
 		    console.log('RAF loop', JSON.stringify({start, intervalsEnd, timestamp}))
 		    if (timestamp >= intervalsEnd) {
 		    	console.log('done at ' + timestamp)
-                window.r.pause()
                 await window.onReplayFinish()
                 return
 		    }
-            // TODO(vkorolik) fix skip logic
-     		/*const end = window.getInactivityEnd(timestamp)
+     		const end = window.getInactivityEnd(timestamp)
      		if (end !== undefined) {
      			const ts = end - start
             	console.log('skipping from ' + timestamp + ' to ' + ts + ' due to inactivity')
 		    	window.r.play(ts)
-     		}*/
+     		}
      	}
         
         window.r.on('resize', (e) => {viewport = e});
-        window.r.on('finish', () => window.onReplayFinish());
+        window.r.on('finish', window.onReplayFinish);
         window.r.pause(0);
         
         meta = window.r.getMetaData();
@@ -275,7 +273,9 @@ export async function render(
 			}
 			window.requestAnimationFrame(inactivityLoop);
 		`)
+		console.log(`puppeteer waiting for finishedPromise`)
 		await finishedPromise
+		console.log(`puppeteer done with finishedPromise`)
 		await recorder.stop()
 	} else {
 		let interval = 1000
