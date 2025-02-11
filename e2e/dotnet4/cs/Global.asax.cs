@@ -23,7 +23,7 @@ public class MvcApplication : System.Web.HttpApplication {
         Highlight.OpenTelemetry.Register(options => {
             options.ProjectId = "1";
             options.ServiceName = "example-dotnet-backend";
-            // options.OtlpEndpoint = "http://localhost:4317";
+            options.OtlpEndpoint = "http://localhost:4317";
         });
 
         var loggerFactory = LoggerFactory.Create(builder => {
@@ -32,7 +32,7 @@ public class MvcApplication : System.Web.HttpApplication {
             config => {
                 config.ProjectId = "1";
                 config.ServiceName = "example-dotnet-backend";
-                // options.OtlpEndpoint = "http://localhost:4317";
+                options.OtlpEndpoint = "http://localhost:4317";
             });
         });
         Logger = loggerFactory.CreateLogger("example-dotnet-backend");
