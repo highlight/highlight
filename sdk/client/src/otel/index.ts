@@ -28,7 +28,10 @@ import {
 	DEFAULT_URL_BLOCKLIST,
 	sanitizeHeaders,
 } from '../listeners/network-listener/utils/network-sanitizer'
-import { shouldNetworkRequestBeRecorded } from '../listeners/network-listener/utils/utils'
+import {
+	shouldNetworkRequestBeRecorded,
+	shouldNetworkRequestBeTraced,
+} from '../listeners/network-listener/utils/utils'
 import {
 	BrowserXHR,
 	getBodyThatShouldBeRecorded,
@@ -305,6 +308,14 @@ class CustomTraceContextPropagator extends W3CTraceContextPropagator {
 
 			if (!shouldRecord) {
 				span.setAttribute(RECORD_ATTRIBUTE, false) // used later to avoid additional processing
+			}
+
+			const shouldTrace = shouldNetworkRequestBeTraced(
+				url,
+				this.highlightEndpoints,
+				this.tracingOrigins,
+			)
+			if (!shouldTrace) {
 				return // return early to prevent headers from being injected
 			}
 		}
