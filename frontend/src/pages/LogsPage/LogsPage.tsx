@@ -298,7 +298,9 @@ const LogsPageInner = ({ timeMode, logCursor, presetDefault }: Props) => {
 						presetSelected={!!searchTimeContext.selectedPreset}
 						totalCount={totalCount}
 						loading={histogramLoading}
-						onDownload={() => exportLogs(logEdges)}
+						onDownload={
+							loading ? undefined : () => exportLogs(logEdges)
+						}
 					/>
 					<LogsHistogram
 						startDate={searchTimeContext.startDate}
