@@ -12,8 +12,13 @@ import dynamic from 'next/dynamic'
 import { otelCourse } from './styles.module.scss'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
+import { OTEL_COURSE_LOCAL_STORAGE_KEY } from './index'
 
 const ClientSidePlayer = dynamic(() => import('./components/YouTubePlayer'), {
+	ssr: false,
+})
+
+const HubspotForm = dynamic(() => import('./components/HubspotForm'), {
 	ssr: false,
 })
 
@@ -37,6 +42,7 @@ export const getStaticProps: GetStaticProps = async ({ params }) => {
 				description: content.trim(),
 				order: parseInt(filename.split('-')[0], 10),
 				slug: data.slug,
+				free: data.free,
 			}
 		}),
 	)
@@ -84,16 +90,33 @@ export default function LessonPage({
 	slug: string
 	courseVideos: CourseVideo[]
 }) {
-	const currentVideoId =
-		courseVideos.find((v) => v.slug === slug)?.id ?? courseVideos[0].id!
-	const currentLesson = courseVideos.find((video) => video.slug === slug)
+	const [isRegistered, setIsRegistered] = useState(false)
 	const [isSidebarOpen, setIsSidebarOpen] = useState(false)
+
+	const currentLesson = courseVideos.find((video) => video.slug === slug)
+	const currentVideoId = currentLesson?.id ?? courseVideos[0].id!
+	const isLessonFree = currentLesson?.free ?? false
+
+	const shouldShowVideo = isLessonFree || isRegistered
+
+	const handleRegistrationSuccess = () => {
+		setIsRegistered(true)
+		// You might want to store this in localStorage/cookies to persist across page loads
+		localStorage.setItem(OTEL_COURSE_LOCAL_STORAGE_KEY, 'true')
+	}
+
+	React.useEffect(() => {
+		const registered = localStorage.getItem(OTEL_COURSE_LOCAL_STORAGE_KEY)
+		if (registered) {
+			setIsRegistered(true)
+		}
+	}, [])
 
 	return (
 		<div className="min-h-screen bg-gray-50 text-black">
 			<Head>
 				<title>
-					{`${courseVideos.find((v) => v.id === currentVideoId)?.title} | OpenTelemetry Course`}
+					{`${currentLesson?.title} | OpenTelemetry Course`}
 				</title>
 				<meta
 					name="description"
@@ -164,15 +187,51 @@ export default function LessonPage({
 						<div className="relative w-full pb-[56.25%] rounded-lg overflow-hidden">
 							<div className="absolute inset-0 bg-gray-900">
 								<ClientSidePlayer videoId={currentVideoId} />
-
-								{!currentVideoId && (
+								{!shouldShowVideo && (
 									<div className="absolute inset-0 flex items-center justify-center bg-dark-background">
-										<div className="text-center text-white">
+										<div className="max-w-lg w-full mx-4">
+											<div className="bg-white p-4 pb-0 rounded-lg shadow-lg flex flex-col">
+												<Typography
+													type="copy2"
+													className="text-xl mb-2 font-bold text-center"
+												>
+													Register to Access This
+													Lesson
+												</Typography>
+												<Typography
+													type="copy3"
+													className="mb-4 text-center"
+												>
+													This lesson is part of our
+													premium content. Please
+													register to continue
+													watching.
+												</Typography>
+
+												<HubspotForm
+													onSuccess={
+														handleRegistrationSuccess
+													}
+												/>
+											</div>
+										</div>
+									</div>
+								)}
+
+								{currentVideoId === 'undefined' && (
+									<div className="absolute inset-0 flex items-center justify-center bg-dark-background">
+										<div className="text-center text-white flex flex-col items-center">
 											<Typography
 												type="copy2"
 												className="text-2xl lg:text-5xl mb-4 font-bold"
 											>
 												Coming Soon!
+											</Typography>
+											<Typography
+												type="copy2"
+												className="mb-4 text-center"
+											>
+												Stay tuned for the next lesson!
 											</Typography>
 										</div>
 									</div>

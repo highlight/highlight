@@ -2,9 +2,7 @@ import Head from 'next/head'
 import { promises as fs } from 'fs'
 import path from 'path'
 import matter from 'gray-matter'
-import { useRouter } from 'next/router'
 import type { CourseVideo } from './types'
-import { useEffect, useState } from 'react'
 import Link from 'next/link'
 
 export const OTEL_COURSE_LOCAL_STORAGE_KEY = 'otelCourseAuthorized'
@@ -52,45 +50,10 @@ export default function OTelCourse({
 }: {
 	courseVideos: CourseVideo[]
 }) {
-	const router = useRouter()
-
-	useEffect(() => {
-		const script = document.createElement('script')
-		script.src = '//js.hsforms.net/forms/embed/v2.js'
-		script.async = true
-		script.onload = () => {
-			// @ts-ignore
-			if (window.hbspt) {
-				// @ts-ignore
-				window.hbspt.forms.create({
-					portalId: '20473940',
-					formId: 'deb777ef-173a-4fb4-8491-245491ca13ed',
-					target: '#hubspot-form-container',
-					inlineMessage:
-						"You're signed up! You will be redirected shortly.",
-					onFormSubmit: () => {
-						if (window.dataLayer) {
-							window.dataLayer.push({ event: 'course_submit' })
-						}
-						localStorage.setItem(
-							OTEL_COURSE_LOCAL_STORAGE_KEY,
-							'true',
-						)
-					},
-				})
-			}
-		}
-		document.body.appendChild(script)
-
-		return () => {
-			document.body.removeChild(script)
-		}
-	}, [router])
-
 	return (
 		<div className="bg-[#0d0225] min-h-screen text-gray-900 otel-course">
 			<Head>
-				<title>Master OpenTelemetry: Free Course | Highlight.io</title>
+				<title>Master OpenTelemetry: Free Course by Highlight.io</title>
 				<meta
 					name="description"
 					content="Elevate your observability skills with our comprehensive, free OpenTelemetry course. Learn from experts and transform your system's performance."

@@ -1,9 +1,10 @@
 export type CourseVideo = {
-	id: string | undefined
+	id: string
 	title: string
 	description: string
 	order: number
 	slug: string
+	free: boolean
 }
 
 export type CourseVideoProgress = {

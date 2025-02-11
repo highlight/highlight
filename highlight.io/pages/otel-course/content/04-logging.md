@@ -4,6 +4,7 @@ title: "OpenTelemetry Logging"
 slug: "logging"
 description: "Learn how to implement logging in OpenTelemetry, from basic setup to advanced resource attributes and instrumentation."
 keywords: "OpenTelemetry, logging, observability, telemetry, resource attributes"
+free: false
 ---
 
 We mentioned the 4 categories of telemetry that are supported by OpenTelemetry: Logs, Traces, Metrics, and Baggage. Today we're going to dive deeper into logs.
