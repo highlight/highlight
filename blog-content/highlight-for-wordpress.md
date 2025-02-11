@@ -1,5 +1,5 @@
 ---
-title: 'Announcing Highlight for WordPress'
+title: 'Highlight for WordPress: Session Replay, Error Monitoring, and Performance Insights'
 createdAt: 2025-02-11T12:00:00.000Z
 readingTime: 3
 authorFirstName: Chris
@@ -13,7 +13,7 @@ authorPFP: >-
   https://www.highlight.io/_next/image?url=https%3A%2F%2Fmedia.graphassets.com%2FViK27IG7TCe0YDK20tFy&w=3840&q=75
 tags: 'Product Updates, Frontend'
 metaTitle: >-
-  Highlight for WordPress provides a simple way to get session replays, error tracking, and more for your WordPress site.
+  Highlight for WordPress provides a free and simple way to get session replays, error monitoring, performance insights, and more for your WordPress sites.
 ---
 
 Today we're excited to announce Highlight for WordPress. This provides a simple way to get session replays, error monitoring, performance insights, and more for your WordPress sites.
@@ -22,7 +22,7 @@ Today we're excited to announce Highlight for WordPress. This provides a simple 
 
 You can get started for free with just a few clicks. Just install the [Highlight.io Session Replay](https://wordpress.org/plugins/highlight-io-session-recording/) plugin and set your Highlight project ID. In a few minutes, you'll start seeing data flowing into Highlight.
 
-![Highlight for WordPress](/images/blog/highlight-for-wordpress/highlight-for-wordpress.png)
+![Highlight for WordPress](/images/blog/highlight-wp-plugin/highlight-wp-plugin.png)
 
 Learn more in the [WordPress plugin documentation](/docs/general/integrations/wordpress-integration).
 
