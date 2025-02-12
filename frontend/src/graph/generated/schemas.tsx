@@ -2142,7 +2142,6 @@ export type Query = {
 	email_opt_outs: Array<EmailOptOutCategory>
 	enhanced_user_details?: Maybe<EnhancedUserDetailsResult>
 	environment_suggestion?: Maybe<Array<Maybe<Field>>>
-	errorGroupFrequencies: Array<Maybe<ErrorDistributionItem>>
 	errorGroupTags: Array<ErrorGroupTagAggregation>
 	error_alerts: Array<Maybe<ErrorAlert>>
 	error_comments: Array<Maybe<ErrorComment>>
@@ -2400,14 +2399,6 @@ export type QueryEnhanced_User_DetailsArgs = {
 
 export type QueryEnvironment_SuggestionArgs = {
 	project_id: Scalars['ID']
-}
-
-export type QueryErrorGroupFrequenciesArgs = {
-	error_group_secure_ids?: InputMaybe<Array<Scalars['String']>>
-	metric?: InputMaybe<Scalars['String']>
-	params: ErrorGroupFrequenciesParamsInput
-	project_id: Scalars['ID']
-	use_clickhouse?: InputMaybe<Scalars['Boolean']>
 }
 
 export type QueryErrorGroupTagsArgs = {

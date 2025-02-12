@@ -2290,13 +2290,6 @@ type Query {
 		error_group_secure_id: String!
 		date_offset: Int!
 	): [Int64!]!
-	errorGroupFrequencies(
-		project_id: ID!
-		error_group_secure_ids: [String!]
-		params: ErrorGroupFrequenciesParamsInput!
-		metric: String
-		use_clickhouse: Boolean
-	): [ErrorDistributionItem]!
 	errorGroupTags(
 		error_group_secure_id: String!
 		use_clickhouse: Boolean

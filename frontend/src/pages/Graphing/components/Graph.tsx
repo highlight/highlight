@@ -145,7 +145,8 @@ export type ThresholdSettings = {
 
 export interface ChartProps<TConfig> {
 	id?: string
-	title: string
+	title?: string
+	hideTitle?: boolean
 	syncId?: string
 	productType: ProductType
 	projectId: string
@@ -1168,6 +1169,7 @@ const Graph = ({
 	thresholdSettings,
 	expressions,
 	syncId,
+	hideTitle,
 	children,
 }: React.PropsWithChildren<ChartProps<ViewConfig>>) => {
 	const { setGraphData, setErrors } = useGraphContext()
@@ -1616,15 +1618,21 @@ const Graph = ({
 			gap="8"
 			justifyContent="space-between"
 		>
-			<Box
-				display="flex"
-				flexDirection="row"
-				justifyContent="space-between"
-			>
-				<Text size="small" color="default" cssClass={style.titleText}>
-					{title || 'Untitled graph'}
-				</Text>
-			</Box>
+			{!hideTitle && (
+				<Box
+					display="flex"
+					flexDirection="row"
+					justifyContent="space-between"
+				>
+					<Text
+						size="small"
+						color="default"
+						cssClass={style.titleText}
+					>
+						{title || 'Untitled graph'}
+					</Text>
+				</Box>
+			)}
 			<Box
 				style={{ height: height ?? '100%' }}
 				key={series.join(';')} // Hacky but recharts' ResponsiveContainer has issues when this height changes so just rerender the whole thing

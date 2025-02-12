@@ -4607,27 +4607,6 @@ export type SearchIssuesQuery = { __typename?: 'Query' } & {
 	>
 }
 
-export type GetErrorGroupFrequenciesQueryVariables = Types.Exact<{
-	project_id: Types.Scalars['ID']
-	error_group_secure_ids:
-		| Array<Types.Scalars['String']>
-		| Types.Scalars['String']
-	params: Types.ErrorGroupFrequenciesParamsInput
-	metric: Types.Scalars['String']
-	use_clickhouse?: Types.Maybe<Types.Scalars['Boolean']>
-}>
-
-export type GetErrorGroupFrequenciesQuery = { __typename?: 'Query' } & {
-	errorGroupFrequencies: Array<
-		Types.Maybe<
-			{ __typename?: 'ErrorDistributionItem' } & Pick<
-				Types.ErrorDistributionItem,
-				'error_group_id' | 'date' | 'name' | 'value'
-			>
-		>
-	>
-}
-
 export type GetErrorGroupTagsQueryVariables = Types.Exact<{
 	error_group_secure_id: Types.Scalars['String']
 	use_clickhouse?: Types.Maybe<Types.Scalars['Boolean']>
@@ -5557,7 +5536,6 @@ export const namedOperations = {
 		GetSourcemapVersions: 'GetSourcemapVersions' as const,
 		GetOAuthClientMetadata: 'GetOAuthClientMetadata' as const,
 		SearchIssues: 'SearchIssues' as const,
-		GetErrorGroupFrequencies: 'GetErrorGroupFrequencies' as const,
 		GetErrorGroupTags: 'GetErrorGroupTags' as const,
 		GetEmailOptOuts: 'GetEmailOptOuts' as const,
 		GetLogs: 'GetLogs' as const,

@@ -10240,7 +10240,6 @@ __metadata:
     "@types/react-mentions": "npm:^4.1.3"
     "@types/react-router-dom": "npm:^5.3.3"
     "@types/react-select": "npm:^3.0.28"
-    "@types/react-slider": "npm:^1.3.1"
     "@types/react-syntax-highlighter": "npm:^15.5.6"
     "@types/react-virtualized-auto-sizer": "npm:^1.0.4"
     "@types/sanitize-html": "npm:^2.11.0"
@@ -10314,7 +10313,6 @@ __metadata:
     react-resize-aware: "npm:3.1.0"
     react-router-dom: "npm:^6.16.0"
     react-select: "npm:^3.1.1"
-    react-slider: "npm:^2.0.1"
     react-spinners: "npm:^0.13.2"
     react-syntax-highlighter: "npm:^15.5.0"
     react-text-transition: "npm:^1.3.0"
@@ -22835,15 +22833,6 @@ __metadata:
     "@types/react-dom": "npm:*"
     "@types/react-transition-group": "npm:*"
   checksum: 10/f2f860ce481e9d2871c62843558ad3c16df22cd71597aee50c6ca6491828770f8b4b9d307f7efd021260bc1c89eb72ae3cebe509823bf7c625760535c2e4d51c
-  languageName: node
-  linkType: hard
-
-"@types/react-slider@npm:^1.3.1":
-  version: 1.3.1
-  resolution: "@types/react-slider@npm:1.3.1"
-  dependencies:
-    "@types/react": "npm:*"
-  checksum: 10/783292023e1502f4192f01f9ee1f443b98f733297ed5deeea019b287cbc070a496ccbe6df9cfeefef590ce7893e5bc38cc1550382896d6273e2590922210e210
   languageName: node
   linkType: hard
 
@@ -55266,17 +55255,6 @@ __metadata:
   peerDependencies:
     react: ^16.3.0 || ^17.0.0
   checksum: 10/8db82e6d6fc8807bf2c7deb729936e580c9b069e81fba6f4d2090bd86639dab6b2f9512ccde0cf38f7fc59085de943e81fc4c9cdda13d250d1fcaee204ad4f49
-  languageName: node
-  linkType: hard
-
-"react-slider@npm:^2.0.1":
-  version: 2.0.1
-  resolution: "react-slider@npm:2.0.1"
-  dependencies:
-    prop-types: "npm:^15.8.1"
-  peerDependencies:
-    react: ^16 || ^17 || ^18
-  checksum: 10/63fe6aac7cc5e3b5eeacf2f1ef4a33c9cc53010cae72e1b9e46685221d34c884d64d7445dee3a8dc68f2a56e322fa47a90cd678e265dde50484619b129befbaf
   languageName: node
   linkType: hard
 
