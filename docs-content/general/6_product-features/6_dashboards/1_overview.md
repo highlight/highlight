@@ -46,7 +46,7 @@ Read more about the dashboard features below:
     <DocsCard title="Variables" href="./variables.md">
         {"Use variables to reuse filters across many graphs in a dashboard."}
     </DocsCard>
-    <DocsCard title="Search" href="../3_general_features/search.md">
+    <DocsCard title="Search" href="./5_event-search.md">
         {"Make the most of the search capabilities."}
     </DocsCard>
 </DocsCardGroup>
