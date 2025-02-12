@@ -41,4 +41,4 @@ These insights, paired with [Interesting Sessions](https://highlight.io/blog/int
 
 We hope to give Harold more superpowers soon, especially if our users are finding a lot of value from these initial features. Please let us know what you think of these features and if you find them useful!
 
-Beyond these AI features, we have a [slew of other updates](https://highlight.io/launch-week) to help you wrangle errors and get to the most important user events in your sessions. Stay tuned to everything we're announcing as part of launch week!
+Beyond these AI features, we have a [slew of other updates](https://highlight.io/launch-week-2) to help you wrangle errors and get to the most important user events in your sessions. Stay tuned to everything we're announcing as part of launch week!
