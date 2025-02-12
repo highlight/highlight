@@ -43,7 +43,7 @@ are successful, just save and forget about it. Future errors will be enhanced!
 
 ![GitHub configuration settings](/images/blog/github-enhanced-stacktraces/configuration-form.png)
 
-For more detailed instructions to getting started, see [Enhancing Errors with GitHub](../docs-content/general/6_product-features/2_error-monitoring/enhancing-errors-with-github.md)
+For more detailed instructions to getting started, see [Enhancing Errors with GitHub](/docs/general/product-features/error-monitoring/enhancing-errors-with-github)
 
 ## Diving deeper
 
