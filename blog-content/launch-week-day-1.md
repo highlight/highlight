@@ -53,4 +53,4 @@ Docs on this [here](https://www.highlight.io/docs/general/product-features/error
 
 The last big feature we've launched for error monitoring is the ability to trigger webhooks as part of your alerting workflows. What does that mean? Now, when you create an alert in highlight.io, you can send a webhook to zapier or even that esoteric web server you host in your basement. For docs on the specification that we send to each of these webhooks, read more [here](https://www.highlight.io/docs/general/product-features/general-features/webhooks "https://www.highlight.io/docs/general/product-features/general-features/webhooks").
 
-That's all for Day 1 of Launch week. Have a question about getting set up on highlight.io or want to help contribute? We're all online at [highlight.io/discord](highlight.io/discord "highlight.io/discord")
+That's all for Day 1 of Launch week. Have a question about getting set up on highlight.io or want to help contribute? We're all online at [highlight.io/community](/community)
