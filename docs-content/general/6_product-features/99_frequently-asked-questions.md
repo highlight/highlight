@@ -44,7 +44,7 @@ This documentation provides solutions and guidance for common issues encountered
 
 **Answer:** Highlight.io has updated its asset delivery to accommodate strict CORS policies by setting the `Cross-Origin-Resource-Policy: cross-origin` header. If you continue to experience CORS issues, ensure that your application's CORS settings allow requests from Highlight.io domains. If specific headers like `Cross-Origin-Embedder-Policy` are required for your application, Highlight.io can adjust its headers to comply with these requirements.
 
-For further assistance with any of these issues or other inquiries, please refer to the [Highlight.io Support](https://www.highlight.io/support) or consult the detailed documentation available on the [Highlight.io Docs](https://www.highlight.io/docs) page.
+For further assistance with any of these issues or other inquiries, please refer to the [Highlight.io Support](https://www.highlight.io/community) or consult the detailed documentation available on the [Highlight.io Docs](https://www.highlight.io/docs) page.
 
 ## Handling Private Windows and Session Tracking
 
