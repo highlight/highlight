@@ -21,7 +21,7 @@ Many development teams leverage [OpenTelemetry](https://opentelemetry.io/) (OTeL
 
 OpenTelemetry is a collection of tools, APIs, and SDKs used to instrument, generate, collect, and export telemetry data (metrics, logs, and traces) for analysis in order to understand your software's performance and behavior.
 
-If you're interested in a deeper dive on OTeL, check out our recent article: [What is OpenTelemetry and Why Should I Care?](https://highlight.io/blog/what-is-opentelemetry.md).
+If you're interested in a deeper dive on OTeL, check out our recent article: [What is OpenTelemetry and Why Should I Care?](https://highlight.io/blog/what-is-opentelemetry).
 
 ## OpenTelemetry in Browser Applications
 
