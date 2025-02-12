@@ -453,6 +453,11 @@ func getOrCreateUrls(ctx context.Context, projectId int, originalUrls []string, 
 	// maps a long url to the minimal version of the url. ie https://foo.com/example?key=value&signature=bar -> https://foo.com/example?key=value
 	urlMap := make(map[string]assetValue)
 	for _, u := range lo.Uniq(originalUrls) {
+		// ignore blob:// URLs that are client-side javascript video streams
+		if strings.HasPrefix(u, "blob") {
+			continue
+		}
+
 		parsedUrl, err := url.Parse(u)
 		if err != nil {
 			urlMap[u] = assetValue{u, u}
