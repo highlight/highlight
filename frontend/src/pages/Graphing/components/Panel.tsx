@@ -65,6 +65,8 @@ export const Panel: React.FC<Props> = ({ children }) => {
 			overflowY="auto"
 			overflowX="hidden"
 			style={{ width: `${panelWidth}%` }}
+			py="12"
+			px="16"
 		>
 			<Box
 				ref={dragHandleRef}

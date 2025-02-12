@@ -42,16 +42,11 @@ export const editorHeader = style({
 	justifyContent: 'space-between',
 	width: '100%',
 	borderBottom: vars.border.divider,
-	padding: '6px',
+	paddingBottom: '6px',
 })
 
 export const editorSelect = style({
 	width: 'fit-content',
-})
-
-export const editorSection = style({
-	border: vars.border.divider,
-	borderRadius: vars.borderRadius[6],
 })
 
 export const sqlEditorWrapper = style({

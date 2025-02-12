@@ -8155,16 +8155,12 @@ body {
   justify-content: space-between;
   width: 100%;
   border-bottom: var(--_1pyqka9j) solid 1px;
-  padding: 6px;
+  padding-bottom: 6px;
 }
 .gw96js9 {
   width: fit-content;
 }
 .gw96jsa {
-  border: var(--_1pyqka9j) solid 1px;
-  border-radius: 6px;
-}
-.gw96jsb {
   background-color: var(--_1pyqka90);
   border-bottom-left-radius: 6px;
   border-bottom-right-radius: 6px;
