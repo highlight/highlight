@@ -227,7 +227,10 @@ export const useGenerateSessionsReportCSV = () => {
 					rowArray
 						.map((col) =>
 							col
-								? col.toString().replaceAll(/[,;\t]/gi, '|')
+								? col
+										.toString()
+										.replaceAll(/[,;\t]/gi, '|')
+										.replaceAll(/\s+/gi, ' ')
 								: '',
 						)
 						.join(','),

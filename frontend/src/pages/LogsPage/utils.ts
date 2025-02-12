@@ -43,7 +43,10 @@ export const buildSessionParams = ({
 
 export const exportLogs = async (edges: LogEdgeWithResources[]) => {
 	const csvContent = processRows(
-		edges.map((e) => ({ cursor: e.cursor, ...e.node })),
+		edges.map((e) => {
+			const { logAttributes, ...rest } = e.node
+			return { ...rest, ...logAttributes }
+		}),
 	)
 		.map((rowArray) =>
 			rowArray
@@ -52,7 +55,10 @@ export const exportLogs = async (edges: LogEdgeWithResources[]) => {
 					return col
 						? m.isAfter(moment().subtract(10, 'year'))
 							? m.format('MM/DD/YYYY HH:mm:ss')
-							: col.toString().replaceAll(/[,;\t]/gi, '|')
+							: col
+									.toString()
+									.replaceAll(/[,;\t]/gi, '|')
+									.replaceAll(/\s+/gi, ' ')
 						: ''
 				})
 				.join(','),
