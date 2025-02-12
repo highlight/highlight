@@ -26,7 +26,7 @@ namespace Serilog
             return loggerConfiguration.OpenTelemetry(options =>
             {
                 options.Protocol = Highlight.OpenTelemetry.Protocol;
-                options.Endpoint = config.OtlpEndpoint + "/v1/logs";
+                options.Endpoint = config.OtlpEndpoint.ToString();
                 options.ResourceAttributes = Highlight.OpenTelemetry.GetResourceAttributes();
             });
         }
@@ -110,15 +110,15 @@ namespace Highlight
 
     public static class OpenTelemetry
     {
-        public const OtlpProtocol Protocol = OtlpProtocol.HttpProtobuf;
-        public const OtlpExportProtocol ExportProtocol = OtlpExportProtocol.HttpProtobuf;
+        public const OtlpProtocol Protocol = OtlpProtocol.Grpc;
+        public const OtlpExportProtocol ExportProtocol = OtlpExportProtocol.Grpc;
         public const string HighlightHeader = "x-highlight-request";
 
         public class Config
         {
             public string ProjectId = "";
             public string ServiceName = "";
-            public string OtlpEndpoint = "https://otel.highlight.io:4318";
+            public Uri OtlpEndpoint = new("https://otel.highlight.io:4317");
 
             public Dictionary<string, object> ResourceAttributes = [];
         };
@@ -130,7 +130,7 @@ namespace Highlight
                 ["highlight.project_id"] = _config.ProjectId,
                 ["service.name"] = _config.ServiceName,
                 ["telemetry.distro.name"] = "Highlight.ASPCore",
-                ["telemetry.distro.version"] = "0.2.12",
+                ["telemetry.distro.version"] = "0.2.14",
             }).ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
         }
 
@@ -188,10 +188,9 @@ namespace Highlight
             var (sessionId, requestId) = ExtractContext(httpRequest);
             activity.SetTag("highlight.session_id", sessionId);
             activity.SetTag("highlight.trace_id", requestId);
-            Baggage.SetBaggage(new KeyValuePair<string, string>[]
-            {
-                new(HighlightHeader, $"{sessionId}/{requestId}")
-            });
+            Baggage.SetBaggage([
+                new KeyValuePair<string, string?>(HighlightHeader, $"{sessionId}/{requestId}")
+            ]);
         }
 
         private static void EnrichWithHttpResponse(Activity activity, HttpResponse httpResponse)
@@ -243,16 +242,12 @@ namespace Highlight
                 .WithTracing(tracing => tracing
                     .SetSampler(new AlwaysOnSampler())
                     .SetResourceBuilder(ResourceBuilder.CreateDefault().AddAttributes(GetResourceAttributes()).AddService(_config.ServiceName))
-                    .AddSource([_config.ServiceName, "Microsoft.Azure.Functions.Worker"])
-                    .AddProcessor(new TraceProcessor())
                     .AddHttpClientInstrumentation()
                     .AddGrpcClientInstrumentation()
                     .AddSqlClientInstrumentation(option =>
                     {
-                        option.SetDbStatementForStoredProcedure = true;
                         option.SetDbStatementForText = true;
                     })
-                    .AddEntityFrameworkCoreInstrumentation()
                     .AddQuartzInstrumentation()
                     .AddWcfInstrumentation()
                     .AddAspNetCoreInstrumentation(options =>
@@ -261,10 +256,15 @@ namespace Highlight
                         options.EnrichWithHttpRequest = EnrichWithHttpRequest;
                         options.EnrichWithHttpResponse = EnrichWithHttpResponse;
                     })
+                    .AddSource([_config.ServiceName, "Microsoft.Azure.Functions.Worker"])
+                    .AddProcessor(new TraceProcessor())
                     .AddOtlpExporter(options =>
                     {
-                        options.Endpoint = new Uri(_config.OtlpEndpoint + "/v1/traces");
+                        options.Endpoint = _config.OtlpEndpoint;
                         options.Protocol = ExportProtocol;
+                        options.BatchExportProcessorOptions.MaxExportBatchSize = 10000;
+                        options.BatchExportProcessorOptions.MaxQueueSize = 10000;
+                        options.BatchExportProcessorOptions.ScheduledDelayMilliseconds = 1000;
                     }))
                 .WithMetrics(metrics => metrics
                     .SetResourceBuilder(ResourceBuilder.CreateDefault().AddAttributes(GetResourceAttributes()).AddService(_config.ServiceName))
@@ -273,11 +273,11 @@ namespace Highlight
                     .AddRuntimeInstrumentation()
                     .AddProcessInstrumentation()
                     .AddAspNetCoreInstrumentation()
-                    .AddOtlpExporter(options =>
+                    .AddReader(new PeriodicExportingMetricReader(new OtlpMetricExporter(new OtlpExporterOptions
                     {
-                        options.Endpoint = new Uri(_config.OtlpEndpoint + "/v1/metrics");
-                        options.Protocol = ExportProtocol;
-                    }));
+                        Endpoint = _config.OtlpEndpoint,
+                        Protocol = ExportProtocol
+                    }))));
         }
 
         public static void InstrumentLogging(ILoggingBuilder logging, Action<Config> configure)
@@ -290,8 +290,11 @@ namespace Highlight
                     .AddProcessor(new LogProcessor())
                     .AddOtlpExporter(exporterOptions =>
                     {
-                        exporterOptions.Endpoint = new Uri(_config.OtlpEndpoint + "/v1/logs");
+                        exporterOptions.Endpoint = _config.OtlpEndpoint;
                         exporterOptions.Protocol = ExportProtocol;
+                        exporterOptions.BatchExportProcessorOptions.MaxExportBatchSize = 10000;
+                        exporterOptions.BatchExportProcessorOptions.MaxQueueSize = 10000;
+                        exporterOptions.BatchExportProcessorOptions.ScheduledDelayMilliseconds = 1000;
                     });
                 options.IncludeScopes = true;
                 options.IncludeFormattedMessage = true;

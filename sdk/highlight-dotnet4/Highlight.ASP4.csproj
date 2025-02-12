@@ -19,10 +19,10 @@
     </NuGetPackageImportStamp>
   </PropertyGroup>
   <PropertyGroup>
-    <Version>0.2.2</Version>
-    <PackageVersion>0.2.2</PackageVersion>
-    <AssemblyVersion>0.2.2</AssemblyVersion>
-    <FileVersion>0.2.2</FileVersion>
+    <Version>0.2.8</Version>
+    <PackageVersion>0.2.8</PackageVersion>
+    <AssemblyVersion>0.2.8</AssemblyVersion>
+    <FileVersion>0.2.8</FileVersion>
     <Company>highlight.io</Company>
     <Authors>Vadim Korolik</Authors>
     <Product>highlight.io</Product>
@@ -76,57 +76,51 @@
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="NuGet.Build.Tasks.Pack">
-      <Version>6.11.0</Version>
+      <Version>6.12.1</Version>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
     <PackageReference Include="OpenTelemetry">
-      <Version>1.9.0</Version>
+      <Version>1.11.1</Version>
     </PackageReference>
     <PackageReference Include="OpenTelemetry.Api">
-      <Version>1.9.0</Version>
+      <Version>1.11.1</Version>
     </PackageReference>
     <PackageReference Include="OpenTelemetry.Api.ProviderBuilderExtensions">
-      <Version>1.9.0</Version>
+      <Version>1.11.1</Version>
     </PackageReference>
     <PackageReference Include="OpenTelemetry.Exporter.OpenTelemetryProtocol">
-      <Version>1.9.0</Version>
+      <Version>1.11.1</Version>
     </PackageReference>
     <PackageReference Include="OpenTelemetry.Extensions.Hosting">
-      <Version>1.9.0</Version>
+      <Version>1.11.1</Version>
     </PackageReference>
     <PackageReference Include="OpenTelemetry.Instrumentation.AspNet">
-      <Version>1.9.0-beta.1</Version>
+      <Version>1.11.0-beta.1</Version>
     </PackageReference>
     <PackageReference Include="OpenTelemetry.Instrumentation.EntityFrameworkCore">
-      <Version>1.0.0-beta.12</Version>
+      <Version>1.11.0-beta.1</Version>
     </PackageReference>
     <PackageReference Include="OpenTelemetry.Instrumentation.Http">
-      <Version>1.9.0</Version>
+      <Version>1.11.0</Version>
     </PackageReference>
     <PackageReference Include="OpenTelemetry.Instrumentation.Process">
-      <Version>0.5.0-beta.6</Version>
-    </PackageReference>
-    <PackageReference Include="OpenTelemetry.Instrumentation.Quartz">
-      <Version>1.0.0-beta.3</Version>
+      <Version>1.11.0-beta.1</Version>
     </PackageReference>
     <PackageReference Include="OpenTelemetry.Instrumentation.Runtime">
-      <Version>1.9.0</Version>
+      <Version>1.11.0</Version>
     </PackageReference>
     <PackageReference Include="OpenTelemetry.Instrumentation.SqlClient">
-      <Version>1.9.0-beta.1</Version>
-    </PackageReference>
-    <PackageReference Include="OpenTelemetry.Instrumentation.StackExchangeRedis">
-      <Version>1.9.0-beta.1</Version>
+      <Version>1.11.0-beta.1</Version>
     </PackageReference>
     <PackageReference Include="OpenTelemetry.Instrumentation.Wcf">
-      <Version>1.0.0-rc.17</Version>
+      <Version>1.11.0-beta.1</Version>
     </PackageReference>
     <PackageReference Include="Serilog">
-      <Version>4.0.1</Version>
+      <Version>4.2.1-dev-02340</Version>
     </PackageReference>
     <PackageReference Include="Serilog.Sinks.OpenTelemetry">
-      <Version>4.1.0</Version>
+      <Version>4.1.1</Version>
     </PackageReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

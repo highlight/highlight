@@ -1,9 +1,35 @@
-﻿@{
-    ViewBag.Title = "Contact";
-}
-<h2>@ViewBag.Title.</h2>
-<h3>@ViewBag.Message</h3>
+﻿@using OpenTelemetry.Trace
+@using Microsoft.Extensions.Logging
 
-<address>
-    My Company Address
-</address>
+@{
+    int randomNumber;
+
+    // Use StartActivity to create a new trace span.
+    var ctx = new SpanContext();
+    using (var activity = MvcApplication.Tracer.StartActiveSpan("RenderRandomNumber", SpanKind.Client, ref ctx, new SpanAttributes(), null, DateTimeOffset.Now))
+    {
+        // Generate a random number between 1 and 99.
+        Random rnd = new Random();
+        randomNumber = rnd.Next(1, 100);
+
+        activity.SetAttribute("random.number", randomNumber);
+        activity.AddEvent("Random number generated");
+
+        // Log the generated random number.
+        MvcApplication.Logger.LogInformation("Random number {randomNumber} generated.", randomNumber);
+
+        // Record a metric for the generation event.
+        MvcApplication.RequestCounter.Add(1);
+    }
+}
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8"/>
+    <title>Random Number with OpenTelemetry and Logging</title>
+</head>
+<body>
+<h1>Random Number Example</h1>
+<p>Your random number is: <strong>@randomNumber</strong></p>
+</body>
+</html>
