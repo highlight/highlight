@@ -93,7 +93,7 @@ Here is an example of what the meta tag looks like in the browser:
 >
 ```
 
-Note that the Highlight server SDKs often have helpers to create this tag. Here's an example using the [Highlight Ruby SDK](https://www.highlight.io/docs/getting-started/backend-sdk/ruby/rails)
+Note that the Highlight server SDKs often have helpers to create this tag. Here's an example using the [Highlight Ruby SDK](https://www.highlight.io/docs/getting-started/server/ruby/rails)
 
 ```rb
 <%= highlight_traceparent_meta %>

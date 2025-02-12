@@ -274,7 +274,7 @@ export const PRODUCTS: { [k: string]: iProduct } = {
 	},
 	express: {
 		type: 'backend',
-		docsLink: '/docs/getting-started/backend-sdk/express',
+		docsLink: '/docs/getting-started/server/express',
 		slug: 'express',
 		title: 'Express',
 		types: ['Backend', 'Frontend'],
@@ -283,7 +283,7 @@ export const PRODUCTS: { [k: string]: iProduct } = {
 
 	go: {
 		type: 'backend',
-		docsLink: '/docs/getting-started/backend-sdk/go',
+		docsLink: '/docs/getting-started/server/go',
 		slug: 'go',
 		title: 'Golang',
 		types: ['Backend', 'Frontend'],
@@ -301,7 +301,7 @@ export const PRODUCTS: { [k: string]: iProduct } = {
 
 	node: {
 		type: 'backend',
-		docsLink: '/docs/getting-started/backend-sdk/nodejs',
+		docsLink: '/docs/getting-started/server/nodejs',
 		slug: 'node',
 		title: 'Node.js',
 		types: ['Backend', 'Frontend'],
@@ -310,7 +310,7 @@ export const PRODUCTS: { [k: string]: iProduct } = {
 
 	rails: {
 		type: 'backend',
-		docsLink: '/docs/getting-started/backend-sdk/ruby/rails',
+		docsLink: '/docs/getting-started/server/ruby/rails',
 		slug: 'rails',
 		title: 'Rails',
 		types: ['Backend', 'Frontend'],
@@ -319,7 +319,7 @@ export const PRODUCTS: { [k: string]: iProduct } = {
 
 	hono: {
 		type: 'backend',
-		docsLink: '/docs/getting-started/backend-sdk/js/hono',
+		docsLink: '/docs/getting-started/server/js/hono',
 		slug: 'hono',
 		title: 'Hono',
 		types: ['Backend', 'Frontend'],

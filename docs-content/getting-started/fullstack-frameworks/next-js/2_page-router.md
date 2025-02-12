@@ -20,7 +20,7 @@ npm install @highlight-run/next
 
 ## Client instrumentation
 
-This sections adds session replay and frontend error monitoring to Highlight. This implementation requires React 17 or greater. If you're behind on React versions, follow our [React.js docs](../../3_client-sdk/1_reactjs.md)
+This sections adds session replay and frontend error monitoring to Highlight. This implementation requires React 17 or greater. If you're behind on React versions, follow our [React.js docs](../../3_browser/1_reactjs.md)
 
 - Check out this example [environment variables](./7_advanced-config.md#environment-variables) set up for the `CONSTANTS` import.
 - Add `<HighlightInit>` to `_app.tsx`.

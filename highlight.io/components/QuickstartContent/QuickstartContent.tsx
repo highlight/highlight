@@ -135,7 +135,10 @@ import { HTTPReorganizedContent } from './server/http'
 import { SyslogReorganizedContent } from './server/syslog'
 import { SystemdReorganizedContent } from './server/systemd'
 import { ElixirOtherReorganizedContent } from './server/elixir/other'
-import { ReactNativeContent } from './mobile/react-native'
+import { ReactNativeContent } from './frontend/react-native'
+import { siteUrl } from '../../utils/urls'
+import { NextJsTracesReorganizedContent } from './server/js/nextjs'
+import { AWSLambdaTracingSteps } from './server/serverless/shared-snippets-aws-lambda'
 
 export type QuickStartContent = {
 	title: string
@@ -240,6 +243,7 @@ export const quickStartContent = {
 			[QuickStartType.Gatsby]: GatsbyContent,
 			[QuickStartType.Electron]: ElectronContext,
 			[QuickStartType.Other]: OtherContext,
+			[QuickStartType.ReactNative]: ReactNativeContent,
 		},
 	},
 	backend: {
@@ -412,12 +416,117 @@ export const quickStartContent = {
 			[QuickStartType.OTLP]: OTLPTracesContent,
 		},
 	},
-	mobile: {
-		[QuickStartType.ReactNative]: ReactNativeContent,
-	},
 	other: {
 		[QuickStartType.SelfHost]: SelfHostContent,
 		[QuickStartType.DevDeploy]: DevDeploymentContent,
+	},
+	server: {
+		go: {
+			title: 'Go',
+			subtitle:
+				'Select your Go framework to install Highlight for your application.',
+			logoUrl: siteUrl('/images/quickstart/go.svg'),
+			[QuickStartType.GoChi]: GoChiReorganizedContent,
+			[QuickStartType.GoEcho]: GoEchoReorganizedContent,
+			[QuickStartType.GoFiber]: GoFiberReorganizedContent,
+			[QuickStartType.GoGin]: GoGinReorganizedContent,
+			[QuickStartType.GoGqlgen]: GoGqlgenReorganizedContent,
+			[QuickStartType.GoMux]: GoMuxReorganizedContent,
+			[QuickStartType.GoLogrus]: GoOtherLogReorganizedContent,
+			[QuickStartType.GoGorm]: GormTracesReorganizedContent,
+			[QuickStartType.GoOther]: GoTracesReorganizedContent,
+		},
+		java: {
+			title: 'Java',
+			subtitle:
+				'Select your Java framework to install Highlight in your application.',
+			logoUrl: siteUrl('/images/quickstart/java.svg'),
+			[QuickStartType.JavaOther]: JavaOtherReorganizedContent,
+		},
+		js: {
+			title: 'JavaScript',
+			subtitle:
+				'Select your JavaScript framework to install Highlight for your application.',
+			logoUrl: siteUrl('/images/quickstart/javascript.svg'),
+			[QuickStartType.JSApollo]: JSApolloReorganizedContent,
+			[QuickStartType.JSAWSFn]: JSAWSLambdaReorganizedContent,
+			[QuickStartType.JSCloudflare]: JSCloudflareReorganizedContent,
+			[QuickStartType.JSExpress]: JSExpressReorganizedContent,
+			[QuickStartType.JSFirebase]: JSFirebaseReorganizedContent,
+			[QuickStartType.JSHono]: JSHonoReorganizedContent,
+			[QuickStartType.JSNodejs]: JSNodeReorganizedContent,
+			[QuickStartType.JSNestjs]: JSNestReorganizedContent,
+			[QuickStartType.JStRPC]: JStRPCReorganizedContent,
+			[QuickStartType.JSPino]: JSPinoHTTPJSONLogReorganizedContent,
+			[QuickStartType.JSWinston]: JSWinstonHTTPJSONLogReorganizedContent,
+			[QuickStartType.JSManual]: JSManualTracesReorganizedContent,
+			[QuickStartType.JSNextjs]: NextJsTracesReorganizedContent,
+		},
+		php: {
+			title: 'PHP',
+			subtitle:
+				'Select your PHP framework to install Highlight for your application.',
+			logoUrl: siteUrl('/images/quickstart/php.svg'),
+			[QuickStartType.Other]: PHPOtherReorganizedContent,
+		},
+		python: {
+			title: 'Python',
+			subtitle:
+				'Select your Python framework to install Highlight in your application.',
+			logoUrl: siteUrl('/images/quickstart/python.svg'),
+			[QuickStartType.PythonAWSFn]: PythonAWSReorganizedContext,
+			[QuickStartType.PythonAzureFn]: PythonAzureReorganizedContext,
+			[QuickStartType.PythonDjango]: PythonDjangoReorganizedContext,
+			[QuickStartType.PythonFastAPI]: PythonFastAPIReorganizedContext,
+			[QuickStartType.PythonFlask]: PythonFlaskReorganizedContext,
+			[QuickStartType.PythonGCPFn]: PythonGCPReorganizedContext,
+			[QuickStartType.PythonLoguru]: PythonLoguruLogReorganizedContent,
+			[QuickStartType.PythonOther]: PythonOtherReorganizedContext,
+			[QuickStartType.PythonLibraries]:
+				PythonLibrariesTracesReorganizedContent,
+			[QuickStartType.PythonAI]: PythonAITracesReorganizedContent,
+		},
+		ruby: {
+			title: 'Ruby',
+			subtitle:
+				'Select your Ruby framework to install Highlight for your application.',
+			logoUrl: siteUrl('/images/quickstart/ruby.svg'),
+			[QuickStartType.RubyOther]: RubyOtherReorganizedContent,
+			[QuickStartType.RubyRails]: RubyRailsReorganizedContent,
+		},
+		rust: {
+			title: 'Rust',
+			subtitle:
+				'Select your Rust framework to install Highlight for your application.',
+			logoUrl: siteUrl('/images/quickstart/rust.svg'),
+			[QuickStartType.RustActix]: RustActixReorganizedContent,
+			[QuickStartType.RustOther]: RustOtherReorganizedContent,
+		},
+		elixir: {
+			title: 'Elixir',
+			subtitle:
+				'Select your Elixir framework to install Highlight for your application.',
+			logoUrl: siteUrl('/images/quickstart/elixir.svg'),
+			[QuickStartType.ElixirOther]: ElixirOtherReorganizedContent,
+		},
+		otlp: {
+			title: 'OpenTelemetry',
+			subtitle: 'OpenTelemetry Protocol (OTLP)',
+			[QuickStartType.OTLP]: OTLPReorganizedContent,
+			[QuickStartType.OTLPDotNet]: DotNetOTLPReorganizedContent,
+			[QuickStartType.OTLPDotNet4]: DotNet4OTLPReorganizedContent,
+		},
+		other: {
+			title: 'Infrastructure / Other',
+			subtitle:
+				'Get started with logging in your application via HTTP or OTLP.',
+			[QuickStartType.FluentForward]: FluentForwardReorganizedContent,
+			[QuickStartType.File]: FileReorganizedContent,
+			[QuickStartType.Docker]: DockerReorganizedContent,
+			[QuickStartType.HTTPOTLP]: HTTPReorganizedContent,
+			[QuickStartType.Syslog]: SyslogReorganizedContent,
+			[QuickStartType.Systemd]: SystemdReorganizedContent,
+		},
 	},
 } as const
 
@@ -434,11 +543,6 @@ export const quickStartContentReorganized = {
 			[QuickStartType.Gatsby]: GatsbyContent,
 			[QuickStartType.Electron]: ElectronContext,
 			[QuickStartType.Other]: OtherContext,
-		},
-	},
-	mobile: {
-		title: 'Mobile',
-		sdks: {
 			[QuickStartType.ReactNative]: ReactNativeContent,
 		},
 	},

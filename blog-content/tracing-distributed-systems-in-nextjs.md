@@ -136,7 +136,7 @@ export const GET = withAppRouterHighlight(async (request: NextRequest) => {
 
 ### Configure our Golang service
 
-Highlight supports multiple [Go libraries](https://www.highlight.io/docs/getting-started/backend-sdk/go/overview). In this case we're using the [Highlight chi SDK](https://www.highlight.io/docs/getting-started/backend-sdk/go/chi).
+Highlight supports multiple [Go libraries](https://www.highlight.io/docs/getting-started/server/go/overview). In this case we're using the [Highlight chi SDK](https://www.highlight.io/docs/getting-started/server/go/chi).
 
 See a [working example of Highlight chi implementation](https://github.com/highlight/distributed-tracing-example/blob/main/service/main.go) on GitHub.
 

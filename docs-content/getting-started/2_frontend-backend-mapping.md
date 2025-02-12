@@ -1,6 +1,6 @@
 ---
 title: Fullstack Mapping
-slug: 4_backend-sdk
+slug: frontend-backend-mapping
 createdAt: 2022-03-28T20:05:46.000Z
 updatedAt: 2022-04-01T20:40:53.000Z
 ---
@@ -53,21 +53,21 @@ Backend changes are dependent on the underlying language/framework used on the s
 
 Below are solutions for what we support today. If you'd like us to support a new framework, feel free to shoot us a message at [support@highlight.io](mailto:support@highlight.io) or drop us a note in our [discord](https://discord.gg/yxaXEAqgwN).
 
-- [Go Backend Integration](4_backend-sdk/01_go)
+- [Go Backend Integration](4_server/1_go)
 
-- [Java Backend Integration](4_backend-sdk/02_java)
+- [Java Backend Integration](4_server/9_java-other.md)
 
-- [JS Backend Integration](4_backend-sdk/03_js)
+- [JS Backend Integration](4_server/2_js)
 
-- [PHP Backend Integration](4_backend-sdk/04_php)
+- [PHP Backend Integration](4_server/10_php-other.md)
 
-- [Python Backend Integration](4_backend-sdk/05_python)
+- [Python Backend Integration](4_server/3_python)
 
-- [Ruby Backend Integration](4_backend-sdk/06_ruby)
+- [Ruby Backend Integration](4_server/4_ruby)
 
-- [Rust Backend Integration](4_backend-sdk/07_rust)
+- [Rust Backend Integration](4_server/5_rust)
 
-- [.NET Backend Integration](4_backend-sdk/08_dotnet.md)
+- [.NET Backend Integration](4_server/11_dotnet.md)
 
 ## Distributed Tracing
 
@@ -96,7 +96,7 @@ H.consumeError(error, parsed.secureSessionId, parsed.requestId)
 
 ### Context Propogation Using OpenTelemetry
 
-In addition to the `x-highlight-request` header, we are also working on a way of leveraging [OpenTelemetry's context propogation](https://opentelemetry.io/docs/concepts/context-propagation/) to connect resources across across distributed systems. Check out our [Client SDK OpenTelemetry docs](https://highlight.io/docs/getting-started/3_client-sdk/7_replay-configuration/opentelemetry.md) to learn more.
+In addition to the `x-highlight-request` header, we are also working on a way of leveraging [OpenTelemetry's context propogation](https://opentelemetry.io/docs/concepts/context-propagation/) to connect resources across across distributed systems. Check out our [Client SDK OpenTelemetry docs](https://highlight.io/docs/getting-started/browser/replay-configuration/opentelemetry) to learn more.
 
 ## Troubleshooting
 

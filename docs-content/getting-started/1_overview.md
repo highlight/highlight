@@ -12,164 +12,97 @@ Highlight.io allows you to get full-stack visibility into issues across your who
 Installing highlight.io in javascript will automatically instrument frontend error collection and session replay. highlight.io supports any framework that uses modern web browsers (i.e. depends on using the [DOM](https://www.w3schools.com/js/js_htmldom.asp)) under the hood, and we support all modern browsers to date. Take a look at our guides for the following frameworks:
 
 <DocsCardGroup>
-    <DocsCard title="React" href="./client-sdk/reactjs.md">
+    <DocsCard title="React" href="./browser/reactjs.md">
         {"Get started in your React.js app"}
     </DocsCard>
-    <DocsCard title="Angular"  href="./client-sdk/angular.md">
+    <DocsCard title="Angular"  href="./browser/angular.md">
         {"Get started in your Angular.js app"}
     </DocsCard>
-    <DocsCard title="Gatsby"  href="./client-sdk/gatsbyjs.md">
+    <DocsCard title="Gatsby"  href="./browser/gatsbyjs.md">
         {"Get started in your Gatsby app"}
     </DocsCard>
-    <DocsCard title="Next.js"  href="./client-sdk/nextjs.md">
+    <DocsCard title="Next.js"  href="./browser/nextjs.md">
         {"Get started in your Next.js app"}
     </DocsCard>
-    <DocsCard title="Remix"  href="./client-sdk/remix.md">
+    <DocsCard title="Remix"  href="./browser/remix.md">
         {"Get started in your Remix app"}
     </DocsCard>
-    <DocsCard title="VueJS"  href="./client-sdk/vuejs.md">
+    <DocsCard title="VueJS"  href="./browser/vuejs.md">
         {"Get started in your VueJS app"}
     </DocsCard>
-    <DocsCard title="SvelteKit"  href="./3_client-sdk/6_sveltekit.md">
+    <DocsCard title="SvelteKit"  href="./browser/6_sveltekit.md">
         {"Get started in your SvelteKit app"}
     </DocsCard>
-    <DocsCard title="Electron"  href="./3_client-sdk/7_electron.md">
+    <DocsCard title="Electron"  href="./browser/7_electron.md">
         {"Get started in your Electron app"}
     </DocsCard>
-    <DocsCard title="Other HTML"  href="./3_client-sdk/8_other.md">
+    <DocsCard title="Other HTML"  href="./browser/8_other.md">
         {"Get started in any HTML/JS app"}
     </DocsCard>
+    <DocsCard title="React Native" href="./browser/9_react-native.md">
+        {"Get started with React Native"}
+    </DocsCard>
 </DocsCardGroup>
 
-## For your Backend: Error Monitoring
+## For your Server
 
-Highlight.io also supports reporting errors from your backend and mapping these to corresponding sessions. This gives you and your team a full picture of your application's state. Supported frameworks / languages below:
-
-### Application Error Monitoring
+Highlight.io also supports reporting errors, logging, and tracing from your backend and mapping these to corresponding sessions. This gives you and your team a full picture of your application's state. Supported frameworks / languages below:
 
 <DocsCardGroup>
-    <DocsCard title="Python" href="./backend-sdk/python/overview">
-        {"Get started with error monitoring in Python"}
+    <DocsCard title="Go" href="./server/go/overview">
+        {"Get started with Highlight in Go"}
     </DocsCard>
-    <DocsCard title="Go" href="./backend-sdk/go/overview">
-        {"Get started with error monitoring in Go"}
+    <DocsCard title="JS / TS" href="./server/js/overview">
+        {"Get started with Highlight in Javascript"}
     </DocsCard>
-    <DocsCard title="JS / TS" href="./backend-sdk/js/overview">
-        {"Get started with error monitoring in Javascript"}
+    <DocsCard title="Python" href="./server/python/overview">
+        {"Get started with Highlight in Python"}
     </DocsCard>
-    <DocsCard title="Ruby" href="./4_backend-sdk/ruby/1_overview.md">
-        {"Get started with error monitoring in Ruby"}
+    <DocsCard title="Ruby" href="./server/ruby/1_overview.md">
+        {"Get started with Highlight in Ruby"}
     </DocsCard>
-    <DocsCard title="Java" href="./4_backend-sdk/java/1_overview.md">
-        {"Get started with error monitoring in Java"}
+    <DocsCard title="Rust" href="./server/rust/1_overview.md">
+        {"Get started with Highlight in Rust"}
     </DocsCard>
-    <DocsCard title="Rust" href="./4_backend-sdk/rust/1_overview.md">
-        {"Get started with error monitoring in Rust"}
+    <DocsCard title="Elixir" href="./server/elixir/1_overview.md">
+        {"Get started with Highlight in Elixir"}
     </DocsCard>
-    <DocsCard title="C# .NET" href="./4_backend-sdk/dotnet.md">
-        {"Get started with error monitoring in C# .NET"}
+    <DocsCard title="Java" href="./server/java/1_overview.md">
+        {"Get started with Highlight in Java"}
     </DocsCard>
-    <DocsCard title="PHP" href="./4_backend-sdk/php/1_overview.md">
-        {"Get started with error monitoring in PHP"}
+    <DocsCard title="PHP" href="./server/php/1_overview.md">
+        {"Get started with Highlight in PHP"}
     </DocsCard>
-    <DocsCard title="Native OpenTelemetry" href="./8_native-opentelemetry/2_error-monitoring.md">
+    <DocsCard title="C# .NET" href="./server/dotnet.md">
+        {"Get started with Highlight in C# .NET"}
+    </DocsCard>
+    <DocsCard title="C# .NET 4" href="./server/dotnet-4.md">
+        {"Get started with Highlight in C# .NET 4"}
+    </DocsCard>
+    <DocsCard title="Native OpenTelemetry" href="./6_native-opentelemetry/2_error-monitoring.md">
         {"Get started with OpenTelemetry"}
     </DocsCard>
 </DocsCardGroup>
 
-## For your Backend: Logging
+## Hosting Platform Logging
 
-Highlight.io also supports logging from your backend and mapping these to corresponding errors and sessions. This gives you and your team a full picture of your application's state. Supported frameworks / languages below:
-
-### Application Logging
+Highlight.io provides comprehensive logging support for various hosting platforms, allowing you to seamlessly integrate and manage logs from your infrastructure. Supported hosting platforms include:
 
 <DocsCardGroup>
-    <DocsCard title="Go" href="./backend-logging/01_go/1_overview.md">
-        {"Get started with logging in Go"}
-    </DocsCard>
-    <DocsCard title="JS / TS" href="./backend-logging/02_js/1_overview.md">
-        {"Get started with logging in Javascript"}
-    </DocsCard>
-    <DocsCard title="Python" href="./backend-logging/03_python/1_overview.md">
-        {"Get started with logging in Python"}
-    </DocsCard>
-    <DocsCard title="Ruby" href="./backend-logging/04_ruby/1_overview.md">
-        {"Get started with logging in Ruby"}
-    </DocsCard>
-    <DocsCard title="Java" href="./backend-logging/05_java/1_overview.md">
-        {"Get started with logging in Java"}
-    </DocsCard>
-    <DocsCard title="Rust" href="./backend-logging/06_rust/1_overview.md">
-        {"Get started with logging in Rust"}
-    </DocsCard>
-    <DocsCard title="C# .NET" href="./backend-logging/14_dotnet.md">
-        {"Get started with logging in C# .NET"}
-    </DocsCard>
-    <DocsCard title="PHP" href="./backend-logging/15_php.md">
-        {"Get started with logging in PHP"}
-    </DocsCard>
-    <DocsCard title="Native OpenTelemetry" href="./8_native-opentelemetry/3_logging.md">
-        {"Get started with OpenTelemetry"}
-    </DocsCard>
-</DocsCardGroup>
-
-### Hosting Platform Logging
-
-<DocsCardGroup>
-    <DocsCard title="Cloud" href="./backend-logging/07_hosting/1_overview.md">
+    <DocsCard title="Cloud" href="./server/6_hosting/1_overview.md">
         {"Log from your Cloud Hosting Environment"}
     </DocsCard>
-    <DocsCard title="curl" href="./backend-logging/08_http.md">
+    <DocsCard title="curl" href="./server/http.md">
         {"Send logs over HTTPS"}
     </DocsCard>
-    <DocsCard title="Docker" href="./backend-logging/09_docker.md">
+    <DocsCard title="Docker" href="./server/docker.md">
         {"Stream Docker logs"}
     </DocsCard>
-    <DocsCard title="Fluent Forward" href="./backend-logging/11_fluentforward.md">
+    <DocsCard title="Fluent Forward" href="./server/fluentforward.md">
         {"Send Fluent Forward (Fluentd / Fluent Bit) logs"}
     </DocsCard>
-    <DocsCard title="File" href="./backend-logging/10_file.md">
+    <DocsCard title="File" href="./server/file.md">
         {"Stream any log file"}
-    </DocsCard>
-</DocsCardGroup>
-
-## For your Backend: Tracing
-
-Highlight.io also supports tracing from your backend and mapping these to corresponding errors and sessions. This gives you and your team a full picture of your application's state, as well as allowing you to dig deeper into performance problems. Supported frameworks / languages below:
-
-### Application Tracing
-
-<DocsCardGroup>
-    <DocsCard title="Go" href="./backend-tracing/1_go/1_overview.md">
-        {"Get started with tracing in Go"}
-    </DocsCard>
-    <DocsCard title="JS / TS" href="./backend-tracing/2_node-js/1_overview.md">
-        {"Get started with tracing in Javascript"}
-    </DocsCard>
-    <DocsCard title="Python" href="./backend-tracing/3_python/1_overview.md">
-        {"Get started with tracing in Python"}
-    </DocsCard>
-    <DocsCard title="Rust" href="./backend-tracing/4_rust/1_overview.md">
-        {"Get started with tracing in Rust"}
-    </DocsCard>
-    <DocsCard title="C# .NET" href="./backend-tracing/5_dotnet.md">
-        {"Get started with tracing in C# .NET"}
-    </DocsCard>
-    <DocsCard title="PHP" href="./backend-tracing/6_php.md">
-        {"Get started with tracing in PHP"}
-    </DocsCard>
-    <DocsCard title="Native OpenTelemetry" href="./8_native-opentelemetry/4_tracing.md">
-        {"Get started with tracing in OpenTelemetry"}
-    </DocsCard>
-</DocsCardGroup>
-
-## For Mobile
-
-Highlight.io can be used for error monitoring, logging, and tracing for mobile apps using OpenTelemetry. There is currently a guide for React Native, and more coming soon.
-
-<DocsCardGroup>
-    <DocsCard title="React Native" href="./7_mobile/1_react-native.md">
-        {"Get started with React Native"}
     </DocsCard>
 </DocsCardGroup>
 

@@ -10,7 +10,7 @@ export const PHPOtherLogContent: QuickStartContent = {
 		{
 			title: 'Set up your highlight.io SDK.',
 			content: `Make sure you've also followed the [backend getting started](${siteUrl(
-				'/docs/getting-started/backend-sdk/php/other',
+				'/docs/getting-started/server/php/other',
 			)}) guide.`,
 		},
 		{
