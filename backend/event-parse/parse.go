@@ -447,12 +447,34 @@ type assetValue struct {
 	url      string
 }
 
+func isUnfetchableURL(u string) bool {
+	if strings.HasPrefix(u, "#") {
+		// SVG path id, skipping
+		return true
+	} else if strings.HasPrefix(u, "blob:") {
+		// ignore blob:// URLs that are client-side javascript video streams
+		return true
+	} else if strings.HasPrefix(u, "data:") {
+		// data url, skipping
+		return true
+	}
+	return false
+}
+
 // If a url was already created for this resource in the past day, return that
 // Else, fetch the resource, generate a new url for it, and save to S3
 func getOrCreateUrls(ctx context.Context, projectId int, originalUrls []string, store *store.Store, retentionPeriod modelInputs.RetentionPeriod) (map[string]string, error) {
 	// maps a long url to the minimal version of the url. ie https://foo.com/example?key=value&signature=bar -> https://foo.com/example?key=value
 	urlMap := make(map[string]assetValue)
 	for _, u := range lo.Uniq(originalUrls) {
+		if isUnfetchableURL(u) {
+			log.WithContext(ctx).
+				WithField("project_id", projectId).
+				WithField("u", u).
+				Info("skipping unfetchable url")
+			continue
+		}
+
 		parsedUrl, err := url.Parse(u)
 		if err != nil {
 			urlMap[u] = assetValue{u, u}
@@ -666,13 +688,7 @@ lexerLoop:
 			if err != nil {
 				log.WithContext(ctx).Warnf("could not unquote url: %s", quoted)
 			} else {
-				if strings.HasPrefix(url, "#") {
-					// SVG path id, skipping
-				} else if strings.HasPrefix(url, "blob:") {
-					// blob url, skipping
-				} else if strings.HasPrefix(url, "data:") {
-					// data url, skipping
-				} else {
+				if !isUnfetchableURL(url) {
 					urls = append(urls, url)
 					newUrl, ok := replacements[url]
 					if ok {
