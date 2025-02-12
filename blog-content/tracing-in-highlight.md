@@ -34,7 +34,7 @@ Digging into trace details in Highlight can help you identify hot spots in your 
 
 ## Get Started
 
-Visit [our documentation](https://www.highlight.io/docs/getting-started/tracing) for details on how to get started with Tracing in Highlight and please [reach out](https://twitter.com/highlightio) if you have any questions! All feedback is welcome and appreciated as we work on refining tracing to make it generally available.
+Visit [our documentation](https://www.highlight.io/docs/getting-started/overview#for-your-backend-tracing) for details on how to get started with Tracing in Highlight and please [reach out](https://twitter.com/highlightio) if you have any questions! All feedback is welcome and appreciated as we work on refining tracing to make it generally available.
 
 ## What About Metrics?
 
