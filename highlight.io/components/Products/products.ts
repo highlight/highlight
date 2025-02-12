@@ -274,7 +274,7 @@ export const PRODUCTS: { [k: string]: iProduct } = {
 	},
 	express: {
 		type: 'backend',
-		docsLink: '/docs/getting-started/server/express',
+		docsLink: '/docs/getting-started/server/js/express',
 		slug: 'express',
 		title: 'Express',
 		types: ['Backend', 'Frontend'],
