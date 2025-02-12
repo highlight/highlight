@@ -23,7 +23,7 @@ import (
 	"github.com/openlyinc/pointy"
 	"golang.org/x/sync/errgroup"
 
-	sqlparser "github.com/AfterShip/clickhouse-sql-parser/parser"
+	sqlparser "github.com/highlight/clickhouse-sql-parser/parser"
 )
 
 const timeFormat = "2006-01-02T15:04:05.000Z"

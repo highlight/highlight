@@ -56,6 +56,7 @@ require (
 	github.com/hashicorp/go-retryablehttp v0.7.7
 	github.com/hashicorp/golang-lru/v2 v2.0.7
 	github.com/highlight-run/workerpool v1.3.0
+	github.com/highlight/clickhouse-sql-parser v1.0.0
 	github.com/highlight/go-oauth2-redis/v4 v4.1.4
 	github.com/highlight/highlight/sdk/highlight-go v0.10.2
 	github.com/huandu/go-assert v1.1.6
@@ -209,7 +210,6 @@ require (
 	cloud.google.com/go v0.115.0 // indirect
 	cloud.google.com/go/firestore v1.15.0 // indirect
 	cloud.google.com/go/storage v1.41.0 // indirect
-	github.com/AfterShip/clickhouse-sql-parser v0.4.2
 	github.com/ClickHouse/clickhouse-go/v2 v2.30.1
 	github.com/ReneKroon/ttlcache v1.7.0
 	github.com/agnivade/levenshtein v1.1.1 // indirect
