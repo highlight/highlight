@@ -301,7 +301,7 @@ export const PRODUCTS: { [k: string]: iProduct } = {
 
 	node: {
 		type: 'backend',
-		docsLink: '/docs/getting-started/server/nodejs',
+		docsLink: '/docs/getting-started/server/js/nodejs',
 		slug: 'node',
 		title: 'Node.js',
 		types: ['Backend', 'Frontend'],
