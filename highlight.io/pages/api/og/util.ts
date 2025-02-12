@@ -1,7 +1,11 @@
 import { NextRequest } from 'next/server'
 
 export const getResources = async (req: NextRequest) => {
-	const prefix = req.url.substring(0, req.url.lastIndexOf('/api'))
+	let idx = req.url.lastIndexOf('/api')
+	if (idx === -1) {
+		idx = req.url.lastIndexOf('/_next')
+	}
+	const prefix = req.url.substring(0, idx)
 	const font = fetch(
 		new URL(`${prefix}/styles/font/Poppins-SemiBold.ttf`),
 	).then((res) => res.arrayBuffer())
