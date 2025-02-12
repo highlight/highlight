@@ -46,7 +46,7 @@ minimizes storage overhead while maximizing query performance.
 
 ## Building an Ingest Path
 
-Highlight uses [Apache Kafka to buffer data]((./scalable-data-processing-with-apache-kafka.md)) for bulk inserts into
+Highlight uses [Apache Kafka to buffer data](/blog/scalable-data-processing-with-apache-kafka) for bulk inserts into
 ClickHouse. While we use the OpenTelemetry collector to receive, deserialize, and batch data, we export to our Golang
 API that mutates the data before writing to Apache Kafka. A set of workers (the Apache Kafka Connect ClickHouse
 exporter) read the data and write it to ClickHouse in large batches.
