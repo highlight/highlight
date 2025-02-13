@@ -12,7 +12,7 @@ app.use(
 	highlightMiddleware({
 		projectID: '1jdkoe52',
 		serviceName: 'hono-e2e-example',
-		otlpEndpoint: 'http://localhost:4318',
+		otlpEndpoint: 'http://localhost:4317',
 	}),
 )
 
@@ -40,7 +40,7 @@ const layout = (
 						recordHeadersAndBody: true,
 					},
 					tracingOrigins: true,
-					otlpEndpoint: 'http://localhost:4318',
+					otlpEndpoint: 'http://localhost:4317',
 				})
 
 				async function makeRequest(endpoint) {

@@ -5,20 +5,25 @@ import api, {
 	diag,
 	DiagConsoleLogger,
 	DiagLogLevel,
-	Span as OtelSpan,
+	Meter,
+	metrics,
 	propagation,
+	Span as OtelSpan,
 	SpanOptions,
 	trace,
 	Tracer,
 } from '@opentelemetry/api'
+import { Logger, logs } from '@opentelemetry/api-logs'
 import { getNodeAutoInstrumentations } from '@opentelemetry/auto-instrumentations-node'
 import { AsyncLocalStorageContextManager } from '@opentelemetry/context-async-hooks'
 import {
+	CompositePropagator,
 	W3CBaggagePropagator,
 	W3CTraceContextPropagator,
-	CompositePropagator,
 } from '@opentelemetry/core'
-import { OTLPTraceExporter } from '@opentelemetry/exporter-trace-otlp-http'
+import { OTLPTraceExporter } from '@opentelemetry/exporter-trace-otlp-grpc'
+import { OTLPLogExporter } from '@opentelemetry/exporter-logs-otlp-grpc'
+import { OTLPMetricExporter } from '@opentelemetry/exporter-metrics-otlp-grpc'
 import { registerInstrumentations } from '@opentelemetry/instrumentation'
 import { CompressionAlgorithm } from '@opentelemetry/otlp-exporter-base'
 import { processDetectorSync, Resource } from '@opentelemetry/resources'
@@ -27,23 +32,25 @@ import {
 	AlwaysOnSampler,
 	BatchSpanProcessor,
 } from '@opentelemetry/sdk-trace-base'
-import {
-	SEMRESATTRS_DEPLOYMENT_ENVIRONMENT,
-	SEMRESATTRS_SERVICE_NAME,
-	SEMRESATTRS_SERVICE_VERSION,
-} from '@opentelemetry/semantic-conventions'
+import { BatchLogRecordProcessor } from '@opentelemetry/sdk-logs'
+import { PeriodicExportingMetricReader } from '@opentelemetry/sdk-metrics'
 import { hookConsole } from './hooks.js'
 import log from './log.js'
 import {
-	HIGHLIGHT_REQUEST_HEADER,
 	type Headers,
+	HIGHLIGHT_REQUEST_HEADER,
 	type IncomingHttpHeaders,
 } from './sdk.js'
 import type { HighlightContext, NodeOptions } from './types.js'
 import * as packageJson from '../package.json'
 import { PrismaInstrumentation } from '@prisma/instrumentation'
+import {
+	ATTR_SERVICE_NAME,
+	ATTR_SERVICE_VERSION,
+	SEMRESATTRS_DEPLOYMENT_ENVIRONMENT,
+} from '@opentelemetry/semantic-conventions'
 
-const OTLP_HTTP = 'https://otel.highlight.io:4318'
+const OTLP_HTTP = 'https://otel.highlight.io:4317'
 
 const instrumentations = getNodeAutoInstrumentations({
 	'@opentelemetry/instrumentation-http': {
@@ -89,8 +96,8 @@ propagation.setGlobalPropagator(
 registerInstrumentations({ instrumentations })
 
 const OTEL_TO_OPTIONS = {
-	[SEMRESATTRS_SERVICE_NAME]: 'serviceName',
-	[SEMRESATTRS_SERVICE_VERSION]: 'serviceVersion',
+	[ATTR_SERVICE_NAME]: 'serviceName',
+	[ATTR_SERVICE_VERSION]: 'serviceVersion',
 	[SEMRESATTRS_DEPLOYMENT_ENVIRONMENT]: 'environment',
 } as const
 
@@ -99,8 +106,14 @@ export class Highlight {
 	_projectID: string
 	_debug: boolean
 	otel: NodeSDK
-	private tracer: Tracer
-	private processor: BatchSpanProcessor
+
+	private readonly tracer: Tracer
+	private readonly logger: Logger
+	private readonly meter: Meter
+
+	private readonly processor: BatchSpanProcessor
+	private readonly logsProcessor: BatchLogRecordProcessor
+	private readonly metricsReader: PeriodicExportingMetricReader
 
 	constructor(options: NodeOptions) {
 		this._debug = !!options.debug
@@ -132,6 +145,8 @@ export class Highlight {
 		}
 
 		this.tracer = trace.getTracer('highlight-node')
+		this.logger = logs.getLogger('highlight-node')
+		this.meter = metrics.getMeter('highlight-node')
 
 		const config = {
 			url: `${options.otlpEndpoint ?? OTLP_HTTP}/v1/traces`,
@@ -148,13 +163,24 @@ export class Highlight {
 			},
 		}
 		this._log('using otlp exporter settings', config)
-		const exporter = new OTLPTraceExporter(config)
-
-		this.processor = new BatchSpanProcessor(exporter, {
+		const opts = {
 			scheduledDelayMillis: 1000,
 			maxExportBatchSize: 1024 * 1024,
 			maxQueueSize: 1024 * 1024,
 			exportTimeoutMillis: this.FLUSH_TIMEOUT_MS,
+		}
+
+		const exporter = new OTLPTraceExporter(config)
+		this.processor = new BatchSpanProcessor(exporter, opts)
+
+		const logsExporter = new OTLPLogExporter(config)
+		this.logsProcessor = new BatchLogRecordProcessor(logsExporter, opts)
+
+		const metricsExporter = new OTLPMetricExporter(config)
+		this.metricsReader = new PeriodicExportingMetricReader({
+			exporter: metricsExporter,
+			exportIntervalMillis: opts.exportTimeoutMillis,
+			exportTimeoutMillis: opts.exportTimeoutMillis,
 		})
 
 		const attributes: Attributes = options.attributes || {}
@@ -173,6 +199,8 @@ export class Highlight {
 			resourceDetectors: [processDetectorSync],
 			resource: new Resource(attributes),
 			spanProcessors: [this.processor],
+			logRecordProcessors: [this.logsProcessor],
+			metricReader: this.metricsReader,
 			traceExporter: exporter,
 			contextManager: new AsyncLocalStorageContextManager(),
 			sampler: new AlwaysOnSampler(),
@@ -211,30 +239,19 @@ export class Highlight {
 		secureSessionId: string,
 		name: string,
 		value: number,
-		requestId?: string,
+		_?: string,
 		tags?: { name: string; value: string }[],
 	) {
-		if (!this.tracer) return
-		const span = this.tracer.startSpan('highlight.metric')
-		span.addEvent('metric', {
-			['highlight.project_id']: this._projectID,
-			['metric.name']: name,
-			['metric.value']: value,
+		if (!this.meter) return
+		const gauge = this.meter.createGauge(name)
+		gauge.record(value, {
 			...(secureSessionId
 				? {
 						['highlight.session_id']: secureSessionId,
 					}
 				: {}),
-			...(requestId
-				? {
-						['highlight.trace_id']: requestId,
-					}
-				: {}),
+			...tags?.reduce((a, b) => ({ ...a, ...b }), {}),
 		})
-		for (const t of tags || []) {
-			span.setAttribute(t.name, t.value)
-		}
-		span.end()
 	}
 
 	log(
@@ -246,18 +263,16 @@ export class Highlight {
 		requestId?: string,
 		metadata?: Attributes,
 	) {
-		if (!this.tracer) return
-		const span = this.tracer.startSpan('highlight.log')
-		// log specific events from https://github.com/highlight/highlight/blob/19ea44c616c432ef977c73c888c6dfa7d6bc82f3/sdk/highlight-go/otel.go#L34-L36
-		span.addEvent(
-			'log',
-			{
+		if (!this.logger) return
+		this.logger.emit({
+			timestamp: date,
+			observedTimestamp: date,
+			severityText: level,
+			body: msg,
+			attributes: {
 				...(metadata ?? {}),
 				// pass stack so that error creation on our end can show a structured stacktrace for errors
 				['exception.stacktrace']: JSON.stringify(stack),
-				['highlight.project_id']: this._projectID,
-				['log.severity']: level,
-				['log.message']: msg,
 				...(secureSessionId
 					? {
 							['highlight.session_id']: secureSessionId,
@@ -269,9 +284,7 @@ export class Highlight {
 						}
 					: {}),
 			},
-			date,
-		)
-		span.end()
+		})
 	}
 
 	consumeCustomError(
@@ -314,6 +327,8 @@ export class Highlight {
 	async flush() {
 		try {
 			await this.processor.forceFlush()
+			await this.logsProcessor.forceFlush()
+			await this.metricsReader.forceFlush()
 		} catch (e) {
 			this._log('failed to flush: ', e)
 		}
@@ -372,6 +387,7 @@ export class Highlight {
 		return { span, ctx: contextWithSpanSet }
 	}
 }
+
 function parseHeaders(
 	headers: Headers | IncomingHttpHeaders,
 ): HighlightContext {
