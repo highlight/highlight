@@ -395,6 +395,28 @@ export const DOCS_REDIRECTS = {
 		'/docs/getting-started/server/elixir/other',
 	'getting-started/backend-tracing/serverless/aws-lambda':
 		'/docs/getting-started/server/serverless/aws-lambda',
+	'getting-started/backend-sdk/dotnet': '/docs/getting-started/server/dotnet',
+	'getting-started/backend-logging/dotnet':
+		'/docs/getting-started/server/dotnet',
+	'getting-started/backend-tracing/dotnet':
+		'/docs/getting-started/server/dotnet',
+	'getting-started/backend-sdk/dotnet-4':
+		'/docs/getting-started/server/dotnet-4',
+	'getting-started/backend-logging/dotnet-4':
+		'/docs/getting-started/server/dotnet-4',
+	'getting-started/backend-tracing/dotnet-4':
+		'/docs/getting-started/server/dotnet-4',
+	'getting-started/backend-logging/docker':
+		'/docs/getting-started/server/docker',
+	'getting-started/backend-logging/file': '/docs/getting-started/server/file',
+	'getting-started/backend-logging/fluent-forward':
+		'/docs/getting-started/server/fluent-forward',
+	'getting-started/backend-logging/http': '/docs/getting-started/server/http',
+	'getting-started/backend-logging/otlp': '/docs/getting-started/server/otlp',
+	'getting-started/backend-logging/syslog':
+		'/docs/getting-started/server/syslog',
+	'getting-started/backend-logging/systemd':
+		'/docs/getting-started/server/systemd',
 }
 
 export default async function middleware(req: NextRequest) {
