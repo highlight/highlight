@@ -96,7 +96,6 @@ export default function LessonPage({
 	const currentLesson = courseVideos.find((video) => video.slug === slug)
 	const currentVideoId = currentLesson?.id ?? courseVideos[0].id!
 	const isLessonFree = currentLesson?.free ?? false
-
 	const shouldShowVideo = isLessonFree || isRegistered
 
 	const handleRegistrationSuccess = () => {
@@ -191,22 +190,45 @@ export default function LessonPage({
 									<div className="absolute inset-0 flex items-center justify-center bg-dark-background">
 										<div className="max-w-lg w-full mx-4">
 											<div className="bg-white p-4 pb-0 rounded-lg shadow-lg flex flex-col">
-												<Typography
-													type="copy2"
-													className="text-xl mb-2 font-bold text-center"
-												>
-													Register to Access This
-													Lesson
-												</Typography>
-												<Typography
-													type="copy3"
-													className="mb-4 text-center"
-												>
-													This lesson is part of our
-													premium content. Please
-													register to continue
-													watching.
-												</Typography>
+												{currentVideoId ===
+												'undefined' ? (
+													<>
+														<Typography
+															type="copy2"
+															className="text-xl mb-2 font-bold text-center"
+														>
+															Coming Soon!
+														</Typography>
+														<Typography
+															type="copy3"
+															className="mb-4 text-center"
+														>
+															Register to stay
+															updated when this
+															lesson is released.
+														</Typography>
+													</>
+												) : (
+													<>
+														<Typography
+															type="copy2"
+															className="text-xl mb-2 font-bold text-center"
+														>
+															Register to Access
+															This Lesson
+														</Typography>
+														<Typography
+															type="copy3"
+															className="mb-4 text-center"
+														>
+															This lesson is part
+															of our premium
+															content. Please
+															register to continue
+															watching.
+														</Typography>
+													</>
+												)}
 
 												<HubspotForm
 													onSuccess={
@@ -218,24 +240,26 @@ export default function LessonPage({
 									</div>
 								)}
 
-								{currentVideoId === 'undefined' && (
-									<div className="absolute inset-0 flex items-center justify-center bg-dark-background">
-										<div className="text-center text-white flex flex-col items-center">
-											<Typography
-												type="copy2"
-												className="text-2xl lg:text-5xl mb-4 font-bold"
-											>
-												Coming Soon!
-											</Typography>
-											<Typography
-												type="copy2"
-												className="mb-4 text-center"
-											>
-												Stay tuned for the next lesson!
-											</Typography>
+								{shouldShowVideo &&
+									currentVideoId === 'undefined' && (
+										<div className="absolute inset-0 flex items-center justify-center bg-dark-background">
+											<div className="text-center text-white flex flex-col items-center">
+												<Typography
+													type="copy2"
+													className="text-2xl lg:text-5xl mb-4 font-bold"
+												>
+													Coming Soon!
+												</Typography>
+												<Typography
+													type="copy2"
+													className="mb-4 text-center"
+												>
+													Stay tuned for the next
+													lesson!
+												</Typography>
+											</div>
 										</div>
-									</div>
-								)}
+									)}
 							</div>
 						</div>
 
