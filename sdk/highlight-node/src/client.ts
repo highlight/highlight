@@ -107,7 +107,7 @@ const OTEL_TO_OPTIONS = {
 } as const
 
 export class Highlight {
-	readonly FLUSH_TIMEOUT_MS = 30 * 1000
+	readonly FLUSH_TIMEOUT_MS = 5 * 1000
 	_projectID: string
 	_debug: boolean
 	otel: NodeSDK
@@ -174,9 +174,9 @@ export class Highlight {
 		} as OTLPGRPCExporterConfigNode
 		this._log('using otlp exporter settings', config)
 		const opts = {
-			scheduledDelayMillis: 1000,
 			maxExportBatchSize: 1024 * 1024,
 			maxQueueSize: 1024 * 1024,
+			scheduledDelayMillis: this.FLUSH_TIMEOUT_MS,
 			exportTimeoutMillis: this.FLUSH_TIMEOUT_MS,
 		}
 
