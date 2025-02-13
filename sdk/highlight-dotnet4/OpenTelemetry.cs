@@ -98,7 +98,7 @@ public static class OpenTelemetry {
             ["highlight.project_id"] = Cfg.ProjectId,
             ["service.name"] = Cfg.ServiceName,
             ["telemetry.distro.name"] = "Highlight.ASP4",
-            ["telemetry.distro.version"] = "0.2.8",
+            ["telemetry.distro.version"] = "0.2.9",
         };
     }
 
@@ -129,7 +129,7 @@ public static class OpenTelemetry {
         if (parts.Length < 2) return ctx;
 
         ctx["highlight.session_id"] = parts[0];
-        ctx["highlight.trace_id"] = parts[1];
+        // rely on `traceparent` w3c parent context propagation instead of highlight.trace_id
         return ctx;
     }
 
@@ -160,7 +160,7 @@ public static class OpenTelemetry {
 
         var (sessionId, requestId) = ExtractContext(httpRequest);
         activity.SetTag("highlight.session_id", sessionId);
-        activity.SetTag("highlight.trace_id", requestId);
+        // rely on `traceparent` w3c parent context propagation instead of highlight.trace_id
         Baggage.SetBaggage(new[]
         {
             new KeyValuePair<string, string>(HighlightHeader, $"{sessionId}/{requestId}")
