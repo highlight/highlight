@@ -65,7 +65,9 @@ namespace Microsoft.Extensions.DependencyInjection
 
 namespace Highlight
 {
-    public class TraceProcessor : BaseProcessor<Activity>
+using global::OpenTelemetry.Context.Propagation;
+
+public class TraceProcessor : BaseProcessor<Activity>
     {
         public override void OnStart(Activity data)
         {
@@ -130,7 +132,7 @@ namespace Highlight
                 ["highlight.project_id"] = _config.ProjectId,
                 ["service.name"] = _config.ServiceName,
                 ["telemetry.distro.name"] = "Highlight.ASPCore",
-                ["telemetry.distro.version"] = "0.2.14",
+                ["telemetry.distro.version"] = "0.2.15",
             }).ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
         }
 
@@ -141,6 +143,7 @@ namespace Highlight
         };
 
         static readonly Random Random = new();
+        static readonly TextMapPropagator _propagator = new TraceContextPropagator();
 
         public static Dictionary<string, string?> GetHighlightContext()
         {
@@ -191,6 +194,9 @@ namespace Highlight
             Baggage.SetBaggage([
                 new KeyValuePair<string, string?>(HighlightHeader, $"{sessionId}/{requestId}")
             ]);
+            
+            var parentContext = _propagator.Extract(new PropagationContext(activity.Context, Baggage.Current), httpRequest.Headers, (headers, key) => headers[key]);
+            Baggage.Current = parentContext.Baggage;
         }
 
         private static void EnrichWithHttpResponse(Activity activity, HttpResponse httpResponse)
@@ -203,6 +209,10 @@ namespace Highlight
                 var header = httpResponse.Headers.ElementAt(i);
                 activity.SetTag($"http.response.header.{header.Key}", header.Value);
             }
+            
+            _propagator.Inject(new PropagationContext(activity.Context, Baggage.Current), httpResponse.Headers, (headers, key, value) => {
+                headers[key] = value;
+            });
         }
 
         private static (string, string) ExtractContext(HttpRequest httpRequest)
