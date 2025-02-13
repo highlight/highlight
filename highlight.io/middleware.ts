@@ -232,6 +232,9 @@ export const DOCS_REDIRECTS = {
 		'/docs/getting-started/client-sdk/replay-configuration/upgrading-highlight',
 	'getting-started/client-sdk/replay-configuration/versioning-sessions-and-errors':
 		'/docs/getting-started/client-sdk/replay-configuration/versioning-sessions-and-errors',
+	'getting-started/backend-sdk/go': '/docs/getting-started/server/go',
+	'getting-started/backend-logging/go': '/docs/getting-started/server/go',
+	'getting-started/backend-tracing/go': '/docs/getting-started/server/go',
 	'getting-started/backend-sdk/go/overview':
 		'/docs/getting-started/server/go/overview',
 	'getting-started/backend-logging/go/overview':
@@ -255,6 +258,8 @@ export const DOCS_REDIRECTS = {
 		'/docs/getting-started/server/go/logrus',
 	'getting-started/backend-tracing/go/manual':
 		'/docs/getting-started/server/go/manual',
+	'getting-started/backend-sdk/js': '/docs/getting-started/server/js',
+	'getting-started/backend-logging/js': '/docs/getting-started/server/js',
 	'getting-started/backend-sdk/js/overview':
 		'/docs/getting-started/server/js/overview',
 	'getting-started/backend-logging/js/overview':
@@ -289,6 +294,11 @@ export const DOCS_REDIRECTS = {
 		'/docs/getting-started/server/js/trpc',
 	'getting-started/backend-logging/js/winston':
 		'/docs/getting-started/server/js/winston',
+	'getting-started/backend-sdk/python': '/docs/getting-started/server/python',
+	'getting-started/backend-logging/python':
+		'/docs/getting-started/server/python',
+	'getting-started/backend-tracing/python':
+		'/docs/getting-started/server/python',
 	'getting-started/backend-sdk/python/overview':
 		'/docs/getting-started/server/python/overview',
 	'getting-started/backend-logging/python/overview':
@@ -329,6 +339,9 @@ export const DOCS_REDIRECTS = {
 		'/docs/getting-started/server/python/python-ai',
 	'getting-started/backend-tracing/python/python-libraries':
 		'/docs/getting-started/server/python/python-libraries',
+	'getting-started/backend-sdk/ruby': '/docs/getting-started/server/ruby',
+	'getting-started/backend-logging/ruby': '/docs/getting-started/server/ruby',
+	'getting-started/backend-tracing/ruby': '/docs/getting-started/server/ruby',
 	'getting-started/backend-sdk/ruby/overview':
 		'/docs/getting-started/server/ruby/overview',
 	'getting-started/backend-logging/ruby/overview':
@@ -347,6 +360,9 @@ export const DOCS_REDIRECTS = {
 		'/docs/getting-started/server/ruby/rails',
 	'getting-started/backend-tracing/ruby/rails':
 		'/docs/getting-started/server/ruby/rails',
+	'getting-started/backend-sdk/rust': '/docs/getting-started/server/rust',
+	'getting-started/backend-logging/rust': '/docs/getting-started/server/rust',
+	'getting-started/backend-tracing/rust': '/docs/getting-started/server/rust',
 	'getting-started/backend-sdk/rust/overview':
 		'/docs/getting-started/server/rust/overview',
 	'getting-started/backend-logging/rust/overview':
@@ -365,6 +381,8 @@ export const DOCS_REDIRECTS = {
 		'/docs/getting-started/server/rust/other',
 	'getting-started/backend-tracing/rust/other':
 		'/docs/getting-started/server/rust/other',
+	'getting-started/backend-logging/hosting':
+		'/docs/getting-started/server/hosting',
 	'getting-started/backend-logging/hosting/overview':
 		'/docs/getting-started/server/hosting/overview',
 	'getting-started/backend-logging/hosting/aws-metrics':
@@ -385,6 +403,9 @@ export const DOCS_REDIRECTS = {
 		'/docs/getting-started/server/hosting/trigger',
 	'getting-started/backend-logging/hosting/vercel':
 		'/docs/getting-started/server/hosting/vercel',
+	'getting-started/backend-sdk/elixir': '/docs/getting-started/server/elixir',
+	'getting-started/backend-logging/elixir':
+		'/docs/getting-started/server/elixir',
 	'getting-started/backend-sdk/elixir/overview':
 		'/docs/getting-started/server/elixir/overview',
 	'getting-started/backend-logging/elixir/overview':
@@ -395,6 +416,28 @@ export const DOCS_REDIRECTS = {
 		'/docs/getting-started/server/elixir/other',
 	'getting-started/backend-tracing/serverless/aws-lambda':
 		'/docs/getting-started/server/serverless/aws-lambda',
+	'getting-started/backend-sdk/dotnet': '/docs/getting-started/server/dotnet',
+	'getting-started/backend-logging/dotnet':
+		'/docs/getting-started/server/dotnet',
+	'getting-started/backend-tracing/dotnet':
+		'/docs/getting-started/server/dotnet',
+	'getting-started/backend-sdk/dotnet-4':
+		'/docs/getting-started/server/dotnet-4',
+	'getting-started/backend-logging/dotnet-4':
+		'/docs/getting-started/server/dotnet-4',
+	'getting-started/backend-tracing/dotnet-4':
+		'/docs/getting-started/server/dotnet-4',
+	'getting-started/backend-logging/docker':
+		'/docs/getting-started/server/docker',
+	'getting-started/backend-logging/file': '/docs/getting-started/server/file',
+	'getting-started/backend-logging/fluent-forward':
+		'/docs/getting-started/server/fluent-forward',
+	'getting-started/backend-logging/http': '/docs/getting-started/server/http',
+	'getting-started/backend-logging/otlp': '/docs/getting-started/server/otlp',
+	'getting-started/backend-logging/syslog':
+		'/docs/getting-started/server/syslog',
+	'getting-started/backend-logging/systemd':
+		'/docs/getting-started/server/systemd',
 }
 
 export default async function middleware(req: NextRequest) {
