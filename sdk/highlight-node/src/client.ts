@@ -45,7 +45,7 @@ import {
 	HIGHLIGHT_REQUEST_HEADER,
 	type IncomingHttpHeaders,
 } from './sdk.js'
-import type { HighlightContext, NodeOptions, Metric } from './types.js'
+import type { HighlightContext, Metric, NodeOptions } from './types.js'
 import * as packageJson from '../package.json'
 import { PrismaInstrumentation } from '@prisma/instrumentation'
 import {
@@ -163,10 +163,6 @@ export class Highlight {
 			})
 		}
 
-		this.tracer = trace.getTracer('highlight-node')
-		this.logger = logs.getLogger('highlight-node')
-		this.meter = metrics.getMeter('highlight-node')
-
 		const config = {
 			url: options.otlpEndpoint ?? OTLP_GRPC,
 			compression:
@@ -184,6 +180,18 @@ export class Highlight {
 			exportTimeoutMillis: this.FLUSH_TIMEOUT_MS,
 		}
 
+		const attributes: Attributes = options.attributes || {}
+		attributes['highlight.project_id'] = this._projectID
+		attributes['telemetry.distro.name'] = '@highlight-run/node'
+		attributes['telemetry.distro.version'] = packageJson.version
+
+		for (const [otelAttr, option] of Object.entries(OTEL_TO_OPTIONS)) {
+			if (options[option]) {
+				attributes[otelAttr] = options[option]
+			}
+		}
+		const resource = new Resource(attributes)
+
 		const exporter = new OTLPTraceExporter(config)
 		this.processor = new BatchSpanProcessor(exporter, opts)
 
@@ -197,21 +205,10 @@ export class Highlight {
 			exportTimeoutMillis: opts.scheduledDelayMillis,
 		})
 
-		const attributes: Attributes = options.attributes || {}
-		attributes['highlight.project_id'] = this._projectID
-		attributes['telemetry.distro.name'] = '@highlight-run/node'
-		attributes['telemetry.distro.version'] = packageJson.version
-
-		for (const [otelAttr, option] of Object.entries(OTEL_TO_OPTIONS)) {
-			if (options[option]) {
-				attributes[otelAttr] = options[option]
-			}
-		}
-
 		this.otel = new NodeSDK({
 			autoDetectResources: true,
 			resourceDetectors: [processDetectorSync],
-			resource: new Resource(attributes),
+			resource,
 			spanProcessors: [this.processor],
 			logRecordProcessors: [this.logsProcessor],
 			metricReader: this.metricsReader,
@@ -221,6 +218,10 @@ export class Highlight {
 			instrumentations,
 		})
 		this.otel.start()
+
+		this.tracer = trace.getTracer('@highlight-run/node')
+		this.logger = logs.getLogger('@highlight-run/node')
+		this.meter = metrics.getMeter('@highlight-run/node')
 
 		for (const event of [
 			'beforeExit',

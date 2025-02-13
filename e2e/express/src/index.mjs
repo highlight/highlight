@@ -15,6 +15,7 @@ const config = {
 console.log(`before init`, { hello: `hello` })
 H.init(config)
 console.log(`after init`, { hello: `hello` })
+H.recordIncr({ name: 'startup' })
 
 const app = express()
 const port = 3003
