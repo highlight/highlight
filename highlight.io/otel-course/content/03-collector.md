@@ -1,5 +1,5 @@
 ---
-id: undefined
+id: G9yadsMgzu0
 title: "OpenTelemetry Collector"
 slug: "collector"
 description: "Learn how to set up and configure the OpenTelemetry Collector to receive, process, and export telemetry data efficiently."
