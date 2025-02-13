@@ -2,9 +2,12 @@ import api, {
 	Attributes,
 	BaggageEntry,
 	Context,
+	Counter,
 	diag,
 	DiagConsoleLogger,
 	DiagLogLevel,
+	Gauge,
+	Histogram,
 	Meter,
 	metrics,
 	propagation,
@@ -12,6 +15,7 @@ import api, {
 	SpanOptions,
 	trace,
 	Tracer,
+	UpDownCounter,
 } from '@opentelemetry/api'
 import { Logger, logs } from '@opentelemetry/api-logs'
 import { getNodeAutoInstrumentations } from '@opentelemetry/auto-instrumentations-node'
@@ -40,6 +44,7 @@ import {
 	type Headers,
 	HIGHLIGHT_REQUEST_HEADER,
 	type IncomingHttpHeaders,
+	Metric,
 } from './sdk.js'
 import type { HighlightContext, NodeOptions } from './types.js'
 import * as packageJson from '../package.json'
@@ -115,6 +120,20 @@ export class Highlight {
 	private readonly logsProcessor: BatchLogRecordProcessor
 	private readonly metricsReader: PeriodicExportingMetricReader
 
+	private readonly _gauges: Map<string, Gauge> = new Map<string, Gauge>()
+	private readonly _counters: Map<string, Counter> = new Map<
+		string,
+		Counter
+	>()
+	private readonly _histograms: Map<string, Histogram> = new Map<
+		string,
+		Histogram
+	>()
+	private readonly _up_down_counters: Map<string, UpDownCounter> = new Map<
+		string,
+		UpDownCounter
+	>()
+
 	constructor(options: NodeOptions) {
 		this._debug = !!options.debug
 		this._projectID = options.projectID
@@ -149,7 +168,7 @@ export class Highlight {
 		this.meter = metrics.getMeter('highlight-node')
 
 		const config = {
-			url: `${options.otlpEndpoint ?? OTLP_HTTP}/v1/traces`,
+			url: options.otlpEndpoint ?? OTLP_HTTP,
 			compression:
 				!process.env.NEXT_RUNTIME ||
 				process.env.NEXT_RUNTIME === 'nodejs'
@@ -235,23 +254,68 @@ export class Highlight {
 		}
 	}
 
-	recordMetric(
-		secureSessionId: string,
-		name: string,
-		value: number,
-		_?: string,
-		tags?: { name: string; value: string }[],
-	) {
+	recordMetric(metric: Metric) {
 		if (!this.meter) return
-		const gauge = this.meter.createGauge(name)
-		gauge.record(value, {
-			...(secureSessionId
-				? {
-						['highlight.session_id']: secureSessionId,
-					}
-				: {}),
-			...tags?.reduce((a, b) => ({ ...a, ...b }), {}),
-		})
+
+		let gauge = this._gauges.get(metric.name)
+		if (!gauge) {
+			gauge = this.meter.createGauge(metric.name)
+			this._gauges.set(metric.name, gauge)
+		}
+
+		gauge.record(
+			metric.value,
+			metric.tags?.reduce((a, b) => ({ ...a, [b.name]: b.value }), {}),
+		)
+	}
+
+	recordCount(metric: Metric) {
+		if (!this.meter) return
+
+		let counter = this._counters.get(metric.name)
+		if (!counter) {
+			counter = this.meter.createCounter(metric.name)
+			this._counters.set(metric.name, counter)
+		}
+
+		counter.add(
+			metric.value,
+			metric.tags?.reduce((a, b) => ({ ...a, [b.name]: b.value }), {}),
+		)
+	}
+
+	recordIncr(metric: Omit<Metric, 'value'>) {
+		this.recordCount({ ...metric, value: 1 })
+	}
+
+	recordHistogram(metric: Metric) {
+		if (!this.meter) return
+
+		let histogram = this._histograms.get(metric.name)
+		if (!histogram) {
+			histogram = this.meter.createHistogram(metric.name)
+			this._histograms.set(metric.name, histogram)
+		}
+
+		histogram.record(
+			metric.value,
+			metric.tags?.reduce((a, b) => ({ ...a, [b.name]: b.value }), {}),
+		)
+	}
+
+	recordUpDownCounter(metric: Metric) {
+		if (!this.meter) return
+
+		let up_down_counter = this._up_down_counters.get(metric.name)
+		if (!up_down_counter) {
+			up_down_counter = this.meter.createUpDownCounter(metric.name)
+			this._up_down_counters.set(metric.name, up_down_counter)
+		}
+
+		up_down_counter.add(
+			metric.value,
+			metric.tags?.reduce((a, b) => ({ ...a, [b.name]: b.value }), {}),
+		)
 	}
 
 	log(
