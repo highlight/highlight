@@ -40,6 +40,11 @@ app.get('/good', (req, res) => {
 		result += value
 		console.warn('some work happening', { result, value })
 		appendFileSync('test.txt', result.toString())
+		H.recordMetric({ name: 'good.metric', value: result })
+		H.recordHistogram({ name: 'good.histogram', value: result })
+		H.recordCount({ name: 'good.count', value: i })
+		H.recordIncr({ name: 'good.incr' })
+		H.recordUpDownCounter({ name: 'good.up_down_counter', value: i })
 	}
 	unlinkSync('test.txt')
 	res.send('yay!')

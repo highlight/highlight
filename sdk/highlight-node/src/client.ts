@@ -53,8 +53,9 @@ import {
 	ATTR_SERVICE_VERSION,
 	SEMRESATTRS_DEPLOYMENT_ENVIRONMENT,
 } from '@opentelemetry/semantic-conventions'
+import { OTLPGRPCExporterConfigNode } from '@opentelemetry/otlp-grpc-exporter-base'
 
-const OTLP_HTTP = 'https://otel.highlight.io:4317'
+const OTLP_GRPC = 'https://otel.highlight.io:4317'
 
 const instrumentations = getNodeAutoInstrumentations({
 	'@opentelemetry/instrumentation-http': {
@@ -167,19 +168,14 @@ export class Highlight {
 		this.meter = metrics.getMeter('highlight-node')
 
 		const config = {
-			url: options.otlpEndpoint ?? OTLP_HTTP,
+			url: options.otlpEndpoint ?? OTLP_GRPC,
 			compression:
 				!process.env.NEXT_RUNTIME ||
 				process.env.NEXT_RUNTIME === 'nodejs'
 					? CompressionAlgorithm.GZIP
 					: undefined,
-			keepAlive: true,
 			timeoutMillis: this.FLUSH_TIMEOUT_MS,
-			httpAgentOptions: {
-				timeout: this.FLUSH_TIMEOUT_MS,
-				keepAlive: true,
-			},
-		}
+		} as OTLPGRPCExporterConfigNode
 		this._log('using otlp exporter settings', config)
 		const opts = {
 			scheduledDelayMillis: 1000,
@@ -197,8 +193,8 @@ export class Highlight {
 		const metricsExporter = new OTLPMetricExporter(config)
 		this.metricsReader = new PeriodicExportingMetricReader({
 			exporter: metricsExporter,
-			exportIntervalMillis: opts.exportTimeoutMillis,
-			exportTimeoutMillis: opts.exportTimeoutMillis,
+			exportIntervalMillis: opts.scheduledDelayMillis,
+			exportTimeoutMillis: opts.scheduledDelayMillis,
 		})
 
 		const attributes: Attributes = options.attributes || {}
