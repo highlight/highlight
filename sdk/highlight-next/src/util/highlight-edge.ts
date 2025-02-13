@@ -2,13 +2,12 @@ import {
 	H as CloudflareH,
 	HighlightEnv as CloudflareHighlightEnv,
 } from '@highlight-run/cloudflare'
-import type { HighlightContext, NodeOptions } from '@highlight-run/node'
+import type { HighlightContext, NodeOptions, Metric } from '@highlight-run/node'
 import type { IncomingHttpHeaders } from 'http'
 import {
 	ExtendedExecutionContext,
 	HIGHLIGHT_REQUEST_HEADER,
 	HighlightInterface,
-	Metric,
 } from './types'
 
 export type HighlightEnv = NodeOptions
@@ -97,23 +96,28 @@ export const H: HighlightInterface = {
 	stop: async () => {
 		throw new Error('H.stop is not supported by the Edge runtime.')
 	},
-	recordMetric: (
-		secureSessionId: string,
-		name: string,
-		value: number,
-		requestId: string,
-		tags?: {
-			name: string
-			value: string
-		}[],
-	) => {
+	recordMetric: (metric: Metric) => {
 		return CloudflareH.recordMetric({
-			secureSessionId,
-			name,
-			value,
-			requestId,
-			tags,
+			...metric,
+			secureSessionId:
+				metric.tags?.find((t) => t.name === 'highlight.session_id')
+					?.value ?? '',
+			requestId:
+				metric.tags?.find((t) => t.name === 'highlight.trace_id')
+					?.value ?? '',
 		})
+	},
+	recordCount: function (metric: Metric): void {
+		return this.recordMetric(metric)
+	},
+	recordIncr: function (metric: Omit<Metric, 'value'>): void {
+		return this.recordMetric({ ...metric, value: 1 })
+	},
+	recordHistogram: function (metric: Metric): void {
+		return this.recordMetric(metric)
+	},
+	recordUpDownCounter: function (metric: Metric): void {
+		return this.recordMetric(metric)
 	},
 	parseHeaders(
 		headers: Headers | IncomingHttpHeaders | undefined,

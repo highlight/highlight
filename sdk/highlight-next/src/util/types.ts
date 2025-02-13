@@ -3,18 +3,13 @@ import type {
 	Highlight,
 	HighlightContext,
 	NodeOptions,
+	Metric,
 } from '@highlight-run/node'
 import type { WorkersSDK } from '@highlight-run/opentelemetry-sdk-workers'
 import type { Attributes, SpanOptions } from '@opentelemetry/api'
 import type { ResourceAttributes } from '@opentelemetry/resources/build/src/types'
 
 export type HighlightEnv = NodeOptions
-
-export declare interface Metric {
-	name: string
-	value: number
-	tags?: { name: string; value: string }[]
-}
 
 export type ExtendedExecutionContext = ExecutionContext & {
 	__waitUntilTimer?: ReturnType<typeof setInterval>
@@ -53,16 +48,11 @@ export interface HighlightInterface {
 	) => void
 	sendResponse: (response: Response) => void
 	setAttributes: (attributes: ResourceAttributes) => void
-	recordMetric: (
-		secureSessionId: string,
-		name: string,
-		value: number,
-		requestId: string,
-		tags?: {
-			name: string
-			value: string
-		}[],
-	) => void
+	recordMetric: (metric: Metric) => void
+	recordCount: (metric: Metric) => void
+	recordIncr: (metric: Omit<Metric, 'value'>) => void
+	recordHistogram: (metric: Metric) => void
+	recordUpDownCounter: (metric: Metric) => void
 	stop: () => Promise<void>
 	flush: () => Promise<void>
 }

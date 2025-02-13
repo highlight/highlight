@@ -44,9 +44,8 @@ import {
 	type Headers,
 	HIGHLIGHT_REQUEST_HEADER,
 	type IncomingHttpHeaders,
-	Metric,
 } from './sdk.js'
-import type { HighlightContext, NodeOptions } from './types.js'
+import type { HighlightContext, NodeOptions, Metric } from './types.js'
 import * as packageJson from '../package.json'
 import { PrismaInstrumentation } from '@prisma/instrumentation'
 import {

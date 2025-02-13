@@ -51,3 +51,9 @@ export interface HighlightContext {
 	secureSessionId: string | undefined
 	requestId: string | undefined
 }
+
+export declare interface Metric {
+	name: string
+	value: number
+	tags?: { name: string; value: string }[]
+}

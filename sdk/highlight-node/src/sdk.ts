@@ -7,18 +7,12 @@ import {
 import { ResourceAttributes } from '@opentelemetry/resources'
 import { Highlight } from './client'
 import log from './log'
-import type { HighlightContext, NodeOptions } from './types.js'
+import type { HighlightContext, Metric, NodeOptions } from './types.js'
 
 export const HIGHLIGHT_REQUEST_HEADER = 'x-highlight-request'
 
 export type Headers = Iterable<string | string[] | undefined>
 export type IncomingHttpHeaders = NodeJS.Dict<string | string[] | undefined>
-
-export declare interface Metric {
-	name: string
-	value: number
-	tags?: { name: string; value: string }[]
-}
 
 export interface HighlightInterface {
 	init: (options: NodeOptions) => Highlight
