@@ -27,13 +27,13 @@ Today, we'll go through a complete guide to using OpenTelemetry in Python, inclu
 
 ## Setting Up OpenTelemetry for Next.js: Tracing, Logging, and Metrics
 
-Observability is crucial for understanding the performance and behavior of your Next.js application. OpenTelemetry (OTel) provides a robust framework for tracing, logging, and metrics collection, allowing you to gain deep insights into how your application operates.
+Observability is crucial for understanding the performance and behavior of your Next.js application. OpenTelemetry (OTel) provides a robust framework for collecting the observability data you need to gain deep insights into how your application operates.
 
 In this guide, we’ll walk through setting up OpenTelemetry in a Next.js project, covering:
 - Tracing: Capturing distributed traces for API requests and page transitions
 - Logging: Collecting structured logs that correlate with traces
 - Metrics: Exporting performance and custom application metrics
-- Built-in Spans: Leveraging Next.js’s automatic spans and debugging with NEXT_OTEL_VERBOSE
+- Built-in Spans: Leveraging Next.js’s automatic spans and debugging with `NEXT_OTEL_VERBOSE`
 - Exception Tracking: Capturing errors within traces
 - Simplifying Setup with @vercel/otel
 
@@ -49,7 +49,7 @@ yarn add @opentelemetry/api @opentelemetry/sdk-node @opentelemetry/instrumentati
 
 This setup includes the core OpenTelemetry API, SDK, HTTP and Fetch instrumentations, and OTLP exporters for traces and metrics.
 
-### Setting Up OpenTelemetry SDK
+### Setting Up the OpenTelemetry SDK
 
 Create a new file `otel.js` at the root of your Next.js project:
 
@@ -213,7 +213,7 @@ This ensures that the error is captured within the OpenTelemetry trace and can b
 
 ### Exporting Metrics
 
-Next.js applications often benefit from metrics like request count, latency, and errors. Modify `otel.js`:
+Next.js applications often benefit from metrics like request count, latency, and errors. Here's how to add instrumentation for request tracking in `otel.js`:
 
 ```javascript
 import { MeterProvider } from '@opentelemetry/sdk-metrics';
@@ -250,7 +250,7 @@ What is @vercel/otel?
 - Exception tracking out of the box
 - Export to OpenTelemetry-compatible backends (e.g., Highlight.io)
 
-We've covered this topic in more detail previously with our [blog on setting up @vercel/otel in next.js](./how-to-use-opentelemetry-to-monitor-nextjs-apps.md), so make sure to check it out for a full guide.
+We've covered this topic in more detail previously with our [blog on setting up @vercel/otel in Next.js](./how-to-use-opentelemetry-to-monitor-nextjs-apps.md), so make sure to check it out for a full guide.
 
 ### Putting it all together
 
@@ -384,7 +384,7 @@ By integrating OpenTelemetry into your Next.js app, you gain:
 
 ✅ Custom metrics for tracking performance
 
-With NEXT_OTEL_VERBOSE=1, you can further debug your application’s span structure.
+With `NEXT_OTEL_VERBOSE=1`, you can further debug your application’s span structure.
 
 Now, send your telemetry data to a backend like Jaeger, Prometheus, or Honeycomb and start gaining powerful insights into your Next.js application! 🚀
 
