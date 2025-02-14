@@ -7,6 +7,7 @@ import {
 import { Maybe, Session, SessionsReportRow } from '@graph/schemas'
 import { useProjectId } from '@hooks/useProjectId'
 import moment from 'moment/moment'
+import analytics from '@util/analytics'
 
 export const processRows = <
 	T extends { __typename?: Maybe<string>; user_properties?: Maybe<string> },
@@ -50,11 +51,15 @@ export const processRows = <
 			Object.entries(keys)
 				.filter(([k]) => !ignoreKeys.has(k as keyof T))
 				.sort(([, idx1], [_, idx2]) => idx1 - idx2)
-				.map(([k]) =>
-					Object.hasOwn(data, k)
+				.map(([k]) => {
+					const value = Object.hasOwn(data, k)
 						? data[k as keyof T]
-						: data['' as keyof T],
-				),
+						: data['' as keyof T]
+					if (typeof value === 'object') {
+						return JSON.stringify(value)
+					}
+					return value
+				}),
 		)
 	}
 	return rows
@@ -106,6 +111,8 @@ const getSessionRows = (sessions: Session[]) => {
 }
 
 export const exportFile = async (name: string, content: string) => {
+	analytics.track('exportFile', { name, size: content.length })
+
 	const blob = new Blob([content], { type: 'text/csv' })
 	const link = document.createElement('a')
 	link.setAttribute('href', window.URL.createObjectURL(blob))
@@ -220,7 +227,10 @@ export const useGenerateSessionsReportCSV = () => {
 					rowArray
 						.map((col) =>
 							col
-								? col.toString().replaceAll(/[,;\t]/gi, '|')
+								? col
+										.toString()
+										.replaceAll(/[,;\t]/gi, '|')
+										.replaceAll(/\s+/gi, ' ')
 								: '',
 						)
 						.join(','),

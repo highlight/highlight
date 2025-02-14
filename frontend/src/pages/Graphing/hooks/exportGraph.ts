@@ -98,7 +98,10 @@ export const exportGraph = async (
 					return col
 						? m.isAfter(moment().subtract(10, 'year'))
 							? m.format('MM/DD/YYYY HH:mm:ss')
-							: col.toString().replaceAll(/[,;\t]/gi, '|')
+							: col
+									.toString()
+									.replaceAll(/[,;\t]/gi, '|')
+									.replaceAll(/\s+/gi, ' ')
 						: ''
 				})
 				.join(','),
