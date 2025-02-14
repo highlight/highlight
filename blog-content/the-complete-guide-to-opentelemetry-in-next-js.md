@@ -46,6 +46,12 @@ In the past, we've covered instrumenting Next.js with `@vercel/otel` in our [blo
 While `@vercel/otel` is a simpler option for many applications, it may not give you full control over the OpenTelemetry SDKs.
 Today, we'll go through a complete guide to setting up OpenTelemetry from scratch, explaining the configuration options along the way.
 
+```hint
+Our implementation covers setting up @opentelemetry/sdk-node which is only compatible with the Node.js runtime.
+If you are using the Edge runtime in Next.js, you'll need to use @vercel/otel which conditionally switches to the
+@opentelemetry/sdk-trace-web implementation which is Edge runtime compatible, or implement a similar approach yourself.`
+```
+
 To get started, install the necessary OpenTelemetry dependencies:
 
 ```bash
@@ -109,7 +115,9 @@ console.log('OpenTelemetry initialized');
 To trigger this file to run when the app starts, you can invoke it from the Next.js magic `instrumentation.ts` file.
 
 ```javascript
-import './otel';
+export function register() {
+  await import('./otel');
+}
 ```
 
 The [instrumentation.ts file](https://nextjs.org/docs/app/api-reference/file-conventions/instrumentation) is automatically detected by Next.js and will run when the app starts. Before Next.js 15, the instrumentation is experimental, so you will have to enable it explicitly:
@@ -223,6 +231,28 @@ You can use this logger in your code or with a helper method.
 Make sure to check out other [OpenTelemetry logging instrumentations](https://opentelemetry.io/ecosystem/registry/?language=js&component=instrumentation)
 that can automatically hook into [common logging libraries](./nodejs-logging-libraries.md) like Winston or Pino.
 
+If you want to capture console logger methods such as `console.log`, `console.error`, etc., 
+you'll need to manually instrument them to record their logs to the OpenTelemetry logger.
+Here's an example of how to do that:
+
+```javascript
+import { LoggerProvider } from '@opentelemetry/sdk-logs';
+
+const loggerProvider = new LoggerProvider();
+const logger = loggerProvider.getLogger('nextjs-logger');
+
+const originalConsoleLog = console.log;
+console.log = (...args) => {
+  originalConsoleLog(...args);
+  logger.emit({
+    severityText: 'INFO',
+    body: args.join(' '),
+  });
+};
+
+console.log('Hello, world!');
+```
+
 ### Capturing Exceptions with Spans
 
 Let's emit a custom span in our code that can be used to capture an exception.
@@ -232,21 +262,64 @@ Modify your API route:
 ```javascript
 import { trace } from '@opentelemetry/api';
 
+const tracerProvider = trace.getTracerProvider();
+const tracer = tracerProvider.getTracer("tracer");
+
 export default async function handler(req, res) {
-  const span = trace.getActiveSpan();
-  
-  try {
-    throw new Error('Something went wrong!');
-  } catch (error) {
-    if (span) {
-      span.setAttribute('error', true);
-      span.recordException(error);
-    }
-    res.status(500).json({ error: 'Internal Server Error' });
-  }
+  await tracer.startActiveSpan(
+    "data.fetch",
+    {
+      attributes: {
+        "user.email": email || undefined,
+        "user.name": name || undefined,
+      },
+    },
+    async (span) => {
+      try {
+        doSomething();
+        throw new Error('Something went wrong!');
+      } catch (error) {
+        if (span) {
+          span.recordException(error);
+        }
+      }
+    },
+  );
 }
 ```
 This ensures that the error is captured within the OpenTelemetry trace and can be visualized in your tracing backend.
+
+Next.js 15 also introduces a new `onRequestError` [hook that can be used to capture server errors](https://nextjs.org/docs/app/api-reference/file-conventions/instrumentation#onrequesterror-optional).
+You can use it in your `instrumentation.ts` file to intercept all server actions and capture the error:
+
+```javascript
+
+import { type Instrumentation } from 'next'
+
+export const onRequestError: Instrumentation.onRequestError = async (
+  err,
+  request,
+  context
+) => {
+  const { trace } = await import('@opentelemetry/api')
+  const span = trace.getActiveSpan()
+  if (span) {
+    span.setAttributes({
+      'http.url': request.path,
+      'http.method': request.method,
+      'next.router.kind': context.routerKind,
+      'next.router.path': context.routerPath,
+      'next.router.type': context.routerType,
+      'next.render.source': context.renderSource,
+      'next.render.type': context.renderType,
+      'next.revalidate.reason': context.revalidateReason,
+    })
+    span.recordException(err)
+  }
+}
+```
+
+This example reports the error to the current active span, which is the span for the request.
 
 ### Exporting Metrics
 
