@@ -1,0 +1,136 @@
+x-local-logging: &local-logging
+    driver: local
+
+# Highlight.io services for the development deployment.
+services:
+    zookeeper:
+        logging: *local-logging
+        image: ${ZOOKEEPER_IMAGE_NAME}
+        container_name: zookeeper
+        restart: on-failure
+        volumes:
+            - zoo-data:/var/lib/zookeeper/data
+            - zoo-log:/var/lib/zookeeper/log
+        environment:
+            ZOOKEEPER_CLIENT_PORT: 2181
+            ZOOKEEPER_TICK_TIME: 2000
+
+    kafka:
+        logging: *local-logging
+        image: ${KAFKA_IMAGE_NAME}
+        container_name: kafka
+        volumes:
+            - kafka-data:/var/lib/kafka/data
+        ports:
+            - '0.0.0.0:9092:9092'
+        restart: on-failure
+        depends_on:
+            - zookeeper
+        environment:
+            KAFKA_ADVERTISED_LISTENERS: ${KAFKA_ADVERTISED_LISTENERS}
+            KAFKA_BROKER_ID: 1
+            KAFKA_CONSUMER_MAX_PARTITION_FETCH_BYTES: 268435456
+            KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT
+            KAFKA_LOG_RETENTION_HOURS: 1
+            KAFKA_LOG_SEGMENT_BYTES: 268435456
+            KAFKA_MESSAGE_MAX_BYTES: 268435456
+            KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+            KAFKA_PRODUCER_MAX_REQUEST_SIZE: 268435456
+            KAFKA_REPLICA_FETCH_MAX_BYTES: 268435456
+            KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+            KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+            KAFKA_ZOOKEEPER_CONNECT: 'zookeeper:2181'
+
+    redis:
+        logging: *local-logging
+        container_name: redis
+        image: ${REDIS_IMAGE_NAME}
+        restart: on-failure
+        volumes:
+            - redis-data:/data
+        ports:
+            - '0.0.0.0:6379:6379'
+        command:
+            - redis-server
+            - --save 60 1
+            - --loglevel warning
+
+    postgres:
+        logging: *local-logging
+        container_name: postgres
+        # a postgres image with pgvector installed
+        image: ${POSTGRES_IMAGE_NAME}
+        restart: on-failure
+        ports:
+            - '0.0.0.0:5432:5432'
+        environment:
+            POSTGRES_HOST_AUTH_METHOD: trust
+        volumes:
+            - postgres-data:/var/lib/postgresql/data
+            - ../scripts/migrations/init.sql:/root/init.sql
+        healthcheck:
+            test: ['CMD-SHELL', 'pg_isready -U postgres']
+            interval: 5s
+            timeout: 5s
+            retries: 5
+
+    clickhouse:
+        logging: *local-logging
+        container_name: clickhouse
+        image: ${CLICKHOUSE_IMAGE_NAME}
+        restart: on-failure
+        ports:
+            - '0.0.0.0:8123:8123'
+            - '0.0.0.0:9000:9000'
+        volumes:
+            - ./config.xml:/etc/clickhouse-server/config.d/highlight.xml
+            - ./users.xml:/etc/clickhouse-server/users.d/highlight.xml
+            - clickhouse-data:/var/lib/clickhouse
+            - clickhouse-logs:/var/log/clickhouse-server
+
+    collector:
+        logging: *local-logging
+        restart: on-failure
+        build:
+            dockerfile: ./docker/collector.Dockerfile
+            pull: true
+            target: collector
+            context: ..
+            args:
+                - IN_DOCKER_GO
+                - SSL
+        container_name: collector
+        extra_hosts:
+            - 'host.docker.internal:host-gateway'
+        ports:
+            - '0.0.0.0:24224:24224'
+            - '0.0.0.0:34302:34302'
+            - '0.0.0.0:4317:4317'
+            - '0.0.0.0:4318:4318'
+            - '0.0.0.0:4319:4319'
+            - '0.0.0.0:4433:4433'
+            - '0.0.0.0:4434:4434'
+            - '0.0.0.0:4435:4435'
+            - '0.0.0.0:6513:6513'
+            - '0.0.0.0:6514:6514'
+            - '0.0.0.0:8318:8318'
+            - '0.0.0.0:8888:8888'
+
+    predictions:
+        logging: *local-logging
+        restart: on-failure
+        build:
+            dockerfile: ./packages/predictions/predictions.Dockerfile
+            context: ..
+        container_name: predictions
+        ports:
+            - '0.0.0.0:5001:5001'
+
+volumes:
+    postgres-data:
+    clickhouse-data:
+    clickhouse-logs:
+    redis-data:
+    kafka-data:
+    zoo-log:
+    zoo-data:
