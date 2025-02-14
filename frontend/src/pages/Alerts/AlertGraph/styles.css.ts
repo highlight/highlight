@@ -1,6 +1,10 @@
+import { vars } from '@highlight-run/ui/vars'
 import { style } from '@vanilla-extract/css'
 
 export const graphWrapper = style({
-	width: 720,
-	height: 360,
+	width: 860,
+	height: 540,
+	margin: 'auto',
+	zIndex: 1,
+	backgroundColor: vars.color.white,
 })

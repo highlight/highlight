@@ -21,10 +21,6 @@ export const graphBackground = style({
 	zIndex: 0,
 })
 
-export const editGraphSidebar = style({
-	width: 320,
-})
-
 export const editorLabel = style({
 	marginBottom: 4,
 })

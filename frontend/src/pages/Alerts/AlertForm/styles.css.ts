@@ -9,12 +9,12 @@ export const editGraphPanel = style({
 	height: 'calc(100% - 40px)',
 })
 
-export const tagSwitch = style({
-	width: '100%',
+export const editGraphPreview = style({
+	flexGrow: 1,
 })
 
-export const editGraphSidebar = style({
-	width: 320,
+export const tagSwitch = style({
+	width: '100%',
 })
 
 export const editorLabel = style({
@@ -37,4 +37,27 @@ export const graphContainer = style({
 	margin: 'auto',
 	zIndex: 1,
 	backgroundColor: vars.color.white,
+})
+
+export const sqlEditorWrapper = style({
+	backgroundColor: vars.theme.static.surface.nested,
+	borderBottomLeftRadius: vars.borderRadius[6],
+	borderBottomRightRadius: vars.borderRadius[6],
+})
+
+export const editorHeader = style({
+	display: 'flex',
+	justifyContent: 'space-between',
+	width: '100%',
+	borderBottom: vars.border.divider,
+	padding: '6px',
+})
+
+export const editorSelect = style({
+	width: 'fit-content',
+})
+
+export const editorSection = style({
+	border: vars.border.divider,
+	borderRadius: vars.borderRadius[6],
 })
