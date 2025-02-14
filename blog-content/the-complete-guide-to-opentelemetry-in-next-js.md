@@ -150,9 +150,23 @@ NEXT_OTEL_VERBOSE=1
 
 Setting the `NEXT_OTEL_VERBOSE` environment variable will emit additional traces that give you more granularity of the code execution.
 
+For example, here's a flame graph visualization of a trace without verbose tracing, `NEXT_OTEL_VERBOSE=0`:
+
+![](/images/blog/nextjs-otel/not-verbose.png)
+
+And here's the same trace with verbose tracing enabled, `NEXT_OTEL_VERBOSE=1`:
+
+![](/images/blog/nextjs-otel/verbose.png)
+
 Let's go through some examples of the data that can be captured.
 
 ![](/images/blog/nextjs-otel/trace.png)
+
+In the image above, you can see the trace start with an api route request that is piped through Next.js to the API handler.
+We also see a custom span that wraps an ourgoing API request to another service. Because we set up auto-instrumentation, 
+we capture the `fetch` call automatically, and can even propagate the trace context to the backend service.
+
+Here's a list of the top-level spans that are captured automatically by Next.js:
 
 - BaseServer.handleRequest
 
