@@ -67,7 +67,7 @@ This setup includes the core OpenTelemetry API, SDK, HTTP and Fetch instrumentat
 
 Create a new file `otel.ts` at the root of your Next.js project:
 
-```javascript
+```typescript
 import { NodeSDK } from '@opentelemetry/sdk-node';
 import { ConsoleSpanExporter } from '@opentelemetry/sdk-trace-base';
 import { OTLPTraceExporter } from '@opentelemetry/exporter-trace-otlp-grpc';
@@ -114,7 +114,7 @@ console.log('OpenTelemetry initialized');
 
 To trigger this file to run when the app starts, you can invoke it from the Next.js magic `instrumentation.ts` file.
 
-```javascript
+```typescript
 export function register() {
   await import('./otel');
 }
@@ -122,7 +122,7 @@ export function register() {
 
 The [instrumentation.ts file](https://nextjs.org/docs/app/api-reference/file-conventions/instrumentation) is automatically detected by Next.js and will run when the app starts. Before Next.js 15, the instrumentation is experimental, so you will have to enable it explicitly:
 
-```javascript
+```typescript
 module.exports = {
   experimental: {
     instrumentationHook: true,
@@ -215,7 +215,7 @@ At a glance, that can help diagnose a performance issue due to a downstream serv
 
 Let's add some more logic to `otel.ts` to create a logger that can be used to emit custom messages.
 
-```javascript
+```typescript
 import { LoggerProvider } from '@opentelemetry/sdk-logs';
 
 const loggerProvider = new LoggerProvider();
@@ -235,7 +235,7 @@ If you want to capture console logger methods such as `console.log`, `console.er
 you'll need to manually instrument them to record their logs to the OpenTelemetry logger.
 Here's an example of how to do that:
 
-```javascript
+```typescript
 import { LoggerProvider } from '@opentelemetry/sdk-logs';
 
 const loggerProvider = new LoggerProvider();
@@ -259,7 +259,7 @@ Let's emit a custom span in our code that can be used to capture an exception.
 We'll start a span and then automatically add error attributes by capturing the error. 
 Modify your API route:
 
-```javascript
+```typescript
 import { trace } from '@opentelemetry/api';
 
 const tracerProvider = trace.getTracerProvider();
@@ -292,7 +292,7 @@ This ensures that the error is captured within the OpenTelemetry trace and can b
 Next.js 15 also introduces a new `onRequestError` [hook that can be used to capture server errors](https://nextjs.org/docs/app/api-reference/file-conventions/instrumentation#onrequesterror-optional).
 You can use it in your `instrumentation.ts` file to intercept all server actions and capture the error:
 
-```javascript
+```typescript
 
 import { type Instrumentation } from 'next'
 
@@ -325,7 +325,7 @@ This example reports the error to the current active span, which is the span for
 
 Next.js applications often benefit from metrics like request count, latency, and errors. Here's how to add instrumentation for request tracking in `otel.ts`:
 
-```javascript
+```typescript
 import { MeterProvider } from '@opentelemetry/sdk-metrics';
 
 const meter = new MeterProvider().getMeter('nextjs-meter');
@@ -339,7 +339,7 @@ export function trackRequest() {
 ```
 
 Then, use it in an API route:
-```javascript
+```typescript
 import { trackRequest } from '../../otel';
 
 export default function handler(req, res) {
@@ -403,13 +403,22 @@ import { NextResponse } from "next/server";
 import api, { propagation } from "@opentelemetry/api";
 import { logs, SeverityNumber } from "@opentelemetry/api-logs";
 
+const tracerProvider = api.trace.getTracerProvider();
+const tracer = tracerProvider.getTracer("data");
+
+const loggerProvider = logs.getLoggerProvider();
+const logger = provider.getLogger("data");
+
+const meterProvider = api.metrics.getMeterProvider();
+const meter = meterProvider.getMeter("data");
+
 // This is an example implementation of a route that fetches data from a Python service
 export async function GET() {
   const { email, name } = req.query;
 
   console.log(`Fetching data for user: ${email} ${name}`);
-  const tracerProvider = api.trace.getTracerProvider();
-  const tracer = tracerProvider.getTracer("data");
+
+  // create a span for the data fetch
   const data = await tracer.startActiveSpan(
     "data.fetch",
     {
@@ -441,8 +450,7 @@ export async function GET() {
     },
   );
 
-  const meterProvider = api.metrics.getMeterProvider();
-  const meter = meterProvider.getMeter("data");
+  // report the data as a metric
   const gauge = meter.createObservableGauge("data.metric");
   for (const d of data) {
     gauge.addCallback((m) => {
@@ -450,14 +458,67 @@ export async function GET() {
     });
   }
 
-  const provider = logs.getLoggerProvider();
-  const logger = provider.getLogger("data");
+  // emit a custom log
   logger.emit({
     severityNumber: SeverityNumber.INFO,
     severityText: "INFO",
     body: "returning data",
     attributes: { data },
   });
+
+  return NextResponse.json(data);
+```
+
+In this full handler example, you can see how to emit a trace, log, and metric using the native OpenTelemetry constructs. It's evident that the API is quite verbose and not simple to work with. For the highlight platform, we've created a [Node.js SDK that wraps OpenTelemetry](https://github.com/highlight/highlight/blob/main/sdk/highlight-node/src/client.ts) to simplify the API streamline data reporting, with simple APIs. For example, here's the same handler using our SDK:
+
+
+```typescript
+import { H } from '@highlight-run/node';
+H.init('YOUR_PROJECT_ID', {
+  // ... options to configure the SDK
+});
+
+// This is an example implementation of a route that fetches data from a Python service
+export async function GET() {
+  const { email, name } = req.query;
+
+  console.log(`Fetching data for user: ${email} ${name}`);
+
+  // create a span for the data fetch
+  const data = await H.startActiveSpan(
+    "data.fetch",
+    {
+      attributes: {
+        "user.email": email || undefined,
+        "user.name": name || undefined,
+      },
+    },
+    async () => {
+      console.log("Fetching data...", { email });
+      const response = await fetch(
+        `https://api.sampleapis.com/coffee/hot`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            email,
+          }),
+        },
+      );
+      if (!response.ok) {
+        throw new Error("Failed to fetch data");
+      }
+      return await response.json();
+    },
+  );
+
+  // report the data as a metric
+  for (const d of data) {
+    H.recordMetric('data.metric', d.attribute);
+  }
+
+  // emit a custom log
+  H.log('returning data', { data });
 
   return NextResponse.json(data);
 ```
