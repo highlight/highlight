@@ -1,7 +1,7 @@
 ---
 title: The complete guide to OpenTelemetry in Next.js
 createdAt: 2025-02-10T12:00:00.000Z
-readingTime: 21
+readingTime: 14
 authorFirstName: Vadim
 authorLastName: Korolik
 authorTitle: CTO @ Highlight
@@ -15,43 +15,51 @@ metaTitle: The complete guide to OpenTelemetry in Next.js
 ---
 
 ```hint
-Highlight.io is an [open source](https://github.com/highlight/highlight) monitoring platform. If you’re interested in learning more, get started at [highlight.io](https://highlight.io).
+Highlight.io is an [open source](https://github.com/highlight/highlight) monitoring platform. If you’re interested in learning more, learn more or try it out at [highlight.io](https://highlight.io).
 ```
 <br/>
 
 OpenTelemetry is an important specification that defines how we send telemetry data to observability backends like Highlight.io, Grafana, and others. OpenTelemetry is great because it is vendor agnostic, and can be used with several observability backends. If you're new to OpenTelemetry, you can learn more about it [here](https://www.youtube.com/watch?v=ASgosEzG4Pw). 
 
 
-Today, we'll go through a complete guide to using OpenTelemetry in Python, including the high-level concepts as well as how to send traces and logs to your OpenTelemetry backend of choice.
+Today, we'll go through a complete guide to using OpenTelemetry in Next.js, including the high-level concepts as well as how to send traces, logs, and metrics to your OpenTelemetry backend of choice.
 
 
 ## Setting Up OpenTelemetry for Next.js: Tracing, Logging, and Metrics
 
-Observability is crucial for understanding the performance and behavior of your Next.js application. OpenTelemetry (OTel) provides a robust framework for collecting the observability data you need to gain deep insights into how your application operates.
-
-In this guide, we’ll walk through setting up OpenTelemetry in a Next.js project, covering:
+Let's walk through setting up OpenTelemetry in a Next.js project, covering:
 - Tracing: Capturing distributed traces for API requests and page transitions
 - Logging: Collecting structured logs that correlate with traces
 - Metrics: Exporting performance and custom application metrics
-- Built-in Spans: Leveraging Next.js’s automatic spans and debugging with `NEXT_OTEL_VERBOSE`
-- Exception Tracking: Capturing errors within traces
-- Simplifying Setup with @vercel/otel
 
-By the end of this tutorial, you’ll have OpenTelemetry integrated into your Next.js project with traces, logs, and metrics exported to your preferred backend.
+There are several reasons that make OTel a great choice for monitoring your Next.js application:
+- Built-in Spans: Next.js provides automatic spans at the framework level
+- Exception Tracking: Errors are automatically captured within traces by the framework
+- Simplified Setup: [@vercel/otel](https://vercel.com/docs/observability/otel-overview) eliminates the need to manually configure OpenTelemetry SDKs, exporters, and instrumentations
+
+By the end of this tutorial, you'll have all the observability data you need to be proactively notified when
+something goes wrong, troubleshoot issues quickly, and fix performance bottlenecks in the critical parts of your code.
 
 ### Installing OpenTelemetry in Next.js
+
+In the past, we've covered instrumenting Next.js with `@vercel/otel` in our [blog on using @vercel/otel in Next.js](./lw5-vercel-otel-nextjs-tracing.md).
+While `@vercel/otel` is a simpler option for many applications, it may not give you full control over the OpenTelemetry SDKs.
+Today, we'll go through a complete guide to setting up OpenTelemetry from scratch, explaining the configuration options along the way.
 
 To get started, install the necessary OpenTelemetry dependencies:
 
 ```bash
-yarn add @opentelemetry/api @opentelemetry/sdk-node @opentelemetry/instrumentation-http @opentelemetry/instrumentation-fetch @opentelemetry/exporter-trace-otlp-grpc @opentelemetry/exporter-metrics-otlp-grpc @opentelemetry/resources @opentelemetry/semantic-conventions
+yarn add @opentelemetry/api @opentelemetry/api-logs @opentelemetry/sdk-node \
+  @opentelemetry/instrumentation-http @opentelemetry/instrumentation-fetch \
+  @opentelemetry/exporter-trace-otlp-grpc @opentelemetry/exporter-logs-otlp-grpc \
+  @opentelemetry/exporter-metrics-otlp-grpc @opentelemetry/resources @opentelemetry/semantic-conventions
 ```
 
 This setup includes the core OpenTelemetry API, SDK, HTTP and Fetch instrumentations, and OTLP exporters for traces and metrics.
 
 ### Setting Up the OpenTelemetry SDK
 
-Create a new file `otel.js` at the root of your Next.js project:
+Create a new file `otel.ts` at the root of your Next.js project:
 
 ```javascript
 import { NodeSDK } from '@opentelemetry/sdk-node';
@@ -62,27 +70,49 @@ import { Resource } from '@opentelemetry/resources';
 import { SEMRESOURCENAME } from '@opentelemetry/semantic-conventions';
 import { HttpInstrumentation } from '@opentelemetry/instrumentation-http';
 import { FetchInstrumentation } from '@opentelemetry/instrumentation-fetch';
+import { AlwaysOnSampler } from '@opentelemetry/sdk-trace-base';
+import { BatchSpanProcessor } from '@opentelemetry/sdk-trace-base';
+import { BatchLogRecordProcessor } from '@opentelemetry/sdk-logs';
+import { PeriodicExportingMetricReader } from '@opentelemetry/sdk-metrics';
 
+const exporter = new OTLPTraceExporter(config)
+const spanProcessor = new BatchSpanProcessor(exporter, opts)
+
+const logsExporter = new OTLPLogExporter(config)
+const logProcessor = new BatchLogRecordProcessor(logsExporter, opts)
+
+const metricsExporter = new OTLPMetricExporter(config)
+const metricsReader = new PeriodicExportingMetricReader({exporter: metricsExporter})
+
+// Configure the OTLP exporter to send data to your OpenTelemetry backend
+const config = { url: 'https://otel.highlight.io:4317' }
 const sdk = new NodeSDK({
+  autoDetectResources: true,
+  resourceDetectors: [processDetectorSync],
   resource: new Resource({
     [SEMRESOURCENAME.SERVICE_NAME]: 'nextjs-app',
+    'highlight.project_id': '<YOUR_PROJECT_ID>',
   }),
-  traceExporter: new OTLPTraceExporter(), 
-  metricExporter: new OTLPMetricExporter(), 
+  spanProcessors: [spanProcessor],
+  logRecordProcessors: [logProcessor],
+  metricReader: metricReader,
+  traceExporter: exporter,
+  contextManager: new AsyncLocalStorageContextManager(),
+  sampler: new AlwaysOnSampler(),
   instrumentations: [new HttpInstrumentation(), new FetchInstrumentation()],
-});
+})
 
 sdk.start();
 console.log('OpenTelemetry initialized');
 ```
 
-To trigger this file to run when the app starts, you can invoke it from the Next.js magic `instrumentation.js` file.
+To trigger this file to run when the app starts, you can invoke it from the Next.js magic `instrumentation.ts` file.
 
 ```javascript
 import './otel';
 ```
 
-The [instrumentation.js file](https://nextjs.org/docs/app/api-reference/file-conventions/instrumentation) is automatically detected by Next.js and will run when the app starts. Before Next.js 15, the instrumentation is experimental, so you will have to enable it explicitly:
+The [instrumentation.ts file](https://nextjs.org/docs/app/api-reference/file-conventions/instrumentation) is automatically detected by Next.js and will run when the app starts. Before Next.js 15, the instrumentation is experimental, so you will have to enable it explicitly:
 
 ```javascript
 module.exports = {
@@ -93,90 +123,92 @@ module.exports = {
 ```
 
 
-### Enabling OpenTelemetry in Next.js
+### Configuring Tracing
 
-Automatic Spans in Next.js
+With the SDK configured, your application will start to export the telemetry data using the exporters defined.
+However, you may wonder what data is being captured without any explicit code added.
 
-Next.js has built-in OpenTelemetry spans for various parts of the application, including:
+[Next.js has built-in OpenTelemetry spans](https://nextjs.org/docs/app/building-your-application/optimizing/open-telemetry#default-spans-in-nextjs)
+for various parts of the application, including:
 - API routes (pages/api or app/api)
 - Page router (Pages Directory)
 - App router (App Directory)
 
-To enable verbose OpenTelemetry logging, set the following environment variable:
+Some top-level spans are emitted out-of-the-box, while others can be turned on by turning on verbose logging:
 
 ```bash
 NEXT_OTEL_VERBOSE=1
 ```
 
-With this enabled, Next.js will provide detailed span information in the logs, making it easier to debug and understand request flow.
+Setting the `NEXT_OTEL_VERBOSE` environment variable will emit additional traces that give you more granularity of the code execution.
 
-### Tracing API Requests and Page Loads
+Let's go through some examples of the data that can be captured.
 
-#### Tracing API Routes
+![](/images/blog/nextjs-otel/trace.png)
 
-Next.js automatically creates spans for API requests. For example, a request to /api/user will generate spans like:
-- next.js /api/user request
-- next.js /api/user handler
-- fetch /external-api (if the API calls another service)
+- BaseServer.handleRequest
 
-If you have an API route in pages/api/user.ts:
+Named `[http.method] [next.route]`, [the root span for each incoming request to your Next.js application](https://nextjs.org/docs/app/building-your-application/optimizing/open-telemetry#httpmethod-nextroute).
 
-```javascript
-export default async function handler(req, res) {
-  res.status(200).json({ name: 'John Doe' });
-}
-```
+- AppRender.getBodyResult
 
-You can observe spans for:
-✅ Incoming request (GET /api/user)
-✅ Response timing
-✅ Any internal or external API calls
+Named `render route (app) [next.route]`, [represents the process of rendering a route in the app router](https://nextjs.org/docs/app/building-your-application/optimizing/open-telemetry#render-route-app-nextroute).
 
-#### Tracing Page Router (Pages Directory)
+- AppRender.fetch
 
-For traditional Next.js pages (pages/index.js):
+Named `fetch [http.method] [http.url]`, [represents the fetch request executed in your code](https://nextjs.org/docs/app/building-your-application/optimizing/open-telemetry#fetch-httpmethod-httpurl).
 
-```javascript
-export default function HomePage() {
-  return <h1>Welcome to Next.js</h1>;
-}
-```
+- AppRouteRouteHandlers.runHandler
 
-When a user navigates to /, Next.js automatically creates spans for:
-- next.js / (page load)
-- next.js render /index
-- fetch spans (if the page makes API calls)
+Named `executing api route (app) [next.route]`, [represents the execution of an API Route Handler in the app router](https://nextjs.org/docs/app/building-your-application/optimizing/open-telemetry#executing-api-route-app-nextroute).
 
-#### Tracing App Router (App Directory)
+- Render.getServerSideProps
 
-If you’re using the Next.js App Router (app/page.tsx), spans will include:
-- Page load spans (next.js /app/page.tsx)
-- Server component execution spans (next.js /layout.tsx)
-- Data fetching spans for fetch() calls in server components
+Named `getServerSideProps [next.route]`, [represents the execution of getServerSideProps for a specific route](https://nextjs.org/docs/app/building-your-application/optimizing/open-telemetry#getserversideprops-nextroute).
 
-For example, an app router component:
+- Render.getStaticProps
 
-```javascript
-export default function Page() {
-  return <h1>Welcome to the App Router!</h1>;
-}
-```
-will automatically generate spans for rendering and hydration.
+Named `getStaticProps [next.route]`, [represents the execution of getStaticProps for a specific route](https://nextjs.org/docs/app/building-your-application/optimizing/open-telemetry#getstaticprops-nextroute).
+
+- Render.renderDocument
+
+Named `render route (pages) [next.route]`, [represents the process of rendering the document for a specific route](https://nextjs.org/docs/app/building-your-application/optimizing/open-telemetry#render-route-pages-nextroute).
+
+- ResolveMetadata.generateMetadata
+
+Named `generateMetadata [next.page]`, [represents the process of generating metadata for a specific route](https://nextjs.org/docs/app/building-your-application/optimizing/open-telemetry#generatemetadata-nextpage).
+
+- NextNodeServer.findPageComponents
+
+Named `resolve page components`, [represents the process of resolving page components for a specific page](https://nextjs.org/docs/app/building-your-application/optimizing/open-telemetry#resolve-page-components).
+
+- NextNodeServer.getLayoutOrPageModule
+
+Named `resolve segment modules`, [represents loading of code modules for a layout or a page](https://nextjs.org/docs/app/building-your-application/optimizing/open-telemetry#resolve-segment-modules).
+
+- NextNodeServer.startResponse
+
+Named `start response`, [represents the process of starting the response for a specific route](https://nextjs.org/docs/app/building-your-application/optimizing/open-telemetry#start-response).
+
+[See the Next.js docs for more details.](https://nextjs.org/docs/app/building-your-application/optimizing/open-telemetry#default-spans-in-nextjs)
+
+Whether you have an API route, a page route, or an app route, you'll see a span for each request.
+Spans will carry details such as what route was requested, how long each step of the processing took,
+and what metadata was provided in the HTTP request. 
+
+The power lies in connecting the automatic spans
+with custom ones and ones provided by additional OpenTelemetry instrumentations. 
+As shown in the image above,
+when the app route api method makes an outgoing HTTP request to another service (in this case, an example Python service),
+the trace will capture the duration of the backend API request and the response status code.
+At a glance, that can help diagnose a performance issue due to a downstream service or a failed backend API call.
 
 ### Logging in OpenTelemetry
 
-To correlate logs with traces, install OpenTelemetry logging:
-
-
-```bash
-yarn add @opentelemetry/sdk-logs
-```
-
-Modify `otel.js`:
+Let's add some more logic to `otel.ts` to create a logger that can be used to emit custom messages.
 
 ```javascript
 import { LoggerProvider } from '@opentelemetry/sdk-logs';
-import { ConsoleLogger } from '@opentelemetry/sdk-logs';
 
 const loggerProvider = new LoggerProvider();
 const logger = loggerProvider.getLogger('nextjs-logger');
@@ -186,11 +218,16 @@ logger.emit({
   body: 'Application started',
 });
 ```
-This allows you to log messages that correlate with traces.
+
+You can use this logger in your code or with a helper method. 
+Make sure to check out other [OpenTelemetry logging instrumentations](https://opentelemetry.io/ecosystem/registry/?language=js&component=instrumentation)
+that can automatically hook into [common logging libraries](./nodejs-logging-libraries.md) like Winston or Pino.
 
 ### Capturing Exceptions with Spans
 
-To capture exceptions inside traces, you can manually add error attributes to spans. Modify your API route:
+Let's emit a custom span in our code that can be used to capture an exception.
+We'll start a span and then automatically add error attributes by capturing the error. 
+Modify your API route:
 
 ```javascript
 import { trace } from '@opentelemetry/api';
@@ -213,7 +250,7 @@ This ensures that the error is captured within the OpenTelemetry trace and can b
 
 ### Exporting Metrics
 
-Next.js applications often benefit from metrics like request count, latency, and errors. Here's how to add instrumentation for request tracking in `otel.js`:
+Next.js applications often benefit from metrics like request count, latency, and errors. Here's how to add instrumentation for request tracking in `otel.ts`:
 
 ```javascript
 import { MeterProvider } from '@opentelemetry/sdk-metrics';
@@ -238,65 +275,52 @@ export default function handler(req, res) {
 }
 ```
 
-### Simplifying with @vercel/otel
-
-If you’re deploying your Next.js application on Vercel, the easiest way to integrate OpenTelemetry is by using the @vercel/otel package. This package simplifies the entire setup process and automatically enables distributed tracing for your application.
-
-What is @vercel/otel?
-
-@vercel/otel is an official package from Vercel that adds built-in support for OpenTelemetry in your Next.js app. It eliminates the need to manually configure OpenTelemetry SDKs, exporters, and instrumentations, offering you:
-- Automatic tracing for API routes, pages, and server-side rendering (SSR)
-- Built-in span creation for Next.js internals
-- Exception tracking out of the box
-- Export to OpenTelemetry-compatible backends (e.g., Highlight.io)
-
-We've covered this topic in more detail previously with our [blog on setting up @vercel/otel in Next.js](./how-to-use-opentelemetry-to-monitor-nextjs-apps.md), so make sure to check it out for a full guide.
-
 ### Putting it all together
 
-Let's put all of the pieces together and create a complete `otel.js` file that will automatically instrument your Next.js app. Using `@vercel/otel`, we'll configure export for Highlight.io, but you can use any other OpenTelemetry-compatible backend:
+Let's put all of the pieces together and create a complete `otel.ts` file that will automatically instrument your Next.js app. Using `@vercel/otel`, we'll configure export for Highlight.io, but you can use any other OpenTelemetry-compatible backend:
 
 ```typescript
-import { registerOTel } from "@vercel/otel";
-import { SimpleSpanProcessor } from "@opentelemetry/sdk-trace-node";
-import { PeriodicExportingMetricReader } from "@opentelemetry/sdk-metrics";
-import { SimpleLogRecordProcessor } from "@opentelemetry/sdk-logs";
-import { OTLPTraceExporter } from "@opentelemetry/exporter-trace-otlp-grpc";
-import { OTLPMetricExporter } from "@opentelemetry/exporter-metrics-otlp-grpc";
-import { OTLPLogExporter } from "@opentelemetry/exporter-logs-otlp-grpc";
+import { NodeSDK } from '@opentelemetry/sdk-node';
+import { ConsoleSpanExporter } from '@opentelemetry/sdk-trace-base';
+import { OTLPTraceExporter } from '@opentelemetry/exporter-trace-otlp-grpc';
+import { OTLPMetricExporter } from '@opentelemetry/exporter-metrics-otlp-grpc';
+import { Resource } from '@opentelemetry/resources';
+import { SEMRESOURCENAME } from '@opentelemetry/semantic-conventions';
+import { HttpInstrumentation } from '@opentelemetry/instrumentation-http';
+import { FetchInstrumentation } from '@opentelemetry/instrumentation-fetch';
+import { AlwaysOnSampler } from '@opentelemetry/sdk-trace-base';
+import { BatchSpanProcessor } from '@opentelemetry/sdk-trace-base';
+import { BatchLogRecordProcessor } from '@opentelemetry/sdk-logs';
+import { PeriodicExportingMetricReader } from '@opentelemetry/sdk-metrics';
 
-export function register() {
-  if (process.env.NEXT_RUNTIME === "nodejs") {
-    registerOTel({
-      serviceName: "my-next-js-app",
-      attributes: {
-        "highlight.project_id": "<YOUR_PROJECT_ID>",
-        "deployment.environment.name": process.env.NODE_ENV,
-      },
-      propagators: ["auto"],
-      spanProcessors: [
-        new SimpleSpanProcessor(
-          new OTLPTraceExporter({
-            url: "https://otel.highlight.io:4317/v1/traces",
-            keepAlive: true,
-          }),
-        ),
-      ],
-      logRecordProcessor: new SimpleLogRecordProcessor(
-        new OTLPLogExporter({
-          url: "https://otel.highlight.io:4317/v1/logs",
-          keepAlive: true,
-        }),
-      ),
-      metricReader: new PeriodicExportingMetricReader({
-        exporter: new OTLPMetricExporter({
-          url: "https://otel.highlight.io:4317/v1/metrics",
-          keepAlive: true,
-        }),
-      }),
-    });
-  }
-}
+const exporter = new OTLPTraceExporter(config)
+const spanProcessor = new BatchSpanProcessor(exporter, opts)
+
+const logsExporter = new OTLPLogExporter(config)
+const logProcessor = new BatchLogRecordProcessor(logsExporter, opts)
+
+const metricsExporter = new OTLPMetricExporter(config)
+const metricsReader = new PeriodicExportingMetricReader({exporter: metricsExporter})
+
+// Configure the OTLP exporter to send data to your OpenTelemetry backend
+const config = { url: 'https://otel.highlight.io:4317' }
+const sdk = new NodeSDK({
+  autoDetectResources: true,
+  resourceDetectors: [processDetectorSync],
+  resource: new Resource({
+    [SEMRESOURCENAME.SERVICE_NAME]: 'nextjs-app',
+    'highlight.project_id': '<YOUR_PROJECT_ID>',
+  }),
+  spanProcessors: [spanProcessor],
+  logRecordProcessors: [logProcessor],
+  metricReader: metricReader,
+  traceExporter: exporter,
+  contextManager: new AsyncLocalStorageContextManager(),
+  sampler: new AlwaysOnSampler(),
+  instrumentations: [new HttpInstrumentation(), new FetchInstrumentation()],
+})
+
+sdk.start();
 ```
 
 Now, let's use the OpenTelemetry SDK in our route to emit data:
@@ -306,15 +330,11 @@ import { NextResponse } from "next/server";
 import api, { propagation } from "@opentelemetry/api";
 import { logs, SeverityNumber } from "@opentelemetry/api-logs";
 
+// This is an example implementation of a route that fetches data from a Python service
 export async function GET() {
   const { email, name } = req.query;
 
-  // Here, you would typically make a call to your Python service
-  // passing the user's email or other identifier
-  // For now, we'll just log the information and return mock data
   console.log(`Fetching data for user: ${email} ${name}`);
-
-  // In a real implementation, you would fetch data from the Garmin Health API here
   const tracerProvider = api.trace.getTracerProvider();
   const tracer = tracerProvider.getTracer("data");
   const data = await tracer.startActiveSpan(
@@ -329,11 +349,10 @@ export async function GET() {
       console.log("Fetching data...", { email });
       const headers = {
         "Content-Type": "application/json",
-        Authorization: `Basic ${process.env.PYTHON_API_SECRET}`,
       };
       propagation.inject(api.context.active(), headers);
       const response = await fetch(
-        `${process.env.PYTHON_API_HOSTNAME}/users/scrape`,
+        `https://api.sampleapis.com/coffee/hot`,
         {
           method: "POST",
           headers,
@@ -372,23 +391,24 @@ export async function GET() {
 
 ### Conclusion
 
-By integrating OpenTelemetry into your Next.js app, you gain:
+With the full suite of instrumentation configured, you'll start to see valuable data in your Highlight dashboard. 
+This data empowers you to enhance your troubleshooting workflows significantly. 
 
-✅ Automatic tracing for API routes and page loads
+By visualizing response times, error rates, and detailed error reports, 
+you can quickly identify performance bottlenecks and areas for improvement. 
+For instance, if you notice a spike in response times for a specific API endpoint, 
+you can drill down into the traces to see what might be causing the delay. 
 
-✅ Detailed spans for App Router and Page Router
+Additionally, the error rate metrics allow you to monitor the health of your application in real-time. 
+If an increase in errors is detected, you can leverage the detailed error reports to understand 
+the context and root cause, enabling you to address issues proactively.
 
-✅ Exception tracking within spans
+Overall, integrating OpenTelemetry with Highlight not only provides you with observability 
+but also equips you with the insights needed to optimize your application and enhance user experience. 
+Start leveraging this powerful combination today to take your monitoring and troubleshooting 
+capabilities to the next level!
 
-✅ Structured logging with correlation to traces
+![](/images/blog/nextjs-otel/dashboard.png)
 
-✅ Custom metrics for tracking performance
+You can see the traces, logs, and metrics in the dashboard and use them to troubleshoot issues and optimize your application.
 
-With `NEXT_OTEL_VERBOSE=1`, you can further debug your application’s span structure.
-
-Now, send your telemetry data to a backend like Jaeger, Prometheus, or Honeycomb and start gaining powerful insights into your Next.js application! 🚀
-
-💡 Next Steps:
-- Set up OpenTelemetry with a real backend (Jaeger, Grafana, etc.)
-- Explore Baggage API for propagating metadata across services
-- Optimize sampling rates to balance performance and observability
