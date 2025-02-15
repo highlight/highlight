@@ -5,7 +5,6 @@ import { verifyTraces } from '../shared-snippets-tracing'
 import {
 	downloadSnippet,
 	init,
-	setupLogging,
 } from './shared-snippets-monitoring'
 
 export const PythonGCPReorganizedContext: QuickStartContent = {
