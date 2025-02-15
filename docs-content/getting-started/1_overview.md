@@ -67,10 +67,10 @@ Highlight.io also supports reporting errors, logging, and tracing from your back
     <DocsCard title="Elixir" href="./server/elixir/1_overview.md">
         {"Get started with Highlight in Elixir"}
     </DocsCard>
-    <DocsCard title="Java" href="./server/java/1_overview.md">
+    <DocsCard title="Java" href="./server/java-other.md">
         {"Get started with Highlight in Java"}
     </DocsCard>
-    <DocsCard title="PHP" href="./server/php/1_overview.md">
+    <DocsCard title="PHP" href="./server/php-other.md">
         {"Get started with Highlight in PHP"}
     </DocsCard>
     <DocsCard title="C# .NET" href="./server/dotnet.md">
