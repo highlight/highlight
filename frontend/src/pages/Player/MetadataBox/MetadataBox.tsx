@@ -269,7 +269,7 @@ export const MetadataBox = React.memo(() => {
 							alignItems="center"
 							onClick={() => {
 								window.open(
-									'https://www.highlight.io/docs/getting-started/client-sdk/replay-configuration/identifying-sessions#what-happens-before-a-user-is-identified',
+									'https://www.highlight.io/docs/getting-started/browser/replay-configuration/identifying-sessions#what-happens-before-a-user-is-identified',
 									'_blank',
 								)
 							}}

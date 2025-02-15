@@ -83,7 +83,7 @@ const MetadataPanel = () => {
 						session?.enable_strict_privacy,
 					)}{' '}
 					<a
-						href="https://www.highlight.io/docs/getting-started/client-sdk/replay-configuration/privacy"
+						href="https://www.highlight.io/docs/getting-started/browser/replay-configuration/privacy"
 						target="_blank"
 						rel="noreferrer"
 					>
@@ -103,7 +103,7 @@ const MetadataPanel = () => {
 					This specifies whether Highlight records the status codes,
 					headers, and bodies for XML/Fetch requests made in your app.{' '}
 					<a
-						href="https://www.highlight.io/docs/getting-started/client-sdk/replay-configuration/recording-network-requests-and-responses"
+						href="https://www.highlight.io/docs/getting-started/browser/replay-configuration/recording-network-requests-and-responses"
 						target="_blank"
 						rel="noopener noreferrer"
 					>
@@ -172,7 +172,7 @@ const MetadataPanel = () => {
 					Did you know that you can enrich sessions with additional
 					metadata? They'll show up here. You can{' '}
 					<a
-						href="https://www.highlight.io/docs/getting-started/client-sdk/replay-configuration/identifying-sessions"
+						href="https://www.highlight.io/docs/getting-started/browser/replay-configuration/identifying-sessions"
 						target="_blank"
 						rel="noreferrer"
 					>
