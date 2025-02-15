@@ -40,4 +40,4 @@ We have walkthroughs for both the Page and App Routers, as well as details on ou
 
 We got a request for Java 11 support, so we hopped on it! 
 
-Integrate your Java 11 application with our [Java docs](https://www.highlight.io/docs/getting-started/backend-sdk/java/other) today.
+Integrate your Java 11 application with our [Java docs](https://www.highlight.io/docs/getting-started/server/java-other) today.
