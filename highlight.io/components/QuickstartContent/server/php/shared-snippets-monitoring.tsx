@@ -70,6 +70,6 @@ export const verifyErrors: QuickStartStep = {
 export const setUpLogging: (slug: string) => QuickStartStep = (slug) => ({
 	title: 'Set up logging.',
 	content: `Start sending logs to Highlight! Follow the [logging setup guide](${siteUrl(
-		`/docs/getting-started/backend-logging/php`,
+		`/docs/getting-started/server/php-other`,
 	)}) to get started.`,
 })
