@@ -191,47 +191,47 @@ export const DOCS_REDIRECTS = {
 	'getting-started/client-sdk/react-native':
 		'/docs/getting-started/browser/react-native',
 	'getting-started/client-sdk/replay-configuration/overview':
-		'/docs/getting-started/client-sdk/replay-configuration/overview',
+		'/docs/getting-started/browser/replay-configuration/overview',
 	'getting-started/client-sdk/replay-configuration/canvas':
-		'/docs/getting-started/client-sdk/replay-configuration/canvas',
+		'/docs/getting-started/browser/replay-configuration/canvas',
 	'getting-started/client-sdk/replay-configuration/console-messages':
-		'/docs/getting-started/client-sdk/replay-configuration/console-messages',
+		'/docs/getting-started/browser/replay-configuration/console-messages',
 	'getting-started/client-sdk/replay-configuration/content-security-policy':
-		'/docs/getting-started/client-sdk/replay-configuration/content-security-policy',
+		'/docs/getting-started/browser/replay-configuration/content-security-policy',
 	'getting-started/client-sdk/replay-configuration/identifying-sessions':
-		'/docs/getting-started/client-sdk/replay-configuration/identifying-sessions',
+		'/docs/getting-started/browser/replay-configuration/identifying-sessions',
 	'getting-started/client-sdk/replay-configuration/iframes':
-		'/docs/getting-started/client-sdk/replay-configuration/iframes',
+		'/docs/getting-started/browser/replay-configuration/iframes',
 	'getting-started/client-sdk/replay-configuration/monkey-patches':
-		'/docs/getting-started/client-sdk/replay-configuration/monkey-patches',
+		'/docs/getting-started/browser/replay-configuration/monkey-patches',
 	'getting-started/client-sdk/replay-configuration/opentelemetry':
-		'/docs/getting-started/client-sdk/replay-configuration/opentelemetry',
+		'/docs/getting-started/browser/replay-configuration/opentelemetry',
 	'getting-started/client-sdk/replay-configuration/persistent-assets':
-		'/docs/getting-started/client-sdk/replay-configuration/persistent-assets',
+		'/docs/getting-started/browser/replay-configuration/persistent-assets',
 	'getting-started/client-sdk/replay-configuration/privacy':
-		'/docs/getting-started/client-sdk/replay-configuration/privacy',
+		'/docs/getting-started/browser/replay-configuration/privacy',
 	'getting-started/client-sdk/replay-configuration/proxying-highlight':
-		'/docs/getting-started/client-sdk/replay-configuration/proxying-highlight',
+		'/docs/getting-started/browser/replay-configuration/proxying-highlight',
 	'getting-started/client-sdk/replay-configuration/react-error-boundary':
-		'/docs/getting-started/client-sdk/replay-configuration/react-error-boundary',
+		'/docs/getting-started/browser/replay-configuration/react-error-boundary',
 	'getting-started/client-sdk/replay-configuration/recording-network-requests-and-responses':
-		'/docs/getting-started/client-sdk/replay-configuration/recording-network-requests-and-responses',
+		'/docs/getting-started/browser/replay-configuration/recording-network-requests-and-responses',
 	'getting-started/client-sdk/replay-configuration/recording-web-socket-events':
-		'/docs/getting-started/client-sdk/replay-configuration/recording-web-socket-events',
+		'/docs/getting-started/browser/replay-configuration/recording-web-socket-events',
 	'getting-started/client-sdk/replay-configuration/salesforce-lwc':
-		'/docs/getting-started/client-sdk/replay-configuration/salesforce-lwc',
+		'/docs/getting-started/browser/replay-configuration/salesforce-lwc',
 	'getting-started/client-sdk/replay-configuration/session-data-export':
-		'/docs/getting-started/client-sdk/replay-configuration/session-data-export',
+		'/docs/getting-started/browser/replay-configuration/session-data-export',
 	'getting-started/client-sdk/replay-configuration/sourcemaps':
-		'/docs/getting-started/client-sdk/replay-configuration/sourcemaps',
+		'/docs/getting-started/browser/replay-configuration/sourcemaps',
 	'getting-started/client-sdk/replay-configuration/tracking-events':
-		'/docs/getting-started/client-sdk/replay-configuration/tracking-events',
+		'/docs/getting-started/browser/replay-configuration/tracking-events',
 	'getting-started/client-sdk/replay-configuration/troubleshooting':
-		'/docs/getting-started/client-sdk/replay-configuration/troubleshooting',
+		'/docs/getting-started/browser/replay-configuration/troubleshooting',
 	'getting-started/client-sdk/replay-configuration/upgrading-highlight':
-		'/docs/getting-started/client-sdk/replay-configuration/upgrading-highlight',
+		'/docs/getting-started/browser/replay-configuration/upgrading-highlight',
 	'getting-started/client-sdk/replay-configuration/versioning-sessions-and-errors':
-		'/docs/getting-started/client-sdk/replay-configuration/versioning-sessions-and-errors',
+		'/docs/getting-started/browser/replay-configuration/versioning-sessions-and-errors',
 	'getting-started/backend-sdk/go': '/docs/getting-started/server/go',
 	'getting-started/backend-logging/go': '/docs/getting-started/server/go',
 	'getting-started/backend-tracing/go': '/docs/getting-started/server/go',
