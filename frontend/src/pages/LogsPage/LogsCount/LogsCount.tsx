@@ -1,4 +1,10 @@
-import { Box, Stack, Text } from '@highlight-run/ui/components'
+import {
+	Box,
+	IconSolidDownload,
+	Stack,
+	Text,
+} from '@highlight-run/ui/components'
+import { vars } from '@highlight-run/ui/vars'
 import { formatDate } from '@pages/LogsPage/utils'
 import { formatNumber } from '@util/numbers'
 import moment from 'moment'
@@ -12,12 +18,14 @@ const LogsCount = ({
 	presetSelected,
 	totalCount,
 	loading,
+	onDownload,
 }: {
 	startDate: Date
 	endDate: Date
 	presetSelected: boolean
 	totalCount: number | undefined
 	loading: boolean
+	onDownload?: () => void
 }) => {
 	const dateLabel = useMemo(() => {
 		if (presetSelected) {
@@ -50,6 +58,16 @@ const LogsCount = ({
 							{totalCount !== 1 ? 's' : ''}
 						</Text>
 					</Box>
+					{onDownload !== undefined ? (
+						<IconSolidDownload
+							size={12}
+							style={{
+								color: vars.theme.static.content.weak,
+								cursor: 'pointer',
+							}}
+							onClick={onDownload}
+						/>
+					) : null}
 					<Box br="dividerWeak" style={{ height: 20 }} />
 					<Text size="xSmall" color="weak">
 						{dateLabel}
