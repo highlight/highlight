@@ -318,14 +318,7 @@ export const Buttons = () => {
 							const addToPendingTransfers = async () => {
 								console.log(
 									'::: addToPendingTransfers - context:',
-									{
-										traceId: trace
-											.getActiveSpan()
-											?.spanContext().traceId,
-										spanId: trace
-											.getActiveSpan()
-											?.spanContext().spanId,
-									},
+									trace.getActiveSpan()?.spanContext(),
 								)
 								const res = await fetch(
 									'https://jsonplaceholder.typicode.com/posts/2',
