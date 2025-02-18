@@ -97,7 +97,7 @@ const H: HighlightPublicInterface = {
 				return
 			}
 
-			if (!options?.skipCookieSessionDataLoad) {
+			if (options?.sessionCookie) {
 				loadCookieSessionData()
 			} else {
 				setCookieWriteEnabled(false)
