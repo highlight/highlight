@@ -18,7 +18,7 @@ You can now deploy Highlight.io on a hobby instance. It's important to note that
 
 ## Open Source Updates
 ### Launch week recap
-Interested in hearing about how our launch week went last week? Take a look on our blog [here](https://www.highlight.io/blog/tag/launch-week-1).
+Interested in hearing about how our launch week went last week? Take a look on our blog [here](https://www.highlight.io/blog/launch-week-day-1).
 ### GitHub Discussion on Error Monitoring
 We're focusing on improving our error monitoring product this upcoming quarter. Please share on this [GitHub discussion](https://github.com/highlight/highlight/discussions/5099).
     
