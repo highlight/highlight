@@ -73,7 +73,7 @@ export const FluentForwardReorganizedContent: QuickStartContent = {
 		{
 			title: 'Setting up for AWS ECS?',
 			content:
-				'If you are setting up for AWS Elastic Container Services, check out our dedicated [docs for AWS ECS.](/docs/getting-started/backend-logging/hosting/aws#aws-ecs-containers) .',
+				'If you are setting up for AWS Elastic Container Services, check out our dedicated [docs for AWS ECS.](/docs/getting-started/server/hosting/aws#aws-ecs-containers) .',
 		},
 		verifyLogs,
 	],

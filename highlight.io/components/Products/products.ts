@@ -226,7 +226,7 @@ app.use('*', highlightMiddleware())
 export const PRODUCTS: { [k: string]: iProduct } = {
 	react: {
 		type: 'frontend',
-		docsLink: '/docs/getting-started/client-sdk/reactjs',
+		docsLink: '/docs/getting-started/browser/reactjs',
 		slug: 'react',
 		title: 'React',
 		snippets: [reactSnippet],
@@ -234,7 +234,7 @@ export const PRODUCTS: { [k: string]: iProduct } = {
 
 	next: {
 		type: 'frontend',
-		docsLink: '/docs/getting-started/client-sdk/nextjs',
+		docsLink: '/docs/getting-started/browser/nextjs',
 		slug: 'next',
 		title: 'Next.js',
 		types: ['Frontend', 'Backend'],
@@ -243,7 +243,7 @@ export const PRODUCTS: { [k: string]: iProduct } = {
 
 	angular: {
 		type: 'frontend',
-		docsLink: '/docs/getting-started/client-sdk/angular',
+		docsLink: '/docs/getting-started/browser/angular',
 		slug: 'angular',
 		title: 'Angular',
 		snippets: [angularSnippet],
@@ -251,7 +251,7 @@ export const PRODUCTS: { [k: string]: iProduct } = {
 
 	gatsby: {
 		type: 'frontend',
-		docsLink: '/docs/getting-started/client-sdk/gatsbyjs',
+		docsLink: '/docs/getting-started/browser/gatsbyjs',
 		slug: 'gatsby',
 		title: 'Gatsby.js',
 		snippets: [angularSnippet],
@@ -259,7 +259,7 @@ export const PRODUCTS: { [k: string]: iProduct } = {
 
 	svelte: {
 		type: 'frontend',
-		docsLink: '/docs/getting-started/client-sdk/sveltekit',
+		docsLink: '/docs/getting-started/browser/sveltekit',
 		slug: 'svelte',
 		title: 'Svelte.js',
 		snippets: [svelteSnippet],
@@ -267,14 +267,14 @@ export const PRODUCTS: { [k: string]: iProduct } = {
 
 	vue: {
 		type: 'frontend',
-		docsLink: '/docs/getting-started/client-sdk/vuejs',
+		docsLink: '/docs/getting-started/browser/vuejs',
 		slug: 'vue',
 		title: 'Vue.js',
 		snippets: [vueSnippet],
 	},
 	express: {
 		type: 'backend',
-		docsLink: '/docs/getting-started/server/express',
+		docsLink: '/docs/getting-started/server/js/express',
 		slug: 'express',
 		title: 'Express',
 		types: ['Backend', 'Frontend'],
@@ -292,7 +292,7 @@ export const PRODUCTS: { [k: string]: iProduct } = {
 
 	'next-backend': {
 		type: 'backend',
-		docsLink: '/docs/getting-started/client-sdk/nextjs',
+		docsLink: '/docs/getting-started/browser/nextjs',
 		slug: 'next-backend',
 		title: 'Next.js',
 		types: ['Backend', 'Frontend'],
@@ -301,7 +301,7 @@ export const PRODUCTS: { [k: string]: iProduct } = {
 
 	node: {
 		type: 'backend',
-		docsLink: '/docs/getting-started/server/nodejs',
+		docsLink: '/docs/getting-started/server/js/nodejs',
 		slug: 'node',
 		title: 'Node.js',
 		types: ['Backend', 'Frontend'],

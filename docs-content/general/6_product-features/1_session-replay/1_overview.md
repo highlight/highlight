@@ -63,7 +63,7 @@ Read more about the features we support in Session Replay below:
     <DocsCard title="Session Search Deep Linking."  href="./session-search.md">
         {"The URL Schema we use for deep linking sessions."}
     </DocsCard>
-    <DocsCard title="Disable Session Caching"  href="./session-caching">
+    <DocsCard title="Player Session Caching"  href="./player-session-caching.md">
         {"For highlight.io power users, we support disabling session caching to reduce memory usage."}
     </DocsCard>
 </DocsCardGroup>

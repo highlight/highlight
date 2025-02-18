@@ -11,7 +11,7 @@ If you use Vercel to deploy your app, you can install the Vercel Highlight integ
 
 After linking your Vercel projects to your Highlight projects, Highlight will automatically set the `HIGHLIGHT_SOURCEMAP_API_KEY` environment variable. If you're using `@higlight-run/sourcemap-uploader` or `withHighlightConfig` to upload your sourcemaps, those tools will check for this API key.
 
-More details on calling these methods [here](../../getting-started/fullstack-frameworks/next-js/index.md#test-sourcemaps).
+More details on calling these methods [here](../../getting-started/fullstack-frameworks/next-js/1_overview.md).
 
 ## Vercel Log Drain Integrations
 

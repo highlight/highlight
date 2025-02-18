@@ -7,7 +7,7 @@ slug: changelog-26
 
 Sanitize your network requests on the client, preventing sensitive data from ever reaching Highlight's servers.
 
-Check out the docs for our web client's [requestResponseSanitizer](https://www.highlight.io/docs/getting-started/client-sdk/replay-configuration/recording-network-requests-and-responses#custom-sanitizing-of-response-and-requests) function.
+Check out the docs for our web client's [requestResponseSanitizer](https://www.highlight.io/docs/getting-started/browser/replay-configuration/recording-network-requests-and-responses#custom-sanitizing-of-response-and-requests) function.
 
 <EmbeddedVideo 
   src="https://www.loom.com/embed/47ce07c349f14e9aa3fb802b21221167?sid=f034e880-4e45-4477-82e7-cc763dd0378b"
@@ -40,4 +40,4 @@ We have walkthroughs for both the Page and App Routers, as well as details on ou
 
 We got a request for Java 11 support, so we hopped on it! 
 
-Integrate your Java 11 application with our [Java docs](https://www.highlight.io/docs/getting-started/backend-sdk/java/other) today.
+Integrate your Java 11 application with our [Java docs](https://www.highlight.io/docs/getting-started/server/java-other) today.

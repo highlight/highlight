@@ -66,41 +66,41 @@ export const INTEGRATIONS: {
 			name: 'Vercel',
 			description:
 				'Automate the uploading of your sourcemaps and integrations.',
-			link: '/docs/getting-started/backend-logging/hosting/vercel',
+			link: '/docs/getting-started/server/hosting/vercel',
 			image: '/images/companies/icons/vercel.png',
 		},
 		{
 			name: 'AWS',
 			description:
 				'Stream Amazon Web Services application and infrastructure logs to highlight.io.',
-			link: '/docs/getting-started/backend-logging/hosting/aws',
+			link: '/docs/getting-started/server/hosting/aws',
 			image: '/images/companies/icons/aws.png',
 		},
 		{
 			name: 'GCP',
 			description:
 				'Stream GCP application and infrastructure logs to highlight.io.',
-			link: '/docs/getting-started/backend-logging/hosting/gcp',
+			link: '/docs/getting-started/server/hosting/gcp',
 			image: '/images/companies/icons/gcp.png',
 		},
 		{
 			name: 'Azure',
 			description:
 				'Stream Microsoft Azure application and infrastructure logs to highlight.io.',
-			link: '/docs/getting-started/backend-logging/hosting/azure',
+			link: '/docs/getting-started/server/hosting/azure',
 			image: '/images/companies/icons/azure.png',
 		},
 		{
 			name: 'Fly.io',
 			description: 'Setup highlight.io log ingestion on Fly.io.',
-			link: '/docs/getting-started/backend-logging/hosting/fly-io',
+			link: '/docs/getting-started/server/hosting/fly-io',
 			image: '/images/companies/icons/flyio.png',
 		},
 		{
 			name: 'Render',
 			description: 'Setup highlight.io log ingestion on Render.',
-			link: '/docs/getting-started/backend-logging/hosting/render',
-			image: '/images/quickstart/render.png',
+			link: '/docs/getting-started/server/hosting/render',
+			image: '/images/companies/icons/render.png',
 		},
 	],
 	Productivity: [

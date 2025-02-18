@@ -31,7 +31,7 @@ We've given the Comment UI a facelift.
 
 ## Winston.js Highlight Transport
 
-Check out our new [Winston.js Highlight Transporter](https://www.highlight.io/docs/getting-started/backend-logging/js/winston)!
+Check out our new [Winston.js Highlight Transporter](https://www.highlight.io/docs/getting-started/server/js/winston)!
 
 You can log to Winston as per usual, and Highlight will capture your logs and display them on your Highlight application.
 

@@ -30,7 +30,7 @@ This documentation provides solutions and guidance for common issues encountered
 
 **Question:** How can I set up tracing with SvelteKit as I am not seeing any traces despite having logs and errors?
 
-**Answer:** Ensure that your `H.init` configuration is correctly set up in both `hooks.client.ts` and `hooks.server.ts`. Use `H.runWithHeaders` in your server-side handle function to ensure that headers are correctly passed and handled. If issues persist, please provide the Highlight traces page URL and check the version of the `@highlight-run/node` SDK you are using. For detailed guidance, refer to the [Highlight.io SvelteKit Documentation](https://www.highlight.io/docs/getting-started/client-sdk/svelte-kit).
+**Answer:** Ensure that your `H.init` configuration is correctly set up in both `hooks.client.ts` and `hooks.server.ts`. Use `H.runWithHeaders` in your server-side handle function to ensure that headers are correctly passed and handled. If issues persist, please provide the Highlight traces page URL and check the version of the `@highlight-run/node` SDK you are using. For detailed guidance, refer to the [Highlight.io SvelteKit Documentation](https://www.highlight.io/docs/getting-started/client-sdk/sveltekit).
 
 ## Session Recording Issues
 
@@ -44,7 +44,7 @@ This documentation provides solutions and guidance for common issues encountered
 
 **Answer:** Highlight.io has updated its asset delivery to accommodate strict CORS policies by setting the `Cross-Origin-Resource-Policy: cross-origin` header. If you continue to experience CORS issues, ensure that your application's CORS settings allow requests from Highlight.io domains. If specific headers like `Cross-Origin-Embedder-Policy` are required for your application, Highlight.io can adjust its headers to comply with these requirements.
 
-For further assistance with any of these issues or other inquiries, please refer to the [Highlight.io Support](https://www.highlight.io/support) or consult the detailed documentation available on the [Highlight.io Docs](https://www.highlight.io/docs) page.
+For further assistance with any of these issues or other inquiries, please refer to the [Highlight.io Support](https://www.highlight.io/community) or consult the detailed documentation available on the [Highlight.io Docs](https://www.highlight.io/docs) page.
 
 ## Handling Private Windows and Session Tracking
 

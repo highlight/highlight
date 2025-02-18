@@ -2,11 +2,7 @@ import { QuickStartContent } from '../../QuickstartContent'
 import { verifyLogs } from '../shared-snippets-logging'
 import { frontendInstallSnippet } from '../shared-snippets-monitoring'
 import { verifyTraces } from '../shared-snippets-tracing'
-import {
-	downloadSnippet,
-	init,
-	setupLogging,
-} from './shared-snippets-monitoring'
+import { downloadSnippet, init } from './shared-snippets-monitoring'
 
 export const PythonGCPReorganizedContext: QuickStartContent = {
 	title: 'Python Google Cloud Functions',

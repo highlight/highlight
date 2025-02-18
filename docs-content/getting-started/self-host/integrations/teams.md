@@ -26,7 +26,7 @@ If you want to use the Microsoft Teams integration in your self-hosted highlight
 
 1. Go to Bot Framework to create a [new bot](https://dev.botframework.com/bots/new). 
 
-2. Set the messaging endpoint as `<REACT_APP_PRIVATE_GRAPH_URI>/microsoft-teams/bot`, e.g. https://pri.highlight.io/microsoft-teams/bot for highlight.io.
+2. Set the messaging endpoint as `<REACT_APP_PRIVATE_GRAPH_URI>/microsoft-teams/bot`, e.g. `https://pri.highlight.io/microsoft-teams/bot` for highlight.io.
 
 3. Enter your Microsoft App ID from step 1.
 

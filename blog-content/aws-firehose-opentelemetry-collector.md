@@ -199,4 +199,4 @@ This function extracts key log attributes and reformats them for further process
 
 Integrating AWS Firehose with OpenTelemetry provides a powerful way to collect and analyze telemetry data from AWS services. Whether you use a native receiver or implement a custom solution, Firehose enables seamless data streaming for improved observability. At the same time, it's not all that simple...
 
-Don't want to mess with setting any of this up yourself? Try Highlight.io which supports it all out of the box! Just create a [Highlight Cloud](https://app.highlight.io) account and follow our [firehose export setup guide](../docs-content/getting-started/5_backend-logging/07_hosting/aws.md) to configure sending the data over.
+Don't want to mess with setting any of this up yourself? Try Highlight.io which supports it all out of the box! Just create a [Highlight Cloud](https://app.highlight.io) account and follow our [firehose export setup guide](/docs/getting-started/server/hosting/aws) to configure sending the data over.

@@ -44,7 +44,7 @@ Client-side integration is as easy as injecting `<HighlightInit />` into your we
 
 - Inject `<HighlightInit />` once, preferably in a `layout.tsx` file or `_app.tsx` file.
 - `<HighlightInit />` accepts props that correspond to the JavaScript SDK's [options arguments](https://www.highlight.io/docs/sdk/client#Hinit).
-- Explore Highlight's wide range of [configuration options](https://www.highlight.io/docs/getting-started/client-sdk/replay-configuration/overview), including 
+- Explore Highlight's wide range of [configuration options](https://www.highlight.io/docs/getting-started/browser/replay-configuration/overview), including 
     - Canvas and WebGL support, 
     - user identification,
     - and privacy and redaction.
@@ -85,7 +85,7 @@ export default function RootLayout({
 
 We'll use the browser's `Fetch` API to call a Next.js API function. Highlight monkey patches `window.fetch` and adds the `x-highlight-request` header automatically, so use `Fetch` as you normally would.
 
-See the full [list of monkey patches](https://www.highlight.io/docs/getting-started/client-sdk/replay-configuration/monkey-patches) in our docs.
+See the full [list of monkey patches](https://www.highlight.io/docs/getting-started/browser/replay-configuration/monkey-patches) in our docs.
 
 ```jsx
  <button

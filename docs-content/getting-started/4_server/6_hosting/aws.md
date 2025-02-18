@@ -61,14 +61,14 @@ Let's say you are running RDS Postgres or MSK Kafka services that are core infra
 
 First, create a Kinesis Data Stream.
 
-![](/images/aws/kinesis/step1.png)
+![](/images/aws/kinesis/logs/step1.png)
 
 Next, create a Kinesis Data Firehose with an HTTP destination to route data to highlight.
 
-Configure your Kinesis data stream to ship logs to HTTP https://pub.highlight.io/v1/logs/firehose, enabling GZIP content encoding and passing paramater `x-highlight-project` with your highlight project ID.
+Configure your Kinesis data stream to ship logs to HTTP `https://pub.highlight.io/v1/logs/firehose`, enabling GZIP content encoding and passing paramater `x-highlight-project` with your highlight project ID.
 
 
-![](/images/aws/kinesis/step2.png)
+![](/images/aws/kinesis/logs/step2.png)
 
 Finally, connect your AWS CloudWatch Log Stream to the Kinesis Data Stream via a Kinesis Subscription Filter.
 

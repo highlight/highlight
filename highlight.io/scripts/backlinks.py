@@ -39,7 +39,7 @@ def get_client_backlinks():
     for tech in client_technologies:
         backlinks[f'getting-started/client-sdk/{tech}'] = f'/docs/getting-started/browser/{tech}'
     for config in replay_configuration:
-        backlinks[f'getting-started/client-sdk/replay-configuration/{config}'] = f'/docs/getting-started/client-sdk/replay-configuration/{config}'
+        backlinks[f'getting-started/client-sdk/replay-configuration/{config}'] = f'/docs/getting-started/browser/replay-configuration/{config}'
 
 def get_server_backlinks():
     for lang in server_techonologies:

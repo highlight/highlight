@@ -43,9 +43,10 @@ async function generateXML(): Promise<string> {
 	const customerPages = customers.map(
 		(customer: { slug: string }) => `customers/${customer.slug}`,
 	)
-	const docsPages = Array.from(docs.keys()).map(
-		(d) => `docs/${d.split('docs-content/').pop()}`,
-	)
+	const docsPages = Array.from(docs.keys()).map((d) => {
+		const slugs = d.split('docs-content/')
+		return `docs/${slugs.length === 1 ? '' : slugs.pop()}`
+	})
 	const productPages = Object.values(PRODUCTS).map(
 		(product: iProduct) => `for/${product.slug}`,
 	)
