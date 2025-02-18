@@ -203,7 +203,6 @@ export class Highlight {
 				'Highlight project id was not provided. Data will not be recorded.',
 			)
 		}
-		x
 
 		if (this._debug) {
 			diag.setLogger(new DiagConsoleLogger(), DiagLogLevel.DEBUG)
