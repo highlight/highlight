@@ -1145,8 +1145,6 @@ github.com/hashicorp/vault/api v1.9.2 h1:YjkZLJ7K3inKgMZ0wzCU9OHqc+UqMQyXsPXnf3C
 github.com/hashicorp/vault/api v1.9.2/go.mod h1:jo5Y/ET+hNyz+JnKDt8XLAdKs+AM0G5W0Vp1IrFI8N8=
 github.com/hashicorp/vault/sdk v0.9.2 h1:H1kitfl1rG2SHbeGEyvhEqmIjVKE3E6c2q3ViKOs6HA=
 github.com/hashicorp/vault/sdk v0.9.2/go.mod h1:gG0lA7P++KefplzvcD3vrfCmgxVAM7Z/SqX5NeOL/98=
-github.com/highlight/clickhouse-sql-parser v1.0.0 h1:cto6z25w2XcOC7nFvptJk7cRrS9AD7r1m2KCyWPA6RE=
-github.com/highlight/clickhouse-sql-parser v1.0.0/go.mod h1:ApnI1j11NF7FVDWYMG9GxY55x5uHWn8eD20WJdoo6Gc=
 github.com/hpcloud/tail v1.0.0 h1:nfCOvKYfkgYP8hkirhJocXT2+zOD8yUNjXaWfTlyFKI=
 github.com/iancoleman/strcase v0.3.0 h1:nTXanmYxhfFAMjZL34Ov6gkzEsSJZ5DbhxWjvSASxEI=
 github.com/iancoleman/strcase v0.3.0/go.mod h1:iwCmte+B7n89clKwxIoIXy/HfoL7AsD47ZCWhYzw7ho=
@@ -1376,10 +1374,19 @@ go.opentelemetry.io/contrib/detectors/gcp v1.31.0 h1:G1JQOreVrfhRkner+l4mrGxmfqY
 go.opentelemetry.io/contrib/detectors/gcp v1.31.0/go.mod h1:tzQL6E1l+iV44YFTkcAeNQqzXUiekSYP9jjJjXwEd00=
 go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc v0.46.0/go.mod h1:Ct6zzQEuGK3WpJs2n4dn+wfJYzd/+hNnxMRTWjGn30M=
 go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp v0.48.0/go.mod h1:rdENBZMT2OE6Ne/KLwpiXudnAsbdrdBaqBvTN8M8BgA=
+go.opentelemetry.io/contrib/instrumentation/runtime v0.44.0/go.mod h1:tQ5gBnfjndV1su3+DiLuu6rnd9hBBzg4rkRILnjSNFg=
+go.opentelemetry.io/contrib/propagators/b3 v1.19.0/go.mod h1:OzCmE2IVS+asTI+odXQstRGVfXQ4bXv9nMBRK0nNyqQ=
+go.opentelemetry.io/contrib/propagators/opencensus v0.44.0/go.mod h1:IUCrK+YXh4EO4dbh/l9NbWUHValpE3odollsVTjfpc4=
+go.opentelemetry.io/contrib/propagators/ot v1.19.0/go.mod h1:S2Uc7th2ZmLiHu0lrCmDCgTQ/y5Nbbis+TNjR1jjm4Q=
 go.opentelemetry.io/otel v1.23.0/go.mod h1:YCycw9ZeKhcJFrb34iVSkyT0iczq/zYDtZYFufObyB0=
 go.opentelemetry.io/otel v1.24.0/go.mod h1:W7b9Ozg4nkF5tWI5zsXkaKKDjdVjpD4oAt9Qi/MArHo=
 go.opentelemetry.io/otel v1.28.0/go.mod h1:q68ijF8Fc8CnMHKyzqL6akLO46ePnjkgfIMIjUIX9z4=
 go.opentelemetry.io/otel v1.31.0/go.mod h1:O0C14Yl9FgkjqcCZAsE053C13OaddMYr/hz6clDkEJE=
+go.opentelemetry.io/otel/bridge/opencensus v0.41.0/go.mod h1:yCQB5IKRhgjlbTLc91+ixcZc2/8BncGGJ+CS3dZJwtY=
+go.opentelemetry.io/otel/exporters/otlp/otlpmetric v0.42.0 h1:ZtfnDL+tUrs1F0Pzfwbg2d59Gru9NCH3bgSHBM6LDwU=
+go.opentelemetry.io/otel/exporters/otlp/otlpmetric v0.42.0/go.mod h1:hG4Fj/y8TR/tlEDREo8tWstl9fO9gcFkn4xrx0Io8xU=
+go.opentelemetry.io/otel/exporters/otlp/otlpmetric/otlpmetricgrpc v0.42.0/go.mod h1:UVAO61+umUsHLtYb8KXXRoHtxUkdOPkYidzW3gipRLQ=
+go.opentelemetry.io/otel/exporters/stdout/stdouttrace v1.32.0/go.mod h1:2PD5Ex6z8CFzDbTdOlwyNIUywRr1DN0ospafJM1wJ+s=
 go.opentelemetry.io/otel/metric v1.23.0/go.mod h1:MqUW2X2a6Q8RN96E2/nqNoT+z9BSms20Jb7Bbp+HiTo=
 go.opentelemetry.io/otel/metric v1.24.0/go.mod h1:VYhLe1rFfxuTXLgj4CBiyz+9WYBA8pNGJgDcSFRKBco=
 go.opentelemetry.io/otel/metric v1.28.0/go.mod h1:Fb1eVBFZmLVTMb6PPohq3TO9IIhUisDsbJoL/+uQW4s=
@@ -1510,6 +1517,7 @@ gopkg.in/olivere/elastic.v5 v5.0.84 h1:acF/tRSg5geZpE3rqLglkS79CQMIMzOpWZE7hRXIk
 gopkg.in/olivere/elastic.v5 v5.0.84/go.mod h1:LXF6q9XNBxpMqrcgax95C6xyARXWbbCXUrtTxrNrxJI=
 gorm.io/driver/mysql v1.0.1 h1:omJoilUzyrAp0xNoio88lGJCroGdIOen9hq2A/+3ifw=
 gorm.io/driver/mysql v1.0.1/go.mod h1:KtqSthtg55lFp3S5kUXqlGaelnWpKitn4k1xZTnoiPw=
+gorm.io/driver/sqlite v1.5.0/go.mod h1:kDMDfntV9u/vuMmz8APHtHF0b4nyBB7sfCieC6G8k8I=
 gorm.io/driver/sqlserver v1.4.2 h1:nMtEeKqv2R/vv9FoHUFWfXfP6SskAgRar0TPlZV1stk=
 gorm.io/driver/sqlserver v1.4.2/go.mod h1:XHwBuB4Tlh7DqO0x7Ema8dmyWsQW7wi38VQOAFkrbXY=
 gotest.tools v2.2.0+incompatible h1:VsBPFP1AI068pPrMxtb/S8Zkgf9xEmTLJjfM+P5UIEo=
