@@ -27,6 +27,7 @@
 		"docs-content": "workspace:*",
 		"embla-carousel-react": "^7.0.5",
 		"framer-motion": "^8.5.2",
+		"front-matter": "^4.0.2",
 		"fuse.js": "^6.6.2",
 		"graphql": "^16.8.1",
 		"graphql-request": "^6.1.0",

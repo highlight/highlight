@@ -40092,6 +40092,7 @@ __metadata:
     eslint: "npm:^9.18.0"
     eslint-config-next: "npm:^15.1.4"
     framer-motion: "npm:^8.5.2"
+    front-matter: "npm:^4.0.2"
     fuse.js: "npm:^6.6.2"
     graphql: "npm:^16.8.1"
     graphql-request: "npm:^6.1.0"
