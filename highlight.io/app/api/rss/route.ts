@@ -139,7 +139,7 @@ const safeURL = (url: string) => {
 			}
 		}
 
-		if (urlObj.hostname.includes('graphassets.com')) {
+		if (urlObj.hostname === 'media.graphassets.com') {
 			urlObj.search = ''
 		}
 
