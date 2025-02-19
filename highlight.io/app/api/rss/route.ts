@@ -67,51 +67,6 @@ async function generateRSSXML(): Promise<string> {
 		}),
 	)
 
-	const safeURL = (url: string) => {
-		if (!url) return ''
-
-		// Basic XML character escaping
-		const escapeChars = (str: string) =>
-			str
-				.replace(/&/g, '&amp;')
-				.replace(/'/g, '&apos;')
-				.replace(/"/g, '&quot;')
-
-		try {
-			let finalUrl = url
-
-			// Handle relative URLs first
-			if (url.startsWith('/')) {
-				finalUrl = `${process.env.WEBSITE_URL ?? 'https://www.highlight.io'}${url}`
-			}
-
-			// Parse URL only once
-			const urlObj = new URL(finalUrl)
-
-			// Handle different URL types
-			if (urlObj.pathname.includes('_next/image')) {
-				const originalUrl = urlObj.searchParams.get('url')
-				if (originalUrl) {
-					return escapeChars(decodeURIComponent(originalUrl))
-				}
-			}
-
-			if (urlObj.hostname.includes('graphassets.com')) {
-				urlObj.search = ''
-			}
-
-			return escapeChars(urlObj.toString())
-		} catch {
-			// For unparseable URLs, just escape the original
-			if (url.startsWith('/')) {
-				return escapeChars(
-					`${process.env.WEBSITE_URL ?? 'https://www.highlight.io'}${url}`,
-				)
-			}
-			return escapeChars(url)
-		}
-	}
-
 	const items = blogPosts
 		.map((post) => {
 			const date = new Date(post.date)
@@ -119,19 +74,6 @@ async function generateRSSXML(): Promise<string> {
 				? date.toUTCString()
 				: new Date().toUTCString()
 
-			const escapeXML = (str: string) => {
-				if (!str) return ''
-				return str
-					.replace(/&/g, '&amp;')
-					.replace(/</g, '&lt;')
-					.replace(/>/g, '&gt;')
-					.replace(/"/g, '&quot;')
-					.replace(/'/g, '&apos;')
-					.replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, '')
-			}
-
-			const baseURL =
-				process.env.WEBSITE_URL ?? 'https://www.highlight.io'
 			const link = safeURL(`${baseURL}/blog/${post.path}`)
 			const imageUrl = post.image ? safeURL(post.image) : ''
 
@@ -152,10 +94,6 @@ async function generateRSSXML(): Promise<string> {
 		})
 		.join('')
 
-	const baseURL = process.env.WEBSITE_URL ?? 'https://www.highlight.io'
-	const rssURL = safeURL(`${baseURL}/blog/rss.xml`)
-	const blogURL = safeURL(`${baseURL}/blog`)
-
 	return `<?xml version="1.0" encoding="UTF-8"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Highlight.io Blog</title><link>${blogURL}</link><atom:link href="${rssURL}" rel="self" type="application/rss+xml"/><description>The latest updates from Highlight.io</description><language>en-US</language>${items}</channel></rss>`
 }
 
@@ -171,3 +109,61 @@ export const GET = withAppRouterHighlight(async function GET() {
 		status: 200,
 	})
 })
+
+const safeURL = (url: string) => {
+	if (!url) return ''
+
+	// Basic XML character escaping
+	const escapeChars = (str: string) =>
+		str
+			.replace(/&/g, '&amp;')
+			.replace(/'/g, '&apos;')
+			.replace(/"/g, '&quot;')
+
+	try {
+		let finalUrl = url
+
+		// Handle relative URLs first
+		if (url.startsWith('/')) {
+			finalUrl = `${baseURL}${url}`
+		}
+
+		// Parse URL only once
+		const urlObj = new URL(finalUrl)
+
+		// Handle different URL types
+		if (urlObj.pathname.includes('_next/image')) {
+			const originalUrl = urlObj.searchParams.get('url')
+			if (originalUrl) {
+				return escapeChars(decodeURIComponent(originalUrl))
+			}
+		}
+
+		if (urlObj.hostname.includes('graphassets.com')) {
+			urlObj.search = ''
+		}
+
+		return escapeChars(urlObj.toString())
+	} catch {
+		// For unparseable URLs, just escape the original
+		if (url.startsWith('/')) {
+			return escapeChars(`${baseURL}${url}`)
+		}
+		return escapeChars(url)
+	}
+}
+
+const escapeXML = (str: string) => {
+	if (!str) return ''
+	return str
+		.replace(/&/g, '&amp;')
+		.replace(/</g, '&lt;')
+		.replace(/>/g, '&gt;')
+		.replace(/"/g, '&quot;')
+		.replace(/'/g, '&apos;')
+		.replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, '')
+}
+
+const baseURL = process.env.WEBSITE_URL ?? 'https://www.highlight.io'
+const rssURL = safeURL(`${baseURL}/blog/rss.xml`)
+const blogURL = safeURL(`${baseURL}/blog`)
