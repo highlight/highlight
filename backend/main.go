@@ -249,7 +249,7 @@ func main() {
 		log.WithContext(ctx).Fatalf("Error setting up DB: %v", err)
 	}
 
-	if err := htrace.SetupGORMOTel(db, attribute.String(highlight.ProjectIDAttribute, highlight.GetProjectID())); err != nil {
+	if err := htrace.SetupGORMOTel(db, highlight.GetProjectID()); err != nil {
 		log.WithContext(ctx).Fatalf("Error setting up GORM OpenTelemetry plugin: %v", err)
 	}
 

@@ -26,7 +26,7 @@ export const GormTracesReorganizedContent: QuickStartContent = {
 )
 
 DB, err = gorm.Open(<DB_SETTINGS>)
-if err := htrace.SetupGORMOTel(DB, attribute.String(highlight.ProjectIDAttribute, <YOUR_PROJECT_ID>)); err != nil {
+if err := htrace.SetupGORMOTel(DB, highlight.GetProjectID()); err != nil {
   highlight.RecordError(ctx, err)
 }`,
 					language: 'go',
