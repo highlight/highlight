@@ -26,7 +26,7 @@ H = highlight_io.H("<YOUR_PROJECT_ID>", instrument_logging=False)`,
 			title: 'Use loguru!',
 			content:
 				'Logs are reported automatically from loguru logging methods. ' +
-				'Visit the [highlight logs portal](http://app.highlight.io/logs) and check that backend logs are coming in.',
+				'Visit the [highlight logs portal](https://app.highlight.io/logs) and check that backend logs are coming in.',
 			code: [
 				{
 					text: `import highlight_io
