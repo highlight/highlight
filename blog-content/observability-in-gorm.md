@@ -95,7 +95,7 @@ Here you can see how dashboards are being used to monitor query counts, duration
 
 The OpenTelemetry GORM plugin will also emit metrics for the database. It currently only reports metrics around connections, which can be helpful for diagnosing issues with your connection pool health and capacity.
 
-![GORM Metrics](/images/blog/observability-in-gorm/gorm-metrics.png)
+TODO: Add screenshot of metrics
 
 Note that the plugin does not have access to infrastructure metrics like CPU, memory, etc., which are also important for monitoring the health of your database. Many cloud providers can export these metrics for you. See [Metrics in AWS](/docs/getting-started/server/hosting/aws-metrics) as an example of how to get these metrics for AWS.
 
