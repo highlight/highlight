@@ -30,7 +30,7 @@ To focus on specific user interactions, apply filters to your data. In this case
 
 ### 4. Group the Data
 
-Group the sessions by a relevant attribute. For this example, we'll group by the email (or identifier) that a user reports on that session. This allows us to analyze engagement on a per-user basis. Read more about reporting identifiers [in our docs](../../../../getting-started/3_client-sdk/7_replay-configuration/identifying-sessions.md).
+Group the sessions by a relevant attribute. For this example, we'll group by the email (or identifier) that a user reports on that session. This allows us to analyze engagement on a per-user basis. Read more about reporting identifiers [in our docs](../../../../getting-started/3_browser/7_replay-configuration/identifying-sessions.md).
 
 ### 5. Analyze the Results
 

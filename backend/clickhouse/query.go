@@ -26,7 +26,7 @@ import (
 	"github.com/samber/lo"
 	"go.openly.dev/pointy"
 
-	sqlparser "github.com/AfterShip/clickhouse-sql-parser/parser"
+	sqlparser "github.com/highlight/clickhouse-sql-parser/parser"
 )
 
 const SamplingRows = 20_000_000
@@ -225,16 +225,37 @@ func transformSql(
 			return nil
 		}
 
-		isSystemTable := false
+		isResourceTable := false
 		if selectQuery.From != nil {
-			fromExpr, ok := selectQuery.From.Expr.(*sqlparser.JoinTableExpr)
-			if !ok || fromExpr == nil || fromExpr.Table == nil {
-				return e.New("Expected FROM expression to be JoinTableExpr")
-			}
+			_, ok := selectQuery.From.Expr.(*sqlparser.JoinExpr)
+			if ok {
+				resourceTableCheckVisitor := sqlparser.DefaultASTVisitor{}
+				resourceTableCheckVisitor.Visit = func(expr sqlparser.Expr) error {
+					if priorVisit[expr] {
+						return nil
+					}
+					switch typed := expr.(type) {
+					case *sqlparser.TableIdentifier:
+						if resourceTables[typed.Table.Name] {
+							return e.New("Resource tables cannot be used in JOIN expression")
+						}
+					}
+					return nil
+				}
 
-			tableIdentifier, ok := fromExpr.Table.Expr.(*sqlparser.TableIdentifier)
-			if ok && tableIdentifier != nil && tableIdentifier.Table != nil && systemTables[tableIdentifier.Table.Name] {
-				isSystemTable = true
+				if err := selectQuery.From.Expr.Accept(&resourceTableCheckVisitor); err != nil {
+					return err
+				}
+			} else {
+				fromExpr, ok := selectQuery.From.Expr.(*sqlparser.JoinTableExpr)
+				if !ok || fromExpr == nil || fromExpr.Table == nil {
+					return e.New("Expected FROM expression to be JoinTableExpr")
+				}
+
+				tableIdentifier, ok := fromExpr.Table.Expr.(*sqlparser.TableIdentifier)
+				if ok && tableIdentifier != nil && tableIdentifier.Table != nil && resourceTables[tableIdentifier.Table.Name] {
+					isResourceTable = true
+				}
 			}
 		}
 
@@ -370,7 +391,7 @@ func transformSql(
 			return nil
 		}
 
-		if isSystemTable {
+		if isResourceTable {
 			if err := selectQuery.Accept(&ignoreVisitor); err != nil {
 				return err
 			}
@@ -496,7 +517,7 @@ func transformSql(
 	return sql, nil
 }
 
-var systemTables = map[string]bool{
+var resourceTables = map[string]bool{
 	"sessions": true,
 	"errors":   true,
 	"logs":     true,
@@ -522,7 +543,7 @@ func GetTables(sql string) ([]string, error) {
 	visitor.Visit = func(expr sqlparser.Expr) error {
 		switch typed := expr.(type) {
 		case *sqlparser.TableIdentifier:
-			if typed.Table != nil && systemTables[typed.Table.Name] {
+			if typed.Table != nil && resourceTables[typed.Table.Name] {
 				tables = append(tables, typed.Table.Name)
 			}
 		}

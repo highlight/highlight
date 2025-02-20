@@ -47,4 +47,4 @@ Not only did we want the new Highlight Docs to look better than ever, we also wa
 
 ## Get started
 
-Check out the new Highlight docs today at [docs.highlight.io](http://docs.highlight.io "http://docs.highlight.io")!
+Check out the new Highlight docs today at [docs.highlight.io](https://docs.highlight.io "https://docs.highlight.io")!

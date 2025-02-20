@@ -44,6 +44,11 @@ async function setupOAuthProjectToken(
 	const accessToken = data['access_token']
 
 	// set asset cookie from project-token api
+	await page.evaluate(`fetch(\`${apiConfig.apiURL}/project-token/${apiConfig.project}\`,
+    {
+      credentials: 'include',
+      headers: { Authorization: \`Bearer ${accessToken}\` },
+    })`)
 	const token = await fetch(
 		`${apiConfig.apiURL}/project-token/${apiConfig.project}`,
 		{
@@ -64,6 +69,7 @@ async function setupOAuthProjectToken(
 			secure: true,
 			sameSite: 'None',
 		} as CookieParam
+		console.log('using project token cookie', cookieParam)
 		await page.setCookie(cookieParam)
 	}
 }
@@ -124,7 +130,7 @@ export async function render(
 	await page.goto('about:blank')
 	page.on('console', (message) =>
 		console.log(
-			`${message.type().substr(0, 3).toUpperCase()} ${message.text()}`,
+			`${message.type().slice(0, 3).toUpperCase()} ${message.text()}`,
 		),
 	)
 	const finishedPromise = new Promise<void>(
@@ -173,7 +179,7 @@ export async function render(
             UNSAFE_replayCanvas: true,
             liveMode: false,
             useVirtualDom: true,
-            speed: 8
+            speed: 32
         });
         window.getInactivityEnd = (time) => {
 			for (const interval of intervals) {
@@ -187,40 +193,39 @@ export async function render(
 			}
 		}
         
-     	const skipInactivity = () => {
+     	const skipInactivity = async () => {
 		    // skip inactive intervals
 		    const start = window.r.getMetaData().startTime
 		    const intervalsEnd = intervals[intervals.length - 1].end_time
 		    const timestamp = window.r.getCurrentTime() + start
-		    if (timestamp > intervalsEnd) {
+		    console.log('RAF loop', JSON.stringify({start, intervalsEnd, timestamp}))
+		    if (timestamp >= intervalsEnd) {
 		    	console.log('done at ' + timestamp)
-                window.r.pause()
-                window.onReplayFinish()
+                await window.onReplayFinish()
                 return
 		    }
      		const end = window.getInactivityEnd(timestamp)
      		if (end !== undefined) {
-            	console.log('skipping from ' + timestamp + ' to ' + end + ' due to inactivity')
-		    	window.r.play(end - start)
+     			const ts = end - start
+            	console.log('skipping from ' + timestamp + ' to ' + ts + ' due to inactivity')
+		    	window.r.play(ts)
      		}
      	}
-     	const inactivityLoop = () => {
-        	skipInactivity()
-        	window.requestAnimationFrame(inactivityLoop)
-        }
-        inactivityLoop();
         
         window.r.on('resize', (e) => {viewport = e});
-        window.r.on('finish', () => window.onReplayFinish());
+        window.r.on('finish', window.onReplayFinish);
         window.r.pause(0);
         
         meta = window.r.getMetaData();
+        meta.intervals = intervals
+        meta.intervalsEnd = intervals[intervals.length - 1].end_time
+         
         loaded = true;
     `,
 	)
 	await page.waitForFunction('loaded')
 	console.log(`puppeteer loaded`)
-	const meta = (await page.evaluate('meta')) as {
+	let meta = (await page.evaluate('meta')) as {
 		startTime: number
 		endTime: number
 		totalTime: number
@@ -257,7 +262,20 @@ export async function render(
 			tsEnd,
 		})
 		await page.evaluate(`r.play(${ts})`)
+		await page.evaluate(`
+			let lastLoop = 0;
+			const inactivityLoop = async () => {
+				if ((new Date()).getTime() - lastLoop >= 1000) {
+					lastLoop = (new Date()).getTime();
+					await skipInactivity()
+				}
+				window.requestAnimationFrame(inactivityLoop)
+			}
+			window.requestAnimationFrame(inactivityLoop);
+		`)
+		console.log(`puppeteer waiting for finishedPromise`)
 		await finishedPromise
+		console.log(`puppeteer done with finishedPromise`)
 		await recorder.stop()
 	} else {
 		let interval = 1000

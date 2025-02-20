@@ -251,13 +251,6 @@ const isHighlightNetworkResourceFilter = (
 	name: string,
 	highlightEndpoints: string[],
 ) =>
-	name
-		.toLocaleLowerCase()
-		.includes(
-			import.meta.env.REACT_APP_PUBLIC_GRAPH_URI ?? 'pub.highlight.io',
-		) ||
-	name.toLocaleLowerCase().includes('pub.highlight.io') ||
-	name.toLocaleLowerCase().includes('otel.highlight.io') ||
 	highlightEndpoints.some((backendUrl) =>
 		name.toLocaleLowerCase().includes(backendUrl),
 	)
@@ -269,10 +262,7 @@ export const shouldNetworkRequestBeRecorded = (
 	highlightEndpoints: string[],
 	tracingOrigins?: boolean | (string | RegExp)[],
 ) => {
-	return (
-		!isHighlightNetworkResourceFilter(url, highlightEndpoints) ||
-		shouldNetworkRequestBeTraced(url, tracingOrigins ?? [], [])
-	)
+	return !isHighlightNetworkResourceFilter(url, highlightEndpoints)
 }
 
 // Determines whether we want to attach the x-highlight-request header to the

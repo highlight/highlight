@@ -1076,7 +1076,6 @@ type ComplexityRoot struct {
 		ErrorCommentsForAdmin            func(childComplexity int) int
 		ErrorCommentsForProject          func(childComplexity int, projectID int) int
 		ErrorGroup                       func(childComplexity int, secureID string, useClickhouse *bool) int
-		ErrorGroupFrequencies            func(childComplexity int, projectID int, errorGroupSecureIds []string, params model.ErrorGroupFrequenciesParamsInput, metric *string, useClickhouse *bool) int
 		ErrorGroupTags                   func(childComplexity int, errorGroupSecureID string, useClickhouse *bool) int
 		ErrorGroups                      func(childComplexity int, projectID int, count int, params model.QueryInput, page *int) int
 		ErrorGroupsClickhouse            func(childComplexity int, projectID int, count int, query model.ClickhouseQuery, page *int) int
@@ -1971,7 +1970,6 @@ type QueryResolver interface {
 	DailySessionsCount(ctx context.Context, projectID int, dateRange model.DateRangeInput) ([]*model1.DailySessionCount, error)
 	DailyErrorsCount(ctx context.Context, projectID int, dateRange model.DateRangeInput) ([]*model1.DailyErrorCount, error)
 	DailyErrorFrequency(ctx context.Context, projectID int, errorGroupSecureID string, dateOffset int) ([]int64, error)
-	ErrorGroupFrequencies(ctx context.Context, projectID int, errorGroupSecureIds []string, params model.ErrorGroupFrequenciesParamsInput, metric *string, useClickhouse *bool) ([]*model.ErrorDistributionItem, error)
 	ErrorGroupTags(ctx context.Context, errorGroupSecureID string, useClickhouse *bool) ([]*model.ErrorGroupTagAggregation, error)
 	Referrers(ctx context.Context, projectID int, lookbackDays float64) ([]*model.ReferrerTablePayload, error)
 	NewUsersCount(ctx context.Context, projectID int, lookbackDays float64) (*model.NewUsersCount, error)
@@ -7734,18 +7732,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Query.ErrorGroup(childComplexity, args["secure_id"].(string), args["use_clickhouse"].(*bool)), true
-
-	case "Query.errorGroupFrequencies":
-		if e.complexity.Query.ErrorGroupFrequencies == nil {
-			break
-		}
-
-		args, err := ec.field_Query_errorGroupFrequencies_args(context.TODO(), rawArgs)
-		if err != nil {
-			return 0, false
-		}
-
-		return e.complexity.Query.ErrorGroupFrequencies(childComplexity, args["project_id"].(int), args["error_group_secure_ids"].([]string), args["params"].(model.ErrorGroupFrequenciesParamsInput), args["metric"].(*string), args["use_clickhouse"].(*bool)), true
 
 	case "Query.errorGroupTags":
 		if e.complexity.Query.ErrorGroupTags == nil {
@@ -14372,13 +14358,6 @@ type Query {
 		error_group_secure_id: String!
 		date_offset: Int!
 	): [Int64!]!
-	errorGroupFrequencies(
-		project_id: ID!
-		error_group_secure_ids: [String!]
-		params: ErrorGroupFrequenciesParamsInput!
-		metric: String
-		use_clickhouse: Boolean
-	): [ErrorDistributionItem]!
 	errorGroupTags(
 		error_group_secure_id: String!
 		use_clickhouse: Boolean
@@ -19685,57 +19664,6 @@ func (ec *executionContext) field_Query_environment_suggestion_args(ctx context.
 		}
 	}
 	args["project_id"] = arg0
-	return args, nil
-}
-
-func (ec *executionContext) field_Query_errorGroupFrequencies_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
-	var err error
-	args := map[string]interface{}{}
-	var arg0 int
-	if tmp, ok := rawArgs["project_id"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("project_id"))
-		arg0, err = ec.unmarshalNID2int(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["project_id"] = arg0
-	var arg1 []string
-	if tmp, ok := rawArgs["error_group_secure_ids"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("error_group_secure_ids"))
-		arg1, err = ec.unmarshalOString2ᚕstringᚄ(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["error_group_secure_ids"] = arg1
-	var arg2 model.ErrorGroupFrequenciesParamsInput
-	if tmp, ok := rawArgs["params"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("params"))
-		arg2, err = ec.unmarshalNErrorGroupFrequenciesParamsInput2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐErrorGroupFrequenciesParamsInput(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["params"] = arg2
-	var arg3 *string
-	if tmp, ok := rawArgs["metric"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("metric"))
-		arg3, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["metric"] = arg3
-	var arg4 *bool
-	if tmp, ok := rawArgs["use_clickhouse"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("use_clickhouse"))
-		arg4, err = ec.unmarshalOBoolean2ᚖbool(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["use_clickhouse"] = arg4
 	return args, nil
 }
 
@@ -59614,71 +59542,6 @@ func (ec *executionContext) fieldContext_Query_dailyErrorFrequency(ctx context.C
 	return fc, nil
 }
 
-func (ec *executionContext) _Query_errorGroupFrequencies(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Query_errorGroupFrequencies(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().ErrorGroupFrequencies(rctx, fc.Args["project_id"].(int), fc.Args["error_group_secure_ids"].([]string), fc.Args["params"].(model.ErrorGroupFrequenciesParamsInput), fc.Args["metric"].(*string), fc.Args["use_clickhouse"].(*bool))
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.([]*model.ErrorDistributionItem)
-	fc.Result = res
-	return ec.marshalNErrorDistributionItem2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐErrorDistributionItem(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_Query_errorGroupFrequencies(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "Query",
-		Field:      field,
-		IsMethod:   true,
-		IsResolver: true,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			switch field.Name {
-			case "error_group_id":
-				return ec.fieldContext_ErrorDistributionItem_error_group_id(ctx, field)
-			case "date":
-				return ec.fieldContext_ErrorDistributionItem_date(ctx, field)
-			case "name":
-				return ec.fieldContext_ErrorDistributionItem_name(ctx, field)
-			case "value":
-				return ec.fieldContext_ErrorDistributionItem_value(ctx, field)
-			}
-			return nil, fmt.Errorf("no field named %q was found under type ErrorDistributionItem", field.Name)
-		},
-	}
-	defer func() {
-		if r := recover(); r != nil {
-			err = ec.Recover(ctx, r)
-			ec.Error(ctx, err)
-		}
-	}()
-	ctx = graphql.WithFieldContext(ctx, fc)
-	if fc.Args, err = ec.field_Query_errorGroupFrequencies_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
-		ec.Error(ctx, err)
-		return fc, err
-	}
-	return fc, nil
-}
-
 func (ec *executionContext) _Query_errorGroupTags(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Query_errorGroupTags(ctx, field)
 	if err != nil {
@@ -96847,28 +96710,6 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 			}
 
 			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
-		case "errorGroupFrequencies":
-			field := field
-
-			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._Query_errorGroupFrequencies(ctx, field)
-				if res == graphql.Null {
-					atomic.AddUint32(&fs.Invalids, 1)
-				}
-				return res
-			}
-
-			rrm := func(ctx context.Context) graphql.Marshaler {
-				return ec.OperationContext.RootResolverMiddleware(ctx,
-					func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
-			}
-
-			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
 		case "errorGroupTags":
 			field := field
 
@@ -105403,44 +105244,6 @@ func (ec *executionContext) marshalNErrorComment2ᚕᚖgithubᚗcomᚋhighlight�
 	return ret
 }
 
-func (ec *executionContext) marshalNErrorDistributionItem2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐErrorDistributionItem(ctx context.Context, sel ast.SelectionSet, v []*model.ErrorDistributionItem) graphql.Marshaler {
-	ret := make(graphql.Array, len(v))
-	var wg sync.WaitGroup
-	isLen1 := len(v) == 1
-	if !isLen1 {
-		wg.Add(len(v))
-	}
-	for i := range v {
-		i := i
-		fc := &graphql.FieldContext{
-			Index:  &i,
-			Result: &v[i],
-		}
-		ctx := graphql.WithFieldContext(ctx, fc)
-		f := func(i int) {
-			defer func() {
-				if r := recover(); r != nil {
-					ec.Error(ctx, ec.Recover(ctx, r))
-					ret = nil
-				}
-			}()
-			if !isLen1 {
-				defer wg.Done()
-			}
-			ret[i] = ec.marshalOErrorDistributionItem2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐErrorDistributionItem(ctx, sel, v[i])
-		}
-		if isLen1 {
-			f(i)
-		} else {
-			go f(i)
-		}
-
-	}
-	wg.Wait()
-
-	return ret
-}
-
 func (ec *executionContext) marshalNErrorDistributionItem2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐErrorDistributionItemᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.ErrorDistributionItem) graphql.Marshaler {
 	ret := make(graphql.Array, len(v))
 	var wg sync.WaitGroup
@@ -105541,11 +105344,6 @@ func (ec *executionContext) marshalNErrorGroup2ᚕgithubᚗcomᚋhighlightᚑrun
 	}
 
 	return ret
-}
-
-func (ec *executionContext) unmarshalNErrorGroupFrequenciesParamsInput2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐErrorGroupFrequenciesParamsInput(ctx context.Context, v interface{}) (model.ErrorGroupFrequenciesParamsInput, error) {
-	res, err := ec.unmarshalInputErrorGroupFrequenciesParamsInput(ctx, v)
-	return res, graphql.ErrorOnPath(ctx, err)
 }
 
 func (ec *executionContext) marshalNErrorGroupTagAggregation2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐErrorGroupTagAggregationᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.ErrorGroupTagAggregation) graphql.Marshaler {
@@ -110453,13 +110251,6 @@ func (ec *executionContext) marshalOErrorComment2ᚖgithubᚗcomᚋhighlightᚑr
 		return graphql.Null
 	}
 	return ec._ErrorComment(ctx, sel, v)
-}
-
-func (ec *executionContext) marshalOErrorDistributionItem2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐErrorDistributionItem(ctx context.Context, sel ast.SelectionSet, v *model.ErrorDistributionItem) graphql.Marshaler {
-	if v == nil {
-		return graphql.Null
-	}
-	return ec._ErrorDistributionItem(ctx, sel, v)
 }
 
 func (ec *executionContext) marshalOErrorGroup2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐErrorGroup(ctx context.Context, sel ast.SelectionSet, v *model1.ErrorGroup) graphql.Marshaler {

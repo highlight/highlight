@@ -1,5 +1,16 @@
 # @highlight-run/next
 
+## 7.8.5
+
+### Patch Changes
+
+-   b4f7173: avoid recording proxied highlight next.js requests
+-   Updated dependencies [b4f7173]
+-   Updated dependencies [b4f7173]
+    -   highlight.run@9.10.0
+    -   @highlight-run/node@3.11.1
+    -   @highlight-run/react@11.0.0
+
 ## 7.8.4
 
 ### Patch Changes

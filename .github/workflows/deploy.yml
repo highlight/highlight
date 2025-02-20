@@ -56,16 +56,16 @@ jobs:
             - name: Build and zip
               run: |
                   cd backend/
-                  CGO_ENABLED=0 go build ./lambda-functions/deleteSessions/getSessionIdsByQuery
-                  zip getSessionIdsByQuery.zip getSessionIdsByQuery
-                  CGO_ENABLED=0 go build ./lambda-functions/deleteSessions/deleteSessionBatchFromPostgres
-                  zip deleteSessionBatchFromPostgres.zip deleteSessionBatchFromPostgres
-                  CGO_ENABLED=0 go build ./lambda-functions/deleteSessions/deleteSessionBatchFromOpenSearch
-                  zip deleteSessionBatchFromOpenSearch.zip deleteSessionBatchFromOpenSearch
-                  CGO_ENABLED=0 go build ./lambda-functions/deleteSessions/deleteSessionBatchFromS3
-                  zip deleteSessionBatchFromS3.zip deleteSessionBatchFromS3
-                  CGO_ENABLED=0 go build ./lambda-functions/deleteSessions/sendEmail
-                  zip sendEmail.zip sendEmail
+                  CGO_ENABLED=0 go build -o bootstrap ./lambda-functions/deleteSessions/getSessionIdsByQuery
+                  zip getSessionIdsByQuery.zip bootstrap
+                  CGO_ENABLED=0 go build -o bootstrap ./lambda-functions/deleteSessions/deleteSessionBatchFromPostgres
+                  zip deleteSessionBatchFromPostgres.zip bootstrap
+                  CGO_ENABLED=0 go build -o bootstrap ./lambda-functions/deleteSessions/deleteSessionBatchFromOpenSearch
+                  zip deleteSessionBatchFromOpenSearch.zip bootstrap
+                  CGO_ENABLED=0 go build -o bootstrap ./lambda-functions/deleteSessions/deleteSessionBatchFromS3
+                  zip deleteSessionBatchFromS3.zip bootstrap
+                  CGO_ENABLED=0 go build -o bootstrap ./lambda-functions/deleteSessions/sendEmail
+                  zip sendEmail.zip bootstrap
             - name: Configure AWS Credentials
               uses: aws-actions/configure-aws-credentials@v4
               with:
@@ -116,10 +116,10 @@ jobs:
             - name: Build and zip
               run: |
                   cd backend/
-                  CGO_ENABLED=0 go build ./lambda-functions/sessionExport/saveSessionExport
-                  zip saveSessionExport.zip saveSessionExport
-                  CGO_ENABLED=0 go build ./lambda-functions/sessionExport/sendEmail
-                  zip sendEmail.zip sendEmail
+                  CGO_ENABLED=0 go build -o bootstrap ./lambda-functions/sessionExport/saveSessionExport
+                  zip saveSessionExport.zip bootstrap
+                  CGO_ENABLED=0 go build -o bootstrap ./lambda-functions/sessionExport/sendEmail
+                  zip sendEmail.zip bootstrap
             - name: Configure AWS Credentials
               uses: aws-actions/configure-aws-credentials@v4
               with:
@@ -158,12 +158,12 @@ jobs:
             - name: Build and zip
               run: |
                   cd backend/
-                  CGO_ENABLED=0 go build ./lambda-functions/digests/getProjectIds
-                  zip getProjectIds.zip getProjectIds
-                  CGO_ENABLED=0 go build ./lambda-functions/digests/getDigestData
-                  zip getDigestData.zip getDigestData
-                  CGO_ENABLED=0 go build ./lambda-functions/digests/sendDigestEmails
-                  zip sendDigestEmails.zip sendDigestEmails
+                  CGO_ENABLED=0 go build -o bootstrap ./lambda-functions/digests/getProjectIds
+                  zip getProjectIds.zip bootstrap
+                  CGO_ENABLED=0 go build -o bootstrap ./lambda-functions/digests/getDigestData
+                  zip getDigestData.zip bootstrap
+                  CGO_ENABLED=0 go build -o bootstrap ./lambda-functions/digests/sendDigestEmails
+                  zip sendDigestEmails.zip bootstrap
             - name: Configure AWS Credentials
               uses: aws-actions/configure-aws-credentials@v4
               with:
@@ -206,10 +206,10 @@ jobs:
             - name: Build and zip
               run: |
                   cd backend/
-                  CGO_ENABLED=0 go build ./lambda-functions/sessionInsights/getSessionInsightsData
-                  zip getSessionInsightsData.zip getSessionInsightsData
-                  CGO_ENABLED=0 go build ./lambda-functions/sessionInsights/sendSessionInsightsEmails
-                  zip sendSessionInsightsEmails.zip sendSessionInsightsEmails
+                  CGO_ENABLED=0 go build -o bootstrap ./lambda-functions/sessionInsights/getSessionInsightsData
+                  zip getSessionInsightsData.zip bootstrap
+                  CGO_ENABLED=0 go build -o bootstrap ./lambda-functions/sessionInsights/sendSessionInsightsEmails
+                  zip sendSessionInsightsEmails.zip bootstrap
             - name: Configure AWS Credentials
               uses: aws-actions/configure-aws-credentials@v4
               with:
@@ -284,8 +284,8 @@ jobs:
             - name: Build and zip
               run: |
                   cd backend/
-                  CGO_ENABLED=0 go build ./lambda-functions/journeys/updateNormalnessScores
-                  zip updateNormalnessScores.zip updateNormalnessScores
+                  CGO_ENABLED=0 go build -o bootstrap ./lambda-functions/journeys/updateNormalnessScores
+                  zip updateNormalnessScores.zip bootstrap
             - name: Configure AWS Credentials
               uses: aws-actions/configure-aws-credentials@v4
               with:

@@ -2,7 +2,7 @@
 title: WordPress Plugin
 slug: wordpress-plugin
 createdAt: 2024-10-01T12:00:00.000Z
-updatedAt: 2024-10-01T12:00:00.000Z
+updatedAt: 2025-02-02T12:00:00.000Z
 ---
 
 # Highlight.io WordPress Plugin - Session Replay, Logging, and Error Monitoring for WordPress
@@ -58,11 +58,5 @@ If you encounter issues with the plugin, please check the following:
 2. Verify that the plugin is activated and up to date.
 3. Check your browser's console for any JavaScript errors that might interfere with the Highlight script.
 4. If network recording is enabled, ensure it's not conflicting with other plugins or security measures on your site.
-
-For further assistance, please refer to our [support documentation](https://highlight.io/docs) or contact our support team.
-
-## Changelog
-
-- **1.0.0** (2023-05-15): Initial release of the Highlight WordPress Plugin.
 
 Stay tuned for future updates and additional features!

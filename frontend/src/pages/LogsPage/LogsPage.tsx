@@ -52,6 +52,7 @@ import {
 } from '@/pages/LogsPage/LogsTable/CustomColumns/columns'
 import { useApplicationContext } from '@/routers/AppRouter/context/ApplicationContext'
 import analytics from '@/util/analytics'
+import { exportLogs } from '@pages/LogsPage/utils'
 
 const LogsPage = () => {
 	const { log_cursor } = useParams<{
@@ -297,6 +298,9 @@ const LogsPageInner = ({ timeMode, logCursor, presetDefault }: Props) => {
 						presetSelected={!!searchTimeContext.selectedPreset}
 						totalCount={totalCount}
 						loading={histogramLoading}
+						onDownload={
+							loading ? undefined : () => exportLogs(logEdges)
+						}
 					/>
 					<LogsHistogram
 						startDate={searchTimeContext.startDate}

@@ -37,7 +37,7 @@ represents the suffix on the link clicked.
 
 Currently, we're retrieving the total number of events. To get the distinct number of users, update the function to CountDistinct using the identifier
 attribute, which tracks each user’s unique identifier, such as an email or ID. Read more about reporting identifiers
-[in our docs](../../../../getting-started/3_client-sdk/7_replay-configuration/identifying-sessions.md).
+[in our docs](../../../../getting-started/3_browser/7_replay-configuration/identifying-sessions.md).
 
 ### 4. Group the Data
 

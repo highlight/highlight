@@ -3,6 +3,7 @@ import {
 	Box,
 	Button,
 	ButtonIcon,
+	DEFAULT_TIME_PRESETS,
 	IconSolidChartSquareBar,
 	IconSolidChartSquareLine,
 	IconSolidDocumentReport,
@@ -144,7 +145,8 @@ export type ThresholdSettings = {
 
 export interface ChartProps<TConfig> {
 	id?: string
-	title: string
+	title?: string
+	hideTitle?: boolean
 	syncId?: string
 	productType: ProductType
 	projectId: string
@@ -1167,6 +1169,7 @@ const Graph = ({
 	thresholdSettings,
 	expressions,
 	syncId,
+	hideTitle,
 	children,
 }: React.PropsWithChildren<ChartProps<ViewConfig>>) => {
 	const { setGraphData, setErrors } = useGraphContext()
@@ -1184,6 +1187,28 @@ const Graph = ({
 		'highlight-used-drilldown',
 		false,
 	)
+
+	// Use a smaller bucketByWindow if the selected one is greater than the time range
+	if (
+		moment(startDate).add(bucketByWindow, 'second').isSameOrAfter(endDate)
+	) {
+		let lastPreset = DEFAULT_TIME_PRESETS[0]
+		for (const preset of DEFAULT_TIME_PRESETS) {
+			if (
+				moment(startDate)
+					.add(preset.quantity, preset.unit)
+					.isBefore(endDate)
+			) {
+				lastPreset = preset
+			} else {
+				break
+			}
+		}
+
+		bucketByWindow = moment
+			.duration(lastPreset.quantity, lastPreset.unit)
+			.asSeconds()
+	}
 
 	const loadExemplars = useCallback(
 		(
@@ -1377,20 +1402,25 @@ const Graph = ({
 		bucketByWindow,
 		getMetrics,
 		sql,
-		groupByKeys,
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+		JSON.stringify(groupByKeys),
 		limit,
 		limitFunctionType,
 		limitMetric,
-		funnelSteps,
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+		JSON.stringify(funnelSteps),
 		productType,
 		projectId,
 		queriedBucketCount,
 		query,
 		variables,
-		predictionSettings,
-		expressions,
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+		JSON.stringify(predictionSettings),
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+		JSON.stringify(expressions),
 		startDate,
 		endDate,
+		setErrors,
 	])
 
 	const graphData = useGraphData(
@@ -1588,15 +1618,21 @@ const Graph = ({
 			gap="8"
 			justifyContent="space-between"
 		>
-			<Box
-				display="flex"
-				flexDirection="row"
-				justifyContent="space-between"
-			>
-				<Text size="small" color="default" cssClass={style.titleText}>
-					{title || 'Untitled graph'}
-				</Text>
-			</Box>
+			{!hideTitle && (
+				<Box
+					display="flex"
+					flexDirection="row"
+					justifyContent="space-between"
+				>
+					<Text
+						size="small"
+						color="default"
+						cssClass={style.titleText}
+					>
+						{title || 'Untitled graph'}
+					</Text>
+				</Box>
+			)}
 			<Box
 				style={{ height: height ?? '100%' }}
 				key={series.join(';')} // Hacky but recharts' ResponsiveContainer has issues when this height changes so just rerender the whole thing

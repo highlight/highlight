@@ -92,7 +92,7 @@ export const FEATURES: { [k: string]: iFeature } = {
 				header: 'Powerful privacy controls.',
 				subheader:
 					'Privacy matters. Use the highlight.io SDK to obfuscate and redact data to control when and where to record.',
-				link: '/docs/getting-started/client-sdk/replay-configuration/privacy',
+				link: '/docs/getting-started/browser/replay-configuration/privacy',
 				linkText: 'Read the Docs',
 				invert: true,
 				privacy: true,
@@ -101,7 +101,7 @@ export const FEATURES: { [k: string]: iFeature } = {
 				header: 'Reproduce the dev-tools for every session.',
 				subheader:
 					'Console logs, errors, network requests, and more. Get full context around the issues on your web application.',
-				link: '/docs/getting-started/client-sdk/replay-configuration/overview',
+				link: '/docs/getting-started/browser/replay-configuration/overview',
 				linkText: 'Read the Docs',
 				imgSrc: sessionReplay2,
 				invert: false,

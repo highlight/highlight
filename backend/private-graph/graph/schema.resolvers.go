@@ -6299,26 +6299,6 @@ func (r *queryResolver) DailyErrorFrequency(ctx context.Context, projectID int, 
 	return errGroup.ErrorFrequency, nil
 }
 
-// ErrorGroupFrequencies is the resolver for the errorGroupFrequencies field.
-func (r *queryResolver) ErrorGroupFrequencies(ctx context.Context, projectID int, errorGroupSecureIds []string, params modelInputs.ErrorGroupFrequenciesParamsInput, metric *string, useClickhouse *bool) ([]*modelInputs.ErrorDistributionItem, error) {
-	var errorGroupIDs []int
-	for _, errorGroupSecureID := range errorGroupSecureIds {
-		errorGroup, err := r.canAdminViewErrorGroup(ctx, errorGroupSecureID)
-		if err != nil {
-			return nil, err
-		}
-		errorGroupIDs = append(errorGroupIDs, errorGroup.ID)
-	}
-	if metric == nil {
-		metric = pointy.String("")
-	}
-	results, err := r.ClickhouseClient.QueryErrorGroupFrequencies(ctx, projectID, errorGroupIDs, params)
-	if err != nil {
-		return nil, err
-	}
-	return results, nil
-}
-
 // ErrorGroupTags is the resolver for the errorGroupTags field.
 func (r *queryResolver) ErrorGroupTags(ctx context.Context, errorGroupSecureID string, useClickhouse *bool) ([]*modelInputs.ErrorGroupTagAggregation, error) {
 	errorGroup, err := r.canAdminViewErrorGroup(ctx, errorGroupSecureID)

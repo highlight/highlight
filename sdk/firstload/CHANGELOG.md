@@ -1,5 +1,15 @@
 # highlight.run
 
+## 9.10.0
+
+### Minor Changes
+
+-   b4f7173: turn off firstload network recording in favor of opentelemetry instrumentation
+
+### Patch Changes
+
+-   b4f7173: check trace header injection separately from body capture check
+
 ## 9.9.1
 
 ### Patch Changes

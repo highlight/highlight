@@ -22,7 +22,7 @@ Quickly and easily configure a Render log drain with Highlight: https://dub.sh/U
 
 [@Vadman97](https://github.com/Vadman97) solved a long-standing issue with WebGL double buffering. The WebGL memory would render a transparent image even though the GPU was rending the image correctly. This caused missing images in Session Replay.
 
-Take full control over your Canvas snapshots with the [manual snapshotting docs](https://www.highlight.io/docs/getting-started/client-sdk/replay-configuration/canvas#manual-snapshotting)
+Take full control over your Canvas snapshots with the [manual snapshotting docs](https://www.highlight.io/docs/getting-started/browser/replay-configuration/canvas#manual-snapshotting)
 
 ![Render to Highlight](/images/changelog/22/canvas-snapshot.jpg)
 

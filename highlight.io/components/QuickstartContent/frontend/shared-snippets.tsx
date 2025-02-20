@@ -27,22 +27,22 @@ npm install highlight.run`,
 }
 
 export const sessionReplayFeaturesLink = siteUrl(
-	'/docs/getting-started/client-sdk/replay-configuration/overview',
+	'/docs/getting-started/browser/replay-configuration/overview',
 )
 export const identifyingUsersLink = siteUrl(
-	'/docs/getting-started/client-sdk/replay-configuration/identifying-sessions',
+	'/docs/getting-started/browser/replay-configuration/identifying-sessions',
 )
 export const sessionSearchLink = siteUrl(
 	'/docs/general/product-features/session-replay/session-search',
 )
 export const backendInstrumentationLink = siteUrl(
-	'/docs/getting-started/overview#for-your-backend-error-monitoring',
+	'/docs/getting-started/overview#for-your-server',
 )
 export const fullstackMappingLink = siteUrl(
 	'/docs/getting-started/frontend-backend-mapping',
 )
 export const sourceMapDetailsLink = siteUrl(
-	'/docs/getting-started/client-sdk/replay-configuration/sourcemaps',
+	'/docs/getting-started/browser/replay-configuration/sourcemaps',
 )
 
 export const browserGettingStartedLink = siteUrl(

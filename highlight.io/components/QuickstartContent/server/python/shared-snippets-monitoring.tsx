@@ -47,7 +47,7 @@ pip install highlight-io${variant ? '[' + variant + ']' : ''}`,
 export const setupLogging: (slug: string) => QuickStartStep = (slug) => ({
 	title: 'Set up logging.',
 	content: `With the Python SDK, your logs are reported automatically from builtin logging methods. See the Python [logging setup guide](${siteUrl(
-		'/docs/getting-started/backend-logging/python/overview',
+		'/docs/getting-started/server/python/overview',
 	)}) for more details.`,
 })
 

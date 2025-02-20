@@ -57,13 +57,13 @@ export const DetailedMetric = ({ configuration, value, name }: Props) => {
 
 export default SimpleMetric
 
-export enum MetricValueScore {
+enum MetricValueScore {
 	Good,
 	NeedsImprovement,
 	Poor,
 }
 
-export function getMetricValueScore(
+function getMetricValueScore(
 	value: number,
 	{
 		max_good_value,
