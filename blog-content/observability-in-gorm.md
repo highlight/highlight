@@ -75,7 +75,7 @@ Assuming you already have OpenTelemetry configured, you'll see traces and metric
 
 Now that we have traces and metrics, how do we use them to diagnose and optimize our database? For our use case, we'll use [Highlight.io](https://highlight.io) to visualize and work with the data.
 
-### Viewing Traces
+### Working with Traces
 
 The GORM plugin will emit spans for each database interaction. If the query is part of an existing trace, the span will be connected to that trace. Here is an example of a web request that triggered a database query:
 
@@ -83,7 +83,7 @@ The GORM plugin will emit spans for each database interaction. If the query is p
 
 Note the attributes added to the span under the `db` key. We get information about the query that can be used to help understand and optimize it. We even get the SQL statement to so we have the exact query to run in a debugging session.
 
-#### Viewing Aggregated Traces
+#### Aggregated Traces
 
 Viewing an individual trace is helpful, but it's often useful to see aggregate data for database interactions. Since we have attributes like `duration`, `db.sql.table`, and `db.operation`, we can use these to group and aggregate data.
 
@@ -91,11 +91,9 @@ Viewing an individual trace is helpful, but it's often useful to see aggregate d
 
 Here you can see how dashboards are being used to monitor query counts, duration, and details of individual slow queries.
 
-### Viewing Metrics
+### Working with Metrics
 
 The OpenTelemetry GORM plugin will also emit metrics for the database. It currently only reports metrics around connections, which can be helpful for diagnosing issues with your connection pool health and capacity.
-
-TODO: Add screenshot of metrics
 
 Note that the plugin does not have access to infrastructure metrics like CPU, memory, etc., which are also important for monitoring the health of your database. Many cloud providers can export these metrics for you. See [Metrics in AWS](/docs/getting-started/server/hosting/aws-metrics) as an example of how to get these metrics for AWS.
 
