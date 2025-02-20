@@ -5,3 +5,6 @@
 
 ## Guidelines for ./highlight.io
 - Don't use Tailwind CSS, use CSS modules instead.
+
+## Guidelines for ./sdk
+- After updating ./sdk/firstload or ./sdk/client, you need to build using `yarn build:sdk` or run `yarn build` from ./sdk/firstload.
