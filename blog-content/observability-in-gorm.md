@@ -81,25 +81,26 @@ The GORM plugin will emit spans for each database interaction. If the query is p
 
 ![GORM Trace](/images/blog/observability-in-gorm/gorm-span.png)
 
-Note the attributes added to the span under the `db` key. We get information about the query that can be used to help optimize the query.
+Note the attributes added to the span under the `db` key. We get information about the query that can be used to help understand and optimize it. We even get the SQL statement to so we have the exact query to run in a debugging session.
 
-### Visualizing Traces
+#### Viewing Aggregated Traces
 
-You can also use dashboards to visualize trace data, like query duration.
+Viewing an individual trace is helpful, but it's often useful to see aggregate data for database interactions. Since we have attributes like `duration`, `db.sql.table`, and `db.operation`, we can use these to group and aggregate data.
+
+![GORM Dashboard](/images/blog/observability-in-gorm/gorm-dashboard.png)
+
+Here you can see how dashboards are being used to monitor query counts, duration, and details of individual slow queries.
 
 ### Viewing Metrics
 
-The OpenTelemetry GORM plugin will also emit metrics for the database. Here are the metrics the plugin currently emits:
+The OpenTelemetry GORM plugin will also emit metrics for the database. It currently only reports metrics around connections, which can be helpful for diagnosing issues with your connection pool health and capacity.
 
-* **`go.sql.connections_max_open`** - Maximum number of open connections to the database
-* **`go.sql.connections_open`** - The number of established connections both in use and idle
-* **`go.sql.connections_in_use`** - The number of connections currently in use
-* **`go.sql.connections_idle`** - The number of idle connections
-* **`go.sql.connections_wait_count`** - The total number of connections waited for
-* **`go.sql.connections_wait_duration`** - The total time blocked waiting for a new connection (in nanoseconds)
-* **`go.sql.connections_closed_max_idle`** - The total number of connections closed due to SetMaxIdleConns
-* **`go.sql.connections_closed_max_idle_time`** - The total number of connections closed due to SetConnMaxIdleTime
-* **`go.sql.connections_closed_max_lifetime`** - The total number of connections closed due to SetConnMaxLifetime
+![GORM Metrics](/images/blog/observability-in-gorm/gorm-metrics.png)
 
 Note that the plugin does not have access to infrastructure metrics like CPU, memory, etc., which are also important for monitoring the health of your database. Many cloud providers can export these metrics for you. See [Metrics in AWS](/docs/getting-started/server/hosting/aws-metrics) as an example of how to get these metrics for AWS.
 
+## Conclusion
+
+The GORM OpenTelemetry plugin is an easy way to start collecting observability data for your database. It will give you a lot of useful data for finding issues and optimizing your database.
+
+If you're interested in trying it out, check out the [GORM OpenTelemetry plugin documentation](https://gorm.io/plugin/opentelemetry/tracing) for more information, or consider using the [Highlight Go SDK](https://pkg.go.dev/github.com/highlight/highlight/sdk/highlight-go) to get started quickly.
