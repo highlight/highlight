@@ -1478,9 +1478,9 @@ export const GraphingEditor: React.FC = () => {
 														</Box>
 													) : null}
 												</SidebarSection>
-												<SidebarSection>
-													{settings.viewType ===
-													'Funnel chart' ? null : (
+												{settings.viewType !==
+													'Funnel chart' && (
+													<SidebarSection>
 														<LabeledRow
 															label="Bucket by"
 															name="bucketBy"
@@ -1516,104 +1516,104 @@ export const GraphingEditor: React.FC = () => {
 																}
 															/>
 														</LabeledRow>
-													)}
-													{settings.bucketByEnabled &&
-														settings.bucketBySetting ===
-															'Count' && (
-															<>
-																<LabeledRow
-																	label="Bucket field"
-																	name="bucketField"
-																	tooltip="A numeric field for bucketing results along the X-axis. Timestamp for time series charts, numeric fields for histograms, can be disabled to aggregate all results within the time range."
-																>
-																	<Combobox
-																		selection={
-																			settings.bucketByKey
-																		}
-																		setSelection={
-																			setBucketByKey
-																		}
-																		searchConfig={
-																			searchOptionsConfig
-																		}
-																		defaultKeys={[
-																			TIMESTAMP_KEY,
-																			...variableKeys,
-																		]}
-																		onlyNumericKeys
-																		disabled={
-																			isPreview
-																		}
-																	/>
-																</LabeledRow>
-																<LabeledRow
-																	label="Buckets"
-																	name="bucketCount"
-																	tooltip="The number of X-axis buckets. A higher value will display smaller, more granular buckets. Currently, the max is 100."
-																>
-																	<Input
-																		type="number"
+														{settings.bucketByEnabled &&
+															settings.bucketBySetting ===
+																'Count' && (
+																<>
+																	<LabeledRow
+																		label="Bucket field"
+																		name="bucketField"
+																		tooltip="A numeric field for bucketing results along the X-axis. Timestamp for time series charts, numeric fields for histograms, can be disabled to aggregate all results within the time range."
+																	>
+																		<Combobox
+																			selection={
+																				settings.bucketByKey
+																			}
+																			setSelection={
+																				setBucketByKey
+																			}
+																			searchConfig={
+																				searchOptionsConfig
+																			}
+																			defaultKeys={[
+																				TIMESTAMP_KEY,
+																				...variableKeys,
+																			]}
+																			onlyNumericKeys
+																			disabled={
+																				isPreview
+																			}
+																		/>
+																	</LabeledRow>
+																	<LabeledRow
+																		label="Buckets"
 																		name="bucketCount"
-																		placeholder="Enter bucket count"
-																		value={
-																			settings.bucketCount
-																		}
-																		onChange={(
-																			e,
-																		) => {
-																			const newValue =
-																				Math.min(
-																					MAX_BUCKET_SIZE,
-																					parseInt(
-																						e
-																							.target
-																							.value,
-																					),
-																				)
+																		tooltip="The number of X-axis buckets. A higher value will display smaller, more granular buckets. Currently, the max is 100."
+																	>
+																		<Input
+																			type="number"
+																			name="bucketCount"
+																			placeholder="Enter bucket count"
+																			value={
+																				settings.bucketCount
+																			}
+																			onChange={(
+																				e,
+																			) => {
+																				const newValue =
+																					Math.min(
+																						MAX_BUCKET_SIZE,
+																						parseInt(
+																							e
+																								.target
+																								.value,
+																						),
+																					)
 
-																			setBucketCount(
-																				newValue,
+																				setBucketCount(
+																					newValue,
+																				)
+																			}}
+																			cssClass={
+																				style.input
+																			}
+																			disabled={
+																				isPreview
+																			}
+																		/>
+																	</LabeledRow>
+																</>
+															)}
+														{settings.bucketByEnabled &&
+															settings.bucketBySetting ===
+																'Interval' && (
+																<LabeledRow
+																	label="Bucket interval"
+																	name="bucketInterval"
+																	tooltip="The number of X-axis buckets. A higher value will display smaller, more granular buckets."
+																>
+																	<Select
+																		options={
+																			BUCKET_FREQUENCIES
+																		}
+																		value={
+																			settings.bucketInterval
+																		}
+																		onValueChange={(
+																			o,
+																		) => {
+																			setBucketInterval(
+																				o.value,
 																			)
 																		}}
-																		cssClass={
-																			style.input
-																		}
 																		disabled={
 																			isPreview
 																		}
 																	/>
 																</LabeledRow>
-															</>
-														)}
-													{settings.bucketByEnabled &&
-														settings.bucketBySetting ===
-															'Interval' && (
-															<LabeledRow
-																label="Bucket interval"
-																name="bucketInterval"
-																tooltip="The number of X-axis buckets. A higher value will display smaller, more granular buckets."
-															>
-																<Select
-																	options={
-																		BUCKET_FREQUENCIES
-																	}
-																	value={
-																		settings.bucketInterval
-																	}
-																	onValueChange={(
-																		o,
-																	) => {
-																		setBucketInterval(
-																			o.value,
-																		)
-																	}}
-																	disabled={
-																		isPreview
-																	}
-																/>
-															</LabeledRow>
-														)}
-												</SidebarSection>
+															)}
+													</SidebarSection>
+												)}
 											</>
 										)}
 									</Stack>
