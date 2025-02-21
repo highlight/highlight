@@ -15,14 +15,14 @@ metaTitle: The complete guide to OpenTelemetry in Next.js
 ---
 
 ```hint
-Highlight.io is an [open source](https://github.com/highlight/highlight) monitoring platform. If you’re interested in learning more, learn more or try it out at [highlight.io](https://highlight.io).
+Highlight.io is an [open source](https://github.com/highlight/highlight) monitoring platform. Check out [highlight.io](https://highlight.io) if you’re interested in learning more.
 ```
 <br/>
 
 OpenTelemetry is an important specification that defines how we send telemetry data to observability backends like Highlight.io, Grafana, and others. OpenTelemetry is great because it is vendor agnostic, and can be used with several observability backends. If you're new to OpenTelemetry, you can learn more about it [here](https://www.youtube.com/watch?v=ASgosEzG4Pw). 
 
 
-Today, we'll go through a complete guide to using OpenTelemetry in Next.js, including the high-level concepts as well as how to send traces, logs, and metrics to your OpenTelemetry backend of choice.
+This complete guide to OpenTelemetry in Next.js covers high-level concepts as well as how to send traces, logs, and metrics to your OpenTelemetry backend of choice.
 
 
 ## Setting Up OpenTelemetry for Next.js: Tracing, Logging, and Metrics
@@ -37,12 +37,11 @@ There are several reasons that make OTel a great choice for monitoring your Next
 - Exception Tracking: Errors are automatically captured within traces by the framework
 - Simplified Setup: [@vercel/otel](https://vercel.com/docs/observability/otel-overview) eliminates the need to manually configure OpenTelemetry SDKs, exporters, and instrumentations
 
-By the end of this tutorial, you'll have all the observability data you need to be proactively notified when
-something goes wrong, troubleshoot issues quickly, and fix performance bottlenecks in the critical parts of your code.
+By the end of this tutorial, you'll have all the observability data you need to be proactively notified when something goes wrong, troubleshoot issues quickly, and fix performance bottlenecks in the critical parts of your code.
 
 ### Installing OpenTelemetry in Next.js
 
-In the past, we've covered instrumenting Next.js with `@vercel/otel` in our [blog on using @vercel/otel in Next.js](./lw5-vercel-otel-nextjs-tracing.md).
+We've covered instrumenting Next.js with `@vercel/otel` in our [blog post on using @vercel/otel in Next.js](./lw5-vercel-otel-nextjs-tracing.md).
 While `@vercel/otel` is a simpler option for many applications, it may not give you full control over the OpenTelemetry SDKs.
 Today, we'll go through a complete guide to setting up OpenTelemetry from scratch, explaining the configuration options along the way.
 
@@ -138,7 +137,7 @@ However, you may wonder what data is being captured without any explicit code ad
 
 [Next.js has built-in OpenTelemetry spans](https://nextjs.org/docs/app/building-your-application/optimizing/open-telemetry#default-spans-in-nextjs)
 for various parts of the application, including:
-- API routes (pages/api or app/api)
+- API routes (`pages/api` or `app/api`)
 - Page router (Pages Directory)
 - App router (App Directory)
 
