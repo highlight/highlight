@@ -1,10 +1,12 @@
 import {
 	Box,
+	IconSolidExclamationCircle,
 	IconSolidSortAscending,
 	IconSolidSortDescending,
 	Stack,
 	Table,
 	Text,
+	Tooltip,
 } from '@highlight-run/ui/components'
 import clsx from 'clsx'
 
@@ -18,15 +20,17 @@ import {
 	LoadExemplars,
 	NamedSeries,
 	SeriesInfo,
+	ThresholdSettings,
 	useGraphSeries,
 	VizId,
 } from '@/pages/Graphing/components/Graph'
 
 import * as style from './Table.css'
 import useLocalStorage from '@rehooks/local-storage'
-import _ from 'lodash'
+import _, { isNumber } from 'lodash'
 import { memo, useMemo, useRef } from 'react'
 import { useVirtualizer } from '@tanstack/react-virtual'
+import { ThresholdCondition, ThresholdType } from '@/graph/generated/schemas'
 
 export type TableNullHandling = 'Hide row' | 'Blank' | 'Zero'
 export const TABLE_NULL_HANDLING: TableNullHandling[] = [
@@ -55,6 +59,7 @@ const MetricTableImpl = ({
 	disabled,
 	loadExemplars,
 	visualizationId,
+	thresholdSettings,
 }: InnerChartProps<TableConfig> & SeriesInfo & VizId) => {
 	const bodyRef = useRef<HTMLDivElement>(null)
 
@@ -184,6 +189,7 @@ const MetricTableImpl = ({
 									xAxisMetric={xAxisMetric}
 									series={series}
 									nullHandling={viewConfig.nullHandling}
+									thresholdSettings={thresholdSettings}
 								/>
 							)
 						})}
@@ -204,6 +210,7 @@ interface MetricTableRowProps {
 	xAxisMetric: string
 	series: NamedSeries[]
 	nullHandling?: TableNullHandling
+	thresholdSettings?: ThresholdSettings
 }
 
 const MetricTableRow = ({
@@ -214,6 +221,7 @@ const MetricTableRow = ({
 	xAxisMetric,
 	series,
 	nullHandling,
+	thresholdSettings,
 }: MetricTableRowProps) => {
 	const xAxisTitle = xAxisTickFormatter(row[xAxisMetric])
 
@@ -259,6 +267,27 @@ const MetricTableRow = ({
 					}
 				}
 
+				let thresholdConditionText = ''
+				if (
+					thresholdSettings &&
+					thresholdSettings.thresholdType ===
+						ThresholdType.Constant &&
+					isNumber(value)
+				) {
+					switch (thresholdSettings.thresholdCondition) {
+						case ThresholdCondition.Above:
+							if (value > thresholdSettings.thresholdValue) {
+								thresholdConditionText = 'above'
+							}
+							break
+						case ThresholdCondition.Below:
+							if (value < thresholdSettings.thresholdValue) {
+								thresholdConditionText = 'below'
+							}
+							break
+					}
+				}
+
 				if (value !== '') {
 					value = getTickFormatter(s.column)(value)
 				}
@@ -283,6 +312,16 @@ const MetricTableRow = ({
 						<Text size="small" color="default" lines="1">
 							{value}
 						</Text>
+						{thresholdConditionText && (
+							<Tooltip
+								trigger={
+									<IconSolidExclamationCircle color="#1A1523B8" />
+								}
+							>
+								This value is {thresholdConditionText} the alert
+								threshold.
+							</Tooltip>
+						)}
 					</Table.Cell>
 				)
 			})}

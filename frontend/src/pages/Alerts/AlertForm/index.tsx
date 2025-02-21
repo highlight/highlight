@@ -61,7 +61,10 @@ import { useGraphData } from '@pages/Graphing/hooks/useGraphData'
 import { AlertGraph } from '../AlertGraph'
 import * as style from './styles.css'
 import { useGraphTime } from '@/pages/Graphing/hooks/useGraphTime'
-import { DEFAULT_SQL, SqlEditor } from '@/pages/Graphing/components/SqlEditor'
+import {
+	DEFAULT_ALERT_SQL,
+	SqlEditor,
+} from '@/pages/Graphing/components/SqlEditor'
 import { Panel } from '@/pages/Graphing/components/Panel'
 import { GraphBackgroundWrapper } from '@/pages/Graphing/GraphingEditor'
 
@@ -111,9 +114,9 @@ export const DEFAULT_THRESHOLD_CONDITON = ThresholdCondition.Above
 export const DEFAULT_THRESHOLD_TYPE = ThresholdType.Constant
 export const DEFAULT_CONFIDENCE_OPTION = CONFIDENCE_OPTIONS[1]
 
-const SETTINGS_PARAM = 'settings'
+export const SETTINGS_PARAM = 'settings'
 
-type AlertSettings = {
+export type AlertSettings = {
 	productType: ProductType
 	functionType: MetricAggregator
 	functionColumn: string
@@ -128,7 +131,7 @@ type AlertSettings = {
 	thresholdCooldown: number
 	destinations: AlertDestinationInput[]
 	editor: Editor
-	sql: string
+	sql?: string
 }
 
 const ALERT_PRODUCT_INFO = {
@@ -182,11 +185,19 @@ export const AlertForm: React.FC = () => {
 			: undefined,
 	)
 
-	const [editor, setEditor] = useState(
+	const [editor, setEditorImpl] = useState(
 		initialSettings?.editor ?? Editor.QueryBuilder,
 	)
+	const setEditor = (e: Editor) => {
+		if (e === Editor.SqlEditor) {
+			setThresholdType(ThresholdType.Constant)
+		}
+		handleProductChange(ProductType.Logs)
+		setEditorImpl(e)
+	}
+
 	const [sqlInternal, setSqlInternal] = useState(
-		initialSettings?.sql ?? DEFAULT_SQL,
+		initialSettings?.sql ?? DEFAULT_ALERT_SQL,
 	)
 	const [sql, setSql] = useState(sqlInternal)
 
@@ -360,7 +371,10 @@ export const AlertForm: React.FC = () => {
 			threshold_type: thresholdType,
 			threshold_condition: thresholdCondition,
 			destinations,
+			sql: editor === Editor.SqlEditor ? sql : undefined,
 		}
+
+		console.log('vars', formVariables)
 
 		if (isEdit) {
 			updateAlert({
@@ -452,6 +466,8 @@ export const AlertForm: React.FC = () => {
 				data.alert.destinations as AlertDestinationInput[],
 			)
 			setDestinations(data.alert.destinations as AlertDestinationInput[])
+			setSql(data.alert.sql ?? '')
+			setEditor(data.alert.sql ? Editor.SqlEditor : Editor.QueryBuilder)
 		},
 	})
 
@@ -538,16 +554,15 @@ export const AlertForm: React.FC = () => {
 								minDate={presetStartDate(
 									DEFAULT_TIME_PRESETS[5],
 								)}
+								disabled={editor === Editor.SqlEditor}
 							/>
 							<HeaderDivider />
 							<Button
 								emphasis="low"
 								kind="secondary"
-								onClick={() =>
-									alert_id
-										? redirectToAlert()
-										: redirectToAlerts()
-								}
+								onClick={() => {
+									navigate(-1)
+								}}
 							>
 								Cancel
 							</Button>
@@ -624,204 +639,217 @@ export const AlertForm: React.FC = () => {
 									</LabeledRow>
 								</SidebarSection>
 								<Divider className="m-0" />
-								<Box cssClass={style.editorSection}>
-									<Box cssClass={style.editorHeader}>
-										<Box cssClass={style.editorSelect}>
-											<OptionDropdown<Editor>
-												options={EDITOR_OPTIONS}
-												selection={settings.editor}
-												setSelection={setEditor}
-											/>
+								<SidebarSection>
+									<Box cssClass={style.editorSection}>
+										<Box cssClass={style.editorHeader}>
+											<Box cssClass={style.editorSelect}>
+												<OptionDropdown<Editor>
+													options={EDITOR_OPTIONS}
+													selection={settings.editor}
+													setSelection={setEditor}
+												/>
+											</Box>
+											{settings.editor ===
+												Editor.SqlEditor && (
+												<Button
+													disabled={
+														sqlInternal === sql
+													}
+													onClick={() => {
+														setSql(sqlInternal)
+													}}
+												>
+													Update query
+												</Button>
+											)}
 										</Box>
 										{settings.editor ===
 											Editor.SqlEditor && (
-											<Button
-												disabled={sqlInternal === sql}
-												onClick={() => {
-													setSql(sqlInternal)
-												}}
+											<Box
+												cssClass={
+													style.sqlEditorWrapper
+												}
 											>
-												Update query
-											</Button>
+												<SqlEditor
+													value={sqlInternal}
+													setValue={setSqlInternal}
+													startDate={startDate}
+													endDate={endDate}
+												/>
+											</Box>
+										)}
+										{settings.editor ===
+											Editor.QueryBuilder && (
+											<>
+												<SidebarSection>
+													<LabeledRow
+														label="Source"
+														name="source"
+														tooltip="The resource being queried, one of the five highlight.io resources."
+													>
+														<OptionDropdown
+															options={
+																PRODUCT_OPTIONS
+															}
+															selection={
+																productType
+															}
+															setSelection={
+																handleProductChange
+															}
+														/>
+													</LabeledRow>
+													{!isAnomaly &&
+														ALERT_PRODUCT_INFO[
+															productType
+														] && (
+															<Callout
+																title={`${productType} alerts`}
+															>
+																<Box pb="8">
+																	<Text>
+																		{
+																			ALERT_PRODUCT_INFO[
+																				productType
+																			]
+																		}
+																	</Text>
+																</Box>
+															</Callout>
+														)}
+												</SidebarSection>
+												<Divider className="m-0" />
+												<SidebarSection>
+													{productType ===
+													ProductType.Events ? (
+														<EventSelection
+															initialQuery={query}
+															setQuery={setQuery}
+															startDate={
+																startDate
+															}
+															endDate={endDate}
+														/>
+													) : (
+														<LabeledRow
+															label="Filters"
+															name="query"
+															tooltip="The search query used to filter which data points are included before aggregating."
+														>
+															<Box
+																border="divider"
+																width="full"
+																borderRadius="6"
+															>
+																<SearchContext
+																	initialQuery={
+																		query
+																	}
+																	onSubmit={
+																		setQuery
+																	}
+																>
+																	<Search
+																		startDate={
+																			new Date(
+																				startDate,
+																			)
+																		}
+																		endDate={
+																			new Date(
+																				endDate,
+																			)
+																		}
+																		productType={
+																			productType
+																		}
+																		hideIcon
+																	/>
+																</SearchContext>
+															</Box>
+														</LabeledRow>
+													)}
+												</SidebarSection>
+												{(isAnomaly ||
+													(!isSessionAlert &&
+														!isErrorAlert)) && (
+													<>
+														<Box px="12">
+															<Divider className="m-0" />
+														</Box>
+														<SidebarSection>
+															<LabeledRow
+																label="Function"
+																name="function"
+																tooltip="Determines how data points are aggregated. If the function requires a numeric field as input, one can be chosen."
+															>
+																<OptionDropdown
+																	key={
+																		functionType
+																	}
+																	options={
+																		FUNCTION_TYPES
+																	}
+																	selection={
+																		functionType
+																	}
+																	setSelection={
+																		setFunctionType
+																	}
+																/>
+																<Combobox
+																	key={
+																		fetchedFunctionColumn
+																	}
+																	selection={
+																		fetchedFunctionColumn
+																	}
+																	setSelection={
+																		setFunctionColumn
+																	}
+																	searchConfig={
+																		searchOptionsConfig
+																	}
+																	disabled={
+																		functionType ===
+																		MetricAggregator.Count
+																	}
+																	onlyNumericKeys={
+																		functionType !==
+																		MetricAggregator.CountDistinct
+																	}
+																/>
+															</LabeledRow>
+															<LabeledRow
+																label="Group by"
+																name="groupBy"
+																enabled={
+																	groupByEnabled
+																}
+																setEnabled={
+																	setGroupByEnabled
+																}
+																tooltip="A categorical field for grouping results into separate series."
+															>
+																<Combobox
+																	selection={
+																		groupByKey
+																	}
+																	setSelection={
+																		setGroupByKey
+																	}
+																	searchConfig={
+																		searchOptionsConfig
+																	}
+																/>
+															</LabeledRow>
+														</SidebarSection>
+													</>
+												)}
+											</>
 										)}
 									</Box>
-									{settings.editor === Editor.SqlEditor && (
-										<Box cssClass={style.sqlEditorWrapper}>
-											<SqlEditor
-												value={sqlInternal}
-												setValue={setSqlInternal}
-												startDate={startDate}
-												endDate={endDate}
-											/>
-										</Box>
-									)}
-									{settings.editor ===
-										Editor.QueryBuilder && (
-										<>
-											<SidebarSection>
-												<LabeledRow
-													label="Source"
-													name="source"
-													tooltip="The resource being queried, one of the five highlight.io resources."
-												>
-													<OptionDropdown
-														options={
-															PRODUCT_OPTIONS
-														}
-														selection={productType}
-														setSelection={
-															handleProductChange
-														}
-													/>
-												</LabeledRow>
-												{!isAnomaly &&
-													ALERT_PRODUCT_INFO[
-														productType
-													] && (
-														<Callout
-															title={`${productType} alerts`}
-														>
-															<Box pb="8">
-																<Text>
-																	{
-																		ALERT_PRODUCT_INFO[
-																			productType
-																		]
-																	}
-																</Text>
-															</Box>
-														</Callout>
-													)}
-											</SidebarSection>
-											<Divider className="m-0" />
-											<SidebarSection>
-												{productType ===
-												ProductType.Events ? (
-													<EventSelection
-														initialQuery={query}
-														setQuery={setQuery}
-														startDate={startDate}
-														endDate={endDate}
-													/>
-												) : (
-													<LabeledRow
-														label="Filters"
-														name="query"
-														tooltip="The search query used to filter which data points are included before aggregating."
-													>
-														<Box
-															border="divider"
-															width="full"
-															borderRadius="6"
-														>
-															<SearchContext
-																initialQuery={
-																	query
-																}
-																onSubmit={
-																	setQuery
-																}
-															>
-																<Search
-																	startDate={
-																		new Date(
-																			startDate,
-																		)
-																	}
-																	endDate={
-																		new Date(
-																			endDate,
-																		)
-																	}
-																	productType={
-																		productType
-																	}
-																	hideIcon
-																/>
-															</SearchContext>
-														</Box>
-													</LabeledRow>
-												)}
-											</SidebarSection>
-											{(isAnomaly ||
-												(!isSessionAlert &&
-													!isErrorAlert)) && (
-												<>
-													<Box px="12">
-														<Divider className="m-0" />
-													</Box>
-													<SidebarSection>
-														<LabeledRow
-															label="Function"
-															name="function"
-															tooltip="Determines how data points are aggregated. If the function requires a numeric field as input, one can be chosen."
-														>
-															<OptionDropdown
-																key={
-																	functionType
-																}
-																options={
-																	FUNCTION_TYPES
-																}
-																selection={
-																	functionType
-																}
-																setSelection={
-																	setFunctionType
-																}
-															/>
-															<Combobox
-																key={
-																	fetchedFunctionColumn
-																}
-																selection={
-																	fetchedFunctionColumn
-																}
-																setSelection={
-																	setFunctionColumn
-																}
-																searchConfig={
-																	searchOptionsConfig
-																}
-																disabled={
-																	functionType ===
-																	MetricAggregator.Count
-																}
-																onlyNumericKeys={
-																	functionType !==
-																	MetricAggregator.CountDistinct
-																}
-															/>
-														</LabeledRow>
-														<LabeledRow
-															label="Group by"
-															name="groupBy"
-															enabled={
-																groupByEnabled
-															}
-															setEnabled={
-																setGroupByEnabled
-															}
-															tooltip="A categorical field for grouping results into separate series."
-														>
-															<Combobox
-																selection={
-																	groupByKey
-																}
-																setSelection={
-																	setGroupByKey
-																}
-																searchConfig={
-																	searchOptionsConfig
-																}
-															/>
-														</LabeledRow>
-													</SidebarSection>
-												</>
-											)}
-										</>
-									)}
-								</Box>
+								</SidebarSection>
 								<Divider className="m-0" />
 								<SidebarSection>
 									<LabeledRow
@@ -832,6 +860,9 @@ export const AlertForm: React.FC = () => {
 											options={THRESHOLD_TYPE_OPTIONS}
 											selection={thresholdType}
 											setSelection={setThresholdType}
+											disabled={
+												editor === Editor.SqlEditor
+											}
 										/>
 									</LabeledRow>
 									{(isAnomaly || !isSessionAlert) && (
@@ -954,32 +985,5 @@ export const AlertForm: React.FC = () => {
 				</Box>
 			</Box>
 		</GraphContextProvider>
-	)
-}
-
-const EditorBackground = () => {
-	return (
-		<svg width="100%" height="100%">
-			<defs>
-				<pattern
-					id="polka-dots"
-					x="0"
-					y="0"
-					width="14"
-					height="14"
-					patternUnits="userSpaceOnUse"
-				>
-					<circle fill="#e4e2e4" cx="7" cy="7" r="1" />
-				</pattern>
-			</defs>
-
-			<rect
-				x="0"
-				y="0"
-				width="100%"
-				height="100%"
-				fill="url(#polka-dots)"
-			/>
-		</svg>
 	)
 }

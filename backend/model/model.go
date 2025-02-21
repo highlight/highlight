@@ -1932,6 +1932,7 @@ type Alert struct {
 	ThresholdCooldown  *int
 	ThresholdType      modelInputs.ThresholdType
 	ThresholdCondition modelInputs.ThresholdCondition
+	Sql                *string
 }
 
 type AlertDestination struct {

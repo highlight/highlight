@@ -3316,6 +3316,7 @@ export const CreateAlertDocument = gql`
 		$threshold_type: ThresholdType
 		$threshold_condition: ThresholdCondition
 		$destinations: [AlertDestinationInput!]!
+		$sql: String
 	) {
 		createAlert(
 			project_id: $project_id
@@ -3332,6 +3333,7 @@ export const CreateAlertDocument = gql`
 			threshold_type: $threshold_type
 			threshold_condition: $threshold_condition
 			destinations: $destinations
+			sql: $sql
 		) {
 			id
 			name
@@ -3371,6 +3373,7 @@ export type CreateAlertMutationFn = Apollo.MutationFunction<
  *      threshold_type: // value for 'threshold_type'
  *      threshold_condition: // value for 'threshold_condition'
  *      destinations: // value for 'destinations'
+ *      sql: // value for 'sql'
  *   },
  * });
  */
@@ -3410,6 +3413,7 @@ export const UpdateAlertDocument = gql`
 		$threshold_type: ThresholdType
 		$threshold_condition: ThresholdCondition
 		$destinations: [AlertDestinationInput!]
+		$sql: String
 	) {
 		updateAlert(
 			project_id: $project_id
@@ -3426,6 +3430,7 @@ export const UpdateAlertDocument = gql`
 			threshold_type: $threshold_type
 			threshold_condition: $threshold_condition
 			destinations: $destinations
+			sql: $sql
 		) {
 			id
 			name
@@ -3465,6 +3470,7 @@ export type UpdateAlertMutationFn = Apollo.MutationFunction<
  *      threshold_type: // value for 'threshold_type'
  *      threshold_condition: // value for 'threshold_condition'
  *      destinations: // value for 'destinations'
+ *      sql: // value for 'sql'
  *   },
  * });
  */
@@ -12401,6 +12407,7 @@ export const GetAlertsPagePayloadDocument = gql`
 				type_id
 				type_name
 			}
+			sql
 		}
 	}
 	${DiscordChannelFragmentFragmentDoc}
@@ -12481,6 +12488,7 @@ export const GetAlertDocument = gql`
 				type_id
 				type_name
 			}
+			sql
 		}
 	}
 `

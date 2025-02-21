@@ -1,6 +1,7 @@
 import { Box } from '@highlight-run/ui/components'
-import React from 'react'
+import React, { useMemo } from 'react'
 import { ReferenceArea, ReferenceLine } from 'recharts'
+import moment from 'moment'
 
 import {
 	MetricAggregator,
@@ -13,6 +14,7 @@ import Graph, { SetTimeRange } from '@/pages/Graphing/components/Graph'
 
 import { BarChartConfig } from '@/pages/Graphing/components/BarChart'
 import { LineChartConfig } from '@/pages/Graphing/components/LineChart'
+import { TableConfig } from '@/pages/Graphing/components/Table'
 
 type Props = {
 	alertName: string
@@ -44,6 +46,12 @@ const LINE_CONFIG: LineChartConfig = {
 	nullHandling: 'Zero',
 }
 
+const TABLE_CONFIG: TableConfig = {
+	type: 'Table',
+	showLegend: false,
+	nullHandling: 'Hide row',
+}
+
 export const AlertGraph: React.FC<Props> = ({
 	alertName,
 	query,
@@ -62,10 +70,24 @@ export const AlertGraph: React.FC<Props> = ({
 }) => {
 	const { projectId } = useProjectId()
 	const sessionsProduct =
+		!sql &&
 		productType === ProductType.Sessions &&
 		thresholdType === ThresholdType.Constant
 
-	const viewConfig = sessionsProduct ? BAR_CONFIG : LINE_CONFIG
+	const viewConfig = sql
+		? TABLE_CONFIG
+		: sessionsProduct
+			? BAR_CONFIG
+			: LINE_CONFIG
+
+	// For SQL, only show the value for the current window
+	const start = useMemo(() => {
+		if (sql) {
+			return moment(endDate).subtract(thresholdWindow, 'seconds').toDate()
+		} else {
+			return startDate
+		}
+	}, [endDate, sql, startDate, thresholdWindow])
 
 	return (
 		<Box px="16" py="12" width="full" height="full" borderRadius="8">
@@ -74,7 +96,7 @@ export const AlertGraph: React.FC<Props> = ({
 				viewConfig={viewConfig}
 				productType={productType}
 				projectId={projectId}
-				startDate={startDate}
+				startDate={start}
 				endDate={endDate}
 				query={query}
 				groupByKeys={

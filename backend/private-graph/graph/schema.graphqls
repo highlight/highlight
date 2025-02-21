@@ -1757,6 +1757,7 @@ type Alert {
 	threshold_cooldown: Int
 	threshold_type: ThresholdType
 	threshold_condition: ThresholdCondition
+	sql: String
 }
 
 type AlertStateChange {
@@ -3018,6 +3019,7 @@ type Mutation {
 		threshold_type: ThresholdType
 		threshold_condition: ThresholdCondition
 		destinations: [AlertDestinationInput!]!
+		sql: String
 	): Alert
 	updateAlert(
 		project_id: ID!
@@ -3034,6 +3036,7 @@ type Mutation {
 		threshold_type: ThresholdType
 		threshold_condition: ThresholdCondition
 		destinations: [AlertDestinationInput!]
+		sql: String
 	): Alert
 	updateAlertDisabled(
 		project_id: ID!
