@@ -167,49 +167,17 @@ we capture the `fetch` call automatically, and can even propagate the trace cont
 
 Here's a list of the top-level spans that are captured automatically by Next.js:
 
-- BaseServer.handleRequest
-
-Named `[http.method] [next.route]`, [the root span for each incoming request to your Next.js application](https://nextjs.org/docs/app/building-your-application/optimizing/open-telemetry#httpmethod-nextroute).
-
-- AppRender.getBodyResult
-
-Named `render route (app) [next.route]`, [represents the process of rendering a route in the app router](https://nextjs.org/docs/app/building-your-application/optimizing/open-telemetry#render-route-app-nextroute).
-
-- AppRender.fetch
-
-Named `fetch [http.method] [http.url]`, [represents the fetch request executed in your code](https://nextjs.org/docs/app/building-your-application/optimizing/open-telemetry#fetch-httpmethod-httpurl).
-
-- AppRouteRouteHandlers.runHandler
-
-Named `executing api route (app) [next.route]`, [represents the execution of an API Route Handler in the app router](https://nextjs.org/docs/app/building-your-application/optimizing/open-telemetry#executing-api-route-app-nextroute).
-
-- Render.getServerSideProps
-
-Named `getServerSideProps [next.route]`, [represents the execution of getServerSideProps for a specific route](https://nextjs.org/docs/app/building-your-application/optimizing/open-telemetry#getserversideprops-nextroute).
-
-- Render.getStaticProps
-
-Named `getStaticProps [next.route]`, [represents the execution of getStaticProps for a specific route](https://nextjs.org/docs/app/building-your-application/optimizing/open-telemetry#getstaticprops-nextroute).
-
-- Render.renderDocument
-
-Named `render route (pages) [next.route]`, [represents the process of rendering the document for a specific route](https://nextjs.org/docs/app/building-your-application/optimizing/open-telemetry#render-route-pages-nextroute).
-
-- ResolveMetadata.generateMetadata
-
-Named `generateMetadata [next.page]`, [represents the process of generating metadata for a specific route](https://nextjs.org/docs/app/building-your-application/optimizing/open-telemetry#generatemetadata-nextpage).
-
-- NextNodeServer.findPageComponents
-
-Named `resolve page components`, [represents the process of resolving page components for a specific page](https://nextjs.org/docs/app/building-your-application/optimizing/open-telemetry#resolve-page-components).
-
-- NextNodeServer.getLayoutOrPageModule
-
-Named `resolve segment modules`, [represents loading of code modules for a layout or a page](https://nextjs.org/docs/app/building-your-application/optimizing/open-telemetry#resolve-segment-modules).
-
-- NextNodeServer.startResponse
-
-Named `start response`, [represents the process of starting the response for a specific route](https://nextjs.org/docs/app/building-your-application/optimizing/open-telemetry#start-response).
+- **BaseServer.handleRequest** - Named `[http.method] [next.route]`, [the root span for each incoming request to your Next.js application](https://nextjs.org/docs/app/building-your-application/optimizing/open-telemetry#httpmethod-nextroute).
+- **AppRender.getBodyResult** - Named `render route (app) [next.route]`, [represents the process of rendering a route in the app router](https://nextjs.org/docs/app/building-your-application/optimizing/open-telemetry#render-route-app-nextroute).
+- **AppRender.fetch** - Named `fetch [http.method] [http.url]`, [represents the fetch request executed in your code](https://nextjs.org/docs/app/building-your-application/optimizing/open-telemetry#fetch-httpmethod-httpurl).
+- **AppRouteRouteHandlers.runHandler** - Named `executing api route (app) [next.route]`, [represents the execution of an API Route Handler in the app router](https://nextjs.org/docs/app/building-your-application/optimizing/open-telemetry#executing-api-route-app-nextroute).
+- **Render.getServerSideProps** - Named `getServerSideProps [next.route]`, [represents the execution of getServerSideProps for a specific route](https://nextjs.org/docs/app/building-your-application/optimizing/open-telemetry#getserversideprops-nextroute).
+- **Render.getStaticProps** - Named `getStaticProps [next.route]`, [represents the execution of getStaticProps for a specific route](https://nextjs.org/docs/app/building-your-application/optimizing/open-telemetry#getstaticprops-nextroute).
+- **Render.renderDocument** - Named `render route (pages) [next.route]`, [represents the process of rendering the document for a specific route](https://nextjs.org/docs/app/building-your-application/optimizing/open-telemetry#render-route-pages-nextroute).
+- **ResolveMetadata.generateMetadata** - Named `generateMetadata [next.page]`, [represents the process of generating metadata for a specific route](https://nextjs.org/docs/app/building-your-application/optimizing/open-telemetry#generatemetadata-nextpage).
+- **NextNodeServer.findPageComponents** - Named `resolve page components`, [represents the process of resolving page components for a specific page](https://nextjs.org/docs/app/building-your-application/optimizing/open-telemetry#resolve-page-components).
+- **NextNodeServer.getLayoutOrPageModule** - Named `resolve segment modules`, [represents loading of code modules for a layout or a page](https://nextjs.org/docs/app/building-your-application/optimizing/open-telemetry#resolve-segment-modules).
+- **NextNodeServer.startResponse** - Named `start response`, [represents the process of starting the response for a specific route](https://nextjs.org/docs/app/building-your-application/optimizing/open-telemetry#start-response).
 
 [See the Next.js docs for more details.](https://nextjs.org/docs/app/building-your-application/optimizing/open-telemetry#default-spans-in-nextjs)
 
@@ -412,9 +380,9 @@ sdk.start();
 Now, let's use the OpenTelemetry SDK in our route to emit data:
 
 ```typescript
-import { NextResponse } from "next/server";
-import api, { propagation } from "@opentelemetry/api";
-import { logs, SeverityNumber } from "@opentelemetry/api-logs";
+import {NextResponse} from "next/server";
+import api, {propagation} from "@opentelemetry/api";
+import {logs, SeverityNumber} from "@opentelemetry/api-logs";
 
 const tracerProvider = api.trace.getTracerProvider();
 const tracer = tracerProvider.getTracer("data");
@@ -427,59 +395,63 @@ const meter = meterProvider.getMeter("data");
 
 // This is an example implementation of a route that fetches data from a Python service
 export async function GET() {
-  const { email, name } = req.query;
+    const {email, name} = req.query;
 
-  console.log(`Fetching data for user: ${email} ${name}`);
-
-  // create a span for the data fetch
-  const data = await tracer.startActiveSpan(
-    "data.fetch",
-    {
-      attributes: {
-        "user.email": email || undefined,
-        "user.name": name || undefined,
-      },
-    },
-    async () => {
-      console.log("Fetching data...", { email });
-      const headers = {
+    console.log("Fetching data...", {email});
+    const headers = {
         "Content-Type": "application/json",
-      };
-      propagation.inject(api.context.active(), headers);
-      const response = await fetch(
+    };
+    propagation.inject(api.context.active(), headers);
+    const response = await fetch(
         `https://api.sampleapis.com/coffee/hot`,
         {
-          method: "POST",
-          headers,
-          body: JSON.stringify({
-            email,
-          }),
+            method: "POST",
+            headers,
+            body: JSON.stringify({
+                email,
+            }),
         },
-      );
-      if (!response.ok) {
+    );
+    if (!response.ok) {
         throw new Error("Failed to fetch data");
-      }
-      return await response.json();
-    },
-  );
+    }
+    const data = await response.json();
 
-  // report the data as a metric
-  const gauge = meter.createObservableGauge("data.metric");
-  for (const d of data) {
-    gauge.addCallback((m) => {
-      m.observe(d.attribute);
+    // create a span for data processing that may be complex
+    const processed = await tracer.startActiveSpan(
+        "data.process",
+        {
+            attributes: {
+                "user.email": email || undefined,
+                "user.name": name || undefined,
+            },
+        },
+        async () => {
+            // do something that may be slow
+            data.map((d) => ({
+                ...d,
+                calculated: d.value ?? 0 * 1.23
+            }))
     });
-  }
 
-  // emit a custom log
-  logger.emit({
-    severityNumber: SeverityNumber.INFO,
-    severityText: "INFO",
-    body: "returning data",
-    attributes: { data },
-  });
+    // report the data as a metric
+    const gauge = meter.createObservableGauge("data.metric");
+    for (const d of processed) {
+        gauge.addCallback((m) => {
+            m.observe(d.attribute);
+        });
+    }
 
-  return NextResponse.json(data);
+    // emit a custom log
+    logger.emit({
+        severityNumber: SeverityNumber.INFO,
+        severityText: "INFO",
+        body: "returning data",
+        attributes: {processed},
+    });
+
+    return NextResponse.json(processed);
+}
 ```
 
 In this full handler example, you can see how to emit a trace, log, and metric using the native OpenTelemetry constructs. It's evident that the API is quite verbose and not simple to work with. For the highlight platform, we've created a [Node.js SDK that wraps OpenTelemetry](https://github.com/highlight/highlight/blob/main/sdk/highlight-node/src/client.ts) to simplify the API streamline data reporting, with simple APIs. For example, here's the same handler using our SDK:
@@ -487,53 +459,58 @@ In this full handler example, you can see how to emit a trace, log, and metric u
 
 ```typescript
 import { H } from '@highlight-run/node';
+
+// the Highlight SDK instrumentation can happen in each route
+// or globally for the whole application in your `instrumentation.ts` file
 H.init('YOUR_PROJECT_ID', {
   // ... options to configure the SDK
 });
 
 // This is an example implementation of a route that fetches data from a Python service
 export async function GET() {
-  const { email, name } = req.query;
+    const {email, name} = req.query;
 
-  console.log(`Fetching data for user: ${email} ${name}`);
-
-  // create a span for the data fetch
-  const data = await H.startActiveSpan(
-    "data.fetch",
-    {
-      attributes: {
-        "user.email": email || undefined,
-        "user.name": name || undefined,
-      },
-    },
-    async () => {
-      console.log("Fetching data...", { email });
-      const response = await fetch(
+    console.log("Fetching data...", {email});
+    const response = await fetch(
         `https://api.sampleapis.com/coffee/hot`,
         {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            email,
-          }),
+            method: "POST",
+            headers: {"Content-Type": "application/json"},
+            body: JSON.stringify({
+                email,
+            }),
         },
-      );
-      if (!response.ok) {
+    );
+    if (!response.ok) {
         throw new Error("Failed to fetch data");
-      }
-      return await response.json();
-    },
-  );
+    }
+    const data = await response.json();
 
-  // report the data as a metric
-  for (const d of data) {
-    H.recordMetric('data.metric', d.attribute);
-  }
+    // create a span for data processing that may be complex
+    const processed = await H.startActiveSpan(
+        "data.process",
+        async (span) => {
+            span.setAttributes({
+                "user.email": email || undefined,
+                "user.name": name || undefined,
+            });
+            // do something that may be slow
+            data.map((d) => ({
+                ...d,
+                calculated: d.value ?? 0 * 1.23
+            }))
+        });
 
-  // emit a custom log
-  H.log('returning data', { data });
+    // report the data as a metric
+    for (const d of data) {
+        H.recordMetric('data.metric', d.attribute);
+    }
 
-  return NextResponse.json(data);
+    // emit a custom log
+    H.log('returning data', {data});
+
+    return NextResponse.json(data);
+}
 ```
 
 ### Conclusion
