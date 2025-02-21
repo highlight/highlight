@@ -69,7 +69,7 @@ fn main() {
 		{
 			title: 'Verify your errors are being recorded.',
 			content:
-				"Now that you've set up the SDK, you can verify that the backend error handling works by sending an error in. Visit the [highlight errors page](http://app.highlight.io/errors) and check that backend errors are coming in.",
+				"Now that you've set up the SDK, you can verify that the backend error handling works by sending an error in. Visit the [highlight errors page](https://app.highlight.io/errors) and check that backend errors are coming in.",
 			code: [
 				{
 					text: `fn main() {
