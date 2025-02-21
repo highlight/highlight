@@ -1,11 +1,26 @@
-/* Required to patch missing performance API in Cloudflare Workers. */
-import '@highlight-run/opentelemetry-sdk-workers/performance'
-
-import { WorkersSDK } from '@highlight-run/opentelemetry-sdk-workers'
-import { OTLPProtoLogExporter } from '@highlight-run/opentelemetry-sdk-workers/exporters/OTLPProtoLogExporter'
-import { OTLPProtoTraceExporter } from '@highlight-run/opentelemetry-sdk-workers/exporters/OTLPProtoTraceExporter'
-import { Resource } from '@opentelemetry/resources'
-import type { ResourceAttributes } from '@opentelemetry/resources/build/src/types'
+import { OTLPTraceExporter } from '@opentelemetry/exporter-trace-otlp-http'
+import { OTLPMetricExporter } from '@opentelemetry/exporter-metrics-otlp-http'
+import { OTLPLogExporter } from '@opentelemetry/exporter-logs-otlp-http'
+import {
+	BatchSpanProcessor,
+	StackContextManager,
+	WebTracerProvider,
+	Tracer,
+} from '@opentelemetry/sdk-trace-web'
+import {
+	MeterProvider,
+	PeriodicExportingMetricReader,
+} from '@opentelemetry/sdk-metrics'
+import {
+	LoggerProvider,
+	BatchLogRecordProcessor,
+} from '@opentelemetry/sdk-logs'
+import { Resource, ResourceAttributes } from '@opentelemetry/resources'
+import * as SemanticAttributes from '@opentelemetry/semantic-conventions'
+import * as api from '@opentelemetry/api'
+import * as apiLogs from '@opentelemetry/api-logs'
+import { CompositePropagator, W3CBaggagePropagator } from '@opentelemetry/core'
+import { Gauge } from '@opentelemetry/api'
 
 const HIGHLIGHT_PROJECT_ENV = 'HIGHLIGHT_PROJECT_ID'
 const HIGHLIGHT_REQUEST_HEADER = 'X-Highlight-Request'
@@ -32,6 +47,12 @@ type Metric = {
 	tags?: { name: string; value: string }[]
 }
 
+type WorkersSDK = {
+	tracer: Tracer
+	logger: apiLogs.Logger
+	meter: api.Meter
+}
+
 export interface HighlightInterface {
 	init: (
 		request: Request,
@@ -49,6 +70,8 @@ export interface HighlightInterface {
 let sdk: WorkersSDK
 let projectID: string
 
+let _gauges: Map<string, Gauge> = new Map<string, Gauge>()
+
 export const H: HighlightInterface = {
 	// Initialize the highlight SDK. This monkeypatches the console methods to start sending console logs to highlight.
 	init: (
@@ -65,28 +88,106 @@ export const H: HighlightInterface = {
 		projectID = _projectID
 
 		const endpoints = { default: otlpEndpoint || HIGHLIGHT_OTLP_BASE }
-		sdk = new WorkersSDK(request, ctx, {
-			service: service || 'cloudflare-worker',
-			consoleLogEnabled: false,
-			traceExporter: new OTLPProtoTraceExporter({
-				url: `${endpoints.default}/v1/traces`,
-			}),
-			logExporter: new OTLPProtoLogExporter({
-				url: `${endpoints.default}/v1/logs`,
-			}),
-			// @ts-ignore
-			resource: new Resource({
-				['highlight.project_id']: projectID,
-				['highlight.session_id']: secureSessionId,
-				['highlight.trace_id']: requestId,
+		const exporterOptions = {
+			url: endpoints.default + '/v1/traces',
+			concurrencyLimit: 100,
+			timeoutMillis: 5_000,
+			// Using any because we were getting an error importing CompressionAlgorithm
+			// from @opentelemetry/otlp-exporter-base.
+			compression: 'gzip' as any,
+			keepAlive: true,
+			httpAgentOptions: {
+				timeout: 5_000,
+				keepAlive: true,
+			},
+		}
+		const processorOptions = {
+			maxExportBatchSize: 100,
+			maxQueueSize: 1_000,
+			exportTimeoutMillis: exporterOptions.timeoutMillis,
+			scheduledDelayMillis: exporterOptions.timeoutMillis,
+		}
+		const exporter = new OTLPTraceExporter(exporterOptions)
+
+		const spanProcessor = new BatchSpanProcessor(exporter, processorOptions)
+
+		const resource = new Resource({
+			[SemanticAttributes.ATTR_SERVICE_NAME]:
+				service ?? 'highlight-cloudflare',
+			'highlight.project_id': projectID,
+		})
+		const tracerProvider = new WebTracerProvider({
+			resource,
+			spanProcessors: [spanProcessor],
+		})
+		api.trace.setGlobalTracerProvider(tracerProvider)
+
+		const loggerProvider = new LoggerProvider({
+			resource,
+		})
+		loggerProvider.addLogRecordProcessor(
+			new BatchLogRecordProcessor(
+				new OTLPLogExporter({
+					...exporterOptions,
+					url: endpoints.default + '/v1/logs',
+				}),
+				processorOptions,
+			),
+		)
+
+		apiLogs.logs.setGlobalLoggerProvider(loggerProvider)
+
+		const meterExporter = new OTLPMetricExporter({
+			...exporterOptions,
+			url: endpoints.default + '/v1/metrics',
+		})
+		const reader = new PeriodicExportingMetricReader({
+			exporter: meterExporter,
+			exportIntervalMillis: exporterOptions.timeoutMillis,
+			exportTimeoutMillis: exporterOptions.timeoutMillis,
+		})
+
+		const meterProvider = new MeterProvider({
+			resource,
+			readers: [reader],
+		})
+		api.metrics.setGlobalMeterProvider(meterProvider)
+
+		const contextManager = new StackContextManager()
+		contextManager.enable()
+
+		tracerProvider.register({
+			contextManager,
+			propagator: new CompositePropagator({
+				propagators: [new W3CBaggagePropagator()],
 			}),
 		})
+
+		sdk = {
+			tracer: tracerProvider.getTracer('tracer'),
+			logger: loggerProvider.getLogger('logger', undefined, {
+				includeTraceContext: true,
+			}),
+			meter: meterProvider.getMeter('meter'),
+		}
 
 		for (const m of RECORDED_CONSOLE_METHODS) {
 			const originalConsoleMethod = console[m]
 
 			console[m] = (message: string, ...args: unknown[]) => {
-				sdk.logger[m].apply(sdk.logger, [message, ...args])
+				const lg = loggerProvider.getLogger('console', undefined, {
+					includeTraceContext: true,
+				})
+				lg.emit({
+					body: message,
+					attributes: args
+						.filter((d) => typeof d === 'object')
+						.filter((d) => !!d)
+						.reduce((a, b) => ({ ...a, ...b }), {}) as {
+						[attributeKey: string]: string
+					},
+					severityText: m,
+				})
 				originalConsoleMethod.apply(originalConsoleMethod, [
 					message,
 					...args,
@@ -107,7 +208,9 @@ export const H: HighlightInterface = {
 			return
 		}
 
-		sdk.captureException(error)
+		const span = sdk.tracer.startSpan('error')
+		span.recordException(error)
+		span.end()
 	},
 
 	// Capture a cloudflare response as a trace in highlight.
@@ -118,7 +221,25 @@ export const H: HighlightInterface = {
 			)
 			return
 		}
-		sdk.sendResponse(response)
+
+		const span = sdk.tracer.startSpan('response', {
+			attributes: {
+				[SemanticAttributes.ATTR_HTTP_RESPONSE_STATUS_CODE]:
+					response.status,
+			},
+		})
+
+		for (const headerKey of response.headers.keys()) {
+			if (headerKey === 'set-cookie') {
+				continue
+			}
+			span.setAttribute(
+				`http.response.header.${headerKey.toLowerCase()}`,
+				[response.headers.get(headerKey)],
+			)
+		}
+
+		span.end()
 	},
 
 	// Set custom attributes on the errors and logs reported to highlight.
@@ -138,27 +259,23 @@ export const H: HighlightInterface = {
 	},
 
 	recordMetric: ({ secureSessionId, name, value, requestId, tags }) => {
-		if (!sdk.requestTracer) return
-		const span = sdk.requestTracer.startSpan('highlight-ctx')
-		span.addEvent('metric', {
-			['highlight.project_id']: projectID,
-			['metric.name']: name,
-			['metric.value']: value,
-			...(secureSessionId
-				? {
-						['highlight.session_id']: secureSessionId,
-					}
-				: {}),
-			...(requestId
-				? {
-						['highlight.trace_id']: requestId,
-					}
-				: {}),
-		})
-		for (const t of tags || []) {
-			span.setAttribute(t.name, t.value)
+		if (!sdk) {
+			console.error(
+				'please call H.init(...) before calling H.recordMetric(...)',
+			)
+			return
 		}
-		span.end()
+
+		let gauge = _gauges.get(name)
+		if (!gauge) {
+			gauge = sdk.meter.createGauge(name)
+			_gauges.set(name, gauge)
+		}
+		gauge.record(value, {
+			...tags?.reduce((a, b) => ({ ...a, [b.name]: b.value }), {}),
+			'highlight.session_id': secureSessionId,
+			'highlight.trace_id': requestId,
+		})
 	},
 }
 

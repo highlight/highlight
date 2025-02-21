@@ -5,7 +5,6 @@ import type {
 	NodeOptions,
 	Metric,
 } from '@highlight-run/node'
-import type { WorkersSDK } from '@highlight-run/opentelemetry-sdk-workers'
 import type { Attributes, SpanOptions } from '@opentelemetry/api'
 import type { ResourceAttributes } from '@opentelemetry/resources/build/src/types'
 
@@ -24,7 +23,7 @@ export interface HighlightInterface {
 		env: HighlightEnv,
 		ctx: ExtendedExecutionContext,
 		serviceName?: string,
-	) => WorkersSDK
+	) => void
 	isInitialized: () => boolean
 	metrics: (metrics: Metric[]) => void
 	parseHeaders: (headers: any) => HighlightContext

@@ -651,6 +651,7 @@ func (o *Handler) submitProjectLogs(ctx context.Context, projectLogs map[string]
 	var filteredRows []*clickhouse.LogRow
 	for _, logRows := range projectLogs {
 		for _, logRow := range logRows {
+			// TODO(vkorolik) need to do this for traces and metrics
 			// create service record for any services found in ingested logs
 			if logRow.ServiceName != "" {
 				if _, err = o.resolver.Store.UpsertService(c, int(logRow.ProjectId), logRow.ServiceName, logRow.LogAttributes); err != nil {

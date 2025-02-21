@@ -60,7 +60,6 @@
 	"dependencies": {
 		"@highlight-run/cloudflare": "workspace:*",
 		"@highlight-run/node": "workspace:*",
-		"@highlight-run/opentelemetry-sdk-workers": "workspace:*",
 		"@highlight-run/react": "workspace:*",
 		"@highlight-run/sourcemap-uploader": "workspace:*",
 		"highlight.run": "workspace:*",
