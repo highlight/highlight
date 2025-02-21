@@ -131,6 +131,7 @@ export type HighlightClassOptions = {
 	enablePromisePatch?: boolean
 	samplingStrategy?: SamplingStrategy
 	inlineImages?: boolean
+	inlineVideos?: boolean
 	inlineStylesheet?: boolean
 	recordCrossOriginIframe?: boolean
 	firstloadVersion?: string
@@ -172,6 +173,7 @@ export class Highlight {
 	enablePerformanceRecording!: boolean
 	samplingStrategy!: SamplingStrategy
 	inlineImages!: boolean
+	inlineVideos!: boolean
 	inlineStylesheet!: boolean
 	debugOptions!: DebugOptions
 	listeners!: listenerHandler[]
@@ -364,7 +366,8 @@ export class Highlight {
 			options.enablePerformanceRecording ?? true
 		// default to inlining stylesheets/images locally to help with recording accuracy
 		this.inlineImages = options.inlineImages ?? this._isOnLocalHost
-		this.inlineStylesheet = options.inlineStylesheet ?? true
+		this.inlineVideos = options.inlineVideos ?? this._isOnLocalHost
+		this.inlineStylesheet = options.inlineStylesheet ?? this._isOnLocalHost
 		this.samplingStrategy = {
 			canvasFactor: 0.5,
 			canvasMaxSnapshotDimension: 360,
@@ -756,6 +759,7 @@ SessionSecureID: ${this.sessionData.sessionSecureID}`,
 					return !this.options.recordCrossOriginIframe
 				},
 				inlineImages: this.inlineImages,
+				inlineVideos: this.inlineVideos,
 				collectFonts: this.inlineImages,
 				inlineStylesheet: this.inlineStylesheet,
 				plugins: [getRecordSequentialIdPlugin()],
