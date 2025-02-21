@@ -1145,8 +1145,8 @@ github.com/hashicorp/vault/api v1.9.2 h1:YjkZLJ7K3inKgMZ0wzCU9OHqc+UqMQyXsPXnf3C
 github.com/hashicorp/vault/api v1.9.2/go.mod h1:jo5Y/ET+hNyz+JnKDt8XLAdKs+AM0G5W0Vp1IrFI8N8=
 github.com/hashicorp/vault/sdk v0.9.2 h1:H1kitfl1rG2SHbeGEyvhEqmIjVKE3E6c2q3ViKOs6HA=
 github.com/hashicorp/vault/sdk v0.9.2/go.mod h1:gG0lA7P++KefplzvcD3vrfCmgxVAM7Z/SqX5NeOL/98=
-github.com/highlight/clickhouse-sql-parser v1.0.0 h1:cto6z25w2XcOC7nFvptJk7cRrS9AD7r1m2KCyWPA6RE=
-github.com/highlight/clickhouse-sql-parser v1.0.0/go.mod h1:ApnI1j11NF7FVDWYMG9GxY55x5uHWn8eD20WJdoo6Gc=
+github.com/highlight/clickhouse-sql-parser v1.0.1 h1:ApoyAh0DIMWOL3fGWkfcU5Otkn6zmakVHhUqq3ZXkJc=
+github.com/highlight/clickhouse-sql-parser v1.0.1/go.mod h1:ApnI1j11NF7FVDWYMG9GxY55x5uHWn8eD20WJdoo6Gc=
 github.com/hpcloud/tail v1.0.0 h1:nfCOvKYfkgYP8hkirhJocXT2+zOD8yUNjXaWfTlyFKI=
 github.com/iancoleman/strcase v0.3.0 h1:nTXanmYxhfFAMjZL34Ov6gkzEsSJZ5DbhxWjvSASxEI=
 github.com/iancoleman/strcase v0.3.0/go.mod h1:iwCmte+B7n89clKwxIoIXy/HfoL7AsD47ZCWhYzw7ho=

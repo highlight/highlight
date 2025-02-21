@@ -56,7 +56,7 @@ require (
 	github.com/hashicorp/go-retryablehttp v0.7.7
 	github.com/hashicorp/golang-lru/v2 v2.0.7
 	github.com/highlight-run/workerpool v1.3.0
-	github.com/highlight/clickhouse-sql-parser v1.0.0
+	github.com/highlight/clickhouse-sql-parser v1.0.1
 	github.com/highlight/go-oauth2-redis/v4 v4.1.4
 	github.com/highlight/highlight/sdk/highlight-go v0.10.2
 	github.com/huandu/go-assert v1.1.6
