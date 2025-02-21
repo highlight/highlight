@@ -5,12 +5,6 @@ import BlogPage from '../../../components/Blog/BlogPage'
 
 export const VALID_TAGS: Tag[] = [
 	{
-		name: 'All',
-		slug: 'all',
-		description:
-			'Explore the latest insights on frontend engineering, observability, and developer tools from the Highlight engineering team. Learn best practices, tips, and industry trends.',
-	},
-	{
 		name: 'Engineering',
 		slug: 'engineering',
 		description:
@@ -71,7 +65,9 @@ export async function getStaticPaths(): Promise<{
 }
 
 export const getStaticProps: GetStaticProps = async ({ params }) => {
+	console.log('rendering blog tag posts', params)
 	let posts = await loadPostsFromGithub()
+	console.log('blog posts loaded', params)
 
 	posts = posts.filter((post) => {
 		return post.tags.some((tag: Tag) => {
