@@ -5,11 +5,11 @@
 	"main": "./index.ts",
 	"types": "./index.ts",
 	"scripts": {
-		"build": "next --turbopack build",
+		"build": "next build",
 		"dev": "run-p next-dev styles",
-		"next-dev": "next --turbopack dev -p 4000",
-		"lint": "next --turbopack lint",
-		"start": "next --turbopack start -p 4000",
+		"next-dev": "next dev -p 4000",
+		"lint": "next lint",
+		"start": "next start -p 4000",
 		"styles": "yarn typed-scss-modules ./ --watch --ignore '**/node_modules'"
 	},
 	"dependencies": {
