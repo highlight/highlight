@@ -1,26 +1,20 @@
 import { OTLPTraceExporter } from '@opentelemetry/exporter-trace-otlp-http'
 import { OTLPMetricExporter } from '@opentelemetry/exporter-metrics-otlp-http'
-import { OTLPLogExporter } from '@opentelemetry/exporter-logs-otlp-http'
 import {
 	BatchSpanProcessor,
-	StackContextManager,
-	WebTracerProvider,
 	Tracer,
+	WebTracerProvider,
 } from '@opentelemetry/sdk-trace-web'
 import {
 	MeterProvider,
 	PeriodicExportingMetricReader,
 } from '@opentelemetry/sdk-metrics'
-import {
-	LoggerProvider,
-	BatchLogRecordProcessor,
-} from '@opentelemetry/sdk-logs'
 import { Resource, ResourceAttributes } from '@opentelemetry/resources'
-import * as SemanticAttributes from '@opentelemetry/semantic-conventions'
-import * as api from '@opentelemetry/api'
-import * as apiLogs from '@opentelemetry/api-logs'
-import { CompositePropagator, W3CBaggagePropagator } from '@opentelemetry/core'
-import { Gauge } from '@opentelemetry/api'
+import { type Meter, type Gauge, trace, metrics } from '@opentelemetry/api'
+import {
+	ATTR_HTTP_RESPONSE_STATUS_CODE,
+	ATTR_SERVICE_NAME,
+} from '@opentelemetry/semantic-conventions'
 
 const HIGHLIGHT_PROJECT_ENV = 'HIGHLIGHT_PROJECT_ID'
 const HIGHLIGHT_REQUEST_HEADER = 'X-Highlight-Request'
@@ -49,8 +43,7 @@ type Metric = {
 
 type WorkersSDK = {
 	tracer: Tracer
-	logger: apiLogs.Logger
-	meter: api.Meter
+	meter: Meter
 }
 
 export interface HighlightInterface {
@@ -112,30 +105,14 @@ export const H: HighlightInterface = {
 		const spanProcessor = new BatchSpanProcessor(exporter, processorOptions)
 
 		const resource = new Resource({
-			[SemanticAttributes.ATTR_SERVICE_NAME]:
-				service ?? 'highlight-cloudflare',
+			[ATTR_SERVICE_NAME]: service ?? 'highlight-cloudflare',
 			'highlight.project_id': projectID,
 		})
 		const tracerProvider = new WebTracerProvider({
 			resource,
 			spanProcessors: [spanProcessor],
 		})
-		api.trace.setGlobalTracerProvider(tracerProvider)
-
-		const loggerProvider = new LoggerProvider({
-			resource,
-		})
-		loggerProvider.addLogRecordProcessor(
-			new BatchLogRecordProcessor(
-				new OTLPLogExporter({
-					...exporterOptions,
-					url: endpoints.default + '/v1/logs',
-				}),
-				processorOptions,
-			),
-		)
-
-		apiLogs.logs.setGlobalLoggerProvider(loggerProvider)
+		trace.setGlobalTracerProvider(tracerProvider)
 
 		const meterExporter = new OTLPMetricExporter({
 			...exporterOptions,
@@ -151,23 +128,10 @@ export const H: HighlightInterface = {
 			resource,
 			readers: [reader],
 		})
-		api.metrics.setGlobalMeterProvider(meterProvider)
-
-		const contextManager = new StackContextManager()
-		contextManager.enable()
-
-		tracerProvider.register({
-			contextManager,
-			propagator: new CompositePropagator({
-				propagators: [new W3CBaggagePropagator()],
-			}),
-		})
+		metrics.setGlobalMeterProvider(meterProvider)
 
 		sdk = {
 			tracer: tracerProvider.getTracer('tracer'),
-			logger: loggerProvider.getLogger('logger', undefined, {
-				includeTraceContext: true,
-			}),
 			meter: meterProvider.getMeter('meter'),
 		}
 
@@ -175,19 +139,36 @@ export const H: HighlightInterface = {
 			const originalConsoleMethod = console[m]
 
 			console[m] = (message: string, ...args: unknown[]) => {
-				const lg = loggerProvider.getLogger('console', undefined, {
-					includeTraceContext: true,
-				})
-				lg.emit({
-					body: message,
-					attributes: args
+				const o: { stack: any } = { stack: {} }
+				Error.captureStackTrace(o)
+
+				const span = sdk.tracer.startSpan('highlight.log')
+				// log specific events from https://github.com/highlight/highlight/blob/19ea44c616c432ef977c73c888c6dfa7d6bc82f3/sdk/highlight-go/otel.go#L34-L36
+				span.addEvent('log', {
+					...(args
 						.filter((d) => typeof d === 'object')
 						.filter((d) => !!d)
 						.reduce((a, b) => ({ ...a, ...b }), {}) as {
 						[attributeKey: string]: string
-					},
-					severityText: m,
+					}),
+					// pass stack so that error creation on our end can show a structured stacktrace for errors
+					['exception.stacktrace']: JSON.stringify(o.stack),
+					['highlight.project_id']: projectID,
+					['log.severity']: m,
+					['log.message']: message,
+					...(secureSessionId
+						? {
+								['highlight.session_id']: secureSessionId,
+							}
+						: {}),
+					...(requestId
+						? {
+								['highlight.trace_id']: requestId,
+							}
+						: {}),
 				})
+				span.end()
+
 				originalConsoleMethod.apply(originalConsoleMethod, [
 					message,
 					...args,
@@ -224,8 +205,7 @@ export const H: HighlightInterface = {
 
 		const span = sdk.tracer.startSpan('response', {
 			attributes: {
-				[SemanticAttributes.ATTR_HTTP_RESPONSE_STATUS_CODE]:
-					response.status,
+				[ATTR_HTTP_RESPONSE_STATUS_CODE]: response.status,
 			},
 		})
 

@@ -25,7 +25,6 @@
 	},
 	"dependencies": {
 		"@opentelemetry/api": "^1.9.0",
-		"@opentelemetry/exporter-logs-otlp-http": ">=0.57.1",
 		"@opentelemetry/exporter-metrics-otlp-http": ">=0.57.1",
 		"@opentelemetry/exporter-trace-otlp-http": ">=0.57.1",
 		"@opentelemetry/otlp-exporter-base": ">=0.57.1",
