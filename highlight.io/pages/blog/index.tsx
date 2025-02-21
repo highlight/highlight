@@ -7,8 +7,8 @@ import { readMarkdown } from '../../shared/doc'
 import { VALID_TAGS } from './tag/[tag]'
 import BlogPage from '../../components/Blog/BlogPage'
 
-export async function loadPostsFromGithub() {
-	let paths = await getBlogPaths(fsp, '')
+export async function loadPostsFromGithub(fs_api?: any) {
+	let paths = await getBlogPaths(fs_api ?? fsp, '')
 	let posts: Post[] = []
 	for (let index = 0; index < paths.length; index++) {
 		const data = await readMarkdown(
