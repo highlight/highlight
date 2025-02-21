@@ -28,7 +28,6 @@
 		"rrweb",
 		"rrweb/packages/*",
 		"rrweb/packages/plugins/*",
-		"opentelemetry-sdk-workers/packages/opentelemetry-sdk-workers",
 		"scripts",
 		"sourcemap-uploader"
 	],

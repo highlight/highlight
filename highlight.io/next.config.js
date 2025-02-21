@@ -17,6 +17,7 @@ const nextConfig = {
 		}
 		return config
 	},
+	turbo: { treeShaking: true },
 	compress: true,
 	images: {
 		remotePatterns: [
