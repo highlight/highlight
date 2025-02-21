@@ -48,6 +48,6 @@
 	},
 	"devDependencies": {
 		"prisma": "^6.2.1",
-		"vercel": "^33.7.1"
+		"vercel": "^41.2.0"
 	}
 }
