@@ -1,17 +1,18 @@
 ---
-title: "5 Best Practices for Maintaining a Clean ReactJS App"
-createdAt: 2022-09-29T12:00:00Z
+title: 5 Best Practices for Maintaining a Clean ReactJS App
+createdAt: 2022-09-29T12:00:00.000Z
 readingTime: 7
-authorFirstName: Mohammad 
+authorFirstName: Mohammad
 authorLastName: Faisal
-authorTitle: Developer 
+authorTitle: Developer
 authorTwitter: ''
 authorLinkedIn: ''
 authorGithub: ''
 authorWebsite: 'https://www.mohammadfaisal.dev/about-me'
-authorPFP: 'https://www.highlight.io/_next/image?url=https%3A%2F%2Fmedia.graphassets.com%2FKoT3rVsGTf6WNuNefkhk&w=3840&q=75'
-tags: Developer Tooling 
-metaTitle: "5 Best Practices for Maintaining a Clean ReactJS App"
+authorPFP: >-
+  https://www.highlight.io/_next/image?url=https%3A%2F%2Fmedia.graphassets.com%2FKoT3rVsGTf6WNuNefkhk&w=3840&q=75
+tags: Engineering
+metaTitle: 5 Best Practices for Maintaining a Clean ReactJS App
 ---
 
 ReactJS is one of the most popular front-end JavaScript frameworks today. In fact, it was the [second most popular framework in 2020](https://www.thinslices.com/insights/infographic-react.js-statistics "https://www.thinslices.com/insights/infographic-react.js-statistics").

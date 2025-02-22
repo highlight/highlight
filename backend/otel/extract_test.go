@@ -264,13 +264,13 @@ func TestExtractFields_ExtractServiceName(t *testing.T) {
 	assert.Equal(t, fields.attrs, map[string]string{})
 }
 
-func TestExtractFields_RewriteServiceName(t *testing.T) {
+func TestExtractFields_ValidateServiceName(t *testing.T) {
 	resource := newResource(t, map[string]any{
 		"service.name": "unknown_service:/opt/homebrew/Cellar/node/19.6.0/bin/node",
 	})
 	fields, err := extractFields(ctx, extractFieldsParams{resource: &resource})
 	assert.NoError(t, err)
-	assert.Equal(t, fields.serviceName, "")
+	assert.Equal(t, fields.serviceName, "unknown_service:/opt/homebrew/Cellar/node/19.6.0/bin/node")
 	assert.Equal(t, fields.attrs, map[string]string{})
 
 	resource = newResource(t, map[string]any{
@@ -278,7 +278,7 @@ func TestExtractFields_RewriteServiceName(t *testing.T) {
 	})
 	fields, err = extractFields(ctx, extractFieldsParams{resource: &resource})
 	assert.NoError(t, err)
-	assert.Equal(t, fields.serviceName, "")
+	assert.Equal(t, fields.serviceName, "highlight-sdk")
 	assert.Equal(t, fields.attrs, map[string]string{})
 }
 

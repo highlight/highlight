@@ -434,7 +434,7 @@ func (k *KafkaBatchWorker) flushLogs(ctx context.Context, logRows []*clickhouse.
 		}
 	}
 
-	span, ctxT := util.StartSpanFromContext(wCtx, fmt.Sprintf("worker.kafka.%s.flush.clickhouseLogs", k.Name))
+	span, ctxT := util.StartSpanFromContext(wCtx, fmt.Sprintf("worker.kafka.%s.flush.clickhouse.logs", k.Name))
 	span.SetAttribute("NumLogRows", len(logRows))
 	span.SetAttribute("NumFilteredRows", len(filteredRows))
 	err = k.Worker.PublicResolver.Clickhouse.BatchWriteLogRows(ctxT, filteredRows)
@@ -471,7 +471,7 @@ func (k *KafkaBatchWorker) flushTraces(ctx context.Context, traceRows []*clickho
 		filteredTraceRows = append(filteredTraceRows, trace)
 	}
 
-	span, ctxT := util.StartSpanFromContext(ctx, fmt.Sprintf("worker.kafka.%s.flush.clickhouse", k.Name), util.WithHighlightTracingDisabled(true))
+	span, ctxT := util.StartSpanFromContext(ctx, fmt.Sprintf("worker.kafka.%s.flush.clickhouse.traces", k.Name), util.WithHighlightTracingDisabled(true))
 	span.SetAttribute("NumTraceRows", len(traceRows))
 	span.SetAttribute("PayloadSizeBytes", binary.Size(traceRows))
 	err = k.Worker.PublicResolver.Clickhouse.BatchWriteTraceRows(ctxT, filteredTraceRows)
@@ -493,7 +493,7 @@ func (k *KafkaBatchWorker) flushTraces(ctx context.Context, traceRows []*clickho
 }
 
 func (k *KafkaBatchWorker) flushSessionEvents(ctx context.Context, sessionEventRows []*clickhouse.SessionEventRow) error {
-	span, ctxT := util.StartSpanFromContext(ctx, fmt.Sprintf("worker.kafka.%s.flush.clickhouse", k.Name))
+	span, ctxT := util.StartSpanFromContext(ctx, fmt.Sprintf("worker.kafka.%s.flush.clickhouse.events", k.Name))
 	span.SetAttribute("NumRows", len(sessionEventRows))
 	span.SetAttribute("PayloadSizeBytes", binary.Size(sessionEventRows))
 	err := k.Worker.PublicResolver.Clickhouse.BatchWriteSessionEventRows(ctxT, sessionEventRows)
@@ -508,7 +508,7 @@ func (k *KafkaBatchWorker) flushSessionEvents(ctx context.Context, sessionEventR
 }
 
 func (k *KafkaBatchWorker) flushMetrics(ctx context.Context, metricRows []clickhouse.MetricRow) error {
-	span, ctxT := util.StartSpanFromContext(ctx, fmt.Sprintf("worker.kafka.%s.flush.clickhouse", k.Name))
+	span, ctxT := util.StartSpanFromContext(ctx, fmt.Sprintf("worker.kafka.%s.flush.clickhouse.metrics", k.Name))
 	span.SetAttribute("NumRows", len(metricRows))
 	span.SetAttribute("PayloadSizeBytes", binary.Size(metricRows))
 	err := k.Worker.PublicResolver.Clickhouse.BatchWriteMetricRows(ctxT, metricRows)
@@ -584,7 +584,7 @@ func (k *KafkaBatchWorker) flushDataSync(ctx context.Context, sessionIds []int, 
 			allSessionObjs = append(allSessionObjs, sessionObjs...)
 		}
 
-		chSpan, _ := util.StartSpanFromContext(ctx, fmt.Sprintf("worker.kafka.%s.flush.clickhouse", k.Name))
+		chSpan, _ := util.StartSpanFromContext(ctx, fmt.Sprintf("worker.kafka.%s.flush.clickhouse.sessions", k.Name))
 
 		k.log(ctx, log.Fields{"sessions_length": len(allSessionObjs)}, "KafkaBatchWorker writing sessions")
 

@@ -9,6 +9,7 @@ import { withAppRouterHighlight } from '../../../highlight.app.config'
 import { getGithubDocsPaths } from '../../../pages/api/docs/github'
 import { getBlogPaths } from '../../../shared/blog'
 import { GraphQLRequest } from '../../../utils/graphql'
+import { VALID_TAGS } from '../../../pages/blog/tag/[tag]'
 
 const stream = createWriteStream({
 	url: 'https://pub.highlight.io/v1/logs/json',
@@ -17,7 +18,6 @@ const stream = createWriteStream({
 		'x-highlight-service': 'next-suspense',
 	},
 })
-
 const logger = pino({ level: 'trace' }, stream)
 
 async function generateXML(): Promise<string> {
@@ -39,13 +39,14 @@ async function generateXML(): Promise<string> {
 	const githubBlogPages = githubBlogPosts.map(
 		(path) => `blog/${path.simple_path}`,
 	)
-
+	const githubBlogTags = VALID_TAGS.map((tag) => `blog/tag/${tag.slug}`)
 	const customerPages = customers.map(
 		(customer: { slug: string }) => `customers/${customer.slug}`,
 	)
-	const docsPages = Array.from(docs.keys()).map(
-		(d) => `docs/${d.split('docs-content/').pop()}`,
-	)
+	const docsPages = Array.from(docs.keys()).map((d) => {
+		const slugs = d.split('docs-content/')
+		return `docs/${slugs.length === 1 ? '' : slugs.pop()}`
+	})
 	const productPages = Object.values(PRODUCTS).map(
 		(product: iProduct) => `for/${product.slug}`,
 	)
@@ -54,17 +55,18 @@ async function generateXML(): Promise<string> {
 	)
 
 	const competitorPages = Object.keys(COMPETITORS).map(
-		(competitorSlug: string) => competitorSlug,
+		(competitorSlug: string) => `compare/${competitorSlug}`,
 	)
 
 	const staticPagePaths = process.env.staticPages?.split(', ') || []
 	const staticPages = staticPagePaths.map((path) => {
-		return `${path.replace('pages', '').replace('index.tsx', '')}`
+		return `${path.replace('pages', '').replace('index.tsx', '').replace('.tsx', '')}`
 	})
 
 	const pages = [
 		...staticPages,
 		...githubBlogPages,
+		...githubBlogTags,
 		...customerPages,
 		...docsPages,
 		...productPages,

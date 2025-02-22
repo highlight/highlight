@@ -38,6 +38,7 @@ type Props = PropsWithChildren<{
 	setEnabled?: (value: boolean) => void
 	disabled?: boolean
 	tooltip?: string
+	headerContent?: React.ReactNode
 }>
 
 export const LabeledRow: React.FC<Props> = ({
@@ -48,10 +49,11 @@ export const LabeledRow: React.FC<Props> = ({
 	disabled,
 	children,
 	tooltip,
+	headerContent,
 }) => {
 	return (
 		<Box width="full" display="flex" flexDirection="column" gap="4">
-			<Box display="flex" flexDirection="row" gap="6">
+			<Box display="flex" flexDirection="row" gap="6" alignItems="center">
 				<Label label={label} name={name} />
 				{tooltip !== undefined && <InfoTooltip text={tooltip} />}
 				{setEnabled !== undefined && (
@@ -65,6 +67,7 @@ export const LabeledRow: React.FC<Props> = ({
 						}}
 					/>
 				)}
+				{headerContent}
 			</Box>
 			{enabled !== false ? (
 				<Box display="flex" flexDirection="row" gap="4">

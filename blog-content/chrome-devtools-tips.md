@@ -1,6 +1,6 @@
 ---
-title: "8 Tips to Help You Maximize Chrome DevTools"
-createdAt: 2022-11-03T12:00:00Z
+title: 8 Tips to Help You Maximize Chrome DevTools
+createdAt: 2022-11-03T12:00:00.000Z
 readingTime: 4
 authorFirstName: Haroon
 authorLastName: Choudery
@@ -9,9 +9,10 @@ authorTwitter: 'https://twitter.com/haroonchoudery'
 authorLinkedIn: 'https://linkedin.com/in/haroonchoudery'
 authorGithub: ''
 authorWebsite: ''
-authorPFP: 'https://www.highlight.io/_next/image?url=https%3A%2F%2Fmedia.graphassets.com%2FfKKhW39R0SE2hTIalLzG&w=1920&q=75'
-tags: Developer Tooling 
-metaTitle: "8 Tips to Help You Maximize Chrome DevTools"
+authorPFP: >-
+  https://www.highlight.io/_next/image?url=https%3A%2F%2Fmedia.graphassets.com%2FfKKhW39R0SE2hTIalLzG&w=1920&q=75
+tags: 'Frontend, Developer Experience, Engineering'
+metaTitle: 8 Tips to Help You Maximize Chrome DevTools
 ---
 
 The Chrome Developer Tools are a great asset and an indispensable tool for anyone building for the web.
@@ -20,7 +21,7 @@ By providing a powerful toolset for developing and [debugging web applications](
 
 But it offers more than just seeing the document tree and logging values to the Console. It provides you with an environment to test and iterate on your code, as well as understand and optimize the performance of your web application. Or any other web property, for that matter.
 
-(P.S. here’s how to even open the Chrome DevTools)
+(P.S. here's how to even open the Chrome DevTools)
 
 Whether you're just getting started with the DevTools or are a seasoned veteran, here are eight tips to help you make the most out of Chrome DevTools.
 
@@ -44,7 +45,7 @@ One of the most useful features in Chrome DevTools is the ability to copy and pa
 
 For example, if you see an element on a web page that you like, you can right-click it and select "Copy CSS" to copy all of the styling information for that element. Then, you can paste it into your own code and see how it looks.
 
-It’s a great way to quickly add styles to your own web app without having to manually write all of the CSS yourself. Similarly, you can also copy and paste JS path information to quickly add event handlers and other scripts to your app.
+It's a great way to quickly add styles to your own web app without having to manually write all of the CSS yourself. Similarly, you can also copy and paste JS path information to quickly add event handlers and other scripts to your app.
 
 This feature can be especially useful when working with complex codebases or when trying to match a specific design. So next time you're using Chrome DevTools, give this tip a try and see how it can speed up your workflow.
 
@@ -74,7 +75,7 @@ Chrome DevTools allows you to run commands or shortcuts in the _Console_. These 
 
 ## #4 Create Code Snippets
 
-Want to play around with code like you would on CodePen? Chrome DevTools’ Snippets can be your fast and simple code playground. You can write code, edit multiple lines simultaneously, and save it.
+Want to play around with code like you would on CodePen? Chrome DevTools' Snippets can be your fast and simple code playground. You can write code, edit multiple lines simultaneously, and save it.
 
 ![code-snippets-1.png](https://media.graphassets.com/9G3kAxzQQ820gckSMAPg "code-snippets-1.png")
 
@@ -88,11 +89,11 @@ To access Snippets in DevTools, go to the Sources tab. If you don't see it right
 
 ## #5 Test Apps on Different Network Speeds
 
-Not all our users have blazing-fast internet, so it’s important to test your web app in different conditions.
+Not all our users have blazing-fast internet, so it's important to test your web app in different conditions.
 
-In the _Network_ tab of DevTools, you can compare your app’s performance on different networks, like fast and slower 3G or custom network speeds. You can also simulate your app’s performance when there’s no network connection.
+In the _Network_ tab of DevTools, you can compare your app's performance on different networks, like fast and slower 3G or custom network speeds. You can also simulate your app's performance when there's no network connection.
 
-To test your app’s performance, click on the _Throttling_ dropdown, then start simulating different network connection speeds.
+To test your app's performance, click on the _Throttling_ dropdown, then start simulating different network connection speeds.
 
 ![network-speeds.png](https://media.graphassets.com/EiLd3qkPRjKCho01U3gf "network-speeds.png")
 
@@ -100,7 +101,7 @@ This Chrome DevTools tip will help you ensure that your app performs well for al
 
 ## #6 Edit Content in Design Mode
 
-If you’re feeling artistic or curious, you can edit any web page you like, whether it’s yours or not. Design mode on DevTools works similarly to the _contenteditable_ attribute in HTML. You can set the design mode of any application and edit its content on the page.
+If you're feeling artistic or curious, you can edit any web page you like, whether it's yours or not. Design mode on DevTools works similarly to the _contenteditable_ attribute in HTML. You can set the design mode of any application and edit its content on the page.
 
 To do this, type document.designMode = 'on' in the _Console_ tab and press Enter. Then, click on any part of the page to add, delete image, or edit text as you like.
 
@@ -112,9 +113,9 @@ Keep in mind that your changes will only be temporary and will not be saved when
 
 When you're working on styling an element in HTML, it can be helpful to see what the element looks like in different states. For example, you might want to see how an element looks when it's hovered over, or when it's in focus.
 
-You don’t have to keep moving your cursor every time you want to debug the hover states of buttons or test changing styling. Chrome DevTools allows you to force any state and put your mouse to better use, like copying or editing the styles.
+You don't have to keep moving your cursor every time you want to debug the hover states of buttons or test changing styling. Chrome DevTools allows you to force any state and put your mouse to better use, like copying or editing the styles.
 
-In the styles part of the _Elements_ tab, you can force a state of an element. For example, the state could be on hover, focus, active, or visited. You only have to click on the component whose state you want to force, then click on _:hov_. You’ll see all the states available for you to try out.
+In the styles part of the _Elements_ tab, you can force a state of an element. For example, the state could be on hover, focus, active, or visited. You only have to click on the component whose state you want to force, then click on _:hov_. You'll see all the states available for you to try out.
 
 ![force-element-state.png](https://media.graphassets.com/ZYss1ePKSXWi6XaR4r1W "force-element-state.png")
 

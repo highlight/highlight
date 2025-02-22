@@ -1,4 +1,7 @@
-import { PAGE_SIZE } from '@components/SearchPagination/SearchPagination'
+import {
+	PAGE_PARAM,
+	PAGE_SIZE,
+} from '@components/SearchPagination/SearchPagination'
 import { useGetSessionsLazyQuery, useGetSessionsQuery } from '@graph/hooks'
 import { usePollQuery } from '@util/search'
 import moment from 'moment'
@@ -10,6 +13,9 @@ import {
 	GetSessionsQuery,
 	GetSessionsQueryVariables,
 } from '@/graph/generated/operations'
+import { useQueryParam } from 'use-query-params'
+import { changeSession } from '@pages/Player/PlayerHook/utils'
+import { useNavigate } from 'react-router-dom'
 
 export const useGetSessions = ({
 	query,
@@ -19,7 +25,6 @@ export const useGetSessions = ({
 	page = 1,
 	disablePolling,
 	sortDesc,
-	presetSelected,
 }: {
 	query: string
 	project_id: string | undefined
@@ -30,38 +35,91 @@ export const useGetSessions = ({
 	sortDesc: boolean
 	presetSelected: boolean
 }) => {
-	// Using these rounded dates to ensure the cache is hit on initial load. The
-	// query will still be sent and the data in the cache will be updated.
-	const roundedStartDate = moment(startDate)
-		.startOf('minute')
-		.subtract(moment(startDate).minute() % 10, 'minutes')
-	const momentEndDate = presetSelected
-		? moment(endDate).add(10, 'minutes')
-		: moment(endDate)
-	const roundedEndDate = momentEndDate
-		.startOf('minute')
-		.subtract(moment(endDate).minute() % 10, 'minutes')
+	const [, setPage] = useQueryParam('page', PAGE_PARAM)
 
-	const { data, loading, error, refetch } = useGetSessionsQuery({
-		variables: {
+	const variables = useMemo(
+		() => ({
 			project_id: project_id!,
 			count: PAGE_SIZE,
 			page,
 			params: {
 				query,
 				date_range: {
-					start_date: roundedStartDate.format(TIME_FORMAT),
-					end_date: roundedEndDate.format(TIME_FORMAT),
+					start_date: moment(startDate).format(TIME_FORMAT),
+					end_date: moment(endDate).format(TIME_FORMAT),
 				},
 			},
 			sort_desc: sortDesc,
-		},
+		}),
+		[page, project_id, query, startDate, endDate, sortDesc],
+	)
+	const { data, loading, error, refetch } = useGetSessionsQuery({
+		variables,
 		fetchPolicy: 'cache-and-network',
 	})
-
+	const [paginationQuery] = useGetSessionsLazyQuery({
+		fetchPolicy: 'cache-first',
+	})
 	const [moreDataQuery] = useGetSessionsLazyQuery({
 		fetchPolicy: 'network-only',
 	})
+
+	const navigate = useNavigate()
+	const changeSessionIndex = useCallback(
+		async (index: number) => {
+			/**
+			 * The Key Idea: Use an Absolute Index
+			 *
+			 * Instead of thinking in terms of “page 1, element 5”, you maintain a single state that represents the absolute index of the selected item in the overall list. For example, if each page shows 10 items, then:
+			 * 	•	The first page contains indices 0–9.
+			 * 	•	The second page contains indices 10–19.
+			 * 	•	And so on.
+			 *
+			 * When the user hits the next key:
+			 * 	•	You increment the absolute index.
+			 * 	•	Then you calculate the page number based on that index.
+			 * 	•	Finally, you ensure that the page is loaded (or fetch it if needed) and that the correct element is highlighted.
+			 */
+			const p =
+				Math.floor(((page - 1) * PAGE_SIZE + index) / PAGE_SIZE) + 1
+			setPage(p)
+
+			let session = data?.sessions?.sessions?.at(index)
+			if (index >= 0 && session !== undefined) {
+				changeSession(project_id!, navigate, session, {
+					page: p,
+					query,
+				})
+			} else {
+				// session must be in the next page; find secure id in the next page
+				const { data } = await paginationQuery({
+					variables: {
+						...variables,
+						page: p,
+					},
+					fetchPolicy: 'cache-first',
+				})
+				const newIndex = index % PAGE_SIZE
+				session = data?.sessions?.sessions?.at(newIndex)
+				if (session !== undefined) {
+					changeSession(project_id!, navigate, session, {
+						page: p,
+						query,
+					})
+				}
+			}
+		},
+		[
+			data?.sessions?.sessions,
+			navigate,
+			project_id,
+			page,
+			query,
+			setPage,
+			paginationQuery,
+			variables,
+		],
+	)
 
 	const {
 		numMore: moreSessions,
@@ -114,6 +172,7 @@ export const useGetSessions = ({
 		totalActiveLength: totalActiveLength,
 		histogramBucketSize: determineHistogramBucketSize(startDate, endDate),
 		pollingExpired,
+		changeSessionIndex,
 	}
 }
 

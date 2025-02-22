@@ -3689,44 +3689,6 @@ func normalizeExpressions(column *string, metricTypes []modelInputs.MetricAggreg
 	return newExpressions, nil
 }
 
-func GetMetricTimeline(ctx context.Context, ccClient *clickhouse.Client, projectID int, metricName string, params modelInputs.DashboardParamsInput) (payload []*modelInputs.DashboardPayload, err error) {
-	const numBuckets = 48
-	agg := params.Aggregator
-	parts := []string{string(modelInputs.ReservedTraceKeyMetricName) + "=" + metricName}
-	for _, filter := range params.Filters {
-		switch filter.Op {
-		case modelInputs.MetricTagFilterOpEquals:
-			parts = append(parts, fmt.Sprintf("%s:%v", filter.Tag, filter.Value))
-		case modelInputs.MetricTagFilterOpContains:
-			parts = append(parts, fmt.Sprintf("%s:%%%v%%", filter.Tag, filter.Value))
-		}
-	}
-	metrics, err := ccClient.ReadEventMetrics(ctx, projectID, modelInputs.QueryInput{
-		Query:     strings.Join(parts, " "),
-		DateRange: params.DateRange,
-	}, pointy.String(metricName), []modelInputs.MetricAggregator{agg}, params.Groups, pointy.Int(numBuckets), string(modelInputs.MetricBucketByTimestamp), nil, nil, nil, nil)
-	if err != nil {
-		return nil, err
-	}
-	bucketLength := params.DateRange.EndDate.Sub(params.DateRange.StartDate) / numBuckets
-	nonNil := lo.Filter(metrics.Buckets, func(item *modelInputs.MetricBucket, _ int) bool {
-		return item.MetricValue != nil
-	})
-	return lo.Map(nonNil, func(item *modelInputs.MetricBucket, index int) *modelInputs.DashboardPayload {
-		var group *string
-		if len(item.Group) > 0 {
-			group = pointy.String(strings.Join(item.Group, "-"))
-		}
-		date := params.DateRange.StartDate.Add(bucketLength * time.Duration(item.BucketID))
-		return &modelInputs.DashboardPayload{
-			Date:       date.Format(time.RFC3339),
-			Value:      *item.MetricValue,
-			Aggregator: agg,
-			Group:      group,
-		}
-	}), nil
-}
-
 func (r *Resolver) GetProjectRetentionDate(projectId int) (time.Time, error) {
 	var project *model.Project
 	if err := r.DB.WithContext(context.TODO()).Model(&model.Project{}).Where("id = ?", projectId).Take(&project).Error; err != nil {
@@ -3923,34 +3885,32 @@ func (r *Resolver) CreateDefaultDashboard(ctx context.Context, projectID int) (*
 
 	graphs := []*model.Graph{
 		{
-			Type:         "Bar chart",
-			Title:        "Active users",
-			ProductType:  "Sessions",
-			Query:        "email exists",
-			FunctionType: "Count",
-			BucketByKey:  pointy.String("Timestamp"),
-			BucketCount:  pointy.Int(24),
-			Display:      pointy.String("Stacked"),
+			Type:        "Bar chart",
+			Title:       "Active users",
+			ProductType: "Sessions",
+			Query:       "email exists",
+			BucketByKey: pointy.String("Timestamp"),
+			BucketCount: pointy.Int(24),
+			Display:     pointy.String("Stacked"),
+			Expressions: pointy.String(`[{"column": "", "aggregator": "Count"}]`),
 		},
 		{
 			Type:              "Bar chart",
 			Title:             "Most visited pages",
 			ProductType:       "Sessions",
-			FunctionType:      "Count",
 			GroupByKeys:       []string{"visited-url"},
 			BucketByKey:       pointy.String("Timestamp"),
 			BucketCount:       pointy.Int(24),
 			Limit:             pointy.Int(5),
 			LimitFunctionType: &countAggregator,
 			Display:           pointy.String("Stacked"),
+			Expressions:       pointy.String(`[{"column": "", "aggregator": "Count"}]`),
 		},
 		{
 			Type:              "Line chart",
 			Title:             "H.track events",
 			ProductType:       "Sessions",
 			Query:             "event exists",
-			Metric:            "active_length",
-			FunctionType:      "Avg",
 			GroupByKeys:       []string{"event"},
 			BucketByKey:       pointy.String("Timestamp"),
 			BucketCount:       pointy.Int(24),
@@ -3958,25 +3918,24 @@ func (r *Resolver) CreateDefaultDashboard(ctx context.Context, projectID int) (*
 			LimitFunctionType: &countAggregator,
 			Display:           pointy.String("Stacked area"),
 			NullHandling:      pointy.String("Hidden"),
+			Expressions:       pointy.String(`[{"column": "active_length", "aggregator": "Avg"}]`),
 		},
 		{
 			Type:         "Line chart",
 			Title:        "Sessions with user frustration",
 			ProductType:  "Sessions",
 			Query:        "has_rage_clicks=true",
-			FunctionType: "Count",
 			BucketByKey:  pointy.String("Timestamp"),
 			BucketCount:  pointy.Int(24),
 			Display:      pointy.String("Line"),
 			NullHandling: pointy.String("Hidden"),
+			Expressions:  pointy.String(`[{"column": "", "aggregator": "Count"}]`),
 		},
 		{
 			Type:              "Line chart",
 			Title:             "Slowest APIs",
 			ProductType:       "Traces",
 			Query:             "http.method exists http.url exists http.url=*api*",
-			FunctionType:      "P95",
-			Metric:            "duration",
 			GroupByKeys:       []string{"span_name"},
 			Limit:             pointy.Int(10),
 			LimitFunctionType: &countAggregator,
@@ -3984,17 +3943,18 @@ func (r *Resolver) CreateDefaultDashboard(ctx context.Context, projectID int) (*
 			BucketCount:       pointy.Int(24),
 			Display:           pointy.String("Line"),
 			NullHandling:      pointy.String("Hidden"),
+			Expressions:       pointy.String(`[{"column": "duration", "aggregator": "P95"}]`),
 		},
 		{
 			Type:              "Table",
 			Title:             "Errors by browser",
 			ProductType:       "Errors",
-			FunctionType:      "Count",
 			Query:             "browser exists",
 			GroupByKeys:       []string{"browser"},
 			Limit:             pointy.Int(10),
 			LimitFunctionType: &countAggregator,
 			NullHandling:      pointy.String("Hide row"),
+			Expressions:       pointy.String(`[{"column": "", "aggregator": "Count"}]`),
 		},
 	}
 
@@ -4003,8 +3963,6 @@ func (r *Resolver) CreateDefaultDashboard(ctx context.Context, projectID int) (*
 			Type:              "Line chart",
 			Title:             "Web Vitals: " + desc,
 			ProductType:       "Metrics",
-			FunctionType:      "P95",
-			Metric:            vital,
 			GroupByKeys:       []string{"browser"},
 			BucketByKey:       pointy.String("Timestamp"),
 			BucketCount:       pointy.Int(24),
@@ -4012,6 +3970,7 @@ func (r *Resolver) CreateDefaultDashboard(ctx context.Context, projectID int) (*
 			LimitFunctionType: &countAggregator,
 			Display:           pointy.String("Stacked area"),
 			NullHandling:      pointy.String("Hidden"),
+			Expressions:       pointy.String(fmt.Sprintf(`[{"column": "%s", "aggregator": "P95"}]`, vital)),
 		})
 	}
 
@@ -4051,6 +4010,38 @@ func (r *Resolver) CreateDefaultDashboard(ctx context.Context, projectID int) (*
 		Count:   1,
 		Results: []model.Visualization{viz},
 	}, nil
+}
+
+func (r *Resolver) MetricsAggregated(ctx context.Context, projectID int, params modelInputs.QueryInput, sql *string, column *string, metricTypes []modelInputs.MetricAggregator, groupBy []string, bucketBy string, bucketCount *int, bucketWindow *int, limit *int, limitAggregator *modelInputs.MetricAggregator, limitColumn *string, expressions []*modelInputs.MetricExpressionInput) (*modelInputs.MetricsBuckets, error) {
+	project, err := r.isUserInProjectOrDemoProject(ctx, projectID)
+	if err != nil {
+		return nil, err
+	}
+
+	expressions, err = normalizeExpressions(column, metricTypes, expressions)
+	if err != nil {
+		return nil, err
+	}
+
+	return r.ClickhouseClient.ReadMetricsAggregated(ctx, project.ID, params, sql, groupBy, bucketCount, bucketBy, bucketWindow, limit, limitAggregator, limitColumn, expressions)
+}
+
+func (r *Resolver) MetricsKeys(ctx context.Context, projectID int, dateRange modelInputs.DateRangeRequiredInput, query *string, typeArg *modelInputs.KeyType) ([]*modelInputs.QueryKey, error) {
+	project, err := r.isUserInProjectOrDemoProject(ctx, projectID)
+	if err != nil {
+		return nil, err
+	}
+
+	return r.ClickhouseClient.MetricsKeys(ctx, project.ID, dateRange.StartDate, dateRange.EndDate, query, typeArg)
+}
+
+func (r *Resolver) MetricsKeyValues(ctx context.Context, projectID int, keyName string, dateRange modelInputs.DateRangeRequiredInput, query *string, count *int) ([]string, error) {
+	project, err := r.isUserInProjectOrDemoProject(ctx, projectID)
+	if err != nil {
+		return nil, err
+	}
+
+	return r.ClickhouseClient.MetricsKeyValues(ctx, project.ID, keyName, dateRange.StartDate, dateRange.EndDate, query, count)
 }
 
 func reorderGraphs(viz *model.Visualization) {

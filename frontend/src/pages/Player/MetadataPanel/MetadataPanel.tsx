@@ -2,7 +2,7 @@ import { useAuthContext } from '@authentication/AuthContext'
 import LoadingBox from '@components/LoadingBox'
 import { TableList, TableListItem } from '@components/TableList/TableList'
 import { toast } from '@components/Toaster'
-import { Box, ButtonLink } from '@highlight-run/ui/components'
+import { Box, ButtonLink, Text } from '@highlight-run/ui/components'
 import { formatShortTime } from '@pages/Home/components/KeyPerformanceIndicators/utils/utils'
 import { getChromeExtensionURL } from '@pages/Player/SessionLevelBar/utils/utils'
 import { bytesToPrettyString } from '@util/string'
@@ -83,7 +83,7 @@ const MetadataPanel = () => {
 						session?.enable_strict_privacy,
 					)}{' '}
 					<a
-						href="https://www.highlight.io/docs/getting-started/client-sdk/replay-configuration/privacy"
+						href="https://www.highlight.io/docs/getting-started/browser/replay-configuration/privacy"
 						target="_blank"
 						rel="noreferrer"
 					>
@@ -103,7 +103,7 @@ const MetadataPanel = () => {
 					This specifies whether Highlight records the status codes,
 					headers, and bodies for XML/Fetch requests made in your app.{' '}
 					<a
-						href="https://www.highlight.io/docs/getting-started/client-sdk/replay-configuration/recording-network-requests-and-responses"
+						href="https://www.highlight.io/docs/getting-started/browser/replay-configuration/recording-network-requests-and-responses"
 						target="_blank"
 						rel="noopener noreferrer"
 					>
@@ -125,6 +125,15 @@ const MetadataPanel = () => {
 		sessionData.push({
 			keyDisplayValue: 'Active Duration',
 			valueDisplayValue: formatShortTime(session.active_length / 1000),
+		})
+	}
+	if (session?.fields) {
+		session.fields.forEach((field) => {
+			if (!field) return
+			sessionData.push({
+				keyDisplayValue: field.name,
+				valueDisplayValue: field.value,
+			})
 		})
 	}
 
@@ -163,7 +172,7 @@ const MetadataPanel = () => {
 					Did you know that you can enrich sessions with additional
 					metadata? They'll show up here. You can{' '}
 					<a
-						href="https://www.highlight.io/docs/getting-started/client-sdk/replay-configuration/identifying-sessions"
+						href="https://www.highlight.io/docs/getting-started/browser/replay-configuration/identifying-sessions"
 						target="_blank"
 						rel="noreferrer"
 					>
@@ -287,7 +296,19 @@ const MetadataPanel = () => {
 			<Box cssClass={[style.metadataPanel, styledVerticalScrollbar]}>
 				{data.map(([key, value]) => {
 					return (
-						<CollapsibleSection title={key} key={key}>
+						<CollapsibleSection
+							title={
+								<Text
+									color="secondaryContentOnEnabled"
+									as="span"
+									size="small"
+									weight="medium"
+								>
+									{key}
+								</Text>
+							}
+							key={key}
+						>
 							<Box
 								key={`${session.secure_id}-${key}`}
 								px="12"

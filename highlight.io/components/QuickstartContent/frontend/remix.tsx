@@ -12,7 +12,8 @@ const GUIDE_URL = siteUrl('/docs/getting-started/fullstack-frameworks/remix')
 export const RemixContent: QuickStartContent = {
 	title: 'Remix',
 	subtitle: 'Learn how to set up highlight.io with your Remix application.',
-	logoUrl: siteUrl('/images/quickstart/remix.png'),
+	logoKey: 'remix',
+	products: ['Sessions', 'Errors', 'Logs', 'Traces'],
 	entries: [
 		{
 			title: 'Install the npm package & SDK.',
@@ -91,7 +92,7 @@ export default function App() {
 		{
 			title: 'Export a custom ErrorBoundary handler (optional)',
 			content: `The \`ErrorBoundary\` component wraps your component tree and catches crashes/exceptions from your react app. When a crash happens, your users will be prompted with a modal to share details about what led up to the crash. Read more [here](${siteUrl(
-				'/docs/getting-started/client-sdk/replay-configuration',
+				'/docs/getting-started/browser/replay-configuration',
 			)}).`,
 			code: [
 				{

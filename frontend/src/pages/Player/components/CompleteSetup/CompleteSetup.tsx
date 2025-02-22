@@ -24,7 +24,7 @@ export const CompleteSetup = () => {
 					</Text>
 					<Stack gap="6" direction="row">
 						<LinkButton
-							to={`/${projectId}/setup`}
+							to={`/${projectId}/connect`}
 							trackingId="finish-setup-sessions-empty-state"
 						>
 							Finish setup

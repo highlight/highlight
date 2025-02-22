@@ -1,11 +1,9 @@
-import { siteUrl } from '../../../../utils/urls'
 import { QuickStartContent } from '../../QuickstartContent'
 import { setUpLogging } from './shared-snippets'
 
 export const RustOtherContent: QuickStartContent = {
 	title: 'Rust',
 	subtitle: 'Learn how to set up highlight.io without a framework.',
-	logoUrl: siteUrl('/images/quickstart/rust.svg'),
 	entries: [
 		{
 			title: 'Install the Highlight Rust SDK.',
@@ -71,7 +69,7 @@ fn main() {
 		{
 			title: 'Verify your errors are being recorded.',
 			content:
-				"Now that you've set up the SDK, you can verify that the backend error handling works by sending an error in. Visit the [highlight errors page](http://app.highlight.io/errors) and check that backend errors are coming in.",
+				"Now that you've set up the SDK, you can verify that the backend error handling works by sending an error in. Visit the [highlight errors page](https://app.highlight.io/errors) and check that backend errors are coming in.",
 			code: [
 				{
 					text: `fn main() {

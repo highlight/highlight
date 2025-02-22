@@ -1,5 +1,5 @@
 ---
-title: 'Filtering and Sampling Highlight Ingest'
+title: Filtering and Sampling Highlight Ingest
 createdAt: 2023-10-18T00:00:00.000Z
 readingTime: 3
 authorFirstName: Vadim
@@ -9,10 +9,11 @@ authorTwitter: 'https://twitter.com/vkorolik'
 authorLinkedIn: 'https://www.linkedin.com/in/vkorolik/'
 authorGithub: 'https://github.com/Vadman97'
 authorWebsite: 'https://vadweb.us'
-authorPFP: 'https://lh3.googleusercontent.com/a-/AOh14Gh1k7XsVMGxHMLJZ7qesyddqn1y4EKjfbodEYiY=s96-c'
-image: "/images/launch/week-3/filtering.svg"
-tags: Launch Week 3
-metaTitle: "Day 4: Tracing & Filters"
+authorPFP: >-
+  https://lh3.googleusercontent.com/a-/AOh14Gh1k7XsVMGxHMLJZ7qesyddqn1y4EKjfbodEYiY=s96-c
+image: /images/launch/week-3/filtering.svg
+tags: Product Updates
+metaTitle: 'Day 4: Tracing & Filters'
 ---
 
 Advanced Ingestion Filtering Techniques

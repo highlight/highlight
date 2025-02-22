@@ -107,6 +107,7 @@ export const Combobox = <T extends string | string[]>({
 	return (
 		<Select
 			customFilterable
+			creatable
 			value={selection}
 			options={keyOptions}
 			onValueChange={(v) => {

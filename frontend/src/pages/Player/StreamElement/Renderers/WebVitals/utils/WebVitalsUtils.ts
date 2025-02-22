@@ -10,6 +10,7 @@ export enum WebVitalName {
 	FID = 'First Input Delay',
 	LCP = 'Largest Contentful Paint',
 	TTFB = 'Time to First Byte',
+	INP = 'Interaction to Next Paint',
 }
 
 export const WEB_VITALS_CONFIGURATION: {
@@ -67,6 +68,17 @@ export const WEB_VITALS_CONFIGURATION: {
 		poor_value: 0,
 		units: 'ms',
 		help_article: 'https://web.dev/ttfb',
+		chart_type: DashboardChartType.Timeline,
+		aggregator: MetricAggregator.P50,
+	},
+	INP: {
+		max_good_value: 200,
+		name: 'INP',
+		description: WebVitalName.INP,
+		max_needs_improvement_value: 500,
+		poor_value: 0,
+		units: 'ms',
+		help_article: 'https://web.dev/inp',
 		chart_type: DashboardChartType.Timeline,
 		aggregator: MetricAggregator.P50,
 	},

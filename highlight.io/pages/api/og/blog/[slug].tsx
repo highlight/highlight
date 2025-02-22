@@ -1,7 +1,7 @@
 import { ImageResponse } from '@vercel/og'
 import { NextRequest, URLPattern } from 'next/server'
 import { withEdgeRouterHighlight } from '../../../../highlight.edge.config'
-import { backdrop, font, fontLight } from '../util'
+import { getResources } from '../util'
 import Image from 'next/image'
 
 export const config = {
@@ -11,15 +11,11 @@ export const config = {
 //Example query: https://highlight.io/api/og/blog/highlight-launch-week-day-5?title=Day+5%3A+Our+Partners+%26+Supporters&fname=Vadim&lname=Korolik&role=Co-Founder+%26+CTO
 //This query is sent from each blog slug to generate the og image
 const handler = async function (req: NextRequest) {
+	const { font, fontLight, backdrop } = await getResources(req)
 	const query = req.nextUrl.href
-	const fontData = await font
-	const fontLightData = await fontLight
-	const backdropData = await backdrop
-	const backDropBase64 = btoa(
-		new Uint8Array(backdropData).reduce(function (p, c) {
-			return p + String.fromCharCode(c)
-		}, ''),
-	)
+	const backDropBase64 = new Uint8Array(backdrop).reduce(function (p, c) {
+		return p + String.fromCharCode(c)
+	}, '')
 
 	const slug = new URLPattern({ pathname: '/api/og/blog/:slug' }).exec(
 		req.url,
@@ -139,13 +135,13 @@ const handler = async function (req: NextRequest) {
 			fonts: [
 				{
 					name: 'Poppins',
-					data: fontData,
+					data: font,
 					weight: 600,
 					style: 'normal',
 				},
 				{
 					name: 'PoppinsLight',
-					data: fontLightData,
+					data: fontLight,
 					weight: 400,
 					style: 'normal',
 				},

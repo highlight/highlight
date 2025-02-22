@@ -1,13 +1,14 @@
 import {
 	IconSolidChartBar,
 	IconSolidFire,
-	Box,
 	IconSolidLightningBolt,
 	IconSolidLogs,
 	IconSolidPlayCircle,
 	IconSolidTraces,
+	IconSolidMetrics,
+	IconSolidChartSquareLine,
+	IconSolidCode,
 } from '@highlight-run/ui/components'
-import { betaTag } from '@/components/Header/styles.css'
 import {
 	MetricAggregator,
 	ProductType,
@@ -28,6 +29,24 @@ export const TIME_METRICS = {
 	TTFB: 'ms',
 	INP: 'ms',
 }
+
+export enum Editor {
+	QueryBuilder = 'Query Builder',
+	SqlEditor = 'SQL Editor',
+}
+
+export const EDITOR_OPTIONS = [
+	{
+		value: Editor.QueryBuilder,
+		name: Editor.QueryBuilder,
+		icon: <IconSolidChartSquareLine size={16} />,
+	},
+	{
+		value: Editor.SqlEditor,
+		name: Editor.SqlEditor,
+		icon: <IconSolidCode size={16} />,
+	},
+]
 
 export const PRODUCT_OPTIONS = [
 	{
@@ -50,32 +69,24 @@ export const PRODUCT_OPTIONS = [
 		value: ProductType.Errors,
 		icon: <IconSolidLightningBolt key="errors" />,
 	},
-	// TODO(vkorolik) metrics disabled in the frontend to avoid confusion
-	// {
-	// 	name: ProductType.Metrics,
-	// 	value: ProductType.Metrics,
-	// 	icon: <IconSolidChartBar key="metrics" />,
-	// }
-]
-
-export const PRODUCT_OPTIONS_WITH_EVENTS = PRODUCT_OPTIONS.concat([
+	{
+		name: ProductType.Metrics,
+		value: ProductType.Metrics,
+		icon: <IconSolidMetrics key="metrics" />,
+	},
 	{
 		name: ProductType.Events,
 		value: ProductType.Events,
-		icon: (
-			<Box cssClass={betaTag} key="events">
-				Beta
-			</Box>
-		),
+		icon: <IconSolidChartBar key="events" />,
 	},
-])
+]
 
 export const PRODUCTS_TO_ICONS = {
 	[ProductType.Logs]: <IconSolidLogs key="logs" />,
 	[ProductType.Traces]: <IconSolidTraces key="traces" />,
 	[ProductType.Sessions]: <IconSolidPlayCircle key="sessions" />,
 	[ProductType.Errors]: <IconSolidLightningBolt key="errors" />,
-	[ProductType.Metrics]: <IconSolidChartBar key="metrics" />,
+	[ProductType.Metrics]: <IconSolidMetrics key="metrics" />,
 	[ProductType.Events]: <IconSolidFire key="events" />,
 }
 

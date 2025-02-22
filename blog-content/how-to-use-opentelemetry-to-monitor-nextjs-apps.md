@@ -1,6 +1,6 @@
 ---
 title: How to Use OpenTelemetry to Monitor Next.js Applications
-createdAt: 2024-08-08T12:00:00Z
+createdAt: 2024-08-08T12:00:00.000Z
 readingTime: 6
 authorFirstName: Chris
 authorLastName: Griffing
@@ -9,9 +9,12 @@ authorTwitter: 'https://x.com/cmgriffing'
 authorLinkedIn: 'https://www.linkedin.com/in/cmgriffing'
 authorGithub: 'https://github.com/cmgriffing'
 authorWebsite: 'https://chrisgriffing.com'
-authorPFP: 'https://chrisgriffing.com/static/3053e1631c1e5e072c0c872f7c59f801/6e63d/selfportrait.jpg'
-tags: OpenTelemetry
-metaTitle: Learn how to leverage OpenTelemetry to find and fix errors and performance issues in your Next.js applications.
+authorPFP: >-
+  https://chrisgriffing.com/static/3053e1631c1e5e072c0c872f7c59f801/6e63d/selfportrait.jpg
+tags: Observability
+metaTitle: >-
+  Learn how to leverage OpenTelemetry to find and fix errors and performance
+  issues in your Next.js applications.
 ---
 
 Observability is key to monitoring and improving your web application's performance. Integrating OpenTelemetry with your Next.js app provides valuable insights into its behavior. This blog post guides you through configuring Next.js to push data to your Collector using OpenTelemetry.

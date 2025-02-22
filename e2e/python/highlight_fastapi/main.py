@@ -4,6 +4,8 @@ import logging
 import random
 
 from fastapi import FastAPI, Request, HTTPException, APIRouter
+from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
+
 from work import add
 import redis
 import boto
@@ -17,16 +19,16 @@ from highlight_io.sdk import LogHandler
 H = highlight_io.H(
     "1",
     instrument_logging=True,
-    otlp_endpoint="http://localhost:4318",
+    otlp_endpoint="http://localhost:4317",
     service_name="my-fastapi-app",
     service_version="1.0.0",
     environment="e2e-test",
     debug=True,
-    disable_export_error_logging=True,
 )
 
 app = FastAPI()
 app.add_middleware(FastAPIMiddleware)
+FastAPIInstrumentor.instrument_app(app)
 
 router = APIRouter()
 r = redis.Redis(host="localhost", port=6379, decode_responses=True)
@@ -90,9 +92,23 @@ async def redis(request: Request):
     redis_value = r.get(redis_key)
     redis_hit = bool(redis_value)
 
+    H.record_metric('redis.metric', 1,{'hit': redis_hit})
+    H.record_count('redis.count', 1, {'hit': redis_hit})
+    H.record_incr('redis', {'hit': redis_hit})
+    H.record_histogram('redis.histogram', 1,{'hit': redis_hit})
+    H.record_up_down_counter('redis.updown', 1,{'hit': redis_hit})
     if not redis_hit:
-        redis_value = random.randint(0, 100)
-        r.set(redis_key, redis_value, 60)
+        H.record_incr('redis.miss')
+        redis_value = random.random() * 100
+
+        H.record_metric('redis.value.metric', redis_value,{'hit': redis_hit})
+        H.record_count('redis.value.count', int(redis_value), {'hit': redis_hit})
+        H.record_incr('redis.value.incr', {'hit': redis_hit})
+        H.record_histogram('redis.histogram', redis_value,{'hit': redis_hit})
+        H.record_up_down_counter('redis.updown', int(redis_value),{'hit': redis_hit})
+        r.set(redis_key, redis_value, 1)
+    else:
+        H.record_incr('redis.hit')
 
     return {"value": redis_value, "hit-cache": redis_hit}
 

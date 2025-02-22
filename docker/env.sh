@@ -9,7 +9,7 @@ if [[ "$LICENSE_KEY" != "" ]]; then
 fi
 
 # setup env
-$(cat .env | grep -vE '^#' | grep -E '\S+' | sed -e 's/^/export /')
+$(cat .env | grep -vE '^#' | grep -v BACKEND_IMAGE_NAME | grep -v FRONTEND_IMAGE_NAME | grep -E '\S+' | sed -e 's/^/export /')
 export IN_DOCKER=true
 export BACKEND_HEALTH_URI=$(echo "$REACT_APP_PUBLIC_GRAPH_URI" | sed -e 's/\/public/\/health/')
 export LICENSE_KEY=$LICENSE_KEY_OVERRIDE

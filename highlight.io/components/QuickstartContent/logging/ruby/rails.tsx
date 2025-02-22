@@ -1,11 +1,9 @@
-import { siteUrl } from '../../../../utils/urls'
 import { QuickStartContent } from '../../QuickstartContent'
 import { previousInstallSnippet, verifyLogs } from '../shared-snippets'
 
 export const RubyRailsLogContent: QuickStartContent = {
 	title: 'Logging from Ruby Rails',
 	subtitle: 'Learn how to set up highlight.io Rails log ingestion.',
-	logoUrl: siteUrl('/images/quickstart/rails.svg'),
 	entries: [
 		previousInstallSnippet('ruby'),
 		{

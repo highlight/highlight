@@ -1,4 +1,3 @@
-import { siteUrl } from '../../../../utils/urls'
 import {
 	downloadSnippet,
 	setupFrontendSnippet,
@@ -9,7 +8,6 @@ import { verifyTraces } from '../shared-snippets'
 export const PythonDjangoTracesContent: QuickStartContent = {
 	title: 'Python Django',
 	subtitle: 'Learn how to set up highlight.io tracing for your Django app.',
-	logoUrl: siteUrl('/images/quickstart/django.svg'),
 	entries: [
 		setupFrontendSnippet,
 		downloadSnippet(),

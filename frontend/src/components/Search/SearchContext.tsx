@@ -46,6 +46,7 @@ interface SearchContext extends Partial<ReturnType<typeof useSearchTime>> {
 	resetMoreResults: () => void
 	histogramBucketSize?: DateHistogramBucketSize
 	pollingExpired: boolean
+	changeResultIndex?: (index: number) => void
 	aiMode: boolean
 	setAiMode: (aiMode: boolean) => void
 	aiQuery: string
@@ -77,6 +78,7 @@ interface Props extends Partial<ReturnType<typeof useSearchTime>> {
 	moreResults?: SearchContext['moreResults']
 	resetMoreResults?: SearchContext['resetMoreResults']
 	pollingExpired?: SearchContext['pollingExpired']
+	changeResultIndex?: SearchContext['changeResultIndex']
 	aiMode?: SearchContext['aiMode']
 	setAiMode?: SearchContext['setAiMode']
 	onAiSubmit?: SearchContext['onAiSubmit']
@@ -100,6 +102,7 @@ export const SearchContext: React.FC<Props> = ({
 	resetMoreResults = () => null,
 	setPage = () => null,
 	pollingExpired = false,
+	changeResultIndex = () => null,
 	aiMode = false,
 	setAiMode = () => null,
 	onAiSubmit = () => null,
@@ -149,6 +152,7 @@ export const SearchContext: React.FC<Props> = ({
 				setPage,
 				resetMoreResults,
 				pollingExpired,
+				changeResultIndex,
 				aiMode,
 				aiQuery,
 				setAiQuery,

@@ -1,0 +1,9 @@
+DROP TABLE IF EXISTS metric_keys_mv;
+DROP TABLE IF EXISTS metric_keys;
+DROP TABLE IF EXISTS metric_span_id_mv;
+DROP TABLE IF EXISTS metric_trace_id_mv;
+DROP TABLE IF EXISTS metric_secure_session_id_mv;
+DROP TABLE IF EXISTS metric_service_name_mv;
+DROP TABLE IF EXISTS metric_metric_name_mv;
+DROP TABLE IF EXISTS metric_attributes_mv;
+DROP TABLE IF EXISTS metric_key_values;

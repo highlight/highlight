@@ -1,17 +1,18 @@
 ---
-title: A new way of managing errors in Highlight 
-createdAt: 2022-12-08T12:00:00Z
+title: A new way of managing errors in Highlight
+createdAt: 2022-12-08T12:00:00.000Z
 readingTime: 6
 authorFirstName: Chris
 authorLastName: Schmitz
-authorTitle: Software Engineer 
+authorTitle: Software Engineer
 authorTwitter: ''
 authorLinkedIn: ''
 authorGithub: ''
 authorWebsite: ''
-authorPFP: 'https://www.highlight.io/_next/image?url=https%3A%2F%2Fmedia.graphassets.com%2FViK27IG7TCe0YDK20tFy&w=3840&q=75'
-tags: Highlight Engineering
-metaTitle: A new way of managing errors in Highlight 
+authorPFP: >-
+  https://www.highlight.io/_next/image?url=https%3A%2F%2Fmedia.graphassets.com%2FViK27IG7TCe0YDK20tFy&w=3840&q=75
+tags: 'Frontend, Product Updates'
+metaTitle: A new way of managing errors in Highlight
 ---
 
 Today, we are excited to announce the release of a new error monitoring experience in Highlight. Introducing the new and improved **error page UI**!
@@ -28,11 +29,11 @@ In addition to being blazing fast, our new error page UI also provides a more in
 
 ## More error context 🧐
 
-Finally, you can navigate between every instance of an error and easily view the associated session and user’s metadata.
+Finally, you can navigate between every instance of an error and easily view the associated session and user's metadata.
 
 ## Keyboard shortcuts ⌨️
 
-Keyboard shortcut aficionados rejoice! We’ve built a few keyboard shortcuts that you might be familiar with into the new error page. For example, you can use the `J` and `K` keys to navigate errors and take action quickly.
+Keyboard shortcut aficionados rejoice! We've built a few keyboard shortcuts that you might be familiar with into the new error page. For example, you can use the `J` and `K` keys to navigate errors and take action quickly.
 
 [Sorry, your browser doesn't support embedded videos.](https://media.graphassets.com/8AMc3uToucT84spgUtQN)
 

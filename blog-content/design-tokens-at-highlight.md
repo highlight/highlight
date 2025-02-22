@@ -1,6 +1,6 @@
 ---
 title: Managing our design tokens at Highlight
-createdAt: 2023-04-17T12:00:00Z
+createdAt: 2023-04-17T12:00:00.000Z
 readingTime: 9
 authorFirstName: Julian
 authorLastName: Schneider
@@ -9,9 +9,10 @@ authorTwitter: ''
 authorLinkedIn: 'https://www.linkedin.com/in/schneider-ui/'
 authorGithub: 'https://github.com/julian-highlight'
 authorWebsite: ''
-authorPFP: 'https://www.highlight.io/_next/image?url=https%3A%2F%2Fmedia.graphassets.com%2Fsx9TpHXnQZGOgFBSooIy&w=3840&q=75'
-tags: Launch Week 1
-metaTitle: Managing our design tokens at Highlight 
+authorPFP: >-
+  https://www.highlight.io/_next/image?url=https%3A%2F%2Fmedia.graphassets.com%2Fsx9TpHXnQZGOgFBSooIy&w=3840&q=75
+tags: Product Updates
+metaTitle: Managing our design tokens at Highlight
 ---
 
 At Highlight, we understand the importance of creating a visually appealing and consistent color system for our app. We know that our design is crucial for attracting and retaining users. That's why we use design tokens to create a well-defined and easily manageable color system for our app.

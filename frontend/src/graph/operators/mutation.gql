@@ -288,6 +288,10 @@ mutation EditProjectSettings(
 	}
 }
 
+mutation EditProjectPlatforms($projectId: ID!, $platforms: StringArray) {
+	editProjectPlatforms(projectID: $projectId, platforms: $platforms)
+}
+
 mutation DeleteProject($id: ID!) {
 	deleteProject(id: $id)
 }
@@ -1459,6 +1463,7 @@ mutation UpsertGraph($graph: GraphInput!) {
 			aggregator
 			column
 		}
+		sql
 	}
 }
 

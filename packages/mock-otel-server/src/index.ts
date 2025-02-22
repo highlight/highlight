@@ -6,7 +6,7 @@ import {
 	IExportTraceServiceRequest,
 	IResourceSpans,
 	ISpan,
-} from '@opentelemetry/otlp-transformer'
+} from '@opentelemetry/otlp-transformer/build/esm/trace/internal-types'
 
 const DEFAULT_PORT = 3101
 const RESOURCE_SPANS_BY_PORT = new Map<number, IResourceSpans[]>()

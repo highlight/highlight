@@ -1,5 +1,45 @@
 # highlight.run
 
+## 9.11.0
+
+### Minor Changes
+
+-   941ac5e: support inlining any video tags by snapshotting as a canvas via inlineVideos setting
+
+## 9.10.0
+
+### Minor Changes
+
+-   b4f7173: turn off firstload network recording in favor of opentelemetry instrumentation
+
+### Patch Changes
+
+-   b4f7173: check trace header injection separately from body capture check
+
+## 9.9.1
+
+### Patch Changes
+
+-   91f82fc: record highlight session id on client-side metrics
+
+## 9.9.0
+
+### Minor Changes
+
+-   ab181de: add a network performance listener to report network connection properties
+
+## 9.8.0
+
+### Minor Changes
+
+-   0fa5585: introduce otlp native metrics export
+
+## 9.7.4
+
+### Patch Changes
+
+-   408abc7: reduce noisy ErrorStackParser.parse failures when failing to parse provided error
+
 ## 9.7.3
 
 ### Patch Changes

@@ -37,11 +37,12 @@ import * as style from './AllMembers.css'
 
 type Option = {
 	key: string
+	value: AdminRole
 	render: string
 }
 
 const ALL_KEY = 'All'
-const ALL_OPTION = { key: ALL_KEY, render: ALL_KEY }
+const ALL_OPTION = { key: ALL_KEY, value: AdminRole.Member, render: ALL_KEY }
 
 export const PopoverCell = <T extends string[] | string>({
 	options,
@@ -174,21 +175,23 @@ export const PopoverCell = <T extends string[] | string>({
 export const RoleOptions: Option[] = [
 	{
 		key: AdminRole.Member,
+		value: AdminRole.Member,
 		render: 'Member',
 	},
 	{
 		key: AdminRole.Admin,
+		value: AdminRole.Admin,
 		render: 'Admin',
 	},
 ]
 
-const GRID_COLUMNS = ['3fr', '2fr', '1fr', '30px']
+const GRID_COLUMNS = ['3fr', '3fr', 'auto', '1fr', '30px']
 
 const DISABLED_REASON_NOT_ADMIN =
 	'You must have Admin role to update user access.'
 const DISABLED_REASON_IS_SELF = 'You cannot update your own access.'
 export const DISABLED_REASON_IS_ADMIN = 'Admins have access to all projects.'
-const DISABLED_REASON_NOT_ENTERPRISE =
+export const DISABLED_REASON_NOT_ENTERPRISE =
 	'Manage project access with an enterprise plan.'
 
 const AllMembers = ({
@@ -226,6 +229,7 @@ const AllMembers = ({
 
 	const projectOptions = projects?.map((p) => ({
 		key: p.id,
+		value: AdminRole.Admin,
 		render: p.name,
 	}))
 
@@ -260,6 +264,7 @@ const AllMembers = ({
 			<Table.Head>
 				<Table.Row gridColumns={GRID_COLUMNS}>
 					<Table.Header>User</Table.Header>
+					<Table.Header>Email</Table.Header>
 					<Table.Header>Project Access</Table.Header>
 					<Table.Header>Role</Table.Header>
 					<Table.Header></Table.Header>
@@ -304,22 +309,26 @@ const AllMembers = ({
 										}}
 									/>
 									<Stack gap="4">
-										<Tooltip
-											delayed
-											trigger={
-												<Text color="default" lines="1">
-													{admin.name
-														? admin.name
-														: getDisplayNameFromEmail(
-																admin.email,
-															)}{' '}
-													{isSelf && '(You)'}
-												</Text>
-											}
-										>
-											{admin.email}
-										</Tooltip>
+										<Text color="default" lines="1">
+											{admin.name
+												? admin.name
+												: getDisplayNameFromEmail(
+														admin.email,
+													)}{' '}
+											{isSelf && '(You)'}
+										</Text>
 									</Stack>
+								</Stack>
+							</Table.Cell>
+							<Table.Cell>
+								<Stack
+									direction="row"
+									gap="6"
+									alignItems="center"
+								>
+									<Text color="default" lines="1">
+										{admin.email}
+									</Text>
 								</Stack>
 							</Table.Cell>
 							<Table.Cell padding="0">

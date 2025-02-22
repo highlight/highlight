@@ -1,6 +1,6 @@
 ---
-title: "Tracing Distributed Systems in Next.js"
-createdAt: 2024-04-21T12:00:00Z
+title: Tracing Distributed Systems in Next.js
+createdAt: 2024-04-21T12:00:00.000Z
 readingTime: 6
 authorFirstName: Chris
 authorLastName: Esplin
@@ -9,9 +9,9 @@ authorTwitter: 'https://twitter.com/chrisesplin'
 authorLinkedIn: 'https://www.linkedin.com/in/epsilon/'
 authorGithub: 'https://github.com/deltaepsilon'
 authorWebsite: 'https://www.chrisesplin.com/'
-authorPFP: '/images/blog/podcast/avatars/esplin.jpeg'
-tags: Tutorial
-metaTitle: "Tracing Distributed Systems in Next.js"
+authorPFP: /images/blog/podcast/avatars/esplin.jpeg
+tags: Engineering
+metaTitle: Tracing Distributed Systems in Next.js
 ---
 
 
@@ -44,7 +44,7 @@ Client-side integration is as easy as injecting `<HighlightInit />` into your we
 
 - Inject `<HighlightInit />` once, preferably in a `layout.tsx` file or `_app.tsx` file.
 - `<HighlightInit />` accepts props that correspond to the JavaScript SDK's [options arguments](https://www.highlight.io/docs/sdk/client#Hinit).
-- Explore Highlight's wide range of [configuration options](https://www.highlight.io/docs/getting-started/client-sdk/replay-configuration/overview), including 
+- Explore Highlight's wide range of [configuration options](https://www.highlight.io/docs/getting-started/browser/replay-configuration/overview), including 
     - Canvas and WebGL support, 
     - user identification,
     - and privacy and redaction.
@@ -85,7 +85,7 @@ export default function RootLayout({
 
 We'll use the browser's `Fetch` API to call a Next.js API function. Highlight monkey patches `window.fetch` and adds the `x-highlight-request` header automatically, so use `Fetch` as you normally would.
 
-See the full [list of monkey patches](https://www.highlight.io/docs/getting-started/client-sdk/replay-configuration/monkey-patches) in our docs.
+See the full [list of monkey patches](https://www.highlight.io/docs/getting-started/browser/replay-configuration/monkey-patches) in our docs.
 
 ```jsx
  <button
@@ -136,7 +136,7 @@ export const GET = withAppRouterHighlight(async (request: NextRequest) => {
 
 ### Configure our Golang service
 
-Highlight supports multiple [Go libraries](https://www.highlight.io/docs/getting-started/backend-sdk/go/overview). In this case we're using the [Highlight chi SDK](https://www.highlight.io/docs/getting-started/backend-sdk/go/chi).
+Highlight supports multiple [Go libraries](https://www.highlight.io/docs/getting-started/server/go/overview). In this case we're using the [Highlight chi SDK](https://www.highlight.io/docs/getting-started/server/go/chi).
 
 See a [working example of Highlight chi implementation](https://github.com/highlight/distributed-tracing-example/blob/main/service/main.go) on GitHub.
 

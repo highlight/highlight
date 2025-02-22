@@ -11,4 +11,4 @@ Lots more to come on the logging front, but please check give our logging produc
 
 ## Added support for Nest.js
 
-Guide link [here](https://www.highlight.io/docs/getting-started/backend-sdk/js/nestjs).
+Guide link [here](https://www.highlight.io/docs/getting-started/server/js/nestjs).

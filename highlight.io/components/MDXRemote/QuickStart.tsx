@@ -70,10 +70,6 @@ export function QuickStart({ content: c }: Props) {
 										return (
 											<HighlightCodeBlock
 												key={codeBlock.key}
-												style={{
-													position: 'sticky',
-													top: '80px',
-												}}
 												language={codeBlock.language}
 												text={codeBlock.text}
 												copy={codeBlock.copy}

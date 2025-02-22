@@ -3,21 +3,13 @@ import {
 	RightPanelView,
 	usePlayerUIContext,
 } from '@pages/Player/context/PlayerUIContext'
-import {
-	changeSession,
-	findNextSessionInList,
-	findPreviousSessionInList,
-} from '@pages/Player/PlayerHook/utils'
+
 import usePlayerConfiguration, {
 	PLAYBACK_SPEED_OPTIONS,
 } from '@pages/Player/PlayerHook/utils/usePlayerConfiguration'
 import analytics from '@util/analytics'
 import { useEffect, useRef, useState } from 'react'
 import { useHotkeys } from 'react-hotkeys-hook'
-import { useNavigate } from 'react-router-dom'
-
-import { useProjectId } from '@/hooks/useProjectId'
-import { useSessionParams } from '@/pages/Sessions/utils'
 
 import { ReplayerState, useReplayerContext } from '../ReplayerContext'
 
@@ -49,15 +41,8 @@ export const getNewTimeWithSkip = ({
 }
 
 export const usePlayerKeyboardShortcuts = () => {
-	const {
-		state,
-		play,
-		pause,
-		time,
-		replayer,
-		sessionResults,
-		sessionMetadata,
-	} = useReplayerContext()
+	const { state, play, pause, time, replayer, sessionMetadata } =
+		useReplayerContext()
 	const { setIsPlayerFullscreen, setRightPanelView } = usePlayerUIContext()
 	const {
 		setPlayerSpeedIdx,
@@ -72,9 +57,6 @@ export const usePlayerKeyboardShortcuts = () => {
 		setShowHistogram,
 		showHistogram,
 	} = usePlayerConfiguration()
-	const { projectId } = useProjectId()
-	const { sessionSecureId } = useSessionParams()
-	const navigate = useNavigate()
 
 	/**
 	 * This function needs to be called before each hot key.
@@ -183,50 +165,6 @@ export const usePlayerKeyboardShortcuts = () => {
 			}
 		},
 		[time, replayer, state, pause, play],
-	)
-
-	useHotkeys(
-		'shift+n',
-		(e) => {
-			if (sessionResults.sessions.length > 0 && !!sessionSecureId) {
-				analytics.track('PlayerSkipToNextSessionKeyboardShortcut')
-				moveFocusToDocument(e)
-
-				const nextSession = findNextSessionInList(
-					sessionResults.sessions,
-					sessionSecureId,
-				)
-				changeSession(
-					projectId!,
-					navigate,
-					nextSession,
-					'Playing the next session.',
-				)
-			}
-		},
-		[sessionSecureId, sessionResults.sessions],
-	)
-
-	useHotkeys(
-		'shift+p',
-		(e) => {
-			if (sessionResults.sessions.length > 0 && !!sessionSecureId) {
-				analytics.track('PlayerSkipToPreviousSessionKeyboardShortcut')
-				moveFocusToDocument(e)
-
-				const nextSession = findPreviousSessionInList(
-					sessionResults.sessions,
-					sessionSecureId,
-				)
-				changeSession(
-					projectId!,
-					navigate,
-					nextSession,
-					'Playing the previous session.',
-				)
-			}
-		},
-		[sessionSecureId, sessionResults.sessions],
 	)
 
 	useHotkeys(

@@ -1,6 +1,6 @@
 ---
-title: "New Feature: Session Backfilling"
-createdAt: 2022-08-16T12:00:00Z
+title: 'New Feature: Session Backfilling'
+createdAt: 2022-08-16T12:00:00.000Z
 readingTime: 6
 authorFirstName: Haroon
 authorLastName: Choudery
@@ -9,10 +9,12 @@ authorTwitter: 'https://twitter.com/haroonchoudery'
 authorLinkedIn: 'https://linkedin.com/in/haroonchoudery'
 authorGithub: ''
 authorWebsite: ''
-authorPFP: 'https://www.highlight.io/_next/image?url=https%3A%2F%2Fmedia.graphassets.com%2FfKKhW39R0SE2hTIalLzG&w=1920&q=75'
-image: 'https://www.highlight.io/_next/image?url=https%3A%2F%2Fmedia.graphassets.com%2Fu0i9m0AvTeK7fnloh2WS&w=1920&q=75'
-tags: Highlight Engineering
-metaTitle: "New Feature: Session Backfilling"
+authorPFP: >-
+  https://www.highlight.io/_next/image?url=https%3A%2F%2Fmedia.graphassets.com%2FfKKhW39R0SE2hTIalLzG&w=1920&q=75
+image: >-
+  https://www.highlight.io/_next/image?url=https%3A%2F%2Fmedia.graphassets.com%2Fu0i9m0AvTeK7fnloh2WS&w=1920&q=75
+tags: Engineering
+metaTitle: 'New Feature: Session Backfilling'
 ---
 
 We’re excited to announce the release of **Session Backfilling** in Highlight! Starting today, all sessions from the same browser for anonymous users will be aggregated into a single user. For users who are later identified, anonymous sessions from the same browser will be automatically attributed to them after identification.

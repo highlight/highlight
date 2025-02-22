@@ -1,17 +1,17 @@
 ---
-title: "The complete guide to OpenTelemetry in Python"
-createdAt: 2025-01-14T12:00:00Z
+title: The complete guide to OpenTelemetry in Python
+createdAt: 2025-01-14T12:00:00.000Z
 readingTime: 18
 authorFirstName: Vadim
 authorLastName: Korolik
-authorTitle: CTO @ Highlight 
+authorTitle: CTO @ Highlight
 authorTwitter: 'https://twitter.com/vkorolik'
 authorLinkedIn: 'https://www.linkedin.com/in/vkorolik/'
 authorGithub: 'https://github.com/Vadman97'
 authorWebsite: 'https://vadweb.us'
 authorPFP: 'https://avatars.githubusercontent.com/u/1351531?v=4'
-tags: Developer Tooling, Python, OpenTelemetry
-metaTitle: "The complete guide to OpenTelemetry in Python"
+tags: 'Engineering, Backend, Observability'
+metaTitle: The complete guide to OpenTelemetry in Python
 ---
 
 ```hint
@@ -57,7 +57,7 @@ Here's a quick example of what this looks like in code:
 ```python
 from opentelemetry import trace
 from opentelemetry.sdk.trace import TracerProvider
-
+from opentelemetry.sdk.resources import Resource
 
 provider = TracerProvider(resource=Resource.create(
     {
@@ -80,6 +80,7 @@ Here's an example of how you might configure a `BatchSpanProcessor`:
 ```python
 from opentelemetry.sdk.trace import TracerProvider
 from opentelemetry.sdk.trace.export import BatchSpanProcessor
+from opentelemetry.exporter.otlp.proto.grpc.trace_exporter import OTLPSpanExporter
 
 processor = BatchSpanProcessor(
     exporter=OTLPSpanExporter(endpoint="https://otel.highlight.io:4317"),
@@ -273,6 +274,6 @@ The great thing about middleware is that it doesn't require that you change the 
 
 ## **Conclusion**
 
-In this guide, we've gone through everyting you need to use OpenTelemetry in Python, including the high-level concepts as well as how to send traces and logs to your OpenTelemetry backend of choice. 
+In this guide, we've gone through everything you need to use OpenTelemetry in Python, including the high-level concepts as well as how to send traces and logs to your OpenTelemetry backend of choice. 
 
 If you have any questions, please feel free to reach out to us on [Twitter](https://twitter.com/highlight_io) or [Discord](https://highlight.io/community).

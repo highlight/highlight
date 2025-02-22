@@ -49,13 +49,13 @@ const components = {
 	p: (props: any) => {
 		return <p className={styles.blogText} {...props}></p>
 	},
-	h1: (props: any) => <h4 className={styles.blogText}>{props.children}</h4>,
+	h1: (props: any) => <h1 className={styles.blogText}>{props.children}</h1>,
 	h2: (props: any) => {
 		return <h2 className={styles.blogText}>{props.children}</h2>
 	},
-	h3: (props: any) => <h6 className={styles.blogText}>{props.children}</h6>,
-	h4: (props: any) => <h6 className={styles.blogText}>{props.children}</h6>,
-	h5: (props: any) => <h6 className={styles.blogText}>{props.children}</h6>,
+	h3: (props: any) => <h3 className={styles.blogText}>{props.children}</h3>,
+	h4: (props: any) => <h4 className={styles.blogText}>{props.children}</h4>,
+	h5: (props: any) => <h5 className={styles.blogText}>{props.children}</h5>,
 	ol: (props: any) => {
 		if (!Array.isArray(props.children)) {
 			return null
@@ -254,12 +254,10 @@ const PostPage = ({
 	}, [postSections])
 
 	const isStartupStack =
-		post.tags_relations.filter((t) =>
-			t.name.toLocaleLowerCase().includes('stack'),
-		).length > 0
+		post.tags.filter((t) => t.name.toLocaleLowerCase().includes('stack'))
+			.length > 0
 
-	const singleTag =
-		post.tags_relations.length === 1 ? post.tags_relations[0] : undefined
+	const singleTag = post.tags.length === 1 ? post.tags[0] : undefined
 
 	const params = new URLSearchParams()
 	params.set('title', post.title || '')
@@ -322,7 +320,7 @@ const PostPage = ({
 								styles.postTagDiv,
 							)}
 						>
-							{post.tags_relations.map((tag) => (
+							{post.tags.map((tag) => (
 								<PostTag {...tag} key={tag.slug} />
 							))}
 						</div>

@@ -1,6 +1,6 @@
 ---
-title: "Day 1: SDK Additions"
-createdAt: 2024-04-29T00:00:00Z
+title: 'Day 1: SDK Additions'
+createdAt: 2024-04-29T00:00:00.000Z
 readingTime: 3
 authorFirstName: Jay
 authorLastName: Khatri
@@ -10,9 +10,9 @@ authorLinkedIn: 'https://www.linkedin.com/in/jay-khatri/'
 authorGithub: 'https://github.com/jay-khatri'
 authorWebsite: 'https://jaykhatri.com'
 authorPFP: 'https://ca.slack-edge.com/T01AEDTQ8DS-U01A88AV6TU-4f7b4e7d637a-512'
-image: '/images/blog/launch-week/5/d1-splash.png'
-tags: Launch Week 5
-metaTitle: "Day 1: SDK Additions"
+image: /images/blog/launch-week/5/d1-splash.png
+tags: Product Updates
+metaTitle: 'Day 1: SDK Additions'
 ---
 
 ## Day 1: SDK Additions!

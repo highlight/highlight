@@ -1,6 +1,6 @@
 ---
-title: "Day 5: Self-hosted & Enterprise"
-createdAt: 2024-05-03T07:00:00Z
+title: 'Day 5: Self-hosted & Enterprise'
+createdAt: 2024-05-03T07:00:00.000Z
 readingTime: 3
 authorFirstName: Jay
 authorLastName: Khatri
@@ -10,9 +10,9 @@ authorLinkedIn: 'https://www.linkedin.com/in/jay-khatri/'
 authorGithub: 'https://github.com/jay-khatri'
 authorWebsite: 'https://jaykhatri.com'
 authorPFP: 'https://ca.slack-edge.com/T01AEDTQ8DS-U01A88AV6TU-4f7b4e7d637a-512'
-image: '/images/blog/launch-week/5/d5-splash.png'
-tags: Launch Week 5
-metaTitle: "Day 5: Self-hosted & Enterprise"
+image: /images/blog/launch-week/5/d5-splash.png
+tags: Product Updates
+metaTitle: 'Day 5: Self-hosted & Enterprise'
 ---
 
 ## Day 4: Self-hosted & Enterprise!

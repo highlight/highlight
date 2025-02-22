@@ -21,7 +21,7 @@ def highlight_setup(request):
                 project_id="1",
                 instrument_logging=True,
                 integrations=[],
-                otlp_endpoint="http://localhost:4318",
+                otlp_endpoint="http://localhost:4317",
             )
         else:
             yield

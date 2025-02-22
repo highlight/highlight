@@ -5,13 +5,12 @@ import { previousInstallSnippet, verifyLogs } from '../shared-snippets'
 export const PHPOtherLogContent: QuickStartContent = {
 	title: 'PHP',
 	subtitle: 'Learn how to set up highlight.io PHP log ingestion.',
-	logoUrl: siteUrl('/images/quickstart/php.svg'),
 	entries: [
 		previousInstallSnippet('php'),
 		{
 			title: 'Set up your highlight.io SDK.',
 			content: `Make sure you've also followed the [backend getting started](${siteUrl(
-				'/docs/getting-started/backend-sdk/php/other',
+				'/docs/getting-started/server/php/other',
 			)}) guide.`,
 		},
 		{

@@ -1,6 +1,6 @@
 ---
-title: "Day 5: Grafana for Highlight"
-createdAt: 2024-02-02T12:00:00Z
+title: 'Day 5: Grafana for Highlight'
+createdAt: 2024-02-02T12:00:00.000Z
 readingTime: 3
 authorFirstName: Chris
 authorLastName: Esplin
@@ -9,10 +9,10 @@ authorTwitter: 'https://twitter.com/chrisesplin'
 authorLinkedIn: 'https://www.linkedin.com/in/epsilon/'
 authorGithub: 'https://github.com/deltaepsilon'
 authorWebsite: 'https://www.chrisesplin.com/'
-authorPFP: '/images/blog/podcast/avatars/esplin.jpeg'
-image: '/images/blog/launch-week/4/d5-splash.png'
-tags: Launch Week 4, Grafana
-metaTitle: "Day 5: Grafana for Highlight"
+authorPFP: /images/blog/podcast/avatars/esplin.jpeg
+image: /images/blog/launch-week/4/d5-splash.png
+tags: 'Product Updates, Engineering'
+metaTitle: 'Day 5: Grafana for Highlight'
 ---
 
 ## Grafana for Highlight

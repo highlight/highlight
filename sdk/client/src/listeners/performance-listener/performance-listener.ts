@@ -43,7 +43,7 @@ export const PerformanceListener = (
 	let intervalId: number | undefined = undefined
 	intervalId = setInterval(() => {
 		memoryWorker()
-	}, 1000 * 5) as unknown as number
+	}, 1000) as unknown as number
 
 	let frameCount = 0
 	let lastTime = Date.now()

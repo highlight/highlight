@@ -3,6 +3,7 @@ import {
 	ConsoleMethods,
 	DebugOptions,
 	IntegrationOptions,
+	MetricCategory,
 	NetworkRecordingOptions,
 	SessionShortcutOptions,
 } from './client.js'
@@ -15,6 +16,14 @@ export declare interface Metadata {
 export declare interface Metric {
 	name: string
 	value: number
+	tags?: { name: string; value: string }[]
+}
+
+export interface RecordMetric {
+	name: string
+	value: number
+	category?: MetricCategory
+	group?: string
 	tags?: { name: string; value: string }[]
 }
 
@@ -186,15 +195,29 @@ export declare type HighlightOptions = {
 	 * Specifies whether to inline images into the recording.
 	 * This means that images that are local to the client (eg. client-generated blob: urls)
 	 * will be serialized into the recording and will be valid on replay.
+	 * This will also use canvas snapshotting to inline <video> elements
+	 * that use `src="blob:..."` data or webcam feeds (blank src) as <canvas> elements
 	 * Only enable this if you are running into issues with client-local images.
+	 * Will negatively affect performance.
 	 * @default false
 	 */
 	inlineImages?: boolean
+	/**
+	 * Specifies whether to inline <video> elements into the recording.
+	 * This means that video that are not accessible at a later time
+	 * (eg., a signed URL that is short lived)
+	 * will be serialized into the recording and will be valid on replay.
+	 * Only enable this if you are running into issues with the normal serialization.
+	 * Will negatively affect performance.
+	 * @default false
+	 */
+	inlineVideos?: boolean
 	/**
 	 * Specifies whether to inline stylesheets into the recording.
 	 * This means that stylesheets that are local to the client (eg. client-generated blob: urls)
 	 * will be serialized into the recording and will be valid on replay.
 	 * Only enable this if you are running into issues with client-local stylesheets.
+	 * May negatively affect performance.
 	 * @default true
 	 */
 	inlineStylesheet?: boolean
@@ -269,6 +292,41 @@ export declare interface HighlightPublicInterface {
 	 * @see {@link https://docs.highlight.run/frontend-observability} for more information.
 	 */
 	metrics: (metrics: Metric[]) => void
+	/**
+	 * Record arbitrary metric values via as a Gauge.
+	 * A Gauge records any point-in-time measurement, such as the current CPU utilization %.
+	 * Values with the same metric name and attributes are aggregated via the OTel SDK.
+	 * See https://opentelemetry.io/docs/specs/otel/metrics/data-model/ for more details.
+	 */
+	recordMetric: (metric: Metric) => void
+	/**
+	 * Record arbitrary metric values via as a Counter.
+	 * A Counter efficiently records an increment in a metric, such as number of cache hits.
+	 * Values with the same metric name and attributes are aggregated via the OTel SDK.
+	 * See https://opentelemetry.io/docs/specs/otel/metrics/data-model/ for more details.
+	 */
+	recordCount: (metric: Metric) => void
+	/**
+	 * Record arbitrary metric values via as a Counter.
+	 * A Counter efficiently records an increment in a metric, such as number of cache hits.
+	 * Values with the same metric name and attributes are aggregated via the OTel SDK.
+	 * See https://opentelemetry.io/docs/specs/otel/metrics/data-model/ for more details.
+	 */
+	recordIncr: (metric: Omit<Metric, 'value'>) => void
+	/**
+	 * Record arbitrary metric values via as a Histogram.
+	 * A Histogram efficiently records near-by point-in-time measurement into a bucketed aggregate.
+	 * Values with the same metric name and attributes are aggregated via the OTel SDK.
+	 * See https://opentelemetry.io/docs/specs/otel/metrics/data-model/ for more details.
+	 */
+	recordHistogram: (metric: Metric) => void
+	/**
+	 * Record arbitrary metric values via as a UpDownCounter.
+	 * A UpDownCounter efficiently records an increment or decrement in a metric, such as number of paying customers.
+	 * Values with the same metric name and attributes are aggregated via the OTel SDK.
+	 * See https://opentelemetry.io/docs/specs/otel/metrics/data-model/ for more details.
+	 */
+	recordUpDownCounter: (metric: Metric) => void
 	/**
 	 * Starts a new span for tracing in Highlight. The span will be ended when the
 	 * callback function returns.

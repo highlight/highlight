@@ -1,18 +1,20 @@
 ---
-title: "Configuring OpenSearch for a Write-Heavy Workload"
-createdAt: 2022-08-11T12:00:00Z
+title: Configuring OpenSearch for a Write-Heavy Workload
+createdAt: 2022-08-11T12:00:00.000Z
 readingTime: 7
 authorFirstName: Zane
 authorLastName: Mayberry
-authorTitle: Software Engineer 
+authorTitle: Software Engineer
 authorTwitter: ''
 authorLinkedIn: 'https://www.linkedin.com/in/zane-mayberry-688161165/'
 authorGithub: 'https://github.com/mayberryzane'
 authorWebsite: ''
-authorPFP: 'https://www.highlight.io/_next/image?url=https%3A%2F%2Fmedia.graphassets.com%2FvrMpBimsRzOGGJSWWppg&w=1920&q=75'
-image: 'https://www.highlight.io/_next/image?url=https%3A%2F%2Fmedia.graphassets.com%2FuKzLb5AQZfhI5DgzFYEQ&w=1920&q=75'
-tags: Highlight Engineering
-metaTitle: "How-To: Configure OpenSearch for a Write-Heavy Workload"
+authorPFP: >-
+  https://www.highlight.io/_next/image?url=https%3A%2F%2Fmedia.graphassets.com%2FvrMpBimsRzOGGJSWWppg&w=1920&q=75
+image: >-
+  https://www.highlight.io/_next/image?url=https%3A%2F%2Fmedia.graphassets.com%2FuKzLb5AQZfhI5DgzFYEQ&w=1920&q=75
+tags: Engineering
+metaTitle: 'How-To: Configure OpenSearch for a Write-Heavy Workload'
 ---
 
 ## Background

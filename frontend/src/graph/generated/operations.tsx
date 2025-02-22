@@ -318,6 +318,16 @@ export type EditProjectSettingsMutation = { __typename?: 'Mutation' } & {
 	>
 }
 
+export type EditProjectPlatformsMutationVariables = Types.Exact<{
+	projectId: Types.Scalars['ID']
+	platforms?: Types.Maybe<Types.Scalars['StringArray']>
+}>
+
+export type EditProjectPlatformsMutation = { __typename?: 'Mutation' } & Pick<
+	Types.Mutation,
+	'editProjectPlatforms'
+>
+
 export type DeleteProjectMutationVariables = Types.Exact<{
 	id: Types.Scalars['ID']
 }>
@@ -1601,6 +1611,7 @@ export type UpsertGraphMutation = { __typename?: 'Mutation' } & {
 		| 'limitMetric'
 		| 'display'
 		| 'nullHandling'
+		| 'sql'
 	> & {
 			funnelSteps?: Types.Maybe<
 				Array<
@@ -1777,23 +1788,6 @@ export type DiscordChannelFragmentFragment = {
 export type MicrosoftTeamsChannelFragmentFragment = {
 	__typename?: 'MicrosoftTeamsChannel'
 } & Pick<Types.MicrosoftTeamsChannel, 'name' | 'id'>
-
-export type GetMetricsTimelineQueryVariables = Types.Exact<{
-	project_id: Types.Scalars['ID']
-	metric_name: Types.Scalars['String']
-	params: Types.DashboardParamsInput
-}>
-
-export type GetMetricsTimelineQuery = { __typename?: 'Query' } & {
-	metrics_timeline: Array<
-		Types.Maybe<
-			{ __typename?: 'DashboardPayload' } & Pick<
-				Types.DashboardPayload,
-				'date' | 'value' | 'aggregator' | 'group'
-			>
-		>
-	>
-}
 
 export type GetNetworkHistogramQueryVariables = Types.Exact<{
 	project_id: Types.Scalars['ID']
@@ -3333,6 +3327,7 @@ export type ProjectFragment = { __typename?: 'Project' } & Pick<
 	| 'rage_click_window_seconds'
 	| 'rage_click_radius_pixels'
 	| 'rage_click_count'
+	| 'platforms'
 > & {
 		workspace?: Types.Maybe<
 			{ __typename?: 'Workspace' } & Pick<Types.Workspace, 'id'>
@@ -4468,9 +4463,25 @@ export type GetWebVitalsQueryVariables = Types.Exact<{
 }>
 
 export type GetWebVitalsQuery = { __typename?: 'Query' } & {
-	web_vitals: Array<
-		{ __typename?: 'Metric' } & Pick<Types.Metric, 'name' | 'value'>
-	>
+	web_vitals: { __typename?: 'MetricsBuckets' } & Pick<
+		Types.MetricsBuckets,
+		'bucket_count' | 'sample_factor'
+	> & {
+			buckets: Array<
+				{ __typename?: 'MetricBucket' } & Pick<
+					Types.MetricBucket,
+					| 'bucket_id'
+					| 'bucket_min'
+					| 'bucket_max'
+					| 'group'
+					| 'column'
+					| 'metric_type'
+					| 'metric_value'
+					| 'yhat_lower'
+					| 'yhat_upper'
+				>
+			>
+		}
 }
 
 export type GetDashboardDefinitionsQueryVariables = Types.Exact<{
@@ -4592,27 +4603,6 @@ export type SearchIssuesQuery = { __typename?: 'Query' } & {
 		{ __typename?: 'IssuesSearchResult' } & Pick<
 			Types.IssuesSearchResult,
 			'id' | 'title' | 'issue_url'
-		>
-	>
-}
-
-export type GetErrorGroupFrequenciesQueryVariables = Types.Exact<{
-	project_id: Types.Scalars['ID']
-	error_group_secure_ids:
-		| Array<Types.Scalars['String']>
-		| Types.Scalars['String']
-	params: Types.ErrorGroupFrequenciesParamsInput
-	metric: Types.Scalars['String']
-	use_clickhouse?: Types.Maybe<Types.Scalars['Boolean']>
-}>
-
-export type GetErrorGroupFrequenciesQuery = { __typename?: 'Query' } & {
-	errorGroupFrequencies: Array<
-		Types.Maybe<
-			{ __typename?: 'ErrorDistributionItem' } & Pick<
-				Types.ErrorDistributionItem,
-				'error_group_id' | 'date' | 'name' | 'value'
-			>
 		>
 	>
 }
@@ -5191,6 +5181,7 @@ export type GetMetricsQueryVariables = Types.Exact<{
 	product_type: Types.ProductType
 	project_id: Types.Scalars['ID']
 	params: Types.QueryInput
+	sql?: Types.Maybe<Types.Scalars['String']>
 	group_by: Array<Types.Scalars['String']> | Types.Scalars['String']
 	bucket_by: Types.Scalars['String']
 	bucket_count?: Types.Maybe<Types.Scalars['Int']>
@@ -5215,6 +5206,7 @@ export type GetMetricsQuery = { __typename?: 'Query' } & {
 					| 'bucket_id'
 					| 'bucket_min'
 					| 'bucket_max'
+					| 'bucket_value'
 					| 'group'
 					| 'column'
 					| 'metric_type'
@@ -5249,6 +5241,7 @@ export type GetGraphTemplatesQuery = { __typename?: 'Query' } & {
 			| 'limitMetric'
 			| 'display'
 			| 'nullHandling'
+			| 'sql'
 		> & {
 				funnelSteps?: Types.Maybe<
 					Array<
@@ -5301,6 +5294,7 @@ export type GetVisualizationQuery = { __typename?: 'Query' } & {
 					| 'limitMetric'
 					| 'display'
 					| 'nullHandling'
+					| 'sql'
 				> & {
 						funnelSteps?: Types.Maybe<
 							Array<
@@ -5370,6 +5364,7 @@ export type GetVisualizationsQuery = { __typename?: 'Query' } & {
 								| 'limitMetric'
 								| 'display'
 								| 'nullHandling'
+								| 'sql'
 							> & {
 									funnelSteps?: Types.Maybe<
 										Array<
@@ -5423,7 +5418,6 @@ export type GetAiQuerySuggestionQuery = { __typename?: 'Query' } & {
 
 export const namedOperations = {
 	Query: {
-		GetMetricsTimeline: 'GetMetricsTimeline' as const,
 		GetNetworkHistogram: 'GetNetworkHistogram' as const,
 		GetSessionPayload: 'GetSessionPayload' as const,
 		GetCommentTagsForProject: 'GetCommentTagsForProject' as const,
@@ -5542,7 +5536,6 @@ export const namedOperations = {
 		GetSourcemapVersions: 'GetSourcemapVersions' as const,
 		GetOAuthClientMetadata: 'GetOAuthClientMetadata' as const,
 		SearchIssues: 'SearchIssues' as const,
-		GetErrorGroupFrequencies: 'GetErrorGroupFrequencies' as const,
 		GetErrorGroupTags: 'GetErrorGroupTags' as const,
 		GetEmailOptOuts: 'GetEmailOptOuts' as const,
 		GetLogs: 'GetLogs' as const,
@@ -5598,6 +5591,7 @@ export const namedOperations = {
 		CreateWorkspace: 'CreateWorkspace' as const,
 		EditProject: 'EditProject' as const,
 		EditProjectSettings: 'EditProjectSettings' as const,
+		EditProjectPlatforms: 'EditProjectPlatforms' as const,
 		DeleteProject: 'DeleteProject' as const,
 		EditWorkspace: 'EditWorkspace' as const,
 		EditWorkspaceSettings: 'EditWorkspaceSettings' as const,

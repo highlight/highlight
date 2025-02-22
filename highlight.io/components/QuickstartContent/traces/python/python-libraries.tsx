@@ -1,4 +1,3 @@
-import { siteUrl } from '../../../../utils/urls'
 import { downloadSnippet, init } from '../../backend/python/shared-snippets'
 import { QuickStartContent } from '../../QuickstartContent'
 import { verifyTraces } from '../shared-snippets'
@@ -7,7 +6,6 @@ export const PythonLibrariesTracesContent: QuickStartContent = {
 	title: 'Python Libraries',
 	subtitle:
 		'Learn how to set up highlight.io tracing for common Python Libraries.',
-	logoUrl: siteUrl('/images/quickstart/python.svg'),
 	entries: [
 		{
 			title: 'Supported Python libraries',

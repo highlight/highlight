@@ -7,7 +7,7 @@ import highlight_io
 H = highlight_io.H(
     "1",
     instrument_logging=True,
-    otlp_endpoint="http://localhost:4318",
+    otlp_endpoint="http://localhost:4317",
     service_name="manual",
 )
 

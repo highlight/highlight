@@ -16,17 +16,20 @@ on:
 concurrency: ${{ github.workflow }}-${{ github.ref }}
 jobs:
     migrate-database:
-        runs-on: codebuild-highlight-github-actions-runner-${{ github.run_id }}-${{ github.run_attempt }}
+        runs-on: codebuild-highlight-github-actions-runner-${{ github.run_id }}-${{ github.run_attempt }}-arm-3.0-large
         steps:
             - name: Checkout
               uses: actions/checkout@v4
+            - name: Install Doppler
+              run: |
+                  sudo rpm --import 'https://packages.doppler.com/public/cli/gpg.DE2A7741A397C129.key'
+                  curl -sLf --retry 3 --tlsv1.2 --proto "=https" 'https://packages.doppler.com/public/cli/config.rpm.txt' | sudo tee /etc/yum.repos.d/doppler-cli.repo
+                  sudo yum update -y && sudo yum -y install doppler
             - name: Setup Go
               uses: actions/setup-go@v5
               with:
                   go-version-file: 'backend/go.mod'
                   cache-dependency-path: 'backend/go.sum'
-            - name: Install Doppler CLI
-              uses: dopplerhq/cli-action@v3
             - name: Migrate database
               run: |
                   cd backend/
@@ -36,30 +39,33 @@ jobs:
 
     deploy-session-delete-lambdas:
         needs: migrate-database
-        runs-on: codebuild-highlight-github-actions-runner-${{ github.run_id }}-${{ github.run_attempt }}
+        runs-on: codebuild-highlight-github-actions-runner-${{ github.run_id }}-${{ github.run_attempt }}-arm-3.0-large
         steps:
             - name: Checkout
               uses: actions/checkout@v4
+            - name: Install Doppler
+              run: |
+                  sudo rpm --import 'https://packages.doppler.com/public/cli/gpg.DE2A7741A397C129.key'
+                  curl -sLf --retry 3 --tlsv1.2 --proto "=https" 'https://packages.doppler.com/public/cli/config.rpm.txt' | sudo tee /etc/yum.repos.d/doppler-cli.repo
+                  sudo yum update -y && sudo yum -y install doppler
             - name: Setup Go
               uses: actions/setup-go@v5
               with:
                   go-version-file: 'backend/go.mod'
                   cache-dependency-path: 'backend/go.sum'
-            - name: Install Doppler CLI
-              uses: dopplerhq/cli-action@v3
             - name: Build and zip
               run: |
                   cd backend/
-                  CGO_ENABLED=0 go build ./lambda-functions/deleteSessions/getSessionIdsByQuery
-                  zip getSessionIdsByQuery.zip getSessionIdsByQuery
-                  CGO_ENABLED=0 go build ./lambda-functions/deleteSessions/deleteSessionBatchFromPostgres
-                  zip deleteSessionBatchFromPostgres.zip deleteSessionBatchFromPostgres
-                  CGO_ENABLED=0 go build ./lambda-functions/deleteSessions/deleteSessionBatchFromOpenSearch
-                  zip deleteSessionBatchFromOpenSearch.zip deleteSessionBatchFromOpenSearch
-                  CGO_ENABLED=0 go build ./lambda-functions/deleteSessions/deleteSessionBatchFromS3
-                  zip deleteSessionBatchFromS3.zip deleteSessionBatchFromS3
-                  CGO_ENABLED=0 go build ./lambda-functions/deleteSessions/sendEmail
-                  zip sendEmail.zip sendEmail
+                  CGO_ENABLED=0 go build -o bootstrap ./lambda-functions/deleteSessions/getSessionIdsByQuery
+                  zip getSessionIdsByQuery.zip bootstrap
+                  CGO_ENABLED=0 go build -o bootstrap ./lambda-functions/deleteSessions/deleteSessionBatchFromPostgres
+                  zip deleteSessionBatchFromPostgres.zip bootstrap
+                  CGO_ENABLED=0 go build -o bootstrap ./lambda-functions/deleteSessions/deleteSessionBatchFromOpenSearch
+                  zip deleteSessionBatchFromOpenSearch.zip bootstrap
+                  CGO_ENABLED=0 go build -o bootstrap ./lambda-functions/deleteSessions/deleteSessionBatchFromS3
+                  zip deleteSessionBatchFromS3.zip bootstrap
+                  CGO_ENABLED=0 go build -o bootstrap ./lambda-functions/deleteSessions/sendEmail
+                  zip sendEmail.zip bootstrap
             - name: Configure AWS Credentials
               uses: aws-actions/configure-aws-credentials@v4
               with:
@@ -93,24 +99,27 @@ jobs:
 
     deploy-session-export-lambdas:
         needs: migrate-database
-        runs-on: codebuild-highlight-github-actions-runner-${{ github.run_id }}-${{ github.run_attempt }}
+        runs-on: codebuild-highlight-github-actions-runner-${{ github.run_id }}-${{ github.run_attempt }}-arm-3.0-large
         steps:
             - name: Checkout
               uses: actions/checkout@v4
+            - name: Install Doppler
+              run: |
+                  sudo rpm --import 'https://packages.doppler.com/public/cli/gpg.DE2A7741A397C129.key'
+                  curl -sLf --retry 3 --tlsv1.2 --proto "=https" 'https://packages.doppler.com/public/cli/config.rpm.txt' | sudo tee /etc/yum.repos.d/doppler-cli.repo
+                  sudo yum update -y && sudo yum -y install doppler
             - name: Setup Go
               uses: actions/setup-go@v5
               with:
                   go-version-file: 'backend/go.mod'
                   cache-dependency-path: 'backend/go.sum'
-            - name: Install Doppler CLI
-              uses: dopplerhq/cli-action@v3
             - name: Build and zip
               run: |
                   cd backend/
-                  CGO_ENABLED=0 go build ./lambda-functions/sessionExport/saveSessionExport
-                  zip saveSessionExport.zip saveSessionExport
-                  CGO_ENABLED=0 go build ./lambda-functions/sessionExport/sendEmail
-                  zip sendEmail.zip sendEmail
+                  CGO_ENABLED=0 go build -o bootstrap ./lambda-functions/sessionExport/saveSessionExport
+                  zip saveSessionExport.zip bootstrap
+                  CGO_ENABLED=0 go build -o bootstrap ./lambda-functions/sessionExport/sendEmail
+                  zip sendEmail.zip bootstrap
             - name: Configure AWS Credentials
               uses: aws-actions/configure-aws-credentials@v4
               with:
@@ -132,26 +141,29 @@ jobs:
 
     deploy-digest-lambdas:
         needs: migrate-database
-        runs-on: codebuild-highlight-github-actions-runner-${{ github.run_id }}-${{ github.run_attempt }}
+        runs-on: codebuild-highlight-github-actions-runner-${{ github.run_id }}-${{ github.run_attempt }}-arm-3.0-large
         steps:
             - name: Checkout
               uses: actions/checkout@v4
+            - name: Install Doppler
+              run: |
+                  sudo rpm --import 'https://packages.doppler.com/public/cli/gpg.DE2A7741A397C129.key'
+                  curl -sLf --retry 3 --tlsv1.2 --proto "=https" 'https://packages.doppler.com/public/cli/config.rpm.txt' | sudo tee /etc/yum.repos.d/doppler-cli.repo
+                  sudo yum update -y && sudo yum -y install doppler
             - name: Setup Go
               uses: actions/setup-go@v5
               with:
                   go-version-file: 'backend/go.mod'
                   cache-dependency-path: 'backend/go.sum'
-            - name: Install Doppler CLI
-              uses: dopplerhq/cli-action@v3
             - name: Build and zip
               run: |
                   cd backend/
-                  CGO_ENABLED=0 go build ./lambda-functions/digests/getProjectIds
-                  zip getProjectIds.zip getProjectIds
-                  CGO_ENABLED=0 go build ./lambda-functions/digests/getDigestData
-                  zip getDigestData.zip getDigestData
-                  CGO_ENABLED=0 go build ./lambda-functions/digests/sendDigestEmails
-                  zip sendDigestEmails.zip sendDigestEmails
+                  CGO_ENABLED=0 go build -o bootstrap ./lambda-functions/digests/getProjectIds
+                  zip getProjectIds.zip bootstrap
+                  CGO_ENABLED=0 go build -o bootstrap ./lambda-functions/digests/getDigestData
+                  zip getDigestData.zip bootstrap
+                  CGO_ENABLED=0 go build -o bootstrap ./lambda-functions/digests/sendDigestEmails
+                  zip sendDigestEmails.zip bootstrap
             - name: Configure AWS Credentials
               uses: aws-actions/configure-aws-credentials@v4
               with:
@@ -177,24 +189,27 @@ jobs:
 
     deploy-session-insights-lambdas:
         needs: migrate-database
-        runs-on: codebuild-highlight-github-actions-runner-${{ github.run_id }}-${{ github.run_attempt }}
+        runs-on: codebuild-highlight-github-actions-runner-${{ github.run_id }}-${{ github.run_attempt }}-arm-3.0-large
         steps:
             - name: Checkout
               uses: actions/checkout@v4
+            - name: Install Doppler
+              run: |
+                  sudo rpm --import 'https://packages.doppler.com/public/cli/gpg.DE2A7741A397C129.key'
+                  curl -sLf --retry 3 --tlsv1.2 --proto "=https" 'https://packages.doppler.com/public/cli/config.rpm.txt' | sudo tee /etc/yum.repos.d/doppler-cli.repo
+                  sudo yum update -y && sudo yum -y install doppler
             - name: Setup Go
               uses: actions/setup-go@v5
               with:
                   go-version-file: 'backend/go.mod'
                   cache-dependency-path: 'backend/go.sum'
-            - name: Install Doppler CLI
-              uses: dopplerhq/cli-action@v3
             - name: Build and zip
               run: |
                   cd backend/
-                  CGO_ENABLED=0 go build ./lambda-functions/sessionInsights/getSessionInsightsData
-                  zip getSessionInsightsData.zip getSessionInsightsData
-                  CGO_ENABLED=0 go build ./lambda-functions/sessionInsights/sendSessionInsightsEmails
-                  zip sendSessionInsightsEmails.zip sendSessionInsightsEmails
+                  CGO_ENABLED=0 go build -o bootstrap ./lambda-functions/sessionInsights/getSessionInsightsData
+                  zip getSessionInsightsData.zip bootstrap
+                  CGO_ENABLED=0 go build -o bootstrap ./lambda-functions/sessionInsights/sendSessionInsightsEmails
+                  zip sendSessionInsightsEmails.zip bootstrap
             - name: Configure AWS Credentials
               uses: aws-actions/configure-aws-credentials@v4
               with:
@@ -216,17 +231,20 @@ jobs:
 
     deploy-metering-lambdas:
         needs: migrate-database
-        runs-on: codebuild-highlight-github-actions-runner-${{ github.run_id }}-${{ github.run_attempt }}
+        runs-on: codebuild-highlight-github-actions-runner-${{ github.run_id }}-${{ github.run_attempt }}-arm-3.0-large
         steps:
             - name: Checkout
               uses: actions/checkout@v4
+            - name: Install Doppler
+              run: |
+                  sudo rpm --import 'https://packages.doppler.com/public/cli/gpg.DE2A7741A397C129.key'
+                  curl -sLf --retry 3 --tlsv1.2 --proto "=https" 'https://packages.doppler.com/public/cli/config.rpm.txt' | sudo tee /etc/yum.repos.d/doppler-cli.repo
+                  sudo yum update -y && sudo yum -y install doppler
             - name: Setup Go
               uses: actions/setup-go@v5
               with:
                   go-version-file: 'backend/go.mod'
                   cache-dependency-path: 'backend/go.sum'
-            - name: Install Doppler CLI
-              uses: dopplerhq/cli-action@v3
             - name: Build and zip
               run: |
                   cd backend/
@@ -249,22 +267,25 @@ jobs:
 
     deploy-user-journey-lambdas:
         needs: migrate-database
-        runs-on: codebuild-highlight-github-actions-runner-${{ github.run_id }}-${{ github.run_attempt }}
+        runs-on: codebuild-highlight-github-actions-runner-${{ github.run_id }}-${{ github.run_attempt }}-arm-3.0-large
         steps:
             - name: Checkout
               uses: actions/checkout@v4
+            - name: Install Doppler
+              run: |
+                  sudo rpm --import 'https://packages.doppler.com/public/cli/gpg.DE2A7741A397C129.key'
+                  curl -sLf --retry 3 --tlsv1.2 --proto "=https" 'https://packages.doppler.com/public/cli/config.rpm.txt' | sudo tee /etc/yum.repos.d/doppler-cli.repo
+                  sudo yum update -y && sudo yum -y install doppler
             - name: Setup Go
               uses: actions/setup-go@v5
               with:
                   go-version-file: 'backend/go.mod'
                   cache-dependency-path: 'backend/go.sum'
-            - name: Install Doppler CLI
-              uses: dopplerhq/cli-action@v3
             - name: Build and zip
               run: |
                   cd backend/
-                  CGO_ENABLED=0 go build ./lambda-functions/journeys/updateNormalnessScores
-                  zip updateNormalnessScores.zip updateNormalnessScores
+                  CGO_ENABLED=0 go build -o bootstrap ./lambda-functions/journeys/updateNormalnessScores
+                  zip updateNormalnessScores.zip bootstrap
             - name: Configure AWS Credentials
               uses: aws-actions/configure-aws-credentials@v4
               with:
@@ -532,6 +553,21 @@ jobs:
               with:
                   task-definition: ${{ steps.image-opentelemetry-collector.outputs.task-definition }}
                   service: opentelemetry-collector-service
+                  cluster: highlight-production-cluster
+            - name: Replace image label for opentelemetry firehose collector
+              if: steps.filter.outputs.otel-changed == 'true'
+              id: image-opentelemetry-firehose-collector
+              uses: aws-actions/amazon-ecs-render-task-definition@v1
+              with:
+                  task-definition: deploy/collector-firehose-service.json
+                  container-name: highlight-collector
+                  image: ${{ steps.login-ecr.outputs.registry }}/highlight-collector:${{ github.sha }}.arm64
+            - name: Deploy to Amazon ECS opentelemetry firehose collector service
+              if: steps.filter.outputs.otel-changed == 'true'
+              uses: aws-actions/amazon-ecs-deploy-task-definition@v1
+              with:
+                  task-definition: ${{ steps.image-opentelemetry-firehose-collector.outputs.task-definition }}
+                  service: opentelemetry-collector-firehose-service
                   cluster: highlight-production-cluster
 
     deploy_kafka_connect:

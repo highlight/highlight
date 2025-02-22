@@ -1,4 +1,3 @@
-import { siteUrl } from '../../../../utils/urls'
 import { QuickStartContent } from '../../QuickstartContent'
 import { frontendInstallSnippet } from '../shared-snippets'
 import { setUpLogging } from './shared-snippets'
@@ -6,7 +5,6 @@ import { setUpLogging } from './shared-snippets'
 export const RustActixContent: QuickStartContent = {
 	title: 'actix-web',
 	subtitle: 'Learn how to set up highlight.io without a framework.',
-	logoUrl: siteUrl('/images/quickstart/rust.svg'),
 	entries: [
 		frontendInstallSnippet,
 		{
@@ -61,7 +59,7 @@ async fn main() -> Result<(), Error> {
 		{
 			title: 'Verify your errors are being recorded.',
 			content:
-				"Now that you've set everything up, you can verify that the backend error handling works by throwing an error in a service. Visit the [highlight errors page](http://app.highlight.io/errors) and check that backend errors are coming in.",
+				"Now that you've set everything up, you can verify that the backend error handling works by throwing an error in a service. Visit the [highlight errors page](https://app.highlight.io/errors) and check that backend errors are coming in.",
 			code: [
 				{
 					text: `// ...

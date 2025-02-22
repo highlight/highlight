@@ -429,7 +429,9 @@ const UsageCard = ({
 								const seriesKey = getSeriesKey(series)
 								return {
 									[TIMESTAMP_KEY]:
-										(b.bucket_min + b.bucket_max) / 2,
+										((b.bucket_min ?? 0) +
+											(b.bucket_max ?? 0)) /
+										2,
 									[seriesKey]: {
 										[SERIES_KEY]: series,
 										[VALUE_KEY]: b.metric_value,

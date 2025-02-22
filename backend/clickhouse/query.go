@@ -8,6 +8,7 @@ import (
 	"reflect"
 	"regexp"
 	"sort"
+	"strconv"
 	"strings"
 	"time"
 
@@ -23,6 +24,9 @@ import (
 	"github.com/nqd/flat"
 	e "github.com/pkg/errors"
 	"github.com/samber/lo"
+	"go.openly.dev/pointy"
+
+	sqlparser "github.com/highlight/clickhouse-sql-parser/parser"
 )
 
 const SamplingRows = 20_000_000
@@ -31,6 +35,11 @@ const KeyValuesMaxRows = 1_000_000
 const AllKeyValuesMaxRows = 100_000_000
 const MaxBuckets = 240
 const NoLimit = 1_000_000_000_000
+
+const bucketIndexAlias = "__highlight_bucket_index"
+const minAlias = "__highlight_min"
+const maxAlias = "__highlight_max"
+const projectIdSetting = "SQL_highlight_project_id"
 
 type SampleableTableConfig struct {
 	tableConfig         model.TableConfig
@@ -41,6 +50,7 @@ type SampleableTableConfig struct {
 type ReadMetricsInput struct {
 	SampleableConfig   SampleableTableConfig
 	ProjectIDs         []int
+	Sql                *string
 	Params             modelInputs.QueryInput
 	GroupBy            []string
 	BucketCount        *int
@@ -173,6 +183,378 @@ func readObjects[TObj interface{}](ctx context.Context, client *Client, config m
 
 	span.Finish(rows.Err())
 	return getConnection(edges, pagination), nil
+}
+
+func transformSql(
+	config model.TableConfig,
+	input ReadMetricsInput,
+) (string, error) {
+	if input.Sql == nil {
+		return "", e.Errorf("Sql input cannot be nil")
+	}
+
+	parser := sqlparser.NewParser(*input.Sql)
+	statements, err := parser.ParseStmts()
+	if err != nil {
+		return "", err
+	}
+
+	if len(statements) != 1 {
+		return "", e.Errorf("Expected 1 SQL statement, found %d", len(statements))
+	}
+	expr := statements[0]
+
+	settingsVisitor := sqlparser.DefaultASTVisitor{}
+	settingsVisitor.Visit = func(expr sqlparser.Expr) error {
+		_, found := expr.(*sqlparser.SettingsClause)
+		if found {
+			return e.New("SQL statement cannot include a settings clause.")
+		}
+		return nil
+	}
+	if err := expr.Accept(&settingsVisitor); err != nil {
+		return "", err
+	}
+
+	priorVisit := map[sqlparser.Expr]bool{}
+
+	selectVisitor := sqlparser.DefaultASTVisitor{}
+	selectVisitor.Visit = func(expr sqlparser.Expr) error {
+		selectQuery, ok := expr.(*sqlparser.SelectQuery)
+		if !ok {
+			return nil
+		}
+
+		isResourceTable := false
+		if selectQuery.From != nil {
+			_, ok := selectQuery.From.Expr.(*sqlparser.JoinExpr)
+			if ok {
+				resourceTableCheckVisitor := sqlparser.DefaultASTVisitor{}
+				resourceTableCheckVisitor.Visit = func(expr sqlparser.Expr) error {
+					if priorVisit[expr] {
+						return nil
+					}
+					switch typed := expr.(type) {
+					case *sqlparser.TableIdentifier:
+						if resourceTables[typed.Table.Name] {
+							return e.New("Resource tables cannot be used in JOIN expression")
+						}
+					}
+					return nil
+				}
+
+				if err := selectQuery.From.Expr.Accept(&resourceTableCheckVisitor); err != nil {
+					return err
+				}
+			} else {
+				fromExpr, ok := selectQuery.From.Expr.(*sqlparser.JoinTableExpr)
+				if !ok || fromExpr == nil || fromExpr.Table == nil {
+					return e.New("Expected FROM expression to be JoinTableExpr")
+				}
+
+				tableIdentifier, ok := fromExpr.Table.Expr.(*sqlparser.TableIdentifier)
+				if ok && tableIdentifier != nil && tableIdentifier.Table != nil && resourceTables[tableIdentifier.Table.Name] {
+					isResourceTable = true
+				}
+			}
+		}
+
+		// Ignore function, alias, and table names
+		ignoreList := map[sqlparser.Expr]bool{}
+		aliases := map[string]bool{}
+		ignoreVisitor := sqlparser.DefaultASTVisitor{}
+		ignoreVisitor.Visit = func(expr sqlparser.Expr) error {
+			if priorVisit[expr] {
+				return nil
+			}
+			switch typed := expr.(type) {
+			case *sqlparser.SelectItem:
+				ignoreList[typed.Alias] = true
+				if typed.Alias != nil {
+					aliases[typed.Alias.Name] = true
+				}
+			case *sqlparser.FunctionExpr:
+				ignoreList[typed.Name] = true
+			case *sqlparser.AliasExpr:
+				ignoreList[typed.Alias] = true
+				if typed.Alias != nil {
+					aliases[typed.Alias.String()] = true
+				}
+			case *sqlparser.TableIdentifier:
+				ignoreList[typed.Table] = true
+			case *sqlparser.IntervalExpr:
+				ignoreList[typed.Unit] = true
+			}
+
+			return nil
+		}
+
+		fields := []string{}
+		columnReplacementVisitor := sqlparser.DefaultASTVisitor{}
+		columnReplacementVisitor.Visit = func(expr sqlparser.Expr) error {
+			if priorVisit[expr] {
+				return nil
+			}
+			switch typed := expr.(type) {
+			case *sqlparser.Ident:
+				if typed.Name == "*" || ignoreList[expr] || aliases[typed.Name] {
+					break
+				}
+				if col, found := config.KeysToColumns[typed.Name]; found {
+					typed.Name = col
+				} else {
+					fields = append(fields, typed.Name)
+					typed.Name = fmt.Sprintf("%s['%s']", model.GetAttributesColumn(config.AttributesColumns, typed.Name), typed.Name)
+				}
+			}
+			return nil
+		}
+
+		functionReplacementVisitor := sqlparser.DefaultASTVisitor{}
+		functionReplacementVisitor.Visit = func(expr sqlparser.Expr) error {
+			if priorVisit[expr] {
+				return nil
+			}
+			switch typed := expr.(type) {
+			case *sqlparser.FunctionExpr:
+				if typed.Name != nil && typed.Name.Name == "$time_interval" {
+					// Replace toStartOfInterval with the relevant $time_interval
+					typed.Name.Name = "toStartOfInterval"
+					if typed.Params.Items == nil {
+						return e.New("$time_interval called with empty argument list")
+					}
+
+					if len(typed.Params.Items.Items) != 1 {
+						return e.Errorf("Expecting 1 argument for $time_interval, found %d", len(typed.Params.Items.Items))
+					}
+
+					columnExpr, ok := typed.Params.Items.Items[0].(*sqlparser.ColumnExpr)
+					if !ok {
+						return e.Errorf("Expecting $time_interval argument to be a string literal.")
+					}
+					stringLiteral, ok := columnExpr.Expr.(*sqlparser.StringLiteral)
+					if !ok {
+						return e.Errorf("Expecting $time_interval argument to be a string literal.")
+					}
+
+					typed.Params.Items.Items = []sqlparser.Expr{
+						&sqlparser.ColumnExpr{
+							Expr: &sqlparser.Ident{Name: "Timestamp"},
+						},
+						&sqlparser.IntervalExpr{
+							Expr: stringLiteral,
+							Unit: &sqlparser.Ident{},
+						},
+					}
+				} else if typed.Name != nil {
+					// Apply _sample_factor to count or sum functions
+					isSample := strings.Contains(strings.ToLower(config.TableName), "sample")
+					funcLower := strings.ToLower(typed.Name.Name)
+					if isSample && (strings.Contains(funcLower, "sum") || strings.Contains(funcLower, "count")) {
+						typed.Name.Name = fmt.Sprintf("any(_sample_factor) * %s", typed.Name.Name)
+					}
+				}
+			}
+			return nil
+		}
+
+		tableReplacementVisitor := sqlparser.DefaultASTVisitor{}
+		tableReplacementVisitor.Visit = func(expr sqlparser.Expr) error {
+			if priorVisit[expr] {
+				return nil
+			}
+			switch typed := expr.(type) {
+			case *sqlparser.TableIdentifier:
+				typed.Table.Name = config.TableName
+			}
+			return nil
+		}
+
+		hasTimestamp := false
+		timestampVisitor := sqlparser.DefaultASTVisitor{}
+		timestampVisitor.Visit = func(expr sqlparser.Expr) error {
+			if priorVisit[expr] {
+				return nil
+			}
+			switch typed := expr.(type) {
+			case *sqlparser.Ident:
+				if typed.Name == "Timestamp" {
+					hasTimestamp = true
+				}
+			}
+			return nil
+		}
+
+		priorVisitVisitor := sqlparser.DefaultASTVisitor{}
+		priorVisitVisitor.Visit = func(expr sqlparser.Expr) error {
+			priorVisit[expr] = true
+			return nil
+		}
+
+		if isResourceTable {
+			if err := selectQuery.Accept(&ignoreVisitor); err != nil {
+				return err
+			}
+			if err := selectQuery.Accept(&columnReplacementVisitor); err != nil {
+				return err
+			}
+			if err := selectQuery.Accept(&functionReplacementVisitor); err != nil {
+				return err
+			}
+			if err := selectQuery.Accept(&tableReplacementVisitor); err != nil {
+				return err
+			}
+
+			if len(input.ProjectIDs) != 1 {
+				return e.Errorf("SQL queries must use 1 project id, %d found", len(input.ProjectIDs))
+			}
+			projectId := input.ProjectIDs[0]
+
+			projectIdCol := "ProjectId"
+			if config.TableName == "sessions" || config.TableName == "errors" {
+				projectIdCol = "ProjectID"
+			}
+
+			whereExpr := &sqlparser.BinaryOperation{
+				LeftExpr: &sqlparser.Ident{
+					Name: projectIdCol,
+				},
+				RightExpr: &sqlparser.NumberLiteral{
+					Literal: strconv.Itoa(projectId),
+				},
+				Operation: "=",
+			}
+
+			addAttributesParser(config, fields, projectId, input.Params, selectQuery)
+
+			timestampCheck := &sqlparser.BinaryOperation{
+				LeftExpr: &sqlparser.BinaryOperation{
+					LeftExpr: &sqlparser.Ident{
+						Name: "Timestamp",
+					},
+					RightExpr: &sqlparser.FunctionExpr{
+						Name: &sqlparser.Ident{
+							Name: "toDateTime",
+						},
+						Params: &sqlparser.ParamExprList{
+							Items: &sqlparser.ColumnExprList{
+								Items: []sqlparser.Expr{&sqlparser.NumberLiteral{
+									Literal: strconv.FormatInt(input.Params.DateRange.StartDate.Unix(), 10),
+								}},
+							},
+						},
+					},
+					Operation: ">=",
+				},
+				RightExpr: &sqlparser.BinaryOperation{
+					LeftExpr: &sqlparser.Ident{
+						Name: "Timestamp",
+					},
+					RightExpr: &sqlparser.FunctionExpr{
+						Name: &sqlparser.Ident{
+							Name: "toDateTime",
+						},
+						Params: &sqlparser.ParamExprList{
+							Items: &sqlparser.ColumnExprList{
+								Items: []sqlparser.Expr{&sqlparser.NumberLiteral{
+									Literal: strconv.FormatInt(input.Params.DateRange.EndDate.Unix(), 10),
+								}},
+							},
+						},
+					},
+					Operation: "<=",
+				},
+				Operation: "AND",
+			}
+
+			if selectQuery.Where == nil {
+				whereExpr = &sqlparser.BinaryOperation{
+					LeftExpr:  whereExpr,
+					RightExpr: timestampCheck,
+					Operation: "AND",
+				}
+				selectQuery.Where = &sqlparser.WhereClause{
+					Expr: whereExpr,
+				}
+			} else {
+				// If the WHERE clause does not use timestamp, add the dashboard's start/end dates.
+				if err := selectQuery.Where.Accept(&timestampVisitor); err != nil {
+					return err
+				}
+				if !hasTimestamp {
+					whereExpr = &sqlparser.BinaryOperation{
+						LeftExpr:  whereExpr,
+						RightExpr: timestampCheck,
+						Operation: "AND",
+					}
+				}
+
+				copiedClause := selectQuery.Where.Expr
+				selectQuery.Where.Expr = &sqlparser.BinaryOperation{
+					LeftExpr: &sqlparser.ParamExprList{
+						Items: &sqlparser.ColumnExprList{
+							Items: []sqlparser.Expr{copiedClause},
+						}},
+					Operation: "AND",
+					RightExpr: whereExpr,
+				}
+			}
+		}
+
+		if err := selectQuery.Accept(&priorVisitVisitor); err != nil {
+			return err
+		}
+
+		return nil
+	}
+
+	if err := expr.Accept(&selectVisitor); err != nil {
+		return "", err
+	}
+
+	sql := expr.String()
+
+	return sql, nil
+}
+
+var resourceTables = map[string]bool{
+	"sessions": true,
+	"errors":   true,
+	"logs":     true,
+	"traces":   true,
+	"events":   true,
+	"metrics":  true,
+}
+
+func GetTables(sql string) ([]string, error) {
+	parser := sqlparser.NewParser(sql)
+	statements, err := parser.ParseStmts()
+	if err != nil {
+		return nil, err
+	}
+
+	if len(statements) != 1 {
+		return nil, e.Errorf("Expected 1 SQL statement, found %d", len(statements))
+	}
+	stmt := statements[0]
+
+	tables := []string{}
+	visitor := sqlparser.DefaultASTVisitor{}
+	visitor.Visit = func(expr sqlparser.Expr) error {
+		switch typed := expr.(type) {
+		case *sqlparser.TableIdentifier:
+			if typed.Table != nil && resourceTables[typed.Table.Name] {
+				tables = append(tables, typed.Table.Name)
+			}
+		}
+		return nil
+	}
+
+	if err := stmt.Accept(&visitor); err != nil {
+		return nil, err
+	}
+
+	return lo.Uniq(tables), nil
 }
 
 func makeSelectBuilder(
@@ -882,8 +1264,9 @@ func getFnStr(aggregator modelInputs.MetricAggregator, column string, useSamplin
 	return ""
 }
 
-func getAttributeFilterCol(sampleableConfig SampleableTableConfig, value, op string) (column string) {
-	attributesColumn := model.GetAttributesColumn(sampleableConfig.tableConfig.AttributesColumns, value)
+func getAttributeFilterCol(fromSb *sqlbuilder.SelectBuilder, sampleableConfig SampleableTableConfig, valueUnescaped, op string) (column string) {
+	attributesColumn := model.GetAttributesColumn(sampleableConfig.tableConfig.AttributesColumns, valueUnescaped)
+	value := fromSb.Var(valueUnescaped)
 	column = fmt.Sprintf("%s[%s]", attributesColumn, value)
 	if sampleableConfig.tableConfig.AttributesTable != "" {
 		transform := "v"
@@ -942,7 +1325,7 @@ func (client *Client) saveMetricHistory(ctx context.Context, sb *sqlbuilder.Sele
 
 	insertCols := []string{"MetricId", "Timestamp", "MaxBlockNumberState"}
 	selectCols := []string{fmt.Sprintf(`'%s'`, input.SavedMetricState.MetricId),
-		fmt.Sprintf("fromUnixTimestamp(toInt64(bucket_index*(max-min)/%d + min))", bucketCount),
+		fmt.Sprintf("fromUnixTimestamp(toInt64(%s*(%s-%s)/%d + %s))", bucketIndexAlias, maxAlias, minAlias, bucketCount, minAlias),
 		"max_block_number",
 		"metric_value0",
 	}
@@ -1051,6 +1434,161 @@ func (client *Client) getSamplingStats(ctx context.Context, tables []string, pro
 	return statsByTable, nil
 }
 
+func (client *Client) readMetricsSql(ctx context.Context, input ReadMetricsInput, config model.TableConfig) (*modelInputs.MetricsBuckets, error) {
+	sql, err := transformSql(config, input)
+	if err != nil {
+		return nil, err
+	}
+
+	if strings.Contains(sql, projectIdSetting) {
+		return nil, e.New("User cannot modify project id setting in query")
+	}
+
+	span, ctx := util.StartSpanFromContext(ctx, "readMetric.sql.query")
+	span.SetAttribute("sql", sql)
+
+	chCtx := clickhouse.Context(ctx, clickhouse.WithSettings(clickhouse.Settings{
+		projectIdSetting: clickhouse.CustomSetting{Value: strconv.Itoa(input.ProjectIDs[0])},
+	}))
+
+	rows, err := client.connReadonly.Query(
+		chCtx,
+		sql,
+	)
+
+	span.Finish(err)
+
+	if err != nil {
+		return nil, err
+	}
+
+	metrics := &modelInputs.MetricsBuckets{
+		Buckets: []*modelInputs.MetricBucket{},
+	}
+
+	types := rows.ColumnTypes()
+	scanResults := []interface{}{}
+	selectNames := []string{}
+	for _, t := range types {
+		typ := t.ScanType()
+		rv := reflect.New(typ).Interface()
+		scanResults = append(scanResults, rv)
+
+		selectNames = append(selectNames, t.Name())
+	}
+
+	results := map[int]*float64{}
+	for i := 0; rows.Next(); i++ {
+		if err := rows.Scan(scanResults...); err != nil {
+			return nil, err
+		}
+
+		var bucketId uint64
+		var bucketValue *float64
+		groups := []string{}
+		for idx, r := range scanResults {
+			rv := reflect.ValueOf(r)
+
+			// Unwrap nested pointers - e.g. `Nullable(Nullable(Int))` -> `Int`
+			for ; rv.Kind() == reflect.Pointer && !rv.IsNil(); rv = rv.Elem() {
+			}
+
+			switch rv.Kind() {
+			case reflect.Struct:
+				switch typed := rv.Interface().(type) {
+				case time.Time:
+					bucketId = uint64(typed.Unix())
+					bucketValue = pointy.Float64(float64(typed.Unix()))
+				}
+			case reflect.String:
+				groups = append(groups, rv.String())
+			case reflect.Bool:
+				groups = append(groups, strconv.FormatBool(rv.Bool()))
+			case reflect.Float32, reflect.Float64:
+				results[idx] = pointy.Float64(rv.Float())
+			case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
+				results[idx] = pointy.Float64(float64(rv.Int()))
+			case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
+				results[idx] = pointy.Float64(float64(rv.Uint()))
+			case reflect.Pointer:
+				results[idx] = nil
+			}
+		}
+
+		for idx, r := range results {
+			metrics.Buckets = append(metrics.Buckets, &modelInputs.MetricBucket{
+				BucketID:    bucketId,
+				BucketValue: bucketValue,
+				Group:       groups,
+				MetricType:  modelInputs.MetricAggregator(selectNames[idx]),
+				MetricValue: r,
+			})
+		}
+	}
+
+	return metrics, err
+}
+
+type BucketingInfo struct {
+	NewSelectItems     []string
+	NewAttributeFields []string
+	BucketCount        int
+}
+
+func getBucketing(config model.TableConfig, input ReadMetricsInput, fromSb *sqlbuilder.SelectBuilder) BucketingInfo {
+	nBuckets := 48
+	if input.BucketWindow == nil {
+		if input.BucketBy == modelInputs.MetricBucketByNone.String() {
+			nBuckets = 1
+		} else if input.BucketCount != nil {
+			nBuckets = *input.BucketCount
+		}
+		if nBuckets > MaxBuckets && !input.NoBucketMax {
+			nBuckets = MaxBuckets
+		}
+		if nBuckets < 1 {
+			nBuckets = 1
+		}
+	} else {
+		nBuckets = int(int64(input.Params.DateRange.EndDate.Sub(input.Params.DateRange.StartDate).Seconds()) / int64(*input.BucketWindow))
+		if nBuckets > MaxBuckets && !input.NoBucketMax {
+			nBuckets = MaxBuckets
+			input.Params.DateRange.StartDate = input.Params.DateRange.EndDate.Add(-1 * time.Duration(MaxBuckets**input.BucketWindow) * time.Second)
+		}
+	}
+
+	startTimestamp := input.Params.DateRange.StartDate.Unix()
+	endTimestamp := input.Params.DateRange.EndDate.Unix()
+
+	bucketExpr := "toFloat64(Timestamp)"
+	attributeFields := []string{}
+	if input.BucketBy != modelInputs.MetricBucketByNone.String() && input.BucketBy != modelInputs.MetricBucketByTimestamp.String() {
+		if col, found := config.KeysToColumns[strings.ToLower(input.BucketBy)]; found {
+			bucketExpr = fmt.Sprintf("toFloat64(%s)", col)
+		} else {
+			bucketExpr = getAttributeFilterCol(fromSb, input.SampleableConfig, input.BucketBy, "toFloat64OrNull")
+			attributeFields = append(attributeFields, input.BucketBy)
+		}
+	}
+
+	minExpr := fmt.Sprintf("MIN(%s) OVER ()", bucketExpr)
+	maxExpr := fmt.Sprintf("MAX(%s) OVER ()", bucketExpr)
+
+	if input.BucketBy == modelInputs.MetricBucketByTimestamp.String() || input.BucketBy == modelInputs.MetricBucketByNone.String() {
+		minExpr = fmt.Sprintf("%d.0", startTimestamp)
+		maxExpr = fmt.Sprintf("%d.0", endTimestamp)
+	}
+
+	bucketIdxExpr := fmt.Sprintf("toUInt64(intDiv((%s - %s) * %d, (%s - %s)))", bucketExpr, minExpr, nBuckets, maxExpr, minExpr)
+	newSelectCols := []string{fromSb.As(bucketIdxExpr, bucketIndexAlias), fromSb.As(minExpr, minAlias), fromSb.As(maxExpr, maxAlias)}
+
+	return BucketingInfo{
+		NewSelectItems:     newSelectCols,
+		NewAttributeFields: attributeFields,
+		BucketCount:        nBuckets,
+	}
+}
+
 func (client *Client) ReadMetrics(ctx context.Context, input ReadMetricsInput) (*modelInputs.MetricsBuckets, error) {
 	if input.Params.DateRange == nil {
 		input.Params.DateRange = &modelInputs.DateRangeRequiredInput{
@@ -1092,34 +1630,6 @@ func (client *Client) ReadMetrics(ctx context.Context, input ReadMetricsInput) (
 		}
 	}
 
-	nBuckets := 48
-	if input.BucketWindow == nil {
-		if input.BucketBy == modelInputs.MetricBucketByNone.String() {
-			nBuckets = 1
-		} else if input.BucketCount != nil {
-			nBuckets = *input.BucketCount
-		}
-		if nBuckets > MaxBuckets && !input.NoBucketMax {
-			nBuckets = MaxBuckets
-		}
-		if nBuckets < 1 {
-			nBuckets = 1
-		}
-	} else {
-		nBuckets = int(int64(input.Params.DateRange.EndDate.Sub(input.Params.DateRange.StartDate).Seconds()) / int64(*input.BucketWindow))
-		if nBuckets > MaxBuckets && !input.NoBucketMax {
-			nBuckets = MaxBuckets
-			input.Params.DateRange.StartDate = input.Params.DateRange.EndDate.Add(-1 * time.Duration(MaxBuckets**input.BucketWindow) * time.Second)
-		}
-	}
-
-	startTimestamp := input.Params.DateRange.StartDate.Unix()
-	endTimestamp := input.Params.DateRange.EndDate.Unix()
-
-	keysToColumns := input.SampleableConfig.tableConfig.KeysToColumns
-
-	var fromSb *sqlbuilder.SelectBuilder
-	var err error
 	var config model.TableConfig
 	useSampling := sampleRatio != 0
 	if useSampling {
@@ -1133,6 +1643,11 @@ func (client *Client) ReadMetrics(ctx context.Context, input ReadMetricsInput) (
 			config.DefaultFilter = ""
 		}
 	}
+
+	if input.Sql != nil {
+		return client.readMetricsSql(ctx, input, config)
+	}
+
 	fromSb, filters, err := makeSelectBuilder(
 		config,
 		nil,
@@ -1144,34 +1659,13 @@ func (client *Client) ReadMetrics(ctx context.Context, input ReadMetricsInput) (
 		return nil, err
 	}
 
-	attributeFields := getAttributeFields(config, filters)
-
 	applyBlockFilter(fromSb, input)
 
-	bucketExpr := "toFloat64(Timestamp)"
-	if input.BucketBy != modelInputs.MetricBucketByNone.String() && input.BucketBy != modelInputs.MetricBucketByTimestamp.String() {
-		if col, found := keysToColumns[strings.ToLower(input.BucketBy)]; found {
-			bucketExpr = fmt.Sprintf("toFloat64(%s)", col)
-		} else {
-			bucketExpr = getAttributeFilterCol(input.SampleableConfig, fromSb.Var(input.BucketBy), "toFloat64OrNull")
-			attributeFields = append(attributeFields, input.BucketBy)
-		}
-	}
+	attributeFields := getAttributeFields(config, filters)
 
-	minExpr := fmt.Sprintf("MIN(%s) OVER ()", bucketExpr)
-	maxExpr := fmt.Sprintf("MAX(%s) OVER ()", bucketExpr)
-
-	if input.BucketBy == modelInputs.MetricBucketByTimestamp.String() || input.BucketBy == modelInputs.MetricBucketByNone.String() {
-		minExpr = fmt.Sprintf("%d.0", startTimestamp)
-		maxExpr = fmt.Sprintf("%d.0", endTimestamp)
-	}
-
-	bucketIdxExpr := fmt.Sprintf("toUInt64(intDiv((%s - %s) * %d, (%s - %s)))", bucketExpr, minExpr, nBuckets, maxExpr, minExpr)
-	selectCols := []string{
-		fromSb.As(bucketIdxExpr, "bucket_index"),
-		fromSb.As(minExpr, "min"),
-		fromSb.As(maxExpr, "max"),
-	}
+	bucketingInfo := getBucketing(config, input, fromSb)
+	selectCols := bucketingInfo.NewSelectItems
+	attributeFields = append(attributeFields, bucketingInfo.NewAttributeFields...)
 
 	if input.SavedMetricState != nil {
 		selectCols = append(selectCols, fromSb.As("maxState(_block_number) OVER ()", "max_block_number"))
@@ -1185,14 +1679,14 @@ func (client *Client) ReadMetrics(ctx context.Context, input ReadMetricsInput) (
 
 	for idx, e := range input.Expressions {
 		var col string
-		if col = keysToColumns[strings.ToLower(e.Column)]; col == "" {
-			col = getAttributeFilterCol(input.SampleableConfig, fromSb.Var(e.Column), "")
+		if col = config.KeysToColumns[strings.ToLower(e.Column)]; col == "" {
+			col = getAttributeFilterCol(fromSb, input.SampleableConfig, e.Column, "")
 			attributeFields = append(attributeFields, e.Column)
 		}
 
 		var metricExpr = col
 		if e.Aggregator != modelInputs.MetricAggregatorCountDistinct && e.Aggregator != modelInputs.MetricAggregatorCountDistinctKey {
-			if reservedCol, found := keysToColumns[strings.ToLower(e.Column)]; found {
+			if reservedCol, found := config.KeysToColumns[strings.ToLower(e.Column)]; found {
 				metricExpr = fmt.Sprintf("toFloat64(%s)", reservedCol)
 			} else if input.SampleableConfig.tableConfig.MetricColumn != nil {
 				metricExpr = *input.SampleableConfig.tableConfig.MetricColumn
@@ -1202,7 +1696,7 @@ func (client *Client) ReadMetrics(ctx context.Context, input ReadMetricsInput) (
 		}
 
 		if e.Aggregator == modelInputs.MetricAggregatorCountDistinctKey {
-			metricExpr = getAttributeFilterCol(input.SampleableConfig, highlight.TraceKeyAttribute, "")
+			metricExpr = getAttributeFilterCol(fromSb, input.SampleableConfig, highlight.TraceKeyAttribute, "")
 			attributeFields = append(attributeFields, highlight.TraceKeyAttribute)
 		}
 
@@ -1216,10 +1710,10 @@ func (client *Client) ReadMetrics(ctx context.Context, input ReadMetricsInput) (
 	groupAliases := []string{}
 	for idx, group := range input.GroupBy {
 		groupCol := ""
-		if col, found := keysToColumns[group]; found {
+		if col, found := config.KeysToColumns[group]; found {
 			groupCol = fmt.Sprintf("toString(%s)", col)
 		} else {
-			groupCol = getAttributeFilterCol(input.SampleableConfig, fromSb.Var(group), "toString")
+			groupCol = getAttributeFilterCol(fromSb, input.SampleableConfig, group, "toString")
 			attributeFields = append(attributeFields, group)
 		}
 
@@ -1244,11 +1738,11 @@ func (client *Client) ReadMetrics(ctx context.Context, input ReadMetricsInput) (
 		if input.LimitColumn != nil {
 			col = *input.LimitColumn
 		}
-		if topCol, found := keysToColumns[col]; found {
+		if topCol, found := config.KeysToColumns[col]; found {
 			col = topCol
 		} else {
 			attributeFields = append(attributeFields, col)
-			col = getAttributeFilterCol(input.SampleableConfig, fromSb.Var(col), "toFloat64OrNull")
+			col = getAttributeFilterCol(fromSb, input.SampleableConfig, col, "toFloat64OrNull")
 		}
 
 		limitExpr := fmt.Sprintf("%s OVER (PARTITION BY %s) as limit_metric",
@@ -1260,8 +1754,8 @@ func (client *Client) ReadMetrics(ctx context.Context, input ReadMetricsInput) (
 
 	fromSb.Select(selectCols...)
 
-	groupByCols := []string{"bucket_index"}
-	orderByCols := []string{"bucket_index"}
+	groupByCols := []string{bucketIndexAlias}
+	orderByCols := []string{bucketIndexAlias}
 	if useLimit {
 		groupByCols = append(groupByCols, "limit_metric")
 		orderByCols = append(orderByCols, "limit_rank")
@@ -1273,7 +1767,7 @@ func (client *Client) ReadMetrics(ctx context.Context, input ReadMetricsInput) (
 
 	innerSb := fromSb
 	fromSb = sqlbuilder.NewSelectBuilder()
-	outerSelect := []string{"bucket_index", "any(_sample_factor) as sample_factor", "any(min) as min", "any(max) as max"}
+	outerSelect := []string{bucketIndexAlias, "any(_sample_factor) as sample_factor", fmt.Sprintf("any(%s) as %s", minAlias, minAlias), fmt.Sprintf("any(%s) as %s", maxAlias, maxAlias)}
 	if input.SavedMetricState != nil {
 		outerSelect = append(outerSelect, "any(max_block_number) as max_block_number")
 	}
@@ -1290,7 +1784,7 @@ func (client *Client) ReadMetrics(ctx context.Context, input ReadMetricsInput) (
 	fromSb.GroupBy(groupByCols...)
 
 	if useLimit {
-		outerSelect := []string{"bucket_index", "sample_factor", "min", "max"}
+		outerSelect := []string{bucketIndexAlias, "sample_factor", minAlias, maxAlias}
 		if input.SavedMetricState != nil {
 			outerSelect = append(outerSelect, "max_block_number")
 		}
@@ -1357,13 +1851,15 @@ func (client *Client) ReadMetrics(ctx context.Context, input ReadMetricsInput) (
 		Buckets: []*modelInputs.MetricBucket{},
 	}
 	lastBucketId := -1
+	hasRows := false
 	for rows.Next() {
+		hasRows = true
 		if err := rows.Scan(scanResults...); err != nil {
 			return nil, err
 		}
 
 		bucketId := groupKey
-		if bucketId >= uint64(nBuckets) {
+		if bucketId >= uint64(bucketingInfo.BucketCount) {
 			continue
 		}
 
@@ -1372,8 +1868,8 @@ func (client *Client) ReadMetrics(ctx context.Context, input ReadMetricsInput) (
 			for _, e := range input.Expressions {
 				metrics.Buckets = append(metrics.Buckets, &modelInputs.MetricBucket{
 					BucketID:    uint64(i),
-					BucketMin:   float64(i)*(max-min)/float64(nBuckets) + min,
-					BucketMax:   float64(i+1)*(max-min)/float64(nBuckets) + min,
+					BucketMin:   pointy.Float64(float64(i)*(max-min)/float64(bucketingInfo.BucketCount) + min),
+					BucketMax:   pointy.Float64(float64(i+1)*(max-min)/float64(bucketingInfo.BucketCount) + min),
 					Group:       append(make([]string, 0), groupByColResults...),
 					MetricType:  e.Aggregator,
 					Column:      e.Column,
@@ -1386,8 +1882,8 @@ func (client *Client) ReadMetrics(ctx context.Context, input ReadMetricsInput) (
 			result := metricResults[idx]
 			metrics.Buckets = append(metrics.Buckets, &modelInputs.MetricBucket{
 				BucketID:    bucketId,
-				BucketMin:   float64(bucketId)*(max-min)/float64(nBuckets) + min,
-				BucketMax:   float64(bucketId+1)*(max-min)/float64(nBuckets) + min,
+				BucketMin:   pointy.Float64(float64(bucketId)*(max-min)/float64(bucketingInfo.BucketCount) + min),
+				BucketMax:   pointy.Float64(float64(bucketId+1)*(max-min)/float64(bucketingInfo.BucketCount) + min),
 				Group:       append(make([]string, 0), groupByColResults...),
 				MetricType:  e.Aggregator,
 				Column:      e.Column,
@@ -1398,13 +1894,19 @@ func (client *Client) ReadMetrics(ctx context.Context, input ReadMetricsInput) (
 		lastBucketId = int(bucketId)
 	}
 
+	// If no rows in the result set, manually set start / end date to interpolate buckets
+	if input.BucketBy == modelInputs.MetricBucketByTimestamp.String() && !hasRows {
+		min = float64(input.Params.DateRange.StartDate.Unix())
+		max = float64(input.Params.DateRange.EndDate.Unix())
+	}
+
 	// Interpolate any missing buckets
-	for i := lastBucketId + 1; i < nBuckets; i++ {
+	for i := lastBucketId + 1; i < bucketingInfo.BucketCount; i++ {
 		for _, e := range input.Expressions {
 			metrics.Buckets = append(metrics.Buckets, &modelInputs.MetricBucket{
 				BucketID:    uint64(i),
-				BucketMin:   float64(i)*(max-min)/float64(nBuckets) + min,
-				BucketMax:   float64(i+1)*(max-min)/float64(nBuckets) + min,
+				BucketMin:   pointy.Float64(float64(i)*(max-min)/float64(bucketingInfo.BucketCount) + min),
+				BucketMax:   pointy.Float64(float64(i+1)*(max-min)/float64(bucketingInfo.BucketCount) + min),
 				Group:       append(make([]string, 0), groupByColResults...),
 				MetricType:  e.Aggregator,
 				Column:      e.Column,
@@ -1414,7 +1916,7 @@ func (client *Client) ReadMetrics(ctx context.Context, input ReadMetricsInput) (
 	}
 
 	metrics.SampleFactor = sampleFactor
-	metrics.BucketCount = uint64(nBuckets)
+	metrics.BucketCount = uint64(bucketingInfo.BucketCount)
 
 	return metrics, err
 }

@@ -9,7 +9,7 @@ on:
 concurrency: ${{ github.workflow }}-${{ github.ref }}
 jobs:
     code-setup:
-        runs-on: codebuild-highlight-github-actions-runner-${{ github.run_id }}-${{ github.run_attempt }}
+        runs-on: codebuild-highlight-github-actions-runner-${{ github.run_id }}-${{ github.run_attempt }}-arm-3.0-large
         steps:
             - name: Checkout
               uses: actions/checkout@v4
@@ -21,7 +21,7 @@ jobs:
 
     code-quality-check:
         needs: code-setup
-        runs-on: codebuild-highlight-github-actions-runner-${{ github.run_id }}-${{ github.run_attempt }}
+        runs-on: codebuild-highlight-github-actions-runner-${{ github.run_id }}-${{ github.run_attempt }}-arm-3.0-large
         steps:
             - name: Checkout
               uses: actions/checkout@v4
@@ -43,7 +43,7 @@ jobs:
             - name: Check for logrus without context
               run: if [ "$(grep --exclude-dir migrations --exclude main.go --exclude recovery.go --exclude logging.go -rE '\s+log\.(Debug|Info|Warn|Error|Fatal)' ./backend | grep -v 'WithContext' | grep -v 'Level' | wc -l)" -gt 0 ]; then grep --exclude-dir migrations --exclude main.go --exclude recovery.go --exclude logging.go -rE '\s+log\.(Debug|Info|Warn|Error|Fatal)' ./backend | grep -v 'WithContext' | grep -v 'Level' && exit 1; fi
             - name: Run linter
-              uses: golangci/golangci-lint-action@v6
+              uses: golangci/golangci-lint-action@v6.4.1
               with:
                   args: -v --config ./.golangci.yml
                   working-directory: backend
@@ -51,7 +51,7 @@ jobs:
 
     make-check:
         needs: [code-setup]
-        runs-on: codebuild-highlight-github-actions-runner-${{ github.run_id }}-${{ github.run_attempt }}
+        runs-on: codebuild-highlight-github-actions-runner-${{ github.run_id }}-${{ github.run_attempt }}-arm-3.0-large
         steps:
             - name: Checkout
               uses: actions/checkout@v4
@@ -78,7 +78,7 @@ jobs:
 
     build:
         needs: code-quality-check
-        runs-on: codebuild-highlight-github-actions-runner-${{ github.run_id }}-${{ github.run_attempt }}
+        runs-on: codebuild-highlight-github-actions-runner-${{ github.run_id }}-${{ github.run_attempt }}-arm-3.0-large
         steps:
             - name: Checkout
               uses: actions/checkout@v4
@@ -92,7 +92,7 @@ jobs:
 
     test:
         needs: code-quality-check
-        runs-on: codebuild-highlight-github-actions-runner-${{ github.run_id }}-${{ github.run_attempt }}
+        runs-on: codebuild-highlight-github-actions-runner-${{ github.run_id }}-${{ github.run_attempt }}-arm-3.0-large
         services:
             postgres:
                 image: ankane/pgvector:v0.5.1
@@ -108,7 +108,7 @@ jobs:
                 ports:
                     - 5432:5432
             clickhouse:
-                image: clickhouse/clickhouse-server:24.3.14.35-alpine
+                image: clickhouse/clickhouse-server:24.3.15.72-alpine
                 ports:
                     - 9000:9000
             redis:

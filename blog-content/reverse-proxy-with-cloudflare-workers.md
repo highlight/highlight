@@ -1,6 +1,6 @@
 ---
-title: "Compression: The simple, powerful upgrade for your web stack"
-createdAt: 2022-08-02T12:00:00Z
+title: 'Compression: The simple, powerful upgrade for your web stack'
+createdAt: 2022-08-02T12:00:00.000Z
 readingTime: 4
 authorFirstName: John
 authorLastName: Pham
@@ -9,10 +9,12 @@ authorTwitter: 'https://twitter.com/johnphamous'
 authorLinkedIn: 'https://www.linkedin.com/in/johnphamous/'
 authorGithub: 'https://github.com/JohnPhamous'
 authorWebsite: 'https://www.omakasemoney.com/'
-authorPFP: 'https://www.highlight.io/_next/image?url=https%3A%2F%2Fmedia.graphassets.com%2FolnMfFZmQ36zzUSd1wkO&w=3840&q=75'
-image: 'https://www.highlight.io/_next/image?url=https%3A%2F%2Fmedia.graphassets.com%2FrkSpr5eQFyzHkf41u3Aw&w=3840&q=75'
-tags: Highlight Engineering
-metaTitle: "How-To: Build a Reverse Proxy with Cloudflare Workers"
+authorPFP: >-
+  https://www.highlight.io/_next/image?url=https%3A%2F%2Fmedia.graphassets.com%2FolnMfFZmQ36zzUSd1wkO&w=3840&q=75
+image: >-
+  https://www.highlight.io/_next/image?url=https%3A%2F%2Fmedia.graphassets.com%2FrkSpr5eQFyzHkf41u3Aw&w=3840&q=75
+tags: Engineering
+metaTitle: 'How-To: Build a Reverse Proxy with Cloudflare Workers'
 ---
 
 ## Background

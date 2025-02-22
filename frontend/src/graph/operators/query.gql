@@ -101,23 +101,6 @@ fragment MicrosoftTeamsChannelFragment on MicrosoftTeamsChannel {
 	id
 }
 
-query GetMetricsTimeline(
-	$project_id: ID!
-	$metric_name: String!
-	$params: DashboardParamsInput!
-) {
-	metrics_timeline(
-		project_id: $project_id
-		metric_name: $metric_name
-		params: $params
-	) {
-		date
-		value
-		aggregator
-		group
-	}
-}
-
 query GetNetworkHistogram(
 	$project_id: ID!
 	$params: NetworkHistogramParamsInput!
@@ -1255,6 +1238,7 @@ fragment Project on Project {
 	rage_click_window_seconds
 	rage_click_radius_pixels
 	rage_click_count
+	platforms
 }
 
 query GetErrorObject($id: ID!) {
@@ -2025,8 +2009,19 @@ subscription OnSessionPayloadAppended(
 
 query GetWebVitals($session_secure_id: String!) {
 	web_vitals(session_secure_id: $session_secure_id) {
-		name
-		value
+		buckets {
+			bucket_id
+			bucket_min
+			bucket_max
+			group
+			column
+			metric_type
+			metric_value
+			yhat_lower
+			yhat_upper
+		}
+		bucket_count
+		sample_factor
 	}
 }
 
@@ -2115,27 +2110,6 @@ query SearchIssues(
 		id
 		title
 		issue_url
-	}
-}
-
-query GetErrorGroupFrequencies(
-	$project_id: ID!
-	$error_group_secure_ids: [String!]!
-	$params: ErrorGroupFrequenciesParamsInput!
-	$metric: String!
-	$use_clickhouse: Boolean
-) {
-	errorGroupFrequencies(
-		project_id: $project_id
-		error_group_secure_ids: $error_group_secure_ids
-		params: $params
-		metric: $metric
-		use_clickhouse: $use_clickhouse
-	) {
-		error_group_id
-		date
-		name
-		value
 	}
 }
 
@@ -2633,6 +2607,7 @@ query GetMetrics(
 	$product_type: ProductType!
 	$project_id: ID!
 	$params: QueryInput!
+	$sql: String
 	$group_by: [String!]!
 	$bucket_by: String!
 	$bucket_count: Int
@@ -2647,6 +2622,7 @@ query GetMetrics(
 		product_type: $product_type
 		project_id: $project_id
 		params: $params
+		sql: $sql
 		group_by: $group_by
 		bucket_by: $bucket_by
 		bucket_window: $bucket_window
@@ -2661,6 +2637,7 @@ query GetMetrics(
 			bucket_id
 			bucket_min
 			bucket_max
+			bucket_value
 			group
 			column
 			metric_type
@@ -2698,6 +2675,7 @@ query GetGraphTemplates {
 			aggregator
 			column
 		}
+		sql
 	}
 }
 
@@ -2738,6 +2716,7 @@ query GetVisualization($id: ID!) {
 				aggregator
 				column
 			}
+			sql
 		}
 		updatedByAdmin {
 			id
@@ -2796,6 +2775,7 @@ query GetVisualizations(
 					aggregator
 					column
 				}
+				sql
 			}
 			updatedByAdmin {
 				id

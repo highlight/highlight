@@ -9,4 +9,4 @@ slug: canvas-iframe
 
 ## Salesforce Lightning Web Components (LWC)
 
-[highlight.io](https://highlight.io) supports [Salesforce Lightning Web Components](https://developer.salesforce.com/developer-centers/lightning-web-components) out of the box. To install highlight in a Salesforce environment, see the detailed docs [here](../../../getting-started/3_client-sdk/7_replay-configuration/salesforce-lwc.md).
+[highlight.io](https://highlight.io) supports [Salesforce Lightning Web Components](https://developer.salesforce.com/developer-centers/lightning-web-components) out of the box. To install highlight in a Salesforce environment, see the detailed docs [here](../../../getting-started/3_browser/7_replay-configuration/salesforce-lwc.md).

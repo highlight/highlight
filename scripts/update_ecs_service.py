@@ -34,6 +34,27 @@ def main():
             },
         ],
     )
+    ecs.update_service(
+        cluster="highlight-production-cluster",
+        service="opentelemetry-collector-firehose-service",
+        loadBalancers=[
+            {
+                "targetGroupArn": "arn:aws:elasticloadbalancing:us-east-2:173971919437:targetgroup/opentelemetry-group-fh-cwmetrics/b10cd5d8c5e9986a",
+                "containerName": "highlight-collector",
+                "containerPort": 4433,
+            },
+            {
+                "targetGroupArn": "arn:aws:elasticloadbalancing:us-east-2:173971919437:targetgroup/opentelemetry-group-fh-cwlogs/1a4cadd2e92fb0dc",
+                "containerName": "highlight-collector",
+                "containerPort": 4434,
+            },
+            {
+                "targetGroupArn": "arn:aws:elasticloadbalancing:us-east-2:173971919437:targetgroup/opentelemetry-group-fh-otlpv1/4d911398de61a568",
+                "containerName": "highlight-collector",
+                "containerPort": 4435,
+            },
+        ],
+    )
 
 
 if __name__ == "__main__":

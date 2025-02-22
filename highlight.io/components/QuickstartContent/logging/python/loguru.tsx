@@ -1,4 +1,3 @@
-import { siteUrl } from '../../../../utils/urls'
 import { downloadSnippet } from '../../backend/python/shared-snippets'
 import { QuickStartContent } from '../../QuickstartContent'
 import { previousInstallSnippet, verifyLogs } from '../shared-snippets'
@@ -6,7 +5,6 @@ import { previousInstallSnippet, verifyLogs } from '../shared-snippets'
 export const PythonLoguruLogContent: QuickStartContent = {
 	title: 'Logging from Python with Loguru',
 	subtitle: 'Learn how to set up highlight.io with logs from Python Loguru.',
-	logoUrl: siteUrl('/images/quickstart/python-loguru.png'),
 	entries: [
 		previousInstallSnippet('python'),
 		downloadSnippet(),
@@ -28,7 +26,7 @@ H = highlight_io.H("<YOUR_PROJECT_ID>", instrument_logging=False)`,
 			title: 'Use loguru!',
 			content:
 				'Logs are reported automatically from loguru logging methods. ' +
-				'Visit the [highlight logs portal](http://app.highlight.io/logs) and check that backend logs are coming in.',
+				'Visit the [highlight logs portal](https://app.highlight.io/logs) and check that backend logs are coming in.',
 			code: [
 				{
 					text: `import highlight_io

@@ -1,4 +1,3 @@
-import { siteUrl } from '../../../../utils/urls'
 import {
 	downloadSnippet,
 	init,
@@ -11,7 +10,6 @@ export const PythonManualTracesContent: QuickStartContent = {
 	title: 'Tracing from a Python App',
 	subtitle:
 		'Learn how to set up highlight.io tracing for your Python application.',
-	logoUrl: siteUrl('/images/quickstart/python.svg'),
 	entries: [
 		setupFrontendSnippet,
 		downloadSnippet(),

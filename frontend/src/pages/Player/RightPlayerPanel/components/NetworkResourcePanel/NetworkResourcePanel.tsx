@@ -33,12 +33,14 @@ import { WebSocketMessages } from '@/pages/Player/RightPlayerPanel/components/We
 import { useWebSocket } from '@/pages/Player/WebSocketContext/WebSocketContext'
 import { useSessionParams } from '@/pages/Sessions/utils'
 import { TraceProvider } from '@/pages/Traces/TraceProvider'
+import RequestMetrics from '@pages/Player/Toolbar/DevToolsWindow/ResourcePage/components/RequestMetrics/RequestMetrics'
 
 enum NetworkRequestTabs {
 	Info = 'Info',
 	Errors = 'Errors',
 	Logs = 'Logs',
 	Trace = 'Trace',
+	Latency = 'Latency',
 }
 
 enum WebSocketTabs {
@@ -319,6 +321,9 @@ function NetworkResourceDetails({
 							<Tabs.Tab id={NetworkRequestTabs.Trace}>
 								Trace
 							</Tabs.Tab>
+							<Tabs.Tab id={NetworkRequestTabs.Latency}>
+								Latency
+							</Tabs.Tab>
 						</>
 					)}
 				</Tabs.List>
@@ -349,6 +354,11 @@ function NetworkResourceDetails({
 						>
 							<NetworkResourceTrace />
 						</TraceProvider>
+					</Tabs.Panel>
+				)}
+				{isNetworkRequest && (
+					<Tabs.Panel id={NetworkRequestTabs.Latency}>
+						<RequestMetrics resource={resource} />
 					</Tabs.Panel>
 				)}
 			</Tabs>

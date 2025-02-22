@@ -5,6 +5,6 @@ export async function register() {
 
 	registerHighlight({
 		projectID: '4d7k1xeo',
-		serviceName: 'highlight.io-next-backend',
+		serviceName: 'highlightio-nextjs-backend',
 	})
 }

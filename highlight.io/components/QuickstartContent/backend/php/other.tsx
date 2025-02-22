@@ -1,4 +1,3 @@
-import { siteUrl } from '../../../../utils/urls'
 import { QuickStartContent } from '../../QuickstartContent'
 import {
 	customError,
@@ -11,7 +10,6 @@ import {
 export const PHPOtherContent: QuickStartContent = {
 	title: 'PHP',
 	subtitle: 'Learn how to set up highlight.io on your PHP backend.',
-	logoUrl: siteUrl('/images/quickstart/php.svg'),
 	entries: [
 		installSdk,
 		initializeSdk,

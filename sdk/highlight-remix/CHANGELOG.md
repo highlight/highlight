@@ -1,5 +1,60 @@
 # @highlight-run/remix
 
+## 2.0.82
+
+### Patch Changes
+
+-   Updated dependencies [941ac5e]
+    -   highlight.run@9.11.0
+    -   @highlight-run/node@3.11.1
+    -   @highlight-run/react@12.0.0
+
+## 2.0.81
+
+### Patch Changes
+
+-   Updated dependencies [b4f7173]
+-   Updated dependencies [b4f7173]
+    -   highlight.run@9.10.0
+    -   @highlight-run/node@3.11.1
+    -   @highlight-run/react@11.0.0
+
+## 2.0.80
+
+### Patch Changes
+
+-   Updated dependencies [91f82fc]
+    -   highlight.run@9.9.1
+    -   @highlight-run/node@3.11.1
+    -   @highlight-run/react@10.0.1
+
+## 2.0.79
+
+### Patch Changes
+
+-   Updated dependencies [ab181de]
+    -   highlight.run@9.9.0
+    -   @highlight-run/node@3.11.1
+    -   @highlight-run/react@10.0.0
+
+## 2.0.78
+
+### Patch Changes
+
+-   Updated dependencies [0fa5585]
+    -   highlight.run@9.8.0
+    -   @highlight-run/node@3.11.1
+    -   @highlight-run/react@9.0.0
+
+## 2.0.77
+
+### Patch Changes
+
+-   Updated dependencies [408abc7]
+    -   highlight.run@9.7.4
+    -   @highlight-run/node@3.11.1
+    -   @highlight-run/react@8.1.1
+
 ## 2.0.76
 
 ### Patch Changes

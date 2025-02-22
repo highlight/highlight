@@ -7,13 +7,17 @@ import {
 	DateRangePicker,
 	DateRangePreset,
 	DEFAULT_TIME_PRESETS,
+	IconSolidBell,
+	IconSolidChartBar,
+	IconSolidChartSquareLine,
+	IconSolidCheveronDown,
 	IconSolidClock,
 	IconSolidExternalLink,
-	IconSolidPlus,
 	IconSolidSearch,
 	IconSolidSparkles,
 	IconSolidSwitchVertical,
 	IconSolidXCircle,
+	Menu,
 	Stack,
 	Text,
 	useComboboxStore,
@@ -27,7 +31,6 @@ import TextareaAutosize from 'react-autosize-textarea'
 import { useNavigate } from 'react-router-dom'
 import { StringParam, useQueryParam, withDefault } from 'use-query-params'
 
-import { Button } from '@/components/Button'
 import { LinkButton } from '@/components/LinkButton'
 import LoadingBox from '@/components/LoadingBox'
 import SearchGrammarParser from '@/components/Search/Parser/antlr/SearchGrammarParser'
@@ -189,22 +192,53 @@ const SearchForm: React.FC<SearchFormProps> = ({
 		/>
 	)
 
-	// TODO: only supported for logs
-	const AlertComponent = hideCreateAlert ? null : (
-		<Button
-			kind="secondary"
-			trackingId="logs_create-alert_click"
-			onClick={() => {
-				navigate({
-					pathname: `/${projectId}/alerts/new`,
-					search: `${location.search}&source=${productType}`,
-				})
-			}}
-			emphasis="medium"
-			iconLeft={<IconSolidPlus />}
-		>
-			Create alert
-		</Button>
+	const MonitorComponent = hideCreateAlert ? null : (
+		<Menu placement="bottom-end">
+			<Menu.Button
+				onClick={(e: React.MouseEvent<HTMLButtonElement>) => {
+					e.stopPropagation()
+				}}
+				iconRight={<IconSolidCheveronDown size={14} />}
+				iconLeft={<IconSolidChartSquareLine size={14} />}
+				kind="secondary"
+				emphasis="low"
+				disabled={!query}
+			>
+				Monitor
+			</Menu.Button>
+			<Menu.List>
+				<Menu.Item
+					onClick={() => {
+						navigate({
+							pathname: `/${projectId}/dashboards/new`,
+							search: `settings=${btoa(
+								JSON.stringify({ productType, query }),
+							)}`,
+						})
+					}}
+				>
+					<Stack gap="4" direction="row" align="center">
+						<IconSolidChartBar />
+						Create Dashboard
+					</Stack>
+				</Menu.Item>
+				<Menu.Item
+					onClick={() => {
+						navigate({
+							pathname: `/${projectId}/alerts/new`,
+							search: `settings=${btoa(
+								JSON.stringify({ productType, query }),
+							)}`,
+						})
+					}}
+				>
+					<Stack gap="4" direction="row" align="center">
+						<IconSolidBell />
+						Create Alert
+					</Stack>
+				</Menu.Item>
+			</Menu.List>
+		</Menu>
 	)
 
 	if (isPanelView) {
@@ -300,6 +334,7 @@ const SearchForm: React.FC<SearchFormProps> = ({
 							py="6"
 							gap="6"
 						>
+							{MonitorComponent}
 							{SegmentMenu}
 							{displaySeparator && (
 								<Box
@@ -308,7 +343,6 @@ const SearchForm: React.FC<SearchFormProps> = ({
 									style={{ marginTop: 5, height: 18 }}
 								/>
 							)}
-							{AlertComponent}
 							{ActionsComponent}
 							{DatePickerComponent}
 						</Box>
@@ -320,8 +354,6 @@ const SearchForm: React.FC<SearchFormProps> = ({
 }
 
 export { SearchForm }
-
-export const DEFAULT_INPUT_HEIGHT = 31
 
 export const Search: React.FC<{
 	startDate: Date

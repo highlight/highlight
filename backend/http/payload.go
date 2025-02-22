@@ -119,7 +119,7 @@ func (p *FireLensPayload) SetLogAttributes(ctx context.Context, hl *hlog.Log, ms
 		if has := map[string]bool{"log": true, "source": true}[k]; has {
 			continue
 		}
-		for key, value := range hlog.FormatLogAttributes(k, v) {
+		for key, value := range hlog.FormatAttributes(k, v) {
 			hl.Attributes[key] = value
 		}
 	}
@@ -171,7 +171,7 @@ func (p *FireLensFluentBitPayload) SetLogAttributes(ctx context.Context, hl *hlo
 		if has := map[string]bool{"message": true, "source": true, "level": true, "@timestamp": true}[k]; has {
 			continue
 		}
-		for key, value := range hlog.FormatLogAttributes(k, v) {
+		for key, value := range hlog.FormatAttributes(k, v) {
 			hl.Attributes[key] = value
 		}
 	}
@@ -220,7 +220,7 @@ func (p *FireLensPinoPayload) SetLogAttributes(ctx context.Context, hl *hlog.Log
 		if has := map[string]bool{"level": true, "time": true, "msg": true}[k]; has {
 			continue
 		}
-		for key, value := range hlog.FormatLogAttributes(k, v) {
+		for key, value := range hlog.FormatAttributes(k, v) {
 			hl.Attributes[key] = value
 		}
 	}
@@ -296,7 +296,7 @@ func (p *JsonPayload) GetTimestamp() *time.Time {
 
 func (p *JsonPayload) SetLogAttributes(ctx context.Context, hl *hlog.Log, _ []byte) context.Context {
 	for k, v := range p.Body {
-		for key, value := range hlog.FormatLogAttributes(k, v) {
+		for key, value := range hlog.FormatAttributes(k, v) {
 			hl.Attributes[key] = value
 		}
 		// remove the key from the message body
@@ -362,7 +362,7 @@ func (p *CloudFrontJsonPayload) SetLogAttributes(ctx context.Context, hl *hlog.L
 			Error("invalid json log attributes")
 	}
 	for k, v := range lgAttrs {
-		for key, value := range hlog.FormatLogAttributes(k, v) {
+		for key, value := range hlog.FormatAttributes(k, v) {
 			hl.Attributes[key] = value
 		}
 	}

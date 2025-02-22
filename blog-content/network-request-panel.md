@@ -1,6 +1,6 @@
 ---
-title: 'The Network Request Details Panel'
-createdAt: 2023-06-14T12:00:00Z
+title: The Network Request Details Panel
+createdAt: 2023-06-14T12:00:00.000Z
 readingTime: 5
 authorFirstName: Chris
 authorLastName: Schmitz
@@ -9,8 +9,9 @@ authorTwitter: 'https://twitter.com/ccschmitz'
 authorLinkedIn: 'https://www.linkedin.com/in/ccschmitz'
 authorGithub: 'https://github.com/ccschmitz'
 authorWebsite: ''
-authorPFP: 'https://www.highlight.io/_next/image?url=https%3A%2F%2Fmedia.graphassets.com%2FViK27IG7TCe0YDK20tFy&w=3840&q=75'
-tags: Developer Tooling, Launch Week 2
+authorPFP: >-
+  https://www.highlight.io/_next/image?url=https%3A%2F%2Fmedia.graphassets.com%2FViK27IG7TCe0YDK20tFy&w=3840&q=75
+tags: 'Engineering, Product Updates'
 metaTitle: Tying it all together with the new network request details panel
 ---
 

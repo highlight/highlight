@@ -1,10 +1,14 @@
 import { OTLPTraceExporter } from '@opentelemetry/exporter-trace-otlp-http'
-import type { ReadableSpan } from '@opentelemetry/sdk-trace-web'
-import { OTLPExporterError } from '@opentelemetry/otlp-exporter-base'
+import { OTLPMetricExporter } from '@opentelemetry/exporter-metrics-otlp-http'
 import { MAX_PUBLIC_GRAPH_RETRY_ATTEMPTS } from '../utils/graph'
+import { ExportResult, ExportResultCode } from '@opentelemetry/core'
 
-type ExporterConfig = ConstructorParameters<typeof OTLPTraceExporter>[0]
-type SendOnErrorCallback = Parameters<OTLPTraceExporter['send']>[2]
+export type TraceExporterConfig = ConstructorParameters<
+	typeof OTLPTraceExporter
+>[0]
+export type MetricExporterConfig = ConstructorParameters<
+	typeof OTLPMetricExporter
+>[0]
 
 // This custom exporter is a temporary workaround for an issue we are having
 // with requests stalling in the browser using the sendBeacon API. There is work
@@ -17,7 +21,7 @@ type SendOnErrorCallback = Parameters<OTLPTraceExporter['send']>[2]
 export class OTLPTraceExporterBrowserWithXhrRetry extends OTLPTraceExporter {
 	private readonly xhrTraceExporter: OTLPTraceExporter
 
-	constructor(config?: ExporterConfig) {
+	constructor(config?: TraceExporterConfig) {
 		super(config)
 		this.xhrTraceExporter = new OTLPTraceExporter({
 			...(config ?? {}),
@@ -25,25 +29,57 @@ export class OTLPTraceExporterBrowserWithXhrRetry extends OTLPTraceExporter {
 		})
 	}
 
-	send(
-		items: ReadableSpan[],
-		onSuccess: () => void,
-		onError: SendOnErrorCallback,
-	): void {
+	export(items: any, resultCallback: (result: ExportResult) => void) {
 		let retries = 0
-		const retry = (error: OTLPExporterError) => {
+		const retry = (result: ExportResult) => {
 			retries++
 			if (retries > MAX_PUBLIC_GRAPH_RETRY_ATTEMPTS) {
 				console.error(
-					`[highlight.io] failed to export OTeL traces: ${error.message}`,
-					error,
+					`[highlight.io] failed to export OTeL traces: ${result.error?.message}`,
+					result.error,
 				)
-				onError(error)
+				resultCallback({
+					code: ExportResultCode.FAILED,
+					error: result.error,
+				})
 			} else {
-				this.xhrTraceExporter.send(items, onSuccess, retry)
+				this.xhrTraceExporter.export(items, resultCallback)
 			}
 		}
 
-		super.send(items, onSuccess, retry)
+		super.export(items, retry)
+	}
+}
+
+export class OTLPMetricExporterBrowser extends OTLPMetricExporter {
+	private readonly xhrMeterExporter: OTLPMetricExporter
+
+	constructor(config?: MetricExporterConfig) {
+		super(config)
+		this.xhrMeterExporter = new OTLPMetricExporter({
+			...(config ?? {}),
+			headers: {}, // a truthy value enables sending with XHR instead of beacon
+		})
+	}
+
+	export(items: any, resultCallback: (result: ExportResult) => void) {
+		let retries = 0
+		const retry = (result: ExportResult) => {
+			retries++
+			if (retries > MAX_PUBLIC_GRAPH_RETRY_ATTEMPTS) {
+				console.error(
+					`[highlight.io] failed to export OTeL metrics: ${result.error?.message}`,
+					result.error,
+				)
+				resultCallback({
+					code: ExportResultCode.FAILED,
+					error: result.error,
+				})
+			} else {
+				this.xhrMeterExporter.export(items, resultCallback)
+			}
+		}
+
+		super.export(items, retry)
 	}
 }

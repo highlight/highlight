@@ -15,7 +15,7 @@ import {
 	IconSolidCheveronDown,
 	IconSolidCheveronRight,
 	IconSolidCheveronUp,
-	IconSolidSpeakerphone,
+	IconSolidBell,
 	Menu,
 	Stack,
 	Tag,
@@ -336,7 +336,7 @@ export const ErrorAlertPage = () => {
 											size="medium"
 											shape="basic"
 											emphasis="high"
-											iconLeft={<IconSolidSpeakerphone />}
+											iconLeft={<IconSolidBell />}
 											onClick={() => {
 												navigate(
 													`/${project_id}/alerts`,

@@ -1,4 +1,4 @@
-import { HighlightOptions, H as localH } from 'highlight.run'
+import { H as localH, HighlightOptions } from 'highlight.run'
 import Cookies from 'js-cookie'
 import { useEffect } from 'react'
 
@@ -23,9 +23,21 @@ export function HighlightInit({
 			)
 
 		if (shouldRender) {
+			let highlightInitOptions = { ...highlightOptions }
+
+			const configureHighlightProxy =
+				process.env.configureHighlightProxy === 'true'
+			if (configureHighlightProxy) {
+				highlightInitOptions = {
+					...highlightOptions,
+					backendUrl: '/highlight-events',
+					otlpEndpoint: window.location.origin,
+				}
+			}
+
 			const { sessionSecureID } = localH.init(
 				projectId,
-				highlightOptions,
+				highlightInitOptions,
 			) || { sessionSecureID: '' }
 
 			if (sessionSecureID) {

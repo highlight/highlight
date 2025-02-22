@@ -740,6 +740,7 @@ function serializeNode(n2, options) {
     maskInputFn,
     dataURLOptions = {},
     inlineImages,
+    inlineVideos,
     recordCanvas,
     keepIframeSrcFn,
     newlyAddedElement = false,
@@ -780,6 +781,7 @@ function serializeNode(n2, options) {
         maskTextClass,
         dataURLOptions,
         inlineImages,
+        inlineVideos,
         recordCanvas,
         keepIframeSrcFn,
         newlyAddedElement,
@@ -878,6 +880,7 @@ function serializeElementNode(n2, options) {
     maskTextClass,
     dataURLOptions = {},
     inlineImages,
+    inlineVideos,
     recordCanvas,
     keepIframeSrcFn,
     newlyAddedElement = false,
@@ -1048,27 +1051,37 @@ function serializeElementNode(n2, options) {
     if (customElements.get(tagName)) isCustomElement = true;
   } catch (e2) {
   }
-  if (inlineImages && tagName === "video") {
+  const saveVideoAsCanvas = (video) => {
+    const { width, height } = video.getBoundingClientRect();
+    attributes = {
+      width,
+      height,
+      rr_width: `${width}px`,
+      rr_height: `${height}px`,
+      rr_inlined_video: true,
+      class: attributes.class,
+      style: attributes.style
+    };
+    tagName = "canvas";
+    const blankCanvas = doc.createElement("canvas");
+    blankCanvas.width = n2.width;
+    blankCanvas.height = n2.height;
+    attributes.rr_dataURL = blankCanvas.toDataURL(
+      dataURLOptions.type,
+      dataURLOptions.quality
+    );
+  };
+  if (tagName === "video") {
     const video = n2;
-    if (video.src === "" || video.src.indexOf("blob:") !== -1) {
-      const { width, height } = n2.getBoundingClientRect();
-      attributes = {
-        width,
-        height,
-        rr_width: `${width}px`,
-        rr_height: `${height}px`,
-        rr_inlined_video: true,
-        class: attributes.class,
-        style: attributes.style
-      };
-      tagName = "canvas";
-      const blankCanvas = doc.createElement("canvas");
-      blankCanvas.width = n2.width;
-      blankCanvas.height = n2.height;
-      attributes.rr_dataURL = blankCanvas.toDataURL(
-        dataURLOptions.type,
-        dataURLOptions.quality
-      );
+    if (inlineImages) {
+      if (video.src === "" || video.src.indexOf("blob:") !== -1) {
+        saveVideoAsCanvas(video);
+      }
+    }
+    if (inlineVideos) {
+      if (video.src !== "" && video.src.indexOf("blob:") === -1) {
+        saveVideoAsCanvas(video);
+      }
     }
   }
   return {
@@ -1138,6 +1151,7 @@ function serializeNodeWithId(n2, options) {
     slimDOMOptions,
     dataURLOptions = {},
     inlineImages = false,
+    inlineVideos = false,
     recordCanvas = false,
     onSerialize,
     onIframeLoad,
@@ -1172,6 +1186,7 @@ function serializeNodeWithId(n2, options) {
     maskInputFn,
     dataURLOptions,
     inlineImages,
+    inlineVideos,
     recordCanvas,
     keepIframeSrcFn,
     newlyAddedElement,
@@ -1235,6 +1250,7 @@ function serializeNodeWithId(n2, options) {
       slimDOMOptions,
       dataURLOptions,
       inlineImages,
+      inlineVideos,
       recordCanvas,
       preserveWhiteSpace,
       onSerialize,
@@ -1291,6 +1307,7 @@ function serializeNodeWithId(n2, options) {
             slimDOMOptions,
             dataURLOptions,
             inlineImages,
+            inlineVideos,
             recordCanvas,
             preserveWhiteSpace,
             onSerialize,
@@ -1333,6 +1350,7 @@ function serializeNodeWithId(n2, options) {
             slimDOMOptions,
             dataURLOptions,
             inlineImages,
+            inlineVideos,
             recordCanvas,
             preserveWhiteSpace,
             onSerialize,
@@ -1365,6 +1383,7 @@ function snapshot(n2, options) {
     maskTextSelector = null,
     inlineStylesheet = true,
     inlineImages = false,
+    inlineVideos = false,
     recordCanvas = false,
     maskAllInputs = false,
     maskTextFn,
@@ -1379,7 +1398,7 @@ function snapshot(n2, options) {
     stylesheetLoadTimeout,
     keepIframeSrcFn = () => false,
     privacySetting = "default"
-  } = options || {};
+  } = options;
   const maskInputOptions = maskAllInputs === true ? {
     color: true,
     date: true,
@@ -1431,6 +1450,7 @@ function snapshot(n2, options) {
     slimDOMOptions,
     dataURLOptions,
     inlineImages,
+    inlineVideos,
     recordCanvas,
     preserveWhiteSpace,
     onSerialize,
@@ -1478,7 +1498,7 @@ var pseudoClassPlugin = {
   }
 };
 function getDefaultExportFromCjs$1(x2) {
-  return x2 && x2.__esModule && Object.prototype.hasOwnProperty.call(x2, "default") ? x2["default"] : x2;
+  return x2.__esModule && Object.prototype.hasOwnProperty.call(x2, "default") ? x2["default"] : x2;
 }
 function getAugmentedNamespace$1(n2) {
   if (n2.__esModule) return n2;
@@ -1941,6 +1961,27 @@ function cloneNode$1(obj, parent) {
   }
   return cloned;
 }
+function sourceOffset$1(inputCSS, position) {
+  if (position && typeof position.offset !== "undefined") {
+    return position.offset;
+  }
+  let column = 1;
+  let line = 1;
+  let offset = 0;
+  for (let i2 = 0; i2 < inputCSS.length; i2++) {
+    if (line === position.line && column === position.column) {
+      offset = i2;
+      break;
+    }
+    if (inputCSS[i2] === "\n") {
+      column = 1;
+      line += 1;
+    } else {
+      column += 1;
+    }
+  }
+  return offset;
+}
 var Node$4$1 = class Node2 {
   constructor(defaults = {}) {
     this.raws = {};
@@ -2060,23 +2101,29 @@ var Node$4$1 = class Node2 {
     let index2 = this.parent.index(this);
     return this.parent.nodes[index2 + 1];
   }
-  positionBy(opts, stringRepresentation) {
+  positionBy(opts) {
     let pos = this.source.start;
     if (opts.index) {
-      pos = this.positionInside(opts.index, stringRepresentation);
+      pos = this.positionInside(opts.index);
     } else if (opts.word) {
-      stringRepresentation = this.toString();
+      let inputString = "document" in this.source.input ? this.source.input.document : this.source.input.css;
+      let stringRepresentation = inputString.slice(
+        sourceOffset$1(inputString, this.source.start),
+        sourceOffset$1(inputString, this.source.end)
+      );
       let index2 = stringRepresentation.indexOf(opts.word);
-      if (index2 !== -1) pos = this.positionInside(index2, stringRepresentation);
+      if (index2 !== -1) pos = this.positionInside(index2);
     }
     return pos;
   }
-  positionInside(index2, stringRepresentation) {
-    let string = stringRepresentation || this.toString();
+  positionInside(index2) {
     let column = this.source.start.column;
     let line = this.source.start.line;
-    for (let i2 = 0; i2 < index2; i2++) {
-      if (string[i2] === "\n") {
+    let inputString = "document" in this.source.input ? this.source.input.document : this.source.input.css;
+    let offset = sourceOffset$1(inputString, this.source.start);
+    let end = offset + index2;
+    for (let i2 = offset; i2 < end; i2++) {
+      if (inputString[i2] === "\n") {
         column = 1;
         line += 1;
       } else {
@@ -2103,13 +2150,16 @@ var Node$4$1 = class Node2 {
       line: start.line
     };
     if (opts.word) {
-      let stringRepresentation = this.toString();
+      let inputString = "document" in this.source.input ? this.source.input.document : this.source.input.css;
+      let stringRepresentation = inputString.slice(
+        sourceOffset$1(inputString, this.source.start),
+        sourceOffset$1(inputString, this.source.end)
+      );
       let index2 = stringRepresentation.indexOf(opts.word);
       if (index2 !== -1) {
-        start = this.positionInside(index2, stringRepresentation);
+        start = this.positionInside(index2);
         end = this.positionInside(
-          index2 + opts.word.length,
-          stringRepresentation
+          index2 + opts.word.length
         );
       }
     } else {
@@ -2689,7 +2739,7 @@ var urlAlphabet$1 = "useandom-26T198340PX75pxJACKVERYMINDBUSHWOLF_GQZbfghjklqvwy
 var customAlphabet$1 = (alphabet, defaultSize = 21) => {
   return (size = defaultSize) => {
     let id = "";
-    let i2 = size;
+    let i2 = size | 0;
     while (i2--) {
       id += alphabet[Math.random() * alphabet.length | 0];
     }
@@ -2698,7 +2748,7 @@ var customAlphabet$1 = (alphabet, defaultSize = 21) => {
 };
 var nanoid$1$1 = (size = 21) => {
   let id = "";
-  let i2 = size;
+  let i2 = size | 0;
   while (i2--) {
     id += urlAlphabet$1[Math.random() * 64 | 0];
   }
@@ -2840,6 +2890,8 @@ var Input$4$1 = class Input {
     } else {
       this.hasBOM = false;
     }
+    this.document = this.css;
+    if (opts.document) this.document = opts.document.toString();
     if (opts.from) {
       if (!pathAvailable$1$1 || /^\w+:\/\//.test(opts.from) || isAbsolute$1(opts.from)) {
         this.file = opts.from;
@@ -4905,7 +4957,7 @@ var NoWorkResult2$1 = noWorkResult$1;
 var Root$1$1 = root$1;
 var Processor$1$1 = class Processor {
   constructor(plugins = []) {
-    this.version = "8.4.47";
+    this.version = "8.5.1";
     this.plugins = this.normalize(plugins);
   }
   normalize(plugins) {
@@ -5493,7 +5545,7 @@ function createMirror$1() {
   return new Mirror$1();
 }
 function getDefaultExportFromCjs(x2) {
-  return x2 && x2.__esModule && Object.prototype.hasOwnProperty.call(x2, "default") ? x2["default"] : x2;
+  return x2.__esModule && Object.prototype.hasOwnProperty.call(x2, "default") ? x2["default"] : x2;
 }
 function getAugmentedNamespace(n2) {
   if (n2.__esModule) return n2;
@@ -5956,6 +6008,27 @@ function cloneNode(obj, parent) {
   }
   return cloned;
 }
+function sourceOffset(inputCSS, position) {
+  if (position && typeof position.offset !== "undefined") {
+    return position.offset;
+  }
+  let column = 1;
+  let line = 1;
+  let offset = 0;
+  for (let i2 = 0; i2 < inputCSS.length; i2++) {
+    if (line === position.line && column === position.column) {
+      offset = i2;
+      break;
+    }
+    if (inputCSS[i2] === "\n") {
+      column = 1;
+      line += 1;
+    } else {
+      column += 1;
+    }
+  }
+  return offset;
+}
 var Node$4 = class Node3 {
   constructor(defaults = {}) {
     this.raws = {};
@@ -6075,23 +6148,29 @@ var Node$4 = class Node3 {
     let index2 = this.parent.index(this);
     return this.parent.nodes[index2 + 1];
   }
-  positionBy(opts, stringRepresentation) {
+  positionBy(opts) {
     let pos = this.source.start;
     if (opts.index) {
-      pos = this.positionInside(opts.index, stringRepresentation);
+      pos = this.positionInside(opts.index);
     } else if (opts.word) {
-      stringRepresentation = this.toString();
+      let inputString = "document" in this.source.input ? this.source.input.document : this.source.input.css;
+      let stringRepresentation = inputString.slice(
+        sourceOffset(inputString, this.source.start),
+        sourceOffset(inputString, this.source.end)
+      );
       let index2 = stringRepresentation.indexOf(opts.word);
-      if (index2 !== -1) pos = this.positionInside(index2, stringRepresentation);
+      if (index2 !== -1) pos = this.positionInside(index2);
     }
     return pos;
   }
-  positionInside(index2, stringRepresentation) {
-    let string = stringRepresentation || this.toString();
+  positionInside(index2) {
     let column = this.source.start.column;
     let line = this.source.start.line;
-    for (let i2 = 0; i2 < index2; i2++) {
-      if (string[i2] === "\n") {
+    let inputString = "document" in this.source.input ? this.source.input.document : this.source.input.css;
+    let offset = sourceOffset(inputString, this.source.start);
+    let end = offset + index2;
+    for (let i2 = offset; i2 < end; i2++) {
+      if (inputString[i2] === "\n") {
         column = 1;
         line += 1;
       } else {
@@ -6118,13 +6197,16 @@ var Node$4 = class Node3 {
       line: start.line
     };
     if (opts.word) {
-      let stringRepresentation = this.toString();
+      let inputString = "document" in this.source.input ? this.source.input.document : this.source.input.css;
+      let stringRepresentation = inputString.slice(
+        sourceOffset(inputString, this.source.start),
+        sourceOffset(inputString, this.source.end)
+      );
       let index2 = stringRepresentation.indexOf(opts.word);
       if (index2 !== -1) {
-        start = this.positionInside(index2, stringRepresentation);
+        start = this.positionInside(index2);
         end = this.positionInside(
-          index2 + opts.word.length,
-          stringRepresentation
+          index2 + opts.word.length
         );
       }
     } else {
@@ -6704,7 +6786,7 @@ var urlAlphabet = "useandom-26T198340PX75pxJACKVERYMINDBUSHWOLF_GQZbfghjklqvwyzr
 var customAlphabet = (alphabet, defaultSize = 21) => {
   return (size = defaultSize) => {
     let id = "";
-    let i2 = size;
+    let i2 = size | 0;
     while (i2--) {
       id += alphabet[Math.random() * alphabet.length | 0];
     }
@@ -6713,7 +6795,7 @@ var customAlphabet = (alphabet, defaultSize = 21) => {
 };
 var nanoid$1 = (size = 21) => {
   let id = "";
-  let i2 = size;
+  let i2 = size | 0;
   while (i2--) {
     id += urlAlphabet[Math.random() * 64 | 0];
   }
@@ -6855,6 +6937,8 @@ var Input$4 = class Input2 {
     } else {
       this.hasBOM = false;
     }
+    this.document = this.css;
+    if (opts.document) this.document = opts.document.toString();
     if (opts.from) {
       if (!pathAvailable$1 || /^\w+:\/\//.test(opts.from) || isAbsolute(opts.from)) {
         this.file = opts.from;
@@ -8920,7 +9004,7 @@ var NoWorkResult22 = noWorkResult;
 var Root$1 = root;
 var Processor$1 = class Processor2 {
   constructor(plugins = []) {
-    this.version = "8.4.47";
+    this.version = "8.5.1";
     this.plugins = this.normalize(plugins);
   }
   normalize(plugins) {
@@ -11081,6 +11165,7 @@ var MutationBuffer = class {
     __publicField(this, "keepIframeSrcFn");
     __publicField(this, "recordCanvas");
     __publicField(this, "inlineImages");
+    __publicField(this, "inlineVideos");
     __publicField(this, "privacySetting");
     __publicField(this, "slimDOMOptions");
     __publicField(this, "dataURLOptions");
@@ -11139,6 +11224,7 @@ var MutationBuffer = class {
           dataURLOptions: this.dataURLOptions,
           recordCanvas: this.recordCanvas,
           inlineImages: this.inlineImages,
+          inlineVideos: this.inlineVideos,
           privacySetting: this.privacySetting,
           onSerialize: (currentN) => {
             if (isSerializedIframe(currentN, this.mirror)) {
@@ -11500,6 +11586,7 @@ var MutationBuffer = class {
       "keepIframeSrcFn",
       "recordCanvas",
       "inlineImages",
+      "inlineVideos",
       "privacySetting",
       "slimDOMOptions",
       "dataURLOptions",
@@ -13352,7 +13439,7 @@ function initCanvasWebGLMutationObserver(cb, win, blockClass, blockSelector) {
     handlers.forEach((h) => h());
   };
 }
-var encodedJs = "KGZ1bmN0aW9uKCkgewogICJ1c2Ugc3RyaWN0IjsKICB2YXIgY2hhcnMgPSAiQUJDREVGR0hJSktMTU5PUFFSU1RVVldYWVphYmNkZWZnaGlqa2xtbm9wcXJzdHV2d3h5ejAxMjM0NTY3ODkrLyI7CiAgdmFyIGxvb2t1cCA9IHR5cGVvZiBVaW50OEFycmF5ID09PSAidW5kZWZpbmVkIiA/IFtdIDogbmV3IFVpbnQ4QXJyYXkoMjU2KTsKICBmb3IgKHZhciBpID0gMDsgaSA8IGNoYXJzLmxlbmd0aDsgaSsrKSB7CiAgICBsb29rdXBbY2hhcnMuY2hhckNvZGVBdChpKV0gPSBpOwogIH0KICB2YXIgZW5jb2RlID0gZnVuY3Rpb24oYXJyYXlidWZmZXIpIHsKICAgIHZhciBieXRlcyA9IG5ldyBVaW50OEFycmF5KGFycmF5YnVmZmVyKSwgaTIsIGxlbiA9IGJ5dGVzLmxlbmd0aCwgYmFzZTY0ID0gIiI7CiAgICBmb3IgKGkyID0gMDsgaTIgPCBsZW47IGkyICs9IDMpIHsKICAgICAgYmFzZTY0ICs9IGNoYXJzW2J5dGVzW2kyXSA+PiAyXTsKICAgICAgYmFzZTY0ICs9IGNoYXJzWyhieXRlc1tpMl0gJiAzKSA8PCA0IHwgYnl0ZXNbaTIgKyAxXSA+PiA0XTsKICAgICAgYmFzZTY0ICs9IGNoYXJzWyhieXRlc1tpMiArIDFdICYgMTUpIDw8IDIgfCBieXRlc1tpMiArIDJdID4+IDZdOwogICAgICBiYXNlNjQgKz0gY2hhcnNbYnl0ZXNbaTIgKyAyXSAmIDYzXTsKICAgIH0KICAgIGlmIChsZW4gJSAzID09PSAyKSB7CiAgICAgIGJhc2U2NCA9IGJhc2U2NC5zdWJzdHJpbmcoMCwgYmFzZTY0Lmxlbmd0aCAtIDEpICsgIj0iOwogICAgfSBlbHNlIGlmIChsZW4gJSAzID09PSAxKSB7CiAgICAgIGJhc2U2NCA9IGJhc2U2NC5zdWJzdHJpbmcoMCwgYmFzZTY0Lmxlbmd0aCAtIDIpICsgIj09IjsKICAgIH0KICAgIHJldHVybiBiYXNlNjQ7CiAgfTsKICBjb25zdCBsYXN0QmxvYk1hcCA9IC8qIEBfX1BVUkVfXyAqLyBuZXcgTWFwKCk7CiAgY29uc3QgdHJhbnNwYXJlbnRCbG9iTWFwID0gLyogQF9fUFVSRV9fICovIG5ldyBNYXAoKTsKICBhc3luYyBmdW5jdGlvbiBnZXRUcmFuc3BhcmVudEJsb2JGb3Iod2lkdGgsIGhlaWdodCwgZGF0YVVSTE9wdGlvbnMpIHsKICAgIGNvbnN0IGlkID0gYCR7d2lkdGh9LSR7aGVpZ2h0fWA7CiAgICBpZiAoIk9mZnNjcmVlbkNhbnZhcyIgaW4gZ2xvYmFsVGhpcykgewogICAgICBpZiAodHJhbnNwYXJlbnRCbG9iTWFwLmhhcyhpZCkpIHJldHVybiB0cmFuc3BhcmVudEJsb2JNYXAuZ2V0KGlkKTsKICAgICAgY29uc3Qgb2Zmc2NyZWVuID0gbmV3IE9mZnNjcmVlbkNhbnZhcyh3aWR0aCwgaGVpZ2h0KTsKICAgICAgb2Zmc2NyZWVuLmdldENvbnRleHQoIjJkIik7CiAgICAgIGNvbnN0IGJsb2IgPSBhd2FpdCBvZmZzY3JlZW4uY29udmVydFRvQmxvYihkYXRhVVJMT3B0aW9ucyk7CiAgICAgIGNvbnN0IGFycmF5QnVmZmVyID0gYXdhaXQgYmxvYi5hcnJheUJ1ZmZlcigpOwogICAgICBjb25zdCBiYXNlNjQgPSBlbmNvZGUoYXJyYXlCdWZmZXIpOwogICAgICB0cmFuc3BhcmVudEJsb2JNYXAuc2V0KGlkLCBiYXNlNjQpOwogICAgICByZXR1cm4gYmFzZTY0OwogICAgfSBlbHNlIHsKICAgICAgcmV0dXJuICIiOwogICAgfQogIH0KICBjb25zdCB3b3JrZXIgPSBzZWxmOwogIGxldCBsb2dEZWJ1ZyA9IGZhbHNlOwogIGNvbnN0IGRlYnVnID0gKC4uLmFyZ3MpID0+IHsKICAgIGlmIChsb2dEZWJ1ZykgewogICAgICBjb25zb2xlLmRlYnVnKC4uLmFyZ3MpOwogICAgfQogIH07CiAgd29ya2VyLm9ubWVzc2FnZSA9IGFzeW5jIGZ1bmN0aW9uKGUpIHsKICAgIGxvZ0RlYnVnID0gISFlLmRhdGEubG9nRGVidWc7CiAgICBpZiAoIk9mZnNjcmVlbkNhbnZhcyIgaW4gZ2xvYmFsVGhpcykgewogICAgICBjb25zdCB7IGlkLCBiaXRtYXAsIHdpZHRoLCBoZWlnaHQsIGR4LCBkeSwgZHcsIGRoLCBkYXRhVVJMT3B0aW9ucyB9ID0gZS5kYXRhOwogICAgICBjb25zdCB0cmFuc3BhcmVudEJhc2U2NCA9IGdldFRyYW5zcGFyZW50QmxvYkZvcigKICAgICAgICB3aWR0aCwKICAgICAgICBoZWlnaHQsCiAgICAgICAgZGF0YVVSTE9wdGlvbnMKICAgICAgKTsKICAgICAgY29uc3Qgb2Zmc2NyZWVuID0gbmV3IE9mZnNjcmVlbkNhbnZhcyh3aWR0aCwgaGVpZ2h0KTsKICAgICAgY29uc3QgY3R4ID0gb2Zmc2NyZWVuLmdldENvbnRleHQoIjJkIik7CiAgICAgIGN0eC5kcmF3SW1hZ2UoYml0bWFwLCAwLCAwLCB3aWR0aCwgaGVpZ2h0KTsKICAgICAgYml0bWFwLmNsb3NlKCk7CiAgICAgIGNvbnN0IGJsb2IgPSBhd2FpdCBvZmZzY3JlZW4uY29udmVydFRvQmxvYihkYXRhVVJMT3B0aW9ucyk7CiAgICAgIGNvbnN0IHR5cGUgPSBibG9iLnR5cGU7CiAgICAgIGNvbnN0IGFycmF5QnVmZmVyID0gYXdhaXQgYmxvYi5hcnJheUJ1ZmZlcigpOwogICAgICBjb25zdCBiYXNlNjQgPSBlbmNvZGUoYXJyYXlCdWZmZXIpOwogICAgICBpZiAoIWxhc3RCbG9iTWFwLmhhcyhpZCkgJiYgYXdhaXQgdHJhbnNwYXJlbnRCYXNlNjQgPT09IGJhc2U2NCkgewogICAgICAgIGRlYnVnKCJbaGlnaGxpZ2h0LXdvcmtlcl0gY2FudmFzIGJpdG1hcCBpcyB0cmFuc3BhcmVudCIsIHsKICAgICAgICAgIGlkLAogICAgICAgICAgYmFzZTY0CiAgICAgICAgfSk7CiAgICAgICAgbGFzdEJsb2JNYXAuc2V0KGlkLCBiYXNlNjQpOwogICAgICAgIHJldHVybiB3b3JrZXIucG9zdE1lc3NhZ2UoeyBpZCwgc3RhdHVzOiAidHJhbnNwYXJlbnQiIH0pOwogICAgICB9CiAgICAgIGlmIChsYXN0QmxvYk1hcC5nZXQoaWQpID09PSBiYXNlNjQpIHsKICAgICAgICBkZWJ1ZygiW2hpZ2hsaWdodC13b3JrZXJdIGNhbnZhcyBiaXRtYXAgaXMgdW5jaGFuZ2VkIiwgewogICAgICAgICAgaWQsCiAgICAgICAgICBiYXNlNjQKICAgICAgICB9KTsKICAgICAgICByZXR1cm4gd29ya2VyLnBvc3RNZXNzYWdlKHsgaWQsIHN0YXR1czogInVuY2hhbmdlZCIgfSk7CiAgICAgIH0KICAgICAgY29uc3QgbXNnID0gewogICAgICAgIGlkLAogICAgICAgIHR5cGUsCiAgICAgICAgYmFzZTY0LAogICAgICAgIHdpZHRoLAogICAgICAgIGhlaWdodCwKICAgICAgICBkeCwKICAgICAgICBkeSwKICAgICAgICBkdywKICAgICAgICBkaAogICAgICB9OwogICAgICBkZWJ1ZygiW2hpZ2hsaWdodC13b3JrZXJdIGNhbnZhcyBiaXRtYXAgcHJvY2Vzc2VkIiwgbXNnKTsKICAgICAgd29ya2VyLnBvc3RNZXNzYWdlKG1zZyk7CiAgICAgIGxhc3RCbG9iTWFwLnNldChpZCwgYmFzZTY0KTsKICAgIH0gZWxzZSB7CiAgICAgIGRlYnVnKCJbaGlnaGxpZ2h0LXdvcmtlcl0gbm8gb2Zmc2NyZWVuY2FudmFzIHN1cHBvcnQiLCB7CiAgICAgICAgaWQ6IGUuZGF0YS5pZAogICAgICB9KTsKICAgICAgcmV0dXJuIHdvcmtlci5wb3N0TWVzc2FnZSh7IGlkOiBlLmRhdGEuaWQsIHN0YXR1czogInVuc3VwcG9ydGVkIiB9KTsKICAgIH0KICB9Owp9KSgpOwovLyMgc291cmNlTWFwcGluZ1VSTD1pbWFnZS1iaXRtYXAtZGF0YS11cmwtd29ya2VyLUJpWEpSZjQ3LmpzLm1hcAo=";
+var encodedJs = "KGZ1bmN0aW9uKCkgewogICJ1c2Ugc3RyaWN0IjsKICB2YXIgY2hhcnMgPSAiQUJDREVGR0hJSktMTU5PUFFSU1RVVldYWVphYmNkZWZnaGlqa2xtbm9wcXJzdHV2d3h5ejAxMjM0NTY3ODkrLyI7CiAgdmFyIGxvb2t1cCA9IHR5cGVvZiBVaW50OEFycmF5ID09PSAidW5kZWZpbmVkIiA/IFtdIDogbmV3IFVpbnQ4QXJyYXkoMjU2KTsKICBmb3IgKHZhciBpID0gMDsgaSA8IGNoYXJzLmxlbmd0aDsgaSsrKSB7CiAgICBsb29rdXBbY2hhcnMuY2hhckNvZGVBdChpKV0gPSBpOwogIH0KICB2YXIgZW5jb2RlID0gZnVuY3Rpb24oYXJyYXlidWZmZXIpIHsKICAgIHZhciBieXRlcyA9IG5ldyBVaW50OEFycmF5KGFycmF5YnVmZmVyKSwgaTIsIGxlbiA9IGJ5dGVzLmxlbmd0aCwgYmFzZTY0ID0gIiI7CiAgICBmb3IgKGkyID0gMDsgaTIgPCBsZW47IGkyICs9IDMpIHsKICAgICAgYmFzZTY0ICs9IGNoYXJzW2J5dGVzW2kyXSA+PiAyXTsKICAgICAgYmFzZTY0ICs9IGNoYXJzWyhieXRlc1tpMl0gJiAzKSA8PCA0IHwgYnl0ZXNbaTIgKyAxXSA+PiA0XTsKICAgICAgYmFzZTY0ICs9IGNoYXJzWyhieXRlc1tpMiArIDFdICYgMTUpIDw8IDIgfCBieXRlc1tpMiArIDJdID4+IDZdOwogICAgICBiYXNlNjQgKz0gY2hhcnNbYnl0ZXNbaTIgKyAyXSAmIDYzXTsKICAgIH0KICAgIGlmIChsZW4gJSAzID09PSAyKSB7CiAgICAgIGJhc2U2NCA9IGJhc2U2NC5zdWJzdHJpbmcoMCwgYmFzZTY0Lmxlbmd0aCAtIDEpICsgIj0iOwogICAgfSBlbHNlIGlmIChsZW4gJSAzID09PSAxKSB7CiAgICAgIGJhc2U2NCA9IGJhc2U2NC5zdWJzdHJpbmcoMCwgYmFzZTY0Lmxlbmd0aCAtIDIpICsgIj09IjsKICAgIH0KICAgIHJldHVybiBiYXNlNjQ7CiAgfTsKICBjb25zdCBsYXN0QmxvYk1hcCA9IC8qIEBfX1BVUkVfXyAqLyBuZXcgTWFwKCk7CiAgY29uc3QgdHJhbnNwYXJlbnRCbG9iTWFwID0gLyogQF9fUFVSRV9fICovIG5ldyBNYXAoKTsKICBhc3luYyBmdW5jdGlvbiBnZXRUcmFuc3BhcmVudEJsb2JGb3Iod2lkdGgsIGhlaWdodCwgZGF0YVVSTE9wdGlvbnMpIHsKICAgIGNvbnN0IGlkID0gYCR7d2lkdGh9LSR7aGVpZ2h0fWA7CiAgICBpZiAoIk9mZnNjcmVlbkNhbnZhcyIgaW4gZ2xvYmFsVGhpcykgewogICAgICBpZiAodHJhbnNwYXJlbnRCbG9iTWFwLmhhcyhpZCkpIHJldHVybiB0cmFuc3BhcmVudEJsb2JNYXAuZ2V0KGlkKTsKICAgICAgY29uc3Qgb2Zmc2NyZWVuID0gbmV3IE9mZnNjcmVlbkNhbnZhcyh3aWR0aCwgaGVpZ2h0KTsKICAgICAgb2Zmc2NyZWVuLmdldENvbnRleHQoIjJkIik7CiAgICAgIGNvbnN0IGJsb2IgPSBhd2FpdCBvZmZzY3JlZW4uY29udmVydFRvQmxvYihkYXRhVVJMT3B0aW9ucyk7CiAgICAgIGNvbnN0IGFycmF5QnVmZmVyID0gYXdhaXQgYmxvYi5hcnJheUJ1ZmZlcigpOwogICAgICBjb25zdCBiYXNlNjQgPSBlbmNvZGUoYXJyYXlCdWZmZXIpOwogICAgICB0cmFuc3BhcmVudEJsb2JNYXAuc2V0KGlkLCBiYXNlNjQpOwogICAgICByZXR1cm4gYmFzZTY0OwogICAgfSBlbHNlIHsKICAgICAgcmV0dXJuICIiOwogICAgfQogIH0KICBjb25zdCB3b3JrZXIgPSBzZWxmOwogIGxldCBsb2dEZWJ1ZyA9IGZhbHNlOwogIGNvbnN0IGRlYnVnID0gKC4uLmFyZ3MpID0+IHsKICAgIGlmIChsb2dEZWJ1ZykgewogICAgICBjb25zb2xlLmRlYnVnKC4uLmFyZ3MpOwogICAgfQogIH07CiAgd29ya2VyLm9ubWVzc2FnZSA9IGFzeW5jIGZ1bmN0aW9uKGUpIHsKICAgIGxvZ0RlYnVnID0gISFlLmRhdGEubG9nRGVidWc7CiAgICBpZiAoIk9mZnNjcmVlbkNhbnZhcyIgaW4gZ2xvYmFsVGhpcykgewogICAgICBjb25zdCB7IGlkLCBiaXRtYXAsIHdpZHRoLCBoZWlnaHQsIGR4LCBkeSwgZHcsIGRoLCBkYXRhVVJMT3B0aW9ucyB9ID0gZS5kYXRhOwogICAgICBjb25zdCB0cmFuc3BhcmVudEJhc2U2NCA9IGdldFRyYW5zcGFyZW50QmxvYkZvcigKICAgICAgICB3aWR0aCwKICAgICAgICBoZWlnaHQsCiAgICAgICAgZGF0YVVSTE9wdGlvbnMKICAgICAgKTsKICAgICAgY29uc3Qgb2Zmc2NyZWVuID0gbmV3IE9mZnNjcmVlbkNhbnZhcyh3aWR0aCwgaGVpZ2h0KTsKICAgICAgY29uc3QgY3R4ID0gb2Zmc2NyZWVuLmdldENvbnRleHQoIjJkIik7CiAgICAgIGN0eC5kcmF3SW1hZ2UoYml0bWFwLCAwLCAwLCB3aWR0aCwgaGVpZ2h0KTsKICAgICAgYml0bWFwLmNsb3NlKCk7CiAgICAgIGNvbnN0IGJsb2IgPSBhd2FpdCBvZmZzY3JlZW4uY29udmVydFRvQmxvYihkYXRhVVJMT3B0aW9ucyk7CiAgICAgIGNvbnN0IHR5cGUgPSBibG9iLnR5cGU7CiAgICAgIGNvbnN0IGFycmF5QnVmZmVyID0gYXdhaXQgYmxvYi5hcnJheUJ1ZmZlcigpOwogICAgICBjb25zdCBiYXNlNjQgPSBlbmNvZGUoYXJyYXlCdWZmZXIpOwogICAgICBpZiAoIWxhc3RCbG9iTWFwLmhhcyhpZCkgJiYgYXdhaXQgdHJhbnNwYXJlbnRCYXNlNjQgPT09IGJhc2U2NCkgewogICAgICAgIGRlYnVnKCJbaGlnaGxpZ2h0LXdvcmtlcl0gY2FudmFzIGJpdG1hcCBpcyB0cmFuc3BhcmVudCIsIHsKICAgICAgICAgIGlkLAogICAgICAgICAgYmFzZTY0CiAgICAgICAgfSk7CiAgICAgICAgbGFzdEJsb2JNYXAuc2V0KGlkLCBiYXNlNjQpOwogICAgICAgIHJldHVybiB3b3JrZXIucG9zdE1lc3NhZ2UoeyBpZCwgc3RhdHVzOiAidHJhbnNwYXJlbnQiIH0pOwogICAgICB9CiAgICAgIGlmIChsYXN0QmxvYk1hcC5nZXQoaWQpID09PSBiYXNlNjQpIHsKICAgICAgICBkZWJ1ZygiW2hpZ2hsaWdodC13b3JrZXJdIGNhbnZhcyBiaXRtYXAgaXMgdW5jaGFuZ2VkIiwgewogICAgICAgICAgaWQsCiAgICAgICAgICBiYXNlNjQKICAgICAgICB9KTsKICAgICAgfQogICAgICBjb25zdCBtc2cgPSB7CiAgICAgICAgaWQsCiAgICAgICAgdHlwZSwKICAgICAgICBiYXNlNjQsCiAgICAgICAgd2lkdGgsCiAgICAgICAgaGVpZ2h0LAogICAgICAgIGR4LAogICAgICAgIGR5LAogICAgICAgIGR3LAogICAgICAgIGRoCiAgICAgIH07CiAgICAgIGRlYnVnKCJbaGlnaGxpZ2h0LXdvcmtlcl0gY2FudmFzIGJpdG1hcCBwcm9jZXNzZWQiLCBtc2cpOwogICAgICB3b3JrZXIucG9zdE1lc3NhZ2UobXNnKTsKICAgICAgbGFzdEJsb2JNYXAuc2V0KGlkLCBiYXNlNjQpOwogICAgfSBlbHNlIHsKICAgICAgZGVidWcoIltoaWdobGlnaHQtd29ya2VyXSBubyBvZmZzY3JlZW5jYW52YXMgc3VwcG9ydCIsIHsKICAgICAgICBpZDogZS5kYXRhLmlkCiAgICAgIH0pOwogICAgICByZXR1cm4gd29ya2VyLnBvc3RNZXNzYWdlKHsgaWQ6IGUuZGF0YS5pZCwgc3RhdHVzOiAidW5zdXBwb3J0ZWQiIH0pOwogICAgfQogIH07Cn0pKCk7Ci8vIyBzb3VyY2VNYXBwaW5nVVJMPWltYWdlLWJpdG1hcC1kYXRhLXVybC13b3JrZXItRHd0SzhBMHouanMubWFwCg==";
 var decodeBase64 = (base64) => Uint8Array.from(atob(base64), (c2) => c2.charCodeAt(0));
 var blob = typeof self !== "undefined" && self.Blob && new Blob([decodeBase64(encodedJs)], { type: "text/javascript;charset=utf-8" });
 function WorkerWrapper(options) {
@@ -13407,7 +13494,8 @@ var CanvasManager = class {
       blockClass,
       blockSelector,
       recordCanvas,
-      recordVideos,
+      recordLocalVideos,
+      recordRemoteVideos,
       initialSnapshotDelay,
       dataURLOptions
     } = options;
@@ -13420,6 +13508,7 @@ var CanvasManager = class {
       this.snapshotInProgressMap.set(id, false);
       if (!("base64" in e2.data)) {
         this.debug(null, "canvas worker received empty message", {
+          id,
           data: e2.data,
           status: e2.data.status
         });
@@ -13467,7 +13556,8 @@ var CanvasManager = class {
     } else if (recordCanvas && typeof sampling === "number") {
       this.debug(null, "initializing canvas fps observer", { sampling });
       this.initCanvasFPSObserver(
-        recordVideos,
+        recordLocalVideos,
+        recordRemoteVideos,
         sampling,
         win,
         blockClass,
@@ -13585,7 +13675,7 @@ var CanvasManager = class {
       this.snapshotInProgressMap.set(id, false);
     }
   }
-  initCanvasFPSObserver(recordVideos, fps, win, blockClass, blockSelector, options, resizeFactor, maxSnapshotDimension) {
+  initCanvasFPSObserver(recordLocalVideos, recordRemoteVideos, fps, win, blockClass, blockSelector, options, resizeFactor, maxSnapshotDimension) {
     const canvasContextReset = initCanvasContextObserver(
       win,
       blockClass,
@@ -13624,9 +13714,18 @@ var CanvasManager = class {
     };
     const getVideos = (timestamp) => {
       const matchedVideos = [];
-      if (recordVideos) {
+      if (recordLocalVideos || recordRemoteVideos) {
         querySelectorAll2(win.document, "video").forEach((video) => {
-          if (video.src !== "" && video.src.indexOf("blob:") === -1) return;
+          if (!recordRemoteVideos) {
+            if (video.src !== "" && video.src.indexOf("blob:") === -1) {
+              return;
+            }
+          }
+          if (!recordLocalVideos) {
+            if (video.src === "" || video.src.indexOf("blob:") !== -1) {
+              return;
+            }
+          }
           if (!isBlocked(video, blockClass, blockSelector, true)) {
             matchedVideos.push(video);
             const id = this.mirror.getId(video);
@@ -13941,6 +14040,7 @@ function record(options = {}) {
     userTriggeredOnInput = false,
     collectFonts = false,
     inlineImages = false,
+    inlineVideos = false,
     plugins,
     keepIframeSrcFn = () => false,
     privacySetting = "default",
@@ -14108,7 +14208,8 @@ function record(options = {}) {
   const processedNodeManager = new ProcessedNodeManager();
   canvasManager = new CanvasManager({
     recordCanvas,
-    recordVideos: inlineImages,
+    recordLocalVideos: inlineImages,
+    recordRemoteVideos: inlineVideos,
     mutationCb: wrappedCanvasMutationEmit,
     win: window,
     blockClass,
@@ -14138,6 +14239,7 @@ function record(options = {}) {
       maskInputFn,
       recordCanvas,
       inlineImages,
+      inlineVideos,
       privacySetting,
       sampling,
       slimDOMOptions,
@@ -14181,6 +14283,7 @@ function record(options = {}) {
       dataURLOptions,
       recordCanvas,
       inlineImages,
+      inlineVideos,
       privacySetting,
       onSerialize: (n2) => {
         if (isSerializedIframe(n2, mirror)) {
@@ -14316,6 +14419,7 @@ function record(options = {}) {
           recordDOM,
           recordCanvas,
           inlineImages,
+          inlineVideos,
           userTriggeredOnInput,
           collectFonts,
           doc,
@@ -14440,10 +14544,6 @@ function mitt$1(n2) {
     });
   } };
 }
-var mittProxy = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
-  __proto__: null,
-  default: mitt$1
-}, Symbol.toStringTag, { value: "Module" }));
 function polyfill(w = window, d = document) {
   if ("scrollBehavior" in d.documentElement.style && w.__forceSmoothScrollPolyfill__ !== true) {
     return;
@@ -15600,7 +15700,7 @@ function removeDialogFromTopLevel(node2, attributeMutation) {
 var SKIP_TIME_INTERVAL = 5 * 1e3;
 var SKIP_TIME_MIN = 1 * 1e3;
 var SKIP_DURATION_LIMIT = 60 * 60 * 1e3;
-var mitt = mitt$1 || mittProxy;
+var mitt = mitt$1;
 var REPLAY_CONSOLE_PREFIX = "[replayer]";
 var defaultMouseTailConfig = {
   duration: 500,

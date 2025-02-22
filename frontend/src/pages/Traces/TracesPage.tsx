@@ -364,7 +364,6 @@ export const TracesPage: React.FC = () => {
 						minDate={minDate}
 						selectedPreset={searchTimeContext.selectedPreset}
 						timeMode={timeMode}
-						hideCreateAlert
 						onDatesChange={searchTimeContext.updateSearchTime}
 						productType={ProductType.Traces}
 						savedSegmentType={SavedSegmentEntityType.Trace}

@@ -1,6 +1,5 @@
 import { getRecordSequentialIdPlugin } from '@rrweb/rrweb-plugin-sequential-id-record'
 import { eventWithTime, listenerHandler } from '@rrweb/types'
-import ErrorStackParser from 'error-stack-parser'
 import { print } from 'graphql'
 import { GraphQLClient } from 'graphql-request'
 import stringify from 'json-stringify-safe'
@@ -30,6 +29,7 @@ import {
 	Metadata,
 	Metric,
 	PrivacySettingOption,
+	RecordMetric,
 	SamplingStrategy,
 	SessionDetails,
 	StartOptions,
@@ -65,8 +65,12 @@ import {
 	type ViewportResizeListenerArgs,
 } from './listeners/viewport-resize-listener'
 import { WebVitalsListener } from './listeners/web-vitals-listener/web-vitals-listener'
+import {
+	NetworkPerformanceListener,
+	NetworkPerformancePayload,
+} from './listeners/network-listener/performance-listener'
 import { Logger } from './logger'
-import { getTracer, setupBrowserTracing } from './otel'
+import { getMeter, getTracer, setupBrowserTracing } from './otel'
 import {
 	HighlightIframeMessage,
 	HighlightIframeReponse,
@@ -97,6 +101,8 @@ import { getDefaultDataURLOptions } from './utils/utils'
 import type { HighlightClientRequestWorker } from './workers/highlight-client-worker'
 import HighlightClientWorker from './workers/highlight-client-worker?worker&inline'
 import { MessageType, PropertyType, Source } from './workers/types'
+import { parseError } from './utils/errors'
+import { Gauge, UpDownCounter, Histogram, Counter } from '@opentelemetry/api'
 
 export const HighlightWarning = (context: string, msg: any) => {
 	console.warn(`Highlight Warning: (${context}): `, { output: msg })
@@ -125,6 +131,7 @@ export type HighlightClassOptions = {
 	enablePromisePatch?: boolean
 	samplingStrategy?: SamplingStrategy
 	inlineImages?: boolean
+	inlineVideos?: boolean
 	inlineStylesheet?: boolean
 	recordCrossOriginIframe?: boolean
 	firstloadVersion?: string
@@ -166,6 +173,7 @@ export class Highlight {
 	enablePerformanceRecording!: boolean
 	samplingStrategy!: SamplingStrategy
 	inlineImages!: boolean
+	inlineVideos!: boolean
 	inlineStylesheet!: boolean
 	debugOptions!: DebugOptions
 	listeners!: listenerHandler[]
@@ -192,6 +200,13 @@ export class Highlight {
 	reloaded!: boolean
 	_hasPreviouslyInitialized!: boolean
 	_recordStop!: listenerHandler | undefined
+	_gauges: Map<string, Gauge> = new Map<string, Gauge>()
+	_counters: Map<string, Counter> = new Map<string, Counter>()
+	_histograms: Map<string, Histogram> = new Map<string, Histogram>()
+	_up_down_counters: Map<string, UpDownCounter> = new Map<
+		string,
+		UpDownCounter
+	>()
 
 	static create(options: HighlightClassOptions): Highlight {
 		return new Highlight(options)
@@ -351,7 +366,8 @@ export class Highlight {
 			options.enablePerformanceRecording ?? true
 		// default to inlining stylesheets/images locally to help with recording accuracy
 		this.inlineImages = options.inlineImages ?? this._isOnLocalHost
-		this.inlineStylesheet = options.inlineStylesheet ?? true
+		this.inlineVideos = options.inlineVideos ?? this._isOnLocalHost
+		this.inlineStylesheet = options.inlineStylesheet ?? this._isOnLocalHost
 		this.samplingStrategy = {
 			canvasFactor: 0.5,
 			canvasMaxSnapshotDimension: 360,
@@ -480,7 +496,7 @@ export class Highlight {
 		if (type === 'React.ErrorBoundary') {
 			event = 'ErrorBoundary: ' + event
 		}
-		const res = ErrorStackParser.parse(error)
+		const res = parseError(error)
 		this._firstLoadListeners.errors.push({
 			event,
 			type: type ?? 'custom',
@@ -686,14 +702,12 @@ SessionSecureID: ${this.sessionData.sessionSecureID}`,
 
 			const { getDeviceDetails } = getPerformanceMethods()
 			if (getDeviceDetails) {
-				this.recordMetric([
-					{
-						name: MetricName.DeviceMemory,
-						value: getDeviceDetails().deviceMemory,
-						category: MetricCategory.Device,
-						group: window.location.href,
-					},
-				])
+				this.recordGauge({
+					name: MetricName.DeviceMemory,
+					value: getDeviceDetails().deviceMemory,
+					category: MetricCategory.Device,
+					group: window.location.href,
+				})
 			}
 
 			const emit = (
@@ -745,6 +759,7 @@ SessionSecureID: ${this.sessionData.sessionSecureID}`,
 					return !this.options.recordCrossOriginIframe
 				},
 				inlineImages: this.inlineImages,
+				inlineVideos: this.inlineVideos,
 				collectFonts: this.inlineImages,
 				inlineStylesheet: this.inlineStylesheet,
 				plugins: [getRecordSequentialIdPlugin()],
@@ -962,15 +977,52 @@ SessionSecureID: ${this.sessionData.sessionSecureID}`,
 			this.listeners.push(
 				WebVitalsListener((data) => {
 					const { name, value } = data
-					this.recordMetric([
-						{
-							name,
-							value,
-							group: window.location.href,
-							category: MetricCategory.WebVital,
-						},
-					])
+					this.recordGauge({
+						name,
+						value,
+						group: window.location.href,
+						category: MetricCategory.WebVital,
+					})
 				}),
+			)
+
+			this.listeners.push(
+				NetworkPerformanceListener(
+					(payload: NetworkPerformancePayload) => {
+						const tags: { name: string; value: string }[] = []
+						if (payload.saveData !== undefined) {
+							tags.push({
+								name: 'saveData',
+								value: payload.saveData.toString(),
+							})
+						}
+						if (payload.effectiveType !== undefined) {
+							tags.push({
+								name: 'effectiveType',
+								value: payload.effectiveType.toString(),
+							})
+						}
+						if (payload.type !== undefined) {
+							tags.push({
+								name: 'type',
+								value: payload.type.toString(),
+							})
+						}
+						Object.entries(payload).forEach(
+							([name, value]) =>
+								value &&
+								typeof value === 'number' &&
+								this.recordGauge({
+									name,
+									value: value as number,
+									category: MetricCategory.Performance,
+									group: window.location.href,
+									tags,
+								}),
+						)
+					},
+					this._recordingStartTime,
+				),
 			)
 
 			if (this.sessionShortcut) {
@@ -986,39 +1038,27 @@ SessionSecureID: ${this.sessionData.sessionSecureID}`,
 				this.listeners.push(
 					PerformanceListener((payload: PerformancePayload) => {
 						this.addCustomEvent('Performance', stringify(payload))
-						this.recordMetric(
-							Object.entries(payload)
-								.map(([name, value]) =>
-									value
-										? {
-												name,
-												value,
-												category:
-													MetricCategory.Performance,
-												group: window.location.href,
-											}
-										: undefined,
-								)
-								.filter((m) => m) as {
-								name: string
-								value: any
-								category: MetricCategory
-								group: string
-							}[],
+						Object.entries(payload).forEach(
+							([name, value]) =>
+								value &&
+								this.recordGauge({
+									name,
+									value,
+									category: MetricCategory.Performance,
+									group: window.location.href,
+								}),
 						)
 					}, this._recordingStartTime),
 				)
 				this.listeners.push(
 					JankListener((payload: JankPayload) => {
 						this.addCustomEvent('Jank', stringify(payload))
-						this.recordMetric([
-							{
-								name: 'Jank',
-								value: payload.jankAmount,
-								category: MetricCategory.WebVital,
-								group: payload.querySelector,
-							},
-						])
+						this.recordGauge({
+							name: 'Jank',
+							value: payload.jankAmount,
+							category: MetricCategory.WebVital,
+							group: payload.querySelector,
+						})
 					}, this._recordingStartTime),
 				)
 			}
@@ -1097,60 +1137,107 @@ SessionSecureID: ${this.sessionData.sessionSecureID}`,
 		availHeight,
 		availWidth,
 	}: ViewportResizeListenerArgs) {
-		this.recordMetric([
-			{
-				name: MetricName.ViewportHeight,
-				value: height,
-				category: MetricCategory.Device,
-				group: window.location.href,
-			},
-			{
-				name: MetricName.ViewportWidth,
-				value: width,
-				category: MetricCategory.Device,
-				group: window.location.href,
-			},
-			{
-				name: MetricName.ScreenHeight,
-				value: availHeight,
-				category: MetricCategory.Device,
-				group: window.location.href,
-			},
-			{
-				name: MetricName.ScreenWidth,
-				value: availWidth,
-				category: MetricCategory.Device,
-				group: window.location.href,
-			},
-			{
-				name: MetricName.ViewportArea,
-				value: height * width,
-				category: MetricCategory.Device,
-				group: window.location.href,
-			},
-		])
+		this.recordGauge({
+			name: MetricName.ViewportHeight,
+			value: height,
+			category: MetricCategory.Device,
+			group: window.location.href,
+		})
+		this.recordGauge({
+			name: MetricName.ViewportWidth,
+			value: width,
+			category: MetricCategory.Device,
+			group: window.location.href,
+		})
+		this.recordGauge({
+			name: MetricName.ScreenHeight,
+			value: availHeight,
+			category: MetricCategory.Device,
+			group: window.location.href,
+		})
+		this.recordGauge({
+			name: MetricName.ScreenWidth,
+			value: availWidth,
+			category: MetricCategory.Device,
+			group: window.location.href,
+		})
+		this.recordGauge({
+			name: MetricName.ViewportArea,
+			value: height * width,
+			category: MetricCategory.Device,
+			group: window.location.href,
+		})
 	}
 
-	recordMetric(
-		metrics: {
-			name: string
-			value: number
-			category?: MetricCategory
-			group?: string
-			tags?: { name: string; value: string }[]
-		}[],
-	) {
-		this._worker.postMessage({
-			message: {
-				type: MessageType.Metrics,
-				metrics: metrics.map((m) => ({
-					...m,
-					tags: m.tags || [],
-					group: m.group || window.location.href,
-					category: m.category || MetricCategory.Frontend,
-					timestamp: new Date(),
-				})),
-			},
+	recordGauge(metric: RecordMetric) {
+		const meter = typeof getMeter === 'function' ? getMeter() : undefined
+		if (!meter) return
+
+		let gauge = this._gauges.get(metric.name)
+		if (!gauge) {
+			gauge = meter.createGauge(metric.name)
+			this._gauges.set(metric.name, gauge)
+		}
+		gauge.record(metric.value, {
+			...metric.tags?.reduce((a, b) => ({ ...a, [b.name]: b.value }), {}),
+			group: metric.group,
+			category: metric.category,
+			'highlight.session_id': this.sessionData.sessionSecureID,
+		})
+	}
+
+	recordCount(metric: RecordMetric) {
+		const meter = typeof getMeter === 'function' ? getMeter() : undefined
+		if (!meter) return
+
+		let counter = this._counters.get(metric.name)
+		if (!counter) {
+			counter = meter.createCounter(metric.name)
+			this._counters.set(metric.name, counter)
+		}
+		counter.add(metric.value, {
+			...metric.tags?.reduce((a, b) => ({ ...a, [b.name]: b.value }), {}),
+			group: metric.group,
+			category: metric.category,
+			'highlight.session_id': this.sessionData.sessionSecureID,
+		})
+	}
+
+	recordIncr(metric: Omit<RecordMetric, 'value'>) {
+		this.recordCount({ ...metric, value: 1 })
+	}
+
+	recordHistogram(metric: RecordMetric) {
+		const meter = typeof getMeter === 'function' ? getMeter() : undefined
+		if (!meter) return
+
+		let histogram = this._histograms.get(metric.name)
+		if (!histogram) {
+			histogram = meter.createHistogram(metric.name)
+			this._histograms.set(metric.name, histogram)
+		}
+		histogram.record(metric.value, {
+			...metric.tags?.reduce((a, b) => ({ ...a, [b.name]: b.value }), {}),
+			group: metric.group,
+			category: metric.category,
+			'highlight.session_id': this.sessionData.sessionSecureID,
+		})
+	}
+
+	recordUpDownCounter(metric: RecordMetric) {
+		const meter = typeof getMeter === 'function' ? getMeter() : undefined
+		if (!meter) return
+
+		let up_down_counter = this._up_down_counters.get(metric.name)
+		if (!up_down_counter) {
+			up_down_counter = meter.createUpDownCounter(metric.name)
+			this._up_down_counters.set(metric.name, up_down_counter)
+		}
+		up_down_counter.add(metric.value, {
+			...metric.tags?.reduce((a, b) => ({ ...a, [b.name]: b.value }), {}),
+			group: metric.group,
+			category: metric.category,
+			'highlight.session_id': this.sessionData.sessionSecureID,
 		})
 	}
 
@@ -1437,6 +1524,7 @@ export {
 	GenerateSecureID,
 	getPreviousSessionData,
 	getTracer,
+	getMeter,
 	MetricCategory,
 	setupBrowserTracing,
 }

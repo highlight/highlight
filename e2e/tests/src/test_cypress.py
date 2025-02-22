@@ -34,7 +34,7 @@ def validate_session(data: dict[str, any]):
             < value
             < datetime.now().astimezone() + timedelta(days=1)
         )
-    assert session["length"] > session["active_length"]
+    assert session["length"] >= session["active_length"]
 
     user = json.loads(session["user_properties"])
     assert user["identified_email"] in {"false", "true"}

@@ -10,7 +10,7 @@ export const BlogPostSmall = ({
 	image,
 	title,
 	publishedAt,
-	tags_relations,
+	tags,
 	readingTime,
 }: Post) => {
 	return (
@@ -42,7 +42,7 @@ export const BlogPostSmall = ({
 					{title}
 				</Typography>
 				<div className={styles.tagDiv}>
-					{tags_relations.map((tag: Tag) => (
+					{tags.map((tag: Tag) => (
 						<Link
 							key={tag.name}
 							href={`/blog?tag=${tag.slug}`}

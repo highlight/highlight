@@ -19,6 +19,7 @@ export interface BlogPath {
 	metadata: any
 	isSdkDoc: boolean
 	content: string
+	tags: string[]
 }
 
 export const BLOG_CONTENT_PATH = path.join(process.cwd(), '../blog-content')
@@ -65,6 +66,7 @@ export const getBlogPaths = async (
 				indexPath: file_string.includes('index.md'),
 				metadata: data,
 				content: content,
+				tags: data.tags || [],
 			})
 		}
 	}

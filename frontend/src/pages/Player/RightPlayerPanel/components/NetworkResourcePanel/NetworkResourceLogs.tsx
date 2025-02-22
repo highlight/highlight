@@ -28,8 +28,8 @@ import analytics from '@/util/analytics'
 import { useParams } from '@/util/react-router/useParams'
 
 // The amount of time before and after the request started/ended we want to show
-// logs for.
-const TIME_BUFFER = 200000
+// logs for - 5 minutes
+const TIME_BUFFER = 5 * 60 * 1000
 
 export const NetworkResourceLogs: React.FC<{
 	resource: NetworkResource
@@ -53,7 +53,7 @@ export const NetworkResourceLogs: React.FC<{
 		const resourceEnd =
 			resource.responseEndAbs ?? sessionStartTime + resource.responseEnd
 
-		return new Date(resourceEnd - TIME_BUFFER)
+		return new Date(resourceEnd + TIME_BUFFER)
 	}, [sessionStartTime, resource.responseEndAbs, resource.responseEnd])
 
 	const {

@@ -102,11 +102,29 @@ describe('client recording spec', () => {
 						)
 					}
 					const payload = JSON.parse(customEvent.data.payload)
-					if (
-						customEvent.data.tag !== 'Track' ||
-						payload.foo !== 'bar' ||
-						payload.event !== 'MyTrackEvent'
-					) {
+					if (customEvent.data.tag === 'Track') {
+						if (
+							payload.foo !== 'bar' ||
+							payload.event !== 'MyTrackEvent'
+						) {
+							throw new Error(
+								'invalid Track customEvent: ' +
+									JSON.stringify(customEvent),
+							)
+						}
+					} else if (customEvent.data.tag === 'Performance') {
+						if (
+							!Number.isFinite(payload.jsHeapSizeLimit) ||
+							!Number.isFinite(payload.usedJSHeapSize) ||
+							!Number.isFinite(payload.fps) ||
+							!Number.isFinite(payload.relativeTimestamp)
+						) {
+							throw new Error(
+								'invalid Performance customEvent: ' +
+									JSON.stringify(customEvent),
+							)
+						}
+					} else {
 						throw new Error(
 							'invalid customEvent: ' +
 								JSON.stringify(customEvent),

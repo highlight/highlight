@@ -7,56 +7,26 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"hash/fnv"
-	"io"
-	"net"
-	"net/http"
-	"net/mail"
-	url2 "net/url"
-	"regexp"
-	"sort"
-	"strconv"
-	"strings"
-	"time"
-
-	"github.com/highlight-run/highlight/backend/env"
-	"github.com/highlight-run/highlight/backend/geolocation"
-	kafkaqueue "github.com/highlight-run/highlight/backend/kafka-queue"
-	"github.com/oschwald/geoip2-golang"
-
-	"go.opentelemetry.io/otel/codes"
-	semconv "go.opentelemetry.io/otel/semconv/v1.25.0"
-	"go.opentelemetry.io/otel/trace"
-
-	"go.opentelemetry.io/otel/attribute"
-	"golang.org/x/sync/errgroup"
-	"gorm.io/gorm"
-	"gorm.io/gorm/clause"
-
 	"github.com/PaesslerAG/jsonpath"
 	"github.com/aws/smithy-go/ptr"
-	"github.com/google/uuid"
 	lru "github.com/hashicorp/golang-lru/v2"
 	"github.com/highlight-run/go-resthooks"
-	"github.com/mssola/user_agent"
-	"github.com/openlyinc/pointy"
-	e "github.com/pkg/errors"
-	"github.com/samber/lo"
-	"github.com/sendgrid/sendgrid-go"
-	log "github.com/sirupsen/logrus"
-
 	"github.com/highlight-run/highlight/backend/alerts"
 	"github.com/highlight-run/highlight/backend/clickhouse"
 	"github.com/highlight-run/highlight/backend/email"
 	"github.com/highlight-run/highlight/backend/embeddings"
+	"github.com/highlight-run/highlight/backend/env"
 	"github.com/highlight-run/highlight/backend/errorgroups"
 	parse "github.com/highlight-run/highlight/backend/event-parse"
+	"github.com/highlight-run/highlight/backend/geolocation"
 	kafka_queue "github.com/highlight-run/highlight/backend/kafka-queue"
+	kafkaqueue "github.com/highlight-run/highlight/backend/kafka-queue"
 	"github.com/highlight-run/highlight/backend/lambda"
 	"github.com/highlight-run/highlight/backend/model"
 	"github.com/highlight-run/highlight/backend/parser"
 	"github.com/highlight-run/highlight/backend/phonehome"
 	"github.com/highlight-run/highlight/backend/pricing"
+	privateGraph "github.com/highlight-run/highlight/backend/private-graph/graph"
 	privateModel "github.com/highlight-run/highlight/backend/private-graph/graph/model"
 	modelInputs "github.com/highlight-run/highlight/backend/public-graph/graph/model"
 	publicModel "github.com/highlight-run/highlight/backend/public-graph/graph/model"
@@ -70,6 +40,33 @@ import (
 	"github.com/highlight/highlight/sdk/highlight-go"
 	hlog "github.com/highlight/highlight/sdk/highlight-go/log"
 	hmetric "github.com/highlight/highlight/sdk/highlight-go/metric"
+	"github.com/mssola/useragent"
+	"github.com/openlyinc/pointy"
+	"github.com/oschwald/geoip2-golang"
+	e "github.com/pkg/errors"
+	"github.com/samber/lo"
+	"github.com/sendgrid/sendgrid-go"
+	log "github.com/sirupsen/logrus"
+	"go.opentelemetry.io/collector/pdata/pmetric"
+	"go.opentelemetry.io/otel/attribute"
+	"go.opentelemetry.io/otel/codes"
+	semconv "go.opentelemetry.io/otel/semconv/v1.25.0"
+	"go.opentelemetry.io/otel/trace"
+	"golang.org/x/sync/errgroup"
+	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
+	"hash/fnv"
+	"io"
+	"math"
+	"net"
+	"net/http"
+	"net/mail"
+	url2 "net/url"
+	"regexp"
+	"sort"
+	"strconv"
+	"strings"
+	"time"
 )
 
 // This file will not be regenerated automatically.
@@ -110,11 +107,16 @@ type Location struct {
 }
 
 type DeviceDetails struct {
-	IsBot          bool   `json:"is_bot"`
-	OSName         string `json:"os_name"`
-	OSVersion      string `json:"os_version"`
 	BrowserName    string `json:"browser_name"`
 	BrowserVersion string `json:"browser_version"`
+	IsBot          bool   `json:"is_bot"`
+	IsMobile       bool   `json:"is_mobile"`
+	Localization   string `json:"localization"`
+	Model          string `json:"model"`
+	OSName         string `json:"os_name"`
+	OSVersion      string `json:"os_version"`
+	Platform       string `json:"platform"`
+	UserAgent      string `json:"user_agent"`
 }
 
 type Property string
@@ -397,30 +399,6 @@ func (r *Resolver) AppendFields(ctx context.Context, fields []*model.Field, sess
 	return nil
 }
 
-func getIncrementedEnvironmentCount(ctx context.Context, errorGroup *model.ErrorGroup, errorObj *model.ErrorObject) string {
-	environmentsMap := make(map[string]int)
-	if errorGroup.Environments != "" {
-		err := json.Unmarshal([]byte(errorGroup.Environments), &environmentsMap)
-		if err != nil {
-			log.WithContext(ctx).Error(e.Wrap(err, "error unmarshalling environments from error group into map"))
-		}
-	}
-	if len(errorObj.Environment) > 0 {
-		if _, ok := environmentsMap[strings.ToLower(errorObj.Environment)]; ok {
-			environmentsMap[strings.ToLower(errorObj.Environment)]++
-		} else {
-			environmentsMap[strings.ToLower(errorObj.Environment)] = 1
-		}
-	}
-	environmentsBytes, err := json.Marshal(environmentsMap)
-	if err != nil {
-		log.WithContext(ctx).Error(e.Wrap(err, "error marshalling environment map into json"))
-	}
-	environmentsString := string(environmentsBytes)
-
-	return environmentsString
-}
-
 func (r *Resolver) GetErrorAppVersion(ctx context.Context, errorObj *model.ErrorObject) *string {
 	// get version from session
 	var session *model.Session
@@ -501,8 +479,6 @@ func (r *Resolver) GetOrCreateErrorGroup(ctx context.Context, errorObj *model.Er
 	errorGroup := &model.ErrorGroup{}
 
 	if match == nil {
-		environmentsString := getIncrementedEnvironmentCount(ctx, errorGroup, errorObj)
-
 		newErrorGroup := &model.ErrorGroup{
 			ProjectID:        errorObj.ProjectID,
 			Event:            errorObj.Event,
@@ -510,7 +486,6 @@ func (r *Resolver) GetOrCreateErrorGroup(ctx context.Context, errorObj *model.Er
 			MappedStackTrace: errorObj.MappedStackTrace,
 			Type:             errorObj.Type,
 			State:            privateModel.ErrorStateOpen,
-			Environments:     environmentsString,
 			ServiceName:      errorObj.ServiceName,
 		}
 
@@ -536,30 +511,30 @@ func (r *Resolver) GetOrCreateErrorGroup(ctx context.Context, errorObj *model.Er
 			return nil, e.Wrap(err, "error retrieving top matched error group")
 		}
 
-		environmentsString := getIncrementedEnvironmentCount(ctx, errorGroup, errorObj)
-
 		updatedState := errorGroup.State
 
 		// Reopen resolved errors
 		// Note that ignored errors do change state
+		var shouldUpdate bool
 		if updatedState == privateModel.ErrorStateResolved {
 			updatedState = privateModel.ErrorStateOpen
+			shouldUpdate = true
 		}
 
 		if errorGroup.ErrorTagID == nil && tagGroup {
 			errorGroup.ErrorTagID = r.tagErrorGroup(ctx, errorObj)
+			shouldUpdate = true
 		}
-
-		if err := r.DB.WithContext(ctx).Model(errorGroup).Updates(&model.ErrorGroup{
-			StackTrace:       *errorObj.StackTrace,
-			MappedStackTrace: errorObj.MappedStackTrace,
-			Environments:     environmentsString,
-			Event:            errorObj.Event,
-			State:            updatedState,
-			ServiceName:      errorObj.ServiceName,
-			ErrorTagID:       errorGroup.ErrorTagID,
-		}).Error; err != nil {
-			return nil, e.Wrap(err, "Error updating error group")
+		if shouldUpdate {
+			s, sCtx := util.StartSpanFromContext(ctx, "GetOrCreateErrorGroup.Update")
+			if err := r.DB.WithContext(sCtx).Model(errorGroup).Updates(&model.ErrorGroup{
+				State:      updatedState,
+				ErrorTagID: errorGroup.ErrorTagID,
+			}).Error; err != nil {
+				s.Finish(err)
+				return nil, e.Wrap(err, "Error updating error group")
+			}
+			s.Finish()
 		}
 	}
 
@@ -1013,11 +988,16 @@ func GetLocationFromIP(ctx context.Context, ip string) (location *Location, err 
 }
 
 func GetDeviceDetails(userAgentString string) (deviceDetails DeviceDetails) {
-	userAgent := user_agent.New(userAgentString)
+	userAgent := useragent.New(userAgentString)
+	deviceDetails.BrowserName, deviceDetails.BrowserVersion = userAgent.Browser()
 	deviceDetails.IsBot = userAgent.Bot()
+	deviceDetails.IsMobile = userAgent.Mobile()
 	deviceDetails.OSName = userAgent.OSInfo().Name
 	deviceDetails.OSVersion = userAgent.OSInfo().Version
-	deviceDetails.BrowserName, deviceDetails.BrowserVersion = userAgent.Browser()
+	deviceDetails.Localization = userAgent.Localization()
+	deviceDetails.Model = userAgent.Model()
+	deviceDetails.Platform = userAgent.Platform()
+	deviceDetails.UserAgent = userAgent.UA()
 	return deviceDetails
 }
 
@@ -1240,6 +1220,19 @@ func (r *Resolver) InitializeSessionImpl(ctx context.Context, input *kafka_queue
 
 	log.WithContext(ctx).WithFields(log.Fields{"session_id": session.ID, "project_id": session.ProjectID, "identifier": session.Identifier}).
 		Infof("initialized session %d: %s", session.ID, session.Identifier)
+
+	if err := r.AddSessionPropertiesImpl(ctx, session.SecureID, map[string]interface{}{
+		"is_mobile":       deviceDetails.IsMobile,
+		"localization":    deviceDetails.Localization,
+		"device_model":    deviceDetails.Model,
+		"device_platform": deviceDetails.Platform,
+		"user_agent":      deviceDetails.UserAgent,
+	}); err != nil {
+		log.WithContext(ctx).
+			WithError(err).
+			WithField("session_secure_id", session.SecureID).
+			Error("failed to record session device properties")
+	}
 
 	highlight.RecordCount(ctx,
 		"session.initialized", 1,
@@ -1907,10 +1900,13 @@ func (r *Resolver) sendErrorAlert(ctx context.Context, projectID int, sessionObj
 		}
 	}()
 }
+
+// Deprecated: SubmitMetricsMessage pushes kafka messages for session metrics which are then
+// read by the main worker and pushed as OTeL Sum Gauge metrics table
+// as `PushOTeLMetricSum` kafka messages.
 func (r *Resolver) SubmitMetricsMessage(ctx context.Context, metrics []*publicModel.MetricInput) (int, error) {
 	if len(metrics) == 0 {
-		log.WithContext(ctx).Errorf("got no metrics for pushmetrics: %+v", metrics)
-		return -1, e.New("no metrics provided")
+		return 0, nil
 	}
 	sessionMetrics := make(map[string][]*publicModel.MetricInput)
 	for _, m := range metrics {
@@ -1975,16 +1971,9 @@ func (r *Resolver) PushMetricsImpl(ctx context.Context, projectVerboseID *string
 	}
 
 	curTime := time.Now()
-	var traceRows []*clickhouse.TraceRow
+	var metricRows []*clickhouse.MetricSumRow
 	for _, m := range metrics {
-		var spanID, parentSpanID, traceID = ptr.ToString(m.SpanID), ptr.ToString(m.ParentSpanID), ptr.ToString(m.TraceID)
-		if spanID == "" {
-			spanID = uuid.New().String()
-		}
-		if traceID == "" {
-			traceID = uuid.New().String()
-		}
-
+		var spanID, traceID = ptr.ToString(m.SpanID), ptr.ToString(m.TraceID)
 		var serviceName, serviceVersion = session.ServiceName, ptr.ToString(session.AppVersion)
 		attributes := map[string]string{}
 		for _, t := range m.Tags {
@@ -2001,38 +1990,65 @@ func (r *Resolver) PushMetricsImpl(ctx context.Context, projectVerboseID *string
 		if m.Group != nil {
 			attributes["group"] = *m.Group
 		}
+		attributes[highlight.EnvironmentAttribute] = session.Environment
 
 		timestamp := ClampTime(m.Timestamp, curTime)
-		event := map[string]any{
-			"Name":       "metric",
-			"Timestamp":  timestamp,
-			"Attributes": map[string]any{"metric.name": m.Name, "metric.value": m.Value},
-		}
-		traceRows = append(traceRows, clickhouse.NewTraceRow(timestamp, projectID).
-			WithSecureSessionId(session.SecureID).
-			WithSpanId(spanID).
-			WithParentSpanId(parentSpanID).
-			WithTraceId(traceID).
-			WithSpanName(highlight.MetricSpanName).
-			WithServiceName(serviceName).
-			WithServiceVersion(serviceVersion).
-			WithEnvironment(session.Environment).
-			WithTraceAttributes(attributes).
-			WithEvents([]map[string]any{event}))
-	}
-
-	// TODO(vkorolik) write to an actual metrics table via kafka_queue.PushOTeLMetrics
-	var messages []kafka_queue.RetryableMessage
-	for _, traceRow := range traceRows {
-		if !r.IsTraceIngested(ctx, traceRow) {
-			continue
-		}
-		messages = append(messages, &kafka_queue.TraceRowMessage{
-			Type:               kafka_queue.PushTracesFlattened,
-			ClickhouseTraceRow: clickhouse.ConvertTraceRow(traceRow),
+		metricRows = append(metricRows, &clickhouse.MetricSumRow{
+			MetricBaseRow: clickhouse.MetricBaseRow{
+				ProjectId:                uint32(projectID),
+				ServiceName:              serviceName,
+				ServiceVersion:           serviceVersion,
+				MetricName:               m.Name,
+				Timestamp:                timestamp,
+				StartTimestamp:           timestamp,
+				RetentionDays:            r.GetProjectMetricRetention(ctx, projectID),
+				Attributes:               attributes,
+				ExemplarsAttributes:      []map[string]string{attributes},
+				ExemplarsTimestamp:       []time.Time{timestamp},
+				ExemplarsValue:           []float64{m.Value},
+				ExemplarsSpanID:          []string{spanID},
+				ExemplarsTraceID:         []string{traceID},
+				ExemplarsSecureSessionID: []string{session.SecureID},
+				MetricType:               pmetric.MetricTypeGauge,
+			},
+			Value: m.Value,
 		})
 	}
-	return r.TracesQueue.Submit(ctx, "", messages...)
+
+	var messages []kafka_queue.RetryableMessage
+	for _, metricRow := range metricRows {
+		if !r.IsMetricIngested(ctx, metricRow) {
+			continue
+		}
+		messages = append(messages, &kafka_queue.OTeLMetricSumRow{
+			Type:         kafka_queue.PushOTeLMetricSum,
+			MetricSumRow: metricRow,
+		})
+	}
+	return r.MetricSumQueue.Submit(ctx, "", messages...)
+}
+
+func (r *Resolver) GetProjectMetricRetention(ctx context.Context, projectID int) uint8 {
+	data, err := redis.CachedEval(ctx, r.Redis, fmt.Sprintf("getProjectRetention-%d", projectID), time.Minute, time.Second, func() (*uint8, error) {
+		proj, err := r.Store.GetProject(ctx, projectID)
+		if err != nil {
+			return nil, err
+		}
+
+		ws, err := r.Store.GetWorkspace(ctx, proj.WorkspaceID)
+		if err != nil {
+			return nil, err
+		}
+
+		hours := time.Since(privateGraph.GetRetentionDate(ws.MetricsRetentionPeriod)).Hours()
+		days := math.Round(hours / 24.)
+		return ptr.Uint8(uint8(days)), nil
+	})
+	if err != nil || data == nil {
+		log.WithContext(ctx).WithError(err).Error("failed to getProjectRetention")
+		return 30
+	}
+	return *data
 }
 
 // If curTime is provided and the input is different by more than 2 hours,
@@ -3350,7 +3366,7 @@ func (r *Resolver) submitFrontendWebsocketMetric(sessionObj *model.Session, even
 		if err := json.Unmarshal([]byte(event.Message), &requestBody); event.Message != "" && err == nil {
 			attributes = append(attributes, attribute.String("ws.message.type", "json"))
 			for k, v := range requestBody {
-				for key, value := range hlog.FormatLogAttributes(k, v) {
+				for key, value := range hlog.FormatAttributes(k, v) {
 					if v != "" {
 						attributes = append(attributes, attribute.String(fmt.Sprintf("ws.json.%s", key), value))
 					}
@@ -3395,7 +3411,7 @@ func (r *Resolver) submitFrontendConsoleMessages(ctx context.Context, sessionObj
 			hlog.LogMessageKey.String(message),
 		}
 		for k, v := range row.Attributes {
-			for key, value := range hlog.FormatLogAttributes(k, v) {
+			for key, value := range hlog.FormatAttributes(k, v) {
 				if v != "" {
 					attrs = append(attrs, attribute.String(key, value))
 				}

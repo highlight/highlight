@@ -1,5 +1,68 @@
 # @highlight-run/next
 
+## 7.8.6
+
+### Patch Changes
+
+-   Updated dependencies [941ac5e]
+    -   highlight.run@9.11.0
+    -   @highlight-run/node@3.11.1
+    -   @highlight-run/react@12.0.0
+
+## 7.8.5
+
+### Patch Changes
+
+-   b4f7173: avoid recording proxied highlight next.js requests
+-   Updated dependencies [b4f7173]
+-   Updated dependencies [b4f7173]
+    -   highlight.run@9.10.0
+    -   @highlight-run/node@3.11.1
+    -   @highlight-run/react@11.0.0
+
+## 7.8.4
+
+### Patch Changes
+
+-   91f82fc: proxy otlp requests via the backend when nextjs proxying is set up
+-   Updated dependencies [91f82fc]
+    -   highlight.run@9.9.1
+    -   @highlight-run/node@3.11.1
+    -   @highlight-run/react@10.0.1
+
+## 7.8.3
+
+### Patch Changes
+
+-   Updated dependencies [ab181de]
+    -   highlight.run@9.9.0
+    -   @highlight-run/node@3.11.1
+    -   @highlight-run/react@10.0.0
+
+## 7.8.2
+
+### Patch Changes
+
+-   Updated dependencies [0fa5585]
+    -   highlight.run@9.8.0
+    -   @highlight-run/node@3.11.1
+    -   @highlight-run/react@9.0.0
+
+## 7.8.1
+
+### Patch Changes
+
+-   Updated dependencies [408abc7]
+    -   highlight.run@9.7.4
+    -   @highlight-run/node@3.11.1
+    -   @highlight-run/react@8.1.1
+
+## 7.8.0
+
+### Minor Changes
+
+-   0dfc3f2: automatically use /highlight-events proxy URL on the frontend when proxying is configured
+
 ## 7.7.0
 
 ### Minor Changes

@@ -1,18 +1,20 @@
 ---
-title: "Day 2: Our Command bar, setup flow, and design system specs"
-createdAt: 2023-04-18T12:00:00Z
+title: 'Day 2: Our Command bar, setup flow, and design system specs'
+createdAt: 2023-04-18T12:00:00.000Z
 readingTime: 6
 authorFirstName: Jay
 authorLastName: Khatri
-authorTitle: Co-founder, Hype-man & CEO 
+authorTitle: 'Co-founder, Hype-man & CEO'
 authorTwitter: 'https://twitter.com/theJayKhatri'
 authorLinkedIn: 'https://www.linkedin.com/in/jay-khatri/'
 authorGithub: ''
 authorWebsite: ''
-authorPFP: 'https://www.highlight.io/_next/image?url=https%3A%2F%2Fmedia.graphassets.com%2F2wDcc2CoTckAIZVup0NT&w=3840&q=75'
-image: 'https://www.highlight.io/_next/image?url=https%3A%2F%2Fmedia.graphassets.com%2FuoINZ0kXRI2foJbWRVdP&w=3840&q=75'
-tags: Launch Week 1
-metaTitle: "Day 2: Our Command bar, setup flow, and design system specs"
+authorPFP: >-
+  https://www.highlight.io/_next/image?url=https%3A%2F%2Fmedia.graphassets.com%2F2wDcc2CoTckAIZVup0NT&w=3840&q=75
+image: >-
+  https://www.highlight.io/_next/image?url=https%3A%2F%2Fmedia.graphassets.com%2FuoINZ0kXRI2foJbWRVdP&w=3840&q=75
+tags: 'Engineering, Product Updates'
+metaTitle: 'Day 2: Our Command bar, setup flow, and design system specs'
 ---
 
 For launch week day 2, we're showcasing a handful of UX-related features that we've been working on these past few months. Namely:

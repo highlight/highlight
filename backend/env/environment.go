@@ -45,6 +45,7 @@ type Configuration struct {
 	ClickhousePassword          string `mapstructure:"CLICKHOUSE_PASSWORD"`
 	ClickhouseTestDatabase      string `mapstructure:"CLICKHOUSE_TEST_DATABASE"`
 	ClickhouseUsername          string `mapstructure:"CLICKHOUSE_USERNAME"`
+	ClickhouseUsernameReadOnly  string `mapstructure:"CLICKHOUSE_USERNAME_READONLY"`
 	ConsumerFraction            string `mapstructure:"CONSUMER_SPAN_SAMPLING_FRACTION"`
 	DeleteSessionsArn           string `mapstructure:"DELETE_SESSIONS_ARN"`
 	DemoProjectID               string `mapstructure:"DEMO_PROJECT_ID"`

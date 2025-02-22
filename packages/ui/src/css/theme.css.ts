@@ -111,7 +111,7 @@ export const themeVars = createGlobalTheme('.highlight-light-theme', {
 			},
 			secondary: {
 				enabled: 'rgba(238, 237, 239, 0.0)',
-				hover: '#eeedef',
+				hover: 'rgba(22, 22, 24, 0.05)',
 				pressed: '#e9e8ea',
 				disabled: 'rgba(238, 237, 239, 0.0)',
 				selected: {

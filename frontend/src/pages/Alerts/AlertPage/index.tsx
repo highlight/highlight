@@ -41,13 +41,13 @@ import { AlertHeader } from './AlertHeader'
 import { AlertInfo } from './AlertInfo'
 import { AlertTable } from './AlertTable'
 import * as style from './styles.css'
-import SearchPagination from '@/components/SearchPagination/SearchPagination'
-import { NumberParam, useQueryParam, withDefault } from 'use-query-params'
+import SearchPagination, {
+	PAGE_PARAM,
+} from '@/components/SearchPagination/SearchPagination'
+import { useQueryParam } from 'use-query-params'
 import { useGraphTime } from '@/pages/Graphing/hooks/useGraphTime'
 
-const START_PAGE = 1
 const PAGE_SIZE = 10
-const PAGE_PARAM = withDefault(NumberParam, START_PAGE)
 
 export const AlertPage: React.FC = () => {
 	const { projectId } = useProjectId()

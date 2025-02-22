@@ -10,10 +10,12 @@ import { clamp, range } from '@util/numbers'
 import React, { useEffect, useMemo } from 'react'
 
 import * as style from './style.css'
+import { NumberParam, withDefault } from 'use-query-params'
 
 export const PAGE_SIZE = 10
 export const DEFAULT_SIBLING_COUNT = 2
 export const START_PAGE = 1
+export const PAGE_PARAM = withDefault(NumberParam, START_PAGE)
 
 const OPENSEARCH_MAX_RESULTS = 10000
 const MAX_PAGES = Math.floor(OPENSEARCH_MAX_RESULTS / PAGE_SIZE) - 1

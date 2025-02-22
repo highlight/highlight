@@ -67,7 +67,7 @@ export const FIREBASE_CALLBACK_ROUTE = '/auth/action'
 export const VERIFY_EMAIL_ROUTE = '/verify_email'
 export const ABOUT_YOU_ROUTE = '/about_you'
 export const INVITE_TEAM_ROUTE = '/invite_team'
-export const SETUP_ROUTE = '/setup'
+export const SETUP_ROUTE = '/connect'
 
 // DebugRoutes is a helper for debugging react router navigation.
 // Enable debug logging by setting the localStorage variable `highlight-verbose-logging-enabled` to true.

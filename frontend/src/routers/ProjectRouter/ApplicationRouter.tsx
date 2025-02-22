@@ -4,7 +4,7 @@ import LogAlertsRouter from '@pages/Alerts/LogAlert/LogAlertRouter'
 import ErrorsV2 from '@pages/ErrorsV2/ErrorsV2'
 import LogsPage from '@pages/LogsPage/LogsPage'
 import { PlayerPage } from '@pages/Player/PlayerPage'
-import { SetupRouter } from '@pages/Setup/SetupRouter/SetupRouter'
+import { ConnectRouter } from '@/pages/Connect/ConnectRouter'
 import React from 'react'
 import { Navigate, Route, Routes } from 'react-router-dom'
 
@@ -51,8 +51,7 @@ const ApplicationRouter: React.FC = () => {
 							path="alerts/logs/*"
 							element={<LogAlertsRouter />}
 						/>
-
-						<Route path="setup/*" element={<SetupRouter />} />
+						<Route path="connect/*" element={<ConnectRouter />} />
 						<Route
 							path="dashboards/*"
 							element={<DashboardRouter />}

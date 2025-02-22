@@ -1,5 +1,5 @@
 ---
-title: 'WebSocket Recording'
+title: WebSocket Recording
 createdAt: 2023-07-17T15:57:12.147Z
 readingTime: 5
 authorFirstName: Spencer
@@ -9,8 +9,9 @@ authorTwitter: 'https://twitter.com/SpennyNDaJets'
 authorLinkedIn: 'https://www.linkedin.com/in/spencer-amarantides/'
 authorGithub: 'https://github.com/SpennyNDaJets'
 authorWebsite: ''
-authorPFP: 'https://lh3.googleusercontent.com/a/AAcHTteOYM6knTAD-uOPM1JP56Yn4WlsGya6Dpnhq_ak6UJUY3Q=s576-c-no'
-tags: Developer Tooling, Launch Week 2
+authorPFP: >-
+  https://lh3.googleusercontent.com/a/AAcHTteOYM6knTAD-uOPM1JP56Yn4WlsGya6Dpnhq_ak6UJUY3Q=s576-c-no
+tags: 'Engineering, Product Updates'
 metaTitle: Session replay now supports recording WebSocket events
 ---
 
@@ -40,6 +41,6 @@ The `send`, `received`, and `error` events are stored in a different S3 file. Th
 
 ## Getting started
 
-Ready to get started with WebSockets? The good news is it is very simple - starting in Highlight version `7.3.0`, apps that have set `networkRecording.recordHeadersAndBody` to `true` will start recording WebSocket traffic as well. If you want to disable recording WebSocket events, then you can set `networkRecording.disableWebSocketEventRecordings` to `true`, which will not affect the recordings of your other network requests. More information can be found in the docs: [Recording WebSocket Events](https://www.highlight.io/docs/getting-started/client-sdk/replay-configuration/recording-web-socket-events).
+Ready to get started with WebSockets? The good news is it is very simple - starting in Highlight version `7.3.0`, apps that have set `networkRecording.recordHeadersAndBody` to `true` will start recording WebSocket traffic as well. If you want to disable recording WebSocket events, then you can set `networkRecording.disableWebSocketEventRecordings` to `true`, which will not affect the recordings of your other network requests. More information can be found in the docs: [Recording WebSocket Events](https://www.highlight.io/docs/getting-started/browser/replay-configuration/recording-web-socket-events).
 
-Thanks for reading and stay tuned to everything we're announcing as part of [launch week](https://highlight.io/launch-week)!
+Thanks for reading and stay tuned to everything we're announcing as part of [launch week](https://highlight.io/launch-week-day-1)!

@@ -3,7 +3,7 @@ import 'fs'
 import Image from 'next/image'
 import { NextRequest, URLPattern } from 'next/server'
 import { withEdgeRouterHighlight } from '../../../../highlight.edge.config'
-import { bug1, bug2, font, fontLight, logoOnDark } from '../util'
+import { getResources } from '../util'
 
 export const config = {
 	runtime: 'edge',
@@ -12,26 +12,17 @@ export const config = {
 // Used for generating og images for docs pages. Example usage:
 // https://highlight.io/api/og/doc/docs/getting-started/introduction/test
 const handler = withEdgeRouterHighlight(async function (req: NextRequest) {
-	const fontData = await font
-	const fontLightData = await fontLight
-	const logoData = await logoOnDark
-	const logoBase64 = btoa(
-		new Uint8Array(logoData).reduce(function (p, c) {
-			return p + String.fromCharCode(c)
-		}, ''),
-	)
-	const bug1Data = await bug1
-	const bug1Base64 = btoa(
-		new Uint8Array(bug1Data).reduce(function (p, c) {
-			return p + String.fromCharCode(c)
-		}, ''),
-	)
-	const bug2Data = await bug2
-	const bug2Base64 = btoa(
-		new Uint8Array(bug2Data).reduce(function (p, c) {
-			return p + String.fromCharCode(c)
-		}, ''),
-	)
+	const { font, fontLight, logoOnDark, bug1, bug2 } = await getResources(req)
+
+	const logoBase64 = new Uint8Array(logoOnDark).reduce(function (p, c) {
+		return p + String.fromCharCode(c)
+	}, '')
+	const bug1Base64 = new Uint8Array(bug1).reduce(function (p, c) {
+		return p + String.fromCharCode(c)
+	}, '')
+	const bug2Base64 = new Uint8Array(bug2).reduce(function (p, c) {
+		return p + String.fromCharCode(c)
+	}, '')
 	const docPath = new URLPattern({ pathname: '/api/og/doc/:doc*' }).exec(
 		req.url,
 	)?.pathname.groups.doc
@@ -140,13 +131,13 @@ const handler = withEdgeRouterHighlight(async function (req: NextRequest) {
 			fonts: [
 				{
 					name: 'Poppins',
-					data: fontData,
+					data: font,
 					weight: 600,
 					style: 'normal',
 				},
 				{
 					name: 'PoppinsLight',
-					data: fontLightData,
+					data: fontLight,
 					weight: 400,
 					style: 'normal',
 				},

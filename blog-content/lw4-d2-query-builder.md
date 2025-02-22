@@ -1,6 +1,6 @@
 ---
-title: "Day 2: Supercharging the Highlight Query Builder"
-createdAt: 2024-01-30T12:00:00Z
+title: 'Day 2: Supercharging the Highlight Query Builder'
+createdAt: 2024-01-30T12:00:00.000Z
 readingTime: 3
 authorFirstName: Chris
 authorLastName: Esplin
@@ -9,10 +9,10 @@ authorTwitter: 'https://twitter.com/chrisesplin'
 authorLinkedIn: 'https://www.linkedin.com/in/epsilon/'
 authorGithub: 'https://github.com/deltaepsilon'
 authorWebsite: 'https://www.chrisesplin.com/'
-authorPFP: '/images/blog/podcast/avatars/esplin.jpeg'
-image: '/images/blog/launch-week/4/d2-splash.png'
-tags: Launch Week 4
-metaTitle: "Day 2: Supercharging the Highlight Query Builder"
+authorPFP: /images/blog/podcast/avatars/esplin.jpeg
+image: /images/blog/launch-week/4/d2-splash.png
+tags: Product Updates
+metaTitle: 'Day 2: Supercharging the Highlight Query Builder'
 ---
 
 ## Parsing Biggish Data

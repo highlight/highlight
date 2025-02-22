@@ -1,4 +1,3 @@
-import { siteUrl } from '../../../../utils/urls'
 import { QuickStartContent } from '../../QuickstartContent'
 import { tsconfig } from '../../shared-snippets'
 import { frontendInstallSnippet } from '../shared-snippets'
@@ -12,7 +11,6 @@ import {
 export const JSCloudflareContent: QuickStartContent = {
 	title: 'Cloudflare Workers',
 	subtitle: 'Learn how to set up highlight.io in Cloudflare Workers.',
-	logoUrl: siteUrl('/images/quickstart/cloudflare.svg'),
 	entries: [
 		frontendInstallSnippet,
 		jsGetSnippet(['cloudflare']),

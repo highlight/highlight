@@ -1,4 +1,3 @@
-import { siteUrl } from '../../../../utils/urls'
 import { goGetSnippet, initializeGoSdk } from '../../backend/go/shared-snippets'
 import { QuickStartContent } from '../../QuickstartContent'
 import { verifyTraces } from '../shared-snippets'
@@ -7,7 +6,6 @@ export const GoTracesContent: QuickStartContent = {
 	title: 'Tracing from a Go App',
 	subtitle:
 		'Learn how to set up highlight.io tracing for your Go application.',
-	logoUrl: siteUrl('/images/quickstart/go.svg'),
 	entries: [
 		goGetSnippet,
 		initializeGoSdk,

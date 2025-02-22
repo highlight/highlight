@@ -446,43 +446,40 @@ h3.blogText {
 }
 
 h1.blogText {
-	// actually an h2 from globals.scss
 	font-size: 58px;
 	line-height: 76px !important;
 	letter-spacing: -0.5px;
 }
 
 h2.blogText {
-	// actually an h5 from globals.scss
 	font-size: 26px;
 	line-height: 40px !important;
 	font-weight: 600 !important;
 }
 
 h3.blogText {
-	// actually an h6 from globals.scss
 	font-size: 22px;
+	line-height: 34px !important;
+	font-weight: 600 !important;
+}
+
+h4.blogText {
+	font-size: 18px;
+	line-height: 34px !important;
+	font-weight: 600 !important;
+}
+
+h5.blogText {
+	font-size: 16px;
 	line-height: 34px !important;
 	font-weight: 600 !important;
 }
 
 @media screen and (max-width: 600px) {
 	h1.blogText {
-		font-size: var(--size-xLarge);
+		font-size: 32px;
 		line-height: 40px !important;
 		letter-spacing: 0;
-	}
-
-	h2.blogText {
-		font-size: 18px;
-		line-height: 34px !important;
-		font-weight: 600 !important;
-	}
-
-	h3.blogText {
-		font-size: 16px;
-		line-height: 30px !important;
-		font-weight: 600 !important;
 	}
 }
 

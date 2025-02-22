@@ -71,23 +71,35 @@ func NewSearchListener(sqlBuilder *sqlbuilder.SelectBuilder, tableConfig model.T
 	}
 }
 
-func (s *SearchListener) getAttributeFilterExpr(op Operator, value any) sqlbuilder.Builder {
+type attributeFilterType = string
+
+var attributeFilterTypeValue = "value"
+var attributeFilterTypeMap = "map"
+var attributeFilterTypeArray = "array"
+
+func getAttributeFilterExpr(key string, filterType attributeFilterType, col string, op Operator, value any) sqlbuilder.Builder {
 	var prefix, postfix string
 	if op == OperatorGreaterThan || op == OperatorGreaterThanOrEqualTo ||
 		op == OperatorLessThan || op == OperatorLessThanOrEqualTo {
 		prefix = "toFloat64OrNull("
 		postfix = ")"
 	}
-	attributesColumn := model.GetAttributesColumn(s.attributesColumns, s.currentKey)
-	if s.attributesList {
+	if filterType == attributeFilterTypeMap {
 		// For NOT EXISTS queries, return true if there is no matching key in the array.
 		if value == "" {
-			return sqlbuilder.Buildf(fmt.Sprintf("empty(arrayFilter((k, v) -> k = %%s, %s))", attributesColumn), s.currentKey)
+			return sqlbuilder.Buildf(fmt.Sprintf("empty(arrayFilter((k, v) -> k = %%s, %s))", col), key)
 		} else {
-			return sqlbuilder.Buildf(fmt.Sprintf("notEmpty(arrayFilter((k, v) -> k = %%s AND %sv%s %s %%s, %s))", prefix, postfix, op, attributesColumn), s.currentKey, value)
+			return sqlbuilder.Buildf(fmt.Sprintf("notEmpty(arrayFilter((k, v) -> k = %%s AND %sv%s %s %%s, %s))", prefix, postfix, op, col), key, value)
+		}
+	} else if filterType == attributeFilterTypeArray {
+		// For NOT EXISTS queries, return true if there is no matching key in the array.
+		if value == "" {
+			return sqlbuilder.Buildf(fmt.Sprintf("empty(arrayFilter((v) -> v != '', %s))", col))
+		} else {
+			return sqlbuilder.Buildf(fmt.Sprintf("notEmpty(arrayFilter((v) -> %sv%s %s %%s, %s))", prefix, postfix, op, col), value)
 		}
 	}
-	return sqlbuilder.Buildf(prefix+attributesColumn+fmt.Sprintf("[%%s]%s %s %%s", postfix, op), s.currentKey, value)
+	return sqlbuilder.Buildf(prefix+col+fmt.Sprintf("[%%s]%s %s %%s", postfix, op), key, value)
 }
 
 func (s *SearchListener) EnterSearch_query(ctx *parser.Search_queryContext) {}
@@ -289,7 +301,7 @@ func (s *SearchListener) ExitEveryRule(ctx antlr.ParserRuleContext)  {}
 
 func (s *SearchListener) appendRules(value string) {
 	if s.tableConfig.IgnoredFilters != nil && s.tableConfig.IgnoredFilters[s.currentKey] {
-		s.IgnoredFilters[s.currentKey] = string(value)
+		s.IgnoredFilters[s.currentKey] = value
 		return
 	}
 	// Quotes are sometimes escaped on the client and need to be unescaped before
@@ -332,12 +344,20 @@ func (s *SearchListener) appendRules(value string) {
 	}
 
 	attributesColumn := model.GetAttributesColumn(s.attributesColumns, s.currentKey)
+	filterType := attributeFilterTypeValue
+	if isArray := s.tableConfig.ArrayColumns[filterKey]; isArray {
+		extendedAttributeKey = true
+		attributesColumn = filterKey
+		filterType = attributeFilterTypeArray
+	} else if s.attributesList {
+		filterType = attributeFilterTypeMap
+	}
 
 	if s.currentOp == ":" || s.currentOp == "=" || s.currentOp == "!=" {
 		if strings.HasPrefix(value, "/") && strings.HasSuffix(value, "/") {
 			value = strings.Trim(value, "/")
 			if extendedAttributeKey {
-				s.rules = append(s.rules, s.sb.Var(s.getAttributeFilterExpr(OperatorRegExp, value)))
+				s.rules = append(s.rules, s.sb.Var(getAttributeFilterExpr(s.currentKey, filterType, attributesColumn, OperatorRegExp, value)))
 				s.ops = append(s.ops, &FilterOperation{
 					Key:      s.currentKey,
 					Column:   attributesColumn,
@@ -356,7 +376,7 @@ func (s *SearchListener) appendRules(value string) {
 			value = wildcardValue(value)
 
 			if extendedAttributeKey {
-				s.rules = append(s.rules, s.sb.Var(s.getAttributeFilterExpr(OperatorILike, value)))
+				s.rules = append(s.rules, s.sb.Var(getAttributeFilterExpr(s.currentKey, filterType, attributesColumn, OperatorILike, value)))
 				s.ops = append(s.ops, &FilterOperation{
 					Key:      s.currentKey,
 					Column:   attributesColumn,
@@ -373,7 +393,7 @@ func (s *SearchListener) appendRules(value string) {
 			}
 		} else {
 			if extendedAttributeKey {
-				s.rules = append(s.rules, s.sb.Var(s.getAttributeFilterExpr(OperatorEqual, value)))
+				s.rules = append(s.rules, s.sb.Var(getAttributeFilterExpr(s.currentKey, filterType, attributesColumn, OperatorEqual, value)))
 				s.ops = append(s.ops, &FilterOperation{
 					Key:      s.currentKey,
 					Column:   attributesColumn,
@@ -392,7 +412,7 @@ func (s *SearchListener) appendRules(value string) {
 	} else if s.currentOp == ">" {
 		numValue := NumericValue(value, filterKey)
 		if extendedAttributeKey {
-			s.rules = append(s.rules, s.sb.Var(s.getAttributeFilterExpr(OperatorGreaterThan, numValue)))
+			s.rules = append(s.rules, s.sb.Var(getAttributeFilterExpr(s.currentKey, filterType, attributesColumn, OperatorGreaterThan, numValue)))
 			s.ops = append(s.ops, &FilterOperation{
 				Key:      s.currentKey,
 				Column:   attributesColumn,
@@ -410,7 +430,7 @@ func (s *SearchListener) appendRules(value string) {
 	} else if s.currentOp == ">=" {
 		numValue := NumericValue(value, filterKey)
 		if extendedAttributeKey {
-			s.rules = append(s.rules, s.sb.Var(s.getAttributeFilterExpr(OperatorGreaterThanOrEqualTo, numValue)))
+			s.rules = append(s.rules, s.sb.Var(getAttributeFilterExpr(s.currentKey, filterType, attributesColumn, OperatorGreaterThanOrEqualTo, numValue)))
 			s.ops = append(s.ops, &FilterOperation{
 				Key:      s.currentKey,
 				Column:   attributesColumn,
@@ -428,7 +448,7 @@ func (s *SearchListener) appendRules(value string) {
 	} else if s.currentOp == "<" {
 		numValue := NumericValue(value, filterKey)
 		if extendedAttributeKey {
-			s.rules = append(s.rules, s.sb.Var(s.getAttributeFilterExpr(OperatorLessThan, numValue)))
+			s.rules = append(s.rules, s.sb.Var(getAttributeFilterExpr(s.currentKey, filterType, attributesColumn, OperatorLessThan, numValue)))
 			s.ops = append(s.ops, &FilterOperation{
 				Key:      s.currentKey,
 				Column:   attributesColumn,
@@ -446,7 +466,7 @@ func (s *SearchListener) appendRules(value string) {
 	} else if s.currentOp == "<=" {
 		numValue := NumericValue(value, filterKey)
 		if extendedAttributeKey {
-			s.rules = append(s.rules, s.sb.Var(s.getAttributeFilterExpr(OperatorLessThanOrEqualTo, numValue)))
+			s.rules = append(s.rules, s.sb.Var(getAttributeFilterExpr(s.currentKey, filterType, attributesColumn, OperatorLessThanOrEqualTo, numValue)))
 			s.ops = append(s.ops, &FilterOperation{
 				Key:      s.currentKey,
 				Column:   attributesColumn,

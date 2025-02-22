@@ -14,7 +14,7 @@ The graph editor allows you to choose how you query and aggregate data and how y
 ## Graphing fields
 
 Within the graph editor, the available fields are:
-- **Metric view title**: this is a title shown at the top of each graph.
+- **Graph title**: this is a title shown at the top of each graph.
 - **Source**: this is the resource being queried corresponding to each different highlight.io resource - one of "logs", "traces", "sessions", "errors", or "events".
   - **events**: these are clicks, navigation actions, and custom events sent from the session to be queried. Unique users can be determined by grouping by "identifier" while unique sessions can be determined by grouping by "secure_session_id".
 - **View type**: this is the general type of the graph shown - one of "Line chart", "Bar chart / histogram", "Table". Depending on your selection, "display" and "null" settings can help you fine-tune how this data is shown.

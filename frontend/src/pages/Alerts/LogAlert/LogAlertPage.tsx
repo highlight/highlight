@@ -19,7 +19,7 @@ import {
 	IconSolidCheveronDown,
 	IconSolidCheveronRight,
 	IconSolidCheveronUp,
-	IconSolidSpeakerphone,
+	IconSolidBell,
 	Menu,
 	presetStartDate,
 	Stack,
@@ -391,9 +391,7 @@ export const LogAlertPage = () => {
 													size="medium"
 													shape="basic"
 													emphasis="high"
-													iconLeft={
-														<IconSolidSpeakerphone />
-													}
+													iconLeft={<IconSolidBell />}
 													onClick={() => {
 														navigate(
 															`/${project_id}/alerts`,

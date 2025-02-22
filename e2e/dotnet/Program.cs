@@ -14,13 +14,13 @@ builder.Services
     .AddHighlightInstrumentation(options => {
         options.ProjectId = "1";
         options.ServiceName = serviceName;
-        options.OtlpEndpoint = "http://localhost:4318";
+        options.OtlpEndpoint = new Uri("http://localhost:4317");
     });
 builder.Logging
     .AddHighlightInstrumentation(options => {
         options.ProjectId = "1";
         options.ServiceName = serviceName;
-        options.OtlpEndpoint = "http://localhost:4318";
+        options.OtlpEndpoint = new Uri("http://localhost:4317");
     });
 Log.Logger = new LoggerConfiguration()
     .Enrich.WithHighlight()
@@ -29,7 +29,7 @@ Log.Logger = new LoggerConfiguration()
                      {
                          options.ProjectId = "1";
                          options.ServiceName = serviceName;
-                         options.OtlpEndpoint = "http://localhost:4318";
+                         options.OtlpEndpoint = new Uri("http://localhost:4317");
                      })
     .CreateLogger();
 

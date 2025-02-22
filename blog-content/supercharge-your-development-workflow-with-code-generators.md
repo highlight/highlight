@@ -1,16 +1,17 @@
 ---
 title: Supercharge Your Development Workflow with Code Generators
-createdAt: 2023-10-16T14:00:00Z
+createdAt: 2023-10-16T14:00:00.000Z
 readingTime: 4
 authorFirstName: Chris
 authorLastName: Schmitz
 authorTitle: Software Engineer @ Highlight
-authorTwitter: https://twitter.com/ccschmitz
-authorLinkedIn: https://www.linkedin.com/in/ccschmitz
-authorGithub: https://github.com/ccschmitz
-authorPFP: https://lh3.googleusercontent.com/a/AAcHTtfrxn85G2VSnWbmri-9snJCI7Roa1tJ0UOR6k2F=s96-c
+authorTwitter: 'https://twitter.com/ccschmitz'
+authorLinkedIn: 'https://www.linkedin.com/in/ccschmitz'
+authorGithub: 'https://github.com/ccschmitz'
+authorPFP: >-
+  https://lh3.googleusercontent.com/a/AAcHTtfrxn85G2VSnWbmri-9snJCI7Roa1tJ0UOR6k2F=s96-c
 authorWebsite: ''
-tags: Highlight Engineering, Developer Tooling
+tags: Engineering
 metaTitle: Supercharge Your Development Workflow with Code Generators
 ---
 

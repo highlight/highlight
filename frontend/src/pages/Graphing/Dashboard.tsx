@@ -33,7 +33,7 @@ import {
 } from '@highlight-run/ui/components'
 import { vars } from '@highlight-run/ui/vars'
 import clsx from 'clsx'
-import { useCallback, useEffect, useId, useState } from 'react'
+import { useCallback, useEffect, useId, useMemo, useState } from 'react'
 import { Helmet } from 'react-helmet'
 import { Link, useNavigate } from 'react-router-dom'
 
@@ -112,6 +112,11 @@ const DashboardCell = ({
 		g.nullHandling ?? undefined,
 	)
 
+	const funnelSteps = useMemo(
+		() => (g.funnelSteps ?? []).map(loadFunnelStep),
+		[g.funnelSteps],
+	)
+
 	return (
 		<DashboardCard
 			id={g.id}
@@ -184,10 +189,10 @@ const DashboardCell = ({
 								},
 							})
 								.then(() => {
-									toast.success(`Metric view cloned`)
+									toast.success(`Graph cloned`)
 								})
 								.catch(() => {
-									toast.error('Failed to clone metric view')
+									toast.error('Failed to clone graph')
 								})
 						}
 			}
@@ -226,11 +231,9 @@ const DashboardCell = ({
 									})
 								},
 							})
-								.then(() =>
-									toast.success('Metric view deleted'),
-								)
+								.then(() => toast.success('Graph deleted'))
 								.catch(() =>
-									toast.error('Failed to delete metric view'),
+									toast.error('Failed to delete graph'),
 								)
 						}
 			}
@@ -265,6 +268,7 @@ const DashboardCell = ({
 				startDate={startDate}
 				endDate={endDate}
 				query={g.query}
+				sql={g.sql ?? undefined}
 				expressions={g.expressions}
 				bucketByKey={g.bucketByKey ?? undefined}
 				bucketByWindow={g.bucketInterval ?? undefined}
@@ -273,7 +277,7 @@ const DashboardCell = ({
 				limit={g.limit ?? undefined}
 				limitFunctionType={g.limitFunctionType ?? undefined}
 				limitMetric={g.limitMetric ?? undefined}
-				funnelSteps={(g.funnelSteps ?? []).map(loadFunnelStep)}
+				funnelSteps={funnelSteps}
 				setTimeRange={updateSearchTime}
 				variables={values}
 				height={280}

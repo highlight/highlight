@@ -113,8 +113,6 @@ const options: HighlightOptions = {
 		canvasFactor: 0.5,
 		canvasMaxSnapshotDimension: 480,
 	},
-	inlineStylesheet: true,
-	inlineImages: true,
 	sessionShortcut: 'alt+1,command+`,alt+esc',
 	version: import.meta.env.REACT_APP_COMMIT_SHA ?? '1.0.0',
 	serviceName: 'frontend',

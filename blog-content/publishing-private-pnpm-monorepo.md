@@ -1,16 +1,17 @@
 ---
 title: Publishing an NPM Package with Private pnpm Monorepo Dependencies
-createdAt: 2023-01-27T12:00:00Z
+createdAt: 2023-01-27T12:00:00.000Z
 readingTime: 13
 authorFirstName: Vadim
 authorLastName: Korolik
-authorTitle: Software Engineer @ Highlight 
+authorTitle: Software Engineer @ Highlight
 authorTwitter: 'https://twitter.com/vkorolik'
 authorLinkedIn: 'https://www.linkedin.com/in/vkorolik/'
 authorGithub: 'https://github.com/Vadman97'
 authorWebsite: 'https://vadweb.us'
-authorPFP: 'https://lh3.googleusercontent.com/a-/AOh14Gh1k7XsVMGxHMLJZ7qesyddqn1y4EKjfbodEYiY=s96-c'
-tags: Developer Tooling, Highlight Engineering
+authorPFP: >-
+  https://lh3.googleusercontent.com/a-/AOh14Gh1k7XsVMGxHMLJZ7qesyddqn1y4EKjfbodEYiY=s96-c
+tags: Engineering
 metaTitle: Publishing an NPM Package with Private pnpm Monorepo Dependencies
 ---
 
@@ -83,7 +84,7 @@ Yarn knows that `highlight.run` exists under `sdk/...` because that directory is
 
 ### Publishing an NPM package with workspace dependencies
 
-That setup sounded simple, right? Just write JS/TS, reference other local packages as you would if they were imported from npm, and you can publish your library. There's a bit of a catch here though: our `highlght.run` library uses our internal `client` typescript package that isn't public. While we want to publish `highlight.run` to npm, we **don't** want to publish the `client` library. Though `highlight.run` references typescript type definitions from `client`, we also don't want to bundle most of the code into `highlight.run` as that would increase the bundle size (instead we have `highlight.run` inject `client` as a deffered `<script>` tag at browser runtime; see more as to why in our [performance docs](https://www.highlight.io/docs/tips/performance-impact "https://www.highlight.io/docs/tips/performance-impact")).
+That setup sounded simple, right? Just write JS/TS, reference other local packages as you would if they were imported from npm, and you can publish your library. There's a bit of a catch here though: our `highlght.run` library uses our internal `client` typescript package that isn't public. While we want to publish `highlight.run` to npm, we **don't** want to publish the `client` library. Though `highlight.run` references typescript type definitions from `client`, we also don't want to bundle most of the code into `highlight.run` as that would increase the bundle size (instead we have `highlight.run` inject `client` as a deffered `<script>` tag at browser runtime; see more as to why in our [performance docs](https://www.highlight.io/docs/general/product-features/session-replay/performance-impact "https://www.highlight.io/docs/general/product-features/session-replay/performance-impact")).
 
 Just like with the `frontend` usage of `highlight.run`, we started with having `highlight.run` import from `client` by referencing the `package.json` name of `@highlight-run/client`. This successfully worked in development as the reference could be resolved, but when we built `highlight.run` for production, the bundle contained references to `@highlight-run/client` which could not be resolved in our customers' environments since it was not a published package.
 

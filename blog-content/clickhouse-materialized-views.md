@@ -1,16 +1,17 @@
 ---
-title: 'Using Materialized Views in ClickHouse (vs. Postgres)'
+title: Using Materialized Views in ClickHouse (vs. Postgres)
 createdAt: 2024-01-23T00:00:00.000Z
 readingTime: 9
 authorFirstName: Vadim
 authorLastName: Korolik
-authorTitle: CTO @ Highlight 
+authorTitle: CTO @ Highlight
 authorTwitter: ''
 authorWebsite: ''
 authorLinkedIn: 'https://www.linkedin.com/in/vkorolik/'
 authorGithub: 'https://github.com/Vadman97'
-authorPFP: 'https://www.highlight.io/_next/image?url=https%3A%2F%2Flh3.googleusercontent.com%2Fa-%2FAOh14Gh1k7XsVMGxHMLJZ7qesyddqn1y4EKjfbodEYiY%3Ds96-c&w=3840&q=75'
-tags: Launch Week 4
+authorPFP: >-
+  https://www.highlight.io/_next/image?url=https%3A%2F%2Flh3.googleusercontent.com%2Fa-%2FAOh14Gh1k7XsVMGxHMLJZ7qesyddqn1y4EKjfbodEYiY%3Ds96-c&w=3840&q=75
+tags: Product Updates
 ---
 
 ```hint

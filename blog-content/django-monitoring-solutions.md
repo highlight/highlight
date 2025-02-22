@@ -1,16 +1,17 @@
 ---
 title: 'Real-time Monitoring in Django: Essential Tools and Techniques'
-createdAt: 2024-03-14T15:14:15Z
+createdAt: 2024-03-14T15:14:15.000Z
 readingTime: 4
 authorFirstName: Vadim
 authorLastName: Korolik
-authorTitle: CTO @ Highlight 
+authorTitle: CTO @ Highlight
 authorTwitter: 'https://twitter.com/vkorolik'
 authorLinkedIn: 'https://www.linkedin.com/in/vkorolik/'
 authorGithub: 'https://github.com/Vadman97'
 authorWebsite: 'https://vadweb.us'
-authorPFP: 'https://lh3.googleusercontent.com/a-/AOh14Gh1k7XsVMGxHMLJZ7qesyddqn1y4EKjfbodEYiY=s96-c'
-tags: 'Developer Tooling, Monitoring, Observability'
+authorPFP: >-
+  https://lh3.googleusercontent.com/a-/AOh14Gh1k7XsVMGxHMLJZ7qesyddqn1y4EKjfbodEYiY=s96-c
+tags: 'Engineering, Observability'
 metaTitle: 'Real-time Monitoring in Django: Essential Tools and Techniques'
 ---
 

@@ -1,6 +1,6 @@
 ---
 title: Monitoring Browser Applications with OpenTelemetry
-createdAt: 2024-08-27T22:00:00Z
+createdAt: 2024-08-27T22:00:00.000Z
 readingTime: 5
 authorFirstName: Chris
 authorLastName: Schmitz
@@ -9,9 +9,10 @@ authorTwitter: 'https://twitter.com/ccschmitz'
 authorLinkedIn: 'https://www.linkedin.com/in/ccschmitz'
 authorGithub: 'https://github.com/ccschmitz'
 authorWebsite: ''
-authorPFP: 'https://www.highlight.io/_next/image?url=https%3A%2F%2Fmedia.graphassets.com%2FViK27IG7TCe0YDK20tFy&w=3840&q=75'
-tags: OpenTelemetry, Developer Tooling
-metaTitle:
+authorPFP: >-
+  https://www.highlight.io/_next/image?url=https%3A%2F%2Fmedia.graphassets.com%2FViK27IG7TCe0YDK20tFy&w=3840&q=75
+tags: 'Frontend, Observability, OpenTelemetry'
+metaTitle: null
 ---
 
 Many development teams leverage [OpenTelemetry](https://opentelemetry.io/) (OTeL) on the server side to collect [signals](https://opentelemetry.io/docs/concepts/signals/) such as logs, traces, and metrics from their applications. However, what's often overlooked is the power of OTeL's browser instrumentation. This client-side observability data can provide meaningful insights and create a comprehensive view of an application's performance by connecting traces between the client and server.
@@ -20,7 +21,7 @@ Many development teams leverage [OpenTelemetry](https://opentelemetry.io/) (OTeL
 
 OpenTelemetry is a collection of tools, APIs, and SDKs used to instrument, generate, collect, and export telemetry data (metrics, logs, and traces) for analysis in order to understand your software's performance and behavior.
 
-If you're interested in a deeper dive on OTeL, check out our recent article: [What is OpenTelemetry and Why Should I Care?](https://highlight.io/blog/what-is-opentelemetry.md).
+If you're interested in a deeper dive on OTeL, check out our recent article: [What is OpenTelemetry and Why Should I Care?](https://highlight.io/blog/what-is-opentelemetry).
 
 ## OpenTelemetry in Browser Applications
 
@@ -92,7 +93,7 @@ Here is an example of what the meta tag looks like in the browser:
 >
 ```
 
-Note that the Highlight server SDKs often have helpers to create this tag. Here's an example using the [Highlight Ruby SDK](https://www.highlight.io/docs/getting-started/backend-sdk/ruby/rails)
+Note that the Highlight server SDKs often have helpers to create this tag. Here's an example using the [Highlight Ruby SDK](https://www.highlight.io/docs/getting-started/server/ruby/rails)
 
 ```rb
 <%= highlight_traceparent_meta %>

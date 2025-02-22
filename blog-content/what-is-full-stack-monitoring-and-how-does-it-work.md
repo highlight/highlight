@@ -1,6 +1,6 @@
 ---
-title: "What Is Full Stack Monitoring and How Does It Work?"
-createdAt: 2022-09-01T12:00:00Z
+title: What Is Full Stack Monitoring and How Does It Work?
+createdAt: 2022-09-01T12:00:00.000Z
 readingTime: 12
 authorFirstName: Haroon
 authorLastName: Choudery
@@ -9,10 +9,12 @@ authorTwitter: 'https://twitter.com/haroonchoudery'
 authorLinkedIn: 'https://linkedin.com/in/haroonchoudery'
 authorGithub: ''
 authorWebsite: ''
-authorPFP: 'https://www.highlight.io/_next/image?url=https%3A%2F%2Fmedia.graphassets.com%2FfKKhW39R0SE2hTIalLzG&w=1920&q=75'
-image: 'https://www.highlight.io/_next/image?url=https%3A%2F%2Fmedia.graphassets.com%2FFzuqrVP7QHutj0VgCvjz&w=3840&q=75'
-tags: 
-metaTitle: "What Is Full Stack Monitoring and How Does It Work?"
+authorPFP: >-
+  https://www.highlight.io/_next/image?url=https%3A%2F%2Fmedia.graphassets.com%2FfKKhW39R0SE2hTIalLzG&w=1920&q=75
+image: >-
+  https://www.highlight.io/_next/image?url=https%3A%2F%2Fmedia.graphassets.com%2FFzuqrVP7QHutj0VgCvjz&w=3840&q=75
+tags: Observability
+metaTitle: What Is Full Stack Monitoring and How Does It Work?
 ---
 
 For frontend developers, building cool apps for the web is fun. At least, that’s the case most of the time. Imagine a scenario where you’ve fleshed out your reusable components and written unit or integration tests that passed successfully. But, suddenly, your website is down. While writing tests is a good software development practice designed to help you find bugs in your web app, it doesn’t eliminate bugs completely.
@@ -93,4 +95,4 @@ With Pingdom’s uptime monitoring view, you can find out how long it takes for 
 
 Sorting messy and unstructured logs to troubleshoot errors can be overwhelming. But now that we’ve reviewed frontend monitoring tools to gain greater visibility into your web application’s client-side systems, you can free up resources to build rather than scrambling around to fix issues.
 
-Highlight can help provide you with the insight you need to fix bugs in real-time. So, feel free to explore [what we do and how we do it](https://app.highlight.run/?sign_up=1 "https://app.highlight.run/?sign_up=1").
+Highlight can help provide you with the insight you need to fix bugs in real-time. So, feel free to explore [what we do and how we do it](https://app.highlight.io).

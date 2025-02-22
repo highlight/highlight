@@ -46,12 +46,14 @@ func AddPredictions(ctx context.Context, metricBuckets []*modelInputs.MetricBuck
 		y := map[uint64]float64{}
 		ds := map[uint64]string{}
 		for _, b := range buckets {
-			var value float64
-			if b.MetricValue != nil {
+			var value, max, min float64
+			if b.MetricValue != nil && b.BucketMax != nil && b.BucketMin != nil {
 				value = *b.MetricValue
+				max = *b.BucketMax
+				min = *b.BucketMin
 			}
 			y[b.BucketID] = value
-			ds[b.BucketID] = time.Unix(int64((b.BucketMax+b.BucketMin)/2), 0).Format("2006-01-02T15:04:05")
+			ds[b.BucketID] = time.Unix(int64((max+min)/2), 0).Format("2006-01-02T15:04:05")
 		}
 
 		marshaled, err := json.Marshal(PredictionInput{

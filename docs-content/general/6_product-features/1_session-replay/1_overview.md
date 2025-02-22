@@ -51,7 +51,7 @@ Read more about the features we support in Session Replay below:
     <DocsCard title="Performance Impact."  href="./performance-impact.md">
         {"The performance impact of the highlight.io snippet."}
     </DocsCard>
-    <DocsCard title="Privacy & Redaction."  href="../../../getting-started/3_client-sdk/7_replay-configuration/privacy.md">
+    <DocsCard title="Privacy & Redaction."  href="../../../getting-started/3_browser/7_replay-configuration/privacy.md">
         {"Options to redact specific data being recorded in your frontend."}
     </DocsCard>
     <DocsCard title="Rage Clicks."  href="./rage-clicks.md">
@@ -63,7 +63,7 @@ Read more about the features we support in Session Replay below:
     <DocsCard title="Session Search Deep Linking."  href="./session-search.md">
         {"The URL Schema we use for deep linking sessions."}
     </DocsCard>
-    <DocsCard title="Disable Session Caching"  href="./session-caching">
+    <DocsCard title="Player Session Caching"  href="./player-session-caching.md">
         {"For highlight.io power users, we support disabling session caching to reduce memory usage."}
     </DocsCard>
 </DocsCardGroup>

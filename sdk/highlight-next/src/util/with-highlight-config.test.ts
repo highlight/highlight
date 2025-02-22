@@ -8,6 +8,18 @@ describe('withHighlightConfig', () => {
 			destination: 'https://pub.highlight.io',
 			source: '/highlight-events',
 		},
+		{
+			destination: 'https://otel.highlight.io/v1/traces',
+			source: '/v1/traces',
+		},
+		{
+			destination: 'https://otel.highlight.io/v1/metrics',
+			source: '/v1/metrics',
+		},
+		{
+			destination: 'https://otel.highlight.io/v1/logs',
+			source: '/v1/logs',
+		},
 	]
 
 	it('creates new rewrites if none exist', async () => {

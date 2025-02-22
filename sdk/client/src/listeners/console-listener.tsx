@@ -1,7 +1,8 @@
-import ErrorStackParser from 'error-stack-parser'
+import type { StackFrame } from 'error-stack-parser'
 import { ConsoleMethods } from '../types/client'
 import { ConsoleMessage } from '../types/shared-types'
 import { patch, stringify } from '../utils/utils'
+import { parseError } from '../utils/errors'
 
 export type StringifyOptions = {
 	// limit of string length
@@ -71,9 +72,9 @@ export function ConsoleListener(
 		if (window) {
 			const errorHandler = (event: ErrorEvent) => {
 				const { message, error } = event
-				let trace: any[] = []
+				let trace: StackFrame[] = []
 				if (error) {
-					trace = ErrorStackParser.parse(error)
+					trace = parseError(error)
 				}
 				const payload = [
 					stringify(message, logOptions.stringifyOptions),
@@ -114,7 +115,7 @@ export function ConsoleListener(
 				// @ts-expect-error
 				original.apply(this, data)
 				try {
-					const trace = ErrorStackParser.parse(new Error())
+					const trace = parseError(new Error())
 					const message = logOptions.serializeConsoleAttributes
 						? data.map((o) =>
 								typeof o === 'object'

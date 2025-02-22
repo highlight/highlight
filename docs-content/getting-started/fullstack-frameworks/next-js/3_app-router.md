@@ -165,7 +165,7 @@ export default withHighlightConfig(nextConfig)
  Otherwise, the next server will not enable the `instrumentationHook` in your production deploy.
 ```
 
-2. Call `registerHighlight` in `instrumentation.ts` or `src/instrumentation.ts` if you're using a `/src` folder. Make sure that `instrumentation.ts` is a sibling of your `pages` folder. 
+2. Call `registerHighlight` in `instrumentation.ts` or `src/instrumentation.ts` if you're using a `/src` folder. Make sure that `instrumentation.ts` is a sibling of your `app` folder.
 ```jsx
 // instrumentation.ts or src/instrumentation.ts
 import { CONSTANTS } from './constants'

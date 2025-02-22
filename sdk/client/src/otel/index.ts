@@ -28,14 +28,25 @@ import {
 	DEFAULT_URL_BLOCKLIST,
 	sanitizeHeaders,
 } from '../listeners/network-listener/utils/network-sanitizer'
-import { shouldNetworkRequestBeRecorded } from '../listeners/network-listener/utils/utils'
+import {
+	shouldNetworkRequestBeRecorded,
+	shouldNetworkRequestBeTraced,
+} from '../listeners/network-listener/utils/utils'
 import {
 	BrowserXHR,
 	getBodyThatShouldBeRecorded,
 } from '../listeners/network-listener/utils/xhr-listener'
 import type { NetworkRecordingOptions } from '../types/client'
-import { OTLPTraceExporterBrowserWithXhrRetry } from './exporter'
+import {
+	OTLPMetricExporterBrowser,
+	OTLPTraceExporterBrowserWithXhrRetry,
+	TraceExporterConfig,
+} from './exporter'
 import { UserInteractionInstrumentation } from './user-interaction'
+import {
+	MeterProvider,
+	PeriodicExportingMetricReader,
+} from '@opentelemetry/sdk-metrics'
 
 export type BrowserTracingConfig = {
 	projectId: string | number
@@ -49,11 +60,14 @@ export type BrowserTracingConfig = {
 	urlBlocklist?: string[]
 }
 
-let provider: WebTracerProvider
+let providers: {
+	tracerProvider?: WebTracerProvider
+	meterProvider?: MeterProvider
+} = {}
 const RECORD_ATTRIBUTE = 'highlight.record'
 
 export const setupBrowserTracing = (config: BrowserTracingConfig) => {
-	if (provider !== undefined) {
+	if (providers.tracerProvider !== undefined) {
 		console.warn('OTEL already initialized. Skipping...')
 		return
 	}
@@ -61,7 +75,7 @@ export const setupBrowserTracing = (config: BrowserTracingConfig) => {
 	const backendUrl =
 		config.backendUrl ||
 		import.meta.env.REACT_APP_PUBLIC_GRAPH_URI ||
-		'https://pub.highlight.run'
+		'https://pub.highlight.io'
 
 	const urlBlocklist = [
 		...(config.networkRecordingOptions?.urlBlocklist ?? []),
@@ -70,43 +84,58 @@ export const setupBrowserTracing = (config: BrowserTracingConfig) => {
 	const isDebug = import.meta.env.DEBUG === 'true'
 	const environment = config.environment ?? 'production'
 
-	provider = new WebTracerProvider({
-		resource: new Resource({
-			[SemanticAttributes.ATTR_SERVICE_NAME]:
-				config.serviceName ?? 'highlight-browser',
-			[SemanticAttributes.SEMRESATTRS_DEPLOYMENT_ENVIRONMENT]:
-				environment,
-			'highlight.project_id': config.projectId,
-			'highlight.session_id': config.sessionSecureId,
-		}),
-	})
-
-	// Export spans to console for debugging
-	if (isDebug) {
-		provider.addSpanProcessor(
-			new SimpleSpanProcessor(new ConsoleSpanExporter()),
-		)
-	}
-
-	const exporter = new OTLPTraceExporterBrowserWithXhrRetry({
+	const exporterOptions: TraceExporterConfig = {
 		url: config.otlpEndpoint + '/v1/traces',
 		concurrencyLimit: 100,
-		timeoutMillis: 30_000,
+		timeoutMillis: 5_000,
 		// Using any because we were getting an error importing CompressionAlgorithm
 		// from @opentelemetry/otlp-exporter-base.
 		compression: 'gzip' as any,
 		keepAlive: true,
 		httpAgentOptions: {
-			timeout: 30_000,
+			timeout: 5_000,
 			keepAlive: true,
 		},
-	})
+	}
+	const exporter = new OTLPTraceExporterBrowserWithXhrRetry(exporterOptions)
 
 	const spanProcessor = new CustomBatchSpanProcessor(exporter, {
 		maxExportBatchSize: 100,
 		maxQueueSize: 1_000,
+		exportTimeoutMillis: exporterOptions.timeoutMillis,
+		scheduledDelayMillis: exporterOptions.timeoutMillis,
 	})
-	provider.addSpanProcessor(spanProcessor)
+
+	const resource = new Resource({
+		[SemanticAttributes.ATTR_SERVICE_NAME]:
+			config.serviceName ?? 'highlight-browser',
+		[SemanticAttributes.SEMRESATTRS_DEPLOYMENT_ENVIRONMENT]: environment,
+		'highlight.project_id': config.projectId,
+		'highlight.session_id': config.sessionSecureId,
+	})
+	providers.tracerProvider = new WebTracerProvider({
+		resource,
+		spanProcessors: isDebug
+			? [
+					new SimpleSpanProcessor(new ConsoleSpanExporter()),
+					spanProcessor,
+				]
+			: [spanProcessor],
+	})
+	api.trace.setGlobalTracerProvider(providers.tracerProvider)
+
+	const meterExporter = new OTLPMetricExporterBrowser({
+		...exporterOptions,
+		url: config.otlpEndpoint + '/v1/metrics',
+	})
+	const reader = new PeriodicExportingMetricReader({
+		exporter: meterExporter,
+		exportIntervalMillis: exporterOptions.timeoutMillis,
+		exportTimeoutMillis: exporterOptions.timeoutMillis,
+	})
+
+	providers.meterProvider = new MeterProvider({ resource, readers: [reader] })
+	api.metrics.setGlobalMeterProvider(providers.meterProvider)
 
 	let instrumentations: Instrumentation[] = [
 		new DocumentLoadInstrumentation({
@@ -207,7 +236,7 @@ export const setupBrowserTracing = (config: BrowserTracingConfig) => {
 	const contextManager = new StackContextManager()
 	contextManager.enable()
 
-	provider.register({
+	providers.tracerProvider.register({
 		contextManager,
 		propagator: new CompositePropagator({
 			propagators: [
@@ -248,7 +277,12 @@ class CustomTraceContextPropagator extends W3CTraceContextPropagator {
 	constructor(config: CustomTraceContextPropagatorConfig) {
 		super()
 
-		this.highlightEndpoints = [config.backendUrl, config.otlpEndpoint]
+		this.highlightEndpoints = [
+			config.backendUrl,
+			`${config.otlpEndpoint}/v1/traces`,
+			`${config.otlpEndpoint}/v1/logs`,
+			`${config.otlpEndpoint}/v1/metrics`,
+		]
 		this.tracingOrigins = config.tracingOrigins
 		this.urlBlocklist = config.urlBlocklist
 	}
@@ -274,6 +308,14 @@ class CustomTraceContextPropagator extends W3CTraceContextPropagator {
 
 			if (!shouldRecord) {
 				span.setAttribute(RECORD_ATTRIBUTE, false) // used later to avoid additional processing
+			}
+
+			const shouldTrace = shouldNetworkRequestBeTraced(
+				url,
+				this.tracingOrigins ?? [],
+				this.urlBlocklist,
+			)
+			if (!shouldTrace) {
 				return // return early to prevent headers from being injected
 			}
 		}
@@ -283,8 +325,12 @@ class CustomTraceContextPropagator extends W3CTraceContextPropagator {
 }
 
 export const BROWSER_TRACER_NAME = 'highlight-browser'
+export const BROWSER_METER_NAME = BROWSER_TRACER_NAME
 export const getTracer = () => {
-	return provider.getTracer(BROWSER_TRACER_NAME)
+	return providers.tracerProvider!.getTracer(BROWSER_TRACER_NAME)
+}
+export const getMeter = () => {
+	return providers.meterProvider!.getMeter(BROWSER_METER_NAME)
 }
 
 export const getActiveSpan = () => {
@@ -296,12 +342,10 @@ export const getActiveSpanContext = () => {
 }
 
 export const shutdown = async () => {
-	if (provider === undefined) {
-		return
-	}
-
-	await provider.forceFlush()
-	provider.shutdown()
+	await providers.tracerProvider!.forceFlush()
+	await providers.tracerProvider!.shutdown()
+	await providers.meterProvider!.forceFlush()
+	await providers.meterProvider!.shutdown()
 }
 
 const getSpanName = (
@@ -342,8 +386,6 @@ const enhanceSpanWithHttpRequestAttributes = (
 	body: Request['body'] | RequestInit['body'] | BrowserXHR['_body'],
 	headers:
 		| Headers
-		| string
-		| Request['headers']
 		| RequestInit['headers']
 		| ReturnType<XMLHttpRequest['getAllResponseHeaders']>,
 	networkRecordingOptions?: NetworkRecordingOptions,

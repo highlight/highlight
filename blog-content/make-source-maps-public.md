@@ -1,16 +1,16 @@
 ---
 title: Your Source Maps Should Be Public
-createdAt: 2023-05-12T12:00:00Z
+createdAt: 2023-05-12T12:00:00.000Z
 readingTime: 8
 authorFirstName: Chris
 authorLastName: Esplin
-authorTitle: Software Engineer @ Highlight 
+authorTitle: Software Engineer @ Highlight
 authorTwitter: 'https://twitter.com/chrisesplin'
 authorLinkedIn: 'https://www.linkedin.com/in/epsilon/'
 authorGithub: 'https://github.com/deltaepsilon'
 authorWebsite: 'https://www.chrisesplin.com/'
-authorPFP: '/images/blog/podcast/avatars/esplin.jpeg'
-tags: Developer Tooling
+authorPFP: /images/blog/podcast/avatars/esplin.jpeg
+tags: Engineering
 metaTitle: Your Source Maps Should Be Public
 ---
 

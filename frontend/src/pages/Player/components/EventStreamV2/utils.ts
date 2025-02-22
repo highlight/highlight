@@ -135,15 +135,20 @@ export const getFilteredEvents = (
 				case 'Web Vitals':
 					const { vitals } = event.data.payload as {
 						vitals: {
-							name: string
-							value: number
+							name: string[] | string
+							value: number | null
 						}[]
 					}
+
 					return vitals.some(({ name, value }) => {
+						if (value === null) {
+							console.log(`null value for ${name}`)
+						}
+						const n = Array.isArray(name) ? name.join('') : name
 						return searchTokens.every((searchToken) => {
 							return (
-								name.toLowerCase().includes(searchToken) ||
-								value.toString().includes(searchToken)
+								n.toLowerCase().includes(searchToken) ||
+								value?.toString().includes(searchToken)
 							)
 						})
 					})
