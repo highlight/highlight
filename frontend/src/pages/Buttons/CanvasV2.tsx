@@ -70,13 +70,12 @@ const CanvasPage = function () {
 					?.getElementsByClassName('sample-image')
 					.item(0) as HTMLImageElement
 				img.onload = function () {
-					createImageBitmap(img, {
-						resizeQuality: 'low',
-						resizeWidth: 128,
-						resizeHeight: 128,
-					}).then((bitmap) => {
-						ctx.transferFromImageBitmap(bitmap)
-					})
+					const dataURL = img.toDataURL()
+					const imgBitmap = new Image()
+					imgBitmap.src = dataURL
+					imgBitmap.onload = function () {
+						ctx.transferFromImageBitmap(imgBitmap)
+					}
 				}
 			} else if (rand < 0.5) {
 				const gl = canvas.getContext('webgl')
