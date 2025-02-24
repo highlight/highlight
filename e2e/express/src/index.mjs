@@ -8,7 +8,7 @@ const config = {
 	debug: false,
 	serviceName: 'e2e-express',
 	serviceVersion: 'git-sha',
-	otlpEndpoint: 'http://localhost:4317',
+	otlpEndpoint: 'http://localhost:4318',
 	environment: 'e2e-test',
 	serializeConsoleAttributes: true,
 }

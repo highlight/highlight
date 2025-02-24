@@ -96,6 +96,7 @@ export const H: HighlightInterface = {
 	stop: async () => {
 		throw new Error('H.stop is not supported by the Edge runtime.')
 	},
+	// NB: edge runtime uses `recordMetric` for all metric types
 	recordMetric: (metric: Metric) => {
 		return CloudflareH.recordMetric({
 			...metric,

@@ -25,9 +25,9 @@ import {
 	W3CBaggagePropagator,
 	W3CTraceContextPropagator,
 } from '@opentelemetry/core'
-import { OTLPTraceExporter } from '@opentelemetry/exporter-trace-otlp-grpc'
-import { OTLPLogExporter } from '@opentelemetry/exporter-logs-otlp-grpc'
-import { OTLPMetricExporter } from '@opentelemetry/exporter-metrics-otlp-grpc'
+import { OTLPTraceExporter } from '@opentelemetry/exporter-trace-otlp-http'
+import { OTLPLogExporter } from '@opentelemetry/exporter-logs-otlp-http'
+import { OTLPMetricExporter } from '@opentelemetry/exporter-metrics-otlp-http'
 import { registerInstrumentations } from '@opentelemetry/instrumentation'
 import { CompressionAlgorithm } from '@opentelemetry/otlp-exporter-base'
 import { processDetectorSync, Resource } from '@opentelemetry/resources'
@@ -53,9 +53,9 @@ import {
 	ATTR_SERVICE_VERSION,
 	SEMRESATTRS_DEPLOYMENT_ENVIRONMENT,
 } from '@opentelemetry/semantic-conventions'
-import { OTLPGRPCExporterConfigNode } from '@opentelemetry/otlp-grpc-exporter-base'
+import { OTLPExporterConfigBase } from '@opentelemetry/otlp-exporter-base/build/src/configuration/legacy-base-configuration'
 
-const OTLP_GRPC = 'https://otel.highlight.io:4317'
+const OTLP_HTTP = 'https://otel.highlight.io:4318'
 
 const instrumentations = getNodeAutoInstrumentations({
 	'@opentelemetry/instrumentation-http': {
@@ -164,14 +164,14 @@ export class Highlight {
 		}
 
 		const config = {
-			url: options.otlpEndpoint ?? OTLP_GRPC,
+			url: options.otlpEndpoint ?? OTLP_HTTP,
 			compression:
 				!process.env.NEXT_RUNTIME ||
 				process.env.NEXT_RUNTIME === 'nodejs'
 					? CompressionAlgorithm.GZIP
 					: undefined,
 			timeoutMillis: this.FLUSH_TIMEOUT_MS,
-		} as OTLPGRPCExporterConfigNode
+		} as OTLPExporterConfigBase
 		this._log('using otlp exporter settings', config)
 		const opts = {
 			maxExportBatchSize: 1024 * 1024,

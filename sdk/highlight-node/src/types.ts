@@ -8,8 +8,8 @@ export interface NodeOptions extends HighlightOptions {
 	projectID: string
 
 	/**
-	 * The endpoint string to send OTLP gRPC data to.
-	 * @default https://otel.highlight.io:4317
+	 * The endpoint string to send OTLP HTTP data to.
+	 * @default https://otel.highlight.io:4318
 	 */
 	otlpEndpoint?: string
 
