@@ -1038,16 +1038,18 @@ SessionSecureID: ${this.sessionData.sessionSecureID}`,
 				this.listeners.push(
 					PerformanceListener((payload: PerformancePayload) => {
 						this.addCustomEvent('Performance', stringify(payload))
-						Object.entries(payload).forEach(
-							([name, value]) =>
-								value &&
-								this.recordGauge({
-									name,
-									value,
-									category: MetricCategory.Performance,
-									group: window.location.href,
-								}),
-						)
+						Object.entries(payload)
+							.filter(([name]) => name !== 'relativeTimestamp')
+							.forEach(
+								([name, value]) =>
+									value &&
+									this.recordGauge({
+										name,
+										value,
+										category: MetricCategory.Performance,
+										group: window.location.href,
+									}),
+							)
 					}, this._recordingStartTime),
 				)
 				this.listeners.push(
