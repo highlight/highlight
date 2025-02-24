@@ -7,5 +7,5 @@ Highlight.init('1jdkoe52', environment: Rails.env, otlp_endpoint: 'http://localh
   c.service_version = '1.0.0'
 end
 
-highlight_logger = Highlight::Logger.new(nil)
+highlight_logger = Highlight::Logger.new($stdout)
 Rails.logger.broadcast_to(highlight_logger)

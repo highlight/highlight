@@ -21,6 +21,7 @@
 <%# similar to above, create a button that sends a post reqest to /logs %>
 <%= turbo_frame_tag "log_frame" do %>
   <%= button_to 'Create Log', logs_path, method: :post, data: { turbo_frame: "log_frame" } %>
+  <%= button_to 'Create Log with Hash', create_with_hash_logs_path, method: :post, data: { turbo_frame: "log_frame" } %>
 <% end %>
 
 <h2>Errors</h2>
