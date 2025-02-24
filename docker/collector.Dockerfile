@@ -14,7 +14,6 @@ FROM ${OTEL_COLLECTOR_IMAGE_NAME} AS collector
 
 COPY ./backend/localhostssl/server.crt /server.crt
 COPY ./backend/localhostssl/server.key /server.key
-COPY ./backend/localhostssl/server.pem /server.pem
 
 COPY --from=collector-build /collector.yml /etc/otel-collector-config.yaml
 CMD ["--config=/etc/otel-collector-config.yaml"]
