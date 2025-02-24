@@ -101,7 +101,7 @@ jobs:
                   NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
 
             - name: Publish npm packages
-              if: github.ref == 'refs/heads/main'
+              #              if: github.ref == 'refs/heads/main'
               id: changesets-publish
               uses: changesets/action@v1
               with:
