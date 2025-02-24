@@ -98,7 +98,6 @@ import { Panel } from '@/pages/Graphing/components/Panel'
 import { useGraphTime } from '@/pages/Graphing/hooks/useGraphTime'
 
 import { DEFAULT_SQL, SqlEditor } from '@/pages/Graphing/components/SqlEditor'
-import { useHotkeys } from 'react-hotkeys-hook'
 
 type BucketBy = 'None' | 'Interval' | 'Count'
 const BUCKET_BY_OPTIONS: BucketBy[] = ['None', 'Interval', 'Count']
@@ -718,15 +717,6 @@ export const GraphingEditor: React.FC = () => {
 				? 'Count'
 				: 'None'
 	}
-
-	useHotkeys(
-		'ctrl+enter',
-		() => {
-			console.log('hi')
-			setSql(sqlInternal)
-		},
-		[setSql, sqlInternal],
-	)
 
 	if (!completed) {
 		return null
