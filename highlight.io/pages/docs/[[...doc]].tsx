@@ -185,6 +185,12 @@ export const getDocsPaths = async (
 	fs_api: any,
 	base: string | undefined,
 ): Promise<DocPath[]> => {
+	if (!fs_api) {
+		console.error(
+			'getDocsPaths received empty fs_api object, returning no results',
+		)
+		return []
+	}
 	// each docpath needs to have some hierarchy (so we know if its nested, etc..)
 	// each path can either be:
 	// - parent w/o content
