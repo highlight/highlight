@@ -1,8 +1,7 @@
-import { TagSwitchGroup } from '@highlight-run/ui/components'
 import React from 'react'
+import Switch from '@/components/Switch/Switch'
 
-import { BAR_DISPLAY, BarDisplay } from '../components/BarChart'
-import { LabeledRow } from '../LabeledRow'
+import { BarDisplay } from '../components/BarChart'
 import * as style from './styles.css'
 
 type Props = {
@@ -16,21 +15,14 @@ export const BarChartSettings: React.FC<Props> = ({
 	setBarDisplay,
 	disabled,
 }) => (
-	<>
-		<LabeledRow
-			label="Bar display"
-			name="barDisplay"
-			tooltip="Bars in charts with multiple series can be stacked or displayed next to each other."
-		>
-			<TagSwitchGroup
-				options={BAR_DISPLAY}
-				defaultValue={barDisplay}
-				onChange={(o: string | number) => {
-					setBarDisplay(o as BarDisplay)
-				}}
-				cssClass={style.tagSwitch}
-				disabled={disabled}
-			/>
-		</LabeledRow>
-	</>
+	<Switch
+		trackingId="switch-barDisplay"
+		label="Stack bars"
+		checked={barDisplay === 'Stacked'}
+		onChange={(checked) => {
+			setBarDisplay(checked ? 'Stacked' : 'Grouped')
+		}}
+		className={style.tagSwitch}
+		disabled={disabled}
+	/>
 )

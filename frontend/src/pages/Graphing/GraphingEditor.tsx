@@ -972,6 +972,8 @@ export const GraphingEditor: React.FC = () => {
 												disabled={isPreview}
 											/>
 										</LabeledRow>
+										<Divider className="m-0" />
+										<Text weight="bold">Visualization</Text>
 										<LabeledRow
 											label="View type"
 											name="viewType"
