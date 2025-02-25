@@ -5069,7 +5069,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@codemirror/commands@npm:^6.0.0, @codemirror/commands@npm:^6.1.0":
+"@codemirror/commands@npm:^6.0.0, @codemirror/commands@npm:^6.1.0, @codemirror/commands@npm:^6.8.0":
   version: 6.8.0
   resolution: "@codemirror/commands@npm:6.8.0"
   dependencies:
@@ -10197,6 +10197,7 @@ __metadata:
     "@apollo/client": "npm:3.7.17"
     "@babel/core": "npm:^7.19.0"
     "@codemirror/autocomplete": "npm:^6.18.4"
+    "@codemirror/commands": "npm:^6.8.0"
     "@codemirror/lang-sql": "npm:^6.8.0"
     "@codemirror/lint": "npm:^6.8.4"
     "@codemirror/view": "npm:^6.36.2"

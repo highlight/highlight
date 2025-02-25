@@ -305,6 +305,7 @@ func transformSql(
 				} else {
 					fields = append(fields, typed.Name)
 					typed.Name = fmt.Sprintf("%s['%s']", model.GetAttributesColumn(config.AttributesColumns, typed.Name), typed.Name)
+					typed.QuoteType = 0
 				}
 			}
 			return nil
