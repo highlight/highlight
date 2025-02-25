@@ -78,7 +78,10 @@ def test_express_log(express_app, oauth_api):
     start = datetime.utcnow()
     r = requests.get(
         f"http://localhost:3003/good",
-        headers={"x-highlight-request": "abc123/def456"},
+        headers={
+            "x-highlight-request": "abc123/cadbc7a427cc836727783c887b329f44",
+            "traceparent": "00-cadbc7a427cc836727783c887b329f44-860042d96c827d79-01",
+        },
         timeout=30,
     )
     logging.info(f"GET {r.url} {r.status_code} {r.text}")
@@ -112,7 +115,7 @@ def test_express_log(express_app, oauth_api):
                 if express_app_type == "express_js"
                 else "info"
             )
-            assert item["node"]["secureSessionID"] == "abc123"
+            assert item["node"]["trace_id"] == "cadbc7a427cc836727783c887b329f44"
             assert (
                 item["node"]["serviceName"] == "e2e-express"
                 if express_app_type == "express_js"
@@ -123,10 +126,6 @@ def test_express_log(express_app, oauth_api):
                 if express_app_type == "express_js"
                 else "vadim"
             )
-        assert any(
-            item["node"]["secureSessionID"] == "abc123"
-            for item in data["logs"]["edges"]
-        )
 
     query(
         oauth_api,
@@ -151,7 +150,10 @@ def test_express_error(express_app, oauth_api):
     start = datetime.utcnow() - timedelta(minutes=1)
     r = requests.get(
         f"http://localhost:3003/",
-        headers={"x-highlight-request": "abc123/def456"},
+        headers={
+            "x-highlight-request": "abc123/cadbc7a427cc836727783c887b329f44",
+            "traceparent": "00-cadbc7a427cc836727783c887b329f44-860042d96c827d79-01",
+        },
         timeout=30,
     )
     logging.info(f"GET {r.url} {r.status_code} {r.text}")
@@ -196,7 +198,10 @@ def test_dotnet_error(dotnet_app, oauth_api):
     start = datetime.utcnow() - timedelta(minutes=1)
     r = requests.get(
         f"http://localhost:5249/api/errors",
-        headers={"x-highlight-request": "a1b2c30001/aaa111"},
+        headers={
+            "x-highlight-request": "a1b2c30001/aadbc7a427cc836727783c887b329f44",
+            "traceparent": "00-aadbc7a427cc836727783c887b329f44-a60042d96c827d79-01",
+        },
         timeout=30,
     )
     logging.info(f"GET {r.url} {r.status_code} {r.text}")
@@ -244,7 +249,10 @@ def test_dotnet_logs(dotnet_app, oauth_api):
     start = datetime.utcnow() - timedelta(minutes=1)
     r = requests.get(
         f"http://localhost:5249/api/traces",
-        headers={"x-highlight-request": "a1b2c30002/aaa112"},
+        headers={
+            "x-highlight-request": "a1b2c30002/aadbc7a427cc836727783c887b329f44",
+            "traceparent": "00-aadbc7a427cc836727783c887b329f44-a60042d96c827d79-01",
+        },
         timeout=30,
     )
     logging.info(f"GET {r.url} {r.status_code} {r.text}")
@@ -300,7 +308,10 @@ def test_dotnet_traces(dotnet_app, oauth_api):
     start = datetime.utcnow() - timedelta(minutes=1)
     r = requests.get(
         f"http://localhost:5249/api/traces",
-        headers={"x-highlight-request": "a1b2c30002/aaa112"},
+        headers={
+            "x-highlight-request": "a1b2c30002/aadbc7a427cc836727783c887b329f44",
+            "traceparent": "00-aadbc7a427cc836727783c887b329f44-a60042d96c827d79-01",
+        },
         timeout=30,
     )
     logging.info(f"GET {r.url} {r.status_code} {r.text}")

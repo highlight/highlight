@@ -17,7 +17,7 @@ import api, {
 	Tracer,
 	UpDownCounter,
 } from '@opentelemetry/api'
-import { Logger, SeverityNumber } from '@opentelemetry/api-logs'
+import { Logger } from '@opentelemetry/api-logs'
 import { getNodeAutoInstrumentations } from '@opentelemetry/auto-instrumentations-node'
 import { AsyncLocalStorageContextManager } from '@opentelemetry/context-async-hooks'
 import {
@@ -58,6 +58,7 @@ import {
 	SEMRESATTRS_DEPLOYMENT_ENVIRONMENT,
 } from '@opentelemetry/semantic-conventions'
 import { OTLPExporterNodeConfigBase } from '@opentelemetry/otlp-exporter-base/build/src/configuration/legacy-node-configuration'
+import { appendFile } from 'node:fs'
 
 const OTLP_HTTP = 'https://otel.highlight.io:4318'
 
@@ -343,10 +344,19 @@ export class Highlight {
 		metadata?: Attributes,
 	) {
 		if (!this.logger) return
+
+		if (!secureSessionId && !requestId) {
+			const entry = propagation
+				.getActiveBaggage()
+				?.getEntry(HIGHLIGHT_REQUEST_HEADER)
+			if (entry?.value) {
+				;[secureSessionId, requestId] = entry?.value.split('/')
+			}
+		}
+
 		this.logger.emit({
 			timestamp: date,
-			severityText: 'INFO',
-			severityNumber: SeverityNumber.INFO,
+			severityText: level,
 			body: msg,
 			attributes: {
 				...(metadata ?? {}),
@@ -355,11 +365,6 @@ export class Highlight {
 				...(secureSessionId
 					? {
 							['highlight.session_id']: secureSessionId,
-						}
-					: {}),
-				...(requestId
-					? {
-							['highlight.trace_id']: requestId,
 						}
 					: {}),
 			},
@@ -383,9 +388,6 @@ export class Highlight {
 		}
 		if (secureSessionId) {
 			span.setAttribute('highlight.session_id', secureSessionId)
-		}
-		if (requestId) {
-			span.setAttribute('highlight.trace_id', requestId)
 		}
 		if (error.cause && typeof error.cause === 'object') {
 			span.setAttributes(
@@ -459,10 +461,9 @@ export class Highlight {
 				;[secureSessionId, requestId] = entry?.value.split('/')
 			}
 		}
-		if (secureSessionId && requestId) {
+		if (secureSessionId) {
 			span.setAttributes({
 				'highlight.session_id': secureSessionId,
-				'highlight.trace_id': requestId,
 			})
 
 			propagation.getActiveBaggage()?.setEntry(HIGHLIGHT_REQUEST_HEADER, {
@@ -470,7 +471,7 @@ export class Highlight {
 			} as BaggageEntry)
 		}
 
-		propagation.inject(ctx, headers)
+		propagation.inject(contextWithSpanSet, headers)
 		return { span, ctx: contextWithSpanSet }
 	}
 }
