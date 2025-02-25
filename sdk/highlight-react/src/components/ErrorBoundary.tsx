@@ -59,7 +59,7 @@ export class ErrorBoundary extends React.Component<
 	ErrorBoundaryProps,
 	ErrorBoundaryState
 > {
-	public refs: { [key: string]: React.ReactInstance } = {}
+	public refs: { [key: string]: any } = {}
 	public state: ErrorBoundaryState = INITIAL_STATE
 
 	componentDidCatch(error: Error, errorInfo: ErrorInfo) {
