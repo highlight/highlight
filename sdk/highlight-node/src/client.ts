@@ -58,7 +58,6 @@ import {
 	SEMRESATTRS_DEPLOYMENT_ENVIRONMENT,
 } from '@opentelemetry/semantic-conventions'
 import { OTLPExporterNodeConfigBase } from '@opentelemetry/otlp-exporter-base/build/src/configuration/legacy-node-configuration'
-import { appendFile } from 'node:fs'
 
 const OTLP_HTTP = 'https://otel.highlight.io:4318'
 

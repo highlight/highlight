@@ -1,9 +1,8 @@
 /* Required to patch missing performance API in Cloudflare Workers. */
 import './navigator'
 
-import { OTLPTraceExporter } from '@opentelemetry/exporter-trace-otlp-http'
-import { OTLPMetricExporter } from '@opentelemetry/exporter-metrics-otlp-http'
 import {
+	AlwaysOnSampler,
 	BatchSpanProcessor,
 	Tracer,
 	WebTracerProvider,
@@ -14,17 +13,28 @@ import {
 } from '@opentelemetry/sdk-metrics'
 import { Resource, ResourceAttributes } from '@opentelemetry/resources'
 import {
+	context,
 	type Gauge,
 	type Meter,
-	type TracerProvider,
 	metrics,
+	propagation,
+	SpanOptions,
+	Span as OtelSpan,
 	trace,
 } from '@opentelemetry/api'
 import {
+	CompositePropagator,
+	TRACE_PARENT_HEADER,
+	W3CBaggagePropagator,
+	W3CTraceContextPropagator,
+} from '@opentelemetry/core'
+import {
 	ATTR_HTTP_RESPONSE_STATUS_CODE,
 	ATTR_SERVICE_NAME,
+	ATTR_SERVICE_VERSION,
 } from '@opentelemetry/semantic-conventions'
-import type { CompressionAlgorithm } from '@opentelemetry/otlp-exporter-base'
+import * as packageJson from '../package.json'
+import { OTLPTraceExporterFetch, OTLPMetricExporterFetch } from './exporter'
 
 const HIGHLIGHT_PROJECT_ENV = 'HIGHLIGHT_PROJECT_ID'
 const HIGHLIGHT_REQUEST_HEADER = 'X-Highlight-Request'
@@ -52,22 +62,25 @@ type Metric = {
 }
 
 type WorkersSDK = {
+	tracerProvider: WebTracerProvider
 	tracer: Tracer
+	meterProvider: MeterProvider
 	meter: Meter
 }
 
 export interface HighlightInterface {
-	init: (
-		request: Request,
-		env: HighlightEnv,
-		ctx: ExecutionContext,
-		service?: string,
-	) => WorkersSDK
+	init: (env: HighlightEnv, service?: string) => WorkersSDK
 	isInitialized: () => boolean
 	consumeError: (error: Error) => void
-	sendResponse: (response: Response) => void
+	flush: () => Promise<void>
 	setAttributes: (attributes: ResourceAttributes) => void
 	recordMetric: (metric: Metric) => void
+	runWithHeaders: <T>(
+		name: string,
+		headers: Headers,
+		cb: (span: OtelSpan) => Promise<T>,
+		options?: SpanOptions,
+	) => Promise<T>
 }
 
 let sdk: WorkersSDK
@@ -78,29 +91,29 @@ let _gauges: Map<string, Gauge> = new Map<string, Gauge>()
 export const H: HighlightInterface = {
 	// Initialize the highlight SDK. This monkeypatches the console methods to start sending console logs to highlight.
 	init: (
-		request: Request,
 		{
 			[HIGHLIGHT_PROJECT_ENV]: _projectID,
 			HIGHLIGHT_OTLP_ENDPOINT: otlpEndpoint,
 		}: HighlightEnv,
-		ctx: ExecutionContext,
 		service?: string,
+		serviceVersion?: string,
 	) => {
-		const { secureSessionId, requestId } = extractRequestMetadata(request)
-
 		projectID = _projectID
+
+		propagation.setGlobalPropagator(
+			new CompositePropagator({
+				propagators: [
+					new W3CBaggagePropagator(),
+					new W3CTraceContextPropagator(),
+				],
+			}),
+		)
 
 		const endpoints = { default: otlpEndpoint || HIGHLIGHT_OTLP_BASE }
 		const exporterOptions = {
 			url: endpoints.default + '/v1/traces',
 			concurrencyLimit: 100,
 			timeoutMillis: 5_000,
-			compression: 'gzip' as CompressionAlgorithm.GZIP,
-			keepAlive: true,
-			httpAgentOptions: {
-				timeout: 5_000,
-				keepAlive: true,
-			},
 		}
 		const processorOptions = {
 			maxExportBatchSize: 100,
@@ -108,21 +121,25 @@ export const H: HighlightInterface = {
 			exportTimeoutMillis: exporterOptions.timeoutMillis,
 			scheduledDelayMillis: exporterOptions.timeoutMillis,
 		}
-		const exporter = new OTLPTraceExporter(exporterOptions)
-
+		const exporter = new OTLPTraceExporterFetch(exporterOptions)
 		const spanProcessor = new BatchSpanProcessor(exporter, processorOptions)
 
 		const resource = new Resource({
 			[ATTR_SERVICE_NAME]: service ?? 'highlight-cloudflare',
+			[ATTR_SERVICE_VERSION]: serviceVersion ?? '',
 			'highlight.project_id': projectID,
+			'telemetry.distro.name': '@highlight-run/cloudflare',
+			'telemetry.distro.version': packageJson.version,
 		})
 		const tracerProvider = new WebTracerProvider({
 			resource,
 			spanProcessors: [spanProcessor],
+			sampler: new AlwaysOnSampler(),
+			mergeResourceWithDefaults: true,
 		})
 		trace.setGlobalTracerProvider(tracerProvider)
 
-		const meterExporter = new OTLPMetricExporter({
+		const meterExporter = new OTLPMetricExporterFetch({
 			...exporterOptions,
 			url: endpoints.default + '/v1/metrics',
 		})
@@ -139,8 +156,16 @@ export const H: HighlightInterface = {
 		metrics.setGlobalMeterProvider(meterProvider)
 
 		sdk = {
-			tracer: tracerProvider.getTracer('tracer'),
-			meter: meterProvider.getMeter('meter'),
+			tracerProvider,
+			tracer: tracerProvider.getTracer(
+				'@highlight-run/cloudflare',
+				packageJson.version,
+			),
+			meterProvider,
+			meter: meterProvider.getMeter(
+				'@highlight-run/cloudflare',
+				packageJson.version,
+			),
 		}
 
 		for (const m of RECORDED_CONSOLE_METHODS) {
@@ -164,16 +189,6 @@ export const H: HighlightInterface = {
 					['highlight.project_id']: projectID,
 					['log.severity']: m,
 					['log.message']: message,
-					...(secureSessionId
-						? {
-								['highlight.session_id']: secureSessionId,
-							}
-						: {}),
-					...(requestId
-						? {
-								['highlight.trace_id']: requestId,
-							}
-						: {}),
 				})
 				span.end()
 
@@ -192,41 +207,19 @@ export const H: HighlightInterface = {
 	consumeError: (error: Error) => {
 		if (!sdk) {
 			console.error(
-				'please call H.init(...) before calling H.sendResponse(...)',
+				'please call H.init(...) before calling H.consumeError(...)',
 			)
 			return
 		}
 
-		const span = sdk.tracer.startSpan('error')
+		let span = trace.getActiveSpan()
+		if (span) {
+			span.recordException(error)
+			return
+		}
+
+		span = sdk.tracer.startSpan('error')
 		span.recordException(error)
-		span.end()
-	},
-
-	// Capture a cloudflare response as a trace in highlight.
-	sendResponse: (response: Response) => {
-		if (!sdk) {
-			console.error(
-				'please call H.init(...) before calling H.sendResponse(...)',
-			)
-			return
-		}
-
-		const span = sdk.tracer.startSpan('response', {
-			attributes: {
-				[ATTR_HTTP_RESPONSE_STATUS_CODE]: response.status,
-			},
-		})
-
-		for (const headerKey of response.headers.keys()) {
-			if (headerKey === 'set-cookie') {
-				continue
-			}
-			span.setAttribute(
-				`http.response.header.${headerKey.toLowerCase()}`,
-				[response.headers.get(headerKey)],
-			)
-		}
-
 		span.end()
 	},
 
@@ -266,12 +259,79 @@ export const H: HighlightInterface = {
 			'highlight.trace_id': requestId,
 		})
 	},
+
+	flush: async () => {
+		if (!sdk) {
+			console.error('please call H.init(...) before calling H.flush(...)')
+			return
+		}
+		await sdk.tracerProvider.forceFlush()
+		await sdk.meterProvider.forceFlush()
+	},
+
+	async runWithHeaders<T>(
+		name: string,
+		headers: Headers,
+		cb: (span: OtelSpan) => Promise<T>,
+		options?: SpanOptions,
+	) {
+		const requestHeaders = extractIncomingHttpHeaders(headers)
+		const ctx = propagation.extract(context.active(), requestHeaders)
+
+		let secureSessionId = ''
+		if (requestHeaders[HIGHLIGHT_REQUEST_HEADER]) {
+			;[secureSessionId] =
+				`${requestHeaders[HIGHLIGHT_REQUEST_HEADER]}`.split('/')
+		}
+
+		return await sdk.tracer.startActiveSpan(
+			name,
+			options ?? {},
+			ctx,
+			async (span) => {
+				if (secureSessionId) {
+					span.setAttribute('highlight.session_id', secureSessionId)
+				}
+				propagation.inject(context.active(), headers)
+				try {
+					const response = await cb(span)
+					if (response instanceof Response) {
+						span.setAttribute(
+							ATTR_HTTP_RESPONSE_STATUS_CODE,
+							response.status,
+						)
+						Object.entries(response.headers).forEach(([k, v]) => {
+							if (k === 'set-cookie') {
+								return
+							}
+							span.setAttribute(
+								`http.response.header.${k.toLowerCase()}`,
+								v,
+							)
+						})
+					}
+					return response
+				} catch (error) {
+					span.recordException(error as Error)
+					throw error
+				} finally {
+					span.end()
+				}
+			},
+		)
+	},
 }
 
-export function extractRequestMetadata(request: Request) {
-	const [secureSessionId, requestId] = (
-		request.headers.get(HIGHLIGHT_REQUEST_HEADER) || ''
-	).split('/')
-
-	return { secureSessionId, requestId }
+function extractIncomingHttpHeaders(headers?: Headers): Record<string, string> {
+	if (headers !== undefined && headers !== null) {
+		let requestHeaders: Record<string, string> = {}
+		headers.forEach((value: string | string[] | undefined, key: string) => {
+			if (typeof value === 'string') {
+				requestHeaders[key] = value
+			}
+		})
+		return requestHeaders
+	} else {
+		return {}
+	}
 }

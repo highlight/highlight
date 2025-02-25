@@ -54,9 +54,4 @@ export const H: HighlightInterface = {
 			})
 		}
 	},
-	sendResponse: (_: Response) => {
-		throw new Error(
-			'H.sendResponse is not implemented for the Node runtime.',
-		)
-	},
 }
