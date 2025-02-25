@@ -1,6 +1,5 @@
 import { GetStaticProps } from 'next'
-import { loadPostsFromGithub } from '../../shared/blog'
-import { VALID_TAGS } from './tag/[tag]'
+import { loadPostsFromGithub, VALID_TAGS } from '../../shared/blog'
 import BlogPage from '../../components/Blog/BlogPage'
 
 export const getStaticProps: GetStaticProps = async () => {
