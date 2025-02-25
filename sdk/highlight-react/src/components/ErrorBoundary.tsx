@@ -55,10 +55,11 @@ const INITIAL_STATE: ErrorBoundaryState = {
 	showingDialog: false,
 }
 
-export class ErrorBoundary extends React.PureComponent<
+export class ErrorBoundary extends React.Component<
 	ErrorBoundaryProps,
 	ErrorBoundaryState
 > {
+	public refs: { [key: string]: React.ReactInstance } = {}
 	public state: ErrorBoundaryState = INITIAL_STATE
 
 	componentDidCatch(error: Error, errorInfo: ErrorInfo) {
