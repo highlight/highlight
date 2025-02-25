@@ -431,7 +431,15 @@ export class Highlight {
 		const span = this.tracer.startSpan(spanName, options, ctx)
 		const contextWithSpanSet = api.trace.setSpan(ctx, span)
 
-		const { secureSessionId, requestId } = this.parseHeaders(headers)
+		let { secureSessionId, requestId } = this.parseHeaders(headers)
+		if (!secureSessionId && !requestId) {
+			const entry = propagation
+				.getActiveBaggage()
+				?.getEntry(HIGHLIGHT_REQUEST_HEADER)
+			if (entry?.value) {
+				;[secureSessionId, requestId] = entry?.value.split('/')
+			}
+		}
 		if (secureSessionId && requestId) {
 			span.setAttributes({
 				'highlight.session_id': secureSessionId,
