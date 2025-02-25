@@ -1,7 +1,7 @@
 import { GetStaticProps } from 'next'
 import { Tag } from '../../../components/Blog/Tag'
-import { loadPostsFromGithub } from '../index'
 import BlogPage from '../../../components/Blog/BlogPage'
+import { loadPostsFromGithub } from '../../../shared/blog'
 
 export const VALID_TAGS: Tag[] = [
 	{
