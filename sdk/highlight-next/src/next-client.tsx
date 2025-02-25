@@ -2,7 +2,11 @@ import { H as localH, HighlightOptions } from 'highlight.run'
 import Cookies from 'js-cookie'
 import { useEffect } from 'react'
 
-export { ErrorBoundary } from '@highlight-run/react'
+export {
+	ErrorBoundary,
+	ErrorBoundaryProps,
+	ErrorBoundaryState,
+} from '@highlight-run/react'
 export { localH as H }
 
 export interface Props extends HighlightOptions {
