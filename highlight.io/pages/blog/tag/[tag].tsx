@@ -73,7 +73,6 @@ export async function getStaticPaths(): Promise<{
 export const getStaticProps: GetStaticProps = async ({ params }) => {
 	console.log('rendering blog tag posts', params)
 	const { promises: fsp } = await import('fs')
-	console.log('imported fsp', fsp)
 	let posts = await loadPostsFromGithub(fsp)
 	console.log('blog posts loaded', params)
 

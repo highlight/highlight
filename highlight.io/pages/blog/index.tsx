@@ -12,7 +12,7 @@ export async function loadPostsFromGithub(fs_api?: any) {
 	let posts: Post[] = []
 	for (let index = 0; index < paths.length; index++) {
 		const data = await readMarkdown(
-			fsp,
+			fs_api ?? fsp,
 			BLOG_CONTENT_PATH + paths[index].rel_path,
 		)
 		const posty = markdownToPost(data.content, data.data)

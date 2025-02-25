@@ -28,12 +28,6 @@ export const getBlogPaths = async (
 	fs_api: any,
 	base: string | undefined,
 ): Promise<BlogPath[]> => {
-	if (!fs_api) {
-		console.error(
-			'getBlogPaths received empty fs_api object, returning no results',
-		)
-		return []
-	}
 	base = base ?? ''
 	const full_path = path.join(BLOG_CONTENT_PATH, base)
 	const read = await fs_api.readdir(full_path)

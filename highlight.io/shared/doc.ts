@@ -29,16 +29,6 @@ export const parseMarkdown = (
 }
 
 export const readMarkdown = async (fs_api: any, filePath: string) => {
-	if (!fs_api) {
-		console.error(
-			'readMarkdown received empty fs_api object, returning no results',
-		)
-		return {
-			content: '',
-			data: {} as { [p: string]: any },
-			links: new Set<string>(),
-		}
-	}
 	const fileContents = await fs_api.readFile(path.join(filePath))
 	return parseMarkdown(fileContents)
 }
