@@ -25,7 +25,7 @@ H = highlight_io.H("<YOUR_PROJECT_ID>", instrument_logging=True)`,
 			title: 'Call the built-in Python logging library.',
 			content:
 				'Logs are reported automatically from the builtin logging methods (as long as `instrument_logging=True` is provided to the `highlight_io.H` constructor). ' +
-				'Visit the [highlight logs portal](http://app.highlight.io/logs) and check that backend logs are coming in. ' +
+				'Visit the [highlight logs portal](https://app.highlight.io/logs) and check that backend logs are coming in. ' +
 				'Arguments passed as a dictionary as the second parameter will be interpreted as structured key-value pairs that logs can be easily searched by.',
 			code: [
 				{

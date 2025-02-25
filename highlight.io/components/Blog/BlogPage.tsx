@@ -13,6 +13,7 @@ import Link from 'next/link'
 import { useEffect, useState } from 'react'
 import { HiOutlineSearch } from 'react-icons/hi'
 import { PostAuthor } from './Author'
+import Head from 'next/head'
 
 // https://usehooks-ts.com/react-hook/use-debounce
 function useDebounce<T>(value: T, delay?: number): T {
@@ -57,6 +58,14 @@ const BlogPage = ({
 
 	return (
 		<>
+			<Head>
+				<link
+					rel="alternate"
+					type="application/rss+xml"
+					title="Highlight.io Blog RSS Feed"
+					href="/blog/rss.xml"
+				/>
+			</Head>
 			<Navbar />
 			<main>
 				<div className="flex flex-row w-full gap-8 my-20 desktop:max-w-[1100px] mx-auto items-start px-6">

@@ -1,6 +1,7 @@
 import { Box } from '@highlight-run/ui/components'
-import React from 'react'
+import React, { useMemo } from 'react'
 import { ReferenceArea, ReferenceLine } from 'recharts'
+import moment from 'moment'
 
 import {
 	MetricAggregator,
@@ -11,9 +12,9 @@ import {
 import { useProjectId } from '@/hooks/useProjectId'
 import Graph, { SetTimeRange } from '@/pages/Graphing/components/Graph'
 
-import * as style from './styles.css'
 import { BarChartConfig } from '@/pages/Graphing/components/BarChart'
 import { LineChartConfig } from '@/pages/Graphing/components/LineChart'
+import { TableConfig } from '@/pages/Graphing/components/Table'
 
 type Props = {
 	alertName: string
@@ -29,6 +30,7 @@ type Props = {
 	startDate: Date
 	endDate: Date
 	updateSearchTime: SetTimeRange
+	sql?: string
 }
 
 const BAR_CONFIG: BarChartConfig = {
@@ -42,6 +44,12 @@ const LINE_CONFIG: LineChartConfig = {
 	showLegend: true,
 	display: 'Line',
 	nullHandling: 'Zero',
+}
+
+const TABLE_CONFIG: TableConfig = {
+	type: 'Table',
+	showLegend: false,
+	nullHandling: 'Hide row',
 }
 
 export const AlertGraph: React.FC<Props> = ({
@@ -58,92 +66,97 @@ export const AlertGraph: React.FC<Props> = ({
 	startDate,
 	endDate,
 	updateSearchTime,
+	sql,
 }) => {
 	const { projectId } = useProjectId()
 	const sessionsProduct =
+		!sql &&
 		productType === ProductType.Sessions &&
 		thresholdType === ThresholdType.Constant
 
-	const viewConfig = sessionsProduct ? BAR_CONFIG : LINE_CONFIG
+	const viewConfig = sql
+		? TABLE_CONFIG
+		: sessionsProduct
+			? BAR_CONFIG
+			: LINE_CONFIG
+
+	// For SQL, only show the value for the current window
+	const start = useMemo(() => {
+		if (sql) {
+			return moment(endDate).subtract(thresholdWindow, 'seconds').toDate()
+		} else {
+			return startDate
+		}
+	}, [endDate, sql, startDate, thresholdWindow])
 
 	return (
-		<Box cssClass={style.graphWrapper} shadow="small">
-			<Box
-				px="16"
-				py="12"
-				width="full"
-				height="full"
-				border="divider"
-				borderRadius="8"
+		<Box px="16" py="12" width="full" height="full" borderRadius="8">
+			<Graph
+				title={alertName || 'Untitled alert'}
+				viewConfig={viewConfig}
+				productType={productType}
+				projectId={projectId}
+				startDate={start}
+				endDate={endDate}
+				query={query}
+				groupByKeys={
+					sessionsProduct || groupByKey === undefined
+						? undefined
+						: [groupByKey]
+				}
+				setTimeRange={updateSearchTime}
+				bucketByKey="Timestamp"
+				bucketCount={sessionsProduct ? 50 : undefined}
+				bucketByWindow={sessionsProduct ? undefined : thresholdWindow}
+				predictionSettings={
+					thresholdType === ThresholdType.Anomaly
+						? {
+								changepointPriorScale: 0.25,
+								intervalWidth: thresholdValue,
+								thresholdCondition,
+								intervalSeconds: thresholdWindow,
+							}
+						: undefined
+				}
+				thresholdSettings={{
+					thresholdCondition,
+					thresholdType,
+					thresholdValue,
+				}}
+				expressions={[
+					{ aggregator: functionType, column: functionColumn },
+				]}
+				sql={sql}
 			>
-				<Graph
-					title={alertName || 'Untitled alert'}
-					viewConfig={viewConfig}
-					productType={productType}
-					projectId={projectId}
-					startDate={startDate}
-					endDate={endDate}
-					query={query}
-					groupByKeys={
-						sessionsProduct || groupByKey === undefined
-							? undefined
-							: [groupByKey]
-					}
-					setTimeRange={updateSearchTime}
-					bucketByKey="Timestamp"
-					bucketCount={sessionsProduct ? 50 : undefined}
-					bucketByWindow={
-						sessionsProduct ? undefined : thresholdWindow
-					}
-					predictionSettings={
-						thresholdType === ThresholdType.Anomaly
-							? {
-									changepointPriorScale: 0.25,
-									intervalWidth: thresholdValue,
-									thresholdCondition,
-									intervalSeconds: thresholdWindow,
-								}
-							: undefined
-					}
-					thresholdSettings={{
-						thresholdCondition,
-						thresholdType,
-						thresholdValue,
-					}}
-					expressions={[
-						{ aggregator: functionType, column: functionColumn },
-					]}
-				>
-					{!sessionsProduct &&
-						thresholdType === ThresholdType.Constant && (
-							<>
-								<ReferenceLine
-									y={thresholdValue}
-									strokeWidth="2px"
-									strokeDasharray="8 8"
-									strokeLinecap="round"
-									stroke="#C8C7CB"
+				{!sessionsProduct &&
+					thresholdType === ThresholdType.Constant && (
+						<>
+							<ReferenceLine
+								y={thresholdValue}
+								strokeWidth="2px"
+								strokeDasharray="8 8"
+								strokeLinecap="round"
+								stroke="#C8C7CB"
+							/>
+							{thresholdCondition ===
+								ThresholdCondition.Below && (
+								<ReferenceArea
+									y1={thresholdValue}
+									isFront
+									fill="#F9F8F9"
 								/>
-								{thresholdCondition ===
-									ThresholdCondition.Below && (
-									<ReferenceArea
-										y1={thresholdValue}
-										isFront
-										fill="#F9F8F9"
-									/>
-								)}
-								{thresholdCondition ===
-									ThresholdCondition.Above && (
-									<ReferenceArea
-										y2={thresholdValue}
-										isFront
-										fill="#F9F8F9"
-									/>
-								)}
-							</>
-						)}
-				</Graph>
-			</Box>
+							)}
+							{thresholdCondition ===
+								ThresholdCondition.Above && (
+								<ReferenceArea
+									y2={thresholdValue}
+									isFront
+									fill="#F9F8F9"
+								/>
+							)}
+						</>
+					)}
+			</Graph>
 		</Box>
 	)
 }

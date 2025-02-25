@@ -62,6 +62,14 @@ export const DEFAULT_SQL = [
 	`GROUP BY 1, 2`,
 ].join('\n')
 
+export const DEFAULT_ALERT_SQL = [
+	`SELECT`,
+	`\tconcat('level: ', level),`,
+	`\tcount()`,
+	`FROM logs`,
+	`GROUP BY 1`,
+].join('\n')
+
 export const SqlEditor: React.FC<Props> = ({
 	value,
 	setValue,

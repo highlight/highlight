@@ -129,6 +129,10 @@ const nextConfig = {
 				source: '/sitemap.xml',
 				destination: '/api/sitemap',
 			},
+			{
+				source: '/blog/rss.xml',
+				destination: '/api/rss',
+			},
 		]
 	},
 }

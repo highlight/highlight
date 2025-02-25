@@ -5,6 +5,7 @@ import {
 	Box,
 	Button,
 	IconSolidArrowsExpand,
+	IconSolidBell,
 	IconSolidCursorClick,
 	IconSolidDocumentDownload,
 	IconSolidDotsHorizontal,
@@ -24,6 +25,7 @@ export const DashboardCard = ({
 	onClone,
 	onDelete,
 	onDownload,
+	onCreateAlert,
 	onExpand,
 	onEdit,
 	children,
@@ -32,6 +34,7 @@ export const DashboardCard = ({
 	onClone?: () => void
 	onDelete?: () => void
 	onDownload?: () => void
+	onCreateAlert?: () => void
 	onExpand?: () => void
 	onEdit?: () => void
 }>) => {
@@ -138,6 +141,23 @@ export const DashboardCard = ({
 												>
 													<IconSolidDocumentDownload />
 													Download CSV
+												</Box>
+											</Menu.Item>
+										)}
+										{onCreateAlert && (
+											<Menu.Item
+												onClick={(e) => {
+													e.stopPropagation()
+													onCreateAlert()
+												}}
+											>
+												<Box
+													display="flex"
+													alignItems="center"
+													gap="4"
+												>
+													<IconSolidBell />
+													Create alert
 												</Box>
 											</Menu.Item>
 										)}

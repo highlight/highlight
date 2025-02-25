@@ -1,5 +1,11 @@
 # highlight.run
 
+## 9.11.0
+
+### Minor Changes
+
+-   941ac5e: support inlining any video tags by snapshotting as a canvas via inlineVideos setting
+
 ## 9.10.0
 
 ### Minor Changes
