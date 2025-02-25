@@ -13,7 +13,13 @@ import {
 	PeriodicExportingMetricReader,
 } from '@opentelemetry/sdk-metrics'
 import { Resource, ResourceAttributes } from '@opentelemetry/resources'
-import { type Gauge, type Meter, metrics, trace } from '@opentelemetry/api'
+import {
+	type Gauge,
+	type Meter,
+	type TracerProvider,
+	metrics,
+	trace,
+} from '@opentelemetry/api'
 import {
 	ATTR_HTTP_RESPONSE_STATUS_CODE,
 	ATTR_SERVICE_NAME,
@@ -235,7 +241,8 @@ export const H: HighlightInterface = {
 		}
 
 		// @ts-ignore
-		sdk.traceProvider.resource = sdk.traceProvider.resource.merge(
+		// noinspection JSConstantReassignment
+		sdk.tracer.resource = sdk.tracer.resource.merge(
 			new Resource(attributes),
 		)
 	},
