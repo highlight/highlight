@@ -123,6 +123,10 @@ def test_express_log(express_app, oauth_api):
                 if express_app_type == "express_js"
                 else "vadim"
             )
+        assert any(
+            item["node"]["secureSessionID"] == "abc123"
+            for item in data["logs"]["edges"]
+        )
 
     query(
         oauth_api,
