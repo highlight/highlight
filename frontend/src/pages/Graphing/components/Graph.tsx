@@ -181,6 +181,7 @@ export interface InnerChartProps<TConfig> {
 	loading?: boolean
 	viewConfig: TConfig
 	disabled?: boolean
+	thresholdSettings?: ThresholdSettings
 	setTimeRange?: SetTimeRange
 	loadExemplars?: LoadExemplars
 }
@@ -1524,7 +1525,7 @@ const Graph = ({
 						viewConfig={viewConfig}
 						spotlight={spotlight}
 						setTimeRange={setTimeRange}
-						loadExemplars={loadExemplars}
+						loadExemplars={sql ? undefined : loadExemplars}
 						minYAxisMax={axisLimit}
 						maxYAxisMin={axisLimit}
 						showGrid
@@ -1542,7 +1543,7 @@ const Graph = ({
 						viewConfig={viewConfig}
 						spotlight={spotlight}
 						setTimeRange={setTimeRange}
-						loadExemplars={loadExemplars}
+						loadExemplars={sql ? undefined : loadExemplars}
 						showGrid
 					>
 						{children}
@@ -1558,7 +1559,7 @@ const Graph = ({
 							viewConfig={FUNNEL_BAR_CONFIG}
 							spotlight={spotlight}
 							setTimeRange={setTimeRange}
-							loadExemplars={loadExemplars}
+							loadExemplars={sql ? undefined : loadExemplars}
 							showGrid
 						>
 							{children}
@@ -1572,7 +1573,7 @@ const Graph = ({
 							viewConfig={FUNNEL_LINE_CONFIG}
 							spotlight={spotlight}
 							setTimeRange={setTimeRange}
-							loadExemplars={loadExemplars}
+							loadExemplars={sql ? undefined : loadExemplars}
 							showGrid
 						>
 							{children}
@@ -1599,8 +1600,9 @@ const Graph = ({
 						xAxisMetric={xAxisMetric}
 						viewConfig={viewConfig}
 						disabled={disabled}
-						loadExemplars={loadExemplars}
+						loadExemplars={sql ? undefined : loadExemplars}
 						visualizationId={id}
+						thresholdSettings={thresholdSettings}
 					/>
 				)
 				break

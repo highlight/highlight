@@ -17,7 +17,7 @@ export const RubyRailsContent: QuickStartContent = {
 		{
 			title: 'Verify your errors are being recorded.',
 			content:
-				"Now that you've set up the Middleware, you can verify that the backend error handling works by throwing an error in a controller. Visit the [highlight errors page](http://app.highlight.io/errors) and check that backend errors are coming in.",
+				"Now that you've set up the Middleware, you can verify that the backend error handling works by throwing an error in a controller. Visit the [highlight errors page](https://app.highlight.io/errors) and check that backend errors are coming in.",
 			code: [
 				{
 					text: `class ArticlesController < ApplicationController

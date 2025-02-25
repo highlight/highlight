@@ -83,7 +83,7 @@ export function register() {
 }
 ```
 
-Don't forget to enable the instrumentation hook in the next.config.js
+Before Next.js 15, the instrumentation is experimental, so you will have to enable it explicitly:
 
 ```tsx
 const {withHighlightConfig} = require('@highlight-run/next/config')

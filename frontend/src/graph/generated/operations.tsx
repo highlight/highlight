@@ -976,6 +976,7 @@ export type CreateAlertMutationVariables = Types.Exact<{
 	destinations:
 		| Array<Types.AlertDestinationInput>
 		| Types.AlertDestinationInput
+	sql?: Types.Maybe<Types.Scalars['String']>
 }>
 
 export type CreateAlertMutation = { __typename?: 'Mutation' } & {
@@ -1004,6 +1005,7 @@ export type UpdateAlertMutationVariables = Types.Exact<{
 	destinations?: Types.Maybe<
 		Array<Types.AlertDestinationInput> | Types.AlertDestinationInput
 	>
+	sql?: Types.Maybe<Types.Scalars['String']>
 }>
 
 export type UpdateAlertMutation = { __typename?: 'Mutation' } & {
@@ -4309,7 +4311,12 @@ export type GetAlertsPagePayloadQuery = { __typename?: 'Query' } & {
 		Types.Maybe<
 			{ __typename?: 'Alert' } & Pick<
 				Types.Alert,
-				'id' | 'updated_at' | 'name' | 'product_type' | 'disabled'
+				| 'id'
+				| 'updated_at'
+				| 'name'
+				| 'product_type'
+				| 'disabled'
+				| 'sql'
 			> & {
 					destinations: Array<
 						Types.Maybe<
@@ -4350,6 +4357,7 @@ export type GetAlertQuery = { __typename?: 'Query' } & {
 		| 'threshold_cooldown'
 		| 'threshold_type'
 		| 'threshold_condition'
+		| 'sql'
 	> & {
 			destinations: Array<
 				Types.Maybe<

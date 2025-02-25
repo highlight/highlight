@@ -195,15 +195,29 @@ export declare type HighlightOptions = {
 	 * Specifies whether to inline images into the recording.
 	 * This means that images that are local to the client (eg. client-generated blob: urls)
 	 * will be serialized into the recording and will be valid on replay.
+	 * This will also use canvas snapshotting to inline <video> elements
+	 * that use `src="blob:..."` data or webcam feeds (blank src) as <canvas> elements
 	 * Only enable this if you are running into issues with client-local images.
+	 * Will negatively affect performance.
 	 * @default false
 	 */
 	inlineImages?: boolean
+	/**
+	 * Specifies whether to inline <video> elements into the recording.
+	 * This means that video that are not accessible at a later time
+	 * (eg., a signed URL that is short lived)
+	 * will be serialized into the recording and will be valid on replay.
+	 * Only enable this if you are running into issues with the normal serialization.
+	 * Will negatively affect performance.
+	 * @default false
+	 */
+	inlineVideos?: boolean
 	/**
 	 * Specifies whether to inline stylesheets into the recording.
 	 * This means that stylesheets that are local to the client (eg. client-generated blob: urls)
 	 * will be serialized into the recording and will be valid on replay.
 	 * Only enable this if you are running into issues with client-local stylesheets.
+	 * May negatively affect performance.
 	 * @default true
 	 */
 	inlineStylesheet?: boolean

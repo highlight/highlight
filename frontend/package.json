@@ -39,7 +39,7 @@
 		"color-hash": "^2.0.1",
 		"dexie": "3.2.4",
 		"dinero.js": "2.0.0-alpha.14",
-		"firebase": "^10.12.2",
+		"firebase": "^11.3.1",
 		"framer-motion": "^6.3.15",
 		"graphql": "^15.9.0",
 		"highlight.io": "workspace:*",

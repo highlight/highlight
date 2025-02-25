@@ -315,6 +315,7 @@ export const AlertPage: React.FC = () => {
 									data.alert.threshold_condition ??
 									ThresholdCondition.Above
 								}
+								sql={data.alert.sql ?? undefined}
 							/>
 						</Box>
 						<Box height="full" width="full">

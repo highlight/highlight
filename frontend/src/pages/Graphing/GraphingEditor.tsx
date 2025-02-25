@@ -798,7 +798,9 @@ export const GraphingEditor: React.FC = () => {
 							<Button
 								emphasis="low"
 								kind="secondary"
-								onClick={redirectToDashboard}
+								onClick={() => {
+									navigate(-1)
+								}}
 							>
 								Cancel
 							</Button>
