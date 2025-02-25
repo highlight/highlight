@@ -17,7 +17,7 @@ import api, {
 	Tracer,
 	UpDownCounter,
 } from '@opentelemetry/api'
-import { Logger, logs } from '@opentelemetry/api-logs'
+import { Logger, SeverityNumber } from '@opentelemetry/api-logs'
 import { getNodeAutoInstrumentations } from '@opentelemetry/auto-instrumentations-node'
 import { AsyncLocalStorageContextManager } from '@opentelemetry/context-async-hooks'
 import {
@@ -35,6 +35,7 @@ import { NodeSDK } from '@opentelemetry/sdk-node'
 import {
 	AlwaysOnSampler,
 	BatchSpanProcessor,
+	BufferConfig,
 } from '@opentelemetry/sdk-trace-base'
 import {
 	BatchLogRecordProcessor,
@@ -56,7 +57,6 @@ import {
 	ATTR_SERVICE_VERSION,
 	SEMRESATTRS_DEPLOYMENT_ENVIRONMENT,
 } from '@opentelemetry/semantic-conventions'
-import { BufferConfig } from '@opentelemetry/sdk-logs/build/src/types'
 import { OTLPExporterNodeConfigBase } from '@opentelemetry/otlp-exporter-base/build/src/configuration/legacy-node-configuration'
 
 const OTLP_HTTP = 'https://otel.highlight.io:4318'
@@ -85,23 +85,6 @@ const instrumentations = getNodeAutoInstrumentations({
 	},
 })
 instrumentations.push(new PrismaInstrumentation())
-
-/**
- * Baggage propagation does not appear to be patching Fetch at the moment,
- * but we hope it'll get fixed soon:
- * https://github.com/open-telemetry/opentelemetry-js-contrib/pull/1951
- *
- * Docs: https://github.com/open-telemetry/opentelemetry-js/blob/main/packages/opentelemetry-core/README.md
- */
-propagation.setGlobalPropagator(
-	new CompositePropagator({
-		propagators: [
-			new W3CBaggagePropagator(),
-			new W3CTraceContextPropagator(),
-		],
-	}),
-)
-
 registerInstrumentations({ instrumentations })
 
 const OTEL_TO_OPTIONS = {
@@ -121,7 +104,7 @@ export class Highlight {
 	private readonly meter: Meter
 
 	private readonly processor: BatchSpanProcessor
-	private readonly logsProcessor: BatchLogRecordProcessor
+	private readonly loggerProvider: LoggerProvider
 	private readonly metricsReader: PeriodicExportingMetricReader
 
 	private readonly _gauges: Map<string, Gauge> = new Map<string, Gauge>()
@@ -203,16 +186,15 @@ export class Highlight {
 		})
 		this.processor = new BatchSpanProcessor(exporter, opts)
 
-		const loggerProvider = new LoggerProvider({
+		this.loggerProvider = new LoggerProvider({
 			resource,
 		})
-		logs.setGlobalLoggerProvider(loggerProvider)
 		const logsExporter = new OTLPLogExporter({
 			...config,
 			url: `${config.url}/v1/logs`,
 		})
-		this.logsProcessor = new BatchLogRecordProcessor(logsExporter, opts)
-		loggerProvider.addLogRecordProcessor(this.logsProcessor)
+		const logsProcessor = new BatchLogRecordProcessor(logsExporter, opts)
+		this.loggerProvider.addLogRecordProcessor(logsProcessor)
 
 		const metricsExporter = new OTLPMetricExporter({
 			...config,
@@ -229,12 +211,18 @@ export class Highlight {
 			resourceDetectors: [processDetectorSync],
 			resource,
 			spanProcessors: [this.processor],
-			logRecordProcessors: [this.logsProcessor],
+			logRecordProcessors: [logsProcessor],
 			metricReader: this.metricsReader,
 			traceExporter: exporter,
 			contextManager: new AsyncLocalStorageContextManager(),
 			sampler: new AlwaysOnSampler(),
 			instrumentations,
+			textMapPropagator: new CompositePropagator({
+				propagators: [
+					new W3CBaggagePropagator(),
+					new W3CTraceContextPropagator(),
+				],
+			}),
 		})
 		this.otel.start()
 
@@ -242,7 +230,7 @@ export class Highlight {
 			'@highlight-run/node',
 			packageJson.version,
 		)
-		this.logger = logs.getLogger(
+		this.logger = this.loggerProvider.getLogger(
 			'@highlight-run/node',
 			packageJson.version,
 			{
@@ -357,8 +345,8 @@ export class Highlight {
 		if (!this.logger) return
 		this.logger.emit({
 			timestamp: date,
-			observedTimestamp: date,
-			severityText: level,
+			severityText: 'INFO',
+			severityNumber: SeverityNumber.INFO,
 			body: msg,
 			attributes: {
 				...(metadata ?? {}),
@@ -418,7 +406,7 @@ export class Highlight {
 	async flush() {
 		try {
 			await this.processor.forceFlush()
-			await this.logsProcessor.forceFlush()
+			await this.loggerProvider.forceFlush()
 			await this.metricsReader.forceFlush()
 		} catch (e) {
 			this._log('failed to flush: ', e)

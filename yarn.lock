@@ -10480,6 +10480,7 @@ __metadata:
     "@opentelemetry/otlp-exporter-base": "npm:^0.57.2"
     "@opentelemetry/otlp-transformer": "npm:^0.57.2"
     "@opentelemetry/resources": "npm:^1.30.1"
+    "@opentelemetry/sdk-logs": "npm:^0.57.2"
     "@opentelemetry/sdk-node": "npm:^0.57.2"
     "@opentelemetry/sdk-trace-base": "npm:^1.30.1"
     "@opentelemetry/semantic-conventions": "npm:^1.30.0"
@@ -14620,7 +14621,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@opentelemetry/sdk-logs@npm:0.57.2":
+"@opentelemetry/sdk-logs@npm:0.57.2, @opentelemetry/sdk-logs@npm:^0.57.2":
   version: 0.57.2
   resolution: "@opentelemetry/sdk-logs@npm:0.57.2"
   dependencies:
