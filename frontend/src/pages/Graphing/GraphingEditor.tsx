@@ -99,8 +99,8 @@ import { useGraphTime } from '@/pages/Graphing/hooks/useGraphTime'
 
 import { DEFAULT_SQL, SqlEditor } from '@/pages/Graphing/components/SqlEditor'
 
-type BucketBy = 'None' | 'Interval' | 'Count'
-const BUCKET_BY_OPTIONS: BucketBy[] = ['None', 'Interval', 'Count']
+type BucketBy = 'Interval' | 'Count'
+const BUCKET_BY_OPTIONS: BucketBy[] = ['Interval', 'Count']
 
 const MAX_BUCKET_SIZE = 100
 const MAX_LIMIT_SIZE = 100
@@ -185,12 +185,10 @@ const getBucketByKey = (
 			return bucketByKey
 		case 'Interval':
 			return TIMESTAMP_KEY
-		default:
-			return undefined
 	}
 }
 
-type BucketBySetting = 'None' | 'Interval' | 'Count'
+type BucketBySetting = 'Interval' | 'Count'
 
 type GraphSettings = {
 	productType: ProductType
@@ -294,7 +292,9 @@ export const GraphingEditor: React.FC = () => {
 
 		const graphInput: GraphInput = {
 			visualizationId: currentDashboardId,
-			bucketByKey: getBucketByKey(bucketBySetting, bucketByKey) ?? null,
+			bucketByKey: bucketByEnabled
+				? getBucketByKey(bucketBySetting, bucketByKey)
+				: null,
 			bucketCount:
 				bucketBySetting === 'Count' ? Number(bucketCount) : null,
 			bucketInterval:
@@ -430,12 +430,11 @@ export const GraphingEditor: React.FC = () => {
 		setLimit(g.limit ?? 10)
 		setLimitMetric(g.limitMetric ?? '')
 		setFunnelSteps((g.funnelSteps ?? []).map(loadFunnelStep))
+		setBucketByEnabled(!!g.bucketByKey)
 		setBucketByKey(g.bucketByKey ?? '')
 		setBucketCount(g.bucketCount ?? DEFAULT_BUCKET_COUNT)
 		setBucketInterval(g.bucketInterval ?? DEFAULT_BUCKET_INTERVAL)
-		setBucketBySetting(
-			g.bucketInterval ? 'Interval' : g.bucketCount ? 'Count' : 'None',
-		)
+		setBucketBySetting(g.bucketInterval ? 'Interval' : 'Count')
 		setEditor(!!g.sql ? Editor.SqlEditor : Editor.QueryBuilder)
 		setSqlInternal(g.sql ?? DEFAULT_SQL)
 		setSql(g.sql ?? DEFAULT_SQL)
@@ -502,7 +501,7 @@ export const GraphingEditor: React.FC = () => {
 	)
 	const setViewType = (vt: View) => {
 		if (vt === 'Funnel chart') {
-			setBucketBySetting('None')
+			setBucketByEnabled(false)
 			// once events have other session attributes, we can support per-user aggregation
 			setExpressions([
 				{
@@ -593,7 +592,7 @@ export const GraphingEditor: React.FC = () => {
 	}, [limitFunctionType, limitMetric])
 
 	const [bucketByEnabled, setBucketByEnabled] = useState(
-		initialSettings?.bucketByEnabled ?? false,
+		initialSettings?.bucketByEnabled ?? true,
 	)
 	const [bucketBySetting, setBucketBySetting] = useState(
 		initialSettings?.bucketBySetting ?? BUCKET_BY_OPTIONS[1],
@@ -720,15 +719,14 @@ export const GraphingEditor: React.FC = () => {
 		settings.funnelSteps = (graphPreview.funnelSteps ?? []).map(
 			loadFunnelStep,
 		)
+		settings.bucketByEnabled = !!graphPreview.bucketByKey
 		settings.bucketByKey = graphPreview.bucketByKey ?? '10'
 		settings.bucketCount = graphPreview.bucketCount ?? DEFAULT_BUCKET_COUNT
 		settings.bucketInterval =
 			graphPreview.bucketInterval ?? DEFAULT_BUCKET_INTERVAL
 		settings.bucketBySetting = graphPreview.bucketInterval
 			? 'Interval'
-			: graphPreview.bucketCount
-				? 'Count'
-				: 'None'
+			: 'Count'
 	}
 
 	if (!completed) {
@@ -875,10 +873,14 @@ export const GraphingEditor: React.FC = () => {
 														: undefined
 												}
 												query={debouncedQuery}
-												bucketByKey={getBucketByKey(
-													bucketBySetting,
-													bucketByKey,
-												)}
+												bucketByKey={
+													bucketByEnabled
+														? getBucketByKey(
+																bucketBySetting,
+																bucketByKey,
+															)
+														: undefined
+												}
 												bucketCount={
 													bucketBySetting === 'Count'
 														? Number(bucketCount)
