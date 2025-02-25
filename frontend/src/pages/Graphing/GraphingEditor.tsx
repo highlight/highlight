@@ -431,7 +431,7 @@ export const GraphingEditor: React.FC = () => {
 		setLimitMetric(g.limitMetric ?? '')
 		setFunnelSteps((g.funnelSteps ?? []).map(loadFunnelStep))
 		setBucketByEnabled(!!g.bucketByKey)
-		setBucketByKey(g.bucketByKey ?? '')
+		setBucketByKey(g.bucketByKey ?? TIMESTAMP_KEY)
 		setBucketCount(g.bucketCount ?? DEFAULT_BUCKET_COUNT)
 		setBucketInterval(g.bucketInterval ?? DEFAULT_BUCKET_INTERVAL)
 		setBucketBySetting(g.bucketInterval ? 'Interval' : 'Count')
