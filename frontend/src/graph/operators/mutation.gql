@@ -911,6 +911,7 @@ mutation CreateAlert(
 	$threshold_type: ThresholdType
 	$threshold_condition: ThresholdCondition
 	$destinations: [AlertDestinationInput!]!
+	$sql: String
 ) {
 	createAlert(
 		project_id: $project_id
@@ -927,6 +928,7 @@ mutation CreateAlert(
 		threshold_type: $threshold_type
 		threshold_condition: $threshold_condition
 		destinations: $destinations
+		sql: $sql
 	) {
 		id
 		name
@@ -949,6 +951,7 @@ mutation UpdateAlert(
 	$threshold_type: ThresholdType
 	$threshold_condition: ThresholdCondition
 	$destinations: [AlertDestinationInput!]
+	$sql: String
 ) {
 	updateAlert(
 		project_id: $project_id
@@ -965,6 +968,7 @@ mutation UpdateAlert(
 		threshold_type: $threshold_type
 		threshold_condition: $threshold_condition
 		destinations: $destinations
+		sql: $sql
 	) {
 		id
 		name

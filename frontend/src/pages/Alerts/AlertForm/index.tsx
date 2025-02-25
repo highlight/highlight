@@ -1,7 +1,7 @@
-import { Button } from '@components/Button'
 import { toast } from '@components/Toaster'
 import {
 	Box,
+	Button,
 	Callout,
 	DateRangePicker,
 	DEFAULT_TIME_PRESETS,
@@ -45,7 +45,12 @@ import {
 } from '@/pages/Alerts/constants'
 import { DestinationInput } from '@/pages/Alerts/DestinationInput'
 import { Combobox } from '@/pages/Graphing/Combobox'
-import { FUNCTION_TYPES, PRODUCT_OPTIONS } from '@/pages/Graphing/constants'
+import {
+	Editor,
+	EDITOR_OPTIONS,
+	FUNCTION_TYPES,
+	PRODUCT_OPTIONS,
+} from '@/pages/Graphing/constants'
 import { HeaderDivider } from '@/pages/Graphing/Dashboard'
 import { LabeledRow } from '@/pages/Graphing/LabeledRow'
 import { OptionDropdown } from '@/pages/Graphing/OptionDropdown'
@@ -56,6 +61,12 @@ import { useGraphData } from '@pages/Graphing/hooks/useGraphData'
 import { AlertGraph } from '../AlertGraph'
 import * as style from './styles.css'
 import { useGraphTime } from '@/pages/Graphing/hooks/useGraphTime'
+import {
+	DEFAULT_ALERT_SQL,
+	SqlEditor,
+} from '@/pages/Graphing/components/SqlEditor'
+import { Panel } from '@/pages/Graphing/components/Panel'
+import { GraphBackgroundWrapper } from '@/pages/Graphing/GraphingEditor'
 
 const SidebarSection = (props: PropsWithChildren) => {
 	return (
@@ -103,9 +114,9 @@ export const DEFAULT_THRESHOLD_CONDITON = ThresholdCondition.Above
 export const DEFAULT_THRESHOLD_TYPE = ThresholdType.Constant
 export const DEFAULT_CONFIDENCE_OPTION = CONFIDENCE_OPTIONS[1]
 
-const SETTINGS_PARAM = 'settings'
+export const SETTINGS_PARAM = 'settings'
 
-type AlertSettings = {
+export type AlertSettings = {
 	productType: ProductType
 	functionType: MetricAggregator
 	functionColumn: string
@@ -119,6 +130,8 @@ type AlertSettings = {
 	thresholdWindow: number
 	thresholdCooldown: number
 	destinations: AlertDestinationInput[]
+	editor: Editor
+	sql?: string
 }
 
 const ALERT_PRODUCT_INFO = {
@@ -171,6 +184,22 @@ export const AlertForm: React.FC = () => {
 			? (JSON.parse(atob(settingsParam)) as AlertSettings)
 			: undefined,
 	)
+
+	const [editor, setEditorImpl] = useState(
+		initialSettings?.editor ?? Editor.QueryBuilder,
+	)
+	const setEditor = (e: Editor) => {
+		if (e === Editor.SqlEditor) {
+			setThresholdType(ThresholdType.Constant)
+		}
+		handleProductChange(ProductType.Logs)
+		setEditorImpl(e)
+	}
+
+	const [sqlInternal, setSqlInternal] = useState(
+		initialSettings?.sql ?? DEFAULT_ALERT_SQL,
+	)
+	const [sql, setSql] = useState(sqlInternal)
 
 	const [alertName, setAlertName] = useState(initialSettings?.alertName ?? '')
 	const [productType, setProductType] = useState(
@@ -314,6 +343,8 @@ export const AlertForm: React.FC = () => {
 		thresholdWindow,
 		thresholdCooldown,
 		destinations,
+		editor,
+		sql,
 	}
 
 	const settingsEncoded = btoa(JSON.stringify(settings))
@@ -340,7 +371,10 @@ export const AlertForm: React.FC = () => {
 			threshold_type: thresholdType,
 			threshold_condition: thresholdCondition,
 			destinations,
+			sql: editor === Editor.SqlEditor ? sql : undefined,
 		}
+
+		console.log('vars', formVariables)
 
 		if (isEdit) {
 			updateAlert({
@@ -432,6 +466,8 @@ export const AlertForm: React.FC = () => {
 				data.alert.destinations as AlertDestinationInput[],
 			)
 			setDestinations(data.alert.destinations as AlertDestinationInput[])
+			setSql(data.alert.sql ?? '')
+			setEditor(data.alert.sql ? Editor.SqlEditor : Editor.QueryBuilder)
 		},
 	})
 
@@ -518,17 +554,15 @@ export const AlertForm: React.FC = () => {
 								minDate={presetStartDate(
 									DEFAULT_TIME_PRESETS[5],
 								)}
+								disabled={editor === Editor.SqlEditor}
 							/>
 							<HeaderDivider />
 							<Button
 								emphasis="low"
 								kind="secondary"
-								onClick={() =>
-									alert_id
-										? redirectToAlert()
-										: redirectToAlerts()
-								}
-								trackingId="AlertCancel"
+								onClick={() => {
+									navigate(-1)
+								}}
 							>
 								Cancel
 							</Button>
@@ -538,17 +572,12 @@ export const AlertForm: React.FC = () => {
 									size="small"
 									emphasis="low"
 									onClick={onDelete}
-									trackingId="AlertDelete"
 								>
 									Delete alert
 								</Button>
 							)}
 
-							<Button
-								disabled={disableSave}
-								onClick={onSave}
-								trackingId="AlertSave"
-							>
+							<Button disabled={disableSave} onClick={onSave}>
 								Save&nbsp;
 							</Button>
 						</Box>
@@ -561,19 +590,11 @@ export const AlertForm: React.FC = () => {
 					>
 						<Box
 							display="flex"
-							position="relative"
-							height="full"
-							cssClass={style.previewWindow}
+							flexDirection="column"
+							justifyContent="space-between"
+							cssClass={style.editGraphPreview}
 						>
-							<Box
-								position="absolute"
-								width="full"
-								height="full"
-								cssClass={style.graphBackground}
-							>
-								<EditorBackground />
-							</Box>
-							<Box cssClass={style.graphContainer}>
+							<GraphBackgroundWrapper>
 								<AlertGraph
 									alertName={alertName}
 									query={query}
@@ -590,18 +611,16 @@ export const AlertForm: React.FC = () => {
 									startDate={startDate}
 									endDate={endDate}
 									updateSearchTime={updateSearchTime}
+									sql={
+										editor === Editor.SqlEditor
+											? sql
+											: undefined
+									}
 								/>
-							</Box>
+							</GraphBackgroundWrapper>
 						</Box>
-						<Box
-							display="flex"
-							borderLeft="dividerWeak"
-							height="full"
-							cssClass={style.editGraphSidebar}
-							overflowY="auto"
-							overflowX="hidden"
-						>
-							<Form className={style.editGraphSidebar}>
+						<Panel>
+							<Form>
 								<SidebarSection>
 									<LabeledRow
 										label="Alert title"
@@ -621,230 +640,266 @@ export const AlertForm: React.FC = () => {
 								</SidebarSection>
 								<Divider className="m-0" />
 								<SidebarSection>
-									<LabeledRow
-										label="Source"
-										name="source"
-										tooltip="The resource being queried, one of the five highlight.io resources."
-									>
-										<OptionDropdown
-											options={PRODUCT_OPTIONS}
-											selection={productType}
-											setSelection={handleProductChange}
-										/>
-									</LabeledRow>
-									{!isAnomaly &&
-										ALERT_PRODUCT_INFO[productType] && (
-											<Callout
-												title={`${productType} alerts`}
-											>
-												<Box pb="8">
-													<Text>
-														{
-															ALERT_PRODUCT_INFO[
-																productType
-															]
-														}
-													</Text>
-												</Box>
-											</Callout>
-										)}
-								</SidebarSection>
-								<Divider className="m-0" />
-								<SidebarSection>
-									{productType === ProductType.Events ? (
-										<EventSelection
-											initialQuery={query}
-											setQuery={setQuery}
-											startDate={startDate}
-											endDate={endDate}
-										/>
-									) : (
-										<LabeledRow
-											label="Filters"
-											name="query"
-											tooltip="The search query used to filter which data points are included before aggregating."
-										>
-											<Box
-												border="divider"
-												width="full"
-												borderRadius="6"
-											>
-												<SearchContext
-													initialQuery={query}
-													onSubmit={setQuery}
-												>
-													<Search
-														startDate={
-															new Date(startDate)
-														}
-														endDate={
-															new Date(endDate)
-														}
-														productType={
-															productType
-														}
-														hideIcon
-													/>
-												</SearchContext>
+									<Box cssClass={style.editorSection}>
+										<Box cssClass={style.editorHeader}>
+											<Box cssClass={style.editorSelect}>
+												<OptionDropdown<Editor>
+													options={EDITOR_OPTIONS}
+													selection={settings.editor}
+													setSelection={setEditor}
+												/>
 											</Box>
-										</LabeledRow>
-									)}
-								</SidebarSection>
-								{(isAnomaly ||
-									(!isSessionAlert && !isErrorAlert)) && (
-									<>
-										<Box px="12">
-											<Divider className="m-0" />
-										</Box>
-										<SidebarSection>
-											<LabeledRow
-												label="Function"
-												name="function"
-												tooltip="Determines how data points are aggregated. If the function requires a numeric field as input, one can be chosen."
-											>
-												<OptionDropdown
-													key={functionType}
-													options={FUNCTION_TYPES}
-													selection={functionType}
-													setSelection={
-														setFunctionType
-													}
-												/>
-												<Combobox
-													key={fetchedFunctionColumn}
-													selection={
-														fetchedFunctionColumn
-													}
-													setSelection={
-														setFunctionColumn
-													}
-													searchConfig={
-														searchOptionsConfig
-													}
+											{settings.editor ===
+												Editor.SqlEditor && (
+												<Button
 													disabled={
-														functionType ===
-														MetricAggregator.Count
+														sqlInternal === sql
 													}
-													onlyNumericKeys={
-														functionType !==
-														MetricAggregator.CountDistinct
-													}
-												/>
-											</LabeledRow>
-											<LabeledRow
-												label="Group by"
-												name="groupBy"
-												enabled={groupByEnabled}
-												setEnabled={setGroupByEnabled}
-												tooltip="A categorical field for grouping results into separate series."
-											>
-												<Combobox
-													selection={groupByKey}
-													setSelection={setGroupByKey}
-													searchConfig={
-														searchOptionsConfig
-													}
-												/>
-											</LabeledRow>
-										</SidebarSection>
-									</>
-								)}
-								<>
-									<Divider className="m-0" />
-									<SidebarSection>
-										<LabeledRow
-											label="Alert threshold type"
-											name="alertType"
-										>
-											<OptionDropdown<ThresholdType>
-												options={THRESHOLD_TYPE_OPTIONS}
-												selection={thresholdType}
-												setSelection={setThresholdType}
-											/>
-										</LabeledRow>
-										{(isAnomaly || !isSessionAlert) && (
-											<>
-												<LabeledRow
-													label="Alert conditions"
-													name="alertConditions"
+													onClick={() => {
+														setSql(sqlInternal)
+													}}
 												>
-													<OptionDropdown<ThresholdCondition>
-														options={getThresholdConditionOptions(
-															thresholdType,
-														)}
-														selection={
-															thresholdCondition
-														}
-														setSelection={
-															setThresholdCondition
-														}
-													/>
-												</LabeledRow>
-												<Stack direction="row" gap="12">
-													{isAnomaly && (
-														<LabeledRow
-															label="Alert threshold"
-															name="thresholdValue"
-														>
-															<OptionDropdown
-																options={
-																	CONFIDENCE_OPTIONS
-																}
-																selection={String(
-																	thresholdValue,
-																)}
-																setSelection={(
-																	option,
-																) => {
-																	setThresholdValue(
-																		Number(
-																			option,
-																		),
-																	)
-																}}
-															/>
-														</LabeledRow>
-													)}
-													{!isAnomaly && (
-														<LabeledRow
-															label="Alert threshold"
-															name="thresholdValue"
-														>
-															<Input
-																name="thresholdValue"
-																type="number"
-																value={
-																	thresholdValue
-																}
-																onChange={(
-																	e,
-																) => {
-																	setThresholdValue(
-																		Number(
-																			e
-																				.target
-																				.value,
-																		),
-																	)
-																}}
-															/>
-														</LabeledRow>
-													)}
+													Update query
+												</Button>
+											)}
+										</Box>
+										{settings.editor ===
+											Editor.SqlEditor && (
+											<Box
+												cssClass={
+													style.sqlEditorWrapper
+												}
+											>
+												<SqlEditor
+													value={sqlInternal}
+													setValue={setSqlInternal}
+													startDate={startDate}
+													endDate={endDate}
+												/>
+											</Box>
+										)}
+										{settings.editor ===
+											Editor.QueryBuilder && (
+											<>
+												<SidebarSection>
 													<LabeledRow
-														label="Alert window"
-														name="thresholdWindow"
+														label="Source"
+														name="source"
+														tooltip="The resource being queried, one of the five highlight.io resources."
 													>
 														<OptionDropdown
 															options={
-																FREQUENCY_OPTIONS
+																PRODUCT_OPTIONS
+															}
+															selection={
+																productType
+															}
+															setSelection={
+																handleProductChange
+															}
+														/>
+													</LabeledRow>
+													{!isAnomaly &&
+														ALERT_PRODUCT_INFO[
+															productType
+														] && (
+															<Callout
+																title={`${productType} alerts`}
+															>
+																<Box pb="8">
+																	<Text>
+																		{
+																			ALERT_PRODUCT_INFO[
+																				productType
+																			]
+																		}
+																	</Text>
+																</Box>
+															</Callout>
+														)}
+												</SidebarSection>
+												<Divider className="m-0" />
+												<SidebarSection>
+													{productType ===
+													ProductType.Events ? (
+														<EventSelection
+															initialQuery={query}
+															setQuery={setQuery}
+															startDate={
+																startDate
+															}
+															endDate={endDate}
+														/>
+													) : (
+														<LabeledRow
+															label="Filters"
+															name="query"
+															tooltip="The search query used to filter which data points are included before aggregating."
+														>
+															<Box
+																border="divider"
+																width="full"
+																borderRadius="6"
+															>
+																<SearchContext
+																	initialQuery={
+																		query
+																	}
+																	onSubmit={
+																		setQuery
+																	}
+																>
+																	<Search
+																		startDate={
+																			new Date(
+																				startDate,
+																			)
+																		}
+																		endDate={
+																			new Date(
+																				endDate,
+																			)
+																		}
+																		productType={
+																			productType
+																		}
+																		hideIcon
+																	/>
+																</SearchContext>
+															</Box>
+														</LabeledRow>
+													)}
+												</SidebarSection>
+												{(isAnomaly ||
+													(!isSessionAlert &&
+														!isErrorAlert)) && (
+													<>
+														<Box px="12">
+															<Divider className="m-0" />
+														</Box>
+														<SidebarSection>
+															<LabeledRow
+																label="Function"
+																name="function"
+																tooltip="Determines how data points are aggregated. If the function requires a numeric field as input, one can be chosen."
+															>
+																<OptionDropdown
+																	key={
+																		functionType
+																	}
+																	options={
+																		FUNCTION_TYPES
+																	}
+																	selection={
+																		functionType
+																	}
+																	setSelection={
+																		setFunctionType
+																	}
+																/>
+																<Combobox
+																	key={
+																		fetchedFunctionColumn
+																	}
+																	selection={
+																		fetchedFunctionColumn
+																	}
+																	setSelection={
+																		setFunctionColumn
+																	}
+																	searchConfig={
+																		searchOptionsConfig
+																	}
+																	disabled={
+																		functionType ===
+																		MetricAggregator.Count
+																	}
+																	onlyNumericKeys={
+																		functionType !==
+																		MetricAggregator.CountDistinct
+																	}
+																/>
+															</LabeledRow>
+															<LabeledRow
+																label="Group by"
+																name="groupBy"
+																enabled={
+																	groupByEnabled
+																}
+																setEnabled={
+																	setGroupByEnabled
+																}
+																tooltip="A categorical field for grouping results into separate series."
+															>
+																<Combobox
+																	selection={
+																		groupByKey
+																	}
+																	setSelection={
+																		setGroupByKey
+																	}
+																	searchConfig={
+																		searchOptionsConfig
+																	}
+																/>
+															</LabeledRow>
+														</SidebarSection>
+													</>
+												)}
+											</>
+										)}
+									</Box>
+								</SidebarSection>
+								<Divider className="m-0" />
+								<SidebarSection>
+									<LabeledRow
+										label="Alert threshold type"
+										name="alertType"
+									>
+										<OptionDropdown<ThresholdType>
+											options={THRESHOLD_TYPE_OPTIONS}
+											selection={thresholdType}
+											setSelection={setThresholdType}
+											disabled={
+												editor === Editor.SqlEditor
+											}
+										/>
+									</LabeledRow>
+									{(isAnomaly || !isSessionAlert) && (
+										<>
+											<LabeledRow
+												label="Alert conditions"
+												name="alertConditions"
+											>
+												<OptionDropdown<ThresholdCondition>
+													options={getThresholdConditionOptions(
+														thresholdType,
+													)}
+													selection={
+														thresholdCondition
+													}
+													setSelection={
+														setThresholdCondition
+													}
+												/>
+											</LabeledRow>
+											<Stack direction="row" gap="12">
+												{isAnomaly && (
+													<LabeledRow
+														label="Alert threshold"
+														name="thresholdValue"
+													>
+														<OptionDropdown
+															options={
+																CONFIDENCE_OPTIONS
 															}
 															selection={String(
-																thresholdWindow,
+																thresholdValue,
 															)}
 															setSelection={(
 																option,
 															) => {
-																setThresholdWindow(
+																setThresholdValue(
 																	Number(
 																		option,
 																	),
@@ -852,31 +907,69 @@ export const AlertForm: React.FC = () => {
 															}}
 														/>
 													</LabeledRow>
-												</Stack>
+												)}
+												{!isAnomaly && (
+													<LabeledRow
+														label="Alert threshold"
+														name="thresholdValue"
+													>
+														<Input
+															name="thresholdValue"
+															type="number"
+															value={
+																thresholdValue
+															}
+															onChange={(e) => {
+																setThresholdValue(
+																	Number(
+																		e.target
+																			.value,
+																	),
+																)
+															}}
+														/>
+													</LabeledRow>
+												)}
 												<LabeledRow
-													label="Cooldown"
-													name="thresholdCooldown"
+													label="Alert window"
+													name="thresholdWindow"
 												>
 													<OptionDropdown
 														options={
 															FREQUENCY_OPTIONS
 														}
 														selection={String(
-															thresholdCooldown,
+															thresholdWindow,
 														)}
 														setSelection={(
 															option,
 														) => {
-															setThresholdCooldown(
+															setThresholdWindow(
 																Number(option),
 															)
 														}}
 													/>
 												</LabeledRow>
-											</>
-										)}
-									</SidebarSection>
-								</>
+											</Stack>
+											<LabeledRow
+												label="Cooldown"
+												name="thresholdCooldown"
+											>
+												<OptionDropdown
+													options={FREQUENCY_OPTIONS}
+													selection={String(
+														thresholdCooldown,
+													)}
+													setSelection={(option) => {
+														setThresholdCooldown(
+															Number(option),
+														)
+													}}
+												/>
+											</LabeledRow>
+										</>
+									)}
+								</SidebarSection>
 								<Divider className="m-0" />
 								<SidebarSection>
 									<DestinationInput
@@ -887,37 +980,10 @@ export const AlertForm: React.FC = () => {
 									/>
 								</SidebarSection>
 							</Form>
-						</Box>
+						</Panel>
 					</Box>
 				</Box>
 			</Box>
 		</GraphContextProvider>
-	)
-}
-
-const EditorBackground = () => {
-	return (
-		<svg width="100%" height="100%">
-			<defs>
-				<pattern
-					id="polka-dots"
-					x="0"
-					y="0"
-					width="14"
-					height="14"
-					patternUnits="userSpaceOnUse"
-				>
-					<circle fill="#e4e2e4" cx="7" cy="7" r="1" />
-				</pattern>
-			</defs>
-
-			<rect
-				x="0"
-				y="0"
-				width="100%"
-				height="100%"
-				fill="url(#polka-dots)"
-			/>
-		</svg>
 	)
 }

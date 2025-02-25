@@ -44,7 +44,13 @@ import {
 	useUpsertVisualizationMutation,
 } from '@/graph/generated/hooks'
 import { GetVisualizationQuery } from '@/graph/generated/operations'
-import { GraphInput, Graph as TGraph } from '@/graph/generated/schemas'
+import {
+	GraphInput,
+	MetricAggregator,
+	Graph as TGraph,
+	ThresholdCondition,
+	ThresholdType,
+} from '@/graph/generated/schemas'
 import { useProjectId } from '@/hooks/useProjectId'
 import { DashboardCard } from '@/pages/Graphing/components/DashboardCard'
 import { EmptyDashboardCallout } from '@/pages/Graphing/components/EmptyDashboardCallout'
@@ -61,6 +67,13 @@ import { GraphContextProvider, useGraphContext } from './context/GraphContext'
 import { useGraphData } from '@pages/Graphing/hooks/useGraphData'
 import { exportGraph } from '@pages/Graphing/hooks/exportGraph'
 import { useGraphTime } from '@/pages/Graphing/hooks/useGraphTime'
+import {
+	AlertSettings,
+	DEFAULT_COOLDOWN,
+	DEFAULT_WINDOW,
+	SETTINGS_PARAM,
+} from '@/pages/Alerts/AlertForm'
+import { Editor } from '@/pages/Graphing/constants'
 
 export const HeaderDivider = () => <Box cssClass={style.headerDivider} />
 
@@ -68,6 +81,7 @@ type DashboardCellProps = {
 	g: TGraph
 	startDate: Date
 	endDate: Date
+	timePreset?: DateRangePreset
 	updateSearchTime: (start: Date, end: Date, preset?: DateRangePreset) => void
 }
 
@@ -75,6 +89,7 @@ const DashboardCell = ({
 	g,
 	startDate,
 	endDate,
+	timePreset,
 	updateSearchTime,
 }: DashboardCellProps) => {
 	const { projectId } = useProjectId()
@@ -237,6 +252,44 @@ const DashboardCell = ({
 								)
 						}
 			}
+			onCreateAlert={() => {
+				const func =
+					g.expressions.at(0)?.aggregator ?? MetricAggregator.Count
+				const col = g.expressions.at(0)?.column ?? ''
+				const groupByKey = g.groupByKeys?.at(0) ?? undefined
+				const settings: AlertSettings = {
+					productType: g.productType,
+					functionType: func,
+					functionColumn: col,
+					query: g.query,
+					alertName: g.title,
+					groupByEnabled: groupByKey !== undefined,
+					groupByKey: groupByKey ?? '',
+					thresholdValue: 1,
+					thresholdCondition: ThresholdCondition.Above,
+					thresholdType: ThresholdType.Constant,
+					thresholdWindow: g.bucketInterval ?? DEFAULT_WINDOW,
+					thresholdCooldown: g.bucketInterval ?? DEFAULT_COOLDOWN,
+					destinations: [],
+					editor: Editor.QueryBuilder,
+					sql: undefined,
+				}
+
+				const settingsEncoded = btoa(JSON.stringify(settings))
+
+				console.log('settingsEncoded', settingsEncoded)
+
+				let search = ''
+				if (timePreset !== undefined) {
+					search += `relative_time=${presetValue(timePreset)}&`
+				}
+				search += `${SETTINGS_PARAM}=${settingsEncoded}`
+
+				navigate({
+					pathname: `../../alerts/new`,
+					search,
+				})
+			}}
 			onExpand={
 				isTemp
 					? undefined
@@ -573,6 +626,9 @@ export const Dashboard = () => {
 														g={g}
 														startDate={startDate}
 														endDate={endDate}
+														timePreset={
+															selectedPreset
+														}
 														updateSearchTime={
 															updateSearchTime
 														}
