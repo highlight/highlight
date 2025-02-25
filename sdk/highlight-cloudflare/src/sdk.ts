@@ -1,3 +1,6 @@
+/* Required to patch missing performance API in Cloudflare Workers. */
+import './navigator'
+
 import { OTLPTraceExporter } from '@opentelemetry/exporter-trace-otlp-http'
 import { OTLPMetricExporter } from '@opentelemetry/exporter-metrics-otlp-http'
 import {
@@ -10,11 +13,12 @@ import {
 	PeriodicExportingMetricReader,
 } from '@opentelemetry/sdk-metrics'
 import { Resource, ResourceAttributes } from '@opentelemetry/resources'
-import { type Meter, type Gauge, trace, metrics } from '@opentelemetry/api'
+import { type Gauge, type Meter, metrics, trace } from '@opentelemetry/api'
 import {
 	ATTR_HTTP_RESPONSE_STATUS_CODE,
 	ATTR_SERVICE_NAME,
 } from '@opentelemetry/semantic-conventions'
+import type { CompressionAlgorithm } from '@opentelemetry/otlp-exporter-base'
 
 const HIGHLIGHT_PROJECT_ENV = 'HIGHLIGHT_PROJECT_ID'
 const HIGHLIGHT_REQUEST_HEADER = 'X-Highlight-Request'
@@ -85,9 +89,7 @@ export const H: HighlightInterface = {
 			url: endpoints.default + '/v1/traces',
 			concurrencyLimit: 100,
 			timeoutMillis: 5_000,
-			// Using any because we were getting an error importing CompressionAlgorithm
-			// from @opentelemetry/otlp-exporter-base.
-			compression: 'gzip' as any,
+			compression: 'gzip' as CompressionAlgorithm.GZIP,
 			keepAlive: true,
 			httpAgentOptions: {
 				timeout: 5_000,
