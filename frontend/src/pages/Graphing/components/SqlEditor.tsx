@@ -53,11 +53,19 @@ const functionTemplates = [
 
 export const DEFAULT_SQL = [
 	`SELECT`,
-	`    $time_interval('1 hour'),`,
-	`    concat('level: ', level),`,
-	`    count()`,
+	`  $time_interval('1 hour'),`,
+	`  concat('level: ', level),`,
+	`  count()`,
 	`FROM logs`,
 	`GROUP BY 1, 2`,
+].join('\n')
+
+export const DEFAULT_ALERT_SQL = [
+	`SELECT`,
+	`  concat('level: ', level),`,
+	`  count()`,
+	`FROM logs`,
+	`GROUP BY 1`,
 ].join('\n')
 
 export const SqlEditor: React.FC<Props> = ({

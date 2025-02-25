@@ -148,6 +148,7 @@ type ComplexityRoot struct {
 		ProductType        func(childComplexity int) int
 		ProjectID          func(childComplexity int) int
 		Query              func(childComplexity int) int
+		Sql                func(childComplexity int) int
 		ThresholdCondition func(childComplexity int) int
 		ThresholdCooldown  func(childComplexity int) int
 		ThresholdType      func(childComplexity int) int
@@ -896,7 +897,7 @@ type ComplexityRoot struct {
 		ChangeAdminRole                       func(childComplexity int, workspaceID int, adminID int, newRole string) int
 		ChangeProjectMembership               func(childComplexity int, workspaceID int, adminID int, projectIds []int) int
 		CreateAdmin                           func(childComplexity int) int
-		CreateAlert                           func(childComplexity int, projectID int, name string, productType model.ProductType, functionType model.MetricAggregator, functionColumn *string, query *string, groupByKey *string, defaultArg *bool, thresholdValue *float64, thresholdWindow *int, thresholdCooldown *int, thresholdType *model.ThresholdType, thresholdCondition *model.ThresholdCondition, destinations []*model.AlertDestinationInput) int
+		CreateAlert                           func(childComplexity int, projectID int, name string, productType model.ProductType, functionType model.MetricAggregator, functionColumn *string, query *string, groupByKey *string, defaultArg *bool, thresholdValue *float64, thresholdWindow *int, thresholdCooldown *int, thresholdType *model.ThresholdType, thresholdCondition *model.ThresholdCondition, destinations []*model.AlertDestinationInput, sql *string) int
 		CreateCloudflareProxy                 func(childComplexity int, workspaceID int, proxySubdomain string) int
 		CreateErrorComment                    func(childComplexity int, projectID int, errorGroupSecureID string, text string, textForEmail string, taggedAdmins []*model.SanitizedAdminInput, taggedSlackUsers []*model.SanitizedSlackChannelInput, errorURL string, authorName string, issueTitle *string, issueDescription *string, issueTeamID *string, issueTypeID *string, integrations []*model.IntegrationType) int
 		CreateErrorCommentForExistingIssue    func(childComplexity int, projectID int, errorGroupSecureID string, text string, textForEmail string, taggedAdmins []*model.SanitizedAdminInput, taggedSlackUsers []*model.SanitizedSlackChannelInput, errorURL string, authorName string, issueURL string, issueTitle string, issueID string, integrations []*model.IntegrationType) int
@@ -956,7 +957,7 @@ type ComplexityRoot struct {
 		TestErrorEnhancement                  func(childComplexity int, errorObjectID int, githubRepoPath string, githubPrefix *string, buildPrefix *string, saveError *bool) int
 		UpdateAdminAboutYouDetails            func(childComplexity int, adminDetails model.AdminAboutYouDetails) int
 		UpdateAdminAndCreateWorkspace         func(childComplexity int, adminAndWorkspaceDetails model.AdminAndWorkspaceDetails) int
-		UpdateAlert                           func(childComplexity int, projectID int, alertID int, name *string, productType *model.ProductType, functionType *model.MetricAggregator, functionColumn *string, query *string, groupByKey *string, thresholdValue *float64, thresholdWindow *int, thresholdCooldown *int, thresholdType *model.ThresholdType, thresholdCondition *model.ThresholdCondition, destinations []*model.AlertDestinationInput) int
+		UpdateAlert                           func(childComplexity int, projectID int, alertID int, name *string, productType *model.ProductType, functionType *model.MetricAggregator, functionColumn *string, query *string, groupByKey *string, thresholdValue *float64, thresholdWindow *int, thresholdCooldown *int, thresholdType *model.ThresholdType, thresholdCondition *model.ThresholdCondition, destinations []*model.AlertDestinationInput, sql *string) int
 		UpdateAlertDisabled                   func(childComplexity int, projectID int, alertID int, disabled bool) int
 		UpdateAllowMeterOverage               func(childComplexity int, workspaceID int, allowMeterOverage bool) int
 		UpdateAllowedEmailOrigins             func(childComplexity int, workspaceID int, allowedAutoJoinEmailOrigins string) int
@@ -1884,8 +1885,8 @@ type MutationResolver interface {
 	SyncSlackIntegration(ctx context.Context, projectID int) (*model.SlackSyncResponse, error)
 	CreateMetricMonitor(ctx context.Context, projectID int, name string, aggregator model.MetricAggregator, periodMinutes *int, threshold float64, units *string, metricToMonitor string, slackChannels []*model.SanitizedSlackChannelInput, discordChannels []*model.DiscordChannelInput, webhookDestinations []*model.WebhookDestinationInput, emails []*string, filters []*model.MetricTagFilterInput) (*model1.MetricMonitor, error)
 	UpdateMetricMonitor(ctx context.Context, metricMonitorID int, projectID int, name *string, aggregator *model.MetricAggregator, periodMinutes *int, threshold *float64, units *string, metricToMonitor *string, slackChannels []*model.SanitizedSlackChannelInput, discordChannels []*model.DiscordChannelInput, webhookDestinations []*model.WebhookDestinationInput, emails []*string, disabled *bool, filters []*model.MetricTagFilterInput) (*model1.MetricMonitor, error)
-	CreateAlert(ctx context.Context, projectID int, name string, productType model.ProductType, functionType model.MetricAggregator, functionColumn *string, query *string, groupByKey *string, defaultArg *bool, thresholdValue *float64, thresholdWindow *int, thresholdCooldown *int, thresholdType *model.ThresholdType, thresholdCondition *model.ThresholdCondition, destinations []*model.AlertDestinationInput) (*model1.Alert, error)
-	UpdateAlert(ctx context.Context, projectID int, alertID int, name *string, productType *model.ProductType, functionType *model.MetricAggregator, functionColumn *string, query *string, groupByKey *string, thresholdValue *float64, thresholdWindow *int, thresholdCooldown *int, thresholdType *model.ThresholdType, thresholdCondition *model.ThresholdCondition, destinations []*model.AlertDestinationInput) (*model1.Alert, error)
+	CreateAlert(ctx context.Context, projectID int, name string, productType model.ProductType, functionType model.MetricAggregator, functionColumn *string, query *string, groupByKey *string, defaultArg *bool, thresholdValue *float64, thresholdWindow *int, thresholdCooldown *int, thresholdType *model.ThresholdType, thresholdCondition *model.ThresholdCondition, destinations []*model.AlertDestinationInput, sql *string) (*model1.Alert, error)
+	UpdateAlert(ctx context.Context, projectID int, alertID int, name *string, productType *model.ProductType, functionType *model.MetricAggregator, functionColumn *string, query *string, groupByKey *string, thresholdValue *float64, thresholdWindow *int, thresholdCooldown *int, thresholdType *model.ThresholdType, thresholdCondition *model.ThresholdCondition, destinations []*model.AlertDestinationInput, sql *string) (*model1.Alert, error)
 	UpdateAlertDisabled(ctx context.Context, projectID int, alertID int, disabled bool) (bool, error)
 	DeleteAlert(ctx context.Context, projectID int, alertID int) (bool, error)
 	UpdateErrorAlert(ctx context.Context, projectID int, name *string, errorAlertID int, countThreshold *int, thresholdWindow *int, slackChannels []*model.SanitizedSlackChannelInput, discordChannels []*model.DiscordChannelInput, microsoftTeamsChannels []*model.MicrosoftTeamsChannelInput, webhookDestinations []*model.WebhookDestinationInput, emails []*string, query string, regexGroups []*string, frequency *int, disabled *bool) (*model1.ErrorAlert, error)
@@ -2589,6 +2590,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Alert.Query(childComplexity), true
+
+	case "Alert.sql":
+		if e.complexity.Alert.Sql == nil {
+			break
+		}
+
+		return e.complexity.Alert.Sql(childComplexity), true
 
 	case "Alert.threshold_condition":
 		if e.complexity.Alert.ThresholdCondition == nil {
@@ -6055,7 +6063,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.CreateAlert(childComplexity, args["project_id"].(int), args["name"].(string), args["product_type"].(model.ProductType), args["function_type"].(model.MetricAggregator), args["function_column"].(*string), args["query"].(*string), args["group_by_key"].(*string), args["default"].(*bool), args["threshold_value"].(*float64), args["threshold_window"].(*int), args["threshold_cooldown"].(*int), args["threshold_type"].(*model.ThresholdType), args["threshold_condition"].(*model.ThresholdCondition), args["destinations"].([]*model.AlertDestinationInput)), true
+		return e.complexity.Mutation.CreateAlert(childComplexity, args["project_id"].(int), args["name"].(string), args["product_type"].(model.ProductType), args["function_type"].(model.MetricAggregator), args["function_column"].(*string), args["query"].(*string), args["group_by_key"].(*string), args["default"].(*bool), args["threshold_value"].(*float64), args["threshold_window"].(*int), args["threshold_cooldown"].(*int), args["threshold_type"].(*model.ThresholdType), args["threshold_condition"].(*model.ThresholdCondition), args["destinations"].([]*model.AlertDestinationInput), args["sql"].(*string)), true
 
 	case "Mutation.createCloudflareProxy":
 		if e.complexity.Mutation.CreateCloudflareProxy == nil {
@@ -6775,7 +6783,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.UpdateAlert(childComplexity, args["project_id"].(int), args["alert_id"].(int), args["name"].(*string), args["product_type"].(*model.ProductType), args["function_type"].(*model.MetricAggregator), args["function_column"].(*string), args["query"].(*string), args["group_by_key"].(*string), args["threshold_value"].(*float64), args["threshold_window"].(*int), args["threshold_cooldown"].(*int), args["threshold_type"].(*model.ThresholdType), args["threshold_condition"].(*model.ThresholdCondition), args["destinations"].([]*model.AlertDestinationInput)), true
+		return e.complexity.Mutation.UpdateAlert(childComplexity, args["project_id"].(int), args["alert_id"].(int), args["name"].(*string), args["product_type"].(*model.ProductType), args["function_type"].(*model.MetricAggregator), args["function_column"].(*string), args["query"].(*string), args["group_by_key"].(*string), args["threshold_value"].(*float64), args["threshold_window"].(*int), args["threshold_cooldown"].(*int), args["threshold_type"].(*model.ThresholdType), args["threshold_condition"].(*model.ThresholdCondition), args["destinations"].([]*model.AlertDestinationInput), args["sql"].(*string)), true
 
 	case "Mutation.updateAlertDisabled":
 		if e.complexity.Mutation.UpdateAlertDisabled == nil {
@@ -13825,6 +13833,7 @@ type Alert {
 	threshold_cooldown: Int
 	threshold_type: ThresholdType
 	threshold_condition: ThresholdCondition
+	sql: String
 }
 
 type AlertStateChange {
@@ -15086,6 +15095,7 @@ type Mutation {
 		threshold_type: ThresholdType
 		threshold_condition: ThresholdCondition
 		destinations: [AlertDestinationInput!]!
+		sql: String
 	): Alert
 	updateAlert(
 		project_id: ID!
@@ -15102,6 +15112,7 @@ type Mutation {
 		threshold_type: ThresholdType
 		threshold_condition: ThresholdCondition
 		destinations: [AlertDestinationInput!]
+		sql: String
 	): Alert
 	updateAlertDisabled(
 		project_id: ID!
@@ -15533,6 +15544,15 @@ func (ec *executionContext) field_Mutation_createAlert_args(ctx context.Context,
 		}
 	}
 	args["destinations"] = arg13
+	var arg14 *string
+	if tmp, ok := rawArgs["sql"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("sql"))
+		arg14, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["sql"] = arg14
 	return args, nil
 }
 
@@ -18284,6 +18304,15 @@ func (ec *executionContext) field_Mutation_updateAlert_args(ctx context.Context,
 		}
 	}
 	args["destinations"] = arg13
+	var arg14 *string
+	if tmp, ok := rawArgs["sql"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("sql"))
+		arg14, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["sql"] = arg14
 	return args, nil
 }
 
@@ -26540,6 +26569,47 @@ func (ec *executionContext) fieldContext_Alert_threshold_condition(ctx context.C
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type ThresholdCondition does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Alert_sql(ctx context.Context, field graphql.CollectedField, obj *model1.Alert) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Alert_sql(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Sql, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Alert_sql(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Alert",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
 		},
 	}
 	return fc, nil
@@ -51628,7 +51698,7 @@ func (ec *executionContext) _Mutation_createAlert(ctx context.Context, field gra
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().CreateAlert(rctx, fc.Args["project_id"].(int), fc.Args["name"].(string), fc.Args["product_type"].(model.ProductType), fc.Args["function_type"].(model.MetricAggregator), fc.Args["function_column"].(*string), fc.Args["query"].(*string), fc.Args["group_by_key"].(*string), fc.Args["default"].(*bool), fc.Args["threshold_value"].(*float64), fc.Args["threshold_window"].(*int), fc.Args["threshold_cooldown"].(*int), fc.Args["threshold_type"].(*model.ThresholdType), fc.Args["threshold_condition"].(*model.ThresholdCondition), fc.Args["destinations"].([]*model.AlertDestinationInput))
+		return ec.resolvers.Mutation().CreateAlert(rctx, fc.Args["project_id"].(int), fc.Args["name"].(string), fc.Args["product_type"].(model.ProductType), fc.Args["function_type"].(model.MetricAggregator), fc.Args["function_column"].(*string), fc.Args["query"].(*string), fc.Args["group_by_key"].(*string), fc.Args["default"].(*bool), fc.Args["threshold_value"].(*float64), fc.Args["threshold_window"].(*int), fc.Args["threshold_cooldown"].(*int), fc.Args["threshold_type"].(*model.ThresholdType), fc.Args["threshold_condition"].(*model.ThresholdCondition), fc.Args["destinations"].([]*model.AlertDestinationInput), fc.Args["sql"].(*string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -51686,6 +51756,8 @@ func (ec *executionContext) fieldContext_Mutation_createAlert(ctx context.Contex
 				return ec.fieldContext_Alert_threshold_type(ctx, field)
 			case "threshold_condition":
 				return ec.fieldContext_Alert_threshold_condition(ctx, field)
+			case "sql":
+				return ec.fieldContext_Alert_sql(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Alert", field.Name)
 		},
@@ -51718,7 +51790,7 @@ func (ec *executionContext) _Mutation_updateAlert(ctx context.Context, field gra
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().UpdateAlert(rctx, fc.Args["project_id"].(int), fc.Args["alert_id"].(int), fc.Args["name"].(*string), fc.Args["product_type"].(*model.ProductType), fc.Args["function_type"].(*model.MetricAggregator), fc.Args["function_column"].(*string), fc.Args["query"].(*string), fc.Args["group_by_key"].(*string), fc.Args["threshold_value"].(*float64), fc.Args["threshold_window"].(*int), fc.Args["threshold_cooldown"].(*int), fc.Args["threshold_type"].(*model.ThresholdType), fc.Args["threshold_condition"].(*model.ThresholdCondition), fc.Args["destinations"].([]*model.AlertDestinationInput))
+		return ec.resolvers.Mutation().UpdateAlert(rctx, fc.Args["project_id"].(int), fc.Args["alert_id"].(int), fc.Args["name"].(*string), fc.Args["product_type"].(*model.ProductType), fc.Args["function_type"].(*model.MetricAggregator), fc.Args["function_column"].(*string), fc.Args["query"].(*string), fc.Args["group_by_key"].(*string), fc.Args["threshold_value"].(*float64), fc.Args["threshold_window"].(*int), fc.Args["threshold_cooldown"].(*int), fc.Args["threshold_type"].(*model.ThresholdType), fc.Args["threshold_condition"].(*model.ThresholdCondition), fc.Args["destinations"].([]*model.AlertDestinationInput), fc.Args["sql"].(*string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -51776,6 +51848,8 @@ func (ec *executionContext) fieldContext_Mutation_updateAlert(ctx context.Contex
 				return ec.fieldContext_Alert_threshold_type(ctx, field)
 			case "threshold_condition":
 				return ec.fieldContext_Alert_threshold_condition(ctx, field)
+			case "sql":
+				return ec.fieldContext_Alert_sql(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Alert", field.Name)
 		},
@@ -60998,6 +61072,8 @@ func (ec *executionContext) fieldContext_Query_alerts(ctx context.Context, field
 				return ec.fieldContext_Alert_threshold_type(ctx, field)
 			case "threshold_condition":
 				return ec.fieldContext_Alert_threshold_condition(ctx, field)
+			case "sql":
+				return ec.fieldContext_Alert_sql(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Alert", field.Name)
 		},
@@ -61091,6 +61167,8 @@ func (ec *executionContext) fieldContext_Query_alert(ctx context.Context, field 
 				return ec.fieldContext_Alert_threshold_type(ctx, field)
 			case "threshold_condition":
 				return ec.fieldContext_Alert_threshold_condition(ctx, field)
+			case "sql":
+				return ec.fieldContext_Alert_sql(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Alert", field.Name)
 		},
@@ -88916,6 +88994,8 @@ func (ec *executionContext) _Alert(ctx context.Context, sel ast.SelectionSet, ob
 			out.Values[i] = ec._Alert_threshold_type(ctx, field, obj)
 		case "threshold_condition":
 			out.Values[i] = ec._Alert_threshold_condition(ctx, field, obj)
+		case "sql":
+			out.Values[i] = ec._Alert_sql(ctx, field, obj)
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
