@@ -36,7 +36,10 @@ import {
 	AlwaysOnSampler,
 	BatchSpanProcessor,
 } from '@opentelemetry/sdk-trace-base'
-import { BatchLogRecordProcessor } from '@opentelemetry/sdk-logs'
+import {
+	BatchLogRecordProcessor,
+	LoggerProvider,
+} from '@opentelemetry/sdk-logs'
 import { PeriodicExportingMetricReader } from '@opentelemetry/sdk-metrics'
 import { hookConsole } from './hooks.js'
 import log from './log.js'
@@ -53,7 +56,8 @@ import {
 	ATTR_SERVICE_VERSION,
 	SEMRESATTRS_DEPLOYMENT_ENVIRONMENT,
 } from '@opentelemetry/semantic-conventions'
-import { OTLPExporterConfigBase } from '@opentelemetry/otlp-exporter-base/build/src/configuration/legacy-base-configuration'
+import { BufferConfig } from '@opentelemetry/sdk-logs/build/src/types'
+import { OTLPExporterNodeConfigBase } from '@opentelemetry/otlp-exporter-base/build/src/configuration/legacy-node-configuration'
 
 const OTLP_HTTP = 'https://otel.highlight.io:4318'
 
@@ -165,20 +169,21 @@ export class Highlight {
 
 		const config = {
 			url: options.otlpEndpoint ?? OTLP_HTTP,
+			keepAlive: true,
 			compression:
 				!process.env.NEXT_RUNTIME ||
 				process.env.NEXT_RUNTIME === 'nodejs'
 					? CompressionAlgorithm.GZIP
 					: undefined,
 			timeoutMillis: this.FLUSH_TIMEOUT_MS,
-		} as OTLPExporterConfigBase
+		} as OTLPExporterNodeConfigBase
 		this._log('using otlp exporter settings', config)
 		const opts = {
 			maxExportBatchSize: 1024 * 1024,
 			maxQueueSize: 1024 * 1024,
 			scheduledDelayMillis: this.FLUSH_TIMEOUT_MS,
 			exportTimeoutMillis: this.FLUSH_TIMEOUT_MS,
-		}
+		} as BufferConfig
 
 		const attributes: Attributes = options.attributes || {}
 		attributes['highlight.project_id'] = this._projectID
@@ -192,13 +197,27 @@ export class Highlight {
 		}
 		const resource = new Resource(attributes)
 
-		const exporter = new OTLPTraceExporter(config)
+		const exporter = new OTLPTraceExporter({
+			...config,
+			url: `${config.url}/v1/traces`,
+		})
 		this.processor = new BatchSpanProcessor(exporter, opts)
 
-		const logsExporter = new OTLPLogExporter(config)
+		const loggerProvider = new LoggerProvider({
+			resource,
+		})
+		logs.setGlobalLoggerProvider(loggerProvider)
+		const logsExporter = new OTLPLogExporter({
+			...config,
+			url: `${config.url}/v1/logs`,
+		})
 		this.logsProcessor = new BatchLogRecordProcessor(logsExporter, opts)
+		loggerProvider.addLogRecordProcessor(this.logsProcessor)
 
-		const metricsExporter = new OTLPMetricExporter(config)
+		const metricsExporter = new OTLPMetricExporter({
+			...config,
+			url: `${config.url}/v1/metrics`,
+		})
 		this.metricsReader = new PeriodicExportingMetricReader({
 			exporter: metricsExporter,
 			exportIntervalMillis: opts.scheduledDelayMillis,
@@ -219,9 +238,21 @@ export class Highlight {
 		})
 		this.otel.start()
 
-		this.tracer = trace.getTracer('@highlight-run/node')
-		this.logger = logs.getLogger('@highlight-run/node')
-		this.meter = metrics.getMeter('@highlight-run/node')
+		this.tracer = trace.getTracer(
+			'@highlight-run/node',
+			packageJson.version,
+		)
+		this.logger = logs.getLogger(
+			'@highlight-run/node',
+			packageJson.version,
+			{
+				includeTraceContext: true,
+			},
+		)
+		this.meter = metrics.getMeter(
+			'@highlight-run/node',
+			packageJson.version,
+		)
 
 		for (const event of [
 			'beforeExit',
