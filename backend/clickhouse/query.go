@@ -1812,6 +1812,9 @@ func (client *Client) ReadMetrics(ctx context.Context, input ReadMetricsInput) (
 	}
 
 	sql, args := fromSb.BuildWithFlavor(sqlbuilder.ClickHouse)
+	rawSql, _ := sqlbuilder.ClickHouse.Interpolate(sql, args)
+	fmt.Println("::: SQL :::")
+	fmt.Println(rawSql)
 
 	span, ctx = util.StartSpanFromContext(ctx, "readMetrics.query")
 	span.SetAttribute("sql", sql)

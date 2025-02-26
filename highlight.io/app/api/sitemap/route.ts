@@ -10,6 +10,7 @@ import { getGithubDocsPaths } from '../../../pages/api/docs/github'
 import { getBlogPaths } from '../../../shared/blog'
 import { GraphQLRequest } from '../../../utils/graphql'
 import { VALID_TAGS } from '../../../pages/blog/tag/[tag]'
+import path from 'path'
 
 const stream = createWriteStream({
 	url: 'https://pub.highlight.io/v1/logs/json',
@@ -58,10 +59,26 @@ async function generateXML(): Promise<string> {
 		(competitorSlug: string) => `compare/${competitorSlug}`,
 	)
 
+	const ignoredPages = [
+		'[slug]',
+		'404',
+		'r',
+		'for',
+		'compare',
+		'demo-confirmation',
+		'demo',
+		'launch',
+	]
 	const staticPagePaths = process.env.staticPages?.split(', ') || []
-	const staticPages = staticPagePaths.map((path) => {
-		return `${path.replace('pages', '').replace('index.tsx', '').replace('.tsx', '')}`
-	})
+	const staticPages = staticPagePaths
+		.map((path) => {
+			return `${path.replace('pages', '').replace('index.tsx', '').replace('.tsx', '')}`
+		})
+		.filter((path) => !ignoredPages.includes(path))
+
+	const otelCoursePages = (
+		await fsp.readdir(path.join(process.cwd(), 'otel-course/content'))
+	).map((page) => `otel-course/${page.split('-').pop()?.replace('.md', '')}`)
 
 	const pages = [
 		...staticPages,
@@ -72,6 +89,7 @@ async function generateXML(): Promise<string> {
 		...productPages,
 		...featurePages,
 		...competitorPages,
+		...otelCoursePages,
 	]
 	logger.info({ numPages: pages.length }, 'build pages')
 

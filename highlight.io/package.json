@@ -63,6 +63,7 @@
 		"react-stately": "^3.19.0",
 		"react-syntax-highlighter": "^15.5.0",
 		"react-youtube": "^10.1.0",
+		"rehype-raw": "^7.0.0",
 		"remark-gfm": "^3.0.1",
 		"remove-markdown": "^0.5.0",
 		"rudder-sdk-js": "2.20.0",

@@ -10,6 +10,7 @@ module.exports = {
 		'./components/Products/FeatureBox.tsx',
 		'./components/common/Navbar/*.{js,ts,jsx,tsx}',
 		'./components/common/Navbar/Navbar.tsx',
+		'./otel-course/**/*.{js,ts,jsx,tsx,md}',
 	],
 	theme: {
 		extend: {

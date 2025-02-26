@@ -1,0 +1,75 @@
+// Some random styles to override unwanted defaults.
+.otelCourse {
+	color: black !important;
+
+	p {
+		color: #333;
+		font-weight: normal;
+	}
+
+	h1 {
+		font-size: 36px;
+		font-weight: 600;
+		color: #333;
+		line-height: 1.2 !important;
+		margin: 24px 0 !important;
+	}
+
+	h2 {
+		font-size: 24px;
+		font-weight: 600;
+		color: #333;
+		margin: 24px 0;
+		line-height: 1.2 !important;
+	}
+
+	h3 {
+		font-size: 20px;
+		font-weight: 600;
+		color: #333;
+		margin: 24px 0;
+		line-height: 1.2 !important;
+	}
+
+	h4 {
+		font-size: 16px;
+		font-weight: 600;
+		color: #333;
+		margin: 24px 0;
+		line-height: 1.2 !important;
+	}
+
+	ul {
+		@apply list-disc pl-4;
+	}
+
+	code {
+		border: 1px solid #ccc;
+		border-radius: 4px;
+		padding: 2px 4px;
+		font-size: 14px;
+		font-family: 'Courier New', Courier, monospace;
+	}
+
+	iframe {
+		margin: 24px 0;
+	}
+
+	table {
+		width: 100%;
+		border-collapse: collapse;
+		border: 1px solid #ccc;
+
+		th {
+			background-color: #f0f0f0;
+			font-weight: 600;
+			text-align: left;
+		}
+
+		th,
+		td {
+			padding: 8px;
+			border: 1px solid #ccc;
+		}
+	}
+}

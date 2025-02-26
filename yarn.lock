@@ -40223,6 +40223,7 @@ __metadata:
     react-stately: "npm:^3.19.0"
     react-syntax-highlighter: "npm:^15.5.0"
     react-youtube: "npm:^10.1.0"
+    rehype-raw: "npm:^7.0.0"
     remark-gfm: "npm:^3.0.1"
     remove-markdown: "npm:^0.5.0"
     rudder-sdk-js: "npm:2.20.0"

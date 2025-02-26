@@ -3,7 +3,7 @@
  * Plugin Name: Highlight.io Session Recording
  * Plugin URI: https://highlight.io/docs/wordpress
  * Description: Enables Highlight.io on your WordPress site. Can be used for session recording, error monitoring, and more.
- * Version: 1.0.0
+ * Version: 1.0.2
  * Author: Highlight.io
  * Author URI: https://highlight.io
  * License: GPL-2.0+
@@ -181,7 +181,7 @@ class Highlight_WP_Plugin {
     public function enqueue_highlight_script() {
         $options = get_option('highlight_wp_options');
         if (isset($options['project_id']) && !empty($options['project_id'])) {
-            wp_enqueue_script('highlight-run', plugin_dir_url(__FILE__) . 'highlight.js', array(), '1.0.0', true);
+            wp_enqueue_script('highlight-run', plugin_dir_url(__FILE__) . 'highlight.js', array(), false, true);
 
             $highlight_config = array(
                 'serviceName' => isset($options['service_name']) ? $options['service_name'] : 'highlight-wordpress',
