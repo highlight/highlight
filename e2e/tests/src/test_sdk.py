@@ -115,7 +115,7 @@ def test_express_log(express_app, oauth_api):
                 if express_app_type == "express_js"
                 else "info"
             )
-            assert item["node"]["trace_id"] == "cadbc7a427cc836727783c887b329f44"
+            assert item["node"]["traceID"] == "cadbc7a427cc836727783c887b329f44"
             assert (
                 item["node"]["serviceName"] == "e2e-express"
                 if express_app_type == "express_js"
