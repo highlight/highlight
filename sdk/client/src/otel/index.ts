@@ -299,13 +299,10 @@ class CustomTraceContextPropagator extends W3CTraceContextPropagator {
 		setter: api.TextMapSetter,
 	): void {
 		const span = api.trace.getSpan(context)
-		if (!span) {
+		if (!span || !(span as any).attributes) {
 			return
 		}
 
-		if (!(span as any).attributes) {
-			return
-		}
 		const url = (span as unknown as ReadableSpan).attributes['http.url']
 		if (typeof url === 'string') {
 			const shouldRecord = shouldRecordRequest(
