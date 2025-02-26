@@ -3451,6 +3451,7 @@ export type SavedSegment = {
 export enum SavedSegmentEntityType {
 	Error = 'Error',
 	Log = 'Log',
+	Metric = 'Metric',
 	Session = 'Session',
 	Trace = 'Trace',
 }
