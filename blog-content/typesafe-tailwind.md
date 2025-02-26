@@ -33,7 +33,7 @@ Let's dig into each aspect of this. You can play with and fork the code we go ov
 
 ## **Creating A Theme**
 
-At Highlight, we export our design tokens from Figma via [_Tokens Studio for Figma_](https://www.figma.com/community/plugin/843461159747178978/Tokens-Studio-for-Figma-(Figma-Tokens) "https://www.figma.com/community/plugin/843461159747178978/Tokens-Studio-for-Figma-(Figma-Tokens)"), then use those values to create a theme with vanilla-extract using [_createTheme_](https://vanilla-extract.style/documentation/api/create-theme/ "https://vanilla-extract.style/documentation/api/create-theme/"). However, for this example, let's start with something very basic that only captures a few basic tokens for background and text colors.
+At Highlight, we export our design tokens from Figma via [_Tokens Studio for Figma_](https://www.figma.com/community/plugin/843461159747178978/tokens-studio-for-figma "https://www.figma.com/community/plugin/843461159747178978/tokens-studio-for-figma"), then use those values to create a theme with vanilla-extract using [_createTheme_](https://vanilla-extract.style/documentation/api/create-theme/ "https://vanilla-extract.style/documentation/api/create-theme/"). However, for this example, let's start with something very basic that only captures a few basic tokens for background and text colors.
 
 ```
 import { createTheme } from '@vanilla-extract/css';
@@ -256,7 +256,7 @@ Box.displayName = 'Box';
 
 Using sprinkles and our Box component gives us most of what we need to build UI at Highlight. However, it's inevitable that you'll want to write some custom styles at some point, and vanilla-extract has you covered there as well.
 
-You can use the \[style](&lt;https://vanilla-extract.style/documentation/api/style/>) for creating a new hashed class name that can be imported and applied on a component just like you would normally write CSS, but with type safety and the ability to use your sprinkles in tandem with other custom CSS properties.
+You can use the [style](https://vanilla-extract.style/documentation/api/style/) for creating a new hashed class name that can be imported and applied on a component just like you would normally write CSS, but with type safety and the ability to use your sprinkles in tandem with other custom CSS properties.
 
 ```
 import { style } from '@vanilla-extract/css';

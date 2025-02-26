@@ -31,7 +31,7 @@ More details about these features below:
 
 OTEL Support has been something we've been considering for a while. A few months ago, when we were tasked with supporting several server-side languages, we realized that we needed a common way to collect and send data to our systems. Among a few other possible options (including building this on our own 😅), we decided on OTEL because it supported most of our needs while allowing our customers to customize their client setup as well.
 
-Vadim, our CTO, wrote up a blog post on our commitment to OTEL and open source [here](https://www.highlight.io/blog/open-telemetry "https://www.highlight.io/blog/open-telemetry").
+Vadim, our CTO, wrote up a blog post on our commitment to OTEL and open source [here](https://www.highlight.io/blog/opentelemetry "https://www.highlight.io/blog/opentelemetry").
 
 ## Fine-grained Error Filtering
 
