@@ -21,7 +21,7 @@ H.init('<YOUR_PROJECT_ID>', {
 
 ### `logEvent()`
 
-Calling [`H.track()`](../../sdk/client.md#Hinit) will forward the data to Amplitude's [`logEvent()`](https://amplitude.github.io/Amplitude-JavaScript/#amplitudeclientlogevent).
+Calling [`H.track()`](../../sdk/client.md#Hinit) will forward the data to Amplitude's [`logEvent()`](https://amplitude.com/docs/sdks/analytics/browser/migrate-from-javascript-sdk-to-browser-sdk-2-0#logevent).
 
 ```typescript
 H.track('signup_button_clicked', {
