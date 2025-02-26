@@ -97,17 +97,20 @@ export const MetricsTable: React.FC<MetricsTableProps> = ({
 									onClick={header.column.getToggleSortingHandler()}
 									style={{
 										cursor: 'pointer',
+										height: 30,
 									}}
 								>
-									<Box
-										display="flex"
-										alignItems="center"
-										gap="2"
-									>
-										{flexRender(
-											header.column.columnDef.header,
-											header.getContext(),
-										)}
+									<Box display="flex" alignItems="center">
+										<Text
+											lines="1"
+											weight="medium"
+											size="xSmall"
+										>
+											{flexRender(
+												header.column.columnDef.header,
+												header.getContext(),
+											)}
+										</Text>
 										{isSorted &&
 											(isSorted === 'asc' ? (
 												<IconSolidCheveronUp
