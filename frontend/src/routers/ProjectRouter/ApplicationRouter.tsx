@@ -14,6 +14,7 @@ import { RelatedResourcePanel } from '@/components/RelatedResources/RelatedResou
 import { useNumericProjectId } from '@/hooks/useProjectId'
 import { SignInRedirect } from '@/pages/Auth/SignInRedirect'
 import DashboardRouter from '@/pages/Graphing/DashboardRouter'
+import { MetricsPage } from '@/pages/Metrics/MetricsPage'
 import { SettingsRouter } from '@/pages/SettingsRouter/SettingsRouter'
 import { TracesPage } from '@/pages/Traces/TracesPage'
 
@@ -46,6 +47,7 @@ const ApplicationRouter: React.FC = () => {
 							path="logs/:log_cursor?"
 							element={<LogsPage />}
 						/>
+						<Route path="metrics" element={<MetricsPage />} />
 						<Route path="settings/*" element={<SettingsRouter />} />
 						<Route path="alerts/*" element={<AlertsRouter />} />
 						<Route
