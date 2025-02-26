@@ -7,9 +7,9 @@
 	"types": "./dist/index.d.ts",
 	"exports": {
 		".": {
+			"types": "./dist/index.d.ts",
 			"require": "./dist/index.js",
-			"import": "./dist/index.mjs",
-			"types": "./dist/index.d.ts"
+			"import": "./dist/index.mjs"
 		}
 	},
 	"scripts": {
@@ -35,7 +35,7 @@
 		"eslint": "^8.57.0",
 		"reflect-metadata": "^0.2.2",
 		"rxjs": "^7.8.1",
-		"tsup": "^8.0.2",
+		"tsup": "^8.3.6",
 		"typescript": "^5.4.3"
 	}
 }

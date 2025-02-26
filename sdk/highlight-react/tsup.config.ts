@@ -6,7 +6,8 @@ export default defineConfig({
 	dts: true,
 	esbuildPlugins: [CssModulesPlugin()],
 	minify: true,
-	sourcemap: false,
-	splitting: false,
+	sourcemap: true,
+	splitting: true,
 	bundle: true,
+	treeshake: 'smallest',
 })

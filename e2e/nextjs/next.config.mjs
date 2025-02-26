@@ -8,12 +8,6 @@ const nextConfig = {
 	images: {
 		remotePatterns: [{ protocol: 'https', hostname: 'i.travelapi.com' }],
 	},
-	webpack(config, options) {
-		if (options.isServer) {
-			config.ignoreWarnings = [{ module: /highlight-(run\/)?node/ }]
-		}
-		return config
-	},
 	rewrites: async () => [
 		{ source: '/example', destination: 'https://www.google.com' },
 	],

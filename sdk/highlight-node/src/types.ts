@@ -8,7 +8,7 @@ export interface NodeOptions extends HighlightOptions {
 	projectID: string
 
 	/**
-	 * The endpoint string to send opentelemetry data to.
+	 * The endpoint string to send OTLP HTTP data to.
 	 * @default https://otel.highlight.io:4318
 	 */
 	otlpEndpoint?: string
@@ -50,4 +50,10 @@ export interface NodeOptions extends HighlightOptions {
 export interface HighlightContext {
 	secureSessionId: string | undefined
 	requestId: string | undefined
+}
+
+export declare interface Metric {
+	name: string
+	value: number
+	tags?: { name: string; value: string }[]
 }

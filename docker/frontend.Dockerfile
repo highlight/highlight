@@ -12,7 +12,6 @@ COPY ../docs-content/package.json ./docs-content/package.json
 COPY ../e2e ./e2e
 COPY ../frontend/package.json ./frontend/package.json
 COPY ../highlight.io/package.json ./highlight.io/package.json
-COPY ../opentelemetry-sdk-workers/packages/opentelemetry-sdk-workers/package.json ./opentelemetry-sdk-workers/packages/opentelemetry-sdk-workers/package.json
 COPY ../packages ./packages
 COPY ../render/package.json ./render/package.json
 COPY ../rrweb ./rrweb
@@ -40,7 +39,6 @@ COPY ../docs-content ./docs-content
 COPY ../e2e ./e2e
 COPY ../frontend ./frontend
 COPY ../highlight.io ./highlight.io
-COPY ../opentelemetry-sdk-workers ./opentelemetry-sdk-workers
 COPY ../packages ./packages
 COPY ../render ./render
 COPY ../rrweb ./rrweb
