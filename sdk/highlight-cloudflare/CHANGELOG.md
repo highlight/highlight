@@ -1,5 +1,11 @@
 # @highlight-run/cloudflare
 
+## 3.0.0
+
+### Major Changes
+
+-   31dc610: replace dependence on opentelemetry-sdk-workers with @opentelemetry/sdk-trace-web
+
 ## 2.1.9
 
 ### Patch Changes

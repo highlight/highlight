@@ -1,5 +1,15 @@
 # @highlight-run/node
 
+## 3.12.0
+
+### Minor Changes
+
+-   31dc610: configure Node.js OTLPLogExporter and OTLPMetricExporter
+
+### Patch Changes
+
+-   31dc610: fix @highlight-run/node traceparent parent_span_id propagation
+
 ## 3.11.1
 
 ### Patch Changes
