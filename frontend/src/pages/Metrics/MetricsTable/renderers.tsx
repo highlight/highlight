@@ -1,7 +1,7 @@
 import { Badge, Table, Text } from '@highlight-run/ui/components'
 import moment from 'moment'
 
-export const gridColumns = ['4fr', '1fr', '1fr', '1fr', '1fr']
+export const gridColumns = ['3fr', '1fr', '1fr', '1fr', '1fr']
 
 export type ColumnRendererProps = {
 	row: any

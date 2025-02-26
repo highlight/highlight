@@ -256,13 +256,11 @@ export const MetricsPage: React.FC = () => {
 								</Text>
 							</Box>
 						) : (
-							<Box px="8" py="4">
-								<MetricsTable
-									metrics={metrics}
-									sorting={sorting}
-									setSorting={setSorting}
-								/>
-							</Box>
+							<MetricsTable
+								metrics={metrics}
+								sorting={sorting}
+								setSorting={setSorting}
+							/>
 						)}
 					</Box>
 				</Box>

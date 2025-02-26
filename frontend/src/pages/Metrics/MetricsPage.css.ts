@@ -12,6 +12,8 @@ export const chartText = style({
 export const metricsTable = style({
 	width: '100%',
 	tableLayout: 'fixed',
+	borderRadius: 0,
+	border: 'none',
 })
 
 export const metricsTableContainer = style({
