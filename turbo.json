@@ -60,6 +60,7 @@
 		"build": {
 			"dependsOn": ["^build", "typegen"],
 			"outputs": [
+				".next/**",
 				"lib/**",
 				"es/**",
 				"dist/**",
