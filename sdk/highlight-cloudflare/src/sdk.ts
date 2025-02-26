@@ -265,8 +265,16 @@ export const H: HighlightInterface = {
 			console.error('please call H.init(...) before calling H.flush(...)')
 			return
 		}
-		await sdk.tracerProvider.forceFlush()
-		await sdk.meterProvider.forceFlush()
+		try {
+			await sdk.tracerProvider.forceFlush()
+		} catch (e) {
+			// throws if nothing to flush
+		}
+		try {
+			await sdk.meterProvider.forceFlush()
+		} catch (e) {
+			// throws if nothing to flush
+		}
 	},
 
 	async runWithHeaders<T>(

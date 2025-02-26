@@ -24,14 +24,18 @@ export function Highlight(env: HighlightEnv) {
 		}
 		H.initEdge(env)
 		return async function (request: NextRequest, context: NextFetchEvent) {
-			return await H.runWithHeaders(
-				`${request.method?.toUpperCase()} - ${request.url}`,
-				request.headers,
-				async (span) => {
-					span.setAttribute('next.runtime', 'edge')
-					return await handler(request, context)
-				},
-			)
+			try {
+				return await H.runWithHeaders(
+					`${request.method?.toUpperCase()} - ${request.url}`,
+					request.headers,
+					async (span) => {
+						span.setAttribute('next.runtime', 'edge')
+						return await handler(request, context)
+					},
+				)
+			} finally {
+				await H.flush()
+			}
 		}
 	}
 }
