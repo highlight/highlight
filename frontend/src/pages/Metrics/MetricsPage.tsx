@@ -1,19 +1,16 @@
 import {
-	Badge,
 	Box,
 	DEFAULT_TIME_PRESETS,
 	IconSolidLoading,
-	IconSolidCheveronDown,
-	IconSolidCheveronUp,
 	presetStartDate,
 	Text,
-	Table,
 } from '@highlight-run/ui/components'
 import { vars } from '@highlight-run/ui/vars'
 import moment from 'moment'
 import React, { useEffect, useState } from 'react'
 import { Helmet } from 'react-helmet'
 import { StringParam, useQueryParam } from 'use-query-params'
+import { SortingState } from '@tanstack/react-table'
 
 import { loadingIcon } from '@/components/Button/style.css'
 import {
@@ -44,6 +41,8 @@ import { useSearchTime } from '@/hooks/useSearchTime'
 import { useApplicationContext } from '@/routers/AppRouter/context/ApplicationContext'
 import analytics from '@/util/analytics'
 
+import { MetricsTable } from './MetricsTable/MetricsTable'
+
 // Define the metric structure based on what's shown in the screenshot
 interface Metric {
 	name: string
@@ -53,22 +52,6 @@ interface Metric {
 	dataPoints: number
 }
 
-// Format date to match the format in the screenshot
-const formatDate = (date: Date): string => {
-	return moment(date).format('M/D/YY h:mm:ss A')
-}
-
-// Define sort direction type
-type SortDirection = 'asc' | 'desc'
-
-// Define column keys for sorting
-type SortColumnKey =
-	| 'name'
-	| 'lastConfigured'
-	| 'dataPoints'
-	| 'metricType'
-	| 'serviceName'
-
 export const MetricsPage: React.FC = () => {
 	const { projectId } = useNumericProjectId()
 	const { currentWorkspace } = useApplicationContext()
@@ -77,8 +60,12 @@ export const MetricsPage: React.FC = () => {
 	const [_sortDirection] = useQueryParam(SORT_DIRECTION, StringParam)
 	const [metrics, setMetrics] = useState<Metric[]>([])
 	const [loading, setLoading] = useState(true)
-	const [sortColumn, setSortColumn] = useState<SortColumnKey>('dataPoints')
-	const [sortDirection, setSortDirection] = useState<SortDirection>('desc')
+	const [sorting, setSorting] = useState<SortingState>([
+		{
+			id: 'dataPoints',
+			desc: true,
+		},
+	])
 
 	const searchTimeContext = useSearchTime({
 		presets: DEFAULT_TIME_PRESETS,
@@ -179,8 +166,8 @@ export const MetricsPage: React.FC = () => {
 				}
 			})
 
-			// Convert timestamps to dates and sort by metric_value in descending order
-			const sortedMetrics = Array.from(uniqueMetrics.values())
+			// Convert timestamps to dates and prepare metrics for display
+			const processedMetrics = Array.from(uniqueMetrics.values())
 				.map((metric) => {
 					// Convert timestamp to Date if available
 					if (metric.last_timestamp) {
@@ -190,66 +177,14 @@ export const MetricsPage: React.FC = () => {
 					}
 					return metric
 				})
-				.sort((a, b) => b.metric_value - a.metric_value)
 				.map(({ metric_value: _, last_timestamp: __, ...rest }) => rest) // Remove helper properties
 
-			setMetrics(sortedMetrics)
+			setMetrics(processedMetrics)
 			setLoading(false)
 		}
 	}, [metricsData, metricsLoading])
 
-	// Function to handle sorting when a column header is clicked
-	const handleSort = (column: SortColumnKey) => {
-		if (sortColumn === column) {
-			// Toggle sort direction if the same column is clicked
-			setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc')
-		} else {
-			// Set new column and default to descending order
-			setSortColumn(column)
-			setSortDirection('desc')
-		}
-	}
-
-	// Sort metrics based on current sort column and direction
-	const sortedMetrics = [...metrics].sort((a, b) => {
-		let comparison = 0
-
-		switch (sortColumn) {
-			case 'name':
-				comparison = a.name.localeCompare(b.name)
-				break
-			case 'lastConfigured':
-				comparison =
-					a.lastConfigured.getTime() - b.lastConfigured.getTime()
-				break
-			case 'dataPoints':
-				comparison = a.dataPoints - b.dataPoints
-				break
-			case 'metricType':
-				comparison = a.metricType.localeCompare(b.metricType)
-				break
-			case 'serviceName':
-				comparison = a.serviceName.localeCompare(b.serviceName)
-				break
-			default:
-				comparison = 0
-		}
-
-		return sortDirection === 'asc' ? comparison : -comparison
-	})
-
 	useEffect(() => analytics.page('Metrics'), [])
-
-	// Helper to render sort indicator
-	const renderSortIndicator = (column: SortColumnKey) => {
-		if (sortColumn !== column) return null
-
-		return sortDirection === 'asc' ? (
-			<IconSolidCheveronUp size={12} />
-		) : (
-			<IconSolidCheveronDown size={12} />
-		)
-	}
 
 	return (
 		<SearchContext
@@ -322,135 +257,11 @@ export const MetricsPage: React.FC = () => {
 							</Box>
 						) : (
 							<Box px="8" py="4">
-								<Table>
-									<Table.Head>
-										<Table.Row>
-											<Table.Header
-												onClick={() =>
-													handleSort('name')
-												}
-												style={{ cursor: 'pointer' }}
-											>
-												<Box
-													display="flex"
-													alignItems="center"
-													gap="2"
-												>
-													Metric Name
-													{renderSortIndicator(
-														'name',
-													)}
-												</Box>
-											</Table.Header>
-											<Table.Header
-												onClick={() =>
-													handleSort('lastConfigured')
-												}
-												style={{ cursor: 'pointer' }}
-											>
-												<Box
-													display="flex"
-													alignItems="center"
-													gap="2"
-												>
-													Last configured
-													{renderSortIndicator(
-														'lastConfigured',
-													)}
-												</Box>
-											</Table.Header>
-											<Table.Header
-												onClick={() =>
-													handleSort('dataPoints')
-												}
-												style={{ cursor: 'pointer' }}
-											>
-												<Box
-													display="flex"
-													alignItems="center"
-													gap="2"
-												>
-													Data Points
-													{renderSortIndicator(
-														'dataPoints',
-													)}
-												</Box>
-											</Table.Header>
-											<Table.Header
-												onClick={() =>
-													handleSort('metricType')
-												}
-												style={{ cursor: 'pointer' }}
-											>
-												<Box
-													display="flex"
-													alignItems="center"
-													gap="2"
-												>
-													Metric Type
-													{renderSortIndicator(
-														'metricType',
-													)}
-												</Box>
-											</Table.Header>
-											<Table.Header
-												onClick={() =>
-													handleSort('serviceName')
-												}
-												style={{ cursor: 'pointer' }}
-											>
-												<Box
-													display="flex"
-													alignItems="center"
-													gap="2"
-												>
-													Service name
-													{renderSortIndicator(
-														'serviceName',
-													)}
-												</Box>
-											</Table.Header>
-										</Table.Row>
-									</Table.Head>
-									<Table.Body>
-										{sortedMetrics.map((metric) => (
-											<Table.Row key={metric.name}>
-												<Table.Cell>
-													<Text lines="1">
-														{metric.name}
-													</Text>
-												</Table.Cell>
-												<Table.Cell>
-													<Text>
-														{formatDate(
-															metric.lastConfigured,
-														)}
-													</Text>
-												</Table.Cell>
-												<Table.Cell>
-													<Text>
-														{metric.dataPoints.toLocaleString()}
-													</Text>
-												</Table.Cell>
-												<Table.Cell>
-													<Text>
-														{metric.metricType}
-													</Text>
-												</Table.Cell>
-												<Table.Cell>
-													<Badge
-														shape="basic"
-														variant="outlineGray"
-														size="small"
-														label={
-															metric.serviceName
-														}
-													/>
-												</Table.Cell>
-											</Table.Row>
-										))}
-									</Table.Body>
-								</Table>
+								<MetricsTable
+									metrics={metrics}
+									sorting={sorting}
+									setSorting={setSorting}
+								/>
 							</Box>
 						)}
 					</Box>
