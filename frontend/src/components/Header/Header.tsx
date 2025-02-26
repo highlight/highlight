@@ -30,6 +30,7 @@ import {
 	IconSolidGrafana,
 	IconSolidLightningBolt,
 	IconSolidLogs,
+	IconSolidMetrics,
 	IconSolidOfficeBuilding,
 	IconSolidPlayCircle,
 	IconSolidPlusSm,
@@ -169,6 +170,10 @@ const PAGES: Page[] = [
 	{
 		key: 'traces',
 		icon: IconSolidTraces,
+	},
+	{
+		key: 'metrics',
+		icon: IconSolidMetrics,
 	},
 	{
 		key: 'dashboards',

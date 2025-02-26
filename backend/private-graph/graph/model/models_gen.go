@@ -2799,6 +2799,7 @@ const (
 	SavedSegmentEntityTypeTrace   SavedSegmentEntityType = "Trace"
 	SavedSegmentEntityTypeError   SavedSegmentEntityType = "Error"
 	SavedSegmentEntityTypeSession SavedSegmentEntityType = "Session"
+	SavedSegmentEntityTypeMetric  SavedSegmentEntityType = "Metric"
 )
 
 var AllSavedSegmentEntityType = []SavedSegmentEntityType{
@@ -2806,11 +2807,12 @@ var AllSavedSegmentEntityType = []SavedSegmentEntityType{
 	SavedSegmentEntityTypeTrace,
 	SavedSegmentEntityTypeError,
 	SavedSegmentEntityTypeSession,
+	SavedSegmentEntityTypeMetric,
 }
 
 func (e SavedSegmentEntityType) IsValid() bool {
 	switch e {
-	case SavedSegmentEntityTypeLog, SavedSegmentEntityTypeTrace, SavedSegmentEntityTypeError, SavedSegmentEntityTypeSession:
+	case SavedSegmentEntityTypeLog, SavedSegmentEntityTypeTrace, SavedSegmentEntityTypeError, SavedSegmentEntityTypeSession, SavedSegmentEntityTypeMetric:
 		return true
 	}
 	return false
