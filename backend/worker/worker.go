@@ -339,14 +339,10 @@ func (w *Worker) processPublicWorkerMessage(ctx context.Context, task *kafkaqueu
 		if task.InitializeSession == nil {
 			break
 		}
-		s, err := w.PublicResolver.InitializeSessionImpl(ctx, task.InitializeSession)
-		tags := []attribute.KeyValue{
+		_, err := w.PublicResolver.InitializeSessionImpl(ctx, task.InitializeSession)
+		hmetric.Incr(ctx, "worker.session.initialize.count", []attribute.KeyValue{
 			attribute.Bool("success", err == nil),
-		}
-		if s != nil {
-			tags = append(tags, attribute.Int("project_id", s.ProjectID))
-		}
-		hmetric.Incr(ctx, "worker.session.initialize.count", tags, 1)
+		}, 1)
 		if err != nil {
 			log.WithContext(ctx).WithError(err).WithField("type", task.Type).WithField("key", string(task.KafkaMessage.Key)).Error("failed to process task")
 			return err
