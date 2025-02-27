@@ -1908,6 +1908,7 @@ query GetAlertsPagePayload($project_id: ID!) {
 			type_id
 			type_name
 		}
+		sql
 	}
 }
 
@@ -1935,6 +1936,7 @@ query GetAlert($id: ID!) {
 			type_id
 			type_name
 		}
+		sql
 	}
 }
 

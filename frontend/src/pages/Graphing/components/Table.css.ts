@@ -29,4 +29,5 @@ export const firstCell = style({
 
 export const tableRow = style({
 	overflow: 'hidden',
+	height: '30px',
 })

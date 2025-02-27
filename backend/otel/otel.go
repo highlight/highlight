@@ -651,20 +651,20 @@ func (o *Handler) submitProjectLogs(ctx context.Context, projectLogs map[string]
 	var filteredRows []*clickhouse.LogRow
 	for _, logRows := range projectLogs {
 		for _, logRow := range logRows {
+			// Filter out any log rows for projects where the log quota has been exceeded
+			if quotaExceededByProject[logRow.ProjectId] {
+				continue
+			}
+
 			// create service record for any services found in ingested logs
 			if logRow.ServiceName != "" {
 				if _, err = o.resolver.Store.UpsertService(c, int(logRow.ProjectId), logRow.ServiceName, logRow.LogAttributes); err != nil {
-					log.WithContext(c).Error(e.Wrap(err, "failed to upsert service"))
+					log.WithContext(c).Error(e.Wrap(err, "failed to upsert service from log"))
 				}
 			}
 
 			if logRow.Source == privateModel.LogSourceBackend {
 				markBackendSetupProjectIds = append(markBackendSetupProjectIds, logRow.ProjectId)
-			}
-
-			// Filter out any log rows for projects where the log quota has been exceeded
-			if quotaExceededByProject[logRow.ProjectId] {
-				continue
 			}
 
 			filteredRows = append(filteredRows, logRow)
@@ -761,6 +761,13 @@ func (o *Handler) submitTraceSpans(ctx context.Context, traceRows map[string][]*
 			if !o.resolver.IsTraceIngested(ctx, traceRow) {
 				continue
 			}
+
+			// create service record for any services found in ingested traces
+			if traceRow.ServiceName != "" {
+				if _, err = o.resolver.Store.UpsertService(ctx, int(traceRow.ProjectId), traceRow.ServiceName, traceRow.TraceAttributes); err != nil {
+					log.WithContext(ctx).Error(e.Wrap(err, "failed to upsert service from trace"))
+				}
+			}
 			messages = append(messages, &kafkaqueue.TraceRowMessage{
 				Type:               kafkaqueue.PushTracesFlattened,
 				ClickhouseTraceRow: clickhouse.ConvertTraceRow(traceRow),
@@ -806,18 +813,36 @@ func (o *Handler) submitProjectMetrics(ctx context.Context, projectMetricRows ma
 				continue
 			}
 			if metricSumRow, ok := metricRow.(*clickhouse.MetricSumRow); ok {
+				// create service record for any services found in ingested traces
+				if metricSumRow.ServiceName != "" {
+					if _, err = o.resolver.Store.UpsertService(ctx, int(metricSumRow.ProjectId), metricSumRow.ServiceName, metricSumRow.Attributes); err != nil {
+						log.WithContext(ctx).Error(e.Wrap(err, "failed to upsert service from metric sum"))
+					}
+				}
 				sumMessages = append(sumMessages, &kafkaqueue.OTeLMetricSumRow{
 					Type:         kafkaqueue.PushOTeLMetricSum,
 					MetricSumRow: metricSumRow,
 				})
 			}
 			if metricHistogramRow, ok := metricRow.(*clickhouse.MetricHistogramRow); ok {
+				// create service record for any services found in ingested traces
+				if metricHistogramRow.ServiceName != "" {
+					if _, err = o.resolver.Store.UpsertService(ctx, int(metricHistogramRow.ProjectId), metricHistogramRow.ServiceName, metricHistogramRow.Attributes); err != nil {
+						log.WithContext(ctx).Error(e.Wrap(err, "failed to upsert service from metric histogram"))
+					}
+				}
 				histogramMessages = append(histogramMessages, &kafkaqueue.OTeLMetricHistogramRow{
 					Type:               kafkaqueue.PushOTeLMetricHistogram,
 					MetricHistogramRow: metricHistogramRow,
 				})
 			}
 			if metricSummaryRow, ok := metricRow.(*clickhouse.MetricSummaryRow); ok {
+				// create service record for any services found in ingested traces
+				if metricSummaryRow.ServiceName != "" {
+					if _, err = o.resolver.Store.UpsertService(ctx, int(metricSummaryRow.ProjectId), metricSummaryRow.ServiceName, metricSummaryRow.Attributes); err != nil {
+						log.WithContext(ctx).Error(e.Wrap(err, "failed to upsert service from metric summary"))
+					}
+				}
 				summaryMessages = append(summaryMessages, &kafkaqueue.OTeLMetricSummaryRow{
 					Type:             kafkaqueue.PushOTeLMetricSummary,
 					MetricSummaryRow: metricSummaryRow,

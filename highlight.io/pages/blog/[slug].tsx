@@ -7,7 +7,6 @@ import type {
 	GetStaticProps,
 } from 'next/types'
 import { useEffect, useRef, useState } from 'react'
-import { loadPostsFromGithub } from '.'
 
 import { ElementNode } from '@graphcms/rich-text-types'
 import { serialize } from 'next-mdx-remote/serialize'
@@ -30,7 +29,7 @@ import { Typography } from '../../components/common/Typography/Typography'
 import { Callout } from '../../components/Docs/Callout/Callout'
 import { HighlightCodeBlock } from '../../components/Docs/HighlightCodeBlock/HighlightCodeBlock'
 import homeStyles from '../../components/Home/Home.module.scss'
-import { getBlogPaths } from '../../shared/blog'
+import { getBlogPaths, loadPostsFromGithub } from '../../shared/blog'
 
 const NUM_SUGGESTED_POSTS = 3
 

@@ -35,18 +35,23 @@ export const H: HighlightInterface = {
 			)
 		}
 		for (const m of metrics) {
-			NodeH.recordMetric(
-				opts.secureSessionId,
-				m.name,
-				m.value,
-				opts.requestId,
-				m.tags,
-			)
+			const tags = [...(m.tags ?? [])]
+			if (opts.secureSessionId) {
+				tags.push({
+					name: 'highlight.session_id',
+					value: opts.secureSessionId,
+				})
+			}
+			if (opts.requestId) {
+				tags.push({
+					name: 'highlight.trace_id',
+					value: opts.requestId,
+				})
+			}
+			NodeH.recordMetric({
+				...m,
+				tags,
+			})
 		}
-	},
-	sendResponse: (_: Response) => {
-		throw new Error(
-			'H.sendResponse is not implemented for the Node runtime.',
-		)
 	},
 }

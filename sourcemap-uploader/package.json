@@ -11,18 +11,18 @@
   "type": "module",
   "exports": {
     ".": {
+      "types": "./dist/index.d.ts",
       "require": "./dist/index.cjs",
-      "import": "./dist/index.js",
-      "types": "./dist/index.d.ts"
+      "import": "./dist/index.js"
     },
     "./dist/lib": {
+      "types": "./dist/lib.d.ts",
       "require": "./dist/lib.cjs",
-      "import": "./dist/lib.js",
-      "types": "./dist/lib.d.ts"
+      "import": "./dist/lib.js"
     }
   },
   "scripts": {
-    "typegen": "tsup src/index.ts src/lib.ts --dts-only",
+    "typegen": "tsup --dts-only",
     "build": "tsup"
   },
   "installConfig": {
@@ -32,7 +32,7 @@
     "@types/node": "^18.15.5",
     "eslint": "^8.39.0",
     "npm-run-all": "^4.1.5",
-    "tsup": "6.6.2",
+    "tsup": "8.3.6",
     "typescript": "^5.0.2"
   },
   "dependencies": {

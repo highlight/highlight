@@ -69,7 +69,7 @@ import {
 
 import * as style from './Graph.css'
 
-import { EventSelectionStep } from '@pages/Graphing/util'
+import { BUCKET_FREQUENCIES, EventSelectionStep } from '@pages/Graphing/util'
 import { useGraphContext } from '../context/GraphContext'
 import { TIME_METRICS } from '@pages/Graphing/constants'
 import _ from 'lodash'
@@ -118,6 +118,7 @@ export const YHAT_LOWER_REGION_KEY = 'yhat_lower_region'
 export const NO_GROUP_PLACEHOLDER = '<empty>'
 export const TIME_INTERVAL_MACRO = '$time_interval'
 const MAX_LABEL_CHARS = 100
+const MAX_BUCKETS = 240
 
 export type PieChartConfig = {
 	type: 'Pie chart'
@@ -181,6 +182,7 @@ export interface InnerChartProps<TConfig> {
 	loading?: boolean
 	viewConfig: TConfig
 	disabled?: boolean
+	thresholdSettings?: ThresholdSettings
 	setTimeRange?: SetTimeRange
 	loadExemplars?: LoadExemplars
 }
@@ -1190,6 +1192,7 @@ const Graph = ({
 
 	// Use a smaller bucketByWindow if the selected one is greater than the time range
 	if (
+		bucketByWindow !== undefined &&
 		moment(startDate).add(bucketByWindow, 'second').isSameOrAfter(endDate)
 	) {
 		let lastPreset = DEFAULT_TIME_PRESETS[0]
@@ -1208,6 +1211,27 @@ const Graph = ({
 		bucketByWindow = moment
 			.duration(lastPreset.quantity, lastPreset.unit)
 			.asSeconds()
+	}
+
+	// Use a larger bucketByWindow if there are too many buckets
+	if (
+		bucketByWindow !== undefined &&
+		moment(startDate)
+			.add(MAX_BUCKETS * bucketByWindow, 'second')
+			.isBefore(endDate)
+	) {
+		for (const preset of BUCKET_FREQUENCIES) {
+			if (
+				moment(startDate)
+					.add(MAX_BUCKETS * Number(preset.value), 'second')
+					.isSameOrAfter(endDate)
+			) {
+				bucketByWindow = moment
+					.duration(preset.value, 'second')
+					.asSeconds()
+				break
+			}
+		}
 	}
 
 	const loadExemplars = useCallback(
@@ -1524,7 +1548,7 @@ const Graph = ({
 						viewConfig={viewConfig}
 						spotlight={spotlight}
 						setTimeRange={setTimeRange}
-						loadExemplars={loadExemplars}
+						loadExemplars={sql ? undefined : loadExemplars}
 						minYAxisMax={axisLimit}
 						maxYAxisMin={axisLimit}
 						showGrid
@@ -1542,7 +1566,7 @@ const Graph = ({
 						viewConfig={viewConfig}
 						spotlight={spotlight}
 						setTimeRange={setTimeRange}
-						loadExemplars={loadExemplars}
+						loadExemplars={sql ? undefined : loadExemplars}
 						showGrid
 					>
 						{children}
@@ -1558,7 +1582,7 @@ const Graph = ({
 							viewConfig={FUNNEL_BAR_CONFIG}
 							spotlight={spotlight}
 							setTimeRange={setTimeRange}
-							loadExemplars={loadExemplars}
+							loadExemplars={sql ? undefined : loadExemplars}
 							showGrid
 						>
 							{children}
@@ -1572,7 +1596,7 @@ const Graph = ({
 							viewConfig={FUNNEL_LINE_CONFIG}
 							spotlight={spotlight}
 							setTimeRange={setTimeRange}
-							loadExemplars={loadExemplars}
+							loadExemplars={sql ? undefined : loadExemplars}
 							showGrid
 						>
 							{children}
@@ -1599,8 +1623,9 @@ const Graph = ({
 						xAxisMetric={xAxisMetric}
 						viewConfig={viewConfig}
 						disabled={disabled}
-						loadExemplars={loadExemplars}
+						loadExemplars={sql ? undefined : loadExemplars}
 						visualizationId={id}
+						thresholdSettings={thresholdSettings}
 					/>
 				)
 				break

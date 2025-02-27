@@ -54,11 +54,9 @@ async function doRequest() {
 
 export default {
 	async fetch(request: Request, env: {}, ctx: ExecutionContext) {
-		H.init(request, { HIGHLIGHT_PROJECT_ID: '1' }, ctx)
+		H.init({ HIGHLIGHT_PROJECT_ID: '1' })
 		try {
-			const response = await doRequest()
-			H.sendResponse(response)
-			return response
+			return await H.runWithHeaders('worker', request.headers, doRequest)
 		} catch (e: any) {
 			H.consumeError(e)
 			throw e

@@ -29,34 +29,13 @@ export const Highlight =
 		return async (req, res) => {
 			if (!NodeH) throw new Error('Highlight not initialized')
 
-			const start = new Date()
-
-			try {
-				return await H.runWithHeaders(
-					`${req.method?.toUpperCase()} - ${req.url}`,
-					req.headers,
-					async () => {
-						return await originalHandler(req, res)
-					},
-				)
-			} catch (e) {
-				res.status(500).send('Internal Server Error')
-				throw e
-			} finally {
-				recordLatency()
-			}
-
-			function recordLatency() {
-				// convert ms to ns
-				const delta = (new Date().getTime() - start.getTime()) * 1000000
-				const { secureSessionId, requestId } = NodeH.parseHeaders(
-					req.headers,
-				)
-
-				if (secureSessionId && requestId) {
-					H.recordMetric(secureSessionId, 'latency', delta, requestId)
-				}
-			}
+			return await H.runWithHeaders(
+				`${req.method?.toUpperCase()} - ${req.url}`,
+				req.headers,
+				async () => {
+					return await originalHandler(req, res)
+				},
+			)
 		}
 	}
 

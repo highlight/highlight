@@ -1,5 +1,30 @@
 # @highlight-run/react
 
+## 12.1.0
+
+### Minor Changes
+
+-   31dc610: ensure correct version of @types/react is installed
+
+### Patch Changes
+
+-   31dc610: ensure ErrorBoundary component is compatible with react 18 and react 19
+
+## 12.0.1
+
+### Patch Changes
+
+-   Updated dependencies [2b8cba8]
+-   Updated dependencies [baed388]
+    -   highlight.run@9.11.1
+
+## 12.0.0
+
+### Patch Changes
+
+-   Updated dependencies [941ac5e]
+    -   highlight.run@9.11.0
+
 ## 11.0.0
 
 ### Patch Changes

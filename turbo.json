@@ -20,31 +20,11 @@
 			"inputs": ["src/**/*.tsx", "src/**/*.ts", "tsconfig.json"],
 			"outputs": ["dist/**/*.d.ts"]
 		},
-		"highlight.io#build": {
-			"dependsOn": ["^build"],
-			"outputs": [".next/**"],
-			"env": ["GRAPHCMS_TOKEN"]
-		},
 		"highlight.io#lint": {
 			"dependsOn": ["^build"]
 		},
 		"nextjs#lint": {
 			"dependsOn": ["^build"]
-		},
-		"@highlight-run/cloudflare#build": {
-			"dependsOn": ["@highlight-run/opentelemetry-sdk-workers#build"],
-			"outputs": ["dist/**"]
-		},
-		"@highlight-run/next#build": {
-			"dependsOn": [
-				"@highlight-run/cloudflare#build",
-				"@highlight-run/node#build",
-				"@highlight-run/opentelemetry-sdk-workers#build",
-				"@highlight-run/react#build",
-				"@highlight-run/sourcemap-uploader#build",
-				"highlight.run#build"
-			],
-			"outputs": ["dist/**"]
 		},
 		"codegen": {
 			"inputs": ["./**/*.gql", "./**/*.graphqls"],
@@ -80,6 +60,7 @@
 		"build": {
 			"dependsOn": ["^build", "typegen"],
 			"outputs": [
+				".next/**",
 				"lib/**",
 				"es/**",
 				"dist/**",

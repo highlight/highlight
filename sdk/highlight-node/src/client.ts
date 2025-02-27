@@ -2,59 +2,64 @@ import api, {
 	Attributes,
 	BaggageEntry,
 	Context,
+	Counter,
 	diag,
 	DiagConsoleLogger,
 	DiagLogLevel,
-	Span as OtelSpan,
+	Gauge,
+	Histogram,
+	Meter,
+	metrics,
 	propagation,
+	Span as OtelSpan,
 	SpanOptions,
 	trace,
 	Tracer,
+	UpDownCounter,
 } from '@opentelemetry/api'
+import { Logger } from '@opentelemetry/api-logs'
 import { getNodeAutoInstrumentations } from '@opentelemetry/auto-instrumentations-node'
 import { AsyncLocalStorageContextManager } from '@opentelemetry/context-async-hooks'
 import {
+	CompositePropagator,
 	W3CBaggagePropagator,
 	W3CTraceContextPropagator,
-	CompositePropagator,
 } from '@opentelemetry/core'
 import { OTLPTraceExporter } from '@opentelemetry/exporter-trace-otlp-http'
+import { OTLPLogExporter } from '@opentelemetry/exporter-logs-otlp-http'
+import { OTLPMetricExporter } from '@opentelemetry/exporter-metrics-otlp-http'
 import { registerInstrumentations } from '@opentelemetry/instrumentation'
 import { CompressionAlgorithm } from '@opentelemetry/otlp-exporter-base'
 import { processDetectorSync, Resource } from '@opentelemetry/resources'
 import { NodeSDK } from '@opentelemetry/sdk-node'
 import {
 	AlwaysOnSampler,
+	BatchSpanProcessor,
 	BufferConfig,
-	ReadableSpan,
-	Span,
 } from '@opentelemetry/sdk-trace-base'
-import { BatchSpanProcessorBase } from '@opentelemetry/sdk-trace-base/build/src/export/BatchSpanProcessorBase'
 import {
-	SEMRESATTRS_DEPLOYMENT_ENVIRONMENT,
-	SEMRESATTRS_SERVICE_NAME,
-	SEMRESATTRS_SERVICE_VERSION,
-} from '@opentelemetry/semantic-conventions'
-import { clearInterval } from 'timers'
+	BatchLogRecordProcessor,
+	LoggerProvider,
+} from '@opentelemetry/sdk-logs'
+import { PeriodicExportingMetricReader } from '@opentelemetry/sdk-metrics'
 import { hookConsole } from './hooks.js'
 import log from './log.js'
 import {
-	HIGHLIGHT_REQUEST_HEADER,
 	type Headers,
+	HIGHLIGHT_REQUEST_HEADER,
 	type IncomingHttpHeaders,
 } from './sdk.js'
-import type { HighlightContext, NodeOptions } from './types.js'
+import type { HighlightContext, Metric, NodeOptions } from './types.js'
 import * as packageJson from '../package.json'
 import { PrismaInstrumentation } from '@prisma/instrumentation'
+import {
+	ATTR_SERVICE_NAME,
+	ATTR_SERVICE_VERSION,
+	SEMRESATTRS_DEPLOYMENT_ENVIRONMENT,
+} from '@opentelemetry/semantic-conventions'
+import { OTLPExporterNodeConfigBase } from '@opentelemetry/otlp-exporter-base/build/src/configuration/legacy-node-configuration'
 
 const OTLP_HTTP = 'https://otel.highlight.io:4318'
-const FIVE_MINUTES = 1000 * 60 * 5
-
-type TraceMapValue = {
-	attributes: { 'highlight.session_id': string; 'highlight.trace_id': string }
-
-	destroy: () => void
-}
 
 const instrumentations = getNodeAutoInstrumentations({
 	'@opentelemetry/instrumentation-http': {
@@ -80,120 +85,41 @@ const instrumentations = getNodeAutoInstrumentations({
 	},
 })
 instrumentations.push(new PrismaInstrumentation())
-
-/**
- * Baggage propagation does not appear to be patching Fetch at the moment,
- * but we hope it'll get fixed soon:
- * https://github.com/open-telemetry/opentelemetry-js-contrib/pull/1951
- *
- * Docs: https://github.com/open-telemetry/opentelemetry-js/blob/main/packages/opentelemetry-core/README.md
- */
-propagation.setGlobalPropagator(
-	new CompositePropagator({
-		propagators: [
-			new W3CBaggagePropagator(),
-			new W3CTraceContextPropagator(),
-		],
-	}),
-)
-
 registerInstrumentations({ instrumentations })
 
-// @ts-ignore
-class CustomSpanProcessor extends BatchSpanProcessorBase<BufferConfig> {
-	private _listeners: Map<Symbol, () => void> = new Map()
-	private traceAttributesMap = new Map<string, TraceMapValue>()
-	private finishedSpanNames = new Set<string>()
-
-	getTraceMetadata(span: ReadableSpan) {
-		return this.traceAttributesMap.get(span.spanContext().traceId)
-	}
-
-	setTraceMetadata(span: OtelSpan, attributes: TraceMapValue['attributes']) {
-		const { traceId } = span.spanContext()
-
-		if (!this.traceAttributesMap.get(traceId)) {
-			const timer = setTimeout(() => destroy(), FIVE_MINUTES)
-			const destroy = () => {
-				this.traceAttributesMap.delete(traceId)
-
-				clearTimeout(timer)
-			}
-
-			return this.traceAttributesMap.set(traceId, { attributes, destroy })
-		}
-	}
-
-	getFinishedSpanNames() {
-		return this.finishedSpanNames
-	}
-
-	clearFinishedSpanNames() {
-		return this.finishedSpanNames.clear()
-	}
-
-	onEnd(span: ReadableSpan) {
-		const traceMetadata = this.getTraceMetadata(span)
-
-		if (traceMetadata) {
-			// @ts-ignore
-			span.resource = span.resource.merge(
-				new Resource(traceMetadata.attributes),
-			)
-		}
-
-		if (!span.parentSpanId && traceMetadata) {
-			traceMetadata.destroy()
-		}
-
-		this.finishedSpanNames.add(span.name)
-
-		// @ts-ignore
-		super.onEnd(span)
-	}
-
-	// Only needed to resolve a type error
-	onStart(span: ReadableSpan, parentContext: Context): void {
-		// @ts-ignore
-		super.onStart(span, parentContext)
-	}
-
-	onShutdown(): void {}
-
-	async forceFlush(): Promise<void> {
-		// @ts-ignore
-		const finishedSpansCount = this._finishedSpans.length
-
-		if (finishedSpansCount > 0) {
-			Array.from(this._listeners.values()).forEach((listener) =>
-				listener(),
-			)
-		}
-
-		await super.forceFlush()
-	}
-
-	registerListener(listener: () => void) {
-		const id = Symbol()
-		this._listeners.set(id, listener)
-
-		return () => this._listeners.delete(id)
-	}
-}
-
 const OTEL_TO_OPTIONS = {
-	[SEMRESATTRS_SERVICE_NAME]: 'serviceName',
-	[SEMRESATTRS_SERVICE_VERSION]: 'serviceVersion',
+	[ATTR_SERVICE_NAME]: 'serviceName',
+	[ATTR_SERVICE_VERSION]: 'serviceVersion',
 	[SEMRESATTRS_DEPLOYMENT_ENVIRONMENT]: 'environment',
 } as const
 
 export class Highlight {
-	readonly FLUSH_TIMEOUT_MS = 30 * 1000
+	readonly FLUSH_TIMEOUT_MS = 5 * 1000
 	_projectID: string
 	_debug: boolean
 	otel: NodeSDK
-	private tracer: Tracer
-	private processor: CustomSpanProcessor
+
+	private readonly tracer: Tracer
+	private readonly logger: Logger
+	private readonly meter: Meter
+
+	private readonly processor: BatchSpanProcessor
+	private readonly loggerProvider: LoggerProvider
+	private readonly metricsReader: PeriodicExportingMetricReader
+
+	private readonly _gauges: Map<string, Gauge> = new Map<string, Gauge>()
+	private readonly _counters: Map<string, Counter> = new Map<
+		string,
+		Counter
+	>()
+	private readonly _histograms: Map<string, Histogram> = new Map<
+		string,
+		Histogram
+	>()
+	private readonly _up_down_counters: Map<string, UpDownCounter> = new Map<
+		string,
+		UpDownCounter
+	>()
 
 	constructor(options: NodeOptions) {
 		this._debug = !!options.debug
@@ -224,31 +150,23 @@ export class Highlight {
 			})
 		}
 
-		this.tracer = trace.getTracer('highlight-node')
-
 		const config = {
-			url: `${options.otlpEndpoint ?? OTLP_HTTP}/v1/traces`,
+			url: options.otlpEndpoint ?? OTLP_HTTP,
+			keepAlive: true,
 			compression:
 				!process.env.NEXT_RUNTIME ||
 				process.env.NEXT_RUNTIME === 'nodejs'
 					? CompressionAlgorithm.GZIP
 					: undefined,
-			keepAlive: true,
 			timeoutMillis: this.FLUSH_TIMEOUT_MS,
-			httpAgentOptions: {
-				timeout: this.FLUSH_TIMEOUT_MS,
-				keepAlive: true,
-			},
-		}
+		} as OTLPExporterNodeConfigBase
 		this._log('using otlp exporter settings', config)
-		const exporter = new OTLPTraceExporter(config)
-
-		this.processor = new CustomSpanProcessor(exporter, {
-			scheduledDelayMillis: 1000,
+		const opts = {
 			maxExportBatchSize: 1024 * 1024,
 			maxQueueSize: 1024 * 1024,
+			scheduledDelayMillis: this.FLUSH_TIMEOUT_MS,
 			exportTimeoutMillis: this.FLUSH_TIMEOUT_MS,
-		})
+		} as BufferConfig
 
 		const attributes: Attributes = options.attributes || {}
 		attributes['highlight.project_id'] = this._projectID
@@ -260,18 +178,69 @@ export class Highlight {
 				attributes[otelAttr] = options[option]
 			}
 		}
+		const resource = new Resource(attributes)
+
+		const exporter = new OTLPTraceExporter({
+			...config,
+			url: `${config.url}/v1/traces`,
+		})
+		this.processor = new BatchSpanProcessor(exporter, opts)
+
+		this.loggerProvider = new LoggerProvider({
+			resource,
+		})
+		const logsExporter = new OTLPLogExporter({
+			...config,
+			url: `${config.url}/v1/logs`,
+		})
+		const logsProcessor = new BatchLogRecordProcessor(logsExporter, opts)
+		this.loggerProvider.addLogRecordProcessor(logsProcessor)
+
+		const metricsExporter = new OTLPMetricExporter({
+			...config,
+			url: `${config.url}/v1/metrics`,
+		})
+		this.metricsReader = new PeriodicExportingMetricReader({
+			exporter: metricsExporter,
+			exportIntervalMillis: opts.scheduledDelayMillis,
+			exportTimeoutMillis: opts.scheduledDelayMillis,
+		})
 
 		this.otel = new NodeSDK({
 			autoDetectResources: true,
 			resourceDetectors: [processDetectorSync],
-			resource: new Resource(attributes),
+			resource,
 			spanProcessors: [this.processor],
+			logRecordProcessors: [logsProcessor],
+			metricReader: this.metricsReader,
 			traceExporter: exporter,
 			contextManager: new AsyncLocalStorageContextManager(),
 			sampler: new AlwaysOnSampler(),
 			instrumentations,
+			textMapPropagator: new CompositePropagator({
+				propagators: [
+					new W3CBaggagePropagator(),
+					new W3CTraceContextPropagator(),
+				],
+			}),
 		})
 		this.otel.start()
+
+		this.tracer = trace.getTracer(
+			'@highlight-run/node',
+			packageJson.version,
+		)
+		this.logger = this.loggerProvider.getLogger(
+			'@highlight-run/node',
+			packageJson.version,
+			{
+				includeTraceContext: true,
+			},
+		)
+		this.meter = metrics.getMeter(
+			'@highlight-run/node',
+			packageJson.version,
+		)
 
 		for (const event of [
 			'beforeExit',
@@ -289,18 +258,6 @@ export class Highlight {
 		this._log(`Initialized SDK for project ${this._projectID}`)
 	}
 
-	get activeSpanProcessor(): CustomSpanProcessor {
-		// @ts-ignore
-		return trace.getTracerProvider()?._delegate.activeSpanProcessor
-			._spanProcessors[0]
-	}
-
-	get finishedSpans(): Span[] {
-		const processor = this.activeSpanProcessor
-		// @ts-ignore
-		return processor?._finishedSpans ?? []
-	}
-
 	async stop() {
 		await this.flush()
 		await this.otel.shutdown()
@@ -312,34 +269,68 @@ export class Highlight {
 		}
 	}
 
-	recordMetric(
-		secureSessionId: string,
-		name: string,
-		value: number,
-		requestId?: string,
-		tags?: { name: string; value: string }[],
-	) {
-		if (!this.tracer) return
-		const span = this.tracer.startSpan('highlight.metric')
-		span.addEvent('metric', {
-			['highlight.project_id']: this._projectID,
-			['metric.name']: name,
-			['metric.value']: value,
-			...(secureSessionId
-				? {
-						['highlight.session_id']: secureSessionId,
-					}
-				: {}),
-			...(requestId
-				? {
-						['highlight.trace_id']: requestId,
-					}
-				: {}),
-		})
-		for (const t of tags || []) {
-			span.setAttribute(t.name, t.value)
+	recordMetric(metric: Metric) {
+		if (!this.meter) return
+
+		let gauge = this._gauges.get(metric.name)
+		if (!gauge) {
+			gauge = this.meter.createGauge(metric.name)
+			this._gauges.set(metric.name, gauge)
 		}
-		span.end()
+
+		gauge.record(
+			metric.value,
+			metric.tags?.reduce((a, b) => ({ ...a, [b.name]: b.value }), {}),
+		)
+	}
+
+	recordCount(metric: Metric) {
+		if (!this.meter) return
+
+		let counter = this._counters.get(metric.name)
+		if (!counter) {
+			counter = this.meter.createCounter(metric.name)
+			this._counters.set(metric.name, counter)
+		}
+
+		counter.add(
+			metric.value,
+			metric.tags?.reduce((a, b) => ({ ...a, [b.name]: b.value }), {}),
+		)
+	}
+
+	recordIncr(metric: Omit<Metric, 'value'>) {
+		this.recordCount({ ...metric, value: 1 })
+	}
+
+	recordHistogram(metric: Metric) {
+		if (!this.meter) return
+
+		let histogram = this._histograms.get(metric.name)
+		if (!histogram) {
+			histogram = this.meter.createHistogram(metric.name)
+			this._histograms.set(metric.name, histogram)
+		}
+
+		histogram.record(
+			metric.value,
+			metric.tags?.reduce((a, b) => ({ ...a, [b.name]: b.value }), {}),
+		)
+	}
+
+	recordUpDownCounter(metric: Metric) {
+		if (!this.meter) return
+
+		let up_down_counter = this._up_down_counters.get(metric.name)
+		if (!up_down_counter) {
+			up_down_counter = this.meter.createUpDownCounter(metric.name)
+			this._up_down_counters.set(metric.name, up_down_counter)
+		}
+
+		up_down_counter.add(
+			metric.value,
+			metric.tags?.reduce((a, b) => ({ ...a, [b.name]: b.value }), {}),
+		)
 	}
 
 	log(
@@ -351,32 +342,32 @@ export class Highlight {
 		requestId?: string,
 		metadata?: Attributes,
 	) {
-		if (!this.tracer) return
-		const span = this.tracer.startSpan('highlight.log')
-		// log specific events from https://github.com/highlight/highlight/blob/19ea44c616c432ef977c73c888c6dfa7d6bc82f3/sdk/highlight-go/otel.go#L34-L36
-		span.addEvent(
-			'log',
-			{
+		if (!this.logger) return
+
+		if (!secureSessionId && !requestId) {
+			const entry = propagation
+				.getActiveBaggage()
+				?.getEntry(HIGHLIGHT_REQUEST_HEADER)
+			if (entry?.value) {
+				;[secureSessionId, requestId] = entry?.value.split('/')
+			}
+		}
+
+		this.logger.emit({
+			timestamp: date,
+			severityText: level,
+			body: msg,
+			attributes: {
 				...(metadata ?? {}),
 				// pass stack so that error creation on our end can show a structured stacktrace for errors
 				['exception.stacktrace']: JSON.stringify(stack),
-				['highlight.project_id']: this._projectID,
-				['log.severity']: level,
-				['log.message']: msg,
 				...(secureSessionId
 					? {
 							['highlight.session_id']: secureSessionId,
 						}
 					: {}),
-				...(requestId
-					? {
-							['highlight.trace_id']: requestId,
-						}
-					: {}),
 			},
-			date,
-		)
-		span.end()
+		})
 	}
 
 	consumeCustomError(
@@ -397,9 +388,6 @@ export class Highlight {
 		if (secureSessionId) {
 			span.setAttribute('highlight.session_id', secureSessionId)
 		}
-		if (requestId) {
-			span.setAttribute('highlight.trace_id', requestId)
-		}
 		if (error.cause && typeof error.cause === 'object') {
 			span.setAttributes(
 				Object.entries(error.cause)
@@ -419,57 +407,11 @@ export class Highlight {
 	async flush() {
 		try {
 			await this.processor.forceFlush()
+			await this.loggerProvider.forceFlush()
+			await this.metricsReader.forceFlush()
 		} catch (e) {
 			this._log('failed to flush: ', e)
 		}
-	}
-
-	async waitForFlush(expectedSpanNames: string[] = []) {
-		return new Promise<string[]>(async (resolve) => {
-			let resolved = false
-			let finishedSpansCount = this.finishedSpans.length
-			let waitingForFinishedSpans = finishedSpansCount > 0
-
-			let intervalTimer = setInterval(async () => {
-				finishedSpansCount = this.finishedSpans.length
-
-				const canFinish =
-					!expectedSpanNames.length ||
-					expectedSpanNames.every((n) =>
-						this.processor.getFinishedSpanNames().has(n),
-					)
-
-				if (finishedSpansCount) {
-					waitingForFinishedSpans = true
-				} else if (canFinish && waitingForFinishedSpans) {
-					finish()
-
-					this.processor.clearFinishedSpanNames()
-				}
-			}, 10)
-
-			this.flush()
-
-			let timer: ReturnType<typeof setTimeout>
-
-			const finish = async () => {
-				clearInterval(intervalTimer)
-				clearTimeout(timer)
-				unlisten()
-
-				if (!resolved) {
-					resolved = true
-
-					resolve(Array.from(this.processor.getFinishedSpanNames()))
-				}
-			}
-
-			if (!expectedSpanNames.length) {
-				timer = setTimeout(finish, 2000)
-			}
-
-			const unlisten = this.processor.registerListener(finish)
-		})
 	}
 
 	setAttributes(attributes: Attributes) {
@@ -486,23 +428,18 @@ export class Highlight {
 		cb: (span: OtelSpan) => T | Promise<T>,
 		options?: SpanOptions,
 	) {
-		const { secureSessionId, requestId } = this.parseHeaders(headers)
 		const { span, ctx } = this.startWithHeaders(name, headers, options)
-		try {
-			return await api.context.with(ctx, async () => {
-				propagation.inject(ctx, headers)
-				return cb(span)
-			})
-		} catch (error) {
-			if (error instanceof Error) {
-				this.consumeCustomError(error, secureSessionId, requestId)
+		return await api.context.with(ctx, async () => {
+			propagation.inject(ctx, headers)
+			try {
+				return await cb(span)
+			} catch (error) {
+				span.recordException(error as Error)
+				throw error
+			} finally {
+				span.end()
 			}
-
-			throw error
-		} finally {
-			span.end()
-			await this.waitForFlush()
-		}
+		})
 	}
 
 	startWithHeaders<T>(
@@ -510,15 +447,22 @@ export class Highlight {
 		headers: Headers | IncomingHttpHeaders,
 		options?: SpanOptions,
 	): { span: OtelSpan; ctx: Context } {
-		const ctx = api.context.active()
+		const ctx = propagation.extract(api.context.active(), headers)
 		const span = this.tracer.startSpan(spanName, options, ctx)
 		const contextWithSpanSet = api.trace.setSpan(ctx, span)
 
-		const { secureSessionId, requestId } = this.parseHeaders(headers)
-		if (secureSessionId && requestId) {
-			this.processor.setTraceMetadata(span, {
+		let { secureSessionId, requestId } = this.parseHeaders(headers)
+		if (!secureSessionId && !requestId) {
+			const entry = propagation
+				.getActiveBaggage()
+				?.getEntry(HIGHLIGHT_REQUEST_HEADER)
+			if (entry?.value) {
+				;[secureSessionId, requestId] = entry?.value.split('/')
+			}
+		}
+		if (secureSessionId) {
+			span.setAttributes({
 				'highlight.session_id': secureSessionId,
-				'highlight.trace_id': requestId,
 			})
 
 			propagation.getActiveBaggage()?.setEntry(HIGHLIGHT_REQUEST_HEADER, {
@@ -526,10 +470,11 @@ export class Highlight {
 			} as BaggageEntry)
 		}
 
-		propagation.inject(ctx, headers)
+		propagation.inject(contextWithSpanSet, headers)
 		return { span, ctx: contextWithSpanSet }
 	}
 }
+
 function parseHeaders(
 	headers: Headers | IncomingHttpHeaders,
 ): HighlightContext {

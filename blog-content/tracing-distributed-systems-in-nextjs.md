@@ -87,7 +87,7 @@ We'll use the browser's `Fetch` API to call a Next.js API function. Highlight mo
 
 See the full [list of monkey patches](https://www.highlight.io/docs/getting-started/browser/replay-configuration/monkey-patches) in our docs.
 
-```jsx
+```javascript
  <button
     onClick={async () => {
         await fetch("/propagation-test");       

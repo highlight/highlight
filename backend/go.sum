@@ -350,8 +350,8 @@ github.com/highlight-run/go-resthooks v0.0.0-20220523054100-bf95aa850a20 h1:fDVd
 github.com/highlight-run/go-resthooks v0.0.0-20220523054100-bf95aa850a20/go.mod h1:dOtaACP0/P9aQNzT/8yAxueBspswjmZqt5TyPnQbD8A=
 github.com/highlight-run/workerpool v1.3.0 h1:BuOWBJJeGG5ZRpq+IKXDTfASAdJoTkBS0sSH+lvCTgw=
 github.com/highlight-run/workerpool v1.3.0/go.mod h1:1iJmXJoC39MnWrqrLa+TaIqdveW4XaxPMoXAMH2wDYU=
-github.com/highlight/clickhouse-sql-parser v1.0.0 h1:cto6z25w2XcOC7nFvptJk7cRrS9AD7r1m2KCyWPA6RE=
-github.com/highlight/clickhouse-sql-parser v1.0.0/go.mod h1:ApnI1j11NF7FVDWYMG9GxY55x5uHWn8eD20WJdoo6Gc=
+github.com/highlight/clickhouse-sql-parser v1.0.1 h1:ApoyAh0DIMWOL3fGWkfcU5Otkn6zmakVHhUqq3ZXkJc=
+github.com/highlight/clickhouse-sql-parser v1.0.1/go.mod h1:ApnI1j11NF7FVDWYMG9GxY55x5uHWn8eD20WJdoo6Gc=
 github.com/highlight/go-oauth2-redis/v4 v4.1.4 h1:3xY+PzuQkDxtrWTJ722c0P+nFPRz2QH01y+UysozjNg=
 github.com/highlight/go-oauth2-redis/v4 v4.1.4/go.mod h1:yu/lzqNbwp3vE7mvTDjSEC7ZB5L/q0TII8I6iLAnqzg=
 github.com/hpcloud/tail v1.0.0/go.mod h1:ab1qPbhIpdTxEkNHXyeSf5vhxWSCs/tWer42PpOxQnU=

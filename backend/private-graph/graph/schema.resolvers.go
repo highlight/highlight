@@ -3405,7 +3405,7 @@ func (r *mutationResolver) UpdateMetricMonitor(ctx context.Context, metricMonito
 }
 
 // CreateAlert is the resolver for the createAlert field.
-func (r *mutationResolver) CreateAlert(ctx context.Context, projectID int, name string, productType modelInputs.ProductType, functionType modelInputs.MetricAggregator, functionColumn *string, query *string, groupByKey *string, defaultArg *bool, thresholdValue *float64, thresholdWindow *int, thresholdCooldown *int, thresholdType *modelInputs.ThresholdType, thresholdCondition *modelInputs.ThresholdCondition, destinations []*modelInputs.AlertDestinationInput) (*model.Alert, error) {
+func (r *mutationResolver) CreateAlert(ctx context.Context, projectID int, name string, productType modelInputs.ProductType, functionType modelInputs.MetricAggregator, functionColumn *string, query *string, groupByKey *string, defaultArg *bool, thresholdValue *float64, thresholdWindow *int, thresholdCooldown *int, thresholdType *modelInputs.ThresholdType, thresholdCondition *modelInputs.ThresholdCondition, destinations []*modelInputs.AlertDestinationInput, sql *string) (*model.Alert, error) {
 	project, err := r.isUserInProject(ctx, projectID)
 	admin, _ := r.getCurrentAdmin(ctx)
 	if err != nil {
@@ -3443,6 +3443,7 @@ func (r *mutationResolver) CreateAlert(ctx context.Context, projectID int, name 
 		ThresholdType:      thresholdTypeDeref,
 		ThresholdCondition: thresholdConditionDeref,
 		LastAdminToEditID:  admin.ID,
+		Sql:                sql,
 	}
 
 	createdAlert := &model.Alert{}
@@ -3481,7 +3482,7 @@ func (r *mutationResolver) CreateAlert(ctx context.Context, projectID int, name 
 }
 
 // UpdateAlert is the resolver for the updateAlert field.
-func (r *mutationResolver) UpdateAlert(ctx context.Context, projectID int, alertID int, name *string, productType *modelInputs.ProductType, functionType *modelInputs.MetricAggregator, functionColumn *string, query *string, groupByKey *string, thresholdValue *float64, thresholdWindow *int, thresholdCooldown *int, thresholdType *modelInputs.ThresholdType, thresholdCondition *modelInputs.ThresholdCondition, destinations []*modelInputs.AlertDestinationInput) (*model.Alert, error) {
+func (r *mutationResolver) UpdateAlert(ctx context.Context, projectID int, alertID int, name *string, productType *modelInputs.ProductType, functionType *modelInputs.MetricAggregator, functionColumn *string, query *string, groupByKey *string, thresholdValue *float64, thresholdWindow *int, thresholdCooldown *int, thresholdType *modelInputs.ThresholdType, thresholdCondition *modelInputs.ThresholdCondition, destinations []*modelInputs.AlertDestinationInput, sql *string) (*model.Alert, error) {
 	project, err := r.isUserInProject(ctx, projectID)
 	admin, _ := r.getCurrentAdmin(ctx)
 	if err != nil {
@@ -3502,6 +3503,7 @@ func (r *mutationResolver) UpdateAlert(ctx context.Context, projectID int, alert
 		"ThresholdCooldown":  thresholdCooldown,
 		"ThresholdType":      thresholdType,
 		"ThresholdCondition": thresholdCondition,
+		"Sql":                sql,
 	}
 
 	alert := &model.Alert{}
@@ -5469,11 +5471,11 @@ func (r *queryResolver) ErrorGroup(ctx context.Context, secureID string, useClic
 	if err != nil {
 		return nil, err
 	}
-	if eg.UpdatedAt.Before(retentionDate) {
-		return nil, e.New("no new error instances after the workspace's retention date")
-	}
 	if err := r.loadErrorGroupFrequenciesClickhouse(ctx, eg.ProjectID, []*model.ErrorGroup{eg}); err != nil {
 		return nil, err
+	}
+	if eg.LastOccurrence.Before(retentionDate) {
+		return nil, e.New("no new error instances after the workspace's retention date")
 	}
 	return eg, err
 }

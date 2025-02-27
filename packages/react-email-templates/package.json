@@ -14,7 +14,7 @@
 		"@react-email/components": "0.0.6",
 		"@react-email/render": "^0.0.7",
 		"aws-lambda": "^1.0.7",
-		"tsup": "^7.1.0",
+		"tsup": "^8.3.6",
 		"typescript": "^5.1.6"
 	},
 	"installConfig": {

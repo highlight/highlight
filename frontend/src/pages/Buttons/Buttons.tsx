@@ -14,6 +14,7 @@ import DO_NOT_USE_Canvas from '@pages/Buttons/Canvas'
 import { SourcemapErrorDetails } from '@pages/ErrorsV2/SourcemapErrorDetails/SourcemapErrorDetails'
 import { H } from 'highlight.run'
 import { useEffect, useState } from 'react'
+import { trace } from '@opentelemetry/api'
 
 import Logo from '@/static/logo.png'
 import analytics from '@/util/analytics'
@@ -277,6 +278,74 @@ export const Buttons = () => {
 					>
 						Toast
 					</button>
+					{/*
+					This example shows an issue with context management across multiple
+					async calls. Hopefully this will be fixed in the future. Track
+					https://github.com/highlight/highlight/issues/9985 for details.
+					*/}
+					<button
+						className={commonStyles.submitButton}
+						onClick={async () => {
+							let currentPromise: Promise<void>
+
+							const handleDeposit = async () => {
+								console.log(
+									'::: handleDeposit - starting, span context:',
+									trace.getActiveSpan()?.spanContext(),
+								)
+
+								await createPendingTransfer()
+								await addToPendingTransfers()
+
+								console.log(
+									'::: handleDeposit - finished, span context:',
+									trace.getActiveSpan()?.spanContext(),
+								)
+							}
+
+							const createPendingTransfer = async () => {
+								console.log(
+									'::: createPendingTransfer - context:',
+									trace.getActiveSpan()?.spanContext(),
+								)
+								const res = await fetch(
+									'https://jsonplaceholder.typicode.com/posts/1',
+								)
+								const json = await res.json()
+								console.log('::: createPendingTransfer', json)
+							}
+
+							const addToPendingTransfers = async () => {
+								console.log(
+									'::: addToPendingTransfers - context:',
+									trace.getActiveSpan()?.spanContext(),
+								)
+								const res = await fetch(
+									'https://jsonplaceholder.typicode.com/posts/2',
+								)
+								const json = await res.json()
+								console.log('::: addToPendingTransfers', json)
+							}
+
+							await H.startManualSpan(
+								'Submit Deposit',
+								async (span) => {
+									const context = span.spanContext()
+									console.log('::: context', context)
+									currentPromise = true
+										? handleDeposit()
+										: Promise.resolve()
+
+									await currentPromise.finally(() => {
+										console.log('::: span.end')
+										span.end()
+									})
+								},
+							)
+						}}
+					>
+						Multiple API Calls
+					</button>
 					<button
 						className={commonStyles.submitButton}
 						onClick={async () => {
@@ -490,7 +559,7 @@ export const Buttons = () => {
 						onClick={() => {
 							H.track('thisIsLong', {
 								longProperty:
-									'This is a long property over 2000 characters. We are going to truncate this on the client side so that we can log to our customers so they know why these long properties are getting truncated. This is a long property over 2000 characters. We are going to truncate this on the client side so that we can log to our customers so they know why these long properties are getting truncated. This is a long property over 2000 characters. We are going to truncate this on the client side so that we can log to our customers so they know why these long properties are getting truncated. This is a long property over 2000 characters. We are going to truncate this on the client side so that we can log to our customers so they know why these long properties are getting truncated. This is a long property over 2000 characters. We are going to truncate this on the client side so that we can log to our customers so they know why these long properties are getting truncated. This is a long property over 2000 characters. We are going to truncate this on the client side so that we can log to our customers so they know why these long properties are getting truncated. This is a long property over 2000 characters. We are going to truncate this on the client side so that we can log to our customers so they know why these long properties are getting truncated. This is a long property over 2000 characters. We are going to truncate this on the client side so that we can log to our customers so they know why these long properties are getting truncated. This is a long property over 2000 characters. We are going to truncate this on the client side so that we can log to our customers so they know why these long properties are getting truncated. This is a long property over 2000 characters. We are going to truncate this on the client side so that we can log to our customers so they know why these long properties are getting truncated. This is a long property over 2000 characters. We are going to truncate this on the client side so that we can log to our customers so they know why these long properties are getting truncated. ',
+									'This is a long property over 2000 characters. We are going to truncate this on the client side so that we can log to our customers so they know why these long properties are getting truncated. This is a long property over 2000 characters. We are going to truncate this on the client side so that we can log to our customers so they know why these long properties are getting truncated. This is a long property over 2000 characters. We are going to truncate this on the client side so that we can log to our customers so they know why these long properties are getting truncated. This is a long property over 2000 characters. We are going to truncate this on the client side so that we can log to our customers so they know why these long properties are getting truncated. This is a long property over 2000 characters. We are going to truncate this on the client side so that we can log to our customers so they know why these long properties are getting truncated. This is a long property over 2000 characters. We are going to truncate this on the client side so that we can log to our customers so they know why these long properties are getting truncated. This is a long property over 2000 characters. We are going to truncate this on the client side so that we can log to our customers so they know why these long properties are getting truncated. This is a long property over 2000 characters. We are going to truncate this on the client side so that we can log to our customers so they know why these long properties are getting truncated. This is a long property over 2000 characters. We are going to truncate this on the client side so that we can log to our customers so they know why these long properties are getting truncated. This is a long property over 2000 characters. We are going to truncate this on the client side so that we can log to our customers so they know why these long properties are getting truncated. ',
 							})
 						}}
 					>

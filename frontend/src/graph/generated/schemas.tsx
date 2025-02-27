@@ -142,6 +142,7 @@ export type Alert = {
 	product_type: ProductType
 	project_id: Scalars['ID']
 	query?: Maybe<Scalars['String']>
+	sql?: Maybe<Scalars['String']>
 	threshold_condition?: Maybe<ThresholdCondition>
 	threshold_cooldown?: Maybe<Scalars['Int']>
 	threshold_type?: Maybe<ThresholdType>
@@ -1387,6 +1388,7 @@ export type MutationCreateAlertArgs = {
 	product_type: ProductType
 	project_id: Scalars['ID']
 	query?: InputMaybe<Scalars['String']>
+	sql?: InputMaybe<Scalars['String']>
 	threshold_condition?: InputMaybe<ThresholdCondition>
 	threshold_cooldown?: InputMaybe<Scalars['Int']>
 	threshold_type?: InputMaybe<ThresholdType>
@@ -1829,6 +1831,7 @@ export type MutationUpdateAlertArgs = {
 	product_type?: InputMaybe<ProductType>
 	project_id: Scalars['ID']
 	query?: InputMaybe<Scalars['String']>
+	sql?: InputMaybe<Scalars['String']>
 	threshold_condition?: InputMaybe<ThresholdCondition>
 	threshold_cooldown?: InputMaybe<Scalars['Int']>
 	threshold_type?: InputMaybe<ThresholdType>

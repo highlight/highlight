@@ -1,5 +1,18 @@
 # highlight.run
 
+## 9.11.1
+
+### Patch Changes
+
+-   2b8cba8: ensure otel instrumentation does not interfere with other otel setups
+-   baed388: avoid emitting relativeTimestamp metrics
+
+## 9.11.0
+
+### Minor Changes
+
+-   941ac5e: support inlining any video tags by snapshotting as a canvas via inlineVideos setting
+
 ## 9.10.0
 
 ### Minor Changes

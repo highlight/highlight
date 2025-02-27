@@ -62,15 +62,11 @@ function wrap(name: string) {
 		): Promise<any> {
 			const start = performance.now()
 			const result = origMethod.call(this, parameterizedPath, ...args)
-			const h = H.parseHeaders({})
-			if (h?.secureSessionId) {
-				H.recordMetric(
-					h?.secureSessionId,
-					name,
-					performance.now() - start,
-					parameterizedPath,
-				)
-			}
+			H.recordMetric({
+				name,
+				value: performance.now() - start,
+				tags: [{ name: 'http.route', value: parameterizedPath }],
+			})
 			return result
 		}
 	}

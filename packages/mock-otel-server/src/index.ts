@@ -165,6 +165,18 @@ function aggregateAttributes(resourceSpans: IResourceSpans[]) {
 				},
 				{},
 			) || {}
+		const spanAttributes = filteredSpans
+			.flatMap((span) => span.attributes)
+			.reduce<Record<string, string>>((acc, attribute) => {
+				acc[attribute.key] =
+					attribute.value.stringValue ||
+					attribute.value.boolValue?.toString() ||
+					attribute.value.intValue?.toString() ||
+					attribute.value.arrayValue?.toString() ||
+					''
+
+				return acc
+			}, resourceAttributes)
 		const events = filteredSpans.flatMap((span) => span.events) as IEvent[]
 		const attributes = events.reduce<Record<string, string>>(
 			(acc, event) => {
@@ -179,7 +191,7 @@ function aggregateAttributes(resourceSpans: IResourceSpans[]) {
 
 				return acc
 			},
-			resourceAttributes,
+			spanAttributes,
 		)
 
 		aggregatedAttributes.push({

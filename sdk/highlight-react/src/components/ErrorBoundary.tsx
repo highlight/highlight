@@ -43,7 +43,7 @@ export type ErrorBoundaryProps = {
 	onAfterReportDialogSubmitHandler?: () => void
 }
 
-interface ErrorBoundaryState {
+export interface ErrorBoundaryState {
 	componentStack: string | null
 	error: Error | null
 	showingDialog: boolean
@@ -59,6 +59,7 @@ export class ErrorBoundary extends React.Component<
 	ErrorBoundaryProps,
 	ErrorBoundaryState
 > {
+	public refs: { [key: string]: any } = {}
 	public state: ErrorBoundaryState = INITIAL_STATE
 
 	componentDidCatch(error: Error, errorInfo: ErrorInfo) {

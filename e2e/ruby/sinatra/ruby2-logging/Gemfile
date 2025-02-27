@@ -1,0 +1,10 @@
+source 'https://rubygems.org'
+
+ruby '~> 2.7.0'
+
+gem 'sinatra'
+gem 'activesupport', '~> 6.1.0' # For Rails.logger compatibility
+gem 'highlight_io', '0.2.2'
+
+gem "rackup", "~> 2.2"
+gem "puma", "~> 6.6"

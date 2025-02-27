@@ -12,30 +12,10 @@ export function Highlight(options: NodeOptions) {
 		async (request: Request, context: NextContext) => {
 			if (!NodeH) throw new Error('Highlight not initialized')
 
-			const start = new Date()
-
-			try {
-				return await H.runWithHeaders<Promise<Response>>(
-					`${request.method?.toUpperCase()} - ${request.url}`,
-					request.headers as any,
-					async () => originalHandler(request, context),
-				)
-			} catch (e) {
-				throw e
-			} finally {
-				recordLatency()
-			}
-
-			function recordLatency() {
-				// convert ms to ns
-				const delta = (new Date().getTime() - start.getTime()) * 1000000
-				const { secureSessionId, requestId } = NodeH.parseHeaders(
-					request.headers as any,
-				)
-
-				if (secureSessionId && requestId) {
-					H.recordMetric(secureSessionId, 'latency', delta, requestId)
-				}
-			}
+			return await H.runWithHeaders<Promise<Response>>(
+				`${request.method?.toUpperCase()} - ${request.url}`,
+				request.headers as any,
+				async () => originalHandler(request, context),
+			)
 		}
 }
