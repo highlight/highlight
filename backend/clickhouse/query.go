@@ -1626,8 +1626,16 @@ func (client *Client) ReadMetrics(ctx context.Context, input ReadMetricsInput) (
 	span, ctx := util.StartSpanFromContext(ctx, "clickhouse.readMetrics")
 	span.SetAttribute("project_ids", input.ProjectIDs)
 	span.SetAttribute(string(semconv.DBSQLTableKey), input.SampleableConfig.tableConfig.TableName)
-	span.SetAttribute(string(semconv.DBOperationKey), "select")
+	span.SetAttribute(string(semconv.DBStatementKey), input.Sql)
 	span.SetAttribute(string(semconv.DBSystemKey), "clickhouse")
+	span.SetAttribute(string(semconv.DBOperationKey), "select")
+
+	v := reflect.ValueOf(input.Params)
+	for _, key := range v.MapKeys() {
+		value := v.MapIndex(key)
+		span.SetAttribute(fmt.Sprintf("db.operation.parameter.%s", key), value)
+	}
+
 	defer span.Finish()
 
 	if len(input.Expressions) == 0 {
