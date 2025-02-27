@@ -8,13 +8,14 @@ import { styledVerticalScrollbar } from '@/style/common.css'
 
 export const searchIcon = style({
 	position: 'absolute',
-	top: 10,
+	top: '50%',
+	transform: 'translateY(-50%)',
 	left: 14,
 	color: vars.theme.interactive.fill.secondary.content.text,
 })
 
 export const searchIconWithActions = style({
-	top: 12,
+	// Icon is already centered with the transform above
 })
 
 export const combobox = style([

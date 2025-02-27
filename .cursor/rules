@@ -4,6 +4,7 @@
 
 -   Don't use Tailwind CSS, use the components in @highlight-run/ui.
 -   For tables, always use the Table component from @highlight-run/ui.
+-   Plain text should be styled with the <Text> component from @highlight-run/ui. Size and weight should be set using the `size` and `weight` props.
 
 ## Guidelines for ./highlight.io
 

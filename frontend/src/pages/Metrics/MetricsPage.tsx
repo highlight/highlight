@@ -2,8 +2,18 @@ import {
 	Box,
 	DEFAULT_TIME_PRESETS,
 	IconSolidLoading,
+	IconSolidOpenLeft,
+	IconSolidCheveronDown,
+	IconSolidChartSquareLine,
+	IconSolidChartBar,
+	IconSolidBell,
 	presetStartDate,
 	Text,
+	Button,
+	Stack,
+	Menu,
+	DateRangePicker,
+	IconSolidClock,
 } from '@highlight-run/ui/components'
 import { vars } from '@highlight-run/ui/vars'
 import moment from 'moment'
@@ -11,6 +21,7 @@ import React, { useEffect, useState } from 'react'
 import { Helmet } from 'react-helmet'
 import { StringParam, useQueryParam } from 'use-query-params'
 import { SortingState } from '@tanstack/react-table'
+import { useNavigate } from 'react-router-dom'
 
 import { loadingIcon } from '@/components/Button/style.css'
 import {
@@ -60,6 +71,7 @@ export const MetricsPage: React.FC = () => {
 	const [_sortDirection] = useQueryParam(SORT_DIRECTION, StringParam)
 	const [metrics, setMetrics] = useState<Metric[]>([])
 	const [loading, setLoading] = useState(true)
+	const [showControls, setShowControls] = useState(true)
 	const [sorting, setSorting] = useState<SortingState>([
 		{
 			id: 'dataPoints',
@@ -78,6 +90,8 @@ export const MetricsPage: React.FC = () => {
 		variables: { workspace_id: String(currentWorkspace?.id) },
 		skip: !currentWorkspace?.id,
 	})
+
+	const navigate = useNavigate()
 
 	// Use the existing metrics query to get a sample of metrics data
 	// This will help us extract unique metric names and their properties
@@ -112,6 +126,14 @@ export const MetricsPage: React.FC = () => {
 		skip: !projectId,
 		fetchPolicy: 'cache-and-network',
 	})
+
+	// Update loading state when metricsLoading changes
+	useEffect(() => {
+		if (metricsLoading) {
+			setLoading(true)
+		}
+	}, [metricsLoading])
+
 	// Process metrics data to extract unique metrics and sort by frequency
 	useEffect(() => {
 		if (metricsData && !metricsLoading) {
@@ -236,9 +258,148 @@ export const MetricsPage: React.FC = () => {
 								?.ai_query_builder
 						}
 						aiSupportedSearch
+						hideDatePicker={true}
+						hideCreateAlert={true}
 					/>
 
+					<Box
+						display={showControls ? 'flex' : 'none'}
+						justifyContent="space-between"
+						alignItems="center"
+						py="4"
+						px="8"
+						borderBottom="dividerWeak"
+					>
+						<Box>
+							<Button
+								kind="secondary"
+								emphasis="low"
+								size="small"
+								iconLeft={<IconSolidOpenLeft size={14} />}
+								onClick={() => setShowControls(false)}
+							>
+								<Text size="small" weight="medium">
+									Show controls
+								</Text>
+							</Button>
+						</Box>
+						<Box display="flex" alignItems="center" gap="8">
+							<Menu placement="bottom-end">
+								<Menu.Button
+									onClick={(
+										e: React.MouseEvent<HTMLButtonElement>,
+									) => {
+										e.stopPropagation()
+									}}
+									iconRight={
+										<IconSolidCheveronDown size={14} />
+									}
+									iconLeft={
+										<IconSolidChartSquareLine size={14} />
+									}
+									kind="secondary"
+									emphasis="low"
+									disabled={!query}
+									size="small"
+								>
+									Monitor
+								</Menu.Button>
+								<Menu.List>
+									<Menu.Item
+										onClick={() => {
+											navigate({
+												pathname: `/${projectId}/dashboards/new`,
+												search: `settings=${btoa(
+													JSON.stringify({
+														productType:
+															ProductType.Metrics,
+														query,
+													}),
+												)}`,
+											})
+										}}
+									>
+										<Stack
+											gap="4"
+											direction="row"
+											align="center"
+										>
+											<IconSolidChartBar />
+											Create Dashboard
+										</Stack>
+									</Menu.Item>
+									<Menu.Item
+										onClick={() => {
+											navigate({
+												pathname: `/${projectId}/alerts/new`,
+												search: `settings=${btoa(
+													JSON.stringify({
+														productType:
+															ProductType.Metrics,
+														query,
+													}),
+												)}`,
+											})
+										}}
+									>
+										<Stack
+											gap="4"
+											direction="row"
+											align="center"
+										>
+											<IconSolidBell />
+											Create Alert
+										</Stack>
+									</Menu.Item>
+								</Menu.List>
+							</Menu>
+							<Box
+								as="span"
+								borderRight="dividerWeak"
+								style={{ height: 14 }}
+							/>
+							<DateRangePicker
+								emphasis="medium"
+								iconLeft={<IconSolidClock />}
+								selectedValue={{
+									startDate: searchTimeContext.startDate,
+									endDate: searchTimeContext.endDate,
+									selectedPreset:
+										searchTimeContext.selectedPreset,
+								}}
+								onDatesChange={
+									searchTimeContext.updateSearchTime
+								}
+								presets={DEFAULT_TIME_PRESETS}
+								minDate={minDate}
+							/>
+						</Box>
+					</Box>
+
 					<Box height="full" overflow="auto">
+						{!showControls && (
+							<Box
+								display="flex"
+								justifyContent="flex-start"
+								alignItems="center"
+								py="2"
+								px="8"
+								borderBottom="dividerWeak"
+							>
+								<Button
+									kind="secondary"
+									emphasis="low"
+									size="small"
+									iconLeft={<IconSolidOpenLeft size={14} />}
+									onClick={() => setShowControls(true)}
+								>
+									<Text size="small" weight="medium">
+										Show controls
+									</Text>
+								</Button>
+							</Box>
+						)}
+
 						{loading ? (
 							<Box
 								alignItems="center"
