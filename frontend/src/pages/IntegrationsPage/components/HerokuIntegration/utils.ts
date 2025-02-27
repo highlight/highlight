@@ -10,8 +10,8 @@ import {
 	useRemoveIntegrationFromProjectMutation,
 } from '@/graph/generated/hooks'
 
-export const useHerokuIntegration = () => {
-	const { project_id } = useParams<{ project_id: string }>()
+export const useHerokuIntegration = (projectId: string) => {
+	const project_id = projectId
 	const [addIntegrationToProject] = useAddIntegrationToProjectMutation({
 		refetchQueries: [
 			namedOperations.Query.GetAlertsPagePayload,

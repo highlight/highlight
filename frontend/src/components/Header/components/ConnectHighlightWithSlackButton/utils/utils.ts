@@ -1,7 +1,6 @@
 import { toast } from '@components/Toaster'
 import { namedOperations } from '@graph/operations'
 import { IntegrationType } from '@graph/schemas'
-import { useParams } from '@util/react-router/useParams'
 import { GetBaseURL } from '@util/window'
 import { useCallback, useEffect, useState } from 'react'
 
@@ -13,8 +12,11 @@ import {
 
 const SLACK_CLIENT_ID = import.meta.env.SLACK_CLIENT_ID
 
-export const useSlackBot = (next?: string) => {
-	const { project_id } = useParams<{ project_id: string }>()
+export const useSlackBot = (
+	next?: string | null,
+	project_id?: string,
+	workspaceId?: string | null,
+) => {
 	const [addIntegrationToProject] = useAddIntegrationToProjectMutation({
 		refetchQueries: [
 			namedOperations.Query.GetAlertsPagePayload,
@@ -70,7 +72,7 @@ export const useSlackBot = (next?: string) => {
 		)
 	}, [slackIntegResponse, setIsSlackConnectedToWorkspace])
 
-	const slackUrl = getSlackUrl(project_id!, next)
+	const slackUrl = getSlackUrl(project_id!, next, workspaceId)
 
 	const addSlackToWorkspace = useCallback(
 		async (code: string, projectId?: string) => {
@@ -99,14 +101,22 @@ export const useSlackBot = (next?: string) => {
 	}
 }
 
-export const getSlackUrl = (projectId: string, next?: string) => {
+export const getSlackUrl = (
+	projectId: string,
+	next?: string | null,
+	workspaceId?: string | null,
+) => {
 	let redirectPath = window.location.pathname
 	if (redirectPath.length > 3) {
 		// remove project_id and prepended slash
 		redirectPath = redirectPath.substring(redirectPath.indexOf('/', 1) + 1)
 	}
 
-	const state = { next: next ?? redirectPath, project_id: projectId }
+	const state = {
+		next: next ?? redirectPath,
+		project_id: projectId,
+		workspace_id: workspaceId,
+	}
 
 	const slackScopes =
 		'channels:join,channels:manage,channels:read,chat:write,groups:read,groups:write,im:read,im:write,mpim:read,mpim:write,users:read,files:write,links:read,links:write,team:read'

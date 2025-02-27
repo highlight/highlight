@@ -2,7 +2,6 @@ import { useAuthContext } from '@authentication/AuthContext'
 import AlertsRouter from '@pages/Alerts/AlertsRouter'
 import LogAlertsRouter from '@pages/Alerts/LogAlert/LogAlertRouter'
 import ErrorsV2 from '@pages/ErrorsV2/ErrorsV2'
-import IntegrationsPage from '@pages/IntegrationsPage/IntegrationsPage'
 import LogsPage from '@pages/LogsPage/LogsPage'
 import { PlayerPage } from '@pages/Player/PlayerPage'
 import { ConnectRouter } from '@/pages/Connect/ConnectRouter'
@@ -53,10 +52,6 @@ const ApplicationRouter: React.FC = () => {
 							element={<LogAlertsRouter />}
 						/>
 						<Route path="connect/*" element={<ConnectRouter />} />
-						<Route
-							path="integrations/*"
-							element={<IntegrationsPage />}
-						/>
 						<Route
 							path="dashboards/*"
 							element={<DashboardRouter />}

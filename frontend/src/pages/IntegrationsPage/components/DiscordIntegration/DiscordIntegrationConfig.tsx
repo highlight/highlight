@@ -7,17 +7,21 @@ import {
 	IntegrationAction,
 	IntegrationConfigProps,
 } from '@pages/IntegrationsPage/components/Integration'
-import { useParams } from '@util/react-router/useParams'
 import { GetBaseURL } from '@util/window'
 import React, { useEffect } from 'react'
 
 import styles from './DiscordIntegrationConfig.module.css'
+import { Box } from '@highlight-run/ui/components'
+import ProjectSelection, {
+	useIntergationProjectConfig,
+} from '../common/ProjectSelection'
 
 const DISCORD_CLIENT_ID = import.meta.env.DISCORD_CLIENT_ID
 
 export const getDiscordOauthUrl = (
 	project_id: string,
-	next?: string,
+	next?: string | null,
+	workspace_id?: string | null,
 ): string => {
 	const redirectURI = `${GetBaseURL()}/callback/discord`
 
@@ -25,6 +29,7 @@ export const getDiscordOauthUrl = (
 		JSON.stringify({
 			project_id: project_id,
 			next: next ?? window.location.pathname,
+			workspace_id: workspace_id,
 		}),
 	)
 	const scope = ['bot']
@@ -45,14 +50,14 @@ const DiscordIntegrationConfig: React.FC<IntegrationConfigProps> = ({
 	setModalOpen,
 	setIntegrationEnabled,
 	action,
+	isV2,
 }) => {
-	const { project_id } = useParams<{
-		project_id: string
-	}>()
+	const { options, selectedProject, setSelectedProject, currentWorkspace } =
+		useIntergationProjectConfig()
 	const {
 		removeDiscordIntegrationFromProject,
 		isDiscordIntegratedWithProject,
-	} = useDiscordIntegration()
+	} = useDiscordIntegration(selectedProject.value)
 
 	useEffect(() => {
 		if (
@@ -109,35 +114,59 @@ const DiscordIntegrationConfig: React.FC<IntegrationConfigProps> = ({
 
 	return (
 		<>
-			<p className={styles.modalSubTitle}>
-				Connect Discord to your Highlight workspace to setup alerts.
-			</p>
-			<footer>
-				<Button
-					trackingId="IntegrationConfigurationCancel-Discord"
-					className={styles.modalBtn}
-					onClick={() => {
-						setModalOpen(false)
-						setIntegrationEnabled(false)
-					}}
-				>
-					Cancel
-				</Button>
-				<Button
-					trackingId="IntegrationConfigurationSave-Discord"
-					className={styles.modalBtn}
-					type="primary"
-					target="_blank"
-					href={getDiscordOauthUrl(project_id!)}
-				>
-					<span className={styles.modalBtnText}>
-						<Sparkles2Icon className={styles.modalBtnIcon} />
-						<span className="mt-1">
-							Connect Highlight with Discord
+			<Box cssClass={`${isV2 ? 'flex justify-between' : ''}`}>
+				<p className={styles.modalSubTitle}>
+					{!isV2
+						? 'Connect Discord to your Highlight workspace to setup alerts.'
+						: 'Configure Discord Intergation'}
+				</p>
+				{!isV2 && (
+					<ProjectSelection
+						options={options}
+						selectedProject={selectedProject}
+						setSelectedProject={setSelectedProject}
+					/>
+				)}
+				<footer>
+					{!isV2 && (
+						<Button
+							trackingId="IntegrationConfigurationCancel-Discord"
+							className={styles.modalBtn}
+							onClick={() => {
+								setModalOpen(false)
+								setIntegrationEnabled(false)
+							}}
+						>
+							Cancel
+						</Button>
+					)}
+					<Button
+						trackingId="IntegrationConfigurationSave-Discord"
+						className={styles.modalBtn}
+						type="primary"
+						target="_blank"
+						href={getDiscordOauthUrl(
+							selectedProject.value!,
+							null,
+							currentWorkspace?.id,
+						)}
+					>
+						<span className={styles.modalBtnText}>
+							<Sparkles2Icon className={styles.modalBtnIcon} />
+							<span className="mt-1">
+								Connect Highlight with Discord
+							</span>
 						</span>
-					</span>
-				</Button>
-			</footer>
+					</Button>
+				</footer>
+			</Box>
+			{isV2 && (
+				<ProjectSelection
+					options={options}
+					selectedProject={selectedProject}
+					setSelectedProject={setSelectedProject}
+				/>
+			)}
 		</>
 	)
 }

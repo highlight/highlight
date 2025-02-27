@@ -8,8 +8,7 @@ import { IntegrationType } from '@graph/schemas'
 import { useParams } from '@util/react-router/useParams'
 import { useCallback } from 'react'
 
-export const useZapierIntegration = () => {
-	const { project_id } = useParams<{ project_id: string }>()
+export const useZapierIntegration = (project_id: string) => {
 	const { data, loading } = useGetWorkspaceIsIntegratedWithZapierQuery({
 		variables: { project_id: project_id! },
 	})
