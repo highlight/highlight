@@ -161,8 +161,14 @@ func readObjects[TObj interface{}](ctx context.Context, client *Client, config m
 	span.SetAttribute(string(semconv.DBSQLTableKey), innerTableConfig.TableName)
 	span.SetAttribute(string(semconv.DBStatementKey), sql)
 	span.SetAttribute(string(semconv.DBSystemKey), "clickhouse")
-	span.SetAttribute("db.statement_params", params)
 	span.SetAttribute(string(semconv.DBOperationKey), "select")
+
+	v := reflect.ValueOf(params)
+	for _, key := range v.MapKeys() {
+		value := v.MapIndex(key)
+		// db.operation.parameter.<key> is not available yet in semconv
+		span.SetAttribute(fmt.Sprintf("db.operation.parameter.%s", key), value)
+	}
 
 	rows, err := client.conn.Query(ctx, sql, args...)
 
