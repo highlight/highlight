@@ -5,6 +5,10 @@ import (
 	"compress/gzip"
 	"context"
 	"fmt"
+	"net/http"
+	"os"
+	"testing"
+
 	"github.com/golang/snappy"
 	"github.com/highlight-run/highlight/backend/env"
 	"github.com/highlight/highlight/sdk/highlight-go"
@@ -12,9 +16,6 @@ import (
 	"go.opentelemetry.io/collector/pdata/plog/plogotlp"
 	"go.opentelemetry.io/collector/pdata/pmetric/pmetricotlp"
 	"gorm.io/gorm"
-	"net/http"
-	"os"
-	"testing"
 
 	"github.com/highlight-run/highlight/backend/clickhouse"
 	"github.com/highlight-run/highlight/backend/integrations"
@@ -42,7 +43,9 @@ type MockKafkaProducer struct {
 
 func (m *MockKafkaProducer) Stop(_ context.Context) {}
 
-func (m *MockKafkaProducer) Receive(_ context.Context) kafkaqueue.RetryableMessage { return nil }
+func (m *MockKafkaProducer) Receive(_ context.Context) (context.Context, kafkaqueue.RetryableMessage) {
+	return context.TODO(), nil
+}
 
 func (m *MockKafkaProducer) Submit(_ context.Context, _ string, messages ...kafkaqueue.RetryableMessage) error {
 	m.messages = append(m.messages, messages...)
