@@ -25,7 +25,7 @@ import (
 	e "github.com/pkg/errors"
 	"github.com/samber/lo"
 	"go.openly.dev/pointy"
-	semconv "go.opentelemetry.io/otel/semconv/v1.20.0"
+	semconv "go.opentelemetry.io/otel/semconv/v1.27.0"
 
 	sqlparser "github.com/highlight/clickhouse-sql-parser/parser"
 )
@@ -158,11 +158,11 @@ func readObjects[TObj interface{}](ctx context.Context, client *Client, config m
 	sql, args := sb.BuildWithFlavor(sqlbuilder.ClickHouse)
 
 	span, _ := util.StartSpanFromContext(ctx, "clickhouse.Query")
-	span.SetAttribute(string(semconv.DBSQLTableKey), innerTableConfig.TableName)
-	span.SetAttribute(string(semconv.DBStatementKey), sql)
+	span.SetAttribute(string(semconv.DBNamespaceKey), innerTableConfig.TableName)
+	span.SetAttribute(string(semconv.DBQueryTextKey), sql)
 	span.SetAttribute(string(semconv.DBSystemKey), "clickhouse")
-	span.SetAttribute(string(semconv.DBOperationKey), "select")
-
+	span.SetAttribute(string(semconv.DBOperationNameKey), "select")
+	span.SetAttribute(string("db.operation.parameters"), params)
 	rows, err := client.conn.Query(ctx, sql, args...)
 
 	if err != nil {
@@ -1619,10 +1619,11 @@ func (client *Client) ReadMetrics(ctx context.Context, input ReadMetricsInput) (
 
 	span, ctx := util.StartSpanFromContext(ctx, "clickhouse.readMetrics")
 	span.SetAttribute("project_ids", input.ProjectIDs)
-	span.SetAttribute(string(semconv.DBSQLTableKey), input.SampleableConfig.tableConfig.TableName)
-	span.SetAttribute(string(semconv.DBStatementKey), input.Sql)
+	span.SetAttribute(string(semconv.DBNamespaceKey), input.SampleableConfig.tableConfig.TableName)
+	span.SetAttribute(string(semconv.DBQueryTextKey), input.Sql)
 	span.SetAttribute(string(semconv.DBSystemKey), "clickhouse")
-	span.SetAttribute(string(semconv.DBOperationKey), "select")
+	span.SetAttribute(string(semconv.DBOperationNameKey), "select")
+	span.SetAttribute(string("db.operation.parameters"), input.Params)
 	defer span.Finish()
 
 	if len(input.Expressions) == 0 {
