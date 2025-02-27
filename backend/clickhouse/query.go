@@ -162,7 +162,6 @@ func readObjects[TObj interface{}](ctx context.Context, client *Client, config m
 	span.SetAttribute(string(semconv.DBStatementKey), sql)
 	span.SetAttribute(string(semconv.DBSystemKey), "clickhouse")
 	span.SetAttribute(string(semconv.DBOperationKey), "select")
-	span.SetAttribute("db.operation.parameters", params)
 
 	rows, err := client.conn.Query(ctx, sql, args...)
 
@@ -1624,7 +1623,6 @@ func (client *Client) ReadMetrics(ctx context.Context, input ReadMetricsInput) (
 	span.SetAttribute(string(semconv.DBStatementKey), input.Sql)
 	span.SetAttribute(string(semconv.DBSystemKey), "clickhouse")
 	span.SetAttribute(string(semconv.DBOperationKey), "select")
-	span.SetAttribute("db.operation.parameters", input.Params)
 	defer span.Finish()
 
 	if len(input.Expressions) == 0 {
