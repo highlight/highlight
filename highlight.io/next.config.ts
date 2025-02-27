@@ -1,8 +1,8 @@
-const { withHighlightConfig } = require('@highlight-run/next/config')
-const getStaticPages = require('./scripts/get-static-pages')
+import { withHighlightConfig } from '@highlight-run/next/config'
+import getStaticPages from './scripts/get-static-pages'
+import { NextConfig } from 'next/types'
 
-/** @type {import('next').NextConfig} */
-const nextConfig = {
+const nextConfig: Promise<NextConfig> = withHighlightConfig({
 	webpack: (config, { isServer, dev }) => {
 		config.resolve.fallback = {
 			...config.resolve.fallback, // if you miss it, all the other options in fallback, specified
@@ -135,6 +135,5 @@ const nextConfig = {
 			},
 		]
 	},
-}
-
-module.exports = withHighlightConfig(nextConfig)
+})
+export default nextConfig

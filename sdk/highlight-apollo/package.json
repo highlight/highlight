@@ -1,15 +1,15 @@
 {
 	"name": "@highlight-run/apollo",
-	"version": "3.4.26",
+	"version": "3.4.27",
 	"license": "Apache-2.0",
 	"main": "./dist/index.js",
 	"module": "./dist/index.mjs",
 	"types": "./dist/index.d.ts",
 	"exports": {
 		".": {
+			"types": "./dist/index.d.ts",
 			"require": "./dist/index.js",
-			"import": "./dist/index.mjs",
-			"types": "./dist/index.d.ts"
+			"import": "./dist/index.mjs"
 		}
 	},
 	"scripts": {
@@ -28,7 +28,7 @@
 	},
 	"devDependencies": {
 		"apollo-server": "^3.13.0",
-		"tsup": "^6.6.3",
+		"tsup": "^8.3.6",
 		"typescript": "^5.0.4",
 		"vitest": "^2.1.3"
 	}

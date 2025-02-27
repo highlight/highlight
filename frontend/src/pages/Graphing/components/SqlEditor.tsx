@@ -11,6 +11,8 @@ import {
 	snippetCompletion,
 } from '@codemirror/autocomplete'
 import { EditorView, keymap } from '@codemirror/view'
+import { indentWithTab } from '@codemirror/commands'
+
 import { linter, Diagnostic } from '@codemirror/lint'
 
 import * as styles from './SqlEditor.css'
@@ -53,17 +55,17 @@ const functionTemplates = [
 
 export const DEFAULT_SQL = [
 	`SELECT`,
-	`  $time_interval('1 hour'),`,
-	`  concat('level: ', level),`,
-	`  count()`,
+	`\t$time_interval('1 hour'),`,
+	`\tconcat('level: ', level),`,
+	`\tcount()`,
 	`FROM logs`,
 	`GROUP BY 1, 2`,
 ].join('\n')
 
 export const DEFAULT_ALERT_SQL = [
 	`SELECT`,
-	`  concat('level: ', level),`,
-	`  count()`,
+	`\tconcat('level: ', level),`,
+	`\tcount()`,
 	`FROM logs`,
 	`GROUP BY 1`,
 ].join('\n')
@@ -259,9 +261,12 @@ export const SqlEditor: React.FC<Props> = ({
 					sqlLang.language.data.of({
 						autocomplete: completeSql,
 					}),
-					keymap.of([{ key: 'Tab', run: acceptCompletion }]),
 					backendErrorLinter,
 					EditorView.lineWrapping,
+					keymap.of([
+						{ key: 'Tab', run: acceptCompletion },
+						indentWithTab,
+					]),
 				]}
 				theme={vscodeLightInit({
 					settings: {

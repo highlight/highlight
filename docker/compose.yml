@@ -102,6 +102,9 @@ services:
         container_name: collector
         extra_hosts:
             - 'host.docker.internal:host-gateway'
+        volumes:
+            - ../backend/localhostssl/server.crt:/server.crt
+            - ../backend/localhostssl/server.key:/server.key
         ports:
             - '0.0.0.0:24224:24224'
             - '0.0.0.0:34302:34302'

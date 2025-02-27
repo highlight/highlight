@@ -6,6 +6,7 @@
 		"@ant-design/icons": "^4.7.0",
 		"@apollo/client": "3.7.17",
 		"@codemirror/autocomplete": "^6.18.4",
+		"@codemirror/commands": "^6.8.0",
 		"@codemirror/lang-sql": "^6.8.0",
 		"@codemirror/lint": "^6.8.4",
 		"@codemirror/view": "^6.36.2",

@@ -159,6 +159,9 @@ export const setupBrowserTracing = (config: BrowserTracingConfig) => {
 					request,
 					response,
 				) => {
+					if (!(span as any).attributes) {
+						return
+					}
 					const readableSpan = span as unknown as ReadableSpan
 					if (readableSpan.attributes[RECORD_ATTRIBUTE] === false) {
 						return
@@ -200,6 +203,9 @@ export const setupBrowserTracing = (config: BrowserTracingConfig) => {
 				),
 				applyCustomAttributesOnSpan: (span, xhr) => {
 					const browserXhr = xhr as BrowserXHR
+					if (!(span as any).attributes) {
+						return
+					}
 					const readableSpan = span as unknown as ReadableSpan
 					if (readableSpan.attributes[RECORD_ATTRIBUTE] === false) {
 						return
@@ -293,7 +299,7 @@ class CustomTraceContextPropagator extends W3CTraceContextPropagator {
 		setter: api.TextMapSetter,
 	): void {
 		const span = api.trace.getSpan(context)
-		if (!span) {
+		if (!span || !(span as any).attributes) {
 			return
 		}
 
@@ -391,6 +397,9 @@ const enhanceSpanWithHttpRequestAttributes = (
 	networkRecordingOptions?: NetworkRecordingOptions,
 ) => {
 	const stringBody = typeof body === 'string' ? body : String(body)
+	if (!(span as any).attributes) {
+		return
+	}
 	const readableSpan = span as unknown as ReadableSpan
 	const url = readableSpan.attributes['http.url'] as string
 	const urlObject = new URL(url)
@@ -455,6 +464,9 @@ const shouldRecordRequest = (
 }
 
 const assignDocumentDurations = (span: api.Span) => {
+	if (!(span as any).events) {
+		return
+	}
 	const readableSpan = span as unknown as ReadableSpan
 	const events = readableSpan.events
 

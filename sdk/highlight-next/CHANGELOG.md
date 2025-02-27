@@ -1,5 +1,32 @@
 # @highlight-run/next
 
+## 7.9.0
+
+### Minor Changes
+
+-   31dc610: configure Node.js OTLPLogExporter and OTLPMetricExporter
+
+### Patch Changes
+
+-   Updated dependencies [31dc610]
+-   Updated dependencies [31dc610]
+-   Updated dependencies [31dc610]
+-   Updated dependencies [31dc610]
+-   Updated dependencies [31dc610]
+    -   @highlight-run/node@3.12.0
+    -   @highlight-run/cloudflare@3.0.0
+    -   @highlight-run/react@12.1.0
+
+## 7.8.7
+
+### Patch Changes
+
+-   Updated dependencies [2b8cba8]
+-   Updated dependencies [baed388]
+    -   highlight.run@9.11.1
+    -   @highlight-run/node@3.11.1
+    -   @highlight-run/react@12.0.1
+
 ## 7.8.6
 
 ### Patch Changes

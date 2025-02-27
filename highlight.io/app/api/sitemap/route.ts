@@ -7,9 +7,8 @@ import { FEATURES, iFeature } from '../../../components/Features/features'
 import { iProduct, PRODUCTS } from '../../../components/Products/products'
 import { withAppRouterHighlight } from '../../../highlight.app.config'
 import { getGithubDocsPaths } from '../../../pages/api/docs/github'
-import { getBlogPaths } from '../../../shared/blog'
+import { getBlogPaths, VALID_TAGS } from '../../../shared/blog'
 import { GraphQLRequest } from '../../../utils/graphql'
-import { VALID_TAGS } from '../../../pages/blog/tag/[tag]'
 
 const stream = createWriteStream({
 	url: 'https://pub.highlight.io/v1/logs/json',

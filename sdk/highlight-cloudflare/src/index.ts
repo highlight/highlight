@@ -1,2 +1,2 @@
-export { H, extractRequestMetadata } from './sdk'
+export { H } from './sdk'
 export type { HighlightEnv } from './sdk'

@@ -55,13 +55,13 @@ export function middleware(
 	next: () => void,
 ) => void {
 	H._debug('setting up middleware')
-	return (
+	return async (
 		req: http.IncomingMessage,
 		res: http.ServerResponse,
 		next: () => void,
 	) => {
 		H._debug('middleware handling request')
-		H.runWithHeaders(
+		return H.runWithHeaders(
 			`${req.method?.toUpperCase()} - ${req.url}`,
 			req.headers,
 			() => next(),

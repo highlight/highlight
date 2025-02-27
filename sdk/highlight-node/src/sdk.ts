@@ -7,7 +7,7 @@ import {
 import { ResourceAttributes } from '@opentelemetry/resources'
 import { Highlight } from './client'
 import log from './log'
-import type { HighlightContext, NodeOptions } from './types.js'
+import type { HighlightContext, Metric, NodeOptions } from './types.js'
 
 export const HIGHLIGHT_REQUEST_HEADER = 'x-highlight-request'
 
@@ -42,13 +42,11 @@ export interface HighlightInterface {
 		metadata?: Attributes,
 		options?: { span: OtelSpan },
 	) => void
-	recordMetric: (
-		secureSessionId: string,
-		name: string,
-		value: number,
-		requestId?: string,
-		tags?: { name: string; value: string }[],
-	) => void
+	recordMetric: (metric: Metric) => void
+	recordCount: (metric: Metric) => void
+	recordIncr: (metric: Omit<Metric, 'value'>) => void
+	recordHistogram: (metric: Metric) => void
+	recordUpDownCounter: (metric: Metric) => void
 	flush: () => Promise<void>
 	log: (
 		message: any,
@@ -113,31 +111,44 @@ export const H: HighlightInterface = {
 			console.warn('highlight-node consumeError error: ', e)
 		}
 	},
-	recordMetric: (
-		secureSessionId: string,
-		name: string,
-		value: number,
-		requestId?: string,
-		tags?: { name: string; value: string }[],
-	) => {
+	recordMetric: (metric) => {
 		try {
-			highlight_obj.recordMetric(
-				secureSessionId,
-				name,
-				value,
-				requestId,
-				tags,
-			)
+			highlight_obj.recordMetric(metric)
 		} catch (e) {
 			console.warn('highlight-node recordMetric error: ', e)
 		}
 	},
+	recordCount: (metric) => {
+		try {
+			highlight_obj.recordCount(metric)
+		} catch (e) {
+			console.warn('highlight-node recordCount error: ', e)
+		}
+	},
+	recordIncr: (metric) => {
+		try {
+			highlight_obj.recordIncr(metric)
+		} catch (e) {
+			console.warn('highlight-node recordIncr error: ', e)
+		}
+	},
+	recordHistogram: (metric) => {
+		try {
+			highlight_obj.recordHistogram(metric)
+		} catch (e) {
+			console.warn('highlight-node recordHistogram error: ', e)
+		}
+	},
+	recordUpDownCounter: (metric) => {
+		try {
+			highlight_obj.recordUpDownCounter(metric)
+		} catch (e) {
+			console.warn('highlight-node recordUpDownCounter error: ', e)
+		}
+	},
 	flush: async () => {
 		try {
-			await Promise.allSettled([
-				highlight_obj.waitForFlush(),
-				highlight_obj.flush(),
-			])
+			await highlight_obj.flush()
 		} catch (e) {
 			console.warn('highlight-node flush error: ', e)
 		}
