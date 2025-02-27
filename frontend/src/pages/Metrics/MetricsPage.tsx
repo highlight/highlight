@@ -14,6 +14,7 @@ import {
 	Menu,
 	DateRangePicker,
 	IconSolidClock,
+	IconSolidCheveronRight,
 } from '@highlight-run/ui/components'
 import { vars } from '@highlight-run/ui/vars'
 import moment from 'moment'
@@ -53,6 +54,7 @@ import { useApplicationContext } from '@/routers/AppRouter/context/ApplicationCo
 import analytics from '@/util/analytics'
 
 import { MetricsTable } from './MetricsTable/MetricsTable'
+import { MetricsFilterPanel } from './MetricsFilterPanel'
 
 // Define the metric structure based on what's shown in the screenshot
 interface Metric {
@@ -72,6 +74,7 @@ export const MetricsPage: React.FC = () => {
 	const [metrics, setMetrics] = useState<Metric[]>([])
 	const [loading, setLoading] = useState(true)
 	const [showControls, setShowControls] = useState(true)
+	const [filterPanelVisible, setFilterPanelVisible] = useState(true)
 	const [sorting, setSorting] = useState<SortingState>([
 		{
 			id: 'dataPoints',
@@ -209,6 +212,28 @@ export const MetricsPage: React.FC = () => {
 
 	useEffect(() => analytics.page('Metrics'), [])
 
+	const handleFilterChange = (
+		categoryId: string,
+		optionId: string,
+		checked: boolean,
+	) => {
+		// If checkbox is checked, add the filter to the query
+		// If unchecked, remove the filter from the query
+
+		// Example implementation - would need to be adapted based on your search query format
+		if (checked) {
+			const newFilter = `${optionId}="*"`
+			const newQuery = query ? `${query} ${newFilter}` : newFilter
+			setQuery(newQuery)
+		} else {
+			// Remove the filter from query - this is a simple implementation
+			// In a real app, you'd need to handle more complex cases
+			const filterToRemove = `${optionId}="*"`
+			const updatedQuery = query?.replace(filterToRemove, '').trim() || ''
+			setQuery(updatedQuery)
+		}
+	}
+
 	return (
 		<SearchContext
 			initialQuery={query}
@@ -270,7 +295,7 @@ export const MetricsPage: React.FC = () => {
 						px="8"
 						borderBottom="dividerWeak"
 					>
-						<Box>
+						<Box display="flex" alignItems="center" gap="4">
 							<Button
 								kind="secondary"
 								emphasis="low"
@@ -279,7 +304,29 @@ export const MetricsPage: React.FC = () => {
 								onClick={() => setShowControls(false)}
 							>
 								<Text size="small" weight="medium">
-									Show controls
+									Hide controls
+								</Text>
+							</Button>
+
+							<Button
+								kind="secondary"
+								emphasis="low"
+								size="small"
+								iconLeft={
+									filterPanelVisible ? (
+										<IconSolidOpenLeft size={14} />
+									) : (
+										<IconSolidCheveronRight size={14} />
+									)
+								}
+								onClick={() =>
+									setFilterPanelVisible(!filterPanelVisible)
+								}
+							>
+								<Text size="small" weight="medium">
+									{filterPanelVisible
+										? 'Hide filters'
+										: 'Show filters'}
 								</Text>
 							</Button>
 						</Box>
@@ -376,54 +423,69 @@ export const MetricsPage: React.FC = () => {
 						</Box>
 					</Box>
 
-					<Box height="full" overflow="auto">
-						{!showControls && (
-							<Box
-								display="flex"
-								justifyContent="flex-start"
-								alignItems="center"
-								py="2"
-								px="8"
-								borderBottom="dividerWeak"
-							>
-								<Button
-									kind="secondary"
-									emphasis="low"
-									size="small"
-									iconLeft={<IconSolidOpenLeft size={14} />}
-									onClick={() => setShowControls(true)}
-								>
-									<Text size="small" weight="medium">
-										Show controls
-									</Text>
-								</Button>
-							</Box>
-						)}
-
-						{loading ? (
-							<Box
-								alignItems="center"
-								display="flex"
-								flexDirection="row"
-								gap="4"
-								justifyContent="center"
-								py="20"
-							>
-								<IconSolidLoading
-									className={loadingIcon}
-									color={vars.theme.static.content.weak}
-								/>
-								<Text size="small" color="weak">
-									Loading metrics
-								</Text>
-							</Box>
-						) : (
-							<MetricsTable
-								metrics={metrics}
-								sorting={sorting}
-								setSorting={setSorting}
+					<Box display="flex" height="full">
+						{filterPanelVisible && (
+							<MetricsFilterPanel
+								onFilterChange={handleFilterChange}
 							/>
 						)}
+
+						<Box
+							height="full"
+							overflow="auto"
+							flex="stretch"
+							flexGrow={1}
+						>
+							{!showControls && (
+								<Box
+									display="flex"
+									justifyContent="flex-start"
+									alignItems="center"
+									py="2"
+									px="8"
+									borderBottom="dividerWeak"
+								>
+									<Button
+										kind="secondary"
+										emphasis="low"
+										size="small"
+										iconLeft={
+											<IconSolidOpenLeft size={14} />
+										}
+										onClick={() => setShowControls(true)}
+									>
+										<Text size="small" weight="medium">
+											Show controls
+										</Text>
+									</Button>
+								</Box>
+							)}
+
+							{loading ? (
+								<Box
+									alignItems="center"
+									display="flex"
+									flexDirection="row"
+									gap="4"
+									justifyContent="center"
+									py="20"
+								>
+									<IconSolidLoading
+										className={loadingIcon}
+										color={vars.theme.static.content.weak}
+									/>
+									<Text size="small" color="weak">
+										Loading metrics
+									</Text>
+								</Box>
+							) : (
+								<MetricsTable
+									metrics={metrics}
+									sorting={sorting}
+									setSorting={setSorting}
+								/>
+							)}
+						</Box>
 					</Box>
 				</Box>
 			</Box>
