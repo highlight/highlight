@@ -1,6 +1,6 @@
 {
 	"name": "@highlight-run/cloudflare",
-	"version": "2.1.9",
+	"version": "3.0.0",
 	"packageManager": "yarn@4.0.2",
 	"main": "./dist/index.js",
 	"module": "./dist/index.mjs",

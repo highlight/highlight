@@ -63,12 +63,10 @@ function getUntaintedPrototype$1(key) {
     const iframeEl = document.createElement("iframe");
     document.body.appendChild(iframeEl);
     const win = iframeEl.contentWindow;
-    if (!win)
-      return defaultObj.prototype;
+    if (!win) return defaultObj.prototype;
     const untaintedObject = win[key].prototype;
     document.body.removeChild(iframeEl);
-    if (!untaintedObject)
-      return defaultPrototype;
+    if (!untaintedObject) return defaultPrototype;
     return untaintedBasePrototype$1[key] = untaintedObject;
   } catch {
     return defaultPrototype;
@@ -87,8 +85,7 @@ function getUntaintedAccessor$1(key, instance, accessor) {
     untaintedPrototype,
     accessor
   )) == null ? void 0 : _a2.get;
-  if (!untaintedAccessor)
-    return instance[accessor];
+  if (!untaintedAccessor) return instance[accessor];
   untaintedAccessorCache$1[cacheKey] = untaintedAccessor;
   return untaintedAccessor.call(instance);
 }
@@ -101,8 +98,7 @@ function getUntaintedMethod$1(key, instance, method) {
     );
   const untaintedPrototype = getUntaintedPrototype$1(key);
   const untaintedMethod = untaintedPrototype[method];
-  if (typeof untaintedMethod !== "function")
-    return instance[method];
+  if (typeof untaintedMethod !== "function") return instance[method];
   untaintedMethodCache$1[cacheKey] = untaintedMethod;
   return untaintedMethod.bind(instance);
 }
@@ -125,16 +121,14 @@ function getRootNode$1(n2) {
   return getUntaintedMethod$1("Node", n2, "getRootNode")();
 }
 function host$1(n2) {
-  if (!n2 || !("host" in n2))
-    return null;
+  if (!n2 || !("host" in n2)) return null;
   return getUntaintedAccessor$1("ShadowRoot", n2, "host");
 }
 function styleSheets$1(n2) {
   return n2.styleSheets;
 }
 function shadowRoot$1(n2) {
-  if (!n2 || !("shadowRoot" in n2))
-    return null;
+  if (!n2 || !("shadowRoot" in n2)) return null;
   return getUntaintedAccessor$1("Element", n2, "shadowRoot");
 }
 function querySelector$1(n2, selectors) {
@@ -1398,7 +1392,7 @@ function snapshot(n2, options) {
     stylesheetLoadTimeout,
     keepIframeSrcFn = () => false,
     privacySetting = "default"
-  } = options;
+  } = options || {};
   const maskInputOptions = maskAllInputs === true ? {
     color: true,
     date: true,
@@ -1498,7 +1492,7 @@ var pseudoClassPlugin = {
   }
 };
 function getDefaultExportFromCjs$1(x2) {
-  return x2.__esModule && Object.prototype.hasOwnProperty.call(x2, "default") ? x2["default"] : x2;
+  return x2 && x2.__esModule && Object.prototype.hasOwnProperty.call(x2, "default") ? x2["default"] : x2;
 }
 function getAugmentedNamespace$1(n2) {
   if (n2.__esModule) return n2;
@@ -2736,16 +2730,6 @@ Document$3$1.registerProcessor = (dependant) => {
 var document$1$1 = Document$3$1;
 Document$3$1.default = Document$3$1;
 var urlAlphabet$1 = "useandom-26T198340PX75pxJACKVERYMINDBUSHWOLF_GQZbfghjklqvwyzrict";
-var customAlphabet$1 = (alphabet, defaultSize = 21) => {
-  return (size = defaultSize) => {
-    let id = "";
-    let i2 = size | 0;
-    while (i2--) {
-      id += alphabet[Math.random() * alphabet.length | 0];
-    }
-    return id;
-  };
-};
 var nanoid$1$1 = (size = 21) => {
   let id = "";
   let i2 = size | 0;
@@ -2754,7 +2738,7 @@ var nanoid$1$1 = (size = 21) => {
   }
   return id;
 };
-var nonSecure$1 = { nanoid: nanoid$1$1, customAlphabet: customAlphabet$1 };
+var nonSecure$1 = { nanoid: nanoid$1$1 };
 var { existsSync: existsSync$1, readFileSync: readFileSync$1 } = require$$2$1;
 var { dirname: dirname$1$1, join: join$1 } = require$$2$1;
 var { SourceMapConsumer: SourceMapConsumer$2$1, SourceMapGenerator: SourceMapGenerator$2$1 } = require$$2$1;
@@ -5545,7 +5529,7 @@ function createMirror$1() {
   return new Mirror$1();
 }
 function getDefaultExportFromCjs(x2) {
-  return x2.__esModule && Object.prototype.hasOwnProperty.call(x2, "default") ? x2["default"] : x2;
+  return x2 && x2.__esModule && Object.prototype.hasOwnProperty.call(x2, "default") ? x2["default"] : x2;
 }
 function getAugmentedNamespace(n2) {
   if (n2.__esModule) return n2;
@@ -6783,16 +6767,6 @@ Document$3.registerProcessor = (dependant) => {
 var document$1 = Document$3;
 Document$3.default = Document$3;
 var urlAlphabet = "useandom-26T198340PX75pxJACKVERYMINDBUSHWOLF_GQZbfghjklqvwyzrict";
-var customAlphabet = (alphabet, defaultSize = 21) => {
-  return (size = defaultSize) => {
-    let id = "";
-    let i2 = size | 0;
-    while (i2--) {
-      id += alphabet[Math.random() * alphabet.length | 0];
-    }
-    return id;
-  };
-};
 var nanoid$1 = (size = 21) => {
   let id = "";
   let i2 = size | 0;
@@ -6801,7 +6775,7 @@ var nanoid$1 = (size = 21) => {
   }
   return id;
 };
-var nonSecure = { nanoid: nanoid$1, customAlphabet };
+var nonSecure = { nanoid: nanoid$1 };
 var { existsSync, readFileSync } = require$$2;
 var { dirname: dirname$1, join } = require$$2;
 var { SourceMapConsumer: SourceMapConsumer$2, SourceMapGenerator: SourceMapGenerator$2 } = require$$2;
@@ -10467,12 +10441,10 @@ function getUntaintedPrototype(key) {
     const iframeEl = document.createElement("iframe");
     document.body.appendChild(iframeEl);
     const win = iframeEl.contentWindow;
-    if (!win)
-      return defaultObj.prototype;
+    if (!win) return defaultObj.prototype;
     const untaintedObject = win[key].prototype;
     document.body.removeChild(iframeEl);
-    if (!untaintedObject)
-      return defaultPrototype;
+    if (!untaintedObject) return defaultPrototype;
     return untaintedBasePrototype[key] = untaintedObject;
   } catch {
     return defaultPrototype;
@@ -10491,8 +10463,7 @@ function getUntaintedAccessor(key, instance, accessor) {
     untaintedPrototype,
     accessor
   )) == null ? void 0 : _a2.get;
-  if (!untaintedAccessor)
-    return instance[accessor];
+  if (!untaintedAccessor) return instance[accessor];
   untaintedAccessorCache[cacheKey] = untaintedAccessor;
   return untaintedAccessor.call(instance);
 }
@@ -10505,8 +10476,7 @@ function getUntaintedMethod(key, instance, method) {
     );
   const untaintedPrototype = getUntaintedPrototype(key);
   const untaintedMethod = untaintedPrototype[method];
-  if (typeof untaintedMethod !== "function")
-    return instance[method];
+  if (typeof untaintedMethod !== "function") return instance[method];
   untaintedMethodCache[cacheKey] = untaintedMethod;
   return untaintedMethod.bind(instance);
 }
@@ -10529,16 +10499,14 @@ function getRootNode(n2) {
   return getUntaintedMethod("Node", n2, "getRootNode")();
 }
 function host(n2) {
-  if (!n2 || !("host" in n2))
-    return null;
+  if (!n2 || !("host" in n2)) return null;
   return getUntaintedAccessor("ShadowRoot", n2, "host");
 }
 function styleSheets(n2) {
   return n2.styleSheets;
 }
 function shadowRoot(n2) {
-  if (!n2 || !("shadowRoot" in n2))
-    return null;
+  if (!n2 || !("shadowRoot" in n2)) return null;
   return getUntaintedAccessor("Element", n2, "shadowRoot");
 }
 function querySelector(n2, selectors) {
@@ -14544,6 +14512,10 @@ function mitt$1(n2) {
     });
   } };
 }
+var mittProxy = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
+  __proto__: null,
+  default: mitt$1
+}, Symbol.toStringTag, { value: "Module" }));
 function polyfill(w = window, d = document) {
   if ("scrollBehavior" in d.documentElement.style && w.__forceSmoothScrollPolyfill__ !== true) {
     return;
@@ -15700,7 +15672,7 @@ function removeDialogFromTopLevel(node2, attributeMutation) {
 var SKIP_TIME_INTERVAL = 5 * 1e3;
 var SKIP_TIME_MIN = 1 * 1e3;
 var SKIP_DURATION_LIMIT = 60 * 60 * 1e3;
-var mitt = mitt$1;
+var mitt = mitt$1 || mittProxy;
 var REPLAY_CONSOLE_PREFIX = "[replayer]";
 var defaultMouseTailConfig = {
   duration: 500,

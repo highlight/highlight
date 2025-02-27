@@ -1,6 +1,6 @@
 {
 	"name": "@highlight-run/hono",
-	"version": "1.0.2",
+	"version": "1.0.3",
 	"description": "Highlight.io SDK for Hono applications",
 	"main": "dist/index.js",
 	"types": "dist/index.d.ts",
