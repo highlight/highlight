@@ -2,6 +2,8 @@ import { NextConfig } from 'next'
 import { Rewrite } from 'next/dist/lib/load-custom-routes'
 import { WebpackConfigContext } from 'next/dist/server/config-shared'
 import HighlightWebpackPlugin from './highlight-webpack-plugin.js'
+import type { NodeOptions } from '@highlight-run/node'
+import type { Configuration } from '@vercel/otel'
 
 interface HighlightConfigOptionsDefault {
 	uploadSourceMaps: boolean
@@ -12,6 +14,7 @@ interface HighlightConfigOptionsDefault {
 	serviceName: string
 	sourceMapsPath: string
 	sourceMapsBasePath: string
+	enableOpenTelemetry: boolean
 	sourceMapsBackendUrl?: string
 }
 
@@ -61,6 +64,21 @@ export interface HighlightConfigOptions {
 	 * Optional, backend url for private graph to use for uploading (for self-hosted highlight deployments).
 	 */
 	sourceMapsBackendUrl?: string
+	/**
+	 * Configure OpenTelemetry integration
+	 * @default true
+	 */
+	enableOpenTelemetry?: boolean
+
+	/**
+	 * OpenTelemetry configuration options
+	 * Extends Vercel's OTEL config
+	 */
+	otel?: Partial<Configuration> & {
+		// Additional Highlight-specific options
+		serviceVersion?: string
+		environment?: string
+	}
 }
 
 const getDefaultOpts = async (
@@ -94,6 +112,7 @@ const getDefaultOpts = async (
 		sourceMapsPath: highlightOpts?.sourceMapsPath ?? '.next/',
 		sourceMapsBasePath: highlightOpts?.sourceMapsBasePath ?? '_next/',
 		sourceMapsBackendUrl: highlightOpts?.sourceMapsBackendUrl,
+		enableOpenTelemetry: highlightOpts?.enableOpenTelemetry ?? true,
 	}
 }
 
@@ -209,6 +228,9 @@ const getHighlightConfig = async (
 		...config,
 		env: {
 			...config.env,
+			NEXT_OTEL_ENABLED: defaultOpts.enableOpenTelemetry
+				? 'true'
+				: 'false',
 			configureHighlightProxy: defaultOpts.configureHighlightProxy
 				? 'true'
 				: '',
@@ -217,6 +239,11 @@ const getHighlightConfig = async (
 			defaultOpts.uploadSourceMaps || config.productionBrowserSourceMaps,
 		rewrites: newRewrites,
 		webpack: newWebpack,
+		enableOpenTelemetry: defaultOpts.enableOpenTelemetry,
+		experimental: {
+			...config.experimental,
+			instrumentationHook: defaultOpts.enableOpenTelemetry,
+		},
 	}
 }
 

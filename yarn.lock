@@ -10438,6 +10438,7 @@ __metadata:
     "@trpc/server": "npm:^9.27.4"
     "@types/js-cookie": "npm:^3"
     "@types/node": "npm:^16.18.113"
+    "@vercel/otel": "npm:^1.10.1"
     chokidar-cli: "npm:^3.0.0"
     eslint: "npm:8.39.0"
     highlight.run: "workspace:*"
@@ -24313,6 +24314,21 @@ __metadata:
     satori: "npm:0.10.9"
     yoga-wasm-web: "npm:0.3.3"
   checksum: 10/7844d692b7e6c78b99d3ce2baf8d7e95c0f3c9f5637dbd43862f01187b649a6bc4566e7c4cf0dcffab89f1b6651195df02cb5d83cd4692fb71b430aa2e77992b
+  languageName: node
+  linkType: hard
+
+"@vercel/otel@npm:^1.10.1":
+  version: 1.10.1
+  resolution: "@vercel/otel@npm:1.10.1"
+  peerDependencies:
+    "@opentelemetry/api": ^1.7.0
+    "@opentelemetry/api-logs": "*"
+    "@opentelemetry/instrumentation": "*"
+    "@opentelemetry/resources": ^1.19.0
+    "@opentelemetry/sdk-logs": "*"
+    "@opentelemetry/sdk-metrics": ^1.19.0
+    "@opentelemetry/sdk-trace-base": ^1.19.0
+  checksum: 10/bf4fa21e7749c0e736b6351ce1fd385c6659a99048b7f09f7a2587a1e85c54132dc913a26de250254235e98793db09b7728b9e2d040c37811e6b8a6ef7d57a17
   languageName: node
   linkType: hard
 

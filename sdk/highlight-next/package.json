@@ -63,6 +63,7 @@
 		"@highlight-run/opentelemetry-sdk-workers": "workspace:*",
 		"@highlight-run/react": "workspace:*",
 		"@highlight-run/sourcemap-uploader": "workspace:*",
+		"@vercel/otel": "^1.10.1",
 		"highlight.run": "workspace:*",
 		"js-cookie": "^3.0.5",
 		"next": ">=13"

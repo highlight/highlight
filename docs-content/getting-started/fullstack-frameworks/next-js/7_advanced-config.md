@@ -16,9 +16,9 @@ updatedAt: 2023-10-03T00:00:00.000Z
 | Edge runtime | `EdgeHighlight`       | `EdgeHighlight`      |
 
 Our Next.js SDK gives you access to frontend session replays and server-side monitoring,
-all-in-one. 
+all-in-one.
 
-1. On the frontend, the `<HighlightInit/>` component sets up client-side session replays.
+1. On the frontend, the `<HighlightInit />` component sets up client-side session replays.
 2. On the backend, the `PageRouterHighlight` wrapper exported from `@highlight-run/next/server` captures server-side errors and logs from Page Router API endpoints.
 3. On the backend, the `AppRouterHighlight` wrapper exported from `@highlight-run/next/app-router` captures errors and logs from App Router API endpoints.
 3. The `EdgeHighlight` wrapper exported from `@highlight-run/next/server` captures server-side errors and logs from both Page and App Router endpoints using Vercel's Edge runtime.
@@ -33,11 +33,11 @@ all-in-one.
 
 Configure logging for your serverless cloud provider using one of our [cloud provider logging guides](https://www.highlight.io/docs/getting-started/server/hosting/overview), including [Vercel Log Drain for Highlight](https://vercel.com/integrations/highlight).
 
-## Tracing Auto-instrumentation
+## OpenTelemetry Tracing
 
 Open Telemetry auto-instrumentation supports a wide array of packages.
 
-Follow the [Open Telemetry Instrumentation Initialization](https://github.com/open-telemetry/opentelemetry-js-contrib/tree/main/metapackages/auto-instrumentations-node#usage-instrumentation-initialization) guide to initialize any of these [supported library and framework.](https://github.com/open-telemetry/opentelemetry-js-contrib/tree/main/metapackages/auto-instrumentations-node#supported-instrumentations).
+Follow the [Open Telemetry Instrumentation Initialization](https://github.com/open-telemetry/opentelemetry-js-contrib/tree/main/metapackages/auto-instrumentations-node#usage-instrumentation-initialization) guide to initialize any of these [supported libraries and frameworks](https://github.com/open-telemetry/opentelemetry-js-contrib/tree/main/metapackages/auto-instrumentations-node#supported-instrumentations).
 
 ## Custom Tracing Spans
 
@@ -123,9 +123,9 @@ export const CONSTANTS = z
 
 ## Vercel Log Drain
 
-Install our [Vercel + Highlight Integration](https://vercel.com/integrations/highlight) to enable Vercel Log Drain on your project. 
+Install our [Vercel + Highlight Integration](https://vercel.com/integrations/highlight) to enable Vercel Log Drain on your project.
 
-Our API wrappers automatically send logs to Highlight in all runtime environments, but Vercel shuts down its Node.js and Edge processes so quickly that log messages are often lost. 
+Our API wrappers automatically send logs to Highlight in all runtime environments, but Vercel shuts down its Node.js and Edge processes so quickly that log messages are often lost.
 
 Vercel Log Drain is a reliable way to capture those logs.
 

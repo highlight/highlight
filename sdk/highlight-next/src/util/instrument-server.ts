@@ -19,6 +19,11 @@ interface Server {
 }
 
 export const instrumentServer = () => {
+	// Skip custom instrumentation if using Vercel OTEL
+	if (process.env.NEXT_OTEL_ENABLED === 'true') {
+		return
+	}
+
 	const nextServerPrototype = Object.getPrototypeOf(createNextServer({}))
 	fill(
 		nextServerPrototype,
