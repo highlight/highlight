@@ -1,3 +1,3 @@
 package highlight
 
-const Version string = "v0.11.2"
+const Version string = "v0.12.0"
