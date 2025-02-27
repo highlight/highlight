@@ -1,4 +1,9 @@
-import { Badge, Table, Text } from '@highlight-run/ui/components'
+import {
+	Badge,
+	IconSolidCubeTransparent,
+	Table,
+	Text,
+} from '@highlight-run/ui/components'
 import moment from 'moment'
 
 export const gridColumns = ['3fr', '1fr', '1fr', '1fr', '1fr']
@@ -65,7 +70,16 @@ export const MetricTypeRenderer: React.FC<ColumnRendererProps> = ({
 
 	return (
 		<Table.Cell>
-			{value ? <Text lines="1">{value}</Text> : <EmptyState />}
+			{value ? (
+				<Badge
+					shape="basic"
+					variant="outlineGray"
+					size="small"
+					label={value}
+				/>
+			) : (
+				<EmptyState />
+			)}
 		</Table.Cell>
 	)
 }
@@ -82,6 +96,12 @@ export const ServiceNameRenderer: React.FC<ColumnRendererProps> = ({
 					shape="basic"
 					variant="outlineGray"
 					size="small"
+					iconStart={
+						<IconSolidCubeTransparent
+							size="12"
+							style={{ marginRight: '2px' }}
+						/>
+					}
 					label={value}
 				/>
 			) : (
