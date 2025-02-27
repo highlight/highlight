@@ -387,8 +387,13 @@ func (p *Queue) Submit(ctx context.Context, partitionKey string, messages ...Ret
 
 func (p *Queue) Receive(ctx context.Context) (context.Context, RetryableMessage) {
 	start := time.Now()
+
 	rxCtx, cancel := context.WithTimeout(ctx, KafkaOperationTimeout)
 	defer cancel()
+
+	// clear timeout to return a context with no deadline
+	ctx = context.WithoutCancel(ctx)
+
 	m, err := p.kafkaC.FetchMessage(rxCtx)
 	if err != nil {
 		if err.Error() != "context deadline exceeded" {
