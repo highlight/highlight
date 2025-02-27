@@ -85,7 +85,7 @@ export const MetricsPage: React.FC = () => {
 		variables: {
 			product_type: ProductType.Metrics,
 			project_id: projectId!,
-			group_by: ['metric_name', 'service_name'],
+			group_by: ['metric_name', 'type', 'service_name'],
 			params: {
 				query: query || '',
 				date_range: {
@@ -123,7 +123,8 @@ export const MetricsPage: React.FC = () => {
 			metricsData.metrics.buckets.forEach((bucket) => {
 				if (bucket.group && bucket.group.length >= 2) {
 					const metricName = bucket.group[0]
-					const serviceName = bucket.group[1]
+					const metricType = bucket.group[1]
+					const serviceName = bucket.group[2]
 					const metricValue = bucket.metric_value || 0
 					const isCountValue =
 						bucket.metric_type === 'Count' &&
@@ -135,8 +136,8 @@ export const MetricsPage: React.FC = () => {
 					if (!uniqueMetrics.has(metricName)) {
 						uniqueMetrics.set(metricName, {
 							name: metricName,
-							lastConfigured: new Date(), // Default placeholder
-							metricType: 'server.address', // Default placeholder value
+							lastConfigured: new Date(), // temporary placeholder; replaced below
+							metricType,
 							serviceName,
 							metric_value: isCountValue ? metricValue : 0,
 							dataPoints: isCountValue ? metricValue : 0,
