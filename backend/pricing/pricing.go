@@ -1313,8 +1313,11 @@ func (w *Worker) GetBillingIssue(ctx context.Context, workspace *model.Workspace
 	for _, paymentMethod := range i.PaymentMethodList().Data {
 		paymentMethods += 1
 		if paymentMethod.Card != nil && paymentMethod.Card.Checks != nil {
-			if paymentMethod.Card.Checks.CVCCheck == stripe.PaymentMethodCardChecksCVCCheckFail {
-				log.WithContext(ctx).WithField("customer", customer.ID).Info("stripe cvc check failed")
+			if paymentMethod.Card.Checks.CVCCheck == stripe.PaymentMethodCardChecksCVCCheckFail && paymentMethod.Card.Checks.AddressPostalCodeCheck == stripe.PaymentMethodCardChecksAddressPostalCodeCheckFail {
+				log.WithContext(ctx).
+					WithField("customer", customer.ID).
+					WithField("checks", *paymentMethod.Card.Checks).
+					Info("stripe cvc+zip check failed")
 				failures += 1
 			}
 		}
