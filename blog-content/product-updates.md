@@ -29,7 +29,7 @@ Below are the requirements for this tutorial. At Highlight, we all have macbooks
 
 1.  A screen recorder (We use QuickTime Player on Mac)
 2.  A video editor that supports keyframes (We use Adobe After Effects)
-3.  Note: After Effects is generally overkill for creating these; some alternatives include [descript](https://www.descript.com/screen-recording "https://www.descript.com/screen-recording"), [blender](https://www.blender.org/features/video-editing/ "https://www.blender.org/features/video-editing/"), and [shortcut](<https://shotcut.org/)> "https://shotcut.org/)").
+3.  Note: After Effects is generally overkill for creating these; some alternatives include [descript](https://www.descript.com/screen-recording "https://www.descript.com/screen-recording"), [blender](https://www.blender.org/features/video-editing/ "https://www.blender.org/features/video-editing/"), and [shortcut](<https://shotcut.org/> "https://shotcut.org/").
 
 ## The Script
 

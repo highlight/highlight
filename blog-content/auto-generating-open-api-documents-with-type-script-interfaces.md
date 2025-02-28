@@ -15,9 +15,9 @@ tags: Engineering
 metaTitle: Auto-generating OpenAPI documents with TypeScript interfaces
 ---
 
-[OpenAPI](https://oai.github.io/Documentation/specification-paths.html "https://oai.github.io/Documentation/specification-paths.html") is a wonderful tool to explicitly document your REST API endpoints.
+[OpenAPI](https://learn.openapis.org/specification/paths.html "https://learn.openapis.org/specification/paths.html") is a wonderful tool to explicitly document your REST API endpoints.
 
-It’s also a particularly verbose YAML-based format that can be difficult to write by hand. Look at this [“simple” example](https://github.com/OAI/Documentation/blob/main/examples/tictactoe.yaml "https://github.com/OAI/Documentation/blob/main/examples/tictactoe.yaml") from the official docs. It’s almost as if the [people who invented OpenAPI](https://swagger.io/ "https://swagger.io/") expected you to use a dedicated OpenAPI editor tool!
+It’s also a particularly verbose YAML-based format that can be difficult to write by hand. Look at this [“simple” example](hthttps://github.com/OAI/learn.openapis.org/blob/main/examples/v3.1/tictactoe.yaml "https://github.com/OAI/learn.openapis.org/blob/main/examples/v3.1/tictactoe.yaml") from the official docs. It’s almost as if the [people who invented OpenAPI](https://swagger.io/ "https://swagger.io/") expected you to use a dedicated OpenAPI editor tool!
 
 If you use TypeScript in your codebase, you might already have defined types such as request and response bodies for each of your endpoints:
 
