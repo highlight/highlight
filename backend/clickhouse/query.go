@@ -160,10 +160,11 @@ func readObjects[TObj interface{}](ctx context.Context, client *Client, config m
 	span, _ := util.StartSpanFromContext(ctx, "clickhouse.Query")
 	span.SetAttribute(string(semconv.DBNamespaceKey), innerTableConfig.TableName)
 	span.SetAttribute(string(semconv.DBQueryTextKey), sql)
-	span.SetAttribute(string(semconv.DBSystemKey), "clickhouse")
+	span.SetAttribute(string(semconv.DBSystemKey), semconv.DBSystemClickhouse)
 	span.SetAttribute(string(semconv.DBOperationNameKey), "SELECT")
 	span.SetAttribute(string("db.query.summary"), "SELECT "+strings.Join(config.SelectColumns, ", ")+" FROM "+innerTableConfig.TableName)
-	span.SetAttribute(string("db.operation.parameters"), params)
+	span.SetAttribute("db.operation.parameters", args)
+
 	rows, err := client.conn.Query(ctx, sql, args...)
 
 	if err != nil {
@@ -706,9 +707,12 @@ func KeysAggregated(ctx context.Context, client *Client, tableName string, proje
 	sql, args := sb.BuildWithFlavor(sqlbuilder.ClickHouse)
 
 	span, _ := util.StartSpanFromContext(chCtx, "readKeys", util.ResourceName(tableName))
-	span.SetAttribute("Query", sql)
-	span.SetAttribute("Table", tableName)
-	span.SetAttribute("db.system", "clickhouse")
+	span.SetAttribute(string(semconv.DBNamespaceKey), tableName)
+	span.SetAttribute(string(semconv.DBQueryTextKey), sql)
+	span.SetAttribute(string(semconv.DBSystemKey), semconv.DBSystemClickhouse)
+	span.SetAttribute(string(semconv.DBOperationNameKey), "SELECT")
+	span.SetAttribute(string("db.query.summary"), "SELECT Key, Type, sum(Count) FROM "+tableName)
+	span.SetAttribute("db.operation.parameters", args)
 
 	rows, err := client.conn.Query(chCtx, sql, args...)
 
@@ -779,9 +783,12 @@ func KeyValuesAggregated(ctx context.Context, client *Client, tableName string, 
 	sql, args := sb.BuildWithFlavor(sqlbuilder.ClickHouse)
 
 	span, _ := util.StartSpanFromContext(chCtx, "readKeyValues", util.ResourceName(tableName))
-	span.SetAttribute("Query", sql)
-	span.SetAttribute("Table", tableName)
-	span.SetAttribute("db.system", "clickhouse")
+	span.SetAttribute(string(semconv.DBNamespaceKey), tableName)
+	span.SetAttribute(string(semconv.DBQueryTextKey), sql)
+	span.SetAttribute(string(semconv.DBSystemKey), semconv.DBSystemClickhouse)
+	span.SetAttribute(string(semconv.DBOperationNameKey), "SELECT")
+	span.SetAttribute(string("db.query.summary"), "SELECT Value, sum(Count) FROM "+tableName)
+	span.SetAttribute("db.operation.parameters", args)
 
 	rows, err := client.conn.Query(chCtx, sql, args...)
 	if err != nil {
@@ -847,8 +854,12 @@ func (client *Client) AllKeys(ctx context.Context, projectID int, startDate time
 		BuildWithFlavor(sqlbuilder.ClickHouse)
 
 	span, _ := util.StartSpanFromContext(chCtx, "readAllKeys")
-	span.SetAttribute("Query", sql)
-	span.SetAttribute("db.system", "clickhouse")
+	span.SetAttribute(string(semconv.DBNamespaceKey), EventKeysTable)
+	span.SetAttribute(string(semconv.DBQueryTextKey), sql)
+	span.SetAttribute(string(semconv.DBSystemKey), semconv.DBSystemClickhouse)
+	span.SetAttribute(string(semconv.DBOperationNameKey), "SELECT")
+	span.SetAttribute(string("db.query.summary"), "SELECT Key, sum(PctCount) FROM "+EventKeysTable)
+	span.SetAttribute("db.operation.parameters", args)
 
 	rows, err := client.conn.Query(chCtx, sql, args...)
 
@@ -987,8 +998,12 @@ func (client *Client) AllKeyValues(ctx context.Context, projectID int, keyName s
 		BuildWithFlavor(sqlbuilder.ClickHouse)
 
 	span, _ := util.StartSpanFromContext(chCtx, "readAllKeyValues")
-	span.SetAttribute("Query", sql)
-	span.SetAttribute("db.system", "clickhouse")
+	span.SetAttribute(string(semconv.DBNamespaceKey), FieldsTable)
+	span.SetAttribute(string(semconv.DBQueryTextKey), sql)
+	span.SetAttribute(string(semconv.DBSystemKey), semconv.DBSystemClickhouse)
+	span.SetAttribute(string(semconv.DBOperationNameKey), "SELECT")
+	span.SetAttribute(string("db.query.summary"), "SELECT Value, sum(PctCount) FROM "+FieldsTable)
+	span.SetAttribute("db.operation.parameters", args)
 
 	rows, err := client.conn.Query(chCtx, sql, args...)
 	if err != nil {
@@ -1622,7 +1637,7 @@ func (client *Client) ReadMetrics(ctx context.Context, input ReadMetricsInput) (
 	span.SetAttribute("project_ids", input.ProjectIDs)
 	span.SetAttribute(string(semconv.DBNamespaceKey), input.SampleableConfig.tableConfig.TableName)
 	span.SetAttribute(string(semconv.DBQueryTextKey), input.Sql)
-	span.SetAttribute(string(semconv.DBSystemKey), "clickhouse")
+	span.SetAttribute(string(semconv.DBSystemKey), semconv.DBSystemClickhouse)
 	span.SetAttribute(string(semconv.DBOperationNameKey), "SELECT")
 	span.SetAttribute(string("db.operation.parameters"), input.Params)
 	defer span.Finish()
