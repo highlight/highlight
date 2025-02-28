@@ -94,7 +94,7 @@ Next, we tried to use relative imports to make sure that the bundle didn't have 
 
 After a bit of trial and error, we arrived at a solution: use relative path imports and rely on code splitting and `type` imports.
 
-Here's a snippet of the imports from our [highlight.run entrypoint](https://github.com/highlight/highlight/blob/main/firstload/src/index.tsx "https://github.com/highlight/highlight/blob/main/firstload/src/index.tsx").
+Here's a snippet of the imports from our [highlight.run entrypoint](https://github.com/highlight/highlight/blob/main/sdk/firstload/src/index.tsx "https://github.com/highlight/highlight/blob/main/sdk/firstload/src/index.tsx").
 
 ```
 ...
