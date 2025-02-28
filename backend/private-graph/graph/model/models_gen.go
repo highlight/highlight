@@ -1304,20 +1304,20 @@ func (e DashboardChartType) MarshalGQL(w io.Writer) {
 type DashboardTemplateType string
 
 const (
-	DashboardTemplateTypeBlank           DashboardTemplateType = "Blank"
+	DashboardTemplateTypeNone            DashboardTemplateType = "None"
 	DashboardTemplateTypeFrontendMetrics DashboardTemplateType = "FrontendMetrics"
 	DashboardTemplateTypeAWSMetrics      DashboardTemplateType = "AWSMetrics"
 )
 
 var AllDashboardTemplateType = []DashboardTemplateType{
-	DashboardTemplateTypeBlank,
+	DashboardTemplateTypeNone,
 	DashboardTemplateTypeFrontendMetrics,
 	DashboardTemplateTypeAWSMetrics,
 }
 
 func (e DashboardTemplateType) IsValid() bool {
 	switch e {
-	case DashboardTemplateTypeBlank, DashboardTemplateTypeFrontendMetrics, DashboardTemplateTypeAWSMetrics:
+	case DashboardTemplateTypeNone, DashboardTemplateTypeFrontendMetrics, DashboardTemplateTypeAWSMetrics:
 		return true
 	}
 	return false

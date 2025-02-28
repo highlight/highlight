@@ -14266,7 +14266,7 @@ input VariableInput {
 }
 
 enum DashboardTemplateType {
-	Blank
+	None
 	FrontendMetrics
 	AWSMetrics
 }
