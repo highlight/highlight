@@ -1,13 +1,16 @@
 import {
 	Checkbox as AriakitCheckbox,
 	CheckboxProps as AriakitCheckboxProps,
+	VisuallyHidden as AriakitVisuallyHidden,
 	useCheckboxStore,
 } from '@ariakit/react'
 import React, { useEffect } from 'react'
 import { Box } from '../Box/Box'
-import { IconSolidCheck } from '../icons'
 import { Text } from '../Text/Text'
+
 import * as styles from './styles.css'
+import { IconSolidCheck } from '@/components/icons'
+import { vars } from '@/vars'
 
 type CheckboxProps = Omit<AriakitCheckboxProps, 'size' | 'store'> & {
 	label?: string
@@ -21,7 +24,7 @@ export const Checkbox: React.FC<CheckboxProps> = ({
 	onChange,
 	label,
 	size = 'medium',
-	...rest
+	ref,
 }) => {
 	// Create a checkbox store
 	const checkbox = useCheckboxStore({
@@ -35,17 +38,23 @@ export const Checkbox: React.FC<CheckboxProps> = ({
 
 	return (
 		<Box display="flex" alignItems="center" gap="2">
-			<Box
-				position="relative"
-				cssClass={[styles.checkbox, styles.checkboxSize({ size })]}
-			>
+			<AriakitVisuallyHidden>
 				<AriakitCheckbox
-					store={checkbox}
-					className={styles.input}
-					onChange={onChange}
-					{...rest}
+					ref={ref}
+					clickOnEnter
+					className={styles.checkboxSize({ size })}
+					onChange={(event) => {
+						onChange?.(event)
+					}}
 				/>
-			</Box>
+			</AriakitVisuallyHidden>
+			{checked && (
+				<Box data-checked={checked} cssClass={styles.checkMark}>
+					<IconSolidCheck
+						color={vars.theme.interactive.fill.secondary.disabled}
+					/>
+				</Box>
+			)}
 			{label && (
 				<Text size={size === 'large' ? 'medium' : 'small'}>
 					{label}
