@@ -1,11 +1,13 @@
 import React, { useState } from 'react'
 import {
 	Box,
+	Checkbox,
 	Text,
 	IconSolidCheveronDown,
 	IconSolidCheveronRight,
 	Input,
 	Form,
+	Badge,
 } from '@highlight-run/ui/components'
 import { vars } from '@highlight-run/ui/vars'
 import * as styles from './MetricsFilterPanel.css'
@@ -223,18 +225,12 @@ export const MetricsFilterPanel: React.FC<MetricsFilterPanelProps> = ({
 			backgroundColor="white"
 			style={{ width: '250px' }}
 		>
-			<Box py="4" px="4" borderBottom="dividerWeak">
-				<Text size="small" weight="medium" color="moderate">
-					Configuration
-				</Text>
-			</Box>
-
 			{categories.map((category) => {
 				const isExpanded = expandedCategories[category.id] || false
 				const filteredOptions = getFilteredOptions(category)
 
 				return (
-					<Box key={category.id}>
+					<Box key={category.id} px="4" py="4">
 						<Box
 							display="flex"
 							alignItems="center"
@@ -253,8 +249,8 @@ export const MetricsFilterPanel: React.FC<MetricsFilterPanelProps> = ({
 									: undefined
 							}
 						>
-							<Box display="flex" alignItems="center">
-								{category.expandable && (
+							{category.expandable ? (
+								<Box display="flex" alignItems="center">
 									<Box
 										mr="2"
 										display="flex"
@@ -272,15 +268,15 @@ export const MetricsFilterPanel: React.FC<MetricsFilterPanelProps> = ({
 											/>
 										)}
 									</Box>
-								)}
-								<Text
-									weight="medium"
-									size="small"
-									color="default"
-								>
-									{category.label}
-								</Text>
-							</Box>
+									<Text
+										weight="medium"
+										size="small"
+										color="default"
+									>
+										{category.label}
+									</Text>
+								</Box>
+							) : null}
 							{category.id === 'metric_type' && (
 								<Text size="small" weight="medium" color="n8">
 									{expandedCategories[category.id]
@@ -345,7 +341,7 @@ export const MetricsFilterPanel: React.FC<MetricsFilterPanelProps> = ({
 													alignItems="center"
 													mr="2"
 												>
-													<input
+													<Checkbox
 														type="checkbox"
 														id={`${category.id}-${option.id}`}
 														checked={option.checked}
@@ -363,31 +359,9 @@ export const MetricsFilterPanel: React.FC<MetricsFilterPanelProps> = ({
 															styles.customCheckbox
 														}
 													/>
-													<label
-														htmlFor={`${category.id}-${option.id}`}
-														style={{
-															cursor: 'pointer',
-														}}
-													>
-														<Text
-															size="small"
-															color="default"
-															cssClass={{
-																overflow:
-																	'hidden',
-																textOverflow:
-																	'ellipsis',
-																whiteSpace:
-																	'nowrap',
-																maxWidth:
-																	'160px',
-																display:
-																	'block',
-															}}
-														>
-															{option.label}
-														</Text>
-													</label>
+													<Badge
+														label={option.label}
+													/>
 												</Box>
 												<Box ml="auto" pr="2">
 													<Text
