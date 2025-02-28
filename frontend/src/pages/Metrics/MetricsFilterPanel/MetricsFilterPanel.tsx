@@ -345,6 +345,7 @@ export const MetricsFilterPanel: React.FC<MetricsFilterPanelProps> = ({
 														type="checkbox"
 														id={`${category.id}-${option.id}`}
 														checked={option.checked}
+														size="medium"
 														onChange={(
 															e: React.ChangeEvent<HTMLInputElement>,
 														) =>
