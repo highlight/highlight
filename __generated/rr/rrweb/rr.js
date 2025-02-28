@@ -740,6 +740,7 @@ function serializeNode(n2, options) {
     maskInputFn,
     dataURLOptions = {},
     inlineImages,
+    inlineVideos,
     recordCanvas,
     keepIframeSrcFn,
     newlyAddedElement = false,
@@ -780,6 +781,7 @@ function serializeNode(n2, options) {
         maskTextClass,
         dataURLOptions,
         inlineImages,
+        inlineVideos,
         recordCanvas,
         keepIframeSrcFn,
         newlyAddedElement,
@@ -878,6 +880,7 @@ function serializeElementNode(n2, options) {
     maskTextClass,
     dataURLOptions = {},
     inlineImages,
+    inlineVideos,
     recordCanvas,
     keepIframeSrcFn,
     newlyAddedElement = false,
@@ -1048,27 +1051,37 @@ function serializeElementNode(n2, options) {
     if (customElements.get(tagName)) isCustomElement = true;
   } catch (e2) {
   }
-  if (inlineImages && tagName === "video") {
+  const saveVideoAsCanvas = (video) => {
+    const { width, height } = video.getBoundingClientRect();
+    attributes = {
+      width,
+      height,
+      rr_width: `${width}px`,
+      rr_height: `${height}px`,
+      rr_inlined_video: true,
+      class: attributes.class,
+      style: attributes.style
+    };
+    tagName = "canvas";
+    const blankCanvas = doc.createElement("canvas");
+    blankCanvas.width = n2.width;
+    blankCanvas.height = n2.height;
+    attributes.rr_dataURL = blankCanvas.toDataURL(
+      dataURLOptions.type,
+      dataURLOptions.quality
+    );
+  };
+  if (tagName === "video") {
     const video = n2;
-    if (video.src === "" || video.src.indexOf("blob:") !== -1) {
-      const { width, height } = n2.getBoundingClientRect();
-      attributes = {
-        width,
-        height,
-        rr_width: `${width}px`,
-        rr_height: `${height}px`,
-        rr_inlined_video: true,
-        class: attributes.class,
-        style: attributes.style
-      };
-      tagName = "canvas";
-      const blankCanvas = doc.createElement("canvas");
-      blankCanvas.width = n2.width;
-      blankCanvas.height = n2.height;
-      attributes.rr_dataURL = blankCanvas.toDataURL(
-        dataURLOptions.type,
-        dataURLOptions.quality
-      );
+    if (inlineImages) {
+      if (video.src === "" || video.src.indexOf("blob:") !== -1) {
+        saveVideoAsCanvas(video);
+      }
+    }
+    if (inlineVideos) {
+      if (video.src !== "" && video.src.indexOf("blob:") === -1) {
+        saveVideoAsCanvas(video);
+      }
     }
   }
   return {
@@ -1138,6 +1151,7 @@ function serializeNodeWithId(n2, options) {
     slimDOMOptions,
     dataURLOptions = {},
     inlineImages = false,
+    inlineVideos = false,
     recordCanvas = false,
     onSerialize,
     onIframeLoad,
@@ -1172,6 +1186,7 @@ function serializeNodeWithId(n2, options) {
     maskInputFn,
     dataURLOptions,
     inlineImages,
+    inlineVideos,
     recordCanvas,
     keepIframeSrcFn,
     newlyAddedElement,
@@ -1235,6 +1250,7 @@ function serializeNodeWithId(n2, options) {
       slimDOMOptions,
       dataURLOptions,
       inlineImages,
+      inlineVideos,
       recordCanvas,
       preserveWhiteSpace,
       onSerialize,
@@ -1291,6 +1307,7 @@ function serializeNodeWithId(n2, options) {
             slimDOMOptions,
             dataURLOptions,
             inlineImages,
+            inlineVideos,
             recordCanvas,
             preserveWhiteSpace,
             onSerialize,
@@ -1333,6 +1350,7 @@ function serializeNodeWithId(n2, options) {
             slimDOMOptions,
             dataURLOptions,
             inlineImages,
+            inlineVideos,
             recordCanvas,
             preserveWhiteSpace,
             onSerialize,
@@ -1365,6 +1383,7 @@ function snapshot(n2, options) {
     maskTextSelector = null,
     inlineStylesheet = true,
     inlineImages = false,
+    inlineVideos = false,
     recordCanvas = false,
     maskAllInputs = false,
     maskTextFn,
@@ -1431,6 +1450,7 @@ function snapshot(n2, options) {
     slimDOMOptions,
     dataURLOptions,
     inlineImages,
+    inlineVideos,
     recordCanvas,
     preserveWhiteSpace,
     onSerialize,
@@ -1941,7 +1961,31 @@ function cloneNode$1(obj, parent) {
   }
   return cloned;
 }
+function sourceOffset$1(inputCSS, position) {
+  if (position && typeof position.offset !== "undefined") {
+    return position.offset;
+  }
+  let column = 1;
+  let line = 1;
+  let offset = 0;
+  for (let i2 = 0; i2 < inputCSS.length; i2++) {
+    if (line === position.line && column === position.column) {
+      offset = i2;
+      break;
+    }
+    if (inputCSS[i2] === "\n") {
+      column = 1;
+      line += 1;
+    } else {
+      column += 1;
+    }
+  }
+  return offset;
+}
 var Node$4$1 = class Node2 {
+  get proxyOf() {
+    return this;
+  }
   constructor(defaults = {}) {
     this.raws = {};
     this[isClean$2$1] = false;
@@ -2060,23 +2104,29 @@ var Node$4$1 = class Node2 {
     let index2 = this.parent.index(this);
     return this.parent.nodes[index2 + 1];
   }
-  positionBy(opts, stringRepresentation) {
+  positionBy(opts) {
     let pos = this.source.start;
     if (opts.index) {
-      pos = this.positionInside(opts.index, stringRepresentation);
+      pos = this.positionInside(opts.index);
     } else if (opts.word) {
-      stringRepresentation = this.toString();
+      let inputString = "document" in this.source.input ? this.source.input.document : this.source.input.css;
+      let stringRepresentation = inputString.slice(
+        sourceOffset$1(inputString, this.source.start),
+        sourceOffset$1(inputString, this.source.end)
+      );
       let index2 = stringRepresentation.indexOf(opts.word);
-      if (index2 !== -1) pos = this.positionInside(index2, stringRepresentation);
+      if (index2 !== -1) pos = this.positionInside(index2);
     }
     return pos;
   }
-  positionInside(index2, stringRepresentation) {
-    let string = stringRepresentation || this.toString();
+  positionInside(index2) {
     let column = this.source.start.column;
     let line = this.source.start.line;
-    for (let i2 = 0; i2 < index2; i2++) {
-      if (string[i2] === "\n") {
+    let inputString = "document" in this.source.input ? this.source.input.document : this.source.input.css;
+    let offset = sourceOffset$1(inputString, this.source.start);
+    let end = offset + index2;
+    for (let i2 = offset; i2 < end; i2++) {
+      if (inputString[i2] === "\n") {
         column = 1;
         line += 1;
       } else {
@@ -2103,13 +2153,16 @@ var Node$4$1 = class Node2 {
       line: start.line
     };
     if (opts.word) {
-      let stringRepresentation = this.toString();
+      let inputString = "document" in this.source.input ? this.source.input.document : this.source.input.css;
+      let stringRepresentation = inputString.slice(
+        sourceOffset$1(inputString, this.source.start),
+        sourceOffset$1(inputString, this.source.end)
+      );
       let index2 = stringRepresentation.indexOf(opts.word);
       if (index2 !== -1) {
-        start = this.positionInside(index2, stringRepresentation);
+        start = this.positionInside(index2);
         end = this.positionInside(
-          index2 + opts.word.length,
-          stringRepresentation
+          index2 + opts.word.length
         );
       }
     } else {
@@ -2236,9 +2289,6 @@ var Node$4$1 = class Node2 {
     for (let i2 in opts) data[i2] = opts[i2];
     return result2.warn(text, data);
   }
-  get proxyOf() {
-    return this;
-  }
 };
 var node$1 = Node$4$1;
 Node$4$1.default = Node$4$1;
@@ -2253,15 +2303,15 @@ var comment$1 = Comment$4$1;
 Comment$4$1.default = Comment$4$1;
 var Node$2$1 = node$1;
 var Declaration$4$1 = class Declaration extends Node$2$1 {
+  get variable() {
+    return this.prop.startsWith("--") || this.prop[0] === "$";
+  }
   constructor(defaults) {
     if (defaults && typeof defaults.value !== "undefined" && typeof defaults.value !== "string") {
       defaults = { ...defaults, value: String(defaults.value) };
     }
     super(defaults);
     this.type = "decl";
-  }
-  get variable() {
-    return this.prop.startsWith("--") || this.prop[0] === "$";
   }
 };
 var declaration$1 = Declaration$4$1;
@@ -2290,6 +2340,14 @@ function markTreeDirty$1(node2) {
   }
 }
 var Container$7$1 = class Container extends Node$1$1 {
+  get first() {
+    if (!this.proxyOf.nodes) return void 0;
+    return this.proxyOf.nodes[0];
+  }
+  get last() {
+    if (!this.proxyOf.nodes) return void 0;
+    return this.proxyOf.nodes[this.proxyOf.nodes.length - 1];
+  }
   append(...children) {
     for (let child of children) {
       let nodes = this.normalize(child, this.last);
@@ -2602,14 +2660,6 @@ var Container$7$1 = class Container extends Node$1$1 {
       }
     });
   }
-  get first() {
-    if (!this.proxyOf.nodes) return void 0;
-    return this.proxyOf.nodes[0];
-  }
-  get last() {
-    if (!this.proxyOf.nodes) return void 0;
-    return this.proxyOf.nodes[this.proxyOf.nodes.length - 1];
-  }
 };
 Container$7$1.registerParse = (dependant) => {
   parse$4$1 = dependant;
@@ -2686,25 +2736,15 @@ Document$3$1.registerProcessor = (dependant) => {
 var document$1$1 = Document$3$1;
 Document$3$1.default = Document$3$1;
 var urlAlphabet$1 = "useandom-26T198340PX75pxJACKVERYMINDBUSHWOLF_GQZbfghjklqvwyzrict";
-var customAlphabet$1 = (alphabet, defaultSize = 21) => {
-  return (size = defaultSize) => {
-    let id = "";
-    let i2 = size;
-    while (i2--) {
-      id += alphabet[Math.random() * alphabet.length | 0];
-    }
-    return id;
-  };
-};
 var nanoid$1$1 = (size = 21) => {
   let id = "";
-  let i2 = size;
+  let i2 = size | 0;
   while (i2--) {
     id += urlAlphabet$1[Math.random() * 64 | 0];
   }
   return id;
 };
-var nonSecure$1 = { nanoid: nanoid$1$1, customAlphabet: customAlphabet$1 };
+var nonSecure$1 = { nanoid: nanoid$1$1 };
 var { existsSync: existsSync$1, readFileSync: readFileSync$1 } = require$$2$1;
 var { dirname: dirname$1$1, join: join$1 } = require$$2$1;
 var { SourceMapConsumer: SourceMapConsumer$2$1, SourceMapGenerator: SourceMapGenerator$2$1 } = require$$2$1;
@@ -2829,6 +2869,9 @@ var fromOffsetCache$1 = Symbol("fromOffsetCache");
 var sourceMapAvailable$1$1 = Boolean(SourceMapConsumer$1$1 && SourceMapGenerator$1$1);
 var pathAvailable$1$1 = Boolean(resolve$1$1 && isAbsolute$1);
 var Input$4$1 = class Input {
+  get from() {
+    return this.file || this.id;
+  }
   constructor(css, opts = {}) {
     if (css === null || typeof css === "undefined" || typeof css === "object" && !css.toString) {
       throw new Error(`PostCSS received ${css} instead of CSS string`);
@@ -2840,6 +2883,8 @@ var Input$4$1 = class Input {
     } else {
       this.hasBOM = false;
     }
+    this.document = this.css;
+    if (opts.document) this.document = opts.document.toString();
     if (opts.from) {
       if (!pathAvailable$1$1 || /^\w+:\/\//.test(opts.from) || isAbsolute$1(opts.from)) {
         this.file = opts.from;
@@ -3010,9 +3055,6 @@ var Input$4$1 = class Input {
     }
     return json;
   }
-  get from() {
-    return this.file || this.id;
-  }
 };
 var input$1 = Input$4$1;
 Input$4$1.default = Input$4$1;
@@ -3118,11 +3160,6 @@ list$2$1.default = list$2$1;
 var Container$3$1 = container$1;
 var list$1$1 = list_1$1;
 var Rule$3$1 = class Rule extends Container$3$1 {
-  constructor(defaults) {
-    super(defaults);
-    this.type = "rule";
-    if (!this.nodes) this.nodes = [];
-  }
   get selectors() {
     return list$1$1.comma(this.selector);
   }
@@ -3130,6 +3167,11 @@ var Rule$3$1 = class Rule extends Container$3$1 {
     let match = this.selector ? this.selector.match(/,\s*/) : null;
     let sep2 = match ? match[0] : "," + this.raw("between", "beforeOpen");
     this.selector = values.join(sep2);
+  }
+  constructor(defaults) {
+    super(defaults);
+    this.type = "rule";
+    if (!this.nodes) this.nodes = [];
   }
 };
 var rule$1 = Rule$3$1;
@@ -4002,6 +4044,8 @@ var Parser$1$1 = class Parser {
       if (prev && prev.type === "rule" && !prev.raws.ownSemicolon) {
         prev.raws.ownSemicolon = this.spaces;
         this.spaces = "";
+        prev.source.end = this.getPosition(token[2]);
+        prev.source.end.offset += prev.raws.ownSemicolon.length;
       }
     }
   }
@@ -4213,7 +4257,7 @@ var Parser$1$1 = class Parser {
   }
   unknownWord(tokens) {
     throw this.input.error(
-      "Unknown word",
+      "Unknown word " + tokens[0][1],
       { offset: tokens[0][2] },
       { offset: tokens[0][2] + tokens[0][1].length }
     );
@@ -4285,6 +4329,9 @@ var warning$1 = Warning$2$1;
 Warning$2$1.default = Warning$2$1;
 var Warning$1$1 = warning$1;
 var Result$3$1 = class Result {
+  get content() {
+    return this.css;
+  }
   constructor(processor2, root2, opts) {
     this.processor = processor2;
     this.messages = [];
@@ -4308,9 +4355,6 @@ var Result$3$1 = class Result {
   }
   warnings() {
     return this.messages.filter((i2) => i2.type === "warning");
-  }
-  get content() {
-    return this.css;
   }
 };
 var result$1 = Result$3$1;
@@ -4416,6 +4460,30 @@ function cleanMarks$1(node2) {
 }
 var postcss$2$1 = {};
 var LazyResult$2$1 = class LazyResult {
+  get content() {
+    return this.stringify().content;
+  }
+  get css() {
+    return this.stringify().css;
+  }
+  get map() {
+    return this.stringify().map;
+  }
+  get messages() {
+    return this.sync().messages;
+  }
+  get opts() {
+    return this.result.opts;
+  }
+  get processor() {
+    return this.result.processor;
+  }
+  get root() {
+    return this.sync().root;
+  }
+  get [Symbol.toStringTag]() {
+    return "LazyResult";
+  }
   constructor(processor2, css, opts) {
     this.stringified = false;
     this.processed = false;
@@ -4758,30 +4826,6 @@ var LazyResult$2$1 = class LazyResult {
   warnings() {
     return this.sync().warnings();
   }
-  get content() {
-    return this.stringify().content;
-  }
-  get css() {
-    return this.stringify().css;
-  }
-  get map() {
-    return this.stringify().map;
-  }
-  get messages() {
-    return this.sync().messages;
-  }
-  get opts() {
-    return this.result.opts;
-  }
-  get processor() {
-    return this.result.processor;
-  }
-  get root() {
-    return this.sync().root;
-  }
-  get [Symbol.toStringTag]() {
-    return "LazyResult";
-  }
 };
 LazyResult$2$1.registerPostcss = (dependant) => {
   postcss$2$1 = dependant;
@@ -4796,6 +4840,45 @@ var Result$1$1 = result$1;
 var stringify$1$1 = stringify_1$1;
 var warnOnce2$1 = warnOnce$2$1;
 var NoWorkResult$1$1 = class NoWorkResult {
+  get content() {
+    return this.result.css;
+  }
+  get css() {
+    return this.result.css;
+  }
+  get map() {
+    return this.result.map;
+  }
+  get messages() {
+    return [];
+  }
+  get opts() {
+    return this.result.opts;
+  }
+  get processor() {
+    return this.result.processor;
+  }
+  get root() {
+    if (this._root) {
+      return this._root;
+    }
+    let root2;
+    let parser2 = parse$1$1;
+    try {
+      root2 = parser2(this._css, this._opts);
+    } catch (error) {
+      this.error = error;
+    }
+    if (this.error) {
+      throw this.error;
+    } else {
+      this._root = root2;
+      return root2;
+    }
+  }
+  get [Symbol.toStringTag]() {
+    return "NoWorkResult";
+  }
   constructor(processor2, css, opts) {
     css = css.toString();
     this.stringified = false;
@@ -4857,45 +4940,6 @@ var NoWorkResult$1$1 = class NoWorkResult {
   warnings() {
     return [];
   }
-  get content() {
-    return this.result.css;
-  }
-  get css() {
-    return this.result.css;
-  }
-  get map() {
-    return this.result.map;
-  }
-  get messages() {
-    return [];
-  }
-  get opts() {
-    return this.result.opts;
-  }
-  get processor() {
-    return this.result.processor;
-  }
-  get root() {
-    if (this._root) {
-      return this._root;
-    }
-    let root2;
-    let parser2 = parse$1$1;
-    try {
-      root2 = parser2(this._css, this._opts);
-    } catch (error) {
-      this.error = error;
-    }
-    if (this.error) {
-      throw this.error;
-    } else {
-      this._root = root2;
-      return root2;
-    }
-  }
-  get [Symbol.toStringTag]() {
-    return "NoWorkResult";
-  }
 };
 var noWorkResult$1 = NoWorkResult$1$1;
 NoWorkResult$1$1.default = NoWorkResult$1$1;
@@ -4905,7 +4949,7 @@ var NoWorkResult2$1 = noWorkResult$1;
 var Root$1$1 = root$1;
 var Processor$1$1 = class Processor {
   constructor(plugins = []) {
-    this.version = "8.4.47";
+    this.version = "8.5.3";
     this.plugins = this.normalize(plugins);
   }
   normalize(plugins) {
@@ -5956,7 +6000,31 @@ function cloneNode(obj, parent) {
   }
   return cloned;
 }
+function sourceOffset(inputCSS, position) {
+  if (position && typeof position.offset !== "undefined") {
+    return position.offset;
+  }
+  let column = 1;
+  let line = 1;
+  let offset = 0;
+  for (let i2 = 0; i2 < inputCSS.length; i2++) {
+    if (line === position.line && column === position.column) {
+      offset = i2;
+      break;
+    }
+    if (inputCSS[i2] === "\n") {
+      column = 1;
+      line += 1;
+    } else {
+      column += 1;
+    }
+  }
+  return offset;
+}
 var Node$4 = class Node3 {
+  get proxyOf() {
+    return this;
+  }
   constructor(defaults = {}) {
     this.raws = {};
     this[isClean$2] = false;
@@ -6075,23 +6143,29 @@ var Node$4 = class Node3 {
     let index2 = this.parent.index(this);
     return this.parent.nodes[index2 + 1];
   }
-  positionBy(opts, stringRepresentation) {
+  positionBy(opts) {
     let pos = this.source.start;
     if (opts.index) {
-      pos = this.positionInside(opts.index, stringRepresentation);
+      pos = this.positionInside(opts.index);
     } else if (opts.word) {
-      stringRepresentation = this.toString();
+      let inputString = "document" in this.source.input ? this.source.input.document : this.source.input.css;
+      let stringRepresentation = inputString.slice(
+        sourceOffset(inputString, this.source.start),
+        sourceOffset(inputString, this.source.end)
+      );
       let index2 = stringRepresentation.indexOf(opts.word);
-      if (index2 !== -1) pos = this.positionInside(index2, stringRepresentation);
+      if (index2 !== -1) pos = this.positionInside(index2);
     }
     return pos;
   }
-  positionInside(index2, stringRepresentation) {
-    let string = stringRepresentation || this.toString();
+  positionInside(index2) {
     let column = this.source.start.column;
     let line = this.source.start.line;
-    for (let i2 = 0; i2 < index2; i2++) {
-      if (string[i2] === "\n") {
+    let inputString = "document" in this.source.input ? this.source.input.document : this.source.input.css;
+    let offset = sourceOffset(inputString, this.source.start);
+    let end = offset + index2;
+    for (let i2 = offset; i2 < end; i2++) {
+      if (inputString[i2] === "\n") {
         column = 1;
         line += 1;
       } else {
@@ -6118,13 +6192,16 @@ var Node$4 = class Node3 {
       line: start.line
     };
     if (opts.word) {
-      let stringRepresentation = this.toString();
+      let inputString = "document" in this.source.input ? this.source.input.document : this.source.input.css;
+      let stringRepresentation = inputString.slice(
+        sourceOffset(inputString, this.source.start),
+        sourceOffset(inputString, this.source.end)
+      );
       let index2 = stringRepresentation.indexOf(opts.word);
       if (index2 !== -1) {
-        start = this.positionInside(index2, stringRepresentation);
+        start = this.positionInside(index2);
         end = this.positionInside(
-          index2 + opts.word.length,
-          stringRepresentation
+          index2 + opts.word.length
         );
       }
     } else {
@@ -6251,9 +6328,6 @@ var Node$4 = class Node3 {
     for (let i2 in opts) data[i2] = opts[i2];
     return result2.warn(text, data);
   }
-  get proxyOf() {
-    return this;
-  }
 };
 var node = Node$4;
 Node$4.default = Node$4;
@@ -6268,15 +6342,15 @@ var comment = Comment$4;
 Comment$4.default = Comment$4;
 var Node$2 = node;
 var Declaration$4 = class Declaration2 extends Node$2 {
+  get variable() {
+    return this.prop.startsWith("--") || this.prop[0] === "$";
+  }
   constructor(defaults) {
     if (defaults && typeof defaults.value !== "undefined" && typeof defaults.value !== "string") {
       defaults = { ...defaults, value: String(defaults.value) };
     }
     super(defaults);
     this.type = "decl";
-  }
-  get variable() {
-    return this.prop.startsWith("--") || this.prop[0] === "$";
   }
 };
 var declaration = Declaration$4;
@@ -6305,6 +6379,14 @@ function markTreeDirty(node2) {
   }
 }
 var Container$7 = class Container2 extends Node$1 {
+  get first() {
+    if (!this.proxyOf.nodes) return void 0;
+    return this.proxyOf.nodes[0];
+  }
+  get last() {
+    if (!this.proxyOf.nodes) return void 0;
+    return this.proxyOf.nodes[this.proxyOf.nodes.length - 1];
+  }
   append(...children) {
     for (let child of children) {
       let nodes = this.normalize(child, this.last);
@@ -6617,14 +6699,6 @@ var Container$7 = class Container2 extends Node$1 {
       }
     });
   }
-  get first() {
-    if (!this.proxyOf.nodes) return void 0;
-    return this.proxyOf.nodes[0];
-  }
-  get last() {
-    if (!this.proxyOf.nodes) return void 0;
-    return this.proxyOf.nodes[this.proxyOf.nodes.length - 1];
-  }
 };
 Container$7.registerParse = (dependant) => {
   parse$4 = dependant;
@@ -6701,25 +6775,15 @@ Document$3.registerProcessor = (dependant) => {
 var document$1 = Document$3;
 Document$3.default = Document$3;
 var urlAlphabet = "useandom-26T198340PX75pxJACKVERYMINDBUSHWOLF_GQZbfghjklqvwyzrict";
-var customAlphabet = (alphabet, defaultSize = 21) => {
-  return (size = defaultSize) => {
-    let id = "";
-    let i2 = size;
-    while (i2--) {
-      id += alphabet[Math.random() * alphabet.length | 0];
-    }
-    return id;
-  };
-};
 var nanoid$1 = (size = 21) => {
   let id = "";
-  let i2 = size;
+  let i2 = size | 0;
   while (i2--) {
     id += urlAlphabet[Math.random() * 64 | 0];
   }
   return id;
 };
-var nonSecure = { nanoid: nanoid$1, customAlphabet };
+var nonSecure = { nanoid: nanoid$1 };
 var { existsSync, readFileSync } = require$$2;
 var { dirname: dirname$1, join } = require$$2;
 var { SourceMapConsumer: SourceMapConsumer$2, SourceMapGenerator: SourceMapGenerator$2 } = require$$2;
@@ -6844,6 +6908,9 @@ var fromOffsetCache = Symbol("fromOffsetCache");
 var sourceMapAvailable$1 = Boolean(SourceMapConsumer$1 && SourceMapGenerator$1);
 var pathAvailable$1 = Boolean(resolve$1 && isAbsolute);
 var Input$4 = class Input2 {
+  get from() {
+    return this.file || this.id;
+  }
   constructor(css, opts = {}) {
     if (css === null || typeof css === "undefined" || typeof css === "object" && !css.toString) {
       throw new Error(`PostCSS received ${css} instead of CSS string`);
@@ -6855,6 +6922,8 @@ var Input$4 = class Input2 {
     } else {
       this.hasBOM = false;
     }
+    this.document = this.css;
+    if (opts.document) this.document = opts.document.toString();
     if (opts.from) {
       if (!pathAvailable$1 || /^\w+:\/\//.test(opts.from) || isAbsolute(opts.from)) {
         this.file = opts.from;
@@ -7025,9 +7094,6 @@ var Input$4 = class Input2 {
     }
     return json;
   }
-  get from() {
-    return this.file || this.id;
-  }
 };
 var input = Input$4;
 Input$4.default = Input$4;
@@ -7133,11 +7199,6 @@ list$2.default = list$2;
 var Container$3 = container;
 var list$1 = list_1;
 var Rule$3 = class Rule2 extends Container$3 {
-  constructor(defaults) {
-    super(defaults);
-    this.type = "rule";
-    if (!this.nodes) this.nodes = [];
-  }
   get selectors() {
     return list$1.comma(this.selector);
   }
@@ -7145,6 +7206,11 @@ var Rule$3 = class Rule2 extends Container$3 {
     let match = this.selector ? this.selector.match(/,\s*/) : null;
     let sep2 = match ? match[0] : "," + this.raw("between", "beforeOpen");
     this.selector = values.join(sep2);
+  }
+  constructor(defaults) {
+    super(defaults);
+    this.type = "rule";
+    if (!this.nodes) this.nodes = [];
   }
 };
 var rule = Rule$3;
@@ -8017,6 +8083,8 @@ var Parser$1 = class Parser2 {
       if (prev && prev.type === "rule" && !prev.raws.ownSemicolon) {
         prev.raws.ownSemicolon = this.spaces;
         this.spaces = "";
+        prev.source.end = this.getPosition(token[2]);
+        prev.source.end.offset += prev.raws.ownSemicolon.length;
       }
     }
   }
@@ -8228,7 +8296,7 @@ var Parser$1 = class Parser2 {
   }
   unknownWord(tokens) {
     throw this.input.error(
-      "Unknown word",
+      "Unknown word " + tokens[0][1],
       { offset: tokens[0][2] },
       { offset: tokens[0][2] + tokens[0][1].length }
     );
@@ -8300,6 +8368,9 @@ var warning = Warning$2;
 Warning$2.default = Warning$2;
 var Warning$1 = warning;
 var Result$3 = class Result2 {
+  get content() {
+    return this.css;
+  }
   constructor(processor2, root2, opts) {
     this.processor = processor2;
     this.messages = [];
@@ -8323,9 +8394,6 @@ var Result$3 = class Result2 {
   }
   warnings() {
     return this.messages.filter((i2) => i2.type === "warning");
-  }
-  get content() {
-    return this.css;
   }
 };
 var result = Result$3;
@@ -8431,6 +8499,30 @@ function cleanMarks(node2) {
 }
 var postcss$2 = {};
 var LazyResult$2 = class LazyResult2 {
+  get content() {
+    return this.stringify().content;
+  }
+  get css() {
+    return this.stringify().css;
+  }
+  get map() {
+    return this.stringify().map;
+  }
+  get messages() {
+    return this.sync().messages;
+  }
+  get opts() {
+    return this.result.opts;
+  }
+  get processor() {
+    return this.result.processor;
+  }
+  get root() {
+    return this.sync().root;
+  }
+  get [Symbol.toStringTag]() {
+    return "LazyResult";
+  }
   constructor(processor2, css, opts) {
     this.stringified = false;
     this.processed = false;
@@ -8773,30 +8865,6 @@ var LazyResult$2 = class LazyResult2 {
   warnings() {
     return this.sync().warnings();
   }
-  get content() {
-    return this.stringify().content;
-  }
-  get css() {
-    return this.stringify().css;
-  }
-  get map() {
-    return this.stringify().map;
-  }
-  get messages() {
-    return this.sync().messages;
-  }
-  get opts() {
-    return this.result.opts;
-  }
-  get processor() {
-    return this.result.processor;
-  }
-  get root() {
-    return this.sync().root;
-  }
-  get [Symbol.toStringTag]() {
-    return "LazyResult";
-  }
 };
 LazyResult$2.registerPostcss = (dependant) => {
   postcss$2 = dependant;
@@ -8811,6 +8879,45 @@ var Result$1 = result;
 var stringify$1 = stringify_1;
 var warnOnce22 = warnOnce$2;
 var NoWorkResult$1 = class NoWorkResult2 {
+  get content() {
+    return this.result.css;
+  }
+  get css() {
+    return this.result.css;
+  }
+  get map() {
+    return this.result.map;
+  }
+  get messages() {
+    return [];
+  }
+  get opts() {
+    return this.result.opts;
+  }
+  get processor() {
+    return this.result.processor;
+  }
+  get root() {
+    if (this._root) {
+      return this._root;
+    }
+    let root2;
+    let parser2 = parse$1;
+    try {
+      root2 = parser2(this._css, this._opts);
+    } catch (error) {
+      this.error = error;
+    }
+    if (this.error) {
+      throw this.error;
+    } else {
+      this._root = root2;
+      return root2;
+    }
+  }
+  get [Symbol.toStringTag]() {
+    return "NoWorkResult";
+  }
   constructor(processor2, css, opts) {
     css = css.toString();
     this.stringified = false;
@@ -8872,45 +8979,6 @@ var NoWorkResult$1 = class NoWorkResult2 {
   warnings() {
     return [];
   }
-  get content() {
-    return this.result.css;
-  }
-  get css() {
-    return this.result.css;
-  }
-  get map() {
-    return this.result.map;
-  }
-  get messages() {
-    return [];
-  }
-  get opts() {
-    return this.result.opts;
-  }
-  get processor() {
-    return this.result.processor;
-  }
-  get root() {
-    if (this._root) {
-      return this._root;
-    }
-    let root2;
-    let parser2 = parse$1;
-    try {
-      root2 = parser2(this._css, this._opts);
-    } catch (error) {
-      this.error = error;
-    }
-    if (this.error) {
-      throw this.error;
-    } else {
-      this._root = root2;
-      return root2;
-    }
-  }
-  get [Symbol.toStringTag]() {
-    return "NoWorkResult";
-  }
 };
 var noWorkResult = NoWorkResult$1;
 NoWorkResult$1.default = NoWorkResult$1;
@@ -8920,7 +8988,7 @@ var NoWorkResult22 = noWorkResult;
 var Root$1 = root;
 var Processor$1 = class Processor2 {
   constructor(plugins = []) {
-    this.version = "8.4.47";
+    this.version = "8.5.3";
     this.plugins = this.normalize(plugins);
   }
   normalize(plugins) {
@@ -11081,6 +11149,7 @@ var MutationBuffer = class {
     __publicField(this, "keepIframeSrcFn");
     __publicField(this, "recordCanvas");
     __publicField(this, "inlineImages");
+    __publicField(this, "inlineVideos");
     __publicField(this, "privacySetting");
     __publicField(this, "slimDOMOptions");
     __publicField(this, "dataURLOptions");
@@ -11139,6 +11208,7 @@ var MutationBuffer = class {
           dataURLOptions: this.dataURLOptions,
           recordCanvas: this.recordCanvas,
           inlineImages: this.inlineImages,
+          inlineVideos: this.inlineVideos,
           privacySetting: this.privacySetting,
           onSerialize: (currentN) => {
             if (isSerializedIframe(currentN, this.mirror)) {
@@ -11500,6 +11570,7 @@ var MutationBuffer = class {
       "keepIframeSrcFn",
       "recordCanvas",
       "inlineImages",
+      "inlineVideos",
       "privacySetting",
       "slimDOMOptions",
       "dataURLOptions",
@@ -13352,7 +13423,7 @@ function initCanvasWebGLMutationObserver(cb, win, blockClass, blockSelector) {
     handlers.forEach((h) => h());
   };
 }
-var encodedJs = "KGZ1bmN0aW9uKCkgewogICJ1c2Ugc3RyaWN0IjsKICB2YXIgY2hhcnMgPSAiQUJDREVGR0hJSktMTU5PUFFSU1RVVldYWVphYmNkZWZnaGlqa2xtbm9wcXJzdHV2d3h5ejAxMjM0NTY3ODkrLyI7CiAgdmFyIGxvb2t1cCA9IHR5cGVvZiBVaW50OEFycmF5ID09PSAidW5kZWZpbmVkIiA/IFtdIDogbmV3IFVpbnQ4QXJyYXkoMjU2KTsKICBmb3IgKHZhciBpID0gMDsgaSA8IGNoYXJzLmxlbmd0aDsgaSsrKSB7CiAgICBsb29rdXBbY2hhcnMuY2hhckNvZGVBdChpKV0gPSBpOwogIH0KICB2YXIgZW5jb2RlID0gZnVuY3Rpb24oYXJyYXlidWZmZXIpIHsKICAgIHZhciBieXRlcyA9IG5ldyBVaW50OEFycmF5KGFycmF5YnVmZmVyKSwgaTIsIGxlbiA9IGJ5dGVzLmxlbmd0aCwgYmFzZTY0ID0gIiI7CiAgICBmb3IgKGkyID0gMDsgaTIgPCBsZW47IGkyICs9IDMpIHsKICAgICAgYmFzZTY0ICs9IGNoYXJzW2J5dGVzW2kyXSA+PiAyXTsKICAgICAgYmFzZTY0ICs9IGNoYXJzWyhieXRlc1tpMl0gJiAzKSA8PCA0IHwgYnl0ZXNbaTIgKyAxXSA+PiA0XTsKICAgICAgYmFzZTY0ICs9IGNoYXJzWyhieXRlc1tpMiArIDFdICYgMTUpIDw8IDIgfCBieXRlc1tpMiArIDJdID4+IDZdOwogICAgICBiYXNlNjQgKz0gY2hhcnNbYnl0ZXNbaTIgKyAyXSAmIDYzXTsKICAgIH0KICAgIGlmIChsZW4gJSAzID09PSAyKSB7CiAgICAgIGJhc2U2NCA9IGJhc2U2NC5zdWJzdHJpbmcoMCwgYmFzZTY0Lmxlbmd0aCAtIDEpICsgIj0iOwogICAgfSBlbHNlIGlmIChsZW4gJSAzID09PSAxKSB7CiAgICAgIGJhc2U2NCA9IGJhc2U2NC5zdWJzdHJpbmcoMCwgYmFzZTY0Lmxlbmd0aCAtIDIpICsgIj09IjsKICAgIH0KICAgIHJldHVybiBiYXNlNjQ7CiAgfTsKICBjb25zdCBsYXN0QmxvYk1hcCA9IC8qIEBfX1BVUkVfXyAqLyBuZXcgTWFwKCk7CiAgY29uc3QgdHJhbnNwYXJlbnRCbG9iTWFwID0gLyogQF9fUFVSRV9fICovIG5ldyBNYXAoKTsKICBhc3luYyBmdW5jdGlvbiBnZXRUcmFuc3BhcmVudEJsb2JGb3Iod2lkdGgsIGhlaWdodCwgZGF0YVVSTE9wdGlvbnMpIHsKICAgIGNvbnN0IGlkID0gYCR7d2lkdGh9LSR7aGVpZ2h0fWA7CiAgICBpZiAoIk9mZnNjcmVlbkNhbnZhcyIgaW4gZ2xvYmFsVGhpcykgewogICAgICBpZiAodHJhbnNwYXJlbnRCbG9iTWFwLmhhcyhpZCkpIHJldHVybiB0cmFuc3BhcmVudEJsb2JNYXAuZ2V0KGlkKTsKICAgICAgY29uc3Qgb2Zmc2NyZWVuID0gbmV3IE9mZnNjcmVlbkNhbnZhcyh3aWR0aCwgaGVpZ2h0KTsKICAgICAgb2Zmc2NyZWVuLmdldENvbnRleHQoIjJkIik7CiAgICAgIGNvbnN0IGJsb2IgPSBhd2FpdCBvZmZzY3JlZW4uY29udmVydFRvQmxvYihkYXRhVVJMT3B0aW9ucyk7CiAgICAgIGNvbnN0IGFycmF5QnVmZmVyID0gYXdhaXQgYmxvYi5hcnJheUJ1ZmZlcigpOwogICAgICBjb25zdCBiYXNlNjQgPSBlbmNvZGUoYXJyYXlCdWZmZXIpOwogICAgICB0cmFuc3BhcmVudEJsb2JNYXAuc2V0KGlkLCBiYXNlNjQpOwogICAgICByZXR1cm4gYmFzZTY0OwogICAgfSBlbHNlIHsKICAgICAgcmV0dXJuICIiOwogICAgfQogIH0KICBjb25zdCB3b3JrZXIgPSBzZWxmOwogIGxldCBsb2dEZWJ1ZyA9IGZhbHNlOwogIGNvbnN0IGRlYnVnID0gKC4uLmFyZ3MpID0+IHsKICAgIGlmIChsb2dEZWJ1ZykgewogICAgICBjb25zb2xlLmRlYnVnKC4uLmFyZ3MpOwogICAgfQogIH07CiAgd29ya2VyLm9ubWVzc2FnZSA9IGFzeW5jIGZ1bmN0aW9uKGUpIHsKICAgIGxvZ0RlYnVnID0gISFlLmRhdGEubG9nRGVidWc7CiAgICBpZiAoIk9mZnNjcmVlbkNhbnZhcyIgaW4gZ2xvYmFsVGhpcykgewogICAgICBjb25zdCB7IGlkLCBiaXRtYXAsIHdpZHRoLCBoZWlnaHQsIGR4LCBkeSwgZHcsIGRoLCBkYXRhVVJMT3B0aW9ucyB9ID0gZS5kYXRhOwogICAgICBjb25zdCB0cmFuc3BhcmVudEJhc2U2NCA9IGdldFRyYW5zcGFyZW50QmxvYkZvcigKICAgICAgICB3aWR0aCwKICAgICAgICBoZWlnaHQsCiAgICAgICAgZGF0YVVSTE9wdGlvbnMKICAgICAgKTsKICAgICAgY29uc3Qgb2Zmc2NyZWVuID0gbmV3IE9mZnNjcmVlbkNhbnZhcyh3aWR0aCwgaGVpZ2h0KTsKICAgICAgY29uc3QgY3R4ID0gb2Zmc2NyZWVuLmdldENvbnRleHQoIjJkIik7CiAgICAgIGN0eC5kcmF3SW1hZ2UoYml0bWFwLCAwLCAwLCB3aWR0aCwgaGVpZ2h0KTsKICAgICAgYml0bWFwLmNsb3NlKCk7CiAgICAgIGNvbnN0IGJsb2IgPSBhd2FpdCBvZmZzY3JlZW4uY29udmVydFRvQmxvYihkYXRhVVJMT3B0aW9ucyk7CiAgICAgIGNvbnN0IHR5cGUgPSBibG9iLnR5cGU7CiAgICAgIGNvbnN0IGFycmF5QnVmZmVyID0gYXdhaXQgYmxvYi5hcnJheUJ1ZmZlcigpOwogICAgICBjb25zdCBiYXNlNjQgPSBlbmNvZGUoYXJyYXlCdWZmZXIpOwogICAgICBpZiAoIWxhc3RCbG9iTWFwLmhhcyhpZCkgJiYgYXdhaXQgdHJhbnNwYXJlbnRCYXNlNjQgPT09IGJhc2U2NCkgewogICAgICAgIGRlYnVnKCJbaGlnaGxpZ2h0LXdvcmtlcl0gY2FudmFzIGJpdG1hcCBpcyB0cmFuc3BhcmVudCIsIHsKICAgICAgICAgIGlkLAogICAgICAgICAgYmFzZTY0CiAgICAgICAgfSk7CiAgICAgICAgbGFzdEJsb2JNYXAuc2V0KGlkLCBiYXNlNjQpOwogICAgICAgIHJldHVybiB3b3JrZXIucG9zdE1lc3NhZ2UoeyBpZCwgc3RhdHVzOiAidHJhbnNwYXJlbnQiIH0pOwogICAgICB9CiAgICAgIGlmIChsYXN0QmxvYk1hcC5nZXQoaWQpID09PSBiYXNlNjQpIHsKICAgICAgICBkZWJ1ZygiW2hpZ2hsaWdodC13b3JrZXJdIGNhbnZhcyBiaXRtYXAgaXMgdW5jaGFuZ2VkIiwgewogICAgICAgICAgaWQsCiAgICAgICAgICBiYXNlNjQKICAgICAgICB9KTsKICAgICAgICByZXR1cm4gd29ya2VyLnBvc3RNZXNzYWdlKHsgaWQsIHN0YXR1czogInVuY2hhbmdlZCIgfSk7CiAgICAgIH0KICAgICAgY29uc3QgbXNnID0gewogICAgICAgIGlkLAogICAgICAgIHR5cGUsCiAgICAgICAgYmFzZTY0LAogICAgICAgIHdpZHRoLAogICAgICAgIGhlaWdodCwKICAgICAgICBkeCwKICAgICAgICBkeSwKICAgICAgICBkdywKICAgICAgICBkaAogICAgICB9OwogICAgICBkZWJ1ZygiW2hpZ2hsaWdodC13b3JrZXJdIGNhbnZhcyBiaXRtYXAgcHJvY2Vzc2VkIiwgbXNnKTsKICAgICAgd29ya2VyLnBvc3RNZXNzYWdlKG1zZyk7CiAgICAgIGxhc3RCbG9iTWFwLnNldChpZCwgYmFzZTY0KTsKICAgIH0gZWxzZSB7CiAgICAgIGRlYnVnKCJbaGlnaGxpZ2h0LXdvcmtlcl0gbm8gb2Zmc2NyZWVuY2FudmFzIHN1cHBvcnQiLCB7CiAgICAgICAgaWQ6IGUuZGF0YS5pZAogICAgICB9KTsKICAgICAgcmV0dXJuIHdvcmtlci5wb3N0TWVzc2FnZSh7IGlkOiBlLmRhdGEuaWQsIHN0YXR1czogInVuc3VwcG9ydGVkIiB9KTsKICAgIH0KICB9Owp9KSgpOwovLyMgc291cmNlTWFwcGluZ1VSTD1pbWFnZS1iaXRtYXAtZGF0YS11cmwtd29ya2VyLUJpWEpSZjQ3LmpzLm1hcAo=";
+var encodedJs = "KGZ1bmN0aW9uKCkgewogICJ1c2Ugc3RyaWN0IjsKICB2YXIgY2hhcnMgPSAiQUJDREVGR0hJSktMTU5PUFFSU1RVVldYWVphYmNkZWZnaGlqa2xtbm9wcXJzdHV2d3h5ejAxMjM0NTY3ODkrLyI7CiAgdmFyIGxvb2t1cCA9IHR5cGVvZiBVaW50OEFycmF5ID09PSAidW5kZWZpbmVkIiA/IFtdIDogbmV3IFVpbnQ4QXJyYXkoMjU2KTsKICBmb3IgKHZhciBpID0gMDsgaSA8IGNoYXJzLmxlbmd0aDsgaSsrKSB7CiAgICBsb29rdXBbY2hhcnMuY2hhckNvZGVBdChpKV0gPSBpOwogIH0KICB2YXIgZW5jb2RlID0gZnVuY3Rpb24oYXJyYXlidWZmZXIpIHsKICAgIHZhciBieXRlcyA9IG5ldyBVaW50OEFycmF5KGFycmF5YnVmZmVyKSwgaTIsIGxlbiA9IGJ5dGVzLmxlbmd0aCwgYmFzZTY0ID0gIiI7CiAgICBmb3IgKGkyID0gMDsgaTIgPCBsZW47IGkyICs9IDMpIHsKICAgICAgYmFzZTY0ICs9IGNoYXJzW2J5dGVzW2kyXSA+PiAyXTsKICAgICAgYmFzZTY0ICs9IGNoYXJzWyhieXRlc1tpMl0gJiAzKSA8PCA0IHwgYnl0ZXNbaTIgKyAxXSA+PiA0XTsKICAgICAgYmFzZTY0ICs9IGNoYXJzWyhieXRlc1tpMiArIDFdICYgMTUpIDw8IDIgfCBieXRlc1tpMiArIDJdID4+IDZdOwogICAgICBiYXNlNjQgKz0gY2hhcnNbYnl0ZXNbaTIgKyAyXSAmIDYzXTsKICAgIH0KICAgIGlmIChsZW4gJSAzID09PSAyKSB7CiAgICAgIGJhc2U2NCA9IGJhc2U2NC5zdWJzdHJpbmcoMCwgYmFzZTY0Lmxlbmd0aCAtIDEpICsgIj0iOwogICAgfSBlbHNlIGlmIChsZW4gJSAzID09PSAxKSB7CiAgICAgIGJhc2U2NCA9IGJhc2U2NC5zdWJzdHJpbmcoMCwgYmFzZTY0Lmxlbmd0aCAtIDIpICsgIj09IjsKICAgIH0KICAgIHJldHVybiBiYXNlNjQ7CiAgfTsKICBjb25zdCBsYXN0QmxvYk1hcCA9IC8qIEBfX1BVUkVfXyAqLyBuZXcgTWFwKCk7CiAgY29uc3QgdHJhbnNwYXJlbnRCbG9iTWFwID0gLyogQF9fUFVSRV9fICovIG5ldyBNYXAoKTsKICBhc3luYyBmdW5jdGlvbiBnZXRUcmFuc3BhcmVudEJsb2JGb3Iod2lkdGgsIGhlaWdodCwgZGF0YVVSTE9wdGlvbnMpIHsKICAgIGNvbnN0IGlkID0gYCR7d2lkdGh9LSR7aGVpZ2h0fWA7CiAgICBpZiAoIk9mZnNjcmVlbkNhbnZhcyIgaW4gZ2xvYmFsVGhpcykgewogICAgICBpZiAodHJhbnNwYXJlbnRCbG9iTWFwLmhhcyhpZCkpIHJldHVybiB0cmFuc3BhcmVudEJsb2JNYXAuZ2V0KGlkKTsKICAgICAgY29uc3Qgb2Zmc2NyZWVuID0gbmV3IE9mZnNjcmVlbkNhbnZhcyh3aWR0aCwgaGVpZ2h0KTsKICAgICAgb2Zmc2NyZWVuLmdldENvbnRleHQoIjJkIik7CiAgICAgIGNvbnN0IGJsb2IgPSBhd2FpdCBvZmZzY3JlZW4uY29udmVydFRvQmxvYihkYXRhVVJMT3B0aW9ucyk7CiAgICAgIGNvbnN0IGFycmF5QnVmZmVyID0gYXdhaXQgYmxvYi5hcnJheUJ1ZmZlcigpOwogICAgICBjb25zdCBiYXNlNjQgPSBlbmNvZGUoYXJyYXlCdWZmZXIpOwogICAgICB0cmFuc3BhcmVudEJsb2JNYXAuc2V0KGlkLCBiYXNlNjQpOwogICAgICByZXR1cm4gYmFzZTY0OwogICAgfSBlbHNlIHsKICAgICAgcmV0dXJuICIiOwogICAgfQogIH0KICBjb25zdCB3b3JrZXIgPSBzZWxmOwogIGxldCBsb2dEZWJ1ZyA9IGZhbHNlOwogIGNvbnN0IGRlYnVnID0gKC4uLmFyZ3MpID0+IHsKICAgIGlmIChsb2dEZWJ1ZykgewogICAgICBjb25zb2xlLmRlYnVnKC4uLmFyZ3MpOwogICAgfQogIH07CiAgd29ya2VyLm9ubWVzc2FnZSA9IGFzeW5jIGZ1bmN0aW9uKGUpIHsKICAgIGxvZ0RlYnVnID0gISFlLmRhdGEubG9nRGVidWc7CiAgICBpZiAoIk9mZnNjcmVlbkNhbnZhcyIgaW4gZ2xvYmFsVGhpcykgewogICAgICBjb25zdCB7IGlkLCBiaXRtYXAsIHdpZHRoLCBoZWlnaHQsIGR4LCBkeSwgZHcsIGRoLCBkYXRhVVJMT3B0aW9ucyB9ID0gZS5kYXRhOwogICAgICBjb25zdCB0cmFuc3BhcmVudEJhc2U2NCA9IGdldFRyYW5zcGFyZW50QmxvYkZvcigKICAgICAgICB3aWR0aCwKICAgICAgICBoZWlnaHQsCiAgICAgICAgZGF0YVVSTE9wdGlvbnMKICAgICAgKTsKICAgICAgY29uc3Qgb2Zmc2NyZWVuID0gbmV3IE9mZnNjcmVlbkNhbnZhcyh3aWR0aCwgaGVpZ2h0KTsKICAgICAgY29uc3QgY3R4ID0gb2Zmc2NyZWVuLmdldENvbnRleHQoIjJkIik7CiAgICAgIGN0eC5kcmF3SW1hZ2UoYml0bWFwLCAwLCAwLCB3aWR0aCwgaGVpZ2h0KTsKICAgICAgYml0bWFwLmNsb3NlKCk7CiAgICAgIGNvbnN0IGJsb2IgPSBhd2FpdCBvZmZzY3JlZW4uY29udmVydFRvQmxvYihkYXRhVVJMT3B0aW9ucyk7CiAgICAgIGNvbnN0IHR5cGUgPSBibG9iLnR5cGU7CiAgICAgIGNvbnN0IGFycmF5QnVmZmVyID0gYXdhaXQgYmxvYi5hcnJheUJ1ZmZlcigpOwogICAgICBjb25zdCBiYXNlNjQgPSBlbmNvZGUoYXJyYXlCdWZmZXIpOwogICAgICBpZiAoIWxhc3RCbG9iTWFwLmhhcyhpZCkgJiYgYXdhaXQgdHJhbnNwYXJlbnRCYXNlNjQgPT09IGJhc2U2NCkgewogICAgICAgIGRlYnVnKCJbaGlnaGxpZ2h0LXdvcmtlcl0gY2FudmFzIGJpdG1hcCBpcyB0cmFuc3BhcmVudCIsIHsKICAgICAgICAgIGlkLAogICAgICAgICAgYmFzZTY0CiAgICAgICAgfSk7CiAgICAgICAgbGFzdEJsb2JNYXAuc2V0KGlkLCBiYXNlNjQpOwogICAgICAgIHJldHVybiB3b3JrZXIucG9zdE1lc3NhZ2UoeyBpZCwgc3RhdHVzOiAidHJhbnNwYXJlbnQiIH0pOwogICAgICB9CiAgICAgIGlmIChsYXN0QmxvYk1hcC5nZXQoaWQpID09PSBiYXNlNjQpIHsKICAgICAgICBkZWJ1ZygiW2hpZ2hsaWdodC13b3JrZXJdIGNhbnZhcyBiaXRtYXAgaXMgdW5jaGFuZ2VkIiwgewogICAgICAgICAgaWQsCiAgICAgICAgICBiYXNlNjQKICAgICAgICB9KTsKICAgICAgfQogICAgICBjb25zdCBtc2cgPSB7CiAgICAgICAgaWQsCiAgICAgICAgdHlwZSwKICAgICAgICBiYXNlNjQsCiAgICAgICAgd2lkdGgsCiAgICAgICAgaGVpZ2h0LAogICAgICAgIGR4LAogICAgICAgIGR5LAogICAgICAgIGR3LAogICAgICAgIGRoCiAgICAgIH07CiAgICAgIGRlYnVnKCJbaGlnaGxpZ2h0LXdvcmtlcl0gY2FudmFzIGJpdG1hcCBwcm9jZXNzZWQiLCBtc2cpOwogICAgICB3b3JrZXIucG9zdE1lc3NhZ2UobXNnKTsKICAgICAgbGFzdEJsb2JNYXAuc2V0KGlkLCBiYXNlNjQpOwogICAgfSBlbHNlIHsKICAgICAgZGVidWcoIltoaWdobGlnaHQtd29ya2VyXSBubyBvZmZzY3JlZW5jYW52YXMgc3VwcG9ydCIsIHsKICAgICAgICBpZDogZS5kYXRhLmlkCiAgICAgIH0pOwogICAgICByZXR1cm4gd29ya2VyLnBvc3RNZXNzYWdlKHsgaWQ6IGUuZGF0YS5pZCwgc3RhdHVzOiAidW5zdXBwb3J0ZWQiIH0pOwogICAgfQogIH07Cn0pKCk7Ci8vIyBzb3VyY2VNYXBwaW5nVVJMPWltYWdlLWJpdG1hcC1kYXRhLXVybC13b3JrZXItRHd0SzhBMHouanMubWFwCg==";
 var decodeBase64 = (base64) => Uint8Array.from(atob(base64), (c2) => c2.charCodeAt(0));
 var blob = typeof self !== "undefined" && self.Blob && new Blob([decodeBase64(encodedJs)], { type: "text/javascript;charset=utf-8" });
 function WorkerWrapper(options) {
@@ -13407,7 +13478,8 @@ var CanvasManager = class {
       blockClass,
       blockSelector,
       recordCanvas,
-      recordVideos,
+      recordLocalVideos,
+      recordRemoteVideos,
       initialSnapshotDelay,
       dataURLOptions
     } = options;
@@ -13420,6 +13492,7 @@ var CanvasManager = class {
       this.snapshotInProgressMap.set(id, false);
       if (!("base64" in e2.data)) {
         this.debug(null, "canvas worker received empty message", {
+          id,
           data: e2.data,
           status: e2.data.status
         });
@@ -13467,7 +13540,8 @@ var CanvasManager = class {
     } else if (recordCanvas && typeof sampling === "number") {
       this.debug(null, "initializing canvas fps observer", { sampling });
       this.initCanvasFPSObserver(
-        recordVideos,
+        recordLocalVideos,
+        recordRemoteVideos,
         sampling,
         win,
         blockClass,
@@ -13585,7 +13659,7 @@ var CanvasManager = class {
       this.snapshotInProgressMap.set(id, false);
     }
   }
-  initCanvasFPSObserver(recordVideos, fps, win, blockClass, blockSelector, options, resizeFactor, maxSnapshotDimension) {
+  initCanvasFPSObserver(recordLocalVideos, recordRemoteVideos, fps, win, blockClass, blockSelector, options, resizeFactor, maxSnapshotDimension) {
     const canvasContextReset = initCanvasContextObserver(
       win,
       blockClass,
@@ -13624,9 +13698,18 @@ var CanvasManager = class {
     };
     const getVideos = (timestamp) => {
       const matchedVideos = [];
-      if (recordVideos) {
+      if (recordLocalVideos || recordRemoteVideos) {
         querySelectorAll2(win.document, "video").forEach((video) => {
-          if (video.src !== "" && video.src.indexOf("blob:") === -1) return;
+          if (!recordRemoteVideos) {
+            if (video.src !== "" && video.src.indexOf("blob:") === -1) {
+              return;
+            }
+          }
+          if (!recordLocalVideos) {
+            if (video.src === "" || video.src.indexOf("blob:") !== -1) {
+              return;
+            }
+          }
           if (!isBlocked(video, blockClass, blockSelector, true)) {
             matchedVideos.push(video);
             const id = this.mirror.getId(video);
@@ -13941,6 +14024,7 @@ function record(options = {}) {
     userTriggeredOnInput = false,
     collectFonts = false,
     inlineImages = false,
+    inlineVideos = false,
     plugins,
     keepIframeSrcFn = () => false,
     privacySetting = "default",
@@ -14108,7 +14192,8 @@ function record(options = {}) {
   const processedNodeManager = new ProcessedNodeManager();
   canvasManager = new CanvasManager({
     recordCanvas,
-    recordVideos: inlineImages,
+    recordLocalVideos: inlineImages,
+    recordRemoteVideos: inlineVideos,
     mutationCb: wrappedCanvasMutationEmit,
     win: window,
     blockClass,
@@ -14138,6 +14223,7 @@ function record(options = {}) {
       maskInputFn,
       recordCanvas,
       inlineImages,
+      inlineVideos,
       privacySetting,
       sampling,
       slimDOMOptions,
@@ -14181,6 +14267,7 @@ function record(options = {}) {
       dataURLOptions,
       recordCanvas,
       inlineImages,
+      inlineVideos,
       privacySetting,
       onSerialize: (n2) => {
         if (isSerializedIframe(n2, mirror)) {
@@ -14316,6 +14403,7 @@ function record(options = {}) {
           recordDOM,
           recordCanvas,
           inlineImages,
+          inlineVideos,
           userTriggeredOnInput,
           collectFonts,
           doc,
