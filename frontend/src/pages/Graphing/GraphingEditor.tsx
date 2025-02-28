@@ -99,8 +99,8 @@ import { useGraphTime } from '@/pages/Graphing/hooks/useGraphTime'
 
 import { DEFAULT_SQL, SqlEditor } from '@/pages/Graphing/components/SqlEditor'
 
-type BucketBy = 'None' | 'Interval' | 'Count'
-const BUCKET_BY_OPTIONS: BucketBy[] = ['None', 'Interval', 'Count']
+type BucketBy = 'Interval' | 'Count'
+const BUCKET_BY_OPTIONS: BucketBy[] = ['Interval', 'Count']
 
 const MAX_BUCKET_SIZE = 100
 const MAX_LIMIT_SIZE = 100
@@ -109,7 +109,15 @@ const SETTINGS_PARAM = 'settings'
 
 const SidebarSection = (props: PropsWithChildren) => {
 	return (
-		<Box p="12" width="full" display="flex" flexDirection="column" gap="12">
+		<Box
+			p="6"
+			width="full"
+			display="flex"
+			flexDirection="column"
+			gap="12"
+			border="divider"
+			borderRadius="6"
+		>
 			{props.children}
 		</Box>
 	)
@@ -177,12 +185,10 @@ const getBucketByKey = (
 			return bucketByKey
 		case 'Interval':
 			return TIMESTAMP_KEY
-		default:
-			return undefined
 	}
 }
 
-type BucketBySetting = 'None' | 'Interval' | 'Count'
+type BucketBySetting = 'Interval' | 'Count'
 
 type GraphSettings = {
 	productType: ProductType
@@ -201,6 +207,7 @@ type GraphSettings = {
 	limitFunctionType: MetricAggregator
 	limit: number
 	funnelSteps: EventSelectionStep[]
+	bucketByEnabled: boolean
 	bucketByKey: string
 	bucketCount: number
 	bucketInterval: number
@@ -285,7 +292,9 @@ export const GraphingEditor: React.FC = () => {
 
 		const graphInput: GraphInput = {
 			visualizationId: currentDashboardId,
-			bucketByKey: getBucketByKey(bucketBySetting, bucketByKey) ?? null,
+			bucketByKey: bucketByEnabled
+				? getBucketByKey(bucketBySetting, bucketByKey)
+				: null,
 			bucketCount:
 				bucketBySetting === 'Count' ? Number(bucketCount) : null,
 			bucketInterval:
@@ -421,12 +430,11 @@ export const GraphingEditor: React.FC = () => {
 		setLimit(g.limit ?? 10)
 		setLimitMetric(g.limitMetric ?? '')
 		setFunnelSteps((g.funnelSteps ?? []).map(loadFunnelStep))
-		setBucketByKey(g.bucketByKey ?? '')
+		setBucketByEnabled(!!g.bucketByKey)
+		setBucketByKey(g.bucketByKey ?? TIMESTAMP_KEY)
 		setBucketCount(g.bucketCount ?? DEFAULT_BUCKET_COUNT)
 		setBucketInterval(g.bucketInterval ?? DEFAULT_BUCKET_INTERVAL)
-		setBucketBySetting(
-			g.bucketInterval ? 'Interval' : g.bucketCount ? 'Count' : 'None',
-		)
+		setBucketBySetting(g.bucketInterval ? 'Interval' : 'Count')
 		setEditor(!!g.sql ? Editor.SqlEditor : Editor.QueryBuilder)
 		setSqlInternal(g.sql ?? DEFAULT_SQL)
 		setSql(g.sql ?? DEFAULT_SQL)
@@ -493,7 +501,7 @@ export const GraphingEditor: React.FC = () => {
 	)
 	const setViewType = (vt: View) => {
 		if (vt === 'Funnel chart') {
-			setBucketBySetting('None')
+			setBucketByEnabled(false)
 			// once events have other session attributes, we can support per-user aggregation
 			setExpressions([
 				{
@@ -583,6 +591,9 @@ export const GraphingEditor: React.FC = () => {
 		return limitFunctionType === MetricAggregator.Count ? '' : limitMetric
 	}, [limitFunctionType, limitMetric])
 
+	const [bucketByEnabled, setBucketByEnabled] = useState(
+		initialSettings?.bucketByEnabled ?? true,
+	)
 	const [bucketBySetting, setBucketBySetting] = useState(
 		initialSettings?.bucketBySetting ?? BUCKET_BY_OPTIONS[1],
 	)
@@ -652,6 +663,7 @@ export const GraphingEditor: React.FC = () => {
 		limitFunctionType,
 		limit,
 		funnelSteps,
+		bucketByEnabled,
 		bucketByKey,
 		bucketCount,
 		bucketInterval,
@@ -707,20 +719,21 @@ export const GraphingEditor: React.FC = () => {
 		settings.funnelSteps = (graphPreview.funnelSteps ?? []).map(
 			loadFunnelStep,
 		)
+		settings.bucketByEnabled = !!graphPreview.bucketByKey
 		settings.bucketByKey = graphPreview.bucketByKey ?? '10'
 		settings.bucketCount = graphPreview.bucketCount ?? DEFAULT_BUCKET_COUNT
 		settings.bucketInterval =
 			graphPreview.bucketInterval ?? DEFAULT_BUCKET_INTERVAL
 		settings.bucketBySetting = graphPreview.bucketInterval
 			? 'Interval'
-			: graphPreview.bucketCount
-				? 'Count'
-				: 'None'
+			: 'Count'
 	}
 
 	if (!completed) {
 		return null
 	}
+
+	const isSqlEditor = settings.editor === Editor.SqlEditor
 
 	return (
 		<>
@@ -857,15 +870,19 @@ export const GraphingEditor: React.FC = () => {
 												startDate={startDate}
 												endDate={endDate}
 												sql={
-													editor === Editor.SqlEditor
+													isSqlEditor
 														? sql
 														: undefined
 												}
 												query={debouncedQuery}
-												bucketByKey={getBucketByKey(
-													bucketBySetting,
-													bucketByKey,
-												)}
+												bucketByKey={
+													bucketByEnabled
+														? getBucketByKey(
+																bucketBySetting,
+																bucketByKey,
+															)
+														: undefined
+												}
 												bucketCount={
 													bucketBySetting === 'Count'
 														? Number(bucketCount)
@@ -908,41 +925,32 @@ export const GraphingEditor: React.FC = () => {
 							</Box>
 							<Panel>
 								<Form>
-									{dashboard_id === undefined && (
-										<>
-											<SidebarSection>
-												<LabeledRow
-													label="Dashboard"
-													name="title"
-												>
-													<Select
-														options={
-															dashboardsData?.visualizations.results.map(
-																(r) => ({
-																	name: r.name,
-																	value: r.id,
-																	id: r.id,
-																}),
-															) ?? []
-														}
-														value={
-															dashboardIdSetting
-														}
-														onValueChange={(o) => {
-															setDashboardIdSetting(
-																o.value,
-															)
-														}}
-														loading={
-															dashboardsLoading
-														}
-													/>
-												</LabeledRow>
-											</SidebarSection>
-											<Divider className="m-0" />
-										</>
-									)}
-									<SidebarSection>
+									<Stack gap="16">
+										{dashboard_id === undefined && (
+											<LabeledRow
+												label="Dashboard"
+												name="title"
+											>
+												<Select
+													options={
+														dashboardsData?.visualizations.results.map(
+															(r) => ({
+																name: r.name,
+																value: r.id,
+																id: r.id,
+															}),
+														) ?? []
+													}
+													value={dashboardIdSetting}
+													onValueChange={(o) => {
+														setDashboardIdSetting(
+															o.value,
+														)
+													}}
+													loading={dashboardsLoading}
+												/>
+											</LabeledRow>
+										)}
 										<LabeledRow
 											label="Graph title"
 											name="title"
@@ -964,9 +972,8 @@ export const GraphingEditor: React.FC = () => {
 												disabled={isPreview}
 											/>
 										</LabeledRow>
-									</SidebarSection>
-									<Divider className="m-0" />
-									<SidebarSection>
+										<Divider className="m-0" />
+										<Text weight="bold">Visualization</Text>
 										<LabeledRow
 											label="View type"
 											name="viewType"
@@ -1032,10 +1039,8 @@ export const GraphingEditor: React.FC = () => {
 												disabled={isPreview}
 											/>
 										)}
-									</SidebarSection>
-									<Divider className="m-0" />
-									<SidebarSection>
-										<Box cssClass={style.editorSection}>
+										<Divider className="m-0" />
+										<SidebarSection>
 											<Box cssClass={style.editorHeader}>
 												<Box
 													cssClass={
@@ -1051,8 +1056,7 @@ export const GraphingEditor: React.FC = () => {
 														disabled={isPreview}
 													/>
 												</Box>
-												{settings.editor ===
-													Editor.SqlEditor && (
+												{isSqlEditor && (
 													<Button
 														disabled={
 															upsertGraphContext.loading ||
@@ -1066,8 +1070,7 @@ export const GraphingEditor: React.FC = () => {
 													</Button>
 												)}
 											</Box>
-											{settings.editor ===
-												Editor.SqlEditor && (
+											{isSqlEditor ? (
 												<Box
 													cssClass={
 														style.sqlEditorWrapper
@@ -1082,157 +1085,220 @@ export const GraphingEditor: React.FC = () => {
 														endDate={endDate}
 													/>
 												</Box>
-											)}
-											{settings.editor ===
-												Editor.QueryBuilder && (
+											) : (
 												<>
-													<SidebarSection>
-														<LabeledRow
-															label="Source"
-															name="source"
-															tooltip="The resource being queried, one of the five highlight.io resources."
-														>
-															<OptionDropdown<ProductType>
-																options={PRODUCT_OPTIONS.filter(
-																	(p) =>
-																		p.value ===
-																			ProductType.Events ||
-																		viewType !==
-																			'Funnel chart',
-																)}
-																selection={
-																	settings.productType
+													<LabeledRow
+														label="Source"
+														name="source"
+														tooltip="The resource being queried, one of the five highlight.io resources."
+													>
+														<OptionDropdown<ProductType>
+															options={PRODUCT_OPTIONS.filter(
+																(p) =>
+																	p.value ===
+																		ProductType.Events ||
+																	viewType !==
+																		'Funnel chart',
+															)}
+															selection={
+																settings.productType
+															}
+															setSelection={(
+																s,
+															) => {
+																s !==
+																	settings.productType &&
+																	setProductType(
+																		s,
+																	)
+															}}
+															disabled={isPreview}
+														/>
+													</LabeledRow>
+													{settings.productType ===
+													ProductType.Events ? (
+														settings.viewType ===
+														'Funnel chart' ? (
+															<EventSteps
+																steps={
+																	settings.funnelSteps
 																}
-																setSelection={(
-																	s,
-																) => {
-																	s !==
-																		settings.productType &&
-																		setProductType(
-																			s,
-																		)
-																}}
-																disabled={
-																	isPreview
+																setSteps={
+																	setFunnelSteps
 																}
+																startDate={
+																	startDate
+																}
+																endDate={
+																	endDate
+																}
+																// disabled={isPreview}
 															/>
-														</LabeledRow>
-													</SidebarSection>
-													<Divider className="m-0" />
-													<SidebarSection>
-														{settings.productType ===
-														ProductType.Events ? (
-															settings.viewType ===
-															'Funnel chart' ? (
-																<EventSteps
-																	steps={
-																		settings.funnelSteps
-																	}
-																	setSteps={
-																		setFunnelSteps
-																	}
-																	startDate={
-																		startDate
-																	}
-																	endDate={
-																		endDate
-																	}
-																	// disabled={isPreview}
-																/>
-															) : (
-																<EventSelection
+														) : (
+															<EventSelection
+																initialQuery={
+																	settings.query
+																}
+																setQuery={
+																	setQuery
+																}
+																startDate={
+																	startDate
+																}
+																endDate={
+																	endDate
+																}
+																// disabled={isPreview}
+															/>
+														)
+													) : (
+														<LabeledRow
+															label="Filters"
+															name="query"
+															tooltip="The search query used to filter which data points are included before aggregating."
+														>
+															<Box
+																border="divider"
+																width="full"
+																borderRadius="6"
+															>
+																<SearchContext
 																	initialQuery={
 																		settings.query
 																	}
-																	setQuery={
+																	onSubmit={
 																		setQuery
 																	}
-																	startDate={
-																		startDate
+																	disabled={
+																		isPreview
 																	}
-																	endDate={
-																		endDate
-																	}
-																	// disabled={isPreview}
-																/>
-															)
-														) : (
-															<LabeledRow
-																label="Filters"
-																name="query"
-																tooltip="The search query used to filter which data points are included before aggregating."
-															>
-																<Box
-																	border="divider"
-																	width="full"
-																	borderRadius="6"
 																>
-																	<SearchContext
-																		initialQuery={
-																			settings.query
+																	<Search
+																		startDate={
+																			new Date(
+																				startDate,
+																			)
 																		}
-																		onSubmit={
-																			setQuery
+																		endDate={
+																			new Date(
+																				endDate,
+																			)
 																		}
-																		disabled={
-																			isPreview
+																		productType={
+																			productType
 																		}
+																		hideIcon
+																		defaultValueOptions={
+																			variableKeys
+																		}
+																	/>
+																</SearchContext>
+															</Box>
+														</LabeledRow>
+													)}
+													<LabeledRow
+														label="Function"
+														name="function"
+														tooltip="Determines how data points are aggregated. If the function requires a numeric field as input, one can be chosen."
+													>
+														<Stack
+															width="full"
+															gap="12"
+														>
+															{settings.expressions.map(
+																(e, i) => (
+																	<Stack
+																		direction="row"
+																		width="full"
+																		gap="4"
+																		key={`${e.aggregator}:${e.column}:${i}`}
 																	>
-																		<Search
-																			startDate={
-																				new Date(
-																					startDate,
+																		<OptionDropdown
+																			options={
+																				FUNCTION_TYPES
+																			}
+																			selection={
+																				e.aggregator
+																			}
+																			setSelection={(
+																				aggregator: MetricAggregator,
+																			) => {
+																				setExpressions(
+																					(
+																						expressions,
+																					) => {
+																						const copy =
+																							[
+																								...expressions,
+																							]
+																						copy[
+																							i
+																						].aggregator =
+																							aggregator
+																						return copy
+																					},
 																				)
-																			}
-																			endDate={
-																				new Date(
-																					endDate,
-																				)
-																			}
-																			productType={
-																				productType
-																			}
-																			hideIcon
-																			defaultValueOptions={
-																				variableKeys
+																			}}
+																			disabled={
+																				settings.viewType ===
+																					'Funnel chart' ||
+																				isPreview
 																			}
 																		/>
-																	</SearchContext>
-																</Box>
-															</LabeledRow>
-														)}
-													</SidebarSection>
-													<Box px="12">
-														<Divider className="m-0" />
-													</Box>
-													<SidebarSection>
-														<LabeledRow
-															label="Function"
-															name="function"
-															tooltip="Determines how data points are aggregated. If the function requires a numeric field as input, one can be chosen."
-														>
-															<Stack
-																width="full"
-																gap="12"
-															>
-																{settings.expressions.map(
-																	(e, i) => (
-																		<Stack
-																			direction="row"
-																			width="full"
-																			gap="4"
-																			key={`${e.aggregator}:${e.column}:${i}`}
-																		>
-																			<OptionDropdown
-																				options={
-																					FUNCTION_TYPES
+																		<Combobox
+																			selection={
+																				e.column
+																			}
+																			setSelection={(
+																				column: string,
+																			) => {
+																				setExpressions(
+																					(
+																						expressions,
+																					) => {
+																						const copy =
+																							[
+																								...expressions,
+																							]
+																						copy[
+																							i
+																						].column =
+																							column
+																						return copy
+																					},
+																				)
+																			}}
+																			searchConfig={
+																				searchOptionsConfig
+																			}
+																			disabled={
+																				e.aggregator ===
+																					MetricAggregator.Count ||
+																				settings.viewType ===
+																					'Funnel chart' ||
+																				isPreview
+																			}
+																			onlyNumericKeys={
+																				e.aggregator !==
+																				MetricAggregator.CountDistinct
+																			}
+																			defaultKeys={
+																				variableKeys
+																			}
+																			placeholder={
+																				e.aggregator ===
+																				MetricAggregator.Count
+																					? 'Rows'
+																					: undefined
+																			}
+																		/>
+																		{expressions.length >
+																			1 && (
+																			<ButtonIcon
+																				icon={
+																					<IconSolidX />
 																				}
-																				selection={
-																					e.aggregator
-																				}
-																				setSelection={(
-																					aggregator: MetricAggregator,
-																				) => {
+																				onClick={() => {
 																					setExpressions(
 																						(
 																							expressions,
@@ -1241,387 +1307,322 @@ export const GraphingEditor: React.FC = () => {
 																								[
 																									...expressions,
 																								]
-																							copy[
-																								i
-																							].aggregator =
-																								aggregator
+																							copy.splice(
+																								i,
+																								1,
+																							)
 																							return copy
 																						},
 																					)
 																				}}
-																				disabled={
-																					settings.viewType ===
-																						'Funnel chart' ||
-																					isPreview
-																				}
+																				kind="secondary"
+																				emphasis="low"
 																			/>
-																			<Combobox
-																				selection={
-																					e.column
-																				}
-																				setSelection={(
-																					column: string,
-																				) => {
-																					setExpressions(
-																						(
-																							expressions,
-																						) => {
-																							const copy =
-																								[
-																									...expressions,
-																								]
-																							copy[
-																								i
-																							].column =
-																								column
-																							return copy
-																						},
-																					)
-																				}}
-																				searchConfig={
-																					searchOptionsConfig
-																				}
-																				disabled={
-																					e.aggregator ===
-																						MetricAggregator.Count ||
-																					settings.viewType ===
-																						'Funnel chart' ||
-																					isPreview
-																				}
-																				onlyNumericKeys={
-																					e.aggregator !==
-																					MetricAggregator.CountDistinct
-																				}
-																				defaultKeys={
-																					variableKeys
-																				}
-																				placeholder={
-																					e.aggregator ===
-																					MetricAggregator.Count
-																						? 'Rows'
-																						: undefined
-																				}
-																			/>
-																			{expressions.length >
-																				1 && (
-																				<ButtonIcon
-																					icon={
-																						<IconSolidX />
-																					}
-																					onClick={() => {
-																						setExpressions(
-																							(
-																								expressions,
-																							) => {
-																								const copy =
-																									[
-																										...expressions,
-																									]
-																								copy.splice(
-																									i,
-																									1,
-																								)
-																								return copy
-																							},
-																						)
-																					}}
-																					kind="secondary"
-																					emphasis="low"
-																				/>
-																			)}
-																		</Stack>
-																	),
-																)}
-															</Stack>
-														</LabeledRow>
-														<Button
-															kind="secondary"
-															onClick={() => {
-																setExpressions(
-																	(
-																		expressions,
-																	) => {
-																		return [
-																			...expressions,
-																			{
-																				aggregator:
-																					MetricAggregator.Count,
-																				column: '',
-																			},
-																		]
-																	},
-																)
-															}}
-														>
-															Add function
-														</Button>
-														<LabeledRow
-															label="Group by"
-															name="groupBy"
-															enabled={
-																settings.groupByEnabled
+																		)}
+																	</Stack>
+																),
+															)}
+														</Stack>
+													</LabeledRow>
+													<Button
+														kind="secondary"
+														onClick={() => {
+															setExpressions(
+																(
+																	expressions,
+																) => {
+																	return [
+																		...expressions,
+																		{
+																			aggregator:
+																				MetricAggregator.Count,
+																			column: '',
+																		},
+																	]
+																},
+															)
+														}}
+													>
+														Add function
+													</Button>
+												</>
+											)}
+										</SidebarSection>
+										{!isSqlEditor && (
+											<>
+												<SidebarSection>
+													<LabeledRow
+														label="Group by"
+														name="groupBy"
+														enabled={
+															settings.groupByEnabled
+														}
+														setEnabled={
+															setGroupByEnabled
+														}
+														disabled={
+															settings.viewType ===
+																'Funnel chart' ||
+															isPreview
+														}
+														tooltip="A categorical field for grouping results into separate series."
+													>
+														<Combobox
+															selection={
+																settings.groupByKeys
 															}
-															setEnabled={
-																setGroupByEnabled
+															setSelection={
+																setGroupByKeys
+															}
+															searchConfig={
+																searchOptionsConfig
+															}
+															defaultKeys={
+																variableKeys
 															}
 															disabled={
 																settings.viewType ===
 																	'Funnel chart' ||
 																isPreview
 															}
-															tooltip="A categorical field for grouping results into separate series."
+														/>
+													</LabeledRow>
+													{settings.groupByEnabled &&
+													viewType !== 'Table' &&
+													viewType !==
+														'Funnel chart' ? (
+														<Box
+															display="flex"
+															flexDirection="row"
+															gap="4"
 														>
-															<Combobox
-																selection={
-																	settings.groupByKeys
+															<LabeledRow
+																label="Limit"
+																name="limit"
+																tooltip="The maximum number of groups to include. Currently, the max is 100."
+															>
+																<Input
+																	type="number"
+																	name="limit"
+																	placeholder="Enter limit"
+																	value={
+																		settings.limit
+																	}
+																	onChange={(
+																		e,
+																	) => {
+																		const value =
+																			Math.min(
+																				viewType ===
+																					'Table'
+																					? NO_LIMIT
+																					: MAX_LIMIT_SIZE,
+																				parseInt(
+																					e
+																						.target
+																						.value,
+																				),
+																			)
+																		setLimit(
+																			value,
+																		)
+																	}}
+																	cssClass={
+																		style.input
+																	}
+																	disabled={
+																		isPreview
+																	}
+																/>
+															</LabeledRow>
+															<LabeledRow
+																label="By"
+																name="limitBy"
+																tooltip="The function used to determine which groups are included."
+															>
+																<OptionDropdown
+																	options={
+																		FUNCTION_TYPES
+																	}
+																	selection={
+																		settings.limitFunctionType
+																	}
+																	setSelection={
+																		setLimitFunctionType
+																	}
+																	disabled={
+																		isPreview
+																	}
+																/>
+																<Combobox
+																	selection={
+																		settings.fetchedLimitMetric
+																	}
+																	setSelection={
+																		setLimitMetric
+																	}
+																	searchConfig={
+																		searchOptionsConfig
+																	}
+																	disabled={
+																		settings.limitFunctionType ===
+																			MetricAggregator.Count ||
+																		isPreview
+																	}
+																	onlyNumericKeys
+																	defaultKeys={
+																		variableKeys
+																	}
+																	placeholder={
+																		settings.limitFunctionType ===
+																		MetricAggregator.Count
+																			? 'Rows'
+																			: undefined
+																	}
+																/>
+															</LabeledRow>
+														</Box>
+													) : null}
+												</SidebarSection>
+												{settings.viewType !==
+													'Funnel chart' && (
+													<SidebarSection>
+														<LabeledRow
+															label="Bucket by"
+															name="bucketBy"
+															tooltip="The method for determining the bucket sizes - can be a fixed interval or fixed count."
+															enabled={
+																settings.bucketByEnabled
+															}
+															setEnabled={
+																setBucketByEnabled
+															}
+														>
+															<TagSwitchGroup
+																options={
+																	BUCKET_BY_OPTIONS
 																}
-																setSelection={
-																	setGroupByKeys
+																defaultValue={
+																	settings.bucketBySetting
 																}
-																searchConfig={
-																	searchOptionsConfig
-																}
-																defaultKeys={
-																	variableKeys
+																onChange={(
+																	o:
+																		| string
+																		| number,
+																) => {
+																	setBucketBySetting(
+																		o as BucketBy,
+																	)
+																}}
+																cssClass={
+																	style.tagSwitch
 																}
 																disabled={
-																	settings.viewType ===
-																		'Funnel chart' ||
 																	isPreview
 																}
 															/>
 														</LabeledRow>
-														{settings.groupByEnabled &&
-														viewType !== 'Table' &&
-														viewType !==
-															'Funnel chart' ? (
-															<Box
-																display="flex"
-																flexDirection="row"
-																gap="4"
-															>
-																<LabeledRow
-																	label="Limit"
-																	name="limit"
-																	tooltip="The maximum number of groups to include. Currently, the max is 100."
-																>
-																	<Input
-																		type="number"
-																		name="limit"
-																		placeholder="Enter limit"
-																		value={
-																			settings.limit
-																		}
-																		onChange={(
-																			e,
-																		) => {
-																			const value =
-																				Math.min(
-																					viewType ===
-																						'Table'
-																						? NO_LIMIT
-																						: MAX_LIMIT_SIZE,
-																					parseInt(
-																						e
-																							.target
-																							.value,
-																					),
-																				)
-																			setLimit(
-																				value,
-																			)
-																		}}
-																		cssClass={
-																			style.input
-																		}
-																		disabled={
-																			isPreview
-																		}
-																	/>
-																</LabeledRow>
-																<LabeledRow
-																	label="By"
-																	name="limitBy"
-																	tooltip="The function used to determine which groups are included."
-																>
-																	<OptionDropdown
-																		options={
-																			FUNCTION_TYPES
-																		}
-																		selection={
-																			settings.limitFunctionType
-																		}
-																		setSelection={
-																			setLimitFunctionType
-																		}
-																		disabled={
-																			isPreview
-																		}
-																	/>
-																	<Combobox
-																		selection={
-																			settings.fetchedLimitMetric
-																		}
-																		setSelection={
-																			setLimitMetric
-																		}
-																		searchConfig={
-																			searchOptionsConfig
-																		}
-																		disabled={
-																			settings.limitFunctionType ===
-																				MetricAggregator.Count ||
-																			isPreview
-																		}
-																		onlyNumericKeys
-																		defaultKeys={
-																			variableKeys
-																		}
-																		placeholder={
-																			settings.limitFunctionType ===
-																			MetricAggregator.Count
-																				? 'Rows'
-																				: undefined
-																		}
-																	/>
-																</LabeledRow>
-															</Box>
-														) : null}
-													</SidebarSection>
-													<Divider className="m-0" />
-													<SidebarSection>
-														{settings.viewType ===
-														'Funnel chart' ? null : (
-															<LabeledRow
-																label="Bucket by"
-																name="bucketBy"
-																tooltip="The method for determining the bucket sizes - can be a fixed interval or fixed count."
-															>
-																<TagSwitchGroup
-																	options={
-																		BUCKET_BY_OPTIONS
-																	}
-																	defaultValue={
-																		settings.bucketBySetting
-																	}
-																	onChange={(
-																		o:
-																			| string
-																			| number,
-																	) => {
-																		setBucketBySetting(
-																			o as BucketBy,
-																		)
-																	}}
-																	cssClass={
-																		style.tagSwitch
-																	}
-																	disabled={
-																		isPreview
-																	}
-																/>
-															</LabeledRow>
-														)}
-														{settings.bucketBySetting ===
-															'Count' && (
-															<>
-																<LabeledRow
-																	label="Bucket field"
-																	name="bucketField"
-																	tooltip="A numeric field for bucketing results along the X-axis. Timestamp for time series charts, numeric fields for histograms, can be disabled to aggregate all results within the time range."
-																>
-																	<Combobox
-																		selection={
-																			settings.bucketByKey
-																		}
-																		setSelection={
-																			setBucketByKey
-																		}
-																		searchConfig={
-																			searchOptionsConfig
-																		}
-																		defaultKeys={[
-																			TIMESTAMP_KEY,
-																			...variableKeys,
-																		]}
-																		onlyNumericKeys
-																		disabled={
-																			isPreview
-																		}
-																	/>
-																</LabeledRow>
-																<LabeledRow
-																	label="Buckets"
-																	name="bucketCount"
-																	tooltip="The number of X-axis buckets. A higher value will display smaller, more granular buckets. Currently, the max is 100."
-																>
-																	<Input
-																		type="number"
+														{settings.bucketByEnabled &&
+															settings.bucketBySetting ===
+																'Count' && (
+																<>
+																	<LabeledRow
+																		label="Bucket field"
+																		name="bucketField"
+																		tooltip="A numeric field for bucketing results along the X-axis. Timestamp for time series charts, numeric fields for histograms, can be disabled to aggregate all results within the time range."
+																	>
+																		<Combobox
+																			selection={
+																				settings.bucketByKey
+																			}
+																			setSelection={
+																				setBucketByKey
+																			}
+																			searchConfig={
+																				searchOptionsConfig
+																			}
+																			defaultKeys={[
+																				TIMESTAMP_KEY,
+																				...variableKeys,
+																			]}
+																			onlyNumericKeys
+																			disabled={
+																				isPreview
+																			}
+																		/>
+																	</LabeledRow>
+																	<LabeledRow
+																		label="Buckets"
 																		name="bucketCount"
-																		placeholder="Enter bucket count"
-																		value={
-																			settings.bucketCount
-																		}
-																		onChange={(
-																			e,
-																		) => {
-																			const newValue =
-																				Math.min(
-																					MAX_BUCKET_SIZE,
-																					parseInt(
-																						e
-																							.target
-																							.value,
-																					),
-																				)
+																		tooltip="The number of X-axis buckets. A higher value will display smaller, more granular buckets. Currently, the max is 100."
+																	>
+																		<Input
+																			type="number"
+																			name="bucketCount"
+																			placeholder="Enter bucket count"
+																			value={
+																				settings.bucketCount
+																			}
+																			onChange={(
+																				e,
+																			) => {
+																				const newValue =
+																					Math.min(
+																						MAX_BUCKET_SIZE,
+																						parseInt(
+																							e
+																								.target
+																								.value,
+																						),
+																					)
 
-																			setBucketCount(
-																				newValue,
+																				setBucketCount(
+																					newValue,
+																				)
+																			}}
+																			cssClass={
+																				style.input
+																			}
+																			disabled={
+																				isPreview
+																			}
+																		/>
+																	</LabeledRow>
+																</>
+															)}
+														{settings.bucketByEnabled &&
+															settings.bucketBySetting ===
+																'Interval' && (
+																<LabeledRow
+																	label="Bucket interval"
+																	name="bucketInterval"
+																	tooltip="The number of X-axis buckets. A higher value will display smaller, more granular buckets."
+																>
+																	<Select
+																		options={
+																			BUCKET_FREQUENCIES
+																		}
+																		value={
+																			settings.bucketInterval
+																		}
+																		onValueChange={(
+																			o,
+																		) => {
+																			setBucketInterval(
+																				o.value,
 																			)
 																		}}
-																		cssClass={
-																			style.input
-																		}
 																		disabled={
 																			isPreview
 																		}
 																	/>
 																</LabeledRow>
-															</>
-														)}
-														{settings.bucketBySetting ===
-															'Interval' && (
-															<LabeledRow
-																label="Bucket interval"
-																name="bucketInterval"
-																tooltip="The number of X-axis buckets. A higher value will display smaller, more granular buckets."
-															>
-																<Select
-																	options={
-																		BUCKET_FREQUENCIES
-																	}
-																	value={
-																		settings.bucketInterval
-																	}
-																	onValueChange={(
-																		o,
-																	) => {
-																		setBucketInterval(
-																			o.value,
-																		)
-																	}}
-																	disabled={
-																		isPreview
-																	}
-																/>
-															</LabeledRow>
-														)}
+															)}
 													</SidebarSection>
-												</>
-											)}
-										</Box>
-									</SidebarSection>
-									<Divider className="m-0" />
+												)}
+											</>
+										)}
+									</Stack>
 								</Form>
 							</Panel>
 						</Box>

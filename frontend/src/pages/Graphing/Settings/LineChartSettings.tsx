@@ -1,8 +1,8 @@
 import { TagSwitchGroup } from '@highlight-run/ui/components'
 import React from 'react'
+import Switch from '@/components/Switch/Switch'
 
 import {
-	LINE_DISPLAY,
 	LINE_NULL_HANDLING,
 	LineDisplay,
 	LineNullHandling,
@@ -26,21 +26,16 @@ export const LineChartSettings: React.FC<Props> = ({
 	disabled,
 }) => (
 	<>
-		<LabeledRow
-			label="Line display"
-			name="lineDisplay"
-			tooltip="Lines in charts with multiple series can be stacked."
-		>
-			<TagSwitchGroup
-				options={LINE_DISPLAY}
-				defaultValue={lineDisplay}
-				onChange={(o: string | number) => {
-					setLineDisplay(o as LineDisplay)
-				}}
-				cssClass={style.tagSwitch}
-				disabled={disabled}
-			/>
-		</LabeledRow>
+		<Switch
+			trackingId="switch-lineDisplay"
+			label="Stack area"
+			checked={lineDisplay === 'Stacked area'}
+			onChange={(checked) => {
+				setLineDisplay(checked ? 'Stacked area' : 'Line')
+			}}
+			className={style.tagSwitch}
+			disabled={disabled}
+		/>
 		<LabeledRow
 			label="Nulls"
 			name="lineNullHandling"
