@@ -3,13 +3,14 @@ package main
 import (
 	"context"
 	"fmt"
-	publicModel "github.com/highlight-run/highlight/backend/public-graph/graph/model"
 	"io"
 	"math/rand"
 	"net/http"
 	"strings"
 	"sync"
 	"time"
+
+	publicModel "github.com/highlight-run/highlight/backend/public-graph/graph/model"
 
 	ghandler "github.com/99designs/gqlgen/graphql/handler"
 	"github.com/99designs/gqlgen/graphql/handler/extension"
@@ -65,7 +66,6 @@ import (
 	log "github.com/sirupsen/logrus"
 	"github.com/stripe/stripe-go/v78/client"
 	_ "github.com/urfave/cli/v2"
-	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/sdk/resource"
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
 	semconv "go.opentelemetry.io/otel/semconv/v1.25.0"
@@ -249,8 +249,10 @@ func main() {
 		log.WithContext(ctx).Fatalf("Error setting up DB: %v", err)
 	}
 
-	if err := htrace.SetupGORMTracing(db, attribute.String(highlight.ProjectIDAttribute, highlight.GetProjectID())); err != nil {
-		log.WithContext(ctx).Fatalf("Error setting up GORM tracing hooks: %v", err)
+	if err := htrace.SetupGORMOTel(db, highlight.GetProjectID(), &htrace.GORMOTelOption{
+		ExcludeQueryVars: true,
+	}); err != nil {
+		log.WithContext(ctx).Fatalf("Error setting up GORM OpenTelemetry plugin: %v", err)
 	}
 
 	if env.IsDevEnv() {
