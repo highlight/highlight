@@ -9,7 +9,7 @@ if [[ "$IN_DOCKER_GO" == "true" ]]; then
       sed -i'' -e 's/https:\/\/host\.docker\.internal:8082/http:\/\/backend:8082/g' $COLLECTOR_CONFIG
     fi
     if grep -q 'insecure_skip_verify' "$COLLECTOR_CONFIG"; then
-      sed -i'' -e '88d;89d' $COLLECTOR_CONFIG
+      sed -i'' -e '90d;91d' $COLLECTOR_CONFIG
     fi
   else
     if grep -q 'https://host.docker.internal' "$COLLECTOR_CONFIG"; then
@@ -21,7 +21,7 @@ elif [[ "$SSL" != "true" ]]; then
     sed -i'' -e 's/https:\/\/host\.docker/http:\/\/host\.docker/g' $COLLECTOR_CONFIG
   fi
   if grep -q 'insecure_skip_verify' "$COLLECTOR_CONFIG"; then
-    sed -i'' -e '88d;89d' $COLLECTOR_CONFIG
+    sed -i'' -e '90d;91d' $COLLECTOR_CONFIG
   fi
 fi
 cat $COLLECTOR_CONFIG

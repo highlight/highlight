@@ -38,6 +38,7 @@ receivers:
                         # validation on the preflight request.
                         - 'https://*'
                         - 'http://*'
+                        - 'capacitor://*'
                     allowed_headers:
                         - 'X-Highlight-Request'
                         - 'Origin'

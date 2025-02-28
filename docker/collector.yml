@@ -38,6 +38,7 @@ receivers:
                         # validation on the preflight request.
                         - 'https://*'
                         - 'http://*'
+                        - 'capacitor://*'
                     allowed_headers:
                         - 'X-Highlight-Request'
                         - 'Origin'
@@ -80,8 +81,9 @@ receivers:
                     key_file: '/server.key'
 exporters:
     debug:
-        sampling_initial: 60
+        sampling_initial: 1
         sampling_thereafter: 1000
+        verbosity: basic # set to 'detailed' to log individual data points
     otlphttp:
         endpoint: 'https://host.docker.internal:8082/otel'
         compression: snappy
@@ -124,7 +126,7 @@ processors:
 service:
     telemetry:
         logs:
-            level: 'debug'
+            level: 'info'
         metrics:
             address: '0.0.0.0:8888'
             level: detailed
