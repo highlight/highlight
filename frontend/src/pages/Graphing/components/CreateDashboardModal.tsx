@@ -7,6 +7,13 @@ import { Box, Form, Stack } from '@highlight-run/ui/components'
 import React from 'react'
 
 import { useProjectId } from '@/hooks/useProjectId'
+import { DashboardTemplateType } from '@/graph/generated/schemas'
+
+const DASHBOARD_TEMPLATE_TYPES = [
+	{ name: 'Blank dashboard', value: DashboardTemplateType.None },
+	{ name: 'Frontend metrics', value: DashboardTemplateType.FrontendMetrics },
+	{ name: 'AWS metrics', value: DashboardTemplateType.AwsMetrics },
+]
 
 interface Props {
 	showModal: boolean
@@ -28,12 +35,13 @@ export const CreateDashboardModal: React.FC<Props> = ({
 		],
 	})
 
-	const onSubmit = (name: string) => {
+	const onSubmit = (name: string, type: DashboardTemplateType) => {
 		upsertViz({
 			variables: {
 				visualization: {
 					name,
 					projectId,
+					dashboardTemplateType: type,
 				},
 			},
 			onCompleted: (d) => {
@@ -64,20 +72,22 @@ export const CreateDashboardModal: React.FC<Props> = ({
 interface ModalProps {
 	loading: boolean
 	onHideModal: () => void
-	onSubmit: (name: string) => void
+	onSubmit: (name: string, type: DashboardTemplateType) => void
 }
 
 const InnerModal = ({ loading, onHideModal, onSubmit }: ModalProps) => {
 	const formStore = Form.useStore({
 		defaultValues: {
 			name: '',
+			type: DashboardTemplateType.None,
 		},
 	})
 
 	const handleSubmit = (e: { preventDefault: () => void }) => {
 		e.preventDefault()
 		const newName = formStore.getValue(formStore.names.name)
-		onSubmit(newName)
+		const newType = formStore.getValue(formStore.names.type)
+		onSubmit(newName, newType)
 	}
 
 	return (
@@ -86,13 +96,18 @@ const InnerModal = ({ loading, onHideModal, onSubmit }: ModalProps) => {
 				<Form onSubmit={handleSubmit} store={formStore}>
 					<Form.Input
 						name={formStore.names.name}
-						label="Dashboard name"
+						label="Title"
 						placeholder="Untitled dashboard"
-						type="name"
 						autoFocus
 						autoComplete="off"
 					/>
 					<Box borderTop="dividerWeak" my="12" width="full" />
+					<Form.Select
+						name={formStore.names.type}
+						label="Dashboard type"
+						autoComplete="off"
+						options={DASHBOARD_TEMPLATE_TYPES}
+					/>
 
 					<Box
 						display="flex"
