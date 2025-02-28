@@ -14265,6 +14265,12 @@ input VariableInput {
 	field: String
 }
 
+enum DashboardTemplateType {
+	Blank
+	FrontendMetrics
+	AWSMetrics
+}
+
 input VisualizationInput {
 	id: ID
 	projectId: ID!
@@ -14272,6 +14278,7 @@ input VisualizationInput {
 	graphIds: [ID!]
 	timePreset: String
 	variables: [VariableInput!]
+	dashboardTemplateType: DashboardTemplateType
 }
 
 scalar Upload
@@ -88348,7 +88355,7 @@ func (ec *executionContext) unmarshalInputVisualizationInput(ctx context.Context
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"id", "projectId", "name", "graphIds", "timePreset", "variables"}
+	fieldsInOrder := [...]string{"id", "projectId", "name", "graphIds", "timePreset", "variables", "dashboardTemplateType"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -88397,6 +88404,13 @@ func (ec *executionContext) unmarshalInputVisualizationInput(ctx context.Context
 				return it, err
 			}
 			it.Variables = data
+		case "dashboardTemplateType":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("dashboardTemplateType"))
+			data, err := ec.unmarshalODashboardTemplateType2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐDashboardTemplateType(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.DashboardTemplateType = data
 		}
 	}
 
@@ -110286,6 +110300,22 @@ func (ec *executionContext) marshalODashboardDefinition2ᚖgithubᚗcomᚋhighli
 		return graphql.Null
 	}
 	return ec._DashboardDefinition(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalODashboardTemplateType2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐDashboardTemplateType(ctx context.Context, v interface{}) (*model.DashboardTemplateType, error) {
+	if v == nil {
+		return nil, nil
+	}
+	var res = new(model.DashboardTemplateType)
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalODashboardTemplateType2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐDashboardTemplateType(ctx context.Context, sel ast.SelectionSet, v *model.DashboardTemplateType) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return v
 }
 
 func (ec *executionContext) unmarshalODateRangeRequiredInput2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐDateRangeRequiredInput(ctx context.Context, v interface{}) (*model.DateRangeRequiredInput, error) {

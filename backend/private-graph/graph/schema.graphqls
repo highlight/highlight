@@ -2189,6 +2189,12 @@ input VariableInput {
 	field: String
 }
 
+enum DashboardTemplateType {
+	None
+	FrontendMetrics
+	AWSMetrics
+}
+
 input VisualizationInput {
 	id: ID
 	projectId: ID!
@@ -2196,6 +2202,7 @@ input VisualizationInput {
 	graphIds: [ID!]
 	timePreset: String
 	variables: [VariableInput!]
+	dashboardTemplateType: DashboardTemplateType
 }
 
 scalar Upload
