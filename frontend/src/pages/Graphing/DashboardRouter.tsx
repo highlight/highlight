@@ -12,10 +12,13 @@ const DashboardRouter = () => {
 			<Route path=":dashboard_id" element={<Dashboard />} />
 			<Route
 				path=":dashboard_id/edit/:graph_id"
-				element={<GraphingEditor />}
+				element={<GraphingEditor key="editGraph" />}
 			/>
-			<Route path=":dashboard_id/new" element={<GraphingEditor />} />
-			<Route path="new" element={<GraphingEditor />} />
+			<Route
+				path=":dashboard_id/new"
+				element={<GraphingEditor key="addGraph" />}
+			/>
+			<Route path="new" element={<GraphingEditor key="newGraph" />} />
 			<Route
 				path=":dashboard_id/view/:graph_id"
 				element={<ExpandedGraph />}

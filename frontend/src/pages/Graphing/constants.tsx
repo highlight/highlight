@@ -16,7 +16,7 @@ import {
 } from '@/graph/generated/schemas'
 
 export const DEFAULT_BUCKET_COUNT = 50
-export const DEFAULT_BUCKET_INTERVAL = 60 * 60
+export const DEFAULT_BUCKET_INTERVAL = 5 * 60
 
 export const TIME_METRICS = {
 	active_length: 'ms',

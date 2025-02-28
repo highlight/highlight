@@ -1460,6 +1460,7 @@ const Graph = ({
 	const [spotlight, setSpotlight] = useState<number | undefined>()
 
 	useEffect(() => {
+		console.log('useEffect', id, data)
 		if (id && data) {
 			setGraphData((graphData) => ({ ...graphData, [id]: data }))
 		}

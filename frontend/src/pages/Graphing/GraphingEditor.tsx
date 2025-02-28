@@ -3,11 +3,10 @@ import {
 	Box,
 	Button,
 	ButtonIcon,
-	DateRangePicker,
 	Form,
-	IconSolidClock,
 	IconSolidX,
 	Input,
+	presetValue,
 	Select,
 	Stack,
 	TagSwitchGroup,
@@ -18,6 +17,7 @@ import { useParams } from '@util/react-router/useParams'
 import { Divider } from 'antd'
 import React, {
 	PropsWithChildren,
+	useCallback,
 	useEffect,
 	useId,
 	useMemo,
@@ -41,6 +41,8 @@ import {
 	MetricAggregator,
 	MetricExpression,
 	ProductType,
+	ThresholdCondition,
+	ThresholdType,
 } from '@/graph/generated/schemas'
 import { useProjectId } from '@/hooks/useProjectId'
 import { BAR_DISPLAY, BarDisplay } from '@/pages/Graphing/components/BarChart'
@@ -60,7 +62,24 @@ import {
 	TABLE_NULL_HANDLING,
 	TableNullHandling,
 } from '@/pages/Graphing/components/Table'
-import { HeaderDivider } from '@/pages/Graphing/Dashboard'
+import { EventSteps } from '@pages/Graphing/EventSelection/EventSteps'
+import { EventSelection } from '@pages/Graphing/EventSelection'
+import { useGraphingVariables } from '@/pages/Graphing/hooks/useGraphingVariables'
+import { VariablesBar } from '@/pages/Graphing/components/VariablesBar'
+import { useRetentionPresets } from '@/components/Search/SearchForm/hooks'
+import { omit } from 'lodash'
+import {
+	BUCKET_FREQUENCIES,
+	EventSelectionStep,
+	loadFunnelStep,
+} from '@pages/Graphing/util'
+import { useGraphData } from '@pages/Graphing/hooks/useGraphData'
+import { GraphContextProvider } from './context/GraphContext'
+import TemplateMenu from '@/pages/Graphing/TemplateMenu'
+import { Panel } from '@/pages/Graphing/components/Panel'
+import { useGraphTime } from '@/pages/Graphing/hooks/useGraphTime'
+import { DEFAULT_SQL, SqlEditor } from '@/pages/Graphing/components/SqlEditor'
+import { ActionBar } from '@/pages/Graphing/components/ActionBar'
 
 import { Combobox } from './Combobox'
 import {
@@ -80,24 +99,12 @@ import {
 	LineChartSettings,
 	TableSettings,
 } from './Settings'
-import { EventSteps } from '@pages/Graphing/EventSelection/EventSteps'
-import { EventSelection } from '@pages/Graphing/EventSelection'
-import { useGraphingVariables } from '@/pages/Graphing/hooks/useGraphingVariables'
-import { VariablesBar } from '@/pages/Graphing/components/VariablesBar'
-import { useRetentionPresets } from '@/components/Search/SearchForm/hooks'
-import { omit } from 'lodash'
 import {
-	BUCKET_FREQUENCIES,
-	EventSelectionStep,
-	loadFunnelStep,
-} from '@pages/Graphing/util'
-import { useGraphData } from '@pages/Graphing/hooks/useGraphData'
-import { GraphContextProvider } from './context/GraphContext'
-import TemplateMenu from '@/pages/Graphing/TemplateMenu'
-import { Panel } from '@/pages/Graphing/components/Panel'
-import { useGraphTime } from '@/pages/Graphing/hooks/useGraphTime'
-
-import { DEFAULT_SQL, SqlEditor } from '@/pages/Graphing/components/SqlEditor'
+	AlertSettings,
+	DEFAULT_COOLDOWN,
+	DEFAULT_WINDOW,
+} from '@/pages/Alerts/AlertForm'
+import { exportGraph } from '@/pages/Graphing/hooks/exportGraph'
 
 type BucketBy = 'Interval' | 'Count'
 const BUCKET_BY_OPTIONS: BucketBy[] = ['Interval', 'Count']
@@ -190,7 +197,7 @@ const getBucketByKey = (
 
 type BucketBySetting = 'Interval' | 'Count'
 
-type GraphSettings = {
+export type GraphSettings = {
 	productType: ProductType
 	viewType: View
 	functionType: MetricAggregator
@@ -225,28 +232,37 @@ export const GraphingEditor: React.FC = () => {
 	}>()
 
 	const [showTemplates, setShowTemplates] = useState(false)
+	const [dashboardIdSetting, setDashboardIdSetting] = useState<
+		string | undefined
+	>()
 
+	const currentDashboardId = dashboard_id ?? dashboardIdSetting ?? ''
 	const isEdit = graph_id !== undefined
+	const tempId = useId()
+	const graphId = graph_id || tempId
 
-	const { presets, minDate } = useRetentionPresets()
+	const { presets } = useRetentionPresets()
 
-	const { startDate, endDate, selectedPreset, updateSearchTime } =
-		useGraphTime(presets)
+	const {
+		startDate,
+		endDate,
+		selectedPreset,
+		updateSearchTime,
+		rebaseSearchTime,
+	} = useGraphTime(presets)
 
 	const [upsertGraph, upsertGraphContext] = useUpsertGraphMutation()
 	const [deleteGraph] = useDeleteGraphMutation()
 
-	const tempId = useId()
-
 	const navigate = useNavigate()
-	const redirectToDashboard = () => {
+	const redirectToDashboard = useCallback(() => {
 		const params = new URLSearchParams(location.search)
 		params.delete(SETTINGS_PARAM)
 		navigate({
 			pathname: `../${currentDashboardId}`,
 			search: params.toString(),
 		})
-	}
+	}, [currentDashboardId, navigate])
 
 	const { projectId } = useProjectId()
 
@@ -263,12 +279,6 @@ export const GraphingEditor: React.FC = () => {
 				setDashboardIdSetting(data.visualizations.results.at(0)?.id)
 			},
 		})
-
-	const [dashboardIdSetting, setDashboardIdSetting] = useState<
-		string | undefined
-	>()
-
-	const currentDashboardId = dashboard_id ?? dashboardIdSetting ?? ''
 
 	const onSave = () => {
 		let display: string | undefined
@@ -363,14 +373,14 @@ export const GraphingEditor: React.FC = () => {
 			})
 	}
 
-	const onDelete = () => {
+	const onDelete = useCallback(() => {
 		if (!isEdit) {
 			return
 		}
 
 		deleteGraph({
 			variables: {
-				id: graph_id,
+				id: graph_id!,
 			},
 			optimisticResponse: {
 				deleteGraph: true,
@@ -402,7 +412,7 @@ export const GraphingEditor: React.FC = () => {
 				redirectToDashboard()
 			})
 			.catch(() => toast.error('Failed to delete graph'))
-	}
+	}, [currentDashboardId, deleteGraph, graph_id, isEdit, redirectToDashboard])
 
 	const applyGraph = (g: GraphType) => {
 		const viewType = g.type as View
@@ -595,15 +605,15 @@ export const GraphingEditor: React.FC = () => {
 		initialSettings?.bucketByEnabled ?? true,
 	)
 	const [bucketBySetting, setBucketBySetting] = useState(
-		initialSettings?.bucketBySetting ?? BUCKET_BY_OPTIONS[1],
+		initialSettings?.bucketBySetting ?? BUCKET_BY_OPTIONS[0],
 	)
 	const [bucketByKey, setBucketByKey] = useState(
 		initialSettings?.bucketByKey ?? TIMESTAMP_KEY,
 	)
-	const [bucketCount, setBucketCount] = useState<number | string>(
+	const [bucketCount, setBucketCount] = useState<number>(
 		initialSettings?.bucketCount ?? DEFAULT_BUCKET_COUNT,
 	)
-	const [bucketInterval, setBucketInterval] = useState<number | string>(
+	const [bucketInterval, setBucketInterval] = useState<number>(
 		initialSettings?.bucketInterval ?? DEFAULT_BUCKET_INTERVAL,
 	)
 
@@ -648,31 +658,58 @@ export const GraphingEditor: React.FC = () => {
 	)
 	const isPreview = graphPreview !== undefined || showTemplates
 
-	const settings = {
-		productType,
-		viewType,
-		lineNullHandling,
-		lineDisplay,
-		barDisplay,
-		funnelDisplay,
-		tableNullHandling,
-		query,
-		metricViewTitle,
-		groupByEnabled,
-		groupByKeys,
-		limitFunctionType,
-		limit,
-		funnelSteps,
-		bucketByEnabled,
-		bucketByKey,
-		bucketCount,
-		bucketInterval,
-		bucketBySetting,
-		fetchedLimitMetric,
-		expressions,
-		editor,
-		sql,
-	}
+	const settings = useMemo(
+		() => ({
+			productType,
+			viewType,
+			lineNullHandling,
+			lineDisplay,
+			barDisplay,
+			funnelDisplay,
+			tableNullHandling,
+			query,
+			metricViewTitle,
+			groupByEnabled,
+			groupByKeys,
+			limitFunctionType,
+			limit,
+			funnelSteps,
+			bucketByEnabled,
+			bucketByKey,
+			bucketCount,
+			bucketInterval,
+			bucketBySetting,
+			fetchedLimitMetric,
+			expressions,
+			editor,
+			sql,
+		}),
+		[
+			barDisplay,
+			bucketByEnabled,
+			bucketByKey,
+			bucketBySetting,
+			bucketCount,
+			bucketInterval,
+			editor,
+			expressions,
+			fetchedLimitMetric,
+			funnelDisplay,
+			funnelSteps,
+			groupByEnabled,
+			groupByKeys,
+			limit,
+			limitFunctionType,
+			lineDisplay,
+			lineNullHandling,
+			metricViewTitle,
+			productType,
+			query,
+			sql,
+			tableNullHandling,
+			viewType,
+		],
+	)
 
 	const settingsEncoded = btoa(JSON.stringify(settings))
 
@@ -729,6 +766,61 @@ export const GraphingEditor: React.FC = () => {
 			: 'Count'
 	}
 
+	const handleDownload = useCallback(() => {
+		return exportGraph(
+			graphId,
+			metricViewTitle,
+			graphContext.graphData.current
+				? graphContext.graphData.current[graphId]
+				: [],
+		)
+	}, [graphContext.graphData, graphId, metricViewTitle])
+
+	const handleClone = useCallback(() => {
+		const updatedSettings = {
+			...settings,
+			metricViewTitle: `${settings.metricViewTitle} copy`,
+		}
+
+		navigate({
+			pathname: `/${projectId}/dashboards/new`,
+			search: `settings=${btoa(JSON.stringify(updatedSettings))}`,
+		})
+	}, [navigate, projectId, settings])
+
+	const handleCreateAlert = useCallback(() => {
+		const alertSettings: AlertSettings = {
+			productType: settings.productType,
+			functionType: settings.limitFunctionType ?? MetricAggregator.Count,
+			functionColumn: settings.fetchedLimitMetric,
+			query: settings.query,
+			alertName: settings.metricViewTitle,
+			groupByEnabled: !!settings.groupByKeys?.length,
+			groupByKey: settings.groupByKeys?.at(0) ?? '',
+			thresholdValue: 1,
+			thresholdCondition: ThresholdCondition.Above,
+			thresholdType: ThresholdType.Constant,
+			thresholdWindow: DEFAULT_WINDOW,
+			thresholdCooldown: settings.bucketInterval ?? DEFAULT_COOLDOWN,
+			destinations: [],
+			editor: Editor.QueryBuilder,
+			sql: undefined,
+		}
+
+		const alertSettingsEncoded = btoa(JSON.stringify(alertSettings))
+
+		let search = ''
+		if (selectedPreset !== undefined) {
+			search += `relative_time=${presetValue(selectedPreset)}&`
+		}
+		search += `${SETTINGS_PARAM}=${alertSettingsEncoded}`
+
+		navigate({
+			pathname: `/${projectId}/alerts/new`,
+			search,
+		})
+	}, [settings, selectedPreset, navigate, projectId])
+
 	if (!completed) {
 		return null
 	}
@@ -773,29 +865,6 @@ export const GraphingEditor: React.FC = () => {
 						</Text>
 						<Box display="flex" gap="4">
 							<Button
-								emphasis="medium"
-								kind="secondary"
-								onClick={() => setShowTemplates(true)}
-							>
-								Templates
-							</Button>
-							<HeaderDivider />
-							<DateRangePicker
-								iconLeft={<IconSolidClock size={14} />}
-								emphasis="medium"
-								kind="secondary"
-								selectedValue={{
-									startDate,
-									endDate,
-									selectedPreset,
-								}}
-								onDatesChange={updateSearchTime}
-								presets={presets}
-								minDate={minDate}
-							/>
-							<HeaderDivider />
-
-							<Button
 								emphasis="low"
 								kind="secondary"
 								onClick={() => {
@@ -804,11 +873,6 @@ export const GraphingEditor: React.FC = () => {
 							>
 								Cancel
 							</Button>
-							{isEdit && (
-								<Button kind="danger" onClick={onDelete}>
-									Delete graph
-								</Button>
-							)}
 							<Button
 								disabled={upsertGraphContext.loading}
 								onClick={onSave}
@@ -830,6 +894,22 @@ export const GraphingEditor: React.FC = () => {
 								justifyContent="space-between"
 								cssClass={style.editGraphPreview}
 							>
+								<ActionBar
+									handleShowTemplates={() =>
+										setShowTemplates(true)
+									}
+									handleRefresh={rebaseSearchTime}
+									dateRangeValue={{
+										startDate,
+										endDate,
+										selectedPreset,
+									}}
+									updateSearchTime={updateSearchTime}
+									onDownload={handleDownload}
+									onClone={handleClone}
+									onDelete={isEdit ? onDelete : undefined}
+									onCreateAlert={handleCreateAlert}
+								/>
 								<VariablesBar
 									dashboardId={currentDashboardId}
 								/>
@@ -860,6 +940,7 @@ export const GraphingEditor: React.FC = () => {
 											height="full"
 										>
 											<Graph
+												id={graphId}
 												title={
 													metricViewTitle ||
 													tempMetricViewTitle
