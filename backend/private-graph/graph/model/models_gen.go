@@ -2134,16 +2134,18 @@ func (e ProductType) MarshalGQL(w io.Writer) {
 type ReservedErrorGroupKey string
 
 const (
-	ReservedErrorGroupKeyEvent    ReservedErrorGroupKey = "event"
-	ReservedErrorGroupKeySecureID ReservedErrorGroupKey = "secure_id"
-	ReservedErrorGroupKeyStatus   ReservedErrorGroupKey = "status"
-	ReservedErrorGroupKeyTag      ReservedErrorGroupKey = "tag"
-	ReservedErrorGroupKeyType     ReservedErrorGroupKey = "type"
+	ReservedErrorGroupKeyEvent        ReservedErrorGroupKey = "event"
+	ReservedErrorGroupKeySecureID     ReservedErrorGroupKey = "secure_id"
+	ReservedErrorGroupKeySnoozedUntil ReservedErrorGroupKey = "snoozed_until"
+	ReservedErrorGroupKeyStatus       ReservedErrorGroupKey = "status"
+	ReservedErrorGroupKeyTag          ReservedErrorGroupKey = "tag"
+	ReservedErrorGroupKeyType         ReservedErrorGroupKey = "type"
 )
 
 var AllReservedErrorGroupKey = []ReservedErrorGroupKey{
 	ReservedErrorGroupKeyEvent,
 	ReservedErrorGroupKeySecureID,
+	ReservedErrorGroupKeySnoozedUntil,
 	ReservedErrorGroupKeyStatus,
 	ReservedErrorGroupKeyTag,
 	ReservedErrorGroupKeyType,
@@ -2151,7 +2153,7 @@ var AllReservedErrorGroupKey = []ReservedErrorGroupKey{
 
 func (e ReservedErrorGroupKey) IsValid() bool {
 	switch e {
-	case ReservedErrorGroupKeyEvent, ReservedErrorGroupKeySecureID, ReservedErrorGroupKeyStatus, ReservedErrorGroupKeyTag, ReservedErrorGroupKeyType:
+	case ReservedErrorGroupKeyEvent, ReservedErrorGroupKeySecureID, ReservedErrorGroupKeySnoozedUntil, ReservedErrorGroupKeyStatus, ReservedErrorGroupKeyTag, ReservedErrorGroupKeyType:
 		return true
 	}
 	return false
@@ -2250,6 +2252,7 @@ const (
 	ReservedErrorsJoinedKeySecureSessionID ReservedErrorsJoinedKey = "secure_session_id"
 	ReservedErrorsJoinedKeyServiceName     ReservedErrorsJoinedKey = "service_name"
 	ReservedErrorsJoinedKeyServiceVersion  ReservedErrorsJoinedKey = "service_version"
+	ReservedErrorsJoinedKeySnoozedUntil    ReservedErrorsJoinedKey = "snoozed_until"
 	ReservedErrorsJoinedKeyTimestamp       ReservedErrorsJoinedKey = "timestamp"
 	ReservedErrorsJoinedKeyTraceID         ReservedErrorsJoinedKey = "trace_id"
 	ReservedErrorsJoinedKeyVisitedURL      ReservedErrorsJoinedKey = "visited_url"
@@ -2271,6 +2274,7 @@ var AllReservedErrorsJoinedKey = []ReservedErrorsJoinedKey{
 	ReservedErrorsJoinedKeySecureSessionID,
 	ReservedErrorsJoinedKeyServiceName,
 	ReservedErrorsJoinedKeyServiceVersion,
+	ReservedErrorsJoinedKeySnoozedUntil,
 	ReservedErrorsJoinedKeyTimestamp,
 	ReservedErrorsJoinedKeyTraceID,
 	ReservedErrorsJoinedKeyVisitedURL,
@@ -2283,7 +2287,7 @@ var AllReservedErrorsJoinedKey = []ReservedErrorsJoinedKey{
 
 func (e ReservedErrorsJoinedKey) IsValid() bool {
 	switch e {
-	case ReservedErrorsJoinedKeyID, ReservedErrorsJoinedKeyBrowser, ReservedErrorsJoinedKeyClientID, ReservedErrorsJoinedKeyEnvironment, ReservedErrorsJoinedKeyHasSession, ReservedErrorsJoinedKeyOsName, ReservedErrorsJoinedKeySecureSessionID, ReservedErrorsJoinedKeyServiceName, ReservedErrorsJoinedKeyServiceVersion, ReservedErrorsJoinedKeyTimestamp, ReservedErrorsJoinedKeyTraceID, ReservedErrorsJoinedKeyVisitedURL, ReservedErrorsJoinedKeyEvent, ReservedErrorsJoinedKeySecureID, ReservedErrorsJoinedKeyStatus, ReservedErrorsJoinedKeyTag, ReservedErrorsJoinedKeyType:
+	case ReservedErrorsJoinedKeyID, ReservedErrorsJoinedKeyBrowser, ReservedErrorsJoinedKeyClientID, ReservedErrorsJoinedKeyEnvironment, ReservedErrorsJoinedKeyHasSession, ReservedErrorsJoinedKeyOsName, ReservedErrorsJoinedKeySecureSessionID, ReservedErrorsJoinedKeyServiceName, ReservedErrorsJoinedKeyServiceVersion, ReservedErrorsJoinedKeySnoozedUntil, ReservedErrorsJoinedKeyTimestamp, ReservedErrorsJoinedKeyTraceID, ReservedErrorsJoinedKeyVisitedURL, ReservedErrorsJoinedKeyEvent, ReservedErrorsJoinedKeySecureID, ReservedErrorsJoinedKeyStatus, ReservedErrorsJoinedKeyTag, ReservedErrorsJoinedKeyType:
 		return true
 	}
 	return false

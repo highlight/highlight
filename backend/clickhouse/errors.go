@@ -28,6 +28,7 @@ type ClickhouseErrorGroup struct {
 	Event               string
 	Status              string
 	Type                string
+	SnoozedUntil        int64
 	ErrorTagID          int64
 	ErrorTagTitle       string
 	ErrorTagDescription string
@@ -72,6 +73,11 @@ func (client *Client) WriteErrorGroups(ctx context.Context, groups []*model.Erro
 			Status:    string(group.State),
 			Type:      group.Type,
 		}
+		if group.SnoozedUntil != nil {
+			chEg.SnoozedUntil = group.SnoozedUntil.UTC().UnixMicro()
+		} else {
+			chEg.SnoozedUntil = -1
+		}
 		if group.ErrorTag != nil {
 			chEg.ErrorTagID = int64(group.ErrorTag.ID)
 			chEg.ErrorTagTitle = group.ErrorTag.Title
@@ -91,7 +97,7 @@ func (client *Client) WriteErrorGroups(ctx context.Context, groups []*model.Erro
 			NewStruct(new(ClickhouseErrorGroup)).
 			InsertInto(ErrorGroupsTable, chGroups...).
 			BuildWithFlavor(sqlbuilder.ClickHouse)
-		sql, args = replaceTimestampInserts(sql, args, map[int]bool{1: true, 2: true}, MicroSeconds)
+		sql, args = replaceTimestampInserts(sql, args, map[int]bool{1: true, 2: true, 8: true}, MicroSeconds)
 		return client.conn.Exec(chCtx, sql, args...)
 	}
 
@@ -587,11 +593,12 @@ var reservedErrorGroupKeys = lo.Map(modelInputs.AllReservedErrorGroupKey, func(k
 var ErrorGroupsTableConfig = model.TableConfig{
 	TableName: ErrorGroupsTable,
 	KeysToColumns: map[string]string{
-		string(modelInputs.ReservedErrorGroupKeyEvent):    "Event",
-		string(modelInputs.ReservedErrorGroupKeySecureID): "SecureID",
-		string(modelInputs.ReservedErrorGroupKeyStatus):   "Status",
-		string(modelInputs.ReservedErrorGroupKeyTag):      "ErrorTagTitle",
-		string(modelInputs.ReservedErrorGroupKeyType):     "Type",
+		string(modelInputs.ReservedErrorGroupKeyEvent):        "Event",
+		string(modelInputs.ReservedErrorGroupKeySecureID):     "SecureID",
+		string(modelInputs.ReservedErrorGroupKeySnoozedUntil): "SnoozedUntil",
+		string(modelInputs.ReservedErrorGroupKeyStatus):       "Status",
+		string(modelInputs.ReservedErrorGroupKeyTag):          "ErrorTagTitle",
+		string(modelInputs.ReservedErrorGroupKeyType):         "Type",
 	},
 	BodyColumn:   "Event",
 	ReservedKeys: reservedErrorGroupKeys,
@@ -637,6 +644,7 @@ var ErrorsJoinedTableConfig = model.TableConfig{
 		string(modelInputs.ReservedErrorsJoinedKeySecureSessionID): "SecureSessionID",
 		string(modelInputs.ReservedErrorsJoinedKeyServiceName):     "ServiceName",
 		string(modelInputs.ReservedErrorsJoinedKeyServiceVersion):  "ServiceVersion",
+		string(modelInputs.ReservedErrorsJoinedKeySnoozedUntil):    "SnoozedUntil",
 		string(modelInputs.ReservedErrorsJoinedKeyStatus):          "Status",
 		string(modelInputs.ReservedErrorsJoinedKeyTag):             "ErrorTagTitle",
 		string(modelInputs.ReservedErrorsJoinedKeyTimestamp):       "Timestamp",

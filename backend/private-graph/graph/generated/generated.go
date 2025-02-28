@@ -13162,6 +13162,7 @@ enum ReservedErrorObjectKey {
 enum ReservedErrorGroupKey {
 	event
 	secure_id
+	snoozed_until
 	status
 	tag
 	type
@@ -13180,6 +13181,7 @@ enum ReservedErrorsJoinedKey {
 	secure_session_id
 	service_name
 	service_version
+	snoozed_until
 	timestamp
 	trace_id
 	visited_url
