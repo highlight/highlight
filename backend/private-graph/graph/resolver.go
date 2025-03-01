@@ -3878,7 +3878,7 @@ func (r *Resolver) GetGitlabProjects(
 func (r *Resolver) CreateDefaultDashboard(ctx context.Context, projectID int) (*model.VisualizationsResponse, error) {
 	viz := model.Visualization{
 		ProjectID: projectID,
-		Name:      "Insights",
+		Name:      "User Insights",
 	}
 
 	countAggregator := modelInputs.MetricAggregatorCount
