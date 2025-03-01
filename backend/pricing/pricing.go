@@ -4,9 +4,10 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
-	"github.com/highlight-run/highlight/backend/env"
 	"strings"
 	"time"
+
+	"github.com/highlight-run/highlight/backend/env"
 
 	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/service/marketplaceentitlementservice"
@@ -1351,7 +1352,7 @@ func (w *Worker) ProcessBillingIssue(ctx context.Context, workspace *model.Works
 	}
 
 	if warningSent.IsZero() {
-		if err = model.SendBillingNotifications(ctx, w.db, w.mailClient, email.BillingInvalidPayment, workspace); err != nil {
+		if err = model.SendBillingNotifications(ctx, w.db, w.mailClient, email.BillingInvalidPayment, workspace, string(status)); err != nil {
 			log.WithContext(ctx).WithError(err).Error("BILLING_ERROR failed to send customer invalid billing warning notification")
 			return
 		}
