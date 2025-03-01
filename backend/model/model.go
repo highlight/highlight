@@ -1974,7 +1974,7 @@ type ErrorAlertEvent struct {
 	SentAt        time.Time
 }
 
-func SendBillingNotifications(ctx context.Context, db *gorm.DB, mailClient *sendgrid.Client, emailType Email.EmailType, workspace *Workspace) error {
+func SendBillingNotifications(ctx context.Context, db *gorm.DB, mailClient *sendgrid.Client, emailType Email.EmailType, workspace *Workspace, paymentIssue string) error {
 	// Skip sending email if sending was attempted within the cache TTL
 	cacheKey := fmt.Sprintf("%s;%d", emailType, workspace.ID)
 	_, exists := emailHistoryCache.Get(cacheKey)
@@ -1982,6 +1982,12 @@ func SendBillingNotifications(ctx context.Context, db *gorm.DB, mailClient *send
 		return nil
 	}
 	emailHistoryCache.Set(cacheKey, true)
+
+	log.WithContext(ctx).
+		WithField("emailType", emailType).
+		WithField("workspaceID", workspace.ID).
+		WithField("paymentIssue", paymentIssue).
+		Info("sending billing notification")
 
 	history := BillingEmailHistory{
 		WorkspaceID: workspace.ID,
