@@ -1,10 +1,15 @@
 # Highlight.io Monorepo
 
+-   Use yarn for Node.js package management.
+
 ## Guidelines for ./frontend
-- Don't use Tailwind CSS, use the components in @highlight-run/ui.
+
+-   Don't use Tailwind CSS, use the components in @highlight-run/ui.
 
 ## Guidelines for ./highlight.io
-- Don't use Tailwind CSS, use CSS modules instead.
+
+-   Don't use Tailwind CSS, use CSS modules instead.
 
 ## Guidelines for ./sdk
-- After updating ./sdk/firstload or ./sdk/client, you need to build using `yarn build:sdk` or run `yarn build` from ./sdk/firstload.
+
+-   After updating ./sdk/firstload or ./sdk/client, you need to build using `yarn build:sdk` or run `yarn build` from ./sdk/firstload.

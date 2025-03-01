@@ -1,0 +1,104 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: >
+    Highlight Node.js SDK AWS Lambda Example
+    Sample application showcasing Highlight SDK integration with AWS Lambda
+
+Parameters:
+    HighlightProjectID:
+        Type: String
+        Description: Your Highlight Project ID
+        Default: 'your-project-id'
+
+Globals:
+    Function:
+        Timeout: 30
+        MemorySize: 512
+        Runtime: nodejs18.x
+        Architectures:
+            - x86_64
+        Environment:
+            Variables:
+                HIGHLIGHT_PROJECT_ID: !Ref HighlightProjectID
+
+Resources:
+    # Lambda function handling HTTP events
+    ApiFunction:
+        Type: AWS::Serverless::Function
+        Properties:
+            CodeUri: ./
+            Handler: src/api.handler
+            Events:
+                GetApi:
+                    Type: Api
+                    Properties:
+                        Path: /api
+                        Method: GET
+                PostApi:
+                    Type: Api
+                    Properties:
+                        Path: /api
+                        Method: POST
+
+    # Lambda function for processing events
+    ProcessorFunction:
+        Type: AWS::Serverless::Function
+        Properties:
+            CodeUri: ./
+            Handler: src/processor.handler
+            Events:
+                SQSEvent:
+                    Type: SQS
+                    Properties:
+                        Queue: !GetAtt ProcessingQueue.Arn
+                        BatchSize: 10
+
+    # Lambda function for error demonstration
+    ErrorFunction:
+        Type: AWS::Serverless::Function
+        Properties:
+            CodeUri: ./
+            Handler: src/error.handler
+            Events:
+                ApiEvent:
+                    Type: Api
+                    Properties:
+                        Path: /error
+                        Method: GET
+
+    # Lambda function for metrics demonstration
+    MetricsFunction:
+        Type: AWS::Serverless::Function
+        Properties:
+            CodeUri: ./
+            Handler: src/metrics.handler
+            Events:
+                ApiEvent:
+                    Type: Api
+                    Properties:
+                        Path: /metrics
+                        Method: GET
+
+    # SQS queue for event processing demonstration
+    ProcessingQueue:
+        Type: AWS::SQS::Queue
+        Properties:
+            MessageRetentionPeriod: 1209600 # 14 days
+            VisibilityTimeout: 180
+
+Outputs:
+    ApiFunction:
+        Description: 'API Lambda Function ARN'
+        Value: !GetAtt ApiFunction.Arn
+
+    ApiEndpoint:
+        Description: 'API Gateway endpoint URL'
+        Value: !Sub 'https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/api/'
+
+    ErrorEndpoint:
+        Description: 'Error demonstration endpoint URL'
+        Value: !Sub 'https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/error/'
+
+    MetricsEndpoint:
+        Description: 'Metrics demonstration endpoint URL'
+        Value: !Sub 'https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/metrics/'
