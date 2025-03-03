@@ -115,7 +115,7 @@ export const VariablesBar: React.FC<Props> = ({ dashboardId }) => {
 							)
 						})}
 					<Button
-						emphasis="high"
+						emphasis="medium"
 						kind="secondary"
 						size="xSmall"
 						iconLeft={<IconSolidAdjustments size={14} />}
