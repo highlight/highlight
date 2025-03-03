@@ -48,7 +48,6 @@ export const ActionBar: React.FC<Props> = ({
 			gap="8"
 			borderBottom="dividerWeak"
 			direction="row"
-			// TODO(spenny): don't show on view page
 			justifyContent={handleShowTemplates ? 'space-between' : 'flex-end'}
 			alignItems="center"
 			style={{ height: 40 }}
