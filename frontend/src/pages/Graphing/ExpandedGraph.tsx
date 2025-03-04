@@ -312,7 +312,7 @@ export const ExpandedGraph = () => {
 						</Stack>
 						<Box display="flex" gap="4">
 							<Button
-								emphasis="medium"
+								emphasis="low"
 								kind="secondary"
 								onClick={handleShare}
 							>

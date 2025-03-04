@@ -392,6 +392,11 @@ export const Dashboard = () => {
 
 	const noGraphs = graphs?.length === 0
 
+	const handleShare = () => {
+		window.navigator.clipboard.writeText(window.location.href)
+		toast.success('Copied link!')
+	}
+
 	return (
 		<>
 			<Helmet>
@@ -455,6 +460,13 @@ export const Dashboard = () => {
 						</Stack>
 						<Box display="flex" gap="4">
 							<>
+								<Button
+									emphasis="low"
+									kind="secondary"
+									onClick={handleShare}
+								>
+									Share
+								</Button>
 								<DateRangePicker
 									emphasis="medium"
 									kind="secondary"
