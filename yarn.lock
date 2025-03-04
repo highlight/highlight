@@ -10417,7 +10417,7 @@ __metadata:
     "@types/randomcolor": "npm:^0.5.5"
     "@types/react": "npm:^18.3.18"
     "@types/react-copy-to-clipboard": "npm:^4.3.0"
-    "@types/react-date-range": "npm:^1.4.9"
+    "@types/react-date-range": "npm:^1.4.10"
     "@types/react-dom": "npm:^18.3.5"
     "@types/react-grid-layout": "npm:^1.3.0"
     "@types/react-helmet": "npm:^6.1.11"
@@ -22952,13 +22952,13 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/react-date-range@npm:^1.4.9":
-  version: 1.4.9
-  resolution: "@types/react-date-range@npm:1.4.9"
+"@types/react-date-range@npm:^1.4.10":
+  version: 1.4.10
+  resolution: "@types/react-date-range@npm:1.4.10"
   dependencies:
     "@types/react": "npm:*"
     date-fns: "npm:^2.16.1"
-  checksum: 10/3fd8f552228276850b6d973c123eb6075c5f63e56064470cc31bc6b193a2f3fb13124277f55005398d5ee92a9077ed77e5246c283524bd1e24a1887775155044
+  checksum: 10/a6b0b7ee6efcce596f1615730d3412e978465eb837a52332f034c9c9943420cb1828d2853dec226d6e5c7444a152e3934f7a216b98dc3cdbe9d3526cc791acc9
   languageName: node
   linkType: hard
 
