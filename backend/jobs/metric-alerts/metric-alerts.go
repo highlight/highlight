@@ -28,8 +28,13 @@ const maxWorkers = 40
 const anomalyBucketCount = 100
 const alertEvalFreq = time.Minute
 
-var defaultAlertFilters = map[modelInputs.ProductType]string{
-	modelInputs.ProductTypeErrors: "status=OPEN ",
+func applyDefaultFilters(productType modelInputs.ProductType) string {
+	if productType == modelInputs.ProductTypeErrors {
+		now := time.Now().UTC()
+		return fmt.Sprintf(`status=OPEN snoozed_until<"%s" `, now.Format(timeFormatSecondsNoTz))
+	}
+
+	return ""
 }
 
 func WatchMetricAlerts(ctx context.Context, DB *gorm.DB, MailClient *sendgrid.Client, ccClient *clickhouse.Client, lambdaClient *lambda.Client) {
@@ -147,7 +152,7 @@ func processMetricAlert(ctx context.Context, DB *gorm.DB, MailClient *sendgrid.C
 		return errors.Errorf("Unknown product type: %s", alert.ProductType)
 	}
 
-	query := defaultAlertFilters[alert.ProductType]
+	query := applyDefaultFilters(alert.ProductType)
 	if alert.Query != nil {
 		query += *alert.Query
 	}
