@@ -3,13 +3,14 @@ package main
 import (
 	"context"
 	"fmt"
-	publicModel "github.com/highlight-run/highlight/backend/public-graph/graph/model"
 	"io"
 	"math/rand"
 	"net/http"
 	"strings"
 	"sync"
 	"time"
+
+	publicModel "github.com/highlight-run/highlight/backend/public-graph/graph/model"
 
 	ghandler "github.com/99designs/gqlgen/graphql/handler"
 	"github.com/99designs/gqlgen/graphql/handler/extension"
@@ -28,7 +29,6 @@ import (
 	"github.com/highlight-run/go-resthooks"
 	"github.com/highlight-run/highlight/backend/assets"
 	"github.com/highlight-run/highlight/backend/clickhouse"
-	dd "github.com/highlight-run/highlight/backend/datadog"
 	"github.com/highlight-run/highlight/backend/embeddings"
 	"github.com/highlight-run/highlight/backend/enterprise"
 	"github.com/highlight-run/highlight/backend/env"
@@ -605,16 +605,6 @@ func main() {
 		}
 		w := &worker.Worker{Resolver: privateResolver, PublicResolver: publicResolver, StorageClient: storageClient}
 		if runtimeParsed == util.Worker {
-			if !env.IsDevOrTestEnv() && !env.IsOnPrem() {
-				serviceName := string(handlerParsed)
-
-				log.WithContext(ctx).Info("Running dd client setup process...")
-				if err := dd.Start(serviceName); err != nil {
-					log.WithContext(ctx).Error(e.Wrap(err, "error starting dd clients with error"))
-				} else {
-					defer dd.Stop()
-				}
-			}
 			w.GetHandler(ctx, handlerParsed)(ctx)
 		} else {
 			go func() {

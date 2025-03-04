@@ -38,10 +38,7 @@ func (r *mutationResolver) InitializeSession(ctx context.Context, sessionSecureI
 		log.WithContext(ctx).Errorf("An unsupported verboseID was used: %s, %s", organizationVerboseID, clientConfig)
 	} else {
 		if projectID == 127101 || projectID == 127102 {
-			return &customModels.InitializeSessionResponse{
-				SecureID:  sessionSecureID,
-				ProjectID: projectID,
-			}, e.New("Session excluded by ingest filter")
+			return nil, e.New("Session excluded by ingest filter")
 		}
 
 		err = r.ProducerQueue.Submit(ctx, sessionSecureID, &kafkaqueue.Message{

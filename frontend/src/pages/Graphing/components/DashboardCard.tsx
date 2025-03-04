@@ -5,20 +5,15 @@ import {
 	Box,
 	Button,
 	IconSolidArrowsExpand,
-	IconSolidBell,
 	IconSolidCursorClick,
-	IconSolidDocumentDownload,
-	IconSolidDotsHorizontal,
-	IconSolidDuplicate,
 	IconSolidPencil,
-	IconSolidTrash,
-	Menu,
 } from '@highlight-run/ui/components'
 import clsx from 'clsx'
 
 import * as style from './DashboardCard.css'
 import { useState } from 'react'
 import useLocalStorage from '@rehooks/local-storage'
+import { GraphMenu } from '@/pages/Graphing/components/GraphMenu'
 
 export const DashboardCard = ({
 	id,
@@ -119,84 +114,13 @@ export const DashboardCard = ({
 										onClick={onEdit}
 									/>
 								)}
-								<Menu>
-									<Menu.Button
-										size="xSmall"
-										emphasis="low"
-										kind="secondary"
-										iconLeft={<IconSolidDotsHorizontal />}
-									/>
-									<Menu.List>
-										{onDownload && (
-											<Menu.Item
-												onClick={(e) => {
-													e.stopPropagation()
-													onDownload()
-												}}
-											>
-												<Box
-													display="flex"
-													alignItems="center"
-													gap="4"
-												>
-													<IconSolidDocumentDownload />
-													Download CSV
-												</Box>
-											</Menu.Item>
-										)}
-										{onCreateAlert && (
-											<Menu.Item
-												onClick={(e) => {
-													e.stopPropagation()
-													onCreateAlert()
-												}}
-											>
-												<Box
-													display="flex"
-													alignItems="center"
-													gap="4"
-												>
-													<IconSolidBell />
-													Create alert
-												</Box>
-											</Menu.Item>
-										)}
-										{onClone && (
-											<Menu.Item
-												onClick={(e) => {
-													e.stopPropagation()
-													onClone()
-												}}
-											>
-												<Box
-													display="flex"
-													alignItems="center"
-													gap="4"
-												>
-													<IconSolidDuplicate />
-													Clone graph
-												</Box>
-											</Menu.Item>
-										)}
-										{onDelete && (
-											<Menu.Item
-												onClick={(e) => {
-													e.stopPropagation()
-													onDelete()
-												}}
-											>
-												<Box
-													display="flex"
-													alignItems="center"
-													gap="4"
-												>
-													<IconSolidTrash />
-													Delete graph
-												</Box>
-											</Menu.Item>
-										)}
-									</Menu.List>
-								</Menu>
+								<GraphMenu
+									emphasis="low"
+									onDownload={onDownload}
+									onCreateAlert={onCreateAlert}
+									onClone={onClone}
+									onDelete={onDelete}
+								/>
 							</Box>
 							{!hasDrilledDown && (
 								<Badge

@@ -42,89 +42,89 @@ export const VariablesBar: React.FC<Props> = ({ dashboardId }) => {
 				}}
 			/>
 			<Form>
-				<Stack paddingLeft="12" paddingRight="8">
-					<Stack
-						direction="row"
-						justifyContent="flex-start"
-						alignItems="center"
-						borderBottom="dividerWeak"
-						py="6"
-						cssClass={style.variablesBar}
-						gap="8"
+				<Stack
+					paddingLeft="12"
+					paddingRight="8"
+					borderBottom="dividerWeak"
+					cssClass={style.variablesBar}
+					direction="row"
+					justifyContent="flex-start"
+					alignItems="center"
+					py="6"
+					gap="8"
+				>
+					{variables &&
+						variables.map((v, i) => {
+							return (
+								<>
+									<Text color="secondaryContentText">
+										{v.key}:
+									</Text>
+									<Box cssClass={style.variableInput}>
+										{v.suggestionType ===
+											SuggestionType.None && (
+											<Form.Input
+												name={`default-value-${i}`}
+												value={values.get(v.key)}
+												onChange={(e) => {
+													setCurrentValues(v.key, [
+														e.target.value,
+													])
+												}}
+												autoComplete="off"
+											/>
+										)}
+										{v.suggestionType ===
+											SuggestionType.Key && (
+											<Combobox
+												selection={
+													values.get(v.key) ?? []
+												}
+												setSelection={(
+													selection: string[],
+												) => {
+													setCurrentValues(
+														v.key,
+														selection,
+													)
+												}}
+												searchConfig={searchConfig}
+											/>
+										)}
+										{v.suggestionType ===
+											SuggestionType.Value && (
+											<ValueCombobox
+												selection={
+													values.get(v.key) ?? []
+												}
+												setSelection={(
+													selection: string[],
+												) => {
+													setCurrentValues(
+														v.key,
+														selection,
+													)
+												}}
+												searchConfig={searchConfig}
+												keyName={v.field ?? ''}
+											/>
+										)}
+									</Box>
+									<HeaderDivider />
+								</>
+							)
+						})}
+					<Button
+						emphasis="medium"
+						kind="secondary"
+						size="xSmall"
+						iconLeft={<IconSolidAdjustments size={14} />}
+						onClick={() => {
+							setShowVariablesModal(true)
+						}}
 					>
-						{variables &&
-							variables.map((v, i) => {
-								return (
-									<>
-										<Text color="secondaryContentText">
-											{v.key}:
-										</Text>
-										<Box cssClass={style.variableInput}>
-											{v.suggestionType ===
-												SuggestionType.None && (
-												<Form.Input
-													name={`default-value-${i}`}
-													value={values.get(v.key)}
-													onChange={(e) => {
-														setCurrentValues(
-															v.key,
-															[e.target.value],
-														)
-													}}
-													autoComplete="off"
-												/>
-											)}
-											{v.suggestionType ===
-												SuggestionType.Key && (
-												<Combobox
-													selection={
-														values.get(v.key) ?? []
-													}
-													setSelection={(
-														selection: string[],
-													) => {
-														setCurrentValues(
-															v.key,
-															selection,
-														)
-													}}
-													searchConfig={searchConfig}
-												/>
-											)}
-											{v.suggestionType ===
-												SuggestionType.Value && (
-												<ValueCombobox
-													selection={
-														values.get(v.key) ?? []
-													}
-													setSelection={(
-														selection: string[],
-													) => {
-														setCurrentValues(
-															v.key,
-															selection,
-														)
-													}}
-													searchConfig={searchConfig}
-													keyName={v.field ?? ''}
-												/>
-											)}
-										</Box>
-										<HeaderDivider />
-									</>
-								)
-							})}
-						<Button
-							emphasis="low"
-							kind="secondary"
-							iconLeft={<IconSolidAdjustments size={14} />}
-							onClick={() => {
-								setShowVariablesModal(true)
-							}}
-						>
-							Variables
-						</Button>
-					</Stack>
+						Variables
+					</Button>
 				</Stack>
 			</Form>
 		</>
