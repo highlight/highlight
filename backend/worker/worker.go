@@ -427,8 +427,9 @@ func (w *Worker) PublicWorker(ctx context.Context, topic kafkaqueue.TopicType) {
 	}
 
 	mainConfig := WorkerConfig{
-		Topic:   kafkaqueue.TopicTypeDefault,
-		Workers: sys.MainWorkers,
+		Topic:     kafkaqueue.TopicTypeDefault,
+		Workers:   sys.MainWorkers,
+		QueueSize: sys.MainQueueSize,
 	}
 	logsConfig := WorkerConfig{
 		Topic:        kafkaqueue.TopicTypeBatched,
@@ -491,10 +492,12 @@ func (w *Worker) PublicWorker(ctx context.Context, topic kafkaqueue.TopicType) {
 							kafkaqueue.GetTopic(kafkaqueue.GetTopicOptions{Type: kafkaqueue.TopicTypeDefault}),
 							kafkaqueue.Consumer,
 							&kafkaqueue.ConfigOverride{
+								QueueCapacity:    pointy.Int(config.QueueSize),
 								MessageSizeBytes: config.MessageSizeBytes,
 								OnAssignGroups: func() {
 									w.PublicResolver.SessionCache.Purge()
-								}}),
+								},
+							}),
 						Worker:       w,
 						WorkerThread: workerId,
 					}
