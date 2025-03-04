@@ -21,7 +21,7 @@ type Props = {
 		preset?: DateRangePreset,
 	) => void
 
-	handleShowTemplates?: () => void
+	toggleTemplates?: () => void
 	onDownload?: () => void
 	onCreateAlert?: () => void
 	onClone?: () => void
@@ -33,7 +33,7 @@ export const ActionBar: React.FC<Props> = ({
 	dateRangeValue,
 	updateSearchTime,
 	onDownload,
-	handleShowTemplates,
+	toggleTemplates,
 	onCreateAlert,
 	onClone,
 	onDelete,
@@ -48,20 +48,20 @@ export const ActionBar: React.FC<Props> = ({
 			gap="8"
 			borderBottom="dividerWeak"
 			direction="row"
-			justifyContent={handleShowTemplates ? 'space-between' : 'flex-end'}
+			justifyContent={toggleTemplates ? 'space-between' : 'flex-end'}
 			alignItems="center"
 			style={{ height: 40 }}
 		>
-			{handleShowTemplates && (
+			{toggleTemplates && (
 				<Button
 					trackingId="view-templates"
 					emphasis="high"
 					kind="secondary"
 					size="xSmall"
-					onClick={handleShowTemplates}
+					onClick={toggleTemplates}
 					iconLeft={<IconSolidTemplate />}
 				>
-					View templates
+					Templates
 				</Button>
 			)}
 			<Stack direction="row" gap="4">

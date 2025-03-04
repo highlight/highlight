@@ -821,6 +821,10 @@ export const GraphingEditor: React.FC = () => {
 		})
 	}, [settings, selectedPreset, navigate, projectId])
 
+	const toggleTemplates = useCallback(() => {
+		setShowTemplates(!showTemplates)
+	}, [showTemplates])
+
 	if (!completed) {
 		return null
 	}
@@ -895,9 +899,7 @@ export const GraphingEditor: React.FC = () => {
 								cssClass={style.editGraphPreview}
 							>
 								<ActionBar
-									handleShowTemplates={() =>
-										setShowTemplates(true)
-									}
+									toggleTemplates={toggleTemplates}
 									handleRefresh={rebaseSearchTime}
 									dateRangeValue={{
 										startDate,
