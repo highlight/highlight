@@ -33,19 +33,17 @@ import {
 } from '@highlight-run/ui/components'
 import { vars } from '@highlight-run/ui/vars'
 import clsx from 'clsx'
-import { useCallback, useEffect, useId, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { Helmet } from 'react-helmet'
 import { Link, useNavigate } from 'react-router-dom'
 
 import {
 	useDeleteGraphMutation,
 	useGetVisualizationQuery,
-	useUpsertGraphMutation,
 	useUpsertVisualizationMutation,
 } from '@/graph/generated/hooks'
 import { GetVisualizationQuery } from '@/graph/generated/operations'
 import {
-	GraphInput,
 	MetricAggregator,
 	Graph as TGraph,
 	ThresholdCondition,
@@ -74,6 +72,7 @@ import {
 	SETTINGS_PARAM,
 } from '@/pages/Alerts/AlertForm'
 import { Editor } from '@/pages/Graphing/constants'
+import { GraphSettings } from '@/pages/Graphing/GraphingEditor'
 
 export const HeaderDivider = () => <Box cssClass={style.headerDivider} />
 
@@ -101,8 +100,6 @@ const DashboardCell = ({
 
 	const isTemp = g.id.startsWith('temp-')
 	const [deleteGraph] = useDeleteGraphMutation()
-	const [upsertGraph] = useUpsertGraphMutation()
-	const tempId = useId()
 
 	const { values } = useGraphingVariables(dashboard_id!)
 
@@ -132,184 +129,131 @@ const DashboardCell = ({
 		[g.funnelSteps],
 	)
 
+	const handleClone = useCallback(() => {
+		const graphInput = {
+			productType: g.productType,
+			viewType: g.type,
+			lineNullHandling: g.nullHandling,
+			lineDisplay: g.display,
+			barDisplay: g.display,
+			funnelDisplay: g.display,
+			tableNullHandling: g.nullHandling,
+			query: g.query,
+			metricViewTitle: `${g.title} copy`,
+			groupByEnabled: !!g.groupByKeys?.length,
+			groupByKeys: g.groupByKeys,
+			limitFunctionType: g.limitFunctionType,
+			limit: g.limit,
+			funnelSteps: (g.funnelSteps ?? []).map(loadFunnelStep),
+			bucketByEnabled: !!g.bucketByKey,
+			bucketByKey: g.bucketByKey,
+			bucketCount: g.bucketCount,
+			bucketInterval: g.bucketInterval,
+			bucketBySetting: g.bucketInterval ? 'Interval' : 'Count',
+			expressions: g.expressions,
+			editor: g.sql ? Editor.SqlEditor : Editor.QueryBuilder,
+			sql: g.sql,
+		} as GraphSettings
+
+		navigate({
+			pathname: `/${projectId}/dashboards/new`,
+			search: `settings=${btoa(JSON.stringify(graphInput))}`,
+		})
+	}, [g, navigate, projectId])
+
+	const handleDelete = useCallback(() => {
+		deleteGraph({
+			variables: {
+				id: g.id,
+			},
+			optimisticResponse: {
+				deleteGraph: true,
+			},
+			update(cache) {
+				const vizId = cache.identify({
+					id: dashboard_id,
+					__typename: 'Visualization',
+				})
+				const graphId = cache.identify({
+					id: g.id,
+					__typename: 'Graph',
+				})
+				cache.modify({
+					id: vizId,
+					fields: {
+						graphs(existing = []) {
+							const filtered = existing.filter(
+								(e: any) => e.__ref !== graphId,
+							)
+							return filtered
+						},
+					},
+				})
+			},
+		})
+			.then(() => toast.success('Graph deleted'))
+			.catch(() => toast.error('Failed to delete graph'))
+	}, [dashboard_id, deleteGraph, g.id])
+
+	const handleCreateAlert = useCallback(() => {
+		const func = g.expressions.at(0)?.aggregator ?? MetricAggregator.Count
+		const col = g.expressions.at(0)?.column ?? ''
+		const groupByKey = g.groupByKeys?.at(0) ?? undefined
+		const settings: AlertSettings = {
+			productType: g.productType,
+			functionType: func,
+			functionColumn: col,
+			query: g.query,
+			alertName: g.title,
+			groupByEnabled: groupByKey !== undefined,
+			groupByKey: groupByKey ?? '',
+			thresholdValue: 1,
+			thresholdCondition: ThresholdCondition.Above,
+			thresholdType: ThresholdType.Constant,
+			thresholdWindow: g.bucketInterval ?? DEFAULT_WINDOW,
+			thresholdCooldown: g.bucketInterval ?? DEFAULT_COOLDOWN,
+			destinations: [],
+			editor: Editor.QueryBuilder,
+			sql: undefined,
+		}
+
+		const settingsEncoded = btoa(JSON.stringify(settings))
+
+		let search = ''
+		if (timePreset !== undefined) {
+			search += `relative_time=${presetValue(timePreset)}&`
+		}
+		search += `${SETTINGS_PARAM}=${settingsEncoded}`
+
+		navigate({
+			pathname: `/${projectId}/alerts/new`,
+			search,
+		})
+	}, [g, navigate, projectId, timePreset])
+
+	const handleExpand = () => {
+		navigate({
+			pathname: `view/${g.id}`,
+			search: location.search,
+		})
+	}
+
+	const handleEdit = () => {
+		navigate({
+			pathname: `edit/${g.id}`,
+			search: location.search,
+		})
+	}
+
 	return (
 		<DashboardCard
 			id={g.id}
 			key={g.id}
-			onClone={
-				isTemp
-					? undefined
-					: () => {
-							const graphInput: GraphInput = {
-								visualizationId: dashboard_id!,
-								afterGraphId: g.id,
-								bucketByKey: g.bucketByKey,
-								bucketCount: g.bucketCount,
-								bucketInterval: g.bucketInterval,
-								display: g.display,
-								groupByKeys: g.groupByKeys,
-								limit: g.limit,
-								limitFunctionType: g.limitFunctionType,
-								limitMetric: g.limitMetric,
-								funnelSteps: g.funnelSteps,
-								nullHandling: g.nullHandling,
-								productType: g.productType,
-								query: g.query,
-								title: g.title,
-								type: g.type,
-								expressions: g.expressions,
-							}
-
-							upsertGraph({
-								variables: {
-									graph: graphInput,
-								},
-								optimisticResponse: {
-									upsertGraph: {
-										...graphInput,
-										id: `temp-${tempId}`,
-										__typename: 'Graph',
-									},
-								},
-								update(cache, result) {
-									const vizId = cache.identify({
-										id: dashboard_id,
-										__typename: 'Visualization',
-									})
-									const afterGraphId = cache.identify({
-										id: g.id,
-										__typename: 'Graph',
-									})
-									const graphId = cache.identify({
-										id: result.data?.upsertGraph.id,
-										__typename: 'Graph',
-									})
-									cache.modify({
-										id: vizId,
-										fields: {
-											graphs(existing = []) {
-												const idx = existing.findIndex(
-													(e: any) =>
-														e.__ref ===
-														afterGraphId,
-												)
-												const clone = [...existing]
-												clone.splice(idx, 0, {
-													__ref: graphId,
-												})
-												return clone
-											},
-										},
-									})
-								},
-							})
-								.then(() => {
-									toast.success(`Graph cloned`)
-								})
-								.catch(() => {
-									toast.error('Failed to clone graph')
-								})
-						}
-			}
-			onDelete={
-				isTemp
-					? undefined
-					: () => {
-							deleteGraph({
-								variables: {
-									id: g.id,
-								},
-								optimisticResponse: {
-									deleteGraph: true,
-								},
-								update(cache) {
-									const vizId = cache.identify({
-										id: dashboard_id,
-										__typename: 'Visualization',
-									})
-									const graphId = cache.identify({
-										id: g.id,
-										__typename: 'Graph',
-									})
-									cache.modify({
-										id: vizId,
-										fields: {
-											graphs(existing = []) {
-												const filtered =
-													existing.filter(
-														(e: any) =>
-															e.__ref !== graphId,
-													)
-												return filtered
-											},
-										},
-									})
-								},
-							})
-								.then(() => toast.success('Graph deleted'))
-								.catch(() =>
-									toast.error('Failed to delete graph'),
-								)
-						}
-			}
-			onCreateAlert={() => {
-				const func =
-					g.expressions.at(0)?.aggregator ?? MetricAggregator.Count
-				const col = g.expressions.at(0)?.column ?? ''
-				const groupByKey = g.groupByKeys?.at(0) ?? undefined
-				const settings: AlertSettings = {
-					productType: g.productType,
-					functionType: func,
-					functionColumn: col,
-					query: g.query,
-					alertName: g.title,
-					groupByEnabled: groupByKey !== undefined,
-					groupByKey: groupByKey ?? '',
-					thresholdValue: 1,
-					thresholdCondition: ThresholdCondition.Above,
-					thresholdType: ThresholdType.Constant,
-					thresholdWindow: g.bucketInterval ?? DEFAULT_WINDOW,
-					thresholdCooldown: g.bucketInterval ?? DEFAULT_COOLDOWN,
-					destinations: [],
-					editor: Editor.QueryBuilder,
-					sql: undefined,
-				}
-
-				const settingsEncoded = btoa(JSON.stringify(settings))
-
-				console.log('settingsEncoded', settingsEncoded)
-
-				let search = ''
-				if (timePreset !== undefined) {
-					search += `relative_time=${presetValue(timePreset)}&`
-				}
-				search += `${SETTINGS_PARAM}=${settingsEncoded}`
-
-				navigate({
-					pathname: `../../alerts/new`,
-					search,
-				})
-			}}
-			onExpand={
-				isTemp
-					? undefined
-					: () => {
-							navigate({
-								pathname: `view/${g.id}`,
-								search: location.search,
-							})
-						}
-			}
-			onEdit={
-				isTemp
-					? undefined
-					: () => {
-							navigate({
-								pathname: `edit/${g.id}`,
-								search: location.search,
-							})
-						}
-			}
+			onClone={isTemp ? undefined : handleClone}
+			onDelete={isTemp ? undefined : handleDelete}
+			onCreateAlert={handleCreateAlert}
+			onExpand={isTemp ? undefined : handleExpand}
+			onEdit={isTemp ? undefined : handleEdit}
 			onDownload={() => onDownload(g)}
 		>
 			<Graph
@@ -448,6 +392,11 @@ export const Dashboard = () => {
 
 	const noGraphs = graphs?.length === 0
 
+	const handleShare = () => {
+		window.navigator.clipboard.writeText(window.location.href)
+		toast.success('Copied link!')
+	}
+
 	return (
 		<>
 			<Helmet>
@@ -511,6 +460,13 @@ export const Dashboard = () => {
 						</Stack>
 						<Box display="flex" gap="4">
 							<>
+								<Button
+									emphasis="low"
+									kind="secondary"
+									onClick={handleShare}
+								>
+									Share
+								</Button>
 								<DateRangePicker
 									emphasis="medium"
 									kind="secondary"

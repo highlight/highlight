@@ -10,11 +10,16 @@ const POLL_INTERVAL_VALUE = 1000 * 60
 const LONGER_POLL_INTERVAL_VALUE = POLL_INTERVAL_VALUE * 5
 
 export const useGraphTime = (presets: DateRangePreset[]) => {
-	const { startDate, endDate, selectedPreset, updateSearchTime } =
-		useSearchTime({
-			presets: presets,
-			initialPreset: DEFAULT_TIME_PRESETS[2],
-		})
+	const {
+		startDate,
+		endDate,
+		selectedPreset,
+		updateSearchTime,
+		rebaseSearchTime,
+	} = useSearchTime({
+		presets: presets,
+		initialPreset: DEFAULT_TIME_PRESETS[2],
+	})
 
 	useEffect(() => {
 		// Only poll for new dates if a preset is selected
@@ -47,5 +52,6 @@ export const useGraphTime = (presets: DateRangePreset[]) => {
 		endDate,
 		selectedPreset,
 		updateSearchTime,
+		rebaseSearchTime,
 	}
 }
