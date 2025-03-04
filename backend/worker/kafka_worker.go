@@ -69,7 +69,7 @@ func (k *KafkaWorker) ProcessMessages() {
 			defer s.Finish(err)
 
 			s1, _ := util.StartSpanFromContext(ctx, "worker.kafka.receiveMessage")
-			task := k.KafkaQueue.Receive(ctx)
+			ctx, task := k.KafkaQueue.Receive(ctx)
 			s1.Finish()
 
 			if task == nil {
@@ -698,7 +698,7 @@ func (k *KafkaBatchWorker) ProcessMessages() {
 			// and restarting the receive call
 			receiveCtx, receiveCancel := context.WithTimeout(ctx, k.BatchedFlushTimeout)
 			defer receiveCancel()
-			task := k.KafkaQueue.Receive(receiveCtx)
+			ctx, task := k.KafkaQueue.Receive(receiveCtx)
 			s1.Finish()
 
 			if task != nil {
