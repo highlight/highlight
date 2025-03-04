@@ -1359,6 +1359,7 @@ type SystemConfiguration struct {
 	ErrorFilters       pq.StringArray `gorm:"type:text[]"`
 	IgnoredFiles       pq.StringArray `gorm:"type:text[]"`
 	MainWorkers        int            `gorm:"default:64"`
+	MainQueueSize      int            `gorm:"type:bigint;default:1000"`
 	LogsWorkers        int            `gorm:"default:1"`
 	LogsFlushSize      int            `gorm:"type:bigint;default:1000"`
 	LogsQueueSize      int            `gorm:"type:bigint;default:100"`
