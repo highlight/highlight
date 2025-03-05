@@ -25,12 +25,11 @@
 		"dev": "yarn build && yarn create-env && yarn start-lambda"
 	},
 	"dependencies": {
-		"@highlight-run/node": "file:../../sdk/highlight-node"
+		"@highlight-run/node": "workspace:*"
 	},
 	"devDependencies": {
 		"@types/aws-lambda": "^8.10.147",
 		"@types/node": "^20.11.0",
-		"aws-sdk": "ts^2.1540.0",
 		"esbuild": "^0.19.11",
 		"typescript": "^5.3.3"
 	},
