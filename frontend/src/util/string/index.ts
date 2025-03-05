@@ -1,5 +1,4 @@
 import { toast } from '@components/Toaster'
-import base64 from 'base-64'
 
 export const snakeCaseString = (string: string) => {
 	return string
@@ -112,9 +111,11 @@ export function copyToClipboard(
 }
 
 export function btoaSafe(text: string) {
-	return base64.encode(text)
+	return btoa(String.fromCharCode(...new TextEncoder().encode(text)))
 }
 
 export function atobSafe(text: string) {
-	return base64.decode(text)
+	return new TextDecoder().decode(
+		Uint8Array.from(atob(text), (c) => c.charCodeAt(0)),
+	)
 }
