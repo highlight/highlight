@@ -113,8 +113,8 @@
 	"volumes": [],
 	"placementConstraints": [],
 	"requiresCompatibilities": ["EC2"],
-	"cpu": "8192",
-	"memory": "32768",
+	"cpu": "16384",
+	"memory": "65536",
 	"runtimePlatform": {
 		"cpuArchitecture": "ARM64",
 		"operatingSystemFamily": "LINUX"
