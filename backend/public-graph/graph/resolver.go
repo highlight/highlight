@@ -2315,11 +2315,17 @@ func (r *Resolver) AddSessionEvents(ctx context.Context, sessionID int, events *
 
 	for _, event := range events.Events {
 		if event.Type == parse.Custom {
+			tagStr, ok := event.Data["tag"].(string)
+			if !ok {
+				log.WithContext(ctx).WithField("session_id", sessionID).Error("expected string tag for custom event")
+				continue
+			}
+
 			dataObject := struct {
 				Tag     string      `json:"tag"`
 				Payload interface{} `json:"payload"`
 			}{
-				Tag:     event.Data["tag"].(string),
+				Tag:     tagStr,
 				Payload: event.Data["payload"],
 			}
 
@@ -2361,7 +2367,12 @@ func (r *Resolver) AddSessionEvents(ctx context.Context, sessionID int, events *
 					},
 				)
 			} else if navigateEvent {
-				payloadStr := dataObject.Payload.(string)
+				payloadStr, ok := dataObject.Payload.(string)
+				if !ok {
+					log.WithContext(ctx).WithField("session_id", sessionID).Error("expected string payload for navigate event")
+					continue
+				}
+
 				fields = append(fields, AppendProperty{"visited-url", payloadStr, event.Timestamp})
 
 				sessionEvents = append(sessionEvents,
@@ -2374,7 +2385,12 @@ func (r *Resolver) AddSessionEvents(ctx context.Context, sessionID int, events *
 					},
 				)
 			} else if reloadEvent {
-				payloadStr := dataObject.Payload.(string)
+				payloadStr, ok := dataObject.Payload.(string)
+				if !ok {
+					log.WithContext(ctx).WithField("session_id", sessionID).Error("expected string payload for reload event")
+					continue
+				}
+
 				sessionEvents = append(sessionEvents,
 					&clickhouse.SessionEventRow{
 						Event:     "Navigate",
@@ -2385,7 +2401,12 @@ func (r *Resolver) AddSessionEvents(ctx context.Context, sessionID int, events *
 					},
 				)
 			} else if trackEvent {
-				payloadStr := dataObject.Payload.(string)
+				payloadStr, ok := dataObject.Payload.(string)
+				if !ok {
+					log.WithContext(ctx).WithField("session_id", sessionID).Error("expected string payload for track event")
+					continue
+				}
+
 				propertiesObject := make(map[string]interface{})
 				if err := json.Unmarshal([]byte(payloadStr), &propertiesObject); err != nil {
 					log.WithContext(ctx).WithField("session_id", sessionID).WithField("payloadStr", payloadStr).Error("error deserializing track event properties")
