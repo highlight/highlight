@@ -221,8 +221,16 @@ func NewSnapshot(inputData map[string]interface{}, hostUrl *string) (*Snapshot, 
 	return s, nil
 }
 
-func (s *Snapshot) Encode() map[string]interface{} {
+func (s *Snapshot) GetData() map[string]interface{} {
 	return s.data
+}
+
+func (s *Snapshot) Encode() (json.RawMessage, error) {
+	b, err := json.Marshal(s.data)
+	if err != nil {
+		return nil, errors.Wrap(err, "error marshaling back to json")
+	}
+	return b, nil
 }
 
 // EscapeJavascript adds a guardrail to prevent javascript from being stored in the recording.

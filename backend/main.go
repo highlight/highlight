@@ -202,13 +202,7 @@ func main() {
 		serviceName = string(handlerParsed)
 	}
 
-	var samplingMap = map[trace.SpanKind]float64{
-		trace.SpanKindUnspecified: 1.,
-		trace.SpanKindInternal:    1.,
-		trace.SpanKindConsumer:    1.,
-		trace.SpanKindServer:      1.,
-		trace.SpanKindClient:      1.,
-	}
+	var samplingMap = map[trace.SpanKind]float64{}
 	if env.IsProduction() {
 		samplingMap = map[trace.SpanKind]float64{
 			trace.SpanKindUnspecified: 1. / 1_000_000,

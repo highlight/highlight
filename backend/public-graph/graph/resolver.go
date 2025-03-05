@@ -2751,7 +2751,7 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 						}
 					}
 
-					event.Data = snapshot.Encode()
+					event.Data = snapshot.GetData()
 				}
 			}
 			eventLoopSpan.Finish()
