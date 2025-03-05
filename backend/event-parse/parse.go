@@ -821,18 +821,30 @@ func UnmarshallMouseInteractionEvent(data map[string]interface{}) (*MouseInterac
 	var source *EventSource
 	var mouseInteractions *MouseInteractions
 	if data["x"] != nil {
-		x = pointy.Float64(data["x"].(float64))
+		asFloat, ok := data["x"].(float64)
+		if ok {
+			x = pointy.Float64(asFloat)
+		}
 	}
 	if data["y"] != nil {
-		y = pointy.Float64(data["y"].(float64))
+		asFloat, ok := data["y"].(float64)
+		if ok {
+			y = pointy.Float64(asFloat)
+		}
 	}
 	if data["source"] != nil {
-		asEventSource := EventSource(data["source"].(float64))
-		source = &asEventSource
+		asFloat, ok := data["source"].(float64)
+		if ok {
+			asEventSource := EventSource(asFloat)
+			source = &asEventSource
+		}
 	}
 	if data["type"] != nil {
-		asMouseInteractions := MouseInteractions(data["type"].(float64))
-		mouseInteractions = &asMouseInteractions
+		asFloat, ok := data["type"].(float64)
+		if ok {
+			asMouseInteractions := MouseInteractions(asFloat)
+			mouseInteractions = &asMouseInteractions
+		}
 	}
 
 	aux := MouseInteractionEventData{
