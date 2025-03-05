@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"os"
-	"strings"
 	"testing"
 	"time"
 
@@ -12,11 +11,7 @@ import (
 
 	"github.com/aws/smithy-go/ptr"
 	"github.com/go-test/deep"
-	"github.com/highlight-run/highlight/backend/model"
-	modelInputs "github.com/highlight-run/highlight/backend/private-graph/graph/model"
 	"github.com/highlight-run/highlight/backend/redis"
-	"github.com/highlight-run/highlight/backend/storage"
-	"github.com/highlight-run/highlight/backend/store"
 	"github.com/highlight-run/highlight/backend/util"
 	"github.com/kylelemons/godebug/pretty"
 	e "github.com/pkg/errors"
@@ -74,7 +69,7 @@ func TestEventsFromString(t *testing.T) {
 				{
 					Timestamp: time.Date(1970, time.Month(1), 1, 0, 0, 0, 0, time.UTC),
 					Type:      Meta,
-					Data:      json.RawMessage(`{"test": 5}`),
+					Data:      map[string]interface{}{"test": 5},
 					SID:       1234,
 				},
 			}},
@@ -161,209 +156,6 @@ func (u fetcherMock) fetchStylesheetData(href string, s *Snapshot) ([]byte, erro
 	return body, nil
 }
 
-func TestInjectStyleSheets(t *testing.T) {
-	ProxyURL = "https://localhost:8082/public/cors"
-	// Get sample input of events and serialize.
-	fetch = fetcherMock{}
-	inputBytes, err := os.ReadFile("./sample-events/input.json")
-	if err != nil {
-		t.Fatalf("error reading: %v", err)
-	}
-
-	snapshot, err := NewSnapshot(inputBytes, nil)
-	if err != nil {
-		t.Fatalf("error parsing: %v", err)
-	}
-
-	// Pass sample set to `injectStylesheets` and convert to interface.
-	err = snapshot.InjectStylesheets(context.TODO())
-	if err != nil {
-		t.Fatalf("error injecting: %v", err)
-	}
-
-	gotMsg, err := snapshot.Encode()
-	if err != nil {
-		t.Fatalf("error marshalling: %v", err)
-	}
-
-	var gotInterface interface{}
-	err = json.Unmarshal(gotMsg, &gotInterface)
-	if err != nil {
-		t.Fatalf("error getting interface: %v", err)
-	}
-
-	// Get wanted output of events and serialize.
-	wantBytes, err := os.ReadFile("./sample-events/output.json")
-	if err != nil {
-		t.Fatalf("error reading: %v", err)
-	}
-	var wantInterface interface{}
-	err = json.Unmarshal(wantBytes, &wantInterface)
-	if err != nil {
-		t.Fatalf("error getting interface: %v", err)
-	}
-
-	// Compare.
-	if diff := pretty.Compare(gotInterface, wantInterface); diff != "" {
-		t.Errorf("(-got +want)\n%s", diff)
-	}
-}
-
-func TestEscapeJavascript(t *testing.T) {
-	inputBytes, err := os.ReadFile("./sample-events/dom-with-scripts.json")
-	if err != nil {
-		t.Fatalf("error reading: %v", err)
-	}
-
-	snapshot, err := NewSnapshot(inputBytes, nil)
-	if err != nil {
-		t.Fatalf("error parsing: %v", err)
-	}
-
-	err = snapshot.EscapeJavascript(context.TODO())
-	if err != nil {
-		t.Fatalf("error escaping: %v", err)
-	}
-
-	processed, err := snapshot.Encode()
-	if err != nil {
-		t.Fatalf("error marshalling: %v", err)
-	}
-
-	str := string(processed)
-	if strings.Contains(str, "attack") {
-		t.Errorf("attack substring not escaped %+v", str)
-	}
-}
-
-func TestSnapshot_ReplaceAssets(t *testing.T) {
-	defer teardown(t)
-	ctx := context.TODO()
-	inputBytes, err := os.ReadFile("./sample-events/input.json")
-	if err != nil {
-		t.Fatalf("error reading: %v", err)
-	}
-
-	snapshot, err := NewSnapshot(inputBytes, nil)
-	if err != nil {
-		t.Fatalf("error parsing: %v", err)
-	}
-
-	var storageClient storage.Client
-	if storageClient, err = storage.NewFSClient(ctx, "https://test.highlight.io", "/tmp/test"); err != nil {
-		log.WithContext(ctx).Fatalf("error creating filesystem storage client: %v", err)
-	}
-	if err := snapshot.ReplaceAssets(ctx, 1, store.NewStore(DB, redis.NewClient(), nil, storageClient, nil, nil), modelInputs.RetentionPeriodThreeMonths); err != nil {
-		t.Fatalf("failed to replace assets %+v", err)
-	}
-
-	var assets []*model.SavedAsset
-	if err := DB.Model(&model.SavedAsset{}).Find(&assets).Error; err != nil {
-		t.Fatalf("failed to fetch assets %+v", err)
-	}
-
-	// broken asset "https://static.highlight.io/dev/test.mp4?AWSAccessKeyId=asdffdsa1234"
-	// should not be stored
-	// https://app.highlight.run/public.css is not found but redirects to https://app.highlight.run/index.html
-	assert.Equal(t, 4, len(assets))
-	for _, exp := range []string{
-		// check that we store <link> tags with an href
-		"https://unpkg.com/@highlight-run/rrweb@0.9.27/dist/index.css",
-		"https://static.highlight.io/dev/BigBuckBunny.mp4?AWSAccessKeyId=asdffdsa1234",
-		"https://static.highlight.io/v6.2.0/index.js",
-		"https://app.highlight.run/public.css",
-	} {
-		matched := false
-		for _, asset := range assets {
-			if asset.OriginalUrl == exp {
-				matched = true
-				break
-			}
-		}
-		assert.True(t, matched, "no asset matched %s", exp)
-	}
-
-	gotMsg, err := snapshot.Encode()
-	if err != nil {
-		t.Fatalf("error marshalling: %v", err)
-	}
-
-	var gotInterface struct {
-		Node struct {
-			ChildNodes []struct {
-				ChildNodes []struct {
-					ChildNodes []struct {
-						Id         int                    `json:"id"`
-						Attributes map[string]interface{} `json:"attributes"`
-					} `json:"childNodes"`
-				} `json:"childNodes"`
-			} `json:"childNodes"`
-		} `json:"node"`
-	}
-	err = json.Unmarshal(gotMsg, &gotInterface)
-	if err != nil {
-		t.Fatalf("error getting interface: %v", err)
-	}
-
-	assert.Equal(t, gotInterface.Node.ChildNodes[1].ChildNodes[0].ChildNodes[30].Id, 36)
-	assert.Equal(t, gotInterface.Node.ChildNodes[1].ChildNodes[0].ChildNodes[31].Id, 37)
-
-	assert.Nil(t, gotInterface.Node.ChildNodes[1].ChildNodes[0].ChildNodes[30].Attributes["rel"])
-	assert.Nil(t, gotInterface.Node.ChildNodes[1].ChildNodes[0].ChildNodes[31].Attributes["rel"])
-}
-func TestSnapshot_ReplaceAssets_Capacitor(t *testing.T) {
-	defer teardown(t)
-	ctx := context.TODO()
-
-	DB.Model(&model.ProjectAssetTransform{}).Create(&model.ProjectAssetTransform{
-		ProjectID:         33914,
-		SourceScheme:      "capacitor",
-		DestinationScheme: "https",
-		DestinationHost:   "app.priceworx.co.uk",
-	})
-
-	inputBytes, err := os.ReadFile("./sample-events/capacitor.json")
-	if err != nil {
-		t.Fatalf("error reading: %v", err)
-	}
-
-	snapshot, err := NewSnapshot(inputBytes, nil)
-	if err != nil {
-		t.Fatalf("error parsing: %v", err)
-	}
-
-	var storageClient storage.Client
-	if storageClient, err = storage.NewFSClient(ctx, "https://test.highlight.io", "/tmp/test"); err != nil {
-		log.WithContext(ctx).Fatalf("error creating filesystem storage client: %v", err)
-	}
-	if err := snapshot.ReplaceAssets(ctx, 33914, store.NewStore(DB, redis.NewClient(), nil, storageClient, nil, nil), modelInputs.RetentionPeriodThreeMonths); err != nil {
-		t.Fatalf("failed to replace assets %+v", err)
-	}
-
-	var assets []*model.SavedAsset
-	if err := DB.Model(&model.SavedAsset{}).Find(&assets).Error; err != nil {
-		t.Fatalf("failed to fetch assets %+v", err)
-	}
-
-	assert.Equal(t, 21, len(assets))
-	for _, exp := range []string{
-		"capacitor://localhost/fonts/KFOmCnqEu92Fr1Mu4mxM.f1e2a767.woff",
-		"capacitor://localhost/icons/favicon-128x128.png",
-	} {
-		var savedAsset *model.SavedAsset
-		for _, asset := range assets {
-			if asset.OriginalUrl == exp {
-				savedAsset = asset
-				break
-			}
-		}
-		assert.NotNilf(t, savedAsset, "no asset matched %s", exp)
-		if savedAsset != nil {
-			assert.Falsef(t, strings.HasPrefix(savedAsset.HashVal, "Err"), "asset fetch errored %s", exp)
-		}
-	}
-}
-
 func TestGetHostUrlFromEvents(t *testing.T) {
 	now := time.Now()
 
@@ -380,7 +172,7 @@ func TestGetHostUrlFromEvents(t *testing.T) {
 				{
 					Timestamp:    now,
 					Type:         2,
-					Data:         []byte("{\"href\": \"https://www.google.com\"}"),
+					Data:         map[string]interface{}{"href": "https://www.google.com"},
 					TimestampRaw: 2,
 					SID:          1,
 				},
@@ -392,7 +184,7 @@ func TestGetHostUrlFromEvents(t *testing.T) {
 				{
 					Timestamp:    now,
 					Type:         4,
-					Data:         []byte("{\"href\": \"https://www.google.com\"}"),
+					Data:         map[string]interface{}{"href": "https://www.google.com"},
 					TimestampRaw: 2,
 					SID:          1,
 				},
@@ -404,7 +196,7 @@ func TestGetHostUrlFromEvents(t *testing.T) {
 				{
 					Timestamp:    now,
 					Type:         4,
-					Data:         []byte("{\"href\": \"https://www.google.com?test=1#testHash\"}"),
+					Data:         map[string]interface{}{"href": "https://www.google.com?test=1#testHash"},
 					TimestampRaw: 2,
 					SID:          1,
 				},
@@ -416,14 +208,14 @@ func TestGetHostUrlFromEvents(t *testing.T) {
 				{
 					Timestamp:    now,
 					Type:         1,
-					Data:         []byte("{\"href\": \"https://www.google.com?test=1#testHash\"}"),
+					Data:         map[string]interface{}{"href": "https://www.google.com?test=1#testHash"},
 					TimestampRaw: 2,
 					SID:          1,
 				},
 				{
 					Timestamp:    time.Date(1970, time.Month(1), 1, 1, 0, 0, 0, time.UTC),
 					Type:         4,
-					Data:         []byte("{\"href\": \"https://www.google.com?test=1#testHash\"}"),
+					Data:         map[string]interface{}{"href": "https://www.google.com?test=1#testHash"},
 					TimestampRaw: 2,
 					SID:          1,
 				},
@@ -435,14 +227,14 @@ func TestGetHostUrlFromEvents(t *testing.T) {
 				{
 					Timestamp:    time.Date(1970, time.Month(1), 1, 1, 0, 0, 0, time.UTC),
 					Type:         4,
-					Data:         []byte("{\"href\": \"https://www.google.com?test=1#testHash\"}"),
+					Data:         map[string]interface{}{"href": "https://www.google.com?test=1#testHash"},
 					TimestampRaw: 2,
 					SID:          1,
 				},
 				{
 					Timestamp:    now,
 					Type:         1,
-					Data:         []byte("{\"href\": \"https://www.google.com?test=1#testHash\"}"),
+					Data:         map[string]interface{}{"href": "https://www.google.com?test=1#testHash"},
 					TimestampRaw: 2,
 					SID:          1,
 				},

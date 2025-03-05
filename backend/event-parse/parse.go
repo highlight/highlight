@@ -7,7 +7,6 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
-	"github.com/highlight-run/highlight/backend/env"
 	"io"
 	"net/http"
 	"net/url"
@@ -18,6 +17,9 @@ import (
 	"strings"
 	"time"
 
+	"github.com/highlight-run/highlight/backend/env"
+	"go.openly.dev/pointy"
+
 	"golang.org/x/sync/errgroup"
 	"gorm.io/gorm/clause"
 
@@ -25,7 +27,6 @@ import (
 	modelInputs "github.com/highlight-run/highlight/backend/private-graph/graph/model"
 	"github.com/highlight-run/highlight/backend/store"
 	"github.com/highlight-run/highlight/backend/util"
-	hmetric "github.com/highlight/highlight/sdk/highlight-go/metric"
 	"github.com/lukasbob/srcset"
 	"github.com/pkg/errors"
 	"github.com/samber/lo"
@@ -177,34 +178,16 @@ func init() {
 
 // ReplayEvent represents a single event that represents a change on the DOM.
 type ReplayEvent struct {
-	Timestamp    time.Time       `json:"-"`
-	Type         EventType       `json:"type"`
-	Data         json.RawMessage `json:"data"`
-	TimestampRaw float64         `json:"timestamp"`
-	SID          float64         `json:"_sid"`
+	Timestamp    time.Time              `json:"-"`
+	Type         EventType              `json:"type"`
+	Data         map[string]interface{} `json:"data"`
+	TimestampRaw float64                `json:"timestamp"`
+	SID          float64                `json:"_sid"`
 }
 
 // ReplayEvents is a set of ReplayEvent(s).
 type ReplayEvents struct {
 	Events []*ReplayEvent `json:"events"`
-}
-
-func (r *ReplayEvent) UnmarshalJSON(b []byte) error {
-	aux := struct {
-		Timestamp float64         `json:"timestamp"`
-		Type      EventType       `json:"type"`
-		Data      json.RawMessage `json:"data"`
-		SID       float64         `json:"_sid"`
-	}{}
-	if err := json.Unmarshal(b, &aux); err != nil {
-		return errors.Wrap(err, "error with custom unmarshal of events")
-	}
-	r.Data = aux.Data
-	r.Type = aux.Type
-	r.Timestamp = javascriptToGolangTime(aux.Timestamp)
-	r.TimestampRaw = aux.Timestamp
-	r.SID = aux.SID
-	return nil
 }
 
 // MouseInteractionEventData represents the data field for click events from the following parent events
@@ -213,6 +196,11 @@ type MouseInteractionEventData struct {
 	Y      *float64           `json:"y"`
 	Source *EventSource       `json:"source"`
 	Type   *MouseInteractions `json:"type"`
+}
+
+type Snapshot struct {
+	data    map[string]interface{}
+	hostUrl *string
 }
 
 // EventsFromString parses a json string in the form {events: [ev1, ev2, ...]}.
@@ -225,42 +213,16 @@ func EventsFromString(eventsString string) (*ReplayEvents, error) {
 	return events, nil
 }
 
-type Snapshot struct {
-	data    map[string]interface{}
-	hostUrl *string
-}
-
-func NewSnapshot(inputData json.RawMessage, hostUrl *string) (*Snapshot, error) {
-	data := []byte(inputData)
-	hmetric.Histogram(context.Background(), "snapshot.length", float64(len(data)), nil, 1)
-
-	if len(data) > MaxSnapshotSize {
-		return nil, errors.New(fmt.Sprintf("event snapshot too large: %d", len(data)))
+func NewSnapshot(inputData map[string]interface{}, hostUrl *string) (*Snapshot, error) {
+	s := &Snapshot{
+		data: inputData,
 	}
-
-	s := &Snapshot{}
-	if err := s.decode(inputData); err != nil {
-		return nil, err
-	}
-
 	s.hostUrl = hostUrl
 	return s, nil
 }
 
-func (s *Snapshot) decode(inputData json.RawMessage) error {
-	err := json.Unmarshal(inputData, &s.data)
-	if err != nil {
-		return errors.Wrap(err, "error unmarshaling")
-	}
-	return nil
-}
-
-func (s *Snapshot) Encode() (json.RawMessage, error) {
-	b, err := json.Marshal(s.data)
-	if err != nil {
-		return nil, errors.Wrap(err, "error marshaling back to json")
-	}
-	return b, nil
+func (s *Snapshot) Encode() map[string]interface{} {
+	return s.data
 }
 
 // EscapeJavascript adds a guardrail to prevent javascript from being stored in the recording.
@@ -822,16 +784,36 @@ func tryGetAssetUrls(ctx context.Context, projectId int, node map[string]interfa
 	return
 }
 
-func javascriptToGolangTime(t float64) time.Time {
+func JavascriptToGolangTime(t float64) time.Time {
 	tInt := int64(t)
 	return time.Unix(tInt/1000, (tInt%1000)*1000*1000).UTC()
 }
 
-func UnmarshallMouseInteractionEvent(data json.RawMessage) (*MouseInteractionEventData, error) {
-	aux := MouseInteractionEventData{}
-	err := json.Unmarshal(data, &aux)
-	if err != nil {
-		return nil, err
+func UnmarshallMouseInteractionEvent(data map[string]interface{}) (*MouseInteractionEventData, error) {
+	var x *float64
+	var y *float64
+	var source *EventSource
+	var mouseInteractions *MouseInteractions
+	if data["x"] != nil {
+		x = pointy.Float64(data["x"].(float64))
+	}
+	if data["y"] != nil {
+		y = pointy.Float64(data["y"].(float64))
+	}
+	if data["source"] != nil {
+		asEventSource := EventSource(data["source"].(float64))
+		source = &asEventSource
+	}
+	if data["type"] != nil {
+		asMouseInteractions := MouseInteractions(data["type"].(float64))
+		mouseInteractions = &asMouseInteractions
+	}
+
+	aux := MouseInteractionEventData{
+		X:      x,
+		Y:      y,
+		Source: source,
+		Type:   mouseInteractions,
 	}
 
 	if aux.Source == nil {
@@ -894,14 +876,7 @@ func GetHostUrlFromEvents(events []*ReplayEvent) *string {
 		return nil
 	}
 
-	var metaData map[string]interface{}
-
-	err := json.Unmarshal(events[0].Data, &metaData)
-	if err != nil {
-		return nil
-	}
-
-	pathUrl, ok := metaData["href"].(string)
+	pathUrl, ok := events[0].Data["href"].(string)
 	if !ok {
 		return nil
 	}

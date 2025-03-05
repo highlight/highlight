@@ -2,9 +2,10 @@ package redis
 
 import (
 	"context"
+	"time"
+
 	"github.com/go-redis/cache/v9"
 	log "github.com/sirupsen/logrus"
-	"time"
 )
 
 type Config struct {

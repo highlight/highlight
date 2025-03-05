@@ -7,6 +7,19 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"hash/fnv"
+	"io"
+	"math"
+	"net"
+	"net/http"
+	"net/mail"
+	url2 "net/url"
+	"regexp"
+	"sort"
+	"strconv"
+	"strings"
+	"time"
+
 	"github.com/PaesslerAG/jsonpath"
 	"github.com/aws/smithy-go/ptr"
 	lru "github.com/hashicorp/golang-lru/v2"
@@ -55,18 +68,6 @@ import (
 	"golang.org/x/sync/errgroup"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
-	"hash/fnv"
-	"io"
-	"math"
-	"net"
-	"net/http"
-	"net/mail"
-	url2 "net/url"
-	"regexp"
-	"sort"
-	"strconv"
-	"strings"
-	"time"
 )
 
 // This file will not be regenerated automatically.
@@ -2315,13 +2316,11 @@ func (r *Resolver) AddSessionEvents(ctx context.Context, sessionID int, events *
 	for _, event := range events.Events {
 		if event.Type == parse.Custom {
 			dataObject := struct {
-				Tag     string          `json:"tag"`
-				Payload json.RawMessage `json:"payload"`
-			}{}
-
-			if err := json.Unmarshal([]byte(event.Data), &dataObject); err != nil {
-				log.WithContext(ctx).WithField("session_id", sessionID).Error("error deserializing custom event properties")
-				continue
+				Tag     string      `json:"tag"`
+				Payload interface{} `json:"payload"`
+			}{
+				Tag:     event.Data["tag"].(string),
+				Payload: event.Data["payload"],
 			}
 
 			trackEvent := strings.Contains(dataObject.Tag, "Track")
@@ -2338,23 +2337,16 @@ func (r *Resolver) AddSessionEvents(ctx context.Context, sessionID int, events *
 				continue
 			}
 
-			payloadStr := string(dataObject.Payload)
-			if !clickEvent {
-				if err := json.Unmarshal(dataObject.Payload, &payloadStr); err != nil {
-					log.WithContext(ctx).WithField("session_id", sessionID).WithField("payloadStr", dataObject.Payload).Error("error deserializing session event payload into a string")
-					continue
-				}
-			}
-
 			if clickEvent {
-				propertiesObject := make(map[string]interface{})
-				if err := json.Unmarshal([]byte(payloadStr), &propertiesObject); err != nil {
+				var ok bool
+				var payloadMap map[string]interface{}
+				if payloadMap, ok = dataObject.Payload.(map[string]interface{}); !ok {
 					// older versions of the client send in the clickTarget as a string
-					propertiesObject["clickTarget"] = payloadStr
+					payloadMap = map[string]interface{}{"clickTarget": dataObject.Payload}
 				}
 
 				attributes := make(map[string]string)
-				for k, v := range propertiesObject {
+				for k, v := range payloadMap {
 					attributes[k] = fmt.Sprintf("%.*v", SESSION_FIELD_MAX_LENGTH, v)
 					if len(attributes[k]) > 0 {
 						fields = append(fields, AppendProperty{k, attributes[k], event.Timestamp})
@@ -2369,6 +2361,7 @@ func (r *Resolver) AddSessionEvents(ctx context.Context, sessionID int, events *
 					},
 				)
 			} else if navigateEvent {
+				payloadStr := dataObject.Payload.(string)
 				fields = append(fields, AppendProperty{"visited-url", payloadStr, event.Timestamp})
 
 				sessionEvents = append(sessionEvents,
@@ -2381,6 +2374,7 @@ func (r *Resolver) AddSessionEvents(ctx context.Context, sessionID int, events *
 					},
 				)
 			} else if reloadEvent {
+				payloadStr := dataObject.Payload.(string)
 				sessionEvents = append(sessionEvents,
 					&clickhouse.SessionEventRow{
 						Event:     "Navigate",
@@ -2391,6 +2385,7 @@ func (r *Resolver) AddSessionEvents(ctx context.Context, sessionID int, events *
 					},
 				)
 			} else if trackEvent {
+				payloadStr := dataObject.Payload.(string)
 				propertiesObject := make(map[string]interface{})
 				if err := json.Unmarshal([]byte(payloadStr), &propertiesObject); err != nil {
 					log.WithContext(ctx).WithField("session_id", sessionID).WithField("payloadStr", payloadStr).Error("error deserializing track event properties")
@@ -2554,6 +2549,24 @@ func (r *Resolver) ProcessCompressedPayload(ctx context.Context, sessionSecureID
 	return r.ProcessPayload(ctx, sessionSecureID, payload.Events, payload.Messages, payload.Resources, payload.WebSocketEvents, payload.Errors, ptr.ToBool(payload.IsBeacon), ptr.ToBool(payload.HasSessionUnloaded), payload.HighlightLogs, pointy.Int(payloadID))
 }
 
+func TransformEvents(evs []*publicModel.ReplayEventInput) (*parse.ReplayEvents, error) {
+	events := &parse.ReplayEvents{
+		Events: []*parse.ReplayEvent{},
+	}
+
+	for _, ev := range evs {
+		events.Events = append(events.Events, &parse.ReplayEvent{
+			Timestamp:    parse.JavascriptToGolangTime(ev.Timestamp),
+			Type:         parse.EventType(ev.Type),
+			Data:         ev.Data.(map[string]interface{}),
+			TimestampRaw: ev.Timestamp,
+			SID:          ev.Sid,
+		})
+	}
+
+	return events, nil
+}
+
 func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, events publicModel.ReplayEventsInput, messages string, resources string, webSocketEvents *string, errors []*publicModel.ErrorObjectInput, isBeacon bool, hasSessionUnloaded bool, highlightLogs *string, payloadId *int) error {
 	// old clients do not send web socket events, so the value can be nil.
 	// use this str as a simpler way to reference
@@ -2648,17 +2661,11 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 		if len(events.Events) > 1_000 {
 			opts = append(opts, util.WithSpanKind(trace.SpanKindServer))
 		}
-		parseEventsSpan, ctx := util.StartSpanFromContext(ctx, "public-graph.pushPayload", opts...)
+		parseEventsSpan, ctx := util.StartSpanFromContext(ctx, "public-graph.pushPayload.parseEvents", opts...)
 		defer parseEventsSpan.Finish()
 
 		if evs := events.Events; len(evs) > 0 {
-			// TODO: this isn't very performant, as marshaling the whole event obj to a string is expensive;
-			// should fix at some point.
-			eventBytes, err := json.Marshal(events)
-			if err != nil {
-				return e.Wrap(err, "error marshaling events from schema interfaces")
-			}
-			parsedEvents, err := parse.EventsFromString(string(eventBytes))
+			parsedEvents, err := TransformEvents(evs)
 			if err != nil {
 				return e.Wrap(err, "error parsing events from schema interfaces")
 			}
@@ -2675,7 +2682,7 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 				if event.Type == parse.FullSnapshot || event.Type == parse.IncrementalSnapshot {
 					snapshot, err := parse.NewSnapshot(event.Data, hostUrl)
 					if err != nil {
-						log.WithContext(ctx).WithField("projectID", projectID).WithField("sessionID", sessionID).WithField("length", len([]byte(event.Data))).WithError(err).Error("Error unmarshalling snapshot")
+						log.WithContext(ctx).WithField("projectID", projectID).WithField("sessionID", sessionID).WithError(err).Error("Error unmarshalling snapshot")
 						continue
 					}
 
@@ -2727,10 +2734,7 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 						}
 					}
 
-					if event.Data, err = snapshot.Encode(); err != nil {
-						log.WithContext(ctx).Error(e.Wrap(err, "Error encoding snapshot"))
-						continue
-					}
+					event.Data = snapshot.Encode()
 				}
 			}
 

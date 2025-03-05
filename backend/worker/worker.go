@@ -614,17 +614,12 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 	if len(accumulator.EventsForTimelineIndicator) > 0 {
 		var eventsForTimelineIndicator []*model.TimelineIndicatorEvent
 		for _, customEvent := range accumulator.EventsForTimelineIndicator {
-			var parsedData model.JSONB
-			err = json.Unmarshal(customEvent.Data, &parsedData)
-			if err != nil {
-				return e.Wrap(err, "error unmarshalling event chunk")
-			}
 			eventsForTimelineIndicator = append(eventsForTimelineIndicator, &model.TimelineIndicatorEvent{
 				SessionSecureID: s.SecureID,
 				Timestamp:       customEvent.TimestampRaw,
 				SID:             customEvent.SID,
 				Type:            int(customEvent.Type),
-				Data:            parsedData,
+				Data:            customEvent.Data,
 			})
 		}
 
