@@ -71,7 +71,7 @@ import {
 } from '@/pages/Alerts/AlertForm'
 import { Editor } from '@/pages/Graphing/constants'
 import { GraphSettings } from '@/pages/Graphing/GraphingEditor'
-import { btoaSafe } from '@/util/string'
+import { btoaSafe, copyToClipboard } from '@/util/string'
 
 import * as style from './Dashboard.css'
 
@@ -394,8 +394,7 @@ export const Dashboard = () => {
 	const noGraphs = graphs?.length === 0
 
 	const handleShare = () => {
-		window.navigator.clipboard.writeText(window.location.href)
-		toast.success('Copied link!')
+		copyToClipboard(window.location.href, { onCopyText: 'Copied link!' })
 	}
 
 	return (

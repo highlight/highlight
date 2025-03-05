@@ -48,7 +48,7 @@ import {
 } from '@/pages/Alerts/AlertForm'
 import { toast } from '@/components/Toaster'
 import { ActionBar } from '@/pages/Graphing/components/ActionBar'
-import { btoaSafe } from '@/util/string'
+import { btoaSafe, copyToClipboard } from '@/util/string'
 
 import * as style from './Dashboard.css'
 
@@ -221,8 +221,7 @@ export const ExpandedGraph = () => {
 	}, [g, navigate, projectId, selectedPreset])
 
 	const handleShare = () => {
-		window.navigator.clipboard.writeText(window.location.href)
-		toast.success('Copied link!')
+		copyToClipboard(window.location.href, { onCopyText: 'Copied link!' })
 	}
 
 	const handleEdit = () => {

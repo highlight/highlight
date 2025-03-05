@@ -20,7 +20,7 @@ import { useProjectId } from '@/hooks/useProjectId'
 import { useGetProjectQuery } from '@/graph/generated/hooks'
 import LoadingBox from '@/components/LoadingBox'
 import analytics from '@/util/analytics'
-import { toast } from '@/components/Toaster'
+import { copyToClipboard } from '@/util/string'
 import { vars } from '@highlight-run/ui/vars'
 import { LinkButton } from '@/components/LinkButton'
 import { useParams } from '@util/react-router/useParams'
@@ -78,8 +78,7 @@ export const ConnectPage = () => {
 	}
 
 	const copyProjectId = () => {
-		window.navigator.clipboard.writeText(projectVerboseId!)
-		toast.success('Project ID copied to your clipboard!')
+		copyToClipboard(projectVerboseId!, { onCopyText: 'Copied project ID!' })
 	}
 
 	return (

@@ -29,6 +29,7 @@ import analytics from '@util/analytics'
 import { PlatformSelection } from '@/pages/Connect/PlatformSelection'
 import { ICON_MAPPINGS } from '@/pages/Connect/constants'
 import { namedOperations } from '@/graph/generated/operations'
+import { copyToClipboard } from '@/util/string'
 
 const ICON_FILL = vars.theme.interactive.fill.secondary.content.text
 
@@ -81,8 +82,7 @@ export const NewConnectPage = () => {
 	}
 
 	const copyProjectId = () => {
-		window.navigator.clipboard.writeText(projectVerboseId!)
-		toast.success('Project ID copied to your clipboard!')
+		copyToClipboard(projectVerboseId!, { onCopyText: 'Copied project ID!' })
 	}
 
 	return (
