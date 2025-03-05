@@ -6722,6 +6722,16 @@ body {
   overflow: hidden;
   height: 30px;
 }
+._1runqd00 {
+  height: 40px;
+}
+._1runqd01 {
+  max-width: 150px;
+  min-width: 100px;
+}
+.w96cqy0 {
+  height: 28px;
+}
 ._1a4jm560 {
   height: 40px;
 }
@@ -6772,16 +6782,6 @@ body {
     grid-template-columns: 1fr 1fr 1fr;
   }
 }
-._1runqd00 {
-  height: 40px;
-}
-._1runqd01 {
-  max-width: 150px;
-  min-width: 100px;
-}
-.w96cqy0 {
-  height: 28px;
-}
 ._7o1fd80 {
   width: 100%;
   height: 28px;
@@ -6795,54 +6795,6 @@ body {
 }
 ._7o1fd83 {
   max-width: 280px;
-}
-._1b4bur70 {
-  height: 40px;
-}
-._1b4bur71 {
-  height: calc(100% - 40px);
-}
-._1b4bur72 {
-  flex-grow: 1;
-}
-._1b4bur73 {
-  width: 100%;
-}
-._1b4bur74 {
-  margin-bottom: 4px;
-}
-._1b4bur75 {
-  height: 28px;
-}
-._1b4bur76 {
-  width: calc(100% - 320px);
-}
-._1b4bur77 {
-  z-index: 0;
-}
-._1b4bur78 {
-  margin: auto;
-  z-index: 1;
-  background-color: #ffffff;
-}
-._1b4bur79 {
-  background-color: var(--_1pyqka90);
-  border-bottom-left-radius: 6px;
-  border-bottom-right-radius: 6px;
-}
-._1b4bur7a {
-  display: flex;
-  justify-content: space-between;
-  width: 100%;
-  border-bottom: var(--_1pyqka9j) solid 1px;
-  padding: 6px;
-}
-._1b4bur7b {
-  width: fit-content;
-}
-._1b4bur7c {
-  border: var(--_1pyqka9j) solid 1px;
-  border-radius: 6px;
 }
 ._1yiubn60 {
   width: 100%;
@@ -6960,6 +6912,54 @@ body {
 .k0as8h0 {
   width: 100%;
   color: var(--_1pyqka9c);
+}
+._1b4bur70 {
+  height: 40px;
+}
+._1b4bur71 {
+  height: calc(100% - 40px);
+}
+._1b4bur72 {
+  flex-grow: 1;
+}
+._1b4bur73 {
+  width: 100%;
+}
+._1b4bur74 {
+  margin-bottom: 4px;
+}
+._1b4bur75 {
+  height: 28px;
+}
+._1b4bur76 {
+  width: calc(100% - 320px);
+}
+._1b4bur77 {
+  z-index: 0;
+}
+._1b4bur78 {
+  margin: auto;
+  z-index: 1;
+  background-color: #ffffff;
+}
+._1b4bur79 {
+  background-color: var(--_1pyqka90);
+  border-bottom-left-radius: 6px;
+  border-bottom-right-radius: 6px;
+}
+._1b4bur7a {
+  display: flex;
+  justify-content: space-between;
+  width: 100%;
+  border-bottom: var(--_1pyqka9j) solid 1px;
+  padding: 6px;
+}
+._1b4bur7b {
+  width: fit-content;
+}
+._1b4bur7c {
+  border: var(--_1pyqka9j) solid 1px;
+  border-radius: 6px;
 }
 ._1vb6x0p0 {
   text-decoration: none;

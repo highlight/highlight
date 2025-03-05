@@ -12,6 +12,7 @@ import { Link, useSearchParams } from 'react-router-dom'
 import { Button } from '@/components/Button'
 import { Skeleton } from '@/components/Skeleton'
 import { useMatchErrorTagQuery } from '@/graph/generated/hooks'
+import { atobSafe } from '@/util/string'
 
 import styles from './ErrorTags.module.css'
 
@@ -20,7 +21,7 @@ const GRID_COLUMNS = ['10rem', '1fr', '5rem']
 export function ErrorTagsSearch() {
 	const [searchParams] = useSearchParams()
 	const query = useMemo(
-		() => atob(searchParams.get('q') ?? ''),
+		() => atobSafe(searchParams.get('q') ?? ''),
 		[searchParams],
 	)
 	const { data: tagData, loading: tagLoading } = useMatchErrorTagQuery({

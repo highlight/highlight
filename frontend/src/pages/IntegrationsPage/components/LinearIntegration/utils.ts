@@ -1,3 +1,6 @@
+import { useCallback } from 'react'
+
+import { btoaSafe } from '@/util/string'
 import {
 	useAddIntegrationToProjectMutation,
 	useGetWorkspaceIsIntegratedWithLinearQuery,
@@ -7,7 +10,6 @@ import { namedOperations } from '@graph/operations'
 import { IntegrationType } from '@graph/schemas'
 import { useParams } from '@util/react-router/useParams'
 import { GetBaseURL } from '@util/window'
-import { useCallback } from 'react'
 
 const LINEAR_SCOPES = ['read', 'issues:create', 'comments:create']
 const LINEAR_CLIENT_ID = import.meta.env.LINEAR_CLIENT_ID
@@ -83,7 +85,7 @@ export const getLinearOAuthUrl = (projectId: string) => {
 		`https://linear.app/oauth/authorize` +
 		`?client_id=${LINEAR_CLIENT_ID}&prompt=consent&response_type=code&scope=${encodeURIComponent(
 			LINEAR_SCOPES.join(','),
-		)}&state=${btoa(
+		)}&state=${btoaSafe(
 			JSON.stringify(state),
 		)}&redirect_uri=${encodeURIComponent(redirectUri)}`
 

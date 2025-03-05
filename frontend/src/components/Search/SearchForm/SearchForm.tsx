@@ -1,5 +1,3 @@
-import { useSavedSegments } from '@components/Search/useSavedSegments'
-import { GetKeysQuery } from '@graph/operations'
 import {
 	Badge,
 	Box,
@@ -22,15 +20,18 @@ import {
 	Text,
 	useComboboxStore,
 } from '@highlight-run/ui/components'
-import { useProjectId } from '@hooks/useProjectId'
-import { useParams } from '@util/react-router/useParams'
 import clsx from 'clsx'
 import moment from 'moment'
 import React, { useEffect, useRef, useState } from 'react'
 import TextareaAutosize from 'react-autosize-textarea'
 import { useNavigate } from 'react-router-dom'
 import { StringParam, useQueryParam, withDefault } from 'use-query-params'
+import { debounce } from 'lodash'
 
+import { useSavedSegments } from '@components/Search/useSavedSegments'
+import { GetKeysQuery } from '@graph/operations'
+import { useProjectId } from '@hooks/useProjectId'
+import { useParams } from '@util/react-router/useParams'
 import { LinkButton } from '@/components/LinkButton'
 import LoadingBox from '@/components/LoadingBox'
 import SearchGrammarParser from '@/components/Search/Parser/antlr/SearchGrammarParser'
@@ -57,10 +58,11 @@ import {
 } from '@/graph/generated/hooks'
 import { ProductType, SavedSegmentEntityType } from '@/graph/generated/schemas'
 import { useApplicationContext } from '@/routers/AppRouter/context/ApplicationContext'
+import { btoaSafe } from '@/util/string'
+
 import { SearchEntry } from './hooks'
 import { AiSearch } from './AiSearch'
 import * as styles from './SearchForm.css'
-import { debounce } from 'lodash'
 
 export const QueryParam = withDefault(StringParam, '')
 export const FixedRangePreset = DEFAULT_TIME_PRESETS[0]
@@ -211,7 +213,7 @@ const SearchForm: React.FC<SearchFormProps> = ({
 					onClick={() => {
 						navigate({
 							pathname: `/${projectId}/dashboards/new`,
-							search: `settings=${btoa(
+							search: `settings=${btoaSafe(
 								JSON.stringify({ productType, query }),
 							)}`,
 						})
@@ -226,7 +228,7 @@ const SearchForm: React.FC<SearchFormProps> = ({
 					onClick={() => {
 						navigate({
 							pathname: `/${projectId}/alerts/new`,
-							search: `settings=${btoa(
+							search: `settings=${btoaSafe(
 								JSON.stringify({ productType, query }),
 							)}`,
 						})

@@ -1,4 +1,3 @@
-import { toast } from '@components/Toaster'
 import {
 	Box,
 	Button,
@@ -12,8 +11,6 @@ import {
 	TagSwitchGroup,
 	Text,
 } from '@highlight-run/ui/components'
-import { FUNNEL_DISPLAY, FunnelDisplay } from '@pages/Graphing/components/types'
-import { useParams } from '@util/react-router/useParams'
 import { Divider } from 'antd'
 import React, {
 	PropsWithChildren,
@@ -26,7 +23,11 @@ import React, {
 import { Helmet } from 'react-helmet'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { useDebounce } from 'react-use'
+import { omit } from 'lodash'
 
+import { toast } from '@components/Toaster'
+import { FUNNEL_DISPLAY, FunnelDisplay } from '@pages/Graphing/components/types'
+import { useParams } from '@util/react-router/useParams'
 import { SearchContext } from '@/components/Search/SearchContext'
 import { Search } from '@/components/Search/SearchForm/SearchForm'
 import {
@@ -67,7 +68,6 @@ import { EventSelection } from '@pages/Graphing/EventSelection'
 import { useGraphingVariables } from '@/pages/Graphing/hooks/useGraphingVariables'
 import { VariablesBar } from '@/pages/Graphing/components/VariablesBar'
 import { useRetentionPresets } from '@/components/Search/SearchForm/hooks'
-import { omit } from 'lodash'
 import {
 	BUCKET_FREQUENCIES,
 	EventSelectionStep,
@@ -80,6 +80,13 @@ import { Panel } from '@/pages/Graphing/components/Panel'
 import { useGraphTime } from '@/pages/Graphing/hooks/useGraphTime'
 import { DEFAULT_SQL, SqlEditor } from '@/pages/Graphing/components/SqlEditor'
 import { ActionBar } from '@/pages/Graphing/components/ActionBar'
+import {
+	AlertSettings,
+	DEFAULT_COOLDOWN,
+	DEFAULT_WINDOW,
+} from '@/pages/Alerts/AlertForm'
+import { exportGraph } from '@/pages/Graphing/hooks/exportGraph'
+import { atobSafe, btoaSafe } from '@/util/string'
 
 import { Combobox } from './Combobox'
 import {
@@ -99,12 +106,6 @@ import {
 	LineChartSettings,
 	TableSettings,
 } from './Settings'
-import {
-	AlertSettings,
-	DEFAULT_COOLDOWN,
-	DEFAULT_WINDOW,
-} from '@/pages/Alerts/AlertForm'
-import { exportGraph } from '@/pages/Graphing/hooks/exportGraph'
 
 type BucketBy = 'Interval' | 'Count'
 const BUCKET_BY_OPTIONS: BucketBy[] = ['Interval', 'Count']
@@ -472,7 +473,7 @@ export const GraphingEditor: React.FC = () => {
 	const settingsParam = searchParams.get(SETTINGS_PARAM)
 	const [initialSettings] = useState(
 		settingsParam !== null
-			? (JSON.parse(atob(settingsParam)) as GraphSettings)
+			? (JSON.parse(atobSafe(settingsParam)) as GraphSettings)
 			: undefined,
 	)
 
@@ -711,7 +712,7 @@ export const GraphingEditor: React.FC = () => {
 		],
 	)
 
-	const settingsEncoded = btoa(JSON.stringify(settings))
+	const settingsEncoded = btoaSafe(JSON.stringify(settings))
 
 	useEffect(() => {
 		searchParams.set(SETTINGS_PARAM, settingsEncoded)
@@ -784,7 +785,7 @@ export const GraphingEditor: React.FC = () => {
 
 		navigate({
 			pathname: `/${projectId}/dashboards/new`,
-			search: `settings=${btoa(JSON.stringify(updatedSettings))}`,
+			search: `settings=${btoaSafe(JSON.stringify(updatedSettings))}`,
 		})
 	}, [navigate, projectId, settings])
 
@@ -807,7 +808,7 @@ export const GraphingEditor: React.FC = () => {
 			sql: undefined,
 		}
 
-		const alertSettingsEncoded = btoa(JSON.stringify(alertSettings))
+		const alertSettingsEncoded = btoaSafe(JSON.stringify(alertSettings))
 
 		let search = ''
 		if (selectedPreset !== undefined) {

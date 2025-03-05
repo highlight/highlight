@@ -1,4 +1,3 @@
-import { toast } from '@components/Toaster'
 import {
 	Box,
 	Button,
@@ -14,12 +13,13 @@ import {
 	Tag,
 	Text,
 } from '@highlight-run/ui/components'
-import { useParams } from '@util/react-router/useParams'
 import { Divider } from 'antd'
 import React, { PropsWithChildren, useEffect, useMemo, useState } from 'react'
 import { Helmet } from 'react-helmet'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 
+import { toast } from '@components/Toaster'
+import { useParams } from '@util/react-router/useParams'
 import { SearchContext } from '@/components/Search/SearchContext'
 import { Search } from '@/components/Search/SearchForm/SearchForm'
 import {
@@ -57,9 +57,6 @@ import { OptionDropdown } from '@/pages/Graphing/OptionDropdown'
 import { EventSelection } from '@/pages/Graphing/EventSelection'
 import { GraphContextProvider } from '@/pages/Graphing/context/GraphContext'
 import { useGraphData } from '@pages/Graphing/hooks/useGraphData'
-
-import { AlertGraph } from '../AlertGraph'
-import * as style from './styles.css'
 import { useGraphTime } from '@/pages/Graphing/hooks/useGraphTime'
 import {
 	DEFAULT_ALERT_SQL,
@@ -67,6 +64,10 @@ import {
 } from '@/pages/Graphing/components/SqlEditor'
 import { Panel } from '@/pages/Graphing/components/Panel'
 import { GraphBackgroundWrapper } from '@/pages/Graphing/GraphingEditor'
+import { atobSafe, btoaSafe } from '@/util/string'
+
+import { AlertGraph } from '../AlertGraph'
+import * as style from './styles.css'
 
 const SidebarSection = (props: PropsWithChildren) => {
 	return (
@@ -181,7 +182,7 @@ export const AlertForm: React.FC = () => {
 	const settingsParam = searchParams.get(SETTINGS_PARAM)
 	const [initialSettings] = useState(
 		settingsParam !== null
-			? (JSON.parse(atob(settingsParam)) as AlertSettings)
+			? (JSON.parse(atobSafe(settingsParam)) as AlertSettings)
 			: undefined,
 	)
 
@@ -347,7 +348,7 @@ export const AlertForm: React.FC = () => {
 		sql,
 	}
 
-	const settingsEncoded = btoa(JSON.stringify(settings))
+	const settingsEncoded = btoaSafe(JSON.stringify(settings))
 
 	useEffect(() => {
 		searchParams.set(SETTINGS_PARAM, settingsEncoded)

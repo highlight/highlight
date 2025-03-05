@@ -4,13 +4,13 @@ import {
 	UpdateIntegrationProjectSettingsMutationVariables,
 } from '@graph/operations'
 import { IntegrationType } from '@graph/schemas'
-
 import {
 	useGetJiraIntegrationSettingsQuery,
 	useUpdateIntegrationProjectSettingsMutation,
 } from '@/graph/generated/hooks'
 import { useIntegration } from '@/pages/IntegrationsPage/components/common/useIntegration'
 import { GetBaseURL } from '@/util/window'
+import { btoaSafe } from '@/util/string'
 
 const JIRA_SCOPES = ['read:jira-work', 'write:jira-work', 'offline_access']
 const JIRA_CLIENT_ID = import.meta.env.JIRA_CLIENT_ID
@@ -46,7 +46,7 @@ export const getJiraOAuthUrl = (projectId: string, workspaceId: string) => {
 		`&client_id=${JIRA_CLIENT_ID}` +
 		`&scope=${encodeURIComponent(JIRA_SCOPES.join(' '))}` +
 		`&redirect_uri=${encodeURIComponent(redirectUri)}` +
-		`&state=${btoa(JSON.stringify(state))}` +
+		`&state=${btoaSafe(JSON.stringify(state))}` +
 		`&response_type=code` +
 		`&prompt=consent`
 

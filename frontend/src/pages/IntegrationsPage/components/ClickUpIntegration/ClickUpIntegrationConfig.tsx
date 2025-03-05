@@ -1,3 +1,6 @@
+import clsx from 'clsx'
+import React, { useEffect } from 'react'
+
 import Button from '@components/Button/Button/Button'
 import Card from '@components/Card/Card'
 import Select from '@components/Select/Select'
@@ -16,8 +19,7 @@ import { useApplicationContext } from '@routers/AppRouter/context/ApplicationCon
 import { useParams } from '@util/react-router/useParams'
 import useMap from '@util/useMap'
 import { GetBaseURL } from '@util/window'
-import clsx from 'clsx'
-import React, { useEffect } from 'react'
+import { btoaSafe } from '@/util/string'
 
 import styles from './ClickUpIntegrationConfig.module.css'
 
@@ -87,7 +89,7 @@ const ClickUpIntegrationSetup: React.FC<IntegrationConfigProps> = ({
 					className={styles.modalBtn}
 					type="primary"
 					target="_blank"
-					href={`https://app.clickup.com/api?client_id=${CLICKUP_CLIENT_ID}&redirect_uri=${redirectUri}&state=${btoa(
+					href={`https://app.clickup.com/api?client_id=${CLICKUP_CLIENT_ID}&redirect_uri=${redirectUri}&state=${btoaSafe(
 						JSON.stringify({
 							project_id: project_id,
 							workspace_id: currentWorkspace?.id,

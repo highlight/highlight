@@ -10409,6 +10409,7 @@ __metadata:
     "@tanstack/react-virtual": "npm:3.0.0-beta.52"
     "@testing-library/jest-dom": "npm:^5.1.0"
     "@testing-library/react-hooks": "npm:^8.0.1"
+    "@types/base-64": "npm:^1"
     "@types/color-hash": "npm:^1.0.1"
     "@types/jest": "npm:^27.0.1"
     "@types/js-cookie": "npm:^3.0.2"
@@ -10443,6 +10444,7 @@ __metadata:
     antd: "npm:4.22.8"
     antlr4: "npm:4.13.1-patch-1"
     autoprefixer: "npm:^10.4.8"
+    base-64: "npm:^1.0.0"
     clsx: "npm:^1.2.1"
     color-hash: "npm:^2.0.1"
     dexie: "npm:3.2.4"
@@ -21744,6 +21746,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@types/base-64@npm:^1":
+  version: 1.0.2
+  resolution: "@types/base-64@npm:1.0.2"
+  checksum: 10/bb7593c6de16c88a1bfed73a37c3be2e940921261bb7a160ab6d671f66d976b5426334ae9ce59553a10086db11e52af348813271a8b636e4f88e4cab8f27a3e4
+  languageName: node
+  linkType: hard
+
 "@types/body-parser@npm:*":
   version: 1.19.5
   resolution: "@types/body-parser@npm:1.19.5"
@@ -28724,6 +28733,13 @@ __metadata:
   dependencies:
     streamx: "npm:^2.18.0"
   checksum: 10/05ef8f2e691cd9649a0dda3a37580f4cf1aa1d1a08d489f64fbe10455acad63ac08b390f9381917c41700ee7adf5fc178106eb2c6d4be3b5453f1433c4147841
+  languageName: node
+  linkType: hard
+
+"base-64@npm:^1.0.0":
+  version: 1.0.0
+  resolution: "base-64@npm:1.0.0"
+  checksum: 10/d10b64a1fc9b2c5a5f39f1ce1e6c9d1c5b249222bbfa3a0604c592d90623caf74419983feadd8a170f27dc0c3389704f72faafa3e645aeb56bfc030c93ff074a
   languageName: node
   linkType: hard
 

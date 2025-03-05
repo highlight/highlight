@@ -4,13 +4,13 @@ import {
 	UpdateIntegrationProjectSettingsMutationVariables,
 } from '@graph/operations'
 import { IntegrationType } from '@graph/schemas'
-
 import {
 	useGetGitlabIntegrationSettingsQuery,
 	useUpdateIntegrationProjectSettingsMutation,
 } from '@/graph/generated/hooks'
 import { useIntegration } from '@/pages/IntegrationsPage/components/common/useIntegration'
 import { GetBaseURL } from '@/util/window'
+import { btoaSafe } from '@/util/string'
 
 const GITLAB_SCOPES = ['api', 'read_api']
 const GITLAB_CLIENT_ID = import.meta.env.GITLAB_CLIENT_ID
@@ -45,7 +45,7 @@ export const getGitlabOAuthUrl = (projectId: string, workspaceId: string) => {
 		`client_id=${GITLAB_CLIENT_ID}` +
 		`&scope=${GITLAB_SCOPES.join('+')}` +
 		`&redirect_uri=${encodeURIComponent(redirectUri)}` +
-		`&state=${btoa(JSON.stringify(state))}` +
+		`&state=${btoaSafe(JSON.stringify(state))}` +
 		`&response_type=code`
 
 	return authUrl
