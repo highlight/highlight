@@ -1,15 +1,16 @@
+import { useCallback, useEffect, useState } from 'react'
+
 import { toast } from '@components/Toaster'
 import { namedOperations } from '@graph/operations'
 import { IntegrationType } from '@graph/schemas'
 import { useParams } from '@util/react-router/useParams'
 import { GetBaseURL } from '@util/window'
-import { useCallback, useEffect, useState } from 'react'
-
 import {
 	useAddIntegrationToProjectMutation,
 	useGetWorkspaceIsIntegratedWithMicrosoftTeamsQuery,
 	useRemoveIntegrationFromProjectMutation,
 } from '@/graph/generated/hooks'
+import { btoaSafe } from '@/util/string'
 
 const MICROSOFT_TEAMS_BOT_ID = import.meta.env.MICROSOFT_TEAMS_BOT_ID
 const MICROSOFT_SCOPES = ['offline_access', 'openid', 'profile']
@@ -118,7 +119,7 @@ export const getMicrosoftTeamsUrl = (projectId: string, next?: string) => {
 		`?client_id=${MICROSOFT_TEAMS_BOT_ID}` +
 		`&scope=${encodeURIComponent(MICROSOFT_SCOPES.join(' '))}` +
 		`&redirect_uri=${encodeURIComponent(redirectUri)}` +
-		`&state=${btoa(JSON.stringify(state))}` +
+		`&state=${btoaSafe(JSON.stringify(state))}` +
 		`&response_type=code` +
 		`&prompt=consent`
 

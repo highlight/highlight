@@ -1,4 +1,3 @@
-import { toast } from '@components/Toaster'
 import {
 	closestCenter,
 	DndContext,
@@ -37,6 +36,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 import { Helmet } from 'react-helmet'
 import { Link, useNavigate } from 'react-router-dom'
 
+import { toast } from '@components/Toaster'
 import {
 	useDeleteGraphMutation,
 	useGetVisualizationQuery,
@@ -54,8 +54,6 @@ import { DashboardCard } from '@/pages/Graphing/components/DashboardCard'
 import { EmptyDashboardCallout } from '@/pages/Graphing/components/EmptyDashboardCallout'
 import Graph, { useGetViewConfig } from '@/pages/Graphing/components/Graph'
 import { useParams } from '@/util/react-router/useParams'
-
-import * as style from './Dashboard.css'
 import { DashboardSettingsModal } from '@/pages/Graphing/components/DashboardSettingsModal'
 import { VariablesBar } from '@/pages/Graphing/components/VariablesBar'
 import { useGraphingVariables } from '@/pages/Graphing/hooks/useGraphingVariables'
@@ -73,6 +71,9 @@ import {
 } from '@/pages/Alerts/AlertForm'
 import { Editor } from '@/pages/Graphing/constants'
 import { GraphSettings } from '@/pages/Graphing/GraphingEditor'
+import { btoaSafe, copyToClipboard } from '@/util/string'
+
+import * as style from './Dashboard.css'
 
 export const HeaderDivider = () => <Box cssClass={style.headerDivider} />
 
@@ -157,7 +158,7 @@ const DashboardCell = ({
 
 		navigate({
 			pathname: `/${projectId}/dashboards/new`,
-			search: `settings=${btoa(JSON.stringify(graphInput))}`,
+			search: `settings=${btoaSafe(JSON.stringify(graphInput))}`,
 		})
 	}, [g, navigate, projectId])
 
@@ -217,7 +218,7 @@ const DashboardCell = ({
 			sql: undefined,
 		}
 
-		const settingsEncoded = btoa(JSON.stringify(settings))
+		const settingsEncoded = btoaSafe(JSON.stringify(settings))
 
 		let search = ''
 		if (timePreset !== undefined) {
@@ -393,8 +394,7 @@ export const Dashboard = () => {
 	const noGraphs = graphs?.length === 0
 
 	const handleShare = () => {
-		window.navigator.clipboard.writeText(window.location.href)
-		toast.success('Copied link!')
+		copyToClipboard(window.location.href, { onCopyText: 'Copied link!' })
 	}
 
 	return (

@@ -16,11 +16,6 @@ import {
 	Tooltip,
 } from '@highlight-run/ui/components'
 import { vars } from '@highlight-run/ui/vars'
-import {
-	FunnelChart,
-	FunnelChartConfig,
-} from '@pages/Graphing/components/FunnelChart'
-import { FunnelDisplay } from '@pages/Graphing/components/types'
 import clsx from 'clsx'
 import moment from 'moment'
 import React, {
@@ -33,7 +28,14 @@ import React, {
 } from 'react'
 import { Area, Tooltip as RechartsTooltip, ReferenceArea } from 'recharts'
 import { CategoricalChartState } from 'recharts/types/chart/types'
+import _ from 'lodash'
+import useLocalStorage from '@rehooks/local-storage'
 
+import {
+	FunnelChart,
+	FunnelChartConfig,
+} from '@pages/Graphing/components/FunnelChart'
+import { FunnelDisplay } from '@pages/Graphing/components/types'
 import { loadingIcon } from '@/components/Button/style.css'
 import { TIME_FORMAT } from '@/components/Search/SearchForm/constants'
 import {
@@ -66,15 +68,13 @@ import {
 	TableConfig,
 	TableNullHandling,
 } from '@/pages/Graphing/components/Table'
-
-import * as style from './Graph.css'
-
 import { BUCKET_FREQUENCIES, EventSelectionStep } from '@pages/Graphing/util'
-import { useGraphContext } from '../context/GraphContext'
 import { TIME_METRICS } from '@pages/Graphing/constants'
-import _ from 'lodash'
 import { useSetRelatedResource } from '@/components/RelatedResources/hooks'
-import useLocalStorage from '@rehooks/local-storage'
+import { btoaSafe } from '@/util/string'
+
+import { useGraphContext } from '../context/GraphContext'
+import * as style from './Graph.css'
 
 export type View = 'Line chart' | 'Bar chart' | 'Funnel chart' | 'Table'
 
@@ -774,7 +774,7 @@ export const getSeriesKey = (s: Series | undefined): string => {
 	if (s === undefined) {
 		return 'undefined'
 	}
-	return btoa(
+	return btoaSafe(
 		JSON.stringify([
 			s.aggregator,
 			s.column,

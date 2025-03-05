@@ -12,6 +12,7 @@ import {
 import { useNavigate } from 'react-router-dom'
 
 import { Button } from '@/components/Button'
+import { btoaSafe } from '@/util/string'
 
 import styles from './ErrorTags.module.css'
 
@@ -31,7 +32,7 @@ export function ErrorTags() {
 	const inputValue = formStore.useValue('query')
 	const navigate = useNavigate()
 	function navigateToSearch(q: string) {
-		const encodedQuery = btoa(q)
+		const encodedQuery = btoaSafe(q)
 		navigate(`/error-tags/search?q=${encodedQuery}`)
 	}
 	function onSubmit(e: React.FormEvent<HTMLFormElement>) {

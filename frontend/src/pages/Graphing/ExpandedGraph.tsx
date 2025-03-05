@@ -13,6 +13,7 @@ import {
 import { vars } from '@highlight-run/ui/vars'
 import { Helmet } from 'react-helmet'
 import { Link, useNavigate } from 'react-router-dom'
+import { useCallback } from 'react'
 
 import {
 	useDeleteGraphMutation,
@@ -31,9 +32,6 @@ import { useRetentionPresets } from '@/components/Search/SearchForm/hooks'
 import { GraphContextProvider } from '@pages/Graphing/context/GraphContext'
 import { useGraphData } from '@pages/Graphing/hooks/useGraphData'
 import { useGraphTime } from '@/pages/Graphing/hooks/useGraphTime'
-
-import * as style from './Dashboard.css'
-import { useCallback } from 'react'
 import { exportGraph } from '@/pages/Graphing/hooks/exportGraph'
 import { loadFunnelStep } from '@/pages/Graphing/util'
 import { Editor } from '@/pages/Graphing/constants'
@@ -50,6 +48,9 @@ import {
 } from '@/pages/Alerts/AlertForm'
 import { toast } from '@/components/Toaster'
 import { ActionBar } from '@/pages/Graphing/components/ActionBar'
+import { btoaSafe, copyToClipboard } from '@/util/string'
+
+import * as style from './Dashboard.css'
 
 export const ExpandedGraph = () => {
 	const { dashboard_id, graph_id } = useParams<{
@@ -134,7 +135,7 @@ export const ExpandedGraph = () => {
 
 		navigate({
 			pathname: `/${projectId}/dashboards/new`,
-			search: `settings=${btoa(JSON.stringify(graphInput))}`,
+			search: `settings=${btoaSafe(JSON.stringify(graphInput))}`,
 		})
 	}, [g, navigate, projectId])
 
@@ -205,7 +206,7 @@ export const ExpandedGraph = () => {
 			sql: undefined,
 		}
 
-		const settingsEncoded = btoa(JSON.stringify(settings))
+		const settingsEncoded = btoaSafe(JSON.stringify(settings))
 
 		let search = ''
 		if (selectedPreset !== undefined) {
@@ -220,8 +221,7 @@ export const ExpandedGraph = () => {
 	}, [g, navigate, projectId, selectedPreset])
 
 	const handleShare = () => {
-		window.navigator.clipboard.writeText(window.location.href)
-		toast.success('Copied link!')
+		copyToClipboard(window.location.href, { onCopyText: 'Copied link!' })
 	}
 
 	const handleEdit = () => {

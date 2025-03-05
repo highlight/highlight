@@ -1,15 +1,16 @@
+import { useCallback, useEffect, useState } from 'react'
+
 import { toast } from '@components/Toaster'
 import { namedOperations } from '@graph/operations'
 import { IntegrationType } from '@graph/schemas'
 import { useParams } from '@util/react-router/useParams'
 import { GetBaseURL } from '@util/window'
-import { useCallback, useEffect, useState } from 'react'
-
 import {
 	useAddIntegrationToProjectMutation,
 	useGetWorkspaceIsIntegratedWithSlackQuery,
 	useRemoveIntegrationFromProjectMutation,
-} from '../../../../../graph/generated/hooks'
+} from '@/graph/generated/hooks'
+import { btoaSafe } from '@/util/string'
 
 const SLACK_CLIENT_ID = import.meta.env.SLACK_CLIENT_ID
 
@@ -114,7 +115,7 @@ export const getSlackUrl = (projectId: string, next?: string) => {
 
 	const slackUrl = `https://slack.com/oauth/v2/authorize?client_id=${SLACK_CLIENT_ID}&scope=${encodeURIComponent(
 		slackScopes,
-	)}&state=${btoa(JSON.stringify(state))}&redirect_uri=${encodeURIComponent(
+	)}&state=${btoaSafe(JSON.stringify(state))}&redirect_uri=${encodeURIComponent(
 		redirectUri,
 	)}`
 
