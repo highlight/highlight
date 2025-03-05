@@ -7,6 +7,19 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"hash/fnv"
+	"io"
+	"math"
+	"net"
+	"net/http"
+	"net/mail"
+	url2 "net/url"
+	"regexp"
+	"sort"
+	"strconv"
+	"strings"
+	"time"
+
 	"github.com/PaesslerAG/jsonpath"
 	"github.com/aws/smithy-go/ptr"
 	lru "github.com/hashicorp/golang-lru/v2"
@@ -55,18 +68,6 @@ import (
 	"golang.org/x/sync/errgroup"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
-	"hash/fnv"
-	"io"
-	"math"
-	"net"
-	"net/http"
-	"net/mail"
-	url2 "net/url"
-	"regexp"
-	"sort"
-	"strconv"
-	"strings"
-	"time"
 )
 
 // This file will not be regenerated automatically.
@@ -2314,14 +2315,18 @@ func (r *Resolver) AddSessionEvents(ctx context.Context, sessionID int, events *
 
 	for _, event := range events.Events {
 		if event.Type == parse.Custom {
-			dataObject := struct {
-				Tag     string          `json:"tag"`
-				Payload json.RawMessage `json:"payload"`
-			}{}
-
-			if err := json.Unmarshal([]byte(event.Data), &dataObject); err != nil {
-				log.WithContext(ctx).WithField("session_id", sessionID).Error("error deserializing custom event properties")
+			tagStr, ok := event.Data["tag"].(string)
+			if !ok {
+				log.WithContext(ctx).WithField("session_id", sessionID).Error("expected string tag for custom event")
 				continue
+			}
+
+			dataObject := struct {
+				Tag     string      `json:"tag"`
+				Payload interface{} `json:"payload"`
+			}{
+				Tag:     tagStr,
+				Payload: event.Data["payload"],
 			}
 
 			trackEvent := strings.Contains(dataObject.Tag, "Track")
@@ -2338,23 +2343,16 @@ func (r *Resolver) AddSessionEvents(ctx context.Context, sessionID int, events *
 				continue
 			}
 
-			payloadStr := string(dataObject.Payload)
-			if !clickEvent {
-				if err := json.Unmarshal(dataObject.Payload, &payloadStr); err != nil {
-					log.WithContext(ctx).WithField("session_id", sessionID).WithField("payloadStr", dataObject.Payload).Error("error deserializing session event payload into a string")
-					continue
-				}
-			}
-
 			if clickEvent {
-				propertiesObject := make(map[string]interface{})
-				if err := json.Unmarshal([]byte(payloadStr), &propertiesObject); err != nil {
+				var ok bool
+				var payloadMap map[string]interface{}
+				if payloadMap, ok = dataObject.Payload.(map[string]interface{}); !ok {
 					// older versions of the client send in the clickTarget as a string
-					propertiesObject["clickTarget"] = payloadStr
+					payloadMap = map[string]interface{}{"clickTarget": dataObject.Payload}
 				}
 
 				attributes := make(map[string]string)
-				for k, v := range propertiesObject {
+				for k, v := range payloadMap {
 					attributes[k] = fmt.Sprintf("%.*v", SESSION_FIELD_MAX_LENGTH, v)
 					if len(attributes[k]) > 0 {
 						fields = append(fields, AppendProperty{k, attributes[k], event.Timestamp})
@@ -2369,6 +2367,12 @@ func (r *Resolver) AddSessionEvents(ctx context.Context, sessionID int, events *
 					},
 				)
 			} else if navigateEvent {
+				payloadStr, ok := dataObject.Payload.(string)
+				if !ok {
+					log.WithContext(ctx).WithField("session_id", sessionID).Error("expected string payload for navigate event")
+					continue
+				}
+
 				fields = append(fields, AppendProperty{"visited-url", payloadStr, event.Timestamp})
 
 				sessionEvents = append(sessionEvents,
@@ -2381,6 +2385,12 @@ func (r *Resolver) AddSessionEvents(ctx context.Context, sessionID int, events *
 					},
 				)
 			} else if reloadEvent {
+				payloadStr, ok := dataObject.Payload.(string)
+				if !ok {
+					log.WithContext(ctx).WithField("session_id", sessionID).Error("expected string payload for reload event")
+					continue
+				}
+
 				sessionEvents = append(sessionEvents,
 					&clickhouse.SessionEventRow{
 						Event:     "Navigate",
@@ -2391,6 +2401,12 @@ func (r *Resolver) AddSessionEvents(ctx context.Context, sessionID int, events *
 					},
 				)
 			} else if trackEvent {
+				payloadStr, ok := dataObject.Payload.(string)
+				if !ok {
+					log.WithContext(ctx).WithField("session_id", sessionID).Error("expected string payload for track event")
+					continue
+				}
+
 				propertiesObject := make(map[string]interface{})
 				if err := json.Unmarshal([]byte(payloadStr), &propertiesObject); err != nil {
 					log.WithContext(ctx).WithField("session_id", sessionID).WithField("payloadStr", payloadStr).Error("error deserializing track event properties")
@@ -2536,22 +2552,47 @@ type PushPayloadChunk struct {
 }
 
 func (r *Resolver) ProcessCompressedPayload(ctx context.Context, sessionSecureID string, payloadID int, data string) error {
+	querySessionSpan, _ := util.StartSpanFromContext(ctx, "public-graph.pushPayload.decompress")
+
 	reader, err := gzip.NewReader(base64.NewDecoder(base64.StdEncoding, strings.NewReader(data)))
 	if err != nil {
+		querySessionSpan.Finish(err)
 		return err
 	}
 
 	js, err := io.ReadAll(reader)
 	if err != nil {
+		querySessionSpan.Finish(err)
 		return err
 	}
 
 	var payload kafka_queue.PushPayloadArgs
 	if err = json.Unmarshal(js, &payload); err != nil {
+		querySessionSpan.Finish(err)
 		return err
 	}
 
+	querySessionSpan.Finish()
+
 	return r.ProcessPayload(ctx, sessionSecureID, payload.Events, payload.Messages, payload.Resources, payload.WebSocketEvents, payload.Errors, ptr.ToBool(payload.IsBeacon), ptr.ToBool(payload.HasSessionUnloaded), payload.HighlightLogs, pointy.Int(payloadID))
+}
+
+func TransformEvents(evs []*publicModel.ReplayEventInput) (*parse.ReplayEvents, error) {
+	events := &parse.ReplayEvents{
+		Events: []*parse.ReplayEvent{},
+	}
+
+	for _, ev := range evs {
+		events.Events = append(events.Events, &parse.ReplayEvent{
+			Timestamp:    parse.JavascriptToGolangTime(ev.Timestamp),
+			Type:         parse.EventType(ev.Type),
+			Data:         ev.Data.(map[string]interface{}),
+			TimestampRaw: ev.Timestamp,
+			SID:          ev.Sid,
+		})
+	}
+
+	return events, nil
 }
 
 func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, events publicModel.ReplayEventsInput, messages string, resources string, webSocketEvents *string, errors []*publicModel.ErrorObjectInput, isBeacon bool, hasSessionUnloaded bool, highlightLogs *string, payloadId *int) error {
@@ -2605,12 +2646,14 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 
 	// If the session is processing or processed, set ResumedAfterProcessedTime and continue
 	if (sessionObj.Lock.Valid && !sessionObj.Lock.Time.IsZero()) || (sessionObj.Processed != nil && *sessionObj.Processed) {
+		resumedAfterProcessedSpan, _ := util.StartSpanFromContext(ctx, "public-graph.pushPayload.updateResumedAfterProcessedTime")
 		if sessionObj.ResumedAfterProcessedTime == nil {
 			now := time.Now()
 			if err := r.DB.WithContext(ctx).Model(&model.Session{Model: model.Model{ID: sessionID}}).Update("ResumedAfterProcessedTime", &now).Error; err != nil {
 				log.WithContext(ctx).Error(e.Wrap(err, "error updating session ResumedAfterProcessedTime"))
 			}
 		}
+		resumedAfterProcessedSpan.Finish()
 	}
 
 	var g errgroup.Group
@@ -2622,14 +2665,18 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 
 	projectID := sessionObj.ProjectID
 	hasBeacon := sessionObj.BeaconTime != nil
+
+	loadWorkspaceSettingsSpan, _ := util.StartSpanFromContext(ctx, "public-graph.pushPayload.loadWorkspaceSettings")
 	settings, err := r.Store.GetAllWorkspaceSettingsByProject(ctx, projectID)
 	if err != nil {
 		log.WithContext(ctx).WithError(err).Error("failed to get workspace settings from project to check asset replacement")
 	}
+	loadWorkspaceSettingsSpan.Finish()
 
 	g.Go(func() error {
 		defer util.Recover()
 
+		referenceDataSpan, _ := util.StartSpanFromContext(ctx, "public-graph.pushPayload.referenceData", util.Tag("project_id", projectID))
 		project, err := r.Store.GetProject(ctx, projectID)
 		if err != nil {
 			return err
@@ -2643,22 +2690,19 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 		if withinBillingQuota, _ := r.IsWithinQuota(ctx, model.PricingProductTypeSessions, workspace, time.Now()); !withinBillingQuota {
 			return nil
 		}
+		referenceDataSpan.Finish()
 
 		opts := []util.SpanOption{util.ResourceName("go.parseEvents"), util.Tag("project_id", projectID)}
 		if len(events.Events) > 1_000 {
 			opts = append(opts, util.WithSpanKind(trace.SpanKindServer))
 		}
-		parseEventsSpan, ctx := util.StartSpanFromContext(ctx, "public-graph.pushPayload", opts...)
+		parseEventsSpan, ctx := util.StartSpanFromContext(ctx, "public-graph.pushPayload.parseEvents", opts...)
 		defer parseEventsSpan.Finish()
 
 		if evs := events.Events; len(evs) > 0 {
-			// TODO: this isn't very performant, as marshaling the whole event obj to a string is expensive;
-			// should fix at some point.
-			eventBytes, err := json.Marshal(events)
-			if err != nil {
-				return e.Wrap(err, "error marshaling events from schema interfaces")
-			}
-			parsedEvents, err := parse.EventsFromString(string(eventBytes))
+			transformEventsSpan, _ := util.StartSpanFromContext(ctx, "public-graph.pushPayload.transformEvents", util.Tag("project_id", projectID))
+			parsedEvents, err := TransformEvents(evs)
+			transformEventsSpan.Finish(err)
 			if err != nil {
 				return e.Wrap(err, "error parsing events from schema interfaces")
 			}
@@ -2671,11 +2715,12 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 			hasFullSnapshot := false
 			hostUrl := parse.GetHostUrlFromEvents(parsedEvents.Events)
 
+			eventLoopSpan, _ := util.StartSpanFromContext(ctx, "public-graph.pushPayload.eventLoop", util.Tag("project_id", projectID))
 			for _, event := range parsedEvents.Events {
 				if event.Type == parse.FullSnapshot || event.Type == parse.IncrementalSnapshot {
 					snapshot, err := parse.NewSnapshot(event.Data, hostUrl)
 					if err != nil {
-						log.WithContext(ctx).WithField("projectID", projectID).WithField("sessionID", sessionID).WithField("length", len([]byte(event.Data))).WithError(err).Error("Error unmarshalling snapshot")
+						log.WithContext(ctx).WithField("projectID", projectID).WithField("sessionID", sessionID).WithError(err).Error("Error unmarshalling snapshot")
 						continue
 					}
 
@@ -2727,12 +2772,10 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 						}
 					}
 
-					if event.Data, err = snapshot.Encode(); err != nil {
-						log.WithContext(ctx).Error(e.Wrap(err, "Error encoding snapshot"))
-						continue
-					}
+					event.Data = snapshot.GetData()
 				}
 			}
+			eventLoopSpan.Finish()
 
 			remarshalSpan, _ := util.StartSpanFromContext(ctx, "public-graph.pushPayload",
 				util.ResourceName("go.parseEvents.remarshalEvents"), util.Tag("project_id", projectID))
@@ -3002,7 +3045,6 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 		elapsedSinceUpdate = now.Sub(*sessionObj.PayloadUpdatedAt)
 	}
 
-	// Update only if any of these fields are changing
 	// Update the PayloadUpdatedAt field only if it's been >15s since the last one
 	doUpdate := sessionObj.PayloadUpdatedAt == nil ||
 		elapsedSinceUpdate > 15*time.Second ||
@@ -3014,6 +3056,7 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 		(sessionHasErrors && (sessionObj.HasErrors == nil || !*sessionObj.HasErrors))
 
 	if doUpdate && !excluded {
+		updateSessionSpan, _ := util.StartSpanFromContext(ctx, "public-graph.pushPayload.updateSession", util.Tag("project_id", projectID))
 		// By default, GORM will not update non-zero fields. This is undesirable for boolean columns.
 		// By explicitly specifying the columns to update, we can override the behavior.
 		// See https://gorm.io/docs/update.html#Updates-multiple-columns
@@ -3034,6 +3077,8 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 			log.WithContext(ctx).Error(e.Wrap(err, "error updating session"))
 			return err
 		}
+		updateSessionSpan.Finish()
+
 		updatedSession := *sessionObj
 		updatedSession.PayloadUpdatedAt = &now
 		updatedSession.BeaconTime = beaconTime
@@ -3047,6 +3092,7 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 		updatedSession.HasErrors = &sessionHasErrors
 		r.SessionCache.Add(sessionSecureID, &updatedSession)
 	} else if excluded {
+		excludeSessionSpan, _ := util.StartSpanFromContext(ctx, "public-graph.pushPayload.excludeSession", util.Tag("project_id", projectID))
 		// Only update the excluded flag and reason if either have changed
 		var reasonDeref, newReasonDeref privateModel.SessionExcludedReason
 		if sessionObj.ExcludedReason != nil {
@@ -3067,6 +3113,8 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 				return err
 			}
 		}
+		excludeSessionSpan.Finish()
+
 		updatedSession := *sessionObj
 		updatedSession.Excluded = excluded
 		updatedSession.ExcludedReason = reason
