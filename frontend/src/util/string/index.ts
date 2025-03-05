@@ -111,11 +111,20 @@ export function copyToClipboard(
 }
 
 export function btoaSafe(text: string) {
-	return btoa(String.fromCharCode(...new TextEncoder().encode(text)))
+	const encoded = btoa(String.fromCharCode(...new TextEncoder().encode(text)))
+	return encoded
+		.replace(/\+/g, '_PLUS_PLACEHOLDER_')
+		.replace(/ /g, '_SPACE_PLACEHOLDER_')
 }
 
 export function atobSafe(text: string) {
-	return new TextDecoder().decode(
-		Uint8Array.from(atob(text), (c) => c.charCodeAt(0)),
+	const encoded = text
+		.replace(/_PLUS_PLACEHOLDER_/g, '+')
+		.replace(/_SPACE_PLACEHOLDER_/g, ' ')
+	const uint8Array = new Uint8Array(
+		atob(encoded)
+			.split('')
+			.map((c) => c.charCodeAt(0)),
 	)
+	return new TextDecoder().decode(uint8Array)
 }
