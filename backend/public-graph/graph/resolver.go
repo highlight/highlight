@@ -2531,20 +2531,27 @@ type PushPayloadChunk struct {
 }
 
 func (r *Resolver) ProcessCompressedPayload(ctx context.Context, sessionSecureID string, payloadID int, data string) error {
+	querySessionSpan, _ := util.StartSpanFromContext(ctx, "public-graph.pushPayload.decompress")
+
 	reader, err := gzip.NewReader(base64.NewDecoder(base64.StdEncoding, strings.NewReader(data)))
 	if err != nil {
+		querySessionSpan.Finish(err)
 		return err
 	}
 
 	js, err := io.ReadAll(reader)
 	if err != nil {
+		querySessionSpan.Finish(err)
 		return err
 	}
 
 	var payload kafka_queue.PushPayloadArgs
 	if err = json.Unmarshal(js, &payload); err != nil {
+		querySessionSpan.Finish(err)
 		return err
 	}
+
+	querySessionSpan.Finish()
 
 	return r.ProcessPayload(ctx, sessionSecureID, payload.Events, payload.Messages, payload.Resources, payload.WebSocketEvents, payload.Errors, ptr.ToBool(payload.IsBeacon), ptr.ToBool(payload.HasSessionUnloaded), payload.HighlightLogs, pointy.Int(payloadID))
 }
@@ -2618,12 +2625,14 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 
 	// If the session is processing or processed, set ResumedAfterProcessedTime and continue
 	if (sessionObj.Lock.Valid && !sessionObj.Lock.Time.IsZero()) || (sessionObj.Processed != nil && *sessionObj.Processed) {
+		resumedAfterProcessedSpan, _ := util.StartSpanFromContext(ctx, "public-graph.pushPayload.updateResumedAfterProcessedTime")
 		if sessionObj.ResumedAfterProcessedTime == nil {
 			now := time.Now()
 			if err := r.DB.WithContext(ctx).Model(&model.Session{Model: model.Model{ID: sessionID}}).Update("ResumedAfterProcessedTime", &now).Error; err != nil {
 				log.WithContext(ctx).Error(e.Wrap(err, "error updating session ResumedAfterProcessedTime"))
 			}
 		}
+		resumedAfterProcessedSpan.Finish()
 	}
 
 	var g errgroup.Group
@@ -2635,14 +2644,18 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 
 	projectID := sessionObj.ProjectID
 	hasBeacon := sessionObj.BeaconTime != nil
+
+	loadWorkspaceSettingsSpan, _ := util.StartSpanFromContext(ctx, "public-graph.pushPayload.loadWorkspaceSettings")
 	settings, err := r.Store.GetAllWorkspaceSettingsByProject(ctx, projectID)
 	if err != nil {
 		log.WithContext(ctx).WithError(err).Error("failed to get workspace settings from project to check asset replacement")
 	}
+	loadWorkspaceSettingsSpan.Finish()
 
 	g.Go(func() error {
 		defer util.Recover()
 
+		referenceDataSpan, _ := util.StartSpanFromContext(ctx, "public-graph.pushPayload.referenceData", util.Tag("project_id", projectID))
 		project, err := r.Store.GetProject(ctx, projectID)
 		if err != nil {
 			return err
@@ -2656,6 +2669,7 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 		if withinBillingQuota, _ := r.IsWithinQuota(ctx, model.PricingProductTypeSessions, workspace, time.Now()); !withinBillingQuota {
 			return nil
 		}
+		referenceDataSpan.Finish()
 
 		opts := []util.SpanOption{util.ResourceName("go.parseEvents"), util.Tag("project_id", projectID)}
 		if len(events.Events) > 1_000 {
@@ -2665,7 +2679,9 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 		defer parseEventsSpan.Finish()
 
 		if evs := events.Events; len(evs) > 0 {
+			transformEventsSpan, _ := util.StartSpanFromContext(ctx, "public-graph.pushPayload.transformEvents", util.Tag("project_id", projectID))
 			parsedEvents, err := TransformEvents(evs)
+			transformEventsSpan.Finish(err)
 			if err != nil {
 				return e.Wrap(err, "error parsing events from schema interfaces")
 			}
@@ -2678,6 +2694,7 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 			hasFullSnapshot := false
 			hostUrl := parse.GetHostUrlFromEvents(parsedEvents.Events)
 
+			eventLoopSpan, _ := util.StartSpanFromContext(ctx, "public-graph.pushPayload.eventLoop", util.Tag("project_id", projectID))
 			for _, event := range parsedEvents.Events {
 				if event.Type == parse.FullSnapshot || event.Type == parse.IncrementalSnapshot {
 					snapshot, err := parse.NewSnapshot(event.Data, hostUrl)
@@ -2737,6 +2754,7 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 					event.Data = snapshot.Encode()
 				}
 			}
+			eventLoopSpan.Finish()
 
 			remarshalSpan, _ := util.StartSpanFromContext(ctx, "public-graph.pushPayload",
 				util.ResourceName("go.parseEvents.remarshalEvents"), util.Tag("project_id", projectID))
@@ -3006,7 +3024,6 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 		elapsedSinceUpdate = now.Sub(*sessionObj.PayloadUpdatedAt)
 	}
 
-	// Update only if any of these fields are changing
 	// Update the PayloadUpdatedAt field only if it's been >15s since the last one
 	doUpdate := sessionObj.PayloadUpdatedAt == nil ||
 		elapsedSinceUpdate > 15*time.Second ||
@@ -3018,6 +3035,7 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 		(sessionHasErrors && (sessionObj.HasErrors == nil || !*sessionObj.HasErrors))
 
 	if doUpdate && !excluded {
+		updateSessionSpan, _ := util.StartSpanFromContext(ctx, "public-graph.pushPayload.updateSession", util.Tag("project_id", projectID))
 		// By default, GORM will not update non-zero fields. This is undesirable for boolean columns.
 		// By explicitly specifying the columns to update, we can override the behavior.
 		// See https://gorm.io/docs/update.html#Updates-multiple-columns
@@ -3038,6 +3056,8 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 			log.WithContext(ctx).Error(e.Wrap(err, "error updating session"))
 			return err
 		}
+		updateSessionSpan.Finish()
+
 		updatedSession := *sessionObj
 		updatedSession.PayloadUpdatedAt = &now
 		updatedSession.BeaconTime = beaconTime
@@ -3051,6 +3071,7 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 		updatedSession.HasErrors = &sessionHasErrors
 		r.SessionCache.Add(sessionSecureID, &updatedSession)
 	} else if excluded {
+		excludeSessionSpan, _ := util.StartSpanFromContext(ctx, "public-graph.pushPayload.excludeSession", util.Tag("project_id", projectID))
 		// Only update the excluded flag and reason if either have changed
 		var reasonDeref, newReasonDeref privateModel.SessionExcludedReason
 		if sessionObj.ExcludedReason != nil {
@@ -3071,6 +3092,8 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 				return err
 			}
 		}
+		excludeSessionSpan.Finish()
+
 		updatedSession := *sessionObj
 		updatedSession.Excluded = excluded
 		updatedSession.ExcludedReason = reason
