@@ -12,18 +12,23 @@ import React, { useEffect } from 'react'
 import { Navigate, useNavigate } from 'react-router-dom'
 
 import styles from './ClearbitIntegrationConfig.module.css'
+import ProjectSelection, {
+	useIntergationProjectConfig,
+} from '../common/ProjectSelection'
+import { Box, Stack } from '@highlight-run/ui/components'
 
 const ClearbitIntegrationConfig: React.FC<
 	React.PropsWithChildren<IntegrationConfigProps>
-> = ({ setModalOpen, setIntegrationEnabled, action }) => {
+> = ({ setModalOpen, setIntegrationEnabled, action, isV2 }) => {
 	const [redirectToBilling, setRedirectToBilling] = React.useState(false)
+	const { selectedProject, options, setSelectedProject } =
+		useIntergationProjectConfig()
 	const {
 		isClearbitIntegratedWithWorkspace,
 		mustUpgradeToIntegrate,
-		projectID,
 		workspaceID,
 		modifyClearbit,
-	} = useClearbitIntegration()
+	} = useClearbitIntegration(selectedProject.value)
 	const navigate = useNavigate()
 
 	useEffect(() => {
@@ -84,68 +89,97 @@ const ClearbitIntegrationConfig: React.FC<
 
 	return (
 		<>
-			<p className={styles.modalSubTitle}>
-				Enable Clearbit to scrape enhanced user details.
-			</p>
-			<p className={styles.modalSubTitle}>
-				After a user is identified, we will collect information about
-				their online presence using Clearbit and display it in the
-				session metadata pane.
-			</p>
-			{mustUpgradeToIntegrate ? (
-				<>
+			<Box
+				cssClass={`${isV2 ? 'flex justify-between items-center' : ''}`}
+			>
+				<Stack cssClass="max-w-[650px]">
 					<p className={styles.modalSubTitle}>
-						To enable Clearbit integration, please upgrade your
-						workspace tier to <b>'{PlanType.Startup}'</b> or higher.
+						Enable Clearbit to scrape enhanced user details.
 					</p>
-					<footer>
+					<p className={styles.modalSubTitle}>
+						After a user is identified, we will collect information
+						about their online presence using Clearbit and display
+						it in the session metadata pane.
+					</p>
+					{mustUpgradeToIntegrate && (
+						<p className={styles.modalSubTitle}>
+							To enable Clearbit integration, please upgrade your
+							workspace tier to <b>'{PlanType.Startup}'</b> or
+							higher.
+						</p>
+					)}
+				</Stack>
+				{!isV2 && (
+					<ProjectSelection
+						options={options}
+						selectedProject={selectedProject}
+						setSelectedProject={setSelectedProject}
+					/>
+				)}
+				{mustUpgradeToIntegrate ? (
+					<>
+						<footer className={`${isV2 ? 'self-start' : ''}`}>
+							{!isV2 && (
+								<Button
+									trackingId="IntegrationConfigurationCancelUpgrade-Clearbit"
+									className={styles.modalBtn}
+									onClick={() => {
+										setModalOpen(false)
+										setIntegrationEnabled(false)
+									}}
+								>
+									Cancel
+								</Button>
+							)}
+							<Button
+								trackingId="IntegrationConfigurationViewUpgrade-Clearbit"
+								className={styles.modalBtn}
+								type="primary"
+								onClick={() => {
+									navigate(
+										`/w/${selectedProject.value}/integrations`,
+									)
+									setRedirectToBilling(true)
+								}}
+							>
+								View Upgrade Options
+							</Button>
+						</footer>
+					</>
+				) : (
+					<footer className={`${isV2 ? 'self-start' : ''}`}>
+						{!isV2 && (
+							<Button
+								trackingId="IntegrationConfigurationCancel-Clearbit"
+								className={styles.modalBtn}
+								onClick={() => {
+									setModalOpen(false)
+									setIntegrationEnabled(false)
+								}}
+							>
+								Cancel
+							</Button>
+						)}
 						<Button
-							trackingId="IntegrationConfigurationCancelUpgrade-Clearbit"
-							className={styles.modalBtn}
-							onClick={() => {
-								setModalOpen(false)
-								setIntegrationEnabled(false)
-							}}
-						>
-							Cancel
-						</Button>
-						<Button
-							trackingId="IntegrationConfigurationViewUpgrade-Clearbit"
+							trackingId="IntegrationConfigurationSave-Clearbit"
 							className={styles.modalBtn}
 							type="primary"
 							onClick={() => {
-								navigate(`/${projectID}/integrations`)
-								setRedirectToBilling(true)
+								modifyClearbit({ enabled: true })
 							}}
 						>
-							View Upgrade Options
+							<Sparkles2Icon className={styles.modalBtnIcon} />{' '}
+							Enable Clearbit
 						</Button>
 					</footer>
-				</>
-			) : (
-				<footer>
-					<Button
-						trackingId="IntegrationConfigurationCancel-Clearbit"
-						className={styles.modalBtn}
-						onClick={() => {
-							setModalOpen(false)
-							setIntegrationEnabled(false)
-						}}
-					>
-						Cancel
-					</Button>
-					<Button
-						trackingId="IntegrationConfigurationSave-Clearbit"
-						className={styles.modalBtn}
-						type="primary"
-						onClick={() => {
-							modifyClearbit({ enabled: true })
-						}}
-					>
-						<Sparkles2Icon className={styles.modalBtnIcon} /> Enable
-						Clearbit
-					</Button>
-				</footer>
+				)}
+			</Box>
+			{isV2 && (
+				<ProjectSelection
+					options={options}
+					selectedProject={selectedProject}
+					setSelectedProject={setSelectedProject}
+				/>
 			)}
 		</>
 	)

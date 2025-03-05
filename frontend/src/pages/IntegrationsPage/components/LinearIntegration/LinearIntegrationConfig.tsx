@@ -9,17 +9,28 @@ import {
 	getLinearOAuthUrl,
 	useLinearIntegration,
 } from '@pages/IntegrationsPage/components/LinearIntegration/utils'
-import { useParams } from '@util/react-router/useParams'
 import React, { useMemo } from 'react'
 
 import styles from './LinearIntegrationConfig.module.css'
+import ProjectSelection, {
+	useIntergationProjectConfig,
+} from '../common/ProjectSelection'
+import { Box } from '@highlight-run/ui/components'
+import { useParams } from '@/util/react-router/useParams'
 
 const LinearIntegrationConfig: React.FC<
 	React.PropsWithChildren<IntegrationConfigProps>
-> = ({ setModalOpen: setModalOpen, setIntegrationEnabled, action }) => {
-	const { project_id } = useParams<{ project_id: string }>()
-	const { removeLinearIntegrationFromProject } = useLinearIntegration()
-	const authUrl = useMemo(() => getLinearOAuthUrl(project_id!), [project_id])
+> = ({ setModalOpen: setModalOpen, setIntegrationEnabled, action, isV2 }) => {
+	const { workspace_id } = useParams<{ workspace_id: string }>()
+	const { options, selectedProject, setSelectedProject } =
+		useIntergationProjectConfig()
+	const { removeLinearIntegrationFromProject } = useLinearIntegration(
+		selectedProject.value!,
+	)
+	const authUrl = useMemo(
+		() => getLinearOAuthUrl(selectedProject.value!, workspace_id!),
+		[selectedProject, workspace_id],
+	)
 	if (action === IntegrationAction.Disconnect) {
 		return (
 			<>
@@ -46,7 +57,9 @@ const LinearIntegrationConfig: React.FC<
 						onClick={() => {
 							setModalOpen(false)
 							setIntegrationEnabled(false)
-							removeLinearIntegrationFromProject(project_id)
+							removeLinearIntegrationFromProject(
+								selectedProject.value,
+							)
 						}}
 					>
 						<PlugIcon className={styles.modalBtnIcon} />
@@ -59,31 +72,52 @@ const LinearIntegrationConfig: React.FC<
 
 	return (
 		<>
-			<p className={styles.modalSubTitle}>
-				Connect Linear to your Highlight workspace to create issues from
-				comments.
-			</p>
-			<footer>
-				<Button
-					trackingId="IntegrationConfigurationCancel-Slack"
-					className={styles.modalBtn}
-					onClick={() => {
-						setModalOpen(false)
-						setIntegrationEnabled(false)
-					}}
-				>
-					Cancel
-				</Button>
-				<Button
-					trackingId="IntegrationConfigurationSave-Slack"
-					className={styles.modalBtn}
-					type="primary"
-					href={authUrl}
-				>
-					<AppsIcon className={styles.modalBtnIcon} /> Connect
-					Highlight with Linear
-				</Button>
-			</footer>
+			<Box
+				cssClass={`${isV2 ? 'flex justify-between items-center' : ''}`}
+			>
+				<p className={styles.modalSubTitle}>
+					{isV2
+						? 'Connect Linear to your Highlight workspace to create issues from comments.'
+						: 'Configure Linear Intergation'}
+				</p>
+				{!isV2 && (
+					<ProjectSelection
+						options={options}
+						selectedProject={selectedProject}
+						setSelectedProject={setSelectedProject}
+					/>
+				)}
+				<footer>
+					{!isV2 && (
+						<Button
+							trackingId="IntegrationConfigurationCancel-Slack"
+							className={styles.modalBtn}
+							onClick={() => {
+								setModalOpen(false)
+								setIntegrationEnabled(false)
+							}}
+						>
+							Cancel
+						</Button>
+					)}
+					<Button
+						trackingId="IntegrationConfigurationSave-Slack"
+						className={styles.modalBtn}
+						type="primary"
+						href={authUrl}
+					>
+						<AppsIcon className={styles.modalBtnIcon} /> Connect
+						Highlight with Linear
+					</Button>
+				</footer>
+			</Box>
+			{isV2 && (
+				<ProjectSelection
+					options={options}
+					selectedProject={selectedProject}
+					setSelectedProject={setSelectedProject}
+				/>
+			)}
 		</>
 	)
 }

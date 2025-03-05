@@ -43,6 +43,7 @@ interface Props {
 	code: string
 	projectId?: string
 	next?: string
+	workspaceId?: string
 }
 
 export const VercelSettingsModalWidth = 672
@@ -63,21 +64,28 @@ const logError = (e: any) => {
 		?.then(console.error)
 }
 
-const SlackIntegrationCallback = ({ code, projectId, next }: Props) => {
+const SlackIntegrationCallback = ({
+	code,
+	projectId,
+	next,
+	workspaceId,
+}: Props) => {
 	const navigate = useNavigate()
 	const { setLoadingState } = useAppLoadingContext()
 
-	const { addSlackToWorkspace } = useSlackBot()
+	const { addSlackToWorkspace } = useSlackBot(projectId)
 	useEffect(() => {
-		let nextUrl = '/integrations'
+		let nextUrl = `/w/${workspaceId}integrations`
 		;(async () => {
 			try {
 				if (!projectId || !code) return
 
 				if (next) {
-					nextUrl = `/${projectId}/${next}`
+					nextUrl = `/w/${next}`
 				} else {
-					nextUrl = `/${projectId}/integrations`
+					nextUrl = workspaceId
+						? `/w/${workspaceId}/integrations`
+						: '/'
 				}
 
 				await addSlackToWorkspace(code, projectId)
@@ -88,7 +96,15 @@ const SlackIntegrationCallback = ({ code, projectId, next }: Props) => {
 				setLoadingState(AppLoadingState.LOADED)
 			}
 		})()
-	}, [code, projectId, next, addSlackToWorkspace, setLoadingState, navigate])
+	}, [
+		code,
+		projectId,
+		next,
+		addSlackToWorkspace,
+		setLoadingState,
+		navigate,
+		workspaceId,
+	])
 
 	return null
 }
@@ -97,21 +113,23 @@ const MicrosoftTeamsIntegrationCallback = ({
 	code,
 	projectId,
 	next,
+	workspaceId,
 }: Props) => {
 	const navigate = useNavigate()
 	const { setLoadingState } = useAppLoadingContext()
-
 	const { addMicrosoftTeamsToWorkspace } = useMicrosoftTeamsBot()
 	useEffect(() => {
-		let nextUrl = '/integrations'
+		let nextUrl = `/w/${workspaceId}/integrations`
 		;(async () => {
 			try {
 				if (!projectId || !code) return
 
 				if (next) {
-					nextUrl = `/${projectId}/${next}`
+					nextUrl = `/w/${next}`
 				} else {
-					nextUrl = `/${projectId}/integrations`
+					nextUrl = workspaceId
+						? `/w/${workspaceId}/integrations`
+						: '/'
 				}
 
 				await addMicrosoftTeamsToWorkspace(code, projectId)
@@ -129,26 +147,34 @@ const MicrosoftTeamsIntegrationCallback = ({
 		addMicrosoftTeamsToWorkspace,
 		setLoadingState,
 		navigate,
+		workspaceId,
 	])
 
 	return null
 }
-const LinearIntegrationCallback = ({ code, projectId, next }: Props) => {
+const LinearIntegrationCallback = ({
+	code,
+	projectId,
+	next,
+	workspaceId,
+}: Props) => {
 	const navigate = useNavigate()
 	const { setLoadingState } = useAppLoadingContext()
 
-	const { addLinearIntegrationToProject } = useLinearIntegration()
+	const { addLinearIntegrationToProject } = useLinearIntegration(projectId!)
 
 	useEffect(() => {
-		let nextUrl = '/integrations'
+		let nextUrl = `/w/${workspaceId}/integrations/linear`
 		;(async () => {
 			try {
 				if (!projectId || !code) return
 
 				if (next) {
-					nextUrl = `/${projectId}/${next}`
+					nextUrl = `/w/${next}`
 				} else {
-					nextUrl = `/${projectId}/integrations`
+					nextUrl = workspaceId
+						? `/w/${workspaceId}/integrations/linear`
+						: '/'
 				}
 
 				await addLinearIntegrationToProject(code, projectId)
@@ -169,11 +195,12 @@ const LinearIntegrationCallback = ({ code, projectId, next }: Props) => {
 		setLoadingState,
 		addLinearIntegrationToProject,
 		navigate,
+		workspaceId,
 	])
 	return null
 }
 
-const VercelIntegrationCallback = ({ code }: Props) => {
+const VercelIntegrationCallback = ({ code, workspaceId }: Props) => {
 	const navigate = useNavigate()
 
 	const [{ next }] = useQueryParams({
@@ -242,7 +269,9 @@ const VercelIntegrationCallback = ({ code }: Props) => {
 								if (next) {
 									window.location.href = next
 								} else {
-									navigate(`/${projectId}/integrations`)
+									navigate(
+										`/${workspaceId}/integrations/vercel`,
+									)
 								}
 							}}
 							onCancel={() => {
@@ -251,7 +280,9 @@ const VercelIntegrationCallback = ({ code }: Props) => {
 								if (next) {
 									window.close()
 								} else {
-									navigate(`/${projectId}/integrations`)
+									navigate(
+										`/${workspaceId}/integrations/vercel`,
+									)
 								}
 							}}
 							setIntegrationEnabled={() => {}}
@@ -265,10 +296,15 @@ const VercelIntegrationCallback = ({ code }: Props) => {
 	)
 }
 
-const DiscordIntegrationCallback = ({ code, projectId, next }: Props) => {
+const DiscordIntegrationCallback = ({
+	code,
+	projectId,
+	next,
+	workspaceId,
+}: Props) => {
 	const navigate = useNavigate()
 	const { setLoadingState } = useAppLoadingContext()
-	const { addDiscordIntegrationToProject } = useDiscordIntegration()
+	const { addDiscordIntegrationToProject } = useDiscordIntegration(projectId!)
 
 	useEffect(() => {
 		if (!projectId || !code) return
@@ -285,7 +321,7 @@ const DiscordIntegrationCallback = ({ code, projectId, next }: Props) => {
 					'Failed to add integration to project. Please try again.',
 				)
 			} finally {
-				navigate(next ?? `/${projectId}/integrations`)
+				navigate(next ?? `/w/${workspaceId}/integrations`)
 				setLoadingState(AppLoadingState.LOADED)
 			}
 		})()
@@ -296,6 +332,7 @@ const DiscordIntegrationCallback = ({ code, projectId, next }: Props) => {
 		projectId,
 		navigate,
 		next,
+		workspaceId,
 	])
 
 	return null
@@ -308,6 +345,7 @@ const WorkspaceIntegrationCallback = ({
 	type,
 	addIntegration,
 	next,
+	workspaceId,
 }: Props & {
 	name: string
 	type: string
@@ -335,9 +373,8 @@ const WorkspaceIntegrationCallback = ({
 
 		const redirectUrl =
 			next ||
-			(projectId
-				? `/${projectId}/integrations/${type}`
-				: `/integrations/${type}`)
+			(workspaceId ? `/w/${workspaceId}/integrations/${type}` : `/`)
+
 		try {
 			sessionStorage.setItem(codeSessionStorageKey, code)
 			log('IntegrationAuthCallback.tsx', 'calling addIntegration')
@@ -365,6 +402,7 @@ const WorkspaceIntegrationCallback = ({
 		type,
 		navigate,
 		next,
+		workspaceId,
 	])
 	useEffect(() => {
 		add().then(() =>
@@ -375,7 +413,11 @@ const WorkspaceIntegrationCallback = ({
 	return null
 }
 
-const ClickUpIntegrationCallback = ({ code, projectId }: Props) => {
+const ClickUpIntegrationCallback = ({
+	code,
+	projectId,
+	workspaceId,
+}: Props) => {
 	const { addIntegration } = useClickUpIntegration()
 	return (
 		<WorkspaceIntegrationCallback
@@ -384,11 +426,12 @@ const ClickUpIntegrationCallback = ({ code, projectId }: Props) => {
 			type="clickup"
 			addIntegration={addIntegration}
 			projectId={projectId}
+			workspaceId={workspaceId}
 		/>
 	)
 }
 
-const HeightIntegrationCallback = ({ code, projectId }: Props) => {
+const HeightIntegrationCallback = ({ code, projectId, workspaceId }: Props) => {
 	const { addIntegration } = useHeightIntegration()
 	return (
 		<WorkspaceIntegrationCallback
@@ -397,6 +440,7 @@ const HeightIntegrationCallback = ({ code, projectId }: Props) => {
 			type="height"
 			addIntegration={addIntegration}
 			projectId={projectId}
+			workspaceId={workspaceId}
 		/>
 	)
 }
@@ -405,6 +449,7 @@ const GitHubIntegrationCallback = ({
 	projectId,
 	next,
 	installationId,
+	workspaceId,
 }: Omit<Props, 'code'> & { installationId?: string; setupAction?: string }) => {
 	const { addIntegration } = useGitHubIntegration()
 	return (
@@ -415,6 +460,7 @@ const GitHubIntegrationCallback = ({
 			code={installationId!}
 			projectId={projectId}
 			next={next}
+			workspaceId={workspaceId}
 		/>
 	)
 }
@@ -523,7 +569,7 @@ const AWSMPIntegrationCallback = ({ code }: { code: string }) => {
 	)
 }
 
-const JiraIntegrationCallback = ({ code, projectId }: Props) => {
+const JiraIntegrationCallback = ({ code, projectId, workspaceId }: Props) => {
 	const { addIntegration } = useJiraIntegration()
 	return (
 		<WorkspaceIntegrationCallback
@@ -532,11 +578,12 @@ const JiraIntegrationCallback = ({ code, projectId }: Props) => {
 			type="jira"
 			addIntegration={addIntegration}
 			projectId={projectId}
+			workspaceId={workspaceId}
 		/>
 	)
 }
 
-const GitlabIntegrationCallback = ({ code, projectId }: Props) => {
+const GitlabIntegrationCallback = ({ code, projectId, workspaceId }: Props) => {
 	const { addIntegration } = useGitlabIntegration()
 	return (
 		<WorkspaceIntegrationCallback
@@ -545,6 +592,7 @@ const GitlabIntegrationCallback = ({ code, projectId }: Props) => {
 			type="gitlab"
 			addIntegration={addIntegration}
 			projectId={projectId}
+			workspaceId={workspaceId}
 		/>
 	)
 }
@@ -611,7 +659,9 @@ const IntegrationAuthCallbackPage = () => {
 	const currentWorkspaceId = workspacesData?.workspaces?.at(0)?.id ?? ''
 
 	if (name === 'vercel') {
-		return <VercelIntegrationCallback code={code} />
+		return (
+			<VercelIntegrationCallback code={code} workspaceId={workspaceId} />
+		)
 	}
 
 	log('IntegrationAuthCallback.tsx', { workspaceId, currentWorkspaceId })
@@ -627,6 +677,7 @@ const IntegrationAuthCallbackPage = () => {
 					<ClickUpIntegrationCallback
 						code={code}
 						projectId={projectId}
+						workspaceId={workspaceId}
 					/>
 				)
 				break
@@ -635,6 +686,7 @@ const IntegrationAuthCallbackPage = () => {
 					<JiraIntegrationCallback
 						code={code}
 						projectId={projectId}
+						workspaceId={workspaceId}
 					/>
 				)
 				break
@@ -643,6 +695,7 @@ const IntegrationAuthCallbackPage = () => {
 					<GitlabIntegrationCallback
 						code={code}
 						projectId={projectId}
+						workspaceId={workspaceId}
 					/>
 				)
 				break
@@ -651,6 +704,7 @@ const IntegrationAuthCallbackPage = () => {
 					<HeightIntegrationCallback
 						code={code}
 						projectId={projectId}
+						workspaceId={workspaceId}
 					/>
 				)
 				break
@@ -661,6 +715,7 @@ const IntegrationAuthCallbackPage = () => {
 						installationId={installationId}
 						setupAction={setupAction}
 						next={next}
+						workspaceId={workspaceId}
 					/>
 				)
 				break
@@ -697,6 +752,7 @@ const IntegrationAuthCallbackPage = () => {
 					code={code}
 					projectId={projectId}
 					next={next}
+					workspaceId={workspaceId}
 				/>
 			)
 		case 'microsoft_teams':
@@ -705,6 +761,7 @@ const IntegrationAuthCallbackPage = () => {
 					code={tenantId}
 					projectId={projectId}
 					next={next}
+					workspaceId={workspaceId}
 				/>
 			)
 		case 'linear':
@@ -713,6 +770,7 @@ const IntegrationAuthCallbackPage = () => {
 					code={code}
 					projectId={projectId}
 					next={next}
+					workspaceId={workspaceId}
 				/>
 			)
 		case 'discord':
@@ -721,6 +779,7 @@ const IntegrationAuthCallbackPage = () => {
 					code={code}
 					projectId={projectId}
 					next={next}
+					workspaceId={workspaceId}
 				/>
 			)
 	}

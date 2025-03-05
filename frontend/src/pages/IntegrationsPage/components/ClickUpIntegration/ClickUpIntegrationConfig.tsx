@@ -13,13 +13,13 @@ import {
 	IntegrationConfigProps,
 } from '@pages/IntegrationsPage/components/Integration'
 import { useApplicationContext } from '@routers/AppRouter/context/ApplicationContext'
-import { useParams } from '@util/react-router/useParams'
 import useMap from '@util/useMap'
 import { GetBaseURL } from '@util/window'
 import clsx from 'clsx'
 import React, { useEffect } from 'react'
 
 import styles from './ClickUpIntegrationConfig.module.css'
+import { useIntergationProjectConfig } from '../common/ProjectSelection'
 
 const CLICKUP_CLIENT_ID = import.meta.env.CLICKUP_CLIENT_ID
 
@@ -62,7 +62,7 @@ const ClickUpIntegrationSetup: React.FC<IntegrationConfigProps> = ({
 	setModalOpen,
 	setIntegrationEnabled,
 }) => {
-	const { project_id } = useParams<{ project_id: string }>()
+	const { selectedProject } = useIntergationProjectConfig()
 	const { currentWorkspace } = useApplicationContext()
 	const redirectUri = `${GetBaseURL()}/callback/clickup`
 
@@ -89,7 +89,7 @@ const ClickUpIntegrationSetup: React.FC<IntegrationConfigProps> = ({
 					target="_blank"
 					href={`https://app.clickup.com/api?client_id=${CLICKUP_CLIENT_ID}&redirect_uri=${redirectUri}&state=${btoa(
 						JSON.stringify({
-							project_id: project_id,
+							project_id: selectedProject.value,
 							workspace_id: currentWorkspace?.id,
 						}),
 					)}`}
