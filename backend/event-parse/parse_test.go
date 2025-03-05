@@ -74,7 +74,7 @@ func TestEventsFromString(t *testing.T) {
 				{
 					Timestamp: time.Date(1970, time.Month(1), 1, 0, 0, 0, 0, time.UTC),
 					Type:      Meta,
-					Data:      map[string]interface{}{"test": 5},
+					Data:      map[string]interface{}{"test": 5.0},
 					SID:       1234,
 				},
 			}},
