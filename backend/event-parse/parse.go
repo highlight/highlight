@@ -190,6 +190,24 @@ type ReplayEvents struct {
 	Events []*ReplayEvent `json:"events"`
 }
 
+func (r *ReplayEvent) UnmarshalJSON(b []byte) error {
+	aux := struct {
+		Timestamp float64                `json:"timestamp"`
+		Type      EventType              `json:"type"`
+		Data      map[string]interface{} `json:"data"`
+		SID       float64                `json:"_sid"`
+	}{}
+	if err := json.Unmarshal(b, &aux); err != nil {
+		return errors.Wrap(err, "error with custom unmarshal of events")
+	}
+	r.Data = aux.Data
+	r.Type = aux.Type
+	r.Timestamp = JavascriptToGolangTime(aux.Timestamp)
+	r.TimestampRaw = aux.Timestamp
+	r.SID = aux.SID
+	return nil
+}
+
 // MouseInteractionEventData represents the data field for click events from the following parent events
 type MouseInteractionEventData struct {
 	X      *float64           `json:"x"`
