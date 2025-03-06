@@ -78,7 +78,10 @@ import { GraphContextProvider } from './context/GraphContext'
 import TemplateMenu from '@/pages/Graphing/TemplateMenu'
 import { Panel } from '@/pages/Graphing/components/Panel'
 import { useGraphTime } from '@/pages/Graphing/hooks/useGraphTime'
-import { DEFAULT_SQL, SqlEditor } from '@/pages/Graphing/components/SqlEditor'
+import {
+	convertSettingsToSql,
+	SqlEditor,
+} from '@/pages/Graphing/components/SqlEditor'
 import { ActionBar } from '@/pages/Graphing/components/ActionBar'
 import {
 	AlertSettings,
@@ -112,7 +115,7 @@ const BUCKET_BY_OPTIONS: BucketBy[] = ['Interval', 'Count']
 
 const MAX_BUCKET_SIZE = 100
 const MAX_LIMIT_SIZE = 100
-const NO_LIMIT = 1_000_000_000_000
+export const NO_LIMIT = 1_000_000_000_000
 const SETTINGS_PARAM = 'settings'
 
 const SidebarSection = (props: PropsWithChildren) => {
@@ -201,14 +204,12 @@ type BucketBySetting = 'Interval' | 'Count'
 export type GraphSettings = {
 	productType: ProductType
 	viewType: View
-	functionType: MetricAggregator
 	lineNullHandling: LineNullHandling
 	lineDisplay: LineDisplay
 	barDisplay: BarDisplay
 	funnelDisplay: FunnelDisplay
 	tableNullHandling: TableNullHandling
 	query: string
-	fetchedMetric: string
 	metricViewTitle: string
 	groupByEnabled: boolean
 	groupByKeys: string[]
@@ -446,9 +447,9 @@ export const GraphingEditor: React.FC = () => {
 		setBucketCount(g.bucketCount ?? DEFAULT_BUCKET_COUNT)
 		setBucketInterval(g.bucketInterval ?? DEFAULT_BUCKET_INTERVAL)
 		setBucketBySetting(g.bucketInterval ? 'Interval' : 'Count')
-		setEditor(!!g.sql ? Editor.SqlEditor : Editor.QueryBuilder)
-		setSqlInternal(g.sql ?? DEFAULT_SQL)
-		setSql(g.sql ?? DEFAULT_SQL)
+		setEditorImpl(!!g.sql ? Editor.SqlEditor : Editor.QueryBuilder)
+		setSqlInternal(g.sql ?? '')
+		setSql(g.sql ?? '')
 	}
 
 	useGetVisualizationQuery({
@@ -545,12 +546,11 @@ export const GraphingEditor: React.FC = () => {
 		initialSettings?.funnelDisplay ?? FUNNEL_DISPLAY[0],
 	)
 
-	const [editor, setEditor] = useState(
+	const [editor, setEditorImpl] = useState(
 		initialSettings?.editor ?? Editor.QueryBuilder,
 	)
-	const [sqlInternal, setSqlInternal] = useState(
-		initialSettings?.sql ?? DEFAULT_SQL,
-	)
+
+	const [sqlInternal, setSqlInternal] = useState(initialSettings?.sql ?? '')
 	const [sql, setSql] = useState(sqlInternal)
 
 	const [query, setQuery] = useState(
@@ -592,9 +592,7 @@ export const GraphingEditor: React.FC = () => {
 	const [limitFunctionType, setLimitFunctionType] = useState(
 		initialSettings?.limitFunctionType ?? FUNCTION_TYPES[0],
 	)
-	const [limit, setLimit] = useState<number | string>(
-		initialSettings?.limit ?? 10,
-	)
+	const [limit, setLimit] = useState<number>(initialSettings?.limit ?? 10)
 	const [limitMetric, setLimitMetric] = useState(
 		initialSettings?.fetchedLimitMetric ?? '',
 	)
@@ -659,10 +657,10 @@ export const GraphingEditor: React.FC = () => {
 	)
 	const isPreview = graphPreview !== undefined || showTemplates
 
-	const settings = useMemo(
+	const settings: GraphSettings = useMemo(
 		() => ({
 			productType,
-			viewType,
+			viewType: viewType as View,
 			lineNullHandling,
 			lineDisplay,
 			barDisplay,
@@ -711,6 +709,19 @@ export const GraphingEditor: React.FC = () => {
 			viewType,
 		],
 	)
+
+	const setEditor = (e: Editor) => {
+		if (e === Editor.SqlEditor) {
+			const convertedSql = convertSettingsToSql(
+				settings,
+				startDate,
+				endDate,
+			)
+			setSqlInternal(convertedSql)
+			setSql(convertedSql)
+		}
+		setEditorImpl(e)
+	}
 
 	const settingsEncoded = btoaSafe(JSON.stringify(settings))
 
@@ -954,7 +965,7 @@ export const GraphingEditor: React.FC = () => {
 												startDate={startDate}
 												endDate={endDate}
 												sql={
-													isSqlEditor
+													isSqlEditor && sql !== ''
 														? sql
 														: undefined
 												}
