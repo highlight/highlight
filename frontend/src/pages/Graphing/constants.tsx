@@ -12,11 +12,27 @@ import {
 import {
 	MetricAggregator,
 	ProductType,
+	MetricExpression,
 	SuggestionType,
 } from '@/graph/generated/schemas'
+import { BarDisplay } from '@/pages/Graphing/components/BarChart'
+import { View } from '@/pages/Graphing/components/Graph'
+import {
+	LineDisplay,
+	LineNullHandling,
+} from '@/pages/Graphing/components/LineChart'
+import { TableNullHandling } from '@/pages/Graphing/components/Table'
+import { FunnelDisplay } from '@/pages/Graphing/components/types'
+import { EventSelectionStep } from '@/pages/Graphing/util'
+
+export const SETTINGS_PARAM = 'settings'
 
 export const DEFAULT_BUCKET_COUNT = 50
 export const DEFAULT_BUCKET_INTERVAL = 5 * 60
+
+export const MAX_BUCKET_SIZE = 100
+export const MAX_LIMIT_SIZE = 100
+export const NO_LIMIT = 1_000_000_000_000
 
 export const TIME_METRICS = {
 	active_length: 'ms',
@@ -115,3 +131,35 @@ export const SUGGESTION_TYPES: SuggestionType[] = [
 
 export const GRAPHING_FIELD_DOCS_LINK =
 	'https://www.highlight.io/docs/general/product-features/dashboards/graphing#graphing-fields'
+
+export type BucketBySetting = 'Interval' | 'Count'
+
+export const BUCKET_BY_OPTIONS: BucketBySetting[] = ['Interval', 'Count']
+
+export type GraphSettings = {
+	productType: ProductType
+	viewType: View
+	functionType: MetricAggregator
+	lineNullHandling: LineNullHandling
+	lineDisplay: LineDisplay
+	barDisplay: BarDisplay
+	funnelDisplay: FunnelDisplay
+	tableNullHandling: TableNullHandling
+	query: string
+	fetchedMetric: string
+	metricViewTitle: string
+	groupByEnabled: boolean
+	groupByKeys: string[]
+	limitFunctionType: MetricAggregator
+	limit: number
+	funnelSteps: EventSelectionStep[]
+	bucketByEnabled: boolean
+	bucketByKey: string
+	bucketCount: number
+	bucketInterval: number
+	bucketBySetting: BucketBySetting
+	fetchedLimitMetric: string
+	expressions: MetricExpression[]
+	editor: Editor
+	sql: string
+}

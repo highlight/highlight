@@ -69,8 +69,7 @@ import {
 	DEFAULT_WINDOW,
 	SETTINGS_PARAM,
 } from '@/pages/Alerts/AlertForm'
-import { Editor } from '@/pages/Graphing/constants'
-import { GraphSettings } from '@/pages/Graphing/GraphingEditor'
+import { Editor, GraphSettings } from '@/pages/Graphing/constants'
 import { btoaSafe, copyToClipboard } from '@/util/string'
 
 import * as style from './Dashboard.css'
