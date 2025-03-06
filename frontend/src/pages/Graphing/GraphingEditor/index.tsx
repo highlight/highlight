@@ -401,7 +401,6 @@ const GraphingEditorImpl: React.FC<Props> = ({
 			title: settings.metricViewTitle || tempMetricViewTitle,
 			type: settings.viewType,
 			expressions: settings.expressions,
-			// TODO(spenny): why do we use sqlInternal here?
 			sql: settings.editor === Editor.SqlEditor ? sqlInternal : null,
 		}
 
@@ -695,7 +694,6 @@ const GraphingEditorImpl: React.FC<Props> = ({
 												: undefined
 										}
 										limitMetric={
-											// TODO(spenny): why do we use limitMetric here
 											settings.groupByEnabled
 												? limitMetric
 												: undefined
