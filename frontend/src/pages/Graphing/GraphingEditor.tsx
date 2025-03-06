@@ -712,8 +712,13 @@ export const GraphingEditor: React.FC = () => {
 
 	const setEditor = (e: Editor) => {
 		if (e === Editor.SqlEditor) {
-			setSqlInternal(convertSettingsToSql(settings, startDate, endDate))
-			setSql(convertSettingsToSql(settings, startDate, endDate))
+			const convertedSql = convertSettingsToSql(
+				settings,
+				startDate,
+				endDate,
+			)
+			setSqlInternal(convertedSql)
+			setSql(convertedSql)
 		}
 		setEditorImpl(e)
 	}
