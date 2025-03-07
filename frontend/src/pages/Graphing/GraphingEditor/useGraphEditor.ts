@@ -19,7 +19,6 @@ import {
 	LineDisplay,
 	LineNullHandling,
 } from '@/pages/Graphing/components/LineChart'
-import { DEFAULT_SQL } from '@/pages/Graphing/components/SqlEditor'
 import {
 	TABLE_NULL_HANDLING,
 	TableNullHandling,
@@ -138,9 +137,7 @@ export const useGraphEditor = (): GraphEditorContext => {
 	)
 
 	// sql editor
-	const [sqlInternal, setSqlInternal] = useState(
-		initialSettings?.sql ?? DEFAULT_SQL,
-	)
+	const [sqlInternal, setSqlInternal] = useState(initialSettings?.sql ?? '')
 	const [sql, setSql] = useState(sqlInternal)
 
 	// query builder
@@ -167,7 +164,7 @@ export const useGraphEditor = (): GraphEditorContext => {
 	const [limitFunctionType, setLimitFunctionType] = useState(
 		initialSettings?.limitFunctionType ?? FUNCTION_TYPES[0],
 	)
-	const [limit, setLimit] = useState<number | string>(
+	const [limit, setLimit] = useState<number>(
 		initialSettings?.limit ?? MAX_LIMIT_SIZE,
 	)
 	const [limitMetric, setLimitMetric] = useState(

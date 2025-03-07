@@ -52,7 +52,6 @@ import {
 } from '@/pages/Alerts/AlertForm'
 import { exportGraph } from '@/pages/Graphing/hooks/exportGraph'
 import { btoaSafe } from '@/util/string'
-import { DEFAULT_SQL } from '@/pages/Graphing/components/SqlEditor'
 
 import {
 	GraphingEditorContextProvider,
@@ -336,8 +335,8 @@ const GraphingEditorImpl: React.FC<Props> = ({
 		setBucketInterval(g.bucketInterval ?? DEFAULT_BUCKET_INTERVAL)
 		setBucketBySetting(g.bucketInterval ? 'Interval' : 'Count')
 		setEditor(!!g.sql ? Editor.SqlEditor : Editor.QueryBuilder)
-		setSqlInternal(g.sql ?? DEFAULT_SQL)
-		setSql(g.sql ?? DEFAULT_SQL)
+		setSqlInternal(g.sql ?? '')
+		setSql(g.sql ?? '')
 	}
 
 	const redirectToDashboard = useCallback(() => {

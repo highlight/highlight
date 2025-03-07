@@ -4,7 +4,10 @@ import React, { useMemo } from 'react'
 
 import { OptionDropdown } from '@/pages/Graphing/OptionDropdown'
 import { Panel } from '@/pages/Graphing/components/Panel'
-import { SqlEditor } from '@/pages/Graphing/components/SqlEditor'
+import {
+	convertSettingsToSql,
+	SqlEditor,
+} from '@/pages/Graphing/components/SqlEditor'
 import { useGraphingEditorContext } from '@/pages/Graphing/GraphingEditor/GraphingEditorContext'
 import { useGraphingVariables } from '@/pages/Graphing/hooks/useGraphingVariables'
 import { EDITOR_OPTIONS, Editor } from '@pages/Graphing/constants'
@@ -50,6 +53,19 @@ export const FormPanel: React.FC<Props> = ({
 
 	const isSqlEditor = settings.editor === Editor.SqlEditor
 
+	const handleEditorChange = (e: Editor) => {
+		if (e === Editor.SqlEditor) {
+			const convertedSql = convertSettingsToSql(
+				settings,
+				startDate,
+				endDate,
+			)
+			setSqlInternal(convertedSql)
+			setSql(convertedSql)
+		}
+		setEditor(e)
+	}
+
 	return (
 		<Panel>
 			<Form>
@@ -62,7 +78,7 @@ export const FormPanel: React.FC<Props> = ({
 								<OptionDropdown<Editor>
 									options={EDITOR_OPTIONS}
 									selection={settings.editor}
-									setSelection={setEditor}
+									setSelection={handleEditorChange}
 									disabled={isPreview}
 								/>
 							</Box>

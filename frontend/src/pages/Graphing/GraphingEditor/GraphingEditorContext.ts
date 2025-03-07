@@ -55,7 +55,7 @@ export type GraphEditorContext = {
 	setGroupByEnabled: React.Dispatch<React.SetStateAction<boolean>>
 	setGroupByKeys: React.Dispatch<React.SetStateAction<string[]>>
 	setLimitFunctionType: React.Dispatch<React.SetStateAction<MetricAggregator>>
-	setLimit: React.Dispatch<React.SetStateAction<string | number>>
+	setLimit: React.Dispatch<React.SetStateAction<number>>
 	limitMetric: string
 	setLimitMetric: React.Dispatch<React.SetStateAction<string>>
 	setBucketByEnabled: React.Dispatch<React.SetStateAction<boolean>>
