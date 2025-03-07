@@ -4814,6 +4814,14 @@ func (r *mutationResolver) UpsertVisualization(ctx context.Context, visualizatio
 		})
 	}
 
+	if visualization.DashboardTemplateType != nil {
+		if *visualization.DashboardTemplateType == modelInputs.DashboardTemplateTypeAWSMetrics {
+			return r.CreateAWSMetricsDashboard(ctx, &toSave)
+		} else if *visualization.DashboardTemplateType == modelInputs.DashboardTemplateTypeFrontendMetrics {
+			return r.CreateFrontendMetricsDashboard(ctx, &toSave)
+		}
+	}
+
 	if err := r.DB.WithContext(ctx).Save(&toSave).Error; err != nil {
 		return 0, err
 	}

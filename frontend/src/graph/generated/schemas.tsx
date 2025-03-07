@@ -438,6 +438,12 @@ export type DashboardPayload = {
 	value: Scalars['Float']
 }
 
+export enum DashboardTemplateType {
+	AwsMetrics = 'AWSMetrics',
+	FrontendMetrics = 'FrontendMetrics',
+	None = 'None',
+}
+
 export type DateHistogramBucketSize = {
 	calendar_interval: OpenSearchCalendarInterval
 	multiple: Scalars['Int']
@@ -4037,6 +4043,7 @@ export type Visualization = {
 }
 
 export type VisualizationInput = {
+	dashboardTemplateType?: InputMaybe<DashboardTemplateType>
 	graphIds?: InputMaybe<Array<Scalars['ID']>>
 	id?: InputMaybe<Scalars['ID']>
 	name?: InputMaybe<Scalars['String']>

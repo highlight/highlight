@@ -4012,6 +4012,424 @@ func (r *Resolver) CreateDefaultDashboard(ctx context.Context, projectID int) (*
 	}, nil
 }
 
+func (r *Resolver) CreateAWSMetricsDashboard(ctx context.Context, viz *model.Visualization) (int, error) {
+	viz.TimePreset = pointy.String("last_24_hours")
+
+	countAggregator := modelInputs.MetricAggregatorCount
+	avgAggregator := modelInputs.MetricAggregatorAvg
+	p90Aggregator := modelInputs.MetricAggregatorP90
+
+	graphs := []*model.Graph{
+		{
+			Type:              "Bar chart",
+			Title:             "Lambda Errors",
+			ProductType:       "Metrics",
+			Query:             "metric_name=amazonaws.com/AWS/Lambda/Errors",
+			BucketByKey:       pointy.String("Timestamp"),
+			BucketInterval:    pointy.Int(300),
+			Limit:             pointy.Int(10),
+			LimitFunctionType: &countAggregator,
+			Display:           pointy.String("Stacked"),
+			GroupByKeys:       []string{"Dimensions.FunctionName"},
+			Expressions:       pointy.String(`[{"column": "value", "aggregator": "Count"}]`),
+		},
+		{
+			Type:              "Bar chart",
+			Title:             "Lambda Invocations",
+			ProductType:       "Metrics",
+			Query:             "metric_name=amazonaws.com/AWS/Lambda/Invocations",
+			BucketByKey:       pointy.String("Timestamp"),
+			BucketInterval:    pointy.Int(300),
+			Limit:             pointy.Int(10),
+			LimitFunctionType: &countAggregator,
+			Display:           pointy.String("Stacked"),
+			GroupByKeys:       []string{"Dimensions.FunctionName"},
+			Expressions:       pointy.String(`[{"column": "value", "aggregator": "Count"}]`),
+		},
+		{
+			Type:              "Line chart",
+			Title:             "DynamoDB Read/Write Capacity Units",
+			ProductType:       "Metrics",
+			Query:             "metric_name=amazonaws.com/AWS/DynamoDB/ConsumedReadCapacityUnits or metric_name=amazonaws.com/AWS/DynamoDB/ConsumedWriteCapacityUnits",
+			BucketByKey:       pointy.String("Timestamp"),
+			BucketInterval:    pointy.Int(300),
+			Limit:             pointy.Int(10),
+			LimitFunctionType: &avgAggregator,
+			LimitMetric:       pointy.String("value"),
+			Display:           pointy.String("Line"),
+			NullHandling:      pointy.String("Hidden"),
+			GroupByKeys:       []string{"Dimensions.TableName", "metric_name"},
+			Expressions:       pointy.String(`[{"column": "value", "aggregator": "Avg"}]`),
+		},
+		{
+			Type:              "Line chart",
+			Title:             "DynamoDB Successful Request Latency",
+			ProductType:       "Metrics",
+			Query:             "metric_name=amazonaws.com/AWS/DynamoDB/SuccessfulRequestLatency",
+			BucketByKey:       pointy.String("Timestamp"),
+			BucketInterval:    pointy.Int(300),
+			Limit:             pointy.Int(10),
+			LimitFunctionType: &avgAggregator,
+			LimitMetric:       pointy.String("value"),
+			Display:           pointy.String("Line"),
+			NullHandling:      pointy.String("Hidden"),
+			GroupByKeys:       []string{"Dimensions.TableName"},
+			Expressions:       pointy.String(`[{"column": "value", "aggregator": "Avg"}]`),
+		},
+		{
+			Type:              "Line chart",
+			Title:             "EC2 CPU Utilization",
+			ProductType:       "Metrics",
+			Query:             "metric_name=amazonaws.com/AWS/EC2/CPUUtilization",
+			BucketByKey:       pointy.String("Timestamp"),
+			BucketInterval:    pointy.Int(300),
+			Limit:             pointy.Int(10),
+			LimitFunctionType: &avgAggregator,
+			LimitMetric:       pointy.String("value"),
+			Display:           pointy.String("Line"),
+			NullHandling:      pointy.String("Hidden"),
+			GroupByKeys:       []string{"Dimensions.InstanceId"},
+			Expressions:       pointy.String(`[{"column": "value", "aggregator": "Avg"}]`),
+		},
+		{
+			Type:              "Line chart",
+			Title:             "EC2 Network In/Out",
+			ProductType:       "Metrics",
+			Query:             "metric_name=amazonaws.com/AWS/EC2/NetworkIn or metric_name=amazonaws.com/AWS/EC2/NetworkOut",
+			BucketByKey:       pointy.String("Timestamp"),
+			BucketInterval:    pointy.Int(300),
+			Limit:             pointy.Int(10),
+			LimitFunctionType: &avgAggregator,
+			LimitMetric:       pointy.String("value"),
+			Display:           pointy.String("Line"),
+			NullHandling:      pointy.String("Hidden"),
+			GroupByKeys:       []string{"Dimensions.InstanceId"},
+			Expressions:       pointy.String(`[{"column": "value", "aggregator": "Avg"}]`),
+		},
+		{
+			Type:              "Line chart",
+			Title:             "ECS CPU Utilization",
+			ProductType:       "Metrics",
+			Query:             "metric_name=amazonaws.com/AWS/ECS/CPUUtilization",
+			BucketByKey:       pointy.String("Timestamp"),
+			BucketInterval:    pointy.Int(300),
+			Limit:             pointy.Int(10),
+			LimitFunctionType: &avgAggregator,
+			LimitMetric:       pointy.String("value"),
+			Display:           pointy.String("Line"),
+			NullHandling:      pointy.String("Hidden"),
+			GroupByKeys:       []string{"Dimensions.ServiceName"},
+			Expressions:       pointy.String(`[{"column": "value", "aggregator": "Avg"}]`),
+		},
+		{
+			Type:              "Line chart",
+			Title:             "ECS Memory Utilization",
+			ProductType:       "Metrics",
+			Query:             "metric_name=amazonaws.com/AWS/ECS/MemoryUtilization",
+			BucketByKey:       pointy.String("Timestamp"),
+			BucketInterval:    pointy.Int(300),
+			Limit:             pointy.Int(10),
+			LimitFunctionType: &avgAggregator,
+			LimitMetric:       pointy.String("value"),
+			Display:           pointy.String("Line"),
+			NullHandling:      pointy.String("Hidden"),
+			GroupByKeys:       []string{"Dimensions.ServiceName"},
+			Expressions:       pointy.String(`[{"column": "value", "aggregator": "Avg"}]`),
+		},
+		{
+			Type:              "Line chart",
+			Title:             "EFS Read/Write Bytes",
+			ProductType:       "Metrics",
+			Query:             "metric_name=amazonaws.com/AWS/EFS/DataReadIOBytes or metric_name=amazonaws.com/AWS/EFS/DataWriteIOBytes",
+			BucketByKey:       pointy.String("Timestamp"),
+			BucketInterval:    pointy.Int(300),
+			Limit:             pointy.Int(10),
+			LimitFunctionType: &avgAggregator,
+			LimitMetric:       pointy.String("value"),
+			Display:           pointy.String("Line"),
+			NullHandling:      pointy.String("Hidden"),
+			GroupByKeys:       []string{"Dimensions.FileSystemId", "metric_name"},
+			Expressions:       pointy.String(`[{"column": "value", "aggregator": "Avg"}]`),
+		},
+		{
+			Type:              "Line chart",
+			Title:             "ELB Processed Bytes",
+			ProductType:       "Metrics",
+			Query:             "metric_name=amazonaws.com/AWS/ApplicationELB/ProcessedBytes",
+			BucketByKey:       pointy.String("Timestamp"),
+			BucketInterval:    pointy.Int(300),
+			Limit:             pointy.Int(10),
+			LimitFunctionType: &avgAggregator,
+			LimitMetric:       pointy.String("value"),
+			Display:           pointy.String("Line"),
+			NullHandling:      pointy.String("Hidden"),
+			GroupByKeys:       []string{"metric_name", "Dimensions.LoadBalancer"},
+			Expressions:       pointy.String(`[{"column": "value", "aggregator": "Avg"}]`),
+		},
+		{
+			Type:              "Line chart",
+			Title:             "ELB Target Response Time",
+			ProductType:       "Metrics",
+			Query:             "metric_name=amazonaws.com/AWS/ApplicationELB/TargetResponseTime",
+			BucketByKey:       pointy.String("Timestamp"),
+			BucketInterval:    pointy.Int(300),
+			Limit:             pointy.Int(10),
+			LimitFunctionType: &avgAggregator,
+			LimitMetric:       pointy.String("value"),
+			Display:           pointy.String("Line"),
+			NullHandling:      pointy.String("Hidden"),
+			GroupByKeys:       []string{"metric_name", "Dimensions.LoadBalancer"},
+			Expressions:       pointy.String(`[{"column": "value", "aggregator": "Avg"}]`),
+		},
+		{
+			Type:              "Line chart",
+			Title:             "Lambda Duration",
+			ProductType:       "Metrics",
+			Query:             "metric_name=amazonaws.com/AWS/Lambda/Duration",
+			BucketByKey:       pointy.String("Timestamp"),
+			BucketInterval:    pointy.Int(300),
+			Limit:             pointy.Int(10),
+			LimitFunctionType: &avgAggregator,
+			LimitMetric:       pointy.String("value"),
+			Display:           pointy.String("Line"),
+			NullHandling:      pointy.String("Connected"),
+			GroupByKeys:       []string{"Dimensions.FunctionName"},
+			Expressions:       pointy.String(`[{"column": "value", "aggregator": "Avg"}]`),
+		},
+		{
+			Type:              "Line chart",
+			Title:             "RDS CPU Utilization",
+			ProductType:       "Metrics",
+			Query:             "metric_name=amazonaws.com/AWS/RDS/CPUUtilization",
+			BucketByKey:       pointy.String("Timestamp"),
+			BucketInterval:    pointy.Int(300),
+			Limit:             pointy.Int(10),
+			LimitFunctionType: &avgAggregator,
+			LimitMetric:       pointy.String("value"),
+			Display:           pointy.String("Line"),
+			NullHandling:      pointy.String("Hidden"),
+			GroupByKeys:       []string{"Dimensions.DBInstanceIdentifier"},
+			Expressions:       pointy.String(`[{"column": "value", "aggregator": "Avg"}]`),
+		},
+		{
+			Type:              "Line chart",
+			Title:             "RDS Free Local Storage",
+			ProductType:       "Metrics",
+			Query:             "metric_name=amazonaws.com/AWS/RDS/FreeLocalStorage",
+			BucketByKey:       pointy.String("Timestamp"),
+			BucketInterval:    pointy.Int(300),
+			Limit:             pointy.Int(10),
+			LimitFunctionType: &avgAggregator,
+			LimitMetric:       pointy.String("value"),
+			Display:           pointy.String("Line"),
+			NullHandling:      pointy.String("Hidden"),
+			GroupByKeys:       []string{"Dimensions.DBInstanceIdentifier"},
+			Expressions:       pointy.String(`[{"column": "value", "aggregator": "Avg"}]`),
+		},
+		{
+			Type:              "Line chart",
+			Title:             "RDS Freeable Memory",
+			ProductType:       "Metrics",
+			Query:             "metric_name=amazonaws.com/AWS/RDS/FreeableMemory",
+			BucketByKey:       pointy.String("Timestamp"),
+			BucketInterval:    pointy.Int(300),
+			Limit:             pointy.Int(10),
+			LimitFunctionType: &avgAggregator,
+			LimitMetric:       pointy.String("value"),
+			Display:           pointy.String("Line"),
+			NullHandling:      pointy.String("Hidden"),
+			GroupByKeys:       []string{"Dimensions.DBInstanceIdentifier"},
+			Expressions:       pointy.String(`[{"column": "value", "aggregator": "Avg"}]`),
+		},
+		{
+			Type:              "Line chart",
+			Title:             "RDS Read/Write Latency",
+			ProductType:       "Metrics",
+			Query:             "metric_name=amazonaws.com/AWS/RDS/ReadLatency or metric_name=amazonaws.com/AWS/RDS/WriteLatency",
+			BucketByKey:       pointy.String("Timestamp"),
+			BucketInterval:    pointy.Int(300),
+			Limit:             pointy.Int(10),
+			LimitFunctionType: &p90Aggregator,
+			LimitMetric:       pointy.String("value"),
+			Display:           pointy.String("Line"),
+			NullHandling:      pointy.String("Hidden"),
+			GroupByKeys:       []string{"Dimensions.DBInstanceIdentifier", "metric_name"},
+			Expressions:       pointy.String(`[{"column": "value", "aggregator": "Avg"}]`),
+		},
+		{
+			Type:              "Line chart",
+			Title:             "RDS Read/Write Throughput",
+			ProductType:       "Metrics",
+			Query:             "metric_name=amazonaws.com/AWS/RDS/ReadThroughput or metric_name=amazonaws.com/AWS/RDS/WriteThroughput",
+			BucketByKey:       pointy.String("Timestamp"),
+			BucketInterval:    pointy.Int(300),
+			Limit:             pointy.Int(10),
+			LimitFunctionType: &avgAggregator,
+			LimitMetric:       pointy.String("value"),
+			Display:           pointy.String("Line"),
+			NullHandling:      pointy.String("Hidden"),
+			GroupByKeys:       []string{"Dimensions.DBInstanceIdentifier", "metric_name"},
+			Expressions:       pointy.String(`[{"column": "value", "aggregator": "Avg"}]`),
+		},
+		{
+			Type:              "Table",
+			Title:             "S3 Bucket Size",
+			ProductType:       "Metrics",
+			Query:             "metric_name=amazonaws.com/AWS/S3/BucketSizeBytes",
+			Limit:             pointy.Int(1000000000000),
+			LimitFunctionType: &avgAggregator,
+			LimitMetric:       pointy.String("value"),
+			NullHandling:      pointy.String("Hide row"),
+			GroupByKeys:       []string{"Dimensions.BucketName"},
+			Expressions:       pointy.String(`[{"column": "value", "aggregator": "Avg"}]`),
+		},
+		{
+			Type:              "Table",
+			Title:             "S3 Number of Objects",
+			ProductType:       "Metrics",
+			Query:             "metric_name=amazonaws.com/AWS/S3/NumberOfObjects",
+			Limit:             pointy.Int(1000000000000),
+			LimitFunctionType: &avgAggregator,
+			LimitMetric:       pointy.String("value"),
+			NullHandling:      pointy.String("Hide row"),
+			GroupByKeys:       []string{"Dimensions.BucketName"},
+			Expressions:       pointy.String(`[{"column": "value", "aggregator": "Avg"}]`),
+		},
+	}
+
+	if err := r.DB.Transaction(func(tx *gorm.DB) error {
+		if err := tx.Create(viz).Error; err != nil {
+			return err
+		}
+
+		for _, g := range graphs {
+			g.VisualizationID = viz.ID
+		}
+
+		if err := tx.Create(&graphs).Error; err != nil {
+			return err
+		}
+
+		return nil
+	}); err != nil {
+		return 0, err
+	}
+
+	for _, g := range graphs {
+		viz.Graphs = append(viz.Graphs, *g)
+	}
+
+	return viz.ID, nil
+}
+
+func (r *Resolver) CreateFrontendMetricsDashboard(ctx context.Context, viz *model.Visualization) (int, error) {
+	countAggregator := modelInputs.MetricAggregatorCount
+
+	graphs := []*model.Graph{
+		{
+			Type:              "Line chart",
+			Title:             "Web Vitals",
+			ProductType:       "Metrics",
+			Query:             "metric_name=FCP or metric_name=LCP or metric_name=TTFB or metric_name=INP",
+			BucketByKey:       pointy.String("Timestamp"),
+			BucketInterval:    pointy.Int(300),
+			Limit:             pointy.Int(10),
+			LimitFunctionType: &countAggregator,
+			Display:           pointy.String("Line"),
+			NullHandling:      pointy.String("Hidden"),
+			GroupByKeys:       []string{"metric_name"},
+			Expressions:       pointy.String(`[{"column": "value", "aggregator": "P50"}]`),
+		},
+		{
+			Type:           "Line chart",
+			Title:          "Browser Memory",
+			ProductType:    "Metrics",
+			Query:          "metric_name=usedJSHeapSize",
+			BucketByKey:    pointy.String("Timestamp"),
+			BucketInterval: pointy.Int(300),
+			Display:        pointy.String("Line"),
+			NullHandling:   pointy.String("Hidden"),
+			Expressions:    pointy.String(`[{"column": "value", "aggregator": "P50"}, {"column": "value", "aggregator": "P99"}]`),
+		},
+		{
+			Type:              "Line chart",
+			Title:             "HTTP Response Size",
+			ProductType:       "Metrics",
+			Query:             "metric_name=http.client.response.size",
+			BucketByKey:       pointy.String("Timestamp"),
+			BucketInterval:    pointy.Int(300),
+			Limit:             pointy.Int(10),
+			LimitFunctionType: &countAggregator,
+			Display:           pointy.String("Line"),
+			NullHandling:      pointy.String("Hidden"),
+			GroupByKeys:       []string{"metric_name"},
+			Expressions:       pointy.String(`[{"column": "value", "aggregator": "P50"}, {"column": "value", "aggregator": "P90"}]`),
+		},
+		{
+			Type:              "Line chart",
+			Title:             "HTTP Request Size",
+			ProductType:       "Metrics",
+			Query:             "metric_name=http.client.request.size",
+			BucketByKey:       pointy.String("Timestamp"),
+			BucketInterval:    pointy.Int(300),
+			Limit:             pointy.Int(10),
+			LimitFunctionType: &countAggregator,
+			Display:           pointy.String("Line"),
+			NullHandling:      pointy.String("Hidden"),
+			GroupByKeys:       []string{"metric_name"},
+			Expressions:       pointy.String(`[{"column": "value", "aggregator": "P50"}, {"column": "value", "aggregator": "P90"}]`),
+		},
+		{
+			Type:              "Bar chart",
+			Title:             "HTTP Errors",
+			ProductType:       "Traces",
+			Query:             "http.status_code>=400",
+			BucketByKey:       pointy.String("Timestamp"),
+			BucketInterval:    pointy.Int(300),
+			Limit:             pointy.Int(100),
+			LimitFunctionType: &countAggregator,
+			Display:           pointy.String("Stacked"),
+			GroupByKeys:       []string{"http.status_code"},
+			Expressions:       pointy.String(`[{"column": "", "aggregator": "Count"}]`),
+		},
+		{
+			Type:           "Line chart",
+			Title:          "HTTP Request Latency",
+			ProductType:    "Traces",
+			Query:          "http.method EXISTS",
+			BucketByKey:    pointy.String("Timestamp"),
+			BucketInterval: pointy.Int(300),
+			Display:        pointy.String("Line"),
+			NullHandling:   pointy.String("Hidden"),
+			Expressions:    pointy.String(`[{"column": "duration", "aggregator": "P50"}, {"column": "duration", "aggregator": "P90"}]`),
+		},
+	}
+
+	if err := r.DB.Transaction(func(tx *gorm.DB) error {
+		if err := tx.Create(viz).Error; err != nil {
+			return err
+		}
+
+		for _, g := range graphs {
+			g.VisualizationID = viz.ID
+		}
+
+		if err := tx.Create(&graphs).Error; err != nil {
+			return err
+		}
+
+		return nil
+	}); err != nil {
+		return 0, err
+	}
+
+	for _, g := range graphs {
+		viz.Graphs = append(viz.Graphs, *g)
+	}
+
+	return viz.ID, nil
+}
+
 func (r *Resolver) MetricsAggregated(ctx context.Context, projectID int, params modelInputs.QueryInput, sql *string, column *string, metricTypes []modelInputs.MetricAggregator, groupBy []string, bucketBy string, bucketCount *int, bucketWindow *int, limit *int, limitAggregator *modelInputs.MetricAggregator, limitColumn *string, expressions []*modelInputs.MetricExpressionInput) (*modelInputs.MetricsBuckets, error) {
 	project, err := r.isUserInProjectOrDemoProject(ctx, projectID)
 	if err != nil {
