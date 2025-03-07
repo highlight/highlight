@@ -91,7 +91,7 @@ type Configuration struct {
 	LinearClientSecret          string `mapstructure:"LINEAR_CLIENT_SECRET"`
 	MicrosoftTeamsBotId         string `mapstructure:"MICROSOFT_TEAMS_BOT_ID"`
 	MicrosoftTeamsBotPassword   string `mapstructure:"MICROSOFT_TEAMS_BOT_PASSWORD"`
-	OAuthAllowedDomains         string `mapstructure:"OAUTH_ALLOWED_DOMAINS"` // comma separated domains, regex allowed
+	OAuthAllowedDomains         string `mapstructure:"OAUTH_ALLOWED_DOMAINS"` // comma separated domains
 	OAuthClientID               string `mapstructure:"OAUTH_CLIENT_ID"`
 	OAuthClientSecret           string `mapstructure:"OAUTH_CLIENT_SECRET"`
 	OAuthProviderUrl            string `mapstructure:"OAUTH_PROVIDER_URL"`

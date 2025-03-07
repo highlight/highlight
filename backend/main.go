@@ -267,7 +267,11 @@ func main() {
 				WithError(err).
 				Error("failed to enable all workspace settings for enterprise deploy")
 		}
-		// TODO(vkorolik) load in the SSOClients, OAuthAllowedDomains into DB from env for self-hosted
+		if err := model.LoadSSOClient(ctx, db); err != nil {
+			log.WithContext(ctx).
+				WithError(err).
+				Error("failed to load SSO client for enterprise deploy")
+		}
 	}
 
 	var pricingClient *pricing.Client

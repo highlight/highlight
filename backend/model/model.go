@@ -2449,6 +2449,24 @@ func EnableAllWorkspaceSettings(ctx context.Context, db *gorm.DB) error {
 	return nil
 }
 
+// LoadSSOClient creates SSO clients from environment
+func LoadSSOClient(ctx context.Context, db *gorm.DB) error {
+	if env.Config.OAuthClientID != "" && env.Config.OAuthAllowedDomains != "" {
+		for _, domain := range strings.Split(env.Config.OAuthAllowedDomains, ",") {
+			if err := db.WithContext(ctx).
+				Create(&SSOClient{
+					Domain:       domain,
+					ClientID:     env.Config.OAuthClientID,
+					ClientSecret: env.Config.OAuthClientSecret,
+					ProviderURL:  env.Config.OAuthProviderUrl,
+				}).Error; err != nil {
+				return e.Wrap(err, "failed to create SSO client")
+			}
+		}
+	}
+	return nil
+}
+
 type TableConfig struct {
 	TableName         string
 	BodyColumn        string
