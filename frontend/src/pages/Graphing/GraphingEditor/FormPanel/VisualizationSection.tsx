@@ -13,6 +13,7 @@ import { OptionDropdown } from '@/pages/Graphing/OptionDropdown'
 import { ViewTypeSettings } from '@/pages/Graphing/GraphingEditor/ViewTypeSettings'
 
 import * as style from '../GraphingEditor.css'
+import { useCallback } from 'react'
 
 type Props = {
 	isPreview: boolean
@@ -36,6 +37,7 @@ export const VisualizationSection: React.FC<Props> = ({ isPreview }) => {
 		setLineDisplay,
 		setBarDisplay,
 		setFunnelDisplay,
+		setProductType,
 	} = useGraphingEditorContext()
 
 	const { data: dashboardsData, loading: dashboardsLoading } =
@@ -52,17 +54,20 @@ export const VisualizationSection: React.FC<Props> = ({ isPreview }) => {
 			},
 		})
 
-	const viewOptions = React.useMemo(() => {
-		if (settings.productType === ProductType.Events) {
-			return VIEW_OPTIONS
-		}
+	const handleViewTypeChange = useCallback(
+		(viewType: View) => {
+			if (viewType === settings.viewType) {
+				return
+			}
 
-		return VIEW_OPTIONS.filter(
-			(v) =>
-				settings.productType === ProductType.Metrics ||
-				v.value !== 'Funnel chart',
-		)
-	}, [settings.productType])
+			if (viewType === 'Funnel chart') {
+				setProductType(ProductType.Events)
+			}
+
+			setViewType(viewType)
+		},
+		[setProductType, setViewType, settings.viewType],
+	)
 
 	return (
 		<>
@@ -101,11 +106,9 @@ export const VisualizationSection: React.FC<Props> = ({ isPreview }) => {
 			<Text weight="bold">Visualization</Text>
 			<LabeledRow label="View type" name="viewType">
 				<OptionDropdown
-					options={viewOptions}
+					options={VIEW_OPTIONS}
 					selection={settings.viewType}
-					setSelection={(s) => {
-						s !== settings.viewType && setViewType(s as View)
-					}}
+					setSelection={handleViewTypeChange}
 					disabled={isPreview}
 				/>
 			</LabeledRow>
