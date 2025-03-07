@@ -530,8 +530,7 @@ func NewOAuthClient(ctx context.Context, store *store.Store) (*OAuthAuthClient, 
 
 	oauthClients := make(map[string]*OAuthClient)
 	for _, ssoClient := range ssoClients.Clients {
-		// TODO(vkorolik) different provider vs redirect url?
-		provider, err := oidc.NewProvider(ctx, ssoClient.RedirectURL)
+		provider, err := oidc.NewProvider(ctx, ssoClient.ProviderURL)
 		if err != nil {
 			log.WithContext(ctx).WithError(err).Fatalf("failed to connect to oauth oidc provider")
 		}

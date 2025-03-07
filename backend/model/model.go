@@ -1320,7 +1320,7 @@ type SSOClient struct {
 
 	ClientID     string
 	ClientSecret string
-	RedirectURL  string
+	ProviderURL  string
 }
 
 var ErrorType = struct {
