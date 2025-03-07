@@ -31,6 +31,16 @@ import { SIGN_UP_ROUTE } from '@/pages/Auth/AuthRouter'
 import { VERIFY_EMAIL_ROUTE } from '@/routers/AppRouter/AppRouter'
 import analytics from '@/util/analytics'
 
+function upsertCookie(name: string, value: string, days: number) {
+	let expires = ''
+	if (days) {
+		const date = new Date()
+		date.setTime(date.getTime() + days * 24 * 60 * 60 * 1000)
+		expires = '; expires=' + date.toUTCString()
+	}
+	document.cookie = `${encodeURIComponent(name)}=${encodeURIComponent(value)}${expires}; path=/; SameSite=Lax`
+}
+
 type Props = {
 	setResolver: React.Dispatch<
 		React.SetStateAction<firebase.auth.MultiFactorResolver | undefined>
@@ -157,7 +167,7 @@ export const SignIn: React.FC<Props> = ({ setResolver }) => {
 		const emailDomain = email.split('@')[1]
 		const clientID = oauthLoginMap.get(emailDomain)
 		if (clientID) {
-			document.cookie = `highlight_oauth_client_id=${clientID}`
+			upsertCookie('highlight_oauth_client_id', clientID, 7)
 			return true
 		}
 		return false

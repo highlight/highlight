@@ -539,7 +539,7 @@ func NewOAuthClient(ctx context.Context, store *store.Store) (*OAuthAuthClient, 
 		oauth2Config := oauth2.Config{
 			ClientID:     ssoClient.ClientID,
 			ClientSecret: ssoClient.ClientSecret,
-			RedirectURL:  ssoClient.RedirectURL,
+			RedirectURL:  env.Config.OAuthRedirectUrl,
 
 			// Discovery returns the OAuth2 endpoints.
 			Endpoint: provider.Endpoint(),
