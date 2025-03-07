@@ -13347,6 +13347,62 @@ export type GetOAuthClientMetadataQueryResult = Apollo.QueryResult<
 	Types.GetOAuthClientMetadataQuery,
 	Types.GetOAuthClientMetadataQueryVariables
 >
+export const GetOAuthLoginsDocument = gql`
+	query GetOAuthLogins {
+		oauth_logins {
+			email_domain
+			client_id
+		}
+	}
+`
+
+/**
+ * __useGetOAuthLoginsQuery__
+ *
+ * To run a query within a React component, call `useGetOAuthLoginsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetOAuthLoginsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetOAuthLoginsQuery({
+ *   variables: {
+ *   },
+ * });
+ */
+export function useGetOAuthLoginsQuery(
+	baseOptions?: Apollo.QueryHookOptions<
+		Types.GetOAuthLoginsQuery,
+		Types.GetOAuthLoginsQueryVariables
+	>,
+) {
+	return Apollo.useQuery<
+		Types.GetOAuthLoginsQuery,
+		Types.GetOAuthLoginsQueryVariables
+	>(GetOAuthLoginsDocument, baseOptions)
+}
+export function useGetOAuthLoginsLazyQuery(
+	baseOptions?: Apollo.LazyQueryHookOptions<
+		Types.GetOAuthLoginsQuery,
+		Types.GetOAuthLoginsQueryVariables
+	>,
+) {
+	return Apollo.useLazyQuery<
+		Types.GetOAuthLoginsQuery,
+		Types.GetOAuthLoginsQueryVariables
+	>(GetOAuthLoginsDocument, baseOptions)
+}
+export type GetOAuthLoginsQueryHookResult = ReturnType<
+	typeof useGetOAuthLoginsQuery
+>
+export type GetOAuthLoginsLazyQueryHookResult = ReturnType<
+	typeof useGetOAuthLoginsLazyQuery
+>
+export type GetOAuthLoginsQueryResult = Apollo.QueryResult<
+	Types.GetOAuthLoginsQuery,
+	Types.GetOAuthLoginsQueryVariables
+>
 export const SearchIssuesDocument = gql`
 	query SearchIssues(
 		$project_id: ID!

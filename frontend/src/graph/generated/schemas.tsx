@@ -2032,6 +2032,12 @@ export type OAuthClient = {
 	id: Scalars['String']
 }
 
+export type OAuthLogin = {
+	__typename?: 'OAuthLogin'
+	client_id: Scalars['String']
+	email_domain: Scalars['String']
+}
+
 export enum OpenSearchCalendarInterval {
 	Day = 'day',
 	Hour = 'hour',
@@ -2219,6 +2225,7 @@ export type Query = {
 	new_session_alerts: Array<Maybe<SessionAlert>>
 	new_user_alerts?: Maybe<Array<Maybe<SessionAlert>>>
 	oauth_client_metadata?: Maybe<OAuthClient>
+	oauth_logins: Array<OAuthLogin>
 	project?: Maybe<Project>
 	projectHasViewedASession?: Maybe<Session>
 	projectSettings?: Maybe<AllProjectSettings>

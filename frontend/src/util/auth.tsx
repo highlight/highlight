@@ -357,6 +357,7 @@ class OAuth extends PasswordAuth implements SimpleAuth {
 	}
 }
 
+export const oauth = new OAuth()
 export let auth: SimpleAuth
 switch (AUTH_MODE) {
 	case 'simple':
@@ -366,7 +367,7 @@ switch (AUTH_MODE) {
 		auth = new PasswordAuth()
 		break
 	case 'oauth':
-		auth = new OAuth()
+		auth = oauth
 		break
 	default:
 		let firebaseConfig: any

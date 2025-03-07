@@ -197,6 +197,7 @@ var Models = []interface{}{
 	&Visualization{},
 	&Alert{},
 	&AlertDestination{},
+	&SSOClient{},
 }
 
 func init() {
@@ -1311,6 +1312,14 @@ type OAuthOperation struct {
 	ClientID                   string
 	AuthorizedGraphQLOperation string
 	MinuteRateLimit            int64 `gorm:"default:600"`
+}
+
+type SSOClient struct {
+	Domain string `gorm:"primary_key"`
+
+	ClientID     string
+	ClientSecret string
+	RedirectURL  string
 }
 
 var ErrorType = struct {

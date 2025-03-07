@@ -2,6 +2,7 @@ import { Button } from '@components/Button'
 import {
 	useCreateAdminMutation,
 	useGetWorkspaceForInviteLinkQuery,
+	useGetOAuthLoginsQuery,
 } from '@graph/hooks'
 import {
 	Box,
@@ -15,9 +16,9 @@ import {
 import SvgHighlightLogoOnLight from '@icons/HighlightLogoOnLight'
 import { AuthBody, AuthError, AuthFooter, AuthHeader } from '@pages/Auth/Layout'
 import useLocalStorage from '@rehooks/local-storage'
-import { auth } from '@util/auth'
+import { auth, oauth } from '@util/auth'
 import firebase from 'firebase/compat/app'
-import React, { useCallback, useEffect } from 'react'
+import React, { useCallback, useEffect, useMemo } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 
 import { useAuthContext } from '@/authentication/AuthContext'
@@ -55,11 +56,11 @@ export const SignIn: React.FC<Props> = ({ setResolver }) => {
 	const email = formStore.useValue('email')
 	formStore.useSubmit(async (formState) => {
 		setLoading(true)
-
-		auth.signInWithEmailAndPassword(
-			formState.values.email,
-			formState.values.password,
-		)
+		;(oauthActive ? oauth : auth)
+			.signInWithEmailAndPassword(
+				formState.values.email,
+				formState.values.password,
+			)
 			.then(handleAuth)
 			.catch(handleAuthError)
 	})
@@ -73,6 +74,17 @@ export const SignIn: React.FC<Props> = ({ setResolver }) => {
 			skip: !inviteCode,
 		})
 	const workspaceInvite = data?.workspace_for_invite_link
+
+	const { data: oauthLoginsData } = useGetOAuthLoginsQuery()
+	const oauthLoginMap = useMemo(() => {
+		if (!oauthLoginsData?.oauth_logins) return new Map<string, string>()
+		return new Map(
+			oauthLoginsData.oauth_logins.map((login) => [
+				login.email_domain,
+				login.client_id,
+			]),
+		)
+	}, [oauthLoginsData?.oauth_logins])
 
 	const handleAuth = useCallback(
 		async ({ additionalUserInfo, user }: firebase.auth.UserCredential) => {
@@ -133,6 +145,24 @@ export const SignIn: React.FC<Props> = ({ setResolver }) => {
 		}
 	}, [loadingWorkspaceForInvite, setLoadingState])
 
+	const oauthActive = useMemo(() => {
+		if (AUTH_MODE === 'oauth') {
+			return true
+		}
+
+		if (!email) {
+			return false
+		}
+
+		const emailDomain = email.split('@')[1]
+		const clientID = oauthLoginMap.has(emailDomain)
+		if (clientID) {
+			document.cookie = `highlight_oauth_client_id=${clientID}`
+			return true
+		}
+		return false
+	}, [email, oauthLoginMap])
+
 	return (
 		<Form store={formStore} resetOnSubmit={false}>
 			<AuthHeader>
@@ -156,7 +186,7 @@ export const SignIn: React.FC<Props> = ({ setResolver }) => {
 					</Stack>
 				</Box>
 			</AuthHeader>
-			{AUTH_MODE === 'oauth' ? null : (
+			{oauthActive ? null : (
 				<AuthBody>
 					<Stack gap="12">
 						<Form.Input
@@ -189,7 +219,7 @@ export const SignIn: React.FC<Props> = ({ setResolver }) => {
 						id="email-password-signin"
 					>
 						Sign in
-						{AUTH_MODE === 'oauth' ? <>{' with SSO'}</> : null}
+						{oauthActive ? <>{' with SSO'}</> : null}
 					</Button>
 					{AUTH_MODE !== 'firebase' ? null : (
 						<>

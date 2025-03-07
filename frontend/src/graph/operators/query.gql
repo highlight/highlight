@@ -2099,6 +2099,13 @@ query GetOAuthClientMetadata($client_id: String!) {
 	}
 }
 
+query GetOAuthLogins {
+	oauth_logins {
+		email_domain
+		client_id
+	}
+}
+
 query SearchIssues(
 	$project_id: ID!
 	$query: String!

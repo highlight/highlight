@@ -5,10 +5,11 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/samber/lo"
 	"io"
 	"net/http"
 	"strings"
+
+	"github.com/samber/lo"
 
 	"github.com/99designs/gqlgen/graphql/handler/transport"
 	"github.com/go-oauth2/oauth2/v4"
@@ -69,7 +70,11 @@ func SetupAuthClient(ctx context.Context, store *store.Store, authMode AuthMode,
 	} else if authMode == Password {
 		AuthClient = &PasswordAuthClient{}
 	} else if authMode == OAuth {
-		AuthClient = NewOAuthClient(ctx, store)
+		var err error
+		AuthClient, err = NewOAuthClient(ctx, store)
+		if err != nil {
+			log.WithContext(ctx).Fatalf("private graph auth client failed to configure oauth")
+		}
 	} else {
 		log.WithContext(ctx).Fatalf("private graph auth client configured with unknown auth mode")
 	}

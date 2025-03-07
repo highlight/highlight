@@ -727,6 +727,11 @@ type OAuthClient struct {
 	AppName   string    `json:"app_name"`
 }
 
+type OAuthLogin struct {
+	EmailDomain string `json:"email_domain"`
+	ClientID    string `json:"client_id"`
+}
+
 type PageInfo struct {
 	HasNextPage     bool   `json:"hasNextPage"`
 	HasPreviousPage bool   `json:"hasPreviousPage"`
