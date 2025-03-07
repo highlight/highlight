@@ -12602,6 +12602,7 @@ enum SavedSegmentEntityType {
 	Trace
 	Error
 	Session
+	Metric
 }
 
 type Project {
