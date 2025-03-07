@@ -8,6 +8,8 @@ import Firebase from 'firebase/compat/app'
 import { AUTH_MODE, PRIVATE_GRAPH_URI } from '@/constants'
 import { getCookie, Cookies } from '@/util/cookie'
 
+export const EXPECTED_REDIRECT = new Error('Redirected')
+
 interface User {
 	email: string | null
 
@@ -280,7 +282,7 @@ class OAuth extends PasswordAuth implements SimpleAuth {
 
 	async signInWithPopup(): Promise<Firebase.auth.UserCredential> {
 		window.location.href = `${PRIVATE_GRAPH_URI}/oauth/login`
-		throw new Error('Redirected')
+		throw EXPECTED_REDIRECT
 	}
 
 	async validateUser(): Promise<boolean> {

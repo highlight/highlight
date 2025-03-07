@@ -16,7 +16,7 @@ import {
 import SvgHighlightLogoOnLight from '@icons/HighlightLogoOnLight'
 import { AuthBody, AuthError, AuthFooter, AuthHeader } from '@pages/Auth/Layout'
 import useLocalStorage from '@rehooks/local-storage'
-import { getAuth } from '@util/auth'
+import { EXPECTED_REDIRECT, getAuth } from '@util/auth'
 import firebase from 'firebase/compat/app'
 import React, { useCallback, useEffect, useMemo } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
@@ -30,7 +30,7 @@ import {
 import { SIGN_UP_ROUTE } from '@/pages/Auth/AuthRouter'
 import { VERIFY_EMAIL_ROUTE } from '@/routers/AppRouter/AppRouter'
 import analytics from '@/util/analytics'
-import { upsertCookie, Cookies } from '@/util/cookie'
+import { Cookies, upsertCookie } from '@util/cookie'
 
 type Props = {
 	setResolver: React.Dispatch<
@@ -52,19 +52,11 @@ export const SignIn: React.FC<Props> = ({ setResolver }) => {
 		defaultValues: {
 			email: initialEmail,
 			password: '',
+			passwordRequired: false,
 		},
 	})
 	const email = formStore.useValue('email')
-	formStore.useSubmit(async (formState) => {
-		setLoading(true)
-		getAuth()
-			.signInWithEmailAndPassword(
-				formState.values.email,
-				formState.values.password,
-			)
-			.then(handleAuth)
-			.catch(handleAuthError)
-	})
+	const passwordRequired = formStore.useValue('passwordRequired')
 
 	const [createAdmin] = useCreateAdminMutation()
 	const { data, loading: loadingWorkspaceForInvite } =
@@ -116,6 +108,10 @@ export const SignIn: React.FC<Props> = ({ setResolver }) => {
 
 	const handleAuthError = useCallback(
 		(error: firebase.auth.MultiFactorError) => {
+			if (error === EXPECTED_REDIRECT) {
+				return
+			}
+
 			let errorMessage = error.message
 
 			if (error.code == 'auth/multi-factor-auth-required') {
@@ -136,11 +132,39 @@ export const SignIn: React.FC<Props> = ({ setResolver }) => {
 	)
 
 	const handleExternalAuthClick = (provider: firebase.auth.AuthProvider) => {
+		setLoading(true)
 		getAuth()
 			.signInWithPopup(provider)
 			.then(handleAuth)
 			.catch(handleAuthError)
 	}
+
+	formStore.useSubmit(async (formState) => {
+		setLoading(true)
+		if (!formState.values.email) {
+			setLoading(false)
+			return
+		}
+
+		const emailDomain = formState.values.email.split('@')[1]
+		const clientID = oauthLoginMap.get(emailDomain)
+		if (clientID) {
+			// temporary (short expiry), backend will set a longer expiry once login succeeds
+			upsertCookie(Cookies.OAuthClientID, clientID, 5)
+		} else if (!formState.values.password) {
+			formStore.setValue('passwordRequired', true)
+			setLoading(false)
+			return
+		}
+
+		await getAuth()
+			.signInWithEmailAndPassword(
+				formState.values.email,
+				formState.values.password,
+			)
+			.then(handleAuth)
+			.catch(handleAuthError)
+	})
 
 	useEffect(() => analytics.page('Sign In'), [])
 	useEffect(() => {
@@ -148,25 +172,6 @@ export const SignIn: React.FC<Props> = ({ setResolver }) => {
 			setLoadingState(AppLoadingState.LOADED)
 		}
 	}, [loadingWorkspaceForInvite, setLoadingState])
-
-	const oauthActive = useMemo(() => {
-		if (AUTH_MODE === 'oauth') {
-			return true
-		}
-
-		if (!email) {
-			return false
-		}
-
-		const emailDomain = email.split('@')[1]
-		const clientID = oauthLoginMap.get(emailDomain)
-		if (clientID) {
-			// temporary (short expiry), backend will set a longer expiry once login succeeds
-			upsertCookie(Cookies.OAuthClientID, clientID, 5)
-			return true
-		}
-		return false
-	}, [email, oauthLoginMap])
 
 	return (
 		<Form store={formStore} resetOnSubmit={false}>
@@ -191,29 +196,33 @@ export const SignIn: React.FC<Props> = ({ setResolver }) => {
 					</Stack>
 				</Box>
 			</AuthHeader>
-			{oauthActive ? null : (
-				<AuthBody>
-					<Stack gap="12">
-						<Form.Input
-							name={formStore.names.email}
-							label="Email"
-							type="email"
-							autoFocus
-							autoComplete="email"
-						/>
-						<Form.Input
-							name={formStore.names.password}
-							label="Password"
-							type="password"
-							autoComplete="current-password"
-						/>
-						<Link to="/reset_password" state={{ email }}>
-							<Text size="xSmall">Forgot your password?</Text>
-						</Link>
-						{error && <AuthError>{error}</AuthError>}
-					</Stack>
-				</AuthBody>
-			)}
+			<AuthBody>
+				<Stack gap="12">
+					<Form.Input
+						name={formStore.names.email}
+						label="Email"
+						type="email"
+						autoFocus
+						autoComplete="email"
+						required
+					/>
+					{passwordRequired ? (
+						<>
+							<Form.Input
+								name={formStore.names.password}
+								label="Password"
+								type="password"
+								autoComplete="current-password"
+								required
+							/>
+							<Link to="/reset_password" state={{ email }}>
+								<Text size="xSmall">Forgot your password?</Text>
+							</Link>
+						</>
+					) : null}
+					{error && <AuthError>{error}</AuthError>}
+				</Stack>
+			</AuthBody>
 
 			<AuthFooter>
 				<Stack gap="12">
@@ -224,7 +233,6 @@ export const SignIn: React.FC<Props> = ({ setResolver }) => {
 						id="email-password-signin"
 					>
 						Sign in
-						{oauthActive ? <>{' with SSO'}</> : null}
 					</Button>
 					{AUTH_MODE !== 'firebase' ? null : (
 						<>
