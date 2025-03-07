@@ -1,7 +1,7 @@
 import { Button } from '@components/Button'
 import {
 	useCreateAdminMutation,
-	useGetOAuthLoginsQuery,
+	useGetSsoLoginLazyQuery,
 	useGetWorkspaceForInviteLinkQuery,
 } from '@graph/hooks'
 import {
@@ -18,7 +18,7 @@ import { AuthBody, AuthError, AuthFooter, AuthHeader } from '@pages/Auth/Layout'
 import useLocalStorage from '@rehooks/local-storage'
 import { EXPECTED_REDIRECT, getAuth } from '@util/auth'
 import firebase from 'firebase/compat/app'
-import React, { useCallback, useEffect, useMemo } from 'react'
+import React, { useCallback, useEffect } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 
 import { useAuthContext } from '@/authentication/AuthContext'
@@ -68,16 +68,7 @@ export const SignIn: React.FC<Props> = ({ setResolver }) => {
 		})
 	const workspaceInvite = data?.workspace_for_invite_link
 
-	const { data: oauthLoginsData } = useGetOAuthLoginsQuery()
-	const oauthLoginMap = useMemo(() => {
-		if (!oauthLoginsData?.oauth_logins) return new Map<string, string>()
-		return new Map(
-			oauthLoginsData.oauth_logins.map((login) => [
-				login.email_domain,
-				login.client_id,
-			]),
-		)
-	}, [oauthLoginsData?.oauth_logins])
+	const [getSsoLogin] = useGetSsoLoginLazyQuery()
 
 	const handleAuth = useCallback(
 		async ({ additionalUserInfo, user }: firebase.auth.UserCredential) => {
@@ -147,7 +138,10 @@ export const SignIn: React.FC<Props> = ({ setResolver }) => {
 		}
 
 		const emailDomain = formState.values.email.split('@')[1]
-		const clientID = oauthLoginMap.get(emailDomain)
+		const { data } = await getSsoLogin({
+			variables: { domain: emailDomain },
+		})
+		const clientID = data?.sso_login?.client_id
 		if (clientID) {
 			// temporary (short expiry), backend will set a longer expiry once login succeeds
 			upsertCookie(Cookies.OAuthClientID, clientID, 5)

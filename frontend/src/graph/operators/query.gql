@@ -2099,9 +2099,9 @@ query GetOAuthClientMetadata($client_id: String!) {
 	}
 }
 
-query GetOAuthLogins {
-	oauth_logins {
-		email_domain
+query GetSSOLogin($domain: String!) {
+	sso_login(domain: $domain) {
+		domain
 		client_id
 	}
 }

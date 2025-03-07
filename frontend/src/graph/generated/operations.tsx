@@ -4600,13 +4600,15 @@ export type GetOAuthClientMetadataQuery = { __typename?: 'Query' } & {
 	>
 }
 
-export type GetOAuthLoginsQueryVariables = Types.Exact<{ [key: string]: never }>
+export type GetSsoLoginQueryVariables = Types.Exact<{
+	domain: Types.Scalars['String']
+}>
 
-export type GetOAuthLoginsQuery = { __typename?: 'Query' } & {
-	oauth_logins: Array<
-		{ __typename?: 'OAuthLogin' } & Pick<
-			Types.OAuthLogin,
-			'email_domain' | 'client_id'
+export type GetSsoLoginQuery = { __typename?: 'Query' } & {
+	sso_login?: Types.Maybe<
+		{ __typename?: 'SSOLogin' } & Pick<
+			Types.SsoLogin,
+			'domain' | 'client_id'
 		>
 	>
 }
@@ -5554,7 +5556,7 @@ export const namedOperations = {
 		GetSourcemapFiles: 'GetSourcemapFiles' as const,
 		GetSourcemapVersions: 'GetSourcemapVersions' as const,
 		GetOAuthClientMetadata: 'GetOAuthClientMetadata' as const,
-		GetOAuthLogins: 'GetOAuthLogins' as const,
+		GetSSOLogin: 'GetSSOLogin' as const,
 		SearchIssues: 'SearchIssues' as const,
 		GetErrorGroupTags: 'GetErrorGroupTags' as const,
 		GetEmailOptOuts: 'GetEmailOptOuts' as const,

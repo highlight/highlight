@@ -2032,12 +2032,6 @@ export type OAuthClient = {
 	id: Scalars['String']
 }
 
-export type OAuthLogin = {
-	__typename?: 'OAuthLogin'
-	client_id: Scalars['String']
-	email_domain: Scalars['String']
-}
-
 export enum OpenSearchCalendarInterval {
 	Day = 'day',
 	Hour = 'hour',
@@ -2225,7 +2219,6 @@ export type Query = {
 	new_session_alerts: Array<Maybe<SessionAlert>>
 	new_user_alerts?: Maybe<Array<Maybe<SessionAlert>>>
 	oauth_client_metadata?: Maybe<OAuthClient>
-	oauth_logins: Array<OAuthLogin>
 	project?: Maybe<Project>
 	projectHasViewedASession?: Maybe<Session>
 	projectSettings?: Maybe<AllProjectSettings>
@@ -2261,6 +2254,7 @@ export type Query = {
 	slack_channel_suggestion: Array<SanitizedSlackChannel>
 	sourcemap_files: Array<S3File>
 	sourcemap_versions: Array<Scalars['String']>
+	sso_login?: Maybe<SsoLogin>
 	subscription_details: SubscriptionDetails
 	system_configuration: SystemConfiguration
 	timeline_indicator_events: Array<TimelineIndicatorEvent>
@@ -3004,6 +2998,10 @@ export type QuerySourcemap_VersionsArgs = {
 	project_id: Scalars['ID']
 }
 
+export type QuerySso_LoginArgs = {
+	domain: Scalars['String']
+}
+
 export type QuerySubscription_DetailsArgs = {
 	workspace_id: Scalars['ID']
 }
@@ -3365,6 +3363,12 @@ export enum RetentionPeriod {
 export type S3File = {
 	__typename?: 'S3File'
 	key?: Maybe<Scalars['String']>
+}
+
+export type SsoLogin = {
+	__typename?: 'SSOLogin'
+	client_id: Scalars['String']
+	domain: Scalars['String']
 }
 
 export type Sampling = {

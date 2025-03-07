@@ -1000,11 +1000,6 @@ type ComplexityRoot struct {
 		ID        func(childComplexity int) int
 	}
 
-	OAuthLogin struct {
-		ClientID    func(childComplexity int) int
-		EmailDomain func(childComplexity int) int
-	}
-
 	PageInfo struct {
 		EndCursor       func(childComplexity int) int
 		HasNextPage     func(childComplexity int) int
@@ -1151,7 +1146,6 @@ type ComplexityRoot struct {
 		NewUserAlerts                    func(childComplexity int, projectID int) int
 		NewUsersCount                    func(childComplexity int, projectID int, lookbackDays float64) int
 		OauthClientMetadata              func(childComplexity int, clientID string) int
-		OauthLogins                      func(childComplexity int) int
 		Project                          func(childComplexity int, id int) int
 		ProjectHasViewedASession         func(childComplexity int, projectID int) int
 		ProjectSettings                  func(childComplexity int, projectID int) int
@@ -1187,6 +1181,7 @@ type ComplexityRoot struct {
 		SlackChannelSuggestion           func(childComplexity int, projectID int) int
 		SourcemapFiles                   func(childComplexity int, projectID int, version *string) int
 		SourcemapVersions                func(childComplexity int, projectID int) int
+		SsoLogin                         func(childComplexity int, domain string) int
 		SubscriptionDetails              func(childComplexity int, workspaceID int) int
 		SystemConfiguration              func(childComplexity int) int
 		TimelineIndicatorEvents          func(childComplexity int, sessionSecureID string) int
@@ -1254,6 +1249,11 @@ type ComplexityRoot struct {
 
 	S3File struct {
 		Key func(childComplexity int) int
+	}
+
+	SSOLogin struct {
+		ClientID func(childComplexity int) int
+		Domain   func(childComplexity int) int
 	}
 
 	Sampling struct {
@@ -2060,7 +2060,7 @@ type QueryResolver interface {
 	SourcemapFiles(ctx context.Context, projectID int, version *string) ([]*model.S3File, error)
 	SourcemapVersions(ctx context.Context, projectID int) ([]string, error)
 	OauthClientMetadata(ctx context.Context, clientID string) (*model.OAuthClient, error)
-	OauthLogins(ctx context.Context) ([]*model.OAuthLogin, error)
+	SsoLogin(ctx context.Context, domain string) (*model.SSOLogin, error)
 	EmailOptOuts(ctx context.Context, token *string, adminID *int) ([]model.EmailOptOutCategory, error)
 	AiQuerySuggestion(ctx context.Context, timeZone string, projectID int, productType model.ProductType, query string) (*model.QueryOutput, error)
 	Logs(ctx context.Context, projectID int, params model.QueryInput, after *string, before *string, at *string, direction model.SortDirection, limit *int) (*model.LogConnection, error)
@@ -7129,20 +7129,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.OAuthClient.ID(childComplexity), true
 
-	case "OAuthLogin.client_id":
-		if e.complexity.OAuthLogin.ClientID == nil {
-			break
-		}
-
-		return e.complexity.OAuthLogin.ClientID(childComplexity), true
-
-	case "OAuthLogin.email_domain":
-		if e.complexity.OAuthLogin.EmailDomain == nil {
-			break
-		}
-
-		return e.complexity.OAuthLogin.EmailDomain(childComplexity), true
-
 	case "PageInfo.endCursor":
 		if e.complexity.PageInfo.EndCursor == nil {
 			break
@@ -8575,13 +8561,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Query.OauthClientMetadata(childComplexity, args["client_id"].(string)), true
 
-	case "Query.oauth_logins":
-		if e.complexity.Query.OauthLogins == nil {
-			break
-		}
-
-		return e.complexity.Query.OauthLogins(childComplexity), true
-
 	case "Query.project":
 		if e.complexity.Query.Project == nil {
 			break
@@ -8991,6 +8970,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Query.SourcemapVersions(childComplexity, args["project_id"].(int)), true
+
+	case "Query.sso_login":
+		if e.complexity.Query.SsoLogin == nil {
+			break
+		}
+
+		args, err := ec.field_Query_sso_login_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.SsoLogin(childComplexity, args["domain"].(string)), true
 
 	case "Query.subscription_details":
 		if e.complexity.Query.SubscriptionDetails == nil {
@@ -9474,6 +9465,20 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.S3File.Key(childComplexity), true
+
+	case "SSOLogin.client_id":
+		if e.complexity.SSOLogin.ClientID == nil {
+			break
+		}
+
+		return e.complexity.SSOLogin.ClientID(childComplexity), true
+
+	case "SSOLogin.domain":
+		if e.complexity.SSOLogin.Domain == nil {
+			break
+		}
+
+		return e.complexity.SSOLogin.Domain(childComplexity), true
 
 	case "Sampling.error_exclusion_query":
 		if e.complexity.Sampling.ErrorExclusionQuery == nil {
@@ -14189,8 +14194,8 @@ type OAuthClient {
 	app_name: String!
 }
 
-type OAuthLogin {
-	email_domain: String!
+type SSOLogin {
+	domain: String!
 	client_id: String!
 }
 
@@ -14565,7 +14570,7 @@ type Query {
 	sourcemap_files(project_id: ID!, version: String): [S3File!]!
 	sourcemap_versions(project_id: ID!): [String!]!
 	oauth_client_metadata(client_id: String!): OAuthClient
-	oauth_logins: [OAuthLogin!]!
+	sso_login(domain: String!): SSOLogin
 	email_opt_outs(token: String, admin_id: ID): [EmailOptOutCategory!]!
 	ai_query_suggestion(
 		time_zone: String!
@@ -22903,6 +22908,21 @@ func (ec *executionContext) field_Query_sourcemap_versions_args(ctx context.Cont
 		}
 	}
 	args["project_id"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_sso_login_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["domain"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("domain"))
+		arg0, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["domain"] = arg0
 	return args, nil
 }
 
@@ -54885,94 +54905,6 @@ func (ec *executionContext) fieldContext_OAuthClient_app_name(ctx context.Contex
 	return fc, nil
 }
 
-func (ec *executionContext) _OAuthLogin_email_domain(ctx context.Context, field graphql.CollectedField, obj *model.OAuthLogin) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_OAuthLogin_email_domain(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.EmailDomain, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(string)
-	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_OAuthLogin_email_domain(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "OAuthLogin",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type String does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _OAuthLogin_client_id(ctx context.Context, field graphql.CollectedField, obj *model.OAuthLogin) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_OAuthLogin_client_id(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.ClientID, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(string)
-	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_OAuthLogin_client_id(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "OAuthLogin",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type String does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
 func (ec *executionContext) _PageInfo_hasNextPage(ctx context.Context, field graphql.CollectedField, obj *model.PageInfo) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_PageInfo_hasNextPage(ctx, field)
 	if err != nil {
@@ -65505,8 +65437,8 @@ func (ec *executionContext) fieldContext_Query_oauth_client_metadata(ctx context
 	return fc, nil
 }
 
-func (ec *executionContext) _Query_oauth_logins(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Query_oauth_logins(ctx, field)
+func (ec *executionContext) _Query_sso_login(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Query_sso_login(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -65519,24 +65451,21 @@ func (ec *executionContext) _Query_oauth_logins(ctx context.Context, field graph
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().OauthLogins(rctx)
+		return ec.resolvers.Query().SsoLogin(rctx, fc.Args["domain"].(string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
 		return graphql.Null
 	}
 	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
 		return graphql.Null
 	}
-	res := resTmp.([]*model.OAuthLogin)
+	res := resTmp.(*model.SSOLogin)
 	fc.Result = res
-	return ec.marshalNOAuthLogin2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐOAuthLoginᚄ(ctx, field.Selections, res)
+	return ec.marshalOSSOLogin2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐSSOLogin(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_Query_oauth_logins(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_Query_sso_login(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "Query",
 		Field:      field,
@@ -65544,13 +65473,24 @@ func (ec *executionContext) fieldContext_Query_oauth_logins(ctx context.Context,
 		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
-			case "email_domain":
-				return ec.fieldContext_OAuthLogin_email_domain(ctx, field)
+			case "domain":
+				return ec.fieldContext_SSOLogin_domain(ctx, field)
 			case "client_id":
-				return ec.fieldContext_OAuthLogin_client_id(ctx, field)
+				return ec.fieldContext_SSOLogin_client_id(ctx, field)
 			}
-			return nil, fmt.Errorf("no field named %q was found under type OAuthLogin", field.Name)
+			return nil, fmt.Errorf("no field named %q was found under type SSOLogin", field.Name)
 		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_sso_login_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
 	}
 	return fc, nil
 }
@@ -68986,6 +68926,94 @@ func (ec *executionContext) _S3File_key(ctx context.Context, field graphql.Colle
 func (ec *executionContext) fieldContext_S3File_key(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "S3File",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _SSOLogin_domain(ctx context.Context, field graphql.CollectedField, obj *model.SSOLogin) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_SSOLogin_domain(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Domain, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_SSOLogin_domain(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "SSOLogin",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _SSOLogin_client_id(ctx context.Context, field graphql.CollectedField, obj *model.SSOLogin) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_SSOLogin_client_id(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ClientID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_SSOLogin_client_id(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "SSOLogin",
 		Field:      field,
 		IsMethod:   false,
 		IsResolver: false,
@@ -95770,50 +95798,6 @@ func (ec *executionContext) _OAuthClient(ctx context.Context, sel ast.SelectionS
 	return out
 }
 
-var oAuthLoginImplementors = []string{"OAuthLogin"}
-
-func (ec *executionContext) _OAuthLogin(ctx context.Context, sel ast.SelectionSet, obj *model.OAuthLogin) graphql.Marshaler {
-	fields := graphql.CollectFields(ec.OperationContext, sel, oAuthLoginImplementors)
-
-	out := graphql.NewFieldSet(fields)
-	deferred := make(map[string]*graphql.FieldSet)
-	for i, field := range fields {
-		switch field.Name {
-		case "__typename":
-			out.Values[i] = graphql.MarshalString("OAuthLogin")
-		case "email_domain":
-			out.Values[i] = ec._OAuthLogin_email_domain(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				out.Invalids++
-			}
-		case "client_id":
-			out.Values[i] = ec._OAuthLogin_client_id(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				out.Invalids++
-			}
-		default:
-			panic("unknown field " + strconv.Quote(field.Name))
-		}
-	}
-	out.Dispatch(ctx)
-	if out.Invalids > 0 {
-		return graphql.Null
-	}
-
-	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
-
-	for label, dfs := range deferred {
-		ec.processDeferredGroup(graphql.DeferredGroup{
-			Label:    label,
-			Path:     graphql.GetPath(ctx),
-			FieldSet: dfs,
-			Context:  ctx,
-		})
-	}
-
-	return out
-}
-
 var pageInfoImplementors = []string{"PageInfo"}
 
 func (ec *executionContext) _PageInfo(ctx context.Context, sel ast.SelectionSet, obj *model.PageInfo) graphql.Marshaler {
@@ -98753,7 +98737,7 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 			}
 
 			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
-		case "oauth_logins":
+		case "sso_login":
 			field := field
 
 			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
@@ -98762,10 +98746,7 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 						ec.Error(ctx, ec.Recover(ctx, r))
 					}
 				}()
-				res = ec._Query_oauth_logins(ctx, field)
-				if res == graphql.Null {
-					atomic.AddUint32(&fs.Invalids, 1)
-				}
+				res = ec._Query_sso_login(ctx, field)
 				return res
 			}
 
@@ -99936,6 +99917,50 @@ func (ec *executionContext) _S3File(ctx context.Context, sel ast.SelectionSet, o
 			out.Values[i] = graphql.MarshalString("S3File")
 		case "key":
 			out.Values[i] = ec._S3File_key(ctx, field, obj)
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.processDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
+var sSOLoginImplementors = []string{"SSOLogin"}
+
+func (ec *executionContext) _SSOLogin(ctx context.Context, sel ast.SelectionSet, obj *model.SSOLogin) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, sSOLoginImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("SSOLogin")
+		case "domain":
+			out.Values[i] = ec._SSOLogin_domain(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "client_id":
+			out.Values[i] = ec._SSOLogin_client_id(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -107607,60 +107632,6 @@ func (ec *executionContext) unmarshalNNetworkHistogramParamsInput2githubᚗcom�
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalNOAuthLogin2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐOAuthLoginᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.OAuthLogin) graphql.Marshaler {
-	ret := make(graphql.Array, len(v))
-	var wg sync.WaitGroup
-	isLen1 := len(v) == 1
-	if !isLen1 {
-		wg.Add(len(v))
-	}
-	for i := range v {
-		i := i
-		fc := &graphql.FieldContext{
-			Index:  &i,
-			Result: &v[i],
-		}
-		ctx := graphql.WithFieldContext(ctx, fc)
-		f := func(i int) {
-			defer func() {
-				if r := recover(); r != nil {
-					ec.Error(ctx, ec.Recover(ctx, r))
-					ret = nil
-				}
-			}()
-			if !isLen1 {
-				defer wg.Done()
-			}
-			ret[i] = ec.marshalNOAuthLogin2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐOAuthLogin(ctx, sel, v[i])
-		}
-		if isLen1 {
-			f(i)
-		} else {
-			go f(i)
-		}
-
-	}
-	wg.Wait()
-
-	for _, e := range ret {
-		if e == graphql.Null {
-			return graphql.Null
-		}
-	}
-
-	return ret
-}
-
-func (ec *executionContext) marshalNOAuthLogin2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐOAuthLogin(ctx context.Context, sel ast.SelectionSet, v *model.OAuthLogin) graphql.Marshaler {
-	if v == nil {
-		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
-			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
-		}
-		return graphql.Null
-	}
-	return ec._OAuthLogin(ctx, sel, v)
-}
-
 func (ec *executionContext) unmarshalNOpenSearchCalendarInterval2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐOpenSearchCalendarInterval(ctx context.Context, v interface{}) (model.OpenSearchCalendarInterval, error) {
 	var res model.OpenSearchCalendarInterval
 	err := res.UnmarshalGQL(v)
@@ -111746,6 +111717,13 @@ func (ec *executionContext) marshalOReferrerTablePayload2ᚖgithubᚗcomᚋhighl
 		return graphql.Null
 	}
 	return ec._ReferrerTablePayload(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalOSSOLogin2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐSSOLogin(ctx context.Context, sel ast.SelectionSet, v *model.SSOLogin) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._SSOLogin(ctx, sel, v)
 }
 
 func (ec *executionContext) unmarshalOSamplingInput2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐSamplingInput(ctx context.Context, v interface{}) (*model.SamplingInput, error) {

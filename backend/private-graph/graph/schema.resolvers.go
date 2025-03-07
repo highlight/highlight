@@ -8812,19 +8812,20 @@ func (r *queryResolver) OauthClientMetadata(ctx context.Context, clientID string
 	}, nil
 }
 
-// OauthLogins is the resolver for the oauth_logins field.
-func (r *queryResolver) OauthLogins(ctx context.Context) ([]*modelInputs.OAuthLogin, error) {
-	clients, err := r.Store.GetSSOClients(ctx)
+// SsoLogin is the resolver for the sso_login field.
+func (r *queryResolver) SsoLogin(ctx context.Context, domain string) (*modelInputs.SSOLogin, error) {
+	client, err := r.Store.GetSSOClient(ctx, domain)
 	if err != nil {
-		return nil, e.Wrap(err, "error querying sso clients")
+		log.WithContext(ctx).WithError(err).WithField("domain", domain).Error("error querying sso client")
+		// generic error, delay response to avoid leaking information
+		time.Sleep(2*time.Second + time.Duration(rand.Intn(1000))*time.Millisecond)
+		return nil, e.New("bad request")
 	}
 
-	return lo.Map(clients.Clients, func(client *model.SSOClient, idx int) *modelInputs.OAuthLogin {
-		return &modelInputs.OAuthLogin{
-			EmailDomain: client.Domain,
-			ClientID:    client.ClientID,
-		}
-	}), nil
+	return &modelInputs.SSOLogin{
+		Domain:   client.Domain,
+		ClientID: client.ClientID,
+	}, nil
 }
 
 // EmailOptOuts is the resolver for the email_opt_outs field.

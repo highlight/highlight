@@ -542,7 +542,7 @@ func NewOAuthClient(ctx context.Context, store *store.Store) (*OAuthAuthClient, 
 	}
 
 	oauthClients := make(map[string]*OAuthClient)
-	for _, ssoClient := range ssoClients.Clients {
+	for _, ssoClient := range ssoClients {
 		provider, err := oidc.NewProvider(ctx, ssoClient.ProviderURL)
 		if err != nil {
 			log.WithContext(ctx).WithError(err).Fatalf("failed to connect to oauth oidc provider")

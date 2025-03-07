@@ -13,18 +13,29 @@ func TestGetSSOClients(t *testing.T) {
 
 	defer teardown(t)
 
-	_, err := store.GetSSOClients(ctx)
-	assert.Error(t, err)
+	res, err := store.GetSSOClients(ctx)
+	assert.NoError(t, err)
+	assert.Empty(t, res)
 
 	client := model.SSOClient{
-		Domain: "example.com",
+		Domain:       "example.com",
+		ClientID:     "abc123",
+		ClientSecret: "def456",
+		ProviderURL:  "https://example.com/auth",
 	}
 	store.DB.Create(&client)
 
-	foundClient, err := store.GetSSOClients(ctx)
+	foundClients, err := store.GetSSOClients(ctx)
+	assert.NoError(t, err)
+	assert.Equal(t, foundClients[0].Domain, client.Domain)
+	assert.Equal(t, foundClients[0].ClientID, client.ClientID)
+	assert.Equal(t, foundClients[0].ClientSecret, client.ClientSecret)
+	assert.Equal(t, foundClients[0].ProviderURL, client.ProviderURL)
+
+	foundClient, err := store.GetSSOClient(ctx, "example.com")
 	assert.NoError(t, err)
 	assert.Equal(t, foundClient.Domain, client.Domain)
 	assert.Equal(t, foundClient.ClientID, client.ClientID)
 	assert.Equal(t, foundClient.ClientSecret, client.ClientSecret)
-	assert.Equal(t, foundClient.RedirectURL, client.RedirectURL)
+	assert.Equal(t, foundClient.ProviderURL, client.ProviderURL)
 }

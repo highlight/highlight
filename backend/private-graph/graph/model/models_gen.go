@@ -727,11 +727,6 @@ type OAuthClient struct {
 	AppName   string    `json:"app_name"`
 }
 
-type OAuthLogin struct {
-	EmailDomain string `json:"email_domain"`
-	ClientID    string `json:"client_id"`
-}
-
 type PageInfo struct {
 	HasNextPage     bool   `json:"hasNextPage"`
 	HasPreviousPage bool   `json:"hasPreviousPage"`
@@ -795,6 +790,11 @@ type ReferrerTablePayload struct {
 
 type S3File struct {
 	Key *string `json:"key,omitempty"`
+}
+
+type SSOLogin struct {
+	Domain   string `json:"domain"`
+	ClientID string `json:"client_id"`
 }
 
 type Sampling struct {
