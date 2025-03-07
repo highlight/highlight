@@ -155,7 +155,7 @@ export const SignIn: React.FC<Props> = ({ setResolver }) => {
 		}
 
 		const emailDomain = email.split('@')[1]
-		const clientID = oauthLoginMap.has(emailDomain)
+		const clientID = oauthLoginMap.get(emailDomain)
 		if (clientID) {
 			document.cookie = `highlight_oauth_client_id=${clientID}`
 			return true

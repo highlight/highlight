@@ -423,6 +423,7 @@ func (c *OAuthAuthClient) updateContextWithAuthenticatedUser(ctx context.Context
 		return ctx, nil
 	}
 
+	// TODO(vkorolik)
 	// check that the oidc email domain matches allowed domains
 	if env.Config.OAuthAllowedDomains != "" {
 		_, err = mail.ParseEmail(claims.Email)
@@ -529,16 +530,17 @@ func NewOAuthClient(ctx context.Context, store *store.Store) (*OAuthAuthClient, 
 
 	oauthClients := make(map[string]*OAuthClient)
 	for _, ssoClient := range ssoClients.Clients {
-		provider, err := oidc.NewProvider(ctx, env.Config.OAuthProviderUrl)
+		// TODO(vkorolik) different provider vs redirect url?
+		provider, err := oidc.NewProvider(ctx, ssoClient.RedirectURL)
 		if err != nil {
 			log.WithContext(ctx).WithError(err).Fatalf("failed to connect to oauth oidc provider")
 		}
 
 		// Configure an OpenID Connect aware OAuth2 client.
 		oauth2Config := oauth2.Config{
-			ClientID:     env.Config.OAuthClientID,
-			ClientSecret: env.Config.OAuthClientSecret,
-			RedirectURL:  env.Config.OAuthRedirectUrl,
+			ClientID:     ssoClient.ClientID,
+			ClientSecret: ssoClient.ClientSecret,
+			RedirectURL:  ssoClient.RedirectURL,
 
 			// Discovery returns the OAuth2 endpoints.
 			Endpoint: provider.Endpoint(),
@@ -547,7 +549,7 @@ func NewOAuthClient(ctx context.Context, store *store.Store) (*OAuthAuthClient, 
 			Scopes: []string{oidc.ScopeOpenID, "profile", "email"},
 		}
 
-		oauthClients[ssoClient.Domain] = &OAuthClient{
+		oauthClients[ssoClient.ClientID] = &OAuthClient{
 			clientID:     ssoClient.ClientID,
 			oidcProvider: provider,
 			oauthConfig:  &oauth2Config,

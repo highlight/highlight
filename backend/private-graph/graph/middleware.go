@@ -63,20 +63,20 @@ func SetupAuthClient(ctx context.Context, store *store.Store, authMode AuthMode,
 	if lo.Contains(EnterpriseAuthModes, authMode) {
 		enterprise.RequireEnterprise(ctx)
 	}
+	var err error
 	if authMode == Firebase {
-		AuthClient = NewFirebaseClient(ctx)
+		AuthClient, err = NewCloudAuthClient(ctx, store)
 	} else if authMode == Simple {
 		AuthClient = &SimpleAuthClient{}
 	} else if authMode == Password {
 		AuthClient = &PasswordAuthClient{}
 	} else if authMode == OAuth {
-		var err error
 		AuthClient, err = NewOAuthClient(ctx, store)
-		if err != nil {
-			log.WithContext(ctx).Fatalf("private graph auth client failed to configure oauth")
-		}
 	} else {
 		log.WithContext(ctx).Fatalf("private graph auth client configured with unknown auth mode")
+	}
+	if err != nil {
+		log.WithContext(ctx).WithError(err).Fatalf("private graph auth client failed to configure")
 	}
 }
 

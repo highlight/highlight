@@ -1314,6 +1314,7 @@ type OAuthOperation struct {
 	MinuteRateLimit            int64 `gorm:"default:600"`
 }
 
+// TODO(vkorolik) load in the clients into DB from env for self-hosted
 type SSOClient struct {
 	Domain string `gorm:"primary_key"`
 
