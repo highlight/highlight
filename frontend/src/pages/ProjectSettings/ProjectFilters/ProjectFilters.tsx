@@ -10,6 +10,7 @@ import {
 import { namedOperations } from '@graph/operations'
 import {
 	AllWorkspaceSettings,
+	MetricAggregator,
 	PlanType,
 	ProductType,
 	Sampling,
@@ -30,15 +31,18 @@ import {
 	Tag,
 	Text,
 } from '@highlight-run/ui/components'
+import { vars } from '@highlight-run/ui/vars'
 import { useProjectId } from '@hooks/useProjectId'
+import Graph, { TIMESTAMP_KEY } from '@pages/Graphing/components/Graph'
+import { useGraphData } from '@pages/Graphing/hooks/useGraphData'
 import { useApplicationContext } from '@routers/AppRouter/context/ApplicationContext'
 import { upperFirst } from 'lodash'
 import moment from 'moment'
 import React from 'react'
 import { useNavigate } from 'react-router-dom'
-
 import { SearchContext } from '@/components/Search/SearchContext'
 import { DEMO_PROJECT_ID } from '@components/DemoWorkspaceButton/DemoWorkspaceButton'
+import { GraphContextProvider } from '@/pages/Graphing/context/GraphContext'
 
 const DATE_RANGE_PRESETS = [DEFAULT_TIME_PRESETS[1], DEFAULT_TIME_PRESETS[3]]
 const DEFAULT_PRESET = DATE_RANGE_PRESETS[0]
@@ -95,18 +99,21 @@ const Header: React.FC<{
 }
 
 export const ProjectFilters: React.FC = () => {
+	const graphContext = useGraphData()
 	return (
-		<Stack width="full">
-			<ProjectProductFilters view product={ProductType.Sessions} />
-			<Box my="20" borderBottom="dividerWeak" />
-			<ProjectProductFilters view product={ProductType.Errors} />
-			<Box my="20" borderBottom="dividerWeak" />
-			<ProjectProductFilters view product={ProductType.Logs} />
-			<Box my="20" borderBottom="dividerWeak" />
-			<ProjectProductFilters view product={ProductType.Traces} />
-			<Box my="20" borderBottom="dividerWeak" />
-			<ProjectProductFilters view product={ProductType.Metrics} />
-		</Stack>
+		<GraphContextProvider value={graphContext}>
+			<Stack width="full">
+				<ProjectProductFilters view product={ProductType.Sessions} />
+				<Box my="20" borderBottom="dividerWeak" />
+				<ProjectProductFilters view product={ProductType.Errors} />
+				<Box my="20" borderBottom="dividerWeak" />
+				<ProjectProductFilters view product={ProductType.Logs} />
+				<Box my="20" borderBottom="dividerWeak" />
+				<ProjectProductFilters view product={ProductType.Traces} />
+				<Box my="20" borderBottom="dividerWeak" />
+				<ProjectProductFilters view product={ProductType.Metrics} />
+			</Stack>
+		</GraphContextProvider>
 	)
 }
 
@@ -395,6 +402,9 @@ export const ProjectProductFilters: React.FC<{
 						emphasis="low"
 					/>
 				</Box>
+				<Box display="flex" width="full">
+					<IngestTimeline product={product} dateRange={dateRange} />
+				</Box>
 				<Form store={formStore}>
 					<Box display="flex" width="full">
 						{view ? null : (
@@ -498,5 +508,38 @@ const FilterPaywall: React.FC<
 		>
 			{children}
 		</EnterpriseFeatureButton>
+	)
+}
+
+const IngestTimeline: React.FC<{
+	product: ProductType
+	dateRange: DateRange
+}> = ({ product, dateRange }) => {
+	const { projectId } = useProjectId()
+	return (
+		<Box width="full" style={{ height: 120 }}>
+			<Graph
+				projectId={projectId!}
+				productType={ProductType.Metrics}
+				query={`metric_name:sampling.IsIngestedBy product:${product}`}
+				startDate={dateRange.start}
+				endDate={dateRange.end}
+				groupByKeys={['ingested']}
+				bucketByKey={TIMESTAMP_KEY}
+				bucketCount={60}
+				limit={1_000}
+				title="Ingested"
+				expressions={[
+					{ aggregator: MetricAggregator.Max, column: 'value' },
+				]}
+				viewConfig={{
+					type: 'Bar chart',
+					showLegend: false,
+					showXAxis: false,
+					strokeColors: [vars.theme.static.content.moderate],
+				}}
+				syncId="session"
+			/>
+		</Box>
 	)
 }
