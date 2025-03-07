@@ -12,10 +12,8 @@ import {
 } from '@codemirror/autocomplete'
 import { EditorView, keymap } from '@codemirror/view'
 import { indentWithTab } from '@codemirror/commands'
-
 import { linter, Diagnostic } from '@codemirror/lint'
 
-import * as styles from './SqlEditor.css'
 import { useGetKeysLazyQuery } from '@/graph/generated/hooks'
 import { TIME_FORMAT } from '@/components/Search/SearchForm/constants'
 import { useProjectId } from '@/hooks/useProjectId'
@@ -25,13 +23,15 @@ import {
 	TIMESTAMP_KEY,
 } from '@/pages/Graphing/components/Graph'
 import { useGraphContext } from '@/pages/Graphing/context/GraphContext'
-import { GraphSettings } from '@/pages/Graphing/GraphingEditor'
 import {
 	MetricAggregator,
 	MetricExpression,
 	ProductType,
 } from '@/graph/generated/schemas'
 import { BUCKET_FREQUENCIES } from '@/pages/Graphing/util'
+import { GraphSettings } from '@/pages/Graphing/constants'
+
+import * as styles from './SqlEditor.css'
 
 interface Props {
 	value: string
