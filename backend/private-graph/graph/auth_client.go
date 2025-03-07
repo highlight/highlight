@@ -64,8 +64,8 @@ type CloudAuthClient struct {
 
 func (c *CloudAuthClient) GetUser(ctx context.Context, uid string) (*auth.UserRecord, error) {
 	// sso user
-	clientID := ctx.Value(model.ContextKeys.SSOClientID)
-	if clientID != "" {
+	clientID, ok := ctx.Value(model.ContextKeys.SSOClientID).(string)
+	if ok && clientID != "" {
 		return c.oauthClient.GetUser(ctx, uid)
 	}
 	return c.firebaseClient.GetUser(ctx, uid)
