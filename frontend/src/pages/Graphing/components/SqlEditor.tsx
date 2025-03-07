@@ -209,40 +209,43 @@ export const SqlEditor: React.FC<Props> = ({
 		}),
 	})
 
-	const backendErrorLinter = linter((view: EditorView) => {
-		const diagnostics: Diagnostic[] = []
-		for (const e of errors) {
-			const matches = /^line (\d+):(\d+).*?(\^+)\n$/s.exec(e)
-			const lineStr = matches?.at(1)
-			const columnStr = matches?.at(2)
-			const length = matches?.at(3)?.length
-			if (
-				lineStr !== undefined &&
-				columnStr !== undefined &&
-				length !== undefined
-			) {
-				const line = view.state.doc.line(parseInt(lineStr) + 1)
-				const column = parseInt(columnStr)
-				const from = line.from + column
-				const to = from + length
-				diagnostics.push({
-					from,
-					to,
-					severity: 'error',
-					message: e,
-				})
-			} else {
-				diagnostics.push({
-					from: 0,
-					to: view.state.doc.length,
-					severity: 'error',
-					message: e,
-				})
+	const backendErrorLinter = linter(
+		(view: EditorView) => {
+			const diagnostics: Diagnostic[] = []
+			for (const e of errors) {
+				const matches = /^line (\d+):(\d+).*?(\^+)\n$/s.exec(e)
+				const lineStr = matches?.at(1)
+				const columnStr = matches?.at(2)
+				const length = matches?.at(3)?.length
+				if (
+					lineStr !== undefined &&
+					columnStr !== undefined &&
+					length !== undefined
+				) {
+					const line = view.state.doc.line(parseInt(lineStr) + 1)
+					const column = parseInt(columnStr)
+					const from = line.from + column
+					const to = from + length
+					diagnostics.push({
+						from,
+						to,
+						severity: 'error',
+						message: e,
+					})
+				} else {
+					diagnostics.push({
+						from: 0,
+						to: view.state.doc.length,
+						severity: 'error',
+						message: e,
+					})
+				}
 			}
-		}
 
-		return diagnostics
-	})
+			return diagnostics
+		},
+		{ delay: 0 },
+	)
 
 	return (
 		<div className={styles.editorWrapper}>

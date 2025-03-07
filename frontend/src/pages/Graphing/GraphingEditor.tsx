@@ -106,6 +106,7 @@ import {
 	LineChartSettings,
 	TableSettings,
 } from './Settings'
+import { RunQueryButton } from '@/pages/Graphing/components/RunQueryButton'
 
 type BucketBy = 'Interval' | 'Count'
 const BUCKET_BY_OPTIONS: BucketBy[] = ['Interval', 'Count']
@@ -1141,17 +1142,13 @@ export const GraphingEditor: React.FC = () => {
 													/>
 												</Box>
 												{isSqlEditor && (
-													<Button
-														disabled={
-															upsertGraphContext.loading ||
-															sqlInternal === sql
+													<RunQueryButton
+														sql={sql}
+														sqlInternal={
+															sqlInternal
 														}
-														onClick={() => {
-															setSql(sqlInternal)
-														}}
-													>
-														Update query
-													</Button>
+														setSql={setSql}
+													/>
 												)}
 											</Box>
 											{isSqlEditor ? (
