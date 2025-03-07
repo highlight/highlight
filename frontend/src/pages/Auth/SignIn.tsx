@@ -1,8 +1,8 @@
 import { Button } from '@components/Button'
 import {
 	useCreateAdminMutation,
-	useGetWorkspaceForInviteLinkQuery,
 	useGetOAuthLoginsQuery,
+	useGetWorkspaceForInviteLinkQuery,
 } from '@graph/hooks'
 import {
 	Box,
@@ -16,7 +16,7 @@ import {
 import SvgHighlightLogoOnLight from '@icons/HighlightLogoOnLight'
 import { AuthBody, AuthError, AuthFooter, AuthHeader } from '@pages/Auth/Layout'
 import useLocalStorage from '@rehooks/local-storage'
-import { auth, oauth } from '@util/auth'
+import { getAuth } from '@util/auth'
 import firebase from 'firebase/compat/app'
 import React, { useCallback, useEffect, useMemo } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
@@ -30,16 +30,7 @@ import {
 import { SIGN_UP_ROUTE } from '@/pages/Auth/AuthRouter'
 import { VERIFY_EMAIL_ROUTE } from '@/routers/AppRouter/AppRouter'
 import analytics from '@/util/analytics'
-
-function upsertCookie(name: string, value: string, days: number) {
-	let expires = ''
-	if (days) {
-		const date = new Date()
-		date.setTime(date.getTime() + days * 24 * 60 * 60 * 1000)
-		expires = '; expires=' + date.toUTCString()
-	}
-	document.cookie = `${encodeURIComponent(name)}=${encodeURIComponent(value)}${expires}; path=/; SameSite=Lax`
-}
+import { upsertCookie, Cookies } from '@/util/cookie'
 
 type Props = {
 	setResolver: React.Dispatch<
@@ -66,7 +57,7 @@ export const SignIn: React.FC<Props> = ({ setResolver }) => {
 	const email = formStore.useValue('email')
 	formStore.useSubmit(async (formState) => {
 		setLoading(true)
-		;(oauthActive ? oauth : auth)
+		getAuth()
 			.signInWithEmailAndPassword(
 				formState.values.email,
 				formState.values.password,
@@ -107,7 +98,7 @@ export const SignIn: React.FC<Props> = ({ setResolver }) => {
 				})
 
 				if (!user?.emailVerified) {
-					auth.currentUser?.sendEmailVerification()
+					getAuth().currentUser?.sendEmailVerification()
 				}
 
 				await createAdmin()
@@ -145,7 +136,10 @@ export const SignIn: React.FC<Props> = ({ setResolver }) => {
 	)
 
 	const handleExternalAuthClick = (provider: firebase.auth.AuthProvider) => {
-		auth.signInWithPopup(provider).then(handleAuth).catch(handleAuthError)
+		getAuth()
+			.signInWithPopup(provider)
+			.then(handleAuth)
+			.catch(handleAuthError)
 	}
 
 	useEffect(() => analytics.page('Sign In'), [])
@@ -167,7 +161,8 @@ export const SignIn: React.FC<Props> = ({ setResolver }) => {
 		const emailDomain = email.split('@')[1]
 		const clientID = oauthLoginMap.get(emailDomain)
 		if (clientID) {
-			upsertCookie('highlight_oauth_client_id', clientID, 7)
+			// temporary (short expiry), backend will set a longer expiry once login succeeds
+			upsertCookie(Cookies.OAuthClientID, clientID, 5)
 			return true
 		}
 		return false
@@ -252,7 +247,7 @@ export const SignIn: React.FC<Props> = ({ setResolver }) => {
 								trackingId="sign-in-with-google"
 								onClick={() => {
 									handleExternalAuthClick(
-										auth.googleProvider!,
+										getAuth().googleProvider!,
 									)
 								}}
 							>
@@ -267,7 +262,7 @@ export const SignIn: React.FC<Props> = ({ setResolver }) => {
 								trackingId="sign-in-with-github"
 								onClick={() => {
 									handleExternalAuthClick(
-										auth.githubProvider!,
+										getAuth().githubProvider!,
 									)
 								}}
 							>

@@ -116,6 +116,7 @@ var ContextKeys = struct {
 	ZapierToken    contextString
 	ZapierProject  contextString
 	SessionId      contextString
+	SSOClientID    contextString
 }{
 	IP:             "ip",
 	UserAgent:      "userAgent",
@@ -126,6 +127,7 @@ var ContextKeys = struct {
 	ZapierToken:    "parsedToken",
 	ZapierProject:  "project",
 	SessionId:      "sessionId",
+	SSOClientID:    "clientID",
 }
 
 var Models = []interface{}{
@@ -1314,7 +1316,6 @@ type OAuthOperation struct {
 	MinuteRateLimit            int64 `gorm:"default:600"`
 }
 
-// TODO(vkorolik) load in the clients into DB from env for self-hosted
 type SSOClient struct {
 	Domain string `gorm:"primary_key"`
 

@@ -13,7 +13,7 @@ type SSOClients struct {
 }
 
 func (store *Store) GetSSOClients(ctx context.Context) (*SSOClients, error) {
-	return redis.CachedEval(ctx, store.Redis, "sso-clients", time.Second, time.Minute, func() (*SSOClients, error) {
+	return redis.CachedEval(ctx, store.Redis, "sso-clients", time.Second, time.Second, func() (*SSOClients, error) {
 		var ssoClients []*model.SSOClient
 		err := store.DB.
 			Model(&model.SSOClient{}).

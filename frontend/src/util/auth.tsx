@@ -6,6 +6,7 @@ import 'firebase/compat/auth'
 import Firebase from 'firebase/compat/app'
 
 import { AUTH_MODE, PRIVATE_GRAPH_URI } from '@/constants'
+import { getCookie, Cookies } from '@/util/cookie'
 
 interface User {
 	email: string | null
@@ -357,17 +358,17 @@ class OAuth extends PasswordAuth implements SimpleAuth {
 	}
 }
 
-export const oauth = new OAuth()
-export let auth: SimpleAuth
+const oauth = new OAuth()
+let defaultAuth: SimpleAuth
 switch (AUTH_MODE) {
 	case 'simple':
-		auth = new SimpleAuth()
+		defaultAuth = new SimpleAuth()
 		break
 	case 'password':
-		auth = new PasswordAuth()
+		defaultAuth = new PasswordAuth()
 		break
 	case 'oauth':
-		auth = oauth
+		defaultAuth = oauth
 		break
 	default:
 		let firebaseConfig: any
@@ -397,7 +398,18 @@ switch (AUTH_MODE) {
 		Firebase.initializeApp(firebaseConfig)
 		const googleProvider = new Firebase.auth.GoogleAuthProvider()
 		const githubProvider = new Firebase.auth.GithubAuthProvider()
-		auth = Firebase.auth()
-		auth.googleProvider = googleProvider
-		auth.githubProvider = githubProvider
+		defaultAuth = Firebase.auth()
+		defaultAuth.googleProvider = googleProvider
+		defaultAuth.githubProvider = githubProvider
 }
+
+export function getAuth() {
+	// different than the tokenCookieName cookie because this is not httponly
+	const clientID = getCookie(Cookies.OAuthClientID)
+	if (clientID) {
+		return oauth
+	}
+	return defaultAuth
+}
+
+export const auth = getAuth()

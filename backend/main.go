@@ -267,6 +267,7 @@ func main() {
 				WithError(err).
 				Error("failed to enable all workspace settings for enterprise deploy")
 		}
+		// TODO(vkorolik) load in the SSOClients, OAuthAllowedDomains into DB from env for self-hosted
 	}
 
 	var pricingClient *pricing.Client
