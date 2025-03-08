@@ -5,6 +5,7 @@ import {
 	useGetProjectOrWorkspaceQuery,
 } from '@graph/hooks'
 import { namedOperations } from '@graph/operations'
+import { IconSolidLoading } from '@highlight-run/ui/components'
 import { useParams } from '@util/react-router/useParams'
 import clsx from 'clsx'
 import {
@@ -27,17 +28,21 @@ export const BaseFieldsForm: React.FC<{
 	form: ComponentType<FormElementProps>
 	input: ComponentType<FormInputProps>
 	button: ComponentType<FormButtonProps>
+	defaultName?: string | null
+	defaultEmail?: string | null
+	disabled?: boolean
 }> = (props) => {
 	const Form = props.form
 	const Input = props.input
 	const Button = props.button
+	const { defaultName, defaultEmail, disabled: formDisabled } = props
 	const { project_id, workspace_id } = useParams<{
 		project_id: string
 		workspace_id: string
 	}>()
 	const isWorkspace = !!workspace_id
-	const [name, setName] = useState('')
-	const [email, setEmail] = useState('')
+	const [name, setName] = useState(defaultName || '')
+	const [email, setEmail] = useState(defaultEmail || '')
 	const { data, loading } = useGetProjectOrWorkspaceQuery({
 		variables: {
 			project_id: project_id!,
@@ -106,6 +111,7 @@ export const BaseFieldsForm: React.FC<{
 					onChange={(e) => {
 						setName(e.target.value)
 					}}
+					disabled={formDisabled}
 				/>
 			</div>
 			{isWorkspace ? null : (
@@ -130,12 +136,28 @@ export const BaseFieldsForm: React.FC<{
 				<div className={styles.fieldKey} />
 				<Button
 					type="submit"
+					// kind="primary"
 					className={clsx(
 						commonStyles.submitButton,
 						styles.saveButton,
 					)}
+					disabled={formDisabled}
+					// size="medium"
 					isSubmitting={editProjectLoading || editWorkspaceLoading}
-				/>
+				>
+					{editProjectLoading || editWorkspaceLoading ? (
+						<IconSolidLoading
+							className={styles.spinner}
+							style={{
+								fontSize: 18,
+								color: 'var(--text-primary-inverted)',
+								animationName: styles.spin,
+							}}
+						/>
+					) : (
+						'Save'
+					)}
+				</Button>
 			</div>
 		</Form>
 	)
