@@ -1,6 +1,7 @@
 import { Button } from '@components/Button'
 import {
 	useCreateAdminMutation,
+	useGetSsoLoginLazyQuery,
 	useGetWorkspaceForInviteLinkQuery,
 } from '@graph/hooks'
 import {
@@ -15,7 +16,7 @@ import {
 import SvgHighlightLogoOnLight from '@icons/HighlightLogoOnLight'
 import { AuthBody, AuthError, AuthFooter, AuthHeader } from '@pages/Auth/Layout'
 import useLocalStorage from '@rehooks/local-storage'
-import { auth } from '@util/auth'
+import { EXPECTED_REDIRECT, getAuth } from '@util/auth'
 import firebase from 'firebase/compat/app'
 import React, { useCallback, useEffect } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
@@ -29,6 +30,7 @@ import {
 import { SIGN_UP_ROUTE } from '@/pages/Auth/AuthRouter'
 import { VERIFY_EMAIL_ROUTE } from '@/routers/AppRouter/AppRouter'
 import analytics from '@/util/analytics'
+import { Cookies, upsertCookie } from '@util/cookie'
 
 type Props = {
 	setResolver: React.Dispatch<
@@ -50,19 +52,11 @@ export const SignIn: React.FC<Props> = ({ setResolver }) => {
 		defaultValues: {
 			email: initialEmail,
 			password: '',
+			passwordRequired: false,
 		},
 	})
 	const email = formStore.useValue('email')
-	formStore.useSubmit(async (formState) => {
-		setLoading(true)
-
-		auth.signInWithEmailAndPassword(
-			formState.values.email,
-			formState.values.password,
-		)
-			.then(handleAuth)
-			.catch(handleAuthError)
-	})
+	const passwordRequired = formStore.useValue('passwordRequired')
 
 	const [createAdmin] = useCreateAdminMutation()
 	const { data, loading: loadingWorkspaceForInvite } =
@@ -73,6 +67,8 @@ export const SignIn: React.FC<Props> = ({ setResolver }) => {
 			skip: !inviteCode,
 		})
 	const workspaceInvite = data?.workspace_for_invite_link
+
+	const [getSsoLogin] = useGetSsoLoginLazyQuery()
 
 	const handleAuth = useCallback(
 		async ({ additionalUserInfo, user }: firebase.auth.UserCredential) => {
@@ -85,7 +81,7 @@ export const SignIn: React.FC<Props> = ({ setResolver }) => {
 				})
 
 				if (!user?.emailVerified) {
-					auth.currentUser?.sendEmailVerification()
+					getAuth().currentUser?.sendEmailVerification()
 				}
 
 				await createAdmin()
@@ -103,6 +99,10 @@ export const SignIn: React.FC<Props> = ({ setResolver }) => {
 
 	const handleAuthError = useCallback(
 		(error: firebase.auth.MultiFactorError) => {
+			if (error === EXPECTED_REDIRECT) {
+				return
+			}
+
 			let errorMessage = error.message
 
 			if (error.code == 'auth/multi-factor-auth-required') {
@@ -123,8 +123,53 @@ export const SignIn: React.FC<Props> = ({ setResolver }) => {
 	)
 
 	const handleExternalAuthClick = (provider: firebase.auth.AuthProvider) => {
-		auth.signInWithPopup(provider).then(handleAuth).catch(handleAuthError)
+		setLoading(true)
+		getAuth()
+			.signInWithPopup(provider)
+			.then(handleAuth)
+			.catch(handleAuthError)
 	}
+
+	const handleEmailUpdate = useCallback(async () => {
+		const email = formStore.getValue(formStore.names.email)
+		if (!email) {
+			return
+		}
+
+		const emailDomain = email.split('@')[1]
+		const { data } = await getSsoLogin({
+			variables: { domain: emailDomain },
+		})
+		const clientID = data?.sso_login?.client_id
+		if (clientID) {
+			formStore.setValue('passwordRequired', false)
+			return clientID
+		} else if (!formStore.getValue(formStore.names.password)) {
+			formStore.setValue('passwordRequired', true)
+			return
+		}
+	}, [formStore, getSsoLogin])
+
+	formStore.useSubmit(async (formState) => {
+		setLoading(true)
+
+		const clientID = await handleEmailUpdate()
+		if (clientID) {
+			// temporary (short expiry), backend will set a longer expiry once login succeeds
+			upsertCookie(Cookies.OAuthClientID, clientID, 5)
+		} else if (!formState.values.password) {
+			setLoading(false)
+			return
+		}
+
+		await getAuth()
+			.signInWithEmailAndPassword(
+				formState.values.email,
+				formState.values.password,
+			)
+			.then(handleAuth)
+			.catch(handleAuthError)
+	})
 
 	useEffect(() => analytics.page('Sign In'), [])
 	useEffect(() => {
@@ -156,29 +201,34 @@ export const SignIn: React.FC<Props> = ({ setResolver }) => {
 					</Stack>
 				</Box>
 			</AuthHeader>
-			{AUTH_MODE === 'oauth' ? null : (
-				<AuthBody>
-					<Stack gap="12">
-						<Form.Input
-							name={formStore.names.email}
-							label="Email"
-							type="email"
-							autoFocus
-							autoComplete="email"
-						/>
-						<Form.Input
-							name={formStore.names.password}
-							label="Password"
-							type="password"
-							autoComplete="current-password"
-						/>
-						<Link to="/reset_password" state={{ email }}>
-							<Text size="xSmall">Forgot your password?</Text>
-						</Link>
-						{error && <AuthError>{error}</AuthError>}
-					</Stack>
-				</AuthBody>
-			)}
+			<AuthBody>
+				<Stack gap="12">
+					<Form.Input
+						name={formStore.names.email}
+						label="Email"
+						type="email"
+						autoFocus
+						autoComplete="email"
+						required
+						onBlur={handleEmailUpdate}
+					/>
+					{passwordRequired ? (
+						<>
+							<Form.Input
+								name={formStore.names.password}
+								label="Password"
+								type="password"
+								autoComplete="current-password"
+								required
+							/>
+							<Link to="/reset_password" state={{ email }}>
+								<Text size="xSmall">Forgot your password?</Text>
+							</Link>
+						</>
+					) : null}
+					{error && <AuthError>{error}</AuthError>}
+				</Stack>
+			</AuthBody>
 
 			<AuthFooter>
 				<Stack gap="12">
@@ -189,7 +239,6 @@ export const SignIn: React.FC<Props> = ({ setResolver }) => {
 						id="email-password-signin"
 					>
 						Sign in
-						{AUTH_MODE === 'oauth' ? <>{' with SSO'}</> : null}
 					</Button>
 					{AUTH_MODE !== 'firebase' ? null : (
 						<>
@@ -212,7 +261,7 @@ export const SignIn: React.FC<Props> = ({ setResolver }) => {
 								trackingId="sign-in-with-google"
 								onClick={() => {
 									handleExternalAuthClick(
-										auth.googleProvider!,
+										getAuth().googleProvider!,
 									)
 								}}
 							>
@@ -227,7 +276,7 @@ export const SignIn: React.FC<Props> = ({ setResolver }) => {
 								trackingId="sign-in-with-github"
 								onClick={() => {
 									handleExternalAuthClick(
-										auth.githubProvider!,
+										getAuth().githubProvider!,
 									)
 								}}
 							>

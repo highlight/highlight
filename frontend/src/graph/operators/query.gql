@@ -2099,6 +2099,13 @@ query GetOAuthClientMetadata($client_id: String!) {
 	}
 }
 
+query GetSSOLogin($domain: String!) {
+	sso_login(domain: $domain) {
+		domain
+		client_id
+	}
+}
+
 query SearchIssues(
 	$project_id: ID!
 	$query: String!
