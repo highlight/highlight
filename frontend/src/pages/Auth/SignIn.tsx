@@ -130,23 +130,34 @@ export const SignIn: React.FC<Props> = ({ setResolver }) => {
 			.catch(handleAuthError)
 	}
 
-	formStore.useSubmit(async (formState) => {
-		setLoading(true)
-		if (!formState.values.email) {
-			setLoading(false)
+	const handleEmailUpdate = useCallback(async () => {
+		const email = formStore.getValue(formStore.names.email)
+		if (!email) {
 			return
 		}
 
-		const emailDomain = formState.values.email.split('@')[1]
+		const emailDomain = email.split('@')[1]
 		const { data } = await getSsoLogin({
 			variables: { domain: emailDomain },
 		})
 		const clientID = data?.sso_login?.client_id
 		if (clientID) {
+			formStore.setValue('passwordRequired', false)
+			return clientID
+		} else if (!formStore.getValue(formStore.names.password)) {
+			formStore.setValue('passwordRequired', true)
+			return
+		}
+	}, [formStore, getSsoLogin])
+
+	formStore.useSubmit(async (formState) => {
+		setLoading(true)
+
+		const clientID = await handleEmailUpdate()
+		if (clientID) {
 			// temporary (short expiry), backend will set a longer expiry once login succeeds
 			upsertCookie(Cookies.OAuthClientID, clientID, 5)
 		} else if (!formState.values.password) {
-			formStore.setValue('passwordRequired', true)
 			setLoading(false)
 			return
 		}
@@ -199,6 +210,7 @@ export const SignIn: React.FC<Props> = ({ setResolver }) => {
 						autoFocus
 						autoComplete="email"
 						required
+						onBlur={handleEmailUpdate}
 					/>
 					{passwordRequired ? (
 						<>

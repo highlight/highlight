@@ -8818,7 +8818,7 @@ func (r *queryResolver) SsoLogin(ctx context.Context, domain string) (*modelInpu
 	if err != nil {
 		log.WithContext(ctx).WithError(err).WithField("domain", domain).Error("error querying sso client")
 		// generic error, delay response to avoid leaking information
-		time.Sleep(2*time.Second + time.Duration(rand.Intn(1000))*time.Millisecond)
+		time.Sleep(100*time.Millisecond + time.Duration(rand.Intn(100))*time.Millisecond)
 		return nil, e.New("bad request")
 	}
 
