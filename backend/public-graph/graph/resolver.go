@@ -2704,7 +2704,7 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 		}
 		referenceDataSpan.Finish()
 
-		opts := []util.SpanOption{util.ResourceName("go.parseEvents"), util.Tag("project_id", projectID)}
+		opts := []util.SpanOption{util.Tag("project_id", projectID)}
 		parseEventsSpan, ctx := util.StartSpanFromContext(ctx, "public-graph.pushPayload.parseEvents", opts...)
 		defer parseEventsSpan.Finish()
 
@@ -2759,8 +2759,7 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 
 					if event.Type == parse.FullSnapshot {
 						hasFullSnapshot = true
-						stylesheetsSpan, tCtx := util.StartSpanFromContext(sCtx, "public-graph.pushPayload",
-							util.ResourceName("go.parseEvents.InjectStylesheets"), util.Tag("project_id", projectID))
+						stylesheetsSpan, tCtx := util.StartSpanFromContext(sCtx, "public-graph.pushPayload.parseEvents.InjectStylesheets", util.Tag("project_id", projectID))
 						// If we see a snapshot event, attempt to inject CORS stylesheets.
 						err := snapshot.InjectStylesheets(tCtx)
 						stylesheetsSpan.Finish(err)
@@ -2786,8 +2785,8 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 			}
 			eventLoopSpan.Finish()
 
-			remarshalSpan, _ := util.StartSpanFromContext(ctx, "public-graph.pushPayload",
-				util.ResourceName("go.parseEvents.remarshalEvents"), util.Tag("project_id", projectID))
+			remarshalSpan, _ := util.StartSpanFromContext(ctx, "public-graph.pushPayload.parseEvents.remarshalEvents",
+				util.Tag("project_id", projectID))
 			// Re-format as a string to write to the db.
 			b, err := json.Marshal(parsedEvents)
 			if err != nil {
@@ -2822,8 +2821,7 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 	// unmarshal messages
 	g.Go(func() error {
 		defer util.Recover()
-		unmarshalMessagesSpan, sCtx := util.StartSpanFromContext(ctx, "public-graph.pushPayload",
-			util.ResourceName("go.unmarshal.messages"), util.Tag("project_id", projectID), util.Tag("message_string_len", len(messages)), util.Tag("secure_session_id", sessionSecureID))
+		unmarshalMessagesSpan, sCtx := util.StartSpanFromContext(ctx, "public-graph.pushPayload.unmarshal.messages", util.Tag("project_id", projectID), util.Tag("message_string_len", len(messages)), util.Tag("secure_session_id", sessionSecureID))
 
 		err := r.submitFrontendConsoleMessages(sCtx, sessionObj, messages)
 		unmarshalMessagesSpan.Finish(err)
@@ -2833,8 +2831,7 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 	// unmarshal resources
 	g.Go(func() error {
 		defer util.Recover()
-		unmarshalResourcesSpan, ctx := util.StartSpanFromContext(ctx, "public-graph.pushPayload",
-			util.ResourceName("go.unmarshal.resources"), util.Tag("project_id", projectID))
+		unmarshalResourcesSpan, ctx := util.StartSpanFromContext(ctx, "public-graph.pushPayload.unmarshal.resources", util.Tag("project_id", projectID))
 		defer unmarshalResourcesSpan.Finish()
 
 		if err := r.SaveSessionData(ctx, projectID, sessionID, payloadIdDeref, isBeacon, model.PayloadTypeResources, []byte(resources)); err != nil {
@@ -2859,8 +2856,7 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 	g.Go(func() error {
 		defer util.Recover()
 		if webSocketEventsStr != "" {
-			unmarshalWebSocketEventsSpan, ctx := util.StartSpanFromContext(ctx, "public-graph.pushPayload",
-				util.ResourceName("go.unmarshal.web_socket_events"), util.Tag("project_id", projectID))
+			unmarshalWebSocketEventsSpan, ctx := util.StartSpanFromContext(ctx, "public-graph.pushPayload.unmarshal.web_socket_events", util.Tag("project_id", projectID))
 			defer unmarshalWebSocketEventsSpan.Finish()
 
 			if err := r.SaveSessionData(ctx, projectID, sessionID, payloadIdDeref, isBeacon, model.PayloadTypeWebSocketEvents, []byte(webSocketEventsStr)); err != nil {
@@ -2915,8 +2911,7 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 		}
 
 		// put errors in db
-		putErrorsToDBSpan, ctx := util.StartSpanFromContext(ctx, "public-graph.pushPayload",
-			util.ResourceName("db.errors"), util.Tag("project_id", projectID))
+		putErrorsToDBSpan, ctx := util.StartSpanFromContext(ctx, "public-graph.pushPayload.insert.db.errors", util.Tag("project_id", projectID))
 		defer putErrorsToDBSpan.Finish()
 		groupedErrors := make(map[int][]*model.ErrorObject)
 		groups := make(map[int]struct {
@@ -3046,7 +3041,7 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 		}
 	}
 
-	updateSpan, ctx := util.StartSpanFromContext(ctx, "public-graph.pushPayload", util.ResourceName("doSessionFieldsUpdate"))
+	updateSpan, ctx := util.StartSpanFromContext(ctx, "public-graph.pushPayload.doSessionFieldsUpdate")
 	defer updateSpan.Finish()
 
 	excluded, reason := r.IsSessionExcluded(ctx, sessionObj, sessionHasErrors)
@@ -3131,12 +3126,12 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 		r.SessionCache.Add(sessionSecureID, &updatedSession)
 	}
 
-	opensearchSpan, ctx := util.StartSpanFromContext(ctx, "public-graph.pushPayload", util.ResourceName("opensearch.update"))
-	defer opensearchSpan.Finish()
+	clickhouseSpan, ctx := util.StartSpanFromContext(ctx, "public-graph.pushPayload.clickhouse.update")
+	defer clickhouseSpan.Finish()
 	// If the session was previously marked as processed, clear this
-	// in OpenSearch so that it's treated as a live session again.
+	// in ClickHouse so that it's treated as a live session again.
 	// If the session was previously excluded (as we do with new sessions by default),
-	// clear it so it is shown as live in OpenSearch since we now have data for it.
+	// clear it so it is shown as live in ClickHouse since we now have data for it.
 	if (sessionObj.Processed != nil && *sessionObj.Processed) || (!excluded) {
 		if err := r.DataSyncQueue.Submit(ctx, strconv.Itoa(sessionObj.ID), &kafka_queue.Message{Type: kafka_queue.SessionDataSync, SessionDataSync: &kafka_queue.SessionDataSyncArgs{SessionID: sessionObj.ID}}); err != nil {
 			return err
