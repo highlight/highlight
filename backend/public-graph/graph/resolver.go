@@ -2604,8 +2604,8 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 	}
 
 	opts := []util.SpanOption{util.Tag("secure_session_id", sessionSecureID)}
-	// TODO(vkorolik)
-	if true || len(events.Events) > 1_000 {
+	// sample-in payload with many events
+	if len(events.Events) > 1_000 {
 		opts = append(opts, util.WithSpanKind(trace.SpanKindServer))
 	}
 	querySessionSpan, ctx := util.StartSpanFromContext(ctx, "public-graph.pushPayload", opts...)
