@@ -2603,37 +2603,43 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 		webSocketEventsStr = *webSocketEvents
 	}
 
-	opts := []util.SpanOption{util.Tag("secure_session_id", sessionSecureID)}
+	opts := []util.SpanOption{
+		util.Tag("sessionSecureID", sessionSecureID),
+		util.Tag("messagesLength", len(messages)),
+		util.Tag("resourcesLength", len(resources)),
+		util.Tag("webSocketEventsLength", len(webSocketEventsStr)),
+		util.Tag("numberOfErrors", len(errors)),
+		util.Tag("numberOfEvents", len(events.Events)),
+	}
 	// sample-in payload with many events
 	if len(events.Events) > 1_000 {
 		opts = append(opts, util.WithSpanKind(trace.SpanKindServer))
 	}
-	querySessionSpan, ctx := util.StartSpanFromContext(ctx, "public-graph.pushPayload", opts...)
-	querySessionSpan.SetAttribute("sessionSecureID", sessionSecureID)
-	querySessionSpan.SetAttribute("messagesLength", len(messages))
-	querySessionSpan.SetAttribute("resourcesLength", len(resources))
-	querySessionSpan.SetAttribute("webSocketEventsLength", len(webSocketEventsStr))
-	querySessionSpan.SetAttribute("numberOfErrors", len(errors))
-	querySessionSpan.SetAttribute("numberOfEvents", len(events.Events))
+	span, ctx := util.StartSpanFromContext(ctx, "public-graph.pushPayload", opts...)
+	defer span.Finish()
+
+	querySessionSpan, sCtx := util.StartSpanFromContext(ctx, "public-graph.pushPayload.query")
 	if highlightLogs != nil {
 		logsArray := strings.Split(*highlightLogs, "\n")
 		for _, clientLog := range logsArray {
 			if clientLog != "" {
-				log.WithContext(ctx).Warnf("[Client]%s", clientLog)
+				log.WithContext(sCtx).Warnf("[Client]%s", clientLog)
 			}
 		}
 	}
 	if sessionSecureID == "" {
-		return e.New("ProcessPayload called without secureID")
+		err := e.New("ProcessPayload called without secureID")
+		querySessionSpan.Finish(err)
+		return err
 	}
 
-	sessionObj, err := r.getSession(ctx, sessionSecureID)
+	sessionObj, err := r.getSession(sCtx, sessionSecureID)
 	if err != nil {
 		querySessionSpan.Finish(err)
 		return err
 	}
-	querySessionSpan.SetAttribute("secure_id", sessionObj.SecureID)
-	querySessionSpan.SetAttribute("project_id", sessionObj.ProjectID)
+	span.SetAttribute("session_id", sessionObj.ID)
+	span.SetAttribute("project_id", sessionObj.ProjectID)
 	querySessionSpan.Finish()
 	sessionID := sessionObj.ID
 
@@ -2816,10 +2822,10 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 	// unmarshal messages
 	g.Go(func() error {
 		defer util.Recover()
-		unmarshalMessagesSpan, ctx := util.StartSpanFromContext(ctx, "public-graph.pushPayload",
+		unmarshalMessagesSpan, sCtx := util.StartSpanFromContext(ctx, "public-graph.pushPayload",
 			util.ResourceName("go.unmarshal.messages"), util.Tag("project_id", projectID), util.Tag("message_string_len", len(messages)), util.Tag("secure_session_id", sessionSecureID))
 
-		err := r.submitFrontendConsoleMessages(ctx, sessionObj, messages)
+		err := r.submitFrontendConsoleMessages(sCtx, sessionObj, messages)
 		unmarshalMessagesSpan.Finish(err)
 		return err
 	})
@@ -3006,6 +3012,7 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 	})
 
 	if err := g.Wait(); err != nil {
+		span.Finish(err)
 		return err
 	}
 
