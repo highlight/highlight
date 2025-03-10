@@ -26,10 +26,10 @@ export const LogsOverageCard = () => {
 		return null
 	}
 
-	if (data.subscription_details.billingIssue) {
+	if (data.subscription_details?.billingIssue) {
 		return (
 			<BillingIssueCard
-				blocked={data.subscription_details.billingIngestBlocked}
+				blocked={data.subscription_details?.billingIngestBlocked}
 			/>
 		)
 	}

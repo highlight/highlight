@@ -745,7 +745,7 @@ const BillingBanner: React.FC = () => {
 	})
 	const billingIssues =
 		!subscriptionLoading &&
-		subscriptionData?.subscription_details.billingIssue
+		!!subscriptionData?.subscription_details?.billingIssue
 
 	useEffect(() => {
 		if (
