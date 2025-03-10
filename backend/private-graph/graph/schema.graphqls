@@ -581,6 +581,7 @@ type AllWorkspaceSettings {
 	enable_network_traces: Boolean!
 	enable_project_level_access: Boolean!
 	enable_session_export: Boolean!
+	enable_sso: Boolean!
 	enable_unlisted_sharing: Boolean!
 	enable_jira_integration: Boolean!
 	enable_teams_integration: Boolean!
@@ -2446,7 +2447,7 @@ type Query {
 	api_key_to_org_id(api_key: String!): ID
 	get_source_map_upload_urls(api_key: String!, paths: [String!]!): [String!]!
 	customer_portal_url(workspace_id: ID!): String!
-	subscription_details(workspace_id: ID!): SubscriptionDetails!
+	subscription_details(workspace_id: ID!): SubscriptionDetails
 	dashboard_definitions(project_id: ID!): [DashboardDefinition]!
 	metric_tags(
 		project_id: ID!

@@ -13,15 +13,15 @@ describe('login spec', () => {
 	})
 
 	it('allows you to log in using ADMIN_PASSWORD', () => {
-		cy.visit('/1/buttons').wait(5000)
+		cy.visit('/1/buttons').wait(1000)
 		cy.title().then((title) => {
 			console.log('TITLE', title)
 			if (title === 'About You') {
 			}
 		})
-		cy.get('[name="email"]').type('demo@user.com').blur().wait(5000)
+		cy.get('[name="email"]').type('demo@user.com').blur()
 		cy.get('[name="password"]').type('password')
-		cy.get('button[type="submit"]').click().wait(5000)
+		cy.get('button[type="submit"]').click().wait(1000)
 
 		// Ensure client requests are made
 		cy.wait('@otelmetrics')

@@ -485,6 +485,7 @@ type AllWorkspaceSettings struct {
 	EnableIngestSampling     bool `gorm:"default:false"`
 	EnableProjectLevelAccess bool `gorm:"default:false"`
 	EnableSessionExport      bool `gorm:"default:false"`
+	EnableSSO                bool `gorm:"default:false"`
 
 	EnableDataDeletion    bool `gorm:"default:true"`
 	EnableNetworkTraces   bool `gorm:"default:true"`
