@@ -1331,7 +1331,7 @@ const Graph = ({
 		],
 	)
 
-	const [getMetrics, { called }] = useGetMetricsLazyQuery({})
+	const [getMetrics, { called }] = useGetMetricsLazyQuery()
 
 	let xAxisMetric = GROUPS_KEY
 	if (sql) {
@@ -1396,6 +1396,7 @@ const Graph = ({
 			for (const step of funnelSteps) {
 				getMetricsPromises.push(
 					getMetrics({
+						fetchPolicy: 'network-only',
 						variables: {
 							...getMetricsVariables,
 							params: {
@@ -1408,7 +1409,10 @@ const Graph = ({
 			}
 		} else {
 			getMetricsPromises = [
-				getMetrics({ variables: getMetricsVariables }),
+				getMetrics({
+					fetchPolicy: 'network-only',
+					variables: getMetricsVariables,
+				}),
 			]
 		}
 

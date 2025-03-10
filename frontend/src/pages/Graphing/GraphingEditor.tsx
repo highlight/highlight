@@ -1143,11 +1143,9 @@ export const GraphingEditor: React.FC = () => {
 												</Box>
 												{isSqlEditor && (
 													<RunQueryButton
-														sql={sql}
-														sqlInternal={
-															sqlInternal
+														onRunQuery={() =>
+															setSql(sqlInternal)
 														}
-														setSql={setSql}
 													/>
 												)}
 											</Box>
@@ -1164,6 +1162,9 @@ export const GraphingEditor: React.FC = () => {
 														}
 														startDate={startDate}
 														endDate={endDate}
+														onRunQuery={() =>
+															setSql(sqlInternal)
+														}
 													/>
 												</Box>
 											) : (

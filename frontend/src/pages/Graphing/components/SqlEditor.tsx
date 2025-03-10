@@ -6,12 +6,11 @@ import { vscodeLightInit } from '@uiw/codemirror-theme-vscode'
 import {
 	autocompletion,
 	CompletionContext,
-	acceptCompletion,
 	Completion,
 	snippetCompletion,
+	acceptCompletion,
 } from '@codemirror/autocomplete'
 import { EditorView, keymap } from '@codemirror/view'
-import { indentWithTab } from '@codemirror/commands'
 
 import { linter, Diagnostic } from '@codemirror/lint'
 
@@ -22,12 +21,16 @@ import { useProjectId } from '@/hooks/useProjectId'
 import moment from 'moment'
 import { TIME_INTERVAL_MACRO } from '@/pages/Graphing/components/Graph'
 import { useGraphContext } from '@/pages/Graphing/context/GraphContext'
+import { useGraphingVariables } from '@/pages/Graphing/hooks/useGraphingVariables'
+import { useParams } from '@/util/react-router/useParams'
+import { indentWithTab, standardKeymap } from '@codemirror/commands'
 
 interface Props {
 	value: string
 	setValue: (value: string) => void
 	startDate: Date
 	endDate: Date
+	onRunQuery: () => void
 }
 
 const tables = ['sessions', 'logs', 'traces', 'events', 'errors', 'metrics']
@@ -75,7 +78,14 @@ export const SqlEditor: React.FC<Props> = ({
 	setValue,
 	startDate,
 	endDate,
+	onRunQuery,
 }: Props) => {
+	const { dashboard_id } = useParams<{
+		dashboard_id: string
+	}>()
+
+	const { values } = useGraphingVariables(dashboard_id ?? '')
+
 	const { errors, setErrors } = useGraphContext()
 
 	const { projectId } = useProjectId()
@@ -164,6 +174,24 @@ export const SqlEditor: React.FC<Props> = ({
 				boost: 2,
 			}))
 
+			const variableKeys = Array.from(values).map(([key]) => {
+				return `$${key}`
+			})
+
+			const variableCompletions: Completion[] = [
+				'select',
+				'where',
+				'group by',
+				'order by',
+				'having',
+			].includes(lastKeyword ?? '')
+				? variableKeys.map((k) => ({
+						label: k,
+						type: 'text',
+						boost: 5,
+					}))
+				: []
+
 			return getKeys({
 				variables: {
 					project_id: projectId,
@@ -184,12 +212,13 @@ export const SqlEditor: React.FC<Props> = ({
 					? (result.data?.keys.map((k) => ({
 							label: k.name,
 							type: 'text',
-							boost: 3,
+							boost: 4,
 						})) ?? [])
 					: []
 
 				const allOptions = keywordCompletions
 					.concat(tableCompletions)
+					.concat(variableCompletions)
 					.concat(columnCompletions)
 					.concat(functionCompletions)
 
@@ -199,7 +228,7 @@ export const SqlEditor: React.FC<Props> = ({
 				}
 			})
 		},
-		[endDate, getKeys, projectId, startDate],
+		[endDate, getKeys, projectId, startDate, values],
 	)
 
 	const sqlLang = sql({
@@ -254,11 +283,24 @@ export const SqlEditor: React.FC<Props> = ({
 					foldGutter: false,
 					highlightActiveLine: false,
 					indentOnInput: false,
+					defaultKeymap: false,
 				}}
 				width="100%"
 				height="300px"
 				value={value}
 				extensions={[
+					keymap.of([
+						...standardKeymap,
+						{
+							key: 'Cmd-Enter',
+							run: () => {
+								onRunQuery()
+								return true
+							},
+						},
+						{ key: 'Tab', run: acceptCompletion },
+						indentWithTab,
+					]),
 					sqlLang,
 					autocompletion(),
 					sqlLang.language.data.of({
@@ -266,10 +308,6 @@ export const SqlEditor: React.FC<Props> = ({
 					}),
 					backendErrorLinter,
 					EditorView.lineWrapping,
-					keymap.of([
-						{ key: 'Tab', run: acceptCompletion },
-						indentWithTab,
-					]),
 				]}
 				theme={vscodeLightInit({
 					settings: {

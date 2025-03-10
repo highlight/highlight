@@ -654,8 +654,9 @@ export const AlertForm: React.FC = () => {
 											{settings.editor ===
 												Editor.SqlEditor && (
 												<RunQueryButton
-													sqlInternal={sqlInternal}
-													setSql={setSql}
+													onRunQuery={() =>
+														setSql(sqlInternal)
+													}
 												/>
 											)}
 										</Box>
@@ -671,6 +672,9 @@ export const AlertForm: React.FC = () => {
 													setValue={setSqlInternal}
 													startDate={startDate}
 													endDate={endDate}
+													onRunQuery={() =>
+														setSql(sqlInternal)
+													}
 												/>
 											</Box>
 										)}
