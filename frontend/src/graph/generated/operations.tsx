@@ -3075,28 +3075,30 @@ export type GetBillingDetailsQuery = { __typename?: 'Query' } & {
 					>
 				}
 		}
-	subscription_details: { __typename?: 'SubscriptionDetails' } & Pick<
-		Types.SubscriptionDetails,
-		'baseAmount' | 'billingIssue' | 'billingIngestBlocked'
-	> & {
-			discount?: Types.Maybe<
-				{ __typename?: 'SubscriptionDiscount' } & Pick<
-					Types.SubscriptionDiscount,
-					'name' | 'amount' | 'percent' | 'until'
+	subscription_details?: Types.Maybe<
+		{ __typename?: 'SubscriptionDetails' } & Pick<
+			Types.SubscriptionDetails,
+			'baseAmount' | 'billingIssue' | 'billingIngestBlocked'
+		> & {
+				discount?: Types.Maybe<
+					{ __typename?: 'SubscriptionDiscount' } & Pick<
+						Types.SubscriptionDiscount,
+						'name' | 'amount' | 'percent' | 'until'
+					>
 				>
-			>
-			lastInvoice?: Types.Maybe<
-				{ __typename?: 'Invoice' } & Pick<
-					Types.Invoice,
-					| 'amountDue'
-					| 'amountPaid'
-					| 'attemptCount'
-					| 'date'
-					| 'url'
-					| 'status'
+				lastInvoice?: Types.Maybe<
+					{ __typename?: 'Invoice' } & Pick<
+						Types.Invoice,
+						| 'amountDue'
+						| 'amountPaid'
+						| 'attemptCount'
+						| 'date'
+						| 'url'
+						| 'status'
+					>
 				>
-			>
-		}
+			}
+	>
 	workspace?: Types.Maybe<
 		{ __typename?: 'Workspace' } & Pick<
 			Types.Workspace,
@@ -3125,28 +3127,30 @@ export type GetSubscriptionDetailsQueryVariables = Types.Exact<{
 }>
 
 export type GetSubscriptionDetailsQuery = { __typename?: 'Query' } & {
-	subscription_details: { __typename?: 'SubscriptionDetails' } & Pick<
-		Types.SubscriptionDetails,
-		'baseAmount' | 'billingIssue' | 'billingIngestBlocked'
-	> & {
-			discount?: Types.Maybe<
-				{ __typename?: 'SubscriptionDiscount' } & Pick<
-					Types.SubscriptionDiscount,
-					'name' | 'amount' | 'percent' | 'until'
+	subscription_details?: Types.Maybe<
+		{ __typename?: 'SubscriptionDetails' } & Pick<
+			Types.SubscriptionDetails,
+			'baseAmount' | 'billingIssue' | 'billingIngestBlocked'
+		> & {
+				discount?: Types.Maybe<
+					{ __typename?: 'SubscriptionDiscount' } & Pick<
+						Types.SubscriptionDiscount,
+						'name' | 'amount' | 'percent' | 'until'
+					>
 				>
-			>
-			lastInvoice?: Types.Maybe<
-				{ __typename?: 'Invoice' } & Pick<
-					Types.Invoice,
-					| 'amountDue'
-					| 'amountPaid'
-					| 'attemptCount'
-					| 'date'
-					| 'url'
-					| 'status'
+				lastInvoice?: Types.Maybe<
+					{ __typename?: 'Invoice' } & Pick<
+						Types.Invoice,
+						| 'amountDue'
+						| 'amountPaid'
+						| 'attemptCount'
+						| 'date'
+						| 'url'
+						| 'status'
+					>
 				>
-			>
-		}
+			}
+	>
 }
 
 export type GetErrorGroupQueryVariables = Types.Exact<{
@@ -4835,6 +4839,7 @@ export type GetWorkspaceSettingsQuery = { __typename?: 'Query' } & {
 			| 'enable_network_traces'
 			| 'enable_project_level_access'
 			| 'enable_session_export'
+			| 'enable_sso'
 			| 'enable_teams_integration'
 			| 'enable_unlisted_sharing'
 		>

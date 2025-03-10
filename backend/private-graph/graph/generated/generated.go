@@ -213,6 +213,7 @@ type ComplexityRoot struct {
 		EnableJiraIntegration    func(childComplexity int) int
 		EnableNetworkTraces      func(childComplexity int) int
 		EnableProjectLevelAccess func(childComplexity int) int
+		EnableSSO                func(childComplexity int) int
 		EnableSessionExport      func(childComplexity int) int
 		EnableTeamsIntegration   func(childComplexity int) int
 		EnableUnlistedSharing    func(childComplexity int) int
@@ -2947,6 +2948,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.AllWorkspaceSettings.EnableProjectLevelAccess(childComplexity), true
+
+	case "AllWorkspaceSettings.enable_sso":
+		if e.complexity.AllWorkspaceSettings.EnableSSO == nil {
+			break
+		}
+
+		return e.complexity.AllWorkspaceSettings.EnableSSO(childComplexity), true
 
 	case "AllWorkspaceSettings.enable_session_export":
 		if e.complexity.AllWorkspaceSettings.EnableSessionExport == nil {
@@ -12690,6 +12698,7 @@ type AllWorkspaceSettings {
 	enable_network_traces: Boolean!
 	enable_project_level_access: Boolean!
 	enable_session_export: Boolean!
+	enable_sso: Boolean!
 	enable_unlisted_sharing: Boolean!
 	enable_jira_integration: Boolean!
 	enable_teams_integration: Boolean!
@@ -14555,7 +14564,7 @@ type Query {
 	api_key_to_org_id(api_key: String!): ID
 	get_source_map_upload_urls(api_key: String!, paths: [String!]!): [String!]!
 	customer_portal_url(workspace_id: ID!): String!
-	subscription_details(workspace_id: ID!): SubscriptionDetails!
+	subscription_details(workspace_id: ID!): SubscriptionDetails
 	dashboard_definitions(project_id: ID!): [DashboardDefinition]!
 	metric_tags(
 		project_id: ID!
@@ -28624,6 +28633,50 @@ func (ec *executionContext) _AllWorkspaceSettings_enable_session_export(ctx cont
 }
 
 func (ec *executionContext) fieldContext_AllWorkspaceSettings_enable_session_export(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "AllWorkspaceSettings",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _AllWorkspaceSettings_enable_sso(ctx context.Context, field graphql.CollectedField, obj *model1.AllWorkspaceSettings) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_AllWorkspaceSettings_enable_sso(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.EnableSSO, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_AllWorkspaceSettings_enable_sso(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "AllWorkspaceSettings",
 		Field:      field,
@@ -48903,6 +48956,8 @@ func (ec *executionContext) fieldContext_Mutation_editWorkspaceSettings(ctx cont
 				return ec.fieldContext_AllWorkspaceSettings_enable_project_level_access(ctx, field)
 			case "enable_session_export":
 				return ec.fieldContext_AllWorkspaceSettings_enable_session_export(ctx, field)
+			case "enable_sso":
+				return ec.fieldContext_AllWorkspaceSettings_enable_sso(ctx, field)
 			case "enable_unlisted_sharing":
 				return ec.fieldContext_AllWorkspaceSettings_enable_unlisted_sharing(ctx, field)
 			case "enable_jira_integration":
@@ -64208,6 +64263,8 @@ func (ec *executionContext) fieldContext_Query_workspaceSettings(ctx context.Con
 				return ec.fieldContext_AllWorkspaceSettings_enable_project_level_access(ctx, field)
 			case "enable_session_export":
 				return ec.fieldContext_AllWorkspaceSettings_enable_session_export(ctx, field)
+			case "enable_sso":
+				return ec.fieldContext_AllWorkspaceSettings_enable_sso(ctx, field)
 			case "enable_unlisted_sharing":
 				return ec.fieldContext_AllWorkspaceSettings_enable_unlisted_sharing(ctx, field)
 			case "enable_jira_integration":
@@ -64780,14 +64837,11 @@ func (ec *executionContext) _Query_subscription_details(ctx context.Context, fie
 		return graphql.Null
 	}
 	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
 		return graphql.Null
 	}
 	res := resTmp.(*model.SubscriptionDetails)
 	fc.Result = res
-	return ec.marshalNSubscriptionDetails2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐSubscriptionDetails(ctx, field.Selections, res)
+	return ec.marshalOSubscriptionDetails2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐSubscriptionDetails(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Query_subscription_details(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -89733,6 +89787,11 @@ func (ec *executionContext) _AllWorkspaceSettings(ctx context.Context, sel ast.S
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&out.Invalids, 1)
 			}
+		case "enable_sso":
+			out.Values[i] = ec._AllWorkspaceSettings_enable_sso(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&out.Invalids, 1)
+			}
 		case "enable_unlisted_sharing":
 			out.Values[i] = ec._AllWorkspaceSettings_enable_unlisted_sharing(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
@@ -98525,9 +98584,6 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_subscription_details(ctx, field)
-				if res == graphql.Null {
-					atomic.AddUint32(&fs.Invalids, 1)
-				}
 				return res
 			}
 
@@ -108995,20 +109051,6 @@ func (ec *executionContext) marshalNString2ᚖstring(ctx context.Context, sel as
 	return res
 }
 
-func (ec *executionContext) marshalNSubscriptionDetails2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐSubscriptionDetails(ctx context.Context, sel ast.SelectionSet, v model.SubscriptionDetails) graphql.Marshaler {
-	return ec._SubscriptionDetails(ctx, sel, &v)
-}
-
-func (ec *executionContext) marshalNSubscriptionDetails2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐSubscriptionDetails(ctx context.Context, sel ast.SelectionSet, v *model.SubscriptionDetails) graphql.Marshaler {
-	if v == nil {
-		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
-			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
-		}
-		return graphql.Null
-	}
-	return ec._SubscriptionDetails(ctx, sel, v)
-}
-
 func (ec *executionContext) unmarshalNSubscriptionInterval2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐSubscriptionInterval(ctx context.Context, v interface{}) (model.SubscriptionInterval, error) {
 	var res model.SubscriptionInterval
 	err := res.UnmarshalGQL(v)
@@ -112223,6 +112265,13 @@ func (ec *executionContext) marshalOStringArray2githubᚗcomᚋlibᚋpqᚐString
 	}
 	res := model1.MarshalStringArray(v)
 	return res
+}
+
+func (ec *executionContext) marshalOSubscriptionDetails2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐSubscriptionDetails(ctx context.Context, sel ast.SelectionSet, v *model.SubscriptionDetails) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._SubscriptionDetails(ctx, sel, v)
 }
 
 func (ec *executionContext) marshalOSubscriptionDiscount2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐSubscriptionDiscount(ctx context.Context, sel ast.SelectionSet, v *model.SubscriptionDiscount) graphql.Marshaler {
