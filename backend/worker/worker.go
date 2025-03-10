@@ -302,6 +302,13 @@ func (w *Worker) scanSessionPayload(ctx context.Context, manager *payload.Payloa
 }
 
 func (w *Worker) processPublicWorkerMessage(ctx context.Context, task *kafkaqueue.Message) error {
+	span, ctx := util.StartSpanFromContext(ctx, "worker.processPublicWorkerMessage")
+	defer span.Finish()
+
+	go func() {
+
+	}()
+
 	switch task.Type {
 	case kafkaqueue.PushPayload:
 		if task.PushPayload == nil {

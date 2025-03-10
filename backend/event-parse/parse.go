@@ -453,6 +453,9 @@ func isUnfetchableURL(u string) bool {
 // Else, fetch the resource, generate a new url for it, and save to S3
 func getOrCreateUrls(ctx context.Context, projectId int, originalUrls []string, store *store.Store, retentionPeriod modelInputs.RetentionPeriod) (map[string]string, error) {
 	// maps a long url to the minimal version of the url. ie https://foo.com/example?key=value&signature=bar -> https://foo.com/example?key=value
+	if len(originalUrls) == 0 {
+		return nil, nil
+	}
 	urlMap := make(map[string]assetValue)
 	for _, u := range lo.Uniq(originalUrls) {
 		if isUnfetchableURL(u) {
