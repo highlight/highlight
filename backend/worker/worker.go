@@ -305,8 +305,24 @@ func (w *Worker) processPublicWorkerMessage(ctx context.Context, task *kafkaqueu
 	span, ctx := util.StartSpanFromContext(ctx, "worker.processPublicWorkerMessage")
 	defer span.Finish()
 
-	go func() {
+	done := make(chan struct{})
+	defer func() {
+		close(done)
+	}()
 
+	go func() {
+		limit := 30 * time.Second
+		select {
+		case <-time.After(limit):
+			log.WithContext(ctx).
+				WithField("key", string(task.KafkaMessage.Key)).
+				WithField("offset", task.KafkaMessage.Offset).
+				WithField("taskType", task.GetType()).
+				WithField("partition", task.KafkaMessage.Partition).
+				WithField("duration", limit).
+				Warnf("Long running task")
+		case <-done:
+		}
 	}()
 
 	switch task.Type {
