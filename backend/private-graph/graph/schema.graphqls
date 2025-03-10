@@ -2085,6 +2085,11 @@ type OAuthClient {
 	app_name: String!
 }
 
+type SSOLogin {
+	domain: String!
+	client_id: String!
+}
+
 type SystemConfiguration {
 	maintenance_start: Timestamp
 	maintenance_end: Timestamp
@@ -2463,6 +2468,7 @@ type Query {
 	sourcemap_files(project_id: ID!, version: String): [S3File!]!
 	sourcemap_versions(project_id: ID!): [String!]!
 	oauth_client_metadata(client_id: String!): OAuthClient
+	sso_login(domain: String!): SSOLogin
 	email_opt_outs(token: String, admin_id: ID): [EmailOptOutCategory!]!
 	ai_query_suggestion(
 		time_zone: String!

@@ -19,7 +19,7 @@ describe('login spec', () => {
 			if (title === 'About You') {
 			}
 		})
-		cy.get('[name="email"]').type('demo@user.com')
+		cy.get('[name="email"]').type('demo@user.com').blur().wait(5000)
 		cy.get('[name="password"]').type('password')
 		cy.get('button[type="submit"]').click().wait(5000)
 

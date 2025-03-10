@@ -2260,6 +2260,7 @@ export type Query = {
 	slack_channel_suggestion: Array<SanitizedSlackChannel>
 	sourcemap_files: Array<S3File>
 	sourcemap_versions: Array<Scalars['String']>
+	sso_login?: Maybe<SsoLogin>
 	subscription_details: SubscriptionDetails
 	system_configuration: SystemConfiguration
 	timeline_indicator_events: Array<TimelineIndicatorEvent>
@@ -3003,6 +3004,10 @@ export type QuerySourcemap_VersionsArgs = {
 	project_id: Scalars['ID']
 }
 
+export type QuerySso_LoginArgs = {
+	domain: Scalars['String']
+}
+
 export type QuerySubscription_DetailsArgs = {
 	workspace_id: Scalars['ID']
 }
@@ -3364,6 +3369,12 @@ export enum RetentionPeriod {
 export type S3File = {
 	__typename?: 'S3File'
 	key?: Maybe<Scalars['String']>
+}
+
+export type SsoLogin = {
+	__typename?: 'SSOLogin'
+	client_id: Scalars['String']
+	domain: Scalars['String']
 }
 
 export type Sampling = {

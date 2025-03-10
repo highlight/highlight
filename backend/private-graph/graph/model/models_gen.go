@@ -792,6 +792,11 @@ type S3File struct {
 	Key *string `json:"key,omitempty"`
 }
 
+type SSOLogin struct {
+	Domain   string `json:"domain"`
+	ClientID string `json:"client_id"`
+}
+
 type Sampling struct {
 	SessionSamplingRate    float64 `json:"session_sampling_rate"`
 	ErrorSamplingRate      float64 `json:"error_sampling_rate"`
