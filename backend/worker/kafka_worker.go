@@ -79,6 +79,7 @@ func (k *KafkaWorker) ProcessMessages() {
 			}
 			s.SetAttribute("taskType", task.GetType())
 			s.SetAttribute("partition", task.GetKafkaMessage().Partition)
+			s.SetAttribute("offset", task.GetKafkaMessage().Offset)
 			s.SetAttribute("partitionKey", string(task.GetKafkaMessage().Key))
 			k.log(ctx, task, "received message")
 
