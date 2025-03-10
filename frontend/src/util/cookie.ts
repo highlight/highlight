@@ -9,7 +9,7 @@ export function upsertCookie(name: string, value: string, minutes: number) {
 		date.setTime(date.getTime() + minutes * 60 * 1000)
 		expires = '; expires=' + date.toUTCString()
 	}
-	document.cookie = `${encodeURIComponent(name)}=${encodeURIComponent(value)}${expires}; path=/; SameSite=Lax`
+	document.cookie = `${encodeURIComponent(name)}=${encodeURIComponent(value)}${expires}; path=/; SameSite=Lax; domain=.highlight.io`
 }
 
 export function getCookie(name: string) {
