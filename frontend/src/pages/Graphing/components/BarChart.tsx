@@ -34,6 +34,8 @@ export type BarChartConfig = {
 	shadeToPrevious?: true
 	display?: BarDisplay
 	tooltipSettings?: TooltipSettings
+	showXAxis?: false
+	strokeColors?: string[]
 }
 
 const RoundedBar = (id: string, isLast: boolean) => (props: any) => {
@@ -126,29 +128,31 @@ const BarChartImpl = ({
 				>
 					{referenceArea}
 					{children}
-					<XAxis
-						dataKey={xAxisMetric}
-						fontSize={10}
-						tick={(props: any) => (
-							<CustomXAxisTick
-								x={props.x}
-								y={props.y}
-								payload={props.payload}
-								tickFormatter={xAxisTickFormatter}
-							/>
-						)}
-						tickFormatter={xAxisTickFormatter}
-						tickLine={{ visibility: 'hidden' }}
-						axisLine={{ visibility: 'hidden' }}
-						height={12}
-						type={
-							xAxisMetric === TIMESTAMP_KEY
-								? 'number'
-								: 'category'
-						}
-						domain={['dataMin', 'dataMax']}
-						hide={showXAxis === false}
-					/>
+					{viewConfig.showXAxis === false ? null : (
+						<XAxis
+							dataKey={xAxisMetric}
+							fontSize={10}
+							tick={(props: any) => (
+								<CustomXAxisTick
+									x={props.x}
+									y={props.y}
+									payload={props.payload}
+									tickFormatter={xAxisTickFormatter}
+								/>
+							)}
+							tickFormatter={xAxisTickFormatter}
+							tickLine={{ visibility: 'hidden' }}
+							axisLine={{ visibility: 'hidden' }}
+							height={12}
+							type={
+								xAxisMetric === TIMESTAMP_KEY
+									? 'number'
+									: 'category'
+							}
+							domain={['dataMin', 'dataMax']}
+							hide={showXAxis === false}
+						/>
+					)}
 
 					{tooltip}
 
@@ -199,7 +203,7 @@ const BarChartImpl = ({
 									fill={getColor(
 										idx,
 										seriesKey,
-										strokeColors,
+										viewConfig.strokeColors ?? strokeColors,
 									)}
 									isAnimationActive={false}
 									stackId={
