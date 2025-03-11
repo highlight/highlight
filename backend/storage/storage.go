@@ -971,7 +971,7 @@ func (s *S3Client) ReadSourceMapFileCached(ctx context.Context, projectId int, v
 	span, ctx := util.StartSpanFromContext(ctx, "s3.ReadSourceMapFileCached")
 	defer span.Finish()
 	key := s.sourceMapBucketKey(projectId, version, fileName)
-	span.SetAttribute("key", key)
+	span.SetAttribute("key", *key)
 	b, err := hredis.CachedEval(ctx, s.Redis, *key, time.Second, time.Minute, func() (*[]byte, error) {
 		bt, err := s.readSourceMapFile(ctx, projectId, version, fileName)
 		return &bt, err
