@@ -187,7 +187,7 @@ func GetFrontendCookieDomain() (string, error) {
 	domain := u.Hostname()
 	parts := strings.Split(domain, ".")
 	if len(parts) >= 2 {
-		domain = strings.Join(parts[1:], ".")
+		domain = strings.Join(parts[len(parts)-2:], ".")
 	}
 
 	return "." + domain, nil
