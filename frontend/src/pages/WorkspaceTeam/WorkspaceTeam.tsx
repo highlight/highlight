@@ -1,6 +1,9 @@
 import EnterpriseFeatureButton from '@components/Billing/EnterpriseFeatureButton'
 import { Button } from '@components/Button'
-import { useGetWorkspaceAdminsQuery } from '@graph/hooks'
+import {
+	useGetWorkspaceAdminsQuery,
+	useGetWorkspaceSettingsQuery,
+} from '@graph/hooks'
 import { AdminRole, Project, WorkspaceAdminRole } from '@graph/schemas'
 import {
 	Box,
@@ -8,6 +11,8 @@ import {
 	Stack,
 	Tabs,
 	Tooltip,
+	Text,
+	Callout,
 } from '@highlight-run/ui/components'
 import { useAuthContext } from '@/authentication/AuthContext'
 import AllMembers from '@pages/WorkspaceTeam/components/AllMembers'
@@ -35,6 +40,13 @@ const WorkspaceTeam = () => {
 		workspace_id: string
 		member_tab_key?: MemberKeyType
 	}>()
+	const { data: workspaceSettings, loading: workspaceSettingsLoading } =
+		useGetWorkspaceSettingsQuery({
+			variables: {
+				workspace_id: workspace_id!,
+			},
+			skip: !workspace_id,
+		})
 	const {
 		data,
 		error,
@@ -71,6 +83,42 @@ const WorkspaceTeam = () => {
 						toggleShowModal={toggleShowModal}
 					/>
 				</div>
+
+				{!workspaceSettingsLoading &&
+					!workspaceSettings?.workspaceSettings?.enable_sso && (
+						<Callout
+							title="Single Sign-On (SSO)"
+							style={{ maxWidth: 600, marginBottom: 12 }}
+						>
+							<Text color="moderate">
+								Enable SSO to streamline authentication for your
+								organization. Integrate with your identity
+								provider to simplify user access and enhance
+								security.
+							</Text>
+							<EnterpriseFeatureButton
+								setting="enable_sso"
+								name="Single Sign-On (SSO)"
+								fn={() => {
+									const href =
+										`mailto:support@highlight.run?subject=Highlight SSO Configuration` +
+										`&body=I would like to configure SSO for my workspace.  My workspace ID is ${workspace_id}.`
+									window.open(href, '_blank')
+								}}
+								variant="basic"
+							>
+								<Box display="flex" style={{ width: 104 }}>
+									<Button
+										kind="secondary"
+										size="xSmall"
+										trackingId="WorkspaceTeamConfigureSSO"
+									>
+										<Text>Configure SSO</Text>
+									</Button>
+								</Box>
+							</EnterpriseFeatureButton>
+						</Callout>
+					)}
 
 				<Tabs<MemberKeyType>
 					selectedId={member_tab_key}

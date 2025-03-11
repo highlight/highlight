@@ -454,7 +454,7 @@ const UsageCard = ({
 	)
 }
 
-type BillingPageProps = {}
+type BillingPageProps = object
 
 const BillingPageV2 = ({}: BillingPageProps) => {
 	const { workspace_id } = useParams<{
@@ -470,7 +470,7 @@ const BillingPageV2 = ({}: BillingPageProps) => {
 		},
 	})
 
-	const billingIssue = data?.subscription_details.billingIssue ?? false
+	const billingIssue = data?.subscription_details?.billingIssue ?? false
 
 	const [openCustomerPortalUrl] = useGetCustomerPortalUrlLazyQuery({
 		variables: {
@@ -501,9 +501,9 @@ const BillingPageV2 = ({}: BillingPageProps) => {
 		return <LoadingRightPanel show={true} />
 	}
 
-	const baseAmount = data?.subscription_details.baseAmount ?? 0
-	const discountPercent = data?.subscription_details.discount?.percent ?? 0
-	const discountAmount = data?.subscription_details.discount?.amount ?? 0
+	const baseAmount = data?.subscription_details?.baseAmount ?? 0
+	const discountPercent = data?.subscription_details?.discount?.percent ?? 0
+	const discountAmount = data?.subscription_details?.discount?.amount ?? 0
 
 	const isPaying = data?.billingDetails.plan.type !== PlanType.Free
 	const isAWSMP =
@@ -642,7 +642,7 @@ const BillingPageV2 = ({}: BillingPageProps) => {
 				currency: USD,
 			}),
 		)
-	const discountUntilFormatted = data?.subscription_details.discount?.until
+	const discountUntilFormatted = data?.subscription_details?.discount?.until
 		? `until ${moment(data.subscription_details.discount.until).format(
 				'MMMM Do, YYYY',
 			)}`
@@ -894,7 +894,7 @@ const BillingPageV2 = ({}: BillingPageProps) => {
 							alignItems="center"
 						>
 							<Stack gap="12" width="full">
-								{data?.subscription_details.discount ? (
+								{data?.subscription_details?.discount ? (
 									<>
 										<Box
 											display="flex"

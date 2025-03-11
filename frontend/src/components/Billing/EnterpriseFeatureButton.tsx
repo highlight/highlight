@@ -27,6 +27,8 @@ const FEATURE_DESCRIPTIONS = {
 		'create Jira issues from your highlight.io errors and sessions.',
 	'Teams Integration':
 		'receive highlight.io alerts via Microsoft Teams messages.',
+	'Single Sign-On (SSO)':
+		'enable SSO to streamline authentication for your organization.',
 } as const
 
 type Feature = keyof typeof FEATURE_DESCRIPTIONS

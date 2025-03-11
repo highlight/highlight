@@ -236,6 +236,7 @@ export type AllWorkspaceSettings = {
 	enable_network_traces: Scalars['Boolean']
 	enable_project_level_access: Scalars['Boolean']
 	enable_session_export: Scalars['Boolean']
+	enable_sso: Scalars['Boolean']
 	enable_teams_integration: Scalars['Boolean']
 	enable_unlisted_sharing: Scalars['Boolean']
 	workspace_id: Scalars['ID']
@@ -2261,7 +2262,7 @@ export type Query = {
 	sourcemap_files: Array<S3File>
 	sourcemap_versions: Array<Scalars['String']>
 	sso_login?: Maybe<SsoLogin>
-	subscription_details: SubscriptionDetails
+	subscription_details?: Maybe<SubscriptionDetails>
 	system_configuration: SystemConfiguration
 	timeline_indicator_events: Array<TimelineIndicatorEvent>
 	topUsers: Array<Maybe<TopUsersPayload>>

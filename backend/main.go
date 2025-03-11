@@ -442,14 +442,12 @@ func main() {
 			privateEndpoint = "/"
 		}
 
-		r.Route("/oauth", func(r chi.Router) {
-			r.Use(highlightChi.Middleware)
-			r.Use(private.PrivateMiddleware)
-			r.HandleFunc("/token", oauthSrv.HandleTokenRequest)
-			r.HandleFunc("/authorize", oauthSrv.HandleAuthorizeRequest)
-			r.HandleFunc("/validate", oauthSrv.HandleValidate)
-			r.HandleFunc("/revoke", oauthSrv.HandleRevoke)
-		})
+		// OAuth server
+		r.HandleFunc("/oauth/token", oauthSrv.HandleTokenRequest)
+		r.HandleFunc("/oauth/authorize", oauthSrv.HandleAuthorizeRequest)
+		r.HandleFunc("/oauth/validate", oauthSrv.HandleValidate)
+		r.HandleFunc("/oauth/revoke", oauthSrv.HandleRevoke)
+
 		r.HandleFunc("/stripe-webhook", privateResolver.StripeWebhook(ctx, env.Config.StripeWebhookSecret))
 		r.HandleFunc("/callback/aws-mp", privateResolver.AWSMPCallback(ctx))
 		r.Route("/zapier", func(r chi.Router) {
@@ -468,6 +466,7 @@ func main() {
 			r.Get("/assets/{project_id}/{hash_val}", privateResolver.AssetHandler)
 			r.Get("/project-token/{project_id}", privateResolver.ProjectJWTHandler)
 
+			log.WithContext(ctx).WithField("private", privateEndpoint).Info("setting up private graph auth listeners")
 			private.AuthClient.SetupListeners(r)
 
 			privateServer := ghandler.New(privategen.NewExecutableSchema(

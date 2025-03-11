@@ -360,7 +360,6 @@ class OAuth extends PasswordAuth implements SimpleAuth {
 	}
 }
 
-const oauth = new OAuth()
 let defaultAuth: SimpleAuth
 switch (AUTH_MODE) {
 	case 'simple':
@@ -370,7 +369,7 @@ switch (AUTH_MODE) {
 		defaultAuth = new PasswordAuth()
 		break
 	case 'oauth':
-		defaultAuth = oauth
+		defaultAuth = new OAuth()
 		break
 	default:
 		let firebaseConfig: any
@@ -408,8 +407,8 @@ switch (AUTH_MODE) {
 export function getAuth() {
 	// different than the tokenCookieName cookie because this is not httponly
 	const clientID = getCookie(Cookies.OAuthClientID)
-	if (clientID) {
-		return oauth
+	if (clientID && !(defaultAuth instanceof OAuth)) {
+		defaultAuth = new OAuth()
 	}
 	return defaultAuth
 }
