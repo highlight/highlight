@@ -398,7 +398,7 @@ export const getColor = (
 	return colorOverride.get(key) ?? defaultColor
 }
 
-const formatNumber = (n: number | null) => {
+export const formatNumber = (n: number | null) => {
 	if (n === null) {
 		return 'null'
 	}
@@ -1066,6 +1066,7 @@ const FUNNEL_BAR_CONFIG: BarChartConfig = {
 	type: 'Bar chart',
 	display: 'Stacked',
 	tooltipSettings: { funnelMode: true },
+	displayLabels: true,
 }
 
 const FUNNEL_LINE_CONFIG: LineChartConfig = {
