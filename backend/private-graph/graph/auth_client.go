@@ -255,20 +255,26 @@ func (c *FirebaseAuthClient) updateContextWithAuthenticatedUser(ctx context.Cont
 }
 
 func (c *OAuthAuthClient) getOAuthConfig(r *http.Request) (*oauth2.Config, error) {
+	span, ctx := util.StartSpanFromContext(r.Context(), "auth.oauth.getOAuthConfig")
+	defer span.Finish()
+
 	clientID := extractClientID(r)
 	client := c.oauthClients[clientID]
 	if client == nil {
-		log.WithContext(r.Context()).WithField("clientID", clientID).Error("no oauth client found")
+		log.WithContext(ctx).WithField("clientID", clientID).Error("no oauth client found")
 		return nil, e.New(oauthError)
 	}
 	return client.oauthConfig, nil
 }
 
 func (c *OAuthAuthClient) getOIDCProvider(r *http.Request) (*oidc.Provider, error) {
+	span, ctx := util.StartSpanFromContext(r.Context(), "auth.oauth.getOIDCProvider")
+	defer span.Finish()
+
 	clientID := extractClientID(r)
 	client := c.oauthClients[clientID]
 	if client == nil {
-		log.WithContext(r.Context()).WithField("clientID", clientID).Error("no oauth client found for OIDC provider")
+		log.WithContext(ctx).WithField("clientID", clientID).Error("no oauth client found for OIDC provider")
 		return nil, e.New(oauthError)
 	}
 	return client.oidcProvider, nil
@@ -295,9 +301,12 @@ func (c *OAuthAuthClient) SetupListeners(r chi.Router) {
 }
 
 func (c *OAuthAuthClient) setCallbackCookie(w http.ResponseWriter, r *http.Request, name, value string) {
+	span, ctx := util.StartSpanFromContext(r.Context(), "auth.oauth.setCallbackCookie")
+	defer span.Finish()
+
 	domain, err := env.GetFrontendCookieDomain()
 	if err != nil {
-		log.WithContext(r.Context()).WithError(err).Error("error getting frontend domain")
+		log.WithContext(ctx).WithError(err).Error("error getting frontend domain")
 	}
 	cookie := &http.Cookie{
 		Domain:   domain,
@@ -317,7 +326,8 @@ func (c *OAuthAuthClient) setCallbackCookie(w http.ResponseWriter, r *http.Reque
 }
 
 func (c *OAuthAuthClient) validateToken(w http.ResponseWriter, req *http.Request) {
-	ctx := req.Context()
+	span, ctx := util.StartSpanFromContext(req.Context(), "auth.oauth.validateToken")
+	defer span.Finish()
 
 	t, err := req.Cookie(tokenCookieName)
 	if err != nil || t.Value == "" {
@@ -359,6 +369,9 @@ func (c *OAuthAuthClient) validateToken(w http.ResponseWriter, req *http.Request
 }
 
 func (c *OAuthAuthClient) handleRedirect(w http.ResponseWriter, r *http.Request) {
+	span, ctx := util.StartSpanFromContext(r.Context(), "auth.oauth.handleRedirect")
+	defer span.Finish()
+
 	state := util.GenerateRandomString(32)
 	c.setCallbackCookie(w, r, stateCookieName, state)
 
@@ -367,13 +380,16 @@ func (c *OAuthAuthClient) handleRedirect(w http.ResponseWriter, r *http.Request)
 
 	cfg, err := c.getOAuthConfig(r)
 	if err != nil {
-		log.WithContext(r.Context()).WithError(err).Error("error getting oauth config")
+		log.WithContext(ctx).WithError(err).Error("error getting oauth config")
 		http.Error(w, err.Error(), http.StatusBadRequest)
 	}
 	http.Redirect(w, r, cfg.AuthCodeURL(state), http.StatusFound)
 }
 
 func (c *OAuthAuthClient) handleLogout(w http.ResponseWriter, req *http.Request) {
+	span, _ := util.StartSpanFromContext(req.Context(), "auth.oauth.handleLogout")
+	defer span.Finish()
+
 	if w != nil && req != nil {
 		c.setCallbackCookie(w, req, stateCookieName, "")
 		c.setCallbackCookie(w, req, tokenCookieName, "")
@@ -383,8 +399,10 @@ func (c *OAuthAuthClient) handleLogout(w http.ResponseWriter, req *http.Request)
 }
 
 func (c *OAuthAuthClient) handleOAuth2Callback(w http.ResponseWriter, r *http.Request) {
-	ctx := r.Context()
+	span, ctx := util.StartSpanFromContext(r.Context(), "auth.oauth.handleOAuth2Callback")
+	defer span.Finish()
 	// validate state cookie
+
 	state, err := r.Cookie(stateCookieName)
 	if err != nil {
 		log.WithContext(ctx).WithError(err).Error("failed to retrieve state cookie")
@@ -443,6 +461,9 @@ func (c *OAuthAuthClient) handleOAuth2Callback(w http.ResponseWriter, r *http.Re
 }
 
 func (c *OAuthAuthClient) updateContextWithAuthenticatedUser(ctx context.Context, w http.ResponseWriter, req *http.Request, token string) (context.Context, error) {
+	span, ctx := util.StartSpanFromContext(ctx, "auth.oauth.updateContextWithAuthenticatedUser")
+	defer span.Finish()
+
 	// Parse and verify ID Token payload.
 	clientID := extractClientID(req)
 	prov, err := c.getOIDCProvider(req)
@@ -502,6 +523,9 @@ func (c *OAuthAuthClient) updateContextWithAuthenticatedUser(ctx context.Context
 }
 
 func (c *OAuthAuthClient) storeUser(ctx context.Context, userInfo *oidc.UserInfo, r *http.Request) error {
+	span, ctx := util.StartSpanFromContext(ctx, "auth.oauth.storeUser")
+	defer span.Finish()
+
 	prov, err := c.getOIDCProvider(r)
 	if err != nil {
 		return err
@@ -540,6 +564,9 @@ func (c *OAuthAuthClient) storeUser(ctx context.Context, userInfo *oidc.UserInfo
 }
 
 func (c *OAuthAuthClient) getUser(ctx context.Context, uid string) (*auth.UserRecord, error) {
+	span, ctx := util.StartSpanFromContext(ctx, "auth.oauth.getUser")
+	defer span.Finish()
+
 	var userInfo auth.UserRecord
 	if err := c.store.Redis.Cache.Get(ctx, fmt.Sprintf(`user-%s`, uid), &userInfo); err != nil {
 		return nil, err
