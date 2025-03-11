@@ -85,6 +85,7 @@ func (c *CloudAuthClient) updateContextWithAuthenticatedUser(ctx context.Context
 }
 
 func NewCloudAuthClient(ctx context.Context, store *store.Store) (*CloudAuthClient, error) {
+	log.WithContext(ctx).Info("configuring cloud auth client")
 	oauthClient, err := NewOAuthClient(ctx, store)
 	if err != nil {
 		return nil, err
@@ -135,6 +136,7 @@ func (c *PasswordAuthClient) validateToken(w http.ResponseWriter, req *http.Requ
 }
 
 func (c *PasswordAuthClient) SetupListeners(r chi.Router) {
+	log.WithContext(context.Background()).Info("configuring password server listeners")
 	r.Post("/login", c.handleLogin)
 	r.Get("/validate-token", c.validateToken)
 }
@@ -276,6 +278,7 @@ func (c *OAuthAuthClient) GetUser(ctx context.Context, uid string) (*auth.UserRe
 }
 
 func (c *OAuthAuthClient) SetupListeners(r chi.Router) {
+	log.WithContext(context.Background()).Info("configuring oauth server listeners")
 	r.Get("/oauth/login", c.handleRedirect)
 	r.Post("/oauth/logout", c.handleLogout)
 	r.Get("/oauth/callback", c.handleOAuth2Callback)
@@ -543,6 +546,7 @@ func NewOAuthClient(ctx context.Context, store *store.Store) (*OAuthAuthClient, 
 
 	oauthClients := make(map[string]*OAuthClient)
 	for _, ssoClient := range ssoClients {
+		log.WithContext(ctx).WithField("clientID", ssoClient.ClientID).Info("setting up oauth client")
 		provider, err := oidc.NewProvider(ctx, ssoClient.ProviderURL)
 		if err != nil {
 			log.WithContext(ctx).WithError(err).Fatalf("failed to connect to oauth oidc provider")

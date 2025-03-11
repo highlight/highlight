@@ -136,6 +136,12 @@ export const SignIn: React.FC<Props> = ({ setResolver }) => {
 			return
 		}
 
+		// If we're not using firebase or oauth (simple, password), we need to require a password
+		if (AUTH_MODE !== 'firebase' && AUTH_MODE !== 'oauth') {
+			formStore.setValue('passwordRequired', true)
+			return
+		}
+
 		const emailDomain = email.split('@')[1]
 		const { data } = await getSsoLogin({
 			variables: { domain: emailDomain },

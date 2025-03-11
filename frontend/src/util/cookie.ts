@@ -9,7 +9,14 @@ export function upsertCookie(name: string, value: string, minutes: number) {
 		date.setTime(date.getTime() + minutes * 60 * 1000)
 		expires = '; expires=' + date.toUTCString()
 	}
-	document.cookie = `${encodeURIComponent(name)}=${encodeURIComponent(value)}${expires}; path=/; SameSite=Lax`
+
+	let domain = window.location.hostname
+	const parts = domain.split('.')
+	if (parts.length >= 2) {
+		domain = parts.slice(-2).join('.')
+	}
+
+	document.cookie = `${encodeURIComponent(name)}=${encodeURIComponent(value)}${expires}; path=/; SameSite=Lax; domain=.${domain}`
 }
 
 export function getCookie(name: string) {

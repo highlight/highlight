@@ -14045,6 +14045,7 @@ export const GetWorkspaceSettingsDocument = gql`
 			enable_project_level_access
 			enable_project_level_access
 			enable_session_export
+			enable_sso
 			enable_teams_integration
 			enable_unlisted_sharing
 		}

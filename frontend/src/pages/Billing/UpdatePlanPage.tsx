@@ -850,8 +850,8 @@ const UpdatePlanPage = ({
 
 	const baseAmount =
 		PLAN_BASE_FEES[selectedPlanType as keyof typeof PLAN_BASE_FEES] * 100
-	const discountPercent = data?.subscription_details.discount?.percent ?? 0
-	const discountAmount = data?.subscription_details.discount?.amount ?? 0
+	const discountPercent = data?.subscription_details?.discount?.percent ?? 0
+	const discountAmount = data?.subscription_details?.discount?.amount ?? 0
 
 	const productSubtotal =
 		predictedSessionsCost +
