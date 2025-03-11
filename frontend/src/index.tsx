@@ -396,14 +396,15 @@ const AuthenticationRoleRouter = () => {
 					setUser(user)
 					setAuthRole(AuthRole.AUTHENTICATED)
 				},
-				signOut: () => {
-					auth.signOut()
-					client.clearStore()
-					navigate(SIGN_IN_ROUTE)
+				signOut: async () => {
 					analytics.track('Sign out')
+					firebaseInitialized.current = false
+					await auth.signOut()
+					await client.clearStore()
 					setUser(null)
 					setAuthRole(AuthRole.UNAUTHENTICATED)
 					authRedirect.clear()
+					navigate(SIGN_IN_ROUTE)
 				},
 			}}
 		>
