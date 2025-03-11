@@ -286,7 +286,7 @@ func (c *OAuthAuthClient) SetupListeners(r chi.Router) {
 }
 
 func (c *OAuthAuthClient) setCallbackCookie(w http.ResponseWriter, r *http.Request, name, value string) {
-	domain, err := env.GetFrontendDomain()
+	domain, err := env.GetFrontendCookieDomain()
 	if err != nil {
 		log.WithContext(r.Context()).WithError(err).Error("error getting frontend domain")
 	}
