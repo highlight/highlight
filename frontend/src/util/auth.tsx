@@ -404,13 +404,18 @@ switch (AUTH_MODE) {
 		defaultAuth.githubProvider = githubProvider
 }
 
+let oauth: OAuth
 export function getAuth() {
 	// different than the tokenCookieName cookie because this is not httponly
 	const clientID = getCookie(Cookies.OAuthClientID)
 	if (clientID && !(defaultAuth instanceof OAuth)) {
-		defaultAuth = new OAuth()
+		if (!oauth) {
+			oauth = new OAuth()
+		}
+		return oauth
+	} else {
+		return defaultAuth
 	}
-	return defaultAuth
 }
 
 export const auth = getAuth()
