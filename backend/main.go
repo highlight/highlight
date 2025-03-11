@@ -441,6 +441,13 @@ func main() {
 		if runtimeParsed == util.PrivateGraph {
 			privateEndpoint = "/"
 		}
+
+		// OAuth server
+		r.HandleFunc("/oauth/token", oauthSrv.HandleTokenRequest)
+		r.HandleFunc("/oauth/authorize", oauthSrv.HandleAuthorizeRequest)
+		r.HandleFunc("/oauth/validate", oauthSrv.HandleValidate)
+		r.HandleFunc("/oauth/revoke", oauthSrv.HandleRevoke)
+
 		r.HandleFunc("/stripe-webhook", privateResolver.StripeWebhook(ctx, env.Config.StripeWebhookSecret))
 		r.HandleFunc("/callback/aws-mp", privateResolver.AWSMPCallback(ctx))
 		r.Route("/zapier", func(r chi.Router) {
@@ -458,12 +465,6 @@ func main() {
 			}
 			r.Get("/assets/{project_id}/{hash_val}", privateResolver.AssetHandler)
 			r.Get("/project-token/{project_id}", privateResolver.ProjectJWTHandler)
-
-			// OAuth server
-			r.HandleFunc("/oauth/token", oauthSrv.HandleTokenRequest)
-			r.HandleFunc("/oauth/authorize", oauthSrv.HandleAuthorizeRequest)
-			r.HandleFunc("/oauth/validate", oauthSrv.HandleValidate)
-			r.HandleFunc("/oauth/revoke", oauthSrv.HandleRevoke)
 
 			log.WithContext(ctx).WithField("private", privateEndpoint).Info("setting up private graph auth listeners")
 			private.AuthClient.SetupListeners(r)
