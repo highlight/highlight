@@ -809,6 +809,7 @@ func (r *Resolver) HandleErrorAndGroup(ctx context.Context, errorObj *model.Erro
 	newObjects := []*model.ErrorObject{}
 	for _, timestamp := range timestamps {
 		newObj := *errorObj
+		newObj.ErrorGroupID = eg.ID
 		newObj.Timestamp = timestamp
 		newObjects = append(newObjects, &newObj)
 	}
@@ -1720,6 +1721,10 @@ type AlertCountsGroupedByRecent struct {
 }
 
 func (r *Resolver) sendErrorAlert(ctx context.Context, projectID int, sessionObj *model.Session, group *model.ErrorGroup, errorObject *model.ErrorObject, visitedUrl string) {
+	if projectID == 0 {
+		return
+	}
+
 	func() {
 		var errorAlerts []*model.ErrorAlert
 		if err := r.DB.WithContext(ctx).Model(&model.ErrorAlert{}).Where(&model.ErrorAlert{AlertDeprecated: model.AlertDeprecated{ProjectID: projectID, Disabled: &model.F}}).Find(&errorAlerts).Error; err != nil {
@@ -2936,6 +2941,10 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 		errors = lo.Filter(errors, func(item *publicModel.ErrorObjectInput, index int) bool {
 			return r.IsFrontendErrorIngested(ctx, project.ID, sessionObj, item)
 		})
+
+		if len(errors) == 0 {
+			return nil
+		}
 
 		// increment daily error table
 		numErrors := int64(len(errors))
