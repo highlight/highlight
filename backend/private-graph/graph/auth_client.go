@@ -4,6 +4,8 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	highlightChi "github.com/highlight/highlight/sdk/highlight-go/middleware/chi"
+	"go.opentelemetry.io/otel/trace"
 	"net/http"
 	"regexp"
 	"strings"
@@ -283,10 +285,13 @@ func (c *OAuthAuthClient) GetUser(ctx context.Context, uid string) (*auth.UserRe
 
 func (c *OAuthAuthClient) SetupListeners(r chi.Router) {
 	log.WithContext(context.Background()).Info("configuring oauth server listeners")
-	r.Get("/oauth/login", c.handleRedirect)
-	r.Post("/oauth/logout", c.handleLogout)
-	r.Get("/oauth/callback", c.handleOAuth2Callback)
-	r.Get("/validate-token", c.validateToken)
+	r.Route("/", func(r chi.Router) {
+		r.Use(highlightChi.UseMiddleware(trace.WithSpanKind(trace.SpanKindServer)))
+		r.Get("/oauth/login", c.handleRedirect)
+		r.Post("/oauth/logout", c.handleLogout)
+		r.Get("/oauth/callback", c.handleOAuth2Callback)
+		r.Get("/validate-token", c.validateToken)
+	})
 }
 
 func (c *OAuthAuthClient) setCallbackCookie(w http.ResponseWriter, r *http.Request, name, value string) {
