@@ -311,17 +311,31 @@ func (w *Worker) processPublicWorkerMessage(ctx context.Context, task *kafkaqueu
 	}()
 
 	go func() {
+		start := time.Now()
 		limit := 30 * time.Second
 		select {
 		case <-time.After(limit):
-			log.WithContext(ctx).
-				WithField("key", string(task.KafkaMessage.Key)).
-				WithField("offset", task.KafkaMessage.Offset).
-				WithField("taskType", task.GetType()).
-				WithField("partition", task.KafkaMessage.Partition).
-				WithField("duration", limit).
-				Warnf("Long running task")
 		case <-done:
+			return
+		}
+
+		ticker := time.NewTicker(1 * time.Second)
+		defer ticker.Stop()
+
+		for {
+			select {
+			case <-done:
+				return
+			case t := <-ticker.C:
+				duration := t.Sub(start)
+				log.WithContext(ctx).
+					WithField("key", string(task.KafkaMessage.Key)).
+					WithField("offset", task.KafkaMessage.Offset).
+					WithField("taskType", task.GetType()).
+					WithField("partition", task.KafkaMessage.Partition).
+					WithField("duration", duration).
+					Warnf("Long running task")
+			}
 		}
 	}()
 
