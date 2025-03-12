@@ -116,7 +116,9 @@ const H: HighlightPublicInterface = {
 			init_called = true
 
 			initializeFetchListener()
-			initializeWebSocketListener()
+			initializeWebSocketListener({
+				disableOtel: !!options?.disableOtelTracing,
+			})
 			import('@highlight-run/client/src').then(
 				async ({
 					Highlight,
@@ -150,7 +152,9 @@ const H: HighlightPublicInterface = {
 						first_load_listeners,
 					)
 					initializeFetchListener()
-					initializeWebSocketListener()
+					initializeWebSocketListener({
+						disableOtel: !!options?.disableOtelTracing,
+					})
 					if (!options?.manualStart) {
 						await highlight_obj.initialize()
 					}
@@ -610,7 +614,9 @@ if (typeof window !== 'undefined') {
 
 listenToChromeExtensionMessage()
 initializeFetchListener()
-initializeWebSocketListener()
+initializeWebSocketListener({
+	disableOtel: !!H.options?.disableOtelTracing,
+})
 
 // Helpers only for testing
 const __testing = {
