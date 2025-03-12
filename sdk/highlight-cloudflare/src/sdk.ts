@@ -24,7 +24,6 @@ import {
 } from '@opentelemetry/api'
 import {
 	CompositePropagator,
-	TRACE_PARENT_HEADER,
 	W3CBaggagePropagator,
 	W3CTraceContextPropagator,
 } from '@opentelemetry/core'
