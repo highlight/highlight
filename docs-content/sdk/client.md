@@ -114,7 +114,7 @@ slug: client
         <aside className="parameter">
           <h5>disableOtelTracing <code>boolean</code> <code>optional</code></h5>
           <p>
-            Specifies whether the OpenTelemetry Browser instrumentation will be disabled for your project. Learn more in [Browser OpenTelemetry](../getting-started/3_client-sdk/7_replay-configuration/opentelemetry.md).
+            Specifies whether the OpenTelemetry Browser instrumentation will be disabled for your project. Learn more in [Browser OpenTelemetry](../getting-started/3_browser/7_replay-configuration/opentelemetry.md).
           </p>
         </aside>
       </article>
