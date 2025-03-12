@@ -743,28 +743,27 @@ func (r *Resolver) isWithinErrorQuota(ctx context.Context, workspace *model.Work
 
 // HandleErrorAndGroup caches the result of handleErrorAndGroup under the exact match of the error body + stacktrace.
 // Improves performance of handleErrorAndGroup by first checking if the exact error object has been grouped before.
-func (r *Resolver) HandleErrorAndGroup(ctx context.Context, errorObj *model.ErrorObject, structuredStackTrace []*privateModel.ErrorTrace, projectID int, workspace *model.Workspace) (*model.ErrorGroup, error) {
+func (r *Resolver) HandleErrorAndGroup(ctx context.Context, errorObj *model.ErrorObject, timestamps []time.Time, structuredStackTrace []*privateModel.ErrorTrace, projectID int, workspace *model.Workspace) (*model.ErrorGroup, []*model.ErrorObject, error) {
 	span, ctx := util.StartSpanFromContext(ctx, "HandleErrorAndGroup", util.Tag("projectID", projectID))
 	defer span.Finish()
 
 	if errorObj == nil {
-		return nil, e.New("error object was nil")
+		return nil, nil, e.New("error object was nil")
 	}
 	if errorObj.Event == "" {
-		return nil, e.New("error object event was empty")
+		return nil, nil, e.New("error object event was empty")
 	}
-
 	if errorObj.StackTrace == nil {
-		return nil, errors.New("error object stacktrace was empty")
+		return nil, nil, e.New("error object stacktrace was empty")
 	}
 
 	project, err := r.Store.GetProject(ctx, projectID)
 	if err != nil {
-		return nil, e.Wrap(err, "error querying project")
+		return nil, nil, e.Wrap(err, "error querying project")
 	}
 
 	if errorgroups.IsErrorTraceFiltered(*project, structuredStackTrace) {
-		return nil, ErrUserFilteredError
+		return nil, nil, ErrUserFilteredError
 	}
 
 	if len(errorObj.Event) > ERROR_EVENT_MAX_LENGTH {
@@ -776,7 +775,7 @@ func (r *Resolver) HandleErrorAndGroup(ctx context.Context, errorObj *model.Erro
 			structuredStackTrace = structuredStackTrace[:stacktraces.ERROR_STACK_MAX_FRAME_COUNT]
 			firstFrameBytes, err := json.Marshal(structuredStackTrace)
 			if err != nil {
-				return nil, e.Wrap(err, "Error marshalling first frame")
+				return nil, nil, e.Wrap(err, "Error marshalling first frame")
 			}
 
 			errorObj.StackTrace = ptr.String(string(firstFrameBytes))
@@ -791,7 +790,7 @@ func (r *Resolver) HandleErrorAndGroup(ctx context.Context, errorObj *model.Erro
 	})
 	if eg == nil || err != nil {
 		log.WithContext(ctx).WithError(err).WithField("project_id", projectID).Error("failed to group error")
-		return eg, err
+		return nil, nil, err
 	}
 
 	// on cache hit, we want to run logic to update error group based on new error object
@@ -802,21 +801,33 @@ func (r *Resolver) HandleErrorAndGroup(ctx context.Context, errorObj *model.Erro
 		}, nil, false)
 		if eg == nil || err != nil {
 			log.WithContext(ctx).WithError(err).WithField("project_id", projectID).Error("failed to group error on cache hit")
-			return eg, err
+			return nil, nil, err
 		}
 	}
 
-	// save error object after grouping
-	errorObj.ErrorGroupID = eg.ID
-	if err := r.DB.WithContext(ctx).Create(errorObj).Error; err != nil {
-		return nil, e.Wrap(err, "Error performing error insert for error")
+	// After grouping / embedding logic, save as multiple error objects with different timestamps
+	newObjects := []*model.ErrorObject{}
+	for _, timestamp := range timestamps {
+		newObj := *errorObj
+		newObj.ErrorGroupID = eg.ID
+		newObj.Timestamp = timestamp
+		newObjects = append(newObjects, &newObj)
 	}
 
-	if err := r.DataSyncQueue.Submit(ctx, strconv.Itoa(errorObj.ID), &kafka_queue.Message{Type: kafka_queue.ErrorObjectDataSync, ErrorObjectDataSync: &kafka_queue.ErrorObjectDataSyncArgs{ErrorObjectID: errorObj.ID}}); err != nil {
-		return nil, err
+	// save error objects after grouping
+	if err := r.DB.WithContext(ctx).Create(&newObjects).Error; err != nil {
+		return nil, nil, e.Wrap(err, "Error performing error insert for error")
 	}
 
-	return eg, err
+	messages := lo.Map(newObjects, func(obj *model.ErrorObject, _ int) kafka_queue.RetryableMessage {
+		return &kafka_queue.Message{Type: kafka_queue.ErrorObjectDataSync, ErrorObjectDataSync: &kafka_queue.ErrorObjectDataSyncArgs{ErrorObjectID: obj.ID}}
+	})
+
+	if err := r.DataSyncQueue.Submit(ctx, "", messages...); err != nil {
+		return nil, nil, err
+	}
+
+	return eg, newObjects, err
 }
 
 // Matches the ErrorObject with an existing ErrorGroup, or creates a new one if the group does not exist
@@ -1710,6 +1721,10 @@ type AlertCountsGroupedByRecent struct {
 }
 
 func (r *Resolver) sendErrorAlert(ctx context.Context, projectID int, sessionObj *model.Session, group *model.ErrorGroup, errorObject *model.ErrorObject, visitedUrl string) {
+	if projectID == 0 {
+		return
+	}
+
 	func() {
 		var errorAlerts []*model.ErrorAlert
 		if err := r.DB.WithContext(ctx).Model(&model.ErrorAlert{}).Where(&model.ErrorAlert{AlertDeprecated: model.AlertDeprecated{ProjectID: projectID, Disabled: &model.F}}).Find(&errorAlerts).Error; err != nil {
@@ -2170,16 +2185,8 @@ func (r *Resolver) ProcessBackendPayloadImpl(ctx context.Context, sessionSecureI
 		log.WithContext(ctx).Error(e.Wrap(err, "Error marking backend error setup"))
 	}
 
-	// put errors in db
-	putErrorsToDBSpan, ctx := util.StartSpanFromContext(ctx, "public-graph.processBackendPayload",
-		util.ResourceName("db.errors"))
-	defer putErrorsToDBSpan.Finish()
-	groupedErrors := make(map[int][]*model.ErrorObject)
-	groups := make(map[int]struct {
-		Group      *model.ErrorGroup
-		VisitedURL string
-		SessionObj *model.Session
-	})
+	inputPairs := []*inputPair{}
+	span, _ := util.StartSpanFromContext(ctx, "MarshalErrors")
 	for _, v := range errorObjects {
 		_, err := json.Marshal(v.StackTrace)
 		if err != nil {
@@ -2212,33 +2219,63 @@ func (r *Resolver) ProcessBackendPayloadImpl(ctx context.Context, sessionSecureI
 			ServiceVersion: v.Service.Version,
 		}
 
+		inputPairs = append(inputPairs, &inputPair{
+			ErrorObject:       errorToInsert,
+			BackendErrorInput: v,
+		})
+	}
+	span.Finish()
+
+	errorsDeduped := lo.GroupBy(inputPairs, func(p *inputPair) string {
+		return errorgroups.GetDedupingKey(p.ErrorObject.StackTrace, p.ErrorObject.Event)
+	})
+
+	// put errors in db
+	putErrorsToDBSpan, ctx := util.StartSpanFromContext(ctx, "public-graph.processBackendPayload",
+		util.ResourceName("db.errors"))
+	defer putErrorsToDBSpan.Finish()
+	groupedErrors := make(map[int][]*model.ErrorObject)
+	groups := make(map[int]struct {
+		Group      *model.ErrorGroup
+		VisitedURL string
+		SessionObj *model.Session
+	})
+
+	for _, pairs := range errorsDeduped {
+		firstObject := pairs[0].ErrorObject
+		firstInput := pairs[0].BackendErrorInput
+
+		timestamps := lo.Map(pairs, func(pair *inputPair, _ int) time.Time {
+			return pair.ErrorObject.Timestamp
+		})
+
 		var structuredStackTrace []*privateModel.ErrorTrace
 		var stackFrameInput []*publicModel.StackFrameInput
 
-		if err := json.Unmarshal([]byte(v.StackTrace), &stackFrameInput); err == nil {
-			mapped, structured, err := r.getMappedStackTraceString(ctx, stackFrameInput, projectID, errorToInsert)
+		if err := json.Unmarshal([]byte(firstInput.StackTrace), &stackFrameInput); err == nil {
+			mapped, structured, err := r.getMappedStackTraceString(ctx, stackFrameInput, projectID, firstObject)
 			if err != nil {
-				log.WithContext(ctx).Errorf("Error generating mapped stack trace: %v", v.StackTrace)
+				log.WithContext(ctx).Errorf("Error generating mapped stack trace: %v", firstObject.StackTrace)
 			} else if mapped != nil && *mapped != "null" {
-				errorToInsert.MappedStackTrace = mapped
+				firstObject.MappedStackTrace = mapped
 				structuredStackTrace = structured
 			}
 		}
 
-		stack := errorToInsert.MappedStackTrace
+		stack := firstObject.MappedStackTrace
 		if stack == nil {
-			stack = &v.StackTrace
+			stack = &firstInput.StackTrace
 		}
 
-		mapped, structured, err := r.Store.EnhancedStackTrace(ctx, *stack, workspace, &project, errorToInsert, nil)
+		mapped, structured, err := r.Store.EnhancedStackTrace(ctx, *stack, workspace, &project, firstObject, nil)
 		if err != nil {
 			log.WithContext(ctx).WithError(err).Errorf("Failed to generate structured stacktrace %v", *stack)
 		} else if mapped != nil {
-			errorToInsert.MappedStackTrace = mapped
+			firstObject.MappedStackTrace = mapped
 			structuredStackTrace = structured
 		}
 
-		group, err := r.HandleErrorAndGroup(ctx, errorToInsert, structuredStackTrace, projectID, workspace)
+		group, objects, err := r.HandleErrorAndGroup(ctx, firstObject, timestamps, structuredStackTrace, projectID, workspace)
 		if err != nil {
 			if e.Is(err, ErrUserFilteredError) {
 				log.WithContext(ctx).WithError(err).Info("Will not update error group")
@@ -2252,8 +2289,8 @@ func (r *Resolver) ProcessBackendPayloadImpl(ctx context.Context, sessionSecureI
 			Group      *model.ErrorGroup
 			VisitedURL string
 			SessionObj *model.Session
-		}{Group: group, VisitedURL: errorToInsert.URL, SessionObj: session}
-		groupedErrors[group.ID] = append(groupedErrors[group.ID], errorToInsert)
+		}{Group: group, VisitedURL: firstObject.URL, SessionObj: session}
+		groupedErrors[group.ID] = append(groupedErrors[group.ID], objects...)
 	}
 
 	for _, errorInstances := range groupedErrors {
@@ -2595,6 +2632,12 @@ func TransformEvents(evs []*publicModel.ReplayEventInput) (*parse.ReplayEvents, 
 	return events, nil
 }
 
+type inputPair struct {
+	ErrorObject       *model.ErrorObject
+	ErrorInput        *publicModel.ErrorObjectInput
+	BackendErrorInput *publicModel.BackendErrorObjectInput
+}
+
 func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, events publicModel.ReplayEventsInput, messages string, resources string, webSocketEvents *string, errors []*publicModel.ErrorObjectInput, isBeacon bool, hasSessionUnloaded bool, highlightLogs *string, payloadId *int) error {
 	// old clients do not send web socket events, so the value can be nil.
 	// use this str as a simpler way to reference
@@ -2899,6 +2942,10 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 			return r.IsFrontendErrorIngested(ctx, project.ID, sessionObj, item)
 		})
 
+		if len(errors) == 0 {
+			return nil
+		}
+
 		// increment daily error table
 		numErrors := int64(len(errors))
 		if numErrors > 0 {
@@ -2909,15 +2956,10 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 		putErrorsToDBSpan, ctx := util.StartSpanFromContext(ctx, "public-graph.pushPayload",
 			util.ResourceName("db.errors"), util.Tag("project_id", projectID))
 		defer putErrorsToDBSpan.Finish()
-		groupedErrors := make(map[int][]*model.ErrorObject)
-		groups := make(map[int]struct {
-			Group      *model.ErrorGroup
-			VisitedURL string
-			SessionObj *model.Session
-		})
 
+		inputPairs := []*inputPair{}
+		span, c := util.StartSpanFromContext(ctx, "MarshalErrors")
 		for _, v := range errors {
-			span, c := util.StartSpanFromContext(ctx, "MarshalError")
 			traceBytes, err := json.Marshal(v.StackTrace)
 			if err != nil {
 				log.WithContext(c).Errorf("Error marshaling trace: %v", v.StackTrace)
@@ -2950,32 +2992,61 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 				ServiceVersion: serviceVersion,
 				ServiceName:    sessionObj.ServiceName,
 			}
-			span.Finish()
+
+			inputPairs = append(inputPairs, &inputPair{
+				ErrorObject: errorToInsert,
+				ErrorInput:  v,
+			})
+		}
+		span.Finish()
+
+		errorsDeduped := lo.GroupBy(inputPairs, func(p *inputPair) string {
+			return errorgroups.GetDedupingKey(p.ErrorObject.StackTrace, p.ErrorObject.Event)
+		})
+
+		groupedErrors := make(map[int][]*model.ErrorObject)
+		groups := make(map[int]struct {
+			Group      *model.ErrorGroup
+			VisitedURL string
+			SessionObj *model.Session
+		})
+
+		for _, pairs := range errorsDeduped {
+			firstObject := pairs[0].ErrorObject
+			firstInput := pairs[0].ErrorInput
+
+			timestamps := lo.Map(pairs, func(pair *inputPair, _ int) time.Time {
+				return pair.ErrorObject.Timestamp
+			})
 
 			var structuredStackTrace []*privateModel.ErrorTrace
-			mapped, structured, err := r.getMappedStackTraceString(ctx, v.StackTrace, projectID, errorToInsert)
+			mapped, structured, err := r.getMappedStackTraceString(ctx, firstInput.StackTrace, projectID, firstObject)
 
 			if err != nil {
-				log.WithContext(ctx).Errorf("Error generating mapped stack trace: %v", v.StackTrace)
+				log.WithContext(ctx).Errorf("Error generating mapped stack trace: %v", firstInput.StackTrace)
 			} else {
-				errorToInsert.MappedStackTrace = mapped
+				for _, pair := range pairs {
+					pair.ErrorObject.MappedStackTrace = mapped
+				}
 				structuredStackTrace = structured
 			}
 
-			stack := errorToInsert.MappedStackTrace
+			stack := firstObject.MappedStackTrace
 			if stack == nil {
-				stack = errorToInsert.StackTrace
+				stack = firstObject.StackTrace
 			}
 			// use github enhancement for frontend errors
-			mapped, structured, err = r.Store.EnhancedStackTrace(ctx, *stack, workspace, project, errorToInsert, nil)
+			mapped, structured, err = r.Store.EnhancedStackTrace(ctx, *stack, workspace, project, firstObject, nil)
 			if err != nil {
-				log.WithContext(ctx).WithError(err).WithField("stacktrace", v.StackTrace).Errorf("Failed to generate frontend structured stacktrace %v", v.StackTrace)
+				log.WithContext(ctx).WithError(err).WithField("stacktrace", firstInput.StackTrace).Errorf("Failed to generate frontend structured stacktrace %v", firstInput.StackTrace)
 			} else if mapped != nil {
-				errorToInsert.MappedStackTrace = mapped
+				for _, pair := range pairs {
+					pair.ErrorObject.MappedStackTrace = mapped
+				}
 				structuredStackTrace = structured
 			}
 
-			group, err := r.HandleErrorAndGroup(ctx, errorToInsert, structuredStackTrace, projectID, workspace)
+			group, objects, err := r.HandleErrorAndGroup(ctx, firstObject, timestamps, structuredStackTrace, projectID, workspace)
 			if err != nil {
 				if e.Is(err, ErrUserFilteredError) {
 					log.WithContext(ctx).WithError(err).Info("Will not update error group")
@@ -2989,8 +3060,8 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 				Group      *model.ErrorGroup
 				VisitedURL string
 				SessionObj *model.Session
-			}{Group: group, VisitedURL: errorToInsert.URL, SessionObj: sessionObj}
-			groupedErrors[group.ID] = append(groupedErrors[group.ID], errorToInsert)
+			}{Group: group, VisitedURL: firstObject.URL, SessionObj: sessionObj}
+			groupedErrors[group.ID] = append(groupedErrors[group.ID], objects...)
 		}
 
 		for _, errorInstances := range groupedErrors {
