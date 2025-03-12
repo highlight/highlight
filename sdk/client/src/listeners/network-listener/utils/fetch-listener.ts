@@ -29,6 +29,7 @@ export const FetchListener = (
 	urlBlocklist: string[],
 	bodyKeysToRedact: string[],
 	bodyKeysToRecord: string[] | undefined,
+	otelDisabled: boolean,
 ) => {
 	const originalFetch = window._fetchProxy
 
@@ -44,7 +45,8 @@ export const FetchListener = (
 			return originalFetch.call(this, input, init)
 		}
 
-		const [sessionSecureID, requestId] = createNetworkRequestId()
+		const [sessionSecureID, requestId] =
+			createNetworkRequestId(otelDisabled)
 		if (shouldNetworkRequestBeTraced(url, tracingOrigins, urlBlocklist)) {
 			init = init || {}
 			// Pre-existing headers could be one of three different formats; this reads all of them.

@@ -22,6 +22,7 @@ type NetworkListenerArguments = {
 	highlightEndpoints: string[]
 	tracingOrigins: boolean | (string | RegExp)[]
 	urlBlocklist: string[]
+	otelDisabled: boolean
 } & Pick<NetworkRecordingOptions, 'bodyKeysToRecord'>
 
 export const NetworkListener = ({
@@ -35,6 +36,7 @@ export const NetworkListener = ({
 	tracingOrigins,
 	urlBlocklist,
 	bodyKeysToRecord,
+	otelDisabled,
 }: NetworkListenerArguments) => {
 	const removeXHRListener = XHRListener(
 		xhrCallback,
@@ -43,6 +45,7 @@ export const NetworkListener = ({
 		urlBlocklist,
 		bodyKeysToRedact,
 		bodyKeysToRecord,
+		otelDisabled,
 	)
 	const removeFetchListener = FetchListener(
 		fetchCallback,
@@ -51,6 +54,7 @@ export const NetworkListener = ({
 		urlBlocklist,
 		bodyKeysToRedact,
 		bodyKeysToRecord,
+		otelDisabled,
 	)
 
 	const removeWebSocketListener = !disableWebSocketRecording

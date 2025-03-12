@@ -261,6 +261,10 @@ export declare type HighlightOptions = {
 	 * OTLP endpoint for OpenTelemetry tracing.
 	 */
 	otlpEndpoint?: string
+	/**
+	 * Specifies whether to disable OpenTelemetry tracing on the client.
+	 */
+	disableOtelTracing?: boolean
 }
 
 export declare interface HighlightPublicInterface {
