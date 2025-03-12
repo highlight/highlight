@@ -311,9 +311,13 @@ function makeId(length: number) {
 	return result
 }
 
-export const createNetworkRequestId = () => {
+export const createNetworkRequestId = (disableOtelTracing: boolean) => {
 	// Long enough to avoid collisions, not long enough to be unguessable
 	const requestId = makeId(10)
+
+	if (disableOtelTracing) {
+		return [getNetworkSessionSecureID(), requestId]
+	}
 
 	const context = getActiveSpan()
 	const traceId = context?.spanContext().traceId

@@ -2,9 +2,10 @@ package errorgroups
 
 import (
 	"fmt"
-	"github.com/aws/smithy-go/ptr"
 	"strconv"
 	"strings"
+
+	"github.com/aws/smithy-go/ptr"
 
 	"github.com/highlight-run/highlight/backend/model"
 	privateModel "github.com/highlight-run/highlight/backend/private-graph/graph/model"
@@ -47,6 +48,15 @@ func GetKey(projectID int, errorObj *model.ErrorObject, structuredStackTrace []*
 	}
 	stackBody := joinStringPtrs(errorObj.StackTrace, ptr.String(fingerprintsStr))
 	return fmt.Sprintf("error-object-group-%d-%s-%s", projectID, errorObj.Event, stackBody)
+}
+
+// A key for deduping error objects with the same event and untransformed stack trace
+func GetDedupingKey(stackTrace *string, event string) string {
+	stackTraceStr := ""
+	if stackTrace != nil {
+		stackTraceStr = *stackTrace
+	}
+	return fmt.Sprintf("%s-%s", event, stackTraceStr)
 }
 
 func joinStringPtrs(ptrs ...*string) string {
