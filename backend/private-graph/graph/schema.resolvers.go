@@ -82,18 +82,21 @@ func (r *allWorkspaceSettingsResolver) EnableBusinessDashboards(ctx context.Cont
 		return false, err
 	}
 
+	if obj.EnableUnlimitedDashboards {
+		return true, nil
+	}
+
 	var numDashboards int64
 	if err := r.DB.Raw(`
-		SELECT v.id
+		SELECT COUNT(*)
 		FROM visualizations v
 		INNER JOIN projects p ON p.id = v.project_id
-		INNER JOIN workspaces w ON w.id = p.workspace_id
-		WHERE w.id = ?;
-	`, w.ID).Count(&numDashboards).Error; err != nil {
+		WHERE p.workspace_id = ?;
+	`, w.ID).Scan(&numDashboards).Error; err != nil {
 		return false, e.Wrap(err, "error querying workspace visualizations")
 	}
 
-	return obj.EnableUnlimitedDashboards || numDashboards <= 2, nil
+	return numDashboards <= 2, nil
 }
 
 // EnableBusinessProjects is the resolver for the enable_business_projects field.
