@@ -302,6 +302,43 @@ func (w *Worker) scanSessionPayload(ctx context.Context, manager *payload.Payloa
 }
 
 func (w *Worker) processPublicWorkerMessage(ctx context.Context, task *kafkaqueue.Message) error {
+	span, ctx := util.StartSpanFromContext(ctx, "worker.processPublicWorkerMessage")
+	defer span.Finish()
+
+	done := make(chan struct{})
+	defer func() {
+		close(done)
+	}()
+
+	go func() {
+		start := time.Now()
+		limit := 30 * time.Second
+		select {
+		case <-time.After(limit):
+		case <-done:
+			return
+		}
+
+		ticker := time.NewTicker(1 * time.Second)
+		defer ticker.Stop()
+
+		for {
+			select {
+			case <-done:
+				return
+			case t := <-ticker.C:
+				duration := t.Sub(start)
+				log.WithContext(ctx).
+					WithField("key", string(task.KafkaMessage.Key)).
+					WithField("offset", task.KafkaMessage.Offset).
+					WithField("taskType", task.GetType()).
+					WithField("partition", task.KafkaMessage.Partition).
+					WithField("duration", duration).
+					Warnf("Long running task")
+			}
+		}
+	}()
+
 	switch task.Type {
 	case kafkaqueue.PushPayload:
 		if task.PushPayload == nil {

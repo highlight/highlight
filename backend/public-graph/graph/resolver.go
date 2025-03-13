@@ -2645,32 +2645,44 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 	if webSocketEvents != nil {
 		webSocketEventsStr = *webSocketEvents
 	}
-	querySessionSpan, _ := util.StartSpanFromContext(ctx, "public-graph.pushPayload", util.ResourceName("db.querySession"))
-	querySessionSpan.SetAttribute("sessionSecureID", sessionSecureID)
-	querySessionSpan.SetAttribute("messagesLength", len(messages))
-	querySessionSpan.SetAttribute("resourcesLength", len(resources))
-	querySessionSpan.SetAttribute("webSocketEventsLength", len(webSocketEventsStr))
-	querySessionSpan.SetAttribute("numberOfErrors", len(errors))
-	querySessionSpan.SetAttribute("numberOfEvents", len(events.Events))
+
+	opts := []util.SpanOption{
+		util.Tag("sessionSecureID", sessionSecureID),
+		util.Tag("messagesLength", len(messages)),
+		util.Tag("resourcesLength", len(resources)),
+		util.Tag("webSocketEventsLength", len(webSocketEventsStr)),
+		util.Tag("numberOfErrors", len(errors)),
+		util.Tag("numberOfEvents", len(events.Events)),
+	}
+	// sample-in payload with many events
+	if len(events.Events) > 1_000 {
+		opts = append(opts, util.WithSpanKind(trace.SpanKindServer))
+	}
+	span, ctx := util.StartSpanFromContext(ctx, "public-graph.pushPayload", opts...)
+	defer span.Finish()
+
+	querySessionSpan, sCtx := util.StartSpanFromContext(ctx, "public-graph.pushPayload.query")
 	if highlightLogs != nil {
 		logsArray := strings.Split(*highlightLogs, "\n")
 		for _, clientLog := range logsArray {
 			if clientLog != "" {
-				log.WithContext(ctx).Warnf("[Client]%s", clientLog)
+				log.WithContext(sCtx).Warnf("[Client]%s", clientLog)
 			}
 		}
 	}
 	if sessionSecureID == "" {
-		return e.New("ProcessPayload called without secureID")
+		err := e.New("ProcessPayload called without secureID")
+		querySessionSpan.Finish(err)
+		return err
 	}
 
-	sessionObj, err := r.getSession(ctx, sessionSecureID)
+	sessionObj, err := r.getSession(sCtx, sessionSecureID)
 	if err != nil {
 		querySessionSpan.Finish(err)
 		return err
 	}
-	querySessionSpan.SetAttribute("secure_id", sessionObj.SecureID)
-	querySessionSpan.SetAttribute("project_id", sessionObj.ProjectID)
+	span.SetAttribute("session_id", sessionObj.ID)
+	span.SetAttribute("project_id", sessionObj.ProjectID)
 	querySessionSpan.Finish()
 	sessionID := sessionObj.ID
 
@@ -2689,11 +2701,11 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 
 	// If the session is processing or processed, set ResumedAfterProcessedTime and continue
 	if (sessionObj.Lock.Valid && !sessionObj.Lock.Time.IsZero()) || (sessionObj.Processed != nil && *sessionObj.Processed) {
-		resumedAfterProcessedSpan, _ := util.StartSpanFromContext(ctx, "public-graph.pushPayload.updateResumedAfterProcessedTime")
+		resumedAfterProcessedSpan, sCtx := util.StartSpanFromContext(ctx, "public-graph.pushPayload.updateResumedAfterProcessedTime")
 		if sessionObj.ResumedAfterProcessedTime == nil {
 			now := time.Now()
-			if err := r.DB.WithContext(ctx).Model(&model.Session{Model: model.Model{ID: sessionID}}).Update("ResumedAfterProcessedTime", &now).Error; err != nil {
-				log.WithContext(ctx).Error(e.Wrap(err, "error updating session ResumedAfterProcessedTime"))
+			if err := r.DB.WithContext(sCtx).Model(&model.Session{Model: model.Model{ID: sessionID}}).Update("ResumedAfterProcessedTime", &now).Error; err != nil {
+				log.WithContext(sCtx).Error(e.Wrap(err, "error updating session ResumedAfterProcessedTime"))
 			}
 		}
 		resumedAfterProcessedSpan.Finish()
@@ -2709,36 +2721,33 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 	projectID := sessionObj.ProjectID
 	hasBeacon := sessionObj.BeaconTime != nil
 
-	loadWorkspaceSettingsSpan, _ := util.StartSpanFromContext(ctx, "public-graph.pushPayload.loadWorkspaceSettings")
-	settings, err := r.Store.GetAllWorkspaceSettingsByProject(ctx, projectID)
+	loadWorkspaceSettingsSpan, sCtx := util.StartSpanFromContext(ctx, "public-graph.pushPayload.loadWorkspaceSettings")
+	settings, err := r.Store.GetAllWorkspaceSettingsByProject(sCtx, projectID)
 	if err != nil {
-		log.WithContext(ctx).WithError(err).Error("failed to get workspace settings from project to check asset replacement")
+		log.WithContext(sCtx).WithError(err).Error("failed to get workspace settings from project to check asset replacement")
 	}
 	loadWorkspaceSettingsSpan.Finish()
 
 	g.Go(func() error {
 		defer util.Recover()
 
-		referenceDataSpan, _ := util.StartSpanFromContext(ctx, "public-graph.pushPayload.referenceData", util.Tag("project_id", projectID))
-		project, err := r.Store.GetProject(ctx, projectID)
+		referenceDataSpan, sCtx := util.StartSpanFromContext(ctx, "public-graph.pushPayload.referenceData", util.Tag("project_id", projectID))
+		project, err := r.Store.GetProject(sCtx, projectID)
 		if err != nil {
 			return err
 		}
 
-		workspace, err := r.Store.GetWorkspace(ctx, project.WorkspaceID)
+		workspace, err := r.Store.GetWorkspace(sCtx, project.WorkspaceID)
 		if err != nil {
 			return e.Wrap(err, "error querying workspace")
 		}
 
-		if withinBillingQuota, _ := r.IsWithinQuota(ctx, model.PricingProductTypeSessions, workspace, time.Now()); !withinBillingQuota {
+		if withinBillingQuota, _ := r.IsWithinQuota(sCtx, model.PricingProductTypeSessions, workspace, time.Now()); !withinBillingQuota {
 			return nil
 		}
 		referenceDataSpan.Finish()
 
-		opts := []util.SpanOption{util.ResourceName("go.parseEvents"), util.Tag("project_id", projectID)}
-		if len(events.Events) > 1_000 {
-			opts = append(opts, util.WithSpanKind(trace.SpanKindServer))
-		}
+		opts := []util.SpanOption{util.Tag("project_id", projectID)}
 		parseEventsSpan, ctx := util.StartSpanFromContext(ctx, "public-graph.pushPayload.parseEvents", opts...)
 		defer parseEventsSpan.Finish()
 
@@ -2758,54 +2767,53 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 			hasFullSnapshot := false
 			hostUrl := parse.GetHostUrlFromEvents(parsedEvents.Events)
 
-			eventLoopSpan, _ := util.StartSpanFromContext(ctx, "public-graph.pushPayload.eventLoop", util.Tag("project_id", projectID))
+			eventLoopSpan, sCtx := util.StartSpanFromContext(ctx, "public-graph.pushPayload.eventLoop", util.Tag("project_id", projectID))
 			for _, event := range parsedEvents.Events {
 				if event.Type == parse.FullSnapshot || event.Type == parse.IncrementalSnapshot {
 					snapshot, err := parse.NewSnapshot(event.Data, hostUrl)
 					if err != nil {
-						log.WithContext(ctx).WithField("projectID", projectID).WithField("sessionID", sessionID).WithError(err).Error("Error unmarshalling snapshot")
+						log.WithContext(sCtx).WithField("projectID", projectID).WithField("sessionID", sessionID).WithError(err).Error("Error unmarshalling snapshot")
 						continue
 					}
 
 					// escape script tags in any javascript
-					err = snapshot.EscapeJavascript(ctx)
+					err = snapshot.EscapeJavascript(sCtx)
 					if err != nil {
-						log.WithContext(ctx).Error(e.Wrap(err, "Error escaping snapshot javascript"))
+						log.WithContext(sCtx).Error(e.Wrap(err, "Error escaping snapshot javascript"))
 					}
 
 					// Replace any static resources with our own, hosted in S3
 					if settings != nil && settings.ReplaceAssets {
-						project, err := r.Store.GetProject(ctx, projectID)
+						project, err := r.Store.GetProject(sCtx, projectID)
 						if err != nil {
 							return err
 						}
 
-						workspace, err := r.Store.GetWorkspace(ctx, project.WorkspaceID)
+						workspace, err := r.Store.GetWorkspace(sCtx, project.WorkspaceID)
 						if err != nil {
 							return err
 						}
 
-						err = snapshot.ReplaceAssets(ctx, projectID, r.Store, workspace.GetRetentionPeriod())
+						err = snapshot.ReplaceAssets(sCtx, projectID, r.Store, workspace.GetRetentionPeriod())
 						if err != nil {
-							log.WithContext(ctx).Error(e.Wrap(err, "error replacing assets"))
+							log.WithContext(sCtx).Error(e.Wrap(err, "error replacing assets"))
 						}
 					}
 
 					if event.Type == parse.FullSnapshot {
 						hasFullSnapshot = true
-						stylesheetsSpan, _ := util.StartSpanFromContext(ctx, "public-graph.pushPayload",
-							util.ResourceName("go.parseEvents.InjectStylesheets"), util.Tag("project_id", projectID))
+						stylesheetsSpan, tCtx := util.StartSpanFromContext(sCtx, "public-graph.pushPayload.parseEvents.InjectStylesheets", util.Tag("project_id", projectID))
 						// If we see a snapshot event, attempt to inject CORS stylesheets.
-						err := snapshot.InjectStylesheets(ctx)
+						err := snapshot.InjectStylesheets(tCtx)
 						stylesheetsSpan.Finish(err)
 						if err != nil {
-							log.WithContext(ctx).Error(e.Wrap(err, "Error injecting snapshot stylesheets"))
+							log.WithContext(sCtx).Error(e.Wrap(err, "Error injecting snapshot stylesheets"))
 						}
 					}
 					if event.Type == parse.IncrementalSnapshot {
 						mouseInteractionEventData, err := parse.UnmarshallMouseInteractionEvent(event.Data)
 						if err != nil {
-							log.WithContext(ctx).Error(e.Wrap(err, "Error unmarshalling incremental event"))
+							log.WithContext(sCtx).Error(e.Wrap(err, "Error unmarshalling incremental event"))
 						}
 						if userEvent := map[parse.EventSource]bool{
 							parse.MouseMove: true, parse.MouseInteraction: true, parse.Scroll: true,
@@ -2820,8 +2828,8 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 			}
 			eventLoopSpan.Finish()
 
-			remarshalSpan, _ := util.StartSpanFromContext(ctx, "public-graph.pushPayload",
-				util.ResourceName("go.parseEvents.remarshalEvents"), util.Tag("project_id", projectID))
+			remarshalSpan, _ := util.StartSpanFromContext(ctx, "public-graph.pushPayload.parseEvents.remarshalEvents",
+				util.Tag("project_id", projectID))
 			// Re-format as a string to write to the db.
 			b, err := json.Marshal(parsedEvents)
 			if err != nil {
@@ -2856,10 +2864,9 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 	// unmarshal messages
 	g.Go(func() error {
 		defer util.Recover()
-		unmarshalMessagesSpan, ctx := util.StartSpanFromContext(ctx, "public-graph.pushPayload",
-			util.ResourceName("go.unmarshal.messages"), util.Tag("project_id", projectID), util.Tag("message_string_len", len(messages)), util.Tag("secure_session_id", sessionSecureID))
+		unmarshalMessagesSpan, sCtx := util.StartSpanFromContext(ctx, "public-graph.pushPayload.unmarshal.messages", util.Tag("project_id", projectID), util.Tag("message_string_len", len(messages)), util.Tag("secure_session_id", sessionSecureID))
 
-		err := r.submitFrontendConsoleMessages(ctx, sessionObj, messages)
+		err := r.submitFrontendConsoleMessages(sCtx, sessionObj, messages)
 		unmarshalMessagesSpan.Finish(err)
 		return err
 	})
@@ -2867,8 +2874,7 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 	// unmarshal resources
 	g.Go(func() error {
 		defer util.Recover()
-		unmarshalResourcesSpan, ctx := util.StartSpanFromContext(ctx, "public-graph.pushPayload",
-			util.ResourceName("go.unmarshal.resources"), util.Tag("project_id", projectID))
+		unmarshalResourcesSpan, ctx := util.StartSpanFromContext(ctx, "public-graph.pushPayload.unmarshal.resources", util.Tag("project_id", projectID))
 		defer unmarshalResourcesSpan.Finish()
 
 		if err := r.SaveSessionData(ctx, projectID, sessionID, payloadIdDeref, isBeacon, model.PayloadTypeResources, []byte(resources)); err != nil {
@@ -2893,8 +2899,7 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 	g.Go(func() error {
 		defer util.Recover()
 		if webSocketEventsStr != "" {
-			unmarshalWebSocketEventsSpan, ctx := util.StartSpanFromContext(ctx, "public-graph.pushPayload",
-				util.ResourceName("go.unmarshal.web_socket_events"), util.Tag("project_id", projectID))
+			unmarshalWebSocketEventsSpan, ctx := util.StartSpanFromContext(ctx, "public-graph.pushPayload.unmarshal.web_socket_events", util.Tag("project_id", projectID))
 			defer unmarshalWebSocketEventsSpan.Finish()
 
 			if err := r.SaveSessionData(ctx, projectID, sessionID, payloadIdDeref, isBeacon, model.PayloadTypeWebSocketEvents, []byte(webSocketEventsStr)); err != nil {
@@ -2953,16 +2958,15 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 		}
 
 		// put errors in db
-		putErrorsToDBSpan, ctx := util.StartSpanFromContext(ctx, "public-graph.pushPayload",
-			util.ResourceName("db.errors"), util.Tag("project_id", projectID))
+		putErrorsToDBSpan, ctx := util.StartSpanFromContext(ctx, "public-graph.pushPayload.insert.db.errors", util.Tag("project_id", projectID))
 		defer putErrorsToDBSpan.Finish()
 
 		inputPairs := []*inputPair{}
-		span, c := util.StartSpanFromContext(ctx, "MarshalErrors")
+		span, sCtx := util.StartSpanFromContext(ctx, "MarshalErrors")
 		for _, v := range errors {
 			traceBytes, err := json.Marshal(v.StackTrace)
 			if err != nil {
-				log.WithContext(c).Errorf("Error marshaling trace: %v", v.StackTrace)
+				log.WithContext(sCtx).Errorf("Error marshaling trace: %v", v.StackTrace)
 				continue
 			}
 
@@ -3074,6 +3078,7 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 	})
 
 	if err := g.Wait(); err != nil {
+		span.Finish(err)
 		return err
 	}
 
@@ -3107,7 +3112,7 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 		}
 	}
 
-	updateSpan, ctx := util.StartSpanFromContext(ctx, "public-graph.pushPayload", util.ResourceName("doSessionFieldsUpdate"))
+	updateSpan, ctx := util.StartSpanFromContext(ctx, "public-graph.pushPayload.doSessionFieldsUpdate")
 	defer updateSpan.Finish()
 
 	excluded, reason := r.IsSessionExcluded(ctx, sessionObj, sessionHasErrors)
@@ -3127,11 +3132,11 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 		(sessionHasErrors && (sessionObj.HasErrors == nil || !*sessionObj.HasErrors))
 
 	if doUpdate && !excluded {
-		updateSessionSpan, _ := util.StartSpanFromContext(ctx, "public-graph.pushPayload.updateSession", util.Tag("project_id", projectID))
+		updateSessionSpan, sCtx := util.StartSpanFromContext(ctx, "public-graph.pushPayload.updateSession", util.Tag("project_id", projectID))
 		// By default, GORM will not update non-zero fields. This is undesirable for boolean columns.
 		// By explicitly specifying the columns to update, we can override the behavior.
 		// See https://gorm.io/docs/update.html#Updates-multiple-columns
-		if err := r.DB.WithContext(ctx).Model(&model.Session{Model: model.Model{ID: sessionID}}).
+		if err := r.DB.WithContext(sCtx).Model(&model.Session{Model: model.Model{ID: sessionID}}).
 			Select("PayloadUpdatedAt", "BeaconTime", "HasUnloaded", "Processed", "ObjectStorageEnabled", "Chunked", "DirectDownloadEnabled", "Excluded", "ExcludedReason", "HasErrors").
 			Updates(&model.Session{
 				PayloadUpdatedAt:      &now,
@@ -3145,7 +3150,7 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 				ExcludedReason:        nil,
 				HasErrors:             &sessionHasErrors,
 			}).Error; err != nil {
-			log.WithContext(ctx).Error(e.Wrap(err, "error updating session"))
+			log.WithContext(sCtx).Error(e.Wrap(err, "error updating session"))
 			return err
 		}
 		updateSessionSpan.Finish()
@@ -3163,7 +3168,7 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 		updatedSession.HasErrors = &sessionHasErrors
 		r.SessionCache.Add(sessionSecureID, &updatedSession)
 	} else if excluded {
-		excludeSessionSpan, _ := util.StartSpanFromContext(ctx, "public-graph.pushPayload.excludeSession", util.Tag("project_id", projectID))
+		excludeSessionSpan, sCtx := util.StartSpanFromContext(ctx, "public-graph.pushPayload.excludeSession", util.Tag("project_id", projectID))
 		// Only update the excluded flag and reason if either have changed
 		var reasonDeref, newReasonDeref privateModel.SessionExcludedReason
 		if sessionObj.ExcludedReason != nil {
@@ -3173,14 +3178,14 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 			newReasonDeref = *reason
 		}
 		if sessionObj.Excluded != excluded || reasonDeref != newReasonDeref {
-			if err := r.DB.WithContext(ctx).Model(&model.Session{Model: model.Model{ID: sessionID}}).
+			if err := r.DB.WithContext(sCtx).Model(&model.Session{Model: model.Model{ID: sessionID}}).
 				Select("Excluded", "ExcludedReason").Updates(&model.Session{
 				Excluded:       excluded,
 				ExcludedReason: reason,
 			}).Error; err != nil {
 				return err
 			}
-			if err := r.DataSyncQueue.Submit(ctx, strconv.Itoa(sessionObj.ID), &kafka_queue.Message{Type: kafka_queue.SessionDataSync, SessionDataSync: &kafka_queue.SessionDataSyncArgs{SessionID: sessionObj.ID}}); err != nil {
+			if err := r.DataSyncQueue.Submit(sCtx, strconv.Itoa(sessionObj.ID), &kafka_queue.Message{Type: kafka_queue.SessionDataSync, SessionDataSync: &kafka_queue.SessionDataSyncArgs{SessionID: sessionObj.ID}}); err != nil {
 				return err
 			}
 		}
@@ -3192,12 +3197,12 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 		r.SessionCache.Add(sessionSecureID, &updatedSession)
 	}
 
-	opensearchSpan, ctx := util.StartSpanFromContext(ctx, "public-graph.pushPayload", util.ResourceName("opensearch.update"))
-	defer opensearchSpan.Finish()
+	clickhouseSpan, ctx := util.StartSpanFromContext(ctx, "public-graph.pushPayload.clickhouse.update")
+	defer clickhouseSpan.Finish()
 	// If the session was previously marked as processed, clear this
-	// in OpenSearch so that it's treated as a live session again.
+	// in ClickHouse so that it's treated as a live session again.
 	// If the session was previously excluded (as we do with new sessions by default),
-	// clear it so it is shown as live in OpenSearch since we now have data for it.
+	// clear it so it is shown as live in ClickHouse since we now have data for it.
 	if (sessionObj.Processed != nil && *sessionObj.Processed) || (!excluded) {
 		if err := r.DataSyncQueue.Submit(ctx, strconv.Itoa(sessionObj.ID), &kafka_queue.Message{Type: kafka_queue.SessionDataSync, SessionDataSync: &kafka_queue.SessionDataSyncArgs{SessionID: sessionObj.ID}}); err != nil {
 			return err
