@@ -77,9 +77,9 @@ import (
 
 // EnableBusinessDashboards is the resolver for the enable_business_dashboards field.
 func (r *allWorkspaceSettingsResolver) EnableBusinessDashboards(ctx context.Context, obj *model.AllWorkspaceSettings) (bool, error) {
-	w, err := r.isUserInWorkspaceReadOnly(ctx, obj.WorkspaceID)
-	if err != nil {
-		return false, err
+	if obj.EnableUnlimitedDashboards {
+		log.WithContext(ctx).WithField("workspace_id", obj.WorkspaceID).Info("unlimited dashboards enabled")
+		return true, nil
 	}
 
 	var numDashboards int64
@@ -87,13 +87,14 @@ func (r *allWorkspaceSettingsResolver) EnableBusinessDashboards(ctx context.Cont
 		SELECT v.id
 		FROM visualizations v
 		INNER JOIN projects p ON p.id = v.project_id
-		INNER JOIN workspaces w ON w.id = p.workspace_id
-		WHERE w.id = ?;
-	`, w.ID).Count(&numDashboards).Error; err != nil {
+		WHERE p.workspace_id = ?;
+	`, obj.WorkspaceID).Count(&numDashboards).Error; err != nil {
+		log.WithContext(ctx).WithField("workspace_id", obj.WorkspaceID).Info("error querying workspace visualizations")
 		return false, e.Wrap(err, "error querying workspace visualizations")
 	}
 
-	return obj.EnableUnlimitedDashboards || numDashboards <= 2, nil
+	log.WithContext(ctx).WithField("workspace_id", obj.WorkspaceID).Infof("limited dashboards: current dashboard count %d", numDashboards)
+	return numDashboards < 2, nil
 }
 
 // EnableBusinessProjects is the resolver for the enable_business_projects field.
