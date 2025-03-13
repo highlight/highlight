@@ -77,8 +77,14 @@ import (
 
 // EnableBusinessDashboards is the resolver for the enable_business_dashboards field.
 func (r *allWorkspaceSettingsResolver) EnableBusinessDashboards(ctx context.Context, obj *model.AllWorkspaceSettings) (bool, error) {
+	w, err := r.isUserInWorkspaceReadOnly(ctx, obj.WorkspaceID)
+	if err != nil {
+		log.WithContext(ctx).WithField("workspace_id", obj.WorkspaceID).Info("EnableBusinessDashboards: error querying workspace")
+		return false, err
+	}
+
 	if obj.EnableUnlimitedDashboards {
-		log.WithContext(ctx).WithField("workspace_id", obj.WorkspaceID).Info("unlimited dashboards enabled")
+		log.WithContext(ctx).WithField("workspace_id", obj.WorkspaceID).Info("EnableBusinessDashboards: unlimited dashboards enabled")
 		return true, nil
 	}
 
@@ -88,12 +94,12 @@ func (r *allWorkspaceSettingsResolver) EnableBusinessDashboards(ctx context.Cont
 		FROM visualizations v
 		INNER JOIN projects p ON p.id = v.project_id
 		WHERE p.workspace_id = ?;
-	`, obj.WorkspaceID).Count(&numDashboards).Error; err != nil {
-		log.WithContext(ctx).WithField("workspace_id", obj.WorkspaceID).Info("error querying workspace visualizations")
+	`, w.ID).Count(&numDashboards).Error; err != nil {
+		log.WithContext(ctx).WithField("workspace_id", obj.WorkspaceID).Info("EnableBusinessDashboards: error querying workspace visualizations")
 		return false, e.Wrap(err, "error querying workspace visualizations")
 	}
 
-	log.WithContext(ctx).WithField("workspace_id", obj.WorkspaceID).Infof("limited dashboards: current dashboard count %d", numDashboards)
+	log.WithContext(ctx).WithField("workspace_id", obj.WorkspaceID).Infof("EnableBusinessDashboards: current dashboard count %d, boolean %t", numDashboards, numDashboards <= 2)
 	return numDashboards <= 2, nil
 }
 
