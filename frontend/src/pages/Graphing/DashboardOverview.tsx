@@ -173,7 +173,7 @@ export const DashboardOverview: React.FC = () => {
 										</Text>
 										<EnterpriseFeatureButton
 											setting="enable_business_dashboards"
-											name="More than 2 dashboards"
+											name="More than 3 dashboards"
 											fn={async () => {
 												setShowModal(true)
 											}}

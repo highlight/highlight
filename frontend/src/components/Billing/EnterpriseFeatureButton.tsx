@@ -18,7 +18,7 @@ const FEATURE_DESCRIPTIONS = {
 	'More than 1 project': 'create more than 1 project to segment your data.',
 	'More than 15 team members':
 		'allow manually inviting more than 15 team members.',
-	'More than 2 dashboards': 'allow creating more than 2 dashboards.',
+	'More than 3 dashboards': 'allow creating more than 3 dashboards.',
 	'Ingestion Limits': 'control data ingestion filters.',
 	'Ingestion Sampling': 'control data ingestion rates and sample data.',
 	'Custom Data Retention':
