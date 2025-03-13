@@ -94,7 +94,7 @@ func (r *allWorkspaceSettingsResolver) EnableBusinessDashboards(ctx context.Cont
 	}
 
 	log.WithContext(ctx).WithField("workspace_id", obj.WorkspaceID).Infof("limited dashboards: current dashboard count %d", numDashboards)
-	return numDashboards < 2, nil
+	return numDashboards <= 2, nil
 }
 
 // EnableBusinessProjects is the resolver for the enable_business_projects field.
