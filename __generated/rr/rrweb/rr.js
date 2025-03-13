@@ -63,10 +63,12 @@ function getUntaintedPrototype$1(key) {
     const iframeEl = document.createElement("iframe");
     document.body.appendChild(iframeEl);
     const win = iframeEl.contentWindow;
-    if (!win) return defaultObj.prototype;
+    if (!win)
+      return defaultObj.prototype;
     const untaintedObject = win[key].prototype;
     document.body.removeChild(iframeEl);
-    if (!untaintedObject) return defaultPrototype;
+    if (!untaintedObject)
+      return defaultPrototype;
     return untaintedBasePrototype$1[key] = untaintedObject;
   } catch {
     return defaultPrototype;
@@ -85,7 +87,8 @@ function getUntaintedAccessor$1(key, instance, accessor) {
     untaintedPrototype,
     accessor
   )) == null ? void 0 : _a2.get;
-  if (!untaintedAccessor) return instance[accessor];
+  if (!untaintedAccessor)
+    return instance[accessor];
   untaintedAccessorCache$1[cacheKey] = untaintedAccessor;
   return untaintedAccessor.call(instance);
 }
@@ -98,7 +101,8 @@ function getUntaintedMethod$1(key, instance, method) {
     );
   const untaintedPrototype = getUntaintedPrototype$1(key);
   const untaintedMethod = untaintedPrototype[method];
-  if (typeof untaintedMethod !== "function") return instance[method];
+  if (typeof untaintedMethod !== "function")
+    return instance[method];
   untaintedMethodCache$1[cacheKey] = untaintedMethod;
   return untaintedMethod.bind(instance);
 }
@@ -121,14 +125,16 @@ function getRootNode$1(n2) {
   return getUntaintedMethod$1("Node", n2, "getRootNode")();
 }
 function host$1(n2) {
-  if (!n2 || !("host" in n2)) return null;
+  if (!n2 || !("host" in n2))
+    return null;
   return getUntaintedAccessor$1("ShadowRoot", n2, "host");
 }
 function styleSheets$1(n2) {
   return n2.styleSheets;
 }
 function shadowRoot$1(n2) {
-  if (!n2 || !("shadowRoot" in n2)) return null;
+  if (!n2 || !("shadowRoot" in n2))
+    return null;
   return getUntaintedAccessor$1("Element", n2, "shadowRoot");
 }
 function querySelector$1(n2, selectors) {
@@ -1977,6 +1983,9 @@ function sourceOffset$1(inputCSS, position) {
   return offset;
 }
 var Node$4$1 = class Node2 {
+  get proxyOf() {
+    return this;
+  }
   constructor(defaults = {}) {
     this.raws = {};
     this[isClean$2$1] = false;
@@ -2280,9 +2289,6 @@ var Node$4$1 = class Node2 {
     for (let i2 in opts) data[i2] = opts[i2];
     return result2.warn(text, data);
   }
-  get proxyOf() {
-    return this;
-  }
 };
 var node$1 = Node$4$1;
 Node$4$1.default = Node$4$1;
@@ -2297,15 +2303,15 @@ var comment$1 = Comment$4$1;
 Comment$4$1.default = Comment$4$1;
 var Node$2$1 = node$1;
 var Declaration$4$1 = class Declaration extends Node$2$1 {
+  get variable() {
+    return this.prop.startsWith("--") || this.prop[0] === "$";
+  }
   constructor(defaults) {
     if (defaults && typeof defaults.value !== "undefined" && typeof defaults.value !== "string") {
       defaults = { ...defaults, value: String(defaults.value) };
     }
     super(defaults);
     this.type = "decl";
-  }
-  get variable() {
-    return this.prop.startsWith("--") || this.prop[0] === "$";
   }
 };
 var declaration$1 = Declaration$4$1;
@@ -2334,6 +2340,14 @@ function markTreeDirty$1(node2) {
   }
 }
 var Container$7$1 = class Container extends Node$1$1 {
+  get first() {
+    if (!this.proxyOf.nodes) return void 0;
+    return this.proxyOf.nodes[0];
+  }
+  get last() {
+    if (!this.proxyOf.nodes) return void 0;
+    return this.proxyOf.nodes[this.proxyOf.nodes.length - 1];
+  }
   append(...children) {
     for (let child of children) {
       let nodes = this.normalize(child, this.last);
@@ -2646,14 +2660,6 @@ var Container$7$1 = class Container extends Node$1$1 {
       }
     });
   }
-  get first() {
-    if (!this.proxyOf.nodes) return void 0;
-    return this.proxyOf.nodes[0];
-  }
-  get last() {
-    if (!this.proxyOf.nodes) return void 0;
-    return this.proxyOf.nodes[this.proxyOf.nodes.length - 1];
-  }
 };
 Container$7$1.registerParse = (dependant) => {
   parse$4$1 = dependant;
@@ -2863,6 +2869,9 @@ var fromOffsetCache$1 = Symbol("fromOffsetCache");
 var sourceMapAvailable$1$1 = Boolean(SourceMapConsumer$1$1 && SourceMapGenerator$1$1);
 var pathAvailable$1$1 = Boolean(resolve$1$1 && isAbsolute$1);
 var Input$4$1 = class Input {
+  get from() {
+    return this.file || this.id;
+  }
   constructor(css, opts = {}) {
     if (css === null || typeof css === "undefined" || typeof css === "object" && !css.toString) {
       throw new Error(`PostCSS received ${css} instead of CSS string`);
@@ -3046,9 +3055,6 @@ var Input$4$1 = class Input {
     }
     return json;
   }
-  get from() {
-    return this.file || this.id;
-  }
 };
 var input$1 = Input$4$1;
 Input$4$1.default = Input$4$1;
@@ -3154,11 +3160,6 @@ list$2$1.default = list$2$1;
 var Container$3$1 = container$1;
 var list$1$1 = list_1$1;
 var Rule$3$1 = class Rule extends Container$3$1 {
-  constructor(defaults) {
-    super(defaults);
-    this.type = "rule";
-    if (!this.nodes) this.nodes = [];
-  }
   get selectors() {
     return list$1$1.comma(this.selector);
   }
@@ -3166,6 +3167,11 @@ var Rule$3$1 = class Rule extends Container$3$1 {
     let match = this.selector ? this.selector.match(/,\s*/) : null;
     let sep2 = match ? match[0] : "," + this.raw("between", "beforeOpen");
     this.selector = values.join(sep2);
+  }
+  constructor(defaults) {
+    super(defaults);
+    this.type = "rule";
+    if (!this.nodes) this.nodes = [];
   }
 };
 var rule$1 = Rule$3$1;
@@ -4038,6 +4044,8 @@ var Parser$1$1 = class Parser {
       if (prev && prev.type === "rule" && !prev.raws.ownSemicolon) {
         prev.raws.ownSemicolon = this.spaces;
         this.spaces = "";
+        prev.source.end = this.getPosition(token[2]);
+        prev.source.end.offset += prev.raws.ownSemicolon.length;
       }
     }
   }
@@ -4249,7 +4257,7 @@ var Parser$1$1 = class Parser {
   }
   unknownWord(tokens) {
     throw this.input.error(
-      "Unknown word",
+      "Unknown word " + tokens[0][1],
       { offset: tokens[0][2] },
       { offset: tokens[0][2] + tokens[0][1].length }
     );
@@ -4321,6 +4329,9 @@ var warning$1 = Warning$2$1;
 Warning$2$1.default = Warning$2$1;
 var Warning$1$1 = warning$1;
 var Result$3$1 = class Result {
+  get content() {
+    return this.css;
+  }
   constructor(processor2, root2, opts) {
     this.processor = processor2;
     this.messages = [];
@@ -4344,9 +4355,6 @@ var Result$3$1 = class Result {
   }
   warnings() {
     return this.messages.filter((i2) => i2.type === "warning");
-  }
-  get content() {
-    return this.css;
   }
 };
 var result$1 = Result$3$1;
@@ -4452,6 +4460,30 @@ function cleanMarks$1(node2) {
 }
 var postcss$2$1 = {};
 var LazyResult$2$1 = class LazyResult {
+  get content() {
+    return this.stringify().content;
+  }
+  get css() {
+    return this.stringify().css;
+  }
+  get map() {
+    return this.stringify().map;
+  }
+  get messages() {
+    return this.sync().messages;
+  }
+  get opts() {
+    return this.result.opts;
+  }
+  get processor() {
+    return this.result.processor;
+  }
+  get root() {
+    return this.sync().root;
+  }
+  get [Symbol.toStringTag]() {
+    return "LazyResult";
+  }
   constructor(processor2, css, opts) {
     this.stringified = false;
     this.processed = false;
@@ -4794,30 +4826,6 @@ var LazyResult$2$1 = class LazyResult {
   warnings() {
     return this.sync().warnings();
   }
-  get content() {
-    return this.stringify().content;
-  }
-  get css() {
-    return this.stringify().css;
-  }
-  get map() {
-    return this.stringify().map;
-  }
-  get messages() {
-    return this.sync().messages;
-  }
-  get opts() {
-    return this.result.opts;
-  }
-  get processor() {
-    return this.result.processor;
-  }
-  get root() {
-    return this.sync().root;
-  }
-  get [Symbol.toStringTag]() {
-    return "LazyResult";
-  }
 };
 LazyResult$2$1.registerPostcss = (dependant) => {
   postcss$2$1 = dependant;
@@ -4832,6 +4840,45 @@ var Result$1$1 = result$1;
 var stringify$1$1 = stringify_1$1;
 var warnOnce2$1 = warnOnce$2$1;
 var NoWorkResult$1$1 = class NoWorkResult {
+  get content() {
+    return this.result.css;
+  }
+  get css() {
+    return this.result.css;
+  }
+  get map() {
+    return this.result.map;
+  }
+  get messages() {
+    return [];
+  }
+  get opts() {
+    return this.result.opts;
+  }
+  get processor() {
+    return this.result.processor;
+  }
+  get root() {
+    if (this._root) {
+      return this._root;
+    }
+    let root2;
+    let parser2 = parse$1$1;
+    try {
+      root2 = parser2(this._css, this._opts);
+    } catch (error) {
+      this.error = error;
+    }
+    if (this.error) {
+      throw this.error;
+    } else {
+      this._root = root2;
+      return root2;
+    }
+  }
+  get [Symbol.toStringTag]() {
+    return "NoWorkResult";
+  }
   constructor(processor2, css, opts) {
     css = css.toString();
     this.stringified = false;
@@ -4893,45 +4940,6 @@ var NoWorkResult$1$1 = class NoWorkResult {
   warnings() {
     return [];
   }
-  get content() {
-    return this.result.css;
-  }
-  get css() {
-    return this.result.css;
-  }
-  get map() {
-    return this.result.map;
-  }
-  get messages() {
-    return [];
-  }
-  get opts() {
-    return this.result.opts;
-  }
-  get processor() {
-    return this.result.processor;
-  }
-  get root() {
-    if (this._root) {
-      return this._root;
-    }
-    let root2;
-    let parser2 = parse$1$1;
-    try {
-      root2 = parser2(this._css, this._opts);
-    } catch (error) {
-      this.error = error;
-    }
-    if (this.error) {
-      throw this.error;
-    } else {
-      this._root = root2;
-      return root2;
-    }
-  }
-  get [Symbol.toStringTag]() {
-    return "NoWorkResult";
-  }
 };
 var noWorkResult$1 = NoWorkResult$1$1;
 NoWorkResult$1$1.default = NoWorkResult$1$1;
@@ -4941,7 +4949,7 @@ var NoWorkResult2$1 = noWorkResult$1;
 var Root$1$1 = root$1;
 var Processor$1$1 = class Processor {
   constructor(plugins = []) {
-    this.version = "8.5.1";
+    this.version = "8.5.3";
     this.plugins = this.normalize(plugins);
   }
   normalize(plugins) {
@@ -6014,6 +6022,9 @@ function sourceOffset(inputCSS, position) {
   return offset;
 }
 var Node$4 = class Node3 {
+  get proxyOf() {
+    return this;
+  }
   constructor(defaults = {}) {
     this.raws = {};
     this[isClean$2] = false;
@@ -6317,9 +6328,6 @@ var Node$4 = class Node3 {
     for (let i2 in opts) data[i2] = opts[i2];
     return result2.warn(text, data);
   }
-  get proxyOf() {
-    return this;
-  }
 };
 var node = Node$4;
 Node$4.default = Node$4;
@@ -6334,15 +6342,15 @@ var comment = Comment$4;
 Comment$4.default = Comment$4;
 var Node$2 = node;
 var Declaration$4 = class Declaration2 extends Node$2 {
+  get variable() {
+    return this.prop.startsWith("--") || this.prop[0] === "$";
+  }
   constructor(defaults) {
     if (defaults && typeof defaults.value !== "undefined" && typeof defaults.value !== "string") {
       defaults = { ...defaults, value: String(defaults.value) };
     }
     super(defaults);
     this.type = "decl";
-  }
-  get variable() {
-    return this.prop.startsWith("--") || this.prop[0] === "$";
   }
 };
 var declaration = Declaration$4;
@@ -6371,6 +6379,14 @@ function markTreeDirty(node2) {
   }
 }
 var Container$7 = class Container2 extends Node$1 {
+  get first() {
+    if (!this.proxyOf.nodes) return void 0;
+    return this.proxyOf.nodes[0];
+  }
+  get last() {
+    if (!this.proxyOf.nodes) return void 0;
+    return this.proxyOf.nodes[this.proxyOf.nodes.length - 1];
+  }
   append(...children) {
     for (let child of children) {
       let nodes = this.normalize(child, this.last);
@@ -6683,14 +6699,6 @@ var Container$7 = class Container2 extends Node$1 {
       }
     });
   }
-  get first() {
-    if (!this.proxyOf.nodes) return void 0;
-    return this.proxyOf.nodes[0];
-  }
-  get last() {
-    if (!this.proxyOf.nodes) return void 0;
-    return this.proxyOf.nodes[this.proxyOf.nodes.length - 1];
-  }
 };
 Container$7.registerParse = (dependant) => {
   parse$4 = dependant;
@@ -6900,6 +6908,9 @@ var fromOffsetCache = Symbol("fromOffsetCache");
 var sourceMapAvailable$1 = Boolean(SourceMapConsumer$1 && SourceMapGenerator$1);
 var pathAvailable$1 = Boolean(resolve$1 && isAbsolute);
 var Input$4 = class Input2 {
+  get from() {
+    return this.file || this.id;
+  }
   constructor(css, opts = {}) {
     if (css === null || typeof css === "undefined" || typeof css === "object" && !css.toString) {
       throw new Error(`PostCSS received ${css} instead of CSS string`);
@@ -7083,9 +7094,6 @@ var Input$4 = class Input2 {
     }
     return json;
   }
-  get from() {
-    return this.file || this.id;
-  }
 };
 var input = Input$4;
 Input$4.default = Input$4;
@@ -7191,11 +7199,6 @@ list$2.default = list$2;
 var Container$3 = container;
 var list$1 = list_1;
 var Rule$3 = class Rule2 extends Container$3 {
-  constructor(defaults) {
-    super(defaults);
-    this.type = "rule";
-    if (!this.nodes) this.nodes = [];
-  }
   get selectors() {
     return list$1.comma(this.selector);
   }
@@ -7203,6 +7206,11 @@ var Rule$3 = class Rule2 extends Container$3 {
     let match = this.selector ? this.selector.match(/,\s*/) : null;
     let sep2 = match ? match[0] : "," + this.raw("between", "beforeOpen");
     this.selector = values.join(sep2);
+  }
+  constructor(defaults) {
+    super(defaults);
+    this.type = "rule";
+    if (!this.nodes) this.nodes = [];
   }
 };
 var rule = Rule$3;
@@ -8075,6 +8083,8 @@ var Parser$1 = class Parser2 {
       if (prev && prev.type === "rule" && !prev.raws.ownSemicolon) {
         prev.raws.ownSemicolon = this.spaces;
         this.spaces = "";
+        prev.source.end = this.getPosition(token[2]);
+        prev.source.end.offset += prev.raws.ownSemicolon.length;
       }
     }
   }
@@ -8286,7 +8296,7 @@ var Parser$1 = class Parser2 {
   }
   unknownWord(tokens) {
     throw this.input.error(
-      "Unknown word",
+      "Unknown word " + tokens[0][1],
       { offset: tokens[0][2] },
       { offset: tokens[0][2] + tokens[0][1].length }
     );
@@ -8358,6 +8368,9 @@ var warning = Warning$2;
 Warning$2.default = Warning$2;
 var Warning$1 = warning;
 var Result$3 = class Result2 {
+  get content() {
+    return this.css;
+  }
   constructor(processor2, root2, opts) {
     this.processor = processor2;
     this.messages = [];
@@ -8381,9 +8394,6 @@ var Result$3 = class Result2 {
   }
   warnings() {
     return this.messages.filter((i2) => i2.type === "warning");
-  }
-  get content() {
-    return this.css;
   }
 };
 var result = Result$3;
@@ -8489,6 +8499,30 @@ function cleanMarks(node2) {
 }
 var postcss$2 = {};
 var LazyResult$2 = class LazyResult2 {
+  get content() {
+    return this.stringify().content;
+  }
+  get css() {
+    return this.stringify().css;
+  }
+  get map() {
+    return this.stringify().map;
+  }
+  get messages() {
+    return this.sync().messages;
+  }
+  get opts() {
+    return this.result.opts;
+  }
+  get processor() {
+    return this.result.processor;
+  }
+  get root() {
+    return this.sync().root;
+  }
+  get [Symbol.toStringTag]() {
+    return "LazyResult";
+  }
   constructor(processor2, css, opts) {
     this.stringified = false;
     this.processed = false;
@@ -8831,30 +8865,6 @@ var LazyResult$2 = class LazyResult2 {
   warnings() {
     return this.sync().warnings();
   }
-  get content() {
-    return this.stringify().content;
-  }
-  get css() {
-    return this.stringify().css;
-  }
-  get map() {
-    return this.stringify().map;
-  }
-  get messages() {
-    return this.sync().messages;
-  }
-  get opts() {
-    return this.result.opts;
-  }
-  get processor() {
-    return this.result.processor;
-  }
-  get root() {
-    return this.sync().root;
-  }
-  get [Symbol.toStringTag]() {
-    return "LazyResult";
-  }
 };
 LazyResult$2.registerPostcss = (dependant) => {
   postcss$2 = dependant;
@@ -8869,6 +8879,45 @@ var Result$1 = result;
 var stringify$1 = stringify_1;
 var warnOnce22 = warnOnce$2;
 var NoWorkResult$1 = class NoWorkResult2 {
+  get content() {
+    return this.result.css;
+  }
+  get css() {
+    return this.result.css;
+  }
+  get map() {
+    return this.result.map;
+  }
+  get messages() {
+    return [];
+  }
+  get opts() {
+    return this.result.opts;
+  }
+  get processor() {
+    return this.result.processor;
+  }
+  get root() {
+    if (this._root) {
+      return this._root;
+    }
+    let root2;
+    let parser2 = parse$1;
+    try {
+      root2 = parser2(this._css, this._opts);
+    } catch (error) {
+      this.error = error;
+    }
+    if (this.error) {
+      throw this.error;
+    } else {
+      this._root = root2;
+      return root2;
+    }
+  }
+  get [Symbol.toStringTag]() {
+    return "NoWorkResult";
+  }
   constructor(processor2, css, opts) {
     css = css.toString();
     this.stringified = false;
@@ -8930,45 +8979,6 @@ var NoWorkResult$1 = class NoWorkResult2 {
   warnings() {
     return [];
   }
-  get content() {
-    return this.result.css;
-  }
-  get css() {
-    return this.result.css;
-  }
-  get map() {
-    return this.result.map;
-  }
-  get messages() {
-    return [];
-  }
-  get opts() {
-    return this.result.opts;
-  }
-  get processor() {
-    return this.result.processor;
-  }
-  get root() {
-    if (this._root) {
-      return this._root;
-    }
-    let root2;
-    let parser2 = parse$1;
-    try {
-      root2 = parser2(this._css, this._opts);
-    } catch (error) {
-      this.error = error;
-    }
-    if (this.error) {
-      throw this.error;
-    } else {
-      this._root = root2;
-      return root2;
-    }
-  }
-  get [Symbol.toStringTag]() {
-    return "NoWorkResult";
-  }
 };
 var noWorkResult = NoWorkResult$1;
 NoWorkResult$1.default = NoWorkResult$1;
@@ -8978,7 +8988,7 @@ var NoWorkResult22 = noWorkResult;
 var Root$1 = root;
 var Processor$1 = class Processor2 {
   constructor(plugins = []) {
-    this.version = "8.5.1";
+    this.version = "8.5.3";
     this.plugins = this.normalize(plugins);
   }
   normalize(plugins) {
@@ -10441,10 +10451,12 @@ function getUntaintedPrototype(key) {
     const iframeEl = document.createElement("iframe");
     document.body.appendChild(iframeEl);
     const win = iframeEl.contentWindow;
-    if (!win) return defaultObj.prototype;
+    if (!win)
+      return defaultObj.prototype;
     const untaintedObject = win[key].prototype;
     document.body.removeChild(iframeEl);
-    if (!untaintedObject) return defaultPrototype;
+    if (!untaintedObject)
+      return defaultPrototype;
     return untaintedBasePrototype[key] = untaintedObject;
   } catch {
     return defaultPrototype;
@@ -10463,7 +10475,8 @@ function getUntaintedAccessor(key, instance, accessor) {
     untaintedPrototype,
     accessor
   )) == null ? void 0 : _a2.get;
-  if (!untaintedAccessor) return instance[accessor];
+  if (!untaintedAccessor)
+    return instance[accessor];
   untaintedAccessorCache[cacheKey] = untaintedAccessor;
   return untaintedAccessor.call(instance);
 }
@@ -10476,7 +10489,8 @@ function getUntaintedMethod(key, instance, method) {
     );
   const untaintedPrototype = getUntaintedPrototype(key);
   const untaintedMethod = untaintedPrototype[method];
-  if (typeof untaintedMethod !== "function") return instance[method];
+  if (typeof untaintedMethod !== "function")
+    return instance[method];
   untaintedMethodCache[cacheKey] = untaintedMethod;
   return untaintedMethod.bind(instance);
 }
@@ -10499,14 +10513,16 @@ function getRootNode(n2) {
   return getUntaintedMethod("Node", n2, "getRootNode")();
 }
 function host(n2) {
-  if (!n2 || !("host" in n2)) return null;
+  if (!n2 || !("host" in n2))
+    return null;
   return getUntaintedAccessor("ShadowRoot", n2, "host");
 }
 function styleSheets(n2) {
   return n2.styleSheets;
 }
 function shadowRoot(n2) {
-  if (!n2 || !("shadowRoot" in n2)) return null;
+  if (!n2 || !("shadowRoot" in n2))
+    return null;
   return getUntaintedAccessor("Element", n2, "shadowRoot");
 }
 function querySelector(n2, selectors) {
