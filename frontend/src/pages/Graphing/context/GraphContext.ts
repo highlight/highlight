@@ -8,6 +8,8 @@ export interface GraphContext {
 	setGraphData: React.Dispatch<React.SetStateAction<GraphData>>
 	errors: string[]
 	setErrors: React.Dispatch<React.SetStateAction<string[]>>
+	queryStartTime: Date | undefined
+	setQueryStartTime: React.Dispatch<React.SetStateAction<Date | undefined>>
 }
 
 export const [useGraphContext, GraphContextProvider] =

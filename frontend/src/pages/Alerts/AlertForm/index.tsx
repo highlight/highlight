@@ -68,6 +68,7 @@ import { atobSafe, btoaSafe } from '@/util/string'
 
 import { AlertGraph } from '../AlertGraph'
 import * as style from './styles.css'
+import { RunQueryButton } from '@/pages/Graphing/components/RunQueryButton'
 
 const SidebarSection = (props: PropsWithChildren) => {
 	return (
@@ -652,16 +653,11 @@ export const AlertForm: React.FC = () => {
 											</Box>
 											{settings.editor ===
 												Editor.SqlEditor && (
-												<Button
-													disabled={
-														sqlInternal === sql
-													}
-													onClick={() => {
+												<RunQueryButton
+													onRunQuery={() =>
 														setSql(sqlInternal)
-													}}
-												>
-													Update query
-												</Button>
+													}
+												/>
 											)}
 										</Box>
 										{settings.editor ===
@@ -676,6 +672,9 @@ export const AlertForm: React.FC = () => {
 													setValue={setSqlInternal}
 													startDate={startDate}
 													endDate={endDate}
+													onRunQuery={() =>
+														setSql(sqlInternal)
+													}
 												/>
 											</Box>
 										)}

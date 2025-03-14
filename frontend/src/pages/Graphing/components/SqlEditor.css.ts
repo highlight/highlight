@@ -5,6 +5,19 @@ export const editorWrapper = style({
 	width: '100%',
 })
 
+export const errorMessages = style({
+	maxHeight: '100px',
+	overflow: 'auto',
+	padding: '8px 0',
+})
+
+export const statusTitle = style({
+	height: '28px',
+	justifyContent: 'center',
+	borderTop: vars.border.divider,
+	borderBottom: vars.border.divider,
+})
+
 globalStyle(`${editorWrapper} .cm-focused`, {
 	outline: 'initial',
 })

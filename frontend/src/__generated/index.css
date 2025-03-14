@@ -6799,6 +6799,17 @@ body {
 ._1yiubn60 {
   width: 100%;
 }
+._1yiubn61 {
+  max-height: 100px;
+  overflow: auto;
+  padding: 8px 0;
+}
+._1yiubn62 {
+  height: 28px;
+  justify-content: center;
+  border-top: var(--_1pyqka9j) solid 1px;
+  border-bottom: var(--_1pyqka9j) solid 1px;
+}
 ._1yiubn60 .cm-focused {
   outline: initial;
 }
