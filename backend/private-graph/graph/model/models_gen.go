@@ -792,6 +792,11 @@ type S3File struct {
 	Key *string `json:"key,omitempty"`
 }
 
+type SSOLogin struct {
+	Domain   string `json:"domain"`
+	ClientID string `json:"client_id"`
+}
+
 type Sampling struct {
 	SessionSamplingRate    float64 `json:"session_sampling_rate"`
 	ErrorSamplingRate      float64 `json:"error_sampling_rate"`
@@ -1129,12 +1134,13 @@ type VercelProjectMappingInput struct {
 }
 
 type VisualizationInput struct {
-	ID         *int             `json:"id,omitempty"`
-	ProjectID  int              `json:"projectId"`
-	Name       *string          `json:"name,omitempty"`
-	GraphIds   []int            `json:"graphIds,omitempty"`
-	TimePreset *string          `json:"timePreset,omitempty"`
-	Variables  []*VariableInput `json:"variables,omitempty"`
+	ID                    *int                   `json:"id,omitempty"`
+	ProjectID             int                    `json:"projectId"`
+	Name                  *string                `json:"name,omitempty"`
+	GraphIds              []int                  `json:"graphIds,omitempty"`
+	TimePreset            *string                `json:"timePreset,omitempty"`
+	Variables             []*VariableInput       `json:"variables,omitempty"`
+	DashboardTemplateType *DashboardTemplateType `json:"dashboardTemplateType,omitempty"`
 }
 
 type WebSocketEvent struct {
@@ -1297,6 +1303,49 @@ func (e *DashboardChartType) UnmarshalGQL(v interface{}) error {
 }
 
 func (e DashboardChartType) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+type DashboardTemplateType string
+
+const (
+	DashboardTemplateTypeNone            DashboardTemplateType = "None"
+	DashboardTemplateTypeFrontendMetrics DashboardTemplateType = "FrontendMetrics"
+	DashboardTemplateTypeAWSMetrics      DashboardTemplateType = "AWSMetrics"
+)
+
+var AllDashboardTemplateType = []DashboardTemplateType{
+	DashboardTemplateTypeNone,
+	DashboardTemplateTypeFrontendMetrics,
+	DashboardTemplateTypeAWSMetrics,
+}
+
+func (e DashboardTemplateType) IsValid() bool {
+	switch e {
+	case DashboardTemplateTypeNone, DashboardTemplateTypeFrontendMetrics, DashboardTemplateTypeAWSMetrics:
+		return true
+	}
+	return false
+}
+
+func (e DashboardTemplateType) String() string {
+	return string(e)
+}
+
+func (e *DashboardTemplateType) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = DashboardTemplateType(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid DashboardTemplateType", str)
+	}
+	return nil
+}
+
+func (e DashboardTemplateType) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(e.String()))
 }
 

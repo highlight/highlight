@@ -236,6 +236,7 @@ export type AllWorkspaceSettings = {
 	enable_network_traces: Scalars['Boolean']
 	enable_project_level_access: Scalars['Boolean']
 	enable_session_export: Scalars['Boolean']
+	enable_sso: Scalars['Boolean']
 	enable_teams_integration: Scalars['Boolean']
 	enable_unlisted_sharing: Scalars['Boolean']
 	workspace_id: Scalars['ID']
@@ -436,6 +437,12 @@ export type DashboardPayload = {
 	date: Scalars['String']
 	group?: Maybe<Scalars['String']>
 	value: Scalars['Float']
+}
+
+export enum DashboardTemplateType {
+	AwsMetrics = 'AWSMetrics',
+	FrontendMetrics = 'FrontendMetrics',
+	None = 'None',
 }
 
 export type DateHistogramBucketSize = {
@@ -2254,7 +2261,8 @@ export type Query = {
 	slack_channel_suggestion: Array<SanitizedSlackChannel>
 	sourcemap_files: Array<S3File>
 	sourcemap_versions: Array<Scalars['String']>
-	subscription_details: SubscriptionDetails
+	sso_login?: Maybe<SsoLogin>
+	subscription_details?: Maybe<SubscriptionDetails>
 	system_configuration: SystemConfiguration
 	timeline_indicator_events: Array<TimelineIndicatorEvent>
 	topUsers: Array<Maybe<TopUsersPayload>>
@@ -2997,6 +3005,10 @@ export type QuerySourcemap_VersionsArgs = {
 	project_id: Scalars['ID']
 }
 
+export type QuerySso_LoginArgs = {
+	domain: Scalars['String']
+}
+
 export type QuerySubscription_DetailsArgs = {
 	workspace_id: Scalars['ID']
 }
@@ -3358,6 +3370,12 @@ export enum RetentionPeriod {
 export type S3File = {
 	__typename?: 'S3File'
 	key?: Maybe<Scalars['String']>
+}
+
+export type SsoLogin = {
+	__typename?: 'SSOLogin'
+	client_id: Scalars['String']
+	domain: Scalars['String']
 }
 
 export type Sampling = {
@@ -4037,6 +4055,7 @@ export type Visualization = {
 }
 
 export type VisualizationInput = {
+	dashboardTemplateType?: InputMaybe<DashboardTemplateType>
 	graphIds?: InputMaybe<Array<Scalars['ID']>>
 	id?: InputMaybe<Scalars['ID']>
 	name?: InputMaybe<Scalars['String']>

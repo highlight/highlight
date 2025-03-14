@@ -6,7 +6,9 @@ import {
 	ResponsiveContainer,
 	XAxis,
 	YAxis,
+	LabelList,
 } from 'recharts'
+import { Box, Text } from '@highlight-run/ui/components'
 
 import {
 	AxisConfig,
@@ -22,6 +24,7 @@ import {
 	TooltipSettings,
 	useGraphCallbacks,
 	useGraphSeries,
+	formatNumber,
 } from '@/pages/Graphing/components/Graph'
 import { syncTimestamp } from '@/pages/Graphing/components/utils'
 
@@ -34,6 +37,7 @@ export type BarChartConfig = {
 	shadeToPrevious?: true
 	display?: BarDisplay
 	tooltipSettings?: TooltipSettings
+	displayLabels?: boolean
 }
 
 const RoundedBar = (id: string, isLast: boolean) => (props: any) => {
@@ -208,7 +212,15 @@ const BarChartImpl = ({
 											: idx
 									}
 									shape={RoundedBar(id, isLastBar)}
-								/>
+								>
+									{viewConfig.displayLabels && (
+										<LabelList
+											dataKey={`${seriesKey}.value`}
+											position="center"
+											content={renderCustomLabel(data)}
+										/>
+									)}
+								</Bar>
 							)
 						})}
 				</RechartsBarChart>
@@ -216,5 +228,52 @@ const BarChartImpl = ({
 		</span>
 	)
 }
+
+const LABEL_HEIGHT = 50
+const LABEL_WIDTH = 60
+
+const renderCustomLabel =
+	(data: any) =>
+	({ index, x, y, width, height, value }: any) => {
+		if (value === undefined) {
+			return
+		}
+
+		const percent = (data[index].Percent * 100).toFixed(1)
+
+		const labelY = Math.max(
+			y + height / 2 - LABEL_HEIGHT / 2,
+			LABEL_HEIGHT / 2,
+		)
+		const labelX = x + width / 2 - LABEL_WIDTH / 2
+
+		return (
+			<foreignObject
+				x={labelX}
+				y={labelY}
+				width={LABEL_WIDTH}
+				height={LABEL_HEIGHT}
+			>
+				<Box
+					display="flex"
+					flexDirection="column"
+					alignItems="center"
+					justifyContent="center"
+					background="white"
+					border="divider"
+					borderRadius="6"
+					gap="6"
+					p="2"
+				>
+					<Box background="elevated" borderRadius="6" p="4">
+						<Text>{percent}%</Text>
+					</Box>
+					<Box pb="4">
+						<Text>{formatNumber(value)}</Text>
+					</Box>
+				</Box>
+			</foreignObject>
+		)
+	}
 
 export const BarChart = memo(BarChartImpl)

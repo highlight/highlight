@@ -116,38 +116,45 @@ const H: HighlightPublicInterface = {
 			init_called = true
 
 			initializeFetchListener()
-			initializeWebSocketListener()
+			initializeWebSocketListener({
+				disableOtel: !!options?.disableOtelTracing,
+			})
 			import('@highlight-run/client/src').then(
 				async ({
 					Highlight,
 					setupBrowserTracing,
 					getTracer: otelGetTracer,
 				}) => {
-					setupBrowserTracing({
-						backendUrl:
-							options?.backendUrl ?? 'https://pub.highlight.io',
-						otlpEndpoint:
-							options?.otlpEndpoint ??
-							'https://otel.highlight.io',
-						projectId: projectID,
-						sessionSecureId: sessionSecureID,
-						environment: options?.environment ?? 'production',
-						networkRecordingOptions:
-							typeof options?.networkRecording === 'object'
-								? options.networkRecording
-								: undefined,
-						tracingOrigins: options?.tracingOrigins,
-						serviceName:
-							options?.serviceName ?? 'highlight-browser',
-					})
-					getTracer = otelGetTracer
+					if (!options?.disableOtelTracing) {
+						setupBrowserTracing({
+							backendUrl:
+								options?.backendUrl ??
+								'https://pub.highlight.io',
+							otlpEndpoint:
+								options?.otlpEndpoint ??
+								'https://otel.highlight.io',
+							projectId: projectID,
+							sessionSecureId: sessionSecureID,
+							environment: options?.environment ?? 'production',
+							networkRecordingOptions:
+								typeof options?.networkRecording === 'object'
+									? options.networkRecording
+									: undefined,
+							tracingOrigins: options?.tracingOrigins,
+							serviceName:
+								options?.serviceName ?? 'highlight-browser',
+						})
+						getTracer = otelGetTracer
+					}
 
 					highlight_obj = new Highlight(
 						client_options,
 						first_load_listeners,
 					)
 					initializeFetchListener()
-					initializeWebSocketListener()
+					initializeWebSocketListener({
+						disableOtel: !!options?.disableOtelTracing,
+					})
 					if (!options?.manualStart) {
 						await highlight_obj.initialize()
 					}
@@ -607,7 +614,9 @@ if (typeof window !== 'undefined') {
 
 listenToChromeExtensionMessage()
 initializeFetchListener()
-initializeWebSocketListener()
+initializeWebSocketListener({
+	disableOtel: !!H.options?.disableOtelTracing,
+})
 
 // Helpers only for testing
 const __testing = {

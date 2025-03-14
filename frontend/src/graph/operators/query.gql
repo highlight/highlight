@@ -2099,6 +2099,13 @@ query GetOAuthClientMetadata($client_id: String!) {
 	}
 }
 
+query GetSSOLogin($domain: String!) {
+	sso_login(domain: $domain) {
+		domain
+		client_id
+	}
+}
+
 query SearchIssues(
 	$project_id: ID!
 	$query: String!
@@ -2281,6 +2288,7 @@ query GetWorkspaceSettings($workspace_id: ID!) {
 		enable_project_level_access
 		enable_project_level_access
 		enable_session_export
+		enable_sso
 		enable_teams_integration
 		enable_unlisted_sharing
 	}

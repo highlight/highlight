@@ -11,19 +11,29 @@ import {
 	acceptCompletion,
 } from '@codemirror/autocomplete'
 import { EditorView, keymap } from '@codemirror/view'
-
 import { linter, Diagnostic } from '@codemirror/lint'
 
-import * as styles from './SqlEditor.css'
 import { useGetKeysLazyQuery } from '@/graph/generated/hooks'
 import { TIME_FORMAT } from '@/components/Search/SearchForm/constants'
 import { useProjectId } from '@/hooks/useProjectId'
 import moment from 'moment'
-import { TIME_INTERVAL_MACRO } from '@/pages/Graphing/components/Graph'
+import {
+	TIME_INTERVAL_MACRO,
+	TIMESTAMP_KEY,
+} from '@/pages/Graphing/components/Graph'
 import { useGraphContext } from '@/pages/Graphing/context/GraphContext'
 import { useGraphingVariables } from '@/pages/Graphing/hooks/useGraphingVariables'
 import { useParams } from '@/util/react-router/useParams'
 import { indentWithTab, standardKeymap } from '@codemirror/commands'
+import {
+	MetricAggregator,
+	MetricExpression,
+	ProductType,
+} from '@/graph/generated/schemas'
+import { BUCKET_FREQUENCIES } from '@/pages/Graphing/util'
+import { GraphSettings } from '@/pages/Graphing/constants'
+
+import * as styles from './SqlEditor.css'
 
 interface Props {
 	value: string
@@ -56,15 +66,6 @@ const functionTemplates = [
 	'quantile(${level})(${expr})',
 ]
 
-export const DEFAULT_SQL = [
-	`SELECT`,
-	`\t$time_interval('1 hour'),`,
-	`\tconcat('level: ', level),`,
-	`\tcount()`,
-	`FROM logs`,
-	`GROUP BY 1, 2`,
-].join('\n')
-
 export const DEFAULT_ALERT_SQL = [
 	`SELECT`,
 	`\tconcat('level: ', level),`,
@@ -72,6 +73,139 @@ export const DEFAULT_ALERT_SQL = [
 	`FROM logs`,
 	`GROUP BY 1`,
 ].join('\n')
+
+const expressionToSql = (expr: MetricExpression) => {
+	let columnStr = expr.column
+	if (columnStr.includes('.')) {
+		columnStr = `"${columnStr}"`
+	}
+
+	switch (expr.aggregator) {
+		case MetricAggregator.Sum:
+			return `sum(toFloat64OrNull(${columnStr}))`
+		case MetricAggregator.Avg:
+			return `avg(toFloat64OrNull(${columnStr}))`
+		case MetricAggregator.Min:
+			return `min(toFloat64OrNull(${columnStr}))`
+		case MetricAggregator.Max:
+			return `max(toFloat64OrNull(${columnStr}))`
+		case MetricAggregator.Count:
+			return 'count()'
+		case MetricAggregator.CountDistinct:
+			return `uniqExact(${columnStr})`
+		case MetricAggregator.P50:
+			return `quantile(0.50)(toFloat64OrNull(${columnStr}))`
+		case MetricAggregator.P90:
+			return `quantile(0.90)(toFloat64OrNull(${columnStr}))`
+		case MetricAggregator.P95:
+			return `quantile(0.95)(toFloat64OrNull(${columnStr}))`
+		case MetricAggregator.P99:
+			return `quantile(0.99)(toFloat64OrNull(${columnStr}))`
+	}
+}
+
+const productTypeToTable = (productType: ProductType) => {
+	switch (productType) {
+		case ProductType.Sessions:
+			return 'sessions'
+		case ProductType.Logs:
+			return 'logs'
+		case ProductType.Traces:
+			return 'traces'
+		case ProductType.Events:
+			return 'events'
+		case ProductType.Errors:
+			return 'errors'
+		case ProductType.Metrics:
+			return 'metrics'
+	}
+}
+
+const frequencyToName = Object.fromEntries(
+	BUCKET_FREQUENCIES.map((f) => [f.value, f.name]),
+)
+
+const bucketByExpr = (
+	bucketByEnabled: boolean,
+	bucketBySetting: 'Interval' | 'Count',
+	bucketByKey: string,
+	bucketCount: number,
+	bucketInterval: number,
+	startDate: Date,
+	endDate: Date,
+) => {
+	if (!bucketByEnabled) {
+		return undefined
+	}
+
+	switch (bucketBySetting) {
+		case 'Interval':
+			return `$time_interval('${frequencyToName[bucketInterval] ?? '1 hour'}')`
+		case 'Count':
+			if (bucketByKey !== TIMESTAMP_KEY) {
+				return undefined
+			}
+			const startUnix = Math.floor(startDate.getTime() / 1000)
+			const endUnix = Math.floor(endDate.getTime() / 1000)
+			const bucketSeconds = Math.ceil((endUnix - startUnix) / bucketCount)
+			return `fromUnixTimestamp(intDiv(toUnixTimestamp(timestamp) - ${startUnix}, ${bucketSeconds}) * ${bucketSeconds} + ${startUnix})`
+	}
+}
+
+export const convertSettingsToSql = (
+	settings: GraphSettings,
+	startDate: Date,
+	endDate: Date,
+) => {
+	const {
+		productType,
+		query,
+		groupByEnabled,
+		groupByKeys,
+		bucketByEnabled,
+		bucketBySetting,
+		bucketByKey,
+		bucketCount,
+		bucketInterval,
+		expressions,
+	} = settings
+
+	const bucketExpr = bucketByExpr(
+		bucketByEnabled,
+		bucketBySetting,
+		bucketByKey,
+		bucketCount,
+		bucketInterval,
+		startDate,
+		endDate,
+	)
+
+	const groupingExprs = [
+		...(groupByEnabled ? groupByKeys : []),
+		bucketExpr,
+	].filter((e) => e !== undefined)
+
+	const groupByExpr = groupingExprs
+		.map((_, i) => (i + 1).toString())
+		.join(', ')
+
+	const selectExprs = [
+		...groupingExprs,
+		...expressions.map((e) => expressionToSql(e)),
+	]
+
+	let sql = `SELECT ${selectExprs.join(',\n\t')}\nFROM ${productTypeToTable(productType)}`
+	if (query) {
+		sql += `\nWHERE ${query}`
+	}
+	if (groupByExpr) {
+		sql += `\nGROUP BY ${groupByExpr}`
+		sql += `\nORDER BY ${groupByExpr}`
+		sql += `\nLIMIT 10000`
+	}
+
+	return sql
+}
 
 export const SqlEditor: React.FC<Props> = ({
 	value,

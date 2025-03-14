@@ -22,10 +22,7 @@ import {
 import { useProjectId } from '@/hooks/useProjectId'
 import Graph, { useGetViewConfig } from '@/pages/Graphing/components/Graph'
 import { HeaderDivider } from '@/pages/Graphing/Dashboard'
-import {
-	GraphBackgroundWrapper,
-	GraphSettings,
-} from '@/pages/Graphing/GraphingEditor'
+import { GraphBackgroundWrapper } from '@/pages/Graphing/GraphingEditor'
 import { useParams } from '@/util/react-router/useParams'
 import { useGraphingVariables } from '@/pages/Graphing/hooks/useGraphingVariables'
 import { useRetentionPresets } from '@/components/Search/SearchForm/hooks'
@@ -34,7 +31,7 @@ import { useGraphData } from '@pages/Graphing/hooks/useGraphData'
 import { useGraphTime } from '@/pages/Graphing/hooks/useGraphTime'
 import { exportGraph } from '@/pages/Graphing/hooks/exportGraph'
 import { loadFunnelStep } from '@/pages/Graphing/util'
-import { Editor } from '@/pages/Graphing/constants'
+import { Editor, GraphSettings } from '@/pages/Graphing/constants'
 import {
 	MetricAggregator,
 	ThresholdCondition,

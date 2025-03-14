@@ -18,7 +18,7 @@ const FEATURE_DESCRIPTIONS = {
 	'More than 1 project': 'create more than 1 project to segment your data.',
 	'More than 15 team members':
 		'allow manually inviting more than 15 team members.',
-	'More than 2 dashboards': 'allow creating more than 2 dashboards.',
+	'More than 3 dashboards': 'allow creating more than 3 dashboards.',
 	'Ingestion Limits': 'control data ingestion filters.',
 	'Ingestion Sampling': 'control data ingestion rates and sample data.',
 	'Custom Data Retention':
@@ -27,6 +27,8 @@ const FEATURE_DESCRIPTIONS = {
 		'create Jira issues from your highlight.io errors and sessions.',
 	'Teams Integration':
 		'receive highlight.io alerts via Microsoft Teams messages.',
+	'Single Sign-On (SSO)':
+		'enable SSO to streamline authentication for your organization.',
 } as const
 
 type Feature = keyof typeof FEATURE_DESCRIPTIONS
