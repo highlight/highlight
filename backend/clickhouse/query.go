@@ -805,6 +805,16 @@ func KeyValuesAggregated(ctx context.Context, client *Client, tableName string, 
 	return values, rows.Err()
 }
 
+func KeyValueSuggestionsAggregated(ctx context.Context, client *Client, tableName string, projectID int, startDate time.Time, endDate time.Time) ([]string, error) {
+	chCtx := clickhouse.Context(ctx, clickhouse.WithSettings(clickhouse.Settings{
+		"max_rows_to_read": KeyValuesMaxRows,
+	}))
+
+	limitCount := 101
+
+	return nil, nil
+}
+
 func (client *Client) AllKeys(ctx context.Context, projectID int, startDate time.Time, endDate time.Time, query *string, typeArg *modelInputs.KeyType) ([]*modelInputs.QueryKey, error) {
 	chCtx := clickhouse.Context(ctx, clickhouse.WithSettings(clickhouse.Settings{
 		"max_rows_to_read": KeysMaxRows,

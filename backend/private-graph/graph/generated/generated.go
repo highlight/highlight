@@ -1121,6 +1121,7 @@ type ComplexityRoot struct {
 		JiraProjects                     func(childComplexity int, workspaceID int) int
 		JoinableWorkspaces               func(childComplexity int) int
 		KeyValues                        func(childComplexity int, productType *model.ProductType, projectID int, keyName string, dateRange model.DateRangeRequiredInput, query *string, count *int, event *string) int
+		KeyValuesSuggestions             func(childComplexity int, productType model.ProductType, projectID int, dateRange model.DateRangeRequiredInput) int
 		Keys                             func(childComplexity int, productType *model.ProductType, projectID int, dateRange model.DateRangeRequiredInput, query *string, typeArg *model.KeyType, event *string) int
 		LastAlertStateChanges            func(childComplexity int, alertID int) int
 		LinearTeams                      func(childComplexity int, projectID int) int
@@ -2097,6 +2098,7 @@ type QueryResolver interface {
 	Metrics(ctx context.Context, productType model.ProductType, projectID int, params model.QueryInput, column *string, metricTypes []model.MetricAggregator, sql *string, groupBy []string, bucketBy string, bucketCount *int, bucketWindow *int, limit *int, limitAggregator *model.MetricAggregator, limitColumn *string, predictionSettings *model.PredictionSettings, expressions []*model.MetricExpressionInput) (*model.MetricsBuckets, error)
 	Keys(ctx context.Context, productType *model.ProductType, projectID int, dateRange model.DateRangeRequiredInput, query *string, typeArg *model.KeyType, event *string) ([]*model.QueryKey, error)
 	KeyValues(ctx context.Context, productType *model.ProductType, projectID int, keyName string, dateRange model.DateRangeRequiredInput, query *string, count *int, event *string) ([]string, error)
+	KeyValuesSuggestions(ctx context.Context, productType model.ProductType, projectID int, dateRange model.DateRangeRequiredInput) ([]string, error)
 	Visualization(ctx context.Context, id int) (*model1.Visualization, error)
 	Visualizations(ctx context.Context, projectID int, input string, count int, offset int) (*model1.VisualizationsResponse, error)
 	Graph(ctx context.Context, id int) (*model1.Graph, error)
@@ -8256,6 +8258,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Query.KeyValues(childComplexity, args["product_type"].(*model.ProductType), args["project_id"].(int), args["key_name"].(string), args["date_range"].(model.DateRangeRequiredInput), args["query"].(*string), args["count"].(*int), args["event"].(*string)), true
+
+	case "Query.key_values_suggestions":
+		if e.complexity.Query.KeyValuesSuggestions == nil {
+			break
+		}
+
+		args, err := ec.field_Query_key_values_suggestions_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.KeyValuesSuggestions(childComplexity, args["product_type"].(model.ProductType), args["project_id"].(int), args["date_range"].(model.DateRangeRequiredInput)), true
 
 	case "Query.keys":
 		if e.complexity.Query.Keys == nil {
@@ -14828,6 +14842,11 @@ type Query {
 		count: Int
 		event: String
 	): [String!]!
+	key_values_suggestions(
+		product_type: ProductType!
+		project_id: ID!
+		date_range: DateRangeRequiredInput!
+	): [String!]!
 	visualization(id: ID!): Visualization!
 	visualizations(
 		project_id: ID!
@@ -21139,6 +21158,39 @@ func (ec *executionContext) field_Query_key_values_args(ctx context.Context, raw
 		}
 	}
 	args["event"] = arg6
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_key_values_suggestions_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 model.ProductType
+	if tmp, ok := rawArgs["product_type"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("product_type"))
+		arg0, err = ec.unmarshalNProductType2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐProductType(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["product_type"] = arg0
+	var arg1 int
+	if tmp, ok := rawArgs["project_id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("project_id"))
+		arg1, err = ec.unmarshalNID2int(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["project_id"] = arg1
+	var arg2 model.DateRangeRequiredInput
+	if tmp, ok := rawArgs["date_range"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("date_range"))
+		arg2, err = ec.unmarshalNDateRangeRequiredInput2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐDateRangeRequiredInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["date_range"] = arg2
 	return args, nil
 }
 
@@ -67699,6 +67751,61 @@ func (ec *executionContext) fieldContext_Query_key_values(ctx context.Context, f
 	return fc, nil
 }
 
+func (ec *executionContext) _Query_key_values_suggestions(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Query_key_values_suggestions(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().KeyValuesSuggestions(rctx, fc.Args["product_type"].(model.ProductType), fc.Args["project_id"].(int), fc.Args["date_range"].(model.DateRangeRequiredInput))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]string)
+	fc.Result = res
+	return ec.marshalNString2ᚕstringᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Query_key_values_suggestions(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_key_values_suggestions_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Query_visualization(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Query_visualization(ctx, field)
 	if err != nil {
@@ -99566,6 +99673,28 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_key_values(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx,
+					func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
+		case "key_values_suggestions":
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_key_values_suggestions(ctx, field)
 				if res == graphql.Null {
 					atomic.AddUint32(&fs.Invalids, 1)
 				}
