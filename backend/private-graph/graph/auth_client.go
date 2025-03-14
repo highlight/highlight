@@ -67,8 +67,10 @@ func (c *CloudAuthClient) GetUser(ctx context.Context, uid string) (*auth.UserRe
 	// sso user
 	clientID, ok := ctx.Value(model.ContextKeys.SSOClientID).(string)
 	if ok && clientID != "" {
+		log.WithContext(ctx).WithField("clientID", clientID).WithField("uid", uid).Info("getting oauth user")
 		return c.oauthClient.GetUser(ctx, uid)
 	}
+	log.WithContext(ctx).WithField("uid", uid).Info("getting firebase user")
 	return c.firebaseClient.GetUser(ctx, uid)
 }
 
@@ -558,6 +560,7 @@ func (c *OAuthAuthClient) storeUser(ctx context.Context, userInfo *oidc.UserInfo
 	span.SetAttribute("ProviderID", user.ProviderID)
 	span.SetAttribute("User", user)
 
+	log.WithContext(ctx).WithField("uid", user.UID).WithField("user", user).Info("storing oauth user")
 	if err := c.store.Redis.Cache.Set(&cache.Item{
 		Ctx:   ctx,
 		Key:   fmt.Sprintf(`user-%s`, user.UID),
@@ -575,6 +578,7 @@ func (c *OAuthAuthClient) getUser(ctx context.Context, uid string) (*auth.UserRe
 
 	var userInfo auth.UserRecord
 	if err := c.store.Redis.Cache.Get(ctx, fmt.Sprintf(`user-%s`, uid), &userInfo); err != nil {
+		log.WithContext(ctx).WithError(err).Error("cannot get user from OAuth")
 		return nil, err
 	}
 	return &userInfo, nil
