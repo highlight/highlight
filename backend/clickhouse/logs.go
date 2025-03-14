@@ -503,6 +503,10 @@ func (client *Client) LogsKeyValues(ctx context.Context, projectID int, keyName 
 	return KeyValuesAggregated(ctx, client, LogKeyValuesTable, projectID, keyName, startDate, endDate, query, limit, nil)
 }
 
+func (client *Client) LogsKeyValueSuggestions(ctx context.Context, projectID int, startDate time.Time, endDate time.Time) ([]string, error) {
+	return KeyValueSuggestionsAggregated(ctx, client, LogKeyValuesTable, projectID, startDate, endDate)
+}
+
 func LogMatchesQuery(logRow *LogRow, filters listener.Filters) bool {
 	return matchesQuery(logRow, LogsTableConfig, filters, listener.OperatorAnd)
 }
