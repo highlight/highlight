@@ -331,7 +331,7 @@ func (c *OAuthAuthClient) validateToken(w http.ResponseWriter, req *http.Request
 
 	t, err := req.Cookie(tokenCookieName)
 	if err != nil || t.Value == "" {
-		log.WithContext(ctx).WithError(err).WithField("token", t.Value).Error(e.New(loginError))
+		log.WithContext(ctx).WithError(err).WithField("token", t).Error(e.New(loginError))
 		http.Error(w, "", http.StatusUnauthorized)
 		return
 	}
@@ -552,6 +552,12 @@ func (c *OAuthAuthClient) storeUser(ctx context.Context, userInfo *oidc.UserInfo
 		}
 	}
 
+	span.SetAttribute("UID", user.UID)
+	span.SetAttribute("DisplayName", user.DisplayName)
+	span.SetAttribute("Email", user.Email)
+	span.SetAttribute("ProviderID", user.ProviderID)
+	span.SetAttribute("User", user)
+
 	if err := c.store.Redis.Cache.Set(&cache.Item{
 		Ctx:   ctx,
 		Key:   fmt.Sprintf(`user-%s`, user.UID),
@@ -624,7 +630,7 @@ func NewOAuthClient(ctx context.Context, store *store.Store) (*OAuthAuthClient, 
 			Endpoint: provider.Endpoint(),
 
 			// "openid" is a required scope for OpenID Connect flows.
-			Scopes: []string{oidc.ScopeOpenID, "profile", "email"},
+			Scopes: []string{oidc.ScopeOpenID},
 		}
 
 		oauthClients[ssoClient.ClientID] = &OAuthClient{
