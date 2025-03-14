@@ -26,13 +26,13 @@
 	},
 	"dependencies": {
 		"@opentelemetry/api": "^1.9.0",
-		"@opentelemetry/exporter-metrics-otlp-http": ">=0.57.1",
-		"@opentelemetry/exporter-trace-otlp-http": ">=0.57.1",
-		"@opentelemetry/otlp-exporter-base": ">=0.57.1",
+		"@opentelemetry/exporter-metrics-otlp-http": ">=0.57.2",
+		"@opentelemetry/exporter-trace-otlp-http": ">=0.57.2",
+		"@opentelemetry/otlp-exporter-base": ">=0.57.2",
 		"@opentelemetry/resources": "^1.30.1",
 		"@opentelemetry/sdk-metrics": "^1.30.1",
 		"@opentelemetry/sdk-trace-web": "^1.30.1",
-		"@opentelemetry/semantic-conventions": "^1.28.0"
+		"@opentelemetry/semantic-conventions": "^1.30.0"
 	},
 	"devDependencies": {
 		"@cloudflare/workers-types": "^4.20230115.0",
