@@ -18,6 +18,7 @@ const (
 	loginError                      = "invalid email/password provided"
 	passwordLoginConfigurationError = "password auth mode not properly configured"
 	oauthCallbackError              = "oauth2 callback failed"
+	oauthError                      = "oauth2 login failed"
 )
 
 var adminPassword = env.Config.AuthAdminPassword
