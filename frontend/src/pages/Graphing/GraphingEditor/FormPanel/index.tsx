@@ -1,4 +1,4 @@
-import { Box, Button, Form, Stack } from '@highlight-run/ui/components'
+import { Box, Form, Stack } from '@highlight-run/ui/components'
 import { Divider } from 'antd'
 import React, { useMemo } from 'react'
 
@@ -18,6 +18,8 @@ import { QueryBuilder } from './QueryBuilder'
 import { GroupBySection } from './GroupBySection'
 import { BucketBySection } from './BucketBySection'
 import * as style from '../GraphingEditor.css'
+import { RunQueryButton } from '@/pages/Graphing/components/RunQueryButton'
+import { useGraphContext } from '@/pages/Graphing/context/GraphContext'
 
 type Props = {
 	startDate: Date
@@ -32,10 +34,11 @@ export const FormPanel: React.FC<Props> = ({
 	endDate,
 	currentDashboardId,
 	isPreview,
-	loading,
 }) => {
 	const { settings, setEditor, setSql, sqlInternal, setSqlInternal } =
 		useGraphingEditorContext()
+
+	const { errors } = useGraphContext()
 
 	const searchOptionsConfig = useMemo(() => {
 		return {
@@ -72,39 +75,42 @@ export const FormPanel: React.FC<Props> = ({
 				<Stack gap="16">
 					<VisualizationSection isPreview={isPreview} />
 					<Divider className="m-0" />
-					<SidebarSection>
-						<Box cssClass={style.editorHeader}>
-							<Box cssClass={style.editorSelect}>
-								<OptionDropdown<Editor>
-									options={EDITOR_OPTIONS}
-									selection={settings.editor}
-									setSelection={handleEditorChange}
-									disabled={isPreview}
-								/>
+					<SidebarSection isError={errors.length > 0}>
+						<Box>
+							<Box cssClass={style.editorHeader}>
+								<Box cssClass={style.editorSelect}>
+									<OptionDropdown<Editor>
+										options={EDITOR_OPTIONS}
+										selection={settings.editor}
+										setSelection={handleEditorChange}
+										disabled={isPreview}
+									/>
+								</Box>
+								{isSqlEditor && (
+									<>
+										<RunQueryButton
+											onRunQuery={() => {
+												setSql(sqlInternal)
+											}}
+										/>
+									</>
+								)}
 							</Box>
 							{isSqlEditor && (
-								<Button
-									disabled={
-										loading || sqlInternal === settings.sql
-									}
-									onClick={() => {
-										setSql(sqlInternal)
-									}}
-								>
-									Update query
-								</Button>
+								<Box cssClass={style.sqlEditorWrapper}>
+									<SqlEditor
+										value={sqlInternal}
+										setValue={setSqlInternal}
+										startDate={startDate}
+										endDate={endDate}
+										onRunQuery={() => {
+											setSql(sqlInternal)
+										}}
+									/>
+								</Box>
 							)}
 						</Box>
-						{isSqlEditor ? (
-							<Box cssClass={style.sqlEditorWrapper}>
-								<SqlEditor
-									value={sqlInternal}
-									setValue={setSqlInternal}
-									startDate={startDate}
-									endDate={endDate}
-								/>
-							</Box>
-						) : (
+						{!isSqlEditor && (
 							<QueryBuilder
 								isPreview={isPreview}
 								startDate={startDate}

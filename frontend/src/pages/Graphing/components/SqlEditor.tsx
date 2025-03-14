@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
-import React, { useCallback } from 'react'
+import React, { useCallback, useEffect, useState } from 'react'
 import CodeMirror from '@uiw/react-codemirror'
 import { sql } from '@codemirror/lang-sql'
 import { vscodeLightInit } from '@uiw/codemirror-theme-vscode'
@@ -34,6 +34,7 @@ import { BUCKET_FREQUENCIES } from '@/pages/Graphing/util'
 import { GraphSettings } from '@/pages/Graphing/constants'
 
 import * as styles from './SqlEditor.css'
+import { Stack, Text } from '@highlight-run/ui/components'
 
 interface Props {
 	value: string
@@ -220,7 +221,19 @@ export const SqlEditor: React.FC<Props> = ({
 
 	const { values } = useGraphingVariables(dashboard_id ?? '')
 
-	const { errors, setErrors } = useGraphContext()
+	const { errors } = useGraphContext()
+	const [dirty, setDirty] = useState(false)
+	const setValueInternal = useCallback(
+		(val: string) => {
+			setDirty(true)
+			setValue(val)
+		},
+		[setValue],
+	)
+
+	useEffect(() => {
+		setDirty(false)
+	}, [errors])
 
 	const { projectId } = useProjectId()
 
@@ -374,6 +387,11 @@ export const SqlEditor: React.FC<Props> = ({
 
 	const backendErrorLinter = linter(
 		(view: EditorView) => {
+			// Don't show errors once the text has changed
+			if (dirty) {
+				return []
+			}
+
 			const diagnostics: Diagnostic[] = []
 			for (const e of errors) {
 				const matches = /^line (\d+):(\d+).*?(\^+)\n$/s.exec(e)
@@ -395,13 +413,6 @@ export const SqlEditor: React.FC<Props> = ({
 						severity: 'error',
 						message: e,
 					})
-				} else {
-					diagnostics.push({
-						from: 0,
-						to: view.state.doc.length,
-						severity: 'error',
-						message: e,
-					})
 				}
 			}
 
@@ -420,13 +431,20 @@ export const SqlEditor: React.FC<Props> = ({
 					defaultKeymap: false,
 				}}
 				width="100%"
-				height="300px"
+				height="250px"
 				value={value}
 				extensions={[
 					keymap.of([
 						...standardKeymap,
 						{
 							key: 'Cmd-Enter',
+							run: () => {
+								onRunQuery()
+								return true
+							},
+						},
+						{
+							key: 'Ctrl-Enter',
 							run: () => {
 								onRunQuery()
 								return true
@@ -451,12 +469,24 @@ export const SqlEditor: React.FC<Props> = ({
 					},
 				})}
 				onChange={(val) => {
-					// Clear any existing errors after updating
-					setErrors([])
-					setValue(val)
+					setValueInternal(val)
 				}}
 				indentWithTab={false}
 			/>
+			{errors.length > 0 && (
+				<Stack gap="0">
+					<Stack cssClass={styles.statusTitle}>
+						<Text size="xxSmall" weight="medium" color="default">
+							Messages
+						</Text>
+					</Stack>
+					<Stack cssClass={styles.errorMessages}>
+						<Text size="small" weight="medium" family="monospace">
+							{errors}
+						</Text>
+					</Stack>
+				</Stack>
+			)}
 		</div>
 	)
 }
