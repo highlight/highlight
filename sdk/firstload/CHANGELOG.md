@@ -1,5 +1,11 @@
 # highlight.run
 
+## 9.12.0
+
+### Minor Changes
+
+-   6a3b836: Add option to disable frontend tracing
+
 ## 9.11.1
 
 ### Patch Changes
