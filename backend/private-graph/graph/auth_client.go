@@ -81,9 +81,11 @@ func (c *CloudAuthClient) SetupListeners(r chi.Router) {
 
 func (c *CloudAuthClient) updateContextWithAuthenticatedUser(ctx context.Context, w http.ResponseWriter, r *http.Request, token string) (context.Context, error) {
 	// sso user
-	if extractClientID(r) != "" {
+	if clientID := extractClientID(r); clientID != "" {
+		log.WithContext(ctx).WithField("clientID", clientID).WithField("token", token).Info("updateContextWithAuthenticatedUser oauth context")
 		return c.oauthClient.updateContextWithAuthenticatedUser(ctx, w, r, token)
 	}
+	log.WithContext(ctx).WithField("token", token).Info("updateContextWithAuthenticatedUser firebase context")
 	return c.firebaseClient.updateContextWithAuthenticatedUser(ctx, w, r, token)
 }
 
@@ -464,10 +466,12 @@ func (c *OAuthAuthClient) handleOAuth2Callback(w http.ResponseWriter, r *http.Re
 
 func (c *OAuthAuthClient) updateContextWithAuthenticatedUser(ctx context.Context, w http.ResponseWriter, req *http.Request, token string) (context.Context, error) {
 	span, ctx := util.StartSpanFromContext(ctx, "auth.oauth.updateContextWithAuthenticatedUser")
+	span.SetAttribute("token", token)
 	defer span.Finish()
 
 	// Parse and verify ID Token payload.
 	clientID := extractClientID(req)
+	span.SetAttribute("clientID", clientID)
 	prov, err := c.getOIDCProvider(req)
 	if err != nil {
 		log.WithContext(req.Context()).WithError(err).Error("error getting oidc provider")
@@ -493,7 +497,7 @@ func (c *OAuthAuthClient) updateContextWithAuthenticatedUser(ctx context.Context
 	// check that the oidc email domain matches allowed domains
 	_, err = mail.ParseEmail(claims.Email)
 	if err != nil {
-		return nil, err
+		return ctx, err
 	}
 	parts := strings.Split(claims.Email, "@")
 	domain := parts[1]
@@ -515,7 +519,7 @@ func (c *OAuthAuthClient) updateContextWithAuthenticatedUser(ctx context.Context
 	if !validated {
 		msg := fmt.Sprintf("user email %s does not match allowed domains", claims.Email)
 		log.WithContext(ctx).WithField("allowed_domains", domains).Error(msg)
-		return nil, e.New(msg)
+		return ctx, e.New(msg)
 	}
 
 	ctx = context.WithValue(ctx, model.ContextKeys.UID, claims.Subject)
