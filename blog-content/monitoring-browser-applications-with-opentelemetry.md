@@ -50,7 +50,11 @@ H.init({
 })
 ```
 
-This will disable any user interaction traces (e.g. mousemove) from being recorded.
+This will disable any user interaction traces (e.g. mousemove) from being recorded. The list of default instrumentations are:
+ - '@opentelemetry/instrumentation-document-load'
+ -	'@opentelemetry/instrumentation-fetch'
+ -	'@opentelemetry/instrumentation-xml-http-request'
+ -	'@opentelemetry/instrumentation-user-interaction'
 
 ### Connecting Client and Server Traces
 
