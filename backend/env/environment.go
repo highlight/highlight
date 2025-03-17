@@ -178,12 +178,19 @@ func GetEnterpriseEnvPublicKey() string {
 	return Config.EnterpriseEnvPublicKey
 }
 
-func GetFrontendDomain() (string, error) {
+func GetFrontendCookieDomain() (string, error) {
 	u, err := url.Parse(Config.FrontendUri)
 	if err != nil {
 		return "", err
 	}
-	return u.Hostname(), nil
+
+	domain := u.Hostname()
+	parts := strings.Split(domain, ".")
+	if len(parts) >= 2 {
+		domain = strings.Join(parts[len(parts)-2:], ".")
+	}
+
+	return "." + domain, nil
 }
 
 func IsDevEnv() bool {
