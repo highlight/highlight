@@ -538,7 +538,7 @@ func (c *OAuthAuthClient) storeUser(ctx context.Context, userInfo *oidc.UserInfo
 	user := auth.UserRecord{
 		UserInfo: &auth.UserInfo{
 			UID:         userInfo.Subject,
-			DisplayName: userInfo.Email,
+			DisplayName: userInfo.Profile,
 			Email:       userInfo.Email,
 			ProviderID:  prov.UserInfoEndpoint(),
 		},
@@ -552,6 +552,9 @@ func (c *OAuthAuthClient) storeUser(ctx context.Context, userInfo *oidc.UserInfo
 		return err
 	}
 
+	if name, ok := user.CustomClaims["name"]; ok {
+		user.UserInfo.DisplayName, _ = name.(string)
+	}
 	if user.UserInfo.PhotoURL == "" {
 		if picture, ok := user.CustomClaims["picture"]; ok {
 			user.UserInfo.PhotoURL, _ = picture.(string)
@@ -564,7 +567,7 @@ func (c *OAuthAuthClient) storeUser(ctx context.Context, userInfo *oidc.UserInfo
 	span.SetAttribute("ProviderID", user.ProviderID)
 	span.SetAttribute("User", user)
 
-	log.WithContext(ctx).WithField("uid", user.UID).WithField("user", user).Info("storing oauth user")
+	log.WithContext(ctx).WithField("uid", user.UID).WithField("user", user).WithField("userInfo", *userInfo).Info("storing oauth user")
 	if err := c.store.Redis.Cache.Set(&cache.Item{
 		Ctx:   ctx,
 		Key:   fmt.Sprintf(`user-%s`, user.UID),
