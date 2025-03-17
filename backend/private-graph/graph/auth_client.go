@@ -638,7 +638,7 @@ func NewOAuthClient(ctx context.Context, store *store.Store) (*OAuthAuthClient, 
 			Endpoint: provider.Endpoint(),
 
 			// "openid" is a required scope for OpenID Connect flows.
-			Scopes: []string{oidc.ScopeOpenID},
+			Scopes: []string{oidc.ScopeOpenID, "profile", "email"},
 		}
 
 		oauthClients[ssoClient.ClientID] = &OAuthClient{
