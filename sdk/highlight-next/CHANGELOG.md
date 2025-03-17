@@ -2,6 +2,8 @@
 
 ## 7.9.3
 
+### Patch Changes
+
 -   Updated dependencies [70cd598]
     -   highlight.run@9.13.0
     -   @highlight-run/node@3.12.0
