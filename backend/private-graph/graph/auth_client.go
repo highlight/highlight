@@ -542,7 +542,8 @@ func (c *OAuthAuthClient) storeUser(ctx context.Context, userInfo *oidc.UserInfo
 			Email:       userInfo.Email,
 			ProviderID:  prov.UserInfoEndpoint(),
 		},
-		EmailVerified: userInfo.EmailVerified,
+		// sso email always verified by provider
+		EmailVerified: true,
 	}
 	if err := userInfo.Claims(&user); err != nil {
 		return err
@@ -637,8 +638,7 @@ func NewOAuthClient(ctx context.Context, store *store.Store) (*OAuthAuthClient, 
 			Endpoint: provider.Endpoint(),
 
 			// "openid" is a required scope for OpenID Connect flows.
-			// "email" used to get email verification status; "profile" for user image
-			Scopes: []string{oidc.ScopeOpenID, "profile", "email"},
+			Scopes: []string{oidc.ScopeOpenID},
 		}
 
 		oauthClients[ssoClient.ClientID] = &OAuthClient{
