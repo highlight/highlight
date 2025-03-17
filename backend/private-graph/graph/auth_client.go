@@ -697,7 +697,12 @@ func updateContextWithJWTToken(ctx context.Context, token string) (context.Conte
 }
 
 func extractClientID(r *http.Request) string {
-	if cookie, err := r.Cookie(oauthClientIDCookieName); err == nil && cookie.Value != "" {
+	if r == nil {
+		return ""
+	}
+
+	cookie, err := r.Cookie(oauthClientIDCookieName)
+	if err == nil && cookie != nil && cookie.Value != "" {
 		return cookie.Value
 	}
 
