@@ -3,16 +3,9 @@ package graph
 import (
 	"context"
 	"encoding/json"
-	"fmt"
-	highlightChi "github.com/highlight/highlight/sdk/highlight-go/middleware/chi"
-	"go.opentelemetry.io/otel/trace"
-	"net/http"
-	"regexp"
-	"strings"
-	"time"
-
 	firebase "firebase.google.com/go"
 	"firebase.google.com/go/auth"
+	"fmt"
 	"github.com/coreos/go-oidc/v3/oidc"
 	"github.com/go-chi/chi"
 	"github.com/go-redis/cache/v9"
@@ -21,13 +14,19 @@ import (
 	"github.com/highlight-run/highlight/backend/model"
 	"github.com/highlight-run/highlight/backend/store"
 	"github.com/highlight-run/highlight/backend/util"
+	highlightChi "github.com/highlight/highlight/sdk/highlight-go/middleware/chi"
 	e "github.com/pkg/errors"
 	"github.com/samber/lo"
 	"github.com/sendgrid/sendgrid-go/helpers/mail"
 	log "github.com/sirupsen/logrus"
+	"go.opentelemetry.io/otel/trace"
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/google"
 	"google.golang.org/api/option"
+	"net/http"
+	"regexp"
+	"strings"
+	"time"
 )
 
 const (
