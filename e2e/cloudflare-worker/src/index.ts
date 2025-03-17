@@ -54,7 +54,7 @@ async function doRequest() {
 
 export default {
 	async fetch(request: Request, env: {}, ctx: ExecutionContext) {
-		H.init({ HIGHLIGHT_PROJECT_ID: '1' })
+		H.init({ HIGHLIGHT_PROJECT_ID: '1' }, 'e2e-cloudflare-app')
 		try {
 			return await H.runWithHeaders('worker', request.headers, doRequest)
 		} catch (e: any) {

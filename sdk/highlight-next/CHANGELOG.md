@@ -1,5 +1,12 @@
 # @highlight-run/next
 
+## 7.9.2
+
+### Patch Changes
+
+-   Updated dependencies [a290c43]
+    -   @highlight-run/cloudflare@3.1.0
+
 ## 7.9.1
 
 ### Patch Changes

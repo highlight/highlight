@@ -2,14 +2,14 @@
 	"compilerOptions": {
 		"allowSyntheticDefaultImports": true,
 		"baseUrl": ".",
-		"lib": ["es2022"],
+		"lib": ["ESNext"],
 		"module": "ESNext",
+		"target": "ESNext",
 		"moduleResolution": "Node",
 		"noEmit": true,
 		"resolveJsonModule": true,
 		"sourceMap": true,
 		"strict": true,
-		"target": "es2022",
 		"types": ["@cloudflare/workers-types"]
 	},
 	"include": ["src/**/*"]

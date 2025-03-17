@@ -1,5 +1,11 @@
 # @highlight-run/cloudflare
 
+## 3.1.0
+
+### Minor Changes
+
+-   a290c43: fix cloudflare sdk breaking due to invalid opentelemetry class extension
+
 ## 3.0.0
 
 ### Major Changes
