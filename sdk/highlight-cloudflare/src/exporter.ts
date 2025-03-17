@@ -1,20 +1,27 @@
-import { OTLPTraceExporter } from '@opentelemetry/exporter-trace-otlp-http'
-import { OTLPMetricExporter } from '@opentelemetry/exporter-metrics-otlp-http'
-import {
-	JsonTraceSerializer,
-	JsonMetricsSerializer,
-} from '@opentelemetry/otlp-transformer'
+import type { OTLPTraceExporter } from '@opentelemetry/exporter-trace-otlp-http'
+import type { OTLPMetricExporter } from '@opentelemetry/exporter-metrics-otlp-http'
 import type { ExportResult, ExportResultCode } from '@opentelemetry/core'
+import type { SpanExporter } from '@opentelemetry/sdk-trace-web'
+import type {
+	Aggregation,
+	AggregationTemporality,
+	InstrumentType,
+	PushMetricExporter,
+} from '@opentelemetry/sdk-metrics'
+
+import {
+	JsonMetricsSerializer,
+	JsonTraceSerializer,
+} from '@opentelemetry/otlp-transformer'
 
 type TraceExporterConfig = ConstructorParameters<typeof OTLPTraceExporter>[0]
 type MetricExporterConfig = ConstructorParameters<typeof OTLPMetricExporter>[0]
 
-export class OTLPTraceExporterFetch extends OTLPTraceExporter {
+export class OTLPTraceExporterFetch implements SpanExporter {
 	private readonly url: string
 	private readonly fetchConfig: RequestInit
 
 	constructor(config?: TraceExporterConfig) {
-		super(config)
 		this.url = config?.url ?? '/v1/traces'
 		this.fetchConfig = {
 			method: 'POST',
@@ -22,6 +29,14 @@ export class OTLPTraceExporterFetch extends OTLPTraceExporter {
 				'Content-Type': 'application/json',
 			},
 		}
+	}
+
+	async shutdown(): Promise<void> {
+		// noop
+	}
+
+	async forceFlush?(): Promise<void> {
+		// noop
 	}
 
 	export(items: any, resultCallback: (result: ExportResult) => void) {
@@ -45,18 +60,32 @@ export class OTLPTraceExporterFetch extends OTLPTraceExporter {
 	}
 }
 
-export class OTLPMetricExporterFetch extends OTLPMetricExporter {
+export class OTLPMetricExporterFetch implements PushMetricExporter {
 	private readonly url: string
 	private readonly fetchConfig: RequestInit
 
 	constructor(config?: MetricExporterConfig) {
-		super(config)
 		this.url = config?.url ?? '/v1/traces'
 		this.fetchConfig = {
 			headers: {
 				'Content-Type': 'application/json',
 			},
 		}
+	}
+
+	async forceFlush(): Promise<void> {
+		// noop
+	}
+	selectAggregationTemporality?(
+		instrumentType: InstrumentType,
+	): AggregationTemporality {
+		throw new Error('Method not implemented.')
+	}
+	selectAggregation?(instrumentType: InstrumentType): Aggregation {
+		throw new Error('Method not implemented.')
+	}
+	async shutdown(): Promise<void> {
+		// noop
 	}
 
 	export(items: any, resultCallback: (result: ExportResult) => void) {

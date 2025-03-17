@@ -18,13 +18,12 @@ import {
 	type Meter,
 	metrics,
 	propagation,
-	SpanOptions,
 	Span as OtelSpan,
+	SpanOptions,
 	trace,
 } from '@opentelemetry/api'
 import {
 	CompositePropagator,
-	TRACE_PARENT_HEADER,
 	W3CBaggagePropagator,
 	W3CTraceContextPropagator,
 } from '@opentelemetry/core'
@@ -34,7 +33,7 @@ import {
 	ATTR_SERVICE_VERSION,
 } from '@opentelemetry/semantic-conventions'
 import * as packageJson from '../package.json'
-import { OTLPTraceExporterFetch, OTLPMetricExporterFetch } from './exporter'
+import { OTLPMetricExporterFetch, OTLPTraceExporterFetch } from './exporter'
 
 const HIGHLIGHT_PROJECT_ENV = 'HIGHLIGHT_PROJECT_ID'
 const HIGHLIGHT_REQUEST_HEADER = 'X-Highlight-Request'
