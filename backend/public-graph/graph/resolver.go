@@ -2655,8 +2655,8 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 		util.Tag("numberOfErrors", len(errors)),
 		util.Tag("numberOfEvents", len(events.Events)),
 	}
-	// sample-in payload with many events
-	if len(events.Events) > 1_000 {
+	// sample-in 1/1000 of ProcessPayload calls
+	if env.IsProduction() && isIngestedBySample(ctx, "", 1./1000) {
 		opts = append(opts, util.WithSpanKind(trace.SpanKindServer))
 	}
 	span, ctx := util.StartSpanFromContext(ctx, "public-graph.pushPayload", opts...)
