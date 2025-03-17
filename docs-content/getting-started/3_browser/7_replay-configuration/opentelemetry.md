@@ -7,12 +7,16 @@ updatedAt: 2024-08-23T22:55:19.000Z
 
 Highlight's JavaScript SDK offers built-in support for collecting OpenTelemetry data from client-side applications, allowing you to seamlessly integrate OpenTelemetry tracing into your web applications.
 
-Highlight automatically collects most of the OpenTelemetry data you'll need by leveraging the auto instrumentations and doing some additional processing to make the data more useful in Highlight. You can disable frontend traces by using the `disableOtelTracing` option as seen below
+Highlight automatically collects most of the OpenTelemetry data you'll need by leveraging the auto instrumentations and doing some additional processing to make the data more useful in Highlight. You can disable specific frontend traces by using the `otel.instrumentations` option as seen below:
 
 ```ts
 H.init({
   // ...
-  disableOtelTracing: true
+  otel: {
+   instrumentations: {
+      ['@opentelemetry/instrumentation-user-interaction']: false
+   }
+  }
 })
 ```
 
