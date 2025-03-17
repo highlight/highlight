@@ -72,23 +72,21 @@ export const ProjectRouter = () => {
 	}, [projectId, setLocalStorageProjectId])
 
 	useEffect(() => {
-		let intervalId: NodeJS.Timeout
+		const fetchToken = async () => {
+			if (!projectId) return
+			const token = await auth.currentUser?.getIdToken()
+			if (!token) return
+			await fetch(`${PRIVATE_GRAPH_URI}/project-token/${projectId}`, {
+				credentials: 'include',
+				headers: {
+					token: token ?? '',
+				},
+			})
+		}
 
-		auth.currentUser?.getIdToken().then((t) => {
-			const fetchToken = () => {
-				fetch(`${PRIVATE_GRAPH_URI}/project-token/${projectId}`, {
-					credentials: 'include',
-					headers: {
-						token: t,
-					},
-				})
-			}
-			if (projectId) {
-				// Fetch a new token now and every 30 mins
-				fetchToken()
-			}
-			intervalId = setInterval(fetchToken, 30 * 60 * 1000)
-		})
+		// Fetch a new token now and every 30 mins
+		fetchToken()
+		const intervalId = setInterval(fetchToken, 30 * 60 * 1000)
 		return () => {
 			clearInterval(intervalId)
 		}
