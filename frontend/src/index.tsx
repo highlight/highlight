@@ -117,11 +117,6 @@ const options: HighlightOptions = {
 	version: import.meta.env.REACT_APP_COMMIT_SHA ?? '1.0.0',
 	serviceName: 'frontend',
 	otlpEndpoint: OTLP_ENDPOINT,
-	otel: {
-		instrumentations: {
-			'@opentelemetry/instrumentation-user-interaction': false,
-		},
-	},
 }
 const favicon = document.querySelector("link[rel~='icon']") as any
 if (dev) {
