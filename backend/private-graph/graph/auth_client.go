@@ -66,10 +66,10 @@ func (c *CloudAuthClient) GetUser(ctx context.Context, uid string) (*auth.UserRe
 	// sso user
 	clientID, ok := ctx.Value(model.ContextKeys.SSOClientID).(string)
 	if ok && clientID != "" {
-		log.WithContext(ctx).WithField("clientID", clientID).WithField("uid", uid).Info("getting oauth user")
+		log.WithContext(ctx).WithField("clientID", clientID).WithField("uid", uid).Debug("getting oauth user")
 		return c.oauthClient.GetUser(ctx, uid)
 	}
-	log.WithContext(ctx).WithField("uid", uid).Info("getting firebase user")
+	log.WithContext(ctx).WithField("uid", uid).Debug("getting firebase user")
 	return c.firebaseClient.GetUser(ctx, uid)
 }
 
@@ -81,10 +81,10 @@ func (c *CloudAuthClient) SetupListeners(r chi.Router) {
 func (c *CloudAuthClient) updateContextWithAuthenticatedUser(ctx context.Context, w http.ResponseWriter, r *http.Request, token string) (context.Context, error) {
 	// sso user
 	if clientID := extractClientID(r); clientID != "" {
-		log.WithContext(ctx).WithField("clientID", clientID).WithField("token", token).Info("updateContextWithAuthenticatedUser oauth context")
+		log.WithContext(ctx).WithField("clientID", clientID).WithField("token", token).Debug("updateContextWithAuthenticatedUser oauth context")
 		return c.oauthClient.updateContextWithAuthenticatedUser(ctx, w, r, token)
 	}
-	log.WithContext(ctx).WithField("token", token).Info("updateContextWithAuthenticatedUser firebase context")
+	log.WithContext(ctx).WithField("token", token).Debug("updateContextWithAuthenticatedUser firebase context")
 	return c.firebaseClient.updateContextWithAuthenticatedUser(ctx, w, r, token)
 }
 
