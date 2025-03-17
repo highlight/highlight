@@ -768,7 +768,7 @@ func (r *mutationResolver) ExportSession(ctx context.Context, sessionSecureID st
 		DoUpdates: clause.AssignmentColumns([]string{"target_emails"}),
 	}).FirstOrCreate(&export)
 	if tx.Error != nil {
-		log.WithContext(context.Background()).WithError(tx.Error).Error("failed to create session export record")
+		log.WithContext(ctx).WithError(tx.Error).Error("failed to create session export record")
 		return false, tx.Error
 	}
 
@@ -779,7 +779,7 @@ func (r *mutationResolver) ExportSession(ctx context.Context, sessionSecureID st
 		TargetEmails: export.TargetEmails,
 	})
 	if err != nil {
-		log.WithContext(context.Background()).WithError(err).Error("failed to export session video")
+		log.WithContext(ctx).WithError(err).Error("failed to export session video")
 		return false, err
 	}
 
@@ -8345,7 +8345,7 @@ func (r *queryResolver) Admin(ctx context.Context) (*model.Admin, error) {
 	if admin.EmailVerified != nil && !*admin.EmailVerified {
 		firebaseSpan, _ := util.StartSpanFromContext(ctx, "db.updateAdminFromFirebaseForEmailVerification", util.ResourceName("resolver.getAdmin"),
 			util.Tag("admin_uid", *admin.UID))
-		firebaseUser, err := AuthClient.GetUser(context.Background(), *admin.UID)
+		firebaseUser, err := AuthClient.GetUser(ctx, *admin.UID)
 		if err != nil {
 			spanError := e.Wrap(err, "error retrieving user from firebase api for email verification")
 			adminSpan.Finish(spanError)
