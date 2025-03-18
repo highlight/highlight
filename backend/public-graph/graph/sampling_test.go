@@ -2,6 +2,10 @@ package graph
 
 import (
 	"context"
+	"math"
+	"testing"
+	"time"
+
 	"github.com/google/uuid"
 	"github.com/highlight-run/highlight/backend/model"
 	modelInputs "github.com/highlight-run/highlight/backend/private-graph/graph/model"
@@ -10,15 +14,12 @@ import (
 	"github.com/highlight-run/highlight/backend/store"
 	"github.com/openlyinc/pointy"
 	"github.com/stretchr/testify/assert"
-	"math"
-	"testing"
-	"time"
 )
 
 func Benchmark_isIngestedBySample(b *testing.B) {
 	ctx := context.TODO()
 	for i := 0; i < b.N; i++ {
-		isIngestedBySample(ctx, "", 0.5)
+		IsIngestedBySample(ctx, "", 0.5)
 	}
 	if b.N > 1 {
 		assert.Less(b, b.Elapsed()/time.Duration(b.N), time.Millisecond, "benchmarked fn is too slow")
@@ -30,7 +31,7 @@ func Test_isIngestedBySample_FindRare(t *testing.T) {
 	var rare []string
 	for i := 0; i < 10*100_000; i++ {
 		key := uuid.New().String()
-		ingested := isIngestedBySample(ctx, key, 1./100_000)
+		ingested := IsIngestedBySample(ctx, key, 1./100_000)
 		if ingested {
 			t.Logf("ingested key %s", key)
 			rare = append(rare, key)
@@ -46,7 +47,7 @@ func Fuzz_isIngestedBySample(f *testing.F) {
 	f.Add("hello, world!", 1.)
 	f.Add("", 0.)
 	f.Fuzz(func(t *testing.T, key string, rate float64) {
-		isIngestedBySample(ctx, key, rate)
+		IsIngestedBySample(ctx, key, rate)
 	})
 }
 
@@ -56,9 +57,9 @@ func Fuzz_isIngestedByExtremeSamples(f *testing.F) {
 	f.Add("key")
 	f.Add("hello, world!")
 	f.Fuzz(func(t *testing.T, key string) {
-		ingested := isIngestedBySample(ctx, key, 0)
+		ingested := IsIngestedBySample(ctx, key, 0)
 		assert.False(t, ingested)
-		ingested = isIngestedBySample(ctx, key, 1)
+		ingested = IsIngestedBySample(ctx, key, 1)
 		assert.True(t, ingested)
 	})
 }
@@ -69,7 +70,7 @@ func Test_isIngestedBySample(t *testing.T) {
 	for rate := 0.; rate < 1.; rate += 0.1 {
 		ingested := 0
 		for i := 0; i < N; i++ {
-			if isIngestedBySample(ctx, "", rate) {
+			if IsIngestedBySample(ctx, "", rate) {
 				ingested += 1
 			}
 		}
