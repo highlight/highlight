@@ -138,6 +138,17 @@ export declare type NetworkRecordingOptions = {
 	) => RequestResponsePair | null
 }
 
+export declare type OtelOptions = {
+	instrumentations: OtelInstrumentatonOptions
+}
+
+export declare type OtelInstrumentatonOptions = {
+	'@opentelemetry/instrumentation-document-load'?: false
+	'@opentelemetry/instrumentation-fetch'?: false
+	'@opentelemetry/instrumentation-xml-http-request'?: false
+	'@opentelemetry/instrumentation-user-interaction'?: false
+}
+
 export declare type IntegrationOptions = {
 	amplitude?: AmplitudeIntegrationOptions
 	intercom?: IntercomIntegrationOptions

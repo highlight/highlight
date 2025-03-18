@@ -2,7 +2,7 @@
 	"compilerOptions": {
 		"allowSyntheticDefaultImports": true,
 		"baseUrl": ".",
-		"lib": ["es2022"],
+		"lib": ["ESNext"],
 		"module": "ESNext",
 		"moduleResolution": "Node",
 		"noEmit": true,
@@ -13,7 +13,7 @@
 		   the imported javascript bundle, but does not replace the '@types/node' dependency */
 		"skipLibCheck": true,
 		"strict": true,
-		"target": "es2022",
+		"target": "ESNext",
 		"types": ["@cloudflare/workers-types", "@highlight-run/cloudflare"]
 	},
 	"include": ["src", "../common"]

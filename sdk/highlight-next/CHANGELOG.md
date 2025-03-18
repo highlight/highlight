@@ -1,5 +1,21 @@
 # @highlight-run/next
 
+## 7.9.3
+
+### Patch Changes
+
+-   Updated dependencies [70cd598]
+    -   highlight.run@9.13.0
+    -   @highlight-run/node@3.12.0
+    -   @highlight-run/react@14.0.0
+
+## 7.9.2
+
+### Patch Changes
+
+-   Updated dependencies [a290c43]
+    -   @highlight-run/cloudflare@3.1.0
+
 ## 7.9.1
 
 ### Patch Changes

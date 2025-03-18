@@ -138,9 +138,6 @@ export class FirstLoadListeners {
 				{ enablePromisePatch: this.enablePromisePatch },
 			),
 		)
-		if (!this.options.disableOtelTracing) {
-			this.listeners.push(shutdown)
-		}
 		this.listeners.push(shutdown)
 		FirstLoadListeners.setupNetworkListener(this, this.options)
 	}
@@ -274,7 +271,6 @@ export class FirstLoadListeners {
 					tracingOrigins: sThis.tracingOrigins,
 					urlBlocklist: sThis.urlBlocklist,
 					bodyKeysToRecord: sThis.networkBodyKeysToRecord,
-					otelDisabled: !!options.disableOtelTracing,
 				}),
 			)
 		}

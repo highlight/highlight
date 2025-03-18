@@ -3878,7 +3878,7 @@ func (r *Resolver) GetGitlabProjects(
 func (r *Resolver) CreateDefaultDashboard(ctx context.Context, projectID int) (*model.VisualizationsResponse, error) {
 	viz := model.Visualization{
 		ProjectID: projectID,
-		Name:      "Insights",
+		Name:      "User Insights",
 	}
 
 	countAggregator := modelInputs.MetricAggregatorCount
@@ -3963,14 +3963,15 @@ func (r *Resolver) CreateDefaultDashboard(ctx context.Context, projectID int) (*
 			Type:              "Line chart",
 			Title:             "Web Vitals: " + desc,
 			ProductType:       "Metrics",
-			GroupByKeys:       []string{"browser"},
+			GroupByKeys:       []string{"group"},
 			BucketByKey:       pointy.String("Timestamp"),
 			BucketCount:       pointy.Int(24),
 			Limit:             pointy.Int(10),
 			LimitFunctionType: &countAggregator,
 			Display:           pointy.String("Stacked area"),
 			NullHandling:      pointy.String("Hidden"),
-			Expressions:       pointy.String(fmt.Sprintf(`[{"column": "%s", "aggregator": "P95"}]`, vital)),
+			Query:             fmt.Sprintf(`metric_name=%s`, vital),
+			Expressions:       pointy.String(`[{"column": "value", "aggregator": "P95"}]`),
 		})
 	}
 
