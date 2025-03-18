@@ -805,14 +805,107 @@ func KeyValuesAggregated(ctx context.Context, client *Client, tableName string, 
 	return values, rows.Err()
 }
 
-func KeyValueSuggestionsAggregated(ctx context.Context, client *Client, tableName string, projectID int, startDate time.Time, endDate time.Time) ([]string, error) {
+func KeyValueSuggestionsAggregated(ctx context.Context, client *Client, tableName string, projectID int, startDate time.Time, endDate time.Time) ([]*modelInputs.KeyValueSuggestion, error) {
 	chCtx := clickhouse.Context(ctx, clickhouse.WithSettings(clickhouse.Settings{
 		"max_rows_to_read": KeyValuesMaxRows,
 	}))
 
 	limitCount := 101
 
-	return nil, nil
+	// get all keys with number of times used
+	keyCountSb := sqlbuilder.NewSelectBuilder()
+	keyCountSb.Select("Key, sum(Count) as KeyCount").
+		From(tableName).
+		Where(keyCountSb.Equal("ProjectId", projectID)).
+		Where(fmt.Sprintf("Day >= toStartOfDay(%s)", keyCountSb.Var(startDate))).
+		Where(fmt.Sprintf("Day <= toStartOfDay(%s)", keyCountSb.Var(endDate))).
+		GroupBy("Key")
+
+	// get all keys with more than 1 unique value where no more than 5% of values are unique
+	validKeySb := sqlbuilder.NewSelectBuilder()
+	validKeySb.Select("Key").
+		From(tableName).
+		Where(validKeySb.Equal("ProjectId", projectID)).
+		Where(fmt.Sprintf("Day >= toStartOfDay(%s)", validKeySb.Var(startDate))).
+		Where(fmt.Sprintf("Day <= toStartOfDay(%s)", validKeySb.Var(endDate))).
+		GroupBy("Key").
+		Having("uniq(Value) < sum(Count) * 0.05 AND uniq(Value) > 1")
+
+	// get all keys and values with rank
+	rankSb := sqlbuilder.NewSelectBuilder()
+	rankSb.Select("Key, Value, KeyCount, Count as ValueCount, row_number() OVER (PARTITION BY Key ORDER BY max(Count) DESC) AS Rank").
+		From(tableName).
+		Join(rankSb.BuilderAs(keyCountSb, "key_counts"), "key_counts.Key = Key").
+		Where(rankSb.Equal("ProjectId", projectID)).
+		Where(fmt.Sprintf("Day >= toStartOfDay(%s)", rankSb.Var(startDate))).
+		Where(fmt.Sprintf("Day <= toStartOfDay(%s)", rankSb.Var(endDate))).
+		Where(fmt.Sprintf("Key IN (%s)", rankSb.BuilderAs(validKeySb, "valid_keys"))).
+		GroupBy("Key, Value, KeyCount, Count").
+		OrderBy("Key, KeyCount DESC")
+
+	// take top 10 values for each key
+	sb := sqlbuilder.NewSelectBuilder()
+	sb.Select("*").
+		From(sb.BuilderAs(rankSb, "ranked_keys")).
+		Where("Rank <= 10").
+		OrderBy("Key, Rank").
+		Limit(limitCount)
+
+	sql, args := sb.BuildWithFlavor(sqlbuilder.ClickHouse)
+
+	span, _ := util.StartSpanFromContext(chCtx, "readKeyValueSuggestions", util.ResourceName(tableName))
+	span.SetAttribute("Query", sql)
+	span.SetAttribute("Table", tableName)
+	span.SetAttribute("db.system", "clickhouse")
+
+	rows, err := client.conn.Query(chCtx, sql, args...)
+	if err != nil {
+		return nil, err
+	}
+
+	keyValueMap := map[string][]*modelInputs.ValueSuggestion{}
+	lastKey := ""
+	suggestionLength := 0
+
+	for rows.Next() {
+		var (
+			key        string
+			value      string
+			keyCount   uint64
+			valueCount uint64
+			rank       uint64
+		)
+		suggestionLength++
+
+		if err := rows.Scan(&key, &value, &keyCount, &valueCount, &rank); err != nil {
+			return nil, err
+		}
+
+		lastKey = key
+		keyValueMap[key] = append(keyValueMap[key], &modelInputs.ValueSuggestion{
+			Value: value,
+			Count: valueCount,
+			Rank:  rank,
+		})
+	}
+
+	keyValues := []*modelInputs.KeyValueSuggestion{}
+	for key, values := range keyValueMap {
+		// don't include last key which is incomplete due to limit
+		if suggestionLength >= limitCount && key == lastKey {
+			continue
+		}
+
+		keyValues = append(keyValues, &modelInputs.KeyValueSuggestion{
+			Key:    key,
+			Values: values,
+		})
+	}
+
+	rows.Close()
+
+	span.Finish(rows.Err())
+	return keyValues, rows.Err()
 }
 
 func (client *Client) AllKeys(ctx context.Context, projectID int, startDate time.Time, endDate time.Time, query *string, typeArg *modelInputs.KeyType) ([]*modelInputs.QueryKey, error) {

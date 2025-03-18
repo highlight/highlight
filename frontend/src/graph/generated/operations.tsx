@@ -5203,6 +5203,28 @@ export type GetKeyValuesQuery = { __typename?: 'Query' } & Pick<
 	'key_values'
 >
 
+export type GetKeyValueSuggestionsQueryVariables = Types.Exact<{
+	product_type: Types.ProductType
+	project_id: Types.Scalars['ID']
+	date_range: Types.DateRangeRequiredInput
+}>
+
+export type GetKeyValueSuggestionsQuery = { __typename?: 'Query' } & {
+	key_values_suggestions: Array<
+		{ __typename?: 'KeyValueSuggestion' } & Pick<
+			Types.KeyValueSuggestion,
+			'key'
+		> & {
+				values: Array<
+					{ __typename?: 'ValueSuggestion' } & Pick<
+						Types.ValueSuggestion,
+						'value' | 'count' | 'rank'
+					>
+				>
+			}
+	>
+}
+
 export type GetMetricsQueryVariables = Types.Exact<{
 	product_type: Types.ProductType
 	project_id: Types.Scalars['ID']
@@ -5584,6 +5606,7 @@ export const namedOperations = {
 		GetTracesMetrics: 'GetTracesMetrics' as const,
 		GetKeys: 'GetKeys' as const,
 		GetKeyValues: 'GetKeyValues' as const,
+		GetKeyValueSuggestions: 'GetKeyValueSuggestions' as const,
 		GetMetrics: 'GetMetrics' as const,
 		GetGraphTemplates: 'GetGraphTemplates' as const,
 		GetVisualization: 'GetVisualization' as const,

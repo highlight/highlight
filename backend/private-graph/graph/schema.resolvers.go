@@ -9764,7 +9764,7 @@ func (r *queryResolver) KeyValues(ctx context.Context, productType *modelInputs.
 }
 
 // KeyValuesSuggestions is the resolver for the key_values_suggestions field.
-func (r *queryResolver) KeyValuesSuggestions(ctx context.Context, productType modelInputs.ProductType, projectID int, dateRange modelInputs.DateRangeRequiredInput) ([]string, error) {
+func (r *queryResolver) KeyValuesSuggestions(ctx context.Context, productType modelInputs.ProductType, projectID int, dateRange modelInputs.DateRangeRequiredInput) ([]*modelInputs.KeyValueSuggestion, error) {
 	project, err := r.isUserInProjectOrDemoProject(ctx, projectID)
 	if err != nil {
 		return nil, err
@@ -9772,7 +9772,7 @@ func (r *queryResolver) KeyValuesSuggestions(ctx context.Context, productType mo
 
 	switch productType {
 	case modelInputs.ProductTypeLogs:
-		return r.ClickhouseClient.LogsKeyValueSuggestions(ctx, project.ID, keyName, dateRange.StartDate, dateRange.EndDate)
+		return r.ClickhouseClient.LogsKeyValueSuggestions(ctx, project.ID, dateRange.StartDate, dateRange.EndDate)
 	default:
 		return nil, e.Errorf("product type not supported %s", productType)
 	}

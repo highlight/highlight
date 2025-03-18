@@ -951,6 +951,12 @@ export enum KeyType {
 	String = 'String',
 }
 
+export type KeyValueSuggestion = {
+	__typename?: 'KeyValueSuggestion'
+	key: Scalars['String']
+	values: Array<ValueSuggestion>
+}
+
 export type LengthRange = {
 	__typename?: 'LengthRange'
 	max?: Maybe<Scalars['Float']>
@@ -2200,7 +2206,7 @@ export type Query = {
 	jira_projects?: Maybe<Array<JiraProject>>
 	joinable_workspaces?: Maybe<Array<Maybe<Workspace>>>
 	key_values: Array<Scalars['String']>
-	key_values_suggestions: Array<Scalars['String']>
+	key_values_suggestions: Array<KeyValueSuggestion>
 	keys: Array<QueryKey>
 	last_alert_state_changes: Array<Maybe<AlertStateChange>>
 	linear_teams?: Maybe<Array<LinearTeam>>
@@ -4005,6 +4011,13 @@ export type UserProperty = {
 export type UserPropertyInput = {
 	id: Scalars['ID']
 	name: Scalars['String']
+	value: Scalars['String']
+}
+
+export type ValueSuggestion = {
+	__typename?: 'ValueSuggestion'
+	count: Scalars['UInt64']
+	rank: Scalars['UInt64']
 	value: Scalars['String']
 }
 

@@ -301,7 +301,12 @@ const LogsPageInner = ({ timeMode, logCursor, presetDefault }: Props) => {
 						timeMode={timeMode}
 					/>
 					<Box display="flex" flexDirection="row">
-						<LeftPanel displayLeftPanel={displayLeftPanel} />
+						<LeftPanel
+							product={ProductType.Logs}
+							displayLeftPanel={displayLeftPanel}
+							startDate={searchTimeContext.startDate}
+							endDate={searchTimeContext.endDate}
+						/>
 						<Stack gap="0">
 							<ControlsBar
 								showControlsPanel={displayLeftPanel}
