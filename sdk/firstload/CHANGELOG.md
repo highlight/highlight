@@ -1,5 +1,11 @@
 # highlight.run
 
+## 9.13.0
+
+### Minor Changes
+
+-   70cd598: Add more granualar otel instrumentation configuration
+
 ## 9.12.0
 
 ### Minor Changes

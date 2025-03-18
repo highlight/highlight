@@ -5,11 +5,7 @@ declare var window: HighlightWebSocketWindow
 
 const placeholderCallback = () => null
 
-export const initializeWebSocketListener = ({
-	disableOtel,
-}: {
-	disableOtel: boolean
-}) => {
+export const initializeWebSocketListener = () => {
 	if (typeof window !== 'undefined') {
 		// avoid initializing fetch listener more than once.
 		if (typeof window._highlightWebSocketRequestCallback !== 'undefined') {
@@ -24,7 +20,7 @@ export const initializeWebSocketListener = ({
 				target,
 				args: [url: string, protocols?: string | string[]],
 			) {
-				const [, socketId] = createNetworkRequestId(disableOtel)
+				const [, socketId] = createNetworkRequestId()
 				const webSocket = new target(...args)
 
 				const openHandler = (event: Event) => {
