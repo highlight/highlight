@@ -4,7 +4,6 @@ import (
 	"compress/gzip"
 	"context"
 	"encoding/base64"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"hash/fnv"
@@ -19,6 +18,8 @@ import (
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/goccy/go-json"
 
 	"github.com/PaesslerAG/jsonpath"
 	"github.com/aws/smithy-go/ptr"
@@ -2589,7 +2590,7 @@ type PushPayloadChunk struct {
 }
 
 func (r *Resolver) ProcessCompressedPayload(ctx context.Context, sessionSecureID string, payloadID int, data string) error {
-	querySessionSpan, _ := util.StartSpanFromContext(ctx, "public-graph.pushPayload.decompress")
+	querySessionSpan, sCtx := util.StartSpanFromContext(ctx, "public-graph.pushPayload.decompress")
 
 	reader, err := gzip.NewReader(base64.NewDecoder(base64.StdEncoding, strings.NewReader(data)))
 	if err != nil {
@@ -2611,7 +2612,7 @@ func (r *Resolver) ProcessCompressedPayload(ctx context.Context, sessionSecureID
 
 	querySessionSpan.Finish()
 
-	return r.ProcessPayload(ctx, sessionSecureID, payload.Events, payload.Messages, payload.Resources, payload.WebSocketEvents, payload.Errors, ptr.ToBool(payload.IsBeacon), ptr.ToBool(payload.HasSessionUnloaded), payload.HighlightLogs, pointy.Int(payloadID))
+	return r.ProcessPayload(sCtx, sessionSecureID, payload.Events, payload.Messages, payload.Resources, payload.WebSocketEvents, payload.Errors, ptr.ToBool(payload.IsBeacon), ptr.ToBool(payload.HasSessionUnloaded), payload.HighlightLogs, pointy.Int(payloadID))
 }
 
 func TransformEvents(evs []*publicModel.ReplayEventInput) (*parse.ReplayEvents, error) {
@@ -2654,10 +2655,7 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 		util.Tag("numberOfErrors", len(errors)),
 		util.Tag("numberOfEvents", len(events.Events)),
 	}
-	// sample-in payload with many events
-	if len(events.Events) > 1_000 {
-		opts = append(opts, util.WithSpanKind(trace.SpanKindServer))
-	}
+
 	span, ctx := util.StartSpanFromContext(ctx, "public-graph.pushPayload", opts...)
 	defer span.Finish()
 
