@@ -74,7 +74,7 @@ let highlight_obj: Highlight
 let first_load_listeners: FirstLoadListeners
 let init_called = false
 type Callback = (span?: Span) => any
-let getTracer: () => Tracer
+let getTracer: () => Tracer | undefined
 const H: HighlightPublicInterface = {
 	options: undefined,
 	init: (projectID?: string | number, options?: HighlightOptions) => {

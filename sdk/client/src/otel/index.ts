@@ -371,10 +371,10 @@ class CustomTraceContextPropagator extends W3CTraceContextPropagator {
 export const BROWSER_TRACER_NAME = 'highlight-browser'
 export const BROWSER_METER_NAME = BROWSER_TRACER_NAME
 export const getTracer = () => {
-	return providers.tracerProvider!.getTracer(BROWSER_TRACER_NAME)
+	return providers.tracerProvider?.getTracer(BROWSER_TRACER_NAME)
 }
 export const getMeter = () => {
-	return providers.meterProvider!.getMeter(BROWSER_METER_NAME)
+	return providers.meterProvider?.getMeter(BROWSER_METER_NAME)
 }
 
 export const getActiveSpan = () => {
@@ -386,10 +386,18 @@ export const getActiveSpanContext = () => {
 }
 
 export const shutdown = async () => {
-	await providers.tracerProvider!.forceFlush()
-	await providers.tracerProvider!.shutdown()
-	await providers.meterProvider!.forceFlush()
-	await providers.meterProvider!.shutdown()
+	if (providers.tracerProvider) {
+		await providers.tracerProvider.forceFlush()
+		await providers.tracerProvider.shutdown()
+	} else {
+		console.warn('OTEL shutdown called without initialized tracerProvider.')
+	}
+	if (providers.meterProvider) {
+		await providers.meterProvider.forceFlush()
+		await providers.meterProvider.shutdown()
+	} else {
+		console.warn('OTEL shutdown called without initialized meterProvider.')
+	}
 }
 
 const getSpanName = (
