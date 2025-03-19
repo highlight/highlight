@@ -132,7 +132,7 @@ const InnerPanel: React.FC<InnerPanelProps> = ({
 						),
 						'',
 					) // Remove 'OR value' or 'value OR'
-					.replace(new RegExp(`\\b${value}\\b`, 'g'), '') // Remove 'value' if alone
+					.replace(new RegExp(`(?<=\\=\\s*)\\b${value}\\b`, 'g'), '') // Remove value if alone
 					.replace(/\(\s+/g, '(') // Remove extra spaces after '('
 					.replace(/\s+\)/g, ')') // Remove extra spaces before ')'
 					.replace(/\(\s*\)/g, '') // Remove empty parentheses '()'
