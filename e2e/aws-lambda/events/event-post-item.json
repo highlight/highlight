@@ -1,4 +1,0 @@
-{
-	"httpMethod": "POST",
-	"body": "{\"id\": \"id1\",\"name\": \"name1\"}"
-}
