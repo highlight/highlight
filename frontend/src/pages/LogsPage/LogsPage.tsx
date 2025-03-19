@@ -307,7 +307,7 @@ const LogsPageInner = ({ timeMode, logCursor, presetDefault }: Props) => {
 							startDate={searchTimeContext.startDate}
 							endDate={searchTimeContext.endDate}
 						/>
-						<Stack gap="0">
+						<Stack gap="0" flexGrow={1}>
 							<ControlsBar
 								showControlsPanel={displayLeftPanel}
 								setShowControlsPanel={setDisplayLeftPanel}

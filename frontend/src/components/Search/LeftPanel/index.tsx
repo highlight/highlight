@@ -168,7 +168,11 @@ const InnerPanel: React.FC<InnerPanelProps> = ({
 	}
 
 	if (error) {
-		return <Callout title="Failed to load suggestions" kind="error" />
+		return (
+			<Box width="full" alignSelf="center" justifySelf="center">
+				<Callout title="Failed to load suggestions" kind="error" />
+			</Box>
+		)
 	}
 
 	return (
