@@ -1997,8 +1997,8 @@ func SendBillingNotifications(ctx context.Context, db *gorm.DB, mailClient *send
 	emailHistoryCache.Set(cacheKey, true)
 
 	fields := log.Fields{
-		"cacheKey": cacheKey,
-		"emailType": emailType,
+		"cacheKey":    cacheKey,
+		"emailType":   emailType,
 		"workspaceID": workspace.ID,
 	}
 	if detail != nil {
