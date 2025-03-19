@@ -1,39 +1,14 @@
 {
-	"name": "highlight-aws-lambda-example",
-	"version": "1.0.0",
-	"description": "Example AWS Lambda application showing Highlight SDK usage",
-	"main": "src/api.js",
-	"scripts": {
-		"build": "tsc",
-		"watch": "tsc -w",
-		"clean": "rm -rf dist",
-		"prebuild": "yarn clean",
-		"create-env": "echo '{\"ApiFunction\":{\"HIGHLIGHT_PROJECT_ID\":\"your-project-id\"},\"ErrorFunction\":{\"HIGHLIGHT_PROJECT_ID\":\"your-project-id\"},\"MetricsFunction\":{\"HIGHLIGHT_PROJECT_ID\":\"your-project-id\"},\"ProcessorFunction\":{\"HIGHLIGHT_PROJECT_ID\":\"your-project-id\"}}' > env.json",
-		"start-lambda": "sam local start-lambda --template template.yaml --env-vars env.json",
-		"start-lambda-eager": "sam local start-lambda --template template.yaml --env-vars env.json --warm-containers EAGER",
-		"start-api": "sam local start-api --template template.yaml --env-vars env.json",
-		"invoke-api": "aws lambda invoke --function-name ApiFunction --endpoint-url http://127.0.0.1:3001 --payload file://events/api-event.json api-response.json",
-		"invoke-error": "aws lambda invoke --function-name ErrorFunction --endpoint-url http://127.0.0.1:3001 --payload file://events/api-event.json error-response.json",
-		"invoke-metrics": "aws lambda invoke --function-name MetricsFunction --endpoint-url http://127.0.0.1:3001 --payload file://events/api-event.json metrics-response.json",
-		"invoke-processor": "aws lambda invoke --function-name ProcessorFunction --endpoint-url http://127.0.0.1:3001 --payload file://events/sqs-event.json processor-response.json",
-		"sam-invoke-api": "sam local invoke \"ApiFunction\" -e events/api-event.json",
-		"sam-invoke-error": "sam local invoke \"ErrorFunction\" -e events/api-event.json",
-		"sam-invoke-metrics": "sam local invoke \"MetricsFunction\" -e events/api-event.json",
-		"sam-invoke-processor": "sam local invoke \"ProcessorFunction\" -e events/sqs-event.json",
-		"package": "sam package --output-template-file packaged.yaml",
-		"deploy": "sam deploy --template-file packaged.yaml",
-		"dev": "yarn build && yarn create-env && yarn start-lambda"
-	},
+	"name": "aws-lambda",
+	"description": "aws-lambda",
+	"version": "0.0.1",
+	"private": true,
 	"dependencies": {
-		"@highlight-run/node": "workspace:*"
+		"@highlight-run/node": "^3.12.0"
 	},
-	"devDependencies": {
-		"@types/aws-lambda": "^8.10.147",
-		"@types/node": "^20.11.0",
-		"esbuild": "^0.19.11",
-		"typescript": "^5.3.3"
-	},
-	"engines": {
-		"node": ">=18.0.0"
+	"scripts": {
+		"build": "sam build",
+		"validate": "sam validate",
+		"start": "sam local start-api"
 	}
 }

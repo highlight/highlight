@@ -10477,7 +10477,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@highlight-run/node@workspace: *, @highlight-run/node@workspace:*, @highlight-run/node@workspace:sdk/highlight-node":
+"@highlight-run/node@npm:^3.12.0, @highlight-run/node@workspace: *, @highlight-run/node@workspace:*, @highlight-run/node@workspace:sdk/highlight-node":
   version: 0.0.0-use.local
   resolution: "@highlight-run/node@workspace:sdk/highlight-node"
   dependencies:
@@ -21547,13 +21547,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/aws-lambda@npm:^8.10.147":
-  version: 8.10.147
-  resolution: "@types/aws-lambda@npm:8.10.147"
-  checksum: 10/c80df3be4ed42acf7f1a139afeaa96c69466d63ce3e6578a9411bd956806a10ae182fb45fa6dc9e9b31e5da08762af3758abeb84f989edac4c8011d8bf5f7b8f
-  languageName: node
-  linkType: hard
-
 "@types/babel__core@npm:^7.0.0, @types/babel__core@npm:^7.1.14, @types/babel__core@npm:^7.18.0, @types/babel__core@npm:^7.20.5":
   version: 7.20.5
   resolution: "@types/babel__core@npm:7.20.5"
@@ -22620,15 +22613,6 @@ __metadata:
   dependencies:
     undici-types: "npm:~5.26.4"
   checksum: 10/7ba2b7203338f855fd7e90d09de3196e0d534c361ee0fbd7e3f24d416b867a017530d5721c4186f2c5402184e824a1fe65d2b5f9291751b9d8a7d2f9824f9a73
-  languageName: node
-  linkType: hard
-
-"@types/node@npm:^20.11.0":
-  version: 20.17.21
-  resolution: "@types/node@npm:20.17.21"
-  dependencies:
-    undici-types: "npm:~6.19.2"
-  checksum: 10/1100a658779e9b792f1ee67081212f33018f03cb1e6217fe3624bd27b28942518223ce0991aadc42bc4d0de890c251d3fd3b7767136183a2355017ccbd152533
   languageName: node
   linkType: hard
 
@@ -28092,6 +28076,14 @@ __metadata:
   checksum: 10/71fd8d4e57efb93dab5252e38cdeb2a90ccbe95346c5d7b63bbee7a3123cebe3873a4a930a7cd39afcbfaabd70ebb00e66fb0d5aca55cd9363f850d024c0980b
   languageName: node
   linkType: hard
+
+"aws-lambda@workspace:e2e/aws-lambda":
+  version: 0.0.0-use.local
+  resolution: "aws-lambda@workspace:e2e/aws-lambda"
+  dependencies:
+    "@highlight-run/node": "npm:^3.12.0"
+  languageName: unknown
+  linkType: soft
 
 "aws-sdk@npm:^2.814.0":
   version: 2.1415.0
@@ -34955,7 +34947,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"esbuild@npm:^0.19.11, esbuild@npm:^0.19.5, esbuild@npm:esbuild@~0.17.6 || ~0.18.0 || ~0.19.0":
+"esbuild@npm:^0.19.5, esbuild@npm:esbuild@~0.17.6 || ~0.18.0 || ~0.19.0":
   version: 0.19.12
   resolution: "esbuild@npm:0.19.12"
   dependencies:
@@ -40120,18 +40112,6 @@ __metadata:
   checksum: 10/744b5f4c18c7cfb82b22bd22e1d300a9ac4eafe05a22e58fb87e48addfca8be00604d9aa006434ea02f9530990eb4b393ddb28659e2ab7f833ce873e32eb809c
   languageName: node
   linkType: hard
-
-"highlight-aws-lambda-example@workspace:e2e/aws-lambda":
-  version: 0.0.0-use.local
-  resolution: "highlight-aws-lambda-example@workspace:e2e/aws-lambda"
-  dependencies:
-    "@highlight-run/node": "workspace:*"
-    "@types/aws-lambda": "npm:^8.10.147"
-    "@types/node": "npm:^20.11.0"
-    esbuild: "npm:^0.19.11"
-    typescript: "npm:^5.3.3"
-  languageName: unknown
-  linkType: soft
 
 "highlight-hono-example@workspace:e2e/hono":
   version: 0.0.0-use.local
