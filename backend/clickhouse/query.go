@@ -819,7 +819,8 @@ func KeyValueSuggestionsAggregated(ctx context.Context, client *Client, tableNam
 		Where(keyCountSb.Equal("ProjectId", projectID)).
 		Where(fmt.Sprintf("Day >= toStartOfDay(%s)", keyCountSb.Var(startDate))).
 		Where(fmt.Sprintf("Day <= toStartOfDay(%s)", keyCountSb.Var(endDate))).
-		GroupBy("Key")
+		GroupBy("Key").
+		OrderBy("KeyCount DESC")
 
 	// get all keys with more than 1 unique value where no more than 5% of values are unique
 	validKeySb := sqlbuilder.NewSelectBuilder()
@@ -829,18 +830,19 @@ func KeyValueSuggestionsAggregated(ctx context.Context, client *Client, tableNam
 		Where(fmt.Sprintf("Day >= toStartOfDay(%s)", validKeySb.Var(startDate))).
 		Where(fmt.Sprintf("Day <= toStartOfDay(%s)", validKeySb.Var(endDate))).
 		GroupBy("Key").
-		Having("uniq(Value) < sum(Count) * 0.05 AND uniq(Value) > 1")
+		Having("uniq(Value) < sum(Count) * 0.05 AND uniq(Value) > 1").
+		OrderBy("max(Count) DESC")
 
 	// get all keys and values with rank
 	rankSb := sqlbuilder.NewSelectBuilder()
-	rankSb.Select("Key, Value, KeyCount, Count as ValueCount, row_number() OVER (PARTITION BY Key ORDER BY max(Count) DESC) AS Rank").
+	rankSb.Select("Key, Value, KeyCount, sum(Count) as ValueCount, row_number() OVER (PARTITION BY Key ORDER BY sum(Count) DESC) AS Rank").
 		From(tableName).
 		Join(rankSb.BuilderAs(keyCountSb, "key_counts"), "key_counts.Key = Key").
 		Where(rankSb.Equal("ProjectId", projectID)).
 		Where(fmt.Sprintf("Day >= toStartOfDay(%s)", rankSb.Var(startDate))).
 		Where(fmt.Sprintf("Day <= toStartOfDay(%s)", rankSb.Var(endDate))).
 		Where(fmt.Sprintf("Key IN (%s)", rankSb.BuilderAs(validKeySb, "valid_keys"))).
-		GroupBy("Key, Value, KeyCount, Count").
+		GroupBy("Key, Value, KeyCount").
 		OrderBy("Key, KeyCount DESC")
 
 	// take top 10 values for each key
