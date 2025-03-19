@@ -16,7 +16,7 @@ export const GormTracesReorganizedContent: QuickStartContent = {
 		{
 			title: 'Initialize the GORM library with the Highlight hooks',
 			content:
-				'Import the Highlight GORM library and call the `SetupGORMTracing` hook with any attributes wanted for context.',
+				'Import the Highlight GORM library and call the `SetupGORMOTel` hook with any attributes wanted for context.',
 			code: [
 				{
 					text: `import (
@@ -26,7 +26,7 @@ export const GormTracesReorganizedContent: QuickStartContent = {
 )
 
 DB, err = gorm.Open(<DB_SETTINGS>)
-if err := htrace.SetupGORMTracing(DB, attribute.String(highlight.ProjectIDAttribute, <YOUR_PROJECT_ID>)); err != nil {
+if err := htrace.SetupGORMOTel(DB, highlight.GetProjectID()); err != nil {
   highlight.RecordError(ctx, err)
 }`,
 					language: 'go',
